@@ -103,25 +103,19 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 {
 	glDisable(GL_LIGHTING);
 
-#if 1	// new water 47.4fps (old water 52.8fps)
+#if 1	// new water 47.2fps (old water 44.0fps)
 
-/*
-das problem ist folgendes:
-bei dieser unterteilung werden auf dem bildschirm von unten nach oben (vorne nach hinten)
-dreiecke gemalt, dies sind pro tiefenschritt proportional zur tiefe viele.
-also 1,3,5,7,9,11,...
-daher hat man in der nähe des bootes zu wenige um kleine wellen zu zeichnen!!!
-anfangs müssen es mehr sein, zB 8 über die Bildschirmbreite, weiter hinten
-dann zunehmend, oder eben immer 8 dann wird's hinten flacher.
-*/
+#define WAVESX 16	// number of waves per screen scanline
 
+	// fixme: add "moving" water texture
+
+	// calculate FOV and view dependent direction vectors
 	GLfloat projmatrix[16];
 	glGetFloatv(GL_PROJECTION_MATRIX, projmatrix);
 	double tanfovx2 = projmatrix[0];
 	vector2 viewdir = dir.direction();
 	vector2 viewleft = viewdir.orthogonal();
 
-	// fixme: could this move to init?
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
@@ -129,17 +123,16 @@ dann zunehmend, oder eben immer 8 dann wird's hinten flacher.
 	// create vertices
 	vector<GLfloat> verticecoords;
 	vector<GLfloat> texturecoords;
-	unsigned verts = (WAVEDEPTH+1)*(WAVEDEPTH+2)/2;
+	unsigned verts = (WAVEDEPTH+1)*(WAVESX+1);
 	verticecoords.reserve(3*verts+2);
 	texturecoords.reserve(2*verts+2);
 	double texscalefac = 1.0/double(4*WAVESIZE);
 	double zdist = 0;
 	for (unsigned w = 0; w <= WAVEDEPTH; ++w) {
 		vector2 viewbase = viewpos.xy() + viewdir * zdist + viewleft * zdist * tanfovx2;
-		double viewleftfac = (w > 0) ? (-2 * zdist * tanfovx2 / w) : 0;
-		for (unsigned p = 0; p <= w; ++p) {
+		double viewleftfac = -2 * zdist * tanfovx2 / WAVESX;
+		for (unsigned p = 0; p <= WAVESX; ++p) {
 			// outer border of water must have height 0 to match horizon face
-//			double height = 0;	//testing fixme
 			double height = (w < WAVEDEPTH) ? get_waterheight((float)viewbase.x, (float)viewbase.y, (int)wavephase) : 0;
 			verticecoords.push_back(viewbase.x);
 			verticecoords.push_back(viewbase.y);
@@ -177,47 +170,35 @@ dann zunehmend, oder eben immer 8 dann wird's hinten flacher.
 	glVertexPointer(3, GL_FLOAT, 0, &verticecoords[0]);
 	glTexCoordPointer(2, GL_FLOAT, 0, &texturecoords[0]);
 	
-	// create faces, (WAVEDEPTH+1)^2 in number
+	// create faces, WAVEDEPTH*WAVESX*2 in number
 	glBegin(GL_TRIANGLES);
 	unsigned vertexnr = 0;
 	for (unsigned w = 0; w < WAVEDEPTH; ++w) {
-		for (unsigned p = 0; p < w; ++p) {
-			// current vertexnr: vertexnr
-			// vertexnr left in next row: vertexnr + w+1
-			// vertexnr right in next row: vertexnr + w+2
+		for (unsigned p = 0; p < WAVESX; ++p) {
 			// face 1
 			glArrayElement(vertexnr);
-			glArrayElement(vertexnr+w+2);
-			glArrayElement(vertexnr+w+1);
+			glArrayElement(vertexnr+WAVESX+2);
+			glArrayElement(vertexnr+WAVESX+1);
 			// face 2
 			glArrayElement(vertexnr);
 			glArrayElement(vertexnr+1);
-			glArrayElement(vertexnr+w+2);
+			glArrayElement(vertexnr+WAVESX+2);
 			++vertexnr;
 		}
-		glArrayElement(vertexnr);
-		glArrayElement(vertexnr+w+2);
-		glArrayElement(vertexnr+w+1);
 		++vertexnr;
 	}
 	
-	// horizon faces (last line has WAVEDEPTH+1 vertices)
-	glArrayElement(verts-WAVEDEPTH-1);
+	// horizon faces
+	glArrayElement(verts-WAVESX-1);
 	glArrayElement(verts+1);
 	glArrayElement(verts);
-	glArrayElement(verts-WAVEDEPTH-1);
+	glArrayElement(verts-WAVESX-1);
 	glArrayElement(verts-1);
 	glArrayElement(verts+1);
 	glEnd();
 	
-	// fixme: could this move to init?
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-	// fixme: horizon face (trapez)
-	// near: depth = znear+(WAVEDEPTH+1)*WAVESIZE
-	// far: depth = zfar
-	// viewpos+viewdir*zfar -+ viewleft*znear*tanfovx2
 
 #else
 
@@ -340,30 +321,22 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	skycol2 = color(color(0, 0, 16), color(24,47,244), colscal);
 
 	skyhemisphere->display(false, &skycol1, &skycol2);
+	
+	// clouds
+	double cloudscale = 2;		// depends on scale factor above
+	double cloudoffsetx = 0;	// depends on time for moving clouds
+	double cloudoffsety = 0;
+	double cloudaltitude = 6000.0/max_view_dist;	// clouds in 6km altitude
 	glBindTexture(GL_TEXTURE_2D, clouds->get_opengl_name());
-	float skysin[SKYSEGS], skycos[SKYSEGS];
-	for (int i = 0; i < SKYSEGS; ++i) {
-		float t = i*2*M_PI/SKYSEGS;
-		skycos[i] = cos(t);
-		skysin[i] = sin(t);
-	}
-	double cloudrot = fmod(gm.get_time(), 60)/60;
-	glBegin(GL_QUADS);	// fixme: quad strips!
-	float rl = 0.95, ru = 0.91;
-	float hl = 0.1, hu = 0.4;
-	for (int j = 0; j < SKYSEGS; ++j) {
-		int t = (j+1) % SKYSEGS;
-		lightcol.set_gl_color(0);
-		glTexCoord2f((j+1)*0.5+cloudrot, 0);
-		glVertex3f(rl * skycos[t], rl * skysin[t], hl);
-		glTexCoord2f((j  )*0.5+cloudrot, 0);
-		glVertex3f(rl * skycos[j], rl * skysin[j], hl);
-		lightcol.set_gl_color(255);
-		glTexCoord2f((j  )*0.5+cloudrot, 1);
-		glVertex3f(ru * skycos[j], ru * skysin[j], hu);
-		glTexCoord2f((j+1)*0.5+cloudrot, 1);
-		glVertex3f(ru * skycos[t], ru * skysin[t], hu);
-	}
+	glBegin(GL_QUADS);
+	glTexCoord2f(cloudoffsetx, cloudoffsety);
+	glVertex3f(-1,  1, cloudaltitude);
+	glTexCoord2f(cloudscale+cloudoffsetx, cloudoffsety);
+	glVertex3f( 1,  1, cloudaltitude);
+	glTexCoord2f(cloudscale+cloudoffsetx, cloudscale+cloudoffsety);
+	glVertex3f( 1, -1, cloudaltitude);
+	glTexCoord2f(cloudoffsetx, cloudscale+cloudoffsety);
+	glVertex3f(-1, -1, cloudaltitude);
 	glEnd();
 	glPopMatrix();
 	glEnable(GL_LIGHTING);
