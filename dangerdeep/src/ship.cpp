@@ -472,6 +472,8 @@ double ship::get_noise_factor (void) const
 //rudder is midships/screws stopped. Is fixed by setting drag to linear at speeds < 1.0
 //fixme: drag can go nuts when time is scaled causing NaN in double...
 //this is because damping becomes to crude at high time scale
+//fixme: in reality drag is v and v^2 combined... on low speeds v is significant term, on higher speeds
+//it is v^2. It is: v > v^2 for v < 1.
 vector3 ship::get_acceleration(void) const		// drag must be already included!
 {
 	// acceleration of ship depends on rudder.

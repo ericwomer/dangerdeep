@@ -239,28 +239,6 @@ string sea_object::get_description(unsigned detail) const
 
 void sea_object::simulate(game& gm, double delta_time)
 {
-	// fixme: 2004/06/18
-	// this should be replaced by directional speed.
-	// store spatial position and speed.
-	// get acceleration (spatial) from virtual function.
-	// solve an ODE with simple x'=x+v*t+a/2*t*t, v'=v+a*t
-	// the sea_object interface should be a bit more general (rigid body)
-	// even rotation/turning could/should be handled with forces.
-	// that is rotational impulse and torque.
-	// So store position and velocity for position/orientation.
-	// get acceleration/torque for time t, change position/orientation accordingly.
-	// attention: torque needs mass. we don't care about that, so use rotaccel.
-	// changing position/orientation depends on inertia and mass of object...
-	// for display, generate a rotation matrix from quaternion.
-	// heading is the angle of the projection of the 2nd column of that matrix onto
-	// the x-y plane.
-	// acceleration is mostly along local axes, so compute it like this:
-	// orientation rotates (0,accel,0) vector (acceleration along local y-axis).
-	// or better: get_acceleration() returns LOCAL acceleration.
-	// use vector3 acceleration = orientation.rotate(get_acceleration()); etc.
-	// or maybe offer both functions (both virtual): get_accel and get_local_accel
-	// the first is predefined with the rotation.
-
 	// this leads to another model for acceleration/max_speed/turning etc.
 	// the object applies force to the screws etc. with Force = acceleration * mass.
 	// there is some drag caused by air/water opposite to the force.
@@ -281,6 +259,9 @@ void sea_object::simulate(game& gm, double delta_time)
 	// of speed -> fuel comsumption depends ~quadratically on speed.
 	// To throttle to a given speed, apply max_accel until we have it then apply accel.
 
+	// drag: drag force is -b * v (low speeds), -b * v^2 (high speeds)
+	// b is proportional to cross section area of body.
+
 	// more difficult: change acceleration to match a certain position (or angle)
 	// s = s0 + v0 * t + a/2 * t^2, v = v0 + a * t
 	// compute a over time so that s_final = s_desired and v_final = 0, with arbitrary s0,v0.
@@ -292,26 +273,14 @@ void sea_object::simulate(game& gm, double delta_time)
 	// so compute side drag from turn_rate
 	// compute turn_rate to maximum angular velocity, limited by ship's draught and shape.
 
-	/* change header file:
-	vector3 position, velocity;
-	double acceleration -> double max_acceleration;
-	quaternion orientation, rotvelocity;
-	virtual vector3 get_acceleration(const double& t)  maybe t is not needed...
-	virtual quaternion get_rotacceleration();
-	*/
-	
-	// split rotation in three axis rotations for rot drag?
-	// project rotation axis onto x,y,z-axes?
-
-	// compute global accel from local with drag:
-	//vector3 accel = orientation.rotate(get_local_acceleration() - local_drag.coeff_mul(velocity.coeff_mul(velocity)));
-
-	// fixme: test hack
-	orientation = quaternion::rot(-heading.value(), 0, 0, 1);
+	// we store velocity/acceleration, not momentum/force/torque
+	// in reality applied force is transformed by inertia tensor, which is rotated according to
+	// orientation. we don't use mass here, so apply rotation to stored velocity/acceleration.
+	quaternion horientation = quaternion::rot(-heading.value(), 0, 0, 1);
 
 	vector3 acceleration = get_acceleration();
-	vector3 global_acceleration = orientation.rotate(acceleration);
-	vector3 global_velocity = orientation.rotate(velocity);
+	vector3 global_acceleration = horientation.rotate(acceleration);
+	vector3 global_velocity = horientation.rotate(velocity);
 	double t2_2 = 0.5 * delta_time * delta_time;
 
 //cout << "object " << this << " simulate.\npos: " << position << "\nvelo: " << velocity << "\naccel: " << acceleration << "\n";
@@ -330,92 +299,6 @@ void sea_object::simulate(game& gm, double delta_time)
 
 //cout << "object " << this << " orientat: " << orientation << " rot_velo: " << turn_velocity << " turn_accel " << turnaccel << "\n";
 
-
-//fixme: 2004/08/21: for turning only z-rotation is interesting. so replace get_rot_accel
-//by get_turn_accel.
-//the current code shows the same wrong behaviour like my airplane code
-//turning just turns, but the object keeps moving in the old direction (velocity is
-//directional and keeps direction!)
-
-
-//old: remove!
-
-	// calculate directional speed
-	//vector2 dir_speed_2d = heading.direction() * speed;
-	//vector3 dir_speed(dir_speed_2d.x, dir_speed_2d.y, 0);
-	
-	// calculate new position
-	//position += dir_speed * delta_time;
-	
-	// calculate speed change
-	// 2004/06/18 fixme: this is not part of physical simulation!
-	// changing acceleration to match speed to throttle is more an AI simulation.
-	// so it should move to another function or at least cleanly separated from physical
-	// simulation.
-	//move to ship!
-/*
-	double t = get_throttle_speed() - speed;
-	double s = acceleration * delta_time;
-	if (fabs(t) > s) {
-		speed += (t < 0) ? -s : s;
-	} else {
-		speed = get_throttle_speed();
-	}
-*/
-	/*
-	double s = get_throttle_speed();
-	double throttle_accel = 0;
-	//if (speed > s)
-	//	throttle_accel = 0;
-	if (speed < s)
-		throttle_accel = max_acceleration;
-	else
-		throttle_accel = drag * s*s;
-	*/
-	
-	/*
-		correct turning model:
-		object can only accelerate to left or right
-		water decelerates the object proportional to its speed
-		speed is limited
-		acceleration is a non-linear function, we assume a(t) values of +a,0,-a only
-		hence speed v(t) is integral over time of a(t)
-		and position s(t) is integral over time of v(t) with v(t) <= vmax
-		user wants to change depth/course etc. about s units.
-		This takes tf seconds.
-		Three phases: acceleration (tv seconds), constant speed (tc), deceleration (tv)
-		Two modes: tf >= 2*tv or not.
-		tv=vmax/a
-		s(t) after acceleration is (s=a/2*t^2,t=tv=vmax/a) s'=(vmax^2/a)/2
-		hence if s < 2*s' = vmax^2/a then mode 2.
-		here tf=2*t with s/2=a/2*t^2 -> s/2=a/2*(tf/2)^2 -> s=a*tf^2/4 ->
-		tf = sqrt(4*s/a) -> tf = 2*sqrt(s/a)
-		Else mode 1: s'' = s-2*s', tc=s''/vmax and tf = 2*tv+tc = 2*vmax/a + (s-2*s')/vmax
-		= 2*vmax/a + (s - vmax^2/a)/vmax
-		= 2*vmax/a + s/vmax - vmax/a
-		= vmax/a + s/vmax = tf
-		How to steer:
-		check if s < vmax^2/a then use mode 1: tf=2*sqrt(s/a), accelerate for tf/2 seconds, then decelerate.
-		or else use mode 2: accelerate for tv seconds, hold tc, decelerate.
-	*/
-
-	// calculate heading change (fixme, this turning is not physically correct)
-	//move to ship!
-/*
-	angle maxturnangle = turn_rate * (head_chg * delta_time * speed);
-	if (permanent_turn) {
-		heading += maxturnangle;
-	} else {
-		double fac = (head_to - heading).value_pm180()
-			/ maxturnangle.value_pm180();
-		if (0 <= fac && fac <= 1) {
-			rudder_midships();
-			heading = head_to;
-		} else {
-			heading += maxturnangle;
-		}
-	}
-*/
 }
 
 
