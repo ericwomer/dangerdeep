@@ -44,12 +44,14 @@ coastmap::coastmap(const string& filename)
 
 void coastmap::draw_as_map(void) const
 {
+	glBindTexture(GL_TEXTURE_2D, 0);
 	double rsegw = pixelw_real * pixels_per_seg;
 	double ry = 0;//-offsety;
 	for (unsigned y = 0; y < segsy; ++y) {
 		double rx = offsetx;
 		for (unsigned x = 0; x < segsx; ++x) {
 			const coastsegment& cs = coastsegments[y*segsx+x];
+/*
 			glColor4f(0.5,0.5,0.5,1);
 			glBegin(GL_LINE_LOOP);
 			glVertex2d(rx, ry);
@@ -58,16 +60,15 @@ void coastmap::draw_as_map(void) const
 			glVertex2d(rx+rsegw, ry);
 			glEnd();
 			glColor4f(1,1,0,0.5);
-			
+*/			
 			if (cs.type == 1) {
-/*
+//cout<<"draw land at "<<rx<<","<<ry<<"\n";			
 				glBegin(GL_QUADS);
-				glVertex2d(rx, -ry);
-				glVertex2d(rx, -ry-rsegw);
-				glVertex2d(rx+rsegw, -ry-rsegw);
-				glVertex2d(rx+rsegw, -ry);
+				glVertex2d(rx, ry);
+				glVertex2d(rx, ry+rsegw);
+				glVertex2d(rx+rsegw, ry+rsegw);
+				glVertex2d(rx+rsegw, ry);
 				glEnd();
-*/				
 			} else if (cs.type > 1) {
 				for (vector<coastline>::const_iterator it = cs.coastlines.begin(); it != cs.coastlines.end(); ++it) {
 					if (it->cyclic)
