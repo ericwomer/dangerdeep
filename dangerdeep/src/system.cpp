@@ -76,15 +76,20 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	screen_resize(res_x, res_y, nearz, farz);
 
 	// check for some OpenGL Extensions
-	char* vendor = (char*)glGetString(GL_VENDOR);
-	char* renderer = (char*)glGetString(GL_RENDERER);
-	char* version = (char*)glGetString(GL_VERSION);
-	char* extensions = (char*)glGetString(GL_EXTENSIONS);
+	string vendor = (char*)glGetString(GL_VENDOR);
+	string renderer = (char*)glGetString(GL_RENDERER);
+	string version = (char*)glGetString(GL_VERSION);
+	string extensions = (char*)glGetString(GL_EXTENSIONS);
+	while (true) {
+		unsigned pos = extensions.find(" ");
+		if (pos == string::npos) break;
+		extensions.replace(pos, 1, "\n");
+	}
 
 	cerr << "OpenGL vendor : " << vendor << "\n"
 		<< "GL renderer : " << renderer << "\n"
 		<< "GL version : " << version << "\n"
-		<< "Supported GL extensions : " << extensions << "\n";
+		<< "Supported GL extensions :\n" << extensions << "\n";
 
 	instance = this;
 }

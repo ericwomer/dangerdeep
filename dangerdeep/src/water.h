@@ -36,6 +36,12 @@ protected:
 	unsigned reflectiontex;
 	texture* foamtex;
 
+	// Arrays used while drawing a tile. To avoid repeated re-alloc, they're here
+	mutable vector<vector3f> coords;
+	mutable vector<color> colors;
+	mutable vector<vector2f> uv0;
+	mutable vector<vector3f> normals;
+
 #if 0		// old code, kept for reference, especially for foam
 	vector<texture*> water_bumpmaps;
 	// waves are stored in display lists to speed up drawing.

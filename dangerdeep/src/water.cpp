@@ -19,6 +19,7 @@
 #include "ocean_wave_generator.h"
 
 #include "system.h"
+#include <fstream>
 
 
 // some more interesting values: phase 256, waveperaxis: ask your gfx card, facesperwave 64+,
@@ -48,18 +49,45 @@ water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), ti
 		color wc = color(color(18, 73, 107), color(162, 193, 216 /*54, 98, 104*/), y/255.0f);
 		for (int x = 0; x < 256; x++) {
 			float scal = x/255.0f;
-			//scal = scal*scal;//*scal*scal*scal*scal*scal*scal;	// ^8
 			color fc = color(wc, color(239, 237, 203 /*255, 255, 255*/), scal);
+
+//#define SPHEREMAPCOORDS
+#ifdef SPHEREMAPCOORDS
+			float d = vector2f(x-127.5f, y-127.5f).length();
+			d = d / 127.5f;
+			if (d > 1.0f) d = 1.0f;
+			d = cos(asin(d));
+			d = d + 1.0f;
+			d = d*d;
+			d = d*d;
+			d = d*d;
+			d = 1.0f/d;
+			fc = color(color(18, 73, 107), color(162, 193, 216), d);
+#endif			
 			fresnelspecul[(x+y*256)*3+0] = fc.r;
 			fresnelspecul[(x+y*256)*3+1] = fc.g;
 			fresnelspecul[(x+y*256)*3+2] = fc.b;
 		}
 	}
+
+#ifdef SPHEREMAPCOORDS
+	ofstream oss("fresnel.ppm");
+	oss << "P6\n256 256\n255\n";
+	oss.write((const char*)(&fresnelspecul[0]), 256*256*3);
+#endif
+
+	coords.reserve((tile_res+1)*(tile_res+1));
+	colors.reserve((tile_res+1)*(tile_res+1));
+	uv0.reserve((tile_res+1)*(tile_res+1));
+#ifdef SPHEREMAPCOORDS
+	normals.reserve((tile_res+1)*(tile_res+1));
+#endif
+
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, &fresnelspecul[0]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	
 	foamtex = new texture(get_texture_dir() + "foam.png", GL_LINEAR);//fixme maybe mipmap it
 	
@@ -183,6 +211,85 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 
 	glDisable(GL_LIGHTING);
 
+	// ******************* set up textures
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	
+	glActiveTexture(GL_TEXTURE0);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, reflectiontex);
+
+//	float refraccol[4] = { 0.204f, 0.388f, 0.408f, 1.0f };
+//	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, refraccol);
+
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+/*
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_CONSTANT);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_PRIMARY_COLOR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);
+*/
+
+/* not needed for fresnel/specular
+	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_CONSTANT);
+	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
+*/
+
+#ifdef SPHEREMAPCOORDS
+	glEnable(GL_TEXTURE_GEN_S);
+	glEnable(GL_TEXTURE_GEN_T);
+	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+#endif
+
+	glActiveTexture(GL_TEXTURE1);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, foamtex->get_opengl_name());
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_PRIMARY_COLOR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);
+
+	// fixme: automatic generated texture coordinates for foam may be not realistic enough (foam doesn't move then with displacements)
+	GLfloat scalefac1 = 32.0f/WAVE_LENGTH;//fixme: scale to realistic foam size
+	GLfloat plane_s1[4] = { scalefac1, 0.0f, 0.0f, 0.0f };
+	GLfloat plane_t1[4] = { 0.0f, scalefac1, 0.0f, 0.0f };
+	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+	glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s1);
+	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+	glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t1);
+	glEnable(GL_TEXTURE_GEN_S);
+	glEnable(GL_TEXTURE_GEN_T);
+
+	// now set pointers, enable arrays
+	glEnableClientState(GL_COLOR_ARRAY);
+	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(color), &colors[0].r);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
+	glClientActiveTexture(GL_TEXTURE0);
+#ifdef SPHEREMAPCOORDS
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0].x);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &uv0[0].x);
+	glDisableClientState(GL_NORMAL_ARRAY);
+#endif
+	glClientActiveTexture(GL_TEXTURE1);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	// ******************* draw tiles
 	int s = 10;//0;//2
 	for (int y = -s; y <= s; ++y) {
 		for (int x = -s; x <= s; ++x) {
@@ -196,6 +303,22 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 			draw_tile(transl2, phase, lod0, fillgap);
 		}
 	}
+
+	// ******************* restore old texture state, disable arrays
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glClientActiveTexture(GL_TEXTURE0);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	glColor4f(1,1,1,1);
+
+	glActiveTexture(GL_TEXTURE1);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glActiveTexture(GL_TEXTURE0);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glPopAttrib();
+
 
 #if 0
 
@@ -425,7 +548,7 @@ int water::compute_lod_by_trans(const vector3f& transl) const
 {
 	double meandist = transl.xy().length();
 	const float maxloddist = 256.0f;
-	const float minloddist = 3000.0f;
+	const float minloddist = 5000.0f;
 	float a = (minloddist - maxloddist) / (int(base_detail) - 1);
 	float distfac = a/(meandist + a - maxloddist);
 	int lodlevel = int(base_detail*distfac) - 1;
@@ -511,82 +634,42 @@ void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillg
 	
 	// fixme: could we use spheremapping/cubemapping, automatic texture coordinate generation
 	// to compute E or E*N?
+	// yes, texture map is Fresnel(cos(asin(d))) with d = unit distance to texture center
+	// i.e. d = 2*sqrt((x-0.5)^2+(y-0.5)^2) for x,y in [0,1]
+	// but this leads to large parts of the texture to be blue, resolution is not high
+	// enough to compute the Fresnel term with satisfying accuracy.
+	// maybe a cube map could do better.
+	// big problem: turning the view changes the texture coordinates, that means
+	// turning the view changes either E (it shouldn't) or N (should only rotate N)
+	// T=Modelviewmatrix, E'=T*E, N'=T*N (it should be, check with redbook, fixme)
+	// E' is (0,0,1) then. n'.z = E'*N' = (T*E)*(T*N) ???
+	// with E'=(0,0,1)=T*E is E=Tinv * E' = Tinv * (0,0,1) = Tinv,3rd col = T,2nd row
+	// however: why does E or N change with turning, Fresnel doesn't?!
+	// hmmm. E is (0,0,1) in eye space?! this is true only for vertices at the center of
+	// the screen. Maybe sphere mapping works that way (E always 0,0,1 for all vertices)
+	// in that case we can't use sphere mapping for fresnel...
+	// NO! E is not always (0,0,1)!!!
+
+	// Water drawing is slow. It seems that the per vertex computations are not the problem
+	// nor is it the gap filling. Most probable reason is the amount of data that
+	// has to be transferred each frame.
+	// We have 4 colors, 3 coords, 2 texcoords per vertex (=4+12+8=24bytes)
+	// with 65*65 verts per tile, 21*21 tiles, mean resolution, say, 20 we have
+	// 21*21*21*21*24bytes/frame = ~4.7mb/frame, with 15frames ~ 70mb/second.
 
 // fixme: opengl1.2 has a COLOR MATRIX so colors can get multiplied by a 4x4 matrix before drawing
 // can we use this for anything?
 
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	
-	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, reflectiontex);
-
-//	float refraccol[4] = { 0.204f, 0.388f, 0.408f, 1.0f };
-//	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, refraccol);
-
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-/*
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_CONSTANT);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_PRIMARY_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);
-*/
-
-/* not needed for fresnel/specular
-	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_CONSTANT);
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
-*/
-
-	glActiveTexture(GL_TEXTURE1);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, foamtex->get_opengl_name());
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_PRIMARY_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);
-
-	// fixme: automatic generated texture coordinates for foam may be not realistic enough (foam doesn't move then with displacements)
-	GLfloat scalefac1 = 32.0f/WAVE_LENGTH;//fixme: scale to realistic foam size
-	GLfloat plane_s1[4] = { scalefac1, 0.0f, 0.0f, 0.0f };
-	GLfloat plane_t1[4] = { 0.0f, scalefac1, 0.0f, 0.0f };
-	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-	glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s1);
-	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-	glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t1);
-	glEnable(GL_TEXTURE_GEN_S);
-	glEnable(GL_TEXTURE_GEN_T);
-
 	unsigned res = (2 << lodlevel);
 	unsigned resi = res+1;
-	unsigned resd = res-1;
 	unsigned revres = (1 << (base_detail-1 - lodlevel));
-
-	vector<vector3f> coords;
-	coords.reserve(resi*resi);
-	vector<color> colors;
-	colors.reserve(resi*resi);
-	vector<vector2f> uv0;
-	uv0.reserve(resi*resi);
-//vector<vector3f> normals;
-//normals.reserve(resi*resi);	
 
 //#define DRAW_NORMALS
 #ifdef DRAW_NORMALS
-glActiveTexture(GL_TEXTURE0);
-glDisable(GL_TEXTURE_2D);
-glBegin(GL_LINES);
-glColor4f(1,1,1,1);
+	glActiveTexture(GL_TEXTURE0);
+	glDisable(GL_TEXTURE_2D);
+	glBegin(GL_LINES);
+	glColor4f(1,1,1,1);
 #endif
 
 //glEnable(GL_LIGHTING);
@@ -596,21 +679,24 @@ glColor4f(1,1,1,1);
 //L = vector3f(cos(tf),sin(tf),1).normal();
 	float add = float(WAVE_LENGTH)/res;
 	float fy = 0;
+	unsigned vecptr = 0;
 	for (unsigned y = 0; y <= tile_res; y += revres) {
 		float fx = 0;
 		unsigned cy = y & (tile_res-1);
-		for (unsigned x = 0; x <= tile_res; x += revres) {
+		for (unsigned x = 0; x <= tile_res; x += revres, ++vecptr) {
 			unsigned cx = x & (tile_res-1);
 			unsigned ptr = cy*tile_res+cx;
 			vector3f coord = transl + vector3f(
 				fx + wavetiledisplacements[phase][ptr].x,
 				fy + wavetiledisplacements[phase][ptr].y,
 				wavetileheights[phase][ptr]);
-			coords.push_back(coord);
+			coords[vecptr] = coord;
 			vector3f N = wavetilenormals[phase][ptr];
-//		normals.push_back(N);
+#ifdef SPHEREMAPCOORDS
+			normals[vecptr] = N;
+#endif			
 			vector3f E = -coord.normal();
-		//fixme: rotate light for testing? draw vectors for testing?
+
 			vector3f R = (2.0f*(L*N))*N - L;	// fixme precompute?
 
 #ifdef DRAW_NORMALS
@@ -649,11 +735,11 @@ glColor4f(1,1,1,1);
 			F = 1.0f/F;
 						
 				// fixme: green/blue depends on slope only? is color of refraction? or fresnel?! read papers!!! fixme
-			uv0.push_back(vector2f(S, F));
+			uv0[vecptr] = vector2f(S, F);
 			Uint8 foampart = 255; //(((x*x+1)*(y+3))&7)==0?0:255;//test hack
 //			Uint8 c = Uint8(F*255);	// fresnel term as part of color, if tex0 is reflection map
-//			colors.push_back(color(c, c, c, Uint8(S*255)));
-			colors.push_back(color(foampart, foampart, foampart, 255));
+//			colors[vecptr] = color(c, c, c, Uint8(S*255));
+			colors[vecptr] = color(foampart, foampart, foampart, 255);
 			fx += add;
 		}
 		fy += add;
@@ -662,8 +748,8 @@ glColor4f(1,1,1,1);
 // fixme: per vertex specular lighting could be done with OpenGL light sources?
 
 #ifdef DRAW_NORMALS
-glEnd();
-glEnable(GL_TEXTURE_2D);
+	glEnd();
+	glEnable(GL_TEXTURE_2D);
 #endif
 
 	// to avoid gaps, reposition the vertices, fillgap bits: 0,1,2,3 for top,right,bottom,left
@@ -696,36 +782,8 @@ glEnable(GL_TEXTURE_2D);
 		}
 	}
 
-	// now set pointers, enable arrays and draw elements, finally disable pointers
-	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(color), &colors[0].r);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
-	glDisableClientState(GL_NORMAL_ARRAY);
-//	glEnableClientState(GL_NORMAL_ARRAY);
-//	glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0].x);
-	glClientActiveTexture(GL_TEXTURE0);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &uv0[0].x);
-//	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glClientActiveTexture(GL_TEXTURE1);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	
+	// draw precomputed index list according to detail level
 	glDrawElements(GL_QUADS, res*res*4, GL_UNSIGNED_INT, &(waveindices[lodlevel][0]));
-
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glClientActiveTexture(GL_TEXTURE0);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-	glColor4f(1,1,1,1);
-
-	glActiveTexture(GL_TEXTURE1);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glActiveTexture(GL_TEXTURE0);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glPopAttrib();
 }
 
 
