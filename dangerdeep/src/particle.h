@@ -39,9 +39,15 @@ protected:
 
 	// particle textures (generated and stored once)
 	static unsigned init_count;
-	static texture* tex_smoke;
+	static vector<texture*> tex_smoke;
 	static vector<texture*> explosionbig;
 	static vector<texture*> explosionsml;
+
+	// wh must be power of two (returns a square). 1 <= 2^low <= 2^high <= wh
+	static vector<float> interpolate_func;
+	static vector<unsigned char> make_2d_smoothed_noise_map(unsigned wh);
+	static unsigned interpolate_2d_map(const vector<unsigned char>& mp, unsigned res, unsigned x, unsigned y, unsigned res2);
+	static vector<unsigned char> make_2d_perlin_noise(unsigned wh, unsigned highestlevel);
 
 public:
 	particle(const vector3& pos_) : pos(pos_), live(1.0f) {}
@@ -70,8 +76,9 @@ public:
 class smoke_particle : public particle
 {
 	bool is_z_up(void) const { return false; }
+	unsigned texnr;
 public:
-	smoke_particle(const vector3& pos_) : particle(pos_) {}
+	smoke_particle(const vector3& pos_);
 	~smoke_particle() {}
 	void simulate(game& gm, double delta_t);
 	double get_width(void) const;
