@@ -4,6 +4,7 @@
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#pragma warning (disable : 4786)
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL.h>
@@ -361,9 +362,9 @@ Uint8 user_interface::get_value_from_bytemap(unsigned x, unsigned y, unsigned le
 	return Uint8(v6 >> 16);
 }
 
-void user_interface::smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map)
+void user_interface::smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map1)
 {
-	vector<Uint8> map2 = map;
+	vector<Uint8> map2 = map1;
 	unsigned maxv = 0, minv = 255;
 	for (unsigned y = 0; y < s; ++y) {
 		unsigned y1 = (y+s-1)%s, y2 = (y+1)%s;
@@ -372,15 +373,15 @@ void user_interface::smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map)
 			unsigned v = (unsigned(map2[y1*s+x1]) + unsigned(map2[y1*s+x2]) + unsigned(map2[y2*s+x1]) + unsigned(map2[y2*s+x2])) / 16
 				+ (unsigned(map2[y*s+x1]) + unsigned(map2[y*s+x2]) + unsigned(map2[y1*s+x]) + unsigned(map2[y2*s+x])) / 8
 				+ (unsigned(map2[y*s+x])) / 4;
-			map[y*s+x] = Uint8(v);
+			map1[y*s+x] = Uint8(v);
 			if (v < minv) minv = v;
 			if (v > maxv) maxv = v;
 		}
 	}
 	for (unsigned y = 0; y < s; ++y) {
 		for (unsigned x = 0; x < s; ++x) {
-			unsigned v = map[y*s+x];
-			map[y*s+x] = Uint8((v - minv)*255/(maxv-minv));
+			unsigned v = map1[y*s+x];
+			map1[y*s+x] = Uint8((v - minv)*255/(maxv-minv));
 		}
 	}
 }

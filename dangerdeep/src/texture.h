@@ -7,12 +7,14 @@
 #include <string>
 using namespace std;
 #ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <SDL.h>
-#include <gl.h>
+#pragma warning (disable : 4786)
 #else
 #include <SDL/SDL.h>
-#include <GL/gl.h>
 #endif
+#include <GL/gl.h>
 
 class texture
 {

@@ -311,7 +311,6 @@ protected:
 	widget_text* current_path;
 
 	void read_current_dir(void);
-	void listclick(void);
 	unsigned nr_dirs, nr_files;
 	
 	struct filelist : public widget_list
@@ -330,6 +329,7 @@ public:
 	widget_fileselector(int x, int y, int w, int h, const string& text_, widget* parent_ = 0);
 	~widget_fileselector() {}
 	string get_filename(void) const { return current_path->get_text() + current_filename->get_text(); }
+	void listclick(void);
 };
 
 #endif

@@ -11,11 +11,14 @@ using namespace std;
 #include "texture.h"
 
 #ifdef WIN32
+#ifndef M_PI
+#define M_PI 3.1415926535897932	// should be in math.h, but not for Windows. *sigh*
+#endif
+#include <float.h>
+#define isfinite(a) _finite(a)
 #ifdef system
 #undef system
 #endif
-namespace ADVSYS
-{
 #endif
 
 class system
@@ -109,10 +112,4 @@ private:
 	int screenshot_nr;
 };
 
-#ifdef WIN32
-#define system ADVSYS::system
-}
 #endif
-
-#endif
-

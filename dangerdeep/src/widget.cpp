@@ -576,7 +576,7 @@ void widget_edit::draw(void) const
 	pair<unsigned, unsigned> sz = globaltheme->myfont->get_size(text.substr(0, cursorpos));
 	system::sys()->no_tex();
 	globaltheme->textcol.set_gl_color();
-	if (this == focussed)
+	if (this == (const widget*)focussed)
 		system::sys()->draw_rectangle(p.x+fw+sz.first, p.y+size.y/4, fw/2, size.y/2);
 }
 
@@ -652,7 +652,7 @@ void widget_fileselector::read_current_dir(void)
 			files.insert(e);
 		}
 	}
-	closedir(dir);
+	close_dir(dir);
 	nr_dirs = dirs.size()+1;
 	nr_files = files.size();
 	current_dir->append_entry("[..]");

@@ -10,6 +10,7 @@ using namespace std;
 // directory reading/writing encapsulated for compatibility
 
 #ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 typedef HANDLE directory;
 #define PATHSEPARATOR "\\"

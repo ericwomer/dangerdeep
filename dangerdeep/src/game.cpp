@@ -5,12 +5,12 @@
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <GL/gl.h>
 #include <SDL.h>
+#pragma warning (disable : 4786)
 #else
-#include <GL/gl.h>
 #include <SDL/SDL.h>
 #endif
+#include <GL/gl.h>
 #include "system.h"
 #include <sstream>
 

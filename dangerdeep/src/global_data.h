@@ -6,8 +6,11 @@
 
 #include <string>
 #ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <SDL.h>
 #define DATADIR "./data/"
+#pragma warning (disable : 4786)
 #define for if(0);else for
 #else
 #include <SDL/SDL.h>

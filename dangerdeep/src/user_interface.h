@@ -91,7 +91,7 @@ protected:
 	vector<vector<Uint8> > compute_noisemaps(void);
 	Uint8 get_value_from_bytemap(unsigned x, unsigned y, unsigned level,
 		const vector<Uint8>& nmap);
-	void smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map);
+	void smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map1);
 
 	static texture* torptex(unsigned type);
 

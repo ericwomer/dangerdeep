@@ -4,7 +4,6 @@
 #include "model.h"
 #include "system.h"
 #include "global_data.h"
-#include "error.h"
 
 #ifdef WIN32
 #undef min

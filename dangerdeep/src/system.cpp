@@ -8,26 +8,21 @@
 using namespace std;
 #define GL_GLEXT_LEGACY
 #ifdef WIN32
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
 #include <SDL.h>
 #include <SDL_image.h>
-#define M_PI 3.1415926535897932	// should be in math.h, but not for Windows. *sigh*
 #else
-#include <GL/gl.h>
-#include <GL/glu.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 #endif
+#include <GL/gl.h>
+#include <GL/glu.h>
 #include "system.h"
 
 #ifdef WIN32
 #ifdef system
 #undef system
 #endif
-namespace ADVSYS{
 #endif
 
 class system* system::instance = 0;
@@ -422,7 +417,3 @@ void system::gl_perspective_fovx(double fovx, double aspect, double znear, doubl
 	double t = znear * tanfovy2;
 	glFrustum(-r, r, -t, t, znear, zfar);
 }
-
-#ifdef WIN32
-}
-#endif
