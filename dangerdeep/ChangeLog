@@ -1,3 +1,7 @@
+2005-12-07  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* fixed some keys
+	* added analogue clock to periscope screen
+
 2005-02-07  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* texture.cpp
 	 - automatic resizing of too large textures

@@ -76,8 +76,12 @@ void sub_periscope_display::post_display(game& gm) const
 		background_nightlight->draw(0, 0);
 	}
 
-	// draw clock pointers (fixme)
-	// ...
+	// draw clock pointers
+	double t = gm.get_time();
+	double hourang = 360.0*myfrac(t / (86400/2));
+	double minuteang = 360*myfrac(t / 3600);
+	clock_hours_pointer->draw_rot(946, 294, hourang);
+	clock_minutes_pointer->draw_rot(946, 294, minuteang);
 
 //	ui.draw_infopanel(gm);
 	system::sys().unprepare_2d_drawing();
@@ -89,6 +93,9 @@ sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_dis
 {
 	background_normallight = new image(get_image_dir() + "periscope_daylight_rev.1.1b_final.png", true);
 	background_nightlight = new image(get_image_dir() + "periscope_redlight_rev.1.1b_final.png", true);
+
+	clock_minutes_pointer = new texture(get_image_dir() + "clock_minutes_pointer.png");
+	clock_hours_pointer = new texture(get_image_dir() + "clock_hours_pointer.png");
 
 	// read compass bar image and cut to eight separate textures
 	image compassbari(get_image_dir() + "periscope_compassbar2.png");
@@ -116,6 +123,9 @@ sub_periscope_display::~sub_periscope_display()
 {
 	delete background_normallight;
 	delete background_nightlight;
+
+	delete clock_minutes_pointer;
+	delete clock_hours_pointer;
 
 	for (unsigned i = 0; i < compassbar_tex.size(); ++i)
 		delete compassbar_tex[i];
