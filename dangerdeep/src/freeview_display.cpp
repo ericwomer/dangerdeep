@@ -466,7 +466,7 @@ void freeview_display::draw_view(game& gm) const
 		glTranslated(0, 0, 6);
 //		glLoadIdentity();
 //		glRotatef(-elevation.value()-90,1,0,0);
-		glRotatef((bearing - player->get_heading()).value(),0,0,1);
+		glRotatef(-player->get_heading().value(),0,0,1);
 //fixme handle different! with modelcache!
 		conning_tower_typeVII->display();
 //		glPopMatrix();

@@ -370,7 +370,6 @@ void model::material::set_gl_values(void) const
 			glMatrixMode(GL_TEXTURE);
 			glLoadIdentity();
 			glTranslatef(bump->uoffset, bump->voffset, 0);
-			glScalef(1, -1, 1);	// fixme: real order of operations is unknown
 			glRotatef(bump->angle, 0, 0, 1);
 			glScalef(bump->uscal, bump->vscal, 1);
 			bump->mytexture->set_gl_texture();
@@ -386,7 +385,6 @@ void model::material::set_gl_values(void) const
 			glMatrixMode(GL_TEXTURE);
 			glLoadIdentity();
 			glTranslatef(tex1->uoffset, tex1->voffset, 0);
-			glScalef(1, -1, 1);	// fixme: real order of operations is unknown
 			glRotatef(tex1->angle, 0, 0, 1);
 			glScalef(tex1->uscal, tex1->vscal, 1);
 			// primary color alpha seems to be ONE...
@@ -416,9 +414,10 @@ void model::material::set_gl_values(void) const
 			tex1->mytexture->set_gl_texture();
 			glMatrixMode(GL_TEXTURE);
 			glLoadIdentity();
+			glScalef(1, -1, 1); // y flip texture
 			glTranslatef(tex1->uoffset, tex1->voffset, 0);
-			glScalef(1, -1, 1);	// fixme: real order of operations is unknown
 			glRotatef(-tex1->angle, 0, 0, 1);
+//			cout << "uv off " << tex1->uoffset << "," << tex1->voffset << " ang " << tex1->angle << " scal " << tex1->uscal << "," << tex1->vscal << "\n";
 			glScalef(tex1->uscal, tex1->vscal, 1);
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			glActiveTexture(GL_TEXTURE1);
@@ -1008,20 +1007,11 @@ void model::m3ds_read_material(istream& in, m3ds_chunk& ch, model::mesh& m)
 		if ((*it)->name == matname) {
 			m.mymaterial = *it;
 			
+/*
 			for (vector<vector2f>::iterator it2 = m.texcoords.begin(); it2 != m.texcoords.end(); ++it2)
 				it2->y = -it2->y;
-
-/* fixme: do that with texture matrix.
-			// rotate texture coords (and negate v also)
-			float ca = cos(m.mymaterial->angle * M_PI / 180.0);
-			float sa = sin(m.mymaterial->angle * M_PI / 180.0);
-			for (vector<vector2f>::iterator it2 = m.texcoords.begin(); it2 != m.texcoords.end(); ++it2) {
-				float u = it2->x;
-				float v = it2->y;
-				it2->x = ca * u - sa * v;
-				it2->y = sa * u - ca * v;
-			}
 */
+
 			return;
 		}
 	}
