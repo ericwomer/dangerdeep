@@ -97,7 +97,10 @@ void submarine_interface::fire_tube(submarine* player, int nr)
 						failed_to_fire_msg = texts::get(764);
 						break;
 					default:
-						assert(false);
+						// could happen when tube is loaded
+						// but gyro angle is invalid for
+						// current target
+						return;
 				}
 			} else {
 				if (true == player->get_torpedoes().empty())

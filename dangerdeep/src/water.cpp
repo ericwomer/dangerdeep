@@ -22,7 +22,7 @@
 
 // compute projected grid efficiency, it should be 50-95%
 //#define COMPUTE_EFFICIENCY
-#define WAVE_SUB_DETAIL		// sub fft detail
+//#define WAVE_SUB_DETAIL		// sub fft detail
 
 // for testing
 //#define DRAW_WATER_AS_GRID
@@ -266,8 +266,6 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 
 	}
 
-	unsigned tm3 = 0, tm6 = 0, tm7 = 0;
-	srand(time(0));
 	perlinnoise_generator png;
 	png.add_noise_func(perlinnoise_generator::noise_func(3, 1, 256));
 	png.add_noise_func(perlinnoise_generator::noise_func(4, 1, 128));
@@ -275,40 +273,33 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	png.add_noise_func(perlinnoise_generator::noise_func(6, 1,  32));
 	png.add_noise_func(perlinnoise_generator::noise_func(6, 2,  16));
 	png.add_noise_func(perlinnoise_generator::noise_func(6, 4,   8));
-	water_bumpmap.resize(64);
+	water_bumpmap.resize(WAVE_PHASES);
 	for (unsigned n = 0; n < water_bumpmap.size(); ++n) {
 		for (unsigned k = 0; k < 6; ++k)
-			png.set_phase(0, float(n)/128, 0);
+			png.set_phase(0, float(n)/water_bumpmap.size(), 0);
 
-		unsigned tm1 = SDL_GetTicks();
-	perlinnoise pn = png.generate_map(8);
-		unsigned tm2 = SDL_GetTicks();
-		tm3 += (tm2 - tm1);
+//		perlinnoise pn = png.generate_map(8);
 #if 0
-	vector<Uint8> wbtmp2 = pn.noisemap;
-	ostringstream osgname;
-	osgname << "noisemap" << n << ".pgm";
-	ofstream osg(osgname.str().c_str());
-	osg << "P5\n256 256\n255\n";
-	osg.write((const char*)(&wbtmp2[0]), 256*256);
+		vector<Uint8> wbtmp2 = pn.noisemap;
+		ostringstream osgname;
+		osgname << "noisemap" << n << ".pgm";
+		ofstream osg(osgname.str().c_str());
+		osg << "P5\n256 256\n255\n";
+		osg.write((const char*)(&wbtmp2[0]), 256*256);
 #endif
-#if 0
-	vector<Uint8> wbtmp(WAVE_RESOLUTION*WAVE_RESOLUTION*3);
-	for (unsigned i = 0; i < WAVE_RESOLUTION*WAVE_RESOLUTION; ++i) {
-		wbtmp[3*i+0] = (wavetilenormals[0][i].x+1.0f)/2.0f*255;
-		wbtmp[3*i+1] = (wavetilenormals[0][i].y+1.0f)/2.0f*255;
-		wbtmp[3*i+2] = (wavetilenormals[0][i].z+1.0f)/2.0f*255;
-	}
-	water_bumpmap = new texture(&wbtmp[0], WAVE_RESOLUTION, WAVE_RESOLUTION,
-				    GL_RGB, GL_LINEAR /*_MIPMAP_LINEAR*/, GL_REPEAT, false);
+#if 1
+		vector<Uint8> wbtmp(WAVE_RESOLUTION*WAVE_RESOLUTION*3);
+		for (unsigned i = 0; i < WAVE_RESOLUTION*WAVE_RESOLUTION; ++i) {
+			wbtmp[3*i+0] = (wavetilenormals[n][i].x+1.0f)/2.0f*255;
+			wbtmp[3*i+1] = (wavetilenormals[n][i].y+1.0f)/2.0f*255;
+			wbtmp[3*i+2] = (wavetilenormals[n][i].z+1.0f)/2.0f*255;
+		}
+		water_bumpmap[n] = new texture(&wbtmp[0], WAVE_RESOLUTION, WAVE_RESOLUTION,
+					    GL_RGB, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, false);
+#else
+		water_bumpmap[n] = texture::make_normal_map(&(pn.noisemap[0]), 256, 256, 4.0f, //16.0f,
+							    GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 #endif
-	unsigned tm4 = SDL_GetTicks() - tm1;
-	water_bumpmap[n] = texture::make_normal_map(&(pn.noisemap[0]), 256, 256, 8.0f, //16.0f,
-						 GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
-	unsigned tm5 = SDL_GetTicks() - tm1;
-	tm6 += tm4;
-	tm7 += tm5;
-	//printf("tm cur total %u %u   %u %u  %u %u\n",tm3,tm3/(n+1),tm4,tm5,tm6,tm7);
 	}
 
 	add_loading_screen("water height data computed");
@@ -803,7 +794,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 			const vector3f& N = normals[ptr];
 
 			if (fragment_program_supported && use_fragment_programs) {
-				uv0[ptr] = vector2f(myfmod(coord.x, 4*256)*0.5f, myfmod(coord.y,4*256)*0.5f); // fixme, use noise map texc's
+				uv0[ptr] = vector2f(coord.x*0.125f, coord.y*0.125f); // fixme, use noise map texc's
 				//fixme ^, offset is missing
 				vector3f tx = vector3f(1, 0, 0);//fixme hack
 				vector3f ty = N.cross(tx);

@@ -48,8 +48,8 @@ image::image(const string& s, bool maketex, int mapping, int clamp) :
 
 		lastcolw = widths.back();
 		lastrowh = heights.back();
-		lastcolu = float(lastcolw)/float(textures[gltx-1]->get_width());
-		lastrowv = float(lastrowh)/float(textures[gltx*(glty-1)]->get_height());
+		lastcolu = float(lastcolw)/float(textures[gltx-1]->get_gl_width());
+		lastrowv = float(lastrowh)/float(textures[gltx*(glty-1)]->get_gl_height());
 		
 		// data is safe in texture memory, so free image.
 		SDL_FreeSurface(img);
@@ -77,10 +77,10 @@ void image::draw(int x, int y) const
 		int yp = y;
 		for (unsigned yy = 0; yy < glty; ++yy) {
 			int xp = x;
-			unsigned h = (yy == glty-1) ? lastrowh : textures[texptr]->get_height();
+			unsigned h = (yy == glty-1) ? lastrowh : textures[texptr]->get_gl_height();
 			float v = (yy == glty-1) ? lastrowv : 1.0f;
 			for (unsigned xx = 0; xx < gltx; ++xx) {
-				unsigned w = (xx == gltx-1) ? lastcolw : textures[texptr]->get_width();
+				unsigned w = (xx == gltx-1) ? lastcolw : textures[texptr]->get_gl_width();
 				float u = (xx == gltx-1) ? lastcolu : 1.0f;
 				glBindTexture(GL_TEXTURE_2D, textures[texptr]->get_opengl_name());
 				glBegin(GL_QUADS);

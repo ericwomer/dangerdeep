@@ -6,12 +6,16 @@
 #include "texture.h"
 #include "game.h"
 #include "sub_tdc_display.h"
-#include "user_interface.h"
+#include "submarine_interface.h"
 #include "submarine.h"
 #include "keys.h"
 #include "cfg.h"
 #include <sstream>
 using namespace std;
+
+static int tubelightx[6] = { 31,150,271,392,518,641};
+static int tubelighty[6] = {617,610,612,612,617,611};
+static int tubeswitchx = 760, tubeswitchy = 492;
 
 
 sub_tdc_display::rotat_tex::rotat_tex() : tex(0), left(0), top(0), centerx(0), centery(0)
@@ -120,11 +124,76 @@ sub_tdc_display::~sub_tdc_display()
 
 void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 {
+	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
+	bool is_day = true;//gm.is_day_mode();
+	const scheme& s = (is_day) ? normallight : nightlight;
+	int mx, my;
+	switch (event.type) {
+	case SDL_MOUSEBUTTONDOWN:
+		mx = event.button.x;
+		my = event.button.y;
+		// check if mouse is over tube indicators
+		for (unsigned i = 0; i < 6; ++i) {
+			if (mx >= tubelightx[i] && my >= tubelighty[i] &&
+			    mx < tubelightx[i] + int(s.tubelight[i]->get_width()) &&
+			    my < tubelighty[i] + int(s.tubelight[i]->get_height())) {
+				dynamic_cast<submarine_interface&>(ui).fire_tube(sub, i);
+			}
+		}
+		if (mx >= tubeswitchx && my >= tubeswitchy &&
+		    mx < tubeswitchx + int(s.tubeswitch[0]->get_width()) &&
+		    my < tubeswitchy + int(s.tubeswitch[0]->get_height())) {
+			// fixme: better make angle switch?
+			unsigned tn = (6 * (mx - tubeswitchx)) / s.tubeswitch[0]->get_width();
+			if (tn < sub->get_nr_of_bow_tubes() + sub->get_nr_of_stern_tubes())
+				selected_tube = tn;
+		}
+
+/*
+		//if mouse is over control c, compute angle a, set matching command, fixme
+		if (indicators[compass].is_over(mx, my)) {
+			angle mang = angle(180)-indicators[compass].get_angle(mx, my);
+			sub->head_to_ang(mang, mang.is_cw_nearer(sub->get_heading()));
+		} else if (indicators[depth].is_over(mx, my)) {
+			angle mang = angle(-39) - indicators[depth].get_angle(mx, my);
+			if (mang.value() < 270) {
+				sub->dive_to_depth(unsigned(mang.value()));
+			}
+		} else if (indicators[mt].is_over(mx, my)) {
+			unsigned opt = (indicators[mt].get_angle(mx, my) - angle(210)).value() / 20;
+			if (opt >= 15) opt = 14;
+			switch (opt) {
+			case 0: sub->set_throttle(ship::aheadflank); break;
+			case 1: sub->set_throttle(ship::aheadfull); break;
+			case 2: sub->set_throttle(ship::aheadhalf); break;
+			case 3: sub->set_throttle(ship::aheadslow); break;
+			case 4: sub->set_throttle(ship::aheadlisten); break;
+			case 7: sub->set_throttle(ship::stop); break;
+			case 11: sub->set_throttle(ship::reverse); break;//fixme: various reverse speeds!
+			case 12: sub->set_throttle(ship::reverse); break;
+			case 13: sub->set_throttle(ship::reverse); break;
+			case 14: sub->set_throttle(ship::reverse); break;
+			case 5: // diesel engines
+			case 6: // attention
+			case 8: // electric engines
+			case 9: // surface
+			case 10:// dive
+				break;
+			}
+		}
+*/
+		break;
+	default:
+		break;
+	}
+
+/*
 	switch (event.type) {
 	case SDL_KEYDOWN:
 		//fixme
 	default: break;
 	}
+*/
 }
 
 
@@ -186,16 +255,14 @@ void sub_tdc_display::display(class game& gm) const
 	s.spreadangle.draw(77/*fixme*/);
 
 	// draw tubes if ready
-	unsigned tubex[6] = { 31,150,271,392,518,641};
-	unsigned tubey[6] = {617,610,612,612,617,611};
 	for (unsigned i = 0; i < 6; ++i) {
 		if (player->is_tube_ready(i)) {
-			s.tubelight[i]->draw(tubex[i], tubey[i]);
+			s.tubelight[i]->draw(tubelightx[i], tubelighty[i]);
 		}
 	}
 
 	// tube turn switch
-	s.tubeswitch[selected_tube]->draw(760, 492);
+	s.tubeswitch[selected_tube]->draw(tubeswitchx, tubeswitchy);
 	if (player->is_tube_ready(selected_tube)) {
 		s.firebutton->draw(885, 354);
 	}

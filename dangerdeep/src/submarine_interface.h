@@ -36,11 +36,11 @@ protected:
 	submarine_interface& operator= (const submarine_interface& other);
 	submarine_interface(const submarine_interface& other);
 
-	void fire_tube(submarine* player, int nr);
-	
-public:	
+public:
 	submarine_interface(class game& gm);
 	virtual ~submarine_interface();
+
+	void fire_tube(submarine* player, int nr);
 
 	virtual void display(void) const;
 	virtual void process_input(const SDL_Event& events);

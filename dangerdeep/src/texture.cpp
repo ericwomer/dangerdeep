@@ -30,8 +30,10 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	unsigned tw = 1, th = 1;
 	while (tw < sw) tw *= 2;
 	while (th < sh) th *= 2;
-	width = tw;
-	height = th;
+	width = sw;
+	height = sh;
+	gl_width = tw;
+	gl_height = th;
 
 //	not longer necessary because of automatic texture resize in update()	
 //	sys().myassert(tw <= get_max_size(), "texture: texture width too big");
@@ -114,8 +116,9 @@ texture::texture(const string& filename, int mapping_, int clamp, bool keep)
 texture::texture(Uint8* pixels, unsigned w, unsigned h, int format_,
 	int mapping_, int clamp, bool keep)
 {
-	width = w;
-	height = h;
+	// fixme: check that w/h are powers of two
+	width = gl_width = w;
+	height = gl_height = h;
 	format = format_;
 	mapping = mapping_;
 	glGenTextures(1, &opengl_name);
@@ -208,18 +211,18 @@ void texture::update(void)
 			}
 		}
 		data2.swap(data);
-		width = newwidth;
-		height = newheight;
+		gl_width = newwidth;
+		gl_height = newheight;
 	}
 	
 	glBindTexture(GL_TEXTURE_2D, opengl_name);
-	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, &data[0]);
+	glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format, GL_UNSIGNED_BYTE, &data[0]);
 	if (	mapping == GL_NEAREST_MIPMAP_NEAREST
 		|| mapping == GL_NEAREST_MIPMAP_LINEAR
 		|| mapping == GL_LINEAR_MIPMAP_NEAREST
 		|| mapping == GL_LINEAR_MIPMAP_LINEAR ) {
 
-		gluBuild2DMipmaps(GL_TEXTURE_2D, format, width, height, format, GL_UNSIGNED_BYTE, &data[0]);
+		gluBuild2DMipmaps(GL_TEXTURE_2D, format, gl_width, gl_height, format, GL_UNSIGNED_BYTE, &data[0]);
 	}
 }
 
@@ -245,17 +248,19 @@ void texture::set_gl_texture(void) const
 // draw_image
 void texture::draw(int x, int y) const
 {
-	draw(x, y, get_width(), get_height());
+	draw(x, y, get_gl_width(), get_gl_height());
 }
 
 void texture::draw_hm(int x, int y) const
 {
-	draw_hm(x, y, get_width(), get_height());
+	// fixme: results are invalid if gl_width is != width...
+	draw_hm(x, y, get_gl_width(), get_gl_height());
 }
 
 void texture::draw_vm(int x, int y) const
 {
-	draw_vm(x, y, get_width(), get_height());
+	// fixme: results are invalid if gl_height is != height...
+	draw_vm(x, y, get_gl_width(), get_gl_height());
 }
 
 void texture::draw(int x, int y, int w, int h) const
@@ -305,10 +310,11 @@ void texture::draw_vm(int x, int y, int w, int h) const
 
 void texture::draw_rot(int x, int y, double angle) const
 {
+	// fixme if gl_w/h is != w/h result is wrong
 	glPushMatrix();
 	glTranslatef(x, y, 0);
 	glRotatef(angle, 0, 0, 1);
-	draw(-int(get_width())/2, -int(get_height())/2);
+	draw(-int(get_gl_width())/2, -int(get_gl_height())/2);
 	glPopMatrix();
 }
 
@@ -323,8 +329,8 @@ void texture::draw_rot(int x, int y, double angle, int tx, int ty) const
 
 void texture::draw_tiles(int x, int y, int w, int h) const
 {
-	float tilesx = float(w)/width;
-	float tilesy = float(h)/height;
+	float tilesx = float(w)/gl_width;
+	float tilesy = float(h)/gl_height;
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
 	glBegin(GL_QUADS);
 	glTexCoord2f(0,0);
@@ -341,10 +347,10 @@ void texture::draw_tiles(int x, int y, int w, int h) const
 void texture::draw_subimage(int x, int y, int w, int h, unsigned tx, unsigned ty,
 	unsigned tw, unsigned th) const
 {
-	float x1 = float(tx)/width;
-	float y1 = float(ty)/height;
-	float x2 = float(tx+tw)/width;
-	float y2 = float(ty+th)/height;
+	float x1 = float(tx)/gl_width;
+	float y1 = float(ty)/gl_height;
+	float x2 = float(tx+tw)/gl_width;
+	float y2 = float(ty+th)/gl_height;
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
 	glBegin(GL_QUADS);
 	glTexCoord2f(x1,y1);

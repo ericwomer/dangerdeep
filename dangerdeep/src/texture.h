@@ -20,15 +20,22 @@ using namespace std;
 class texture
 {
 protected:
-	unsigned opengl_name, width, height;
+	// fixme: with automatic size adjustment width/height could change...
+	// when user retrieves w/h later he could get strange results.
+	// maybe store real and gl width, with two get_... functions.
+	unsigned opengl_name;
+	unsigned width;
+	unsigned height;
+	unsigned gl_width;
+	unsigned gl_height;
 	string texfilename;
 	int format;		// GL_RGB, GL_RGBA, etc.
 	int mapping;		// how GL draws the texture (GL_NEAREST, GL_LINEAR, etc.)
 	vector<Uint8> data;	// texture data (only stored if user wishes that)
 	
-	texture() {};
-	texture& operator=(const texture& other) { return *this; };
-	texture(const texture& other) {};
+	texture();
+	texture& operator=(const texture& other);
+	texture(const texture& other);
 	
 	// share common constructor code
 	void init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
@@ -69,6 +76,8 @@ public:
 	string get_name(void) const { return texfilename; };
 	unsigned get_width(void) const { return width; };
 	unsigned get_height(void) const { return height; };
+	unsigned get_gl_width(void) const { return gl_width; };
+	unsigned get_gl_height(void) const { return gl_height; };
 
 	// 2d drawing must be turned on for this functions
 	void draw(int x, int y) const;
@@ -91,6 +100,7 @@ public:
 
 	// shader handling.
 	// give GL_FRAGMENT_PROGRAM_ARB or GL_VERTEX_PROGRAM_ARB as type
+	// fixme: a bit misplaced here!
 	static GLuint create_shader(GLenum type, const string& filename);
 	static void delete_shader(GLuint nr);
 };
