@@ -1,6 +1,7 @@
 2004-12-07  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* everywhere LOTS OF THINGS
 	 - mostly fixes, internal restructuring of display/interface code
+	 - complete new system of handling input
 	 - particle system, better graphics
 	 - new model o class dd
 	 - italian language
