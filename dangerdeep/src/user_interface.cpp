@@ -259,7 +259,7 @@ void user_interface::compute_clouds(void)
 			cmaps[i][j] = Uint8(noisemaps_0[i][j]*(1-f) + noisemaps_1[i][j]*f);
 
 	// create full map
-	vector<Uint8> fullmap(256 * 256 * 4);
+	vector<Uint8> fullmap(256 * 256 * 2);
 	unsigned fullmapptr = 0;
 	for (unsigned y = 0; y < 256; ++y) {
 		for (unsigned x = 0; x < 256; ++x) {
@@ -279,14 +279,12 @@ void user_interface::compute_clouds(void)
 			// use sharpness for exp function
 			v = 255 - v * 256 / cloud_coverage;	// equalize
 			fullmap[fullmapptr++] = 255;
-			fullmap[fullmapptr++] = 255;
-			fullmap[fullmapptr++] = 255;
 			fullmap[fullmapptr++] = Uint8(v * unsigned(cloud_alpha[y*256+x]) / 255);
 		}
 	}
 
 	delete clouds;	
-	clouds = new texture(&fullmap[0], 256, 256, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE,
+	clouds = new texture(&fullmap[0], 256, 256, GL_LUMINANCE_ALPHA, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE,
 		GL_LINEAR, GL_CLAMP);
 }
 
@@ -544,6 +542,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 
 	sea_object* player = get_player();
 
+	// fixme: make use of game::job interface, 3600/256 = 14.25 secs job period
 	float cf = myfmod(gm.get_time(), CLOUD_ANIMATION_CYCLE_TIME)/CLOUD_ANIMATION_CYCLE_TIME - cloud_animphase;
 	if (cf < 0) cf += 1.0;
 	advance_cloud_animation(cf);
