@@ -13,6 +13,7 @@ extern const char* TXT_Heading[];
 extern const char* TXT_Bearing[];
 extern const char* TXT_Range[];
 extern const char* TXT_Speed[];
+extern const char* TXT_Depth[];
 extern const char* TXT_Target[];
 extern const char* TXT_Angleonthebow[];
 extern const char* TXT_Warshipengagement[];

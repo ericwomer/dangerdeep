@@ -74,7 +74,7 @@ private:
 	
 	// 2d drawing must be turned on for them
 	void draw_infopanel(class system& sys) const;
-	void draw_manometer(class system& sys, unsigned nr, int x, int y, unsigned wh, angle a,
+	void draw_gauge(class system& sys, unsigned nr, int x, int y, unsigned wh, angle a,
 		const char* text) const;
 	void draw_vessel_symbol(class system& sys, unsigned res_x, unsigned res_y,
 		const vector2& offset, const sea_object* so, float r, float g, float b) const;
@@ -83,7 +83,7 @@ private:
 	void draw_view(class system& sys, class game& gm, const vector3& viewpos,
 		bool withplayer);
 
-	void display_help(class system& sys, class game& gm);
+	void display_gauges(class system& sys, class game& gm);
 	void display_periscope(class system& sys, class game& gm);
 	void display_UZO(class system& sys, class game& gm);
 	void display_bridge(class system& sys, class game& gm);

@@ -78,16 +78,16 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 	// handle common keys (fixme: make configureable?)
 	switch (keycode) {
 		// viewmode switching
-		case SDLK_F1: viewmode = 0; pause = true; break;
-		case SDLK_F2: viewmode = 1; pause = false; break;
-		case SDLK_F3: viewmode = 2; pause = false; break;
-		case SDLK_F4: viewmode = 3; pause = false; break;
-		case SDLK_F5: viewmode = 4; pause = false; break;
-		case SDLK_F6: viewmode = 5; pause = false; break;
-		case SDLK_F7: viewmode = 6; pause = false; break;
-		case SDLK_F8: viewmode = 7; pause = false; break;
-		case SDLK_F9: viewmode = 8; pause = false; break;
-		case SDLK_F10: viewmode = 9; pause = false; break;
+		case SDLK_F1: viewmode = 0; break;
+		case SDLK_F2: viewmode = 1; break;
+		case SDLK_F3: viewmode = 2; break;
+		case SDLK_F4: viewmode = 3; break;
+		case SDLK_F5: viewmode = 4; break;
+		case SDLK_F6: viewmode = 5; break;
+		case SDLK_F7: viewmode = 6; break;
+		case SDLK_F8: viewmode = 7; break;
+		case SDLK_F9: viewmode = 8; break;
+		case SDLK_F10: viewmode = 9; break;
 
 		// time scaling fixme: too simple
 		case SDLK_F11: if (time_scale < 100) ++time_scale; sys.add_console("time scale +"); break;
@@ -115,24 +115,6 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 
 		// weapons, fixme
 		case SDLK_t: player->fire_torpedo(gm, true/*fixme*/, -1/*fixme*/, target); break;
-/*
-		case SDLK_f: {	// FAT hack test
-			torpedo* t = new torpedo(player, 2);
-			if (target) {
-				bool ok = t->adjust_head_to(target);
-				if (ok) {
-					sys.add_console("torpedo gyro angle ok");
-					gm.spawn_torpedo(t);
-				} else {
-					sys.add_console("torpedo gyro angle invalid");
-					delete t;
-				}
-			} else {
-				gm.spawn_torpedo(t);
-			}
-			break;
-			}
-*/			
 		case SDLK_SPACE: target = gm.ship_in_direction_from_pos(player->get_pos().xy(), player->get_heading()+bearing);
 			if (target) sys.add_console("new target selected");
 			else sys.add_console("no target in direction");
@@ -187,14 +169,14 @@ void submarine_interface::draw_infopanel(class system& sys) const
 	font_panel->print(0, sys.get_res_y()-font_panel->get_height(), paneltext);
 }
 
-void submarine_interface::draw_manometer(class system& sys, unsigned nr, int x, int y,
+void submarine_interface::draw_gauge(class system& sys, unsigned nr, int x, int y,
 	unsigned wh, angle a, const char* text) const
 {
 	switch (nr) {
-		case 1:	sys.draw_image(x, y, wh, wh, manometer1); break;
-		case 2:	sys.draw_image(x, y, wh, wh, manometer2); break;
-		case 3:	sys.draw_image(x, y, wh, wh, manometer3); break;
-		case 4:	sys.draw_image(x, y, wh, wh, manometer4); break;
+		case 1:	sys.draw_image(x, y, wh, wh, gauge1); break;
+		case 2:	sys.draw_image(x, y, wh, wh, gauge2); break;
+		case 3:	sys.draw_image(x, y, wh, wh, gauge3); break;
+		case 4:	sys.draw_image(x, y, wh, wh, gauge4); break;
 		default: return;
 	}
 	vector2 d = a.direction();
@@ -418,7 +400,7 @@ void submarine_interface::display(class system& sys, game& gm)
 		viewmode = 4;
 
 	switch (viewmode) {
-		case 0: display_help(sys, gm); break;
+		case 0: display_gauges(sys, gm); break;
 		case 1: display_periscope(sys, gm); break;
 		case 2: display_UZO(sys, gm); break;
 		case 3: display_bridge(sys, gm); break;
@@ -451,23 +433,22 @@ void submarine_interface::display(class system& sys, game& gm)
 	}
 }
 
-void submarine_interface::display_help(class system& sys, game& gm)
+void submarine_interface::display_gauges(class system& sys, game& gm)
 {
-	glClearColor(0.25, 0.25, 0.25, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	unsigned res_x = sys.get_res_x(), res_y = sys.get_res_y();
 	sys.prepare_2d_drawing();
-	font_arial2->print(0, 0,
-		"$ff0000Danger from the Deep - Online help and manual\n"\
-		"$ff8000(Game is currently paused)\n"\
-		"$0080ff----------------------------------------------------------\n"\
-		"$ffffffUse F1-F10 keys to switch between screens\n"\
-		"Use F11/F12 for time scaling, 1-6 for throttle,\n"\
-		"Cursor keys to steer/dive, RETURN to center rudders\n"\
-		"Use t to fire a torpedo, SPACE to select a target\n"\
-		"Use i for screenshots, TAB for console\n"\
-		"Use comma/period/colon/semicolon for turning the view (bearing).\n"\
-		"Use v to surface, p for periscope depth, c for crash dive\n"\
-		);
+	for (int y = 0; y < 3; ++y)	// fixme: replace with gauges
+		for (int x = 0; x < 4; ++x)
+			sys.draw_image(x*res_x/4, y*res_x/4, res_x/4, res_x/4, psbackgr);
+	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
+	angle player_depth = -player->get_pos().z;
+	draw_gauge(sys, 1, 0, 0, res_x/4, player->get_heading(), TXT_Heading[language]);
+	draw_gauge(sys, 2, res_x/4, 0, res_x/4, player_speed, TXT_Speed[language]);
+	draw_gauge(sys, 4, 2*res_x/4, 0, res_x/4, player_depth, TXT_Depth[language]);
+
+	draw_infopanel(sys);
+	sys.unprepare_2d_drawing();
+
 	// keyboard processing
 	int key = sys.get_key();
 	while (key != 0) {
@@ -476,7 +457,6 @@ void submarine_interface::display_help(class system& sys, game& gm)
 		}
 		key = sys.get_key();
 	}
-	sys.unprepare_2d_drawing();
 }
 
 void submarine_interface::display_periscope(class system& sys, game& gm)
@@ -524,10 +504,10 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 		targetspeed = target->get_speed()*360.0/sea_object::kts2ms(36);
 		targetheading = target->get_heading();
 	}
-	draw_manometer(sys, 1, 0, 0, res_x/4, targetbearing, TXT_Targetbearing[language]);
-	draw_manometer(sys, 3, res_x/4, 0, res_x/4, targetrange, TXT_Targetrange[language]);
-	draw_manometer(sys, 2, 0, res_x/4, res_x/4, targetspeed, TXT_Targetspeed[language]);
-	draw_manometer(sys, 1, res_x/4, res_x/4, res_x/4, targetheading, TXT_Targetcourse[language]);
+	draw_gauge(sys, 1, 0, 0, res_x/4, targetbearing, TXT_Targetbearing[language]);
+	draw_gauge(sys, 3, res_x/4, 0, res_x/4, targetrange, TXT_Targetrange[language]);
+	draw_gauge(sys, 2, 0, res_x/4, res_x/4, targetspeed, TXT_Targetspeed[language]);
+	draw_gauge(sys, 1, res_x/4, res_x/4, res_x/4, targetheading, TXT_Targetcourse[language]);
 	sys.draw_image(0, res_x/2, res_x/4, res_x/4, addleadangle);
 	const vector<unsigned>& bow_tubes = player->get_bow_tubes();
 	const vector<unsigned>& stern_tubes = player->get_stern_tubes();
@@ -1021,7 +1001,7 @@ void submarine_interface::display_freeview(class system& sys, game& gm)
 			// specific keyboard processing
 			switch(key) {
 				case SDLK_w: viewpos -= forward * 5; break;
-				case SDLK_s: viewpos += forward * 5; break;
+				case SDLK_x: viewpos += forward * 5; break;
 				case SDLK_a: viewpos -= sidestep * 5; break;
 				case SDLK_d: viewpos += sidestep * 5; break;
 				case SDLK_q: viewpos -= upward * 5; break;

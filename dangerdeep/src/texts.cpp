@@ -7,6 +7,7 @@ const char* TXT_Heading[] = {"Heading", "Kurs"};
 const char* TXT_Bearing[] = {"Bearing", "Peilung"};
 const char* TXT_Range[] = {"Range", "Entfernung"};
 const char* TXT_Speed[] = {"Speed", "Geschwindigkeit"};
+const char* TXT_Depth[] = {"Depth", "Tiefe"};
 const char* TXT_Target[] = {"Target", "Ziel"};
 const char* TXT_Angleonthebow[] = {"Angle on the bow", "Winkel vor dem Bug"};
 const char* TXT_Warshipengagement[] = {"Warship engagement", "Angriff auf ein Kriegsschiff"};
