@@ -241,11 +241,11 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	GLfloat lambient[4] = {0,0,0,1};//{0.2, 0.2, 0.2, 1};//lightcol.r/255.0/2.0, lightcol.g/255.0/2.0, lightcol.b/255.0/2.0, 1};
 	GLfloat ldiffuse[4] = {lightcol.r/255.0, lightcol.g/255.0, lightcol.b/255.0, 1};
 	GLfloat lposition[4] = {0,1,1,0};	//fixed for now. fixme
-	GLfloat lspecular[4] = {1,1,1,1};
+	GLfloat lspecular[4] = {0,0,0,0};
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lambient);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, ldiffuse);
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, lposition);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, lspecular);
 
 	//fixme: get rid of this, it conflicts with water because it swaps y and z coords.
 	//instead adapt rotation matrices for scope/bridge/free view
@@ -281,6 +281,9 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glClear(GL_DEPTH_BUFFER_BIT);
 	// shear one clip plane to match world space z=0 plane
 	//fixme
+	// flip light!
+	lposition[2] = -lposition[2];
+	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 	// flip geometry at z=0 plane
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
@@ -301,10 +304,11 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	// copy viewport pixel data to reflection texture
 	glBindTexture(GL_TEXTURE_2D, mywater->get_reflectiontex());
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, vps, vps, 0);
-	
-	// the terrain is too dark. maybe this is because the normals are flipped ?
-	// i.e. light source position is const while geometry is flipped - wrong.
 
+	// restore light!
+	lposition[2] = -lposition[2];
+	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
+	
 /*
 	vector<Uint8> scrn(vps*vps*3);
 	glReadPixels(0, 0, vps, vps, GL_RGB, GL_UNSIGNED_BYTE, &scrn[0]);
@@ -360,6 +364,8 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	// z is additional height (negative!), r is earth radius
 	// z = r*sin(PI/2 - d/r) - r
 	// d = PI/2*r - r*arcsin(z/r+1)
+
+	glColor3f(1,1,1);
 	
 	// rest of scene is displayed relative to world coordinates
 	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
@@ -808,7 +814,7 @@ void user_interface::display_bridge(game& gm)
 	if (sys.get_mouse_buttons() & system::right_button) {
 		SDL_ShowCursor(SDL_DISABLE);
 		bearing += angle(float(mmx)/4);
-		float e = elevation.value_pm180() + float(mmy)/4;
+		float e = elevation.value_pm180() - float(mmy)/4; // make this - to a + to invert mouse look
 		if (e < 0) e = 0;
 		if (e > 90) e = 90;
 		elevation = angle(e);

@@ -25,7 +25,6 @@
 // compute projected grid efficiency, it should be 50-95%
 //#define COMPUTE_EFFICIENCY
 #define DYNAMIC_NORMALS
-#define DISTANCE_FRESNEL	// with growing distance fresnel becomes less effective. with pixel shaders this may be obsolete
 
 // some more interesting values: phase 256, waveperaxis: ask your gfx card, facesperwave 64+,
 // wavelength 256+,
@@ -541,12 +540,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			const vector3f& N = normals[ptr];
 			vector3f rel_coord = coord;	// compute coord + translational part of
 			rel_coord.z -= viewpos.z;	// the modelview matrix.
-#ifdef DISTANCE_FRESNEL
-			float rcl = rel_coord.length();
-			vector3f E = -rel_coord * (1.0f/rcl);
-#else
 			vector3f E = -rel_coord.normal();	// viewer is in (0,0,0)
-#endif
 			float F = E*N;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
 			if (F < 0.0f) F = 0.0f;	// avoid angles > 90 deg.
 			F = F + 1.0f;
@@ -554,20 +548,21 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			F = F * F;	// ^4
 			F = F * F;	// ^8
 			F = 1.0f/F;
-#ifdef DISTANCE_FRESNEL
-			const float nearfull = 200.0f;
-			const float farhalf = 10000.0f;
-			float shrinkfac = (farhalf-nearfull)/(farhalf-2*nearfull + rcl);
-			if (shrinkfac > 1.0f) shrinkfac = 1.0f;
-			F *= shrinkfac;
-#endif
-			// fixme: with growing distance the water becomes similar to a flat plane
+
+			// With growing distance the water becomes similar to a flat plane
 			// (trilinar filtering and/or drawing with less triangles), so the
 			// Fresnel term becomes nearly 1. This is unrealistic, because the
 			// viewer also sees the side of waves in the distance.
 			// So we have to shrink the Fresnel value with growing distance to 1/2
 			// The distance can be computed without an extra sqrt: it's the length
-			// of rel_coord before normalizing it.
+			// of rel_coord before normalizing it. But that doesn't look good.
+			// And that's not all. A Fresnel value of 1 means full reflection,
+			// no refraction, but even with full reflection the water has some
+			// blue/green color. In reality ocean water isn't perfect flat.
+			// So we could mix some color into the reflection or multiply the Fresnel
+			// value with 0.9. It seems a bit more realistic.
+			F *= 0.9;
+			
 			Uint8 c = Uint8(F*255);
 			Uint8 foampart = 255;
 			color primary(c, c, c, foampart);
