@@ -127,6 +127,7 @@ public:
 		double rollfac = 0.05, bool inverse = false) const;
 
 	virtual sea_object* get_target(void) const { return target; }
+	virtual void set_target(sea_object* tgt) { target = tgt; }
 
 	// 3d drawing functions
 	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist) const;

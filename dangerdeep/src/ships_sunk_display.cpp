@@ -17,7 +17,7 @@ using namespace std;
 
 #define FONT_SCALE_FACTOR 0.7f
 
-ships_sunk_display::ships_sunk_display(user_interface& ui) :
+ships_sunk_display::ships_sunk_display(user_interface& ui_) :
 	user_display(ui_), first_displayed_object ( 0 )
 {
 	dom.clear ();

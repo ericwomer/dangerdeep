@@ -11,6 +11,7 @@ using namespace std;
 #include "user_display.h"
 #include "sub_damage_display.h"
 #include "image.h"
+#include "game.h"
 
 struct rect {
 	int x, y, w, h;
@@ -61,7 +62,7 @@ static rect rect_data[] = {
 
 
 
-sub_damage_display::sub_damage_display (user_interface& ui) :
+sub_damage_display::sub_damage_display (user_interface& ui_) :
 	user_display(ui_),
 	repairlight(get_texture_dir() + "repairlight.png"),
 	repairmedium(get_texture_dir() + "repairmedium.png"),

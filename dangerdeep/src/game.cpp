@@ -1311,6 +1311,22 @@ void game::visible_water_splashes ( list<water_splash*>& result, const sea_objec
 	}
 }
 
+void game::visible_surface_objects(list<sea_object*>& result, const sea_object* o)
+{
+	list<ship*> vships;
+	visible_ships(ships, o);
+	list<submarine*> vsubmarines;
+	visible_submarines(submarines, o);
+	list<airplane*> vairplanes;
+	visible_airplanes(airplanes, o);
+	for (list<ship*>::iterator is = vships.begin(); is != vships.end(); ++is)
+		result.push_back(*is);
+	for (list<submarine*>::iterator iu = vsubmarines.begin(); iu != vsubmarines.end(); ++iu)
+		result.push_back(*iu);
+	for (list<airplane*>::iterator ia = vairplanes.begin(); ia != vairplanes.end(); ++ia)
+		result.push_back(*ia);
+}
+
 ship* game::sonar_acoustical_torpedo_target ( const torpedo* o )
 {
 	ship* loudest_object = 0;
