@@ -10,7 +10,8 @@
 gun_shell::gun_shell(const sea_object& parent, angle direction, angle elevation,
 	double initial_velocity) : sea_object()
 {
-	position = parent.get_pos();	// fixme: calc correct position
+	launchPos = parent.get_pos();	// fixme: calc correct position
+	position = launchPos;
 	heading = direction;
 	length = 0.2;
 	width = 0.2;
@@ -19,7 +20,7 @@ gun_shell::gun_shell(const sea_object& parent, angle direction, angle elevation,
 	speed = v0;
 	alpha = elevation;
 	system::sys()->add_console("shell created");
-	vis_cross_section_factor = CROSS_SECTION_VIS_NULL;;
+	vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 }
 
 void gun_shell::simulate(game& gm, double delta_time)
@@ -29,8 +30,9 @@ void gun_shell::simulate(game& gm, double delta_time)
 	double curvepos = v0*v0/AIR_RESISTANCE * (1.0 - exp(-AIR_RESISTANCE*t/v0));
 	position.z = alpha.sin() * curvepos - GRAVITY * t*t/2;
 	vector2 deltapos = heading.direction() * curvepos * alpha.cos();
-	position.x += deltapos.x;
-	position.y += deltapos.y;
+	position.x = launchPos.x + deltapos.x;
+	position.y = launchPos.y + deltapos.y;
+
 	if (position.z <= 0) {
 		gm.gs_impact(position);
 		kill();

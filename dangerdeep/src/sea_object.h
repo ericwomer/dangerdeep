@@ -35,7 +35,7 @@ class convoy;
 class airplane;
 class torpedo;
 class depth_charge;
-class Sensor;
+class sensor;
 
 class sea_object
 {
@@ -101,7 +101,7 @@ protected:
 	list<vector2> previous_positions;
 
 	// Sensor systems.
-	vector<Sensor*> sensors;
+	vector<sensor*> sensors;
 
 	bool parse_attribute(parser& p);        // returns false if invalid token found
 
@@ -110,13 +110,13 @@ protected:
 	sea_object(const sea_object& other);
 
 	virtual void change_rudder (const int& dir);
-	virtual void set_sensors ( vector<Sensor*> sensors );
+	virtual void set_sensors ( vector<sensor*> sensors );
 	/**
 		This method calculates the visible profile value of the target.
 		@param d location vector of the detecting object
 		@return profile factor. This is normally a value between 0.3 and 1.0
 	*/
-	virtual double getProfileFactor ( const vector2& d ) const;
+	virtual double get_profile_factor ( const vector2& d ) const;
    
 public:
 	virtual ~sea_object();
@@ -165,6 +165,12 @@ public:
 	virtual float get_vis_cross_section_factor (void) const { return vis_cross_section_factor; }
 	virtual void set_vis_cross_section_factor ( const float& factor ) { vis_cross_section_factor = factor; }
 	virtual float surface_visibility(const vector2& watcher) const;
+	/**
+		Noise modification for submarines. Submarines are using diesel engines
+		that are fare less audible than the turbine engines of other ships.
+		@return noise modification factor
+	*/
+	virtual double get_noise_factor () const;
 
 	// needed for launching torpedoes
 	pair<angle, double> bearing_and_range_to(const sea_object* other) const;
@@ -173,16 +179,16 @@ public:
 	virtual void display(void) const = 0;
 	double get_bounding_radius(void) const { return width + length; }	// fixme: could be computed more exact
 
-	virtual Sensor* get_sensor ( const int& s );
-	virtual const Sensor* get_sensor ( const int& s ) const;
+	virtual sensor* get_sensor ( const int& s );
+	virtual const sensor* get_sensor ( const int& s ) const;
 
 	// Convert function.
 	virtual ship* get_ship_ptr () { return 0; }
 	virtual const ship* get_ship_ptr () const { return 0; }
 	virtual submarine* get_submarine_ptr () { return 0; }
 	virtual const submarine* get_submarine_ptr () const { return 0; }
-	virtual gun_shell* get_gun_hell_ptr () { return 0; }
-	virtual const gun_shell* get_gun_hell_ptr () const { return 0; }
+	virtual gun_shell* get_gun_shell_ptr () { return 0; }
+	virtual const gun_shell* get_gun_shell_ptr () const { return 0; }
 	virtual convoy* get_convoy_ptr () { return 0; }
 	virtual const convoy* get_convoy_ptr () const { return 0; }
 	virtual airplane* get_airplane_ptr () { return 0; }

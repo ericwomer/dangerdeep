@@ -9,19 +9,19 @@
 
 #define MIN_VISIBLE_DISTANCE 0.01f
 
-class ActiveSensor;
-class RadarSensor;
-class PassiveSonarSensor;
-class ActiveSonarSensor;
-class HVDFSensor;
-class LookoutSensor;
+class active_sensor;
+class radar_sensor;
+class passive_sonar_sensor;
+class active_sonar_sensor;
+class hfdf_sensor;
+class lookout_sensor;
 class sea_object;
 
 /** Base class for all sensor types. */
-class Sensor
+class sensor
 {
 public:
-	enum SensorMoveMode { Rotate, Sweep };
+	enum sensor_move_mode { rotate, sweep };
 
 private:
 	/// Range of sensor. Mostly a decline value.
@@ -29,10 +29,10 @@ private:
 	/// Bearing of dectector.
 	angle bearing;
 	/// Size of detector cone.
-	double detectionCone;
+	double detection_cone;
 	/// This flag shows in what direction the sensor moves.
 	/// 1 right, -1 left.
-	char moveDirection;
+	char move_direction;
 
 protected:
 	/**
@@ -40,14 +40,7 @@ protected:
 		@parm d distance value in meters
 		@return factor of declined signal
 	*/
-	virtual double getDistanceFactor ( const double& d ) const;
-	/**
-		Noise modification for submarines. Submarines are using diesel engines
-		that are fare less audible than the turbine engines of other ships.
-		@param s sea object that noise modification factor is going to be calculated
-		@return noise modification factor
-	*/
-	virtual double doNoiseMod ( const sea_object* s ) const;
+	virtual double get_distance_factor ( const double& d ) const;
 	/**
 		A detector can be directed to a specified bearing and has a detection
 		cone. A target can only be detected when the target is within this cone.
@@ -58,7 +51,7 @@ protected:
 		@param h heading of the detecting unit
 		@return is target within detection cone or not
 	*/
-	virtual bool isWithinDetectionCone ( const vector2& r, const angle& h ) const;
+	virtual bool is_within_detection_cone ( const vector2& r, const angle& h ) const;
 
 public:
 	/**
@@ -66,47 +59,47 @@ public:
 		@param range Range of sensor
 		@param detectionAngle Size of detection cone of detector
 	*/
-	Sensor ( const double& range = 0.0f, const double& detectionCone = 360.0f );
+	sensor ( const double& range = 0.0f, const double& detectionCone = 360.0f );
 	/// Destructor
-	virtual ~Sensor () {};
+	virtual ~sensor () {};
 
 	/**
 		Sets the range value.
 		@param range new range value
 	*/
-	virtual void setRange ( const double& range ) { this->range = range; }
+	virtual void set_range ( const double& range ) { this->range = range; }
 	/**
 		Sets the bearing value.
 		@param bearing new bearing value
 	*/
-	virtual void setBearing ( const angle& bearing) { this->bearing = bearing; }
+	virtual void set_bearing ( const angle& bearing) { this->bearing = bearing; }
 	/**
 		Sets the detection angle value.
 		@param detectionAngle new detection angle
 	*/
-	virtual void setDetectionCone ( const double& detectionCone )
-		{ this->detectionCone = detectionCone; }
+	virtual void set_detection_cone ( const double& detection_cone )
+		{ this->detection_cone = detection_cone; }
 	/**
 		Returns the range value.
 		@return range
 	*/
-	virtual double getRange () const { return range; }
+	virtual double get_range () const { return range; }
 	/**
 		Returns the bearing of the detector.
 		@return bearing
 	*/
-	virtual angle getBearing () const { return bearing; }
+	virtual angle get_bearing () const { return bearing; }
 	/**
 		Returns the detection angle.
 		@return detectionAngle
 	*/
-	virtual double getDetectionCone () const { return detectionCone; }
+	virtual double get_detection_cone () const { return detection_cone; }
 	/**
 		This method can be used to move the bearing of the detector. Whenever
 		this method is called the bearing is shifted about the two third
 		of the detection angle.
 	*/
-	virtual void autoMoveBearing ( const SensorMoveMode& mode = Rotate );
+	virtual void auto_move_bearing ( const sensor_move_mode& mode = rotate );
 	/**
 		This method verifies if the target unit t can be detected by
 		detecting unit d.
@@ -114,33 +107,33 @@ public:
 		@param d detecting unit
 		@param t target unit
 	*/
-	virtual bool isDetected ( const game* gm, const sea_object* d,
+	virtual bool is_detected ( const game* gm, const sea_object* d,
 		const sea_object* t ) const = 0;
 
 	// Conversion methods.
-	virtual ActiveSensor* getActiveSensor () { return 0; }
-	virtual const ActiveSensor* getActiveSensor () const { return 0; }
-	virtual RadarSensor* getRadarSensor () { return 0; }
-	virtual const RadarSensor* getRadarSensor () const { return 0; }
-	virtual ActiveSonarSensor* getActiveSonarSensor () { return 0; }
-	virtual const ActiveSonarSensor* getActiveSonarSensor () const { return 0; }
-	virtual PassiveSonarSensor* getPassiveSonarSensor () { return 0; }
-	virtual const PassiveSonarSensor* getPassiveSonarSensor () const { return 0; }
-	virtual HVDFSensor* getHVDFSensor () { return 0; }
-	virtual const HVDFSensor* getHVDFSensor () const { return 0; }
-	virtual LookoutSensor* getLookoutSensor () { return 0; }
-	virtual const LookoutSensor* getLookoutSensor () const { return 0; }
+	virtual active_sensor* get_active_sensor () { return 0; }
+	virtual const active_sensor* get_active_sensor () const { return 0; }
+	virtual radar_sensor* get_radar_sensor () { return 0; }
+	virtual const radar_sensor* get_radar_sensor () const { return 0; }
+	virtual active_sonar_sensor* get_active_sonar_sensor () { return 0; }
+	virtual const active_sonar_sensor* get_active_sonar_sensor () const { return 0; }
+	virtual passive_sonar_sensor* get_passive_sonar_sensor () { return 0; }
+	virtual const passive_sonar_sensor* get_passive_sonar_sensor () const { return 0; }
+	virtual hfdf_sensor* get_hfdf_Sensor () { return 0; }
+	virtual const hfdf_sensor* get_hfdf_Sensor () const { return 0; }
+	virtual lookout_sensor* get_lookout_sensor () { return 0; }
+	virtual const lookout_sensor* get_lookout_sensor () const { return 0; }
 };
 
 /** Class for lookout. */
-class LookoutSensor : public Sensor
+class lookout_sensor : public sensor
 {
 public:
-	enum LookoutType { Default };
+	enum lookout_type { lookout_type_default };
 
 public:
-	LookoutSensor ( const int& type = Default );
-	virtual ~LookoutSensor () {};
+	lookout_sensor ( const int& type = lookout_type_default );
+	virtual ~lookout_sensor () {};
 	/**
 		This method verifies if the target unit t can be detected by
 		detecting unit d.
@@ -148,24 +141,24 @@ public:
 		@param d detecting unit
 		@param t target unit
 	*/
-	virtual bool isDetected ( const game* gm, const sea_object* d, const sea_object* t ) const;
+	virtual bool is_detected ( const game* gm, const sea_object* d, const sea_object* t ) const;
 
 	// Conversion method.
-	virtual LookoutSensor* getLookoutSensor () { return this; }
-	virtual const LookoutSensor* getLookoutSensor () const { return this; }
+	virtual lookout_sensor* get_lookout_sensor () { return this; }
+	virtual const lookout_sensor* get_lookout_sensor () const { return this; }
 };
 
-class PassiveSonarSensor : public Sensor
+class passive_sonar_sensor : public sensor
 {
 public:
-	enum PassiveSonarType { Default };
+	enum passive_sonar_type { passive_sonar_type_default };
 
 private:
 	void init ( const int& type );
 
 public:
-	PassiveSonarSensor ( const int& type = Default );
-	virtual ~PassiveSonarSensor () {};
+	passive_sonar_sensor ( const int& type = passive_sonar_type_default );
+	virtual ~passive_sonar_sensor () {};
 	/**
 		This method verifies if the target unit t can be detected by
 		detecting unit d.
@@ -173,15 +166,15 @@ public:
 		@param d detecting unit
 		@param t target unit
 	*/
-	virtual bool isDetected ( const game* gm, const sea_object* d, const sea_object* t ) const;
+	virtual bool is_detected ( const game* gm, const sea_object* d, const sea_object* t ) const;
 
 	// Conversion method.
-	virtual PassiveSonarSensor* getPassiveSonarSensor () { return this; }
-	virtual const PassiveSonarSensor* getPassiveSonarSensor () const { return this; }
+	virtual passive_sonar_sensor* get_passive_sonar_sensor () { return this; }
+	virtual const passive_sonar_sensor* get_passive_sonar_sensor () const { return this; }
 };
 
-/** Base class for all active Sensors. */
-class ActiveSensor : public Sensor
+/** Base class for all active sensors. */
+class active_sensor : public sensor
 {
 protected:
 	/**
@@ -191,11 +184,11 @@ protected:
 		@parm d distance value in meters
 		@return factor of declined signal
 	*/
-	virtual double getDistanceFactor ( const double& d ) const;
+	virtual double get_distance_factor ( const double& d ) const;
 
 public:
-	ActiveSensor ( const double& range = 0.0f );
-	virtual ~ActiveSensor () {};
+	active_sensor ( const double& range = 0.0f );
+	virtual ~active_sensor () {};
 	/**
 		This method verifies if the target unit t can be detected by
 		detecting unit d.
@@ -203,24 +196,24 @@ public:
 		@param d detecting unit
 		@param t target unit
 	*/
-	virtual bool isDetected ( const game* gm, const sea_object* d, const sea_object* t ) const = 0;
+	virtual bool is_detected ( const game* gm, const sea_object* d, const sea_object* t ) const = 0;
 
 	// Conversion methods.
-	virtual ActiveSensor* getActiveSensor () { return this; }
-	virtual const ActiveSensor* getActiveSensor () const { return this; }
+	virtual active_sensor* get_active_sensor () { return this; }
+	virtual const active_sensor* get_active_sensor () const { return this; }
 };
 
-class RadarSensor : public ActiveSensor
+class radar_sensor : public active_sensor
 {
 public:
-	enum RadarType { Default };
+	enum radar_type { radar_type_default };
 
 private:
 	void init ( const int& type );
 
 public:
-	RadarSensor ( const int& type = Default );
-	virtual ~RadarSensor () {};
+	radar_sensor ( const int& type = radar_type_default );
+	virtual ~radar_sensor () {};
 	/**
 		This method verifies if the target unit t can be detected by
 		detecting unit d.
@@ -228,32 +221,24 @@ public:
 		@param d detecting unit
 		@param t target unit
 	*/
-	virtual bool isDetected ( const game* gm, const sea_object* d, const sea_object* t ) const;
+	virtual bool is_detected ( const game* gm, const sea_object* d, const sea_object* t ) const;
 
 	// Conversion method.
-	virtual RadarSensor* getRadarSensor () { return this; }
-	virtual const RadarSensor* getRadarSensor () const { return this; }
+	virtual radar_sensor* get_radar_sensor () { return this; }
+	virtual const radar_sensor* get_radar_sensor () const { return this; }
 };
 
-class ActiveSonarSensor : public ActiveSensor
+class active_sonar_sensor : public active_sensor
 {
 public:
-	enum ActiveSonarType { Default };
+	enum active_sonar_type { active_sonar_type_default };
 
 private:
 	void init ( const int& type );
-	/**
-		This method calculates a depth depending factor. A deep diving
-		submarine is harder to detect with ASDIC than a submarine at
-		periscope depth.
-		@param sub location vector of submarine
-		@return depth factor
-	*/
-	inline double getDepthFactor ( const vector3& sub ) const;
 
 public:
-	ActiveSonarSensor ( const int& type = Default );
-	virtual ~ActiveSonarSensor () {};
+	active_sonar_sensor ( const int& type = active_sonar_type_default );
+	virtual ~active_sonar_sensor () {};
 	/**
 		This method verifies if the target unit t can be detected by
 		detecting unit d.
@@ -261,41 +246,41 @@ public:
 		@param d detecting unit
 		@param t target unit
 	*/
-	virtual bool isDetected ( const game* gm, const sea_object* d, const sea_object* t ) const;
+	virtual bool is_detected ( const game* gm, const sea_object* d, const sea_object* t ) const;
 
 	// Conversion method.
-	virtual ActiveSonarSensor* getActiveSonarSensor () { return this; }
-	virtual const ActiveSonarSensor* getActiveSonarSensor () const { return this; }
+	virtual active_sonar_sensor* get_active_sonar_sensor () { return this; }
+	virtual const active_sonar_sensor* get_active_sonar_sensor () const { return this; }
 };
 
 
 
-// Class SensorFactory
-class SensorFactory
+// Class sensor_factory
+class sensor_factory
 {
 public:
-	enum Nationality { DE, GB, US, JP };
-	enum ShipType { CapitalShip, Destroyer, Freighter, Submarine, Torpedo };
-	enum SensorSystem { LookoutSystem, RadarSystem, ActiveSonarSystem,
-		PassiveSonarSystem, HFDFSystem, LastSystemItem };
+	enum nationality { de, gb, us, jp };
+	enum ship_type { capital_ship, destroyer, freighter, submarine, torpedo };
+	enum sensor_system { lookout_system, radar_system, active_sonar_system,
+		passive_sonar_system, hfdf_system, last_system_item };
 
 private:
-	static LookoutSensor* getLookoutSystem ( const int& nation,
+	static lookout_sensor* get_lookout_system ( const int& nation,
 		const int& year );
-	static RadarSensor* getRadarSystem ( const int& nation,
+	static radar_sensor* get_radar_system ( const int& nation,
 		const int& year );
-	static ActiveSonarSensor* getActiveSonarSystem ( const int& nation,
+	static active_sonar_sensor* get_active_sonar_system ( const int& nation,
 		const int& year );
-	static PassiveSonarSensor* getPassiveSonarSystem ( const int& nation,
+	static passive_sonar_sensor* get_passive_sonar_system ( const int& nation,
 		const int& year );
 /* fixme
-	static HFDFSensor* getHFDFSystem ( const int& nation,
+	static hfdf_sensor* get_hfdf_system ( const int& nation,
 		const int& year );
 */
 
 public:
-	static vector<Sensor*> getSensors ( const int& nation,
-		const int& shipType, const int& year );
+	static vector<sensor*> get_sensors ( const int& nation,
+		const int& ship_type, const int& year );
 };
 
 #endif /* _SENSORS_H_ */

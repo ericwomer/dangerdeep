@@ -12,7 +12,7 @@ sea_object::sea_object() : position(vector3(0.0f, 0.0f, 0.0f)), heading(0.0f),
 	head_to(0.0f), turn_rate(0.0f), length(0.0f), width(0.0f), alive_stat(alive),
 	vis_cross_section_factor(1.0f)
 {
-	sensors.resize ( SensorFactory::LastSystemItem );
+	sensors.resize ( sensor_factory::last_system_item );
 }
 
 sea_object::~sea_object()
@@ -323,10 +323,10 @@ angle sea_object::estimate_angle_on_the_bow(angle target_bearing, angle target_h
 
 float sea_object::surface_visibility(const vector2& watcher) const
 {
-	return vis_cross_section_factor * getProfileFactor ( watcher );
+	return vis_cross_section_factor * get_profile_factor ( watcher );
 }
 
-void sea_object::set_sensors ( vector<Sensor*> sensors )
+void sea_object::set_sensors ( vector<sensor*> sensors )
 {
 	int size = this->sensors.size ();
 	for ( int i = 0; i < size; i++ )
@@ -338,27 +338,32 @@ void sea_object::set_sensors ( vector<Sensor*> sensors )
 	}
 }
 
-Sensor* sea_object::get_sensor ( const int& s )
+sensor* sea_object::get_sensor ( const int& s )
 {
-	if ( s >= 0 && s < SensorFactory::LastSystemItem )
+	if ( s >= 0 && s < sensor_factory::last_system_item )
 		return sensors[s];
 
 	return 0;
 }
 
-const Sensor* sea_object::get_sensor ( const int& s ) const
+const sensor* sea_object::get_sensor ( const int& s ) const
 {
-	if ( s >= 0 && s < SensorFactory::LastSystemItem )
+	if ( s >= 0 && s < sensor_factory::last_system_item )
 		return sensors[s];
 
 	return 0;
 }
 
-double sea_object::getProfileFactor ( const vector2& d ) const
+double sea_object::get_profile_factor ( const vector2& d ) const
 {
 	// Calculate scalar product first and get cosine value.
 	vector2 r = get_pos ().xy () - d;
 	angle diffAngle = angle ( r ) - heading;
 
 	return ( 0.3f + 0.7f * fabs ( diffAngle.sin () ) );
+}
+
+double sea_object::get_noise_factor () const
+{
+    return get_throttle_speed () / max_speed;
 }

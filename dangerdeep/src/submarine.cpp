@@ -217,7 +217,7 @@ float submarine::surface_visibility(const vector2& watcher) const
 	else
 		diveFactor = 0.0f;
 
-	diveFactor = diveFactor * vis_cross_section_factor * getProfileFactor ( watcher );
+	diveFactor = diveFactor * vis_cross_section_factor * get_profile_factor ( watcher );
 
 	// Add a value for the periscope when submarine is submerged.
 	if ( is_scope_up () && depth <= periscope_depth )
@@ -242,7 +242,7 @@ float submarine::sonar_visibility ( const vector2& watcher ) const
 		diveFactor = 0.125f * (depth - SUBMARINE_SUBMERGED_DEPTH);
 	}
 
-	return diveFactor * sonar_cross_section_factor * getProfileFactor ( watcher );   
+	return diveFactor * sonar_cross_section_factor * get_profile_factor ( watcher );   
 }
 
 void submarine::planes_up(double amount)
@@ -338,4 +338,20 @@ bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target)
 	}
 	torpedoes[torpnr].status = 0;
 	return true;
+}
+
+double submarine::get_noise_factor () const
+{
+	double noisefac = 1.0f;
+
+	// Get engine noise factor.
+	noisefac = sea_object::get_noise_factor ();
+
+	// Noise level modification because of diesel/electric engine.
+	if ( is_electric_engine () )
+		noisefac *= 0.007f;
+	else
+		noisefac *= 0.1f;
+
+	return noisefac;
 }

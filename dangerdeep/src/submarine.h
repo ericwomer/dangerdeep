@@ -85,6 +85,7 @@ public:
 	// state: periscope state, snorkeling etc., shape)
 	virtual float surface_visibility(const vector2& watcher) const;
 	virtual float sonar_visibility ( const vector2& watcher ) const;
+	virtual double get_noise_factor () const;
 
 	virtual bool is_scope_up(void) const { return scopeup; }
 	virtual double get_periscope_depth() const { return periscope_depth; }

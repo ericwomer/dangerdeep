@@ -46,8 +46,8 @@ torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes) : sea_ob
 			max_rev_speed = 0;
 			max_run_length = 5000;	// fixme: historical value?
 			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
-			set_sensors ( SensorFactory::getSensors ( SensorFactory::DE,
-				SensorFactory::Torpedo, 1943 ) );
+			set_sensors ( sensor_factory::get_sensors ( sensor_factory::de,
+				sensor_factory::torpedo, 1943 ) );
 			break;
 		case T3FAT:		// G7e FAT torpedo
 			speed = kts2ms(30);
@@ -69,8 +69,8 @@ torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes) : sea_ob
 			max_rev_speed = 0;
 			max_run_length = 5000;	// fixme: historical value?
 			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
-			set_sensors ( SensorFactory::getSensors ( SensorFactory::DE,
-				SensorFactory::Torpedo, 1944 ) );
+			set_sensors ( sensor_factory::get_sensors ( sensor_factory::de,
+				sensor_factory::torpedo, 1944 ) );
 			break;
 	};
 	throttle = aheadfull;

@@ -76,6 +76,14 @@ public:
 
 	double get_time(void) const { return time; };
 	double get_max_view_distance(void) const { return max_view_dist; }
+	/**
+		This method calculates a depth depending factor. A deep diving
+		submarine is harder to detect with ASDIC than a submarine at
+		periscope depth.
+		@param sub location vector of submarine
+		@return depth factor
+	*/
+	virtual double get_depth_factor ( const vector3& sub ) const;
 
 	// compute visibility data
 	virtual void visible_ships(list<ship*>& result, const sea_object* o);
@@ -112,7 +120,7 @@ public:
 
 	// simulation actions
 	virtual void ping_ASDIC(list<vector3>& contacts, sea_object* d,
-		const bool& moveSensor, const angle& dir = angle ( 0.0f ) );
+		const bool& move_sensor, const angle& dir = angle ( 0.0f ) );
 
 	// various functions (fixme: sort, cleanup)
 	const list<ping>& get_pings(void) const { return pings; };

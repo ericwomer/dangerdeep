@@ -8,13 +8,13 @@
 #include "vector2.h"
 #include "angle.h"
 
-// Class Sensor
-Sensor::Sensor ( const double& range, const double& detectionAngle ) :
-	range ( range ), detectionCone ( detectionCone ), bearing ( 0.0f ),
-	moveDirection ( 1 )
+// Class sensor
+sensor::sensor ( const double& range, const double& detectionAngle ) :
+	range ( range ), detection_cone ( detection_cone ), bearing ( 0.0f ),
+	move_direction ( 1 )
 {}
 
-double Sensor::getDistanceFactor ( const double& d ) const
+double sensor::get_distance_factor ( const double& d ) const
 {
 	double df = range / d;
 	df *= df;
@@ -22,68 +22,52 @@ double Sensor::getDistanceFactor ( const double& d ) const
 	return df;
 }
 
-double Sensor::doNoiseMod ( const sea_object* s ) const
+bool sensor::is_within_detection_cone ( const vector2& r, const angle& h ) const
 {
-	const submarine* sub = s->get_submarine_ptr ();
-	double noisefac = 1.0;
+	bool within_angle = false;
 
-	if ( sub )
-	{
-		if ( sub->is_electric_engine () )
-			noisefac = 0.007f;
-		else
-			noisefac = 0.1f;
-	}
-
-	return noisefac;
-}
-
-bool Sensor::isWithinDetectionCone ( const vector2& r, const angle& h ) const
-{
-	bool withinAngle = false;
-
-	if ( detectionCone >= 360.0f )
+	if ( detection_cone >= 360.0f )
 	{
 		// When the detection angle is larger equal 360 degrees
 		// the target is everytime within this detection angle.
-		withinAngle = true;
+		within_angle = true;
 	}
 	else
 	{
 		angle dir = bearing + h;
 		angle diff = dir - angle ( r );
-		double deltaAngle = diff.value_pm180 ();
+		double delta_angle = diff.value_pm180 ();
 
-		if ( deltaAngle >= -detectionCone && deltaAngle <= detectionCone )
-			withinAngle = true;
+		if ( delta_angle >= -detection_cone && delta_angle <= detection_cone )
+			within_angle = true;
 	}
 
-	return withinAngle;
+	return within_angle;
 }
 
-void Sensor::autoMoveBearing ( const SensorMoveMode& mode )
+void sensor::auto_move_bearing ( const sensor_move_mode& mode )
 {
-	if ( detectionCone < 360.0f )
-		bearing += moveDirection * detectionCone * 0.666666f;
+	if ( detection_cone < 360.0f )
+		bearing += move_direction * detection_cone * 0.666666f;
 
-	if ( mode == Sweep )
+	if ( mode == sweep )
 	{
 		double b = bearing.value ();
-		if ( b < 180.0f && b > 90.0f && moveDirection > 0 )
-			moveDirection = -1;
-		else if ( b > 180.0f && b < 270.0f && moveDirection < 0 )
-			moveDirection = 1;
+		if ( b < 180.0f && b > 90.0f && move_direction > 0 )
+			move_direction = -1;
+		else if ( b > 180.0f && b < 270.0f && move_direction < 0 )
+			move_direction = 1;
 	}
 }
 
 
 
-// Class LookoutSensor
-LookoutSensor::LookoutSensor ( const int& type ) : Sensor ()
+// Class lookout_sensor
+lookout_sensor::lookout_sensor ( const int& type ) : sensor ()
 {}
 
 
-bool LookoutSensor::isDetected ( const game* gm, const sea_object* d,
+bool lookout_sensor::is_detected ( const game* gm, const sea_object* d,
 	const sea_object* t ) const
 {
 	bool detected = false;
@@ -108,23 +92,23 @@ bool LookoutSensor::isDetected ( const game* gm, const sea_object* d,
 
 
 
-// Class PassiveSonarSensor
-PassiveSonarSensor::PassiveSonarSensor ( const int& type ) : Sensor ()
+// Class passive_sonar_sensor
+passive_sonar_sensor::passive_sonar_sensor ( const int& type ) : sensor ()
 {
 	init ( type );
 }
 
-void PassiveSonarSensor::init ( const int& type )
+void passive_sonar_sensor::init ( const int& type )
 {
 	switch ( type )
 	{
-		case Default:
-			setRange ( 9500.0f );
+		case passive_sonar_type_default:
+			set_range ( 9500.0f );
 			break;
 	}
 }
 
-bool PassiveSonarSensor::isDetected ( const game* gm, const sea_object* d,
+bool passive_sonar_sensor::is_detected ( const game* gm, const sea_object* d,
 	const sea_object* t ) const
 {
 	bool detected = false;
@@ -138,17 +122,12 @@ bool PassiveSonarSensor::isDetected ( const game* gm, const sea_object* d,
 	else
 	{
 		vector2 r = t->get_pos ().xy () - d->get_pos ().xy ();
-		double df = getDistanceFactor ( r.length () );
+		double df = get_distance_factor ( r.length () );
 
 		// The throttle speed is the real noise of the ship.
 		// A ship on flank speed is really deaf.
-		double dnoisefac = d->get_throttle_speed () / d->get_max_speed ();
-		double tnoisefac = t->get_throttle_speed () / t->get_max_speed ();
-
-		// Submarines are using a diesel engine and have a much smaller
-		// passive detection range.
-		dnoisefac *= doNoiseMod ( d );
-		tnoisefac *= doNoiseMod ( t );
+		double dnoisefac = d->get_noise_factor ();
+		double tnoisefac = t->get_noise_factor ();
 
 		// The noise modificator for the detecting unit must be
 		// subtracted from 1.
@@ -163,13 +142,13 @@ bool PassiveSonarSensor::isDetected ( const game* gm, const sea_object* d,
 
 
 
-// Class ActiveSensor
-ActiveSensor::ActiveSensor ( const double& range ) : Sensor ( range )
+// Class active_sensor
+active_sensor::active_sensor ( const double& range ) : sensor ( range )
 {}
 
-double ActiveSensor::getDistanceFactor ( const double& d ) const
+double active_sensor::get_distance_factor ( const double& d ) const
 {
-	double df = getRange () / d;
+	double df = get_range () / d;
 	df *= df;
 	df *= df;
 
@@ -178,28 +157,28 @@ double ActiveSensor::getDistanceFactor ( const double& d ) const
 
 
 
-// Class RadarSensor
-RadarSensor::RadarSensor ( const int& type ) : ActiveSensor ()
+// Class radar_rensor
+radar_sensor::radar_sensor ( const int& type ) : active_sensor ()
 {
 	init ( type );
 }
 
-void RadarSensor::init ( const int& type )
+void radar_sensor::init ( const int& type )
 {
 	switch ( type )
 	{
-		case Default:
-			setRange  ( 0.0f );
+		case radar_type_default:
+			set_range  ( 0.0f );
 			break;
 	}
 }
 
-bool RadarSensor::isDetected ( const game* gm, const sea_object* d,
+bool radar_sensor::is_detected ( const game* gm, const sea_object* d,
 	const sea_object* t ) const
 {
 	bool detected = false;
 	vector2 r = t->get_pos ().xy () - d->get_pos ().xy ();
-	double df = getDistanceFactor ( r.length () );
+	double df = get_distance_factor ( r.length () );
 	double vis = 1.0f;
 
 	// Radars use the surface visibility factor.
@@ -212,29 +191,24 @@ bool RadarSensor::isDetected ( const game* gm, const sea_object* d,
 }
 
 
-// Class ActiveSonarSensor
-ActiveSonarSensor::ActiveSonarSensor ( const int& type ) : ActiveSensor ()
+// Class active_sonar_sensor
+active_sonar_sensor::active_sonar_sensor ( const int& type ) : active_sensor ()
 {
 	init ( type );
 }
 
-void ActiveSonarSensor::init ( const int& type )
+void active_sonar_sensor::init ( const int& type )
 {
 	switch ( type )
 	{
-		case Default:
-			setRange ( 1500.0f );
-			setDetectionCone ( 15.0f );
+		case active_sonar_type_default:
+			set_range ( 1500.0f );
+			set_detection_cone ( 15.0f );
 			break;
 	}
 }
 
-inline double ActiveSonarSensor::getDepthFactor ( const vector3& sub ) const
-{
-	return ( 1.0f - 0.5f * sub.z / 400.0f );
-}
-
-bool ActiveSonarSensor::isDetected ( const game* gm, const sea_object* d,
+bool active_sonar_sensor::is_detected ( const game* gm, const sea_object* d,
 	const sea_object* t ) const
 {
 	bool detected = false;
@@ -254,22 +228,19 @@ bool ActiveSonarSensor::isDetected ( const game* gm, const sea_object* d,
 			vector2 r = t->get_pos ().xy () - d->get_pos ().xy ();
 
 			// Verify if target is within detection cone of the sensor.
-			if ( isWithinDetectionCone ( r, d->get_heading () ) )
+			if ( is_within_detection_cone ( r, d->get_heading () ) )
 			{
-				double distFactor = getDistanceFactor ( r.length () );
+				double dist_factor = get_distance_factor ( r.length () );
 				// The throttle speed is the real noise of the ship.
 				// A ship on flank speed is really deaf.
-				double dnoisefac = d->get_throttle_speed () / d->get_max_speed ();
-				// Submarines are quieter than ship with turbines and have
-				// a better chance to detect a ship with active sonar.
-				dnoisefac *= doNoiseMod ( d );
+				double dnoisefac = d->get_noise_factor ();
 				// The noise modificator for the detecting unit must be
 				// subtracted from 1.
 				dnoisefac = 1.0f - dnoisefac;
-				double sonarVis = tsub->sonar_visibility ( d->get_pos ().xy () );
+				double sonar_vis = tsub->sonar_visibility ( d->get_pos ().xy () );
 				// The deeper the submarine dives as harder it is detectable.
-				double depthFactor = getDepthFactor ( t->get_pos () );
-				double prod = distFactor * sonarVis * dnoisefac * depthFactor;
+				double depth_factor = gm->get_depth_factor ( t->get_pos () );
+				double prod = dist_factor * sonar_vis * dnoisefac * depth_factor;
 
 				if ( prod > ( 0.1f + 0.01f * rnd ( 10 ) ) )
 					detected = true;
@@ -281,68 +252,68 @@ bool ActiveSonarSensor::isDetected ( const game* gm, const sea_object* d,
 }
 
 
-// Class SensorFactory
-LookoutSensor* SensorFactory::getLookoutSystem ( const int& nation, const int& year )
+// Class sensor_factory
+lookout_sensor* sensor_factory::get_lookout_system ( const int& nation, const int& year )
 {
-	return new LookoutSensor;
+	return new lookout_sensor;
 }
 
-RadarSensor* SensorFactory::getRadarSystem ( const int& nation, const int& year )
+radar_sensor* sensor_factory::get_radar_system ( const int& nation, const int& year )
 {
-	return new RadarSensor;
+	return new radar_sensor;
 }
 
-ActiveSonarSensor* SensorFactory::getActiveSonarSystem ( const int& nation, const int& year )
+active_sonar_sensor* sensor_factory::get_active_sonar_system ( const int& nation, const int& year )
 {
-	return new ActiveSonarSensor;
+	return new active_sonar_sensor;
 }
 
-PassiveSonarSensor* SensorFactory::getPassiveSonarSystem ( const int& nation, const int& year )
+passive_sonar_sensor* sensor_factory::get_passive_sonar_system ( const int& nation, const int& year )
 {
-	return new PassiveSonarSensor;
+	return new passive_sonar_sensor;
 }
 
 /*
-HFDFSensor* SensorFactory::getHFDFSensor ( const int& nation, const int& year )
+hfdf_sensor* sensor_factory::get_hfdf_sensor ( const int& nation, const int& year )
 {
-	return new HFDFSensor;
+	return new hfdf_sensor;
 }
 */
 
-vector<Sensor*> SensorFactory::getSensors ( const int& nation,
-	const int& shipType, const int& year )
+vector<sensor*> sensor_factory::get_sensors ( const int& nation,
+	const int& ship_type, const int& year )
 {
-	vector<Sensor*> sensors;
-	sensors.resize ( LastSystemItem );
+	vector<sensor*> sensors;
+	sensors.resize ( last_system_item );
 
-	switch ( shipType )
+	switch ( ship_type )
 	{
-		case CapitalShip:
-			sensors[LookoutSystem] = getLookoutSystem ( nation, year );
-			sensors[RadarSystem] = getRadarSystem ( nation, year );
+		case capital_ship:
+			sensors[lookout_system] = get_lookout_system ( nation, year );
+			sensors[radar_system] = get_radar_system ( nation, year );
 			break;
 
-		case Destroyer:
-			sensors[LookoutSystem] = getLookoutSystem ( nation, year );
-			sensors[RadarSystem] = getRadarSystem ( nation, year );
-			sensors[ActiveSonarSystem] = getActiveSonarSystem ( nation, year );
-			sensors[PassiveSonarSystem] = getPassiveSonarSystem ( nation, year );
+		case destroyer:
+			sensors[lookout_system] = get_lookout_system ( nation, year );
+			sensors[radar_system] = get_radar_system ( nation, year );
+			sensors[active_sonar_system] = get_active_sonar_system ( nation, year );
+			sensors[passive_sonar_system] = get_passive_sonar_system ( nation, year );
 			break;
 
-		case Freighter:
-			sensors[LookoutSystem] = getLookoutSystem ( nation, year );
-			sensors[RadarSystem] = getRadarSystem ( nation, year );
+		case freighter:
+			sensors[lookout_system] = get_lookout_system ( nation, year );
+			sensors[radar_system] = get_radar_system ( nation, year );
 			break;
 
-		case Submarine:
-			sensors[LookoutSystem] = getLookoutSystem ( nation, year );
-			sensors[RadarSystem] = getRadarSystem ( nation, year );
-			sensors[ActiveSonarSystem] = getActiveSonarSystem ( nation, year );
-			sensors[PassiveSonarSystem] = getPassiveSonarSystem ( nation, year );
+		case submarine:
+			sensors[lookout_system] = get_lookout_system ( nation, year );
+			sensors[radar_system] = get_radar_system ( nation, year );
+			sensors[active_sonar_system] = get_active_sonar_system ( nation, year );
+			sensors[passive_sonar_system] = get_passive_sonar_system ( nation, year );
 			break;
 
-		case Torpedo:
-			sensors[PassiveSonarSystem] = getPassiveSonarSystem ( nation, year );
+		case torpedo:
+			sensors[passive_sonar_system] = get_passive_sonar_system ( nation, year );
 			break;
 	}
 
