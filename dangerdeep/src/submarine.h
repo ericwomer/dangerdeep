@@ -35,7 +35,7 @@ public:
 	// bilge???
 	// kitchen - kombuese?
 	// balance tank - trimmtank?
-	enum damageable_parts {
+	enum damageable_parts_indices {
 		// common parts
 		rudder,
 		screws,
@@ -63,7 +63,7 @@ public:
 		outer_bow_tubes,
 		bow_water_pump,		//?
 		bow_hatch,
-		bow_pressure_hull,
+		bow_pressure_hull,	//fixme: damage view does not match 3d data or vice versa.
 		bow_dive_planes,
 		aa_gun,
 		ammunition_depot,
@@ -90,16 +90,37 @@ public:
 	// must be surfaced to get repaired
 	// cannot be repaired at sea	
 	// absolute time needed for repair
-	enum damage_status {
-		unused,
-		none,
-		light,
-		medium,
-		heavy,
-		critical,
-		wrecked
+	
+	struct damage_data_scheme {
+		vector3f p1, p2;	// corners of bounding box around part, p1 < p2
+					// coordinates in 0...1 relative to left,bottom,aft
+					// corner of sub's bounding box.
+		float weakness;		// weakness to shock waves
+		unsigned repairtime;	// seconds
+		bool surfaced;		// must sub be surfaced to repair this?
+		bool repairable;	// is repairable at sea?
+		damage_data_scheme(const vector3f& a, const vector3f& b, float w, unsigned t, bool s = false, bool r = true) :
+			p1(a), p2(b), weakness(w), repairtime(t), surfaced(s), repairable(r) {}
 	};
 	
+	static damage_data_scheme damage_schemes[nr_of_damageable_parts];
+
+	enum damage_indices {
+		dmg_unused,
+		dmg_none,
+		dmg_light,
+		dmg_medium,
+		dmg_heavy,
+		dmg_critical,
+		dmg_wrecked
+	};
+	
+	struct damageable_part {
+		unsigned status;	// categorized in "damage_indices" see above
+		double repairtime;
+		damageable_part(unsigned st = dmg_unused, double rt = 0) : status(st), repairtime(rt) {}
+	};
+		
 protected:
 	double dive_speed, dive_acceleration, max_dive_speed, max_depth, dive_to;
 	bool permanent_dive;
@@ -124,7 +145,7 @@ protected:
 	double battery_recharge_value_a;
 	double battery_recharge_value_t;
     
-	vector<damage_status> damageable_parts;
+	vector<damageable_part> damageable_parts;
 
 	submarine();
 	submarine& operator= (const submarine& other);
@@ -190,10 +211,10 @@ public:
 	virtual bool has_snorkel () const { return ( hassnorkel == true ); }
 	virtual double get_snorkel_depth () const { return snorkel_depth; }
 	virtual double get_battery_level () const { return battery_level; }
-	virtual const vector<damage_status>& get_damage_status(void) const { return damageable_parts; }
+	virtual const vector<damageable_part>& get_damage_status(void) const { return damageable_parts; }
 
 	// give relative direction and amount between 0 and 1.
-	virtual void add_damage(const vector3& fromwhere, float amount) { /*fixme*/ };
+	virtual void add_damage(const vector3& fromwhere, float amount);
     
 	// command interface for subs
 	virtual void scope_up(void) { scopeup = true; };	// fixme

@@ -58,8 +58,10 @@ public:
 		unsigned tilesx = 1, unsigned tilesy = 1, bool mapxy = false);
 	void write(const string& filename) const;
 	void display(bool with_texture = true) const;
-	double get_length(void) const { return (max - min).y; };
-	double get_width(void) const { return (max - min).x; };
+	double get_length(void) const { return (max - min).y; }
+	double get_width(void) const { return (max - min).x; }
+	double get_height(void) const { return (max - min).z; }
+	vector3f get_boundbox_size(void) const { return max-min; }
 };
 
 #endif

@@ -11,6 +11,8 @@
 	    constructed
 	  - also a (more paranoid) check has been added to avoid array out
 	    of bounds bug
+	* submarine.cpp
+	  - first bits of damage simulation.
 
 2003-07-27  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* torpedo.cpp submarine_interface.cpp submarine.cpp

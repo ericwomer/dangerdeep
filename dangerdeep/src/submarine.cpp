@@ -10,17 +10,57 @@
 #include "submarine_VIIc.h"
 #include "submarine_XXI.h"
 
+submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damageable_parts] = {
+	damage_data_scheme(vector3f(0.090517,0.108696,0.892857), vector3f(0.066810,0.297101,0.083333), 0.2, 3600, false, true),	// rudder
+	damage_data_scheme(vector3f(0.131466,0.086957,0.678571), vector3f(0.114224,0.253623,0.321429), 0.2, 3600, false, true),	// screws
+	damage_data_scheme(vector3f(0.260776,0.130435,0.678571), vector3f(0.132543,0.231884,0.321429), 0.2, 3600, false, true),	// screw shaft
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// stern dive planes
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// stern water pump
+	damage_data_scheme(vector3f(0.271552,0.108696,0.892857), vector3f(0.000000,0.543478,0.107143), 0.2, 3600, false, true),	// stern pressure hull
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0.451509,0.072464,0.833333), vector3f(0.271552,0.543478,0.190476), 0.2, 3600, false, true),	// machine pressure hull
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0.721983,0.072464,0.833333), vector3f(0.451509,0.543478,0.190476), 0.2, 3600, false, true),	// central pressure hull
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0.915948,0.072464,0.833333), vector3f(0.721983,0.543478,0.190476), 0.2, 3600, false, true),	// bow pressure hull
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),
+//	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// radar
+};
+
 submarine::submarine() : ship(), dive_speed(0.0f), permanent_dive(false),
 	dive_to(0.0f), max_dive_speed(1.0f), dive_acceleration(0.0f), scopeup(false),
 	max_depth(150.0f), periscope_depth(12.0f), snorkel_depth(10.0f),
 	hassnorkel (false), snorkel_up(false),
 	battery_level ( 1.0f ), battery_value_a ( 0.0f ), battery_value_t ( 1.0f ),
 	battery_recharge_value_a ( 0.0f ), battery_recharge_value_t ( 1.0f ),
-	damageable_parts(nr_of_damageable_parts, unused)
+	damageable_parts(nr_of_damageable_parts)
 {
 	// set all common damageable parts to "no damage"
 	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
-		damageable_parts[i] = damage_status(i%5+2); //none; // experimental hack fixme
+		damageable_parts[i] = damageable_part(dmg_none, 0);
 }
 	
 bool submarine::parse_attribute(parser& p)
@@ -439,6 +479,40 @@ double submarine::get_noise_factor () const
 	}
 
 	return noisefac;
+}
+
+void submarine::add_damage(const vector3& fromwhere, float amount)
+{
+	vector3f bb = get_model()->get_boundbox_size();
+	
+	// project relative position to circle on 2d plane (y,z) parallel to sub.
+	// circle's radius is proportional to strength.
+	// all parts within this circle are affected to damage relative to their distance to the
+	// circles center.
+	
+	double damage_radius = DAMAGE_DC_RADIUS_SURFACE*amount;	// meters, fixme
+	
+	for (unsigned i = 0; i < nr_of_damageable_parts; ++i) {
+		if (damageable_parts[i].status == dmg_unused) continue;
+
+		vector3f tmp = (damage_schemes[i].p1 + damage_schemes[i].p2) * 0.5;
+		vector3 part_center(tmp.x, tmp.y, tmp.z);
+		part_center.x *= bb.x;
+		part_center.y *= bb.y;
+		part_center.z *= bb.z;
+		part_center = part_center - position;
+		double sd = part_center.distance(fromwhere);
+		if (sd < damage_radius) {
+			unsigned dmg = unsigned((dmg_wrecked)*sd/damage_radius);
+			damageable_parts[i].status += dmg;
+			if (damageable_parts[i].status > dmg_wrecked)
+				damageable_parts[i].status = dmg_wrecked;
+		}
+	
+//		if (damageable_parts[i].status < dmg_wrecked)
+//		damageable_parts[i].status ++;	// test hack fixme	
+	}
+	
 }
 
 void submarine::calculate_fuel_factor ( double delta_time )

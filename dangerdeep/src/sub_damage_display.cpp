@@ -92,18 +92,18 @@ void sub_damage_display::display ( class system& sys, class game& gm )
 	damage_screen_background->draw(0, 0);
 	sub_damage_scheme_all->draw(0, ydrawdiff);
 
-	const vector<submarine::damage_status> damages = mysub->get_damage_status();
-	for (unsigned i = 0; i < damages.size(); ++i) {
+	const vector<submarine::damageable_part>& damageable_parts = mysub->get_damage_status();
+	for (unsigned i = 0; i < damageable_parts.size(); ++i) {
 		rect r = rect_data[i];
 			if (r.x == 0) continue;	// display test hack fixme
 		int x = r.x + r.w/2 - 16, y = r.y + r.h/2 - 16 + ydrawdiff;
 		texture* t = 0;
-		switch (damages[i]) {
-			case submarine::light: t = repairlight; break;
-			case submarine::medium: t = repairmedium; break;
-			case submarine::heavy: t = repairheavy; break;
-			case submarine::critical: t = repaircritical; break;
-			case submarine::wrecked: t = repairwrecked; break;
+		switch (damageable_parts[i].status) {
+			case submarine::dmg_light: t = repairlight; break;
+			case submarine::dmg_medium: t = repairmedium; break;
+			case submarine::dmg_heavy: t = repairheavy; break;
+			case submarine::dmg_critical: t = repaircritical; break;
+			case submarine::dmg_wrecked: t = repairwrecked; break;
 		}
 		if (t)	sys.draw_image(x, y, 32, 32, t);
 	}
@@ -119,8 +119,8 @@ void sub_damage_display::check_mouse ( int x, int y, int mb )
 {
 	if (!mysub) return;
 	// fixme
-	const vector<submarine::damage_status> damages = mysub->get_damage_status();
-	for (unsigned i = 0; i < damages.size(); ++i) {
+	const vector<submarine::damageable_part>& damageable_parts = mysub->get_damage_status();
+	for (unsigned i = 0; i < damageable_parts.size(); ++i) {
 		rect r = rect_data[i];
 		r.y += (damage_screen_background->get_height()-sub_damage_scheme_all->get_height())/2;
 		if (x >= r.x && x <= r.x+r.w && y >= r.y && y <= r.y+r.h) {
