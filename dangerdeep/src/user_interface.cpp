@@ -114,6 +114,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 	texturecoords.reserve(2*verts+2);
 	double texscalefac = 1.0/double(4*WAVESIZE);
 	double zdist = 0;
+	vector2 mintexc = viewpos.xy() * texscalefac;
 	for (unsigned w = 0; w <= WAVEDEPTH; ++w) {
 		vector2 viewbase = viewpos.xy() + viewdir * zdist + viewleft * zdist * tanfovx2;
 		double viewleftfac = -2 * zdist * tanfovx2 / WAVESX;
@@ -124,11 +125,11 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 			verticecoords.push_back(viewbase.y);
 			verticecoords.push_back(height);
 			// don't take fractional part of coordinates for texture coordinates
-			// or wrap around error will occour. Texture coordinates may get big
-			// (real meter values around the globe/map) but OpenGL can handle this
-			// (and does that right). Scale texture by adjusting this factor.
-			texturecoords.push_back(texscalefac * viewbase.x);
-			texturecoords.push_back(texscalefac * viewbase.y);
+			// or wrap around error will occour.
+			vector2 texc = viewbase * texscalefac;
+			mintexc = mintexc.min(texc);
+			texturecoords.push_back(texc.x);
+			texturecoords.push_back(texc.y);
 			viewbase += viewleft * viewleftfac;
 		}
 		// this could grow more than linear to reduce number of faces drawn at
@@ -136,7 +137,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 		// which isn't right, so don't overdo that...
 		zdist += WAVESIZE;
 	}
-
+	
 	/* 2003/07/04 idea.
 	   simulate earth curvature by drawing several horizon faces
 	   approximating the curvature.
@@ -199,6 +200,15 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 	texturecoords.push_back(texscalefac * horizonr.x);
 	texturecoords.push_back(texscalefac * horizonr.y);
 	
+	// shift texture coordinate minimum to 0 to limit texture coordinates (or else
+	// OpenGL may draw textures falsely) EXPERIMENTAL BUG FIX fixme
+	mintexc.x = floor(mintexc.x);
+	mintexc.y = floor(mintexc.y);
+	for (unsigned tcs = 0; tcs < verts + 2; ++tcs) {
+		texturecoords[tcs*2+0] -= mintexc.x;
+		texturecoords[tcs*2+1] -= mintexc.y;
+	}
+
 	glVertexPointer(3, GL_FLOAT, 0, &verticecoords[0]);
 	glTexCoordPointer(2, GL_FLOAT, 0, &texturecoords[0]);
 	
