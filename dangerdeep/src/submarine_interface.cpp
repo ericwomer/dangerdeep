@@ -64,6 +64,15 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 {
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 
+	/*
+	// check output for key input
+	if (event.type == SDL_KEYDOWN) {
+		cout << "pressed key " << SDL_GetKeyName(event.key.keysym.sym) << " for keysym " << unsigned(event.key.keysym.sym)
+		<< " mod " << int(event.key.keysym.mod) << " unicode " << event.key.keysym.unicode << " scancode " <<
+		unsigned(event.key.keysym.scancode) << "\n";
+	}
+	*/
+
 	// check for common keys
 	if (event.type == SDL_KEYDOWN) {
 		if (event.key.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) {

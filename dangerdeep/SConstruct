@@ -124,6 +124,7 @@ for i in allcvsfiles:
 #env.Append(TARSUFFIX = '.gz')
 #tarball = env.Alias('tarball', env.Tar('dangerdeep-'+version, filestopack))
 #### we have an own tar version here...
+#fixme! every file should be in a dangerdeep-$version subdirectory!!!
 if not(sys.platform == 'win32'):
 	env.Alias('tarball', env.Command('dangerdeep-' + version + '.tar.gz', '', ['tar -zcf ' + 'dangerdeep-' + version + '.tar.gz ' + allcvsfiles2]))
 
