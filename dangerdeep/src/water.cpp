@@ -200,6 +200,22 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	}
 #endif
 
+	/*
+	  Idea:
+	  Computing one Height map with FFT takes roughly 2 ms on a 1800Mhz PC (64x64).
+	  It has to be done 25 times per second, taking just 50ms or 5% of all time.
+	  So the FFT heights could get computed on the fly, leading to more realistic
+	  results, since they don't need to be cyclic. And we can change the fft parameters
+	  at run-time (like switching weather).
+	  Also much memory is saved. With 256 Phases of 64x64 each we have 1M with 1 byte per
+	  height or 4M as we have now. With 128x128 fft resolution (much better than 64x64)
+	  that would be already 4M/16M.
+	  Heigher resolution fft could also be used as sub-noise for shader display
+	  or as additional sub-detail (self-similar noise).
+	  With on-the-fly fft we could give a cyclic value of 1-2 minutes.
+	  Just blend the fft coefficients between two levels for weather changes, like
+	  with the clouds.
+	*/
 	ocean_wave_generator<float> owg(WAVE_RESOLUTION, vector2f(1,1), 20 /*10*/ /*31*/, 2e-6 /* 5e-6 */, WAVE_LENGTH, TIDECYCLE_TIME);
 	minh = 1e10;
 	maxh = -1e10;
@@ -295,8 +311,12 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 			wbtmp[3*i+2] = (wavetilenormals[n][i].z+1.0f)/2.0f*255;
 		}
 		water_bumpmap[n] = new texture(&wbtmp[0], WAVE_RESOLUTION, WAVE_RESOLUTION,
-					    GL_RGB, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, false);
+					    GL_RGB, GL_LINEAR /*_MIPMAP_LINEAR*/, GL_REPEAT);
 #else
+		//fixme: mipmap levels of normal map should be computed
+		//by this class, not glu!
+		//mipmap scaling of a normal map is not the same as the normal version
+		//of a mipmapped height map!
 		water_bumpmap[n] = texture::make_normal_map(&(pn.noisemap[0]), 256, 256, 4.0f, //16.0f,
 							    GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 #endif
@@ -794,7 +814,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 			const vector3f& N = normals[ptr];
 
 			if (fragment_program_supported && use_fragment_programs) {
-				uv0[ptr] = vector2f(coord.x*0.125f, coord.y*0.125f); // fixme, use noise map texc's
+				uv0[ptr] = vector2f(coord.x/16.0f, coord.y/16.0f); // fixme, use noise map texc's
 				//fixme ^, offset is missing
 				vector3f tx = vector3f(1, 0, 0);//fixme hack
 				vector3f ty = N.cross(tx);
@@ -1104,7 +1124,7 @@ void water::set_refraction_color(float light_brightness)
 		}
 	}
 	fresnelcolortex = new texture((&fresnelcolortexd[0].r), FRESNEL_FCT_RES, REFRAC_COLOR_RES, GL_RGBA,
-				 GL_LINEAR/*_MIPMAP_LINEAR*/, GL_CLAMP_TO_EDGE, false);
+				 GL_LINEAR/*_MIPMAP_LINEAR*/, GL_CLAMP_TO_EDGE);
 }
 
 

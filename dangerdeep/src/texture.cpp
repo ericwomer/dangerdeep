@@ -23,8 +23,7 @@ using namespace std;
 
 
 
-void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-	int clamp, bool keep)
+void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh)
 {
 	// compute texture width and height
 	unsigned tw = 1, th = 1;
@@ -39,11 +38,11 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 //	sys().myassert(tw <= get_max_size(), "texture: texture width too big");
 //	sys().myassert(th <= get_max_size(), "texture: texture height too big");
 
-	glGenTextures(1, &opengl_name);
 	SDL_LockSurface(teximage);
 
 	unsigned bpp = teximage->format->BytesPerPixel;
 
+	vector<Uint8> data;
 	if (teximage->format->palette != 0) {
 		//old color table code, does not work
 		//glEnable(GL_COLOR_TABLE);
@@ -93,51 +92,116 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	}
 	SDL_UnlockSurface(teximage);
 	
-	update();
-	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mapping);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp);
-
-	if (!keep) data.clear();
+	init(&data[0]);
 }
 	
-texture::texture(const string& filename, int mapping_, int clamp, bool keep)
+
+
+void texture::init(const Uint8* data, bool makenormalmap /* fixme */)
+{
+	// automatic resizing of textures if they're too large
+	vector<Uint8> data2;
+	unsigned ms = get_max_size();
+	if (width > ms || height > ms) {
+		unsigned newwidth = width, newheight = height;
+		unsigned xf = 1, yf = 1;
+		if (width > ms) {
+			newwidth = ms;
+			xf = width/ms;
+		}
+		if (height > ms) {
+			newheight = ms;
+			yf = height/ms;
+		}
+		unsigned bpp = get_bpp();
+		data2.resize(newwidth*newheight*bpp);
+		unsigned area = xf*yf;
+		for (unsigned y = 0; y < newheight; ++y) {
+			for (unsigned x = 0; x < newwidth; ++x) {
+				for (unsigned b = 0; b < bpp; ++b) {
+					unsigned valsum = 0;
+					for (unsigned yy = 0; yy < yf; ++yy) {
+						for (unsigned xx = 0; xx < xf; ++xx) {
+							unsigned ptr = ((y*yf+yy) * width +
+									(x*xf+xx)) * bpp + b;
+							valsum += unsigned(data[ptr]);
+						}
+					}
+					valsum /= area;
+					data2[(y*newwidth+x)*bpp + b] = Uint8(valsum);
+				}
+			}
+		}
+		data = &data2[0];
+		gl_width = newwidth;
+		gl_height = newheight;
+	}
+
+	glGenTextures(1, &opengl_name);
+	glBindTexture(GL_TEXTURE_2D, opengl_name);
+	glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format, GL_UNSIGNED_BYTE, data);
+	// make own mipmap building for normal maps here...
+	// give increasing levels with decreasing w/h down to 1x1
+	// e.g. 64x16 -> 32x8, 16x4, 8x2, 4x1, 2x1, 1x1
+	if (	mapping == GL_NEAREST_MIPMAP_NEAREST
+		|| mapping == GL_NEAREST_MIPMAP_LINEAR
+		|| mapping == GL_LINEAR_MIPMAP_NEAREST
+		|| mapping == GL_LINEAR_MIPMAP_LINEAR ) {
+
+		gluBuild2DMipmaps(GL_TEXTURE_2D, format, gl_width, gl_height, format, GL_UNSIGNED_BYTE, data);
+	}
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mapping);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamping);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamping);
+}
+
+
+
+texture::texture(const string& filename, int mapping_, int clamp)
 {
 	mapping = mapping_;
+	clamping = clamp;
 	texfilename = filename;
 	SDL_Surface* teximage = IMG_Load(filename.c_str());
 	sys().myassert(teximage != 0, string("texture: failed to load ")+filename);
-	init(teximage, 0, 0, teximage->w, teximage->h, clamp, keep);
+	sdl_init(teximage, 0, 0, teximage->w, teximage->h);
 	SDL_FreeSurface(teximage);
 }	
 
-texture::texture(Uint8* pixels, unsigned w, unsigned h, int format_,
-	int mapping_, int clamp, bool keep)
+
+
+texture::texture(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
+		 int mapping_, int clamp)
 {
-	// fixme: check that w/h are powers of two
-	width = gl_width = w;
-	height = gl_height = h;
-	format = format_;
 	mapping = mapping_;
-	glGenTextures(1, &opengl_name);
-	data.resize(get_bpp()*w*h);
-	if (pixels)
-		memcpy(&data[0], pixels, data.size());
-	
-	update();
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mapping);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp);
-
-	if (!keep) data.clear();
+	clamping = clamp;
+	sdl_init(teximage, sx, sy, sw, sh);
 }
 
 
-texture* texture::make_normal_map(Uint8* heights, unsigned w, unsigned h, float detailh,
+
+texture::texture(const Uint8* pixels, unsigned w, unsigned h, int format_,
+	int mapping_, int clamp)
+{
+	mapping = mapping_;
+	clamping = clamp;
+	
+	sys().myassert(w > 0 && (w & (w-1)) == 0, "texture width is no power of two!");
+	sys().myassert(h > 0 && (h & (h-1)) == 0, "texture height is no power of two!");
+
+	width = gl_width = w;
+	height = gl_height = h;
+	format = format_;
+
+	init(pixels);
+}
+
+
+
+
+texture* texture::make_normal_map(const Uint8* heights, unsigned w, unsigned h, float detailh,
 				  int mapping, int clamp)
 {
 	vector<Uint8> nmpix(3*w*h);
@@ -165,8 +229,15 @@ texture* texture::make_normal_map(Uint8* heights, unsigned w, unsigned h, float 
 			ptr += 3;
 		}
 	}
-	return new texture(&nmpix[0], w, h, GL_RGB, mapping, clamp, false);
+	// fixme: if we let GLU do the mipmap calculation, the result is wrong.
+	// A filtered version of the normals is not the same as a normal map
+	// of the filtered height field!
+	// E.g. scaling down the map to 1x1 pixel gives a medium height of 128,
+	// that is a flat plane with a normal of (0,0,1)
+	// But filtering down the normals to one pixel gives RGB=0.5 -> normal of (0,0,0)!
+	return new texture(&nmpix[0], w, h, GL_RGB, mapping, clamp);
 }
+
 
 
 texture::~texture()
@@ -174,57 +245,7 @@ texture::~texture()
 	glDeleteTextures(1, &opengl_name);
 }
 
-void texture::update(void)
-{
-	if (data.size() == 0) return;
 
-	// automatic resizing of textures if they're too large
-	unsigned ms = get_max_size();
-	if (width > ms || height > ms) {
-		unsigned newwidth = width, newheight = height;
-		unsigned xf = 1, yf = 1;
-		if (width > ms) {
-			newwidth = ms;
-			xf = width/ms;
-		}
-		if (height > ms) {
-			newheight = ms;
-			yf = height/ms;
-		}
-		unsigned bpp = get_bpp();
-		vector<Uint8> data2(newwidth*newheight*bpp);
-		unsigned area = xf*yf;
-		for (unsigned y = 0; y < newheight; ++y) {
-			for (unsigned x = 0; x < newwidth; ++x) {
-				for (unsigned b = 0; b < bpp; ++b) {
-					unsigned valsum = 0;
-					for (unsigned yy = 0; yy < yf; ++yy) {
-						for (unsigned xx = 0; xx < xf; ++xx) {
-							unsigned ptr = ((y*yf+yy) * width +
-									(x*xf+xx)) * bpp + b;
-							valsum += unsigned(data[ptr]);
-						}
-					}
-					valsum /= area;
-					data2[(y*newwidth+x)*bpp + b] = Uint8(valsum);
-				}
-			}
-		}
-		data2.swap(data);
-		gl_width = newwidth;
-		gl_height = newheight;
-	}
-	
-	glBindTexture(GL_TEXTURE_2D, opengl_name);
-	glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format, GL_UNSIGNED_BYTE, &data[0]);
-	if (	mapping == GL_NEAREST_MIPMAP_NEAREST
-		|| mapping == GL_NEAREST_MIPMAP_LINEAR
-		|| mapping == GL_LINEAR_MIPMAP_NEAREST
-		|| mapping == GL_LINEAR_MIPMAP_LINEAR ) {
-
-		gluBuild2DMipmaps(GL_TEXTURE_2D, format, gl_width, gl_height, format, GL_UNSIGNED_BYTE, &data[0]);
-	}
-}
 
 unsigned texture::get_bpp(void) const
 {

@@ -20,11 +20,6 @@ class image
 
 	unsigned gltx, glty;	// no. of textures in x and y direction
 	vector<texture*> textures;
-	unsigned lastcolw, lastrowh;	// textures for last row/column of array may be wider
-	float lastcolu, lastrowv;	// than needed (OpenGL needs texture sizes that are
-					// powers of two).
-					// so we need the real values as unsigneds and texture
-					// coordinates.
 	
 private:
 	image();

@@ -46,11 +46,6 @@ image::image(const string& s, bool maketex, int mapping, int clamp) :
 			ch += heights[y];
 		}
 
-		lastcolw = widths.back();
-		lastrowh = heights.back();
-		lastcolu = float(lastcolw)/float(textures[gltx-1]->get_gl_width());
-		lastrowv = float(lastrowh)/float(textures[gltx*(glty-1)]->get_gl_height());
-		
 		// data is safe in texture memory, so free image.
 		SDL_FreeSurface(img);
 		img = 0;
@@ -77,24 +72,11 @@ void image::draw(int x, int y) const
 		int yp = y;
 		for (unsigned yy = 0; yy < glty; ++yy) {
 			int xp = x;
-			unsigned h = (yy == glty-1) ? lastrowh : textures[texptr]->get_gl_height();
-			float v = (yy == glty-1) ? lastrowv : 1.0f;
+			unsigned h = textures[texptr]->get_height();
 			for (unsigned xx = 0; xx < gltx; ++xx) {
-				unsigned w = (xx == gltx-1) ? lastcolw : textures[texptr]->get_gl_width();
-				float u = (xx == gltx-1) ? lastcolu : 1.0f;
-				glBindTexture(GL_TEXTURE_2D, textures[texptr]->get_opengl_name());
-				glBegin(GL_QUADS);
-				glTexCoord2f(0,0);
-				glVertex2i(xp,yp);
-				glTexCoord2f(0,v);
-				glVertex2i(xp,yp+h);
-				glTexCoord2f(u,v);
-				glVertex2i(xp+w,yp+h);
-				glTexCoord2f(u,0);
-				glVertex2i(xp+w,yp);
-				glEnd();
+				textures[texptr]->draw(xp, yp);
+				xp += textures[texptr]->get_width();
 				++texptr;
-				xp += w;
 			}
 			yp += h;
 		}

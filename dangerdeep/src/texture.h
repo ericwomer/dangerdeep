@@ -19,6 +19,11 @@ using namespace std;
 
 class texture
 {
+private:
+	texture();
+	texture& operator=(const texture& other);
+	texture(const texture& other);
+
 protected:
 	// fixme: with automatic size adjustment width/height could change...
 	// when user retrieves w/h later he could get strange results.
@@ -29,48 +34,36 @@ protected:
 	unsigned gl_width;
 	unsigned gl_height;
 	string texfilename;
-	int format;		// GL_RGB, GL_RGBA, etc.
-	int mapping;		// how GL draws the texture (GL_NEAREST, GL_LINEAR, etc.)
-	vector<Uint8> data;	// texture data (only stored if user wishes that)
+	int format;	// GL_RGB, GL_RGBA, etc.
+	int mapping;	// how GL draws the texture (GL_NEAREST, GL_LINEAR, etc.)
+	int clamping;	// how GL handles the border (GL_REPEAT, GL_CLAMP, GL_CLAMP_TO_EDGE)
 	
-	texture();
-	texture& operator=(const texture& other);
-	texture(const texture& other);
-	
-	// share common constructor code
-	void init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-		int clamp, bool keep);
+	void sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh);
+
+	// copy data to OpenGL, set parameters
+	void init(const Uint8* data, bool makenormalmap = false);
 
 public:
-	texture(const string& filename, int mapping_ = GL_NEAREST, int clamp = GL_REPEAT, bool keep = false);
+	texture(const string& filename, int mapping_ = GL_NEAREST, int clamp = GL_REPEAT);
 
 	// create texture from subimage of SDL surface.
 	// sw,sh need not to be powers of two.
 	texture(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-		int mapping_ = GL_NEAREST, int clamp = GL_REPEAT, bool keep = true) {
-			mapping = mapping_;
-			init(teximage, sx, sy, sw, sh, clamp, keep);
-		};
+		int mapping_ = GL_NEAREST, int clamp = GL_REPEAT);
 
 	// create texture from memory values (use openGl constants for format,etc.
 	// w,h must be powers of two.
-	// you may give a NULL pointer to pixels, the texture will then be inited with black.
-	texture(Uint8* pixels, unsigned w, unsigned h, int format_,
-		int mapping_, int clamp, bool keep = true);
+	texture(const Uint8* pixels, unsigned w, unsigned h, int format_, int mapping_, int clamp);
 
 	// create a RGB texture with normal values from heights (0-255, grey values)
 	// give height of details, 1.0 = direct values
-	static texture* make_normal_map(Uint8* heights, unsigned w, unsigned h, float detailh,
+	static texture* make_normal_map(const Uint8* heights, unsigned w, unsigned h, float detailh,
 				 int mapping, int clamp);
 	
 	~texture();
 	
-	// (re)creates OpenGL texture from stored data
-	void update(void);
 	int get_format(void) const { return format; }
 	unsigned get_bpp(void) const;
-	vector<Uint8>& get_data(void) { return data; }
-
 	unsigned get_opengl_name(void) const { return opengl_name; };
 	void set_gl_texture(void) const;
 	string get_name(void) const { return texfilename; };
