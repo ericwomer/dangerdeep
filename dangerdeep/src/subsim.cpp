@@ -39,13 +39,22 @@ void start_mission(int nr)
 	delete gm;
 }
 
-void create_and_run_custom_mission(int subtype, int cvsize, int cvesc, int tod)
+void menu_notimplemented(void)
 {
+	menu m(110, titlebackgr);
+	m.add_item(20, 0);
+	m.run();
+}
+
+unsigned mission_subtype = 0, mission_cvsize = 0, mission_cvesc = 0, mission_tod = 0;
+void start_custom_mission(void)//int subtype, int cvsize, int cvesc, int tod)
+{
+	menu_notimplemented();
 /****************************************************************
 	custom mission generation:
 	As first find a random date and time, using time of day (tod).
 	Whe have to calculate time of sunrise and sunfall for that, with some time
-	until this day of time expires (5:59am is not really "night" when sunrise is at
+	until this time of day expires (5:59am is not really "night" when sunrise is at
 	6:00am).
 	Also weather computation is neccessary.
 	Then we calculate size and structure of the convoy (to allow calculation of its
@@ -93,60 +102,55 @@ void create_and_run_custom_mission(int subtype, int cvsize, int cvesc, int tod)
 */				
 }
 
-void menu_convoy_battle(void)
+void menu_selectsubtype(void)
 {
-/*
-	menu m;
-	menu::item mi(TXT_Selectsubtype[language]);
-	mi.add_switch(TXT_subVIIc[language]);
-	mi.add_switch(TXT_subXXI[language]);
-	mi.set_switch_nr(0);
-	m.add_item(mi);
-	menu::item mi2(TXT_Selectconvoysize[language]);
-	mi2.add_switch(TXT_small[language]);
-	mi2.add_switch(TXT_medium[language]);
-	mi2.add_switch(TXT_large[language]);
-	m.add_item(mi2);
-	menu::item mi3(TXT_Selectconvoyescort[language]);
-	mi3.add_switch(TXT_none[language]);
-	mi3.add_switch(TXT_small[language]);
-	mi3.add_switch(TXT_medium[language]);
-	mi3.add_switch(TXT_large[language]);
-	m.add_item(mi3);
-	menu::item mi4(TXT_Selecttimeofday[language]);
-	mi4.add_switch(TXT_night[language]);
-	mi4.add_switch(TXT_morning[language]);
-	mi4.add_switch(TXT_midday[language]);
-	mi4.add_switch(TXT_evening[language]);
-	m.add_item(mi4);
-	m.add_item(TXT_Startmission[language]);
-	m.add_item(TXT_Returntopreviousmenu[language]);
-
-	while (true) {
-		sys->prepare_2d_drawing();
-//		draw_background_and_logo();
-		
-		sys->poll_event_queue();
-		int key = sys->get_key();
-		m.draw(1024, 768);
-		int mmsel = m.input(key, 0, 0, 0) & 0xffff;
-		sys->unprepare_2d_drawing();
-		sys->swap_buffers();
-		if (mmsel == 5) break;
-		if ((mmsel & 0xffff) == 4) {
-			create_and_run_custom_mission(
-				m.get_switch_nr(0),
-				m.get_switch_nr(1),
-				m.get_switch_nr(2),
-				m.get_switch_nr(3) );
-		}
-	}
-*/	
+	menu m(9, scopewatcherimg);
+	m.add_item(17, 0);
+	m.add_item(18, 0);
+	m.add_item(20, 0);
+	mission_subtype = m.run();
 }
 
-void menu_notimplemented(void)
+void menu_selectconvoysize(void)
 {
-	menu m(110, titlebackgr);
+	menu m(9, scopewatcherimg);
+	m.add_item(85, 0);
+	m.add_item(86, 0);
+	m.add_item(87, 0);
+	m.add_item(20, 0);
+	mission_cvsize = m.run();
+}
+
+void menu_selectconvoyescort(void)
+{
+	menu m(9, scopewatcherimg);
+	m.add_item(89, 0);
+	m.add_item(85, 0);
+	m.add_item(86, 0);
+	m.add_item(87, 0);
+	m.add_item(20, 0);
+	mission_cvesc = m.run();
+}
+
+void menu_selecttimeofday(void)
+{
+	menu m(9, scopewatcherimg);
+	m.add_item(91, 0);
+	m.add_item(92, 0);
+	m.add_item(93, 0);
+	m.add_item(94, 0);
+	m.add_item(20, 0);
+	mission_tod = m.run();
+}
+
+void menu_convoy_battle(void)
+{
+	menu m(9, scopewatcherimg);
+	m.add_item(16, menu_selectsubtype);
+	m.add_item(84, menu_selectconvoysize);
+	m.add_item(88, menu_selectconvoyescort);
+	m.add_item(90, menu_selecttimeofday);
+	m.add_item(19, start_custom_mission);
 	m.add_item(20, 0);
 	m.run();
 }
@@ -179,7 +183,7 @@ void menu_single_mission(void)
 {
 	menu m(21, titlebackgr);
 	m.add_item(8, menu_notimplemented);
-	m.add_item(9, menu_notimplemented);//menu_convoy_battle);
+	m.add_item(9, menu_convoy_battle);
 	m.add_item(10, menu_historical_mission);
 	m.add_item(11, 0);
 	m.run();
