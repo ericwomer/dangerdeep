@@ -366,6 +366,11 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glRotatef((3*dwave-3)/4.0,0,1,0);
 		(*it)->display();
 		glPopMatrix();
+
+		if ((*it)->has_smoke()) {
+			double view_dir = 90.0f - angle ( (*it)->get_pos ().xy () - player->get_pos ().xy () ).value ();
+			(*it)->smoke_display (view_dir);
+		}
 	}
 
 	list<submarine*> submarines;

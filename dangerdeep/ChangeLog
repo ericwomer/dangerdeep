@@ -1,3 +1,16 @@
+2003-07-03  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* menu.h menu.cpp
+	  - improved menu design and input
+	* model.h model.cpp
+	  - faster model drawing using OpenGL features
+	* vector2.h vector2.cpp vector3.h vector3.cpp
+	  - changed classes to templates.
+	* smoke_stream.* ship.*
+	  - introduced smoke streams caused by ships (experimental)
+	* all over the place
+	  - changed text handling to new model
+	  - many miscellaneous changes (new clouds test, ...)
+
 2003-07-02  Markus Petermann  <m.petermann@gmx.net>
 	* game.cpp: When a ship is sunk the right text is choosed now.
 	* submarine_interface.cpp: When a submarine launches a torpedo the

@@ -14,7 +14,7 @@
 #include "sensors.h"
 
 ship::ship() : sea_object(), myai ( 0 ), fuel_level ( 1.0f ),
-	fuel_value_a ( 0.0f ), fuel_value_t ( 1.0f )
+	fuel_value_a ( 0.0f ), fuel_value_t ( 1.0f ), mysmoke(0)
 {}
 
 bool ship::parse_attribute(parser& p)
@@ -68,6 +68,11 @@ void ship::simulate(game& gm, double delta_time)
 
 	// Adjust fuel_level.
 	calculate_fuel_factor ( delta_time );
+	
+	if (mysmoke) {
+		mysmoke->set_source(position + vector3(0, 0, 10));//fixme add pos. relative to ship
+		mysmoke->simulate(gm, delta_time);
+	}
 }
 
 void ship::fire_shell_at(const vector2& pos)
