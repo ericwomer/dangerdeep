@@ -1,5 +1,5 @@
 // Object to create and display the number and tonnage of sunk ships.
-// subsim (C)+(W) Markus Petermann. SEE LICENSE
+// subsim (C)+(W) Markus Petermann and Thorsten Jordan. SEE LICENSE
 
 #include <map>
 #include <string>
@@ -34,7 +34,7 @@ void ships_sunk_display::add_sunk_ship ( const ship* so )
 		so->get_description ( 2 ) );
 }
 
-void ships_sunk_display::display ( class game& gm )
+void ships_sunk_display::display ( class game& gm ) const
 {
 	glColor3f ( 1.0f, 1.0f, 1.0f );
 
@@ -91,30 +91,27 @@ void ships_sunk_display::display ( class game& gm )
 	glEnd ();
 }
 
-void ships_sunk_display::check_key ( int keycode, class game& gm )
+void ships_sunk_display::process_input(const SDL_Event& event)
 {
-	if ( system::sys().key_shift () )
-	{
-		switch ( keycode )
-		{
-			case SDLK_LESS:
-				next_page ();
-				break;
+	switch (event.type) {
+	case SDL_KEYDOWN:
+		if (event.key.keysym.sym == SDLK_LESS) {
+			if (event.key.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT))
+				next_page();
+			else
+				previous_page();
 		}
-	}
-	else
-	{
-		switch ( keycode )
-		{
-			case SDLK_LESS:
-				previous_page ();
-				break;
-		}
+		break;
+	case SDL_MOUSEBUTTONDOWN:
+		if (event.button.x < 530)
+			previous_page();
+		else
+			next_page();
+		break;
+	default:
+		break;
 	}
 }
-
-void ships_sunk_display::check_mouse ( int x, int y, int mb )
-{}
 
 void ships_sunk_display::next_page ()
 {

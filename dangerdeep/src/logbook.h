@@ -1,5 +1,5 @@
 // Object to create and display logbook entries.
-// subsim (C)+(W) Markus Petermann. SEE LICENSE
+// subsim (C)+(W) Markus Petermann and Thorsten Jordan. SEE LICENSE
 
 #include <string>
 using namespace std;
@@ -19,11 +19,7 @@ public:
 	typedef logbook_entry_map::iterator logbook_entry_map_iterator;
 	typedef logbook_entry_map::const_iterator logbook_entry_map_const_iterator;
 
-#ifdef WIN32
-public:		// avoid compiler bug.
-#else
 private:
-#endif
 	logbook_entry_map logbook_entries;
 
 public:
@@ -32,7 +28,10 @@ public:
 	virtual void add_entry ( const string& entry )
 	{ logbook_entries[logbook_entries.size ()] = entry; }
 	friend ostream& operator << ( ostream& os, const logbook& lb );
-	virtual string get_entry ( unsigned i ) { return logbook_entries[i]; }
+	virtual string get_entry ( unsigned i ) const {
+		logbook_entry_map_const_iterator it = logbook_entries.find(i);
+		if (it == logbook_entries.end()) return "";
+		else return it->second; }
 	virtual unsigned size () const { return logbook_entries.size (); }
 	virtual void remove_entry ( unsigned i );
 };
@@ -55,9 +54,8 @@ protected:
 
 public:
 	virtual ~logbook_display() {}
-	virtual void display ( class game& gm ) = 0;
-	virtual void check_key ( int keycode, class game& gm ) = 0;
-	virtual void check_mouse ( int x, int y, int mb ) = 0;
+	virtual void display ( class game& gm ) const = 0;
+	virtual void process_input(const SDL_Event& event) = 0;
 	virtual void add_entry ( const date& d, const string& entry );
 	virtual void next_page ();
 	virtual void previous_page ();
@@ -75,9 +73,8 @@ class captains_logbook_display : public logbook_display
 public:
 	captains_logbook_display ();
 	virtual ~captains_logbook_display () {};
-	virtual void display ( class game& gm );
-	virtual void check_key ( int keycode, class game& gm );
-	virtual void check_mouse ( int x, int y, int mb );
+	virtual void display ( class game& gm ) const;
+	virtual void process_input(const SDL_Event& event);
 };
 
 #endif /* LOGBOOK_H_ */

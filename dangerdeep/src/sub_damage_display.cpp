@@ -93,7 +93,7 @@ void sub_damage_display::display_popup (int x, int y, const string& text, bool a
 	color::white().set_gl_color();
 }
 
-void sub_damage_display::display ( class game& gm )
+void sub_damage_display::display ( class game& gm ) const
 {
 	int ydrawdiff = (damage_screen_background->get_height()-sub_damage_scheme_all->get_height())/2;
 	glColor4f(1,1,1,1);
@@ -117,22 +117,13 @@ void sub_damage_display::display ( class game& gm )
 	}
 	
 	// fixme: clean up used textures of damage_screen_background & sub_damage_scheme_all
-}
 
-void sub_damage_display::check_key ( int keycode, class game& gm )
-{
-}
-
-void sub_damage_display::check_mouse ( int x, int y, int mb )
-{
-	if (!mysub) return;
-	// fixme
-	const vector<submarine::damageable_part>& damageable_parts = mysub->get_damage_status();
+	// draw popup if mouse is over any part
 	for (unsigned i = 0; i < damageable_parts.size(); ++i) {
 		if (damageable_parts[i].status < 0) continue;	// part does not exist
 		rect r = rect_data[i];
 		r.y += (damage_screen_background->get_height()-sub_damage_scheme_all->get_height())/2;
-		if (x >= r.x && x <= r.x+r.w && y >= r.y && y <= r.y+r.h) {
+		if (mx >= r.x && mx <= r.x+r.w && my >= r.y && my <= r.y+r.h) {
 			// it is important, that texts are in correct order starting with 400.
 			bool atleft = (r.x+r.w/2) < 1024/2;
 			bool atbottom = (r.y+r.h/2) >= 768/2;
@@ -172,5 +163,17 @@ void sub_damage_display::check_mouse ( int x, int y, int mb )
 			// display popup with all information. fixme automatic line breaks
 			display_popup(r.x+r.w/2, r.y+r.h/2, dmgstr.str(), atleft, atbottom);
 		}
+	}
+}
+
+void sub_damage_display::process_input(const SDL_Event& event)
+{
+	switch (event.type) {
+	case SDL_MOUSEMOTION:
+		mx = event.motion.x;
+		my = event.motion.y;
+		break;
+	default:
+		break;
 	}
 }

@@ -1,5 +1,5 @@
 // logbook
-// subsim (C)+(W) Markus Petermann. SEE LICENSE
+// subsim (C)+(W) Markus Petermann and Thorsten Jordan. SEE LICENSE
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -171,7 +171,7 @@ void captains_logbook_display::init ()
 	lb.add_entry ( texts::get(99) );
 }
 
-void captains_logbook_display::display ( class game& gm )
+void captains_logbook_display::display ( class game& gm ) const
 {
 	// Wooden background.
 	glColor3f ( 1.0f, 1.0f, 1.0f );
@@ -252,32 +252,24 @@ void captains_logbook_display::display ( class game& gm )
 	glPopMatrix ();
 }
 
-void captains_logbook_display::check_key ( int keycode, class game& gm )
+void captains_logbook_display::process_input(const SDL_Event& event)
 {
-	if ( system::sys().key_shift () )
-	{
-		switch ( keycode )
-		{
-			case SDLK_LESS:
-				next_page ();
-				break;
+	switch (event.type) {
+	case SDL_KEYDOWN:
+		if (event.key.keysym.sym == SDLK_LESS) {
+			if (event.key.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT))
+				next_page();
+			else
+				previous_page();
 		}
+		break;
+	case SDL_MOUSEBUTTONDOWN:
+		if (event.button.x < 530)
+			previous_page();
+		else
+			next_page();
+		break;
+	default:
+		break;
 	}
-	else
-	{
-		switch ( keycode )
-		{
-			case SDLK_LESS:
-				previous_page ();
-				break;
-		}
-	}
-}
-
-void captains_logbook_display::check_mouse ( int x, int y, int mb )
-{
-	if ( x < 530 )
-		previous_page ();
-	else
-		next_page ();
 }

@@ -684,6 +684,7 @@ void submarine_interface::display_torpedoroom(game& gm)
 }
 
 void submarine_interface::display_damagestatus(game& gm)
+//fixme: divide display and key handling information!!!!!!!!!!!!!!
 {
 //	glClearColor(0.25, 0.25, 0.25, 0);	// isn't needed
 //	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

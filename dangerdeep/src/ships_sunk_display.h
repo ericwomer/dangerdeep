@@ -1,5 +1,5 @@
 // Object to create and display the number and tonnage of sunk ships.
-// subsim (C)+(W) Markus Petermann. SEE LICENSE
+// subsim (C)+(W) Markus Petermann and Thorsten Jordan. SEE LICENSE
 
 #include "user_display.h"
 
@@ -59,9 +59,8 @@ public:
 
 	virtual void add_sunk_ship ( const ship* so );
 
-	virtual void display ( class game& gm );
-	virtual void check_key ( int keycode, class game& gm );
-	virtual void check_mouse ( int x, int y, int mb );
+	virtual void display ( class game& gm ) const;
+	virtual void process_input(const SDL_Event& event);
 	virtual void next_page ();
 	virtual void previous_page ();
 };
