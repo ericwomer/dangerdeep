@@ -127,11 +127,9 @@ void torpedo::save(ostream& out, const class game& g) const
 
 void torpedo::simulate(game& gm, double delta_time)
 {
-	cout << " simul speed 1 " << this << "," << get_speed() << " velo " << velocity << "\n";
+	cout << "torpedo " << this << " heading " << heading.value() << " turn speed " << turn_velocity << "\n";
 
 	ship::simulate(gm, delta_time);
-
-	cout << " simul speed 2 " << this << "," << get_speed() << " velo " << velocity << "\n";
 
 	// Torpedo starts to search for a target when the minimum save
 	// distance for the warhead is passed.
@@ -148,9 +146,7 @@ void torpedo::simulate(game& gm, double delta_time)
 	}
 
 	double old_run_length = run_length;
-	cout << "rl vorher " << this << "," << run_length << "\n";
 	run_length += get_speed() * delta_time;
-	cout << "rl nachher " << this << "," << run_length << "," << get_speed() << "," << delta_time << "\n";
 	if (run_length > max_run_length) {
 		destroy();
 		return;
@@ -174,7 +170,6 @@ void torpedo::simulate(game& gm, double delta_time)
 	}
 	
 	// check for collisions with other subs or ships
-	cout << "torpedo " << this << " run lenght is " << run_length << "\n";
 	if (run_length > 10) {	// avoid collision with parent after initial creation
 		bool runlengthfailure = (run_length < TORPEDO_SAVE_DISTANCE);
 		bool failure = false;	// calculate additional probability of torpedo failure
