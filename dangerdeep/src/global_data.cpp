@@ -62,7 +62,7 @@ bool loading_screen_usable = false;
 objcachet<class model> modelcache(get_model_dir());
 objcachet<class image> imagecache(get_image_dir());
 objcachet<class texture> texturecache(get_texture_dir());
-//objcachet<class sound> soundcache(get_sound_dir());	// fixme: add something like that
+objcachet<class sound> soundcache(get_sound_dir());
 
 string XmlAttrib(class TiXmlElement* elem, const char* attrname)
 {
@@ -111,7 +111,7 @@ void init_global_data(void)
 	atlanticmap = new texture(get_texture_dir() + "atlanticmap.jpg", GL_LINEAR, GL_CLAMP_TO_EDGE);
 	add_loading_screen("textures loaded");
 
-	torpedo_launch_sound = new sound(get_sound_dir() + "torpedo_launch.wav" );
+	torpedo_launch_sound = new sound(get_sound_dir() + "liquidblast.ogg"); // "torpedo_launch.wav" );
 	torpedo_detonation_submerged[0] = new sound(get_sound_dir() + "torpedo_detonation_submerged_1.wav" );
 	torpedo_detonation_submerged[1] = new sound(get_sound_dir() + "torpedo_detonation_submerged_2.wav" );
 	torpedo_detonation_surfaced[0] = new sound(get_sound_dir() + "torpedo_detonation_surfaced_1.wav" );

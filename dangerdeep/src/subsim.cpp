@@ -1322,6 +1322,9 @@ int main(int argc, char** argv)
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 	glEnable(GL_LIGHT0);
 
+	// init sound
+	sound::init();
+	
 	reset_loading_screen();
 	init_global_data();
 	
@@ -1330,7 +1333,7 @@ int main(int argc, char** argv)
 
 	sys->draw_console_with(font_arial, background);
 
-	
+
 	// try to make directories (again)
 	directory savegamedir = open_dir(savegamedirectory);
 	if (!savegamedir.is_valid()) {
@@ -1397,6 +1400,9 @@ int main(int argc, char** argv)
 		} while (retval != 0);
 	}
 
+	// deinit sound
+	sound::deinit();
+	
 	sys->write_console(true);
 
 	hsl_mission.save(highscoredirectory + HSL_MISSION_NAME);

@@ -1,3 +1,17 @@
+2005-01-30  Thorsten Jordan  <thorsten_jordan@gmx.de>, Andrew Rice
+	* replaced direct SDL audio usage by SDL mixer usage
+	 - now sound effects can be ogg files
+	 - code much smaller and simpler
+	 - will need libvorbis library
+	* Andrew:
+	 - fixes so that code compiles with macosx
+	 - scope shows black when lowered
+	* user defineable keys
+	 - changeable in menu
+	 - stored in config
+	 - now keyboard language independent input
+	* various small fixes all over the place
+
 2004-12-07  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* everywhere LOTS OF THINGS
 	 - mostly fixes, internal restructuring of display/interface code

@@ -39,6 +39,7 @@ unsigned XmlAttribu(class TiXmlElement* elem, const char* attrname);
 extern objcachet<class model> modelcache;
 extern objcachet<class image> imagecache;
 extern objcachet<class texture> texturecache;
+extern objcachet<class sound> soundcache;
 
 // global models, textures, fonts
 //fixme: get rid of this, instead use caches, maybe even for fonts.
