@@ -12,6 +12,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL/SDL.h>
+#include "../config.h"
 #endif
 #include "system.h"
 #include "vector3.h"
@@ -19,7 +20,6 @@
 #include "texture.h"
 #include <iostream>
 #include <sstream>
-#include "config.h"
 #include "image.h"
 #define VIEWMODEL
 font* font_arial;

@@ -9,6 +9,7 @@
 #pragma warning (disable : 4786)
 #else
 #include <SDL/SDL.h>
+#include "../config.h"
 #endif
 #include <GL/gl.h>
 #include "system.h"
@@ -30,7 +31,6 @@
 #include "texts.h"
 #include "sensors.h"
 #include "menu.h"
-#include "config.h"
 
 #define TRAILTIME 10
 #define ENEMYCONTACTLOST 50000.0	// meters
