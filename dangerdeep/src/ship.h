@@ -58,6 +58,7 @@ public:
 	virtual unsigned calc_damage(void) const;	// returns damage in percent (0 means dead)
 	ai* get_ai(void) { return myai; }
 	unsigned get_tonnage(void) const { return tonnage; }
+	virtual double get_fuel_level () const { return fuel_level; }
 
 	virtual bool is_merchant(void) const { return false; }
 	virtual bool is_escort(void) const { return false; }
