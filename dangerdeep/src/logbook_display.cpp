@@ -76,6 +76,7 @@ logbook_display::~logbook_display()
 
 void logbook_display::display(class game& gm) const
 {
+	// fixme: old code wrapped text when entry was too long. this is missing here
 	system::sys().prepare_2d_drawing();
 
 	// Wooden background.
