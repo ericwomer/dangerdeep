@@ -334,12 +334,10 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 	glBindTexture(GL_TEXTURE_2D, reflectiontex);
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
-/*
 	// rescale coordinates [-1,1] to [0,1]
 	glTranslated(0.5,0.5,0);
 	glScaled(0.5,0.5,1.0);
 	reflection_projmvmat.multiply_gl();
-*/
 	glMatrixMode(GL_MODELVIEW);
 
 	if (!(fragment_program_supported && use_fragment_programs)) {
