@@ -17,8 +17,12 @@
 #ifndef	_OGL_MACROS_H_
 #define	_OGL_MACROS_H_
 
+#ifndef	_WIN32
+
 // changed: use SDL_GL_GetProcAddress instead of wgl/GLX
 #include <SDL.h>
+
+#endif
 
 
 // ---[ INTERNAL API WRAPPER MACROS ]---------------------------------------------------------------------------
@@ -264,7 +268,7 @@
 
 // changed: use SDL_GL_GetProcAddress instead of wgl/GLX
 #define	GET_PROC_ADDRESS(NAME)		*((void * *) &m_p##NAME ) = (void *) ::SDL_GL_GetProcAddress("gl" #NAME ); \
-													if(m_p##NAME == NULL) return false;
+	if(m_p##NAME == NULL) return false;
 
 
 // ---[ MACROS TO INITIALIZE AN EXTENSION OR A GL VERSION ]-----------------------------------------------------
