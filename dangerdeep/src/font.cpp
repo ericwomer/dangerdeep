@@ -62,6 +62,9 @@ void font::print_text(int x, int y, const string& text, bool ignore_colors) cons
 			} else {
 				float u1 = float(characters[t].width)/characters[t].tex->get_width();
 				float v1 = float(char_height)/characters[t].tex->get_height();
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, characters[t].tex->get_opengl_name());
 			        glBegin(GL_QUADS);
 			        glTexCoord2f(0,0);

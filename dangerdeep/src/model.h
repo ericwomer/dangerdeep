@@ -19,14 +19,30 @@ public:
 		material(const material& );
 		material& operator= (const material& );
 	public:
+		class map {
+			map(const map& );
+			map& operator= (const map& );
+		public:
+			string filename;	// also in mytexture, fixme
+			float uscal, vscal, uoffset, voffset;
+			float angle;	// uv rotation angle;
+			texture* mytexture;
+			map() : uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0.0f), angle(0.0f), mytexture(0) {}
+			~map() { delete mytexture; }
+			void init(void);
+		};
+	
 		string name;
-		string filename;
-		color col;
-		float angle;	// uv rotation angle
-		texture* mytexture;
-		material() : angle(0), mytexture(0) {}
+		color ambient;
+		color diffuse;
+		color specular;
+		color transparency;//????
+		map* tex1;
+		map* bump;
+		
+		material() : tex1(0), bump(0) {}
 		void init(void);
-		~material() { delete mytexture; }
+		~material() { delete tex1; delete bump; }
 		void set_gl_values(void) const;
 	};
 	
@@ -80,8 +96,8 @@ protected:
 	void m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent);
 	void m3ds_process_face_chunks(istream& in, m3ds_chunk& parent, mesh& m);
 	void m3ds_process_material_chunks(istream& in, m3ds_chunk& parent);
-	void m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, material* m);
-	void m3ds_read_color_chunk(istream& in, m3ds_chunk& ch, material* m);
+	void m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, material::map* m);
+	void m3ds_read_color_chunk(istream& in, m3ds_chunk& ch, color& col);
 	void m3ds_read_faces(istream& in, m3ds_chunk& ch, mesh& m);
 	void m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, mesh& m);
 	void m3ds_read_vertices(istream& in, m3ds_chunk& ch, mesh& m);

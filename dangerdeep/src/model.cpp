@@ -4,13 +4,14 @@
 #include "model.h"
 #include "system.h"
 #include "global_data.h"
+#include "matrix4.h"
 
 #ifdef WIN32
 #undef min
 #undef max
 #endif
 
-int model::mapping = GL_NEAREST;
+int model::mapping = GL_LINEAR_MIPMAP_LINEAR;//GL_NEAREST;
 
 model::model(const string& filename, bool usematerial_, bool makedisplaylist) : display_list(0), usematerial(usematerial_)
 {
@@ -23,6 +24,8 @@ model::model(const string& filename, bool usematerial_, bool makedisplaylist) : 
 	compute_normals();
 
 	if (makedisplaylist) {
+		// fixme: determine automatically if we can make one (bump mapping
+		// without vertex shaders means that we can't compile a list!)
 		// create display list
 		unsigned dl = glGenLists(1);
 		system::sys().myassert(dl != 0, "no more display list indices available");
@@ -80,16 +83,24 @@ void model::compute_normals(void)
 			it2->normalize();
 		}
 		
-		// if we use bump mapping for this mesh, we need tangents, too! fixme
+		// if we use bump mapping for this mesh, we need tangent values, too!
 		// tangentsy get computed at runtime from normals and tangentsx
 		// tangentsx are computed that way:
 		// from each vertex we find a vector in positive u direction
 		// and project it onto the plane given by the normal -> tangentx
 		// because bump maps use stored texture coordinates (x = positive u!)
+		if (it->mymaterial && it->mymaterial->bump) {
+			it->tangentsx.clear();
+			it->tangentsx.resize(it->vertices.size());
+			//fixme
+			for (unsigned i = 0; i < it->vertices.size(); ++i) {
+				it->tangentsx[i] = vector3f(1,0,0);
+			}
+		}
 	}
 }
 
-void model::material::init(void)
+void model::material::map::init(void)
 {
 	delete mytexture;
 	mytexture = 0;
@@ -99,24 +110,86 @@ void model::material::init(void)
 	}
 }
 
+void model::material::init(void)
+{
+	if (tex1) tex1->init();
+	if (bump) bump->init();
+}
+
 void model::material::set_gl_values(void) const
 {
-	if (mytexture != 0) {
-		mytexture->set_gl_texture();
-		glColor3f(1,1,1);
+	diffuse.set_gl_color();
+	glActiveTexture(GL_TEXTURE0);
+	if (tex1 && tex1->mytexture) {
+		if (bump && bump->mytexture) {
+			glActiveTexture(GL_TEXTURE0);
+			glMatrixMode(GL_TEXTURE);
+			glLoadIdentity();
+			glRotatef(bump->angle, 0, 0, 1);//fixme order of operations is unclear
+			glTranslatef(bump->uoffset, bump->voffset, 0);
+			glScalef(bump->uscal, bump->vscal, 1);
+			bump->mytexture->set_gl_texture();
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+			glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGB); 
+			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
+			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+			glActiveTexture(GL_TEXTURE1);
+			glEnable(GL_TEXTURE_2D);
+			tex1->mytexture->set_gl_texture();
+			glMatrixMode(GL_TEXTURE);
+			glLoadIdentity();
+			glRotatef(tex1->angle, 0, 0, 1);
+			glTranslatef(tex1->uoffset, tex1->voffset, 0);
+			glScalef(tex1->uscal, tex1->vscal, 1);
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+			glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE); 
+			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+			/*
+			fixme: add some ambient color to the bump map with alpha blending
+			store ambient as primary color alpha
+			add it to tex0 dot3 result (with tex1alpha op)
+			set blend mode to src_alpha,ONE
+			or something the like...
+			add ambient to N*L or use ambient to blend between N*L and 1.
+			*/
+		} else {
+			glActiveTexture(GL_TEXTURE0);
+			tex1->mytexture->set_gl_texture();
+			glMatrixMode(GL_TEXTURE);
+			glLoadIdentity();
+			glRotatef(tex1->angle, 0, 0, 1);
+			glTranslatef(tex1->uoffset, tex1->voffset, 0);
+			glScalef(tex1->uscal, tex1->vscal, 1);
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		}
+		glMatrixMode(GL_MODELVIEW);
 	} else {
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		col.set_gl_color();
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }
 
 void model::mesh::display(bool usematerial) const
 {
 	bool has_texture_u0 = false, has_texture_u1 = false;
+	bool bumpmapping = false;
 	if (usematerial) {
 		if (mymaterial != 0) {
-			has_texture_u0 = (mymaterial->mytexture != 0);
-			//fixme: check usage of tex unit 2 (...and beyond)
+			if (mymaterial->tex1 && mymaterial->tex1->mytexture)
+				has_texture_u0 = true;
+			if (mymaterial->bump && mymaterial->bump->mytexture)
+				has_texture_u1 = true;
+			bumpmapping = has_texture_u1;	// maybe more options here...
 			mymaterial->set_gl_values();
 		} else {
 			glBindTexture(GL_TEXTURE_2D, 0);
@@ -132,7 +205,7 @@ void model::mesh::display(bool usematerial) const
 
 	glClientActiveTexture(GL_TEXTURE0);
 	if (has_texture_u0 && texcoords.size() == vertices.size()) {
-		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0].x);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	} else {
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -141,21 +214,42 @@ void model::mesh::display(bool usematerial) const
 	glClientActiveTexture(GL_TEXTURE1);
 	if (has_texture_u1 && texcoords.size() == vertices.size()) {
 		// maybe offer second texture coords. how are they stored in .3ds files?!
-		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0].x);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	} else {
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 
 	//with bump mapping, we need colors.
-	//glColorPointer(3, GL_UNSIGNED_BYTE, 0, &colors[0]);
-	//glEnableClientState(GL_COLOR_ARRAY);
+	vector<Uint8> colors;
+	if (bumpmapping) {
+		float lighttmp[4];
+		glGetLightfv(GL_LIGHT0, GL_POSITION, lighttmp);
+		matrix4f invmodelview = (matrix4f::get_gl(GL_MODELVIEW_MATRIX)).inverse();
+		vector3f lightpos = invmodelview * vector3f(lighttmp[0], lighttmp[1], lighttmp[2]);
+		colors.resize(3*vertices.size());
+		for (unsigned i = 0; i < vertices.size(); ++i) {
+			const vector3f& nx = tangentsx[i];
+			const vector3f& nz = normals[i];
+			vector3f ny = nz.cross(nx);
+			vector3f lp = lightpos - vertices[i];
+			vector3f nl = vector3f(nx * lp, ny * lp, nz * lp).normal();
+			const float s = 127.5f;
+			colors[3*i+0] = Uint8(nl.x*s + s);
+			colors[3*i+1] = Uint8(nl.y*s + s);
+			colors[3*i+2] = Uint8(nl.z*s + s);
+		}
+		glColorPointer(3, GL_UNSIGNED_BYTE, 0, &colors[0]);
+		glEnableClientState(GL_COLOR_ARRAY);
+	} else {
+		glDisableClientState(GL_COLOR_ARRAY);
+	}
 	
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, &indices[0]);
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
-	//glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex1
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
@@ -169,6 +263,20 @@ void model::display(void) const
 		for (vector<model::mesh>::const_iterator it = meshes.begin(); it != meshes.end(); ++it)
 			it->display(usematerial);
 	}
+
+	// reset texture units
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	glColor4f(1,1,1,1);
+	glMatrixMode(GL_MODELVIEW);
 }
 
 model::mesh model::get_mesh(unsigned nr) const
@@ -218,10 +326,18 @@ float model::get_cross_section(float angle) const
 	#define M3DS_EDIT3DS		0x3D3D
 		#define M3DS_EDIT_MATERIAL	0xAFFF
 			#define M3DS_MATNAME	   	0xA000
+			#define M3DS_MATAMBIENT		0xA010
 			#define M3DS_MATDIFFUSE		0xA020
-			#define M3DS_MATMAP		0xA200
+			#define M3DS_MATSPECULAR	0xA030
+			#define M3DS_MATTRANSPARENCY	0xA050//not used yet, fixme
+			#define M3DS_MATMAPTEX1		0xA200
 				#define M3DS_MATMAPFILE		0xA300
+				#define M3DS_MATMAP1OVERU_SCAL	0xA354
+				#define M3DS_MATMAP1OVERV_SCAL	0xA356
+				#define M3DS_MATMAPUOFFSET	0xA358
+				#define M3DS_MATMAPVOFFSET	0xA35A
 				#define M3DS_MATMAPANG		0xA35C
+			#define M3DS_MATMAPBUMP		0xA230
 		#define M3DS_EDIT_OBJECT	0x4000
 			#define M3DS_OBJ_TRIMESH   	0x4100
 				#define M3DS_TRI_VERTEXL	0x4110
@@ -317,6 +433,7 @@ void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent)
 	meshes.push_back(mesh());
 	while (!parent.fully_read()) {
 		m3ds_chunk ch = m3ds_read_chunk(in);
+//	cout<<"found trimesh chunk"<<(void*)ch.id<<"\n";
 		switch (ch.id) {
 			case M3DS_TRI_VERTEXL:
 				m3ds_read_vertices(in, ch, meshes.back());
@@ -376,28 +493,69 @@ void model::m3ds_process_material_chunks(istream& in, m3ds_chunk& parent)
 			case M3DS_MATNAME:
 				m->name = m3ds_read_string(in, ch);
 				break;
+			case M3DS_MATAMBIENT:
+				m3ds_read_color_chunk(in, ch, m->ambient);
+				break;
 			case M3DS_MATDIFFUSE:
-				m3ds_read_color_chunk(in, ch, m);
+				m3ds_read_color_chunk(in, ch, m->diffuse);
 				break;
-			case M3DS_MATMAP:
-				m3ds_process_materialmap_chunks(in, ch, m);
+			case M3DS_MATSPECULAR:
+				m3ds_read_color_chunk(in, ch, m->specular);
 				break;
-//			default: cout << "SKIP:\n";
+/*
+			case M3DS_MATTRANSPARENCY:
+				m3ds_read_color_chunk(in, ch, m->transparency);
+				break;
+*/
+			case M3DS_MATMAPTEX1:
+				if (!m->tex1) {
+					m->tex1 = new material::map();
+					m3ds_process_materialmap_chunks(in, ch, m->tex1);
+				}
+				break;
+			case M3DS_MATMAPBUMP:
+				if (!m->bump) {
+					m->bump = new material::map();
+					m3ds_process_materialmap_chunks(in, ch, m->bump);
+				}
+				break;
+//			default: cout << "skipped chunk with id " << (void*)ch.id << "\n";
 		}
 		ch.skip(in);
 		parent.bytes_read += ch.length;
 	}
+
+	// 3d studio uses diffuse color just for editor display
+	if (m->tex1)
+		m->diffuse = color::white();
+
 	m->init();
 	materials.push_back(m);
 }
 
-void model::m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, model::material* m)
+void model::m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, model::material::map* m)
 {
 	while (!parent.fully_read()) {
 		m3ds_chunk ch = m3ds_read_chunk(in);
 		switch (ch.id) {
 			case M3DS_MATMAPFILE:
 				m->filename = m3ds_read_string(in, ch);
+				break;
+			case M3DS_MATMAP1OVERU_SCAL:
+				m->uscal = 1.0f/read_float(in);
+				ch.bytes_read += 4;
+				break;
+			case M3DS_MATMAP1OVERV_SCAL:
+				m->vscal = 1.0f/read_float(in);
+				ch.bytes_read += 4;
+				break;
+			case M3DS_MATMAPUOFFSET:
+				m->uoffset = read_float(in);
+				ch.bytes_read += 4;
+				break;
+			case M3DS_MATMAPVOFFSET:
+				m->voffset = read_float(in);
+				ch.bytes_read += 4;
 				break;
 			case M3DS_MATMAPANG:
 				m->angle = read_float(in);
@@ -408,6 +566,7 @@ void model::m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, mod
 		ch.skip(in);
 		parent.bytes_read += ch.length;
 	}
+//	cout << "map: angle " << m->angle << " uscal,vscal " << m->uscal << "," << m->vscal << " uoff,voff " << m->uoffset << "," << m->voffset << "\n";
 }
 
 model::m3ds_chunk model::m3ds_read_chunk(istream& in)
@@ -434,13 +593,12 @@ string model::m3ds_read_string(istream& in, m3ds_chunk& ch)
 	return s;
 }
 
-void model::m3ds_read_color_chunk(istream& in, m3ds_chunk& parent, model::material* m)
+void model::m3ds_read_color_chunk(istream& in, m3ds_chunk& parent, color& col)
 {
 	m3ds_chunk ch = m3ds_read_chunk(in);
-	m->col.r = read_u8(in);
-	m->col.g = read_u8(in);
-	m->col.b = read_u8(in);
-//cout << "read color chunk " << int(m->col.r) << ","  << int(m->col.g) << ","  << int(m->col.b) << "\n";
+	col.r = read_u8(in);
+	col.g = read_u8(in);
+	col.b = read_u8(in);
 	ch.bytes_read += 3;
 	ch.skip(in);
 	parent.bytes_read += ch.length;
@@ -508,6 +666,10 @@ void model::m3ds_read_material(istream& in, m3ds_chunk& ch, model::mesh& m)
 		if ((*it)->name == matname) {
 			m.mymaterial = *it;
 			
+			for (vector<vector2f>::iterator it2 = m.texcoords.begin(); it2 != m.texcoords.end(); ++it2)
+				it2->y = -it2->y;
+
+/* fixme: do that with texture matrix.
 			// rotate texture coords (and negate v also)
 			float ca = cos(m.mymaterial->angle * M_PI / 180.0);
 			float sa = sin(m.mymaterial->angle * M_PI / 180.0);
@@ -517,7 +679,7 @@ void model::m3ds_read_material(istream& in, m3ds_chunk& ch, model::mesh& m)
 				it2->x = ca * u - sa * v;
 				it2->y = sa * u - ca * v;
 			}
-
+*/
 			return;
 		}
 	}

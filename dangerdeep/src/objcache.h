@@ -44,6 +44,17 @@ public:
 		return it->second.second;
 	}
 
+	bool ref(const string& objname, T* obj) {
+		if (objname.length() == 0) return false;	// no valid name
+		typename map<string, pair<unsigned, T*> >::iterator it = cache.find(objname);
+		if (it == cache.end()) {
+			it = cache.insert(make_pair(objname, make_pair(1, obj))).first;
+		} else {
+			return false;	// already exists
+		}
+		return true;
+	}
+
 	void unref(const string& objname) {
 		if (objname.length() == 0) return;
 		typename map<string, pair<unsigned, T*> >::iterator it = cache.find(objname);

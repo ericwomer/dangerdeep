@@ -320,7 +320,9 @@ void show_credits(void)
 {
 	glClearColor(0.1,0.25,0.4,0);
 
-	model* mdlgear = modelcache.ref("gear.3ds");
+	model* mdlgear = new model(get_model_dir() + "gear.3ds", true, false);
+	bool ok = modelcache.ref("gear.3ds", mdlgear);
+	system::sys().myassert(ok, "weird error");
 	
 //	mdlgear->get_mesh(0).mymaterial->col = color(255,255,255);
 
@@ -332,8 +334,10 @@ void show_credits(void)
 	int textendpos = textlines;
 	float lineoffset = 0.0f;
 
+	float lposition[4] = {200, 0, 0, 1};
+
 	bool quit = false;
-	float ang = 0.0f, ang_per_sec = 10.0f, r = 78, lines_per_sec = 2, d = -500;
+	float ang = 0.0f, ang_per_sec = 10.0f, r = 78, lines_per_sec = 2, d = -150;
 	unsigned tm = system::sys().millisec();
 	while (!quit) {
 		system::sys().poll_event_queue();
@@ -342,13 +346,9 @@ void show_credits(void)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glPushMatrix();
+		glLoadIdentity();
+		glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 		glRotatef(ang/10, 0, 0, 1);
-
-		glPushMatrix();
-		glTranslatef(-3*r,3*r,d);
-		glRotatef(4.05-ang, 0, 0, 1);
-		mdlgear->display();
-		glPopMatrix();
 
 		glPushMatrix();
 		glTranslatef(-r,r,d);
@@ -359,12 +359,6 @@ void show_credits(void)
 		glPushMatrix();
 		glTranslatef(r,-r,d);
 		glRotatef(4.05-ang, 0, 0, 1);
-		mdlgear->display();
-		glPopMatrix();
-		
-		glPushMatrix();
-		glTranslatef(3*r,-3*r,d);
-		glRotatef(ang, 0, 0, 1);
 		mdlgear->display();
 		glPopMatrix();
 		

@@ -33,7 +33,7 @@ void view_model(const string& modelfilename)
 {
 	vector3 viewangles;
 	vector3 pos;
-	model* mdl = new model(string(DATADIR) + MODEL_DIR + modelfilename);
+	model* mdl = new model(string(DATADIR) + MODEL_DIR + modelfilename, true, false);
 
 	while (true) {
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -140,7 +140,7 @@ int main(int argc, char** argv)
 
 	GLfloat lambient[4] = {0.5,0.5,0.5,1};
 	GLfloat ldiffuse[4] = {1,1,1,1};
-	GLfloat lposition[4] = {0,0,1,0};
+	GLfloat lposition[4] = {100,0,100,0};
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lambient);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, ldiffuse);
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
