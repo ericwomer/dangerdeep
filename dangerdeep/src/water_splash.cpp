@@ -10,66 +10,56 @@
 #include "system.h"
 #include "game.h"
 
-water_splash::water_splash ( const vector3& position, water_splash_type type ) :
+
+
+//
+// Class water_splash
+//
+water_splash::water_splash () : sea_object ()
+{}
+
+water_splash::water_splash ( const vector3& position ) :
 	sea_object ()
 {
 	this->position = position;
-	init ( type );
 }
 
 water_splash::~water_splash ()
 {
-	list<water_splash_element*>::iterator it;
-	for ( it = water_splashes.begin (); it != water_splashes.end (); it ++ )
+	for ( water_splash_element_list_iterator it = water_splashes.begin ();
+		it != water_splashes.end (); it ++ )
 	{
 		delete (*it);
 	}
 }
 
-void water_splash::init ( water_splash_type type )
-{
-	switch ( type )
-	{
-		case water_splash::torpedo:
-			water_splashes.push_back ( new water_splash_element (
-				torp_expl_water_splash[1], 80.0f, 30.0f, 1.0f, 3.0f ) );
-			water_splashes.push_back ( new water_splash_element (
-				torp_expl_water_splash[2], 80.0f, 40.0f, 1.0f, 2.0f ) );
-			break;
-		default:
-			water_splashes.push_back ( new water_splash_element (
-				torp_expl_water_splash[0], 10.0f, 1.0f, 1.0f, 2.0f ) );
-			break;
-	}
-}
-
 void water_splash::simulate ( class game& gm, double delta_time )
 {
-	list<water_splash_element*>::iterator it;
-	for ( it = water_splashes.begin (); it != water_splashes.end (); )
+	for ( water_splash_element_list_iterator it = water_splashes.begin ();
+		it != water_splashes.end (); )
 	{
-		list<water_splash_element*>::iterator it2 = it++;
+		water_splash_element_list_iterator it2 = it++;
 		if ( !(*it2)->is_finished () )
 		{
 			(*it2)->simulate ( gm, delta_time );
 		}
 		else
 		{
-			// delete (*it2);
-			// water_splashes.erase ( it2 );
+			delete (*it2);
+			water_splashes.erase ( it2 );
 		}
 	}
 
 	// When there are no active splashes left, mark the actual water_splash
 	// object dead. It is removed later.
-	//if ( !water_splashes.size () )
-		//kill ();
+	if ( !water_splashes.size () )
+		kill ();
 }
 
 void water_splash::display () const
 {
-	list<water_splash_element*>::const_iterator it;
-	for ( it = water_splashes.begin (); it != water_splashes.end (); it ++ )
+	for ( water_splash_element_list_const_iterator it = water_splashes.begin ();
+		it != water_splashes.end (); it ++ )
 	{
 		(*it)->display ();
 	}
@@ -79,6 +69,8 @@ float water_splash::surface_visibility(const vector2& watcher) const
 {
 	return 1.0f;
 }
+
+
 
 //
 // Class water_splash::water_splash_element
@@ -129,4 +121,57 @@ void water_splash_element::display () const
 		glEnd ();
 		glColor3f ( 1.0f, 1.0f, 1.0f );
 	}
+}
+
+
+
+//
+// Class torpedo_water_splash
+//
+torpedo_water_splash::torpedo_water_splash ( const vector3& position ) :
+	water_splash ( position )
+{
+	init ();
+}
+
+void torpedo_water_splash::init ()
+{
+	spawn_water_splash_element ( new water_splash_element (
+		torp_expl_water_splash[1], 80.0f, 30.0f, 1.0f, 2.0f ) );
+	spawn_water_splash_element ( new water_splash_element (
+		torp_expl_water_splash[2], 80.0f, 40.0f, 1.0f, 1.5f ) );
+}
+
+
+
+//
+// Class gun_shell_water_splash
+//
+gun_shell_water_splash::gun_shell_water_splash ( const vector3& position ) :
+	water_splash ( position )
+{
+	init ();
+}
+
+void gun_shell_water_splash::init ()
+{
+	spawn_water_splash_element ( new water_splash_element (
+		torp_expl_water_splash[0], 10.0f, 1.0f, 1.0f, 2.0f ) );
+}
+
+
+
+//
+// Class depth_charge_water_splash
+//
+depth_charge_water_splash::depth_charge_water_splash ( const vector3& position ) :
+	water_splash ( position )
+{
+	init ();
+}
+
+void depth_charge_water_splash::init ()
+{
+	spawn_water_splash_element ( new water_splash_element (
+		torp_expl_water_splash[2], 20.0f, 40.0f, 2.0f, 2.0f ) );
 }
