@@ -737,7 +737,23 @@ void user_interface::display_map(class system& sys, game& gm)
 	{	// sub is surfaced
 		draw_visual_contacts(sys, gm, player, offset);
 	}
-	
+
+	// Draw a red box around the selected target.
+    if ( target )
+    {
+		glColor3f ( 1.0f, 0.0f, 0.0f );
+		glBegin ( GL_LINE_LOOP );
+		vector2 p = ( target->get_pos ().xy () + offset ) * mapzoom;
+		int x = int ( round ( p.x ) );
+		int y = int ( round ( p.y ) );
+		glVertex2i ( 512-4+x,384-4-y );
+		glVertex2i ( 512+4+x,384-4-y );
+		glVertex2i ( 512+4+x,384+4-y );
+		glVertex2i ( 512-4+x,384+4-y );
+		glEnd ();
+		glColor3f ( 1.0f, 1.0f, 1.0f );
+    }
+
 	draw_infopanel(sys);
 	sys.unprepare_2d_drawing();
 	
@@ -921,3 +937,24 @@ void user_interface::display_glasses(class system& sys, class game& gm)
 	}
 }
 
+void user_interface::add_rudder_message()
+{
+    switch (player_object->get_rudder())
+    {
+        case player_object->rudderfullleft:
+            add_message(TXT_Rudderhardleft[language]);
+            break;
+        case player_object->rudderleft:
+            add_message(TXT_Rudderleft[language]);
+            break;
+        case player_object->ruddermid:
+            add_message(TXT_Ruddermidships[language]);
+            break;
+        case player_object->rudderright:
+            add_message(TXT_Rudderright[language]);
+            break;
+        case player_object->rudderfullright:
+            add_message(TXT_Rudderhardright[language]);
+            break;
+    }
+}

@@ -98,6 +98,8 @@ public:
 	virtual bool time_scale_up(void);	// returns true on success
 	virtual bool time_scale_down(void);
 	virtual void record_ship_tonnage(unsigned tons) { tonnage_sunk.push_back(tons); }
+	/** This method creates a message about the rudder state. */
+    virtual void add_rudder_message();
 };
 
 #endif

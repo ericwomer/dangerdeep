@@ -69,7 +69,7 @@ bool ship_interface::keyboard_common(int keycode, class system& sys, class game&
 			break;
 #endif			
 		}
-		case SDLK_SPACE: target = gm.sub_in_direction_from_pos(player->get_pos().xy(), player->get_heading()+bearing);
+		case SDLK_SPACE: target = gm.sub_in_direction_from_pos(player, player->get_heading()+bearing);
 			if (target) add_message(TXT_Newtargetselected[language]);
 			else add_message(TXT_Notargetindirection[language]);
 			break;

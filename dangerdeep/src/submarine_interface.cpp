@@ -70,16 +70,16 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 	} else {	// no shift
 		switch (keycode) {
 			// viewmode switching
-			case SDLK_F1: viewmode = 0; break;
-			case SDLK_F2: viewmode = 1; break;
-			case SDLK_F3: viewmode = 2; break;
-			case SDLK_F4: viewmode = 3; break;
-			case SDLK_F5: viewmode = 4; break;
-			case SDLK_F6: viewmode = 5; break;
-			case SDLK_F7: viewmode = 6; break;
-			case SDLK_F8: viewmode = 7; break;
-			case SDLK_F9: viewmode = 8; break;
-			case SDLK_F10: viewmode = 9; break;
+			case SDLK_F1: viewmode = display_mode_gauges; break;
+			case SDLK_F2: viewmode = display_mode_periscope; break;
+			case SDLK_F3: viewmode = display_mode_uzo; break;
+			case SDLK_F4: viewmode = display_mode_bridge; break;
+			case SDLK_F5: viewmode = display_mode_map; break;
+			case SDLK_F6: viewmode = display_mode_torpedoroom; break;
+			case SDLK_F7: viewmode = display_mode_damagecontrol; break;
+			case SDLK_F8: viewmode = display_mode_logbook; break;
+			case SDLK_F9: viewmode = display_mode_successes; break;
+			case SDLK_F10: viewmode = display_mode_freeview; break;
 
 			// time scaling fixme: too simple
 			case SDLK_F11: if (time_scale_up()) { add_message(TXT_Timescaleup[language]); } break;
@@ -130,9 +130,12 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 				if (player->fire_torpedo(gm, -1, target))
 					add_message(TXT_Torpedofired[language]);
 				break;
-			case SDLK_SPACE: target = gm.ship_in_direction_from_pos(player->get_pos().xy(), player->get_heading()+bearing);
-				if (target) add_message(TXT_Newtargetselected[language]);
-				else add_message(TXT_Notargetindirection[language]);
+			case SDLK_SPACE:
+				target = gm.contact_in_direction(player, player->get_heading()+bearing);
+				if (target)
+					add_message(TXT_Newtargetselected[language]);
+				else
+					add_message(TXT_Notargetindirection[language]);
 				break;
 			case SDLK_i: {
 				// calculate distance to target for identification detail
@@ -175,31 +178,57 @@ void submarine_interface::display(class system& sys, game& gm)
 {
 	submarine* player = dynamic_cast<submarine*> ( get_player() );
 
-	if (target != 0 && target->is_dead()) target = 0;
+	// A dead or sinking target can be removed as selected target.
+	if (target != 0 && (target->is_dead () || target->is_sinking ()))
+		target = 0;
 
 	// switch to map if sub is to deep.
 	double depth = player->get_depth();
-	if ((depth > SUBMARINE_SUBMERGED_DEPTH && (viewmode >= 2 && viewmode <= 3)) ||
-		(depth > player->get_periscope_depth() && (viewmode >= 1 && viewmode <= 3)) ||
-		(viewmode == 1 && !player->is_scope_up()))
-			viewmode = 4;
+	if ((depth > SUBMARINE_SUBMERGED_DEPTH &&
+			(viewmode == display_mode_uzo || viewmode == display_mode_glasses ||
+			 viewmode == display_mode_bridge)) ||
+		(depth > player->get_periscope_depth() &&
+			(viewmode == display_mode_periscope || viewmode == display_mode_uzo ||
+			 viewmode == display_mode_glasses || viewmode == display_mode_bridge)) ||
+		(viewmode == display_mode_periscope && !player->is_scope_up()))
+			viewmode = display_mode_map;
 
 	switch (viewmode) {
-		case 0: display_gauges(sys, gm); break;
-		case 1: display_periscope(sys, gm); break;
-		case 2: display_UZO(sys, gm); break;
-		case 3:
+		case display_mode_gauges:
+			display_gauges(sys, gm);
+			break;
+		case display_mode_periscope:
+			display_periscope(sys, gm);
+			break;
+		case display_mode_uzo:
+			display_UZO(sys, gm);
+			break;
+		case display_mode_glasses:
+		case display_mode_bridge:
             if ( zoom_scope )
                 display_glasses(sys, gm);
             else
                 display_bridge(sys, gm);
             break;
-		case 4: display_map(sys, gm); break;
-		case 5: display_torpedoroom(sys, gm); break;
-		case 6: display_damagecontrol(sys, gm); break;
-		case 7: display_logbook(sys, gm); break;
-		case 8: display_successes(sys, gm); break;
-		default: display_freeview(sys, gm); break;
+		case display_mode_map:
+			display_map(sys, gm);
+			break;
+		case display_mode_torpedoroom:
+			display_torpedoroom(sys, gm);
+			break;
+		case display_mode_damagecontrol:
+			display_damagecontrol(sys, gm);
+			break;
+		case display_mode_logbook:
+			display_logbook(sys, gm);
+			break;
+		case display_mode_successes:
+			display_successes(sys, gm);
+			break;
+		case display_mode_freeview:
+		default:
+			display_freeview(sys, gm);
+			break;
 	}
 }
 
@@ -438,26 +467,4 @@ void submarine_interface::draw_torpedo(class system& sys, bool usebow, int x, in
 			sys.draw_hm_image(x, y, 256, 32, torptex(st.type));
 		}
 	}
-}
-
-void submarine_interface::add_rudder_message()
-{
-    switch (player_object->get_rudder())
-    {
-        case player_object->rudderfullleft:
-            add_message(TXT_Rudderhardleft[language]);
-            break;
-        case player_object->rudderleft:
-            add_message(TXT_Rudderleft[language]);
-            break;
-        case player_object->ruddermid:
-            add_message(TXT_Ruddermidships[language]);
-            break;
-        case player_object->rudderright:
-            add_message(TXT_Rudderright[language]);
-            break;
-        case player_object->rudderfullright:
-            add_message(TXT_Rudderhardright[language]);
-            break;
-    }
 }

@@ -17,6 +17,10 @@ using namespace std;
 class submarine_interface : public user_interface
 {
 protected:
+	enum display_mode { display_mode_gauges, display_mode_periscope,
+		display_mode_uzo, display_mode_glasses, display_mode_bridge,
+		display_mode_map, display_mode_torpedoroom, display_mode_damagecontrol,
+		display_mode_logbook, display_mode_successes, display_mode_freeview };
 	submarine_interface();
 	submarine_interface& operator= (const submarine_interface& other);
 	submarine_interface(const submarine_interface& other);
@@ -31,9 +35,6 @@ protected:
 	virtual void display_periscope(class system& sys, class game& gm);
 	virtual void display_UZO(class system& sys, class game& gm);
 	virtual void display_torpedoroom(class system& sys, class game& gm);
-
-    /** This method creates a message about the rudder state. */
-    virtual void add_rudder_message();
 
 public:	
 	submarine_interface(submarine* player_sub);
