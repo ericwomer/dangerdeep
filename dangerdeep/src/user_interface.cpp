@@ -87,14 +87,16 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	float hl = 0.1, hu = 0.4;
 	for (int j = 0; j < SKYSEGS; ++j) {
 		int t = (j+1) % SKYSEGS;
-		glTexCoord2f((j+1)*0.5, 1);
-		glVertex3f(ru * skycos[t], ru * skysin[t], hu);
+		glColor4f(1,1,1,0);
 		glTexCoord2f((j+1)*0.5, 0);
 		glVertex3f(rl * skycos[t], rl * skysin[t], hl);
 		glTexCoord2f((j  )*0.5, 0);
 		glVertex3f(rl * skycos[j], rl * skysin[j], hl);
+		glColor4f(1,1,1,1);
 		glTexCoord2f((j  )*0.5, 1);
 		glVertex3f(ru * skycos[j], ru * skysin[j], hu);
+		glTexCoord2f((j+1)*0.5, 1);
+		glVertex3f(ru * skycos[t], ru * skysin[t], hu);
 	}
 	glEnd();
 	glPopMatrix();
