@@ -109,7 +109,9 @@ public:
 	static widget* create_dialogue_ok_cancel(widget* parent_, const string& title, const string& text = "");
 	widget* create_dialogue_ok_cancel(const string& title, const string& text = "") { return create_dialogue_ok_cancel(this, title, text); }
 
-	virtual int run(void);	// show & exec. widget, automatically disable widgets below
+	// show & exec. widget, automatically disable widgets below
+	// run() runs for "time" milliseconds (or forever if time == 0), then returns
+	virtual int run(unsigned timeout = 0);
 	virtual void close(int val);	// close this widget (stops run() on next turn, returns val)
 	
 	static list<widget*> widgets;	// stack of dialogues, topmost is back

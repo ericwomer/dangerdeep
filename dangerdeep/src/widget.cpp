@@ -268,15 +268,20 @@ widget* widget::create_dialogue_ok_cancel(widget* parent_, const string& title, 
 	return w;
 }
 
-int widget::run(void)
+int widget::run(unsigned timeout)
 {
 	glClearColor(0, 0, 0, 0);
 	widget* myparent = parent;	// store parent info and unlink chain to parent
 	parent = 0;
 	if (myparent) myparent->disable();
+	closeme = false;
 	widgets.push_back(this);
 	class system* sys = system::sys();
+	unsigned endtime = sys->millisec() + timeout;
 	while (!closeme) {
+		unsigned time = sys->millisec();
+		if (timeout != 0 && time > endtime) break;
+		
 		sys->poll_event_queue();
 		glClear(GL_COLOR_BUFFER_BIT);
 		sys->prepare_2d_drawing();

@@ -403,45 +403,146 @@ void choose_saved_game(void)
 //
 // create a network mission
 //
-IPaddress computer_ip;
-Uint16 server_port = 0xdf7d;
-string ip2string(IPaddress ip, bool withport = true)
-{
-	ostringstream os;
-	os <<	unsigned((ip.host>>24)&0xff) << "." <<
-		unsigned((ip.host>>16)&0xff) << "." <<
-		unsigned((ip.host>> 8)&0xff) << "." <<
-		unsigned((ip.host    )&0xff) ;
-	if (withport)
-		os << ":" << unsigned(ip.port);
-	return os.str();
-}
-void server_wait_for_clients(void)
+
+#define MSG_abort "DFTD-!!!abort!!!"
+#define MSG_quit "DFTD-iamoff!"
+#define MSG_ask_for_game "DFTD-askgame?"
+#define MSG_offer_game "DFTD-offergame!"
+#define MSG_join_game "DFTD-joingame?"
+#define MSG_join_ok "DFTD-joinok!"
+
+void server_wait_for_clients(network_connection& sv, Uint16 server_port)
 {
 	IPaddress hostip;
 	int error = SDLNet_ResolveHost(&hostip, 0, server_port);
 	system::sys()->myassert(error == 0, "can resolve host ip for this computer");
 	
 	widget w(0, 0, 1024, 768, texts::get(22), 0, swordfishimg);
-	w.add_child(new widget_text(280, 60, 0, 0, texts::get(57) + ip2string(hostip)));
-	w.add_child(new widget_text(40, 60, 0, 0, texts::get(57)));
-	widget_list* wplayers = new widget_list(40, 90, 200, 400);
-	const char* c = SDLNet_ResolveIP(&hostip);
-	string hostname = "???";
-	if (c) hostname = c;
-	wplayers->append_entry(hostname);
+	w.add_child(new widget_text(40, 60, 0, 0, texts::get(195)));
+	widget_list* wplayers = new widget_list(40, 90, 500, 400);
 	w.add_child(wplayers);
+	list<IPaddress> clients;	// fixme: a list of connections would be better
 
 	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
 	w.add_child(wm);
 	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
-	wm->add_entry(texts::get(191), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 70, 700, 400, 40));
+	wm->add_entry(texts::get(196), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 70, 700, 400, 40));
 	wm->adjust_buttons(944);
-	int result = w.run();
+
+	while (true) {
+		int result = w.run(50);
+		if (result == 1) {
+			// fixme: send all players the ABORT message
+			break;
+		} else if (result == 2) {
+			// go!
+		}
+		IPaddress clientip;
+		string msg = sv.receive_message(&clientip);
+		if (msg == MSG_ask_for_game) {
+			sv.unbind();
+			sv.bind(clientip);
+			sv.send_message(MSG_offer_game);
+			sv.unbind();
+		} else if (msg == MSG_join_game) {
+			clients.push_back(clientip);
+			wplayers->append_entry(network_connection::ip2string(clientip));
+			sv.unbind();
+			sv.bind(clientip);
+			sv.send_message(MSG_join_ok);
+			sv.unbind();
+		}
+	}
+}		
+
+void scan_for_servers(widget_list* wservers, Uint16 server_port, network_connection& scan)
+{
+	wservers->clear();
+	
+	// send a broadcast to all local addresses (assuming subnet mask 255.255.255.0)
+	scan.bind("192.168.0.0", server_port);
+	scan.send_message(MSG_ask_for_game);
+	scan.unbind();
+
+	// now listen for an answer
+	unsigned t = system::sys()->millisec();
+	unsigned timeout = 2000;
+	while (true) {
+		unsigned t2 = system::sys()->millisec();
+		if (t2 > t + timeout)
+			break;
+		system::sys()->poll_event_queue();
+		int key = system::sys()->get_key().sym;
+		if (key == SDLK_ESCAPE)
+			break;
+		IPaddress ip;
+		string msg = scan.receive_message(&ip);
+		if (msg == MSG_offer_game) {
+			wservers->append_entry(network_connection::ip2string(ip));
+		}
+		SDL_Delay(50);
+	}
+}
+/*
+// multi threaded server search...just an idea
+int scan_for_servers_MT_runs = 0;
+void scan_for_servers_MT(void* wls)
+{
+	++scan_for_servers_MT_runs;		// not really mutual exclusive
+	if (scan_for_servers_MT_runs > 1) return;
+	scan_for_servers((widget_list*)wls);
+	--scan_for_servers_MT_runs;
+}
+*/
+
+void create_network_game(Uint16 server_port)
+{
+	// start server
+	network_connection sv(server_port);
+/*
+	while (true) {
+		string msg = sv.receive_message();
+		cout << "message rcvd: '"<<msg<<"'\n";
+		system::sys()->poll_event_queue();
+		SDL_Delay(50);
+	}
+*/
+	server_wait_for_clients(sv, server_port);
+/*
+			submarine::types st = submarine::typeVIIc;
+			switch (wsubtype->get_selected()) {
+				case 0: st = submarine::typeVIIc; break;
+				case 1: st = submarine::typeIXc40; break;
+				case 2: st = submarine::typeXXI; break;
+			}
+			run_game(new game(st, wcvsize->get_selected(), wescortsize->get_selected(), wtimeofday->get_selected()));
+*/		
 }
 
-void create_network_game(void)
+void join_network_game(const string& servername, Uint16 server_port, network_connection& client)
 {
+	// join game
+	client.unbind();
+	client.bind(servername, server_port);
+	client.send_message(MSG_join_game);
+/*	
+	while (true) {
+		ostringstream os;
+		os << "Hallo " << &cl << ", rnd " << rand() << "\n";
+		cl.send_message(os.str());
+		system::sys()->poll_event_queue();
+		SDL_Delay(100);
+	}
+*/	
+}
+
+void play_network_game(void)
+{
+	IPaddress computer_ip;
+	Uint16 server_port = 0xdf7d;
+	
+	network_connection client;	// used for scanning and later for playing
+	
 	// initialize network play
 	int network_ok = SDLNet_Init();
 	system::sys()->myassert(network_ok != -1, "failed to initialize SDLnet");
@@ -450,7 +551,7 @@ void create_network_game(void)
 
 	widget w(0, 0, 1024, 768, texts::get(22), 0, swordfishimg);
 	w.add_child(new widget_text(40, 60, 0, 0, texts::get(57)));
-	widget_edit* wserverip = new widget_edit(40, 90, 200, 40, ip2string(computer_ip, false));
+	widget_edit* wserverip = new widget_edit(40, 90, 200, 40, network_connection::ip2string(computer_ip));
 	w.add_child(wserverip);
 	w.add_child(new widget_text(280, 60, 0, 0, texts::get(58)));
 	ostringstream oss; oss << server_port;
@@ -460,7 +561,9 @@ void create_network_game(void)
 	widget_list* wservers = new widget_list(40, 170, 440, 400);
 	w.add_child(wservers);
 	
-	// scan_for_servers(wservers);
+	scan_for_servers(wservers, server_port, client);
+	
+	// fixme: set ip editbox when user clicks on list
 
 	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
 	w.add_child(wm);
@@ -474,36 +577,11 @@ void create_network_game(void)
 	while (result != 1) {
 		result = w.run();
 		if (result == 2) {
-			// start server
-			network_server sv(56789);
-			while (true) {
-				string msg = sv.receive_message();
-				cout << "message rcvd: '"<<msg<<"'\n";
-				system::sys()->poll_event_queue();
-				SDL_Delay(50);
-			}
-			server_wait_for_clients();
-/*
-			submarine::types st = submarine::typeVIIc;
-			switch (wsubtype->get_selected()) {
-				case 0: st = submarine::typeVIIc; break;
-				case 1: st = submarine::typeIXc40; break;
-				case 2: st = submarine::typeXXI; break;
-			}
-			run_game(new game(st, wcvsize->get_selected(), wescortsize->get_selected(), wtimeofday->get_selected()));
-*/		
+			create_network_game(server_port);	// start server, wait for players
 		} else if (result == 3) {
-			// join game
-			network_client cl("192.168.0.98", 56789);
-			while (true) {
-				ostringstream os;
-				os << "Hallo " << &cl << ", rnd " << rand() << "\n";
-				cl.send_message(os.str());
-				system::sys()->poll_event_queue();
-				SDL_Delay(100);
-			}
+			join_network_game(wserverip->get_text(), server_port, client);
 		} else if (result == 4) {
-			// scan_for_servers(wservers);
+			scan_for_servers(wservers, server_port, client);
 		}
 	}
 	
@@ -566,84 +644,8 @@ void menu_options(void)
 	m.run();
 }
 
-//---------------------------- some network stuff, just a try
-struct ip
-{
-	unsigned char a, b, c, d;
-	ip() : a(0), b(0), c(0), d(0) {}
-	ip(unsigned char a_, unsigned char b_, unsigned char c_, unsigned char d_) :
-		a(a_), b(b_), c(c_), d(d_) {}
-	bool is_valid(void) const { return (a!=0) || (b!=0) || (c!=0) || (d!=0); }
-};
 
-unsigned short string2port(const string& s)
-{
-	istringstream is(s);
-	unsigned short p;
-	is >> p;
-	return p;
-}
-
-ip string2ip(const string& s)
-{
-	unsigned a, b, c, d;
-	sscanf(s.c_str(), "%u.%u.%u.%u", &a, &b, &c, &d);
-	if (a > 255 || b > 255 || c > 255 || d > 255)
-		return ip();
-	return ip(a, b, c, d);
-}
-
-void create_network_game(unsigned short port)
-{
-	printf("create network game %u\n",port);
-}
-
-void join_network_game(ip serverip, unsigned short port)
-{
-	printf("join network game %u.%u.%u.%u:%u\n",serverip.a,serverip.b,serverip.c,serverip.d,port);
-}
-
-void menu_multiplayer(void)
-{
-/*
-	menu m;	// just a test
-	m.add_item(TXT_Createnetworkgame[language]);
-	m.add_item(menu::item(TXT_Joinnetworkgame[language], "192.168.0.0"));
-	m.add_item(menu::item(TXT_Enternetworkportnr[language], "7896"));//57117=0xdf1d
-	m.add_item(TXT_Returntomainmenu[language]);
-	
-	unsigned short port;
-	ip serverip;
-
-	while (true) {
-		sys->prepare_2d_drawing();
-//		draw_background_and_logo();
-		m.draw(1024, 768);
-
-		sys->poll_event_queue();
-		int key = sys->get_key();
-		int mmsel = m.input(key, 0, 0, 0) & 0xffff;
-
-		port = string2port(m.get_item(2).get_input_text());
-		serverip = string2ip(m.get_item(1).get_input_text());
-
-		sys->unprepare_2d_drawing();
-		sys->swap_buffers();
-		if (mmsel == 3) break;
-		switch (mmsel) {
-			case 0: if (port != 0)
-				create_network_game(port);
-				break;
-			case 1:	if (port != 0 && serverip.is_valid())
-				join_network_game(serverip, port);
-				break;
-			case 2: break;
-		}
-	}
-*/	
-}
-// -------------------------- end network stuff
-
+// vessel preview
 int current_vessel = 0;
 double vessel_zangle = 0;
 double vessel_xangle = 0;
@@ -816,7 +818,7 @@ int main(int argc, char** argv)
 	// main menu
 	menu m(104, titlebackgrimg);
 	m.add_item(21, menu_single_mission);
-	m.add_item(22, create_network_game);
+	m.add_item(22, play_network_game);
 	m.add_item(23, menu_notimplemented);
 	m.add_item(24, menu_show_vessels);
 	m.add_item(25, menu_notimplemented);
