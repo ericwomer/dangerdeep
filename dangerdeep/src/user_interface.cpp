@@ -854,10 +854,20 @@ void user_interface::display_map(class system& sys, game& gm)
 
 void user_interface::display_damagecontrol(class system& sys, game& gm)
 {
-	glClearColor(0.25, 0.25, 0.25, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//	glClearColor(0.25, 0.25, 0.25, 0);
+//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	sys.prepare_2d_drawing();
-	font_arial2->print(0, 0, "damage control - fixme");
+
+//	font_arial2->print(0, 0, "damage control - fixme");
+	// the source image is 8bpp, paletted. It is transformed to
+	// 16bpp plain on the fly by SDL, that is slow! fixme
+	// This could be done by copying it once to the auxiliary buffer.
+	// Maybe we don't need OpenGL auxiliary buffers, if we use a
+	// SDL Hardware surface instead.
+	SDL_BlitSurface(damage_screen_background, 0, SDL_GetVideoSurface(), 0);
+	SDL_UpdateRect(SDL_GetVideoSurface(), 0, 0, 1024, 640);
+
+	draw_infopanel ( sys, gm );
 	sys.unprepare_2d_drawing();
 
 	// keyboard processing

@@ -1,3 +1,14 @@
+2003-05-30  Thorsten Jordan <thorsten_jordan@gmx.de>
+
+	* global_data.h, global_data.cpp
+	  - introduced image making. Maybe we should use SDL-mm?
+	* user_interface.h, user_interface.cpp
+	  - display of background image as a start.
+	    this should move to submarine_interface.cpp later
+	    Maybe we should load images on demand when switching screens?
+	    Or keeping them in system memory and copying them when switching
+	    screens? This would save a lot of graphic memory.
+
 2003-05-14  Markus Petermann  <m.petermann@gmx.net>
 
 	* submarine_VII.cpp, submarine_XXI.cpp:

@@ -12,6 +12,7 @@
 #define FONT_DIR "fonts/"
 #define MODEL_DIR "models/"
 #define SOUND_DIR "sounds/"
+#define IMAGES_DIR "images/"
 
 model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
@@ -25,6 +26,7 @@ texture *water, *background, *titel[4], *periscope[4], *gauge1,
 font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
 sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
+SDL_Surface* damage_screen_background;	
 
 void init_global_data(void)
 {
@@ -101,6 +103,7 @@ void init_global_data(void)
 	logbook_spiral[1] = new texture ( logbook_spiral_img, 0, 256, 35, 256 );
 	SDL_FreeSurface ( logbook_spiral_img );
 	woodbackgr = new texture ( ( get_data_dir () + TEXTURE_DIR + "wooden_desk.png" ) );
+	damage_screen_background = IMG_Load( (get_data_dir() + IMAGES_DIR + "damage_screen_backg.png").c_str() );
 }
 
 void deinit_global_data(void)
@@ -170,6 +173,7 @@ void deinit_global_data(void)
 	delete logbook_spiral[0];
 	delete logbook_spiral[1];
 	delete woodbackgr;
+	SDL_FreeSurface(damage_screen_background);
 }
 
 // returns 1939-1945, 1-12, 1-31

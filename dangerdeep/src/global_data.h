@@ -5,6 +5,7 @@
 #define GLOBAL_DATA_H
 
 #include <string>
+#include <SDL/SDL.h>
 using namespace std;
 #include "date.h"
 
@@ -22,6 +23,7 @@ extern class texture *water, *background, *titel[4], *periscope[4], *gauge1,
 extern class font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
 extern class sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
+extern SDL_Surface* damage_screen_background;
 
 void init_global_data(void);
 void deinit_global_data(void);

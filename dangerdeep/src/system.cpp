@@ -40,8 +40,8 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 		videoFlags |= SDL_HWACCEL;
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	int bpp = videoInfo->vfmt->BitsPerPixel;
-	SDL_Surface* screen_surface = SDL_SetVideoMode(res_x, res_y, bpp, videoFlags);
-	myassert(screen_surface, "Video mode set failed");
+	SDL_Surface* screen = SDL_SetVideoMode(res_x, res_y, bpp, videoFlags);
+	myassert(screen, "Video mode set failed");
 
 	SDL_EventState(SDL_VIDEORESIZE, SDL_IGNORE);//fixme
 	SDL_EventState(SDL_SYSWMEVENT, SDL_IGNORE);//fixme
