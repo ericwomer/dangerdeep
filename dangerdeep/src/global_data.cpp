@@ -18,7 +18,7 @@ texture *water, *background, *titel[4], *periscope[4], *gauge1,
 	*gauge2, *gauge3, *gauge4, *psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
-	*clock12, *clock24, *threesubs[4], *glasses, *torp_expl_water_splash[2];
+	*clock12, *clock24, *threesubs[4], *glasses, *torp_expl_water_splash[3];
 font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
 
 void init_global_data(void)
@@ -82,8 +82,9 @@ void init_global_data(void)
 	threesubs[2] = new texture(threesubsimg, 0, 256, 256, 128);
 	threesubs[3] = new texture(threesubsimg, 256, 256, 256, 128);
 	SDL_FreeSurface(threesubsimg);
-	torp_expl_water_splash[0] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_1.png" ), 1, true, true );
-	torp_expl_water_splash[1] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_2.png" ), 1, true, true );
+	torp_expl_water_splash[0] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash.png" ), 1, true, true );
+	torp_expl_water_splash[1] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_1.png" ), 1, true, true );
+	torp_expl_water_splash[2] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_2.png" ), 1, true, true );
 }
 
 void deinit_global_data(void)
