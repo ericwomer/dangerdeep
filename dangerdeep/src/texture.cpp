@@ -148,6 +148,8 @@ void texture::init(const Uint8* data, bool makenormalmap, float detailh)
 			  || mapping == GL_LINEAR_MIPMAP_NEAREST
 			  || mapping == GL_LINEAR_MIPMAP_LINEAR );
 
+	unsigned add_mem_used = 0;
+
 	if (makenormalmap) {
 		// make own mipmap building for normal maps here...
 		// give increasing levels with decreasing w/h down to 1x1
@@ -162,7 +164,7 @@ void texture::init(const Uint8* data, bool makenormalmap, float detailh)
 		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
 			     GL_UNSIGNED_BYTE, &nmpix[0]);
 
-		mem_used += gl_width * gl_height * get_bpp();
+		add_mem_used = gl_width * gl_height * get_bpp();
 
 		if (do_mipmap) {
 			// fixme: if we let GLU do the mipmap calculation, the result is wrong.
@@ -190,7 +192,7 @@ void texture::init(const Uint8* data, bool makenormalmap, float detailh)
 		// make gl texture
 		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
 			     GL_UNSIGNED_BYTE, data);
-		mem_used += gl_width * gl_height * get_bpp();
+		add_mem_used = gl_width * gl_height * get_bpp();
 		if (do_mipmap) {
 			// fixme: does this command set the base level, too?
 			// i.e. are the two gl commands redundant?
@@ -199,7 +201,8 @@ void texture::init(const Uint8* data, bool makenormalmap, float detailh)
 		}
 	}
 
-	ostringstream oss; oss << "Texture memory used " << mem_used/1024 << " kb (without MipMaps)";
+	mem_used += add_mem_used;
+	ostringstream oss; oss << "Allocated " << add_mem_used << " bytes of video memory for texture '" << texfilename << "', total video mem use " << mem_used/1024 << " kb (without MipMaps)";
 	sys().add_console(oss.str());
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
@@ -310,7 +313,10 @@ texture::texture(const Uint8* pixels, unsigned w, unsigned h, int format_,
 
 texture::~texture()
 {
-	mem_used -= gl_width * gl_height * get_bpp();
+	unsigned sub_mem_used = gl_width * gl_height * get_bpp();
+	mem_used -= sub_mem_used;
+	ostringstream oss; oss << "Freed " << sub_mem_used << " bytes of video memory for texture '" << texfilename << "', total video mem use " << mem_used/1024 << " kb (without MipMaps)";
+	sys().add_console(oss.str());
 	glDeleteTextures(1, &opengl_name);
 }
 

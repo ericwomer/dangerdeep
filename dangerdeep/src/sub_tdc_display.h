@@ -33,6 +33,8 @@ class sub_tdc_display : public user_display
 		rotat_tex targetspeed;
 		rotat_tex spreadangle;
 		rotat_tex targetpos;
+		// everything that does not rotate could also be an "image"...
+		// but only when this doesn't trash the image cache
 		texture* tubelight[6];
 		texture* tubeswitch[6];
 		texture* firebutton;

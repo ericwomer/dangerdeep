@@ -199,6 +199,7 @@ sub_torpedo_display::sub_torpedo_display(user_interface& ui_) :
 
 sub_torpedo_display::~sub_torpedo_display()
 {
+	//fixme: this textures were already loaded in global_data, so they exist twice!
 	texturecache.unref("torpempty.png");
 	texturecache.unref("torpreload.png");
 	texturecache.unref("torpunload.png");

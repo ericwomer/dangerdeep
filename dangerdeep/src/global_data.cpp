@@ -121,7 +121,7 @@ void init_global_data(void)
 	add_loading_screen("sounds loaded");
 
 	titlebackgrimg = new image(get_image_dir() + "titlebackgr.jpg");
-	periscope = new image(get_texture_dir() + "periscope.png", true);
+	periscope = new image(get_texture_dir() + "periscope.png");
 
 	threesubsimg = new image(get_image_dir() + "threesubs.jpg");
 
@@ -138,7 +138,7 @@ void init_global_data(void)
 	sunderlandimg = new image(get_image_dir() + "sunderland.jpg");
 	swordfishimg = new image(get_image_dir() + "swordfish.jpg");
 	hedgehogimg = new image(get_image_dir() + "hedgehog.jpg");
-	panelbackgroundimg = new image(get_image_dir() + "panelbackground.jpg", true);
+	panelbackgroundimg = new image(get_image_dir() + "panelbackground.jpg");
 }
 
 void deinit_global_data(void)

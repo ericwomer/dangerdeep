@@ -71,8 +71,8 @@ sub_tdc_display::sub_tdc_display(user_interface& ui_) : user_display(ui_)
 	selected_tube = 0;
 	selected_mode = 0;
 
-	normallight.background = new image(get_image_dir() + "TDC_daylight_base.png", true);
-//	nightlight.background = new image(get_image_dir() + "TDC_redlight_base.png", true);
+	normallight.background = new image(get_image_dir() + "TDC_daylight_base.png");
+//	nightlight.background = new image(get_image_dir() + "TDC_redlight_base.png");
 
 	normallight.clockbig.set("TDC_daylight_clockbigptr.png", 921, 124, 930, 134);
 //	nightlight.clockbig.set("TDC_redlight_clockbigptr.png", 921, 124, 930, 134);

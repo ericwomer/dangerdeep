@@ -51,8 +51,8 @@ angle sub_gauges_display::indicator::get_angle(int mx, int my) const
 
 sub_gauges_display::sub_gauges_display(user_interface& ui_) : user_display(ui_)
 {
-	controlscreen_normallight = new image(get_image_dir() + "controlscreen_daylight.png", true);
-	controlscreen_nightlight = new image(get_image_dir() + "red_controlscreen_rev.0.99_b21_base.png", true);
+	controlscreen_normallight = new image(get_image_dir() + "controlscreen_daylight.png");
+	controlscreen_nightlight = new image(get_image_dir() + "red_controlscreen_rev.0.99_b21_base.png");
 	image compassi(get_image_dir() + "final_sw_compass.png");
 	image dialsday(get_image_dir() + "dials_indicators.png");
 	image dialsnight(get_image_dir() + "red_controlscreen_rev.0.99_b21_indicatorsMasked.png");
@@ -139,7 +139,7 @@ void sub_gauges_display::process_input(class game& gm, const SDL_Event& event)
 				sub->dive_to_depth(unsigned(mang.value()));
 			}
 		} else if (indicators[mt].is_over(mx, my)) {
-			unsigned opt = (indicators[mt].get_angle(mx, my) - angle(210)).value() / 20;
+			unsigned opt = unsigned((indicators[mt].get_angle(mx, my) - angle(210)).value() / 20);
 			if (opt >= 15) opt = 14;
 			switch (opt) {
 			case 0: sub->set_throttle(ship::aheadflank); break;

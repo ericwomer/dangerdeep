@@ -7,20 +7,38 @@
 #include <SDL_image.h>
 
 
+// cache
+const image* image::cached_object = 0;
+unsigned image::gltx = 0;
+unsigned image::glty = 0;
+vector<texture*> image::textures;
 
-image::image(const string& s, bool maketex, int mapping, int clamp) :
-	img(0), maketexture(maketex), name(s), width(0), height(0),
-	gltx(0), glty(0)
+
+void image::clear_cache(void)
 {
-	img = IMG_Load(name.c_str());
-	sys().myassert(img != 0, string("image: failed to load '") + s + string("'"));
-	width = img->w;
-	height = img->h;
-	
-	if (maketexture) {
+	for (vector<texture*>::iterator it = textures.begin(); it != textures.end(); ++it)
+		delete *it;
+	textures.clear();
+	gltx = glty = 0;
+	cached_object = 0;
+}
+
+
+
+void image::check_cache(const image* obj)
+{
+	if (cached_object != obj) {
+		clear_cache();
+		cached_object = obj;
+
+		// generate cache values
 		vector<unsigned> widths, heights;
 		unsigned maxs = texture::get_max_size();
-		unsigned w = width, h = height;
+
+		// avoid wasting too much memory.
+		if (maxs > 256) maxs = 256;
+
+		unsigned w = obj->width, h = obj->height;
 		while (w > maxs) {
 			widths.push_back(maxs);
 			w -= maxs;
@@ -39,26 +57,33 @@ image::image(const string& s, bool maketex, int mapping, int clamp) :
 		for (unsigned y = 0; y < glty; ++y) {
 			unsigned cw = 0;
 			for (unsigned x = 0; x < gltx; ++x) {
-				textures.push_back(new texture(img, cw, ch, widths[x], heights[y],
-					mapping, clamp));
+				textures.push_back(new texture(obj->img, cw, ch,
+							       widths[x], heights[y],
+							       GL_NEAREST, GL_CLAMP_TO_EDGE));
 				cw += widths[x];
 			}
 			ch += heights[y];
 		}
-
-		// data is safe in texture memory, so free image.
-		SDL_FreeSurface(img);
-		img = 0;
 	}
+}
+
+
+
+image::image(const string& s) :
+	img(0), name(s), width(0), height(0)
+{
+	img = IMG_Load(name.c_str());
+	sys().myassert(img != 0, string("image: failed to load '") + s + string("'"));
+	width = img->w;
+	height = img->h;
 }
 
 
 
 image::~image()
 {
-	for (unsigned i = 0; i < textures.size(); ++i)
-		delete textures[i];
-
+	if (cached_object == this)
+		clear_cache();
 	if (img)
 		SDL_FreeSurface(img);
 }
@@ -67,6 +92,7 @@ image::~image()
 
 void image::draw(int x, int y) const
 {
+	check_cache(this);
 	if (textures.size() > 0) {
 		unsigned texptr = 0;
 		int yp = y;
@@ -81,6 +107,7 @@ void image::draw(int x, int y) const
 			yp += h;
 		}
 	} else {	// use DrawPixels instead
+		sys().myassert(false, "could should never reach this!");
 		sys().myassert(img->format->palette == 0, string("image: can't use paletted images for direct pixel draw (fixme), image '")+name+string("'"));
 		unsigned bpp = img->format->BytesPerPixel;
 		sys().myassert(bpp == 3 || bpp == 4, string("image: bpp must be 3 or 4 (RGB or RGBA), image '")+name+string("'"));

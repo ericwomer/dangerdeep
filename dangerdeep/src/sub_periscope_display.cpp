@@ -91,8 +91,8 @@ void sub_periscope_display::post_display(game& gm) const
 
 sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_display(ui_), zoomed(false)
 {
-	background_normallight = new image(get_image_dir() + "periscope_daylight_rev.1.1b_final.png", true);
-	background_nightlight = new image(get_image_dir() + "periscope_redlight_rev.1.1b_final.png", true);
+	background_normallight = new image(get_image_dir() + "periscope_daylight_rev.1.1b_final.png");
+	background_nightlight = new image(get_image_dir() + "periscope_redlight_rev.1.1b_final.png");
 
 	clock_minutes_pointer = new texture(get_image_dir() + "clock_minutes_pointer.png");
 	clock_hours_pointer = new texture(get_image_dir() + "clock_hours_pointer.png");
