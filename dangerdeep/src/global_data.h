@@ -4,17 +4,16 @@
 #ifndef GLOBAL_DATA_H
 #define GLOBAL_DATA_H
 
-#include <string>
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <SDL.h>
 #define DATADIR "./data/"
 #pragma warning (disable : 4786)
 #define for if(0);else for
-#else
-#include <SDL/SDL.h>
 #endif
+
+#include <SDL.h>
+#include <string>
 #include <cmath>
 using namespace std;
 #include "date.h"
@@ -27,6 +26,7 @@ inline string get_font_dir(void) { return get_data_dir() + "fonts/"; }
 inline string get_model_dir(void) { return get_data_dir() + "models/"; }
 inline string get_sound_dir(void) { return get_data_dir() + "sounds/"; }
 inline string get_image_dir(void) { return get_data_dir() + "images/"; }
+inline string get_mission_dir(void) { return get_data_dir() + "missions/"; }
 inline string get_map_dir(void) { return get_data_dir() + "maps/"; }
 
 #define GRAVITY 9.806	// a very global constant

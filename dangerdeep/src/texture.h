@@ -4,17 +4,16 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include <string>
-using namespace std;
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <SDL.h>
 #pragma warning (disable : 4786)
-#else
-#include <SDL/SDL.h>
 #endif
+
+#include <SDL.h>
 #include <GL/gl.h>
+#include <string>
+using namespace std;
 
 class texture
 {

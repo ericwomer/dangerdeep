@@ -5,14 +5,12 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #pragma warning (disable : 4786)
+#endif
+
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <SDL/SDL.h>
-#endif
+
 #include <sstream>
 #include "user_interface.h"
 #include "system.h"
@@ -33,7 +31,7 @@
 
 #define WAVE_PHASES 128		// no. of phases for wave animation
 #define WAVES_PER_AXIS 16	// no. of waves along x or y axis
-#define FACES_PER_WAVE 4	// resolution of wave model in x/y dir.
+#define FACES_PER_WAVE 8	// resolution of wave model in x/y dir.
 #define WAVE_LENGTH 40.0	// in meters, total length of one wave (one sine function)
 #define WAVE_HEIGHT 2.0		// half of difference top/bottom of wave -> fixme, depends on weather
 #define TIDECYCLE_TIME 8.0
@@ -102,7 +100,8 @@ void user_interface::init ()
 		vector<vector2f> csv(FACES_PER_WAVE+1);
 		for (unsigned j = 0; j <= FACES_PER_WAVE; ++j) {
 			csv[j].x = float(j)/FACES_PER_WAVE;
-			csv[j].y = sin(2.0*M_PI*(float(i)/WAVE_PHASES+float(j)/FACES_PER_WAVE));
+			float arg = 2.0*M_PI*(float(i)/WAVE_PHASES+float(j)/FACES_PER_WAVE);
+			csv[j].y = sin(arg); // sin(0.5*cos(arg)*cos(arg)+arg);	// sin(arg);
 		}
 		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
 			for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {

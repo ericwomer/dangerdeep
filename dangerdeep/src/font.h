@@ -4,17 +4,17 @@
 #ifndef FONT_H
 #define FONT_H
 
+#ifdef WIN32
+#define for if(0);else for
+#endif
+
+#include <SDL.h>
+
 #include <vector>
 #include <string>
 using namespace std;
 #include "texture.h"
 #include "color.h"
-#ifdef WIN32
-#include <SDL.h>
-#define for if(0);else for
-#else
-#include <SDL/SDL.h>
-#endif
 
 // this are ASCII codes 33-126, additionally german umlauts and german quotation marks (may look different)
 #define STANDARD_FONT_CHARACTERS "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ÄÖÜäöüß«»"

@@ -6,17 +6,17 @@
 #include <sstream>
 #include <cmath>
 using namespace std;
-#define GL_GLEXT_LEGACY
+
 #ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#endif
+
 #include <SDL.h>
 #include <SDL_image.h>
-#else
-#include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
-#endif
 #include <GL/gl.h>
 #include <GL/glu.h>
+
 #include "system.h"
 
 #ifdef WIN32

@@ -1,21 +1,16 @@
 // SDL/OpenGL based textures
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
-//#define GL_GLEXT_LEGACY
-//#define GL_GLEXT_LEGACY
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#endif
+
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL.h>
 #include <SDL_image.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
-#endif
+
 #include "texture.h"
 #include "system.h"
 #include <vector>

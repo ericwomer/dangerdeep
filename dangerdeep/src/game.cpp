@@ -1,20 +1,21 @@
 // game
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
-#include "game.h"
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <SDL.h>
 #pragma warning (disable : 4786)
 #else
-#include <SDL/SDL.h>
 #include "../config.h"
 #endif
+
+#include <SDL.h>
 #include <GL/gl.h>
+
 #include "system.h"
 #include <sstream>
 
+#include "game.h"
 #include "ship.h"
 #include "airplane.h"
 #include "torpedo.h"

@@ -5,15 +5,14 @@
 #define WIN32_LEAN_AND_MEAN
 #define VERSION "win32"
 #include <windows.h>
+#else
+#include "../config.h"
+#endif
+
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <SDL/SDL.h>
-#include "../config.h"
-#endif
+
 #include "system.h"
 #include "vector3.h"
 #include "model.h"
@@ -49,7 +48,7 @@ vector<string> missions;
 
 void start_mission(int nr)
 {
-	string filename = get_data_dir() + "missions/" + missions[nr] + ".mis";
+	string filename = get_mission_dir() + missions[nr] + ".mis";
 	parser p(filename);
 	game* gm = new game(p);
 	gm->main_playloop(*sys);
@@ -135,7 +134,7 @@ void menu_historical_mission(void)
 {
 	// read missions
 	missions.clear();
-	ifstream ifs((get_data_dir() + "missions/list").c_str());
+	ifstream ifs((get_mission_dir() + "list").c_str());
 	string s;
 	unsigned nr_missions = 0;
 	while (ifs >> s) {

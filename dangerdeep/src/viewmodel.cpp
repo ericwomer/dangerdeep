@@ -4,16 +4,15 @@
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#define DATADIR "./data/"
+#else
+#include "../config.h"
+#endif
+
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL.h>
-#define DATADIR "./data/"
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <SDL/SDL.h>
-#include "../config.h"
-#endif
+
 #include "system.h"
 #include "vector3.h"
 #include "model.h"
