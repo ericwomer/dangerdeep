@@ -48,9 +48,10 @@ void font::print_text(int x, int y, const string& text, bool ignore_colors) cons
 			x = int((x - xs + tw)/tw)*tw + xs;
 		} else if (c == '$') { // color information
 			unsigned nr[6];
-			for (int i = 0; i < 6; i++) {
-				if (ti+1+i >= text.length()) break;
-				char c2 = text[ti+1+i];
+			++ti;
+			for (int i = 0; i < 6; ++i, ++ti) {
+				if (ti >= text.length()) break;
+				char c2 = text[ti];
 				if (c2 >= '0' && c2 <= '9')
 					nr[i] = c2 - '0';
 				else if (c2 >= 'a' && c2 <= 'f')
@@ -205,9 +206,10 @@ pair<unsigned, unsigned> font::get_size(const string& text) const
 			x = int((x + tw)/tw)*tw;
 		} else if (c == '$') { // color information
 			unsigned nr[6];
-			for (int i = 0; i < 6; i++) {
-				if (ti+1+i >= text.length()) break;
-				char c2 = text[ti+1+i];
+			++ti;
+			for (int i = 0; i < 6; ++i, ++ti) {
+				if (ti >= text.length()) break;
+				char c2 = text[ti];
 				if (c2 >= '0' && c2 <= '9')
 					nr[i] = c2 - '0';
 				else if (c2 >= 'a' && c2 <= 'f')
