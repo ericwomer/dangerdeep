@@ -36,7 +36,9 @@ void gun_shell::simulate(game& gm, double delta_time)
 {
 	oldpos = position;
 	sea_object::simulate(gm, delta_time);
+	if (is_defunct()) return;
 
+	// very crude, fixme. compute intersection of line oldpos->position with objects.
 	if (position.z <= 0) {
 		bool impact = gm.gs_impact(position);
 		kill();

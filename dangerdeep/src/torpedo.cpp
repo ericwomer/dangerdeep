@@ -127,6 +127,7 @@ void torpedo::simulate(game& gm, double delta_time)
 //	cout << "torpedo " << this << " heading " << heading.value() << " should head to " << head_to.value() << " turn speed " << turn_velocity << "\n";
 
 	ship::simulate(gm, delta_time);
+	if (is_defunct()) return;
 
 	// Torpedo starts to search for a target when the minimum save
 	// distance for the warhead is passed.

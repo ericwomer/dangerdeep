@@ -325,6 +325,7 @@ void ship::save(ostream& out, const game& g) const
 void ship::simulate(game& gm, double delta_time)
 {
 	sea_object::simulate(gm, delta_time);
+	if (is_defunct()) return;
 	if ( myai )
 		myai->act(gm, delta_time);
 

@@ -350,7 +350,7 @@ void ai::fire_shell_at(game& gm, const sea_object& s)
 	// fixme: snap angle values to simulate real cannon accuracy.
 
 	// fixme: adapt direction & elevation to course and speed of target!
-	gm.spawn_gun_shell(new gun_shell(*parent, direction, elevation));//fixme add command
+	gm.spawn_gun_shell(new gun_shell(*parent, direction, elevation));
 
 	last_elevation = elevation;	
 	last_azimuth = direction;

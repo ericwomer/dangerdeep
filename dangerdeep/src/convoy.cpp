@@ -282,6 +282,7 @@ bool convoy::is_defunct(void) const
 void convoy::simulate(game& gm, double delta_time)
 {
 	sea_object::simulate(gm, delta_time);//remove, replace by position update in ai-class
+	if (is_defunct()) return;
 
 	// check for ships to be erased
 	for (list<pair<ship*, vector2> >::iterator it = merchants.begin(); it != merchants.end(); ) {

@@ -37,6 +37,7 @@ void depth_charge::save(ostream& out, const class game& g) const
 void depth_charge::simulate(game& gm, double delta_time)
 {
 	sea_object::simulate(gm, delta_time);
+	if (is_defunct()) return;
 	if (position.z < -explosion_depth) {
 		gm.dc_explosion(*this);
 		kill();	// dc is "dead"

@@ -265,7 +265,7 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
 	for (list<gun_shell*>::const_iterator it = gun_shells.begin(); it != gun_shells.end(); ++it) {
 		glPushMatrix();
 		vector3 pos = (*it)->get_pos() - viewpos;
-		cout << "displaying grenade " << *it << " at " << (*it)->get_pos() << "\n";
+//		cout << "displaying grenade " << *it << " at " << (*it)->get_pos() << "\n";
 		glTranslated(pos.x, pos.y, pos.z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 		glScalef(10,10,10);//fixme: to control functionality for now
