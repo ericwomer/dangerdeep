@@ -46,6 +46,12 @@ bool sea_object::parse_attribute(parser& p)
 			heading = angle(p.parse_number());
 			p.parse(TKN_SEMICOLON);
 			break;
+		case TKN_SPEED:
+			p.consume();
+			p.parse(TKN_ASSIGN);
+			speed = kts2ms(p.parse_number());
+			p.parse(TKN_SEMICOLON);
+			break;
 		case TKN_THROTTLE:
 			p.consume();
 			p.parse(TKN_ASSIGN);

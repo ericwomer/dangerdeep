@@ -116,48 +116,34 @@ convoy::convoy(class game& gm, parser& p) : sea_object()
 	remaining_time = rnd() * AI_THINK_CYCLE_TIME;
 	p.parse(TKN_CONVOY);
 	p.parse(TKN_SLPARAN);
+	speed = -1;
 	while (p.type() != TKN_SRPARAN) {
-		if (p.type() == TKN_POSITION) {
-			p.consume();
-			p.parse(TKN_ASSIGN);
-			int x = p.parse_number();
-			p.parse(TKN_COMMA);
-			int y = p.parse_number();
-			p.parse(TKN_SEMICOLON);
-			position = vector3(x, y, 0);
-		} else if (p.type() == TKN_SPEED) {
-			p.consume();
-			p.parse(TKN_ASSIGN);
-			max_speed = kts2ms(p.parse_number());
-			p.parse(TKN_SEMICOLON);
-		} else if (p.type() == TKN_HEADING) {
-			p.consume();
-			p.parse(TKN_ASSIGN);
-			heading = angle(p.parse_number());
-			p.parse(TKN_SEMICOLON);
-		} else if (p.type() == TKN_WAYPOINT) {
-			p.consume();
-			p.parse(TKN_ASSIGN);
-			int x = p.parse_number();
-			p.parse(TKN_COMMA);
-			int y = p.parse_number();
-			p.parse(TKN_SEMICOLON);
-			waypoints.push_back(vector2(x, y));
-		} else if (p.type() == TKN_SHIP) {
-			ship* shp = ship::create(p);
-			gm.spawn_ship(shp);
-			pair<ship*, vector2> sp = make_pair(shp, vector2(0, 0));
-			shp->heading = shp->head_to = heading;
-			shp->speed = speed;
-			shp->throttle = throttle;	// ?
-			if (shp->is_merchant())		// one of these must be true
-				merchants.push_back(sp);
-			else if (shp->is_warship())
-				warships.push_back(sp);
-			else if (shp->is_escort())
-				escorts.push_back(sp);
-		} else {
-			p.error("convoy: Expected definition");
+		bool ok = parse_attribute(p);
+		if (!ok) {
+			if (p.type() == TKN_WAYPOINT) {
+				p.consume();
+				p.parse(TKN_ASSIGN);
+				int x = p.parse_number();
+				p.parse(TKN_COMMA);
+				int y = p.parse_number();
+				p.parse(TKN_SEMICOLON);
+				waypoints.push_back(vector2(x, y));
+			} else if (p.type() == TKN_SHIP) {
+				ship* shp = ship::create(p);
+				gm.spawn_ship(shp);
+				pair<ship*, vector2> sp = make_pair(shp, vector2(0, 0));
+				shp->heading = shp->head_to = heading;
+				shp->speed = speed;
+				shp->throttle = throttle;	// ?
+				if (shp->is_merchant())		// one of these must be true
+					merchants.push_back(sp);
+				else if (shp->is_warship())
+					warships.push_back(sp);
+				else if (shp->is_escort())
+					escorts.push_back(sp);
+			} else {
+				p.error("convoy: Expected definition");
+			}
 		}
 	}
 	p.consume();
@@ -165,8 +151,8 @@ convoy::convoy(class game& gm, parser& p) : sea_object()
 	// set values
 	acceleration = 0.1;
 	turn_rate = 0.05;
-	set_throttle(aheadflank);
-	max_speed = speed = get_throttle_speed();
+	if (speed < 0) speed = (throttle >= 0) ? kts2ms(throttle) : 0;
+	max_speed = speed;
 	head_to = heading;
 
 	// calculate positions and speeds of convoy's ships.
@@ -175,6 +161,7 @@ convoy::convoy(class game& gm, parser& p) : sea_object()
 		it->second = it->first->get_pos().xy();
 		it->first->position += position;
 		it->first->speed = speed;
+		it->first->throttle = throttle;
 		for (list<vector2>::iterator it2 = waypoints.begin(); it2 != waypoints.end(); ++it2) {
 			it->first->get_ai()->add_waypoint(*it2 + it->second);
 		}
@@ -183,6 +170,7 @@ convoy::convoy(class game& gm, parser& p) : sea_object()
 		it->second = it->first->get_pos().xy();
 		it->first->position += position;
 		it->first->speed = speed;
+		it->first->throttle = throttle;
 		for (list<vector2>::iterator it2 = waypoints.begin(); it2 != waypoints.end(); ++it2) {
 			it->first->get_ai()->add_waypoint(*it2 + it->second);
 		}
@@ -191,6 +179,7 @@ convoy::convoy(class game& gm, parser& p) : sea_object()
 		it->second = it->first->get_pos().xy();
 		it->first->position += position;
 		it->first->speed = speed;
+		it->first->throttle = throttle;
 		for (list<vector2>::iterator it2 = waypoints.begin(); it2 != waypoints.end(); ++it2) {
 			it->first->get_ai()->add_waypoint(*it2 + it->second);
 		}
