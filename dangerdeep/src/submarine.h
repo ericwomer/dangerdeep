@@ -130,7 +130,7 @@ protected:
 	bool electric_engine; // true when electric engine is used.
 	bool hassnorkel;	// fixme: replace by (damageable_parts[snorkel] != unused)
 	double snorkel_depth;
-	bool snorkel_up;
+	bool snorkelup;
 //	float sonar_cross_section_factor;
 
 	// Charge level of battery: 0 = empty, 1 = fully charged
@@ -223,7 +223,7 @@ public:
 	virtual bool is_submerged () const { return get_depth() > SUBMARINE_SUBMERGED_DEPTH; }
 	virtual double get_max_depth () const { return max_depth; }
 	virtual bool is_electric_engine (void) const { return (electric_engine == true); }
-	virtual bool is_snorkel_up () const { return ( snorkel_up == true ); }
+	virtual bool is_snorkel_up () const { return ( snorkelup == true ); }
 	virtual bool has_snorkel () const { return ( hassnorkel == true ); }
 	virtual double get_snorkel_depth () const { return snorkel_depth; }
 	virtual double get_battery_level () const { return battery_level; }
@@ -243,12 +243,15 @@ public:
 	// command interface for subs
 	virtual void scope_up(void) { scopeup = true; };	// fixme
 	virtual void scope_down(void) { scopeup = false; };
-	//virtual void scope_to(double amount);	// set scope to "amount" (0-1) of full height
+	virtual void scope_to(double amount) {};	// set scope to "amount" (0-1) of full height, fixme
 	virtual bool set_snorkel_up ( bool snorkel_up );
+	virtual void snorkel_up ( void ) { set_snorkel_up(true); }
+	virtual void snorkel_down ( void ) { set_snorkel_up(false); }
 	virtual void planes_up(double amount);		// fixme: functions for both dive planes needed?
 	virtual void planes_down(double amount);
 	virtual void planes_middle(void);
 	virtual void dive_to_depth(unsigned meters);	// fixme: is this really a command?
+	virtual void transfer_torpedo(unsigned from, unsigned to);
 	// give tubenr -1 for any loaded tube, or else 0-5,
 	// and FAT values as index (primary & secondary range, initial turn, seach pattern)
 	// fixme: it would make more sense to store these values in this class rather than
@@ -256,10 +259,6 @@ public:
 	virtual bool fire_torpedo(class game& gm, int tubenr, sea_object* target,
 		const angle& manual_lead_angle,
 		unsigned pr=0, unsigned sr=0, unsigned it=0, unsigned sp=0);
-
-	// returns true if transfer was initiated.
-	// fixme: make virtual?
-	bool transfer_torpedo(unsigned from, unsigned to);
 };
 
 #endif

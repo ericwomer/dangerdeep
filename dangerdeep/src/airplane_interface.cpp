@@ -23,6 +23,7 @@ using namespace std;
 #include "texts.h"
 #include "sound.h"
 #include "image.h"
+#include "command.h"
 //#include "widget.h"
 
 airplane_interface::airplane_interface(airplane* player_plane, game& gm) : 
@@ -172,17 +173,17 @@ void airplane_interface::display_cockpit(game& gm)
 	int key = system::sys().get_key().sym;
 
 	if (system::sys().is_key_down(SDLK_LEFT))
-		player->roll_left();
+		gm.send(new command_roll_left(player));
 	else if (system::sys().is_key_down(SDLK_RIGHT))
-		player->roll_right();
+		gm.send(new command_roll_right(player));
 	else
-		player->roll_zero();
+		gm.send(new command_roll_zero(player));
 	if (system::sys().is_key_down(SDLK_UP))
-		player->pitch_down();
+		gm.send(new command_pitch_down(player));
 	else if (system::sys().is_key_down(SDLK_DOWN))
-		player->pitch_up();
+		gm.send(new command_pitch_up(player));
 	else
-		player->pitch_zero();
+		gm.send(new command_pitch_zero(player));
 
 	while (key != 0) {
 		if (!keyboard_common(key, gm)) {

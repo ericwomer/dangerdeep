@@ -16,6 +16,7 @@
 #include "system.h"
 #include "game.h"
 #include "texts.h"
+#include "command.h"
 
 ship_interface::ship_interface(ship* player_ship, game& gm) :
 	user_interface( player_ship, gm )
@@ -48,15 +49,15 @@ bool ship_interface::keyboard_common(int keycode, class game& gm)
 		case SDLK_F12: if (time_scale > 1) { --time_scale; add_message(texts::get(32)); } break;
 
 		// control
-		case SDLK_LEFT: player->rudder_left(); add_message(texts::get(33)); break;
-		case SDLK_RIGHT: player->rudder_right(); add_message(texts::get(34)); break;
-		case SDLK_RETURN : player->rudder_midships(); add_message(texts::get(42)); break;
-		case SDLK_1: player->set_throttle(sea_object::aheadslow); add_message(texts::get(43)); break;
-		case SDLK_2: player->set_throttle(sea_object::aheadhalf); add_message(texts::get(44)); break;
-		case SDLK_3: player->set_throttle(sea_object::aheadfull); add_message(texts::get(45)); break;
-		case SDLK_4: player->set_throttle(sea_object::aheadflank); add_message(texts::get(46)); break;//flank/full change? fixme
-		case SDLK_5: player->set_throttle(sea_object::stop); add_message(texts::get(47)); break;
-		case SDLK_6: player->set_throttle(sea_object::reverse); add_message(texts::get(48)); break;
+		case SDLK_LEFT: gm.send(new command_rudder_left(player)); add_message(texts::get(33)); break;
+		case SDLK_RIGHT: gm.send(new command_rudder_right(player)); add_message(texts::get(34)); break;
+		case SDLK_RETURN : gm.send(new command_rudder_midships(player)); add_message(texts::get(42)); break;
+		case SDLK_1: gm.send(new command_set_throttle(player, sea_object::aheadslow)); add_message(texts::get(43)); break;
+		case SDLK_2: gm.send(new command_set_throttle(player, sea_object::aheadhalf)); add_message(texts::get(44)); break;
+		case SDLK_3: gm.send(new command_set_throttle(player, sea_object::aheadfull)); add_message(texts::get(45)); break;
+		case SDLK_4: gm.send(new command_set_throttle(player, sea_object::aheadflank)); add_message(texts::get(46)); break;//flank/full change? fixme
+		case SDLK_5: gm.send(new command_set_throttle(player, sea_object::stop)); add_message(texts::get(47)); break;
+		case SDLK_6: gm.send(new command_set_throttle(player, sea_object::reverse)); add_message(texts::get(48)); break;
 
 		// view
 		case SDLK_COMMA : bearing -= angle(system::sys().key_shift() ? 10 : 1); break;

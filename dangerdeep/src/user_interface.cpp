@@ -33,6 +33,7 @@
 #include "ocean_wave_generator.h"
 #include "widget.h"
 #include "tokencodes.h"
+#include "command.h"
 using namespace std;
 
 #define MAX_PANEL_SIZE 256
@@ -1522,8 +1523,8 @@ void user_interface::display_gauges(game& gm)
 		angle mang(vector2(mx - mareax, mareay - my));
 		if ( marea == 0 )
 		{
-			player->head_to_ang(mang, mang.is_cw_nearer(
-				player->get_heading()));
+			gm.send(new command_head_to_ang(player, mang, mang.is_cw_nearer(
+				player->get_heading())));
 		}
 		else if ( marea == 1 )
 		{}
@@ -1532,7 +1533,7 @@ void user_interface::display_gauges(game& gm)
 			submarine* sub = dynamic_cast<submarine*> ( player );
 			if ( sub )
 			{
-				sub->dive_to_depth(mang.ui_value());
+				gm.send(new command_dive_to_depth(sub, mang.ui_value()));
 			}
 		}
 	}

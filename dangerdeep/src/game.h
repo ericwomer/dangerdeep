@@ -36,13 +36,17 @@ class water_splash;
 #include "date.h"
 #include "vector2.h"
 #include "vector3.h"
-#include "command.h"
 
 /* fixme 2004/02/22
  add functions for:
  receive commands from net and execute them
  get commands from interface, send them and execute them
  send event commands: spawn/hit/kill
+ move command interface of objects to protected and declare game as friend?
+ this would help in finding unallowed direct accesses from interface to sea_objects
+ other way: make "sea_object*" in user_interface to "const sea_object*",
+ but this collides with command() parameter format (which can't be const)
+ game::time_faster/slower are also commands!
 */
 
 /* fixme 2004/02/22
@@ -123,6 +127,9 @@ protected:
 	
 	unsigned listsizes(unsigned n) const;	// counts # of list elemens over n lists above
 
+	// receive commands from network, send them to the objects
+	void receive_commands(void);
+
 public:
 	// expects: size small,medium,large, escort size none,small,medium,large,
 	// time of day [0,4) night,dawn,day,dusk
@@ -182,10 +189,6 @@ public:
 	
 //	bool can_see(const sea_object* watcher, const submarine* sub) const;
 
-	// command related functions
-	void send_command(command* c);	// send commands and execute them locally, use it to issue commands to objects
-	void receive_commands(void);	// receive commands and execute them locally, run once per frame
-
 	// create new objects
 	void spawn_ship(ship* s);
 	void spawn_submarine(submarine* u);
@@ -228,6 +231,9 @@ public:
 	
 	// returns 0 for show menu, 1 for exit game
 	unsigned exec(void);
+	
+	// send commands to objects (and over net), this function is called by user_interface and heirs
+	void send(class command* cmd);
 
 	// Translate pointers to numbers and vice versa. Used for load/save
 	void write(ostream& out, const ship* s) const;

@@ -32,7 +32,8 @@
 #include "tokencodes.h"
 #include "texts.h"
 #include "sensors.h"
-#include "menu.h"
+#include "menu.h"	// fixme why this? get rid of it
+#include "command.h"
 
 const int SAVEVERSION = 0;
 const int GAMETYPE = 0;//fixme
@@ -1365,6 +1366,28 @@ unsigned game::listsizes(unsigned n) const
 		default: system::sys().myassert(false, "game::listsizes  n too high");
 	}
 	return s;
+}
+
+void game::receive_commands(void)
+{
+	// fixme
+}
+
+void game::send(command* cmd)
+{
+	// execute locally
+	cmd->exec(*this);
+	
+	// and send it over net
+	ostringstream osscmd;
+//	cmd->save(osscmd, *this);//fixme, fails with rudder_left?!
+	string cmdstr = osscmd.str();
+	//for all network connections
+	//send(cmd.length(), &cmd[0]);
+	//fixme
+
+	// finally, delete it
+	delete cmd;
 }
 
 void game::write(ostream& out, const ship* s) const

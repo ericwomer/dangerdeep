@@ -59,7 +59,7 @@ submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damagea
 submarine::submarine() : ship(), dive_speed(0.0f), permanent_dive(false),
 	dive_to(0.0f), max_dive_speed(1.0f), dive_acceleration(0.0f), scopeup(false),
 	max_depth(150.0f), periscope_depth(12.0f), snorkel_depth(10.0f),
-	hassnorkel (false), snorkel_up(false),
+	hassnorkel (false), snorkelup(false),
 	battery_level ( 1.0f ), battery_value_a ( 0.0f ), battery_value_t ( 1.0f ),
 	battery_recharge_value_a ( 0.0f ), battery_recharge_value_t ( 1.0f ),
 	damageable_parts(nr_of_damageable_parts)
@@ -154,7 +154,7 @@ void submarine::load(istream& in, game& g)
 	electric_engine = read_bool(in);
 	hassnorkel = read_bool(in);
 	snorkel_depth = read_double(in);
-	snorkel_up = read_bool(in);
+	snorkelup = read_bool(in);
 	battery_level = read_double(in);
 	battery_value_a = read_double(in);
 	battery_value_t = read_double(in);
@@ -188,7 +188,7 @@ void submarine::save(ostream& out, const game& g) const
 	write_bool(out, electric_engine);
 	write_bool(out, hassnorkel);
 	write_double(out, snorkel_depth);
-	write_bool(out, snorkel_up);
+	write_bool(out, snorkelup);
 	write_double(out, battery_level);
 	write_double(out, battery_value_a);
 	write_double(out, battery_value_t);
@@ -235,7 +235,7 @@ submarine* submarine::create(parser& p)
 	return 0;
 }
 
-bool submarine::transfer_torpedo(unsigned from, unsigned to)
+void submarine::transfer_torpedo(unsigned from, unsigned to)
 {
 	if (torpedoes[from].status == stored_torpedo::st_loaded &&
 			torpedoes[to].status == stored_torpedo::st_empty) {
@@ -247,9 +247,7 @@ bool submarine::transfer_torpedo(unsigned from, unsigned to)
 		torpedoes[from].remaining_time =
 		torpedoes[to].remaining_time = 
 			get_torp_transfer_time(from, to);	// fixme: add time for torpedos already in transfer (one transfer may block another!)
-		return true;
 	}
-	return false;
 }
 
 int submarine::find_stored_torpedo(bool usebow)
@@ -453,7 +451,7 @@ double submarine::get_max_speed(void) const
 
 		// When submarine is submerged and snorkel is used the maximum
 		// diesel speed is halved.
-		if ( has_snorkel() && is_submerged () && snorkel_up )
+		if ( has_snorkel() && is_submerged () && snorkelup )
 			ms *= 0.5f;
 	}
 
@@ -641,7 +639,7 @@ double submarine::get_noise_factor () const
 		// reduced by 50%. This reduces the noise level returned by method
 		// sea_object::get_noise_factor and must be corrected here by
 		// multiply the actual noise factor with 2.
-		if ( has_snorkel() && is_submerged () && snorkel_up )
+		if ( has_snorkel() && is_submerged () && snorkelup )
 			noisefac *= 2.0f;
 	}
 
@@ -745,16 +743,16 @@ void submarine::calculate_fuel_factor ( double delta_time )
 	}
 }
 
-bool submarine::set_snorkel_up ( bool snorkel_up )
+bool submarine::set_snorkel_up ( bool snorkelup )
 {
 	// Snorkel can be toggled only when it is available 
 	// and the submarine is at least at snorkel depth.
 	if ( has_snorkel() && get_depth () <= snorkel_depth )
 	{
-		this->snorkel_up = snorkel_up;
+		this->snorkelup = snorkelup;
 
 		// Activate diesel or electric engines if snorkel is up or down.
-		if ( snorkel_up )
+		if ( snorkelup )
 			electric_engine = false;
 		else
 			electric_engine = true;
