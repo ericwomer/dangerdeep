@@ -343,7 +343,7 @@ list<ship*> game::hearable_ships(const vector3& pos)
 		double distance = sqrt(contacts[i].first);
 		double distfac = (distance > 30000) ? 0 : 1.0 - distance/30000;	// fixme: wrong relation?!
 		double noisefac = s->get_throttle_speed()/s->get_max_speed();
-//printf("df nf %f %f\n",distfac,noisefac);		
+        // printf("df nf %f %f\n",distfac,noisefac);		
 		if (noisefac * distfac > 0.1)
 			result.push_back(s);
 	}
@@ -358,7 +358,7 @@ list<submarine*> game::hearable_submarines(const vector3& pos)
 		double d = (*it)->get_pos().xy().distance(pos.xy());
 		double distfac = d/5000;
 		double noisefac = (*it)->get_throttle_speed()/(*it)->get_max_speed();
-//printf("df nf %f %f\n",distfac,noisefac);		
+        // printf("df nf %f %f\n",distfac,noisefac);
 		if (noisefac - distfac > 0.1) {
 			result.push_back(*it);
 		}

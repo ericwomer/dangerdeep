@@ -1,21 +1,56 @@
 2003-04-01  Markus Petermann  <m.petermann@gmx.net>
+    * global_data.h:
+      - New texture object glasses.
 
-	* seaobject.h New method get_depth added
+    * global_data.cpp:
+      - glasses object is filled.
+      
+    * submarine.h:
+      - New method get_max_depth returns the maximum dive depth of a submarine.
+      - New switch for electric engine. This is needed e.g. for detection reasons
+        using passive sonar.
 
-	* submarine.h New attribute periscope_depth, two new methods
-	  get_periscope_depth and is_submerged
+    * submarine.cpp:
+      - max_submerged_speed is returned when electric engine is activated. max_speed
+        else.
+    
+    * submarine_interface.cpp:
+      - Changed the way the rudder works.
 
-	* submarine.cpp Changed constructor
+	* user_interface.h:
+      - New method display_glasses.
 
-	* submarine_interface.h Declared some methods virtual
+ 	* user_interface.cpp:
+      - When the submarine is on periscope depth and the periscope is up all
+        visual contacts are now shown on map.
+      - Use y- and x-keys in bridge mode to swap to glasses view.
+      
+2003-04-01  Markus Petermann  <m.petermann@gmx.net>
+      
+	* seaobject.h:
+      - New method get_depth added.
 
-	* submarine_interface.cpp Use method get_periscope_depth instead
-	  calculating depth everytime it is needed
+	* submarine.h:
+      - New attribute periscope_depth.
+      - Two new methods get_periscope_depth and is_submerged.
 
-	* user_interface.h: Definition of constructor user_interface removed. New
-	  methods draw_pings, draw_visual_contacts and draw_sound_contacts declared.
-	  Declared some methods virtual.
+	* submarine.cpp:
+      - Changed constructor.
 
-	* user_interface.cpp Moved constructor user_interface from header file to
-	  source file. New methods draw_pings, draw_visual_contacts,
-	  draw_sound_contacts defined and called from method display_map
+	* submarine_interface.h:
+      - Declared some methods virtual.
+
+	* submarine_interface.cpp:
+      - Use method get_periscope_depth instead calculating depth everytime
+        it is needed.
+
+	* user_interface.h:
+      - Definition of constructor user_interface removed.
+      - New methods draw_pings, draw_visual_contacts and draw_sound_contacts
+        declared.
+	  - Declared some methods virtual.
+
+	* user_interface.cpp:
+      - Moved constructor user_interface from header file to source file.
+      - New methods draw_pings, draw_visual_contacts, draw_sound_contacts
+        defined and called from method display_map.
