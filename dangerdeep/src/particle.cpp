@@ -155,7 +155,7 @@ void particle::init(void)
 				smoketmp[2*(y*64+x)+1] = (r < 64) ? 0 : r - 64;
 			}
 		}
-		tex_smoke[i] = new texture(&smoketmp[0], 64, 64, GL_LUMINANCE_ALPHA, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, false);
+		tex_smoke[i] = new texture(&smoketmp[0], 64, 64, GL_LUMINANCE_ALPHA, GL_LINEAR, GL_REPEAT, false);
 	}
 	// read in explosions
 #define EXPL_FRAMES 15
@@ -249,13 +249,15 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 
 // smoke
 
-#define SMOKE_PARTICLE_LIFE_TIME 120.0	// seconds
-#define SMOKE_PARTICLE_ASCEND_SPEED 1.0 // m/s
+//fixme: decrease ascend speed with life?
+#define SMOKE_PARTICLE_LIFE_TIME 60.0	// seconds
+#define SMOKE_PARTICLE_INITIAL_ASCEND_SPEED 5.0 // m/s
+#define SMOKE_PARTICLE_ACCEL 5.0
 
-#define SMOKE_PARTICLE_SIZE_MIN 2.0	// meters
-#define SMOKE_PARTICLE_SIZE_MAX 30.0	// meters
+#define SMOKE_PARTICLE_SIZE_MIN 4.0	// meters
+#define SMOKE_PARTICLE_SIZE_MAX 60.0	// meters
 
-#define SMOKE_PARTICLE_PRODUCE_TIME 5.0
+#define SMOKE_PARTICLE_PRODUCE_TIME 1.0
 
 smoke_particle::smoke_particle(const vector3& pos_) : particle(pos_), texnr(rand() % NR_OF_SMOKE_TEXTURES)
 {
@@ -265,8 +267,8 @@ smoke_particle::smoke_particle(const vector3& pos_) : particle(pos_), texnr(rand
 
 void smoke_particle::simulate(game& gm, double delta_t)
 {
-	pos.z += SMOKE_PARTICLE_ASCEND_SPEED * delta_t;
 	live -= delta_t/SMOKE_PARTICLE_LIFE_TIME;
+	pos.z += (SMOKE_PARTICLE_INITIAL_ASCEND_SPEED - (1.0f - live) * SMOKE_PARTICLE_ACCEL) * delta_t;
 }
 
 
@@ -280,7 +282,7 @@ double smoke_particle::get_width(void) const
 
 double smoke_particle::get_height(void) const
 {
-	return 2.0 * SMOKE_PARTICLE_ASCEND_SPEED * SMOKE_PARTICLE_PRODUCE_TIME;
+	return 2.0 * SMOKE_PARTICLE_INITIAL_ASCEND_SPEED * SMOKE_PARTICLE_PRODUCE_TIME;
 }
 
 
