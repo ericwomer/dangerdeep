@@ -32,9 +32,9 @@ void water_splash::init ( water_splash_type type )
 	{
 		case water_splash::torpedo:
 			water_splashes.push_back ( new water_splash_element (
-				torp_expl_water_splash[0], 80.0f, 30.0f, 1.0f, 2.0f ) );
-			// water_splashes.push_back ( new water_splash_element (
-			// 	torp_expl_water_splash[1], 80.0f, 30.0f, 1.5f, 3.0f ) );
+				torp_expl_water_splash[1], 80.0f, 30.0f, 1.0f, 3.0f ) );
+			water_splashes.push_back ( new water_splash_element (
+				torp_expl_water_splash[2], 80.0f, 40.0f, 1.0f, 2.0f ) );
 			break;
 		default:
 			water_splashes.push_back ( new water_splash_element (
@@ -46,7 +46,7 @@ void water_splash::init ( water_splash_type type )
 void water_splash::simulate ( class game& gm, double delta_time )
 {
 	list<water_splash_element*>::iterator it;
-	for ( it = water_splashes.begin (); it != water_splashes.end (); it ++ )
+	for ( it = water_splashes.begin (); it != water_splashes.end (); )
 	{
 		list<water_splash_element*>::iterator it2 = it++;
 		if ( !(*it2)->is_finished () )
@@ -55,15 +55,15 @@ void water_splash::simulate ( class game& gm, double delta_time )
 		}
 		else
 		{
-			delete (*it2);
-			water_splashes.erase ( it2 );
+			// delete (*it2);
+			// water_splashes.erase ( it2 );
 		}
 	}
 
 	// When there are no active splashes left, mark the actual water_splash
 	// object dead. It is removed later.
-	if ( !water_splashes.size () )
-		kill ();
+	//if ( !water_splashes.size () )
+		//kill ();
 }
 
 void water_splash::display () const
@@ -88,7 +88,7 @@ water_splash_element::water_splash_element () : tex ( 0 )
 
 water_splash_element::water_splash_element ( texture* tex,
 	double h_peak, double w, double rise_time, double decline_time ) :
-	tex ( tex ), h_peak ( h_peak ), rise_time ( rise_time ),
+	tex ( tex ), h_peak ( h_peak ), w ( w ), rise_time ( rise_time ),
 	decline_time ( decline_time ), t ( 0.0f ), finished ( false )
 {}
 
@@ -115,6 +115,7 @@ void water_splash_element::display () const
 {
 	if ( tex )
 	{
+		glColor4f ( 1.0f, 1.0f, 1.0f, 0.75f );
 		glBindTexture ( GL_TEXTURE_2D, tex->get_opengl_name () );
 		glBegin ( GL_QUADS );
 		glTexCoord2f ( 0.0f, 1.0f );
@@ -126,5 +127,6 @@ void water_splash_element::display () const
 		glTexCoord2f ( 1.0f, 1.0f );
 		glVertex3f   ( 0.0f,  w, 0.0f );
 		glEnd ();
+		glColor3f ( 1.0f, 1.0f, 1.0f );
 	}
 }
