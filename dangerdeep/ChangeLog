@@ -1,3 +1,9 @@
+2005-02-07  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* texture.cpp
+	 - automatic resizing of too large textures
+	   to video card limit
+	   (e.g. Voodoo3 has max. 256 sized textures)
+
 2005-02-06  Andrew Rice
 	* many files
 	 - added code for deck gun simulation and shooting

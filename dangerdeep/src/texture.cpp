@@ -30,9 +30,11 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	while (th < sh) th *= 2;
 	width = tw;
 	height = th;
-	
-	system::sys().myassert(tw <= get_max_size(), "texture: texture width too big");
-	system::sys().myassert(th <= get_max_size(), "texture: texture height too big");
+
+//	not longer necessary because of automatic texture resize in update()	
+//	system::sys().myassert(tw <= get_max_size(), "texture: texture width too big");
+//	system::sys().myassert(th <= get_max_size(), "texture: texture height too big");
+
 	glGenTextures(1, &opengl_name);
 	SDL_LockSurface(teximage);
 
@@ -134,9 +136,47 @@ texture::~texture()
 	glDeleteTextures(1, &opengl_name);
 }
 
-void texture::update(void) const
+void texture::update(void)
 {
 	if (data.size() == 0) return;
+
+	// automatic resizing of textures if they're too large
+	unsigned ms = get_max_size();
+	if (width > ms || height > ms) {
+		unsigned newwidth = width, newheight = height;
+		unsigned xf = 1, yf = 1;
+		if (width > ms) {
+			newwidth = ms;
+			xf = width/ms;
+		}
+		if (height > ms) {
+			newheight = ms;
+			yf = height/ms;
+		}
+		vector<Uint8> data2;
+		data2.reserve(newwidth*newheight);
+		unsigned bpp = get_bpp();
+		unsigned area = xf*yf;
+		for (unsigned y = 0; y < newheight; ++y) {
+			for (unsigned x = 0; x < newwidth; ++x) {
+				for (unsigned b = 0; b < bpp; ++b) {
+					unsigned valsum = 0;
+					for (unsigned yy = 0; yy < yf; ++yy) {
+						for (unsigned xx = 0; xx < xf; ++xx) {
+							unsigned ptr = ((y*yf+yy) * width +
+									(x*xf+xx)) * bpp;
+							valsum += unsigned(data[ptr]);
+						}
+					}
+					valsum /= area;
+					data2[(y*newwidth+x)*bpp] = Uint8(valsum);
+				}
+			}
+		}
+		data2.swap(data);
+		width = newwidth;
+		height = newheight;
+	}
 	
 	glBindTexture(GL_TEXTURE_2D, opengl_name);
 	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, &data[0]);

@@ -54,7 +54,7 @@ public:
 	~texture();
 	
 	// (re)creates OpenGL texture from stored data
-	void update(void) const;
+	void update(void);
 	int get_format(void) const { return format; }
 	unsigned get_bpp(void) const;
 	vector<Uint8>& get_data(void) { return data; }
