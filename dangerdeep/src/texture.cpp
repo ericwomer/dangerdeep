@@ -6,7 +6,7 @@
 #include <windows.h>
 #endif
 
-#include <GL/gl.h>
+#include "oglext/OglExt.h"
 #include <GL/glu.h>
 #include <SDL.h>
 #include <SDL_image.h>
@@ -16,8 +16,6 @@
 #include <vector>
 using namespace std;
 
-
-int texture::paletted_textures = -1;
 
 void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
 	int mapping, int clamp)
@@ -58,41 +56,18 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 
 		internalformat = usealpha ? GL_RGBA : GL_RGB;
 
-#ifndef WIN32	// fixme: Windows supports only OpenGL1.1 this is a 1.2 feature. Use extensions here!
-		// e.g. use oglext LGPL lib.
-		// don't rely on def of GL_EXT_paletted_texture here, ask OpenGL instead!
-		if (check_for_paletted_textures()) {
-			glColorTable(GL_TEXTURE_2D, internalformat, 256, GL_RGBA, GL_UNSIGNED_BYTE, &(palette[0]));
-			internalformat = GL_COLOR_INDEX8_EXT;
-			externalformat = GL_COLOR_INDEX;
-			tmpimage = new unsigned char [tw*th];
-			memset(tmpimage, 0, tw*th);
-			unsigned char* ptr = tmpimage;
-			unsigned char* offset = ((unsigned char*)(teximage->pixels)) + sy*teximage->pitch + sx;
-			for (unsigned y = 0; y < sh; y++) {
-				memcpy(ptr, offset, sw);
-				offset += teximage->pitch;
-				ptr += tw;
-			}
-		} else {
-#endif
-			tmpimage = new unsigned char [tw*th*4];
-			memset(tmpimage, 0, tw*th*4);
-			unsigned* ptr = (unsigned*)tmpimage;
-			unsigned char* offset = ((unsigned char*)(teximage->pixels)) + sy*teximage->pitch + sx;
-			for (unsigned y = 0; y < sh; y++) {
-				for (unsigned x = 0; x < sw; x++) {
-					*ptr++ = palette[*offset++];
-				}
-				offset += teximage->pitch - sw;
-				ptr += tw - sw;
-			}
-			externalformat = GL_RGBA;
-#ifndef WIN32
-#ifdef GL_EXT_paletted_texture
+		glColorTable(GL_TEXTURE_2D, internalformat, 256, GL_RGBA, GL_UNSIGNED_BYTE, &(palette[0]));
+		internalformat = GL_COLOR_INDEX8_EXT;
+		externalformat = GL_COLOR_INDEX;
+		tmpimage = new unsigned char [tw*th];
+		memset(tmpimage, 0, tw*th);
+		unsigned char* ptr = tmpimage;
+		unsigned char* offset = ((unsigned char*)(teximage->pixels)) + sy*teximage->pitch + sx;
+		for (unsigned y = 0; y < sh; y++) {
+			memcpy(ptr, offset, sw);
+			offset += teximage->pitch;
+			ptr += tw;
 		}
-#endif
-#endif
 	} else {
 		bool usealpha = teximage->format->Amask != 0;
 		internalformat = usealpha ? GL_RGBA : GL_RGB;
@@ -265,16 +240,4 @@ void texture::draw_tiles(int x, int y, int w, int h, unsigned tilesx, unsigned t
 	glTexCoord2i(tilesx,0);
 	glVertex2i(w,0);
 	glEnd();
-}
-
-bool texture::check_for_paletted_textures(void)
-{
-	if (paletted_textures == -1) {
-		const char* c = (const char*)(glGetString(GL_EXTENSIONS));
-		if (c) {
-			string glexts(c);
-			return (glexts.find("GL_EXT_paletted_texture") != string::npos);
-		}
-	}
-	return false;
 }

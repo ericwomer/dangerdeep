@@ -60,8 +60,6 @@ public:
 	void draw_rot(int x, int y, double angle) const;	// draw rotated image
 	void draw_tiles(int x, int y, int w, int h, unsigned tiles, unsigned tilesy) const;	
 
-	static int paletted_textures;	// 0 no 1 yes -1 untested
-	static bool check_for_paletted_textures(void);
 	static unsigned get_max_width(void) { return 256; } // fixme ask opengl
 	static unsigned get_max_height(void) { return 256; } // fixme ask opengl
 };
