@@ -414,8 +414,10 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	glTranslated(0, 0, -viewpos.z);
 
 	int phase = int((myfmod(mytime, TIDECYCLE_TIME)/TIDECYCLE_TIME) * WAVE_PHASES);
-	const float VIRTUAL_PLANE_HEIGHT = 15.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok, maybe a bit too much
-	const double WAVE_HEIGHT = 5.0; // maximum height of waves (half amplitude), fixme: get from fft
+	const float VIRTUAL_PLANE_HEIGHT = 25.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok, maybe a bit too much
+	// maximum height of waves (half amplitude), fixme: get from fft
+	// 2.0 seems to be enough...
+	const double WAVE_HEIGHT = 2.0;//5.0;
 	// fixme: always add elevation to projector.z?
 	const double ELEVATION = 10.0; // fixme experiment
 
@@ -709,11 +711,16 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 
 //	unsigned t0 = system::sys().millisec();
 
-	// LockArrays gives 1fps extra performance on a ATI/Linux.
+	// lock Arrays for extra performance.
 	bool lockarr = (system::sys().extension_supported("GL_EXT_compiled_vertex_array"));
 	if (lockarr)
 		glLockArraysEXT(0, (xres+1)*(yres+1));
+#if 0 // DRAW_WATER_AS_GRID
+	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
+#else
 	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
+#endif
+
 //	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
 	if (lockarr)
 		glUnlockArraysEXT();

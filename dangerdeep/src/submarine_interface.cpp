@@ -356,7 +356,7 @@ void submarine_interface::display_periscope(game& gm)
 	if ( zoom_scope )
 		fov = 18.925f;
 	
-	system::sys().gl_perspective_fovx (fov, 1.0/1.0, 2.0, gm.get_max_view_distance());
+	system::sys().gl_perspective_fovx (fov, 1.0/1.0, 5.0, gm.get_max_view_distance());
 	glViewport(res_x/2, res_y/3, res_x/2, res_x/2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -479,7 +479,7 @@ void submarine_interface::display_UZO(game& gm)
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	system::sys().gl_perspective_fovx (5.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
+	system::sys().gl_perspective_fovx (5.0, 2.0/1.0, 5.0, gm.get_max_view_distance());
 	glViewport(0, res_y/3, res_x, res_x/2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
