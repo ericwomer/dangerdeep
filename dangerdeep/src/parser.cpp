@@ -153,6 +153,7 @@ string parser::parse_id(void)
 		error("expected identifier");
 	}
 	tkn->read_next();
+#ifdef USETHISOTHER	
 	// filter and replace this/other
 	if (tkn->get_previous().text == "this") {
 		if (thisid == "")
@@ -164,6 +165,7 @@ string parser::parse_id(void)
 			error("parsed \"other\", but can't resolve it");
 		return otherid;
 	}
+#endif	
 	return tkn->get_previous().text;
 }
 

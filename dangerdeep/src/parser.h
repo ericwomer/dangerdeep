@@ -6,6 +6,8 @@ class parser;
 #ifndef PARSER_H
 #define PARSER_H
 
+//#define USETHISOTHER	// define for replacement of this/other with another id
+
 #include <string>
 using namespace std;
 
@@ -14,7 +16,10 @@ using namespace std;
 class parser
 {
 	tokenizer* tkn;
-	string filename, thisid, otherid;
+	string filename;
+#ifdef USETHISOTHER	
+	string thisid, otherid;
+#endif	
 
 	public:	
 	void error(const string& s);
@@ -23,8 +28,12 @@ class parser
 	int parse_number(void);
 	string parse_id(void);
 	bool parse_bool(void);
-	void register_thisid(const string& s) { thisid = s; };
-	void register_otherid(const string& s) { otherid = s; };
+#ifdef USETHISOTHER
+	void register_this(const string& s) { thisid = s; };
+	void register_other(const string& s) { otherid = s; };
+	string get_this(void) const { return thisid; }
+	string get_other(void) const { return otherid; }
+#endif	
 	int type(void) const { return tkn->get_current().type; };
 	string text(void) const { return tkn->get_current().text; };	
 	bool is_empty(void) const { return tkn->is_empty(); };
