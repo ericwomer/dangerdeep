@@ -213,6 +213,9 @@ user_interface::~user_interface ()
 
 void user_interface::display(game& gm) const
 {
+	// fixme: brightness needs sun_pos, so compute_sun_pos() is called multiple times per frame
+	// but is very costly. we could cache it.
+	mywater->set_refraction_color(gm.compute_light_brightness(gm.get_player()->get_pos()));
 	displays[current_display]->display(gm);
 }
 

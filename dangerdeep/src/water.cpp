@@ -35,6 +35,9 @@
 #define FOAM_VANISH_FACTOR 0.1	// 1/second until foam goes from 1 to 0.
 #define FOAM_SPAWN_FACTOR 0.2	// 1/second until full foam reached. maybe should be equal to vanish factor
 
+#define REFRAC_COLOR_RES 32
+#define FRESNEL_FCT_RES 256
+
 /*
 	2004/05/06
 	The foam problem.
@@ -94,7 +97,8 @@
 */	
 
 water::water(unsigned xres_, unsigned yres_, double tm) :
-	mytime(tm), xres(xres_), yres(yres_), reflectiontex(0), foamtex(0), fresnelcolortex(0)
+	mytime(tm), xres(xres_), yres(yres_), reflectiontex(0), foamtex(0), fresnelcolortex(0),
+	last_light_brightness(-10000)
 {
 	wavetiledisplacements.resize(WAVE_PHASES);
 	wavetileheights.resize(WAVE_PHASES);
@@ -136,24 +140,17 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 
 	foamtex = new texture(get_texture_dir() + "foam.png", GL_LINEAR);//fixme maybe mipmap it
 
-	const unsigned fresnelres = 256;
-	vector<color> fresnelfct(fresnelres*fresnelres);
-	for (unsigned s = 0; s < fresnelres; ++s) {
-		float fs = float(s)/(fresnelres-1);
-		for (unsigned f = 0; f < fresnelres; ++f) {
-			float ff = float(f)/(fresnelres-1);
-			//fixme: setting refraction color this way is problematic, at night it should
-			//be much darker!!!
-			color c(color(18, 73, 107), color(18, 93, 77), fs);
-			//maybe reduce reflections by using 192 or 224 instead of 255 here
-			//looks better! sea water shows less reflections in reality
-			//because it is so rough.
-			c.a = Uint8(255 /*192*/ * exact_fresnel(ff)+0.5f);
-			fresnelfct[s*fresnelres+f] = c;
+	fresnelcolortexd.resize(FRESNEL_FCT_RES*REFRAC_COLOR_RES);
+	for (unsigned f = 0; f < FRESNEL_FCT_RES; ++f) {
+		float ff = float(f)/(FRESNEL_FCT_RES-1);
+		//maybe reduce reflections by using 192 or 224 instead of 255 here
+		//looks better! sea water shows less reflections in reality
+		//because it is so rough.
+		Uint8 a = Uint8(255 /*192*/ * exact_fresnel(ff)+0.5f);
+		for (unsigned s = 0; s < REFRAC_COLOR_RES; ++s) {
+			fresnelcolortexd[s*FRESNEL_FCT_RES+f].a = a;
 		}
 	}
-	fresnelcolortex = new texture(&fresnelfct[0], fresnelres, fresnelres, GL_RGBA,
-				 GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE, false);
 	
 	// connectivity data is the same for all meshes and thus is reused
 #ifdef DRAW_WATER_AS_GRID
@@ -947,6 +944,37 @@ float water::exact_fresnel(float x)
 	float x4 = x2*x2;
 	return 1.0f/(x4*x4);
 }
+
+
+
+void water::set_refraction_color(float light_brightness)
+{
+	// compute wether a visible change has happened
+	if (fabs(light_brightness - last_light_brightness) * 128 < 1.0f)
+		return;
+	last_light_brightness = light_brightness;
+
+	// fixme: color depends also on weather. bad weather -> light is less bright
+	// so this will be computed implicitly. Environment can also change water color
+	// (light blue in tropic waters), water depth also important etc.
+
+	color wavetop = color(color(10, 10, 10), color(18, 93, 77), light_brightness);
+	color wavebottom = color(color(10, 10, 20), color(18, 73, 107), light_brightness);
+	for (unsigned s = 0; s < REFRAC_COLOR_RES; ++s) {
+		float fs = float(s)/(REFRAC_COLOR_RES-1);
+		color c(wavebottom, wavetop, fs);
+		for (unsigned f = 0; f < FRESNEL_FCT_RES; ++f) {
+			color& tgt = fresnelcolortexd[s*FRESNEL_FCT_RES+f];
+			// update color only, leave fresnel term (alpha) intact
+			tgt.r = c.r;
+			tgt.g = c.g;
+			tgt.b = c.b;
+		}
+	}
+	fresnelcolortex = new texture(&fresnelcolortexd[0], FRESNEL_FCT_RES, REFRAC_COLOR_RES, GL_RGBA,
+				 GL_LINEAR/*_MIPMAP_LINEAR*/, GL_CLAMP_TO_EDGE, false);
+}
+
 
 
 

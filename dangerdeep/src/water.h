@@ -52,6 +52,10 @@ protected:
 	texture* foamtex;
 	texture* fresnelcolortex;	// texture for fresnel values and water color
 
+	vector<color> fresnelcolortexd;	// stored for updates of water color
+
+	float last_light_brightness;		// used to determine when new refraction color tex must get computed
+
 	// Arrays used while drawing a tile. To avoid repeated re-alloc, they're here
 	mutable vector<vector3f> coords;
 	mutable vector<vector3f> uv1;
@@ -100,6 +104,7 @@ public:
 	unsigned get_reflectiontex(void) const { return reflectiontex; }
 	unsigned get_reflectiontex_size(void) const { return reflectiontexsize; }
 	static float exact_fresnel(float x);
+	void set_refraction_color(float light_brightness);
 };
 
 #endif
