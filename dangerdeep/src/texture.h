@@ -41,8 +41,6 @@ protected:
 	int mapping;		// how GL draws the texture (GL_NEAREST, GL_LINEAR, etc.)
 	vector<Uint8> data;	// texture data (only stored if user wishes that)
 	
-	int get_bpp(void) const;
-
 	texture() {};
 	texture& operator=(const texture& other) { return *this; };
 	texture(const texture& other) {};
@@ -75,6 +73,7 @@ public:
 	void update(void) const;
 #endif
 	int get_format(void) const { return format; }
+	unsigned get_bpp(void) const;
 	vector<Uint8>& get_data(void) { return data; }
 
 #ifndef MODEL_JUST_LOAD

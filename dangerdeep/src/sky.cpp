@@ -27,7 +27,7 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 {
 	// ******************************* create display list for sky background
 	skyhemisphere = new model(get_model_dir() + "skyhemisphere.3ds", false, false);
-	model::mesh skyhemisphere_mesh = skyhemisphere->get_mesh(0);
+	const model::mesh& skyhemisphere_mesh = skyhemisphere->get_mesh(0);
 
 	unsigned smv = skyhemisphere_mesh.vertices.size();
 	vector<vector2f> uv0(smv);

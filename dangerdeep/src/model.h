@@ -122,7 +122,10 @@ public:
 #ifndef MODEL_JUST_LOAD
 	void display(void) const;
 #endif
-	mesh get_mesh(unsigned nr) const;
+	const mesh& get_mesh(unsigned nr) const;
+	const material& get_material(unsigned nr) const;
+	unsigned get_nr_of_meshes(void) const { return meshes.size(); }
+	unsigned get_nr_of_materials(void) const { return materials.size(); }
 	vector3f get_min(void) const { return min; }
 	vector3f get_max(void) const { return max; }
 	float get_length(void) const { return (max - min).y; }

@@ -335,12 +335,14 @@ void model::display(void) const
 }
 #endif
 
-model::mesh model::get_mesh(unsigned nr) const
+const model::mesh& model::get_mesh(unsigned nr) const
 {
-	if (nr < meshes.size())
-		return meshes[nr];
-	else
-		return mesh();
+	return meshes.at(nr);
+}
+
+const model::material& model::get_material(unsigned nr) const
+{
+	return *(materials.at(nr));
 }
 
 void model::read_cs_file(const string& filename)

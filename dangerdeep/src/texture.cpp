@@ -24,24 +24,6 @@
 using namespace std;
 
 
-int texture::get_bpp(void) const
-{
-	switch (format) {
-		case GL_RGB: return 3;
-		case GL_RGBA: return 4;
-		case GL_LUMINANCE: return 1;
-		case GL_LUMINANCE_ALPHA: return 2;
-		default:
-#ifdef MODEL_JUST_LOAD
-			cerr << "unknown texture format " << format << "\n";
-			exit(-1);
-#else
-			ostringstream oss; oss << "unknown texture format " << format << "\n";
-			system::sys().myassert(false, oss.str());
-#endif
-	}
-	return 4;
-}
 
 void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
 	int clamp, bool keep)
@@ -202,7 +184,28 @@ void texture::update(void) const
 		gluBuild2DMipmaps(GL_TEXTURE_2D, format, width, height, format, GL_UNSIGNED_BYTE, &data[0]);
 	}
 }
+#endif
 
+unsigned texture::get_bpp(void) const
+{
+	switch (format) {
+		case GL_RGB: return 3;
+		case GL_RGBA: return 4;
+		case GL_LUMINANCE: return 1;
+		case GL_LUMINANCE_ALPHA: return 2;
+		default:
+#ifdef MODEL_JUST_LOAD
+			cerr << "unknown texture format " << format << "\n";
+			exit(-1);
+#else
+			ostringstream oss; oss << "unknown texture format " << format << "\n";
+			system::sys().myassert(false, oss.str());
+#endif
+	}
+	return 4;
+}
+
+#ifndef MODEL_JUST_LOAD
 void texture::set_gl_texture(void) const
 {
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
