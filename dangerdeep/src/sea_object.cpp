@@ -5,22 +5,11 @@
 #include "vector2.h"
 #include "tokencodes.h"
 
-sea_object::sea_object()
-{
-	position = vector3(0, 0, 0);
-	heading = 0;
-	speed = 0;
-	max_speed = 0;
-	max_rev_speed = 0;
-	throttle = stop;
-	acceleration = 0;
-	permanent_turn = false;
-	head_chg = 0;
-	head_to = 0;
-	turn_rate = 0;
-	length = width = 0;
-	alive_stat = alive;
-}
+sea_object::sea_object() : position(vector3(0.0f, 0.0f, 0.0f)), heading(0.0f),
+    speed(0.0f), max_speed(0.0f), max_rev_speed(0.0f), throttle(stop),
+    rudder(ruddermid), acceleration(0.0f), permanent_turn(false), head_chg(0.0f),
+    head_to(0.0f), turn_rate(0.0f), length(0.0f), width(0.0f), alive_stat(alive)
+{}
 
 bool sea_object::parse_attribute(parser& p)
 {
@@ -173,33 +162,74 @@ void sea_object::head_to_ang(const angle& a, bool left_or_right)	// true == left
 	permanent_turn = false;
 }
 
+void sea_object::change_rudder (const int& dir)
+{
+    // Change rudder state first.
+    if ( dir < 0 )
+        rudder --;
+    else if ( dir > 0 )
+        rudder ++;
+
+    // Limit rudder state.
+    if ( rudder < rudderfullleft )
+        rudder = rudderfullleft;
+    else if ( rudder > rudderfullright )
+        rudder = rudderfullright;
+
+    // Set head_chg due to rudder state.
+    switch ( rudder )
+    {
+        case rudderfullleft:
+            head_chg = -1.0f;
+            break;
+        case rudderleft:
+            head_chg = -0.5f;
+            break;
+        case rudderright:
+            head_chg = 0.5f;
+            break;
+        case rudderfullright:
+            head_chg = 1.0f;
+            break;
+        default:
+            head_chg = 0.0f;
+            break;
+    }
+    
+    if ( rudder == ruddermid )
+        permanent_turn = false;
+    else
+        permanent_turn = true;
+}
+
 void sea_object::rudder_left(void)
 {
-	head_chg = -0.5;
-	permanent_turn = true;
+    change_rudder ( -1 );
 }
 
 void sea_object::rudder_right(void)
 {
-	head_chg = 0.5;
-	permanent_turn = true;
+    change_rudder ( 1 );
 }
 
 void sea_object::rudder_hard_left(void)
 {
-	head_chg = -1.0;
+    rudder = rudderfullleft;
+	head_chg = -1.0f;
 	permanent_turn = true;
 }
 
 void sea_object::rudder_hard_right(void)
 {
-	head_chg = 1.0;
+    rudder = rudderfullright;
+	head_chg = 1.0f;
 	permanent_turn = true;
 }
 
 void sea_object::rudder_midships(void)
 {
-	head_chg = 0;
+    rudder = ruddermid;
+	head_chg = 0.0f;
 	head_to = heading;
 	permanent_turn = false;
 }
