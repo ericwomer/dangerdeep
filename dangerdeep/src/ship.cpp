@@ -13,7 +13,8 @@
 #include "tokencodes.h"
 #include "sensors.h"
 
-ship::ship() : sea_object(), myai ( 0 )
+ship::ship() : sea_object(), myai ( 0 ), fuel_value_a ( 0.0f ),
+	fuel_value_t ( 1.0f )
 {}
 
 bool ship::parse_attribute(parser& p)
@@ -52,6 +53,9 @@ void ship::simulate(game& gm, double delta_time)
 {
 	sea_object::simulate(gm, delta_time);
 	myai->act(gm, delta_time);
+
+	// Adjust fuel_level.
+	calculate_fuel_factor ( delta_time );
 }
 
 void ship::fire_shell_at(const vector2& pos)
@@ -75,4 +79,9 @@ unsigned ship::calc_damage(void) const
 		return 100;
 	unsigned dmg = unsigned(round(15*(bow_damage + midship_damage + stern_damage)));
 	return dmg > 100 ? 100 : dmg;
+}
+
+void ship::calculate_fuel_factor ( double delta_time )
+{
+	fuel_level -= delta_time * get_fuel_consumption_rate ();
 }

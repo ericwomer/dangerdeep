@@ -19,11 +19,30 @@ protected:
 
 	damage_status stern_damage, midship_damage, bow_damage;
 
+	// Fuel percentage: 0 = empty, 1 = full.
+	double fuel_level;
+	double fuel_value_a;
+	double fuel_value_t;
+
 	ship();
 	ship(const ship& other);
 	ship& operator= (const ship& other);
 
 	bool parse_attribute(parser& p);	// returns false if invalid token found
+	/**
+		This method calculates the hourly fuel consumption. An
+		exponential is used as a model basing on some fuel consumption values.
+		@return double hourly percentage fuel consumption value
+	*/
+	virtual double get_fuel_consumption_rate () const
+	{ return fuel_value_a * ( exp ( get_throttle_speed () / fuel_value_t ) - 1.0f ); }
+
+	/**
+		This method is called by the simulate method to recalculate the
+		actual fuel status.
+		@param delta_time time advance since last call
+	*/
+	virtual void calculate_fuel_factor ( double delta_time );
 	
 public:
 	// fixme: add more types

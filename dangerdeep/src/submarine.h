@@ -42,7 +42,15 @@ protected:
 	double periscope_depth;
 	bool electric_engine; // true when electric engine is used.
 	double snorkel_depth; // -1 when snorkel not available.
+	bool snorkel_up;
 	float sonar_cross_section_factor;
+
+	// Charge level of battery: 0 = empty, 1 = fully charged
+	double battery_level;
+	double battery_value_a;
+	double battery_value_t;
+	double battery_recharge_value_a;
+	double battery_recharge_value_t;
     
 	submarine();
 	submarine& operator= (const submarine& other);
@@ -56,6 +64,24 @@ protected:
 	int find_stored_torpedo(bool usebow);	// returns index or -1 if none
 
 	bool parse_attribute(parser& p);	// returns false if invalid token found
+	/**
+		This method calculates the battery consumption rate. This value is needed
+		for the simulate function to reduce the battery_level value. An
+		exponential is used as a model basing on some battery consumption values.
+		@return double hourly percentage battery consumption value
+	*/
+	virtual double get_battery_consumption_rate () const
+	{ return battery_value_a * ( exp ( get_throttle_speed () / battery_value_t ) - 1.0f ); }
+
+	/**
+		This method method calculates the battery recharge rate.
+		@return battery recharge rate
+	*/
+    virtual double get_battery_recharge_rate () const
+    { return ( 1.0f - ( battery_recharge_value_a *
+    	exp ( - get_throttle_speed () / battery_recharge_value_t ) ) ); }
+
+	virtual void calculate_fuel_factor ( double delta_time );
 
 public:
 	// fixme type II has some subtypes.
@@ -88,11 +114,14 @@ public:
 	virtual float sonar_visibility ( const vector2& watcher ) const;
 	virtual double get_noise_factor () const;
 
-	virtual bool is_scope_up(void) const { return scopeup; }
+	virtual bool is_scope_up(void) const { return ( scopeup == true ); }
 	virtual double get_periscope_depth() const { return periscope_depth; }
 	virtual bool is_submerged () const { return get_depth() > SUBMARINE_SUBMERGED_DEPTH; }
 	virtual double get_max_depth () const { return max_depth; }
 	virtual bool is_electric_engine (void) const { return (electric_engine == true); }
+	virtual bool is_snorkel_up () const { return ( snorkel_up == true ); }
+	virtual bool has_snorkel () const { return ( snorkel_depth != -1.0f ); }
+	virtual double get_snorkel_depth () const { return snorkel_depth; }
     
 	// command interface for subs
 	virtual void scope_up(void) { scopeup = true; };	// fixme

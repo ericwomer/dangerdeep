@@ -11,8 +11,10 @@
 #include "submarine_XXI.h"
 
 submarine::submarine() : ship(), dive_speed(0.0f), permanent_dive(false),
-    dive_to(0.0f), max_dive_speed(1.0f), dive_acceleration(0.0f), scopeup(false),
-    max_depth(150.0f), periscope_depth(12.0f), snorkel_depth(-1.0f)
+	dive_to(0.0f), max_dive_speed(1.0f), dive_acceleration(0.0f), scopeup(false),
+	max_depth(150.0f), periscope_depth(12.0f), snorkel_depth(-1.0f),
+	snorkel_up(false), battery_value_a ( 0.0f ), battery_value_t ( 1.0f ),
+	battery_recharge_value_a ( 0.0f ), battery_recharge_value_t ( 1.0f )
 {}
 	
 bool submarine::parse_attribute(parser& p)
@@ -51,11 +53,23 @@ bool submarine::parse_attribute(parser& p)
 			}
 			p.parse(TKN_SRPARAN);
 			break;
+		case TKN_SNORKELUP:
+			p.consume();
+			p.parse(TKN_ASSIGN);
+			snorkel_up = p.parse_bool();
+			p.parse(TKN_SEMICOLON);
+			break;
+		case TKN_SNORKELDEPTH:
+			p.consume();
+			p.parse(TKN_ASSIGN);
+			snorkel_depth = p.parse_number();
+			p.parse(TKN_SEMICOLON);
+			break;
 		default: return false;
 	}
 
-	// Activate electric engine if submerged.
-	if (is_submerged())
+	// Activate electric engine if submerged and the snorkel is not up.
+	if (is_submerged() && !snorkel_up)
 	{
 		electric_engine = true;
 	}
@@ -213,24 +227,38 @@ double submarine::get_max_speed(void) const
 float submarine::surface_visibility(const vector2& watcher) const
 {
 	double depth = get_depth();
-	float diveFactor = 0.0f;
+	float dive_factor = 0.0f;
 
 	if ( depth >= 0.0f && depth < 10.0f )
 	{
-		diveFactor = 0.1f * ( 10.0f - depth ) * vis_cross_section_factor *
+		dive_factor = 0.1f * ( 10.0f - depth ) * vis_cross_section_factor *
 			get_profile_factor ( watcher );
 	}
 
-	// Add a value for the periscope when submarine is submerged.
-	if ( is_scope_up () && depth > 10.0f && depth <= periscope_depth )
+	// Some modifiers when submarine is submerged.
+	if ( depth >= 10.0f && depth <= periscope_depth )
 	{
-		// The visibility of the periscope also depends on the speed its moves
-		// through the water. A fast moving periscope with water splashed is
-		// much farther visible than a still standing one.
-		diveFactor += CROSS_SECTION_VIS_PERIS * ( 0.5f + 0.5f * speed / max_speed );
+		double diverse_modifiers = 0.0f;
+
+		// Periscope.
+		if ( is_scope_up () )
+		{
+			// The visibility of the periscope also depends on the speed its moves
+			// through the water. A fast moving periscope with water splashed is
+			// much farther visible than a still standing one.
+			diverse_modifiers += CROSS_SECTION_VIS_PERIS;
+		}
+
+		if ( is_snorkel_up () )
+		{
+			// A snorkel is much larger than a periscope.
+			diverse_modifiers += 3.0f * CROSS_SECTION_VIS_PERIS;
+		}
+
+		dive_factor += diverse_modifiers * ( 0.5f + 0.5f * speed / max_speed );
 	}
 
-	return diveFactor;
+	return dive_factor;
 }
 
 float submarine::sonar_visibility ( const vector2& watcher ) const
@@ -370,11 +398,28 @@ double submarine::get_noise_factor () const
 	else
 	{
 		// This might be unrealistic, but its impossible for a submarine to
-		// attack when it can be detected at a range of 10 nm by a drifting
+		// attack when if can be detected at a range of 10 nm by a drifting
 		// and listening destroyer. Currently there are no empirical values
 		// available.
 		noisefac *= 0.1f;
 	}
 
 	return noisefac;
+}
+
+void submarine::calculate_fuel_factor ( double delta_time )
+{
+	if ( electric_engine )
+	{
+		if ( battery_level >= 0.0f && battery_level <= 1.0f )
+			battery_level -= delta_time * get_battery_consumption_rate ();
+	}
+	else
+	{
+		ship::calculate_fuel_factor ( delta_time );
+
+		// Recharge battery.
+		if ( battery_level >= 0.0f && battery_level <= 1.0f )
+			battery_level += delta_time * get_battery_recharge_rate ();
+	}
 }
