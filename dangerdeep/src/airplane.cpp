@@ -169,50 +169,59 @@ void airplane::simulate(class game& gm, double delta_time)
 
 	quaternion invrot = rotation.conj();
 	vector3 localvelocity = invrot.rotate(velocity);
-	speed = localvelocity.y;	// fixme: sabre/simple takes magnitude of velocity as speed vector
-//speed = velocity.length();
-//if(speed>100){velocity=velocity*(100/speed);speed=100;localvelocity = invrot.rotate(velocity);}
+		
+	speed = localvelocity.y;
 	double speed_sq = speed * speed;
 
 	vector3 wingarea(get_wing_width(), get_wing_length(), 0);
+	vector3 locx = rotation.rotate(1, 0, 0);
 	vector3 locy = rotation.rotate(0, 1, 0);
+	vector3 locz = rotation.rotate(0, 0, 1);
 	vector3 rotwingarea = rotation.rotate(wingarea);
 	double areafac = rotwingarea.x * rotwingarea.y;
-	vector3 locz = rotation.rotate(0, 0, 1);
 //	if (locz.z < 0) locz = -locz;
 
 	// forces:
 	// thrust: engine thrust along local y-axis
-	// drag: air friction along negative local y-axis
 	// lift: wing lift along local z-axis, proportional to square of speed
 	// gravity*mass: along negative global z-axis
 
 	// fixme: simulate stall: if speed drops below a specific quantum, the plane's nose
 	// drops down. This avoids negative values for speed
-	if (speed < 0) {speed = 0; speed_sq = 0;}
+//	if (speed < 0) {speed = 0; speed_sq = 0;}
 
 	// avoid negative speeds/forces fixme
 
 	// compute forces	
-	// propulsion by engine (thrust) and air friction (drag)
-	vector3 thrustdrag = (get_engine_thrust() - speed_sq * get_drag_factor()) * locy;
-	// lift by wings and opposing air friction (fixme: missing)
-	vector3 lift = (areafac * speed_sq * get_lift_factor() /*- localvelocity.z*localvelocity.z*get_lift_friction_factor()*/) * locz;
-	// gravity and opposing air friction (depends on plane's rotation, fixme add: (-velocity.z * get_friction_upward_factor() * locz.z) in zdir)
-	vector3 gravity = vector3(0, 0, get_mass() * -GRAVITY);
-	
-	// fixme: depends on plane position/rotation
-	vector3 airfriction = ((velocity.z<0)?1:-1) * velocity.z*velocity.z * 3.9224/*air friction fac*/ * vector3(0,0,1);
+	// propulsion by engine (thrust)
+	double drag_damping = 1.0 - localvelocity.y * localvelocity.y * get_drag_factor();
+	if (drag_damping < 0.0) drag_damping = 0.0;
+	vector3 thrust = get_engine_thrust() * drag_damping * locy;
+	// lift by wings (fixme: works also if plane is upside down or nearly!)
+	double lift_damping = (localvelocity.z < 0) ? 1.0 : 1.0 - localvelocity.z * localvelocity.z * get_antilift_factor();
+	if (lift_damping < 0.0) lift_damping = 0.0;
+	vector3 lift = (areafac * speed_sq * get_lift_factor() * lift_damping) * locz;
+	// gravity, fixme: depends on plane's rotation!
+	double gravity_damping = (velocity.z >= 0) ? 1.0 : 1.0 - velocity.z * velocity.z * get_antilift_factor();
+	if (gravity_damping < 0.0) gravity_damping = 0.0;
+	vector3 gravity = vector3(0, 0, get_mass() * gravity_damping * -GRAVITY);
+	// slide damping
+	double slide_damping = 1.0 - localvelocity.x * localvelocity.x * get_slide_factor();
+	if (slide_damping < 0) slide_damping = 0.0;
+	vector3 slide = (get_mass() * -slide_damping) * locx;
 
+/*	
 cout << "global velocity " << velocity << "\n";
 cout << "local velocity  " << localvelocity << "\n";
-cout << "thrust and drag " << thrustdrag << "\n";
+cout << "thrust          " << thrust << "\n";
 cout << "lift            " << lift << "\n";
+cout << "slide           " << slide << "\n";
 cout << "gravity         " << gravity << "\n";
+*/
 
 	// update position and speed
-	vector3 accel = (thrustdrag + lift + gravity + airfriction) * (1.0/get_mass());
-	position += velocity * delta_time + 0.5 * accel * delta_time;
+	vector3 accel = (thrust + lift + gravity + slide) * (1.0/get_mass());
+	position += velocity * delta_time + accel * (0.5 * delta_time * delta_time);
 	velocity += accel * delta_time;
 
 	quaternion qpitch = quaternion::rot(pitchfac * get_pitch_deg_per_sec() * delta_time, 1, 0, 0); // fixme: also depends on speed
