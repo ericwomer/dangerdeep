@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION=0.0.18 # fixme get from SConstruct
+VERSION=0.0.19 # fixme get from SConstruct
 TMP=.tmp
 BASEDIR=dangerdeep-$VERSION
 rm -rf $TMP

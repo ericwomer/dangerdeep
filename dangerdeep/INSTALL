@@ -50,7 +50,7 @@ many distributions, e.g. Debian. It needs Python
 
 Change into the source directory and type the following commands:
 
-	scons
+	scons -k
 
 That's all. It will make a .tar.gz file containing source and data also.
 Copy the contents of the data directoryto a directory named /usr/local/share/dangerdeep

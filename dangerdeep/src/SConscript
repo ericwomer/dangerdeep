@@ -1,4 +1,5 @@
 # import these variables from the parent build script 
+import os
 import sys
 
 Import('env', 'gfxlibs', 'alllibs', 'libpath', 'installprefix', 'datadir', 'datafiles', 'findCVS')
@@ -79,6 +80,6 @@ install = env.Alias('install', env.Install(installprefix + 'bin', binary))
 env.Depends(install, binary)
 for i in datafiles:
 	# remove './data' from begin of i and filename from end
-	j = i.rfind('/')
+	j = i.rfind(os.sep)
 	ipath = i[6:j]
 	env.Depends(install, env.Install(datadir + ipath, '#/' + i))
