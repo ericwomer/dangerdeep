@@ -4,17 +4,15 @@
 #ifndef AI_H
 #define AI_H
 
+//this should move to ai.cpp, it is here because convoy.cpp depends on it. fime
+#define WPEXACTNESS 100			// how exact a waypoint has to be hit in meters
+#define AI_THINK_CYCLE_TIME 10		// sec
+
 #include "vector3.h"
 #include "global_data.h"
 #include <list>
 using namespace std;
 
-#define WPEXACTNESS 100			// how exact a waypoint has to be hit in meters
-#define AI_THINK_CYCLE_TIME 10		// sec
-#define DC_ATTACK_RADIUS 100		// distance to target before DC launching starts
-#define DC_ATTACK_RUN_RADIUS 200	// distance to contact until escort switches to
-					// maximum speed
-					
 class sea_object;
 
 class ai
@@ -29,6 +27,8 @@ protected:
 	states state;
 	unsigned zigzagstate;
 	bool attackrun;		// true when running full speed shortly before the attack
+	bool evasive_manouver;	// true when set_course tries and alternative route
+	double rem_manouver_time; // remaining time that ai should wait for during an evasive manouver
 	sea_object* parent;
 	sea_object* followme;
 	class convoy* myconvoy;	// convoy to which parent belongs (if any)

@@ -7,10 +7,17 @@
 #include "convoy.h"
 #include "sea_object.h"
 
+//#define WPEXACTNESS 100			// how exact a waypoint has to be hit in meters
+//#define AI_THINK_CYCLE_TIME 10		// sec
+#define DC_ATTACK_RADIUS 150		// distance to target before DC launching starts
+#define DC_ATTACK_RUN_RADIUS 600	// distance to contact until escort switches to
+					// maximum speed
+
 // ai computation between is randomly interleaved between frames to avoid
 // time consumption peeks every AI_THINK_CYCLE_TIME seconds
 ai::ai(sea_object* parent_, types type_) : type(type_), state(followpath),
-	zigzagstate(0), attackrun(false), parent(parent_), followme(0),
+	zigzagstate(0), attackrun(false), evasive_manouver(false),
+	rem_manouver_time(0), parent(parent_), followme(0),
 	myconvoy(0), has_contact(false),
 	remaining_time(rnd() * AI_THINK_CYCLE_TIME),
 	cyclewaypoints(false)
@@ -135,7 +142,16 @@ void ai::act_escort(game& gm, double delta_time)
 		act_dumb(gm, delta_time);
 	} else if (state == attackcontact) {	// attack sonar/visible contact
 
-		parent->set_course_to_pos(contact.xy());
+//		if (!(evasive_manouver && rem_manouver_time > 0)) {
+			evasive_manouver = parent->set_course_to_pos(contact.xy());
+/*
+			if (evasive_manouver) {
+				// wait for half circle to complete
+				double waittime = 180.0 / (parent->get_turn_rate().value() * parent->get_speed());
+				rem_manouver_time = ceil(waittime/AI_THINK_CYCLE_TIME) * AI_THINK_CYCLE_TIME;
+			}
+		}
+*/
 
 		vector2 delta = contact.xy() - parent->get_pos().xy();
 		double cd = delta.length();
@@ -161,6 +177,8 @@ void ai::act_escort(game& gm, double delta_time)
 			relax();
 		}
 	}
+	
+	if (rem_manouver_time > 0) rem_manouver_time -= AI_THINK_CYCLE_TIME;
 }
 
 void ai::act_dumb(game& gm, double delta_time)

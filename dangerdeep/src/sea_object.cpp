@@ -265,7 +265,7 @@ void sea_object::remember_position(void)
 		previous_positions.pop_back();
 }	
 
-void sea_object::set_course_to_pos(const vector2& pos)
+bool sea_object::set_course_to_pos(const vector2& pos)
 {
 	vector2 d = pos - get_pos().xy();
 	vector2 hd = get_heading().direction();
@@ -281,12 +281,14 @@ void sea_object::set_course_to_pos(const vector2& pos)
 		} else {
 			head_to_ang(get_heading() + angle(180), false);
 		}
+		return false;
 	} else if (r2 > r1) {	// target can not be reached with smallest curve possible
 		if (b < 0) {	// target is left
 			head_to_ang(get_heading() + angle(180), false);
 		} else {
 			head_to_ang(get_heading() - angle(180), true);
 		}
+		return false;
 	} else {	// target can be reached, steer curve
 		head_to_ang(angle::from_math(atan2(d.y, d.x)), (b < 0));
 //	this code computes the curve that hits the target
@@ -296,6 +298,7 @@ void sea_object::set_course_to_pos(const vector2& pos)
 		double fac = ((180.0*needed_turn_rate)/PI)/fabs(turn_rate.value_pm180());
 		head_chg = (b < 0) ? -fac : fac;
 */		
+		return true;
 	}
 }
 
