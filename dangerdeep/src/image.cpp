@@ -1,7 +1,6 @@
 // OpenGL texture drawing based on SDL Surfaces
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
-#include "image.h"
 #ifdef WIN32
 #include <SDL_image.h>
 #define WIN32_LEAN_AND_MEAN
@@ -12,111 +11,114 @@
 #include <GL/gl.h>
 #endif
 
-image::image(const string& s, bool loaddynamically, int mapping_, int clamp_) :
-	img(0), dynamic(loaddynamically), name(s), width(0), height(0),
-	texturized(false), gltx(0), glty(0),
-	mapping(mapping_), clamp(clamp_)
+#include "image.h"
+#include "system.h"
+
+
+
+image::image(const string& s, bool maketex, int mapping, int clamp) :
+	img(0), maketexture(maketex), name(s), width(0), height(0),
+	gltx(0), glty(0)
 {
-	if (!dynamic) {
-		texturize();
+	img = IMG_Load(name.c_str());
+	system::sys().myassert(img != 0, string("image: failed to load '") + s + string("'"));
+	width = img->w;
+	height = img->h;
+	
+	if (maketexture) {
+		vector<unsigned> widths, heights;
+		unsigned maxs = texture::get_max_size();
+		unsigned w = width, h = height;
+		while (w > maxs) {
+			widths.push_back(maxs);
+			w -= maxs;
+		}
+		widths.push_back(w);
+		while (h > maxs) {
+			heights.push_back(maxs);
+			h -= maxs;
+		}
+		heights.push_back(h);
+
+		gltx = widths.size();
+		glty = heights.size();
+		textures.reserve(gltx*glty);
+		unsigned ch = 0;
+		for (unsigned y = 0; y < glty; ++y) {
+			unsigned cw = 0;
+			for (unsigned x = 0; x < gltx; ++x) {
+				textures.push_back(new texture(img, cw, ch, widths[x], heights[y],
+					mapping, clamp));
+				cw += widths[x];
+			}
+			ch += heights[y];
+		}
+
+		lastcolw = widths.back();
+		lastrowh = heights.back();
+		lastcolu = float(lastcolw)/float(textures[gltx-1]->get_width());
+		lastrowv = float(lastrowh)/float(textures[gltx*(glty-1)]->get_height());
+		
+		// data is safe in texture memory, so free image.
+		SDL_FreeSurface(img);
+		img = 0;
 	}
 }
+
+
 
 image::~image()
 {
-	if (texturized) clear_textures();
-	if (img) SDL_FreeSurface(img);
-}
-
-void image::texturize(void)
-{
-	if (!img) {
-		img = IMG_Load(name.c_str());
-		// assert img != 0 fixme
-		if (img == 0) {		// failed to load
-			texturized = true;
-			gltx = glty = 0;
-			return;
-		}
-		width = img->w;
-		height = img->h;
-	}
-
-	vector<unsigned> widths, heights;
-	unsigned maxs = texture::get_max_size();
-	unsigned w = width, h = height;
-	while (w > maxs) {
-		widths.push_back(maxs);
-		w -= maxs;
-	}
-	widths.push_back(w);
-	while (h > maxs) {
-		heights.push_back(maxs);
-		h -= maxs;
-	}
-	heights.push_back(h);
-
-	gltx = widths.size();
-	glty = heights.size();
-	textures.reserve(gltx*glty);
-	unsigned ch = 0;
-	for (unsigned y = 0; y < glty; ++y) {
-		unsigned cw = 0;
-		for (unsigned x = 0; x < gltx; ++x) {
-			textures.push_back(new texture(img, cw, ch, widths[x], heights[y],
-				mapping, clamp));
-			cw += widths[x];
-		}
-		ch += heights[y];
-	}
-
-	lastcolw = widths.back();
-	lastrowh = heights.back();
-	lastcolu = float(lastcolw)/float(textures[gltx-1]->get_width());
-	lastrowv = float(lastrowh)/float(textures[gltx*(glty-1)]->get_height());
-	
-	texturized = true;
-}
-
-void image::draw(int x, int y)
-{
-	if (!texturized) texturize();
-	unsigned texptr = 0;
-	int yp = y;
-	for (unsigned yy = 0; yy < glty; ++yy) {
-		int xp = x;
-		unsigned h = (yy == glty-1) ? lastrowh : textures[texptr]->get_height();
-		float v = (yy == glty-1) ? lastrowv : 1.0f;
-		for (unsigned xx = 0; xx < gltx; ++xx) {
-			unsigned w = (xx == gltx-1) ? lastcolw : textures[texptr]->get_width();
-			float u = (xx == gltx-1) ? lastcolu : 1.0f;
-			glBindTexture(GL_TEXTURE_2D, textures[texptr]->get_opengl_name());
-			glBegin(GL_QUADS);
-			glTexCoord2f(0,0);
-			glVertex2i(xp,yp);
-			glTexCoord2f(0,v);
-			glVertex2i(xp,yp+h);
-			glTexCoord2f(u,v);
-			glVertex2i(xp+w,yp+h);
-			glTexCoord2f(u,0);
-			glVertex2i(xp+w,yp);
-			glEnd();
-			++texptr;
-			xp += w;
-		}
-		yp += h;
-	}
-}
-
-void image::clear_textures(void)
-{
 	for (unsigned i = 0; i < textures.size(); ++i)
 		delete textures[i];
-	textures.clear();
-	texturized = false;
-	gltx = glty = 0;
-	if (dynamic) {
+
+	if (img)
 		SDL_FreeSurface(img);
-		img = 0;
+}
+
+
+
+void image::draw(int x, int y) const
+{
+	if (textures.size() > 0) {
+		unsigned texptr = 0;
+		int yp = y;
+		for (unsigned yy = 0; yy < glty; ++yy) {
+			int xp = x;
+			unsigned h = (yy == glty-1) ? lastrowh : textures[texptr]->get_height();
+			float v = (yy == glty-1) ? lastrowv : 1.0f;
+			for (unsigned xx = 0; xx < gltx; ++xx) {
+				unsigned w = (xx == gltx-1) ? lastcolw : textures[texptr]->get_width();
+				float u = (xx == gltx-1) ? lastcolu : 1.0f;
+				glBindTexture(GL_TEXTURE_2D, textures[texptr]->get_opengl_name());
+				glBegin(GL_QUADS);
+				glTexCoord2f(0,0);
+				glVertex2i(xp,yp);
+				glTexCoord2f(0,v);
+				glVertex2i(xp,yp+h);
+				glTexCoord2f(u,v);
+				glVertex2i(xp+w,yp+h);
+				glTexCoord2f(u,0);
+				glVertex2i(xp+w,yp);
+				glEnd();
+				++texptr;
+				xp += w;
+			}
+			yp += h;
+		}
+	} else {	// use DrawPixels instead
+		system::sys().myassert(img->format->palette == 0, "image: can't use paletted images for direct pixel draw (fixme)");
+		unsigned bpp = img->format->BytesPerPixel;
+		system::sys().myassert(bpp == 3 || bpp == 4, "image: bpp must be 3 or 4 (RGB or RGBA)");
+
+		SDL_LockSurface(img);
+		GLenum pixelformat = (img->format->Amask != 0) ? GL_RGBA : GL_RGB;
+		glRasterPos2i(x, y);
+//cout<<"draw: x " << x << " y " << y << " bpp " << bpp << " pitch " << img->pitch << " w " << width << " h " << height << " pf " << pixelformat << "," << GL_RGB << " rowl " << img->pitch / bpp << "\n";
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, img->pitch / bpp);
+		glDrawPixels(width, height, pixelformat, GL_UNSIGNED_BYTE, img->pixels);
+		SDL_UnlockSurface(img);
+		glRasterPos2i(0, 0);	// fixme: the RedBook suggests using RasterPos 0.375 for 3d drawing, check if this must be set up here, too
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	}
 }

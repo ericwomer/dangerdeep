@@ -85,7 +85,7 @@ widget::theme* widget::replace_theme(widget::theme* t)
 	return tmp;
 }
 
-widget::widget(int x, int y, int w, int h, const string& text_, widget* parent_, image* backgr)
+widget::widget(int x, int y, int w, int h, const string& text_, widget* parent_, const image* backgr)
 	: pos(x, y), size(w, h), text(text_), parent(parent_), background(backgr), enabled(true), retval(-1), closeme(false)
 {
 }

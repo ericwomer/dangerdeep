@@ -45,7 +45,7 @@ protected:
 	vector2i pos, size;
 	string text;
 	widget* parent;
-	image* background;
+	const image* background;
 	bool enabled;
 	list<widget*> children;
 	int retval;
@@ -83,7 +83,7 @@ public:
 	static void set_theme(theme* t);
 	static theme* get_theme(void) { return globaltheme; }
 	static theme* replace_theme(theme* t);
-	widget(int x, int y, int w, int h, const string& text_, widget* parent_ = 0, image* backgr = 0);
+	widget(int x, int y, int w, int h, const string& text_, widget* parent_ = 0, const image* backgr = 0);
 	virtual ~widget();
 	virtual void add_child(widget* w);
 	virtual void remove_child(widget* w);
@@ -100,8 +100,8 @@ public:
 	virtual void set_parent(widget* w) { parent = w; }
 	virtual string get_text(void) const { return text; }
 	virtual void set_text(const string& s) { text = s; }
-	virtual image* get_background(void) const { return background; }
-	virtual void set_background(image* b) { background = b; }
+	virtual const image* get_background(void) const { return background; }
+	virtual void set_background(const image* b) { background = b; }
 	virtual void set_return_value(int rv) { retval = rv; }
 	virtual bool is_enabled(void) const;
 	virtual void enable(void);
@@ -171,7 +171,7 @@ protected:
 	widget_button& operator= (const widget_button& );
 public:
 	widget_button(int x, int y, int w, int h, const string& text_,
-		widget* parent_ = 0, image* backgr = 0) : widget(x, y, w, h, text_, parent_, backgr), pressed(false) {}
+		widget* parent_ = 0, const image* backgr = 0) : widget(x, y, w, h, text_, parent_, backgr), pressed(false) {}
 	~widget_button() {}
 	void draw(void) const;
 	void on_click(void);

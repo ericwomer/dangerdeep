@@ -72,6 +72,10 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_COLOR_MATERIAL);
 	glColor3f(1, 1, 1);
+	// set up some things for drawing pixels
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glReadBuffer(GL_BACK);
+	glDrawBuffer(GL_BACK);
 	
 	// Screen resize
 	screen_resize(res_x, res_y, nearz, farz);
@@ -194,12 +198,14 @@ void system::prepare_2d_drawing()
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
 	draw_2d = true;
+	glPixelZoom(float(res_x)/res_x_2d, -float(res_y)/res_y_2d);	// flip images
 }
 
 void system::unprepare_2d_drawing()
 {
 	myassert(draw_2d == true, "2d drawing already turned off");
 	glFlush();
+	glPixelZoom(1.0f, 1.0f);
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);

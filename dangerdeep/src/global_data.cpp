@@ -121,7 +121,7 @@ void init_global_data(void)
 	titlebackgrimg = new image(get_image_dir() + "titlebackgr.jpg");
 	periscope = new image(get_texture_dir() + "periscope.png");
 	threesubsimg = new image(get_image_dir() + "threesubs.jpg");
-	logbook_spiral = new image(get_texture_dir() + "logbook_spiral.png");
+	logbook_spiral = new image(get_texture_dir() + "logbook_spiral.png", true);
 	damage_screen_background = new image(get_image_dir() + "damage_screen_backg.jpg");
 	sub_damage_scheme_all = new image(get_image_dir() + "sub_damage_scheme_all.png");
 	killedimg = new image(get_image_dir() + "killed.jpg");
@@ -133,7 +133,7 @@ void init_global_data(void)
 	sunderlandimg = new image(get_image_dir() + "sunderland.jpg");
 	swordfishimg = new image(get_image_dir() + "swordfish.jpg");
 	hedgehogimg = new image(get_image_dir() + "hedgehog.jpg");
-	panelbackgroundimg = new image(get_image_dir() + "panelbackground.jpg");
+	panelbackgroundimg = new image(get_image_dir() + "panelbackground.jpg", true);
 }
 
 void deinit_global_data(void)

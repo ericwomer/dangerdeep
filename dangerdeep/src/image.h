@@ -8,18 +8,17 @@
 #include <vector>
 using namespace std;
 
+
+
 class image
 {
 	SDL_Surface* img;
-	bool dynamic;
+	bool maketexture;
 	string name;	// filename
 	unsigned width, height;
 
-	bool texturized;
 	unsigned gltx, glty;	// no. of textures in x and y direction
 	vector<texture*> textures;
-	int mapping;
-	int clamp;
 	unsigned lastcolw, lastrowh;	// textures for last row/column of array may be wider
 	float lastcolu, lastrowv;	// than needed (OpenGL needs texture sizes that are
 					// powers of two).
@@ -33,11 +32,9 @@ private:
 					// operator=: copy image or assign? fixme
 
 public:
-	image(const string& s, bool loaddynamically = true, int mapping = GL_NEAREST, int clamp = GL_REPEAT);
+	image(const string& s, bool maketex = false, int mapping = GL_NEAREST, int clamp = GL_REPEAT);
 	~image();
-	void texturize(void);		// called automatically by draw
-	void draw(int x, int y);	// can't be const, may call texturize()
-	void clear_textures(void);
+	void draw(int x, int y) const;
 	unsigned get_width(void) const { return width; };
 	unsigned get_height(void) const { return height; };
 };
