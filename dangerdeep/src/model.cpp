@@ -57,11 +57,8 @@ void model::read(const string& filename)
 	fread(&tns, 2, 1, f);
 	string texname;
 	if (tns > 0) {
-		char* tmps = new char [tns+1];
-		fread(tmps, tns, 1, f);
-		tmps[tns] = 0;
-		texname = string(tmps);
-		delete [] tmps;
+		texname.resize(tns, ' ');
+		fread(&texname[0], tns, 1, f);
 	}
 	texmapping = 0;
 	fread(&texmapping, 1, 1, f);

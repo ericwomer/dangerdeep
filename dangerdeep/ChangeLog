@@ -1,4 +1,8 @@
 2003-07-06  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* smokestream.cpp
+	  - segfault reason found & fixed
+
+2003-07-06  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* begun Win32 Port.
 	  It compiles, links and runs, BUT:
 	  - there is no mouse pointer.

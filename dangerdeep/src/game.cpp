@@ -688,7 +688,7 @@ ship* game::check_unit_list ( torpedo* t, list<submarine*>& unit_list )
 #else
 
 template<class _C>
-ship* game::check_unit_list ( torpedo* t, typename list<_C>& unit_list )
+ship* game::check_unit_list ( torpedo* t, list<_C>& unit_list )
 {
 	for ( typename list<_C>::iterator it = unit_list.begin (); it != unit_list.end (); ++it )
 	{
