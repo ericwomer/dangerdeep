@@ -233,9 +233,15 @@ void submarine::dive_to_depth(unsigned meters)
 	dive_speed = (dive_to < position.z) ? -max_dive_speed : max_dive_speed;
 }
 
-bool submarine::fire_torpedo(class game& gm, bool usebowtubes, int tubenr,
-	sea_object* target)
+bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target)
 {
+	bool usebowtubes = true;
+	if (target != 0) {
+		angle a = angle(target->get_pos().xy() - get_pos().xy()) - get_heading();
+		if (a.ui_abs_value180() > 90)
+			usebowtubes = false;
+	}
+
 	pair<unsigned, unsigned> bow_tube_indices = get_bow_tube_indices();
 	pair<unsigned, unsigned> stern_tube_indices = get_stern_tube_indices();
 	unsigned torpnr = 0xffff;	// some high illegal value

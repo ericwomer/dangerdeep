@@ -79,6 +79,8 @@ const char* TXT_Submarinexxi[] = {"Submarine type XXI", "U-Boot Typ XXI"};
 const char* TXT_Dieselsubmarine[] = {"Diesel submarine", "Diesel U-Boot"};
 const char* TXT_Submarineviic[] = {"Submarine type VIIc", "U-Boot Typ VIIc"};
 const char* TXT_Showvesselinstructions[] = {"Cursor keys to rotate, Page up/down to cycle, Escape to exit", "Pfeiltasten: drehen, Bildtasten: wechseln, ESC: verlassen"};
+const char* TXT_Identifiedtargetas[] = {"Identified target as: ", "Ziel identifiziert als: "};
+const char* TXT_Notargetselected[] = {"No target selected", "Kein Ziel ausgewaehlt"};
 /*
 const char* TXT_[] = {"", ""};
 const char* TXT_[] = {"", ""};

@@ -46,19 +46,23 @@ control:
 Cursor keys	Rudder left/right/up/down
 Return		Center rudders
 1,2,3,4,5,6	Throttle slow,half,full,flank,stop,reverse
+SHIFT 1...6	Fire torpedo in tube 1...6 (bow/stern tube number position
+		relation depends on sub type: as first all bow tubes are
+		enumerated, then the stern tubes)
 Space		Select target
 0 (zero)	Scope up/down
-t		Fire torpedo
+t		Fire torpedo (automatic selection of bow/stern tubes)
 p		Periscope depth
 s		Surface
 c		Crash dive (to 150 meters)
 + -		Zoom/unzoom
 , .		turn view
 ; :		turn view fast
-F11/F12		Time scale faster/slower
+i		identify target
+F11/F12		time scale faster/slower
 Pause		(Un)pause game
 ESC		quit (for now)
-i		Take screenshot (uncompressed ppm, for now)
+PRINT		Take screenshot (uncompressed ppm, for now)
 
 special for now:
 ----------------------------------------

@@ -85,6 +85,8 @@ extern const char* TXT_Submarinexxi[];
 extern const char* TXT_Dieselsubmarine[];
 extern const char* TXT_Submarineviic[];
 extern const char* TXT_Showvesselinstructions[];
+extern const char* TXT_Identifiedtargetas[];
+extern const char* TXT_Notargetselected[];
 /*
 extern const char* TXT_[];
 extern const char* TXT_[];

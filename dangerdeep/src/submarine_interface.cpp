@@ -32,73 +32,107 @@ submarine_interface::~submarine_interface()
 bool submarine_interface::keyboard_common(int keycode, class system& sys, class game& gm)
 {
 	// handle common keys (fixme: make configureable?)
-	switch (keycode) {
-		// viewmode switching
-		case SDLK_F1: viewmode = 0; break;
-		case SDLK_F2: viewmode = 1; break;
-		case SDLK_F3: viewmode = 2; break;
-		case SDLK_F4: viewmode = 3; break;
-		case SDLK_F5: viewmode = 4; break;
-		case SDLK_F6: viewmode = 5; break;
-		case SDLK_F7: viewmode = 6; break;
-		case SDLK_F8: viewmode = 7; break;
-		case SDLK_F9: viewmode = 8; break;
-		case SDLK_F10: viewmode = 9; break;
-
-		// time scaling fixme: too simple
-		case SDLK_F11: if (time_scale_up()) { add_message(TXT_Timescaleup[language]); } break;
-		case SDLK_F12: if (time_scale_down()) { add_message(TXT_Timescaledown[language]); } break;
-
-		// control
-		case SDLK_LEFT: player->rudder_left(1); add_message(TXT_Rudderleft[language]); break;
-		case SDLK_RIGHT: player->rudder_right(1); add_message(TXT_Rudderright[language]); break;
-		case SDLK_UP: player->planes_up(1); add_message(TXT_Planesup[language]); break;
-		case SDLK_DOWN: player->planes_down(1); add_message(TXT_Planesdown[language]); break;
-		case SDLK_s: player->dive_to_depth(0); add_message(TXT_Surface[language]); break;
-		case SDLK_p: player->dive_to_depth(12); add_message(TXT_Periscopedepth[language]); break;	//fixme
-		case SDLK_c: player->dive_to_depth(150); add_message(TXT_Crashdive[language]); break;
-		case SDLK_RETURN : player->rudder_midships(); player->planes_middle(); add_message(TXT_Ruddermidships[language]); break;
-		case SDLK_1: player->set_throttle(sea_object::aheadslow); add_message(TXT_Aheadslow[language]); break;
-		case SDLK_2: player->set_throttle(sea_object::aheadhalf); add_message(TXT_Aheadhalf[language]); break;
-		case SDLK_3: player->set_throttle(sea_object::aheadfull); add_message(TXT_Aheadfull[language]); break;
-		case SDLK_4: player->set_throttle(sea_object::aheadflank); add_message(TXT_Aheadflank[language]); break;//flank/full change?
-		case SDLK_5: player->set_throttle(sea_object::stop); add_message(TXT_Enginestop[language]); break;
-		case SDLK_6: player->set_throttle(sea_object::reverse); add_message(TXT_Enginereverse[language]); break;
-		case SDLK_0: if (player->is_scope_up()) {
-			player->scope_down(); add_message(TXT_Scopedown[language]); } else {
-			player->scope_up(); add_message(TXT_Scopeup[language]); }
-			break;
-
-		// view
-		case SDLK_COMMA : bearing -= angle(sys.key_shift() ? 10 : 1); break;
-		case SDLK_PERIOD : bearing += angle(sys.key_shift() ? 10 : 1); break;
-
-		// weapons, fixme
-		case SDLK_t: {
-			bool bow = true;
-			if (target != 0) {
-				angle a = angle(target->get_pos().xy() - player->get_pos().xy())
-					- player->get_heading();
-				if (a.ui_abs_value180() > 90)
-					bow = false;
-			}
-			if (player->fire_torpedo(gm, bow, -1/*fixme*/, target))
-				add_message(TXT_Torpedofired[language]);
-			break;
+	if (sys.key_shift()) {
+		switch (keycode) {
+			// torpedo launching
+			case SDLK_1:
+				if (player->fire_torpedo(gm, 0, target))
+					add_message(TXT_Torpedofired[language]);
+				break;
+			case SDLK_2:
+				if (player->fire_torpedo(gm, 1, target))
+					add_message(TXT_Torpedofired[language]);
+				break;
+			case SDLK_3:
+				if (player->fire_torpedo(gm, 2, target))
+					add_message(TXT_Torpedofired[language]);
+				break;
+			case SDLK_4:
+				if (player->fire_torpedo(gm, 3, target))
+					add_message(TXT_Torpedofired[language]);
+				break;
+			case SDLK_5:
+				if (player->fire_torpedo(gm, 4, target))
+					add_message(TXT_Torpedofired[language]);
+				break;
+			case SDLK_6:
+				if (player->fire_torpedo(gm, 5, target))
+					add_message(TXT_Torpedofired[language]);
+				break;
+			
+			// view
+			case SDLK_COMMA : bearing -= angle(10); break;
+			case SDLK_PERIOD : bearing += angle(10); break;
+			default: return false;
 		}
-		case SDLK_SPACE: target = gm.ship_in_direction_from_pos(player->get_pos().xy(), player->get_heading()+bearing);
-			if (target) add_message(TXT_Newtargetselected[language]);
-			else add_message(TXT_Notargetindirection[language]);
-			break;
+	} else {	// no shift
+		switch (keycode) {
+			// viewmode switching
+			case SDLK_F1: viewmode = 0; break;
+			case SDLK_F2: viewmode = 1; break;
+			case SDLK_F3: viewmode = 2; break;
+			case SDLK_F4: viewmode = 3; break;
+			case SDLK_F5: viewmode = 4; break;
+			case SDLK_F6: viewmode = 5; break;
+			case SDLK_F7: viewmode = 6; break;
+			case SDLK_F8: viewmode = 7; break;
+			case SDLK_F9: viewmode = 8; break;
+			case SDLK_F10: viewmode = 9; break;
 
-		// quit, screenshot, pause etc.
-		case SDLK_ESCAPE: quit = true; break;
-		case SDLK_i: sys.screenshot(); sys.add_console("screenshot taken."); break;
-		case SDLK_PAUSE: pause = !pause;
-			if (pause) add_message(TXT_Gamepaused[language]);
-			else add_message(TXT_Gameunpaused[language]);
-			break;
-		default: return false;		
+			// time scaling fixme: too simple
+			case SDLK_F11: if (time_scale_up()) { add_message(TXT_Timescaleup[language]); } break;
+			case SDLK_F12: if (time_scale_down()) { add_message(TXT_Timescaledown[language]); } break;
+
+			// control
+			case SDLK_LEFT: player->rudder_left(1); add_message(TXT_Rudderleft[language]); break;
+			case SDLK_RIGHT: player->rudder_right(1); add_message(TXT_Rudderright[language]); break;
+			case SDLK_UP: player->planes_up(1); add_message(TXT_Planesup[language]); break;
+			case SDLK_DOWN: player->planes_down(1); add_message(TXT_Planesdown[language]); break;
+			case SDLK_s: player->dive_to_depth(0); add_message(TXT_Surface[language]); break;
+			case SDLK_p: player->dive_to_depth(12); add_message(TXT_Periscopedepth[language]); break;	//fixme
+			case SDLK_c: player->dive_to_depth(150); add_message(TXT_Crashdive[language]); break;
+			case SDLK_RETURN : player->rudder_midships(); player->planes_middle(); add_message(TXT_Ruddermidships[language]); break;
+			case SDLK_1: player->set_throttle(sea_object::aheadslow); add_message(TXT_Aheadslow[language]); break;
+			case SDLK_2: player->set_throttle(sea_object::aheadhalf); add_message(TXT_Aheadhalf[language]); break;
+			case SDLK_3: player->set_throttle(sea_object::aheadfull); add_message(TXT_Aheadfull[language]); break;
+			case SDLK_4: player->set_throttle(sea_object::aheadflank); add_message(TXT_Aheadflank[language]); break;//flank/full change?
+			case SDLK_5: player->set_throttle(sea_object::stop); add_message(TXT_Enginestop[language]); break;
+			case SDLK_6: player->set_throttle(sea_object::reverse); add_message(TXT_Enginereverse[language]); break;
+			case SDLK_0: if (player->is_scope_up()) {
+				player->scope_down(); add_message(TXT_Scopedown[language]); } else {
+				player->scope_up(); add_message(TXT_Scopeup[language]); }
+				break;
+
+			// view
+			case SDLK_COMMA : bearing -= angle(1); break;
+			case SDLK_PERIOD : bearing += angle(1); break;
+
+			// weapons, fixme
+			case SDLK_t:
+				if (player->fire_torpedo(gm, -1, target))
+					add_message(TXT_Torpedofired[language]);
+				break;
+			case SDLK_SPACE: target = gm.ship_in_direction_from_pos(player->get_pos().xy(), player->get_heading()+bearing);
+				if (target) add_message(TXT_Newtargetselected[language]);
+				else add_message(TXT_Notargetindirection[language]);
+				break;
+			case SDLK_i: {
+				// calculate distance to target for identification detail
+				if (target)
+					add_message(TXT_Identifiedtargetas[language] + target->get_description(2));//fixme
+				else
+					add_message(TXT_Notargetselected[language]);
+				break; }
+
+			// quit, screenshot, pause etc.
+			case SDLK_ESCAPE: quit = true; break;
+			case SDLK_PRINT: sys.screenshot(); sys.add_console("screenshot taken."); break;
+			case SDLK_PAUSE: pause = !pause;
+				if (pause) add_message(TXT_Gamepaused[language]);
+				else add_message(TXT_Gameunpaused[language]);
+				break;
+			default: return false;		
+		}
 	}
 	return true;
 }
