@@ -58,7 +58,7 @@ void ai::fill_dist_angle_relation_map(void)
 
 // ai computation between is randomly interleaved between frames to avoid
 // time consumption peeks every AI_THINK_CYCLE_TIME seconds
-ai::ai(sea_object* parent_, types type_) : type(type_), state(followpath),
+ai::ai(ship* parent_, types type_) : type(type_), state(followpath),
 	zigzagstate(0), attackrun(false), evasive_manouver(false),
 	rem_manouver_time(0), parent(parent_), followme(0),
 	myconvoy(0), has_contact(false),
@@ -77,7 +77,7 @@ ai::ai(istream& in, class game& g)
 	attackrun = read_bool(in);
 	evasive_manouver = read_bool(in);
 	rem_manouver_time = read_double(in);
-	parent = g.read_sea_object(in);
+	parent = g.read_ship(in);
 	if (parent) parent->ref();
 	followme = g.read_sea_object(in);
 	if (followme) followme->ref();
@@ -118,7 +118,7 @@ void ai::relax(game& gm)
 {
 	has_contact = false;
 	state = (followme) ? followobject : followpath;
-	gm.send(new command_set_throttle(parent, sea_object::aheadsonar));
+	gm.send(new command_set_throttle(parent, ship::aheadsonar));
 	attackrun = false;
 }
 
@@ -208,7 +208,7 @@ void ai::act_escort(game& gm, double delta_time)
 		fire_shell_at(gm, *nearest_contact);
 		attack_contact(nearest_contact->get_pos());
 		if (myconvoy) myconvoy->add_contact(nearest_contact->get_pos());
-		gm.send(new command_set_throttle(parent, sea_object::aheadflank));
+		gm.send(new command_set_throttle(parent, ship::aheadflank));
 		attackrun = true;
 	}
 
@@ -257,7 +257,7 @@ void ai::act_escort(game& gm, double delta_time)
 			}
 			//set_zigzag((cd > 500 && cd < 2500));//fixme test hack, doesn't work
 		} else {
-			gm.send(new command_set_throttle(parent, sea_object::aheadflank));
+			gm.send(new command_set_throttle(parent, ship::aheadflank));
 			attackrun = true;
 			//set_zigzag(false);//fixme test hack, doesn't work
 		}

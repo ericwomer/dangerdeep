@@ -63,10 +63,6 @@ protected:
 
 	// reference counting
 	unsigned ref_count;
-	void ref(void);
-	void unref(void);
-	static void check_ref(sea_object*& myref);
-	static void assign_ref(sea_object*& dst, sea_object* src);
 	
 	sea_object();
 	sea_object& operator=(const sea_object& other);
@@ -88,6 +84,12 @@ public:
 	virtual ~sea_object();
 	virtual void load(istream& in, class game& g);
 	virtual void save(ostream& out, const class game& g) const;
+
+	// reference counting
+	void ref(void);
+	void unref(void);
+	static void check_ref(sea_object*& myref);
+	static void assign_ref(sea_object*& dst, sea_object* src);
 	
 	// call with ship/submarine/etc node from mission file
 	virtual void parse_attributes(class TiXmlElement* parent);

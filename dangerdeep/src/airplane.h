@@ -30,7 +30,7 @@ public:
 
 	virtual void simulate(class game& gm, double delta_time);
 
-	virtual quaternion get_rotation(void) const { return rotation; }
+	virtual quaternion get_rotation(void) const { return orientation; }
 
 	virtual double get_mass(void) const { return 4000.0; }	// 4 tons.
 	virtual double get_engine_thrust(void) const { return 20000.0; }

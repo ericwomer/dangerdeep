@@ -48,7 +48,7 @@ protected:
 	// if head_chg is == 0, nothing happens.
 	bool permanent_turn;
 	double head_chg;
-	int rudder; // rudder state
+//	int rudder; // rudder state
 	angle head_to;
 	angle turn_rate;	// in angle/(time*speed) = angle/m, means angle change per forward movement in meters, read from spec file
 

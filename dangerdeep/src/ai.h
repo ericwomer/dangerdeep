@@ -8,6 +8,7 @@
 #include "global_data.h"
 #include "angle.h"
 #include "sea_object.h"
+#include "ship.h"
 #include <list>
 #include <map>
 using namespace std;
@@ -26,8 +27,8 @@ protected:
 	bool attackrun;		// true when running full speed shortly before the attack
 	bool evasive_manouver;	// true when set_course tries an alternative route
 	double rem_manouver_time; // remaining time that ai should wait for during an evasive manouver
-	sea_object* parent;	// fixme: is a ship!
-	sea_object* followme; // fixme: is a ship!
+	ship* parent;		// fixme: should be sea_object and redefined by heirs!
+	sea_object* followme;		// could be a sea_object instead of ship?
 	class convoy* myconvoy;	// convoy to which parent belongs (if any)
 	bool has_contact;
 	vector3 contact;	// position of target to attack
@@ -49,7 +50,7 @@ protected:
 	ai& operator= (const ai& other);
 
 public:
-	ai::ai(sea_object* parent_, types type_);
+	ai::ai(ship* parent_, types type_);
 	virtual ~ai();
 
 	ai(istream& in, class game& g);	// attention: all sea_objects must exist BEFORE this is called!
