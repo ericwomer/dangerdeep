@@ -34,6 +34,20 @@ const int coastmap::dy[4] = { -1, 0, 1, 0 };
 
 
 
+struct intcl
+{
+	vector<vector2i> points;
+	bool cyclic;
+	int beginborder, endborder;
+	intcl() : cyclic(false), beginborder(-1), endborder(-1) {}
+	~intcl() {}
+	intcl(const intcl& c) : points(c.points), cyclic(c.cyclic), beginborder(c.beginborder), endborder(c.endborder) {}
+	intcl& operator=(const intcl& c) { points = c.points; cyclic = c.cyclic; beginborder = c.beginborder; endborder = c.endborder; return *this; }
+};	
+
+
+
+
 /* fixme:
   maybe reuse already generated data: give old point array to. if new detail is higher than
   old detail, just generate new points (50% computation time saving on increasing the detail),
@@ -251,7 +265,7 @@ void coastsegment::draw_as_map(const vector2f& off, float size, const vector2f& 
 #if 0
 		// test
 		for (unsigned i = 0; i < coastlines.size(); ++i) {
-			coastlines[i].draw_as_map(xoff, yoff, size, tx, ty, tsx, tsy, detail);
+			coastlines[i].draw_as_map(off, size, t, ts, detail);
 		}
 #endif		
 	}
@@ -311,9 +325,9 @@ for displaying purposes but should influence the game!
 
 
 
-unsigned coastmap::find_seg_for_point(const vector2f& p) const
+unsigned coastmap::find_seg_for_point(const vector2i& p) const
 {
-	return (p.x/(pixelw_real * pixels_per_seg))+(p.y/(pixelw_real * pixels_per_seg))*segsx;
+	return (p.x/pixels_per_seg)+(p.y/pixels_per_seg)*segsx;
 }
 
 
@@ -368,7 +382,7 @@ bool coastmap::find_begin_of_coastline(int& x, int& y)
 
 
 
-bool coastmap::find_coastline(int x, int y, coastline& cl)	// returns true if cl is valid
+bool coastmap::find_coastline(int x, int y, intcl& icl)	// returns true if cl is valid
 {
 	// run backward at the coastline until we reach the border or round an island.
 	// start there creating the coastline. this avoids coastlines that can never be seen.
@@ -376,21 +390,20 @@ bool coastmap::find_coastline(int x, int y, coastline& cl)	// returns true if cl
 
 	assert((mapf(x, y) & 0x80) == 0);
 	
-	cl.cyclic = find_begin_of_coastline(x, y);
+	icl.cyclic = find_begin_of_coastline(x, y);
 
-	cl.beginborder = -1;	
-	if (!cl.cyclic) {
-		if (x == 0) cl.beginborder = 3;
-		else if (y == 0) cl.beginborder = 0;
-		else if (x == mapw-1) cl.beginborder = 1;
-		else if (y == maph-1) cl.beginborder = 2;
+	icl.beginborder = -1;	
+	if (!icl.cyclic) {
+		if (x == 0) icl.beginborder = 3;
+		else if (y == 0) icl.beginborder = 0;
+		else if (x == mapw-1) icl.beginborder = 1;
+		else if (y == maph-1) icl.beginborder = 2;
 	}
 	
 	int sx = x, sy = y, j2 = 0, lastj = -1, turncount = 0;
 	while (true) {
 		// store x,y
-		vector2f p(x * pixelw_real, y * pixelw_real);//fixme add map offset here
-		cl.points.push_back(p);
+		icl.points.push_back(vector2i(x, y));
 
 		assert(x>=0&&y>=0&&x<mapw&&y<maph);
 		mapf(x, y) |= 0x80;
@@ -413,7 +426,7 @@ bool coastmap::find_coastline(int x, int y, coastline& cl)	// returns true if cl
 		}
 		j2 = j;
 
-		if (lastj != -1 && cl.cyclic) {
+		if (lastj != -1 && icl.cyclic) {
 			int jd = lastj-j;
 			if (jd < 0) jd += 4;
 			if (jd == 3) jd = -1;
@@ -434,16 +447,19 @@ bool coastmap::find_coastline(int x, int y, coastline& cl)	// returns true if cl
 		}
 	}
 	
-	cl.endborder = -1;
-	if (!cl.cyclic) {
-		if (x == 0) cl.endborder = 3;
-		else if (y == 0) cl.endborder = 0;
-		else if (x == mapw-1) cl.endborder = 1;
-		else if (y == maph-1) cl.endborder = 2;
+	icl.endborder = -1;
+	if (!icl.cyclic) {
+		if (x == 0) icl.endborder = 3;
+		else if (y == 0) icl.endborder = 0;
+		else if (x == mapw-1) icl.endborder = 1;
+		else if (y == maph-1) icl.endborder = 2;
 	}
 
 	return turncount <= 0;
 }
+
+
+
 /* for islands, add:
 		assert(tmp.size()>2);
 		vector2 p0 = tmp[0];
@@ -456,20 +472,152 @@ bool coastmap::find_coastline(int x, int y, coastline& cl)	// returns true if cl
 
 
 
+float compute_border_dist(int b0, const vector2f& p0, int b1, const vector2f& p1)
+{
+	float dist0 = coastline::dist_to_corner(b0, p0, segw), dist1 = coastline::dist_to_corner(b1, p1, segw);
+	if (b0 == b1 && dist1 > dist0) b1 += 4;
+	else if (b1 < b0) b1 += 4;
+	float fulldist = dist0;
+	for (int i = b0; i < b1; ++i)
+		fulldist += segw;
+	fulldist -= dist1;
+	return fulldist;
+}
+
+
+
+unsigned coastsegment::get_successor_for_cl(unsigned cln) const
+{
+	float mindist = 1e30;
+	unsigned next = 0xffffffff;
+//coastlines[cln].debug_print(cout);
+//cout << " succ?\n";
+	for (unsigned i = 0; i < coastlines.size(); ++i) {
+//coastlines[i].debug_print(cout);
+		// i's successor can be i itself and may already have been handled (i itself!)
+		const coastline& cl0 = coastlines[cln];
+		const coastline& cl1 = coastlines[i];
+		// compare for distance, 5 cases
+		if (cl0.endborder < 0 && cl1.beginborder < 0) {	// part of an island
+			float dist = cl0.p1.distance(cl1.p0);
+			if (dist < mindist) {
+				mindist = dist;
+				next = i;
+			}
+		} else if (cl0.endborder >= 0 && cl1.beginborder >= 0) {
+			float dist = compute_border_dist(cl0.endborder, cl0.p1, cl1.beginborder, cl1.p0);
+			if (dist < mindist) {
+				mindist = dist;
+				next = i;
+			}
+		} // else not compareable
+	}
+	assert(next != 0xffffffff);
+//cout << "next was " << next << "\n";	
+	return next;
+}
+
+
+
+void divide_and_distribute_cl(const intcl& icl)
+//const doublecl& dcl, vector<vector<doublecl> >& cl_per_seg)
+{
+	doublecl segcl;
+
+	// divide coastline at segment borders
+	// find segment that first point is into
+	segcl.beginborder = dcl.beginborder;
+	int sx = int(dcl.points.front().x / pixelw) / n;
+	int sy = int(dcl.points.front().y / pixelw) / n;
+	int segsx = w/n;
+	int seg = sy*segsx+sx;
+	vector2 segoff(sx * segw, sy * segw);
+
+	segcl.points.push_back(dcl.points.front() - segoff);
+	bool sameseg = true;
+	// fixme: avoid just one line of an island/coast to get distributed to another segment.
+	// thus treat borders as part of current segment, for both sides!
+	for (unsigned i = 1; i < dcl.points.size(); ++i) {
+		int csx = int(dcl.points[i].x / pixelw) / n;
+		int csy = int(dcl.points[i].y / pixelw) / n;
+		int cseg = csy*segsx+csx;
+		if (seg == cseg) {
+			segcl.points.push_back(dcl.points[i] - segoff);
+		} else {
+			sameseg = false;
+			vector2 b = dcl.points[i-1];
+			vector2 d = dcl.points[i] - b;
+
+			// fixme: what is if the next segment is right AND down (line crosses corner)?
+			
+			// find t so that b + t * d is on segment border between seg and cseg
+			double t;
+			int border = -1;
+			if (cseg < seg) {	// border is left or top
+				if (cseg == seg-1) {	// left
+					t = (segoff.x - b.x) / d.x;
+					border = 3;
+				} else {		// top
+					t = (segoff.y - b.y) / d.y;
+					border = 0;
+				}
+			} else {		// border is right or bottom
+				if (cseg == seg+1) {	// right
+					t = (segoff.x + segw - b.x) / d.x;
+					border = 1;
+				} else {		// bottom
+					t = (segoff.y + segw - b.y) / d.y;
+					border = 2;
+				}
+			}
+			
+			vector2 borderp = b + d * t;
+			
+			segcl.endborder = border;
+
+			// avoid storing too short line segments
+			if (t > 0.0001)
+				segcl.points.push_back(borderp - segoff);
+			cl_per_seg[seg].push_back(segcl);
+			sx = csx;
+			sy = csy;
+			seg = cseg;
+			segoff = vector2(sx * segw, sy * segw);
+			segcl.points.clear();
+			segcl.beginborder = (border + 2) % 4;
+			
+			// avoid storing too short line segments
+			if (t < 0.9999)
+				segcl.points.push_back(borderp - segoff);
+			segcl.points.push_back(dcl.points[i] - segoff);
+		}
+	}
+
+	segcl.endborder = dcl.endborder;
+
+	segcl.cyclic = sameseg;	// we have an island complete in one segment
+	
+//	if (segcl.cyclic) assert(segcl.beginborder==-1 && segcl.endborder==-1);
+
+	cl_per_seg[seg].push_back(segcl);
+}
+
+
+
 void coastmap::process_coastline(int x, int y)
 {
 	assert ((mapf(x, y) & 0x80) == 0);
-	coastline cl;
+	intcl icl;
 	
 	// find coastline, avoid "lakes", (inverse of islands), because the triangulation will fault there
-	bool valid = find_coastline(x, y, cl);
+	bool valid = find_coastline(x, y, icl);
 	
 	if (!valid) return;	// skip
 
-	assert(cl.points.size() > 0);
+	assert(icl.points.size() > 0);
 
+/*
 	// fill in coastseg info, which segments are covered by cl?
-	coastlines.push_back(cl);
 	unsigned curseg = find_seg_for_point(cl.points[0]);
 	unsigned startt = 0, endt = 0;
 	for (unsigned i = 1; i < cl.points.size(); ++i) {
@@ -482,6 +630,38 @@ void coastmap::process_coastline(int x, int y)
 		}
 	}
 	coastsegments[curseg].coastlines.push_back(vector3i(coastlines.size()-1, startt, endt));
+*/	
+	divide_and_distribute_cl(icl);
+}
+
+
+
+void coastmap::process_segment(int sx, int sy)
+{
+	coastsegment& cs = coastsegments[sy*segsx+sx];
+	if (cs.coastlines.size() == 0) {	// no coastlines in segment.
+		// segment is fully land or sea. determine what it is
+		if (mapf(sx*pixels_per_seg + pixels_per_seg/2, sy*pixels_per_seg + pixels_per_seg/2) & 0x7f) {
+			landsegs++;
+			cs.type = 1;
+		} else {
+			seasegs++;
+			cs.type = 0;
+		}
+	} else {		// there are coastlines in segment
+		// compute cl.next info
+		unsigned ncl = cs.coastlines.size();
+		vector<bool> handledcl(ncl, false);
+		for (unsigned i = 0; i < ncl; ++i) {
+			if (handledcl[i]) continue;
+			unsigned current = i;
+			do {
+				unsigned next = cs.get_successor_for_cl(current);
+				cs.coastlines[current].next = next;
+				handledcl[current] = true;
+			} while (current != i);
+		}
+	}
 }
 
 
@@ -561,17 +741,7 @@ coastmap::coastmap(const string& filename)
 	// find coastsegment type
 	for (unsigned yy = 0; yy < segsy; ++yy) {
 		for (unsigned xx = 0; xx < segsx; ++xx) {
-			coastsegment& cs = coastsegments[yy*segsx+xx];
-			if (cs.coastlines.size() > 0) {
-				cs.type = 2;
-			} else {
-				// segment is fully land or sea. determine what it is
-				if (mapf(xx*pixels_per_seg + pixels_per_seg/2, yy*pixels_per_seg + pixels_per_seg/2) & 0x7f) {
-					cs.type = 1;
-				} else {
-					cs.type = 0;
-				}
-			}
+			process_segment(xx, yy);
 		}
 	}
 

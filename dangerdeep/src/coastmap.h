@@ -14,18 +14,22 @@ using namespace std;
 
 
 
-struct coastline {
+struct coastline
+{
 	vector<vector2f> points;// points in map coordinates (real)
 
 	bool cyclic;		// is cyclic, that means an island?
 	
+	int next;		// index of next coastline in segment.
 	int beginborder;	// 0-3, top,right,bottom,left of segment (clockwise), -1 = (part of an) island
 	int endborder;		// dito
 
-	coastline() : cyclic(false), beginborder(-1), endborder(-1) {}	
+	coastline() : cyclic(false), next(-1), beginborder(-1), endborder(-1) {}	
 	~coastline() {}
-	coastline(const coastline& o) : points(o.points), cyclic(o.cyclic), beginborder(o.beginborder), endborder(o.endborder) {}
-	coastline& operator= (const coastline& o) { points = o.points; cyclic = o.cyclic; beginborder = o.beginborder; endborder = o.endborder; return *this; }
+	coastline(const coastline& o) : points(o.points), cyclic(o.cyclic), next(o.next), beginborder(o.beginborder), endborder(o.endborder) {}
+	coastline& operator= (const coastline& o) { points = o.points; cyclic = o.cyclic; next = o.next; beginborder = o.beginborder; endborder = o.endborder; return *this; }
+
+	static float dist_to_corner(int b, const vector2f& p, float segw);
 
 	// create vector of real points, detail can be > 0 (additional detail with bspline
 	// interpolation) or even < 0 (reduced detail)
@@ -38,11 +42,11 @@ struct coastline {
 
 
 
-struct coastsegment {
+struct coastsegment
+{
 	unsigned type;	// 0 - sea, 1 - land, 2 mixed
-	vector<vector3i> coastlines;	// # of line, begin-t and end-t
+	vector<coastline> coastlines;
 
-/*
 	// cache generated points.
 	struct cacheentry {
 		vector<vector2f> points;
@@ -57,12 +61,13 @@ struct coastsegment {
 	vector<cacheentry> pointcache;
 	// check if cache need to be (re)generated, and do that
 	void generate_point_cache(double size, unsigned detail);
-*/
+
+	unsigned get_successor_for_cl(unsigned cln) const;
 
 	coastsegment() : type(0) {}	
 	~coastsegment() {}
-	coastsegment(const coastsegment& o) : type(o.type), coastlines(o.coastlines)/*, pointcachedetail(o.pointcachedetail), pointcache(o.pointcache)*/ {}
-	coastsegment& operator= (const coastsegment& o) { type = o.type; coastlines = o.coastlines; /*pointcachedetail = o.pointcachedetail; pointcache = o.pointcache;*/ return *this; }
+	coastsegment(const coastsegment& o) : type(o.type), coastlines(o.coastlines), pointcachedetail(o.pointcachedetail), pointcache(o.pointcache) {}
+	coastsegment& operator= (const coastsegment& o) { type = o.type; coastlines = o.coastlines; pointcachedetail = o.pointcachedetail; pointcache = o.pointcache; return *this; }
 	
 	void draw_as_map(const vector2f& off, float size, const vector2f& t, const vector2f& ts, int detail = 0) const;
 	void render(const vector2& p, int detail = 0) const;
@@ -84,9 +89,9 @@ class coastmap
 	unsigned pixels_per_seg;	// "n"
 	unsigned mapw, maph;		// map width/height in pixels.
 	unsigned segsx, segsy;		// nr of segs in x/y dimensions
-	double realwidth, pixelw_real;	// width of map in reality, width/height of one pixel in reality, in meters
+	double realwidth;		// width of map in reality (meters)
+	double pixelw_real;		// width/height of one pixel in reality, in meters
 	vector2 realoffset;		// offset in meters for map (position of pixel pos 0,0)
-	vector<coastline> coastlines;
 	vector<coastsegment> coastsegments;
 
 	list<pair<vector2f, string> > cities;	// city positions (real) and names
@@ -102,12 +107,14 @@ class coastmap
 	bool find_begin_of_coastline(int& x, int& y);
 	bool find_coastline(int x, int y, coastline& cl);
 	void process_coastline(int x, int y);
+	void process_segment(int x, int y);
 
 public:	
 	// create from xml file
 	coastmap(const string& filename);
 	~coastmap() {}
 
+	// fixme: handle zoom and offset with OpenGL transformation matrix.
 	// fixme: maybe it's better to give top,left and bottom,right corner of sub area to draw
 	void draw_as_map(const vector2& droff, double mapzoom, int detail = 0) const;
 	// here give point and viewrange for rendering?
