@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
 <dftd-mission>
   <description>
-    <short lang="en">Small convoy in the Aegean sea</short>
-    <short lang="de">Kleiner Konvoi in der Ägäis</short>
-    <short lang="it">Small convoy in the Aegean sea</short>
+    <short lang="en">TRAINING: Small convoy in the Aegean sea</short>
+    <short lang="de">ÜBUNG: Kleiner Konvoi in der Ägäis</short>
+    <short lang="it">TRAINING: Small convoy in the Aegean sea</short>
     <long lang="en">You have detected a small unprotected merchant convoy in the Aegean
 sea. Be quick because some escorts may be nearby.</long>
     <long lang="de">Sie haben einen kleinen, unbewachten Konvoi im ägäischen
