@@ -215,7 +215,7 @@ public:
 	virtual void visible_gun_shells(list<gun_shell*>& result, const sea_object* o);
 	virtual void visible_water_splashes ( list<water_splash*>& result, const sea_object* o );
 	// computes visible ships, submarines (surfaced) and airplanes
-	virtual void visible_surface_objects(list<sea_object*>& result, const sea_object* o);
+	virtual vector<sea_object*> visible_surface_objects(const sea_object* o);
 
 	virtual void sonar_ships ( list<ship*>& result, const sea_object* o );
 	virtual void sonar_submarines ( list<submarine*>& result, const sea_object* o );

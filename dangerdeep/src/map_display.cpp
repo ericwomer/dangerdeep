@@ -360,12 +360,10 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 			// set target. get visible objects and determine which is nearest to
 			// mouse position. set target for player object
 			vector2 mapclick(event.button.x, event.button.y);
-			list<sea_object*> objs;
-			gm.visible_surface_objects(objs, player);
+			vector<sea_object*> objs = gm.visible_surface_objects(player);
 			double mapclickdist = 1e30;
 			sea_object* target = 0;
-			for (list<sea_object*>::iterator it = objs.begin(); it != objs.end();
-			     ++it) {
+			for (vector<sea_object*>::iterator it = objs.begin(); it != objs.end(); ++it) {
 				vector2 p = ((*it)->get_pos().xy() - (player->get_pos().xy()
 								      + mapoffset)) * mapzoom;
 				double clickd = mapclick.square_distance(p);
