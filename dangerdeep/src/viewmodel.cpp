@@ -32,6 +32,7 @@ font* font_arial;
 void view_model(const string& modelfilename)
 {
 	vector3 viewangles;
+	vector3 pos;
 	model* mdl = new model((get_data_dir() + MODEL_DIR + modelfilename));
 
 	while (true) {
@@ -44,11 +45,18 @@ void view_model(const string& modelfilename)
 		glRotatef(viewangles.x, 1, 0, 0);
 		double sc = 1.0/(mdl->get_boundbox_size()*0.5).length();
 		glScalef(sc, sc, sc);
+		glTranslatef(pos.x, pos.y, pos.z);
 		mdl->display();
 		sys->poll_event_queue();
 		int key = sys->get_key();
 		int mb = sys->get_mouse_buttons();
-		if (key != 0) break;
+		if (key == SDLK_ESCAPE) break;
+		if (key == SDLK_KP4) pos.x -= 1.0;
+		if (key == SDLK_KP6) pos.x += 1.0;
+		if (key == SDLK_KP8) pos.y -= 1.0;
+		if (key == SDLK_KP2) pos.y += 1.0;
+		if (key == SDLK_KP1) pos.z -= 1.0;
+		if (key == SDLK_KP3) pos.z += 1.0;
 		int mx, my;
 		sys->get_mouse_motion(mx, my);
 		if (mb & 1) {
@@ -69,6 +77,10 @@ void view_model(const string& modelfilename)
 		font_arial->print(0, 32, "Press left mouse button and move mouse to rotate x/y.");
 		font_arial->print(0, 48, "Press right mouse button and move mouse to rotate z/y.");
 		font_arial->print(0, 64, "Press middle mouse button and move mouse to rotate x/z.");
+		ostringstream os;
+		os << "Rotation " << viewangles.x << ", " << viewangles.y << ", " << viewangles.z << "\nTranslation " <<
+			pos.x << ", " << pos.y << ", " << pos.z << "\n";
+		font_arial->print(0, 80, os.str());
 		sys->unprepare_2d_drawing();
 		sys->swap_buffers();
 	}

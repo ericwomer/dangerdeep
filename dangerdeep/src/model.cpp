@@ -82,9 +82,13 @@ void model::material::set_gl_values(void) const
 void model::mesh::display(void) const
 {
 	// further speedup with display lists possible or sensible?
+	bool has_texture = (mymaterial->mytexture != 0);
 	mymaterial->set_gl_values();
 
-	glInterleavedArrays(GL_T2F_N3F_V3F, 0, &vertices[0]);
+//	if (has_texture)
+		glInterleavedArrays(GL_T2F_N3F_V3F, 0, &(vertices[0].uv));
+//	else
+//		glInterleavedArrays(GL_T2F_N3F_V3F/*GL_N3F_V3F*/, 0/*2*sizeof(float)*/, &(vertices[0].uv/*normal*/));
 
 	glDrawElements(GL_TRIANGLES, faces.size()*3, GL_UNSIGNED_INT, &faces[0]);
 
@@ -110,13 +114,15 @@ void model::display(void) const
 			#define M3DS_MATNAME	   	0xA000
 			#define M3DS_MATDIFFUSE		0xA020
 			#define M3DS_MATMAP		0xA200
-			#define M3DS_MATMAPFILE		0xA300
+				#define M3DS_MATMAPFILE		0xA300
+				#define M3DS_MATMAPANG		0xA35C
 		#define M3DS_EDIT_OBJECT	0x4000
 			#define M3DS_OBJ_TRIMESH   	0x4100
 				#define M3DS_TRI_VERTEXL	0x4110
 				#define M3DS_TRI_FACEL1		0x4120
 					#define M3DS_TRI_MATERIAL	0x4130
 				#define M3DS_TRI_MAPPINGCOORDS	0x4140
+				#define M3DS_TRI_MESHMATRIX  0x4160
 	#define M3DS_VERSION		0x0002
 	#define M3DS_KEYF3DS		0xB000
 // ----------------------------- end of 3ds file reading data ----------------------
@@ -146,7 +152,6 @@ void model::m3ds_process_toplevel_chunks(istream& in, m3ds_chunk& parent)
 	
 	while (!parent.fully_read()) {
 		m3ds_chunk ch = m3ds_read_chunk(in);
-//printf("toplevel read chunk id %x\n",ch.id);		
 		switch (ch.id) {
 			case M3DS_VERSION:
 				version = read_u16(in);
@@ -172,7 +177,6 @@ void model::m3ds_process_model_chunks(istream& in, m3ds_chunk& parent)
 {
 	while (!parent.fully_read()) {
 		m3ds_chunk ch = m3ds_read_chunk(in);
-//printf("modellevel read chunk id %x\n",ch.id);		
 		switch (ch.id) {
 			case M3DS_EDIT_MATERIAL:
 				m3ds_process_material_chunks(in, ch);
@@ -191,7 +195,6 @@ void model::m3ds_process_object_chunks(istream& in, m3ds_chunk& parent)
 {
 	while (!parent.fully_read()) {
 		m3ds_chunk ch = m3ds_read_chunk(in);
-//printf("objectlevel read chunk id %x\n",ch.id);		
 		switch (ch.id) {
 			case M3DS_OBJ_TRIMESH:
 				m3ds_process_trimesh_chunks(in, ch);
@@ -207,7 +210,6 @@ void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent)
 	meshes.push_back(mesh());
 	while (!parent.fully_read()) {
 		m3ds_chunk ch = m3ds_read_chunk(in);
-//printf("trimeshlevel read chunk id %x\n",ch.id);		
 		switch (ch.id) {
 			case M3DS_TRI_VERTEXL:
 				m3ds_read_vertices(in, ch, meshes.back());
@@ -219,6 +221,23 @@ void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent)
 			case M3DS_TRI_MAPPINGCOORDS:
 				m3ds_read_uv_coords(in, ch, meshes.back());
 				break;
+
+//fixme: does this matrix describe the model rotation and translation that IS ALREADY computed for the vertices
+//or that still has to be computed? it seems the vertices are already transformed, but why do some models
+//are so much off the origin?
+			case M3DS_TRI_MESHMATRIX:
+				{
+				float matrix[4][3];
+				for (int j = 0; j < 4; ++j) {
+					for (int i = 0; i < 3; ++i) {
+						matrix[j][i] = read_float(in);
+						cout << "j="<<j<<", i="<<i<<": "<<matrix[j][i]<<"\n";
+					}
+				}
+				ch.bytes_read += 4 * 3 * 4;
+				}
+				break;
+
 		}
 		ch.skip(in);
 		parent.bytes_read += ch.length;
@@ -229,7 +248,6 @@ void model::m3ds_process_face_chunks(istream& in, m3ds_chunk& parent, model::mes
 {
 	while (!parent.fully_read()) {
 		m3ds_chunk ch = m3ds_read_chunk(in);
-//printf("facelevel read chunk id %x\n",ch.id);		
 		switch (ch.id) {
 			case M3DS_TRI_MATERIAL:
 				m3ds_read_material(in, ch, m);
@@ -245,7 +263,6 @@ void model::m3ds_process_material_chunks(istream& in, m3ds_chunk& parent)
 	material* m = new material();
 	while (!parent.fully_read()) {
 		m3ds_chunk ch = m3ds_read_chunk(in);
-//printf("materiallevel read chunk id %x\n",ch.id);		
 		switch (ch.id) {
 			case M3DS_MATNAME:
 				m->name = m3ds_read_string(in, ch);
@@ -256,14 +273,10 @@ void model::m3ds_process_material_chunks(istream& in, m3ds_chunk& parent)
 			case M3DS_MATMAP:
 				m3ds_process_materialmap_chunks(in, ch, m);
 				break;
-			case M3DS_MATMAPFILE:
-				m->filename = m3ds_read_string(in, ch);
-				break;
 		}
 		ch.skip(in);
 		parent.bytes_read += ch.length;
 	}
-//cout << "material " << m->name << "," << m->filename << "\n";
 	m->init();
 	materials.push_back(m);
 }
@@ -272,10 +285,14 @@ void model::m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, mod
 {
 	while (!parent.fully_read()) {
 		m3ds_chunk ch = m3ds_read_chunk(in);
-//printf("materialmaplevel read chunk id %x\n",ch.id);		
 		switch (ch.id) {
 			case M3DS_MATMAPFILE:
 				m->filename = m3ds_read_string(in, ch);
+				break;
+			case M3DS_MATMAPANG:
+				m->angle = read_float(in);
+				ch.bytes_read += 4;
+			printf("angle %f\n",m->angle);
 				break;
 		}
 		ch.skip(in);
@@ -287,6 +304,7 @@ model::m3ds_chunk model::m3ds_read_chunk(istream& in)
 {
 	m3ds_chunk c;
 	c.id = read_u16(in);
+printf("read chunk id %x\n", c.id);	
 	c.length = read_u32(in);
 	c.bytes_read = 6;
 	return c;
@@ -343,7 +361,7 @@ void model::m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, model::mesh& m)
 		
 	for (unsigned n = 0; n < nr_uv_coords; ++n) {
 		m.vertices[n].uv.x = read_float(in);
-		m.vertices[n].uv.y = 1.0-read_float(in);
+		m.vertices[n].uv.y = read_float(in);
 	}
 	ch.bytes_read += nr_uv_coords * 2 * 4;
 }
@@ -356,7 +374,7 @@ void model::m3ds_read_vertices(istream& in, m3ds_chunk& ch, model::mesh& m)
 	m.vertices.resize(nr_verts);
 	for (unsigned n = 0; n < nr_verts; ++n) {
 		m.vertices[n].pos.x = read_float(in);
-		m.vertices[n].pos.y = read_float(in);	// swap y,z and negate z to match OpenGL's coordinate system
+		m.vertices[n].pos.y = read_float(in);	// swap y,z and negate z to match OpenGL's coordinate system fixme? why?
 		m.vertices[n].pos.z = read_float(in);
 	}
 	ch.bytes_read += nr_verts * 3 * 4;
@@ -369,6 +387,17 @@ void model::m3ds_read_material(istream& in, m3ds_chunk& ch, model::mesh& m)
 	for (vector<model::material*>::iterator it = materials.begin(); it != materials.end(); ++it) {
 		if ((*it)->name == matname) {
 			m.mymaterial = *it;
+			
+			// rotate texture coords (and negate v also)
+			float ca = cos(m.mymaterial->angle * M_PI / 180.0);
+			float sa = sin(m.mymaterial->angle * M_PI / 180.0);
+			for (vector<model::mesh::vertex>::iterator it2 = m.vertices.begin(); it2 != m.vertices.end(); ++it2) {
+				float u = it2->uv.x;
+				float v = it2->uv.y;
+				it2->uv.x = ca * u - sa * v;
+				it2->uv.y = sa * u - ca * v;
+			}
+
 			return;
 		}
 	}

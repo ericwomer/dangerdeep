@@ -21,8 +21,9 @@ class model {
 		string name;
 		string filename;
 		color col;
+		float angle;	// uv rotation angle
 		texture* mytexture;
-		material() : mytexture(0) {}
+		material() : angle(0), mytexture(0) {}
 		void init(void);
 		~material() { delete mytexture; }
 		void set_gl_values(void) const;
