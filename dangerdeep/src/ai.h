@@ -26,8 +26,8 @@ protected:
 	bool attackrun;		// true when running full speed shortly before the attack
 	bool evasive_manouver;	// true when set_course tries an alternative route
 	double rem_manouver_time; // remaining time that ai should wait for during an evasive manouver
-	sea_object::ref parent;
-	sea_object::ref followme;
+	sea_object::ref parent;	// fixme: is a ship!
+	sea_object::ref followme; // fixme: is a ship!
 	class convoy* myconvoy;	// convoy to which parent belongs (if any)
 	bool has_contact;
 	vector3 contact;	// position of target to attack

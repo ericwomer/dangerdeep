@@ -14,7 +14,7 @@ airplane::airplane(TiXmlDocument* specfile) : sea_object(specfile)
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdairplane = hspec.FirstChild();	// ignore node name
 	head_to = heading;
-	rotation = quaternion::neutral_rot();
+	orientation = quaternion::neutral_rot();
 	rollfac = pitchfac = 0.0;
 	throttle = aheadfull;
 }
@@ -25,7 +25,7 @@ void airplane::parse_attributes(TiXmlElement* parent)
 {
 	sea_object::parse_attributes(parent);
 	
-	// parse data, fixme: rotation,velocity,rollfac,pitchfac
+	// parse data, fixme: orientation,velocity,rollfac,pitchfac
 	
 }
 
@@ -34,10 +34,10 @@ void airplane::parse_attributes(TiXmlElement* parent)
 void airplane::load(istream& in, class game& g)
 {
 	sea_object::load(in, g);
-	rotation.s = read_double(in);
-	rotation.v.x = read_double(in);
-	rotation.v.y = read_double(in);
-	rotation.v.z = read_double(in);
+	orientation.s = read_double(in);
+	orientation.v.x = read_double(in);
+	orientation.v.y = read_double(in);
+	orientation.v.z = read_double(in);
 	velocity.x = read_double(in);
 	velocity.y = read_double(in);
 	velocity.z = read_double(in);
@@ -48,10 +48,10 @@ void airplane::load(istream& in, class game& g)
 void airplane::save(ostream& out, const class game& g) const
 {
 	sea_object::save(out, g);
-	write_double(out, rotation.s);
-	write_double(out, rotation.v.x);
-	write_double(out, rotation.v.y);
-	write_double(out, rotation.v.z);
+	write_double(out, orientation.s);
+	write_double(out, orientation.v.x);
+	write_double(out, orientation.v.y);
+	write_double(out, orientation.v.z);
 	write_double(out, velocity.x);
 	write_double(out, velocity.y);
 	write_double(out, velocity.z);
@@ -63,14 +63,14 @@ void airplane::save(ostream& out, const class game& g) const
 
 void airplane::simulate(class game& gm, double delta_time)
 {
-	quaternion invrot = rotation.conj();
+	quaternion invrot = orientation.conj();
 	vector3 localvelocity = invrot.rotate(velocity);
 		
 	speed = localvelocity.y;	// for display
 
-	vector3 locx = rotation.rotate(1, 0, 0);
-	vector3 locy = rotation.rotate(0, 1, 0);
-	vector3 locz = rotation.rotate(0, 0, 1);
+	vector3 locx = orientation.rotate(1, 0, 0);
+	vector3 locy = orientation.rotate(0, 1, 0);
+	vector3 locz = orientation.rotate(0, 0, 1);
 
 /*
 	fixme: 2004/06/18
@@ -93,13 +93,13 @@ void airplane::simulate(class game& gm, double delta_time)
 	This has to be modelled with inertia, rotational impulse, torque etc.
 */
 
-	// fixme: the plane's rotation must change with velocity:
+	// fixme: the plane's orientation must change with velocity:
 	// when rolling the plane to the side, it is lifted hence changing the course.
-	// this means that the plane changes its rotation too!
+	// this means that the plane changes its orientation too!
 	// according to wind (spatial velocity) it turns its nose!
 	// this would explain why the speed drops when making a dive (for now!):
 	// the plane can dive at its specific rate no matter how strong the wind resistance
-	// is - if the plane would change its rotation with respect to spatial velocity
+	// is - if the plane would change its orientation with respect to spatial velocity
 	// it couldn't turn or dive that fast, allowing the speed to catch up...
 
 /*	
@@ -138,7 +138,7 @@ cout << "windtal      " << windturnaxis.length() << "\n";
 
 
 	// deceleration by air friction (drag etc.)
-	vector3 airfriction = rotation.rotate(vector3(
+	vector3 airfriction = orientation.rotate(vector3(
 		-mysgn(localvelocity.x) * localvelocity.x * localvelocity.x * get_antislide_factor(),
 		-mysgn(localvelocity.y) * localvelocity.y * localvelocity.y * get_drag_factor(),
 		-mysgn(localvelocity.z) * localvelocity.z * localvelocity.z * get_antilift_factor()
@@ -160,7 +160,7 @@ cout << "air friction    " << airfriction << "\n";
 
 	quaternion qpitch = quaternion::rot(pitchfac * get_pitch_deg_per_sec() * delta_time, 1, 0, 0); // fixme: also depends on speed
 	quaternion qroll = quaternion::rot(rollfac * get_roll_deg_per_sec() * delta_time, 0, 1, 0); // fixme: also depends on speed
-	rotation *= qpitch * qroll;
+	orientation *= qpitch * qroll;
 	// * windrotation;
 
 //	if ( myai )

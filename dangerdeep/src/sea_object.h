@@ -11,9 +11,7 @@ using namespace std;
 
 #include "vector3.h"
 #include "angle.h"
-
-#define SINK_SPEED 0.5  // m/sec
-#define MAXPREVPOS 20
+#include "quaternion.h"
 
 class sensor;
 
@@ -22,15 +20,10 @@ class sea_object
 public:
 	enum alive_status { defunct, dead, alive };
 
-	// give negative values for fixed speeds, positive values for knots.
-	enum throttle_status { reverse=-7, aheadlisten=-6, aheadsonar=-5, aheadslow=-4,
-		aheadhalf=-3, aheadfull=-2, aheadflank=-1, stop=0  };
-
+	//fixme: should move to damageable_part class ...
 	enum damage_status { nodamage, lightdamage, mediumdamage, heavydamage, wrecked };
 
-	enum rudder_status { rudderfullleft, rudderleft, ruddermid, rudderright,
-		rudderfullright };
-
+	//fixme: this should move to sensor.h!!!
 	enum sensor_system { lookout_system, radar_system, passive_sonar_system,
 		active_sonar_system, last_sensor_system };
 
@@ -73,34 +66,11 @@ protected:
 
 	string modelname;	// filename for model file (also used for modelcache requests), read from spec file
 
-	/* have:
 	vector3 position, velocity;
-	vector3 local_velocity;		// along local axes
 	quaternion orientation, rot_velocity;
-	virtual vector3 get_acceleration(void) const { return orientation.rotate(get_local_acceleration()); }
-	virtual vector3 get_local_acceleration(void) const;
-	virtual quaternion get_rot_acceleration(void) const;
-	double max_accel_forward;	// stored. can get computed from engine_torque, screw diameter and ship's mass.
-	double max_speed_forward;	// stored.
-	double max_turn_speed;		// angular velocity. computed from turn_rate.
-	*/
-	
-	vector3 position;
-	angle heading;	//, pitch, roll; // rotation of object, recomputed every frame for ships, maybe it should get stored
-	double speed;		// m/sec
-	double max_speed, max_rev_speed;	// m/sec, read from spec file
-	int throttle;
-	double acceleration;	// read from spec file
 
-	// -1 <= head_chg <= 1
-	// if head_chg is != 0 the object is turning with head_chg * turn_rate angles/sec.
-	// until heading == head_to or permanently.
-	// if head_chg is == 0, nothing happens.
-	bool permanent_turn;
-	double head_chg;
-	int rudder; // rudder state
-	angle head_to;
-	angle turn_rate;	// in angle/(time*speed) = angle/m, means angle change per forward movement in meters, read from spec file
+	virtual vector3 get_acceleration(void) const = 0;	// drag must be already included!
+	virtual quaternion get_rot_acceleration(void) const = 0;// drag must be already included!
 
 	double length, width;	// computed from model, indirect read from spec file
 	
@@ -108,8 +78,6 @@ protected:
 	// references to it will get deleted when it is killed.
 	// any object can set to disfunctional status (defunct) (all references will get deleted).
 	alive_status alive_stat;
-
-	list<vector2> previous_positions;
 
 	// Sensor systems, created after data in spec file
 	vector<sensor*> sensors;
@@ -127,7 +95,6 @@ protected:
 	sea_object& operator=(const sea_object& other);
 	sea_object(const sea_object& other);
 
-	virtual void change_rudder (int dir);
 	virtual void set_sensor ( sensor_system ss, sensor* s );
 
 	/**
@@ -165,30 +132,14 @@ public:
 	virtual bool is_dead(void) const { return alive_stat == dead; };
 	virtual bool is_alive(void) const { return alive_stat == alive; };
 
-	// command interface
-	virtual void head_to_ang(const angle& a, bool left_or_right);	// true == left
-	virtual void rudder_left(void);
-	virtual void rudder_right(void);
-	virtual void rudder_hard_left(void);
-	virtual void rudder_hard_right(void);
-	virtual void rudder_midships(void);
-	virtual void set_throttle(throttle_status thr);
-
-	virtual void remember_position(void);
-	virtual list<vector2> get_previous_positions(void) const { return previous_positions; }
+	// command interface - no special commands for a generic sea_object
 
 	virtual vector3 get_pos(void) const { return position; };
-	virtual double get_depth () const { return -position.z; };
-	virtual angle get_heading(void) const { return heading; };
-	virtual angle get_head_to(void) const { return permanent_turn ? heading : head_to; };
-	virtual angle get_turn_rate(void) const { return turn_rate; };
+	virtual double get_depth() const { return -position.z; };
 	virtual double get_length(void) const { return length; };
 	virtual double get_width(void) const { return width; };
-	virtual double get_speed(void) const { return speed; };
-	virtual double get_max_speed(void) const { return max_speed; };
-	virtual double get_throttle_speed(void) const;
-	virtual int get_rudder (void) const { return rudder; }
 	virtual float surface_visibility(const vector2& watcher) const;
+
 	/**
 		Noise modification for submarines. Submarines are using diesel engines
 		that are fare less audible than the turbine engines of other ships.
@@ -196,10 +147,6 @@ public:
 	*/
 	virtual double get_noise_factor () const;
 	virtual vector2 get_engine_noise_source () const;
-
-	// needed for launching torpedoes
-	pair<angle, double> bearing_and_range_to(const sea_object* other) const;
-	angle estimate_angle_on_the_bow(angle target_bearing, angle target_heading) const;
 
 	virtual void display(void) const;
 	double get_bounding_radius(void) const { return width + length; }	// fixme: could be computed more exact

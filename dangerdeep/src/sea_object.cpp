@@ -279,31 +279,38 @@ void sea_object::simulate(game& gm, double delta_time)
 	virtual vector3 get_acceleration(const double& t)  maybe t is not needed...
 	virtual quaternion get_rotacceleration();
 	*/
+	
+	// split rotation in three axis rotations for rot drag?
+	// project rotation axis onto x,y,z-axes?
 
-	/*
-	vector3 acceleration = get_acceleration() - drag * velocity*velocity;
+	// compute global accel from local with drag:
+	//vector3 accel = orientation.rotate(get_local_acceleration() - local_drag.coeff_mul(velocity.coeff_mul(velocity)));
+	
+	vector3 acceleration = get_acceleration();
 	position += velocity * delta_time + acceleration * (0.5 * delta_time * delta_time);
 	velocity += acceleration * delta_time;
-	*/
 	
-	/*
-	quaternion rotacceleration = get_rotacceleration();
+	quaternion rotacceleration = get_rot_acceleration();
 	orientation = rotaccel.scale_rot_angle(0.5*delta_time*delta_time) * rot_velocity.scale_rot_angle(delta_time) * orientation;
 	rot_velocity = rotaccel.scale_rot_angle(delta_time) * rot_velocity;
-	*/	
+
+
+
+//old: remove!
 
 	// calculate directional speed
-	vector2 dir_speed_2d = heading.direction() * speed;
-	vector3 dir_speed(dir_speed_2d.x, dir_speed_2d.y, 0);
+	//vector2 dir_speed_2d = heading.direction() * speed;
+	//vector3 dir_speed(dir_speed_2d.x, dir_speed_2d.y, 0);
 	
 	// calculate new position
-	position += dir_speed * delta_time;
+	//position += dir_speed * delta_time;
 	
 	// calculate speed change
 	// 2004/06/18 fixme: this is not part of physical simulation!
 	// changing acceleration to match speed to throttle is more an AI simulation.
 	// so it should move to another function or at least cleanly separated from physical
 	// simulation.
+	//move to ship!
 	double t = get_throttle_speed() - speed;
 	double s = acceleration * delta_time;
 	if (fabs(t) > s) {
@@ -350,6 +357,7 @@ void sea_object::simulate(game& gm, double delta_time)
 	*/
 
 	// calculate heading change (fixme, this turning is not physically correct)
+	//move to ship!
 	angle maxturnangle = turn_rate * (head_chg * delta_time * speed);
 	if (permanent_turn) {
 		heading += maxturnangle;

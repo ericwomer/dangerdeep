@@ -48,6 +48,7 @@ class vector3t
 	bool solve(const vector3t<D>& o1, const vector3t<D>& o2, const vector3t<D>& o3, D &s1, D &s2, D &s3) const;
 	// multiplies 3x3 matrix (given in columns c0-c2) with *this.
 	vector3t<D> matrixmul(const vector3t<D>& c0, const vector3t<D>& c1, const vector3t<D>& c2) const;
+	vector3t<D> coeff_mul(const vector3t<D>& other) const { return vector3t(x * other.x, y * other.y, z * other.z); }
 	vector2t<D> xy(void) const { return vector2t<D>(x, y); };
 	vector2t<D> yz(void) const { return vector2t<D>(y, z); };
 	template<class D2> friend ostream& operator<< ( ostream& os, const vector3t<D2>& v );

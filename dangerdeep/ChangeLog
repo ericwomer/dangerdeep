@@ -1,7 +1,20 @@
+2004-06-19  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* BIG internal change: sea_object and heirs
+	  - sea_object contained many things that are right for ships but not for
+	    other objects, hence these things (throttle, rudder etc.) are moved
+	    to class ship. sea_object is now a rigid body with realistic physical
+	    simulation. We now use position, velocity and acceleration for 3d position
+	    and orientation. Objects give their acceleration (positional and rotational)
+	    at the current time and their local drag (water/air resistance).
+	    The simulation computes the trajectory from it.
+	  - this conversion is not complete yet.
+
 2004-06-18  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* replaced sea_object* by special reference class.
 	  that way pointers will get erased automatically when a sea_object is killed.
 	  some fixme's remain (convoy still uses pointers).
+	  Maybe we should use ref's everywhere, even in game, and replace destroy() by
+	  a "delete this" function.
 
 2004-05-28  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* coastmap.cpp

@@ -31,7 +31,7 @@ public:
 	enum types { none, T1, T2, T3, T3a, T4, T5, T11, T1FAT, T3FAT, T6LUT, reloading=0xffffffff };
 
 protected:
-	double run_length, max_run_length;
+	double run_length, max_run_length;	// this could be done with fuel simulation...
 	types type;
 	bool influencefuse;	// determined by type
 	

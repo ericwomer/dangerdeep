@@ -47,6 +47,7 @@ class vector2t
 	bool solve(const vector2t<D>& o1, const vector2t<D>& o2, D& s1, D& s2) const;
 	// multiplies 2x2 matrix (given in columns c0-c1) with *this.
 	vector2t<D> matrixmul(const vector2t<D>& c0, const vector2t<D>& c1) const;
+	vector2t<D> coeff_mul(const vector2t<D>& other) const { return vector2t(x * other.x, y * other.y); }
 	vector3t<D> xy0(void) const { return vector3t<D>(x, y, 0); }
 	template<class D2> friend ostream& operator<< ( ostream& os, const vector2t<D2>& v );
 	template<class E> void assign(const vector2t<E>& other) { x = D(other.x); y = D(other.y); }
