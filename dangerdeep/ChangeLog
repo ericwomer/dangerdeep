@@ -1,3 +1,15 @@
+2003-12-05  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* game.h game.cpp
+	  - added handling for (cron) jobs. Now periodic events haven't to
+	    be computed every frame, just every x seconds.
+	    Just create a function object as heir from game::job and
+	    register it in class game.
+	    e.g. cloud animation every 3600/256 = 14.25 seconds,
+	    land collision course every 10 seconds, game win/loose every 5
+	    secs. etc.
+	* mapcompile.cpp
+	  - islands are smoother now. Getting closer.
+
 2003-12-03  Markus Petermann  <markus.petermann@gmx.net>
 	* src/tinyxml: Added TinyXML parser.
 
