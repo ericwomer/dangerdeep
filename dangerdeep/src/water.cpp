@@ -642,7 +642,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	//coords and normals change per frame, so no display lists can be used.
 	//simple vertex arrays with locking should do the trick, maybe use
 	//(locked) quadstrips, if they're faster than compiled vertex arrays, test it!
-	float minh=1000,maxh=-1000;
+//	float minh=1000,maxh=-1000;
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			const vector3f& coord = coords[ptr];
@@ -679,8 +679,8 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			F *= distfac;
 #endif
 
-			if (coord.z < minh) minh = coord.z;
-			if (coord.z > maxh) maxh = coord.z;
+//			if (coord.z < minh) minh = coord.z;
+//			if (coord.z > maxh) maxh = coord.z;
 
 			// water color depends on height of wave and slope
 			// slope (N.z) it mostly > 0.8
@@ -690,7 +690,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			uv1[ptr] = texc;
 		}
 	}
-	cout << "minh " << minh << " maxh " << maxh << "\n";
+//	cout << "minh " << minh << " maxh " << maxh << "\n";
 
 	// set up textures
 	setup_textures();
