@@ -15,7 +15,7 @@
 
 
 // empty c'tor needed for loading games
-convoy::convoy() : sea_object()
+convoy::convoy() : sea_object(), myai(0)
 {
 }
 
@@ -27,7 +27,7 @@ convoy::~convoy()
 
 
 
-convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : sea_object()
+convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : sea_object(), myai(0)
 {
 	//myai = new ai(this, ai::convoy);
 
@@ -141,7 +141,7 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 
 
 
-convoy::convoy(class game& gm, TiXmlElement* parent) : sea_object()
+convoy::convoy(class game& gm, TiXmlElement* parent) : sea_object(), myai(0)
 {
 	sea_object::parse_attributes(parent);
 
