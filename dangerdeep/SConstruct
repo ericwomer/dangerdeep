@@ -3,7 +3,7 @@ import os
 import sys
 
 ################ global config values
-version = '0.0.18'
+version = '0.0.19'
 
 ################ base paths (needed for non-unix OS)
 sdlbase = 'd:\\sdl-devel\\SDL'
@@ -148,6 +148,7 @@ def findCVS(basedir):
 		nextdir = basedir + os.sep + d
 		if os.path.isdir(nextdir):
 			myfiles += findCVS(nextdir)
+	myfiles += [basedir + os.sep + 'CVS' + os.sep + 'Entries']
 	return myfiles
 
 
@@ -157,21 +158,19 @@ libpath = libpath + [target_dir]
 
 datafiles = findCVS('./data')
 
-Export('env', 'gfxlibs', 'alllibs', 'libpath', 'installprefix', 'datadir', 'datafiles')
+Export('env', 'gfxlibs', 'alllibs', 'libpath', 'installprefix', 'datadir', 'datafiles', 'findCVS')
 
 SConscript(source_base_dir + os.sep + 'SConscript', build_dir = target_dir, duplicate = 0)
 
 BuildDir(target_dir, source_base_dir, duplicate=0)
 
+############### option so that "scons tarball" builds a tarball of source and data
 #fixme: change that so that e.g. "scons tarball" does that only, and it
 #isn't done everytime we build the program
-#generate a list of all files from CVS subdirectories and give that list here!
-if sys.platform == 'linux2':
-	env = Environment()
-	env.Append(TARFLAGS = '-z')
-	env.Append(TARSUFFIX = '.gz')
-	cvsfiles = findCVS('.')
-	env.Tar('dangerdeep-'+version, cvsfiles)
-	#env.Zip is also possible
+env.Append(TARFLAGS = '-z')
+env.Append(TARSUFFIX = '.gz')
+tarball = env.Alias('tarball', env.Tar('dangerdeep-'+version, findCVS('.')))
+
+#also env.Zip is possible...
 
 ############# eof
