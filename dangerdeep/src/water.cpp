@@ -63,7 +63,16 @@
 	are twenty ships (a common value!) we have to compute the function 20 times for each
 	of the 16k vertices, and each computation would probably need a sqrt (for distance).
 	THIS is really much for a PC.
-	But there are no other possibilities.
+	Another way doing b): clear the screen with black. Draw the ship's trails as quad strips
+	with white quads with varying alpha values (amount of foam = alpha value). The GPU
+	computes the mixing for us. Finally we have an grey value image. Read it to CPU memory.
+	We may now downsample it (faked Anti-aliasing). Now look up the amount of foam on each
+	grid point in the image (we could render the image witht the same resolution as the
+	grid, or the double resolution for faked AA). And voila. But how to mix the foam? all
+	Alpha channels are gone ... no! Store these values in the Alpha channel of the reflection
+	map. The reflection map is computed the same way as the grey value map. Good! The only
+	problem that remains is how to create the RGBA reflection map from RGB values of one
+	scene and the A values of another.
 */	
 
 water::water(unsigned xres_, unsigned yres_, double tm) : mytime(tm), xres(xres_), yres(yres_), reflectiontex(0), foamtex(0)
