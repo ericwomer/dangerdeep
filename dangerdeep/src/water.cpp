@@ -106,6 +106,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	unsigned vps = texture::get_max_size();
 	if (ry < vps)
 		for (unsigned i = 1; i < ry; i *= 2) vps = i;
+	
 	// 2004/04/25 Note! decreasing the size of the reflection map improves performance
 	// on a gf4mx! (23fps to 28fps with a 128x128 map to a 512x512 map)
 	// Maybe this is because of some bandwidth limit or cache efficiency of the gf4mx.

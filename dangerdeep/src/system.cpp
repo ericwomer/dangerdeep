@@ -351,6 +351,8 @@ list<SDL_Event> system::poll_event_queue(void)
 				
 				case SDL_KEYDOWN:		// Keyboard event - key down
 					keysym = event.key.keysym;
+					if (keysym.unicode == '^')
+						show_console = !show_console;
 					keyqueue.push(keysym);
 					break;
 				
@@ -466,8 +468,6 @@ SDL_keysym system::get_key(void)
 	}
 	ks = keyqueue.front();
 	keyqueue.pop();
-	if (ks.sym == SDLK_CARET)
-		show_console = !show_console;
 	return ks;
 }
 

@@ -333,7 +333,7 @@ void freeview_display::draw_view(game& gm) const
 	//fixme: the mirror map is not correct. upsidedown?! and seems view direction independent?! now!
 	//view is reversed, i.e. the world is NOT mirrored!!!! why?!
 
-#if 1
+#if 0
 	vector<Uint8> scrn(vps*vps*3);
 	glReadPixels(0, 0, vps, vps, GL_RGB, GL_UNSIGNED_BYTE, &scrn[0]);
 	scrn[0] = 255;//test to see where is up
