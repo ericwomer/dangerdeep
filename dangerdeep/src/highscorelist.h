@@ -17,7 +17,7 @@ public:
 	struct entry {
 		unsigned points;
 		string name;
-		// missing: maybe start & end date, realism factor, rank/merits
+		// missing: maybe start & end date, realism factor, rank/merits, submarine number
 		entry() : points(0), name("--------") {}
 		entry(unsigned p, const string& n) : points(p), name(n) {}
 		entry(istream& in);
