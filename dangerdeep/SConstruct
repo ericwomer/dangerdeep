@@ -53,7 +53,7 @@ else:
 	print "Compiling for Unix/Posix/Linux Environment"
 	env = Environment(ENV = os.environ)
 	env.Append(CPPPATH = ['/usr/include/SDL', '/usr/include/GL'])
-	libpath = []
+	libpath = ['/usr/X11R6/lib']
 	gllibs = ['GL', 'GLU']
 	sdllibs = ['SDL', 'SDL_image']
 	env.Append(CCFLAGS = '-Wall -g -O2 `sdl-config --cflags`')
@@ -94,6 +94,10 @@ if not conf.CheckCHeader('SDL_mixer.h'):
 if not conf.CheckCHeader('fftw3.h'):
 	print 'fftw3 library must be installed!'
 	Exit(1)
+if conf.CheckLibWithHeader('fftw3f', 'fftw3.h', 'c'):
+	print 'fftw3 library supports float type. Using it...'
+	conf.env.Append(CPPFLAGS = '-DWITH_FLOAT_FFTW')
+
 env = conf.Finish()
 
 ######################### source file lists

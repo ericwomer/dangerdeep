@@ -12,21 +12,21 @@ using namespace std;
 
 #include "fftw3.h"
 
-#if 0	// use double fft?
-#define FFT_COMPLEX_TYPE fftw_complex
-#define FFT_REAL_TYPE double
-#define FFT_PLAN_TYPE fftw_plan
-#define FFT_CREATE_PLAN fftw_plan_dft_c2r_2d
-#define FFT_DELETE_PLAN fftw_destroy_plan
-#define FFT_EXECUTE_PLAN fftw_execute
-// We have to link with libfftw3f to make these symbols work
-#else	// use float fft?
+// use float fftw (faster) or double (default) ?
+#ifdef WITH_FLOAT_FFTW
 #define FFT_COMPLEX_TYPE fftwf_complex
 #define FFT_REAL_TYPE float
 #define FFT_PLAN_TYPE fftwf_plan
 #define FFT_CREATE_PLAN fftwf_plan_dft_c2r_2d
 #define FFT_DELETE_PLAN fftwf_destroy_plan
 #define FFT_EXECUTE_PLAN fftwf_execute
+#else
+#define FFT_COMPLEX_TYPE fftw_complex
+#define FFT_REAL_TYPE double
+#define FFT_PLAN_TYPE fftw_plan
+#define FFT_CREATE_PLAN fftw_plan_dft_c2r_2d
+#define FFT_DELETE_PLAN fftw_destroy_plan
+#define FFT_EXECUTE_PLAN fftw_execute
 #endif
 
 #define GRAVITY 9.806
