@@ -1,8 +1,8 @@
 // SDL/OpenGL based textures
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
-#define GL_GLEXT_LEGACY
-#define GL_GLEXT_LEGACY
+//#define GL_GLEXT_LEGACY
+//#define GL_GLEXT_LEGACY
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -63,11 +63,11 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 
 		internalformat = usealpha ? GL_RGBA : GL_RGB;
 
-#ifndef WIN32	// i hate windows. fixme: Windows supports only OpenGL1.1 this is a 1.2 feature. Use extensions here!
-		// don't rely on def of GL_EXT_paletted_texture here, ask OpenGL instead! fixme
-#ifdef GL_EXT_paletted_texture
+#ifndef WIN32	// fixme: Windows supports only OpenGL1.1 this is a 1.2 feature. Use extensions here!
+		// e.g. use oglext LGPL lib.
+		// don't rely on def of GL_EXT_paletted_texture here, ask OpenGL instead!
 		if (check_for_paletted_textures()) {
-			glColorTableEXT(GL_TEXTURE_2D, internalformat, 256, GL_RGBA, GL_UNSIGNED_BYTE, &(palette[0]));
+			glColorTable(GL_TEXTURE_2D, internalformat, 256, GL_RGBA, GL_UNSIGNED_BYTE, &(palette[0]));
 			internalformat = GL_COLOR_INDEX8_EXT;
 			externalformat = GL_COLOR_INDEX;
 			tmpimage = new unsigned char [tw*th];
@@ -80,7 +80,6 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 				ptr += tw;
 			}
 		} else {
-#endif
 #endif
 			tmpimage = new unsigned char [tw*th*4];
 			memset(tmpimage, 0, tw*th*4);
