@@ -9,16 +9,18 @@ static WIN32_FIND_DATA Win32_FileFind_Temporary;
 static bool Win32_FileFind_Temporary_used = false;
 directory open_dir(const string& filename)
 {
-	Win32_FileFind_Temporary_used = true;
-	return FindFirstFile(filename.c_str(), &Win32_FileFind_Temporary);
+	directory d;
+	d.temporary_used = true;
+	FindFirstFile(filename.c_str(), &d.Win32_FileFind_Temporary);
+	return d;
 }
 string read_dir(directory d)
 {
-	if (Win32_FileFind_Temporary_used) {
-		Win32_FileFind_Temporary_used = false;
-		return Win32_FileFind_Temporary.cFileName;
+	if (d.temporary_used) {
+		d.temporary_used = false;
+		return d.Win32_FileFind_Temporary.cFileName;
 	} else {
-		BOOL b = FindNextFile(d, &Win32_FileFind_Temporary);
+		BOOL b = FindNextFile(d.dir, &d.Win32_FileFind_Temporary);
 		if (b == TRUE)
 			return string(Win32_FileFind_Temporary.cFileName);
 		else
@@ -27,7 +29,7 @@ string read_dir(directory d)
 }
 void close_dir(directory d)
 {
-	FindClose(d);
+	FindClose(d.dir);
 }
 bool make_dir(const string& dirname)
 {
@@ -59,11 +61,13 @@ bool is_directory(const string& filename)
 #include <unistd.h>
 directory open_dir(const string& filename)
 {
-	return opendir(filename.c_str());
+	directory d;
+	d.dir = opendir(filename.c_str());
+	return d;
 }
 string read_dir(directory d)
 {
-	struct dirent* dir_entry = readdir(d);
+	struct dirent* dir_entry = readdir(d.dir);
 	if (dir_entry) {
 		return string(dir_entry->d_name);
 	}
@@ -71,7 +75,7 @@ string read_dir(directory d)
 }
 void close_dir(directory d)
 {
-	closedir(d);
+	closedir(d.dir);
 }
 bool make_dir(const string& dirname)
 {

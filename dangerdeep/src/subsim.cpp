@@ -219,7 +219,7 @@ void loadsavequit_dialogue::update_list(void)
 
 	// read save games in directory
 	directory savegamedir = open_dir(savegamedirectory);
-	system::sys().myassert(savegamedir != 0, "game: could not open save game directory");
+	system::sys().myassert(savegamedir.is_valid(), "game: could not open save game directory");
 	while (true) {
 		string e = read_dir(savegamedir);
 		if (e.length() == 0) break;
@@ -1009,7 +1009,7 @@ int main(int argc, char** argv)
 	
 	// init save game dir
 	directory savegamedir = open_dir(savegamedirectory);
-	if (savegamedir == 0) {
+	if (!savegamedir.is_valid()) {
 		bool ok = make_dir(savegamedirectory);
 		if (!ok) {
 			system::sys().myassert(false, "could not create save game directory.");
@@ -1017,7 +1017,7 @@ int main(int argc, char** argv)
 	}
 	// init config dir
 	directory configdir = open_dir(configdirectory);
-	if (configdir == 0) {
+	if (!configdir.is_valid()) {
 		bool ok = make_dir(configdirectory);
 		if (!ok) {
 			system::sys().myassert(false, "could not create config directory.");
@@ -1025,7 +1025,7 @@ int main(int argc, char** argv)
 	}
 	// init highscore dir
 	directory highscoredir = open_dir(highscoredirectory);
-	if (highscoredir == 0) {
+	if (!highscoredir.is_valid()) {
 		bool ok = make_dir(highscoredirectory);
 		if (!ok) {
 			system::sys().myassert(false, "could not create highscore directory.");

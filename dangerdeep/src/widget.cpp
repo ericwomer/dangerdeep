@@ -844,7 +844,7 @@ void widget_fileselector::read_current_dir(void)
 {
 	current_dir->clear();
 	directory dir = open_dir(current_path->get_text());
-	system::sys().myassert(dir != 0, "[widget_fileselector::read_current_dir] could not open directory");
+	system::sys().myassert(dir.is_valid(), "[widget_fileselector::read_current_dir] could not open directory");
 	set<string> dirs, files;
 	while (true) {
 		string e = read_dir(dir);
