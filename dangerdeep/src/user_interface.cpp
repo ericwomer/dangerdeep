@@ -123,11 +123,18 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 	viewpostexoff.x = floor(viewpos.x * texscalefac);
 	viewpostexoff.y = floor(viewpos.y * texscalefac);
 	for (unsigned w = 0; w <= WAVEDEPTH; ++w) {
+		//HACK 05.10.2003
+		if (w == WAVEDEPTH) zdist = max_view_dist;
+		//END HACK
 		vector2 viewbase = viewpos.xy() + viewdir * zdist + viewleft * zdist * tanfovx2;
 		double viewleftfac = -2 * zdist * tanfovx2 / WAVESX;
 		for (unsigned p = 0; p <= WAVESX; ++p) {
 			// outer border of water must have height 0 to match horizon face
-			double height = (w < WAVEDEPTH) ? get_waterheight((float)viewbase.x, (float)viewbase.y, (int)wavephase) : 0;
+			double height = (w < WAVEDEPTH
+			//HACK 05.10.2003
+			-1
+			//END HACK
+			) ? get_waterheight((float)viewbase.x, (float)viewbase.y, (int)wavephase) : 0;
 			verticecoords.push_back(viewbase.x);
 			verticecoords.push_back(viewbase.y);
 			verticecoords.push_back(height);
@@ -143,7 +150,30 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 		// which isn't right, so don't overdo that...
 		zdist += WAVESIZE;
 	}
+
+//HACK 05.10.2003
+/*	
+	// additional vertices for horizon face
+	vector2 horizon1 = viewpos.xy() + viewdir * max_view_dist;
+	vector2 horizon2 = viewleft * max_view_dist * tanfovx2;
+	vector2 horizonl = horizon1 + horizon2;
+	vector2 horizonr = horizon1 - horizon2;
+	verticecoords.push_back(horizonl.x);
+	verticecoords.push_back(horizonl.y);
+	verticecoords.push_back(0);
+	texturecoords.push_back(texscalefac * horizonl.x - viewpostexoff.x);
+	texturecoords.push_back(texscalefac * horizonl.y - viewpostexoff.y);
+	verticecoords.push_back(horizonr.x);
+	verticecoords.push_back(horizonr.y);
+	verticecoords.push_back(0);
+	texturecoords.push_back(texscalefac * horizonr.x - viewpostexoff.x);
+	texturecoords.push_back(texscalefac * horizonr.y - viewpostexoff.y);
+*/
+//END HACK	
 	
+	glVertexPointer(3, GL_FLOAT, 0, &verticecoords[0]);
+	glTexCoordPointer(2, GL_FLOAT, 0, &texturecoords[0]);
+
 	/* 2003/07/04 idea.
 	   simulate earth curvature by drawing several horizon faces
 	   approximating the curvature.
@@ -190,25 +220,6 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 	   Waves are disturbing sight but are ignored here.
 	*/	   
 	
-	// additional vertices for horizon face
-	vector2 horizon1 = viewpos.xy() + viewdir * max_view_dist;
-	vector2 horizon2 = viewleft * max_view_dist * tanfovx2;
-	vector2 horizonl = horizon1 + horizon2;
-	vector2 horizonr = horizon1 - horizon2;
-	verticecoords.push_back(horizonl.x);
-	verticecoords.push_back(horizonl.y);
-	verticecoords.push_back(0);
-	texturecoords.push_back(texscalefac * horizonl.x - viewpostexoff.x);
-	texturecoords.push_back(texscalefac * horizonl.y - viewpostexoff.y);
-	verticecoords.push_back(horizonr.x);
-	verticecoords.push_back(horizonr.y);
-	verticecoords.push_back(0);
-	texturecoords.push_back(texscalefac * horizonr.x - viewpostexoff.x);
-	texturecoords.push_back(texscalefac * horizonr.y - viewpostexoff.y);
-	
-	glVertexPointer(3, GL_FLOAT, 0, &verticecoords[0]);
-	glTexCoordPointer(2, GL_FLOAT, 0, &texturecoords[0]);
-	
 	// create faces, WAVEDEPTH*WAVESX*2 in number
 	glBegin(GL_TRIANGLES);
 	unsigned vertexnr = 0;
@@ -226,7 +237,9 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 		}
 		++vertexnr;
 	}
-	
+
+// HACK 05.10.2003	
+/*
 	// horizon faces
 	glArrayElement(verts-WAVESX-1);
 	glArrayElement(verts+1);
@@ -234,6 +247,8 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 	glArrayElement(verts-WAVESX-1);
 	glArrayElement(verts-1);
 	glArrayElement(verts+1);
+*/	
+//END HACK	
 	glEnd();
 	
 	glDisableClientState(GL_VERTEX_ARRAY);
