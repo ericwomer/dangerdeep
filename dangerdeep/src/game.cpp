@@ -569,10 +569,10 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 		return true;
 	}
 
-	ship* s = check_unit_list<ship*> ( t, ships );
+	ship* s = check_unit_list ( t, ships );
 
 	if ( !s )
-		s = check_unit_list<submarine*> ( t, submarines );
+		s = check_unit_list ( t, submarines );
 
 	if ( s )
 	{
@@ -585,7 +585,7 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 		else
 		{
 			if ( ( s->is_alive () || s->is_defunct () ) &&
-				s->damage ( s->get_pos (), t->get_hit_points () ) )
+				s->damage ( t->get_pos (), t->get_hit_points () ) )
 				ship_sunk ( s );
 			torp_explode ( t->get_pos () );
 		}
