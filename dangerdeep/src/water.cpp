@@ -15,7 +15,7 @@
 #include "global_data.h"
 #include "ocean_wave_generator.h"
 #include "matrix4.h"
-
+#include "cfg.h"
 #include "system.h"
 #include <fstream>
 
@@ -98,7 +98,14 @@
 
 water::water(unsigned xres_, unsigned yres_, double tm) :
 	mytime(tm), xres(xres_), yres(yres_), reflectiontex(0), foamtex(0), fresnelcolortex(0),
-	last_light_brightness(-10000)
+	last_light_brightness(-10000), water_bumpmap(0),
+	vertex_program_supported(false),
+	fragment_program_supported(false),
+	compiled_vertex_arrays_supported(false),
+	use_vertex_programs(false),
+	use_fragment_programs(false),
+	water_vertex_program(0),
+	water_fragment_program(0)
 {
 	wavetiledisplacements.resize(WAVE_PHASES);
 	wavetileheights.resize(WAVE_PHASES);
@@ -116,8 +123,8 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	fragment_program_supported = sys().extension_supported("GL_ARB_fragment_program");
 	compiled_vertex_arrays_supported = sys().extension_supported("GL_EXT_compiled_vertex_array");
 
-	use_vertex_programs = false;
-	use_fragment_programs = true;
+	use_vertex_programs = cfg::instance().getb("use_vertex_shaders");
+	use_fragment_programs = cfg::instance().getb("use_pixel_shaders");
 
 	// initialize shaders if wanted
 	if (fragment_program_supported && use_fragment_programs) {
@@ -258,6 +265,15 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 
 	}
 
+	vector<Uint8> wbtmp(WAVE_RESOLUTION*WAVE_RESOLUTION*3);
+	for (unsigned i = 0; i < WAVE_RESOLUTION*WAVE_RESOLUTION; ++i) {
+		wbtmp[3*i+0] = (wavetilenormals[0][i].x+1.0f)/2.0f*255;
+		wbtmp[3*i+1] = (wavetilenormals[0][i].y+1.0f)/2.0f*255;
+		wbtmp[3*i+2] = (wavetilenormals[0][i].z+1.0f)/2.0f*255;
+	}
+	water_bumpmap = new texture(&wbtmp[0], WAVE_RESOLUTION, WAVE_RESOLUTION,
+				    GL_RGB, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, false);
+
 	add_loading_screen("water height data computed");
 }
 
@@ -271,10 +287,10 @@ water::~water()
 	glDeleteTextures(1, &reflectiontex);
 	delete foamtex;
 	delete fresnelcolortex;
+	delete water_bumpmap;
 }
 
 
-texture* gnarg = 0;
 void water::setup_textures(const matrix4& reflection_projmvmat) const
 {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -291,15 +307,12 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 		// tex1: reflection map / matching texcoords
 		// tex2: --- / vector to viewer
 		glActiveTexture(GL_TEXTURE0);
-		//bind bump map texture, fixme
-		if (!gnarg)
-			gnarg = new texture("/usr/local/share/dangerdeep/textures/bumpmapx.png");
-		gnarg->set_gl_texture();
+		water_bumpmap->set_gl_texture();
 
 		// local parameters:
 		// local 0 : upwelling color
 		glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 0,
-					     1.0, 1.0, 0.0, 1.0);//fixme test
+					     0.0, 0.1, 0.3, 1.0);//fixme test
 	} else {
 		// standard code path, no fragment programs
 	
@@ -748,8 +761,16 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 			const vector3f& N = normals[ptr];
 
 			if (fragment_program_supported && use_fragment_programs) {
-				uv0[ptr] = vector2f(coord.x/8.0f, coord.y/8.0f); // fixme, use noise map texc's
-				uv2[ptr] = -coord;//fixme: vector to viewer
+				uv0[ptr] = vector2f(coord.x/4.0f, coord.y/4.0f); // fixme, use noise map texc's
+				//fixme ^, offset is missing
+				vector3f tx = vector3f(1, 0, 0);//fixme hack
+				vector3f ty = N.cross(tx);
+				vector3f tz = N;
+				vector3f worldE = -coord;
+				vector3f tangentE = vector3f(tx * worldE, ty * worldE, tz * worldE);
+				uv2[ptr] = tangentE;
+				// we have to convert E to the tangent space of this face or
+				// do that per pixel at the fragment program
 			} else {
 				float rel_coord_length = coord.length();
 				vector3f E = -coord * (1.0f/rel_coord_length); // viewer is in (0,0,0)
@@ -761,6 +782,8 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 				uv0[ptr] = vector2f(F, colorfac);	// set fresnel and water color
 			}
 
+			// reflection texture coordinates (should be tweaked per pixel with fp, fixme)
+			// they are broken with fp, reason unknown
 			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
 			texc.z -= VIRTUAL_PLANE_HEIGHT;
 			uv1[ptr] = texc;
