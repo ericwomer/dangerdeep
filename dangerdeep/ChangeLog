@@ -1,3 +1,7 @@
+2003-07-07  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* user_interface.cpp
+	  - fixed code for new water, removed old water code.
+
 2003-07-06  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* game.cpp
 	  - end game when contact to enemy is lost

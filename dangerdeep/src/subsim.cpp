@@ -270,6 +270,7 @@ double vessel_xangle = 0;
 sea_object* vessel = 0;
 void draw_vessel(void)
 {
+//fixme: gl light source is not reseted. so last mission's brightness changes this view.
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 	glTranslatef(0, 0, -2.5);

@@ -21,9 +21,8 @@
 #include "logbook.h"
 #include "ships_sunk_display.h"
 
-#define SKYSEGS 16
-
-vector<float> user_interface::allwaveheights;
+vector<unsigned char> user_interface::waveheights;
+vector<float> user_interface::sinvec;
 
 
 user_interface::user_interface() :
@@ -44,49 +43,31 @@ user_interface::user_interface(sea_object* player) :
 
 user_interface::~user_interface ()
 {
-	// delete does nothing when the pointer is zero, fixme: remove
-	// since all contructors call init, and init stored something != 0 in these pointers
-	// this condition will be always true. (just as a note, remove me)
-	if ( captains_logbook ) delete captains_logbook;
-	if ( ships_sunk_disp ) delete ships_sunk_disp;
+	delete captains_logbook;
+	delete ships_sunk_disp;
 }
 
 void user_interface::init ()
 {
-	// fixme: replace this check.
 	// if the constructors of these classes may ever fail, we should
 	// use C++ exceptions.
 	captains_logbook = new captains_logbook_display;
-	system::sys()->myassert ( captains_logbook != 0, "Error while creating captains_logbook!" );
+//	system::sys()->myassert ( captains_logbook != 0, "Error while creating captains_logbook!" );
 	ships_sunk_disp = new ships_sunk_display;
-	system::sys()->myassert ( ships_sunk_disp != 0, "Error while creating ships_sunk!" );
+//	system::sys()->myassert ( ships_sunk_disp != 0, "Error while creating ships_sunk!" );
 
-	if (allwaveheights.size() == 0) init_water_data();
+	if (waveheights.size() == 0) init_water_data();
 }
 
 void user_interface::init_water_data(void)
 {
-	vector<float> dwave(WAVES);
-	for (int i = 0; i < WAVES; ++i)
-		dwave[i] = WAVETIDE/2*sin(i*2*M_PI/WAVES);
-	vector<unsigned char> waterheight(WATERSIZE*WATERSIZE);
-	for (int j = 0; j < WATERSIZE; ++j)
-		for (int i = 0; i < WATERSIZE; ++i)
-			waterheight[j*WATERSIZE+i] = rand()%256;
-	allwaveheights.resize(WAVES*WATERSIZE*WATERSIZE);
-	vector<float>::iterator it = allwaveheights.begin();
-	for (int k = 0; k < WAVES; ++k) {
-		for (int j = 0; j < WATERSIZE; ++j) {
-			for (int i = 0; i < WATERSIZE; ++i) {
-				*it++ = dwave[(int(waterheight[j*WATERSIZE+i])+k)%WAVES];
-			}
-		}
-	}
-}
-
-inline float user_interface::get_waterheight(int x, int y, int wave)
-{
-	return allwaveheights[((wave&(WAVES-1))*WATERSIZE+(y&(WATERSIZE-1)))*WATERSIZE+(x&(WATERSIZE-1))];
+	sinvec.resize(256);
+	for (int i = 0; i < 256; ++i)
+		sinvec[i] = sin(i*M_PI/128);
+	waveheights.resize(WAVERND*WAVERND);
+	for (int j = 0; j < WAVERND; ++j)
+		for (int i = 0; i < WAVERND; ++i)
+			waveheights[j*WAVERND+i] = rnd(256);
 }
 
 float user_interface::get_waterheight(float x_, float y_, int wave)	// bilinear sampling
@@ -95,10 +76,11 @@ float user_interface::get_waterheight(float x_, float y_, int wave)	// bilinear 
 	float py = y_/WAVESIZE;
 	int x = int(floor(px));
 	int y = int(floor(py));
-	float h0 = get_waterheight(x, y, wave);
-	float h1 = get_waterheight(x+1, y, wave);
-	float h2 = get_waterheight(x, y+1, wave);
-	float h3 = get_waterheight(x+1, y+1, wave);
+	// fixme: make tide dynamic, depending on weather.
+	float h0 = WAVETIDE/2 * sinvec[(get_waterheight(x  , y  ) + wave) & 255];
+	float h1 = WAVETIDE/2 * sinvec[(get_waterheight(x+1, y  ) + wave) & 255];
+	float h2 = WAVETIDE/2 * sinvec[(get_waterheight(x  , y+1) + wave) & 255];
+	float h3 = WAVETIDE/2 * sinvec[(get_waterheight(x+1, y+1) + wave) & 255];
 	float dx = (px - floor(px));
 	float dy = (py - floor(py));
 	float h01 = h0*(1-dx) + h1*dx;
@@ -109,11 +91,6 @@ float user_interface::get_waterheight(float x_, float y_, int wave)	// bilinear 
 void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wavephase,
 	double max_view_dist) const
 {
-//	glDisable(GL_LIGHTING);	// fixme: why? it would be easier to remove that lightcol
-				// crap and use OpenGL lighting
-
-#if 1	// new water 47.2fps (old water 44.0fps)
-
 #define WAVESX 16	// number of waves per screen scanline
 
 	// fixme: add "moving" water texture
@@ -254,104 +231,15 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 	
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-#else
-
-	int wave = wavephase;	
-	// fixme: was mache ich hier?
-	glPushMatrix();
-	int wx = int(floor(viewpos.x/WAVESIZE)) & (WATERSIZE-1);
-	int wy = int(floor(viewpos.y/WAVESIZE)) & (WATERSIZE-1);
-	glTranslatef(ceil(viewpos.x/WAVESIZE)*WAVESIZE-WATERRANGE, ceil(viewpos.y/WAVESIZE)*WAVESIZE-WATERRANGE, 0);
-
-	float wd = (wave%(8*WAVES))/float(8*WAVES);
-	float t0 = wd;
-	float t1 = wd + (max_view_dist - WATERRANGE)/64;
-	float t2 = wd + (max_view_dist + WATERRANGE)/64;
-	float t3 = wd + 2*max_view_dist/64;
-	float c0 = -max_view_dist+WATERRANGE;
-	float c1 = 0;
-	float c2 = 2*WATERRANGE;
-	float c3 = max_view_dist+WATERRANGE;
-
-	// fixme: glclearcolor depends on daytime, too
-
-	// color of water depends on daytime
-//	lightcol.set_gl_color();	// fixme move outside function
-
-	// fixme: with swimming the missing anisotropic filtering causes
-	// the water to shine unnatural. a special distant_water texture doesn't help
-	// just looks worse
-	// fixme: while moving the distant water texture coordinates jump wildly.
-	// we have to adjust its texture coordinates by remainder of viewpos.xy/WAVESIZE
-	// fixme use multitexturing for distant water with various moving around the
-	// texture for more realism?
-
-	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
-	glBegin(GL_TRIANGLE_STRIP);
-	glTexCoord2f(t0,t3);
-	glVertex3f(c0,c3,0);
-	glTexCoord2f(t1,t2);
-	glVertex3f(c1,c2,0);
-	glTexCoord2f(t3,t3);
-	glVertex3f(c3,c3,0);
-	glTexCoord2f(t2,t2);
-	glVertex3f(c2,c2,0);
-	glTexCoord2f(t3,t0);
-	glVertex3f(c3,c0,0);
-	glTexCoord2f(t2,t1);
-	glVertex3f(c2,c1,0);
-	glTexCoord2f(t0,t0);
-	glVertex3f(c0,c0,0);
-	glTexCoord2f(t1,t1);
-	glVertex3f(c1,c1,0);
-	glTexCoord2f(t0,t3);
-	glVertex3f(c0,c3,0);
-	glTexCoord2f(t1,t2);
-	glVertex3f(c1,c2,0);
-	glEnd();
-
-	//fixme waterheight of äußerstem rand des allwaveheight-gemachten wassers auf 0
-	//damit keine lücken zu obigem wasser da sind SCHNELLER machen
-	//fixme vertex lists
-	//fixme visibility detection: 75% of the water are never seen but drawn
-
-	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
-	glBegin(GL_QUADS);
-	int y = wy;
-	for (int j = 0; j < WATERSIZE; ++j) {
-		int x = wx;
-		int j2 = y%4;
-		float j3 = j*WAVESIZE;
-		for (int i = 0; i < WATERSIZE; ++i) {
-			int i2 = x%4;
-			float i3 = i*WAVESIZE;
-			// fixme vertex lists
-			glTexCoord2f(i2/4.0, j2/4.0);
-			glVertex3f(i3,j3,(i == 0 || j == 0) ? 0 : get_waterheight(x, y, wave));
-			glTexCoord2f((i2+1)/4.0, j2/4.0);
-			glVertex3f(i3+WAVESIZE,j3,(i == WATERSIZE-1 || j == 0) ? 0 : get_waterheight(x+1, y, wave));
-			glTexCoord2f((i2+1)/4.0, (j2+1)/4.0);
-			glVertex3f(i3+WAVESIZE,j3+WAVESIZE,(i == WATERSIZE-1 || j == WATERSIZE-1) ? 0 : get_waterheight(x+1, y+1, wave));
-			glTexCoord2f(i2/4.0, (j2+1)/4.0);
-			glVertex3f(i3,j3+WAVESIZE,(i == 0 || j == WATERSIZE-1) ? 0 : get_waterheight(x, y+1, wave));
-			x = (x + 1) & (WATERSIZE-1);
-		}
-		y = (y + 1) & (WATERSIZE-1);
-	}
-	glEnd();
-	glPopMatrix();
-//	glColor3f(1,1,1);
-#endif
-
-//	glEnable(GL_LIGHTING);
 }
 
 void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
 	angle dir, bool withplayer, bool withunderwaterweapons)
 {
 	sea_object* player = get_player();
-	int wave = int(fmod(gm.get_time(),86400/*WAVETIDECYCLETIME*/)*WAVES/WAVETIDECYCLETIME);
+	// fixme: this wave is used double. for waves the commented version would be
+	// best, but ships' movement depend on it also. ugly.
+	int wave = int(fmod(gm.get_time(),86400/*WAVETIDECYCLETIME*/)*256/WAVETIDECYCLETIME);
 	
 	glRotatef(-90,1,0,0);
 	glRotatef(dir.value(),0,0,1);
@@ -421,10 +309,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 
 	// ******************** ships & subs *************************************************
 
-	//fixme: ships are to bright at night. this has changed since i introduced the
-	//new water/cloud code parts. What's wrong? glColor is stll lightcol, which is right
-
-	float dwave = sin((wave%WAVES)*2*M_PI/WAVES);
+	float dwave = sinvec[wave&255];
 	list<ship*> ships;
 	gm.visible_ships(ships, player);
 	for (list<ship*>::const_iterator it = ships.begin(); it != ships.end(); ++it) {

@@ -12,11 +12,8 @@ using namespace std;
 #include "global_data.h"
 #include "color.h"
 
-	#define WAVES 64        // must be 2^x
-	#define WATERSIZE 64   // must be 2^x
-#define WAVESIZE 10	// meters from wave to wave
-	#define WATERRANGE WATERSIZE*WAVESIZE/2
-
+#define WAVERND 64        	// must be 2^x, length/width of ramdom array
+#define WAVESIZE 10		// meters from wave to wave
 #define WAVEDEPTH 20		// nr of waves drawn in z direction
 #define WAVETIDE 3.0      	// amplitude of waves in meters
 #define WAVETIDECYCLETIME 2.0	// time for full cycle of wave
@@ -63,11 +60,12 @@ protected:
 	user_interface(const user_interface& other);
 	user_interface(sea_object* player);
 
-	static vector<float> allwaveheights;
+	static vector<unsigned char> waveheights;	// random square array
+	static vector<float> sinvec;			// sin table (256 entries)
 	void init ();
 	static void init_water_data(void);
-	static float get_waterheight(int x, int y, int wave);
-	static float get_waterheight(float x_, float y_, int wave);	// bilinear sampling
+	static unsigned char get_waterheight(int x, int y) { return waveheights[(x&(WAVERND-1))+(y&(WAVERND-1))*WAVERND]; }
+	static float get_waterheight(float x_, float y_, int wavephase); // bilinear sampling
 
 	inline virtual sea_object* get_player(void) const { return player_object; }
 	virtual bool keyboard_common(int keycode, class system& sys, class game& gm) = 0;
