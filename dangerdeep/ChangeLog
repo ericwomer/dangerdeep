@@ -1,4 +1,53 @@
+2003-04-04  Markus Petermann  <m.petermann@gmx.net>
+
+	* ai.cpp:
+	  - The attribute attackrun was not initialized. Due to this error the
+	    destroyers are immediately in attack mode and do not using their
+	    sonar system.
+
+	* sensors.h, sensors.cpp:
+	  - New sensor classes that can be used within diverse methods.
+
+	* game.cpp:
+	  - The new sensor methods from sensors modul are used.
+
+	* sea_object.h:
+	  - A new attribute for all sea_objects storing sensor informations.
+
+	* sea_object.cpp:
+	  - New methods to alter sensor informations.
+
+	* ship.cpp, ship_battleshipmalaya.cpp, ship_carrierbogue.cpp,
+	  ship_destroyertribal.cpp, ship_mediummerchant.cpp, ship_mediumtroopship.cpp,
+	  submarine.cpp, submarine_VIIc.cpp, submarine_XXI.cpp, torpedo.cpp:
+	  - New sensors are introduced.
+
+
+2003-04-02  Markus Petermann  <m.petermann@gmx.net>
+
+    * sea_object.cpp:
+      - Corrected an error in method surface_visibility: A minimum distance of
+        0.01 m must be obeyed when calculating the visible profile factor.
+
+    * submarine.cpp:
+      - Corrected an error in method surface_visibility: A minimum distance of
+        0.01 m must be obeyed when calculating the visible profile factor.
+
 2003-04-01  Markus Petermann  <m.petermann@gmx.net>
+
+    * submarine.cpp:
+      - surface_visibility changed: Profile factor is now calculated and used.
+      
+    * sea_object.cpp:
+      - Methods calc_visible_profile_factor and surface_visibility defined.
+
+    * sea_object.h:
+      - New attribute cross_section_factor.
+      - New methods get_cross_section_factor, calc_visible_profile_factor and
+        surface_visibility declared.
+      
+2003-04-01  Markus Petermann  <m.petermann@gmx.net>
+
     * global_data.h:
       - New texture object glasses.
 
