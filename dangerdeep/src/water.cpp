@@ -274,6 +274,7 @@ water::~water()
 }
 
 
+texture* gnarg = 0;
 void water::setup_textures(const matrix4& reflection_projmvmat) const
 {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -291,7 +292,9 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 		// tex2: --- / vector to viewer
 		glActiveTexture(GL_TEXTURE0);
 		//bind bump map texture, fixme
-		texture("/usr/local/share/dangerdeep/textures/bumpmapx.png").set_gl_texture();
+		if (!gnarg)
+			gnarg = new texture("/usr/local/share/dangerdeep/textures/bumpmapx.png");
+		gnarg->set_gl_texture();
 
 		// local parameters:
 		// local 0 : upwelling color
@@ -733,24 +736,33 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	//simple vertex arrays with locking should do the trick, maybe use
 	//(locked) quadstrips, if they're faster than compiled vertex arrays, test it!
 
+	vector<vector3f> uv2;
+	if (fragment_program_supported && use_fragment_programs) {
+		uv2.resize(uv0.size());
+	}
+
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			// the coordinate is the same as the relative coordinate, because the viewer is at 0,0,0
 			const vector3f& coord = coords[ptr];
 			const vector3f& N = normals[ptr];
-			float rel_coord_length = coord.length();
-			vector3f E = -coord * (1.0f/rel_coord_length); // viewer is in (0,0,0)
-			float F = E*N;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
-			// value clamping is done by texture unit.
+
+			if (fragment_program_supported && use_fragment_programs) {
+				uv0[ptr] = vector2f(coord.x/8.0f, coord.y/8.0f); // fixme, use noise map texc's
+				uv2[ptr] = -coord;//fixme: vector to viewer
+			} else {
+				float rel_coord_length = coord.length();
+				vector3f E = -coord * (1.0f/rel_coord_length); // viewer is in (0,0,0)
+				float F = E*N;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
+				// value clamping is done by texture unit.
+				// water color depends on height of wave and slope
+				// slope (N.z) it mostly > 0.8
+				float colorfac = (coord.z + viewpos.z + 3) / 9 + (N.z - 0.8f);
+				uv0[ptr] = vector2f(F, colorfac);	// set fresnel and water color
+			}
 
 			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
 			texc.z -= VIRTUAL_PLANE_HEIGHT;
-
-			// water color depends on height of wave and slope
-			// slope (N.z) it mostly > 0.8
-			float colorfac = (coord.z + viewpos.z + 3) / 9 + (N.z - 0.8f);
-
-			uv0[ptr] = vector2f(F, colorfac);	// set fresnel and water color
 			uv1[ptr] = texc;
 		}
 	}
@@ -771,6 +783,12 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv1[0].x);
 	glDisableClientState(GL_NORMAL_ARRAY);
+
+	if (fragment_program_supported && use_fragment_programs) {
+		glClientActiveTexture(GL_TEXTURE2);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv2[0].x);
+	}
 
 //	unsigned t0 = sys().millisec();
 
@@ -797,6 +815,10 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
+	if (fragment_program_supported && use_fragment_programs) {
+		glClientActiveTexture(GL_TEXTURE2);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	}
 	glClientActiveTexture(GL_TEXTURE1);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glClientActiveTexture(GL_TEXTURE0);
