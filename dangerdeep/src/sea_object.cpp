@@ -28,11 +28,11 @@ bool sea_object::parse_attribute(parser& p)
 		case TKN_POSITION: {
 			p.consume();
 			p.parse(TKN_ASSIGN);
-			int x = p.parse_number();//fixme parser returns unsigned!!!
+			int x = p.parse_number();
 			p.parse(TKN_COMMA);
-			int y = p.parse_number();//fixme parser returns unsigned!!!
+			int y = p.parse_number();
 			p.parse(TKN_COMMA);
-			int z = p.parse_number();//fixme parser returns unsigned!!!
+			int z = p.parse_number();
 			p.parse(TKN_SEMICOLON);
 			position = vector3(x, y, z);
 			break; }

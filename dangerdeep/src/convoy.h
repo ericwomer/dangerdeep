@@ -9,11 +9,11 @@
 #include "ai.h"
 #include "parser.h"
 
-class convoy
+class convoy	// fixme: derive from sea_object
 {
 protected:
 	ai* myai;
-	list<ship*> merchants, warships, escorts;
+	list<pair<ship*, vector2> > merchants, warships, escorts;
 	vector2 position;
 
 	convoy();

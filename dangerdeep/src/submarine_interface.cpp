@@ -652,7 +652,12 @@ void submarine_interface::display_map(class system& sys, game& gm)
 			for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
 				vector2 ldir = (*it)->get_pos().xy() - player->get_pos().xy();
 				ldir = ldir.normal() * 2000;	// draw lines to the screen's border
-				glColor3f(1,0,0);
+				if ((*it)->is_merchant())
+					glColor3f(0,0,0);
+				else if ((*it)->is_warship())
+					glColor3f(0,0.5,0);
+				else if ((*it)->is_escort())
+					glColor3f(1,0,0);
 				glBindTexture(GL_TEXTURE_2D, 0);
 				glBegin(GL_LINES);
 				glVertex2f(512,384);

@@ -24,36 +24,47 @@ convoy::convoy(class game& gm, parser& p)
 	p.parse(TKN_CONVOY);
 	p.parse(TKN_SLPARAN);
 	while (p.type() != TKN_SRPARAN) {
-		if (p.type() != TKN_SHIP)
-			p.error("Expected ship definition");	// fixme airplanes!
-		ship* shp = ship::create(p);
-		gm.spawn_ship(shp);
-		if (shp->is_merchant())		// one of these must be true
-			merchants.push_back(shp);
-		else if (shp->is_warship())
-			warships.push_back(shp);
-		else if (shp->is_escort())
-			escorts.push_back(shp);
+		if (p.type() == TKN_POSITION) {
+			p.consume();
+			p.parse(TKN_ASSIGN);
+			int x = p.parse_number();
+			p.parse(TKN_COMMA);
+			int y = p.parse_number();
+			p.parse(TKN_SEMICOLON);
+			position = vector2(x, y);
+		} else if (p.type() == TKN_SHIP) {
+			ship* shp = ship::create(p);
+			gm.spawn_ship(shp);
+			pair<ship*, vector2> sp = make_pair(shp, vector2(0, 0));
+			if (shp->is_merchant())		// one of these must be true
+				merchants.push_back(sp);
+			else if (shp->is_warship())
+				warships.push_back(sp);
+			else if (shp->is_escort())
+				escorts.push_back(sp);
+		} else {
+			p.error("Expected definition");
+		}
 	}
 	p.consume();
 	myai = 0; // new ai(0, ai::convoy); // fixme
 
 	// calculate position
-	position = vector2(0, 0);
-	unsigned nr_ships = 0;
-	for (list<ship*>::iterator it = merchants.begin(); it != merchants.end(); ++it) {
-		position += (*it)->get_pos().xy();
-		++nr_ships;
+	for (list<pair<ship*, vector2> >::iterator it = merchants.begin(); it != merchants.end(); ++it) {
+		it->second = it->first->get_pos().xy();
+		vector2 p = position + it->second;
+		it->first->position = vector3(p.x, p.y, 0);
 	}
-	for (list<ship*>::iterator it = warships.begin(); it != warships.end(); ++it) {
-		position += (*it)->get_pos().xy();
-		++nr_ships;
+	for (list<pair<ship*, vector2> >::iterator it = warships.begin(); it != warships.end(); ++it) {
+		it->second = it->first->get_pos().xy();
+		vector2 p = position + it->second;
+		it->first->position = vector3(p.x, p.y, 0);
 	}
-	for (list<ship*>::iterator it = escorts.begin(); it != escorts.end(); ++it) {
-		position += (*it)->get_pos().xy();
-		++nr_ships;
+	for (list<pair<ship*, vector2> >::iterator it = escorts.begin(); it != escorts.end(); ++it) {
+		it->second = it->first->get_pos().xy();
+		vector2 p = position + it->second;
+		it->first->position = vector3(p.x, p.y, 0);
 	}
-	position = position * (1.0/nr_ships);
 }
 
 void convoy::simulate(game& gm, double delta_time)

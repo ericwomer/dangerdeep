@@ -11,6 +11,8 @@
 
 class ship : public sea_object
 {
+	friend class convoy;
+	
 protected:
 	ai* myai;
 	unsigned tonnage;	// in BRT
