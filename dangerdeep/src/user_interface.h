@@ -46,7 +46,8 @@ protected:
 	float viewsideang, viewupang;	// global spectators viewing angles
 	vector3 viewpos;
             
-	user_interface() : quit(false), pause(false), time_scale(1) {
+	user_interface() : quit(false), pause(false), time_scale(1), player_object(0)
+    {
 		if (allwaveheights.size() == 0) init_water_data();
 	}
 	user_interface& operator= (const user_interface& other);

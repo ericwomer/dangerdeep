@@ -37,6 +37,7 @@ public:
 
 	// adjust heading of torpedo, returns false if impossible
 	bool adjust_head_to(const sea_object* target, bool usebowtubes);
+    virtual torpedo* get_torpedo_ptr () { return this; }
 };
 
 #endif

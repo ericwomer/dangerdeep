@@ -159,7 +159,7 @@ void ai::act_dumb(game& gm, double delta_time)
 void ai::fire_shell_at(game& gm, const sea_object& s)
 {
 	vector2 deltapos = s.get_pos().xy() - parent->get_pos().xy();
-	double distance = deltapos.length();
+	// double distance = deltapos.length(); Unused variable
 	angle direction(deltapos);
 	
 	angle elevation = angle(30);	// fixme

@@ -44,6 +44,7 @@ public:
 	virtual bool is_merchant(void) const { return false; }
 	virtual bool is_escort(void) const { return false; }
 	virtual bool is_warship(void) const { return false; }
+    virtual ship* get_ship_ptr () { return this; }
 };
 
 #endif

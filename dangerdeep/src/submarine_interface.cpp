@@ -356,7 +356,7 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	sys.unprepare_2d_drawing();
 
 	// mouse handling
-	int mx, my, mb = sys.get_mouse_buttons();
+	int mx, my; // mb = sys.get_mouse_buttons(); Unused variable
 	sys.get_mouse_position(mx, my);
 
 	// keyboard processing

@@ -154,7 +154,7 @@ void model::read_from_OFF(const string& filename, const string& texture_name, un
 		max = vertices[i].pos.max(max);
 	}
 	vector3 deltamaxmin = max - min;
-	vector3 center = max * 0.5 + min * 0.5;
+	// vector3 center = max * 0.5 + min * 0.5; Unused variable
 	if (!withuv) {
 		for (i = 0; i < nr_vertices; i++) {
 			vertices[i].u = TILESX*(vertices[i].pos.y - min.y)/deltamaxmin.y;

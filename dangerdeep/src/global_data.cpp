@@ -166,7 +166,7 @@ void get_date(double t, unsigned& year, unsigned& month, unsigned& day)
 
 double get_time(unsigned year, unsigned month, unsigned day)
 {
-	unsigned y = year-1939;
+	// unsigned y = year-1939; Unused variable
 	unsigned m = (year-1939)*12 + month-1;
 	unsigned d = 0;
 	for (unsigned i = 0; i < m; ++i) d += month_lengths[i];
