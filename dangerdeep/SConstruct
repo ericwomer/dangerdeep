@@ -12,6 +12,10 @@ sdlnetbase = 'd:\\sdl-devel\\SDL_net'
 sdlmixerbase = 'd:\\sdl-devel\\SDL_mixer'
 fftw3base = 'd:\\fftw3'
 
+############### install path prefix (needed for unix OS)
+installprefix = '/usr/local/'
+#installprefix = '/usr/' # for debian packages
+
 ################ set environment
 if sys.platform == 'win32':
 	print "Compiling for Win32 Environment"
@@ -20,6 +24,9 @@ if sys.platform == 'win32':
 	libpath = [sdlbase + '\\lib', sdlimagebase + '\\lib', sdlnetbase + '\\lib', sdlmixerbase + '\\lib', fftw3base]
 	gllibs = ['opengl32', 'glu32']
 	sdllibs = ['SDL', 'SDL_image']
+	env.Append(CCFLAGS = '-Wall -O2 -D_REENTRANT') # for mingw!
+	datadir = './data'
+	env.Append(CPPDEFINES = [('DATADIR', '\\"' + datadir + '/\\"')])
 else:
 	print "Compiling for Unix/Posix/Linux Environment"
 	env = Environment(ENV = os.environ)
@@ -27,6 +34,9 @@ else:
 	libpath = []
 	gllibs = ['GL', 'GLU']
 	sdllibs = ['SDL', 'SDL_image']
+	env.Append(CCFLAGS = '-Wall -g -O2 `sdl-config --cflags`')
+	datadir = installprefix + 'share/dangerdeep'
+	env.Append(CPPDEFINES = [('DATADIR', '\\"' + datadir + '/\\"')])
 
 build_base_dir = 'build'
 source_base_dir = 'src'
@@ -59,70 +69,8 @@ if not conf.CheckCHeader('fftw3.h'):
 env = conf.Finish()
 
 ######################### source file lists
-dftdsources = Split("""subsim.cpp
-	ai.cpp
-	airplane.cpp
-	cfg.cpp
-	coastmap.cpp
-	command.cpp
-	convoy.cpp
-	date.cpp
-	depth_charge.cpp
-	filehelper.cpp
-	freeview_display.cpp
-	game.cpp
-	global_data.cpp
-	gun_shell.cpp
-	highscorelist.cpp
-	logbook.cpp
-	logbook_display.cpp
-	map_display.cpp
-	network.cpp
-	parser.cpp
-	particle.cpp
-	sea_object.cpp
-	sensors.cpp
-	ship.cpp
-	ships_sunk_display.cpp
-	sky.cpp
-	sound.cpp
-	submarine.cpp
-	submarine_interface.cpp
-	sub_bridge_display.cpp
-	sub_damage_display.cpp
-	sub_gauges_display.cpp
-	sub_periscope_display.cpp
-	sub_torpedo_display.cpp
-	sub_uzo_display.cpp
-	texts.cpp
-	tokenizer.cpp
-	torpedo.cpp
-	triangulate.cpp
-	user_interface.cpp
-	water.cpp
-	widget.cpp""")
-
-dftdmediasources = Split("""
-	font.cpp
-	image.cpp
-	model.cpp
-	system.cpp
-	texture.cpp""")
-
-tinyxmlsources = Split("""
-	tinyxml/tinystr.cpp
-	tinyxml/tinyxml.cpp
-	tinyxml/tinyxmlerror.cpp
-	tinyxml/tinyxmlparser.cpp""")
-
-oglextsources = Split("""
-	oglext/OglExt.cpp
-	oglext/RenderingContext.cpp
-	oglext/RenderingContext.hpp""")
-
 gfxlibs = ['oglext'] + gllibs + sdllibs
 alllibs = ['dftdmedia', 'tinyxml'] + gfxlibs + ['SDL_mixer', 'SDL_net', 'fftw3']
-
 
 ################ helper functions
 # taken from bombyx build system
@@ -207,13 +155,16 @@ def findCVS(basedir):
 target_dir = '#' + SelectBuildDir(build_base_dir) 
 libpath = libpath + [target_dir]
 
-Export('env', 'dftdsources', 'dftdmediasources', 'oglextsources', 'tinyxmlsources', 'gfxlibs', 'alllibs', 'libpath')
+datafiles = findCVS('./data')
 
-# each platform needs to define DATADIR
+Export('env', 'gfxlibs', 'alllibs', 'libpath', 'installprefix', 'datadir', 'datafiles')
 
 SConscript(source_base_dir + os.sep + 'SConscript', build_dir = target_dir, duplicate = 0)
-BuildDir(target_dir, source_base_dir, duplicate=0) 
 
+BuildDir(target_dir, source_base_dir, duplicate=0)
+
+#fixme: change that so that e.g. "scons tarball" does that only, and it
+#isn't done everytime we build the program
 #generate a list of all files from CVS subdirectories and give that list here!
 if sys.platform == 'linux2':
 	env = Environment()

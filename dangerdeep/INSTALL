@@ -6,7 +6,16 @@ To install Danger for the Deep on Linux, see the Compiling from Source section
 Installing on Windows
 ---------------------
 
-You will need the following libraries:
+Version 0.0.18 and newer
+------------------------
+
+From version 0.0.18 onwards all needed .dll's are included in the .zip-file.
+Just extract it, and run dangerdeep.exe.
+
+Version 0.0.17 and older
+------------------------
+
+Earlier versions need the following libraries:
 
 Simple Directmedia Layer (libsdl):
     SDL.dll
@@ -14,19 +23,41 @@ SDL Image library (SDL_image):
     SDL_image.dll, libpng.dll, jpeg.dll and zlib.dll
 FFTW (Fastest Fourier Transform in the West ;) )
     fftw3.dll
-Microsoft Visual C++ runtime libraries:
-    msvcp70.dll
-    msvcr70.dll
 
-Just copy all the DLLs to the folder containing dangerdeep.exe and double-click dangerdeep.exe to start the game. To run Danger from the Deep in a different resolution or in windowed mode, see the Command-line Options section below.
+Just copy all the DLLs to the folder containing dangerdeep.exe and
+double-click dangerdeep.exe to start the game. To run Danger from the
+Deep in a different resolution or in windowed mode, see the Command-line
+Options section below.
 
 
 Compiling from Source
 ---------------------
 
-To compile Danger from the Deep, you will need the SDL, SDL-image, FFTW3 and optionally the SDL-mixer libraries and development packages.
+To compile Danger from the Deep, you will need the SDL, SDL-image, FFTW3
+and optionally the SDL-mixer libraries and development packages.
 
-Extract the files using the following command (substitute the name of the file instead of <file.tar.bz2>): tar -xjvf <file.tar.bz2>
+Extract the files using the following command (substitute the name of
+the file instead of <file.tar.gz>): tar -zxf <file.tar.gz>
+or for .bz2 files: tar -jxf <file.tar.bz2>
+
+Version 0.0.18 and newer
+------------------------
+
+You'll need the SCons build system (www.scons.org). It is included in
+many distributions, e.g. Debian. It needs Python
+(www.python.org). Blender uses it and Doom3/Linux, so it's pretty mature
+;-) It has some advantages over automake/autoconf.
+
+Change into the source directory and type the following commands:
+
+	scons
+
+That's all. It will make a .tar.gz file containing source and data also.
+Copy the contents of the data directoryto a directory named /usr/local/share/dangerdeep
+and the dangerdeep binary to /usr/local/bin.
+
+Version 0.0.17 and older
+------------------------
 
 Change into the source directory and type the following commands:
 
@@ -34,4 +65,10 @@ Change into the source directory and type the following commands:
 	make
 	make install (you need to be root for this step)
 
-To run the game, type 'dangerdeep'. To run Danger from the Deep in a different resolution or in windowed mode, see the command-line options.
+That's all.
+
+Running
+-------
+
+To run the game, type 'dangerdeep'. To run Danger from the Deep in a
+different resolution or in windowed mode, see the command-line options.

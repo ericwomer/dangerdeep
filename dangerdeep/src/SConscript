@@ -1,19 +1,84 @@
 # import these variables from the parent build script 
 import sys
 
-Import('env', 'dftdsources', 'dftdmediasources', 'oglextsources', 'tinyxmlsources', 'gfxlibs', 'alllibs', 'libpath')
+Import('env', 'gfxlibs', 'alllibs', 'libpath', 'installprefix', 'datadir', 'datafiles')
 
-if sys.platform == 'win32':
-	env.Append(CCFLAGS = '-Wall -O2 -D_REENTRANT') # fixme add what SDL needs here...
-	env.Append(CPPDEFINES = [('DATADIR', '\\"./data/\\"')])
-else:
-	env.Append(CCFLAGS = '-Wall -g -O2 `sdl-config --cflags`')
-	env.Append(CPPDEFINES = [('DATADIR', '\\"/usr/local/share/dangerdeep/\\"')])
+################## define sources #######################
+dftdsources = Split("""subsim.cpp
+	ai.cpp
+	airplane.cpp
+	cfg.cpp
+	coastmap.cpp
+	command.cpp
+	convoy.cpp
+	date.cpp
+	depth_charge.cpp
+	filehelper.cpp
+	freeview_display.cpp
+	game.cpp
+	global_data.cpp
+	gun_shell.cpp
+	highscorelist.cpp
+	logbook.cpp
+	logbook_display.cpp
+	map_display.cpp
+	network.cpp
+	parser.cpp
+	particle.cpp
+	sea_object.cpp
+	sensors.cpp
+	ship.cpp
+	ships_sunk_display.cpp
+	sky.cpp
+	sound.cpp
+	submarine.cpp
+	submarine_interface.cpp
+	sub_bridge_display.cpp
+	sub_damage_display.cpp
+	sub_gauges_display.cpp
+	sub_periscope_display.cpp
+	sub_torpedo_display.cpp
+	sub_uzo_display.cpp
+	texts.cpp
+	tokenizer.cpp
+	torpedo.cpp
+	triangulate.cpp
+	user_interface.cpp
+	water.cpp
+	widget.cpp""")
 
+dftdmediasources = Split("""
+	font.cpp
+	image.cpp
+	model.cpp
+	system.cpp
+	texture.cpp""")
+
+tinyxmlsources = Split("""
+	tinyxml/tinystr.cpp
+	tinyxml/tinyxml.cpp
+	tinyxml/tinyxmlerror.cpp
+	tinyxml/tinyxmlparser.cpp""")
+
+oglextsources = Split("""
+	oglext/OglExt.cpp
+	oglext/RenderingContext.cpp
+	oglext/RenderingContext.hpp""")
+
+############# programs, libs, etc.
 env.StaticLibrary(target = 'dftdmedia', source = dftdmediasources, LIBS = gfxlibs, LIBPATH = libpath)
-env.Program(target = 'dangerdeep', source = dftdsources, LIBS = alllibs, LIBPATH = libpath)
+binary = env.Program(target = 'dangerdeep', source = dftdsources, LIBS = alllibs, LIBPATH = libpath)
 env.Program('viewmodel', 'viewmodel.cpp', LIBS = ['dftdmedia'] + gfxlibs, LIBPATH = libpath)
 env.Program('damagemodel', 'damagemodel.cpp', LIBS = ['dftdmedia'] + gfxlibs, LIBPATH = libpath)
 env.Program('crosssection', 'crosssection.cpp', LIBS = ['dftdmedia'] + gfxlibs, LIBPATH = libpath)
 env.StaticLibrary(target = 'oglext', source = oglextsources, LIBPATH = libpath)
 env.StaticLibrary(target = 'tinyxml', source = tinyxmlsources, LIBPATH = libpath)
+
+############ this allows to run "scons install" to install the binary, fixme add data
+install = env.Alias('install', env.Install(installprefix + 'bin', binary))
+env.Depends(install, binary)
+for i in datafiles:
+	# remove './data' from begin of i and filename from end
+	j = i.rfind('/')
+	ipath = i[6:j]
+	env.Depends(install, env.Install(datadir + ipath, '#/' + i))
