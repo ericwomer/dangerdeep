@@ -17,11 +17,8 @@
 #ifndef	_OGL_MACROS_H_
 #define	_OGL_MACROS_H_
 
-#ifndef	_WIN32
-
-	#include <GL/glx.h>
-
-#endif
+// changed: use SDL_GL_GetProcAddress instead of wgl/GLX
+#include <SDL.h>
 
 
 // ---[ INTERNAL API WRAPPER MACROS ]---------------------------------------------------------------------------
@@ -265,18 +262,9 @@
 
 // ---[ MACROS TO DETERMINE API ENTRY POINTS ]------------------------------------------------------------------
 
-#ifdef	_WIN32
-
-	#define	GET_PROC_ADDRESS(NAME)		*((void * *) &m_p##NAME ) = (void *) ::wglGetProcAddress("gl" #NAME ); \
+// changed: use SDL_GL_GetProcAddress instead of wgl/GLX
+#define	GET_PROC_ADDRESS(NAME)		*((void * *) &m_p##NAME ) = (void *) ::SDL_GL_GetProcAddress("gl" #NAME ); \
 													if(m_p##NAME == NULL) return false;
-
-#else		// _WIN32
-
-// changed: removed ARB ending of function name
-	#define	GET_PROC_ADDRESS(NAME)		*((void * *) &m_p##NAME ) = (void *) ::glXGetProcAddress((GLubyte const *) ("gl" #NAME )); \
-													if(m_p##NAME == NULL) return false;
-
-#endif	// _WIN32
 
 
 // ---[ MACROS TO INITIALIZE AN EXTENSION OR A GL VERSION ]-----------------------------------------------------

@@ -7,11 +7,11 @@
 #pragma warning (disable : 4786)
 #endif
 
-#include "oglext/OglExt.h"
-
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL.h>
+
+#include "oglext/OglExt.h"
 
 #include <iostream>
 #include <sstream>
@@ -39,9 +39,9 @@ using namespace std;
 
 // some more interesting values: phase 256, waveperaxis: ask your gfx card, facesperwave 64+,
 // wavelength 256+,
-#define WAVE_PHASES 128//256		// no. of phases for wave animation
+#define WAVE_PHASES 256		// no. of phases for wave animation
 #define WAVES_PER_AXIS 4	// no. of waves along x or y axis
-#define FACES_PER_WAVE 64	// resolution of wave model in x/y dir.
+#define FACES_PER_WAVE 32//64	// resolution of wave model in x/y dir.
 #define WAVE_LENGTH 128.0	// in meters, total length of one wave (one sine function)
 #define TIDECYCLE_TIME 10.0
 // obsolete:
@@ -153,7 +153,7 @@ void user_interface::init ()
 		// create and use temporary arrays for texture coords (units 0,1), colors and vertices
 		vector<GLfloat> tex0coords;
 		vector<GLfloat> tex1coords;
-		vector<GLubyte/*GLfloat*/> colors;
+		vector<GLfloat> colors;
 		vector<GLfloat> coords;
 		tex0coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*2);
 		tex1coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*2);
@@ -162,7 +162,7 @@ void user_interface::init ()
 
 		float add = 1.0f/FACES_PER_WAVE;
 		float fy = 0;
-		float texscale0 = 32;//8;//32;	// 128m/4m
+		float texscale0 = 8;//32;	// 128m/4m
 		float texscale1 = 2;
 		for (unsigned y = 0; y <= FACES_PER_WAVE; ++y) {
 			float fx = 0;
@@ -182,9 +182,9 @@ void user_interface::init ()
 				tex0coords.push_back(fy*texscale0);
 				tex1coords.push_back(fx*texscale1);
 				tex1coords.push_back(fy*texscale1);
-				colors.push_back(GLubyte(nl.x*255));
-				colors.push_back(GLubyte(nl.y*255));
-				colors.push_back(GLubyte(nl.z*255));
+				colors.push_back(nl.x);
+				colors.push_back(nl.y);
+				colors.push_back(nl.z);
 				coords.push_back(fx*WAVE_LENGTH+d[ptr].x);
 				coords.push_back(fy*WAVE_LENGTH+d[ptr].y);
 				coords.push_back(h[ptr]);
@@ -195,16 +195,22 @@ void user_interface::init ()
 		
 		// now set pointers, enable arrays and draw elements, finally disable pointers
 		glEnableClientState(GL_COLOR_ARRAY);
-		glColorPointer(3, GL_UNSIGNED_BYTE /*GL_FLOAT*/, 0, &colors[0]);
+		glColorPointer(3, GL_FLOAT, 0, &colors[0]);
+		
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, &coords[0]);
+		
 		glDisableClientState(GL_NORMAL_ARRAY);
+		
 		glClientActiveTextureARB(GL_TEXTURE0_ARB);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, 0, &tex0coords[0]);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		
 		glClientActiveTextureARB(GL_TEXTURE1_ARB);
-		glTexCoordPointer(2, GL_FLOAT, 0, &tex1coords[0]);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, 0, &tex1coords[0]);
+		
+		glActiveTextureARB(GL_TEXTURE0_ARB);
 		glDrawElements(GL_QUADS, waveindices.size(), GL_UNSIGNED_INT, &waveindices[0]);
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_COLOR_ARRAY);
@@ -718,14 +724,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glVertex3f(c1,c2,wz);
 	glEnd();
 	
-//	glPopAttrib();
-
 	// draw waves
-//	glColor3f(0.1,0.2,0.5);
-//	glBindTexture(GL_TEXTURE_2D, 0);
-//	glColor3f(1,1,1);
-//	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
-//	glDisable(GL_LIGHTING);
 	double timefac = myfmod(t, TIDECYCLE_TIME)/TIDECYCLE_TIME;
 
 	// fixme: use LOD (fft with less resolution) for distance waves

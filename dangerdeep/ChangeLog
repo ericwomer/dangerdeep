@@ -1,3 +1,9 @@
+2003-12-22  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* uploaded dangerdeep.dsw/dsp files to compile
+	  dftd, adapted tinyxml.h
+	* used SDL_GL_GetProcAddress for OpenGL extensions instead
+	  of wgl/glx functions.
+
 2003-12-17  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* several files:
 	  - restored win32 compilability

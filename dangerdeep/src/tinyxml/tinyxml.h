@@ -34,7 +34,9 @@ distribution.
 #pragma warning( disable : 4786 )
 #endif
 
+#ifndef WIN32
 #include "config.h"
+#endif
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
