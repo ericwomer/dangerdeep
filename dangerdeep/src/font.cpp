@@ -2,12 +2,13 @@
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
 #include "font.h"
-#include <cstring>
-#include "oglext/OglExt.h"
-#include <SDL_image.h>
 #include "system.h"
+#include "oglext/OglExt.h"
+#include <SDL.h>
+#include <SDL_image.h>
 #include <sstream>
 #include <fstream>
+using namespace std;
 
 void font::print_text(int x, int y, const string& text, bool ignore_colors) const
 {

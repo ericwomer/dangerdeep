@@ -12,7 +12,8 @@ class sub_periscope_display : public freeview_display
 	projection_data get_projection_data(class game& gm) const;
 	void post_display(class game& gm) const;
 
-	class image* periscopeimg;
+	class image* background_normallight;
+	class image* background_nightlight;
 	
 	bool zoomed;	// use 1,5x (false) or 6x (true) zoom
 

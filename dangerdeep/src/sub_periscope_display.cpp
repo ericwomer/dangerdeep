@@ -40,7 +40,14 @@ void sub_periscope_display::post_display(game& gm) const
 {
 	system::sys().prepare_2d_drawing();
 	glColor3f(1,1,1);
-	periscopeimg->draw(0, 0);
+
+	bool is_day = gm.is_day_mode();
+	if (is_day) {
+		background_normallight->draw(0, 0);
+	} else {
+		background_nightlight->draw(0, 0);
+	}
+
 //	ui.draw_infopanel(gm);
 	system::sys().unprepare_2d_drawing();
 }
@@ -49,7 +56,8 @@ void sub_periscope_display::post_display(game& gm) const
 
 sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_display(ui_), zoomed(false)
 {
-	periscopeimg = new image(get_image_dir() + "periscope_daylight_rev.1.0_maskedfinal.png", true);
+	background_normallight = new image(get_image_dir() + "periscope_daylight_rev.1.1b_final.png", true);
+	background_nightlight = new image(get_image_dir() + "periscope_redlight_rev.1.1b_final.png", true);
 
 	pos = vector3(0, 0, 12);//fixme, depends on sub
 	aboard = true;
@@ -61,7 +69,8 @@ sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_dis
 
 sub_periscope_display::~sub_periscope_display()
 {
-	delete periscopeimg;
+	delete background_normallight;
+	delete background_nightlight;
 }
 
 
