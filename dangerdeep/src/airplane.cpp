@@ -42,7 +42,6 @@ void airplane::load(istream& in, class game& g)
 	velocity.y = read_double(in);
 	velocity.z = read_double(in);
 */
-	speed = read_double(in);
 	rollfac = read_double(in);
 	pitchfac = read_double(in);
 }
@@ -59,7 +58,6 @@ void airplane::save(ostream& out, const class game& g) const
 	write_double(out, velocity.y);
 	write_double(out, velocity.z);
 */
-	write_double(out, speed);
 	write_double(out, rollfac);
 	write_double(out, pitchfac);
 }
@@ -71,8 +69,6 @@ void airplane::simulate(class game& gm, double delta_time)
 	quaternion invrot = orientation.conj();
 	vector3 localvelocity = invrot.rotate(velocity);
 		
-	speed = localvelocity.y;	// for display
-
 	vector3 locx = orientation.rotate(1, 0, 0);
 	vector3 locy = orientation.rotate(0, 1, 0);
 	vector3 locz = orientation.rotate(0, 0, 1);

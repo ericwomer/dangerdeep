@@ -17,13 +17,27 @@
 // empty c'tor is needed by heirs
 ship::ship() : myai(0), mysmoke(0)
 {
+	init();
+}
+
+
+
+void ship::init(void)
+{
+	heading = 0;
+	throttle = 0;
+	head_to_fixed = false;
+	rudder_pos = 0;
+	rudder_to = 0;
 	max_rudder_angle = 40;
+	max_angular_velocity = 10;
 }
 
 
 
 ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfile, topnodename)
 {
+	init();
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdship = hspec.FirstChild(topnodename);
 	TiXmlElement* eclassification = hdftdship.FirstChildElement("classification").Element();
@@ -77,8 +91,6 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 	fuel_capacity = XmlAttribu(efuel, "capacity");
 	efuel->Attribute("consumption_a", &fuel_value_a);
 	efuel->Attribute("consumption_t", &fuel_value_t);
-	
-	max_rudder_angle = 40;
 }
 
 
@@ -236,7 +248,7 @@ void ship::parse_attributes(TiXmlElement* parent)
 			heading = angle(tmp);
 		tmp = 0;
 		if (emotion->Attribute("speed", &tmp))
-			speed = kts2ms(tmp);//fixme: set velocity instead
+			velocity.y = kts2ms(tmp);
 		string thr = XmlAttrib(emotion, "throttle");
 		if (thr == "stop") throttle = stop;
 		else if (thr == "reverse") throttle = reverse;
@@ -287,8 +299,6 @@ void ship::save(ostream& out, const game& g) const
 
 void ship::simulate(game& gm, double delta_time)
 {
-	speed = sea_object::get_speed();
-	heading = sea_object::get_heading();
 	sea_object::simulate(gm, delta_time);
 	if ( myai )
 		myai->act(gm, delta_time);
@@ -320,7 +330,7 @@ void ship::simulate(game& gm, double delta_time)
 	double max_rudder_turn_dist = max_rudder_turn_speed * delta_time;
 	double rudder_d = rudder_angle_set - rudder_pos;
 	if (fabs(rudder_d) <= max_rudder_turn_dist) {	// if rudder_d is 0, nothing happens.
-		rudder_pos = rudder_to;
+		rudder_pos = rudder_angle_set;
 	} else {
 		if (rudder_d < 0) {
 			rudder_pos -= max_rudder_turn_dist;
@@ -393,6 +403,9 @@ double ship::get_noise_factor (void) const
 
 
 
+//fixme: deceleration is to low at low speeds, causing the sub the turn a LONG time after
+//rudder is midships/screws stopped.
+//fixme: drag can go nuts when time is scaled causing NaN in double...
 vector3 ship::get_acceleration(void) const		// drag must be already included!
 {
 	// acceleration of ship depends on rudder.
@@ -404,20 +417,33 @@ vector3 ship::get_acceleration(void) const		// drag must be already included!
 	//in general: Power/(rpm * screw_radius * mass) = accel
 	//Power: engine Power (kWatts), rpm (screw turns per second), mass (ship's mass)
 	//SubVIIc: ~3500kW, rad=0.5m, rpm=2 (?), mass=750000kg -> acc=4,666. a bit much...
-	double drag_factor = max_accel_forward / (max_speed_forward * max_speed_forward);
-	return orientation.rotate(0, get_throttle_accel() * cos(rudder_pos * M_PI / 180.0) - drag_factor * (speed * speed), 0);
+	double speed = get_speed();
+	double drag_factor = (speed*speed) * max_accel_forward / (max_speed_forward*max_speed_forward);
+	double acceleration = get_throttle_accel() * cos(rudder_pos * M_PI / 180.0);
+	if (speed > 0) drag_factor = -drag_factor;
+	return vector3(0, acceleration + drag_factor, 0);
 }
 
 
 
-quaternion ship::get_rot_acceleration(void) const	// drag must be already included!
+double ship::get_turn_acceleration(void) const	// drag must be already included!
 {
-	// acceleration of ship depends on rudder.
-	// angular acceleration (turning) is max_accel_forward * sin(rudder_ang)
+	// acceleration of ship depends on rudder state and actual forward speed (linear).
+	// angular acceleration (turning) is speed * sin(rudder_ang) * factor
 	// this is acceleration around local z-axis.
+	// the factor depends on rudder area etc.
 	//fixme: do we have to multiply in some factor? we have angular values here not linear...
-	//double drag_factor = 
-	return quaternion::rot(get_throttle_accel() * sin(rudder_pos * M_PI / 180.0), 0, 0, 1);
+	//double drag_factor = some_factor * current_turn_speed^2
+	//some_factor is given by turn rate
+	double speed = get_speed();
+	double accel_factor = 5.0;	// given by turn rate, influenced by rudder area...
+	double max_turn_accel = accel_factor * max_speed_forward * sin(max_rudder_angle * M_PI / 180.0);
+	double drag_factor = (turn_velocity*turn_velocity) * max_turn_accel / (max_angular_velocity*max_angular_velocity);
+	double acceleration = accel_factor * speed * sin(rudder_pos * M_PI / 180.0);
+	if (turn_velocity > 0) drag_factor = -drag_factor;
+//cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << "\n";
+//cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << "\n";
+	return acceleration + drag_factor;
 }
 
 

@@ -45,18 +45,16 @@ vector3 sea_object::get_acceleration(void) const
 
 
 
-quaternion sea_object::get_rot_acceleration(void) const
+double sea_object::get_turn_acceleration(void) const
 {
-	return quaternion();
+	return 0.0;
 }
 
 
 
 // some heirs need this empty c'tor
 sea_object::sea_object() :
-/*speed(0), max_speed(0), max_rev_speed(0), throttle(stop),
-	acceleration(0), permanent_turn(false), head_chg(0), rudder(0) fixme move to ship */
-	alive_stat(alive), myai(0)
+	turn_velocity(0), heading(0), alive_stat(alive), myai(0)
 {
 	sensors.resize ( last_sensor_system );
 }
@@ -88,8 +86,7 @@ double sea_object::get_cross_section ( const vector2& d ) const
 
 
 sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
-	/*speed(0.0), throttle(stop), permanent_turn(false), head_chg(0.0), rudder(ruddermid),
-	head_to(0.0),*/ alive_stat(alive), myai(0)
+	turn_velocity(0), heading(0), alive_stat(alive), myai(0)
 {
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdobj = hspec.FirstChild(topnodename);
@@ -158,7 +155,9 @@ void sea_object::load(istream& in, class game& g)
 	position = read_vector3(in);
 	velocity = read_vector3(in);
 	orientation = read_quaternion(in);
-	rot_velocity = read_quaternion(in);
+	turn_velocity = read_double(in);
+	heading = angle(read_double(in));
+	
 /*	
 	heading = angle(read_double(in));
 	speed = read_double(in);
@@ -188,7 +187,9 @@ void sea_object::save(ostream& out, const class game& g) const
 	write_vector3(out, position);
 	write_vector3(out, velocity);
 	write_quaternion(out, orientation);
-	write_quaternion(out, rot_velocity);
+	write_double(out, turn_velocity);
+	write_double(out, heading.value());
+	
 /*
 	write_double(out, position.z);
 	write_double(out, heading.value());
@@ -305,22 +306,36 @@ void sea_object::simulate(game& gm, double delta_time)
 	// compute global accel from local with drag:
 	//vector3 accel = orientation.rotate(get_local_acceleration() - local_drag.coeff_mul(velocity.coeff_mul(velocity)));
 
+	// fixme: test hack
+	orientation = quaternion::rot(-heading.value(), 0, 0, 1);
+
 	vector3 acceleration = get_acceleration();
+	vector3 global_acceleration = orientation.rotate(acceleration);
+	vector3 global_velocity = orientation.rotate(velocity);
+	double t2_2 = 0.5 * delta_time * delta_time;
 
-//	cout << "object " << this << " simulate.\npos: " << position << "\nvelo: " << velocity
-//		<< "\naccel: " << acceleration << "\n";
+//cout << "object " << this << " simulate.\npos: " << position << "\nvelo: " << velocity << "\naccel: " << acceleration << "\n";
 
-	position += velocity * delta_time + acceleration * (0.5 * delta_time * delta_time);
+	position += global_velocity * delta_time + global_acceleration * t2_2;
 	velocity += acceleration * delta_time;
 
 //	cout << "NEWpos: " << position << "\nNEWvelo: " << velocity << "\n";
 //	cout << "(delta t = " << delta_time << ")\n";
 	
-	quaternion rotacceleration = get_rot_acceleration();
-//cout << "object " << this << " rot accel: " << rotacceleration << "\n orientat: " << orientation << "\nrot_velo: " << rot_velocity << "\n";
-	orientation = rotacceleration.scale_rot_angle(0.5*delta_time*delta_time) * rot_velocity.scale_rot_angle(delta_time) * orientation;
-	rot_velocity = rotacceleration.scale_rot_angle(delta_time) * rot_velocity;
+	double turnaccel = get_turn_acceleration();
+	double add_turn_angle = turn_velocity * delta_time + turnaccel * t2_2;
+	orientation = quaternion::rot(add_turn_angle, 0, 0, 1) * orientation;
+	heading += angle(add_turn_angle);
+	turn_velocity += turnaccel * delta_time;
 
+//cout << "object " << this << " orientat: " << orientation << " rot_velo: " << turn_velocity << " turn_accel " << turnaccel << "\n";
+
+
+//fixme: 2004/08/21: for turning only z-rotation is interesting. so replace get_rot_accel
+//by get_turn_accel.
+//the current code shows the same wrong behaviour like my airplane code
+//turning just turns, but the object keeps moving in the old direction (velocity is
+//directional and keeps direction!)
 
 
 //old: remove!
@@ -437,21 +452,6 @@ void sea_object::destroy(void)
 float sea_object::surface_visibility(const vector2& watcher) const
 {
 	return get_cross_section(watcher);
-}
-
-
-
-double sea_object::get_speed(void) const
-{
-	// speed is local velocity along y-axis
-	return (orientation.conj().rotate(velocity)).y;
-}
-
-
-
-angle sea_object::get_heading(void) const
-{
-	return angle(orientation.rotate(0, 1, 0).xy());
 }
 
 

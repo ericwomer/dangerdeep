@@ -83,8 +83,8 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 				pos = pos.matrixmul(coursevec, coursevec.orthogonal());
 				s->position.x = waypoints.begin()->x + pos.x;
 				s->position.y = waypoints.begin()->y + pos.y;
-				s->heading = s->head_to = 0;//heading;
-				s->speed = 0;//speed;//fixme
+				s->heading = s->head_to = heading;
+				s->velocity.y = get_speed();
 				s->throttle = 0;//throttle;//fixme
 				merchants.push_back(make_pair(s, pos));
 				++shps;
@@ -119,8 +119,8 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 			pos = pos.matrixmul(coursevec, coursevec.orthogonal());
 			s->position.x = waypoints.begin()->x + pos.x;
 			s->position.y = waypoints.begin()->y + pos.y;
-			s->heading = s->head_to = 0;//heading;
-			s->speed = 0;//speed;//fixme
+			s->heading = s->head_to = heading;
+			s->velocity.y = get_speed();
 			s->throttle = 0;//throttle;//fixme
 			escorts.push_back(make_pair(s, pos));
 		}
@@ -174,8 +174,8 @@ convoy::convoy(class game& gm, TiXmlElement* parent) : sea_object()
 		shp->parse_attributes(eship);
 		vector2 relpos = shp->position.xy();
 		shp->position += position;
-		shp->heading = shp->head_to = 0;//heading;//fixme
-		shp->speed = 0;//speed;//fixme
+		shp->heading = shp->head_to = heading;
+		shp->velocity.y = get_speed();//fixme: maybe assign velocity directly
 		shp->throttle = 0;//throttle;//fixme
 		for (list<vector2>::iterator it = waypoints.begin(); it != waypoints.end(); ++it)
 			shp->get_ai()->add_waypoint(*it + relpos);

@@ -56,11 +56,14 @@ protected:
 
 	string modelname;	// filename for model file (also used for modelcache requests), read from spec file
 
-	vector3 position, velocity;
-	quaternion orientation, rot_velocity;
-
+	vector3 position;	// global position
+	vector3 velocity;	// local velocity
+	quaternion orientation;	// global orientation
+	double turn_velocity;	// angular velocity around global z-axis
+	angle heading;		// global z-orientation is stored additionally
+	
 	virtual vector3 get_acceleration(void) const;		// drag must be already included!
-	virtual quaternion get_rot_acceleration(void) const;	// drag must be already included!
+	virtual double get_turn_acceleration(void) const;	// drag must be already included!
 
 	vector3f size3d;		// computed from model, indirect read from spec file, width, length, height
 	
@@ -120,15 +123,15 @@ public:
 
 	virtual vector3 get_pos(void) const { return position; };
 	virtual vector3 get_velocity(void) const { return velocity; };
+	virtual double get_speed(void) const { return get_velocity().y; }
 	virtual quaternion get_orientation(void) const { return orientation; };
-	virtual quaternion get_rot_velocity(void) const { return rot_velocity; };
+	virtual double get_turn_velocity(void) const { return turn_velocity; };
 	virtual double get_depth() const { return -position.z; };
 	virtual float get_width(void) const { return size3d.x; };
 	virtual float get_length(void) const { return size3d.y; };
 	virtual float get_height(void) const { return size3d.z; };
 	virtual float surface_visibility(const vector2& watcher) const;
-	virtual double get_speed(void) const;	// project velocity, a bit costly.
-	virtual angle get_heading(void) const;	// rotation and atan2 needed, a bit costly.
+	virtual angle get_heading(void) const { return heading; }
 	virtual class ai* get_ai(void) { return myai; }
 
 	/**

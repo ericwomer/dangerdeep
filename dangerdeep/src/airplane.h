@@ -17,8 +17,6 @@ protected:
 	airplane& operator=(const airplane& other);
 	airplane(const airplane& other);
 	
-	double speed;//local forward speed. fixme: check which attributes are need here
-	
 public:
 	// create empty object from specification xml file
 	airplane(class TiXmlDocument* specfile);
@@ -31,8 +29,6 @@ public:
 	virtual void parse_attributes(class TiXmlElement* parent);
 
 	virtual void simulate(class game& gm, double delta_time);
-
-	virtual double get_speed(void) const { return speed; }
 
 	virtual double get_mass(void) const { return 4000.0; }	// 4 tons.
 	virtual double get_engine_thrust(void) const { return 20000.0; }

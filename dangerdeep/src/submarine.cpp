@@ -600,6 +600,7 @@ float submarine::surface_visibility(const vector2& watcher) const
 			diverse_modifiers += 3.0f * 0.1;//CROSS_SECTION_VIS_PERIS;
 		}
 
+		double speed = get_speed();
 		dive_factor += diverse_modifiers * ( 0.5f + 0.5f * speed / max_speed_forward );
 	}
 

@@ -31,7 +31,7 @@ torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, ang
 			// fixme historic values??
 	size3d = vector3f(0.533, 7, 0.533);	// diameter 53.3cm (21inch), length ~ 7m
 	run_length = 0;
-	max_speed_forward = speed = get_speed_by_type(type_);
+	max_speed_forward = velocity.y = get_speed_by_type(type_);
 	max_speed_reverse = 0;
 	switch (type_) {
 		case T1:
@@ -131,7 +131,7 @@ void torpedo::simulate(game& gm, double delta_time)
 	}
 
 	double old_run_length = run_length;
-	run_length += speed * delta_time;
+	run_length += get_speed() * delta_time;
 	if (run_length > max_run_length) {
 		destroy();
 		return;

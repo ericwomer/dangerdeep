@@ -27,8 +27,6 @@ protected:
 	class ai* myai;
 	unsigned tonnage;	// in BRT, created after values from spec file (but maybe with some randomness), must get stored!
 
-	angle heading;		// stored additionally, take (0,1,0), rotate with orientation, project to xy-plane, get angle -> heading
-	double speed;		// m/sec, speed along local y axis, can be computed from velocity,orientation.
 	int throttle;		// if < 0: throttle_state, if > 0: knots
 	//double max_acceleration;	// read from spec file
 
@@ -62,7 +60,7 @@ protected:
 	unsigned shipclass;	// read from spec file, e.g. warship/merchant/escort/...
 
 	virtual vector3 get_acceleration(void) const;		// drag must be already included!
-	virtual quaternion get_rot_acceleration(void) const;	// drag must be already included!
+	virtual double get_turn_acceleration(void) const;	// drag must be already included!
 
 	ship();
 	ship(const ship& other);
@@ -85,6 +83,9 @@ protected:
 
 	class smoke_stream* mysmoke;
 	vector3 smokerelpos;	// read from spec file
+	
+	// common constructor. set attributes to sane values.
+	void init(void);
 	
 public:
 	enum shipclasses {
@@ -138,10 +139,10 @@ public:
 	virtual angle get_heading(void) const { return heading; };
 	virtual angle get_head_to(void) const { return permanent_turn ? heading : head_to; };
 	virtual angle get_turn_rate(void) const { return turn_rate; };
-	virtual double get_speed(void) const { return speed; };
 	virtual double get_max_speed(void) const { return max_speed_forward; };
 	virtual double get_throttle_speed(void) const;
 	virtual double get_throttle_accel(void) const;	// returns acceleration caused by current throttle
+	virtual double get_rudder_pos(void) const { return rudder_pos; }
 	virtual int get_rudder_to (void) const { return rudder_to; }
 	virtual double get_noise_factor (void) const;
 

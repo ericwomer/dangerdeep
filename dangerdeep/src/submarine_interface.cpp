@@ -773,6 +773,7 @@ void submarine_interface::display_gauges(class game& gm)
 	compass1->draw_rot(148, 564, -player->get_heading().value());
 	depth_indicator->draw_rot(504, 379, player->get_depth()*1.0-51.0, 95, 16);
 	knots_indicator->draw_rot(803, 91, fabs(player->get_speed())*22.33512-133.6, 15, 48);
+	main_rudder_indicator->draw_rot(837, 477, player->get_rudder_pos()*3.5125, 32, 80);
 
 /*
 	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
