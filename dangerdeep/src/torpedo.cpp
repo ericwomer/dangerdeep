@@ -91,8 +91,6 @@ torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, ang
 	turn_rate = 1; // ? is this needed somewhere?!
 	max_accel_forward = 1;
 
-	// torpedoes run too slow, fixme
-
 	system::sys().add_console("torpedo created");
 }
 
@@ -150,6 +148,7 @@ void torpedo::simulate(game& gm, double delta_time)
 		return;
 	}
 
+	//fixme: t5 seems not to work any more
 	if (type == T1FAT || type == T3FAT || type == T6LUT) { // FAT and LUT
 		angle turnang(180);
 		if (type == T6LUT && searchpattern == 1) turnang = (initialturn == 0) ? angle(-90) : angle(90);
