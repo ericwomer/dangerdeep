@@ -338,7 +338,7 @@ water::~water()
 	delete foamtex;
 	delete fresnelcolortex;
 	for (unsigned n = 0; n < water_bumpmap.size(); ++n)
-	delete water_bumpmap[n];
+		delete water_bumpmap[n];
 }
 
 

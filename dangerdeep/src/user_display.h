@@ -25,6 +25,8 @@ protected:
 	user_display(class user_interface& ui_) : ui(ui_) {}
 
 public:
+	// needed for correct destruction of heirs.
+	virtual ~user_display() {}
 	// very basic. Just draw display and handle input.
 	virtual void display(class game& gm) const = 0;
 	virtual void process_input(class game& gm, const SDL_Event& event) = 0;

@@ -5,8 +5,8 @@
 #define SUB_TDC_DISPLAY_H
 
 #include "user_display.h"
+#include "image.h"
 #include <vector>
-using namespace std;
 
 class sub_tdc_display : public user_display
 {
@@ -14,7 +14,7 @@ class sub_tdc_display : public user_display
 	public:
 		rotat_tex();
 		~rotat_tex();
-		texture* tex;
+		texture::ptr tex;
 		int left, top, centerx, centery;
 		void draw(double angle) const;
 		void set(const char* filename, int left, int top, int centerx, int centery);
@@ -25,7 +25,7 @@ class sub_tdc_display : public user_display
 
 	class scheme {
 	public:
-		class image* background;
+		image::ptr background;
 		rotat_tex clockbig;
 		rotat_tex clocksml;
 		rotat_tex targetcourse;
@@ -35,13 +35,13 @@ class sub_tdc_display : public user_display
 		rotat_tex targetpos;
 		// everything that does not rotate could also be an "image"...
 		// but only when this doesn't trash the image cache
-		texture* tubelight[6];
-		texture* tubeswitch[6];
-		texture* firebutton;
-		texture* automode[2];	// on/off
+		texture::ptr tubelight[6];
+		texture::ptr tubeswitch[6];
+		texture::ptr firebutton;
+		texture::ptr automode[2];	// on/off
 		rotat_tex gyro_a;
 		rotat_tex gyro_v;
-		texture* firesolutionquality;
+		texture::ptr firesolutionquality;
 		rotat_tex torpspeed;
 		scheme();
 		~scheme();

@@ -24,13 +24,11 @@ sub_tdc_display::rotat_tex::rotat_tex() : tex(0), left(0), top(0), centerx(0), c
 
 sub_tdc_display::rotat_tex::~rotat_tex()
 {
-	delete tex;
 }
 
 void sub_tdc_display::rotat_tex::set(const char* filename, int left_, int top_, int centerx_, int centery_)
 {
-	delete tex;	// paranoia
-	tex = new texture(get_image_dir() + filename);
+	tex = texture::ptr(new texture(get_image_dir() + filename));
 	left = left_;
 	top = top_;
 	centerx = centerx_;
@@ -46,22 +44,12 @@ void sub_tdc_display::rotat_tex::draw(double angle) const
 
 sub_tdc_display::scheme::scheme()
 {
-	memset(this, 0, sizeof(*this));
 }
 
 
 
 sub_tdc_display::scheme::~scheme()
 {
-	delete background;
-	for (unsigned i = 0; i < 6; ++i) {
-		delete tubelight[i];
-		delete tubeswitch[i];
-	}
-	delete firebutton;
-	delete automode[0];
-	delete automode[1];
-	delete firesolutionquality;
 }
 
 
@@ -71,8 +59,8 @@ sub_tdc_display::sub_tdc_display(user_interface& ui_) : user_display(ui_)
 	selected_tube = 0;
 	selected_mode = 0;
 
-	normallight.background = new image(get_image_dir() + "TDC_daylight_base.png");
-//	nightlight.background = new image(get_image_dir() + "TDC_redlight_base.png");
+	normallight.background = image::ptr(new image(get_image_dir() + "TDC_daylight_base.png"));
+//	nightlight.background = image::ptr(new image(get_image_dir() + "TDC_redlight_base.png"));
 
 	normallight.clockbig.set("TDC_daylight_clockbigptr.png", 921, 124, 930, 134);
 //	nightlight.clockbig.set("TDC_redlight_clockbigptr.png", 921, 124, 930, 134);
@@ -98,20 +86,20 @@ sub_tdc_display::sub_tdc_display(user_interface& ui_) : user_display(ui_)
 	for (unsigned i = 0; i < 6; ++i) {
 		ostringstream osn;
 		osn << (i+1);
-		normallight.tubelight[i] = new texture(get_image_dir() + "TDC_daylight_tube" + osn.str() + ".png");
-//		nightlight.tubelight[i] = new texture(get_image_dir() + "TDC_redlight_tube" + osn.str() + ".png");
-		normallight.tubeswitch[i] = new texture(get_image_dir() + "TDC_daylight_switchtube" + osn.str() + ".png");
-//		nightlight.tubeswitch[i] = new texture(get_image_dir() + "TDC_redlight_switchtube" + osn.str() + ".png");
+		normallight.tubelight[i] = texture::ptr(new texture(get_image_dir() + "TDC_daylight_tube" + osn.str() + ".png"));
+//		nightlight.tubelight[i] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_tube" + osn.str() + ".png"));
+		normallight.tubeswitch[i] = texture::ptr(new texture(get_image_dir() + "TDC_daylight_switchtube" + osn.str() + ".png"));
+//		nightlight.tubeswitch[i] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_switchtube" + osn.str() + ".png"));
 	}
 
-	normallight.firebutton = new texture(get_image_dir() + "TDC_daylight_firebutton.png");
-//	nightlight.firebutton = new texture(get_image_dir() + "TDC_redlight_firebutton.png");
-	normallight.automode[0] = new texture(get_image_dir() + "TDC_daylight_autoswitchon.png");
-//	nightlight.automode[0] = new texture(get_image_dir() + "TDC_redlight_autoswitchon.png");
-	normallight.automode[1] = new texture(get_image_dir() + "TDC_daylight_autoswitchoff.png");
-//	nightlight.automode[1] = new texture(get_image_dir() + "TDC_redlight_autoswitchoff.png");
-	normallight.firesolutionquality = new texture(get_image_dir() + "TDC_daylight_firesolutionquality.png");
-//	nightlight.firesolutionquality = new texture(get_image_dir() + "TDC_redlight_firesolutionquality.png");
+	normallight.firebutton = texture::ptr(new texture(get_image_dir() + "TDC_daylight_firebutton.png"));
+//	nightlight.firebutton = texture::ptr(new texture(get_image_dir() + "TDC_redlight_firebutton.png"));
+	normallight.automode[0] = texture::ptr(new texture(get_image_dir() + "TDC_daylight_autoswitchon.png"));
+//	nightlight.automode[0] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_autoswitchon.png"));
+	normallight.automode[1] = texture::ptr(new texture(get_image_dir() + "TDC_daylight_autoswitchoff.png"));
+//	nightlight.automode[1] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_autoswitchoff.png"));
+	normallight.firesolutionquality = texture::ptr(new texture(get_image_dir() + "TDC_daylight_firesolutionquality.png"));
+//	nightlight.firesolutionquality = texture::ptr(new texture(get_image_dir() + "TDC_redlight_firesolutionquality.png"));
 }
 
 

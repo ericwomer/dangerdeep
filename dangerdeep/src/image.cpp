@@ -5,6 +5,12 @@
 #include "system.h"
 #include "oglext/OglExt.h"
 #include <SDL_image.h>
+#include <sstream>
+
+
+unsigned image::mem_used = 0;
+unsigned image::mem_alloced = 0;
+unsigned image::mem_freed = 0;
 
 
 // cache
@@ -76,12 +82,26 @@ image::image(const string& s) :
 	sys().myassert(img != 0, string("image: failed to load '") + s + string("'"));
 	width = img->w;
 	height = img->h;
+	unsigned add_mem_used = width * height * img->format->BytesPerPixel;
+	mem_used += add_mem_used;
+	mem_alloced += add_mem_used;
+	ostringstream oss; oss << "Allocated " << add_mem_used << " bytes of system memory for image '" << name << "', total image system mem use " << mem_used/1024 << " kb";
+	ostringstream oss2; oss2 << "Image system mem usage " << mem_alloced << " vs " << mem_freed;
+	sys().add_console(oss2.str());
 }
 
 
 
 image::~image()
 {
+	unsigned sub_mem_used = width * height * img->format->BytesPerPixel;
+	mem_used -= sub_mem_used;
+	mem_freed += sub_mem_used;
+	ostringstream oss; oss << "Freed " << sub_mem_used << " bytes of system memory for image '" << name << "', total image system mem use " << mem_used/1024 << " kb";
+	sys().add_console(oss.str());
+	ostringstream oss2; oss2 << "Image system mem usage " << mem_alloced << " vs " << mem_freed;
+	sys().add_console(oss2.str());
+
 	if (cached_object == this)
 		clear_cache();
 	if (img)

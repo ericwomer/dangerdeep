@@ -10,15 +10,17 @@
 #endif
 
 #include <SDL.h>
-
 #include <gl.h>
 
 #include <vector>
 #include <string>
-using namespace std;
+#include <memory>
 
 class texture
 {
+public:
+	typedef std::auto_ptr<texture> ptr;
+
 private:
 	texture();
 	texture& operator=(const texture& other);
@@ -33,7 +35,7 @@ protected:
 	unsigned height;
 	unsigned gl_width;
 	unsigned gl_height;
-	string texfilename;
+	std::string texfilename;
 	int format;	// GL_RGB, GL_RGBA, etc.
 	int mapping;	// how GL draws the texture (GL_NEAREST, GL_LINEAR, etc.)
 	int clamping;	// how GL handles the border (GL_REPEAT, GL_CLAMP, GL_CLAMP_TO_EDGE)
@@ -46,11 +48,12 @@ protected:
 
 	// will scale down the image data to half size in each direction (at least w/h=1)
 	// w,h must be > 1
-	static vector<Uint8> scale_half(const Uint8* src, unsigned w, unsigned h, unsigned bpp);
+	static std::vector<Uint8> scale_half(const Uint8* src, unsigned w, unsigned h, unsigned bpp);
 	
 	// give powers of two for w,h, bpp must be 1!
 	static void make_normals(Uint8* dst, const Uint8* src, unsigned w, unsigned h, float detailh);
 
+	// statistics.
 	static unsigned mem_used;
 	static unsigned mem_alloced;
 	static unsigned mem_freed;
@@ -58,7 +61,7 @@ protected:
 public:
 	// if "makenormalmap" is true, format must be GL_LUMINANCE.
 	// give height of detail (scale factor) for normal mapping, mostly much larger than 1.0
-	texture(const string& filename, int mapping_ = GL_NEAREST, int clamp = GL_REPEAT,
+	texture(const std::string& filename, int mapping_ = GL_NEAREST, int clamp = GL_REPEAT,
 		bool makenormalmap = false, float detailh = 1.0f);
 
 	// create texture from subimage of SDL surface.
@@ -78,7 +81,7 @@ public:
 	unsigned get_bpp(void) const;
 	unsigned get_opengl_name(void) const { return opengl_name; };
 	void set_gl_texture(void) const;
-	string get_name(void) const { return texfilename; };
+	std::string get_name(void) const { return texfilename; };
 	unsigned get_width(void) const { return width; };
 	unsigned get_height(void) const { return height; };
 	unsigned get_gl_width(void) const { return gl_width; };
@@ -106,7 +109,7 @@ public:
 	// shader handling.
 	// give GL_FRAGMENT_PROGRAM_ARB or GL_VERTEX_PROGRAM_ARB as type
 	// fixme: a bit misplaced here!
-	static GLuint create_shader(GLenum type, const string& filename);
+	static GLuint create_shader(GLenum type, const std::string& filename);
 	static void delete_shader(GLuint nr);
 };
 

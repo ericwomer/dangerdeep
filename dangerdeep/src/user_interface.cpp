@@ -210,8 +210,9 @@ user_interface* user_interface::create(game& gm)
 
 user_interface::~user_interface ()
 {
-	for (vector<user_display*>::iterator it = displays.begin(); it != displays.end(); ++it)
+	for (vector<user_display*>::iterator it = displays.begin(); it != displays.end(); ++it) {
 		delete *it;
+	}
 
 	delete panel;
 

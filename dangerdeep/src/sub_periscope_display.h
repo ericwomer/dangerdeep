@@ -5,8 +5,8 @@
 #define SUB_PERISCOPE_DISPLAY_H
 
 #include "freeview_display.h"
+#include "image.h"
 #include <vector>
-using namespace std;
 
 class sub_periscope_display : public freeview_display
 {
@@ -14,14 +14,14 @@ class sub_periscope_display : public freeview_display
 	projection_data get_projection_data(class game& gm) const;
 	void post_display(class game& gm) const;
 
-	class image* background_normallight;
-	class image* background_nightlight;
+	image::ptr background_normallight;
+	image::ptr background_nightlight;
 
 	vector<class texture*> compassbar_tex;
 	vector<unsigned> compassbar_width;
 
-	texture* clock_hours_pointer;
-	texture* clock_minutes_pointer;
+	texture::ptr clock_hours_pointer;
+	texture::ptr clock_minutes_pointer;
 	
 	bool zoomed;	// use 1,5x (false) or 6x zoom (true)
 

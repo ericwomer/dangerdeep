@@ -91,11 +91,11 @@ void sub_periscope_display::post_display(game& gm) const
 
 sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_display(ui_), zoomed(false)
 {
-	background_normallight = new image(get_image_dir() + "periscope_daylight_rev.1.1b_final.png");
-	background_nightlight = new image(get_image_dir() + "periscope_redlight_rev.1.1b_final.png");
+	background_normallight = image::ptr(new image(get_image_dir() + "periscope_daylight_rev.1.1b_final.png"));
+	background_nightlight = image::ptr(new image(get_image_dir() + "periscope_redlight_rev.1.1b_final.png"));
 
-	clock_minutes_pointer = new texture(get_image_dir() + "clock_minutes_pointer.png");
-	clock_hours_pointer = new texture(get_image_dir() + "clock_hours_pointer.png");
+	clock_minutes_pointer = texture::ptr(new texture(get_image_dir() + "clock_minutes_pointer.png"));
+	clock_hours_pointer = texture::ptr(new texture(get_image_dir() + "clock_hours_pointer.png"));
 
 	// read compass bar image and cut to eight separate textures
 	image compassbari(get_image_dir() + "periscope_compassbar.png");
@@ -121,12 +121,6 @@ sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_dis
 
 sub_periscope_display::~sub_periscope_display()
 {
-	delete background_normallight;
-	delete background_nightlight;
-
-	delete clock_minutes_pointer;
-	delete clock_hours_pointer;
-
 	for (unsigned i = 0; i < compassbar_tex.size(); ++i)
 		delete compassbar_tex[i];
 }

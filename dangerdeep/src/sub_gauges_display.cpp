@@ -51,8 +51,8 @@ angle sub_gauges_display::indicator::get_angle(int mx, int my) const
 
 sub_gauges_display::sub_gauges_display(user_interface& ui_) : user_display(ui_)
 {
-	controlscreen_normallight = new image(get_image_dir() + "controlscreen_daylight.png");
-	controlscreen_nightlight = new image(get_image_dir() + "red_controlscreen_rev.0.99_b21_base.png");
+	controlscreen_normallight = image::ptr(new image(get_image_dir() + "controlscreen_daylight.png"));
+	controlscreen_nightlight = image::ptr(new image(get_image_dir() + "red_controlscreen_rev.0.99_b21_base.png"));
 	image compassi(get_image_dir() + "final_sw_compass.png");
 	image dialsday(get_image_dir() + "dials_indicators.png");
 	image dialsnight(get_image_dir() + "red_controlscreen_rev.0.99_b21_indicatorsMasked.png");
@@ -72,8 +72,6 @@ sub_gauges_display::sub_gauges_display(user_interface& ui_) : user_display(ui_)
 
 sub_gauges_display::~sub_gauges_display()
 {
-	delete controlscreen_normallight;
-	delete controlscreen_nightlight;
 }
 
 void sub_gauges_display::display(class game& gm) const
