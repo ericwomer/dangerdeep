@@ -46,10 +46,7 @@ protected:
 	float viewsideang, viewupang;	// global spectators viewing angles
 	vector3 viewpos;
             
-	user_interface() : quit(false), pause(false), time_scale(1), player_object(0)
-    {
-		if (allwaveheights.size() == 0) init_water_data();
-	}
+	user_interface();
 	user_interface& operator= (const user_interface& other);
 	user_interface(const user_interface& other);
    	user_interface(sea_object* player);
@@ -73,15 +70,20 @@ protected:
 	void draw_vessel_symbol(class system& sys, const vector2& offset, 
                                 const sea_object* so, color c) const;
 	void draw_trail(sea_object* so, const vector2& offset);
+    virtual void draw_pings(class game& gm, const vector2& offset);
+    virtual void draw_sound_contact(class game& gm, const sea_object* player,
+        const double& max_view_dist);
+    virtual void draw_visual_contacts(class system& sys, class game& gm,
+    const sea_object* player, const vector2& offset);
 
     // Display functions for screens.
-	void display_gauges(class system& sys, class game& gm);
-	void display_bridge(class system& sys, class game& gm);
-	void display_map(class system& sys, class game& gm);
-	void display_damagecontrol(class system& sys, class game& gm);
-	void display_logbook(class system& sys, class game& gm);
-	void display_successes(class system& sys, class game& gm);
-	void display_freeview(class system& sys, class game& gm);
+	virtual void display_gauges(class system& sys, class game& gm);
+	virtual void display_bridge(class system& sys, class game& gm);
+	virtual void display_map(class system& sys, class game& gm);
+	virtual void display_damagecontrol(class system& sys, class game& gm);
+	virtual void display_logbook(class system& sys, class game& gm);
+	virtual void display_successes(class system& sys, class game& gm);
+	virtual void display_freeview(class system& sys, class game& gm);
 
 public:	
 	virtual ~user_interface() {};
