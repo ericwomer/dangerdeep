@@ -33,14 +33,14 @@ protected:
 
 	vector<vector<float> > wavetilefoam;
 	
-	vector<unsigned> waveVBOs;	// VBOs for wave data (2*WAVE_PHASES)
-
 	unsigned reflectiontexsize;
 	unsigned reflectiontex;
 	texture* foamtex;
 
 	// Arrays used while drawing a tile. To avoid repeated re-alloc, they're here
 	mutable vector<color> colors;
+	mutable vector<vector3f> coords;
+	mutable vector<vector3f> uv0;
 //	mutable vector<vector3f> normals;
 
 #if 0		// old code, kept for reference, especially for foam

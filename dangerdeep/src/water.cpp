@@ -59,9 +59,9 @@ water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), ti
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-//	coords.reserve((tile_res+1)*(tile_res+1));
+	coords.reserve((tile_res+1)*(tile_res+1));
 	colors.resize((tile_res+1)*(tile_res+1));
-//	uv0.reserve((tile_res+1)*(tile_res+1));
+	uv0.reserve((tile_res+1)*(tile_res+1));
 //	normals.reserve((tile_res+1)*(tile_res+1));
 
 	foamtex = new texture(get_texture_dir() + "foam.png", GL_LINEAR);//fixme maybe mipmap it
@@ -140,6 +140,7 @@ water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), ti
 
 	}
 
+#if 0
 	waveVBOs.resize(2*WAVE_PHASES);
 	glGenBuffersARB(2*WAVE_PHASES, &waveVBOs[0]);
 	for (int i = 0; i < WAVE_PHASES; ++i) {
@@ -172,6 +173,7 @@ water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), ti
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB, (tile_res+1)*(tile_res+1)*3*sizeof(float), &(tmp2[0]), GL_STATIC_DRAW_ARB);
 	}
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+#endif	
 }
 
 
@@ -179,7 +181,6 @@ water::~water()
 {
 	glDeleteTextures(1, &reflectiontex);
 	delete foamtex;
-	glDeleteBuffersARB(2*WAVE_PHASES, &waveVBOs[0]);
 }
 
 
@@ -285,19 +286,16 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 	glEnableClientState(GL_COLOR_ARRAY);
 	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(color), &colors[0].r);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, waveVBOs[phase]);
-	glVertexPointer(3, GL_FLOAT, 0, 0);
+	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
 	glClientActiveTexture(GL_TEXTURE0);
 //	glEnableClientState(GL_NORMAL_ARRAY);
 //	glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0].x);
 //	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, waveVBOs[phase+WAVE_PHASES]);
-	glTexCoordPointer(3, GL_FLOAT, 0, 0);
+	glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv0[0].x);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glClientActiveTexture(GL_TEXTURE1);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
 	// ******************* draw tiles
 	int s = 6;//0;//2
@@ -500,9 +498,9 @@ void water::draw_tile(int phase, int lodlevel, int fillgap) const
 			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
 			texc.z -= VIRTUAL_PLANE_HEIGHT;
 						
-//			coords[vecptr] = coord;
+			coords[vecptr] = coord;
 //			normals[vecptr] = N;
-//			uv0[vecptr] = texc;
+			uv0[vecptr] = texc;
 			colors[vecptr] = primary;
 			fx += add;
 		}
