@@ -99,7 +99,7 @@ user_interface::user_interface(game& gm) :
 	// create weather effects textures
 
 	// rain
-#if 1
+#if 0
 #define NR_OF_RAIN_FRAMES 16
 #define NR_OF_RAIN_DROPS 800
 #define RAIN_TEX_W 256
@@ -128,7 +128,7 @@ user_interface::user_interface(game& gm) :
 	}
 #endif
 	// snow
-#if 1
+#if 0
 #define NR_OF_SNOW_FRAMES 23
 #define NR_OF_SNOW_FLAKES 2000
 #define SNOW_TEX_W 256
@@ -398,7 +398,7 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 
 void user_interface::draw_weather_effects(void) const
 {
-#if 1
+#if 0
 	// draw layers of snow flakes or rain drops (test)
 	// get projection from frustum to view
 	matrix4 c2w = (matrix4::get_gl(GL_PROJECTION_MATRIX) * matrix4::get_gl(GL_MODELVIEW_MATRIX)).inverse();
