@@ -1,8 +1,8 @@
 // game
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
-#ifndef SIMULATION_H
-#define SIMULATION_H
+#ifndef GAME_H
+#define GAME_H
 
 #define PINGREMAINTIME 1.0	// seconds
 #define PINGANGLE 15		// angle
@@ -148,13 +148,12 @@ public:
 	bool is_collision(const sea_object* s, const vector2& pos) const;
 
 	double water_depth(const vector2& pos) const;
-
-	// fixme: superseded by game(parser& p)	
-	game(const char* filename) { read(filename); };
-	void read(const char* filename);
-	void write(const char* filename) const;
 	
 	void main_playloop(class system& sys);
+
+	// loading and saving games. since game is virtual, use a factory function for loading
+	static game* load(const string& filename);
+	virtual void save(const string& filename) const;
 };
 
 #endif

@@ -866,3 +866,19 @@ bool game::is_day_mode () const
 
 	return false;
 }
+
+
+
+//
+// loading and saving
+//
+
+game* game::load(const string& filename)
+{
+	return 0;//fixme
+}
+
+void game::save(const string& filename) const
+{
+}
+

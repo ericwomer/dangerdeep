@@ -34,7 +34,7 @@ sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
 
 image *titlebackgr, *periscope, *threesubsimg, *damage_screen_background, *sub_damage_scheme_all,
-	*logbook_spiral, *killedimg, *scopewatcherimg;
+	*logbook_spiral, *killedimg, *scopewatcherimg, *depthchargeimg;
 
 void init_global_data(void)
 {
@@ -57,7 +57,7 @@ void init_global_data(void)
 	torpedo_g7 = new model((get_data_dir() + MODEL_DIR + "torpedo.mdl"));
 	depth_charge_mdl = new model((get_data_dir() + MODEL_DIR + "depth_charge.mdl"));
 	gun_shell_mdl = new model((get_data_dir() + MODEL_DIR + "gun_shell.mdl"));
-	titlebackgr = new image((get_data_dir() + IMAGES_DIR + "titlebackgr.png"));
+	titlebackgr = new image((get_data_dir() + IMAGES_DIR + "titlebackgr.jpg"));
 	periscope = new image((get_data_dir() + TEXTURE_DIR + "periscope.png"));
 	gauge1 = new texture((get_data_dir() + TEXTURE_DIR + "gauge1.png"));
 	gauge2 = new texture((get_data_dir() + TEXTURE_DIR + "gauge2.png"));
@@ -82,7 +82,7 @@ void init_global_data(void)
 	clock12 = new texture((get_data_dir() + TEXTURE_DIR + "clock12.png"));
 	clock24 = new texture((get_data_dir() + TEXTURE_DIR + "clock24.png"));
 	glasses = new texture((get_data_dir() + TEXTURE_DIR + "glasses.png"), 1, true, true);
-	threesubsimg = new image((get_data_dir() + IMAGES_DIR + "threesubs.png"));
+	threesubsimg = new image((get_data_dir() + IMAGES_DIR + "threesubs.jpg"));
 	torp_expl_water_splash[0] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash.png" ), 1 );
 	torp_expl_water_splash[1] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_1.png" ), 1 );
 	torp_expl_water_splash[2] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_2.png" ), 1 );
@@ -93,15 +93,16 @@ void init_global_data(void)
 	torpedo_detonation_surfaced[1] = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_detonation_surfaced_2.wav" ) );
 	logbook_spiral = new image((get_data_dir () + TEXTURE_DIR + "logbook_spiral.png"));
 	woodbackgr = new texture ( ( get_data_dir () + TEXTURE_DIR + "wooden_desk.png" ) );
-	damage_screen_background = new image((get_data_dir() + IMAGES_DIR + "damage_screen_backg.png"), 0, true, true, true);
+	damage_screen_background = new image((get_data_dir() + IMAGES_DIR + "damage_screen_backg.jpg"), 0, true, true, true);
 	sub_damage_scheme_all = new image((get_data_dir() + IMAGES_DIR + "sub_damage_scheme_all.png"), 0, true, true, true);
 	repairlight = new texture( ( get_data_dir () + TEXTURE_DIR + "repairlight.png" ), 0, true, true );
 	repairmedium = new texture( ( get_data_dir () + TEXTURE_DIR + "repairmedium.png" ), 0, true, true );
 	repairheavy = new texture( ( get_data_dir () + TEXTURE_DIR + "repairheavy.png" ), 0, true, true );
 	repaircritical = new texture( ( get_data_dir () + TEXTURE_DIR + "repaircritical.png" ), 0, true, true );
 	repairwrecked = new texture( ( get_data_dir () + TEXTURE_DIR + "repairwrecked.png" ), 0, true, true );
-	killedimg = new image((get_data_dir() + IMAGES_DIR + "killed.png"), 0, true, true, true);
-	scopewatcherimg = new image((get_data_dir() + IMAGES_DIR + "scopewatcher.png"), 0, true, true, true);
+	killedimg = new image((get_data_dir() + IMAGES_DIR + "killed.jpg"), 0, true, true, true);
+	scopewatcherimg = new image((get_data_dir() + IMAGES_DIR + "scopewatcher.jpg"), 0, true, true, true);
+	depthchargeimg = new image((get_data_dir() + IMAGES_DIR + "depthcharge.jpg"), 0, true, true, true);
 }
 
 void deinit_global_data(void)
@@ -170,6 +171,7 @@ void deinit_global_data(void)
 	delete repairwrecked;
 	delete killedimg;
 	delete scopewatcherimg;
+	delete depthchargeimg;
 }
 
 // returns 1939-1945, 1-12, 1-31

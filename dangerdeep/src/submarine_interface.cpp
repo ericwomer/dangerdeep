@@ -18,6 +18,8 @@ using namespace std;
 #include "texts.h"
 #include "sound.h"
 #include "image.h"
+#include "menu.h"
+extern void menu_notimplemented(void);	// fixme remove later.
 
 submarine_interface::submarine_interface(submarine* player_sub) : 
     	user_interface( player_sub ), sub_damage_disp(new sub_damage_display(player_sub))
@@ -200,7 +202,20 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 				break;
 
 			// quit, screenshot, pause etc.
-			case SDLK_ESCAPE: quit = true; break;
+			case SDLK_ESCAPE:
+				{
+					//fixme: time continues until menu is shown?
+					menu m(29, depthchargeimg);
+					m.add_item(118, menu_notimplemented);
+					m.add_item(119, menu_notimplemented);
+					m.add_item(120, 0);
+					m.add_item(121, 0);
+					unsigned sel = m.run();
+					if (sel == 2) {
+						quit = true;
+					}
+					break;
+				}
 			case SDLK_PRINT: sys.screenshot(); sys.add_console("screenshot taken."); break;
 			case SDLK_PAUSE: pause = !pause;
 				if (pause) add_message(texts::get(52));
