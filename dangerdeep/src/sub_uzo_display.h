@@ -21,7 +21,7 @@ public:
 	virtual ~sub_uzo_display();
 
 	//overload for zoom key handling ('y')
-	//virtual void process_input(class game& gm, const SDL_Event& event);
+	virtual void process_input(class game& gm, const SDL_Event& event);
 };
 
 #endif

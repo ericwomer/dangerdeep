@@ -37,8 +37,8 @@ void sub_bridge_display::post_display(game& gm) const
 {
 	system::sys().prepare_2d_drawing();
 	if (glasses_in_use) {
-		glasses->draw(0, 0, 512, 512);
-		glasses->draw_hm(512, 0, 512, 512);
+		glasses_tex->draw(0, 0, 512, 512);
+		glasses_tex->draw_hm(512, 0, 512, 512);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glColor3ub(0, 0, 0);
 		system::sys().draw_rectangle(0, 512, 1024, 256);
@@ -49,19 +49,20 @@ void sub_bridge_display::post_display(game& gm) const
 
 
 
-sub_bridge_display::sub_bridge_display(user_interface& ui_) : freeview_display(ui_)
+sub_bridge_display::sub_bridge_display(user_interface& ui_) : freeview_display(ui_), glasses_in_use(false)
 {
 	pos = vector3(0, 0, 6);//fixme, depends on sub
 	aboard = true;
 	withunderwaterweapons = false;
 	drawbridge = true;
-	glasses_in_use = false;
+	glasses_tex = new texture(get_texture_dir() + "glasses.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
 }
 
 
 
 sub_bridge_display::~sub_bridge_display()
 {
+	delete glasses_tex;
 }
 
 

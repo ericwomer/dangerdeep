@@ -26,7 +26,7 @@ texture *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *metalbackgr,
 	*torpt1, *torpt2, *torpt3, *torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut,
-	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
+	*clock12, *clock24, *torp_expl_water_splash[3],
 	*woodbackgr, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
 	*terraintex, *cloudsbackgr, *atlanticmap;
@@ -84,7 +84,6 @@ void init_global_data(void)
 	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", GL_LINEAR);
 	clock12 = new texture(get_texture_dir() + "clock12.png");
 	clock24 = new texture(get_texture_dir() + "clock24.png");
-	glasses = new texture(get_texture_dir() + "glasses.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
 	torp_expl_water_splash[0] = new texture(get_texture_dir() + "torpedo_expl_water_splash.png" , GL_LINEAR);
 	torp_expl_water_splash[1] = new texture(get_texture_dir() + "torpedo_expl_water_splash_1.png" , GL_LINEAR);
 	torp_expl_water_splash[2] = new texture(get_texture_dir() + "torpedo_expl_water_splash_2.png" , GL_LINEAR);
@@ -161,7 +160,6 @@ void deinit_global_data(void)
 	delete torpt6lut;
 	delete clock12;
 	delete clock24;
-	delete glasses;
 	delete torp_expl_water_splash[0];
 	delete torp_expl_water_splash[1];
 	delete torp_expl_water_splash[2];

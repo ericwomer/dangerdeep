@@ -12,6 +12,8 @@ class sub_bridge_display : public freeview_display
 	projection_data get_projection_data(class game& gm) const;
 	void post_display(class game& gm) const;
 
+	class texture* glasses_tex;
+
 	bool glasses_in_use;
 
 public:

@@ -13,8 +13,7 @@
 
 void sub_uzo_display::pre_display(game& gm) const
 {
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 
@@ -40,6 +39,9 @@ void sub_uzo_display::post_display(game& gm) const
 	system::sys().prepare_2d_drawing();
 	uzotex->draw(0, 0, 512, 512);
 	uzotex->draw_hm(512, 0, 512, 512);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glColor3ub(0, 0, 0);
+	system::sys().draw_rectangle(0, 512, 1024, 256);
 	ui.draw_infopanel(gm);
 	system::sys().unprepare_2d_drawing();
 }
@@ -61,4 +63,26 @@ sub_uzo_display::sub_uzo_display(user_interface& ui_) : freeview_display(ui_), z
 sub_uzo_display::~sub_uzo_display()
 {
 	delete uzotex;
+}
+
+
+
+void sub_uzo_display::process_input(class game& gm, const SDL_Event& event)
+{
+	switch (event.type) {
+	case SDL_KEYDOWN:
+		switch(event.key.keysym.sym) {
+		case SDLK_y: zoomed = !zoomed; return;
+		// filter away keys NP_1...NP_9 to avoid moving viewer like in freeview mode
+		case SDLK_KP8: return;
+		case SDLK_KP2: return;
+		case SDLK_KP4: return;
+		case SDLK_KP6: return;
+		case SDLK_KP1: return;
+		case SDLK_KP3: return;
+		default: break;
+		}
+	default: break;
+	}
+	freeview_display::process_input(gm, event);
 }

@@ -240,7 +240,6 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 #endif
 
 	}
-	cout << "minh " << minh << " maxh " << maxh << " diff " << maxh-minh << "\n";
 	add_loading_screen("water height data computed");
 }
 
@@ -672,7 +671,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	//coords and normals change per frame, so no display lists can be used.
 	//simple vertex arrays with locking should do the trick, maybe use
 	//(locked) quadstrips, if they're faster than compiled vertex arrays, test it!
-//	float minh=1000,maxh=-1000;
 
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
@@ -687,9 +685,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
 			texc.z -= VIRTUAL_PLANE_HEIGHT;
 
-//			if (coord.z < minh) minh = coord.z;
-//			if (coord.z > maxh) maxh = coord.z;
-
 			// water color depends on height of wave and slope
 			// slope (N.z) it mostly > 0.8
 			float colorfac = (coord.z + 3) / 9 + (N.z - 0.8f);
@@ -698,7 +693,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 			uv1[ptr] = texc;
 		}
 	}
-//	cout << "minh " << minh << " maxh " << maxh << "\n";
 
 	// set up textures
 	setup_textures(reflection_projmvmat);
