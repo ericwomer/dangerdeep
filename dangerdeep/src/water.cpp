@@ -40,7 +40,7 @@
 	Earlier plans were that foam is just white color added to the water. That way we could
 	keep an texture that is updated every frame and holds information in a rectangular grid
 	wether there is foam or not. That way we don't need to send foam data via colors,
-	texture coordinates etc. This is no good idea: the foam looks to bad, and we would need
+	texture coordinates etc. This is no good idea: the foam looks too bad, and we would need
 	an texture that covers the whole water area (texture would be too big). No way.
 	So the foam must be mixed into the water somehow. Let's store a foam texture in the
 	second texture unit. How do we mix it in? GL_INTERPOLATE only works with source color's
@@ -72,7 +72,8 @@
 	Alpha channels are gone ... no! Store these values in the Alpha channel of the reflection
 	map. The reflection map is computed the same way as the grey value map. Good! The only
 	problem that remains is how to create the RGBA reflection map from RGB values of one
-	scene and the A values of another.
+	scene and the A values of another. Use color masking for that (Mask bits before writing
+	in the buffer).
 */	
 
 water::water(unsigned xres_, unsigned yres_, double tm) : mytime(tm), xres(xres_), yres(yres_), reflectiontex(0), foamtex(0)

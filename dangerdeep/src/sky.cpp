@@ -489,6 +489,9 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+	glDisable(GL_LIGHTING);
+	glDepthMask(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
 
 	glPushMatrix();
 	glTranslatef(0, 0, -viewpos.z);
@@ -523,7 +526,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	// with scal=0.1 we draw a sky hemisphere with 3km radius. We don't write to
 	// the z-buffer, so any scale within znear and zfar is ok. To avoid clipping of
 	// parts of the sky hemisphere with the zfar plane, we scale it to a much smaller
-	// size than 30km=zfar. fixme, does a disabled DEPTH_TEST write to the zbuffer, too?
+	// size than 30km=zfar.
 	double scal = 0.1;//max_view_dist / 30000.0;	// sky hemisphere is stored as 30km in radius
 	glScaled(scal, scal, scal);
 
@@ -539,10 +542,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glActiveTexture(GL_TEXTURE0);	
 
 	// ********* set up sky textures and call list
-	glDisable(GL_DEPTH_TEST);	// to avoid the stars appearing in front of the sun etc.
-	glDisable(GL_LIGHTING);
-	
-	glCallList(skyhemisphere_dl);	// this overdraws the stars! why?!
+	glCallList(skyhemisphere_dl);
 	
 	color::white().set_gl_color();
 	
@@ -619,6 +619,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	clouds->set_gl_texture();
 	glCallList(clouds_dl);
 
+	glDepthMask(GL_TRUE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	color::white().set_gl_color();

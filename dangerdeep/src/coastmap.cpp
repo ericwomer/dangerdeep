@@ -17,6 +17,36 @@
 #include <fstream>
 
 
+/*
+2004/05/17
+idea.
+Store map as b/w png image.
+Create coastlines from pixel border at runtime.
+Create coast line with bsplines on the fly from border.
+#Vertices = 2^detaillevel.
+Compute vertices with binary subdivision: at t=0,1
+then at t=0.5, later at t=0.25 and 0.75, t=0.125,0.375,0.625,0.875 etc.
+would be fast enough for display at runtime.
+Locally increased detail is possible, e.g. subdivide that part of a coastline
+that is inside the segment to a certain amount (5-10km/line) and subdivide
+it more near the player (measure distance to line segment)
+
+For each segment store which coastlines are inside with start t and end t
+(t along the whole coastline).
+When drawing multiple sectors unite the coastline lists of several sectors
+(e.g. cl a is in segm 1 with t=[0.2...0.4] and cl a is also in segm2 with
+t=[0.4...0.6] -> draw cl a with t=[0.2...0.6])
+That way we have seamless coastlines.
+
+The map takes little memory on disk, no map compiler needed (or at least not that
+time consuming one), much advantages
+
+coastmap should move from user_interface to game because it's not only stored
+for displaying purposes but should influence the game!
+*/
+
+
+
 void coastmap::save(const string& filename) const
 {
 	ofstream out((get_map_dir() + filename).c_str(), ios::binary|ios::out);
