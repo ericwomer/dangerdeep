@@ -504,7 +504,7 @@ coastmap::coastmap(const string& filename)
 		}
 	}
 
-	SDL_Surface* surf = IMG_Load(img);
+	SDL_Surface* surf = IMG_Load((get_map_dir() + img).c_str());
 	system::sys().myassert(surf != 0, string("coastmap: error loading image ") + img + string(" referenced in file ") + filename);
 
 	mapw = surf->w;
