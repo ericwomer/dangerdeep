@@ -1,3 +1,15 @@
+2003-07-09  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* made release 0.0.11 and increased version number to 0.0.12
+
+2003-07-09  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* model.cpp
+	  - replaced construct that was compiled wrongly by VC++6.
+	    Now this win32 bug is fixed.
+	    VC6 can't compile "Release" but "Debug" only ("internal
+	    compiler error").
+	    What a faulty compiler! Anyone wants to try WatcomC++ 11
+	    on this? or gcc/win32?
+
 2003-07-07  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* user_interface.cpp
 	  - fixed code for new water, removed old water code.

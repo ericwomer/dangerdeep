@@ -85,18 +85,15 @@ void model::read(const string& filename)
 	max.z = tmpf[2];
 	int indexsize = (nrf < 256) ? 1 : ((nrf < 65536) ? 2 : ((nrf < 16777216) ? 3 : 4 ));
 	for ( ; nrv > 0; --nrv) {
-		vector3f pos(
-			read_quantified_float(f, min.x, max.x),
-			read_quantified_float(f, min.y, max.y),
-			read_quantified_float(f, min.z, max.z) );
-		vector3f normal(
-			read_packed_float(f),
-			read_packed_float(f),
-			read_packed_float(f) );
-		vector2f uv(
-			read_packed_float(f),
-			read_packed_float(f) );
-		vertices.push_back(vertex(uv, normal, pos));
+		float px = read_quantified_float(f, min.x, max.x);
+		float py = read_quantified_float(f, min.y, max.y);
+		float pz = read_quantified_float(f, min.z, max.z);
+		float nx = read_packed_float(f);
+		float ny = read_packed_float(f);
+		float nz = read_packed_float(f);
+		float u = read_packed_float(f);
+		float v = read_packed_float(f);
+		vertices.push_back(vertex(vector2f(u, v), vector3f(nx, ny, nz), vector3f(px, py, pz)));
 	}
 	for ( ; nrf > 0; --nrf) {
 		unsigned v0 = 0, v1 = 0, v2 = 0;
