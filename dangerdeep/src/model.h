@@ -49,11 +49,12 @@ class model {
 		vector<face> faces;
 		float xformmat[4][3];	// rotation and translation
 		material* mymaterial;
+		bool use_uv_coords;
 		void display(bool usematerial) const;
 
-		mesh(const mesh& m) : vertices(m.vertices), faces(m.faces), mymaterial(m.mymaterial) {}
-		mesh& operator= (const mesh& m) { vertices = m.vertices; faces = m.faces; mymaterial = m.mymaterial; return *this; }
-		mesh() : mymaterial(0) {}
+		mesh(const mesh& m) : vertices(m.vertices), faces(m.faces), mymaterial(m.mymaterial), use_uv_coords(m.use_uv_coords) {}
+		mesh& operator= (const mesh& m) { vertices = m.vertices; faces = m.faces; mymaterial = m.mymaterial; use_uv_coords = m.use_uv_coords; return *this; }
+		mesh() : mymaterial(0), use_uv_coords(false) {}
 		~mesh() {}
 	};
 	
@@ -104,7 +105,10 @@ class model {
 
 public:
 	static int mapping;	// GL_* mapping constants
-	model(const string& filename, bool usematerial = true);
+	// give for auto_uv:
+	// 0 no uv generation
+	// 1 sphere map around center (texture center = z-axis, mirrored on xy-plane)
+	model(const string& filename, bool usematerial = true, unsigned auto_uv = 0);
 	~model();
 	void display(void) const;
 	vector3f get_min(void) const { return min; }

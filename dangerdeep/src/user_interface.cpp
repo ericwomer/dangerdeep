@@ -75,6 +75,9 @@ user_interface::user_interface(sea_object* player, game& gm) :
 	viewmode(4), target(0), zoom_scope(false), mapzoom(0.1),
 	mycoastmap("default.map"), freeviewsideang(0), freeviewupang(-90), freeviewpos()
 {
+	stars = 0;
+	skycolor = 0;
+	sunglow = 0;
 	clouds = 0;
 	init ();
 	panel = new widget(0, 768-128, 1024, 128, "", 0, panelbackgroundimg);
@@ -385,6 +388,58 @@ void user_interface::init ()
 		water_bumpmaps[i] = new texture(&un[0], bumpmap_texsize, bumpmap_texsize, GL_RGB, GL_RGB,
 			GL_UNSIGNED_BYTE, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 	}
+
+	// create maps for stars, sky color and sun glow
+	vector<Uint8> starmap(256*256);
+	vector<Uint8> skycolormap(32*32*3);
+	vector<Uint8> sunglowmap(256*256);
+	for (int y = 0; y < 256; ++y) {
+		for (int x = 0; x < 256; ++x) {
+			Uint8 s = 0;
+			if (rnd() < 0.005)
+				s = Uint8(255*rnd());
+			starmap[y*256+x] = s;
+		}
+	}
+//	ofstream oss("test2.pgm");
+//	oss << "P5\n256 256\n255\n";
+//	oss.write((const char*)(&starmap[0]), 256*256);
+	for (int y = 0; y < 32; ++y) {
+		for (int x = 0; x < 32; ++x) {
+			float dist = sqrt(float(vector2i(x-16, y-16).square_length()))/16.0f;
+			if (dist > 1.0f) dist = 1.0f;
+			dist = dist*dist*dist;
+			float dist1 = 1.0f-dist;
+			skycolormap[(y*32+x)*3+0] = Uint8(173*dist +  73*dist1);
+			skycolormap[(y*32+x)*3+1] = Uint8(200*dist + 164*dist1);
+			skycolormap[(y*32+x)*3+2] = Uint8(219*dist + 255*dist1);
+		}
+	}
+//	ofstream osc("test.ppm");
+//	osc << "P6\n32 32\n255\n";
+//	osc.write((const char*)(&skycolormap[0]), 32*32*3);
+	const double expa = 2.0;
+	const double expb = exp(-expa);
+	for (int y = 0; y < 256; ++y) {
+		for (int x = 0; x < 256; ++x) {
+			float dist = sqrt(float(vector2i(x-128, y-128).square_length()))/64.0f;
+			if (dist > 1.0f) dist = 1.0f;
+			float val = 255*((exp(-dist*expa) - expb)/(1-expb));
+			if (val < 0) val = 0;
+			if (val > 255) val = 255;
+			sunglowmap[y*256+x] = Uint8(val);
+		}
+	}
+//	ofstream osg("test.pgm");
+//	osg << "P5\n256 256\n255\n";
+//	osg.write((const char*)(&sunglowmap[0]), 256*256);
+
+	stars = new texture(&starmap[0], 256, 256, GL_LUMINANCE, GL_LUMINANCE, GL_UNSIGNED_BYTE, GL_LINEAR, GL_REPEAT);
+	skycolor = new texture(&skycolormap[0], 32, 32, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, GL_LINEAR, GL_CLAMP);
+	sunglow = new texture(&sunglowmap[0], 256, 256, GL_LUMINANCE, GL_LUMINANCE, /*GL_ALPHA, GL_ALPHA,*/ GL_UNSIGNED_BYTE, GL_LINEAR, GL_CLAMP);
+	starmap.clear();
+	skycolormap.clear();
+	sunglowmap.clear();
 	
 	// init clouds
 	// clouds are generated with Perlin noise.
@@ -489,6 +544,9 @@ void user_interface::deinit ()
 
 	glDeleteTextures(1, &wavefoamtex);
 	
+	delete stars;
+	delete skycolor;
+	delete sunglow;
 	delete clouds;
 	glDeleteLists(clouds_dl, 1);
 
@@ -530,6 +588,8 @@ void user_interface::compute_clouds(void)
 	// create full map
 	vector<Uint8> fullmap(256 * 256 * 2);
 	unsigned fullmapptr = 0;
+	vector2i sunpos(64,64);		// store sun coordinates here! fixme
+	float maxsundist = 362;		// sqrt(2*256^2)
 	for (unsigned y = 0; y < 256; ++y) {
 		for (unsigned x = 0; x < 256; ++x) {
 			unsigned v = 0;
@@ -547,7 +607,8 @@ void user_interface::compute_clouds(void)
 				v -= invcover;
 			// use sharpness for exp function
 			v = 255 - v * 256 / cloud_coverage;	// equalize
-			fullmap[fullmapptr++] = 255;
+			int sundist = int(255-192*sqrt(float(vector2i(x,y).square_distance(sunpos)))/maxsundist);
+			fullmap[fullmapptr++] = sundist;	// luminance info is wasted here, but should be used, fixme
 			fullmap[fullmapptr++] = Uint8(v * unsigned(cloud_alpha[y*256+x]) / 255);
 		}
 	}
@@ -764,6 +825,12 @@ vector3f user_interface::get_water_normal(const vector2& pos, double t, double f
 void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	double max_view_dist, bool onlyflatwater) const
 {
+
+	// fixme: draw some quads between the farest wave tiles and the horizon to fill the gaps
+	// wave tiles are drawn in triangle shape, like a rasterized triangle. draw some quads
+	// from the border of the outmost tiles (matching their resolution and height) to a line
+	// parallel to horizon/user view. from that line begin to bend the water faces according to
+	// earth curvature. this avoids gaps and looks right.
 
 	// the origin of the coordinate system is the bottom left corner of the tile
 	// that the viewer position projected to xy plane is inside.
@@ -1041,6 +1108,60 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glRotatef(dir.value(),0,0,1);
 
 	// ************ sky ***************************************************************
+	glActiveTexture(GL_TEXTURE0);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, /*stars*/ skycolor->get_opengl_name());
+	
+	// skyplanes:
+	// 1) the stars (black with grey random dots)
+	// 2) blue color, shading to grey haze to the horizon
+	// 3) sun glow
+	// 4) clouds layer
+	// 5) sun lens flares
+	// draw: interpolate between 1 and 2 according to time
+	// add sun glow, same faces
+	// draw lower cloud layer
+	// optionally add lens flares
+	// stars must come from a texture, also sun glow (it moves), sky color may be drawn with
+	// glColor. So three sources: color (c), stars (t0), glow (t1) ->
+	// formula is: pixel color = c*(1-timefac)+stars*timefac + glow
+	// timefac is blending factor (alpha) and const while drawing (global color alpha?)
+	// sky hemisphere is missing multitexture coordinates! fixme
+
+/*
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);//tex0 is sky color, but should also be scaleable (texsubimage?)
+	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+*/
+
+
+	glActiveTexture(GL_TEXTURE1);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, /*sunglow*/ skycolor->get_opengl_name());
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+
+
+/*	
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);//primary color
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+
+*/
+
+	// fixme: sky should be brighter near the sun
+	// two texture components: top-down color gradient (blue->grey e.g.)
+	// brightness glow around sun position (exponential luminance map), border is black, clamped
+	// brightness map controls mix between sky color and light color
+	// this allows sky display without texture recomputation
 	glPushMatrix();
 	glTranslatef(0, 0, -viewpos.z);
 	glPushMatrix();
@@ -1066,11 +1187,26 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glDisable(GL_LIGHTING);
 	float tmp = 1.0/30000.0;
 	glScalef(tmp, tmp, tmp);	// sky hemisphere is stored as 30km in radius
-	skycol2.set_gl_color();
-	glBindTexture(GL_TEXTURE_2D, 0);
-	skyhemisphere->display();
+	//lightcol.set_gl_color();
 	color::white().set_gl_color();
+	glActiveTexture(GL_TEXTURE0);
+	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	glLoadIdentity();
+//	glScalef(8.0f, 8.0f, 1.0f);
+//	glTranslatef(0.2f, 0.3f, 0.0f);
+	skyhemisphere->display();
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	color::white().set_gl_color();
+
+	// clean up texture units 1 and 0
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glEnable(GL_LIGHTING);
+
 	glPopMatrix();	// remove scale
 	
 	// ******** the sun and the moon **********
@@ -1078,7 +1214,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	/* How to compute the sun's/moon's position:
 	   Earth and moon rotate around the sun's y-axis and around their own y-axes.
 	   The z-axis is pointing outward and the x-axis around the equator.
-	   Earth's rotational axis differs by 23 degrees from sun's y-axis.
+	   Earth's rotational axis differs by 23.45 degrees from sun's y-axis.
 	   Given that knowledge one can write transformations between local spaces earth->sun, moon->sun,
 	   viewer's position->earth. With them one can compute any transform between any object.
 	   What is when all angles are zero?
@@ -1091,25 +1227,28 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	   Summary: Nullposition means top of summer, midnight and new moon (earth hides him) at southmost point.
 	   We have to adjust sun position by 31+28+31+30+31+21=172 days back (ignoring that february may have 29 days)
 	   The "easiest" thing would be to know where sun and moon were at 1st. january 1939, 00:00am.
+	   fixme: moon rotation plane is not equal to earth rotation plane, it differs by 5,15 degr.
+	   this is why the moon is not always in earth's shadow when it is a full moon.
 	*/
 	// fixme: adjust OpenGL light position to infinite in sun/moon direction.
-	const double EARTH_RADIUS = 6.378e6;
-	const double SUN_RADIUS = 696e6;
-	const double MOON_RADIUS = 1.738e6;
-	const double EARTH_SUN_DISTANCE = 149600e6;
-	const double MOON_EARTH_DISTANCE = 384.4e6;
+	const double EARTH_RADIUS = 6.378e6;			// 6378km
+	const double SUN_RADIUS = 696e6;			// 696.000km
+	const double MOON_RADIUS = 1.738e6;			// 1738km
+	const double EARTH_SUN_DISTANCE = 149600e6;		// 149.6 million km.
+	const double MOON_EARTH_DISTANCE = 384.4e6;		// 384.000km
 	const double EARTH_ROT_AXIS_ANGLE = 23.45;
-	const double MOON_ORBIT_TIME = 29.5306 * 86400.0;
-	const double EARTH_ROTATION_TIME = 86400.0;
+	const double MOON_ORBIT_TIME = 27.3333333 * 86400.0;	// fixme: the moon rotates in 27 1/3 days around the earth, but full moon is every 29,5 days
+//	const double MOON_ORBIT_TIME = 29.5306 * 86400.0;	// fixme: the moon rotates in 27 1/3 days around the earth, but full moon is every 29,5 days
+	const double EARTH_ROTATION_TIME = 86400.0;		// exactly 1 day
 	const double EARTH_PERIMETER = 2.0 * M_PI * EARTH_RADIUS;
 	const double EARTH_ORBIT_TIME = 31556926.5;	// in seconds. 365 days, 5 hours, 48 minutes, 46.5 seconds
 	// these values are difficult to get. SUN_POS_ADJUST should be around +9.8deg (10days of 365 later) but that gives
 	// a roughly right position but wrong sun rise time by about 40min. fixme
-	const double SUN_POS_ADJUST = 0;	// in degrees. 10 days from 21st. Dec. to 1st. Jan. * 360deg/365.24days
+	const double SUN_POS_ADJUST = 9.8;	// in degrees. 10 days from 21st. Dec. to 1st. Jan. * 360deg/365.24days
 	const double MOON_POS_ADJUST = 300.0;	// in degrees. Moon pos in its orbit on 1.1.1939 fixme: this value is a rude guess
 	double universaltime = gm.get_time();//    * 8640;	// fixme: substract local time
 
-	// draw sun
+	// draw sun, fixme draw glow/flares/halo
 	glPushMatrix();
 	// Transform earth space to viewer space
 	// to avoid mixing very differently sized floating point values, we scale distances before translation.
@@ -1184,8 +1323,12 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glDisable(GL_DEPTH_TEST);	// draw all clouds
 	lightcol.set_gl_color();	// cloud color depends on day time
 
+	// fixme: cloud color varies with direction to sun (clouds aren't flat, but round, so
+	// border are brighter if sun is above/nearby)
+	// fixme: add flares after cloud layer (?)
+
 	float clsc = max_view_dist * 0.9;
-	glScalef(clsc, clsc, 3000);	// bottom of cloud layer has altitude of 3km.
+	glScalef(clsc, clsc, 3000);	// bottom of cloud layer has altitude of 3km., fixme varies with weather
 	clouds->set_gl_texture();
 	glCallList(clouds_dl);
 

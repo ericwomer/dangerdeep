@@ -12,7 +12,7 @@
 
 int model::mapping = GL_NEAREST;
 
-model::model(const string& filename, bool usematerial_) : display_list(0), usematerial(usematerial_)
+model::model(const string& filename, bool usematerial_, unsigned auto_uv) : display_list(0), usematerial(usematerial_)
 {
 	// fixme: determine loader by extension here. currently only 3ds supported
 	m3ds_load(filename);
@@ -21,6 +21,32 @@ model::model(const string& filename, bool usematerial_) : display_list(0), usema
 	
 	compute_bounds();
 	compute_normals();
+
+	// generate uv coordinates if desired	
+	if (auto_uv == 1) {
+		vector3f center = (min + max) * 0.5f;
+		center.z = min.z;
+		for (vector<mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
+			for (vector<mesh::vertex>::iterator vit = it->vertices.begin(); vit != it->vertices.end(); ++vit) {
+				vector3f d = (vit->pos - center).normal();
+				d.z = fabs(d.z);
+				if (d.z > 1.0f) d.z = 1.0f;
+				float alpha = acos(fabs(d.z));
+				float sinalpha = sin(alpha);
+				float u = 0.5f;
+				float v = 0.5f;
+				if (sinalpha != 0.0f) {
+					u += (alpha*d.x)/(sinalpha*M_PI);
+					v += (alpha*d.y)/(sinalpha*M_PI);
+					if (u < 0.0f) u = 0.0f; if (u > 1.0f) u = 1.0f;
+					if (v < 0.0f) v = 0.0f; if (v > 1.0f) v = 1.0f;
+				}
+				vit->uv.x = u;
+				vit->uv.y = v;
+			}
+			it->use_uv_coords = true;
+		}
+	}
 	
 	// create display list
 	unsigned dl = glGenLists(1);
@@ -111,7 +137,7 @@ void model::mesh::display(bool usematerial) const
 		}
 	}
 
-	if (has_texture)
+	if (use_uv_coords)
 		glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(mesh::vertex), &(vertices[0].uv));
 	else
 		glInterleavedArrays(GL_N3F_V3F, sizeof(mesh::vertex), &(vertices[0].normal));
@@ -424,6 +450,8 @@ void model::m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, model::mesh& m)
 		m.vertices[n].uv.y = read_float(in);
 	}
 	ch.bytes_read += nr_uv_coords * 2 * 4;
+	
+	m.use_uv_coords = true;
 }
 
 void model::m3ds_read_vertices(istream& in, m3ds_chunk& ch, model::mesh& m)

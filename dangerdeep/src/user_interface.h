@@ -57,6 +57,10 @@ protected:
 	double mapclickdist;
 	vector2 mapoffset;	// additional offset used for display, relative to player
 
+	// sky, clouds
+	texture* stars;
+	texture* skycolor;
+	texture* sunglow;
 	texture* clouds;
 	// fixme: world data maybe should move to class game
 	float cloud_animphase;	// 0-1 phase of interpolation
