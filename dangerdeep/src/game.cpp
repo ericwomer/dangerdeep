@@ -370,7 +370,12 @@ void game::sonar_ships ( list<ship*>& result, const sea_object* o )
 		// collect the nearest contacts, limited to some value!
 		vector<pair<double, ship*> > contacts ( MAX_ACUSTIC_CONTACTS, make_pair ( 1e30, (ship*) 0 ) );
 
-		for ( list<ship*>::iterator it = ships.begin (); it != ships.end (); ++it) {
+		for ( list<ship*>::iterator it = ships.begin (); it != ships.end (); ++it)
+		{
+			// When the detecting unit is a ship it should not detect itself.
+			if ( o == (*it) )
+				continue;
+
 			double d = (*it)->get_pos ().xy ().square_distance ( o->get_pos ().xy () );
 			unsigned i = 0;
 			for ( ; i < contacts.size (); ++i )
@@ -414,6 +419,11 @@ void game::sonar_submarines ( list<submarine*>& result, const sea_object* o )
 		for (list<submarine*>::iterator it = submarines.begin ();
 			it != submarines.end (); it++ )
 		{
+			// When the detecting unit is a submarine it should not
+			// detect itself.
+			if ( o == (*it) )
+				continue;
+
 			if ( pss->is_detected ( this, o, *it ) )
 				result.push_back (*it);
 		}
