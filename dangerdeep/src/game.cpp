@@ -9,6 +9,7 @@
 #include "submarine_interface.h"
 #include "ship_interface.h"
 #include "tokencodes.h"
+#include "texts.h"
 
 game::game(parser& p) : running(true), time(0)
 {
@@ -54,8 +55,17 @@ game::game(parser& p) : running(true), time(0)
 
 game::~game()
 {
-	list<sea_object*> all = get_all_sea_objects();
-	for (list<sea_object*>::iterator it = all.begin(); it != all.end(); ++it)
+	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
+		delete (*it);
+	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
+		delete (*it);
+	for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
+		delete (*it);
+	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
+		delete (*it);
+	for (list<depth_charge*>::iterator it = depth_charges.begin(); it != depth_charges.end(); ++it)
+		delete (*it);
+	for (list<gun_shell*>::iterator it = gun_shells.begin(); it != gun_shells.end(); ++it)
 		delete (*it);
 	delete ui;
 }
@@ -139,28 +149,137 @@ void game::simulate(double delta_t)
 	}
 }
 
-bool game::can_see(const sea_object* watcher, const submarine* sub) const
+list<ship*> game::visible_ships(const vector3& pos)
 {
-	vector3 pos = sub->get_pos();
-	if (pos.z < -12) return false;	// fixme: per define
-	if (pos.z < -8 && !sub->is_scope_up()) return false;	// fixme: per define
-	
-	// wether a sub is visible or not depends on the distance to the watcher
-	// (and of the type of the watcher, e.g. the height of the masts of a watcher etc)
-	// and if the sub's scope is up or the sub is surfaced, it's speed and course
-	
-	double sq = watcher->get_pos().xy().square_distance(sub->get_pos().xy());
-	if (sq > 1e10/*SKYDOMERADIUS*SKYDOMERADIUS*/) return false; // fixme
-	
-	return true;
+	list<ship*> result;
+	double d = get_max_view_distance();
+	d = d*d;
+	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
+		if (*it == player) {
+			result.push_back(*it);
+			continue;
+		}
+		if ((*it)->get_pos().xy().square_distance(pos.xy()) < d) {
+			result.push_back(*it);
+		}
+	}
+	return result;
+}
+
+list<submarine*> game::visible_submarines(const vector3& pos)
+{
+	list<submarine*> result;
+	double d = get_max_view_distance();
+	d = d*d;
+	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
+		if (*it == player) {
+			result.push_back(*it);
+			continue;
+		}
+		if ((*it)->get_pos().xy().square_distance(pos.xy()) < d) {
+			// the probabilty of visibility depends on indivial values
+			// relative course, distance to and type of watcher.
+			// (height of masts, experience etc.), weather fixme
+			float prob = (*it)->surface_visibility(pos.xy());
+			if (prob < 0.25) continue;	// fixme: add some randomization!
+			result.push_back(*it);
+		}
+	}
+	return result;
+}
+
+list<airplane*> game::visible_airplanes(const vector3& pos)
+{
+	list<airplane*> result;
+	double d = get_max_view_distance();
+	d = d*d;
+	for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it) {
+		if ((*it)->get_pos().xy().square_distance(pos.xy()) < d) {
+			result.push_back(*it);
+		}
+	}
+	return result;
+}
+
+list<torpedo*> game::visible_torpedoes(const vector3& pos)
+{
+	list<torpedo*> result;
+	double d = get_max_view_distance();
+	d = d*d;
+	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
+		if ((*it)->get_pos().xy().square_distance(pos.xy()) < d) {
+			result.push_back(*it);
+		}
+	}
+	return result;
+}
+
+list<depth_charge*> game::visible_depth_charges(const vector3& pos)
+{
+	list<depth_charge*> result;
+	double d = get_max_view_distance();
+	d = d*d;
+	for (list<depth_charge*>::iterator it = depth_charges.begin(); it != depth_charges.end(); ++it) {
+		if ((*it)->get_pos().xy().square_distance(pos.xy()) < d) {
+			result.push_back(*it);
+		}
+	}
+	return result;
+}
+
+list<gun_shell*> game::visible_gun_shells(const vector3& pos)
+{
+	list<gun_shell*> result;
+	double d = get_max_view_distance();
+	d = d*d;
+	for (list<gun_shell*>::iterator it = gun_shells.begin(); it != gun_shells.end(); ++it) {
+		if ((*it)->get_pos().xy().square_distance(pos.xy()) < d) {
+			result.push_back(*it);
+		}
+	}
+	return result;
 }
 
 void game::dc_explosion(const vector3& pos)
 {
+	// are subs affected?
+	// fixme: ships can be damaged by DCs also...
+	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
+		double deadly_radius = DEADLY_DC_RADIUS_SURFACE +
+			(*it)->get_pos().z * DEADLY_DC_RADIUS_200M / 200;
+		vector3 sdist = (*it)->get_pos() - pos;
+		sdist.z *= 2;	// depth differences change destructive power
+		/*
+		if (sdist.length() <= damage_radius) {
+			(*it)->dc_damage(pos);
+		}
+		*/
+		if (sdist.length() <= deadly_radius) {
+			// ui->add_message(TXT_Depthchargehit[language]);
+			system::sys()->add_console("depth charge hit!");
+			(*it)->kill();	// sub is killed. //  fixme handle damages!
+		}
+	}
 }
 
-void game::gs_impact(const vector3& pos)
+void game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 {
+	return;//fixme testing
+	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
+		// fixme: we need a special collision detection, because
+		// the shell is so fast that it can be collisionfree with *it
+		// delta_time ago and now, but hit *it in between
+		if ((*it)->is_collision(pos.xy())) {
+			(*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS);
+			return;	// only one hit possible
+		}
+	}
+	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
+		if ((*it)->is_collision(pos.xy())) {
+			(*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS);
+			return; // only one hit possible
+		}
+	}
 }
 
 void game::torp_explode(const vector3& pos)
@@ -207,22 +326,41 @@ list<vector3> game::ping_ASDIC(const vector2& pos, angle dir)
 	return contacts;
 }
 
-list<sea_object*> game::get_all_sea_objects(void)
+bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 {
-	list<sea_object*> result;
-	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
-		result.push_back(*it);
-	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
-		result.push_back(*it);
-	for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
-		result.push_back(*it);
-	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
-		result.push_back(*it);
-	for (list<depth_charge*>::iterator it = depth_charges.begin(); it != depth_charges.end(); ++it)
-		result.push_back(*it);
-	for (list<gun_shell*>::iterator it = gun_shells.begin(); it != gun_shells.end(); ++it)
-		result.push_back(*it);
-	return result;
+	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
+		if (t->is_collision(*it)) {
+			if (runlengthfailure) {
+				ui->add_message(TXT_Torpedodudrangetooshort[language]);
+				return true;
+			}
+			if (failure) {
+				ui->add_message(TXT_Torpedodud[language]);
+				return true;
+			}
+			(*it)->damage((*it)->get_pos(), G7A_HITPOINTS);//fixme
+			torp_explode(t->get_pos());
+			return true;	// only one hit possible
+		}
+	}
+	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
+//	fixme remove this and compute correct initial torpedo position	
+//		if (*it == parent && run_length <= parent->get_length()) continue;
+		if (t->is_collision(*it)) {
+			if (runlengthfailure) {
+				ui->add_message(TXT_Torpedodudrangetooshort[language]);
+				return true;
+			}
+			if (failure) {
+				ui->add_message(TXT_Torpedodud[language]);
+				return true;
+			}
+			(*it)->damage((*it)->get_pos(), G7A_HITPOINTS);//fixme
+			torp_explode(t->get_pos());
+			return true; // only one hit possible
+		}
+	}
+	return false;
 }
 
 ship* game::ship_in_direction_from_pos(const vector2& pos, angle direction)

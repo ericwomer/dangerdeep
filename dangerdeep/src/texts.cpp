@@ -57,8 +57,10 @@ const char* TXT_Gameunpaused[] = {"Game continued.", "Spiel fortgesetzt."};
 const char* TXT_Scopedown[] = {"Scope down", "Periskop eingefahren"};
 const char* TXT_Scopeup[] = {"Scope up", "Periskop ausgefahren"};
 const char* TXT_Createnetworkgame[] = {"Create network game", "Netzwerkspiel erstellen"};
-const char* TXT_Joinnetworkgame[] = {"Join network game", "An einem Netzwerkspiel teilnehmen"};
+const char* TXT_Joinnetworkgame[] = {"Join network game, Server IP adress: ", "An einem Netzwerkspiel teilnehmen, Server IP-Adresse: "};
 const char* TXT_Enternetworkportnr[] = {"Enter network port number: ", "Netzwerk Port-Adresse eingeben: "};
+const char* TXT_Torpedodudrangetooshort[] = {"Torpedo dud - range too short", "Torpedoversager - Laufstrecke zu kurz"};
+const char* TXT_Torpedodud[] = {"Torpedo dud", "Torpedoversager!"};
 /*
 const char* TXT_[] = {"Medium merchant ship", "Mittleres Handelsschiff"};
 const char* TXT_[] = {"Medium troop ship", "Mittleres Truppenschiff"};

@@ -11,7 +11,6 @@
 using namespace std;
 
 #define SINK_SPEED 0.5  // m/sec
-#define MAXPREVPOS 20
 
 class sea_object
 {
@@ -54,8 +53,6 @@ protected:
 	// cycle it will be defunct and erased by its owner.
 	alive_status alive_stat;
 	
-	list<vector2> previous_positions;
-	
 	void init(void);	// clear values to default
 	bool parse_attribute(parser& p);        // returns false if invalid token found
 
@@ -67,6 +64,7 @@ public:
 	
 	virtual void simulate(class game& gm, double delta_time);
 	virtual bool is_collision(const sea_object* other);
+	virtual bool is_collision(const vector2& pos);
 	// the strength is proportional to damage_status, 0-none, 1-light, 2-medium...
 	virtual void damage(const vector3& fromwhere, unsigned strength);
 	virtual unsigned calc_damage(void) const;	// returns damage in percent (0 means dead)
@@ -84,10 +82,6 @@ public:
 	virtual void rudder_right(double amount);	// 0 <= amount <= 1
 	virtual void rudder_midships(void);
 	virtual void set_throttle(throttle_status thr);	// 0 <= amount <= 1
-
-	// for trail recording used in user interfaces.	
-	virtual void remember_position(void);
-	virtual list<vector2> get_previous_positions(void) const { return previous_positions; };
 
 	virtual vector3 get_pos(void) const { return position; };
 	virtual angle get_heading(void) const { return heading; };

@@ -191,6 +191,20 @@ double submarine::get_max_speed(void) const
 	return (get_pos().z < 0) ? max_submerged_speed : max_speed;
 }
 
+float submarine::surface_visibility(const vector2& watcher) const
+{
+	// fixme: use relative course to watcher (via watcher pos)
+	if (position.z < -12) return 0;	// fixme: replace by individual values
+	if (is_scope_up()) {
+		if (position.z < -10) return 0.25;
+		if (position.z < -6) return 0.25 + (10+position.z)*3.0/16.0;
+	} else {
+		if (position.z < -10) return 0;
+		if (position.z < -6) return (10+position.z)/4.0;
+	}
+	return 1;
+} 
+
 void submarine::planes_up(double amount)
 {
 //	dive_acceleration = -1;

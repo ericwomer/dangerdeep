@@ -12,9 +12,12 @@ torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes)
 	sea_object::init();
 	parent = parent_;
 	type = type_;
-	position = parent->get_pos();	// fixme bei ubooten + length/2 bla...
+	position = parent->get_pos();
 	heading = parent->get_heading();
 	if (!usebowtubes) heading += angle(180);
+	vector2 dp = heading.direction() * (parent->get_length()/2 + 4); // 7/2 + 0.5 extra distance
+	position.x += dp.x;
+	position.y += dp.y;
 	head_to = heading;
 	turn_rate = 1;	// most submarine simulations seem to ignore this
 			// launching a torpedo will cause it to run in target direction
@@ -65,35 +68,10 @@ void torpedo::simulate(game& gm, double delta_time)
 	}
 
 	// check for collisions with other subs or ships
-	list<ship*>& ships = gm.get_ships();
-	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
-		if (is_collision(*it)) {
-			hit(*it);
-			gm.torp_explode(position);
-			return;	// only one hit possible
-		}
-	}
-	list<submarine*>& submarines = gm.get_submarines();
-	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		if (*it == parent && run_length <= parent->get_length()) continue;
-		if (is_collision(*it)) {
-			hit(*it);
-			gm.torp_explode(position);
-			return; // only one hit possible
-		}
-	}
-}
-
-void torpedo::hit(sea_object* other)
-{
-	// fixme: we need to notify the game about this event
-	if (run_length < 250) {
-		system::sys()->add_console("dud torpedo - range too short");
-	} else {
-		system::sys()->add_console("torpedo hit");
-		other->damage(other->get_pos() /*fixme*/, G7A_HITPOINTS);
-	}
-	kill();
+	bool runlengthfailure = (run_length < 250);
+	bool failure = false;	// calculate additional probability of torpedo failure
+	if (gm.check_torpedo_hit(this, runlengthfailure, failure))
+		kill();
 }
 
 void torpedo::display(void) const

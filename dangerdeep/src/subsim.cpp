@@ -160,13 +160,52 @@ void menu_single_mission(void)
 	}
 }
 
+struct ip
+{
+	unsigned char a, b, c, d;
+	ip() : a(0), b(0), c(0), d(0) {}
+	ip(unsigned char a_, unsigned char b_, unsigned char c_, unsigned char d_) :
+		a(a_), b(b_), c(c_), d(d_) {}
+	bool is_valid(void) const { return (a!=0) || (b!=0) || (c!=0) || (d!=0); }
+};
+
+unsigned short string2port(const string& s)
+{
+	istringstream is(s);
+	unsigned short p;
+	is >> p;
+	return p;
+}
+
+ip string2ip(const string& s)
+{
+	unsigned a, b, c, d;
+	sscanf(s.c_str(), "%u.%u.%u.%u", &a, &b, &c, &d);
+	if (a > 255 || b > 255 || c > 255 || d > 255)
+		return ip();
+	return ip(a, b, c, d);
+}
+
+void create_network_game(unsigned short port)
+{
+	printf("create network game %u\n",port);
+}
+
+void join_network_game(ip serverip, unsigned short port)
+{
+	printf("join network game %u.%u.%u.%u:%u\n",serverip.a,serverip.b,serverip.c,serverip.d,port);
+}
+
 void menu_multiplayer(void)
 {
 	menu m;	// just a test
 	m.add_item(TXT_Createnetworkgame[language]);
-	m.add_item(TXT_Joinnetworkgame[language]);
+	m.add_item(menu::item(TXT_Joinnetworkgame[language], "192.168.0.0"));
 	m.add_item(menu::item(TXT_Enternetworkportnr[language], "7896"));
 	m.add_item(TXT_Returntomainmenu[language]);
+	
+	unsigned short port;
+	ip serverip;
 
 	while (true) {
 		sys->prepare_2d_drawing();
@@ -176,12 +215,20 @@ void menu_multiplayer(void)
 		sys->poll_event_queue();
 		int key = sys->get_key();
 		int mmsel = m.input(key, 0, 0, 0) & 0xffff;
+
+		port = string2port(m.get_item(2).get_input_text());
+		serverip = string2ip(m.get_item(1).get_input_text());
+
 		sys->unprepare_2d_drawing();
 		sys->swap_buffers();
 		if (mmsel == 3) break;
 		switch (mmsel) {
-			case 0: break;
-			case 1:	break;
+			case 0: if (port != 0)
+				create_network_game(port);
+				break;
+			case 1:	if (port != 0 && serverip.is_valid())
+				join_network_game(serverip, port);
+				break;
 			case 2: break;
 		}
 	}

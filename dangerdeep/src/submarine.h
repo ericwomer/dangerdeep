@@ -70,6 +70,10 @@ public:
 	// it reaches its submerged speed. This is not correct, because speed decreases
 	// too fast, but it should be satisfying for now. fixme
 	virtual double get_max_speed(void) const;
+
+	// compute probabilty that sub can be seen (determined by depth, speed,
+	// state: periscope state, snorkeling etc., shape)
+	virtual float surface_visibility(const vector2& watcher) const;
 	
 	virtual bool is_scope_up(void) const { return scopeup; }
 

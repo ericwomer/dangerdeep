@@ -32,23 +32,6 @@ void gun_shell::simulate(game& gm, double delta_time)
 	position.x += deltapos.x;
 	position.y += deltapos.y;
 	if (position.z <= 0) {
-		list<ship*>& ships = gm.get_ships();
-		for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
-			// fixme: we need a special collision detection, because
-			// the shell is so fast that it can be collisionfree with *it
-			// delta_time ago and now, but hit *it in between
-			if (is_collision(*it)) {
-				(*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS);
-				return;	// only one hit possible
-			}
-		}
-		list<submarine*>& submarines = gm.get_submarines();
-		for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-			if (is_collision(*it)) {
-				(*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS);
-				return; // only one hit possible
-			}
-		}
 		gm.gs_impact(position);
 		kill();
 	}

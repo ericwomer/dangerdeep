@@ -60,15 +60,32 @@ void ai::set_zigzag(bool stat)
 void ai::act_escort(game& gm, double delta_time)
 {
 	// always watch out/listen/ping for the enemy
-	// watch around	
-	list<submarine*> subs = gm.get_submarines();
+	// watch around
+
+	// fixme: a list of submarine* is bad (more information given than
+	// what is really visible, not compatible to network play!
+	// but how else should the ai ask for course and speed?
+	// a contact should be of the form: position, course, type.
+	// contact's speed should be determined by the ai itself.
+	// but how can the ai identify contacts? by the objects adress i.e. pointer?
+	// this would be nearly the same as returning a list of pointers (see above).
+
+	double dist = 1e12;
+	submarine* nearest_contact = 0;
+	list<submarine*> subs = gm.visible_submarines(parent->get_pos());
 	for (list<submarine*>::iterator it = subs.begin(); it != subs.end(); ++it) {
-		//double d = (*it)->get_pos().xy().distance(parent->get_pos().xy());
-		// fixme choose best target
-		if (!gm.can_see(parent, *it)) continue;
-		fire_shell_at(gm, **it);
-		attack_contact((*it)->get_pos());
+		double d = (*it)->get_pos().xy().square_distance(parent->get_pos().xy());
+		if (d < dist) {
+			dist = d;
+			nearest_contact = *it;
+		}
 	}
+	if (nearest_contact) {	// is there a contact?
+		fire_shell_at(gm, *nearest_contact);
+		attack_contact(nearest_contact->get_pos());
+		parent->set_throttle(sea_object::aheadflank);
+	}
+
 	if (state != attackcontact) {	// nothing found? try a ping or listen
 		// ping around to find something
 		list<vector3> contacts = gm.ping_ASDIC(parent->get_pos().xy(),

@@ -10,7 +10,7 @@
 #include "game.h"
 #include "texts.h"
 
-void ship_interface::add_panel_text(const string& s)
+void ship_interface::add_message(const string& s)
 {
 	panel_texts.push_back(s);
 	if (panel_texts.size() > 4)	// (128-8)/24-1 ;-)
@@ -45,19 +45,19 @@ bool ship_interface::keyboard_common(int keycode, class system& sys, class game&
 		case SDLK_F10: viewmode = 9; break;
 
 		// time scaling fixme: too simple
-		case SDLK_F11: if (time_scale < 100) { ++time_scale; add_panel_text(TXT_Timescaleup[language]); } break;
-		case SDLK_F12: if (time_scale > 1) { --time_scale; add_panel_text(TXT_Timescaledown[language]); } break;
+		case SDLK_F11: if (time_scale < 100) { ++time_scale; add_message(TXT_Timescaleup[language]); } break;
+		case SDLK_F12: if (time_scale > 1) { --time_scale; add_message(TXT_Timescaledown[language]); } break;
 
 		// control
-		case SDLK_LEFT: player->rudder_left(1); add_panel_text(TXT_Rudderleft[language]); break;
-		case SDLK_RIGHT: player->rudder_right(1); add_panel_text(TXT_Rudderright[language]); break;
-		case SDLK_RETURN : player->rudder_midships(); add_panel_text(TXT_Ruddermidships[language]); break;
-		case SDLK_1: player->set_throttle(sea_object::aheadslow); add_panel_text(TXT_Aheadslow[language]); break;
-		case SDLK_2: player->set_throttle(sea_object::aheadhalf); add_panel_text(TXT_Aheadhalf[language]); break;
-		case SDLK_3: player->set_throttle(sea_object::aheadfull); add_panel_text(TXT_Aheadfull[language]); break;
-		case SDLK_4: player->set_throttle(sea_object::aheadflank); add_panel_text(TXT_Aheadflank[language]); break;//flank/full change?
-		case SDLK_5: player->set_throttle(sea_object::stop); add_panel_text(TXT_Enginestop[language]); break;
-		case SDLK_6: player->set_throttle(sea_object::reverse); add_panel_text(TXT_Enginereverse[language]); break;
+		case SDLK_LEFT: player->rudder_left(1); add_message(TXT_Rudderleft[language]); break;
+		case SDLK_RIGHT: player->rudder_right(1); add_message(TXT_Rudderright[language]); break;
+		case SDLK_RETURN : player->rudder_midships(); add_message(TXT_Ruddermidships[language]); break;
+		case SDLK_1: player->set_throttle(sea_object::aheadslow); add_message(TXT_Aheadslow[language]); break;
+		case SDLK_2: player->set_throttle(sea_object::aheadhalf); add_message(TXT_Aheadhalf[language]); break;
+		case SDLK_3: player->set_throttle(sea_object::aheadfull); add_message(TXT_Aheadfull[language]); break;
+		case SDLK_4: player->set_throttle(sea_object::aheadflank); add_message(TXT_Aheadflank[language]); break;//flank/full change?
+		case SDLK_5: player->set_throttle(sea_object::stop); add_message(TXT_Enginestop[language]); break;
+		case SDLK_6: player->set_throttle(sea_object::reverse); add_message(TXT_Enginereverse[language]); break;
 
 		// view
 		case SDLK_COMMA : bearing -= angle(sys.key_shift() ? 10 : 1); break;
@@ -73,21 +73,21 @@ bool ship_interface::keyboard_common(int keycode, class system& sys, class game&
 					bow = false;
 			}
 			if (player->fire_torpedo(gm, bow, -1/*fixme*/, target))
-				add_panel_text(TXT_Torpedofired[language]);
+				add_message(TXT_Torpedofired[language]);
 			break;
 #endif			
 		}
 		case SDLK_SPACE: target = gm.sub_in_direction_from_pos(player->get_pos().xy(), player->get_heading()+bearing);
-			if (target) add_panel_text(TXT_Newtargetselected[language]);
-			else add_panel_text(TXT_Notargetindirection[language]);
+			if (target) add_message(TXT_Newtargetselected[language]);
+			else add_message(TXT_Notargetindirection[language]);
 			break;
 
 		// quit, screenshot, pause etc.
 		case SDLK_ESCAPE: quit = true; break;
 		case SDLK_i: sys.screenshot(); sys.add_console("screenshot taken."); break;
 		case SDLK_PAUSE: pause = !pause;
-			if (pause) add_panel_text(TXT_Gamepaused[language]);
-			else add_panel_text(TXT_Gameunpaused[language]);
+			if (pause) add_message(TXT_Gamepaused[language]);
+			else add_message(TXT_Gameunpaused[language]);
 			break;
 		default: return false;		
 	}
@@ -184,12 +184,11 @@ void ship_interface::draw_vessel_symbol(class system& sys,
 	glColor3f(1,1,1);
 }
 
-void ship_interface::draw_trail(sea_object* so, const vector2& offset)
+void ship_interface::draw_trail(const vector2& pos, const list<vector2>& l, const vector2& offset)
 {
-	list<vector2> l = so->get_previous_positions();
 	glColor4f(1,1,1,1);
 	glBegin(GL_LINE_STRIP);
-	vector2 p = (so->get_pos().xy() + offset)*mapzoom;
+	vector2 p = (pos + offset)*mapzoom;
 	glVertex2f(512+p.x, 384-p.y);
 	float la = 1.0/float(l.size()), lc = 0;
 	for (list<vector2>::const_iterator it = l.begin(); it != l.end(); ++it) {
@@ -248,22 +247,20 @@ void ship_interface::display(class system& sys, game& gm)
 	}
 
 	// trail recording
-	list<ship*>& ships = gm.get_ships();
-	list<submarine*>& submarines = gm.get_submarines();
-	list<torpedo*>& torpedoes = gm.get_torpedoes();
-	if (gm.get_time() > last_trail_time + TRAILTIME) {
+	bool record = (gm.get_time() > last_trail_time + TRAILTIME);
+	if (record) {
 		last_trail_time += TRAILTIME;
-		for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
-			if ((*it)->is_alive())
-				(*it)->remember_position();
-		}
-		for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-			if ((*it)->is_alive())
-				(*it)->remember_position();
-		}
-		for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
-			if ((*it)->is_alive())
-				(*it)->remember_position();
+	}
+	for (map<sea_object*, list<vector2> >::iterator it = trails.begin(); it != trails.end(); ) {
+		map<sea_object*, list<vector2> >::iterator it2 = it; ++it;
+		if (it2->first->is_alive() /* && it2->first->is_visible() fixme */ ) {
+			if (record) {
+				it2->second.push_front(it2->first->get_pos().xy());
+				if (it2->second.size() > MAXPREVPOS)
+			                it2->second.pop_back();
+			}
+		} else {
+			trails.erase(it2);
 		}
 	}
 }
@@ -404,7 +401,7 @@ void ship_interface::display_glasses(class system& sys, game& gm)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6);
 	// no torpedoes, no DCs, no player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, player, false);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, false, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -437,7 +434,7 @@ void ship_interface::display_bridge(class system& sys, game& gm)
 	vector2 phd = player->get_heading().direction();
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6) + vector3(phd.x, phd.y, 0);
 	// no torpedoes, no DCs, with player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 0, false);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, true, false);
 
 	sys.prepare_2d_drawing();
 	draw_infopanel(sys);
@@ -513,37 +510,33 @@ void ship_interface::display_map(class system& sys, game& gm)
 	}
 	
 	// draw trails
-	list<ship*>& ships = gm.get_ships();
-	list<submarine*>& submarines = gm.get_submarines();
-	list<airplane*>& airplanes = gm.get_airplanes();
-	list<torpedo*>& torpedoes = gm.get_torpedoes();
-	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
-		draw_trail(*it, offset);
-	}
-	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		draw_trail(*it, offset);
-	}
-	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
-		draw_trail(*it, offset);
+	for (map<sea_object*, list<vector2> >::iterator it = trails.begin(); it != trails.end(); ++it) {
+		if (it->second.size() > 0)
+			draw_trail(it->first->get_pos().xy(), it->second, offset);
 	}
 
 	// draw vessel symbols
+	list<ship*> ships = gm.visible_ships(player->get_pos());
+	list<submarine*> submarines = gm.visible_submarines(player->get_pos());
+	list<airplane*> airplanes = gm.visible_airplanes(player->get_pos());
+	list<torpedo*> torpedoes = gm.visible_torpedoes(player->get_pos());
+	bool record = (gm.get_time() > last_trail_time + TRAILTIME);
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
 		draw_vessel_symbol(sys, offset, *it, color(192,255,192));
+		if (record) trails.insert(make_pair(*it, list<vector2>()));
 	}
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		double depth = (*it)->get_pos().z;
-		if (depth < 12 || (depth < 8 && !(*it)->is_scope_up())) continue;
 		draw_vessel_symbol(sys, offset, *it, color(255,255,128));
+		if (record) trails.insert(make_pair(*it, list<vector2>()));
 	}
 	for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it) {
 		draw_vessel_symbol(sys, offset, *it, color(0,0,64));
+		if (record) trails.insert(make_pair(*it, list<vector2>()));
 	}
-/*
 	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
 		draw_vessel_symbol(sys, offset, *it, color(255,0,0));
+		if (record) trails.insert(make_pair(*it, list<vector2>()));
 	}
-*/
 	
 	draw_infopanel(sys);
 	sys.unprepare_2d_drawing();
@@ -708,7 +701,7 @@ void ship_interface::display_freeview(class system& sys, game& gm)
 	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
 
 	// draw everything
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 0, true);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, true, true);
 
 	int mx, my;
 	sys.get_mouse_motion(mx, my);

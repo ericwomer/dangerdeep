@@ -130,6 +130,21 @@ bool sea_object::is_collision(const sea_object* other)
 	return false;
 }
 
+bool sea_object::is_collision(const vector2& pos)
+{
+	if (is_defunct() || is_dead()) return false;
+	// a bit slower than neccessary. fixme
+	vector2 headdir = heading.direction();
+	vector2 nheaddir = headdir.orthogonal();
+	vector2 mypos = position.xy();
+	double s, t;
+	bool solved = (mypos - pos).solve(headdir, nheaddir, s, t);
+	if (solved) {
+		return (fabs(s) <= length/2 && fabs(t) <= width/2);
+	}
+	return false;
+}
+
 void sea_object::damage(const vector3& fromwhere, unsigned strength)
 {
 	sink();
@@ -180,13 +195,6 @@ void sea_object::set_throttle(throttle_status thr)
 {
 	throttle = thr;
 }
-
-void sea_object::remember_position(void)
-{
-	previous_positions.push_front(get_pos().xy());
-	if (previous_positions.size() > MAXPREVPOS)
-		previous_positions.pop_back();
-}	
 
 double sea_object::get_throttle_speed(void) const
 {

@@ -55,8 +55,9 @@ float user_interface::get_waterheight(float x_, float y_, int wave)	// bilinear 
 }
 
 void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
-	angle direction, sea_object* playerobj, bool withunderwaterweapons)
+	angle direction, bool withplayer, bool withunderwaterweapons)
 {
+	sea_object* player = get_player();
 	int wave = int(gm.get_time()*WAVES/WAVETIDECYCLETIME);
 	
 	glRotatef(-90,1,0,0);
@@ -157,14 +158,11 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glEnable(GL_LIGHTING);
 
 	// ******************** ships & subs *************************************************
-	list<ship*>& ships = gm.get_ships();
-	list<submarine*>& submarines = gm.get_submarines();
-	list<airplane*>& airplanes = gm.get_airplanes();
-	// fixme draw shells
 
 	float dwave = sin((wave%WAVES)*2*M_PI/WAVES);
+	list<ship*> ships = gm.visible_ships(player->get_pos());
 	for (list<ship*>::const_iterator it = ships.begin(); it != ships.end(); ++it) {
-		if (*it == playerobj) continue;	// only ships or subs playable!
+		if (!withplayer && *it == player) continue;	// only ships or subs playable!
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
@@ -173,8 +171,10 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		(*it)->display();
 		glPopMatrix();
 	}
+
+	list<submarine*> submarines = gm.visible_submarines(player->get_pos());
 	for (list<submarine*>::const_iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		if (*it == playerobj) continue; // only ships or subs playable!
+		if (!withplayer && *it == player) continue; // only ships or subs playable!
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
@@ -185,6 +185,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		(*it)->display();
 		glPopMatrix();
 	}
+
+	list<airplane*> airplanes = gm.visible_airplanes(player->get_pos());
 	for (list<airplane*>::const_iterator it = airplanes.begin(); it != airplanes.end(); ++it) {
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
@@ -194,7 +196,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	}
 
 	if (withunderwaterweapons) {
-		list<torpedo*>& torpedoes = gm.get_torpedoes();
+		list<torpedo*> torpedoes = gm.visible_torpedoes(player->get_pos());
 		for (list<torpedo*>::const_iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
 			glPushMatrix();
 			glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
@@ -202,7 +204,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 			(*it)->display();
 			glPopMatrix();
 		}
-		list<depth_charge*>& depth_charges = gm.get_depth_charges();
+		list<depth_charge*> depth_charges = gm.visible_depth_charges(player->get_pos());
 		for (list<depth_charge*>::const_iterator it = depth_charges.begin(); it != depth_charges.end(); ++it) {
 			glPushMatrix();
 			glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
@@ -212,7 +214,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		}
 	}
 
-	list<gun_shell*>& gun_shells = gm.get_gun_shells();
+	list<gun_shell*> gun_shells = gm.visible_gun_shells(player->get_pos());
 	for (list<gun_shell*>::const_iterator it = gun_shells.begin(); it != gun_shells.end(); ++it) {
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);

@@ -6,6 +6,7 @@
 
 #include <list>
 #include <vector>
+#include <map>
 using namespace std;
 #include "sea_object.h"
 #include "global_data.h"
@@ -20,6 +21,7 @@ using namespace std;
 #define MAPGRIDSIZE 1000	// meters
 #define MAXTRAILNUMBER 20
 #define TRAILTIME 10
+#define MAXPREVPOS 20		// max # of recorded positions per trail
 
 class user_interface
 {
@@ -27,6 +29,8 @@ protected:
 	bool quit;		// whishes user to quit?
 	bool pause;
 	unsigned time_scale;
+	
+	map<sea_object*, list<vector2> > trails;
 
 	user_interface() : quit(false), pause(false), time_scale(1) {
 		if (allwaveheights.size() == 0) init_water_data();
@@ -38,17 +42,19 @@ protected:
 	static void init_water_data(void);
 	static float get_waterheight(int x, int y, int wave);
 	static float get_waterheight(float x_, float y_, int wave);	// bilinear sampling
+	
+	virtual sea_object* get_player(void) const = 0;
 
 public:	
 	virtual ~user_interface() {};
 	virtual void display(class system& sys, class game& gm) = 0;
-	// if playerobj != 0 this obj is not drawn
 	virtual void draw_view(class system& sys, class game& gm, const vector3& viewpos,
-		angle direction, sea_object* playerobj, bool withunderwaterweapons);
+		angle direction, bool withplayer, bool withunderwaterweapons);
 	virtual bool user_quits(void) const { return quit; }
 	virtual bool paused(void) const { return pause; }
 	virtual unsigned time_scaling(void) const { return time_scale; }
 	virtual void record_ship_tonnage(unsigned tons) = 0;
+	virtual void add_message(const string& s) = 0;
 };
 
 #endif

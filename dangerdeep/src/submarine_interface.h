@@ -44,7 +44,7 @@ protected:
 	unsigned sunken_ship_tonnage;
 	
 	list<string> panel_texts;
-	void add_panel_text(const string& s);
+	void add_message(const string& s);
 
 	// returns true if processed
 	bool keyboard_common(int keycode, class system& sys, class game& gm);
@@ -59,7 +59,7 @@ protected:
 		const char* text) const;
 	void draw_vessel_symbol(class system& sys,
 		const vector2& offset, const sea_object* so, color c) const;
-	void draw_trail(sea_object* so, const vector2& offset);
+	void draw_trail(const vector2& pos, const list<vector2>& l, const vector2& offset);
 	void draw_torpedo(class system& sys, bool usebow, int x, int y,
 		const submarine::stored_torpedo& st);
 
@@ -73,6 +73,8 @@ protected:
 	void display_logbook(class system& sys, class game& gm);
 	void display_successes(class system& sys, class game& gm);
 	void display_freeview(class system& sys, class game& gm);
+	
+	virtual sea_object* get_player(void) const { return player; }
 
 public:	
 	submarine_interface(submarine* player_sub);
