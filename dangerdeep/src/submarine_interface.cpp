@@ -12,18 +12,20 @@ using namespace std;
 #include "user_display.h"
 #include "logbook.h"
 #include "submarine_interface.h"
+#include "sub_damage_display.h"
 #include "system.h"
 #include "game.h"
 #include "texts.h"
 #include "sound.h"
 
 submarine_interface::submarine_interface(submarine* player_sub) : 
-    	user_interface( player_sub )
+    	user_interface( player_sub ), sub_damage_disp(new sub_damage_display(player_sub))
 {
 }
 
 submarine_interface::~submarine_interface()
 {
+	delete sub_damage_disp;
 }
 
 bool submarine_interface::keyboard_common(int keycode, class system& sys, class game& gm)
@@ -525,6 +527,36 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	while (key != 0) {
 		if (!keyboard_common(key, sys, gm)) {
 			// specific keyboard processing
+		}
+		key = sys.get_key();
+	}
+}
+
+void submarine_interface::display_damagestatus(class system& sys, game& gm)
+{
+//	glClearColor(0.25, 0.25, 0.25, 0);	// isn't needed
+//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	sys.prepare_2d_drawing();
+	sub_damage_disp->display(sys, gm);
+	draw_infopanel ( sys, gm );
+
+	// mouse processing;
+	int mx;
+	int my;
+	int mb = sys.get_mouse_buttons();
+	sys.get_mouse_position(mx, my);
+	sub_damage_disp->check_mouse ( mx, my, mb );
+
+	// note: mouse processing must be done first, to display pop-ups.
+	sys.unprepare_2d_drawing();
+
+	// keyboard processing, fixme: do we need extra keyboard input here?
+	int key = sys.get_key();
+	while (key != 0) {
+		if (!keyboard_common(key, sys, gm)) {
+			// specific keyboard processing
+			sub_damage_disp->check_key ( key, sys, gm );
 		}
 		key = sys.get_key();
 	}

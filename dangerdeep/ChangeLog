@@ -1,3 +1,9 @@
+2003-06-16  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* user_interface, submarine_interface, ship_interface
+	  - moved damage related data directly to class submarine
+	  - made display_damage_status() in user_interface abstract, moved
+	    code to submarine_interface, where it belongs.
+
 2003-06-11  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* released version 0.0.10 and updated version number to 0.0.11
 

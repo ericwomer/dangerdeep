@@ -35,6 +35,7 @@ protected:
 	void display_sonar(class system& sys, class game& gm); // or better display_guns?
 	void display_glasses(class system& sys, class game& gm);
 	void display_dc_throwers(class system& sys, class game& gm);
+	void display_damagestatus(class system& sys, class game& gm);
 	
 public:	
 	ship_interface(ship* player_ship);

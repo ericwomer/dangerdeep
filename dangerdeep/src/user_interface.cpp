@@ -12,7 +12,6 @@
 #include "sound.h"
 #include "logbook.h"
 #include "ships_sunk_display.h"
-#include "sub_damage_display.h"
 
 #define SKYSEGS 16
 
@@ -42,7 +41,6 @@ user_interface::~user_interface ()
 	// this condition will be always true. (just as a note, remove me)
 	if ( captains_logbook ) delete captains_logbook;
 	if ( ships_sunk_disp ) delete ships_sunk_disp;
-	delete sub_damage_disp;
 }
 
 void user_interface::init ()
@@ -54,8 +52,6 @@ void user_interface::init ()
 	system::sys()->myassert ( captains_logbook, "Error while creating captains_logbook!" );
 	ships_sunk_disp = new ships_sunk_display;
 	system::sys()->myassert ( ships_sunk_disp, "Error while creating ships_sunk!" );
-	sub_damage_disp = new sub_damage_display;
-	system::sys()->myassert ( sub_damage_disp, "Error while creating sub_damage_disp!" );
 
 	if (allwaveheights.size() == 0) init_water_data();
 }
@@ -857,36 +853,6 @@ void user_interface::display_map(class system& sys, game& gm)
 				case SDLK_PLUS : if (mapzoom < 1) mapzoom *= 1.5; break;
 				case SDLK_MINUS : if (mapzoom > 0.01) mapzoom /= 1.5; break;
 			}
-		}
-		key = sys.get_key();
-	}
-}
-
-void user_interface::display_damagestatus(class system& sys, game& gm)
-{
-//	glClearColor(0.25, 0.25, 0.25, 0);	// isn't needed
-//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	sys.prepare_2d_drawing();
-	sub_damage_disp->display(sys, gm);
-	draw_infopanel ( sys, gm );
-
-	// mouse processing;
-	int mx;
-	int my;
-	int mb = sys.get_mouse_buttons();
-	sys.get_mouse_position(mx, my);
-	sub_damage_disp->check_mouse ( mx, my, mb );
-
-	// note: mouse processing must be done first, to display pop-ups.
-	sys.unprepare_2d_drawing();
-
-	// keyboard processing, fixme: do we need extra keyboard input here?
-	int key = sys.get_key();
-	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
-			// specific keyboard processing
-			sub_damage_disp->check_key ( key, sys, gm );
 		}
 		key = sys.get_key();
 	}

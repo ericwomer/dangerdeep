@@ -24,7 +24,6 @@ using namespace std;
 class user_display;
 class logbook_display;
 class ships_sunk_display;
-class sub_damage_display;
 
 class user_interface
 {
@@ -46,7 +45,6 @@ protected:
 
 	logbook_display* captains_logbook;
 	ships_sunk_display* ships_sunk_disp;
-	sub_damage_display* sub_damage_disp;	// shouldn't this go to submarine_interface? fixme
 
 	// periscope
 	bool zoom_scope;	// use 6x instead 1.5 fixme implement
@@ -75,8 +73,8 @@ protected:
 	static texture* torptex(unsigned type);
 
 	// color funtions.
-    virtual void set_display_color ( color_mode mode ) const;
-    virtual void set_display_color ( const class game& gm ) const;
+	virtual void set_display_color ( color_mode mode ) const;
+	virtual void set_display_color ( const class game& gm ) const;
 	
 	// 2d drawing must be turned on for them
 	void draw_infopanel(class system& sys, class game& gm) const;
@@ -97,15 +95,15 @@ protected:
 	virtual void draw_square_mark ( class system& sys, class game& gm,
 		const vector2& mark_pos, const vector2& offset, const color& c );
 
-    // Display functions for screens.
+	// Display functions for screens.
 	virtual void display_gauges(class system& sys, class game& gm);
 	virtual void display_bridge(class system& sys, class game& gm);
 	virtual void display_map(class system& sys, class game& gm);
-	virtual void display_damagestatus(class system& sys, class game& gm);
 	virtual void display_logbook(class system& sys, class game& gm);
 	virtual void display_successes(class system& sys, class game& gm);
 	virtual void display_freeview(class system& sys, class game& gm);
 	virtual void display_glasses(class system& sys, class game& gm);
+	virtual void display_damagestatus(class system& sys, class game& gm) = 0;
 
 	virtual sound* get_sound_effect ( sound_effect se ) const;
 

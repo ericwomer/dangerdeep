@@ -405,3 +405,23 @@ void ship_interface::display_dc_throwers(class system& sys, game& gm)
 		key = sys.get_key();
 	}
 }
+
+void ship_interface::display_damagestatus(class system& sys, game& gm)
+{
+	sys.prepare_2d_drawing();
+	draw_infopanel(sys, gm);
+	sys.unprepare_2d_drawing();
+
+	// mouse handling
+	int mx, my; // mb = sys.get_mouse_buttons(); Unused variable
+	sys.get_mouse_position(mx, my);
+
+	// keyboard processing
+	int key = sys.get_key();
+	while (key != 0) {
+		if (!keyboard_common(key, sys, gm)) {
+			// specific keyboard processing
+		}
+		key = sys.get_key();
+	}
+}

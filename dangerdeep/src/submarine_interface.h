@@ -20,6 +20,8 @@ protected:
 	// Manual angle correction to fire a spread of torpedoes.
 	angle lead_angle;
 
+	class sub_damage_display* sub_damage_disp;
+
 	enum display_mode { display_mode_gauges, display_mode_periscope,
 		display_mode_uzo, display_mode_glasses, display_mode_bridge,
 		display_mode_map, display_mode_torpedoroom, display_mode_damagestatus,
@@ -34,11 +36,12 @@ protected:
 	void draw_torpedo(class system& sys, class game& gm, bool
 		usebow, int x, int y, const submarine::stored_torpedo& st);
 
-    // Display functions for screens.
-    virtual void display_gauges(class system& sys, class game& gm);
+	// Display functions for screens.
+	virtual void display_gauges(class system& sys, class game& gm);
 	virtual void display_periscope(class system& sys, class game& gm);
 	virtual void display_UZO(class system& sys, class game& gm);
 	virtual void display_torpedoroom(class system& sys, class game& gm);
+	virtual void display_damagestatus(class system& sys, class game& gm);
 
 public:	
 	submarine_interface(submarine* player_sub);
