@@ -98,6 +98,15 @@ string get_current_directory(void)
 }
 bool is_directory(const string& filename)
 {
+/*
+	// better code. has to be tested yet.
+	struct stat fileinfo;
+	int errno = stat(filename.c_str(), &fileinfo);
+	if (errno != 0) return false;
+	if (S_ISDIR(fileinfo.st_mode)) return true;
+	return false;
+*/
+	
 	DIR* d = opendir(filename.c_str());	//fixme: could this be done smarter?
 						// make sure this doesn't create a new directory
 	if (d != 0) {
