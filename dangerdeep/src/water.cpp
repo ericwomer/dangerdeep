@@ -34,9 +34,37 @@
 #define FOAM_VANISH_FACTOR 0.1	// 1/second until foam goes from 1 to 0.
 #define FOAM_SPAWN_FACTOR 0.2	// 1/second until full foam reached. maybe should be equal to vanish factor
 
-
-
-
+/*
+	2004/05/06
+	The foam problem.
+	Earlier plans were that foam is just white color added to the water. That way we could
+	keep an texture that is updated every frame and holds information in a rectangular grid
+	wether there is foam or not. That way we don't need to send foam data via colors,
+	texture coordinates etc. This is no good idea: the foam looks to bad, and we would need
+	an texture that covers the whole water area (texture would be too big). No way.
+	So the foam must be mixed into the water somehow. Let's store a foam texture in the
+	second texture unit. How do we mix it in? GL_INTERPOLATE only works with source color's
+	alpha channel, and the only remaining source is the primary color. Interpolating it
+	with the primary color's color channels works on Geforce cards but is not OpenGL standard
+	conform. But let's assume we could mix it somehow. Where do we get the amout of foam to
+	mix in? 1) from the wave animation 2) from the ship's wakes etc.
+	1) with projected grid this would look ugly, because in the distance the grid becomes
+	very coarse. Just apply foam for water nearer than some distance value? difficult.
+	2) There are two possibilities.
+	a) use one large 2d array that holds the foam levels for the world. Each frame foam
+	values must get decreased by a constant amount. The array would be too large.
+	b) compute the amount of foam for each drawn vertex. To do that we assume that each
+	foam source influenced each vertex.
+	Simply write a function that gives the amount of foam at any position x caused by a
+	foam source s_i. For each vertex sum up the foam values of all sources:
+	foam_strength(x) := sum_i foam_strength_at(x, i), clamp the result at 1.
+	Maybe add some heuristics: if foam source i is too far away, ignore it.
+	Nontheless, this is very costly. We have at least 128x128 vertices to draw. If there
+	are twenty ships (a common value!) we have to compute the function 20 times for each
+	of the 16k vertices, and each computation would probably need a sqrt (for distance).
+	THIS is really much for a PC.
+	But there are no other possibilities.
+*/	
 
 water::water(unsigned xres_, unsigned yres_, double tm) : mytime(tm), xres(xres_), yres(yres_), reflectiontex(0), foamtex(0)
 {
@@ -597,8 +625,10 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 #endif
 			
 			Uint8 c = Uint8(F*255);
-			Uint8 foampart = 255;//fixme
-			color primary(255, 255, 255, c);
+//			float fd = fabs(coord.y)/100.0f;
+//			if (fd > 1.0f) fd = 1.0f;
+			Uint8 foampart = 255;//Uint8(fd*255);//coord255*(xx&1);//255;//fixme
+			color primary(foampart, foampart, foampart, c);
 
 			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
 			texc.z -= VIRTUAL_PLANE_HEIGHT;
