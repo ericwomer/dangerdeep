@@ -4,11 +4,14 @@
 #define ANGLE_H
 
 #include "vector2.h"
-#ifdef WIN32
-#define M_PI 3.1415926535897932
-inline double round(double d) { return floor(d + 0.5); }
-#else
+
 #include <cmath>
+
+#ifndef M_PI
+#define M_PI 3.1415926535897932
+#endif
+#ifndef round
+inline double round(double d) { return floor(d + 0.5); }
 #endif
 
 // note that mathematical angles go counter clockwise and nautical angles
