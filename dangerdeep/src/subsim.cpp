@@ -948,6 +948,21 @@ int main(int argc, char** argv)
 */
 
 /*
+	cfg::registeru("screen_res_x", 1024);
+	cfg::registeru("screen_res_y", 768);
+	cfg::registerb("fullscreen", true);
+	cfg::registerb("debug", true);
+	cfg::registerb("sound", true);
+	
+	// 100 times...
+	cfg::registeru("key_x", SDLK_x);
+	...
+	cfg::registeru("key_zoommap", SDLK_PLUS);
+	...
+	cfg::registeru("key_flankspeed", SDLK_4);
+*/
+
+/*
 	2004/04/28 idea.
 	make an "options" or "config" class, that is initialized by reading
 	the config file and reading the command line arguments.
