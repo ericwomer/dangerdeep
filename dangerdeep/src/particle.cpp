@@ -10,28 +10,27 @@
 void particle::display_all(const list<particle*>& pts, const vector3& viewpos, class game& gm)
 {
 	glDepthMask(GL_FALSE);
-	glDisable(GL_CULL_FACE);
 	matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	vector3 mvtrans = -mv.inverse().column(3);
 
 	vector<particle_dist> pds;
 	pds.reserve(pts.size());
 	for (list<particle*>::const_iterator it = pts.begin(); it != pts.end(); ++it) {
-		vector3 pp = /*mv * */(mvtrans + (*it)->pos - viewpos);
+		vector3 pp = (mvtrans + (*it)->pos - viewpos);
 		pds.push_back(particle_dist(*it, pp.square_length(), pp));
 	}
 	sort(pds.begin(), pds.end());
 
-	// generate arrays
+	glNormal3f(0, 0, 1);
+
+	// generate coordinates
 	vector<vector3> coords(4*pds.size());
-	vector<vector2f> texcs(4*pds.size());
 	for (unsigned i = 0; i < pds.size(); ++i) {
 		const particle& part = *(pds[i].pt);
 		const vector3& z = -pds[i].projpos;
 		vector3 y = vector3(0, 0, 1);
 		vector3 x = y.cross(z).normal();
-//fixme: something here is not right
-//		if (!part.is_z_up())
+//		if (!part.is_z_up())//fixme
 			y = z.cross(x).normal();
 		double w2 = part.get_width()/2;
 		double h2 = part.get_height()/2;
@@ -40,28 +39,28 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 		coords[4*i+1] = pp + x * -w2 + y * -h2;
 		coords[4*i+2] = pp + x * w2 + y * -h2;
 		coords[4*i+3] = pp + x * w2 + y * h2;
-		texcs[4*i+1].y = texcs[4*i+2].y = texcs[4*i+2].x = texcs[4*i+3].x = 1.0f;
 	}
 
 	// draw arrays
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_DOUBLE, sizeof(vector3), &coords[0].x);
 	glClientActiveTexture(GL_TEXTURE0);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcs[0]);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
-	glBegin(GL_QUADS);
+	
+	vector2f texcs[4] = { vector2f(0, 0), vector2f(0, 1), vector2f(1, 1), vector2f(1, 0) };
 	for (unsigned i = 0; i < pds.size(); ++i) {
-		pds[i].pt->set_texture(gm);
-		for (unsigned j = 0; j < 4; ++j)
+		pds[i].pt->set_texture(gm);//not valid between glBegin and glEnd
+		glBegin(GL_QUADS);
+		for (unsigned j = 0; j < 4; ++j) {
+			glTexCoord2fv(&texcs[j].x);
 			glArrayElement(4 * i + j);
+		}
+		glEnd();
 	}
-	glEnd();
 	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	glEnable(GL_CULL_FACE);//fixme testing
 	glDepthMask(GL_TRUE);
 }
 
