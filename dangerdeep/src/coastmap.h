@@ -62,10 +62,10 @@ struct coastsegment
 		cacheentry& operator=(const cacheentry& c) { points = c.points; indices = c.indices; return *this; }
 		void push_back_point(const vector2f& p);	// avoids double points.
 	};
-	mutable unsigned pointcachedetail;
+	mutable int pointcachedetail;
 	mutable vector<cacheentry> pointcache;
 	// check if cache needs to be (re)generated, and do that
-	void generate_point_cache(const class coastmap& cm, const vector2f& roff, unsigned detail) const;
+	void generate_point_cache(const class coastmap& cm, const vector2f& roff, int detail) const;
 
 	// computes distance to next corner around segment border.
 	// p must be inside the segment, hence 0 <= p.x,p.y < segw
@@ -76,7 +76,7 @@ struct coastsegment
 
 	unsigned get_successor_for_cl(unsigned cln, const vector2f& segoff, float segw) const;
 
-	coastsegment() : type(0) {}	
+	coastsegment() : type(0), pointcachedetail(0) {}	
 	~coastsegment() {}
 	coastsegment(const coastsegment& o) : type(o.type), segcls(o.segcls), pointcachedetail(o.pointcachedetail), pointcache(o.pointcache) {}
 	coastsegment& operator= (const coastsegment& o) { type = o.type; segcls = o.segcls; pointcachedetail = o.pointcachedetail; pointcache = o.pointcache; return *this; }

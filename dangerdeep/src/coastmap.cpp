@@ -148,12 +148,13 @@ void coastsegment::cacheentry::push_back_point(const vector2f& p)
 
 
 float gmd=1e30;
-void coastsegment::generate_point_cache(const class coastmap& cm, const vector2f& roff, unsigned detail) const
+void coastsegment::generate_point_cache(const class coastmap& cm, const vector2f& roff, int detail) const
 {
 	if (type > 1) {
 		// cache generated and unchanged?
 		if (pointcache.size() > 0 && pointcachedetail == detail) return;
 
+//	cout << "creating cache entry for segment " << roff << " empty? " << (pointcache.size() > 0) << " cached detail " << pointcachedetail << " new detail " << detail << "\n";
 		// invalidate cache (detail changed or initial generation)
 		pointcachedetail = detail;
 		pointcache.clear();
@@ -170,7 +171,7 @@ void coastsegment::generate_point_cache(const class coastmap& cm, const vector2f
 			unsigned current = i;
 			do {
 				/* NOTE:
-				   double shouldn't occour by design. But they do. So we do
+				   doubles shouldn't occour by design. But they do. So we do
 				   an quick, simple and dirty workaround here and just avoid
 				   inserting them. Finally we check if the last point is the
 				   same as the first, in that case we remove it, too.
@@ -180,6 +181,9 @@ void coastsegment::generate_point_cache(const class coastmap& cm, const vector2f
 				   so the coast lines are treated as coast, not as part of an
 				   island -> end of first cl is equal to begin of next ->
 				   double points result.
+				   2004/05/28: fixme: is this because we take beginborder/endborder
+				   values from the cl for island? (illegal combination
+				   of island/non-island pair for beginborder/endborder)???
 				*/
 				const segcl& cl = segcls[current];
 				cm.coastlines[cl.mapclnr].create_points(ce.points, cl.begint, cl.endt, detail);
@@ -191,7 +195,7 @@ void coastsegment::generate_point_cache(const class coastmap& cm, const vector2f
 					//fixme: this failes sometimes. related to island bug???
 					assert(!cl_handled[next]);
 				}
-			if(next==0xffffffff)return;
+			if(next==0xffffffff)break;
 			assert(next!=0xffffffff);//fixme: another unexplainable bug.
 			//if(current==next)break;
 				// insert corners if needed
@@ -240,7 +244,6 @@ if(d <= 0.01f)cout<<"fault: "<<d<<","<<m<<","<<(m+1)%ce.points.size()<<"\n";
 
 
 
-// fixme: drawing is !SLOW! does the cache work?
 void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, const vector2f& roff, int detail) const
 {
 //cout<<"segment draw " << x << "," << y << " dtl " << detail << " tp " << type << "\n";
@@ -256,7 +259,6 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, const vec
 		glVertex2d(roff.x, roff.y+cm.segw_real);
 		glEnd();
 	} else if (type > 1) {
-		//fixme: disable, causes only bugs and crashes for now :-(
 		generate_point_cache(cm, roff, detail);
 	
 		glBegin(GL_TRIANGLES);
@@ -875,9 +877,11 @@ void coastmap::draw_as_map(const vector2& droff, double mapzoom, int detail) con
 		}
 	}
 
-	// testing
+#if 0
+	// testing, fixme remove
 	for (unsigned i = 0; i < coastlines.size(); ++i)
 		coastlines[i].draw_as_map();
+#endif
 
 	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();
