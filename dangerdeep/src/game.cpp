@@ -193,15 +193,16 @@ list<submarine*> game::visible_submarines(const vector3& pos)
 {
 	list<submarine*> result;
 	double d = get_max_view_distance();
-	d = d*d;
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		if ((*it)->get_pos().xy().square_distance(pos.xy()) < d) {
+		double sqd = (*it)->get_pos().xy().square_distance(pos.xy());
+		if (sqd < d*d) {
 			// the probabilty of visibility depends on indivial values
 			// relative course, distance to and type of watcher.
 			// (height of masts, experience etc.), weather fixme
-			float prob = (*it)->surface_visibility(pos.xy());
-			if (prob < 0.25) continue;	// fixme: add some randomization!
-			result.push_back(*it);
+			double dist = sqrt(sqd);
+			double vis = (*it)->surface_visibility(pos.xy());
+			if (dist < d*vis) result.push_back(*it);
+			// fixme: add some randomization!
 		}
 	}
 	return result;
@@ -490,21 +491,20 @@ bool game::is_collision(const sea_object* s1, const sea_object* s2) const
 	vector2 n2 = d2.orthogonal();
 	double l1 = s1->get_length(), l2 = s2->get_length();
 	double w1 = s1->get_width(), w2 = s2->get_width();
+	
+	vector2 pb1 = p1 - d1 * (l1/2) - n1 * (w1/2);
+	vector2 pb2 = p2 - d2 * (l2/2) - n2 * (w2/2);
+	vector2 pd2[4] = { d2*l2, n2*w2, -d2*l2, -n2*w2 };
 
-	// compute base point and four directions.
-	vector2 pdiff = (p1 + d1 * (l1/2) + n1 * (w1/2)) - (p2 + d2 * (l2/2) + n2 * (w2/2));
-	vector2 pd1[4] = { -d1*l1, -n1*w1, d1*l1, n1*w1 };
-	vector2 pd2[4] = { -d2*l2, -n2*w2, d2*l2, n2*w2 };
-
-	for (int j = 0; j < 4; ++j) {	// compare every edge of the second object...
-		for (int i = 0; i < 4; ++i) {	// with every edge of the first...
-			double s, t;
-			if (pdiff.solve(pd1[i], pd2[j], s, t))
-				if (0 <= s && s <= 1 && -1 <= t && t <= 0)
-					return true;
-			pdiff += pd1[i];
+	for (int i = 0; i < 4; ++i) {
+		double s, t;
+		if ((pb2 - pb1).solve(d1, n1, s, t)) {
+//	printf("try %i s %f t %f\n",i,s,t);
+			if (0 <= s && s <= l1 && 0 <= t && t <= w1) {
+				return true;
+			}
 		}
-		pdiff -= pd2[j];
+		pb2 += pd2[i];
 	}
 	return false;
 }
