@@ -17,7 +17,11 @@ submarine::submarine() : ship(), dive_speed(0.0f), permanent_dive(false),
 	battery_level ( 1.0f ), battery_value_a ( 0.0f ), battery_value_t ( 1.0f ),
 	battery_recharge_value_a ( 0.0f ), battery_recharge_value_t ( 1.0f ),
 	damageable_parts(nr_of_damageable_parts, unused)
-{}
+{
+	// set all common damageable parts to "no damage"
+	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
+		damageable_parts[i] = none;
+}
 	
 bool submarine::parse_attribute(parser& p)
 {
