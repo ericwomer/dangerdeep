@@ -27,6 +27,7 @@
 #include "water_splash.h"
 #include "user_interface.h"
 #include "submarine_interface.h"
+#include "airplane_interface.h"
 #include "ship_interface.h"
 #include "tokencodes.h"
 #include "texts.h"
@@ -156,6 +157,14 @@ game::game(parser& p) : running(true), time(0)
 				if (nextisplayer) {
 					player = shp;
 					ui = new ship_interface(shp, *this);
+				}
+				break; }
+			case TKN_AIRPLANE: {
+				airplane* apl = airplane::create(p);
+				spawn_airplane(apl);
+				if (nextisplayer) {
+					player = apl;
+					ui = new airplane_interface(apl, *this);
 				}
 				break; }
 			case TKN_CONVOY: {
@@ -299,7 +308,13 @@ void game::save_to_stream(ostream& out) const
 			write_i32(out, 0);	// player is ship
 			write(out, tmpship);
 		} else {
-			system::sys().myassert(false, "internal error: player is no sub or ship");
+			airplane* tmpairpl = dynamic_cast<airplane*>(player);
+			if (tmpairpl) {
+				write_i32(out, 2);
+				write(out, tmpairpl);
+			} else {
+				system::sys().myassert(false, "internal error: player is no sub, ship or airplane");
+			}
 		}
 	}
 	
@@ -376,6 +391,10 @@ void game::load_from_stream(istream& in)
 		submarine* s = read_submarine(in);
 		player = s;
 		ui = new submarine_interface(s, *this);	// fixme: move to load(), dirty hack
+	} else if (playertype == 2) {
+		airplane* a = read_airplane(in);
+		player = a;
+		ui = new airplane_interface(a, *this);	// fixme: move to load(), dirty hack
 	} else {
 		system::sys().myassert(false, "savegame error: player is no sub or ship");
 	}

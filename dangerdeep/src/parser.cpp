@@ -16,6 +16,7 @@ token tokens[] = {
 	token(TKN_FALSE, "false"),
 	token(TKN_MINUS, "-"),
 	token(TKN_PLAYER, "player"),
+	token(TKN_AIRPLANE, "airplane"),
 	token(TKN_SUBMARINE, "submarine"),
 	token(TKN_SHIP, "ship"),
 	token(TKN_TYPEVIIC, "typeVIIc"),
