@@ -1,4 +1,7 @@
 2003-08-04  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* made release 0.0.12 and increased version number to 0.0.13
+
+2003-08-04  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* fixed makedatapack. some files missing, we need a new release.
 
 2003-08-03  Thorsten Jordan <thorsten_jordan@gmx.de>
