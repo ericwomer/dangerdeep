@@ -158,6 +158,8 @@ game::~game()
 	for (list<convoy*>::iterator it = convoys.begin(); it != convoys.end(); ++it)
 		delete (*it);
 	delete ui;
+	for (list<pair<double, job*> >::iterator it = jobs.begin(); it != jobs.end(); ++it)
+		delete it->second;
 }
 
 void game::compute_max_view_dist(void)
@@ -173,6 +175,16 @@ void game::simulate(double delta_t)
 {
 	if (!running) return;
 
+	// check if jobs are to be run
+	for (list<pair<double, job*> >::iterator it = jobs.begin(); it != jobs.end(); ++it) {
+		it->first += delta_t;
+		if (it->first >= it->second->get_period()) {
+			it->first -= it->second->get_period();
+			it->second->run();
+		}
+	}
+
+	// this could be done in jobs, fixme
 	if (!player->is_alive()) {
 		system::sys()->add_console("player killed!");//testing fixme
 		running = false;
@@ -640,6 +652,23 @@ void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
 			ass->auto_move_bearing ( mode );
 		}
 	}
+}
+
+void game::register_job(job* j)
+{
+	jobs.push_back(make_pair(0.0, j));
+}
+
+void game::unregister_job(job* j)
+{
+	for (list<pair<double, job*> >::iterator it = jobs.begin(); it != jobs.end(); ++it) {
+		if (it->second == j) {
+			delete it->second;
+			jobs.erase(it);
+			return;
+		}
+	}
+	system::sys()->myassert(false, "[game::unregister_job] job not found in list");
 }
 
 #ifdef WIN32	// avoid compiler inability.

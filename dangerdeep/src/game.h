@@ -18,14 +18,6 @@
 #include <vector>
 using namespace std;
 
-/*
-fixme:
-create subclass/interface job: run()=0;
-game::register_job(job j, double periodtime);
-+unregister
-->automatic call of job::run() every "periodtime" seconds.
-*/
-
 // use forward declarations to avoid unneccessary compile dependencies
 class ship;
 class airplane;
@@ -70,6 +62,13 @@ public:
 		sink_record& operator= (const sink_record& s) { dat = s.dat; descr = s.descr; tons = s.tons; return *this; }
 	};
 	
+	struct job {
+		job() {}
+		virtual void run(void) = 0;
+		virtual double get_period(void) const = 0;
+		virtual ~job() {}
+	};
+	
 protected:
 	list<ship*> ships;
 	list<submarine*> submarines;
@@ -80,6 +79,8 @@ protected:
 	list<convoy*> convoys;
 	list<water_splash*> water_splashs;
 	bool running;	// if this is false, the player was killed
+	
+	list<pair<double, job*> > jobs;
 	
 	// the player and matching ui (note that playing is not limited to submarines!)
 	sea_object* player;
@@ -167,6 +168,8 @@ public:
 		const bool& move_sensor, const angle& dir = angle ( 0.0f ) );
 
 	// various functions (fixme: sort, cleanup)
+	void register_job(job* j);	// insert/remove job in job list
+	void unregister_job(job* j);
 	const list<ping>& get_pings(void) const { return pings; };
 
 #ifdef WIN32	// avoid compiler inability.
