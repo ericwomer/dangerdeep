@@ -8,6 +8,7 @@
 #include <iostream>
 #include <cmath>
 #include "vector3.h"
+#include "matrix4.h"
 using namespace std;
 
 /*
@@ -65,6 +66,18 @@ class quaterniont
 			return quaterniont();
 		D sa = sin(ang*scal)/sin(ang);
 		return quaterniont(cos(ang*scal), v * sa);
+	}
+
+	matrix4t<D> rotmat(void) const {
+		D w2 = s*s, x2 = v.x*v.x, y2 = v.y*v.y, z2 = v.z*v.z;
+		D xy = v.x*v.y, wz = s*v.z, xz = v.x*v.z, wy = s*v.y, yz = v.y*v.z, wx = s*v.x;
+		//fixme: check if this matrix must get transposed!
+		return matrix4t<D>(
+			w2+x2-y2-z2,	2*(xy+wz),	2*(xz-wy),	0,
+			2*(xy-wz),	w2-x2+y2-z2,	2*(yz+wx),	0,
+			2*(xz+wy),	2*(yz-wx),	w2-x2-y2+z2,	0,
+			0,	0,	0,	1
+		);
 	}
 };
 

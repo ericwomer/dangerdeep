@@ -144,6 +144,14 @@ public:
 		glLoadMatrixd(m);
 		glMatrixMode(GL_MODELVIEW);
 	}
+	
+	void multiply_gl(void) {
+		GLdouble m[16];
+		for (unsigned i = 0; i < 4; ++i)
+			for (unsigned j = 0; j < 4; ++j)
+				m[i+j*4] = GLdouble(values[j+i*4]);
+		glMultMatrixd(m);
+	}
 
 	static matrix4t<D> get_gl(GLenum pname) {	// GL_PROJECTION_MATRIX, GL_MODELVIEW_MATRIX, GL_TEXTURE_MATRIX
 		GLdouble m[16];
