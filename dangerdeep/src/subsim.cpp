@@ -19,11 +19,7 @@
 class system* sys;
 int res_x, res_y;
 
-const char* missions[] = {
-	"testconvoy",
-	"testconvoy2",
-	0
-};
+vector<string> missions;
 
 void draw_background_and_logo(void)
 {
@@ -105,9 +101,15 @@ void menu_convoy_battle(void)
 
 void menu_historical_mission(void)
 {
-	// count missions
-	int nr_missions = 0;
-	while (missions[nr_missions] != 0) ++nr_missions;
+	// read missions
+	missions.clear();
+	ifstream ifs((get_data_dir() + "missions/list").c_str());
+	string s;
+	unsigned nr_missions = 0;
+	while (ifs >> s) {
+		missions.push_back(s);
+		++nr_missions;
+	}
 	
 	menu m;
 	for (int i = 0; i < nr_missions; ++i)

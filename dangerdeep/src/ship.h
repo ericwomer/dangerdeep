@@ -13,6 +13,7 @@ class ship : public sea_object
 {
 protected:
 	ai* myai;
+	unsigned tonnage;	// in BRT
 
 	damage_status stern_damage, midship_damage, bow_damage;
 	
@@ -39,6 +40,7 @@ public:
 	virtual void sink(void);
 	virtual void kill(void);
 	ai* get_ai(void) { return myai; }
+	unsigned get_tonnage(void) const { return tonnage; }
 };
 
 #endif

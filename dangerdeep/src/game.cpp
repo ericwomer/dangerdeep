@@ -167,6 +167,11 @@ void game::torp_explode(const vector3& pos)
 {
 }
 
+void game::ship_sunk(unsigned tons)
+{
+	ui->record_ship_tonnage(tons);
+}
+
 list<vector3> game::ping_ASDIC(const vector2& pos, angle dir)
 {
 	// remember ping (for drawing)

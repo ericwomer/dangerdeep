@@ -130,9 +130,16 @@ bool torpedo::adjust_head_to(const sea_object* target, bool usebowtubes)
 //	<< ", expected run time " << expected_run_time(la.first, ab, br.second);
 //	system::sys()->add_console(os.str());
 		double fga = fabs(gyro_angle.value_pm180());
-		if ((usebowtubes && fga <= 90) || (!usebowtubes && fga >= 90)) {
-			head_to_ang(headto, gyro_angle.value_pm180() < 0);
-			return true;
+		if (usebowtubes) {
+			if (fga <= 90) {
+				head_to_ang(headto, gyro_angle.value_pm180() < 0);
+				return true;
+			}
+		} else {	// stern tubes
+			if (fga >= 90) {
+				head_to_ang(headto, gyro_angle.value_pm180() > 0);
+				return true;
+			}
 		}
 	}
 	return false;

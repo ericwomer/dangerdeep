@@ -74,6 +74,7 @@ unsigned ship::calc_damage(void) const
 void ship::sink(void)
 {
 	stern_damage = midship_damage = bow_damage = wrecked;
+//	game.ship_sunk(get_tonnage());
 	sea_object::sink();
 }
 

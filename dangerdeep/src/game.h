@@ -78,9 +78,11 @@ public:
 	void spawn_depth_charge(depth_charge* dc) { depth_charges.push_back(dc); };
 
 	// actions important to simulation (for drawing/sound simulation!)
+	//fixme: send messages about them to ui (remove sys-console printing in torpedo.cpp etc)
 	void dc_explosion(const vector3& pos);	// depth charge exploding
 	void gs_impact(const vector3& pos);	// gun shell impact
 	void torp_explode(const vector3& pos);	// torpedo explosion/impact
+	void ship_sunk(unsigned tonnage);
 
 	list<vector3> ping_ASDIC(const vector2& pos, angle dir);	// returns contacts
 	const list<ping>& get_pings(void) const { return pings; };

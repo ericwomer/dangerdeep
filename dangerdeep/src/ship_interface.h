@@ -39,6 +39,8 @@ protected:
 	ship_interface();
 	ship_interface& operator= (const ship_interface& other);
 	ship_interface(const ship_interface& other);
+
+	unsigned sunken_ship_tonnage;
 	
 	list<string> panel_texts;
 	void add_panel_text(const string& s);
@@ -76,6 +78,7 @@ public:
 	virtual ~ship_interface();
 
 	virtual void display(class system& sys, class game& gm);
+	virtual void record_ship_tonnage(unsigned tons) { sunken_ship_tonnage += tons; }
 };
 
 #endif

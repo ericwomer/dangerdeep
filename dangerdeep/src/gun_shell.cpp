@@ -25,9 +25,10 @@ gun_shell::gun_shell(const sea_object& parent, angle direction, angle elevation,
 void gun_shell::simulate(game& gm, double delta_time)
 {
 	t += delta_time;
-	speed = v0*exp(-AIR_RESISTANCE*t/v0);
-	position.z = alpha.sin() * t * speed - GRAVITY * t*t/2;
-	vector2 deltapos = heading.direction() * speed * alpha.cos();
+	speed = v0*exp(-AIR_RESISTANCE*t/v0);	// not needed
+	double curvepos = v0*v0/AIR_RESISTANCE * (1.0 - exp(-AIR_RESISTANCE*t/v0));
+	position.z = alpha.sin() * curvepos - GRAVITY * t*t/2;
+	vector2 deltapos = heading.direction() * curvepos * alpha.cos();
 	position.x += deltapos.x;
 	position.y += deltapos.y;
 	if (position.z <= 0) {

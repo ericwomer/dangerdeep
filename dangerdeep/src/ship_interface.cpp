@@ -20,7 +20,7 @@ void ship_interface::add_panel_text(const string& s)
 ship_interface::ship_interface(ship* player_ship) : user_interface(),
 	zoom_glasses(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
 	viewpos(0, 0, 10), bearing(0), viewmode(4),
-	player(player_ship), target(0), last_trail_time(0)
+	player(player_ship), target(0), last_trail_time(0), sunken_ship_tonnage(0)
 {
 }
 

@@ -48,6 +48,7 @@ public:
 	virtual bool user_quits(void) const { return quit; }
 	virtual bool paused(void) const { return pause; }
 	virtual unsigned time_scaling(void) const { return time_scale; }
+	virtual void record_ship_tonnage(unsigned tons) = 0;
 };
 
 #endif

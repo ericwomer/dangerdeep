@@ -20,7 +20,7 @@ void submarine_interface::add_panel_text(const string& s)
 submarine_interface::submarine_interface(submarine* player_sub) : user_interface(),
 	zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
 	viewpos(0, 0, 10), bearing(0), viewmode(4),
-	player(player_sub), target(0), last_trail_time(0)
+	player(player_sub), target(0), last_trail_time(0), sunken_ship_tonnage(0)
 {
 }
 
