@@ -307,18 +307,18 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	unsigned cube[24] = { 0,1, 0,2, 2,3, 1,3, 0,4, 2,6, 3,7, 1,5, 4,6, 4,5, 5,7, 6,7 };
 	for (unsigned i = 0; i < 12; ++i) {
 		unsigned src = cube[i*2], dst = cube[i*2+1];
-		if (frustum[src].z > WAVE_HEIGHT && frustum[dst].z < WAVE_HEIGHT) {
+		if ((frustum[src].z - WAVE_HEIGHT) / (frustum[dst].z - WAVE_HEIGHT) < 0.0) {
 			double t = (WAVE_HEIGHT - frustum[src].z) / (frustum[dst].z - frustum[src].z);
 			proj_points.push_back(frustum[src] * (1.0-t) + frustum[dst] * t);
 		}
-		if (frustum[src].z > -WAVE_HEIGHT && frustum[dst].z < -WAVE_HEIGHT) {
+		if ((frustum[src].z + WAVE_HEIGHT) / (frustum[dst].z + WAVE_HEIGHT) < 0.0) {
 			double t = (-WAVE_HEIGHT - frustum[src].z) / (frustum[dst].z - frustum[src].z);
 			proj_points.push_back(frustum[src] * (1.0-t) + frustum[dst] * t);
 		}
 	}
 	// check if any frustum points are inside the water volume
 	for (unsigned i = 0; i < 8; ++i) {
-		if (frustum[i].z < WAVE_HEIGHT && frustum[i].z > -WAVE_HEIGHT)
+		if (frustum[i].z <= WAVE_HEIGHT && frustum[i].z >= -WAVE_HEIGHT)
 			proj_points.push_back(frustum[i]);
 	}
 	
@@ -327,13 +327,14 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	// the upper left 3x3 matrix is the camera rotation, so the columns hold the view vectors
 	vector3 camerapos = inv_modl.column(3);
 	vector3 cameraforward = -inv_modl.column(2); // camera is facing along negative z-axis
-cout << "camerapos " << camerapos << "\n";
-cout << "camera forward " << cameraforward << "\n";
+//cout << "camerapos " << camerapos << "\n";
+//cout << "camera forward " << cameraforward << "\n";
 	vector3 projectorpos = camerapos, projectorforward = cameraforward;
 
 	vector3 aimpoint, aimpoint2;
 	
 	// make sure projector is high enough above the plane
+	// fixme: what about mirroring it when it is under water and do ONE test?!
 	if (camerapos.z < WAVE_HEIGHT + ELEVATION) {
 		if (camerapos.z < 0)
 			projectorpos.z += WAVE_HEIGHT + ELEVATION - 2 * camerapos.z;
@@ -358,12 +359,15 @@ cout << "camera forward " << cameraforward << "\n";
 	// fade between points depending on angle
 	double af = fabs(cameraforward.z);
 	projectorforward = (aimpoint * af + aimpoint2 * (1.0-af)) - projectorpos;
-//projectorforward = cameraforward; projectorforward.z = -1;
+
+//cout << "projectorpos " << projectorpos << "\n";
+//cout << "projector forward " << projectorforward << "\n";
 	
 	// compute rest of the projector matrix from pos and forward vector
 	vector3 pjz = -projectorforward.normal();
-	vector3 pjx = vector3(0,1,0).cross(pjz);
+	vector3 pjx = vector3(0,0,1).cross(pjz);	// fixme: what if pjz==up vector (or very near it)
 	vector3 pjy = pjz.cross(pjx);
+//cout << "pjx " << pjx << " pjy " << pjy << " pjz " << pjz << "\n";
 	matrix4 inv_modl_projector(
 		pjx.x, pjy.x, pjz.x, projectorpos.x,
 		pjx.y, pjy.y, pjz.y, projectorpos.y,
@@ -380,21 +384,21 @@ cout << "camera forward " << cameraforward << "\n";
 	}
 	
 	// compute min-max values and range matrix
+	matrix4 rangeprojector2world;
 	if (proj_points.size() > 0) {
 		double x_min = proj_points[0].x, x_max = proj_points[0].x, y_min = proj_points[0].y, y_max = proj_points[0].y;
 		for (vector<vector3>::iterator it = ++proj_points.begin(); it != proj_points.end(); ++it) {
 			if (it->x < x_min) x_min = it->x;
 			if (it->x > x_max) x_max = it->x;
-			if (it->y < x_min) y_min = it->y;
-			if (it->y > x_max) y_max = it->y;
+			if (it->y < y_min) y_min = it->y;
+			if (it->y > y_max) y_max = it->y;
 		}
 		matrix4 mrange(x_max-x_min, 0, 0, x_min, 0, y_max-y_min, 0, y_min, 0, 0, 1, 0, 0, 0, 0, 1);
-	//range matrix seems to be wrong, fixme
-	//mrange = matrix4::one();
-		projector2world = projector2world * mrange;
-		world2projector = projector2world.inverse();
+//cout << "x_min " << x_min << " x_max " << x_max << " y_min " << y_min << " y_max " << y_max << "\n";
+		rangeprojector2world = projector2world * mrange;
 	} // else return;
 
+#if 0
 	// show projector frustum as test
 	glColor3f(1,0,0);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -402,7 +406,7 @@ cout << "camera forward " << cameraforward << "\n";
 	vector3 prfrustum[8];
 	for (unsigned i = 0; i < 8; ++i) {
 		vector3 fc((i & 1) ? 1 : -1, (i & 2) ? 1 : -1, (i & 4) ? 1 : -1);
-		prfrustum[i] = projector2world * fc;	// fixme maybe without range matrix
+		prfrustum[i] = projector2world * fc;	// without range matrix!
 	}
 	for (unsigned i = 0; i < 12; ++i) {
 		glVertex3dv(&prfrustum[cube[2*i]].x);
@@ -419,19 +423,20 @@ cout << "camera forward " << cameraforward << "\n";
 	}
 	glEnd();
 	glColor3f(1,1,1);
+#endif
 	
 	// compute coordinates
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
-		double y = -1.0 + 2.0 * yy/yres;
+		double y = double(yy)/yres;
 		// vertices for start and end of two lines are computed and projected
-		vector3 v1 = projector2world * vector3(-1,y,-1);
-		vector3 v2 = projector2world * vector3(-1,y,+1);
-		vector3 v3 = projector2world * vector3(+1,y,-1);
-		vector3 v4 = projector2world * vector3(+1,y,+1);
+		vector3 v1 = rangeprojector2world * vector3(0,y,-1);
+		vector3 v2 = rangeprojector2world * vector3(0,y,+1);
+		vector3 v3 = rangeprojector2world * vector3(1,y,-1);
+		vector3 v4 = rangeprojector2world * vector3(1,y,+1);
 		// compute intersection with z = 0 plane here
 		// we could compute intersection with earth's sphere here for a curved display
 		// of water to the horizon, fixme
-		double t1 = v1.z/(v2.z-v1.z), t2 = v3.z/(v4.z-v3.z);
+		double t1 = -v1.z/(v2.z-v1.z), t2 = -v3.z/(v4.z-v3.z);
 		vector2 va = v1.xy() * (1-t1) + v2.xy() * t1;
 		vector2 vb = v3.xy() * (1-t2) + v4.xy() * t2;
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
@@ -482,8 +487,8 @@ cout << "camera forward " << cameraforward << "\n";
 	glClientActiveTexture(GL_TEXTURE1);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-//	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
-	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
+	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
+//	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
