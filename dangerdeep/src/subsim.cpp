@@ -31,6 +31,7 @@
 #include "ship_corvette.h"
 #include "ship_largefreighter.h"
 #include "ship_mediumfreighter.h"
+#include "ship_smalltanker.h"
 #include "submarine_VIIc.h"
 #include "submarine_XXI.h"
 #include <iostream>
@@ -324,8 +325,8 @@ void menu_show_vessels(void)
 		}
 #undef ROTANG		
 		if (current_vessel != lastvessel) {
-			if (current_vessel < 0) current_vessel = 11;
-			if (current_vessel > 11) current_vessel = 0;
+			if (current_vessel < 0) current_vessel = 12;
+			if (current_vessel > 12) current_vessel = 0;
 			delete vessel;
 			lastvessel = current_vessel;
 			switch(current_vessel) {
@@ -339,8 +340,9 @@ void menu_show_vessels(void)
 				case  7: vessel = new ship_corvette(); break;
 				case  8: vessel = new ship_largefreighter(); break;
 				case  9: vessel = new ship_mediumfreighter(); break;
-				case 10: vessel = new submarine_XXI(); break;
-				case 11: vessel = new submarine_VIIc(); break;
+				case 10: vessel = new ship_smalltanker(); break;
+				case 11: vessel = new submarine_XXI(); break;
+				case 12: vessel = new submarine_VIIc(); break;
 			}
  		}
 	}

@@ -40,7 +40,9 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 				float d = 4*float(dx*dx+dy*dy)/nrships;
 				ship::types shiptype = ship::mediummerchant;
 				if (d < 0.2) {
-					shiptype = ship::mediumtroopship;
+					unsigned r = rnd(2);
+					if (r == 0) shiptype = ship::mediumtroopship;
+					if (r == 1) shiptype = ship::smalltanker;
 				} else {
 					unsigned r = rnd(5);
 					if (r == 0) shiptype = ship::largemerchant;

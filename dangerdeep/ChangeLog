@@ -1,4 +1,12 @@
 2003-07-13  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* submarine_interface.cpp
+	  - implemented manual torpedo (re)loading and transfer.
+	    automatic loading disabled.
+
+2003-07-13  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* new model: small tanker. (now 11 ship and sub models)
+
+2003-07-13  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* font.h font.cpp (and client files)
 	  - replaced "const char" with "string"
 	* submarine_interface.cpp

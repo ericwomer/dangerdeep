@@ -120,11 +120,6 @@ protected:
 	submarine& operator= (const submarine& other);
 	submarine(const submarine& other);
 
-	// fixme: time that is needed depends on sub type and how many torpedoes
-	// are already in transfer. So this argument is nonesense. fixme
-	// returns true if transfer was initiated.
-	// fixme: make virtual?
-	bool transfer_torpedo(unsigned from, unsigned to, double timeneeded = 120);
 	int find_stored_torpedo(bool usebow);	// returns index or -1 if none
 
 	bool parse_attribute(parser& p);	// returns false if invalid token found
@@ -140,8 +135,8 @@ protected:
 		This method method calculates the battery recharge rate.
 		@return battery recharge rate
 	*/
-    virtual double get_battery_recharge_rate () const
-    { return ( 1.0f - ( battery_recharge_value_a *
+	virtual double get_battery_recharge_rate () const
+	{ return ( 1.0f - ( battery_recharge_value_a *
     	exp ( - get_throttle_speed () / battery_recharge_value_t ) ) ); }
 
 	virtual void calculate_fuel_factor ( double delta_time );
@@ -201,6 +196,12 @@ public:
 	// give tubenr -1 for any loaded tube, or else 0-5
 	virtual bool fire_torpedo(class game& gm, int tubenr, sea_object* target,
 		const angle& manual_lead_angle);
+
+	// fixme: time that is needed depends on sub type and how many torpedoes
+	// are already in transfer. So this argument is nonesense. fixme
+	// returns true if transfer was initiated.
+	// fixme: make virtual?
+	bool transfer_torpedo(unsigned from, unsigned to, double timeneeded = 120);
 };
 
 #endif

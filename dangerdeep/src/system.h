@@ -49,8 +49,10 @@ public:
 	void draw_image(int x, int y, int w, int h, const texture* t) const;
 	void draw_hm_image(int x, int y, int w, int h, const texture* t) const;	// horizontally mirrored
 	void draw_vm_image(int x, int y, int w, int h, const texture* t) const;	// vertically mirrored
-	
+	void draw_tiles(int x, int y, int w, int h, unsigned tiles, unsigned tilesy,
+		const texture* t) const;	
 	void draw_rectangle(int x, int y, int w, int h);
+	void no_tex(void) const { glBindTexture(GL_TEXTURE_2D, 0); }
 	
 	// takes effect only after next prepare_2d_drawing()
 	void set_res_2d(unsigned x, unsigned y) { res_x_2d = x; res_y_2d = y; }

@@ -197,13 +197,14 @@ void submarine::simulate(class game& gm, double delta_time)
 				} else {		// unloading
 					st.status = stored_torpedo::st_empty;	// empty
 					torpedoes[st.associated].status = stored_torpedo::st_loaded;	// loaded
+					// fixme: message: torpedo reloaded
 				}
 			}
 		}
 	}
 
-	// automatic reloading if desired	
-	if (true /*automatic_reloading*/) {
+	// automatic reloading if desired, fixed: move to fire_torpedo
+	if (false /*true*/ /*automatic_reloading*/) {
 		pair<unsigned, unsigned> bow_tube_indices = get_bow_tube_indices();
 		pair<unsigned, unsigned> stern_tube_indices = get_stern_tube_indices();
 		for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
@@ -395,7 +396,7 @@ bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target,
 		if (t->adjust_head_to(target, usebowtubes, manual_lead_angle)) {
 			gm.spawn_torpedo(t);
 		} else {
-			// gyro angle invalid
+			// gyro angle invalid, fixme send message to ui
 			delete t;
 			return false;
 		}

@@ -19,6 +19,9 @@ class submarine_interface : public user_interface
 protected:
 	// Manual angle correction to fire a spread of torpedoes.
 	angle lead_angle;
+	
+	// source tube nr for manual torpedo transfer
+	unsigned torptranssrc;
 
 	class sub_damage_display* sub_damage_disp;
 

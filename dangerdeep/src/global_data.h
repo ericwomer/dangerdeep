@@ -22,7 +22,8 @@ using namespace std;
 extern class model *merchant_large, *merchant_medium, *merchant_small,
 	*subVII, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
-	*skyhemisphere, *corvette_mdl, *freighter_medium, *freighter_large;
+	*skyhemisphere, *corvette_mdl, *freighter_medium, *freighter_large,
+	*tanker_small;
 extern class texture *water, *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,

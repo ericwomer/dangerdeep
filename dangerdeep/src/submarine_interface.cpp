@@ -33,6 +33,8 @@ extern void menu_notimplemented(void);	// fixme remove later.
 submarine_interface::submarine_interface(submarine* player_sub) : 
     	user_interface( player_sub ), sub_damage_disp(new sub_damage_display(player_sub))
 {
+	lead_angle = 0;
+	torptranssrc = 0xffff;
 }
 
 submarine_interface::~submarine_interface()
@@ -484,18 +486,8 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	submarine* player = dynamic_cast<submarine*> ( get_player () );
 
 	sys.prepare_2d_drawing();
-	glBindTexture(GL_TEXTURE_2D, background->get_opengl_name());
 	set_display_color ( gm );
-	glBegin(GL_QUADS);
-	glTexCoord2i(0,0);
-	glVertex2i(0,0);
-	glTexCoord2i(0,6);
-	glVertex2i(0,768);
-	glTexCoord2i(8,6);
-	glVertex2i(1024,768);
-	glTexCoord2i(8,0);
-	glVertex2i(1024,0);
-	glEnd();
+	sys.draw_tiles(0, 0, 1024, 768, 8, 6, background);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
 	glPushMatrix();
@@ -505,9 +497,10 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	glRotatef(-90, 0, 1, 0);
 	player->display();
 	glPopMatrix();
-	
-	// draw tubes
+
+	// tube handling. compute coordinates for display and mouse use	
 	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
+	vector<pair<int, int> > tubecoords(torpedoes.size());
 	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();
 	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
 	pair<unsigned, unsigned> bow_storage_indices = player->get_bow_storage_indices();
@@ -516,28 +509,48 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	pair<unsigned, unsigned> stern_top_storage_indices = player->get_stern_top_storage_indices();
 	unsigned k = bow_tube_indices.second - bow_tube_indices.first;
 	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
-		draw_torpedo(sys, gm, true, 0, 192+(i-k/2)*16, torpedoes[i]);
+		tubecoords[i].first = 0;
+		tubecoords[i].second = 192+(i-k/2)*16;	
 	}
 	for (unsigned i = bow_storage_indices.first; i < bow_storage_indices.second; ++i) {
 		unsigned j = i - bow_storage_indices.first;
-		draw_torpedo(sys, gm, true, 192+(j/k)*128, 192+(j%k-k/2)*16, torpedoes[i]);
+		tubecoords[i].first = 192+(j/k)*128;
+		tubecoords[i].second = 192+(j%k-k/2)*16;	
 	}
 	for (unsigned i = bow_top_storage_indices.first; i < bow_top_storage_indices.second; ++i) {
 		unsigned j = i - bow_top_storage_indices.first;
-		draw_torpedo(sys, gm, true, 192+(j/2)*128, 96+(j%2)*16, torpedoes[i]);
+		tubecoords[i].first = 192+(j/2)*128;
+		tubecoords[i].second = 96+(j%2)*16;	
 	}
 	for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
 		unsigned j = i - stern_tube_indices.first;
-		draw_torpedo(sys, gm, false, 896, 160+j*16, torpedoes[i]);
+		tubecoords[i].first = 896;
+		tubecoords[i].second = 160+j*16;	
 	}
 	for (unsigned i = stern_storage_indices.first; i < stern_storage_indices.second; ++i) {
 		unsigned j = i - stern_storage_indices.first;
-		draw_torpedo(sys, gm, false, 704, 160+j*16, torpedoes[i]);
+		tubecoords[i].first = 704;
+		tubecoords[i].second = 160+j*16;	
 	}
 	for (unsigned i = stern_top_storage_indices.first; i < stern_top_storage_indices.second; ++i) {
 		unsigned j = i - stern_top_storage_indices.first;
-		draw_torpedo(sys, gm, false, 704-(j/2)*128, 96+(j%2)*16, torpedoes[i]);
+		tubecoords[i].first = 704-(j/2)*128;
+		tubecoords[i].second = 96+(j%2)*16;
 	}
+
+	// draw tubes
+	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i)
+		draw_torpedo(sys, gm, true, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
+	for (unsigned i = bow_storage_indices.first; i < bow_storage_indices.second; ++i)
+		draw_torpedo(sys, gm, true, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
+	for (unsigned i = bow_top_storage_indices.first; i < bow_top_storage_indices.second; ++i)
+		draw_torpedo(sys, gm, true, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
+	for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i)
+		draw_torpedo(sys, gm, false, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
+	for (unsigned i = stern_storage_indices.first; i < stern_storage_indices.second; ++i)
+		draw_torpedo(sys, gm, false, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
+	for (unsigned i = stern_top_storage_indices.first; i < stern_top_storage_indices.second; ++i)
+		draw_torpedo(sys, gm, false, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
 	
 	// collect and draw type info
 	set<unsigned> torptypes;
@@ -552,13 +565,56 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 		font_arial2->print(px+16, 448, texts::get(130+*it-1), color(0,0,128));
 		px += 256;
 	}
+	
+	// mouse handling
+	int mx, my, mb = sys.get_mouse_buttons();
+	sys.get_mouse_position(mx, my);
+
+	unsigned mouseovertube = 0xffff;
+	for (unsigned i = 0; i < torpedoes.size(); ++i) {
+		if (mx >= tubecoords[i].first && mx < tubecoords[i].first+128 &&
+				my >= tubecoords[i].second && my < tubecoords[i].second+16) {
+			mouseovertube = i;
+			break;
+		}
+	}
+
+	if (mb != 0) {
+		// button down
+		if (	mouseovertube < torpedoes.size()
+			&& torptranssrc >= torpedoes.size()
+			&& torpedoes[mouseovertube].status == submarine::stored_torpedo::st_loaded)
+		{
+			torptranssrc = mouseovertube;
+		}
+	
+	} else {
+		
+		// button released
+		if (	   mouseovertube < torpedoes.size()
+			&& torptranssrc < torpedoes.size()
+			&& torpedoes[mouseovertube].status == submarine::stored_torpedo::st_empty
+			&& mouseovertube != torptranssrc)
+		{
+			// transport
+			player->transfer_torpedo(torptranssrc, mouseovertube);
+		}
+		torptranssrc = 0xffff;
+	}
+		
+	// draw line for torpedo transfer if button down
+	if (mb != 0 && torptranssrc < torpedoes.size()) {
+		sys.no_tex();
+		color::white().set_gl_color();
+		glBegin(GL_LINES);
+		glVertex2i(tubecoords[torptranssrc].first+64,
+			tubecoords[torptranssrc].second+8);
+		glVertex2i(mx, my);
+		glEnd();
+	}
 
 	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
-
-	// mouse handling
-	int mx, my; // mb = sys.get_mouse_buttons(); Unused variable
-	sys.get_mouse_position(mx, my);
 
 	// keyboard processing
 	int key = sys.get_key();

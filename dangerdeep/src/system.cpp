@@ -437,6 +437,21 @@ void system::draw_vm_image(int x, int y, int w, int h, const texture* t) const
 	glEnd();
 }
 
+void system::draw_tiles(int x, int y, int w, int h, unsigned tilesx, unsigned tilesy, const texture* t) const
+{
+	glBindTexture(GL_TEXTURE_2D, t->get_opengl_name());
+	glBegin(GL_QUADS);
+	glTexCoord2i(0,0);
+	glVertex2i(0,0);
+	glTexCoord2i(0,tilesy);
+	glVertex2i(0,h);
+	glTexCoord2i(tilesx,tilesy);
+	glVertex2i(w,h);
+	glTexCoord2i(tilesx,0);
+	glVertex2i(w,0);
+	glEnd();
+}
+
 void system::draw_rectangle(int x, int y, int w, int h)
 {
 /*

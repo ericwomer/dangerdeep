@@ -15,6 +15,7 @@
 #include "ship_corvette.h"
 #include "ship_largefreighter.h"
 #include "ship_mediumfreighter.h"
+#include "ship_smalltanker.h"
 #include "tokencodes.h"
 #include "sensors.h"
 #include "ai.h"
@@ -65,6 +66,7 @@ ship* ship::create(ship::types type_)
 		case corvette: return new ship_corvette();
 		case largefreighter: return new ship_largefreighter();
 		case mediumfreighter: return new ship_mediumfreighter();
+		case smalltanker: return new ship_smalltanker();
 	}
 	return 0;
 }
@@ -85,6 +87,7 @@ ship* ship::create(parser& p)
 		case TKN_CORVETTE: return new ship_corvette(p);
 		case TKN_LARGEFREIGHTER: return new ship_largefreighter(p);
 		case TKN_MEDIUMFREIGHTER: return new ship_mediumfreighter(p);
+		case TKN_SMALLTANKER: return new ship_smalltanker(p);
 	}
 	return 0;
 }

@@ -59,6 +59,7 @@ public:
 		corvette,
 		largefreighter,
 		mediumfreighter,
+		smalltanker,
 	};
 	
 	virtual ~ship();
