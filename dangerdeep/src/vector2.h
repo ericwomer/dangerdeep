@@ -49,8 +49,6 @@ class vector2t
 	vector3t<D> xy0(void) const { return vector3t<D>(x, y, 0); }
 	template<class D2> friend ostream& operator<< ( ostream& os, const vector2t<D2>& v );
 	template<class E> void assign(const vector2t<E>& other) { x = D(other.x); y = D(other.y); }
-	vector2t(istream& in) { in.read((char*)&x, sizeof(x)); in.read((char*)&y, sizeof(y)); }
-	void save(ostream& out) const { out.write((const char*)&x, sizeof(x)); out.write((const char*)&y, sizeof(y)); }
 };
 
 template <class D>

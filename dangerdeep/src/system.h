@@ -11,6 +11,14 @@ using namespace std;
 #include "font.h"
 #include "texture.h"
 
+#ifdef WIN32
+#ifdef system
+#undef system
+#endif
+namespace ADVSYS
+{
+#endif
+
 class system
 {
 public:
@@ -21,10 +29,18 @@ public:
 	void poll_event_queue(void); // !must! be called periodically (once per frame)
 	void get_mouse_motion(int &x, int &y);
 	void get_mouse_position(int &x, int &y);
-	int get_mouse_buttons(void) const { return mouse_b; };
-	int get_key(void);	// get SDL code of next key (0 if no key in queue)
+	// get mouse button state as mask of button_type
+	int get_mouse_buttons(void) const { return mouse_b; }
+	// get mouse button down events as mask of button_type
+	int get_mouse_click(void) { int i = mouse_cl; mouse_cl = 0; return i; }
+	// get mouse button up events as mask of button_type
+	int get_mouse_release(void) { int i = mouse_rl; mouse_rl = 0; return i; }
+	// get SDL code of next key (0 if no key in queue)
+	int get_key(void);
+	// is key in queue?
 	bool is_key_down(int code) const;
-	int getch(void); // wait for keypress
+	// wait for keypress
+	int getch(void);
 	void screen_resize(unsigned w, unsigned h, double nearz, double farz);
 	
 	void clear_console(void);
@@ -77,7 +93,7 @@ private:
 	vector<bool> keys;
 	queue<int> keyqueue;
 	unsigned keymod;
-	int mouse_xrel, mouse_yrel, mouse_x, mouse_y, mouse_b;
+	int mouse_xrel, mouse_yrel, mouse_x, mouse_y, mouse_b, mouse_cl, mouse_rl;
 	
 	static system* instance;
 
@@ -96,4 +112,10 @@ public:
 	unsigned get_res_y(void) const { return res_y; };
 };
 
+#ifdef WIN32
+#define system ADVSYS::system
+}
 #endif
+
+#endif
+

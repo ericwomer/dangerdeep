@@ -23,13 +23,20 @@ using namespace std;
 #endif
 #include "system.h"
 
+#ifdef WIN32
+#ifdef system
+#undef system
+#endif
+namespace ADVSYS{
+#endif
+
 class system* system::instance = 0;
 
 system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	res_x(res), res_y(res*3/4), nearz(nearz_), farz(farz_), is_fullscreen(fullscreen),
 	show_console(false), console_font(0), console_background(0),
 	draw_2d(false), keyqueue(), keymod(0), mouse_xrel(0), mouse_yrel(0), mouse_x(res/2),
-	mouse_y(res*3/8), mouse_b(0), time_passed_while_sleeping(0), sleep_time(0),
+	mouse_y(res*3/8), mouse_b(0), mouse_cl(0), mouse_rl(0), time_passed_while_sleeping(0), sleep_time(0),
 	is_sleeping(false), screenshot_nr(0)
 {
 	myassert(res==640||res==800||res==1024||res==1280||res==512, "illegal resolution requested");
@@ -281,12 +288,18 @@ void system::poll_event_queue(void)
 					{
 						case SDL_BUTTON_LEFT:
 							mouse_b |= left_button;
+							mouse_cl |= left_button;
+							mouse_rl &= ~left_button;
 							break;
 						case SDL_BUTTON_MIDDLE:
 							mouse_b |= middle_button;
+							mouse_cl |= middle_button;
+							mouse_rl &= ~middle_button;
 							break;
 						case SDL_BUTTON_RIGHT:
 							mouse_b |= right_button;
+							mouse_cl |= right_button;
+							mouse_rl &= ~right_button;
 							break;
 					}
 					break;
@@ -296,12 +309,18 @@ void system::poll_event_queue(void)
 					{
 						case SDL_BUTTON_LEFT:
 							mouse_b &= ~left_button;
+							mouse_rl |= left_button;
+							mouse_cl &= ~left_button;
 							break;
 						case SDL_BUTTON_MIDDLE:
 							mouse_b &= ~middle_button;
+							mouse_rl |= middle_button;
+							mouse_cl &= ~middle_button;
 							break;
 						case SDL_BUTTON_RIGHT:
 							mouse_b &= ~right_button;
+							mouse_rl |= right_button;
+							mouse_cl &= ~right_button;
 							break;
 					}
 					break;
@@ -399,3 +418,7 @@ void system::gl_perspective_fovx(double fovx, double aspect, double znear, doubl
 	double t = znear * tanfovy2;
 	glFrustum(-r, r, -t, t, znear, zfar);
 }
+
+#ifdef WIN32
+}
+#endif

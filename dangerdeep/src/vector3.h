@@ -49,8 +49,6 @@ class vector3t
 	vector2t<D> yz(void) const { return vector2t<D>(y, z); };
 	template<class D2> friend ostream& operator<< ( ostream& os, const vector3t<D2>& v );
 	template<class E> void assign(const vector2t<E>& other) { x = D(other.x); y = D(other.y); }
-	vector3t(istream& in) { in.read((char*)&x, sizeof(x)); in.read((char*)&y, sizeof(y)); in.read((char*)&z, sizeof(z)); }
-	void save(ostream& out) const { out.write((const char*)&x, sizeof(x)); out.write((const char*)&y, sizeof(y)); out.write((const char*)&z, sizeof(z)); }
 };
 
 template<class D2> inline vector3t<D2> operator* (const D2& scalar, const vector3t<D2>& v) { return v * scalar; }
