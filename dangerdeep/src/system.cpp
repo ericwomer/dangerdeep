@@ -257,10 +257,11 @@ void system::swap_buffers(void)
 	SDL_GL_SwapBuffers();
 }
 
-void system::poll_event_queue(void)
+unsigned int system::poll_event_queue(void)
 {
 	SDL_Event event;
 	SDL_keysym keysym;
+	unsigned int eventcount = 0;
 	do {
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
@@ -275,12 +276,14 @@ void system::poll_event_queue(void)
 					} else {
 						is_sleeping = false;
 						time_passed_while_sleeping += SDL_GetTicks() - sleep_time;
+						eventcount++;
 					}
 					break;
 				
 				case SDL_KEYDOWN:		// Keyboard event - key down
 					keysym = event.key.keysym;
 					keyqueue.push(keysym);
+					eventcount++;
 					break;
 				
 				case SDL_KEYUP:			// Keyboard event - key up
@@ -293,6 +296,7 @@ void system::poll_event_queue(void)
 					mouse_yrel += event.motion.yrel;
 					mouse_x = event.motion.x;
 					mouse_y = event.motion.y;
+					eventcount++;
 					break;
 				
 				case SDL_MOUSEBUTTONDOWN:	// Mouse button event - button down
@@ -314,6 +318,7 @@ void system::poll_event_queue(void)
 							mouse_b |= wheel_down;
 							break;
 					}
+					eventcount++;
 					break;
 				
 				case SDL_MOUSEBUTTONUP:		// Mouse button event - button up
@@ -335,6 +340,7 @@ void system::poll_event_queue(void)
 							mouse_b &= ~wheel_down;
 							break;
 					}
+					eventcount++;
 					break;
 					
 				default:			// Should NEVER happen !
@@ -345,6 +351,8 @@ void system::poll_event_queue(void)
 			}
 		}
 	} while (is_sleeping);
+
+	return eventcount;
 }
 
 void system::get_mouse_motion(int &x, int &y)

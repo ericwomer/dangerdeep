@@ -289,6 +289,7 @@ widget* widget::create_dialogue_ok_cancel(widget* parent_, const string& title, 
 
 int widget::run(unsigned timeout)
 {
+	unsigned short inited = false; // draw first, then only draw when an event occurred
 	glClearColor(0, 0, 0, 0);
 	widget* myparent = parent;	// store parent info and unlink chain to parent
 	parent = 0;
@@ -301,7 +302,11 @@ int widget::run(unsigned timeout)
 		unsigned time = sys.millisec();
 		if (timeout != 0 && time > endtime) break;
 		
-		sys.poll_event_queue();
+		if(inited && !sys.poll_event_queue()) {
+			SDL_Delay(1000/120);	
+			continue;
+		}
+		inited = true;
 		glClear(GL_COLOR_BUFFER_BIT);
 		sys.prepare_2d_drawing();
 		glColor4f(1,1,1,1);

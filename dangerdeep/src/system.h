@@ -30,7 +30,7 @@ public:
 	system(double nearz_, double farz_, unsigned res=640, bool fullscreen=true);
 	~system();
 	void swap_buffers(void);
-	void poll_event_queue(void); // !must! be called periodically (once per frame)
+	unsigned int poll_event_queue(void); // !must! be called periodically (once per frame)
 	void get_mouse_motion(int &x, int &y);
 	void get_mouse_position(int &x, int &y);
 	// get mouse button state as mask of button_type
