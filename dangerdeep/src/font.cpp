@@ -49,7 +49,7 @@ void font::print_text(int x, int y, const string& text, bool ignore_colors) cons
 			//fixme: width in text is width+left, so advance x by that value
 			//and draw at x+left. must be changed everywhere
 			//int x2 = x + characters[t].left;
-			int y2 = y + characters[t].top;
+			int y2 = y + base_height - characters[t].top;
 			glBindTexture(GL_TEXTURE_2D, characters[t].tex->get_opengl_name());
 		        glBegin(GL_QUADS);
 		        glTexCoord2f(0,0);
@@ -83,8 +83,9 @@ font::font(const string& basefilename, unsigned char_spacing)
 	spacing = char_spacing;
 	unsigned codex = unsigned('x'), codeleftbr = unsigned('(');
 	blank_width = (codex >= first_char && codex <= last_char) ? characters[codex-first_char].width : 8;
-	height = (codeleftbr >= first_char && codeleftbr <= last_char) ? characters[codeleftbr-first_char].height : base_height*3/2;
+	//height = (codeleftbr >= first_char && codeleftbr <= last_char) ? characters[codeleftbr-first_char].height : base_height*3/2;
 	height = base_height*3/2;
+	base_height = base_height*7/6;	// tiny trick to use the space a bit better.
 	
 	// calculate offsets
 	vector<unsigned> offsets(characters.size());
@@ -107,7 +108,7 @@ font::font(const string& basefilename, unsigned char_spacing)
 		unsigned h = next_p2(c.height);
 		vector<Uint8> tmpimage(w * h * 2);
 		
-		unsigned char* ptr = ((unsigned char*)(fontimage->pixels)) + c.top*fontimage->pitch + offsets[i];
+		unsigned char* ptr = ((unsigned char*)(fontimage->pixels)) + offsets[i];
 	
 		for (unsigned y = 0; y < c.height; y++) {
 			for (unsigned x = 0; x < c.width; ++x) {

@@ -191,12 +191,15 @@ void model::material::set_gl_values(void) const
 			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
 			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 			/*
-			fixme: add some ambient color to the bump map with alpha blending
+			fixme: add some ambient color to the bump map with alpha blending:
 			store ambient as primary color alpha
 			add it to tex0 dot3 result (with tex1alpha op)
-			set blend mode to src_alpha,ONE
-			or something the like...
+			set blend mode to src_alpha,GL_ZERO
 			add ambient to N*L or use ambient to blend between N*L and 1.
+			the latter is better ;-) use interpolate or add_saturated or something
+			the like.
+			Tex1 could compute something with the color, like modulating the
+			texture with environment color etc. (colored ambient?)
 			*/
 		} else {
 			glActiveTexture(GL_TEXTURE0);
@@ -378,6 +381,7 @@ float model::get_cross_section(float angle) const
 				#define M3DS_MATMAPUOFFSET	0xA358
 				#define M3DS_MATMAPVOFFSET	0xA35A
 				#define M3DS_MATMAPANG		0xA35C
+				#define M3DS_MATMAPAMOUNTBUMP	0xA252//double byte chunk, displayed amount of bump, not yet used
 			#define M3DS_MATMAPBUMP		0xA230
 		#define M3DS_EDIT_OBJECT	0x4000
 			#define M3DS_OBJ_TRIMESH   	0x4100
@@ -603,6 +607,7 @@ void model::m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, mod
 				ch.bytes_read += 4;
 //			printf("angle %f\n",m->angle);
 				break;
+//			case M3DS_MATMAPAMOUNTBUMP://see above
 		}
 		ch.skip(in);
 		parent.bytes_read += ch.length;
