@@ -49,8 +49,8 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 			esmpos->Attribute("x", &smokerelpos.x);
 			esmpos->Attribute("y", &smokerelpos.y);
 			esmpos->Attribute("z", &smokerelpos.z);
+			mysmoke = new smoke_stream(position+smokerelpos, 2);
 		}
-		mysmoke = new smoke_stream(position+smokerelpos, 2);			
 	}
 	TiXmlElement* eai = hdftdship.FirstChildElement("ai").Element();
 	system::sys().myassert(eai != 0, string("ai node missing in ")+specfilename);
