@@ -570,8 +570,8 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 
 	// compute dynamic normals
 	// clear values from last frame
-	for (unsigned i = 0; i < (xres+1)*(yres+1); ++i)
-		normals[i] = vector3f(0.0f, 0.0f, 0.0f);
+	fill(normals.begin(), normals.end(), vector3f());
+
 	// compute normals for all faces, add them to vertex normals
 	// fixme: angles at vertices are ignored yet
 	for (unsigned y = 0; y < yres; ++y) {
