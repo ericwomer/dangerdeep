@@ -1,3 +1,9 @@
+2003-11-29  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* Makefile/configure
+	  - moved automake files one directory up.
+	    listed src/ as subdirectory for automake.
+	    Now you can do a "./configure && make" in dangerdeep/ directly.
+
 2003-11-28  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* coast* user_interface mapcompile.cpp
 	  - map compiles to normal stored format (further compression like
