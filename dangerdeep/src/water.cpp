@@ -283,6 +283,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 
 	}
 
+#if 0
 	perlinnoise_generator png;
 	png.add_noise_func(perlinnoise_generator::noise_func(3, 1, 256));
 	png.add_noise_func(perlinnoise_generator::noise_func(4, 1, 128));
@@ -323,6 +324,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 							    GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 #endif
 	}
+#endif
 
 	add_loading_screen("water height data computed");
 }
@@ -361,9 +363,10 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 		float bt = myfmod(mytime, 10.0) / 10.0f;// seconds, fixme
 		if (bt >= 0.5f) bt = 1.0f - bt;
 		bt *= 2.0f;
+#if 0
 		unsigned wb = unsigned(water_bumpmap.size()*bt);
 		water_bumpmap[wb]->set_gl_texture();
-
+#endif
 		// local parameters:
 		// local 0 : upwelling color
 		glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 0,
