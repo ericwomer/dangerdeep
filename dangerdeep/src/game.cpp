@@ -107,6 +107,15 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	To do this we need a simulation of convoys in the atlantic.
 	Then we place the sub somewhere randomly around the convoy with maximum viewing distance.
 	Multiplayer: place several subs around the convoy with a minimum distance between each.
+	Sub placement: compute a random angle. Place the sub on a line given by that angle
+	around the convoy's center. Line is (0,0) + t * (dx, dy).
+	Compute value t for each convoy ship so that the ship
+	can be seen from the point t*(dx,dy), with maximum t (e.g. with binary subdivision
+	approximation).
+	The maximum t over all ships is choosen for the position.
+	To do that we create and use a lookout sensor.
+	This technique ignores the fact that convoys could be heared earlier than seen
+	(below surface, passive sonar) or even detected by their smell (smoke)!
 ***********************************************************************/	
 	networktype = 0;
 	servercon = 0;
@@ -151,6 +160,7 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 		spawn_ship(it->first);
 	spawn_convoy(cv);
 
+	lookout_sensor tmpsensor;
 	vector<angle> subangles;
 	submarine* psub = 0;
 	for (unsigned i = 0; i < nr_of_players; ++i) {
@@ -163,6 +173,8 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 			player = psub;
 			compute_max_view_dist();
 		}
+		
+		// distribute subs randomly around convoy.
 		angle tmpa;
 		double anglediff = 90.0;
 		bool angleok = false;
@@ -184,9 +196,29 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 				}
 			}
 		} while (!angleok);
-		vector2 tmpp = tmpa.direction() * (get_max_view_distance()/2);
-		sub->position = vector3(tmpp.x, tmpp.y, timeofday == 2 ? 0 : -12); // fixme maybe always surfaced, except late in war
-		sub->heading = sub->head_to = angle(rnd()*360.0);
+		
+		// now tmpa holds the angle of the sub's position around the convoy.
+		double maxt = 0;
+		for (list<ship*>::const_iterator it = ships.begin(); it != ships.end(); ++it) {
+			double maxt1 = 0, maxt2 = get_max_view_distance()/2, maxt3 = get_max_view_distance();
+			sub->position = (maxt2 * tmpa.direction()).xy0();
+			// find maximum distance t along line (0,0)+t*tmpa.dir() for this ship
+			while (maxt3 - maxt1 > 50.0) {
+				if (tmpsensor.is_detected(this, sub, *it)) {
+					maxt1 = maxt2;
+				} else {
+					maxt3 = maxt2;
+				}
+				maxt2 = (maxt1 + maxt3)/2;
+				sub->position = (maxt2 * tmpa.direction()).xy0();
+			}
+			if (maxt2 > maxt) maxt = maxt2;
+		}
+		sub->position = (maxt * tmpa.direction()).xy0();
+		sub->position.z = (timeofday == 2) ? 0 : -12; // fixme maybe always surfaced, except late in war
+		// heading should be facing to the convoy (+-90deg), as it is unrealistic
+		// to detect a convoy while moving away from it
+		sub->heading = sub->head_to = angle(rnd()*180.0 + 90.0) + tmpa;
 	
 		spawn_submarine(sub);
 	}

@@ -1,3 +1,10 @@
+2004-05-21  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* game.cpp
+	  - custom missions are improved: the sub's position is now
+	    realistic, the convoy's ships are at the visible border.
+	    Now custom missions are useable (if we ignore the suicidal
+	    destroyers...)
+
 2004-05-16  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* sea_object, sensor
 	  - changed visibility formula and factors.

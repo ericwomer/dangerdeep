@@ -32,7 +32,7 @@ private:
 	double detection_cone;
 	/// This flag shows in what direction the sensor moves.
 	/// 1 right, -1 left.
-	char move_direction;
+	int move_direction;
 
 protected:
 	/**
