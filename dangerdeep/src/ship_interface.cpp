@@ -37,19 +37,19 @@ bool ship_interface::keyboard_common(int keycode, class system& sys, class game&
 		case SDLK_F10: viewmode = 9; break;
 
 		// time scaling fixme: too simple
-		case SDLK_F11: if (time_scale < 100) { ++time_scale; add_message(TXT_Timescaleup[language]); } break;
-		case SDLK_F12: if (time_scale > 1) { --time_scale; add_message(TXT_Timescaledown[language]); } break;
+		case SDLK_F11: if (time_scale < 100) { ++time_scale; add_message(texts::get(31)); } break;
+		case SDLK_F12: if (time_scale > 1) { --time_scale; add_message(texts::get(32)); } break;
 
 		// control
-		case SDLK_LEFT: player->rudder_left(); add_message(TXT_Rudderleft[language]); break;
-		case SDLK_RIGHT: player->rudder_right(); add_message(TXT_Rudderright[language]); break;
-		case SDLK_RETURN : player->rudder_midships(); add_message(TXT_Ruddermidships[language]); break;
-		case SDLK_1: player->set_throttle(sea_object::aheadslow); add_message(TXT_Aheadslow[language]); break;
-		case SDLK_2: player->set_throttle(sea_object::aheadhalf); add_message(TXT_Aheadhalf[language]); break;
-		case SDLK_3: player->set_throttle(sea_object::aheadfull); add_message(TXT_Aheadfull[language]); break;
-		case SDLK_4: player->set_throttle(sea_object::aheadflank); add_message(TXT_Aheadflank[language]); break;//flank/full change?
-		case SDLK_5: player->set_throttle(sea_object::stop); add_message(TXT_Enginestop[language]); break;
-		case SDLK_6: player->set_throttle(sea_object::reverse); add_message(TXT_Enginereverse[language]); break;
+		case SDLK_LEFT: player->rudder_left(); add_message(texts::get(33)); break;
+		case SDLK_RIGHT: player->rudder_right(); add_message(texts::get(34)); break;
+		case SDLK_RETURN : player->rudder_midships(); add_message(texts::get(42)); break;
+		case SDLK_1: player->set_throttle(sea_object::aheadslow); add_message(texts::get(43)); break;
+		case SDLK_2: player->set_throttle(sea_object::aheadhalf); add_message(texts::get(44)); break;
+		case SDLK_3: player->set_throttle(sea_object::aheadfull); add_message(texts::get(45)); break;
+		case SDLK_4: player->set_throttle(sea_object::aheadflank); add_message(texts::get(46)); break;//flank/full change? fixme
+		case SDLK_5: player->set_throttle(sea_object::stop); add_message(texts::get(47)); break;
+		case SDLK_6: player->set_throttle(sea_object::reverse); add_message(texts::get(48)); break;
 
 		// view
 		case SDLK_COMMA : bearing -= angle(sys.key_shift() ? 10 : 1); break;
@@ -65,21 +65,21 @@ bool ship_interface::keyboard_common(int keycode, class system& sys, class game&
 					bow = false;
 			}
 			if (player->fire_torpedo(gm, bow, -1/*fixme*/, target))
-				add_message(TXT_Torpedofired[language]);
+				add_message(texts::get(49));
 			break;
 #endif			
 		}
 		case SDLK_SPACE: target = gm.sub_in_direction_from_pos(player, player->get_heading()+bearing);
-			if (target) add_message(TXT_Newtargetselected[language]);
-			else add_message(TXT_Notargetindirection[language]);
+			if (target) add_message(texts::get(50));
+			else add_message(texts::get(51));
 			break;
 
 		// quit, screenshot, pause etc.
 		case SDLK_ESCAPE: quit = true; break;
 		case SDLK_i: sys.screenshot(); sys.add_console("screenshot taken."); break;
 		case SDLK_PAUSE: pause = !pause;
-			if (pause) add_message(TXT_Gamepaused[language]);
-			else add_message(TXT_Gameunpaused[language]);
+			if (pause) add_message(texts::get(52));
+			else add_message(texts::get(53));
 			break;
 		default: return false;		
 	}
@@ -102,7 +102,7 @@ texture* ship_interface::torptex(unsigned type)
 */
 	
 void ship_interface::draw_gauge(class system& sys, unsigned nr, int x, int y,
-	unsigned wh, angle a, const char* text) const
+	unsigned wh, angle a, const string& text) const
 {
 	switch (nr) {
 		case 1:	sys.draw_image(x, y, wh, wh, gauge1); break;
@@ -113,8 +113,8 @@ void ship_interface::draw_gauge(class system& sys, unsigned nr, int x, int y,
 	}
 	vector2 d = a.direction();
 	int xx = x+wh/2, yy = y+wh/2;
-	pair<unsigned, unsigned> twh = font_arial2->get_size(text);
-	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text);
+	pair<unsigned, unsigned> twh = font_arial2->get_size(text.c_str());
+	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text.c_str());
 	glColor3f(1,0,0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBegin(GL_TRIANGLES);
@@ -257,10 +257,10 @@ void ship_interface::display_sonar(class system& sys, game& gm)
 		targetspeed = target->get_speed()*360.0/sea_object::kts2ms(36);
 		targetheading = target->get_heading();
 	}
-	draw_gauge(sys, 1, 0, 0, 256, targetbearing, TXT_Targetbearing[language]);
-	draw_gauge(sys, 3, 256, 0, 256, targetrange, TXT_Targetrange[language]);
-	draw_gauge(sys, 2, 0, 256, 256, targetspeed, TXT_Targetspeed[language]);
-	draw_gauge(sys, 1, 256, 256, 256, targetheading, TXT_Targetcourse[language]);
+	draw_gauge(sys, 1, 0, 0, 256, targetbearing, texts::get(12));
+	draw_gauge(sys, 3, 256, 0, 256, targetrange, texts::get(13));
+	draw_gauge(sys, 2, 0, 256, 256, targetspeed, texts::get(14));
+	draw_gauge(sys, 1, 256, 256, 256, targetheading, texts::get(15));
 	sys.draw_image(768, 512, 256, 256, addleadangle);
 	const vector<ship::stored_torpedo>& torpedoes = player->get_torpedoes();
 	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();

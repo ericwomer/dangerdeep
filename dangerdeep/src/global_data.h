@@ -26,7 +26,7 @@ extern class font *font_arial, *font_arial2, *font_ellis, *font_panel, *font_tah
 extern class sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
 extern class image *titlebackgr, *periscope, *threesubsimg, *damage_screen_background,
-	*sub_damage_scheme_all, *logbook_spiral;
+	*sub_damage_scheme_all, *logbook_spiral, *killedimg;
 
 void init_global_data(void);
 void deinit_global_data(void);

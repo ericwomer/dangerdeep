@@ -34,7 +34,7 @@ sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
 
 image *titlebackgr, *periscope, *threesubsimg, *damage_screen_background, *sub_damage_scheme_all,
-	*logbook_spiral;
+	*logbook_spiral, *killedimg;
 
 void init_global_data(void)
 {
@@ -100,6 +100,7 @@ void init_global_data(void)
 	repairheavy = new texture( ( get_data_dir () + TEXTURE_DIR + "repairheavy.png" ), 0, true, true );
 	repaircritical = new texture( ( get_data_dir () + TEXTURE_DIR + "repaircritical.png" ), 0, true, true );
 	repairwrecked = new texture( ( get_data_dir () + TEXTURE_DIR + "repairwrecked.png" ), 0, true, true );
+	killedimg = new image((get_data_dir() + IMAGES_DIR + "killed.png"), 0, true, true, true);
 }
 
 void deinit_global_data(void)
@@ -166,6 +167,7 @@ void deinit_global_data(void)
 	delete repairheavy;
 	delete repaircritical;
 	delete repairwrecked;
+	delete killedimg;
 }
 
 // returns 1939-1945, 1-12, 1-31

@@ -12,15 +12,21 @@ class texts {
 
 public:
 	enum languages { english, german };
+	static languages language;
 
 	static void set_language(languages l = english);
 	static string get(unsigned no);
 };
 
+#endif
+
+
+
+
 
 // old code
 
-
+#if 0
 #ifndef TEXTS_H_USECPP
 
 #define DEFTYPE extern
@@ -149,5 +155,4 @@ DEFTYPE const char* TXT_[] content("", "");
 DEFTYPE const char* TXT_[] content("", "");
 DEFTYPE const char* TXT_[] content("", "");
 */
-
-#endif
+#endif // old code

@@ -49,6 +49,7 @@ protected:
 	static void format_line ( list<string>& entries_list, const string& line );
 
 public:
+	virtual ~logbook_display() {}
 	virtual void display ( class system& sys, class game& gm ) = 0;
 	virtual void check_key ( int keycode, class system& sys, class game& gm ) = 0;
 	virtual void check_mouse ( int x, int y, int mb ) = 0;

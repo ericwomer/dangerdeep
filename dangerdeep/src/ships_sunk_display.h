@@ -41,7 +41,7 @@ class ships_sunk_display : public user_display
 		}
 		const model* get_model () const { return mdl; }
 		unsigned get_tonnage () const { return tonnage; }
-		const char* get_class_name () const { return class_name.c_str (); }
+		string get_class_name () const { return class_name; }
 	};
 
 	typedef map<unsigned, destroyed_object> destroyed_object_map;

@@ -45,11 +45,11 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			case SDLK_6:
 				if ( player->fire_torpedo ( gm, keycode - SDLK_1, target, lead_angle ) )
 				{
-					add_message(TXT_Torpedofired[language]);
+					add_message(texts::get(49));
 					ostringstream oss;
-					oss << TXT_Torpedofired[language];
+					oss << texts::get(49);
 					if ( target )
-						oss << " " << TXT_Target[language] << ": " << target->get_description ( 2 );
+						oss << " " << texts::get(46) << ": " << target->get_description ( 2 );
 					add_captains_log_entry( gm, oss.str () );
 					play_sound_effect ( se_submarine_torpedo_launch );
 				}
@@ -82,8 +82,8 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			case SDLK_F10: viewmode = display_mode_freeview; break;
 
 			// time scaling fixme: too simple
-			case SDLK_F11: if (time_scale_up()) { add_message(TXT_Timescaleup[language]); } break;
-			case SDLK_F12: if (time_scale_down()) { add_message(TXT_Timescaledown[language]); } break;
+			case SDLK_F11: if (time_scale_up()) { add_message(texts::get(31)); } break;
+			case SDLK_F12: if (time_scale_down()) { add_message(texts::get(32)); } break;
 
 			// control
 			case SDLK_LEFT:
@@ -94,19 +94,19 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 				player->rudder_right();
 				add_rudder_message();
 				break;
-			case SDLK_UP: player->planes_up(1); add_message(TXT_Planesup[language]); break;
-			case SDLK_DOWN: player->planes_down(1); add_message(TXT_Planesdown[language]); break;
+			case SDLK_UP: player->planes_up(1); add_message(texts::get(37)); break;
+			case SDLK_DOWN: player->planes_down(1); add_message(texts::get(38)); break;
 			case SDLK_c:
 				player->dive_to_depth(static_cast<unsigned>(player->get_max_depth()));
-				add_message(TXT_Crashdive[language]);
-				add_captains_log_entry ( gm, TXT_Crashdive[language] );
+				add_message(texts::get(41));
+				add_captains_log_entry ( gm, texts::get(41));
 				break;
 			case SDLK_d:
 				if ( player->has_snorkel () )
 				{
 					player->dive_to_depth ( static_cast<unsigned> ( player->get_snorkel_depth () ) );
-					add_message ( TXT_SnorkelDepth[language] );
-					add_captains_log_entry ( gm, TXT_SnorkelDepth[language] );
+					add_message ( texts::get(12));
+					add_captains_log_entry ( gm, texts::get(97));
 				}
 				break;
 			case SDLK_f:
@@ -116,16 +116,16 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 					{
 						if ( player->set_snorkel_up ( false ) )
 						{
-							add_message ( TXT_SnorkelDown[language] );
-							add_captains_log_entry ( gm, TXT_SnorkelDown[language] );
+							add_message (texts::get(96));
+							add_captains_log_entry ( gm, texts::get(96));
 						}
 					}
 					else
 					{
 						if ( player->set_snorkel_up ( true ) )
 						{
-							add_message ( TXT_SnorkelUp[language] );
-							add_captains_log_entry ( gm, TXT_SnorkelUp[language] );
+							add_message ( texts::get(95));
+							add_captains_log_entry ( gm, texts::get(95));
 						}
 					}
 				}
@@ -138,13 +138,13 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 				break;
 			case SDLK_p:
 				player->dive_to_depth(static_cast<unsigned>(player->get_periscope_depth()));
-				add_message(TXT_Periscopedepth[language]);
-				add_captains_log_entry ( gm, TXT_Periscopedepth[language] );
+				add_message(texts::get(40));
+				add_captains_log_entry ( gm, texts::get(40));
 				break;	//fixme
 			case SDLK_s:
 				player->dive_to_depth(0);
-				add_message(TXT_Surface[language]);
-				add_captains_log_entry ( gm, TXT_Surface[language] );
+				add_message(texts::get(39));
+				add_captains_log_entry ( gm, texts::get(39));
 				break;
 			case SDLK_v:
 				bearing = 0.0f;
@@ -152,17 +152,17 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			case SDLK_RETURN :
                 player->rudder_midships();
                 player->planes_middle();
-                add_message(TXT_Ruddermidships[language]);
+                add_message(texts::get(42));
                 break;
-			case SDLK_1: player->set_throttle(sea_object::aheadslow); add_message(TXT_Aheadslow[language]); break;
-			case SDLK_2: player->set_throttle(sea_object::aheadhalf); add_message(TXT_Aheadhalf[language]); break;
-			case SDLK_3: player->set_throttle(sea_object::aheadfull); add_message(TXT_Aheadfull[language]); break;
-			case SDLK_4: player->set_throttle(sea_object::aheadflank); add_message(TXT_Aheadflank[language]); break;//flank/full change?
-			case SDLK_5: player->set_throttle(sea_object::stop); add_message(TXT_Enginestop[language]); break;
-			case SDLK_6: player->set_throttle(sea_object::reverse); add_message(TXT_Enginereverse[language]); break;
+			case SDLK_1: player->set_throttle(sea_object::aheadslow); add_message(texts::get(43)); break;
+			case SDLK_2: player->set_throttle(sea_object::aheadhalf); add_message(texts::get(44)); break;
+			case SDLK_3: player->set_throttle(sea_object::aheadfull); add_message(texts::get(45)); break;
+			case SDLK_4: player->set_throttle(sea_object::aheadflank); add_message(texts::get(46)); break;//flank/full change?
+			case SDLK_5: player->set_throttle(sea_object::stop); add_message(texts::get(47)); break;
+			case SDLK_6: player->set_throttle(sea_object::reverse); add_message(texts::get(48)); break;
 			case SDLK_0: if (player->is_scope_up()) {
-				player->scope_down(); add_message(TXT_Scopedown[language]); } else {
-				player->scope_up(); add_message(TXT_Scopeup[language]); }
+				player->scope_down(); add_message(texts::get(54)); } else {
+				player->scope_up(); add_message(texts::get(55)); }
 				break;
 
 			// view
@@ -172,30 +172,30 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			// weapons, fixme
 			case SDLK_t:
 				if (player->fire_torpedo(gm, -1, target, lead_angle))
-					add_message(TXT_Torpedofired[language]);
+					add_message(texts::get(49));
 				break;
 			case SDLK_SPACE:
 				target = gm.contact_in_direction(player, player->get_heading()+bearing);
 				if (target)
 				{
-					add_message( TXT_Newtargetselected[language] );
-					add_captains_log_entry ( gm, TXT_Newtargetselected[language] );
+					add_message(texts::get(50));
+					add_captains_log_entry ( gm, texts::get(50));
 				}
 				else
-					add_message(TXT_Notargetindirection[language]);
+					add_message(texts::get(51));
 				break;
 			case SDLK_i:
 				// calculate distance to target for identification detail
 				if (target)
 				{
 					ostringstream oss;
-					oss << TXT_Identifiedtargetas[language] << target->get_description(2); // fixme
+					oss << texts::get(79) << target->get_description(2); // fixme
 					add_message( oss.str () );
 					add_captains_log_entry ( gm, oss.str () );
 				}
 				else
 				{
-					add_message(TXT_Notargetselected[language]);
+					add_message(texts::get(80));
 				}
 				break;
 
@@ -203,8 +203,8 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			case SDLK_ESCAPE: quit = true; break;
 			case SDLK_PRINT: sys.screenshot(); sys.add_console("screenshot taken."); break;
 			case SDLK_PAUSE: pause = !pause;
-				if (pause) add_message(TXT_Gamepaused[language]);
-				else add_message(TXT_Gameunpaused[language]);
+				if (pause) add_message(texts::get(52));
+				else add_message(texts::get(53));
 				break;
 			default: return false;		
 		}
@@ -356,10 +356,10 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 		targetspeed = target->get_speed()*360.0/sea_object::kts2ms(36);
 		targetheading = target->get_heading();
 	}
-	draw_gauge(sys, gm, 1, 0, 0, 256, targetbearing, TXT_Targetbearing[language]);
-	draw_gauge(sys, gm, 3, 256, 0, 256, targetrange, TXT_Targetrange[language]);
-	draw_gauge(sys, gm, 2, 0, 256, 256, targetspeed, TXT_Targetspeed[language]);
-	draw_gauge(sys, gm, 1, 256, 256, 256, targetheading, TXT_Targetcourse[language]);
+	draw_gauge(sys, gm, 1, 0, 0, 256, targetbearing, texts::get(12));
+	draw_gauge(sys, gm, 3, 256, 0, 256, targetrange, texts::get(13));
+	draw_gauge(sys, gm, 2, 0, 256, 256, targetspeed, texts::get(14));
+	draw_gauge(sys, gm, 1, 256, 256, 256, targetheading, texts::get(15));
 	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
 	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();
 	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
@@ -621,14 +621,14 @@ void submarine_interface::display_gauges(class system& sys, class game& gm)
 			sys.draw_image(x*256, y*256, 256, 256, psbackgr);
 	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
 	angle player_depth = -player->get_pos().z;
-	draw_gauge(sys, gm, 1, 0, 0, 256, player->get_heading(), TXT_Heading[language]);
-	draw_gauge(sys, gm, 2, 256, 0, 256, player_speed, TXT_Speed[language]);
-	draw_gauge(sys, gm, 4, 2*256, 0, 256, player_depth, TXT_Depth[language]);
-	draw_clock(sys, gm, 3*256, 0, 256, gm.get_time(), TXT_Time[language]);
+	draw_gauge(sys, gm, 1, 0, 0, 256, player->get_heading(), texts::get(1));
+	draw_gauge(sys, gm, 2, 256, 0, 256, player_speed, texts::get(4));
+	draw_gauge(sys, gm, 4, 2*256, 0, 256, player_depth, texts::get(5));
+	draw_clock(sys, gm, 3*256, 0, 256, gm.get_time(), texts::get(61));
 	draw_manometer_gauge ( sys, gm, 1, 0, 256, 256, player->get_fuel_level (),
-		TXT_FuelGauge[language] );
+		texts::get(101));
 	draw_manometer_gauge ( sys, gm, 1, 256, 256, 256, player->get_battery_level (),
-		TXT_BatteriesGauge[language] );
+		texts::get(102));
 	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
 

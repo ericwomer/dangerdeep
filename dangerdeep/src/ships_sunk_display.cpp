@@ -66,12 +66,12 @@ void ships_sunk_display::display ( class system& sys, class game& gm )
 		font_arial2->print (
 			unsigned ( ( x + 10 ) / FONT_SCALE_FACTOR ),
 			unsigned ( ( y + 10 ) / FONT_SCALE_FACTOR ),
-			(*it).second.get_class_name (),
+			it->second.get_class_name().c_str(),
 			color ( 0, 0, 0 ) );
 
 		// Print tonnage of ship.
 		ostringstream oss;
-		oss << (*it).second.get_tonnage () << " " << TXT_Tonnage[language];
+		oss << (*it).second.get_tonnage () << " " << texts::get(99);
 		font_arial2->print (
 			unsigned ( ( x + 10 ) / FONT_SCALE_FACTOR ),
 			unsigned ( ( y + 30 ) / FONT_SCALE_FACTOR ),

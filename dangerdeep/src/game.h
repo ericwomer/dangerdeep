@@ -34,8 +34,8 @@ public:
 		vector2 pos;
 		angle dir;
 		double time;
-		angle pingAngle;
 		double range;
+		angle pingAngle;
 		ping(const vector2& p, angle d, double t, const double& range,
 			const angle& pingAngle ) :
 			pos(p), dir(d), time(t), range ( range ), pingAngle ( pingAngle )
@@ -71,7 +71,7 @@ protected:
 
 public:
 	game(parser& p);
-	~game();
+	virtual ~game();
 
 	void compute_max_view_dist(void);
 	void simulate(double delta_t);

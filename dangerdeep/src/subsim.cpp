@@ -186,7 +186,6 @@ void menu_select_language(void)
 	m.add_item(11, 0);
 	unsigned sel = m.run();
 	if (sel < 2) {
-		language = sel;
 		texts::set_language(texts::languages(sel));
 	}
 }
@@ -300,7 +299,7 @@ void show_vessels(void)
 		glPopMatrix();
 		font_tahoma->print_hc(1024, 650, s->get_description(2).c_str());
 		font_tahoma->print_hc(1024, 768 - font_tahoma->get_height(),
-			TXT_Showvesselinstructions[language]);
+			texts::get(78).c_str());
 		sys->unprepare_2d_drawing();
 
 		glLoadIdentity();

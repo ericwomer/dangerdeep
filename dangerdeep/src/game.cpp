@@ -11,6 +11,7 @@
 #include "tokencodes.h"
 #include "texts.h"
 #include "sensors.h"
+#include "menu.h"
 
 #define TRAILTIME 10
 
@@ -455,9 +456,12 @@ void game::dc_explosion(const vector3& pos)
 		}
 		*/
 		if (sdist.length() <= deadly_radius) {
-			// ui->add_message(TXT_Depthchargehit[language]);
 			system::sys()->add_console("depth charge hit!");
 			(*it)->kill();	// sub is killed. //  fixme handle damages!
+			menu m(killedimg);
+			m.add_item(150, 0);
+			m.run();
+			// ui->add_message(TXT_Depthchargehit[language]);
 		}
 	}
 }
@@ -497,9 +501,9 @@ void game::torp_explode(const vector3& pos)
 
 void game::ship_sunk( const ship* s )
 {
-	ui->add_message ( TXT_Shipsunk[language] );
+	ui->add_message ( texts::get(82) );
 	ostringstream oss;
-	oss << TXT_Shipsunk[language] << " " << s->get_description ( 2 );
+	oss << texts::get(82) << " " << s->get_description ( 2 );
 	ui->add_captains_log_entry( *this, oss.str () );
 	ui->record_sunk_ship ( s );
 }
@@ -565,7 +569,7 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 {
     if (failure)
     {
-		ui->add_message(TXT_Torpedodud[language]);
+		ui->add_message(texts::get(59));
 		return true;
 	}
 
@@ -578,7 +582,7 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 	{
 		if (runlengthfailure)
 		{
-			ui->add_message(TXT_Torpedodudrangetooshort[language]);
+			ui->add_message(texts::get(58));
 		}
 		// Only ships that are alive or defunct can be sunk. Already sinking
 		// or destroyed ships cannot be destroyed again.

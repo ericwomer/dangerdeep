@@ -71,10 +71,10 @@ void image::draw(int x, int y)
 	if (!texturized) texturize();
 	unsigned texptr = 0;
 	int yp = y;
-	for (int yy = 0; yy < glty; ++yy) {
+	for (unsigned yy = 0; yy < glty; ++yy) {
 		int xp = x;
 		int ypadd = textures[texptr]->get_height();
-		for (int xx = 0; xx < gltx; ++xx) {
+		for (unsigned xx = 0; xx < gltx; ++xx) {
 			unsigned w = textures[texptr]->get_width();
 			unsigned h = textures[texptr]->get_height();
 			glBindTexture(GL_TEXTURE_2D, textures[texptr]->get_opengl_name());

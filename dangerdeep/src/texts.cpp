@@ -1,10 +1,10 @@
 // texts
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
-//#include "texts.h"
+#include "texts.h"
 
 
-
+#if 0	// old code
 unsigned language = 0;
 
 #define DEFTYPE
@@ -12,7 +12,7 @@ unsigned language = 0;
 
 #define TEXTS_H_USECPP
 #include "texts.h"
-
+#endif
 
 
 // new code
@@ -21,6 +21,8 @@ unsigned language = 0;
 #include "global_data.h"
 
 #define TEXTS_DIR "texts/"
+
+texts::languages texts::language = texts::english;
 
 static char* textfilenames[] = {
 	"english",
@@ -31,7 +33,7 @@ vector<string> texts::txts;
 
 void texts::set_language(languages l)
 {
-	::language = l;
+	language = l;
 	parser p(get_data_dir() + TEXTS_DIR + textfilenames[l] + ".text");
 	txts.clear();
 	int count = 0;

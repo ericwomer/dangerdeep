@@ -365,14 +365,14 @@ void user_interface::draw_infopanel(class system& sys, class game& gm) const
 	glEnd();
 	glBindTexture(GL_TEXTURE_2D, 0);
 	ostringstream os;
-	os << TXT_Heading[language] << ": " << get_player()->get_heading().ui_value()
-		<< "   " << TXT_Speed[language] << ": "
+	os << texts::get(1) << ": " << get_player()->get_heading().ui_value()
+		<< "   " << texts::get(4) << ": "
 		<< unsigned(fabs(round(sea_object::ms2kts(get_player()->get_speed()))))
-		<< "   " << TXT_Depth[language] << ": "
+		<< "   " << texts::get(5) << ": "
 		<< unsigned(round(-get_player()->get_pos().z))
-		<< "   " << TXT_Bearing[language] << ": "
+		<< "   " << texts::get(2) << ": "
 		<< bearing.ui_value()
-		<< "   " << TXT_TimeCompression[language] << ": "
+		<< "   " << texts::get(98) << ": "
 		<< time_scale;
 	font_panel->print(0, 648, os.str().c_str());
 	int y = 768 - 24;
@@ -398,7 +398,7 @@ texture* user_interface::torptex(unsigned type)
 }
 
 void user_interface::draw_gauge(class system& sys, class game& gm,
-	unsigned nr, int x, int y, unsigned wh, angle a, const char* text) const
+	unsigned nr, int x, int y, unsigned wh, angle a, const string& text) const
 {
 	set_display_color ( gm );
 	switch (nr) {
@@ -410,13 +410,13 @@ void user_interface::draw_gauge(class system& sys, class game& gm,
 	}
 	vector2 d = a.direction();
 	int xx = x+wh/2, yy = y+wh/2;
-	pair<unsigned, unsigned> twh = font_arial2->get_size(text);
+	pair<unsigned, unsigned> twh = font_arial2->get_size(text.c_str());
 
 	color font_color ( 255, 255, 255 );
 	if ( !gm.is_day_mode () )
 		font_color = color ( 255, 127, 127 );
 
-	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text, font_color);
+	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text.c_str(), font_color);
 	glColor3f(1,0,0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBegin(GL_TRIANGLES);
@@ -428,7 +428,7 @@ void user_interface::draw_gauge(class system& sys, class game& gm,
 }
 
 void user_interface::draw_clock(class system& sys, class game& gm,
-	int x, int y, unsigned wh, double t, const char* text) const
+	int x, int y, unsigned wh, double t, const string& text) const
 {
 	unsigned seconds = unsigned(fmod(t, 86400));
 	unsigned minutes = seconds / 60;
@@ -441,13 +441,13 @@ void user_interface::draw_clock(class system& sys, class game& gm,
 		sys.draw_image(x, y, wh, wh, clock24);
 	minutes %= 12*60;
 	int xx = x+wh/2, yy = y+wh/2;
-	pair<unsigned, unsigned> twh = font_arial2->get_size(text);
+	pair<unsigned, unsigned> twh = font_arial2->get_size(text.c_str());
 
 	color font_color ( 255, 255, 255 );
 	if ( !is_day_mode )
 		font_color = color ( 255, 127, 127 );
 
-	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text, font_color);
+	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text.c_str(), font_color);
 	vector2 d;
 	int l;
 
@@ -536,10 +536,10 @@ void user_interface::display_gauges(class system& sys, game& gm)
 			sys.draw_image(x*256, y*256, 256, 256, psbackgr);
 	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
 	angle player_depth = -player->get_pos().z;
-	draw_gauge(sys, gm, 1, 0, 0, 256, player->get_heading(), TXT_Heading[language]);
-	draw_gauge(sys, gm, 2, 256, 0, 256, player_speed, TXT_Speed[language]);
-	draw_gauge(sys, gm, 4, 2*256, 0, 256, player_depth, TXT_Depth[language]);
-	draw_clock(sys, gm, 3*256, 0, 256, gm.get_time(), TXT_Time[language]);
+	draw_gauge(sys, gm, 1, 0, 0, 256, player->get_heading(), texts::get(1));
+	draw_gauge(sys, gm, 2, 256, 0, 256, player_speed, texts::get(4));
+	draw_gauge(sys, gm, 4, 2*256, 0, 256, player_depth, texts::get(5));
+	draw_clock(sys, gm, 3*256, 0, 256, gm.get_time(), texts::get(61));
 
 	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
@@ -1046,19 +1046,19 @@ void user_interface::add_rudder_message()
     switch (player_object->get_rudder())
     {
         case player_object->rudderfullleft:
-            add_message(TXT_Rudderhardleft[language]);
+            add_message(texts::get(35));
             break;
         case player_object->rudderleft:
-            add_message(TXT_Rudderleft[language]);
+            add_message(texts::get(33));
             break;
         case player_object->ruddermid:
-            add_message(TXT_Ruddermidships[language]);
+            add_message(texts::get(42));
             break;
         case player_object->rudderright:
-            add_message(TXT_Rudderright[language]);
+            add_message(texts::get(34));
             break;
         case player_object->rudderfullright:
-            add_message(TXT_Rudderhardright[language]);
+            add_message(texts::get(36));
             break;
     }
 }
@@ -1155,7 +1155,7 @@ inline void user_interface::record_sunk_ship ( const ship* so )
 }
 
 void user_interface::draw_manometer_gauge ( class system& sys, class game& gm,
-	unsigned nr, int x, int y, unsigned wh, float value, const char* text) const
+	unsigned nr, int x, int y, unsigned wh, float value, const string& text) const
 {
 	set_display_color ( gm );
 	switch (nr)
@@ -1169,12 +1169,12 @@ void user_interface::draw_manometer_gauge ( class system& sys, class game& gm,
 	angle a ( 292.5f + 135.0f * value );
 	vector2 d = a.direction ();
 	int xx = x + wh / 2, yy = y + wh / 2;
-	pair<unsigned, unsigned> twh = font_arial2->get_size(text);
+	pair<unsigned, unsigned> twh = font_arial2->get_size(text.c_str());
 
 	// Draw text.
 	color font_color ( 0, 0, 0 );
 	font_arial2->print ( xx - twh.first / 2, yy - twh.second / 2 - wh / 6,
-		text, font_color );
+		text.c_str(), font_color );
 
 	// Draw pointer.
 	glColor3f ( 0.0f, 0.0f, 0.0f );

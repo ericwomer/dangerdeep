@@ -70,7 +70,7 @@ bool date::operator> ( const date& d ) const
 
 ostream& operator<< ( ostream& os, const date& d )
 {
-	if ( language == GERMAN )
+	if ( texts::language == texts::german )
 	{
 		os << d.date_values[d.day]    << "." << d.date_values[d.month] << ".";
 		os << d.date_values[d.year]   << " ";

@@ -46,6 +46,7 @@ ostream& operator << ( ostream& os, const logbook& lb )
 	{
 		os << (*it).second << endl;
 	}
+	return os;
 }
 
 void logbook::remove_entry ( unsigned i )
@@ -119,7 +120,7 @@ void logbook_display::format_line ( list<string>& entries_list, const string& li
 void logbook_display::add_entry ( const date& d, const string& entry )
 {
 	// Remove initial value from logbook.
-	if ( ( lb.size () == 1 ) && ( lb.get_entry ( 0 ) == TXT_CaptLogbookNoEntry[language] ) )
+	if ( ( lb.size () == 1 ) && ( lb.get_entry ( 0 ) == texts::get(99) ) )
 		lb.remove_entry ( 0 );
 
 	// Create date entry.
@@ -162,7 +163,7 @@ captains_logbook_display::captains_logbook_display () :
 void captains_logbook_display::init ()
 {
 	actual_entry = 0;
-	lb.add_entry ( TXT_CaptLogbookNoEntry[language] );
+	lb.add_entry ( texts::get(99) );
 }
 
 void captains_logbook_display::display ( class system& sys, class game& gm )

@@ -9,10 +9,10 @@
 // ai computation between is randomly interleaved between frames to avoid
 // time consumption peeks every AI_THINK_CYCLE_TIME seconds
 ai::ai(sea_object* parent_, types type_) : type(type_), state(followpath),
-	zigzagstate(0), parent(parent_), followme(0),
+	zigzagstate(0), attackrun(false), parent(parent_), followme(0),
 	myconvoy(0), has_contact(false),
 	remaining_time(rnd() * AI_THINK_CYCLE_TIME),
-	cyclewaypoints(false), attackrun(false)
+	cyclewaypoints(false)
 {}
 
 void ai::relax(void)
