@@ -27,6 +27,7 @@ inline string get_font_dir(void) { return get_data_dir() + "fonts/"; }
 inline string get_model_dir(void) { return get_data_dir() + "models/"; }
 inline string get_sound_dir(void) { return get_data_dir() + "sounds/"; }
 inline string get_image_dir(void) { return get_data_dir() + "images/"; }
+inline string get_map_dir(void) { return get_data_dir() + "maps/"; }
 
 #define GRAVITY 9.806	// a very global constant
 #define NR_CLOUD_TEXTURES 2

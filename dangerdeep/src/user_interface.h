@@ -11,7 +11,7 @@ using namespace std;
 #include "sea_object.h"
 #include "global_data.h"
 #include "color.h"
-#include "coastline.h"
+#include "coastmap.h"
 
 #define MAPGRIDSIZE 1000	// meters
 
@@ -21,6 +21,7 @@ class ships_sunk_display;
 
 class user_interface
 {
+	user_interface();
 public:
 	enum color_mode { day_color_mode, night_color_mode };
 	enum sound_effect { se_submarine_torpedo_launch, se_torpedo_detonation };
@@ -63,17 +64,12 @@ protected:
 	vector<unsigned> cloud_interpolate_func;	// give fraction as Uint8
 	
 //	vector<char> landsea;	// a test hack. 0 = land, 1 = sea
-	unsigned mapw, maph;
-	double maprealw;
-	vector2 mappos, mapmaxpos;
-	double mapmperpixel;	// meter per pixel on map
-	list<coastline> coastlines;
+	coastmap mycoastmap;	// this may get moved to game.h, yet it is used for display only, that's why it is here
 
 	// free view mode
 	float viewsideang, viewupang;	// global spectators viewing angles
 	vector3 viewpos;
 
-	user_interface();
 	user_interface& operator= (const user_interface& other);
 	user_interface(const user_interface& other);
 	user_interface(sea_object* player);

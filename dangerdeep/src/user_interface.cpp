@@ -51,24 +51,14 @@
 	20015km). The wrap around is a problem, but that's somewhere in the Pacific ocean, so
 	we just ignore it. This mapping leads to some distorsion and wrong distance values
 	when coming to far north or south on the globe. We just ignore this for simplicities
-	sake. The effect should'nt be noticeable.
+	sake. The effect shouldn't be noticeable.
 */
-
-user_interface::user_interface() :
-	quit(false), pause(false), time_scale(1), player_object(0),
-	panel_height(128), panel_visible(true), bearing(0), elevation(0),
-	viewmode(4), target(0),	zoom_scope(false), freelook(false), mapzoom(0.1), viewsideang(0),
-	viewupang(-90),	viewpos(0, 0, 10)
-{
-	clouds = 0;
-	init ();
-}
 
 user_interface::user_interface(sea_object* player) :
 	quit(false), pause(false), time_scale(1), player_object ( player ),
 	panel_height(128), panel_visible(true), bearing(0), elevation(0),
-	viewmode(4), target(0), zoom_scope(false), freelook(false), mapzoom(0.1), viewsideang(0),
-	viewupang(-90),	viewpos(0, 0, 10)
+	viewmode(4), target(0), zoom_scope(false), freelook(false), mapzoom(0.1),
+	mycoastmap("default.map"), viewsideang(0), viewupang(-90), viewpos(0, 0, 10)
 {
 	clouds = 0;
 	init ();
@@ -128,27 +118,6 @@ void user_interface::init ()
 		}
 		glEnd();
 		glEndList();
-	}
-	
-	// load and init map
-	mapw = maph = 0;
-	maprealw = 0;
-	ifstream in("1.map", ios::in | ios::binary);
-	if (in.good()) {	// does file exist?
-		mapw = read_u16(in);
-		maph = read_u16(in);
-		maprealw = read_double(in);
-		mappos.x = read_double(in);
-		mappos.y = read_double(in);
-		mapmaxpos.x = mappos.x + maprealw;
-		mapmaxpos.y = mappos.y + maprealw * double(maph)/double(mapw);
-		mapmperpixel = maprealw / double(mapw);
-//		landsea.resize(mapw*maph);
-//		for (unsigned i = 0; i < mapw*maph; ++i)
-//			landsea[i] = read_u8(in);
-		unsigned s = read_u32(in);
-		for ( ; s > 0; --s)
-			coastlines.push_back(coastline(in));
 	}
 	
 	// init clouds
@@ -584,6 +553,8 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 	if (maxx >= mapw-1) maxx = mapw-1;
 	if (maxy >= maph-1) maxy = maph-1;
 #endif
+
+#if 0
 	/* the top vertices are translated along the negative normal of the polyline.
 		that gives an ascending shape for the coast */
 	glPushMatrix();
@@ -621,6 +592,7 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 		glEnd();
 	}
 	glPopMatrix();
+#endif
 	
 }
 
@@ -1515,19 +1487,11 @@ cout << "draw map area " << minx << "," << miny << "," << maxx << "," << maxy <<
 */
 	glColor3f(0,0.5,0);
 	glPushMatrix();
-	float cls = mapmperpixel * mapzoom;
-	glTranslatef(512 + (mappos.x-offset.x)*mapzoom, 384 + (mappos.y+offset.y)*mapzoom, 0);
+	float cls = mapzoom;
+	glTranslatef(512, 384, 0);
 	glScalef(cls, cls, 1);
-	for (list<coastline>::const_iterator it = coastlines.begin(); it != coastlines.end(); ++it) {
-		if (it->cyclic)
-			glBegin(GL_LINE_LOOP);
-		else
-			glBegin(GL_LINE_STRIP);
-		for (vector<vector2f>::const_iterator it2 = it->points.begin(); it2 != it->points.end(); ++it2) {
-			glVertex2f(it2->x, -it2->y);
-		}
-		glEnd();
-	}
+	glTranslatef(-offset.x, -offset.y, 0);
+	mycoastmap.draw_as_map();
 	glPopMatrix();
 
 	// draw convoy positions	fixme: should be static and fade out after some time
