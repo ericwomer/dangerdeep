@@ -1110,7 +1110,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	// ************ sky ***************************************************************
 	glActiveTexture(GL_TEXTURE0);
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, /*stars*/ skycolor->get_opengl_name());
+	glBindTexture(GL_TEXTURE_2D, stars /*skycolor*/->get_opengl_name());
 	
 	// skyplanes:
 	// 1) the stars (black with grey random dots)
@@ -1137,17 +1137,18 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 */
 
-
+	// fixme: texture coords for unit 1 are missing. this is why sky display fails.
 	glActiveTexture(GL_TEXTURE1);
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, /*sunglow*/ skycolor->get_opengl_name());
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+	glBindTexture(GL_TEXTURE_2D, sunglow->get_opengl_name());
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+/*
 	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-
+*/
 
 /*	
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);//primary color
@@ -1209,7 +1210,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 
 	glPopMatrix();	// remove scale
 	
-	// ******** the sun and the moon **********
+	// ******** the sun and the moon *****************************************************
 	glDisable(GL_LIGHTING);
 	/* How to compute the sun's/moon's position:
 	   Earth and moon rotate around the sun's y-axis and around their own y-axes.
@@ -1318,7 +1319,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glEnable(GL_LIGHTING);
 	
 	
-	// ******** clouds *******
+	// ******** clouds ********************************************************************
 	glDisable(GL_LIGHTING);		// direct lighting turned off
 	glDisable(GL_DEPTH_TEST);	// draw all clouds
 	lightcol.set_gl_color();	// cloud color depends on day time
@@ -1340,7 +1341,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	
 	// modelview matrix is around viewpos now.
 
-	// ********* fog test ************ fog color is skycol2
+	// ********* fog test ************ fog color is skycol2 ************************
 	GLfloat fog_color[4] = {skycol2.r/255.0, skycol2.g/255.0, skycol2.b/255.0, 1.0};
 	glFogi(GL_FOG_MODE, GL_LINEAR );
 	glFogfv(GL_FOG_COLOR, fog_color);
@@ -1351,7 +1352,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glEnable(GL_FOG);	
 
 
-	// ******* water *********
+	// ******* water ***************************************************************
 					// fixme: program directional light caused by sun
 					// or moon should be reflected by water.
 	update_foam(1.0/25.0);  //fixme: deltat needed here
@@ -1359,7 +1360,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	draw_water(viewpos, dir, gm.get_time(), max_view_dist);
 	
 
-	// ******** terrain/land *******
+	// ******** terrain/land ********************************************************
 	
 	draw_terrain(viewpos, dir, max_view_dist);
 
