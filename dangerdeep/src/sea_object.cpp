@@ -115,8 +115,7 @@ sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
 
 sea_object::~sea_object()
 {
-	if (modelname.length() > 0)
-		modelcache.unref(modelname);
+	modelcache.unref(modelname);
 	for (unsigned i = 0; i < sensors.size(); i++)
 		delete sensors[i];
 }

@@ -9,8 +9,6 @@
 #include <iostream>
 using namespace std;
 
-#include "system.h"
-
 template <class T>
 class objcachet
 {
@@ -28,7 +26,7 @@ public:
 	}
 
 	T* find(const string& objname) {
-		system::sys().myassert(objname.length() > 0, "objcache: trying to find() empty name!");
+		if (objname.length() == 0) return (T*)0;
 		typename map<string, pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it == cache.end())
 			return 0;
@@ -36,7 +34,7 @@ public:
 	}
 
 	T* ref(const string& objname) {
-		system::sys().myassert(objname.length() > 0, "objcache: trying to ref() empty name!");
+		if (objname.length() == 0) return (T*)0;
 		typename map<string, pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it == cache.end()) {
 			it = cache.insert(make_pair(objname, make_pair(1, new T(basedir + objname)))).first;
@@ -47,7 +45,7 @@ public:
 	}
 
 	void unref(const string& objname) {
-		system::sys().myassert(objname.length() > 0, "objcache: trying to unref() empty name!");
+		if (objname.length() == 0) return;
 		typename map<string, pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it != cache.end()) {
 			--(it->second.first);
