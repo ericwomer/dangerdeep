@@ -128,7 +128,7 @@ void user_interface::init ()
 	ships_sunk_disp = new ships_sunk_display;
 
 	mysky = new sky();
-	mywater = new class water(100, 100, 0.0);
+	mywater = new class water(128, 128, 0.0);
 }
 
 /* 2003/07/04 idea.
