@@ -1322,7 +1322,7 @@ void user_interface::add_rudder_message()
         case ship::rudderleft:
             add_message(texts::get(33));
             break;
-        case ship::ruddermid:
+        case ship::ruddermidships:
             add_message(texts::get(42));
             break;
         case ship::rudderright:

@@ -20,7 +20,7 @@ public:
 	enum throttle_status { reverse=-7, aheadlisten=-6, aheadsonar=-5, aheadslow=-4,
 		aheadhalf=-3, aheadfull=-2, aheadflank=-1, stop=0  };
 
-	enum rudder_status { rudderfullleft, rudderleft, ruddermid, rudderright,
+	enum rudder_status { rudderfullleft=-2, rudderleft, ruddermidships, rudderright,
 		rudderfullright };
 
 protected:
@@ -30,11 +30,11 @@ protected:
 	angle heading;		// stored additionally, take (0,1,0), rotate with orientation, project to xy-plane, get angle -> heading
 	double speed;		// m/sec, speed along local y axis, can be computed from velocity,orientation.
 	int throttle;		// if < 0: throttle_state, if > 0: knots
-	double max_acceleration;	// read from spec file
+	//double max_acceleration;	// read from spec file
 
 	// new model: store rudder angle, store if ship heads to a fixed angle and that angle
 	bool head_to_fixed;
-	angle rudder_pos;
+	double rudder_pos;	// in degrees, do not use class angle here, we need explicit positive and negative values.
 	int rudder_to;		// symbolic pos (full left, left, mid, right, full right)
 	double max_rudder_angle;// maximum turn, e.g. 30 degr.
 	double max_angular_velocity;	// depends on turn rate.
@@ -61,6 +61,9 @@ protected:
 
 	unsigned shipclass;	// read from spec file, e.g. warship/merchant/escort/...
 
+	virtual vector3 get_acceleration(void) const;		// drag must be already included!
+	virtual quaternion get_rot_acceleration(void) const;	// drag must be already included!
+
 	ship();
 	ship(const ship& other);
 	ship& operator= (const ship& other);
@@ -80,8 +83,6 @@ protected:
 	*/
 	virtual void calculate_fuel_factor ( double delta_time );
 
-	virtual void change_rudder (int dir);
-	
 	class smoke_stream* mysmoke;
 	vector3 smokerelpos;	// read from spec file
 	
@@ -112,6 +113,8 @@ public:
 	// command interface
 	virtual void fire_shell_at(const vector2& pos);
 	virtual void head_to_ang(const angle& a, bool left_or_right);	// true == left
+	virtual void change_rudder(int to);	// give -2..2, fixme not yet used as command
+	//virtual void set_rudder(angle ang);	// move rudder to this angle
 	virtual void rudder_left(void);
 	virtual void rudder_right(void);
 	virtual void rudder_hard_left(void);
@@ -138,7 +141,9 @@ public:
 	virtual double get_speed(void) const { return speed; };
 	virtual double get_max_speed(void) const { return max_speed_forward; };
 	virtual double get_throttle_speed(void) const;
+	virtual double get_throttle_accel(void) const;	// returns acceleration caused by current throttle
 	virtual int get_rudder_to (void) const { return rudder_to; }
+	virtual double get_noise_factor (void) const;
 
 	// needed for launching torpedoes
 	pair<angle, double> bearing_and_range_to(const sea_object* other) const;

@@ -27,7 +27,7 @@ convoy::~convoy()
 
 
 
-convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : sea_object(), myai(0)
+convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : sea_object()
 {
 	//myai = new ai(this, ai::convoy);
 
@@ -300,8 +300,8 @@ void convoy::simulate(game& gm, double delta_time)
 			escorts.erase(it2);
 	}
 
-	if ( myai )
-		myai->act(gm, delta_time);
+//	if ( myai )//fixme: my is ai sometimes != 0 although it is disabled?!
+//		myai->act(gm, delta_time);
 
 	// convoy erased?, fixme could be put to is_defunct() function (convoy is no heir of sea_object anymore)
 	if (merchants.size() + warships.size() + escorts.size() == 0)

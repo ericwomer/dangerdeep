@@ -10,6 +10,7 @@
 #include "tinyxml/tinyxml.h"
 #include "system.h"
 #include "texts.h"
+#include "ai.h"
 
 
 
@@ -63,7 +64,7 @@ sea_object::sea_object() : /*speed(0), max_speed(0), max_rev_speed(0), throttle(
 
 sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
 	/*speed(0.0), throttle(stop), permanent_turn(false), head_chg(0.0), rudder(ruddermid),
-	head_to(0.0),*/ alive_stat(alive)
+	head_to(0.0),*/ alive_stat(alive), myai(0)
 {
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdobj = hspec.FirstChild(topnodename);
@@ -400,156 +401,6 @@ void sea_object::destroy(void)
 
 
 
-/* fixme move to ship
-void sea_object::head_to_ang(const angle& a, bool left_or_right)	// true == left
-{
-	head_to = a;
-	head_chg = (left_or_right) ? -1 : 1;
-	permanent_turn = false;
-}
-*/
-
-
-#if 0 // fixme move to ship
-void sea_object::change_rudder (int dir)
-{
-    // Change rudder state first.
-    if ( dir < 0 )
-        rudder --;
-    else if ( dir > 0 )
-        rudder ++;
-
-    // Limit rudder state.
-    if ( rudder < rudderfullleft )
-        rudder = rudderfullleft;
-    else if ( rudder > rudderfullright )
-        rudder = rudderfullright;
-
-    // Set head_chg due to rudder state.
-    switch ( rudder )
-    {
-        case rudderfullleft:
-            head_chg = -1.0f;
-            break;
-        case rudderleft:
-            head_chg = -0.5f;
-            break;
-        case rudderright:
-            head_chg = 0.5f;
-            break;
-        case rudderfullright:
-            head_chg = 1.0f;
-            break;
-        default:
-            head_chg = 0.0f;
-            break;
-    }
-    
-    if ( rudder == ruddermid )
-        permanent_turn = false;
-    else
-        permanent_turn = true;
-}
-
-
-
-void sea_object::rudder_left(void)
-{
-	change_rudder ( -1 );
-}
-
-
-
-void sea_object::rudder_right(void)
-{
-	change_rudder ( 1 );
-}
-
-
-
-void sea_object::rudder_hard_left(void)
-{
-	rudder = rudderfullleft;
-	head_chg = -1.0f;
-	permanent_turn = true;
-}
-
-
-
-void sea_object::rudder_hard_right(void)
-{
-	rudder = rudderfullright;
-	head_chg = 1.0f;
-	permanent_turn = true;
-}
-
-
-
-void sea_object::rudder_midships(void)
-{
-	rudder = ruddermid;
-	head_chg = 0.0f;
-	head_to = heading;
-	permanent_turn = false;
-}
-
-
-
-void sea_object::set_throttle(throttle_status thr)
-{
-	throttle = thr;
-}
-
-
-
-void sea_object::remember_position(void)
-{
-	previous_positions.push_front(get_pos().xy());
-	if (previous_positions.size() > MAXPREVPOS)
-		previous_positions.pop_back();
-}	
-
-
-
-double sea_object::get_throttle_speed(void) const
-{
-	double ms = get_max_speed();
-	if (throttle <= 0) {
-		switch (throttle) {
-			case reverse: return -ms*0.25f;     // 1/4
-			case stop: return 0;
-			case aheadlisten: return ms*0.25f;  // 1/4
-			case aheadsonar: return ms*0.25f;   // 1/4
-			case aheadslow: return ms*0.33333f; // 1/3
-			case aheadhalf: return ms*0.5f;     // 1/2
-			case aheadfull: return ms*0.75f;    // 3/4
-			case aheadflank: return ms;
-		}
-	} else {
-		double sp = kts2ms(throttle);
-		if (sp > ms) sp = ms;
-		return sp;
-	}
-	return 0;
-}
-
-
-
-pair<angle, double> sea_object::bearing_and_range_to(const sea_object* other) const
-{
-	vector2 diff = other->get_pos().xy() - position.xy();
-	return make_pair(angle(diff), diff.length());
-}
-
-
-
-angle sea_object::estimate_angle_on_the_bow(angle target_bearing, angle target_heading) const
-{
-	return (angle(180) + target_bearing - target_heading).value_pm180();
-}
-#endif
-
-
 float sea_object::surface_visibility(const vector2& watcher) const
 {
 	return get_cross_section(watcher);
@@ -614,14 +465,6 @@ double sea_object::get_cross_section ( const vector2& d ) const
 
 }
 
-
-
-/* fixme to ship
-double sea_object::get_noise_factor () const
-{
-    return get_throttle_speed () / max_speed;
-}
-*/
 
 
 vector2 sea_object::get_engine_noise_source () const

@@ -1,3 +1,9 @@
+2004-07-15  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* Internal changes completed with some crude hacks to some point where the
+	  game at least compiles and runs again.
+	  Don't expect the game to work in any way, you can just look at the screens.
+	  Of course this will change back to normal some day ;-)
+
 2004-06-27  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* BIG internal transformation is going on.
 	* airplane_interface and ship_interface disabled (not included anymore in the

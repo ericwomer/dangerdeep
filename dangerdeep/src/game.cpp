@@ -666,8 +666,9 @@ void game::simulate(double delta_t)
 	}
 	
 	if (nearest_contact > ENEMYCONTACTLOST) {
-		system::sys().add_console("player lost contact to enemy!");//testing fixme
-		running = false;
+//fixme: disabled for testing 2004/07/15!!!
+//		system::sys().add_console("player lost contact to enemy!");//testing fixme
+//		running = false;
 	}
 }
 

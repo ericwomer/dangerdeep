@@ -17,6 +17,7 @@
 // empty c'tor is needed by heirs
 ship::ship() : myai(0), mysmoke(0)
 {
+	max_rudder_angle = 30;
 }
 
 
@@ -76,6 +77,8 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 	fuel_capacity = XmlAttribu(efuel, "capacity");
 	efuel->Attribute("consumption_a", &fuel_value_a);
 	efuel->Attribute("consumption_t", &fuel_value_t);
+	
+	max_rudder_angle = 30;
 }
 
 
@@ -92,6 +95,128 @@ void ship::sink(void)
 {
 	sea_object::kill();
 	if (mysmoke) mysmoke->kill();
+}
+
+
+
+void ship::change_rudder(int to)
+{
+	if (to >= rudderfullleft && to <= rudderfullright)
+		rudder_to = to;
+	else
+		rudder_to = ruddermidships;
+	permanent_turn = true;
+}
+
+
+
+void ship::rudder_left(void)
+{
+	if (rudder_to > rudderfullleft)
+		--rudder_to;
+	permanent_turn = true;
+}
+
+
+
+void ship::rudder_right(void)
+{
+	if (rudder_to < rudderfullright)
+		++rudder_to;
+	permanent_turn = true;
+}
+
+
+
+void ship::rudder_hard_left(void)
+{
+	rudder_to = rudderfullleft;
+	permanent_turn = true;
+}
+
+
+
+void ship::rudder_hard_right(void)
+{
+	rudder_to = rudderfullright;
+	permanent_turn = true;
+}
+
+
+
+void ship::rudder_midships(void)
+{
+	rudder_to = ruddermidships;
+	head_to = heading;
+}
+
+
+
+void ship::set_throttle(throttle_status thr)
+{
+	throttle = thr;
+}
+
+
+
+void ship::remember_position(void)
+{
+	previous_positions.push_front(get_pos().xy());
+	if (previous_positions.size() > MAXPREVPOS)
+		previous_positions.pop_back();
+}	
+
+
+
+double ship::get_throttle_speed(void) const
+{
+	double ms = get_max_speed();
+	if (throttle <= 0) {
+		switch (throttle) {
+			case reverse: return -ms*0.25f;     // 1/4
+			case stop: return 0;
+			case aheadlisten: return ms*0.25f;  // 1/4
+			case aheadsonar: return ms*0.25f;   // 1/4
+			case aheadslow: return ms*0.33333f; // 1/3
+			case aheadhalf: return ms*0.5f;     // 1/2
+			case aheadfull: return ms*0.75f;    // 3/4
+			case aheadflank: return ms;
+		}
+	} else {
+		double sp = kts2ms(throttle);
+		if (sp > ms) sp = ms;
+		return sp;
+	}
+	return 0;
+}
+
+
+
+double ship::get_throttle_accel(void) const
+{
+	// Beware: a throttle of 1/3 doesn't mean 1/3 of engine acceleration
+	// This is because drag raises quadratically.
+	// we have: max_accel_forward / max_speed_forward^2 = drag_factor
+	// and: drag = drag_factor * speed^2
+	// get acceleration for constant throttled speed: accel = drag
+	// solve:
+	// accel = drag_factor * speed = max_accel_forward * speed / max_speed_forward^2
+	return get_throttle_speed() * max_accel_forward / (max_speed_forward * max_speed_forward);
+}
+
+
+
+pair<angle, double> ship::bearing_and_range_to(const sea_object* other) const
+{
+	vector2 diff = other->get_pos().xy() - position.xy();
+	return make_pair(angle(diff), diff.length());
+}
+
+
+
+angle ship::estimate_angle_on_the_bow(angle target_bearing, angle target_heading) const
+{
+	return (angle(180) + target_bearing - target_heading).value_pm180();
 }
 
 
@@ -180,6 +305,23 @@ void ship::simulate(game& gm, double delta_time)
 			mysmoke->set_source(position + smokerelpos);
 		mysmoke->simulate(gm, delta_time);
 	}
+	
+	// Adjust rudder
+	// rudder_to with max_rudder_angle gives set rudder angle.
+	double rudder_angle_set = max_rudder_angle * rudder_to / 2;
+	// current angle is rudder_pos. rudder moves with constant speed to set pos (or 0).
+	double max_rudder_turn_speed = 10;	// degrees per second, fixme store somewhere!
+	double max_rudder_turn_dist = max_rudder_turn_speed * delta_time;
+	double rudder_d = rudder_angle_set - rudder_pos;
+	if (fabs(rudder_d) <= max_rudder_turn_dist) {	// if rudder_d is 0, nothing happens.
+		rudder_pos = rudder_to;
+	} else {
+		if (rudder_d < 0) {
+			rudder_pos -= max_rudder_turn_dist;
+		} else {
+			rudder_pos += max_rudder_turn_dist;
+		}
+	}
 }
 
 
@@ -187,6 +329,16 @@ void ship::simulate(game& gm, double delta_time)
 void ship::fire_shell_at(const vector2& pos)
 {
 	// fixme!!!!!!
+}
+
+
+
+void ship::head_to_ang(const angle& a, bool left_or_right)	// true == left
+{
+	head_to = a;
+	//fixme: very crude
+	rudder_to = (left_or_right) ? rudderfullleft : rudderfullright;
+	permanent_turn = false;
 }
 
 
@@ -224,6 +376,34 @@ unsigned ship::calc_damage(void) const
 double ship::get_roll_factor(void) const
 {
 	return 400.0 / (get_tonnage() + 6000.0);	// fixme: rather simple yet. should be overloaded by each ship
+}
+
+
+
+double ship::get_noise_factor (void) const
+{
+    return get_throttle_speed () / max_speed_forward;
+}
+
+
+
+vector3 ship::get_acceleration(void) const		// drag must be already included!
+{
+	// acceleration of ship depends on rudder.
+	// forward acceleration is max_accel_forward * cos(rudder_ang)
+	double drag_factor = max_accel_forward / (max_speed_forward * max_speed_forward);
+	return orientation.rotate(0, get_throttle_accel() * cos(rudder_pos * M_PI / 180.0) - drag_factor * (speed * speed), 0);
+}
+
+
+
+quaternion ship::get_rot_acceleration(void) const	// drag must be already included!
+{
+	// acceleration of ship depends on rudder.
+	// angular acceleration (turning) is max_accel_forward * sin(rudder_ang)
+	// this is acceleration around local z-axis.
+	//fixme: do we have to multiply in some factor? we have angular values here not linear...
+	return quaternion::rot(get_throttle_accel() * sin(rudder_pos * M_PI / 180.0), 0, 0, 1);
 }
 
 
