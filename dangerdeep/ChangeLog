@@ -1,3 +1,8 @@
+2004-01-21  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* src/Makefile.am
+	  - added missing commands about inclusion of libraries. This fixes
+	    the compile problem on linux.
+
 2004-01-19  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* widget.cpp
 	  - list fixed, add-ons
