@@ -309,6 +309,9 @@ void draw_vessel(void)
 	double sc = 2.0/vector2(vessel->get_length(), vessel->get_width()).length();
 	glScalef(sc, sc, sc);
 	vessel->display();
+	sys->prepare_2d_drawing();
+	font_tahoma->print_hc(1024, 128, vessel->get_description(2).c_str(), color::white(), true);
+	sys->unprepare_2d_drawing();
 }
 
 void menu_show_vessels(void)
