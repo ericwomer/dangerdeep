@@ -25,7 +25,6 @@ bool triangulate::is_inside_triangle(const vector2f& a, const vector2f& b, const
 	return (s >= 0 && t >= 0 && s <= 1 && t <= 1 && s+t <= 1);
 }
 
-#include <cassert>//fixme remove
 vector<unsigned> triangulate::compute(const vector<vector2f>& vertices)
 {
 	vector<unsigned> indices;
@@ -37,7 +36,7 @@ vector<unsigned> triangulate::compute(const vector<vector2f>& vertices)
 	list<unsigned>::iterator i0 = vl.begin();
 	list<unsigned>::iterator i1 = i0; next(vl, i1);
 	list<unsigned>::iterator i2 = i1; next(vl, i2);
-int haengt=0;	// fixme: hack to avoid lock ups. why do they occour? reasons maybe:
+//int haengt=0;	// fixme: hack to avoid lock ups. why do they occour? reasons maybe:
 		// 1) there are double points in the input, that means polygon edges are degenerated
 		// or too short. OCCOUR, fixme, SEE COASTSEGMENT.CPP
 		// 2) the polygon is self-intersecting. ???? CHECK
@@ -47,8 +46,8 @@ int haengt=0;	// fixme: hack to avoid lock ups. why do they occour? reasons mayb
 		// b,c are on line a-d. -> change is_inside test, what about epsilon?! AVOIDED, FIXED
 		// check these cases (1,2)
 	while (vl.size() > 3) {
-++haengt;
-if(haengt>2000){cout<<"TRIANGULATE: LOCKUP DETECTED!\n";assert(false);return indices;}
+//++haengt;
+//if(haengt>2000){cout<<"TRIANGULATE: LOCKUP DETECTED!\n";assert(false);return indices;}
 		if (!is_correct_triangle(vertices[*i0], vertices[*i1], vertices[*i2])) {
 			next(vl, i0);
 			next(vl, i1);
@@ -88,7 +87,7 @@ void triangulate::debug_test(const vector<vector2f>& vertices, const string& out
 	int nverts = int(vertices.size());
 	vector<unsigned> idx = compute(vertices);
 
-#if 0	
+#if 1
 	for (int j = 0; j < nverts; ++j) {	// show poly also
 		idx.push_back(j);
 		idx.push_back(j);
