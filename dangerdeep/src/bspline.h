@@ -11,7 +11,7 @@ template <class T, class U>
 class bsplinet
 {
 protected:
-	int n;
+	int n, m;
 	vector<T> cp;		// control points
 	vector<U> tvec;		// t's for control points
 	mutable vector<vector<T> > deBoor_pts;
@@ -33,34 +33,35 @@ protected:
 		// because we have uniform bsplines here, we don't need to search!
 		// note: the results of both algorithms differ when t == tvec[x] for any x.
 		// it shouldn't cause trouble though, because the bspline value is the same then.
-		int m = int(cp.size())-1;
+
+#if 1
 		int l = n + int(floor(t * (m+1-n)));
 		if (l > m) l = m;
 		return l;
 		
 		// algorithm for non-uniform bsplines:
 		// note: if t is equal to tvec[x] then l=x-1
-		/*
+#else
 		int l = n;
 		for ( ; l <= m; ++l) {
 			if (tvec[l] <= t && t <= tvec[l+1])
 				break;
 		}
 		return l;
-		*/
+#endif
 	}
 
 public:
-	bsplinet(int n_, const vector<T>& d) : n(n_), cp(d)
+	bsplinet(int n_, const vector<T>& d) : n(n_), m(int(d.size())-1), cp(d)
 	{
 		assert (n < int(d.size()) );
+		assert (d.size() >= 2);
 		
 		make_deBoor_pts();
 
 		// prepare t-vector
 		// note: this algorithm works also for non-uniform bsplines
 		// (let the user give a t vector)
-		int m = int(d.size())-1;
 		tvec.resize(m+n+2);
 		int k = 0;
 		for ( ; k <= n; ++k) tvec[k] = 0;
@@ -68,12 +69,12 @@ public:
 		for ( ; k <= m+n+1; ++k) tvec[k] = 1;
 	}
 
-	bsplinet(const bsplinet& o) : n(o.n), cp(o.cp), tvec(o.tvec) { make_deBoor_pts(); }
-	bsplinet& operator= (const bsplinet& o) { n = o.n; cp = o.cp; tvec = o.tvec; return *this; }
+	bsplinet(const bsplinet& o) : n(o.n), m(o.m), cp(o.cp), tvec(o.tvec) { make_deBoor_pts(); }
+	bsplinet& operator= (const bsplinet& o) { n = o.n; m = o.m; cp = o.cp; tvec = o.tvec; return *this; }
 
 	~bsplinet() {}
 
-	const vector<T> control_points(void) const { return cp; }
+	const vector<T>& control_points(void) const { return cp; }
 	
 	T value(const U& t) const
 	{
