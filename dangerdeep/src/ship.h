@@ -47,6 +47,7 @@ protected:
 	virtual void calculate_fuel_factor ( double delta_time );
 	
 	class smoke_stream* mysmoke;
+	vector3 smokerelpos;	// read from spec file
 	
 public:
 	enum shipclasses {

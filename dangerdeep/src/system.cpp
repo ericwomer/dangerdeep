@@ -90,11 +90,20 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 		if (pos == string::npos) break;
 		extensions.replace(pos, 1, "\n");
 	}
+	GLint nrtexunits = 0, nrlights = 0, nrclipplanes = 0, maxviewportdims = 0;
+	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &nrtexunits);
+	glGetIntegerv(GL_MAX_LIGHTS, &nrlights);
+	glGetIntegerv(GL_MAX_CLIP_PLANES, &nrclipplanes);
+	glGetIntegerv(GL_MAX_VIEWPORT_DIMS, &maxviewportdims);
 
 	cerr << "OpenGL vendor : " << vendor << "\n"
 		<< "GL renderer : " << renderer << "\n"
 		<< "GL version : " << version << "\n"
 		<< "GL max texture size : " << texture::get_max_size() << "\n"
+		<< "GL number of texture units : " << nrtexunits << "\n"
+		<< "GL number of lights : " << nrlights << "\n"
+		<< "GL number of clip planes : " << nrclipplanes << "\n"
+		<< "GL maximum viewport dimensions : " << maxviewportdims << "\n"
 		<< "Supported GL extensions :\n" << extensions << "\n";
 
 	instance = this;

@@ -41,7 +41,16 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 	TiXmlElement* esmoke = hdftdship.FirstChildElement("smoke").Element();
 	mysmoke = 0;
 	if (esmoke) {
-		//fixme parse
+		int smtype = 0;
+		esmoke->Attribute("type", &smtype);
+		if (smtype > 0) {
+			TiXmlElement* esmpos = esmoke->FirstChildElement("position");
+			system::sys().myassert(esmpos != 0, string("no smoke position given in ")+specfilename);
+			esmpos->Attribute("x", &smokerelpos.x);
+			esmpos->Attribute("y", &smokerelpos.y);
+			esmpos->Attribute("z", &smokerelpos.z);
+		}
+		mysmoke = new smoke_stream(position+smokerelpos, 2);			
 	}
 	TiXmlElement* eai = hdftdship.FirstChildElement("ai").Element();
 	system::sys().myassert(eai != 0, string("ai node missing in ")+specfilename);
@@ -126,7 +135,7 @@ void ship::simulate(game& gm, double delta_time)
 	
 	if (mysmoke) {
 		if (!is_sinking())
-			mysmoke->set_source(position + vector3(0, 0, 10));//fixme add pos. relative to ship
+			mysmoke->set_source(position + smokerelpos);
 		mysmoke->simulate(gm, delta_time);
 	}
 }
