@@ -72,8 +72,8 @@ sub_tdc_display::sub_tdc_display(user_interface& ui_) : user_display(ui_)
 
 	normallight.clockbig.set("TDC_daylight_clockbigptr.png", 921, 124, 930, 134);
 //	nightlight.clockbig.set("TDC_redlight_clockbigptr.png", 921, 124, 930, 134);
-	normallight.clocksml.set("TDC_daylight_clocksmlptr.png", 921, 124, 930, 134);
-//	nightlight.clocksml.set("TDC_redlight_clocksmlptr.png", 921, 124, 930, 134);
+	normallight.clocksml.set("TDC_daylight_clocksmlptr.png", 926, 76, 929, 99);
+//	nightlight.clocksml.set("TDC_redlight_clocksmlptr.png", 926, 76, 929, 99);
 	normallight.targetcourse.set("TDC_daylight_targetcourse.png", 567, 365, 585, 451);
 //	nightlight.targetcourse.set("TDC_redlight_targetcourse.png", 567, 365, 585, 451);
 	normallight.targetrange.set("TDC_daylight_targetrange.png", 755, 231, 774, 317);

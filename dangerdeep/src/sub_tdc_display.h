@@ -10,21 +10,49 @@ using namespace std;
 
 class sub_tdc_display : public user_display
 {
-	class image* background_normallight;
-	class image* background_nightlight;
+	class rotat_tex {
+	public:
+		rotat_tex();
+		~rotat_tex();
+		texture* tex;
+		int left, top, centerx, centery;
+		void draw(double angle) const;
+		void set(const char* filename, int left, int top, int centerx, int centery);
+	protected:
+		rotat_tex(const rotat_tex& );
+		rotat_tex& operator= (const rotat_tex& );
+	};
 
-	vector<class texture*> tube_textures_daylight;
-	vector<class texture*> tube_textures_nightlight;
+	class scheme {
+	public:
+		class image* background;
+		rotat_tex clockbig;
+		rotat_tex clocksml;
+		rotat_tex targetcourse;
+		rotat_tex targetrange;
+		rotat_tex targetspeed;
+		rotat_tex spreadangle;
+		rotat_tex targetpos;
+		texture* tubelight[6];
+		texture* tubeswitch[6];
+		texture* firebutton;
+		texture* automode[2];	// on/off
+		rotat_tex gyro_a;
+		rotat_tex gyro_v;
+		texture* firesolutionquality;
+		rotat_tex torpspeed;
+		scheme();
+		~scheme();
+	protected:
+		scheme(const scheme& );
+		scheme& operator= (const scheme& );
+	};
 
-	texture* clock_big_pointer_daylight;
-	texture* clock_big_pointer_nightlight;
-	texture* clock_small_pointer_daylight;
-	texture* clock_small_pointer_nightlight;
-	texture* targetpos_ptr_daylight;
-	texture* targetpos_ptr_nightlight;
-	texture* targetcourse_ptr_daylight;
-	texture* targetcourse_ptr_nightlight;
-	
+	scheme normallight, nightlight;
+
+	unsigned selected_tube;	// 0-5
+	unsigned selected_mode;	// 0-1 (automatic on / off)
+
 public:
 	sub_tdc_display(class user_interface& ui_);
 	virtual ~sub_tdc_display();
