@@ -4,6 +4,76 @@
 #ifndef AI_H
 #define AI_H
 
+/*
+How AI should work.
+We have convoys or single ships.
+zig-zag large scale means changing course around main course
+every few sea miles (to make it more difficult for subs to
+keep contact)
+zig-zag small scale means changing course periodically every
+few seconds or minutes to avoid torpedo hits and make
+course prediction more difficult for the sub.
+
+Single ships, escort:
+Normally zig-zag (maybe large scale + small scale),
+Evade subs with high speed or counter attack
+
+Single ships, merchant:
+Zig-zag large scale, small scale when attacked,
+try to avoid torpedoes when turning, or running away
+when capabable of more than 15 knots.
+
+Single ships, warships:
+Fire at the sub, if detected. Run away and zig-zag.
+
+Convoy:
+central control!
+Whole convoy zig-zags large scale around main course.
+Merchants run straight, destroyers are distributed around
+the convoy and given some duty (ping with sonar, watch, where
+to look, secure front or side, help out if attacked, kill subs
+when detected etc.)
+Escorts run up and down the convoy at the side, zig-zagging and/or
+turning, using ASDIC to ping.
+Front escorts sweep the front of the whole convoy with ASDIC.
+Backside escorts sweep also.
+When the convoy is attacked, the convoy control determines which
+escorts should engage the submarine. The nearest escort
+should do so, the others should regroup to protect the convoy.
+Do not let all escorts head to one side of a convoy (it could
+be a trap of a wolfpack...)
+Especially backside escorts could come for support. Do not send more
+than 3-4 escorts to a sub (enough for hunting).
+When detected multiple subs, distribute escorts to them, 1-2 for each
+submarine.
+Leave an escort screen around the convoy if possible. It depends on
+the time of war, if subs are rather attacked or the convoy is rather
+protected. Escorts that watch and ping around the convoy can't really
+protect it, if they do not attack detected submarines...
+So rather attack detected submarines, than keep up the screen.
+What is with warships? rather run away...
+
+Programming model:
+
+So we have single ship AI, sub types escort/merchant/warship.
+And convoy ai... a general/sergeant model.
+Each AI has states, what it does at the moment, with flags (should
+zig-zag large scale, small scale etc.), switching between the states.
+Convoy AI sends commands to the ship's AIs (-> changing states).
+Ship AI has some higher priority, i.e. when self defending or attacking
+a submarine (zig-zagging to evade torpedoes), the convoy AI should
+not be able to change the state, at least until the imminent danger
+is over... to avoid that the convoy sends a "run to position xyz" command,
+so that the ship stops zig-zagging and a torpedo hits it meanwhile...
+
+State of realization:
+
+Only partly, only older, simpler model.
+
+
+*/
+
+
 #include "vector3.h"
 #include "global_data.h"
 #include "angle.h"
