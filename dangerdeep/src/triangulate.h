@@ -21,12 +21,8 @@ struct triangulate
 	static bool is_correct_triangle(const vector2f& a, const vector2f& b, const vector2f& c) {
 		return (b.x-a.x)*(c.y-a.y) > (b.y-a.y)*(c.x-a.x);
 	}
-
-	static pair<vector2f, float> get_circle(const vector2f& a, const vector2f& b, const vector2f& c);
-
-	static bool is_inside_circle(const pair<vector2f, float>& c, const vector2f& vf) {
-		return vf.square_distance(c.first) < c.second;
-	}
+	
+	static bool is_inside_triangle(const vector2f& a, const vector2f& b, const vector2f& c, const vector2f& p);
 
 	static vector<unsigned> compute(const vector<vector2f>& vertices);
 };
