@@ -877,8 +877,10 @@ void game::main_playloop(class system& sys)
 {
 	unsigned frames = 1;
 	unsigned lasttime = sys.millisec();
+	unsigned lastframes = 1;
 	double fpstime = 0;
 	double totaltime = 0;
+	double measuretime = 5;	// seconds
 	
 	// draw one initial frame
 	ui->display(sys, *this);
@@ -902,10 +904,11 @@ void game::main_playloop(class system& sys)
 		++frames;
 
 		// record fps
-		if (totaltime - fpstime > 5) {
+		if (totaltime - fpstime >= measuretime) {
 			fpstime = totaltime;
 			ostringstream os;
-			os << "$c0fffffps " << frames/totaltime;
+			os << "$c0fffffps " << (frames - lastframes)/measuretime;
+			lastframes = frames;
 			sys.add_console(os.str());
 		}
 		

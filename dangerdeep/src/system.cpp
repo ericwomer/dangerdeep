@@ -89,7 +89,7 @@ void system::screen_resize(unsigned w, unsigned h, double nearz, double farz)
 	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective (45.0, (GLdouble)w/(GLdouble)h, nearz, farz);
+	gl_perspective_fovx (90.0, (GLdouble)w/(GLdouble)h, nearz, farz);
 	float m[16];
 	glGetFloatv(GL_PROJECTION_MATRIX, m);
 	xscal_2d = 2*nearz/m[0];
@@ -411,10 +411,23 @@ void system::draw_vm_image(int x, int y, int w, int h, const texture* t) const
 
 void system::draw_rectangle(int x, int y, int w, int h)
 {
+/*
+//doesn't work. why? fixme
+	glRecti(x, y, x+w, y+h);
+*/	
 	glBegin(GL_QUADS);
 	glVertex2i(x, y);
 	glVertex2i(x, y+h);
 	glVertex2i(x+w, y+h);
 	glVertex2i(x+w, y);
 	glEnd();
+}
+
+void system::gl_perspective_fovx(double fovx, double aspect, double znear, double zfar)
+{
+	double tanfovx2 = tan(M_PI*fovx/360.0);
+	double tanfovy2 = tanfovx2 / aspect;
+	double r = znear * tanfovx2;
+	double t = znear * tanfovy2;
+	glFrustum(-r, r, -t, t, znear, zfar);
 }

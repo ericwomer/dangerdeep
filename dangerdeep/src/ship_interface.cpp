@@ -222,7 +222,7 @@ void ship_interface::display_sonar(class system& sys, game& gm)
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	gluPerspective (20.0, 1.0/1.0, 2.0, gm.get_max_view_distance());
+	sys.gl_perspective_fovx (20.0, 1.0/1.0, 2.0, gm.get_max_view_distance());
 	glViewport(res_x/2, res_y/3, res_x/2, res_x/2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -300,7 +300,7 @@ void ship_interface::display_glasses(class system& sys, game& gm)
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	gluPerspective (30.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
+	sys.gl_perspective_fovx (30.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
 	glViewport(0, res_y/3, res_x, res_x/2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

@@ -103,14 +103,23 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 {
 	glDisable(GL_LIGHTING);
 
-#if 1	// new water
-	// opengl expects fovy, but we need fovx. :-/
-#define FOV 70.0*1024/768	// fixme: make global accessible
-//#define FOV 45.0*1024/768	// fixme: make global accessible
-	angle fov2(FOV/2);
+#if 1	// new water 47.4fps (old water 52.8fps)
+
+/*
+das problem ist folgendes:
+bei dieser unterteilung werden auf dem bildschirm von unten nach oben (vorne nach hinten)
+dreiecke gemalt, dies sind pro tiefenschritt proportional zur tiefe viele.
+also 1,3,5,7,9,11,...
+daher hat man in der nähe des bootes zu wenige um kleine wellen zu zeichnen!!!
+anfangs müssen es mehr sein, zB 8 über die Bildschirmbreite, weiter hinten
+dann zunehmend, oder eben immer 8 dann wird's hinten flacher.
+*/
+
+	GLfloat projmatrix[16];
+	glGetFloatv(GL_PROJECTION_MATRIX, projmatrix);
+	double tanfovx2 = projmatrix[0];
 	vector2 viewdir = dir.direction();
 	vector2 viewleft = viewdir.orthogonal();
-	double znear = 2.0;	// fixme: global accessible
 
 	// fixme: could this move to init?
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -121,32 +130,50 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 	vector<GLfloat> verticecoords;
 	vector<GLfloat> texturecoords;
 	unsigned verts = (WAVEDEPTH+1)*(WAVEDEPTH+2)/2;
-	verticecoords.reserve(3*verts);
-	texturecoords.reserve(2*verts);
+	verticecoords.reserve(3*verts+2);
+	texturecoords.reserve(2*verts+2);
 	double texscalefac = 1.0/double(4*WAVESIZE);
-	// fixme: is znear correct? no... 1.0: weird view (seems that fov wrong), 0.0 fov ok, but
-	// width wrong etc. fixme znear add or subtract?
-// mega-fixme::: I NEVER USE FOV, that's the bug.	
-	vector2 viewbase = viewpos.xy();// - viewdir * znear;
+	double zdist = 0;
 	for (unsigned w = 0; w <= WAVEDEPTH; ++w) {
-		vector2 viewbase2 = viewbase + viewleft * (w/2.0) * WAVESIZE;
+		vector2 viewbase = viewpos.xy() + viewdir * zdist + viewleft * zdist * tanfovx2;
+		double viewleftfac = (w > 0) ? (-2 * zdist * tanfovx2 / w) : 0;
 		for (unsigned p = 0; p <= w; ++p) {
 			// outer border of water must have height 0 to match horizon face
 //			double height = 0;	//testing fixme
-			double height = (w < WAVEDEPTH) ? get_waterheight((float)viewbase2.x, (float)viewbase2.y, (int)wavephase) : 0;
-			verticecoords.push_back(viewbase2.x);
-			verticecoords.push_back(viewbase2.y);
+			double height = (w < WAVEDEPTH) ? get_waterheight((float)viewbase.x, (float)viewbase.y, (int)wavephase) : 0;
+			verticecoords.push_back(viewbase.x);
+			verticecoords.push_back(viewbase.y);
 			verticecoords.push_back(height);
 			// don't take fractional part of coordinates for texture coordinates
 			// or wrap around error will occour. Texture coordinates may get big
 			// (real meter values around the globe/map) but OpenGL can handle this
 			// (and does that right). Scale texture by adjusting this factor.
-			texturecoords.push_back(texscalefac * viewbase2.x);
-			texturecoords.push_back(texscalefac * viewbase2.y);
-			viewbase2 -= viewleft * WAVESIZE;
+			texturecoords.push_back(texscalefac * viewbase.x);
+			texturecoords.push_back(texscalefac * viewbase.y);
+			viewbase += viewleft * viewleftfac;
 		}
-		viewbase += viewdir * WAVESIZE;
+		// this could grow more than linear to reduce number of faces drawn at
+		// far distance (like voxel). This would lead to bigger waves in the distance
+		// which isn't right, so don't overdo that...
+		zdist += WAVESIZE;
 	}
+	
+	// additional vertices for horizon face
+	vector2 horizon1 = viewpos.xy() + viewdir * max_view_dist;
+	vector2 horizon2 = viewleft * max_view_dist * tanfovx2;
+	vector2 horizonl = horizon1 + horizon2;
+	vector2 horizonr = horizon1 - horizon2;
+	verticecoords.push_back(horizonl.x);
+	verticecoords.push_back(horizonl.y);
+	verticecoords.push_back(0);
+	texturecoords.push_back(texscalefac * horizonl.x);
+	texturecoords.push_back(texscalefac * horizonl.y);
+	verticecoords.push_back(horizonr.x);
+	verticecoords.push_back(horizonr.y);
+	verticecoords.push_back(0);
+	texturecoords.push_back(texscalefac * horizonr.x);
+	texturecoords.push_back(texscalefac * horizonr.y);
+	
 	glVertexPointer(3, GL_FLOAT, 0, &verticecoords[0]);
 	glTexCoordPointer(2, GL_FLOAT, 0, &texturecoords[0]);
 	
@@ -173,6 +200,14 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 		glArrayElement(vertexnr+w+1);
 		++vertexnr;
 	}
+	
+	// horizon faces (last line has WAVEDEPTH+1 vertices)
+	glArrayElement(verts-WAVEDEPTH-1);
+	glArrayElement(verts+1);
+	glArrayElement(verts);
+	glArrayElement(verts-WAVEDEPTH-1);
+	glArrayElement(verts-1);
+	glArrayElement(verts+1);
 	glEnd();
 	
 	// fixme: could this move to init?
@@ -182,7 +217,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 	// fixme: horizon face (trapez)
 	// near: depth = znear+(WAVEDEPTH+1)*WAVESIZE
 	// far: depth = zfar
-	// viewpos+viewdir*zfar -+ viewleft*znear*FOVfactor  (=tan(FOV/2)) or cotan ?)
+	// viewpos+viewdir*zfar -+ viewleft*znear*tanfovx2
 
 #else
 
@@ -1103,7 +1138,7 @@ void user_interface::display_glasses(class system& sys, class game& gm)
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	gluPerspective (5.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
+	sys.gl_perspective_fovx (5.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
 	glViewport(0, res_y/3, res_x, res_x/2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

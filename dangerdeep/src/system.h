@@ -51,10 +51,13 @@ public:
 	
 	// takes effect only after next prepare_2d_drawing()
 	void set_res_2d(unsigned x, unsigned y) { res_x_2d = x; res_y_2d = y; }
+
+	// give FOV X in degrees, aspect (w/h), znear and zfar.	
+	void gl_perspective_fovx(double fovx, double aspect, double znear, double zfar);
 	
 private:
 	system() {};
-	unsigned res_x, res_y;
+	unsigned res_x, res_y;		// virtual resolution (fixed for project)
 	double nearz, farz;
 	bool is_fullscreen;
 	bool show_console;
@@ -63,7 +66,7 @@ private:
 	list<string> console_text;
 	
 	bool draw_2d;
-	unsigned res_x_2d, res_y_2d;
+	unsigned res_x_2d, res_y_2d;	// real resolution (depends on user settings)
 	
 	vector<bool> keys;
 	queue<int> keyqueue;
