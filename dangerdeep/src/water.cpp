@@ -64,7 +64,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) : mytime(tm), xres(xres_
 	// They're used as fake specular mapping for now. Only explosions/fires at night would
 	// be seen as reflections. So why use them at all? they're rather costly!
 	// make them configureable? fixme
-	reflectiontexsize = 128;//vps;
+	reflectiontexsize = vps;
 	vector<Uint8> tmp0(reflectiontexsize*reflectiontexsize*3);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, reflectiontexsize, reflectiontexsize, 0, GL_RGB, GL_UNSIGNED_BYTE, &tmp0[0]);
 	tmp0.clear();
