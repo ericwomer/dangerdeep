@@ -3,6 +3,7 @@
 	* logbook.cpp:
 	  - Extend the area that can be used to change logbook page.
 	  - Change pages with '<' and '>' keys.
+	  - Wooden desk as background.
 	* game.cpp:
 	  - When two torpedos hit one target, it is sunk twice.
 	* torpedo.h, torpedo.cpp:
