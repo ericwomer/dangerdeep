@@ -46,6 +46,60 @@ void start_mission(int nr)
 	delete gm;
 }
 
+void create_and_run_custom_mission(int subtype, int cvsize, int cvesc, int tod)
+{
+/****************************************************************
+	custom mission generation:
+	As first find a random date and time, using time of day (tod).
+	Whe have to calculate time of sunrise and sunfall for that, with some time
+	until this day of time expires (5:59am is not really "night" when sunrise is at
+	6:00am).
+	Also weather computation is neccessary.
+	Then we calculate size and structure of the convoy (to allow calculation of its
+	map area).
+	Then we have to calculate maximum viewing distance to know the distance of the
+	sub relative to the convoy. We have to find a probable convoy position in the atlantic
+	(convoy routes, enough space for convoy and sub).
+	Then we place the convoy with probable course and path there.
+	To do this we need a simulation of convoys in the atlantic.
+	Then we place the sub somewhere randomly around the convoy with maximum viewing distance.
+***********************************************************************/	
+	
+
+/*
+	submarine* playersub = new submarine(subtype == 0 ? submarine::typeVIIc : submarine::typeXXI, vector3(2000, 1000, -30), 270);
+//	submarine* playersub = new submarine(subtype == 0 ?
+//			{
+			
+				unsigned subtype = m.get_switch_nr(0);
+				// just a test, fixme
+//				ship* playership = new ship(2, vector3(2000, 1000, 0), 270);
+				game* test = new game(playersub);
+//				game* test = new game(playership);
+				ship* s = new ship(3, vector3(0,150,0));
+				s->get_ai()->add_waypoint(vector2(0,3000));
+				s->get_ai()->add_waypoint(vector2(3000,3000));
+				s->get_ai()->add_waypoint(vector2(3000,0));
+				s->get_ai()->add_waypoint(vector2(0,0));
+				s->get_ai()->cycle_waypoints();
+				test->spawn_ship(s);
+				ship* s2 = new ship(1, vector3(0,-150,0));
+				s2->get_ai()->follow(s);
+                        	test->spawn_ship(s2);
+				s2 = new ship(0, vector3(-200,-150,0));
+				s2->get_ai()->follow(s);
+                        	test->spawn_ship(s2);
+				s2 = new ship(2, vector3(-400,-450,0));
+				s2->get_ai()->follow(s);
+                        	test->spawn_ship(s2);
+				s2 = new ship(2, vector3(-800,-850,0));
+				s2->get_ai()->follow(s);
+                        	test->spawn_ship(s2);
+				test->main_playloop(*sys);
+				delete test;
+*/				
+}
+
 void menu_convoy_battle(void)
 {
 	menu m;
@@ -85,40 +139,12 @@ void menu_convoy_battle(void)
 		sys->unprepare_2d_drawing();
 		sys->swap_buffers();
 		if (mmsel == 5) break;
-		switch (mmsel & 0xffff) {
-			case 0: break;
-			case 4:	{
-/*			
-				unsigned subtype = m.get_switch_nr(0);
-				// just a test, fixme
-				submarine* playersub = new submarine(subtype == 0 ? submarine::typeVIIc : submarine::typeXXI, vector3(2000, 1000, -30), 270);
-//				ship* playership = new ship(2, vector3(2000, 1000, 0), 270);
-				game* test = new game(playersub);
-//				game* test = new game(playership);
-				ship* s = new ship(3, vector3(0,150,0));
-				s->get_ai()->add_waypoint(vector2(0,3000));
-				s->get_ai()->add_waypoint(vector2(3000,3000));
-				s->get_ai()->add_waypoint(vector2(3000,0));
-				s->get_ai()->add_waypoint(vector2(0,0));
-				s->get_ai()->cycle_waypoints();
-				test->spawn_ship(s);
-				ship* s2 = new ship(1, vector3(0,-150,0));
-				s2->get_ai()->follow(s);
-                        	test->spawn_ship(s2);
-				s2 = new ship(0, vector3(-200,-150,0));
-				s2->get_ai()->follow(s);
-                        	test->spawn_ship(s2);
-				s2 = new ship(2, vector3(-400,-450,0));
-				s2->get_ai()->follow(s);
-                        	test->spawn_ship(s2);
-				s2 = new ship(2, vector3(-800,-850,0));
-				s2->get_ai()->follow(s);
-                        	test->spawn_ship(s2);
-				test->main_playloop(*sys);
-				delete test;
-*/				
-				break;
-				}
+		if ((mmsel & 0xffff) == 4) {
+			create_and_run_custom_mission(
+				m.get_switch_nr(0),
+				m.get_switch_nr(1),
+				m.get_switch_nr(2),
+				m.get_switch_nr(3) );
 		}
 	}
 }

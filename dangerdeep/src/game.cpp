@@ -204,11 +204,21 @@ void game::simulate(double delta_t)
 		- object type
 		- surfaced: course, speed, engine type etc.
 		- submerged: speed, scope height etc.
+		- relative position to sun/moon
 	The visibility computation gives a distance within that the object can be seen
 	by other objects. This distance depends on relative distance and courses of
 	both objects (factor2) and overall visibility (factor1).
 	Maybe some randomization should be added (quality of crew, experience, overall
 	visibility +- some meters)
+	
+	Visibility of ships can be determined by area that is visible and this depends
+	on relative course between watcher and visible object.
+	For ships this shouldn't make much difference (their shape is much higher than
+	that of submarines), but for subs the visibility is like an ellipse given
+	by an implicit function, rotated by course, roughly proportional to length and with.
+	So we can compute visibiltiy by just multiplying relative coordinates (x, y, 1) with
+	a 3x3 matrix from left and right and evaluate the result.
+	
 ******************************************************************************************/
 
 list<ship*> game::visible_ships(const vector3& pos)
@@ -223,6 +233,15 @@ list<ship*> game::visible_ships(const vector3& pos)
 	}
 	return result;
 //	return ships;	// test hack fixme
+}
+
+// give relative position, length*vis, width*vis and course
+bool is_in_ellipse(const vector2& p, double xl, double yl, angle& head)
+{
+	vector2 hd = head.direction();
+	double t1 = (p.x*hd.x + p.y*hd.y);
+	double t2 = (p.y*hd.x - p.x*hd.y);
+	return ((t1*t1)/(xl*xl) + (t2*t2)/(yl*yl)) < 1;
 }
 
 list<submarine*> game::visible_submarines(const vector3& pos)
