@@ -23,6 +23,9 @@ using namespace std;
 
 class user_interface
 {
+public:
+	enum color_mode { day_color_mode, night_color_mode };
+
 protected:
 	bool quit;		// whishes user to quit?
 	bool pause;
@@ -61,6 +64,10 @@ protected:
 
 	static texture* torptex(unsigned type);
 
+	// color funtions.
+    virtual void set_color ( color_mode mode );
+    virtual void set_color ( class game& gm );
+	
 	// 2d drawing must be turned on for them
 	void draw_infopanel(class system& sys) const;
 	void draw_gauge(class system& sys, unsigned nr, int x, int y, unsigned wh, angle a,

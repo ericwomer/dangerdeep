@@ -958,3 +958,28 @@ void user_interface::add_rudder_message()
             break;
     }
 }
+
+#define DAY_MODE_COLOR() glColor3f ( 1.0f, 1.0f, 1.0f )
+
+#define NIGHT_MODE_COLOR() glColor3f ( 1.0f, 0.0f, 0.0f )
+
+void user_interface::set_color ( color_mode mode )
+{
+	switch ( mode )
+	{
+		case night_color_mode:
+			NIGHT_MODE_COLOR ();
+			break;
+		default:
+			DAY_MODE_COLOR ();
+			break;
+	}
+}
+
+void user_interface::set_color ( class game& gm )
+{
+	if ( gm.is_day_mode () )
+		DAY_MODE_COLOR ();
+	else
+		NIGHT_MODE_COLOR ();
+}

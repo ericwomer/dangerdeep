@@ -87,24 +87,40 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 
 			// control
 			case SDLK_LEFT:
-                player->rudder_left();
-                add_rudder_message();
-                break;
+				player->rudder_left();
+				add_rudder_message();
+				break;
 			case SDLK_RIGHT:
-                player->rudder_right();
-                add_rudder_message();
-                break;
+				player->rudder_right();
+				add_rudder_message();
+				break;
 			case SDLK_UP: player->planes_up(1); add_message(TXT_Planesup[language]); break;
 			case SDLK_DOWN: player->planes_down(1); add_message(TXT_Planesdown[language]); break;
-			case SDLK_s: player->dive_to_depth(0); add_message(TXT_Surface[language]); break;
-			case SDLK_p:
-                player->dive_to_depth(static_cast<unsigned>(player->get_periscope_depth()));
-                add_message(TXT_Periscopedepth[language]);
-                break;	//fixme
 			case SDLK_c:
-                player->dive_to_depth(static_cast<unsigned>(player->get_max_depth()));
-                add_message(TXT_Crashdive[language]);
-                break;
+				player->dive_to_depth(static_cast<unsigned>(player->get_max_depth()));
+				add_message(TXT_Crashdive[language]);
+				break;
+			case SDLK_d:
+				if ( player->has_snorkel () )
+					player->dive_to_depth ( static_cast<unsigned> ( player->get_snorkel_depth () ) );
+				break;
+			case SDLK_h:
+				{
+					bool turn_left = ( angle ( 180.0f ) <= bearing && bearing < angle ( 359.999f ) );
+					player->head_to_ang ( bearing, turn_left );
+				}
+				break;
+			case SDLK_p:
+				player->dive_to_depth(static_cast<unsigned>(player->get_periscope_depth()));
+				add_message(TXT_Periscopedepth[language]);
+				break;	//fixme
+			case SDLK_s:
+				player->dive_to_depth(0);
+				add_message(TXT_Surface[language]);
+				break;
+			case SDLK_v:
+				bearing = player->get_heading ();
+				break;
 			case SDLK_RETURN :
                 player->rudder_midships();
                 player->planes_middle();
