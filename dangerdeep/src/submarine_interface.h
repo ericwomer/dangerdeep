@@ -37,6 +37,10 @@ protected:
 	void draw_torpedo(class game& gm, bool
 		usebow, int x, int y, const submarine::stored_torpedo& st);
 
+	// pointers to images/textures of the interface
+	image* controlscreen_normallight;
+	texture* compass1;
+
 	// Display functions for screens.
 	virtual void display_gauges(class game& gm);
 	virtual void display_periscope(class game& gm);

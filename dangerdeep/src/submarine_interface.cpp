@@ -39,10 +39,14 @@ submarine_interface::submarine_interface(submarine* player_sub, game& gm) :
 {
 	btn_menu = new widget_caller_button<game, void (game::*)(void)>(&gm, &game::stop, 1024-128-8, 128-40, 128, 32, texts::get(177));
 	panel->add_child(btn_menu);
+	controlscreen_normallight = new image(get_image_dir() + "ControlScreen_NormalLight.png");
+	compass1 = new texture(get_texture_dir() + "compass1.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
 }
 
 submarine_interface::~submarine_interface()
 {
+	delete controlscreen_normallight;
+	delete compass1;	
 	delete sub_damage_disp;
 }
 
@@ -741,14 +745,18 @@ void submarine_interface::play_sound_effect_distance ( sound_effect se, double d
 }
 
 // fixme: this function is already in user_interface.cpp. are there differences and why?
+// yes! gauges are different for ships/submarines. So THIS is the function that matters.
 void submarine_interface::display_gauges(class game& gm)
 {
 	submarine* player = dynamic_cast<submarine*> ( get_player () );
 	system::sys().prepare_2d_drawing();
 	set_display_color ( gm );
-	for (int y = 0; y < 3; ++y)	// fixme: replace with gauges
-		for (int x = 0; x < 4; ++x)
-			psbackgr->draw(x*256, y*256, 256, 256);
+
+	controlscreen_normallight->draw(0, 0);
+	
+	compass1->draw_rot(148, 564, -player->get_heading().value());
+
+/*
 	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
 	angle player_depth = -player->get_pos().z;
 	draw_gauge(gm, 1, 0, 0, 256, player->get_heading(), texts::get(1),
@@ -760,7 +768,10 @@ void submarine_interface::display_gauges(class game& gm)
 		texts::get(101));
 	draw_manometer_gauge ( gm, 1, 256, 256, 256, player->get_battery_level (),
 		texts::get(102));
-	draw_infopanel(gm);
+*/
+//	draw_infopanel(gm);
+
+
 	system::sys().unprepare_2d_drawing();
 
 	// mouse handling
