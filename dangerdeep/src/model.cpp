@@ -259,7 +259,8 @@ void model::display(bool with_texture, color* col1, color* col2) const
 		}
 	}
 	glEnd();
-	glColor3f(1,1,1);
+	if (col1 != 0 || col2 != 0)
+		glColor3f(1,1,1);
 }
 
 void model::scale(double x, double y, double z)

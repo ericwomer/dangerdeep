@@ -74,11 +74,13 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glTranslatef(viewpos.x, viewpos.y, 0);
 	glScalef(max_view_dist, max_view_dist, max_view_dist);	// fixme dynamic
 	unsigned dt = get_day_time(gm.get_time());
-	color skycol1, skycol2;
+	color skycol1, skycol2, lightcol;
 	if (dt < 2) {
+		lightcol = color(100, 100, 100);
 		skycol1 = color(16,16,64);
 		skycol2 = color(0, 0, 32);
 	} else {
+		lightcol = color(255,255,255);
 		skycol1 = color(165,192,247);
 		skycol2 = color(24,47,244);
 	}
@@ -95,12 +97,12 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	float hl = 0.1, hu = 0.4;
 	for (int j = 0; j < SKYSEGS; ++j) {
 		int t = (j+1) % SKYSEGS;
-		glColor4f(1,1,1,0);
+		lightcol.set_gl_color(0);
 		glTexCoord2f((j+1)*0.5, 0);
 		glVertex3f(rl * skycos[t], rl * skysin[t], hl);
 		glTexCoord2f((j  )*0.5, 0);
 		glVertex3f(rl * skycos[j], rl * skysin[j], hl);
-		glColor4f(1,1,1,1);
+		lightcol.set_gl_color(255);
 		glTexCoord2f((j  )*0.5, 1);
 		glVertex3f(ru * skycos[j], ru * skysin[j], hu);
 		glTexCoord2f((j+1)*0.5, 1);
@@ -130,11 +132,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	// fixme: glclearcolor depends on daytime, too
 
 	// color of water depends on daytime
-	if (dt < 2) {
-		glColor3f(0.3,0.3,0.3);	// night
-	} else {
-		glColor3f(1,1,1);	// day
-	}
+	lightcol.set_gl_color();
 
 	// fixme: with swimming the missing anisotropic filtering causes
 	// the water to shine unnatural. a special distant_water texture doesn't help
@@ -199,7 +197,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glEnd();
 	glPopMatrix();
 	glEnable(GL_LIGHTING);
-	glColor3f(1,1,1);
+//	glColor3f(1,1,1);
 
 	// ******************** ships & subs *************************************************
 
@@ -267,11 +265,13 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		(*it)->display();
 		glPopMatrix();
 	}
+	
+	glColor3f(1,1,1);
 }
 
 bool user_interface::time_scale_up(void)
 {
-	if (time_scale < 512) {
+	if (time_scale < 1024) {
 		time_scale *= 2;
 		return true;
 	}

@@ -411,7 +411,6 @@ void game::main_playloop(class system& sys)
 		// next simulation step
 		if (!ui->paused()) {
 			simulate(delta_time);
-			time += delta_time;
 		}
 
 		ui->display(sys, *this);
