@@ -152,8 +152,17 @@ def findCVS(basedir):
 	return myfiles
 
 
+def remove_entry(list, s):
+	list2 = []
+	for i in list:
+		if not(i == s):
+			list2 += [i]
+	return list2
+
+
 ################ build
-target_dir = '#' + SelectBuildDir(build_base_dir) 
+selected_build_dir = SelectBuildDir(build_base_dir)
+target_dir = '#' + selected_build_dir
 libpath = libpath + [target_dir]
 
 datafiles = findCVS('./data')
@@ -167,9 +176,11 @@ BuildDir(target_dir, source_base_dir, duplicate=0)
 ############### option so that "scons tarball" builds a tarball of source and data
 #fixme: change that so that e.g. "scons tarball" does that only, and it
 #isn't done everytime we build the program
-env.Append(TARFLAGS = '-z')
+#some hack so that scons doesn't replace the filename from build/linux to src
+problemfile = selected_build_dir + os.sep + 'note.txt'
+env.Append(TARFLAGS = '-z ' + problemfile)
 env.Append(TARSUFFIX = '.gz')
-tarball = env.Alias('tarball', env.Tar('dangerdeep-'+version, findCVS('.')))
+tarball = env.Alias('tarball', env.Tar('dangerdeep-'+version, remove_entry(findCVS('.'), problemfile)))
 
 #also env.Zip is possible...
 
