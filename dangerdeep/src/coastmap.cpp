@@ -49,7 +49,7 @@ coastmap::coastmap(const string& filename)
 	}
 }
 
-void coastmap::draw_as_map(const vector2& droff, double mapzoom, unsigned detail) const
+void coastmap::draw_as_map(const vector2& droff, double mapzoom, unsigned detail)
 {
 	int x, y, w, h;
 	double mperseg = pixels_per_seg * pixelw_real;

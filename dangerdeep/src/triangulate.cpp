@@ -36,10 +36,15 @@ vector<unsigned> triangulate::compute(const vector<vector2f>& vertices)
 	list<unsigned>::iterator i0 = vl.begin();
 	list<unsigned>::iterator i1 = i0; next(vl, i1);
 	list<unsigned>::iterator i2 = i1; next(vl, i2);
-int haengt=0;
+int haengt=0;	// fixme: hack to avoid lock ups. why do they occour? reasons maybe:
+		// 1) there are double points in the input, that means polygon edges are degenerated
+		// or too short.
+		// 2) the polygon is self-intersecting.
+		// 3) polygon is inverted (hole), that means polylines are all in wrong direction
+		// check these cases!
 	while (vl.size() > 3) {
 ++haengt;
-if(haengt>1000)return indices;	
+if(haengt>2000){cout<<"TRIANGULATE: LOCKUP DETECTED!\n";return indices;}
 		if (!is_correct_triangle(vertices[*i0], vertices[*i1], vertices[*i2])) {
 			next(vl, i0);
 			next(vl, i1);

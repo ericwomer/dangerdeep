@@ -23,7 +23,7 @@ struct coastmap {
 	void save(const string& filename) const;
 	coastmap(const string& filename);
 	
-	void draw_as_map(const vector2& droff, double mapzoom, unsigned detail = 0xffffffff) const;
+	void draw_as_map(const vector2& droff, double mapzoom, unsigned detail = 0xffffffff);
 	void render(double px, double py, unsigned detail = 0xffffffff) const;
 };
 
