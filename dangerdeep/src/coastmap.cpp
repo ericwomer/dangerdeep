@@ -11,8 +11,6 @@
 #include "binstream.h"
 #include "global_data.h"
 #include "texture.h"
-#include "bspline.h"
-#include "vector2.h"
 #include "system.h"
 #include "triangulate.h"
 #include "tinyxml/tinyxml.h"
@@ -41,6 +39,7 @@ const int coastmap::dy[4] = { -1, 0, 1, 0 };
 */
 vector<vector2f> coastline::create_points(const vector2& offset, float scal, unsigned begint, unsigned endt, int detail) const
 {
+/*
 	double t0 = double(begint)/double(points.size());
 	double t1 = double(endt)/double(points.size());
 	unsigned nrpts = endt - begint + 1;
@@ -66,12 +65,14 @@ vector<vector2f> coastline::create_points(const vector2& offset, float scal, uns
 		t += tstep;
 	}
 	return result;
+*/
 }
 
 
 
 void coastline::draw_as_map(const vector2f& off, float size, const vector2f& t, const vector2f& ts, int detail) const
 {
+#if 0
 	// fixme: cache that somehow
 	vector<vector2f> pts = create_points(vector2(off.x, off.y), size, 0, points.size(), detail);
 
@@ -82,7 +83,7 @@ void coastline::draw_as_map(const vector2f& off, float size, const vector2f& t, 
 		glVertex2f(off.x + it->x, off.y + it->y);
 	}
 	glEnd();
-
+#endif
 #if 0
 	glPointSize(2.0);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -98,6 +99,7 @@ void coastline::draw_as_map(const vector2f& off, float size, const vector2f& t, 
 
 void coastline::render(const vector2& p, int detail) const
 {
+#if 0
 	// fixme: cache that somehow
 	vector<vector2f> pts = create_points(p, 1, 0, points.size(), detail);
 	
@@ -129,6 +131,7 @@ void coastline::render(const vector2& p, int detail) const
 	glEnd();
 	
 	glPopMatrix();
+#endif
 }
 
 
@@ -319,6 +322,22 @@ for displaying purposes but should influence the game!
 
 
 
+//
+// coastmap functions
+//
+
+struct intcl
+{
+	vector<vector2i> points;
+	bool cyclic;
+	int beginborder, endborder;
+	intcl() : cyclic(false), beginborder(-1), endborder(-1) {}
+	~intcl() {}
+	intcl(const intcl& c) : points(c.points), cyclic(c.cyclic), beginborder(c.beginborder), endborder(c.endborder) {}
+	intcl& operator=(const intcl& c) { points = c.points; cyclic = c.cyclic; beginborder = c.beginborder; endborder = c.endborder; return *this; }
+};	
+
+
 
 unsigned coastmap::find_seg_for_point(const vector2i& p) const
 {
@@ -377,7 +396,7 @@ bool coastmap::find_begin_of_coastline(int& x, int& y)
 
 
 
-bool coastmap::find_coastline(int x, int y, coastline& cl)	// returns true if cl is valid
+bool coastmap::find_coastline(int x, int y, intcl& cl)	// returns true if cl is valid
 {
 	// run backward at the coastline until we reach the border or round an island.
 	// start there creating the coastline. this avoids coastlines that can never be seen.
@@ -464,6 +483,44 @@ bool coastmap::find_coastline(int x, int y, coastline& cl)	// returns true if cl
 		tmp.push_back(p0);
 		tmp.push_back(p01);
 */
+
+
+//this is not smooth, but create!!!!!!!!!! fixme
+coastline smooth_coastline(const intcl& icl)
+{
+	unsigned n = 3;
+	if (icl.points.size() < n+1) return dcl;
+	//this should be very smooth, n = icl.points.size()-1 or half of that
+	n = icl.points.size() - 1;
+	if (n > 16) n = 16;
+
+	vector<vector2f> tmp = dcl.points;//create them with scal/offset from icl, fixme
+	if (dcl.cyclic) {
+		// close polygon and make sure the first and last line are linear dependent
+		assert(tmp.size()>2);
+		vector2 p0 = tmp[0];
+		vector2 p1 = tmp[1];
+		vector2 p01 = p0 * 0.5 + p1 * 0.5;
+		tmp[0] = p01;
+		tmp.push_back(p0);
+		tmp.push_back(p01);
+	}
+	coastline result(n, tmp);
+	result.cyclic = dcl.cyclic;
+	result.beginborder = dcl.beginborder;
+	result.endborder = dcl.endborder;
+
+	// fixme: this is obsolete, it can be done while drawing/creating points
+	// essential is the creation of the bspline!!!!!!!!
+	double detailfac = tmp.size()*BSPLINE_SMOOTH_FACTOR;
+	for (double t = 0; t < 1; t += 1.0/detailfac) {
+		result.points.push_back(
+			bspline_val<vector2>(t, n, tmp )	);
+	}
+
+	return result;
+}
+
 
 
 
@@ -606,16 +663,21 @@ void divide_and_distribute_cl(const intcl& icl)
 void coastmap::process_coastline(int x, int y)
 {
 	assert ((mapf(x, y) & 0x80) == 0);
-	coastline cl;
+	intcl icl;
 	
 	// find coastline, avoid "lakes", (inverse of islands), because the triangulation will fault there
-	bool valid = find_coastline(x, y, cl);
+	bool valid = find_coastline(x, y, icl);
 	
 	if (!valid) return;	// skip
 
+	coastline cl = smooth_coastline(icl);
+
 	assert(cl.points.size() > 0);
 
-	// fill in coastseg info, which segments are covered by cl?
+	divide_and_distribute_cl(cl);
+
+/*
+// fill in coastseg info, which segments are covered by cl?
 	unsigned curseg = find_seg_for_point(cl.points[0]);
 	unsigned begint = 0, endt = 0;
 	for (unsigned i = 1; i < cl.points.size(); ++i) {
@@ -629,6 +691,7 @@ void coastmap::process_coastline(int x, int y)
 		}
 	}
 	coastsegments[curseg].segcls.push_back(coastsegment::segcl(coastlines.size()-1, begint, endt));
+*/
 }
 
 
@@ -645,6 +708,7 @@ void coastmap::process_segment(int sx, int sy)
 		}
 	} else {		// there are coastlines in segment
 		cs.type = 2;
+		// next is important for triangulation!! fixme compute it!
 /*
 		// compute cl.next info
 		unsigned ncl = cs.segcls.size();

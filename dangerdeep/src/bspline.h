@@ -7,20 +7,25 @@
 #include <vector>
 using namespace std;
 
-template <class T>
+template <class T, class U>
 class bsplinet
 {
 protected:
 	int n;
 	vector<T> cp;		// control points
-	vector<double> tvec;	// t's for control points
+	vector<U> tvec;	// t's for control points
 	mutable vector<vector<T> > deBoor_pts;
+
+	void make_deBoor_pts(void) {
+		// prepare deBoor-Points Triangle
+		deBoor_pts.resize(n+1);
+		for (int j = 0; j <= n; ++j)
+			deBoor_pts[j].resize(n+1-j);
+	}
 	
 	bsplinet();
-	bsplinet(const bsplinet& );
-	bsplinet& operator= (const bsplinet& );
 
-	int find_l(const double t) const {
+	int find_l(const U& t) const {
 		// note: for non-uniform bsplines we have to compute l so that
 		// tvec[l] <= t <= tvec[l+1]
 		// because we have uniform bsplines here, we don't need to search!
@@ -42,10 +47,7 @@ public:
 	bsplinet(int n_, const vector<T>& d) : n(n_), cp(d) {
 		assert (n < int(d.size()) );
 		
-		// prepare deBoor-Points Triangle
-		deBoor_pts.resize(n+1);
-		for (int j = 0; j <= n; ++j)
-			deBoor_pts[j].resize(n+1-j);
+		make_deBoor_pts();
 
 		// prepare t-vector
 		// note: this algorithm works also for non-uniform bsplines
@@ -54,13 +56,16 @@ public:
 		tvec.resize(m+n+2);
 		int k = 0;
 		for ( ; k <= n; ++k) tvec[k] = 0;
-		for ( ; k <= m; ++k) tvec[k] = double(k-n)/double(m-n+1);
+		for ( ; k <= m; ++k) tvec[k] = U(k-n)/U(m-n+1);
 		for ( ; k <= m+n+1; ++k) tvec[k] = 1;
 	}
 
+	bsplinet(const bsplinet& o) : n(o.n), cp(o.cp), tvec(o.tvec) { make_deBoor_pts(); }
+	bsplinet& operator= (const bsplinet& o) { n = o.n; cp = o.cp; tvec = o.tvec; return *this; }
+
 	~bsplinet() {}
 	
-	T value(const double& t) {
+	T value(const U& t) {
 		assert (0 <= t && t <= 1);
 
 		int l = find_l(t);
@@ -73,7 +78,7 @@ public:
 		int doff = l-n;
 		for (int r = 1; r <= n; ++r) {
 			for (int i = l-n; i <= l-r; ++i) {
-				double tv = (t - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
+				U tv = (t - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
 				deBoor_pts[r][i-doff] = deBoor_pts[r-1][i-doff] * (1 - tv)
 					+ deBoor_pts[r-1][i+1-doff] * tv;
 			}

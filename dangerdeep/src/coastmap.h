@@ -6,6 +6,7 @@
 
 #include "vector2.h"
 #include "vector3.h"
+#include "bspline.h"
 #include <vector>
 #include <string>
 #include <list>
@@ -16,18 +17,14 @@ using namespace std;
 
 struct coastline
 {
-	vector<vector2f> points;// points in map coordinates (meters)
+	bsplinet<vector2f, float> curve;	// points in map coordinates (meters)
 
 	bool cyclic;		// is cyclic, that means an island?
 	
-	//fixme should be obsolete
-	int beginborder;	// 0-3, top,right,bottom,left of segment (clockwise), -1 = (part of an) island
-	int endborder;		// dito
-
-	coastline() : cyclic(false), beginborder(-1), endborder(-1) {}	
+	coastline(int n, const vector<vector2f>& p) : curve(n, p), cyclic(false) {}	
 	~coastline() {}
-	coastline(const coastline& o) : points(o.points), cyclic(o.cyclic), beginborder(o.beginborder), endborder(o.endborder) {}
-	coastline& operator= (const coastline& o) { points = o.points; cyclic = o.cyclic; beginborder = o.beginborder; endborder = o.endborder; return *this; }
+	coastline(const coastline& o) : curve(o.curve), cyclic(o.cyclic) {}
+	coastline& operator= (const coastline& o) { curve = o.curve; cyclic = o.cyclic; return *this; }
 
 	static float dist_to_corner(int b, const vector2f& p, float segw);//fixme, move to class coastmap?
 
@@ -51,7 +48,9 @@ struct coastsegment
 		unsigned mapclnr;
 		unsigned begint, endt;
 		vector2f beginp, endp;
-		//bool cyclic;
+		int beginborder;// 0-3, top,right,bottom,left of segment (clockwise), -1 = (part of an) island
+		int endborder;	// dito
+		bool cyclic;
 		//int next;
 		segcl(unsigned n, unsigned s, unsigned e) : mapclnr(n), begint(s), endt(e) {}
 	};
