@@ -1,3 +1,14 @@
+2004-12-07  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* everywhere LOTS OF THINGS
+	 - mostly fixes, internal restructuring of display/interface code
+	 - particle system, better graphics
+	 - new model o class dd
+	 - italian language
+	 - new build system (SCONS)
+	 - bugfixes in central classes
+	 - new gui graphics
+	 - and many more...
+
 2004-07-18  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* quaternion.h
 	  - fixed serious bug, new default c'tor
