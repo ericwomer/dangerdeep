@@ -135,7 +135,11 @@ target_dir = '#' + selected_build_dir
 libpath = libpath + [target_dir]
 
 f = open('files.txt')
-allcvsfiles = f.readlines()
+allcvsfilesr = f.readlines()
+# remove return code '\n' from end of line
+allcvsfiles = []
+for i in allcvsfilesr:
+	allcvsfiles += [i[:len(i)-1]]
 
 datafiles = all_entries_that_start_with(allcvsfiles, './data')
 
@@ -151,7 +155,7 @@ BuildDir(target_dir, source_base_dir, duplicate=0)
 
 allcvsfiles2 = ''
 for i in allcvsfiles:
-	allcvsfiles2 += i[:len(i)-1] + ' '
+	allcvsfiles2 += i + ' '
 
 #env.Append(TARFLAGS = '-z ' + problematicfiless)
 #env.Append(TARSUFFIX = '.gz')
