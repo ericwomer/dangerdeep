@@ -557,9 +557,9 @@ void game::torp_explode(const vector3& pos)
 
 void game::ship_sunk( const ship* s )
 {
-	ui->add_message ( texts::get(82) );
+	ui->add_message ( texts::get(83) );
 	ostringstream oss;
-	oss << texts::get(82) << " " << s->get_description ( 2 );
+	oss << texts::get(83) << " " << s->get_description ( 2 );
 	ui->add_captains_log_entry( *this, oss.str () );
 	ui->record_sunk_ship ( s );
 }
