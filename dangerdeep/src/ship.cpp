@@ -116,6 +116,8 @@ ship::~ship()
 void ship::sink(void)
 {
 	sea_object::kill();
+	if (firepart)
+		firepart->kill();
 }
 
 

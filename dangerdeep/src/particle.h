@@ -22,8 +22,8 @@ protected:
 	//fixme: store textures somewhere! static variables?!
 
 	vector3 pos;
-	float live;	// 0...1, 0 = faded out
-	particle() : live(1.0f) {}
+	float life;	// 0...1, 0 = faded out
+	particle() : life(1.0f) {}
 	particle(const particle& other);
 	particle& operator= (const particle& other);
 
@@ -54,7 +54,7 @@ protected:
 	static vector<Uint8> compute_fire_frame(unsigned wh, const vector<Uint8>& oldframe);
 
 public:
-	particle(const vector3& pos_) : pos(pos_), live(1.0f) {}
+	particle(const vector3& pos_) : pos(pos_), life(1.0f) {}
 	virtual ~particle() {}
 
 	static void init(void);
@@ -72,7 +72,8 @@ public:
 	virtual double get_width(void) const = 0;
 	virtual double get_height(void) const = 0;
 
-	virtual bool is_dead(void) const { return live <= 0.0f; }
+	virtual void kill(void) { life = 0.0f; }
+	virtual bool is_dead(void) const { return life <= 0.0f; }
 	
 	// set opengl texture by particle type or e.g. game time etc.
 	virtual void set_texture(game& gm) const = 0;

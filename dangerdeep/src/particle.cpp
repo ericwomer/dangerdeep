@@ -285,7 +285,7 @@ void particle::deinit(void)
 
 void particle::simulate(game& gm, double delta_t)
 {
-	live -= delta_t/get_life_time();
+	life -= delta_t/get_life_time();
 }
 
 
@@ -365,7 +365,7 @@ smoke_particle::smoke_particle(const vector3& pos_) : particle(pos_), texnr(rand
 void smoke_particle::simulate(game& gm, double delta_t)
 {
 	particle::simulate(gm, delta_t);
-	pos.z += (SMOKE_PARTICLE_INITIAL_ASCEND_SPEED - (1.0f - live) * SMOKE_PARTICLE_ACCEL) * delta_t;
+	pos.z += (SMOKE_PARTICLE_INITIAL_ASCEND_SPEED - (1.0f - life) * SMOKE_PARTICLE_ACCEL) * delta_t;
 }
 
 
@@ -373,7 +373,7 @@ void smoke_particle::simulate(game& gm, double delta_t)
 double smoke_particle::get_width(void) const
 {
 	// min/max size in meters
-	return 2.0 * live + 50.0 * (1.0f - live);
+	return 2.0 * life + 50.0 * (1.0f - life);
 }
 
 
@@ -381,8 +381,8 @@ double smoke_particle::get_width(void) const
 double smoke_particle::get_height(void) const
 {
 	double h = get_width();
-	if (live > 0.9)
-		h *= (live - 0.8) * 10;
+	if (life > 0.9)
+		h *= (life - 0.8) * 10;
 	return h;
 }
 
@@ -390,7 +390,7 @@ double smoke_particle::get_height(void) const
 
 void smoke_particle::set_texture(class game& gm) const
 {
-	glColor4f(0.5f, 0.5f, 0.5f, live);
+	glColor4f(0.5f, 0.5f, 0.5f, life);
 	tex_smoke[texnr]->set_gl_texture();
 }
 
@@ -418,7 +418,7 @@ smoke_particle_escort::smoke_particle_escort(const vector3& pos_) : smoke_partic
 
 double smoke_particle_escort::get_width(void) const
 {
-	return 2.0 * live + 25.0 * (1.0f - live);
+	return 2.0 * life + 25.0 * (1.0f - life);
 }
 
 
@@ -463,7 +463,7 @@ double explosion_particle::get_height(void) const
 void explosion_particle::set_texture(class game& gm) const
 {
 	glColor4f(1, 1, 1, 1);
-	unsigned f = unsigned(EXPL_FRAMES * (1.0f - live));
+	unsigned f = unsigned(EXPL_FRAMES * (1.0f - life));
 	if (f < 0 || f >= EXPL_FRAMES) f = EXPL_FRAMES-1;
 	// switch on type, fixme
 	explosionbig[f]->set_gl_texture();
@@ -489,13 +489,13 @@ fire_particle::fire_particle(const vector3& pos_) : particle(pos_)
 void fire_particle::simulate(game& gm, double delta_t)
 {
 	float lf = get_life_time();
-	float l = myfrac(live * lf);
+	float l = myfrac(life * lf);
 	if (l - lf * delta_t <= 0) {
 		gm.spawn_particle(new smoke_particle(pos));
 	}
 	particle::simulate(gm, delta_t);
-	if (live <= 0.0f) {
-		live += 1.0f;
+	if (life <= 0.0f) {
+		life += 1.0f;
 	}
 }
 
@@ -518,7 +518,7 @@ double fire_particle::get_height(void) const
 void fire_particle::set_texture(class game& gm) const
 {
 	glColor4f(1, 1, 1, 1);
-	unsigned i = unsigned(tex_fire.size() * (1.0f - live));
+	unsigned i = unsigned(tex_fire.size() * (1.0f - life));
 	tex_fire[i]->set_gl_texture();
 }
 
