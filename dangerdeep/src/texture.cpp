@@ -341,9 +341,13 @@ GLuint texture::create_shader(GLenum type, const string& filename)
 	glGenProgramsARB(1, &nr);
 	glBindProgramARB(type, nr);
 	ifstream ifprg(filename.c_str(), ios::in);
-	string prg;
-	ifprg >> prg;
-	cout << "test: " << prg << "\n";//fixme read whole program!
+	sys().myassert(!ifprg.fail(), string("failed to open ")+filename);
+	ifprg.seekg(0, ios::end);
+	unsigned prglen = ifprg.tellg();
+	ifprg.seekg(0, ios::beg);
+	string prg(prglen, ' ');
+	ifprg.read(&prg[0], prglen);
+
 	glProgramStringARB(type, GL_PROGRAM_FORMAT_ASCII_ARB,
 			   prg.size(), prg.c_str());
 
