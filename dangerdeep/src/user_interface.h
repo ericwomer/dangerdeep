@@ -13,12 +13,12 @@ using namespace std;
 #include "color.h"
 #include "coastmap.h"
 
-#define MAPGRIDSIZE 1000	// meters
+#include "user_display.h"
+
+#define MAPGRIDSIZE 1000	// meters, fixme to mapdisplay.h
 
 class game;
 class user_display;
-class logbook_display;
-class ships_sunk_display;
 
 class user_interface
 {
@@ -46,8 +46,9 @@ protected:
 
 	logbook_display* captains_logbook;
 	ships_sunk_display* ships_sunk_disp;
-	// fixme replace the above with:
-	//vector<user_display*> displays;
+
+	// fixme replace the above with: THE ONE AND ONLY DATA UI SHOULD HAVE
+	vector<user_display*> displays;
 
 	// periscope
 	bool zoom_scope;	// use 6x instead 1.5 fixme implement, fixme: maybe to submarine
@@ -76,7 +77,7 @@ protected:
 
 	// replace by sdl_event handler for keyboard events! fixme
 	virtual bool keyboard_common(int keycode, game& gm) = 0;
-	//virtual bool process_common_keys(const SDL_Event& event) = 0;
+	//virtual bool process_common_keys(class game& gm, const SDL_Event& event) = 0;
 
 	static texture* torptex(unsigned type);
 
@@ -118,12 +119,13 @@ protected:
 	// Display functions for screens.
 	//fixme: we have to divide display and input processing!
 	//make user_display-heir for each display and get rid of these functions.
+	//virtual void display(class game& gm) const = 0;
 	virtual void display_gauges(game& gm);
 	virtual void display_bridge(game& gm);
 	virtual void display_map(game& gm);
 	virtual void display_logbook(game& gm);//ok, own display ready
 	virtual void display_successes(game& gm);//ok, own display ready
-	virtual void display_freeview(game& gm);
+	virtual void display_freeview(game& gm);//make view3d_display class with heirs free,glasses,bridge,scope?
 	virtual void display_glasses(game& gm);
 	virtual void display_damagestatus(game& gm) = 0;//ok, own display ready
 

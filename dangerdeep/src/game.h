@@ -121,6 +121,13 @@ protected:
 	
 	// the player and matching ui (note that playing is not limited to submarines!)
 	sea_object* player;
+
+	// in theory, the game should know nothing about the user interface! fixme
+	// what is ui needed for: display messages, play sounds, add to captains
+	// log, add sunken ship record, get time scale*, display ui*
+	// if game is paused*, *=should move from game::exec to subsim::exec_game
+	// instead of calling ui we should store events and let the ui create messages
+	// or sounds from them on its own. record and logbook should be part of game.
 	user_interface* ui;	// can be zero, is set from game's owner
 
 	list<sink_record> sunken_ships;

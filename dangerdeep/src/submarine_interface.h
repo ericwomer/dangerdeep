@@ -15,7 +15,7 @@ using namespace std;
 class submarine_interface : public user_interface
 {
 protected:
-	// source tube nr for manual torpedo transfer, used for drag & drog drawing
+	// source tube nr for manual torpedo transfer, used for drag & drop drawing
 	unsigned torptranssrc;
 	
 	class sub_damage_display* sub_damage_disp;
