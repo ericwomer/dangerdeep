@@ -15,51 +15,6 @@
 #endif
 
 
-// directory handling
-#ifdef WIN32
-#error "fixme: implement"
-#else
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-directory open_dir(const string& filename)
-{
-	return opendir(filename.c_str());
-}
-string read_dir(directory d)
-{
-	struct dirent* dir_entry = readdir(d);
-	if (dir_entry) {
-		return string(dir_entry->d_name);
-	}
-	return "";
-}
-void close_dir(directory d)
-{
-	closedir(d);
-}
-bool make_dir(const string& dirname)
-{
-	int err = mkdir(dirname.c_str(), 0755);
-	return (err != -1);
-}
-string get_current_directory(void)
-{
-	unsigned sz = 256;
-	vector<char> s(sz);
-	char* c = 0;
-	while (c == 0) {
-		c = getcwd(&s[0], sz-1);
-		if (!c) {
-			sz += sz;
-			s.resize(sz);
-		}
-	}
-	return string(&s[0]) + "/";
-}
-#endif
-
-
 
 // fixme: this could be replaced with an array of pointers using enum-names
 // as indices. This would simplify destruction and possibly construction.

@@ -326,7 +326,7 @@ vector<vector<Uint8> > user_interface::compute_noisemaps(void)
 		noisemaps[i].resize(mapsize2 * mapsize2);
 		for (unsigned j = 0; j < mapsize2 * mapsize2; ++j)
 			noisemaps[i][j] = (unsigned char)(255*rnd());
-//		smooth_and_equalize_bytemap(mapsize2, noisemaps[i]);
+		smooth_and_equalize_bytemap(mapsize2, noisemaps[i]);
 	}
 	return noisemaps;
 }
@@ -369,7 +369,9 @@ void user_interface::smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map)
 		unsigned y1 = (y+s-1)%s, y2 = (y+1)%s;
 		for (unsigned x = 0; x < s; ++x) {
 			unsigned x1 = (x+s-1)%s, x2 = (x+1)%s;
-			unsigned v = (unsigned(map2[y1*s+x]) + unsigned(map2[y*s+x1]) + unsigned(map2[y*s+x]) + unsigned(map2[y*s+x2]) + unsigned(map2[y2*s+x])) / 5;
+			unsigned v = (unsigned(map2[y1*s+x1]) + unsigned(map2[y1*s+x2]) + unsigned(map2[y2*s+x1]) + unsigned(map2[y2*s+x2])) / 16
+				+ (unsigned(map2[y*s+x1]) + unsigned(map2[y*s+x2]) + unsigned(map2[y1*s+x]) + unsigned(map2[y2*s+x])) / 8
+				+ (unsigned(map2[y*s+x])) / 4;
 			map[y*s+x] = Uint8(v);
 			if (v < minv) minv = v;
 			if (v > maxv) maxv = v;
@@ -697,10 +699,10 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	   The "easiest" thing would be to know where sun and moon were at 1st. january 1939, 00:00am.
 	*/
 	// fixme: adjust OpenGL light position to infinite in sun/moon direction.
-	const double EARTH_RADIUS = 6378e3;
+	const double EARTH_RADIUS = 6.378e6;
 	const double SUN_RADIUS = 696e6;
-	const double MOON_RADIUS = 1738e3;
-	const double EARTH_SUN_DISTANCE = 149.6e9;
+	const double MOON_RADIUS = 1.738e6;
+	const double EARTH_SUN_DISTANCE = 149600e6;
 	const double MOON_EARTH_DISTANCE = 384.4e6;
 	const double EARTH_ROT_AXIS_ANGLE = 23.45;
 	const double MOON_ORBIT_TIME = 29.5306 * 86400.0;

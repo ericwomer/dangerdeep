@@ -1,4 +1,11 @@
 2003-11-23  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* user_interface.cpp
+	  - further improvement of cloud appearance
+	* filehelper, widget
+	  - Win32 functions added, thus the program compiles under Win32
+	    again.
+
+2003-11-23  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* global_data
 	  - removed old clouds, added file helper functions needed by widgets
 	    Win32 version doesn't compile until we implement adequate Win32

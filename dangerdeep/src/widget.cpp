@@ -13,6 +13,7 @@
 
 #include "widget.h"
 #include "global_data.h"
+#include "filehelper.h"
 #include "system.h"
 #include "texture.h"
 #include <set>
@@ -639,18 +640,13 @@ void widget_fileselector::read_current_dir(void)
 {
 	current_dir->clear();
 	directory dir = open_dir(current_path->get_text());
-cout << "opendir '"<<current_path->get_text()<<"'\n";	
 	system::sys()->myassert(dir != 0, "[widget_fileselector::read_current_dir] could not open directory");
 	set<string> dirs, files;
 	while (true) {
 		string e = read_dir(dir);
 		if (e.length() == 0) break;
 		if (e[0] == '.') continue;	// avoid . .. and hidden files
-		bool isdir = false;
-		directory tmp = open_dir(current_path->get_text() + e);
-		if (tmp) {
-			isdir = true;
-			close_dir(tmp);
+		if (is_directory(current_path->get_text() + e)) {
 			dirs.insert(e);
 		} else {
 			files.insert(e);
