@@ -58,62 +58,107 @@ void model::compute_bounds(void)
 
 void model::compute_normals(void)
 {
-	//fixme: 3ds may have stored some normals already
 	for (vector<model::mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
-		it->normals.clear();
-		it->normals.resize(it->vertices.size());
-		for (unsigned i = 0; i < it->indices.size(); i += 3) {
-			const vector3f& v0 = it->vertices[it->indices[i+0]];
-			const vector3f& v1 = it->vertices[it->indices[i+1]];
-			const vector3f& v2 = it->vertices[it->indices[i+2]];
-			vector3f ortho = (v1-v0).orthogonal(v2-v0);
-			// avoid degenerated triangles
-			float lf = 1.0/ortho.length();
-			if (isfinite(lf)) {
-				vector3f face_normal = ortho * lf;
-				//normals could be weighted by face area, that gives better results.
-				it->normals[it->indices[i+0]] += face_normal;
-				it->normals[it->indices[i+1]] += face_normal;
-				it->normals[it->indices[i+2]] += face_normal;
+		it->compute_normals();
+	}
+}
+
+void model::mesh::compute_normals(void)
+{
+	//fixme: 3ds may have stored some normals already
+	normals.clear();
+	normals.resize(vertices.size());
+	for (unsigned i = 0; i < indices.size(); i += 3) {
+		const vector3f& v0 = vertices[indices[i+0]];
+		const vector3f& v1 = vertices[indices[i+1]];
+		const vector3f& v2 = vertices[indices[i+2]];
+		vector3f ortho = (v1-v0).orthogonal(v2-v0);
+		// avoid degenerated triangles
+		float lf = 1.0/ortho.length();
+		if (isfinite(lf)) {
+			vector3f face_normal = ortho * lf;
+			//normals could be weighted by face area, that gives better results.
+			normals[indices[i+0]] += face_normal;
+			normals[indices[i+1]] += face_normal;
+			normals[indices[i+2]] += face_normal;
+		}
+	}
+	for (vector<vector3f>::iterator it = normals.begin(); it != normals.end(); ++it) {
+		// this can lead to NAN values in vertex normals.
+		// but only for degenerated vertices, so we don't care.
+		it->normalize();
+	}
+	
+	// if we use bump mapping for this mesh, we need tangent values, too!
+	// tangentsy get computed at runtime from normals and tangentsx
+	// tangentsx are computed that way:
+	// from each vertex we find a vector in positive u direction
+	// and project it onto the plane given by the normal -> tangentx
+	// because bump maps use stored texture coordinates (x = positive u!)
+	if (mymaterial && mymaterial->bump) {
+		tangentsx.clear();
+		tangentsx.resize(vertices.size());
+		vector<bool> vertexok(vertices.size());
+		for (unsigned i = 0; i < indices.size(); i += 3) {
+			unsigned i0 = indices[i+0];
+			unsigned i1 = indices[i+1];
+			unsigned i2 = indices[i+2];
+			if (!vertexok[i0]) {
+				compute_tangentx(i0, i1, i2);
+				vertexok[i0] = true;
 			}
-		}
-		for (vector<vector3f>::iterator it2 = it->normals.begin(); it2 != it->normals.end(); ++it2) {
-			// this can lead to NAN values in vertex normals.
-			// but only for degenerated vertices, so we don't care.
-			it2->normalize();
-		}
-		
-		// if we use bump mapping for this mesh, we need tangent values, too!
-		// tangentsy get computed at runtime from normals and tangentsx
-		// tangentsx are computed that way:
-		// from each vertex we find a vector in positive u direction
-		// and project it onto the plane given by the normal -> tangentx
-		// because bump maps use stored texture coordinates (x = positive u!)
-		if (it->mymaterial && it->mymaterial->bump) {
-			it->tangentsx.clear();
-			it->tangentsx.resize(it->vertices.size());
-			//fixme
-			for (unsigned i = 0; i < it->vertices.size(); ++i) {
-				it->tangentsx[i] = vector3f(1,0,0);
+			if (!vertexok[i1]) {
+				compute_tangentx(i1, i2, i0);
+				vertexok[i1] = true;
+			}
+			if (!vertexok[i2]) {
+				compute_tangentx(i2, i0, i1);
+				vertexok[i2] = true;
 			}
 		}
 	}
 }
 
-void model::material::map::init(void)
+void model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
+{
+	const vector2f& uv0 = texcoords[i0];
+	const vector2f& uv1 = texcoords[i1];
+	const vector2f& uv2 = texcoords[i2];
+	const vector3f& n = normals[i0];
+	vector2f d_uv0 = uv1 - uv0;
+	vector2f d_uv1 = uv2 - uv0;
+	float det = d_uv0.x * d_uv1.y - d_uv1.x * d_uv0.y;
+	if (fabsf(det) < 0.0001f) {
+		//fixme: find sane solution for this situation
+		//if delta_u is zero for d_uv0 and d_uv1, but delta_v is not, we could
+		//compute tangentsy from v and tangentsx with the cross product
+		//or we just don't store a tangentsx value and hope that the vertex
+		//can be computed via another triangle
+		tangentsx[i0] = vector3f(0,0,1);
+		//cout<<"PROBLEM! " << d_uv0 << ":" << d_uv1 << "\n";
+	} else {
+		float a = d_uv1.y/det;
+		float b = -d_uv0.y/det;
+		vector3f rv = (vertices[i1] - vertices[i0]) * a + (vertices[i2] - vertices[i0]) * b;
+		rv = rv - (rv * n) * n;
+		tangentsx[i0] = rv;
+	}
+}
+
+void model::material::map::init(int mapping)
 {
 	delete mytexture;
 	mytexture = 0;
 	if (filename.length() > 0) {
 //cout << "object has texture '" << filename << "' mapping " << model::mapping << "\n";
-		mytexture = new texture(get_model_dir() + filename, model::mapping);
+		mytexture = new texture(get_model_dir() + filename, mapping);
 	}
 }
 
 void model::material::init(void)
 {
-	if (tex1) tex1->init();
-	if (bump) bump->init();
+	if (tex1) tex1->init(model::mapping);
+	if (bump) bump->init(GL_LINEAR_MIPMAP_LINEAR);//fixme: what is best mapping for bump maps?
 }
 
 void model::material::set_gl_values(void) const
