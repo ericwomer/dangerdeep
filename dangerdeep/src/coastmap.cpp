@@ -208,7 +208,7 @@ void coastsegment::generate_point_cache(const class coastmap& cm, const vector2f
 							bg += 4;
 					}
 					for (int j = ed; j < bg; ++j) {
-						int k = j % 4;//fixme: offset von segment fehlt!!!!!
+						int k = j % 4;
 						if (k == 0) ce.push_back_point(roff + vector2f(cm.segw_real, 0));
 						else if (k == 1) ce.push_back_point(roff + vector2f(cm.segw_real, cm.segw_real));
 						else if (k == 2) ce.push_back_point(roff + vector2f(0, cm.segw_real));
@@ -337,13 +337,6 @@ float coastsegment::compute_border_dist(int b0, const vector2f& p0, int b1, cons
 unsigned coastsegment::get_successor_for_cl(unsigned cln, const vector2f& segoff, float segw) const
 {
 //fixme: this function sometimes returns shit.
-//could that be because beginp and endp of one segment are not really on the border
-//because finding the border intersection in divide_and_distrib doesn't work right?
-//this shouldn't be the reason because beginborder/endborder are not influenced by actual
-//beginp/endp values. maybe i haven't ported compute_border_dist/dist_to_corner correctly...
-//THAT'S IT! beginp/borderp ARE related, via dist_to_corner!!! here i use p.x as real value
-//but in the old code i used p.x as offset value from segment begin on!!!!!!!! fixme!!!
-//the segoff quick fix doesn't help. it changes something but doesn't fix the "next" computation
 	float mindist = 1e30;
 	unsigned next = 0xffffffff;
 //coastlines[cln].debug_print(cout);
@@ -580,6 +573,13 @@ void coastmap::divide_and_distribute_cl(const coastline& cl, unsigned clnr, int 
 			vector2f b = cpoldi;
 			vector2f d = cpi - b;
 
+			// fixme: assert that b + t*d crosses at most one segment border!
+
+			// fixme: this interpolation is very crude.
+			// we should find t by approximation (binear subdivdision)
+			// or proportional subdivision until the segment is small enough
+			// and then use linear interpolation
+
 			// fixme: what is if the next segment is right AND down (line crosses corner)?
 			
 			// find t so that b + t * d is on segment border between seg and cseg
@@ -606,11 +606,6 @@ void coastmap::divide_and_distribute_cl(const coastline& cl, unsigned clnr, int 
 			if (t < 0 || t > 1)cout<<"t error, t is "<<t<<" and t-1 " << t-1 << "\n";			
 			if(t<0)t=0;if(t>1)t=1;
 			// t should be between 0 and 1, but this is sometimes wrong! fixme.
-			// this is because d is longer than one segment!!!!
-			// how can this be?
-			// this is even true when we use finer curve points (*4)!
-			// reason: the segcl.beginp is near x=-inf also for the bspline curve!!!
-			// hence curve.value(t) for t->0 is -inf !!!!! why!!!???
 			
 			vector2f borderp = b + d * t;
 			float ct = t0 + (t1 - t0) * t;
