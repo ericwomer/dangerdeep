@@ -290,6 +290,7 @@ void system::swap_buffers(void)
 }
 
 //new poll event queue API, we need no more keyqueue, get_key or getch...
+//this model is too simple, we need to translate at least the mouse coordinates, see below.
 /*
 list<SDL_Event> system::poll_event_queue(void)
 {
@@ -363,6 +364,17 @@ list<SDL_Event> system::poll_event_queue(void)
 					mouse_yrel += event.motion.yrel;
 					mouse_x = event.motion.x;
 					mouse_y = event.motion.y;
+					// translate coordinates!
+					events.back().motion.x = events.back().motion.x *
+						int(res_x_2d) / int(res_x);
+					events.back().motion.y = events.back().motion.y *
+						int(res_y_2d) / int(res_y);
+					// be careful: small motions at larger screens
+					// could get lost! fixme
+					events.back().motion.xrel = events.back().motion.xrel *
+						int(res_x_2d) / int(res_x);
+					events.back().motion.yrel = events.back().motion.yrel *
+						int(res_y_2d) / int(res_y);
 					break;
 				
 				case SDL_MOUSEBUTTONDOWN:	// Mouse button event - button down
@@ -384,6 +396,11 @@ list<SDL_Event> system::poll_event_queue(void)
 							mouse_b |= wheel_down;
 							break;
 					}
+					// translate coordinates!
+					events.back().button.x = events.back().button.x *
+						int(res_x_2d) / int(res_x);
+					events.back().button.y = events.back().button.y *
+						int(res_y_2d) / int(res_y);
 					break;
 				
 				case SDL_MOUSEBUTTONUP:		// Mouse button event - button up
@@ -405,6 +422,11 @@ list<SDL_Event> system::poll_event_queue(void)
 							mouse_b &= ~wheel_down;
 							break;
 					}
+					// translate coordinates!
+					events.back().button.x = events.back().button.x *
+						int(res_x_2d) / int(res_x);
+					events.back().button.y = events.back().button.y *
+						int(res_y_2d) / int(res_y);
 					break;
 					
 				default:			// Should NEVER happen !

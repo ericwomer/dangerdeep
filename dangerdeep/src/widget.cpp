@@ -110,6 +110,14 @@ void widget::remove_child(widget* w)
 	delete w;
 }
 
+void widget::remove_children(void)
+{
+	for (list<widget*>::iterator it = children.begin(); it != children.end(); ++it) {
+		delete *it;
+	}
+	children.clear();
+}
+
 void widget::move_pos(const vector2i& p)
 {
 	pos += p;

@@ -1245,9 +1245,10 @@ int main(int argc, char** argv)
 		run_game(new game(&doc));
 	} else {
 		int retval = 1;
+		widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
 		do {	// loop until menu is closed.
 			// main menu
-			widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
+			w.remove_children();
 			widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(104));
 			wm->set_entry_spacing(8);
 			w.add_child(wm);

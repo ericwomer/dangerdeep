@@ -91,6 +91,7 @@ public:
 	virtual ~widget();
 	virtual void add_child(widget* w);
 	virtual void remove_child(widget* w);
+	virtual void remove_children(void);
 	virtual bool is_mouse_over(int mx, int my) const;
 	virtual void draw(void) const;
 	virtual bool compute_focus(int mx, int my);
