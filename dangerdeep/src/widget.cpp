@@ -269,7 +269,9 @@ widget* widget::create_dialogue_ok_cancel(widget* parent_, const string& title, 
 int widget::run(void)
 {
 	glClearColor(0, 0, 0, 0);
-	if (parent) parent->disable();
+	widget* myparent = parent;	// store parent info and unlink chain to parent
+	parent = 0;
+	if (myparent) myparent->disable();
 	widgets.push_back(this);
 	class system* sys = system::sys();
 	while (!closeme) {
@@ -284,7 +286,8 @@ int widget::run(void)
 		sys->swap_buffers();
 	}
 	widgets.pop_back();
-	if (parent) parent->enable();
+	if (myparent) myparent->enable();
+	parent = myparent;
 	return retval;
 }
 
