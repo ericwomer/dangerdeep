@@ -849,6 +849,44 @@ void game::visible_gun_shells(list<gun_shell*>& result, const sea_object* o)
 	}
 }
 
+void game::visible_water_splashes ( list<water_splash*>& result, const sea_object* o )
+{
+	const sensor* s = o->get_sensor ( o->lookout_system );
+	const lookout_sensor* ls = 0;
+
+	if ( s )
+		ls = dynamic_cast<const lookout_sensor*> ( s );
+
+	if ( ls )
+	{
+		for (list<water_splash*>::iterator it = water_splashs.begin();
+			it != water_splashs.end(); ++it)
+		{
+			if ( ls->is_detected ( this, o, *it ) )
+				result.push_back (*it);
+		}
+	}
+}
+
+void game::visible_particles ( list<particle*>& result, const sea_object* o )
+{
+	const sensor* s = o->get_sensor ( o->lookout_system );
+	const lookout_sensor* ls = 0;
+
+	if ( s )
+		ls = dynamic_cast<const lookout_sensor*> ( s );
+
+	if ( ls )
+	{
+		for (list<particle*>::iterator it = particles.begin();
+			it != particles.end(); ++it)
+		{
+			if ( ls->is_detected ( this, o, *it ) )
+				result.push_back (*it);
+		}
+	}
+}
+
 void game::sonar_ships ( list<ship*>& result, const sea_object* o )
 {
 	const sensor* s = o->get_sensor ( o->passive_sonar_system );
@@ -1328,25 +1366,6 @@ bool game::is_collision(const sea_object* s, const vector2& pos) const
 double game::get_depth_factor ( const vector3& sub ) const
 {
 	return ( 1.0f - 0.5f * sub.z / 400.0f );
-}
-
-void game::visible_water_splashes ( list<water_splash*>& result, const sea_object* o )
-{
-	const sensor* s = o->get_sensor ( o->lookout_system );
-	const lookout_sensor* ls = 0;
-
-	if ( s )
-		ls = dynamic_cast<const lookout_sensor*> ( s );
-
-	if ( ls )
-	{
-		for (list<water_splash*>::iterator it = water_splashs.begin();
-			it != water_splashs.end(); ++it)
-		{
-			if ( ls->is_detected ( this, o, *it ) )
-				result.push_back (*it);
-		}
-	}
 }
 
 vector<sea_object*> game::visible_surface_objects(const sea_object* o)

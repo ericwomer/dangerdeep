@@ -73,7 +73,7 @@ void water_splash::display () const
 
 float water_splash::surface_visibility(const vector2& watcher) const
 {
-	return 1.0f;
+	return 100.0f;	// square meters... test hack
 }
 
 

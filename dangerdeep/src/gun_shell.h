@@ -27,6 +27,7 @@ public:
 		double initial_velocity = GUN_SHELL_INITIAL_VELOCITY);
 	virtual void simulate(class game& gm, double delta_time);
 	virtual void display(void) const;
+	virtual float surface_visibility(const vector2& watcher) const;
 	// acceleration is only gravity and already handled by sea_object
 };
 

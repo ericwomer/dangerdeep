@@ -6,6 +6,7 @@
 #include "sensors.h"
 #include "game.h"
 #include "vector2.h"
+#include "particle.h"
 #include "angle.h"
 
 // Class sensor
@@ -69,6 +70,8 @@ void sensor::auto_move_bearing ( sensor_move_mode mode )
 lookout_sensor::lookout_sensor ( lookout_type type ) : sensor ()
 {}
 
+
+
 bool lookout_sensor::is_detected ( const game* gm, const sea_object* d,
 	const sea_object* t ) const
 {
@@ -104,14 +107,50 @@ bool lookout_sensor::is_detected ( const game* gm, const sea_object* d,
 		// fixme: we should visualize the visibility for testing purposes.
 		const double visfactor = 0.05;
 
+		// this model ignores special features of visibility for water splashes, particles or grenades...
+		// all of these have a cross section of 100 square meters hard coded for testing,
+		// except particles, which have a real cross section
+
 		// multiply with overall visibility factor: max_view_dist/30km.
-		double condition_visfactor = (max_view_dist/30000.0) * 0.5 + 0.5;
+		// the idea behind this formula is that at night smaller objects are harder to detect.
+		// however it's results are bad.
+		//double condition_visfactor = (max_view_dist/30000.0) * 0.5 + 0.5;
 
 		// visibility depends on visible area in viewer's projected space.
 		// Projected area ~ Real area / Real distance.
-		if (condition_visfactor * vis/dist >= visfactor)
+		if (/*condition_visfactor * */ vis/dist >= visfactor)
 			detected = true;
 		// fixme: add some randomization! really?
+	}
+
+	return detected;
+}
+
+
+
+bool lookout_sensor::is_detected ( const game* gm, const sea_object* d,
+	const particle* p ) const
+{
+	bool detected = false;
+	double max_view_dist = gm->get_max_view_distance ();
+	vector2 r = p->get_pos ().xy () - d->get_pos ().xy ();
+	double dist = r.length ();
+
+	if (dist < max_view_dist)
+	{
+		if (dist < 1.0) return true;	// avoid divide by zero
+	
+		// the probabilty of visibility depends on cross section
+		double vis = p->get_width() * p->get_height();
+
+		if (vis < 100.0) vis = 100.0;
+
+		const double visfactor = 0.05;
+
+		// visibility depends on visible area in viewer's projected space.
+		// Projected area ~ Real area / Real distance.
+		if (vis/dist >= visfactor)
+			detected = true;
 	}
 
 	return detected;

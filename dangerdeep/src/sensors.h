@@ -16,6 +16,7 @@ class active_sonar_sensor;
 class hfdf_sensor;
 class lookout_sensor;
 class sea_object;
+class particle;
 
 /** Base class for all sensor types. */
 class sensor
@@ -128,6 +129,7 @@ public:
 		@param t target unit
 	*/
 	virtual bool is_detected ( const game* gm, const sea_object* d, const sea_object* t ) const;
+	virtual bool is_detected ( const game* gm, const sea_object* d, const particle* p ) const;
 };
 
 class passive_sonar_sensor : public sensor

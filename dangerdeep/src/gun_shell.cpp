@@ -63,3 +63,8 @@ void gun_shell::display(void) const
 	gun_shell_mdl->display();
 	glPopMatrix();
 }
+
+float gun_shell::surface_visibility(const vector2& watcher) const
+{
+	return 100.0f;	// square meters... test hack
+}
