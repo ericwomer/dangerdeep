@@ -23,7 +23,7 @@
 	Z-axis are all up, that means earth's z-axis points to the north pole.
 	The moon rotates counter clockwise around the earth in 27 1/3 days (one sidereal month).
 	The earth rotates counter clockwise around the sun in 365d 5h 48m 46.5s.
-	The earth rotates around itself in 23h 56m (one sidereal day).
+	The earth rotates around itself in 23h 56m 4.1s (one sidereal day).
 	Earths rotational axis is rotated by 23.45 degrees.
 	Moon orbits in a plane that is 5,15 degress rotated to the xy-plane (plane that
 	earth rotates in, sun orbit).
@@ -35,7 +35,7 @@
 	On top of summer (northern hemisphere) the earth orbit pos is 0.
 	On midnight at longitude 0, the earth rotation is 0.
 	At a full moon the moon rotation/orbit position is 0.
-	As result the earth takes ~ 366 rotations per year (365d 5h 48m 46.5s / 23h 56m = 366.2596)
+	As result the earth takes ~ 366 rotations per year (365d 5h 48m 46.5s / 23h 56m 4.09s = 366.2422)
 	We need the exact values/configuration on 1.1.1939, 0:0am.
 	And we need the configuration of the moon rotational plane at this date and time.
 	
@@ -52,7 +52,7 @@ const double MOON_EARTH_DISTANCE = 384.4e6;		// 384.000km
 const double EARTH_ROT_AXIS_ANGLE = 23.45;		// degrees.
 const double MOON_ORBIT_TIME = 27.3333333 * 86400.0;	// sidereal month is 27 1/3 days
 const double MOON_ORBIT_PLANE_ROT = 5.15;		// degrees
-const double EARTH_ROTATION_TIME = 86160.0;		// 23h56min, one sidereal day!
+const double EARTH_ROTATION_TIME = 86164.09;		// 23h56m4.09s, one sidereal day!
 const double EARTH_PERIMETER = 2.0 * M_PI * EARTH_RADIUS;
 const double EARTH_ORBIT_TIME = 31556926.5;		// in seconds. 365 days, 5 hours, 48 minutes, 46.5 seconds
 // these values are difficult to get. SUN_POS_ADJUST should be around +9.8deg (10days of 365 later) but that gives
@@ -638,7 +638,7 @@ void sky::display(const vector3& viewpos, double max_view_dist, bool isreflectio
 
 	// draw sun, fixme draw flares/halo
 	vector3 sunpos = sundir * (0.96 * max_view_dist);
-//cout << "normiert " << get_sun_pos(viewpos).normal() << " total " << sunpos << "\n";
+cout << "normiert " << get_sun_pos(viewpos).normal() << " total " << sunpos << "\n";
 	int suns = 5;		// make sun with 10x10 pixels
 	glColor3f(1,1,1);
 	suntex->set_gl_texture();
@@ -745,34 +745,38 @@ color sky::get_light_color(const vector3& viewpos) const
 
 vector3 sky::get_sun_pos(const vector3& viewpos) const
 {
+	// another try: position above earth
+	double alpha_s = M_PI*(-EARTH_ROT_AXIS_ANGLE*cos(2*M_PI*myfrac((mytime+10*86400)/EARTH_ORBIT_TIME)))/180.0;
+	double beta_s = M_PI - 2 * M_PI * myfrac(mytime/86400.0);
+	double alpha_v = 2*M_PI*(viewpos.x/EARTH_PERIMETER);
+	double beta_v = 2*M_PI*(viewpos.y/EARTH_PERIMETER);
+	double r_v = EARTH_RADIUS * cos(beta_v);
+	vector3 earth2viewer(r_v*cos(alpha_v), r_v*sin(alpha_v), EARTH_RADIUS*sin(beta_v));
+	double r_s = EARTH_SUN_DISTANCE * cos(beta_s);
+	vector3 earth2sun(r_s*cos(alpha_s), r_s*sin(alpha_s), EARTH_SUN_DISTANCE * sin(beta_s));
+	return earth2sun - earth2viewer;
+
+
+	//fixme: modulo 24h here would be not right, but which offset? 0?
 	double alpha = 360.0*(viewpos.x/EARTH_PERIMETER + myfrac(mytime/EARTH_ROTATION_TIME));
 	double beta = 360.0*viewpos.y/EARTH_PERIMETER;
-	double gamma = 360.0*myfrac((mytime-172*86400)/EARTH_ORBIT_TIME); // 172 days from 21st. June back to 1st. January
+	double gamma = 360.0*myfrac((mytime+10*86400)/EARTH_ORBIT_TIME); // 10 days from 21st./22nd. Dez to 1st. Jan
+cout << "viewpos.x und so " << viewpos.x/EARTH_PERIMETER << " frac " << myfrac(mytime/EARTH_ROTATION_TIME) << "\n";
+cout << "alpha " << alpha << " beta " << beta << " gamma " << gamma << "\n";
 
-/*
-	matrix4 earth2sun =
-		matrix4::rot_z(gamma) *
-		matrix4::trans(EARTH_SUN_DISTANCE, 0, 0) *
-		matrix4::rot_z(-gamma) *
-		matrix4::rot_y(EARTH_ROT_AXIS_ANGLE) *
-		matrix4::rot_z(alpha) *
-		matrix4::rot_x(beta) *
-		matrix4::trans(EARTH_RADIUS, 0, 0) *
-		matrix4( 0, 0, 1, 0, -1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 0, 1);
-*/
-
+//fixme: the sun sets in the north!!! that is awfully wrong
 	matrix4 sun2earth =
-		matrix4( 0,-1, 0, 0,  0, 0, 1, 0,  1, 0, 0, 0,  0, 0, 0, 1) *
+		matrix4( 0, 1, 0, 0,  0, 0, 1, 0,  1, 0, 0, 0,  0, 0, 0, 1) *
 		matrix4::trans(-EARTH_RADIUS, 0, 0) *
-		matrix4::rot_x(-beta) *
+		matrix4::rot_y( beta) *
 		matrix4::rot_z(-alpha) *
 		matrix4::rot_y(-EARTH_ROT_AXIS_ANGLE) *
-		matrix4::rot_z(gamma) *
+		matrix4::rot_z(-gamma) *
 		matrix4::trans(-EARTH_SUN_DISTANCE, 0, 0) *
-		matrix4::rot_z(-gamma);
+		matrix4::rot_z( gamma);
 
-//cout << "sun2earth: \n";
-//sun2earth.print();
+cout << "sun2earth: \n";
+sun2earth.print();
 		
 	return sun2earth.column(3);
 }
