@@ -19,6 +19,7 @@ using namespace std;
 #include "logbook.h"
 #include "font.h"
 #include "texts.h"
+#include "image.h"
 
 #define NUMBER_OF_LINES		27
 #define FONT_SCALE_FACTOR	0.75f
@@ -194,8 +195,11 @@ void captains_logbook_display::display ( class system& sys, class game& gm )
 
 	// Middle spiral.
 	glColor3f ( 1.0f, 1.0f, 1.0f );
-	sys.draw_image ( 496,  20, 60, 300, logbook_spiral[0] );
-	sys.draw_image ( 496, 320, 60, 300, logbook_spiral[1] );
+	glPushMatrix();		// a trick to enlarge spiral y from 512 to 600
+	glTranslatef(0, 20, 0);
+	glScalef(1, 600.0/512.0, 1);
+	logbook_spiral->draw(496, 0);
+	glPopMatrix();
 
 	// Create entries.
 	// Prepare OpenGL.

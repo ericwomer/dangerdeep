@@ -10,6 +10,7 @@ using namespace std;
 #include "global_data.h"
 #include "user_display.h"
 #include "sub_damage_display.h"
+#include "image.h"
 
 struct rect {
 	int x, y, w, h;
@@ -87,24 +88,15 @@ void sub_damage_display::display_popup (int x, int y, const string& text, bool a
 
 void sub_damage_display::display ( class system& sys, class game& gm )
 {
-	// the source image is 8bpp, paletted. It is transformed to
-	// 16bpp plain on the fly by SDL, that is slow! fixme
-	// This could be done by copying it once to the auxiliary buffer.
-	// Maybe we don't need OpenGL auxiliary buffers, if we use a
-	// SDL Hardware surface instead.
-	SDL_BlitSurface(damage_screen_background, 0, SDL_GetVideoSurface(), 0);
-	SDL_Rect dstr;
-	dstr.x = 0;
-	dstr.y = (damage_screen_background->h-sub_damage_scheme_all->h)/2;
-	SDL_BlitSurface(sub_damage_scheme_all, 0, SDL_GetVideoSurface(), &dstr);
-	SDL_UpdateRect(SDL_GetVideoSurface(), 0, 0, 1024, 640);
+	int ydrawdiff = (damage_screen_background->get_height()-sub_damage_scheme_all->get_height())/2;
+	damage_screen_background->draw(0, 0);
+	sub_damage_scheme_all->draw(0, ydrawdiff);
 
 	const vector<submarine::damage_status> damages = mysub->get_damage_status();
 	for (unsigned i = 0; i < damages.size(); ++i) {
 		rect r = rect_data[i];
 			if (r.x == 0) continue;	// display test hack fixme
-		int x = r.x + r.w/2 - 16, y = r.y + r.h/2 - 16 +
-			(damage_screen_background->h-sub_damage_scheme_all->h)/2;
+		int x = r.x + r.w/2 - 16, y = r.y + r.h/2 - 16 + ydrawdiff;
 		texture* t = 0;
 		switch (damages[i]) {
 			case submarine::light: t = repairlight; break;
@@ -115,6 +107,8 @@ void sub_damage_display::display ( class system& sys, class game& gm )
 		}
 		if (t)	sys.draw_image(x, y, 32, 32, t);
 	}
+	
+	// fixme: clean up used textures of damage_screen_background & sub_damage_scheme_all
 }
 
 void sub_damage_display::check_key ( int keycode, class system& sys, class game& gm )
@@ -128,7 +122,7 @@ void sub_damage_display::check_mouse ( int x, int y, int mb )
 	const vector<submarine::damage_status> damages = mysub->get_damage_status();
 	for (unsigned i = 0; i < damages.size(); ++i) {
 		rect r = rect_data[i];
-		r.y += (damage_screen_background->h-sub_damage_scheme_all->h)/2;
+		r.y += (damage_screen_background->get_height()-sub_damage_scheme_all->get_height())/2;
 		if (x >= r.x && x <= r.x+r.w && y >= r.y && y <= r.y+r.h) {
 			// it is important, that texts are in correct order starting with 103.fixme
 			bool atleft = (r.x+r.w/2) < 1024/2;

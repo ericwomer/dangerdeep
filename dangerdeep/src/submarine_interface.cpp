@@ -17,6 +17,7 @@ using namespace std;
 #include "game.h"
 #include "texts.h"
 #include "sound.h"
+#include "image.h"
 
 submarine_interface::submarine_interface(submarine* player_sub) : 
     	user_interface( player_sub ), sub_damage_disp(new sub_damage_display(player_sub))
@@ -320,10 +321,7 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	set_display_color ( gm );
 	for (int x = 0; x < 3; ++x)
 		sys.draw_image(x*256, 512, 256, 256, psbackgr);
-	sys.draw_image(2*256, 0, 256, 256, periscope[0]);
-	sys.draw_image(3*256, 0, 256, 256, periscope[1]);
-	sys.draw_image(2*256, 256, 256, 256, periscope[2]);
-	sys.draw_image(3*256, 256, 256, 256, periscope[3]);
+	periscope->draw(2*256, 0);
 	sys.draw_image(768, 512, 256, 256, addleadangle);
 
 	// Draw lead angle value.

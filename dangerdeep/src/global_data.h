@@ -14,17 +14,18 @@ using namespace std;
 // global models, textures, fonts
 extern class model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl, *skyhemisphere;
-extern class texture *water, *background, *titel[4], *periscope[4], *gauge1,
+extern class texture *water, *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
-	*clock12, *clock24, *threesubs[4], *glasses, *torp_expl_water_splash[3],
-	*logbook_spiral[2], *woodbackgr,
+	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
+	*woodbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked;
 extern class font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
 extern class sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
-extern SDL_Surface* damage_screen_background, *sub_damage_scheme_all;
+extern class image *titelimg, *periscope, *threesubsimg, *damage_screen_background,
+	*sub_damage_scheme_all, *logbook_spiral;
 
 void init_global_data(void);
 void deinit_global_data(void);

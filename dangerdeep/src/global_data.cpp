@@ -3,6 +3,7 @@
 
 #include "model.h"
 #include "texture.h"
+#include "image.h"
 #include "font.h"
 #include "global_data.h"
 #include "sound.h"
@@ -18,12 +19,12 @@ model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
 	*skyhemisphere;
 
-texture *water, *background, *titel[4], *periscope[4], *gauge1,
+texture *water, *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
-	*clock12, *clock24, *threesubs[4], *glasses, *torp_expl_water_splash[3],
-	*logbook_spiral[2], *woodbackgr,
+	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
+	*woodbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked;
 	
 font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
@@ -31,7 +32,8 @@ font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_taho
 sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
 
-SDL_Surface* damage_screen_background, *sub_damage_scheme_all;
+image *titelimg, *periscope, *threesubsimg, *damage_screen_background, *sub_damage_scheme_all,
+	*logbook_spiral;
 
 void init_global_data(void)
 {
@@ -54,18 +56,8 @@ void init_global_data(void)
 	torpedo_g7 = new model((get_data_dir() + MODEL_DIR + "torpedo.mdl"));
 	depth_charge_mdl = new model((get_data_dir() + MODEL_DIR + "depth_charge.mdl"));
 	gun_shell_mdl = new model((get_data_dir() + MODEL_DIR + "gun_shell.mdl"));
-	SDL_Surface* titelimg = IMG_Load((get_data_dir() + TEXTURE_DIR + "titel.png").c_str());
-	titel[0] = new texture(titelimg, 0, 0, 256, 256);
-	titel[1] = new texture(titelimg, 256, 0, 256, 256);
-	titel[2] = new texture(titelimg, 0, 256, 256, 128);
-	titel[3] = new texture(titelimg, 256, 256, 256, 128);
-	SDL_FreeSurface(titelimg);
-	SDL_Surface* periscopeimg = IMG_Load((get_data_dir() + TEXTURE_DIR + "periscope.png").c_str());
-	periscope[0] = new texture(periscopeimg, 0, 0, 256, 256);
-	periscope[1] = new texture(periscopeimg, 256, 0, 256, 256);
-	periscope[2] = new texture(periscopeimg, 0, 256, 256, 256);
-	periscope[3] = new texture(periscopeimg, 256, 256, 256, 256);
-	SDL_FreeSurface(periscopeimg);
+	titelimg = new image((get_data_dir() + TEXTURE_DIR + "titel.png"));
+	periscope = new image((get_data_dir() + TEXTURE_DIR + "periscope.png"));
 	gauge1 = new texture((get_data_dir() + TEXTURE_DIR + "gauge1.png"));
 	gauge2 = new texture((get_data_dir() + TEXTURE_DIR + "gauge2.png"));
 	gauge3 = new texture((get_data_dir() + TEXTURE_DIR + "gauge3.png"));
@@ -89,12 +81,7 @@ void init_global_data(void)
 	clock12 = new texture((get_data_dir() + TEXTURE_DIR + "clock12.png"));
 	clock24 = new texture((get_data_dir() + TEXTURE_DIR + "clock24.png"));
 	glasses = new texture((get_data_dir() + TEXTURE_DIR + "glasses.png"), 1, true, true);
-	SDL_Surface* threesubsimg = IMG_Load((get_data_dir() + TEXTURE_DIR + "3subs.png").c_str());
-	threesubs[0] = new texture(threesubsimg, 0, 0, 256, 256);
-	threesubs[1] = new texture(threesubsimg, 256, 0, 256, 256);
-	threesubs[2] = new texture(threesubsimg, 0, 256, 256, 128);
-	threesubs[3] = new texture(threesubsimg, 256, 256, 256, 128);
-	SDL_FreeSurface(threesubsimg);
+	threesubsimg = new image((get_data_dir() + TEXTURE_DIR + "3subs.png"));
 	torp_expl_water_splash[0] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash.png" ), 1 );
 	torp_expl_water_splash[1] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_1.png" ), 1 );
 	torp_expl_water_splash[2] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_2.png" ), 1 );
@@ -103,13 +90,10 @@ void init_global_data(void)
 	torpedo_detonation_submerged[1] = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_detonation_submerged_2.wav" ) );
 	torpedo_detonation_surfaced[0] = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_detonation_surfaced_1.wav" ) );
 	torpedo_detonation_surfaced[1] = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_detonation_surfaced_2.wav" ) );
-	SDL_Surface* logbook_spiral_img = IMG_Load ( ( get_data_dir () + TEXTURE_DIR + "logbook_spiral.png" ).c_str () );
-	logbook_spiral[0] = new texture ( logbook_spiral_img, 0, 0, 35, 256 );
-	logbook_spiral[1] = new texture ( logbook_spiral_img, 0, 256, 35, 256 );
-	SDL_FreeSurface ( logbook_spiral_img );
+	logbook_spiral = new image((get_data_dir () + TEXTURE_DIR + "logbook_spiral.png"));
 	woodbackgr = new texture ( ( get_data_dir () + TEXTURE_DIR + "wooden_desk.png" ) );
-	damage_screen_background = IMG_Load( (get_data_dir() + IMAGES_DIR + "damage_screen_backg.png").c_str() );
-	sub_damage_scheme_all = IMG_Load( (get_data_dir() + IMAGES_DIR + "sub_damage_scheme_all.png").c_str() );
+	damage_screen_background = new image((get_data_dir() + IMAGES_DIR + "damage_screen_backg.png"), 0, true, true, true);
+	sub_damage_scheme_all = new image((get_data_dir() + IMAGES_DIR + "sub_damage_scheme_all.png"), 0, true, true, true);
 	repairlight = new texture( ( get_data_dir () + TEXTURE_DIR + "repairlight.png" ), 0, true, true );
 	repairmedium = new texture( ( get_data_dir () + TEXTURE_DIR + "repairmedium.png" ), 0, true, true );
 	repairheavy = new texture( ( get_data_dir () + TEXTURE_DIR + "repairheavy.png" ), 0, true, true );
@@ -138,14 +122,8 @@ void deinit_global_data(void)
 	delete torpedo_g7;
 	delete depth_charge_mdl;
 	delete gun_shell_mdl;
-	delete titel[0];
-	delete titel[1];
-	delete titel[2];
-	delete titel[3];
-	delete periscope[0];
-	delete periscope[1];
-	delete periscope[2];
-	delete periscope[3];
+	delete titelimg;
+	delete periscope;
 	delete gauge1;
 	delete gauge2;
 	delete gauge3;
@@ -169,10 +147,7 @@ void deinit_global_data(void)
 	delete clouds;
 	delete clock12;
 	delete clock24;
-	delete threesubs[0];
-	delete threesubs[1];
-	delete threesubs[2];
-	delete threesubs[3];
+	delete threesubsimg;
 	delete torp_expl_water_splash[0];
 	delete torp_expl_water_splash[1];
 	delete torp_expl_water_splash[2];
@@ -181,11 +156,10 @@ void deinit_global_data(void)
 	delete torpedo_detonation_submerged[1];
 	delete torpedo_detonation_surfaced[0];
 	delete torpedo_detonation_surfaced[1];
-	delete logbook_spiral[0];
-	delete logbook_spiral[1];
+	delete logbook_spiral;
 	delete woodbackgr;
-	SDL_FreeSurface(damage_screen_background);
-	SDL_FreeSurface(sub_damage_scheme_all);
+	delete damage_screen_background;
+	delete sub_damage_scheme_all;
 	delete repairlight;
 	delete repairmedium;
 	delete repairheavy;
@@ -195,7 +169,7 @@ void deinit_global_data(void)
 
 // returns 1939-1945, 1-12, 1-31
 static unsigned month_lengths[7*12] = {
-	31,28,31,30,31,30,31,31,30,31,30,31,	// 1939
+		31,28,31,30,31,30,31,31,30,31,30,31,	// 1939
 	31,29,31,30,31,30,31,31,30,31,30,31,	// 1940
 	31,28,31,30,31,30,31,31,30,31,30,31,	// 1941
 	31,28,31,30,31,30,31,31,30,31,30,31,	// 1942

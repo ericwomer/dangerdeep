@@ -23,8 +23,9 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	while (tw < sw) tw *= 2;
 	while (th < sh) th *= 2;
 	
-	system::sys()->myassert(tw <= 256, "texture: textures wider than 256 texels are not supported");
-	system::sys()->myassert(th <= 256, "texture: textures heigher than 256 texels are not supported");
+	// fixme: replace 256 in message with real value
+	system::sys()->myassert(tw <= get_max_width(), "texture: textures wider than 256 texels are not supported");
+	system::sys()->myassert(th <= get_max_height(), "texture: textures heigher than 256 texels are not supported");
 
 	glGenTextures(1, &texname);
 	glBindTexture(GL_TEXTURE_2D, texname);

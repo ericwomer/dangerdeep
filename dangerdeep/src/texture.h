@@ -41,6 +41,8 @@ public:
 
 	static int paletted_textures;	// 0 no 1 yes -1 untested
 	static bool check_for_paletted_textures(void);
+	static unsigned get_max_width(void) { return 256; } // fixme ask opengl
+	static unsigned get_max_height(void) { return 256; } // fixme ask opengl
 };
 
 #endif

@@ -23,6 +23,7 @@
 #include <iostream>
 #include <sstream>
 #include "config.h"
+#include "image.h"
 
 class system* sys;
 int res_x, res_y;
@@ -31,10 +32,10 @@ vector<string> missions;
 
 void draw_background_and_logo(void)
 {
-	sys->draw_image(0, 0, 512, 512, titel[0]);
-	sys->draw_image(512, 0, 512, 512, titel[1]);
-	sys->draw_image(0, 512, 512, 256, titel[2]);
-	sys->draw_image(512, 512, 512, 256, titel[3]);
+	glPushMatrix();
+	glScalef(2, 2, 1);
+	titelimg->draw(0, 0);
+	glPopMatrix();
 	font_logo->print_hc(1024, 150, "Danger from the Deep", color(255,255,255), true);
 }
 
@@ -312,10 +313,10 @@ void show_vessels(void)
 
 		glClear(GL_DEPTH_BUFFER_BIT);
 		sys->prepare_2d_drawing();
-		sys->draw_image(0, 0, 512, 512, threesubs[0]);
-		sys->draw_image(512, 0, 512, 512, threesubs[1]);
-		sys->draw_image(0, 512, 512, 256, threesubs[2]);
-		sys->draw_image(512, 512, 512, 256, threesubs[3]);
+		glPushMatrix();
+		glScalef(2, 2, 1);
+		threesubsimg->draw(0, 0);
+		glPopMatrix();
 		font_tahoma->print_hc(1024, 650, s->get_description(2).c_str());
 		font_tahoma->print_hc(1024, 768 - font_tahoma->get_height(),
 			TXT_Showvesselinstructions[language]);
