@@ -30,6 +30,7 @@ void ship::init(void)
 	rudder_pos = 0;
 	rudder_to = 0;
 	max_rudder_angle = 40;
+	max_rudder_turn_speed = 10;
 	max_angular_velocity = 2;
 }
 
@@ -117,7 +118,7 @@ void ship::change_rudder(int to)
 		rudder_to = to;
 	else
 		rudder_to = ruddermidships;
-	permanent_turn = true;
+	head_to_fixed = false;
 }
 
 
@@ -126,7 +127,7 @@ void ship::rudder_left(void)
 {
 	if (rudder_to > rudderfullleft)
 		--rudder_to;
-	permanent_turn = true;
+	head_to_fixed = false;
 }
 
 
@@ -135,7 +136,7 @@ void ship::rudder_right(void)
 {
 	if (rudder_to < rudderfullright)
 		++rudder_to;
-	permanent_turn = true;
+	head_to_fixed = false;
 }
 
 
@@ -143,7 +144,7 @@ void ship::rudder_right(void)
 void ship::rudder_hard_left(void)
 {
 	rudder_to = rudderfullleft;
-	permanent_turn = true;
+	head_to_fixed = false;
 }
 
 
@@ -151,7 +152,7 @@ void ship::rudder_hard_left(void)
 void ship::rudder_hard_right(void)
 {
 	rudder_to = rudderfullright;
-	permanent_turn = true;
+	head_to_fixed = false;
 }
 
 
@@ -159,7 +160,7 @@ void ship::rudder_hard_right(void)
 void ship::rudder_midships(void)
 {
 	rudder_to = ruddermidships;
-	head_to = heading;
+	head_to_fixed = false;
 }
 
 
@@ -321,12 +322,38 @@ void ship::simulate(game& gm, double delta_time)
 			mysmoke->set_source(position + smokerelpos);
 		mysmoke->simulate(gm, delta_time);
 	}
+
+	// steering logic, adjust rudder pos so that heading matches head_to
+	if (head_to_fixed) {
+		// check if we should turn left or right
+		bool turn_rather_right = (heading.is_cw_nearer(head_to));
+//cout<<this<<" logic: heading " << heading.value() << " head_to " << head_to.value() << " trr " << turn_rather_right << " rudder_to " << rudder_to << " rudder_pos " << rudder_pos << " \n";
+		rudder_to = (turn_rather_right) ? rudderfullright : rudderfullleft;
+//cout <<this<<" logic2 rudder_to " << rudder_to << " turn velo " << turn_velocity << "\n";
+		// check if we approach head_to (brake by turning rudder to the opposite)
+		// if time need to set the rudder to midships is smaller than the time until heading
+		// passes over head_to, we have to brake.
+		double angledist = fabs((heading - head_to).value_pm180());
+		double time_to_pass = (fabs(turn_velocity) < 0.01) ? 1e30 : angledist / fabs(turn_velocity);
+		double time_to_midships = fabs(rudder_pos) / max_rudder_turn_speed;
+//cout <<this<<" logic3 angledist " << angledist << " timetopass " << time_to_pass << " time_to_ms " << time_to_midships << "\n";
+		double damping_factor = 1.0;	// set to > 0 to brake earlier, fixme set some value
+		if (time_to_pass < time_to_midships + damping_factor) {
+			rudder_to = (turn_rather_right) ? rudderfullleft : rudderfullright;
+//cout <<this<<" near target! " << rudder_to << "\n";
+		}
+		// check for final rudder midships, fixme adapt values...
+		if (angledist < 0.5 && fabs(rudder_pos) < 1.0) {
+			rudder_to = ruddermidships;
+//cout <<this<<" dest reached " << angledist << "," << fabs(rudder_pos) << "\n";
+			head_to_fixed = false;
+		}
+	}
 	
 	// Adjust rudder
 	// rudder_to with max_rudder_angle gives set rudder angle.
 	double rudder_angle_set = max_rudder_angle * rudder_to / 2;
 	// current angle is rudder_pos. rudder moves with constant speed to set pos (or 0).
-	double max_rudder_turn_speed = 10;	// degrees per second, fixme store somewhere!
 	double max_rudder_turn_dist = max_rudder_turn_speed * delta_time;
 	double rudder_d = rudder_angle_set - rudder_pos;
 	if (fabs(rudder_d) <= max_rudder_turn_dist) {	// if rudder_d is 0, nothing happens.
@@ -352,9 +379,10 @@ void ship::fire_shell_at(const vector2& pos)
 void ship::head_to_ang(const angle& a, bool left_or_right)	// true == left
 {
 	head_to = a;
-	//fixme: very crude
+	//fixme: very crude... or use rudderleft/rudderright here (not full rudder?)
+	//not crude with steering logic somewhere else... in simulate
 	rudder_to = (left_or_right) ? rudderfullleft : rudderfullright;
-	permanent_turn = false;
+	head_to_fixed = true;
 }
 
 

@@ -395,10 +395,6 @@ void freeview_display::draw_view(game& gm) const
 	// ******* water ***************************************************************
 	//ui.get_water().update_foam(1.0/25.0);  //fixme: deltat needed here
 	//ui.get_water().spawn_foam(vector2(myfmod(gm.get_time(),256.0),0));
-//viewpos is right for bridge view mode and wrong for freeview
-//only difference: bridge sets pos fix to (0,0,6)
-//when moving in bridge to -20,0,6 its also wrong.
-//	cout << "viewpos used for call " << viewpos << "\n";
 	ui.get_water().display(viewpos, bearing, max_view_dist, reflection_projmvmat);
 
 	// ******** terrain/land ********************************************************
@@ -434,7 +430,7 @@ void freeview_display::draw_view(game& gm) const
 		glTranslated(0, 0, 6);
 //		glLoadIdentity();
 //		glRotatef(-elevation.value()-90,1,0,0);
-//		glRotatef((bearing - player->get_heading()).value(),0,0,1);
+		glRotatef((bearing - player->get_heading()).value(),0,0,1);
 //fixme handle different! with modelcache!
 		conning_tower_typeVII->display();
 //		glPopMatrix();

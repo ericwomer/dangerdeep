@@ -30,13 +30,12 @@ protected:
 	int throttle;		// if < 0: throttle_state, if > 0: knots
 	//double max_acceleration;	// read from spec file
 
-	// new model: store rudder angle, store if ship heads to a fixed angle and that angle
-	bool head_to_fixed;
 	double rudder_pos;	// in degrees, do not use class angle here, we need explicit positive and negative values.
-	int rudder_to;		// symbolic pos (full left, left, mid, right, full right)
+	int rudder_to;		// symbolic pos (full left, left, mid, right, full right), fixme: should be angle too...
 	double max_rudder_angle;// maximum turn, e.g. 30 degr.
+	double max_rudder_turn_speed;
 	double max_angular_velocity;	// depends on turn rate.
-	bool permanent_turn;	// if true, ignore head_to and move rudder_pos to rudder_to
+	bool head_to_fixed;	// if true, change rudder_to so that heading moves to head_to
 	angle head_to;
 	
 	double turn_rate;	// in angle/time (at max. speed/throttle), read from spec file
@@ -137,8 +136,7 @@ public:
 	virtual double get_roll_factor(void) const;
 	virtual unsigned get_tonnage(void) const { return tonnage; }
 	virtual double get_fuel_level () const { return fuel_level; }
-	virtual angle get_heading(void) const { return heading; };
-	virtual angle get_head_to(void) const { return permanent_turn ? heading : head_to; };
+	virtual angle get_head_to(void) const { return head_to_fixed ? head_to : heading; };
 	virtual angle get_turn_rate(void) const { return turn_rate; };
 	virtual double get_max_speed(void) const { return max_speed_forward; };
 	virtual double get_throttle_speed(void) const;
