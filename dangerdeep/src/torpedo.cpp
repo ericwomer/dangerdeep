@@ -134,7 +134,7 @@ void torpedo::simulate(game& gm, double delta_time)
 
 	// Torpedo starts to search for a target when the minimum save
 	// distance for the warhead is passed.
-	if ((type == T4 || type == T5 || type == T11) && run_length >= TORPEDO_SAVE_DISTANCE)
+	if ((type == T4 || type == T5 || type == T11) && run_length >= TORPEDO_ACTIVATION_DISTANCE)
 	{
 		ship* target = gm.sonar_acoustical_torpedo_target ( this );
 
@@ -173,7 +173,7 @@ void torpedo::simulate(game& gm, double delta_time)
 	
 	// check for collisions with other subs or ships
 	if (run_length > 10) {	// avoid collision with parent after initial creation
-		bool runlengthfailure = (run_length < TORPEDO_SAVE_DISTANCE);
+		bool runlengthfailure = (run_length < TORPEDO_SAFE_DISTANCE);
 		bool failure = false;	// calculate additional probability of torpedo failure
 		if (gm.check_torpedo_hit(this, runlengthfailure, failure))
 			destroy();

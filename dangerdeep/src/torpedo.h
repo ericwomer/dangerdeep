@@ -9,7 +9,8 @@
 using namespace std;
 
 #define G7A_HITPOINTS 4	// maximum
-#define TORPEDO_SAVE_DISTANCE 250.0f // minimum distance
+#define TORPEDO_SAFE_DISTANCE 250.0f // minimum distance
+#define TORPEDO_ACTIVATION_DISTANCE 400.0f // minimum distance for t4/t5/t11
 
 // fixme: maybe make heirs of this class for each torpedo type. would be much nicer code.
 // unnecessary work. instead maybe use same code as for ships/subs with XML.
@@ -39,6 +40,11 @@ protected:
 	double run_length, max_run_length;	// this could be done with fuel simulation...
 	types type;
 	bool influencefuse;	// determined by type
+	
+	// bool preheated;	// or percentage of preheation, full = true
+	
+	// add flags for FAT/LUT here? maybe make .xml files more generic
+	// e.g. one file for T1 with flags FAT/LUT/influence-impact fuse etc.
 	
 	unsigned primaryrange, secondaryrange;	// meters
 	unsigned initialturn;	// 0/1 left/right
