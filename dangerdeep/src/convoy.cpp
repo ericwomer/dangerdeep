@@ -272,13 +272,6 @@ unsigned convoy::get_nr_of_ships(void) const
 
 
 
-bool convoy::is_defunct(void) const
-{
-	return get_nr_of_ships() == 0;
-}
-
-
-
 void convoy::simulate(game& gm, double delta_time)
 {
 	sea_object::simulate(gm, delta_time);//remove, replace by position update in ai-class
@@ -304,7 +297,7 @@ void convoy::simulate(game& gm, double delta_time)
 //	if ( myai )//fixme: my is ai sometimes != 0 although it is disabled?!
 //		myai->act(gm, delta_time);
 
-	// convoy erased?, fixme could be put to is_defunct() function (convoy is no heir of sea_object anymore)
+	// convoy erased?
 	if (merchants.size() + warships.size() + escorts.size() == 0)
 		alive_stat = defunct;
 }

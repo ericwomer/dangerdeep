@@ -14,7 +14,7 @@ protected:
 
 	class ai* myai;
 
-	list<pair<ship*, vector2> > merchants, warships, escorts;//fixme: make ref's here
+	list<pair<ship*, vector2> > merchants, warships, escorts;
 	list<vector2> waypoints;
 
 	convoy();
@@ -34,7 +34,6 @@ public:
 	void save(ostream& out, const class game& g) const;
 	
 	unsigned get_nr_of_ships(void) const;
-	virtual bool is_defunct(void) const;
 
 	virtual class ai* get_ai(void) { return myai; }
 	virtual void simulate(class game& gm, double delta_time);
