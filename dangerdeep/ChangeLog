@@ -4,11 +4,23 @@
 	  - Fuel and battery consumption introduces. Battery recharged is still
 	    uncomplete because there are currently no time value available for
 	    the recharge process.
+	  - Snorkel use modified.
 	* game.h, game.cpp:
 	  - New method is_day_mode introduced. This method is needed to activate
 	    red light mode during night.
-	* user_interface.h, user_interface.cpp:
+	  - Time gap for night mode modified.
+	* user_interface.h, user_interface.cpp, sub_interface.cpp:
 	  - New methods for red light mode.
+	  - Red light mode during night.
+	  - Diverse method calls changed. New parameter of class game needed.
+	* texts.h:
+	  - Several new text entries.
+	* parser.cpp:
+	  - Snorkel entries changed.
+	* submarine_XXI.cpp:
+	  - Snorkel is a standard equipment of Type XXI submarines.
+	* tokencodes.h
+	  - Tokens for snorkel changed.
 
 2003-04-13  Markus Petermann  <m.petermann@gmx.net>
 
