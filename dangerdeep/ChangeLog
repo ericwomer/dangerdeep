@@ -1,3 +1,16 @@
+2003-11-08  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* user_interface.cpp user_interface.h
+	  - again i implemented a new water code.
+	    this is much like the original code:
+	    A large quad of waves is drawn around the view position.
+	    The new water is independent from view direction, and much
+	    faster than the old water implementations because it uses
+	    display lists.
+	    The code can be adapted to PC's performance.
+	    Horizon faces are missing yet.
+	    Wave height and gradient/normal computation from position isn't
+	    yet implemented. This is needed for realistic rolling of ships.
+
 2003-10-30  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* user_interface.cpp
 	  - updated and corrected simulation as far as possible.

@@ -26,6 +26,12 @@
 vector<unsigned char> user_interface::waveheights;
 vector<float> user_interface::sinvec;
 
+#define WAVE_PHASES 128		// no. of phases for wave animation
+#define WAVES_PER_AXIS 16	// no. of waves along x or y axis
+#define FACES_PER_WAVE 4	// resolution of wave model in x/y dir.
+#define WAVE_LENGTH 40.0	// in meters, total length of one wave (one sine function)
+#define WAVE_HEIGHT 2.0		// half of difference top/bottom of wave -> fixme, depends on weather
+
 
 user_interface::user_interface() :
 	quit(false), pause(false), time_scale(1), player_object(0),
@@ -43,12 +49,12 @@ user_interface::user_interface(sea_object* player) :
 	viewupang(-90),	viewpos(0, 0, 10)
 {
 	init ();
+	init_water_data();
 }
 
 user_interface::~user_interface ()
 {
-	delete captains_logbook;
-	delete ships_sunk_disp;
+	deinit();
 }
 
 void user_interface::init ()
@@ -60,7 +66,41 @@ void user_interface::init ()
 	ships_sunk_disp = new ships_sunk_display;
 //	system::sys()->myassert ( ships_sunk_disp != 0, "Error while creating ships_sunk!" );
 
-	if (waveheights.size() == 0) init_water_data();
+	// create and fill display lists for water
+	wavedisplaylists = glGenLists(WAVE_PHASES);
+	system::sys()->myassert(wavedisplaylists != 0, "no more display list indices available");
+	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
+		glNewList(wavedisplaylists+i, GL_COMPILE);
+		glBegin(GL_QUADS);
+		vector<vector2f> csv(FACES_PER_WAVE+1);
+		for (unsigned j = 0; j <= FACES_PER_WAVE; ++j) {
+			csv[j].x = float(j)/FACES_PER_WAVE;
+			csv[j].y = sin(2.0*M_PI*(float(i)/WAVE_PHASES+float(j)/FACES_PER_WAVE));
+		}
+		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
+			for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
+				glTexCoord2f(csv[x].x, csv[y].x);
+				glVertex3f(csv[x].x, csv[y].x, csv[x].y*csv[y].y);
+				glTexCoord2f(csv[x+1].x, csv[y].x);
+				glVertex3f(csv[x+1].x, csv[y].x, csv[x+1].y*csv[y].y);
+				glTexCoord2f(csv[x+1].x, csv[y+1].x);
+				glVertex3f(csv[x+1].x, csv[y+1].x, csv[x+1].y*csv[y+1].y);
+				glTexCoord2f(csv[x].x, csv[y+1].x);
+				glVertex3f(csv[x].x, csv[y+1].x, csv[x].y*csv[y+1].y);
+			}
+		}
+		glEnd();
+		glEndList();
+	}
+}
+
+void user_interface::deinit ()
+{
+	delete captains_logbook;
+	delete ships_sunk_disp;
+
+	// delete display lists for water
+	glDeleteLists(wavedisplaylists, WAVE_PHASES);
 }
 
 void user_interface::init_water_data(void)
@@ -92,55 +132,82 @@ float user_interface::get_waterheight(float x_, float y_, int wave)	// bilinear 
 	return h01*(1-dy) + h23*dy;
 }
 
+/* 2003/07/04 idea.
+   simulate earth curvature by drawing several horizon faces
+   approximating the curvature.
+   earth has medium radius of 6371km, that means 40030km around it.
+   A ship with 15m height above the waterline disappears behind
+   the horizon at ca. 13.825km distance (7.465 sm)
+   
+   exact value 40030.17359km. (u), earth radius (r)
+   
+   height difference in view: (h), distance (d). Formula:
+   
+   h = r * (1 - cos( 360deg * d / u ) )
+   
+   or
+   
+   d = arccos ( 1 - h / r ) * u / 360deg
+   
+   draw ships with height -h. so (dis)appearing of ships can be
+   simulated properly.
+   
+   highest ships are battleships (approx. 30meters), they disappear
+   at 19.551km (10.557 sm).
+   
+   That's much shorter than I thought! But there is a mistake:
+   The viewer's height is not 0 but around 6-8m for submarines,
+   so the formulas are more difficult:
+   
+   The real distance is twice the formula, once for the viewer's
+   height, once for the object:
+   
+   d = (arccos(1 - myh/r) + arccos(1 - h/r)) * u / 360deg
+   
+   or for the watched object
+   
+   h = r * (1 - cos( 360deg * (d - (arccos(1 - myh/r)) / u ) )
+   
+   so for a watcher in 6m height and other ships we have
+   arccos(1-myh/r) = 0.07863384deg
+   15m in height -> dist: 22.569km (12.186sm)
+   30m in height -> dist: 28.295km (15.278sm)
+   
+   This values are useful for computing "normal" simulation's
+   maximum visibility.
+   Waves are disturbing sight but are ignored here.
+*/	   
+
 void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wavephase,
 	double max_view_dist) const
 {
-#if 0
-#define NRWAV 64
-	glPushMatrix();
-	glRotatef(dir.value(), 0, 0, 1);
-	unsigned nrverts = (NRWAV+1)*(NRWAV+1);
-	vector<GLfloat> verticecoords;
-	vector<GLfloat> texturecoords;
-	verticecoords.reserve(3*nrverts);
-	texturecoords.reserve(2*nrverts);
-	for (int y = 0; y <= NRWAV; ++y) {
-		float yp = viewpos.y + (y-NRWAV/2)*3;
-		float sy = sin(0.2*(yp + wavephase*0.05));
-		for (int x = 0; x <= NRWAV; ++x) {
-			float xp = viewpos.x + (x-NRWAV/2)*3;
-			float sx = sin(0.2*(xp + wavephase*0.05));
-			verticecoords.push_back(xp);
-			verticecoords.push_back(yp);
-			verticecoords.push_back(3.0*sx*sy);
-			texturecoords.push_back(myfmod(xp, 4.0));//*NRWAV)-2.0*NRWAV);
-			texturecoords.push_back(myfmod(yp, 4.0));//*NRWAV)-2.0*NRWAV);
-		}
-	}
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
-	glVertexPointer(3, GL_FLOAT, 0, &verticecoords[0]);
-	glTexCoordPointer(2, GL_FLOAT, 0, &texturecoords[0]);
+#if 1
+	// fixme draw polygones to the horizon or SIMPLER:
+	// draw a 2d image from y value res/2 to res/2+some value
+	// (a rectangle) so that the space between the waves and the horizon is filled
+	// and texture that with some photo of waves or something else.
+	// this image should be animated (moving waves).
 
-	glBegin(GL_TRIANGLES);
-	unsigned vn = 0;
-	for (int y = 0; y < NRWAV; ++y) {
-		for (int x = 0; x < NRWAV; ++x) {
-			glArrayElement(vn);
-			glArrayElement(vn+1);
-			glArrayElement(vn+NRWAV+1);
-			glArrayElement(vn+1);
-			glArrayElement(vn+NRWAV+2);
-			glArrayElement(vn+NRWAV+1);
-			++vn;
+//	class system* sys = system::sys();	
+//	unsigned res_x = sys->get_res_x(), res_y = sys->get_res_y();
+//	sys->prepare_2d_drawing();
+//	water->draw_tiles(0, res_y/2, res_x, res_y/8, 8, 2);
+//	sys->unprepare_2d_drawing();
+
+	glPushMatrix();
+	glTranslatef(-myfmod(viewpos.x, WAVE_LENGTH), -myfmod(viewpos.y, WAVE_LENGTH), -viewpos.z);
+	glScalef(WAVE_LENGTH, WAVE_LENGTH, WAVE_HEIGHT);
+	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
+	unsigned dl = wavedisplaylists + WAVE_PHASES*((system::sys()->millisec())%4000)/4000;// (wavephase % WAVE_PHASES); //fixme
+	for (int y = 0; y < WAVES_PER_AXIS; ++y) {
+		for (int x = 0; x < WAVES_PER_AXIS; ++x) {
+			glPushMatrix();
+			glTranslatef(-WAVES_PER_AXIS/2+x, -WAVES_PER_AXIS/2+y, 0);
+			glCallList(dl);
+			glPopMatrix();
 		}
-		++vn;
 	}
-	glEnd();
-	
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glPopMatrix();
 			
 #else
 #define WAVESX 16	// number of waves per screen scanline
@@ -196,51 +263,6 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 	glVertexPointer(3, GL_FLOAT, 0, &verticecoords[0]);
 	glTexCoordPointer(2, GL_FLOAT, 0, &texturecoords[0]);
 
-	/* 2003/07/04 idea.
-	   simulate earth curvature by drawing several horizon faces
-	   approximating the curvature.
-	   earth has medium radius of 6371km, that means 40030km around it.
-	   A ship with 15m height above the waterline disappears behind
-	   the horizon at ca. 13.825km distance (7.465 sm)
-	   
-	   exact value 40030.17359km. (u), earth radius (r)
-	   
-	   height difference in view: (h), distance (d). Formula:
-	   
-	   h = r * (1 - cos( 360deg * d / u ) )
-	   
-	   or
-	   
-	   d = arccos ( 1 - h / r ) * u / 360deg
-	   
-	   draw ships with height -h. so (dis)appearing of ships can be
-	   simulated properly.
-	   
-	   highest ships are battleships (approx. 30meters), they disappear
-	   at 19.551km (10.557 sm).
-	   
-	   That's much shorter than I thought! But there is a mistake:
-	   The viewer's height is not 0 but around 6-8m for submarines,
-	   so the formulas are more difficult:
-	   
-	   The real distance is twice the formula, once for the viewer's
-	   height, once for the object:
-	   
-	   d = (arccos(1 - myh/r) + arccos(1 - h/r)) * u / 360deg
-	   
-	   or for the watched object
-	   
-	   h = r * (1 - cos( 360deg * (d - (arccos(1 - myh/r)) / u ) )
-	   
-	   so for a watcher in 6m height and other ships we have
-	   arccos(1-myh/r) = 0.07863384deg
-	   15m in height -> dist: 22.569km (12.186sm)
-	   30m in height -> dist: 28.295km (15.278sm)
-	   
-	   This values are useful for computing "normal" simulation's
-	   maximum visibility.
-	   Waves are disturbing sight but are ignored here.
-	*/	   
 	
 	// create faces, WAVEDEPTH*WAVESX*2 in number
 	glBegin(GL_TRIANGLES);
@@ -280,11 +302,10 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glRotatef(-90,1,0,0);
 	// This should be a negative angle, but nautical view dir is clockwise, OpenGL uses ccw values, so this is a double negation
 	glRotatef(dir.value(),0,0,1);
-	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
 
 	// ************ sky ***************************************************************
 	glPushMatrix();
-	glTranslatef(viewpos.x, viewpos.y, 0);
+	glTranslatef(0, 0, -viewpos.z);
 	glPushMatrix();
 	glScalef(max_view_dist, max_view_dist, max_view_dist);	// fixme dynamic
 	double dt = get_day_time(gm.get_time());
@@ -338,13 +359,13 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	const double EARTH_RADIUS = 6378e3;
 	const double SUN_RADIUS = 696e6;
 	const double MOON_RADIUS = 1738e3;
-	const double EARTH_SUN_DISTANCE = 1496e8;
-	const double MOON_EARTH_DISTANCE = 3844e5;
+	const double EARTH_SUN_DISTANCE = 149.6e9;
+	const double MOON_EARTH_DISTANCE = 384.4e6;
 	const double EARTH_ROT_AXIS_ANGLE = 23.45;
 	const double MOON_ORBIT_TIME = 29.5306 * 86400.0;
 	const double EARTH_ROTATION_TIME = 86400.0;
 	const double EARTH_CIRCUMFERENCE = 2.0 * M_PI * EARTH_RADIUS;
-	const double EARTH_ORBIT_TIME = 31556926.5;
+	const double EARTH_ORBIT_TIME = 31556926.5;	// in seconds. 365 days, 5 hours, 48 minutes, 46.5 seconds
 	// these values are difficult to get. SUN_POS_ADJUST should be around +9.8deg (10days of 365 later) but that gives
 	// a roughly right position but wrong sun rise time by about 40min. fixme
 	const double SUN_POS_ADJUST = 0;	// in degrees. 10 days from 21st. Dec. to 1st. Jan. * 360deg/365.24days
@@ -383,10 +404,13 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	// this is not correct because of the shortened translation above.
 	// instead take the transform matrix multiply with an vector (0,0,1,1) instead of last translation
 	// to get direction of sun (4th. component is 0) fixme
-	GLfloat lp[4]={0,0,0,1};		// light comes from sun (maybe use directional light)
+//	float m[16];
+//	glGetFloatv(GL_MODELVIEW_MATRIX, &m[0]);
+//	glLoadIdentity();
+	GLfloat lp[4] = {0,0,0,1};//{m[12], m[13], m[14], 0};	// light comes from sun (maybe use directional light)
 	glLightfv(GL_LIGHT1, GL_POSITION, lp);
 
-	glPopMatrix();
+	glPopMatrix();	// remove sun space
 
 	// draw moon
 	glPushMatrix();
@@ -414,7 +438,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glTexCoord2f(1,0);
 	glVertex3f(moons, -moons, 0);
 	glEnd();
-	glPopMatrix();
+	glPopMatrix();	// remove moon space
 	glEnable(GL_LIGHTING);
 	
 	
@@ -436,10 +460,12 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glVertex3f(-cld.size+cld.pos.x, -cld.size+cld.pos.y, cld.pos.z);
 		glEnd();
 	}
-	glPopMatrix();	// remove translate
+	glPopMatrix();	// remove z translate for sky etc.
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	color::white().set_gl_color();
+	
+	// modelview matrix is around viewpos now.
 
 	// ********* fog test ************ fog color is skycol2
 	GLfloat fog_color[4] = {skycol2.r/255.0, skycol2.g/255.0, skycol2.b/255.0, 1.0};
@@ -458,6 +484,9 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	
 
 	// ******************** ships & subs *************************************************
+	
+	// rest of scene is displayed relative to world coordinates
+	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
 
 	float dwave = sinvec[wave&255];
 	list<ship*> ships;

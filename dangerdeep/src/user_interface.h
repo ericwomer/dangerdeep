@@ -64,10 +64,12 @@ protected:
 	user_interface(const user_interface& other);
 	user_interface(sea_object* player);
 
-	static vector<unsigned char> waveheights;	// random square array
-	static vector<float> sinvec;			// sin table (256 entries)
-	void init ();
-	static void init_water_data(void);
+	unsigned wavedisplaylists;		// # of first display list
+static vector<unsigned char> waveheights;	// random square array
+static vector<float> sinvec;			// sin table (256 entries)
+	void init(void);
+	void deinit(void);
+static void init_water_data(void);
 	static unsigned char get_waterheight(int x, int y) { return waveheights[(x&(WAVERND-1))+(y&(WAVERND-1))*WAVERND]; }
 	static float get_waterheight(float x_, float y_, int wavephase); // bilinear sampling
 
