@@ -30,7 +30,7 @@ ships_sunk_display::~ships_sunk_display ()
 void ships_sunk_display::add_sunk_ship ( const ship* so )
 {
 	unsigned size = dom.size ();
-	dom[size] = destroyed_object ( so->get_model (), so->get_tonnage (),
+	dom[size] = destroyed_object ( so->get_modelname(), so->get_tonnage (),
 		so->get_description ( 2 ) );
 }
 
@@ -85,7 +85,7 @@ void ships_sunk_display::display ( class game& gm )
 		glScalef (1, 1, 0.001f);
 		glRotatef (90, 0, 0, 1);
 		glRotatef (-90, 0, 1, 0);
-		modelcache.find((*it).second.get_model ())->display ();
+		modelcache.find((*it).second.get_model())->display ();
 		glPopMatrix ();
 	}
 	glEnd ();

@@ -860,11 +860,11 @@ void user_interface::draw_sound_contact(class game& gm, const sea_object* player
 		vector2 ldir = (*it)->get_pos().xy() - player->get_pos().xy();
 		ldir = ldir.normal() * 0.666666 * max_view_dist*mapzoom;
 		vector2 pos = (player_object->get_pos().xy() + offset) * mapzoom;
-		if ((*it)->is_merchant())
+		if ((*it)->get_class() == ship::MERCHANT)
 			glColor3f(0,0,0);
-		else if ((*it)->is_warship())
+		else if ((*it)->get_class() == ship::WARSHIP)
 			glColor3f(0,0.5,0);
-		else if ((*it)->is_escort())
+		else if ((*it)->get_class() == ship::ESCORT)
 			glColor3f(1,0,0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBegin(GL_LINES);

@@ -53,6 +53,8 @@ sea_object::~sea_object()
 
 void sea_object::load(istream& in, class game& g)
 {
+	specfilename = read_string(in);
+	modelname = read_string(in);
 	position.x = read_double(in);
 	position.y = read_double(in);
 	position.z = read_double(in);
@@ -84,6 +86,8 @@ void sea_object::load(istream& in, class game& g)
 
 void sea_object::save(ostream& out, const class game& g) const
 {
+	write_string(out, specfilename);
+	write_string(out, modelname);
 	write_double(out, position.x);
 	write_double(out, position.y);
 	write_double(out, position.z);

@@ -53,27 +53,23 @@ public:
 	enum shipclasses {
 		WARSHIP,
 		ESCORT,
-		MERCHANT
+		MERCHANT,
+		SUBMARINE
 	};
 	
 	// create empty object from specification xml file
 	ship(const string& specfilename_);
+	
+	// create ship from parser input (mission file), will read type from parser input
+	ship(parser& p);
 
 	virtual ~ship();
 
 	virtual void load(istream& in, class game& g);
 	virtual void save(ostream& out, const class game& g) const;
 
-	// fixme: make constructors: create from istream (load), create immidiate (empty), create from parser (mission)
-	// fixme: maybe make missions as xml too, make read_parameters_from_xml function then for mission based ship creation
-	//static ship* create(istream& in, unsigned type);
-	//static ship* create(types type_);
-	//static ship* create(parser& p);
-	//static ship* create_from_template(const string& type_name);	// read xml template
-	
-	
-	virtual unsigned get_type(void) const = 0;//?????
-	
+	virtual unsigned get_class(void) const { return shipclass; }
+
 	virtual void simulate(class game& gm, double delta_time);
 
 	virtual void sink(void);
@@ -91,11 +87,6 @@ public:
 	virtual double get_roll_factor(void) const;
 	virtual unsigned get_tonnage(void) const { return tonnage; }
 	virtual double get_fuel_level () const { return fuel_level; }
-
-	// maybe replace with class structure: sea_object <- ship <- battleship <- malaya, ship <- merchant <- liberty
-	virtual bool is_merchant(void) const { return false; }
-	virtual bool is_escort(void) const { return false; }
-	virtual bool is_warship(void) const { return false; }
 };
 
 #endif

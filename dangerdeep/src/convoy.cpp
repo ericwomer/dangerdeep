@@ -50,20 +50,20 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 				int dx = int(i)-sqrtnrships/2;
 				float d = 4*float(dx*dx+dy*dy)/nrships;
 				//fixme!!! replace by parsing ship dir for available types or hardcode them!!!
-				ship::types shiptype = ship::mediummerchant;
+				string shiptype = "merchant_medium";
 				if (d < 0.2) {
 					unsigned r = rnd(2);
-					if (r == 0) shiptype = ship::mediumtroopship;
-					if (r == 1) shiptype = ship::smalltanker;
+					if (r == 0) shiptype = "troopship_medium";
+					if (r == 1) shiptype = "tanker_small";
 				} else {
 					unsigned r = rnd(5);
-					if (r == 0) shiptype = ship::largemerchant;
-					if (r == 1) shiptype = ship::mediummerchant;
-					if (r == 2) shiptype = ship::smallmerchant;
-					if (r == 3) shiptype = ship::largefreighter;
-					if (r == 4) shiptype = ship::mediumfreighter;
+					if (r == 0) shiptype = "merchant_large";
+					if (r == 1) shiptype = "merchant_medium";
+					if (r == 2) shiptype = "merchant_small";
+					if (r == 3) shiptype = "freighter_large";
+					if (r == 4) shiptype = "freighter_medium";
 				}
-				ship* s = ship::create(shiptype);
+				ship* s = new ship(shiptype);
 				vector2 pos = vector2(
 					dx*intershipdist + rnd()*60.0-30.0,
 					dy*intershipdist + rnd()*60.0-30.0 );
@@ -96,7 +96,7 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 			nx *= (int(nrescs/4)-1)*interescortdist-int(i/4)*interescortdist;
 			ny *= (int(nrescs/4)-1)*interescortdist-int(i/4)*interescortdist;
 			unsigned esctp = rnd(2);
-			ship *s = ship::create(esctp == 0 ? ship::destroyertribal : ship::corvette);
+			ship *s = new ship(esctp == 0 ? "destroyer_tribal" : "corvette");
 			vector2 pos = vector2(
 				dx+nx + rnd()*100.0-50.0,
 				dy+ny + rnd()*100.0-50.0 );
@@ -141,17 +141,17 @@ convoy::convoy(class game& gm, parser& p) : sea_object(), myai(0)
 				p.parse(TKN_SEMICOLON);
 				waypoints.push_back(vector2(x, y));
 			} else if (p.type() == TKN_SHIP) {
-				ship* shp = ship::create(p);
+				ship* shp = new ship(p);
 				gm.spawn_ship(shp);
 				pair<ship*, vector2> sp = make_pair(shp, vector2(0, 0));
 				shp->heading = shp->head_to = heading;
 				shp->speed = speed;
 				shp->throttle = throttle;	// ?
-				if (shp->is_merchant())		// one of these must be true
+				if (shp->get_class() == ship::MERCHANT)	// one of these must be true
 					merchants.push_back(sp);
-				else if (shp->is_warship())
+				else if (shp->get_class() == ship::WARSHIP)
 					warships.push_back(sp);
-				else if (shp->is_escort())
+				else if (shp->get_class() == ship::ESCORT)
 					escorts.push_back(sp);
 			} else {
 				p.error("convoy: Expected definition");

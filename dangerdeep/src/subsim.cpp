@@ -412,11 +412,11 @@ void create_convoy_mission(void)
 	wm->adjust_buttons(944);
 	int result = w.run();
 	if (result == 2) {	// start game
-		submarine::types st = submarine::typeVIIc;
+		string st;
 		switch (wsubtype->get_selected()) {
-			case 0: st = submarine::typeVIIc; break;
-			case 1: st = submarine::typeIXc40; break;
-			case 2: st = submarine::typeXXI; break;
+			case 0: st = "submarine_VIIc"; break;
+			case 1: st = "submarine_IXc40"; break;
+			case 2: st = "submarine_XXI"; break;
 		}
 		run_game(new game(st, wcvsize->get_selected(), wescortsize->get_selected(), wtimeofday->get_selected()));
 	}
@@ -587,7 +587,7 @@ void create_network_game(Uint16 server_port)
 	
 	// create a game
 	unsigned nr_of_players = 2;	// fixme
-	game* gm = new game(submarine::typeVIIc, 1, 1, 1);		// fixme
+	game* gm = new game("submarine_VIIc", 1, 1, 1);		// fixme
 	
 	// wait for clients to join, reply to "ask" messages
 	vector<IPaddress> clients;
@@ -821,20 +821,36 @@ void menu_options(void)
 
 
 // vessel preview
-int current_vessel = 0;
-double vessel_zangle = 0;
-double vessel_xangle = 0;
-sea_object* vessel = 0;
-void draw_vessel(void)
+const char* shipnames[14] = {
+"battleship_malaya",
+"carrier_bogue",
+"corvette",
+"destroyer_tribal",
+"freighter_large",
+"freighter_medium",
+"merchant_large",
+"merchant_medium",
+"merchant_small",
+"tanker_small",
+"troopship_medium",
+"submarine_VIIc",
+"submarine_IXc40",
+"submarine_XXI",
+};
+int current_ship = 0;
+double ship_zangle = 0;
+double ship_xangle = 0;
+ship* shp = 0;
+void draw_ship(void)
 {
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glDisable(GL_LIGHTING);
 	glLoadIdentity();
 	glTranslatef(0, 0, -2.5);
 	glRotatef(-80, 1, 0, 0);
-	glRotatef(vessel_zangle, 0, 0, 1);
-	glRotatef(vessel_xangle, 1, 0, 0);
-	double sc = 3.0/(modelcache.find(vessel->get_model())->get_boundbox_size().length());
+	glRotatef(ship_zangle, 0, 0, 1);
+	glRotatef(ship_xangle, 1, 0, 0);
+	double sc = 3.0/(modelcache.find(shp->get_modelname())->get_boundbox_size().length());
 	glScalef(sc, sc, sc);
 	glColor4f(0, 0, 0, 1);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -845,9 +861,9 @@ void draw_vessel(void)
 	glVertex3f( 0.0, 50.0, -10.0);
 	glEnd();
 	glColor3f(1, 1, 1);
-	vessel->display();
+	shp->display();
 	sys->prepare_2d_drawing();
-	font_nimbusrom->print_hc(512, 128, vessel->get_description(2), color::white(), true);
+	font_nimbusrom->print_hc(512, 128, shp->get_description(2), color::white(), true);
 	sys->unprepare_2d_drawing();
 	glEnable(GL_LIGHTING);
 }
@@ -862,45 +878,33 @@ void menu_show_vessels(void)
 	m.add_item(115, 0);
 	m.add_item(116, 0);
 	m.add_item(117, 0);
-	vessel = new ship_largemerchant();
+	shp = new ship(shipnames[current_ship]);
 	while (true) {
-		unsigned sel = m.run(draw_vessel);
+		unsigned sel = m.run(draw_ship);
 		if (sel == 6) break;
-		int lastvessel = current_vessel;
+		int lastship = current_ship;
 #define ROTANG 5
 		switch (sel) {
-			case 0: vessel_zangle -= ROTANG; break;
-			case 1: vessel_zangle += ROTANG; break;
-			case 2: vessel_xangle -= ROTANG; break;
-			case 3: vessel_xangle += ROTANG; break;
-			case 4: ++current_vessel; break;
-			case 5: --current_vessel; break;
+			case 0: ship_zangle -= ROTANG; break;
+			case 1: ship_zangle += ROTANG; break;
+			case 2: ship_xangle -= ROTANG; break;
+			case 3: ship_xangle += ROTANG; break;
+			case 4: ++current_ship; break;
+			case 5: --current_ship; break;
 		}
 #undef ROTANG		
-		if (current_vessel != lastvessel) {
-			if (current_vessel < 0) current_vessel = 13;
-			if (current_vessel > 13) current_vessel = 0;
-			delete vessel;
-			lastvessel = current_vessel;
-			switch(current_vessel) {
-				case  0: vessel = new ship_largemerchant(); break;
-				case  1: vessel = new ship_mediummerchant(); break;
-				case  2: vessel = new ship_smallmerchant(); break;
-				case  3: vessel = new ship_mediumtroopship(); break;
-				case  4: vessel = new ship_battleshipmalaya(); break;
-				case  5: vessel = new ship_destroyertribal(); break;
-				case  6: vessel = new ship_carrierbogue(); break;
-				case  7: vessel = new ship_corvette(); break;
-				case  8: vessel = new ship_largefreighter(); break;
-				case  9: vessel = new ship_mediumfreighter(); break;
-				case 10: vessel = new ship_smalltanker(); break;
-				case 11: vessel = new submarine_VIIc(); break;
-				case 12: vessel = new submarine_IXc40(); break;
-				case 13: vessel = new submarine_XXI(); break;
-			}
+		if (current_ship != lastship) {
+			if (current_ship < 0) current_ship = 13;
+			if (current_ship > 13) current_ship = 0;
+			delete shp;
+			lastship = current_ship;
+			if (current_ship < 11)
+				shp = new ship(shipnames[current_ship]);
+			else
+				shp = new submarine(shipnames[current_ship]);
  		}
 	}
-	delete vessel;
+	delete shp;
 }
 
 

@@ -77,7 +77,7 @@ void game::sink_record::save(ostream& out) const
 	write_u32(out, tons);
 }
 
-game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday, unsigned nr_of_players)
+game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday, unsigned nr_of_players)
 {
 /****************************************************************
 	custom mission generation:
@@ -122,7 +122,7 @@ game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned t
 	vector<angle> subangles;
 	submarine* psub = 0;
 	for (unsigned i = 0; i < nr_of_players; ++i) {	
-		submarine* sub = submarine::create(subtype);//fixme give time for init
+		submarine* sub = new submarine(subtype);//fixme give time for init
 		if (i == 0) {
 			psub = sub;
 			player = psub;
@@ -179,13 +179,13 @@ game::game(parser& p) : running(true), time(0)
 		}
 		switch (p.type()) {
 			case TKN_SUBMARINE: {
-				submarine* sub = submarine::create(p);
+				submarine* sub = new submarine(p);
 				spawn_submarine(sub);
 				if (nextisplayer)
 					player = sub;
 				break; }
 			case TKN_SHIP: {
-				ship* shp = ship::create(p);
+				ship* shp = new ship(p);
 				spawn_ship(shp);
 				if (nextisplayer)
 					player = shp;
@@ -301,10 +301,10 @@ void game::save_to_stream(ostream& out) const
 
 	write_u32(out, ships.size());
 	for (list<ship*>::const_iterator ip = ships.begin(); ip != ships.end(); ++ip)
-		write_u16(out, (*ip)->get_type());
+		write_string(out, (*ip)->get_specfilename());
 	write_u32(out, submarines.size());
 	for (list<submarine*>::const_iterator ip = submarines.begin(); ip != submarines.end(); ++ip)
-		write_u16(out, (*ip)->get_type());
+		write_string(out, (*ip)->get_specfilename());
 	write_u32(out, airplanes.size());
 	write_u32(out, torpedoes.size());
 	write_u32(out, depth_charges.size());
@@ -385,12 +385,12 @@ void game::load_from_stream(istream& in)
 	int gametype = read_i32(in);
 
 	for (unsigned s = read_u32(in); s > 0; --s) {
-		unsigned type = read_u16(in);
-		ships.push_back(ship::create(in, type));
+		string type = read_string(in);
+		ships.push_back(new ship(type));
 	}
 	for (unsigned s = read_u32(in); s > 0; --s) {
-		unsigned type = read_u16(in);
-		submarines.push_back(submarine::create(in, type));
+		string type = read_string(in);
+		submarines.push_back(new submarine(type));
 	}
 	for (unsigned s = read_u32(in); s > 0; --s) airplanes.push_back(new airplane());
 	for (unsigned s = read_u32(in); s > 0; --s) torpedoes.push_back(new torpedo());

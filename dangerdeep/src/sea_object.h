@@ -52,6 +52,8 @@ public:
 protected:
 	string specfilename;	// filename for specification .xml file
 
+	string modelname;	// filename for model file (also used for modelcache requests)
+
 	vector3 position;
 	angle heading;	//, pitch, roll; // rotation of object, recomputed every frame for ships, maybe it should get stored
 	double speed, max_speed, max_rev_speed;	// m/sec
@@ -99,8 +101,6 @@ protected:
 	*/
 	virtual double get_cross_section ( const vector2& d ) const;
 	
-	string modelname;
-   
 public:
 	virtual ~sea_object();
 	virtual void load(istream& in, class game& g);
@@ -108,7 +108,8 @@ public:
 
 	// detail: 0 - category, 1 - finer category, >=2 - exact category
 	virtual string get_description(unsigned detail) const { return "UNKNOWN"; }
-	virtual string get_model (void) const { return modelname; }
+	virtual string get_specfilename(void) const { return specfilename; }
+	virtual string get_modelname(void) const { return modelname; }
 
 	virtual void simulate(class game& gm, double delta_time);
 //	virtual bool is_collision(const sea_object* other);

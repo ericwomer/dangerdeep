@@ -124,6 +124,8 @@ protected:
 	// stored torpedoes (including tubes)
 	// special functions calculate indices for bow/stern tubes etc., see below
 	vector<stored_torpedo> torpedoes;
+	unsigned number_of_tubes_at[6];
+	unsigned torp_transfer_times[5];
 
 	bool scopeup;	// fixme: maybe simulate time for moving scope up/down
 	double periscope_depth;
@@ -179,30 +181,37 @@ public:
 	// and some experimental types. (VIIc42, XVIIa/b)
 	// there were two IXd1 boats similar to type d2, but with different
 	// engines.
+/*
 	enum types {
 		typeIIa=256, typeIIb, typeIIc, typeIId,
 		typeVIIa, typeVIIb, typeVIIc, typeVIIc41,
 		typeIX, typeIXb, typeIXc, typeIXc40, typeIXd2,
 		typeXXI,
 		typeXXIII };
+*/
+
+	// create empty object from specification xml file
+	submarine(const string& specfilename_);
+	
+	// create sub from parser input (mission file), will read type from parser input
+	submarine(parser& p);
+
 	virtual ~submarine() {}
+
 	virtual void load(istream& in, class game& g);
 	virtual void save(ostream& out, const class game& g) const;
-	static submarine* create(istream& in, unsigned type);
-	static submarine* create(types type_);
-	static submarine* create(parser& p);
 	
 	virtual void simulate(class game& gm, double delta_time);
 
 	const vector<stored_torpedo>& get_torpedoes(void) const { return torpedoes; }
 
 	// get number of tubes / stored reserve torpedoes
-	virtual unsigned get_nr_of_bow_tubes(void) const = 0;
-	virtual unsigned get_nr_of_stern_tubes(void) const = 0;
-	virtual unsigned get_nr_of_bow_reserve(void) const = 0;
-	virtual unsigned get_nr_of_stern_reserve(void) const = 0;
-	virtual unsigned get_nr_of_bow_deckreserve(void) const = 0;
-	virtual unsigned get_nr_of_stern_deckreserve(void) const = 0;
+	virtual unsigned get_nr_of_bow_tubes(void) const { return number_of_tubes_at[0]; }
+	virtual unsigned get_nr_of_stern_tubes(void) const { return number_of_tubes_at[1]; }
+	virtual unsigned get_nr_of_bow_reserve(void) const { return number_of_tubes_at[2]; }
+	virtual unsigned get_nr_of_stern_reserve(void) const { return number_of_tubes_at[3]; }
+	virtual unsigned get_nr_of_bow_deckreserve(void) const { return number_of_tubes_at[4]; }
+	virtual unsigned get_nr_of_stern_deckreserve(void) const { return number_of_tubes_at[5]; }
 
 	// get first index of storage and first index after it (computed with functions above)
 	pair<unsigned, unsigned> get_bow_tube_indices(void) const;
@@ -243,11 +252,11 @@ public:
 
 	// get/compute torpedo transfer time and helper functions (uses functions below to compute)
 	virtual double get_torp_transfer_time(unsigned from, unsigned to) const;
-	virtual double get_bow_reload_time(void) const = 0;
-	virtual double get_stern_reload_time(void) const = 0;
-	virtual double get_bow_deck_reload_time(void) const = 0;
-	virtual double get_stern_deck_reload_time(void) const = 0;
-	virtual double get_bow_stern_deck_transfer_time(void) const = 0;
+	virtual double get_bow_reload_time(void) const { return torp_transfer_times[0]; }
+	virtual double get_stern_reload_time(void) const { return torp_transfer_times[1]; }
+	virtual double get_bow_deck_reload_time(void) const { return torp_transfer_times[2]; }
+	virtual double get_stern_deck_reload_time(void) const { return torp_transfer_times[3]; }
+	virtual double get_bow_stern_deck_transfer_time(void) const { return torp_transfer_times[4]; }
 	
 	// give tubenr -1 for any loaded tube, or else 0-5
 	virtual bool can_torpedo_be_launched(class game& gm, int tubenr, sea_object* target) const;
