@@ -229,18 +229,22 @@ void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent)
 				break;
 
 //fixme: this matrix seems to describe the model rotation and translation that IS ALREADY computed for the vertices
-//but why do some models are so much off the origin? (corvette, subIXc40)
+//but why are some models so much off the origin? (corvette, subIXc40)
+//lib3ds-dev: invertieren & draufmultiplizieren (transponieren evtl vorher?)
 			case M3DS_TRI_MESHMATRIX:
-				{
-				float matrix[4][3];
 				for (int j = 0; j < 4; ++j) {
 					for (int i = 0; i < 3; ++i) {
-						matrix[j][i] = read_float(in);
-						cout << "j="<<j<<", i="<<i<<": "<<matrix[j][i]<<"\n";
+						meshes.back().xformmat[j][i] = read_float(in);
+						cout << "j="<<j<<", i="<<i<<": "<<meshes.back().xformmat[j][i]<<"\n";
 					}
 				}
-				ch.bytes_read += 4 * 3 * 4;
+/*
+				{ mesh& m = meshes.back();
+				for (vector<model::mesh::vertex>::iterator it2 = m.vertices.begin(); it2 != m.vertices.end(); ++it2)
+					it2->pos.x -= 2*m.xformmat[3][0];
 				}
+*/				
+				ch.bytes_read += 4 * 3 * 4;
 				break;
 		}
 		ch.skip(in);

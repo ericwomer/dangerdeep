@@ -47,6 +47,7 @@ class model {
 	
 		vector<vertex> vertices;
 		vector<face> faces;
+		float xformmat[4][3];	// rotation and translation
 		material* mymaterial;
 		void display(void) const;
 
@@ -99,6 +100,8 @@ public:
 	model(const string& filename);
 	~model();
 	void display(void) const;
+	vector3f get_min(void) const { return min; }
+	vector3f get_max(void) const { return max; }
 	double get_length(void) const { return (max - min).y; }
 	double get_width(void) const { return (max - min).x; }
 	double get_height(void) const { return (max - min).z; }

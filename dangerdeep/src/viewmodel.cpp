@@ -92,9 +92,14 @@ void view_model(const string& modelfilename)
 		font_arial->print(0, 32, "Press left mouse button and move mouse to rotate x/y.");
 		font_arial->print(0, 48, "Press right mouse button and move mouse to rotate z/y.");
 		font_arial->print(0, 64, "Press middle mouse button and move mouse to rotate x/z.");
+		vector3f minp = mdl->get_min(), maxp = mdl->get_max();
 		ostringstream os;
-		os << "Rotation " << viewangles.x << ", " << viewangles.y << ", " << viewangles.z << "\nTranslation " <<
-			pos.x << ", " << pos.y << ", " << pos.z << "\n";
+		os << "Rotation " << viewangles.x << ", " << viewangles.y << ", " << viewangles.z <<
+			"\nTranslation " << pos.x << ", " << pos.y << ", " << pos.z <<
+			"\nmin " << minp.x << ", " << minp.y << ", " << minp.z <<
+			"\nmax " << maxp.x << ", " << maxp.y << ", " << maxp.z <<
+			"\n";
+			
 		font_arial->print(0, 80, os.str());
 		sys->unprepare_2d_drawing();
 		sys->swap_buffers();
