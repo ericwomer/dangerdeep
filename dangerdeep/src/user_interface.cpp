@@ -150,6 +150,52 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 		// which isn't right, so don't overdo that...
 		zdist += WAVESIZE;
 	}
+
+	/* 2003/07/04 idea.
+	   simulate earth curvature by drawing several horizon faces
+	   approximating the curvature.
+	   earth has medium radius of 6371km, that means 40030km around it.
+	   A ship with 15m height above the waterline disappears behind
+	   the horizon at ca. 13.825km distance (7.465 sm)
+	   
+	   exact value 40030.17359km. (u), earth radius (r)
+	   
+	   height difference in view: (h), distance (d). Formula:
+	   
+	   h = r * (1 - cos( 360deg * d / u ) )
+	   
+	   or
+	   
+	   d = arccos ( 1 - h / r ) * u / 360deg
+	   
+	   draw ships with height -h. so (dis)appearing of ships can be
+	   simulated properly.
+	   
+	   highest ships are battleships (approx. 30meters), they disappear
+	   at 19.551km (10.557 sm).
+	   
+	   That's much shorter than I thought! But there is a mistake:
+	   The viewer's height is not 0 but around 6-8m for submarines,
+	   so the formulas are more difficult:
+	   
+	   The real distance is twice the formula, once for the viewer's
+	   height, once for the object:
+	   
+	   d = (arccos(1 - myh/r) + arccos(1 - h/r)) * u / 360deg
+	   
+	   or for the watched object
+	   
+	   h = r * (1 - cos( 360deg * (d - (arccos(1 - myh/r)) / u ) )
+	   
+	   so for a watcher in 6m height and other ships we have
+	   arccos(1-myh/r) = 0.07863384deg
+	   15m in height -> dist: 22.569km (12.186sm)
+	   30m in height -> dist: 28.295km (15.278sm)
+	   
+	   This values are useful for computing "normal" simulation's
+	   maximum visibility.
+	   Waves are disturbing sight but are ignored here.
+	*/	   
 	
 	// additional vertices for horizon face
 	vector2 horizon1 = viewpos.xy() + viewdir * max_view_dist;
