@@ -286,9 +286,9 @@ void user_interface::init ()
 #if 0		// draw finite and fft normals to compare them, just a test
 /*
 		glActiveTexture(GL_TEXTURE0);
-		glDisable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
 		glActiveTexture(GL_TEXTURE1);
-		glDisable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
 */		
 		glColor3f(1,0,0);
 		glBegin(GL_LINES);
@@ -1007,6 +1007,11 @@ cout<<"\n";
 		}
 	}
 
+	glActiveTexture(GL_TEXTURE1);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glActiveTexture(GL_TEXTURE0);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
 	glPopAttrib();
 
 	glPopMatrix();
@@ -1087,7 +1092,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 
 	// fixme: texture coords for unit 1 are missing. this is why sky display fails.
 	glActiveTexture(GL_TEXTURE1);
-	glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
 /*
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, sunglow->get_opengl_name());
@@ -1147,6 +1152,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glLoadIdentity();
 //	glScalef(8.0f, 8.0f, 1.0f);
 //	glTranslatef(0.2f, 0.3f, 0.0f);
+	glTexCoord2f(0.5, 0.5);	// fix hack for sky color, real tex coords for sky hemisphere are missing
 	skyhemisphere->display();
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
