@@ -217,6 +217,16 @@ void game::load(const string& savefilename)
 	load_from_stream(in);
 }
 
+string game::read_description_of_savegame(const string& filename)
+{
+	ifstream in(filename.c_str(), ios::in|ios::binary);
+	read_string(in);
+	string desc = read_string(in);
+	int versionnr = read_i32(in);
+	if (versionnr != SAVEVERSION) system::sys()->myassert(false, "invalid save game version");
+	return desc;
+}
+
 void game::save_to_stream(ostream& out) const
 {
 	write_i32(out, SAVEVERSION);

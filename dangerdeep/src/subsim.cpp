@@ -41,6 +41,7 @@
 #include <sstream>
 #include "image.h"
 #include "widget.h"
+#include "filehelper.h"
 
 class system* sys;
 int res_x, res_y;
@@ -53,6 +54,197 @@ void menu_notimplemented(void)
 	m.run();
 }
 
+
+//
+// save game directory and helper functions
+//
+string savegamedirectory =
+#ifdef WIN32
+	"./save/";
+#else	
+	string(getenv("HOME"))+"/."+PACKAGE + "/";
+#endif	
+
+string number2alpha(unsigned num)
+{
+	char tmp[5] = {
+		'a' + ((num / 0x1000) & 0x0f),
+		'a' + ((num / 0x0100) & 0x0f),
+		'a' + ((num / 0x0010) & 0x0f),
+		'a' + ((num / 0x0001) & 0x0f),
+		0 };
+	return string(tmp);
+}
+
+unsigned alpha2number(const string& s)
+{
+	if (s.length() < 4) return 0xffffffff;
+	return
+		(int(s[0] - 'a') * 0x1000) +
+		(int(s[1] - 'a') * 0x0100) +
+		(int(s[2] - 'a') * 0x0010) +
+		(int(s[3] - 'a') * 0x0001) ;
+}
+
+string get_savegame_name_for(const string& descr, map<string, string>& savegames)
+{
+	unsigned num = 1;
+	for (map<string, string>::iterator it = savegames.begin(); it != savegames.end(); ++it) {
+		if (it->second == descr)
+			return savegamedirectory + it->first;
+		unsigned num2 = alpha2number(it->first.substr(5, 4));
+		if (num2 >= num) num = num2+1;
+	}
+	return savegamedirectory + "save_" + number2alpha(num) + ".dftd";
+}
+
+bool is_savegame_name(const string& s)
+{
+	if (s.length() != 14) return false;
+	if (s.substr(0, 5) != "save_") return false;
+	if (s.substr(9, 7) != ".dftd") return false;
+	for (int i = 5; i < 9; ++i)
+		if (s[i] < 'a' || s[i] > 'p') return false;
+	return true;
+}
+
+
+
+//
+// the game options menu, loading, saving games
+//
+class loadsavequit_dialogue : public widget
+{
+	widget_edit* gamename;
+	widget_list* gamelist;
+	widget_button *btnload, *btnsave, *btndel, *btnquit, *btncancel;
+	game* mygame;
+	map<string, string> savegames;
+	void load(void);
+	void save(void);
+	void erase(void);
+	void quit(void);
+	void cancel(void) { close(0); }
+	void update_list(void);
+
+public:	
+	widget_edit* get_gamename(void) const { return gamename; }
+	loadsavequit_dialogue(game* g);	// give 0 to disable saving
+	~loadsavequit_dialogue() {};
+};
+
+loadsavequit_dialogue::loadsavequit_dialogue(game *g) : widget(0, 0, 1024, 768, "Game options, fixme", 0, depthchargeimg), mygame(g)
+{
+	add_child(new widget_text(40, 40, 0, 0, "Savegame filename"));
+	gamename = new widget_edit(300, 40, 684, 40, "");
+	add_child(gamename);
+	widget_menu* wm = new widget_menu(40, 700, 176, 40, true);
+	add_child(wm);
+	btnload = wm->add_entry(texts::get(118), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::load));
+	if (mygame)
+		btnsave = wm->add_entry(texts::get(119), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::save));
+	btndel = wm->add_entry("Erase game", new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::erase));
+	if (mygame)
+		btnquit = wm->add_entry(texts::get(120), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::quit));
+	btncancel = wm->add_entry((mygame) ? texts::get(121) : "return to previous menu", new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::cancel));
+	struct lsqlist : public widget_list
+	{
+		void on_sel_change(void) {
+			dynamic_cast<loadsavequit_dialogue*>(parent)->get_gamename()->set_text(get_selected_entry());
+		}
+		lsqlist(int x, int y, int w, int h) : widget_list(x, y, w, h) {}
+		~lsqlist() {}
+	};
+	gamelist = new lsqlist(40, 100, 944, 580);
+	add_child(gamelist);
+
+	update_list();
+}
+
+void loadsavequit_dialogue::load(void)
+{
+	mygame->load(get_savegame_name_for(gamename->get_text(), savegames));
+	widget* w = create_dialogue_ok("Savegame '" + gamename->get_text() + "' has been loaded.");
+	w->run();
+	delete w;
+}
+
+void loadsavequit_dialogue::save(void)
+{
+	string fn = get_savegame_name_for(gamename->get_text(), savegames);
+	FILE* f = fopen(fn.c_str(), "rb");
+	if (f) {
+		fclose(f);
+		widget* w = create_dialogue_ok_cancel("Overwrite savegame '" + gamename->get_text() + "' ?");
+		int ok = w->run();
+		delete w;
+		if (!ok) return;
+	}
+	mygame->save(fn, gamename->get_text());
+	widget* w = create_dialogue_ok("Savegame '" + gamename->get_text() + "' has been saved.");
+	w->run();
+	delete w;
+	update_list();
+}
+
+void loadsavequit_dialogue::erase(void)
+{
+	widget* w = create_dialogue_ok_cancel("Erase savegame '" + gamename->get_text() + "' ?");
+	int ok = w->run();
+	delete w;
+	if (ok) {
+		string fn = get_savegame_name_for(gamename->get_text(), savegames);
+		remove(fn.c_str());
+		int s = gamelist->get_selected() - 1;
+		update_list();
+		if (s < 0) s = 0;
+		gamelist->set_selected(s);
+		gamename->set_text(gamelist->get_selected_entry());
+	}
+}
+
+void loadsavequit_dialogue::quit(void)
+{
+	widget* w = create_dialogue_ok_cancel("Quit game?");
+	int q = w->run();
+	if (q) close(1);
+}
+
+void loadsavequit_dialogue::update_list(void)
+{
+	savegames.clear();
+
+	// read save games in directory
+	directory savegamedir = open_dir(savegamedirectory);
+	system::sys()->myassert(savegamedir != 0, "game: could not open save game directory");
+	while (true) {
+		string e = read_dir(savegamedir);
+		if (e.length() == 0) break;
+		if (is_savegame_name(e)) {
+			string descr = mygame->read_description_of_savegame(savegamedirectory+e);
+			savegames[e] = descr;
+		}
+	}
+	close_dir(savegamedir);
+	
+	gamelist->clear();
+
+	unsigned sel = 0;		
+	for (map<string, string>::iterator it = savegames.begin(); it != savegames.end(); ++it) {
+		gamelist->append_entry(it->second);
+		if (it->second == gamename->get_text())
+			gamelist->set_selected(sel);
+		++sel;
+	}
+
+	if (savegames.size() == 0) {
+		btnload->disable();
+		btndel->disable();
+	} else {
+		btnload->enable();
+		btndel->enable();
+	}
+}
 
 
 //
@@ -118,15 +310,9 @@ void run_game(game* gm)
 			//if (q == 1)
 				break;
 		} else {
-			widget woptions(0, 0, 1024, 768, texts::get(29), 0, depthchargeimg);
-			widget_menu* wmn = new widget_menu(312, 260, 400, 40, false);
-			woptions.add_child(wmn);
-			wmn->add_entry(texts::get(118), new widget_func_arg_button<void (*)(game**), game**>(load_game, &gm));
-			wmn->add_entry(texts::get(119), new widget_func_arg_button<void (*)(const game*), const game*>(save_game, gm));
-			wmn->add_entry(texts::get(120), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&woptions, &widget::close, 1));
-			wmn->add_entry(texts::get(121), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&woptions, &widget::close, 2));
-			unsigned sel = woptions.run();
-			if (sel == 1)
+			loadsavequit_dialogue dlg(gm);
+			int q = dlg.run();
+			if (q == 1)
 				break;
 		}
 		//SDL_ShowCursor(SDL_DISABLE);
@@ -218,6 +404,19 @@ void choose_historical_mission(void)
 }
 
 
+//
+// choose a saved game
+//
+void choose_saved_game(void)
+{
+	loadsavequit_dialogue dlg(0);
+	int q = dlg.run();
+//	if (q == 1)
+//		break;
+// fixme
+}
+
+
 
 
 // old menus are used from here on
@@ -227,6 +426,7 @@ void menu_single_mission(void)
 	m.add_item(8, menu_notimplemented);
 	m.add_item(9, create_convoy_mission);
 	m.add_item(10, choose_historical_mission);
+	m.add_item(118, choose_saved_game);
 	m.add_item(11, 0);
 	m.run();
 }
@@ -504,6 +704,17 @@ int main(int argc, char** argv)
 
 	sys->draw_console_with(font_arial, background);
 	
+
+	// init config and save game dir
+	directory savegamedir = open_dir(savegamedirectory);
+	if (savegamedir == 0) {
+		bool ok = make_dir(savegamedirectory);
+		if (!ok) {
+			system::sys()->myassert(false, "could not create save game directory.");
+		}
+	}
+
+
 	// main menu
 	menu m(104, titlebackgrimg);
 	m.add_item(21, menu_single_mission);

@@ -122,6 +122,7 @@ public:
 	// maybe only needed for loading (build structure or not)
 	virtual void save(const string& savefilename, const string& description) const;
 	virtual void load(const string& savefilename);
+	static string read_description_of_savegame(const string& filename);
 	virtual void save_to_stream(ostream& out) const;
 	virtual void load_from_stream(istream& in);
 

@@ -1,4 +1,10 @@
 2003-12-26  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* subsim.cpp game.cpp game.h
+	  - added an interface to load and save games (ripped from advse)
+	  - added a "load game" option in the "play single mission" menu
+	  - next release should be after loading/saving works 100%
+
+2003-12-26  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* game, sea_object and heirs, date
 	  - introduced load/save functions
 	  - most objects can be loaded and saved binary now
