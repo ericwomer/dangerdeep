@@ -179,7 +179,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		}
 	}
 
-	ocean_wave_generator<float> owg(WAVE_RESOLUTION, vector2f(1,1), 20 /*10*/ /*31*/, 1e-6 /* 5e-6 */, WAVE_LENGTH, TIDECYCLE_TIME);
+	ocean_wave_generator<float> owg(WAVE_RESOLUTION, vector2f(1,1), 20 /*10*/ /*31*/, 3e-6 /* 5e-6 */, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileheights[i] = owg.compute_heights();

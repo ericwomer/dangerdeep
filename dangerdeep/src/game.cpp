@@ -1409,6 +1409,8 @@ game::run_state game::exec(void)
 
 		// maybe limit input processing to 30 fps
 		ui->process_input(*this, events);
+		// fixme: make use of game::job interface, 3600/256 = 14.25 secs job period
+		ui->set_time(get_time());
 		ui->display(*this);
 		++frames;
 

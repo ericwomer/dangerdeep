@@ -107,6 +107,14 @@ void user_interface::display(game& gm) const
 
 
 
+void user_interface::set_time(double tm)
+{
+	mysky->set_time(tm);
+	mywater->set_time(tm);
+}
+
+
+
 void user_interface::process_input(class game& gm, const SDL_Event& event)
 {
 	displays[current_display]->process_input(gm, event);

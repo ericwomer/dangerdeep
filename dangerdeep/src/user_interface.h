@@ -86,6 +86,9 @@ public:
 	// display (const) and input handling
 	virtual void display(game& gm) const;
 
+	// set global time for display (needed for water/sky animation)
+	void set_time(double tm);
+
 	// process common events (common keys, mouse input to panel)
 	virtual void process_input(class game& gm, const SDL_Event& event);
 	virtual void process_input(class game& gm, const list<SDL_Event>& events);

@@ -10,6 +10,14 @@
 
 class freeview_display : public user_display
 {
+public:
+	struct projection_data
+	{
+		unsigned x, y, w, h;	// viewport, holds also aspect info
+		double fov_x;		// angle of field of view (horizontal) in degrees
+		double near_z, far_z;
+	};
+
 protected:
 	// position and direction of viewer,maybe store in ui
 	angle bearing;
@@ -25,10 +33,9 @@ protected:
 
 	// display() calls these functions
 	void pre_display(class game& gm) const;
-	void get_viewport(unsigned& x, unsigned& y, unsigned& w, unsigned& h) const;
 //fixme: reflections need special viewport... depends on detail settings. mabye retrieve from ui
-	matrix4 get_projection_matrix(void) const;
-	matrix4 get_modelview_matrix(void) const;
+	projection_data get_projection_data(class game& gm) const;
+	void set_modelview_matrix(class game& gm) const;
 	void post_display(class game& gm) const;
 
 	// draw all sea_objects
