@@ -98,11 +98,11 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 	// ******************************** create map for sky color
 	vector<Uint8> skycolmap(256*256*3);
 	for (int y = 0; y < 256; ++y) {
-		// y is height
+		// y is height in sky (top -> horizon color gradient)
 		color a = color(color( 73, 164, 255), color(173, 200, 219), float(y)/255);
 		color b = color(color(143, 148, 204), color(231, 166, 89 /* 138, 156, 168*/), float(y)/255);
 		for (int x = 0; x < 256; ++x) {
-			// x is weather type (sunny -> storm)
+			// x is daytime (blue -> orange at sunset)
 			color c = color(a, b, float(x)/255);
 			skycolmap[(y*256+x)*3+0] = c.r;
 			skycolmap[(y*256+x)*3+1] = c.g;
@@ -497,25 +497,24 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	// x in [0,1] means sunny...storm)
 	// sun glow (it moves) must come from a texture
 
-	//fixme: instead of clearing the screen with black we could set the blend function
-	//to GL_SRC_ALPHA, GL_ZERO to blend the sky color into black. This saves
-	//the glClear(), Stars can be drawn after the sky color, with reversed sky alpha.
-//clear is done in freeview display with fog color now
-//	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-//	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_LIGHTING);
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 
 //	glTranslatef(0, 0, -viewpos.z);//fixme wozu dies?!
 
+	// the brighter the sun, the deeper is the sky color
+	float atmos = (sundir.z < -0.25) ? 0.0f : ((sundir.z < 0.0) ? 4*(sundir.z+0.25) : 1.0f);
+
+	skycolorfac = (sundir.z > 0.5) ? 0.0 : (1.0 - sundir.z * 2);
+
 	// because the reflection map may have a lower resolution than the screen
 	// we shouldn't draw stars while computing this map. They would appear to big.
 	// in fact star light is to weak for water reflections, isn't it?
+	// fixme: maybe rotate star positions every day a bit? rotate with earth rotation? that would be more realistic/cooler
 	if (!isreflection) {
 		glPushMatrix();
 		glScalef(max_view_dist * 0.95, max_view_dist * 0.95, max_view_dist * 0.95);
-		glDisable(GL_LIGHTING);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glEnableClientState(GL_COLOR_ARRAY);
 	        glColorPointer(3, GL_UNSIGNED_BYTE, 0, &stars_lumin[0]);
@@ -527,15 +526,8 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 		glPopMatrix();
 	}
 
-	// the brighter the sun, the deeper is the sky color
-	float atmos = (sundir.z < -0.25) ? 0.0f : ((sundir.z < 0.0) ? 4*(sundir.z+0.25) : 1.0f);
 	glColor4f(1, 1, 1, atmos);
-
-	skycolorfac = (sundir.z > 0.5) ? 0.0 : (1.0 - sundir.z * 2);
-
 	setup_textures();
-
-	// fixme: maybe rotate star positions every day a bit? rotate with earth rotation? that would be more realistic/cooler
 
 	glPushMatrix();
 	// with scal=0.1 we draw a sky hemisphere with 3km radius. We don't write to
@@ -564,7 +556,6 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	cleanup_textures();
 
 	glPopMatrix();	// remove scale
-
 
 	// ******** the sun and the moon *****************************************************
 	// draw sun, fixme draw flares/halo
@@ -640,4 +631,15 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	color::white().set_gl_color();
 
 	glPopMatrix();
+}
+
+
+
+color sky::get_horizon_color(const game& gm, const vector3& viewpos) const
+{
+	// fixme: same colors as above, store them at unique place!
+	vector3 sundir = gm.compute_sun_pos(viewpos).normal();
+	float daytimefac1 = (sundir.z > 0.5) ? 0.0 : (1.0 - sundir.z * 2);
+	float daytimefac2 = (sundir.z < -0.25) ? 0.0f : ((sundir.z < 0.0) ? 4*(sundir.z+0.25) : 1.0f);
+	return color(color(0, 0, 0), color(color(173, 200, 219), color(231, 166, 89), daytimefac1), daytimefac2);
 }

@@ -64,6 +64,7 @@ public:
 	void set_time(double tm);
 	~sky();
 	void display(const game& gm, const vector3& viewpos, double max_view_dist, bool isreflection) const;
+	color get_horizon_color(const game& gm, const vector3& viewpos) const;
 };
 
 #endif

@@ -168,43 +168,6 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
 		ui.rotate_by_pos_and_wave((*it)->get_pos(), (*it)->get_roll_factor());
 		(*it)->display();
 
-		//draw spray with particles... not needed here, all particles drawn at once below
-
-/*
-		// draw spray
-		glDisable(GL_LIGHTING);
-		float y0 = (*it)->get_length()/2;
-		float y1 = y0 - 8;
-		float x1 = 4;
-		float z0 = 4;
-		float z1 = -4;
-		vector3 p0(0, (*it)->get_length()/2, 0);
-		ui.get_spray()->set_gl_texture();
-		glBegin(GL_QUADS);
-
-		//fixme: add other side
-		glTexCoord2f(0, 0);
-		glVertex3f(0, y0, z0);
-		glTexCoord2f(0, 1);
-		glVertex3f(0, y0, z1);
-		glTexCoord2f(1, 1);
-		glVertex3f(-x1, y1, z1);
-		glTexCoord2f(1, 0);
-		glVertex3f(-x1, y1, z0);
-
-		glTexCoord2f(0, 0);
-		glVertex3f(0, y0, z0);
-		glTexCoord2f(1, 0);
-		glVertex3f(x1, y1, z0);
-		glTexCoord2f(1, 1);
-		glVertex3f(x1, y1, z1);
-		glTexCoord2f(0, 1);
-		glVertex3f(0, y0, z1);
-
-		glEnd();
-		glEnable(GL_LIGHTING);
-*/
-
 		glPopMatrix();
 	}
 
@@ -310,7 +273,8 @@ void freeview_display::draw_view(game& gm) const
 
 	// **************** prepare drawing ***************************************************
 
-	GLfloat fog_color[4] = { 0.68, 0.78, 0.86, 1.0};//fixme: depends on sky color at the horizon! influenced by sun etc.
+	GLfloat horizon_color[4];
+	ui.get_sky().get_horizon_color(gm, viewpos).store_rgba(horizon_color);
 
 	color lightcol = gm.compute_light_color(viewpos);
 
@@ -341,7 +305,8 @@ void freeview_display::draw_view(game& gm) const
 	unsigned vps = ui.get_water().get_reflectiontex_size();
 	glViewport(0, 0, vps, vps);
 	// clear depth buffer (fixme: maybe clear color with upwelling color, use a bit alpha)
-	glClearColor(fog_color[0], fog_color[1], fog_color[2], fog_color[3]);
+	glClearColor(horizon_color[0], horizon_color[1], horizon_color[2], horizon_color[3]);
+	glClearColor(0, 0, 0, 0);//fixme test, see below
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// shear one clip plane to match world space z=0 plane
@@ -394,7 +359,16 @@ void freeview_display::draw_view(game& gm) const
 	system::sys().gl_perspective_fovx(pd.fov_x, double(pd.w)/double(pd.h), pd.near_z, pd.far_z);
 	glMatrixMode(GL_MODELVIEW);
 
-	glClear(GL_DEPTH_BUFFER_BIT);
+	//fixme: water reflections are brighter than the sky, so there must be a difference between sky drawing
+	//and mirrored sky drawing...
+	//yes, because sky is blended into background, and that color is different.
+	//mirror scene background color is horizon color, so that in the mirrored image the background pixels
+	//don't bleed into the sky/horizon pixels...
+	//shouldn't matter anyway because of water fog... test this
+
+	glClearColor(0, 0, 0, 0);
+	// this color clear eats ~ 2 frames (52 to 50 on a gf4mx), but is needed for star sky drawing
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	// set light! fixme the models are dark now. maybe we have to use the same modelview matrix that we used when creating the initial pos.?!
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
@@ -405,13 +379,12 @@ void freeview_display::draw_view(game& gm) const
 
 	// ********* set fog for scene ****************************************************
 	glFogi(GL_FOG_MODE, GL_LINEAR );
-	glFogfv(GL_FOG_COLOR, fog_color);
+	glFogfv(GL_FOG_COLOR, horizon_color);
 	glFogf(GL_FOG_DENSITY, 1.0);	// not used in linear mode
 	glHint(GL_FOG_HINT, GL_NICEST /*GL_FASTEST*/ /*GL_DONT_CARE*/);
 	glFogf(GL_FOG_START, max_view_dist*0.75);	// ships disappear earlier :-(
 	glFogf(GL_FOG_END, max_view_dist);
 	glEnable(GL_FOG);	
-
 
 	// ******* water ***************************************************************
 	//ui.get_water().update_foam(1.0/25.0);  //fixme: deltat needed here

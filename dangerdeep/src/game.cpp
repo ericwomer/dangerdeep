@@ -1589,6 +1589,7 @@ void game::send(command* cmd)
 
 double game::compute_light_brightness(const vector3& viewpos) const
 {
+	// fixme: if sun is blocked by clouds, light must be darker...
 	vector3 sundir = compute_sun_pos(viewpos).normal();
 	// in reality the brightness is equal to sundir.z, but the sun is so bright that
 	// we stretch and clamp this value

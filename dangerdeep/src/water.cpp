@@ -21,7 +21,6 @@
 
 // compute projected grid efficiency, it should be 50-95%
 //#define COMPUTE_EFFICIENCY
-#define DISTANCE_FRESNEL_HACK	// distance related fresnel term reduction
 #define WAVE_SUB_DETAIL		// sub fft detail
 
 // for testing
@@ -143,11 +142,13 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		float fs = float(s)/(fresnelres-1);
 		for (unsigned f = 0; f < fresnelres; ++f) {
 			float ff = float(f)/(fresnelres-1);
+			//fixme: setting refraction color this way is problematic, at night it should
+			//be much darker!!!
 			color c(color(18, 73, 107), color(18, 93, 77), fs);
 			//maybe reduce reflections by using 192 or 224 instead of 255 here
 			//looks better! sea water shows less reflections in reality
 			//because it is so rough.
-			c.a = Uint8(192*exact_fresnel(ff)+0.5f);
+			c.a = Uint8(255 /*192*/ * exact_fresnel(ff)+0.5f);
 			fresnelfct[s*fresnelres+f] = c;
 		}
 	}
@@ -715,25 +716,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 
 	glColor4f(1,1,1,1);
 
-#ifdef DISTANCE_FRESNEL_HACK
-	// With growing distance the water becomes similar to a flat plane
-	// (trilinar filtering and/or drawing with less triangles), so the
-	// Fresnel term becomes nearly 1. This is unrealistic, because the
-	// viewer also sees the side of waves in the distance.
-	// Instead of manipulating the fresnel term (shrinking it)
-	// we add fog with standard water color!
-	// this color is a mix of base water color and sky color.
-	// fixme: at night is is different!
-	GLfloat fog_color[4] = { 80/255.0f, 147/255.0f, 176/255.0f, 1.0f };
-	glFogi(GL_FOG_MODE, GL_LINEAR );
-	glFogfv(GL_FOG_COLOR, fog_color);
-	glFogf(GL_FOG_DENSITY, 1.0);
-	glHint(GL_FOG_HINT, GL_NICEST);
-	glFogf(GL_FOG_START, 1000);
-	glFogf(GL_FOG_END, 10000);
-	glEnable(GL_FOG);
-#endif
-
 	// draw elements (fixed index list) with vertex arrays using coords,uv0,normals,uv1
 	glDisableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -756,10 +738,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
 #else
 	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
-#endif
-
-#ifdef DISTANCE_FRESNEL_HACK
-	glDisable(GL_FOG);
 #endif
 
 	if (lockarr)
