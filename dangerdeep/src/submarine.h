@@ -168,7 +168,7 @@ protected:
 	virtual void calculate_fuel_factor ( double delta_time );
 
 public:
-	// there were more types, I, X (mine layer), XIV (milk cow), VIIf, (VIId?,e?)
+	// there were more types, I, X (mine layer), XIV (milk cow), VIIf, (and VIId)
 	// and some experimental types. (VIIc42, XVIIa/b)
 	// there were two IXd1 boats similar to type d2, but with different
 	// engines.

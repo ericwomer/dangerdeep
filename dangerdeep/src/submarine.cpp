@@ -8,6 +8,7 @@
 #include "date.h"
 #include "submarine.h"
 #include "submarine_VIIc.h"
+#include "submarine_IXc40.h"
 #include "submarine_XXI.h"
 #include "depth_charge.h"
 
@@ -136,6 +137,7 @@ submarine* submarine::create(submarine::types type_)
 {
 	switch (type_) {
 		case typeVIIc: return new submarine_VIIc();
+		case typeIXc40: return new submarine_IXc40();
 		case typeXXI: return new submarine_XXI();
 	}
 	return 0;
@@ -148,6 +150,7 @@ submarine* submarine::create(parser& p)
 	p.consume();
 	switch (t) {
 		case TKN_TYPEVIIC: return new submarine_VIIc(p);
+		case TKN_TYPEIXC40: return new submarine_IXc40(p);
 		case TKN_TYPEXXI: return new submarine_XXI(p);
 	}
 	return 0;

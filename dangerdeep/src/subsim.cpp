@@ -34,6 +34,7 @@
 #include "ship_mediumfreighter.h"
 #include "ship_smalltanker.h"
 #include "submarine_VIIc.h"
+#include "submarine_IXc40.h"
 #include "submarine_XXI.h"
 #include <iostream>
 #include <sstream>
@@ -67,7 +68,8 @@ void start_custom_mission(void)
 	submarine::types st = submarine::typeVIIc;
 	switch (mission_subtype) {
 		case 0: st = submarine::typeVIIc; break;
-		case 1: st = submarine::typeXXI; break;
+		case 1: st = submarine::typeIXc40; break;
+		case 2: st = submarine::typeXXI; break;
 	}
 	game* gm = new game(st, mission_cvsize,	mission_cvesc, mission_tod);
 	gm->main_playloop(*sys);
@@ -78,6 +80,7 @@ void menu_selectsubtype(void)
 {
 	menu m(9, scopewatcherimg);
 	m.add_item(17, 0);
+	m.add_item(174, 0);
 	m.add_item(18, 0);
 	m.add_item(20, 0);
 	mission_subtype = m.run();
@@ -326,8 +329,8 @@ void menu_show_vessels(void)
 		}
 #undef ROTANG		
 		if (current_vessel != lastvessel) {
-			if (current_vessel < 0) current_vessel = 12;
-			if (current_vessel > 12) current_vessel = 0;
+			if (current_vessel < 0) current_vessel = 13;
+			if (current_vessel > 13) current_vessel = 0;
 			delete vessel;
 			lastvessel = current_vessel;
 			switch(current_vessel) {
@@ -342,8 +345,9 @@ void menu_show_vessels(void)
 				case  8: vessel = new ship_largefreighter(); break;
 				case  9: vessel = new ship_mediumfreighter(); break;
 				case 10: vessel = new ship_smalltanker(); break;
-				case 11: vessel = new submarine_XXI(); break;
-				case 12: vessel = new submarine_VIIc(); break;
+				case 11: vessel = new submarine_VIIc(); break;
+				case 12: vessel = new submarine_IXc40(); break;
+				case 13: vessel = new submarine_XXI(); break;
 			}
  		}
 	}

@@ -275,3 +275,18 @@ void model::display(bool with_texture) const
 	glDisableClientState(GL_NORMAL_ARRAY);
 #endif	
 }
+
+void model::scale(float s)
+{
+	for (unsigned i = 0; i < vertices.size(); ++i) {
+		vertices[i].pos.x *= s;
+		vertices[i].pos.y *= s;
+		vertices[i].pos.z *= s;
+	}
+	min.x *= s;
+	min.y *= s;
+	min.z *= s;
+	max.x *= s;
+	max.y *= s;
+	max.z *= s;
+}

@@ -19,6 +19,7 @@ token tokens[] = {
 	token(TKN_SUBMARINE, "submarine"),
 	token(TKN_SHIP, "ship"),
 	token(TKN_TYPEVIIC, "typeVIIc"),
+	token(TKN_TYPEIXC40, "typeIXc40"),
 	token(TKN_TYPEXXI, "typeXXI"),
 	token(TKN_POSITION, "position"),
 	token(TKN_ASSIGN, "="),

@@ -1,3 +1,8 @@
+2003-08-03  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* submarine.cpp
+	  - added sub model IXc/40 (most numerous type IX) with all
+	    dependant files. 3d model is there, but looks awful yet.
+
 2003-08-02  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* font.cpp
 	  - new print function for wrap around texts

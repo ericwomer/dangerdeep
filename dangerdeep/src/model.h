@@ -62,6 +62,7 @@ public:
 	double get_width(void) const { return (max - min).x; }
 	double get_height(void) const { return (max - min).z; }
 	vector3f get_boundbox_size(void) const { return max-min; }
+	void scale(float s);	// scale model by f
 };
 
 #endif
