@@ -348,13 +348,13 @@ void game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 		// fixme: we need a special collision detection, because
 		// the shell is so fast that it can be collisionfree with *it
 		// delta_time ago and now, but hit *it in between
-		if ((*it)->is_collision(pos.xy())) {
+		if (is_collision(*it, pos.xy())) {
 			(*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS);
 			return;	// only one hit possible
 		}
 	}
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		if ((*it)->is_collision(pos.xy())) {
+		if (is_collision(*it, pos.xy())) {
 			(*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS);
 			return; // only one hit possible
 		}
@@ -383,7 +383,7 @@ list<vector3> game::ping_ASDIC(const vector2& pos, angle dir)
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
 		vector3 subpos = (*it)->get_pos();
 		if (subpos.z >= -2) continue;	// surfaced subs can't be detected
-		double dist = subpos.distance(vector3(pos.x,pos.y,0));
+		double dist = subpos.distance(pos.xy0());
 		if (dist > ASDICRANGE) continue;
 		angle contactangle(subpos.xy() - pos);
 		angle diffang = dir - contactangle;
@@ -408,7 +408,7 @@ list<vector3> game::ping_ASDIC(const vector2& pos, angle dir)
 bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 {
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
-		if (t->is_collision(*it)) {
+		if (is_collision(t, *it)) {
 			if (runlengthfailure) {
 				ui->add_message(TXT_Torpedodudrangetooshort[language]);
 				return true;
@@ -423,9 +423,7 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 		}
 	}
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-//	fixme remove this and compute correct initial torpedo position	
-//		if (*it == parent && run_length <= parent->get_length()) continue;
-		if (t->is_collision(*it)) {
+		if (is_collision(t, *it)) {
 			if (runlengthfailure) {
 				ui->add_message(TXT_Torpedodudrangetooshort[language]);
 				return true;
@@ -472,6 +470,72 @@ submarine* game::sub_in_direction_from_pos(const vector2& pos, angle direction)
 		}
 	}
 	return result;
+}
+
+bool game::is_collision(const sea_object* s1, const sea_object* s2) const
+{
+	// bounding volume collision test
+	float br1 = s1->get_bounding_radius();
+	float br2 = s2->get_bounding_radius();
+	float br = br1 + br2;
+	vector2 p1 = s1->get_pos().xy();
+	vector2 p2 = s2->get_pos().xy();
+	if (p1.square_distance(p2) > br*br) return false;
+	
+	// exact collision test
+	// compute direction and their normals of both objects
+	vector2 d1 = s1->get_heading().direction();
+	vector2 n1 = d1.orthogonal();
+	vector2 d2 = s2->get_heading().direction();
+	vector2 n2 = d2.orthogonal();
+	double l1 = s1->get_length(), l2 = s2->get_length();
+	double w1 = s1->get_width(), w2 = s2->get_width();
+
+	// compute base point and four directions.
+	vector2 pb1 = p1 + d1 * (l1/2) + n1 * (w1/2);
+	vector2 pb2 = p2 + d2 * (l2/2) + n2 * (w2/2);
+	vector2 pd1[4] = { -d1*l1, -n1*w1, d1*l1, n1*w1 };
+	vector2 pd2[4] = { -d2*l2, -n2*w2, d2*l2, n2*w2 };
+
+	// compare every edge ob the first object with every edge of the second object	
+	for (int j = 0; j < 4; ++j) {
+		for (int i = 0; i < 4; ++i) {
+			double s, t;
+			if ((pb1 - pb2).solve(pd1[j], -pd2[i], s, t)) {
+				if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
+					return true;
+			}
+			pb2 += pd2[i];	// circle around the outer edges
+		}
+		pb1 += pd1[j];	// circle around the outer edges
+	}
+	return false;
+}
+
+bool game::is_collision(const sea_object* s, const vector2& pos) const
+{
+	// bounding volume collision test
+	float br = s->get_bounding_radius();
+	vector2 p = s->get_pos().xy();
+	if (p.square_distance(pos) > br*br) return false;
+	
+	// exact collision test
+	// compute direction and their normals
+	vector2 d = s->get_heading().direction();
+	vector2 n = d.orthogonal();
+	double l = s->get_length(), w = s->get_width();
+
+	// compute base point and four directions.
+	vector2 pb = p + d * (l/2) + n * (w/2);
+	vector2 pd[4] = { -d*l, -n*w, d*l, n*w };
+
+	// compare every edge ob the object with pos
+	for (int i = 0; i < 4; ++i) {
+		double t = (pd[i].x * (pos.y - pb.y) + pd[i].y * (pb.x - pos.x));
+		if (t < 0) return false;
+		pb += pd[i];	// circle around the outer edges
+	}
+	return true;
 }
 
 // main play loop

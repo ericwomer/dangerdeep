@@ -114,7 +114,8 @@ public:
 	ship* ship_in_direction_from_pos(const vector2& pos, angle direction);
 	submarine* sub_in_direction_from_pos(const vector2& pos, angle direction);
 
-	// fixme: remove sea_object::is_collision , replace with some function(s) of this class
+	bool is_collision(const sea_object* s1, const sea_object* s2) const;
+	bool is_collision(const sea_object* s, const vector2& pos) const;
 
 	double water_depth(const vector2& pos) const;
 

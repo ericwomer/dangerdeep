@@ -39,4 +39,6 @@ class vector3
 	vector2 yz(void) const { return vector2(y, z); };
 };
 
+inline vector3 operator* (const double& scalar, const vector3& v) { return v * scalar; }
+
 #endif

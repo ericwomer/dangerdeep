@@ -32,6 +32,9 @@ class vector2
 	double distance(const vector2 &other) const { vector2 n = *this - other; return n.length(); };
 	double operator* (const vector2 &other) const { return x * other.x + y * other.y; };
 	bool solve(const vector2 &o1, const vector2 &o2, double &s1, double &s2) const;
+	class vector3 xy0(void) const;
 };
+
+inline vector2 operator* (const double& scalar, const vector2& v) { return v * scalar; }
 
 #endif

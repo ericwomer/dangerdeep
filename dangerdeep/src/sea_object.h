@@ -103,6 +103,7 @@ public:
 	angle estimate_angle_on_the_bow(angle target_bearing, angle target_heading) const;
 	
 	virtual void display(void) const = 0;
+	double get_bounding_radius(void) const { return width + length; }	// fixme: could be computed more exact
 };
 
 #endif
