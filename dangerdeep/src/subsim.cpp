@@ -585,14 +585,15 @@ void play_network_game(void)
 {
 	IPaddress computer_ip;
 	Uint16 server_port = 0xdf7d;
+	Uint16 local_port = 0xdf7d;
 	
 	network_connection client;	// used for scanning and later for playing
 	
 	// initialize network play
 	int network_ok = SDLNet_Init();
 	system::sys().myassert(network_ok != -1, "failed to initialize SDLnet");
-	int error = SDLNet_ResolveHost(&computer_ip, NULL, server_port);
-	system::sys().myassert(error == 0, "can resolve host ip for this computer");
+	int error = SDLNet_ResolveHost(&computer_ip, NULL, local_port);
+	system::sys().myassert(error == 0, "can't resolve host ip for this computer");
 
 	widget w(0, 0, 1024, 768, texts::get(22), 0, swordfishimg);
 	w.add_child(new widget_text(40, 60, 0, 0, texts::get(57)));
@@ -603,13 +604,27 @@ void play_network_game(void)
 	widget_edit* wportaddr = new widget_edit(280, 90, 200, 40, oss.str());
 	w.add_child(wportaddr);
 	w.add_child(new widget_text(40, 140, 0, 0, texts::get(193)));
-	widget_list* wservers = new widget_list(40, 170, 440, 400);
+
+	struct wserver_list : public widget_list
+	{
+		widget_edit * wip, * wpt;
+		void on_sel_change(void) {
+			string s = get_selected_entry();
+			wip->set_text(s.substr(0, s.find(":")));
+			wpt->set_text(s.substr(s.find(":")+1));
+		}
+		wserver_list(int x, int y, int w, int h, widget_edit* wip_, widget_edit* wpt_) : widget_list(x, y, w, h), wip(wip_), wpt(wpt_) {}
+		~wserver_list() {}
+	};
+	widget_list* wservers = new wserver_list(40, 170, 440, 400, wserverip, wportaddr);
 	w.add_child(wservers);
+	ostringstream oss2; oss2 << local_port;
+	w.add_child(new widget_text(40, 600, 0, 0, texts::get(212)));
+	widget_edit* wlocalportaddr = new widget_edit(40, 630, 200, 40, oss2.str());
+	w.add_child(wlocalportaddr);
 	
 	ask_for_offered_games(wservers, server_port, client);
 	
-	// fixme: set ip editbox when user clicks on list
-
 	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
 	w.add_child(wm);
 	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
@@ -623,7 +638,7 @@ void play_network_game(void)
 		result = w.run(50);
 		listen_for_offered_games(wservers, server_port, client);
 		if (result == 2) {
-			create_network_game(server_port);	// start server, wait for players
+			create_network_game(local_port);	// start server, wait for players
 		} else if (result == 3) {
 			join_network_game(wserverip->get_text(), server_port, client);
 		} else if (result == 4) {

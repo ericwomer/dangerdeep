@@ -29,6 +29,8 @@ chmod 755 $debroot/$bindir/dangerdeep
 rm -r `find $debroot -name CVS`
 rm `find $debroot -type f -and -name 'Makefile*'`
 
+chmod -R a-s $debroot
+
 fakeroot dpkg-deb --build $debroot && \
 	lintian $debfile && \
 	echo "$debfile created"
