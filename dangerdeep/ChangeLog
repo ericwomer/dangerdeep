@@ -1,0 +1,21 @@
+2003-04-01  Markus Petermann  <m.petermann@gmx.net>
+
+	* seaobject.h New method get_depth added
+
+	* submarine.h New attribute periscope_depth, two new methods
+	  get_periscope_depth and is_submerged
+
+	* submarine.cpp Changed constructor
+
+	* submarine_interface.h Declared some methods virtual
+
+	* submarine_interface.cpp Use method get_periscope_depth instead
+	  calculating depth everytime it is needed
+
+	* user_interface.h: Definition of constructor user_interface removed. New
+	  methods draw_pings, draw_visual_contacts and draw_sound_contacts declared.
+	  Declared some methods virtual.
+
+	* user_interface.cpp Moved constructor user_interface from header file to
+	  source file. New methods draw_pings, draw_visual_contacts,
+	  draw_sound_contacts defined and called from method display_map
