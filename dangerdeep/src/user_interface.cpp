@@ -115,6 +115,13 @@ void user_interface::init ()
 		}
 	}
 
+	// fixme: is transformation from global space to tangent space correct?	
+	// what about the glRotafef(90, ?, ?, ?) to swap coordinate space?
+	// tangent space is computed by the following assumptions:
+	// the water lies in the x,y plane, z points up (to the sky). fixme remove glrotate(90,...) to swap coordinates
+	// this doesn't affect the lighting now, since we use a 1,1,1 light vector
+	vector3f lightvec = vector3f(1,1,1).normal();	// fixme: direction to light source (directional light)
+
 	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(0,1), 20, 0.00001, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
@@ -141,36 +148,68 @@ void user_interface::init ()
 		
 		glNewList(wavedisplaylists+i, GL_COMPILE);
 
-		vector<GLfloat> tmp;
-		tmp.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*8);
+		// create and use temporary arrays for texture coords (units 0,1), colors and vertices
+		vector<GLfloat> tex0coords;
+		vector<GLfloat> tex1coords;
+		vector<GLfloat> colors;
+		vector<GLfloat> coords;
+		tex0coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*2);
+		tex1coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*2);
+		colors.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*3);
+		coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*3);
+
 		float add = 1.0f/FACES_PER_WAVE;
 		float fy = 0;
-		float w2bs = 8; // 32;	// 128m/4m
+		float texscale0 = 8;//32;	// 128m/4m
+		float texscale1 = 2;
 		for (unsigned y = 0; y <= FACES_PER_WAVE; ++y) {
 			float fx = 0;
 			unsigned cy = y%FACES_PER_WAVE;
 			for (unsigned x = 0; x <= FACES_PER_WAVE; ++x) {
 				unsigned cx = x%FACES_PER_WAVE;
 				unsigned ptr = cy*FACES_PER_WAVE+cx;
-				tmp.push_back(fx*w2bs);	// texture coords
-				tmp.push_back(fy*w2bs);
-				tmp.push_back(n[ptr].x);	// normal
-				tmp.push_back(n[ptr].y);
-				tmp.push_back(n[ptr].z);
-				tmp.push_back(fx*WAVE_LENGTH+d[ptr].x);	// 3d coords
-				tmp.push_back(fy*WAVE_LENGTH+d[ptr].y);
-				tmp.push_back(h[ptr]);
+				// fixme: displacement is ignored here
+				// compute transformation matrix R: light (global) space to tangent space
+				// R = (R0, R1, R2), R2 = n[ptr], R1 = R2 x (1,0,0), R0 = R1 x R2
+				vector3f R1 = vector3f(0, n[ptr].z, -n[ptr].y).normal();
+				vector3f R0 = R1.cross(n[ptr]);
+				// multiply inverse (transposed) of R with light vector
+				vector3f nl = vector3f(R0 * lightvec, R1 * lightvec, n[ptr] * lightvec);
+				nl = nl * 0.5 + vector3f(0.5, 0.5, 0.5);
+				tex0coords.push_back(fx*texscale0);
+				tex0coords.push_back(fy*texscale0);
+				tex1coords.push_back(fx*texscale1);
+				tex1coords.push_back(fy*texscale1);
+				colors.push_back(nl.x);
+				colors.push_back(nl.y);
+				colors.push_back(nl.z);
+				coords.push_back(fx*WAVE_LENGTH+d[ptr].x);
+				coords.push_back(fy*WAVE_LENGTH+d[ptr].y);
+				coords.push_back(h[ptr]);
 				fx += add;
 			}
 			fy += add;
 		}
-
-		glInterleavedArrays(GL_T2F_N3F_V3F, 0, &tmp[0]);
+		
+		// now set pointers, enable arrays and draw elements, finally disable pointers
+		glEnableClientState(GL_COLOR_ARRAY);
+		glColorPointer(3, GL_FLOAT, 0, &colors[0]);
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, &coords[0]);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glClientActiveTextureARB(GL_TEXTURE0_ARB);
+		glTexCoordPointer(2, GL_FLOAT, 0, &tex0coords[0]);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glClientActiveTextureARB(GL_TEXTURE1_ARB);
+		glTexCoordPointer(2, GL_FLOAT, 0, &tex1coords[0]);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glDrawElements(GL_QUADS, waveindices.size(), GL_UNSIGNED_INT, &waveindices[0]);
 		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_COLOR_ARRAY);
+		glClientActiveTextureARB(GL_TEXTURE1_ARB);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
+		glClientActiveTextureARB(GL_TEXTURE0_ARB);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 /*
 		glColor3f(1,0,0);
@@ -677,14 +716,16 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glVertex3f(c1,c2,wz);
 	glEnd();
 	
-	glPopAttrib();
+//	glPopAttrib();
 
 	// draw waves
 //	glColor3f(0.1,0.2,0.5);
 //	glBindTexture(GL_TEXTURE_2D, 0);
-	glColor3f(1,1,1);
-	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
+//	glColor3f(1,1,1);
+//	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
+//	glDisable(GL_LIGHTING);
 	double timefac = myfmod(t, TIDECYCLE_TIME)/TIDECYCLE_TIME;
+
 	unsigned dl = wavedisplaylists + int(WAVE_PHASES*timefac);
 	for (int y = 0; y < WAVES_PER_AXIS; ++y) {
 		for (int x = 0; x < WAVES_PER_AXIS; ++x) {
@@ -694,6 +735,9 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 			glPopMatrix();
 		}
 	}
+
+	glPopAttrib();
+
 	glPopMatrix();
 	glColor3f(1,1,1);
 }
@@ -721,6 +765,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 
 	double timefac = myfmod(gm.get_time(), TIDECYCLE_TIME)/TIDECYCLE_TIME;
 	
+	//fixme: get rid of this
 	glRotatef(-90,1,0,0);
 	// if we're aboard the player's vessel move the world instead of the ship
 	if (aboard) {

@@ -42,6 +42,7 @@ class vector3t
 	D square_distance(const vector3t<D>& other) const { vector3t<D> n = *this - other; return n.square_length(); };
 	D distance(const vector3t<D>& other) const { vector3t<D> n = *this - other; return n.length(); };
 	D operator* (const vector3t<D>& other) const { return x * other.x + y * other.y + z * other.z; };
+	vector3t<D> cross(const vector3t<D>& other) const;
 	bool solve(const vector3t<D>& o1, const vector3t<D>& o2, const vector3t<D>& o3, D &s1, D &s2, D &s3) const;
 	// multiplies 3x3 matrix (given in columns c0-c2) with *this.
 	vector3t<D> matrixmul(const vector3t<D>& c0, const vector3t<D>& c1, const vector3t<D>& c2) const;
@@ -52,6 +53,15 @@ class vector3t
 };
 
 template<class D2> inline vector3t<D2> operator* (const D2& scalar, const vector3t<D2>& v) { return v * scalar; }
+
+template<class D>
+vector3t<D> vector3t<D>::cross(const vector3t<D>& other) const
+{
+	return vector3t(
+		y * other.z - z * other.y,
+		z * other.x - x * other.z,
+		x * other.y - y * other.x );
+}
 
 template<class D>
 bool vector3t<D>::solve(const vector3t<D> &o1, const vector3t<D> &o2, const vector3t<D> &o3, D &s1, D &s2, D &s3) const
