@@ -12,12 +12,6 @@ using namespace std;
 #include "global_data.h"
 #include "color.h"
 
-#define WAVERND 64        	// must be 2^x, length/width of ramdom array
-#define WAVESIZE 10		// meters from wave to wave
-#define WAVEDEPTH 20		// nr of waves drawn in z direction
-#define WAVETIDE 3.0      	// amplitude of waves in meters
-#define WAVETIDECYCLETIME 2.0	// time for full cycle of wave
-
 #define MAPGRIDSIZE 1000	// meters
 
 class user_display;
@@ -65,13 +59,8 @@ protected:
 	user_interface(sea_object* player);
 
 	unsigned wavedisplaylists;		// # of first display list
-static vector<unsigned char> waveheights;	// random square array
-static vector<float> sinvec;			// sin table (256 entries)
 	void init(void);
 	void deinit(void);
-static void init_water_data(void);
-	static unsigned char get_waterheight(int x, int y) { return waveheights[(x&(WAVERND-1))+(y&(WAVERND-1))*WAVERND]; }
-	static float get_waterheight(float x_, float y_, int wavephase); // bilinear sampling
 
 	inline virtual sea_object* get_player(void) const { return player_object; }
 	virtual bool keyboard_common(int keycode, class system& sys, class game& gm) = 0;
@@ -128,8 +117,17 @@ public:
 	virtual ~user_interface();
 	virtual void display(class system& sys, class game& gm) = 0;
 
+	// helper functions
+	
+	// this rotates the modelview matrix to match the water surface normal
+	virtual void rotate_by_pos_and_wave(const vector3& pos, double timefac) const;
+	// height depends by time factor (wave shift) t in [0...1)
+	virtual double get_water_height(const vector2& pos, double t) const;
+	// give f as multiplier for difference to (0,0,1)
+	virtual vector3 get_water_normal(const vector2& pos, double t, double f = 1.0) const;
+
 	// 3d drawing functions
-	virtual void draw_water(const vector3& viewpos, angle dir, unsigned wavephase, double max_view_dist) const;
+	virtual void draw_water(const vector3& viewpos, angle dir, double t, double max_view_dist) const;
 	virtual void draw_view(class system& sys, class game& gm, const vector3& viewpos,
 		angle dir, unsigned withplayer, bool withunderwaterweapons); // give 0-2 for "withplayer": draw 0 - nothing, 1 - sub/ship, 2 - bridge
 	virtual bool user_quits(void) const { return quit; }

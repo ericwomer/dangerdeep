@@ -23,14 +23,12 @@
 
 #define MAX_PANEL_SIZE 256
 
-vector<unsigned char> user_interface::waveheights;
-vector<float> user_interface::sinvec;
-
 #define WAVE_PHASES 128		// no. of phases for wave animation
 #define WAVES_PER_AXIS 16	// no. of waves along x or y axis
 #define FACES_PER_WAVE 4	// resolution of wave model in x/y dir.
 #define WAVE_LENGTH 40.0	// in meters, total length of one wave (one sine function)
 #define WAVE_HEIGHT 2.0		// half of difference top/bottom of wave -> fixme, depends on weather
+#define TIDECYCLE_TIME 4.0
 
 
 user_interface::user_interface() :
@@ -49,7 +47,6 @@ user_interface::user_interface(sea_object* player) :
 	viewupang(-90),	viewpos(0, 0, 10)
 {
 	init ();
-	init_water_data();
 }
 
 user_interface::~user_interface ()
@@ -103,35 +100,6 @@ void user_interface::deinit ()
 	glDeleteLists(wavedisplaylists, WAVE_PHASES);
 }
 
-void user_interface::init_water_data(void)
-{
-	sinvec.resize(256);
-	for (int i = 0; i < 256; ++i)
-		sinvec[i] = sin(i*M_PI/128);
-	waveheights.resize(WAVERND*WAVERND);
-	for (int j = 0; j < WAVERND; ++j)
-		for (int i = 0; i < WAVERND; ++i)
-			waveheights[j*WAVERND+i] = rnd(256);
-}
-
-float user_interface::get_waterheight(float x_, float y_, int wave)	// bilinear sampling
-{
-	float px = x_/WAVESIZE;
-	float py = y_/WAVESIZE;
-	int x = int(floor(px));
-	int y = int(floor(py));
-	// fixme: make tide dynamic, depending on weather.
-	float h0 = WAVETIDE/2 * sinvec[(get_waterheight(x  , y  ) + wave) & 255];
-	float h1 = WAVETIDE/2 * sinvec[(get_waterheight(x+1, y  ) + wave) & 255];
-	float h2 = WAVETIDE/2 * sinvec[(get_waterheight(x  , y+1) + wave) & 255];
-	float h3 = WAVETIDE/2 * sinvec[(get_waterheight(x+1, y+1) + wave) & 255];
-	float dx = (px - floor(px));
-	float dy = (py - floor(py));
-	float h01 = h0*(1-dx) + h1*dx;
-	float h23 = h2*(1-dx) + h3*dx;
-	return h01*(1-dy) + h23*dy;
-}
-
 /* 2003/07/04 idea.
    simulate earth curvature by drawing several horizon faces
    approximating the curvature.
@@ -178,15 +146,65 @@ float user_interface::get_waterheight(float x_, float y_, int wave)	// bilinear 
    Waves are disturbing sight but are ignored here.
 */	   
 
-void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wavephase,
+// ------------------------------------- water --------------------------------
+/*
+	The water surface is given by the following implicit function:
+	z = WAVE_HEIGHT * sin(2*PI*(x/WAVE_LENGTH+t)) * sin(2*PI*(y/WAVE_LENGTH+t))
+	with t is a time factor in [0...1) that determines tide rise and fall speed.
+	That means that the water surface is made of one tile repeated infinitly.
+	This tile is WAVE_LENGTH * WAVE_LENGTH in size and contains two waves.
+	(Function sin(x)*sin(y) for x,y in [0...2PI] )
+	The normal of the surface at any position x,y is thus given by:
+		Tangential plane is spanned by
+			(1, 0, dz/dx), (0, 1, dz/dy) with
+			b = WAVEHEIGHT, a = 2*PI/WAVE_LENGTH, c=2*PI
+			z = b * sin(a*x+c*t) * sin(a*y+c*t)
+			dz/dx = b * a * cos(a*x+c*t) * sin(a*y+c*t)
+			dz/dy = b * a * sin(a*x+c*t) * cos(a*y+c*t)
+		Cross product gives normal:
+			(-dz/dx, -dz/dy, 1)
+	Total: (-b * a * cos(a*x+c*t) * sin(a*y+c*t), -b * a * sin(a*x+c*t) * cos(a*y+c*t), 1)
+	The normal is needed to simulate ship rolling.
+*/	
+
+void user_interface::rotate_by_pos_and_wave(const vector3& pos, double timefac) const
+{
+	vector3 rz = get_water_normal(pos.xy(), timefac, 0.05); // fixme: factor depends on ship mass and form
+	vector3 rx = vector3(1, 0, -rz.x).normal();
+	vector3 ry = vector3(0, 1, -rz.y).normal();
+	double mat[16] = {
+		rx.x, rx.y, rx.z, 0,
+		ry.x, ry.y, ry.z, 0,
+		rz.x, rz.y, rz.z, 0,
+		0, 0, 0, 1 };
+	glMultMatrixd(&mat[0]);
+}
+
+double user_interface::get_water_height(const vector2& pos, double t) const
+{
+	double b = WAVE_HEIGHT;
+	double a = 2.0*M_PI/WAVE_LENGTH;
+	double x = myfmod(pos.x, WAVE_LENGTH);
+	double y = myfmod(pos.y, WAVE_LENGTH);
+	double pt = 2.0*M_PI*t;
+	return b * sin(a*x+pt) * sin(a*y+pt);
+}
+
+vector3 user_interface::get_water_normal(const vector2& pos, double t, double f) const
+{
+	double b = WAVE_HEIGHT * f;
+	double a = 2.0*M_PI/WAVE_LENGTH;
+	double x = myfmod(pos.x, WAVE_LENGTH);
+	double y = myfmod(pos.y, WAVE_LENGTH);
+	double pt = 2.0*M_PI*t;
+	return vector3(-b * a * cos(a*x+pt) * sin(a*y+pt), -b * a * sin(a*x+pt) * cos(a*y+pt), 1).normal();
+}
+
+void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	double max_view_dist) const
 {
-#if 1
-	// fixme draw polygones to the horizon or SIMPLER:
-	// draw a 2d image from y value res/2 to res/2+some value
-	// (a rectangle) so that the space between the waves and the horizon is filled
-	// and texture that with some photo of waves or something else.
-	// this image should be animated (moving waves).
+	// fixme draw polygones to the horizon
+	// fixme use animated water texture(s)
 
 //	class system* sys = system::sys();	
 //	unsigned res_x = sys->get_res_x(), res_y = sys->get_res_y();
@@ -198,7 +216,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 	glTranslatef(-myfmod(viewpos.x, WAVE_LENGTH), -myfmod(viewpos.y, WAVE_LENGTH), -viewpos.z);
 	glScalef(WAVE_LENGTH, WAVE_LENGTH, WAVE_HEIGHT);
 	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
-	unsigned dl = wavedisplaylists + WAVE_PHASES*((system::sys()->millisec())%4000)/4000;// (wavephase % WAVE_PHASES); //fixme
+	unsigned dl = wavedisplaylists + int(WAVE_PHASES*t);
 	for (int y = 0; y < WAVES_PER_AXIS; ++y) {
 		for (int x = 0; x < WAVES_PER_AXIS; ++x) {
 			glPushMatrix();
@@ -208,85 +226,6 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 		}
 	}
 	glPopMatrix();
-			
-#else
-#define WAVESX 16	// number of waves per screen scanline
-
-	// fixme: add "moving" water texture
-
-	// calculate FOV and view dependent direction vectors
-	GLfloat projmatrix[16];
-	glGetFloatv(GL_PROJECTION_MATRIX, projmatrix);
-	double tanfovx2 = projmatrix[0];
-	vector2 viewdir = dir.direction();
-	vector2 viewleft = viewdir.orthogonal();
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
-
-	// create vertices
-	vector<GLfloat> verticecoords;
-	vector<GLfloat> texturecoords;
-	unsigned verts = (WAVEDEPTH+1)*(WAVESX+1);
-	verticecoords.reserve(3*verts);
-	texturecoords.reserve(2*verts);
-	double texscalefac = 1.0/double(4*WAVESIZE);
-	double zdist = 0;
-	vector2 viewpostexoff;	// part of viewpos that is not used for wave texture
-				// coordinate computation
-	viewpostexoff.x = floor(viewpos.x * texscalefac);
-	viewpostexoff.y = floor(viewpos.y * texscalefac);
-	for (unsigned w = 0; w <= WAVEDEPTH; ++w) {
-		if (w == WAVEDEPTH) zdist = max_view_dist;
-		vector2 viewbase = viewpos.xy() + viewdir * zdist + viewleft * zdist * tanfovx2;
-		double viewleftfac = -2 * zdist * tanfovx2 / WAVESX;
-		for (unsigned p = 0; p <= WAVESX; ++p) {
-			// outer border of water must have height 0 to match horizon face
-			double height = (w < WAVEDEPTH-1) ? get_waterheight((float)viewbase.x, (float)viewbase.y, (int)wavephase) : 0;
-			verticecoords.push_back(viewbase.x);
-			verticecoords.push_back(viewbase.y);
-			verticecoords.push_back(height);
-			// don't take fractional part of coordinates for texture coordinates
-			// or wrap around error will occour.
-			vector2 texc = viewbase * texscalefac - viewpostexoff;
-			texturecoords.push_back(texc.x);
-			texturecoords.push_back(texc.y);
-			viewbase += viewleft * viewleftfac;
-		}
-		// this could grow more than linear to reduce number of faces drawn at
-		// far distance (like voxel). This would lead to bigger waves in the distance
-		// which isn't right, so don't overdo that...
-		zdist += WAVESIZE;
-	}
-
-	glVertexPointer(3, GL_FLOAT, 0, &verticecoords[0]);
-	glTexCoordPointer(2, GL_FLOAT, 0, &texturecoords[0]);
-
-	
-	// create faces, WAVEDEPTH*WAVESX*2 in number
-	glBegin(GL_TRIANGLES);
-	unsigned vertexnr = 0;
-	for (unsigned w = 0; w < WAVEDEPTH; ++w) {
-		for (unsigned p = 0; p < WAVESX; ++p) {
-			// face 1
-			glArrayElement(vertexnr);
-			glArrayElement(vertexnr+WAVESX+2);
-			glArrayElement(vertexnr+WAVESX+1);
-			// face 2
-			glArrayElement(vertexnr);
-			glArrayElement(vertexnr+1);
-			glArrayElement(vertexnr+WAVESX+2);
-			++vertexnr;
-		}
-		++vertexnr;
-	}
-
-	glEnd();
-	
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-#endif	
 }
 
 void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
@@ -295,9 +234,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	double max_view_dist = gm.get_max_view_distance();
 
 	sea_object* player = get_player();
-	// fixme: this wave is used double. for waves the commented version would be
-	// best, but ships' movement depend on it also. ugly.
-	int wave = int(fmod(gm.get_time(),86400/*WAVETIDECYCLETIME*/)*256/WAVETIDECYCLETIME);
+
+	double timefac = fmod(gm.get_time(), TIDECYCLE_TIME)/TIDECYCLE_TIME;
 	
 	glRotatef(-90,1,0,0);
 	// This should be a negative angle, but nautical view dir is clockwise, OpenGL uses ccw values, so this is a double negation
@@ -480,7 +418,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	// ******* water *********
 					// fixme: program directional light caused by sun
 					// or moon should be reflected by water.
-	draw_water(viewpos, dir, wave, max_view_dist);
+	draw_water(viewpos, dir, timefac, max_view_dist);
 	
 
 	// ******************** ships & subs *************************************************
@@ -488,7 +426,6 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	// rest of scene is displayed relative to world coordinates
 	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
 
-	float dwave = sinvec[wave&255];
 	list<ship*> ships;
 	gm.visible_ships(ships, player);
 	for (list<ship*>::const_iterator it = ships.begin(); it != ships.end(); ++it) {
@@ -496,8 +433,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
-		glRotatef((3*dwave-3)/4.0,1,0,0);
-		glRotatef((3*dwave-3)/4.0,0,1,0);
+		rotate_by_pos_and_wave((*it)->get_pos(), timefac);
 		(*it)->display();
 		glPopMatrix();
 
@@ -515,8 +451,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 		if ((*it)->get_pos().z > -15) {
-			glRotatef((3*dwave-3)/4.0,1,0,0);
-			glRotatef((3*dwave-3)/4.0,0,1,0);
+			rotate_by_pos_and_wave((*it)->get_pos(), timefac);
 		}
 		(*it)->display();
 		glPopMatrix();
@@ -590,6 +525,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glLoadIdentity();
 		glRotatef(-90,1,0,0);
 		glRotatef((dir - player->get_heading()).value(),0,0,1);
+		rotate_by_pos_and_wave(get_player()->get_pos(), timefac);
 		conning_tower_typeVII->display();
 		glPopMatrix();
 		glMatrixMode(GL_PROJECTION);
