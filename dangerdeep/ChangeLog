@@ -1,12 +1,30 @@
+2003-04-21  Markus Petermann  <m.petermann@gmx.net>
+
+	* sound.h, sound.cpp:
+	  - Removed some methods.
+	  - When a sound is not found the game does not exit anymore.
+	* user_interface.h, user_interface.cpp:
+	  - New methods to play sound effects introduced.
+	* angle.h:
+	  - Operator < changed.
+	* global_data.h, global_data.cpp:
+	  - More sound effects.
+	* ai.cpp:
+	  - Some randomize in the ai methods.
+	* game.cpp:
+	  - In the detection methods the very own ship is no longer detected anymore.
+	* submarine.h, submarine.cpp:
+	  - Methods to play sound effects changed.
+
 2003-04-19  Markus Petermann  <m.petermann@gmx.net>
 
 	* sound.h, sound.cpp:
 	  - New module for sound effects.
 	* game.cpp:
-	  - Sound effects for torpedo detonation
+	  - Sound effects for torpedo detonation.
 	* submarine.cpp:
-	  - Sound effect for torpedo launch
-	  - noise modification factor changed
+	  - Sound effect for torpedo launch.
+	  - Noise modification factor changed.
 	* global_data.cpp, global_data.h:
 	  - Sound effects are loaded now
 	* water_splash.h, water_splash.cpp:
