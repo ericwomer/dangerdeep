@@ -343,6 +343,19 @@ void ship::simulate(game& gm, double delta_time)
 	if (myfire) {
 		myfire->set_pos(get_pos() + vector3(0, 0, 12));
 	}
+
+	double v = velocity.length();
+	if (v > 0.1) {
+		double produce_time = 2.0/v;
+		double t = myfmod(gm.get_time(), produce_time);
+		if (t + delta_time >= produce_time) {
+			vector3 forward = global_velocity.normal();
+			vector3 sideward = forward.cross(vector3(0, 0, 1)).normal() * 2.0;//speed 2.0 m/s
+			vector3 spawnpos = get_pos() + forward * (get_length() * 0.5);
+			gm.spawn_particle(new spray_particle(spawnpos, sideward));
+			gm.spawn_particle(new spray_particle(spawnpos, -sideward));
+		}
+	}
 	
 	// smoke particle generation logic
 	if (is_alive() && smoke_type > 0) {//replace by has_particle

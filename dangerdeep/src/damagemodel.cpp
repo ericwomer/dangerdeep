@@ -5,8 +5,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #define DATADIR "./data/"
-#else
-#include "../config.h"
 #endif
 
 #include <GL/gl.h>

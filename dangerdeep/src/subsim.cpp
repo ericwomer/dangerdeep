@@ -3,10 +3,8 @@
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
-#define VERSION "win32"
 #include <windows.h>
-#else
-#include "../config.h"
+#define VERSION "win32"
 #endif
 
 #include <GL/gl.h>
@@ -62,7 +60,7 @@ string savegamedirectory =
 #ifdef WIN32
 	"./save/";
 #else	
-	string(getenv("HOME"))+"/."+PACKAGE + "/";
+	string(getenv("HOME"))+"/.dangerdeep/";
 #endif	
 
 string get_savegame_name_for(const string& descr, map<string, string>& savegames)
@@ -1079,14 +1077,14 @@ int main(int argc, char** argv)
 	"./highscores/";
 #else
 	// fixme: use global /var/games instead
-	string(getenv("HOME"))+"/."+PACKAGE + "/";
+	string(getenv("HOME"))+"/.dangerdeep/";
 #endif
 
 	string configdirectory =
 #ifdef WIN32
 	"./config/";
 #else
-	string(getenv("HOME"))+"/."+PACKAGE + "/";
+	string(getenv("HOME"))+"/.dangerdeep/";
 #endif
 
 	cfg& mycfg = cfg::instance();

@@ -61,6 +61,8 @@ protected:
 	quaternion orientation;	// global orientation
 	double turn_velocity;	// angular velocity around global z-axis
 	angle heading;		// global z-orientation is stored additionally
+
+	vector3 global_velocity;// recomputed every frame by simulate() method
 	
 	virtual vector3 get_acceleration(void) const;		// drag must be already included!
 	virtual double get_turn_acceleration(void) const;	// drag must be already included!

@@ -280,7 +280,7 @@ void sea_object::simulate(game& gm, double delta_time)
 
 	vector3 acceleration = get_acceleration();
 	vector3 global_acceleration = horientation.rotate(acceleration);
-	vector3 global_velocity = horientation.rotate(velocity);
+	global_velocity = horientation.rotate(velocity);
 	double t2_2 = 0.5 * delta_time * delta_time;
 
 //cout << "object " << this << " simulate.\npos: " << position << "\nvelo: " << velocity << "\naccel: " << acceleration << "\n";

@@ -21,7 +21,8 @@ class particle
 protected:
 	//fixme: store textures somewhere! static variables?!
 
-	vector3 pos;
+	vector3 position;
+	vector3 velocity;
 	float life;	// 0...1, 0 = faded out
 	particle() : life(1.0f) {}
 	particle(const particle& other);
@@ -42,6 +43,7 @@ protected:
 	// particle textures (generated and stored once)
 	static unsigned init_count;
 	static vector<texture*> tex_smoke;
+	static texture* tex_spray;
 	static vector<texture*> tex_fire;
 	static vector<texture*> explosionbig;
 	static vector<texture*> explosionsml;
@@ -53,15 +55,17 @@ protected:
 	static vector<Uint8> make_2d_perlin_noise(unsigned wh, unsigned highestlevel);
 	static vector<Uint8> compute_fire_frame(unsigned wh, const vector<Uint8>& oldframe);
 
+	virtual vector3 get_acceleration(void) const { return vector3(); }
+
 public:
-	particle(const vector3& pos_) : pos(pos_), life(1.0f) {}
+	particle(const vector3& pos, const vector3& velo = vector3()) : position(pos), life(1.0f) {}
 	virtual ~particle() {}
 
 	static void init(void);
 	static void deinit(void);
 
-	virtual vector3 get_pos(void) const { return pos; }
-	virtual void set_pos(const vector3& pos_) { pos = pos_; }
+	virtual vector3 get_pos(void) const { return position; }
+	virtual void set_pos(const vector3& pos) { position = pos; }
 
 	// class game is given so that particles can spawn other particles (fire->smoke)
 	virtual void simulate(game& gm, double delta_t);
@@ -87,10 +91,10 @@ class smoke_particle : public particle
 {
 	bool is_z_up(void) const { return false; }
 	unsigned texnr;
+	vector3 get_acceleration(void) const;
 public:
-	smoke_particle(const vector3& pos_);
+	smoke_particle(const vector3& pos);//set velocity by wind, fixme
 	~smoke_particle() {}
-	void simulate(game& gm, double delta_t);
 	double get_width(void) const;
 	double get_height(void) const;
 	void set_texture(game& gm) const;
@@ -103,7 +107,7 @@ public:
 class smoke_particle_escort : public smoke_particle
 {
 public:
-	smoke_particle_escort(const vector3& pos_);
+	smoke_particle_escort(const vector3& pos);//set velocity by wind, fixme
 	~smoke_particle_escort() {}
 	double get_width(void) const;
 	double get_life_time(void) const;
@@ -112,12 +116,11 @@ public:
 
 
 
-
 class explosion_particle : public particle
 {
 	unsigned extype;	// which texture
 public:
-	explosion_particle(const vector3& pos_);
+	explosion_particle(const vector3& pos);
 	~explosion_particle() {}
 	double get_width(void) const;
 	double get_height(void) const;
@@ -127,14 +130,26 @@ public:
 
 
 
-
 class fire_particle : public particle
 {
 //	unsigned firetype;	// which texture
 public:
-	fire_particle(const vector3& pos_);
+	fire_particle(const vector3& pos);
 	~fire_particle() {}
 	void simulate(game& gm, double delta_t);
+	double get_width(void) const;
+	double get_height(void) const;
+	void set_texture(game& gm) const;
+	double get_life_time(void) const;
+};
+
+
+
+class spray_particle : public particle
+{
+public:
+	spray_particle(const vector3& pos, const vector3& velo);
+	~spray_particle() {}
 	double get_width(void) const;
 	double get_height(void) const;
 	void set_texture(game& gm) const;

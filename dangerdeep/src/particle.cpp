@@ -8,6 +8,7 @@
 
 unsigned particle::init_count = 0;
 vector<texture*> particle::tex_smoke;
+texture* particle::tex_spray = 0;
 vector<texture*> particle::tex_fire;
 vector<texture*> particle::explosionbig;
 vector<texture*> particle::explosionsml;
@@ -193,6 +194,14 @@ void particle::init(void)
 		tex_smoke[i] = new texture(&smoketmp[0], 64, 64, GL_LUMINANCE_ALPHA, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE, false);
 	}
 
+	// compute spray texture here
+	for (unsigned y = 0; y < 64; ++y) {
+		for (unsigned x = 0; x < 64; ++x) {
+			smoketmp[(y*64+x)*2] = 255;
+		}
+	}
+	tex_spray = new texture(&smoketmp[0], 64, 64, GL_LUMINANCE_ALPHA, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE, false);
+
 	// compute random fire textures here.
 	tex_fire.resize(NR_OF_FIRE_TEXTURES);
 #define FIRE_RES 64
@@ -273,6 +282,7 @@ void particle::deinit(void)
 	if (--init_count != 0) return;
 	for (unsigned i = 0; i < tex_smoke.size(); ++i)
 		delete tex_smoke[i];
+	delete tex_spray;
 	for (unsigned i = 0; i < tex_fire.size(); ++i)
 		delete tex_fire[i];
 	for (unsigned i = 0; i < explosionbig.size(); ++i)
@@ -285,6 +295,9 @@ void particle::deinit(void)
 
 void particle::simulate(game& gm, double delta_t)
 {
+	vector3 acc = get_acceleration();
+	position += velocity * delta_t + acc * (delta_t * delta_t * 0.5);
+	velocity += acc * delta_t;
 	life -= delta_t/get_life_time();
 }
 
@@ -299,7 +312,7 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 	vector<particle_dist> pds;
 	pds.reserve(pts.size());
 	for (list<particle*>::const_iterator it = pts.begin(); it != pts.end(); ++it) {
-		vector3 pp = (mvtrans + (*it)->pos - viewpos);
+		vector3 pp = (mvtrans + (*it)->get_pos() - viewpos);
 		pds.push_back(particle_dist(*it, pp.square_length(), pp));
 	}
 	sort(pds.begin(), pds.end());
@@ -318,7 +331,7 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 			y = z.cross(x).normal();
 		double w2 = part.get_width()/2;
 		double h2 = part.get_height()/2;
-		vector3 pp = part.pos - viewpos;
+		vector3 pp = part.get_pos() - viewpos;
 		coords[4*i+0] = pp + x * -w2 + y * h2;
 		coords[4*i+1] = pp + x * -w2 + y * -h2;
 		coords[4*i+2] = pp + x * w2 + y * -h2;
@@ -353,19 +366,18 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 
 // smoke
 
-#define SMOKE_PARTICLE_INITIAL_ASCEND_SPEED 4.0 // m/s
-#define SMOKE_PARTICLE_ACCEL 3.0
-
-smoke_particle::smoke_particle(const vector3& pos_) : particle(pos_), texnr(rand() % NR_OF_SMOKE_TEXTURES)
+smoke_particle::smoke_particle(const vector3& pos) : particle(pos), texnr(rand() % NR_OF_SMOKE_TEXTURES)
 {
+	velocity.x = -1; // wind test, wind from NE, speed ~1.4m/s
+	velocity.y = -1;
+	velocity.z = 4.0;	// m/s
 }
 
 
 
-void smoke_particle::simulate(game& gm, double delta_t)
+vector3 smoke_particle::get_acceleration(void) const
 {
-	particle::simulate(gm, delta_t);
-	pos.z += (SMOKE_PARTICLE_INITIAL_ASCEND_SPEED - (1.0f - life) * SMOKE_PARTICLE_ACCEL) * delta_t;
+	return vector3(0, 0, -3.0/get_life_time());
 }
 
 
@@ -410,7 +422,7 @@ double smoke_particle::get_produce_time(void)
 
 
 
-smoke_particle_escort::smoke_particle_escort(const vector3& pos_) : smoke_particle(pos_)
+smoke_particle_escort::smoke_particle_escort(const vector3& pos) : smoke_particle(pos)
 {
 }
 
@@ -439,7 +451,7 @@ double smoke_particle_escort::get_produce_time(void)
 
 // explosion(s)
 
-explosion_particle::explosion_particle(const vector3& pos_) : particle(pos_)
+explosion_particle::explosion_particle(const vector3& pos) : particle(pos)
 {
 	extype = 0; // rnd(1); //fixme
 }
@@ -480,7 +492,7 @@ double explosion_particle::get_life_time(void) const
 
 // fire
 
-fire_particle::fire_particle(const vector3& pos_) : particle(pos_)
+fire_particle::fire_particle(const vector3& pos) : particle(pos)
 {
 }
 
@@ -491,7 +503,7 @@ void fire_particle::simulate(game& gm, double delta_t)
 	float lf = get_life_time();
 	float l = myfrac(life * lf);
 	if (l - lf * delta_t <= 0) {
-		gm.spawn_particle(new smoke_particle(pos));
+		gm.spawn_particle(new smoke_particle(position));
 	}
 	particle::simulate(gm, delta_t);
 	if (life <= 0.0f) {
@@ -525,6 +537,41 @@ void fire_particle::set_texture(class game& gm) const
 
 
 double fire_particle::get_life_time(void) const
+{
+	return 4.0; // seconds
+}
+
+
+
+spray_particle::spray_particle(const vector3& pos, const vector3& velo) : particle(pos, velo)
+{
+}
+
+
+
+double spray_particle::get_width(void) const
+{
+	return (1.0f - life) * 12.0 + 4.0;
+}
+
+
+
+double spray_particle::get_height(void) const
+{
+	return get_width();
+}
+
+
+
+void spray_particle::set_texture(class game& gm) const
+{
+	glColor4f(1, 1, 1, life);
+	tex_spray->set_gl_texture();//fixme
+}
+
+
+
+double spray_particle::get_life_time(void) const
 {
 	return 4.0; // seconds
 }
