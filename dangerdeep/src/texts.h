@@ -16,6 +16,7 @@ public:
 
 	static void set_language(languages l = english);
 	static string get(unsigned no);
+	static string numeric_from_date(const class date& d);
 };
 
 #endif

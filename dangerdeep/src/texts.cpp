@@ -6,6 +6,8 @@
 #include "parser.h"
 #include "global_data.h"
 #include "date.h"
+#include <sstream>
+using namespace std;
 
 #define TEXTS_DIR "texts/"
 
