@@ -13,13 +13,24 @@
 #include "tokencodes.h"
 #include "sensors.h"
 
-ship::ship() : sea_object(), myai ( 0 ), fuel_value_a ( 0.0f ),
-	fuel_value_t ( 1.0f )
+ship::ship() : sea_object(), myai ( 0 ), fuel_level ( 1.0f ),
+	fuel_value_a ( 0.0f ), fuel_value_t ( 1.0f )
 {}
 
 bool ship::parse_attribute(parser& p)
 {
-	return sea_object::parse_attribute(p);
+	if ( sea_object::parse_attribute(p) )
+		return true;
+	switch ( p.type () )
+	{
+		case TKN_FUEL:
+			p.consume ();
+			p.parse ( TKN_ASSIGN );
+			fuel_level = p.parse_number () / 100.0f;
+			p.parse ( TKN_SEMICOLON );
+			break;
+		default: return false;
+	}
 }
 
 ship* ship::create(ship::types type_)
@@ -52,7 +63,8 @@ ship* ship::create(parser& p)
 void ship::simulate(game& gm, double delta_time)
 {
 	sea_object::simulate(gm, delta_time);
-	myai->act(gm, delta_time);
+	if ( myai )
+		myai->act(gm, delta_time);
 
 	// Adjust fuel_level.
 	calculate_fuel_factor ( delta_time );
