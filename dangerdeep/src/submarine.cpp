@@ -57,10 +57,10 @@ submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damagea
 
 
 
-submarine::submarine(TiXmlDocument* specfile) : ship(specfile)
+submarine::submarine(TiXmlDocument* specfile, const char* topnodename) : ship(specfile, topnodename)
 {
 	TiXmlHandle hspec(specfile);
-	TiXmlHandle hdftdsub = hspec.FirstChild();	// ignore node name
+	TiXmlHandle hdftdsub = hspec.FirstChild(topnodename);
 	TiXmlElement* emotion = hdftdsub.FirstChildElement("motion").Element();
 	TiXmlElement* esubmerged = emotion->FirstChildElement("submerged");
 	system::sys().myassert(esubmerged != 0, string("submerged node missing in ")+specfilename);
@@ -98,6 +98,7 @@ submarine::submarine(TiXmlDocument* specfile) : ship(specfile)
 	battery_recharge_value_t = atof(ebattery->Attribute("recharge_t"));
 
 	// set all common damageable parts to "no damage", fixme move to ship?, replace by damage editor data reading
+	damageable_parts.resize(nr_of_damageable_parts);
 	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
 		damageable_parts[i] = damageable_part(0, 0);
 }
@@ -146,7 +147,7 @@ submarine::submarine(const string& specfilename_) : ship(specfilename_),
 	TiXmlHandle hdoc(&doc);
 	TiXmlHandle hdftdship = hdoc.FirstChild("dftd-ship");
 	TiXmlElement* eclassification = hdftdship.FirstChildElement("classification").Element();
-	system::sys().myassert(eclassification != 0, string("classification node missing in ")+specfilename);
+	system::sys().myassert(eclassification != 0, string("submarine: classification node missing in ")+specfilename);
 	modelname = eclassification->Attribute("modelname");
 	string typestr = eclassification->Attribute("type");
 	if (typestr == "warship") shipclass = WARSHIP;

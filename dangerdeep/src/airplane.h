@@ -25,8 +25,6 @@ public:
 	// create empty object from specification xml file
 	airplane(class TiXmlDocument* specfile);
 
-//	airplane() { rotation = quaternion::neutral_rot(); velocity = vector3(0,100,0); } obsolete
-
 	virtual ~airplane() {};
 
 	void load(istream& in, class game& g);

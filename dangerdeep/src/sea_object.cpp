@@ -44,14 +44,14 @@ sea_object::sea_object() : speed(0), max_speed(0), max_rev_speed(0), throttle(st
 
 
 
-sea_object::sea_object(class TiXmlDocument* specfile) :
+sea_object::sea_object(class TiXmlDocument* specfile, const char* topnodename) :
 	speed(0.0), throttle(stop), permanent_turn(false), head_chg(0.0), rudder(ruddermid),
 	head_to(0.0), alive_stat(alive)
 {
 	TiXmlHandle hspec(specfile);
-	TiXmlHandle hdftdobj = hspec.FirstChild();	// ignore node name, can be ship,sub,etc.
+	TiXmlHandle hdftdobj = hspec.FirstChild(topnodename);
 	TiXmlElement* eclassification = hdftdobj.FirstChildElement("classification").Element();
-	system::sys().myassert(eclassification != 0, string("classification node missing in ")+specfile->Value());
+	system::sys().myassert(eclassification != 0, string("sea_object: classification node missing in ")+specfile->Value());
 	specfilename = eclassification->Attribute("identifier");
 	modelname = eclassification->Attribute("modelname");
 	model* mdl = modelcache.ref(modelname);

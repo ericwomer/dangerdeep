@@ -97,7 +97,7 @@ protected:
 	virtual double get_cross_section ( const vector2& d ) const;
 
 	// give a loaded xml document to this c'tor, it will create an object after the specs
-	sea_object(class TiXmlDocument* specfile);
+	sea_object(class TiXmlDocument* specfile, const char* topnodename = "dftd-object");
 	
 public:
 	virtual ~sea_object();

@@ -57,7 +57,7 @@ public:
 	};
 	
 	// create empty object from specification xml file
-	ship(class TiXmlDocument* specfile);
+	ship(class TiXmlDocument* specfile, const char* topnodename = "dftd-ship");
 	
 	virtual ~ship();
 

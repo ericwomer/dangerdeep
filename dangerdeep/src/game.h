@@ -156,7 +156,7 @@ public:
 	// time of day [0,4) night,dawn,day,dusk
 	game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday, unsigned nr_of_players = 1);
 
-	static game* create_from_missionfile(const string& missionfilename);
+	game(const string& missionfilename, bool nothing);	// "nothing" is used to determine which c'tor
 
 	virtual ~game();
 

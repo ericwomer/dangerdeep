@@ -176,18 +176,9 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 
 
 
-/*
-game::game() : running(true), time(0), networktype(0), servercon(0), player(0), ui(0)
+
+game::game(const string& missionfilename, bool ) : running(true), time(0), networktype(0), servercon(0), player(0), ui(0)
 {
-}
-*/
-
-
-
-game* game::create_from_missionfile(const string& missionfilename)
-{
-	game* gm = new game();
-
 	TiXmlDocument doc(missionfilename);
 	doc.LoadFile();
 	TiXmlHandle hdoc(&doc);
@@ -200,7 +191,7 @@ game* game::create_from_missionfile(const string& missionfilename)
 	unsigned hour = atoi(etime->Attribute("hour"));
 	unsigned minute = atoi(etime->Attribute("minute"));
 	unsigned second = atoi(etime->Attribute("second"));
-	gm->time = ::get_time(year, month, day) + 3600*hour + 60*minute + second;
+	time = ::get_time(year, month, day) + 3600*hour + 60*minute + second;
 	TiXmlElement* eobjects = hdftdmission.FirstChildElement("objects").Element();
 	system::sys().myassert(eobjects != 0, string("objects node missing in ")+missionfilename);
 	// now read and interprete childs of eobject
@@ -244,7 +235,6 @@ game* game::create_from_missionfile(const string& missionfilename)
 	fuel_value_a = atof(efuel->Attribute("consumption_a"));
 	fuel_value_t = atof(efuel->Attribute("consumption_t"));
 */
-	return gm;
 }	
 
 /*

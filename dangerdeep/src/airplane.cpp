@@ -21,6 +21,15 @@ airplane::airplane(TiXmlDocument* specfile) : sea_object(specfile)
 
 
 
+void airplane::parse_attributes(TiXmlElement* parent)
+{
+	sea_object::parse_attributes(parent);
+	
+	// parse data, fixme
+}
+
+
+
 void airplane::load(istream& in, class game& g)
 {
 	sea_object::load(in, g);

@@ -14,11 +14,19 @@
 
 
 
-ship::ship(TiXmlDocument* specfile) : sea_object(specfile)
+// empty c'tor is needed by heirs
+ship::ship() : myai(0), mysmoke(0)
+{
+}
+
+
+
+ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfile, topnodename)
 {
 	TiXmlHandle hspec(specfile);
-	TiXmlHandle hdftdship = hspec.FirstChild();	// ignore node name
+	TiXmlHandle hdftdship = hspec.FirstChild(topnodename);
 	TiXmlElement* eclassification = hdftdship.FirstChildElement("classification").Element();
+	system::sys().myassert(eclassification != 0, string("ship: classification node missing in ")+specfilename);
 	string typestr = eclassification->Attribute("type");
 	if (typestr == "warship") shipclass = WARSHIP;
 	else if (typestr == "escort") shipclass = ESCORT;

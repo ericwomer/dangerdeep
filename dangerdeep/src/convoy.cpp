@@ -11,6 +11,13 @@
 
 
 
+// empty c'tor needed for loading games
+convoy::convoy() : myai(0)
+{
+}
+
+
+
 convoy::~convoy()
 {
 	delete myai;

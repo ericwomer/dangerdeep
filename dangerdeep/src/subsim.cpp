@@ -455,7 +455,7 @@ void choose_historical_mission(void)
 	int result = w.run();
 	if (result == 2) {	// start game
 		string filename = get_mission_dir() + missions[wmission->get_selected()];
-		run_game(game::create_from_missionfile(filename));
+		run_game(new game(filename, true));
 	}
 }
 
@@ -878,7 +878,7 @@ void menu_show_vessels(void)
 	m.add_item(115, 0);
 	m.add_item(116, 0);
 	m.add_item(117, 0);
-	TiXmlDocument doc(get_ship_dir() + shipnames[current_ship]);
+	TiXmlDocument doc(get_ship_dir() + shipnames[current_ship] + ".xml");
 	doc.LoadFile();
 	shp = new ship(&doc);
 	while (true) {
@@ -901,11 +901,11 @@ void menu_show_vessels(void)
 			delete shp;
 			lastship = current_ship;
 			if (current_ship < 11) {
-				TiXmlDocument doc(get_ship_dir() + shipnames[current_ship]);
+				TiXmlDocument doc(get_ship_dir() + shipnames[current_ship] + ".xml");
 				doc.LoadFile();
 				shp = new ship(&doc);
 			} else {
-				TiXmlDocument doc(get_submarine_dir() + shipnames[current_ship]);
+				TiXmlDocument doc(get_submarine_dir() + shipnames[current_ship] + ".xml");
 				doc.LoadFile();
 				shp = new submarine(&doc);
 			}

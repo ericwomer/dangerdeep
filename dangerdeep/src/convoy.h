@@ -33,8 +33,6 @@ public:
 	void load(istream& in, class game& g);
 	void save(ostream& out, const class game& g) const;
 
-	virtual void parse_attributes(class TiXmlElement* parent);
-
 	virtual class ai* get_ai(void) { return myai; }
 	virtual void simulate(class game& gm, double delta_time);
 	virtual void display(void) const {}

@@ -194,7 +194,7 @@ public:
 */
 
 	// create empty object from specification xml file
-	submarine(class TiXmlDocument* specfile);
+	submarine(class TiXmlDocument* specfile, const char* topnodename = "dftd-submarine");
 	
 	virtual ~submarine() {}
 
