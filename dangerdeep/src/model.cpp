@@ -15,6 +15,10 @@
 #define PATH_SEPARATOR "/"
 #endif
 
+#if (defined(__APPLE__) && defined(__GNUC__)) || defined(__MACOSX__)
+#define isfinite(x) finite(x)
+#endif
+
 #ifndef DONT_USE_OPENGL
 #include "system.h"
 #include "global_data.h"

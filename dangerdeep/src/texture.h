@@ -25,7 +25,7 @@
 #define GL_LUMINANCE				0x1909
 #define GL_LUMINANCE_ALPHA			0x190A
 #else
-#include <GL/gl.h>
+#include <gl.h>
 #endif /*DONT_USE_OPENGL*/
 
 #include <vector>

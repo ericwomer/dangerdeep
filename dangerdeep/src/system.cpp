@@ -15,7 +15,7 @@ using namespace std;
 #include "oglext/OglExt.h"
 #include <SDL.h>
 #include <SDL_image.h>
-#include <GL/glu.h>
+#include <glu.h>
 
 #include "system.h"
 #include "texture.h"

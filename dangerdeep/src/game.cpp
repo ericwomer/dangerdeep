@@ -7,7 +7,7 @@
 #endif
 
 #include <SDL.h>
-#include <GL/gl.h>
+#include <gl.h>
 
 #include "system.h"
 #include <sstream>

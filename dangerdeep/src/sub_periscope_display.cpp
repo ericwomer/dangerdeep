@@ -65,6 +65,20 @@ sub_periscope_display::~sub_periscope_display()
 
 
 
+void sub_periscope_display::process_input(class game& gm, const SDL_Event& event)
+{
+	switch (event.type) {
+	case SDL_KEYDOWN:
+		if (cfg::instance().getkey(KEY_TOGGLE_ZOOM_OF_VIEW).equal(event.key.keysym)) {
+			zoomed = !zoomed;
+		} 
+	default: break;
+	}
+	freeview_display::process_input(gm, event);
+}
+
+
+
 
 
 

@@ -7,6 +7,13 @@
 #include <vector>
 using namespace std;
 
+#if (defined(__APPLE__) && defined(__GNUC__)) || defined(__MACOSX__)
+#include <complex.h>
+#ifndef isfinite
+#define isfinite(x) finite(x)
+#endif
+#endif
+
 template <class T, class U>
 class bsplinet
 {

@@ -10,7 +10,7 @@
 
 #include "system.h"
 #include "oglext/OglExt.h"
-#include <GL/glu.h>
+#include <glu.h>
 
 #endif /*DONT_USE_OPENGL*/
 

@@ -5,12 +5,14 @@ import sys
 ################ global config values
 version = '0.0.19'
 
-################ base paths (needed for non-unix OS)
+################ base paths (needed for Win32 OS)
 sdlbase = 'd:\\sdl-devel\\SDL'
 sdlimagebase = 'd:\\sdl-devel\\SDL_image'
 sdlnetbase = 'd:\\sdl-devel\\SDL_net'
 sdlmixerbase = 'd:\\sdl-devel\\SDL_mixer'
 fftw3base = 'd:\\fftw3'
+glbase = 'd:\\Dev-Cpp\\include\\gl'
+# glbase = '/Microsoft Visual Studio/vc98/Include/gl/'
 
 ################ change base of dirs (unix OS)
 installbindir = '/usr/local/bin'
@@ -25,17 +27,28 @@ if ARGUMENTS.get('installdatadir', 0):
 if sys.platform == 'win32':
 	print "Compiling for Win32 Environment"
 	env = Environment(ENV = os.environ, tools = ['mingw'])
-	env.Append(CPPPATH = [sdlbase + '\\include\\SDL', sdlimagebase + '\\include', sdlnetbase + '\\include', sdlmixerbase + '\\include', fftw3base])
+	env.Append(CPPPATH = [sdlbase + '\\include\\SDL', sdlimagebase + '\\include', sdlnetbase + '\\include', sdlmixerbase + '\\include', fftw3base, glbase])
 	libpath = [sdlbase + '\\lib', sdlimagebase + '\\lib', sdlnetbase + '\\lib', sdlmixerbase + '\\lib', fftw3base]
 	gllibs = ['opengl32', 'glu32']
 	sdllibs = ['SDL', 'SDL_image']
 	env.Append(CCFLAGS = '-Wall -O2 -D_REENTRANT') # for mingw!
 	datadir = './data'
 	build_dir = 'win32'
+elif sys.platform == 'macosx': #fixme MacOS, which name?
+	print "Compiling for MacOSX"
+	# fixme adapt!
+	env = Environment(ENV = os.environ)
+	env.Append(CPPPATH = ['/usr/include/SDL', '/usr/include/OpenGL'])
+	libpath = []
+	gllibs = ['GL', 'GLU']
+	sdllibs = ['SDL', 'SDL_image']
+	env.Append(CCFLAGS = '-Wall -g -O2 `sdl-config --cflags`')
+	datadir = installdatadir
+	build_dir = 'default'
 else:
 	print "Compiling for Unix/Posix/Linux Environment"
 	env = Environment(ENV = os.environ)
-	env.Append(CPPPATH = ['/usr/include/SDL'])
+	env.Append(CPPPATH = ['/usr/include/SDL', '/usr/include/GL'])
 	libpath = []
 	gllibs = ['GL', 'GLU']
 	sdllibs = ['SDL', 'SDL_image']
@@ -56,10 +69,10 @@ source_base_dir = 'src'
 
 ################ configure
 conf = Configure(env)
-if not conf.CheckCHeader('GL/gl.h'):
+if not conf.CheckCHeader('gl.h'):
 	print 'GL library must be installed!'
 	Exit(1)
-if not conf.CheckCHeader('GL/glu.h'):
+if not conf.CheckCHeader('glu.h'):
 	print 'GLU library must be installed!'
 	Exit(1)
 if not conf.CheckCHeader('SDL.h'):

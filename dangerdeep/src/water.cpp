@@ -7,7 +7,7 @@
 #endif
 
 #include "oglext/OglExt.h"
-#include <GL/glu.h>
+#include <glu.h>
 #include <SDL.h>
 
 #include "water.h"
