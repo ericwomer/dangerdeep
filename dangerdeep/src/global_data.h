@@ -14,7 +14,7 @@ using namespace std;
 extern class model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl, *skyhemisphere;
 extern class texture *water, *background, *titel[4], *periscope[4], *gauge1,
-	*gauge2, *gauge3, *gauge4, *psbackgr, *panelbackgr,
+	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
 	*clock12, *clock24, *threesubs[4], *glasses, *torp_expl_water_splash[3],

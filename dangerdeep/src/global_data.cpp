@@ -17,7 +17,7 @@ model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
 	*skyhemisphere;
 texture *water, *background, *titel[4], *periscope[4], *gauge1,
-	*gauge2, *gauge3, *gauge4, *psbackgr, *panelbackgr,
+	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
 	*clock12, *clock24, *threesubs[4], *glasses, *torp_expl_water_splash[3],
@@ -63,6 +63,7 @@ void init_global_data(void)
 	gauge2 = new texture((get_data_dir() + TEXTURE_DIR + "gauge2.png"));
 	gauge3 = new texture((get_data_dir() + TEXTURE_DIR + "gauge3.png"));
 	gauge4 = new texture((get_data_dir() + TEXTURE_DIR + "gauge4.png"));
+	gauge5 = new texture((get_data_dir() + TEXTURE_DIR + "gauge5.png"));
 	psbackgr = new texture((get_data_dir() + TEXTURE_DIR + "psbackgr.png"));
 	panelbackgr = new texture((get_data_dir() + TEXTURE_DIR + "panelbackgr.png"), 1, false);
 	addleadangle = new texture((get_data_dir() + TEXTURE_DIR + "addleadangle.png"));
@@ -87,9 +88,9 @@ void init_global_data(void)
 	threesubs[2] = new texture(threesubsimg, 0, 256, 256, 128);
 	threesubs[3] = new texture(threesubsimg, 256, 256, 256, 128);
 	SDL_FreeSurface(threesubsimg);
-	torp_expl_water_splash[0] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash.png" ), 1, true, true );
-	torp_expl_water_splash[1] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_1.png" ), 1, true, true );
-	torp_expl_water_splash[2] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_2.png" ), 1, true, true );
+	torp_expl_water_splash[0] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash.png" ), 1 );
+	torp_expl_water_splash[1] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_1.png" ), 1 );
+	torp_expl_water_splash[2] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_2.png" ), 1 );
 	torpedo_launch_sound = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_launch.wav" ) );
 	torpedo_detonation_submerged[0] = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_detonation_submerged_1.wav" ) );
 	torpedo_detonation_submerged[1] = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_detonation_submerged_2.wav" ) );
@@ -135,6 +136,7 @@ void deinit_global_data(void)
 	delete gauge2;
 	delete gauge3;
 	delete gauge4;
+	delete gauge5;
 	delete glasses;
 	delete psbackgr;
 	delete panelbackgr;
