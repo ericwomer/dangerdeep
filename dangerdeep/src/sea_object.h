@@ -136,8 +136,12 @@ public:
 	virtual void simulate(class game& gm, double delta_time);
 //	virtual bool is_collision(const sea_object* other);
 //	virtual bool is_collision(const vector2& pos);
+
+	// damage an object. give a relative position (in meters) where the damage is caused,
+	// the strength (and type!) of damage. (types: impact (piercing), explosion (destruction), shock wave)
 	// the strength is proportional to damage_status, 0-none, 1-light, 2-medium...
 	virtual bool damage(const vector3& fromwhere, unsigned strength); // returns true if object was destroyed
+
 	virtual unsigned calc_damage(void) const;	// returns damage in percent (100 means dead)
 	virtual void set_inactive(void);
 	virtual void kill(void);
