@@ -1,7 +1,7 @@
 // a simple polygon triangulation algorithm
 // (C) Thorsten Jordan
 
-// give a line loop (polygon) of vertices, ccw order
+// give a line loop (polygon) of vertices, clockwise order
 // returns vector of vertex indices (triangles, 3*m indices, m = #triangles, ccw order)
 
 #ifndef TRIANGULATE_H
