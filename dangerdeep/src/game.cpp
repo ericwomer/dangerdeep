@@ -382,6 +382,7 @@ void game::save_to_stream(ostream& out) const
 
 void game::load_from_stream(istream& in)
 {
+//fixme: sometimes ui is 0 when loading (save, return to game, load again)
 	int versionnr = read_i32(in);
 	if (versionnr != SAVEVERSION) system::sys().myassert(false, "invalid save game version");
 	int gametype = read_i32(in);
