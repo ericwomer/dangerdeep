@@ -1,3 +1,10 @@
+2004-05-28  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* coastmap.cpp
+	  - fixed 2d map display basically
+	* system.cpp system.h subsim.cpp
+	  - build in general fps limit mechanism (currently set to 100fps).
+	    Useful to limit e.g. map redraw (on my system 500fps - CPU waste).
+
 2004-05-27  Viktor Radnai <efti@gotiao.com>
 	* system.cpp system.h menu.cpp widget.cpp
 	  - made poll_event_queue() return the number of events occurred

@@ -78,6 +78,9 @@ public:
 	// takes effect only after next prepare_2d_drawing()
 	void set_res_2d(unsigned x, unsigned y) { res_x_2d = x; res_y_2d = y; }
 
+	// set maximum fps rate (0 for unlimited)
+	void set_max_fps(unsigned fps) { maxfps = fps; }
+
 	// give FOV X in degrees, aspect (w/h), znear and zfar.	
 	void gl_perspective_fovx(double fovx, double aspect, double znear, double zfar);
 
@@ -111,6 +114,9 @@ private:
 	unsigned long time_passed_while_sleeping;	// total sleep time
 	unsigned long sleep_time;	// time when system gets to sleep
 	bool is_sleeping;
+	
+	unsigned maxfps;		// limit fps, give 0 for no limit.
+	unsigned long last_swap_time;	// time of last buffer swap
 	
 	double xscal_2d, yscal_2d;	// factors needed for 2d drawing
 	

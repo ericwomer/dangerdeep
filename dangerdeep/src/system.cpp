@@ -27,7 +27,7 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	show_console(false), console_font(0), console_background(0),
 	draw_2d(false), keyqueue(), mouse_xrel(0), mouse_yrel(0), mouse_x(res/2),
 	mouse_y(res*3/8), mouse_b(0), time_passed_while_sleeping(0), sleep_time(0),
-	is_sleeping(false), screenshot_nr(0)
+	is_sleeping(false), maxfps(0), last_swap_time(0), screenshot_nr(0)
 {
 	myassert(res==640||res==800||res==1024||res==1280||res==512, "illegal resolution requested");
 	myassert(!instance, "system construction: system instance already exists");
@@ -255,6 +255,17 @@ void system::swap_buffers(void)
 		draw_console();
 	}
 	SDL_GL_SwapBuffers();
+	if (maxfps > 0) {
+		unsigned tm = millisec();
+		unsigned d = tm - last_swap_time;
+		unsigned dmax = 1000/maxfps;
+		if (d < dmax) {
+			SDL_Delay(dmax - d);
+			last_swap_time = tm + dmax - d;
+		} else {
+			last_swap_time = tm;
+		}
+	}
 }
 
 unsigned int system::poll_event_queue(void)
