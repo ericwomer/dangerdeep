@@ -10,12 +10,12 @@ using namespace std;
 #define GRAVITY 9.806	// a very global constant
 
 // global models, textures, fonts
-extern class model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium, *sky,
+extern class model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl;
 extern class texture *water, *background, *titel[4], *periscope[4], *gauge1,
 	*gauge2, *gauge3, *gauge4, *psbackgr, *panelbackgr,
 	*addleadangle, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
-	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11;
+	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds;
 extern class font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
 
 void init_global_data(void);

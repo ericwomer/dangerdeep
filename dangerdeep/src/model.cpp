@@ -60,8 +60,10 @@ void model::read(const string& filename)
 	}
 	texmapping = 0;
 	fread(&texmapping, 1, 1, f);
+	clamp = ((texmapping & 0x80) == 0);
+	texmapping = texmapping & 0x7f;
 	if (texname != "")
-		tex = new texture(get_data_dir() + "textures/" + texname, texmapping);
+		tex = new texture(get_data_dir() + "textures/" + texname, texmapping, clamp);
 	else
 		tex = 0;
 
@@ -107,9 +109,13 @@ void model::read(const string& filename)
 	system::sys()->add_console(string("read model file ")+filename);
 }
 
-void model::read_from_OFF(const string& filename, const string& texture_name, unsigned mapping)
+void model::read_from_OFF(const string& filename, const string& texture_name, unsigned mapping,
+	unsigned tilesx, unsigned tilesy)
 {
+	double TILESX = tilesx;
+	double TILESY = tilesy;
 	texmapping = mapping;
+	clamp = (tilesx == 1 && tilesy == 1);
 	max = vector3(-1e10, -1e10, -1e10);
 	min = vector3(1e10, 1e10, 1e10);
 	int nr_vertices = 0, nr_faces = 0;
@@ -147,10 +153,11 @@ void model::read_from_OFF(const string& filename, const string& texture_name, un
 		max = vertices[i].pos.max(max);
 	}
 	vector3 deltamaxmin = max - min;
+	vector3 center = max * 0.5 + min * 0.5;
 	if (!withuv) {
 		for (i = 0; i < nr_vertices; i++) {
-			vertices[i].u = (vertices[i].pos.y - min.y)/deltamaxmin.y;
-			vertices[i].v = 1.0 - (vertices[i].pos.z - min.z)/deltamaxmin.z;
+			vertices[i].u = TILESX*(vertices[i].pos.y - min.y)/deltamaxmin.y;
+			vertices[i].v = TILESY*(1.0 - (vertices[i].pos.z - min.z)/deltamaxmin.z);
 		}
 	}
 	for (i = 0; i < nr_faces; i++) {
@@ -174,7 +181,7 @@ void model::read_from_OFF(const string& filename, const string& texture_name, un
 	if (texture_name == "")
 		tex = 0;
 	else
-		tex = new texture(texture_name, mapping);
+		tex = new texture(texture_name, mapping, clamp);
 }
 		
 void model::write(const string& filename) const
@@ -191,7 +198,9 @@ void model::write(const string& filename) const
 		unsigned tns = 0;
 		fwrite(&tns, 2, 1, f);
 	}
-	fwrite(&texmapping, 1, 1, f);
+	unsigned txm = texmapping;
+	if (!clamp) txm |= 0x80;
+	fwrite(&txm, 1, 1, f);
 	unsigned nrv = vertices.size(), nrf = faces.size();
 	fwrite(&nrv, 4, 1, f);
 	fwrite(&nrf, 4, 1, f);

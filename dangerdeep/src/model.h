@@ -29,7 +29,8 @@ protected:
 	static float read_quantified_float(FILE* f, double min, double max);
 	static void write_quantified_float(FILE* f, float t, double min, double max);
 	vector3 min, max;
-	unsigned texmapping;
+	unsigned texmapping;	// which mapping to use (nearest, bilinear, mipmap, trilinear)
+	bool clamp;		// clamp texture?
 
 	model(const model& other);
 	model& operator=(const model& other);
@@ -39,7 +40,8 @@ public:
 	model(const string& filename);
 	void read(const string& filename);
 	// use an empty texture name for textureless model
-	void read_from_OFF(const string& filename, const string& texture_name, unsigned mapping = 0);
+	void read_from_OFF(const string& filename, const string& texture_name,
+		unsigned mapping = 0, unsigned tilesx = 1, unsigned tilesy = 1);
 	void write(const string& filename) const;
 	// if one color is given it is used for the whole model.
 	// if two colors are given a gradient is computed along the z axis with col1 at bottom.
