@@ -12,6 +12,7 @@
 #include "menu.h"
 #include "global_data.h"
 #include "texts.h"
+#include <iostream>
 #include <sstream>
 #include "config.h"
 
@@ -169,9 +170,33 @@ void show_vessels(void)
 
 int main(int argc, char** argv)
 {
-	res_x = 1024, res_y = 768;	// fixme
+	// command line argument parsing
+	res_x = 1024;
+	bool fullscreen = true;
+	list<string> args;
+	while (--argc > 0) args.push_front(string(argv[argc]));
+	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
+		if (*it == "--help") {
+			cout << argv[0] << ", usage:\n--help\t\tshow this\n"
+			<< "--res n\t\tuse resolution n horizontal,\n\t\tn is 512,640,800,1024 (recommended) or 1280\n"
+			<< "--nofullscreen\tdon't use fullscreen\n";
+			return 0;
+		} else if (*it == "--nofullscreen") {
+			fullscreen = false;
+		} else if (*it == "--res") {
+			list<string>::iterator it2 = it; ++it2;
+			if (it2 != args.end()) {
+				int r = atoi(it2->c_str());
+				if (r==512||r==640||r==800||r==1024||r==1280)
+					res_x = r;
+				++it;
+			}
+		}
+	}
+
+	res_y = res_x*3/4;
 	// weather conditions and earth curvature allow 30km sight at maximum.
-	sys = new class system(1.0, 30000.0, res_x, true);
+	sys = new class system(1.0, 30000.0, res_x, fullscreen);
 	
 	sys->add_console("$ffffffDanger $c0c0c0from the $ffffffDeep");
 	sys->add_console("$ffff00copyright and written 2003 by $ff0000Thorsten Jordan");
