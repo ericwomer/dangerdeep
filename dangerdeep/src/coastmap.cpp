@@ -325,6 +325,11 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, const vec
 
 
 
+//fixme:
+//cache results.
+//remove unnecessary flat quads in the distance/don't generate them
+//introduces LOD.
+//many more effects...
 #include <sstream>
 void coastsegment::render(const class coastmap& cm, int x, int y, const vector2& p, int detail) const
 {
@@ -355,6 +360,7 @@ void coastsegment::render(const class coastmap& cm, int x, int y, const vector2&
 		}
 	}
 	
+/*
 	ostringstream oss;
 	oss << "test_render_" << x << "_" << y << ".off";
 	ofstream out(oss.str().c_str());
@@ -365,6 +371,9 @@ void coastsegment::render(const class coastmap& cm, int x, int y, const vector2&
 		out << "3 " << indices[i*4] << " " << indices[i*4+1] << " " << indices[i*4+3] << "\n";
 		out << "3 " << indices[i*4+1] << " " << indices[i*4+3] << " " << indices[i*4+2] << "\n";
 	}
+*/
+	
+	glPushMatrix();
 
 	terraintex->set_gl_texture();
 	glColor4f(1,1,1,1);
@@ -378,6 +387,8 @@ void coastsegment::render(const class coastmap& cm, int x, int y, const vector2&
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	glPopMatrix();
 
 /*
 	if (type > 1) {
@@ -962,7 +973,7 @@ coastmap::coastmap(const string& filename)
 				for (unsigned x2 = 0; x2 < pixels_per_seg; ++x2) {
 				// the values don't seem to match the png map?! fixme
 					char m = mapf(xx*pixels_per_seg+x2, yy*pixels_per_seg+y2);
-					float h = 30;//30.0f + rnd() * 500.0f;
+					float h = 30.0f + rnd() * 500.0f;
 					float elev = (m == 0) ? -h : h;
 					d[y2*pixels_per_seg+x2] = elev;
 				}
@@ -1116,7 +1127,6 @@ void coastmap::render(const vector2& p, int detail, bool withterraintop) const
 	int moffy = int(pnew.y/rsegw);
 
 	glPushMatrix();
-	glLoadIdentity();
 	glTranslated(-p.x, -p.y, 0.0);
 
 	if (moffx >= 0 && moffy >= 0 && moffx < int(segsx) && moffy < int(segsy))	
