@@ -112,7 +112,8 @@ font::font(const string& basefilename, unsigned char_spacing)
 	
 		for (unsigned y = 0; y < c.height; y++) {
 			for (unsigned x = 0; x < c.width; ++x) {
-				tmpimage[2*(y*w+x)] = tmpimage[2*(y*w+x)+1] = *(ptr+x);
+				tmpimage[2*(y*w+x)] = 255;
+				tmpimage[2*(y*w+x)+1] = *(ptr+x);
 			}
 			ptr += fontimage->pitch;
 		}

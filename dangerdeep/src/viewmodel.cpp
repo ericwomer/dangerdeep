@@ -82,19 +82,19 @@ void view_model(const string& modelfilename)
 			viewangles.z += mx * 0.5;
 		}
 		sys->prepare_2d_drawing();
-		font_arial->print(0, 0, "A simple model viewer for Danger from the Deep.");
-		font_arial->print(0, 16, "Press any key to exit.");
-		font_arial->print(0, 32, "Press left mouse button and move mouse to rotate x/y.");
-		font_arial->print(0, 48, "Press right mouse button and move mouse to rotate z.");
 		vector3f minp = mdl->get_min(), maxp = mdl->get_max();
 		ostringstream os;
-		os << "Rotation " << viewangles.x << ", " << viewangles.y << ", " << viewangles.z <<
+		os << "A simple model viewer for Danger from the Deep.\n"
+			<< "Press any key to exit.\n"
+			<< "Press left mouse button and move mouse to rotate x/y.\n"
+			<< "Press right mouse button and move mouse to rotate z.\n"
+			<< "Rotation " << viewangles.x << ", " << viewangles.y << ", " << viewangles.z <<
 			"\nTranslation " << pos.x << ", " << pos.y << ", " << pos.z <<
 			"\nmin " << minp.x << ", " << minp.y << ", " << minp.z <<
 			"\nmax " << maxp.x << ", " << maxp.y << ", " << maxp.z <<
 			"\n";
 			
-		font_arial->print(0, 80, os.str());
+		font_arial->print(0, 0, os.str());
 		sys->unprepare_2d_drawing();
 		sys->swap_buffers();
 	}
