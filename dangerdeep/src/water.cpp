@@ -190,7 +190,8 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 	matrix4 proj = matrix4::get_gl(GL_PROJECTION_MATRIX);
 	matrix4 modl = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	matrix4 prmd = proj * modl;
-	
+
+//test	
 	cout << "projection matrix\n";
 	proj.print();
 	cout << "modelview matrix\n";
@@ -203,11 +204,21 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 	modl.inverse().print();
 	cout << "inverse (projection*modelview) matrix\n";
 	prmd.inverse().print();
-	
 	cout << "accuracy test\n";
 	(proj * proj.inverse()).print();
 	(modl * modl.inverse()).print();
 	(prmd * prmd.inverse()).print();
+//end test
+	matrix4 inv_proj = proj.inverse();
+	matrix4 inv_prmd = prmd.inverse();
+	cout << "inv +x " << (inv_prmd * vector3(1, 0, 0)) << "\n";
+	cout << "inv -x " << (inv_prmd * vector3(-1, 0, 0)) << "\n";
+	cout << "inv +y " << (inv_prmd * vector3(0, 1, 0)) << "\n";
+	cout << "inv -y " << (inv_prmd * vector3(0, -1, 0)) << "\n";
+	cout << "inv +z " << (inv_prmd * vector3(0, 0, 1)) << "\n";
+	cout << "inv -z " << (inv_prmd * vector3(0, 0, -1)) << "\n";
+	
+
 
 	bool onlyflatwater = false;
 

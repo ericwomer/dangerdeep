@@ -17,6 +17,8 @@
 #endif
 #include <GL/gl.h>
 
+#include "vector3.h"
+
 #include <vector>
 #include <cmath>
 #include <iostream>
@@ -126,6 +128,15 @@ public:
 			for (unsigned j = 0; j < size; ++j)
 				r.values[j+i*size] = D(m[i+j*size]);
 		return r;
+	}
+	
+	vector3t<D> operator* (const vector3t<D>& v) const {
+		D r[size];
+		for (unsigned j = 0; j < size; ++j) {	// rows of "this"
+			r[j] = values[j*size+0] * v.x + values[j*size+1] * v.y + values[j*size+2] * v.z + values[j*size+3];
+		}
+		// divide x,y,z by w
+		return vector3t<D>(r[0]/r[3], r[1]/r[3], r[2]/r[3]);
 	}		
 };
 
