@@ -147,39 +147,39 @@ void submarine_interface::process_input(const SDL_Event& event)
 		const cfg& mycfg = cfg::instance();
 
 		if (mycfg.getkey(KEY_SHOW_GAUGES_SCREEN).equal(event.key.keysym)) {
-			current_display = display_mode_gauges;
+			set_current_display(display_mode_gauges);
 		} else if (mycfg.getkey(KEY_SHOW_PERISCOPE_SCREEN).equal(event.key.keysym)) {
 			if (player->get_depth() > player->get_periscope_depth()) {
 				add_message(texts::get(28));
 				// will later be replaced when scope can be raised in smaller steps...
 				// no. height of scope and en/disabling are not the same.
 			} else {
-				current_display = display_mode_periscope;
+				set_current_display(display_mode_periscope);
 			}
 		} else if (mycfg.getkey(KEY_SHOW_UZO_SCREEN).equal(event.key.keysym)) {
 			if (player->is_submerged()) {
 				add_message(texts::get(27));
 			} else {
-				current_display = display_mode_uzo;
+				set_current_display(display_mode_uzo);
 			}
 		} else if (mycfg.getkey(KEY_SHOW_BRIDGE_SCREEN).equal(event.key.keysym)) {
 			if (player->is_submerged()) {
 				add_message(texts::get(27));
 			} else {
-				current_display = display_mode_bridge;
+				set_current_display(display_mode_bridge);
 			}
 		} else if (mycfg.getkey(KEY_SHOW_MAP_SCREEN).equal(event.key.keysym)) {
-			current_display = display_mode_map;
+			set_current_display(display_mode_map);
 		} else if (mycfg.getkey(KEY_SHOW_TORPEDO_SCREEN).equal(event.key.keysym)) {
-			current_display = display_mode_torpedoroom;
+			set_current_display(display_mode_torpedoroom);
 		} else if (mycfg.getkey(KEY_SHOW_DAMAGE_CONTROL_SCREEN).equal(event.key.keysym)) {
-			current_display = display_mode_damagestatus;
+			set_current_display(display_mode_damagestatus);
 		} else if (mycfg.getkey(KEY_SHOW_LOGBOOK_SCREEN).equal(event.key.keysym)) {
-			current_display = display_mode_logbook;
+			set_current_display(display_mode_logbook);
 		} else if (mycfg.getkey(KEY_SHOW_SUCCESS_RECORDS_SCREEN).equal(event.key.keysym)) {
-			current_display = display_mode_successes;
+			set_current_display(display_mode_successes);
 		} else if (mycfg.getkey(KEY_SHOW_FREEVIEW_SCREEN).equal(event.key.keysym)) {
-			current_display = display_mode_freeview;
+			set_current_display(display_mode_freeview);
 		} else if (mycfg.getkey(KEY_RUDDER_LEFT).equal(event.key.keysym)) {
 			player->rudder_left();
 			add_rudder_message();
@@ -365,7 +365,7 @@ void submarine_interface::process_input(const SDL_Event& event)
 					add_message(texts::get(27));
 			}	
 		} else if (mycfg.getkey(KEY_SHOW_TDC_SCREEN).equal(event.key.keysym)) {
-			current_display = display_mode_tdc;
+			set_current_display(display_mode_tdc);
 		} else {
 			// rest of the keys per switch (not user defineable)
 			// quit, screenshot, pause etc.
@@ -416,10 +416,10 @@ void submarine_interface::display(void) const
 	submarine* player = dynamic_cast<submarine*>(mygame->get_player());
 	if ((current_display == display_mode_uzo || current_display == display_mode_bridge) &&
 	    player->is_submerged()) {
-		current_display = display_mode_periscope;
+		set_current_display(display_mode_periscope);
 	}
 	if (current_display == display_mode_periscope && player->get_depth() > player->get_periscope_depth()) {
-		current_display = display_mode_map;
+		set_current_display(display_mode_map);
 	}
 
 	user_interface::display();

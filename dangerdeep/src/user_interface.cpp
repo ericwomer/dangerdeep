@@ -61,8 +61,8 @@ user_interface::user_interface(game& gm) :
 	bearing(0),
 	elevation(90),
 	bearing_is_relative(true),
-	current_display(0),
 	target(0),
+	current_display(0),
 	mysky(0),
 	mywater(0),
 	mycoastmap(get_map_dir() + "default.xml")
@@ -299,12 +299,8 @@ void user_interface::process_input(const SDL_Event& event)
 			return;
 		} else if (cfg::instance().getkey(KEY_TOGGLE_POPUP).equal(event.key.keysym)) {
 			// determine which pop is shown and which is allowed and switch to it
-			//fixme: make function for that: is_popup_allowed()
-			//because automatic screen switching needs it too
-			unsigned mask = displays[current_display]->get_popup_allow_mask();
 			++current_popup;
-			if (((1 << current_popup) & mask) == 0)
-				current_popup = 0;
+			set_allowed_popup();
 		}
 	}
 
@@ -591,4 +587,31 @@ void user_interface::play_sound_effect_distance(const string &se, double distanc
 
 		s->play ( ( 1.0f - mygame->get_player()->get_noise_factor () ) * exp ( - distance / h ) );
 	}
+}
+
+
+
+void user_interface::set_allowed_popup(void) const
+{
+	// 0 is always valid (no popup)
+	if (current_popup == 0) return;
+
+	unsigned mask = displays[current_display]->get_popup_allow_mask();
+	mask >>= (current_popup-1);
+	while (mask != 0) {
+		// is popup number valid?
+		if (mask & 1)
+			return;
+		++current_popup;
+		mask >>= 1;
+	}
+	current_popup = 0;
+}
+
+
+
+void user_interface::set_current_display(unsigned curdis) const
+{
+	current_display = curdis;
+	set_allowed_popup();
 }

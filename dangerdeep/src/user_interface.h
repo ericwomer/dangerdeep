@@ -83,6 +83,14 @@ protected:
 //	void draw_clock(game& gm, int x, int y, unsigned wh, double t,
 //	        const string& text) const;
 
+	// adjusts "current_popup" if not set to allowed popup
+	// must be const because it can be called by display(), only mutable members are changed.
+	void set_allowed_popup(void) const;
+
+	// set "current_display" only via this function, so that checks can be performed autom.
+	// must be const because it can be called by display(), only mutable members are changed.
+	void set_current_display(unsigned curdis) const;
+
 public:	
 	virtual ~user_interface();
 
