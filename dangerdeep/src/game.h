@@ -42,6 +42,17 @@ public:
 			{}
 	};
 
+	struct cloud {
+		vector3 pos;
+		double size;
+		// unsigned texturetype; or texture* tex;
+		cloud();
+		~cloud() {}
+		cloud(const cloud& o) : pos(o.pos), size(o.size) {}
+		cloud& operator= (const cloud& o) { pos = o.pos; size = o.size; return *this; }
+		bool operator< (const cloud& o) const { return pos.z < o.pos.z; }
+	};
+
 protected:
 	list<ship*> ships;
 	list<submarine*> submarines;
@@ -62,6 +73,10 @@ protected:
 	
 	enum weathers { sunny, clouded, raining, storm };//fixme
 	double max_view_dist;	// maximum visibility according to weather conditions
+	
+	vector<cloud> clouds;
+	
+	void generate_clouds(void);
 	
 	list<ping> pings;
 	
@@ -153,6 +168,9 @@ public:
 	double water_depth(const vector2& pos) const;
 	
 	void main_playloop(class system& sys);
+
+	unsigned get_nr_of_clouds(void) const { return clouds.size(); }
+	cloud get_cloud(unsigned i) const { return clouds[i]; }
 
 	// loading and saving games. since game is virtual, use a factory function for loading
 	static game* load(const string& filename);

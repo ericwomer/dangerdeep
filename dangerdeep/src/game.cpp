@@ -76,6 +76,7 @@ game::game(parser& p) : running(true), time(0)
 	player = 0;
 	ui = 0;
 	compute_max_view_dist();
+	generate_clouds();
 	while (!p.is_empty()) {
 		bool nextisplayer = false;
 		if (p.type() == TKN_PLAYER) {
@@ -148,6 +149,22 @@ void game::compute_max_view_dist(void)
 	if (dt < 2) { max_view_dist = 5000 + 25000*fmod(dt,1); return; }
 	if (dt < 3) { max_view_dist = 30000; return; }
 	max_view_dist = 30000 - 25000*fmod(dt,1);
+}
+
+game::cloud::cloud()
+{
+	pos = vector3(rnd()*60000-30000, rnd()*60000-30000, rnd()*10000+6000);
+	size = (rnd()*5000+1000);
+}
+	
+void game::generate_clouds(void)
+{
+	clouds.clear();
+	unsigned nr_clouds = 50;
+	clouds.reserve(nr_clouds);
+	for (unsigned i = 0; i < nr_clouds; ++i)
+		clouds.push_back(cloud());
+	sort(clouds.begin(), clouds.end());
 }
 
 void game::simulate(double delta_t)
@@ -961,4 +978,3 @@ void game::save(const string& filename) const
 	
 	bs.save(filename);
 }
-

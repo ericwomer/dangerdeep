@@ -9,7 +9,7 @@
 
 //#define WPEXACTNESS 100			// how exact a waypoint has to be hit in meters
 //#define AI_THINK_CYCLE_TIME 10		// sec
-#define DC_ATTACK_RADIUS 150		// distance to target before DC launching starts
+#define DC_ATTACK_RADIUS 100	// distance to target before DC launching starts
 #define DC_ATTACK_RUN_RADIUS 600	// distance to contact until escort switches to
 					// maximum speed
 
@@ -142,16 +142,14 @@ void ai::act_escort(game& gm, double delta_time)
 		act_dumb(gm, delta_time);
 	} else if (state == attackcontact) {	// attack sonar/visible contact
 
-//		if (!(evasive_manouver && rem_manouver_time > 0)) {
-			evasive_manouver = parent->set_course_to_pos(contact.xy());
-/*
+		if (!(evasive_manouver && rem_manouver_time > 0)) {
+			evasive_manouver = ! parent->set_course_to_pos(contact.xy());
 			if (evasive_manouver) {
 				// wait for half circle to complete
 				double waittime = 180.0 / (parent->get_turn_rate().value() * parent->get_speed());
 				rem_manouver_time = ceil(waittime/AI_THINK_CYCLE_TIME) * AI_THINK_CYCLE_TIME;
 			}
 		}
-*/
 
 		vector2 delta = contact.xy() - parent->get_pos().xy();
 		double cd = delta.length();

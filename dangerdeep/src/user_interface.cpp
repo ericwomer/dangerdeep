@@ -354,6 +354,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glDisable(GL_LIGHTING);
 	glPushMatrix();
 	glTranslatef(viewpos.x, viewpos.y, 0);
+	glPushMatrix();
 	glScalef(max_view_dist, max_view_dist, max_view_dist);	// fixme dynamic
 	double dt = get_day_time(gm.get_time());
 	color skycol1, skycol2, lightcol;
@@ -368,31 +369,25 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 
 	skycol2.set_gl_color();
 	skyhemisphere->display(false);//, &skycol1, &skycol2);
-//	color::white().set_gl_color();
+	glPopMatrix();	// remove scale
 	
-	// clouds
-	
-	/* replace this by a number of clouds (depending on weather) each a QUAD with one single
-	  cloud texture at heights 6-10km, moving. So we'll have multilayered clouds (transparent) */
+	// ******** clouds *******
 	lightcol.set_gl_color();	// cloud color depends on day time
-	double cloudscale = 1;		// depends on scale factor above
-	double cloudoffsetx = 0;	// depends on time for moving clouds
-	double cloudoffsety = 0;
-		//fixme: clouds move up/down depending on daytime
-		//why??? glScalef above is compensated by this division!
-	double cloudaltitude = 0.3;//6000.0/max_view_dist;	// clouds in 6km altitude
 	glBindTexture(GL_TEXTURE_2D, clouds->get_opengl_name());
 	glBegin(GL_QUADS);
-	glTexCoord2f(cloudoffsetx, cloudoffsety);
-	glVertex3f(-1,  1, cloudaltitude);
-	glTexCoord2f(cloudscale+cloudoffsetx, cloudoffsety);
-	glVertex3f( 1,  1, cloudaltitude);
-	glTexCoord2f(cloudscale+cloudoffsetx, cloudscale+cloudoffsety);
-	glVertex3f( 1, -1, cloudaltitude);
-	glTexCoord2f(cloudoffsetx, cloudscale+cloudoffsety);
-	glVertex3f(-1, -1, cloudaltitude);
+	for (unsigned cl = gm.get_nr_of_clouds(); cl > 0; --cl) {
+		game::cloud cld = gm.get_cloud(cl-1);
+		glTexCoord2f(0, 1);
+		glVertex3f(-cld.size+cld.pos.x,  cld.size+cld.pos.y, cld.pos.z);
+		glTexCoord2f(1, 1);
+		glVertex3f( cld.size+cld.pos.x,  cld.size+cld.pos.y, cld.pos.z);
+		glTexCoord2f(1, 0);
+		glVertex3f( cld.size+cld.pos.x, -cld.size+cld.pos.y, cld.pos.z);
+		glTexCoord2f(0, 0);
+		glVertex3f(-cld.size+cld.pos.x, -cld.size+cld.pos.y, cld.pos.z);
+	}
 	glEnd();
-	glPopMatrix();
+	glPopMatrix();	// remove translate
 	glEnable(GL_LIGHTING);
 
 	// ******* water *********

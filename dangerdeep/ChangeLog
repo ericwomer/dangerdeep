@@ -1,3 +1,9 @@
+2003-07-05  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* ai.cpp
+	  - made destroyer course computation a bit smarter.
+	* game.h game.cpp user_interface.cpp
+	  - new clouds.
+
 2003-07-04  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* smoke_stream.* ship.*
 	  - made smoke less denser and reduce particle number
