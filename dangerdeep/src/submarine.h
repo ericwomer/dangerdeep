@@ -73,7 +73,6 @@ protected:
 	*/
 	virtual double get_battery_consumption_rate () const
 	{ return battery_value_a * ( exp ( get_throttle_speed () / battery_value_t ) - 1.0f ); }
-
 	/**
 		This method method calculates the battery recharge rate.
 		@return battery recharge rate
@@ -122,6 +121,7 @@ public:
 	virtual bool is_snorkel_up () const { return ( snorkel_up == true ); }
 	virtual bool has_snorkel () const { return ( snorkel == true ); }
 	virtual double get_snorkel_depth () const { return snorkel_depth; }
+	virtual double get_battery_level () const { return battery_level; }
     
 	// command interface for subs
 	virtual void scope_up(void) { scopeup = true; };	// fixme
