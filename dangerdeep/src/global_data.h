@@ -17,6 +17,7 @@ using namespace std;
 #include "date.h"
 
 #define GRAVITY 9.806	// a very global constant
+#define NR_CLOUD_TEXTURES 2
 
 // global models, textures, fonts
 extern class model *merchant_large, *merchant_medium, *merchant_small,
@@ -29,7 +30,7 @@ extern class texture *water, *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt2, *torpt3, *torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut,
-	*clouds,
+	*cloud_textures[NR_CLOUD_TEXTURES],
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
 	*woodbackgr, *smoke, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked;

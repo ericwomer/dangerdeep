@@ -289,10 +289,10 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glDisable(GL_LIGHTING);		// direct lighting turned off
 	glDisable(GL_DEPTH_TEST);	// draw all clouds
 	lightcol.set_gl_color();	// cloud color depends on day time
-	glBindTexture(GL_TEXTURE_2D, clouds->get_opengl_name());
-	glBegin(GL_QUADS);
 	for (unsigned cl = gm.get_nr_of_clouds(); cl > 0; --cl) {
 		game::cloud cld = gm.get_cloud(cl-1);
+		glBindTexture(GL_TEXTURE_2D, cloud_textures[cld.type]->get_opengl_name());
+		glBegin(GL_QUADS);
 		glTexCoord2f(0, 1);
 		glVertex3f(-cld.size+cld.pos.x,  cld.size+cld.pos.y, cld.pos.z);
 		glTexCoord2f(1, 1);
@@ -301,8 +301,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glVertex3f( cld.size+cld.pos.x, -cld.size+cld.pos.y, cld.pos.z);
 		glTexCoord2f(0, 0);
 		glVertex3f(-cld.size+cld.pos.x, -cld.size+cld.pos.y, cld.pos.z);
+		glEnd();
 	}
-	glEnd();
 	glPopMatrix();	// remove translate
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);

@@ -163,8 +163,10 @@ void game::compute_max_view_dist(void)
 game::cloud::cloud()
 {
 	// scale cloud position by 0.1 to avoid frustum collisions
-	pos = vector3(rnd()*6000-3000, rnd()*6000-3000, rnd()*1000+600);
+	pos = vector3(rnd()*10000-5000, rnd()*10000-5000, rnd()*1500+500);
 	size = (rnd()*500+100);
+	type = rnd(NR_CLOUD_TEXTURES);
+	if (type == 1) size += 600;
 }
 	
 void game::generate_clouds(void)

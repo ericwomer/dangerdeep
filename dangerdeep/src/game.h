@@ -45,11 +45,11 @@ public:
 	struct cloud {
 		vector3 pos;
 		double size;
-		// unsigned texturetype; or texture* tex;
+		unsigned type;	// nr of texture
 		cloud();
 		~cloud() {}
-		cloud(const cloud& o) : pos(o.pos), size(o.size) {}
-		cloud& operator= (const cloud& o) { pos = o.pos; size = o.size; return *this; }
+		cloud(const cloud& o) : pos(o.pos), size(o.size), type(o.type) {}
+		cloud& operator= (const cloud& o) { pos = o.pos; size = o.size; type = o.type; return *this; }
 		bool operator< (const cloud& o) const { return pos.z < o.pos.z; }
 	};
 

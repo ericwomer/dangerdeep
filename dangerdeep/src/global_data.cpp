@@ -7,6 +7,7 @@
 #include "font.h"
 #include "global_data.h"
 #include "sound.h"
+#include <sstream>
 #ifdef WIN32
 #include <SDL_image.h>
 #else
@@ -33,7 +34,7 @@ texture *water, *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt2, *torpt3, *torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut,
-	*clouds,
+	*cloud_textures[NR_CLOUD_TEXTURES],
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
 	*woodbackgr, *smoke, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked;
@@ -100,7 +101,11 @@ void init_global_data(void)
 	torpt1fat = new texture((get_data_dir() + TEXTURE_DIR + "torpt1fat.png"));
 	torpt3fat = new texture((get_data_dir() + TEXTURE_DIR + "torpt3fat.png"));
 	torpt6lut = new texture((get_data_dir() + TEXTURE_DIR + "torpt6lut.png"));
-	clouds = new texture((get_data_dir() + TEXTURE_DIR + "clouds.png"), 1, false, true);
+	for (unsigned i = 0; i < NR_CLOUD_TEXTURES; ++i) {
+		ostringstream filename;
+		filename << get_data_dir() << TEXTURE_DIR << "clouds" << (i+1) << ".png";
+		cloud_textures[i] = new texture(filename.str(), 1, false, true);
+	}
 	clock12 = new texture((get_data_dir() + TEXTURE_DIR + "clock12.png"));
 	clock24 = new texture((get_data_dir() + TEXTURE_DIR + "clock24.png"));
 	glasses = new texture((get_data_dir() + TEXTURE_DIR + "glasses.png"), 1, true, true);
@@ -184,7 +189,8 @@ void deinit_global_data(void)
 	delete torpt1fat;
 	delete torpt3fat;
 	delete torpt6lut;
-	delete clouds;
+	for (unsigned i = 0; i < NR_CLOUD_TEXTURES; ++i)
+		delete cloud_textures[i];
 	delete clock12;
 	delete clock24;
 	delete threesubsimg;

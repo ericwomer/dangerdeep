@@ -436,7 +436,7 @@ int main(int argc, char** argv)
 
 	m.run();
 
-	sys->write_console();
+	sys->write_console(true);
 
 	deinit_global_data();
 	delete sys;

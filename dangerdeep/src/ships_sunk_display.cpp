@@ -41,7 +41,7 @@ void ships_sunk_display::display ( class system& sys, class game& gm )
 	// Draw background image.
 	for ( int i = 0; i < 4; i++ )
 		for ( int j = 0; j < 3; j++ )
-			sys.draw_image ( i*256, j*256, 256, 256, clouds );
+			sys.draw_image ( i*256, j*256, 256, 256, cloud_textures[0] );
 
 	for ( unsigned i = first_displayed_object; i < first_displayed_object + 12; i ++ )
 	{
