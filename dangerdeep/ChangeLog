@@ -1,3 +1,15 @@
+2003-04-17  Markus Petermann  <m.petermann@gmx.net>
+
+	* ship.h, ship.cpp, submarine.h, submarine.cpp:
+	  - Fuel and battery consumption introduces. Battery recharged is still
+	    uncomplete because there are currently no time value available for
+	    the recharge process.
+	* game.h, game.cpp:
+	  - New method is_day_mode introduced. This method is needed to activate
+	    red light mode during night.
+	* user_interface.h, user_interface.cpp:
+	  - New methods for red light mode.
+
 2003-04-13  Markus Petermann  <m.petermann@gmx.net>
 
 	* game.h, game.cpp:
@@ -8,6 +20,10 @@
 	  - Moved method add_rudder_message from submarine_interface to this module.
 	* submarine_interface.h, submarine_interface.cpp:
 	  - Moved method add_rudder_message to module user_interface.
+	* angle.h
+	  - Comparison methods introduced.
+	* parser.cpp, tokencodes.h:
+	  - New tokens for snorkel.
 
 2003-04-10  Markus Petermann  <m.petermann@gmx.net>
 
