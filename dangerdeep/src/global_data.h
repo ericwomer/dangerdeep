@@ -7,6 +7,8 @@
 #include <string>
 using namespace std;
 
+#define GRAVITY 9.806	// a very global constant
+
 // global models, textures, fonts
 extern class model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium, *sky,
 	*battleship_malaya, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl;

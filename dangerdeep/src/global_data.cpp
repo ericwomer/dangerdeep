@@ -34,7 +34,7 @@ void init_global_data(void)
 	font_tahoma = new font((get_data_dir() + "font_tahoma.png").c_str());
 	torpedo_g7 = new model((get_data_dir() + "torpedo.mdl"));
 	depth_charge_mdl = new model((get_data_dir() + "depth_charge.mdl"));
-	gun_shell_mdl = new model((get_data_dir() + "depth_charge.mdl"));
+	gun_shell_mdl = new model((get_data_dir() + "gun_shell.mdl"));
 	SDL_Surface* titelimg = IMG_Load((get_data_dir() + "titel.png").c_str());
 	titel[0] = new texture(titelimg, 0, 0, 256, 256);
 	titel[1] = new texture(titelimg, 256, 0, 256, 256);

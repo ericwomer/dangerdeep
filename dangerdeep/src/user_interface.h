@@ -44,7 +44,7 @@ public:
 	virtual void display(class system& sys, class game& gm) = 0;
 	// if playerobj != 0 this obj is not drawn
 	virtual void draw_view(class system& sys, class game& gm, const vector3& viewpos,
-		angle direction, sea_object* playerobj, bool withtorp, bool withdcs);
+		angle direction, sea_object* playerobj, bool withunderwaterweapons);
 	virtual bool user_quits(void) const { return quit; }
 	virtual bool paused(void) const { return pause; }
 	virtual unsigned time_scaling(void) const { return time_scale; }

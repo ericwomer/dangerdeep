@@ -20,7 +20,7 @@ void user_interface::init_water_data(void)
 	vector<unsigned char> waterheight(WATERSIZE*WATERSIZE);
 	for (int j = 0; j < WATERSIZE; ++j)
 		for (int i = 0; i < WATERSIZE; ++i)
-			waterheight[j*WATERSIZE+i] = rnd(256);
+			waterheight[j*WATERSIZE+i] = rand()%256;
 	allwaveheights.resize(WAVES*WATERSIZE*WATERSIZE);
 	vector<float>::iterator it = allwaveheights.begin();
 	for (int k = 0; k < WAVES; ++k) {
@@ -55,7 +55,7 @@ float user_interface::get_waterheight(float x_, float y_, int wave)	// bilinear 
 }
 
 void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
-	angle direction, sea_object* playerobj, bool withtorp, bool withdcs)
+	angle direction, sea_object* playerobj, bool withunderwaterweapons)
 {
 	int wave = int(gm.get_time()*WAVES/WAVETIDECYCLETIME);
 	
@@ -124,7 +124,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glVertex3f(c1,c2,0);
 	glEnd();
 	
-	//fixme waterheight of äußerstem Rand des allwaveheight-gemachten wassers auf 0
+	//fixme waterheight of äußerstem rand des allwaveheight-gemachten wassers auf 0
 	//damit keine lücken zu obigem wasser da sind SCHNELLER machen
 	//fixme vertex lists
 	//fixme visibility detection: 75% of the water are never seen but drawn
@@ -193,7 +193,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glPopMatrix();
 	}
 
-	if (withtorp) {
+	if (withunderwaterweapons) {
 		list<torpedo*>& torpedoes = gm.get_torpedoes();
 		for (list<torpedo*>::const_iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
 			glPushMatrix();
@@ -202,8 +202,6 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 			(*it)->display();
 			glPopMatrix();
 		}
-	}
-	if (withdcs) {
 		list<depth_charge*>& depth_charges = gm.get_depth_charges();
 		for (list<depth_charge*>::const_iterator it = depth_charges.begin(); it != depth_charges.end(); ++it) {
 			glPushMatrix();
@@ -212,5 +210,15 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 			(*it)->display();
 			glPopMatrix();
 		}
+	}
+
+	list<gun_shell*>& gun_shells = gm.get_gun_shells();
+	for (list<gun_shell*>::const_iterator it = gun_shells.begin(); it != gun_shells.end(); ++it) {
+		glPushMatrix();
+		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
+		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
+	glScalef(100,100,100);//fixme: to control functionality for now
+		(*it)->display();
+		glPopMatrix();
 	}
 }

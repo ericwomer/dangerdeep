@@ -63,6 +63,7 @@ public:
 	virtual void act_escort(class game& g, double delta_time);
 	virtual void act_dumb(class game& g, double delta_time);
 	virtual void set_course_to_pos(const vector2& pos);
+	virtual void fire_shell_at(class game& gm, const sea_object& s);
 };
 
 #endif

@@ -19,21 +19,24 @@ gun_shell::gun_shell(const sea_object& parent, angle direction, angle elevation,
 	v0 = initial_velocity;
 	t = 0;
 	speed = v0;
-	a = elevation;
+	alpha = elevation;
 	system::sys()->add_console("shell created");
 }
 
 void gun_shell::simulate(game& gm, double delta_time)
 {
 	t += delta_time;
-	speed = v0 * exp(-AIR_RESISTANCE*t/v0);
-	position.z = a.sin() * t * speed - GRAVITY * t*t/2;
-	vector2 deltapos = heading.direction() * speed;
+	speed = v0*exp(-AIR_RESISTANCE*t/v0);
+	position.z = alpha.sin() * t * speed - GRAVITY * t*t/2;
+	vector2 deltapos = heading.direction() * speed * alpha.cos();
 	position.x += deltapos.x;
 	position.y += deltapos.y;
 	if (position.z <= 0) {
 		list<ship*>& ships = gm.get_ships();
 		for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
+			// fixme: we need a special collision detection, because
+			// the shell is so fast that it can be collisionfree with *it
+			// delta_time ago and now, but hit *it in between
 			if (is_collision(*it)) {
 				(*it)->damage(GUN_SHELL_HITPOINTS);
 				return;	// only one hit possible

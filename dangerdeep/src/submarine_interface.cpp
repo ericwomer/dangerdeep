@@ -360,7 +360,7 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 12+3);//fixme: +3 to be above waves
 	// no torpedoes, no DCs, no player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, player, false, false);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, player, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -435,7 +435,7 @@ void submarine_interface::display_UZO(class system& sys, game& gm)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6);
 	// no torpedoes, no DCs, no player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, player, false, false);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, player, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -467,7 +467,7 @@ void submarine_interface::display_bridge(class system& sys, game& gm)
 	vector2 phd = player->get_heading().direction();
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6) + vector3(phd.x, phd.y, 0);
 	// no torpedoes, no DCs, with player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 0, false, false);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 0, false);
 
 	sys.prepare_2d_drawing();
 	draw_infopanel(sys);
@@ -731,7 +731,7 @@ void submarine_interface::display_freeview(class system& sys, game& gm)
 	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
 
 	// draw everything
-	draw_view(sys, gm, viewpos, 0, 0, true, true);
+	draw_view(sys, gm, viewpos, 0, 0, true);
 
 	int mx, my;
 	sys.get_mouse_motion(mx, my);

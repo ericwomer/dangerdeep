@@ -66,8 +66,7 @@ void ai::act_escort(game& gm, double delta_time)
 		//double d = (*it)->get_pos().xy().distance(parent->get_pos().xy());
 		// fixme choose best target
 		if (!gm.can_see(parent, *it)) continue;
-//		gm.spawn_gun_shell(new gun_shell(*parent, // make code of gunnery.cpp as part of ai
-//		parent->fire_shell_at((*it)->get_pos().xy());
+		fire_shell_at(gm, **it);
 		attack_contact((*it)->get_pos());
 	}
 	if (state != attackcontact) {	// nothing found? try a ping or listen
@@ -159,6 +158,24 @@ void ai::act_dumb(game& gm, double delta_time)
 		}
 	}
 }
+
+void ai::fire_shell_at(game& gm, const sea_object& s)
+{
+	vector2 deltapos = s.get_pos().xy() - parent->get_pos().xy();
+	double distance = deltapos.length();
+	angle direction(deltapos);
+	
+	angle elevation = angle(30);	// fixme
+	
+
+	// fixme adapt direction & elevation to course and speed of target!	
+	gm.spawn_gun_shell(new gun_shell(*parent, direction, elevation));
+}
+
+
+
+
+
 
 #if 0	// gunnery code
 #include <cstdlib>
