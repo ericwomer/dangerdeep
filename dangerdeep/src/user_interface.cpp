@@ -664,7 +664,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	float framepart = myfmod(t, WATER_BUMPMAP_CYCLE_TIME)/WATER_BUMPMAP_CYCLE_TIME;
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-	glActiveTexture(GL_TEXTURE0_ARB);
+	glActiveTextureARB(GL_TEXTURE0_ARB);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, water_bumpmaps[unsigned(framepart*WATER_BUMP_FRAMES)]->get_opengl_name());
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
@@ -674,7 +674,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
 	
-	glActiveTexture(GL_TEXTURE1_ARB);
+	glActiveTextureARB(GL_TEXTURE1_ARB);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
@@ -686,35 +686,35 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 
 	glDisable(GL_LIGHTING);
 	glBegin(GL_TRIANGLE_STRIP);
-	glMultiTexCoord2f(GL_TEXTURE0_ARB,t0,t3);
-	glMultiTexCoord2f(GL_TEXTURE1_ARB,t0,t3);
+	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t0,t3);
+	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t0,t3);
 	glVertex3f(c0,c3,0);
-	glMultiTexCoord2f(GL_TEXTURE0_ARB,t1,t2);
-	glMultiTexCoord2f(GL_TEXTURE1_ARB,t1,t2);
+	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t1,t2);
+	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t1,t2);
 	glVertex3f(c1,c2,wz);
-	glMultiTexCoord2f(GL_TEXTURE0_ARB,t3,t3);
-	glMultiTexCoord2f(GL_TEXTURE1_ARB,t3,t3);
+	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t3,t3);
+	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t3,t3);
 	glVertex3f(c3,c3,0);
-	glMultiTexCoord2f(GL_TEXTURE0_ARB,t2,t2);
-	glMultiTexCoord2f(GL_TEXTURE1_ARB,t2,t2);
+	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t2,t2);
+	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t2,t2);
 	glVertex3f(c2,c2,wz);
-	glMultiTexCoord2f(GL_TEXTURE0_ARB,t3,t0);
-	glMultiTexCoord2f(GL_TEXTURE1_ARB,t3,t0);
+	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t3,t0);
+	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t3,t0);
 	glVertex3f(c3,c0,0);
-	glMultiTexCoord2f(GL_TEXTURE0_ARB,t2,t1);
-	glMultiTexCoord2f(GL_TEXTURE1_ARB,t2,t1);
+	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t2,t1);
+	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t2,t1);
 	glVertex3f(c2,c1,wz);
-	glMultiTexCoord2f(GL_TEXTURE0_ARB,t0,t0);
-	glMultiTexCoord2f(GL_TEXTURE1_ARB,t0,t0);
+	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t0,t0);
+	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t0,t0);
 	glVertex3f(c0,c0,0);
-	glMultiTexCoord2f(GL_TEXTURE0_ARB,t1,t1);
-	glMultiTexCoord2f(GL_TEXTURE1_ARB,t1,t1);
+	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t1,t1);
+	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t1,t1);
 	glVertex3f(c1,c1,wz);
-	glMultiTexCoord2f(GL_TEXTURE0_ARB,t0,t3);
-	glMultiTexCoord2f(GL_TEXTURE1_ARB,t0,t3);
+	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t0,t3);
+	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t0,t3);
 	glVertex3f(c0,c3,0);
-	glMultiTexCoord2f(GL_TEXTURE0_ARB,t1,t2);
-	glMultiTexCoord2f(GL_TEXTURE1_ARB,t1,t2);
+	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t1,t2);
+	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t1,t2);
 	glVertex3f(c1,c2,wz);
 	glEnd();
 	

@@ -272,7 +272,7 @@
 
 #else		// _WIN32
 
-// changed: removed ARB ending of function name.
+// changed: removed ARB ending of function name
 	#define	GET_PROC_ADDRESS(NAME)		*((void * *) &m_p##NAME ) = (void *) ::glXGetProcAddress((GLubyte const *) ("gl" #NAME )); \
 													if(m_p##NAME == NULL) return false;
 
