@@ -32,7 +32,7 @@ using namespace std;
 #include "map_display.h"
 #include "sub_torpedo_display.h"
 #include "sub_damage_display.h"
-#include "logbook.h"
+#include "logbook_display.h"
 #include "ships_sunk_display.h"
 #include "freeview_display.h"
 
@@ -47,7 +47,7 @@ submarine_interface::submarine_interface(game& gm) :
 	displays[display_mode_map] = new map_display(*this);
 	displays[display_mode_torpedoroom] = new sub_torpedo_display(*this);
 	displays[display_mode_damagestatus] = new sub_damage_display(*this);
-	displays[display_mode_logbook] = new captains_logbook_display(*this);
+	displays[display_mode_logbook] = new logbook_display(*this);
 	displays[display_mode_successes] = new ships_sunk_display(*this);
 	displays[display_mode_freeview] = new freeview_display(*this);
 	add_loading_screen("submarine interface initialized");
@@ -81,7 +81,7 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 					oss << texts::get(49);
 					if (target)
 						oss << " " << texts::get(6) << ": " << target->get_description(2 );
-					//add_captains_log_entry( gm, oss.str () );
+					gm.add_logbook_entry(oss.str());
 					gm.send(new command_launch_torpedo(player, event.key.keysym.sym - SDLK_1, target));
 					play_sound_effect(gm, se_submarine_torpedo_launch );
 				}
@@ -134,14 +134,14 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 				// is different from normal diving
 				gm.send(new command_dive_to_depth(player, unsigned(player->get_alarm_depth())));
 				add_message(texts::get(41));
-				//add_captains_log_entry(gm, texts::get(41));
+				gm.add_logbook_entry(texts::get(41));
 				break;
 			case SDLK_d:
 				if (player->has_snorkel () )
 					{
 						gm.send(new command_dive_to_depth(player, unsigned(player->get_snorkel_depth())));
 						add_message(texts::get(12));
-						//add_captains_log_entry ( gm, texts::get(97));
+						gm.add_logbook_entry(texts::get(97));
 					}
 				break;
 			case SDLK_f:
@@ -153,7 +153,7 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 								//fixme: was an if, why? say "snorkel down only when it was down"
 								{
 									add_message (texts::get(96));
-									//add_captains_log_entry ( gm, texts::get(96));
+									gm.add_logbook_entry(texts::get(96));
 								}
 							}
 						else
@@ -162,7 +162,7 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 								//fixme: was an if, why? say "snorkel up only when it was up"
 								{
 									add_message ( texts::get(95));
-									//add_captains_log_entry ( gm, texts::get(95));
+									gm.add_logbook_entry(texts::get(95));
 								}
 							}
 					}
@@ -177,12 +177,12 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 			case SDLK_p:
 				gm.send(new command_dive_to_depth(player, unsigned(player->get_periscope_depth())));
 				add_message(texts::get(40));
-				//add_captains_log_entry ( gm, texts::get(40));
+				gm.add_logbook_entry(texts::get(40));
 				break;	//fixme
 			case SDLK_s:
 				gm.send(new command_dive_to_depth(player, 0));
 				add_message(texts::get(39));
-				//add_captains_log_entry ( gm, texts::get(39));
+				gm.add_logbook_entry(texts::get(39));
 				break;
 			case SDLK_v:
 				bearing = 0.0f;
@@ -215,7 +215,7 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 					oss << texts::get(49);
 					if (target)
 						oss << " " << texts::get(6) << ": " << target->get_description ( 2 );
-					//add_captains_log_entry( gm, oss.str () );
+					gm.add_logbook_entry(oss.str());
 					gm.send(new command_launch_torpedo(player, -1, target));
 					play_sound_effect (gm, se_submarine_torpedo_launch );
 				}
@@ -225,7 +225,7 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 				if (target)
 					{
 						add_message(texts::get(50));
-						//add_captains_log_entry ( gm, texts::get(50));
+						gm.add_logbook_entry(texts::get(50));
 					}
 				else
 					add_message(texts::get(51));
@@ -237,7 +237,7 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 						ostringstream oss;
 						oss << texts::get(79) << target->get_description(2); // fixme
 						add_message( oss.str () );
-						//add_captains_log_entry ( gm, oss.str () );
+						gm.add_logbook_entry(oss.str());
 					}
 				else
 					{

@@ -541,19 +541,3 @@ void user_interface::play_sound_effect_distance(game& gm, sound_effect se, doubl
 		s->play ( ( 1.0f - gm.get_player()->get_noise_factor () ) * exp ( - distance / h ) );
 	}
 }
-
-/*
-void user_interface::add_captains_log_entry ( class game& gm, const string& s)
-{
-	date d(unsigned(gm.get_time()));
-
-	if ( captains_logbook )
-		captains_logbook->add_entry( d, s );
-}
-
-inline void user_interface::record_sunk_ship ( const ship* so )
-{
-	ships_sunk_disp->add_sunk_ship ( so );
-}
-*/
-

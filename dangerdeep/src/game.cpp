@@ -682,6 +682,18 @@ void game::simulate(double delta_t)
 	}
 }
 
+
+
+void game::add_logbook_entry(const string& s)
+{
+	date d = date(unsigned(get_time()));
+	ostringstream oss;
+	oss << d << " : " << s;
+	players_logbook.add_entry(oss.str());
+}
+
+
+
 /******************************************************************************************
 	Visibility computation
 	----------------------

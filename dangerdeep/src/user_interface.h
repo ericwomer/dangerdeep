@@ -132,7 +132,6 @@ public:
 	virtual bool paused(void) const { return pause; }
 	virtual unsigned time_scaling(void) const { return time_scale; }
 	virtual void add_message(const string& s);
-//	virtual void add_captains_log_entry ( game& gm, const string& s);
 	virtual bool time_scale_up(void);	// returns true on success
 	virtual bool time_scale_down(void);
 //	virtual void record_sunk_ship ( const class ship* so );

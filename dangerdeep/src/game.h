@@ -35,6 +35,7 @@ class convoy;
 #include "vector2.h"
 #include "vector3.h"
 #include "color.h"
+#include "logbook.h"
 
 // network messages
 #define MSG_length	16
@@ -120,6 +121,8 @@ protected:
 	user_interface* ui;	// can be zero, is set from game's owner
 
 	list<sink_record> sunken_ships;
+
+	logbook players_logbook;
 	
 	double time;	// global time (in seconds since 1.1.1939, 0:0 hrs) (universal time!)
 	double last_trail_time;	// for position trail recording
@@ -173,6 +176,8 @@ public:
 	void simulate(double delta_t);
 
 	const list<sink_record>& get_sunken_ships(void) const { return sunken_ships; };
+	const logbook& get_players_logbook(void) const { return players_logbook; }
+	void add_logbook_entry(const string& s);
 	double get_time(void) const { return time; };
 	double get_max_view_distance(void) const { return max_view_dist; }
 	/**
