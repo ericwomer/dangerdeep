@@ -131,10 +131,11 @@ protected:
 	unsigned torp_transfer_times[5];// read from spec file
 
 	bool scopeup;			// fixme: maybe simulate time for moving scope up/down
-	double periscope_depth;		// read from spec file, fixme add this to .xml files
+	double periscope_depth;		// read from spec file
 	bool electric_engine;		// true when electric engine is used.
 	bool hassnorkel;		// fixme: replace by (damageable_parts[snorkel] != unused)
-	double snorkel_depth;		// read from spec file, fixme add this to .xml files
+	double snorkel_depth;		// read from spec file
+	double alarm_depth;		// read from spec file
 	bool snorkelup;
 //	float sonar_cross_section_factor;
 
@@ -249,6 +250,7 @@ public:
 	virtual bool is_snorkel_up () const { return ( snorkelup == true ); }
 	virtual bool has_snorkel () const { return ( hassnorkel == true ); }
 	virtual double get_snorkel_depth () const { return snorkel_depth; }
+	virtual double get_alarm_depth () const { return alarm_depth; }
 	virtual double get_battery_level () const { return battery_level; }
 	virtual const vector<damageable_part>& get_damage_status(void) const { return damageable_parts; }
 

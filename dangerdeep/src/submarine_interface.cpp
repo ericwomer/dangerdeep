@@ -111,7 +111,9 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 			case SDLK_UP: gm.send(new command_planes_up(player, 1)); add_message(texts::get(37)); break;
 			case SDLK_DOWN: gm.send(new command_planes_down(player, 1)); add_message(texts::get(38)); break;
 			case SDLK_c:
-				gm.send(new command_dive_to_depth(player, unsigned(player->get_max_depth())));
+				// fixme: we should introduce a new command here, because crash diving
+				// is different from normal diving
+				gm.send(new command_dive_to_depth(player, unsigned(player->get_alarm_depth())));
 				add_message(texts::get(41));
 				add_captains_log_entry ( gm, texts::get(41));
 				break;

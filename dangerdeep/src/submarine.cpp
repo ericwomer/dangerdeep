@@ -73,6 +73,14 @@ submarine::submarine(TiXmlDocument* specfile, const char* topnodename) : ship(sp
 	esubmerged->Attribute("safedepth", &safedepth);
 	esubmerged->Attribute("maxdepth", &maxdepth);
 	max_depth = safedepth + rnd() * (maxdepth - safedepth);
+	TiXmlElement* edepths = hdftdsub.FirstChildElement("depths").Element();
+	system::sys().myassert(edepths != 0, string("depths node missing in ")+specfilename);
+	periscope_depth = 12;
+	snorkel_depth = 0;
+	alarm_depth = 150;
+	edepths->Attribute("scope", &periscope_depth);
+	edepths->Attribute("snorkel", &snorkel_depth);
+	edepths->Attribute("alarm", &alarm_depth);
 	TiXmlHandle htorpedoes = hdftdsub.FirstChildElement("torpedoes");
 	TiXmlElement* etubes = htorpedoes.FirstChildElement("tubes").Element();
 	system::sys().myassert(etubes != 0, string("tubes node missing in ")+specfilename);

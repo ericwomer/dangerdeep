@@ -3,6 +3,8 @@
 	  - mission descriptions are displayed in the menu
 	* widget
 	  - new attribute for widget_text: "sunken"
+	* submarine
+	  - parse and use depths data: scope depth, snorkel depth, alarm depth
 
 2004-05-13  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* replaced own text file parsing with xml code
