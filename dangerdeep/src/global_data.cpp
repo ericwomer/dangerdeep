@@ -13,7 +13,8 @@ model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium,
 texture *water, *background, *titel[4], *periscope[4], *gauge1,
 	*gauge2, *gauge3, *gauge4, *psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
-	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds;
+	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
+	*clock12, *clock24;
 font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
 
 void init_global_data(void)
@@ -67,6 +68,8 @@ void init_global_data(void)
 	torpt6lut = new texture((get_data_dir() + "textures/" + "torpt6lut.png"));
 	torpt11 = new texture((get_data_dir() + "textures/" + "torpt11.png"));
 	clouds = new texture((get_data_dir() + "textures/" + "clouds.png"), 1, false, true);
+	clock12 = new texture((get_data_dir() + "textures/" + "clock12.png"));
+	clock24 = new texture((get_data_dir() + "textures/" + "clock24.png"));
 }
 
 void deinit_global_data(void)
@@ -116,6 +119,8 @@ void deinit_global_data(void)
 	delete torpt6lut;
 	delete torpt11;
 	delete clouds;
+	delete clock12;
+	delete clock24;
 }
 
 // returns 1939-1945, 1-12, 1-31
@@ -155,4 +160,16 @@ double get_time(unsigned year, unsigned month, unsigned day)
 	for (unsigned i = 0; i < m; ++i) d += month_lengths[i];
 	d += day-1;
 	return d*86400.0;
+}
+
+// returns 0 night, 1 dawn, 2 day, 3 dusk
+unsigned get_day_time(double t)
+{
+	// fixme: calculate sunrise and fall etc.
+	double d = fmod(t, 86400);
+	if (d < 5*3600) return 0;	// sunrise at 5am
+	if (d < 6*3600) return 1;	// day at 6am
+	if (d < 18*3600) return 2;	// sundown at 6pm
+	if (d < 19*3600) return 3;	// night at 7pm
+	return 0;
 }

@@ -61,6 +61,7 @@ const char* TXT_Joinnetworkgame[] = {"Join network game, Server IP adress: ", "A
 const char* TXT_Enternetworkportnr[] = {"Enter network port number: ", "Netzwerk Port-Adresse eingeben: "};
 const char* TXT_Torpedodudrangetooshort[] = {"Torpedo dud - range too short", "Torpedoversager - Laufstrecke zu kurz"};
 const char* TXT_Torpedodud[] = {"Torpedo dud", "Torpedoversager!"};
+const char* TXT_Time[] = {"Time", "Uhrzeit"};
 /*
 const char* TXT_[] = {"Medium merchant ship", "Mittleres Handelsschiff"};
 const char* TXT_[] = {"Medium troop ship", "Mittleres Truppenschiff"};

@@ -185,6 +185,50 @@ void submarine_interface::draw_gauge(class system& sys, unsigned nr, int x, int 
 	glColor3f(1,1,1);
 }
 
+void submarine_interface::draw_clock(class system& sys, int x, int y, unsigned wh, double t,
+	const char* text) const
+{
+	unsigned seconds = unsigned(fmod(t, 86400));
+	unsigned minutes = seconds / 60;
+	if (minutes < 12*60)
+		sys.draw_image(x, y, wh, wh, clock12);
+	else
+		sys.draw_image(x, y, wh, wh, clock24);
+	minutes %= 12*60;
+	int xx = x+wh/2, yy = y+wh/2;
+	pair<unsigned, unsigned> twh = font_arial2->get_size(text);
+	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text);
+	vector2 d;
+	int l;
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBegin(GL_TRIANGLES);
+
+	d = (angle(minutes * 360 / (12*60))).direction();
+	l = wh/4;
+	glColor3f(0,0,0.5);
+	glVertex2i(xx - int(d.y*4),yy - int(d.x*4));
+	glVertex2i(xx + int(d.y*4),yy + int(d.x*4));
+	glVertex2i(xx + int(d.x*l),yy - int(d.y*l));
+
+	d = (angle((minutes%60) * 360 / 60)).direction();
+	l = wh*3/8;
+	glColor3f(0,0,1);
+	glVertex2i(xx - int(d.y*4),yy - int(d.x*4));
+	glVertex2i(xx + int(d.y*4),yy + int(d.x*4));
+	glVertex2i(xx + int(d.x*l),yy - int(d.y*l));
+
+	d = (angle((seconds%60) * 360 / 60)).direction();
+	l = wh*7/16;
+	glColor3f(1,0,0);
+	glVertex2i(xx - int(d.y*4),yy - int(d.x*4));
+	glVertex2i(xx + int(d.y*4),yy + int(d.x*4));
+	glVertex2i(xx + int(d.x*l),yy - int(d.y*l));
+
+	glEnd();
+	glColor3f(1,1,1);
+}
+
 void submarine_interface::draw_vessel_symbol(class system& sys,
 	const vector2& offset, const sea_object* so, color c) const
 {
@@ -309,6 +353,7 @@ void submarine_interface::display_gauges(class system& sys, game& gm)
 	draw_gauge(sys, 1, 0, 0, 256, player->get_heading(), TXT_Heading[language]);
 	draw_gauge(sys, 2, 256, 0, 256, player_speed, TXT_Speed[language]);
 	draw_gauge(sys, 4, 2*256, 0, 256, player_depth, TXT_Depth[language]);
+	draw_clock(sys, 3*256, 0, 256, gm.get_time(), TXT_Time[language]);
 
 	draw_infopanel(sys);
 	sys.unprepare_2d_drawing();

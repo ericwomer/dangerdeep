@@ -73,8 +73,16 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glPushMatrix();
 	glTranslatef(viewpos.x, viewpos.y, 0);
 	glScalef(max_view_dist, max_view_dist, max_view_dist);	// fixme dynamic
-	color skycol1(24, 47, 244), skycol2(165,192,247);
-	skyhemisphere->display(false, &skycol2, &skycol1);
+	unsigned dt = get_day_time(gm.get_time());
+	color skycol1, skycol2;
+	if (dt < 2) {
+		skycol1 = color(16,16,64);
+		skycol2 = color(0, 0, 32);
+	} else {
+		skycol1 = color(165,192,247);
+		skycol2 = color(24,47,244);
+	}
+	skyhemisphere->display(false, &skycol1, &skycol2);
 	glBindTexture(GL_TEXTURE_2D, clouds->get_opengl_name());
 	float skysin[SKYSEGS], skycos[SKYSEGS];
 	for (int i = 0; i < SKYSEGS; ++i) {
@@ -118,6 +126,15 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	float c1 = 0;
 	float c2 = 2*WATERRANGE;
 	float c3 = max_view_dist+WATERRANGE;
+
+	// fixme: glclearcolor depends on daytime, too
+
+	// color of water depends on daytime
+	if (dt < 2) {
+		glColor3f(0.3,0.3,0.3);	// night
+	} else {
+		glColor3f(1,1,1);	// day
+	}
 
 	// fixme: with swimming the missing anisotropic filtering causes
 	// the water to shine unnatural. a special distant_water texture doesn't help
@@ -182,6 +199,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glEnd();
 	glPopMatrix();
 	glEnable(GL_LIGHTING);
+	glColor3f(1,1,1);
 
 	// ******************** ships & subs *************************************************
 

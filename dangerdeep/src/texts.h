@@ -67,6 +67,7 @@ extern const char* TXT_Joinnetworkgame[];
 extern const char* TXT_Enternetworkportnr[];
 extern const char* TXT_Torpedodudrangetooshort[];
 extern const char* TXT_Torpedodud[];
+extern const char* TXT_Time[];
 /*
 extern const char* TXT_[];
 extern const char* TXT_[];
