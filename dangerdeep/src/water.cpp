@@ -278,6 +278,11 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
+
+	if (fragment_program_supported && use_fragment_programs) {
+		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, water_fragment_program);
+		glEnable(GL_FRAGMENT_PROGRAM_ARB);
+	}
 	
 	//tex0: get alpha from fresnelcolortex, just pass color from primary color
 	//tex1: interpolate between previous color and tex1 with previous alpha (fresnel)
@@ -357,6 +362,11 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 
 void water::cleanup_textures(void) const
 {
+	if (fragment_program_supported && use_fragment_programs) {
+		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
+		glDisable(GL_FRAGMENT_PROGRAM_ARB);
+	}
+	
 	glColor4f(1,1,1,1);
 
 	glActiveTexture(GL_TEXTURE0);
