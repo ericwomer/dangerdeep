@@ -14,7 +14,10 @@ fftw3base = 'd:\\fftw3'
 
 ############### install path prefix (needed for unix OS)
 installprefix = '/usr/local/'
-#installprefix = '/usr/' # for debian packages
+#installprefix = '/usr/' # for debian packages, better give that as argument
+if ARGUMENTS.get('installprefix', 0):
+	installprefix = ARGLIST[0][1]
+print 'Using install prefix: ' + installprefix
 
 ################ set environment
 if sys.platform == 'win32':
