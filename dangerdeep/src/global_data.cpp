@@ -46,7 +46,7 @@ image *titlebackgr, *periscope, *threesubsimg, *damage_screen_background, *sub_d
 void init_global_data(void)
 {
 	skyhemisphere = new model(get_model_dir() + "skyhemisphere.3ds");
-	water = new texture(get_texture_dir() + "water.png", GL_LINEAR);
+	water = new texture(get_texture_dir() + "water.png", GL_LINEAR_MIPMAP_LINEAR);
 	the_moon = new texture(get_texture_dir() + "themoon.png", GL_LINEAR);
 	the_sun = new texture(get_texture_dir() + "thesun.png", GL_LINEAR);
 	background = new texture(get_texture_dir() + "background.png", GL_LINEAR);

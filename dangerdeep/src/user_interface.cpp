@@ -35,12 +35,15 @@ using namespace std;
 
 #define WATER_BUMPMAP_CYCLE_TIME 10.0
 
+// some more interesting values: phase 256, waveperaxis: ask your gfx card, facesperwave 64+,
+// wavelength 256+,
 #define WAVE_PHASES 256		// no. of phases for wave animation
-#define WAVES_PER_AXIS 4	// no. of waves along x or y axis
+#define WAVES_PER_AXIS 8	// no. of waves along x or y axis
 #define FACES_PER_WAVE 32	// resolution of wave model in x/y dir.
 #define WAVE_LENGTH 128.0	// in meters, total length of one wave (one sine function)
-#define WAVE_HEIGHT 4.0		// half of difference top/bottom of wave -> fixme, depends on weather
 #define TIDECYCLE_TIME 10.0
+// obsolete:
+#define WAVE_HEIGHT 4.0		// half of difference top/bottom of wave -> fixme, depends on weather
 
 #define CLOUD_ANIMATION_CYCLE_TIME 3600.0
 
@@ -97,7 +100,7 @@ void user_interface::init ()
 	wavetilen.resize(WAVE_PHASES);
 	wavedisplaylists = glGenLists(WAVE_PHASES);
 	system::sys()->myassert(wavedisplaylists != 0, "no more display list indices available");
-	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(0,1), 20, 0.000005, WAVE_LENGTH, TIDECYCLE_TIME);
+	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(0,1), 20, 0.00001, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileh[i] = owg.compute_heights();
@@ -124,7 +127,7 @@ void user_interface::init ()
 		glBegin(GL_QUADS);
 		float add = 1.0f/FACES_PER_WAVE;
 		float fy = 0;
-		float w2bs = 32;	// 128m/4m
+		float w2bs = 8; // 32;	// 128m/4m
 		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
 			float fx = 0;
 			unsigned y2 = (y+1)%FACES_PER_WAVE;
@@ -183,15 +186,19 @@ void user_interface::init ()
 	}
 	
 	// create water bump maps
-	ocean_wave_generator<float> owgb(64, vector2f(1,1), 1, 0.95, 4.0, WATER_BUMPMAP_CYCLE_TIME);
+	ocean_wave_generator<float> owgb(64, vector2f(1,1), 1, 0.01, 4.0, WATER_BUMPMAP_CYCLE_TIME);
 	for (int i = 0; i < WATER_BUMP_FRAMES; ++i) {
 		owgb.set_time(i*WATER_BUMPMAP_CYCLE_TIME/WATER_BUMP_FRAMES);
-		vector<float> h = owgb.compute_heights();
-		vector<Uint8> uh(h.size());
-		for (unsigned n = 0; n < h.size(); ++n)
-			uh[n] = Uint8((h[n] + 0.5)*255);
-		water_bumpmaps[i] = new texture(&uh[0], 64, 64, GL_LUMINANCE, GL_LUMINANCE,
-			GL_UNSIGNED_BYTE, GL_LINEAR, GL_REPEAT);
+		vector<vector3f> n = owgb.compute_normals();
+		vector<Uint8> un(n.size()*3);
+		for (unsigned j = 0; j < n.size(); ++j) {
+			float s = 127.5;
+			un[3*j+0] = Uint8(s + n[j].x * s);
+			un[3*j+1] = Uint8(s + n[j].y * s);
+			un[3*j+2] = Uint8(s + n[j].z * s);
+		}
+		water_bumpmaps[i] = new texture(&un[0], 64, 64, GL_RGB, GL_RGB,
+			GL_UNSIGNED_BYTE, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 	}
 	
 	// init clouds
@@ -588,36 +595,78 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	float t3 = c3/64;
 	float wz = 0;//-WAVE_HEIGHT; // this leads to hole between waves and horizon faces, fixme
 
-	glColor4f(0.2, 0.2, 1.0, 1);
+	// set Color to light vector transformed to object space
+	// (we need the inverse of the modelview matrix for that, at least the 3x3 upper left
+	// part if we have directional light only)
+	vector3f lightvec = vector3f(1,0,1).normal();
+	lightvec = lightvec * 0.5 + vector3f(0.5, 0.5, 0.5);
+	glColor3f(lightvec.x, lightvec.y, lightvec.z);
+	
+	// set texture unit to combine primary color with texture color via dot3
 	float framepart = myfmod(t, WATER_BUMPMAP_CYCLE_TIME)/WATER_BUMPMAP_CYCLE_TIME;
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+	glActiveTexture(GL_TEXTURE0_ARB);
+	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, water_bumpmaps[unsigned(framepart*WATER_BUMP_FRAMES)]->get_opengl_name());
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_EXT); 
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+	
+	glActiveTexture(GL_TEXTURE1_ARB);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+
+	glDisable(GL_LIGHTING);
 	glBegin(GL_TRIANGLE_STRIP);
-	glTexCoord2f(t0,t3);
+	glMultiTexCoord2f(GL_TEXTURE0_ARB,t0,t3);
+	glMultiTexCoord2f(GL_TEXTURE1_ARB,t0,t3);
 	glVertex3f(c0,c3,0);
-	glTexCoord2f(t1,t2);
+	glMultiTexCoord2f(GL_TEXTURE0_ARB,t1,t2);
+	glMultiTexCoord2f(GL_TEXTURE1_ARB,t1,t2);
 	glVertex3f(c1,c2,wz);
-	glTexCoord2f(t3,t3);
+	glMultiTexCoord2f(GL_TEXTURE0_ARB,t3,t3);
+	glMultiTexCoord2f(GL_TEXTURE1_ARB,t3,t3);
 	glVertex3f(c3,c3,0);
-	glTexCoord2f(t2,t2);
+	glMultiTexCoord2f(GL_TEXTURE0_ARB,t2,t2);
+	glMultiTexCoord2f(GL_TEXTURE1_ARB,t2,t2);
 	glVertex3f(c2,c2,wz);
-	glTexCoord2f(t3,t0);
+	glMultiTexCoord2f(GL_TEXTURE0_ARB,t3,t0);
+	glMultiTexCoord2f(GL_TEXTURE1_ARB,t3,t0);
 	glVertex3f(c3,c0,0);
-	glTexCoord2f(t2,t1);
+	glMultiTexCoord2f(GL_TEXTURE0_ARB,t2,t1);
+	glMultiTexCoord2f(GL_TEXTURE1_ARB,t2,t1);
 	glVertex3f(c2,c1,wz);
-	glTexCoord2f(t0,t0);
+	glMultiTexCoord2f(GL_TEXTURE0_ARB,t0,t0);
+	glMultiTexCoord2f(GL_TEXTURE1_ARB,t0,t0);
 	glVertex3f(c0,c0,0);
-	glTexCoord2f(t1,t1);
+	glMultiTexCoord2f(GL_TEXTURE0_ARB,t1,t1);
+	glMultiTexCoord2f(GL_TEXTURE1_ARB,t1,t1);
 	glVertex3f(c1,c1,wz);
-	glTexCoord2f(t0,t3);
+	glMultiTexCoord2f(GL_TEXTURE0_ARB,t0,t3);
+	glMultiTexCoord2f(GL_TEXTURE1_ARB,t0,t3);
 	glVertex3f(c0,c3,0);
-	glTexCoord2f(t1,t2);
+	glMultiTexCoord2f(GL_TEXTURE0_ARB,t1,t2);
+	glMultiTexCoord2f(GL_TEXTURE1_ARB,t1,t2);
 	glVertex3f(c1,c2,wz);
 	glEnd();
+	
+	glPopAttrib();
 
 	// draw waves
-	glColor3f(0.1,0.2,0.5);
-	glBindTexture(GL_TEXTURE_2D, 0);
-//	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
+//	glColor3f(0.1,0.2,0.5);
+//	glBindTexture(GL_TEXTURE_2D, 0);
+	glColor3f(1,1,1);
+	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
 	double timefac = myfmod(t, TIDECYCLE_TIME)/TIDECYCLE_TIME;
 	unsigned dl = wavedisplaylists + int(WAVE_PHASES*timefac);
 	for (int y = 0; y < WAVES_PER_AXIS; ++y) {

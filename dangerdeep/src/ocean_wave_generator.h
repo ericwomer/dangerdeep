@@ -5,7 +5,7 @@
 #ifndef OCEAN_WAVE_GENERATOR
 #define OCEAN_WAVE_GENERATOR
 
-#include "vector2.h"
+#include "vector3.h"
 #include <complex>
 #include <vector>
 using namespace std;
@@ -256,7 +256,7 @@ vector<vector3t<T> > ocean_wave_generator<T>::compute_normals(void) const
 		for (int x = 0; x < N; ++x) {
 			int ptr = y*N+x;
 			T s = signs[(x + y) & 1];
-			wavenormals[ptr] = vector3t<T>(-fft_out[ptr] * s, -fft_out2[ptr] * s, T(0.5)).normal();
+			wavenormals[ptr] = vector3t<T>(-fft_out[ptr] * s, -fft_out2[ptr] * s, T(1)).normal();
 		}
 	}
 	return wavenormals;
