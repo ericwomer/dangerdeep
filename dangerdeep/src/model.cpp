@@ -109,6 +109,18 @@ void model::mesh::compute_bounds(void)
 
 void model::mesh::compute_normals(void)
 {
+	// auto-detecion of hard edges (creases) would be cool:
+	// if the angle between faces at an edge is above a certain value,
+	// the corners of the edge are duplicated and each instance gets their
+	// own normals (like a mesh border), the same for vertices (cusps).
+	// How to detect this: compute normals per face and adjacency information.
+	// (For vertex cusps also vertex normals need to get computed).
+	// If angle between normals (face to face or face to vertex) is higher than
+	// treshold (e.g. 30 degrees) make a new instance of this vertex/edge for each
+	// neighbour. Mark edges and vertexes if they are creases/cusps.
+	// The corner vertices of an crease edge are also cusp vertices.
+	// Adjacency information needed: face -> face, vertex -> faces
+
 	//fixme: 3ds may have stored some normals already
 	normals.clear();
 	normals.resize(vertices.size());
@@ -959,7 +971,7 @@ void model::m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, model::mesh& m)
 		return;
 	}
 
-	sys().myassert(nr_uv_coords == m.vertices.size(), "number of texture coordinates doesn't match number of vertices");
+//	sys().myassert(nr_uv_coords == m.vertices.size(), "number of texture coordinates doesn't match number of vertices");
 
 	m.texcoords.clear();
 	m.texcoords.reserve(nr_uv_coords);		
@@ -969,6 +981,9 @@ void model::m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, model::mesh& m)
 		m.texcoords.push_back(vector2f(u, v));
 	}
 	ch.bytes_read += nr_uv_coords * 2 * 4;
+
+	// make sure that number of uv coords matches number of vertices
+	m.texcoords.resize(m.vertices.size());
 }
 
 void model::m3ds_read_vertices(istream& in, m3ds_chunk& ch, model::mesh& m)

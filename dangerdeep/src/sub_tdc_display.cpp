@@ -113,10 +113,12 @@ void sub_tdc_display::display(class game& gm) const
 
 	// draw target position
 	if (is_day) {
-		targetpos_ptr_daylight->draw_rot(126, 188, tgtpos);
+		targetpos_ptr_daylight->draw_rot(128, 188, tgtpos, 128-102, 188-109);
 	} else {
-		targetpos_ptr_nightlight->draw_rot(126, 188, tgtpos);
+		targetpos_ptr_nightlight->draw_rot(128, 188, tgtpos, 128-102, 188-109);
 	}
+
+	// faecherwinkel 339, 102, center 358, 188
 
 	// draw target course
 	if (is_day) {
