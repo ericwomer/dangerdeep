@@ -41,13 +41,28 @@ submarine_interface::submarine_interface(submarine* player_sub, game& gm) :
 	panel->add_child(btn_menu);
 	controlscreen_normallight = new image(get_image_dir() + "ControlScreen_NormalLight.png");
 	compass1 = new texture(get_texture_dir() + "compass1.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
+	battery_indicator = new texture(get_texture_dir() + "battery_indicator.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
+	compressordiesel_indicator = new texture(get_texture_dir() + "compressordiesel_indicator.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
+	d_rudder_indicator = new texture(get_texture_dir() + "d_rudder_indicator.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
+	depth_indicator = new texture(get_texture_dir() + "depth_indicator.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
+	knots_indicator = new texture(get_texture_dir() + "knots_indicator.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
+	main_rudder_indicator = new texture(get_texture_dir() + "main_rudder_indicator.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
+	mt_indicator = new texture(get_texture_dir() + "mt_indicator.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
 }
 
 submarine_interface::~submarine_interface()
 {
-	delete controlscreen_normallight;
-	delete compass1;	
 	delete sub_damage_disp;
+
+	delete controlscreen_normallight;
+	delete compass1;
+	delete battery_indicator;
+	delete compressordiesel_indicator;
+	delete d_rudder_indicator;
+	delete depth_indicator;
+	delete knots_indicator;
+	delete main_rudder_indicator;
+	delete mt_indicator;
 }
 
 bool submarine_interface::keyboard_common(int keycode, class game& gm)
@@ -753,8 +768,11 @@ void submarine_interface::display_gauges(class game& gm)
 	set_display_color ( gm );
 
 	controlscreen_normallight->draw(0, 0);
-	
+
+	// the absolute numbers here depend on the graphics!
 	compass1->draw_rot(148, 564, -player->get_heading().value());
+	depth_indicator->draw_rot(504, 379, player->get_depth()*1.0-51.0, 95, 16);
+	knots_indicator->draw_rot(803, 91, fabs(player->get_speed())*22.33512-133.6, 15, 48);
 
 /*
 	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);

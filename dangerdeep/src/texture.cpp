@@ -281,6 +281,15 @@ void texture::draw_rot(int x, int y, double angle) const
 	glPopMatrix();
 }
 
+void texture::draw_rot(int x, int y, double angle, int tx, int ty) const
+{
+	glPushMatrix();
+	glTranslatef(x, y, 0);
+	glRotatef(angle, 0, 0, 1);
+	draw(-tx, -ty);
+	glPopMatrix();
+}
+
 void texture::draw_tiles(int x, int y, int w, int h) const
 {
 	float tilesx = float(w)/width;

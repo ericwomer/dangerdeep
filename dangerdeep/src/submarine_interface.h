@@ -39,7 +39,9 @@ protected:
 
 	// pointers to images/textures of the interface
 	image* controlscreen_normallight;
-	texture* compass1;
+	texture *compass1, *battery_indicator, *compressordiesel_indicator,
+		*d_rudder_indicator, *depth_indicator, *knots_indicator,
+		*main_rudder_indicator, *mt_indicator;
 
 	// Display functions for screens.
 	virtual void display_gauges(class game& gm);

@@ -92,7 +92,10 @@ public:
 	void draw(int x, int y, int w, int h) const;
 	void draw_hm(int x, int y, int w, int h) const;	// horizontally mirrored
 	void draw_vm(int x, int y, int w, int h) const;	// vertically mirrored
-	void draw_rot(int x, int y, double angle) const;	// draw rotated image
+	// draw rotated image around x,y (global)
+	void draw_rot(int x, int y, double angle) const;
+	// draw rotated image around x,y (global), rotate around local tx,ty
+	void draw_rot(int x, int y, double angle, int tx, int ty) const;
 	// repeat texture in tiles in the given screen rectangle
 	void draw_tiles(int x, int y, int w, int h) const;
 	// draw a sub image given by the tx,ty,tw,th values to a screen rectangle x,y,w,h
