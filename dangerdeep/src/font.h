@@ -12,38 +12,35 @@ using namespace std;
 #include "texture.h"
 #include "color.h"
 
-// this are ASCII codes 33-126, additionally german umlauts and german quotation marks (may look different)
-#define STANDARD_FONT_CHARACTERS "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ÄÖÜäöüß«»"
-#define STANDARD_ISO_8859_1 " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~€‚ƒ„…†‡ˆ‰Š‹Œ‘’“”•–—˜™š›œŸ ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖ×ØÙÚÛÜİŞßàáâãäåæçèéêëìíîïğñòóôõö÷øùúûüışÿ"
 
 
 class font
 {
 private:
 	struct character {
-		unsigned char mapping;
+		unsigned width, height;	// real width/height
+		int left;	// offset
+		unsigned top;	// offset
 		texture* tex;
-		unsigned width;	// width in texels
+		character() : width(0), height(0), left(0), top(0), tex(0) {}
+		~character() { delete tex; }
 	};
 	font() {};
 	font& operator=(const font& other);
 	font(const font& other);
 	vector<character> characters;
 
-	unsigned nr_chars;
-	unsigned char_height;
-	unsigned spacing;
-	unsigned blank_width;
-	vector<unsigned char> translate;
-	
-	// returns RGBA value, Surface must be locked
-	unsigned get_pixel(SDL_Surface* s, unsigned x, unsigned y) const;
+	unsigned first_char, last_char;	// codes
+	unsigned base_height, height;	// base height and real height
+	unsigned spacing;		// additional character spacing
+	unsigned blank_width;		// width of blank character
+
+	static unsigned next_p2(unsigned i) { unsigned p = 1; while (p < i) p <<= 1; return p; }
 	
 	void print_text(int x, int y, const string& text, bool ignore_colors = false) const;
 		
 public:
-	font(const string& filename, unsigned char_spacing=1, unsigned blank_length=8,
-		const string& font_mapping = STANDARD_FONT_CHARACTERS);
+	font(const string& basefilename, unsigned char_spacing = 1);
 	~font();
 	void print(int x, int y, const string& text, color col = color(255,255,255), bool with_shadow = false) const;
 	void print_hc(int x, int y, const string& text, color col = color(255,255,255), bool with_shadow = false) const;
@@ -52,8 +49,8 @@ public:
 	// print text with wrap around, use lineheight 0 for automatic line height
 	void print_wrapped(int x, int y, unsigned w, unsigned lineheight, const string& text, color col = color(255,255,255), bool with_shadow = false) const;
 	pair<unsigned, unsigned> get_size(const string& text) const;
-	unsigned get_char_width(char c) const;
-	unsigned get_height(void) const { return char_height; };
+	unsigned get_char_width(unsigned char c) const;
+	unsigned get_height(void) const { return height; };
 };
 
 #endif

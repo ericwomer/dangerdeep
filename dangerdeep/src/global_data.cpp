@@ -28,7 +28,7 @@ texture *background, *gauge1,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
 	*terraintex, *cloudsbackgr, *atlanticmap;
 	
-font *font_arial, *font_panel, *font_nimbusrom;
+font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd;
 
 sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
@@ -57,9 +57,12 @@ void init_global_data(void)
 {
 	background = new texture(get_texture_dir() + "background.png", GL_LINEAR);
 	conning_tower_typeVII = new model(get_model_dir() + "conning_tower_typeVIIc.3ds");
-	font_arial = new font(get_font_dir() + "font_arial.png");
-	font_panel = new font(get_font_dir() + "font_panel.png");
-	font_nimbusrom = new font(get_font_dir() + "font_nimbusrom.png");
+	font_arial = new font(get_font_dir() + "font_arial");
+	font_arialbd = new font(get_font_dir() + "font_arialbd");
+	font_times = new font(get_font_dir() + "font_times");
+	font_timesbd = new font(get_font_dir() + "font_timesbd");
+	font_verdana = new font(get_font_dir() + "font_verdana");
+	font_verdanabd = new font(get_font_dir() + "font_verdanabd");
 	torpedo_g7 = new model(get_model_dir() + "torpedo_g7.3ds");
 	depth_charge_mdl = new model(get_model_dir() + "depth_charge.3ds");
 	gun_shell_mdl = new model(get_model_dir() + "gun_shell.3ds");
@@ -135,8 +138,11 @@ void deinit_global_data(void)
 	delete background;
 	delete conning_tower_typeVII;
 	delete font_arial;
-	delete font_panel;
-	delete font_nimbusrom;
+	delete font_arialbd;
+	delete font_times;
+	delete font_timesbd;
+	delete font_verdana;
+	delete font_verdanabd;
 	delete torpedo_g7;
 	delete depth_charge_mdl;
 	delete gun_shell_mdl;

@@ -50,7 +50,7 @@ extern class texture *background, *gauge1,
 	*woodbackgr, *smoke, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
 	*terraintex, *cloudsbackgr, *atlanticmap;
-extern class font *font_arial, *font_panel, *font_nimbusrom;
+extern class font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd;
 extern class sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
 extern class image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_background,

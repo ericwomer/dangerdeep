@@ -160,7 +160,7 @@ int main(int argc, char** argv)
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 	glEnable(GL_LIGHT0);
 
-	font_arial = new font(string(DATADIR) + FONT_DIR + "font_arial.png");
+	font_arial = new font(string(DATADIR) + FONT_DIR + "font_arial");
 	sys->draw_console_with(font_arial, 0);
 
 	view_model(modelfilename);	

@@ -7,27 +7,13 @@
 #include <SDL_image.h>
 #include "system.h"
 #include <sstream>
-
-unsigned font::get_pixel(SDL_Surface* s, unsigned x, unsigned y) const
-{
-	unsigned bpp = s->format->BytesPerPixel;
-	system::sys().myassert(bpp == 1 || bpp == 4, "font: get_pixel: bpp not allowed");
-	unsigned offset = s->pitch * y + bpp * x;
-	if (s->format->palette != 0) {
-		unsigned char c = *((unsigned char*)(s->pixels) + offset);
-		unsigned col = *((unsigned*)&(s->format->palette->colors[c]));
-		if ((s->flags & SDL_SRCCOLORKEY) != 0 && c == (s->format->colorkey & 0xff))
-			col &= 0x00ffffff;
-		else
-			col |= 0xff000000;
-		return col;
-	} else {
-		return *(unsigned*)((unsigned char*)(s->pixels) + offset);
-	}
-}
+#include <fstream>
 
 void font::print_text(int x, int y, const string& text, bool ignore_colors) const
 {
+	glActiveTexture(GL_TEXTURE1);	// fixme: disable units where they are used!
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE0);
 	int xs = x;
 	for (unsigned ti = 0; ti < text.length(); ++ti) {
 		unsigned char c = text[ti];
@@ -35,9 +21,9 @@ void font::print_text(int x, int y, const string& text, bool ignore_colors) cons
 			x += blank_width;
 		} else if (c == '\n') {	// return
 			x = xs;
-			y += char_height;
+			y += height;
 		} else if (c == '\t') {	// tab
-			unsigned tw = char_height*4;
+			unsigned tw = height*4;
 			x = int((x - xs + tw)/tw)*tw + xs;
 		} else if (c == '$') { // color information
 			unsigned nr[6];
@@ -55,110 +41,90 @@ void font::print_text(int x, int y, const string& text, bool ignore_colors) cons
 			--ti;	// compensate for(...++ti)
 			if (!ignore_colors)
 				glColor3ub(nr[0]*16+nr[1], nr[2]*16+nr[3], nr[4]*16+nr[5]);
-		} else {
-			unsigned t = translate[c];
-			if (t == 0xff) {
-				x += blank_width;
-			} else {
-				float u1 = float(characters[t].width)/characters[t].tex->get_width();
-				float v1 = float(char_height)/characters[t].tex->get_height();
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, 0);
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, characters[t].tex->get_opengl_name());
-			        glBegin(GL_QUADS);
-			        glTexCoord2f(0,0);
-			        glVertex2i(x,y); 
-			        glTexCoord2f(0,v1);
-		        	glVertex2i(x,y+char_height);
-			        glTexCoord2f(u1,v1);
-			        glVertex2i(x+characters[t].width,y+char_height);
-			        glTexCoord2f(u1,0);
-		        	glVertex2i(x+characters[t].width,y);
-			        glEnd();
-				x += characters[t].width + spacing;
-			}
-		}
+		} else if (unsigned(c) >= first_char && unsigned(c) <= last_char) {
+			unsigned t = unsigned(c) - first_char;
+			// fixme: we could use display lists here
+			float u1 = float(characters[t].width)/characters[t].tex->get_width();
+			float v1 = float(characters[t].height)/characters[t].tex->get_height();
+			//fixme: width in text is width+left, so advance x by that value
+			//and draw at x+left. must be changed everywhere
+			//int x2 = x + characters[t].left;
+			int y2 = y + characters[t].top;
+			glBindTexture(GL_TEXTURE_2D, characters[t].tex->get_opengl_name());
+		        glBegin(GL_QUADS);
+		        glTexCoord2f(0,0);
+		        glVertex2i(x,y2); 
+		        glTexCoord2f(0,v1);
+	        	glVertex2i(x,y2+characters[t].height);
+		        glTexCoord2f(u1,v1);
+		        glVertex2i(x+characters[t].width,y2+characters[t].height);
+		        glTexCoord2f(u1,0);
+	        	glVertex2i(x+characters[t].width,y2);
+		        glEnd();
+			x += characters[t].width + spacing;
+		} // else: just skip (unknown) character
 	}
 }
 
-font::font(const string& filename, unsigned char_spacing, unsigned blank_length,
-	const string& font_mapping)
+font::font(const string& basefilename, unsigned char_spacing)
 {
-	nr_chars = font_mapping.length();
-	characters.resize(nr_chars);
-	for (unsigned k = 0; k < nr_chars; ++k) characters[k].mapping = font_mapping[k];
+	ifstream metricfile((basefilename + ".metric").c_str());
+	metricfile >> base_height;
+	metricfile >> first_char;
+	metricfile >> last_char;
+	characters.resize(last_char-first_char+1);
+	for (unsigned i = first_char; i <= last_char; ++i) {
+		metricfile >> characters[i-first_char].width;
+		metricfile >> characters[i-first_char].height;
+		metricfile >> characters[i-first_char].left;
+		metricfile >> characters[i-first_char].top;
+	}
+	
 	spacing = char_spacing;
-	blank_width = blank_length;
-	translate.resize(256, 0xff);
+	unsigned codex = unsigned('x'), codeleftbr = unsigned('(');
+	blank_width = (codex >= first_char && codex <= last_char) ? characters[codex-first_char].width : 8;
+	height = (codeleftbr >= first_char && codeleftbr <= last_char) ? characters[codeleftbr-first_char].height : base_height*3/2;
+	height = base_height*3/2;
+	
+	// calculate offsets
+	vector<unsigned> offsets(characters.size());
+	for (unsigned i = 0, curoffset = 0; i < characters.size(); ++i) {
+		offsets[i] = curoffset;
+		curoffset += characters[i].width;
+	}
 
-	SDL_Surface* fontimage = IMG_Load(filename.c_str());
-	system::sys().myassert(fontimage != 0, string("font: failed to open")+filename);
-	unsigned w = fontimage->w;
-	unsigned h = fontimage->h;
+	// load image
+	SDL_Surface* fontimage = IMG_Load((basefilename + ".png").c_str());
+	system::sys().myassert(fontimage != 0, string("font: failed to open ")+basefilename);
 
-	// calculate widths and offsets
-	vector<unsigned> offsets(nr_chars);
-	bool onchar = false;
-	unsigned charnr = 0;
-	unsigned start = 0;
-	unsigned widthtotal = 0;
-	char_height = h;
+	// process image data, create textures
 	SDL_LockSurface(fontimage);
-	for (unsigned i = 0; i < w; i++) {
-		if (onchar && !(charnr < nr_chars)) {
-			ostringstream os;
-			os << "font: too many (" << charnr << "/" << nr_chars << ") found in " << filename;
-			system::sys().myassert(false, os.str());
-		}
-		bool emptycolumn = true;
-		for (unsigned j = 0; j < h; j++) {
-			unsigned c = get_pixel(fontimage, i, j);
-			if ((c & 0xff000000) != 0) {	// use alpha value !
-				emptycolumn = false;
-				break;
-			}
-		}
-		if (!emptycolumn && !onchar) {
-			onchar = true;
-			start = i;
-			continue;
-		}
-		if (onchar && emptycolumn) {
-			characters[charnr].width = i-start;
-			widthtotal += characters[charnr].width;
-			offsets[charnr] = start;
-			charnr++;
-			onchar = false;
-		}
-	}
-	if (onchar) {	// last column wasn't empty
-		characters[charnr].width = w-start;
-		widthtotal += characters[charnr].width;
-		offsets[charnr] = start;
-		charnr++;
-	}
-	SDL_UnlockSurface(fontimage);
+	system::sys().myassert(fontimage->format->BytesPerPixel == 1, string("font: only grayscale images are supported! font ")+basefilename);
 
-	if (charnr != nr_chars) {
-		ostringstream os;
-		os << "font: detected " << charnr << " characters, expected " << nr_chars << " in " << filename;
-		system::sys().myassert(false, os.str());
-	}
-
-	for (unsigned i = 0; i < nr_chars; i++) {
-		characters[i].tex = new texture(fontimage, offsets[i], 0, characters[i].width, h, GL_LINEAR, GL_CLAMP_TO_EDGE);
-	}
+	for (unsigned i = 0; i < characters.size(); i++) {
+		character& c = characters[i];
+		unsigned w = next_p2(c.width);
+		unsigned h = next_p2(c.height);
+		vector<Uint8> tmpimage(w * h * 2);
 		
-	for (unsigned i = 0; i < nr_chars; i++)
-		translate[characters[i].mapping] = i;
+		unsigned char* ptr = ((unsigned char*)(fontimage->pixels)) + c.top*fontimage->pitch + offsets[i];
+	
+		for (unsigned y = 0; y < c.height; y++) {
+			for (unsigned x = 0; x < c.width; ++x) {
+				tmpimage[2*(y*w+x)] = tmpimage[2*(y*w+x)+1] = *(ptr+x);
+			}
+			ptr += fontimage->pitch;
+		}
+		
+		characters[i].tex = new texture(&tmpimage[0], w, h, GL_LUMINANCE_ALPHA, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, GL_LINEAR, GL_CLAMP_TO_EDGE);
+	}
+	
+	SDL_UnlockSurface(fontimage);
+	SDL_FreeSurface(fontimage);
 }
 
 font::~font()
 {
-	for (unsigned i = 0; i < nr_chars; i++) {
-		delete characters[i].tex;
-	}
 }
 
 void font::print(int x, int y, const string& text, color col, bool with_shadow) const
@@ -245,7 +211,7 @@ void font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, const st
 
 pair<unsigned, unsigned> font::get_size(const string& text) const
 {
-	int x = 0, y = char_height;
+	int x = 0, y = height;
 	int xmax = 0;
 	for (unsigned ti = 0; ti < text.length(); ++ti) {
 		unsigned char c = text[ti];
@@ -253,9 +219,9 @@ pair<unsigned, unsigned> font::get_size(const string& text) const
 			x += blank_width;
 		} else if (c == '\n') {	// return
 			x = 0;
-			y += char_height;
+			y += height;
 		} else if (c == '\t') {	// tab
-			unsigned tw = char_height*4;
+			unsigned tw = height*4;
 			x = int((x + tw)/tw)*tw;
 		} else if (c == '$') { // color information
 			unsigned nr[6];
@@ -271,27 +237,23 @@ pair<unsigned, unsigned> font::get_size(const string& text) const
 					nr[i] = 0;
 			}
 			--ti;	// compensate for(...++ti)
-		} else {
-			unsigned t = translate[c];
-			if (t == 0xff) {
-				x += blank_width;
-			} else {
-				x += characters[t].width + spacing;
-			}
-		}
+		} else if (unsigned(c) >= first_char && unsigned(c) <= last_char) {
+			unsigned t = unsigned(c) - first_char;
+			x += characters[t].width + spacing;
+		} // else: ignore (unknown) character
 		if (x > xmax) xmax = x;
 	}
-	if (x == 0) y -= char_height;
+	if (x == 0) y -= height;
 	return make_pair(xmax, y);
 }
 
-unsigned font::get_char_width(char c) const
+unsigned font::get_char_width(unsigned char c) const
 {
-	unsigned t = translate[c];
-	if (c == ' ')
+	if (c == ' ') {
 		return blank_width;
-	else if (t == 0xff)
+	} else if (unsigned(c) >= first_char && unsigned(c) <= last_char) {
+		return characters[unsigned(c) - first_char].width;
+	} else {
 		return 0;
-	else
-		return characters[t].width;
+	}
 }

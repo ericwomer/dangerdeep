@@ -397,7 +397,7 @@ void run_game(game* gm)
 {
 	widget::theme* gametheme =
 		new widget::theme("widgetelements_game.png", "widgeticons_game.png",
-		font_panel /* font_arial */, color(224,224,224), color(180, 180, 255), color(64,64,64));
+		font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64));
 	user_interface* ui = user_interface::create(*gm);
 	while (true) {
 		widget::theme* tmp = widget::replace_theme(gametheme);
@@ -990,7 +990,7 @@ void draw_ship(void)
 	glColor3f(1, 1, 1);
 	shp->display();
 	sys->prepare_2d_drawing();
-	font_nimbusrom->print_hc(512, 128, shp->get_description(2), color::white(), true);
+	font_times->print_hc(512, 128, shp->get_description(2), color::white(), true);
 	sys->unprepare_2d_drawing();
 	glEnable(GL_LIGHTING);
 }
@@ -1177,7 +1177,7 @@ int main(int argc, char** argv)
 	init_global_data();
 	
 	widget::set_theme(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
-		font_nimbusrom, color::white(), color(255, 64, 64), color(64,64,32)));
+		font_times, color(255, 204, 0), color(255, 64, 64), color(64,64,32)));
 
 	sys->draw_console_with(font_arial, background);
 

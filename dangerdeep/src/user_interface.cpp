@@ -1253,7 +1253,7 @@ void user_interface::add_message(const string& s)
 		panel_messages->delete_entry(0);
 /*
 	panel_texts.push_back(s);
-	if (panel_texts.size() > 1+MAX_PANEL_SIZE/font_panel->get_height())
+	if (panel_texts.size() > 1+MAX_PANEL_SIZE/font_arial->get_height())
 		panel_texts.pop_front();
 */		
 }
