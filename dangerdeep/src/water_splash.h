@@ -1,4 +1,4 @@
-// An nautical angle (C)+(W) 2003 Markus Petermann
+&// An nautical angle (C)+(W) 2003 Markus Petermann
 
 #ifndef WATER_SPLASH_H
 #define WATER_SPLASH_H

@@ -81,6 +81,7 @@ protected:
 	*/
 	virtual void calculate_fuel_factor ( double delta_time );
 
+	//fixme: replace by unsigned smoke_type; // 0 - none, 1-x different types
 	class smoke_stream* mysmoke;
 	vector3 smokerelpos;	// read from spec file
 	
