@@ -861,47 +861,6 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 		// fixme: use LOD (fft with less resolution) for distance waves
 		// until about 10km to the horizon
 
-		// compute the rasterization of the triangle p0,p1,p2
-		// with p0 = viewer's pos., p1,2 = p0 + viewrange * direction(brearing +,- fov/2)
-
-		vector2 p0(myfmod(viewpos.x, WAVE_LENGTH)/WAVE_LENGTH, myfmod(viewpos.y, WAVE_LENGTH)/WAVE_LENGTH);
-		vector2 p1 = p0 + angle(90/*bearing*/+45/*fov/2*/).direction() * 8 /* view dist */;
-		vector2 p2 = p0 + angle(90/*bearing*/-45/*fov/2*/).direction() * 8 /* view dist */;
-		/*
-		  vector2 *top = &p0, *middle = &p0, *bottom = &p0;
-		  if (p1.y < top->y) top = &p1;
-		  if (p2.y < top->y) top = &p2;
-		  if (p1.y > bottom->y) bottom = &p1;
-		  if (p2.y > bottom->y) bottom = &p2;
-		  if (p1.y > top->y && p1.y < bottom->y) middle = &p1;
-		  if (p2.y > top->y && p2.y < bottom->y) middle = &p2;
-		  //cout << "p0 1 2 y "<<p0.y<<","<<p1.y<<","<<p2.y<<" t m b y "<<top->y<<","<<middle->y<<","<<bottom->y<<"\n";
-		  vector2f d0x = (p1.x - p0.x)/(p1.y - p0.y);
-		  vector2f d1x = (p2.x - p0.x)/(p2.y - p0.y);
-		  float h0 = ceil(p0.x) - p0.x;
-		  float p0x = p0.x + h0 * d0x;
-		  float p1x = p0.x + h0 * d1x;
-		  while (y < bottom->y) {
-		  if (y >= middle->y) {
-		  float hmid = ceil(middle->y) - middle->y;
-		  if (middle_is_left) {
-		  d0x = (p2.x - p1.x)/(p2.y - p1.y);
-		  p0x = middle->x + hmid * d0x;
-		  } else {
-		  d1x = (p1.x - p2.x)/(p1.y - p2.y);
-		  p1x = middle->x + hmid * d1x;
-		  }
-		  }
-		  // rasterline
-		  for (int i = int(floor(p0x)); i < int(ceil(p1x)); ++i) {
-		  // draw tile
-		  }
-		  p0x += d0x;
-		  p1x += d1x;
-		  ++y;
-		  }
-		*/
-
 		glActiveTexture(GL_TEXTURE1);
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, wavefoamtex);
@@ -925,18 +884,110 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 		glEnable(GL_TEXTURE_GEN_T);
 
 		unsigned dl = wavedisplaylists + int(WAVE_PHASES*timefac);
-		for (int y = 0; y < WAVES_PER_AXIS; ++y) {
-			plane_t2[3] = float(y)/WAVES_PER_AXIS;
-			glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-			glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t2);
-			for (int x = 0; x < WAVES_PER_AXIS; ++x) {
-				plane_s2[3] = float(x)/WAVES_PER_AXIS;
-				glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-				glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s2);
-				glPushMatrix();
-				glTranslatef((-WAVES_PER_AXIS/2+x)*WAVE_LENGTH, (-WAVES_PER_AXIS/2+y)*WAVE_LENGTH, 0);
-				glCallList(dl);
-				glPopMatrix();
+
+
+		// ************ draw water tiles ****************
+		if (false /* draw_only_tiles_in_viewing_cone */) {
+			// *********** draw water tiles in viewing cone
+
+			// compute the rasterization of the triangle p0,p1,p2
+			// with p0 = viewer's pos., p1,2 = p0 + viewrange * direction(brearing +,- fov/2)
+
+			vector2 p[3];	// vertices for triangle
+			p[0] = vector2(myfmod(viewpos.x, WAVE_LENGTH)/WAVE_LENGTH, myfmod(viewpos.y, WAVE_LENGTH)/WAVE_LENGTH);
+			p[1] = p[0] + (dir+angle(45/*fov/2*/)).direction() * 8 /* view dist */;
+			p[2] = p[0] + (dir-angle(45/*fov/2*/)).direction() * 8 /* view dist */;
+
+		char tmp[21][21];
+		memset(tmp, '.', 21*21);
+		tmp[10][10]='o';
+
+			// rasterize a ccw triangle, coordinate system is right handed (greater y is top)
+			struct edge {
+				double x, dx;
+				int y, height;
+				inline void step(void) { x += dx; --y; --height; }
+				edge(const vector2& ptop, const vector2& pbot) {
+					y = int(floor(ptop.y));
+					height = y - int(floor(pbot.y));
+					dx = (ptop.x - pbot.x)/(pbot.y - ptop.y);
+					x = dx*(ptop.y - y) + ptop.x;
+				}
+			};
+
+			int top = 0, middle = 1, bottom = 2;
+			bool middle_is_left = true;
+			if (p[1].y > p[top].y) top = 1;
+			if (p[2].y > p[top].y) top = 2;
+			middle = (top+1)%3;
+			bottom = (top+2)%3;
+			if (p[middle].y < p[bottom].y) {
+				middle_is_left = false;
+				bottom = (top+1)%3;
+				middle = (top+2)%3;
+			}
+			edge top_bottom(p[top], p[bottom]);
+			edge top_middle(p[top], p[middle]);
+			edge middle_bottom(p[middle], p[bottom]);
+			edge *eleft, *eright;
+			if (middle_is_left) {
+				eleft = &top_middle; eright = &top_bottom;
+			} else {
+				eleft = &top_bottom; eright = &top_middle;
+			}
+			// draw triangle, first upper half, then lower half
+			int h = top_middle.height;
+			int half_rasterized = 0;
+cout << "raster test\np[0]: "<<p[0]<<"\np[1]: "<<p[1]<<"\np[2]: "<<p[2]<<"\ntop "<<top<<" middle "<<middle<<" bottom "<<bottom<<" m_is_l:"<<middle_is_left<<"\n";
+			while (true) {
+				for ( ; h > 0; --h) {
+cout << "eleft: x=" << eleft->x << " y=" << eleft->y << " h=" <<eleft->height << " dx="<<eleft->dx<<"\n";
+cout << "eright: x=" << eright->x << " y=" << eright->y << " h=" <<eright->height << " dx="<<eright->dx<<"\n";
+					//raster a line
+					for (int i = int(floor(eleft->x)); i < int(ceil(eright->x)); ++i) {
+						//draw tile [i,eleft->y]
+						cout<<"raster draw "<<i<<","<<eleft->y<<"\n";
+						tmp[i+10][(eleft->y)+10] = 'x';
+						int x = i + WAVES_PER_AXIS/2;
+						int y = eleft->y + WAVES_PER_AXIS/2;
+						glPushMatrix();
+						glTranslatef((-WAVES_PER_AXIS/2+x)*WAVE_LENGTH, (-WAVES_PER_AXIS/2+y)*WAVE_LENGTH, 0);
+						glCallList(dl);
+						glPopMatrix();
+					}
+					eleft->step();
+					eright->step();
+				}
+				++half_rasterized;
+				if (half_rasterized == 2) break;
+				// change edge pointers
+				if (middle_is_left)
+					eleft = &middle_bottom;
+				else
+					eright = &middle_bottom;
+				h = middle_bottom.height;
+			}
+cout << "raster result\n";
+for(int ry=0;ry<21;++ry){
+for(int rx=0;rx<21;++rx){
+cout<<tmp[rx][20-ry];
+}
+cout<<"\n";
+}
+		} else {	// draw all tiles in visible range
+			for (int y = 0; y < WAVES_PER_AXIS; ++y) {
+				plane_t2[3] = float(y)/WAVES_PER_AXIS;
+				glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+				glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t2);
+				for (int x = 0; x < WAVES_PER_AXIS; ++x) {
+					plane_s2[3] = float(x)/WAVES_PER_AXIS;
+					glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+					glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s2);
+					glPushMatrix();
+					glTranslatef((-WAVES_PER_AXIS/2+x)*WAVE_LENGTH, (-WAVES_PER_AXIS/2+y)*WAVE_LENGTH, 0);
+					glCallList(dl);
+					glPopMatrix();
+				}
 			}
 		}
 	}
@@ -1602,7 +1653,7 @@ void user_interface::display_bridge(game& gm)
 	class system& sys = system::sys();
 	sea_object* player = get_player();
     
-	glClear(GL_DEPTH_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);	// fixme remove color buffer bit for speedup
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
@@ -2050,8 +2101,8 @@ void user_interface::display_freeview(game& gm)
 	vector3 upward(viewmatrix[1], viewmatrix[5], viewmatrix[9]);
 	vector3 forward(viewmatrix[2], viewmatrix[6], viewmatrix[10]);
 
-	// draw everything
-	draw_view(gm, freeviewpos, 0, 0, false, false, true);
+	// draw everything (dir can be ignored/0, all water tiles must get drawn, not only the viewing cone, fixme)
+	draw_view(gm, freeviewpos, player_object->get_heading()+bearing, 0, false, false, true);
 
 	int mx, my;
 	sys.get_mouse_motion(mx, my);
