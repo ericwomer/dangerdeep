@@ -10,7 +10,7 @@
 
 submarine::submarine() : ship(), dive_speed(0.0f), permanent_dive(false),
     dive_to(0.0f), max_dive_speed(1.0f), dive_acceleration(0.0f), scopeup(false),
-    max_depth(150.0f), periscope_depth(12.0f)
+    max_depth(150.0f), periscope_depth(12.0f), snorkel_depth(-1.0f)
 {}
 	
 bool submarine::parse_attribute(parser& p)
@@ -51,6 +51,13 @@ bool submarine::parse_attribute(parser& p)
 			break;
 		default: return false;
 	}
+
+    // Activate electric engine if submerged.
+    if (is_submerged())
+    {
+        electric_engine = true;
+    }
+    
 	return true;
 }
 
@@ -108,6 +115,22 @@ void submarine::simulate(class game& gm, double delta_time)
 
 	// calculate new depth (fixme this is not physically correct)
 	double delta_depth = dive_speed * delta_time;
+
+    // Activate or deactivate electric engines.
+    if ((position.z > -SUBMARINE_SUBMERGED_DEPTH) &&
+        (position.z+delta_depth < -SUBMARINE_SUBMERGED_DEPTH))
+    {
+        // Activate electric engine.
+        electric_engine = true;
+    }
+    else if (((position.z < -SUBMARINE_SUBMERGED_DEPTH) &&
+              (position.z+delta_depth > -SUBMARINE_SUBMERGED_DEPTH)) &&
+             (position.z < -get_periscope_depth()))
+    {
+        // Activate diesel engine.
+        electric_engine = false;
+    }
+    
 	if (dive_speed != 0) {
 		if (permanent_dive) {
 			position.z += delta_depth;
@@ -181,19 +204,23 @@ void submarine::simulate(class game& gm, double delta_time)
 
 double submarine::get_max_speed(void) const
 {
-	return (get_pos().z < 0) ? max_submerged_speed : max_speed;
+    return (is_electic_engine())? max_submerged_speed : max_speed;
 }
 
 float submarine::surface_visibility(const vector2& watcher) const
 {
+    double depth = get_depth();
+    
 	// fixme: use relative course to watcher (via watcher pos)
-	if (position.z < -12) return 0;	// fixme: replace by individual values
+	if (depth > periscope_depth)
+        return 0.0f;
+ 
 	if (is_scope_up()) {
-		if (position.z < -10) return 0.25;
-		if (position.z < -6) return 0.25 + (10+position.z)*3.0/16.0;
+		if (depth > 10.0f) return 0.25;
+		if (depth > 6.0f) return 0.25 + (10.0f-depth)*0.1875f; // 3.0/16.0;
 	} else {
-		if (position.z < -10) return 0;
-		if (position.z < -6) return (10+position.z)/4.0;
+		if (depth > 10.0f) return 0.0f;
+		if (depth > 6.0f) return (10.0f-depth)*0.25f; // /4.0;
 	}
 	return 1;
 } 
