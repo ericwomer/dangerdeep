@@ -6,6 +6,7 @@
 
 #include <queue>
 #include <list>
+#include <set>
 #include <string>
 using namespace std;
 #include "font.h"
@@ -90,6 +91,9 @@ public:
 	unsigned get_res_x_2d(void) const { return res_x_2d; };
 	unsigned get_res_y_2d(void) const { return res_y_2d; };
 	
+	// is a given OpenGL extension supported?
+	bool extension_supported(const string& s) const;
+	
 private:
 	system() {};
 	unsigned res_x, res_y;		// virtual resolution (fixed for project)
@@ -99,6 +103,8 @@ private:
 	const font* console_font;
 	const texture* console_background;	
 	list<string> console_text;
+	
+	set<string> supported_extensions;	// memory supported OpenGL extensions
 	
 	bool draw_2d;
 	unsigned res_x_2d, res_y_2d;	// real resolution (depends on user settings)

@@ -85,10 +85,19 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	string renderer = (char*)glGetString(GL_RENDERER);
 	string version = (char*)glGetString(GL_VERSION);
 	string extensions = (char*)glGetString(GL_EXTENSIONS);
-	while (true) {
-		unsigned pos = extensions.find(" ");
-		if (pos == string::npos) break;
-		extensions.replace(pos, 1, "\n");
+	if (extensions.length() > 0) {
+		unsigned spos = 0;
+		while (spos < extensions.length()) {
+			unsigned pos = extensions.find(" ", spos);
+			if (pos == string::npos) {
+				supported_extensions.insert(extensions.substr(spos));
+				spos = extensions.length();
+			} else {
+				extensions.replace(pos, 1, "\n");
+				supported_extensions.insert(extensions.substr(spos, pos-spos));
+				spos = pos+1;
+			}
+		}
 	}
 	GLint nrtexunits = 0, nrlights = 0, nrclipplanes = 0, maxviewportdims = 0, depthbits = 0;
 	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &nrtexunits);
@@ -107,7 +116,7 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 		<< "GL maximum viewport dimensions : " << maxviewportdims << "\n"
 		<< "GL depth bits (current) : " << depthbits << "\n"
 		<< "Supported GL extensions :\n" << extensions << "\n";
-
+		
 	instance = this;
 }
 
@@ -475,3 +484,8 @@ void system::gl_perspective_fovx(double fovx, double aspect, double znear, doubl
 	glFrustum(-r, r, -t, t, znear, zfar);
 }
 
+bool system::extension_supported(const string& s) const
+{
+	set<string>::const_iterator it = supported_extensions.find(s);
+	return (it != supported_extensions.end());
+}

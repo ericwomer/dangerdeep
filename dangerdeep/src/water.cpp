@@ -673,10 +673,14 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 
 //	unsigned t0 = system::sys().millisec();
 
-//	glLockArraysEXT(0, (xres+1)*(yres+1));	// doesn't improve performance
+	// LockArrays gives 1fps extra performance on a ATI/Linux.
+	bool lockarr = (system::sys().extension_supported("GL_EXT_compiled_vertex_array"));
+	if (lockarr)
+		glLockArraysEXT(0, (xres+1)*(yres+1));
 	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
 //	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
-//	glUnlockArraysEXT();
+	if (lockarr)
+		glUnlockArraysEXT();
 
 //	unsigned t2 = system::sys().millisec();
 //	drawing takes ~28ms with linux/athlon2200+/gf4mx. That would be ~32mb/sec with AGP4x!?
