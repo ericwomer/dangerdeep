@@ -29,8 +29,7 @@ protected:
 
 	angle heading;		// stored additionally, take (0,1,0), rotate with orientation, project to xy-plane, get angle -> heading
 	double speed;		// m/sec, speed along local y axis, can be computed from velocity,orientation.
-	//double max_speed, max_rev_speed;// m/sec, read from spec file
-	int throttle;
+	int throttle;		// if < 0: throttle_state, if > 0: knots
 	double max_acceleration;	// read from spec file
 
 	// new model: store rudder angle, store if ship heads to a fixed angle and that angle

@@ -684,27 +684,32 @@ void user_interface::draw_vessel_symbol(const vector2& offset, sea_object* so, c
 
 void user_interface::draw_trail(sea_object* so, const vector2& offset)
 {
-	list<vector2> l = so->get_previous_positions();
-	glColor4f(1,1,1,1);
-	system::sys().no_tex();
-	glBegin(GL_LINE_STRIP);
-	vector2 p = (so->get_pos().xy() + offset)*mapzoom;
-	glVertex2f(512+p.x, 384-p.y);
-	float la = 1.0/float(l.size()), lc = 0;
-	for (list<vector2>::const_iterator it = l.begin(); it != l.end(); ++it) {
-		glColor4f(1,1,1,1-lc);
-		vector2 p = (*it + offset)*mapzoom;
+	ship* shp = dynamic_cast<ship*>(so);
+	if (shp) {
+		list<vector2> l = shp->get_previous_positions();
+		glColor4f(1,1,1,1);
+		system::sys().no_tex();
+		glBegin(GL_LINE_STRIP);
+		vector2 p = (shp->get_pos().xy() + offset)*mapzoom;
 		glVertex2f(512+p.x, 384-p.y);
-		lc += la;
+		float la = 1.0/float(l.size()), lc = 0;
+		for (list<vector2>::const_iterator it = l.begin(); it != l.end(); ++it) {
+			glColor4f(1,1,1,1-lc);
+			vector2 p = (*it + offset)*mapzoom;
+			glVertex2f(512+p.x, 384-p.y);
+			lc += la;
+		}
+		glEnd();
+		glColor4f(1,1,1,1);
 	}
-	glEnd();
-	glColor4f(1,1,1,1);
 }
 
 void user_interface::display_gauges(game& gm)
 {
 	class system& sys = system::sys();
-	sea_object* player = get_player ();
+	sea_object* playerso = get_player ();
+	ship* player = dynamic_cast<ship*>(playerso);	// ugly hack to allow compilation
+	if (!player) return;
 	sys.prepare_2d_drawing();
 	set_display_color ( gm );
 	for (int y = 0; y < 3; ++y)	// fixme: replace with gauges
@@ -1032,7 +1037,7 @@ void user_interface::display_map(game& gm)
 			draw_visual_contacts(gm, sub_player, -offset);
 
 			// Draw a red box around the selected target.
-			if (!target.is_null())
+			if (target)
 			{
 				draw_square_mark ( gm, target->get_pos ().xy (), -offset,
 					color ( 255, 0, 0 ) );
@@ -1045,7 +1050,7 @@ void user_interface::display_map(game& gm)
 		draw_visual_contacts(gm, player, -offset);
 
 		// Draw a red box around the selected target.
-		if (!target.is_null())
+		if (target)
 		{
 			draw_square_mark ( gm, target->get_pos ().xy (), -offset,
 				color ( 255, 0, 0 ) );
@@ -1054,7 +1059,7 @@ void user_interface::display_map(game& gm)
 	}
 
 	// draw notepad sheet giving target distance, speed and course
-	if (!target.is_null()) {
+	if (target) {
 		int nx = 768, ny = 512;
 		notepadsheet->draw(nx, ny);
 		ostringstream os0, os1, os2;
@@ -1307,21 +1312,23 @@ void user_interface::display_glasses(class game& gm)
 
 void user_interface::add_rudder_message()
 {
-    switch (player_object->get_rudder_to())
+	ship* s = dynamic_cast<ship*>(player_object);
+	if (!s) return;	// ugly hack to allow compilation
+    switch (s->get_rudder_to())
     {
-        case sea_object::rudderfullleft:
+        case ship::rudderfullleft:
             add_message(texts::get(35));
             break;
-        case sea_object::rudderleft:
+        case ship::rudderleft:
             add_message(texts::get(33));
             break;
-        case sea_object::ruddermid:
+        case ship::ruddermid:
             add_message(texts::get(42));
             break;
-        case sea_object::rudderright:
+        case ship::rudderright:
             add_message(texts::get(34));
             break;
-        case sea_object::rudderfullright:
+        case ship::rudderfullright:
             add_message(texts::get(36));
             break;
     }

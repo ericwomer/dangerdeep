@@ -134,7 +134,7 @@ public:
 		that are fare less audible than the turbine engines of other ships.
 		@return noise modification factor
 	*/
-	virtual double get_noise_factor () const;
+	virtual double get_noise_factor () const { return 0; }
 	virtual vector2 get_engine_noise_source () const;
 
 	virtual void display(void) const;

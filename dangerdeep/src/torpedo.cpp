@@ -11,7 +11,7 @@
 
 
 torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, angle headto_,
-	unsigned pr, unsigned sr, unsigned it, unsigned sp) : sea_object()
+	unsigned pr, unsigned sr, unsigned it, unsigned sp) : ship()
 {
 	type = type_;
 	primaryrange = (pr <= 16) ? 1600+pr*100 : 1600;
@@ -29,11 +29,10 @@ torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, ang
 			// launching a torpedo will cause it to run in target direction
 			// immidiately instead of turning there from the sub's heading
 			// fixme historic values??
-	length = 7;
-	width = 1.066;
+	size3d = vector3f(0.533, 7, 0.533);	// diameter 53.3cm (21inch), length ~ 7m
 	run_length = 0;
-	max_speed = speed = get_speed_by_type(type_);
-	max_rev_speed = 0;
+	max_speed_forward = speed = get_speed_by_type(type_);
+	max_speed_reverse = 0;
 	switch (type_) {
 		case T1:
 			max_run_length = 14000;
@@ -183,7 +182,7 @@ double torpedo::expected_run_time(torpedo::types torptype, angle lead_angle,
 	return (angle_on_the_bow.sin() * target_range) / (get_speed_by_type(torptype) * ang.sin());
 }
 
-pair<angle, bool> torpedo::compute_launch_data(torpedo::types torptype, const sea_object* parent,
+pair<angle, bool> torpedo::compute_launch_data(torpedo::types torptype, const ship* parent,
 	const sea_object* target, bool usebowtubes, const angle& manual_lead_angle)
 {
 	pair<angle, double> br = parent->bearing_and_range_to(target);

@@ -68,7 +68,11 @@ public:
 	        angle angle_on_the_bow, double target_range);
 
 	// can torpedo gyroscope be adjusted to this target?
-	static pair<angle, bool> compute_launch_data(types torptype, const sea_object* parent,
+	// note that parent is a ship, no sea_object. airplanes can also launch torpedoes
+	// but target computing would be done in a different way.
+	// fixme: this function assumes that torpedoes are launched from bow or stern
+	// what is not always right for ships.
+	static pair<angle, bool> compute_launch_data(types torptype, const ship* parent,
 		const sea_object* target, bool usebowtubes, const angle& manual_lead_angle);
 
 	virtual unsigned get_hit_points () const;

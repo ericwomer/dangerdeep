@@ -30,6 +30,9 @@ using namespace std;
 #include "command.h"
 extern void menu_notimplemented(void);	// fixme remove later.
 
+//fixme: maybe ship_interface should heir from user_interface and sub_interface should
+//heir from ship_interface?
+
 submarine_interface::submarine_interface(submarine* player_sub, game& gm) : 
     	user_interface( player_sub, gm ), sub_damage_disp(new sub_damage_display(player_sub)),
     	torptranssrc(0xffff)
@@ -61,7 +64,7 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 					add_message(texts::get(49));
 					ostringstream oss;
 					oss << texts::get(49);
-					if (!target.is_null())
+					if (target)
 						oss << " " << texts::get(6) << ": " << target->get_description ( 2 );
 					add_captains_log_entry( gm, oss.str () );
 					gm.send(new command_launch_torpedo(player, keycode - SDLK_1, target));
@@ -173,12 +176,12 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 				gm.send(new command_planes_middle(player));
 				add_message(texts::get(42));
 				break;
-			case SDLK_1: gm.send(new command_set_throttle(player, sea_object::aheadslow)); add_message(texts::get(43)); break;
-			case SDLK_2: gm.send(new command_set_throttle(player, sea_object::aheadhalf)); add_message(texts::get(44)); break;
-			case SDLK_3: gm.send(new command_set_throttle(player, sea_object::aheadfull)); add_message(texts::get(45)); break;
-			case SDLK_4: gm.send(new command_set_throttle(player, sea_object::aheadflank)); add_message(texts::get(46)); break;//flank/full change?
-			case SDLK_5: gm.send(new command_set_throttle(player, sea_object::stop)); add_message(texts::get(47)); break;
-			case SDLK_6: gm.send(new command_set_throttle(player, sea_object::reverse)); add_message(texts::get(48)); break;
+			case SDLK_1: gm.send(new command_set_throttle(player, ship::aheadslow)); add_message(texts::get(43)); break;
+			case SDLK_2: gm.send(new command_set_throttle(player, ship::aheadhalf)); add_message(texts::get(44)); break;
+			case SDLK_3: gm.send(new command_set_throttle(player, ship::aheadfull)); add_message(texts::get(45)); break;
+			case SDLK_4: gm.send(new command_set_throttle(player, ship::aheadflank)); add_message(texts::get(46)); break;//flank/full change?
+			case SDLK_5: gm.send(new command_set_throttle(player, ship::stop)); add_message(texts::get(47)); break;
+			case SDLK_6: gm.send(new command_set_throttle(player, ship::reverse)); add_message(texts::get(48)); break;
 			case SDLK_0: if (player->is_scope_up()) {
 				gm.send(new command_scope_down(player)); add_message(texts::get(54)); } else {
 				gm.send(new command_scope_up(player)); add_message(texts::get(55)); }
@@ -194,7 +197,7 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 					add_message(texts::get(49));
 					ostringstream oss;
 					oss << texts::get(49);
-					if (!target.is_null())
+					if (target)
 						oss << " " << texts::get(6) << ": " << target->get_description ( 2 );
 					add_captains_log_entry( gm, oss.str () );
 					gm.send(new command_launch_torpedo(player, -1, target));
@@ -203,7 +206,7 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 				break;
 			case SDLK_SPACE:
 				target = gm.contact_in_direction(player, player->get_heading()+bearing);
-				if (!target.is_null())
+				if (target)
 				{
 					add_message(texts::get(50));
 					add_captains_log_entry ( gm, texts::get(50));
@@ -213,7 +216,7 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 				break;
 			case SDLK_i:
 				// calculate distance to target for identification detail
-				if (!target.is_null())
+				if (target)
 				{
 					ostringstream oss;
 					oss << texts::get(79) << target->get_description(2); // fixme
@@ -379,7 +382,7 @@ void submarine_interface::display_periscope(game& gm)
 	angle targetrange;
 	angle targetspeed;
 	angle targetheading;
-	if (!target.is_null()) {
+	if (target) {
 		pair<angle, double> br = player->bearing_and_range_to(target);
 		targetbearing = br.first;
 		targetaob = player->estimate_angle_on_the_bow(br.first, target->get_heading());
