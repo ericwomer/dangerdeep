@@ -34,6 +34,7 @@ class user_interface;
 #include "date.h"
 #include "vector2.h"
 #include "vector3.h"
+#include "color.h"
 
 // network messages
 #define MSG_length	16
@@ -126,7 +127,7 @@ protected:
 
 	list<sink_record> sunken_ships;
 	
-	double time;	// global time (in seconds since 1.1.1939, 0:0 hrs)
+	double time;	// global time (in seconds since 1.1.1939, 0:0 hrs) (universal time!)
 	double last_trail_time;	// for position trail recording
 	
 	enum weathers { sunny, clouded, raining, storm };//fixme
@@ -265,6 +266,12 @@ public:
 	// and heirs, it should be the one and only function anyone calls if he wants to change
 	// any sea_object
 	void send(class command* cmd);
+
+	// sun/moon and light color/brightness
+	double compute_light_brightness(const vector3& viewpos) const;	// depends on sun/moon
+	color compute_light_color(const vector3& viewpos) const;	// depends on sun/moon
+	vector3 compute_sun_pos(const vector3& viewpos) const;
+	vector3 compute_moon_pos(const vector3& viewpos) const;
 
 	// Translate pointers to numbers and vice versa. Used for load/save
 	void write(ostream& out, const ship* s) const;

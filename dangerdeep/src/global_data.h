@@ -61,9 +61,6 @@ void get_date ( double t, unsigned& year, unsigned& month, unsigned& day,
 	unsigned& hour, unsigned& minute, unsigned& second );
 void get_date ( double t, date& d );
 double get_time(unsigned year, unsigned month, unsigned day);
-// computes part of day (0 night, 1 sunrise, 2 day, 3 sunfall)
-// with fractional part as "position" in that part
-double get_day_time(double t);
 
 // handle modulo calculation for negative values the way I need it
 inline float myfmod(float a, float b) { return a-floorf(a/b)*b; }

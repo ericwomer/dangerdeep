@@ -14,6 +14,7 @@ using namespace std;
 #include "color.h"
 #include "vector3.h"
 
+class game;
 class model;
 class texture;
 
@@ -25,8 +26,6 @@ protected:
 	float skycolorfac;				// 0.0 sunny, 1.0 stormy
 						//fixme: maybe rather use it for sunrise/fall colors
 	
-	float atmosphericlight;				// 0.0 night 1.0 day, depends on sun pos.
-
 	model* skyhemisphere;
 	texture* skycol;
 	texture* sunglow;
@@ -63,10 +62,7 @@ public:
 	sky(double tm = 0.0);				// give day time in seconds
 	void set_time(double tm);
 	~sky();
-	void display(const vector3& viewpos, double max_view_dist, bool isreflection) const;
-	color get_light_color(const vector3& viewpos) const;	// depends on sun/moon
-	vector3 get_sun_pos(const vector3& viewpos) const;
-	vector3 get_moon_pos(const vector3& viewpos) const;
+	void display(const game& gm, const vector3& viewpos, double max_view_dist, bool isreflection) const;
 };
 
 #endif

@@ -14,70 +14,14 @@
 #include "model.h"
 #include "texture.h"
 #include "global_data.h"
+#include "game.h"
 #include "matrix.h"
-#include "quaternion.h"
-
-/*
-	The model:
-	Sun, moon and earth have an local space, moon and earth rotate around their z-axis.
-	Z-axis are all up, that means earth's z-axis points to the north pole.
-	The moon rotates counter clockwise around the earth in 27 1/3 days (one sidereal month).
-	The earth rotates counter clockwise around the sun in 365d 5h 48m 46.5s.
-	The earth rotates around itself in 23h 56m 4.1s (one sidereal day).
-	Earths rotational axis is rotated by 23.45 degrees.
-	Moon orbits in a plane that is 5,15 degress rotated to the xy-plane (plane that
-	earth rotates in, sun orbit).
-	Due to the earth rotation around the sun, the days/months appear longer (the earth
-	rotation must compensate the movement).
-	So the experienced lengths are 24h for a day and 29.5306 days for a full moon cycle.
-	Earth rotational axis points towards the sun at top of summer on the northern hemisphere
-	(around 21st. of June).
-	On top of summer (northern hemisphere) the earth orbit pos is 0.
-	On midnight at longitude 0, the earth rotation is 0.
-	At a full moon the moon rotation/orbit position is 0.
-	As result the earth takes ~ 366 rotations per year (365d 5h 48m 46.5s / 23h 56m 4.09s = 366.2422)
-	We need the exact values/configuration on 1.1.1939, 0:0am.
-	And we need the configuration of the moon rotational plane at this date and time.
-	
-	We could compute space transforms (moon<->earth, earth<->sun) and use them to compute
-	the positions, or we could use an earth local model, drawing sun/moon positions as
-	sinus curves or something similar. fixme
-*/	
-
-const double EARTH_RADIUS = 6.378e6;			// 6378km
-const double SUN_RADIUS = 696e6;			// 696.000km
-const double MOON_RADIUS = 1.738e6;			// 1738km
-const double EARTH_SUN_DISTANCE = 149600e6;		// 149.6 million km.
-const double MOON_EARTH_DISTANCE = 384.4e6;		// 384.000km
-const double EARTH_ROT_AXIS_ANGLE = 23.45;		// degrees.
-const double MOON_ORBIT_TIME = 27.3333333 * 86400.0;	// sidereal month is 27 1/3 days
-const double MOON_ORBIT_PLANE_ROT = 5.15;		// degrees
-const double EARTH_ROTATION_TIME = 86164.09;		// 23h56m4.09s, one sidereal day!
-const double EARTH_PERIMETER = 2.0 * M_PI * EARTH_RADIUS;
-const double EARTH_ORBIT_TIME = 31556926.5;		// in seconds. 365 days, 5 hours, 48 minutes, 46.5 seconds
-// these values are difficult to get. SUN_POS_ADJUST should be around +9.8deg (10days of 365 later) but that gives
-// a roughly right position but wrong sun rise time by about 40min. fixme
-const double SUN_POS_ADJUST = 9.8;	// in degrees. 10 days from 21st. Dec. to 1st. Jan. * 360deg/365.24days
-const double MOON_POS_ADJUST = 300.0;	// in degrees. Moon pos in its orbit on 1.1.1939 fixme: this value is a rude guess
-
-/*
-what has to be fixed for sun/earth/moon simulation:
-get exact distances and diameters (done)
-get exact rotation times (sidereal day, not solar day) for earth and moon (done)
-get exact orbit times for earth and moon around sun / earth (done)
-get angle of rotational axes for earth and moon (fixme, 23.45 and 5.15) (done)
-get direction of rotation for earth and moon relative to each other (done)
-get position of objects and axis states for a fix date (optimum 1.1.1939) (!fixme!)
-compute formulas for determining the positions for the following years (fixme)
-write code that computes sun/moon pos relative to earth and relative to local coordinates (fixme)
-draw moon with phases (fixme)
-*/
 
 const double CLOUD_ANIMATION_CYCLE_TIME = 3600.0;
 
 
 
-sky::sky(double tm) : mytime(tm), skycolorfac(0.0f), atmosphericlight(0.0),
+sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 	skyhemisphere(0), skycol(0), sunglow(0),
 	clouds(0), suntex(0), moontex(0), clouds_dl(0), skyhemisphere_dl(0)
 {
@@ -521,25 +465,14 @@ void sky::set_time(double tm)
 	if (fabs(cf) < (1.0/(3600.0*256.0))) cf = 0.0;
 	if (cf < 0) cf += 1.0;
 	advance_cloud_animation(cf);
-
-
-	double dt = get_day_time(mytime);
-	// fixme: get light color from sun position. 0 at night, 1 when sun is more than 10 degrees above the horizon or something the like
-	double colscal;
-	if (dt < 1) { colscal = 0; }
-	else if (dt < 2) { colscal = fmod(dt,1); }
-	else if (dt < 3) { colscal = 1; }
-	else { colscal = 1-fmod(dt,1); }
-	
-	atmosphericlight = colscal;
 }
 
 
 
-void sky::display(const vector3& viewpos, double max_view_dist, bool isreflection) const
+void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, bool isreflection) const
 {
-	vector3 sundir = get_sun_pos(viewpos).normal();
-	color lightcol = get_light_color(viewpos);
+	vector3 sundir = gm.compute_sun_pos(viewpos).normal();
+	color lightcol = gm.compute_light_color(viewpos);
 
 	// 1) draw the stars on a black background
 
@@ -578,7 +511,9 @@ void sky::display(const vector3& viewpos, double max_view_dist, bool isreflectio
 		glPopMatrix();
 	}
 
-	glColor4f(1, 1, 1, atmosphericlight);
+	// the brighter the sun, the deeper is the sky color
+	float atmos = (sundir.z < -0.25) ? 0.0f : ((sundir.z < 0.0) ? 4*(sundir.z+0.25) : 1.0f);
+	glColor4f(1, 1, 1, atmos);
 
 	setup_textures();
 
@@ -609,42 +544,21 @@ void sky::display(const vector3& viewpos, double max_view_dist, bool isreflectio
 	cleanup_textures();
 
 	glPopMatrix();	// remove scale
-	
+
 
 	// ******** the sun and the moon *****************************************************
 	glDisable(GL_LIGHTING);
-	/* fixme: this is out of date!!!!!!!!!
-	   How to compute the sun's/moon's position:
-	   Earth and moon rotate around the sun's y-axis and around their own y-axes.
-	   The z-axis is pointing outward and the x-axis around the equator.
-	   Earth's rotational axis differs by 23.45 degrees from sun's y-axis.
-	   Given that knowledge one can write transformations between local spaces earth->sun, moon->sun,
-	   viewer's position->earth. With them one can compute any transform between any object.
-	   What is when all angles are zero?
-	   1. The earth's rotational axis is pointing towards the sun then meaning we have the 21st. of June
-	      That means we have to translate the zero position backwards to 1st. January.
-	   2. Earth's coordinate system is just that of the sun translated by distance earth-sun along the z-axis.
-	      That means the sun is at +-180 degrees W/E, exactly at the opposite of the null meridian, exact midnight.
-	   3. The moon is exactly in line with sun and earth behind earth and at the southmost position relative to
-	      earth's latitude coordinates.
-	   Summary: Nullposition means top of summer, midnight and new moon (earth hides him) at southmost point.
-	   We have to adjust sun position by 31+28+31+30+31+21=172 days back (ignoring that february may have 29 days)
-	   The "easiest" thing would be to know where sun and moon were at 1st. january 1939, 00:00am.
-	   fixme: moon rotation plane is not equal to earth rotation plane, it differs by 5,15 degr.
-	   this is why the moon is not always in earth's shadow when it is a full moon.
-	*/
-	// fixme: adjust OpenGL light position to infinite in sun/moon direction.
-	double universaltime = mytime;//    * 8640;	// fixme: substract local time
 
 	// draw sun, fixme draw flares/halo
 	vector3 sunpos = sundir * (0.96 * max_view_dist);
-//cout << "normiert " << get_sun_pos(viewpos).normal() << " total " << sunpos << "\n";
-	int suns = 5;		// make sun with 10x10 pixels
-	glColor3f(1,1,1);
+	int suns = max_view_dist/100;		// make sun ~13x13 pixels
+	glColor4f(1,1,1,0.25);
 	suntex->set_gl_texture();
-	glDisable(GL_LIGHTING);
-
-/*
+	glPushMatrix();
+	glTranslated(sunpos.x, sunpos.y, sunpos.z);
+	matrix4 tmpmat = matrix4::get_gl(GL_MODELVIEW_MATRIX);
+	tmpmat.clear_rot();
+	tmpmat.set_gl(GL_MODELVIEW_MATRIX);
 	glBegin(GL_QUADS);
 	glTexCoord2f(0,0);
 	glVertex3f(-suns, -suns, 0);
@@ -654,53 +568,39 @@ void sky::display(const vector3& viewpos, double max_view_dist, bool isreflectio
 	glVertex3f( suns,  suns, 0);
 	glTexCoord2f(0,1);
 	glVertex3f(-suns,  suns, 0);
-*/
-/*
-	glTexCoord2f(0,0);
-	glVertex3f(-suns, -suns, 0);
-	glTexCoord2f(1,0);
-	glVertex3f(-suns,  suns, 0);
-	glTexCoord2f(1,1);
-	glVertex3f( suns,  suns, 0);
-	glTexCoord2f(0,1);
-	glVertex3f( suns, -suns, 0);
 	glEnd();
-*/
-	// set light position
+	glPopMatrix();
+
+	// set light position (sun position when sun is above horizon, else moon position, fixme)
 	if (sunpos.z > 0.0) {
 		GLfloat sunposgl[4] = { sunpos.x, sunpos.y, sunpos.z, 0.0f };
 		glLightfv(GL_LIGHT0, GL_POSITION, sunposgl);
 	}
 
 	// draw moon
-	glPushMatrix();
-	// Transform earth space to viewer space
-	double moon_scale_fac = max_view_dist / MOON_EARTH_DISTANCE;
-	glTranslated(0, 0, -EARTH_RADIUS * moon_scale_fac);
-	glRotated(360.0 * -viewpos.y * 4 / EARTH_PERIMETER, 0, 1, 0);
-	glRotated(360.0 * -viewpos.x * 2 / EARTH_PERIMETER, 1, 0, 0);
-	// Transform moon space to earth space
-	glRotated(360.0 * -myfrac(universaltime/EARTH_ROTATION_TIME), 0, 1, 0);
-	glRotated(-EARTH_ROT_AXIS_ANGLE, 1, 0, 0);
-	glRotated(MOON_POS_ADJUST + 360.0 * myfrac(universaltime/MOON_ORBIT_TIME), 0, 1, 0);
-	glTranslated(0, 0, MOON_EARTH_DISTANCE * moon_scale_fac * 0.95);	// to keep it inside sky hemisphere
-	// draw quad	
-	double moons = MOON_RADIUS * moon_scale_fac    * 2;	// * 2 is hack, fixme
-	glColor3f(1,1,1);
+	vector3 moonpos = gm.compute_moon_pos(viewpos).normal() * (0.95 * max_view_dist);
+	double moons = max_view_dist/120;	// make moon ~10x10 pixel
+	glColor4f(1,1,1,1);
 	moontex->set_gl_texture();
+	glPushMatrix();
+	glTranslated(moonpos.x, moonpos.y, moonpos.z);
+	tmpmat = matrix4::get_gl(GL_MODELVIEW_MATRIX);
+	tmpmat.clear_rot();
+	tmpmat.set_gl(GL_MODELVIEW_MATRIX);
 	glBegin(GL_QUADS);
 	glTexCoord2f(0,0);
 	glVertex3f(-moons, -moons, 0);
-	glTexCoord2f(0,1);
-	glVertex3f(-moons, moons, 0);
-	glTexCoord2f(1,1);
-	glVertex3f(moons, moons, 0);
 	glTexCoord2f(1,0);
-	glVertex3f(moons, -moons, 0);
+	glVertex3f( moons, -moons, 0);
+	glTexCoord2f(1,1);
+	glVertex3f( moons,  moons, 0);
+	glTexCoord2f(0,1);
+	glVertex3f(-moons,  moons, 0);
 	glEnd();
-	glPopMatrix();	// remove moon space
+	glPopMatrix();
+
+
 	glEnable(GL_LIGHTING);
-	
 	
 
 	// ******** clouds ********************************************************************
@@ -725,67 +625,4 @@ void sky::display(const vector3& viewpos, double max_view_dist, bool isreflectio
 	
 	// modelview matrix is around viewpos now.
 
-}
-
-
-
-color sky::get_light_color(const vector3& viewpos) const
-{
-	vector3 sunpos = get_sun_pos(viewpos);
-	double lightbrightness = 0.0;
-	if (sunpos.z >= 0.18) lightbrightness = 1.0;
-	else if (sunpos.z >= 0.09) lightbrightness = (sunpos.z + 0.09)/(0.09+0.18);
-	lightbrightness = lightbrightness * 0.8 + 0.2;
-	//fixme add moon light at night
-	Uint8 lc = Uint8(255*lightbrightness);
-	return color(lc, lc, lc);
-}
-
-
-
-vector3 sky::get_sun_pos(const vector3& viewpos) const
-{
-	// another try: position above earth
-	// seems to work, but check position dependence and time of year etc.
-	double alpha_s = M_PI - 2 * M_PI * myfrac(mytime/86400.0);
-	double beta_s = M_PI*(EARTH_ROT_AXIS_ANGLE*cos(2*M_PI*myfrac((mytime+10*86400)/EARTH_ORBIT_TIME)))/180.0;
-	double alpha_v = 2*M_PI*(viewpos.x/EARTH_PERIMETER);
-	double beta_v = 2*M_PI*(-viewpos.y/EARTH_PERIMETER);
-	double r_v = EARTH_RADIUS * cos(beta_v);
-	vector3 earth2viewer(r_v*sin(alpha_v), EARTH_RADIUS*sin(beta_v), r_v*cos(alpha_v));
-	double r_s = EARTH_SUN_DISTANCE * cos(beta_s);
-	vector3 earth2sun(r_s*sin(alpha_s), EARTH_SUN_DISTANCE*sin(beta_s), r_s*cos(alpha_s));
-//cout << "posA " << earth2sun - earth2viewer << "\n";
-	return earth2sun - earth2viewer;
-
-
-	//fixme: modulo 24h here would be not right, but which offset? 0?
-	double alpha = 360.0*(viewpos.x/EARTH_PERIMETER + myfrac(mytime/EARTH_ROTATION_TIME));
-	double beta = 360.0*viewpos.y/EARTH_PERIMETER;
-	double gamma = 360.0*myfrac((mytime+10*86400)/EARTH_ORBIT_TIME); // 10 days from 21st./22nd. Dez to 1st. Jan
-cout << "viewpos.x und so " << viewpos.x/EARTH_PERIMETER << " frac " << myfrac(mytime/EARTH_ROTATION_TIME) << "\n";
-cout << "alpha " << alpha << " beta " << beta << " gamma " << gamma << "\n";
-
-	matrix4 sun2earth =
-		matrix4( 0, 1, 0, 0,  0, 0, 1, 0,  1, 0, 0, 0,  0, 0, 0, 1) *
-		matrix4::trans(-EARTH_RADIUS, 0, 0) *
-		matrix4::rot_y( beta) *
-		matrix4::rot_z(-alpha) *
-		matrix4::rot_y(-EARTH_ROT_AXIS_ANGLE) *
-		matrix4::rot_z(-gamma) *
-		matrix4::trans(-EARTH_SUN_DISTANCE, 0, 0) *
-		matrix4::rot_z( gamma);
-
-cout << "sun2earth: \n";
-sun2earth.print();
-
-cout << "posB " << sun2earth.column(3) << "\n";
-	return sun2earth.column(3);
-}
-
-
-
-vector3 sky::get_moon_pos(const vector3& viewpos) const
-{
-	
 }

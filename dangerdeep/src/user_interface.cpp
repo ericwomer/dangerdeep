@@ -224,17 +224,9 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	
 	mywater->set_time(gm.get_time());
 
-	double dt = get_day_time(gm.get_time());
-	color skycol1, skycol2, lightcol;
-	double colscal;
-	if (dt < 1) { colscal = 0; }
-	else if (dt < 2) { colscal = fmod(dt,1); }
-	else if (dt < 3) { colscal = 1; }
-	else { colscal = 1-fmod(dt,1); }
-	lightcol = color(color(64, 64, 64), color(255,255,255), colscal);
-	skycol1 = color(color(8,8,32), color(165,192,247), colscal);
-	skycol2 = color(color(0, 0, 16), color(74,114,236), colscal);
-	// compute light source position and brightness fixme fixme fixme - move back to user_interface!!!!!
+	color lightcol = gm.compute_light_color(viewpos);
+	
+	// compute light source position and brightness fixme to class sky or better class game?
 	GLfloat lambient[4] = {0,0,0,1};//{0.2, 0.2, 0.2, 1};//lightcol.r/255.0/2.0, lightcol.g/255.0/2.0, lightcol.b/255.0/2.0, 1};
 	GLfloat ldiffuse[4] = {lightcol.r/255.0, lightcol.g/255.0, lightcol.b/255.0, 1};
 	GLfloat lposition[4] = {0,1,1,0};	//fixed for now. fixme
@@ -289,7 +281,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	//   sky
 	glCullFace(GL_FRONT);
 	glPushMatrix();
-	mysky->display(viewpos, max_view_dist, true);
+	mysky->display(gm, viewpos, max_view_dist, true);
 	glPopMatrix();
 	//   terrain
 	glColor4f(1,1,1,1);//fixme: fog is missing
@@ -325,10 +317,10 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 
 	// ************ sky ***************************************************************
-	mysky->display(viewpos, max_view_dist, false);
+	mysky->display(gm, viewpos, max_view_dist, false);
 
-	// ********* fog test ************ fog color is skycol2 ************************
-	GLfloat fog_color[4] = {skycol2.r/255.0, skycol2.g/255.0, skycol2.b/255.0, 1.0};
+	// ********* fog test ************ fog color is fixme ************************
+	GLfloat fog_color[4] = {0.5, 0.5, 0.5, 1.0};
 	glFogi(GL_FOG_MODE, GL_LINEAR );
 	glFogfv(GL_FOG_COLOR, fog_color);
 	glFogf(GL_FOG_DENSITY, 1.0);	// not used in linear mode

@@ -131,7 +131,7 @@ public:
 		GLdouble m[16];
 		for (unsigned i = 0; i < 4; ++i)
 			for (unsigned j = 0; j < 4; ++j)
-				m[i+j*4] = GLdouble(r.values[j+i*4]);
+				m[i+j*4] = GLdouble(values[j+i*4]);
 		glMatrixMode(pname);
 		glLoadMatrixd(m);
 		glMatrixMode(GL_MODELVIEW);
@@ -164,10 +164,17 @@ public:
 		D c = D(cos(a)), s = D(sin(a)), o = D(1.0), n = D(0.0);
 		return matrix4t<D>(c,-s, n, n,  s, c, n, n,  n, n, o, n,  n, n, n, o);
 	}
+	
+	// fixme: add rot matrix around arbitrary angle with quaternions
 
 	static matrix4t<D> trans(const D& x, const D& y, const D& z) {
 		D o = D(1.0), n = D(0.0);
 		return matrix4t<D>(o, n, n, x,  n, o, n, y,  n, n, o, z,  n, n, n, o);
+	}
+	
+	void clear_rot(void) {
+		values[0] = values[5] = values[10] = D(1.0);
+		values[1] = values[2] = values[4] = values[6] = values[8] = values[9] = D(0.0);
 	}
 
 	vector3t<D> operator* (const vector3t<D>& v) const {

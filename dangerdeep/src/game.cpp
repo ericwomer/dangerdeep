@@ -34,6 +34,8 @@
 #include "menu.h"	// fixme why this? get rid of it
 #include "command.h"
 #include "network.h"
+#include "matrix.h"
+#include "quaternion.h"
 
 const int SAVEVERSION = 0;
 const int GAMETYPE = 0;//fixme
@@ -107,10 +109,7 @@ game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned t
 		case 2: time += 6*3600+1800*rnd(); break;		
 		case 3: time += 18*3600+1800*rnd(); break;		
 	};
-	
-	compute_max_view_dist();
-	double mvd = get_max_view_distance();
-	
+
 	convoy* cv = new convoy(*this, (convoy::types)(cvsize), (convoy::esctypes)(cvesc));
 	for (list<pair<ship*, vector2> >::iterator it = cv->merchants.begin(); it != cv->merchants.end(); ++it)
 		spawn_ship(it->first);
@@ -124,7 +123,11 @@ game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned t
 	submarine* psub = 0;
 	for (unsigned i = 0; i < nr_of_players; ++i) {	
 		submarine* sub = submarine::create(subtype);//fixme give time for init
-		if (i == 0) psub = sub;
+		if (i == 0) {
+			psub = sub;
+			player = psub;
+			compute_max_view_dist();
+		}
 		angle tmpa;
 		double anglediff = 90.0;
 		bool angleok = false;
@@ -146,7 +149,7 @@ game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned t
 				}
 			}
 		} while (!angleok);
-		vector2 tmpp = tmpa.direction() * (mvd/2);
+		vector2 tmpp = tmpa.direction() * (get_max_view_distance()/2);
 		sub->position = vector3(tmpp.x, tmpp.y, timeofday == 2 ? 0 : -12); // fixme maybe always surfaced, except late in war
 		sub->heading = sub->head_to = angle(rnd()*360.0);
 	
@@ -165,7 +168,6 @@ game::game(parser& p) : running(true), time(0)
 	
 	player = 0;
 	ui = 0;
-	compute_max_view_dist();
 	while (!p.is_empty()) {
 		bool nextisplayer = false;
 		if (p.type() == TKN_PLAYER) {
@@ -225,6 +227,8 @@ game::game(parser& p) : running(true), time(0)
 	}
 	last_trail_time = time - TRAILTIME;
 	if (player == 0) p.error("No player defined!");
+	
+	compute_max_view_dist();
 }
 
 game::~game()
@@ -459,11 +463,8 @@ void game::load_from_stream(istream& in)
 
 void game::compute_max_view_dist(void)
 {
-	double dt = get_day_time(get_time());
-	if (dt < 1) { max_view_dist = 5000; return; }
-	if (dt < 2) { max_view_dist = 5000 + 25000*fmod(dt,1); return; }
-	if (dt < 3) { max_view_dist = 30000; return; }
-	max_view_dist = 30000 - 25000*fmod(dt,1);
+	// a bit unprecise here, since the viewpos is not always the same as the playerpos
+	max_view_dist = 5000.0 + compute_light_brightness(player->get_pos()) * 25000;
 }
 
 void game::simulate(double delta_t)
@@ -1342,12 +1343,8 @@ unsigned game::exec(void)
 
 bool game::is_day_mode () const
 {
-	double day_time = get_day_time ( get_time () );
-
-	if ( day_time >= 1.5f && day_time <= 3.5f )
-		return true;
-
-	return false;
+	double br = compute_light_brightness(player->get_pos());
+	return (br > 0.0);
 }
 
 template <class T>
@@ -1475,6 +1472,155 @@ void game::send(command* cmd)
 	// finally, delete it
 	delete cmd;
 }
+
+
+
+double game::compute_light_brightness(const vector3& viewpos) const
+{
+	vector3 sundir = compute_sun_pos(viewpos).normal();
+	// in reality the brightness is equal to sundir.z, but the sun is so bright that
+	// we stretch and clamp this value
+	double lightbrightness = sundir.z * 2.0;
+	if (lightbrightness > 1.0) lightbrightness = 1.0;
+	if (lightbrightness < 0.0) lightbrightness = 0.0;
+	//fixme add moon light at night
+	return lightbrightness * 0.8 + 0.2;	// some ambient value
+}
+
+
+
+color game::compute_light_color(const vector3& viewpos) const
+{
+	// fixme: sun color can be yellow/orange at dusk/dawn
+	Uint8 lc = Uint8(255*compute_light_brightness(viewpos));
+	return color(lc, lc, lc);
+}
+
+
+
+/*	************** sun and moon *********************
+	The model:
+	Sun, moon and earth have an local space, moon and earth rotate around their y-axis.
+	y-axes are all up, that means earth's y-axis points to the north pole.
+	The moon rotates counter clockwise around the earth in 27 1/3 days (one sidereal month).
+	The earth rotates counter clockwise around the sun in 365d 5h 48m 46.5s.
+	The earth rotates around itself in 23h 56m 4.1s (one sidereal day).
+	Earths rotational axis is rotated by 23.45 degrees.
+	Moon orbits in a plane that is 5,15 degress rotated to the xz-plane (plane that
+	earth rotates in, sun orbit).
+	Due to the earth rotation around the sun, the days/months appear longer (the earth
+	rotation must compensate the movement).
+	So the experienced lengths are 24h for a day and 29.5306 days for a full moon cycle.
+	Earth rotational axis points towards the sun at top of summer on the northern hemisphere
+	(around 21st. of June).
+	On top of summer (northern hemisphere) the earth orbit pos is 0.
+	On midnight at longitude 0, the earth rotation is 0.
+	At a full moon the moon rotation/orbit position is 0.
+	As result the earth takes ~ 366 rotations per year (365d 5h 48m 46.5s / 23h 56m 4.09s = 366.2422)
+	We need the exact values/configuration on 1.1.1939, 0:0am.
+	And we need the configuration of the moon rotational plane at this date and time.
+	
+	We could compute space transforms (moon<->earth, earth<->sun) and use them to compute
+	the positions, or we could use an earth local model, drawing sun/moon positions as
+	sinus curves or something similar. fixme
+*/	
+
+const double EARTH_RADIUS = 6.378e6;			// 6378km
+const double SUN_RADIUS = 696e6;			// 696.000km
+const double MOON_RADIUS = 1.738e6;			// 1738km
+const double EARTH_SUN_DISTANCE = 149600e6;		// 149.6 million km.
+const double MOON_EARTH_DISTANCE = 384.4e6;		// 384.000km
+const double EARTH_ROT_AXIS_ANGLE = 23.45;		// degrees.
+const double MOON_ORBIT_TIME = 27.3333333 * 86400.0;	// sidereal month is 27 1/3 days
+const double MOON_ORBIT_PLANE_ROT = 5.15;		// degrees
+const double EARTH_ROTATION_TIME = 86164.09;		// 23h56m4.09s, one sidereal day!
+const double EARTH_PERIMETER = 2.0 * M_PI * EARTH_RADIUS;
+const double EARTH_ORBIT_TIME = 31556926.5;		// in seconds. 365 days, 5 hours, 48 minutes, 46.5 seconds
+
+const double MOON_POS_ADJUST = 300.0;	// in degrees. Moon pos in its orbit on 1.1.1939 fixme: this value is a rude guess
+
+/*
+what has to be fixed for sun/earth/moon simulation:
+get exact distances and diameters (done)
+get exact rotation times (sidereal day, not solar day) for earth and moon (done)
+get exact orbit times for earth and moon around sun / earth (done)
+get angle of rotational axes for earth and moon (fixme, 23.45 and 5.15) (done)
+get direction of rotation for earth and moon relative to each other (done)
+get position of objects and axis states for a fix date (optimum 1.1.1939) (!only moon needed, fixme!)
+compute formulas for determining the positions for the following years (fixme)
+write code that computes sun/moon pos relative to earth and relative to local coordinates (fixme)
+draw moon with phases (fixme)
+*/
+
+vector3 game::compute_sun_pos(const vector3& viewpos) const
+{
+	// another try: position above earth
+	// seems to work, but check position dependence and time of year etc.
+	double alpha_s = M_PI - 2 * M_PI * myfrac(time/86400.0);
+	double beta_s = M_PI*(EARTH_ROT_AXIS_ANGLE*cos(2*M_PI*myfrac((time+10*86400)/EARTH_ORBIT_TIME)))/180.0;
+	double alpha_v = 2*M_PI*(viewpos.x/EARTH_PERIMETER);
+	double beta_v = 2*M_PI*(-viewpos.y/EARTH_PERIMETER);
+	double r_v = EARTH_RADIUS * cos(beta_v);
+	vector3 d_earth_viewer(r_v*sin(alpha_v), EARTH_RADIUS*sin(beta_v), r_v*cos(alpha_v));
+	double r_s = EARTH_SUN_DISTANCE * cos(beta_s);
+	vector3 d_earth_sun(r_s*sin(alpha_s), EARTH_SUN_DISTANCE*sin(beta_s), r_s*cos(alpha_s));
+//cout << "posA " << d_earth_sun - d_earth_viewer << "\n";
+//	return d_earth_sun - d_earth_viewer;
+
+	double yearang = 360.0*myfrac((time+10*86400)/EARTH_ORBIT_TIME);
+	double dayang = 360.0*(viewpos.x/EARTH_PERIMETER + myfrac(time/86400.0));
+	double longang = 360.0*viewpos.y/EARTH_PERIMETER;
+	matrix4 earth2sun =
+		matrix4::rot_y(yearang) *
+		matrix4::trans(EARTH_SUN_DISTANCE, 0, 0) *
+		matrix4::rot_y(-yearang) *
+		matrix4::rot_z(-EARTH_ROT_AXIS_ANGLE) *
+		matrix4::rot_y(yearang + dayang) *
+		matrix4::rot_z(longang) *
+		matrix4::rot_y(90.0);
+	matrix4 sun2earth = earth2sun.inverse();
+//cout << "posB " << sun2earth.column(3) << "\n";
+	return sun2earth.column(3);
+}
+
+
+
+vector3 game::compute_moon_pos(const vector3& viewpos) const
+{
+#if 0
+	glPushMatrix();
+	// Transform earth space to viewer space
+	double moon_scale_fac = max_view_dist / MOON_EARTH_DISTANCE;
+	glTranslated(0, 0, -EARTH_RADIUS * moon_scale_fac);
+	glRotated(360.0 * -viewpos.y * 4 / EARTH_PERIMETER, 0, 1, 0);
+	glRotated(360.0 * -viewpos.x * 2 / EARTH_PERIMETER, 1, 0, 0);
+	// Transform moon space to earth space
+	glRotated(360.0 * -myfrac(universaltime/EARTH_ROTATION_TIME), 0, 1, 0);
+	glRotated(-EARTH_ROT_AXIS_ANGLE, 1, 0, 0);
+	glRotated(MOON_POS_ADJUST + 360.0 * myfrac(universaltime/MOON_ORBIT_TIME), 0, 1, 0);
+	glTranslated(0, 0, MOON_EARTH_DISTANCE * moon_scale_fac * 0.95);	// to keep it inside sky hemisphere
+	// draw quad	
+	double moons = MOON_RADIUS * moon_scale_fac    * 2;	// * 2 is hack, fixme
+	glColor3f(1,1,1);
+	moontex->set_gl_texture();
+	glBegin(GL_QUADS);
+	glTexCoord2f(0,0);
+	glVertex3f(-moons, -moons, 0);
+	glTexCoord2f(0,1);
+	glVertex3f(-moons, moons, 0);
+	glTexCoord2f(1,1);
+	glVertex3f(moons, moons, 0);
+	glTexCoord2f(1,0);
+	glVertex3f(moons, -moons, 0);
+	glEnd();
+	glPopMatrix();	// remove moon space
+	glEnable(GL_LIGHTING);
+	//fixme	
+#endif
+	return vector3(30000.0, 30000.0, 15000.0);
+}
+
+
 
 void game::write(ostream& out, const ship* s) const
 {
