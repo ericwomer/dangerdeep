@@ -25,7 +25,10 @@ bool triangulate::is_inside_triangle(const vector2f& a, const vector2f& b, const
 	return (s >= 0 && t >= 0 && s <= 1 && t <= 1 && s+t <= 1);
 }
 
+#include <sstream>
 #include <cassert>
+#include <fstream>
+int failcount = 0;
 vector<unsigned> triangulate::compute(const vector<vector2f>& vertices)
 {
 	vector<unsigned> indices;
@@ -52,7 +55,27 @@ int haengt=0;	// fixme: hack to avoid lock ups. why do they occour? reasons mayb
 		// check these cases (1,2)
 	while (vl.size() > 3) {
 ++haengt;
-if(haengt>2000){cout<<"TRIANGULATE: LOCKUP DETECTED! ("<<polyscreated<<","<<iscorrecttests<<","<<notriangpossible<<")\n";return indices;}
+if(haengt>2000){
+	cout<<"TRIANGULATE: LOCKUP DETECTED! ("<<polyscreated<<","<<iscorrecttests<<","<<notriangpossible<<")\n";
+	ostringstream oss; oss << "failed_triang_" << failcount++ << ".off";
+	ofstream out(oss.str().c_str());
+	unsigned vs = vertices.size();
+	out << "OFF\n" << vs+1 << " " << vs << " 0\n";
+	vector2f median;
+	float dist2median = 0;
+	for (unsigned i = 0; i < vs; ++i) {
+		out << vertices[i].x << " " << vertices[i].y << " 0.0\n";
+		median += vertices[i];
+	}
+	median = median * (1.0f/vs);
+	for (unsigned i = 0; i < vs; ++i) {
+		dist2median += median.distance(vertices[i]);
+	}
+	out << median.x << " " << median.y << " " << (2*dist2median/vs) << "\n";
+	for (unsigned i = 0; i < vs; ++i)
+		out << "3 " << i << " " << vs << " " << (i+1)%vs << "\n";
+	return indices;
+}
 		if (!is_correct_triangle(vertices[*i0], vertices[*i1], vertices[*i2])) {
 ++iscorrecttests;
 			next(vl, i0);

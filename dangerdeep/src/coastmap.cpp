@@ -86,6 +86,8 @@ void coastline::draw_as_map(int detail) const
 	}
 	glEnd();
 	glColor3f(1,1,1);
+#endif
+#if 0
 	glColor3f(1,0,0.8);
 	glBegin(GL_POINTS);
 	for (vector<vector2f>::const_iterator it = curve.control_points().begin(); it != curve.control_points().end(); ++it) {
@@ -202,6 +204,7 @@ void coastsegment::generate_point_cache(const class coastmap& cm, const vector2f
 				int ed = cl.endborder, bg = segcls[next].beginborder;
 				if (ed >= 0 && bg >= 0) {
 					if (ed == bg) {
+						//fixme!!!!!!! segment offset is not subtracted here!!!!!!
 						if (dist_to_corner(ed, cl.endp, cm.segw_real) < dist_to_corner(bg, segcls[next].beginp, cm.segw_real))
 							bg += 4;
 					} else if (bg < ed) {
@@ -236,6 +239,7 @@ if(d <= 0.01f)cout<<"fault: "<<d<<","<<m<<","<<(m+1)%ce.points.size()<<"\n";
 }
 
 
+//			cout << "compute triang for segment " << this << "\n";
 			ce.indices = triangulate::compute(ce.points);
 			pointcache.push_back(ce);
 		}
@@ -320,6 +324,16 @@ float coastsegment::dist_to_corner(int b, const vector2f& p, float segw)
 
 
 
+float coastsegment::borderpos(int b, const vector2f& p, float segw) const
+{
+	if (b == 0) return p.x/segw;
+	else if (b == 1) return 1.0f + p.y/segw;
+	else if (b == 2) return 2.0f + 1.0f - p.x/segw;
+	else return 3.0f + 1.0f - p.y/segw;
+}
+
+
+
 float coastsegment::compute_border_dist(int b0, const vector2f& p0, int b1, const vector2f& p1, float segw) const
 {
 	float dist0 = dist_to_corner(b0, p0, segw), dist1 = dist_to_corner(b1, p1, segw);
@@ -337,6 +351,83 @@ float coastsegment::compute_border_dist(int b0, const vector2f& p0, int b1, cons
 unsigned coastsegment::get_successor_for_cl(unsigned cln, const vector2f& segoff, float segw) const
 {
 //fixme: this function sometimes returns shit.
+//this seems to be the reason for the triangulation bugs. several coastlines are connected
+//and given to the triangulation algo, that are obviously not adjacent!!!
+//(e.g. two parts of an island)
+//fixme: another reason: if an island cl gets distributed to several segments the first and
+//last part of the cl falls into the same segment, but CAN NOT get united! pieces are
+//t=0...x1 and x2...1. Both pieces must get connected via "next" info instead!
+
+/*
+how it should work:
+for a segcl cln:
+if endp(cln) = island then next(cln) = cln itself.
+else
+  find a segcl x so that beginp(x) is the nearest point to endp(cln) on the border.
+  just translate endborder/endp info to a number (float) in [0,4) =: n(cln)
+  distance is (n(x) - n(cln) + 4) fmod 4
+end
+
+fixme: check wether we have to count cw or ccw around the segment border!
+*/
+
+	const segcl& scl0 = segcls[cln];
+
+	// handle cyclic segcls's or segcl's that are part of an island
+	if (scl0.endborder < 0) {
+		if(scl0.cyclic)assert(scl0.beginborder<0);
+		else assert(scl0.beginborder>=0);
+		return cln;	// a cylic segcl has itself as successor
+	}
+
+/*
+	if (scl0.cyclic) {
+		cout << "scl0 cyclic? " << scl0.beginborder << "," << scl0.endborder << "\n";
+		cout << "scl0 t's " << scl0.begint << "," << scl0.endt << "\n";
+		cout << "scl0 p's " << scl0.beginp << "," << scl0.endp << "\n";
+	}
+*/
+//	assert(!scl0.cyclic);
+
+	float scl0num = borderpos(scl0.endborder, scl0.endp - segoff, segw);
+
+///crash, weil: es gibt nur *eine* segcl, die hat endborder 2, beginborder -1 !?!?!?!?!
+	float mindist = 4.0f;
+	unsigned next = 0xffffffff;
+//cout << "scl0: " << scl0.endborder << " num " << scl0num << "\n";
+	for (unsigned i = 0; i < segcls.size(); ++i) {
+		// i's successor can be i itself
+		const segcl& scl1 = segcls[i];
+		
+//cout << "scl1: " << scl1.beginborder << "\n";
+		if (scl1.beginborder < 0) continue;	// not compareable
+		float scl1num = borderpos(scl1.beginborder, scl1.beginp - segoff, segw);
+//cout << "scl1: " << scl1.beginborder << " num " << scl1num << "\n";
+		float numd = myfmod(scl1num - scl0num + 4.0f, 4.0f);
+		if (numd < mindist) {
+			mindist = numd;
+			next = i;
+		}
+	}
+	
+	if (next == 0xffffffff) {
+		cout << "# segcls " << segcls.size() << "\n";
+		for (unsigned i = 0; i < segcls.size(); ++i) {
+			cout << "segcl #" << i << " : " << segcls[i].beginborder << "," <<
+			segcls[i].endborder << " cyclic " << segcls[i].cyclic << ", begint "
+			<< segcls[i].begint << " endt " << segcls[i].endt << " beginp "
+			<< segcls[i].beginp << " endp " << segcls[i].endp << " borderpos begin "
+			<< borderpos(segcls[i].beginborder, segcls[i].beginp - segoff, segw) << " end borderpos "
+			<< borderpos(segcls[i].endborder, segcls[i].endp - segoff, segw) << "\n";
+		}
+	}
+
+	if (next == 0xffffffff) return cln;//fixme hack
+//	assert(next != 0xffffffff);
+	return next;
+	
+
+#if 0
 	float mindist = 1e30;
 	unsigned next = 0xffffffff;
 //coastlines[cln].debug_print(cout);
@@ -344,8 +435,15 @@ unsigned coastsegment::get_successor_for_cl(unsigned cln, const vector2f& segoff
 	for (unsigned i = 0; i < segcls.size(); ++i) {
 //coastlines[i].debug_print(cout);
 		// i's successor can be i itself and may already have been handled (i itself!)
-		const segcl& scl0 = segcls[cln];
 		const segcl& scl1 = segcls[i];
+
+		// compare island begin and end piece
+		if (scl0.mapclnr == scl1.mapclnr && scl0.endt == 1.0f && scl1.begint == 0.0f) {
+//cout<<"island close fix happens.\n";
+//this happens 138 times. do we have 138 island larger than one segment?!
+			return i;
+		}
+		
 		// compare for distance, 5 cases
 		if (scl0.endborder < 0 && scl1.beginborder < 0) {	// part of an island
 			float dist = scl0.endp.distance(scl1.beginp);
@@ -364,6 +462,7 @@ unsigned coastsegment::get_successor_for_cl(unsigned cln, const vector2f& segoff
 //	assert(next != 0xffffffff);
 //cout << "next was " << next << "\n";	
 	return next;
+#endif
 }
 
 
@@ -516,7 +615,7 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 		
 		int nx = x + dx[j];
 		int ny = y + dy[j];
-		if (nx < 0 || ny < 0 || nx >= int(mapw) || ny >= int(maph))	// border reached
+		if (nx < 0 || ny < 0 || nx >= int(mapw) || ny >= int(maph)) // border reached
 			break;
 		x = nx;
 		y = ny;
@@ -553,27 +652,35 @@ void coastmap::divide_and_distribute_cl(const coastline& cl, unsigned clnr, int 
 	int seg = sy*segsx+sx;
 	vector2f segoff(sx * segw_real + realoffset.x, sy * segw_real + realoffset.y);
 
+//cout << "pixelcoord " << ((cp0.x - realoffset.x) / pixelw_real) << "," << ((cp0.y - realoffset.y) / pixelw_real) << "\n";
+
 	scl.begint = 0;
 	scl.beginp = cp0;
-	assert(scl.beginp.x > -12000000 && scl.beginp.x < 12000000);
 	scl.beginborder = beginb;
 	
 	bool sameseg = true;
 	float t0 = 0;
 	vector2f cpoldi = cp0;
-	for (unsigned i = 1; i < points.size(); ++i) {
-		float t1 = float(i)/float(points.size());
+	//this *4 is a hack to avoid lines crossing two or more borders, fixme
+	for (unsigned i = 1; i < points.size()*4; ++i) {
+		float t1 = float(i)/float(points.size()*4);
 		vector2f cpi = cl.curve.value(t1);
 		int csx = int((cpi.x - realoffset.x) / segw_real);
 		int csy = int((cpi.y - realoffset.y) / segw_real);
 		int cseg = csy*segsx+csx;
+//	cout << "pixelcoord " << ((cpi.x - realoffset.x) / pixelw_real) << "," << ((cpi.y - realoffset.y) / pixelw_real) << "\n";
+//	cout << "i=" << i << " points.size()=" << points.size() << "\n";
+//	cout << "seg=" << seg << " cseg=" << cseg << "\n";
 		if (seg != cseg) {
+//	cout << "segswitch " << seg << " -> " << cseg << "\n";
 			sameseg = false;
 
 			vector2f b = cpoldi;
 			vector2f d = cpi - b;
 
 			// fixme: assert that b + t*d crosses at most one segment border!
+			// with small islands a bspline curve with high n leads to
+			// lines that cross more than one segment border -> bugs.
 
 			// fixme: this interpolation is very crude.
 			// we should find t by approximation (binear subdivdision)
@@ -629,21 +736,16 @@ void coastmap::divide_and_distribute_cl(const coastline& cl, unsigned clnr, int 
 		cpoldi = cpi;
 	}
 
+	// note that if the last point is in another segment, no additional segcl
+	// is created for this point, but in that case, we don't want an additional
+	// segcl, because it would have length zero -> triangulation fault.
+
+	// store remaining segment
 	scl.endt = 1;
 	scl.endp = cl.curve.value(1);
 	scl.endborder = endb;
-
-	scl.cyclic = sameseg;	// we have an island complete in one segment
-
-	if (beginb < 0)assert(endb<0);
-	if (endb < 0)assert(beginb<0);
-
-	// if a cl is cyclic, it's first segcl can start somewhere inside the segment.
-	// We have to avoid making another segcl for it's end!
-	if (beginb < 0) {
-		// merge current scl with first stored in segment, fixme!!!
-	}
-
+	scl.cyclic = sameseg;	// fixme: not always true. cl's beginning at the map border
+				// and ending there don't need to be cyclic!
 	coastsegments[seg].segcls.push_back(scl);
 }
 
@@ -685,6 +787,7 @@ void coastmap::process_coastline(int x, int y)
 	// old technique.
 	// Maybe limiting n to tmp.size()/2 or tmp.size()/4 would be a solution. test it!
 	if (n > BSPLINE_SMOOTH_FACTOR) n = BSPLINE_SMOOTH_FACTOR;
+	if (n > tmp.size()/4) n = tmp.size()/4;
 	coastline result(n, tmp, beginborder, endborder);
 	divide_and_distribute_cl(result, coastlines.size(), beginborder, endborder, tmp);
 
@@ -709,16 +812,8 @@ void coastmap::process_segment(int sx, int sy)
 		vector2f segoff = vector2f(sx * segw_real + realoffset.x, sy * segw_real + realoffset.y);
 
 		// compute cl.next info
-		unsigned ncl = cs.segcls.size();
-		vector<bool> handledcl(ncl, false);
-		for (unsigned i = 0; i < ncl; ++i) {
-			if (handledcl[i]) continue;
-			unsigned current = i;
-			do {
-				unsigned next = cs.get_successor_for_cl(current, segoff, segw_real);
-				cs.segcls[current].next = next;
-				handledcl[current] = true;
-			} while (current != i);
+		for (unsigned i = 0; i < cs.segcls.size(); ++i) {
+			cs.segcls[i].next = cs.get_successor_for_cl(i, segoff, segw_real);
 		}
 	}
 }
@@ -797,6 +892,27 @@ coastmap::coastmap(const string& filename)
 			}
 		}
 	}
+
+/*
+	//check for double pts in cls
+	for (unsigned a = 0; a < coastlines.size(); ++a) {
+		for (unsigned b = 0; b < coastlines[a].curve.control_points().size(); ++b) {
+			const vector2f& pa = coastlines[a].curve.control_points()[b];
+			unsigned eq = 1;
+			for (unsigned c = 0; c < coastlines.size(); ++c) {
+				for (unsigned d = 0; d < coastlines[c].curve.control_points().size(); ++d) {
+					if (a == c && b == d) continue;
+					const vector2f& pb = coastlines[c].curve.control_points()[d];
+					float di = pa.square_distance(pb);
+					if (di < 0.1f) {
+						++eq;
+						cout << "double found a="<<a<<" b="<<b<<" c="<<c<<" d="<<d<<" (#"<<eq<<")\n";
+					}
+				}
+			}
+		}
+	}
+*/					
 
 	// find coastsegment type
 	for (unsigned yy = 0; yy < segsy; ++yy) {

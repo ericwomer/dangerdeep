@@ -997,6 +997,11 @@ int main(int argc, char** argv)
 
 	// make sure the default values are stored if there is no config file,
 	// and make sure all registered values are stored in it
+	//fixme: 2004/05/29, this failes if there is no config dir
+	//(no .dangerdeep in user's home). This is created after sys
+	//has been initialised, but config loading must be done before
+	//sys is inited, because it must be done before the command line
+	//is read and this must happen before sys is inited...
 	FILE* fconfig = fopen((configdirectory + "config").c_str(), "rt");
 	if (fconfig) {
 		fclose(fconfig);

@@ -70,6 +70,7 @@ struct coastsegment
 	// computes distance to next corner around segment border.
 	// p must be inside the segment, hence 0 <= p.x,p.y < segw
 	static float dist_to_corner(int b, const vector2f& p, float segw);
+	float borderpos(int b, const vector2f& p, float segw) const;
 	// computes the distance on the segment border between two points.
 	// p0,p1 must be inside the segment.
 	float compute_border_dist(int b0, const vector2f& p0, int b1, const vector2f& p1, float segw) const;
