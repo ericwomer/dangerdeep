@@ -64,6 +64,9 @@ public:
 	void set_time(double tm);
 	~sky();
 	void display(const vector3& viewpos, double max_view_dist, bool isreflection) const;
+	color get_light_color(const vector3& viewpos) const;	// depends on sun/moon
+	vector3 get_sun_pos(const vector3& viewpos) const;
+	vector3 get_moon_pos(const vector3& viewpos) const;
 };
 
 #endif

@@ -147,6 +147,29 @@ public:
 		return r;
 	}
 	
+	static matrix4t<D> rot_x(const D& degrees) {
+		double a = M_PI*degrees/180.0;
+		D c = D(cos(a)), s = D(sin(a)), o = D(1.0), n = D(0.0);
+		return matrix4t<D>(o, n, n, n,  n, c,-s, n,  n, s, c, n,  n, n, n, o);
+	}
+
+	static matrix4t<D> rot_y(const D& degrees) {
+		double a = M_PI*degrees/180.0;
+		D c = D(cos(a)), s = D(sin(a)), o = D(1.0), n = D(0.0);
+		return matrix4t<D>(c, n, s, n,  n, o, n, n, -s, n, c, n,  n, n, n, o);
+	}
+
+	static matrix4t<D> rot_z(const D& degrees) {
+		double a = M_PI*degrees/180.0;
+		D c = D(cos(a)), s = D(sin(a)), o = D(1.0), n = D(0.0);
+		return matrix4t<D>(c,-s, n, n,  s, c, n, n,  n, n, o, n,  n, n, n, o);
+	}
+
+	static matrix4t<D> trans(const D& x, const D& y, const D& z) {
+		D o = D(1.0), n = D(0.0);
+		return matrix4t<D>(o, n, n, x,  n, o, n, y,  n, n, o, z,  n, n, n, o);
+	}
+
 	vector3t<D> operator* (const vector3t<D>& v) const {
 		D r[4];
 		for (unsigned j = 0; j < 4; ++j) {	// rows of "this"

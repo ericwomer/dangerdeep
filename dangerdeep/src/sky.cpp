@@ -15,6 +15,7 @@
 #include "texture.h"
 #include "global_data.h"
 #include "matrix.h"
+#include "quaternion.h"
 
 /*
 	The model:
@@ -166,14 +167,11 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f), atmosphericlight(0.0),
 
 	// ******************************** create maps for sun glow
 	vector<Uint8> sunglowmap(256*256);
-	const double expa = 2.0;
-	const double expb = exp(-expa);
 	for (int y = 0; y < 256; ++y) {
 		for (int x = 0; x < 256; ++x) {
 			float dist = sqrt(float(vector2i(x-128, y-128).square_length()))/64.0f;
 			if (dist > 1.0f) dist = 1.0f;
-			float val = 255*((exp(-dist*expa) - expb)/(1-expb));
-			if (val < 0) val = 0;
+			float val = 255*exp(-10.0*(dist-0.005));
 			if (val > 255) val = 255;
 			sunglowmap[y*256+x] = Uint8(val);
 		}
@@ -341,12 +339,8 @@ void sky::setup_textures(void) const
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 */
-	glMatrixMode(GL_TEXTURE);
-	glPushMatrix();
-	glLoadIdentity();
-	glTranslatef(0.25, 0.35, 0.0);
-	glMatrixMode(GL_MODELVIEW);	
-	// fixme: set up texture matrix to move sunglow according to sun position
+
+	glActiveTexture(GL_TEXTURE0);
 
 	glDisable(GL_LIGHTING);
 }
@@ -528,6 +522,7 @@ void sky::set_time(double tm)
 	if (cf < 0) cf += 1.0;
 	advance_cloud_animation(cf);
 
+
 	double dt = get_day_time(mytime);
 	// fixme: get light color from sun position. 0 at night, 1 when sun is more than 10 degrees above the horizon or something the like
 	double colscal;
@@ -543,15 +538,8 @@ void sky::set_time(double tm)
 
 void sky::display(const vector3& viewpos, double max_view_dist, bool isreflection) const
 {
-	double dt = get_day_time(mytime);
-	// fixme: get light color from sun position. 0 at night, 1 when sun is more than 10 degrees above the horizon or something the like
-	double colscal;
-	if (dt < 1) { colscal = 0; }
-	else if (dt < 2) { colscal = fmod(dt,1); }
-	else if (dt < 3) { colscal = 1; }
-	else { colscal = 1-fmod(dt,1); }
-//colscal = fabs(myfrac(mytime/40.0)*2.0-1.0);//testing
-	color lightcol = color(color(64, 64, 64), color(255,255,255), colscal);
+	vector3 sundir = get_sun_pos(viewpos).normal();
+	color lightcol = get_light_color(viewpos);
 
 	// 1) draw the stars on a black background
 
@@ -600,6 +588,17 @@ void sky::display(const vector3& viewpos, double max_view_dist, bool isreflectio
 	double scal = max_view_dist / 30000.0;	// sky hemisphere is stored as 30km in radius
 	glScaled(scal, scal, scal);
 
+	// set texture coordinate translation for unit 1 (sunglow)
+	double suntxr = ((sundir.z > 1.0) ? 0.0 : acos(sundir.z)) / M_PI;
+	double suntxa = atan2(sundir.x, sundir.y);
+	glActiveTexture(GL_TEXTURE1);
+	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	glLoadIdentity();
+	glTranslated(cos(suntxa)*suntxr, sin(suntxa)*suntxr, 0.0);
+	glMatrixMode(GL_MODELVIEW);
+	glActiveTexture(GL_TEXTURE0);	
+
 	// ********* set up sky textures and call list
 	glDisable(GL_DEPTH_TEST);	// to avoid the stars appearing in front of the sun etc.
 	glCallList(skyhemisphere_dl);	// this overdraws the stars! why?!
@@ -637,49 +636,41 @@ void sky::display(const vector3& viewpos, double max_view_dist, bool isreflectio
 	// fixme: adjust OpenGL light position to infinite in sun/moon direction.
 	double universaltime = mytime;//    * 8640;	// fixme: substract local time
 
-	// draw sun, fixme draw glow/flares/halo
-	glPushMatrix();
-	// Transform earth space to viewer space
-	// to avoid mixing very differently sized floating point values, we scale distances before translation.
-	double sun_scale_fac = max_view_dist / EARTH_SUN_DISTANCE;
-	glTranslated(0, 0, -EARTH_RADIUS * sun_scale_fac);
-	glRotated(360.0 * -viewpos.y * 4 / EARTH_PERIMETER, 0, 1, 0);
-	glRotated(360.0 * -viewpos.x * 2 / EARTH_PERIMETER, 1, 0, 0);
-	// Transform sun space to earth space
-	glRotated(360.0 * -myfrac(universaltime/EARTH_ROTATION_TIME), 0, 1, 0);
-	glRotated(-EARTH_ROT_AXIS_ANGLE, 1, 0, 0);
-	glRotated(SUN_POS_ADJUST + 360.0 * myfrac(universaltime/EARTH_ORBIT_TIME), 0, 1, 0);
-	// fixme (0,0,-1) points to sun? so negative third column of current modelview matrix
-	// should hold direction of sun.
-	matrix4 earth2sun = matrix4::get_gl(GL_MODELVIEW_MATRIX);
-	vector3 sundirection = -earth2sun.column(2);
-	glTranslated(0, 0, -EARTH_SUN_DISTANCE * sun_scale_fac * 0.96);	// to keep it inside sky hemisphere
-	// draw quad
-	double suns = SUN_RADIUS * sun_scale_fac       * 2;	// * 2 is hack fixme
+	// draw sun, fixme draw flares/halo
+	vector3 sunpos = sundir * (0.96 * max_view_dist);
+//cout << "normiert " << get_sun_pos(viewpos).normal() << " total " << sunpos << "\n";
+	int suns = 5;		// make sun with 10x10 pixels
 	glColor3f(1,1,1);
 	suntex->set_gl_texture();
 	glDisable(GL_LIGHTING);
+
+/*
 	glBegin(GL_QUADS);
 	glTexCoord2f(0,0);
 	glVertex3f(-suns, -suns, 0);
 	glTexCoord2f(1,0);
-	glVertex3f(suns, -suns, 0);
+	glVertex3f( suns, -suns, 0);
 	glTexCoord2f(1,1);
-	glVertex3f(suns, suns, 0);
+	glVertex3f( suns,  suns, 0);
 	glTexCoord2f(0,1);
-	glVertex3f(-suns, suns, 0);
+	glVertex3f(-suns,  suns, 0);
+*/
+/*
+	glTexCoord2f(0,0);
+	glVertex3f(-suns, -suns, 0);
+	glTexCoord2f(1,0);
+	glVertex3f(-suns,  suns, 0);
+	glTexCoord2f(1,1);
+	glVertex3f( suns,  suns, 0);
+	glTexCoord2f(0,1);
+	glVertex3f( suns, -suns, 0);
 	glEnd();
-
-	// this is not correct because of the shortened translation above.
-	// instead take the transform matrix multiply with an vector (0,0,1,1) instead of last translation
-	// to get direction of sun (4th. component is 0) fixme
-//	float m[16];
-//	glGetFloatv(GL_MODELVIEW_MATRIX, &m[0]);
-//	glLoadIdentity();
-	// GLfloat lp[4] = {0,0,0,1};//{m[12], m[13], m[14], 0};	// light comes from sun (maybe use directional light)
-//	glLightfv(GL_LIGHT0, GL_POSITION, lp);
-
-	glPopMatrix();	// remove sun space
+*/
+	// set light position
+	if (sunpos.z > 0.0) {
+		GLfloat sunposgl[4] = { sunpos.x, sunpos.y, sunpos.z, 0.0f };
+		glLightfv(GL_LIGHT0, GL_POSITION, sunposgl);
+	}
 
 	// draw moon
 	glPushMatrix();
@@ -734,4 +725,61 @@ void sky::display(const vector3& viewpos, double max_view_dist, bool isreflectio
 	
 	// modelview matrix is around viewpos now.
 
+}
+
+
+
+color sky::get_light_color(const vector3& viewpos) const
+{
+	vector3 sunpos = get_sun_pos(viewpos);
+	double lightbrightness = 0.0;
+	if (sunpos.z >= 0.18) lightbrightness = 1.0;
+	else if (sunpos.z >= 0.09) lightbrightness = (sunpos.z + 0.09)/(0.09+0.18);
+	lightbrightness = lightbrightness * 0.8 + 0.2;
+	//fixme add moon light at night
+	Uint8 lc = Uint8(255*lightbrightness);
+	return color(lc, lc, lc);
+}
+
+
+
+vector3 sky::get_sun_pos(const vector3& viewpos) const
+{
+	double alpha = 360.0*(viewpos.x/EARTH_PERIMETER + myfrac(mytime/EARTH_ROTATION_TIME));
+	double beta = 360.0*viewpos.y/EARTH_PERIMETER;
+	double gamma = 360.0*myfrac((mytime-172*86400)/EARTH_ORBIT_TIME); // 172 days from 21st. June back to 1st. January
+
+/*
+	matrix4 earth2sun =
+		matrix4::rot_z(gamma) *
+		matrix4::trans(EARTH_SUN_DISTANCE, 0, 0) *
+		matrix4::rot_z(-gamma) *
+		matrix4::rot_y(EARTH_ROT_AXIS_ANGLE) *
+		matrix4::rot_z(alpha) *
+		matrix4::rot_x(beta) *
+		matrix4::trans(EARTH_RADIUS, 0, 0) *
+		matrix4( 0, 0, 1, 0, -1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 0, 1);
+*/
+
+	matrix4 sun2earth =
+		matrix4( 0,-1, 0, 0,  0, 0, 1, 0,  1, 0, 0, 0,  0, 0, 0, 1) *
+		matrix4::trans(-EARTH_RADIUS, 0, 0) *
+		matrix4::rot_x(-beta) *
+		matrix4::rot_z(-alpha) *
+		matrix4::rot_y(-EARTH_ROT_AXIS_ANGLE) *
+		matrix4::rot_z(gamma) *
+		matrix4::trans(-EARTH_SUN_DISTANCE, 0, 0) *
+		matrix4::rot_z(-gamma);
+
+//cout << "sun2earth: \n";
+//sun2earth.print();
+		
+	return sun2earth.column(3);
+}
+
+
+
+vector3 sky::get_moon_pos(const vector3& viewpos) const
+{
+	
 }
