@@ -36,6 +36,11 @@ public:
 		int mapping = GL_NEAREST, int clamp = GL_REPEAT) {
 			init(teximage, sx, sy, sw, sh, mapping, clamp);
 		};
+
+	// create texture from memory values (use openGl constants for format,type,etc.
+	// w,h must be powers of two.
+	texture(void* pixels, unsigned w, unsigned h, int extformat, int intformat, int type,
+		int mapping, int clamp);
 	
 	~texture();
 	unsigned get_opengl_name(void) const { return opengl_name; };

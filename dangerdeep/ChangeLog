@@ -1,3 +1,14 @@
+2003-11-23  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* global_data
+	  - removed old clouds, added file helper functions needed by widgets
+	    Win32 version doesn't compile until we implement adequate Win32
+	    file helper functions.
+	* widget
+	  - many new widgets, full functionality now (not used yet)
+	* user_interface
+	  - new cloud rendering using run time generation with Perlin noise
+	    Earth curvature is yet ignored.
+
 2003-11-16  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* system.h system.cpp (and client classes)
 	  - major cleanup. More keyboard info available.

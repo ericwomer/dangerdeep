@@ -35,6 +35,8 @@
 #define WAVE_HEIGHT 2.0		// half of difference top/bottom of wave -> fixme, depends on weather
 #define TIDECYCLE_TIME 8.0
 
+#define CLOUD_ANIMATION_CYCLE_TIME 3600.0
+
 /*
 	a note on our coordinate system (11/10/2003):
 	We simulate earth by projecting objects according to curvature from earth
@@ -55,6 +57,7 @@ user_interface::user_interface() :
 	viewmode(4), target(0),	zoom_scope(false), mapzoom(0.1), viewsideang(0),
 	viewupang(-90),	viewpos(0, 0, 10)
 {
+	clouds = 0;
 	init ();
 }
 
@@ -64,6 +67,7 @@ user_interface::user_interface(sea_object* player) :
 	viewmode(4), target(0), zoom_scope(false), mapzoom(0.1), viewsideang(0),
 	viewupang(-90),	viewpos(0, 0, 10)
 {
+	clouds = 0;
 	init ();
 }
 
@@ -143,15 +147,203 @@ void user_interface::init ()
 		for ( ; s > 0; --s)
 			coastlines.push_back(coastline(in));
 	}
+	
+	// init clouds
+	// clouds are generated with Perlin noise.
+	// one big texture is rendered (1024x1024, could be dynamic) and distributed
+	// over 4x4 textures.
+	// We generate m levels of noise maps, m <= n, texture width = 2^n.
+	// here n = 10.
+	// Each level is a noise map of 2^(n-m+1) pixels wide and high, scaled to full size.
+	// For m = 4 we have 4 maps, 128x128 pixel each, scaled to 1024x1024, 512x512, 256x256
+	// and 128x128.
+	// The maps are tiled and added on a 1024x1024 map (the result), with descending
+	// factors, that means level m gives factor 1/(2^(m-1)).
+	// So we add the 4 maps: 1*map0 + 1/2*map1 + 1/4*map2 + 1/8*map3.
+	// To animate clouds, just interpolate one level's noise map between two random
+	// noise maps.
+	// The result s is recomputed: cover (0-255), sharpness (0-255)
+	// clamp(clamp_at_zero(s - cover) * sharpness)
+	// This is used as alpha value for the texture.
+	// 0 = no clouds, transparent, 255 full cloud (white/grey)
+	// The final map is mapped to a hemisphere:
+	// Texture coords = height_in_sphere * cos/sin(direction_in_sphere).
+	// That means a circle with radius 512 of the original map is used.
+
+	cloud_levels = 5;
+	cloud_coverage = 128;	// 0-256 (none-full)
+	cloud_sharpness = 256;	// 0-256
+	cloud_animphase = 0;
+
+	noisemaps_0 = compute_noisemaps();
+	noisemaps_1 = compute_noisemaps();
+	compute_clouds();
+
+	// create sky hemisphere display list
+	unsigned skyvsegs = 16;
+	unsigned skyhsegs = 4*skyvsegs;
+	clouds_dl = glGenLists(1);
+	glNewList(clouds_dl, GL_COMPILE);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0,1);
+	glVertex3f(-1,1,1);
+	glTexCoord2f(1,1);
+	glVertex3f(1,1,1);
+	glTexCoord2f(1,0);
+	glVertex3f(1,-1,1);
+	glTexCoord2f(0,0);
+	glVertex3f(-1,-1,1);
+/*
+	for (unsigned beta = 0; beta < skyvsegs; ++beta) {
+		float t = (1.0-float(beta)/skyvsegs)/2;
+		float t2 = (1.0-float(beta+1)/skyvsegs)/2;
+		float r = cos(M_PI/2*beta/skyvsegs)/2;
+		float h = sin(M_PI/2*beta/skyvsegs)/2;
+		float r2 = cos(M_PI/2*(beta+1)/skyvsegs)/2;
+		float h2 = sin(M_PI/2*(beta+1)/skyvsegs)/2;
+		for (unsigned alpha = 0; alpha < skyhsegs; ++alpha) {
+			float x = cos(2*M_PI*alpha/skyhsegs);
+			float y = sin(2*M_PI*alpha/skyhsegs);
+			float x2 = cos(2*M_PI*(alpha+1)/skyhsegs);
+			float y2 = sin(2*M_PI*(alpha+1)/skyhsegs);
+			glTexCoord2f(x*t+0.5, y*t+0.5);
+			glVertex3f(x*r, y*r, h);
+			glTexCoord2f(x2*t+0.5, y2*t+0.5);
+			glVertex3f(x2*r, y2*r, h);
+			glTexCoord2f(x2*t2+0.5, y2*t2+0.5);
+			glVertex3f(x2*r2, y2*r2, h2);
+			glTexCoord2f(x*t2+0.5, y*t2+0.5);
+			glVertex3f(x*r2, y*r2, h2);
+		}
+	}
+*/	
+	glEnd();
+	glEndList();
+
 }
 
 void user_interface::deinit ()
 {
 	delete captains_logbook;
 	delete ships_sunk_disp;
+	
+	delete clouds;
+	glDeleteLists(clouds_dl, 1);
 
 	// delete display lists for water
 	glDeleteLists(wavedisplaylists, WAVE_PHASES);
+}
+
+void user_interface::advance_cloud_animation(float fac)
+{
+	int oldphase = int(cloud_animphase*256);
+	cloud_animphase += fac;
+	int newphase = int(cloud_animphase*256);
+	if (cloud_animphase >= 1.0) {
+		cloud_animphase -= 1.0;
+		noisemaps_0 = noisemaps_1;
+		noisemaps_1 = compute_noisemaps();
+	} else {
+		if (newphase > oldphase)
+			compute_clouds();
+	}
+}
+
+void user_interface::compute_clouds(void)
+{
+	unsigned mapsize = 8 - cloud_levels;
+	unsigned mapsize2 = (2<<mapsize);
+
+	vector<vector<Uint8> > cmaps = noisemaps_0;
+	float f = cloud_animphase;
+	for (unsigned i = 0; i < cloud_levels; ++i)
+		for (unsigned j = 0; j < mapsize2 * mapsize2; ++j)
+			cmaps[i][j] = Uint8(noisemaps_0[i][j]*(1-f) + noisemaps_1[i][j]*f);
+
+	// create full map
+	vector<Uint8> fullmap(256 * 256 * 4);
+	unsigned fullmapptr = 0;
+	for (unsigned y = 0; y < 256; ++y) {
+		for (unsigned x = 0; x < 256; ++x) {
+			unsigned v = 0;
+			// accumulate values
+			for (unsigned k = 0; k < cloud_levels; ++k) {
+				unsigned tv = get_value_from_bytemap(x, y, cloud_levels-1-k, mapsize2, cmaps[k]);
+				v += (tv >> k);
+			}
+			if (v > 255) v = 255;
+			if (v < (256 - cloud_coverage))
+				v = 0;
+			else
+				v -= (256 - cloud_coverage);
+			// use sharpness for exp function
+			v = 255 - v * 256 / cloud_coverage;	// equalize
+			fullmap[fullmapptr++] = 255;
+			fullmap[fullmapptr++] = 255;
+			fullmap[fullmapptr++] = 255;
+			fullmap[fullmapptr++] = v;
+		}
+	}
+
+	delete clouds;	
+	clouds = new texture(&fullmap[0], 256, 256, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE,
+		GL_LINEAR, GL_CLAMP);
+}
+
+vector<vector<Uint8> > user_interface::compute_noisemaps(void)
+{
+	unsigned mapsize = 8 - cloud_levels;
+	unsigned mapsize2 = (2<<mapsize);
+	vector<vector<Uint8> > noisemaps(cloud_levels);
+	for (unsigned i = 0; i < cloud_levels; ++i) {
+		noisemaps[i].resize(mapsize2 * mapsize2);
+		for (unsigned j = 0; j < mapsize2 * mapsize2; ++j)
+			noisemaps[i][j] = (unsigned char)(255*rnd());
+//		smooth_and_equalize_bytemap(mapsize2, noisemaps[i]);
+	}
+	return noisemaps;
+}
+
+Uint8 user_interface::get_value_from_bytemap(unsigned x, unsigned y, unsigned level,
+	unsigned s, const vector<Uint8>& nmap)
+{
+	unsigned rest = (1<<level);
+	unsigned xr = x % rest;
+	unsigned yr = y % rest;
+	x = (x >> level) % s;
+	y = (y >> level) % s;
+	unsigned x2 = (x+1) % s;
+	unsigned y2 = (y+1) % s;
+	unsigned v0 = nmap[y*s+x];
+	unsigned v1 = nmap[y*s+x2];
+	unsigned v2 = nmap[y2*s+x];
+	unsigned v3 = nmap[y2*s+x2];
+	unsigned v4 = (v0*(rest-xr)+v1*xr);
+	unsigned v5 = (v2*(rest-xr)+v3*xr);
+	unsigned v6 = (v4*(rest-yr)+v5*yr);
+	return v6 / (rest*rest);
+}
+
+void user_interface::smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map)
+{
+	vector<Uint8> map2 = map;
+	unsigned maxv = 0, minv = 255;
+	for (unsigned y = 0; y < s; ++y) {
+		unsigned y1 = (y+s-1)%s, y2 = (y+1)%s;
+		for (unsigned x = 0; x < s; ++x) {
+			unsigned x1 = (x+s-1)%s, x2 = (x+1)%s;
+			unsigned v = (unsigned(map2[y1*s+x]) + unsigned(map2[y*s+x1]) + unsigned(map2[y*s+x]) + unsigned(map2[y*s+x2]) + unsigned(map2[y2*s+x])) / 5;
+			map[y*s+x] = Uint8(v);
+			if (v < minv) minv = v;
+			if (v > maxv) maxv = v;
+		}
+	}
+	for (unsigned y = 0; y < s; ++y) {
+		for (unsigned x = 0; x < s; ++x) {
+			unsigned v = map[y*s+x];
+			map[y*s+x] = Uint8((v - minv)*255/(maxv-minv));
+		}
+	}
 }
 
 /* 2003/07/04 idea.
@@ -398,7 +590,11 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 
 	sea_object* player = get_player();
 
-	double timefac = fmod(gm.get_time(), TIDECYCLE_TIME)/TIDECYCLE_TIME;
+	float cf = myfmod(gm.get_time(), CLOUD_ANIMATION_CYCLE_TIME)/CLOUD_ANIMATION_CYCLE_TIME - cloud_animphase;
+	if (cf < 0) cf += 1.0;
+	advance_cloud_animation(cf);
+
+	double timefac = myfmod(gm.get_time(), TIDECYCLE_TIME)/TIDECYCLE_TIME;
 	
 	glRotatef(-90,1,0,0);
 	// if we're aboard the player's vessel move the world instead of the ship
@@ -553,24 +749,17 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glDisable(GL_LIGHTING);		// direct lighting turned off
 	glDisable(GL_DEPTH_TEST);	// draw all clouds
 	lightcol.set_gl_color();	// cloud color depends on day time
-	for (unsigned cl = gm.get_nr_of_clouds(); cl > 0; --cl) {
-		game::cloud cld = gm.get_cloud(cl-1);
-		glBindTexture(GL_TEXTURE_2D, cloud_textures[cld.type]->get_opengl_name());
-		glBegin(GL_QUADS);
-		glTexCoord2f(0, 1);
-		glVertex3f(-cld.size+cld.pos.x,  cld.size+cld.pos.y, cld.pos.z);
-		glTexCoord2f(1, 1);
-		glVertex3f( cld.size+cld.pos.x,  cld.size+cld.pos.y, cld.pos.z);
-		glTexCoord2f(1, 0);
-		glVertex3f( cld.size+cld.pos.x, -cld.size+cld.pos.y, cld.pos.z);
-		glTexCoord2f(0, 0);
-		glVertex3f(-cld.size+cld.pos.x, -cld.size+cld.pos.y, cld.pos.z);
-		glEnd();
-	}
-	glPopMatrix();	// remove z translate for sky etc.
+
+	float clsc = max_view_dist * 0.9;
+	glScalef(clsc, clsc, 3000/*clsc fixme*/);
+	glBindTexture(GL_TEXTURE_2D, clouds->get_opengl_name());
+	glCallList(clouds_dl);
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	color::white().set_gl_color();
+
+	glPopMatrix();	// remove z translate for sky
 	
 	// modelview matrix is around viewpos now.
 

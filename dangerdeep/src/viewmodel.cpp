@@ -7,6 +7,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL.h>
+#define DATADIR "./data/"
 #else
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -20,20 +21,20 @@
 #include <sstream>
 #include "config.h"
 #include "image.h"
+#define VIEWMODEL
+font* font_arial;
 
 class system* sys;
 int res_x, res_y;
 
-string get_data_dir(void) { return DATADIR; }
 #define MODEL_DIR "models/"
 #define FONT_DIR "fonts/"
-font* font_arial;
 
 void view_model(const string& modelfilename)
 {
 	vector3 viewangles;
 	vector3 pos;
-	model* mdl = new model((get_data_dir() + MODEL_DIR + modelfilename));
+	model* mdl = new model(string(DATADIR) + MODEL_DIR + modelfilename);
 
 	while (true) {
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -146,7 +147,7 @@ int main(int argc, char** argv)
 	glLightfv(GL_LIGHT1, GL_POSITION, lposition);
 	glEnable(GL_LIGHT1);
 
-	font_arial = new font(get_data_dir() + FONT_DIR + "font_arial.png");
+	font_arial = new font(string(DATADIR) + FONT_DIR + "font_arial.png");
 	sys->draw_console_with(font_arial, 0);
 	
 	view_model(modelfilename);	

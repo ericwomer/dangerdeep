@@ -14,6 +14,53 @@
 #include <SDL/SDL_image.h>
 #endif
 
+
+// directory handling
+#ifdef WIN32
+#error "fixme: implement"
+#else
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+directory open_dir(const string& filename)
+{
+	return opendir(filename.c_str());
+}
+string read_dir(directory d)
+{
+	struct dirent* dir_entry = readdir(d);
+	if (dir_entry) {
+		return string(dir_entry->d_name);
+	}
+	return "";
+}
+void close_dir(directory d)
+{
+	closedir(d);
+}
+bool make_dir(const string& dirname)
+{
+	int err = mkdir(dirname.c_str(), 0755);
+	return (err != -1);
+}
+string get_current_directory(void)
+{
+	unsigned sz = 256;
+	vector<char> s(sz);
+	char* c = 0;
+	while (c == 0) {
+		c = getcwd(&s[0], sz-1);
+		if (!c) {
+			sz += sz;
+			s.resize(sz);
+		}
+	}
+	return string(&s[0]) + "/";
+}
+#endif
+
+
+
 // fixme: this could be replaced with an array of pointers using enum-names
 // as indices. This would simplify destruction and possibly construction.
 
@@ -28,11 +75,10 @@ texture *water, *the_moon, *the_sun, *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt2, *torpt3, *torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut,
-	*cloud_textures[NR_CLOUD_TEXTURES],
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
 	*woodbackgr, *smoke, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
-	*cloudsbackgr, *terraintex;
+	*terraintex, *cloudsbackgr;
 	
 font *font_arial, *font_panel, *font_nimbusrom;
 
@@ -95,11 +141,6 @@ void init_global_data(void)
 	torpt1fat = new texture(get_texture_dir() + "torpt1fat.png");
 	torpt3fat = new texture(get_texture_dir() + "torpt3fat.png");
 	torpt6lut = new texture(get_texture_dir() + "torpt6lut.png");
-	for (unsigned i = 0; i < NR_CLOUD_TEXTURES; ++i) {
-		ostringstream filename;
-		filename << get_texture_dir() << "clouds" << (i+1) << ".png";
-		cloud_textures[i] = new texture(filename.str(), GL_LINEAR);
-	}
 	clock12 = new texture(get_texture_dir() + "clock12.png");
 	clock24 = new texture(get_texture_dir() + "clock24.png");
 	glasses = new texture(get_texture_dir() + "glasses.png", GL_LINEAR, GL_CLAMP);
@@ -129,8 +170,8 @@ void init_global_data(void)
 	killedimg = new image(get_image_dir() + "killed.jpg");
 	scopewatcherimg = new image(get_image_dir() + "scopewatcher.jpg");
 	depthchargeimg = new image(get_image_dir() + "depthcharge.jpg");
-	cloudsbackgr = new texture(get_texture_dir() + "cloudsbackgr.png" );
 	terraintex = new texture(get_texture_dir() + "terrain.png" );
+	cloudsbackgr = new texture(get_texture_dir() + "cloudsbackgr.png" );
 }
 
 void deinit_global_data(void)
@@ -185,8 +226,6 @@ void deinit_global_data(void)
 	delete torpt1fat;
 	delete torpt3fat;
 	delete torpt6lut;
-	for(unsigned i = 0; i < NR_CLOUD_TEXTURES; ++i)
-		delete cloud_textures[i];
 	delete clock12;
 	delete clock24;
 	delete threesubsimg;
@@ -216,6 +255,7 @@ void deinit_global_data(void)
 	delete scopewatcherimg;
 	delete depthchargeimg;
 	delete terraintex;
+	delete cloudsbackgr;
 }
 
 // returns 1939-1945, 1-12, 1-31

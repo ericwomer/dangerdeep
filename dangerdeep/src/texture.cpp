@@ -148,7 +148,35 @@ texture::texture(const string& filename, int mapping, int clamp)
 	init(teximage, 0, 0, teximage->w, teximage->h, mapping, clamp);
 	SDL_FreeSurface(teximage);
 }	
+
+texture::texture(void* pixels, unsigned w, unsigned h, int extformat, int intformat, int type,
+	int mapping, int clamp)
+{
+	width = w;
+	height = h;
+	glGenTextures(1, &opengl_name);
+	glBindTexture(GL_TEXTURE_2D, opengl_name);
+
+	GLenum internalformat = intformat;
+	GLenum externalformat = extformat;
+
+	glTexImage2D(GL_TEXTURE_2D, 0, internalformat, w, h, 0,
+		externalformat, type, pixels);
+	if (	mapping == GL_NEAREST_MIPMAP_NEAREST
+		|| mapping == GL_NEAREST_MIPMAP_LINEAR
+		|| mapping == GL_LINEAR_MIPMAP_NEAREST
+		|| mapping == GL_LINEAR_MIPMAP_LINEAR ) {
+
+		gluBuild2DMipmaps(GL_TEXTURE_2D, internalformat, w, h, externalformat,
+			type, pixels);
+	}
 	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mapping);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp);
+}
+
 texture::~texture()
 {
 	GLuint tex_name = opengl_name;

@@ -16,6 +16,23 @@
 using namespace std;
 #include "date.h"
 
+
+// directory reading/writing encapsulated for compatibility
+// fixme: maybe put that in an filetool.h/.cpp
+#ifdef WIN32
+// fixme: win32 port
+#else
+#include <dirent.h>
+typedef DIR* directory;
+#endif
+// implement these system dependent functions in global_data.cpp
+directory open_dir(const string& filename);	// returns 0 if directory doesn't exist
+string read_dir(directory d);	// returns empty string if directory is fully read.
+void close_dir(directory d);
+bool make_dir(const string& dirname);	// returns true on success
+string get_current_directory(void);	// return absolute path
+
+
 inline string get_data_dir(void) { return DATADIR; }
 inline string get_texture_dir(void) { return get_data_dir() + "textures/"; }
 inline string get_font_dir(void) { return get_data_dir() + "fonts/"; }
@@ -37,11 +54,10 @@ extern class texture *water, *the_moon, *the_sun, *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt2, *torpt3, *torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut,
-	*cloud_textures[NR_CLOUD_TEXTURES],
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
 	*woodbackgr, *smoke, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
-	*cloudsbackgr, *terraintex;
+	*terraintex, *cloudsbackgr;
 extern class font *font_arial, *font_panel, *font_nimbusrom;
 extern class sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];

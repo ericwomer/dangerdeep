@@ -49,6 +49,12 @@ protected:
 	float mapzoom;	// factor pixel/meter
 	vector2 mapclick;
 	double mapclickdist;
+
+	texture* clouds;
+	float cloud_animphase;	// 0-1 phase of interpolation
+	vector<vector<Uint8> > noisemaps_0, noisemaps_1;	// interpolate to animate clouds
+	unsigned clouds_dl;	// display list for sky hemisphere
+	unsigned cloud_levels, cloud_coverage, cloud_sharpness;
 	
 //	vector<char> landsea;	// a test hack. 0 = land, 1 = sea
 	unsigned mapw, maph;
@@ -72,6 +78,14 @@ protected:
 
 	inline virtual sea_object* get_player(void) const { return player_object; }
 	virtual bool keyboard_common(int keycode, class system& sys, class game& gm) = 0;
+
+	// generate new clouds, fac (0-1) gives animation phase. animation is cyclic.
+	void advance_cloud_animation(float fac);	// 0-1
+	void compute_clouds(void);
+	vector<vector<Uint8> > compute_noisemaps(void);
+	static Uint8 get_value_from_bytemap(unsigned x, unsigned y, unsigned level,
+		unsigned s, const vector<Uint8>& nmap);
+	void smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map);
 
 	static texture* torptex(unsigned type);
 
