@@ -32,7 +32,6 @@
 #define TIDECYCLE_TIME 10.0	// seconds
 #define FOAM_VANISH_FACTOR 0.1	// 1/second until foam goes from 1 to 0.
 #define FOAM_SPAWN_FACTOR 0.2	// 1/second until full foam reached. maybe should be equal to vanish factor
-//#define WATER_BUMP_FRAMES 128
 
 
 
@@ -40,7 +39,8 @@
 
 water::water(double tm) : mytime(tm), reflectiontex(0), foamtex(0)
 {
-	wavetilecoords.resize(WAVE_PHASES);
+	wavetiledisplacements.resize(WAVE_PHASES);
+	wavetileheights.resize(WAVE_PHASES);
 	wavetilenormals.resize(WAVE_PHASES);
 
 	glGenTextures(1, &reflectiontex);
@@ -65,29 +65,6 @@ water::water(double tm) : mytime(tm), reflectiontex(0), foamtex(0)
 	
 	foamtex = new texture(get_texture_dir() + "foam.png", GL_LINEAR);//fixme maybe mipmap it
 	
-#if 0
-	// init foam
-	wavefoam.resize(FACES_PER_AXIS*FACES_PER_AXIS);
-	wavefoamtexdata.resize(FACES_PER_AXIS*FACES_PER_AXIS);
-	glGenTextures(1, &wavefoamtex);
-	glBindTexture(GL_TEXTURE_2D, wavefoamtex);
-	vector<Uint8> wavefoampalette(3*256);
-	color wavefoam0(51,88,124), wavefoam1(255,255,255);
-	for (unsigned k = 0; k < 256; ++k) {
-		color c(wavefoam0, wavefoam1, k/255.0f);
-		wavefoampalette[k*3+0] = c.r;
-		wavefoampalette[k*3+1] = c.g;
-		wavefoampalette[k*3+2] = c.b;
-	}
-	glColorTable(GL_TEXTURE_2D, GL_RGB, 256, GL_RGB, GL_UNSIGNED_BYTE, &(wavefoampalette[0]));
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_COLOR_INDEX8_EXT, FACES_PER_AXIS, FACES_PER_AXIS, 0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, &wavefoamtexdata[0]);
-	//gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COLOR_INDEX8_EXT, FACES_PER_AXIS, FACES_PER_AXIS, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, &wavefoamtexdata[0]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-#endif
-
 	// connectivity data is the same for all meshes and thus is reused
 	waveindices.resize(LOD_LEVELS);		// level 0 is minimum detail (4 quads per tile)
 	for (unsigned i = 0; i < LOD_LEVELS; ++i) {
@@ -105,17 +82,14 @@ water::water(double tm) : mytime(tm), reflectiontex(0), foamtex(0)
 		}
 	}
 
-	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(1,1), 10/*31*/, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
+	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(1,1), 31 /*10*/ /*31*/, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
-		vector<float> h = owg.compute_heights();
-		vector<vector2f> d = owg.compute_displacements();
-
-		// fixme: we could store displacements and heights, this requires N*N instead of (n+1)*(n+1)
-		wavetilecoords[i].reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1));
+		wavetileheights[i] = owg.compute_heights();
+		wavetiledisplacements[i] = owg.compute_displacements(-2.0f);	// fixme 5.0 default? - it seems that choppy waves don't look right. bug? fixme, with negative values it seems right. check this!
 
 #if 1	// use finite normals
-		wavetilenormals[i] = owg.compute_finite_normals(h);
+		wavetilenormals[i] = owg.compute_finite_normals(wavetileheights[i]);
 		
 #else	// use fft normals
 #if 0		// compare both
@@ -125,24 +99,6 @@ water::water(double tm) : mytime(tm), reflectiontex(0), foamtex(0)
 #endif
 #endif
 
-		float chopfac = -2.0;	// 4.0;	// default. it seems that choppy waves don't look right. bug? fixme, with negative values it seems right. check this!
-		float add = 1.0f/FACES_PER_WAVE;
-		float fy = 0;
-		for (unsigned y = 0; y <= FACES_PER_WAVE; ++y) {
-			float fx = 0;
-			unsigned cy = y%FACES_PER_WAVE;
-			for (unsigned x = 0; x <= FACES_PER_WAVE; ++x) {
-				unsigned cx = x%FACES_PER_WAVE;
-				unsigned ptr = cy*FACES_PER_WAVE+cx;
-				wavetilecoords[i].push_back(vector3f(
-					fx*WAVE_LENGTH + chopfac * d[ptr].x,
-					fy*WAVE_LENGTH + chopfac * d[ptr].y,
-					h[ptr]));
-				fx += add;
-			}
-			fy += add;
-		}
-		
 #if 0		// draw finite and fft normals to compare them, just a test
 /*
 		glActiveTexture(GL_TEXTURE0);
@@ -468,7 +424,6 @@ void water::draw_tile(const vector3f& transl, int phase) const
 	int lodlevel = int(LOD_LEVELS*distfac) - 1;
 	if (lodlevel < 0) lodlevel = 0;
 	if (lodlevel >= LOD_LEVELS) lodlevel = LOD_LEVELS-1;
-//lodlevel = LOD_LEVELS-1;
 	
 	// use LOD
 	// draw triangle strips or use vertex arrays
@@ -478,17 +433,16 @@ void water::draw_tile(const vector3f& transl, int phase) const
 	// get normal vector from precomputed data = N
 	// get vector to light source (directional, so vector is const = L)
 	// Reflection vector (specular) is 2*(L*N)*N - L = R (R may be precomputed and stored!)
-	// compute (E*R)^m with m = specular constant, e.g. 5
+	// compute (E*R)^m with m = specular constant, e.g. 16
 	// result = S (luminance value)
 	// compute Fresnel(E*N) = F, with Fresnel(x) ~ 1/(x+1)^8
 	// compute water color = refractive color * (1-F) + reflective color * F
-	// refractive color is some green and constant.
-	// reflective color is some blue and constant or obtained from a reflection map.
+	// refractive color is deep blue and constant.
+	// reflective color is obtained from a reflection map (or constant: sky color)
 	// So per pixel color is: water color + S
 	// all per vertex, so primary color is enough. With reflections, the reflection map
 	// goes to tex0, Fresnel as primary color, refractive as const color (texenv) and
-	// S als secondary color (per vertex needed, but differs from Fresnel).
-	// Secondary color is OpenGL1.4+
+	// S per vertex (per vertex needed, but differs from Fresnel).
 	// tex1 may be needed for foam
 	// in total: pixel color = S + refrac*(1-F) + tex0*F
 	//                         *   -       *      #    *
@@ -511,6 +465,12 @@ void water::draw_tile(const vector3f& transl, int phase) const
 	// We could set specular color and Fresnel color at once by storing them in a texture
 	// and use texture coordinates for mixing. This saves the primary color (maybe as foam
 	// mixing value), but then we can't add a reflection texture. Do we need one?!
+
+	// per pixel specular lighting looks very ugly. grid resolution is too low.
+	// the fresnel term gives much more surface realism than a specular color.
+	// per pixel fake specular lighting: disturb a per vertex lighting with dot3 bump
+	// mapping, maybe linear fresnel (with dot3) is ok for small details?
+	// high frequency waves could be done with perlin noise.
 
 // fixme: opengl1.2 has a COLOR MATRIX so colors can get multiplied by a 4x4 matrix before drawing
 // can we use this for anything?
@@ -546,7 +506,6 @@ void water::draw_tile(const vector3f& transl, int phase) const
 
 	glActiveTexture(GL_TEXTURE1);
 	glEnable(GL_TEXTURE_2D);
-glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, foamtex->get_opengl_name());
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
@@ -592,8 +551,10 @@ glColor4f(1,1,1,1);
 
 //glEnable(GL_LIGHTING);
 
-	vector3f L = vector3f(1,0,1).normal();//fixme, 1,0,3?
-	float add = 1.0f/res;
+	vector3f L = vector3f(1,0,1).normal();//fixme, get from caller!
+//float tf = myfrac(mytime/10.0f)*2*M_PI;
+//L = vector3f(cos(tf),sin(tf),1).normal();
+	float add = float(WAVE_LENGTH)/res;
 	float fy = 0;
 	for (unsigned y = 0; y <= FACES_PER_WAVE; y += revres) {
 		float fx = 0;
@@ -601,7 +562,10 @@ glColor4f(1,1,1,1);
 		for (unsigned x = 0; x <= FACES_PER_WAVE; x += revres) {
 			unsigned cx = x & (FACES_PER_WAVE-1);
 			unsigned ptr = cy*FACES_PER_WAVE+cx;
-			vector3f coord = transl + wavetilecoords[phase][y*(FACES_PER_WAVE+1)+x];
+			vector3f coord = transl + vector3f(
+				fx + wavetiledisplacements[phase][ptr].x,
+				fy + wavetiledisplacements[phase][ptr].y,
+				wavetileheights[phase][ptr]);
 			coords.push_back(coord);
 			vector3f N = wavetilenormals[phase][ptr];
 //		normals.push_back(N);
@@ -610,19 +574,18 @@ glColor4f(1,1,1,1);
 			vector3f R = (2.0f*(L*N))*N - L;	// fixme precompute?
 
 #ifdef DRAW_NORMALS
-		glColor3f(1,0,0);
-		vector3f u = coord + N * 1.0f;
-		glVertex3fv(&coord.x);
-		glVertex3fv(&u.x);
-		glColor3f(1,1,0);
-//cout << "E is " << E << "\n";
-		u = coord + E * 10.0f + vector3f(0.1, 0.1, 0.0);
-		glVertex3fv(&coord.x);
-		glVertex3fv(&u.x);
-		glColor3f(0,1,0);
-		u = coord + R * 1.0f;
-		glVertex3fv(&coord.x);
-		glVertex3fv(&u.x);
+			glColor3f(1,0,0);
+			vector3f u = coord + N * 1.0f;
+			glVertex3fv(&coord.x);
+			glVertex3fv(&u.x);
+			glColor3f(1,1,0);
+			u = coord + E * 10.0f + vector3f(0.1, 0.1, 0.0);
+			glVertex3fv(&coord.x);
+			glVertex3fv(&u.x);
+			glColor3f(0,1,0);
+			u = coord + R * 1.0f;
+			glVertex3fv(&coord.x);
+			glVertex3fv(&u.x);
 #endif
 
 			float S = E*R;		// specular component
@@ -630,26 +593,24 @@ glColor4f(1,1,1,1);
 			S = S * S;		// ^4
 			S = S * S;		// ^8
 			S = S * S;		// ^16
+			S = S * S;		// ^32
+			// fixme: specular highlights appear to large, why?
+		S = 0.0f;
 
 			if (S > 1.0f) S = 1.0f;	// clamp value
 			if (S < 0.0f) S = 0.0f;	// fixme: texture clamping does that already
 
 			float F = E*N;		// compute Fresnel term F(x) = 1/(x+1)^8
 			if (F < 0.0f) F = 0.0f;	// avoid angles > 90 deg.
-//			system::sys().myassert(tmp >= 0.0f, "E*N < 0");
-//			system::sys().myassert(tmp <= 1.0f, "E*N > 1");
 			F = F + 1.0f;
 			F = F * F;	// ^2
 			F = F * F;	// ^4
 			F = F * F;	// ^8
 			F = 1.0f/F;
 				// fixme: green/blue depends on slope only? is color of refraction? or fresnel?! read papers!!! fixme
-//			system::sys().myassert(F >= 0.0f, "F < 0");
-//			system::sys().myassert(F <= 1.0f, "F > 1");
-//		if (F > 1.0f) F = 1.0f; if (F < 0.0f) F = 0.0f;
-			uv0.push_back(vector2f(S, F));	// fixme: fresnel 1 means full reflection. but fresnel map is vice versa
-			Uint8 foampart = 0;//((x+y)&3)*255/3;
-//			Uint8 c = Uint8(F*255);
+			uv0.push_back(vector2f(S, F));
+			Uint8 foampart = 255; //(((x*x+1)*(y+3))&7)==0?0:255;//test hack
+//			Uint8 c = Uint8(F*255);	// fresnel term as part of color, if tex0 is reflection map
 //			colors.push_back(color(c, c, c, Uint8(S*255)));
 			colors.push_back(color(foampart, foampart, foampart, 255));
 			fx += add;
@@ -737,10 +698,10 @@ float water::get_height(const vector2& pos) const
 	int iy2 = (iy+1)%FACES_PER_WAVE;
 	float fracx = x - ix;
 	float fracy = y - iy;
-	float a = wavetilecoords[wavephase][ix+iy*FACES_PER_WAVE].z;
-	float b = wavetilecoords[wavephase][ix2+iy*FACES_PER_WAVE].z;
-	float c = wavetilecoords[wavephase][ix+iy2*FACES_PER_WAVE].z;
-	float d = wavetilecoords[wavephase][ix2+iy2*FACES_PER_WAVE].z;
+	float a = wavetileheights[wavephase][ix+iy*FACES_PER_WAVE];
+	float b = wavetileheights[wavephase][ix2+iy*FACES_PER_WAVE];
+	float c = wavetileheights[wavephase][ix+iy2*FACES_PER_WAVE];
+	float d = wavetileheights[wavephase][ix2+iy2*FACES_PER_WAVE];
 	float e = a * (1.0f-fracx) + b * fracx;
 	float f = c * (1.0f-fracx) + d * fracx;
 	return (1.0f-fracy) * e + fracy * f;

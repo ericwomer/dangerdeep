@@ -23,7 +23,8 @@ protected:
 	double mytime;					// store global time in seconds
 
 	// precomputed data. Outer array for phases
-	vector<vector<vector3f> > wavetilecoords;
+	vector<vector<vector2f> > wavetiledisplacements;
+	vector<vector<float> > wavetileheights;
 	vector<vector<vector3f> > wavetilenormals;
 
 	vector<vector<unsigned> > waveindices;	// Outer array for LOD

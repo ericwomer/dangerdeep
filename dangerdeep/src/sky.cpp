@@ -26,8 +26,7 @@ const double MOON_RADIUS = 1.738e6;			// 1738km
 const double EARTH_SUN_DISTANCE = 149600e6;		// 149.6 million km.
 const double MOON_EARTH_DISTANCE = 384.4e6;		// 384.000km
 const double EARTH_ROT_AXIS_ANGLE = 23.45;
-//const double MOON_ORBIT_TIME = 27.3333333 * 86400.0;	// fixme: the moon rotates in 27 1/3 days around the earth, but full moon is every 29,5 days
-const double MOON_ORBIT_TIME = 29.5306 * 86400.0;	// fixme: the moon rotates in 27 1/3 days around the earth, but full moon is every 29,5 days
+const double MOON_ORBIT_TIME = 27.3333333 * 86400.0;	// sidereal month is 27 1/3 days, time from full moon to next is 29.5306 days because of earth's rotation around sun
 //moon rotational plane is ~ 5 degrees rotated to that of earth/sun, fixme
 const double EARTH_ROTATION_TIME = 86160.0;		// 23h56min, one sidereal day!
 // as a result, earth takes ~366 rotations around its axis per year.
@@ -39,11 +38,14 @@ const double SUN_POS_ADJUST = 9.8;	// in degrees. 10 days from 21st. Dec. to 1st
 const double MOON_POS_ADJUST = 300.0;	// in degrees. Moon pos in its orbit on 1.1.1939 fixme: this value is a rude guess
 const double STAR_SCALE = 8.0;		// texture scale factor for stars
 
+// moon rotates from west to east ie. ccw ?
+// sun rises in the east so earth turns ccw. around itself.
+
 /*
 what has to be fixed for sun/earth/moon simulation:
 get exact distances and diameters (done)
 get exact rotation times (sidereal day, not solar day) for earth and moon (done)
-get exact orbit times for earth and moon around sun / earth (fixme)
+get exact orbit times for earth and moon around sun / earth (done)
 get angle of rotational axes for earth and moon (fixme, 23.45 and ~5)
 get direction of rotation for earth and moon relative to each other (fixme)
 get position of objects and axis states for a fix date (optimum 1.1.1939) (fixme)
