@@ -599,11 +599,17 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			normals[i3] += n1;
 		}
 	}
+
 	// make normals normal ;-)
+	//fixme: this could be done on the GPU with vertex shaders.
 	for (unsigned i = 0; i < (xres+1)*(yres+1); ++i)
 		normals[i].normalize();
 
 	// compute remaining data (Fresnel etc.)
+	//fixme: the whole loop could be done on the GPU with vertex shaders.
+	//coords and normals change per frame, so no display lists can be used.
+	//simple vertex arrays with locking should do the trick, maybe use
+	//(locked) quadstrips, if they're faster than compiled vertex arrays, test it!
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			const vector3f& coord = coords[ptr];
