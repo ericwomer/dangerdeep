@@ -30,6 +30,10 @@ protected:
 	//recompute the normals per vertex (also one sqrt), this needs less memory and more
 	//computations.
 	//mipmap: we need 4/3 of space, 1+4+16+64+256+...n = ~ 4/3 n
+	// another option: don't store fft values but recompute them every
+	// frame (slower, but more dynamically, and using less memory)
+	// for a 64x64 grid in 256 phases with mipmaps and normals we have
+	// 256*64*64*(6*4)*4/3 = 1M*24*4/3 = 32M
 	vector<vector<vector2f> > wavetiledisplacements;
 	vector<vector<float> > wavetileheights;
 	vector<vector<vector3f> > wavetilenormals;
@@ -76,6 +80,9 @@ protected:
 
 	void setup_textures(void) const;
 	void cleanup_textures(void) const;
+
+	void compute_coord_and_normal(int phase, const vector2& xypos,
+	        vector3f& coord, vector3f& normal) const;
 
 public:
 	water(unsigned xres_, unsigned yres_, double tm = 0.0);	// give day time in seconds

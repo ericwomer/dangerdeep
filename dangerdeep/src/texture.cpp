@@ -42,34 +42,40 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	unsigned char* tmpimage = 0;
 	
 	if (teximage->format->palette != 0) {
-		glEnable(GL_COLOR_TABLE);
+		//old color table code, does not work
+		//glEnable(GL_COLOR_TABLE);
 		system::sys().myassert(bpp == 1, "texture: only 8bit palette files supported");
 		int ncol = teximage->format->palette->ncolors;
 		system::sys().myassert(ncol <= 256, "texture: max. 256 colors in palette supported");
-		bool usealpha = false;
-		vector<unsigned> palette(256);
-		for (int i = 0; i < ncol; i++)
-			palette[i] = ((unsigned*)(teximage->format->palette->colors))[i] | 0xff000000;
-		if (teximage->flags & SDL_SRCCOLORKEY) {
-			palette[teximage->format->colorkey & 0xff] &= 0xffffff;
-			usealpha = true;
-		}
-		cerr << "creating paletted texture, ncol " << ncol << " usealpha " << usealpha << "\n";
+		bool usealpha = (teximage->flags & SDL_SRCCOLORKEY);
 
 		internalformat = usealpha ? GL_RGBA : GL_RGB;
+		externalformat = usealpha ? GL_RGBA : GL_RGB;
+		bpp = usealpha ? 4 : 3;
 
-		// fixme: with big endian machines the colors could be stored reversed, check this
-		glColorTable(GL_TEXTURE_2D, internalformat, 256, GL_RGBA, GL_UNSIGNED_BYTE, &(palette[0]));
-		internalformat = GL_COLOR_INDEX8_EXT;
-		externalformat = GL_COLOR_INDEX;
-		tmpimage = new unsigned char [tw*th];
-		memset(tmpimage, 0, tw*th);
+		//old color table code, does not work		
+		//glColorTable(GL_TEXTURE_2D, internalformat, 256, GL_RGBA, GL_UNSIGNED_BYTE, &(palette[0]));
+		//internalformat = GL_COLOR_INDEX8_EXT;
+		//externalformat = GL_COLOR_INDEX;
+		tmpimage = new unsigned char [tw*th*bpp];
+		memset(tmpimage, 0, tw*th*bpp);
 		unsigned char* ptr = tmpimage;
 		unsigned char* offset = ((unsigned char*)(teximage->pixels)) + sy*teximage->pitch + sx;
 		for (unsigned y = 0; y < sh; y++) {
-			memcpy(ptr, offset, sw);
+			unsigned char* ptr2 = ptr;
+			for (unsigned x = 0; x < sw; ++x) {
+				Uint8 pixindex = *(offset+x);
+				const SDL_Color& pixcolor = teximage->format->palette->colors[pixindex];
+				*ptr2++ = pixcolor.r;
+				*ptr2++ = pixcolor.g;
+				*ptr2++ = pixcolor.b;
+				if (usealpha)
+					*ptr2++ = (pixindex == (teximage->format->colorkey & 0xff)) ? 0x00 : 0xff;
+			}
+			//old color table code, does not work
+			//memcpy(ptr, offset, sw);
 			offset += teximage->pitch;
-			ptr += tw;
+			ptr += tw*bpp;
 		}
 	} else {
 		bool usealpha = teximage->format->Amask != 0;
@@ -100,7 +106,6 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 			GL_UNSIGNED_BYTE, tmpimage);
 	}
 
-	glDisable(GL_COLOR_TABLE);	
 	delete [] tmpimage;
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);

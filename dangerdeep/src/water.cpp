@@ -242,6 +242,42 @@ void water::cleanup_textures(void) const
 
 
 
+void water::compute_coord_and_normal(int phase, const vector2& xypos,
+	vector3f& coord, vector3f& normal) const
+{
+	// generate values with mipmap function (needs viewer pos.)
+	float xfrac = myfrac(float(xypos.x / WAVE_LENGTH)) * WAVE_RESOLUTION;
+	float yfrac = myfrac(float(xypos.y / WAVE_LENGTH)) * WAVE_RESOLUTION;
+	unsigned x0 = unsigned(floor(xfrac));
+	unsigned y0 = unsigned(floor(yfrac));
+	unsigned x1 = (x0 + 1) & (WAVE_RESOLUTION-1);
+	unsigned y1 = (y0 + 1) & (WAVE_RESOLUTION-1);
+	xfrac = myfrac(xfrac);
+	yfrac = myfrac(yfrac);
+	unsigned i0 = x0+y0*WAVE_RESOLUTION, i1 = x1+y0*WAVE_RESOLUTION, i2 = x0+y1*WAVE_RESOLUTION,
+		i3 = x1+y1*WAVE_RESOLUTION;
+
+	// fixme: make trilinear
+	// fixme: unite displacements and height in one vector3f for simplicities' sake and performance gain
+	// bilinear interpolation of displacement and height	
+	vector3f ca(wavetiledisplacements[phase][i0].x, wavetiledisplacements[phase][i0].y, wavetileheights[phase][i0]);
+	vector3f cb(wavetiledisplacements[phase][i1].x, wavetiledisplacements[phase][i1].y, wavetileheights[phase][i1]);
+	vector3f cc(wavetiledisplacements[phase][i2].x, wavetiledisplacements[phase][i2].y, wavetileheights[phase][i2]);
+	vector3f cd(wavetiledisplacements[phase][i3].x, wavetiledisplacements[phase][i3].y, wavetileheights[phase][i3]);
+	vector3f ce = ca * (1.0f-xfrac) + cb * xfrac;
+	vector3f cf = cc * (1.0f-xfrac) + cd * xfrac;
+	vector3f cg = ce * (1.0f-yfrac) + cf * yfrac;
+	coord = cg + vector3f(xypos.x, xypos.y, 0.0f);
+	
+	// bilinear interpolation of normal
+	ce = wavetilenormals[phase][i0] * (1.0f-xfrac) + wavetilenormals[phase][i1] * xfrac;
+	cf = wavetilenormals[phase][i2] * (1.0f-xfrac) + wavetilenormals[phase][i3] * xfrac;
+	cg = ce * (1.0f-yfrac) + cf * yfrac;
+	normal = cg.normal();
+}
+
+
+
 void water::display(const vector3& viewpos, angle dir, double max_view_dist) const
 {
 	// move world so that viewer is at (0,0,0)
@@ -300,7 +336,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	glPushMatrix();
 	glLoadIdentity();
 	glTranslatef(0,0,-50);
-	glRotatef(45, 1,0,0);
+	glRotatef(50, 1,0,0);
 	matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	glPopMatrix();
 	matrix4 M_projector = (proj * mv /*modl*/).inverse(); //fixme
@@ -322,9 +358,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			double x = double(xx)/xres;
 			vector2 v = va * (1-x) + vb * x;
-			double h = get_height(v);//fixme replace by mipmap function get_coord
-			coords[ptr] = vector3f(v.x, v.y, h);//get_coord(v);	// computes pos, height and displacements etc.	fixme
-			
+			compute_coord_and_normal(phase, v, coords[ptr], normals[ptr]);
 		}
 	}
 
@@ -332,10 +366,9 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			const vector3f& coord = coords[ptr];
-			vector3f N = vector3f(0,0,1);	//fixme
-			if(yy<yres&&xx<xres)//dirty normal hack
-				N=((coords[ptr+1]-coords[ptr]).cross(coords[ptr+xres+1]-coords[ptr])).normal();
-			vector3f E = -coord.normal();	// viewer is in (0,0,0)
+			const vector3f& N = normals[ptr];
+			vector3f rel_coord = coord + vector3f(0,0,-viewpos.z);
+			vector3f E = -rel_coord.normal();	// viewer is in (0,0,0)
 			float F = E*N;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
 			if (F < 0.0f) F = 0.0f;	// avoid angles > 90 deg.
 			F = F + 1.0f;
@@ -350,7 +383,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
 			texc.z -= VIRTUAL_PLANE_HEIGHT;
 						
-			normals[ptr] = N;
 			uv0[ptr] = texc;
 			colors[ptr] = primary;
 		}
@@ -371,7 +403,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	glClientActiveTexture(GL_TEXTURE1);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
+//	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
 	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
 
 	glDisableClientState(GL_VERTEX_ARRAY);
