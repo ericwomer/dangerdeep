@@ -75,7 +75,7 @@ void game::sink_record::save(ostream& out) const
 	write_u32(out, tons);
 }
 
-game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday)
+game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday, unsigned nr_of_players)
 {
 /****************************************************************
 	custom mission generation:
@@ -92,6 +92,7 @@ game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned t
 	Then we place the convoy with probable course and path there.
 	To do this we need a simulation of convoys in the atlantic.
 	Then we place the sub somewhere randomly around the convoy with maximum viewing distance.
+	Multiplayer: place several subs around the convoy with a minimum distance between each.
 ***********************************************************************/	
 	time = 86400*500;	// fixme random dependent of period
 	
@@ -114,16 +115,41 @@ game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned t
 	for (list<pair<ship*, vector2> >::iterator it = cv->escorts.begin(); it != cv->escorts.end(); ++it)
 		spawn_ship(it->first);
 	spawn_convoy(cv);
+
+	vector<angle> subangles;
+	submarine* psub = 0;
+	for (unsigned i = 0; i < nr_of_players; ++i) {	
+		submarine* sub = submarine::create(subtype);//fixme give time for init
+		if (i == 0) psub = sub;
+		angle tmpa;
+		double anglediff = 90.0;
+		bool angleok = false;
+		unsigned angletries = 0;
+		do {
+			angleok = true;
+			tmpa = (rnd()*360.0);
+			for (unsigned j = 0; j < subangles.size(); ++j) {
+				if (tmpa.diff(subangles[j]) < anglediff) {
+					angleok = false;
+					break;
+				}
+			}
+			if (!angleok) {
+				++angletries;
+				if (angletries >= nr_of_players) {
+					angletries = 0;
+					anglediff /= 2.0;
+				}
+			}
+		} while (!angleok);
+		vector2 tmpp = tmpa.direction() * (mvd/2);
+		sub->position = vector3(tmpp.x, tmpp.y, timeofday == 2 ? 0 : -12); // fixme maybe always surfaced, except late in war
+		sub->heading = sub->head_to = angle(rnd()*360.0);
 	
-	submarine* sub = submarine::create(subtype);//fixme give time for init
-	angle tmpa(rnd()*360.0);
-	vector2 tmpp = tmpa.direction() * (mvd/2);
-	sub->position = vector3(tmpp.x, tmpp.y, timeofday == 2 ? 0 : -12); // fixme maybe always surfaced, except late in war
-	sub->heading = sub->head_to = angle(rnd()*360.0);
-	
-	spawn_submarine(sub);
-	player = sub;
-	ui = new submarine_interface(sub, *this);
+		spawn_submarine(sub);
+	}
+	player = psub;
+	ui = new submarine_interface(psub, *this);
 
 	running = true;
 	last_trail_time = time - TRAILTIME;
@@ -239,6 +265,11 @@ cout<<"loading game...\n";
 	read_string(in);
 	string description = read_string(in);
 	
+	load_from_stream(in);
+}
+
+game::game(istream& in)
+{
 	load_from_stream(in);
 }
 

@@ -133,7 +133,7 @@ protected:
 public:
 	// expects: size small,medium,large, escort size none,small,medium,large,
 	// time of day [0,4) night,dawn,day,dusk
-	game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday);
+	game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday, unsigned nr_of_players = 1);
 	game(parser& p);
 	virtual ~game();
 
@@ -142,6 +142,7 @@ public:
 	// maybe only needed for loading (build structure or not)
 	virtual void save(const string& savefilename, const string& description) const;
 	game(const string& savefilename);	// load a game
+	game(istream& in);			// create a game from a stream
 	static string read_description_of_savegame(const string& filename);
 	virtual void save_to_stream(ostream& out) const;
 	virtual void load_from_stream(istream& in);

@@ -18,6 +18,9 @@ protected:
 	
 	void init(Uint16 local_port);
 	
+	network_connection(const network_connection& );
+	network_connection& operator= (const network_connection& );
+	
 public:
 	void send_packet(const vector<Uint8>& data);
 	vector<Uint8> receive_packet(IPaddress* ip = 0);
@@ -36,5 +39,10 @@ public:
 	~network_connection();
 	static string ip2string(IPaddress ip);
 };
+
+inline bool operator== (const IPaddress& a, const IPaddress& b)
+{
+	return a.host == b.host && a.port == b.port;
+}
 
 #endif

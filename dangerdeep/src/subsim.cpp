@@ -465,56 +465,30 @@ void choose_saved_game(void)
 // create a network mission
 //
 
-#define MSG_abort "DFTD-!!!abort!!!"
-#define MSG_quit "DFTD-iamoff!"
-#define MSG_ask_for_game "DFTD-askgame?"
-#define MSG_offer_game "DFTD-offergame!"
-#define MSG_join_game "DFTD-joingame?"
-#define MSG_join_ok "DFTD-joinok!"
+#define MSG_cancel "DFTD-cancel!"
+#define MSG_ask "DFTD-ask?"
+#define MSG_offer "DFTD-offer!"
+#define MSG_join "DFTD-join?"
+#define MSG_joined "DFTD-joined!"
+#define MSG_initgame "DFTD-init!"
+#define MSG_ready "DFTD-ready!"
+#define MSG_start "DFTD-start!"
+#define MSG_gamestate "DFTD-gamestate:"
 
-void server_wait_for_clients(network_connection& sv, Uint16 server_port)
+// send message, wait for answer, returns true if answer received
+bool send_and_wait(network_connection& nc, const string& sendmsg, const string& waitmsg, unsigned timeout = 0xffffffff)
 {
-	IPaddress hostip;
-	int error = SDLNet_ResolveHost(&hostip, 0, server_port);
-	system::sys().myassert(error == 0, "can resolve host ip for this computer");
-	
-	widget w(0, 0, 1024, 768, texts::get(22), 0, swordfishimg);
-	w.add_child(new widget_text(40, 60, 0, 0, texts::get(195)));
-	widget_list* wplayers = new widget_list(40, 90, 500, 400);
-	w.add_child(wplayers);
-	list<IPaddress> clients;	// fixme: a list of connections would be better
-
-	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
-	w.add_child(wm);
-	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
-	wm->add_entry(texts::get(196), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 70, 700, 400, 40));
-	wm->adjust_buttons(944);
-
-	while (true) {
-		int result = w.run(50);
-		if (result == 1) {
-			// fixme: send all players the ABORT message
-			break;
-		} else if (result == 2) {
-			// go!
-		}
-		IPaddress clientip;
-		string msg = sv.receive_message(&clientip);
-		if (msg == MSG_ask_for_game) {
-			sv.unbind();
-			sv.bind(clientip);
-			sv.send_message(MSG_offer_game);
-			sv.unbind();
-		} else if (msg == MSG_join_game) {
-			clients.push_back(clientip);
-			wplayers->append_entry(network_connection::ip2string(clientip));
-			sv.unbind();
-			sv.bind(clientip);
-			sv.send_message(MSG_join_ok);
-			sv.unbind();
-		}
-	}
-}		
+	nc.send_message(sendmsg);
+	string answer;
+	unsigned waited = 0;
+	do {
+		system::sys().poll_event_queue();
+		SDL_Delay(50);
+		waited += 50;
+		answer = nc.receive_message();
+	} while (waited < timeout && answer.length() == 0);
+	return (waited < timeout);
+}
 
 void ask_for_offered_games(widget_list* wservers, Uint16 server_port, network_connection& scan)
 {
@@ -522,7 +496,7 @@ void ask_for_offered_games(widget_list* wservers, Uint16 server_port, network_co
 	
 	// send a broadcast to all local addresses (assuming subnet mask 255.255.255.0)
 	scan.bind("192.168.0.0", server_port);
-	scan.send_message(MSG_ask_for_game);
+	scan.send_message(MSG_ask);
 	scan.unbind();
 }
 
@@ -532,7 +506,7 @@ void listen_for_offered_games(widget_list* wservers, Uint16 server_port, network
 	do {
 		IPaddress ip;
 		msg = scan.receive_message(&ip);
-		if (msg == MSG_offer_game) {
+		if (msg == MSG_offer) {
 			wservers->append_entry(network_connection::ip2string(ip));
 		}
 	} while (msg.length() != 0);
@@ -540,28 +514,119 @@ void listen_for_offered_games(widget_list* wservers, Uint16 server_port, network
 	wservers->make_entries_unique();
 }
 
+void send_msg_to_all(network_connection& sv, const vector<IPaddress>& clients, const string& msg)
+{
+	for (vector<IPaddress>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
+		sv.unbind();
+		sv.bind(*it);
+		sv.send_message(msg);
+		sv.unbind();
+	}
+}
+
+// collect players, answer "ask" messages, returns true if game should start, false if cancelled
+bool server_wait_for_clients(network_connection& sv, Uint16 server_port, vector<IPaddress>& clients, unsigned nr_of_players)
+{
+	IPaddress hostip;
+	int error = SDLNet_ResolveHost(&hostip, 0, server_port);
+	system::sys().myassert(error == 0, "can resolve host ip for this computer");
+	
+	widget w(0, 0, 1024, 768, texts::get(22), 0, swordfishimg);
+	w.add_child(new widget_text(40, 60, 0, 0, texts::get(195)));
+	widget_list* wplayers = new widget_list(40, 90, 500, 400);
+	w.add_child(wplayers);
+	
+	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
+	w.add_child(wm);
+	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
+	widget_button* startgame = new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 70, 700, 400, 40);
+	startgame->disable();
+	wm->add_entry(texts::get(196), startgame);
+	wm->adjust_buttons(944);
+
+	while (true) {
+		int result = w.run(50);
+		if (result == 1) {
+			send_msg_to_all(sv, clients, MSG_cancel);
+			return false;
+		} else if (result == 2) {
+			return true;
+		}
+		IPaddress clientip;
+		string msg = sv.receive_message(&clientip);
+
+		// answer "ask" or "join" messages only until maximum number of players is reached
+		if (clients.size() + 1 < nr_of_players) {
+			startgame->disable();
+			if (msg == MSG_ask) {
+				sv.unbind();
+				sv.bind(clientip);
+				sv.send_message(MSG_offer);
+				sv.unbind();
+			} else if (msg == MSG_join) {
+				clients.push_back(clientip);
+				wplayers->append_entry(network_connection::ip2string(clientip));
+				sv.unbind();
+				sv.bind(clientip);
+				sv.send_message(MSG_joined);
+				sv.unbind();
+			}
+		} else {
+			startgame->enable();
+		}
+	}
+}		
+
 void create_network_game(Uint16 server_port)
 {
 	// start server
-	network_connection sv(server_port);
-/*
-	while (true) {
-		string msg = sv.receive_message();
-		cout << "message rcvd: '"<<msg<<"'\n";
-		system::sys().poll_event_queue();
-		SDL_Delay(50);
+	network_connection serv(server_port);
+	
+	// create a game
+	unsigned nr_of_players = 2;	// fixme
+	game* gm = new game(submarine::typeVIIc, 1, 1, 1);		// fixme
+	
+	// wait for clients to join, reply to "ask" messages
+	vector<IPaddress> clients;
+	clients.reserve(nr_of_players-1);
+	bool ok = server_wait_for_clients(serv, server_port, clients, nr_of_players);
+	
+	if (!ok) {
+		delete gm;
+		return;
 	}
-*/
-	server_wait_for_clients(sv, server_port);
-/*
-			submarine::types st = submarine::typeVIIc;
-			switch (wsubtype->get_selected()) {
-				case 0: st = submarine::typeVIIc; break;
-				case 1: st = submarine::typeIXc40; break;
-				case 2: st = submarine::typeXXI; break;
+
+	// send all players the INIT message and the game state
+	ostringstream oss;
+	gm->save_to_stream(oss);
+	string gamestatemsg = string(MSG_gamestate) + oss.str();
+	send_msg_to_all(serv, clients, MSG_initgame);
+	send_msg_to_all(serv, clients, gamestatemsg);
+	
+	// wait for "ready" messages from all clients
+	vector<bool> clientready(clients.size());
+	unsigned clientsready = 0;
+	while (true) {
+		IPaddress ip;
+		string msg = serv.receive_message(&ip);
+		if (msg == MSG_ready) {
+			for (unsigned i = 0; i < clients.size(); ++i) {
+				if (ip == clients[i] && !clientready[i]) {
+					clientready[i] = true;
+					++clientsready;
+				}
 			}
-			run_game(new game(st, wcvsize->get_selected(), wescortsize->get_selected(), wtimeofday->get_selected()));
-*/		
+		}
+		// all clients ready?
+		if (clientsready == clients.size())
+			break;
+	}
+
+	// send "start" to all clients
+	send_msg_to_all(serv, clients, MSG_start);
+	
+	// now run the game
+	run_game(gm);
 }
 
 void join_network_game(const string& servername, Uint16 server_port, network_connection& client)
@@ -569,16 +634,46 @@ void join_network_game(const string& servername, Uint16 server_port, network_con
 	// join game
 	client.unbind();
 	client.bind(servername, server_port);
-	client.send_message(MSG_join_game);
-/*	
+	send_and_wait(client, MSG_join, MSG_joined);
+
+	// wait for server to start game
 	while (true) {
-		ostringstream os;
-		os << "Hallo " << &cl << ", rnd " << rand() << "\n";
-		cl.send_message(os.str());
+		string serv = client.receive_message();
+		if (serv == MSG_initgame)
+			break;
+		if (serv == MSG_cancel) {
+			client.unbind();
+			return;
+		}
 		system::sys().poll_event_queue();
-		SDL_Delay(100);
+		SDL_Delay(50);
 	}
-*/	
+	
+	// create and init game, wait for game state
+	string gamestate;
+	while (true) {
+		string serv = client.receive_message();
+		if (serv.substr(0, string(MSG_gamestate).length()) == MSG_gamestate) {
+			gamestate = serv.substr(string(MSG_gamestate).length());
+			break;
+		}
+		if (serv == MSG_cancel) {
+			client.unbind();
+			return;
+		}
+		system::sys().poll_event_queue();
+		SDL_Delay(50);
+	}
+
+	istringstream iss(gamestate);
+	game* gm = new game(iss);
+
+	bool ok = send_and_wait(client, MSG_ready, MSG_start, 60000);	// 1 minute timeout
+
+	if (ok)
+		run_game(gm);
+	else
+		delete gm;
 }
 
 void play_network_game(void)
@@ -587,13 +682,13 @@ void play_network_game(void)
 	Uint16 server_port = 0xdf7d;
 	Uint16 local_port = 0xdf7d;
 	
-	network_connection client;	// used for scanning and later for playing
-	
 	// initialize network play
 	int network_ok = SDLNet_Init();
 	system::sys().myassert(network_ok != -1, "failed to initialize SDLnet");
 	int error = SDLNet_ResolveHost(&computer_ip, NULL, local_port);
 	system::sys().myassert(error == 0, "can't resolve host ip for this computer");
+
+	network_connection client;	// used for scanning and later for playing
 
 	widget w(0, 0, 1024, 768, texts::get(22), 0, swordfishimg);
 	w.add_child(new widget_text(40, 60, 0, 0, texts::get(57)));
