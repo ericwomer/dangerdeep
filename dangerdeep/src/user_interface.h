@@ -66,8 +66,8 @@ protected:
 	coastmap mycoastmap;	// this may get moved to game.h, yet it is used for display only, that's why it is here
 
 	// free view mode
-	float viewsideang, viewupang;	// global spectators viewing angles
-	vector3 viewpos;
+	float freeviewsideang, freeviewupang;	// global spectators viewing angles
+	vector3 freeviewpos;
 
 	user_interface& operator= (const user_interface& other);
 	user_interface(const user_interface& other);

@@ -65,7 +65,7 @@ user_interface::user_interface(sea_object* player) :
 	quit(false), pause(false), time_scale(1), player_object ( player ),
 	panel_height(128), panel_visible(true), bearing(0), elevation(0),
 	viewmode(4), target(0), zoom_scope(false), mapzoom(0.1),
-	mycoastmap("default.map"), viewsideang(0), viewupang(-90), viewpos(0, 0, 10)
+	mycoastmap("default.map"), freeviewsideang(0), freeviewupang(-90), freeviewpos()
 {
 	clouds = 0;
 	init ();
@@ -183,8 +183,8 @@ void user_interface::init ()
 				colors.push_back(nl.x);
 				colors.push_back(nl.y);
 				colors.push_back(nl.z);
-				coords.push_back(fx*WAVE_LENGTH+d[ptr].x);
-				coords.push_back(fy*WAVE_LENGTH+d[ptr].y);
+				coords.push_back(fx*WAVE_LENGTH+0.25*d[ptr].x);
+				coords.push_back(fy*WAVE_LENGTH+0.25*d[ptr].y);
 				coords.push_back(h[ptr]);
 				fx += add;
 			}
@@ -634,10 +634,10 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	double max_view_dist) const
 {
 
+	// the origin of the coordinate system is the bottom left corner of the tile
+	// that the viewer position projected to xy plane is inside.
 	glPushMatrix();
 	glTranslatef(-myfmod(viewpos.x, WAVE_LENGTH), -myfmod(viewpos.y, WAVE_LENGTH), -viewpos.z);
-
-	// fixme use animated water texture(s)
 
 	// draw polygons to the horizon
 	float wr = WAVES_PER_AXIS * WAVE_LENGTH / 2;
@@ -725,6 +725,47 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 //	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
 //	glDisable(GL_LIGHTING);
 	double timefac = myfmod(t, TIDECYCLE_TIME)/TIDECYCLE_TIME;
+
+	// compute the rasterization of the triangle p0,p1,p2
+	// with p0 = viewer's pos., p1,2 = p0 + viewrange * direction(brearing +,- fov/2)
+
+	vector2 p0(myfmod(viewpos.x, WAVE_LENGTH)/WAVE_LENGTH, myfmod(viewpos.y, WAVE_LENGTH)/WAVE_LENGTH);
+	vector2 p1 = p0 + angle(90/*bearing*/+45/*fov/2*/).direction() * 8 /* view dist */;
+	vector2 p2 = p0 + angle(90/*bearing*/-45/*fov/2*/).direction() * 8 /* view dist */;
+/*
+	vector2 *top = &p0, *middle = &p0, *bottom = &p0;
+	if (p1.y < top->y) top = &p1;
+	if (p2.y < top->y) top = &p2;
+	if (p1.y > bottom->y) bottom = &p1;
+	if (p2.y > bottom->y) bottom = &p2;
+	if (p1.y > top->y && p1.y < bottom->y) middle = &p1;
+	if (p2.y > top->y && p2.y < bottom->y) middle = &p2;
+//cout << "p0 1 2 y "<<p0.y<<","<<p1.y<<","<<p2.y<<" t m b y "<<top->y<<","<<middle->y<<","<<bottom->y<<"\n";
+	vector2f d0x = (p1.x - p0.x)/(p1.y - p0.y);
+	vector2f d1x = (p2.x - p0.x)/(p2.y - p0.y);
+	float h0 = ceil(p0.x) - p0.x;
+	float p0x = p0.x + h0 * d0x;
+	float p1x = p0.x + h0 * d1x;
+	while (y < bottom->y) {
+		if (y >= middle->y) {
+			float hmid = ceil(middle->y) - middle->y;
+			if (middle_is_left) {
+				d0x = (p2.x - p1.x)/(p2.y - p1.y);
+				p0x = middle->x + hmid * d0x;
+			} else {
+				d1x = (p1.x - p2.x)/(p1.y - p2.y);
+				p1x = middle->x + hmid * d1x;
+			}
+		}
+		// rasterline
+		for (int i = int(floor(p0x)); i < int(ceil(p1x)); ++i) {
+			// draw tile
+		}
+		p0x += d0x;
+		p1x += d1x;
+		++y;
+	}
+*/
 
 	unsigned dl = wavedisplaylists + int(WAVE_PHASES*timefac);
 	for (int y = 0; y < WAVES_PER_AXIS; ++y) {
@@ -1781,24 +1822,26 @@ void user_interface::display_freeview(class system& sys, game& gm)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+//	SDL_ShowCursor(SDL_DISABLE);
+	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glRotatef(viewupang,1,0,0);
-	glRotatef(viewsideang,0,1,0);
+	glRotatef(freeviewupang,1,0,0);
+	glRotatef(freeviewsideang,0,1,0);
 	float viewmatrix[16];
 	glGetFloatv(GL_MODELVIEW_MATRIX, viewmatrix);
 	vector3 sidestep(viewmatrix[0], viewmatrix[4], viewmatrix[8]);
 	vector3 upward(viewmatrix[1], viewmatrix[5], viewmatrix[9]);
 	vector3 forward(viewmatrix[2], viewmatrix[6], viewmatrix[10]);
-	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
+	glTranslatef(-freeviewpos.x, -freeviewpos.y, -freeviewpos.z);
 
 	// draw everything
-	draw_view(sys, gm, viewpos, 0, 0, false, false, true);
+	draw_view(sys, gm, player_object->get_pos() + freeviewpos, 0, 0, false, false, true);
 
 	int mx, my;
 	sys.get_mouse_motion(mx, my);
-	viewsideang += mx*0.5;
-	viewupang -= my*0.5;
+	freeviewsideang += mx*0.5;
+	freeviewupang -= my*0.5;
 
 	sys.prepare_2d_drawing();
 	draw_infopanel(sys, gm);
@@ -1810,12 +1853,12 @@ void user_interface::display_freeview(class system& sys, game& gm)
 		if (!keyboard_common(key, sys, gm)) {
 			// specific keyboard processing
 			switch(key) {
-				case SDLK_w: viewpos -= forward * 5; break;
-				case SDLK_x: viewpos += forward * 5; break;
-				case SDLK_a: viewpos -= sidestep * 5; break;
-				case SDLK_d: viewpos += sidestep * 5; break;
-				case SDLK_q: viewpos -= upward * 5; break;
-				case SDLK_e: viewpos += upward * 5; break;
+				case SDLK_KP8: freeviewpos -= forward * 5; break;
+				case SDLK_KP2: freeviewpos += forward * 5; break;
+				case SDLK_KP4: freeviewpos -= sidestep * 5; break;
+				case SDLK_KP6: freeviewpos += sidestep * 5; break;
+				case SDLK_KP1: freeviewpos -= upward * 5; break;
+				case SDLK_KP3: freeviewpos += upward * 5; break;
 			}
 		}
 		key = sys.get_key().sym;
@@ -1848,7 +1891,7 @@ void user_interface::display_glasses(class system& sys, class game& gm)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6);
 	// no torpedoes, no DCs, no player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 0, true, false, false);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 0, false/*true*/, false, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
