@@ -278,11 +278,11 @@ bool submarine_interface::object_visible(sea_object* so,
 }
 */
 	
-void submarine_interface::display(game& gm)
+void submarine_interface::display(game& gm) const
 {
 	submarine* player = dynamic_cast<submarine*> ( get_player() );
 
-	// switch to map if sub is to deep.
+	// switch to map if sub is to deep. fixme collides with constness, make viewmode mutable!
 	double depth = player->get_depth();
 	if ((depth > SUBMARINE_SUBMERGED_DEPTH &&
 			(viewmode == display_mode_uzo || viewmode == display_mode_glasses ||
@@ -330,6 +330,11 @@ void submarine_interface::display(game& gm)
 			display_freeview(gm);
 			break;
 	}
+}
+
+void submarine_interface::process_input(const list<SDL_Event>& events)
+{
+	//fixme
 }
 
 void submarine_interface::display_periscope(game& gm)
@@ -761,12 +766,18 @@ void submarine_interface::play_sound_effect_distance ( sound_effect se, double d
 
 // fixme: this function is already in user_interface.cpp. are there differences and why?
 // yes! gauges are different for ships/submarines. So THIS is the function that matters.
+
+// replace explicit drawing/input handling by widgets?, fixme. would be a hell lot easier
+// center pos, pos, size, min ang, max ang, turn dir, command to be sent.
+
 void submarine_interface::display_gauges(class game& gm)
 {
 	submarine* player = dynamic_cast<submarine*> ( get_player () );
 	system::sys().prepare_2d_drawing();
 	set_display_color ( gm );
 
+	// fixme: daylight switch here, ask game for which mode, like
+	// gm.is_day()
 	controlscreen_normallight->draw(0, 0);
 
 	// the absolute numbers here depend on the graphics!

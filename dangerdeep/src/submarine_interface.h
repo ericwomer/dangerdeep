@@ -54,7 +54,8 @@ public:
 	submarine_interface(submarine* player_sub, class game& gm);
 	virtual ~submarine_interface();
 
-	virtual void display(class game& gm);
+	virtual void display(class game& gm) const;
+	virtual void process_input(const list<SDL_Event>& events);
 	virtual void play_sound_effect_distance ( sound_effect se, double distance ) const;
 };
 

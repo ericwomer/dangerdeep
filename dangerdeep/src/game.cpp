@@ -1373,7 +1373,7 @@ game::run_state game::exec(void)
 	ui->display(*this);
 	
 	while (my_run_state == running && !stopexec) {
-		sys.poll_event_queue();
+		list<SDL_Event> events = sys.poll_event_queue();
 
 		// this time_scaling is bad. hits may get computed wrong when time
 		// scaling is too high. fixme
@@ -1389,6 +1389,7 @@ game::run_state game::exec(void)
 				simulate(time_scale == 1 ? delta_time : (1.0/30.0));
 		}
 
+		ui->process_input(events);
 		ui->display(*this);
 		++frames;
 

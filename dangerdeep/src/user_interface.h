@@ -46,6 +46,8 @@ protected:
 
 	logbook_display* captains_logbook;
 	ships_sunk_display* ships_sunk_disp;
+	// fixme replace the above with:
+	//vector<user_display*> displays;
 
 	// periscope
 	bool zoom_scope;	// use 6x instead 1.5 fixme implement, fixme: maybe to submarine
@@ -71,7 +73,10 @@ protected:
 	user_interface(sea_object* player, game& gm);//why not store reference to game? fixme
 
 	inline virtual sea_object* get_player(void) const { return player_object; }
+
+	// replace by sdl_event handler for keyboard events! fixme
 	virtual bool keyboard_common(int keycode, game& gm) = 0;
+	//virtual bool process_common_keys(const SDL_Event& event) = 0;
 
 	static texture* torptex(unsigned type);
 
@@ -81,6 +86,7 @@ protected:
 	
 	// 2d drawing must be turned on for them
 	void draw_infopanel(game& gm) const;
+	// soon they're senseless (Luis makes new gauges). Are thy used yet?! yes, in scope mode
 	void draw_gauge(game& gm, unsigned nr, int x, int y, unsigned wh, angle a,
 		const string& text, angle a2) const;
 	void draw_gauge(game& gm, unsigned nr, int x, int y, unsigned wh, angle a,
@@ -89,6 +95,7 @@ protected:
 	}
 	// draws turnable switch. parameters: pos, first index and number of descriptions,
 	// selected description, extra description text number and title text nr.
+	// could be replaced by lighted 3d switch!
 	void draw_turnswitch(game& gm, int x, int y,
 		unsigned firstdescr, unsigned nrdescr, unsigned selected, unsigned extradescr, unsigned title) const;
 	// Matching input function, give pos 0-255,0-255.
@@ -109,14 +116,16 @@ protected:
 		const vector2& mark_pos, const vector2& offset, const color& c );
 
 	// Display functions for screens.
+	//fixme: we have to divide display and input processing!
+	//make user_display-heir for each display and get rid of these functions.
 	virtual void display_gauges(game& gm);
 	virtual void display_bridge(game& gm);
 	virtual void display_map(game& gm);
-	virtual void display_logbook(game& gm);
-	virtual void display_successes(game& gm);
+	virtual void display_logbook(game& gm);//ok, own display ready
+	virtual void display_successes(game& gm);//ok, own display ready
 	virtual void display_freeview(game& gm);
 	virtual void display_glasses(game& gm);
-	virtual void display_damagestatus(game& gm) = 0;
+	virtual void display_damagestatus(game& gm) = 0;//ok, own display ready
 
 	virtual sound* get_sound_effect ( sound_effect se ) const;
 	
@@ -124,7 +133,10 @@ protected:
 
 public:	
 	virtual ~user_interface();
-	virtual void display(game& gm) = 0;
+
+	// display (const) and input handling
+	virtual void display(game& gm) const = 0;
+	virtual void process_input(const list<SDL_Event>& events) = 0;
 
 	// create ui matching to player type (requested from game)
 	static user_interface* create(game& gm);
@@ -138,6 +150,7 @@ public:
 
 	// 3d drawing functions
 	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist) const;
+	//fixme: should be const!!!!!! input handling in another function!!!
 	virtual void draw_view(game& gm, const vector3& viewpos,
 		int vpx, int vpy, int vpw, int vph,
 		angle dir, angle elev, bool aboard, bool drawbridge, bool withunderwaterweapons);

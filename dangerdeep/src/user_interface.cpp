@@ -706,6 +706,7 @@ void user_interface::draw_trail(sea_object* so, const vector2& offset)
 	}
 }
 
+//this function is OLD and not used any longer, remove it!!
 void user_interface::display_gauges(game& gm)
 {
 	class system& sys = system::sys();
