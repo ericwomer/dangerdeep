@@ -22,6 +22,7 @@ public:
 	enum alive_status { defunct, dead, sinking, alive };
 	enum throttle_status { reverse, stop, aheadlisten, aheadsonar, aheadslow,
 		aheadhalf, aheadfull, aheadflank };
+	enum damage_status { nodamage, lightdamage, mediumdamage, heavydamage, wrecked };
 		
 	// some useful functions needed for sea_objects
 
@@ -48,11 +49,13 @@ protected:
 				// this means angle change per forward
 				// movement in meters
 	double length, width;
-	unsigned hitpoints;		// 0 means dead, fixme damage status
+
+	// this should be adapted by heirs.
+	damage_status stern_damage, midship_damage, bow_damage;
 	// an object is alive until it is sunk or killed.
 	// it will sink to some depth then it is killed.
 	// it will be dead for exactly one simulation cycle, to give other
-	// objects a chance to erase their points to this dead object, in the next
+	// objects a chance to erase their pointers to this dead object, in the next
 	// cycle it will be defunct and erased by its owner.
 	alive_status alive_stat;
 	
@@ -64,6 +67,7 @@ protected:
 		permanent_turn = false;
 		head_chg = 0;
 		alive_stat = alive;
+		stern_damage = midship_damage = bow_damage = nodamage;
 	};
 
 	sea_object() {};
@@ -74,9 +78,11 @@ public:
 	
 	virtual void simulate(class game& gm, double delta_time);
 	virtual bool is_collision(const sea_object* other);
-	virtual void damage(unsigned hp);
-	virtual void sink(void) { hitpoints = 0; alive_stat = sinking; };
-	virtual void kill(void) { hitpoints = 0; alive_stat = dead; };
+	// the strength is proportional to damage_status, 0-none, 1-light, 2-medium...
+	virtual void damage(const vector3& fromwhere, unsigned strength);
+	virtual unsigned calc_damage(void) const;	// returns damage in percent (0 means dead)
+	virtual void sink(void);
+	virtual void kill(void);
 	virtual bool is_defunct(void) const { return alive_stat == defunct; };
 	virtual bool is_dead(void) const { return alive_stat == dead; };
 	virtual bool is_sinking(void) const { return alive_stat == sinking; };

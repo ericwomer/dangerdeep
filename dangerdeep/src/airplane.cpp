@@ -14,7 +14,6 @@ airplane::airplane(unsigned type_, const vector3& pos, double heading)
 //	turn_rate = deg2rad(5);
 //	length = 7;
 //	width = 1;
-	hitpoints = 1;
 	switch (type_) {
 /*
 		case 3:

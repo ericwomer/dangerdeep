@@ -19,6 +19,9 @@ protected:
 	ship& operator= (const ship& other);
 public:
 	virtual ~ship() {}
+
+	enum damagetypes { nodamage, flooding, wrecked };
+	damagetypes bow, midships, stern;
 	
 	// types:
 	// 0 medium merchant

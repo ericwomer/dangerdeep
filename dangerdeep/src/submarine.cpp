@@ -12,7 +12,6 @@ submarine::submarine(unsigned type_, const vector3& pos, angle heading)
 	position = pos;
 	this->heading = heading;
 	head_to = heading;
-	hitpoints = 1;
 	dive_speed = 0;
 	permanent_dive = false;
 	dive_to = position.z;

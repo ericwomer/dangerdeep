@@ -61,7 +61,7 @@ void model::read(const string& filename)
 	texmapping = 0;
 	fread(&texmapping, 1, 1, f);
 	if (texname != "")
-		tex = new texture(get_data_dir() + texname, texmapping);
+		tex = new texture(get_data_dir() + "textures/" + texname, texmapping);
 	else
 		tex = 0;
 

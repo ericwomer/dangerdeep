@@ -12,7 +12,6 @@ ship::ship(unsigned type_, const vector3& pos, angle heading)
 	position = pos;
 	this->heading = heading;
 	head_to = heading;
-	hitpoints = 1;
 	switch (type_) {
 		case 0:
 			speed = kts2ms(8);

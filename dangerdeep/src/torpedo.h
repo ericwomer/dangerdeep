@@ -8,7 +8,7 @@
 #include <map>
 using namespace std;
 
-#define G7A_HITPOINTS 100
+#define G7A_HITPOINTS 4	// maximum
 
 class torpedo : public sea_object
 {

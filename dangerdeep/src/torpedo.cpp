@@ -21,7 +21,6 @@ torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes)
 			// immidiately instead of turning there from the sub's heading
 	length = 7;
 	width = 1;
-	hitpoints = 1;
 	run_length = 0;
 	switch (type_) {
 		case T3FAT:		// G7e FAT
@@ -92,7 +91,7 @@ void torpedo::hit(sea_object* other)
 		system::sys()->add_console("dud torpedo - range too short");
 	} else {
 		system::sys()->add_console("torpedo hit");
-		other->damage(G7A_HITPOINTS);
+		other->damage(other->get_pos() /*fixme*/, G7A_HITPOINTS);
 	}
 	kill();
 }

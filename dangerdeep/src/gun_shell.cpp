@@ -15,7 +15,6 @@ gun_shell::gun_shell(const sea_object& parent, angle direction, angle elevation,
 	heading = direction;
 	length = 0.2;
 	width = 0.2;
-	hitpoints = 1;
 	v0 = initial_velocity;
 	t = 0;
 	speed = v0;
@@ -38,14 +37,14 @@ void gun_shell::simulate(game& gm, double delta_time)
 			// the shell is so fast that it can be collisionfree with *it
 			// delta_time ago and now, but hit *it in between
 			if (is_collision(*it)) {
-				(*it)->damage(GUN_SHELL_HITPOINTS);
+				(*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS);
 				return;	// only one hit possible
 			}
 		}
 		list<submarine*>& submarines = gm.get_submarines();
 		for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
 			if (is_collision(*it)) {
-				(*it)->damage(GUN_SHELL_HITPOINTS);
+				(*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS);
 				return; // only one hit possible
 			}
 		}
