@@ -11,7 +11,11 @@
 #include "system.h"
 #include "particle.h"
 #include "tinyxml/tinyxml.h"
+#include "gun_shell.h"
 
+map<double, double> ship::dist_angle_relation;
+#define MAX_ANGLE 45.0
+#define ANGLE_GAP 0.1
 
 //fixme: redefine display, call base display
 
@@ -20,6 +24,7 @@
 ship::ship() : sea_object(), myai(0), smoke_type(0)
 {
 	init();
+	fill_dist_angle_relation_map();
 }
 
 
@@ -42,11 +47,31 @@ void ship::init(void)
 	myfire = 0;
 }
 
-
+void ship::fill_dist_angle_relation_map(void)
+{
+	if (dist_angle_relation.size() > 0) return;
+	for (double a = 0; a < MAX_ANGLE+ANGLE_GAP; a += ANGLE_GAP) {
+		angle elevation(a);
+		double z = 4;	// meters, initial height above water
+		double vz = GUN_SHELL_INITIAL_VELOCITY * elevation.sin();
+		double dist = 0;
+		double vdist = GUN_SHELL_INITIAL_VELOCITY * elevation.cos();
+		
+		for (double dt = 0; dt < 120.0; dt += 0.01) {
+			dist += vdist * dt;
+			z += vz * dt;
+			vz += -GRAVITY * dt;
+			if (z <= 0) break;
+		}
+		
+		dist_angle_relation[dist] = a;
+	}
+}
 
 ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfile, topnodename)
 {
 	init();
+	fill_dist_angle_relation_map();
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdship = hspec.FirstChild(topnodename);
 	TiXmlElement* eclassification = hdftdship.FirstChildElement("classification").Element();
@@ -577,4 +602,43 @@ double ship::get_turn_acceleration(void) const	// drag must be already included!
 void ship::calculate_fuel_factor ( double delta_time )
 {
 	fuel_level -= delta_time * get_fuel_consumption_rate ();
+}
+
+int ship::fire_shell_at(game& gm, const sea_object& s)
+{
+	//fixme!!! move this code to class ship::fire_shell_at. move dist_angle relation also,
+	//maybe approximate that relation with splines.
+
+	// maybe we should not use current position but rather
+	// estimated position at impact!
+	vector2 deltapos = s.get_pos().xy() - get_pos().xy();
+	double distance = deltapos.length();
+	angle direction(deltapos);
+
+	double max_shooting_distance = (dist_angle_relation.rbegin())->first;
+	if (distance > max_shooting_distance) return TARGET_OUT_OF_RANGE;	// can't do anything
+	
+	// initial angle: estimate distance and fire, remember angle
+	// next shots: adjust angle after distance fault:
+	//	estimate new distance from old and fault
+	//	select new angle, fire.
+	//	use an extra bit of correction for wind etc.
+	//	to do that, we need to know where the last shot impacted!
+
+	map<double, double>::iterator it = dist_angle_relation.lower_bound(distance);
+	if (it == dist_angle_relation.end()) return;	// unsuccesful angle, fixme
+	angle elevation = angle(it->second);
+
+	// fixme: for a smart ai: try to avoid firing at friendly ships that are in line
+	// of fire.
+	
+	// fixme: snap angle values to simulate real cannon accuracy.
+
+	// fixme: adapt direction & elevation to course and speed of target!
+	gm.spawn_gun_shell(new gun_shell(*this, direction, elevation));
+
+	last_elevation = elevation;	
+	last_azimuth = direction;
+	
+	return 1;
 }

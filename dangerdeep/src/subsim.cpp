@@ -1005,7 +1005,7 @@ void menu_configure_keys(void)
 	wkeys->set_column_width(700);
 	w.add_child(wkeys);
 	
-	for (unsigned i = 600; i <= 649; ++i) {
+	for (unsigned i = 600; i <= 650; ++i) {
 		cfg::key k = cfg::instance().getkey(i-600);
 		wkeys->append_entry(texts::get(i) + string("\t") + k.get_name());
 	}
@@ -1218,6 +1218,7 @@ int main(int argc, char** argv)
 	mycfg.register_key(KEY_TURN_VIEW_RIGHT_FAST, "KEY_TURN_VIEW_RIGHT_FAST", SDLK_PERIOD, 0, 0, 1);
 	mycfg.register_key(KEY_TIME_SCALE_UP, "KEY_TIME_SCALE_UP", SDLK_F11, 0, 0, 0);
 	mycfg.register_key(KEY_TIME_SCALE_DOWN, "KEY_TIME_SCALE_DOWN", SDLK_F12, 0, 0, 0);
+	mycfg.register_key(KEY_FIRE_DECK_GUN, "KEY_FIRE_DECK_GUN", SDLK_g, 0, 0, 0);
 
 	//mycfg.register_option("invert_mouse", false);
 	//mycfg.register_option("ocean_res_x", 128);

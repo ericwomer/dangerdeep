@@ -278,6 +278,23 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 			if (time_scale_down()) {
 				add_message(texts::get(32));
 			}
+		} else if (mycfg.getkey(KEY_FIRE_DECK_GUN).equal(event.key.keysym)) {
+			if (false == player->is_submerged())
+			{
+				if (NULL != target && player != target)
+				{						
+					int res = player->fire_shell_at(gm, *target);
+					
+					if (TARGET_OUT_OF_RANGE == res)
+						add_message(texts::get(218));
+					else if (NO_AMMO_REMAINING == res)
+						add_message(texts::get(219));
+				}
+				else
+					add_message(texts::get(80));
+			}
+			else
+				add_message(texts::get(27));
 		} else {
 			// rest of the keys per switch (not user defineable)
 			// quit, screenshot, pause etc.

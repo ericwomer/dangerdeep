@@ -106,16 +106,8 @@ protected:
 	angle main_course;	// which angle to steer, ship zig-zags around it.
 	
 	bool cyclewaypoints;
-	list<vector2> waypoints;
+	list<vector2> waypoints;	
 	
-	angle last_elevation, last_azimuth;	// remeber last values.
-	
-	// some experience values of the crews to fire a grenade with right angle at any
-	// target. This depends on canon type (shot speed, min/max angles etc.) so we need
-	// several ai classes later.
-	static map<double, double> dist_angle_relation;
-	static void fill_dist_angle_relation_map(void);
-
 	ai();
 	ai(const ai& other);
 	ai& operator= (const ai& other);
@@ -142,7 +134,6 @@ public:
 	virtual void act_escort(class game& g, double delta_time);
 	virtual void act_dumb(class game& g, double delta_time);
 	virtual void act_convoy(class game& g, double delta_time);
-	virtual void fire_shell_at(class game& gm, const sea_object& s);
 	virtual bool set_course_to_pos(class game& gm, const vector2& pos);	// steer parent to pos, returns true if direct turn is possible
 };
 

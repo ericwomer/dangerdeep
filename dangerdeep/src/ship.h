@@ -10,6 +10,9 @@
 #define SINK_SPEED 0.5  // m/sec, fixme move to ship. include in local drag.
 #define MAXPREVPOS 20	//move to ship!
 
+#define NO_AMMO_REMAINING	0	// used by deck gun
+#define TARGET_OUT_OF_RANGE	-1	// used by deck gun
+
 class game;
 
 class ship : public sea_object
@@ -94,6 +97,14 @@ protected:
 	
 	virtual bool causes_spray(void) const { return true; }
 	
+	// some experience values of the crews to fire a grenade with right angle at any
+	// target. This depends on canon type (shot speed, min/max angles etc.) so we need
+	// several ai classes later.
+	static map<double, double> dist_angle_relation;
+	static void fill_dist_angle_relation_map(void);
+	
+	angle last_elevation, last_azimuth;	// remeber last values.
+	
 public:
 	enum shipclasses {
 		WARSHIP,
@@ -153,6 +164,7 @@ public:
 	virtual double get_rudder_pos(void) const { return rudder_pos; }
 	virtual int get_rudder_to (void) const { return rudder_to; }
 	virtual double get_noise_factor (void) const;
+	virtual int fire_shell_at(class game& gm, const sea_object& s);
 
 	// needed for launching torpedoes
 	pair<angle, double> bearing_and_range_to(const sea_object* other) const;

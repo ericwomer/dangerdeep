@@ -1013,7 +1013,15 @@ bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 		// the shell is so fast that it can be collisionfree with *it
 		// delta_time ago and now, but hit *it in between
 		if (is_collision(*it, pos.xy())) {
-			(*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS);
+			if ((*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS))
+			{
+				ship_sunk(*it);
+			} else {
+				(*it)->ignite(*this);
+			}		
+			
+			// play gun shell explosion sound effect
+			
 			return true;	// only one hit possible
 		}
 	}
@@ -1023,6 +1031,9 @@ bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 		if (is_collision(*it, pos.xy())) {
 //printf("sub damaged!!!\n");		
 			(*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS);
+			
+			// play gun shell explosion sound effect
+			
 			return true; // only one hit possible
 		}
 	}
