@@ -1,5 +1,5 @@
-/* OglExt.h                                               Copyright (C) 2003 Thomas Jansen (jansen@caesar.de) */
-/*                                                                  (C) 2003 research center caesar           */
+/* OglExt.h                                               Copyright (C) 2004 Thomas Jansen (jansen@caesar.de) */
+/*                                                                  (C) 2004 research center caesar           */
 /*                                                                                                            */
 /* This file is part of OglExt, a free OpenGL extension library.                                              */
 /*                                                                                                            */

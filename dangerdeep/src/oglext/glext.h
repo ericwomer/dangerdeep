@@ -1,5 +1,5 @@
-/* glext.h                                                Copyright (C) 2003 Thomas Jansen (jansen@caesar.de) */
-/*                                                                  (C) 2003 research center caesar           */
+/* glext.h                                                Copyright (C) 2004 Thomas Jansen (jansen@caesar.de) */
+/*                                                                  (C) 2004 research center caesar           */
 /*                                                                                                            */
 /* This file is part of OglExt, a free OpenGL extension library.                                              */
 /*                                                                                                            */
@@ -16,7 +16,7 @@
 /*                                                                                                            */
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 /*                                                                                                            */
-/* This file was automatically generated on November 14, 2003, 4:54 pm                                        */
+/* This file was automatically generated on June 15, 2004, 11:47 am                                           */
 
 #ifndef _GLEXT_H_
 #define _GLEXT_H_
@@ -35,14 +35,18 @@
 	#include <windows.h>
 #endif
 
-#include <GL/gl.h>
+#if (defined(__APPLE__) && defined(__GNUC__)) || defined(__MACOSX__)
+	#include <gl.h>
+#else
+	#include <GL/gl.h>
+#endif
 
-#ifndef APIENTRY
+#if !defined(APIENTRY)
    #define APIENTRY
 #endif
 
-#ifndef GLAPI
-   #ifdef _WIN32
+#if !defined(GLAPI)
+   #if defined(_WIN32)
       #define GLAPI extern _declspec(dllimport)
    #else
       #define GLAPI extern
@@ -52,6 +56,20 @@
 #include <stddef.h>
 
 
+/* ========================================================================================================== */
+/* ===                                             M A C R O S                                            === */
+/* ========================================================================================================== */
+
+#ifndef	OGLGLEXT_NOALIAS
+
+	/* Macro for creating the OpenGL name (change the alias prefix if needed) */
+
+	#ifndef	OGLEXT_MAKEGLNAME
+		#define	OGLEXT_MAKEGLNAME(NAME)		oglext ## NAME
+	#endif	/* OGLEXT_MAKEGLNAME */
+
+#endif	/* OGLGLEXT_NOALIAS */
+
 
 /* ========================================================================================================== */
 /* ===                                    O P E N G L   V E R S I O N                                     === */
@@ -59,11 +77,12 @@
 
 /* ---[ GL_VERSION_1_2 ]------------------------------------------------------------------------------------- */
 
-/*! link : http://www.opengl.org/developers/documentation/Version1.2/OpenGL_spec_1.2.1.pdf */
+/*! link : http://www.opengl.org/documentation/specs/version1.2/opengl1.2.1.pdf */
 
 #ifndef GL_VERSION_1_2
 
    #define GL_VERSION_1_2 1
+   #define GL_VERSION_1_2_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -112,6 +131,51 @@
       #define GL_ALIASED_LINE_WIDTH_RANGE                                 0x846e
 
    #endif /* GL_SMOOTH_POINT_SIZE_RANGE */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glBlendColor                                     OGLEXT_MAKEGLNAME(BlendColor)
+      #define glBlendEquation                                  OGLEXT_MAKEGLNAME(BlendEquation)
+      #define glColorSubTable                                  OGLEXT_MAKEGLNAME(ColorSubTable)
+      #define glColorTable                                     OGLEXT_MAKEGLNAME(ColorTable)
+      #define glColorTableParameterfv                          OGLEXT_MAKEGLNAME(ColorTableParameterfv)
+      #define glColorTableParameteriv                          OGLEXT_MAKEGLNAME(ColorTableParameteriv)
+      #define glConvolutionFilter1D                            OGLEXT_MAKEGLNAME(ConvolutionFilter1D)
+      #define glConvolutionFilter2D                            OGLEXT_MAKEGLNAME(ConvolutionFilter2D)
+      #define glConvolutionParameterf                          OGLEXT_MAKEGLNAME(ConvolutionParameterf)
+      #define glConvolutionParameterfv                         OGLEXT_MAKEGLNAME(ConvolutionParameterfv)
+      #define glConvolutionParameteri                          OGLEXT_MAKEGLNAME(ConvolutionParameteri)
+      #define glConvolutionParameteriv                         OGLEXT_MAKEGLNAME(ConvolutionParameteriv)
+      #define glCopyColorSubTable                              OGLEXT_MAKEGLNAME(CopyColorSubTable)
+      #define glCopyColorTable                                 OGLEXT_MAKEGLNAME(CopyColorTable)
+      #define glCopyConvolutionFilter1D                        OGLEXT_MAKEGLNAME(CopyConvolutionFilter1D)
+      #define glCopyConvolutionFilter2D                        OGLEXT_MAKEGLNAME(CopyConvolutionFilter2D)
+      #define glCopyTexSubImage3D                              OGLEXT_MAKEGLNAME(CopyTexSubImage3D)
+      #define glDrawRangeElements                              OGLEXT_MAKEGLNAME(DrawRangeElements)
+      #define glGetColorTable                                  OGLEXT_MAKEGLNAME(GetColorTable)
+      #define glGetColorTableParameterfv                       OGLEXT_MAKEGLNAME(GetColorTableParameterfv)
+      #define glGetColorTableParameteriv                       OGLEXT_MAKEGLNAME(GetColorTableParameteriv)
+      #define glGetConvolutionFilter                           OGLEXT_MAKEGLNAME(GetConvolutionFilter)
+      #define glGetConvolutionParameterfv                      OGLEXT_MAKEGLNAME(GetConvolutionParameterfv)
+      #define glGetConvolutionParameteriv                      OGLEXT_MAKEGLNAME(GetConvolutionParameteriv)
+      #define glGetHistogram                                   OGLEXT_MAKEGLNAME(GetHistogram)
+      #define glGetHistogramParameterfv                        OGLEXT_MAKEGLNAME(GetHistogramParameterfv)
+      #define glGetHistogramParameteriv                        OGLEXT_MAKEGLNAME(GetHistogramParameteriv)
+      #define glGetMinmax                                      OGLEXT_MAKEGLNAME(GetMinmax)
+      #define glGetMinmaxParameterfv                           OGLEXT_MAKEGLNAME(GetMinmaxParameterfv)
+      #define glGetMinmaxParameteriv                           OGLEXT_MAKEGLNAME(GetMinmaxParameteriv)
+      #define glGetSeparableFilter                             OGLEXT_MAKEGLNAME(GetSeparableFilter)
+      #define glHistogram                                      OGLEXT_MAKEGLNAME(Histogram)
+      #define glMinmax                                         OGLEXT_MAKEGLNAME(Minmax)
+      #define glResetHistogram                                 OGLEXT_MAKEGLNAME(ResetHistogram)
+      #define glResetMinmax                                    OGLEXT_MAKEGLNAME(ResetMinmax)
+      #define glSeparableFilter2D                              OGLEXT_MAKEGLNAME(SeparableFilter2D)
+      #define glTexImage3D                                     OGLEXT_MAKEGLNAME(TexImage3D)
+      #define glTexSubImage3D                                  OGLEXT_MAKEGLNAME(TexSubImage3D)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -163,11 +227,12 @@
 
 /* ---[ GL_VERSION_1_3 ]------------------------------------------------------------------------------------- */
 
-/*! link : http://www.opengl.org/developers/documentation/version1_3/glspec13.pdf */
+/*! link : http://www.opengl.org/documentation/specs/version1.3/glspec13.pdf */
 
 #ifndef GL_VERSION_1_3
 
    #define GL_VERSION_1_3 1
+   #define GL_VERSION_1_3_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -272,6 +337,59 @@
 
    #endif /* GL_MULTISAMPLE */
 
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glActiveTexture                                  OGLEXT_MAKEGLNAME(ActiveTexture)
+      #define glClientActiveTexture                            OGLEXT_MAKEGLNAME(ClientActiveTexture)
+      #define glCompressedTexImage1D                           OGLEXT_MAKEGLNAME(CompressedTexImage1D)
+      #define glCompressedTexImage2D                           OGLEXT_MAKEGLNAME(CompressedTexImage2D)
+      #define glCompressedTexImage3D                           OGLEXT_MAKEGLNAME(CompressedTexImage3D)
+      #define glCompressedTexSubImage1D                        OGLEXT_MAKEGLNAME(CompressedTexSubImage1D)
+      #define glCompressedTexSubImage2D                        OGLEXT_MAKEGLNAME(CompressedTexSubImage2D)
+      #define glCompressedTexSubImage3D                        OGLEXT_MAKEGLNAME(CompressedTexSubImage3D)
+      #define glGetCompressedTexImage                          OGLEXT_MAKEGLNAME(GetCompressedTexImage)
+      #define glLoadTransposeMatrixd                           OGLEXT_MAKEGLNAME(LoadTransposeMatrixd)
+      #define glLoadTransposeMatrixf                           OGLEXT_MAKEGLNAME(LoadTransposeMatrixf)
+      #define glMultiTexCoord1d                                OGLEXT_MAKEGLNAME(MultiTexCoord1d)
+      #define glMultiTexCoord1dv                               OGLEXT_MAKEGLNAME(MultiTexCoord1dv)
+      #define glMultiTexCoord1f                                OGLEXT_MAKEGLNAME(MultiTexCoord1f)
+      #define glMultiTexCoord1fv                               OGLEXT_MAKEGLNAME(MultiTexCoord1fv)
+      #define glMultiTexCoord1i                                OGLEXT_MAKEGLNAME(MultiTexCoord1i)
+      #define glMultiTexCoord1iv                               OGLEXT_MAKEGLNAME(MultiTexCoord1iv)
+      #define glMultiTexCoord1s                                OGLEXT_MAKEGLNAME(MultiTexCoord1s)
+      #define glMultiTexCoord1sv                               OGLEXT_MAKEGLNAME(MultiTexCoord1sv)
+      #define glMultiTexCoord2d                                OGLEXT_MAKEGLNAME(MultiTexCoord2d)
+      #define glMultiTexCoord2dv                               OGLEXT_MAKEGLNAME(MultiTexCoord2dv)
+      #define glMultiTexCoord2f                                OGLEXT_MAKEGLNAME(MultiTexCoord2f)
+      #define glMultiTexCoord2fv                               OGLEXT_MAKEGLNAME(MultiTexCoord2fv)
+      #define glMultiTexCoord2i                                OGLEXT_MAKEGLNAME(MultiTexCoord2i)
+      #define glMultiTexCoord2iv                               OGLEXT_MAKEGLNAME(MultiTexCoord2iv)
+      #define glMultiTexCoord2s                                OGLEXT_MAKEGLNAME(MultiTexCoord2s)
+      #define glMultiTexCoord2sv                               OGLEXT_MAKEGLNAME(MultiTexCoord2sv)
+      #define glMultiTexCoord3d                                OGLEXT_MAKEGLNAME(MultiTexCoord3d)
+      #define glMultiTexCoord3dv                               OGLEXT_MAKEGLNAME(MultiTexCoord3dv)
+      #define glMultiTexCoord3f                                OGLEXT_MAKEGLNAME(MultiTexCoord3f)
+      #define glMultiTexCoord3fv                               OGLEXT_MAKEGLNAME(MultiTexCoord3fv)
+      #define glMultiTexCoord3i                                OGLEXT_MAKEGLNAME(MultiTexCoord3i)
+      #define glMultiTexCoord3iv                               OGLEXT_MAKEGLNAME(MultiTexCoord3iv)
+      #define glMultiTexCoord3s                                OGLEXT_MAKEGLNAME(MultiTexCoord3s)
+      #define glMultiTexCoord3sv                               OGLEXT_MAKEGLNAME(MultiTexCoord3sv)
+      #define glMultiTexCoord4d                                OGLEXT_MAKEGLNAME(MultiTexCoord4d)
+      #define glMultiTexCoord4dv                               OGLEXT_MAKEGLNAME(MultiTexCoord4dv)
+      #define glMultiTexCoord4f                                OGLEXT_MAKEGLNAME(MultiTexCoord4f)
+      #define glMultiTexCoord4fv                               OGLEXT_MAKEGLNAME(MultiTexCoord4fv)
+      #define glMultiTexCoord4i                                OGLEXT_MAKEGLNAME(MultiTexCoord4i)
+      #define glMultiTexCoord4iv                               OGLEXT_MAKEGLNAME(MultiTexCoord4iv)
+      #define glMultiTexCoord4s                                OGLEXT_MAKEGLNAME(MultiTexCoord4s)
+      #define glMultiTexCoord4sv                               OGLEXT_MAKEGLNAME(MultiTexCoord4sv)
+      #define glMultTransposeMatrixd                           OGLEXT_MAKEGLNAME(MultTransposeMatrixd)
+      #define glMultTransposeMatrixf                           OGLEXT_MAKEGLNAME(MultTransposeMatrixf)
+      #define glSampleCoverage                                 OGLEXT_MAKEGLNAME(SampleCoverage)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    #ifdef GL_GLEXT_PROTOTYPES
@@ -330,11 +448,12 @@
 
 /* ---[ GL_VERSION_1_4 ]------------------------------------------------------------------------------------- */
 
-/*! link : http://www.opengl.org/developers/documentation/version1_4/glspec14.pdf */
+/*! link : http://www.opengl.org/documentation/specs/version1.4/glspec14.pdf */
 
 #ifndef GL_VERSION_1_4
 
    #define GL_VERSION_1_4 1
+   #define GL_VERSION_1_4_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -381,6 +500,58 @@
       #define GL_COMPARE_R_TO_TEXTURE                                     0x884e
 
    #endif /* GL_BLEND_DST_RGB */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glBlendFuncSeparate                              OGLEXT_MAKEGLNAME(BlendFuncSeparate)
+      #define glFogCoordd                                      OGLEXT_MAKEGLNAME(FogCoordd)
+      #define glFogCoorddv                                     OGLEXT_MAKEGLNAME(FogCoorddv)
+      #define glFogCoordf                                      OGLEXT_MAKEGLNAME(FogCoordf)
+      #define glFogCoordfv                                     OGLEXT_MAKEGLNAME(FogCoordfv)
+      #define glFogCoordPointer                                OGLEXT_MAKEGLNAME(FogCoordPointer)
+      #define glMultiDrawArrays                                OGLEXT_MAKEGLNAME(MultiDrawArrays)
+      #define glMultiDrawElements                              OGLEXT_MAKEGLNAME(MultiDrawElements)
+      #define glPointParameterf                                OGLEXT_MAKEGLNAME(PointParameterf)
+      #define glPointParameterfv                               OGLEXT_MAKEGLNAME(PointParameterfv)
+      #define glPointParameteri                                OGLEXT_MAKEGLNAME(PointParameteri)
+      #define glPointParameteriv                               OGLEXT_MAKEGLNAME(PointParameteriv)
+      #define glSecondaryColor3b                               OGLEXT_MAKEGLNAME(SecondaryColor3b)
+      #define glSecondaryColor3bv                              OGLEXT_MAKEGLNAME(SecondaryColor3bv)
+      #define glSecondaryColor3d                               OGLEXT_MAKEGLNAME(SecondaryColor3d)
+      #define glSecondaryColor3dv                              OGLEXT_MAKEGLNAME(SecondaryColor3dv)
+      #define glSecondaryColor3f                               OGLEXT_MAKEGLNAME(SecondaryColor3f)
+      #define glSecondaryColor3fv                              OGLEXT_MAKEGLNAME(SecondaryColor3fv)
+      #define glSecondaryColor3i                               OGLEXT_MAKEGLNAME(SecondaryColor3i)
+      #define glSecondaryColor3iv                              OGLEXT_MAKEGLNAME(SecondaryColor3iv)
+      #define glSecondaryColor3s                               OGLEXT_MAKEGLNAME(SecondaryColor3s)
+      #define glSecondaryColor3sv                              OGLEXT_MAKEGLNAME(SecondaryColor3sv)
+      #define glSecondaryColor3ub                              OGLEXT_MAKEGLNAME(SecondaryColor3ub)
+      #define glSecondaryColor3ubv                             OGLEXT_MAKEGLNAME(SecondaryColor3ubv)
+      #define glSecondaryColor3ui                              OGLEXT_MAKEGLNAME(SecondaryColor3ui)
+      #define glSecondaryColor3uiv                             OGLEXT_MAKEGLNAME(SecondaryColor3uiv)
+      #define glSecondaryColor3us                              OGLEXT_MAKEGLNAME(SecondaryColor3us)
+      #define glSecondaryColor3usv                             OGLEXT_MAKEGLNAME(SecondaryColor3usv)
+      #define glSecondaryColorPointer                          OGLEXT_MAKEGLNAME(SecondaryColorPointer)
+      #define glWindowPos2d                                    OGLEXT_MAKEGLNAME(WindowPos2d)
+      #define glWindowPos2dv                                   OGLEXT_MAKEGLNAME(WindowPos2dv)
+      #define glWindowPos2f                                    OGLEXT_MAKEGLNAME(WindowPos2f)
+      #define glWindowPos2fv                                   OGLEXT_MAKEGLNAME(WindowPos2fv)
+      #define glWindowPos2i                                    OGLEXT_MAKEGLNAME(WindowPos2i)
+      #define glWindowPos2iv                                   OGLEXT_MAKEGLNAME(WindowPos2iv)
+      #define glWindowPos2s                                    OGLEXT_MAKEGLNAME(WindowPos2s)
+      #define glWindowPos2sv                                   OGLEXT_MAKEGLNAME(WindowPos2sv)
+      #define glWindowPos3d                                    OGLEXT_MAKEGLNAME(WindowPos3d)
+      #define glWindowPos3dv                                   OGLEXT_MAKEGLNAME(WindowPos3dv)
+      #define glWindowPos3f                                    OGLEXT_MAKEGLNAME(WindowPos3f)
+      #define glWindowPos3fv                                   OGLEXT_MAKEGLNAME(WindowPos3fv)
+      #define glWindowPos3i                                    OGLEXT_MAKEGLNAME(WindowPos3i)
+      #define glWindowPos3iv                                   OGLEXT_MAKEGLNAME(WindowPos3iv)
+      #define glWindowPos3s                                    OGLEXT_MAKEGLNAME(WindowPos3s)
+      #define glWindowPos3sv                                   OGLEXT_MAKEGLNAME(WindowPos3sv)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -437,6 +608,132 @@
 #endif /* GL_VERSION_1_4 */
 
 
+/* ---[ GL_VERSION_1_5 ]------------------------------------------------------------------------------------- */
+
+/*! link : http://www.opengl.org/documentation/specs/version1.5/glspec15.pdf */
+
+#ifndef GL_VERSION_1_5
+
+   #define GL_VERSION_1_5 1
+   #define GL_VERSION_1_5_OGLEXT 1
+
+   /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef GL_FOG_COORD_SOURCE
+
+      #define GL_FOG_COORD_SOURCE                                         0x8450
+      #define GL_FOG_COORD                                                0x8451
+      #define GL_CURRENT_FOG_COORD                                        0x8453
+      #define GL_FOG_COORD_ARRAY_TYPE                                     0x8454
+      #define GL_FOG_COORD_ARRAY_STRIDE                                   0x8455
+      #define GL_FOG_COORD_ARRAY_POINTER                                  0x8456
+      #define GL_FOG_COORD_ARRAY                                          0x8457
+      #define GL_SRC0_RGB                                                 0x8580
+      #define GL_SRC1_RGB                                                 0x8581
+      #define GL_SRC2_RGB                                                 0x8582
+      #define GL_SRC0_ALPHA                                               0x8588
+      #define GL_SRC1_ALPHA                                               0x8589
+      #define GL_SRC2_ALPHA                                               0x858a
+      #define GL_BUFFER_SIZE                                              0x8764
+      #define GL_BUFFER_USAGE                                             0x8765
+      #define GL_QUERY_COUNTER_BITS                                       0x8864
+      #define GL_CURRENT_QUERY                                            0x8865
+      #define GL_QUERY_RESULT                                             0x8866
+      #define GL_QUERY_RESULT_AVAILABLE                                   0x8867
+      #define GL_ARRAY_BUFFER                                             0x8892
+      #define GL_ELEMENT_ARRAY_BUFFER                                     0x8893
+      #define GL_ARRAY_BUFFER_BINDING                                     0x8894
+      #define GL_ELEMENT_ARRAY_BUFFER_BINDING                             0x8895
+      #define GL_VERTEX_ARRAY_BUFFER_BINDING                              0x8896
+      #define GL_NORMAL_ARRAY_BUFFER_BINDING                              0x8897
+      #define GL_COLOR_ARRAY_BUFFER_BINDING                               0x8898
+      #define GL_INDEX_ARRAY_BUFFER_BINDING                               0x8899
+      #define GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING                       0x889a
+      #define GL_EDGE_FLAG_ARRAY_BUFFER_BINDING                           0x889b
+      #define GL_SECONDARY_COLOR_ARRAY_BUFFER_BINDING                     0x889c
+      #define GL_FOG_COORD_ARRAY_BUFFER_BINDING                           0x889d
+      #define GL_FOG_COORDINATE_ARRAY_BUFFER_BINDING                      0x889d
+      #define GL_WEIGHT_ARRAY_BUFFER_BINDING                              0x889e
+      #define GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING                       0x889f
+      #define GL_READ_ONLY                                                0x88b8
+      #define GL_WRITE_ONLY                                               0x88b9
+      #define GL_READ_WRITE                                               0x88ba
+      #define GL_BUFFER_ACCESS                                            0x88bb
+      #define GL_BUFFER_MAPPED                                            0x88bc
+      #define GL_BUFFER_MAP_POINTER                                       0x88bd
+      #define GL_STREAM_DRAW                                              0x88e0
+      #define GL_STREAM_READ                                              0x88e1
+      #define GL_STREAM_COPY                                              0x88e2
+      #define GL_STATIC_DRAW                                              0x88e4
+      #define GL_STATIC_READ                                              0x88e5
+      #define GL_STATIC_COPY                                              0x88e6
+      #define GL_DYNAMIC_DRAW                                             0x88e8
+      #define GL_DYNAMIC_READ                                             0x88e9
+      #define GL_DYNAMIC_COPY                                             0x88ea
+      #define GL_SAMPLES_PASSED                                           0x8914
+
+   #endif /* GL_FOG_COORD_SOURCE */
+
+   /* - -[ type definitions ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   typedef ptrdiff_t                                                      GLintptr;
+   typedef ptrdiff_t                                                      GLsizeiptr;
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glBeginQuery                                     OGLEXT_MAKEGLNAME(BeginQuery)
+      #define glBindBuffer                                     OGLEXT_MAKEGLNAME(BindBuffer)
+      #define glBufferData                                     OGLEXT_MAKEGLNAME(BufferData)
+      #define glBufferSubData                                  OGLEXT_MAKEGLNAME(BufferSubData)
+      #define glDeleteBuffers                                  OGLEXT_MAKEGLNAME(DeleteBuffers)
+      #define glDeleteQueries                                  OGLEXT_MAKEGLNAME(DeleteQueries)
+      #define glEndQuery                                       OGLEXT_MAKEGLNAME(EndQuery)
+      #define glGenBuffers                                     OGLEXT_MAKEGLNAME(GenBuffers)
+      #define glGenQueries                                     OGLEXT_MAKEGLNAME(GenQueries)
+      #define glGetBufferParameteriv                           OGLEXT_MAKEGLNAME(GetBufferParameteriv)
+      #define glGetBufferPointerv                              OGLEXT_MAKEGLNAME(GetBufferPointerv)
+      #define glGetBufferSubData                               OGLEXT_MAKEGLNAME(GetBufferSubData)
+      #define glGetQueryiv                                     OGLEXT_MAKEGLNAME(GetQueryiv)
+      #define glGetQueryObjectiv                               OGLEXT_MAKEGLNAME(GetQueryObjectiv)
+      #define glGetQueryObjectuiv                              OGLEXT_MAKEGLNAME(GetQueryObjectuiv)
+      #define glIsBuffer                                       OGLEXT_MAKEGLNAME(IsBuffer)
+      #define glIsQuery                                        OGLEXT_MAKEGLNAME(IsQuery)
+      #define glMapBuffer                                      OGLEXT_MAKEGLNAME(MapBuffer)
+      #define glUnmapBuffer                                    OGLEXT_MAKEGLNAME(UnmapBuffer)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
+   /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifdef GL_GLEXT_PROTOTYPES
+
+      GLAPI GLvoid            glBeginQuery(GLenum, GLuint);
+      GLAPI GLvoid            glBindBuffer(GLenum, GLuint);
+      GLAPI GLvoid            glBufferData(GLenum, GLsizeiptr, GLvoid const *, GLenum);
+      GLAPI GLvoid            glBufferSubData(GLenum, GLintptr, GLsizeiptr, GLvoid const *);
+      GLAPI GLvoid            glDeleteBuffers(GLsizei, GLuint const *);
+      GLAPI GLvoid            glDeleteQueries(GLsizei, GLuint const *);
+      GLAPI GLvoid            glEndQuery(GLenum);
+      GLAPI GLvoid            glGenBuffers(GLsizei, GLuint *);
+      GLAPI GLvoid            glGenQueries(GLsizei, GLuint *);
+      GLAPI GLvoid            glGetBufferParameteriv(GLenum, GLenum, GLint *);
+      GLAPI GLvoid            glGetBufferPointerv(GLenum, GLenum, GLvoid * *);
+      GLAPI GLvoid            glGetBufferSubData(GLenum, GLintptr, GLsizeiptr, GLvoid *);
+      GLAPI GLvoid            glGetQueryiv(GLenum, GLenum, GLint);
+      GLAPI GLvoid            glGetQueryObjectiv(GLuint, GLenum, GLint *);
+      GLAPI GLvoid            glGetQueryObjectuiv(GLuint, GLenum, GLuint *);
+      GLAPI GLboolean         glIsBuffer(GLuint);
+      GLAPI GLboolean         glIsQuery(GLuint);
+      GLAPI GLvoid *          glMapBuffer(GLenum, GLenum);
+      GLAPI GLboolean         glUnmapBuffer(GLenum);
+
+   #endif /* GL_GLEXT_PROTOTYPES */
+
+#endif /* GL_VERSION_1_5 */
+
+
 
 /* ========================================================================================================== */
 /* ===                                  O P E N G L   E X T E N S I O N                                   === */
@@ -449,6 +746,7 @@
 #ifndef GL_3DFX_multisample
 
    #define GL_3DFX_multisample 1
+   #define GL_3DFX_multisample_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -471,6 +769,15 @@
 #ifndef GL_3DFX_tbuffer
 
    #define GL_3DFX_tbuffer 1
+   #define GL_3DFX_tbuffer_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glTbufferMask3DFX                                OGLEXT_MAKEGLNAME(TbufferMask3DFX)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -490,6 +797,7 @@
 #ifndef GL_3DFX_texture_compression_FXT1
 
    #define GL_3DFX_texture_compression_FXT1 1
+   #define GL_3DFX_texture_compression_FXT1_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -510,6 +818,7 @@
 #ifndef GL_APPLE_client_storage
 
    #define GL_APPLE_client_storage 1
+   #define GL_APPLE_client_storage_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -529,6 +838,7 @@
 #ifndef GL_APPLE_element_array
 
    #define GL_APPLE_element_array 1
+   #define GL_APPLE_element_array_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -539,6 +849,18 @@
       #define GL_ELEMENT_ARRAY_POINTER_APPLE                              0x876a
 
    #endif /* GL_ELEMENT_ARRAY_APPLE */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glDrawElementArrayAPPLE                          OGLEXT_MAKEGLNAME(DrawElementArrayAPPLE)
+      #define glDrawRangeElementArrayAPPLE                     OGLEXT_MAKEGLNAME(DrawRangeElementArrayAPPLE)
+      #define glElementPointerAPPLE                            OGLEXT_MAKEGLNAME(ElementPointerAPPLE)
+      #define glMultiDrawElementArrayAPPLE                     OGLEXT_MAKEGLNAME(MultiDrawElementArrayAPPLE)
+      #define glMultiDrawRangeElementArrayAPPLE                OGLEXT_MAKEGLNAME(MultiDrawRangeElementArrayAPPLE)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -562,6 +884,7 @@
 #ifndef GL_APPLE_fence
 
    #define GL_APPLE_fence 1
+   #define GL_APPLE_fence_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -571,6 +894,21 @@
       #define GL_FENCE_APPLE                                              0x8a0b
 
    #endif /* GL_DRAW_PIXELS_APPLE */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glDeleteFencesAPPLE                              OGLEXT_MAKEGLNAME(DeleteFencesAPPLE)
+      #define glFinishFenceAPPLE                               OGLEXT_MAKEGLNAME(FinishFenceAPPLE)
+      #define glFinishObjectAPPLE                              OGLEXT_MAKEGLNAME(FinishObjectAPPLE)
+      #define glGenFencesAPPLE                                 OGLEXT_MAKEGLNAME(GenFencesAPPLE)
+      #define glIsFenceAPPLE                                   OGLEXT_MAKEGLNAME(IsFenceAPPLE)
+      #define glSetFenceAPPLE                                  OGLEXT_MAKEGLNAME(SetFenceAPPLE)
+      #define glTestFenceAPPLE                                 OGLEXT_MAKEGLNAME(TestFenceAPPLE)
+      #define glTestObjectAPPLE                                OGLEXT_MAKEGLNAME(TestObjectAPPLE)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -597,6 +935,7 @@
 #ifndef GL_APPLE_specular_vector
 
    #define GL_APPLE_specular_vector 1
+   #define GL_APPLE_specular_vector_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -616,6 +955,7 @@
 #ifndef GL_APPLE_transform_hint
 
    #define GL_APPLE_transform_hint 1
+   #define GL_APPLE_transform_hint_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -635,6 +975,7 @@
 #ifndef GL_APPLE_vertex_array_object
 
    #define GL_APPLE_vertex_array_object 1
+   #define GL_APPLE_vertex_array_object_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -643,6 +984,17 @@
       #define GL_VERTEX_ARRAY_BINDING_APPLE                               0x85b5
 
    #endif /* GL_VERTEX_ARRAY_BINDING_APPLE */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glBindVertexArrayAPPLE                           OGLEXT_MAKEGLNAME(BindVertexArrayAPPLE)
+      #define glDeleteVertexArraysAPPLE                        OGLEXT_MAKEGLNAME(DeleteVertexArraysAPPLE)
+      #define glGenVertexArraysAPPLE                           OGLEXT_MAKEGLNAME(GenVertexArraysAPPLE)
+      #define glIsVertexArrayAPPLE                             OGLEXT_MAKEGLNAME(IsVertexArrayAPPLE)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -665,6 +1017,7 @@
 #ifndef GL_APPLE_vertex_array_range
 
    #define GL_APPLE_vertex_array_range 1
+   #define GL_APPLE_vertex_array_range_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -678,6 +1031,16 @@
       #define GL_STORAGE_SHARED_APPLE                                     0x85bf
 
    #endif /* GL_VERTEX_ARRAY_RANGE_APPLE */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glFlushVertexArrayRangeAPPLE                     OGLEXT_MAKEGLNAME(FlushVertexArrayRangeAPPLE)
+      #define glVertexArrayParameteriAPPLE                     OGLEXT_MAKEGLNAME(VertexArrayParameteriAPPLE)
+      #define glVertexArrayRangeAPPLE                          OGLEXT_MAKEGLNAME(VertexArrayRangeAPPLE)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -699,6 +1062,7 @@
 #ifndef GL_APPLE_ycbcr_422
 
    #define GL_APPLE_ycbcr_422 1
+   #define GL_APPLE_ycbcr_422_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -720,6 +1084,7 @@
 #ifndef GL_ARB_depth_texture
 
    #define GL_ARB_depth_texture 1
+   #define GL_ARB_depth_texture_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -743,6 +1108,7 @@
 #ifndef GL_ARB_fragment_program
 
    #define GL_ARB_fragment_program 1
+   #define GL_ARB_fragment_program_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -776,6 +1142,7 @@
 #ifndef GL_ARB_matrix_palette
 
    #define GL_ARB_matrix_palette 1
+   #define GL_ARB_matrix_palette_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -793,6 +1160,18 @@
       #define GL_MATRIX_INDEX_ARRAY_POINTER_ARB                           0x8849
 
    #endif /* GL_MATRIX_PALETTE_ARB */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glCurrentPaletteMatrixARB                        OGLEXT_MAKEGLNAME(CurrentPaletteMatrixARB)
+      #define glMatrixIndexPointerARB                          OGLEXT_MAKEGLNAME(MatrixIndexPointerARB)
+      #define glMatrixIndexubvARB                              OGLEXT_MAKEGLNAME(MatrixIndexubvARB)
+      #define glMatrixIndexuivARB                              OGLEXT_MAKEGLNAME(MatrixIndexuivARB)
+      #define glMatrixIndexusvARB                              OGLEXT_MAKEGLNAME(MatrixIndexusvARB)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -816,6 +1195,7 @@
 #ifndef GL_ARB_multisample
 
    #define GL_ARB_multisample 1
+   #define GL_ARB_multisample_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -832,6 +1212,14 @@
       #define GL_MULTISAMPLE_BIT_ARB                                      0x20000000
 
    #endif /* GL_MULTISAMPLE_ARB */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glSampleCoverageARB                              OGLEXT_MAKEGLNAME(SampleCoverageARB)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -851,6 +1239,7 @@
 #ifndef GL_ARB_multitexture
 
    #define GL_ARB_multitexture 1
+   #define GL_ARB_multitexture_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -893,6 +1282,47 @@
       #define GL_MAX_TEXTURE_UNITS_ARB                                    0x84e2
 
    #endif /* GL_TEXTURE0_ARB */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glActiveTextureARB                               OGLEXT_MAKEGLNAME(ActiveTextureARB)
+      #define glClientActiveTextureARB                         OGLEXT_MAKEGLNAME(ClientActiveTextureARB)
+      #define glMultiTexCoord1dARB                             OGLEXT_MAKEGLNAME(MultiTexCoord1dARB)
+      #define glMultiTexCoord1dvARB                            OGLEXT_MAKEGLNAME(MultiTexCoord1dvARB)
+      #define glMultiTexCoord1fARB                             OGLEXT_MAKEGLNAME(MultiTexCoord1fARB)
+      #define glMultiTexCoord1fvARB                            OGLEXT_MAKEGLNAME(MultiTexCoord1fvARB)
+      #define glMultiTexCoord1iARB                             OGLEXT_MAKEGLNAME(MultiTexCoord1iARB)
+      #define glMultiTexCoord1ivARB                            OGLEXT_MAKEGLNAME(MultiTexCoord1ivARB)
+      #define glMultiTexCoord1sARB                             OGLEXT_MAKEGLNAME(MultiTexCoord1sARB)
+      #define glMultiTexCoord1svARB                            OGLEXT_MAKEGLNAME(MultiTexCoord1svARB)
+      #define glMultiTexCoord2dARB                             OGLEXT_MAKEGLNAME(MultiTexCoord2dARB)
+      #define glMultiTexCoord2dvARB                            OGLEXT_MAKEGLNAME(MultiTexCoord2dvARB)
+      #define glMultiTexCoord2fARB                             OGLEXT_MAKEGLNAME(MultiTexCoord2fARB)
+      #define glMultiTexCoord2fvARB                            OGLEXT_MAKEGLNAME(MultiTexCoord2fvARB)
+      #define glMultiTexCoord2iARB                             OGLEXT_MAKEGLNAME(MultiTexCoord2iARB)
+      #define glMultiTexCoord2ivARB                            OGLEXT_MAKEGLNAME(MultiTexCoord2ivARB)
+      #define glMultiTexCoord2sARB                             OGLEXT_MAKEGLNAME(MultiTexCoord2sARB)
+      #define glMultiTexCoord2svARB                            OGLEXT_MAKEGLNAME(MultiTexCoord2svARB)
+      #define glMultiTexCoord3dARB                             OGLEXT_MAKEGLNAME(MultiTexCoord3dARB)
+      #define glMultiTexCoord3dvARB                            OGLEXT_MAKEGLNAME(MultiTexCoord3dvARB)
+      #define glMultiTexCoord3fARB                             OGLEXT_MAKEGLNAME(MultiTexCoord3fARB)
+      #define glMultiTexCoord3fvARB                            OGLEXT_MAKEGLNAME(MultiTexCoord3fvARB)
+      #define glMultiTexCoord3iARB                             OGLEXT_MAKEGLNAME(MultiTexCoord3iARB)
+      #define glMultiTexCoord3ivARB                            OGLEXT_MAKEGLNAME(MultiTexCoord3ivARB)
+      #define glMultiTexCoord3sARB                             OGLEXT_MAKEGLNAME(MultiTexCoord3sARB)
+      #define glMultiTexCoord3svARB                            OGLEXT_MAKEGLNAME(MultiTexCoord3svARB)
+      #define glMultiTexCoord4dARB                             OGLEXT_MAKEGLNAME(MultiTexCoord4dARB)
+      #define glMultiTexCoord4dvARB                            OGLEXT_MAKEGLNAME(MultiTexCoord4dvARB)
+      #define glMultiTexCoord4fARB                             OGLEXT_MAKEGLNAME(MultiTexCoord4fARB)
+      #define glMultiTexCoord4fvARB                            OGLEXT_MAKEGLNAME(MultiTexCoord4fvARB)
+      #define glMultiTexCoord4iARB                             OGLEXT_MAKEGLNAME(MultiTexCoord4iARB)
+      #define glMultiTexCoord4ivARB                            OGLEXT_MAKEGLNAME(MultiTexCoord4ivARB)
+      #define glMultiTexCoord4sARB                             OGLEXT_MAKEGLNAME(MultiTexCoord4sARB)
+      #define glMultiTexCoord4svARB                            OGLEXT_MAKEGLNAME(MultiTexCoord4svARB)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -945,6 +1375,22 @@
 #ifndef GL_ARB_occlusion_query
 
    #define GL_ARB_occlusion_query 1
+   #define GL_ARB_occlusion_query_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glBeginQueryARB                                  OGLEXT_MAKEGLNAME(BeginQueryARB)
+      #define glDeleteQueriesARB                               OGLEXT_MAKEGLNAME(DeleteQueriesARB)
+      #define glEndQueryARB                                    OGLEXT_MAKEGLNAME(EndQueryARB)
+      #define glGenQueriesARB                                  OGLEXT_MAKEGLNAME(GenQueriesARB)
+      #define glGetQueryivARB                                  OGLEXT_MAKEGLNAME(GetQueryivARB)
+      #define glGetQueryObjectivARB                            OGLEXT_MAKEGLNAME(GetQueryObjectivARB)
+      #define glGetQueryObjectuivARB                           OGLEXT_MAKEGLNAME(GetQueryObjectuivARB)
+      #define glIsQueryARB                                     OGLEXT_MAKEGLNAME(IsQueryARB)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -971,6 +1417,7 @@
 #ifndef GL_ARB_point_parameters
 
    #define GL_ARB_point_parameters 1
+   #define GL_ARB_point_parameters_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -982,6 +1429,15 @@
       #define GL_POINT_DISTANCE_ATTENUATION_ARB                           0x8129
 
    #endif /* GL_POINT_SIZE_MIN_ARB */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glPointParameterfARB                             OGLEXT_MAKEGLNAME(PointParameterfARB)
+      #define glPointParameterfvARB                            OGLEXT_MAKEGLNAME(PointParameterfvARB)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1002,6 +1458,7 @@
 #ifndef GL_ARB_point_sprite
 
    #define GL_ARB_point_sprite 1
+   #define GL_ARB_point_sprite_OGLEXT 1
 
 #endif /* GL_ARB_point_sprite */
 
@@ -1013,11 +1470,58 @@
 #ifndef GL_ARB_shader_objects
 
    #define GL_ARB_shader_objects 1
+   #define GL_ARB_shader_objects_OGLEXT 1
 
    /* - -[ type definitions ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    typedef char                                                           GLcharARB;
    typedef void *                                                         GLhandleARB;
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glAttachObjectARB                                OGLEXT_MAKEGLNAME(AttachObjectARB)
+      #define glCompileShaderARB                               OGLEXT_MAKEGLNAME(CompileShaderARB)
+      #define glCreateProgramObjectARB                         OGLEXT_MAKEGLNAME(CreateProgramObjectARB)
+      #define glCreateShaderObjectARB                          OGLEXT_MAKEGLNAME(CreateShaderObjectARB)
+      #define glDeleteObjectARB                                OGLEXT_MAKEGLNAME(DeleteObjectARB)
+      #define glDetachObjectARB                                OGLEXT_MAKEGLNAME(DetachObjectARB)
+      #define glGetActiveUniformARB                            OGLEXT_MAKEGLNAME(GetActiveUniformARB)
+      #define glGetAttachedObjectsARB                          OGLEXT_MAKEGLNAME(GetAttachedObjectsARB)
+      #define glGetHandleARB                                   OGLEXT_MAKEGLNAME(GetHandleARB)
+      #define glGetInfoLogARB                                  OGLEXT_MAKEGLNAME(GetInfoLogARB)
+      #define glGetObjectParameterfvARB                        OGLEXT_MAKEGLNAME(GetObjectParameterfvARB)
+      #define glGetObjectParameterivARB                        OGLEXT_MAKEGLNAME(GetObjectParameterivARB)
+      #define glGetShaderSourceARB                             OGLEXT_MAKEGLNAME(GetShaderSourceARB)
+      #define glGetUniformfvARB                                OGLEXT_MAKEGLNAME(GetUniformfvARB)
+      #define glGetUniformivARB                                OGLEXT_MAKEGLNAME(GetUniformivARB)
+      #define glGetUniformLocationARB                          OGLEXT_MAKEGLNAME(GetUniformLocationARB)
+      #define glLinkProgramARB                                 OGLEXT_MAKEGLNAME(LinkProgramARB)
+      #define glShaderSourceARB                                OGLEXT_MAKEGLNAME(ShaderSourceARB)
+      #define glUniform1fARB                                   OGLEXT_MAKEGLNAME(Uniform1fARB)
+      #define glUniform1fvARB                                  OGLEXT_MAKEGLNAME(Uniform1fvARB)
+      #define glUniform1iARB                                   OGLEXT_MAKEGLNAME(Uniform1iARB)
+      #define glUniform1ivARB                                  OGLEXT_MAKEGLNAME(Uniform1ivARB)
+      #define glUniform2fARB                                   OGLEXT_MAKEGLNAME(Uniform2fARB)
+      #define glUniform2fvARB                                  OGLEXT_MAKEGLNAME(Uniform2fvARB)
+      #define glUniform2iARB                                   OGLEXT_MAKEGLNAME(Uniform2iARB)
+      #define glUniform2ivARB                                  OGLEXT_MAKEGLNAME(Uniform2ivARB)
+      #define glUniform3fARB                                   OGLEXT_MAKEGLNAME(Uniform3fARB)
+      #define glUniform3fvARB                                  OGLEXT_MAKEGLNAME(Uniform3fvARB)
+      #define glUniform3iARB                                   OGLEXT_MAKEGLNAME(Uniform3iARB)
+      #define glUniform3ivARB                                  OGLEXT_MAKEGLNAME(Uniform3ivARB)
+      #define glUniform4fARB                                   OGLEXT_MAKEGLNAME(Uniform4fARB)
+      #define glUniform4fvARB                                  OGLEXT_MAKEGLNAME(Uniform4fvARB)
+      #define glUniform4iARB                                   OGLEXT_MAKEGLNAME(Uniform4iARB)
+      #define glUniform4ivARB                                  OGLEXT_MAKEGLNAME(Uniform4ivARB)
+      #define glUniformMatrix2fvARB                            OGLEXT_MAKEGLNAME(UniformMatrix2fvARB)
+      #define glUniformMatrix3fvARB                            OGLEXT_MAKEGLNAME(UniformMatrix3fvARB)
+      #define glUniformMatrix4fvARB                            OGLEXT_MAKEGLNAME(UniformMatrix4fvARB)
+      #define glUseProgramObjectARB                            OGLEXT_MAKEGLNAME(UseProgramObjectARB)
+      #define glValidateProgramARB                             OGLEXT_MAKEGLNAME(ValidateProgramARB)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1075,6 +1579,7 @@
 #ifndef GL_ARB_shading_language_100
 
    #define GL_ARB_shading_language_100 1
+   #define GL_ARB_shading_language_100_OGLEXT 1
 
 #endif /* GL_ARB_shading_language_100 */
 
@@ -1086,6 +1591,7 @@
 #ifndef GL_ARB_shadow
 
    #define GL_ARB_shadow 1
+   #define GL_ARB_shadow_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1107,6 +1613,7 @@
 #ifndef GL_ARB_shadow_ambient
 
    #define GL_ARB_shadow_ambient 1
+   #define GL_ARB_shadow_ambient_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1126,6 +1633,7 @@
 #ifndef GL_ARB_texture_border_clamp
 
    #define GL_ARB_texture_border_clamp 1
+   #define GL_ARB_texture_border_clamp_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1145,6 +1653,7 @@
 #ifndef GL_ARB_texture_compression
 
    #define GL_ARB_texture_compression 1
+   #define GL_ARB_texture_compression_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1163,6 +1672,20 @@
       #define GL_COMPRESSED_TEXTURE_FORMATS_ARB                           0x86a3
 
    #endif /* GL_COMPRESSED_ALPHA_ARB */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glCompressedTexImage1DARB                        OGLEXT_MAKEGLNAME(CompressedTexImage1DARB)
+      #define glCompressedTexImage2DARB                        OGLEXT_MAKEGLNAME(CompressedTexImage2DARB)
+      #define glCompressedTexImage3DARB                        OGLEXT_MAKEGLNAME(CompressedTexImage3DARB)
+      #define glCompressedTexSubImage1DARB                     OGLEXT_MAKEGLNAME(CompressedTexSubImage1DARB)
+      #define glCompressedTexSubImage2DARB                     OGLEXT_MAKEGLNAME(CompressedTexSubImage2DARB)
+      #define glCompressedTexSubImage3DARB                     OGLEXT_MAKEGLNAME(CompressedTexSubImage3DARB)
+      #define glGetCompressedTexImageARB                       OGLEXT_MAKEGLNAME(GetCompressedTexImageARB)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1188,6 +1711,7 @@
 #ifndef GL_ARB_texture_cube_map
 
    #define GL_ARB_texture_cube_map 1
+   #define GL_ARB_texture_cube_map_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1218,6 +1742,7 @@
 #ifndef GL_ARB_texture_env_add
 
    #define GL_ARB_texture_env_add 1
+   #define GL_ARB_texture_env_add_OGLEXT 1
 
 #endif /* GL_ARB_texture_env_add */
 
@@ -1229,6 +1754,7 @@
 #ifndef GL_ARB_texture_env_combine
 
    #define GL_ARB_texture_env_combine 1
+   #define GL_ARB_texture_env_combine_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1269,6 +1795,7 @@
 #ifndef GL_ARB_texture_env_crossbar
 
    #define GL_ARB_texture_env_crossbar 1
+   #define GL_ARB_texture_env_crossbar_OGLEXT 1
 
 #endif /* GL_ARB_texture_env_crossbar */
 
@@ -1280,6 +1807,7 @@
 #ifndef GL_ARB_texture_env_dot3
 
    #define GL_ARB_texture_env_dot3 1
+   #define GL_ARB_texture_env_dot3_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1300,6 +1828,7 @@
 #ifndef GL_ARB_texture_mirror_repeat
 
    #define GL_ARB_texture_mirror_repeat 1
+   #define GL_ARB_texture_mirror_repeat_OGLEXT 1
 
 #endif /* GL_ARB_texture_mirror_repeat */
 
@@ -1311,6 +1840,7 @@
 #ifndef GL_ARB_texture_non_power_of_two
 
    #define GL_ARB_texture_non_power_of_two 1
+   #define GL_ARB_texture_non_power_of_two_OGLEXT 1
 
 #endif /* GL_ARB_texture_non_power_of_two */
 
@@ -1322,6 +1852,7 @@
 #ifndef GL_ARB_transpose_matrix
 
    #define GL_ARB_transpose_matrix 1
+   #define GL_ARB_transpose_matrix_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1333,6 +1864,17 @@
       #define GL_TRANSPOSE_COLOR_MATRIX_ARB                               0x84e6
 
    #endif /* GL_TRANSPOSE_MODELVIEW_MATRIX_ARB */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glLoadTransposeMatrixdARB                        OGLEXT_MAKEGLNAME(LoadTransposeMatrixdARB)
+      #define glLoadTransposeMatrixfARB                        OGLEXT_MAKEGLNAME(LoadTransposeMatrixfARB)
+      #define glMultTransposeMatrixdARB                        OGLEXT_MAKEGLNAME(MultTransposeMatrixdARB)
+      #define glMultTransposeMatrixfARB                        OGLEXT_MAKEGLNAME(MultTransposeMatrixfARB)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1355,6 +1897,7 @@
 #ifndef GL_ARB_vertex_blend
 
    #define GL_ARB_vertex_blend 1
+   #define GL_ARB_vertex_blend_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1405,6 +1948,23 @@
 
    #endif /* GL_MODELVIEW0_ARB */
 
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glVertexBlendARB                                 OGLEXT_MAKEGLNAME(VertexBlendARB)
+      #define glWeightbvARB                                    OGLEXT_MAKEGLNAME(WeightbvARB)
+      #define glWeightdvARB                                    OGLEXT_MAKEGLNAME(WeightdvARB)
+      #define glWeightfvARB                                    OGLEXT_MAKEGLNAME(WeightfvARB)
+      #define glWeightivARB                                    OGLEXT_MAKEGLNAME(WeightivARB)
+      #define glWeightPointerARB                               OGLEXT_MAKEGLNAME(WeightPointerARB)
+      #define glWeightsvARB                                    OGLEXT_MAKEGLNAME(WeightsvARB)
+      #define glWeightubvARB                                   OGLEXT_MAKEGLNAME(WeightubvARB)
+      #define glWeightuivARB                                   OGLEXT_MAKEGLNAME(WeightuivARB)
+      #define glWeightusvARB                                   OGLEXT_MAKEGLNAME(WeightusvARB)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    #ifdef GL_GLEXT_PROTOTYPES
@@ -1432,6 +1992,7 @@
 #ifndef GL_ARB_vertex_buffer_object
 
    #define GL_ARB_vertex_buffer_object 1
+   #define GL_ARB_vertex_buffer_object_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1476,6 +2037,24 @@
    typedef ptrdiff_t                                                      GLintptrARB;
    typedef ptrdiff_t                                                      GLsizeiptrARB;
 
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glBindBufferARB                                  OGLEXT_MAKEGLNAME(BindBufferARB)
+      #define glBufferDataARB                                  OGLEXT_MAKEGLNAME(BufferDataARB)
+      #define glBufferSubDataARB                               OGLEXT_MAKEGLNAME(BufferSubDataARB)
+      #define glDeleteBuffersARB                               OGLEXT_MAKEGLNAME(DeleteBuffersARB)
+      #define glGenBuffersARB                                  OGLEXT_MAKEGLNAME(GenBuffersARB)
+      #define glGetBufferParameterivARB                        OGLEXT_MAKEGLNAME(GetBufferParameterivARB)
+      #define glGetBufferPointervARB                           OGLEXT_MAKEGLNAME(GetBufferPointervARB)
+      #define glGetBufferSubDataARB                            OGLEXT_MAKEGLNAME(GetBufferSubDataARB)
+      #define glIsBufferARB                                    OGLEXT_MAKEGLNAME(IsBufferARB)
+      #define glMapBufferARB                                   OGLEXT_MAKEGLNAME(MapBufferARB)
+      #define glUnmapBufferARB                                 OGLEXT_MAKEGLNAME(UnmapBufferARB)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    #ifdef GL_GLEXT_PROTOTYPES
@@ -1504,6 +2083,7 @@
 #ifndef GL_ARB_vertex_program
 
    #define GL_ARB_vertex_program 1
+   #define GL_ARB_vertex_program_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1591,6 +2171,75 @@
 
    #endif /* GL_COLOR_SUM_ARB */
 
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glBindProgramARB                                 OGLEXT_MAKEGLNAME(BindProgramARB)
+      #define glDeleteProgramsARB                              OGLEXT_MAKEGLNAME(DeleteProgramsARB)
+      #define glDisableVertexAttribArrayARB                    OGLEXT_MAKEGLNAME(DisableVertexAttribArrayARB)
+      #define glEnableVertexAttribArrayARB                     OGLEXT_MAKEGLNAME(EnableVertexAttribArrayARB)
+      #define glGenProgramsARB                                 OGLEXT_MAKEGLNAME(GenProgramsARB)
+      #define glGetProgramEnvParameterdvARB                    OGLEXT_MAKEGLNAME(GetProgramEnvParameterdvARB)
+      #define glGetProgramEnvParameterfvARB                    OGLEXT_MAKEGLNAME(GetProgramEnvParameterfvARB)
+      #define glGetProgramivARB                                OGLEXT_MAKEGLNAME(GetProgramivARB)
+      #define glGetProgramLocalParameterdvARB                  OGLEXT_MAKEGLNAME(GetProgramLocalParameterdvARB)
+      #define glGetProgramLocalParameterfvARB                  OGLEXT_MAKEGLNAME(GetProgramLocalParameterfvARB)
+      #define glGetProgramStringARB                            OGLEXT_MAKEGLNAME(GetProgramStringARB)
+      #define glGetVertexAttribdvARB                           OGLEXT_MAKEGLNAME(GetVertexAttribdvARB)
+      #define glGetVertexAttribfvARB                           OGLEXT_MAKEGLNAME(GetVertexAttribfvARB)
+      #define glGetVertexAttribivARB                           OGLEXT_MAKEGLNAME(GetVertexAttribivARB)
+      #define glGetVertexAttribPointervARB                     OGLEXT_MAKEGLNAME(GetVertexAttribPointervARB)
+      #define glIsProgramARB                                   OGLEXT_MAKEGLNAME(IsProgramARB)
+      #define glProgramEnvParameter4dARB                       OGLEXT_MAKEGLNAME(ProgramEnvParameter4dARB)
+      #define glProgramEnvParameter4dvARB                      OGLEXT_MAKEGLNAME(ProgramEnvParameter4dvARB)
+      #define glProgramEnvParameter4fARB                       OGLEXT_MAKEGLNAME(ProgramEnvParameter4fARB)
+      #define glProgramEnvParameter4fvARB                      OGLEXT_MAKEGLNAME(ProgramEnvParameter4fvARB)
+      #define glProgramLocalParameter4dARB                     OGLEXT_MAKEGLNAME(ProgramLocalParameter4dARB)
+      #define glProgramLocalParameter4dvARB                    OGLEXT_MAKEGLNAME(ProgramLocalParameter4dvARB)
+      #define glProgramLocalParameter4fARB                     OGLEXT_MAKEGLNAME(ProgramLocalParameter4fARB)
+      #define glProgramLocalParameter4fvARB                    OGLEXT_MAKEGLNAME(ProgramLocalParameter4fvARB)
+      #define glProgramStringARB                               OGLEXT_MAKEGLNAME(ProgramStringARB)
+      #define glVertexAttrib1dARB                              OGLEXT_MAKEGLNAME(VertexAttrib1dARB)
+      #define glVertexAttrib1dvARB                             OGLEXT_MAKEGLNAME(VertexAttrib1dvARB)
+      #define glVertexAttrib1fARB                              OGLEXT_MAKEGLNAME(VertexAttrib1fARB)
+      #define glVertexAttrib1fvARB                             OGLEXT_MAKEGLNAME(VertexAttrib1fvARB)
+      #define glVertexAttrib1sARB                              OGLEXT_MAKEGLNAME(VertexAttrib1sARB)
+      #define glVertexAttrib1svARB                             OGLEXT_MAKEGLNAME(VertexAttrib1svARB)
+      #define glVertexAttrib2dARB                              OGLEXT_MAKEGLNAME(VertexAttrib2dARB)
+      #define glVertexAttrib2dvARB                             OGLEXT_MAKEGLNAME(VertexAttrib2dvARB)
+      #define glVertexAttrib2fARB                              OGLEXT_MAKEGLNAME(VertexAttrib2fARB)
+      #define glVertexAttrib2fvARB                             OGLEXT_MAKEGLNAME(VertexAttrib2fvARB)
+      #define glVertexAttrib2sARB                              OGLEXT_MAKEGLNAME(VertexAttrib2sARB)
+      #define glVertexAttrib2svARB                             OGLEXT_MAKEGLNAME(VertexAttrib2svARB)
+      #define glVertexAttrib3dARB                              OGLEXT_MAKEGLNAME(VertexAttrib3dARB)
+      #define glVertexAttrib3dvARB                             OGLEXT_MAKEGLNAME(VertexAttrib3dvARB)
+      #define glVertexAttrib3fARB                              OGLEXT_MAKEGLNAME(VertexAttrib3fARB)
+      #define glVertexAttrib3fvARB                             OGLEXT_MAKEGLNAME(VertexAttrib3fvARB)
+      #define glVertexAttrib3sARB                              OGLEXT_MAKEGLNAME(VertexAttrib3sARB)
+      #define glVertexAttrib3svARB                             OGLEXT_MAKEGLNAME(VertexAttrib3svARB)
+      #define glVertexAttrib4bvARB                             OGLEXT_MAKEGLNAME(VertexAttrib4bvARB)
+      #define glVertexAttrib4dARB                              OGLEXT_MAKEGLNAME(VertexAttrib4dARB)
+      #define glVertexAttrib4dvARB                             OGLEXT_MAKEGLNAME(VertexAttrib4dvARB)
+      #define glVertexAttrib4fARB                              OGLEXT_MAKEGLNAME(VertexAttrib4fARB)
+      #define glVertexAttrib4fvARB                             OGLEXT_MAKEGLNAME(VertexAttrib4fvARB)
+      #define glVertexAttrib4ivARB                             OGLEXT_MAKEGLNAME(VertexAttrib4ivARB)
+      #define glVertexAttrib4NbvARB                            OGLEXT_MAKEGLNAME(VertexAttrib4NbvARB)
+      #define glVertexAttrib4NivARB                            OGLEXT_MAKEGLNAME(VertexAttrib4NivARB)
+      #define glVertexAttrib4NsvARB                            OGLEXT_MAKEGLNAME(VertexAttrib4NsvARB)
+      #define glVertexAttrib4NubARB                            OGLEXT_MAKEGLNAME(VertexAttrib4NubARB)
+      #define glVertexAttrib4NubvARB                           OGLEXT_MAKEGLNAME(VertexAttrib4NubvARB)
+      #define glVertexAttrib4NuivARB                           OGLEXT_MAKEGLNAME(VertexAttrib4NuivARB)
+      #define glVertexAttrib4NusvARB                           OGLEXT_MAKEGLNAME(VertexAttrib4NusvARB)
+      #define glVertexAttrib4sARB                              OGLEXT_MAKEGLNAME(VertexAttrib4sARB)
+      #define glVertexAttrib4svARB                             OGLEXT_MAKEGLNAME(VertexAttrib4svARB)
+      #define glVertexAttrib4ubvARB                            OGLEXT_MAKEGLNAME(VertexAttrib4ubvARB)
+      #define glVertexAttrib4uivARB                            OGLEXT_MAKEGLNAME(VertexAttrib4uivARB)
+      #define glVertexAttrib4usvARB                            OGLEXT_MAKEGLNAME(VertexAttrib4usvARB)
+      #define glVertexAttribPointerARB                         OGLEXT_MAKEGLNAME(VertexAttribPointerARB)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    #ifdef GL_GLEXT_PROTOTYPES
@@ -1670,6 +2319,30 @@
 #ifndef GL_ARB_window_pos
 
    #define GL_ARB_window_pos 1
+   #define GL_ARB_window_pos_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glWindowPos2dARB                                 OGLEXT_MAKEGLNAME(WindowPos2dARB)
+      #define glWindowPos2dvARB                                OGLEXT_MAKEGLNAME(WindowPos2dvARB)
+      #define glWindowPos2fARB                                 OGLEXT_MAKEGLNAME(WindowPos2fARB)
+      #define glWindowPos2fvARB                                OGLEXT_MAKEGLNAME(WindowPos2fvARB)
+      #define glWindowPos2iARB                                 OGLEXT_MAKEGLNAME(WindowPos2iARB)
+      #define glWindowPos2ivARB                                OGLEXT_MAKEGLNAME(WindowPos2ivARB)
+      #define glWindowPos2sARB                                 OGLEXT_MAKEGLNAME(WindowPos2sARB)
+      #define glWindowPos2svARB                                OGLEXT_MAKEGLNAME(WindowPos2svARB)
+      #define glWindowPos3dARB                                 OGLEXT_MAKEGLNAME(WindowPos3dARB)
+      #define glWindowPos3dvARB                                OGLEXT_MAKEGLNAME(WindowPos3dvARB)
+      #define glWindowPos3fARB                                 OGLEXT_MAKEGLNAME(WindowPos3fARB)
+      #define glWindowPos3fvARB                                OGLEXT_MAKEGLNAME(WindowPos3fvARB)
+      #define glWindowPos3iARB                                 OGLEXT_MAKEGLNAME(WindowPos3iARB)
+      #define glWindowPos3ivARB                                OGLEXT_MAKEGLNAME(WindowPos3ivARB)
+      #define glWindowPos3sARB                                 OGLEXT_MAKEGLNAME(WindowPos3sARB)
+      #define glWindowPos3svARB                                OGLEXT_MAKEGLNAME(WindowPos3svARB)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1704,6 +2377,7 @@
 #ifndef GL_ATI_draw_buffers
 
    #define GL_ATI_draw_buffers 1
+   #define GL_ATI_draw_buffers_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1729,6 +2403,14 @@
 
    #endif /* GL_MAX_DRAW_BUFFERS_ATI */
 
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glDrawBuffersATI                                 OGLEXT_MAKEGLNAME(DrawBuffersATI)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    #ifdef GL_GLEXT_PROTOTYPES
@@ -1747,6 +2429,7 @@
 #ifndef GL_ATI_element_array
 
    #define GL_ATI_element_array 1
+   #define GL_ATI_element_array_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1757,6 +2440,16 @@
       #define GL_ELEMENT_ARRAY_POINTER_ATI                                0x876a
 
    #endif /* GL_ELEMENT_ARRAY_ATI */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glDrawElementArrayATI                            OGLEXT_MAKEGLNAME(DrawElementArrayATI)
+      #define glDrawRangeElementArrayATI                       OGLEXT_MAKEGLNAME(DrawRangeElementArrayATI)
+      #define glElementPointerATI                              OGLEXT_MAKEGLNAME(ElementPointerATI)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1778,6 +2471,7 @@
 #ifndef GL_ATI_envmap_bumpmap
 
    #define GL_ATI_envmap_bumpmap 1
+   #define GL_ATI_envmap_bumpmap_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1793,6 +2487,17 @@
       #define GL_BUMP_TARGET_ATI                                          0x877c
 
    #endif /* GL_BUMP_ROT_MATRIX_ATI */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glGetTexBumpParameterfvATI                       OGLEXT_MAKEGLNAME(GetTexBumpParameterfvATI)
+      #define glGetTexBumpParameterivATI                       OGLEXT_MAKEGLNAME(GetTexBumpParameterivATI)
+      #define glTexBumpParameterfvATI                          OGLEXT_MAKEGLNAME(TexBumpParameterfvATI)
+      #define glTexBumpParameterivATI                          OGLEXT_MAKEGLNAME(TexBumpParameterivATI)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1815,6 +2520,7 @@
 #ifndef GL_ATI_fragment_shader
 
    #define GL_ATI_fragment_shader 1
+   #define GL_ATI_fragment_shader_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1927,6 +2633,27 @@
 
    #endif /* GL_RED_BIT_ATI */
 
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glAlphaFragmentOp1ATI                            OGLEXT_MAKEGLNAME(AlphaFragmentOp1ATI)
+      #define glAlphaFragmentOp2ATI                            OGLEXT_MAKEGLNAME(AlphaFragmentOp2ATI)
+      #define glAlphaFragmentOp3ATI                            OGLEXT_MAKEGLNAME(AlphaFragmentOp3ATI)
+      #define glBeginFragmentShaderATI                         OGLEXT_MAKEGLNAME(BeginFragmentShaderATI)
+      #define glBindFragmentShaderATI                          OGLEXT_MAKEGLNAME(BindFragmentShaderATI)
+      #define glColorFragmentOp1ATI                            OGLEXT_MAKEGLNAME(ColorFragmentOp1ATI)
+      #define glColorFragmentOp2ATI                            OGLEXT_MAKEGLNAME(ColorFragmentOp2ATI)
+      #define glColorFragmentOp3ATI                            OGLEXT_MAKEGLNAME(ColorFragmentOp3ATI)
+      #define glDeleteFragmentShaderATI                        OGLEXT_MAKEGLNAME(DeleteFragmentShaderATI)
+      #define glEndFragmentShaderATI                           OGLEXT_MAKEGLNAME(EndFragmentShaderATI)
+      #define glGenFragmentShadersATI                          OGLEXT_MAKEGLNAME(GenFragmentShadersATI)
+      #define glPassTexCoordATI                                OGLEXT_MAKEGLNAME(PassTexCoordATI)
+      #define glSampleMapATI                                   OGLEXT_MAKEGLNAME(SampleMapATI)
+      #define glSetFragmentShaderConstantATI                   OGLEXT_MAKEGLNAME(SetFragmentShaderConstantATI)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    #ifdef GL_GLEXT_PROTOTYPES
@@ -1958,6 +2685,16 @@
 #ifndef GL_ATI_map_object_buffer
 
    #define GL_ATI_map_object_buffer 1
+   #define GL_ATI_map_object_buffer_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glMapObjectBufferATI                             OGLEXT_MAKEGLNAME(MapObjectBufferATI)
+      #define glUnmapObjectBufferATI                           OGLEXT_MAKEGLNAME(UnmapObjectBufferATI)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1978,6 +2715,7 @@
 #ifndef GL_ATI_pn_triangles
 
    #define GL_ATI_pn_triangles 1
+   #define GL_ATI_pn_triangles_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -1994,6 +2732,15 @@
       #define GL_PN_TRIANGLES_NORMAL_MODE_QUADRATIC_ATI                   0x87f8
 
    #endif /* GL_PN_TRIANGLES_ATI */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glPNTrianglesfATI                                OGLEXT_MAKEGLNAME(PNTrianglesfATI)
+      #define glPNTrianglesiATI                                OGLEXT_MAKEGLNAME(PNTrianglesiATI)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2014,6 +2761,7 @@
 #ifndef GL_ATI_separate_stencil
 
    #define GL_ATI_separate_stencil 1
+   #define GL_ATI_separate_stencil_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2025,6 +2773,15 @@
       #define GL_STENCIL_BACK_PASS_DEPTH_PASS_ATI                         0x8803
 
    #endif /* GL_STENCIL_BACK_FUNC_ATI */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glStencilFuncSeparateATI                         OGLEXT_MAKEGLNAME(StencilFuncSeparateATI)
+      #define glStencilOpSeparateATI                           OGLEXT_MAKEGLNAME(StencilOpSeparateATI)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2045,6 +2802,7 @@
 #ifndef GL_ATI_texture_env_combine3
 
    #define GL_ATI_texture_env_combine3 1
+   #define GL_ATI_texture_env_combine3_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2066,6 +2824,7 @@
 #ifndef GL_ATI_texture_float
 
    #define GL_ATI_texture_float 1
+   #define GL_ATI_texture_float_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2096,6 +2855,7 @@
 #ifndef GL_ATI_texture_mirror_once
 
    #define GL_ATI_texture_mirror_once 1
+   #define GL_ATI_texture_mirror_once_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2116,6 +2876,7 @@
 #ifndef GL_ATI_text_fragment_shader
 
    #define GL_ATI_text_fragment_shader 1
+   #define GL_ATI_text_fragment_shader_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2135,6 +2896,7 @@
 #ifndef GL_ATI_vertex_array_object
 
    #define GL_ATI_vertex_array_object 1
+   #define GL_ATI_vertex_array_object_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2150,6 +2912,25 @@
       #define GL_ARRAY_OBJECT_OFFSET_ATI                                  0x8767
 
    #endif /* GL_STATIC_ATI */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glArrayObjectATI                                 OGLEXT_MAKEGLNAME(ArrayObjectATI)
+      #define glFreeObjectBufferATI                            OGLEXT_MAKEGLNAME(FreeObjectBufferATI)
+      #define glGetArrayObjectfvATI                            OGLEXT_MAKEGLNAME(GetArrayObjectfvATI)
+      #define glGetArrayObjectivATI                            OGLEXT_MAKEGLNAME(GetArrayObjectivATI)
+      #define glGetObjectBufferfvATI                           OGLEXT_MAKEGLNAME(GetObjectBufferfvATI)
+      #define glGetObjectBufferivATI                           OGLEXT_MAKEGLNAME(GetObjectBufferivATI)
+      #define glGetVariantArrayObjectfvATI                     OGLEXT_MAKEGLNAME(GetVariantArrayObjectfvATI)
+      #define glGetVariantArrayObjectivATI                     OGLEXT_MAKEGLNAME(GetVariantArrayObjectivATI)
+      #define glIsObjectBufferATI                              OGLEXT_MAKEGLNAME(IsObjectBufferATI)
+      #define glNewObjectBufferATI                             OGLEXT_MAKEGLNAME(NewObjectBufferATI)
+      #define glUpdateObjectBufferATI                          OGLEXT_MAKEGLNAME(UpdateObjectBufferATI)
+      #define glVariantArrayObjectATI                          OGLEXT_MAKEGLNAME(VariantArrayObjectATI)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2180,6 +2961,17 @@
 #ifndef GL_ATI_vertex_attrib_array_object
 
    #define GL_ATI_vertex_attrib_array_object 1
+   #define GL_ATI_vertex_attrib_array_object_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glGetVertexAttribArrayObjectfvATI                OGLEXT_MAKEGLNAME(GetVertexAttribArrayObjectfvATI)
+      #define glGetVertexAttribArrayObjectivATI                OGLEXT_MAKEGLNAME(GetVertexAttribArrayObjectivATI)
+      #define glVertexAttribArrayObjectATI                     OGLEXT_MAKEGLNAME(VertexAttribArrayObjectATI)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2201,6 +2993,7 @@
 #ifndef GL_ATI_vertex_streams
 
    #define GL_ATI_vertex_streams 1
+   #define GL_ATI_vertex_streams_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2218,6 +3011,58 @@
       #define GL_VERTEX_SOURCE_ATI                                        0x8774
 
    #endif /* GL_MAX_VERTEX_STREAMS_ATI */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glClientActiveVertexStreamATI                    OGLEXT_MAKEGLNAME(ClientActiveVertexStreamATI)
+      #define glNormalStream3bATI                              OGLEXT_MAKEGLNAME(NormalStream3bATI)
+      #define glNormalStream3bvATI                             OGLEXT_MAKEGLNAME(NormalStream3bvATI)
+      #define glNormalStream3dATI                              OGLEXT_MAKEGLNAME(NormalStream3dATI)
+      #define glNormalStream3dvATI                             OGLEXT_MAKEGLNAME(NormalStream3dvATI)
+      #define glNormalStream3fATI                              OGLEXT_MAKEGLNAME(NormalStream3fATI)
+      #define glNormalStream3fvATI                             OGLEXT_MAKEGLNAME(NormalStream3fvATI)
+      #define glNormalStream3iATI                              OGLEXT_MAKEGLNAME(NormalStream3iATI)
+      #define glNormalStream3ivATI                             OGLEXT_MAKEGLNAME(NormalStream3ivATI)
+      #define glNormalStream3sATI                              OGLEXT_MAKEGLNAME(NormalStream3sATI)
+      #define glNormalStream3svATI                             OGLEXT_MAKEGLNAME(NormalStream3svATI)
+      #define glVertexBlendEnvfATI                             OGLEXT_MAKEGLNAME(VertexBlendEnvfATI)
+      #define glVertexBlendEnviATI                             OGLEXT_MAKEGLNAME(VertexBlendEnviATI)
+      #define glVertexStream1dATI                              OGLEXT_MAKEGLNAME(VertexStream1dATI)
+      #define glVertexStream1dvATI                             OGLEXT_MAKEGLNAME(VertexStream1dvATI)
+      #define glVertexStream1fATI                              OGLEXT_MAKEGLNAME(VertexStream1fATI)
+      #define glVertexStream1fvATI                             OGLEXT_MAKEGLNAME(VertexStream1fvATI)
+      #define glVertexStream1iATI                              OGLEXT_MAKEGLNAME(VertexStream1iATI)
+      #define glVertexStream1ivATI                             OGLEXT_MAKEGLNAME(VertexStream1ivATI)
+      #define glVertexStream1sATI                              OGLEXT_MAKEGLNAME(VertexStream1sATI)
+      #define glVertexStream1svATI                             OGLEXT_MAKEGLNAME(VertexStream1svATI)
+      #define glVertexStream2dATI                              OGLEXT_MAKEGLNAME(VertexStream2dATI)
+      #define glVertexStream2dvATI                             OGLEXT_MAKEGLNAME(VertexStream2dvATI)
+      #define glVertexStream2fATI                              OGLEXT_MAKEGLNAME(VertexStream2fATI)
+      #define glVertexStream2fvATI                             OGLEXT_MAKEGLNAME(VertexStream2fvATI)
+      #define glVertexStream2iATI                              OGLEXT_MAKEGLNAME(VertexStream2iATI)
+      #define glVertexStream2ivATI                             OGLEXT_MAKEGLNAME(VertexStream2ivATI)
+      #define glVertexStream2sATI                              OGLEXT_MAKEGLNAME(VertexStream2sATI)
+      #define glVertexStream2svATI                             OGLEXT_MAKEGLNAME(VertexStream2svATI)
+      #define glVertexStream3dATI                              OGLEXT_MAKEGLNAME(VertexStream3dATI)
+      #define glVertexStream3dvATI                             OGLEXT_MAKEGLNAME(VertexStream3dvATI)
+      #define glVertexStream3fATI                              OGLEXT_MAKEGLNAME(VertexStream3fATI)
+      #define glVertexStream3fvATI                             OGLEXT_MAKEGLNAME(VertexStream3fvATI)
+      #define glVertexStream3iATI                              OGLEXT_MAKEGLNAME(VertexStream3iATI)
+      #define glVertexStream3ivATI                             OGLEXT_MAKEGLNAME(VertexStream3ivATI)
+      #define glVertexStream3sATI                              OGLEXT_MAKEGLNAME(VertexStream3sATI)
+      #define glVertexStream3svATI                             OGLEXT_MAKEGLNAME(VertexStream3svATI)
+      #define glVertexStream4dATI                              OGLEXT_MAKEGLNAME(VertexStream4dATI)
+      #define glVertexStream4dvATI                             OGLEXT_MAKEGLNAME(VertexStream4dvATI)
+      #define glVertexStream4fATI                              OGLEXT_MAKEGLNAME(VertexStream4fATI)
+      #define glVertexStream4fvATI                             OGLEXT_MAKEGLNAME(VertexStream4fvATI)
+      #define glVertexStream4iATI                              OGLEXT_MAKEGLNAME(VertexStream4iATI)
+      #define glVertexStream4ivATI                             OGLEXT_MAKEGLNAME(VertexStream4ivATI)
+      #define glVertexStream4sATI                              OGLEXT_MAKEGLNAME(VertexStream4sATI)
+      #define glVertexStream4svATI                             OGLEXT_MAKEGLNAME(VertexStream4svATI)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2281,6 +3126,7 @@
 #ifndef GL_EXT_422_pixels
 
    #define GL_EXT_422_pixels 1
+   #define GL_EXT_422_pixels_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2303,6 +3149,7 @@
 #ifndef GL_EXT_abgr
 
    #define GL_EXT_abgr 1
+   #define GL_EXT_abgr_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2322,6 +3169,7 @@
 #ifndef GL_EXT_bgra
 
    #define GL_EXT_bgra 1
+   #define GL_EXT_bgra_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2342,6 +3190,7 @@
 #ifndef GL_EXT_blend_color
 
    #define GL_EXT_blend_color 1
+   #define GL_EXT_blend_color_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2354,6 +3203,14 @@
       #define GL_BLEND_COLOR_EXT                                          0x8005
 
    #endif /* GL_CONSTANT_COLOR_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glBlendColorEXT                                  OGLEXT_MAKEGLNAME(BlendColorEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2373,6 +3230,7 @@
 #ifndef GL_EXT_blend_func_separate
 
    #define GL_EXT_blend_func_separate 1
+   #define GL_EXT_blend_func_separate_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2384,6 +3242,14 @@
       #define GL_BLEND_SRC_ALPHA_EXT                                      0x80cb
 
    #endif /* GL_BLEND_DST_RGB_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glBlendFuncSeparateEXT                           OGLEXT_MAKEGLNAME(BlendFuncSeparateEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2403,6 +3269,7 @@
 #ifndef GL_EXT_blend_logic_op
 
    #define GL_EXT_blend_logic_op 1
+   #define GL_EXT_blend_logic_op_OGLEXT 1
 
 #endif /* GL_EXT_blend_logic_op */
 
@@ -2414,6 +3281,7 @@
 #ifndef GL_EXT_blend_minmax
 
    #define GL_EXT_blend_minmax 1
+   #define GL_EXT_blend_minmax_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2425,6 +3293,14 @@
       #define GL_BLEND_EQUATION_EXT                                       0x8009
 
    #endif /* GL_FUNC_ADD_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glBlendEquationEXT                               OGLEXT_MAKEGLNAME(BlendEquationEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2444,6 +3320,7 @@
 #ifndef GL_EXT_blend_subtract
 
    #define GL_EXT_blend_subtract 1
+   #define GL_EXT_blend_subtract_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2464,6 +3341,7 @@
 #ifndef GL_EXT_clip_volume_hint
 
    #define GL_EXT_clip_volume_hint 1
+   #define GL_EXT_clip_volume_hint_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2483,6 +3361,7 @@
 #ifndef GL_EXT_cmyka
 
    #define GL_EXT_cmyka 1
+   #define GL_EXT_cmyka_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2505,6 +3384,7 @@
 #ifndef GL_EXT_color_matrix
 
    #define GL_EXT_color_matrix 1
+   #define GL_EXT_color_matrix_OGLEXT 1
 
 #endif /* GL_EXT_color_matrix */
 
@@ -2516,6 +3396,16 @@
 #ifndef GL_EXT_color_subtable
 
    #define GL_EXT_color_subtable 1
+   #define GL_EXT_color_subtable_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glColorSubTableEXT                               OGLEXT_MAKEGLNAME(ColorSubTableEXT)
+      #define glCopyColorSubTableEXT                           OGLEXT_MAKEGLNAME(CopyColorSubTableEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2536,6 +3426,7 @@
 #ifndef GL_EXT_compiled_vertex_array
 
    #define GL_EXT_compiled_vertex_array 1
+   #define GL_EXT_compiled_vertex_array_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2545,6 +3436,15 @@
       #define GL_ARRAY_ELEMENT_LOCK_COUNT_EXT                             0x81a9
 
    #endif /* GL_ARRAY_ELEMENT_LOCK_FIRST_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glLockArraysEXT                                  OGLEXT_MAKEGLNAME(LockArraysEXT)
+      #define glUnlockArraysEXT                                OGLEXT_MAKEGLNAME(UnlockArraysEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2565,6 +3465,7 @@
 #ifndef GL_EXT_convolution
 
    #define GL_EXT_convolution 1
+   #define GL_EXT_convolution_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2592,6 +3493,26 @@
       #define GL_POST_CONVOLUTION_ALPHA_BIAS_EXT                          0x8023
 
    #endif /* GL_CONVOLUTION_1D_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glConvolutionFilter1DEXT                         OGLEXT_MAKEGLNAME(ConvolutionFilter1DEXT)
+      #define glConvolutionFilter2DEXT                         OGLEXT_MAKEGLNAME(ConvolutionFilter2DEXT)
+      #define glConvolutionParameterfEXT                       OGLEXT_MAKEGLNAME(ConvolutionParameterfEXT)
+      #define glConvolutionParameterfvEXT                      OGLEXT_MAKEGLNAME(ConvolutionParameterfvEXT)
+      #define glConvolutionParameteriEXT                       OGLEXT_MAKEGLNAME(ConvolutionParameteriEXT)
+      #define glConvolutionParameterivEXT                      OGLEXT_MAKEGLNAME(ConvolutionParameterivEXT)
+      #define glCopyConvolutionFilter1DEXT                     OGLEXT_MAKEGLNAME(CopyConvolutionFilter1DEXT)
+      #define glCopyConvolutionFilter2DEXT                     OGLEXT_MAKEGLNAME(CopyConvolutionFilter2DEXT)
+      #define glGetConvolutionFilterEXT                        OGLEXT_MAKEGLNAME(GetConvolutionFilterEXT)
+      #define glGetConvolutionParameterfvEXT                   OGLEXT_MAKEGLNAME(GetConvolutionParameterfvEXT)
+      #define glGetConvolutionParameterivEXT                   OGLEXT_MAKEGLNAME(GetConvolutionParameterivEXT)
+      #define glGetSeparableFilterEXT                          OGLEXT_MAKEGLNAME(GetSeparableFilterEXT)
+      #define glSeparableFilter2DEXT                           OGLEXT_MAKEGLNAME(SeparableFilter2DEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2623,6 +3544,7 @@
 #ifndef GL_EXT_coordinate_frame
 
    #define GL_EXT_coordinate_frame 1
+   #define GL_EXT_coordinate_frame_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2644,6 +3566,35 @@
       #define GL_MAP2_BINORMAL_EXT                                        0x8447
 
    #endif /* GL_TANGENT_ARRAY_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glBinormal3bEXT                                  OGLEXT_MAKEGLNAME(Binormal3bEXT)
+      #define glBinormal3bvEXT                                 OGLEXT_MAKEGLNAME(Binormal3bvEXT)
+      #define glBinormal3dEXT                                  OGLEXT_MAKEGLNAME(Binormal3dEXT)
+      #define glBinormal3dvEXT                                 OGLEXT_MAKEGLNAME(Binormal3dvEXT)
+      #define glBinormal3fEXT                                  OGLEXT_MAKEGLNAME(Binormal3fEXT)
+      #define glBinormal3fvEXT                                 OGLEXT_MAKEGLNAME(Binormal3fvEXT)
+      #define glBinormal3iEXT                                  OGLEXT_MAKEGLNAME(Binormal3iEXT)
+      #define glBinormal3ivEXT                                 OGLEXT_MAKEGLNAME(Binormal3ivEXT)
+      #define glBinormal3sEXT                                  OGLEXT_MAKEGLNAME(Binormal3sEXT)
+      #define glBinormal3svEXT                                 OGLEXT_MAKEGLNAME(Binormal3svEXT)
+      #define glBinormalPointerEXT                             OGLEXT_MAKEGLNAME(BinormalPointerEXT)
+      #define glTangent3bEXT                                   OGLEXT_MAKEGLNAME(Tangent3bEXT)
+      #define glTangent3bvEXT                                  OGLEXT_MAKEGLNAME(Tangent3bvEXT)
+      #define glTangent3dEXT                                   OGLEXT_MAKEGLNAME(Tangent3dEXT)
+      #define glTangent3dvEXT                                  OGLEXT_MAKEGLNAME(Tangent3dvEXT)
+      #define glTangent3fEXT                                   OGLEXT_MAKEGLNAME(Tangent3fEXT)
+      #define glTangent3fvEXT                                  OGLEXT_MAKEGLNAME(Tangent3fvEXT)
+      #define glTangent3iEXT                                   OGLEXT_MAKEGLNAME(Tangent3iEXT)
+      #define glTangent3ivEXT                                  OGLEXT_MAKEGLNAME(Tangent3ivEXT)
+      #define glTangent3sEXT                                   OGLEXT_MAKEGLNAME(Tangent3sEXT)
+      #define glTangent3svEXT                                  OGLEXT_MAKEGLNAME(Tangent3svEXT)
+      #define glTangentPointerEXT                              OGLEXT_MAKEGLNAME(TangentPointerEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2684,6 +3635,19 @@
 #ifndef GL_EXT_copy_texture
 
    #define GL_EXT_copy_texture 1
+   #define GL_EXT_copy_texture_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glCopyTexImage1DEXT                              OGLEXT_MAKEGLNAME(CopyTexImage1DEXT)
+      #define glCopyTexImage2DEXT                              OGLEXT_MAKEGLNAME(CopyTexImage2DEXT)
+      #define glCopyTexSubImage1DEXT                           OGLEXT_MAKEGLNAME(CopyTexSubImage1DEXT)
+      #define glCopyTexSubImage2DEXT                           OGLEXT_MAKEGLNAME(CopyTexSubImage2DEXT)
+      #define glCopyTexSubImage3DEXT                           OGLEXT_MAKEGLNAME(CopyTexSubImage3DEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2707,6 +3671,7 @@
 #ifndef GL_EXT_cull_vertex
 
    #define GL_EXT_cull_vertex 1
+   #define GL_EXT_cull_vertex_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2717,6 +3682,15 @@
       #define GL_CULL_VERTEX_OBJECT_POSITION_EXT                          0x81ac
 
    #endif /* GL_CULL_VERTEX_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glCullParameterdvEXT                             OGLEXT_MAKEGLNAME(CullParameterdvEXT)
+      #define glCullParameterfvEXT                             OGLEXT_MAKEGLNAME(CullParameterfvEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2737,6 +3711,7 @@
 #ifndef GL_EXT_depth_bounds_test
 
    #define GL_EXT_depth_bounds_test 1
+   #define GL_EXT_depth_bounds_test_OGLEXT 1
 
 #endif /* GL_EXT_depth_bounds_test */
 
@@ -2748,6 +3723,7 @@
 #ifndef GL_EXT_draw_range_elements
 
    #define GL_EXT_draw_range_elements 1
+   #define GL_EXT_draw_range_elements_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2757,6 +3733,14 @@
       #define GL_MAX_ELEMENTS_INDICES_EXT                                 0x80e9
 
    #endif /* GL_MAX_ELEMENTS_VERTICES_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glDrawRangeElementsEXT                           OGLEXT_MAKEGLNAME(DrawRangeElementsEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2776,6 +3760,7 @@
 #ifndef GL_EXT_fog_coord
 
    #define GL_EXT_fog_coord 1
+   #define GL_EXT_fog_coord_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2791,6 +3776,18 @@
       #define GL_FOG_COORDINATE_ARRAY_EXT                                 0x8457
 
    #endif /* GL_FOG_COORDINATE_SOURCE_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glFogCoorddEXT                                   OGLEXT_MAKEGLNAME(FogCoorddEXT)
+      #define glFogCoorddvEXT                                  OGLEXT_MAKEGLNAME(FogCoorddvEXT)
+      #define glFogCoordfEXT                                   OGLEXT_MAKEGLNAME(FogCoordfEXT)
+      #define glFogCoordfvEXT                                  OGLEXT_MAKEGLNAME(FogCoordfvEXT)
+      #define glFogCoordPointerEXT                             OGLEXT_MAKEGLNAME(FogCoordPointerEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2814,6 +3811,7 @@
 #ifndef GL_EXT_fragment_lighting
 
    #define GL_EXT_fragment_lighting 1
+   #define GL_EXT_fragment_lighting_OGLEXT 1
 
 #endif /* GL_EXT_fragment_lighting */
 
@@ -2825,6 +3823,7 @@
 #ifndef GL_EXT_histogram
 
    #define GL_EXT_histogram 1
+   #define GL_EXT_histogram_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2846,6 +3845,23 @@
       #define GL_TABLE_TOO_LARGE_EXT                                      0x8031
 
    #endif /* GL_HISTOGRAM_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glGetHistogramEXT                                OGLEXT_MAKEGLNAME(GetHistogramEXT)
+      #define glGetHistogramParameterfvEXT                     OGLEXT_MAKEGLNAME(GetHistogramParameterfvEXT)
+      #define glGetHistogramParameterivEXT                     OGLEXT_MAKEGLNAME(GetHistogramParameterivEXT)
+      #define glGetMinmaxEXT                                   OGLEXT_MAKEGLNAME(GetMinmaxEXT)
+      #define glGetMinmaxParameterfvEXT                        OGLEXT_MAKEGLNAME(GetMinmaxParameterfvEXT)
+      #define glGetMinmaxParameterivEXT                        OGLEXT_MAKEGLNAME(GetMinmaxParameterivEXT)
+      #define glHistogramEXT                                   OGLEXT_MAKEGLNAME(HistogramEXT)
+      #define glMinmaxEXT                                      OGLEXT_MAKEGLNAME(MinmaxEXT)
+      #define glResetHistogramEXT                              OGLEXT_MAKEGLNAME(ResetHistogramEXT)
+      #define glResetMinmaxEXT                                 OGLEXT_MAKEGLNAME(ResetMinmaxEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2874,6 +3890,7 @@
 #ifndef GL_EXT_index_array_formats
 
    #define GL_EXT_index_array_formats 1
+   #define GL_EXT_index_array_formats_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2900,6 +3917,7 @@
 #ifndef GL_EXT_index_func
 
    #define GL_EXT_index_func 1
+   #define GL_EXT_index_func_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2910,6 +3928,14 @@
       #define GL_INDEX_TEST_REF_EXT                                       0x81b7
 
    #endif /* GL_INDEX_TEST_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glIndexFuncEXT                                   OGLEXT_MAKEGLNAME(IndexFuncEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2929,6 +3955,7 @@
 #ifndef GL_EXT_index_material
 
    #define GL_EXT_index_material 1
+   #define GL_EXT_index_material_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2939,6 +3966,14 @@
       #define GL_INDEX_MATERIAL_FACE_EXT                                  0x81ba
 
    #endif /* GL_INDEX_MATERIAL_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glIndexMaterialEXT                               OGLEXT_MAKEGLNAME(IndexMaterialEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2958,6 +3993,7 @@
 #ifndef GL_EXT_index_texture
 
    #define GL_EXT_index_texture 1
+   #define GL_EXT_index_texture_OGLEXT 1
 
 #endif /* GL_EXT_index_texture */
 
@@ -2969,6 +4005,7 @@
 #ifndef GL_EXT_light_texture
 
    #define GL_EXT_light_texture 1
+   #define GL_EXT_light_texture_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -2985,6 +4022,16 @@
       #define GL_TEXTURE_MATERIAL_PARAMETER_EXT                           0x8352
 
    #endif /* GL_FRAGMENT_MATERIAL_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glApplyTextureEXT                                OGLEXT_MAKEGLNAME(ApplyTextureEXT)
+      #define glTextureLightEXT                                OGLEXT_MAKEGLNAME(TextureLightEXT)
+      #define glTextureMaterialEXT                             OGLEXT_MAKEGLNAME(TextureMaterialEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3006,6 +4053,7 @@
 #ifndef GL_EXT_misc_attribute
 
    #define GL_EXT_misc_attribute 1
+   #define GL_EXT_misc_attribute_OGLEXT 1
 
 #endif /* GL_EXT_misc_attribute */
 
@@ -3017,6 +4065,7 @@
 #ifndef GL_EXT_multisample
 
    #define GL_EXT_multisample 1
+   #define GL_EXT_multisample_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3042,6 +4091,15 @@
 
    #endif /* GL_MULTISAMPLE_EXT */
 
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glSampleMaskEXT                                  OGLEXT_MAKEGLNAME(SampleMaskEXT)
+      #define glSamplePatternEXT                               OGLEXT_MAKEGLNAME(SamplePatternEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    #ifdef GL_GLEXT_PROTOTYPES
@@ -3061,6 +4119,7 @@
 #ifndef GL_EXT_multitexture
 
    #define GL_EXT_multitexture 1
+   #define GL_EXT_multitexture_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3078,6 +4137,49 @@
       #define GL_TEXTURE3_EXT                                             0x83c9
 
    #endif /* GL_SELECTED_TEXTURE_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glInterleavedTextureCoordSetsEXT                 OGLEXT_MAKEGLNAME(InterleavedTextureCoordSetsEXT)
+      #define glMultiTexCoord1dEXT                             OGLEXT_MAKEGLNAME(MultiTexCoord1dEXT)
+      #define glMultiTexCoord1dvEXT                            OGLEXT_MAKEGLNAME(MultiTexCoord1dvEXT)
+      #define glMultiTexCoord1fEXT                             OGLEXT_MAKEGLNAME(MultiTexCoord1fEXT)
+      #define glMultiTexCoord1fvEXT                            OGLEXT_MAKEGLNAME(MultiTexCoord1fvEXT)
+      #define glMultiTexCoord1iEXT                             OGLEXT_MAKEGLNAME(MultiTexCoord1iEXT)
+      #define glMultiTexCoord1ivEXT                            OGLEXT_MAKEGLNAME(MultiTexCoord1ivEXT)
+      #define glMultiTexCoord1sEXT                             OGLEXT_MAKEGLNAME(MultiTexCoord1sEXT)
+      #define glMultiTexCoord1svEXT                            OGLEXT_MAKEGLNAME(MultiTexCoord1svEXT)
+      #define glMultiTexCoord2dEXT                             OGLEXT_MAKEGLNAME(MultiTexCoord2dEXT)
+      #define glMultiTexCoord2dvEXT                            OGLEXT_MAKEGLNAME(MultiTexCoord2dvEXT)
+      #define glMultiTexCoord2fEXT                             OGLEXT_MAKEGLNAME(MultiTexCoord2fEXT)
+      #define glMultiTexCoord2fvEXT                            OGLEXT_MAKEGLNAME(MultiTexCoord2fvEXT)
+      #define glMultiTexCoord2iEXT                             OGLEXT_MAKEGLNAME(MultiTexCoord2iEXT)
+      #define glMultiTexCoord2ivEXT                            OGLEXT_MAKEGLNAME(MultiTexCoord2ivEXT)
+      #define glMultiTexCoord2sEXT                             OGLEXT_MAKEGLNAME(MultiTexCoord2sEXT)
+      #define glMultiTexCoord2svEXT                            OGLEXT_MAKEGLNAME(MultiTexCoord2svEXT)
+      #define glMultiTexCoord3dEXT                             OGLEXT_MAKEGLNAME(MultiTexCoord3dEXT)
+      #define glMultiTexCoord3dvEXT                            OGLEXT_MAKEGLNAME(MultiTexCoord3dvEXT)
+      #define glMultiTexCoord3fEXT                             OGLEXT_MAKEGLNAME(MultiTexCoord3fEXT)
+      #define glMultiTexCoord3fvEXT                            OGLEXT_MAKEGLNAME(MultiTexCoord3fvEXT)
+      #define glMultiTexCoord3iEXT                             OGLEXT_MAKEGLNAME(MultiTexCoord3iEXT)
+      #define glMultiTexCoord3ivEXT                            OGLEXT_MAKEGLNAME(MultiTexCoord3ivEXT)
+      #define glMultiTexCoord3sEXT                             OGLEXT_MAKEGLNAME(MultiTexCoord3sEXT)
+      #define glMultiTexCoord3svEXT                            OGLEXT_MAKEGLNAME(MultiTexCoord3svEXT)
+      #define glMultiTexCoord4dEXT                             OGLEXT_MAKEGLNAME(MultiTexCoord4dEXT)
+      #define glMultiTexCoord4dvEXT                            OGLEXT_MAKEGLNAME(MultiTexCoord4dvEXT)
+      #define glMultiTexCoord4fEXT                             OGLEXT_MAKEGLNAME(MultiTexCoord4fEXT)
+      #define glMultiTexCoord4fvEXT                            OGLEXT_MAKEGLNAME(MultiTexCoord4fvEXT)
+      #define glMultiTexCoord4iEXT                             OGLEXT_MAKEGLNAME(MultiTexCoord4iEXT)
+      #define glMultiTexCoord4ivEXT                            OGLEXT_MAKEGLNAME(MultiTexCoord4ivEXT)
+      #define glMultiTexCoord4sEXT                             OGLEXT_MAKEGLNAME(MultiTexCoord4sEXT)
+      #define glMultiTexCoord4svEXT                            OGLEXT_MAKEGLNAME(MultiTexCoord4svEXT)
+      #define glSelectTextureCoordSetEXT                       OGLEXT_MAKEGLNAME(SelectTextureCoordSetEXT)
+      #define glSelectTextureEXT                               OGLEXT_MAKEGLNAME(SelectTextureEXT)
+      #define glSelectTextureTransformEXT                      OGLEXT_MAKEGLNAME(SelectTextureTransformEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3132,6 +4234,16 @@
 #ifndef GL_EXT_multi_draw_arrays
 
    #define GL_EXT_multi_draw_arrays 1
+   #define GL_EXT_multi_draw_arrays_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glMultiDrawArraysEXT                             OGLEXT_MAKEGLNAME(MultiDrawArraysEXT)
+      #define glMultiDrawElementsEXT                           OGLEXT_MAKEGLNAME(MultiDrawElementsEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3152,6 +4264,7 @@
 #ifndef GL_EXT_packed_pixels
 
    #define GL_EXT_packed_pixels 1
+   #define GL_EXT_packed_pixels_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3175,6 +4288,7 @@
 #ifndef GL_EXT_paletted_texture
 
    #define GL_EXT_paletted_texture 1
+   #define GL_EXT_paletted_texture_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3189,6 +4303,17 @@
       #define GL_TEXTURE_INDEX_SIZE_EXT                                   0x80ed
 
    #endif /* GL_COLOR_INDEX1_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glColorTableEXT                                  OGLEXT_MAKEGLNAME(ColorTableEXT)
+      #define glGetColorTableEXT                               OGLEXT_MAKEGLNAME(GetColorTableEXT)
+      #define glGetColorTableParameterfvEXT                    OGLEXT_MAKEGLNAME(GetColorTableParameterfvEXT)
+      #define glGetColorTableParameterivEXT                    OGLEXT_MAKEGLNAME(GetColorTableParameterivEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3211,6 +4336,7 @@
 #ifndef GL_EXT_pixel_transform
 
    #define GL_EXT_pixel_transform 1
+   #define GL_EXT_pixel_transform_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3227,6 +4353,17 @@
       #define GL_PIXEL_TRANSFORM_2D_MATRIX_EXT                            0x8338
 
    #endif /* GL_PIXEL_TRANSFORM_2D_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glPixelTransformParameterfEXT                    OGLEXT_MAKEGLNAME(PixelTransformParameterfEXT)
+      #define glPixelTransformParameterfvEXT                   OGLEXT_MAKEGLNAME(PixelTransformParameterfvEXT)
+      #define glPixelTransformParameteriEXT                    OGLEXT_MAKEGLNAME(PixelTransformParameteriEXT)
+      #define glPixelTransformParameterivEXT                   OGLEXT_MAKEGLNAME(PixelTransformParameterivEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3249,6 +4386,7 @@
 #ifndef GL_EXT_pixel_transform_color_table
 
    #define GL_EXT_pixel_transform_color_table 1
+   #define GL_EXT_pixel_transform_color_table_OGLEXT 1
 
 #endif /* GL_EXT_pixel_transform_color_table */
 
@@ -3260,6 +4398,7 @@
 #ifndef GL_EXT_point_parameters
 
    #define GL_EXT_point_parameters 1
+   #define GL_EXT_point_parameters_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3271,6 +4410,15 @@
       #define GL_DISTANCE_ATTENUATION_EXT                                 0x8129
 
    #endif /* GL_POINT_SIZE_MIN_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glPointParameterfEXT                             OGLEXT_MAKEGLNAME(PointParameterfEXT)
+      #define glPointParameterfvEXT                            OGLEXT_MAKEGLNAME(PointParameterfvEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3291,6 +4439,7 @@
 #ifndef GL_EXT_polygon_offset
 
    #define GL_EXT_polygon_offset 1
+   #define GL_EXT_polygon_offset_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3301,6 +4450,14 @@
       #define GL_POLYGON_OFFSET_BIAS_EXT                                  0x8039
 
    #endif /* GL_POLYGON_OFFSET_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glPolygonOffsetEXT                               OGLEXT_MAKEGLNAME(PolygonOffsetEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3320,6 +4477,7 @@
 #ifndef GL_EXT_rescale_normal
 
    #define GL_EXT_rescale_normal 1
+   #define GL_EXT_rescale_normal_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3339,6 +4497,7 @@
 #ifndef GL_EXT_secondary_color
 
    #define GL_EXT_secondary_color 1
+   #define GL_EXT_secondary_color_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3353,6 +4512,30 @@
       #define GL_SECONDARY_COLOR_ARRAY_EXT                                0x845e
 
    #endif /* GL_COLOR_SUM_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glSecondaryColor3bEXT                            OGLEXT_MAKEGLNAME(SecondaryColor3bEXT)
+      #define glSecondaryColor3bvEXT                           OGLEXT_MAKEGLNAME(SecondaryColor3bvEXT)
+      #define glSecondaryColor3dEXT                            OGLEXT_MAKEGLNAME(SecondaryColor3dEXT)
+      #define glSecondaryColor3dvEXT                           OGLEXT_MAKEGLNAME(SecondaryColor3dvEXT)
+      #define glSecondaryColor3fEXT                            OGLEXT_MAKEGLNAME(SecondaryColor3fEXT)
+      #define glSecondaryColor3fvEXT                           OGLEXT_MAKEGLNAME(SecondaryColor3fvEXT)
+      #define glSecondaryColor3iEXT                            OGLEXT_MAKEGLNAME(SecondaryColor3iEXT)
+      #define glSecondaryColor3ivEXT                           OGLEXT_MAKEGLNAME(SecondaryColor3ivEXT)
+      #define glSecondaryColor3sEXT                            OGLEXT_MAKEGLNAME(SecondaryColor3sEXT)
+      #define glSecondaryColor3svEXT                           OGLEXT_MAKEGLNAME(SecondaryColor3svEXT)
+      #define glSecondaryColor3ubEXT                           OGLEXT_MAKEGLNAME(SecondaryColor3ubEXT)
+      #define glSecondaryColor3ubvEXT                          OGLEXT_MAKEGLNAME(SecondaryColor3ubvEXT)
+      #define glSecondaryColor3uiEXT                           OGLEXT_MAKEGLNAME(SecondaryColor3uiEXT)
+      #define glSecondaryColor3uivEXT                          OGLEXT_MAKEGLNAME(SecondaryColor3uivEXT)
+      #define glSecondaryColor3usEXT                           OGLEXT_MAKEGLNAME(SecondaryColor3usEXT)
+      #define glSecondaryColor3usvEXT                          OGLEXT_MAKEGLNAME(SecondaryColor3usvEXT)
+      #define glSecondaryColorPointerEXT                       OGLEXT_MAKEGLNAME(SecondaryColorPointerEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3388,6 +4571,7 @@
 #ifndef GL_EXT_separate_specular_color
 
    #define GL_EXT_separate_specular_color 1
+   #define GL_EXT_separate_specular_color_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3409,6 +4593,7 @@
 #ifndef GL_EXT_shadow_funcs
 
    #define GL_EXT_shadow_funcs 1
+   #define GL_EXT_shadow_funcs_OGLEXT 1
 
 #endif /* GL_EXT_shadow_funcs */
 
@@ -3420,6 +4605,7 @@
 #ifndef GL_EXT_shared_texture_palette
 
    #define GL_EXT_shared_texture_palette 1
+   #define GL_EXT_shared_texture_palette_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3439,6 +4625,7 @@
 #ifndef GL_EXT_stencil_two_side
 
    #define GL_EXT_stencil_two_side 1
+   #define GL_EXT_stencil_two_side_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3448,6 +4635,14 @@
       #define GL_ACTIVE_STENCIL_FACE_EXT                                  0x8911
 
    #endif /* GL_STENCIL_TEST_TWO_SIDE_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glActiveStencilFaceEXT                           OGLEXT_MAKEGLNAME(ActiveStencilFaceEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3467,6 +4662,7 @@
 #ifndef GL_EXT_stencil_wrap
 
    #define GL_EXT_stencil_wrap 1
+   #define GL_EXT_stencil_wrap_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3487,6 +4683,16 @@
 #ifndef GL_EXT_subtexture
 
    #define GL_EXT_subtexture 1
+   #define GL_EXT_subtexture_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glTexSubImage1DEXT                               OGLEXT_MAKEGLNAME(TexSubImage1DEXT)
+      #define glTexSubImage2DEXT                               OGLEXT_MAKEGLNAME(TexSubImage2DEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3507,6 +4713,7 @@
 #ifndef GL_EXT_texture
 
    #define GL_EXT_texture 1
+   #define GL_EXT_texture_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3568,6 +4775,7 @@
 #ifndef GL_EXT_texture3D
 
    #define GL_EXT_texture3D 1
+   #define GL_EXT_texture3D_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3584,6 +4792,15 @@
       #define GL_MAX_3D_TEXTURE_SIZE_EXT                                  0x8073
 
    #endif /* GL_PACK_SKIP_IMAGES_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glTexImage3DEXT                                  OGLEXT_MAKEGLNAME(TexImage3DEXT)
+      #define glTexSubImage3DEXT                               OGLEXT_MAKEGLNAME(TexSubImage3DEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3604,6 +4821,7 @@
 #ifndef GL_EXT_texture_compression_s3tc
 
    #define GL_EXT_texture_compression_s3tc 1
+   #define GL_EXT_texture_compression_s3tc_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3626,6 +4844,7 @@
 #ifndef GL_EXT_texture_env_add
 
    #define GL_EXT_texture_env_add 1
+   #define GL_EXT_texture_env_add_OGLEXT 1
 
 #endif /* GL_EXT_texture_env_add */
 
@@ -3637,6 +4856,7 @@
 #ifndef GL_EXT_texture_env_combine
 
    #define GL_EXT_texture_env_combine 1
+   #define GL_EXT_texture_env_combine_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3676,6 +4896,7 @@
 #ifndef GL_EXT_texture_env_dot3
 
    #define GL_EXT_texture_env_dot3 1
+   #define GL_EXT_texture_env_dot3_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3696,6 +4917,7 @@
 #ifndef GL_EXT_texture_filter_anisotropic
 
    #define GL_EXT_texture_filter_anisotropic 1
+   #define GL_EXT_texture_filter_anisotropic_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3716,6 +4938,7 @@
 #ifndef GL_EXT_texture_lod_bias
 
    #define GL_EXT_texture_lod_bias 1
+   #define GL_EXT_texture_lod_bias_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3737,6 +4960,7 @@
 #ifndef GL_EXT_texture_mirror_clamp
 
    #define GL_EXT_texture_mirror_clamp 1
+   #define GL_EXT_texture_mirror_clamp_OGLEXT 1
 
 #endif /* GL_EXT_texture_mirror_clamp */
 
@@ -3748,6 +4972,7 @@
 #ifndef GL_EXT_texture_object
 
    #define GL_EXT_texture_object 1
+   #define GL_EXT_texture_object_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3760,6 +4985,19 @@
       #define GL_TEXTURE_3D_BINDING_EXT                                   0x806a
 
    #endif /* GL_TEXTURE_PRIORITY_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glAreTexturesResidentEXT                         OGLEXT_MAKEGLNAME(AreTexturesResidentEXT)
+      #define glBindTextureEXT                                 OGLEXT_MAKEGLNAME(BindTextureEXT)
+      #define glDeleteTexturesEXT                              OGLEXT_MAKEGLNAME(DeleteTexturesEXT)
+      #define glGenTexturesEXT                                 OGLEXT_MAKEGLNAME(GenTexturesEXT)
+      #define glIsTextureEXT                                   OGLEXT_MAKEGLNAME(IsTextureEXT)
+      #define glPrioritizeTexturesEXT                          OGLEXT_MAKEGLNAME(PrioritizeTexturesEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3784,6 +5022,7 @@
 #ifndef GL_EXT_texture_perturb_normal
 
    #define GL_EXT_texture_perturb_normal 1
+   #define GL_EXT_texture_perturb_normal_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3793,6 +5032,14 @@
       #define GL_TEXTURE_NORMAL_EXT                                       0x85af
 
    #endif /* GL_PERTURB_EXT */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glTextureNormalEXT                               OGLEXT_MAKEGLNAME(TextureNormalEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3812,6 +5059,7 @@
 #ifndef GL_EXT_vertex_array
 
    #define GL_EXT_vertex_array 1
+   #define GL_EXT_vertex_array_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3852,6 +5100,22 @@
 
    #endif /* GL_VERTEX_ARRAY_EXT */
 
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glArrayElementEXT                                OGLEXT_MAKEGLNAME(ArrayElementEXT)
+      #define glColorPointerEXT                                OGLEXT_MAKEGLNAME(ColorPointerEXT)
+      #define glDrawArraysEXT                                  OGLEXT_MAKEGLNAME(DrawArraysEXT)
+      #define glEdgeFlagPointerEXT                             OGLEXT_MAKEGLNAME(EdgeFlagPointerEXT)
+      #define glGetPointervEXT                                 OGLEXT_MAKEGLNAME(GetPointervEXT)
+      #define glIndexPointerEXT                                OGLEXT_MAKEGLNAME(IndexPointerEXT)
+      #define glNormalPointerEXT                               OGLEXT_MAKEGLNAME(NormalPointerEXT)
+      #define glTexCoordPointerEXT                             OGLEXT_MAKEGLNAME(TexCoordPointerEXT)
+      #define glVertexPointerEXT                               OGLEXT_MAKEGLNAME(VertexPointerEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    #ifdef GL_GLEXT_PROTOTYPES
@@ -3878,6 +5142,7 @@
 #ifndef GL_EXT_vertex_shader
 
    #define GL_EXT_vertex_shader 1
+   #define GL_EXT_vertex_shader_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -3996,6 +5261,55 @@
 
    #endif /* GL_VERTEX_SHADER_EXT */
 
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glBeginVertexShaderEXT                           OGLEXT_MAKEGLNAME(BeginVertexShaderEXT)
+      #define glBindLightParameterEXT                          OGLEXT_MAKEGLNAME(BindLightParameterEXT)
+      #define glBindMaterialParameterEXT                       OGLEXT_MAKEGLNAME(BindMaterialParameterEXT)
+      #define glBindParameterEXT                               OGLEXT_MAKEGLNAME(BindParameterEXT)
+      #define glBindTexGenParameterEXT                         OGLEXT_MAKEGLNAME(BindTexGenParameterEXT)
+      #define glBindTextureUnitParameterEXT                    OGLEXT_MAKEGLNAME(BindTextureUnitParameterEXT)
+      #define glBindVertexShaderEXT                            OGLEXT_MAKEGLNAME(BindVertexShaderEXT)
+      #define glDeleteVertexShaderEXT                          OGLEXT_MAKEGLNAME(DeleteVertexShaderEXT)
+      #define glDisableVariantClientStateEXT                   OGLEXT_MAKEGLNAME(DisableVariantClientStateEXT)
+      #define glEnableVariantClientStateEXT                    OGLEXT_MAKEGLNAME(EnableVariantClientStateEXT)
+      #define glEndVertexShaderEXT                             OGLEXT_MAKEGLNAME(EndVertexShaderEXT)
+      #define glExtractComponentEXT                            OGLEXT_MAKEGLNAME(ExtractComponentEXT)
+      #define glGenSymbolsEXT                                  OGLEXT_MAKEGLNAME(GenSymbolsEXT)
+      #define glGenVertexShadersEXT                            OGLEXT_MAKEGLNAME(GenVertexShadersEXT)
+      #define glGetInvariantBooleanvEXT                        OGLEXT_MAKEGLNAME(GetInvariantBooleanvEXT)
+      #define glGetInvariantFloatvEXT                          OGLEXT_MAKEGLNAME(GetInvariantFloatvEXT)
+      #define glGetInvariantIntegervEXT                        OGLEXT_MAKEGLNAME(GetInvariantIntegervEXT)
+      #define glGetLocalConstantBooleanvEXT                    OGLEXT_MAKEGLNAME(GetLocalConstantBooleanvEXT)
+      #define glGetLocalConstantFloatvEXT                      OGLEXT_MAKEGLNAME(GetLocalConstantFloatvEXT)
+      #define glGetLocalConstantIntegervEXT                    OGLEXT_MAKEGLNAME(GetLocalConstantIntegervEXT)
+      #define glGetVariantBooleanvEXT                          OGLEXT_MAKEGLNAME(GetVariantBooleanvEXT)
+      #define glGetVariantFloatvEXT                            OGLEXT_MAKEGLNAME(GetVariantFloatvEXT)
+      #define glGetVariantIntegervEXT                          OGLEXT_MAKEGLNAME(GetVariantIntegervEXT)
+      #define glGetVariantPointervEXT                          OGLEXT_MAKEGLNAME(GetVariantPointervEXT)
+      #define glInsertComponentEXT                             OGLEXT_MAKEGLNAME(InsertComponentEXT)
+      #define glIsVariantEnabledEXT                            OGLEXT_MAKEGLNAME(IsVariantEnabledEXT)
+      #define glSetInvariantEXT                                OGLEXT_MAKEGLNAME(SetInvariantEXT)
+      #define glSetLocalConstantEXT                            OGLEXT_MAKEGLNAME(SetLocalConstantEXT)
+      #define glShaderOp1EXT                                   OGLEXT_MAKEGLNAME(ShaderOp1EXT)
+      #define glShaderOp2EXT                                   OGLEXT_MAKEGLNAME(ShaderOp2EXT)
+      #define glShaderOp3EXT                                   OGLEXT_MAKEGLNAME(ShaderOp3EXT)
+      #define glSwizzleEXT                                     OGLEXT_MAKEGLNAME(SwizzleEXT)
+      #define glVariantbvEXT                                   OGLEXT_MAKEGLNAME(VariantbvEXT)
+      #define glVariantdvEXT                                   OGLEXT_MAKEGLNAME(VariantdvEXT)
+      #define glVariantfvEXT                                   OGLEXT_MAKEGLNAME(VariantfvEXT)
+      #define glVariantivEXT                                   OGLEXT_MAKEGLNAME(VariantivEXT)
+      #define glVariantPointerEXT                              OGLEXT_MAKEGLNAME(VariantPointerEXT)
+      #define glVariantsvEXT                                   OGLEXT_MAKEGLNAME(VariantsvEXT)
+      #define glVariantubvEXT                                  OGLEXT_MAKEGLNAME(VariantubvEXT)
+      #define glVariantuivEXT                                  OGLEXT_MAKEGLNAME(VariantuivEXT)
+      #define glVariantusvEXT                                  OGLEXT_MAKEGLNAME(VariantusvEXT)
+      #define glWriteMaskEXT                                   OGLEXT_MAKEGLNAME(WriteMaskEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    #ifdef GL_GLEXT_PROTOTYPES
@@ -4055,6 +5369,7 @@
 #ifndef GL_EXT_vertex_weighting
 
    #define GL_EXT_vertex_weighting 1
+   #define GL_EXT_vertex_weighting_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4076,6 +5391,16 @@
 
    #endif /* GL_MODELVIEW0_STACK_DEPTH_EXT */
 
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glVertexWeightfEXT                               OGLEXT_MAKEGLNAME(VertexWeightfEXT)
+      #define glVertexWeightfvEXT                              OGLEXT_MAKEGLNAME(VertexWeightfvEXT)
+      #define glVertexWeightPointerEXT                         OGLEXT_MAKEGLNAME(VertexWeightPointerEXT)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    #ifdef GL_GLEXT_PROTOTYPES
@@ -4096,6 +5421,7 @@
 #ifndef GL_HP_convolution_border_modes
 
    #define GL_HP_convolution_border_modes 1
+   #define GL_HP_convolution_border_modes_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4118,6 +5444,7 @@
 #ifndef GL_HP_image_transform
 
    #define GL_HP_image_transform 1
+   #define GL_HP_image_transform_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4140,6 +5467,19 @@
       #define GL_PROXY_POST_IMAGE_TRANSFORM_COLOR_TABLE_HP                0x8163
 
    #endif /* GL_IMAGE_SCALE_X_HP */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glGetImageTransformParameterfvHP                 OGLEXT_MAKEGLNAME(GetImageTransformParameterfvHP)
+      #define glGetImageTransformParameterivHP                 OGLEXT_MAKEGLNAME(GetImageTransformParameterivHP)
+      #define glImageTransformParameterfHP                     OGLEXT_MAKEGLNAME(ImageTransformParameterfHP)
+      #define glImageTransformParameterfvHP                    OGLEXT_MAKEGLNAME(ImageTransformParameterfvHP)
+      #define glImageTransformParameteriHP                     OGLEXT_MAKEGLNAME(ImageTransformParameteriHP)
+      #define glImageTransformParameterivHP                    OGLEXT_MAKEGLNAME(ImageTransformParameterivHP)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4164,6 +5504,7 @@
 #ifndef GL_HP_occlusion_test
 
    #define GL_HP_occlusion_test 1
+   #define GL_HP_occlusion_test_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4184,6 +5525,7 @@
 #ifndef GL_HP_texture_lighting
 
    #define GL_HP_texture_lighting 1
+   #define GL_HP_texture_lighting_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4205,6 +5547,7 @@
 #ifndef GL_IBM_cull_vertex
 
    #define GL_IBM_cull_vertex 1
+   #define GL_IBM_cull_vertex_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4224,6 +5567,16 @@
 #ifndef GL_IBM_multimode_draw_arrays
 
    #define GL_IBM_multimode_draw_arrays 1
+   #define GL_IBM_multimode_draw_arrays_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glMultiModeDrawArraysIBM                         OGLEXT_MAKEGLNAME(MultiModeDrawArraysIBM)
+      #define glMultiModeDrawElementsIBM                       OGLEXT_MAKEGLNAME(MultiModeDrawElementsIBM)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4244,6 +5597,7 @@
 #ifndef GL_IBM_rasterpos_clip
 
    #define GL_IBM_rasterpos_clip 1
+   #define GL_IBM_rasterpos_clip_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4263,6 +5617,7 @@
 #ifndef GL_IBM_static_data
 
    #define GL_IBM_static_data 1
+   #define GL_IBM_static_data_OGLEXT 1
 
 #endif /* GL_IBM_static_data */
 
@@ -4274,6 +5629,7 @@
 #ifndef GL_IBM_texture_mirrored_repeat
 
    #define GL_IBM_texture_mirrored_repeat 1
+   #define GL_IBM_texture_mirrored_repeat_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4293,6 +5649,7 @@
 #ifndef GL_IBM_vertex_array_lists
 
    #define GL_IBM_vertex_array_lists 1
+   #define GL_IBM_vertex_array_lists_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4316,6 +5673,21 @@
       #define GL_SECONDARY_COLOR_ARRAY_LIST_STRIDE_IBM                    0x192af
 
    #endif /* GL_VERTEX_ARRAY_LIST_IBM */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glColorPointerListIBM                            OGLEXT_MAKEGLNAME(ColorPointerListIBM)
+      #define glEdgeFlagPointerListIBM                         OGLEXT_MAKEGLNAME(EdgeFlagPointerListIBM)
+      #define glFogCoordPointerListIBM                         OGLEXT_MAKEGLNAME(FogCoordPointerListIBM)
+      #define glIndexPointerListIBM                            OGLEXT_MAKEGLNAME(IndexPointerListIBM)
+      #define glNormalPointerListIBM                           OGLEXT_MAKEGLNAME(NormalPointerListIBM)
+      #define glSecondaryColorPointerListIBM                   OGLEXT_MAKEGLNAME(SecondaryColorPointerListIBM)
+      #define glTexCoordPointerListIBM                         OGLEXT_MAKEGLNAME(TexCoordPointerListIBM)
+      #define glVertexPointerListIBM                           OGLEXT_MAKEGLNAME(VertexPointerListIBM)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4342,6 +5714,15 @@
 #ifndef GL_INGR_blend_func_separate
 
    #define GL_INGR_blend_func_separate 1
+   #define GL_INGR_blend_func_separate_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glBlendFuncSeparateINGR                          OGLEXT_MAKEGLNAME(BlendFuncSeparateINGR)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4361,6 +5742,7 @@
 #ifndef GL_INGR_color_clamp
 
    #define GL_INGR_color_clamp 1
+   #define GL_INGR_color_clamp_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4387,6 +5769,7 @@
 #ifndef GL_INGR_interlace_read
 
    #define GL_INGR_interlace_read 1
+   #define GL_INGR_interlace_read_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4406,6 +5789,7 @@
 #ifndef GL_INTEL_parallel_arrays
 
    #define GL_INTEL_parallel_arrays 1
+   #define GL_INTEL_parallel_arrays_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4418,6 +5802,17 @@
       #define GL_TEXTURE_COORD_ARRAY_PARALLEL_POINTERS_INTEL              0x83f8
 
    #endif /* GL_PARALLEL_ARRAYS_INTEL */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glColorPointervINTEL                             OGLEXT_MAKEGLNAME(ColorPointervINTEL)
+      #define glNormalPointervINTEL                            OGLEXT_MAKEGLNAME(NormalPointervINTEL)
+      #define glTexCoordPointervINTEL                          OGLEXT_MAKEGLNAME(TexCoordPointervINTEL)
+      #define glVertexPointervINTEL                            OGLEXT_MAKEGLNAME(VertexPointervINTEL)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4440,6 +5835,15 @@
 #ifndef GL_MESA_resize_buffers
 
    #define GL_MESA_resize_buffers 1
+   #define GL_MESA_resize_buffers_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glResizeBuffersMESA                              OGLEXT_MAKEGLNAME(ResizeBuffersMESA)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4459,6 +5863,38 @@
 #ifndef GL_MESA_window_pos
 
    #define GL_MESA_window_pos 1
+   #define GL_MESA_window_pos_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glWindowPos2dMESA                                OGLEXT_MAKEGLNAME(WindowPos2dMESA)
+      #define glWindowPos2dvMESA                               OGLEXT_MAKEGLNAME(WindowPos2dvMESA)
+      #define glWindowPos2fMESA                                OGLEXT_MAKEGLNAME(WindowPos2fMESA)
+      #define glWindowPos2fvMESA                               OGLEXT_MAKEGLNAME(WindowPos2fvMESA)
+      #define glWindowPos2iMESA                                OGLEXT_MAKEGLNAME(WindowPos2iMESA)
+      #define glWindowPos2ivMESA                               OGLEXT_MAKEGLNAME(WindowPos2ivMESA)
+      #define glWindowPos2sMESA                                OGLEXT_MAKEGLNAME(WindowPos2sMESA)
+      #define glWindowPos2svMESA                               OGLEXT_MAKEGLNAME(WindowPos2svMESA)
+      #define glWindowPos3dMESA                                OGLEXT_MAKEGLNAME(WindowPos3dMESA)
+      #define glWindowPos3dvMESA                               OGLEXT_MAKEGLNAME(WindowPos3dvMESA)
+      #define glWindowPos3fMESA                                OGLEXT_MAKEGLNAME(WindowPos3fMESA)
+      #define glWindowPos3fvMESA                               OGLEXT_MAKEGLNAME(WindowPos3fvMESA)
+      #define glWindowPos3iMESA                                OGLEXT_MAKEGLNAME(WindowPos3iMESA)
+      #define glWindowPos3ivMESA                               OGLEXT_MAKEGLNAME(WindowPos3ivMESA)
+      #define glWindowPos3sMESA                                OGLEXT_MAKEGLNAME(WindowPos3sMESA)
+      #define glWindowPos3svMESA                               OGLEXT_MAKEGLNAME(WindowPos3svMESA)
+      #define glWindowPos4dMESA                                OGLEXT_MAKEGLNAME(WindowPos4dMESA)
+      #define glWindowPos4dvMESA                               OGLEXT_MAKEGLNAME(WindowPos4dvMESA)
+      #define glWindowPos4fMESA                                OGLEXT_MAKEGLNAME(WindowPos4fMESA)
+      #define glWindowPos4fvMESA                               OGLEXT_MAKEGLNAME(WindowPos4fvMESA)
+      #define glWindowPos4iMESA                                OGLEXT_MAKEGLNAME(WindowPos4iMESA)
+      #define glWindowPos4ivMESA                               OGLEXT_MAKEGLNAME(WindowPos4ivMESA)
+      #define glWindowPos4sMESA                                OGLEXT_MAKEGLNAME(WindowPos4sMESA)
+      #define glWindowPos4svMESA                               OGLEXT_MAKEGLNAME(WindowPos4svMESA)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4501,6 +5937,7 @@
 #ifndef GL_NV_blend_square
 
    #define GL_NV_blend_square 1
+   #define GL_NV_blend_square_OGLEXT 1
 
 #endif /* GL_NV_blend_square */
 
@@ -4512,6 +5949,7 @@
 #ifndef GL_NV_copy_depth_to_color
 
    #define GL_NV_copy_depth_to_color 1
+   #define GL_NV_copy_depth_to_color_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4532,6 +5970,7 @@
 #ifndef GL_NV_depth_clamp
 
    #define GL_NV_depth_clamp 1
+   #define GL_NV_depth_clamp_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4551,6 +5990,7 @@
 #ifndef GL_NV_evaluators
 
    #define GL_NV_evaluators 1
+   #define GL_NV_evaluators_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4583,6 +6023,22 @@
 
    #endif /* GL_EVAL_2D_NV */
 
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glEvalMapsNV                                     OGLEXT_MAKEGLNAME(EvalMapsNV)
+      #define glGetMapAttribParameterfvNV                      OGLEXT_MAKEGLNAME(GetMapAttribParameterfvNV)
+      #define glGetMapAttribParameterivNV                      OGLEXT_MAKEGLNAME(GetMapAttribParameterivNV)
+      #define glGetMapControlPointsNV                          OGLEXT_MAKEGLNAME(GetMapControlPointsNV)
+      #define glGetMapParameterfvNV                            OGLEXT_MAKEGLNAME(GetMapParameterfvNV)
+      #define glGetMapParameterivNV                            OGLEXT_MAKEGLNAME(GetMapParameterivNV)
+      #define glMapControlPointsNV                             OGLEXT_MAKEGLNAME(MapControlPointsNV)
+      #define glMapParameterfvNV                               OGLEXT_MAKEGLNAME(MapParameterfvNV)
+      #define glMapParameterivNV                               OGLEXT_MAKEGLNAME(MapParameterivNV)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    #ifdef GL_GLEXT_PROTOTYPES
@@ -4609,6 +6065,7 @@
 #ifndef GL_NV_fence
 
    #define GL_NV_fence 1
+   #define GL_NV_fence_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4619,6 +6076,20 @@
       #define GL_FENCE_CONDITION_NV                                       0x84f4
 
    #endif /* GL_ALL_COMPLETED_NV */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glDeleteFencesNV                                 OGLEXT_MAKEGLNAME(DeleteFencesNV)
+      #define glFinishFenceNV                                  OGLEXT_MAKEGLNAME(FinishFenceNV)
+      #define glGenFencesNV                                    OGLEXT_MAKEGLNAME(GenFencesNV)
+      #define glGetFenceivNV                                   OGLEXT_MAKEGLNAME(GetFenceivNV)
+      #define glIsFenceNV                                      OGLEXT_MAKEGLNAME(IsFenceNV)
+      #define glSetFenceNV                                     OGLEXT_MAKEGLNAME(SetFenceNV)
+      #define glTestFenceNV                                    OGLEXT_MAKEGLNAME(TestFenceNV)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4644,6 +6115,7 @@
 #ifndef GL_NV_float_buffer
 
    #define GL_NV_float_buffer 1
+   #define GL_NV_float_buffer_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4677,6 +6149,7 @@
 #ifndef GL_NV_fog_distance
 
    #define GL_NV_fog_distance 1
+   #define GL_NV_fog_distance_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4698,6 +6171,7 @@
 #ifndef GL_NV_fragment_program
 
    #define GL_NV_fragment_program 1
+   #define GL_NV_fragment_program_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4711,6 +6185,19 @@
       #define GL_PROGRAM_ERROR_STRING_NV                                  0x8874
 
    #endif /* GL_MAX_FRAGMENT_PROGRAM_LOCAL_PARAMETERS_NV */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glGetProgramNamedParameterdvNV                   OGLEXT_MAKEGLNAME(GetProgramNamedParameterdvNV)
+      #define glGetProgramNamedParameterfvNV                   OGLEXT_MAKEGLNAME(GetProgramNamedParameterfvNV)
+      #define glProgramNamedParameter4dNV                      OGLEXT_MAKEGLNAME(ProgramNamedParameter4dNV)
+      #define glProgramNamedParameter4dvNV                     OGLEXT_MAKEGLNAME(ProgramNamedParameter4dvNV)
+      #define glProgramNamedParameter4fNV                      OGLEXT_MAKEGLNAME(ProgramNamedParameter4fNV)
+      #define glProgramNamedParameter4fvNV                     OGLEXT_MAKEGLNAME(ProgramNamedParameter4fvNV)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4735,6 +6222,7 @@
 #ifndef GL_NV_half_float
 
    #define GL_NV_half_float 1
+   #define GL_NV_half_float_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4747,6 +6235,59 @@
    /* - -[ type definitions ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    typedef unsigned short                                                 GLhalfNV;
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glColor3hNV                                      OGLEXT_MAKEGLNAME(Color3hNV)
+      #define glColor3hvNV                                     OGLEXT_MAKEGLNAME(Color3hvNV)
+      #define glColor4hNV                                      OGLEXT_MAKEGLNAME(Color4hNV)
+      #define glColor4hvNV                                     OGLEXT_MAKEGLNAME(Color4hvNV)
+      #define glFogCoordhNV                                    OGLEXT_MAKEGLNAME(FogCoordhNV)
+      #define glFogCoordhvNV                                   OGLEXT_MAKEGLNAME(FogCoordhvNV)
+      #define glMultiTexCoord1hNV                              OGLEXT_MAKEGLNAME(MultiTexCoord1hNV)
+      #define glMultiTexCoord1hvNV                             OGLEXT_MAKEGLNAME(MultiTexCoord1hvNV)
+      #define glMultiTexCoord2hNV                              OGLEXT_MAKEGLNAME(MultiTexCoord2hNV)
+      #define glMultiTexCoord2hvNV                             OGLEXT_MAKEGLNAME(MultiTexCoord2hvNV)
+      #define glMultiTexCoord3hNV                              OGLEXT_MAKEGLNAME(MultiTexCoord3hNV)
+      #define glMultiTexCoord3hvNV                             OGLEXT_MAKEGLNAME(MultiTexCoord3hvNV)
+      #define glMultiTexCoord4hNV                              OGLEXT_MAKEGLNAME(MultiTexCoord4hNV)
+      #define glMultiTexCoord4hvNV                             OGLEXT_MAKEGLNAME(MultiTexCoord4hvNV)
+      #define glNormal3hNV                                     OGLEXT_MAKEGLNAME(Normal3hNV)
+      #define glNormal3hvNV                                    OGLEXT_MAKEGLNAME(Normal3hvNV)
+      #define glSecondaryColor3hNV                             OGLEXT_MAKEGLNAME(SecondaryColor3hNV)
+      #define glSecondaryColor3hvNV                            OGLEXT_MAKEGLNAME(SecondaryColor3hvNV)
+      #define glTexCoord1hNV                                   OGLEXT_MAKEGLNAME(TexCoord1hNV)
+      #define glTexCoord1hvNV                                  OGLEXT_MAKEGLNAME(TexCoord1hvNV)
+      #define glTexCoord2hNV                                   OGLEXT_MAKEGLNAME(TexCoord2hNV)
+      #define glTexCoord2hvNV                                  OGLEXT_MAKEGLNAME(TexCoord2hvNV)
+      #define glTexCoord3hNV                                   OGLEXT_MAKEGLNAME(TexCoord3hNV)
+      #define glTexCoord3hvNV                                  OGLEXT_MAKEGLNAME(TexCoord3hvNV)
+      #define glTexCoord4hNV                                   OGLEXT_MAKEGLNAME(TexCoord4hNV)
+      #define glTexCoord4hvNV                                  OGLEXT_MAKEGLNAME(TexCoord4hvNV)
+      #define glVertex2hNV                                     OGLEXT_MAKEGLNAME(Vertex2hNV)
+      #define glVertex2hvNV                                    OGLEXT_MAKEGLNAME(Vertex2hvNV)
+      #define glVertex3hNV                                     OGLEXT_MAKEGLNAME(Vertex3hNV)
+      #define glVertex3hvNV                                    OGLEXT_MAKEGLNAME(Vertex3hvNV)
+      #define glVertex4hNV                                     OGLEXT_MAKEGLNAME(Vertex4hNV)
+      #define glVertex4hvNV                                    OGLEXT_MAKEGLNAME(Vertex4hvNV)
+      #define glVertexAttrib1hNV                               OGLEXT_MAKEGLNAME(VertexAttrib1hNV)
+      #define glVertexAttrib1hvNV                              OGLEXT_MAKEGLNAME(VertexAttrib1hvNV)
+      #define glVertexAttrib2hNV                               OGLEXT_MAKEGLNAME(VertexAttrib2hNV)
+      #define glVertexAttrib2hvNV                              OGLEXT_MAKEGLNAME(VertexAttrib2hvNV)
+      #define glVertexAttrib3hNV                               OGLEXT_MAKEGLNAME(VertexAttrib3hNV)
+      #define glVertexAttrib3hvNV                              OGLEXT_MAKEGLNAME(VertexAttrib3hvNV)
+      #define glVertexAttrib4hNV                               OGLEXT_MAKEGLNAME(VertexAttrib4hNV)
+      #define glVertexAttrib4hvNV                              OGLEXT_MAKEGLNAME(VertexAttrib4hvNV)
+      #define glVertexAttribs1hvNV                             OGLEXT_MAKEGLNAME(VertexAttribs1hvNV)
+      #define glVertexAttribs2hvNV                             OGLEXT_MAKEGLNAME(VertexAttribs2hvNV)
+      #define glVertexAttribs3hvNV                             OGLEXT_MAKEGLNAME(VertexAttribs3hvNV)
+      #define glVertexAttribs4hvNV                             OGLEXT_MAKEGLNAME(VertexAttribs4hvNV)
+      #define glVertexWeighthNV                                OGLEXT_MAKEGLNAME(VertexWeighthNV)
+      #define glVertexWeighthvNV                               OGLEXT_MAKEGLNAME(VertexWeighthvNV)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4811,6 +6352,7 @@
 #ifndef GL_NV_light_max_exponent
 
    #define GL_NV_light_max_exponent 1
+   #define GL_NV_light_max_exponent_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4831,6 +6373,7 @@
 #ifndef GL_NV_multisample_filter_hint
 
    #define GL_NV_multisample_filter_hint 1
+   #define GL_NV_multisample_filter_hint_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4850,6 +6393,7 @@
 #ifndef GL_NV_occlusion_query
 
    #define GL_NV_occlusion_query 1
+   #define GL_NV_occlusion_query_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4861,6 +6405,20 @@
       #define GL_PIXEL_COUNT_AVAILABLE_NV                                 0x8867
 
    #endif /* GL_PIXEL_COUNTER_BITS_NV */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glBeginOcclusionQueryNV                          OGLEXT_MAKEGLNAME(BeginOcclusionQueryNV)
+      #define glDeleteOcclusionQueriesNV                       OGLEXT_MAKEGLNAME(DeleteOcclusionQueriesNV)
+      #define glEndOcclusionQueryNV                            OGLEXT_MAKEGLNAME(EndOcclusionQueryNV)
+      #define glGenOcclusionQueriesNV                          OGLEXT_MAKEGLNAME(GenOcclusionQueriesNV)
+      #define glGetOcclusionQueryivNV                          OGLEXT_MAKEGLNAME(GetOcclusionQueryivNV)
+      #define glGetOcclusionQueryuivNV                         OGLEXT_MAKEGLNAME(GetOcclusionQueryuivNV)
+      #define glIsOcclusionQueryNV                             OGLEXT_MAKEGLNAME(IsOcclusionQueryNV)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4886,6 +6444,7 @@
 #ifndef GL_NV_packed_depth_stencil
 
    #define GL_NV_packed_depth_stencil 1
+   #define GL_NV_packed_depth_stencil_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4906,6 +6465,7 @@
 #ifndef GL_NV_pixel_data_range
 
    #define GL_NV_pixel_data_range 1
+   #define GL_NV_pixel_data_range_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4919,6 +6479,15 @@
       #define GL_READ_PIXEL_DATA_RANGE_POINTER_NV                         0x887d
 
    #endif /* GL_WRITE_PIXEL_DATA_RANGE_NV */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glFlushPixelDataRangeNV                          OGLEXT_MAKEGLNAME(FlushPixelDataRangeNV)
+      #define glPixelDataRangeNV                               OGLEXT_MAKEGLNAME(PixelDataRangeNV)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4939,6 +6508,7 @@
 #ifndef GL_NV_point_sprite
 
    #define GL_NV_point_sprite 1
+   #define GL_NV_point_sprite_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4949,6 +6519,15 @@
       #define GL_POINT_SPRITE_R_MODE_NV                                   0x8863
 
    #endif /* GL_POINT_SPRITE_NV */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glPointParameteriNV                              OGLEXT_MAKEGLNAME(PointParameteriNV)
+      #define glPointParameterivNV                             OGLEXT_MAKEGLNAME(PointParameterivNV)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4969,6 +6548,7 @@
 #ifndef GL_NV_primitive_restart
 
    #define GL_NV_primitive_restart 1
+   #define GL_NV_primitive_restart_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4978,6 +6558,15 @@
       #define GL_PRIMITIVE_RESTART_INDEX_NV                               0x8559
 
    #endif /* GL_PRIMITIVE_RESTART_NV */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glPrimitiveRestartIndexNV                        OGLEXT_MAKEGLNAME(PrimitiveRestartIndexNV)
+      #define glPrimitiveRestartNV                             OGLEXT_MAKEGLNAME(PrimitiveRestartNV)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -4998,6 +6587,7 @@
 #ifndef GL_NV_register_combiners
 
    #define GL_NV_register_combiners 1
+   #define GL_NV_register_combiners_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5057,6 +6647,26 @@
 
    #endif /* GL_REGISTER_COMBINERS_NV */
 
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glCombinerInputNV                                OGLEXT_MAKEGLNAME(CombinerInputNV)
+      #define glCombinerOutputNV                               OGLEXT_MAKEGLNAME(CombinerOutputNV)
+      #define glCombinerParameterfNV                           OGLEXT_MAKEGLNAME(CombinerParameterfNV)
+      #define glCombinerParameterfvNV                          OGLEXT_MAKEGLNAME(CombinerParameterfvNV)
+      #define glCombinerParameteriNV                           OGLEXT_MAKEGLNAME(CombinerParameteriNV)
+      #define glCombinerParameterivNV                          OGLEXT_MAKEGLNAME(CombinerParameterivNV)
+      #define glFinalCombinerInputNV                           OGLEXT_MAKEGLNAME(FinalCombinerInputNV)
+      #define glGetCombinerInputParameterfvNV                  OGLEXT_MAKEGLNAME(GetCombinerInputParameterfvNV)
+      #define glGetCombinerInputParameterivNV                  OGLEXT_MAKEGLNAME(GetCombinerInputParameterivNV)
+      #define glGetCombinerOutputParameterfvNV                 OGLEXT_MAKEGLNAME(GetCombinerOutputParameterfvNV)
+      #define glGetCombinerOutputParameterivNV                 OGLEXT_MAKEGLNAME(GetCombinerOutputParameterivNV)
+      #define glGetFinalCombinerInputParameterfvNV             OGLEXT_MAKEGLNAME(GetFinalCombinerInputParameterfvNV)
+      #define glGetFinalCombinerInputParameterivNV             OGLEXT_MAKEGLNAME(GetFinalCombinerInputParameterivNV)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    #ifdef GL_GLEXT_PROTOTYPES
@@ -5087,6 +6697,7 @@
 #ifndef GL_NV_register_combiners2
 
    #define GL_NV_register_combiners2 1
+   #define GL_NV_register_combiners2_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5095,6 +6706,15 @@
       #define GL_PER_STAGE_CONSTANTS_NV                                   0x8535
 
    #endif /* GL_PER_STAGE_CONSTANTS_NV */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glCombinerStageParameterfvNV                     OGLEXT_MAKEGLNAME(CombinerStageParameterfvNV)
+      #define glGetCombinerStageParameterfvNV                  OGLEXT_MAKEGLNAME(GetCombinerStageParameterfvNV)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5115,6 +6735,7 @@
 #ifndef GL_NV_texgen_emboss
 
    #define GL_NV_texgen_emboss 1
+   #define GL_NV_texgen_emboss_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5136,6 +6757,7 @@
 #ifndef GL_NV_texgen_reflection
 
    #define GL_NV_texgen_reflection 1
+   #define GL_NV_texgen_reflection_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5156,6 +6778,7 @@
 #ifndef GL_NV_texture_compression_vtc
 
    #define GL_NV_texture_compression_vtc 1
+   #define GL_NV_texture_compression_vtc_OGLEXT 1
 
 #endif /* GL_NV_texture_compression_vtc */
 
@@ -5167,6 +6790,7 @@
 #ifndef GL_NV_texture_env_combine4
 
    #define GL_NV_texture_env_combine4 1
+   #define GL_NV_texture_env_combine4_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5190,6 +6814,7 @@
 #ifndef GL_NV_texture_expand_normal
 
    #define GL_NV_texture_expand_normal 1
+   #define GL_NV_texture_expand_normal_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5209,6 +6834,7 @@
 #ifndef GL_NV_texture_rectangle
 
    #define GL_NV_texture_rectangle 1
+   #define GL_NV_texture_rectangle_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5231,6 +6857,7 @@
 #ifndef GL_NV_texture_shader
 
    #define GL_NV_texture_shader 1
+   #define GL_NV_texture_shader_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5322,6 +6949,7 @@
 #ifndef GL_NV_texture_shader2
 
    #define GL_NV_texture_shader2 1
+   #define GL_NV_texture_shader2_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5341,6 +6969,7 @@
 #ifndef GL_NV_texture_shader3
 
    #define GL_NV_texture_shader3 1
+   #define GL_NV_texture_shader3_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5376,6 +7005,7 @@
 #ifndef GL_NV_vertex_array_range
 
    #define GL_NV_vertex_array_range 1
+   #define GL_NV_vertex_array_range_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5388,6 +7018,15 @@
       #define GL_VERTEX_ARRAY_RANGE_POINTER_NV                            0x8521
 
    #endif /* GL_VERTEX_ARRAY_RANGE_NV */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glFlushVertexArrayRangeNV                        OGLEXT_MAKEGLNAME(FlushVertexArrayRangeNV)
+      #define glVertexArrayRangeNV                             OGLEXT_MAKEGLNAME(VertexArrayRangeNV)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5408,6 +7047,7 @@
 #ifndef GL_NV_vertex_array_range2
 
    #define GL_NV_vertex_array_range2 1
+   #define GL_NV_vertex_array_range2_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5427,6 +7067,7 @@
 #ifndef GL_NV_vertex_program
 
    #define GL_NV_vertex_program 1
+   #define GL_NV_vertex_program_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5518,6 +7159,77 @@
 
    #endif /* GL_VERTEX_PROGRAM_NV */
 
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glAreProgramsResidentNV                          OGLEXT_MAKEGLNAME(AreProgramsResidentNV)
+      #define glBindProgramNV                                  OGLEXT_MAKEGLNAME(BindProgramNV)
+      #define glDeleteProgramsNV                               OGLEXT_MAKEGLNAME(DeleteProgramsNV)
+      #define glExecuteProgramNV                               OGLEXT_MAKEGLNAME(ExecuteProgramNV)
+      #define glGenProgramsNV                                  OGLEXT_MAKEGLNAME(GenProgramsNV)
+      #define glGetProgramivNV                                 OGLEXT_MAKEGLNAME(GetProgramivNV)
+      #define glGetProgramParameterdvNV                        OGLEXT_MAKEGLNAME(GetProgramParameterdvNV)
+      #define glGetProgramParameterfvNV                        OGLEXT_MAKEGLNAME(GetProgramParameterfvNV)
+      #define glGetProgramStringNV                             OGLEXT_MAKEGLNAME(GetProgramStringNV)
+      #define glGetTrackMatrixivNV                             OGLEXT_MAKEGLNAME(GetTrackMatrixivNV)
+      #define glGetVertexAttribdvNV                            OGLEXT_MAKEGLNAME(GetVertexAttribdvNV)
+      #define glGetVertexAttribfvNV                            OGLEXT_MAKEGLNAME(GetVertexAttribfvNV)
+      #define glGetVertexAttribivNV                            OGLEXT_MAKEGLNAME(GetVertexAttribivNV)
+      #define glGetVertexAttribPointervNV                      OGLEXT_MAKEGLNAME(GetVertexAttribPointervNV)
+      #define glIsProgramNV                                    OGLEXT_MAKEGLNAME(IsProgramNV)
+      #define glLoadProgramNV                                  OGLEXT_MAKEGLNAME(LoadProgramNV)
+      #define glProgramParameter4dNV                           OGLEXT_MAKEGLNAME(ProgramParameter4dNV)
+      #define glProgramParameter4dvNV                          OGLEXT_MAKEGLNAME(ProgramParameter4dvNV)
+      #define glProgramParameter4fNV                           OGLEXT_MAKEGLNAME(ProgramParameter4fNV)
+      #define glProgramParameter4fvNV                          OGLEXT_MAKEGLNAME(ProgramParameter4fvNV)
+      #define glProgramParameters4dvNV                         OGLEXT_MAKEGLNAME(ProgramParameters4dvNV)
+      #define glProgramParameters4fvNV                         OGLEXT_MAKEGLNAME(ProgramParameters4fvNV)
+      #define glRequestResidentProgramsNV                      OGLEXT_MAKEGLNAME(RequestResidentProgramsNV)
+      #define glTrackMatrixNV                                  OGLEXT_MAKEGLNAME(TrackMatrixNV)
+      #define glVertexAttrib1dNV                               OGLEXT_MAKEGLNAME(VertexAttrib1dNV)
+      #define glVertexAttrib1dvNV                              OGLEXT_MAKEGLNAME(VertexAttrib1dvNV)
+      #define glVertexAttrib1fNV                               OGLEXT_MAKEGLNAME(VertexAttrib1fNV)
+      #define glVertexAttrib1fvNV                              OGLEXT_MAKEGLNAME(VertexAttrib1fvNV)
+      #define glVertexAttrib1sNV                               OGLEXT_MAKEGLNAME(VertexAttrib1sNV)
+      #define glVertexAttrib1svNV                              OGLEXT_MAKEGLNAME(VertexAttrib1svNV)
+      #define glVertexAttrib2dNV                               OGLEXT_MAKEGLNAME(VertexAttrib2dNV)
+      #define glVertexAttrib2dvNV                              OGLEXT_MAKEGLNAME(VertexAttrib2dvNV)
+      #define glVertexAttrib2fNV                               OGLEXT_MAKEGLNAME(VertexAttrib2fNV)
+      #define glVertexAttrib2fvNV                              OGLEXT_MAKEGLNAME(VertexAttrib2fvNV)
+      #define glVertexAttrib2sNV                               OGLEXT_MAKEGLNAME(VertexAttrib2sNV)
+      #define glVertexAttrib2svNV                              OGLEXT_MAKEGLNAME(VertexAttrib2svNV)
+      #define glVertexAttrib3dNV                               OGLEXT_MAKEGLNAME(VertexAttrib3dNV)
+      #define glVertexAttrib3dvNV                              OGLEXT_MAKEGLNAME(VertexAttrib3dvNV)
+      #define glVertexAttrib3fNV                               OGLEXT_MAKEGLNAME(VertexAttrib3fNV)
+      #define glVertexAttrib3fvNV                              OGLEXT_MAKEGLNAME(VertexAttrib3fvNV)
+      #define glVertexAttrib3sNV                               OGLEXT_MAKEGLNAME(VertexAttrib3sNV)
+      #define glVertexAttrib3svNV                              OGLEXT_MAKEGLNAME(VertexAttrib3svNV)
+      #define glVertexAttrib4dNV                               OGLEXT_MAKEGLNAME(VertexAttrib4dNV)
+      #define glVertexAttrib4dvNV                              OGLEXT_MAKEGLNAME(VertexAttrib4dvNV)
+      #define glVertexAttrib4fNV                               OGLEXT_MAKEGLNAME(VertexAttrib4fNV)
+      #define glVertexAttrib4fvNV                              OGLEXT_MAKEGLNAME(VertexAttrib4fvNV)
+      #define glVertexAttrib4sNV                               OGLEXT_MAKEGLNAME(VertexAttrib4sNV)
+      #define glVertexAttrib4svNV                              OGLEXT_MAKEGLNAME(VertexAttrib4svNV)
+      #define glVertexAttrib4ubNV                              OGLEXT_MAKEGLNAME(VertexAttrib4ubNV)
+      #define glVertexAttrib4ubvNV                             OGLEXT_MAKEGLNAME(VertexAttrib4ubvNV)
+      #define glVertexAttribPointerNV                          OGLEXT_MAKEGLNAME(VertexAttribPointerNV)
+      #define glVertexAttribs1dvNV                             OGLEXT_MAKEGLNAME(VertexAttribs1dvNV)
+      #define glVertexAttribs1fvNV                             OGLEXT_MAKEGLNAME(VertexAttribs1fvNV)
+      #define glVertexAttribs1svNV                             OGLEXT_MAKEGLNAME(VertexAttribs1svNV)
+      #define glVertexAttribs2dvNV                             OGLEXT_MAKEGLNAME(VertexAttribs2dvNV)
+      #define glVertexAttribs2fvNV                             OGLEXT_MAKEGLNAME(VertexAttribs2fvNV)
+      #define glVertexAttribs2svNV                             OGLEXT_MAKEGLNAME(VertexAttribs2svNV)
+      #define glVertexAttribs3dvNV                             OGLEXT_MAKEGLNAME(VertexAttribs3dvNV)
+      #define glVertexAttribs3fvNV                             OGLEXT_MAKEGLNAME(VertexAttribs3fvNV)
+      #define glVertexAttribs3svNV                             OGLEXT_MAKEGLNAME(VertexAttribs3svNV)
+      #define glVertexAttribs4dvNV                             OGLEXT_MAKEGLNAME(VertexAttribs4dvNV)
+      #define glVertexAttribs4fvNV                             OGLEXT_MAKEGLNAME(VertexAttribs4fvNV)
+      #define glVertexAttribs4svNV                             OGLEXT_MAKEGLNAME(VertexAttribs4svNV)
+      #define glVertexAttribs4ubvNV                            OGLEXT_MAKEGLNAME(VertexAttribs4ubvNV)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    #ifdef GL_GLEXT_PROTOTYPES
@@ -5599,6 +7311,7 @@
 #ifndef GL_NV_vertex_program1_1
 
    #define GL_NV_vertex_program1_1 1
+   #define GL_NV_vertex_program1_1_OGLEXT 1
 
 #endif /* GL_NV_vertex_program1_1 */
 
@@ -5610,6 +7323,7 @@
 #ifndef GL_NV_vertex_program2
 
    #define GL_NV_vertex_program2 1
+   #define GL_NV_vertex_program2_OGLEXT 1
 
 #endif /* GL_NV_vertex_program2 */
 
@@ -5621,6 +7335,7 @@
 #ifndef GL_OML_interlace
 
    #define GL_OML_interlace 1
+   #define GL_OML_interlace_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5641,6 +7356,7 @@
 #ifndef GL_OML_resample
 
    #define GL_OML_resample 1
+   #define GL_OML_resample_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5665,6 +7381,7 @@
 #ifndef GL_OML_subsample
 
    #define GL_OML_subsample 1
+   #define GL_OML_subsample_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5685,6 +7402,7 @@
 #ifndef GL_PGI_misc_hints
 
    #define GL_PGI_misc_hints 1
+   #define GL_PGI_misc_hints_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5713,6 +7431,14 @@
 
    #endif /* GL_PREFER_DOUBLEBUFFER_HINT_PGI */
 
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glHintPGI                                        OGLEXT_MAKEGLNAME(HintPGI)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    #ifdef GL_GLEXT_PROTOTYPES
@@ -5731,6 +7457,7 @@
 #ifndef GL_PGI_vertex_hints
 
    #define GL_PGI_vertex_hints 1
+   #define GL_PGI_vertex_hints_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5771,6 +7498,7 @@
 #ifndef GL_REND_screen_coordinates
 
    #define GL_REND_screen_coordinates 1
+   #define GL_REND_screen_coordinates_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5791,6 +7519,7 @@
 #ifndef GL_S3_s3tc
 
    #define GL_S3_s3tc 1
+   #define GL_S3_s3tc_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5813,6 +7542,7 @@
 #ifndef GL_SGIS_detail_texture
 
    #define GL_SGIS_detail_texture 1
+   #define GL_SGIS_detail_texture_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5828,6 +7558,15 @@
       #define GL_DETAIL_TEXTURE_FUNC_POINTS_SGIS                          0x809c
 
    #endif /* GL_DETAIL_TEXTURE_2D_SGIS */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glDetailTexFuncSGIS                              OGLEXT_MAKEGLNAME(DetailTexFuncSGIS)
+      #define glGetDetailTexFuncSGIS                           OGLEXT_MAKEGLNAME(GetDetailTexFuncSGIS)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5848,6 +7587,7 @@
 #ifndef GL_SGIS_fog_function
 
    #define GL_SGIS_fog_function 1
+   #define GL_SGIS_fog_function_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5858,6 +7598,15 @@
       #define GL_MAX_FOG_FUNC_POINTS_SGIS                                 0x812c
 
    #endif /* GL_FOG_FUNC_SGIS */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glFogFuncSGIS                                    OGLEXT_MAKEGLNAME(FogFuncSGIS)
+      #define glGetFogFuncSGIS                                 OGLEXT_MAKEGLNAME(GetFogFuncSGIS)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5878,6 +7627,7 @@
 #ifndef GL_SGIS_generate_mipmap
 
    #define GL_SGIS_generate_mipmap 1
+   #define GL_SGIS_generate_mipmap_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5898,6 +7648,7 @@
 #ifndef GL_SGIS_multisample
 
    #define GL_SGIS_multisample 1
+   #define GL_SGIS_multisample_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5922,6 +7673,15 @@
 
    #endif /* GL_MULTISAMPLE_SGIS */
 
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glSampleMaskSGIS                                 OGLEXT_MAKEGLNAME(SampleMaskSGIS)
+      #define glSamplePatternSGIS                              OGLEXT_MAKEGLNAME(SamplePatternSGIS)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    #ifdef GL_GLEXT_PROTOTYPES
@@ -5941,6 +7701,7 @@
 #ifndef GL_SGIS_multitexture
 
    #define GL_SGIS_multitexture 1
+   #define GL_SGIS_multitexture_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -5958,6 +7719,49 @@
       #define GL_TEXTURE3_SGIS                                            0x83c9
 
    #endif /* GL_SELECTED_TEXTURE_SGIS */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glInterleavedTextureCoordSetsSGIS                OGLEXT_MAKEGLNAME(InterleavedTextureCoordSetsSGIS)
+      #define glMultiTexCoord1dSGIS                            OGLEXT_MAKEGLNAME(MultiTexCoord1dSGIS)
+      #define glMultiTexCoord1dvSGIS                           OGLEXT_MAKEGLNAME(MultiTexCoord1dvSGIS)
+      #define glMultiTexCoord1fSGIS                            OGLEXT_MAKEGLNAME(MultiTexCoord1fSGIS)
+      #define glMultiTexCoord1fvSGIS                           OGLEXT_MAKEGLNAME(MultiTexCoord1fvSGIS)
+      #define glMultiTexCoord1iSGIS                            OGLEXT_MAKEGLNAME(MultiTexCoord1iSGIS)
+      #define glMultiTexCoord1ivSGIS                           OGLEXT_MAKEGLNAME(MultiTexCoord1ivSGIS)
+      #define glMultiTexCoord1sSGIS                            OGLEXT_MAKEGLNAME(MultiTexCoord1sSGIS)
+      #define glMultiTexCoord1svSGIS                           OGLEXT_MAKEGLNAME(MultiTexCoord1svSGIS)
+      #define glMultiTexCoord2dSGIS                            OGLEXT_MAKEGLNAME(MultiTexCoord2dSGIS)
+      #define glMultiTexCoord2dvSGIS                           OGLEXT_MAKEGLNAME(MultiTexCoord2dvSGIS)
+      #define glMultiTexCoord2fSGIS                            OGLEXT_MAKEGLNAME(MultiTexCoord2fSGIS)
+      #define glMultiTexCoord2fvSGIS                           OGLEXT_MAKEGLNAME(MultiTexCoord2fvSGIS)
+      #define glMultiTexCoord2iSGIS                            OGLEXT_MAKEGLNAME(MultiTexCoord2iSGIS)
+      #define glMultiTexCoord2ivSGIS                           OGLEXT_MAKEGLNAME(MultiTexCoord2ivSGIS)
+      #define glMultiTexCoord2sSGIS                            OGLEXT_MAKEGLNAME(MultiTexCoord2sSGIS)
+      #define glMultiTexCoord2svSGIS                           OGLEXT_MAKEGLNAME(MultiTexCoord2svSGIS)
+      #define glMultiTexCoord3dSGIS                            OGLEXT_MAKEGLNAME(MultiTexCoord3dSGIS)
+      #define glMultiTexCoord3dvSGIS                           OGLEXT_MAKEGLNAME(MultiTexCoord3dvSGIS)
+      #define glMultiTexCoord3fSGIS                            OGLEXT_MAKEGLNAME(MultiTexCoord3fSGIS)
+      #define glMultiTexCoord3fvSGIS                           OGLEXT_MAKEGLNAME(MultiTexCoord3fvSGIS)
+      #define glMultiTexCoord3iSGIS                            OGLEXT_MAKEGLNAME(MultiTexCoord3iSGIS)
+      #define glMultiTexCoord3ivSGIS                           OGLEXT_MAKEGLNAME(MultiTexCoord3ivSGIS)
+      #define glMultiTexCoord3sSGIS                            OGLEXT_MAKEGLNAME(MultiTexCoord3sSGIS)
+      #define glMultiTexCoord3svSGIS                           OGLEXT_MAKEGLNAME(MultiTexCoord3svSGIS)
+      #define glMultiTexCoord4dSGIS                            OGLEXT_MAKEGLNAME(MultiTexCoord4dSGIS)
+      #define glMultiTexCoord4dvSGIS                           OGLEXT_MAKEGLNAME(MultiTexCoord4dvSGIS)
+      #define glMultiTexCoord4fSGIS                            OGLEXT_MAKEGLNAME(MultiTexCoord4fSGIS)
+      #define glMultiTexCoord4fvSGIS                           OGLEXT_MAKEGLNAME(MultiTexCoord4fvSGIS)
+      #define glMultiTexCoord4iSGIS                            OGLEXT_MAKEGLNAME(MultiTexCoord4iSGIS)
+      #define glMultiTexCoord4ivSGIS                           OGLEXT_MAKEGLNAME(MultiTexCoord4ivSGIS)
+      #define glMultiTexCoord4sSGIS                            OGLEXT_MAKEGLNAME(MultiTexCoord4sSGIS)
+      #define glMultiTexCoord4svSGIS                           OGLEXT_MAKEGLNAME(MultiTexCoord4svSGIS)
+      #define glSelectTextureCoordSetSGIS                      OGLEXT_MAKEGLNAME(SelectTextureCoordSetSGIS)
+      #define glSelectTextureSGIS                              OGLEXT_MAKEGLNAME(SelectTextureSGIS)
+      #define glSelectTextureTransformSGIS                     OGLEXT_MAKEGLNAME(SelectTextureTransformSGIS)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6012,6 +7816,7 @@
 #ifndef GL_SGIS_pixel_texture
 
    #define GL_SGIS_pixel_texture 1
+   #define GL_SGIS_pixel_texture_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6023,6 +7828,19 @@
       #define GL_PIXEL_GROUP_COLOR_SGIS                                   0x8356
 
    #endif /* GL_PIXEL_TEXTURE_SGIS */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glGetPixelTexGenParameterfvSGIS                  OGLEXT_MAKEGLNAME(GetPixelTexGenParameterfvSGIS)
+      #define glGetPixelTexGenParameterivSGIS                  OGLEXT_MAKEGLNAME(GetPixelTexGenParameterivSGIS)
+      #define glPixelTexGenParameterfSGIS                      OGLEXT_MAKEGLNAME(PixelTexGenParameterfSGIS)
+      #define glPixelTexGenParameterfvSGIS                     OGLEXT_MAKEGLNAME(PixelTexGenParameterfvSGIS)
+      #define glPixelTexGenParameteriSGIS                      OGLEXT_MAKEGLNAME(PixelTexGenParameteriSGIS)
+      #define glPixelTexGenParameterivSGIS                     OGLEXT_MAKEGLNAME(PixelTexGenParameterivSGIS)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6047,6 +7865,7 @@
 #ifndef GL_SGIS_point_line_texgen
 
    #define GL_SGIS_point_line_texgen 1
+   #define GL_SGIS_point_line_texgen_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6073,6 +7892,7 @@
 #ifndef GL_SGIS_point_parameters
 
    #define GL_SGIS_point_parameters 1
+   #define GL_SGIS_point_parameters_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6084,6 +7904,15 @@
       #define GL_DISTANCE_ATTENUATION_SGIS                                0x8129
 
    #endif /* GL_POINT_SIZE_MIN_SGIS */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glPointParameterfSGIS                            OGLEXT_MAKEGLNAME(PointParameterfSGIS)
+      #define glPointParameterfvSGIS                           OGLEXT_MAKEGLNAME(PointParameterfvSGIS)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6104,6 +7933,7 @@
 #ifndef GL_SGIS_sharpen_texture
 
    #define GL_SGIS_sharpen_texture 1
+   #define GL_SGIS_sharpen_texture_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6115,6 +7945,15 @@
       #define GL_SHARPEN_TEXTURE_FUNC_POINTS_SGIS                         0x80b0
 
    #endif /* GL_LINEAR_SHARPEN_SGIS */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glGetSharpenTexFuncSGIS                          OGLEXT_MAKEGLNAME(GetSharpenTexFuncSGIS)
+      #define glSharpenTexFuncSGIS                             OGLEXT_MAKEGLNAME(SharpenTexFuncSGIS)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6135,6 +7974,7 @@
 #ifndef GL_SGIS_texture4D
 
    #define GL_SGIS_texture4D 1
+   #define GL_SGIS_texture4D_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6152,6 +7992,15 @@
       #define GL_TEXTURE_4D_BINDING_SGIS                                  0x814f
 
    #endif /* GL_PACK_SKIP_VOLUMES_SGIS */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glTexImage4DSGIS                                 OGLEXT_MAKEGLNAME(TexImage4DSGIS)
+      #define glTexSubImage4DSGIS                              OGLEXT_MAKEGLNAME(TexSubImage4DSGIS)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6172,6 +8021,7 @@
 #ifndef GL_SGIS_texture_border_clamp
 
    #define GL_SGIS_texture_border_clamp 1
+   #define GL_SGIS_texture_border_clamp_OGLEXT 1
 
 #endif /* GL_SGIS_texture_border_clamp */
 
@@ -6183,6 +8033,7 @@
 #ifndef GL_SGIS_texture_color_mask
 
    #define GL_SGIS_texture_color_mask 1
+   #define GL_SGIS_texture_color_mask_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6191,6 +8042,14 @@
       #define GL_TEXTURE_COLOR_WRITEMASK_SGIS                             0x81ef
 
    #endif /* GL_TEXTURE_COLOR_WRITEMASK_SGIS */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glTextureColorMaskSGIS                           OGLEXT_MAKEGLNAME(TextureColorMaskSGIS)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6210,6 +8069,7 @@
 #ifndef GL_SGIS_texture_edge_clamp
 
    #define GL_SGIS_texture_edge_clamp 1
+   #define GL_SGIS_texture_edge_clamp_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6229,6 +8089,7 @@
 #ifndef GL_SGIS_texture_filter4
 
    #define GL_SGIS_texture_filter4 1
+   #define GL_SGIS_texture_filter4_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6238,6 +8099,15 @@
       #define GL_TEXTURE_FILTER4_SIZE_SGIS                                0x8147
 
    #endif /* GL_FILTER4_SGIS */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glGetTexFilterFuncSGIS                           OGLEXT_MAKEGLNAME(GetTexFilterFuncSGIS)
+      #define glTexFilterFuncSGIS                              OGLEXT_MAKEGLNAME(TexFilterFuncSGIS)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6258,6 +8128,7 @@
 #ifndef GL_SGIS_texture_lod
 
    #define GL_SGIS_texture_lod 1
+   #define GL_SGIS_texture_lod_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6280,6 +8151,7 @@
 #ifndef GL_SGIX_async
 
    #define GL_SGIX_async 1
+   #define GL_SGIX_async_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6288,6 +8160,19 @@
       #define GL_ASYNC_MARKER_SGIX                                        0x8329
 
    #endif /* GL_ASYNC_MARKER_SGIX */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glAsyncMarkerSGIX                                OGLEXT_MAKEGLNAME(AsyncMarkerSGIX)
+      #define glDeleteAsyncMarkersSGIX                         OGLEXT_MAKEGLNAME(DeleteAsyncMarkersSGIX)
+      #define glFinishAsyncSGIX                                OGLEXT_MAKEGLNAME(FinishAsyncSGIX)
+      #define glGenAsyncMarkersSGIX                            OGLEXT_MAKEGLNAME(GenAsyncMarkersSGIX)
+      #define glIsAsyncMarkerSGIX                              OGLEXT_MAKEGLNAME(IsAsyncMarkerSGIX)
+      #define glPollAsyncSGIX                                  OGLEXT_MAKEGLNAME(PollAsyncSGIX)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6312,6 +8197,7 @@
 #ifndef GL_SGIX_async_histogram
 
    #define GL_SGIX_async_histogram 1
+   #define GL_SGIX_async_histogram_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6332,6 +8218,7 @@
 #ifndef GL_SGIX_async_pixel
 
    #define GL_SGIX_async_pixel 1
+   #define GL_SGIX_async_pixel_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6356,6 +8243,7 @@
 #ifndef GL_SGIX_blend_alpha_minmax
 
    #define GL_SGIX_blend_alpha_minmax 1
+   #define GL_SGIX_blend_alpha_minmax_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6376,6 +8264,7 @@
 #ifndef GL_SGIX_calligraphic_fragment
 
    #define GL_SGIX_calligraphic_fragment 1
+   #define GL_SGIX_calligraphic_fragment_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6395,6 +8284,7 @@
 #ifndef GL_SGIX_clipmap
 
    #define GL_SGIX_clipmap 1
+   #define GL_SGIX_clipmap_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6425,6 +8315,7 @@
 #ifndef GL_SGIX_convolution_accuracy
 
    #define GL_SGIX_convolution_accuracy 1
+   #define GL_SGIX_convolution_accuracy_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6444,6 +8335,7 @@
 #ifndef GL_SGIX_depth_pass_instrument
 
    #define GL_SGIX_depth_pass_instrument 1
+   #define GL_SGIX_depth_pass_instrument_OGLEXT 1
 
 #endif /* GL_SGIX_depth_pass_instrument */
 
@@ -6455,6 +8347,7 @@
 #ifndef GL_SGIX_depth_texture
 
    #define GL_SGIX_depth_texture 1
+   #define GL_SGIX_depth_texture_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6476,6 +8369,15 @@
 #ifndef GL_SGIX_flush_raster
 
    #define GL_SGIX_flush_raster 1
+   #define GL_SGIX_flush_raster_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glFlushRasterSGIX                                OGLEXT_MAKEGLNAME(FlushRasterSGIX)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6495,6 +8397,7 @@
 #ifndef GL_SGIX_fog_offset
 
    #define GL_SGIX_fog_offset 1
+   #define GL_SGIX_fog_offset_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6515,6 +8418,7 @@
 #ifndef GL_SGIX_fog_scale
 
    #define GL_SGIX_fog_scale 1
+   #define GL_SGIX_fog_scale_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6535,6 +8439,7 @@
 #ifndef GL_SGIX_fragment_lighting
 
    #define GL_SGIX_fragment_lighting 1
+   #define GL_SGIX_fragment_lighting_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6562,6 +8467,31 @@
       #define GL_FRAGMENT_LIGHT7_SGIX                                     0x8413
 
    #endif /* GL_FRAGMENT_LIGHTING_SGIX */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glFragmentColorMaterialSGIX                      OGLEXT_MAKEGLNAME(FragmentColorMaterialSGIX)
+      #define glFragmentLightfSGIX                             OGLEXT_MAKEGLNAME(FragmentLightfSGIX)
+      #define glFragmentLightfvSGIX                            OGLEXT_MAKEGLNAME(FragmentLightfvSGIX)
+      #define glFragmentLightiSGIX                             OGLEXT_MAKEGLNAME(FragmentLightiSGIX)
+      #define glFragmentLightivSGIX                            OGLEXT_MAKEGLNAME(FragmentLightivSGIX)
+      #define glFragmentLightModelfSGIX                        OGLEXT_MAKEGLNAME(FragmentLightModelfSGIX)
+      #define glFragmentLightModelfvSGIX                       OGLEXT_MAKEGLNAME(FragmentLightModelfvSGIX)
+      #define glFragmentLightModeliSGIX                        OGLEXT_MAKEGLNAME(FragmentLightModeliSGIX)
+      #define glFragmentLightModelivSGIX                       OGLEXT_MAKEGLNAME(FragmentLightModelivSGIX)
+      #define glFragmentMaterialfSGIX                          OGLEXT_MAKEGLNAME(FragmentMaterialfSGIX)
+      #define glFragmentMaterialfvSGIX                         OGLEXT_MAKEGLNAME(FragmentMaterialfvSGIX)
+      #define glFragmentMaterialiSGIX                          OGLEXT_MAKEGLNAME(FragmentMaterialiSGIX)
+      #define glFragmentMaterialivSGIX                         OGLEXT_MAKEGLNAME(FragmentMaterialivSGIX)
+      #define glGetFragmentLightfvSGIX                         OGLEXT_MAKEGLNAME(GetFragmentLightfvSGIX)
+      #define glGetFragmentLightivSGIX                         OGLEXT_MAKEGLNAME(GetFragmentLightivSGIX)
+      #define glGetFragmentMaterialfvSGIX                      OGLEXT_MAKEGLNAME(GetFragmentMaterialfvSGIX)
+      #define glGetFragmentMaterialivSGIX                      OGLEXT_MAKEGLNAME(GetFragmentMaterialivSGIX)
+      #define glLightEnviSGIX                                  OGLEXT_MAKEGLNAME(LightEnviSGIX)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6598,6 +8528,7 @@
 #ifndef GL_SGIX_framezoom
 
    #define GL_SGIX_framezoom 1
+   #define GL_SGIX_framezoom_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6608,6 +8539,14 @@
       #define GL_MAX_FRAMEZOOM_FACTOR_SGIX                                0x818d
 
    #endif /* GL_FRAMEZOOM_SGIX */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glFrameZoomSGIX                                  OGLEXT_MAKEGLNAME(FrameZoomSGIX)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6627,6 +8566,15 @@
 #ifndef GL_SGIX_igloo_interface
 
    #define GL_SGIX_igloo_interface 1
+   #define GL_SGIX_igloo_interface_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glIglooInterfaceSGIX                             OGLEXT_MAKEGLNAME(IglooInterfaceSGIX)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6646,6 +8594,7 @@
 #ifndef GL_SGIX_instruments
 
    #define GL_SGIX_instruments 1
+   #define GL_SGIX_instruments_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6655,6 +8604,19 @@
       #define GL_INSTRUMENT_MEASUREMENTS_SGIX                             0x8181
 
    #endif /* GL_INSTRUMENT_BUFFER_POINTER_SGIX */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glGetInstrumentsSGIX                             OGLEXT_MAKEGLNAME(GetInstrumentsSGIX)
+      #define glInstrumentsBufferSGIX                          OGLEXT_MAKEGLNAME(InstrumentsBufferSGIX)
+      #define glPollInstrumentsSGIX                            OGLEXT_MAKEGLNAME(PollInstrumentsSGIX)
+      #define glReadInstrumentsSGIX                            OGLEXT_MAKEGLNAME(ReadInstrumentsSGIX)
+      #define glStartInstrumentsSGIX                           OGLEXT_MAKEGLNAME(StartInstrumentsSGIX)
+      #define glStopInstrumentsSGIX                            OGLEXT_MAKEGLNAME(StopInstrumentsSGIX)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6679,6 +8641,7 @@
 #ifndef GL_SGIX_interlace
 
    #define GL_SGIX_interlace 1
+   #define GL_SGIX_interlace_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6698,6 +8661,7 @@
 #ifndef GL_SGIX_ir_instrument1
 
    #define GL_SGIX_ir_instrument1 1
+   #define GL_SGIX_ir_instrument1_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6717,6 +8681,7 @@
 #ifndef GL_SGIX_list_priority
 
    #define GL_SGIX_list_priority 1
+   #define GL_SGIX_list_priority_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6725,6 +8690,19 @@
       #define GL_LIST_PRIORITY_SGIX                                       0x8182
 
    #endif /* GL_LIST_PRIORITY_SGIX */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glGetListParameterfvSGIX                         OGLEXT_MAKEGLNAME(GetListParameterfvSGIX)
+      #define glGetListParameterivSGIX                         OGLEXT_MAKEGLNAME(GetListParameterivSGIX)
+      #define glListParameterfSGIX                             OGLEXT_MAKEGLNAME(ListParameterfSGIX)
+      #define glListParameterfvSGIX                            OGLEXT_MAKEGLNAME(ListParameterfvSGIX)
+      #define glListParameteriSGIX                             OGLEXT_MAKEGLNAME(ListParameteriSGIX)
+      #define glListParameterivSGIX                            OGLEXT_MAKEGLNAME(ListParameterivSGIX)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6749,6 +8727,7 @@
 #ifndef GL_SGIX_pixel_texture
 
    #define GL_SGIX_pixel_texture 1
+   #define GL_SGIX_pixel_texture_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6758,6 +8737,14 @@
       #define GL_PIXEL_TEX_GEN_MODE_SGIX                                  0x832b
 
    #endif /* GL_PIXEL_TEX_GEN_SGIX */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glPixelTexGenSGIX                                OGLEXT_MAKEGLNAME(PixelTexGenSGIX)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6777,6 +8764,7 @@
 #ifndef GL_SGIX_pixel_tiles
 
    #define GL_SGIX_pixel_tiles 1
+   #define GL_SGIX_pixel_tiles_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6803,6 +8791,7 @@
 #ifndef GL_SGIX_polynomial_ffd
 
    #define GL_SGIX_polynomial_ffd 1
+   #define GL_SGIX_polynomial_ffd_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6814,6 +8803,17 @@
       #define GL_MAX_DEFORMATION_ORDER_SGIX                               0x8197
 
    #endif /* GL_GEOMETRY_DEFORMATION_SGIX */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glDeformationMap3dSGIX                           OGLEXT_MAKEGLNAME(DeformationMap3dSGIX)
+      #define glDeformationMap3fSGIX                           OGLEXT_MAKEGLNAME(DeformationMap3fSGIX)
+      #define glDeformSGIX                                     OGLEXT_MAKEGLNAME(DeformSGIX)
+      #define glLoadIdentityDeformationMapSGIX                 OGLEXT_MAKEGLNAME(LoadIdentityDeformationMapSGIX)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6836,6 +8836,7 @@
 #ifndef GL_SGIX_reference_plane
 
    #define GL_SGIX_reference_plane 1
+   #define GL_SGIX_reference_plane_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6845,6 +8846,14 @@
       #define GL_REFERENCE_PLANE_EQUATION_SGIX                            0x817e
 
    #endif /* GL_REFERENCE_PLANE_SGIX */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glReferencePlaneSGIX                             OGLEXT_MAKEGLNAME(ReferencePlaneSGIX)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6864,6 +8873,7 @@
 #ifndef GL_SGIX_resample
 
    #define GL_SGIX_resample 1
+   #define GL_SGIX_resample_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6887,6 +8897,7 @@
 #ifndef GL_SGIX_scalebias_hint
 
    #define GL_SGIX_scalebias_hint 1
+   #define GL_SGIX_scalebias_hint_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6906,6 +8917,7 @@
 #ifndef GL_SGIX_shadow
 
    #define GL_SGIX_shadow 1
+   #define GL_SGIX_shadow_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6928,6 +8940,7 @@
 #ifndef GL_SGIX_shadow_ambient
 
    #define GL_SGIX_shadow_ambient 1
+   #define GL_SGIX_shadow_ambient_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6947,6 +8960,7 @@
 #ifndef GL_SGIX_sprite
 
    #define GL_SGIX_sprite 1
+   #define GL_SGIX_sprite_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6961,6 +8975,17 @@
       #define GL_SPRITE_EYE_ALIGNED_SGIX                                  0x814e
 
    #endif /* GL_SPRITE_SGIX */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glSpriteParameterfSGIX                           OGLEXT_MAKEGLNAME(SpriteParameterfSGIX)
+      #define glSpriteParameterfvSGIX                          OGLEXT_MAKEGLNAME(SpriteParameterfvSGIX)
+      #define glSpriteParameteriSGIX                           OGLEXT_MAKEGLNAME(SpriteParameteriSGIX)
+      #define glSpriteParameterivSGIX                          OGLEXT_MAKEGLNAME(SpriteParameterivSGIX)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -6983,6 +9008,7 @@
 #ifndef GL_SGIX_subsample
 
    #define GL_SGIX_subsample 1
+   #define GL_SGIX_subsample_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7006,6 +9032,15 @@
 #ifndef GL_SGIX_tag_sample_buffer
 
    #define GL_SGIX_tag_sample_buffer 1
+   #define GL_SGIX_tag_sample_buffer_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glTagSampleBufferSGIX                            OGLEXT_MAKEGLNAME(TagSampleBufferSGIX)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7025,6 +9060,7 @@
 #ifndef GL_SGIX_texture_add_env
 
    #define GL_SGIX_texture_add_env 1
+   #define GL_SGIX_texture_add_env_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7044,6 +9080,7 @@
 #ifndef GL_SGIX_texture_coordinate_clamp
 
    #define GL_SGIX_texture_coordinate_clamp 1
+   #define GL_SGIX_texture_coordinate_clamp_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7065,6 +9102,7 @@
 #ifndef GL_SGIX_texture_lod_bias
 
    #define GL_SGIX_texture_lod_bias 1
+   #define GL_SGIX_texture_lod_bias_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7086,6 +9124,7 @@
 #ifndef GL_SGIX_texture_multi_buffer
 
    #define GL_SGIX_texture_multi_buffer 1
+   #define GL_SGIX_texture_multi_buffer_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7105,6 +9144,7 @@
 #ifndef GL_SGIX_texture_scale_bias
 
    #define GL_SGIX_texture_scale_bias 1
+   #define GL_SGIX_texture_scale_bias_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7127,6 +9167,7 @@
 #ifndef GL_SGIX_texture_select
 
    #define GL_SGIX_texture_select 1
+   #define GL_SGIX_texture_select_OGLEXT 1
 
 #endif /* GL_SGIX_texture_select */
 
@@ -7138,6 +9179,7 @@
 #ifndef GL_SGIX_vertex_preclip
 
    #define GL_SGIX_vertex_preclip 1
+   #define GL_SGIX_vertex_preclip_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7158,6 +9200,7 @@
 #ifndef GL_SGIX_ycrcb
 
    #define GL_SGIX_ycrcb 1
+   #define GL_SGIX_ycrcb_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7178,6 +9221,7 @@
 #ifndef GL_SGIX_ycrcba
 
    #define GL_SGIX_ycrcba 1
+   #define GL_SGIX_ycrcba_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7198,6 +9242,7 @@
 #ifndef GL_SGIX_ycrcb_subsample
 
    #define GL_SGIX_ycrcb_subsample 1
+   #define GL_SGIX_ycrcb_subsample_OGLEXT 1
 
 #endif /* GL_SGIX_ycrcb_subsample */
 
@@ -7209,6 +9254,7 @@
 #ifndef GL_SGI_color_matrix
 
    #define GL_SGI_color_matrix 1
+   #define GL_SGI_color_matrix_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7238,6 +9284,7 @@
 #ifndef GL_SGI_color_table
 
    #define GL_SGI_color_table 1
+   #define GL_SGI_color_table_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7261,6 +9308,20 @@
       #define GL_COLOR_TABLE_INTENSITY_SIZE_SGI                           0x80df
 
    #endif /* GL_COLOR_TABLE_SGI */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glColorTableParameterfvSGI                       OGLEXT_MAKEGLNAME(ColorTableParameterfvSGI)
+      #define glColorTableParameterivSGI                       OGLEXT_MAKEGLNAME(ColorTableParameterivSGI)
+      #define glColorTableSGI                                  OGLEXT_MAKEGLNAME(ColorTableSGI)
+      #define glCopyColorTableSGI                              OGLEXT_MAKEGLNAME(CopyColorTableSGI)
+      #define glGetColorTableParameterfvSGI                    OGLEXT_MAKEGLNAME(GetColorTableParameterfvSGI)
+      #define glGetColorTableParameterivSGI                    OGLEXT_MAKEGLNAME(GetColorTableParameterivSGI)
+      #define glGetColorTableSGI                               OGLEXT_MAKEGLNAME(GetColorTableSGI)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7286,6 +9347,7 @@
 #ifndef GL_SGI_texture_color_table
 
    #define GL_SGI_texture_color_table 1
+   #define GL_SGI_texture_color_table_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7306,6 +9368,7 @@
 #ifndef GL_SUNX_constant_data
 
    #define GL_SUNX_constant_data 1
+   #define GL_SUNX_constant_data_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7315,6 +9378,14 @@
       #define GL_TEXTURE_CONSTANT_DATA_SUNX                               0x81d6
 
    #endif /* GL_UNPACK_CONSTANT_DATA_SUNX */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glFinishTextureSUNX                              OGLEXT_MAKEGLNAME(FinishTextureSUNX)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7334,6 +9405,7 @@
 #ifndef GL_SUN_convolution_border_modes
 
    #define GL_SUN_convolution_border_modes 1
+   #define GL_SUN_convolution_border_modes_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7353,6 +9425,7 @@
 #ifndef GL_SUN_global_alpha
 
    #define GL_SUN_global_alpha 1
+   #define GL_SUN_global_alpha_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7362,6 +9435,21 @@
       #define GL_GLOBAL_ALPHA_FACTOR_SUN                                  0x81da
 
    #endif /* GL_GLOBAL_ALPHA_SUN */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glGlobalAlphaFactorbSUN                          OGLEXT_MAKEGLNAME(GlobalAlphaFactorbSUN)
+      #define glGlobalAlphaFactordSUN                          OGLEXT_MAKEGLNAME(GlobalAlphaFactordSUN)
+      #define glGlobalAlphaFactorfSUN                          OGLEXT_MAKEGLNAME(GlobalAlphaFactorfSUN)
+      #define glGlobalAlphaFactoriSUN                          OGLEXT_MAKEGLNAME(GlobalAlphaFactoriSUN)
+      #define glGlobalAlphaFactorsSUN                          OGLEXT_MAKEGLNAME(GlobalAlphaFactorsSUN)
+      #define glGlobalAlphaFactorubSUN                         OGLEXT_MAKEGLNAME(GlobalAlphaFactorubSUN)
+      #define glGlobalAlphaFactoruiSUN                         OGLEXT_MAKEGLNAME(GlobalAlphaFactoruiSUN)
+      #define glGlobalAlphaFactorusSUN                         OGLEXT_MAKEGLNAME(GlobalAlphaFactorusSUN)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7388,6 +9476,7 @@
 #ifndef GL_SUN_mesh_array
 
    #define GL_SUN_mesh_array 1
+   #define GL_SUN_mesh_array_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7397,6 +9486,14 @@
       #define GL_TRIANGLE_MESH_SUN                                        0x8615
 
    #endif /* GL_QUAD_MESH_SUN */
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glDrawMeshArraysSUN                              OGLEXT_MAKEGLNAME(DrawMeshArraysSUN)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7416,6 +9513,7 @@
 #ifndef GL_SUN_slice_accum
 
    #define GL_SUN_slice_accum 1
+   #define GL_SUN_slice_accum_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7435,6 +9533,7 @@
 #ifndef GL_SUN_triangle_list
 
    #define GL_SUN_triangle_list 1
+   #define GL_SUN_triangle_list_OGLEXT 1
 
    /* - -[ constants ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -7460,6 +9559,20 @@
 
    #endif /* GL_RESTART_SUN */
 
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glReplacementCodePointerSUN                      OGLEXT_MAKEGLNAME(ReplacementCodePointerSUN)
+      #define glReplacementCodeubSUN                           OGLEXT_MAKEGLNAME(ReplacementCodeubSUN)
+      #define glReplacementCodeubvSUN                          OGLEXT_MAKEGLNAME(ReplacementCodeubvSUN)
+      #define glReplacementCodeuiSUN                           OGLEXT_MAKEGLNAME(ReplacementCodeuiSUN)
+      #define glReplacementCodeuivSUN                          OGLEXT_MAKEGLNAME(ReplacementCodeuivSUN)
+      #define glReplacementCodeusSUN                           OGLEXT_MAKEGLNAME(ReplacementCodeusSUN)
+      #define glReplacementCodeusvSUN                          OGLEXT_MAKEGLNAME(ReplacementCodeusvSUN)
+
+   #endif /* OGLGLEXT_NOALIAS */
+
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    #ifdef GL_GLEXT_PROTOTYPES
@@ -7484,6 +9597,54 @@
 #ifndef GL_SUN_vertex
 
    #define GL_SUN_vertex 1
+   #define GL_SUN_vertex_OGLEXT 1
+
+   /* - -[ function name definitions ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   #ifndef OGLGLEXT_NOALIAS
+
+      #define glColor3fVertex3fSUN                             OGLEXT_MAKEGLNAME(Color3fVertex3fSUN)
+      #define glColor3fVertex3fvSUN                            OGLEXT_MAKEGLNAME(Color3fVertex3fvSUN)
+      #define glColor4fNormal3fVertex3fSUN                     OGLEXT_MAKEGLNAME(Color4fNormal3fVertex3fSUN)
+      #define glColor4fNormal3fVertex3fvSUN                    OGLEXT_MAKEGLNAME(Color4fNormal3fVertex3fvSUN)
+      #define glColor4ubVertex2fSUN                            OGLEXT_MAKEGLNAME(Color4ubVertex2fSUN)
+      #define glColor4ubVertex2fvSUN                           OGLEXT_MAKEGLNAME(Color4ubVertex2fvSUN)
+      #define glColor4ubVertex3fSUN                            OGLEXT_MAKEGLNAME(Color4ubVertex3fSUN)
+      #define glColor4ubVertex3fvSUN                           OGLEXT_MAKEGLNAME(Color4ubVertex3fvSUN)
+      #define glNormal3fVertex3fSUN                            OGLEXT_MAKEGLNAME(Normal3fVertex3fSUN)
+      #define glNormal3fVertex3fvSUN                           OGLEXT_MAKEGLNAME(Normal3fVertex3fvSUN)
+      #define glReplacementCodeuiColor3fVertex3fSUN            OGLEXT_MAKEGLNAME(ReplacementCodeuiColor3fVertex3fSUN)
+      #define glReplacementCodeuiColor3fVertex3fvSUN           OGLEXT_MAKEGLNAME(ReplacementCodeuiColor3fVertex3fvSUN)
+      #define glReplacementCodeuiColor4fNormal3fVertex3fSUN    OGLEXT_MAKEGLNAME(ReplacementCodeuiColor4fNormal3fVertex3fSUN)
+      #define glReplacementCodeuiColor4fNormal3fVertex3fvSUN   OGLEXT_MAKEGLNAME(ReplacementCodeuiColor4fNormal3fVertex3fvSUN)
+      #define glReplacementCodeuiColor4ubVertex3fSUN           OGLEXT_MAKEGLNAME(ReplacementCodeuiColor4ubVertex3fSUN)
+      #define glReplacementCodeuiColor4ubVertex3fvSUN          OGLEXT_MAKEGLNAME(ReplacementCodeuiColor4ubVertex3fvSUN)
+      #define glReplacementCodeuiNormal3fVertex3fSUN           OGLEXT_MAKEGLNAME(ReplacementCodeuiNormal3fVertex3fSUN)
+      #define glReplacementCodeuiNormal3fVertex3fvSUN          OGLEXT_MAKEGLNAME(ReplacementCodeuiNormal3fVertex3fvSUN)
+      #define glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fSUN OGLEXT_MAKEGLNAME(ReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fSUN)
+      #define glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fvSUN OGLEXT_MAKEGLNAME(ReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fvSUN)
+      #define glReplacementCodeuiTexCoord2fNormal3fVertex3fSUN OGLEXT_MAKEGLNAME(ReplacementCodeuiTexCoord2fNormal3fVertex3fSUN)
+      #define glReplacementCodeuiTexCoord2fNormal3fVertex3fvSUN OGLEXT_MAKEGLNAME(ReplacementCodeuiTexCoord2fNormal3fVertex3fvSUN)
+      #define glReplacementCodeuiTexCoord2fVertex3fSUN         OGLEXT_MAKEGLNAME(ReplacementCodeuiTexCoord2fVertex3fSUN)
+      #define glReplacementCodeuiTexCoord2fVertex3fvSUN        OGLEXT_MAKEGLNAME(ReplacementCodeuiTexCoord2fVertex3fvSUN)
+      #define glReplacementCodeuiVertex3fSUN                   OGLEXT_MAKEGLNAME(ReplacementCodeuiVertex3fSUN)
+      #define glReplacementCodeuiVertex3fvSUN                  OGLEXT_MAKEGLNAME(ReplacementCodeuiVertex3fvSUN)
+      #define glTexCoord2fColor3fVertex3fSUN                   OGLEXT_MAKEGLNAME(TexCoord2fColor3fVertex3fSUN)
+      #define glTexCoord2fColor3fVertex3fvSUN                  OGLEXT_MAKEGLNAME(TexCoord2fColor3fVertex3fvSUN)
+      #define glTexCoord2fColor4fNormal3fVertex3fSUN           OGLEXT_MAKEGLNAME(TexCoord2fColor4fNormal3fVertex3fSUN)
+      #define glTexCoord2fColor4fNormal3fVertex3fvSUN          OGLEXT_MAKEGLNAME(TexCoord2fColor4fNormal3fVertex3fvSUN)
+      #define glTexCoord2fColor4ubVertex3fSUN                  OGLEXT_MAKEGLNAME(TexCoord2fColor4ubVertex3fSUN)
+      #define glTexCoord2fColor4ubVertex3fvSUN                 OGLEXT_MAKEGLNAME(TexCoord2fColor4ubVertex3fvSUN)
+      #define glTexCoord2fNormal3fVertex3fSUN                  OGLEXT_MAKEGLNAME(TexCoord2fNormal3fVertex3fSUN)
+      #define glTexCoord2fNormal3fVertex3fvSUN                 OGLEXT_MAKEGLNAME(TexCoord2fNormal3fVertex3fvSUN)
+      #define glTexCoord2fVertex3fSUN                          OGLEXT_MAKEGLNAME(TexCoord2fVertex3fSUN)
+      #define glTexCoord2fVertex3fvSUN                         OGLEXT_MAKEGLNAME(TexCoord2fVertex3fvSUN)
+      #define glTexCoord4fColor4fNormal3fVertex4fSUN           OGLEXT_MAKEGLNAME(TexCoord4fColor4fNormal3fVertex4fSUN)
+      #define glTexCoord4fColor4fNormal3fVertex4fvSUN          OGLEXT_MAKEGLNAME(TexCoord4fColor4fNormal3fVertex4fvSUN)
+      #define glTexCoord4fVertex4fSUN                          OGLEXT_MAKEGLNAME(TexCoord4fVertex4fSUN)
+      #define glTexCoord4fVertex4fvSUN                         OGLEXT_MAKEGLNAME(TexCoord4fVertex4fvSUN)
+
+   #endif /* OGLGLEXT_NOALIAS */
 
    /* - -[ function types ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 

@@ -1,5 +1,5 @@
-// Macros.h                                                  Copyright (C) 2003 Thomas Jansen (jansen@caesar.de)
-//                                                                     (C) 2003 research center caesar
+// Macros.h                                                  Copyright (C) 2004 Thomas Jansen (jansen@caesar.de)
+//                                                                     (C) 2004 research center caesar
 //
 // This file is part of OglExt, a free OpenGL extension library.
 //
@@ -17,10 +17,11 @@
 #ifndef	_OGL_MACROS_H_
 #define	_OGL_MACROS_H_
 
+#if !defined(_WIN32) && (!defined(__APPLE__) || !defined(__GNUC__)) && !defined(__MACOSX__)
 
-// changed: use SDL_GL_GetProcAddress instead of wgl/GLX
-#include <SDL.h>
+	#include <GL/glx.h>
 
+#endif
 
 
 // ---[ INTERNAL API WRAPPER MACROS ]---------------------------------------------------------------------------
@@ -264,9 +265,22 @@
 
 // ---[ MACROS TO DETERMINE API ENTRY POINTS ]------------------------------------------------------------------
 
-// changed: use SDL_GL_GetProcAddress instead of wgl/GLX
-#define	GET_PROC_ADDRESS(NAME)		*((void * *) &m_p##NAME ) = (void *) ::SDL_GL_GetProcAddress("gl" #NAME ); \
-	if(m_p##NAME == NULL) return false;
+#if defined(_WIN32) && defined(_DEBUG)
+
+	#define	GET_PROC_ADDRESS(NAME)		*((void * *) &m_p##NAME ) = GetProcAddress( #NAME ); \
+													if(m_p##NAME == NULL) { \
+														::OutputDebugString("OglExt warning: Function \"" #NAME "\" not linkable!\n"); \
+														bReturn = false; \
+													}
+
+#else		// _WIN32 && _DEBUG
+
+	#define	GET_PROC_ADDRESS(NAME)		*((void * *) &m_p##NAME ) = GetProcAddress( #NAME ); \
+													if(m_p##NAME == NULL) { \
+														bReturn = false; \
+													}
+
+#endif	// _WIN32 && _DEBUG
 
 
 // ---[ MACROS TO INITIALIZE AN EXTENSION OR A GL VERSION ]-----------------------------------------------------
@@ -277,7 +291,7 @@
 													if(IsExtensionSupported(NAME)) { \
 														bool br = FUNC(); \
 														if(!br) { \
-															::OutputDebugString("OglExt warning: " NAME " supported but not linkable!\n"); \
+															::OutputDebugString("==> OglExt warning: " NAME " supported but not linkable!\n"); \
 														} \
 													}
 

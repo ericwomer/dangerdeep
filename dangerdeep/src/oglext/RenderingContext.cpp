@@ -1,5 +1,5 @@
-// RenderingContext.cpp                                      Copyright (C) 2003 Thomas Jansen (jansen@caesar.de)
-//                                                                     (C) 2003 research center caesar
+// RenderingContext.cpp                                      Copyright (C) 2004 Thomas Jansen (jansen@caesar.de)
+//                                                                     (C) 2004 research center caesar
 //
 // This file is part of OglExt, a free OpenGL extension library.
 //
@@ -16,12 +16,17 @@
 //
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //
-// This file was automatically generated on November 14, 2003, 4:55 pm
+// This file was automatically generated on June 15, 2004, 11:47 am
 
 #include	"RenderingContext.hpp"
 #include	"Macros.h"
 #include	"OglExt.h"
 
+#include	<stdio.h>
+
+// this line was added by Thorsten Jordan to make the code compile on Unix/Linux systems.
+// taken from glx.h
+extern void (*glXGetProcAddressARB(const GLubyte *procName))( void );
 
 // =============================================================================================================
 // ===                                C L A S S   A D M I N I S T R A T I O N                                ===
@@ -45,6 +50,7 @@ CRenderingContext::CRenderingContext()
 	INIT_GLVERSION(                              1, 2, 0,                    InitVersion12);
 	INIT_GLVERSION(                              1, 3, 0,                    InitVersion13);
 	INIT_GLVERSION(                              1, 4, 0,                    InitVersion14);
+	INIT_GLVERSION(                              1, 5, 0,                    InitVersion15);
 
 	// 4: init opengl extension...
 
@@ -281,6 +287,116 @@ CRenderingContext::CRenderingContext()
 }
 
 
+
+// =============================================================================================================
+// ===                                    S T A T I C   F U N C T I O N S                                    ===
+// =============================================================================================================
+
+//!	Return address of a given OpenGL Function.
+
+void * CRenderingContext::GetProcAddress(char const * szFunction)
+{
+	#if defined(_WIN32)
+	
+		// W: implementation for microsoft windows...
+
+			// W.1: create a new function name...
+
+			char * szNewFunction = new char [strlen(szFunction) + 3];
+			if(!szNewFunction) {
+
+				return NULL;
+			}
+
+			// W.2: create the new function name...
+		
+			szNewFunction[0]	= 'g';
+			szNewFunction[1]	= 'l';
+			strcpy(&szNewFunction[2], szFunction);
+
+			// W.3: determine the address...
+
+			void * pProcAddress = ::wglGetProcAddress(szNewFunction);
+
+			delete [] szNewFunction;
+
+			return pProcAddress;
+
+	#elif (defined(__APPLE__) && defined(__GNUC__)) || defined(__MACOSX__)
+
+		// M: implementation for apple mac os x...
+
+			// M.1: create a new function name...
+
+			char * szNewFunction = new char [strlen(szFunction) + 4];
+			if(!szNewFunction) {
+
+				return NULL;
+			}
+
+			// M.2: create the new function name...
+
+			szNewFunction[0]	= '_';
+			szNewFunction[1]	= 'g';
+			szNewFunction[2]	= 'l';
+			strcpy(&szNewFunction[3], szFunction);
+
+			// M.3: check if the symbol name is defined...
+
+			if(!NSIsSymbolNameDefined(szNewFunction)) {
+
+				delete [] szNewFunction;
+				return NULL;
+			}
+
+			// M.4: look-up and bind the symbol...
+
+			NSSymbol symProcedure = NSLookupAndBindSymbol(szNewFunction);
+			if(!symProcedure) {
+
+				delete [] szNewFunction;
+				return NULL;
+			}
+
+			// M.5: determine the address...
+
+			void * pProcAddress = NSAddressOfSymbol(symProcedure);
+
+			delete [] szNewFunction;
+
+			return pProcAddress;
+
+	#else
+
+		// U: implementation for broad range of UNIXes...
+
+			// U.1: create a new function name...
+
+			char * szNewFunction = new char [strlen(szFunction) + 3];
+			if(!szNewFunction) {
+
+				return NULL;
+			}
+
+			// U.2: create the new function name...
+		
+			szNewFunction[0]	= 'g';
+			szNewFunction[1]	= 'l';
+			strcpy(&szNewFunction[2], szFunction);
+
+			// U.3: determine the address...
+
+			void * pProcAddress = (void *) ::glXGetProcAddressARB((GLubyte const *) szNewFunction);
+
+			delete [] szNewFunction;
+
+			return pProcAddress;
+	
+	#endif
+}
+
+
+
 /* ========================================================================================================== */
 /* ===                                    O P E N G L   V E R S I O N                                     === */
 /* ========================================================================================================== */
@@ -291,50 +407,56 @@ CRenderingContext::CRenderingContext()
 
 bool CRenderingContext::InitVersion12()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(BlendColor);
-	GET_PROC_ADDRESS(BlendEquation);
-	GET_PROC_ADDRESS(ColorSubTable);
-	GET_PROC_ADDRESS(ColorTable);
-	GET_PROC_ADDRESS(ColorTableParameterfv);
-	GET_PROC_ADDRESS(ColorTableParameteriv);
-	GET_PROC_ADDRESS(ConvolutionFilter1D);
-	GET_PROC_ADDRESS(ConvolutionFilter2D);
-	GET_PROC_ADDRESS(ConvolutionParameterf);
-	GET_PROC_ADDRESS(ConvolutionParameterfv);
-	GET_PROC_ADDRESS(ConvolutionParameteri);
-	GET_PROC_ADDRESS(ConvolutionParameteriv);
-	GET_PROC_ADDRESS(CopyColorSubTable);
-	GET_PROC_ADDRESS(CopyColorTable);
-	GET_PROC_ADDRESS(CopyConvolutionFilter1D);
-	GET_PROC_ADDRESS(CopyConvolutionFilter2D);
-	GET_PROC_ADDRESS(CopyTexSubImage3D);
-	GET_PROC_ADDRESS(DrawRangeElements);
-	GET_PROC_ADDRESS(GetColorTable);
-	GET_PROC_ADDRESS(GetColorTableParameterfv);
-	GET_PROC_ADDRESS(GetColorTableParameteriv);
-	GET_PROC_ADDRESS(GetConvolutionFilter);
-	GET_PROC_ADDRESS(GetConvolutionParameterfv);
-	GET_PROC_ADDRESS(GetConvolutionParameteriv);
-	GET_PROC_ADDRESS(GetHistogram);
-	GET_PROC_ADDRESS(GetHistogramParameterfv);
-	GET_PROC_ADDRESS(GetHistogramParameteriv);
-	GET_PROC_ADDRESS(GetMinmax);
-	GET_PROC_ADDRESS(GetMinmaxParameterfv);
-	GET_PROC_ADDRESS(GetMinmaxParameteriv);
-	GET_PROC_ADDRESS(GetSeparableFilter);
-	GET_PROC_ADDRESS(Histogram);
-	GET_PROC_ADDRESS(Minmax);
-	GET_PROC_ADDRESS(ResetHistogram);
-	GET_PROC_ADDRESS(ResetMinmax);
-	GET_PROC_ADDRESS(SeparableFilter2D);
-	GET_PROC_ADDRESS(TexImage3D);
-	GET_PROC_ADDRESS(TexSubImage3D);
+	#ifdef GL_VERSION_1_2_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(BlendColor);
+		GET_PROC_ADDRESS(BlendEquation);
+		GET_PROC_ADDRESS(ColorSubTable);
+		GET_PROC_ADDRESS(ColorTable);
+		GET_PROC_ADDRESS(ColorTableParameterfv);
+		GET_PROC_ADDRESS(ColorTableParameteriv);
+		GET_PROC_ADDRESS(ConvolutionFilter1D);
+		GET_PROC_ADDRESS(ConvolutionFilter2D);
+		GET_PROC_ADDRESS(ConvolutionParameterf);
+		GET_PROC_ADDRESS(ConvolutionParameterfv);
+		GET_PROC_ADDRESS(ConvolutionParameteri);
+		GET_PROC_ADDRESS(ConvolutionParameteriv);
+		GET_PROC_ADDRESS(CopyColorSubTable);
+		GET_PROC_ADDRESS(CopyColorTable);
+		GET_PROC_ADDRESS(CopyConvolutionFilter1D);
+		GET_PROC_ADDRESS(CopyConvolutionFilter2D);
+		GET_PROC_ADDRESS(CopyTexSubImage3D);
+		GET_PROC_ADDRESS(DrawRangeElements);
+		GET_PROC_ADDRESS(GetColorTable);
+		GET_PROC_ADDRESS(GetColorTableParameterfv);
+		GET_PROC_ADDRESS(GetColorTableParameteriv);
+		GET_PROC_ADDRESS(GetConvolutionFilter);
+		GET_PROC_ADDRESS(GetConvolutionParameterfv);
+		GET_PROC_ADDRESS(GetConvolutionParameteriv);
+		GET_PROC_ADDRESS(GetHistogram);
+		GET_PROC_ADDRESS(GetHistogramParameterfv);
+		GET_PROC_ADDRESS(GetHistogramParameteriv);
+		GET_PROC_ADDRESS(GetMinmax);
+		GET_PROC_ADDRESS(GetMinmaxParameterfv);
+		GET_PROC_ADDRESS(GetMinmaxParameteriv);
+		GET_PROC_ADDRESS(GetSeparableFilter);
+		GET_PROC_ADDRESS(Histogram);
+		GET_PROC_ADDRESS(Minmax);
+		GET_PROC_ADDRESS(ResetHistogram);
+		GET_PROC_ADDRESS(ResetMinmax);
+		GET_PROC_ADDRESS(SeparableFilter2D);
+		GET_PROC_ADDRESS(TexImage3D);
+		GET_PROC_ADDRESS(TexSubImage3D);
 
-	return true;
+	#endif // GL_VERSION_1_2_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -344,58 +466,64 @@ bool CRenderingContext::InitVersion12()
 
 bool CRenderingContext::InitVersion13()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(ActiveTexture);
-	GET_PROC_ADDRESS(ClientActiveTexture);
-	GET_PROC_ADDRESS(CompressedTexImage1D);
-	GET_PROC_ADDRESS(CompressedTexImage2D);
-	GET_PROC_ADDRESS(CompressedTexImage3D);
-	GET_PROC_ADDRESS(CompressedTexSubImage1D);
-	GET_PROC_ADDRESS(CompressedTexSubImage2D);
-	GET_PROC_ADDRESS(CompressedTexSubImage3D);
-	GET_PROC_ADDRESS(GetCompressedTexImage);
-	GET_PROC_ADDRESS(LoadTransposeMatrixd);
-	GET_PROC_ADDRESS(LoadTransposeMatrixf);
-	GET_PROC_ADDRESS(MultiTexCoord1d);
-	GET_PROC_ADDRESS(MultiTexCoord1dv);
-	GET_PROC_ADDRESS(MultiTexCoord1f);
-	GET_PROC_ADDRESS(MultiTexCoord1fv);
-	GET_PROC_ADDRESS(MultiTexCoord1i);
-	GET_PROC_ADDRESS(MultiTexCoord1iv);
-	GET_PROC_ADDRESS(MultiTexCoord1s);
-	GET_PROC_ADDRESS(MultiTexCoord1sv);
-	GET_PROC_ADDRESS(MultiTexCoord2d);
-	GET_PROC_ADDRESS(MultiTexCoord2dv);
-	GET_PROC_ADDRESS(MultiTexCoord2f);
-	GET_PROC_ADDRESS(MultiTexCoord2fv);
-	GET_PROC_ADDRESS(MultiTexCoord2i);
-	GET_PROC_ADDRESS(MultiTexCoord2iv);
-	GET_PROC_ADDRESS(MultiTexCoord2s);
-	GET_PROC_ADDRESS(MultiTexCoord2sv);
-	GET_PROC_ADDRESS(MultiTexCoord3d);
-	GET_PROC_ADDRESS(MultiTexCoord3dv);
-	GET_PROC_ADDRESS(MultiTexCoord3f);
-	GET_PROC_ADDRESS(MultiTexCoord3fv);
-	GET_PROC_ADDRESS(MultiTexCoord3i);
-	GET_PROC_ADDRESS(MultiTexCoord3iv);
-	GET_PROC_ADDRESS(MultiTexCoord3s);
-	GET_PROC_ADDRESS(MultiTexCoord3sv);
-	GET_PROC_ADDRESS(MultiTexCoord4d);
-	GET_PROC_ADDRESS(MultiTexCoord4dv);
-	GET_PROC_ADDRESS(MultiTexCoord4f);
-	GET_PROC_ADDRESS(MultiTexCoord4fv);
-	GET_PROC_ADDRESS(MultiTexCoord4i);
-	GET_PROC_ADDRESS(MultiTexCoord4iv);
-	GET_PROC_ADDRESS(MultiTexCoord4s);
-	GET_PROC_ADDRESS(MultiTexCoord4sv);
-	GET_PROC_ADDRESS(MultTransposeMatrixd);
-	GET_PROC_ADDRESS(MultTransposeMatrixf);
-	GET_PROC_ADDRESS(SampleCoverage);
+	#ifdef GL_VERSION_1_3_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(ActiveTexture);
+		GET_PROC_ADDRESS(ClientActiveTexture);
+		GET_PROC_ADDRESS(CompressedTexImage1D);
+		GET_PROC_ADDRESS(CompressedTexImage2D);
+		GET_PROC_ADDRESS(CompressedTexImage3D);
+		GET_PROC_ADDRESS(CompressedTexSubImage1D);
+		GET_PROC_ADDRESS(CompressedTexSubImage2D);
+		GET_PROC_ADDRESS(CompressedTexSubImage3D);
+		GET_PROC_ADDRESS(GetCompressedTexImage);
+		GET_PROC_ADDRESS(LoadTransposeMatrixd);
+		GET_PROC_ADDRESS(LoadTransposeMatrixf);
+		GET_PROC_ADDRESS(MultiTexCoord1d);
+		GET_PROC_ADDRESS(MultiTexCoord1dv);
+		GET_PROC_ADDRESS(MultiTexCoord1f);
+		GET_PROC_ADDRESS(MultiTexCoord1fv);
+		GET_PROC_ADDRESS(MultiTexCoord1i);
+		GET_PROC_ADDRESS(MultiTexCoord1iv);
+		GET_PROC_ADDRESS(MultiTexCoord1s);
+		GET_PROC_ADDRESS(MultiTexCoord1sv);
+		GET_PROC_ADDRESS(MultiTexCoord2d);
+		GET_PROC_ADDRESS(MultiTexCoord2dv);
+		GET_PROC_ADDRESS(MultiTexCoord2f);
+		GET_PROC_ADDRESS(MultiTexCoord2fv);
+		GET_PROC_ADDRESS(MultiTexCoord2i);
+		GET_PROC_ADDRESS(MultiTexCoord2iv);
+		GET_PROC_ADDRESS(MultiTexCoord2s);
+		GET_PROC_ADDRESS(MultiTexCoord2sv);
+		GET_PROC_ADDRESS(MultiTexCoord3d);
+		GET_PROC_ADDRESS(MultiTexCoord3dv);
+		GET_PROC_ADDRESS(MultiTexCoord3f);
+		GET_PROC_ADDRESS(MultiTexCoord3fv);
+		GET_PROC_ADDRESS(MultiTexCoord3i);
+		GET_PROC_ADDRESS(MultiTexCoord3iv);
+		GET_PROC_ADDRESS(MultiTexCoord3s);
+		GET_PROC_ADDRESS(MultiTexCoord3sv);
+		GET_PROC_ADDRESS(MultiTexCoord4d);
+		GET_PROC_ADDRESS(MultiTexCoord4dv);
+		GET_PROC_ADDRESS(MultiTexCoord4f);
+		GET_PROC_ADDRESS(MultiTexCoord4fv);
+		GET_PROC_ADDRESS(MultiTexCoord4i);
+		GET_PROC_ADDRESS(MultiTexCoord4iv);
+		GET_PROC_ADDRESS(MultiTexCoord4s);
+		GET_PROC_ADDRESS(MultiTexCoord4sv);
+		GET_PROC_ADDRESS(MultTransposeMatrixd);
+		GET_PROC_ADDRESS(MultTransposeMatrixf);
+		GET_PROC_ADDRESS(SampleCoverage);
 
-	return true;
+	#endif // GL_VERSION_1_3_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -405,57 +533,103 @@ bool CRenderingContext::InitVersion13()
 
 bool CRenderingContext::InitVersion14()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(BlendFuncSeparate);
-	GET_PROC_ADDRESS(FogCoordd);
-	GET_PROC_ADDRESS(FogCoorddv);
-	GET_PROC_ADDRESS(FogCoordf);
-	GET_PROC_ADDRESS(FogCoordfv);
-	GET_PROC_ADDRESS(FogCoordPointer);
-	GET_PROC_ADDRESS(MultiDrawArrays);
-	GET_PROC_ADDRESS(MultiDrawElements);
-	GET_PROC_ADDRESS(PointParameterf);
-	GET_PROC_ADDRESS(PointParameterfv);
-	GET_PROC_ADDRESS(PointParameteri);
-	GET_PROC_ADDRESS(PointParameteriv);
-	GET_PROC_ADDRESS(SecondaryColor3b);
-	GET_PROC_ADDRESS(SecondaryColor3bv);
-	GET_PROC_ADDRESS(SecondaryColor3d);
-	GET_PROC_ADDRESS(SecondaryColor3dv);
-	GET_PROC_ADDRESS(SecondaryColor3f);
-	GET_PROC_ADDRESS(SecondaryColor3fv);
-	GET_PROC_ADDRESS(SecondaryColor3i);
-	GET_PROC_ADDRESS(SecondaryColor3iv);
-	GET_PROC_ADDRESS(SecondaryColor3s);
-	GET_PROC_ADDRESS(SecondaryColor3sv);
-	GET_PROC_ADDRESS(SecondaryColor3ub);
-	GET_PROC_ADDRESS(SecondaryColor3ubv);
-	GET_PROC_ADDRESS(SecondaryColor3ui);
-	GET_PROC_ADDRESS(SecondaryColor3uiv);
-	GET_PROC_ADDRESS(SecondaryColor3us);
-	GET_PROC_ADDRESS(SecondaryColor3usv);
-	GET_PROC_ADDRESS(SecondaryColorPointer);
-	GET_PROC_ADDRESS(WindowPos2d);
-	GET_PROC_ADDRESS(WindowPos2dv);
-	GET_PROC_ADDRESS(WindowPos2f);
-	GET_PROC_ADDRESS(WindowPos2fv);
-	GET_PROC_ADDRESS(WindowPos2i);
-	GET_PROC_ADDRESS(WindowPos2iv);
-	GET_PROC_ADDRESS(WindowPos2s);
-	GET_PROC_ADDRESS(WindowPos2sv);
-	GET_PROC_ADDRESS(WindowPos3d);
-	GET_PROC_ADDRESS(WindowPos3dv);
-	GET_PROC_ADDRESS(WindowPos3f);
-	GET_PROC_ADDRESS(WindowPos3fv);
-	GET_PROC_ADDRESS(WindowPos3i);
-	GET_PROC_ADDRESS(WindowPos3iv);
-	GET_PROC_ADDRESS(WindowPos3s);
-	GET_PROC_ADDRESS(WindowPos3sv);
+	#ifdef GL_VERSION_1_4_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(BlendFuncSeparate);
+		GET_PROC_ADDRESS(FogCoordd);
+		GET_PROC_ADDRESS(FogCoorddv);
+		GET_PROC_ADDRESS(FogCoordf);
+		GET_PROC_ADDRESS(FogCoordfv);
+		GET_PROC_ADDRESS(FogCoordPointer);
+		GET_PROC_ADDRESS(MultiDrawArrays);
+		GET_PROC_ADDRESS(MultiDrawElements);
+		GET_PROC_ADDRESS(PointParameterf);
+		GET_PROC_ADDRESS(PointParameterfv);
+		GET_PROC_ADDRESS(PointParameteri);
+		GET_PROC_ADDRESS(PointParameteriv);
+		GET_PROC_ADDRESS(SecondaryColor3b);
+		GET_PROC_ADDRESS(SecondaryColor3bv);
+		GET_PROC_ADDRESS(SecondaryColor3d);
+		GET_PROC_ADDRESS(SecondaryColor3dv);
+		GET_PROC_ADDRESS(SecondaryColor3f);
+		GET_PROC_ADDRESS(SecondaryColor3fv);
+		GET_PROC_ADDRESS(SecondaryColor3i);
+		GET_PROC_ADDRESS(SecondaryColor3iv);
+		GET_PROC_ADDRESS(SecondaryColor3s);
+		GET_PROC_ADDRESS(SecondaryColor3sv);
+		GET_PROC_ADDRESS(SecondaryColor3ub);
+		GET_PROC_ADDRESS(SecondaryColor3ubv);
+		GET_PROC_ADDRESS(SecondaryColor3ui);
+		GET_PROC_ADDRESS(SecondaryColor3uiv);
+		GET_PROC_ADDRESS(SecondaryColor3us);
+		GET_PROC_ADDRESS(SecondaryColor3usv);
+		GET_PROC_ADDRESS(SecondaryColorPointer);
+		GET_PROC_ADDRESS(WindowPos2d);
+		GET_PROC_ADDRESS(WindowPos2dv);
+		GET_PROC_ADDRESS(WindowPos2f);
+		GET_PROC_ADDRESS(WindowPos2fv);
+		GET_PROC_ADDRESS(WindowPos2i);
+		GET_PROC_ADDRESS(WindowPos2iv);
+		GET_PROC_ADDRESS(WindowPos2s);
+		GET_PROC_ADDRESS(WindowPos2sv);
+		GET_PROC_ADDRESS(WindowPos3d);
+		GET_PROC_ADDRESS(WindowPos3dv);
+		GET_PROC_ADDRESS(WindowPos3f);
+		GET_PROC_ADDRESS(WindowPos3fv);
+		GET_PROC_ADDRESS(WindowPos3i);
+		GET_PROC_ADDRESS(WindowPos3iv);
+		GET_PROC_ADDRESS(WindowPos3s);
+		GET_PROC_ADDRESS(WindowPos3sv);
 
-	return true;
+	#endif // GL_VERSION_1_4_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
+}
+
+
+// ---[ GL_VERSION_1_5 ]----------------------------------------------------------------------------------------
+
+//!	Init GL_VERSION_1_5.
+
+bool CRenderingContext::InitVersion15()
+{
+	bool bReturn = true;
+
+	// 1: get all function pointers...
+
+	#ifdef GL_VERSION_1_5_OGLEXT
+
+		GET_PROC_ADDRESS(BeginQuery);
+		GET_PROC_ADDRESS(BindBuffer);
+		GET_PROC_ADDRESS(BufferData);
+		GET_PROC_ADDRESS(BufferSubData);
+		GET_PROC_ADDRESS(DeleteBuffers);
+		GET_PROC_ADDRESS(DeleteQueries);
+		GET_PROC_ADDRESS(EndQuery);
+		GET_PROC_ADDRESS(GenBuffers);
+		GET_PROC_ADDRESS(GenQueries);
+		GET_PROC_ADDRESS(GetBufferParameteriv);
+		GET_PROC_ADDRESS(GetBufferPointerv);
+		GET_PROC_ADDRESS(GetBufferSubData);
+		GET_PROC_ADDRESS(GetQueryiv);
+		GET_PROC_ADDRESS(GetQueryObjectiv);
+		GET_PROC_ADDRESS(GetQueryObjectuiv);
+		GET_PROC_ADDRESS(IsBuffer);
+		GET_PROC_ADDRESS(IsQuery);
+		GET_PROC_ADDRESS(MapBuffer);
+		GET_PROC_ADDRESS(UnmapBuffer);
+
+	#endif // GL_VERSION_1_5_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -469,12 +643,18 @@ bool CRenderingContext::InitVersion14()
 
 bool CRenderingContext::Init3dfxMultisample()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_3DFX_multisample_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_3DFX_multisample_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -484,13 +664,19 @@ bool CRenderingContext::Init3dfxMultisample()
 
 bool CRenderingContext::Init3dfxTbuffer()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(TbufferMask3DFX);
+	#ifdef GL_3DFX_tbuffer_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(TbufferMask3DFX);
 
-	return true;
+	#endif // GL_3DFX_tbuffer_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -500,12 +686,18 @@ bool CRenderingContext::Init3dfxTbuffer()
 
 bool CRenderingContext::Init3dfxTextureCompressionFXT1()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_3DFX_texture_compression_FXT1_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_3DFX_texture_compression_FXT1_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -515,12 +707,18 @@ bool CRenderingContext::Init3dfxTextureCompressionFXT1()
 
 bool CRenderingContext::InitAppleClientStorage()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_APPLE_client_storage_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_APPLE_client_storage_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -530,17 +728,23 @@ bool CRenderingContext::InitAppleClientStorage()
 
 bool CRenderingContext::InitAppleElementArray()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(DrawElementArrayAPPLE);
-	GET_PROC_ADDRESS(DrawRangeElementArrayAPPLE);
-	GET_PROC_ADDRESS(ElementPointerAPPLE);
-	GET_PROC_ADDRESS(MultiDrawElementArrayAPPLE);
-	GET_PROC_ADDRESS(MultiDrawRangeElementArrayAPPLE);
+	#ifdef GL_APPLE_element_array_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(DrawElementArrayAPPLE);
+		GET_PROC_ADDRESS(DrawRangeElementArrayAPPLE);
+		GET_PROC_ADDRESS(ElementPointerAPPLE);
+		GET_PROC_ADDRESS(MultiDrawElementArrayAPPLE);
+		GET_PROC_ADDRESS(MultiDrawRangeElementArrayAPPLE);
 
-	return true;
+	#endif // GL_APPLE_element_array_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -550,20 +754,26 @@ bool CRenderingContext::InitAppleElementArray()
 
 bool CRenderingContext::InitAppleFence()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(DeleteFencesAPPLE);
-	GET_PROC_ADDRESS(FinishFenceAPPLE);
-	GET_PROC_ADDRESS(FinishObjectAPPLE);
-	GET_PROC_ADDRESS(GenFencesAPPLE);
-	GET_PROC_ADDRESS(IsFenceAPPLE);
-	GET_PROC_ADDRESS(SetFenceAPPLE);
-	GET_PROC_ADDRESS(TestFenceAPPLE);
-	GET_PROC_ADDRESS(TestObjectAPPLE);
+	#ifdef GL_APPLE_fence_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(DeleteFencesAPPLE);
+		GET_PROC_ADDRESS(FinishFenceAPPLE);
+		GET_PROC_ADDRESS(FinishObjectAPPLE);
+		GET_PROC_ADDRESS(GenFencesAPPLE);
+		GET_PROC_ADDRESS(IsFenceAPPLE);
+		GET_PROC_ADDRESS(SetFenceAPPLE);
+		GET_PROC_ADDRESS(TestFenceAPPLE);
+		GET_PROC_ADDRESS(TestObjectAPPLE);
 
-	return true;
+	#endif // GL_APPLE_fence_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -573,12 +783,18 @@ bool CRenderingContext::InitAppleFence()
 
 bool CRenderingContext::InitAppleSpecularVector()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_APPLE_specular_vector_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_APPLE_specular_vector_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -588,12 +804,18 @@ bool CRenderingContext::InitAppleSpecularVector()
 
 bool CRenderingContext::InitAppleTransformHint()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_APPLE_transform_hint_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_APPLE_transform_hint_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -603,16 +825,22 @@ bool CRenderingContext::InitAppleTransformHint()
 
 bool CRenderingContext::InitAppleVertexArrayObject()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(BindVertexArrayAPPLE);
-	GET_PROC_ADDRESS(DeleteVertexArraysAPPLE);
-	GET_PROC_ADDRESS(GenVertexArraysAPPLE);
-	GET_PROC_ADDRESS(IsVertexArrayAPPLE);
+	#ifdef GL_APPLE_vertex_array_object_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(BindVertexArrayAPPLE);
+		GET_PROC_ADDRESS(DeleteVertexArraysAPPLE);
+		GET_PROC_ADDRESS(GenVertexArraysAPPLE);
+		GET_PROC_ADDRESS(IsVertexArrayAPPLE);
 
-	return true;
+	#endif // GL_APPLE_vertex_array_object_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -622,15 +850,21 @@ bool CRenderingContext::InitAppleVertexArrayObject()
 
 bool CRenderingContext::InitAppleVertexArrayRange()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(FlushVertexArrayRangeAPPLE);
-	GET_PROC_ADDRESS(VertexArrayParameteriAPPLE);
-	GET_PROC_ADDRESS(VertexArrayRangeAPPLE);
+	#ifdef GL_APPLE_vertex_array_range_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(FlushVertexArrayRangeAPPLE);
+		GET_PROC_ADDRESS(VertexArrayParameteriAPPLE);
+		GET_PROC_ADDRESS(VertexArrayRangeAPPLE);
 
-	return true;
+	#endif // GL_APPLE_vertex_array_range_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -640,12 +874,18 @@ bool CRenderingContext::InitAppleVertexArrayRange()
 
 bool CRenderingContext::InitAppleYcbcr422()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_APPLE_ycbcr_422_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_APPLE_ycbcr_422_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -655,12 +895,18 @@ bool CRenderingContext::InitAppleYcbcr422()
 
 bool CRenderingContext::InitArbDepthTexture()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ARB_depth_texture_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ARB_depth_texture_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -670,12 +916,18 @@ bool CRenderingContext::InitArbDepthTexture()
 
 bool CRenderingContext::InitArbFragmentProgram()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ARB_fragment_program_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ARB_fragment_program_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -685,17 +937,23 @@ bool CRenderingContext::InitArbFragmentProgram()
 
 bool CRenderingContext::InitArbMatrixPalette()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(CurrentPaletteMatrixARB);
-	GET_PROC_ADDRESS(MatrixIndexPointerARB);
-	GET_PROC_ADDRESS(MatrixIndexubvARB);
-	GET_PROC_ADDRESS(MatrixIndexuivARB);
-	GET_PROC_ADDRESS(MatrixIndexusvARB);
+	#ifdef GL_ARB_matrix_palette_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(CurrentPaletteMatrixARB);
+		GET_PROC_ADDRESS(MatrixIndexPointerARB);
+		GET_PROC_ADDRESS(MatrixIndexubvARB);
+		GET_PROC_ADDRESS(MatrixIndexuivARB);
+		GET_PROC_ADDRESS(MatrixIndexusvARB);
 
-	return true;
+	#endif // GL_ARB_matrix_palette_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -705,13 +963,19 @@ bool CRenderingContext::InitArbMatrixPalette()
 
 bool CRenderingContext::InitArbMultisample()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(SampleCoverageARB);
+	#ifdef GL_ARB_multisample_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(SampleCoverageARB);
 
-	return true;
+	#endif // GL_ARB_multisample_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -721,46 +985,52 @@ bool CRenderingContext::InitArbMultisample()
 
 bool CRenderingContext::InitArbMultitexture()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(ActiveTextureARB);
-	GET_PROC_ADDRESS(ClientActiveTextureARB);
-	GET_PROC_ADDRESS(MultiTexCoord1dARB);
-	GET_PROC_ADDRESS(MultiTexCoord1dvARB);
-	GET_PROC_ADDRESS(MultiTexCoord1fARB);
-	GET_PROC_ADDRESS(MultiTexCoord1fvARB);
-	GET_PROC_ADDRESS(MultiTexCoord1iARB);
-	GET_PROC_ADDRESS(MultiTexCoord1ivARB);
-	GET_PROC_ADDRESS(MultiTexCoord1sARB);
-	GET_PROC_ADDRESS(MultiTexCoord1svARB);
-	GET_PROC_ADDRESS(MultiTexCoord2dARB);
-	GET_PROC_ADDRESS(MultiTexCoord2dvARB);
-	GET_PROC_ADDRESS(MultiTexCoord2fARB);
-	GET_PROC_ADDRESS(MultiTexCoord2fvARB);
-	GET_PROC_ADDRESS(MultiTexCoord2iARB);
-	GET_PROC_ADDRESS(MultiTexCoord2ivARB);
-	GET_PROC_ADDRESS(MultiTexCoord2sARB);
-	GET_PROC_ADDRESS(MultiTexCoord2svARB);
-	GET_PROC_ADDRESS(MultiTexCoord3dARB);
-	GET_PROC_ADDRESS(MultiTexCoord3dvARB);
-	GET_PROC_ADDRESS(MultiTexCoord3fARB);
-	GET_PROC_ADDRESS(MultiTexCoord3fvARB);
-	GET_PROC_ADDRESS(MultiTexCoord3iARB);
-	GET_PROC_ADDRESS(MultiTexCoord3ivARB);
-	GET_PROC_ADDRESS(MultiTexCoord3sARB);
-	GET_PROC_ADDRESS(MultiTexCoord3svARB);
-	GET_PROC_ADDRESS(MultiTexCoord4dARB);
-	GET_PROC_ADDRESS(MultiTexCoord4dvARB);
-	GET_PROC_ADDRESS(MultiTexCoord4fARB);
-	GET_PROC_ADDRESS(MultiTexCoord4fvARB);
-	GET_PROC_ADDRESS(MultiTexCoord4iARB);
-	GET_PROC_ADDRESS(MultiTexCoord4ivARB);
-	GET_PROC_ADDRESS(MultiTexCoord4sARB);
-	GET_PROC_ADDRESS(MultiTexCoord4svARB);
+	#ifdef GL_ARB_multitexture_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(ActiveTextureARB);
+		GET_PROC_ADDRESS(ClientActiveTextureARB);
+		GET_PROC_ADDRESS(MultiTexCoord1dARB);
+		GET_PROC_ADDRESS(MultiTexCoord1dvARB);
+		GET_PROC_ADDRESS(MultiTexCoord1fARB);
+		GET_PROC_ADDRESS(MultiTexCoord1fvARB);
+		GET_PROC_ADDRESS(MultiTexCoord1iARB);
+		GET_PROC_ADDRESS(MultiTexCoord1ivARB);
+		GET_PROC_ADDRESS(MultiTexCoord1sARB);
+		GET_PROC_ADDRESS(MultiTexCoord1svARB);
+		GET_PROC_ADDRESS(MultiTexCoord2dARB);
+		GET_PROC_ADDRESS(MultiTexCoord2dvARB);
+		GET_PROC_ADDRESS(MultiTexCoord2fARB);
+		GET_PROC_ADDRESS(MultiTexCoord2fvARB);
+		GET_PROC_ADDRESS(MultiTexCoord2iARB);
+		GET_PROC_ADDRESS(MultiTexCoord2ivARB);
+		GET_PROC_ADDRESS(MultiTexCoord2sARB);
+		GET_PROC_ADDRESS(MultiTexCoord2svARB);
+		GET_PROC_ADDRESS(MultiTexCoord3dARB);
+		GET_PROC_ADDRESS(MultiTexCoord3dvARB);
+		GET_PROC_ADDRESS(MultiTexCoord3fARB);
+		GET_PROC_ADDRESS(MultiTexCoord3fvARB);
+		GET_PROC_ADDRESS(MultiTexCoord3iARB);
+		GET_PROC_ADDRESS(MultiTexCoord3ivARB);
+		GET_PROC_ADDRESS(MultiTexCoord3sARB);
+		GET_PROC_ADDRESS(MultiTexCoord3svARB);
+		GET_PROC_ADDRESS(MultiTexCoord4dARB);
+		GET_PROC_ADDRESS(MultiTexCoord4dvARB);
+		GET_PROC_ADDRESS(MultiTexCoord4fARB);
+		GET_PROC_ADDRESS(MultiTexCoord4fvARB);
+		GET_PROC_ADDRESS(MultiTexCoord4iARB);
+		GET_PROC_ADDRESS(MultiTexCoord4ivARB);
+		GET_PROC_ADDRESS(MultiTexCoord4sARB);
+		GET_PROC_ADDRESS(MultiTexCoord4svARB);
 
-	return true;
+	#endif // GL_ARB_multitexture_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -770,20 +1040,26 @@ bool CRenderingContext::InitArbMultitexture()
 
 bool CRenderingContext::InitArbOcclusionQuery()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(BeginQueryARB);
-	GET_PROC_ADDRESS(DeleteQueriesARB);
-	GET_PROC_ADDRESS(EndQueryARB);
-	GET_PROC_ADDRESS(GenQueriesARB);
-	GET_PROC_ADDRESS(GetQueryivARB);
-	GET_PROC_ADDRESS(GetQueryObjectivARB);
-	GET_PROC_ADDRESS(GetQueryObjectuivARB);
-	GET_PROC_ADDRESS(IsQueryARB);
+	#ifdef GL_ARB_occlusion_query_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(BeginQueryARB);
+		GET_PROC_ADDRESS(DeleteQueriesARB);
+		GET_PROC_ADDRESS(EndQueryARB);
+		GET_PROC_ADDRESS(GenQueriesARB);
+		GET_PROC_ADDRESS(GetQueryivARB);
+		GET_PROC_ADDRESS(GetQueryObjectivARB);
+		GET_PROC_ADDRESS(GetQueryObjectuivARB);
+		GET_PROC_ADDRESS(IsQueryARB);
 
-	return true;
+	#endif // GL_ARB_occlusion_query_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -793,14 +1069,20 @@ bool CRenderingContext::InitArbOcclusionQuery()
 
 bool CRenderingContext::InitArbPointParameters()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(PointParameterfARB);
-	GET_PROC_ADDRESS(PointParameterfvARB);
+	#ifdef GL_ARB_point_parameters_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(PointParameterfARB);
+		GET_PROC_ADDRESS(PointParameterfvARB);
 
-	return true;
+	#endif // GL_ARB_point_parameters_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -810,12 +1092,18 @@ bool CRenderingContext::InitArbPointParameters()
 
 bool CRenderingContext::InitArbPointSprite()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ARB_point_sprite_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ARB_point_sprite_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -825,51 +1113,57 @@ bool CRenderingContext::InitArbPointSprite()
 
 bool CRenderingContext::InitArbShaderObjects()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(AttachObjectARB);
-	GET_PROC_ADDRESS(CompileShaderARB);
-	GET_PROC_ADDRESS(CreateProgramObjectARB);
-	GET_PROC_ADDRESS(CreateShaderObjectARB);
-	GET_PROC_ADDRESS(DeleteObjectARB);
-	GET_PROC_ADDRESS(DetachObjectARB);
-	GET_PROC_ADDRESS(GetActiveUniformARB);
-	GET_PROC_ADDRESS(GetAttachedObjectsARB);
-	GET_PROC_ADDRESS(GetHandleARB);
-	GET_PROC_ADDRESS(GetInfoLogARB);
-	GET_PROC_ADDRESS(GetObjectParameterfvARB);
-	GET_PROC_ADDRESS(GetObjectParameterivARB);
-	GET_PROC_ADDRESS(GetShaderSourceARB);
-	GET_PROC_ADDRESS(GetUniformfvARB);
-	GET_PROC_ADDRESS(GetUniformivARB);
-	GET_PROC_ADDRESS(GetUniformLocationARB);
-	GET_PROC_ADDRESS(LinkProgramARB);
-	GET_PROC_ADDRESS(ShaderSourceARB);
-	GET_PROC_ADDRESS(Uniform1fARB);
-	GET_PROC_ADDRESS(Uniform1fvARB);
-	GET_PROC_ADDRESS(Uniform1iARB);
-	GET_PROC_ADDRESS(Uniform1ivARB);
-	GET_PROC_ADDRESS(Uniform2fARB);
-	GET_PROC_ADDRESS(Uniform2fvARB);
-	GET_PROC_ADDRESS(Uniform2iARB);
-	GET_PROC_ADDRESS(Uniform2ivARB);
-	GET_PROC_ADDRESS(Uniform3fARB);
-	GET_PROC_ADDRESS(Uniform3fvARB);
-	GET_PROC_ADDRESS(Uniform3iARB);
-	GET_PROC_ADDRESS(Uniform3ivARB);
-	GET_PROC_ADDRESS(Uniform4fARB);
-	GET_PROC_ADDRESS(Uniform4fvARB);
-	GET_PROC_ADDRESS(Uniform4iARB);
-	GET_PROC_ADDRESS(Uniform4ivARB);
-	GET_PROC_ADDRESS(UniformMatrix2fvARB);
-	GET_PROC_ADDRESS(UniformMatrix3fvARB);
-	GET_PROC_ADDRESS(UniformMatrix4fvARB);
-	GET_PROC_ADDRESS(UseProgramObjectARB);
-	GET_PROC_ADDRESS(ValidateProgramARB);
+	#ifdef GL_ARB_shader_objects_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(AttachObjectARB);
+		GET_PROC_ADDRESS(CompileShaderARB);
+		GET_PROC_ADDRESS(CreateProgramObjectARB);
+		GET_PROC_ADDRESS(CreateShaderObjectARB);
+		GET_PROC_ADDRESS(DeleteObjectARB);
+		GET_PROC_ADDRESS(DetachObjectARB);
+		GET_PROC_ADDRESS(GetActiveUniformARB);
+		GET_PROC_ADDRESS(GetAttachedObjectsARB);
+		GET_PROC_ADDRESS(GetHandleARB);
+		GET_PROC_ADDRESS(GetInfoLogARB);
+		GET_PROC_ADDRESS(GetObjectParameterfvARB);
+		GET_PROC_ADDRESS(GetObjectParameterivARB);
+		GET_PROC_ADDRESS(GetShaderSourceARB);
+		GET_PROC_ADDRESS(GetUniformfvARB);
+		GET_PROC_ADDRESS(GetUniformivARB);
+		GET_PROC_ADDRESS(GetUniformLocationARB);
+		GET_PROC_ADDRESS(LinkProgramARB);
+		GET_PROC_ADDRESS(ShaderSourceARB);
+		GET_PROC_ADDRESS(Uniform1fARB);
+		GET_PROC_ADDRESS(Uniform1fvARB);
+		GET_PROC_ADDRESS(Uniform1iARB);
+		GET_PROC_ADDRESS(Uniform1ivARB);
+		GET_PROC_ADDRESS(Uniform2fARB);
+		GET_PROC_ADDRESS(Uniform2fvARB);
+		GET_PROC_ADDRESS(Uniform2iARB);
+		GET_PROC_ADDRESS(Uniform2ivARB);
+		GET_PROC_ADDRESS(Uniform3fARB);
+		GET_PROC_ADDRESS(Uniform3fvARB);
+		GET_PROC_ADDRESS(Uniform3iARB);
+		GET_PROC_ADDRESS(Uniform3ivARB);
+		GET_PROC_ADDRESS(Uniform4fARB);
+		GET_PROC_ADDRESS(Uniform4fvARB);
+		GET_PROC_ADDRESS(Uniform4iARB);
+		GET_PROC_ADDRESS(Uniform4ivARB);
+		GET_PROC_ADDRESS(UniformMatrix2fvARB);
+		GET_PROC_ADDRESS(UniformMatrix3fvARB);
+		GET_PROC_ADDRESS(UniformMatrix4fvARB);
+		GET_PROC_ADDRESS(UseProgramObjectARB);
+		GET_PROC_ADDRESS(ValidateProgramARB);
 
-	return true;
+	#endif // GL_ARB_shader_objects_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -879,12 +1173,18 @@ bool CRenderingContext::InitArbShaderObjects()
 
 bool CRenderingContext::InitArbShadingLanguage100()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ARB_shading_language_100_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ARB_shading_language_100_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -894,12 +1194,18 @@ bool CRenderingContext::InitArbShadingLanguage100()
 
 bool CRenderingContext::InitArbShadow()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ARB_shadow_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ARB_shadow_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -909,12 +1215,18 @@ bool CRenderingContext::InitArbShadow()
 
 bool CRenderingContext::InitArbShadowAmbient()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ARB_shadow_ambient_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ARB_shadow_ambient_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -924,12 +1236,18 @@ bool CRenderingContext::InitArbShadowAmbient()
 
 bool CRenderingContext::InitArbTextureBorderClamp()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ARB_texture_border_clamp_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ARB_texture_border_clamp_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -939,19 +1257,25 @@ bool CRenderingContext::InitArbTextureBorderClamp()
 
 bool CRenderingContext::InitArbTextureCompression()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(CompressedTexImage1DARB);
-	GET_PROC_ADDRESS(CompressedTexImage2DARB);
-	GET_PROC_ADDRESS(CompressedTexImage3DARB);
-	GET_PROC_ADDRESS(CompressedTexSubImage1DARB);
-	GET_PROC_ADDRESS(CompressedTexSubImage2DARB);
-	GET_PROC_ADDRESS(CompressedTexSubImage3DARB);
-	GET_PROC_ADDRESS(GetCompressedTexImageARB);
+	#ifdef GL_ARB_texture_compression_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(CompressedTexImage1DARB);
+		GET_PROC_ADDRESS(CompressedTexImage2DARB);
+		GET_PROC_ADDRESS(CompressedTexImage3DARB);
+		GET_PROC_ADDRESS(CompressedTexSubImage1DARB);
+		GET_PROC_ADDRESS(CompressedTexSubImage2DARB);
+		GET_PROC_ADDRESS(CompressedTexSubImage3DARB);
+		GET_PROC_ADDRESS(GetCompressedTexImageARB);
 
-	return true;
+	#endif // GL_ARB_texture_compression_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -961,12 +1285,18 @@ bool CRenderingContext::InitArbTextureCompression()
 
 bool CRenderingContext::InitArbTextureCubeMap()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ARB_texture_cube_map_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ARB_texture_cube_map_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -976,12 +1306,18 @@ bool CRenderingContext::InitArbTextureCubeMap()
 
 bool CRenderingContext::InitArbTextureEnvAdd()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ARB_texture_env_add_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ARB_texture_env_add_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -991,12 +1327,18 @@ bool CRenderingContext::InitArbTextureEnvAdd()
 
 bool CRenderingContext::InitArbTextureEnvCombine()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ARB_texture_env_combine_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ARB_texture_env_combine_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1006,12 +1348,18 @@ bool CRenderingContext::InitArbTextureEnvCombine()
 
 bool CRenderingContext::InitArbTextureEnvCrossbar()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ARB_texture_env_crossbar_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ARB_texture_env_crossbar_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1021,12 +1369,18 @@ bool CRenderingContext::InitArbTextureEnvCrossbar()
 
 bool CRenderingContext::InitArbTextureEnvDot3()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ARB_texture_env_dot3_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ARB_texture_env_dot3_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1036,12 +1390,18 @@ bool CRenderingContext::InitArbTextureEnvDot3()
 
 bool CRenderingContext::InitArbTextureMirrorRepeat()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ARB_texture_mirror_repeat_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ARB_texture_mirror_repeat_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1051,12 +1411,18 @@ bool CRenderingContext::InitArbTextureMirrorRepeat()
 
 bool CRenderingContext::InitArbTextureNonPowerOfTwo()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ARB_texture_non_power_of_two_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ARB_texture_non_power_of_two_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1066,16 +1432,22 @@ bool CRenderingContext::InitArbTextureNonPowerOfTwo()
 
 bool CRenderingContext::InitArbTransposeMatrix()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(LoadTransposeMatrixdARB);
-	GET_PROC_ADDRESS(LoadTransposeMatrixfARB);
-	GET_PROC_ADDRESS(MultTransposeMatrixdARB);
-	GET_PROC_ADDRESS(MultTransposeMatrixfARB);
+	#ifdef GL_ARB_transpose_matrix_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(LoadTransposeMatrixdARB);
+		GET_PROC_ADDRESS(LoadTransposeMatrixfARB);
+		GET_PROC_ADDRESS(MultTransposeMatrixdARB);
+		GET_PROC_ADDRESS(MultTransposeMatrixfARB);
 
-	return true;
+	#endif // GL_ARB_transpose_matrix_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1085,22 +1457,28 @@ bool CRenderingContext::InitArbTransposeMatrix()
 
 bool CRenderingContext::InitArbVertexBlend()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(VertexBlendARB);
-	GET_PROC_ADDRESS(WeightbvARB);
-	GET_PROC_ADDRESS(WeightdvARB);
-	GET_PROC_ADDRESS(WeightfvARB);
-	GET_PROC_ADDRESS(WeightivARB);
-	GET_PROC_ADDRESS(WeightPointerARB);
-	GET_PROC_ADDRESS(WeightsvARB);
-	GET_PROC_ADDRESS(WeightubvARB);
-	GET_PROC_ADDRESS(WeightuivARB);
-	GET_PROC_ADDRESS(WeightusvARB);
+	#ifdef GL_ARB_vertex_blend_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(VertexBlendARB);
+		GET_PROC_ADDRESS(WeightbvARB);
+		GET_PROC_ADDRESS(WeightdvARB);
+		GET_PROC_ADDRESS(WeightfvARB);
+		GET_PROC_ADDRESS(WeightivARB);
+		GET_PROC_ADDRESS(WeightPointerARB);
+		GET_PROC_ADDRESS(WeightsvARB);
+		GET_PROC_ADDRESS(WeightubvARB);
+		GET_PROC_ADDRESS(WeightuivARB);
+		GET_PROC_ADDRESS(WeightusvARB);
 
-	return true;
+	#endif // GL_ARB_vertex_blend_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1110,23 +1488,29 @@ bool CRenderingContext::InitArbVertexBlend()
 
 bool CRenderingContext::InitArbVertexBufferObject()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(BindBufferARB);
-	GET_PROC_ADDRESS(BufferDataARB);
-	GET_PROC_ADDRESS(BufferSubDataARB);
-	GET_PROC_ADDRESS(DeleteBuffersARB);
-	GET_PROC_ADDRESS(GenBuffersARB);
-	GET_PROC_ADDRESS(GetBufferParameterivARB);
-	GET_PROC_ADDRESS(GetBufferPointervARB);
-	GET_PROC_ADDRESS(GetBufferSubDataARB);
-	GET_PROC_ADDRESS(IsBufferARB);
-	GET_PROC_ADDRESS(MapBufferARB);
-	GET_PROC_ADDRESS(UnmapBufferARB);
+	#ifdef GL_ARB_vertex_buffer_object_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(BindBufferARB);
+		GET_PROC_ADDRESS(BufferDataARB);
+		GET_PROC_ADDRESS(BufferSubDataARB);
+		GET_PROC_ADDRESS(DeleteBuffersARB);
+		GET_PROC_ADDRESS(GenBuffersARB);
+		GET_PROC_ADDRESS(GetBufferParameterivARB);
+		GET_PROC_ADDRESS(GetBufferPointervARB);
+		GET_PROC_ADDRESS(GetBufferSubDataARB);
+		GET_PROC_ADDRESS(IsBufferARB);
+		GET_PROC_ADDRESS(MapBufferARB);
+		GET_PROC_ADDRESS(UnmapBufferARB);
 
-	return true;
+	#endif // GL_ARB_vertex_buffer_object_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1136,74 +1520,80 @@ bool CRenderingContext::InitArbVertexBufferObject()
 
 bool CRenderingContext::InitArbVertexProgram()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(BindProgramARB);
-	GET_PROC_ADDRESS(DeleteProgramsARB);
-	GET_PROC_ADDRESS(DisableVertexAttribArrayARB);
-	GET_PROC_ADDRESS(EnableVertexAttribArrayARB);
-	GET_PROC_ADDRESS(GenProgramsARB);
-	GET_PROC_ADDRESS(GetProgramEnvParameterdvARB);
-	GET_PROC_ADDRESS(GetProgramEnvParameterfvARB);
-	GET_PROC_ADDRESS(GetProgramivARB);
-	GET_PROC_ADDRESS(GetProgramLocalParameterdvARB);
-	GET_PROC_ADDRESS(GetProgramLocalParameterfvARB);
-	GET_PROC_ADDRESS(GetProgramStringARB);
-	GET_PROC_ADDRESS(GetVertexAttribdvARB);
-	GET_PROC_ADDRESS(GetVertexAttribfvARB);
-	GET_PROC_ADDRESS(GetVertexAttribivARB);
-	GET_PROC_ADDRESS(GetVertexAttribPointervARB);
-	GET_PROC_ADDRESS(IsProgramARB);
-	GET_PROC_ADDRESS(ProgramEnvParameter4dARB);
-	GET_PROC_ADDRESS(ProgramEnvParameter4dvARB);
-	GET_PROC_ADDRESS(ProgramEnvParameter4fARB);
-	GET_PROC_ADDRESS(ProgramEnvParameter4fvARB);
-	GET_PROC_ADDRESS(ProgramLocalParameter4dARB);
-	GET_PROC_ADDRESS(ProgramLocalParameter4dvARB);
-	GET_PROC_ADDRESS(ProgramLocalParameter4fARB);
-	GET_PROC_ADDRESS(ProgramLocalParameter4fvARB);
-	GET_PROC_ADDRESS(ProgramStringARB);
-	GET_PROC_ADDRESS(VertexAttrib1dARB);
-	GET_PROC_ADDRESS(VertexAttrib1dvARB);
-	GET_PROC_ADDRESS(VertexAttrib1fARB);
-	GET_PROC_ADDRESS(VertexAttrib1fvARB);
-	GET_PROC_ADDRESS(VertexAttrib1sARB);
-	GET_PROC_ADDRESS(VertexAttrib1svARB);
-	GET_PROC_ADDRESS(VertexAttrib2dARB);
-	GET_PROC_ADDRESS(VertexAttrib2dvARB);
-	GET_PROC_ADDRESS(VertexAttrib2fARB);
-	GET_PROC_ADDRESS(VertexAttrib2fvARB);
-	GET_PROC_ADDRESS(VertexAttrib2sARB);
-	GET_PROC_ADDRESS(VertexAttrib2svARB);
-	GET_PROC_ADDRESS(VertexAttrib3dARB);
-	GET_PROC_ADDRESS(VertexAttrib3dvARB);
-	GET_PROC_ADDRESS(VertexAttrib3fARB);
-	GET_PROC_ADDRESS(VertexAttrib3fvARB);
-	GET_PROC_ADDRESS(VertexAttrib3sARB);
-	GET_PROC_ADDRESS(VertexAttrib3svARB);
-	GET_PROC_ADDRESS(VertexAttrib4bvARB);
-	GET_PROC_ADDRESS(VertexAttrib4dARB);
-	GET_PROC_ADDRESS(VertexAttrib4dvARB);
-	GET_PROC_ADDRESS(VertexAttrib4fARB);
-	GET_PROC_ADDRESS(VertexAttrib4fvARB);
-	GET_PROC_ADDRESS(VertexAttrib4ivARB);
-	GET_PROC_ADDRESS(VertexAttrib4NbvARB);
-	GET_PROC_ADDRESS(VertexAttrib4NivARB);
-	GET_PROC_ADDRESS(VertexAttrib4NsvARB);
-	GET_PROC_ADDRESS(VertexAttrib4NubARB);
-	GET_PROC_ADDRESS(VertexAttrib4NubvARB);
-	GET_PROC_ADDRESS(VertexAttrib4NuivARB);
-	GET_PROC_ADDRESS(VertexAttrib4NusvARB);
-	GET_PROC_ADDRESS(VertexAttrib4sARB);
-	GET_PROC_ADDRESS(VertexAttrib4svARB);
-	GET_PROC_ADDRESS(VertexAttrib4ubvARB);
-	GET_PROC_ADDRESS(VertexAttrib4uivARB);
-	GET_PROC_ADDRESS(VertexAttrib4usvARB);
-	GET_PROC_ADDRESS(VertexAttribPointerARB);
+	#ifdef GL_ARB_vertex_program_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(BindProgramARB);
+		GET_PROC_ADDRESS(DeleteProgramsARB);
+		GET_PROC_ADDRESS(DisableVertexAttribArrayARB);
+		GET_PROC_ADDRESS(EnableVertexAttribArrayARB);
+		GET_PROC_ADDRESS(GenProgramsARB);
+		GET_PROC_ADDRESS(GetProgramEnvParameterdvARB);
+		GET_PROC_ADDRESS(GetProgramEnvParameterfvARB);
+		GET_PROC_ADDRESS(GetProgramivARB);
+		GET_PROC_ADDRESS(GetProgramLocalParameterdvARB);
+		GET_PROC_ADDRESS(GetProgramLocalParameterfvARB);
+		GET_PROC_ADDRESS(GetProgramStringARB);
+		GET_PROC_ADDRESS(GetVertexAttribdvARB);
+		GET_PROC_ADDRESS(GetVertexAttribfvARB);
+		GET_PROC_ADDRESS(GetVertexAttribivARB);
+		GET_PROC_ADDRESS(GetVertexAttribPointervARB);
+		GET_PROC_ADDRESS(IsProgramARB);
+		GET_PROC_ADDRESS(ProgramEnvParameter4dARB);
+		GET_PROC_ADDRESS(ProgramEnvParameter4dvARB);
+		GET_PROC_ADDRESS(ProgramEnvParameter4fARB);
+		GET_PROC_ADDRESS(ProgramEnvParameter4fvARB);
+		GET_PROC_ADDRESS(ProgramLocalParameter4dARB);
+		GET_PROC_ADDRESS(ProgramLocalParameter4dvARB);
+		GET_PROC_ADDRESS(ProgramLocalParameter4fARB);
+		GET_PROC_ADDRESS(ProgramLocalParameter4fvARB);
+		GET_PROC_ADDRESS(ProgramStringARB);
+		GET_PROC_ADDRESS(VertexAttrib1dARB);
+		GET_PROC_ADDRESS(VertexAttrib1dvARB);
+		GET_PROC_ADDRESS(VertexAttrib1fARB);
+		GET_PROC_ADDRESS(VertexAttrib1fvARB);
+		GET_PROC_ADDRESS(VertexAttrib1sARB);
+		GET_PROC_ADDRESS(VertexAttrib1svARB);
+		GET_PROC_ADDRESS(VertexAttrib2dARB);
+		GET_PROC_ADDRESS(VertexAttrib2dvARB);
+		GET_PROC_ADDRESS(VertexAttrib2fARB);
+		GET_PROC_ADDRESS(VertexAttrib2fvARB);
+		GET_PROC_ADDRESS(VertexAttrib2sARB);
+		GET_PROC_ADDRESS(VertexAttrib2svARB);
+		GET_PROC_ADDRESS(VertexAttrib3dARB);
+		GET_PROC_ADDRESS(VertexAttrib3dvARB);
+		GET_PROC_ADDRESS(VertexAttrib3fARB);
+		GET_PROC_ADDRESS(VertexAttrib3fvARB);
+		GET_PROC_ADDRESS(VertexAttrib3sARB);
+		GET_PROC_ADDRESS(VertexAttrib3svARB);
+		GET_PROC_ADDRESS(VertexAttrib4bvARB);
+		GET_PROC_ADDRESS(VertexAttrib4dARB);
+		GET_PROC_ADDRESS(VertexAttrib4dvARB);
+		GET_PROC_ADDRESS(VertexAttrib4fARB);
+		GET_PROC_ADDRESS(VertexAttrib4fvARB);
+		GET_PROC_ADDRESS(VertexAttrib4ivARB);
+		GET_PROC_ADDRESS(VertexAttrib4NbvARB);
+		GET_PROC_ADDRESS(VertexAttrib4NivARB);
+		GET_PROC_ADDRESS(VertexAttrib4NsvARB);
+		GET_PROC_ADDRESS(VertexAttrib4NubARB);
+		GET_PROC_ADDRESS(VertexAttrib4NubvARB);
+		GET_PROC_ADDRESS(VertexAttrib4NuivARB);
+		GET_PROC_ADDRESS(VertexAttrib4NusvARB);
+		GET_PROC_ADDRESS(VertexAttrib4sARB);
+		GET_PROC_ADDRESS(VertexAttrib4svARB);
+		GET_PROC_ADDRESS(VertexAttrib4ubvARB);
+		GET_PROC_ADDRESS(VertexAttrib4uivARB);
+		GET_PROC_ADDRESS(VertexAttrib4usvARB);
+		GET_PROC_ADDRESS(VertexAttribPointerARB);
 
-	return true;
+	#endif // GL_ARB_vertex_program_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1213,28 +1603,34 @@ bool CRenderingContext::InitArbVertexProgram()
 
 bool CRenderingContext::InitArbWindowPos()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(WindowPos2dARB);
-	GET_PROC_ADDRESS(WindowPos2dvARB);
-	GET_PROC_ADDRESS(WindowPos2fARB);
-	GET_PROC_ADDRESS(WindowPos2fvARB);
-	GET_PROC_ADDRESS(WindowPos2iARB);
-	GET_PROC_ADDRESS(WindowPos2ivARB);
-	GET_PROC_ADDRESS(WindowPos2sARB);
-	GET_PROC_ADDRESS(WindowPos2svARB);
-	GET_PROC_ADDRESS(WindowPos3dARB);
-	GET_PROC_ADDRESS(WindowPos3dvARB);
-	GET_PROC_ADDRESS(WindowPos3fARB);
-	GET_PROC_ADDRESS(WindowPos3fvARB);
-	GET_PROC_ADDRESS(WindowPos3iARB);
-	GET_PROC_ADDRESS(WindowPos3ivARB);
-	GET_PROC_ADDRESS(WindowPos3sARB);
-	GET_PROC_ADDRESS(WindowPos3svARB);
+	#ifdef GL_ARB_window_pos_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(WindowPos2dARB);
+		GET_PROC_ADDRESS(WindowPos2dvARB);
+		GET_PROC_ADDRESS(WindowPos2fARB);
+		GET_PROC_ADDRESS(WindowPos2fvARB);
+		GET_PROC_ADDRESS(WindowPos2iARB);
+		GET_PROC_ADDRESS(WindowPos2ivARB);
+		GET_PROC_ADDRESS(WindowPos2sARB);
+		GET_PROC_ADDRESS(WindowPos2svARB);
+		GET_PROC_ADDRESS(WindowPos3dARB);
+		GET_PROC_ADDRESS(WindowPos3dvARB);
+		GET_PROC_ADDRESS(WindowPos3fARB);
+		GET_PROC_ADDRESS(WindowPos3fvARB);
+		GET_PROC_ADDRESS(WindowPos3iARB);
+		GET_PROC_ADDRESS(WindowPos3ivARB);
+		GET_PROC_ADDRESS(WindowPos3sARB);
+		GET_PROC_ADDRESS(WindowPos3svARB);
 
-	return true;
+	#endif // GL_ARB_window_pos_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1244,13 +1640,19 @@ bool CRenderingContext::InitArbWindowPos()
 
 bool CRenderingContext::InitAtiDrawBuffers()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(DrawBuffersATI);
+	#ifdef GL_ATI_draw_buffers_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(DrawBuffersATI);
 
-	return true;
+	#endif // GL_ATI_draw_buffers_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1260,15 +1662,21 @@ bool CRenderingContext::InitAtiDrawBuffers()
 
 bool CRenderingContext::InitAtiElementArray()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(DrawElementArrayATI);
-	GET_PROC_ADDRESS(DrawRangeElementArrayATI);
-	GET_PROC_ADDRESS(ElementPointerATI);
+	#ifdef GL_ATI_element_array_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(DrawElementArrayATI);
+		GET_PROC_ADDRESS(DrawRangeElementArrayATI);
+		GET_PROC_ADDRESS(ElementPointerATI);
 
-	return true;
+	#endif // GL_ATI_element_array_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1278,16 +1686,22 @@ bool CRenderingContext::InitAtiElementArray()
 
 bool CRenderingContext::InitAtiEnvmapBumpmap()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(GetTexBumpParameterfvATI);
-	GET_PROC_ADDRESS(GetTexBumpParameterivATI);
-	GET_PROC_ADDRESS(TexBumpParameterfvATI);
-	GET_PROC_ADDRESS(TexBumpParameterivATI);
+	#ifdef GL_ATI_envmap_bumpmap_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(GetTexBumpParameterfvATI);
+		GET_PROC_ADDRESS(GetTexBumpParameterivATI);
+		GET_PROC_ADDRESS(TexBumpParameterfvATI);
+		GET_PROC_ADDRESS(TexBumpParameterivATI);
 
-	return true;
+	#endif // GL_ATI_envmap_bumpmap_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1297,26 +1711,32 @@ bool CRenderingContext::InitAtiEnvmapBumpmap()
 
 bool CRenderingContext::InitAtiFragmentShader()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(AlphaFragmentOp1ATI);
-	GET_PROC_ADDRESS(AlphaFragmentOp2ATI);
-	GET_PROC_ADDRESS(AlphaFragmentOp3ATI);
-	GET_PROC_ADDRESS(BeginFragmentShaderATI);
-	GET_PROC_ADDRESS(BindFragmentShaderATI);
-	GET_PROC_ADDRESS(ColorFragmentOp1ATI);
-	GET_PROC_ADDRESS(ColorFragmentOp2ATI);
-	GET_PROC_ADDRESS(ColorFragmentOp3ATI);
-	GET_PROC_ADDRESS(DeleteFragmentShaderATI);
-	GET_PROC_ADDRESS(EndFragmentShaderATI);
-	GET_PROC_ADDRESS(GenFragmentShadersATI);
-	GET_PROC_ADDRESS(PassTexCoordATI);
-	GET_PROC_ADDRESS(SampleMapATI);
-	GET_PROC_ADDRESS(SetFragmentShaderConstantATI);
+	#ifdef GL_ATI_fragment_shader_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(AlphaFragmentOp1ATI);
+		GET_PROC_ADDRESS(AlphaFragmentOp2ATI);
+		GET_PROC_ADDRESS(AlphaFragmentOp3ATI);
+		GET_PROC_ADDRESS(BeginFragmentShaderATI);
+		GET_PROC_ADDRESS(BindFragmentShaderATI);
+		GET_PROC_ADDRESS(ColorFragmentOp1ATI);
+		GET_PROC_ADDRESS(ColorFragmentOp2ATI);
+		GET_PROC_ADDRESS(ColorFragmentOp3ATI);
+		GET_PROC_ADDRESS(DeleteFragmentShaderATI);
+		GET_PROC_ADDRESS(EndFragmentShaderATI);
+		GET_PROC_ADDRESS(GenFragmentShadersATI);
+		GET_PROC_ADDRESS(PassTexCoordATI);
+		GET_PROC_ADDRESS(SampleMapATI);
+		GET_PROC_ADDRESS(SetFragmentShaderConstantATI);
 
-	return true;
+	#endif // GL_ATI_fragment_shader_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1326,14 +1746,20 @@ bool CRenderingContext::InitAtiFragmentShader()
 
 bool CRenderingContext::InitAtiMapObjectBuffer()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(MapObjectBufferATI);
-	GET_PROC_ADDRESS(UnmapObjectBufferATI);
+	#ifdef GL_ATI_map_object_buffer_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(MapObjectBufferATI);
+		GET_PROC_ADDRESS(UnmapObjectBufferATI);
 
-	return true;
+	#endif // GL_ATI_map_object_buffer_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1343,14 +1769,20 @@ bool CRenderingContext::InitAtiMapObjectBuffer()
 
 bool CRenderingContext::InitAtiPnTriangles()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(PNTrianglesfATI);
-	GET_PROC_ADDRESS(PNTrianglesiATI);
+	#ifdef GL_ATI_pn_triangles_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(PNTrianglesfATI);
+		GET_PROC_ADDRESS(PNTrianglesiATI);
 
-	return true;
+	#endif // GL_ATI_pn_triangles_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1360,14 +1792,20 @@ bool CRenderingContext::InitAtiPnTriangles()
 
 bool CRenderingContext::InitAtiSeparateStencil()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(StencilFuncSeparateATI);
-	GET_PROC_ADDRESS(StencilOpSeparateATI);
+	#ifdef GL_ATI_separate_stencil_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(StencilFuncSeparateATI);
+		GET_PROC_ADDRESS(StencilOpSeparateATI);
 
-	return true;
+	#endif // GL_ATI_separate_stencil_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1377,12 +1815,18 @@ bool CRenderingContext::InitAtiSeparateStencil()
 
 bool CRenderingContext::InitAtiTextureEnvCombine3()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ATI_texture_env_combine3_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ATI_texture_env_combine3_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1392,12 +1836,18 @@ bool CRenderingContext::InitAtiTextureEnvCombine3()
 
 bool CRenderingContext::InitAtiTextureFloat()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ATI_texture_float_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ATI_texture_float_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1407,12 +1857,18 @@ bool CRenderingContext::InitAtiTextureFloat()
 
 bool CRenderingContext::InitAtiTextureMirrorOnce()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ATI_texture_mirror_once_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ATI_texture_mirror_once_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1422,12 +1878,18 @@ bool CRenderingContext::InitAtiTextureMirrorOnce()
 
 bool CRenderingContext::InitAtiTextFragmentShader()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_ATI_text_fragment_shader_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_ATI_text_fragment_shader_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1437,24 +1899,30 @@ bool CRenderingContext::InitAtiTextFragmentShader()
 
 bool CRenderingContext::InitAtiVertexArrayObject()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(ArrayObjectATI);
-	GET_PROC_ADDRESS(FreeObjectBufferATI);
-	GET_PROC_ADDRESS(GetArrayObjectfvATI);
-	GET_PROC_ADDRESS(GetArrayObjectivATI);
-	GET_PROC_ADDRESS(GetObjectBufferfvATI);
-	GET_PROC_ADDRESS(GetObjectBufferivATI);
-	GET_PROC_ADDRESS(GetVariantArrayObjectfvATI);
-	GET_PROC_ADDRESS(GetVariantArrayObjectivATI);
-	GET_PROC_ADDRESS(IsObjectBufferATI);
-	GET_PROC_ADDRESS(NewObjectBufferATI);
-	GET_PROC_ADDRESS(UpdateObjectBufferATI);
-	GET_PROC_ADDRESS(VariantArrayObjectATI);
+	#ifdef GL_ATI_vertex_array_object_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(ArrayObjectATI);
+		GET_PROC_ADDRESS(FreeObjectBufferATI);
+		GET_PROC_ADDRESS(GetArrayObjectfvATI);
+		GET_PROC_ADDRESS(GetArrayObjectivATI);
+		GET_PROC_ADDRESS(GetObjectBufferfvATI);
+		GET_PROC_ADDRESS(GetObjectBufferivATI);
+		GET_PROC_ADDRESS(GetVariantArrayObjectfvATI);
+		GET_PROC_ADDRESS(GetVariantArrayObjectivATI);
+		GET_PROC_ADDRESS(IsObjectBufferATI);
+		GET_PROC_ADDRESS(NewObjectBufferATI);
+		GET_PROC_ADDRESS(UpdateObjectBufferATI);
+		GET_PROC_ADDRESS(VariantArrayObjectATI);
 
-	return true;
+	#endif // GL_ATI_vertex_array_object_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1464,15 +1932,21 @@ bool CRenderingContext::InitAtiVertexArrayObject()
 
 bool CRenderingContext::InitAtiVertexAttribArrayObject()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(GetVertexAttribArrayObjectfvATI);
-	GET_PROC_ADDRESS(GetVertexAttribArrayObjectivATI);
-	GET_PROC_ADDRESS(VertexAttribArrayObjectATI);
+	#ifdef GL_ATI_vertex_attrib_array_object_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(GetVertexAttribArrayObjectfvATI);
+		GET_PROC_ADDRESS(GetVertexAttribArrayObjectivATI);
+		GET_PROC_ADDRESS(VertexAttribArrayObjectATI);
 
-	return true;
+	#endif // GL_ATI_vertex_attrib_array_object_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1482,57 +1956,63 @@ bool CRenderingContext::InitAtiVertexAttribArrayObject()
 
 bool CRenderingContext::InitAtiVertexStreams()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(ClientActiveVertexStreamATI);
-	GET_PROC_ADDRESS(NormalStream3bATI);
-	GET_PROC_ADDRESS(NormalStream3bvATI);
-	GET_PROC_ADDRESS(NormalStream3dATI);
-	GET_PROC_ADDRESS(NormalStream3dvATI);
-	GET_PROC_ADDRESS(NormalStream3fATI);
-	GET_PROC_ADDRESS(NormalStream3fvATI);
-	GET_PROC_ADDRESS(NormalStream3iATI);
-	GET_PROC_ADDRESS(NormalStream3ivATI);
-	GET_PROC_ADDRESS(NormalStream3sATI);
-	GET_PROC_ADDRESS(NormalStream3svATI);
-	GET_PROC_ADDRESS(VertexBlendEnvfATI);
-	GET_PROC_ADDRESS(VertexBlendEnviATI);
-	GET_PROC_ADDRESS(VertexStream1dATI);
-	GET_PROC_ADDRESS(VertexStream1dvATI);
-	GET_PROC_ADDRESS(VertexStream1fATI);
-	GET_PROC_ADDRESS(VertexStream1fvATI);
-	GET_PROC_ADDRESS(VertexStream1iATI);
-	GET_PROC_ADDRESS(VertexStream1ivATI);
-	GET_PROC_ADDRESS(VertexStream1sATI);
-	GET_PROC_ADDRESS(VertexStream1svATI);
-	GET_PROC_ADDRESS(VertexStream2dATI);
-	GET_PROC_ADDRESS(VertexStream2dvATI);
-	GET_PROC_ADDRESS(VertexStream2fATI);
-	GET_PROC_ADDRESS(VertexStream2fvATI);
-	GET_PROC_ADDRESS(VertexStream2iATI);
-	GET_PROC_ADDRESS(VertexStream2ivATI);
-	GET_PROC_ADDRESS(VertexStream2sATI);
-	GET_PROC_ADDRESS(VertexStream2svATI);
-	GET_PROC_ADDRESS(VertexStream3dATI);
-	GET_PROC_ADDRESS(VertexStream3dvATI);
-	GET_PROC_ADDRESS(VertexStream3fATI);
-	GET_PROC_ADDRESS(VertexStream3fvATI);
-	GET_PROC_ADDRESS(VertexStream3iATI);
-	GET_PROC_ADDRESS(VertexStream3ivATI);
-	GET_PROC_ADDRESS(VertexStream3sATI);
-	GET_PROC_ADDRESS(VertexStream3svATI);
-	GET_PROC_ADDRESS(VertexStream4dATI);
-	GET_PROC_ADDRESS(VertexStream4dvATI);
-	GET_PROC_ADDRESS(VertexStream4fATI);
-	GET_PROC_ADDRESS(VertexStream4fvATI);
-	GET_PROC_ADDRESS(VertexStream4iATI);
-	GET_PROC_ADDRESS(VertexStream4ivATI);
-	GET_PROC_ADDRESS(VertexStream4sATI);
-	GET_PROC_ADDRESS(VertexStream4svATI);
+	#ifdef GL_ATI_vertex_streams_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(ClientActiveVertexStreamATI);
+		GET_PROC_ADDRESS(NormalStream3bATI);
+		GET_PROC_ADDRESS(NormalStream3bvATI);
+		GET_PROC_ADDRESS(NormalStream3dATI);
+		GET_PROC_ADDRESS(NormalStream3dvATI);
+		GET_PROC_ADDRESS(NormalStream3fATI);
+		GET_PROC_ADDRESS(NormalStream3fvATI);
+		GET_PROC_ADDRESS(NormalStream3iATI);
+		GET_PROC_ADDRESS(NormalStream3ivATI);
+		GET_PROC_ADDRESS(NormalStream3sATI);
+		GET_PROC_ADDRESS(NormalStream3svATI);
+		GET_PROC_ADDRESS(VertexBlendEnvfATI);
+		GET_PROC_ADDRESS(VertexBlendEnviATI);
+		GET_PROC_ADDRESS(VertexStream1dATI);
+		GET_PROC_ADDRESS(VertexStream1dvATI);
+		GET_PROC_ADDRESS(VertexStream1fATI);
+		GET_PROC_ADDRESS(VertexStream1fvATI);
+		GET_PROC_ADDRESS(VertexStream1iATI);
+		GET_PROC_ADDRESS(VertexStream1ivATI);
+		GET_PROC_ADDRESS(VertexStream1sATI);
+		GET_PROC_ADDRESS(VertexStream1svATI);
+		GET_PROC_ADDRESS(VertexStream2dATI);
+		GET_PROC_ADDRESS(VertexStream2dvATI);
+		GET_PROC_ADDRESS(VertexStream2fATI);
+		GET_PROC_ADDRESS(VertexStream2fvATI);
+		GET_PROC_ADDRESS(VertexStream2iATI);
+		GET_PROC_ADDRESS(VertexStream2ivATI);
+		GET_PROC_ADDRESS(VertexStream2sATI);
+		GET_PROC_ADDRESS(VertexStream2svATI);
+		GET_PROC_ADDRESS(VertexStream3dATI);
+		GET_PROC_ADDRESS(VertexStream3dvATI);
+		GET_PROC_ADDRESS(VertexStream3fATI);
+		GET_PROC_ADDRESS(VertexStream3fvATI);
+		GET_PROC_ADDRESS(VertexStream3iATI);
+		GET_PROC_ADDRESS(VertexStream3ivATI);
+		GET_PROC_ADDRESS(VertexStream3sATI);
+		GET_PROC_ADDRESS(VertexStream3svATI);
+		GET_PROC_ADDRESS(VertexStream4dATI);
+		GET_PROC_ADDRESS(VertexStream4dvATI);
+		GET_PROC_ADDRESS(VertexStream4fATI);
+		GET_PROC_ADDRESS(VertexStream4fvATI);
+		GET_PROC_ADDRESS(VertexStream4iATI);
+		GET_PROC_ADDRESS(VertexStream4ivATI);
+		GET_PROC_ADDRESS(VertexStream4sATI);
+		GET_PROC_ADDRESS(VertexStream4svATI);
 
-	return true;
+	#endif // GL_ATI_vertex_streams_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1542,12 +2022,18 @@ bool CRenderingContext::InitAtiVertexStreams()
 
 bool CRenderingContext::InitExt422Pixels()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_422_pixels_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_422_pixels_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1557,12 +2043,18 @@ bool CRenderingContext::InitExt422Pixels()
 
 bool CRenderingContext::InitExtAbgr()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_abgr_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_abgr_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1572,12 +2064,18 @@ bool CRenderingContext::InitExtAbgr()
 
 bool CRenderingContext::InitExtBgra()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_bgra_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_bgra_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1587,13 +2085,19 @@ bool CRenderingContext::InitExtBgra()
 
 bool CRenderingContext::InitExtBlendColor()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(BlendColorEXT);
+	#ifdef GL_EXT_blend_color_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(BlendColorEXT);
 
-	return true;
+	#endif // GL_EXT_blend_color_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1603,13 +2107,19 @@ bool CRenderingContext::InitExtBlendColor()
 
 bool CRenderingContext::InitExtBlendFuncSeparate()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(BlendFuncSeparateEXT);
+	#ifdef GL_EXT_blend_func_separate_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(BlendFuncSeparateEXT);
 
-	return true;
+	#endif // GL_EXT_blend_func_separate_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1619,12 +2129,18 @@ bool CRenderingContext::InitExtBlendFuncSeparate()
 
 bool CRenderingContext::InitExtBlendLogicOp()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_blend_logic_op_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_blend_logic_op_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1634,13 +2150,19 @@ bool CRenderingContext::InitExtBlendLogicOp()
 
 bool CRenderingContext::InitExtBlendMinmax()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(BlendEquationEXT);
+	#ifdef GL_EXT_blend_minmax_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(BlendEquationEXT);
 
-	return true;
+	#endif // GL_EXT_blend_minmax_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1650,12 +2172,18 @@ bool CRenderingContext::InitExtBlendMinmax()
 
 bool CRenderingContext::InitExtBlendSubtract()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_blend_subtract_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_blend_subtract_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1665,12 +2193,18 @@ bool CRenderingContext::InitExtBlendSubtract()
 
 bool CRenderingContext::InitExtClipVolumeHint()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_clip_volume_hint_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_clip_volume_hint_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1680,12 +2214,18 @@ bool CRenderingContext::InitExtClipVolumeHint()
 
 bool CRenderingContext::InitExtCmyka()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_cmyka_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_cmyka_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1695,12 +2235,18 @@ bool CRenderingContext::InitExtCmyka()
 
 bool CRenderingContext::InitExtColorMatrix()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_color_matrix_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_color_matrix_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1710,14 +2256,20 @@ bool CRenderingContext::InitExtColorMatrix()
 
 bool CRenderingContext::InitExtColorSubtable()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(ColorSubTableEXT);
-	GET_PROC_ADDRESS(CopyColorSubTableEXT);
+	#ifdef GL_EXT_color_subtable_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(ColorSubTableEXT);
+		GET_PROC_ADDRESS(CopyColorSubTableEXT);
 
-	return true;
+	#endif // GL_EXT_color_subtable_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1727,13 +2279,20 @@ bool CRenderingContext::InitExtColorSubtable()
 
 bool CRenderingContext::InitExtCompiledVertexArray()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
-	GET_PROC_ADDRESS(LockArraysEXT);
-	GET_PROC_ADDRESS(UnlockArraysEXT);
 
-	// 2: everything went fine...
+	#ifdef GL_EXT_compiled_vertex_array_OGLEXT
 
-	return true;
+		GET_PROC_ADDRESS(LockArraysEXT);
+		GET_PROC_ADDRESS(UnlockArraysEXT);
+
+	#endif // GL_EXT_compiled_vertex_array_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1743,25 +2302,31 @@ bool CRenderingContext::InitExtCompiledVertexArray()
 
 bool CRenderingContext::InitExtConvolution()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(ConvolutionFilter1DEXT);
-	GET_PROC_ADDRESS(ConvolutionFilter2DEXT);
-	GET_PROC_ADDRESS(ConvolutionParameterfEXT);
-	GET_PROC_ADDRESS(ConvolutionParameterfvEXT);
-	GET_PROC_ADDRESS(ConvolutionParameteriEXT);
-	GET_PROC_ADDRESS(ConvolutionParameterivEXT);
-	GET_PROC_ADDRESS(CopyConvolutionFilter1DEXT);
-	GET_PROC_ADDRESS(CopyConvolutionFilter2DEXT);
-	GET_PROC_ADDRESS(GetConvolutionFilterEXT);
-	GET_PROC_ADDRESS(GetConvolutionParameterfvEXT);
-	GET_PROC_ADDRESS(GetConvolutionParameterivEXT);
-	GET_PROC_ADDRESS(GetSeparableFilterEXT);
-	GET_PROC_ADDRESS(SeparableFilter2DEXT);
+	#ifdef GL_EXT_convolution_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(ConvolutionFilter1DEXT);
+		GET_PROC_ADDRESS(ConvolutionFilter2DEXT);
+		GET_PROC_ADDRESS(ConvolutionParameterfEXT);
+		GET_PROC_ADDRESS(ConvolutionParameterfvEXT);
+		GET_PROC_ADDRESS(ConvolutionParameteriEXT);
+		GET_PROC_ADDRESS(ConvolutionParameterivEXT);
+		GET_PROC_ADDRESS(CopyConvolutionFilter1DEXT);
+		GET_PROC_ADDRESS(CopyConvolutionFilter2DEXT);
+		GET_PROC_ADDRESS(GetConvolutionFilterEXT);
+		GET_PROC_ADDRESS(GetConvolutionParameterfvEXT);
+		GET_PROC_ADDRESS(GetConvolutionParameterivEXT);
+		GET_PROC_ADDRESS(GetSeparableFilterEXT);
+		GET_PROC_ADDRESS(SeparableFilter2DEXT);
 
-	return true;
+	#endif // GL_EXT_convolution_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1771,34 +2336,40 @@ bool CRenderingContext::InitExtConvolution()
 
 bool CRenderingContext::InitExtCoordinateFrame()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(Binormal3bEXT);
-	GET_PROC_ADDRESS(Binormal3bvEXT);
-	GET_PROC_ADDRESS(Binormal3dEXT);
-	GET_PROC_ADDRESS(Binormal3dvEXT);
-	GET_PROC_ADDRESS(Binormal3fEXT);
-	GET_PROC_ADDRESS(Binormal3fvEXT);
-	GET_PROC_ADDRESS(Binormal3iEXT);
-	GET_PROC_ADDRESS(Binormal3ivEXT);
-	GET_PROC_ADDRESS(Binormal3sEXT);
-	GET_PROC_ADDRESS(Binormal3svEXT);
-	GET_PROC_ADDRESS(BinormalPointerEXT);
-	GET_PROC_ADDRESS(Tangent3bEXT);
-	GET_PROC_ADDRESS(Tangent3bvEXT);
-	GET_PROC_ADDRESS(Tangent3dEXT);
-	GET_PROC_ADDRESS(Tangent3dvEXT);
-	GET_PROC_ADDRESS(Tangent3fEXT);
-	GET_PROC_ADDRESS(Tangent3fvEXT);
-	GET_PROC_ADDRESS(Tangent3iEXT);
-	GET_PROC_ADDRESS(Tangent3ivEXT);
-	GET_PROC_ADDRESS(Tangent3sEXT);
-	GET_PROC_ADDRESS(Tangent3svEXT);
-	GET_PROC_ADDRESS(TangentPointerEXT);
+	#ifdef GL_EXT_coordinate_frame_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(Binormal3bEXT);
+		GET_PROC_ADDRESS(Binormal3bvEXT);
+		GET_PROC_ADDRESS(Binormal3dEXT);
+		GET_PROC_ADDRESS(Binormal3dvEXT);
+		GET_PROC_ADDRESS(Binormal3fEXT);
+		GET_PROC_ADDRESS(Binormal3fvEXT);
+		GET_PROC_ADDRESS(Binormal3iEXT);
+		GET_PROC_ADDRESS(Binormal3ivEXT);
+		GET_PROC_ADDRESS(Binormal3sEXT);
+		GET_PROC_ADDRESS(Binormal3svEXT);
+		GET_PROC_ADDRESS(BinormalPointerEXT);
+		GET_PROC_ADDRESS(Tangent3bEXT);
+		GET_PROC_ADDRESS(Tangent3bvEXT);
+		GET_PROC_ADDRESS(Tangent3dEXT);
+		GET_PROC_ADDRESS(Tangent3dvEXT);
+		GET_PROC_ADDRESS(Tangent3fEXT);
+		GET_PROC_ADDRESS(Tangent3fvEXT);
+		GET_PROC_ADDRESS(Tangent3iEXT);
+		GET_PROC_ADDRESS(Tangent3ivEXT);
+		GET_PROC_ADDRESS(Tangent3sEXT);
+		GET_PROC_ADDRESS(Tangent3svEXT);
+		GET_PROC_ADDRESS(TangentPointerEXT);
 
-	return true;
+	#endif // GL_EXT_coordinate_frame_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1808,17 +2379,23 @@ bool CRenderingContext::InitExtCoordinateFrame()
 
 bool CRenderingContext::InitExtCopyTexture()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(CopyTexImage1DEXT);
-	GET_PROC_ADDRESS(CopyTexImage2DEXT);
-	GET_PROC_ADDRESS(CopyTexSubImage1DEXT);
-	GET_PROC_ADDRESS(CopyTexSubImage2DEXT);
-	GET_PROC_ADDRESS(CopyTexSubImage3DEXT);
+	#ifdef GL_EXT_copy_texture_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(CopyTexImage1DEXT);
+		GET_PROC_ADDRESS(CopyTexImage2DEXT);
+		GET_PROC_ADDRESS(CopyTexSubImage1DEXT);
+		GET_PROC_ADDRESS(CopyTexSubImage2DEXT);
+		GET_PROC_ADDRESS(CopyTexSubImage3DEXT);
 
-	return true;
+	#endif // GL_EXT_copy_texture_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1828,14 +2405,20 @@ bool CRenderingContext::InitExtCopyTexture()
 
 bool CRenderingContext::InitExtCullVertex()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(CullParameterdvEXT);
-	GET_PROC_ADDRESS(CullParameterfvEXT);
+	#ifdef GL_EXT_cull_vertex_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(CullParameterdvEXT);
+		GET_PROC_ADDRESS(CullParameterfvEXT);
 
-	return true;
+	#endif // GL_EXT_cull_vertex_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1845,12 +2428,18 @@ bool CRenderingContext::InitExtCullVertex()
 
 bool CRenderingContext::InitExtDepthBoundsTest()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_depth_bounds_test_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_depth_bounds_test_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1860,13 +2449,19 @@ bool CRenderingContext::InitExtDepthBoundsTest()
 
 bool CRenderingContext::InitExtDrawRangeElements()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(DrawRangeElementsEXT);
+	#ifdef GL_EXT_draw_range_elements_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(DrawRangeElementsEXT);
 
-	return true;
+	#endif // GL_EXT_draw_range_elements_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1876,17 +2471,23 @@ bool CRenderingContext::InitExtDrawRangeElements()
 
 bool CRenderingContext::InitExtFogCoord()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(FogCoorddEXT);
-	GET_PROC_ADDRESS(FogCoorddvEXT);
-	GET_PROC_ADDRESS(FogCoordfEXT);
-	GET_PROC_ADDRESS(FogCoordfvEXT);
-	GET_PROC_ADDRESS(FogCoordPointerEXT);
+	#ifdef GL_EXT_fog_coord_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(FogCoorddEXT);
+		GET_PROC_ADDRESS(FogCoorddvEXT);
+		GET_PROC_ADDRESS(FogCoordfEXT);
+		GET_PROC_ADDRESS(FogCoordfvEXT);
+		GET_PROC_ADDRESS(FogCoordPointerEXT);
 
-	return true;
+	#endif // GL_EXT_fog_coord_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1896,12 +2497,18 @@ bool CRenderingContext::InitExtFogCoord()
 
 bool CRenderingContext::InitExtFragmentLighting()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_fragment_lighting_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_fragment_lighting_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1911,22 +2518,28 @@ bool CRenderingContext::InitExtFragmentLighting()
 
 bool CRenderingContext::InitExtHistogram()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(GetHistogramEXT);
-	GET_PROC_ADDRESS(GetHistogramParameterfvEXT);
-	GET_PROC_ADDRESS(GetHistogramParameterivEXT);
-	GET_PROC_ADDRESS(GetMinmaxEXT);
-	GET_PROC_ADDRESS(GetMinmaxParameterfvEXT);
-	GET_PROC_ADDRESS(GetMinmaxParameterivEXT);
-	GET_PROC_ADDRESS(HistogramEXT);
-	GET_PROC_ADDRESS(MinmaxEXT);
-	GET_PROC_ADDRESS(ResetHistogramEXT);
-	GET_PROC_ADDRESS(ResetMinmaxEXT);
+	#ifdef GL_EXT_histogram_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(GetHistogramEXT);
+		GET_PROC_ADDRESS(GetHistogramParameterfvEXT);
+		GET_PROC_ADDRESS(GetHistogramParameterivEXT);
+		GET_PROC_ADDRESS(GetMinmaxEXT);
+		GET_PROC_ADDRESS(GetMinmaxParameterfvEXT);
+		GET_PROC_ADDRESS(GetMinmaxParameterivEXT);
+		GET_PROC_ADDRESS(HistogramEXT);
+		GET_PROC_ADDRESS(MinmaxEXT);
+		GET_PROC_ADDRESS(ResetHistogramEXT);
+		GET_PROC_ADDRESS(ResetMinmaxEXT);
 
-	return true;
+	#endif // GL_EXT_histogram_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1936,12 +2549,18 @@ bool CRenderingContext::InitExtHistogram()
 
 bool CRenderingContext::InitExtIndexArrayFormats()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_index_array_formats_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_index_array_formats_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1951,13 +2570,19 @@ bool CRenderingContext::InitExtIndexArrayFormats()
 
 bool CRenderingContext::InitExtIndexFunc()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(IndexFuncEXT);
+	#ifdef GL_EXT_index_func_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(IndexFuncEXT);
 
-	return true;
+	#endif // GL_EXT_index_func_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1967,13 +2592,19 @@ bool CRenderingContext::InitExtIndexFunc()
 
 bool CRenderingContext::InitExtIndexMaterial()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(IndexMaterialEXT);
+	#ifdef GL_EXT_index_material_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(IndexMaterialEXT);
 
-	return true;
+	#endif // GL_EXT_index_material_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1983,12 +2614,18 @@ bool CRenderingContext::InitExtIndexMaterial()
 
 bool CRenderingContext::InitExtIndexTexture()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_index_texture_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_index_texture_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -1998,15 +2635,21 @@ bool CRenderingContext::InitExtIndexTexture()
 
 bool CRenderingContext::InitExtLightTexture()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(ApplyTextureEXT);
-	GET_PROC_ADDRESS(TextureLightEXT);
-	GET_PROC_ADDRESS(TextureMaterialEXT);
+	#ifdef GL_EXT_light_texture_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(ApplyTextureEXT);
+		GET_PROC_ADDRESS(TextureLightEXT);
+		GET_PROC_ADDRESS(TextureMaterialEXT);
 
-	return true;
+	#endif // GL_EXT_light_texture_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2016,12 +2659,18 @@ bool CRenderingContext::InitExtLightTexture()
 
 bool CRenderingContext::InitExtMiscAttribute()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_misc_attribute_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_misc_attribute_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2031,14 +2680,20 @@ bool CRenderingContext::InitExtMiscAttribute()
 
 bool CRenderingContext::InitExtMultisample()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(SampleMaskEXT);
-	GET_PROC_ADDRESS(SamplePatternEXT);
+	#ifdef GL_EXT_multisample_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(SampleMaskEXT);
+		GET_PROC_ADDRESS(SamplePatternEXT);
 
-	return true;
+	#endif // GL_EXT_multisample_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2048,48 +2703,54 @@ bool CRenderingContext::InitExtMultisample()
 
 bool CRenderingContext::InitExtMultitexture()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(InterleavedTextureCoordSetsEXT);
-	GET_PROC_ADDRESS(MultiTexCoord1dEXT);
-	GET_PROC_ADDRESS(MultiTexCoord1dvEXT);
-	GET_PROC_ADDRESS(MultiTexCoord1fEXT);
-	GET_PROC_ADDRESS(MultiTexCoord1fvEXT);
-	GET_PROC_ADDRESS(MultiTexCoord1iEXT);
-	GET_PROC_ADDRESS(MultiTexCoord1ivEXT);
-	GET_PROC_ADDRESS(MultiTexCoord1sEXT);
-	GET_PROC_ADDRESS(MultiTexCoord1svEXT);
-	GET_PROC_ADDRESS(MultiTexCoord2dEXT);
-	GET_PROC_ADDRESS(MultiTexCoord2dvEXT);
-	GET_PROC_ADDRESS(MultiTexCoord2fEXT);
-	GET_PROC_ADDRESS(MultiTexCoord2fvEXT);
-	GET_PROC_ADDRESS(MultiTexCoord2iEXT);
-	GET_PROC_ADDRESS(MultiTexCoord2ivEXT);
-	GET_PROC_ADDRESS(MultiTexCoord2sEXT);
-	GET_PROC_ADDRESS(MultiTexCoord2svEXT);
-	GET_PROC_ADDRESS(MultiTexCoord3dEXT);
-	GET_PROC_ADDRESS(MultiTexCoord3dvEXT);
-	GET_PROC_ADDRESS(MultiTexCoord3fEXT);
-	GET_PROC_ADDRESS(MultiTexCoord3fvEXT);
-	GET_PROC_ADDRESS(MultiTexCoord3iEXT);
-	GET_PROC_ADDRESS(MultiTexCoord3ivEXT);
-	GET_PROC_ADDRESS(MultiTexCoord3sEXT);
-	GET_PROC_ADDRESS(MultiTexCoord3svEXT);
-	GET_PROC_ADDRESS(MultiTexCoord4dEXT);
-	GET_PROC_ADDRESS(MultiTexCoord4dvEXT);
-	GET_PROC_ADDRESS(MultiTexCoord4fEXT);
-	GET_PROC_ADDRESS(MultiTexCoord4fvEXT);
-	GET_PROC_ADDRESS(MultiTexCoord4iEXT);
-	GET_PROC_ADDRESS(MultiTexCoord4ivEXT);
-	GET_PROC_ADDRESS(MultiTexCoord4sEXT);
-	GET_PROC_ADDRESS(MultiTexCoord4svEXT);
-	GET_PROC_ADDRESS(SelectTextureCoordSetEXT);
-	GET_PROC_ADDRESS(SelectTextureEXT);
-	GET_PROC_ADDRESS(SelectTextureTransformEXT);
+	#ifdef GL_EXT_multitexture_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(InterleavedTextureCoordSetsEXT);
+		GET_PROC_ADDRESS(MultiTexCoord1dEXT);
+		GET_PROC_ADDRESS(MultiTexCoord1dvEXT);
+		GET_PROC_ADDRESS(MultiTexCoord1fEXT);
+		GET_PROC_ADDRESS(MultiTexCoord1fvEXT);
+		GET_PROC_ADDRESS(MultiTexCoord1iEXT);
+		GET_PROC_ADDRESS(MultiTexCoord1ivEXT);
+		GET_PROC_ADDRESS(MultiTexCoord1sEXT);
+		GET_PROC_ADDRESS(MultiTexCoord1svEXT);
+		GET_PROC_ADDRESS(MultiTexCoord2dEXT);
+		GET_PROC_ADDRESS(MultiTexCoord2dvEXT);
+		GET_PROC_ADDRESS(MultiTexCoord2fEXT);
+		GET_PROC_ADDRESS(MultiTexCoord2fvEXT);
+		GET_PROC_ADDRESS(MultiTexCoord2iEXT);
+		GET_PROC_ADDRESS(MultiTexCoord2ivEXT);
+		GET_PROC_ADDRESS(MultiTexCoord2sEXT);
+		GET_PROC_ADDRESS(MultiTexCoord2svEXT);
+		GET_PROC_ADDRESS(MultiTexCoord3dEXT);
+		GET_PROC_ADDRESS(MultiTexCoord3dvEXT);
+		GET_PROC_ADDRESS(MultiTexCoord3fEXT);
+		GET_PROC_ADDRESS(MultiTexCoord3fvEXT);
+		GET_PROC_ADDRESS(MultiTexCoord3iEXT);
+		GET_PROC_ADDRESS(MultiTexCoord3ivEXT);
+		GET_PROC_ADDRESS(MultiTexCoord3sEXT);
+		GET_PROC_ADDRESS(MultiTexCoord3svEXT);
+		GET_PROC_ADDRESS(MultiTexCoord4dEXT);
+		GET_PROC_ADDRESS(MultiTexCoord4dvEXT);
+		GET_PROC_ADDRESS(MultiTexCoord4fEXT);
+		GET_PROC_ADDRESS(MultiTexCoord4fvEXT);
+		GET_PROC_ADDRESS(MultiTexCoord4iEXT);
+		GET_PROC_ADDRESS(MultiTexCoord4ivEXT);
+		GET_PROC_ADDRESS(MultiTexCoord4sEXT);
+		GET_PROC_ADDRESS(MultiTexCoord4svEXT);
+		GET_PROC_ADDRESS(SelectTextureCoordSetEXT);
+		GET_PROC_ADDRESS(SelectTextureEXT);
+		GET_PROC_ADDRESS(SelectTextureTransformEXT);
 
-	return true;
+	#endif // GL_EXT_multitexture_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2099,14 +2760,20 @@ bool CRenderingContext::InitExtMultitexture()
 
 bool CRenderingContext::InitExtMultiDrawArrays()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(MultiDrawArraysEXT);
-	GET_PROC_ADDRESS(MultiDrawElementsEXT);
+	#ifdef GL_EXT_multi_draw_arrays_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(MultiDrawArraysEXT);
+		GET_PROC_ADDRESS(MultiDrawElementsEXT);
 
-	return true;
+	#endif // GL_EXT_multi_draw_arrays_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2116,12 +2783,18 @@ bool CRenderingContext::InitExtMultiDrawArrays()
 
 bool CRenderingContext::InitExtPackedPixels()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_packed_pixels_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_packed_pixels_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2131,16 +2804,22 @@ bool CRenderingContext::InitExtPackedPixels()
 
 bool CRenderingContext::InitExtPalettedTexture()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(ColorTableEXT);
-	GET_PROC_ADDRESS(GetColorTableEXT);
-	GET_PROC_ADDRESS(GetColorTableParameterfvEXT);
-	GET_PROC_ADDRESS(GetColorTableParameterivEXT);
+	#ifdef GL_EXT_paletted_texture_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(ColorTableEXT);
+		GET_PROC_ADDRESS(GetColorTableEXT);
+		GET_PROC_ADDRESS(GetColorTableParameterfvEXT);
+		GET_PROC_ADDRESS(GetColorTableParameterivEXT);
 
-	return true;
+	#endif // GL_EXT_paletted_texture_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2150,16 +2829,22 @@ bool CRenderingContext::InitExtPalettedTexture()
 
 bool CRenderingContext::InitExtPixelTransform()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(PixelTransformParameterfEXT);
-	GET_PROC_ADDRESS(PixelTransformParameterfvEXT);
-	GET_PROC_ADDRESS(PixelTransformParameteriEXT);
-	GET_PROC_ADDRESS(PixelTransformParameterivEXT);
+	#ifdef GL_EXT_pixel_transform_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(PixelTransformParameterfEXT);
+		GET_PROC_ADDRESS(PixelTransformParameterfvEXT);
+		GET_PROC_ADDRESS(PixelTransformParameteriEXT);
+		GET_PROC_ADDRESS(PixelTransformParameterivEXT);
 
-	return true;
+	#endif // GL_EXT_pixel_transform_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2169,12 +2854,18 @@ bool CRenderingContext::InitExtPixelTransform()
 
 bool CRenderingContext::InitExtPixelTransformColorTable()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_pixel_transform_color_table_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_pixel_transform_color_table_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2184,14 +2875,20 @@ bool CRenderingContext::InitExtPixelTransformColorTable()
 
 bool CRenderingContext::InitExtPointParameters()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(PointParameterfEXT);
-	GET_PROC_ADDRESS(PointParameterfvEXT);
+	#ifdef GL_EXT_point_parameters_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(PointParameterfEXT);
+		GET_PROC_ADDRESS(PointParameterfvEXT);
 
-	return true;
+	#endif // GL_EXT_point_parameters_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2201,13 +2898,19 @@ bool CRenderingContext::InitExtPointParameters()
 
 bool CRenderingContext::InitExtPolygonOffset()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(PolygonOffsetEXT);
+	#ifdef GL_EXT_polygon_offset_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(PolygonOffsetEXT);
 
-	return true;
+	#endif // GL_EXT_polygon_offset_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2217,12 +2920,18 @@ bool CRenderingContext::InitExtPolygonOffset()
 
 bool CRenderingContext::InitExtRescaleNormal()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_rescale_normal_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_rescale_normal_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2232,29 +2941,35 @@ bool CRenderingContext::InitExtRescaleNormal()
 
 bool CRenderingContext::InitExtSecondaryColor()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(SecondaryColor3bEXT);
-	GET_PROC_ADDRESS(SecondaryColor3bvEXT);
-	GET_PROC_ADDRESS(SecondaryColor3dEXT);
-	GET_PROC_ADDRESS(SecondaryColor3dvEXT);
-	GET_PROC_ADDRESS(SecondaryColor3fEXT);
-	GET_PROC_ADDRESS(SecondaryColor3fvEXT);
-	GET_PROC_ADDRESS(SecondaryColor3iEXT);
-	GET_PROC_ADDRESS(SecondaryColor3ivEXT);
-	GET_PROC_ADDRESS(SecondaryColor3sEXT);
-	GET_PROC_ADDRESS(SecondaryColor3svEXT);
-	GET_PROC_ADDRESS(SecondaryColor3ubEXT);
-	GET_PROC_ADDRESS(SecondaryColor3ubvEXT);
-	GET_PROC_ADDRESS(SecondaryColor3uiEXT);
-	GET_PROC_ADDRESS(SecondaryColor3uivEXT);
-	GET_PROC_ADDRESS(SecondaryColor3usEXT);
-	GET_PROC_ADDRESS(SecondaryColor3usvEXT);
-	GET_PROC_ADDRESS(SecondaryColorPointerEXT);
+	#ifdef GL_EXT_secondary_color_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(SecondaryColor3bEXT);
+		GET_PROC_ADDRESS(SecondaryColor3bvEXT);
+		GET_PROC_ADDRESS(SecondaryColor3dEXT);
+		GET_PROC_ADDRESS(SecondaryColor3dvEXT);
+		GET_PROC_ADDRESS(SecondaryColor3fEXT);
+		GET_PROC_ADDRESS(SecondaryColor3fvEXT);
+		GET_PROC_ADDRESS(SecondaryColor3iEXT);
+		GET_PROC_ADDRESS(SecondaryColor3ivEXT);
+		GET_PROC_ADDRESS(SecondaryColor3sEXT);
+		GET_PROC_ADDRESS(SecondaryColor3svEXT);
+		GET_PROC_ADDRESS(SecondaryColor3ubEXT);
+		GET_PROC_ADDRESS(SecondaryColor3ubvEXT);
+		GET_PROC_ADDRESS(SecondaryColor3uiEXT);
+		GET_PROC_ADDRESS(SecondaryColor3uivEXT);
+		GET_PROC_ADDRESS(SecondaryColor3usEXT);
+		GET_PROC_ADDRESS(SecondaryColor3usvEXT);
+		GET_PROC_ADDRESS(SecondaryColorPointerEXT);
 
-	return true;
+	#endif // GL_EXT_secondary_color_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2264,12 +2979,18 @@ bool CRenderingContext::InitExtSecondaryColor()
 
 bool CRenderingContext::InitExtSeparateSpecularColor()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_separate_specular_color_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_separate_specular_color_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2279,12 +3000,18 @@ bool CRenderingContext::InitExtSeparateSpecularColor()
 
 bool CRenderingContext::InitExtShadowFuncs()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_shadow_funcs_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_shadow_funcs_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2294,12 +3021,18 @@ bool CRenderingContext::InitExtShadowFuncs()
 
 bool CRenderingContext::InitExtSharedTexturePalette()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_shared_texture_palette_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_shared_texture_palette_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2309,13 +3042,19 @@ bool CRenderingContext::InitExtSharedTexturePalette()
 
 bool CRenderingContext::InitExtStencilTwoSide()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(ActiveStencilFaceEXT);
+	#ifdef GL_EXT_stencil_two_side_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(ActiveStencilFaceEXT);
 
-	return true;
+	#endif // GL_EXT_stencil_two_side_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2325,12 +3064,18 @@ bool CRenderingContext::InitExtStencilTwoSide()
 
 bool CRenderingContext::InitExtStencilWrap()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_stencil_wrap_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_stencil_wrap_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2340,14 +3085,20 @@ bool CRenderingContext::InitExtStencilWrap()
 
 bool CRenderingContext::InitExtSubtexture()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(TexSubImage1DEXT);
-	GET_PROC_ADDRESS(TexSubImage2DEXT);
+	#ifdef GL_EXT_subtexture_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(TexSubImage1DEXT);
+		GET_PROC_ADDRESS(TexSubImage2DEXT);
 
-	return true;
+	#endif // GL_EXT_subtexture_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2357,12 +3108,18 @@ bool CRenderingContext::InitExtSubtexture()
 
 bool CRenderingContext::InitExtTexture()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_texture_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_texture_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2372,14 +3129,20 @@ bool CRenderingContext::InitExtTexture()
 
 bool CRenderingContext::InitExtTexture3D()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(TexImage3DEXT);
-	GET_PROC_ADDRESS(TexSubImage3DEXT);
+	#ifdef GL_EXT_texture3D_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(TexImage3DEXT);
+		GET_PROC_ADDRESS(TexSubImage3DEXT);
 
-	return true;
+	#endif // GL_EXT_texture3D_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2389,12 +3152,18 @@ bool CRenderingContext::InitExtTexture3D()
 
 bool CRenderingContext::InitExtTextureCompressionS3tc()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_texture_compression_s3tc_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_texture_compression_s3tc_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2404,12 +3173,18 @@ bool CRenderingContext::InitExtTextureCompressionS3tc()
 
 bool CRenderingContext::InitExtTextureEnvAdd()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_texture_env_add_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_texture_env_add_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2419,12 +3194,18 @@ bool CRenderingContext::InitExtTextureEnvAdd()
 
 bool CRenderingContext::InitExtTextureEnvCombine()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_texture_env_combine_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_texture_env_combine_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2434,12 +3215,18 @@ bool CRenderingContext::InitExtTextureEnvCombine()
 
 bool CRenderingContext::InitExtTextureEnvDot3()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_texture_env_dot3_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_texture_env_dot3_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2449,12 +3236,18 @@ bool CRenderingContext::InitExtTextureEnvDot3()
 
 bool CRenderingContext::InitExtTextureFilterAnisotropic()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_texture_filter_anisotropic_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_texture_filter_anisotropic_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2464,12 +3257,18 @@ bool CRenderingContext::InitExtTextureFilterAnisotropic()
 
 bool CRenderingContext::InitExtTextureLodBias()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_texture_lod_bias_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_texture_lod_bias_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2479,12 +3278,18 @@ bool CRenderingContext::InitExtTextureLodBias()
 
 bool CRenderingContext::InitExtTextureMirrorClamp()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_EXT_texture_mirror_clamp_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_EXT_texture_mirror_clamp_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2494,18 +3299,24 @@ bool CRenderingContext::InitExtTextureMirrorClamp()
 
 bool CRenderingContext::InitExtTextureObject()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(AreTexturesResidentEXT);
-	GET_PROC_ADDRESS(BindTextureEXT);
-	GET_PROC_ADDRESS(DeleteTexturesEXT);
-	GET_PROC_ADDRESS(GenTexturesEXT);
-	GET_PROC_ADDRESS(IsTextureEXT);
-	GET_PROC_ADDRESS(PrioritizeTexturesEXT);
+	#ifdef GL_EXT_texture_object_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(AreTexturesResidentEXT);
+		GET_PROC_ADDRESS(BindTextureEXT);
+		GET_PROC_ADDRESS(DeleteTexturesEXT);
+		GET_PROC_ADDRESS(GenTexturesEXT);
+		GET_PROC_ADDRESS(IsTextureEXT);
+		GET_PROC_ADDRESS(PrioritizeTexturesEXT);
 
-	return true;
+	#endif // GL_EXT_texture_object_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2515,13 +3326,19 @@ bool CRenderingContext::InitExtTextureObject()
 
 bool CRenderingContext::InitExtTexturePerturbNormal()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(TextureNormalEXT);
+	#ifdef GL_EXT_texture_perturb_normal_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(TextureNormalEXT);
 
-	return true;
+	#endif // GL_EXT_texture_perturb_normal_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2531,21 +3348,27 @@ bool CRenderingContext::InitExtTexturePerturbNormal()
 
 bool CRenderingContext::InitExtVertexArray()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(ArrayElementEXT);
-	GET_PROC_ADDRESS(ColorPointerEXT);
-	GET_PROC_ADDRESS(DrawArraysEXT);
-	GET_PROC_ADDRESS(EdgeFlagPointerEXT);
-	GET_PROC_ADDRESS(GetPointervEXT);
-	GET_PROC_ADDRESS(IndexPointerEXT);
-	GET_PROC_ADDRESS(NormalPointerEXT);
-	GET_PROC_ADDRESS(TexCoordPointerEXT);
-	GET_PROC_ADDRESS(VertexPointerEXT);
+	#ifdef GL_EXT_vertex_array_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(ArrayElementEXT);
+		GET_PROC_ADDRESS(ColorPointerEXT);
+		GET_PROC_ADDRESS(DrawArraysEXT);
+		GET_PROC_ADDRESS(EdgeFlagPointerEXT);
+		GET_PROC_ADDRESS(GetPointervEXT);
+		GET_PROC_ADDRESS(IndexPointerEXT);
+		GET_PROC_ADDRESS(NormalPointerEXT);
+		GET_PROC_ADDRESS(TexCoordPointerEXT);
+		GET_PROC_ADDRESS(VertexPointerEXT);
 
-	return true;
+	#endif // GL_EXT_vertex_array_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2555,54 +3378,60 @@ bool CRenderingContext::InitExtVertexArray()
 
 bool CRenderingContext::InitExtVertexShader()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(BeginVertexShaderEXT);
-	GET_PROC_ADDRESS(BindLightParameterEXT);
-	GET_PROC_ADDRESS(BindMaterialParameterEXT);
-	GET_PROC_ADDRESS(BindParameterEXT);
-	GET_PROC_ADDRESS(BindTexGenParameterEXT);
-	GET_PROC_ADDRESS(BindTextureUnitParameterEXT);
-	GET_PROC_ADDRESS(BindVertexShaderEXT);
-	GET_PROC_ADDRESS(DeleteVertexShaderEXT);
-	GET_PROC_ADDRESS(DisableVariantClientStateEXT);
-	GET_PROC_ADDRESS(EnableVariantClientStateEXT);
-	GET_PROC_ADDRESS(EndVertexShaderEXT);
-	GET_PROC_ADDRESS(ExtractComponentEXT);
-	GET_PROC_ADDRESS(GenSymbolsEXT);
-	GET_PROC_ADDRESS(GenVertexShadersEXT);
-	GET_PROC_ADDRESS(GetInvariantBooleanvEXT);
-	GET_PROC_ADDRESS(GetInvariantFloatvEXT);
-	GET_PROC_ADDRESS(GetInvariantIntegervEXT);
-	GET_PROC_ADDRESS(GetLocalConstantBooleanvEXT);
-	GET_PROC_ADDRESS(GetLocalConstantFloatvEXT);
-	GET_PROC_ADDRESS(GetLocalConstantIntegervEXT);
-	GET_PROC_ADDRESS(GetVariantBooleanvEXT);
-	GET_PROC_ADDRESS(GetVariantFloatvEXT);
-	GET_PROC_ADDRESS(GetVariantIntegervEXT);
-	GET_PROC_ADDRESS(GetVariantPointervEXT);
-	GET_PROC_ADDRESS(InsertComponentEXT);
-	GET_PROC_ADDRESS(IsVariantEnabledEXT);
-	GET_PROC_ADDRESS(SetInvariantEXT);
-	GET_PROC_ADDRESS(SetLocalConstantEXT);
-	GET_PROC_ADDRESS(ShaderOp1EXT);
-	GET_PROC_ADDRESS(ShaderOp2EXT);
-	GET_PROC_ADDRESS(ShaderOp3EXT);
-	GET_PROC_ADDRESS(SwizzleEXT);
-	GET_PROC_ADDRESS(VariantbvEXT);
-	GET_PROC_ADDRESS(VariantdvEXT);
-	GET_PROC_ADDRESS(VariantfvEXT);
-	GET_PROC_ADDRESS(VariantivEXT);
-	GET_PROC_ADDRESS(VariantPointerEXT);
-	GET_PROC_ADDRESS(VariantsvEXT);
-	GET_PROC_ADDRESS(VariantubvEXT);
-	GET_PROC_ADDRESS(VariantuivEXT);
-	GET_PROC_ADDRESS(VariantusvEXT);
-	GET_PROC_ADDRESS(WriteMaskEXT);
+	#ifdef GL_EXT_vertex_shader_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(BeginVertexShaderEXT);
+		GET_PROC_ADDRESS(BindLightParameterEXT);
+		GET_PROC_ADDRESS(BindMaterialParameterEXT);
+		GET_PROC_ADDRESS(BindParameterEXT);
+		GET_PROC_ADDRESS(BindTexGenParameterEXT);
+		GET_PROC_ADDRESS(BindTextureUnitParameterEXT);
+		GET_PROC_ADDRESS(BindVertexShaderEXT);
+		GET_PROC_ADDRESS(DeleteVertexShaderEXT);
+		GET_PROC_ADDRESS(DisableVariantClientStateEXT);
+		GET_PROC_ADDRESS(EnableVariantClientStateEXT);
+		GET_PROC_ADDRESS(EndVertexShaderEXT);
+		GET_PROC_ADDRESS(ExtractComponentEXT);
+		GET_PROC_ADDRESS(GenSymbolsEXT);
+		GET_PROC_ADDRESS(GenVertexShadersEXT);
+		GET_PROC_ADDRESS(GetInvariantBooleanvEXT);
+		GET_PROC_ADDRESS(GetInvariantFloatvEXT);
+		GET_PROC_ADDRESS(GetInvariantIntegervEXT);
+		GET_PROC_ADDRESS(GetLocalConstantBooleanvEXT);
+		GET_PROC_ADDRESS(GetLocalConstantFloatvEXT);
+		GET_PROC_ADDRESS(GetLocalConstantIntegervEXT);
+		GET_PROC_ADDRESS(GetVariantBooleanvEXT);
+		GET_PROC_ADDRESS(GetVariantFloatvEXT);
+		GET_PROC_ADDRESS(GetVariantIntegervEXT);
+		GET_PROC_ADDRESS(GetVariantPointervEXT);
+		GET_PROC_ADDRESS(InsertComponentEXT);
+		GET_PROC_ADDRESS(IsVariantEnabledEXT);
+		GET_PROC_ADDRESS(SetInvariantEXT);
+		GET_PROC_ADDRESS(SetLocalConstantEXT);
+		GET_PROC_ADDRESS(ShaderOp1EXT);
+		GET_PROC_ADDRESS(ShaderOp2EXT);
+		GET_PROC_ADDRESS(ShaderOp3EXT);
+		GET_PROC_ADDRESS(SwizzleEXT);
+		GET_PROC_ADDRESS(VariantbvEXT);
+		GET_PROC_ADDRESS(VariantdvEXT);
+		GET_PROC_ADDRESS(VariantfvEXT);
+		GET_PROC_ADDRESS(VariantivEXT);
+		GET_PROC_ADDRESS(VariantPointerEXT);
+		GET_PROC_ADDRESS(VariantsvEXT);
+		GET_PROC_ADDRESS(VariantubvEXT);
+		GET_PROC_ADDRESS(VariantuivEXT);
+		GET_PROC_ADDRESS(VariantusvEXT);
+		GET_PROC_ADDRESS(WriteMaskEXT);
 
-	return true;
+	#endif // GL_EXT_vertex_shader_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2612,15 +3441,21 @@ bool CRenderingContext::InitExtVertexShader()
 
 bool CRenderingContext::InitExtVertexWeighting()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(VertexWeightfEXT);
-	GET_PROC_ADDRESS(VertexWeightfvEXT);
-	GET_PROC_ADDRESS(VertexWeightPointerEXT);
+	#ifdef GL_EXT_vertex_weighting_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(VertexWeightfEXT);
+		GET_PROC_ADDRESS(VertexWeightfvEXT);
+		GET_PROC_ADDRESS(VertexWeightPointerEXT);
 
-	return true;
+	#endif // GL_EXT_vertex_weighting_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2630,12 +3465,18 @@ bool CRenderingContext::InitExtVertexWeighting()
 
 bool CRenderingContext::InitHpConvolutionBorderModes()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_HP_convolution_border_modes_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_HP_convolution_border_modes_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2645,18 +3486,24 @@ bool CRenderingContext::InitHpConvolutionBorderModes()
 
 bool CRenderingContext::InitHpImageTransform()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(GetImageTransformParameterfvHP);
-	GET_PROC_ADDRESS(GetImageTransformParameterivHP);
-	GET_PROC_ADDRESS(ImageTransformParameterfHP);
-	GET_PROC_ADDRESS(ImageTransformParameterfvHP);
-	GET_PROC_ADDRESS(ImageTransformParameteriHP);
-	GET_PROC_ADDRESS(ImageTransformParameterivHP);
+	#ifdef GL_HP_image_transform_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(GetImageTransformParameterfvHP);
+		GET_PROC_ADDRESS(GetImageTransformParameterivHP);
+		GET_PROC_ADDRESS(ImageTransformParameterfHP);
+		GET_PROC_ADDRESS(ImageTransformParameterfvHP);
+		GET_PROC_ADDRESS(ImageTransformParameteriHP);
+		GET_PROC_ADDRESS(ImageTransformParameterivHP);
 
-	return true;
+	#endif // GL_HP_image_transform_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2666,12 +3513,18 @@ bool CRenderingContext::InitHpImageTransform()
 
 bool CRenderingContext::InitHpOcclusionTest()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_HP_occlusion_test_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_HP_occlusion_test_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2681,12 +3534,18 @@ bool CRenderingContext::InitHpOcclusionTest()
 
 bool CRenderingContext::InitHpTextureLighting()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_HP_texture_lighting_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_HP_texture_lighting_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2696,12 +3555,18 @@ bool CRenderingContext::InitHpTextureLighting()
 
 bool CRenderingContext::InitIbmCullVertex()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_IBM_cull_vertex_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_IBM_cull_vertex_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2711,14 +3576,20 @@ bool CRenderingContext::InitIbmCullVertex()
 
 bool CRenderingContext::InitIbmMultimodeDrawArrays()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(MultiModeDrawArraysIBM);
-	GET_PROC_ADDRESS(MultiModeDrawElementsIBM);
+	#ifdef GL_IBM_multimode_draw_arrays_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(MultiModeDrawArraysIBM);
+		GET_PROC_ADDRESS(MultiModeDrawElementsIBM);
 
-	return true;
+	#endif // GL_IBM_multimode_draw_arrays_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2728,12 +3599,18 @@ bool CRenderingContext::InitIbmMultimodeDrawArrays()
 
 bool CRenderingContext::InitIbmRasterposClip()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_IBM_rasterpos_clip_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_IBM_rasterpos_clip_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2743,12 +3620,18 @@ bool CRenderingContext::InitIbmRasterposClip()
 
 bool CRenderingContext::InitIbmStaticData()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_IBM_static_data_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_IBM_static_data_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2758,12 +3641,18 @@ bool CRenderingContext::InitIbmStaticData()
 
 bool CRenderingContext::InitIbmTextureMirroredRepeat()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_IBM_texture_mirrored_repeat_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_IBM_texture_mirrored_repeat_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2773,20 +3662,26 @@ bool CRenderingContext::InitIbmTextureMirroredRepeat()
 
 bool CRenderingContext::InitIbmVertexArrayLists()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(ColorPointerListIBM);
-	GET_PROC_ADDRESS(EdgeFlagPointerListIBM);
-	GET_PROC_ADDRESS(FogCoordPointerListIBM);
-	GET_PROC_ADDRESS(IndexPointerListIBM);
-	GET_PROC_ADDRESS(NormalPointerListIBM);
-	GET_PROC_ADDRESS(SecondaryColorPointerListIBM);
-	GET_PROC_ADDRESS(TexCoordPointerListIBM);
-	GET_PROC_ADDRESS(VertexPointerListIBM);
+	#ifdef GL_IBM_vertex_array_lists_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(ColorPointerListIBM);
+		GET_PROC_ADDRESS(EdgeFlagPointerListIBM);
+		GET_PROC_ADDRESS(FogCoordPointerListIBM);
+		GET_PROC_ADDRESS(IndexPointerListIBM);
+		GET_PROC_ADDRESS(NormalPointerListIBM);
+		GET_PROC_ADDRESS(SecondaryColorPointerListIBM);
+		GET_PROC_ADDRESS(TexCoordPointerListIBM);
+		GET_PROC_ADDRESS(VertexPointerListIBM);
 
-	return true;
+	#endif // GL_IBM_vertex_array_lists_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2796,13 +3691,19 @@ bool CRenderingContext::InitIbmVertexArrayLists()
 
 bool CRenderingContext::InitIngrBlendFuncSeparate()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(BlendFuncSeparateINGR);
+	#ifdef GL_INGR_blend_func_separate_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(BlendFuncSeparateINGR);
 
-	return true;
+	#endif // GL_INGR_blend_func_separate_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2812,12 +3713,18 @@ bool CRenderingContext::InitIngrBlendFuncSeparate()
 
 bool CRenderingContext::InitIngrColorClamp()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_INGR_color_clamp_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_INGR_color_clamp_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2827,12 +3734,18 @@ bool CRenderingContext::InitIngrColorClamp()
 
 bool CRenderingContext::InitIngrInterlaceRead()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_INGR_interlace_read_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_INGR_interlace_read_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2842,16 +3755,22 @@ bool CRenderingContext::InitIngrInterlaceRead()
 
 bool CRenderingContext::InitIntelParallelArrays()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(ColorPointervINTEL);
-	GET_PROC_ADDRESS(NormalPointervINTEL);
-	GET_PROC_ADDRESS(TexCoordPointervINTEL);
-	GET_PROC_ADDRESS(VertexPointervINTEL);
+	#ifdef GL_INTEL_parallel_arrays_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(ColorPointervINTEL);
+		GET_PROC_ADDRESS(NormalPointervINTEL);
+		GET_PROC_ADDRESS(TexCoordPointervINTEL);
+		GET_PROC_ADDRESS(VertexPointervINTEL);
 
-	return true;
+	#endif // GL_INTEL_parallel_arrays_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2861,13 +3780,19 @@ bool CRenderingContext::InitIntelParallelArrays()
 
 bool CRenderingContext::InitMesaResizeBuffers()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(ResizeBuffersMESA);
+	#ifdef GL_MESA_resize_buffers_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(ResizeBuffersMESA);
 
-	return true;
+	#endif // GL_MESA_resize_buffers_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2877,36 +3802,42 @@ bool CRenderingContext::InitMesaResizeBuffers()
 
 bool CRenderingContext::InitMesaWindowPos()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(WindowPos2dMESA);
-	GET_PROC_ADDRESS(WindowPos2dvMESA);
-	GET_PROC_ADDRESS(WindowPos2fMESA);
-	GET_PROC_ADDRESS(WindowPos2fvMESA);
-	GET_PROC_ADDRESS(WindowPos2iMESA);
-	GET_PROC_ADDRESS(WindowPos2ivMESA);
-	GET_PROC_ADDRESS(WindowPos2sMESA);
-	GET_PROC_ADDRESS(WindowPos2svMESA);
-	GET_PROC_ADDRESS(WindowPos3dMESA);
-	GET_PROC_ADDRESS(WindowPos3dvMESA);
-	GET_PROC_ADDRESS(WindowPos3fMESA);
-	GET_PROC_ADDRESS(WindowPos3fvMESA);
-	GET_PROC_ADDRESS(WindowPos3iMESA);
-	GET_PROC_ADDRESS(WindowPos3ivMESA);
-	GET_PROC_ADDRESS(WindowPos3sMESA);
-	GET_PROC_ADDRESS(WindowPos3svMESA);
-	GET_PROC_ADDRESS(WindowPos4dMESA);
-	GET_PROC_ADDRESS(WindowPos4dvMESA);
-	GET_PROC_ADDRESS(WindowPos4fMESA);
-	GET_PROC_ADDRESS(WindowPos4fvMESA);
-	GET_PROC_ADDRESS(WindowPos4iMESA);
-	GET_PROC_ADDRESS(WindowPos4ivMESA);
-	GET_PROC_ADDRESS(WindowPos4sMESA);
-	GET_PROC_ADDRESS(WindowPos4svMESA);
+	#ifdef GL_MESA_window_pos_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(WindowPos2dMESA);
+		GET_PROC_ADDRESS(WindowPos2dvMESA);
+		GET_PROC_ADDRESS(WindowPos2fMESA);
+		GET_PROC_ADDRESS(WindowPos2fvMESA);
+		GET_PROC_ADDRESS(WindowPos2iMESA);
+		GET_PROC_ADDRESS(WindowPos2ivMESA);
+		GET_PROC_ADDRESS(WindowPos2sMESA);
+		GET_PROC_ADDRESS(WindowPos2svMESA);
+		GET_PROC_ADDRESS(WindowPos3dMESA);
+		GET_PROC_ADDRESS(WindowPos3dvMESA);
+		GET_PROC_ADDRESS(WindowPos3fMESA);
+		GET_PROC_ADDRESS(WindowPos3fvMESA);
+		GET_PROC_ADDRESS(WindowPos3iMESA);
+		GET_PROC_ADDRESS(WindowPos3ivMESA);
+		GET_PROC_ADDRESS(WindowPos3sMESA);
+		GET_PROC_ADDRESS(WindowPos3svMESA);
+		GET_PROC_ADDRESS(WindowPos4dMESA);
+		GET_PROC_ADDRESS(WindowPos4dvMESA);
+		GET_PROC_ADDRESS(WindowPos4fMESA);
+		GET_PROC_ADDRESS(WindowPos4fvMESA);
+		GET_PROC_ADDRESS(WindowPos4iMESA);
+		GET_PROC_ADDRESS(WindowPos4ivMESA);
+		GET_PROC_ADDRESS(WindowPos4sMESA);
+		GET_PROC_ADDRESS(WindowPos4svMESA);
 
-	return true;
+	#endif // GL_MESA_window_pos_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2916,12 +3847,18 @@ bool CRenderingContext::InitMesaWindowPos()
 
 bool CRenderingContext::InitNvBlendSquare()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_blend_square_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_blend_square_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2931,12 +3868,18 @@ bool CRenderingContext::InitNvBlendSquare()
 
 bool CRenderingContext::InitNvCopyDepthToColor()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_copy_depth_to_color_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_copy_depth_to_color_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2946,12 +3889,18 @@ bool CRenderingContext::InitNvCopyDepthToColor()
 
 bool CRenderingContext::InitNvDepthClamp()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_depth_clamp_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_depth_clamp_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2961,21 +3910,27 @@ bool CRenderingContext::InitNvDepthClamp()
 
 bool CRenderingContext::InitNvEvaluators()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(EvalMapsNV);
-	GET_PROC_ADDRESS(GetMapAttribParameterfvNV);
-	GET_PROC_ADDRESS(GetMapAttribParameterivNV);
-	GET_PROC_ADDRESS(GetMapControlPointsNV);
-	GET_PROC_ADDRESS(GetMapParameterfvNV);
-	GET_PROC_ADDRESS(GetMapParameterivNV);
-	GET_PROC_ADDRESS(MapControlPointsNV);
-	GET_PROC_ADDRESS(MapParameterfvNV);
-	GET_PROC_ADDRESS(MapParameterivNV);
+	#ifdef GL_NV_evaluators_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(EvalMapsNV);
+		GET_PROC_ADDRESS(GetMapAttribParameterfvNV);
+		GET_PROC_ADDRESS(GetMapAttribParameterivNV);
+		GET_PROC_ADDRESS(GetMapControlPointsNV);
+		GET_PROC_ADDRESS(GetMapParameterfvNV);
+		GET_PROC_ADDRESS(GetMapParameterivNV);
+		GET_PROC_ADDRESS(MapControlPointsNV);
+		GET_PROC_ADDRESS(MapParameterfvNV);
+		GET_PROC_ADDRESS(MapParameterivNV);
 
-	return true;
+	#endif // GL_NV_evaluators_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -2985,19 +3940,25 @@ bool CRenderingContext::InitNvEvaluators()
 
 bool CRenderingContext::InitNvFence()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(DeleteFencesNV);
-	GET_PROC_ADDRESS(FinishFenceNV);
-	GET_PROC_ADDRESS(GenFencesNV);
-	GET_PROC_ADDRESS(GetFenceivNV);
-	GET_PROC_ADDRESS(IsFenceNV);
-	GET_PROC_ADDRESS(SetFenceNV);
-	GET_PROC_ADDRESS(TestFenceNV);
+	#ifdef GL_NV_fence_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(DeleteFencesNV);
+		GET_PROC_ADDRESS(FinishFenceNV);
+		GET_PROC_ADDRESS(GenFencesNV);
+		GET_PROC_ADDRESS(GetFenceivNV);
+		GET_PROC_ADDRESS(IsFenceNV);
+		GET_PROC_ADDRESS(SetFenceNV);
+		GET_PROC_ADDRESS(TestFenceNV);
 
-	return true;
+	#endif // GL_NV_fence_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3007,12 +3968,18 @@ bool CRenderingContext::InitNvFence()
 
 bool CRenderingContext::InitNvFloatBuffer()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_float_buffer_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_float_buffer_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3022,12 +3989,18 @@ bool CRenderingContext::InitNvFloatBuffer()
 
 bool CRenderingContext::InitNvFogDistance()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_fog_distance_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_fog_distance_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3037,18 +4010,24 @@ bool CRenderingContext::InitNvFogDistance()
 
 bool CRenderingContext::InitNvFragmentProgram()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(GetProgramNamedParameterdvNV);
-	GET_PROC_ADDRESS(GetProgramNamedParameterfvNV);
-	GET_PROC_ADDRESS(ProgramNamedParameter4dNV);
-	GET_PROC_ADDRESS(ProgramNamedParameter4dvNV);
-	GET_PROC_ADDRESS(ProgramNamedParameter4fNV);
-	GET_PROC_ADDRESS(ProgramNamedParameter4fvNV);
+	#ifdef GL_NV_fragment_program_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(GetProgramNamedParameterdvNV);
+		GET_PROC_ADDRESS(GetProgramNamedParameterfvNV);
+		GET_PROC_ADDRESS(ProgramNamedParameter4dNV);
+		GET_PROC_ADDRESS(ProgramNamedParameter4dvNV);
+		GET_PROC_ADDRESS(ProgramNamedParameter4fNV);
+		GET_PROC_ADDRESS(ProgramNamedParameter4fvNV);
 
-	return true;
+	#endif // GL_NV_fragment_program_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3058,58 +4037,64 @@ bool CRenderingContext::InitNvFragmentProgram()
 
 bool CRenderingContext::InitNvHalfFloat()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(Color3hNV);
-	GET_PROC_ADDRESS(Color3hvNV);
-	GET_PROC_ADDRESS(Color4hNV);
-	GET_PROC_ADDRESS(Color4hvNV);
-	GET_PROC_ADDRESS(FogCoordhNV);
-	GET_PROC_ADDRESS(FogCoordhvNV);
-	GET_PROC_ADDRESS(MultiTexCoord1hNV);
-	GET_PROC_ADDRESS(MultiTexCoord1hvNV);
-	GET_PROC_ADDRESS(MultiTexCoord2hNV);
-	GET_PROC_ADDRESS(MultiTexCoord2hvNV);
-	GET_PROC_ADDRESS(MultiTexCoord3hNV);
-	GET_PROC_ADDRESS(MultiTexCoord3hvNV);
-	GET_PROC_ADDRESS(MultiTexCoord4hNV);
-	GET_PROC_ADDRESS(MultiTexCoord4hvNV);
-	GET_PROC_ADDRESS(Normal3hNV);
-	GET_PROC_ADDRESS(Normal3hvNV);
-	GET_PROC_ADDRESS(SecondaryColor3hNV);
-	GET_PROC_ADDRESS(SecondaryColor3hvNV);
-	GET_PROC_ADDRESS(TexCoord1hNV);
-	GET_PROC_ADDRESS(TexCoord1hvNV);
-	GET_PROC_ADDRESS(TexCoord2hNV);
-	GET_PROC_ADDRESS(TexCoord2hvNV);
-	GET_PROC_ADDRESS(TexCoord3hNV);
-	GET_PROC_ADDRESS(TexCoord3hvNV);
-	GET_PROC_ADDRESS(TexCoord4hNV);
-	GET_PROC_ADDRESS(TexCoord4hvNV);
-	GET_PROC_ADDRESS(Vertex2hNV);
-	GET_PROC_ADDRESS(Vertex2hvNV);
-	GET_PROC_ADDRESS(Vertex3hNV);
-	GET_PROC_ADDRESS(Vertex3hvNV);
-	GET_PROC_ADDRESS(Vertex4hNV);
-	GET_PROC_ADDRESS(Vertex4hvNV);
-	GET_PROC_ADDRESS(VertexAttrib1hNV);
-	GET_PROC_ADDRESS(VertexAttrib1hvNV);
-	GET_PROC_ADDRESS(VertexAttrib2hNV);
-	GET_PROC_ADDRESS(VertexAttrib2hvNV);
-	GET_PROC_ADDRESS(VertexAttrib3hNV);
-	GET_PROC_ADDRESS(VertexAttrib3hvNV);
-	GET_PROC_ADDRESS(VertexAttrib4hNV);
-	GET_PROC_ADDRESS(VertexAttrib4hvNV);
-	GET_PROC_ADDRESS(VertexAttribs1hvNV);
-	GET_PROC_ADDRESS(VertexAttribs2hvNV);
-	GET_PROC_ADDRESS(VertexAttribs3hvNV);
-	GET_PROC_ADDRESS(VertexAttribs4hvNV);
-	GET_PROC_ADDRESS(VertexWeighthNV);
-	GET_PROC_ADDRESS(VertexWeighthvNV);
+	#ifdef GL_NV_half_float_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(Color3hNV);
+		GET_PROC_ADDRESS(Color3hvNV);
+		GET_PROC_ADDRESS(Color4hNV);
+		GET_PROC_ADDRESS(Color4hvNV);
+		GET_PROC_ADDRESS(FogCoordhNV);
+		GET_PROC_ADDRESS(FogCoordhvNV);
+		GET_PROC_ADDRESS(MultiTexCoord1hNV);
+		GET_PROC_ADDRESS(MultiTexCoord1hvNV);
+		GET_PROC_ADDRESS(MultiTexCoord2hNV);
+		GET_PROC_ADDRESS(MultiTexCoord2hvNV);
+		GET_PROC_ADDRESS(MultiTexCoord3hNV);
+		GET_PROC_ADDRESS(MultiTexCoord3hvNV);
+		GET_PROC_ADDRESS(MultiTexCoord4hNV);
+		GET_PROC_ADDRESS(MultiTexCoord4hvNV);
+		GET_PROC_ADDRESS(Normal3hNV);
+		GET_PROC_ADDRESS(Normal3hvNV);
+		GET_PROC_ADDRESS(SecondaryColor3hNV);
+		GET_PROC_ADDRESS(SecondaryColor3hvNV);
+		GET_PROC_ADDRESS(TexCoord1hNV);
+		GET_PROC_ADDRESS(TexCoord1hvNV);
+		GET_PROC_ADDRESS(TexCoord2hNV);
+		GET_PROC_ADDRESS(TexCoord2hvNV);
+		GET_PROC_ADDRESS(TexCoord3hNV);
+		GET_PROC_ADDRESS(TexCoord3hvNV);
+		GET_PROC_ADDRESS(TexCoord4hNV);
+		GET_PROC_ADDRESS(TexCoord4hvNV);
+		GET_PROC_ADDRESS(Vertex2hNV);
+		GET_PROC_ADDRESS(Vertex2hvNV);
+		GET_PROC_ADDRESS(Vertex3hNV);
+		GET_PROC_ADDRESS(Vertex3hvNV);
+		GET_PROC_ADDRESS(Vertex4hNV);
+		GET_PROC_ADDRESS(Vertex4hvNV);
+		GET_PROC_ADDRESS(VertexAttrib1hNV);
+		GET_PROC_ADDRESS(VertexAttrib1hvNV);
+		GET_PROC_ADDRESS(VertexAttrib2hNV);
+		GET_PROC_ADDRESS(VertexAttrib2hvNV);
+		GET_PROC_ADDRESS(VertexAttrib3hNV);
+		GET_PROC_ADDRESS(VertexAttrib3hvNV);
+		GET_PROC_ADDRESS(VertexAttrib4hNV);
+		GET_PROC_ADDRESS(VertexAttrib4hvNV);
+		GET_PROC_ADDRESS(VertexAttribs1hvNV);
+		GET_PROC_ADDRESS(VertexAttribs2hvNV);
+		GET_PROC_ADDRESS(VertexAttribs3hvNV);
+		GET_PROC_ADDRESS(VertexAttribs4hvNV);
+		GET_PROC_ADDRESS(VertexWeighthNV);
+		GET_PROC_ADDRESS(VertexWeighthvNV);
 
-	return true;
+	#endif // GL_NV_half_float_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3119,12 +4104,18 @@ bool CRenderingContext::InitNvHalfFloat()
 
 bool CRenderingContext::InitNvLightMaxExponent()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_light_max_exponent_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_light_max_exponent_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3134,12 +4125,18 @@ bool CRenderingContext::InitNvLightMaxExponent()
 
 bool CRenderingContext::InitNvMultisampleFilterHint()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_multisample_filter_hint_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_multisample_filter_hint_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3149,19 +4146,25 @@ bool CRenderingContext::InitNvMultisampleFilterHint()
 
 bool CRenderingContext::InitNvOcclusionQuery()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(BeginOcclusionQueryNV);
-	GET_PROC_ADDRESS(DeleteOcclusionQueriesNV);
-	GET_PROC_ADDRESS(EndOcclusionQueryNV);
-	GET_PROC_ADDRESS(GenOcclusionQueriesNV);
-	GET_PROC_ADDRESS(GetOcclusionQueryivNV);
-	GET_PROC_ADDRESS(GetOcclusionQueryuivNV);
-	GET_PROC_ADDRESS(IsOcclusionQueryNV);
+	#ifdef GL_NV_occlusion_query_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(BeginOcclusionQueryNV);
+		GET_PROC_ADDRESS(DeleteOcclusionQueriesNV);
+		GET_PROC_ADDRESS(EndOcclusionQueryNV);
+		GET_PROC_ADDRESS(GenOcclusionQueriesNV);
+		GET_PROC_ADDRESS(GetOcclusionQueryivNV);
+		GET_PROC_ADDRESS(GetOcclusionQueryuivNV);
+		GET_PROC_ADDRESS(IsOcclusionQueryNV);
 
-	return true;
+	#endif // GL_NV_occlusion_query_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3171,12 +4174,18 @@ bool CRenderingContext::InitNvOcclusionQuery()
 
 bool CRenderingContext::InitNvPackedDepthStencil()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_packed_depth_stencil_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_packed_depth_stencil_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3186,14 +4195,20 @@ bool CRenderingContext::InitNvPackedDepthStencil()
 
 bool CRenderingContext::InitNvPixelDataRange()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(FlushPixelDataRangeNV);
-	GET_PROC_ADDRESS(PixelDataRangeNV);
+	#ifdef GL_NV_pixel_data_range_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(FlushPixelDataRangeNV);
+		GET_PROC_ADDRESS(PixelDataRangeNV);
 
-	return true;
+	#endif // GL_NV_pixel_data_range_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3203,14 +4218,20 @@ bool CRenderingContext::InitNvPixelDataRange()
 
 bool CRenderingContext::InitNvPointSprite()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(PointParameteriNV);
-	GET_PROC_ADDRESS(PointParameterivNV);
+	#ifdef GL_NV_point_sprite_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(PointParameteriNV);
+		GET_PROC_ADDRESS(PointParameterivNV);
 
-	return true;
+	#endif // GL_NV_point_sprite_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3220,14 +4241,20 @@ bool CRenderingContext::InitNvPointSprite()
 
 bool CRenderingContext::InitNvPrimitiveRestart()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(PrimitiveRestartIndexNV);
-	GET_PROC_ADDRESS(PrimitiveRestartNV);
+	#ifdef GL_NV_primitive_restart_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(PrimitiveRestartIndexNV);
+		GET_PROC_ADDRESS(PrimitiveRestartNV);
 
-	return true;
+	#endif // GL_NV_primitive_restart_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3237,25 +4264,31 @@ bool CRenderingContext::InitNvPrimitiveRestart()
 
 bool CRenderingContext::InitNvRegisterCombiners()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(CombinerInputNV);
-	GET_PROC_ADDRESS(CombinerOutputNV);
-	GET_PROC_ADDRESS(CombinerParameterfNV);
-	GET_PROC_ADDRESS(CombinerParameterfvNV);
-	GET_PROC_ADDRESS(CombinerParameteriNV);
-	GET_PROC_ADDRESS(CombinerParameterivNV);
-	GET_PROC_ADDRESS(FinalCombinerInputNV);
-	GET_PROC_ADDRESS(GetCombinerInputParameterfvNV);
-	GET_PROC_ADDRESS(GetCombinerInputParameterivNV);
-	GET_PROC_ADDRESS(GetCombinerOutputParameterfvNV);
-	GET_PROC_ADDRESS(GetCombinerOutputParameterivNV);
-	GET_PROC_ADDRESS(GetFinalCombinerInputParameterfvNV);
-	GET_PROC_ADDRESS(GetFinalCombinerInputParameterivNV);
+	#ifdef GL_NV_register_combiners_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(CombinerInputNV);
+		GET_PROC_ADDRESS(CombinerOutputNV);
+		GET_PROC_ADDRESS(CombinerParameterfNV);
+		GET_PROC_ADDRESS(CombinerParameterfvNV);
+		GET_PROC_ADDRESS(CombinerParameteriNV);
+		GET_PROC_ADDRESS(CombinerParameterivNV);
+		GET_PROC_ADDRESS(FinalCombinerInputNV);
+		GET_PROC_ADDRESS(GetCombinerInputParameterfvNV);
+		GET_PROC_ADDRESS(GetCombinerInputParameterivNV);
+		GET_PROC_ADDRESS(GetCombinerOutputParameterfvNV);
+		GET_PROC_ADDRESS(GetCombinerOutputParameterivNV);
+		GET_PROC_ADDRESS(GetFinalCombinerInputParameterfvNV);
+		GET_PROC_ADDRESS(GetFinalCombinerInputParameterivNV);
 
-	return true;
+	#endif // GL_NV_register_combiners_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3265,14 +4298,20 @@ bool CRenderingContext::InitNvRegisterCombiners()
 
 bool CRenderingContext::InitNvRegisterCombiners2()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(CombinerStageParameterfvNV);
-	GET_PROC_ADDRESS(GetCombinerStageParameterfvNV);
+	#ifdef GL_NV_register_combiners2_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(CombinerStageParameterfvNV);
+		GET_PROC_ADDRESS(GetCombinerStageParameterfvNV);
 
-	return true;
+	#endif // GL_NV_register_combiners2_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3282,12 +4321,18 @@ bool CRenderingContext::InitNvRegisterCombiners2()
 
 bool CRenderingContext::InitNvTexgenEmboss()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_texgen_emboss_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_texgen_emboss_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3297,12 +4342,18 @@ bool CRenderingContext::InitNvTexgenEmboss()
 
 bool CRenderingContext::InitNvTexgenReflection()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_texgen_reflection_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_texgen_reflection_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3312,12 +4363,18 @@ bool CRenderingContext::InitNvTexgenReflection()
 
 bool CRenderingContext::InitNvTextureCompressionVtc()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_texture_compression_vtc_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_texture_compression_vtc_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3327,12 +4384,18 @@ bool CRenderingContext::InitNvTextureCompressionVtc()
 
 bool CRenderingContext::InitNvTextureEnvCombine4()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_texture_env_combine4_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_texture_env_combine4_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3342,12 +4405,18 @@ bool CRenderingContext::InitNvTextureEnvCombine4()
 
 bool CRenderingContext::InitNvTextureExpandNormal()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_texture_expand_normal_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_texture_expand_normal_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3357,12 +4426,18 @@ bool CRenderingContext::InitNvTextureExpandNormal()
 
 bool CRenderingContext::InitNvTextureRectangle()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_texture_rectangle_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_texture_rectangle_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3372,12 +4447,18 @@ bool CRenderingContext::InitNvTextureRectangle()
 
 bool CRenderingContext::InitNvTextureShader()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_texture_shader_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_texture_shader_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3387,12 +4468,18 @@ bool CRenderingContext::InitNvTextureShader()
 
 bool CRenderingContext::InitNvTextureShader2()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_texture_shader2_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_texture_shader2_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3402,12 +4489,18 @@ bool CRenderingContext::InitNvTextureShader2()
 
 bool CRenderingContext::InitNvTextureShader3()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_texture_shader3_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_texture_shader3_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3417,14 +4510,20 @@ bool CRenderingContext::InitNvTextureShader3()
 
 bool CRenderingContext::InitNvVertexArrayRange()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(FlushVertexArrayRangeNV);
-	GET_PROC_ADDRESS(VertexArrayRangeNV);
+	#ifdef GL_NV_vertex_array_range_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(FlushVertexArrayRangeNV);
+		GET_PROC_ADDRESS(VertexArrayRangeNV);
 
-	return true;
+	#endif // GL_NV_vertex_array_range_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3434,12 +4533,18 @@ bool CRenderingContext::InitNvVertexArrayRange()
 
 bool CRenderingContext::InitNvVertexArrayRange2()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_vertex_array_range2_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_vertex_array_range2_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3449,76 +4554,82 @@ bool CRenderingContext::InitNvVertexArrayRange2()
 
 bool CRenderingContext::InitNvVertexProgram()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(AreProgramsResidentNV);
-	GET_PROC_ADDRESS(BindProgramNV);
-	GET_PROC_ADDRESS(DeleteProgramsNV);
-	GET_PROC_ADDRESS(ExecuteProgramNV);
-	GET_PROC_ADDRESS(GenProgramsNV);
-	GET_PROC_ADDRESS(GetProgramivNV);
-	GET_PROC_ADDRESS(GetProgramParameterdvNV);
-	GET_PROC_ADDRESS(GetProgramParameterfvNV);
-	GET_PROC_ADDRESS(GetProgramStringNV);
-	GET_PROC_ADDRESS(GetTrackMatrixivNV);
-	GET_PROC_ADDRESS(GetVertexAttribdvNV);
-	GET_PROC_ADDRESS(GetVertexAttribfvNV);
-	GET_PROC_ADDRESS(GetVertexAttribivNV);
-	GET_PROC_ADDRESS(GetVertexAttribPointervNV);
-	GET_PROC_ADDRESS(IsProgramNV);
-	GET_PROC_ADDRESS(LoadProgramNV);
-	GET_PROC_ADDRESS(ProgramParameter4dNV);
-	GET_PROC_ADDRESS(ProgramParameter4dvNV);
-	GET_PROC_ADDRESS(ProgramParameter4fNV);
-	GET_PROC_ADDRESS(ProgramParameter4fvNV);
-	GET_PROC_ADDRESS(ProgramParameters4dvNV);
-	GET_PROC_ADDRESS(ProgramParameters4fvNV);
-	GET_PROC_ADDRESS(RequestResidentProgramsNV);
-	GET_PROC_ADDRESS(TrackMatrixNV);
-	GET_PROC_ADDRESS(VertexAttrib1dNV);
-	GET_PROC_ADDRESS(VertexAttrib1dvNV);
-	GET_PROC_ADDRESS(VertexAttrib1fNV);
-	GET_PROC_ADDRESS(VertexAttrib1fvNV);
-	GET_PROC_ADDRESS(VertexAttrib1sNV);
-	GET_PROC_ADDRESS(VertexAttrib1svNV);
-	GET_PROC_ADDRESS(VertexAttrib2dNV);
-	GET_PROC_ADDRESS(VertexAttrib2dvNV);
-	GET_PROC_ADDRESS(VertexAttrib2fNV);
-	GET_PROC_ADDRESS(VertexAttrib2fvNV);
-	GET_PROC_ADDRESS(VertexAttrib2sNV);
-	GET_PROC_ADDRESS(VertexAttrib2svNV);
-	GET_PROC_ADDRESS(VertexAttrib3dNV);
-	GET_PROC_ADDRESS(VertexAttrib3dvNV);
-	GET_PROC_ADDRESS(VertexAttrib3fNV);
-	GET_PROC_ADDRESS(VertexAttrib3fvNV);
-	GET_PROC_ADDRESS(VertexAttrib3sNV);
-	GET_PROC_ADDRESS(VertexAttrib3svNV);
-	GET_PROC_ADDRESS(VertexAttrib4dNV);
-	GET_PROC_ADDRESS(VertexAttrib4dvNV);
-	GET_PROC_ADDRESS(VertexAttrib4fNV);
-	GET_PROC_ADDRESS(VertexAttrib4fvNV);
-	GET_PROC_ADDRESS(VertexAttrib4sNV);
-	GET_PROC_ADDRESS(VertexAttrib4svNV);
-	GET_PROC_ADDRESS(VertexAttrib4ubNV);
-	GET_PROC_ADDRESS(VertexAttrib4ubvNV);
-	GET_PROC_ADDRESS(VertexAttribPointerNV);
-	GET_PROC_ADDRESS(VertexAttribs1dvNV);
-	GET_PROC_ADDRESS(VertexAttribs1fvNV);
-	GET_PROC_ADDRESS(VertexAttribs1svNV);
-	GET_PROC_ADDRESS(VertexAttribs2dvNV);
-	GET_PROC_ADDRESS(VertexAttribs2fvNV);
-	GET_PROC_ADDRESS(VertexAttribs2svNV);
-	GET_PROC_ADDRESS(VertexAttribs3dvNV);
-	GET_PROC_ADDRESS(VertexAttribs3fvNV);
-	GET_PROC_ADDRESS(VertexAttribs3svNV);
-	GET_PROC_ADDRESS(VertexAttribs4dvNV);
-	GET_PROC_ADDRESS(VertexAttribs4fvNV);
-	GET_PROC_ADDRESS(VertexAttribs4svNV);
-	GET_PROC_ADDRESS(VertexAttribs4ubvNV);
+	#ifdef GL_NV_vertex_program_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(AreProgramsResidentNV);
+		GET_PROC_ADDRESS(BindProgramNV);
+		GET_PROC_ADDRESS(DeleteProgramsNV);
+		GET_PROC_ADDRESS(ExecuteProgramNV);
+		GET_PROC_ADDRESS(GenProgramsNV);
+		GET_PROC_ADDRESS(GetProgramivNV);
+		GET_PROC_ADDRESS(GetProgramParameterdvNV);
+		GET_PROC_ADDRESS(GetProgramParameterfvNV);
+		GET_PROC_ADDRESS(GetProgramStringNV);
+		GET_PROC_ADDRESS(GetTrackMatrixivNV);
+		GET_PROC_ADDRESS(GetVertexAttribdvNV);
+		GET_PROC_ADDRESS(GetVertexAttribfvNV);
+		GET_PROC_ADDRESS(GetVertexAttribivNV);
+		GET_PROC_ADDRESS(GetVertexAttribPointervNV);
+		GET_PROC_ADDRESS(IsProgramNV);
+		GET_PROC_ADDRESS(LoadProgramNV);
+		GET_PROC_ADDRESS(ProgramParameter4dNV);
+		GET_PROC_ADDRESS(ProgramParameter4dvNV);
+		GET_PROC_ADDRESS(ProgramParameter4fNV);
+		GET_PROC_ADDRESS(ProgramParameter4fvNV);
+		GET_PROC_ADDRESS(ProgramParameters4dvNV);
+		GET_PROC_ADDRESS(ProgramParameters4fvNV);
+		GET_PROC_ADDRESS(RequestResidentProgramsNV);
+		GET_PROC_ADDRESS(TrackMatrixNV);
+		GET_PROC_ADDRESS(VertexAttrib1dNV);
+		GET_PROC_ADDRESS(VertexAttrib1dvNV);
+		GET_PROC_ADDRESS(VertexAttrib1fNV);
+		GET_PROC_ADDRESS(VertexAttrib1fvNV);
+		GET_PROC_ADDRESS(VertexAttrib1sNV);
+		GET_PROC_ADDRESS(VertexAttrib1svNV);
+		GET_PROC_ADDRESS(VertexAttrib2dNV);
+		GET_PROC_ADDRESS(VertexAttrib2dvNV);
+		GET_PROC_ADDRESS(VertexAttrib2fNV);
+		GET_PROC_ADDRESS(VertexAttrib2fvNV);
+		GET_PROC_ADDRESS(VertexAttrib2sNV);
+		GET_PROC_ADDRESS(VertexAttrib2svNV);
+		GET_PROC_ADDRESS(VertexAttrib3dNV);
+		GET_PROC_ADDRESS(VertexAttrib3dvNV);
+		GET_PROC_ADDRESS(VertexAttrib3fNV);
+		GET_PROC_ADDRESS(VertexAttrib3fvNV);
+		GET_PROC_ADDRESS(VertexAttrib3sNV);
+		GET_PROC_ADDRESS(VertexAttrib3svNV);
+		GET_PROC_ADDRESS(VertexAttrib4dNV);
+		GET_PROC_ADDRESS(VertexAttrib4dvNV);
+		GET_PROC_ADDRESS(VertexAttrib4fNV);
+		GET_PROC_ADDRESS(VertexAttrib4fvNV);
+		GET_PROC_ADDRESS(VertexAttrib4sNV);
+		GET_PROC_ADDRESS(VertexAttrib4svNV);
+		GET_PROC_ADDRESS(VertexAttrib4ubNV);
+		GET_PROC_ADDRESS(VertexAttrib4ubvNV);
+		GET_PROC_ADDRESS(VertexAttribPointerNV);
+		GET_PROC_ADDRESS(VertexAttribs1dvNV);
+		GET_PROC_ADDRESS(VertexAttribs1fvNV);
+		GET_PROC_ADDRESS(VertexAttribs1svNV);
+		GET_PROC_ADDRESS(VertexAttribs2dvNV);
+		GET_PROC_ADDRESS(VertexAttribs2fvNV);
+		GET_PROC_ADDRESS(VertexAttribs2svNV);
+		GET_PROC_ADDRESS(VertexAttribs3dvNV);
+		GET_PROC_ADDRESS(VertexAttribs3fvNV);
+		GET_PROC_ADDRESS(VertexAttribs3svNV);
+		GET_PROC_ADDRESS(VertexAttribs4dvNV);
+		GET_PROC_ADDRESS(VertexAttribs4fvNV);
+		GET_PROC_ADDRESS(VertexAttribs4svNV);
+		GET_PROC_ADDRESS(VertexAttribs4ubvNV);
 
-	return true;
+	#endif // GL_NV_vertex_program_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3528,12 +4639,18 @@ bool CRenderingContext::InitNvVertexProgram()
 
 bool CRenderingContext::InitNvVertexProgram11()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_vertex_program1_1_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_vertex_program1_1_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3543,12 +4660,18 @@ bool CRenderingContext::InitNvVertexProgram11()
 
 bool CRenderingContext::InitNvVertexProgram2()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_NV_vertex_program2_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_NV_vertex_program2_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3558,12 +4681,18 @@ bool CRenderingContext::InitNvVertexProgram2()
 
 bool CRenderingContext::InitOmlInterlace()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_OML_interlace_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_OML_interlace_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3573,12 +4702,18 @@ bool CRenderingContext::InitOmlInterlace()
 
 bool CRenderingContext::InitOmlResample()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_OML_resample_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_OML_resample_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3588,12 +4723,18 @@ bool CRenderingContext::InitOmlResample()
 
 bool CRenderingContext::InitOmlSubsample()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_OML_subsample_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_OML_subsample_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3603,13 +4744,19 @@ bool CRenderingContext::InitOmlSubsample()
 
 bool CRenderingContext::InitPgiMiscHints()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(HintPGI);
+	#ifdef GL_PGI_misc_hints_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(HintPGI);
 
-	return true;
+	#endif // GL_PGI_misc_hints_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3619,12 +4766,18 @@ bool CRenderingContext::InitPgiMiscHints()
 
 bool CRenderingContext::InitPgiVertexHints()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_PGI_vertex_hints_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_PGI_vertex_hints_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3634,12 +4787,18 @@ bool CRenderingContext::InitPgiVertexHints()
 
 bool CRenderingContext::InitRendScreenCoordinates()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_REND_screen_coordinates_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_REND_screen_coordinates_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3649,12 +4808,18 @@ bool CRenderingContext::InitRendScreenCoordinates()
 
 bool CRenderingContext::InitS3S3tc()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_S3_s3tc_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_S3_s3tc_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3664,14 +4829,20 @@ bool CRenderingContext::InitS3S3tc()
 
 bool CRenderingContext::InitSgiSDetailTexture()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(DetailTexFuncSGIS);
-	GET_PROC_ADDRESS(GetDetailTexFuncSGIS);
+	#ifdef GL_SGIS_detail_texture_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(DetailTexFuncSGIS);
+		GET_PROC_ADDRESS(GetDetailTexFuncSGIS);
 
-	return true;
+	#endif // GL_SGIS_detail_texture_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3681,14 +4852,20 @@ bool CRenderingContext::InitSgiSDetailTexture()
 
 bool CRenderingContext::InitSgiSFogFunction()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(FogFuncSGIS);
-	GET_PROC_ADDRESS(GetFogFuncSGIS);
+	#ifdef GL_SGIS_fog_function_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(FogFuncSGIS);
+		GET_PROC_ADDRESS(GetFogFuncSGIS);
 
-	return true;
+	#endif // GL_SGIS_fog_function_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3698,12 +4875,18 @@ bool CRenderingContext::InitSgiSFogFunction()
 
 bool CRenderingContext::InitSgiSGenerateMipmap()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIS_generate_mipmap_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIS_generate_mipmap_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3713,14 +4896,20 @@ bool CRenderingContext::InitSgiSGenerateMipmap()
 
 bool CRenderingContext::InitSgiSMultisample()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(SampleMaskSGIS);
-	GET_PROC_ADDRESS(SamplePatternSGIS);
+	#ifdef GL_SGIS_multisample_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(SampleMaskSGIS);
+		GET_PROC_ADDRESS(SamplePatternSGIS);
 
-	return true;
+	#endif // GL_SGIS_multisample_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3730,48 +4919,54 @@ bool CRenderingContext::InitSgiSMultisample()
 
 bool CRenderingContext::InitSgisMultitexture()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(InterleavedTextureCoordSetsSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord1dSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord1dvSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord1fSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord1fvSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord1iSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord1ivSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord1sSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord1svSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord2dSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord2dvSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord2fSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord2fvSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord2iSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord2ivSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord2sSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord2svSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord3dSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord3dvSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord3fSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord3fvSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord3iSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord3ivSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord3sSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord3svSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord4dSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord4dvSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord4fSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord4fvSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord4iSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord4ivSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord4sSGIS);
-	GET_PROC_ADDRESS(MultiTexCoord4svSGIS);
-	GET_PROC_ADDRESS(SelectTextureCoordSetSGIS);
-	GET_PROC_ADDRESS(SelectTextureSGIS);
-	GET_PROC_ADDRESS(SelectTextureTransformSGIS);
+	#ifdef GL_SGIS_multitexture_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(InterleavedTextureCoordSetsSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord1dSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord1dvSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord1fSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord1fvSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord1iSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord1ivSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord1sSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord1svSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord2dSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord2dvSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord2fSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord2fvSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord2iSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord2ivSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord2sSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord2svSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord3dSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord3dvSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord3fSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord3fvSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord3iSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord3ivSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord3sSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord3svSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord4dSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord4dvSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord4fSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord4fvSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord4iSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord4ivSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord4sSGIS);
+		GET_PROC_ADDRESS(MultiTexCoord4svSGIS);
+		GET_PROC_ADDRESS(SelectTextureCoordSetSGIS);
+		GET_PROC_ADDRESS(SelectTextureSGIS);
+		GET_PROC_ADDRESS(SelectTextureTransformSGIS);
 
-	return true;
+	#endif // GL_SGIS_multitexture_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3781,18 +4976,24 @@ bool CRenderingContext::InitSgisMultitexture()
 
 bool CRenderingContext::InitSgiSPixelTexture()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(GetPixelTexGenParameterfvSGIS);
-	GET_PROC_ADDRESS(GetPixelTexGenParameterivSGIS);
-	GET_PROC_ADDRESS(PixelTexGenParameterfSGIS);
-	GET_PROC_ADDRESS(PixelTexGenParameterfvSGIS);
-	GET_PROC_ADDRESS(PixelTexGenParameteriSGIS);
-	GET_PROC_ADDRESS(PixelTexGenParameterivSGIS);
+	#ifdef GL_SGIS_pixel_texture_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(GetPixelTexGenParameterfvSGIS);
+		GET_PROC_ADDRESS(GetPixelTexGenParameterivSGIS);
+		GET_PROC_ADDRESS(PixelTexGenParameterfSGIS);
+		GET_PROC_ADDRESS(PixelTexGenParameterfvSGIS);
+		GET_PROC_ADDRESS(PixelTexGenParameteriSGIS);
+		GET_PROC_ADDRESS(PixelTexGenParameterivSGIS);
 
-	return true;
+	#endif // GL_SGIS_pixel_texture_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3802,12 +5003,18 @@ bool CRenderingContext::InitSgiSPixelTexture()
 
 bool CRenderingContext::InitSgiSPointLineTexgen()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIS_point_line_texgen_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIS_point_line_texgen_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3817,14 +5024,20 @@ bool CRenderingContext::InitSgiSPointLineTexgen()
 
 bool CRenderingContext::InitSgiSPointParameters()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(PointParameterfSGIS);
-	GET_PROC_ADDRESS(PointParameterfvSGIS);
+	#ifdef GL_SGIS_point_parameters_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(PointParameterfSGIS);
+		GET_PROC_ADDRESS(PointParameterfvSGIS);
 
-	return true;
+	#endif // GL_SGIS_point_parameters_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3834,14 +5047,20 @@ bool CRenderingContext::InitSgiSPointParameters()
 
 bool CRenderingContext::InitSgiSSharpenTexture()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(GetSharpenTexFuncSGIS);
-	GET_PROC_ADDRESS(SharpenTexFuncSGIS);
+	#ifdef GL_SGIS_sharpen_texture_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(GetSharpenTexFuncSGIS);
+		GET_PROC_ADDRESS(SharpenTexFuncSGIS);
 
-	return true;
+	#endif // GL_SGIS_sharpen_texture_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3851,14 +5070,20 @@ bool CRenderingContext::InitSgiSSharpenTexture()
 
 bool CRenderingContext::InitSgiSTexture4D()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(TexImage4DSGIS);
-	GET_PROC_ADDRESS(TexSubImage4DSGIS);
+	#ifdef GL_SGIS_texture4D_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(TexImage4DSGIS);
+		GET_PROC_ADDRESS(TexSubImage4DSGIS);
 
-	return true;
+	#endif // GL_SGIS_texture4D_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3868,12 +5093,18 @@ bool CRenderingContext::InitSgiSTexture4D()
 
 bool CRenderingContext::InitSgiSTextureBorderClamp()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIS_texture_border_clamp_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIS_texture_border_clamp_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3883,13 +5114,19 @@ bool CRenderingContext::InitSgiSTextureBorderClamp()
 
 bool CRenderingContext::InitSgiSTextureColorMask()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(TextureColorMaskSGIS);
+	#ifdef GL_SGIS_texture_color_mask_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(TextureColorMaskSGIS);
 
-	return true;
+	#endif // GL_SGIS_texture_color_mask_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3899,12 +5136,18 @@ bool CRenderingContext::InitSgiSTextureColorMask()
 
 bool CRenderingContext::InitSgiSTextureEdgeClamp()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIS_texture_edge_clamp_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIS_texture_edge_clamp_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3914,14 +5157,20 @@ bool CRenderingContext::InitSgiSTextureEdgeClamp()
 
 bool CRenderingContext::InitSgiSTextureFilter4()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(GetTexFilterFuncSGIS);
-	GET_PROC_ADDRESS(TexFilterFuncSGIS);
+	#ifdef GL_SGIS_texture_filter4_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(GetTexFilterFuncSGIS);
+		GET_PROC_ADDRESS(TexFilterFuncSGIS);
 
-	return true;
+	#endif // GL_SGIS_texture_filter4_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3931,12 +5180,18 @@ bool CRenderingContext::InitSgiSTextureFilter4()
 
 bool CRenderingContext::InitSgiSTextureLod()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIS_texture_lod_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIS_texture_lod_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3946,18 +5201,24 @@ bool CRenderingContext::InitSgiSTextureLod()
 
 bool CRenderingContext::InitSgixAsync()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(AsyncMarkerSGIX);
-	GET_PROC_ADDRESS(DeleteAsyncMarkersSGIX);
-	GET_PROC_ADDRESS(FinishAsyncSGIX);
-	GET_PROC_ADDRESS(GenAsyncMarkersSGIX);
-	GET_PROC_ADDRESS(IsAsyncMarkerSGIX);
-	GET_PROC_ADDRESS(PollAsyncSGIX);
+	#ifdef GL_SGIX_async_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(AsyncMarkerSGIX);
+		GET_PROC_ADDRESS(DeleteAsyncMarkersSGIX);
+		GET_PROC_ADDRESS(FinishAsyncSGIX);
+		GET_PROC_ADDRESS(GenAsyncMarkersSGIX);
+		GET_PROC_ADDRESS(IsAsyncMarkerSGIX);
+		GET_PROC_ADDRESS(PollAsyncSGIX);
 
-	return true;
+	#endif // GL_SGIX_async_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3967,12 +5228,18 @@ bool CRenderingContext::InitSgixAsync()
 
 bool CRenderingContext::InitSgixAsyncHistogram()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_async_histogram_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_async_histogram_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3982,12 +5249,18 @@ bool CRenderingContext::InitSgixAsyncHistogram()
 
 bool CRenderingContext::InitSgixAsyncPixel()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_async_pixel_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_async_pixel_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -3997,12 +5270,18 @@ bool CRenderingContext::InitSgixAsyncPixel()
 
 bool CRenderingContext::InitSgixBlendAlphaMinmax()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_blend_alpha_minmax_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_blend_alpha_minmax_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4012,12 +5291,18 @@ bool CRenderingContext::InitSgixBlendAlphaMinmax()
 
 bool CRenderingContext::InitSgixCalligraphicFragment()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_calligraphic_fragment_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_calligraphic_fragment_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4027,12 +5312,18 @@ bool CRenderingContext::InitSgixCalligraphicFragment()
 
 bool CRenderingContext::InitSgixClipmap()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_clipmap_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_clipmap_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4042,12 +5333,18 @@ bool CRenderingContext::InitSgixClipmap()
 
 bool CRenderingContext::InitSgixConvolutionAccuracy()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_convolution_accuracy_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_convolution_accuracy_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4057,12 +5354,18 @@ bool CRenderingContext::InitSgixConvolutionAccuracy()
 
 bool CRenderingContext::InitSgixDepthPassInstrument()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_depth_pass_instrument_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_depth_pass_instrument_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4072,12 +5375,18 @@ bool CRenderingContext::InitSgixDepthPassInstrument()
 
 bool CRenderingContext::InitSgixDepthTexture()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_depth_texture_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_depth_texture_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4087,13 +5396,19 @@ bool CRenderingContext::InitSgixDepthTexture()
 
 bool CRenderingContext::InitSgixFlushRaster()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(FlushRasterSGIX);
+	#ifdef GL_SGIX_flush_raster_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(FlushRasterSGIX);
 
-	return true;
+	#endif // GL_SGIX_flush_raster_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4103,12 +5418,18 @@ bool CRenderingContext::InitSgixFlushRaster()
 
 bool CRenderingContext::InitSgixFogOffset()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_fog_offset_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_fog_offset_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4118,12 +5439,18 @@ bool CRenderingContext::InitSgixFogOffset()
 
 bool CRenderingContext::InitSgixFogScale()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_fog_scale_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_fog_scale_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4133,30 +5460,36 @@ bool CRenderingContext::InitSgixFogScale()
 
 bool CRenderingContext::InitSgixFragmentLighting()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(FragmentColorMaterialSGIX);
-	GET_PROC_ADDRESS(FragmentLightfSGIX);
-	GET_PROC_ADDRESS(FragmentLightfvSGIX);
-	GET_PROC_ADDRESS(FragmentLightiSGIX);
-	GET_PROC_ADDRESS(FragmentLightivSGIX);
-	GET_PROC_ADDRESS(FragmentLightModelfSGIX);
-	GET_PROC_ADDRESS(FragmentLightModelfvSGIX);
-	GET_PROC_ADDRESS(FragmentLightModeliSGIX);
-	GET_PROC_ADDRESS(FragmentLightModelivSGIX);
-	GET_PROC_ADDRESS(FragmentMaterialfSGIX);
-	GET_PROC_ADDRESS(FragmentMaterialfvSGIX);
-	GET_PROC_ADDRESS(FragmentMaterialiSGIX);
-	GET_PROC_ADDRESS(FragmentMaterialivSGIX);
-	GET_PROC_ADDRESS(GetFragmentLightfvSGIX);
-	GET_PROC_ADDRESS(GetFragmentLightivSGIX);
-	GET_PROC_ADDRESS(GetFragmentMaterialfvSGIX);
-	GET_PROC_ADDRESS(GetFragmentMaterialivSGIX);
-	GET_PROC_ADDRESS(LightEnviSGIX);
+	#ifdef GL_SGIX_fragment_lighting_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(FragmentColorMaterialSGIX);
+		GET_PROC_ADDRESS(FragmentLightfSGIX);
+		GET_PROC_ADDRESS(FragmentLightfvSGIX);
+		GET_PROC_ADDRESS(FragmentLightiSGIX);
+		GET_PROC_ADDRESS(FragmentLightivSGIX);
+		GET_PROC_ADDRESS(FragmentLightModelfSGIX);
+		GET_PROC_ADDRESS(FragmentLightModelfvSGIX);
+		GET_PROC_ADDRESS(FragmentLightModeliSGIX);
+		GET_PROC_ADDRESS(FragmentLightModelivSGIX);
+		GET_PROC_ADDRESS(FragmentMaterialfSGIX);
+		GET_PROC_ADDRESS(FragmentMaterialfvSGIX);
+		GET_PROC_ADDRESS(FragmentMaterialiSGIX);
+		GET_PROC_ADDRESS(FragmentMaterialivSGIX);
+		GET_PROC_ADDRESS(GetFragmentLightfvSGIX);
+		GET_PROC_ADDRESS(GetFragmentLightivSGIX);
+		GET_PROC_ADDRESS(GetFragmentMaterialfvSGIX);
+		GET_PROC_ADDRESS(GetFragmentMaterialivSGIX);
+		GET_PROC_ADDRESS(LightEnviSGIX);
 
-	return true;
+	#endif // GL_SGIX_fragment_lighting_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4166,13 +5499,19 @@ bool CRenderingContext::InitSgixFragmentLighting()
 
 bool CRenderingContext::InitSgixFramezoom()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(FrameZoomSGIX);
+	#ifdef GL_SGIX_framezoom_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(FrameZoomSGIX);
 
-	return true;
+	#endif // GL_SGIX_framezoom_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4182,13 +5521,19 @@ bool CRenderingContext::InitSgixFramezoom()
 
 bool CRenderingContext::InitSgixIglooInterface()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(IglooInterfaceSGIX);
+	#ifdef GL_SGIX_igloo_interface_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(IglooInterfaceSGIX);
 
-	return true;
+	#endif // GL_SGIX_igloo_interface_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4198,18 +5543,24 @@ bool CRenderingContext::InitSgixIglooInterface()
 
 bool CRenderingContext::InitSgixInstruments()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(GetInstrumentsSGIX);
-	GET_PROC_ADDRESS(InstrumentsBufferSGIX);
-	GET_PROC_ADDRESS(PollInstrumentsSGIX);
-	GET_PROC_ADDRESS(ReadInstrumentsSGIX);
-	GET_PROC_ADDRESS(StartInstrumentsSGIX);
-	GET_PROC_ADDRESS(StopInstrumentsSGIX);
+	#ifdef GL_SGIX_instruments_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(GetInstrumentsSGIX);
+		GET_PROC_ADDRESS(InstrumentsBufferSGIX);
+		GET_PROC_ADDRESS(PollInstrumentsSGIX);
+		GET_PROC_ADDRESS(ReadInstrumentsSGIX);
+		GET_PROC_ADDRESS(StartInstrumentsSGIX);
+		GET_PROC_ADDRESS(StopInstrumentsSGIX);
 
-	return true;
+	#endif // GL_SGIX_instruments_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4219,12 +5570,18 @@ bool CRenderingContext::InitSgixInstruments()
 
 bool CRenderingContext::InitSgixInterlace()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_interlace_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_interlace_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4234,12 +5591,18 @@ bool CRenderingContext::InitSgixInterlace()
 
 bool CRenderingContext::InitSgixIrInstrument1()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_ir_instrument1_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_ir_instrument1_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4249,18 +5612,24 @@ bool CRenderingContext::InitSgixIrInstrument1()
 
 bool CRenderingContext::InitSgixListPriority()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(GetListParameterfvSGIX);
-	GET_PROC_ADDRESS(GetListParameterivSGIX);
-	GET_PROC_ADDRESS(ListParameterfSGIX);
-	GET_PROC_ADDRESS(ListParameterfvSGIX);
-	GET_PROC_ADDRESS(ListParameteriSGIX);
-	GET_PROC_ADDRESS(ListParameterivSGIX);
+	#ifdef GL_SGIX_list_priority_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(GetListParameterfvSGIX);
+		GET_PROC_ADDRESS(GetListParameterivSGIX);
+		GET_PROC_ADDRESS(ListParameterfSGIX);
+		GET_PROC_ADDRESS(ListParameterfvSGIX);
+		GET_PROC_ADDRESS(ListParameteriSGIX);
+		GET_PROC_ADDRESS(ListParameterivSGIX);
 
-	return true;
+	#endif // GL_SGIX_list_priority_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4270,13 +5639,19 @@ bool CRenderingContext::InitSgixListPriority()
 
 bool CRenderingContext::InitSgixPixelTexture()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(PixelTexGenSGIX);
+	#ifdef GL_SGIX_pixel_texture_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(PixelTexGenSGIX);
 
-	return true;
+	#endif // GL_SGIX_pixel_texture_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4286,12 +5661,18 @@ bool CRenderingContext::InitSgixPixelTexture()
 
 bool CRenderingContext::InitSgixPixelTiles()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_pixel_tiles_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_pixel_tiles_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4301,16 +5682,22 @@ bool CRenderingContext::InitSgixPixelTiles()
 
 bool CRenderingContext::InitSgixPolynomialFfd()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(DeformationMap3dSGIX);
-	GET_PROC_ADDRESS(DeformationMap3fSGIX);
-	GET_PROC_ADDRESS(DeformSGIX);
-	GET_PROC_ADDRESS(LoadIdentityDeformationMapSGIX);
+	#ifdef GL_SGIX_polynomial_ffd_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(DeformationMap3dSGIX);
+		GET_PROC_ADDRESS(DeformationMap3fSGIX);
+		GET_PROC_ADDRESS(DeformSGIX);
+		GET_PROC_ADDRESS(LoadIdentityDeformationMapSGIX);
 
-	return true;
+	#endif // GL_SGIX_polynomial_ffd_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4320,13 +5707,19 @@ bool CRenderingContext::InitSgixPolynomialFfd()
 
 bool CRenderingContext::InitSgixReferencePlane()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(ReferencePlaneSGIX);
+	#ifdef GL_SGIX_reference_plane_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(ReferencePlaneSGIX);
 
-	return true;
+	#endif // GL_SGIX_reference_plane_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4336,12 +5729,18 @@ bool CRenderingContext::InitSgixReferencePlane()
 
 bool CRenderingContext::InitSgixResample()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_resample_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_resample_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4351,12 +5750,18 @@ bool CRenderingContext::InitSgixResample()
 
 bool CRenderingContext::InitSgixScalebiasHint()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_scalebias_hint_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_scalebias_hint_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4366,12 +5771,18 @@ bool CRenderingContext::InitSgixScalebiasHint()
 
 bool CRenderingContext::InitSgixShadow()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_shadow_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_shadow_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4381,12 +5792,18 @@ bool CRenderingContext::InitSgixShadow()
 
 bool CRenderingContext::InitSgixShadowAmbient()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_shadow_ambient_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_shadow_ambient_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4396,16 +5813,22 @@ bool CRenderingContext::InitSgixShadowAmbient()
 
 bool CRenderingContext::InitSgixSprite()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(SpriteParameterfSGIX);
-	GET_PROC_ADDRESS(SpriteParameterfvSGIX);
-	GET_PROC_ADDRESS(SpriteParameteriSGIX);
-	GET_PROC_ADDRESS(SpriteParameterivSGIX);
+	#ifdef GL_SGIX_sprite_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(SpriteParameterfSGIX);
+		GET_PROC_ADDRESS(SpriteParameterfvSGIX);
+		GET_PROC_ADDRESS(SpriteParameteriSGIX);
+		GET_PROC_ADDRESS(SpriteParameterivSGIX);
 
-	return true;
+	#endif // GL_SGIX_sprite_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4415,12 +5838,18 @@ bool CRenderingContext::InitSgixSprite()
 
 bool CRenderingContext::InitSgixSubsample()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_subsample_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_subsample_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4430,13 +5859,19 @@ bool CRenderingContext::InitSgixSubsample()
 
 bool CRenderingContext::InitSgixTagSampleBuffer()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(TagSampleBufferSGIX);
+	#ifdef GL_SGIX_tag_sample_buffer_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(TagSampleBufferSGIX);
 
-	return true;
+	#endif // GL_SGIX_tag_sample_buffer_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4446,12 +5881,18 @@ bool CRenderingContext::InitSgixTagSampleBuffer()
 
 bool CRenderingContext::InitSgixTextureAddEnv()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_texture_add_env_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_texture_add_env_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4461,12 +5902,18 @@ bool CRenderingContext::InitSgixTextureAddEnv()
 
 bool CRenderingContext::InitSgixTextureCoordinateClamp()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_texture_coordinate_clamp_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_texture_coordinate_clamp_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4476,12 +5923,18 @@ bool CRenderingContext::InitSgixTextureCoordinateClamp()
 
 bool CRenderingContext::InitSgixTextureLodBias()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_texture_lod_bias_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_texture_lod_bias_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4491,12 +5944,18 @@ bool CRenderingContext::InitSgixTextureLodBias()
 
 bool CRenderingContext::InitSgixTextureMultiBuffer()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_texture_multi_buffer_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_texture_multi_buffer_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4506,12 +5965,18 @@ bool CRenderingContext::InitSgixTextureMultiBuffer()
 
 bool CRenderingContext::InitSgixTextureScaleBias()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_texture_scale_bias_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_texture_scale_bias_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4521,12 +5986,18 @@ bool CRenderingContext::InitSgixTextureScaleBias()
 
 bool CRenderingContext::InitSgixTextureSelect()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_texture_select_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_texture_select_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4536,12 +6007,18 @@ bool CRenderingContext::InitSgixTextureSelect()
 
 bool CRenderingContext::InitSgixVertexPreclip()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_vertex_preclip_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_vertex_preclip_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4551,12 +6028,18 @@ bool CRenderingContext::InitSgixVertexPreclip()
 
 bool CRenderingContext::InitSgixYcrcb()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_ycrcb_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_ycrcb_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4566,12 +6049,18 @@ bool CRenderingContext::InitSgixYcrcb()
 
 bool CRenderingContext::InitSgixYcrcba()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_ycrcba_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_ycrcba_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4581,12 +6070,18 @@ bool CRenderingContext::InitSgixYcrcba()
 
 bool CRenderingContext::InitSgixYcrcbSubsample()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGIX_ycrcb_subsample_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGIX_ycrcb_subsample_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4596,12 +6091,18 @@ bool CRenderingContext::InitSgixYcrcbSubsample()
 
 bool CRenderingContext::InitSgiColorMatrix()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGI_color_matrix_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGI_color_matrix_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4611,19 +6112,25 @@ bool CRenderingContext::InitSgiColorMatrix()
 
 bool CRenderingContext::InitSgiColorTable()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(ColorTableParameterfvSGI);
-	GET_PROC_ADDRESS(ColorTableParameterivSGI);
-	GET_PROC_ADDRESS(ColorTableSGI);
-	GET_PROC_ADDRESS(CopyColorTableSGI);
-	GET_PROC_ADDRESS(GetColorTableParameterfvSGI);
-	GET_PROC_ADDRESS(GetColorTableParameterivSGI);
-	GET_PROC_ADDRESS(GetColorTableSGI);
+	#ifdef GL_SGI_color_table_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(ColorTableParameterfvSGI);
+		GET_PROC_ADDRESS(ColorTableParameterivSGI);
+		GET_PROC_ADDRESS(ColorTableSGI);
+		GET_PROC_ADDRESS(CopyColorTableSGI);
+		GET_PROC_ADDRESS(GetColorTableParameterfvSGI);
+		GET_PROC_ADDRESS(GetColorTableParameterivSGI);
+		GET_PROC_ADDRESS(GetColorTableSGI);
 
-	return true;
+	#endif // GL_SGI_color_table_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4633,12 +6140,18 @@ bool CRenderingContext::InitSgiColorTable()
 
 bool CRenderingContext::InitSgiTextureColorTable()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SGI_texture_color_table_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SGI_texture_color_table_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4648,13 +6161,19 @@ bool CRenderingContext::InitSgiTextureColorTable()
 
 bool CRenderingContext::InitSunxConstantData()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(FinishTextureSUNX);
+	#ifdef GL_SUNX_constant_data_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(FinishTextureSUNX);
 
-	return true;
+	#endif // GL_SUNX_constant_data_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4664,12 +6183,18 @@ bool CRenderingContext::InitSunxConstantData()
 
 bool CRenderingContext::InitSunConvolutionBorderModes()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SUN_convolution_border_modes_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SUN_convolution_border_modes_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4679,20 +6204,26 @@ bool CRenderingContext::InitSunConvolutionBorderModes()
 
 bool CRenderingContext::InitSunGlobalAlpha()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(GlobalAlphaFactorbSUN);
-	GET_PROC_ADDRESS(GlobalAlphaFactordSUN);
-	GET_PROC_ADDRESS(GlobalAlphaFactorfSUN);
-	GET_PROC_ADDRESS(GlobalAlphaFactoriSUN);
-	GET_PROC_ADDRESS(GlobalAlphaFactorsSUN);
-	GET_PROC_ADDRESS(GlobalAlphaFactorubSUN);
-	GET_PROC_ADDRESS(GlobalAlphaFactoruiSUN);
-	GET_PROC_ADDRESS(GlobalAlphaFactorusSUN);
+	#ifdef GL_SUN_global_alpha_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(GlobalAlphaFactorbSUN);
+		GET_PROC_ADDRESS(GlobalAlphaFactordSUN);
+		GET_PROC_ADDRESS(GlobalAlphaFactorfSUN);
+		GET_PROC_ADDRESS(GlobalAlphaFactoriSUN);
+		GET_PROC_ADDRESS(GlobalAlphaFactorsSUN);
+		GET_PROC_ADDRESS(GlobalAlphaFactorubSUN);
+		GET_PROC_ADDRESS(GlobalAlphaFactoruiSUN);
+		GET_PROC_ADDRESS(GlobalAlphaFactorusSUN);
 
-	return true;
+	#endif // GL_SUN_global_alpha_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4702,13 +6233,19 @@ bool CRenderingContext::InitSunGlobalAlpha()
 
 bool CRenderingContext::InitSunMeshArray()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(DrawMeshArraysSUN);
+	#ifdef GL_SUN_mesh_array_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(DrawMeshArraysSUN);
 
-	return true;
+	#endif // GL_SUN_mesh_array_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4718,12 +6255,18 @@ bool CRenderingContext::InitSunMeshArray()
 
 bool CRenderingContext::InitSunSliceAccum()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
+	#ifdef GL_SUN_slice_accum_OGLEXT
 
-	// 2: everything went fine...
 
-	return true;
+	#endif // GL_SUN_slice_accum_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4733,19 +6276,25 @@ bool CRenderingContext::InitSunSliceAccum()
 
 bool CRenderingContext::InitSunTriangleList()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(ReplacementCodePointerSUN);
-	GET_PROC_ADDRESS(ReplacementCodeubSUN);
-	GET_PROC_ADDRESS(ReplacementCodeubvSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuivSUN);
-	GET_PROC_ADDRESS(ReplacementCodeusSUN);
-	GET_PROC_ADDRESS(ReplacementCodeusvSUN);
+	#ifdef GL_SUN_triangle_list_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(ReplacementCodePointerSUN);
+		GET_PROC_ADDRESS(ReplacementCodeubSUN);
+		GET_PROC_ADDRESS(ReplacementCodeubvSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuivSUN);
+		GET_PROC_ADDRESS(ReplacementCodeusSUN);
+		GET_PROC_ADDRESS(ReplacementCodeusvSUN);
 
-	return true;
+	#endif // GL_SUN_triangle_list_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 
@@ -4755,52 +6304,58 @@ bool CRenderingContext::InitSunTriangleList()
 
 bool CRenderingContext::InitSunvertex()
 {
+	bool bReturn = true;
+
 	// 1: get all function pointers...
 
-	GET_PROC_ADDRESS(Color3fVertex3fSUN);
-	GET_PROC_ADDRESS(Color3fVertex3fvSUN);
-	GET_PROC_ADDRESS(Color4fNormal3fVertex3fSUN);
-	GET_PROC_ADDRESS(Color4fNormal3fVertex3fvSUN);
-	GET_PROC_ADDRESS(Color4ubVertex2fSUN);
-	GET_PROC_ADDRESS(Color4ubVertex2fvSUN);
-	GET_PROC_ADDRESS(Color4ubVertex3fSUN);
-	GET_PROC_ADDRESS(Color4ubVertex3fvSUN);
-	GET_PROC_ADDRESS(Normal3fVertex3fSUN);
-	GET_PROC_ADDRESS(Normal3fVertex3fvSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiColor3fVertex3fSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiColor3fVertex3fvSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiColor4fNormal3fVertex3fSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiColor4fNormal3fVertex3fvSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiColor4ubVertex3fSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiColor4ubVertex3fvSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiNormal3fVertex3fSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiNormal3fVertex3fvSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fvSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiTexCoord2fNormal3fVertex3fSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiTexCoord2fNormal3fVertex3fvSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiTexCoord2fVertex3fSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiTexCoord2fVertex3fvSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiVertex3fSUN);
-	GET_PROC_ADDRESS(ReplacementCodeuiVertex3fvSUN);
-	GET_PROC_ADDRESS(TexCoord2fColor3fVertex3fSUN);
-	GET_PROC_ADDRESS(TexCoord2fColor3fVertex3fvSUN);
-	GET_PROC_ADDRESS(TexCoord2fColor4fNormal3fVertex3fSUN);
-	GET_PROC_ADDRESS(TexCoord2fColor4fNormal3fVertex3fvSUN);
-	GET_PROC_ADDRESS(TexCoord2fColor4ubVertex3fSUN);
-	GET_PROC_ADDRESS(TexCoord2fColor4ubVertex3fvSUN);
-	GET_PROC_ADDRESS(TexCoord2fNormal3fVertex3fSUN);
-	GET_PROC_ADDRESS(TexCoord2fNormal3fVertex3fvSUN);
-	GET_PROC_ADDRESS(TexCoord2fVertex3fSUN);
-	GET_PROC_ADDRESS(TexCoord2fVertex3fvSUN);
-	GET_PROC_ADDRESS(TexCoord4fColor4fNormal3fVertex4fSUN);
-	GET_PROC_ADDRESS(TexCoord4fColor4fNormal3fVertex4fvSUN);
-	GET_PROC_ADDRESS(TexCoord4fVertex4fSUN);
-	GET_PROC_ADDRESS(TexCoord4fVertex4fvSUN);
+	#ifdef GL_SUN_vertex_OGLEXT
 
-	// 2: everything went fine...
+		GET_PROC_ADDRESS(Color3fVertex3fSUN);
+		GET_PROC_ADDRESS(Color3fVertex3fvSUN);
+		GET_PROC_ADDRESS(Color4fNormal3fVertex3fSUN);
+		GET_PROC_ADDRESS(Color4fNormal3fVertex3fvSUN);
+		GET_PROC_ADDRESS(Color4ubVertex2fSUN);
+		GET_PROC_ADDRESS(Color4ubVertex2fvSUN);
+		GET_PROC_ADDRESS(Color4ubVertex3fSUN);
+		GET_PROC_ADDRESS(Color4ubVertex3fvSUN);
+		GET_PROC_ADDRESS(Normal3fVertex3fSUN);
+		GET_PROC_ADDRESS(Normal3fVertex3fvSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiColor3fVertex3fSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiColor3fVertex3fvSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiColor4fNormal3fVertex3fSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiColor4fNormal3fVertex3fvSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiColor4ubVertex3fSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiColor4ubVertex3fvSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiNormal3fVertex3fSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiNormal3fVertex3fvSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fvSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiTexCoord2fNormal3fVertex3fSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiTexCoord2fNormal3fVertex3fvSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiTexCoord2fVertex3fSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiTexCoord2fVertex3fvSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiVertex3fSUN);
+		GET_PROC_ADDRESS(ReplacementCodeuiVertex3fvSUN);
+		GET_PROC_ADDRESS(TexCoord2fColor3fVertex3fSUN);
+		GET_PROC_ADDRESS(TexCoord2fColor3fVertex3fvSUN);
+		GET_PROC_ADDRESS(TexCoord2fColor4fNormal3fVertex3fSUN);
+		GET_PROC_ADDRESS(TexCoord2fColor4fNormal3fVertex3fvSUN);
+		GET_PROC_ADDRESS(TexCoord2fColor4ubVertex3fSUN);
+		GET_PROC_ADDRESS(TexCoord2fColor4ubVertex3fvSUN);
+		GET_PROC_ADDRESS(TexCoord2fNormal3fVertex3fSUN);
+		GET_PROC_ADDRESS(TexCoord2fNormal3fVertex3fvSUN);
+		GET_PROC_ADDRESS(TexCoord2fVertex3fSUN);
+		GET_PROC_ADDRESS(TexCoord2fVertex3fvSUN);
+		GET_PROC_ADDRESS(TexCoord4fColor4fNormal3fVertex4fSUN);
+		GET_PROC_ADDRESS(TexCoord4fColor4fNormal3fVertex4fvSUN);
+		GET_PROC_ADDRESS(TexCoord4fVertex4fSUN);
+		GET_PROC_ADDRESS(TexCoord4fVertex4fvSUN);
 
-	return true;
+	#endif // GL_SUN_vertex_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
 }
 
 

@@ -1,5 +1,5 @@
-// RCHashArray.hpp                                           Copyright (C) 2003 Thomas Jansen (jansen@caesar.de)
-//                                                                     (C) 2003 research center caesar
+// RCHashArray.hpp                                           Copyright (C) 2004 Thomas Jansen (jansen@caesar.de)
+//                                                                     (C) 2004 research center caesar
 //
 // This file is part of OglExt, a free OpenGL extension library.
 //
@@ -20,19 +20,21 @@
 #include	"RenderingContext.hpp"
 
 #if defined(_WIN32) && !defined(APIENTRY) && !defined(__CYGWIN__)
-
 	#define	WIN32_LEAN_AND_MEAN 1
 	#include <windows.h>
-
 #endif
 
-#ifndef	_WIN32
+#if !defined(_WIN32) && (!defined(__APPLE__) || !defined(__GNUC__)) && !defined(__MACOSX__)
+	#include <GL/glx.h>
+#endif
 
-	#include	<GL/glx.h>
+#if (defined(__APPLE__) && defined(__GNUC__)) || defined(__MACOSX__)
+	#include <agl.h>
+	#include <gl.h>
+#else
+	#include <GL/gl.h>
+#endif
 
-#endif	// !_WIN32
-
-#include	<GL/gl.h>
 
 
 // ---[ TYPE DEFINITIONS ]--------------------------------------------------------------------------------------
@@ -82,6 +84,11 @@ public:
 
 		CRenderingContext *		GetRenderingContext(HRCKEY hRCKey = ::wglGetCurrentContext());			//  return rc
 		CRenderingContext *		PrepareRenderingContext(HRCKEY hRCKey = ::wglGetCurrentContext());	//  create rc
+
+	#elif (defined(__APPLE__) && defined(__GNUC__)) || defined(__MACOSX__)
+
+		CRenderingContext *		GetRenderingContext(HRCKEY hRCKey = ::aglGetCurrentContext());			//  return rc
+		CRenderingContext *		PrepareRenderingContext(HRCKEY hRCKey = ::aglGetCurrentContext());	//  create rc
 
 	#else		// _WIN32
 
