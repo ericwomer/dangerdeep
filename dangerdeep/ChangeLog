@@ -1,3 +1,9 @@
+2003-08-05  Markus Petermann  <m.petermann@gmx.net>
+	* global_data.h, global_data.cpp
+	  - New texture object cloudsbackgr introduced.
+	* ships_sunk_display.cpp
+	  - cloudsbackgr is now used as screen background
+
 2003-08-04  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* subsim.cpp
 	  - fixed wrong text numbers in create custom mission.
