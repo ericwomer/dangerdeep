@@ -16,10 +16,6 @@ using namespace std;
 // fixme: add image-widget
 // fixme: implement checkbox widget
 
-// maybe give mouse pos / movement as arguments of the on_click/on_drag functions.
-
-// fixme: add header for menu widget (like old dftd menues)
-
 // fixme: when editing in a widget_edit you have to click twice on a button to lose focus AND click the button .. bad
 
 // fixme: make yes/no, ok, yes/no/cancel dialogue

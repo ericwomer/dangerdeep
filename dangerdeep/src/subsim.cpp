@@ -962,22 +962,24 @@ void menu_resolution(void)
 void configure_key(widget_list* wkeys)
 {
 	//fixme: redefine widget to get key combination, draw current combination name
+	//overload on_char
 	widget w(256, 256, 512, 256, texts::get(216), 0, 0);
 	w.add_child(new widget_text(40, 40, 432, 32, wkeys->get_selected_entry()));
-	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 40, 112, 432, 32, texts::get(117)));
-	w.run(0, false);
+	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 40, 176, 432, 40, texts::get(117)));
+	w.run(0, true);
 }
 
 
 
 void menu_configure_keys(void)
 {
-	widget w(0, 0, 1024, 768, texts::get(214), 0, sunkendestroyerimg);
+	widget w(0, 0, 1024, 768, texts::get(214), 0, titlebackgrimg);
 	//w.add_child(new widget_text(40, 60, 0, 0, texts::get(16)));
 	widget_list* wkeys = new widget_list(40, 50, 944, 640);
 	w.add_child(wkeys);
-
+	
 	for (unsigned i = 600; i <= 649; ++i) {
+		//fixme: draw current combination in right column of list
 		wkeys->append_entry(texts::get(i));
 	}
 
