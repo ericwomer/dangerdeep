@@ -19,6 +19,14 @@
 
 const double CLOUD_ANIMATION_CYCLE_TIME = 3600.0;
 
+/* fixme: idea:
+   use perlin noise data as height (3d depth) of cloud.
+   compute normals from it and light clouds with bump mapping
+   + ambient
+   
+   add rain! (GL_LINES with varying alpha)
+*/
+
 
 
 sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
