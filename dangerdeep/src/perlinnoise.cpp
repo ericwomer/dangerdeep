@@ -107,5 +107,17 @@ perlinnoise perlinnoise_generator::generate_map(unsigned s) const
 			result.noisemap[j] += (lv[j] >> (i+1));
 		}
 	}
+	// normalize result
+	uint8_t vmin = 255, vmax = 0;
+	for (unsigned j = 0; j < s*s; ++j) {
+		if (result.noisemap[j] > vmax)
+			vmax = result.noisemap[j];
+		if (result.noisemap[j] < vmin)
+			vmin = result.noisemap[j];
+	}
+	for (unsigned j = 0; j < s*s; ++j) {
+		result.noisemap[j] = unsigned(result.noisemap[j] - vmin) * 255 / unsigned(vmax-vmin);
+	}
+
 	return result;
 }

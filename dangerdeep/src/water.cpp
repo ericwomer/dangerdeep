@@ -267,8 +267,8 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	}
 
 	perlinnoise_generator png(7, 32);
-	perlinnoise pn = png.generate_map(512/*256*/);
-#if 0
+	perlinnoise pn = png.generate_map(256);
+#if 1
 	vector<Uint8> wbtmp2 = pn.noisemap;
 	ofstream osg("noisemap.pgm");
 	osg << "P5\n256 256\n255\n";
@@ -284,7 +284,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	water_bumpmap = new texture(&wbtmp[0], WAVE_RESOLUTION, WAVE_RESOLUTION,
 				    GL_RGB, GL_LINEAR /*_MIPMAP_LINEAR*/, GL_REPEAT, false);
 #endif
-	water_bumpmap = texture::make_normal_map(&(pn.noisemap[0]), 512, 512, 8.0f,
+	water_bumpmap = texture::make_normal_map(&(pn.noisemap[0]), 256, 256, 8.0f,
 						 GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
 	add_loading_screen("water height data computed");
@@ -774,7 +774,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 			const vector3f& N = normals[ptr];
 
 			if (fragment_program_supported && use_fragment_programs) {
-				uv0[ptr] = vector2f(coord.x/4.0f, coord.y/4.0f); // fixme, use noise map texc's
+				uv0[ptr] = vector2f(myfmod(coord.x, 256)*4.0f, myfmod(coord.y,256)*4.0f); // fixme, use noise map texc's
 				//fixme ^, offset is missing
 				vector3f tx = vector3f(1, 0, 0);//fixme hack
 				vector3f ty = N.cross(tx);
@@ -1308,4 +1308,3 @@ cout<<"\n";
 	glActiveTexture(GL_TEXTURE0);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 #endif
-

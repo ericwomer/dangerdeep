@@ -325,9 +325,9 @@ void show_credits(void)
 {
 	glClearColor(0.1,0.25,0.4,0);
 
-	model* mdlgear = new model(get_model_dir() + "gear.3ds", true, false);
-	bool ok = modelcache.ref("gear.3ds", mdlgear);
-	sys().myassert(ok, "weird error");
+//	model* mdlgear = new model(get_model_dir() + "gear.3ds", true, false);
+//	bool ok = modelcache.ref("gear.3ds", mdlgear);
+//	sys().myassert(ok, "weird error");
 	
 //	mdlgear->get_mesh(0).mymaterial->col = color(255,255,255);
 
@@ -358,13 +358,13 @@ void show_credits(void)
 		glPushMatrix();
 		glTranslatef(-r,r,d);
 		glRotatef(ang, 0, 0, 1);
-		mdlgear->display();
+//		mdlgear->display();
 		glPopMatrix();
 
 		glPushMatrix();
 		glTranslatef(r,-r,d);
 		glRotatef(4.05-ang, 0, 0, 1);
-		mdlgear->display();
+//		mdlgear->display();
 		glPopMatrix();
 		
 		glPopMatrix();
@@ -388,7 +388,7 @@ void show_credits(void)
 		sys().swap_buffers();
 	}
 	
-	modelcache.unref("gear.3ds");
+//	modelcache.unref("gear.3ds");
 	
 	glClearColor(0, 0, 1, 0);
 }
