@@ -44,6 +44,7 @@ public:
 	// adjust heading of torpedo, returns false if impossible
 	bool adjust_head_to(const sea_object* target, bool usebowtubes,
 		const angle& manual_lead_angle);
+	virtual unsigned get_hit_points () const;
 };
 
 #endif

@@ -186,3 +186,8 @@ void torpedo::create_sensor_array ( types t )
 			break;
 	}
 }
+
+unsigned torpedo::get_hit_points () const
+{
+	return G7A_HITPOINTS;
+}
