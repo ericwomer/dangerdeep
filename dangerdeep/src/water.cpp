@@ -22,7 +22,7 @@
 // compute projected grid efficiency, it should be 50-95%
 //#define COMPUTE_EFFICIENCY
 #define DYNAMIC_NORMALS		// this is a must have
-//#define DISTANCE_FRESNEL_HACK	// distance related fresnel term reduction
+#define DISTANCE_FRESNEL_HACK	// distance related fresnel term reduction
 #define WAVE_SUB_DETAIL		// sub fft detail
 
 // some more interesting values: phase 256, facesperwave 64+,
@@ -74,6 +74,22 @@
 	problem that remains is how to create the RGBA reflection map from RGB values of one
 	scene and the A values of another. Use color masking for that (Mask bits before writing
 	in the buffer).
+	That way we don't need to copy the values back from GPU to CPU.
+	Take the foam image (b/w with alpha, only alpha is interesting) as texture and
+	project it onto the screen like the reflections (proj-modelview-mat as texture-matrix)
+	mix foam according to alpha value. Problem: while drawing waves the foam is shifted
+	up or down, per pixel foam lookup doesn't work right. so the texture coordinates
+	for foam lookup must get transformed according to triangulation.
+	Don't take real 3d coords as texcoords for foam tex, but keep x,y, set z to zero.
+	Then it works.
+	Would need 2 passes with new fresnel technique (2nd unit trashed).
+	Would need 2 passes ANYWAY because foam tex coords are different from reflection
+	tex coords!
+	So do: 1) draw mirror image -> texture R
+	2) draw foam image -> texture F
+	3) draw world
+	4) draw water first pass (reflection, fresnel)
+	5) draw water second pass (foam) (maybe some extra color..., fine foam lines texture ?)
 */	
 
 water::water(unsigned xres_, unsigned yres_, double tm) :
@@ -661,28 +677,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
 			texc.z -= VIRTUAL_PLANE_HEIGHT;
 
-			// fixme distance fresnel hack could be done with self computed
-			// mipmap textures, using darker values for distant levels.
-			// or simple scale F down at large distances.
-
-#ifdef DISTANCE_FRESNEL_HACK
-			// With growing distance the water becomes similar to a flat plane
-			// (trilinar filtering and/or drawing with less triangles), so the
-			// Fresnel term becomes nearly 1. This is unrealistic, because the
-			// viewer also sees the side of waves in the distance.
-			// So we have to shrink the Fresnel value with growing distance.
-			// The distance can be computed without an extra sqrt: it's the length
-			// of rel_coord before normalizing it. Any better effect needs
-			// pixel shaders. Without them we could do at most per pixel
-			// bump mapping, that is per pixel *linear* fresnel, but this
-			// looks ugly and not realistic.
-			// f(x)=a/(b+x),a=x2-x1,b=x2-2*x1,f(x1)=1,f(x2)=0.5
-			// x1=200,x2=3000,a=2800,b=2600
-			float distfac = 2800/(2600+rel_coord_length);
-			if (distfac > 1.0f) distfac = 1.0f;
-			F *= distfac;
-#endif
-
 //			if (coord.z < minh) minh = coord.z;
 //			if (coord.z > maxh) maxh = coord.z;
 
@@ -700,6 +694,25 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	setup_textures();
 
 	glColor4f(1,1,1,1);
+
+#ifdef DISTANCE_FRESNEL_HACK
+	// With growing distance the water becomes similar to a flat plane
+	// (trilinar filtering and/or drawing with less triangles), so the
+	// Fresnel term becomes nearly 1. This is unrealistic, because the
+	// viewer also sees the side of waves in the distance.
+	// Instead of manipulating the fresnel term (shrinking it)
+	// we add fog with standard water color!
+	// this color is a mix of base water color and sky color.
+	// fixme: at night is is different!
+	GLfloat fog_color[4] = { 80/255.0f, 147/255.0f, 176/255.0f, 1.0f };
+	glFogi(GL_FOG_MODE, GL_LINEAR );
+	glFogfv(GL_FOG_COLOR, fog_color);
+	glFogf(GL_FOG_DENSITY, 1.0);
+	glHint(GL_FOG_HINT, GL_NICEST);
+	glFogf(GL_FOG_START, 1000);
+	glFogf(GL_FOG_END, 10000);
+	glEnable(GL_FOG);
+#endif
 
 	// draw elements (fixed index list) with vertex arrays using coords,uv0,normals,uv1
 	glDisableClientState(GL_COLOR_ARRAY);
@@ -723,6 +736,10 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
 #else
 	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
+#endif
+
+#ifdef DISTANCE_FRESNEL_HACK
+	glDisable(GL_FOG);
 #endif
 
 //	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
