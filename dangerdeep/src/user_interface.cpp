@@ -108,8 +108,8 @@ user_interface::user_interface(sea_object* player, game& gm) :
 		int ym = cityfile.parse_number();
 		cityfile.parse(TKN_COMMA);
 		string n = cityfile.parse_string();
-		double x = (xneg ? -1.0 : 1.0)*(double(xd)+double(xm)/60.0)*20000000.0/180.0;
-		double y = (yneg ? -1.0 : 1.0)*(double(yd)+double(ym)/60.0)*20000000.0/180.0;
+		double x, y;
+		degrees2meters(xneg, xd, xm, yneg, yd, ym, x, y);
 		cities.push_back(make_pair(vector2(x, y), n));
 	}
 }
@@ -1876,13 +1876,12 @@ if (mb&2) detl = my*10/384;
 	// draw world coordinates for mouse
 	double mouserealmx = double(mx - 512) / mapzoom + offset.x;
 	double mouserealmy = double(384 - my) / mapzoom + offset.y;
-	double fracdegrx = fabs(mouserealmx*180.0/20000000.0);
-	double fracdegry = fabs(mouserealmy*180.0/20000000.0);
-	int degrx = int(floor(fracdegrx)), minutx = int(60.0*myfrac(fracdegrx) + 0.5);
-	int degry = int(floor(fracdegry)), minuty = int(60.0*myfrac(fracdegry) + 0.5);
+	unsigned degrx, degry, minutx, minuty;
+	bool west, south;
+	meters2degrees(mouserealmx, mouserealmy, west, degrx, minutx, south, degry, minuty);
 	ostringstream rwcoordss;
-	rwcoordss	<< degry << "/" << minuty << (mouserealmy < 0.0 ? "S" : "N") << ", "
-			<< degrx << "/" << minutx << (mouserealmx < 0.0 ? "W" : "E");
+	rwcoordss	<< degry << "/" << minuty << (south ? "S" : "N") << ", "
+			<< degrx << "/" << minutx << (west ? "W" : "E");
 	font_arial->print(0, 0, rwcoordss.str(), color::white(), true);
 
 
