@@ -14,6 +14,7 @@ using namespace std;
 #include "coastmap.h"
 
 #define MAPGRIDSIZE 1000	// meters
+#define WATER_BUMP_FRAMES 128
 
 class user_display;
 class logbook_display;
@@ -72,6 +73,7 @@ protected:
 	user_interface(const user_interface& other);
 	user_interface(sea_object* player);
 
+	texture* water_bumpmaps[WATER_BUMP_FRAMES];
 	unsigned wavedisplaylists;		// # of first display list
 	void init(void);
 	void deinit(void);

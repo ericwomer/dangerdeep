@@ -123,7 +123,7 @@ void ocean_wave_generator<T>::compute_h0tilde(void)
 	const T pi2 = T(2.0)*T(M_PI);
 	for (int y = 0; y <= N; ++y) {
 		for (int x = 0; x <= N; ++x) {
-			vector2 K(pi2*(x-N/2)/Lm, pi2*(y-N/2)/Lm);
+			vector2t<T> K(pi2*(x-N/2)/Lm, pi2*(y-N/2)/Lm);
 			h0tilde[y*(N+1)+x] = h0_tilde(K);
 		}
 	}
@@ -174,7 +174,7 @@ vector<T> ocean_wave_generator<T>::compute_heights(T time) const
 //fixme: compute h0_tilde for all K's is not needed.
 	for (int y = 0; y <= N/2; ++y) {
 		for (int x = 0; x < N; ++x) {
-			vector2 K(pi2*(x-N/2)/Lm, pi2*(y-N/2)/Lm);
+			vector2t<T> K(pi2*(x-N/2)/Lm, pi2*(y-N/2)/Lm);
 			complex<T> c = h_tilde(K, x, y, time);
 			int ptr = x*(N/2+1)+y;
 			fft_in[ptr][0] = c.real();

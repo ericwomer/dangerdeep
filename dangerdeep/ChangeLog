@@ -1,3 +1,8 @@
+2003-12-08  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* user_interface.cpp
+	  - made use of new ocean wave generator for distant water
+	    simulation (pseudo bump maps)
+
 2003-12-05  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* mapcompile.cpp
 	  - now islands are treated right. Just one simple trick worked

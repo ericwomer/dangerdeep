@@ -28,6 +28,7 @@
 #include "ships_sunk_display.h"
 #include "vector3.h"
 #include "coastmap.h"
+#include "ocean_wave_generator.h"
 using namespace std;
 
 #define MAX_PANEL_SIZE 256
@@ -120,6 +121,17 @@ void user_interface::init ()
 		}
 		glEnd();
 		glEndList();
+	}
+	
+	// create water bump maps
+	ocean_wave_generator<float> owg(64, vector2f(1,1), 1, 0.9, 5.0);
+	for (int i = 0; i < WATER_BUMP_FRAMES; ++i) {
+		vector<float> h = owg.compute_heights(i*10.0/WATER_BUMP_FRAMES);
+		vector<Uint8> uh(h.size());
+		for (unsigned n = 0; n < h.size(); ++n)
+			uh[n] = Uint8((h[n] + 0.5)*255);
+		water_bumpmaps[i] = new texture(&uh[0], 64, 64, GL_LUMINANCE, GL_LUMINANCE,
+			GL_UNSIGNED_BYTE, GL_LINEAR, GL_REPEAT);
 	}
 	
 	// init clouds
@@ -226,6 +238,9 @@ void user_interface::deinit ()
 	delete clouds;
 	glDeleteLists(clouds_dl, 1);
 
+	for (int i = 0; i < WATER_BUMP_FRAMES; ++i)
+		delete water_bumpmaps[i];
+		
 	// delete display lists for water
 	glDeleteLists(wavedisplaylists, WAVE_PHASES);
 }
@@ -487,7 +502,8 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	float t3 = c3/64;
 	float wz = 0;//-WAVE_HEIGHT; // this leads to hole between waves and horizon faces, fixme
 
-	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
+	glColor4f(0.2, 0.2, 1.0, 1);
+	glBindTexture(GL_TEXTURE_2D, water_bumpmaps[unsigned(myfmod(t, 5.0)*WATER_BUMP_FRAMES/5.0)]->get_opengl_name());
 	glBegin(GL_TRIANGLE_STRIP);
 	glTexCoord2f(t0,t3);
 	glVertex3f(c0,c3,0);
@@ -512,6 +528,8 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glEnd();
 
 	// draw waves
+	glColor3f(1,1,1);
+	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
 	glScalef(WAVE_LENGTH, WAVE_LENGTH, WAVE_HEIGHT);
 	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
 	unsigned dl = wavedisplaylists + int(WAVE_PHASES*t);
