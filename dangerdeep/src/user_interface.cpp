@@ -380,7 +380,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
-		glScalef(100,100,100);//fixme: to control functionality for now
+		glScalef(10,10,10);//fixme: to control functionality for now
 		(*it)->display();
 		glPopMatrix();
 	}

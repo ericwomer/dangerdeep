@@ -974,6 +974,7 @@ void display_results(void)
 	system::sys()->prepare_2d_drawing();
 	unsigned l = 1;
 	unsigned h = font_arial->get_height();
+	unsigned totaltons = 0;
 	for (list<game::sink_record>::iterator it = result_sunken_ships.begin(); it != result_sunken_ships.end(); ++it) {
 		ostringstream ossdate;
 		ossdate << it->dat.get_value(date::year) << "/"
@@ -983,9 +984,13 @@ void display_results(void)
 		font_arial->print(22*h, l*h, it->descr.c_str());
 		ostringstream osstons;
 		osstons << it->tons << " BRT";
+		totaltons += it->tons;
 		font_arial->print(52*h, l*h, osstons.str().c_str());
 		++l;
 	}
+	ostringstream os;
+	os << "total: " << totaltons;
+	font_arial->print(42*h, l*h, os.str().c_str());
 	system::sys()->unprepare_2d_drawing();
 }
 

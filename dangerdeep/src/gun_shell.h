@@ -7,16 +7,15 @@
 #include "sea_object.h"
 
 #define GUN_SHELL_HITPOINTS 1	// fixme
-#define AIR_RESISTANCE 2.0	// m/sec^2
+#define AIR_RESISTANCE 0.05	// factor of velocity that gets subtracted
+				// from it to slow the shell down
 #define GUN_SHELL_INITIAL_VELOCITY	200.0f	// m/sec, low while testing
 
 class gun_shell : public sea_object
 {
 protected:
-	double v0;	// inititial velocity
-	double t;	// flying time
-	angle alpha;	// elevation angle
-	vector3 launchPos; // Original launching position.
+	vector3 velocity;	// current velocity
+	vector3 oldpos;		// position at last iteration (for collision detection)
 
 	gun_shell();
 	gun_shell& operator=(const gun_shell& other);

@@ -10,28 +10,23 @@
 gun_shell::gun_shell(const sea_object& parent, angle direction, angle elevation,
 	double initial_velocity) : sea_object()
 {
-	launchPos = parent.get_pos();	// fixme: calc correct position
-	position = launchPos;
-	heading = direction;
-	length = 0.2;
-	width = 0.2;
-	v0 = initial_velocity;
-	t = 0;
-	speed = v0;
-	alpha = elevation;
+	position = parent.get_pos();	// fixme: calc correct position
+	oldpos = position;
+	vector2 d = direction.direction() * elevation.cos() * initial_velocity;
+	velocity = vector3(d.x, d.y, elevation.sin() * initial_velocity);
+	length = gun_shell_mdl->get_length();
+	width = gun_shell_mdl->get_width();
+
 	system::sys()->add_console("shell created");
 	vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 }
 
 void gun_shell::simulate(game& gm, double delta_time)
 {
-	t += delta_time;
-	speed = v0*exp(-AIR_RESISTANCE*t/v0);	// not needed
-	double curvepos = v0*v0/AIR_RESISTANCE * (1.0 - exp(-AIR_RESISTANCE*t/v0));
-	position.z = alpha.sin() * curvepos - GRAVITY * t*t/2;
-	vector2 deltapos = heading.direction() * curvepos * alpha.cos();
-	position.x = launchPos.x + deltapos.x;
-	position.y = launchPos.y + deltapos.y;
+	oldpos = position;
+	position += velocity * delta_time;
+//	velocity *= (1.0 - AIR_RESISTANCE) * delta_time;	// fixme: other formula?
+	velocity += vector3(0, 0, -GRAVITY) * delta_time;
 
 	if (position.z <= 0) {
 		bool impact = gm.gs_impact(position);
@@ -41,5 +36,19 @@ void gun_shell::simulate(game& gm, double delta_time)
 
 void gun_shell::display(void) const
 {
+	// direction of shell is equal to normalized velocity vector.
+	// so compute a rotation matrix from velocity and multiply it
+	// onto the current modelview matrix.
+	vector3 vn = velocity.normal();
+	vector3 up = vector3(0, 0, 1);
+	vector3 side = vn.orthogonal(up);
+	up = side.orthogonal(vn);
+	float m[16] = { side.x, side.y, side.z, 0,
+			vn.x, vn.y, vn.z, 0,
+			up.x, up.y, up.z, 0,
+			0, 0, 0, 1 };
+	glPushMatrix();
+	glMultMatrixf(m);
 	gun_shell_mdl->display();
+	glPopMatrix();
 }

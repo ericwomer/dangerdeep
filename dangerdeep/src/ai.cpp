@@ -197,11 +197,19 @@ void ai::act_dumb(game& gm, double delta_time)
 
 void ai::fire_shell_at(game& gm, const sea_object& s)
 {
+	// maybe we should not use current position but rather
+	// estimated position at impact!
 	vector2 deltapos = s.get_pos().xy() - parent->get_pos().xy();
 	// double distance = deltapos.length(); Unused variable
 	angle direction(deltapos);
 	
-	angle elevation = angle(30);	// fixme
+	// initial angle: estimate distance and fire, remember angle
+	// next shots: adjust angle after distance fault:
+	//	estimate new distance from old and fault
+	//	select new angle, fire.
+	//	use an extra bit of correction for wind etc.
+	
+	angle elevation = angle(20);	// fixme
 	
 
 	// fixme adapt direction & elevation to course and speed of target!	
