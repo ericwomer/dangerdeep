@@ -619,7 +619,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	const double EARTH_ROT_AXIS_ANGLE = 23.45;
 	const double MOON_ORBIT_TIME = 29.5306 * 86400.0;
 	const double EARTH_ROTATION_TIME = 86400.0;
-	const double EARTH_CIRCUMFERENCE = 2.0 * M_PI * EARTH_RADIUS;
+	const double EARTH_PERIMETER = 2.0 * M_PI * EARTH_RADIUS;
 	const double EARTH_ORBIT_TIME = 31556926.5;	// in seconds. 365 days, 5 hours, 48 minutes, 46.5 seconds
 	// these values are difficult to get. SUN_POS_ADJUST should be around +9.8deg (10days of 365 later) but that gives
 	// a roughly right position but wrong sun rise time by about 40min. fixme
@@ -633,8 +633,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	// to avoid mixing very differently sized floating point values, we scale distances before translation.
 	double sun_scale_fac = max_view_dist / EARTH_SUN_DISTANCE;
 	glTranslated(0, 0, -EARTH_RADIUS * sun_scale_fac);
-	glRotated(360.0 * -viewpos.y * 4 / EARTH_CIRCUMFERENCE, 0, 1, 0);
-	glRotated(360.0 * -viewpos.x * 2 / EARTH_CIRCUMFERENCE, 1, 0, 0);
+	glRotated(360.0 * -viewpos.y * 4 / EARTH_PERIMETER, 0, 1, 0);
+	glRotated(360.0 * -viewpos.x * 2 / EARTH_PERIMETER, 1, 0, 0);
 	// Transform sun space to earth space
 	glRotated(360.0 * -myfmod(universaltime, EARTH_ROTATION_TIME)/EARTH_ROTATION_TIME, 0, 1, 0);
 	glRotated(-EARTH_ROT_AXIS_ANGLE, 1, 0, 0);
@@ -672,8 +672,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	// Transform earth space to viewer space
 	double moon_scale_fac = max_view_dist / MOON_EARTH_DISTANCE;
 	glTranslated(0, 0, -EARTH_RADIUS * moon_scale_fac);
-	glRotated(360.0 * -viewpos.y * 4 / EARTH_CIRCUMFERENCE, 0, 1, 0);
-	glRotated(360.0 * -viewpos.x * 2 / EARTH_CIRCUMFERENCE, 1, 0, 0);
+	glRotated(360.0 * -viewpos.y * 4 / EARTH_PERIMETER, 0, 1, 0);
+	glRotated(360.0 * -viewpos.x * 2 / EARTH_PERIMETER, 1, 0, 0);
 	// Transform moon space to earth space
 	glRotated(360.0 * -myfmod(universaltime, EARTH_ROTATION_TIME)/EARTH_ROTATION_TIME, 0, 1, 0);
 	glRotated(-EARTH_ROT_AXIS_ANGLE, 1, 0, 0);

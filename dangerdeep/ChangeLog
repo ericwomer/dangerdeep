@@ -1,3 +1,9 @@
+2003-12-01  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* mapcompile.cpp coastline.cpp
+	  - coast lines are smoothed over segment boarders.
+	    coast has no more hard corners.
+	  - map is compressed with run length encoding.
+
 2003-12-01  Markus Petermann  <markus.petermann@gmx.net>
 
 	* src/submarine_interface.cpp: Periscope view size changed to 20 degrees

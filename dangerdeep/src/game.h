@@ -18,6 +18,14 @@
 #include <vector>
 using namespace std;
 
+/*
+fixme:
+create subclass/interface job: run()=0;
+game::register_job(job j, double periodtime);
++unregister
+->automatic call of job::run() every "periodtime" seconds.
+*/
+
 // use forward declarations to avoid unneccessary compile dependencies
 class ship;
 class airplane;
