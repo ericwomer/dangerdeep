@@ -147,13 +147,16 @@ int main(int argc, char** argv)
 	sys->add_console("A simple model viewer for DftD-.mdl files");
 	sys->add_console("copyright and written 2003 by Thorsten Jordan");
 
-	GLfloat lambient[4] = {0.5,0.5,0.5,1};
+	GLfloat lambient[4] = {0.1,0.1,0.1,1};
 	GLfloat ldiffuse[4] = {1,1,1,1};
+	GLfloat lspecular[4] = {0,0,0,0};
 	GLfloat lposition[4] = {100,0,100,0};
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lambient);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, ldiffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, lspecular);
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 	glEnable(GL_LIGHT0);
+	glEnable(GL_NORMALIZE);
 
 	font_arial = new font(string(DATADIR) + FONT_DIR + "font_arial");
 	sys->draw_console_with(font_arial, 0);
