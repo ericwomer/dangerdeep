@@ -3,6 +3,7 @@
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
+#define VERSION "win32"
 #include <windows.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
