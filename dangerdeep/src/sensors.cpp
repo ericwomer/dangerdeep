@@ -10,7 +10,7 @@
 
 // Class sensor
 sensor::sensor ( double range, double detection_cone ) :
-	range ( range ), detection_cone ( detection_cone ), bearing ( 0.0f ),
+	range ( range ), bearing ( 0.0f ), detection_cone ( detection_cone ),
 	move_direction ( 1 )
 {}
 

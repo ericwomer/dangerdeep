@@ -38,6 +38,18 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 	unsigned minton = XmlAttribu(etonnage, "min");
 	unsigned maxton = XmlAttribu(etonnage, "max");
 	tonnage = minton + rnd(maxton - minton + 1);
+	TiXmlElement* emotion = hdftdship.FirstChildElement("motion").Element();
+	system::sys().myassert(emotion != 0, string("motion node missing in ")+specfilename);
+	double tmp = 0;
+	if (emotion->Attribute("maxspeed", &tmp))
+		max_speed = kts2ms(tmp);
+	tmp = 0;
+	if (emotion->Attribute("maxrevspeed", &tmp))
+		max_rev_speed = kts2ms(tmp);
+	emotion->Attribute("acceleration", &acceleration);
+	tmp = 0;
+	if (emotion->Attribute("turnrate", &tmp))
+		turn_rate = angle(tmp);
 	TiXmlElement* esmoke = hdftdship.FirstChildElement("smoke").Element();
 	mysmoke = 0;
 	if (esmoke) {
@@ -88,6 +100,26 @@ void ship::parse_attributes(TiXmlElement* parent)
 {
 	sea_object::parse_attributes(parent);
 	
+	TiXmlElement* emotion = TiXmlHandle(parent).FirstChildElement("motion").Element();
+	if (emotion) {
+		double tmp = 0;
+		if (emotion->Attribute("heading", &tmp))
+			heading = angle(tmp);
+		tmp = 0;
+		if (emotion->Attribute("speed", &tmp))
+			speed = kts2ms(tmp);
+		string thr = XmlAttrib(emotion, "throttle");
+		if (thr == "stop") throttle = stop;
+		else if (thr == "reverse") throttle = reverse;
+		else if (thr == "aheadlisten") throttle = aheadlisten;
+		else if (thr == "aheadsonar") throttle = aheadsonar;
+		else if (thr == "aheadslow") throttle = aheadslow;
+		else if (thr == "aheadhalf") throttle = aheadhalf;
+		else if (thr == "aheadfull") throttle = aheadfull;
+		else if (thr == "aheadflank") throttle = aheadflank;
+		else throttle = atoi(thr.c_str());
+	}
+	// fixme: parse permanent_turn,head_chg,head_to,rudder  maybe also alive_stat,previous_positions
 	// parse tonnage, fuel level, damage status, fixme
 }
 

@@ -132,6 +132,7 @@ public:
 	virtual float get_length(void) const { return size3d.y; };
 	virtual float get_height(void) const { return size3d.z; };
 	virtual float surface_visibility(const vector2& watcher) const;
+	virtual angle get_heading(void) const;	// rotation and atan2 needed, a bit costly.
 
 	/**
 		Noise modification for submarines. Submarines are using diesel engines

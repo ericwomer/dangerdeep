@@ -1307,7 +1307,7 @@ void user_interface::display_glasses(class game& gm)
 
 void user_interface::add_rudder_message()
 {
-    switch (player_object->get_rudder())
+    switch (player_object->get_rudder_to())
     {
         case sea_object::rudderfullleft:
             add_message(texts::get(35));

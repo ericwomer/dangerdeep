@@ -265,7 +265,7 @@ void convoy::save(ostream& out, const class game& g) const
 
 void convoy::simulate(game& gm, double delta_time)
 {
-	sea_object::simulate(gm, delta_time);
+	sea_object::simulate(gm, delta_time);//remove, replace by position update in ai-class
 
 	// check for ships to be erased
 	for (list<pair<ship*, vector2> >::iterator it = merchants.begin(); it != merchants.end(); ) {
@@ -287,7 +287,7 @@ void convoy::simulate(game& gm, double delta_time)
 	if ( myai )
 		myai->act(gm, delta_time);
 
-	// convoy erased?
+	// convoy erased?, fixme could be put to is_defunct() function (convoy is no heir of sea_object anymore)
 	if (merchants.size() + warships.size() + escorts.size() == 0)
 		alive_stat = defunct;
 }

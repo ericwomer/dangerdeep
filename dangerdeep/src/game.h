@@ -102,9 +102,9 @@ public:
 	};
 	
 protected:
-	list<ship*> ships;
-	list<submarine*> submarines;
-	list<airplane*> airplanes;
+	list<ship*> ships;	// fixme: maybe vectors would be better here (simpler, faster access)
+	list<submarine*> submarines; // reserve space for torps,dcs,gunshells,watersplashes
+	list<airplane*> airplanes; // the rest doesn't change very often, array is small etc.
 	list<torpedo*> torpedoes;
 	list<depth_charge*> depth_charges;
 	list<gun_shell*> gun_shells;
