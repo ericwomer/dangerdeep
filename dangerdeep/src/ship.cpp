@@ -10,6 +10,7 @@
 #include "ship_destroyertribal.h"
 #include "ship_battleshipmalaya.h"
 #include "ship_carrierbogue.h"
+#include "ship_corvette.h"
 #include "tokencodes.h"
 #include "sensors.h"
 #include "ai.h"
@@ -49,6 +50,7 @@ ship* ship::create(ship::types type_)
 		case destroyertribal: return new ship_destroyertribal();
 		case battleshipmalaya: return new ship_battleshipmalaya();
 		case carrierbogue: return new ship_carrierbogue();
+		case corvette: return new ship_corvette();
 	}
 	return 0;
 }
@@ -64,6 +66,7 @@ ship* ship::create(parser& p)
 		case TKN_DESTROYERTRIBAL: return new ship_destroyertribal(p);
 		case TKN_BATTLESHIPMALAYA: return new ship_battleshipmalaya(p);
 		case TKN_CARRIERBOGUE: return new ship_carrierbogue(p);
+		case TKN_CORVETTE: return new ship_corvette(p);
 	}
 	return 0;
 }

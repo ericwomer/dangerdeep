@@ -384,6 +384,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	
 	// ******** clouds *******
 	glDisable(GL_LIGHTING);		// direct lighting turned off
+	glDisable(GL_DEPTH_TEST);	// draw all clouds
 	lightcol.set_gl_color();	// cloud color depends on day time
 	glBindTexture(GL_TEXTURE_2D, clouds->get_opengl_name());
 	glBegin(GL_QUADS);
@@ -400,6 +401,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	}
 	glEnd();
 	glPopMatrix();	// remove translate
+	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	color::white().set_gl_color();
 

@@ -18,6 +18,7 @@
 #include "ship_destroyertribal.h"
 #include "ship_battleshipmalaya.h"
 #include "ship_carrierbogue.h"
+#include "ship_corvette.h"
 #include "submarine_VIIc.h"
 #include "submarine_XXI.h"
 #include <iostream>
@@ -300,8 +301,8 @@ void menu_show_vessels(void)
 		}
 #undef ROTANG		
 		if (current_vessel != lastvessel) {
-			if (current_vessel < 0) current_vessel = 6;
-			if (current_vessel > 6) current_vessel = 0;
+			if (current_vessel < 0) current_vessel = 7;
+			if (current_vessel > 7) current_vessel = 0;
 			delete vessel;
 			lastvessel = current_vessel;
 			switch(current_vessel) {
@@ -310,8 +311,9 @@ void menu_show_vessels(void)
 				case 2: vessel = new ship_battleshipmalaya(); break;
 				case 3: vessel = new ship_destroyertribal(); break;
 				case 4: vessel = new ship_carrierbogue(); break;
-				case 5: vessel = new submarine_XXI(); break;
-				case 6: vessel = new submarine_VIIc(); break;
+				case 5: vessel = new ship_corvette(); break;
+				case 6: vessel = new submarine_XXI(); break;
+				case 7: vessel = new submarine_VIIc(); break;
 			}
  		}
 	}

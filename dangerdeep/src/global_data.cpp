@@ -17,7 +17,7 @@
 
 model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
-	*skyhemisphere;
+	*skyhemisphere, *corvette_mdl;
 
 texture *water, *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
@@ -48,6 +48,7 @@ void init_global_data(void)
 	subVII = new model((get_data_dir() + MODEL_DIR + "subVII.mdl"));
 	subXXI = new model((get_data_dir() + MODEL_DIR + "subXXI.mdl"));
 	destroyer_tribal = new model((get_data_dir() + MODEL_DIR + "destroyer1.mdl"));
+	corvette_mdl = new model((get_data_dir() + MODEL_DIR + "corvette.mdl"));
 	font_arial = new font((get_data_dir() + FONT_DIR + "font_arial.png").c_str());
 	font_arial2 = new font((get_data_dir() + FONT_DIR + "font_arial2.png").c_str());
 	font_ellis = new font((get_data_dir() + FONT_DIR + "font_ellis.png").c_str());
@@ -118,6 +119,7 @@ void deinit_global_data(void)
 	delete subVII;
 	delete subXXI;
 	delete destroyer_tribal;
+	delete corvette_mdl;
 	delete font_arial;
 	delete font_arial2;
 	delete font_ellis;

@@ -1,4 +1,6 @@
 2003-07-05  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* ship_corvette.* and related files.
+	  - new model.
 	* ai.cpp
 	  - made destroyer course computation a bit smarter.
 	* game.h game.cpp user_interface.cpp
