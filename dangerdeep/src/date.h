@@ -11,7 +11,7 @@ class date
 {
 public:
 	enum month_type { January = 1, February, March, April, May, June,
-		July, August, September, November, December };
+		July, August, September, October, November, December };
 	enum date_type { year, month, day, hour, minute, second, last_date_type };
 
 private:
