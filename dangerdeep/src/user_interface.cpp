@@ -20,7 +20,7 @@ void user_interface::init_water_data(void)
 	vector<unsigned char> waterheight(WATERSIZE*WATERSIZE);
 	for (int j = 0; j < WATERSIZE; ++j)
 		for (int i = 0; i < WATERSIZE; ++i)
-			waterheight[j*WATERSIZE+i] = rand()%256;
+			waterheight[j*WATERSIZE+i] = rnd(256);
 	allwaveheights.resize(WAVES*WATERSIZE*WATERSIZE);
 	vector<float>::iterator it = allwaveheights.begin();
 	for (int k = 0; k < WAVES; ++k) {
@@ -124,7 +124,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glVertex3f(c1,c2,0);
 	glEnd();
 	
-	//fixme waterheight of äußerstem rand des allwaveheight-gemachten wassers auf 0
+	//fixme waterheight of äußerstem Rand des allwaveheight-gemachten wassers auf 0
 	//damit keine lücken zu obigem wasser da sind SCHNELLER machen
 	//fixme vertex lists
 	//fixme visibility detection: 75% of the water are never seen but drawn

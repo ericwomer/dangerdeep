@@ -2,7 +2,7 @@
 
 #include "model.h"
 #include "system.h"
-#include "datapath.h"
+#include "global_data.h"
 #include <GL/gl.h>
 
 float model::read_packed_float(FILE* f)
@@ -61,7 +61,7 @@ void model::read(const string& filename)
 	texmapping = 0;
 	fread(&texmapping, 1, 1, f);
 	if (texname != "")
-		tex = new texture(datafilename(texname), texmapping);
+		tex = new texture(get_data_dir() + texname, texmapping);
 	else
 		tex = 0;
 

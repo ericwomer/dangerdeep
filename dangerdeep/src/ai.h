@@ -8,15 +8,11 @@
 #include "sea_object.h"
 #include "global_data.h"
 
-#define AI_AWARENESS_DISTANCE 20000	// 20km should be enough
 #define WPEXACTNESS 100			// how exact a waypoint has to be hit in meters
 #define AI_THINK_CYCLE_TIME 10		// sec
 #define DC_ATTACK_RADIUS 100		// distance to target before DC launching starts
 #define DC_ATTACK_RUN_RADIUS 200	// distance to contact until escort switches to
 					// maximum speed
-
-// fixme: interleave ai computation between frames to avoid
-// time consumption peeks every AI_THINK_CYCLE_TIME seconds
 
 class ai
 {
@@ -33,7 +29,7 @@ protected:
 	sea_object* followme;
 	bool has_contact;
 	vector3 contact;	// position of target to attack
-	double last_thought_time;
+	double remaining_time;	// time to next thought/situation analysis
 	bool cyclewaypoints;
 	
 	list<vector2> waypoints;
@@ -44,10 +40,12 @@ protected:
 
 public:
 
+	// ai computation between is rndly interleaved between frames to avoid
+	// time consumption peeks every AI_THINK_CYCLE_TIME seconds
 	ai(sea_object* parent_, types type_) : type(type_), state(followpath),
 		zigzagstate(0), parent(parent_), followme(0),
 		has_contact(false),
-		last_thought_time(-AI_THINK_CYCLE_TIME),
+		remaining_time(rnd() * AI_THINK_CYCLE_TIME),
 		cyclewaypoints(false) {};
 	virtual ~ai() {};
 	

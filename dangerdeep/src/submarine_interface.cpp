@@ -76,7 +76,8 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 		case SDLK_t: {
 			bool bow = true;
 			if (target != 0) {
-				angle a(target->get_pos().xy() - player->get_pos().xy());
+				angle a = angle(target->get_pos().xy() - player->get_pos().xy())
+					- player->get_heading();
 				if (a.ui_abs_value180() > 90)
 					bow = false;
 			}

@@ -6,6 +6,7 @@
 
 #include "ship.h"
 #include "torpedo.h"
+#include <vector>
 
 class submarine : public ship
 {

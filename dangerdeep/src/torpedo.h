@@ -27,7 +27,7 @@ public:
 	virtual ~torpedo() {};
 	torpedo(sea_object* parent_, unsigned type_);
 	virtual void simulate(class game& gm, double delta_time);
-	virtual void hit(sea_object* other);
+	virtual void hit(sea_object* other);	// action when object is hit
 	virtual void display(void) const;
 
 	// compute gyro lead angle and expected run time of torpedo

@@ -66,6 +66,10 @@ void ship::simulate(game& gm, double delta_time)
 	myai->act(gm, delta_time);
 }
 
+void ship::fire_shell_at(const vector2& pos)
+{
+}
+
 void ship::display(void) const
 {
 	switch(type) {

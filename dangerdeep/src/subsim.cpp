@@ -147,8 +147,8 @@ void show_vessels(void)
 	double xangle = 0;
 	unsigned lasttime = sys->millisec();
 	while (true) {
-		if (vessel < 0) vessel = 7;
-		if (vessel > 7) vessel = 0;
+		if (vessel < 0) vessel = 5;
+		if (vessel > 5) vessel = 0;
 		model* m = 0;
 		const char* mname = 0;
 		switch(vessel) {
@@ -158,8 +158,6 @@ void show_vessels(void)
  			case 3: m = destroyer_tribal; mname = "Detroyer Tribal class"; break;
  			case 4: m = troopship_medium; mname = "Medium Troopship"; break;
 			case 5: m = battleship_malaya; mname = "Battleship Malaya class"; break;
- 			case 6: m = torpedo_g7; mname = "German type G7 torpedo"; break;
- 			case 7: m = depth_charge_mdl; mname = "Allied depth charge"; break;
  		}
 
 		glClear(GL_DEPTH_BUFFER_BIT);

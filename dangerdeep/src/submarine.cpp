@@ -29,7 +29,7 @@ submarine::submarine(unsigned type_, const vector3& pos, angle heading)
 			turn_rate = 0.2;
 			length = subVII->get_length();
 			width = subVII->get_width();
-			max_depth = 220+rand()%20;
+			max_depth = 220+rnd(20);
 			torpedoes.resize(14, stored_torpedo(torpedo::T3));
 			nr_bow_tubes = 4;
 			nr_stern_tubes = 1;
@@ -50,7 +50,7 @@ submarine::submarine(unsigned type_, const vector3& pos, angle heading)
 			turn_rate = 0.2;
 			length = subXXI->get_length();
 			width = subXXI->get_width();
-			max_depth = 280+rand()%20;	// fixme > planned values, protypes only 170
+			max_depth = 280+rnd(20);	// fixme > planned values, protypes only 170
 			torpedoes.resize(23, stored_torpedo(torpedo::T6LUT));
 			nr_bow_tubes = 6;
 			nr_stern_tubes = 0;

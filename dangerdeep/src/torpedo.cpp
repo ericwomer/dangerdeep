@@ -66,22 +66,27 @@ void torpedo::simulate(game& gm, double delta_time)
 
 	// check for collisions with other subs or ships
 	list<ship*>& ships = gm.get_ships();
-	list<submarine*>& submarines = gm.get_submarines();
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
 		if (is_collision(*it)) {
 			hit(*it);
+			gm.torp_explode(position);
+			return;	// only one hit possible
 		}
 	}
+	list<submarine*>& submarines = gm.get_submarines();
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
 		if (*it == parent && run_length <= parent->get_length()) continue;
 		if (is_collision(*it)) {
 			hit(*it);
+			gm.torp_explode(position);
+			return; // only one hit possible
 		}
 	}
 }
 
 void torpedo::hit(sea_object* other)
 {
+	// fixme: we need to notify the game about this event
 	if (run_length < 250) {
 		system::sys()->add_console("dud torpedo - range too short");
 	} else {

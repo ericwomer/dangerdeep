@@ -29,8 +29,22 @@ void depth_charge::simulate(game& gm, double delta_time)
 	sea_object::simulate(gm, delta_time);	// nothing happens
 	position.z -= DEPTH_CHARGE_SINK_SPEED * delta_time;
 	if (position.z < -explosion_depth) {
-		gm.dc_explosion(*this);
-		kill();
+		// are subs affected?
+		// fixme: ships can be damaged by DCs also...
+		list<submarine*>& submarines = gm.get_submarines();
+		for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
+			double deadly_radius = DEADLY_DC_RADIUS_SURFACE +
+				(*it)->get_pos().z * DEADLY_DC_RADIUS_200M / 200;
+			vector3 special_dist = (*it)->get_pos() - get_pos();
+			special_dist.z *= 2;	// depth differences change destructive power
+			if (special_dist.length() <= deadly_radius) {
+				system::sys()->add_console("depth charge hit!");
+				(*it)->kill();	// sub is killed.
+			}
+			// fixme handle damages!
+		}
+		kill();	// dc is "dead"
+		gm.dc_explosion(position);
 	}
 }
 

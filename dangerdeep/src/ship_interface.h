@@ -61,7 +61,7 @@ protected:
 //		const ship::stored_torpedo& st);
 
 	void display_gauges(class system& sys, class game& gm);
-	void display_sonar(class system& sys, class game& gm);
+	void display_sonar(class system& sys, class game& gm); // or better display_guns?
 	void display_glasses(class system& sys, class game& gm);
 	void display_bridge(class system& sys, class game& gm);
 	void display_map(class system& sys, class game& gm);

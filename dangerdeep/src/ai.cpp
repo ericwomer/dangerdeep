@@ -26,10 +26,11 @@ void ai::follow(sea_object* t)
 
 void ai::act(class game& gm, double delta_time)
 {
-	if (gm.get_time() < last_thought_time + AI_THINK_CYCLE_TIME) {
+	remaining_time -= delta_time;
+	if (remaining_time > 0) {
 		return;
 	} else {
-		last_thought_time = gm.get_time();
+		remaining_time = AI_THINK_CYCLE_TIME;
 	}
 
 	switch (type) {
@@ -61,18 +62,18 @@ void ai::act_escort(game& gm, double delta_time)
 	// always watch out/listen/ping for the enemy
 	// watch around	
 	list<submarine*> subs = gm.get_submarines();
-	double dist = AI_AWARENESS_DISTANCE;
 	for (list<submarine*>::iterator it = subs.begin(); it != subs.end(); ++it) {
-		double d = (*it)->get_pos().xy().distance(parent->get_pos().xy());
-		if (d < dist) {
-			if (!gm.can_see(parent, *it)) continue;
-			attack_contact((*it)->get_pos());
-		}
+		//double d = (*it)->get_pos().xy().distance(parent->get_pos().xy());
+		// fixme choose best target
+		if (!gm.can_see(parent, *it)) continue;
+//		gm.spawn_gun_shell(new gun_shell(*parent, 
+//		parent->fire_shell_at((*it)->get_pos().xy());
+		attack_contact((*it)->get_pos());
 	}
 	if (state != attackcontact) {	// nothing found? try a ping or listen
 		// ping around to find something
 		list<vector3> contacts = gm.ping_ASDIC(parent->get_pos().xy(),
-			parent->get_heading()+angle(rand()%360));	//fixme
+			parent->get_heading()+angle(rnd(360)));	//fixme
 		if (contacts.size() > 0) {
 			// fixme: choose best contact!
 			attack_contact(contacts.front());

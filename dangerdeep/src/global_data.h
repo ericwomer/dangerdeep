@@ -4,12 +4,12 @@
 #ifndef GLOBAL_DATA_H
 #define GLOBAL_DATA_H
 
-#include <vector>
+#include <string>
 using namespace std;
 
 // global models, textures, fonts
 extern class model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium, *sky,
-	*battleship_malaya, *torpedo_g7, *depth_charge_mdl;
+	*battleship_malaya, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl;
 extern class texture *water, *background, *titel[4], *periscope[4], *gauge1,
 	*gauge2, *gauge3, *gauge4, *psbackgr, *panelbackgr,
 	*addleadangle, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
@@ -24,5 +24,10 @@ double get_time(unsigned year, unsigned month, unsigned day);
 
 // handle modulo calculation for negative values the way I need it
 inline float myfmod(float a, float b) { return a-floor(a/b)*b; }
+// return a random value in [0, 1(
+inline double rnd(void) { return double(rand())/RAND_MAX; }
+inline unsigned rnd(unsigned b) { return unsigned(b*rnd()); }
+
+inline string get_data_dir(void) { return DATADIR; }
 
 #endif

@@ -41,7 +41,7 @@ void game::simulate(double delta_t)
 	}
 	
 	if (ships.size() == 0 && torpedoes.size() == 0 && depth_charges.size() == 0 &&
-			airplanes.size() == 0) {
+			airplanes.size() == 0 && gun_shells.size() == 0) {
 		running = false;
 		return;
 	}
@@ -91,6 +91,15 @@ void game::simulate(double delta_t)
 			depth_charges.erase(it2);
 		}
 	}
+	for (list<gun_shell*>::iterator it = gun_shells.begin(); it != gun_shells.end(); ) {
+		list<gun_shell*>::iterator it2 = it++;
+		if (!(*it2)->is_defunct()) {
+			(*it2)->simulate(*this, delta_t);
+		} else {
+			delete (*it2);
+			gun_shells.erase(it2);
+		}
+	}
 	time += delta_t;
 	
 	// remove old pings
@@ -117,21 +126,16 @@ bool game::can_see(const sea_object* watcher, const submarine* sub) const
 	return true;
 }
 
-void game::dc_explosion(const depth_charge& dc)
+void game::dc_explosion(const vector3& pos)
 {
-	// are subs affected?
-	// fixme: ships cna be damaged by DCs also...
-	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		double deadly_radius = DEADLY_DC_RADIUS_SURFACE +
-			(*it)->get_pos().z * DEADLY_DC_RADIUS_200M / 200;
-		vector3 special_dist = (*it)->get_pos() - dc.get_pos();
-		special_dist.z *= 2;	// depth differences change destructive power
-		if (special_dist.length() <= deadly_radius) {
-			system::sys()->add_console("depth charge hit!");
-			(*it)->kill();	// sub is killed.
-		}
-		// fixme handle damages!
-	}
+}
+
+void game::gs_impact(const vector3& pos)
+{
+}
+
+void game::torp_explode(const vector3& pos)
+{
 }
 
 list<vector3> game::ping_ASDIC(const vector2& pos, angle dir)
@@ -162,8 +166,8 @@ list<vector3> game::ping_ASDIC(const vector2& pos, angle dir)
 			* (1.0-0.5*subpos.z/400.0);
 		// fixme: this value may vary.
 		// fixme: fuzzyness depends on distance
-		if (probability > 0.3+(rand()%10)*0.02)
-			contacts.push_back(subpos + vector3(rand()%40-20,rand()%40-20,rand()%40-20));
+		if (probability > 0.3+(rnd(10))*0.02)
+			contacts.push_back(subpos + vector3(rnd(40)-20,rnd(40)-20,rnd(40)-20));
 	}
 	
 	return contacts;
@@ -181,6 +185,8 @@ list<sea_object*> game::get_all_sea_objects(void)
 	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
 		result.push_back(*it);
 	for (list<depth_charge*>::iterator it = depth_charges.begin(); it != depth_charges.end(); ++it)
+		result.push_back(*it);
+	for (list<gun_shell*>::iterator it = gun_shells.begin(); it != gun_shells.end(); ++it)
 		result.push_back(*it);
 	return result;
 }

@@ -28,6 +28,7 @@ public:
 	ship(unsigned type_, const vector3& pos, angle heading = 0);
 	virtual void simulate(class game& gm, double delta_time);
 	void simulate_escort(class game& gm, double delta_time);
+	void fire_shell_at(const vector2& pos);
 	virtual void display(void) const;
 	ai* get_ai(void) { return myai; }
 };
