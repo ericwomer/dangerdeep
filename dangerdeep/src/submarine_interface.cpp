@@ -188,7 +188,7 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 		} else if (mycfg.getkey(KEY_FIRE_TUBE_6).equal(event.key.keysym)) {
 			fire_tube(gm, player, 5);
 		} else if (mycfg.getkey(KEY_SELECT_TARGET).equal(event.key.keysym)) {
-			target = gm.contact_in_direction(player, player->get_heading()+bearing);
+			target = gm.contact_in_direction(player, /*player->get_heading()+*/bearing);
 			if (target) {
 				add_message(texts::get(50));
 				gm.add_logbook_entry(texts::get(50));
