@@ -863,7 +863,6 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	lightcol = color(color(64, 64, 64), color(255,255,255), colscal);
 	skycol1 = color(color(8,8,32), color(165,192,247), colscal);
 	skycol2 = color(color(0, 0, 16), color(74,114,236), colscal);
-
 	// compute light source position and brightness
 	GLfloat lambient[4] = {0,0,0,1};//{0.2, 0.2, 0.2, 1};//lightcol.r/255.0/2.0, lightcol.g/255.0/2.0, lightcol.b/255.0/2.0, 1};
 	GLfloat ldiffuse[4] = {lightcol.r/255.0, lightcol.g/255.0, lightcol.b/255.0, 1};
@@ -876,6 +875,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	float tmp = 1.0/30000.0;
 	glScalef(tmp, tmp, tmp);	// sky hemisphere is stored as 30km in radius
 	skycol2.set_gl_color();
+	glBindTexture(GL_TEXTURE_2D, 0);
 	skyhemisphere->display();
 	color::white().set_gl_color();
 	glEnable(GL_LIGHTING);
