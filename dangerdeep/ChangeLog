@@ -1,3 +1,7 @@
+2003-12-27  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* widget.h widget.cpp subsim.cpp
+	  - fixed some widget bugs, made some menues nicer
+
 2003-12-26  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* subsim.cpp game.cpp game.h
 	  - added an interface to load and save games (ripped from advse)

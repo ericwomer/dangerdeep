@@ -34,14 +34,14 @@ using namespace std;
 class widget
 {
 protected:
-	enum return_values { NO_RETURN=-1, OK=0 };
 	vector2i pos, size;
 	string text;
 	widget* parent;
 	image* background;
 	bool enabled;
 	list<widget*> children;
-	int retval;	// run() is stopped whenever this becomes != NO_RETURN
+	int retval;
+	bool closeme;	// is set to true by close(), stops run() the next turn
 	
 	widget();
 	widget(const widget& );
@@ -103,12 +103,14 @@ public:
 	virtual void process_input(void);	// determine type of input, fetch it to on_* functions
 
 	// run() always returns 1    - fixme: make own widget classes for them?
-	static widget* create_dialogue_ok(const string& text);
+	static widget* create_dialogue_ok(widget* parent_, const string& title, const string& text = "");
+	widget* create_dialogue_ok(const string& title, const string& text = "") { return create_dialogue_ok(this, title, text); }
 	// run() returns 1 for ok, 0 for cancel
-	static widget* create_dialogue_ok_cancel(const string& text);
+	static widget* create_dialogue_ok_cancel(widget* parent_, const string& title, const string& text = "");
+	widget* create_dialogue_ok_cancel(const string& title, const string& text = "") { return create_dialogue_ok_cancel(this, title, text); }
 
 	virtual int run(void);	// show & exec. widget, automatically disable widgets below
-	virtual void close(int val) { retval = val; }	// close this widget (stops run() on next turn, returns val)
+	virtual void close(int val);	// close this widget (stops run() on next turn, returns val)
 	
 	static list<widget*> widgets;	// stack of dialogues, topmost is back
 };
@@ -234,14 +236,20 @@ class widget_menu : public widget
 protected:
 	bool horizontal;
 	int entryw, entryh;
+	int entryspacing;
 
 	widget_menu() {}
 	widget_menu(const widget_menu& );
 	widget_menu& operator= (const widget_menu& );
+	
+	void add_child(widget* w) { widget::add_child(w); };	// clients must use add_entry
+	
 public:
 	widget_menu(int x, int y, int w, int h, bool horizontal_ = false, widget* parent_ = 0)
-		: widget(x, y, 0, 0, "", parent_), horizontal(horizontal_), entryw(w), entryh(h) {}
-	widget_button* add_entry(const string& s, widget_button* wb = 0);
+		: widget(x, y, 0, 0, "", parent_), horizontal(horizontal_), entryw(w), entryh(h), entryspacing(16) {}
+	void set_entry_spacing(int spc) { entryspacing = spc; }
+	void adjust_buttons(unsigned totalsize);	// width or height
+	widget_button* add_entry(const string& s, widget_button* wb = 0); // wb's text is always set to s
 	int get_selected(void) const;
 	~widget_menu() {};
 	void draw(void) const;

@@ -79,7 +79,7 @@ void widget::set_theme(class theme* t)
 }
 
 widget::widget(int x, int y, int w, int h, const string& text_, widget* parent_, image* backgr)
-	: pos(x, y), size(w, h), text(text_), parent(parent_), background(backgr), enabled(true), retval(NO_RETURN)
+	: pos(x, y), size(w, h), text(text_), parent(parent_), background(backgr), enabled(true), retval(-1), closeme(false)
 {
 }
 
@@ -123,7 +123,7 @@ void widget::draw(void) const
 	draw_rect(p.x+fw, p.y+fw, size.x-2*fw, globaltheme->myfont->get_height(), false);
 	globaltheme->myfont->print_hc(
 		p.x+size.x/2, p.y+globaltheme->frame_size(), text,
-		globaltheme->textcol, false);
+		globaltheme->textcol, true);
 	for (list<widget*>::const_iterator it = children.begin(); it != children.end(); ++it)
 		(*it)->draw();
 }
@@ -239,33 +239,40 @@ bool widget::is_mouse_over(void) const
 	return (mx >= p.x && my >= p.y && mx < p.x+size.x && my < p.y + size.y);
 }
 
-widget* widget::create_dialogue_ok(const string& text)
+widget* widget::create_dialogue_ok(widget* parent_, const string& title, const string& text)
 {
-	unsigned res_x = system::sys()->get_res_x();
-	unsigned res_y = system::sys()->get_res_y();
-	widget* w = new widget(res_x/4, res_y/4, res_x/2, res_y/2, "");
-	w->add_child(new widget_text(32, 32, res_x/2-64, res_y/2-96, text));
-	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, 1, res_x/4-50, res_y/2-64, 100, 32, "Ok"));
+	unsigned res_x = system::sys()->get_res_x_2d();
+	unsigned res_y = system::sys()->get_res_y_2d();
+	widget* w = new widget(res_x/4, res_y/4, res_x/2, res_y/2, title, parent_);
+	w->add_child(new widget_text(32, 64, res_x/2-64, res_y/2-128, text));
+	int fw = globaltheme->frame_size();
+	int fh = int(globaltheme->myfont->get_height());
+	int butw = 4*fh+2*fw;
+	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, 1, res_x/4-butw/2, res_y/2-64, butw, fh+4*fw, "Ok"));
 	return w;
 }
 
-widget* widget::create_dialogue_ok_cancel(const string& text)
+widget* widget::create_dialogue_ok_cancel(widget* parent_, const string& title, const string& text)
 {
-	unsigned res_x = system::sys()->get_res_x();
-	unsigned res_y = system::sys()->get_res_y();
-	widget* w = new widget(res_x/4, res_y/4, res_x/2, res_y/2, "");
-	w->add_child(new widget_text(32, 32, res_x/2-64, res_y/2-96, text));
-	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, 1, res_x/4-120, res_y/2-64, 100, 32, "Ok"));
-	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, 0, res_x/4+20, res_y/2-64, 100, 32, "Cancel"));
+	unsigned res_x = system::sys()->get_res_x_2d();
+	unsigned res_y = system::sys()->get_res_y_2d();
+	widget* w = new widget(res_x/4, res_y/4, res_x/2, res_y/2, title, parent_);
+	w->add_child(new widget_text(32, 64, res_x/2-64, res_y/2-128, text));
+	int fw = globaltheme->frame_size();
+	int fh = int(globaltheme->myfont->get_height());
+	int butw = 4*fh+2*fw;
+	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, 1, res_x/8-butw/2, res_y/2-64, butw, fh+4*fw, "Ok"));
+	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, 0, 3*res_x/8-butw/2, res_y/2-64, butw, fh+4*fw, "Cancel"));
 	return w;
 }
 
 int widget::run(void)
 {
 	glClearColor(0, 0, 0, 0);
+	if (parent) parent->disable();
 	widgets.push_back(this);
 	class system* sys = system::sys();
-	while (retval == NO_RETURN) {
+	while (!closeme) {
 		sys->poll_event_queue();
 		glClear(GL_COLOR_BUFFER_BIT);
 		sys->prepare_2d_drawing();
@@ -277,28 +284,35 @@ int widget::run(void)
 		sys->swap_buffers();
 	}
 	widgets.pop_back();
+	if (parent) parent->enable();
 	return retval;
+}
+
+void widget::close(int val)
+{
+	retval = val;
+	closeme = true;
 }
 
 widget_button* widget_menu::add_entry(const string& s, widget_button* wb)
 {
 	int x, y, w, h;
 	if (horizontal) {
-		x = children.size() * (entryw + 16);
+		x = children.size() * (entryw + entryspacing);
 		y = 0;
 		w = entryw;
 		h = entryh;
 		size.x += entryw;
 		size.y = entryh;
-		if (children.size() > 0) size.x += 16;
+		if (children.size() > 0) size.x += entryspacing;
 	} else {
 		x = 0;
-		y = children.size() * (entryh + 16);
+		y = children.size() * (entryh + entryspacing);
 		w = entryw;
 		h = entryh;
 		size.x = entryw;
 		size.y += entryh;
-		if (children.size() > 0) size.y += 16;
+		if (children.size() > 0) size.y += entryspacing;
 	}
 	if (wb) {
 		wb->set_size(vector2i(w, h));
@@ -328,6 +342,49 @@ void widget_menu::draw(void) const
 		(*it)->draw();
 }
 
+void widget_menu::adjust_buttons(unsigned totalsize)
+{
+	if (horizontal) {
+		int textw = 0;
+		int fw = globaltheme->frame_size();
+		int nrbut = int(children.size());
+		int longest = 0;
+		for (list<widget*>::const_iterator it = children.begin(); it != children.end(); ++it) {
+			int w = int(globaltheme->myfont->get_size((*it)->get_text()).first);
+			textw += w;
+			if (w > longest) longest = w;
+		}
+		int framew = 2*fw*nrbut;
+		int spaceleft = int(totalsize) - ((longest+2*fw)*nrbut + framew + (nrbut-1)*entryspacing);
+		if (spaceleft > 0) {	// equi distant buttons
+			size.x = int(totalsize);
+			int spc = spaceleft / nrbut;
+			int runpos = 0;
+			for (list<widget*>::const_iterator it = children.begin(); it != children.end(); ++it) {
+				int mytextw = longest+2*fw;
+				(*it)->set_pos(pos + vector2i(runpos, 0));
+				(*it)->set_size(vector2i(mytextw+2*fw+spc, entryh));
+				runpos += mytextw+2*fw+spc + entryspacing;
+			}
+		} else {
+			spaceleft = int(totalsize) - (textw + framew + (nrbut-1)*entryspacing);
+			if (spaceleft > 0) {	// space left?
+				size.x = int(totalsize);
+				int spc = spaceleft / nrbut;
+				int runpos = 0;
+				for (list<widget*>::const_iterator it = children.begin(); it != children.end(); ++it) {
+					int mytextw = int(globaltheme->myfont->get_size((*it)->get_text()).first);
+					(*it)->set_pos(pos + vector2i(runpos, 0));
+					(*it)->set_size(vector2i(mytextw+2*fw+spc, entryh));
+					runpos += mytextw+2*fw+spc + entryspacing;
+				}
+			}
+		}
+	} else {
+		// fixme: todo
+	}
+}
+
 void widget_text::draw(void) const
 {
 	vector2i p = get_pos();
@@ -339,12 +396,10 @@ void widget_text::draw(void) const
 void widget_button::draw(void) const
 {
 	vector2i p = get_pos();
-	bool mo = is_mouse_over();
-	draw_area(p.x, p.y, size.x, size.y, !mo);
-	if (mo && enabled)
-		globaltheme->myfont->print_c(p.x+size.x/2, p.y+size.y/2, text, globaltheme->textselectcol, true);
-	else
-		globaltheme->myfont->print_c(p.x+size.x/2, p.y+size.y/2, text, globaltheme->textcol, false);
+	bool mover = is_enabled() && is_mouse_over();
+	draw_area(p.x, p.y, size.x, size.y, !mover);
+	globaltheme->myfont->print_c(p.x+size.x/2, p.y+size.y/2, text,
+		mover ? globaltheme->textselectcol : globaltheme->textcol, true);
 }
 
 void widget_button::on_click(void)
@@ -570,7 +625,7 @@ void widget_list::draw(void) const
 		if (selected == int(lp + listpos)) {
 			globaltheme->backg->draw(p.x+fw, p.y + fw + lp*globaltheme->myfont->get_height(), size.x-5*fw-globaltheme->icons[0]->get_width(), globaltheme->myfont->get_height());
 		}
-		globaltheme->myfont->print(p.x+fw, p.y+fw + lp*globaltheme->myfont->get_height(), *it, globaltheme->textcol, false);
+		globaltheme->myfont->print(p.x+fw, p.y+fw + lp*globaltheme->myfont->get_height(), *it, globaltheme->textcol, true);
 	}
 	myscrollbar->draw();
 }

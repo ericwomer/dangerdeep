@@ -82,6 +82,8 @@ public:
 	bool key_shift(void) const { return is_key_down(SDLK_LSHIFT) || is_key_down(SDLK_RSHIFT) || is_key_down(SDLK_CAPSLOCK); }
 	unsigned get_res_x(void) const { return res_x; };
 	unsigned get_res_y(void) const { return res_y; };
+	unsigned get_res_x_2d(void) const { return res_x_2d; };
+	unsigned get_res_y_2d(void) const { return res_y_2d; };
 	
 private:
 	system() {};

@@ -119,6 +119,7 @@ class loadsavequit_dialogue : public widget
 	widget_list* gamelist;
 	widget_button *btnload, *btnsave, *btndel, *btnquit, *btncancel;
 	game* mygame;
+	bool gamesaved;
 	map<string, string> savegames;
 	void load(void);
 	void save(void);
@@ -133,20 +134,21 @@ public:
 	~loadsavequit_dialogue() {};
 };
 
-loadsavequit_dialogue::loadsavequit_dialogue(game *g) : widget(0, 0, 1024, 768, "Game options, fixme", 0, depthchargeimg), mygame(g)
+loadsavequit_dialogue::loadsavequit_dialogue(game *g) : widget(0, 0, 1024, 768, texts::get(177), 0, depthchargeimg), mygame(g), gamesaved(false)
 {
-	add_child(new widget_text(40, 40, 0, 0, "Savegame filename"));
-	gamename = new widget_edit(300, 40, 684, 40, "");
+	add_child(new widget_text(40, 40, 0, 0, texts::get(178)));
+	gamename = new widget_edit(200, 40, 684, 40, "");
 	add_child(gamename);
-	widget_menu* wm = new widget_menu(40, 700, 176, 40, true);
+	widget_menu* wm = new widget_menu(40, 700, 180, 40, true);
 	add_child(wm);
 	btnload = wm->add_entry(texts::get(118), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::load));
 	if (mygame)
 		btnsave = wm->add_entry(texts::get(119), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::save));
-	btndel = wm->add_entry("Erase game", new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::erase));
+	btndel = wm->add_entry(texts::get(179), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::erase));
 	if (mygame)
 		btnquit = wm->add_entry(texts::get(120), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::quit));
-	btncancel = wm->add_entry((mygame) ? texts::get(121) : "return to previous menu", new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::cancel));
+	btncancel = wm->add_entry(texts::get(mygame ? 121 : 20), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::cancel));
+	wm->adjust_buttons(944);
 	struct lsqlist : public widget_list
 	{
 		void on_sel_change(void) {
@@ -159,12 +161,14 @@ loadsavequit_dialogue::loadsavequit_dialogue(game *g) : widget(0, 0, 1024, 768, 
 	add_child(gamelist);
 
 	update_list();
+	
+	gamename->set_text(gamelist->get_selected_entry());
 }
 
 void loadsavequit_dialogue::load(void)
 {
 	mygame->load(get_savegame_name_for(gamename->get_text(), savegames));
-	widget* w = create_dialogue_ok("Savegame '" + gamename->get_text() + "' has been loaded.");
+	widget* w = create_dialogue_ok(texts::get(185), texts::get(180) + gamename->get_text() + texts::get(181));
 	w->run();
 	delete w;
 }
@@ -175,13 +179,14 @@ void loadsavequit_dialogue::save(void)
 	FILE* f = fopen(fn.c_str(), "rb");
 	if (f) {
 		fclose(f);
-		widget* w = create_dialogue_ok_cancel("Overwrite savegame '" + gamename->get_text() + "' ?");
+		widget* w = create_dialogue_ok_cancel(texts::get(182), texts::get(183) + gamename->get_text() + texts::get(184));
 		int ok = w->run();
 		delete w;
 		if (!ok) return;
 	}
+	gamesaved = true;
 	mygame->save(fn, gamename->get_text());
-	widget* w = create_dialogue_ok("Savegame '" + gamename->get_text() + "' has been saved.");
+	widget* w = create_dialogue_ok(texts::get(186), texts::get(180) + gamename->get_text() + texts::get(187));
 	w->run();
 	delete w;
 	update_list();
@@ -189,7 +194,7 @@ void loadsavequit_dialogue::save(void)
 
 void loadsavequit_dialogue::erase(void)
 {
-	widget* w = create_dialogue_ok_cancel("Erase savegame '" + gamename->get_text() + "' ?");
+	widget* w = create_dialogue_ok_cancel(texts::get(182), texts::get(188) + gamename->get_text() + texts::get(189));
 	int ok = w->run();
 	delete w;
 	if (ok) {
@@ -205,9 +210,13 @@ void loadsavequit_dialogue::erase(void)
 
 void loadsavequit_dialogue::quit(void)
 {
-	widget* w = create_dialogue_ok_cancel("Quit game?");
-	int q = w->run();
-	if (q) close(1);
+	if (!gamesaved) {
+		widget* w = create_dialogue_ok_cancel(texts::get(182), texts::get(190));
+		int q = w->run();
+		if (q) close(1);
+	} else {
+		close(1);
+	}
 }
 
 void loadsavequit_dialogue::update_list(void)
@@ -304,7 +313,7 @@ void run_game(game* gm)
 		//if (state == 2) break;
 		//SDL_ShowCursor(SDL_ENABLE);
 		if (state == 1) {
-			//widget* w = widget::create_dialogue_ok_cancel("Quit game?");
+			//widget* w = widget::create_dialogue_ok_cancel("Quit game?", "");
 			//int q = w->run();
 			//delete w;
 			//if (q == 1)
@@ -355,8 +364,11 @@ void create_convoy_mission(void)
 	wtimeofday->append_entry(texts::get(93));
 	wtimeofday->append_entry(texts::get(94));
 
-	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40, texts::get(20)));
-	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 540, 700, 400, 40, texts::get(19)));
+	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
+	w.add_child(wm);
+	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
+	wm->add_entry(texts::get(19), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 540, 700, 400, 40));
+	wm->adjust_buttons(944);
 	int result = w.run();
 	if (result == 2) {	// start game
 		submarine::types st = submarine::typeVIIc;
@@ -392,9 +404,12 @@ void choose_historical_mission(void)
 	w.add_child(wmission);
 	for (unsigned i = 0; i < nr_missions; ++i)
 		wmission->append_entry(texts::get(500+i));
-	
-	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40, texts::get(20)));
-	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 540, 700, 400, 40, texts::get(19)));
+
+	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
+	w.add_child(wm);
+	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
+	wm->add_entry(texts::get(19), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 70, 700, 400, 40));
+	wm->adjust_buttons(944);
 	int result = w.run();
 	if (result == 2) {	// start game
 		string filename = get_mission_dir() + missions[wmission->get_selected()] + ".mis";
