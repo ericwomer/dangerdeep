@@ -305,10 +305,6 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glBindTexture(GL_TEXTURE_2D, mywater->get_reflectiontex());
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, vps, vps, 0);
 
-	// restore light!
-	lposition[2] = -lposition[2];
-	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
-	
 /*
 	vector<Uint8> scrn(vps*vps*3);
 	glReadPixels(0, 0, vps, vps, GL_RGB, GL_UNSIGNED_BYTE, &scrn[0]);
@@ -326,6 +322,10 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glClear(GL_DEPTH_BUFFER_BIT);
+
+	// restore light! fixme the models are dark now. maybe we have to use the same modelview matrix that we used when creating the initial pos.?!
+	lposition[2] = -lposition[2];
+	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 
 	// ************ sky ***************************************************************
 	mysky->display(viewpos, max_view_dist);
