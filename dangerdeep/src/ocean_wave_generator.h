@@ -72,6 +72,7 @@ public:
 	// use this after height computation to avoid the overhead of fft normals
 	vector<vector3t<T> > compute_finite_normals(const vector<T>& heights) const;
 	vector<vector3t<T> > compute_normals(void) const;
+	// give negative values to use default factor, positive for displacement scaling
 	vector<vector2t<T> > compute_displacements(void) const;
 	~ocean_wave_generator();
 };
@@ -344,12 +345,11 @@ vector<vector2t<T> > ocean_wave_generator<T>::compute_displacements(void) const
 	
 	vector<vector2t<T> > wavedisplacements(N*N);
 	T signs[2] = { T(1), T(-1) };
-	T chopfac = Lm / T(2*N);
 	for (int y = 0; y < N; ++y) {
 		for (int x = 0; x < N; ++x) {
 			int ptr = y*N+x;
 			T s = signs[(x + y) & 1];
-			wavedisplacements[ptr] = vector2t<T>(fft_out[ptr], fft_out2[ptr]) * (s * chopfac);
+			wavedisplacements[ptr] = vector2t<T>(fft_out[ptr], fft_out2[ptr]) * s;
 		}
 	}
 	return wavedisplacements;

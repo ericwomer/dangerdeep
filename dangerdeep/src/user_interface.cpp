@@ -47,7 +47,7 @@ using namespace std;
 #define FACES_PER_WAVE 32	// resolution of wave model in x/y dir.
 #define FACES_PER_AXIS (WAVES_PER_AXIS*FACES_PER_WAVE)
 #define WAVE_LENGTH 128.0	// in meters, total length of one wave tile
-#define TIDECYCLE_TIME 10.0
+#define TIDECYCLE_TIME 10.0	// seconds
 #define FOAM_VANISH_FACTOR 0.1	// 1/second until foam goes from 1 to 0.
 #define FOAM_SPAWN_FACTOR 0.2	// 1/second until full foam reached. maybe should be equal to vanish factor
 
@@ -170,6 +170,14 @@ void user_interface::init ()
 		Another idea: rotate the waves before displaying according to wind/water
 		movement direction and let get_water_height/get_water_normal functions
 		use the rotation, too. fixme
+		
+		With global normals instead of per-face normals (needs a full frequency large fft)
+		we don't need to project the light vector to each face's tangent space.
+		Hence we don't need to set glColor for each vertex. This reduces memory usage and
+		frees 4 per-vertex channels. Now we could store light direction as texture
+		environment color (instead of primary_color) to make free use of this channels.
+		The color channels could hold the water color (depending on slope), then texture
+		unit 2 would be free for a foam map (not only white/blue, but structured!)
 	*/
 	wavetileh.resize(WAVE_PHASES);
 	wavetilen.resize(WAVE_PHASES);
@@ -217,7 +225,7 @@ void user_interface::init ()
 	// So if light's direction changes, the display list can be kept!
 
 	unsigned bumpmap_texsize = 128; //64;	// use at least 128 for a good look. 2^7*2^7*2^7*3 bytes = 6mb
-	ocean_wave_generator<float> owgb(bumpmap_texsize, vector2f(1,1), 31, 0.000005, WAVE_LENGTH, TIDECYCLE_TIME);
+	ocean_wave_generator<float> owgb(bumpmap_texsize, vector2f(1,1), 31, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
 	ocean_wave_generator<float> owg(owgb, FACES_PER_WAVE);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
@@ -244,6 +252,7 @@ void user_interface::init ()
 #endif
 
 
+		float chopfac = -2.0;	// 4.0;	// default. it seems that choppy waves don't look right. bug? fixme, with negative values it seems right. check this!
 		float add = 1.0f/FACES_PER_WAVE;
 		float fy = 0;
 		for (unsigned y = 0; y <= FACES_PER_WAVE; ++y) {
@@ -252,8 +261,8 @@ void user_interface::init ()
 			for (unsigned x = 0; x <= FACES_PER_WAVE; ++x) {
 				unsigned cx = x%FACES_PER_WAVE;
 				unsigned ptr = cy*FACES_PER_WAVE+cx;
-				coords.push_back(fx*WAVE_LENGTH+d[ptr].x);
-				coords.push_back(fy*WAVE_LENGTH+d[ptr].y);
+				coords.push_back(fx*WAVE_LENGTH + chopfac * d[ptr].x);
+				coords.push_back(fy*WAVE_LENGTH + chopfac * d[ptr].y);
 				coords.push_back(wavetileh[i][ptr]);
 				fx += add;
 			}
@@ -878,7 +887,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 */
 		//fixme: automatic texture coordinate generation ignores wave displacements (choppy waves)
 		//so foam is mapped wrongly!
-		GLfloat scalefac2 = 32.0f*1.0f/(WAVE_LENGTH*WAVES_PER_AXIS);
+		GLfloat scalefac2 = 1.0f/WAVE_LENGTH; //1.0f/(WAVE_LENGTH*WAVES_PER_AXIS);
 		GLfloat plane_s2[4] = { scalefac2, 0.0f, 0.0f, 0.0f };
 		GLfloat plane_t2[4] = { 0.0f, scalefac2, 0.0f, 0.0f };
 /*
