@@ -89,7 +89,7 @@ void image::draw(int x, int y)
 		unsigned h = (yy == glty-1) ? lastrowh : textures[texptr]->get_height();
 		float v = (yy == glty-1) ? lastrowv : 1.0f;
 		for (unsigned xx = 0; xx < gltx; ++xx) {
-			unsigned w = (xx = gltx-1) ? lastcolw : textures[texptr]->get_width();
+			unsigned w = (xx == gltx-1) ? lastcolw : textures[texptr]->get_width();
 			float u = (xx == gltx-1) ? lastcolu : 1.0f;
 			glBindTexture(GL_TEXTURE_2D, textures[texptr]->get_opengl_name());
 			glBegin(GL_QUADS);
