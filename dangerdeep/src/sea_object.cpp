@@ -10,7 +10,7 @@
 sea_object::sea_object() : position(), heading(),
 	speed(0.0), max_speed(0.0), max_rev_speed(0.0), throttle(stop),
 	acceleration(0.0), permanent_turn(false), head_chg(0.0), rudder(ruddermid),
-	head_to(0.0), turn_rate(0.0), length(0.0), width(0.0), vis_cross_section_factor(1.0f),
+	head_to(0.0), turn_rate(0.0), length(0.0), width(0.0),
 	alive_stat(alive)
 {
 	sensors.resize ( last_sensor_system );
@@ -44,7 +44,6 @@ void sea_object::load(istream& in, class game& g)
 	turn_rate = angle(read_double(in));
 	length = read_double(in);
 	width = read_double(in);
-	vis_cross_section_factor = read_float(in);
 	alive_stat = alive_status(read_u8(in));
 
 	previous_positions.clear();
@@ -76,7 +75,6 @@ void sea_object::save(ostream& out, const class game& g) const
 	write_double(out, turn_rate.value());
 	write_double(out, length);
 	write_double(out, width);
-	write_float(out, vis_cross_section_factor);
 	write_u8(out, Uint8(alive_stat));
 
 	write_u8(out, previous_positions.size());
@@ -370,7 +368,7 @@ angle sea_object::estimate_angle_on_the_bow(angle target_bearing, angle target_h
 
 float sea_object::surface_visibility(const vector2& watcher) const
 {
-	return vis_cross_section_factor * get_profile_factor ( watcher );
+	return 1.0/750.0 * get_cross_section(watcher);
 }
 
 sensor* sea_object::get_sensor ( sensor_system ss )
@@ -395,13 +393,15 @@ void sea_object::set_sensor ( sensor_system ss, sensor* s )
 		sensors[ss] = s;
 }
 
-double sea_object::get_profile_factor ( const vector2& d ) const
+double sea_object::get_cross_section ( const vector2& d ) const
 {
-	// Calculate scalar product first and get cosine value.
-	vector2 r = get_pos ().xy () - d;
-	angle diffAngle = angle ( r ) - heading;
-
-	return ( 0.3f + 0.7f * fabs ( diffAngle.sin () ) );
+	const model* mdl = get_model();
+	if (mdl) {
+		vector2 r = get_pos().xy() - d;
+		angle diff = angle(r) - heading;
+		return mdl->get_cross_section(diff.value());
+	}
+	return 0.0;
 }
 
 double sea_object::get_noise_factor () const

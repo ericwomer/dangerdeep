@@ -16,6 +16,8 @@ model::model(const string& filename, bool usematerial_) : display_list(0), usema
 {
 	// fixme: determine loader by extension here. currently only 3ds supported
 	m3ds_load(filename);
+
+	read_cs_file(filename);	// try to read cross section file
 	
 	compute_bounds();
 	compute_normals();
@@ -127,6 +129,37 @@ void model::display(void) const
 		for (vector<model::mesh>::const_iterator it = meshes.begin(); it != meshes.end(); ++it)
 			it->display(usematerial);
 	}
+}
+
+void model::read_cs_file(const string& filename)
+{
+	string fn = filename.substr(0, filename.rfind(".")) + ".cs";
+//cout << "read cs '" << fn << "'\n";
+	ifstream in(fn.c_str(), ios::in | ios::binary);
+	if (!in.good())
+		return;
+	unsigned cs;
+	in >> cs;
+//cout << "read cross sectons: " << cs << "\n";
+	cross_sections.reserve(cs);
+	for (unsigned i = 0; i < cs; ++i) {
+		float tmp;
+		in >> tmp;
+//cout << tmp << ",";		
+		cross_sections.push_back(tmp);
+	}
+//cout << "\n";
+}
+
+float model::get_cross_section(float angle) const
+{
+	unsigned cs = cross_sections.size();
+	if (cs == 0) return 0.0f;
+	float fcs = angle * cs / 360.0;
+	float fac = fcs - floor(fcs);
+	unsigned id0 = unsigned(floor(fcs)) % cs;
+	unsigned id1 = (id0 + 1) % cs;
+	return cross_sections[id0] * (1.0f - fac) + cross_sections[id1] * fac;
 }
 
 // ------------------------------------------ 3ds loading functions -------------------------- 

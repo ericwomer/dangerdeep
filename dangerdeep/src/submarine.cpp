@@ -155,7 +155,6 @@ void submarine::load(istream& in, game& g)
 	hassnorkel = read_bool(in);
 	snorkel_depth = read_double(in);
 	snorkel_up = read_bool(in);
-	sonar_cross_section_factor = read_float(in);
 	battery_level = read_double(in);
 	battery_value_a = read_double(in);
 	battery_value_t = read_double(in);
@@ -190,7 +189,6 @@ void submarine::save(ostream& out, const game& g) const
 	write_bool(out, hassnorkel);
 	write_double(out, snorkel_depth);
 	write_bool(out, snorkel_up);
-	write_float(out, sonar_cross_section_factor);
 	write_double(out, battery_level);
 	write_double(out, battery_value_a);
 	write_double(out, battery_value_t);
@@ -389,8 +387,8 @@ float submarine::surface_visibility(const vector2& watcher) const
 
 	if ( depth >= 0.0f && depth < 10.0f )
 	{
-		dive_factor = 0.1f * ( 10.0f - depth ) * vis_cross_section_factor *
-			get_profile_factor ( watcher );
+		dive_factor = 0.1f * ( 10.0f - depth ) * 
+			ship::surface_visibility(watcher);
 	}
 
 	// Some modifiers when submarine is submerged.
@@ -404,13 +402,13 @@ float submarine::surface_visibility(const vector2& watcher) const
 			// The visibility of the periscope also depends on the speed its moves
 			// through the water. A fast moving periscope with water splashed is
 			// much farther visible than a still standing one.
-			diverse_modifiers += CROSS_SECTION_VIS_PERIS;
+			diverse_modifiers += 0.1;//CROSS_SECTION_VIS_PERIS;
 		}
 
 		if ( is_snorkel_up () )
 		{
 			// A snorkel is much larger than a periscope.
-			diverse_modifiers += 3.0f * CROSS_SECTION_VIS_PERIS;
+			diverse_modifiers += 3.0f * 0.1;//CROSS_SECTION_VIS_PERIS;
 		}
 
 		dive_factor += diverse_modifiers * ( 0.5f + 0.5f * speed / max_speed );
@@ -435,7 +433,7 @@ float submarine::sonar_visibility ( const vector2& watcher ) const
 		diveFactor = 0.125f * (depth - SUBMARINE_SUBMERGED_DEPTH);
 	}
 
-	diveFactor *= sonar_cross_section_factor * get_profile_factor ( watcher );
+	diveFactor *= 1.0/700.0 * get_cross_section ( watcher );
 
 	return diveFactor;
 }

@@ -18,7 +18,6 @@ gun_shell::gun_shell(const sea_object& parent, angle direction, angle elevation,
 	width = gun_shell_mdl->get_width();
 
 	system::sys()->add_console("shell created");
-	vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 }
 
 void gun_shell::load(istream& in, class game& g)

@@ -151,7 +151,7 @@ int main(int argc, char** argv)
 	sys->add_console("copyright and written 2003 by Thorsten Jordan");
 
 	glMatrixMode(GL_PROJECTION);
-	gluOrtho2D(0,0, 1024, 768);
+	gluOrtho2D(0,0, 1024,768);//fixme: to Markus: parameters are left,right,bottom,top and hence should be 0,1024,0,768.
 	GLfloat lambient[4] = {0.5,0.5,0.5,1};
 	GLfloat ldiffuse[4] = {1,1,1,1};
 	GLfloat lposition[4] = {0,0,1,0};

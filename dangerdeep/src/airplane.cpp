@@ -24,7 +24,6 @@ airplane::airplane(unsigned type_, const vector3& pos, double heading) : sea_obj
 			break;
 */			
 	}
-	vis_cross_section_factor = CROSS_SECTION_VIS_MSUB_AC;
 	
 	throttle = aheadfull;
 }

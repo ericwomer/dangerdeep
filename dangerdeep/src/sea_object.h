@@ -13,21 +13,6 @@ using namespace std;
 #define SINK_SPEED 0.5  // m/sec
 #define MAXPREVPOS 20
 
-#define CROSS_SECTION_VIS_CONVOY   2.0f         // Convoy
-#define CROSS_SECTION_VIS_CV       1.0f         // Aircraft carrier (the largest ships)
-#define CROSS_SECTION_VIS_BB_BC    0.95f        // Battleships / Battlecruiser
-#define CROSS_SECTION_VIS_HCR_LFR  0.90f        // Heavy Cruiser, Large Freighters
-#define CROSS_SECTION_VIS_LCR      0.85f        // Light Cruiser
-#define CROSS_SECTION_VIS_NFR      0.80f        // Normal Freighter
-#define CROSS_SECTION_VIS_DD_SMFR  0.75f        // Destroyer, Small Freighter
-#define CROSS_SECTION_VIS_DE       0.70f        // Destroyer Escorts
-#define CROSS_SECTION_VIS_LSUB     0.50f        // Large Submarines (?)
-#define CROSS_SECTION_VIS_NSUB     0.40f        // Normal Submarines (?)
-#define CROSS_SECTION_VIS_MSUB_AC  0.20f        // Midget Submarines (?), Aircrafts
-#define CROSS_SECTION_VIS_PERIS    0.10f        // Periscope
-#define CROSS_SECTION_VIS_TORPWB   0.05f        // Torpedo w/ bubble tail (?)
-#define CROSS_SECTION_VIS_NULL     1.0f         // Gun shell, torpedos w/o bubble tail
-
 class ship;
 class submarine;
 class gun_shell;
@@ -77,24 +62,7 @@ protected:
 	// this means angle change per forward
 	// movement in meters
 	double length, width;	// computed from model
-	/** Cross section factor needed for detection purposes.
-		<pre>
-		1.0f         Aircraft carrier (the largest ships)
-		0.95         Battleships / Battlecruiser
-		0.90f        Heavy Cruiser, Large Freighters
-		0.85f        Light Cruiser
-		0.80f        Normal Freighter
-		0.70f        Destroyer, Small Freighter
-		0.60f        Destroyer Escorts
-		0.20f        Large Submarines (?)
-		0.15f        Normal Submarines (?)
-		0.05f        Midget Submarines (?), Aircrafts
-		0.01f        Torpedo w/ bubble tail (?)
-		0.0f         Gun shell, torpedos w/o bubble tail
-		</pre>
-	*/
-	float vis_cross_section_factor; 
-
+	
 	// an object is alive until it is sunk or killed.
 	// it will sink to some depth then it is killed.
 	// it will be dead for exactly one simulation cycle, to give other
@@ -115,12 +83,13 @@ protected:
 
 	virtual void change_rudder (const int& dir);
 	virtual void set_sensor ( sensor_system ss, sensor* s );
+
 	/**
-		This method calculates the visible profile value of the target.
+		This method calculates the visible cross section of the target.
 		@param d location vector of the detecting object
-		@return profile factor. This is normally a value between 0.3 and 1.0
+		@return cross section in square meters.
 	*/
-	virtual double get_profile_factor ( const vector2& d ) const;
+	virtual double get_cross_section ( const vector2& d ) const;
    
 public:
 	virtual ~sea_object();
@@ -172,8 +141,6 @@ public:
 	virtual double get_max_speed(void) const { return max_speed; };
 	virtual double get_throttle_speed(void) const;
 	virtual int get_rudder (void) const { return rudder; }
-	virtual float get_vis_cross_section_factor (void) const { return vis_cross_section_factor; }
-	virtual void set_vis_cross_section_factor ( const float& factor ) { vis_cross_section_factor = factor; }
 	virtual float surface_visibility(const vector2& watcher) const;
 	/**
 		Noise modification for submarines. Submarines are using diesel engines

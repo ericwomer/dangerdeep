@@ -37,35 +37,30 @@ torpedo::torpedo(sea_object* parent, unsigned type_, bool usebowtubes,
 			max_speed = speed = kts2ms(30);
 			max_rev_speed = 0;
 			max_run_length = 14000;
-			vis_cross_section_factor = CROSS_SECTION_VIS_TORPWB;
 			influencefuse = false;
 			break;
 		case T2:
 			max_speed = speed = kts2ms(30);
 			max_rev_speed = 0;
 			max_run_length = 5000;
-			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 			influencefuse = false;
 			break;
 		case T3:
 			max_speed = speed = kts2ms(30);
 			max_rev_speed = 0;
 			max_run_length = 5000;
-			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 			influencefuse = true;
 			break;
 		case T3a:
 			max_speed = speed = kts2ms(30);
 			max_rev_speed = 0;
 			max_run_length = 7500;
-			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 			influencefuse = true;
 			break;
 		case T4:
 			max_speed = speed = kts2ms(20);
 			max_rev_speed = 0;
 			max_run_length = 7500;
-			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 			// fixme: Falke sensor
 			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
 				passive_sonar_sensor::passive_sonar_type_tt_t5 ) );
@@ -75,7 +70,6 @@ torpedo::torpedo(sea_object* parent, unsigned type_, bool usebowtubes,
 			max_speed = speed = kts2ms(24);
 			max_rev_speed = 0;
 			max_run_length = 5700;
-			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
 				passive_sonar_sensor::passive_sonar_type_tt_t5 ) );
 			influencefuse = true;
@@ -84,7 +78,6 @@ torpedo::torpedo(sea_object* parent, unsigned type_, bool usebowtubes,
 			max_speed = speed = kts2ms(24);
 			max_rev_speed = 0;
 			max_run_length = 5700;
-			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
 				passive_sonar_sensor::passive_sonar_type_tt_t11 ) );
 			influencefuse = true;
@@ -93,21 +86,18 @@ torpedo::torpedo(sea_object* parent, unsigned type_, bool usebowtubes,
 			max_speed = speed = kts2ms(30);
 			max_rev_speed = 0;
 			max_run_length = 14000;
-			vis_cross_section_factor = CROSS_SECTION_VIS_TORPWB;
 			influencefuse = false;
 			break;
 		case T3FAT:
 			max_speed = speed = kts2ms(30);
 			max_rev_speed = 0;
 			max_run_length = 7500;
-			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 			influencefuse = true;
 			break;
 		case T6LUT:
 			max_speed = speed = kts2ms(30);
 			max_rev_speed = 0;
 			max_run_length = 7500;
-			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 			influencefuse = true;
 			break;
 	};

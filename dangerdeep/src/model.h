@@ -68,6 +68,10 @@ class model {
 	void compute_bounds(void);	
 	void compute_normals(void);
 	
+	vector<float> cross_sections;	// array over angles
+	
+	void read_cs_file(const string& filename);
+	
 	// ------------ 3ds loading functions ------------------
 	struct m3ds_chunk {
 		unsigned short id;
@@ -109,6 +113,7 @@ public:
 	double get_width(void) const { return (max - min).x; }
 	double get_height(void) const { return (max - min).z; }
 	vector3f get_boundbox_size(void) const { return max-min; }
+	float get_cross_section(float angle) const;	// give angle in degrees.
 };	
 
 #endif

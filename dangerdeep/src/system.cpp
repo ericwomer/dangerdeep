@@ -80,7 +80,8 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	char* renderer = (char*)glGetString(GL_RENDERER);
 	char* version = (char*)glGetString(GL_VERSION);
 	char* extensions = (char*)glGetString(GL_EXTENSIONS);
-	cout << "OpenGL vendor : " << vendor << "\n"
+
+	cerr << "OpenGL vendor : " << vendor << "\n"
 		<< "GL renderer : " << renderer << "\n"
 		<< "GL version : " << version << "\n"
 		<< "Supported GL extensions : " << extensions << "\n";

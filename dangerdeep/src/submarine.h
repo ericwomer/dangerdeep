@@ -12,11 +12,6 @@
 
 #define SUBMARINE_SUBMERGED_DEPTH 2.0f // meters
 
-#define CROSS_SECTION_ACT_SONAR_LSUB     0.20f        // Large Submarines (?)
-#define CROSS_SECTION_ACT_SONAR_NSUB     0.15f        // Normal Submarines (?)
-#define CROSS_SECTION_ACT_SONAR_MSUB_AC  0.05f        // Midget Submarines (?), Aircrafts
-#define CROSS_SECTION_ACT_SONAR_TORPWB   0.01f        // Torpedo
-
 class submarine : public ship
 {
 public:
@@ -136,7 +131,7 @@ protected:
 	bool hassnorkel;	// fixme: replace by (damageable_parts[snorkel] != unused)
 	double snorkel_depth;
 	bool snorkel_up;
-	float sonar_cross_section_factor;
+//	float sonar_cross_section_factor;
 
 	// Charge level of battery: 0 = empty, 1 = fully charged
 	double battery_level;

@@ -8,8 +8,6 @@
 
 convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : sea_object()
 {
-	vis_cross_section_factor = CROSS_SECTION_VIS_CONVOY;
-
 	waypoints.push_back(vector2(0, 0));
 	for (int wp = 0; wp < 4; ++wp)
 		waypoints.push_back(vector2(rnd()*300000-150000,rnd()*300000-150000));

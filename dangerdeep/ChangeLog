@@ -1,3 +1,13 @@
+2004-01-26  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* added tool for cross section computation
+	* removed all VIS_CROSS_SECTION code and replaced it with real
+	  cross section values (better visibility determination function
+	  has still to be made)
+
+2004-01-25  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* subsim.cpp
+	  - added simple hall of fame with recording and saving
+
 2004-01-21  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* src/Makefile.am
 	  - added missing commands about inclusion of libraries. This fixes
