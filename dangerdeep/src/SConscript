@@ -1,0 +1,19 @@
+# import these variables from the parent build script 
+import sys
+
+Import('env', 'dftdsources', 'dftdmediasources', 'oglextsources', 'tinyxmlsources', 'gfxlibs', 'alllibs', 'libpath')
+
+if sys.platform == 'win32':
+	env.Append(CCFLAGS = '-Wall -O2 -D_REENTRANT') # fixme add what SDL needs here...
+	env.Append(CPPDEFINES = [('DATADIR', '\\"./data/\\"')])
+else:
+	env.Append(CCFLAGS = '-Wall -g -O2 `sdl-config --cflags`')
+	env.Append(CPPDEFINES = [('DATADIR', '\\"/usr/local/share/dangerdeep/\\"')])
+
+env.StaticLibrary(target = 'dftdmedia', source = dftdmediasources, LIBS = gfxlibs, LIBPATH = libpath)
+env.Program(target = 'dangerdeep', source = dftdsources, LIBS = alllibs, LIBPATH = libpath)
+env.Program('viewmodel', 'viewmodel.cpp', LIBS = ['dftdmedia'] + gfxlibs, LIBPATH = libpath)
+env.Program('damagemodel', 'damagemodel.cpp', LIBS = ['dftdmedia'] + gfxlibs, LIBPATH = libpath)
+env.Program('crosssection', 'crosssection.cpp', LIBS = ['dftdmedia'] + gfxlibs, LIBPATH = libpath)
+env.StaticLibrary(target = 'oglext', source = oglextsources, LIBPATH = libpath)
+env.StaticLibrary(target = 'tinyxml', source = tinyxmlsources, LIBPATH = libpath)

@@ -210,8 +210,9 @@ libpath = libpath + [target_dir]
 Export('env', 'dftdsources', 'dftdmediasources', 'oglextsources', 'tinyxmlsources', 'gfxlibs', 'alllibs', 'libpath')
 
 # each platform needs to define DATADIR
-env.BuildDir(target_dir, source_base_dir, duplicate=0) 
-SConscript(target_dir + os.sep + 'SConscript') 
+
+SConscript(source_base_dir + os.sep + 'SConscript', build_dir = target_dir, duplicate = 0)
+BuildDir(target_dir, source_base_dir, duplicate=0) 
 
 #generate a list of all files from CVS subdirectories and give that list here!
 if sys.platform == 'linux2':
@@ -219,9 +220,6 @@ if sys.platform == 'linux2':
 	env.Append(TARFLAGS = '-z')
 	env.Append(TARSUFFIX = '.gz')
 	cvsfiles = findCVS('.')
-	# fixme: tar replaces build/linux/x with src/x, hack fix with symlink
-	# from src/SConscript to build/linux/SConscript
-	# most probably because that's equal to the build source dir...
 	env.Tar('dangerdeep-'+version, cvsfiles)
 	#env.Zip is also possible
 
