@@ -46,8 +46,8 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 		unsigned cvsize = unsigned(type_);
 		
 		// speed? could be a slow or fast convoy (~4 or ~8 kts).
-//		throttle = 4 + rnd(2)*4;
-//		max_speed = speed = kts2ms(throttle);
+		int throttle = 4 + rnd(2)*4;
+		velocity.y = kts2ms(throttle);
 	
 		// compute size and structure of convoy
 		unsigned nrships = (2<<cvsize)*10+rnd(10)-5;
@@ -84,8 +84,8 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 				s->position.x = waypoints.begin()->x + pos.x;
 				s->position.y = waypoints.begin()->y + pos.y;
 				s->heading = s->head_to = heading;
-				s->velocity.y = get_speed();
-				s->throttle = 0;//throttle;//fixme
+				s->velocity = velocity;
+				s->throttle = throttle;
 				merchants.push_back(make_pair(s, pos));
 				++shps;
 			}
@@ -120,8 +120,8 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 			s->position.x = waypoints.begin()->x + pos.x;
 			s->position.y = waypoints.begin()->y + pos.y;
 			s->heading = s->head_to = heading;
-			s->velocity.y = get_speed();
-			s->throttle = 0;//throttle;//fixme
+			s->velocity = velocity;
+			s->throttle = throttle;
 			escorts.push_back(make_pair(s, pos));
 		}
 			
@@ -175,8 +175,8 @@ convoy::convoy(class game& gm, TiXmlElement* parent) : sea_object()
 		vector2 relpos = shp->position.xy();
 		shp->position += position;
 		shp->heading = shp->head_to = heading;
-		shp->velocity.y = get_speed();//fixme: maybe assign velocity directly
-		shp->throttle = 0;//throttle;//fixme
+		shp->velocity = velocity;
+		shp->throttle = get_speed();//throttle;//fixme - a convoy has no throttle...
 		for (list<vector2>::iterator it = waypoints.begin(); it != waypoints.end(); ++it)
 			shp->get_ai()->add_waypoint(*it + relpos);
 

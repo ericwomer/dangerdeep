@@ -92,6 +92,8 @@ protected:
 
 	virtual bool use_simple_turning_model(void) const { return false; }
 	
+	virtual bool causes_spray(void) const { return true; }
+	
 public:
 	enum shipclasses {
 		WARSHIP,

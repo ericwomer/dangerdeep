@@ -224,6 +224,15 @@ void sea_object::parse_attributes(TiXmlElement* parent)
 		eposition->Attribute("z", &p.z);
 		position = p;
 	}
+	TiXmlElement* emotion = hdftdobj.FirstChildElement("motion").Element();
+	if (emotion) {
+		double tmp = 0;
+		if (emotion->Attribute("heading", &tmp))
+			heading = angle(tmp);
+		tmp = 0;
+		if (emotion->Attribute("speed", &tmp))
+			velocity.y = kts2ms(tmp);
+	}
 }
 
 

@@ -51,6 +51,8 @@ protected:
 
 	bool use_simple_turning_model(void) const { return true; }
 	
+	virtual bool causes_spray(void) const { return false; }
+	
 public:
 	torpedo() {};
 	virtual ~torpedo() {};

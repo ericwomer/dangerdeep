@@ -265,12 +265,15 @@ void ship::parse_attributes(TiXmlElement* parent)
 	
 	TiXmlElement* emotion = TiXmlHandle(parent).FirstChildElement("motion").Element();
 	if (emotion) {
+		// heading / speed are already parsed in class sea_object
+/*
 		double tmp = 0;
 		if (emotion->Attribute("heading", &tmp))
 			heading = angle(tmp);
 		tmp = 0;
 		if (emotion->Attribute("speed", &tmp))
 			velocity.y = kts2ms(tmp);
+*/
 		string thr = XmlAttrib(emotion, "throttle");
 		if (thr == "stop") throttle = stop;
 		else if (thr == "reverse") throttle = reverse;
@@ -343,16 +346,18 @@ void ship::simulate(game& gm, double delta_time)
 		myfire->set_pos(get_pos() + vector3(0, 0, 12));
 	}
 
-	double v = velocity.length();
-	if (v > 0.1) {
-		double produce_time = 2.0/v;
-		double t = myfmod(gm.get_time(), produce_time);
-		if (t + delta_time >= produce_time) {
-			vector3 forward = global_velocity.normal();
-			vector3 sideward = forward.cross(vector3(0, 0, 1)).normal() * 2.0;//speed 2.0 m/s
-			vector3 spawnpos = get_pos() + forward * (get_length() * 0.5);
-			gm.spawn_particle(new spray_particle(spawnpos, sideward));
-			gm.spawn_particle(new spray_particle(spawnpos, -sideward));
+	if (causes_spray()) {
+		double v = velocity.length();
+		if (v > 0.1) {
+			double produce_time = 2.0/v;
+			double t = myfmod(gm.get_time(), produce_time);
+			if (t + delta_time >= produce_time) {
+				vector3 forward = global_velocity.normal();
+				vector3 sideward = forward.cross(vector3(0, 0, 1)).normal() * 4.0;//speed 2.0 m/s
+				vector3 spawnpos = get_pos() + forward * (get_length() * 0.5);
+				gm.spawn_particle(new spray_particle(spawnpos, sideward));
+				gm.spawn_particle(new spray_particle(spawnpos, -sideward));
+			}
 		}
 	}
 	
