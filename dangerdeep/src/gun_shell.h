@@ -27,8 +27,6 @@ public:
 		double initial_velocity = GUN_SHELL_INITIAL_VELOCITY);
 	virtual void simulate(class game& gm, double delta_time);
 	virtual void display(void) const;
-	virtual gun_shell* get_gun_shell_ptr () { return this; }
-	virtual const gun_shell* get_gun_shell_ptr () const { return this; }
 };
 
 #endif

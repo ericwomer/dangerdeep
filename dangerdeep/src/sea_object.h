@@ -179,24 +179,8 @@ public:
 	virtual void display(void) const = 0;
 	double get_bounding_radius(void) const { return width + length; }	// fixme: could be computed more exact
 
-	virtual sensor* get_sensor ( const int& s );
-	virtual const sensor* get_sensor ( const int& s ) const;
-
-	// Convert function.
-	virtual ship* get_ship_ptr () { return 0; }
-	virtual const ship* get_ship_ptr () const { return 0; }
-	virtual submarine* get_submarine_ptr () { return 0; }
-	virtual const submarine* get_submarine_ptr () const { return 0; }
-	virtual gun_shell* get_gun_shell_ptr () { return 0; }
-	virtual const gun_shell* get_gun_shell_ptr () const { return 0; }
-	virtual convoy* get_convoy_ptr () { return 0; }
-	virtual const convoy* get_convoy_ptr () const { return 0; }
-	virtual airplane* get_airplane_ptr () { return 0; }
-	virtual const airplane* get_airplane_ptr () const { return 0; }
-	virtual torpedo* get_torpedo_ptr () { return 0; }
-	virtual const torpedo* get_torpedo_ptr () const { return 0; }
-	virtual depth_charge* get_depth_charge_ptr () { return 0; }
-	virtual const depth_charge* get_depth_charge_ptr () const { return 0; }
+	virtual sensor* get_sensor ( int s );
+	virtual const sensor* get_sensor ( int s ) const;
 };
 
 #endif

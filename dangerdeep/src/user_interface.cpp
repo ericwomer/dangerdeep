@@ -500,9 +500,10 @@ void user_interface::display_gauges(class system& sys, game& gm)
 		{}
 		else if ( marea == 2 )
 		{
-			if ( player->get_submarine_ptr() )
+			submarine* sub = dynamic_cast<submarine*> ( player );
+			if ( sub )
 			{
-				player->get_submarine_ptr()->dive_to_depth(mang.ui_value());
+				sub->dive_to_depth(mang.ui_value());
 			}
 		}
 	}
@@ -698,7 +699,7 @@ void user_interface::display_map(class system& sys, game& gm)
 	glColor3f(1,1,1);
 
 	// draw vessel symbols (or noise contacts)
-	submarine* sub_player = player->get_submarine_ptr();
+	submarine* sub_player = dynamic_cast<submarine*> ( player );
 	if (sub_player && sub_player->is_submerged ()) {
 		// draw pings
 		draw_pings(gm, offset);
@@ -906,3 +907,4 @@ void user_interface::display_glasses(class system& sys, class game& gm)
 		key = sys.get_key();
 	}
 }
+

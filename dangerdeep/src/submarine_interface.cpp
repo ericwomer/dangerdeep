@@ -21,8 +21,8 @@ submarine_interface::~submarine_interface()
 
 bool submarine_interface::keyboard_common(int keycode, class system& sys, class game& gm)
 {
-    submarine* player = get_player()->get_submarine_ptr();
-    
+	submarine* player = dynamic_cast<submarine*> ( get_player() );
+
 	// handle common keys (fixme: make configureable?)
 	if (sys.key_shift()) {
 		switch (keycode) {
@@ -173,8 +173,8 @@ bool submarine_interface::object_visible(sea_object* so,
 	
 void submarine_interface::display(class system& sys, game& gm)
 {
-    submarine* player = get_player()->get_submarine_ptr ();
-    
+	submarine* player = dynamic_cast<submarine*> ( get_player() );
+
 	if (target != 0 && target->is_dead()) target = 0;
 
 	// switch to map if sub is to deep.
@@ -205,8 +205,8 @@ void submarine_interface::display(class system& sys, game& gm)
 
 void submarine_interface::display_periscope(class system& sys, game& gm)
 {
-    submarine* player = get_player()->get_submarine_ptr();
-    
+	submarine* player = dynamic_cast<submarine*> ( get_player() );
+
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	unsigned res_x = sys.get_res_x(), res_y = sys.get_res_y();
@@ -281,8 +281,8 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 
 void submarine_interface::display_UZO(class system& sys, game& gm)
 {
-    submarine* player = get_player()->get_submarine_ptr();
-    
+	submarine* player = dynamic_cast<submarine*> ( get_player() );
+
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -323,8 +323,8 @@ void submarine_interface::display_UZO(class system& sys, game& gm)
 
 void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 {
-    submarine* player = get_player ()->get_submarine_ptr ();
-    
+	submarine* player = dynamic_cast<submarine*> ( get_player () );
+
 	sys.prepare_2d_drawing();
 	glBindTexture(GL_TEXTURE_2D, background->get_opengl_name());
 	glBegin(GL_QUADS);

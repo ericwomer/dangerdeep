@@ -225,9 +225,13 @@ void game::simulate(double delta_t)
 void game::visible_ships(list<ship*>& result, const sea_object* o)
 {
 	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
+	const lookout_sensor* ls = 0;
+
 	if ( s )
+		ls = dynamic_cast<const lookout_sensor*> ( s );
+
+	if ( ls )
 	{
-		const lookout_sensor* ls = s->get_lookout_sensor ();
 		for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
 		{
 			if ( ls->is_detected ( this, o, *it ) )
@@ -248,9 +252,14 @@ bool is_in_ellipse(const vector2& p, double xl, double yl, angle& head)
 void game::visible_submarines(list<submarine*>& result, const sea_object* o)
 {
 	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
+	const lookout_sensor* ls = 0;
+
 	if ( s )
+		ls = dynamic_cast<const lookout_sensor*> ( s );
+
+	if ( ls )
 	{
-		const lookout_sensor* ls = s->get_lookout_sensor ();
+		const lookout_sensor* ls = dynamic_cast<const lookout_sensor*> ( s );
 		for (list<submarine*>::iterator it = submarines.begin();
 			it != submarines.end(); ++it)
 		{
@@ -263,9 +272,14 @@ void game::visible_submarines(list<submarine*>& result, const sea_object* o)
 void game::visible_airplanes(list<airplane*>& result, const sea_object* o)
 {
 	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
+	const lookout_sensor* ls = 0;
+
 	if ( s )
+		ls = dynamic_cast<const lookout_sensor*> ( s );
+
+	if ( ls )
 	{
-		const lookout_sensor* ls = s->get_lookout_sensor ();
+		
 		for (list<airplane*>::iterator it = airplanes.begin();
 			it != airplanes.end(); ++it)
 		{
@@ -278,9 +292,13 @@ void game::visible_airplanes(list<airplane*>& result, const sea_object* o)
 void game::visible_torpedoes(list<torpedo*>& result, const sea_object* o)
 {
 	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
+	const lookout_sensor* ls = 0;
+	
 	if ( s )
+		ls = dynamic_cast<const lookout_sensor*> ( s );
+
+	if ( ls )
 	{
-		const lookout_sensor* ls = s->get_lookout_sensor ();
 		for (list<torpedo*>::iterator it = torpedoes.begin();
 			it != torpedoes.end(); ++it)
 		{
@@ -293,9 +311,13 @@ void game::visible_torpedoes(list<torpedo*>& result, const sea_object* o)
 void game::visible_depth_charges(list<depth_charge*>& result, const sea_object* o)
 {
 	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
+	const lookout_sensor* ls = 0;
+
 	if ( s )
+		ls = dynamic_cast<const lookout_sensor*> ( s );
+
+	if ( ls )
 	{
-		const lookout_sensor* ls = s->get_lookout_sensor ();
 		for (list<depth_charge*>::iterator it = depth_charges.begin();
 			it != depth_charges.end(); ++it)
 		{
@@ -308,9 +330,13 @@ void game::visible_depth_charges(list<depth_charge*>& result, const sea_object* 
 void game::visible_gun_shells(list<gun_shell*>& result, const sea_object* o)
 {
 	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
+	const lookout_sensor* ls = 0;
+
 	if ( s )
+		ls = dynamic_cast<const lookout_sensor*> ( s );
+
+	if ( ls )
 	{
-		const lookout_sensor* ls = s->get_lookout_sensor ();
 		for (list<gun_shell*>::iterator it = gun_shells.begin();
 			it != gun_shells.end(); ++it)
 		{
@@ -323,7 +349,12 @@ void game::visible_gun_shells(list<gun_shell*>& result, const sea_object* o)
 void game::sonar_ships ( list<ship*>& result, const sea_object* o )
 {
 	const sensor* s = o->get_sensor ( sensor_factory::passive_sonar_system );
+	const passive_sonar_sensor* pss = 0;
+
 	if ( s )
+		pss = dynamic_cast<const passive_sonar_sensor*> ( s );
+
+	if ( pss )
 	{
 		// collect the nearest contacts, limited to some value!
 		vector<pair<double, ship*> > contacts ( MAX_ACUSTIC_CONTACTS, make_pair ( 1e30, (ship*) 0 ) );
@@ -347,15 +378,14 @@ void game::sonar_ships ( list<ship*>& result, const sea_object* o )
 		}
 
 		unsigned size = contacts.size ();
-		const passive_sonar_sensor* pss = s->get_passive_sonar_sensor ();
 		for (unsigned i = 0; i < size; i++ )
 		{
-			ship* s = contacts[i].second;
-			if ( s == 0 )
+			ship* sh = contacts[i].second;
+			if ( sh == 0 )
 				break;
 
-			if ( pss->is_detected ( this, o, s ) )
-				result.push_back ( s );
+			if ( pss->is_detected ( this, o, sh ) )
+				result.push_back ( sh );
 		}
     }
 }
@@ -363,9 +393,13 @@ void game::sonar_ships ( list<ship*>& result, const sea_object* o )
 void game::sonar_submarines ( list<submarine*>& result, const sea_object* o )
 {
 	const sensor* s = o->get_sensor ( sensor_factory::passive_sonar_system );
+	const passive_sonar_sensor* pss = 0;
+
 	if ( s )
+		pss = dynamic_cast<const passive_sonar_sensor*> ( s );
+
+	if ( pss )
 	{
-		const passive_sonar_sensor* pss = s->get_passive_sonar_sensor ();
 		for (list<submarine*>::iterator it = submarines.begin ();
 			it != submarines.end (); it++ )
 		{
@@ -438,10 +472,12 @@ void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
 	const bool& move_sensor, const angle& dir )
 {
 	sensor* s = d->get_sensor ( sensor_factory::active_sonar_system );
+	active_sonar_sensor* ass = 0;
 	if ( s )
-	{
-		active_sonar_sensor* ass = s->get_active_sonar_sensor ();
+		ass = dynamic_cast<active_sonar_sensor*> ( s );
 
+	if ( ass )
+	{
 		if ( !move_sensor )
 			ass->set_bearing( dir - d->get_heading () );
 
@@ -469,7 +505,7 @@ void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
 			// Ships cannot rotate the active sonar sensor because of
 			// their screws. A submarine can do so when it is submerged
 			// and running on electric engines.
-			submarine* sub = d->get_submarine_ptr ();
+			submarine* sub = dynamic_cast<submarine*> ( d );
 			if ( sub && sub->is_submerged() && sub->is_electric_engine() )
 				mode = sensor::rotate;
 			ass->auto_move_bearing ( mode );

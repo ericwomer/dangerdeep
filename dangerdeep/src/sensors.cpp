@@ -9,12 +9,12 @@
 #include "angle.h"
 
 // Class sensor
-sensor::sensor ( const double& range, const double& detectionAngle ) :
+sensor::sensor ( double range, double detection_cone ) :
 	range ( range ), detection_cone ( detection_cone ), bearing ( 0.0f ),
 	move_direction ( 1 )
 {}
 
-double sensor::get_distance_factor ( const double& d ) const
+double sensor::get_distance_factor ( double d ) const
 {
 	double df = range / d;
 	df *= df;
@@ -45,27 +45,28 @@ bool sensor::is_within_detection_cone ( const vector2& r, const angle& h ) const
 	return within_angle;
 }
 
-void sensor::auto_move_bearing ( const sensor_move_mode& mode )
+void sensor::auto_move_bearing ( sensor_move_mode mode )
 {
 	if ( detection_cone < 360.0f )
-		bearing += move_direction * detection_cone * 0.666666f;
-
-	if ( mode == sweep )
 	{
-		double b = bearing.value ();
-		if ( b < 180.0f && b > 90.0f && move_direction > 0 )
-			move_direction = -1;
-		else if ( b > 180.0f && b < 270.0f && move_direction < 0 )
-			move_direction = 1;
+		bearing += 1.5f * move_direction * detection_cone;
+
+		if ( mode == sweep )
+		{
+			double b = bearing.value ();
+			if ( b < 180.0f && b > 90.0f && move_direction > 0 )
+				move_direction = -1;
+			else if ( b > 180.0f && b < 270.0f && move_direction < 0 )
+				move_direction = 1;
+		}
 	}
 }
 
 
 
 // Class lookout_sensor
-lookout_sensor::lookout_sensor ( const int& type ) : sensor ()
+lookout_sensor::lookout_sensor ( lookout_type type ) : sensor ()
 {}
-
 
 bool lookout_sensor::is_detected ( const game* gm, const sea_object* d,
 	const sea_object* t ) const
@@ -93,12 +94,12 @@ bool lookout_sensor::is_detected ( const game* gm, const sea_object* d,
 
 
 // Class passive_sonar_sensor
-passive_sonar_sensor::passive_sonar_sensor ( const int& type ) : sensor ()
+passive_sonar_sensor::passive_sonar_sensor ( passive_sonar_type type ) : sensor ()
 {
 	init ( type );
 }
 
-void passive_sonar_sensor::init ( const int& type )
+void passive_sonar_sensor::init ( passive_sonar_type type )
 {
 	switch ( type )
 	{
@@ -114,7 +115,7 @@ bool passive_sonar_sensor::is_detected ( const game* gm, const sea_object* d,
 	bool detected = false;
 
 	// Surfaced submarines detect anything with their passive sonars.
-	const submarine* sub = d->get_submarine_ptr ();
+	const submarine* sub = dynamic_cast<const submarine*> ( d );
     if ( sub && !sub->is_submerged () )
     {
 		detected = false;
@@ -143,10 +144,10 @@ bool passive_sonar_sensor::is_detected ( const game* gm, const sea_object* d,
 
 
 // Class active_sensor
-active_sensor::active_sensor ( const double& range ) : sensor ( range )
+active_sensor::active_sensor ( double range ) : sensor ( range )
 {}
 
-double active_sensor::get_distance_factor ( const double& d ) const
+double active_sensor::get_distance_factor ( double d ) const
 {
 	double df = get_range () / d;
 	df *= df;
@@ -158,12 +159,12 @@ double active_sensor::get_distance_factor ( const double& d ) const
 
 
 // Class radar_rensor
-radar_sensor::radar_sensor ( const int& type ) : active_sensor ()
+radar_sensor::radar_sensor ( radar_type type ) : active_sensor ()
 {
 	init ( type );
 }
 
-void radar_sensor::init ( const int& type )
+void radar_sensor::init ( radar_type type )
 {
 	switch ( type )
 	{
@@ -192,12 +193,12 @@ bool radar_sensor::is_detected ( const game* gm, const sea_object* d,
 
 
 // Class active_sonar_sensor
-active_sonar_sensor::active_sonar_sensor ( const int& type ) : active_sensor ()
+active_sonar_sensor::active_sonar_sensor ( active_sonar_type type ) : active_sensor ()
 {
 	init ( type );
 }
 
-void active_sonar_sensor::init ( const int& type )
+void active_sonar_sensor::init ( active_sonar_type type )
 {
 	switch ( type )
 	{
@@ -214,7 +215,7 @@ bool active_sonar_sensor::is_detected ( const game* gm, const sea_object* d,
 	bool detected = false;
 
 	// Surfaced submarines cannot use ASDIC.
-	const submarine* dsub = d->get_submarine_ptr ();
+	const submarine* dsub = dynamic_cast<const submarine*> ( d );
     if ( dsub && !dsub->is_submerged () )
 	{
 		detected = false;
@@ -222,7 +223,7 @@ bool active_sonar_sensor::is_detected ( const game* gm, const sea_object* d,
 	else
 	{
 		// Only submerged submarines can be detected with ASDIC.
-		const submarine* tsub = t->get_submarine_ptr ();
+		const submarine* tsub = dynamic_cast<const submarine*> ( t );
 		if ( tsub && tsub->is_submerged () )
 		{
 			vector2 r = t->get_pos ().xy () - d->get_pos ().xy ();
@@ -253,35 +254,34 @@ bool active_sonar_sensor::is_detected ( const game* gm, const sea_object* d,
 
 
 // Class sensor_factory
-lookout_sensor* sensor_factory::get_lookout_system ( const int& nation, const int& year )
+lookout_sensor* sensor_factory::get_lookout_system ( int nation, int year )
 {
 	return new lookout_sensor;
 }
 
-radar_sensor* sensor_factory::get_radar_system ( const int& nation, const int& year )
+radar_sensor* sensor_factory::get_radar_system ( int nation, int year )
 {
 	return new radar_sensor;
 }
 
-active_sonar_sensor* sensor_factory::get_active_sonar_system ( const int& nation, const int& year )
+active_sonar_sensor* sensor_factory::get_active_sonar_system ( int nation, int year )
 {
 	return new active_sonar_sensor;
 }
 
-passive_sonar_sensor* sensor_factory::get_passive_sonar_system ( const int& nation, const int& year )
+passive_sonar_sensor* sensor_factory::get_passive_sonar_system ( int nation, int year )
 {
 	return new passive_sonar_sensor;
 }
 
 /*
-hfdf_sensor* sensor_factory::get_hfdf_sensor ( const int& nation, const int& year )
+hfdf_sensor* sensor_factory::get_hfdf_sensor ( int nation, int year )
 {
 	return new hfdf_sensor;
 }
 */
 
-vector<sensor*> sensor_factory::get_sensors ( const int& nation,
-	const int& ship_type, const int& year )
+vector<sensor*> sensor_factory::get_sensors ( int nation, int ship_type, int year )
 {
 	vector<sensor*> sensors;
 	sensors.resize ( last_system_item );

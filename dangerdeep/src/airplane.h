@@ -21,8 +21,6 @@ public:
 	// types:
 	airplane(unsigned type_, const vector3& pos, double heading);
 	virtual void display(void) const;
-    virtual airplane* get_airplane_ptr () { return this; }
-    virtual const airplane* get_airplane_ptr () const { return this; }
 };
 
 #endif

@@ -338,7 +338,7 @@ void sea_object::set_sensors ( vector<sensor*> sensors )
 	}
 }
 
-sensor* sea_object::get_sensor ( const int& s )
+sensor* sea_object::get_sensor ( int s )
 {
 	if ( s >= 0 && s < sensor_factory::last_system_item )
 		return sensors[s];
@@ -346,7 +346,7 @@ sensor* sea_object::get_sensor ( const int& s )
 	return 0;
 }
 
-const sensor* sea_object::get_sensor ( const int& s ) const
+const sensor* sea_object::get_sensor ( int s ) const
 {
 	if ( s >= 0 && s < sensor_factory::last_system_item )
 		return sensors[s];

@@ -212,16 +212,20 @@ float submarine::surface_visibility(const vector2& watcher) const
 	double depth = get_depth();
 	float diveFactor = 0.0f;
 
-	if (depth < 10.0f)
-		diveFactor = (10.0f - depth)*0.1f;
-	else
-		diveFactor = 0.0f;
-
-	diveFactor = diveFactor * vis_cross_section_factor * get_profile_factor ( watcher );
+	if ( depth >= 0.0f && depth < 10.0f )
+	{
+		diveFactor = 0.1f * ( 10.0f - depth ) * vis_cross_section_factor *
+			get_profile_factor ( watcher );
+	}
 
 	// Add a value for the periscope when submarine is submerged.
-	if ( is_scope_up () && depth <= periscope_depth )
+	if ( is_scope_up () && depth > 10.0f && depth <= periscope_depth )
+	{
+		// The visibility of the periscope also depends on the speed its moves
+		// through the water. A fast moving periscope with water splashed is
+		// much farther visible than a still standing one.
 		diveFactor += CROSS_SECTION_VIS_PERIS * ( 0.5f + 0.5f * speed / max_speed );
+	}
 
 	return diveFactor;
 }
@@ -235,14 +239,16 @@ float submarine::sonar_visibility ( const vector2& watcher ) const
 	{
 		diveFactor = 1.0f;
 	}
-	else if ( (depth > SUBMARINE_SUBMERGED_DEPTH ) && ( depth <= 10.0f ) )
+	else if ( (depth > SUBMARINE_SUBMERGED_DEPTH ) && ( depth < 10.0f ) )
 	{
 		// Submarine becomes visible for active sonar system while
 		// diving process.
 		diveFactor = 0.125f * (depth - SUBMARINE_SUBMERGED_DEPTH);
 	}
 
-	return diveFactor * sonar_cross_section_factor * get_profile_factor ( watcher );   
+	diveFactor *= sonar_cross_section_factor * get_profile_factor ( watcher );
+
+	return diveFactor;
 }
 
 void submarine::planes_up(double amount)
@@ -349,9 +355,18 @@ double submarine::get_noise_factor () const
 
 	// Noise level modification because of diesel/electric engine.
 	if ( is_electric_engine () )
+	{
+		// This is an empirical value.
 		noisefac *= 0.007f;
+	}
 	else
+	{
+		// This might be unrealistic, but its impossible for a submarine to
+		// attack when it can be detected at a range of 10 nm by a drifting
+		// and listening destroyer. Currently there are no empirical values
+		// available.
 		noisefac *= 0.1f;
+	}
 
 	return noisefac;
 }

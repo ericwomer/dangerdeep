@@ -20,7 +20,7 @@ ship_interface::~ship_interface()
 
 bool ship_interface::keyboard_common(int keycode, class system& sys, class game& gm)
 {
-	ship* player = get_player()->get_ship_ptr();
+	ship* player = dynamic_cast<ship*> ( get_player() );
     
 	// handle common keys (fixme: make configureable?)
 	switch (keycode) {
@@ -289,8 +289,8 @@ void ship_interface::display_sonar(class system& sys, game& gm)
 
 void ship_interface::display_glasses(class system& sys, game& gm)
 {
-    ship* player = get_player()->get_ship_ptr();
-    
+	ship* player = dynamic_cast<ship*> ( get_player() );
+
 	//fixme ugly hack
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
