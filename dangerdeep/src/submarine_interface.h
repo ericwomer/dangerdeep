@@ -44,7 +44,6 @@ public:
 	virtual ~submarine_interface();
 
 	virtual void display(class system& sys, class game& gm);
-	virtual void play_sound_effect ( sound_effect se, double volume = 1.0f ) const;
 	virtual void play_sound_effect_distance ( sound_effect se, double distance ) const;
 };
 

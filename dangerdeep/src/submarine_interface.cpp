@@ -568,25 +568,17 @@ void submarine_interface::draw_torpedo(class system& sys, class game& gm,
 	}
 }
 
-void submarine_interface::play_sound_effect ( sound_effect se, double volume ) const
-{
-	sound* s = get_sound_effect ( se );
-
-	if ( s )
-		s->play ( volume );
-}
-
 void submarine_interface::play_sound_effect_distance ( sound_effect se, double distance ) const
 {
 	sound* s = get_sound_effect ( se );
 
 	if ( s )
 	{
-		sound::medium m = s->medium_air;
 		submarine* sub = dynamic_cast<submarine*> ( get_player () );
+		double h = 3000.0f;
 		if ( sub && sub->is_submerged () )
-			m = s->medium_water;
+			h = 10000.0f;
 
-		s->play_distance ( m, distance );
+		s->play ( ( 1.0f - player_object->get_noise_factor () ) * exp ( - distance / h ) );
 	}
 }
