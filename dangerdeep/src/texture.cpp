@@ -42,6 +42,7 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	unsigned char* tmpimage = 0;
 	
 	if (teximage->format->palette != 0) {
+		glEnable(GL_COLOR_TABLE);
 		system::sys().myassert(bpp == 1, "texture: only 8bit palette files supported");
 		int ncol = teximage->format->palette->ncolors;
 		system::sys().myassert(ncol <= 256, "texture: max. 256 colors in palette supported");
@@ -98,7 +99,8 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 		gluBuild2DMipmaps(GL_TEXTURE_2D, internalformat, tw, th, externalformat,
 			GL_UNSIGNED_BYTE, tmpimage);
 	}
-	
+
+	glDisable(GL_COLOR_TABLE);	
 	delete [] tmpimage;
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
