@@ -36,6 +36,7 @@
 #include "network.h"
 #include "matrix4.h"
 #include "quaternion.h"
+#include "tinyxml/tinyxml.h"
 
 const int SAVEVERSION = 0;
 const int GAMETYPE = 0;//fixme
@@ -121,8 +122,10 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 
 	vector<angle> subangles;
 	submarine* psub = 0;
-	for (unsigned i = 0; i < nr_of_players; ++i) {	
-		submarine* sub = new submarine(subtype);//fixme give time for init
+	for (unsigned i = 0; i < nr_of_players; ++i) {
+		TiXmlDocument doc(get_submarine_dir() + subtype + ".xml");
+		doc.LoadFile();
+		submarine* sub = new submarine(&doc);//fixme give time for init
 		if (i == 0) {
 			psub = sub;
 			player = psub;
@@ -163,7 +166,12 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 
 
 
-//game::game() : running(true), time(0), networktype(0), servercon(0), player(0), ui(0) {}
+game::game() : running(true), time(0), networktype(0), servercon(0), player(0), ui(0)
+{
+}
+
+
+
 game* game::create_from_missionfile(const string& missionfilename)
 {
 	game* gm = new game();

@@ -17,6 +17,7 @@ protected:
 	list<pair<ship*, vector2> > merchants, warships, escorts;
 	list<vector2> waypoints;
 
+	convoy();
 	convoy(const convoy& other);
 	convoy& operator= (const convoy& other);
 	
@@ -26,12 +27,14 @@ public:
 	enum types { small, medium, large, battleship, supportgroup, carrier };
 	enum esctypes { etnone, etsmall, etmedium, etlarge };	// escort size
 
-	convoy();
+	convoy(class game& gm, types type_, esctypes esct_);	// create custom convoy
+	convoy(class game& gm, class TiXmlElement* parent);	// create convoy from mission xml file
 	virtual ~convoy();
 	void load(istream& in, class game& g);
 	void save(ostream& out, const class game& g) const;
-	convoy(class game& gm, types type_, esctypes esct_);
-	convoy(class game& gm, class TiXmlElement* parent);
+
+	virtual void parse_attributes(class TiXmlElement* parent);
+
 	virtual class ai* get_ai(void) { return myai; }
 	virtual void simulate(class game& gm, double delta_time);
 	virtual void display(void) const {}

@@ -140,7 +140,8 @@ protected:
 	network_connection* servercon;
 	// the connections to the clients (at least one if this is the server, else empty)
 	vector<network_connection*> clientcons;
-	
+
+	game();	
 	game& operator= (const game& other);
 	game(const game& other);
 	

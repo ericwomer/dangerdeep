@@ -35,6 +35,7 @@
 #include "sky.h"
 #include "water.h"
 #include "matrix4.h"
+#include "parser.h"
 using namespace std;
 
 #define MAX_PANEL_SIZE 256

@@ -6,15 +6,17 @@
 #include "tokencodes.h"
 #include "binstream.h"
 #include "ai.h"
+#include "system.h"
+#include "tinyxml/tinyxml.h"
 
-convoy::convoy() : myai(0)
-{
-}
+
 
 convoy::~convoy()
 {
 	delete myai;
 }
+
+
 
 convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : sea_object(), myai(0)
 {
@@ -63,7 +65,9 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 					if (r == 3) shiptype = "freighter_large";
 					if (r == 4) shiptype = "freighter_medium";
 				}
-				ship* s = new ship(shiptype);
+				TiXmlDocument doc(get_ship_dir() + shiptype + ".xml");
+				doc.LoadFile();
+				ship* s = new ship(&doc);
 				vector2 pos = vector2(
 					dx*intershipdist + rnd()*60.0-30.0,
 					dy*intershipdist + rnd()*60.0-30.0 );
@@ -96,7 +100,10 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 			nx *= (int(nrescs/4)-1)*interescortdist-int(i/4)*interescortdist;
 			ny *= (int(nrescs/4)-1)*interescortdist-int(i/4)*interescortdist;
 			unsigned esctp = rnd(2);
-			ship *s = new ship(esctp == 0 ? "destroyer_tribal" : "corvette");
+			string shiptype = (esctp == 0 ? "destroyer_tribal" : "corvette");
+			TiXmlDocument doc(get_ship_dir() + shiptype + ".xml");
+			doc.LoadFile();
+			ship* s = new ship(&doc);
 			vector2 pos = vector2(
 				dx+nx + rnd()*100.0-50.0,
 				dy+ny + rnd()*100.0-50.0 );
@@ -123,9 +130,43 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 	}
 }
 
-convoy::convoy(class game& gm, parser& p) : sea_object(), myai(0)
+
+
+convoy::convoy(class game& gm, TiXmlElement* parent) : sea_object()
 {
 	myai = new ai(this, ai::convoy);
+
+	TiXmlElement* epath = parent->FirstChildElement("path");
+	if (epath) {
+		// fixme;
+	}
+	
+	// parse objects, fixme
+	
+
+/*
+		position = vector3(
+			atof(eposition->Attribute("x")),
+			atof(eposition->Attribute("y")),
+			atof(eposition->Attribute("z")) );
+	}
+	TiXmlElement* emotion = hdftdobj.FirstChildElement("motion").Element();
+	if (emotion) {
+		heading = angle(atof(emotion->Attribute("heading")));
+		speed = kts2ms(atof(emotion->Attribute("speed")));
+		string thr = emotion->Attribute("throttle");
+		if (thr == "stop") throttle = stop;
+		else if (thr == "reverse") throttle = reverse;
+		else if (thr == "aheadlisten") throttle = aheadlisten;
+		else if (thr == "aheadsonar") throttle = aheadsonar;
+		else if (thr == "aheadslow") throttle = aheadslow;
+		else if (thr == "aheadhalf") throttle = aheadhalf;
+		else if (thr == "aheadfull") throttle = aheadfull;
+		else if (thr == "aheadflank") throttle = aheadflank;
+		else throttle = atoi(thr.c_str());
+	}
+
+
 	p.parse(TKN_CONVOY);
 	p.parse(TKN_SLPARAN);
 	speed = -1;
@@ -166,6 +207,7 @@ convoy::convoy(class game& gm, parser& p) : sea_object(), myai(0)
 	if (speed < 0) speed = (throttle >= 0) ? kts2ms(throttle) : 0;
 	max_speed = speed;
 	head_to = heading;
+*/
 
 	// calculate positions and speeds of convoy's ships.
 	// set their waypoints from convoy's waypoints.
@@ -198,6 +240,8 @@ convoy::convoy(class game& gm, parser& p) : sea_object(), myai(0)
 	}
 	
 }
+
+
 
 void convoy::load(istream& in, class game& g)
 {
@@ -235,6 +279,8 @@ void convoy::load(istream& in, class game& g)
 	}
 }
 
+
+
 void convoy::save(ostream& out, const class game& g) const
 {
 	sea_object::save(out, g);
@@ -269,6 +315,7 @@ void convoy::save(ostream& out, const class game& g) const
 }
 
 
+
 void convoy::simulate(game& gm, double delta_time)
 {
 	sea_object::simulate(gm, delta_time);
@@ -297,6 +344,8 @@ void convoy::simulate(game& gm, double delta_time)
 	if (merchants.size() + warships.size() + escorts.size() == 0)
 		alive_stat = defunct;
 }
+
+
 
 void convoy::add_contact(const vector3& pos)	// fixme: simple, crude, ugly
 {

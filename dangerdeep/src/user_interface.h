@@ -149,7 +149,7 @@ public:
 	virtual void add_captains_log_entry ( game& gm, const string& s);
 	virtual bool time_scale_up(void);	// returns true on success
 	virtual bool time_scale_down(void);
-	virtual void record_sunk_ship ( const ship* so );
+	virtual void record_sunk_ship ( const class ship* so );
 	/** This method creates a message about the rudder state. */
 	virtual void add_rudder_message();
 	virtual void play_sound_effect ( sound_effect se, double volume = 1.0f ) const;

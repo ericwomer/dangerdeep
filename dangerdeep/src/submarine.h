@@ -161,8 +161,6 @@ protected:
 
 	int find_stored_torpedo(bool usebow);	// returns index or -1 if none
 
-	virtual void parse_attributes(class TiXmlElement* parent);
-
 	/**
 		This method calculates the battery consumption rate. This value is needed
 		for the simulate function to reduce the battery_level value. An
@@ -196,16 +194,15 @@ public:
 */
 
 	// create empty object from specification xml file
-	submarine(const string& specfilename_);
+	submarine(class TiXmlDocument* specfile);
 	
-	// create sub from parser input (mission file), will read type from parser input
-	submarine(class TiXmlElement* parent);
-
 	virtual ~submarine() {}
 
 	virtual void load(istream& in, class game& g);
 	virtual void save(ostream& out, const class game& g) const;
 	
+	virtual void parse_attributes(class TiXmlElement* parent);
+
 	virtual void simulate(class game& gm, double delta_time);
 
 	const vector<stored_torpedo>& get_torpedoes(void) const { return torpedoes; }

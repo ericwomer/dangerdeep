@@ -15,13 +15,6 @@ using namespace std;
 #define SINK_SPEED 0.5  // m/sec
 #define MAXPREVPOS 20
 
-class ship;
-class submarine;
-class gun_shell;
-class convoy;
-class airplane;
-class torpedo;
-class depth_charge;
 class sensor;
 
 class sea_object
@@ -54,7 +47,7 @@ public:
 		unsigned& degy, unsigned& miny);
 
 protected:
-	string specfilename;	// filename for specification .xml file
+	string specfilename;	// filename for specification .xml file, read from spec file
 
 	string modelname;	// filename for model file (also used for modelcache requests), read from spec file
 
@@ -89,8 +82,6 @@ protected:
 	// Sensor systems, created after data in spec file
 	vector<sensor*> sensors;
 
-	virtual void parse_attributes(class TiXmlElement* parent);
-
 	sea_object();
 	sea_object& operator=(const sea_object& other);
 	sea_object(const sea_object& other);
@@ -105,12 +96,16 @@ protected:
 	*/
 	virtual double get_cross_section ( const vector2& d ) const;
 
-	sea_object(const string& specfilename_);	// create object from spec file
+	// give a loaded xml document to this c'tor, it will create an object after the specs
+	sea_object(class TiXmlDocument* specfile);
 	
 public:
 	virtual ~sea_object();
 	virtual void load(istream& in, class game& g);
 	virtual void save(ostream& out, const class game& g) const;
+
+	// call with ship/submarine/etc node from mission file
+	virtual void parse_attributes(class TiXmlElement* parent);
 
 	// detail: 0 - category, 1 - finer category, >=2 - exact category
 	virtual string get_description(unsigned detail) const { return "UNKNOWN"; }

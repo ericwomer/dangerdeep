@@ -14,45 +14,27 @@
 
 
 
-ship::ship()
+ship::ship(TiXmlDocument* specfile) : sea_object(specfile)
 {
-}
-
-
-
-ship::ship(const string& specfilename_) : sea_object()
-{
-	specfilename = specfilename_;
-
-	TiXmlDocument doc(get_ship_dir() + specfilename + ".xml");
-	doc.LoadFile();
-	TiXmlHandle hdoc(&doc);
-	TiXmlHandle hdftdship = hdoc.FirstChild("dftd-ship");
+	TiXmlHandle hspec(specfile);
+	TiXmlHandle hdftdship = hspec.FirstChild();	// ignore node name
 	TiXmlElement* eclassification = hdftdship.FirstChildElement("classification").Element();
-	system::sys().myassert(eclassification != 0, string("classification node missing in ")+specfilename);
-	modelname = eclassification->Attribute("modelname");
-	modelcache.ref(modelname);
 	string typestr = eclassification->Attribute("type");
 	if (typestr == "warship") shipclass = WARSHIP;
 	else if (typestr == "escort") shipclass = ESCORT;
 	else if (typestr == "merchant") shipclass = MERCHANT;
 	else if (typestr == "submarine") shipclass = SUBMARINE;
 	else system::sys().myassert(false, string("illegal ship type in ") + specfilename);
-	string country = eclassification->Attribute("country");
-	TiXmlHandle hdescription = hdftdship.FirstChild("description");//fixme: parse
-	TiXmlElement* emotion = hdftdship.FirstChildElement("motion").Element();
-	system::sys().myassert(emotion != 0, string("motion node missing in ")+specfilename);
-	max_speed = atof(emotion->Attribute("maxspeed"));
-	max_rev_speed = atof(emotion->Attribute("maxrevspeed"));
-	acceleration = atof(emotion->Attribute("acceleration"));
-	turn_rate = atof(emotion->Attribute("turnrate"));
 	TiXmlElement* etonnage = hdftdship.FirstChildElement("tonnage").Element();
 	system::sys().myassert(etonnage != 0, string("tonnage node missing in ")+specfilename);
 	unsigned minton = atoi(etonnage->Attribute("min"));
 	unsigned maxton = atoi(etonnage->Attribute("max"));
 	tonnage = minton + rnd(maxton - minton + 1);
-	TiXmlHandle hsmoke = hdftdship.FirstChild("smoke");//fixme parse
-	TiXmlHandle hsensors = hdftdship.FirstChild("sensors");//fixme parse
+	TiXmlElement* esmoke = hdftdship.FirstChildElement("smoke").Element();
+	mysmoke = 0;
+	if (esmoke) {
+		//fixme parse
+	}
 	TiXmlElement* eai = hdftdship.FirstChildElement("ai").Element();
 	system::sys().myassert(eai != 0, string("ai node missing in ")+specfilename);
 	string aitype = eai->Attribute("type");
@@ -65,15 +47,6 @@ ship::ship(const string& specfilename_) : sea_object()
 	fuel_level = atof(efuel->Attribute("capacity"));
 	fuel_value_a = atof(efuel->Attribute("consumption_a"));
 	fuel_value_t = atof(efuel->Attribute("consumption_t"));
-
-	// fixme smoke
-	mysmoke = 0;
-}
-
-
-
-ship::ship(parser& p)
-{
 }
 
 
@@ -94,27 +67,19 @@ void ship::sink(void)
 
 
 
-bool ship::parse_attribute(parser& p)
+void ship::parse_attributes(TiXmlElement* parent)
 {
-	if ( sea_object::parse_attribute(p) )
-		return true;
-	switch ( p.type () )
-	{
-		case TKN_FUEL:
-			p.consume ();
-			p.parse ( TKN_ASSIGN );
-			fuel_level = p.parse_number () / 100.0f;
-			p.parse ( TKN_SEMICOLON );
-			break;
-	}
-	return false;
+	sea_object::parse_attributes(parent);
+	
+	// parse fuel level, fixme
 }
+
+
 
 void ship::load(istream& in, game& g)
 {
 	sea_object::load(in, g);
 
-//fixme: add values from xml read
 	if (read_bool(in))
 		myai = new ai(in, g);
 	
@@ -123,8 +88,6 @@ void ship::load(istream& in, game& g)
 	midship_damage = damage_status(read_u8(in));
 	bow_damage = damage_status(read_u8(in));
 	fuel_level = read_double(in);
-	fuel_value_a = read_double(in);
-	fuel_value_t = read_double(in);
 }
 
 void ship::save(ostream& out, const game& g) const
@@ -135,14 +98,11 @@ void ship::save(ostream& out, const game& g) const
 	if (myai)
 		myai->save(out, g);
 	
-//fixme: add values from xml read
 	write_u32(out, tonnage);
 	write_u8(out, stern_damage);
 	write_u8(out, midship_damage);
 	write_u8(out, bow_damage);
 	write_double(out, fuel_level);
-	write_double(out, fuel_value_a);
-	write_double(out, fuel_value_t);
 }
 
 
@@ -163,15 +123,21 @@ void ship::simulate(game& gm, double delta_time)
 	}
 }
 
+
+
 void ship::fire_shell_at(const vector2& pos)
 {
 	// fixme!!!!!!
 }
 
+
+
 void ship::smoke_display(double degr) const
 {
 	if (mysmoke) mysmoke->display(degr);
 }
+
+
 
 bool ship::damage(const vector3& fromwhere, unsigned strength)
 {
@@ -184,6 +150,8 @@ bool ship::damage(const vector3& fromwhere, unsigned strength)
 	return true;
 }
 
+
+
 unsigned ship::calc_damage(void) const
 {
 	if (bow_damage == wrecked || midship_damage == wrecked || stern_damage == wrecked)
@@ -192,10 +160,14 @@ unsigned ship::calc_damage(void) const
 	return dmg > 100 ? 100 : dmg;
 }
 
+
+
 double ship::get_roll_factor(void) const
 {
 	return 400.0 / (get_tonnage() + 6000.0);	// fixme: rather simple yet. should be overloaded by each ship
 }
+
+
 
 void ship::calculate_fuel_factor ( double delta_time )
 {

@@ -31,8 +31,6 @@ protected:
 	ship(const ship& other);
 	ship& operator= (const ship& other);
 
-	virtual void parse_attributes(class TiXmlElement* parent);
-
 	/**
 		This method calculates the hourly fuel consumption. An
 		exponential is used as a model basing on some fuel consumption values.
@@ -59,15 +57,14 @@ public:
 	};
 	
 	// create empty object from specification xml file
-	ship(const string& specfilename_);
+	ship(class TiXmlDocument* specfile);
 	
-	// create ship from parser input (mission file), will read type from parser input
-	ship(TiXmlElement* parent);
-
 	virtual ~ship();
 
 	virtual void load(istream& in, class game& g);
 	virtual void save(ostream& out, const class game& g) const;
+
+	virtual void parse_attributes(class TiXmlElement* parent);
 
 	virtual unsigned get_class(void) const { return shipclass; }
 

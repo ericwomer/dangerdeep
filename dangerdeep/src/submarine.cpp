@@ -54,6 +54,52 @@ submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damagea
 	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, true, true),	// radar
 };
 
+
+
+submarine::submarine(TiXmlDocument* specfile) : ship(specfile)
+{
+	TiXmlHandle hspec(specfile);
+	TiXmlHandle hdftdsub = hspec.FirstChild();	// ignore node name
+	TiXmlElement* emotion = hdftdsub.FirstChildElement("motion").Element();
+	TiXmlElement* esubmerged = emotion->FirstChildElement("submerged");
+	system::sys().myassert(esubmerged != 0, string("submerged node missing in ")+specfilename);
+	
+	fixme
+	
+	
+	string typestr = eclassification->Attribute("type");
+	if (typestr == "warship") shipclass = WARSHIP;
+	else if (typestr == "escort") shipclass = ESCORT;
+	else if (typestr == "merchant") shipclass = MERCHANT;
+	else if (typestr == "submarine") shipclass = SUBMARINE;
+	else system::sys().myassert(false, string("illegal ship type in ") + specfilename);
+	TiXmlElement* etonnage = hdftdsub.FirstChildElement("tonnage").Element();
+	system::sys().myassert(etonnage != 0, string("tonnage node missing in ")+specfilename);
+	unsigned minton = atoi(etonnage->Attribute("min"));
+	unsigned maxton = atoi(etonnage->Attribute("max"));
+	tonnage = minton + rnd(maxton - minton + 1);
+	TiXmlElement* esmoke = hdftdsub.FirstChildElement("smoke").Element();
+	mysmoke = 0;
+	if (esmoke) {
+		//fixme parse
+	}
+	TiXmlElement* eai = hdftdsub.FirstChildElement("ai").Element();
+	system::sys().myassert(eai != 0, string("ai node missing in ")+specfilename);
+	string aitype = eai->Attribute("type");
+	if (aitype == "dumb") myai = new ai(this, ai::dumb);
+	else if (aitype == "escort") myai = new ai(this, ai::escort);
+	else if (aitype == "none") myai = 0;
+	else system::sys().myassert(false, string("illegal AI type in ") + specfilename);
+	TiXmlElement* efuel = hdftdsub.FirstChildElement("fuel").Element();
+	system::sys().myassert(efuel != 0, string("fuel node missing in ")+specfilename);
+	fuel_level = atof(efuel->Attribute("capacity"));
+	fuel_value_a = atof(efuel->Attribute("consumption_a"));
+	fuel_value_t = atof(efuel->Attribute("consumption_t"));
+}
+
+
+
+
 submarine::submarine() : ship(), dive_speed(0.0f), dive_acceleration(0.0f), max_dive_speed(1.0f),
 	max_depth(150.0f), dive_to(0.0f), permanent_dive(false),
 	scopeup(false), periscope_depth(12.0f), hassnorkel (false), snorkel_depth(10.0f),

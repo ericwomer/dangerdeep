@@ -8,6 +8,7 @@
 #include "model.h"
 #include "global_data.h"
 #include "tinyxml/tinyxml.h"
+#include "system.h"
 
 
 void sea_object::degrees2meters(bool west, unsigned degx, unsigned minx, bool south,
@@ -16,6 +17,8 @@ void sea_object::degrees2meters(bool west, unsigned degx, unsigned minx, bool so
 	x = (west ? -1.0 : 1.0)*(double(degx)+double(minx)/60.0)*20000000.0/180.0;
 	y = (south ? -1.0 : 1.0)*(double(degy)+double(miny)/60.0)*20000000.0/180.0;
 }
+
+
 
 void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, unsigned& minx, bool& south,
 	unsigned& degy, unsigned& miny)
@@ -30,48 +33,68 @@ void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, 
 	south = (y < 0.0);
 }
 
-sea_object::sea_object() : position(), heading(),
-	speed(0.0), max_speed(0.0), max_rev_speed(0.0), throttle(stop),
-	acceleration(0.0), permanent_turn(false), head_chg(0.0), rudder(ruddermid),
-	head_to(0.0), turn_rate(0.0), length(0.0), width(0.0),
+
+
+// some heirs need this empty c'tor
+sea_object::sea_object() : speed(0), max_speed(0), max_rev_speed(0), throttle(stop),
+	acceleration(0), permanent_turn(false), head_chg(0), rudder(0), length(0), width(0),
 	alive_stat(alive)
 {
-	if (modelname.length() > 0)
-		modelcache.ref(modelname);
-	sensors.resize ( last_sensor_system );
 }
+
+
+
+sea_object::sea_object(class TiXmlDocument* specfile) :
+	speed(0.0), throttle(stop), permanent_turn(false), head_chg(0.0), rudder(ruddermid),
+	head_to(0.0), alive_stat(alive)
+{
+	TiXmlHandle hspec(specfile);
+	TiXmlHandle hdftdobj = hspec.FirstChild();	// ignore node name, can be ship,sub,etc.
+	TiXmlElement* eclassification = hdftdobj.FirstChildElement("classification").Element();
+	system::sys().myassert(eclassification != 0, string("classification node missing in ")+specfile->Value());
+	specfilename = eclassification->Attribute("identifier");
+	modelname = eclassification->Attribute("modelname");
+	model* mdl = modelcache.ref(modelname);
+	width = mdl->get_width();
+	length = mdl->get_length();
+	//country = eclassification->Attribute("country");
+	TiXmlHandle hdescription = hdftdobj.FirstChild("description");//fixme: parse
+	
+	TiXmlElement* emotion = hdftdobj.FirstChildElement("motion").Element();
+	system::sys().myassert(emotion != 0, string("motion node missing in ")+specfilename);
+	max_speed = atof(emotion->Attribute("maxspeed"));
+	max_rev_speed = atof(emotion->Attribute("maxrevspeed"));
+	acceleration = atof(emotion->Attribute("acceleration"));
+	turn_rate = atof(emotion->Attribute("turnrate"));
+	TiXmlHandle hsensors = hdftdobj.FirstChild("sensors");//fixme parse
+	sensors.resize ( last_sensor_system );
+	
+}
+
+
 
 sea_object::~sea_object()
 {
 	modelcache.unref(modelname);
-	int size = sensors.size ();
-	for ( int i = 0; i < size; i++ )
-	{
-		if ( sensors[i] != 0 )
-			delete sensors[i];
-	}
+	for (unsigned i = 0; i < sensors.size(); i++)
+		delete sensors[i];
 }
+
+
 
 void sea_object::load(istream& in, class game& g)
 {
 	specfilename = read_string(in);
-	modelname = read_string(in);
 	position.x = read_double(in);
 	position.y = read_double(in);
 	position.z = read_double(in);
 	heading = angle(read_double(in));
 	speed = read_double(in);
-	max_speed = read_double(in);
-	max_rev_speed = read_double(in);
 	throttle = read_i8(in);
-	acceleration = read_double(in);
 	permanent_turn = read_bool(in);
 	head_chg = read_double(in);
 	rudder = read_i8(in);
 	head_to = angle(read_double(in));
-	turn_rate = angle(read_double(in));
-	length = read_double(in);
-	width = read_double(in);
 	alive_stat = alive_status(read_u8(in));
 
 	previous_positions.clear();
@@ -80,10 +103,9 @@ void sea_object::load(istream& in, class game& g)
 		double y = read_double(in);
 		previous_positions.push_back(vector2(x, y));
 	}
-	
-	// sensors are created by sea_object/type
-	// fixme
 }
+
+
 
 void sea_object::save(ostream& out, const class game& g) const
 {
@@ -94,7 +116,6 @@ void sea_object::save(ostream& out, const class game& g) const
 	write_double(out, heading.value());
 	write_double(out, speed);
 	write_i8(out, throttle);
-	write_double(out, acceleration);
 	write_bool(out, permanent_turn);
 	write_double(out, head_chg);
 	write_i8(out, rudder);
@@ -106,60 +127,38 @@ void sea_object::save(ostream& out, const class game& g) const
 		write_double(out, it->x);
 		write_double(out, it->y);
 	}
-	
-	// sensors are created by sea_object/type
 }
 
 
 
 void sea_object::parse_attributes(TiXmlElement* parent)
 {
-bool sea_object::parse_attribute(parser& p)
-	switch (p.type()) {
-		case TKN_POSITION: {
-			p.consume();
-			p.parse(TKN_ASSIGN);
-			int x = p.parse_number();
-			p.parse(TKN_COMMA);
-			int y = p.parse_number();
-			p.parse(TKN_COMMA);
-			int z = p.parse_number();
-			p.parse(TKN_SEMICOLON);
-			position = vector3(x, y, z);
-			break; }
-		case TKN_HEADING:
-			p.consume();
-			p.parse(TKN_ASSIGN);
-			heading = angle(p.parse_number());
-			p.parse(TKN_SEMICOLON);
-			break;
-		case TKN_SPEED:
-			p.consume();
-			p.parse(TKN_ASSIGN);
-			speed = kts2ms(p.parse_number());
-			p.parse(TKN_SEMICOLON);
-			break;
-		case TKN_THROTTLE:
-			p.consume();
-			p.parse(TKN_ASSIGN);
-			switch (p.type()) {
-				case TKN_NUMBER: throttle = p.parse_number(); break;
-				case TKN_STOP: throttle = stop; p.consume(); break;
-				case TKN_REVERSE: throttle = reverse; p.consume(); break;
-				case TKN_AHEADLISTEN: throttle = aheadlisten; p.consume(); break;
-				case TKN_AHEADSONAR: throttle = aheadsonar; p.consume(); break;
-				case TKN_AHEADSLOW: throttle = aheadslow; p.consume(); break;
-				case TKN_AHEADHALF: throttle = aheadhalf; p.consume(); break;
-				case TKN_AHEADFULL: throttle = aheadfull; p.consume(); break;
-				case TKN_AHEADFLANK: throttle = aheadflank; p.consume(); break;
-				default: p.error("Expected throttle value");
-			}
-			p.parse(TKN_SEMICOLON);
-			break;
-		default: return false;
+	TiXmlHandle hdftdobj(parent);
+	TiXmlElement* eposition = hdftdobj.FirstChildElement("position").Element();
+	if (eposition) {
+		position = vector3(
+			atof(eposition->Attribute("x")),
+			atof(eposition->Attribute("y")),
+			atof(eposition->Attribute("z")) );
 	}
-	return true;
+	TiXmlElement* emotion = hdftdobj.FirstChildElement("motion").Element();
+	if (emotion) {
+		heading = angle(atof(emotion->Attribute("heading")));
+		speed = kts2ms(atof(emotion->Attribute("speed")));
+		string thr = emotion->Attribute("throttle");
+		if (thr == "stop") throttle = stop;
+		else if (thr == "reverse") throttle = reverse;
+		else if (thr == "aheadlisten") throttle = aheadlisten;
+		else if (thr == "aheadsonar") throttle = aheadsonar;
+		else if (thr == "aheadslow") throttle = aheadslow;
+		else if (thr == "aheadhalf") throttle = aheadhalf;
+		else if (thr == "aheadfull") throttle = aheadfull;
+		else if (thr == "aheadflank") throttle = aheadflank;
+		else throttle = atoi(thr.c_str());
+	}
 }
+
+
 
 void sea_object::simulate(game& gm, double delta_time)
 {
@@ -236,26 +235,36 @@ void sea_object::simulate(game& gm, double delta_time)
 	}
 }
 
+
+
 bool sea_object::damage(const vector3& fromwhere, unsigned strength)
 {
 	sink();
 	return true;
 }
 
+
+
 unsigned sea_object::calc_damage(void) const
 {
 	return alive_stat == sinking ? 100 : 0;
 }
+
+
 
 void sea_object::sink(void)
 {
 	alive_stat = sinking;
 }
 
+
+
 void sea_object::kill(void)
 {
 	alive_stat = dead;
 }
+
+
 
 void sea_object::head_to_ang(const angle& a, bool left_or_right)	// true == left
 {
@@ -263,6 +272,8 @@ void sea_object::head_to_ang(const angle& a, bool left_or_right)	// true == left
 	head_chg = (left_or_right) ? -1 : 1;
 	permanent_turn = false;
 }
+
+
 
 void sea_object::change_rudder (int dir)
 {
@@ -304,15 +315,21 @@ void sea_object::change_rudder (int dir)
         permanent_turn = true;
 }
 
+
+
 void sea_object::rudder_left(void)
 {
 	change_rudder ( -1 );
 }
 
+
+
 void sea_object::rudder_right(void)
 {
 	change_rudder ( 1 );
 }
+
+
 
 void sea_object::rudder_hard_left(void)
 {
@@ -321,12 +338,16 @@ void sea_object::rudder_hard_left(void)
 	permanent_turn = true;
 }
 
+
+
 void sea_object::rudder_hard_right(void)
 {
 	rudder = rudderfullright;
 	head_chg = 1.0f;
 	permanent_turn = true;
 }
+
+
 
 void sea_object::rudder_midships(void)
 {
@@ -336,10 +357,14 @@ void sea_object::rudder_midships(void)
 	permanent_turn = false;
 }
 
-void sea_object::set_throttle(throttle_status thr)//fixme: maybe change to int
+
+
+void sea_object::set_throttle(throttle_status thr)
 {
 	throttle = thr;
 }
+
+
 
 void sea_object::remember_position(void)
 {
@@ -347,6 +372,8 @@ void sea_object::remember_position(void)
 	if (previous_positions.size() > MAXPREVPOS)
 		previous_positions.pop_back();
 }	
+
+
 
 double sea_object::get_throttle_speed(void) const
 {
@@ -370,21 +397,29 @@ double sea_object::get_throttle_speed(void) const
 	return 0;
 }
 
+
+
 pair<angle, double> sea_object::bearing_and_range_to(const sea_object* other) const
 {
 	vector2 diff = other->get_pos().xy() - position.xy();
 	return make_pair(angle(diff), diff.length());
 }
 
+
+
 angle sea_object::estimate_angle_on_the_bow(angle target_bearing, angle target_heading) const
 {
 	return (angle(180) + target_bearing - target_heading).value_pm180();
 }
 
+
+
 float sea_object::surface_visibility(const vector2& watcher) const
 {
 	return 1.0/750.0 * get_cross_section(watcher);
 }
+
+
 
 sensor* sea_object::get_sensor ( sensor_system ss )
 {
@@ -394,6 +429,8 @@ sensor* sea_object::get_sensor ( sensor_system ss )
 	return 0;
 }
 
+
+
 const sensor* sea_object::get_sensor ( sensor_system ss ) const
 {
 	if ( ss >= 0 && ss < last_sensor_system )
@@ -402,11 +439,15 @@ const sensor* sea_object::get_sensor ( sensor_system ss ) const
 	return 0;
 }
 
+
+
 void sea_object::set_sensor ( sensor_system ss, sensor* s )
 {
 	if ( ss >= 0 && ss < last_sensor_system )
 		sensors[ss] = s;
 }
+
+
 
 double sea_object::get_cross_section ( const vector2& d ) const
 {
@@ -417,17 +458,25 @@ double sea_object::get_cross_section ( const vector2& d ) const
 		return mdl->get_cross_section(diff.value());
 	}
 	return 0.0;
+
+
 }
+
+
 
 double sea_object::get_noise_factor () const
 {
     return get_throttle_speed () / max_speed;
 }
 
+
+
 vector2 sea_object::get_engine_noise_source () const
 {
 	return get_pos ().xy () - get_heading ().direction () * 0.3f * length;
 }
+
+
 
 void sea_object::display(void) const
 {

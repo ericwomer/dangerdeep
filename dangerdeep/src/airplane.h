@@ -10,26 +10,28 @@
 
 class airplane : public sea_object
 {
-public:
-	enum types { standard };
 protected:
-	unsigned type;	// fixme obsolete with specfilename
 	quaternion rotation;	// local plane space to world space
 	vector3 velocity;	//fixme: move to sea_object?
 	double rollfac, pitchfac;
 
+	airplane();
 	airplane& operator=(const airplane& other);
 	airplane(const airplane& other);
+	
+	virtual void parse_attributes(class TiXmlElement* parent);
+	
 public:
-	airplane(const string& specfilename_);
+	// create empty object from specification xml file
+	airplane(class TiXmlDocument* specfile);
+
 //	airplane() { rotation = quaternion::neutral_rot(); velocity = vector3(0,100,0); } obsolete
+
 	virtual ~airplane() {};
+
 	void load(istream& in, class game& g);
 	void save(ostream& out, const class game& g) const;
-//	static airplane* create(istream& in);	//fixme: make c'tors for them
-//	static airplane* create(types type_);
-//	static airplane* create(parser& p);
-	
+
 	virtual void simulate(class game& gm, double delta_time);
 
 	virtual quaternion get_rotation(void) const { return rotation; }
@@ -50,9 +52,6 @@ public:
 	virtual void pitch_down(void);
 	virtual void pitch_up(void);
 	virtual void pitch_zero(void);
-
-	// types:
-//	airplane(unsigned type_, const vector3& pos, double heading); obsolete
 };
 
 #endif
