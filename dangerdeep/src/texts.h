@@ -110,6 +110,10 @@ DEFTYPE const char* TXT_night[] content("night", "nachts");
 DEFTYPE const char* TXT_morning[] content("morning", "morgens");
 DEFTYPE const char* TXT_midday[] content("midday", "mittags");
 DEFTYPE const char* TXT_evening[] content("evening", "abends");
+DEFTYPE const char* TXT_SnorkelUp [] content("Snorkel up", "Schnorchel ausgefahren");
+DEFTYPE const char* TXT_SnorkelDown [] content("Snorkel down", "Schnorchel eingefahren");
+DEFTYPE const char* TXT_SnorkelDepth[] content("Go to snorkel depth", "Schnorcheltiefe ansteuern");
+DEFTYPE const char* TXT_TimeCompression[] content("Compression", "Kompression");
 
 /*
 DEFTYPE const char* TXT_[] content("", "");
