@@ -35,11 +35,11 @@ protected:
 	// for a 64x64 grid in 256 phases with mipmaps and normals we have
 	// 256*64*64*(6*4)*4/3 = 1M*24*4/3 = 32M
 	vector<vector<vector2f> > wavetiledisplacements;
-	vector<vector<float> > wavetileheights;
-	vector<vector<vector3f> > wavetilenormals;
+	vector<vector<float> > wavetileheights;	//fixme store heights as uint8 (resolution is high enough, 75% space save)
+	vector<vector<vector3f> > wavetilenormals;//fixme not neeeded with dynamic normals (which are always on with projgrid water...)
 
 	vector<unsigned> gridindices;
-	vector<unsigned> gridindices2;
+	vector<unsigned> gridindices2;//only used for test grid drawing, could be ifdef'ed away
 
 	//projgrid: mipmaps too
 	vector<vector<float> > wavetilefoam;

@@ -47,6 +47,7 @@ freeview_display::projection_data freeview_display::get_projection_data(game& gm
 void freeview_display::set_modelview_matrix(game& gm) const
 {
 	glLoadIdentity();
+
 	glRotated(-elevation.value(),1,0,0);
 
 	// This should be a negative angle, but nautical view dir is clockwise,
@@ -275,7 +276,7 @@ void freeview_display::draw_view(game& gm) const
 	// *************** compute and set player pos ****************************************
 	set_modelview_matrix(gm);
 	//fixme not fully correct, pos depends on ship's rolling, retrieve that from modelview matrix!
-	vector3 viewpos = player->get_pos() + pos;
+	vector3 viewpos = player->get_pos() + pos;//seems to be different from modelview matrix fixme, for freeview it is different and that's why the water rendering is wrong there
 
 	// **************** prepare drawing ***************************************************
 
@@ -376,6 +377,7 @@ void freeview_display::draw_view(game& gm) const
 	// ******* water ***************************************************************
 	//ui.get_water().update_foam(1.0/25.0);  //fixme: deltat needed here
 	//ui.get_water().spawn_foam(vector2(myfmod(gm.get_time(),256.0),0));
+	//fixme !!! viewpos does not contain the viewer translation!!!!!!!!!!!!!!
 	ui.get_water().display(viewpos, bearing, max_view_dist);
 
 	// ******** terrain/land ********************************************************
