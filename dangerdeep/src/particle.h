@@ -28,6 +28,9 @@ protected:
 
 	// returns wether particle is shown parallel to z-axis (true), or 3d billboarding always (false)
 	virtual bool is_z_up(void) const { return true; }
+	
+	// returns wether image should be drawn above pos or centered around pos
+	virtual bool tex_centered(void) const { return true; }
 
 	// helper struct for depth sorting
 	struct particle_dist {
@@ -159,6 +162,7 @@ public:
 
 class torpedo_water_splash_particle : public particle
 {
+	virtual bool tex_centered(void) const { return false; }
 public:
 	torpedo_water_splash_particle(const vector3& pos);
 	~torpedo_water_splash_particle() {}
@@ -172,6 +176,7 @@ public:
 
 class gun_shell_water_splash_particle : public particle
 {
+	virtual bool tex_centered(void) const { return false; }
 public:
 	gun_shell_water_splash_particle(const vector3& pos);
 	~gun_shell_water_splash_particle() {}
@@ -185,6 +190,7 @@ public:
 
 class depth_charge_water_splash_particle : public particle
 {
+	virtual bool tex_centered(void) const { return false; }
 public:
 	depth_charge_water_splash_particle(const vector3& pos);
 	~depth_charge_water_splash_particle() {}

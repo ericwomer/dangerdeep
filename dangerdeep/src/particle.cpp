@@ -340,21 +340,29 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 		if (!part.is_z_up())//fixme
 			y = z.cross(x).normal();
 		double w2 = part.get_width()/2;
-		double h2 = part.get_height()/2;
+		double h = part.get_height();
+		double hb, ht;
+		if (part.tex_centered()) {
+			ht = h * 0.5;
+			hb = -ht;
+		} else {
+			ht = h;
+			hb = 0;
+		}
 		vector3 pp = part.get_pos() - viewpos;
 		vector3 coord;
 		part.set_texture(gm);//not valid between glBegin and glEnd
 		glBegin(GL_QUADS);
-		coord = pp + x * -w2 + y * h2;
+		coord = pp + x * -w2 + y * ht;
 		glTexCoord2f(0, 0);
 		glVertex3dv(&coord.x);
-		coord = pp + x * -w2 + y * -h2;
+		coord = pp + x * -w2 + y * hb;
 		glTexCoord2f(0, 1);
 		glVertex3dv(&coord.x);
-		coord = pp + x * w2 + y * -h2;
+		coord = pp + x * w2 + y * hb;
 		glTexCoord2f(1, 1);
 		glVertex3dv(&coord.x);
-		coord = pp + x * w2 + y * h2;
+		coord = pp + x * w2 + y * ht;
 		glTexCoord2f(1, 0);
 		glVertex3dv(&coord.x);
 		glEnd();
@@ -586,7 +594,6 @@ double spray_particle::get_life_time(void) const
 
 torpedo_water_splash_particle::torpedo_water_splash_particle(const vector3& pos) : particle(pos)
 {
-	position.z += 40.0;
 }
 
 
@@ -625,7 +632,6 @@ double torpedo_water_splash_particle::get_life_time(void) const
 
 gun_shell_water_splash_particle::gun_shell_water_splash_particle(const vector3& pos) : particle(pos)
 {
-	position.z += 2.5;
 }
 
 
@@ -664,7 +670,6 @@ double gun_shell_water_splash_particle::get_life_time(void) const
 
 depth_charge_water_splash_particle::depth_charge_water_splash_particle(const vector3& pos) : particle(pos)
 {
-	position.z += 30.0;
 }
 
 

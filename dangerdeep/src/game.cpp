@@ -1034,6 +1034,8 @@ bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 
 void game::torp_explode(const vector3& pos)
 {
+	// each torpedo seems to explode twice, if it's only drawn twice or adds twice the damage is unknown.
+	// fixme!
 	spawn_particle(new torpedo_water_splash_particle(pos.xy().xy0()));
 	if (ui) ui->play_sound_effect_distance (*this, ui->se_torpedo_detonation,
 		player->get_pos ().distance ( pos ) );
