@@ -16,6 +16,7 @@
 #include "ship_mediumtroopship.h"
 #include "ship_destroyertribal.h"
 #include "ship_battleshipmalaya.h"
+#include "ship_carrierbogue.h"
 #include "submarine_VIIc.h"
 #include "submarine_XXI.h"
 #include <iostream>
@@ -250,8 +251,8 @@ void show_vessels(void)
 	sea_object* s = 0;	// pointer to current vessel
 	while (true) {
 		if (vessel != lastvessel) {
-			if (vessel < 0) vessel = 5;
-			if (vessel > 5) vessel = 0;
+			if (vessel < 0) vessel = 6;
+			if (vessel > 6) vessel = 0;
 			delete s;
 			lastvessel = vessel;
 			switch(vessel) {
@@ -259,8 +260,9 @@ void show_vessels(void)
 				case 1: s = new ship_mediumtroopship(); break;
 				case 2: s = new ship_battleshipmalaya(); break;
 				case 3: s = new ship_destroyertribal(); break;
-				case 4: s = new submarine_XXI(); break;
-				case 5: s = new submarine_VIIc(); break;
+				case 4: s = new ship_carrierbogue(); break;
+				case 5: s = new submarine_XXI(); break;
+				case 6: s = new submarine_VIIc(); break;
 			}
  		}
 

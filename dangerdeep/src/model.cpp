@@ -106,7 +106,8 @@ void model::read(const string& filename)
 		faces.push_back(fc);
 	}
 	fclose(f);
-	system::sys()->add_console(string("read model file ")+filename);
+	class system* s = system::sys();	// needed for double use via off2mdl
+	if (s) s->add_console(string("read model file ")+filename);
 }
 
 void model::read_from_OFF(const string& filename, const string& texture_name, unsigned mapping,

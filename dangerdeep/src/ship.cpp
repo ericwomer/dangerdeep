@@ -8,6 +8,7 @@
 #include "ship_mediumtroopship.h"
 #include "ship_destroyertribal.h"
 #include "ship_battleshipmalaya.h"
+#include "ship_carrierbogue.h"
 #include "tokencodes.h"
 
 ship::ship() : sea_object()
@@ -27,6 +28,7 @@ ship* ship::create(ship::types type_)
 		case mediumtroopship: return new ship_mediumtroopship();
 		case destroyertribal: return new ship_destroyertribal();
 		case battleshipmalaya: return new ship_battleshipmalaya();
+		case carrierbogue: return new ship_carrierbogue();
 	}
 	return 0;
 }
@@ -41,6 +43,7 @@ ship* ship::create(parser& p)
 		case TKN_MEDIUMTROOPSHIP: return new ship_mediumtroopship(p);
 		case TKN_DESTROYERTRIBAL: return new ship_destroyertribal(p);
 		case TKN_BATTLESHIPMALAYA: return new ship_battleshipmalaya(p);
+		case TKN_CARRIERBOGUE: return new ship_carrierbogue(p);
 	}
 	return 0;
 }

@@ -195,6 +195,7 @@ unsigned long system::millisec(void)
 
 void system::myassert(bool cond, const string& msg)
 {
+	if (this == 0) return;	// avoid call with no instance
 	if (!cond) {
 		add_console("!ERROR!");
 		if (msg != "")

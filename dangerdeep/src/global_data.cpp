@@ -8,7 +8,7 @@
 #include <SDL/SDL_image.h>
 
 model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium,
-	*battleship_malaya, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
+	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
 	*skyhemisphere;
 texture *water, *background, *titel[4], *periscope[4], *gauge1,
 	*gauge2, *gauge3, *gauge4, *psbackgr, *panelbackgr,
@@ -25,6 +25,7 @@ void init_global_data(void)
 	merchant_medium = new model((get_data_dir() + "models/" + "merchant1.mdl"));
 	troopship_medium = new model((get_data_dir() + "models/" + "troopship1.mdl"));
 	battleship_malaya = new model((get_data_dir() + "models/" + "battleship_malaya.mdl"));
+	carrier_bogue = new model((get_data_dir() + "models/" + "carrier_bogue.mdl"));
 	subVII = new model((get_data_dir() + "models/" + "subVII.mdl"));
 	subXXI = new model((get_data_dir() + "models/" + "subXXI.mdl"));
 	destroyer_tribal = new model((get_data_dir() + "models/" + "destroyer1.mdl"));
@@ -86,6 +87,7 @@ void deinit_global_data(void)
 	delete merchant_medium;
 	delete troopship_medium;
 	delete battleship_malaya;
+	delete carrier_bogue;
 	delete subVII;
 	delete subXXI;
 	delete destroyer_tribal;

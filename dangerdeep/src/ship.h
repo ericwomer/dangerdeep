@@ -27,7 +27,7 @@ protected:
 	
 public:
 	// fixme: add more types
-	enum types { mediummerchant, mediumtroopship, destroyertribal, battleshipmalaya };
+	enum types { mediummerchant, mediumtroopship, destroyertribal, battleshipmalaya, carrierbogue };
 	virtual ~ship() { delete myai; }
 	static ship* create(types type_);
 	static ship* create(parser& p);

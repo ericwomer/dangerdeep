@@ -682,7 +682,7 @@ void submarine_interface::display_map(class system& sys, game& gm)
 		}
 
 	} 
-//	else 	// enabled as testing hack
+	else 	// enabled as testing hack
 	{	// sub is surfaced
 		// draw trails
 		for (map<sea_object*, list<vector2> >::iterator it = trails.begin(); it != trails.end(); ++it) {
