@@ -110,11 +110,11 @@ void init_global_data(void)
 	woodbackgr = new texture ( ( get_data_dir () + TEXTURE_DIR + "wooden_desk.png" ) );
 	damage_screen_background = IMG_Load( (get_data_dir() + IMAGES_DIR + "damage_screen_backg.png").c_str() );
 	sub_damage_scheme_all = IMG_Load( (get_data_dir() + IMAGES_DIR + "sub_damage_scheme_all.png").c_str() );
-	repairlight = new texture( ( get_data_dir () + TEXTURE_DIR + "repairlight.png" ) );
-	repairmedium = new texture( ( get_data_dir () + TEXTURE_DIR + "repairmedium.png" ) );
-	repairheavy = new texture( ( get_data_dir () + TEXTURE_DIR + "repairheavy.png" ) );
-	repaircritical = new texture( ( get_data_dir () + TEXTURE_DIR + "repaircritical.png" ) );
-	repairwrecked = new texture( ( get_data_dir () + TEXTURE_DIR + "repairwrecked.png" ) );
+	repairlight = new texture( ( get_data_dir () + TEXTURE_DIR + "repairlight.png" ), 0, true, true );
+	repairmedium = new texture( ( get_data_dir () + TEXTURE_DIR + "repairmedium.png" ), 0, true, true );
+	repairheavy = new texture( ( get_data_dir () + TEXTURE_DIR + "repairheavy.png" ), 0, true, true );
+	repaircritical = new texture( ( get_data_dir () + TEXTURE_DIR + "repaircritical.png" ), 0, true, true );
+	repairwrecked = new texture( ( get_data_dir () + TEXTURE_DIR + "repairwrecked.png" ), 0, true, true );
 }
 
 void deinit_global_data(void)
