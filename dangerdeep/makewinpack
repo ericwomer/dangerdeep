@@ -14,6 +14,7 @@ cp build/win32/dangerdeep.exe $TMP/$BASEDIR
 cp dlls/*.dll $TMP/$BASEDIR
 cd $TMP
 rm -rf $BASEDIR/src
+rm -rf $BASEDIR/build
 zip -9r dangerdeep-$VERSION-win32.zip *
 cd ..
 mv $TMP/dangerdeep-$VERSION-win32.zip .
