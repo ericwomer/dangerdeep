@@ -31,7 +31,7 @@ struct directory {
 // file helper interface
 
 directory open_dir(const string& filename);	// returns an invalid directory, if filename doesn't exist
-string read_dir(directory d);	// returns empty string if directory is fully read.
+string read_dir(directory& d);	// returns empty string if directory is fully read.
 void close_dir(directory d);
 bool make_dir(const string& dirname);	// returns true on success
 string get_current_directory(void);	// return absolute path

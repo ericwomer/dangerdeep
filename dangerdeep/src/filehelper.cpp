@@ -5,16 +5,14 @@
 #include <vector>
 
 #ifdef WIN32
-static WIN32_FIND_DATA Win32_FileFind_Temporary;
-static bool Win32_FileFind_Temporary_used = false;
 directory open_dir(const string& filename)
 {
 	directory d;
 	d.temporary_used = true;
-	FindFirstFile(filename.c_str(), &d.Win32_FileFind_Temporary);
+	d.dir = FindFirstFile((filename + "*.*").c_str(), &d.Win32_FileFind_Temporary);
 	return d;
 }
-string read_dir(directory d)
+string read_dir(directory& d)
 {
 	if (d.temporary_used) {
 		d.temporary_used = false;
@@ -22,7 +20,7 @@ string read_dir(directory d)
 	} else {
 		BOOL b = FindNextFile(d.dir, &d.Win32_FileFind_Temporary);
 		if (b == TRUE)
-			return string(Win32_FileFind_Temporary.cFileName);
+			return string(d.Win32_FileFind_Temporary.cFileName);
 		else
 			return "";
 	}
@@ -51,7 +49,9 @@ string get_current_directory(void)
 }
 bool is_directory(const string& filename)
 {
-	return ((GetFileAttributes(filename.c_str()) & FILE_ATTRIBUTE_DIRECTORY) != 0);
+	int err = GetFileAttributes(filename.c_str());
+	if (err == -1) return false;
+	return ((err & FILE_ATTRIBUTE_DIRECTORY) != 0);
 }
 
 #else	/* Win32 */
@@ -65,7 +65,7 @@ directory open_dir(const string& filename)
 	d.dir = opendir(filename.c_str());
 	return d;
 }
-string read_dir(directory d)
+string read_dir(directory& d)
 {
 	struct dirent* dir_entry = readdir(d.dir);
 	if (dir_entry) {
@@ -98,21 +98,10 @@ string get_current_directory(void)
 }
 bool is_directory(const string& filename)
 {
-/*
-	// better code. has to be tested yet.
 	struct stat fileinfo;
-	int errno = stat(filename.c_str(), &fileinfo);
-	if (errno != 0) return false;
+	int err = stat(filename.c_str(), &fileinfo);
+	if (err != 0) return false;
 	if (S_ISDIR(fileinfo.st_mode)) return true;
-	return false;
-*/
-	
-	DIR* d = opendir(filename.c_str());	//fixme: could this be done smarter?
-						// make sure this doesn't create a new directory
-	if (d != 0) {
-		closedir(d);
-		return true;
-	}
 	return false;
 }
 
