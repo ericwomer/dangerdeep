@@ -2,12 +2,13 @@
 VERSION=`cat version`
 mkdir .tmpbuild
 cd .tmpbuild
-mkdir dangerdeep-$VERSION
+bzip2 -d -c ../dangerdeep-$VERSION.tar.bz2 | tar x
 cd dangerdeep-$VERSION
-mkdir data
-echo "Place data files here (directories fonts/ textures/ images/ and so on)." > data/readme
+rm -rf src
+rm -f *
+rm -f `find . -name "Makefile*"`
 cp ../../dangerdeep.exe .
 cd ..
-zip -9 -r ../dangerdeep-win32.exe-$VERSION.zip .
+zip -r ../dangerdeep-$VERSION-win32.zip dangerdeep-$VERSION
 cd ..
 rm -rf .tmpbuild
