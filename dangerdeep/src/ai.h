@@ -25,6 +25,7 @@ protected:
 	types type;
 	states state;
 	unsigned zigzagstate;
+	bool attackrun;		// true when running full speed shortly before the attack
 	sea_object* parent;
 	sea_object* followme;
 	bool has_contact;

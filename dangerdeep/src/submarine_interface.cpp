@@ -571,7 +571,11 @@ void submarine_interface::display_map(class system& sys, game& gm)
 	glEnd();
 	glColor3f(1,1,1);
 
-	// draw pings
+	bool player_is_submerged = (player->get_pos().z < -2);
+
+	// if (player_is_submerged) {
+	// draw pings (just an experiment, you can hear pings, locate their direction
+	//	a bit fuzzy but not their origin or exact shape).
 	const list<game::ping>& pings = gm.get_pings();
 	for (list<game::ping>::const_iterator it = pings.begin(); it != pings.end(); ++it) {
 		const game::ping& p = *it;
@@ -587,16 +591,41 @@ void submarine_interface::display_map(class system& sys, game& gm)
 		glEnd();
 		glColor4f(1,1,1,1);
 	}
+	// }
 	
 	// draw trails
-	for (map<sea_object*, list<vector2> >::iterator it = trails.begin(); it != trails.end(); ++it) {
-		if (it->second.size() > 0)
-			draw_trail(it->first->get_pos().xy(), it->second, offset);
+	if (!player_is_submerged) {
+		for (map<sea_object*, list<vector2> >::iterator it = trails.begin(); it != trails.end(); ++it) {
+			if (it->second.size() > 0)
+				draw_trail(it->first->get_pos().xy(), it->second, offset);
+		}
 	}
 
-	// draw vessel symbols
-	list<ship*> ships = gm.visible_ships(player->get_pos());
-	list<submarine*> submarines = gm.visible_submarines(player->get_pos());
+	// draw vessel symbols (or noise contacts)
+	if (player_is_submerged) {
+		if (player->get_throttle_speed()/player->get_max_speed() < 0.51) {
+			list<ship*> ships = gm.hearable_ships(player->get_pos());
+			// fixme: sub's missing
+			// fixme: differences between ship types missing
+			for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
+				vector2 ldir = (*it)->get_pos().xy() - player->get_pos().xy();
+				ldir = ldir.normal() * 2000;	// draw lines to the screen's border
+				glColor3f(1,0,0);
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glBegin(GL_LINES);
+				glVertex2f(512,384);
+				glVertex2f(512+ldir.x, 384-ldir.y);
+				glEnd();
+				glColor3f(1,1,1);
+			}
+		}
+		// else: sub can't hear anything, engines to loud
+	} 
+
+//	else {
+		list<ship*> ships = gm.visible_ships(player->get_pos());
+		list<submarine*> submarines = gm.visible_submarines(player->get_pos());
+//	}
 
 	// insert player if he's submerged.
 	bool player_drawn = false;

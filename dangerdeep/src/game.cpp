@@ -243,6 +243,38 @@ list<gun_shell*> game::visible_gun_shells(const vector3& pos)
 	return result;
 }
 
+// fixme: noises are disturbing each other!
+list<ship*> game::hearable_ships(const vector3& pos)
+{
+	list<ship*> result;
+	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
+		double d = (*it)->get_pos().xy().distance(pos.xy());
+		double distfac = (2000 / (d + 2000));
+		double noisefac = (*it)->get_throttle_speed()/(*it)->get_max_speed();
+//printf("df nf %f %f\n",distfac,noisefac);		
+		if (noisefac * distfac > 0.1) {
+			result.push_back(*it);
+		}
+	}
+	return result;
+}
+
+list<submarine*> game::hearable_submarines(const vector3& pos)
+{
+	// fixme: course changes acoustic profile, and also depth, subtype etc.
+	list<submarine*> result;
+	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
+		double d = (*it)->get_pos().xy().distance(pos.xy());
+		double distfac = (2000 / (d + 2000));
+		double noisefac = (*it)->get_throttle_speed()/(*it)->get_max_speed();
+//printf("df nf %f %f\n",distfac,noisefac);		
+		if (noisefac * distfac > 0.1) {
+			result.push_back(*it);
+		}
+	}
+	return result;
+}
+
 void game::dc_explosion(const vector3& pos)
 {
 	// are subs affected?

@@ -76,6 +76,9 @@ public:
 	list<depth_charge*> visible_depth_charges(const vector3& pos);
 	list<gun_shell*> visible_gun_shells(const vector3& pos);
 	
+	list<ship*> hearable_ships(const vector3& pos);
+	list<submarine*> hearable_submarines(const vector3& pos);
+	
 //	bool can_see(const sea_object* watcher, const submarine* sub) const;
 
 	// create new objects

@@ -9,6 +9,7 @@ void ai::relax(void)
 	has_contact = false;
 	state = (followme != 0) ? followobject : followpath;
 	parent->set_throttle(sea_object::aheadsonar);
+	attackrun = false;
 }
 
 void ai::attack_contact(const vector3& c)
@@ -84,15 +85,24 @@ void ai::act_escort(game& gm, double delta_time)
 		fire_shell_at(gm, *nearest_contact);
 		attack_contact(nearest_contact->get_pos());
 		parent->set_throttle(sea_object::aheadflank);
+		attackrun = true;
 	}
 
-	if (state != attackcontact) {	// nothing found? try a ping or listen
-		// ping around to find something
-		list<vector3> contacts = gm.ping_ASDIC(parent->get_pos().xy(),
-			parent->get_heading()+angle(rnd(360)));	//fixme
-		if (contacts.size() > 0) {
-			// fixme: choose best contact!
-			attack_contact(contacts.front());
+	if (!attackrun) {	// nothing found? try a ping or listen
+		// high speeds do not allow for listening or sonar.
+	
+		// listen for subs
+		list<submarine*> hearable_subs = gm.hearable_submarines(parent->get_pos());
+		if (hearable_subs.size() > 0) {
+			attack_contact(hearable_subs.front()->get_pos());
+		} else {
+			// ping around to find something
+			list<vector3> contacts = gm.ping_ASDIC(parent->get_pos().xy(),
+				parent->get_heading()+angle(rnd(360)));	//fixme
+			if (contacts.size() > 0) {
+				// fixme: choose best contact!
+				attack_contact(contacts.front());
+			}
 		}
 	}
 
@@ -104,15 +114,15 @@ void ai::act_escort(game& gm, double delta_time)
 
 		vector2 delta = contact.xy() - parent->get_pos().xy();
 		double cd = delta.length();
-		if (cd > DC_ATTACK_RUN_RADIUS) {
-			list<vector3> contacts = gm.ping_ASDIC(parent->get_pos().xy(),
-				angle(delta));
+		if (cd > DC_ATTACK_RUN_RADIUS && !attackrun) {
+			list<vector3> contacts = gm.ping_ASDIC(parent->get_pos().xy(), angle(delta));
 			if (contacts.size() > 0) {	// update contact
 				// fixme: choose best contact!
 				attack_contact(contacts.front());
 			}
 		} else {
 			parent->set_throttle(sea_object::aheadflank);
+			attackrun = true;
 		}
 
 		if (cd < DC_ATTACK_RADIUS) {

@@ -26,26 +26,42 @@ torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes)
 	width = 1;
 	run_length = 0;
 	switch (type_) {
-		case T3FAT:		// G7e FAT
+		case T1:		// G7a steam torpedo
+			speed = kts2ms(30);
+			max_speed = kts2ms(30);
+			max_rev_speed = 0;
+			max_run_length = 12500;
+			break;
+		case T3:		// G7e electric torpedo (T2/T3)
 			speed = kts2ms(30);
 			max_speed = kts2ms(30);
 			max_rev_speed = 0;
 			max_run_length = 7500;
 			break;
-		case T3:	// G7e electric torpedo (T2/T3)
+		case T5:		// G7e acustic torpedo
+			speed = kts2ms(24);
+			max_speed = kts2ms(24);
+			max_rev_speed = 0;
+			max_run_length = 5000;	// fixme: historical value?
+			break;
+		case T3FAT:		// G7e FAT torpedo
 			speed = kts2ms(30);
 			max_speed = kts2ms(30);
 			max_rev_speed = 0;
 			max_run_length = 7500;
-		case T1:
-		case T5:
-		case T6LUT:
-		case T11:		
-		default:	// G7a steam torpedo
-			speed = kts2ms(30);
+			break;
+		case T6LUT:		// G7e LUT torpedo
+			speed = kts2ms(30);	//fixme: wrong values
 			max_speed = kts2ms(30);
 			max_rev_speed = 0;
 			max_run_length = 12500;
+			break;
+		case T11:		// G7e acustic torpedo (improved T5)
+			speed = kts2ms(24);	// fixme: historical value?
+			max_speed = kts2ms(24);
+			max_rev_speed = 0;
+			max_run_length = 5000;	// fixme: historical value?
+			break;
 	};
 	throttle = aheadfull;
 	system::sys()->add_console("torpedo created");
@@ -56,8 +72,30 @@ void torpedo::simulate(game& gm, double delta_time)
 	if (parent != 0 && parent->is_dead()) parent = 0;
 	sea_object::simulate(gm, delta_time);
 	if (is_defunct() || is_dead()) return;
+	
+	if (type == T5 || type == T11) {	// test hack
+		// get subs too... fixme
+		list<ship*> contacts = gm.hearable_ships(get_pos());
+		// chouse loudest contact (fixme: here: nearest)
+		// fixme: full surround listing is not possible for T5's/T11's.
+		double d = 1e12;
+		ship* target = 0;
+		for (list<ship*>::iterator it = contacts.begin(); it != contacts.end(); ++it) {
+			double d2 = (*it)->get_pos().xy().square_distance(get_pos().xy());
+			if (d2 < d) {
+				d = d2;
+				target = *it;
+			}
+		}
+		if (target) {
+			angle targetang(target->get_pos().xy() - get_pos().xy());
+			bool turnright = get_heading().is_cw_nearer(targetang);
+			head_to_ang(targetang, !turnright);
+		}
+	}
+	
 	if (type == T3FAT) {	// FAT, test hack
-		if (run_length > 1600) {
+		if (run_length > 1600) {	// wrong pattern fixme
 			rudder_right(0.5);
 		}
 	}

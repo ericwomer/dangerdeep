@@ -272,7 +272,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 
 bool user_interface::time_scale_up(void)
 {
-	if (time_scale < 1024) {
+	if (time_scale < 4096) {
 		time_scale *= 2;
 		return true;
 	}
