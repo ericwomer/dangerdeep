@@ -1126,10 +1126,10 @@ void game::unregister_job(job* j)
 	system::sys().myassert(false, "[game::unregister_job] job not found in list");
 }
 
-template<class _C>
-ship* game::check_unit_list ( torpedo* t, list<_C>& unit_list )
+template<class C>
+ship* game::check_unit_list ( torpedo* t, list<C>& unit_list )
 {
-	for ( typename list<_C>::iterator it = unit_list.begin (); it != unit_list.end (); ++it )
+	for ( typename list<C>::iterator it = unit_list.begin (); it != unit_list.end (); ++it )
 	{
 		if ( is_collision ( t, *it ) )
 			return *it;

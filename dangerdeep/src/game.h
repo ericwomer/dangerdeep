@@ -243,8 +243,8 @@ public:
 	void unregister_job(job* j);
 	const list<ping>& get_pings(void) const { return pings; };
 
-	template<class _C>
-	ship* check_unit_list ( torpedo* t, list<_C>& unit_list );
+	template<class C>
+	ship* check_unit_list ( torpedo* t, list<C>& unit_list );
 
 	// fixme why is this not const? if it changes game, it must be send over network, and
 	// then it can't be a function!
