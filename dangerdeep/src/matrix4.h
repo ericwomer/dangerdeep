@@ -43,6 +43,9 @@ protected:
 
 public:
 
+	static D pi(void) { return D(M_PI); }
+	static D pi_div_180(void) { return D(M_PI/180); }
+
 	matrix4t() : values(size*size, D(0.0)) {}
 
 	// construct in C++ order
@@ -114,6 +117,14 @@ public:
 	D& elem_at(unsigned col, unsigned row) { return values.at(col + row * size); }
 	const D& elem_at(unsigned col, unsigned row) const { return values.at(col + row * size); }
 
+	// returns determinate of upper left 3x3 matrix
+	D det3(void) const {
+		// sarrus
+		return	elem(0, 0) * elem(1, 1) * elem(2, 2) - elem(2, 0) * elem(1, 1) * elem(0, 2) +
+			elem(1, 0) * elem(2, 1) * elem(0, 2) - elem(1, 0) * elem(0, 1) * elem(2, 2) +
+			elem(2, 0) * elem(0, 1) * elem(1, 2) - elem(0, 0) * elem(2, 1) * elem(1, 2);
+	}
+
 #ifndef NO_IOSTREAM
 	void print(void) const {
 		for(unsigned y = 0; y < size; y++) {
@@ -180,22 +191,32 @@ public:
 				r.values[j+i*4] = D(m[i+j*4]);
 		return r;
 	}
+
+	static matrix4t<D> get_glf(GLenum pname) {	// GL_PROJECTION_MATRIX, GL_MODELVIEW_MATRIX, GL_TEXTURE_MATRIX
+		GLfloat m[16];
+		glGetFloatv(pname, m);
+		matrix4t<D> r;
+		for (unsigned i = 0; i < 4; ++i)
+			for (unsigned j = 0; j < 4; ++j)
+				r.values[j+i*4] = D(m[i+j*4]);
+		return r;
+	}
 #endif
 	
 	static matrix4t<D> rot_x(const D& degrees) {
-		double a = M_PI*degrees/180.0;
+		D a = degrees * pi_div_180();
 		D c = D(cos(a)), s = D(sin(a)), o = D(1.0), n = D(0.0);
 		return matrix4t<D>(o, n, n, n,  n, c,-s, n,  n, s, c, n,  n, n, n, o);
 	}
 
 	static matrix4t<D> rot_y(const D& degrees) {
-		double a = M_PI*degrees/180.0;
+		D a = degrees * pi_div_180();
 		D c = D(cos(a)), s = D(sin(a)), o = D(1.0), n = D(0.0);
 		return matrix4t<D>(c, n, s, n,  n, o, n, n, -s, n, c, n,  n, n, n, o);
 	}
 
 	static matrix4t<D> rot_z(const D& degrees) {
-		double a = M_PI*degrees/180.0;
+		D a = degrees * pi_div_180();
 		D c = D(cos(a)), s = D(sin(a)), o = D(1.0), n = D(0.0);
 		return matrix4t<D>(c,-s, n, n,  s, c, n, n,  n, n, o, n,  n, n, n, o);
 	}
@@ -248,7 +269,7 @@ void matrix4t<D>::columnpivot(vector<unsigned>& p, unsigned offset)
         unsigned maxi = 0;
 
 	for (unsigned i = 1; i < size-offset; i++) {
-                double tmp = values[(offset+i) * size + offset];
+                D tmp = values[(offset+i) * size + offset];
                 if (fabs(tmp) > fabs(max)) {
                         max = tmp;
 			maxi = i;
