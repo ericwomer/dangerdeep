@@ -23,6 +23,7 @@ class sky
 protected:
 	double mytime;					// store global time in seconds
 	
+	mutable	// test
 	float skycolorfac;				// 0.0 sunny, 1.0 stormy
 						//fixme: maybe rather use it for sunrise/fall colors
 	

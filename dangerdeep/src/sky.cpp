@@ -92,7 +92,7 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 	for (int y = 0; y < 256; ++y) {
 		// y is height
 		color a = color(color( 73, 164, 255), color(173, 200, 219), float(y)/255);
-		color b = color(color(143, 148, 204), color(138, 156, 168), float(y)/255);
+		color b = color(color(143, 148, 204), color(231, 166, 89 /* 138, 156, 168*/), float(y)/255);
 		for (int x = 0; x < 256; ++x) {
 			// x is weather type (sunny -> storm)
 			color c = color(a, b, float(x)/255);
@@ -517,6 +517,8 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	// the brighter the sun, the deeper is the sky color
 	float atmos = (sundir.z < -0.25) ? 0.0f : ((sundir.z < 0.0) ? 4*(sundir.z+0.25) : 1.0f);
 	glColor4f(1, 1, 1, atmos);
+
+	skycolorfac = (sundir.z > 0.5) ? 0.0 : (1.0 - sundir.z * 2);
 
 	setup_textures();
 
