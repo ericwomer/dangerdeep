@@ -1,13 +1,13 @@
 // Object to create and display logbook entries.
 // subsim (C)+(W) Markus Petermann and Thorsten Jordan. SEE LICENSE
 
+#ifndef LOGBOOK_H
+#define LOGBOOK_H
+
 #include <string>
 using namespace std;
 #include "user_display.h"
 #include "date.h"
-
-#ifndef LOGBOOK_H
-#define LOGBOOK_H
 
 //
 // Class logbook

@@ -37,7 +37,7 @@ submarine_interface::submarine_interface(submarine* player_sub, game& gm) :
 
 	displays.push_back(new sub_gauges_display());
 	displays.push_back(new sub_periscope_display());
-	displays.push_back(new sub_UZO_display());
+	displays.push_back(new sub_uzo_display());
 	displays.push_back(new sub_bridge_display(/*player_sub?*/));
 	displays.push_back(new map_display());
 	displays.push_back(new sub_torpedo_display(/*player_sub?*/));

@@ -1,10 +1,10 @@
 // Object to create and display the number and tonnage of sunk ships.
 // subsim (C)+(W) Markus Petermann and Thorsten Jordan. SEE LICENSE
 
-#include "user_display.h"
-
 #ifndef SHIPS_SUNK_DISPLAY_H
 #define SHIPS_SUNK_DISPLAY_H
+
+#include "user_display.h"
 
 class ship;
 class model;

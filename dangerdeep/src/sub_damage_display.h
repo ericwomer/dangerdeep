@@ -1,10 +1,10 @@
 // Object to display the damage status of a submarine.
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
-#include "user_display.h"
-
 #ifndef SUB_DAMAGE_DISPLAY_H
 #define SUB_DAMAGE_DISPLAY_H
+
+#include "user_display.h"
 
 #include "vector3.h"
 #include "submarine.h"
