@@ -14,7 +14,6 @@
 class gun_shell : public sea_object
 {
 protected:
-	vector3 velocity;	// current velocity
 	vector3 oldpos;		// position at last iteration (for collision detection)
 
 	gun_shell& operator=(const gun_shell& other);
@@ -28,6 +27,7 @@ public:
 		double initial_velocity = GUN_SHELL_INITIAL_VELOCITY);
 	virtual void simulate(class game& gm, double delta_time);
 	virtual void display(void) const;
+	// acceleration is only gravity and already handled by sea_object
 };
 
 #endif
