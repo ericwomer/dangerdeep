@@ -21,10 +21,10 @@ void sub_periscope_display::pre_display(game& gm) const
 freeview_display::projection_data sub_periscope_display::get_projection_data(class game& gm) const
 {
 	projection_data pd;
-	pd.x = 454*system::sys().get_res_x()/1024;
-	pd.y = 148*system::sys().get_res_x()/1024;
-	pd.w = 426*system::sys().get_res_x()/1024;
-	pd.h = 426*system::sys().get_res_x()/1024;
+	pd.x = 453*system::sys().get_res_x()/1024;
+	pd.y = (768-424-193)*system::sys().get_res_x()/1024;
+	pd.w = 424*system::sys().get_res_x()/1024;
+	pd.h = 424*system::sys().get_res_x()/1024;
 	// with normal fov of 70 degrees, this is 1.5 / 6.0 magnification
 	pd.fov_x = zoomed ? 13.31 : 50.05;	//fixme: historic values?
 	pd.near_z = 1.0;
