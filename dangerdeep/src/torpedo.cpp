@@ -82,7 +82,7 @@ torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, ang
 			influencefuse = true;
 			break;
 	};
-	throttle = aheadfull;
+	throttle = aheadflank;
 
 	// set ship turning values
 	max_rudder_angle = 40;
@@ -90,8 +90,6 @@ torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, ang
 	max_angular_velocity = 18;	// ~ 5 seconds for 90 degree turn (50m radius circle with 30 knots)
 	turn_rate = 1; // ? is this needed somewhere?!
 	max_accel_forward = 1;
-	max_speed_forward = 10;
-	max_speed_reverse = 0;
 
 	// torpedoes run too slow, fixme
 
