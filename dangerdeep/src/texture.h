@@ -57,7 +57,11 @@ public:
 	void draw_hm(int x, int y, int w, int h) const;	// horizontally mirrored
 	void draw_vm(int x, int y, int w, int h) const;	// vertically mirrored
 	void draw_rot(int x, int y, double angle) const;	// draw rotated image
-	void draw_tiles(int x, int y, int w, int h, unsigned tiles, unsigned tilesy) const;	
+	// repeat texture in tiles in the given screen rectangle
+	void draw_tiles(int x, int y, int w, int h) const;
+	// draw a sub image given by the tx,ty,tw,th values to a screen rectangle x,y,w,h
+	void draw_subimage(int x, int y, int w, int h, unsigned tx, unsigned ty,
+		unsigned tw, unsigned th) const;
 
 	static unsigned get_max_size(void);
 };

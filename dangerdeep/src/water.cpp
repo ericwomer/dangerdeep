@@ -329,10 +329,11 @@ void water::compute_coord_and_normal(int phase, const vector2& xypos, const vect
 	vector3f cb(wavetiledisplacements[phase][i1].x, wavetiledisplacements[phase][i1].y, wavetileheights[phase][i1]);
 	vector3f cc(wavetiledisplacements[phase][i2].x, wavetiledisplacements[phase][i2].y, wavetileheights[phase][i2]);
 	vector3f cd(wavetiledisplacements[phase][i3].x, wavetiledisplacements[phase][i3].y, wavetileheights[phase][i3]);
-	vector3f ce = ca * (1.0f-xfrac) + cb * xfrac;
-	vector3f cf = cc * (1.0f-xfrac) + cd * xfrac;
-	vector3f cg = ce * (1.0f-yfrac) + cf * yfrac;
-	coord = cg + vector3f(xypos.x, xypos.y, 0.0f);
+	float fac0 = (1.0f-xfrac)*(1.0f-yfrac);
+	float fac1 = xfrac*(1.0f-yfrac);
+	float fac2 = (1.0f-xfrac)*yfrac;
+	float fac3 = xfrac*yfrac;
+	coord = (ca*fac0 + cb*fac1 + cc*fac2 + cd*fac3) + vector3f(xypos.x, xypos.y, 0.0f);
 
 #ifdef WAVE_SUB_DETAIL
 	// add some extra detail to near waves.
@@ -358,10 +359,12 @@ void water::compute_coord_and_normal(int phase, const vector2& xypos, const vect
 
 #ifndef DYNAMIC_NORMALS	
 	// bilinear interpolation of normal
-	ce = wavetilenormals[phase][i0] * (1.0f-xfrac) + wavetilenormals[phase][i1] * xfrac;
-	cf = wavetilenormals[phase][i2] * (1.0f-xfrac) + wavetilenormals[phase][i3] * xfrac;
-	cg = ce * (1.0f-yfrac) + cf * yfrac;
-	normal = cg.normal();
+	fac0 = (1.0f-xfrac)*(1.0f-yfrac);
+	fac1 = xfrac*(1.0f-yfrac);
+	fac2 = (1.0f-xfrac)*yfrac;
+	fac3 = xfrac*yfrac;
+	normal = (wavetilenormals[phase][i0] * fac0 + wavetilenormals[phase][i1] * fac1
+		+ wavetilenormals[phase][i2] * fac2 + wavetilenormals[phase][i3] * fac3).normal();
 #endif
 }
 

@@ -500,7 +500,7 @@ void submarine_interface::display_torpedoroom(game& gm)
 	glColor4f(1,1,1,1);
 	// draw background
 	system::sys().prepare_2d_drawing();
-	background->draw_tiles(0, 0, 1024, 768, 8, 6);
+	background->draw_tiles(0, 0, 1024, 768);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	// draw sub model	

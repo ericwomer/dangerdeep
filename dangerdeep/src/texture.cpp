@@ -236,18 +236,40 @@ void texture::draw_rot(int x, int y, double angle) const
 	glPopMatrix();
 }
 
-void texture::draw_tiles(int x, int y, int w, int h, unsigned tilesx, unsigned tilesy) const
+void texture::draw_tiles(int x, int y, int w, int h) const
 {
+	float tilesx = float(w)/width;
+	float tilesy = float(h)/height;
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
 	glBegin(GL_QUADS);
-	glTexCoord2i(0,0);
-	glVertex2i(0,0);
-	glTexCoord2i(0,tilesy);
-	glVertex2i(0,h);
-	glTexCoord2i(tilesx,tilesy);
-	glVertex2i(w,h);
-	glTexCoord2i(tilesx,0);
-	glVertex2i(w,0);
+	glTexCoord2f(0,0);
+	glVertex2i(x,y);
+	glTexCoord2f(0,tilesy);
+	glVertex2i(x,y+h);
+	glTexCoord2f(tilesx,tilesy);
+	glVertex2i(x+w,y+h);
+	glTexCoord2f(tilesx,0);
+	glVertex2i(x+w,y);
+	glEnd();
+}
+
+void texture::draw_subimage(int x, int y, int w, int h, unsigned tx, unsigned ty,
+	unsigned tw, unsigned th) const
+{
+	float x1 = float(tx)/width;
+	float y1 = float(ty)/height;
+	float x2 = float(tx+tw)/width;
+	float y2 = float(ty+th)/height;
+	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
+	glBegin(GL_QUADS);
+	glTexCoord2f(x1,y1);
+	glVertex2i(x,y);
+	glTexCoord2f(x1,y2);
+	glVertex2i(x,y+h);
+	glTexCoord2f(x2,y2);
+	glVertex2i(x+w,y+h);
+	glTexCoord2f(x2,y1);
+	glVertex2i(x+w,y);
 	glEnd();
 }
 
