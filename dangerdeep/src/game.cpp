@@ -106,6 +106,8 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	To do this we need a simulation of convoys in the atlantic.
 	Then we place the sub somewhere randomly around the convoy with maximum viewing distance.
 	Multiplayer: place several subs around the convoy with a minimum distance between each.
+fixme: with new xml design the subs have no torpedoes on board when created.
+we have to put some torpedoes according to mission time into the subs!
 ***********************************************************************/	
 	networktype = 0;
 	servercon = 0;
@@ -195,6 +197,8 @@ game::game(const string& missionfilename, bool ) : running(true), time(0), netwo
 	TiXmlElement* eobjects = hdftdmission.FirstChildElement("objects").Element();
 	system::sys().myassert(eobjects != 0, string("objects node missing in ")+missionfilename);
 	// now read and interprete childs of eobject
+
+	//fixme: setze: maxviewdist,lasttrailtime,player
 /*
 	TiXmlHandle hdftdship = hdoc.FirstChild("dftd-ship");
 	TiXmlElement* eclassification = hdftdship.FirstChildElement("classification").Element();

@@ -96,9 +96,16 @@ sea_object::sea_object(class TiXmlDocument* specfile, const char* topnodename) :
 	max_rev_speed = atof(emotion->Attribute("maxrevspeed"));
 	acceleration = atof(emotion->Attribute("acceleration"));
 	turn_rate = atof(emotion->Attribute("turnrate"));
-	TiXmlHandle hsensors = hdftdobj.FirstChild("sensors");//fixme parse
+	TiXmlHandle hsensors = hdftdobj.FirstChild("sensors");
 	sensors.resize ( last_sensor_system );
-	
+	TiXmlElement* esensor = hsensors.FirstChild("sensor").Element();
+	for ( ; esensor != 0; esensor = esensor->NextSiblingElement()) {
+		string typestr = esensor->Attribute("type");
+		if (typestr == "lookout") set_sensor(lookout_system, new lookout_sensor());
+		else if (typestr == "passivesonar") set_sensor(passive_sonar_system, new passive_sonar_sensor());
+		else if (typestr == "activesonar") set_sensor(active_sonar_system, new active_sonar_sensor());
+		// ignore unknown sensors.
+	}
 }
 
 
@@ -482,8 +489,9 @@ const sensor* sea_object::get_sensor ( sensor_system ss ) const
 
 void sea_object::set_sensor ( sensor_system ss, sensor* s )
 {
-	if ( ss >= 0 && ss < last_sensor_system )
+	if ( ss >= 0 && ss < last_sensor_system ){
 		sensors[ss] = s;
+	}
 }
 
 
