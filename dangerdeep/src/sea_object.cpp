@@ -2,7 +2,6 @@
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "sea_object.h"
-#include "global.h"
 #include "vector2.h"
 
 void sea_object::simulate(game& gm, double delta_time)

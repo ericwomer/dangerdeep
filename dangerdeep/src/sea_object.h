@@ -5,7 +5,6 @@
 #define SEA_OBJECT_H
 
 #include "vector3.h"
-#include "global.h"
 #include "angle.h"
 #include <list>
 using namespace std;
@@ -23,6 +22,14 @@ public:
 	enum alive_status { defunct, dead, sinking, alive };
 	enum throttle_status { reverse, stop, aheadlisten, aheadsonar, aheadslow,
 		aheadhalf, aheadfull, aheadflank };
+		
+	// some useful functions needed for sea_objects
+
+	static double kts2ms(double knots) { return knots*1852.0/3600.0; }
+	static double ms2kts(double meters) { return meters*3600.0/1852.0; }
+	static double kmh2ms(double kmh) { return kmh/3.6; }
+	static double ms2kmh(double meters) { return meters*3.6; }
+
 protected:
 	const char* description;
 	vector3 position;

@@ -4,7 +4,6 @@
 #include "model.h"
 #include "texture.h"
 #include "font.h"
-#include "global.h"
 #include "datapath.h"
 #include <SDL/SDL_image.h>
 

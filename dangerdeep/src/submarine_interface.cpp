@@ -9,6 +9,12 @@
 #include "game.h"
 #include "texts.h"
 
+// handle modulo calculation for negative values the way I need it
+float myfmod(float a, float b)
+{
+	return a-floor(a/b)*b;
+}
+
 vector<float> submarine_interface::allwaveheights;
 
 void submarine_interface::init_water_data(void)
@@ -174,7 +180,7 @@ void submarine_interface::draw_infopanel(class system& sys) const
 	char paneltext[256];
 	sprintf(paneltext, "Heading.%03u....Speed.%02u....Depth.%03u....Bearing.%03u........................................................",
 		player->get_heading().ui_value(),
-		unsigned(round(ms2kts(player->get_speed()))),
+		unsigned(fabs(round(sea_object::ms2kts(player->get_speed())))),
 		unsigned(round(-player->get_pos().z)),
 		bearing.ui_value()
 		);
@@ -515,7 +521,7 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 		unsigned r = unsigned(round(br.second));
 		if (r > 9999) r = 9999;
 		targetrange = r*360.0/9000.0;
-		targetspeed = target->get_speed()*360.0/kts2ms(36);
+		targetspeed = target->get_speed()*360.0/sea_object::kts2ms(36);
 		targetheading = target->get_heading();
 	}
 	draw_manometer(sys, 1, 0, 0, res_x/4, targetbearing, TXT_Targetbearing[language]);
@@ -647,7 +653,7 @@ void submarine_interface::display_map(class system& sys, game& gm)
 	float range = gm.get_max_view_distance()*mapzoom;
 	glBegin(GL_LINE_LOOP);
 	for (int i = 0; i < range/4; ++i) {
-		float a = i*8*PI/range;
+		float a = i*8*M_PI/range;
 		glVertex2f(res_x/2+sin(a)*range, res_y/2-cos(a)*range);
 	}
 	glEnd();

@@ -6,7 +6,6 @@
 #include <SDL/SDL.h>
 #include "system.h"
 #include "vector3.h"
-#include "global.h"
 #include "model.h"
 #include "texture.h"
 #include "game.h"
