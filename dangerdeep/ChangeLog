@@ -2,6 +2,8 @@
 	* user_interface.cpp
 	  - made use of new ocean wave generator for distant water
 	    simulation (pseudo bump maps)
+	  - and also for water display lists.
+	    THE FFTW3 LIBRARY IS NEEDED FOR COMPILATION FROM NOW ON.
 
 2003-12-05  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* mapcompile.cpp

@@ -39,6 +39,7 @@ class ocean_wave_generator
 	T v;		// wind speed m/s
 	T a;		// wave height scalar
 	T Lm;		// tile size in m
+	T w0;		// cycle time
 	vector<complex<T> > h0tilde;
 	
 	ocean_wave_generator& operator= (const ocean_wave_generator& );
@@ -60,14 +61,12 @@ public:
 		const vector2t<T>& winddir = vector2t<T>(T(0.6), T(0.8)),
 		T windspeed = T(20.0),
 		T waveheight = T(0.0001),
-		T tilesize = T(100.0)
+		T tilesize = T(100.0),
+		T cycletime = T(10.0)
 	);
 	vector<T> compute_heights(T time) const;
 	~ocean_wave_generator();
 };
-
-//const unsigned qmax = 8;
-//const double w0 = 1;
 
 template <class T>
 T ocean_wave_generator<T>::myrnd(void)
@@ -134,13 +133,12 @@ complex<T> ocean_wave_generator<T>::h_tilde(const vector2t<T>& K, int kx, int ky
 {
 	complex<T> h0_tildeK = h0tilde[ky*(N+1)+kx];
 	complex<T> h0_tildemK = h0tilde[(N-ky)*(N+1)+(N-kx)];
-//	unsigned q = unsigned(myrnd()*qmax);
-// all frequencies should be multiples of one base frequency (see paper). fixme
-//	T wK = q * w0;
+	// all frequencies should be multiples of one base frequency (see paper).
 	T wK = sqrt(GRAVITY * K.length());
+	T wK2 = ceil(wK/w0)*w0;
 	// fixme: replace by sin/cos terms? why should i?
 	const complex<T> I(0,-1);
-	return h0_tildeK * exp(I * wK * time) + conj(h0_tildemK * exp(-I * wK * time));
+	return h0_tildeK * exp(I * wK2 * time) + conj(h0_tildemK * exp(-I * wK2 * time));
 }
 
 template <class T>
@@ -149,8 +147,10 @@ ocean_wave_generator<T>::ocean_wave_generator<T>(
 		const vector2t<T>& winddir,
 		T windspeed,
 		T waveheight,
-		T tilesize )
-	: N(int(gridsize)), W(winddir.normal()), v(windspeed), a(waveheight), Lm(tilesize)
+		T tilesize,
+		T cycletime )
+	: N(int(gridsize)), W(winddir.normal()), v(windspeed), a(waveheight), Lm(tilesize),
+	w0(T(2.0*M_PI)/cycletime)
 {
 	h0tilde.resize((N+1)*(N+1));
 	compute_h0tilde();

@@ -14,7 +14,7 @@ using namespace std;
 #include "coastmap.h"
 
 #define MAPGRIDSIZE 1000	// meters
-#define WATER_BUMP_FRAMES 128
+#define WATER_BUMP_FRAMES 256
 
 class user_display;
 class logbook_display;

@@ -33,12 +33,14 @@ using namespace std;
 
 #define MAX_PANEL_SIZE 256
 
+#define WATER_BUMPMAP_CYCLE_TIME 10.0
+
 #define WAVE_PHASES 128		// no. of phases for wave animation
-#define WAVES_PER_AXIS 16	// no. of waves along x or y axis
-#define FACES_PER_WAVE 8	// resolution of wave model in x/y dir.
-#define WAVE_LENGTH 40.0	// in meters, total length of one wave (one sine function)
-#define WAVE_HEIGHT 2.0		// half of difference top/bottom of wave -> fixme, depends on weather
-#define TIDECYCLE_TIME 8.0
+#define WAVES_PER_AXIS 4	// no. of waves along x or y axis
+#define FACES_PER_WAVE 32	// resolution of wave model in x/y dir.
+#define WAVE_LENGTH 128.0	// in meters, total length of one wave (one sine function)
+#define WAVE_HEIGHT 1.0		// half of difference top/bottom of wave -> fixme, depends on weather
+#define TIDECYCLE_TIME 10.0
 
 #define CLOUD_ANIMATION_CYCLE_TIME 3600.0
 
@@ -98,35 +100,39 @@ void user_interface::init ()
 	*/
 	wavedisplaylists = glGenLists(WAVE_PHASES);
 	system::sys()->myassert(wavedisplaylists != 0, "no more display list indices available");
+	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(1,1), 15, 0.000005, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
+		vector<float> h = owg.compute_heights(i*TIDECYCLE_TIME/WAVE_PHASES);
 		glNewList(wavedisplaylists+i, GL_COMPILE);
 		glBegin(GL_QUADS);
-		vector<vector2f> csv(FACES_PER_WAVE+1);
-		for (unsigned j = 0; j <= FACES_PER_WAVE; ++j) {
-			csv[j].x = float(j)/FACES_PER_WAVE;
-			float arg = 2.0*M_PI*(float(i)/WAVE_PHASES+float(j)/FACES_PER_WAVE);
-			csv[j].y = sin(arg); // sin(0.5*cos(arg)*cos(arg)+arg);	// sin(arg);
-		}
+		float add = 1.0f/FACES_PER_WAVE;
+		float fy = 0;
+		float w2bs = 8;
 		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
+			float fx = 0;
+			unsigned y2 = (y+1)%FACES_PER_WAVE;
 			for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
-				glTexCoord2f(csv[x].x, csv[y].x);
-				glVertex3f(csv[x].x, csv[y].x, csv[x].y*csv[y].y);
-				glTexCoord2f(csv[x+1].x, csv[y].x);
-				glVertex3f(csv[x+1].x, csv[y].x, csv[x+1].y*csv[y].y);
-				glTexCoord2f(csv[x+1].x, csv[y+1].x);
-				glVertex3f(csv[x+1].x, csv[y+1].x, csv[x+1].y*csv[y+1].y);
-				glTexCoord2f(csv[x].x, csv[y+1].x);
-				glVertex3f(csv[x].x, csv[y+1].x, csv[x].y*csv[y+1].y);
+				unsigned x2 = (x+1)%FACES_PER_WAVE;
+				glTexCoord2f(fx*w2bs, fy*w2bs);
+				glVertex3f(fx, fy, h[y*FACES_PER_WAVE+x]);
+				glTexCoord2f((fx+add)*w2bs, fy*w2bs);
+				glVertex3f(fx+add, fy, h[y*FACES_PER_WAVE+x2]);
+				glTexCoord2f((fx+add)*w2bs, (fy+add)*w2bs);
+				glVertex3f(fx+add, fy+add, h[y2*FACES_PER_WAVE+x2]);
+				glTexCoord2f(fx*w2bs, (fy+add)*w2bs);
+				glVertex3f(fx, fy+add, h[y2*FACES_PER_WAVE+x]);
+				fx += add;
 			}
+			fy += add;
 		}
 		glEnd();
 		glEndList();
 	}
 	
 	// create water bump maps
-	ocean_wave_generator<float> owg(64, vector2f(1,1), 1, 0.9, 5.0);
+	ocean_wave_generator<float> owgb(64, vector2f(1,1), 1, 0.95, 4.0, WATER_BUMPMAP_CYCLE_TIME);
 	for (int i = 0; i < WATER_BUMP_FRAMES; ++i) {
-		vector<float> h = owg.compute_heights(i*10.0/WATER_BUMP_FRAMES);
+		vector<float> h = owgb.compute_heights(i*WATER_BUMPMAP_CYCLE_TIME/WATER_BUMP_FRAMES);
 		vector<Uint8> uh(h.size());
 		for (unsigned n = 0; n < h.size(); ++n)
 			uh[n] = Uint8((h[n] + 0.5)*255);
@@ -503,7 +509,8 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	float wz = 0;//-WAVE_HEIGHT; // this leads to hole between waves and horizon faces, fixme
 
 	glColor4f(0.2, 0.2, 1.0, 1);
-	glBindTexture(GL_TEXTURE_2D, water_bumpmaps[unsigned(myfmod(t, 5.0)*WATER_BUMP_FRAMES/5.0)]->get_opengl_name());
+	float framepart = myfmod(t, WATER_BUMPMAP_CYCLE_TIME)/WATER_BUMPMAP_CYCLE_TIME;
+	glBindTexture(GL_TEXTURE_2D, water_bumpmaps[unsigned(framepart*WATER_BUMP_FRAMES)]->get_opengl_name());
 	glBegin(GL_TRIANGLE_STRIP);
 	glTexCoord2f(t0,t3);
 	glVertex3f(c0,c3,0);
@@ -531,8 +538,8 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glColor3f(1,1,1);
 	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
 	glScalef(WAVE_LENGTH, WAVE_LENGTH, WAVE_HEIGHT);
-	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
-	unsigned dl = wavedisplaylists + int(WAVE_PHASES*t);
+	double timefac = myfmod(t, TIDECYCLE_TIME)/TIDECYCLE_TIME;
+	unsigned dl = wavedisplaylists + int(WAVE_PHASES*timefac);
 	for (int y = 0; y < WAVES_PER_AXIS; ++y) {
 		for (int x = 0; x < WAVES_PER_AXIS; ++x) {
 			glPushMatrix();
@@ -749,7 +756,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	// ******* water *********
 					// fixme: program directional light caused by sun
 					// or moon should be reflected by water.
-	draw_water(viewpos, dir, timefac, max_view_dist);
+	draw_water(viewpos, dir, gm.get_time(), max_view_dist);
 	
 
 	// ******** terrain/land *******
