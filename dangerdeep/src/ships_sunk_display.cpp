@@ -37,6 +37,8 @@ void ships_sunk_display::add_sunk_ship ( const ship* so )
 
 void ships_sunk_display::display ( class game& gm ) const
 {
+	system::sys().prepare_2d_drawing();
+
 	glColor3f ( 1.0f, 1.0f, 1.0f );
 
 	// Draw background image.
@@ -90,6 +92,10 @@ void ships_sunk_display::display ( class game& gm ) const
 		glPopMatrix ();
 	}
 	glEnd ();
+
+	ui.draw_infopanel(gm);
+
+	system::sys().unprepare_2d_drawing();
 }
 
 void ships_sunk_display::process_input(class game& gm, const SDL_Event& event)

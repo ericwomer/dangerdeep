@@ -16,10 +16,21 @@ class submarine_interface : public user_interface
 {
 protected:
 
-	enum display_mode { display_mode_gauges, display_mode_periscope,
-		display_mode_uzo, display_mode_glasses, display_mode_bridge,
-		display_mode_map, display_mode_torpedoroom, display_mode_damagestatus,
-		display_mode_logbook, display_mode_successes, display_mode_freeview };
+	// the indices for the displays
+	enum {
+		display_mode_gauges,
+		display_mode_periscope,
+		display_mode_uzo,
+		display_mode_bridge,
+		display_mode_map,
+		display_mode_torpedoroom,
+		display_mode_damagestatus,
+		display_mode_logbook,
+		display_mode_successes,
+		display_mode_freeview,
+		nr_of_displays
+	};
+
 	submarine_interface();
 	submarine_interface& operator= (const submarine_interface& other);
 	submarine_interface(const submarine_interface& other);

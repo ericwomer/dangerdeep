@@ -39,8 +39,9 @@ protected:
 	class widget_list* panel_messages;
 	class widget_text* panel_valuetexts[5];
 
-	// used in various screens, fixme to submarine_interface!
-//	angle bearing;
+	// used in various screens
+	angle bearing;
+//fixme to submarine_interface?
 //	angle elevation;	// -90...90 deg (look down ... up)
 
 	// which display is active
@@ -86,7 +87,7 @@ public:
 	virtual void display(game& gm) const;
 
 	// process common events (common keys, mouse input to panel)
-	virtual void process_input(class game& gm, const SDL_Event& event) = 0;
+	virtual void process_input(class game& gm, const SDL_Event& event);
 	virtual void process_input(class game& gm, const list<SDL_Event>& events);
 
 	// create ui matching to player type (requested from game)
@@ -125,7 +126,7 @@ public:
 	virtual bool time_scale_down(void);
 //	virtual void record_sunk_ship ( const class ship* so );
 	/** This method creates a message about the rudder state. */
-//	virtual void add_rudder_message();
+	virtual void add_rudder_message(class game& gm);
 	virtual void play_sound_effect(class game& gm, sound_effect se, double volume = 1.0f) const;
 	virtual void play_sound_effect_distance(class game& gm, sound_effect se, double distance) const;
 };

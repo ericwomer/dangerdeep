@@ -174,6 +174,8 @@ void captains_logbook_display::init ()
 
 void captains_logbook_display::display ( class game& gm ) const
 {
+	system::sys().prepare_2d_drawing();
+
 	// Wooden background.
 	glColor3f ( 1.0f, 1.0f, 1.0f );
 	for ( int i = 0; i < 8; i++ )
@@ -251,6 +253,10 @@ void captains_logbook_display::display ( class game& gm ) const
 
 	// Reset OpenGL matrix.
 	glPopMatrix ();
+
+	ui.draw_infopanel(gm);
+
+	system::sys().unprepare_2d_drawing();
 }
 
 void captains_logbook_display::process_input(class game& gm, const SDL_Event& event)

@@ -9,6 +9,7 @@ using namespace std;
 #include "texts.h"
 #include "global_data.h"
 #include "user_display.h"
+#include "user_interface.h"
 #include "sub_damage_display.h"
 #include "image.h"
 #include "game.h"
@@ -103,6 +104,8 @@ void sub_damage_display::display_popup (int x, int y, const string& text, bool a
 
 void sub_damage_display::display ( class game& gm ) const
 {
+	system::sys().prepare_2d_drawing();
+
 	int ydrawdiff = (damage_screen_background->get_height()-sub_damage_scheme_all->get_height())/2;
 	glColor4f(1,1,1,1);
 	damage_screen_background->draw(0, 0);
@@ -174,6 +177,10 @@ void sub_damage_display::display ( class game& gm ) const
 			display_popup(r.x+r.w/2, r.y+r.h/2, dmgstr.str(), atleft, atbottom);
 		}
 	}
+
+	ui.draw_infopanel(gm);
+
+	system::sys().unprepare_2d_drawing();
 }
 
 void sub_damage_display::process_input(class game& gm, const SDL_Event& event)

@@ -189,7 +189,7 @@ void map_display::draw_square_mark ( class game& gm,
 
 
 map_display::map_display(user_interface& ui_) :
-	user_display(ui), mapzoom(0.1), mx(0), my(0)
+	user_display(ui_), mapzoom(0.1), mx(0), my(0)
 {
 }
 

@@ -107,6 +107,13 @@ void user_interface::display(game& gm) const
 
 
 
+void user_interface::process_input(class game& gm, const SDL_Event& event)
+{
+	displays[current_display]->process_input(gm, event);
+}
+
+
+
 void user_interface::process_input(class game& gm, const list<SDL_Event>& events)
 {
 	for (list<SDL_Event>::const_iterator it = events.begin();
@@ -228,8 +235,7 @@ void user_interface::draw_infopanel(class game& gm) const
 		os2 << setw(3) << left << unsigned(round(-gm.get_player()->get_pos().z));
 		panel_valuetexts[2]->set_text(os2.str());
 		ostringstream os3;
-		//fixme: make bearing common value!
-//		os3 << setw(3) << left << bearing.ui_value();
+		os3 << setw(3) << left << bearing.ui_value();
 		panel_valuetexts[3]->set_text(os3.str());
 		ostringstream os4;
 		os4 << setw(3) << left << time_scale;
@@ -258,33 +264,32 @@ void user_interface::add_message(const string& s)
 
 
 
-/*
-void user_interface::add_rudder_message()
+void user_interface::add_rudder_message(game& gm)
 {
-
-	ship* s = dynamic_cast<ship*>(player_object);
+	// this whole function should be replaced...seems ugly
+	ship* s = dynamic_cast<ship*>(gm.get_player());
 	if (!s) return;	// ugly hack to allow compilation
-    switch (s->get_rudder_to())
-    {
-        case ship::rudderfullleft:
-            add_message(texts::get(35));
-            break;
-        case ship::rudderleft:
-            add_message(texts::get(33));
-            break;
-        case ship::ruddermidships:
-            add_message(texts::get(42));
-            break;
-        case ship::rudderright:
-            add_message(texts::get(34));
-            break;
-        case ship::rudderfullright:
-            add_message(texts::get(36));
-            break;
-    }
+	switch (s->get_rudder_to())
+		{
+		case ship::rudderfullleft:
+			add_message(texts::get(35));
+			break;
+		case ship::rudderleft:
+			add_message(texts::get(33));
+			break;
+		case ship::ruddermidships:
+			add_message(texts::get(42));
+			break;
+		case ship::rudderright:
+			add_message(texts::get(34));
+			break;
+		case ship::rudderfullright:
+			add_message(texts::get(36));
+			break;
+		}
 
 }
-*/
+
 
 
 #define DAY_MODE_COLOR() glColor3f ( 1.0f, 1.0f, 1.0f )
