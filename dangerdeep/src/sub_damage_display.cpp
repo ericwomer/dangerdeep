@@ -18,7 +18,7 @@ struct rect {
 };
 
 static rect rect_data[] = {
-	rect(105,116,25,10),
+	rect(105,116,25,10),	// fixme: measure directly in the program.
 	rect(129,144,22,30),
 	rect(169,148,20,28),
 	rect(286,141,85,10),
@@ -72,12 +72,22 @@ void sub_damage_display::add_damage ( const vector3& fromwhere, float amount )
 {
 }
 
-void sub_damage_display::display_popup (int x, int y, const string& text) const
+void sub_damage_display::display_popup (int x, int y, const string& text, bool atbottom) const
 {
+	int posx = 100, posy = atbottom ? 480 : 30, width = 320, height = 140;
 	glBindTexture ( GL_TEXTURE_2D, 0 );
-	color(255,255,128).set_gl_color();
-	system::sys()->draw_rectangle(x-32,y-32,64,64);	//fixme
-	font_arial->print(x-30,y-30,text.c_str(),color::black());
+	
+	color::red().set_gl_color();
+	glBegin(GL_LINES);
+	glVertex2f(x, y);
+	glVertex2f(posx+width/2, posy+height/2);
+	glEnd();
+	
+	color(0,0,0).set_gl_color(128);
+	system::sys()->draw_rectangle(posx+4,posy+4,width,height);
+	color(255,255,128).set_gl_color(255);
+	system::sys()->draw_rectangle(posx,posy,width,height);
+	font_arial2->print(posx+4,posy+4,text.c_str(),color::black());
 	color::white().set_gl_color();
 }
 
@@ -109,8 +119,8 @@ void sub_damage_display::check_mouse ( int x, int y, int mb )
 		r.y += (damage_screen_background->h-sub_damage_scheme_all->h)/2;
 		if (x >= r.x && x <= r.x+r.w && y >= r.y && y <= r.y+r.h) {
 			// it is important, that texts are in correct order starting with 103.
-			display_popup(r.x, r.y, texts::get(103+i));
-//			display_popup(x, y, texts::get(103+i));
+			bool atbottom = (r.y+r.h/2) >= 768/2;
+			display_popup(r.x+r.w/2, r.y+r.h/2, texts::get(103+i), atbottom);
 		}
 	}
 }
