@@ -22,7 +22,6 @@
 // fixme:
 // should ai know class game?
 // instead of calling game::spawn_dc call parent->fire_dc etc.
-// (make use of command encapsulation for network play!)
 
 // fixme: zigzag is possible, but never used.
 // zig zag for:
@@ -221,7 +220,7 @@ void ai::act_escort(game& gm, double delta_time)
 		} else {
 			// ping around to find something
 			list<vector3> contacts;
-			gm.ping_ASDIC(contacts, parent, true);//fixme add command!!!!
+			gm.ping_ASDIC(contacts, parent, true);
 			if (contacts.size() > 0) {
 				// fixme: choose best contact!
 				if (myconvoy) myconvoy->add_contact(contacts.front());
@@ -247,7 +246,7 @@ void ai::act_escort(game& gm, double delta_time)
 		double cd = delta.length();
 		if (cd > DC_ATTACK_RUN_RADIUS && !attackrun) {
 			list<vector3> contacts;
-			gm.ping_ASDIC(contacts, parent, false, angle(delta));//fixme add command
+			gm.ping_ASDIC(contacts, parent, false, angle(delta));
 			if (contacts.size() > 0) {	// update contact
 				// fixme: choose best contact!
 				if (myconvoy) myconvoy->add_contact(contacts.front());
@@ -261,7 +260,7 @@ void ai::act_escort(game& gm, double delta_time)
 		}
 
 		if (cd < DC_ATTACK_RADIUS) {
-			gm.spawn_depth_charge(new depth_charge(*parent, -contact.z));//fixme add command
+			gm.spawn_depth_charge(new depth_charge(*parent, -contact.z));
 			// the escort must run with maximum speed until the depth charges
 			// have exploded to avoid suicide. fixme
 			// fixme: just ai hacking/testing.
