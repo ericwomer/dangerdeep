@@ -14,9 +14,9 @@ using namespace std;
 #include "coastmap.h"
 
 #include "user_display.h"
+#include "user_popup.h"
 
 class game;
-class user_display;
 
 class user_interface
 {
@@ -52,7 +52,7 @@ protected:
 	vector<user_display*> displays;
 
 	// possible popups
-	//vector<user_popup*> popups;
+	vector<user_popup*> popups;
 
 	// environmental data
 	class sky* mysky;		// the one and only sky
