@@ -66,7 +66,7 @@ void ships_sunk_display::display ( class system& sys, class game& gm )
 		font_arial2->print (
 			unsigned ( ( x + 10 ) / FONT_SCALE_FACTOR ),
 			unsigned ( ( y + 10 ) / FONT_SCALE_FACTOR ),
-			it->second.get_class_name().c_str(),
+			it->second.get_class_name(),
 			color ( 0, 0, 0 ) );
 
 		// Print tonnage of ship.
@@ -75,7 +75,7 @@ void ships_sunk_display::display ( class system& sys, class game& gm )
 		font_arial2->print (
 			unsigned ( ( x + 10 ) / FONT_SCALE_FACTOR ),
 			unsigned ( ( y + 30 ) / FONT_SCALE_FACTOR ),
-			oss.str ().c_str (),
+			oss.str (),
 			color ( 0, 0, 0 ) );
 		glPopMatrix ();
 

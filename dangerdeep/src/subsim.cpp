@@ -294,7 +294,7 @@ void draw_vessel(void)
 	glColor3f(1, 1, 1);
 	vessel->display();
 	sys->prepare_2d_drawing();
-	font_tahoma->print_hc(1024, 128, vessel->get_description(2).c_str(), color::white(), true);
+	font_tahoma->print_hc(1024, 128, vessel->get_description(2), color::white(), true);
 	sys->unprepare_2d_drawing();
 }
 

@@ -1,4 +1,11 @@
 2003-07-13  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* font.h font.cpp (and client files)
+	  - replaced "const char" with "string"
+	* submarine_interface.cpp
+	  - new torpedo images and drawing.
+	  - draw info about available torpedo types.
+
+2003-07-13  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* replaced medium merchant model by new model.
 	* introduced small merchant model.
 	  - now ten ships available, 3 merchants, 2 freighters, 2 warships,

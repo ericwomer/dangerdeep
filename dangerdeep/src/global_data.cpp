@@ -29,7 +29,7 @@ texture *water, *background, *gauge1,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
-	*woodbackgr, *smoke,
+	*woodbackgr, *smoke, *notepadsheet,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked;
 	
 font *font_arial, *font_arial2, *font_ellis, *font_panel, *font_tahoma,
@@ -58,12 +58,12 @@ void init_global_data(void)
 	corvette_mdl = new model((get_data_dir() + MODEL_DIR + "corvette.mdl"));
 	freighter_large = new model((get_data_dir() + MODEL_DIR + "largefreighter.mdl"));
 	freighter_medium = new model((get_data_dir() + MODEL_DIR + "mediumfreighter.mdl"));
-	font_arial = new font((get_data_dir() + FONT_DIR + "font_arial.png").c_str());
-	font_arial2 = new font((get_data_dir() + FONT_DIR + "font_arial2.png").c_str());
-	font_ellis = new font((get_data_dir() + FONT_DIR + "font_ellis.png").c_str());
-	font_panel = new font((get_data_dir() + FONT_DIR + "font_panel.png").c_str(), 0, 8);
-	font_tahoma = new font((get_data_dir() + FONT_DIR + "font_tahoma.png").c_str());
-	font_nimbusrom = new font((get_data_dir() + FONT_DIR + "font_nimbusrom.png").c_str());
+	font_arial = new font(get_data_dir() + FONT_DIR + "font_arial.png");
+	font_arial2 = new font(get_data_dir() + FONT_DIR + "font_arial2.png");
+	font_ellis = new font(get_data_dir() + FONT_DIR + "font_ellis.png");
+	font_panel = new font(get_data_dir() + FONT_DIR + "font_panel.png");
+	font_tahoma = new font(get_data_dir() + FONT_DIR + "font_tahoma.png");
+	font_nimbusrom = new font(get_data_dir() + FONT_DIR + "font_nimbusrom.png");
 	torpedo_g7 = new model((get_data_dir() + MODEL_DIR + "torpedo.mdl"));
 	depth_charge_mdl = new model((get_data_dir() + MODEL_DIR + "depth_charge.mdl"));
 	gun_shell_mdl = new model((get_data_dir() + MODEL_DIR + "gun_shell.mdl"));
@@ -104,6 +104,7 @@ void init_global_data(void)
 	logbook_spiral = new image((get_data_dir () + TEXTURE_DIR + "logbook_spiral.png"));
 	woodbackgr = new texture ( ( get_data_dir () + TEXTURE_DIR + "wooden_desk.png" ));
 	smoke = new texture ( ( get_data_dir () + TEXTURE_DIR + "smoke.png" ), 1, true, true);
+	notepadsheet = new texture ( ( get_data_dir () + TEXTURE_DIR + "notepadsheet.png" ), 0, true, true);
 	damage_screen_background = new image((get_data_dir() + IMAGES_DIR + "damage_screen_backg.jpg"), 0, true, true, true);
 	sub_damage_scheme_all = new image((get_data_dir() + IMAGES_DIR + "sub_damage_scheme_all.png"), 0, true, true, true);
 	repairlight = new texture( ( get_data_dir () + TEXTURE_DIR + "repairlight.png" ), 0, true, true );
@@ -177,6 +178,7 @@ void deinit_global_data(void)
 	delete logbook_spiral;
 	delete woodbackgr;
 	delete smoke;
+	delete notepadsheet;
 	delete damage_screen_background;
 	delete sub_damage_scheme_all;
 	delete repairlight;

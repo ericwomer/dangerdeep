@@ -402,6 +402,7 @@ bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target,
 	} else {
 		gm.spawn_torpedo(t);
 	}
+	torpedoes[torpnr].type = torpedo::none;
 	torpedoes[torpnr].status = stored_torpedo::st_empty;
 	return true;
 }

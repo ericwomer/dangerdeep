@@ -80,7 +80,7 @@ void logbook_display::print_buffer ( unsigned i, const string& t ) const
 		( 46 + 20 * ( i - NUMBER_OF_LINES ) );
 	y = unsigned ( y / FONT_SCALE_FACTOR );
 
-	font_arial2->print ( x, y, t.c_str (), color ( 0, 0, 0 ) );
+	font_arial2->print ( x, y, t, color ( 0, 0, 0 ) );
 }
 
 void logbook_display::format_line ( list<string>& entries_list, const string& line )
@@ -229,13 +229,13 @@ void captains_logbook_display::display ( class system& sys, class game& gm )
 	font_arial2->print (
 		unsigned ( 260 / FONT_SCALE_FACTOR ),
 		unsigned ( 595 / FONT_SCALE_FACTOR ),
-		oss1.str ().c_str (), color ( 0, 0, 0 ) );
+		oss1.str (), color ( 0, 0, 0 ) );
 	ostringstream oss2;
 	oss2 << ( page_number + 1 );
 	font_arial2->print (
 		unsigned ( 760 / FONT_SCALE_FACTOR ),
 		unsigned ( 595 / FONT_SCALE_FACTOR ),
-		oss2.str ().c_str (), color ( 0, 0, 0 ) );
+		oss2.str (), color ( 0, 0, 0 ) );
 
 	// Display arrows.
 	ostringstream left_arrow_oss;
@@ -243,13 +243,13 @@ void captains_logbook_display::display ( class system& sys, class game& gm )
 	font_arial2->print (
 		unsigned ( 160 / FONT_SCALE_FACTOR ),
 		unsigned ( 595 / FONT_SCALE_FACTOR ),
-		left_arrow_oss.str ().c_str (), color ( 0, 0, 0 ) );
+		left_arrow_oss.str (), color ( 0, 0, 0 ) );
 	ostringstream right_arrow_oss;
 	right_arrow_oss << ">>";
 	font_arial2->print (
 		unsigned ( 860 / FONT_SCALE_FACTOR ),
 		unsigned ( 595 / FONT_SCALE_FACTOR ),
-		right_arrow_oss.str ().c_str (), color ( 0, 0, 0 ) );
+		right_arrow_oss.str (), color ( 0, 0, 0 ) );
 
 	// Reset OpenGL matrix.
 	glPopMatrix ();

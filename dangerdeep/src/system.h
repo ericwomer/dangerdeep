@@ -43,6 +43,9 @@ public:
 	void screenshot(void);
 
 	// 2d drawing must be turned on for this functions
+	void draw_image(int x, int y, const texture* t) const;
+	void draw_hm_image(int x, int y, const texture* t) const;	// horizontally mirrored
+	void draw_vm_image(int x, int y, const texture* t) const;	// vertically mirrored
 	void draw_image(int x, int y, int w, int h, const texture* t) const;
 	void draw_hm_image(int x, int y, int w, int h, const texture* t) const;	// horizontally mirrored
 	void draw_vm_image(int x, int y, int w, int h, const texture* t) const;	// vertically mirrored

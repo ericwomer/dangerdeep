@@ -82,7 +82,7 @@ void sub_damage_display::display_popup (int x, int y, const string& text, bool a
 	system::sys()->draw_rectangle(posx+4,posy+4,width,height);
 	color(255,255,128).set_gl_color(255);
 	system::sys()->draw_rectangle(posx,posy,width,height);
-	font_arial2->print(posx+4,posy+4,text.c_str(),color::black());
+	font_arial2->print(posx+4,posy+4,text,color::black());
 	color::white().set_gl_color();
 }
 

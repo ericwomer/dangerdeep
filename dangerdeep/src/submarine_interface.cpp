@@ -14,6 +14,7 @@
 #endif
 #include <sstream>
 #include <map>
+#include <set>
 #include <list>
 using namespace std;
 #include "date.h"
@@ -389,10 +390,10 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
 	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
 		int j = i-bow_tube_indices.first;
-		draw_torpedo(sys, gm, true, (j/4)*256, 512+(j%4)*32, torpedoes[i]);
+		draw_torpedo(sys, gm, true, (j/4)*128, 512+(j%4)*16, torpedoes[i]);
 	}
 	for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
-		draw_torpedo(sys, gm, false, 512, 512+(i-stern_tube_indices.first)*32, torpedoes[i]);
+		draw_torpedo(sys, gm, false, 256, 512+(i-stern_tube_indices.first)*16, torpedoes[i]);
 	}
 	glColor3f(1,1,1);
 	draw_infopanel(sys, gm);
@@ -513,28 +514,43 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	pair<unsigned, unsigned> stern_storage_indices = player->get_stern_storage_indices();
 	pair<unsigned, unsigned> bow_top_storage_indices = player->get_bow_top_storage_indices();
 	pair<unsigned, unsigned> stern_top_storage_indices = player->get_stern_top_storage_indices();
+	unsigned k = bow_tube_indices.second - bow_tube_indices.first;
 	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
-		draw_torpedo(sys, gm, true, 0, 256+i*32, torpedoes[i]);
+		draw_torpedo(sys, gm, true, 0, 192+(i-k/2)*16, torpedoes[i]);
 	}
 	for (unsigned i = bow_storage_indices.first; i < bow_storage_indices.second; ++i) {
 		unsigned j = i - bow_storage_indices.first;
-		draw_torpedo(sys, gm, true, (1+j/6)*256, 256+(j%6)*32, torpedoes[i]);
+		draw_torpedo(sys, gm, true, 192+(j/k)*128, 192+(j%k-k/2)*16, torpedoes[i]);
 	}
 	for (unsigned i = bow_top_storage_indices.first; i < bow_top_storage_indices.second; ++i) {
 		unsigned j = i - bow_top_storage_indices.first;
-		draw_torpedo(sys, gm, true, 0, j*32, torpedoes[i]);
+		draw_torpedo(sys, gm, true, 192+(j/2)*128, 96+(j%2)*16, torpedoes[i]);
 	}
 	for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
 		unsigned j = i - stern_tube_indices.first;
-		draw_torpedo(sys, gm, false, 768, 256+j*32, torpedoes[i]);
+		draw_torpedo(sys, gm, false, 896, 160+j*16, torpedoes[i]);
 	}
 	for (unsigned i = stern_storage_indices.first; i < stern_storage_indices.second; ++i) {
 		unsigned j = i - stern_storage_indices.first;
-		draw_torpedo(sys, gm, false, 512, 256+j*32, torpedoes[i]);
+		draw_torpedo(sys, gm, false, 704, 160+j*16, torpedoes[i]);
 	}
 	for (unsigned i = stern_top_storage_indices.first; i < stern_top_storage_indices.second; ++i) {
 		unsigned j = i - stern_top_storage_indices.first;
-		draw_torpedo(sys, gm, false, 768, j*32, torpedoes[i]);
+		draw_torpedo(sys, gm, false, 704-(j/2)*128, 96+(j%2)*16, torpedoes[i]);
+	}
+	
+	// collect and draw type info
+	set<unsigned> torptypes;
+	for (unsigned i = 0; i < torpedoes.size(); ++i)
+		if (torpedoes[i].type != torpedo::none)
+			torptypes.insert(torpedoes[i].type);
+	unsigned px = (1024-torptypes.size()*256)/2;
+	for (set<unsigned>::iterator it = torptypes.begin(); it != torptypes.end(); ++it) {
+		color::white().set_gl_color();
+		sys.draw_image(px, 384, notepadsheet);
+		sys.draw_image(px+64, 420, torptex(*it));
+		font_arial2->print(px+16, 448, texts::get(130+*it-1), color(0,0,128));
+		px += 256;
 	}
 
 	draw_infopanel(sys, gm);
@@ -595,27 +611,27 @@ void submarine_interface::draw_torpedo(class system& sys, class game& gm,
 
 	if (usebow) {
 		if (st.status == 0) {	// empty
-			sys.draw_image(x, y, 256, 32, torpempty);
+			sys.draw_image(x, y, torpempty);
 		} else if (st.status == 1) {	// reloading
-			sys.draw_image(x, y, 256, 32, torptex(st.type));
-			sys.draw_image(x, y, 256, 32, torpreload);
+			sys.draw_image(x, y, torptex(st.type));
+			sys.draw_image(x, y, torpreload);
 		} else if (st.status == 2) {	// unloading
-			sys.draw_image(x, y, 256, 32, torpempty);
-			sys.draw_image(x, y, 256, 32, torpunload);
+			sys.draw_image(x, y, torpempty);
+			sys.draw_image(x, y, torpunload);
 		} else {		// loaded
-			sys.draw_image(x, y, 256, 32, torptex(st.type));
+			sys.draw_image(x, y, torptex(st.type));
 		}
 	} else {
 		if (st.status == 0) {	// empty
-			sys.draw_hm_image(x, y, 256, 32, torpempty);
+			sys.draw_hm_image(x, y, torpempty);
 		} else if (st.status == 1) {	// reloading
-			sys.draw_hm_image(x, y, 256, 32, torptex(st.type));
-			sys.draw_hm_image(x, y, 256, 32, torpreload);
+			sys.draw_hm_image(x, y, torptex(st.type));
+			sys.draw_hm_image(x, y, torpreload);
 		} else if (st.status == 2) {	// unloading
-			sys.draw_hm_image(x, y, 256, 32, torpempty);
-			sys.draw_hm_image(x, y, 256, 32, torpunload);
+			sys.draw_hm_image(x, y, torpempty);
+			sys.draw_hm_image(x, y, torpunload);
 		} else {		// loaded
-			sys.draw_hm_image(x, y, 256, 32, torptex(st.type));
+			sys.draw_hm_image(x, y, torptex(st.type));
 		}
 	}
 }

@@ -3,20 +3,6 @@
 
 #include "texts.h"
 
-
-#if 0	// old code
-unsigned language = 0;
-
-#define DEFTYPE
-#define content(a, b) ={a, b}
-
-#define TEXTS_H_USECPP
-#include "texts.h"
-#endif
-
-
-// new code
-
 #include "parser.h"
 #include "global_data.h"
 

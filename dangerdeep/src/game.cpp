@@ -959,17 +959,17 @@ void display_results(void)
 		ossdate << it->dat.get_value(date::year) << "/"
 			<< it->dat.get_value(date::month) << "/"
 			<< it->dat.get_value(date::day);
-		font_arial->print(2*h, l*h, ossdate.str().c_str());
-		font_arial->print(22*h, l*h, it->descr.c_str());
+		font_arial->print(2*h, l*h, ossdate.str());
+		font_arial->print(22*h, l*h, it->descr);
 		ostringstream osstons;
 		osstons << it->tons << " BRT";
 		totaltons += it->tons;
-		font_arial->print(52*h, l*h, osstons.str().c_str());
+		font_arial->print(52*h, l*h, osstons.str());
 		++l;
 	}
 	ostringstream os;
 	os << "total: " << totaltons;
-	font_arial->print(42*h, l*h, os.str().c_str());
+	font_arial->print(42*h, l*h, os.str());
 	system::sys()->unprepare_2d_drawing();
 }
 

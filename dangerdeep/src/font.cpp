@@ -33,28 +33,30 @@ unsigned font::get_pixel(SDL_Surface* s, unsigned x, unsigned y) const
 	}
 }
 
-void font::print_text(int x, int y, const char* text, bool ignore_colors) const
+void font::print_text(int x, int y, const string& text, bool ignore_colors) const
 {
 	int xs = x;
-	while (*text) {
-		unsigned c = (unsigned char)*text++;
+	for (unsigned ti = 0; ti < text.length(); ++ti) {
+		unsigned char c = text[ti];
 		if (c == ' ') {	// space
 			x += blank_width;
 		} else if (c == '\n') {	// return
 			x = xs;
 			y += char_height;
+		} else if (c == '\t') {	// tab
+			unsigned tw = char_height*4;
+			x = int((x - xs + tw)/tw)*tw + xs;
 		} else if (c == '$') { // color information
 			unsigned nr[6];
 			for (int i = 0; i < 6; i++) {
-				if (*text >= '0' && *text <= '9')
-					nr[i] = *text - '0';
-				else if (*text >= 'a' && *text <= 'f')
-					nr[i] = 10 + *text - 'a';
-				else if (*text == 0)
-					break;
+				if (ti+1+i >= text.length()) break;
+				char c2 = text[ti+1+i];
+				if (c2 >= '0' && c2 <= '9')
+					nr[i] = c2 - '0';
+				else if (c2 >= 'a' && c2 <= 'f')
+					nr[i] = 10 + c2 - 'a';
 				else
 					nr[i] = 0;
-				text++;
 			}
 			if (!ignore_colors)
 				glColor3ub(nr[0]*16+nr[1], nr[2]*16+nr[3], nr[4]*16+nr[5]);
@@ -82,17 +84,17 @@ void font::print_text(int x, int y, const char* text, bool ignore_colors) const
 	}
 }
 
-font::font(const char* filename, unsigned char_spacing, unsigned blank_length,
-	const char* font_mapping)
+font::font(const string& filename, unsigned char_spacing, unsigned blank_length,
+	const string& font_mapping)
 {
-	nr_chars = strlen(font_mapping);
+	nr_chars = font_mapping.length();
 	characters.resize(nr_chars);
 	for (unsigned k = 0; k < nr_chars; ++k) characters[k].mapping = font_mapping[k];
 	spacing = char_spacing;
 	blank_width = blank_length;
 	translate.resize(256, 0xff);
 
-	SDL_Surface* fontimage = IMG_Load(filename);
+	SDL_Surface* fontimage = IMG_Load(filename.c_str());
 	system::sys()->myassert(fontimage != 0, string("font: failed to open")+filename);
 	unsigned w = fontimage->w;
 	unsigned h = fontimage->h;
@@ -161,7 +163,7 @@ font::~font()
 	}
 }
 
-void font::print(int x, int y, const char* text, color col, bool with_shadow) const
+void font::print(int x, int y, const string& text, color col, bool with_shadow) const
 {
 	if (with_shadow) {
 		glColor3f(0,0,0);
@@ -171,45 +173,47 @@ void font::print(int x, int y, const char* text, color col, bool with_shadow) co
 	print_text(x, y, text);
 }
 
-void font::print_hc(int x, int y, const char* text, color col, bool with_shadow) const
+void font::print_hc(int x, int y, const string& text, color col, bool with_shadow) const
 {
 	print((x-get_size(text).first)/2, y, text, col, with_shadow);
 }
 	
-void font::print_vc(int x, int y, const char* text, color col, bool with_shadow) const
+void font::print_vc(int x, int y, const string& text, color col, bool with_shadow) const
 {
 	print(x, (y-get_size(text).second)/2, text, col, with_shadow);
 }
 
-void font::print_c(int x, int y, const char* text, color col, bool with_shadow) const
+void font::print_c(int x, int y, const string& text, color col, bool with_shadow) const
 {
 	pair<unsigned, unsigned> wh = get_size(text);
 	print((x-wh.first)/2, (y-wh.second)/2, text, col, with_shadow);
 }
 
-pair<unsigned, unsigned> font::get_size(const char* text) const
+pair<unsigned, unsigned> font::get_size(const string& text) const
 {
 	int x = 0, y = char_height;
 	int xmax = 0;
-	while (*text) {
-		unsigned c = (unsigned char)*text++;
+	for (unsigned ti = 0; ti < text.length(); ++ti) {
+		unsigned char c = text[ti];
 		if (c == ' ') {	// space
 			x += blank_width;
 		} else if (c == '\n') {	// return
 			x = 0;
 			y += char_height;
+		} else if (c == '\t') {	// tab
+			unsigned tw = char_height*4;
+			x = int((x + tw)/tw)*tw;
 		} else if (c == '$') { // color information
 			unsigned nr[6];
 			for (int i = 0; i < 6; i++) {
-				if (*text >= '0' && *text <= '9')
-					nr[i] = *text - '0';
-				else if (*text >= 'a' && *text <= 'f')
-					nr[i] = 10 + *text - 'a';
-				else if (*text == 0)
-					break;
+				if (ti+1+i >= text.length()) break;
+				char c2 = text[ti+1+i];
+				if (c2 >= '0' && c2 <= '9')
+					nr[i] = c2 - '0';
+				else if (c2 >= 'a' && c2 <= 'f')
+					nr[i] = 10 + c2 - 'a';
 				else
 					nr[i] = 0;
-				text++;
 			}
 		} else {
 			unsigned t = translate[c];

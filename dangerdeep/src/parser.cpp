@@ -116,9 +116,11 @@ string parser::parse_string(void)
 	// remove " signs
 	tmp = tmp.substr(1, tmp.length() - 2);
 
-	// translate returns
+	// translate returns and tabs
 	for (string::size_type st = tmp.find("\\n"); st != string::npos; st = tmp.find("\\n"))
 		tmp.replace(st, 2, "\n");
+	for (string::size_type st = tmp.find("\\t"); st != string::npos; st = tmp.find("\\t"))
+		tmp.replace(st, 2, "\t");
 		
 	return tmp;
 }

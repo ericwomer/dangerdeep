@@ -153,7 +153,7 @@ void system::draw_console(void)
 	while (s-- > lines) ++it;
 	unsigned y = fh;
 	for ( ; it != console_text.end(); ++it, y+=fh)
-		console_font->print(fh, y, it->c_str());
+		console_font->print(fh, y, *it);
 	unprepare_2d_drawing();
 }
 
@@ -374,6 +374,22 @@ void system::screenshot(void)
 	}
 	fclose(f);
 	add_console(string("screenshot taken as ")+os.str());
+}
+
+// draw_image
+void system::draw_image(int x, int y, const texture* t) const
+{
+	draw_image(x, y, t->get_width(), t->get_height(), t);
+}
+
+void system::draw_hm_image(int x, int y, const texture* t) const
+{
+	draw_hm_image(x, y, t->get_width(), t->get_height(), t);
+}
+
+void system::draw_vm_image(int x, int y, const texture* t) const
+{
+	draw_vm_image(x, y, t->get_width(), t->get_height(), t);
 }
 
 void system::draw_image(int x, int y, int w, int h, const texture* t) const

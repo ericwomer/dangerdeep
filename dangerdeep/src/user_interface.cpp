@@ -447,11 +447,11 @@ void user_interface::draw_infopanel(class system& sys, class game& gm) const
 		<< bearing.ui_value()
 		<< "   " << texts::get(98) << ": "
 		<< time_scale;
-	font_panel->print(0, 648, os.str().c_str());
+	font_panel->print(0, 648, os.str());
 	int y = 768 - 24;
 	for (list<string>::const_reverse_iterator it = panel_texts.rbegin(); 
              it != panel_texts.rend(); ++it) {
-		font_panel->print(0, y, it->c_str());
+		font_panel->print(0, y, *it);
 		y -= 24;	// font_panel's height is 24.
 	}
 }
@@ -483,13 +483,13 @@ void user_interface::draw_gauge(class system& sys, class game& gm,
 	}
 	vector2 d = a.direction();
 	int xx = x+wh/2, yy = y+wh/2;
-	pair<unsigned, unsigned> twh = font_arial2->get_size(text.c_str());
+	pair<unsigned, unsigned> twh = font_arial2->get_size(text);
 
 	color font_color ( 255, 255, 255 );
 	if ( !gm.is_day_mode () )
 		font_color = color ( 255, 127, 127 );
 
-	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text.c_str(), font_color);
+	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text, font_color);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	if (a2 != a) {
 		vector2 d2 = a2.direction();
@@ -522,13 +522,13 @@ void user_interface::draw_clock(class system& sys, class game& gm,
 		sys.draw_image(x, y, wh, wh, clock24);
 	minutes %= 12*60;
 	int xx = x+wh/2, yy = y+wh/2;
-	pair<unsigned, unsigned> twh = font_arial2->get_size(text.c_str());
+	pair<unsigned, unsigned> twh = font_arial2->get_size(text);
 
 	color font_color ( 255, 255, 255 );
 	if ( !is_day_mode )
 		font_color = color ( 255, 127, 127 );
 
-	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text.c_str(), font_color);
+	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text, font_color);
 	vector2 d;
 	int l;
 
@@ -1251,12 +1251,12 @@ void user_interface::draw_manometer_gauge ( class system& sys, class game& gm,
 	angle a ( 292.5f + 135.0f * value );
 	vector2 d = a.direction ();
 	int xx = x + wh / 2, yy = y + wh / 2;
-	pair<unsigned, unsigned> twh = font_arial2->get_size(text.c_str());
+	pair<unsigned, unsigned> twh = font_arial2->get_size(text);
 
 	// Draw text.
 	color font_color ( 0, 0, 0 );
 	font_arial2->print ( xx - twh.first / 2, yy - twh.second / 2 - wh / 6,
-		text.c_str(), font_color );
+		text, font_color );
 
 	// Draw pointer.
 	glColor3f ( 0.0f, 0.0f, 0.0f );
