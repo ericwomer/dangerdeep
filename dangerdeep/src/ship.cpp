@@ -341,7 +341,7 @@ void ship::simulate(game& gm, double delta_time)
 		double time_to_pass = (fabs(turn_velocity) < 0.01) ? 1e30 : angledist / fabs(turn_velocity);
 		double time_to_midships = fabs(rudder_pos) / max_rudder_turn_speed;
 //cout <<this<<" logic3 angledist " << angledist << " timetopass " << time_to_pass << " time_to_ms " << time_to_midships << "\n";
-		double damping_factor = 1.0;	// set to > 0 to brake earlier, fixme set some value
+		double damping_factor = 0.5;	// set to > 0 to brake earlier, fixme set some value
 		if (time_to_pass < time_to_midships + damping_factor) {
 			rudder_to = (turn_rather_right) ? rudderfullleft : rudderfullright;
 //cout <<this<<" near target! " << rudder_to << "\n";
