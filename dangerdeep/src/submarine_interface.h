@@ -17,6 +17,9 @@ using namespace std;
 class submarine_interface : public user_interface
 {
 protected:
+	// Manual angle correction to fire a spread of torpedoes.
+	angle lead_angle;
+
 	enum display_mode { display_mode_gauges, display_mode_periscope,
 		display_mode_uzo, display_mode_glasses, display_mode_bridge,
 		display_mode_map, display_mode_torpedoroom, display_mode_damagecontrol,

@@ -322,7 +322,8 @@ void submarine::dive_to_depth(unsigned meters)
 	dive_speed = (dive_to < position.z) ? -max_dive_speed : max_dive_speed;
 }
 
-bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target)
+bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target,
+	const angle& manual_lead_angle)
 {
 	pair<unsigned, unsigned> bow_tube_indices = get_bow_tube_indices();
 	pair<unsigned, unsigned> stern_tube_indices = get_stern_tube_indices();
@@ -330,7 +331,8 @@ bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target)
 	bool usebowtubes = true;
 	if (tubenr < 0) {
 		if (target != 0) {
-			angle a = angle(target->get_pos().xy() - get_pos().xy()) - get_heading();
+			angle a = angle(target->get_pos().xy() - get_pos().xy())
+				- get_heading() + manual_lead_angle;
 			if (a.ui_abs_value180() > 90)
 				usebowtubes = false;
 		}
@@ -379,7 +381,7 @@ bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target)
 		
 	torpedo* t = new torpedo(this, torpedoes[torpnr].type, usebowtubes);
 	if (target) {
-		if (t->adjust_head_to(target, usebowtubes)) {
+		if (t->adjust_head_to(target, usebowtubes, manual_lead_angle)) {
 			gm.spawn_torpedo(t);
 		} else {
 			// gyro angle invalid

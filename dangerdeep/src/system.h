@@ -14,6 +14,7 @@ using namespace std;
 class system
 {
 public:
+	enum button_type { left_button=0x1, right_button=0x2, middle_button=0x4 };
 	system(double nearz_, double farz_, unsigned res=640, bool fullscreen=true);
 	~system();
 	void swap_buffers(void);

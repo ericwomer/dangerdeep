@@ -28,27 +28,27 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 		switch (keycode) {
 			// torpedo launching
 			case SDLK_1:
-				if (player->fire_torpedo(gm, 0, target))
+				if (player->fire_torpedo(gm, 0, target, lead_angle))
 					add_message(TXT_Torpedofired[language]);
 				break;
 			case SDLK_2:
-				if (player->fire_torpedo(gm, 1, target))
+				if (player->fire_torpedo(gm, 1, target, lead_angle))
 					add_message(TXT_Torpedofired[language]);
 				break;
 			case SDLK_3:
-				if (player->fire_torpedo(gm, 2, target))
+				if (player->fire_torpedo(gm, 2, target, lead_angle))
 					add_message(TXT_Torpedofired[language]);
 				break;
 			case SDLK_4:
-				if (player->fire_torpedo(gm, 3, target))
+				if (player->fire_torpedo(gm, 3, target, lead_angle))
 					add_message(TXT_Torpedofired[language]);
 				break;
 			case SDLK_5:
-				if (player->fire_torpedo(gm, 4, target))
+				if (player->fire_torpedo(gm, 4, target, lead_angle))
 					add_message(TXT_Torpedofired[language]);
 				break;
 			case SDLK_6:
-				if (player->fire_torpedo(gm, 5, target))
+				if (player->fire_torpedo(gm, 5, target, lead_angle))
 					add_message(TXT_Torpedofired[language]);
 				break;
 			
@@ -161,7 +161,7 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 
 			// weapons, fixme
 			case SDLK_t:
-				if (player->fire_torpedo(gm, -1, target))
+				if (player->fire_torpedo(gm, -1, target, lead_angle))
 					add_message(TXT_Torpedofired[language]);
 				break;
 			case SDLK_SPACE:
@@ -306,6 +306,24 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	sys.draw_image(2*256, 256, 256, 256, periscope[2]);
 	sys.draw_image(3*256, 256, 256, 256, periscope[3]);
 	sys.draw_image(768, 512, 256, 256, addleadangle);
+
+	// Draw lead angle value.
+	double la = lead_angle.value ();
+
+	if ( la > 180.0f )
+		la -= 360.0f;
+
+	int lax = 896 + int ( 10.8f * la );
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBegin ( GL_TRIANGLE_STRIP );
+	glColor3f ( 1.0f, 0.0f, 0.0f );
+	glVertex2i ( lax-1, 522 );
+	glVertex2i ( lax-1, 550 );
+	glVertex2i ( lax+1, 522 );
+	glVertex2i ( lax+1, 550 );
+	glEnd ();
+
 	angle targetbearing;
 	angle targetaob;
 	angle targetrange;
@@ -338,6 +356,26 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	glColor3f(1,1,1);
 	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
+
+	// mouse handling
+	int mx;
+	int my;
+	int mb = sys.get_mouse_buttons();
+	sys.get_mouse_position(mx, my);
+
+	if (mb & sys.left_button) {
+		// Evaluate lead angle box.
+		if ( mx >= 776 && mx <= 1016 && my >= 520 && my <= 552 )
+		{
+			double lav = double ( mx - 896 ) / 10.8f;
+			if ( lav < - 10.0f )
+				lav = -10.0f;
+			else if ( lav > 10.0f )
+				lav = 10.0f;
+
+			lead_angle = angle ( lav );
+		}
+	}
 
 	// keyboard processing
 	int key = sys.get_key();

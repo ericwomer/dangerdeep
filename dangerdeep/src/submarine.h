@@ -133,7 +133,8 @@ public:
 	virtual void planes_middle(void);
 	virtual void dive_to_depth(unsigned meters);
 	// give tubenr -1 for any loaded tube, or else 0-5
-	virtual bool fire_torpedo(class game& gm, int tubenr, sea_object* target);
+	virtual bool fire_torpedo(class game& gm, int tubenr, sea_object* target,
+		const angle& manual_lead_angle);
 };
 
 #endif

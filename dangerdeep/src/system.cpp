@@ -267,13 +267,13 @@ void system::poll_event_queue(void)
 					switch (event.button.button)
 					{
 						case SDL_BUTTON_LEFT:
-							mouse_b |= 1;
+							mouse_b |= left_button;
 							break;
 						case SDL_BUTTON_MIDDLE:
-							mouse_b |= 4;
+							mouse_b |= middle_button;
 							break;
 						case SDL_BUTTON_RIGHT:
-							mouse_b |= 2;
+							mouse_b |= right_button;
 							break;
 					}
 					break;
@@ -282,13 +282,13 @@ void system::poll_event_queue(void)
 					switch (event.button.button)
 					{
 						case SDL_BUTTON_LEFT:
-							mouse_b &= ~1;
+							mouse_b &= ~left_button;
 							break;
 						case SDL_BUTTON_MIDDLE:
-							mouse_b &= ~4;
+							mouse_b &= ~middle_button;
 							break;
 						case SDL_BUTTON_RIGHT:
-							mouse_b &= ~2;
+							mouse_b &= ~right_button;
 							break;
 					}
 					break;

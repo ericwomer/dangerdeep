@@ -327,7 +327,7 @@ bool user_interface::time_scale_down(void)
 void user_interface::draw_infopanel(class system& sys, class game& gm) const
 {
 	glBindTexture(GL_TEXTURE_2D, panelbackgr->get_opengl_name());
-	set_display_color ( gm );
+	glColor3f ( 1.0f, 1.0f, 1.0f );
 	glBegin(GL_QUADS);
 	glTexCoord2i(0,0);
 	glVertex2i(0,640);
@@ -989,7 +989,7 @@ void user_interface::add_rudder_message()
 
 #define DAY_MODE_COLOR() glColor3f ( 1.0f, 1.0f, 1.0f )
 
-#define NIGHT_MODE_COLOR() glColor3f ( 1.0f, 0.0f, 0.0f )
+#define NIGHT_MODE_COLOR() glColor3f ( 1.0f, 0.4f, 0.4f )
 
 void user_interface::set_display_color ( color_mode mode ) const
 {

@@ -141,14 +141,16 @@ double torpedo::expected_run_time(angle lead_angle,
 }
 
 //#include <sstream>
-bool torpedo::adjust_head_to(const sea_object* target, bool usebowtubes)
+bool torpedo::adjust_head_to(const sea_object* target, bool usebowtubes,
+	const angle& manual_lead_angle)
 {
 	if (parent == 0) return false;
 	pair<angle, double> br = parent->bearing_and_range_to(target);
 	angle ab = parent->estimate_angle_on_the_bow(br.first, target->get_heading());
 	pair<angle, bool> la = lead_angle(target->get_speed(), ab);
 	if (la.second) {
-		angle gyro_angle = br.first - parent->get_heading() + la.first;
+		angle gyro_angle = br.first - parent->get_heading() + la.first +
+			manual_lead_angle;
 		angle headto = parent->get_heading() + gyro_angle;
 //ostringstream os;
 //	os << "lead angle " << la.first.value() << " gyro angle " << gyro_angle.value() << ", trp head to " << headto.value()

@@ -42,7 +42,8 @@ public:
 	        angle angle_on_the_bow, double target_range) const;
 
 	// adjust heading of torpedo, returns false if impossible
-	bool adjust_head_to(const sea_object* target, bool usebowtubes);
+	bool adjust_head_to(const sea_object* target, bool usebowtubes,
+		const angle& manual_lead_angle);
 };
 
 #endif
