@@ -11,17 +11,16 @@
 #include "texts.h"
 
 ship_interface::ship_interface(ship* player_ship) :
-    user_interface( player_ship )
+	user_interface( player_ship )
 {
 }
 
 ship_interface::~ship_interface()
-{
-}
+{}
 
 bool ship_interface::keyboard_common(int keycode, class system& sys, class game& gm)
 {
-    ship* player = get_player()->get_ship_ptr();
+	ship* player = get_player()->get_ship_ptr();
     
 	// handle common keys (fixme: make configureable?)
 	switch (keycode) {

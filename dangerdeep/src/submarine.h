@@ -22,25 +22,25 @@ public:
 		stored_torpedo() : type(0), status(0), associated(0), remaining_time(0) {}
 		stored_torpedo(unsigned t) : type(t), status(3), associated(0), remaining_time(0) {}
 	};
-	
+
 protected:
 	double dive_speed, dive_acceleration, max_dive_speed, max_depth, dive_to;
 	bool permanent_dive;
 	double max_submerged_speed;
-	
+
 	// stored torpedoes (including tubes)
 	// special functions calculate indices for bow/stern tubes etc., see below
 	vector<stored_torpedo> torpedoes;
-		
+
 	bool scopeup;	// fixme: maybe simulate time for moving scope up/down
-    double periscope_depth;
-    bool electric_engine; // true when electric engine is used.
-    double snorkel_depth; // -1 when snorkel not available.
+	double periscope_depth;
+	bool electric_engine; // true when electric engine is used.
+	double snorkel_depth; // -1 when snorkel not available.
     
 	submarine();
 	submarine& operator= (const submarine& other);
 	submarine(const submarine& other);
-	
+
 	// fixme: time that is needed depends on sub type and how many torpedoes
 	// are already in transfer. So this argument is nonesense. fixme
 	// returns true if transfer was initiated.
@@ -49,7 +49,7 @@ protected:
 	int find_stored_torpedo(bool usebow);	// returns index or -1 if none
 
 	bool parse_attribute(parser& p);	// returns false if invalid token found
-	
+
 public:
 	// fixme type II has some subtypes.
 	enum types { typeII, typeVII, typeVIIb, typeVIIc, typeVIIc41,
@@ -78,12 +78,13 @@ public:
 	// compute probabilty that sub can be seen (determined by depth, speed,
 	// state: periscope state, snorkeling etc., shape)
 	virtual float surface_visibility(const vector2& watcher) const;
-	
+	virtual float sonar_visibility ( const vector2& watcher ) const;
+
 	virtual bool is_scope_up(void) const { return scopeup; }
-    virtual double get_periscope_depth() const { return periscope_depth; }
-    virtual bool is_submerged () const { return get_depth() > SUBMARINE_SUBMERGED_DEPTH; }
-    virtual double get_max_depth () const { return max_depth; }
-    virtual bool is_electic_engine (void) const { return (electric_engine == true); }
+	virtual double get_periscope_depth() const { return periscope_depth; }
+	virtual bool is_submerged () const { return get_depth() > SUBMARINE_SUBMERGED_DEPTH; }
+	virtual double get_max_depth () const { return max_depth; }
+	virtual bool is_electric_engine (void) const { return (electric_engine == true); }
     
 	// command interface for subs
 	virtual void scope_up(void) { scopeup = true; };	// fixme
@@ -94,7 +95,9 @@ public:
 	virtual void dive_to_depth(unsigned meters);
 	// give tubenr -1 for any loaded tube, or else 0-5
 	virtual bool fire_torpedo(class game& gm, int tubenr, sea_object* target);
+    
 	virtual submarine* get_submarine_ptr () { return this; }
+	virtual const submarine* get_submarine_ptr () const { return this; }
 };
 
 #endif

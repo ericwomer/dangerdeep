@@ -35,21 +35,13 @@ protected:
 	bool cyclewaypoints;
 	
 	list<vector2> waypoints;
-	
+
 	ai();
 	ai(const ai& other);
 	ai& operator= (const ai& other);
 
 public:
-
-	// ai computation between is randomly interleaved between frames to avoid
-	// time consumption peeks every AI_THINK_CYCLE_TIME seconds
-	ai(sea_object* parent_, types type_) : type(type_), state(followpath),
-		zigzagstate(0), parent(parent_), followme(0),
-		myconvoy(0),
-		has_contact(false),
-		remaining_time(rnd() * AI_THINK_CYCLE_TIME),
-		cyclewaypoints(false) {};
+	ai::ai(sea_object* parent_, types type_);
 	virtual ~ai() {};
 
 	void clear_waypoints(void) { waypoints.clear(); };

@@ -16,19 +16,19 @@ vector<float> user_interface::allwaveheights;
 
 
 user_interface::user_interface() :
-        player_object(0), quit(false), pause(false), time_scale(1),
-        zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
-    	viewpos(0, 0, 10), bearing(0), viewmode(4), target(0)
+	player_object(0), quit(false), pause(false), time_scale(1),
+	zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
+	viewpos(0, 0, 10), bearing(0), viewmode(4), target(0)
 {
 	if (allwaveheights.size() == 0) init_water_data();
 }
 
 user_interface::user_interface(sea_object* player) :
-    	player_object ( player ), quit(false), pause(false), time_scale(1),
-        zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
-    	viewpos(0, 0, 10), bearing(0), viewmode(4), target(0)
+    player_object ( player ), quit(false), pause(false), time_scale(1),
+    zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
+	viewpos(0, 0, 10), bearing(0), viewmode(4), target(0)
 {
-    	if (allwaveheights.size() == 0) init_water_data();
+	if (allwaveheights.size() == 0) init_water_data();
 }
 
 void user_interface::init_water_data(void)
@@ -220,7 +220,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	// ******************** ships & subs *************************************************
 
 	float dwave = sin((wave%WAVES)*2*M_PI/WAVES);
-	list<ship*> ships = gm.visible_ships(player->get_pos());
+	list<ship*> ships;
+	gm.visible_ships(ships, player);
 	for (list<ship*>::const_iterator it = ships.begin(); it != ships.end(); ++it) {
 		if (!withplayer && *it == player) continue;	// only ships or subs playable!
 		glPushMatrix();
@@ -232,7 +233,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glPopMatrix();
 	}
 
-	list<submarine*> submarines = gm.visible_submarines(player->get_pos());
+	list<submarine*> submarines;
+	gm.visible_submarines(submarines, player);
 	for (list<submarine*>::const_iterator it = submarines.begin(); it != submarines.end(); ++it) {
 		if (!withplayer && *it == player) continue; // only ships or subs playable!
 		glPushMatrix();
@@ -246,7 +248,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glPopMatrix();
 	}
 
-	list<airplane*> airplanes = gm.visible_airplanes(player->get_pos());
+	list<airplane*> airplanes;
+	gm.visible_airplanes(airplanes, player);
 	for (list<airplane*>::const_iterator it = airplanes.begin(); it != airplanes.end(); ++it) {
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
@@ -256,7 +259,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	}
 
 	if (withunderwaterweapons) {
-		list<torpedo*> torpedoes = gm.visible_torpedoes(player->get_pos());
+		list<torpedo*> torpedoes;
+		gm.visible_torpedoes(torpedoes, player);
 		for (list<torpedo*>::const_iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
 			glPushMatrix();
 			glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
@@ -264,7 +268,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 			(*it)->display();
 			glPopMatrix();
 		}
-		list<depth_charge*> depth_charges = gm.visible_depth_charges(player->get_pos());
+		list<depth_charge*> depth_charges;
+		gm.visible_depth_charges(depth_charges, player);
 		for (list<depth_charge*>::const_iterator it = depth_charges.begin(); it != depth_charges.end(); ++it) {
 			glPushMatrix();
 			glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
@@ -274,12 +279,13 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		}
 	}
 
-	list<gun_shell*> gun_shells = gm.visible_gun_shells(player->get_pos());
+	list<gun_shell*> gun_shells;
+	gm.visible_gun_shells(gun_shells, player);
 	for (list<gun_shell*>::const_iterator it = gun_shells.begin(); it != gun_shells.end(); ++it) {
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
-        glScalef(100,100,100);//fixme: to control functionality for now
+		glScalef(100,100,100);//fixme: to control functionality for now
 		(*it)->display();
 		glPopMatrix();
 	}
@@ -461,7 +467,7 @@ void user_interface::draw_trail(sea_object* so, const vector2& offset)
 
 void user_interface::display_gauges(class system& sys, game& gm)
 {
-    sea_object* player = get_player ();
+	sea_object* player = get_player ();
 	sys.prepare_2d_drawing();
 	for (int y = 0; y < 3; ++y)	// fixme: replace with gauges
 		for (int x = 0; x < 4; ++x)
@@ -485,20 +491,20 @@ void user_interface::display_gauges(class system& sys, game& gm)
 		int mareax = (mx/256)*256+128;
 		int mareay = (my/256)*256+128;
 		angle mang(vector2(mx - mareax, mareay - my));
-        if ( marea == 0 )
-        {
-            player->head_to_ang(mang, mang.is_cw_nearer(
-                player->get_heading()));
-        }
-        else if ( marea == 1 )
-        {}
-        else if ( marea == 2 )
-        {
-            if ( player->get_submarine_ptr() )
-            {
-                player->get_submarine_ptr()->dive_to_depth(mang.ui_value());
-            }
-        }
+		if ( marea == 0 )
+		{
+			player->head_to_ang(mang, mang.is_cw_nearer(
+				player->get_heading()));
+		}
+		else if ( marea == 1 )
+		{}
+		else if ( marea == 2 )
+		{
+			if ( player->get_submarine_ptr() )
+			{
+				player->get_submarine_ptr()->dive_to_depth(mang.ui_value());
+			}
+		}
 	}
 
 	// keyboard processing
@@ -513,7 +519,7 @@ void user_interface::display_gauges(class system& sys, game& gm)
 
 void user_interface::display_bridge(class system& sys, game& gm)
 {
-    sea_object* player = get_player();
+	sea_object* player = get_player();
     
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
@@ -533,13 +539,13 @@ void user_interface::display_bridge(class system& sys, game& gm)
 	while (key != 0) {
 		if (!keyboard_common(key, sys, gm)) {
 			// specific keyboard processing
-            switch ( key )
-            {
-                // Zoom view
-                case SDLK_y:
-                    zoom_scope = true;
-                    break;
-            }
+			switch ( key )
+			{
+				// Zoom view
+				case SDLK_y:
+					zoom_scope = true;
+					break;
+			}
 		}
 		key = sys.get_key();
 	}
@@ -553,8 +559,8 @@ void user_interface::draw_pings(class game& gm, const vector2& offset)
   	for (list<game::ping>::const_iterator it = pings.begin(); it != pings.end(); ++it) {
   		const game::ping& p = *it;
   		vector2 p1 = (p.pos + offset)*mapzoom;
-  		vector2 p2 = p1 + (p.dir + angle(PINGANGLE/2)).direction() * PINGLENGTH * mapzoom;
-  		vector2 p3 = p1 + (p.dir - angle(PINGANGLE/2)).direction() * PINGLENGTH * mapzoom;
+  		vector2 p2 = p1 + (p.dir + p.pingAngle).direction() * p.range * mapzoom;
+  		vector2 p3 = p1 + (p.dir - p.pingAngle).direction() * p.range * mapzoom;
   		glBegin(GL_TRIANGLES);
   		glColor4f(0.5,0.5,0.5,1);
   		glVertex2f(512+p1.x, 384-p1.y);
@@ -570,8 +576,9 @@ void user_interface::draw_sound_contact(class game& gm, const sea_object* player
     const double& max_view_dist)
 {
     // draw sound contacts
-   	if (player->get_throttle_speed()/player->get_max_speed() < 0.51) {
-   		list<ship*> ships = gm.hearable_ships(player->get_pos());
+    if (player->get_throttle_speed()/player->get_max_speed() < 0.51) {
+		list<ship*> ships;
+		gm.sonar_ships(ships, player);
    		// fixme: sub's missing
    		// fixme: differences between ship types missing
    		for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
@@ -596,11 +603,15 @@ void user_interface::draw_sound_contact(class game& gm, const sea_object* player
 void user_interface::draw_visual_contacts(class system& sys, class game& gm,
     const sea_object* player, const vector2& offset)
 {
-    // draw vessel trails and symbols (since player is submerged, he is drawn too)
-   	list<ship*> ships = gm.visible_ships(player->get_pos());
-   	list<submarine*> submarines = gm.visible_submarines(player->get_pos());
-   	list<airplane*> airplanes = gm.visible_airplanes(player->get_pos());
-   	list<torpedo*> torpedoes = gm.visible_torpedoes(player->get_pos());
+	// draw vessel trails and symbols (since player is submerged, he is drawn too)
+	list<ship*> ships;
+	gm.visible_ships(ships, player);
+	list<submarine*> submarines;
+	gm.visible_submarines(submarines, player);
+	list<airplane*> airplanes;
+	gm.visible_airplanes(airplanes, player);
+	list<torpedo*> torpedoes;
+	gm.visible_torpedoes(torpedoes, player);
 
    	// draw trails
    	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
@@ -625,13 +636,13 @@ void user_interface::draw_visual_contacts(class system& sys, class game& gm,
 
 void user_interface::display_map(class system& sys, game& gm)
 {
-    sea_object* player = get_player ();
+	sea_object* player = get_player ();
     
 	glClearColor(0, 0, 1, 1);	// fixme
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+
 	double max_view_dist = gm.get_max_view_distance();
-	
+
 	vector2 offset = -player->get_pos().xy();
 
 	sys.prepare_2d_drawing();
@@ -657,9 +668,10 @@ void user_interface::display_map(class system& sys, game& gm)
 	}
 	glEnd();
 	glColor3f(1,1,1);
-	
+
 	// draw convoy positions	fixme: should be static and fade out after some time
-	list<vector2> convoy_pos = gm.convoy_positions();
+	list<vector2> convoy_pos;
+    gm.convoy_positions(convoy_pos);
 	glColor3f(0,0,0);
 	glBegin(GL_LINE_LOOP);
 	for (list<vector2>::iterator it = convoy_pos.begin(); it != convoy_pos.end(); ++it) {
@@ -686,30 +698,30 @@ void user_interface::display_map(class system& sys, game& gm)
 	glColor3f(1,1,1);
 
 	// draw vessel symbols (or noise contacts)
-    submarine* sub_player = player->get_submarine_ptr();
+	submarine* sub_player = player->get_submarine_ptr();
 	if (sub_player && sub_player->is_submerged ()) {
-        // draw pings
-        draw_pings(gm, offset);
+		// draw pings
+		draw_pings(gm, offset);
 
-        // draw sound contacts
+		// draw sound contacts
 		draw_sound_contact(gm, sub_player, max_view_dist);
 
 		// draw player trails and player
 		draw_trail(player, offset);
 		draw_vessel_symbol(sys, offset, sub_player, color(255,255,128));
 
-        // Special handling for submarine player: When the submarine is
-        // on periscope depth and the periscope is up the visual contact
-        // must be drawn on map.
-        if ((sub_player->get_depth() <= sub_player->get_periscope_depth()) &&
-            sub_player->is_scope_up())
-        {
-            draw_visual_contacts(sys, gm, sub_player, offset);
-        }
+		// Special handling for submarine player: When the submarine is
+		// on periscope depth and the periscope is up the visual contact
+		// must be drawn on map.
+		if ((sub_player->get_depth() <= sub_player->get_periscope_depth()) &&
+			sub_player->is_scope_up())
+		{
+			draw_visual_contacts(sys, gm, sub_player, offset);
+		}
 	} 
 	else	 	// enable drawing of all object as testing hack by commenting this, fixme
 	{	// sub is surfaced
-        draw_visual_contacts(sys, gm, player, offset);
+		draw_visual_contacts(sys, gm, player, offset);
 	}
 	
 	draw_infopanel(sys);
@@ -849,7 +861,7 @@ void user_interface::add_message(const string& s)
 
 void user_interface::display_glasses(class system& sys, class game& gm)
 {
-    sea_object* player = get_player();
+	sea_object* player = get_player();
 
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -884,12 +896,12 @@ void user_interface::display_glasses(class system& sys, class game& gm)
 	while (key != 0) {
 		if (!keyboard_common(key, sys, gm)) {
 			// specific keyboard processing
-            switch ( key )
-            {
-                case SDLK_x:
-                    zoom_scope = false;
-                    break;
-            }
+			switch ( key )
+			{
+				case SDLK_x:
+					zoom_scope = false;
+					break;
+			}
 		}
 		key = sys.get_key();
 	}

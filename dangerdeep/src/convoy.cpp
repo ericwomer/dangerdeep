@@ -16,6 +16,7 @@ convoy::convoy(class game& gm, convoy::types type_) : sea_object()
 		case supportgroup: break;
 		case carrier: break;
 	}
+	cross_section_factor = CROSS_SECTION_VIS_CONVOY;
 }
 
 convoy::convoy(class game& gm, parser& p) : sea_object()

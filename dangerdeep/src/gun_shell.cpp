@@ -19,6 +19,7 @@ gun_shell::gun_shell(const sea_object& parent, angle direction, angle elevation,
 	speed = v0;
 	alpha = elevation;
 	system::sys()->add_console("shell created");
+	cross_section_factor = CROSS_SECTION_VIS_NULL;;
 }
 
 void gun_shell::simulate(game& gm, double delta_time)

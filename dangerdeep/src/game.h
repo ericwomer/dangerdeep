@@ -33,7 +33,12 @@ public:
 		vector2 pos;
 		angle dir;
 		double time;
-		ping(const vector2& p, angle d, double t) : pos(p), dir(d), time(t) {}
+		angle pingAngle;
+		double range;
+		ping(const vector2& p, angle d, double t, const double& range,
+			const angle& pingAngle ) :
+			pos(p), dir(d), time(t), range ( range ), pingAngle ( pingAngle )
+			{}
 	};
 
 protected:
@@ -73,19 +78,19 @@ public:
 	double get_max_view_distance(void) const { return max_view_dist; }
 
 	// compute visibility data
-	list<ship*> visible_ships(const vector3& pos);
-	list<submarine*> visible_submarines(const vector3& pos);
-	list<airplane*> visible_airplanes(const vector3& pos);
-	list<torpedo*> visible_torpedoes(const vector3& pos);
-	list<depth_charge*> visible_depth_charges(const vector3& pos);
-	list<gun_shell*> visible_gun_shells(const vector3& pos);
-	
-	list<ship*> hearable_ships(const vector3& pos);
-	list<submarine*> hearable_submarines(const vector3& pos);
+	virtual void visible_ships(list<ship*>& result, const sea_object* o);
+	virtual void visible_submarines(list<submarine*>& result, const sea_object* o);
+	virtual void visible_airplanes(list<airplane*>& result, const sea_object* o);
+	virtual void visible_torpedoes(list<torpedo*>& result, const sea_object* o);
+	virtual void visible_depth_charges(list<depth_charge*>& result, const sea_object* o);
+	virtual void visible_gun_shells(list<gun_shell*>& result, const sea_object* o);
+
+	virtual void sonar_ships ( list<ship*>& result, const sea_object* o );
+	virtual void sonar_submarines ( list<submarine*>& result, const sea_object* o );
 	
 	// list<*> radardetected_ships(...);	// later!
 
-	list<vector2> convoy_positions(void) const;	// fixme
+	void convoy_positions(list<vector2>& result) const;	// fixme
 	
 //	bool can_see(const sea_object* watcher, const submarine* sub) const;
 
@@ -106,7 +111,8 @@ public:
 	void ship_sunk(unsigned tonnage);	// a ship sinks
 
 	// simulation actions
-	list<vector3> ping_ASDIC(const vector2& pos, angle dir);	// returns contacts
+	virtual void ping_ASDIC(list<vector3>& contacts, sea_object* d,
+		const bool& moveSensor, const angle& dir = angle ( 0.0f ) );
 
 	// various functions (fixme: sort, cleanup)
 	const list<ping>& get_pings(void) const { return pings; };

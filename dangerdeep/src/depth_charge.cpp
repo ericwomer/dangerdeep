@@ -20,6 +20,7 @@ depth_charge::depth_charge(const sea_object& parent, double expl_depth) : sea_ob
 	max_rev_speed = 0;
 	throttle = stop;
 	system::sys()->add_console("depth charge created");
+	cross_section_factor = CROSS_SECTION_VIS_NULL;;
 }
 
 void depth_charge::simulate(game& gm, double delta_time)

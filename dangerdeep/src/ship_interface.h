@@ -31,7 +31,7 @@ protected:
 		const vector2& offset, const sea_object* so, color c) const;
 	void draw_trail(sea_object* so, const vector2& offset);
 
-    // Display function for screens.
+	// Display function for screens.
 	void display_sonar(class system& sys, class game& gm); // or better display_guns?
 	void display_glasses(class system& sys, class game& gm);
 	void display_dc_throwers(class system& sys, class game& gm);

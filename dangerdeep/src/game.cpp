@@ -10,6 +10,7 @@
 #include "ship_interface.h"
 #include "tokencodes.h"
 #include "texts.h"
+#include "sensors.h"
 
 #define TRAILTIME 10
 
@@ -221,18 +222,18 @@ void game::simulate(double delta_t)
 	
 ******************************************************************************************/
 
-list<ship*> game::visible_ships(const vector3& pos)
+void game::visible_ships(list<ship*>& result, const sea_object* o)
 {
-	list<ship*> result;
-	double d = get_max_view_distance();
-	d = d*d;
-	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
-		if ((*it)->get_pos().xy().square_distance(pos.xy()) < d) {
-			result.push_back(*it);
+	const Sensor* s = o->get_sensor ( SensorFactory::LookoutSystem );
+	if ( s )
+	{
+		const LookoutSensor* ls = s->getLookoutSensor ();
+		for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
+		{
+			if ( ls->isDetected ( this, o, *it ) )
+				result.push_back (*it);
 		}
 	}
-	return result;
-//	return ships;	// test hack fixme
 }
 
 // give relative position, length*vis, width*vis and course
@@ -244,135 +245,116 @@ bool is_in_ellipse(const vector2& p, double xl, double yl, angle& head)
 	return ((t1*t1)/(xl*xl) + (t2*t2)/(yl*yl)) < 1;
 }
 
-list<submarine*> game::visible_submarines(const vector3& pos)
+void game::visible_submarines(list<submarine*>& result, const sea_object* o)
 {
-	list<submarine*> result;
-	double d = get_max_view_distance();
-	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		double sqd = (*it)->get_pos().xy().square_distance(pos.xy());
-		if (sqd < d*d) {
-			// the probabilty of visibility depends on indivial values
-			// relative course, distance to and type of watcher.
-			// (height of masts, experience etc.), weather fixme
-			double dist = sqrt(sqd);
-			double vis = (*it)->surface_visibility(pos.xy());
-			if (dist < d*vis) result.push_back(*it);
-			// fixme: add some randomization!
+	const Sensor* s = o->get_sensor ( SensorFactory::LookoutSystem );
+	if ( s )
+	{
+		const LookoutSensor* ls = s->getLookoutSensor ();
+		for (list<submarine*>::iterator it = submarines.begin();
+			it != submarines.end(); ++it)
+		{
+			if ( ls->isDetected ( this, o, *it ) )
+				result.push_back (*it);
 		}
 	}
-	return result;
-//	return list<submarine*>();	// test hack fixme
 }
 
-list<airplane*> game::visible_airplanes(const vector3& pos)
+void game::visible_airplanes(list<airplane*>& result, const sea_object* o)
 {
-	list<airplane*> result;
-	double d = get_max_view_distance();
-	d = d*d;
-	for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it) {
-		if ((*it)->get_pos().xy().square_distance(pos.xy()) < d) {
-			result.push_back(*it);
+	const Sensor* s = o->get_sensor ( SensorFactory::LookoutSystem );
+	if ( s )
+	{
+		const LookoutSensor* ls = s->getLookoutSensor ();
+		for (list<airplane*>::iterator it = airplanes.begin();
+			it != airplanes.end(); ++it)
+		{
+			if ( ls->isDetected ( this, o, *it ) )
+				result.push_back (*it);
 		}
 	}
-	return result;
 }
 
-list<torpedo*> game::visible_torpedoes(const vector3& pos)
+void game::visible_torpedoes(list<torpedo*>& result, const sea_object* o)
 {
-	list<torpedo*> result;
-	double d = get_max_view_distance();
-	d = d*d;
-	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
-		if ((*it)->get_pos().xy().square_distance(pos.xy()) < d) {
-			result.push_back(*it);
+	const Sensor* s = o->get_sensor ( SensorFactory::LookoutSystem );
+	if ( s )
+	{
+		const LookoutSensor* ls = s->getLookoutSensor ();
+		for (list<torpedo*>::iterator it = torpedoes.begin();
+			it != torpedoes.end(); ++it)
+		{
+			if ( ls->isDetected ( this, o, *it ) )
+				result.push_back (*it);
 		}
 	}
-	return result;
 }
 
-list<depth_charge*> game::visible_depth_charges(const vector3& pos)
+void game::visible_depth_charges(list<depth_charge*>& result, const sea_object* o)
 {
-	list<depth_charge*> result;
-	double d = get_max_view_distance();
-	d = d*d;
-	for (list<depth_charge*>::iterator it = depth_charges.begin(); it != depth_charges.end(); ++it) {
-		if ((*it)->get_pos().xy().square_distance(pos.xy()) < d) {
-			result.push_back(*it);
+	const Sensor* s = o->get_sensor ( SensorFactory::LookoutSystem );
+	if ( s )
+	{
+		const LookoutSensor* ls = s->getLookoutSensor ();
+		for (list<depth_charge*>::iterator it = depth_charges.begin();
+			it != depth_charges.end(); ++it)
+		{
+			if ( ls->isDetected ( this, o, *it ) )
+				result.push_back (*it);
 		}
 	}
-	return result;
 }
 
-list<gun_shell*> game::visible_gun_shells(const vector3& pos)
+void game::visible_gun_shells(list<gun_shell*>& result, const sea_object* o)
 {
-	list<gun_shell*> result;
-	double d = get_max_view_distance();
-	d = d*d;
-	for (list<gun_shell*>::iterator it = gun_shells.begin(); it != gun_shells.end(); ++it) {
-		if ((*it)->get_pos().xy().square_distance(pos.xy()) < d) {
-			result.push_back(*it);
+	const Sensor* s = o->get_sensor ( SensorFactory::LookoutSystem );
+	if ( s )
+	{
+		const LookoutSensor* ls = s->getLookoutSensor ();
+		for (list<gun_shell*>::iterator it = gun_shells.begin();
+			it != gun_shells.end(); ++it)
+		{
+			if ( ls->isDetected ( this, o, *it ) )
+				result.push_back (*it);
 		}
 	}
-	return result;
 }
 
-// fixme: noises are disturbing each other!
-list<ship*> game::hearable_ships(const vector3& pos)
+void game::sonar_ships ( list<ship*>& result, const sea_object* o )
 {
-	// fixme: long distance contacts (AOD: white lines) missing/filtering
+	const Sensor* s = o->get_sensor ( SensorFactory::PassiveSonarSystem );
+	if ( s )
+	{
+		const PassiveSonarSensor* ss = s->getPassiveSonarSensor ();
+		for (list<ship*>::iterator it = ships.begin ();
+			it != ships.end (); it++ )
+		{
+			if ( ss->isDetected ( this, o, *it ) )
+				result.push_back (*it);
+		}
+    }
+}
 
-	// collect the nearest contacts, limited to some value!
-	vector<pair<double, ship*> > contacts(MAX_ACUSTIC_CONTACTS, make_pair(1e30, (ship*)0));
-	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
-		double d = (*it)->get_pos().xy().square_distance(pos.xy());
-		unsigned i = 0;
-		for ( ; i < contacts.size(); ++i)
-			if (contacts[i].first > d) break;
-		if (i < contacts.size()) {
-			for (unsigned j = contacts.size()-1; j > i; --j)
-				contacts[j] = contacts[j-1];
-			contacts[i] = make_pair(d, *it);
+void game::sonar_submarines ( list<submarine*>& result, const sea_object* o )
+{
+	const Sensor* s = o->get_sensor ( SensorFactory::PassiveSonarSystem );
+	if ( s )
+	{
+		const PassiveSonarSensor* ss = s->getPassiveSonarSensor ();
+		for (list<submarine*>::iterator it = submarines.begin ();
+			it != submarines.end (); it++ )
+		{
+			if ( ss->isDetected ( this, o, *it ) )
+				result.push_back (*it);
 		}
 	}
-
-	// compute result	
-	list<ship*> result;
-	for (unsigned i = 0; i < contacts.size(); ++i) {
-		ship* s = contacts[i].second;
-		if (s == 0) break;
-		double distance = sqrt(contacts[i].first);
-		double distfac = (distance > 30000) ? 0 : 1.0 - distance/30000;	// fixme: wrong relation?!
-		double noisefac = s->get_throttle_speed()/s->get_max_speed();
-        // printf("df nf %f %f\n",distfac,noisefac);		
-		if (noisefac * distfac > 0.1)
-			result.push_back(s);
-	}
-	return result;
 }
 
-list<submarine*> game::hearable_submarines(const vector3& pos)
+void game::convoy_positions(list<vector2>& result) const
 {
-	// fixme: course changes acoustic profile, and also depth, subtype etc.
-	list<submarine*> result;
-	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		double d = (*it)->get_pos().xy().distance(pos.xy());
-		double distfac = d/5000;
-		double noisefac = (*it)->get_throttle_speed()/(*it)->get_max_speed();
-        // printf("df nf %f %f\n",distfac,noisefac);
-		if (noisefac - distfac > 0.1) {
-			result.push_back(*it);
-		}
-	}
-	return result;
-}
-
-list<vector2> game::convoy_positions(void) const
-{
-	list<vector2> result;
 	for (list<convoy*>::const_iterator it = convoys.begin(); it != convoys.end(); ++it) {
 		result.push_back((*it)->get_pos().xy());
 	}
-	return result;
 }
 
 void game::dc_explosion(const vector3& pos)
@@ -427,40 +409,49 @@ void game::ship_sunk(unsigned tons)
 	ui->record_ship_tonnage(tons);
 }
 
-list<vector3> game::ping_ASDIC(const vector2& pos, angle dir)
+void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
+	const bool& moveSensor, const angle& dir )
 {
-	// remember ping (for drawing)
-	pings.push_back(ping(pos, dir, time));
-	
-	// calculate contacts
-	list<vector3> contacts;
-	
-	// fixme: noise from ships can disturb ASDIC or may generate more contacs.
-	// ocean floor echoes ASDIC etc...
-	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		vector3 subpos = (*it)->get_pos();
-		if (subpos.z >= -2) continue;	// surfaced subs can't be detected
-		double dist = subpos.distance(pos.xy0());
-		if (dist > ASDICRANGE) continue;
-		angle contactangle(subpos.xy() - pos);
-		angle diffang = dir - contactangle;
-		double deltaang = diffang.value_pm180();
-		if (deltaang < -PINGANGLE/2 || deltaang > PINGANGLE/2) continue;
-		angle subtocontactangle = contactangle + angle(180) - (*it)->get_heading();
-		// fixme: a rather crude approximation
-		// fixme: correct values for angle dependency missing
-		// depends on: sub distance, sub angle to ping, sub depth, sub type
-		double probability = (0.3 + 0.7*fabs(subtocontactangle.sin()))
-			* (1.0 - dist/ASDICRANGE)
-			* (1.0-0.5*subpos.z/400.0);
-		// fixme: this value may vary.
-		// fixme: fuzzyness depends on distance
-		if (probability > 0.3+(rnd(10))*0.02)
-			contacts.push_back(subpos + vector3(rnd(40)-20,rnd(40)-20,rnd(40)-20));
+	Sensor* s = d->get_sensor ( SensorFactory::ActiveSonarSystem );
+	if ( s )
+	{
+		ActiveSonarSensor* ss = s->getActiveSonarSensor ();
+
+		if ( !moveSensor )
+			ss->setBearing( dir - d->get_heading () );
+
+		// remember ping (for drawing)
+		pings.push_back ( ping ( d->get_pos ().xy (),
+			ss->getBearing () + d->get_heading (), time,
+			ss->getRange (), ss->getDetectionCone () ) );
+
+		// fixme: noise from ships can disturb ASDIC or may generate more contacs.
+		// ocean floor echoes ASDIC etc...
+		for ( list<submarine*>::iterator it = submarines.begin ();
+			it != submarines.end (); ++it )
+		{
+			if ( ss->isDetected ( this, d, *it ) )
+			{
+				contacts.push_back((*it)->get_pos () +
+					vector3 ( rnd ( 40 ) - 20.0f, rnd ( 40 ) - 20.0f,
+					rnd ( 40 ) - 20.0f ) );
+			}
+		}
+
+		if ( moveSensor )
+		{
+			Sensor::SensorMoveMode mode = Sensor::Sweep;
+			// Ships cannot rotate the active sonar sensor because of
+			// their screws. A submarine can do so when it is submerged
+			// and running on electric engines.
+			submarine* sub = d->get_submarine_ptr ();
+			if ( sub && sub->is_submerged() && sub->is_electric_engine() )
+				mode = Sensor::Rotate;
+			ss->autoMoveBearing ( mode );
+		}
 	}
-	
-	return contacts;
 }
+
 
 bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 {

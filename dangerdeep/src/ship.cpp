@@ -10,6 +10,7 @@
 #include "ship_battleshipmalaya.h"
 #include "ship_carrierbogue.h"
 #include "tokencodes.h"
+#include "sensors.h"
 
 ship::ship() : sea_object()
 {

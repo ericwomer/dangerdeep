@@ -4,12 +4,26 @@
 #include "sea_object.h"
 #include "vector2.h"
 #include "tokencodes.h"
+#include "sensors.h"
 
 sea_object::sea_object() : position(vector3(0.0f, 0.0f, 0.0f)), heading(0.0f),
-    speed(0.0f), max_speed(0.0f), max_rev_speed(0.0f), throttle(stop),
-    rudder(ruddermid), acceleration(0.0f), permanent_turn(false), head_chg(0.0f),
-    head_to(0.0f), turn_rate(0.0f), length(0.0f), width(0.0f), alive_stat(alive)
-{}
+	speed(0.0f), max_speed(0.0f), max_rev_speed(0.0f), throttle(stop),
+	rudder(ruddermid), acceleration(0.0f), permanent_turn(false), head_chg(0.0f),
+	head_to(0.0f), turn_rate(0.0f), length(0.0f), width(0.0f), alive_stat(alive),
+	cross_section_factor(1.0f)
+{
+	sensors.resize ( SensorFactory::LastSystemItem );
+}
+
+sea_object::~sea_object()
+{
+	int size = sensors.size ();
+	for ( int i = 0; i < size; i++ )
+	{
+		if ( sensors[i] != 0 )
+			delete sensors[i];
+	}
+}
 
 bool sea_object::parse_attribute(parser& p)
 {
@@ -284,13 +298,13 @@ double sea_object::get_throttle_speed(void) const
 {
 	double ms = get_max_speed();
 	switch (throttle) {
-		case reverse: return -ms*0.25;
+		case reverse: return -ms*0.25f;     // 1/4
 		case stop: return 0;
-		case aheadlisten: return ms*0.25;
-		case aheadsonar: return ms*0.25;
-		case aheadslow: return ms/3.0;
-		case aheadhalf: return ms*0.5;
-		case aheadfull: return ms*0.75;
+		case aheadlisten: return ms*0.25f;  // 1/4
+		case aheadsonar: return ms*0.25f;   // 1/4
+		case aheadslow: return ms*0.33333f; // 1/3
+		case aheadhalf: return ms*0.5f;     // 1/2
+		case aheadfull: return ms*0.75f;    // 3/4
 		case aheadflank: return ms;
 	}
 	return 0;
@@ -305,4 +319,46 @@ pair<angle, double> sea_object::bearing_and_range_to(const sea_object* other) co
 angle sea_object::estimate_angle_on_the_bow(angle target_bearing, angle target_heading) const
 {
 	return (angle(180) + target_bearing - target_heading).value_pm180();
+}
+
+float sea_object::surface_visibility(const vector2& watcher) const
+{
+	return cross_section_factor * getProfileFactor ( watcher );
+}
+
+void sea_object::set_sensors ( vector<Sensor*> sensors )
+{
+	int size = this->sensors.size ();
+	for ( int i = 0; i < size; i++ )
+	{
+		if ( this->sensors[i] != 0 )
+			delete this->sensors[i];
+
+		this->sensors[i] = sensors[i];
+	}
+}
+
+Sensor* sea_object::get_sensor ( const int& s )
+{
+	if ( s >= 0 && s < SensorFactory::LastSystemItem )
+		return sensors[s];
+
+	return 0;
+}
+
+const Sensor* sea_object::get_sensor ( const int& s ) const
+{
+	if ( s >= 0 && s < SensorFactory::LastSystemItem )
+		return sensors[s];
+
+	return 0;
+}
+
+double sea_object::getProfileFactor ( const vector2& d ) const
+{
+	// Calculate scalar product first and get cosine value.
+	vector2 r = get_pos ().xy () - d;
+	angle diffAngle = angle ( r ) - heading;
+
+	return ( 0.3f + 0.7f * fabs ( diffAngle.sin () ) );
 }

@@ -17,7 +17,7 @@ protected:
 	double run_length, max_run_length;
 	sea_object* parent;
 	unsigned type;
-	
+
 	torpedo();
 	torpedo& operator=(const torpedo& other);
 	torpedo(const torpedo& other);
@@ -37,7 +37,8 @@ public:
 
 	// adjust heading of torpedo, returns false if impossible
 	bool adjust_head_to(const sea_object* target, bool usebowtubes);
-    virtual torpedo* get_torpedo_ptr () { return this; }
+	virtual torpedo* get_torpedo_ptr () { return this; }
+	virtual const torpedo* get_torpedo_ptr () const { return this; }
 };
 
 #endif

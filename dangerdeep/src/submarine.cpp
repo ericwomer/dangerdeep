@@ -7,6 +7,7 @@
 #include "submarine_VIIc.h"
 #include "submarine_XXI.h"
 #include "tokencodes.h"
+#include "sensors.h"
 
 submarine::submarine() : ship(), dive_speed(0.0f), permanent_dive(false),
     dive_to(0.0f), max_dive_speed(1.0f), dive_acceleration(0.0f), scopeup(false),
@@ -52,11 +53,11 @@ bool submarine::parse_attribute(parser& p)
 		default: return false;
 	}
 
-    // Activate electric engine if submerged.
-    if (is_submerged())
-    {
-        electric_engine = true;
-    }
+	// Activate electric engine if submerged.
+	if (is_submerged())
+	{
+		electric_engine = true;
+	}
     
 	return true;
 }
@@ -116,20 +117,19 @@ void submarine::simulate(class game& gm, double delta_time)
 	// calculate new depth (fixme this is not physically correct)
 	double delta_depth = dive_speed * delta_time;
 
-    // Activate or deactivate electric engines.
-    if ((position.z > -SUBMARINE_SUBMERGED_DEPTH) &&
-        (position.z+delta_depth < -SUBMARINE_SUBMERGED_DEPTH))
-    {
-        // Activate electric engine.
-        electric_engine = true;
-    }
-    else if (((position.z < -SUBMARINE_SUBMERGED_DEPTH) &&
-              (position.z+delta_depth > -SUBMARINE_SUBMERGED_DEPTH)) &&
-             (position.z < -get_periscope_depth()))
-    {
-        // Activate diesel engine.
-        electric_engine = false;
-    }
+	// Activate or deactivate electric engines.
+	if ((position.z > -SUBMARINE_SUBMERGED_DEPTH) &&
+		(position.z+delta_depth < -SUBMARINE_SUBMERGED_DEPTH))
+	{
+		// Activate electric engine.
+		electric_engine = true;
+	}
+	else if ((position.z < -SUBMARINE_SUBMERGED_DEPTH) &&
+		(position.z+delta_depth > -SUBMARINE_SUBMERGED_DEPTH))
+	{
+		// Activate diesel engine.
+		electric_engine = false;
+	}
     
 	if (dive_speed != 0) {
 		if (permanent_dive) {
@@ -204,26 +204,46 @@ void submarine::simulate(class game& gm, double delta_time)
 
 double submarine::get_max_speed(void) const
 {
-    return (is_electic_engine())? max_submerged_speed : max_speed;
+	return (is_electric_engine())? max_submerged_speed : max_speed;
 }
 
 float submarine::surface_visibility(const vector2& watcher) const
 {
-    double depth = get_depth();
-    
-	// fixme: use relative course to watcher (via watcher pos)
-	if (depth > periscope_depth)
-        return 0.0f;
- 
-	if (is_scope_up()) {
-		if (depth > 10.0f) return 0.25;
-		if (depth > 6.0f) return 0.25 + (10.0f-depth)*0.1875f; // 3.0/16.0;
-	} else {
-		if (depth > 10.0f) return 0.0f;
-		if (depth > 6.0f) return (10.0f-depth)*0.25f; // /4.0;
+	double depth = get_depth();
+	float diveFactor = 0.0f;
+
+	if (depth < 10.0f)
+		diveFactor = (10.0f - depth)*0.1f;
+	else
+		diveFactor = 0.0f;
+
+	diveFactor = diveFactor * cross_section_factor * getProfileFactor ( watcher );
+
+	// Add a value for the periscope when submarine is submerged.
+	if ( is_scope_up () && depth <= periscope_depth )
+		diveFactor += CROSS_SECTION_VIS_PERIS * ( 0.5f + 0.5f * speed / max_speed );
+
+	return diveFactor;
+}
+
+float submarine::sonar_visibility ( const vector2& watcher ) const
+{
+	double depth = get_depth();
+	float diveFactor = 0.0f;
+
+	if ( depth > 10.0f )
+	{
+		diveFactor = 1.0f;
 	}
-	return 1;
-} 
+	else if ( (depth > SUBMARINE_SUBMERGED_DEPTH ) && ( depth <= 10.0f ) )
+	{
+		// Submarine becomes visible for active sonar system while
+		// diving process.
+		diveFactor = 0.125f * (depth - SUBMARINE_SUBMERGED_DEPTH);
+	}
+
+	return diveFactor * cross_section_factor * getProfileFactor ( watcher );   
+}
 
 void submarine::planes_up(double amount)
 {

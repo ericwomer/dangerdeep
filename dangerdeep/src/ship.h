@@ -12,13 +12,13 @@
 class ship : public sea_object
 {
 	friend class convoy;
-	
+
 protected:
 	ai* myai;
 	unsigned tonnage;	// in BRT
 
 	damage_status stern_damage, midship_damage, bow_damage;
-	
+
 	ship();
 	ship(const ship& other);
 	ship& operator= (const ship& other);
@@ -44,7 +44,8 @@ public:
 	virtual bool is_merchant(void) const { return false; }
 	virtual bool is_escort(void) const { return false; }
 	virtual bool is_warship(void) const { return false; }
-    virtual ship* get_ship_ptr () { return this; }
+	virtual ship* get_ship_ptr () { return this; }
+	virtual const ship* get_ship_ptr () const { return this; }
 };
 
 #endif

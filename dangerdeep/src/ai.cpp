@@ -5,6 +5,15 @@
 #include "game.h"
 #include "convoy.h"
 
+// ai computation between is randomly interleaved between frames to avoid
+// time consumption peeks every AI_THINK_CYCLE_TIME seconds
+ai::ai(sea_object* parent_, types type_) : type(type_), state(followpath),
+	zigzagstate(0), parent(parent_), followme(0),
+	myconvoy(0), has_contact(false),
+	remaining_time(rnd() * AI_THINK_CYCLE_TIME),
+	cyclewaypoints(false), attackrun(false)
+{}
+
 void ai::relax(void)
 {
 	has_contact = false;
@@ -74,7 +83,8 @@ void ai::act_escort(game& gm, double delta_time)
 
 	double dist = 1e12;
 	submarine* nearest_contact = 0;
-	list<submarine*> subs = gm.visible_submarines(parent->get_pos());
+	list<submarine*> subs;
+	gm.visible_submarines(subs, parent);
 	for (list<submarine*>::iterator it = subs.begin(); it != subs.end(); ++it) {
 		double d = (*it)->get_pos().xy().square_distance(parent->get_pos().xy());
 		if (d < dist) {
@@ -94,13 +104,14 @@ void ai::act_escort(game& gm, double delta_time)
 		// high speeds do not allow for listening or sonar.
 	
 		// listen for subs
-		list<submarine*> hearable_subs = gm.hearable_submarines(parent->get_pos());
+		list<submarine*> hearable_subs;
+		gm.sonar_submarines(hearable_subs, parent);
 		if (hearable_subs.size() > 0) {
 			attack_contact(hearable_subs.front()->get_pos());
 		} else {
 			// ping around to find something
-			list<vector3> contacts = gm.ping_ASDIC(parent->get_pos().xy(),
-				parent->get_heading()+angle(rnd(360)));	//fixme
+			list<vector3> contacts;
+			gm.ping_ASDIC(contacts, parent, true);
 			if (contacts.size() > 0) {
 				// fixme: choose best contact!
 				if (myconvoy) myconvoy->add_contact(contacts.front());
@@ -118,7 +129,8 @@ void ai::act_escort(game& gm, double delta_time)
 		vector2 delta = contact.xy() - parent->get_pos().xy();
 		double cd = delta.length();
 		if (cd > DC_ATTACK_RUN_RADIUS && !attackrun) {
-			list<vector3> contacts = gm.ping_ASDIC(parent->get_pos().xy(), angle(delta));
+			list<vector3> contacts;
+			gm.ping_ASDIC(contacts, parent, false, angle(delta));
 			if (contacts.size() > 0) {	// update contact
 				// fixme: choose best contact!
 				if (myconvoy) myconvoy->add_contact(contacts.front());
