@@ -60,7 +60,8 @@ static rect rect_data[] = {
 
 sub_damage_display::sub_damage_display ()  // fixme: give sub type
 {
-	all_parts.resize(unsigned(nr_of_damageable_parts));
+	unsigned s = unsigned(nr_of_damageable_parts);
+	all_parts.resize(s, none);
 }
 
 sub_damage_display::~sub_damage_display ()
@@ -69,6 +70,14 @@ sub_damage_display::~sub_damage_display ()
 
 void sub_damage_display::add_damage ( const vector3& fromwhere, float amount )
 {
+}
+
+void sub_damage_display::display_popup (int x, int y, const string& text) const
+{
+	color(255,255,128).set_gl_color();
+	system::sys()->draw_rectangle(x-32,y-32,64,64);	//fixme
+	font_arial->print(x-30,y-30,text.c_str(),color::black());
+	color::white().set_gl_color();
 }
 
 void sub_damage_display::display ( class system& sys, class game& gm )
@@ -93,4 +102,14 @@ void sub_damage_display::check_key ( int keycode, class system& sys, class game&
 void sub_damage_display::check_mouse ( int x, int y, int mb )
 {
 	// fixme
+	unsigned s = unsigned(nr_of_damageable_parts);
+	for (unsigned i = 0; i < s; ++i) {
+		rect r = rect_data[i];
+		r.y += (damage_screen_background->h-sub_damage_scheme_all->h)/2;
+		if (x >= r.x && x <= r.x+r.w && y >= r.y && y <= r.y+r.h) {
+			ostringstream os;
+			os << "Part No." << i ;	//fixme
+			display_popup(x, y, os.str());
+		}
+	}
 }

@@ -16,6 +16,23 @@ struct color {
 		g = (unsigned char)(c1.g*(1-scal) + c2.g*scal);
 		b = (unsigned char)(c1.b*(1-scal) + c2.b*scal);
 	}
+
+	// transform color to grey value (model of human vision, 11% to 59% to 30% RGB)
+	color grey_value(void) const { unsigned char c = (unsigned char)(r*0.11+g*0.59+b*0.3); return color(c, c, c); }
+	
+	// some useful standard colors
+	static color black(void) { return color(0,0,0); }
+	static color blue(void) { return color(0,0,255); }
+	static color green(void) { return color(0,255,0); }
+	static color red(void) { return color(255,0,0); }
+	static color magenta(void) { return color(255,0,255); }
+	static color cyan(void) { return color(0,255,255); }
+	static color yellow(void) { return color(255,255,0); }
+	static color orange(void) { return color(255,128,0); }
+	static color lightgrey(void) { return color(192,192,192); }
+	static color grey(void) { return color(128,128,128); }
+	static color darkgrey(void) { return color(64,64,64); }
+	static color white(void) { return color(255,255,255); }
 };
 
 #endif

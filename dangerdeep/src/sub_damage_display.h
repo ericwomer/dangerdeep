@@ -72,6 +72,8 @@ public:
 
 	// give relative direction and amount between 0 and 1.
 	virtual void add_damage ( const vector3& fromwhere, float amount );
+	
+	virtual void display_popup (int x, int y, const string& text) const;
 
 	virtual void display ( class system& sys, class game& gm );
 	virtual void check_key ( int keycode, class system& sys, class game& gm );

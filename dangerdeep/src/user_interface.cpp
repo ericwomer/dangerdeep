@@ -37,8 +37,12 @@ user_interface::user_interface(sea_object* player) :
 
 user_interface::~user_interface ()
 {
+	// delete does nothing when the pointer is zero, fixme: remove
+	// since all contructors call init, and init stored something != 0 in these pointers
+	// this condition will be always true. (just as a note, remove me)
 	if ( captains_logbook ) delete captains_logbook;
 	if ( ships_sunk_disp ) delete ships_sunk_disp;
+	delete sub_damage_disp;
 }
 
 void user_interface::init ()
@@ -866,7 +870,6 @@ void user_interface::display_damagestatus(class system& sys, game& gm)
 	sys.prepare_2d_drawing();
 	sub_damage_disp->display(sys, gm);
 	draw_infopanel ( sys, gm );
-	sys.unprepare_2d_drawing();
 
 	// mouse processing;
 	int mx;
@@ -874,6 +877,9 @@ void user_interface::display_damagestatus(class system& sys, game& gm)
 	int mb = sys.get_mouse_buttons();
 	sys.get_mouse_position(mx, my);
 	sub_damage_disp->check_mouse ( mx, my, mb );
+
+	// note: mouse processing must be done first, to display pop-ups.
+	sys.unprepare_2d_drawing();
 
 	// keyboard processing, fixme: do we need extra keyboard input here?
 	int key = sys.get_key();
