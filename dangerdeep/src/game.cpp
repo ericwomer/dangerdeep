@@ -66,46 +66,18 @@ game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned t
 		spawn_ship(it->first);
 	spawn_convoy(cv);
 	
-	submarine* sub = submarine::create(subtype);
+	submarine* sub = submarine::create(subtype);//fixme give time for init
 	angle tmpa(rnd()*360.0);
 	vector2 tmpp = tmpa.direction() * (mvd/2);
-	sub->position = vector3(tmpp.x, tmpp.y, timeofday == 2 ? 0 : -12);
+	sub->position = vector3(tmpp.x, tmpp.y, timeofday == 2 ? 0 : -12); // fixme maybe always surfaced, except late in war
+	sub->heading = sub->head_to = angle(rnd()*360.0);
+	
 	spawn_submarine(sub);
 	player = sub;
 	ui = new submarine_interface(sub);
 
-/*
-	submarine* playersub = new submarine(subtype == 0 ? submarine::typeVIIc : submarine::typeXXI, vector3(2000, 1000, -30), 270);
-//	submarine* playersub = new submarine(subtype == 0 ?
-//			{
-			
-				unsigned subtype = m.get_switch_nr(0);
-				// just a test, fixme
-//				ship* playership = new ship(2, vector3(2000, 1000, 0), 270);
-				game* test = new game(playersub);
-//				game* test = new game(playership);
-				ship* s = new ship(3, vector3(0,150,0));
-				s->get_ai()->add_waypoint(vector2(0,3000));
-				s->get_ai()->add_waypoint(vector2(3000,3000));
-				s->get_ai()->add_waypoint(vector2(3000,0));
-				s->get_ai()->add_waypoint(vector2(0,0));
-				s->get_ai()->cycle_waypoints();
-				test->spawn_ship(s);
-				ship* s2 = new ship(1, vector3(0,-150,0));
-				s2->get_ai()->follow(s);
-                        	test->spawn_ship(s2);
-				s2 = new ship(0, vector3(-200,-150,0));
-				s2->get_ai()->follow(s);
-                        	test->spawn_ship(s2);
-				s2 = new ship(2, vector3(-400,-450,0));
-				s2->get_ai()->follow(s);
-                        	test->spawn_ship(s2);
-				s2 = new ship(2, vector3(-800,-850,0));
-				s2->get_ai()->follow(s);
-                        	test->spawn_ship(s2);
-				test->main_playloop(*sys);
-				delete test;
-*/				
+	running = true;
+	last_trail_time = time - TRAILTIME;
 }
 
 game::game(parser& p) : running(true), time(0)
@@ -209,12 +181,14 @@ void game::simulate(double delta_t)
 	if (!running) return;
 
 	if (!player->is_alive()) {
+		system::sys()->add_console("player killed!");//testing fixme
 		running = false;
 		return;
 	}
 	
 	if (/* submarines.size() == 0 && */ ships.size() == 0 && torpedoes.size() == 0 && depth_charges.size() == 0 &&
 			airplanes.size() == 0 && gun_shells.size() == 0) {
+		system::sys()->add_console("no objects except player left!");//testing fixme
 		running = false;
 		return;
 	}
@@ -322,7 +296,10 @@ void game::simulate(double delta_t)
 			pings.erase(it2);
 	}
 	
-	if (nearest_contact > ENEMYCONTACTLOST) running = false;
+	if (nearest_contact > ENEMYCONTACTLOST) {
+		system::sys()->add_console("player lost contact to enemy!");//testing fixme
+		running = false;
+	}
 }
 
 /******************************************************************************************

@@ -1,3 +1,7 @@
+2003-07-11  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* sea_object.cpp game.cpp convoy.cpp etc.
+	  - new throttle model. more code for custom mission generation.
+
 2003-07-10  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* gun_shell.h gun_shell.cpp
 	  - new simulation of shot trajectory.

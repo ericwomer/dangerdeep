@@ -42,8 +42,9 @@ class sea_object
 {
 public:
 	enum alive_status { defunct, dead, sinking, alive };
-	enum throttle_status { reverse, stop, aheadlisten, aheadsonar, aheadslow,
-		aheadhalf, aheadfull, aheadflank };
+	// give negative values for fixed speeds, positive values for knots.
+	enum throttle_status { reverse=-7, aheadlisten=-6, aheadsonar=-5, aheadslow=-4,
+		aheadhalf=-3, aheadfull=-2, aheadflank=-1, stop=0  };
 	enum damage_status { nodamage, lightdamage, mediumdamage, heavydamage, wrecked };
 	enum rudder_status { rudderfullleft, rudderleft, ruddermid, rudderright,
 		rudderfullright };
@@ -52,16 +53,16 @@ public:
 
 	// some useful functions needed for sea_objects
 
-	inline static double kts2ms(const double& knots) { return knots*1852.0f/3600.0f; }
-	inline static double ms2kts(const double& meters) { return meters*3600.0f/1852.0f; }
-	inline static double kmh2ms(const double& kmh) { return kmh/3.6f; }
-	inline static double ms2kmh(const double& meters) { return meters*3.6f; }
+	inline static double kts2ms(double knots) { return knots*1852.0f/3600.0f; }
+	inline static double ms2kts(double meters) { return meters*3600.0f/1852.0f; }
+	inline static double kmh2ms(double kmh) { return kmh/3.6f; }
+	inline static double ms2kmh(double meters) { return meters*3.6f; }
 
 protected:
 	vector3 position;
 	angle heading;
 	double speed, max_speed, max_rev_speed;	// m/sec
-	throttle_status throttle;
+	int throttle;
 	double acceleration;
 
 	// -1 <= head_chg <= 1

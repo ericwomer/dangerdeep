@@ -13,10 +13,17 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 	// course?
 	angle course(*(++waypoints.begin()) - *(waypoints.begin()));
 	vector2 coursevec = course.direction();
+
+//fixme: convoy bewegt sich woanders hin als schiffe (90° verdreht anscheinend)
+//fixme: rotation des gesamtconvoys scheint scherung zu sein, vielleicht weil coursevec falsch, wie anderer fehler
 	
 	// merchant convoy?
 	if (type_ == small || type_ == medium || type_ == large) {
 		unsigned cvsize = unsigned(type_);
+		
+		// speed? could be a slow or fast convoy (~4 or ~8 kts).
+		throttle = 4 + rnd(2)*4;
+		max_speed = speed = kts2ms(throttle);
 	
 		// compute size and structure of convoy
 		unsigned nrships = (2<<cvsize)*10+rnd(10)-5;
@@ -38,6 +45,9 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 				pos.y = pos.x*coursevec.y + pos.y*coursevec.x;
 				s->position.x = waypoints.begin()->x + pos.x;
 				s->position.y = waypoints.begin()->y + pos.y;
+				s->heading = course;
+				s->speed = speed;
+				s->throttle = throttle;
 				merchants.push_back(make_pair(s, pos));
 				++shps;
 			}
@@ -47,7 +57,7 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 		unsigned nrescs = esct_ * 5;
 		for (unsigned i = 0; i < nrescs; ++i) {
 			int side = i % 4;
-			float dx, dy, nx, ny;
+			float dx = 0, dy = 0, nx = 0, ny = 0;
 			switch (side) {
 				case 0: dx = 0; dy = 1; break;
 				case 1: dx = 1; dy = 0; break;
