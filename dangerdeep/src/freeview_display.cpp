@@ -304,7 +304,7 @@ void freeview_display::draw_view(game& gm) const
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	// store the projection matrix
-	system::sys().gl_perspective_fovx(pd.fov_x, 1.0 /*aspect*/, pd.near_z, pd.far_z);
+	system::sys().gl_perspective_fovx(pd.fov_x * 1.05, 1.0 /*aspect*/, pd.near_z, pd.far_z);
 	reflection_projmvmat = matrix4::get_gl(GL_PROJECTION_MATRIX) * matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	glLoadIdentity();
 	// set up projection matrix (new width/height of course) with a bit larger fov

@@ -122,10 +122,6 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	// make them configureable? fixme
 	// fixme: make size configurable in parts of screen resolution
 	reflectiontexsize = vps;
-	// fixme: why this copy?!
-	vector<Uint8> tmp0(reflectiontexsize*reflectiontexsize*3);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, reflectiontexsize, reflectiontexsize, 0, GL_RGB, GL_UNSIGNED_BYTE, &tmp0[0]);
-	tmp0.clear();
 	// fixme: auto mipmap?
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
