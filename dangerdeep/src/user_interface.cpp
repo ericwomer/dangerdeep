@@ -40,8 +40,6 @@ using namespace std;
 
 #define MAX_PANEL_SIZE 256
 
-#define WATER_BUMPMAP_CYCLE_TIME 10.0
-
 // some more interesting values: phase 256, waveperaxis: ask your gfx card, facesperwave 64+,
 // wavelength 256+,
 #define WAVE_PHASES 256		// no. of phases for wave animation
@@ -213,14 +211,14 @@ void user_interface::init ()
 		}
 	}
 
-	// fixme: is transformation from global space to tangent space correct?	
-	// what about the glRotafef(90, ?, ?, ?) to swap coordinate space?
-	// tangent space is computed by the following assumptions:
-	// the water lies in the x,y plane, z points up (to the sky). fixme remove glrotate(90,...) to swap coordinates
-	// this doesn't affect the lighting now, since we use a 1,1,1 light vector
-	vector3f lightvec = vector3f(1,1,1).normal();	// fixme: direction to light source (directional light)
+	// We do NOT translate to tangent space of each face (as common bump mapping would do)
+	// Because we store global normals in the bump map. Thus we don't need to store or
+	// recompute the light but can use THE SAME COLOR (light direction) FOR ALL FACES.
+	// So if light's direction changes, the display list can be kept!
 
-	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(0,1), 31/*20*/, 0.000005, WAVE_LENGTH, TIDECYCLE_TIME);
+	unsigned bumpmap_texsize = 128; //64;	// use at least 128 for a good look. 2^7*2^7*2^7*3 bytes = 6mb
+	ocean_wave_generator<float> owgb(bumpmap_texsize, vector2f(1,1), 31, 0.000005, WAVE_LENGTH, TIDECYCLE_TIME);
+	ocean_wave_generator<float> owg(owgb, FACES_PER_WAVE);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileh[i] = owg.compute_heights();
@@ -229,14 +227,8 @@ void user_interface::init ()
 
 		glNewList(wavedisplaylists+i, GL_COMPILE);
 
-		// create and use temporary arrays for texture coords (units 0,1), colors and vertices
-//		vector<GLfloat> tex0coords;
-//		vector<GLfloat> tex1coords;
-		vector<GLubyte/*GLfloat*/> colors;
+		// create and use temporary array for vertices
 		vector<GLfloat> coords;
-//		tex0coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*2);
-//		tex1coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*2);
-		colors.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*3);
 		coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*3);
 
 
@@ -254,29 +246,12 @@ void user_interface::init ()
 
 		float add = 1.0f/FACES_PER_WAVE;
 		float fy = 0;
-		float texscale0 = 8;//32;	// 128m/4m
-		float texscale1 = 2;
 		for (unsigned y = 0; y <= FACES_PER_WAVE; ++y) {
 			float fx = 0;
 			unsigned cy = y%FACES_PER_WAVE;
 			for (unsigned x = 0; x <= FACES_PER_WAVE; ++x) {
 				unsigned cx = x%FACES_PER_WAVE;
 				unsigned ptr = cy*FACES_PER_WAVE+cx;
-				// fixme: displacement is ignored here
-				// compute transformation matrix R: light (global) space to tangent space
-				// R = (R0, R1, R2), R2 = n[ptr], R1 = R2 x (1,0,0), R0 = R1 x R2
-				vector3f R1 = vector3f(0, wavetilen[i][ptr].z, -wavetilen[i][ptr].y).normal();
-				vector3f R0 = R1.cross(wavetilen[i][ptr]);
-				// multiply inverse (transposed) of R with light vector
-				vector3f nl = vector3f(R0 * lightvec, R1 * lightvec, wavetilen[i][ptr] * lightvec);
-				nl = nl * 0.5 + vector3f(0.5, 0.5, 0.5);
-//				tex0coords.push_back(fx*texscale0);	// use OpenGL automatic texture coord generation to save memory (256*65*65*2*2*4= ~17mb)
-//				tex0coords.push_back(fy*texscale0);
-//				tex1coords.push_back(fx*texscale1);
-//				tex1coords.push_back(fy*texscale1);
-				colors.push_back(GLubyte(255*nl.x));//nl.x);			// store it as ubyte to save space (256*65*65*3*(4-1)= ~9.5mb)
-				colors.push_back(GLubyte(255*nl.y));//nl.y);
-				colors.push_back(GLubyte(255*nl.z));//nl.z);
 				coords.push_back(fx*WAVE_LENGTH+d[ptr].x);
 				coords.push_back(fy*WAVE_LENGTH+d[ptr].y);
 				coords.push_back(wavetileh[i][ptr]);
@@ -287,30 +262,17 @@ void user_interface::init ()
 		
 
 		// now set pointers, enable arrays and draw elements, finally disable pointers
-		glEnableClientState(GL_COLOR_ARRAY);
-		glColorPointer(3, GL_UNSIGNED_BYTE /*GL_FLOAT*/, 0, &colors[0]);
-		
+		glDisableClientState(GL_COLOR_ARRAY);
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, &coords[0]);
-		
 		glDisableClientState(GL_NORMAL_ARRAY);
-		
-//		glClientActiveTexture(GL_TEXTURE0);
-//		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-//		glTexCoordPointer(2, GL_FLOAT, 0, &tex0coords[0]);
-		
-//		glClientActiveTexture(GL_TEXTURE1);
-//		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-//		glTexCoordPointer(2, GL_FLOAT, 0, &tex1coords[0]);
-		
-//		glActiveTexture(GL_TEXTURE0);
-		glDrawElements(GL_QUADS, waveindices.size(), GL_UNSIGNED_INT, &waveindices[0]);
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_COLOR_ARRAY);
 		glClientActiveTexture(GL_TEXTURE1);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		glClientActiveTexture(GL_TEXTURE0);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		
+		glDrawElements(GL_QUADS, waveindices.size(), GL_UNSIGNED_INT, &waveindices[0]);
+		glDisableClientState(GL_VERTEX_ARRAY);
 
 #if 0		// draw finite and fft normals to compare them, just a test
 /*
@@ -353,12 +315,8 @@ void user_interface::init ()
 	}
 	
 	// create water bump maps
-	unsigned bumpmap_texsize = 128; //64;	// use at least 128 for a good look. 2^7*2^7*2^7*3 bytes = 6mb
-	ocean_wave_generator<float> owgb(bumpmap_texsize, vector2f(0,1), 31, 0.000005, WAVE_LENGTH, WATER_BUMPMAP_CYCLE_TIME);
-//	ocean_wave_generator<float> owgb(bumpmap_texsize, vector2f(1,1), 1, 0.005/*0.01*/, 4.0, WATER_BUMPMAP_CYCLE_TIME);//old bump map code, fixme remove
 	for (int i = 0; i < WATER_BUMP_FRAMES; ++i) {
-		owgb.set_time(i*WATER_BUMPMAP_CYCLE_TIME/WATER_BUMP_FRAMES);
-		owgb.clear_inner_frequencies(FACES_PER_WAVE/2);//fixme: should be FACES_PER_WAVE, but to leave some low frequencies looks better (FACES_PER_WAVE/2)
+		owgb.set_time(i*TIDECYCLE_TIME/WATER_BUMP_FRAMES);
 		vector<vector3f> n = owgb.compute_finite_normals(owgb.compute_heights());
 		vector<Uint8> un(n.size()*3);
 		for (unsigned j = 0; j < n.size(); ++j) {
@@ -825,21 +783,17 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	float c1 = -wr;
 	float c2 = wr;
 	float c3 = max_view_dist;
-	float t0 = c0/64;
-	float t1 = c1/64;
-	float t2 = c2/64;
-	float t3 = c3/64;
 	float wz = 0;//-WAVE_HEIGHT; // this leads to hole between waves and horizon faces, fixme
 
 	// set Color to light vector transformed to object space
 	// (we need the inverse of the modelview matrix for that, at least the 3x3 upper left
 	// part if we have directional light only)
-	vector3f lightvec = vector3f(1,0,1).normal();
+	vector3f lightvec = vector3f(-1,0.5,1).normal();
 	lightvec = lightvec * 0.5 + vector3f(0.5, 0.5, 0.5);
 	glColor3f(lightvec.x, lightvec.y, lightvec.z);
 	
 	// set texture unit to combine primary color with texture color via dot3
-	float framepart = myfmod(t, WATER_BUMPMAP_CYCLE_TIME)/WATER_BUMPMAP_CYCLE_TIME;
+	float framepart = myfmod(t, TIDECYCLE_TIME)/TIDECYCLE_TIME;
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 	glActiveTexture(GL_TEXTURE0);
@@ -853,7 +807,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 
-	GLfloat scalefac0 = 1.0f/WAVE_LENGTH;	// was 8.0f/WL for old bumpmapping fixme
+	GLfloat scalefac0 = 1.0f/WAVE_LENGTH;
 	GLfloat plane_s0[4] = { scalefac0, 0.0f, 0.0f, 0.0f };
 	GLfloat plane_t0[4] = { 0.0f, scalefac0, 0.0f, 0.0f };
 	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -873,7 +827,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 
-	GLfloat scalefac1 = 2.0f/WAVE_LENGTH;
+	GLfloat scalefac1 = 2.0f/WAVE_LENGTH;//fixme: what is/was this?
 	GLfloat plane_s1[4] = { 0.0f/*scalefac1*/, 0.0f, 0.0f, 0.0f };
 	GLfloat plane_t1[4] = { 0.0f, 0.0f/*scalefac1*/, 0.0f, 0.0f };
 	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);

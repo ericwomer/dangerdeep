@@ -55,19 +55,19 @@ class ocean_wave_generator
 	
 	FFT_COMPLEX_TYPE *fft_in, *fft_in2;	// can't be a vector, since the type is an array
 	FFT_REAL_TYPE *fft_out, *fft_out2;	// for sake of uniformity
-	FFT_PLAN_TYPE plan, plan2;
+	FFT_PLAN_TYPE plan, plan2, plan3;
 	
 public:
 	ocean_wave_generator(
-		unsigned gridsize = 64,
+		int gridsize = 64,
 		const vector2t<T>& winddir = vector2t<T>(T(0.6), T(0.8)),
 		T windspeed = T(20.0),
 		T waveheight = T(0.0001),	// fixme: compute that automatically from Lm, etc.?
 		T tilesize = T(100.0),
 		T cycletime = T(10.0)
 	);
+	ocean_wave_generator(const ocean_wave_generator<T>& owg, int gridsize); // make a (smaller) copy, gridsize must be <= owg.gridsize
 	void set_time(T time);	// call this before any compute_*() function
-	void clear_inner_frequencies(int M);	// clear inner M entries of h_tilde (handy for bump map computation)
 	vector<T> compute_heights(void) const;
 	// use this after height computation to avoid the overhead of fft normals
 	vector<vector3t<T> > compute_finite_normals(const vector<T>& heights) const;
@@ -170,7 +170,7 @@ void ocean_wave_generator<T>::compute_htilde(T time)
 
 template <class T>
 ocean_wave_generator<T>::ocean_wave_generator<T>(
-		unsigned gridsize,
+		int gridsize,
 		const vector2t<T>& winddir,
 		T windspeed,
 		T waveheight,
@@ -181,6 +181,27 @@ ocean_wave_generator<T>::ocean_wave_generator<T>(
 {
 	h0tilde.resize((N+1)*(N+1));
 	compute_h0tilde();
+	htilde.resize(N*(N/2+1));
+	fft_in = new FFT_COMPLEX_TYPE[N*(N/2+1)];
+	fft_in2 = new FFT_COMPLEX_TYPE[N*(N/2+1)];
+	fft_out = new FFT_REAL_TYPE[N*N];
+	fft_out2 = new FFT_REAL_TYPE[N*N];
+	plan = FFT_CREATE_PLAN(N, N, fft_in, fft_out, 0);
+	plan2 = FFT_CREATE_PLAN(N, N, fft_in2, fft_out2, 0);
+}
+
+template <class T>
+ocean_wave_generator<T>::ocean_wave_generator<T>(const ocean_wave_generator<T>& owg, int gridsize)
+	: N(gridsize <= owg.N ? gridsize : owg.N), W(owg.W), v(owg.v), a(owg.a), Lm(owg.Lm), w0(owg.w0)
+{
+	h0tilde.resize((N+1)*(N+1));
+	//copy h0 tilde instead of computing it
+	int offset = (owg.N - N) / 2;
+	for (int y = 0; y <= N; ++y) {
+		for (int x = 0; x <= N; ++x) {
+			h0tilde[y*(N+1)+x] = owg.h0tilde[(y+offset)*(owg.N+1)+(x+offset)];
+		}
+	}
 	htilde.resize(N*(N/2+1));
 	fft_in = new FFT_COMPLEX_TYPE[N*(N/2+1)];
 	fft_in2 = new FFT_COMPLEX_TYPE[N*(N/2+1)];
@@ -205,16 +226,6 @@ template <class T>
 void ocean_wave_generator<T>::set_time(T time)
 {
 	compute_htilde(time);
-}
-
-template <class T>
-void ocean_wave_generator<T>::clear_inner_frequencies(int M)
-{
-	for (int y = N/2-M/2; y <= N/2; ++y) {
-		for (int x = N/2-M/2; x < N/2+M/2; ++x) {
-			htilde[y*N+x] = T(0.0);
-		}
-	}
 }
 
 template <class T>
