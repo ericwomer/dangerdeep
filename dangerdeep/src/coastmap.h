@@ -18,12 +18,11 @@ using namespace std;
 struct coastline
 {
 	bsplinet<vector2f, float> curve;	// points in map coordinates (meters)
-	int beginborder, endborder;	// 0-3: top,right,bottom,left, -1:(part of an) island
 
-	coastline(int n, const vector<vector2f>& p, int bb, int eb) : curve(n, p), beginborder(bb), endborder(eb) {}
+	coastline(int n, const vector<vector2f>& p, int bb, int eb) : curve(n, p) {}
 	~coastline() {}
-	coastline(const coastline& o) : curve(o.curve), beginborder(o.beginborder), endborder(o.endborder) {}
-	coastline& operator= (const coastline& o) { curve = o.curve; beginborder = o.beginborder; endborder = o.endborder; return *this; }
+	coastline(const coastline& o) : curve(o.curve) {}
+	coastline& operator= (const coastline& o) { curve = o.curve; return *this; }
 
 	// create vector of real points, detail can be > 0 (additional detail with bspline
 	// interpolation) or even < 0 (reduced detail)
@@ -68,10 +67,14 @@ struct coastsegment
 	// check if cache needs to be (re)generated, and do that
 	void generate_point_cache(const class coastmap& cm, const vector2f& roff, unsigned detail) const;
 
+	// computes distance to next corner around segment border.
+	// p must be inside the segment, hence 0 <= p.x,p.y < segw
 	static float dist_to_corner(int b, const vector2f& p, float segw);
+	// computes the distance on the segment border between two points.
+	// p0,p1 must be inside the segment.
 	float compute_border_dist(int b0, const vector2f& p0, int b1, const vector2f& p1, float segw) const;
 
-	unsigned get_successor_for_cl(unsigned cln, float segw) const;
+	unsigned get_successor_for_cl(unsigned cln, const vector2f& segoff, float segw) const;
 
 	coastsegment() : type(0) {}	
 	~coastsegment() {}
@@ -95,6 +98,7 @@ class coastmap
 	static const int dx[4];
 	static const int dy[4];
 
+	//fixme: everywhere i use floats. Why do i use doubles here?
 	unsigned pixels_per_seg;	// "n"
 	unsigned mapw, maph;		// map width/height in pixels.
 	unsigned segsx, segsy;		// nr of segs in x/y dimensions
@@ -113,11 +117,10 @@ class coastmap
 
 	// very fast integer clamping (no branch needed, only for 32bit signed integers!)
 	Sint32 clamp_zero(Sint32 x) { return x & ~(x >> 31); }
-	unsigned find_seg_for_point(const vector2i& p) const;
 	Uint8& mapf(int cx, int cy);
 	bool find_begin_of_coastline(int& x, int& y);
 	bool find_coastline(int x, int y, vector<vector2i>& points, bool& cyclic, int& beginborder, int& endborder);
-	void divide_and_distribute_cl(const coastline& cl, unsigned clnr, const vector<vector2i>& points);
+	void divide_and_distribute_cl(const coastline& cl, unsigned clnr, int beginb, int endb, const vector<vector2f>& points);
 	void process_coastline(int x, int y);
 	void process_segment(int x, int y);
 

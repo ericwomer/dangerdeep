@@ -240,6 +240,7 @@ if(d <= 0.01f)cout<<"fault: "<<d<<","<<m<<","<<(m+1)%ce.points.size()<<"\n";
 
 
 
+// fixme: drawing is !SLOW! does the cache work?
 void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, const vector2f& roff, int detail) const
 {
 //cout<<"segment draw " << x << "," << y << " dtl " << detail << " tp " << type << "\n";
