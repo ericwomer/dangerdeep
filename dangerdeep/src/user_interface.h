@@ -16,6 +16,8 @@ using namespace std;
 #define MAPGRIDSIZE 1000	// meters
 #define WATER_BUMP_FRAMES 256
 
+#include "system.h"
+
 class user_display;
 class logbook_display;
 class ships_sunk_display;

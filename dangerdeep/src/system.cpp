@@ -19,12 +19,6 @@ using namespace std;
 
 #include "system.h"
 
-#ifdef WIN32
-#ifdef system
-#undef system
-#endif
-#endif
-
 class system* system::instance = 0;
 
 system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
@@ -429,3 +423,4 @@ void system::gl_perspective_fovx(double fovx, double aspect, double znear, doubl
 	double t = znear * tanfovy2;
 	glFrustum(-r, r, -t, t, znear, zfar);
 }
+

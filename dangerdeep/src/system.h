@@ -16,9 +16,10 @@ using namespace std;
 #endif
 #include <float.h>
 #define isfinite(a) _finite(a)
-#ifdef system
-#undef system
 #endif
+
+#ifdef WIN32
+#define system System
 #endif
 
 class system

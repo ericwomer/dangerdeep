@@ -4,6 +4,8 @@
 #ifndef USER_DISPLAY_H
 #define USER_DISPLAY_H
 
+#include "system.h"
+
 class user_display
 {
 public:

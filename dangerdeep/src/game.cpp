@@ -893,31 +893,6 @@ void game::unregister_job(job* j)
 	system::sys()->myassert(false, "[game::unregister_job] job not found in list");
 }
 
-#ifdef WIN32	// avoid compiler inability.
-
-ship* game::check_unit_list ( torpedo* t, list<ship*>& unit_list )
-{
-	for ( list<ship*>::iterator it = unit_list.begin (); it != unit_list.end (); ++it )
-	{
-		if ( is_collision ( t, *it ) )
-			return *it;
-	}
-
-	return 0;
-}
-ship* game::check_unit_list ( torpedo* t, list<submarine*>& unit_list )
-{
-	for ( list<submarine*>::iterator it = unit_list.begin (); it != unit_list.end (); ++it )
-	{
-		if ( is_collision ( t, *it ) )
-			return *it;
-	}
-
-	return 0;
-}
-
-#else
-
 template<class _C>
 ship* game::check_unit_list ( torpedo* t, list<_C>& unit_list )
 {
@@ -929,8 +904,6 @@ ship* game::check_unit_list ( torpedo* t, list<_C>& unit_list )
 
 	return 0;
 }
-
-#endif
 
 bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 {
