@@ -223,13 +223,14 @@ SConscript(target_dir + os.sep + 'SConscript')
 BuildDir(target_dir, source_base_dir, duplicate=0) 
 
 #generate a list of all files from CVS subdirectories and give that list here!
-env.Append(TARFLAGS = '-z')
-env.Append(TARSUFFIX = '.gz')
-cvsfiles = findCVS('src')
-cvsfiles += findCVS('data')
-cvsfiles += findCVS('build')
-# fixme: tar replaces build/linux/x with src/x, hack fix with symlink
-env.Tar('dangerdeep-'+version, cvsfiles)
-#env.Zip is also possible
+if sys.platform == 'linux2':
+	env.Append(TARFLAGS = '-z')
+	env.Append(TARSUFFIX = '.gz')
+	cvsfiles = findCVS('src')
+	cvsfiles += findCVS('data')
+	cvsfiles += findCVS('build')
+	# fixme: tar replaces build/linux/x with src/x, hack fix with symlink
+	env.Tar('dangerdeep-'+version, cvsfiles)
+	#env.Zip is also possible
 
 ############# eof
