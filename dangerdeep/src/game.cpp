@@ -567,9 +567,8 @@ ship* game::check_unit_list ( torpedo* t, list<_C>& unit_list )
 
 bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 {
-    if (failure)
-    {
-		ui->add_message(texts::get(59));
+	if (failure) {
+		ui->add_message(texts::get(60));
 		return true;
 	}
 
@@ -578,16 +577,12 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 	if ( !s )
 		s = check_unit_list ( t, submarines );
 
-	if ( s )
-	{
-		if (runlengthfailure)
-		{
-			ui->add_message(texts::get(58));
-		}
+	if ( s ) {
+		if (runlengthfailure) {
+			ui->add_message(texts::get(59));
+		} else {
 		// Only ships that are alive or defunct can be sunk. Already sinking
 		// or destroyed ships cannot be destroyed again.
-		else
-		{
 			if ( ( s->is_alive () || s->is_defunct () ) &&
 				s->damage ( t->get_pos (), t->get_hit_points () ) )
 				ship_sunk ( s );

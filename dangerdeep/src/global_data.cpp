@@ -82,7 +82,7 @@ void init_global_data(void)
 	clock12 = new texture((get_data_dir() + TEXTURE_DIR + "clock12.png"));
 	clock24 = new texture((get_data_dir() + TEXTURE_DIR + "clock24.png"));
 	glasses = new texture((get_data_dir() + TEXTURE_DIR + "glasses.png"), 1, true, true);
-	threesubsimg = new image((get_data_dir() + TEXTURE_DIR + "3subs.png"));
+	threesubsimg = new image((get_data_dir() + IMAGES_DIR + "threesubs.png"));
 	torp_expl_water_splash[0] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash.png" ), 1 );
 	torp_expl_water_splash[1] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_1.png" ), 1 );
 	torp_expl_water_splash[2] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_2.png" ), 1 );

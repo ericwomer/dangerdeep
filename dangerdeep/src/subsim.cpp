@@ -144,6 +144,13 @@ void menu_convoy_battle(void)
 */	
 }
 
+void menu_notimplemented(void)
+{
+	menu m(110, titlebackgr);
+	m.add_item(20, 0);
+	m.run();
+}
+
 void menu_historical_mission(void)
 {
 	// read missions
@@ -171,8 +178,8 @@ void menu_historical_mission(void)
 void menu_single_mission(void)
 {
 	menu m(21, titlebackgr);
-	m.add_item(8, 0);
-	m.add_item(9, menu_convoy_battle);
+	m.add_item(8, menu_notimplemented);
+	m.add_item(9, menu_notimplemented);//menu_convoy_battle);
 	m.add_item(10, menu_historical_mission);
 	m.add_item(11, 0);
 	m.run();
@@ -193,9 +200,9 @@ void menu_select_language(void)
 void menu_resolution(void)
 {
 	menu m(106, titlebackgr);
-	m.add_item(107, 0);
-	m.add_item(108, 0);
-	m.add_item(109, 0);
+	m.add_item(107, menu_notimplemented);
+	m.add_item(108, menu_notimplemented);
+	m.add_item(109, menu_notimplemented);
 	m.add_item(20, 0);
 	unsigned sel = m.run();
 	// fixme: change resolution
@@ -209,6 +216,7 @@ void menu_options(void)
 	m.run();
 }
 
+//---------------------------- some network stuff, just a try
 struct ip
 {
 	unsigned char a, b, c, d;
@@ -284,67 +292,67 @@ void menu_multiplayer(void)
 	}
 */	
 }
+// -------------------------- end network stuff
 
-void show_vessels(void)
+int current_vessel = 0;
+double vessel_zangle = 0;
+double vessel_xangle = 0;
+sea_object* vessel = 0;
+void draw_vessel(void)
 {
-	int vessel = 0;
-	double zangle = 0;
-	double xangle = 0;
-	unsigned lasttime = sys->millisec();
-	int lastvessel = -1;
-	sea_object* s = 0;	// pointer to current vessel
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glLoadIdentity();
+	glTranslatef(0, 0, -2.5);
+	glRotatef(-80, 1, 0, 0);
+	glRotatef(vessel_zangle, 0, 0, 1);
+	glRotatef(vessel_xangle, 1, 0, 0);
+	double sc = 2.0/vector2(vessel->get_length(), vessel->get_width()).length();
+	glScalef(sc, sc, sc);
+	vessel->display();
+}
+
+void menu_show_vessels(void)
+{
+	menu m(24, threesubsimg, true);
+	m.add_item(111, 0);
+	m.add_item(112, 0);
+	m.add_item(113, 0);
+	m.add_item(114, 0);
+	m.add_item(115, 0);
+	m.add_item(116, 0);
+	m.add_item(117, 0);
+	vessel = new ship_mediummerchant();
 	while (true) {
-		if (vessel != lastvessel) {
-			if (vessel < 0) vessel = 6;
-			if (vessel > 6) vessel = 0;
-			delete s;
-			lastvessel = vessel;
-			switch(vessel) {
-				case 0: s = new ship_mediummerchant(); break;
-				case 1: s = new ship_mediumtroopship(); break;
-				case 2: s = new ship_battleshipmalaya(); break;
-				case 3: s = new ship_destroyertribal(); break;
-				case 4: s = new ship_carrierbogue(); break;
-				case 5: s = new submarine_XXI(); break;
-				case 6: s = new submarine_VIIc(); break;
+		unsigned sel = m.run(draw_vessel);
+		if (sel == 6) break;
+		int lastvessel = current_vessel;
+#define ROTANG 5
+		switch (sel) {
+			case 0: vessel_zangle -= ROTANG; break;
+			case 1: vessel_zangle += ROTANG; break;
+			case 2: vessel_xangle -= ROTANG; break;
+			case 3: vessel_xangle += ROTANG; break;
+			case 4: ++current_vessel; break;
+			case 5: --current_vessel; break;
+		}
+#undef ROTANG		
+		if (current_vessel != lastvessel) {
+			if (current_vessel < 0) current_vessel = 6;
+			if (current_vessel > 6) current_vessel = 0;
+			delete vessel;
+			lastvessel = current_vessel;
+			switch(current_vessel) {
+				case 0: vessel = new ship_mediummerchant(); break;
+				case 1: vessel = new ship_mediumtroopship(); break;
+				case 2: vessel = new ship_battleshipmalaya(); break;
+				case 3: vessel = new ship_destroyertribal(); break;
+				case 4: vessel = new ship_carrierbogue(); break;
+				case 5: vessel = new submarine_XXI(); break;
+				case 6: vessel = new submarine_VIIc(); break;
 			}
  		}
-
-		glClear(GL_DEPTH_BUFFER_BIT);
-		sys->prepare_2d_drawing();
-		glPushMatrix();
-		glScalef(2, 2, 1);
-		threesubsimg->draw(0, 0);
-		glPopMatrix();
-		font_tahoma->print_hc(1024, 650, s->get_description(2).c_str());
-		font_tahoma->print_hc(1024, 768 - font_tahoma->get_height(),
-			texts::get(78).c_str());
-		sys->unprepare_2d_drawing();
-
-		glLoadIdentity();
-		glTranslatef(0, 0, -2.5);
-		glRotatef(-80, 1, 0, 0);
-		glRotatef(zangle, 0, 0, 1);
-		glRotatef(xangle, 1, 0, 0);
-		double sc = 2.0/vector2(s->get_length(), s->get_width()).length();
-		glScalef(sc, sc, sc);
-		s->display();
-		unsigned thistime = sys->millisec();
-		zangle += (thistime - lasttime) * 5 / 1000.0;
-		lasttime = thistime;
-	
-		sys->poll_event_queue();
-		int key = sys->get_key();
-		if (key == SDLK_ESCAPE) break;
-		if (key == SDLK_PAGEUP) --vessel;
-		if (key == SDLK_PAGEDOWN) ++vessel;
-		if (key == SDLK_LEFT) zangle += 5;
-		if (key == SDLK_RIGHT) zangle -= 5;
-		if (key == SDLK_UP) xangle += 5;
-		if (key == SDLK_DOWN) xangle -= 5;
-		sys->swap_buffers();
 	}
-	delete s;
+	delete vessel;
 }
 
 int main(int argc, char** argv)
@@ -420,10 +428,10 @@ int main(int argc, char** argv)
 	// main menu
 	menu m(104, titlebackgr);
 	m.add_item(21, menu_single_mission);
-	m.add_item(22, menu_multiplayer);
-	m.add_item(23, 0);
-	m.add_item(24, show_vessels);
-	m.add_item(25, 0);
+	m.add_item(22, menu_notimplemented);//menu_multiplayer);
+	m.add_item(23, menu_notimplemented);
+	m.add_item(24, menu_show_vessels);
+	m.add_item(25, menu_notimplemented);
 	m.add_item(26, menu_select_language);
 	m.add_item(29, menu_options);
 	m.add_item(30, 0);
