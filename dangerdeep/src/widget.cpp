@@ -203,6 +203,7 @@ void widget::process_input(void)
 		if (sys->is_key_in_queue()) focussed->on_char();
 		if (mclick & 1) focussed->on_click();
 		if (mrelease & 1) focussed->on_release();
+		if (mb & 0x18) focussed->on_wheel();
 		if ((dx != 0 || dy != 0) && (mb & 1)) focussed->on_drag();
 	}
 }
@@ -281,21 +282,21 @@ widget_button* widget_menu::add_entry(const string& s, widget_button* wb)
 {
 	int x, y, w, h;
 	if (horizontal) {
-		x = children.size() * (entryw + 8);
+		x = children.size() * (entryw + 16);
 		y = 0;
 		w = entryw;
 		h = entryh;
 		size.x += entryw;
 		size.y = entryh;
-		if (children.size() > 0) size.x += 8;
+		if (children.size() > 0) size.x += 16;
 	} else {
 		x = 0;
-		y = children.size() * (entryh + 8);
+		y = children.size() * (entryh + 16);
 		w = entryw;
 		h = entryh;
 		size.x = entryw;
-		size.y += 8 + entryh;
-		if (children.size() > 0) size.y += 8;
+		size.y += entryh;
+		if (children.size() > 0) size.y += 16;
 	}
 	if (wb) {
 		wb->set_size(vector2i(w, h));
@@ -321,7 +322,6 @@ int widget_menu::get_selected(void) const
 void widget_menu::draw(void) const
 {
 	vector2i p = get_pos();
-	globaltheme->backg->draw(p.x, p.y, size.x, size.y);
 	for (list<widget*>::const_iterator it = children.begin(); it != children.end(); ++it)
 		(*it)->draw();
 }
@@ -464,6 +464,27 @@ void widget_scrollbar::on_click(void)
 void widget_scrollbar::on_drag(void)
 {
 	on_click();
+}
+
+void widget_scrollbar::on_wheel(void)
+{
+	widget::process_input();
+	unsigned oldpos = scrollbarpos;
+	int mb = system::sys()->get_mouse_buttons();
+	if (mb & 0x8) {
+		if (scrollbarpos > 0) {
+			--scrollbarpos;
+			compute_scrollbarpixelpos();
+		}
+	}
+	if (mb != 0x10) {
+		if (scrollbarpos+1 < scrollbarmaxpos) {
+			++scrollbarpos;
+			compute_scrollbarpixelpos();
+		}
+	}
+	if (oldpos != scrollbarpos)
+		on_scroll();
 }
 
 widget_list::widget_list(int x, int y, int w, int h, widget* parent_)

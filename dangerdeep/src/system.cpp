@@ -281,6 +281,12 @@ void system::poll_event_queue(void)
 						case SDL_BUTTON_RIGHT:
 							mouse_b |= right_button;
 							break;
+						case SDL_BUTTON_WHEELUP:
+							mouse_b |= wheel_up;
+							break;
+						case SDL_BUTTON_WHEELDOWN:
+							mouse_b |= wheel_down;
+							break;
 					}
 					break;
 				
@@ -295,6 +301,12 @@ void system::poll_event_queue(void)
 							break;
 						case SDL_BUTTON_RIGHT:
 							mouse_b &= ~right_button;
+							break;
+						case SDL_BUTTON_WHEELUP:
+							mouse_b &= ~wheel_up;
+							break;
+						case SDL_BUTTON_WHEELDOWN:
+							mouse_b &= ~wheel_down;
 							break;
 					}
 					break;

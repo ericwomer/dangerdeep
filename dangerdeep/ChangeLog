@@ -9,6 +9,8 @@
 	  - more widget usage: menues historical/custom mission, results,
 	    game options
 	  - added all scanned images that were resting in some data folder
+	  - allowed model display without material -> sky is black at night
+	  - fixed bug in tokenizer
 
 2003-12-25  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* version number increased to 0.0.15

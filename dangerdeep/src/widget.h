@@ -96,6 +96,7 @@ public:
 	virtual void disable(void);
 	virtual void on_char(void);	// called for every key in queue
 	virtual void on_click(void) {};	// called on mouse button down
+	virtual void on_wheel(void) {};	// called on mouse wheel action
 	virtual void on_release(void) {};	// called on mouse button up
 	virtual void on_drag(void) {};	// called on mouse move while button is down
 	virtual void prepare_input(void);	// call once before process_input
@@ -269,6 +270,7 @@ public:
 	void draw(void) const;
 	void on_click(void);
 	void on_drag(void);
+	void on_wheel(void);
 	virtual void on_scroll(void) {}
 };
 

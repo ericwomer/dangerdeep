@@ -49,7 +49,7 @@ class model {
 		vector<face> faces;
 		float xformmat[4][3];	// rotation and translation
 		material* mymaterial;
-		void display(void) const;
+		void display(bool usematerial) const;
 
 		mesh(const mesh& m) : vertices(m.vertices), faces(m.faces), mymaterial(m.mymaterial) {}
 		mesh& operator= (const mesh& m) { vertices = m.vertices; faces = m.faces; mymaterial = m.mymaterial; return *this; }
@@ -61,6 +61,7 @@ class model {
 	vector<mesh> meshes;
 	
 	unsigned display_list;	// OpenGL display list for the model
+	bool usematerial;
 
 	vector3f min, max;
 
@@ -99,7 +100,7 @@ class model {
 
 public:
 	static int mapping;	// GL_* mapping constants
-	model(const string& filename);
+	model(const string& filename, bool usematerial = true);
 	~model();
 	void display(void) const;
 	vector3f get_min(void) const { return min; }

@@ -12,7 +12,7 @@
 
 int model::mapping = GL_NEAREST;
 
-model::model(const string& filename) : display_list(0)
+model::model(const string& filename, bool usematerial_) : display_list(0), usematerial(usematerial_)
 {
 	// fixme: determine loader by extension here. currently only 3ds supported
 	m3ds_load(filename);
@@ -96,15 +96,17 @@ void model::material::set_gl_values(void) const
 	}
 }
 
-void model::mesh::display(void) const
+void model::mesh::display(bool usematerial) const
 {
 	bool has_texture = false;
-	if (mymaterial != 0) {
-		has_texture = (mymaterial->mytexture != 0);
-		mymaterial->set_gl_values();
-	} else {
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glColor3f(0,0,0);
+	if (usematerial) {
+		if (mymaterial != 0) {
+			has_texture = (mymaterial->mytexture != 0);
+			mymaterial->set_gl_values();
+		} else {
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glColor3f(0,0,0);
+		}
 	}
 
 	if (has_texture)
@@ -123,7 +125,7 @@ void model::display(void) const
 		glCallList(display_list);
 	} else {
 		for (vector<model::mesh>::const_iterator it = meshes.begin(); it != meshes.end(); ++it)
-			it->display();
+			it->display(usematerial);
 	}
 }
 
