@@ -41,7 +41,7 @@ void ai::act(class game& gm, double delta_time)
 	if (remaining_time > 0) {
 		return;
 	} else {
-		remaining_time = AI_THINK_CYCLE_TIME;
+		remaining_time = AI_THINK_CYCLE_TIME * ( 0.75f + 0.25f * rnd ( 1 ) );
 	}
 
 	switch (type) {
