@@ -878,7 +878,9 @@ void menu_show_vessels(void)
 	m.add_item(115, 0);
 	m.add_item(116, 0);
 	m.add_item(117, 0);
-	shp = new ship(shipnames[current_ship]);
+	TiXmlDocument doc(get_ship_dir() + shipnames[current_ship]);
+	doc.LoadFile();
+	shp = new ship(&doc);
 	while (true) {
 		unsigned sel = m.run(draw_ship);
 		if (sel == 6) break;
@@ -898,10 +900,15 @@ void menu_show_vessels(void)
 			if (current_ship > 13) current_ship = 0;
 			delete shp;
 			lastship = current_ship;
-			if (current_ship < 11)
-				shp = new ship(shipnames[current_ship]);
-			else
-				shp = new submarine(shipnames[current_ship]);
+			if (current_ship < 11) {
+				TiXmlDocument doc(get_ship_dir() + shipnames[current_ship]);
+				doc.LoadFile();
+				shp = new ship(&doc);
+			} else {
+				TiXmlDocument doc(get_submarine_dir() + shipnames[current_ship]);
+				doc.LoadFile();
+				shp = new submarine(&doc);
+			}
  		}
 	}
 	delete shp;

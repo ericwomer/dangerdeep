@@ -44,6 +44,8 @@ const int GAMETYPE = 0;//fixme
 #define TRAILTIME 10
 #define ENEMYCONTACTLOST 100000.0	// meters
 
+
+
 game::ping::ping(istream& in)
 {
 	pos.x = read_double(in);
@@ -53,6 +55,8 @@ game::ping::ping(istream& in)
 	range = read_double(in);
 	ping_angle = angle(read_double(in));
 }
+
+
 
 void game::ping::save(ostream& out) const
 {
@@ -64,6 +68,8 @@ void game::ping::save(ostream& out) const
 	write_double(out, ping_angle.value());
 }
 
+
+
 game::sink_record::sink_record(istream& in)
 {
 	dat.load(in);
@@ -71,12 +77,16 @@ game::sink_record::sink_record(istream& in)
 	tons = read_u32(in);
 }
 
+
+
 void game::sink_record::save(ostream& out) const
 {
 	dat.save(out);
 	write_string(out, descr);
 	write_u32(out, tons);
 }
+
+
 
 game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday, unsigned nr_of_players)
 {
@@ -166,9 +176,11 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 
 
 
+/*
 game::game() : running(true), time(0), networktype(0), servercon(0), player(0), ui(0)
 {
 }
+*/
 
 
 
@@ -188,7 +200,7 @@ game* game::create_from_missionfile(const string& missionfilename)
 	unsigned hour = atoi(etime->Attribute("hour"));
 	unsigned minute = atoi(etime->Attribute("minute"));
 	unsigned second = atoi(etime->Attribute("second"));
-	time = ::get_time(year, month, day) + 3600*hour + 60*minute + second;
+	gm->time = ::get_time(year, month, day) + 3600*hour + 60*minute + second;
 	TiXmlElement* eobjects = hdftdmission.FirstChildElement("objects").Element();
 	system::sys().myassert(eobjects != 0, string("objects node missing in ")+missionfilename);
 	// now read and interprete childs of eobject
@@ -232,6 +244,7 @@ game* game::create_from_missionfile(const string& missionfilename)
 	fuel_value_a = atof(efuel->Attribute("consumption_a"));
 	fuel_value_t = atof(efuel->Attribute("consumption_t"));
 */
+	return gm;
 }	
 
 /*
@@ -460,14 +473,23 @@ void game::load_from_stream(istream& in)
 	int gametype = read_i32(in);
 
 	for (unsigned s = read_u32(in); s > 0; --s) {
-		string type = read_string(in);
-		ships.push_back(new ship(type));
+		string shiptype = read_string(in);
+		TiXmlDocument doc(get_ship_dir() + shiptype + ".xml");
+		doc.LoadFile();
+		ships.push_back(new ship(&doc));
 	}
 	for (unsigned s = read_u32(in); s > 0; --s) {
-		string type = read_string(in);
-		submarines.push_back(new submarine(type));
+		string submarinetype = read_string(in);
+		TiXmlDocument doc(get_submarine_dir() + submarinetype + ".xml");
+		doc.LoadFile();
+		submarines.push_back(new submarine(&doc));
 	}
-	for (unsigned s = read_u32(in); s > 0; --s) airplanes.push_back(new airplane());
+	for (unsigned s = read_u32(in); s > 0; --s) {
+		string airplanetype = read_string(in);
+		TiXmlDocument doc(get_airplane_dir() + airplanetype + ".xml");
+		doc.LoadFile();
+		airplanes.push_back(new airplane(&doc));
+	}
 	for (unsigned s = read_u32(in); s > 0; --s) torpedoes.push_back(new torpedo());
 	for (unsigned s = read_u32(in); s > 0; --s) depth_charges.push_back(new depth_charge());
 	for (unsigned s = read_u32(in); s > 0; --s) gun_shells.push_back(new gun_shell());

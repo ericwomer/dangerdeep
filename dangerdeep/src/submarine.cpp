@@ -9,6 +9,7 @@
 #include "submarine.h"
 #include "depth_charge.h"
 #include "tinyxml/tinyxml.h"
+#include "system.h"
 
 // fixme: this was hard work. most values are a rather rough approximation.
 // if we want a real accurate simulation, these values have to be (re)checked.
@@ -63,38 +64,42 @@ submarine::submarine(TiXmlDocument* specfile) : ship(specfile)
 	TiXmlElement* emotion = hdftdsub.FirstChildElement("motion").Element();
 	TiXmlElement* esubmerged = emotion->FirstChildElement("submerged");
 	system::sys().myassert(esubmerged != 0, string("submerged node missing in ")+specfilename);
-	
-	fixme
-	
-	
-	string typestr = eclassification->Attribute("type");
-	if (typestr == "warship") shipclass = WARSHIP;
-	else if (typestr == "escort") shipclass = ESCORT;
-	else if (typestr == "merchant") shipclass = MERCHANT;
-	else if (typestr == "submarine") shipclass = SUBMARINE;
-	else system::sys().myassert(false, string("illegal ship type in ") + specfilename);
-	TiXmlElement* etonnage = hdftdsub.FirstChildElement("tonnage").Element();
-	system::sys().myassert(etonnage != 0, string("tonnage node missing in ")+specfilename);
-	unsigned minton = atoi(etonnage->Attribute("min"));
-	unsigned maxton = atoi(etonnage->Attribute("max"));
-	tonnage = minton + rnd(maxton - minton + 1);
-	TiXmlElement* esmoke = hdftdsub.FirstChildElement("smoke").Element();
-	mysmoke = 0;
-	if (esmoke) {
-		//fixme parse
-	}
-	TiXmlElement* eai = hdftdsub.FirstChildElement("ai").Element();
-	system::sys().myassert(eai != 0, string("ai node missing in ")+specfilename);
-	string aitype = eai->Attribute("type");
-	if (aitype == "dumb") myai = new ai(this, ai::dumb);
-	else if (aitype == "escort") myai = new ai(this, ai::escort);
-	else if (aitype == "none") myai = 0;
-	else system::sys().myassert(false, string("illegal AI type in ") + specfilename);
-	TiXmlElement* efuel = hdftdsub.FirstChildElement("fuel").Element();
-	system::sys().myassert(efuel != 0, string("fuel node missing in ")+specfilename);
-	fuel_level = atof(efuel->Attribute("capacity"));
-	fuel_value_a = atof(efuel->Attribute("consumption_a"));
-	fuel_value_t = atof(efuel->Attribute("consumption_t"));
+	max_submerged_speed = atof(esubmerged->Attribute("maxspeed"));
+	dive_acceleration = 0.0;	// not used yet
+	max_dive_speed = 1.0;		// yet a crude approximation
+	double safedepth = atof(esubmerged->Attribute("safedepth"));
+	double maxdepth = atof(esubmerged->Attribute("maxdepth"));
+	max_depth = safedepth + rnd() * (maxdepth - safedepth);
+	TiXmlHandle htorpedoes = hdftdsub.FirstChildElement("torpedoes");
+	TiXmlElement* etubes = htorpedoes.FirstChildElement("tubes").Element();
+	system::sys().myassert(etubes != 0, string("tubes node missing in ")+specfilename);
+	number_of_tubes_at[0] = atoi(etubes->Attribute("bow"));
+	number_of_tubes_at[1] = atoi(etubes->Attribute("stern"));
+	number_of_tubes_at[2] = atoi(etubes->Attribute("bowreserve"));
+	number_of_tubes_at[3] = atoi(etubes->Attribute("sternreserve"));
+	number_of_tubes_at[4] = atoi(etubes->Attribute("bowdeckreserve"));
+	number_of_tubes_at[5] = atoi(etubes->Attribute("sterndeckreserve"));
+	unsigned nrtrp = 0;
+	for (unsigned i = 0; i < 6; ++i) nrtrp += number_of_tubes_at[i];
+	torpedoes.resize(nrtrp);
+	TiXmlElement* etransfertimes = htorpedoes.FirstChildElement("transfertimes").Element();
+	system::sys().myassert(etransfertimes != 0, string("transfertimes node missing in ")+specfilename);
+	torp_transfer_times[0] = atoi(etransfertimes->Attribute("bow"));
+	torp_transfer_times[1] = atoi(etransfertimes->Attribute("stern"));
+	torp_transfer_times[2] = atoi(etransfertimes->Attribute("bowdeck"));
+	torp_transfer_times[3] = atoi(etransfertimes->Attribute("sterndeck"));
+	torp_transfer_times[4] = atoi(etransfertimes->Attribute("bowsterndeck"));
+	TiXmlElement* ebattery = hdftdsub.FirstChildElement("battery").Element();
+	system::sys().myassert(ebattery != 0, string("battery node missing in ")+specfilename);
+	battery_capacity = atoi(ebattery->Attribute("capacity"));
+	battery_value_a = atof(ebattery->Attribute("consumption_a"));
+	battery_value_t = atof(ebattery->Attribute("consumption_t"));
+	battery_recharge_value_a = atof(ebattery->Attribute("recharge_a"));
+	battery_recharge_value_t = atof(ebattery->Attribute("recharge_t"));
+
+	// set all common damageable parts to "no damage", fixme move to ship?, replace by damage editor data reading
+	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
+		damageable_parts[i] = damageable_part(0, 0);
 }
 
 
@@ -117,6 +122,7 @@ submarine::submarine() : ship(), dive_speed(0.0f), dive_acceleration(0.0f), max_
 
 
 
+/*
 submarine::submarine(const string& specfilename_) : ship(specfilename_),
 	
 	dive_speed(0.0f), dive_acceleration(0.0f), max_dive_speed(1.0f),//TESTING
@@ -139,7 +145,6 @@ submarine::submarine(const string& specfilename_) : ship(specfilename_),
 	doc.LoadFile();
 	TiXmlHandle hdoc(&doc);
 	TiXmlHandle hdftdship = hdoc.FirstChild("dftd-ship");
-/*
 	TiXmlElement* eclassification = hdftdship.FirstChildElement("classification").Element();
 	system::sys().myassert(eclassification != 0, string("classification node missing in ")+specfilename);
 	modelname = eclassification->Attribute("modelname");
@@ -177,23 +182,18 @@ submarine::submarine(const string& specfilename_) : ship(specfilename_),
 
 	// fixme smoke
 	mysmoke = 0;
-*/
 	// fixme: resize torpedoes vector according to # of tubes
 	// compute max depth with rnd
 	// get width and height from model! also in class ship!
 	// create sensor arrays after data! also in class ship!
 }
+*/
 
 
 
-submarine::submarine(parser& p)
+void submarine::parse_attributes(class TiXmlElement* parent)
 {
-}
-
-
-	
-bool submarine::parse_attribute(parser& p)
-{
+/*
 	if (ship::parse_attribute(p)) return true;
 	switch (p.type()) {
 		case TKN_SCOPEUP:
@@ -254,36 +254,29 @@ bool submarine::parse_attribute(parser& p)
 	}
     
 	return true;
+*/
 }
+
+
 
 void submarine::load(istream& in, game& g)
 {
 	ship::load(in, g);
 
-//fixme: add values from xml read
 	dive_speed = read_double(in);
-	dive_acceleration = read_double(in);
-	max_dive_speed = read_double(in);
 	max_depth = read_double(in);
 	dive_to = read_double(in);
 	permanent_dive = read_bool(in);
-	max_submerged_speed = read_double(in);
 
 	torpedoes.clear();
 	for (unsigned s = read_u8(in); s > 0; --s)
 		torpedoes.push_back(stored_torpedo(in));
 
 	scopeup = read_bool(in);
-	periscope_depth = read_double(in);
 	electric_engine = read_bool(in);
 	hassnorkel = read_bool(in);
-	snorkel_depth = read_double(in);
 	snorkelup = read_bool(in);
 	battery_level = read_double(in);
-	battery_value_a = read_double(in);
-	battery_value_t = read_double(in);
-	battery_recharge_value_a = read_double(in);
-	battery_recharge_value_t = read_double(in);
     
 	damageable_parts.clear();
 	for (unsigned s = read_u8(in); s > 0; --s)
@@ -296,18 +289,16 @@ void submarine::load(istream& in, game& g)
 	trp_addleadangle = read_double(in);
 }
 
+
+
 void submarine::save(ostream& out, const game& g) const
 {
 	ship::save(out, g);
 
-//fixme: add values from xml read
 	write_double(out, dive_speed);
-	write_double(out, dive_acceleration);
-	write_double(out, max_dive_speed);
 	write_double(out, max_depth);
 	write_double(out, dive_to);
 	write_bool(out, permanent_dive);
-	write_double(out, max_submerged_speed);
 
 	write_u8(out, torpedoes.size());
 	for (vector<stored_torpedo>::const_iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
@@ -315,16 +306,10 @@ void submarine::save(ostream& out, const game& g) const
 	}
 
 	write_bool(out, scopeup);
-	write_double(out, periscope_depth);
 	write_bool(out, electric_engine);
 	write_bool(out, hassnorkel);
-	write_double(out, snorkel_depth);
 	write_bool(out, snorkelup);
 	write_double(out, battery_level);
-	write_double(out, battery_value_a);
-	write_double(out, battery_value_t);
-	write_double(out, battery_recharge_value_a);
-	write_double(out, battery_recharge_value_t);
     
 	write_u8(out, damageable_parts.size());
 	for (vector<damageable_part>::const_iterator it = damageable_parts.begin(); it != damageable_parts.end(); ++it) {
@@ -355,6 +340,8 @@ void submarine::transfer_torpedo(unsigned from, unsigned to)
 	}
 }
 
+
+
 int submarine::find_stored_torpedo(bool usebow)
 {
 	pair<unsigned, unsigned> indices = (usebow) ? get_bow_storage_indices() : get_stern_storage_indices();
@@ -366,6 +353,8 @@ int submarine::find_stored_torpedo(bool usebow)
 	}
 	return tubenr;
 }
+
+
 
 void submarine::simulate(class game& gm, double delta_time)
 {
@@ -464,11 +453,14 @@ void submarine::simulate(class game& gm, double delta_time)
 }
 
 
+
 pair<unsigned, unsigned> submarine::get_bow_tube_indices(void) const
 {
 	unsigned off = 0;
 	return make_pair(off, off+get_nr_of_bow_tubes());
 }
+
+
 
 pair<unsigned, unsigned> submarine::get_stern_tube_indices(void) const
 {
@@ -476,11 +468,15 @@ pair<unsigned, unsigned> submarine::get_stern_tube_indices(void) const
 	return make_pair(off, off+get_nr_of_stern_tubes());
 }
 
+
+
 pair<unsigned, unsigned> submarine::get_bow_storage_indices(void) const
 {
 	unsigned off = get_nr_of_bow_tubes()+get_nr_of_stern_tubes();
 	return make_pair(off, off+get_nr_of_bow_reserve());
 }
+
+
 
 pair<unsigned, unsigned> submarine::get_stern_storage_indices(void) const
 {
@@ -488,17 +484,23 @@ pair<unsigned, unsigned> submarine::get_stern_storage_indices(void) const
 	return make_pair(off, off+get_nr_of_stern_reserve());
 }
 
+
+
 pair<unsigned, unsigned> submarine::get_bow_top_storage_indices(void) const
 {
 	unsigned off = get_nr_of_bow_tubes()+get_nr_of_stern_tubes()+get_nr_of_bow_reserve()+get_nr_of_stern_reserve();
 	return make_pair(off, off+get_nr_of_bow_deckreserve());
 }
 
+
+
 pair<unsigned, unsigned> submarine::get_stern_top_storage_indices(void) const
 {
 	unsigned off = get_nr_of_bow_tubes()+get_nr_of_stern_tubes()+get_nr_of_bow_reserve()+get_nr_of_stern_reserve()+get_nr_of_bow_deckreserve();
 	return make_pair(off, off+get_nr_of_stern_deckreserve());
 }
+
+
 
 unsigned submarine::get_location_by_tubenr(unsigned tn) const
 {
@@ -516,6 +518,7 @@ unsigned submarine::get_location_by_tubenr(unsigned tn) const
 	if (tn >= idx.first && tn < idx.second) return 6;
 	return 0;
 }
+
 
 
 double submarine::get_torp_transfer_time(unsigned from, unsigned to) const
@@ -542,6 +545,7 @@ double submarine::get_torp_transfer_time(unsigned from, unsigned to) const
 }
 
 
+
 double submarine::get_max_speed(void) const
 {
 	double ms;
@@ -562,6 +566,8 @@ double submarine::get_max_speed(void) const
 
 	return ms;
 }
+
+
 
 float submarine::surface_visibility(const vector2& watcher) const
 {
@@ -600,6 +606,8 @@ float submarine::surface_visibility(const vector2& watcher) const
 	return dive_factor;
 }
 
+
+
 float submarine::sonar_visibility ( const vector2& watcher ) const
 {
 	double depth = get_depth();
@@ -621,6 +629,8 @@ float submarine::sonar_visibility ( const vector2& watcher ) const
 	return diveFactor;
 }
 
+
+
 void submarine::planes_up(double amount)
 {
 //	dive_acceleration = -1;
@@ -628,12 +638,16 @@ void submarine::planes_up(double amount)
 	permanent_dive = true;
 }
 
+
+
 void submarine::planes_down(double amount)
 {
 //	dive_acceleration = 1;
 	dive_speed = -max_dive_speed;
 	permanent_dive = true;
 }
+
+
 
 void submarine::planes_middle(void)
 {
@@ -643,12 +657,16 @@ void submarine::planes_middle(void)
 	dive_to = position.z;
 }
 
+
+
 void submarine::dive_to_depth(unsigned meters)
 {
 	dive_to = -int(meters);
 	permanent_dive = false;
 	dive_speed = (dive_to < position.z) ? -max_dive_speed : max_dive_speed;
 }
+
+
 
 // mostly the same code as launch_torpedo. cut & paste is ugly, but sometimes unavoidable.
 bool submarine::can_torpedo_be_launched(class game& gm, int tubenr, sea_object* target) const
@@ -690,6 +708,8 @@ bool submarine::can_torpedo_be_launched(class game& gm, int tubenr, sea_object* 
 	return launchdata.second;
 }
 
+
+
 double submarine::get_noise_factor () const
 {
 	double noisefac = 1.0f;
@@ -715,6 +735,8 @@ double submarine::get_noise_factor () const
 
 	return noisefac;
 }
+
+
 
 #include <sstream>
 #include "system.h"
@@ -796,6 +818,8 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 	}
 }
 
+
+
 void submarine::calculate_fuel_factor ( double delta_time )
 {
 	if ( electric_engine )
@@ -812,6 +836,8 @@ void submarine::calculate_fuel_factor ( double delta_time )
 			battery_level += delta_time * get_battery_recharge_rate ();
 	}
 }
+
+
 
 bool submarine::set_snorkel_up ( bool snorkelup )
 {
@@ -832,6 +858,8 @@ bool submarine::set_snorkel_up ( bool snorkelup )
 
 	return false;
 }
+
+
 
 void submarine::launch_torpedo(class game& gm, int tubenr, sea_object* target)
 {
