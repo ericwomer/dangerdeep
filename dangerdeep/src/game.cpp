@@ -20,7 +20,6 @@
 #include "sensors.h"
 #include "menu.h"
 #include "config.h"
-#include "binstore.h"
 
 #define TRAILTIME 10
 #define ENEMYCONTACTLOST 50000.0	// meters
@@ -1041,6 +1040,7 @@ game* game::load(const string& filename)
 
 void game::save(const string& filename) const
 {
+/*
 	binstore bs;
 	bs.push_string(VERSION);
 	
@@ -1062,4 +1062,5 @@ void game::save(const string& filename) const
 	// store user interface? or is this unneccessary?
 	
 	bs.save(filename);
+*/	
 }
