@@ -178,7 +178,7 @@ void sub_damage_display::display ( class game& gm ) const
 		}
 	}
 
-	ui.draw_infopanel(gm);
+	ui.draw_infopanel();
 
 	system::sys().unprepare_2d_drawing();
 }

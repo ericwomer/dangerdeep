@@ -1047,7 +1047,8 @@ void game::torp_explode(const vector3& pos)
 	// each torpedo seems to explode twice, if it's only drawn twice or adds twice the damage is unknown.
 	// fixme!
 	spawn_particle(new torpedo_water_splash_particle(pos.xy().xy0()));
-	if (ui) ui->play_sound_effect_distance (*this, ui->se_torpedo_detonation,
+	//fixme: game should know nothing about ui!
+	if (ui) ui->play_sound_effect_distance (ui->se_torpedo_detonation,
 		player->get_pos ().distance ( pos ) );
 }
 
@@ -1423,7 +1424,7 @@ game::run_state game::exec(void)
 	
 	// draw one initial frame
 	system::sys().myassert(ui != 0, "game::exec() called for a game without an user_interface");
-	ui->display(*this);
+	ui->display();
 	
 	while (my_run_state == running && !stopexec) {
 		list<SDL_Event> events = sys.poll_event_queue();
@@ -1443,10 +1444,10 @@ game::run_state game::exec(void)
 		}
 
 		// maybe limit input processing to 30 fps
-		ui->process_input(*this, events);
+		ui->process_input(events);
 		// fixme: make use of game::job interface, 3600/256 = 14.25 secs job period
 		ui->set_time(get_time());
-		ui->display(*this);
+		ui->display();
 		++frames;
 
 		// record fps

@@ -348,7 +348,7 @@ void map_display::display(class game& gm) const
 			<< degrx << "/" << minutx << (west ? "W" : "E");
 	font_arial->print(0, 0, rwcoordss.str(), color::white(), true);
 
-	ui.draw_infopanel(gm);
+	ui.draw_infopanel();
 	sys.unprepare_2d_drawing();
 
 }

@@ -26,6 +26,8 @@ public:
 	enum sound_effect { se_submarine_torpedo_launch, se_torpedo_detonation };
 
 protected:
+	game* mygame;	// pointer to game object that is displayed
+
 	bool pause;
 	unsigned time_scale;
 
@@ -39,6 +41,7 @@ protected:
 	// used in various screens
 	angle bearing;
 	angle elevation;	// -90...90 deg (look down ... up)
+	bool bearing_is_relative;	// bearing means angle relative to course or absolute? (default = true)
 
 	// which display is active
 	mutable unsigned current_display;
@@ -68,30 +71,27 @@ protected:
 
 //	inline virtual sea_object* get_player(void) const { return player_object; }
 
-	// replace by sdl_event handler for keyboard events! fixme
-	//virtual bool keyboard_common(int keycode, game& gm) = 0;
-
 	// color funtions. ?????fixme
-	virtual void set_display_color ( color_mode mode ) const;
-	virtual void set_display_color ( const game& gm ) const;
+	virtual void set_display_color( color_mode mode ) const;
+	virtual void set_display_color() const;
 	
 //	void draw_clock(game& gm, int x, int y, unsigned wh, double t,
 //	        const string& text) const;
 
-	virtual sound* get_sound_effect ( game& gm, sound_effect se ) const;
+	virtual sound* get_sound_effect(sound_effect se) const;
 
 public:	
 	virtual ~user_interface();
 
 	// display (const) and input handling
-	virtual void display(game& gm) const;
+	virtual void display(void) const;
 
 	// set global time for display (needed for water/sky animation)
 	void set_time(double tm);
 
 	// process common events (common keys, mouse input to panel)
-	virtual void process_input(game& gm, const SDL_Event& event);
-	virtual void process_input(game& gm, const list<SDL_Event>& events);
+	virtual void process_input(const SDL_Event& event);
+	virtual void process_input(const list<SDL_Event>& events);
 
 	// create ui matching to player type (requested from game)
 	static user_interface* create(game& gm);
@@ -102,13 +102,15 @@ public:
 
 	// helper functions
 
-	virtual angle get_bearing(void) const { return bearing; }
-	virtual angle get_elevation(void) const { return elevation; }
-	virtual void set_bearing(const angle& a) { bearing = a; }
-	virtual void set_elevation(const angle& a) { elevation = a; }
+	virtual angle get_relative_bearing(void) const;
+	virtual angle get_absolute_bearing(void) const;
+	virtual angle get_elevation(void) const;
+	// add angles to change bearing/elevation
+	virtual void add_bearing(angle a);
+	virtual void add_elevation(angle a);
 
 	// 2d drawing must be on for this
-	void draw_infopanel(game& gm) const;
+	void draw_infopanel(void) const;
 
 	// this rotates the modelview matrix to match the water surface normal
 	// rollfac (0...1) determines how much the ship is influenced by wave movement
@@ -121,14 +123,7 @@ public:
 	// 3d drawing functions
 	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist) const;
 
-	virtual void draw_weather_effects(game& gm) const;
-
-	//fixme: should be const!!!!!! input handling in another function!!!
-/*
-	virtual void draw_view(game& gm, const vector3& viewpos,
-		int vpx, int vpy, int vpw, int vph,
-		angle dir, angle elev, bool aboard, bool drawbridge, bool withunderwaterweapons);
-*/
+	virtual void draw_weather_effects(void) const;
 
 	virtual bool paused(void) const { return pause; }
 	virtual unsigned time_scaling(void) const { return time_scale; }
@@ -137,9 +132,9 @@ public:
 	virtual bool time_scale_down(void);
 //	virtual void record_sunk_ship ( const class ship* so );
 	/** This method creates a message about the rudder state. */
-	virtual void add_rudder_message(game& gm);
-	virtual void play_sound_effect(game& gm, sound_effect se, double volume = 1.0f) const;
-	virtual void play_sound_effect_distance(game& gm, sound_effect se, double distance) const;
+	virtual void add_rudder_message(void);
+	virtual void play_sound_effect(sound_effect se, double volume = 1.0f) const;
+	virtual void play_sound_effect_distance(sound_effect se, double distance) const;
 };
 
 #endif

@@ -59,7 +59,7 @@ public:
 	void register_option(const string& name, int value);
 	void register_option(const string& name, float value);
 	void register_option(const string& name, const string& value);
-	void register_key(unsigned nr, const string& name, SDLKey keysym, bool ctrl, bool alt, bool shift);
+	void register_key(const string& name, SDLKey keysym, bool ctrl, bool alt, bool shift);
 
 	void set(const string& name, bool value);
 	void set(const string& name, int value);

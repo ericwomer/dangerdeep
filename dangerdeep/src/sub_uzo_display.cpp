@@ -44,7 +44,7 @@ void sub_uzo_display::post_display(game& gm) const
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glColor3ub(0, 0, 0);
 	system::sys().draw_rectangle(0, 512, 1024, 256);
-	ui.draw_infopanel(gm);
+	ui.draw_infopanel();
 	system::sys().unprepare_2d_drawing();
 }
 

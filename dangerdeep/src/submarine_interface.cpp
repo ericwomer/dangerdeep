@@ -62,25 +62,25 @@ submarine_interface::~submarine_interface()
 
 
 
-void submarine_interface::fire_tube(game& gm, submarine* player, unsigned nr)
+void submarine_interface::fire_tube(submarine* player, unsigned nr)
 {
-	if (player->can_torpedo_be_launched(gm, nr, target)) {
+	if (player->can_torpedo_be_launched(*mygame, nr, target)) {
 		add_message(texts::get(49));
 		ostringstream oss;
 		oss << texts::get(49);
 		if (target)
 			oss << " " << texts::get(6) << ": " << target->get_description(2);
-		gm.add_logbook_entry(oss.str());
-		player->launch_torpedo(gm, nr, target);
-		play_sound_effect(gm, se_submarine_torpedo_launch);
+		mygame->add_logbook_entry(oss.str());
+		player->launch_torpedo(*mygame, nr, target);
+		play_sound_effect(se_submarine_torpedo_launch);
 	}
 }
 
 
 
-void submarine_interface::process_input(game& gm, const SDL_Event& event)
+void submarine_interface::process_input(const SDL_Event& event)
 {
-	submarine* player = dynamic_cast<submarine*>(gm.get_player());
+	submarine* player = dynamic_cast<submarine*>(mygame->get_player());
 
 	/*
 	// check output for key input
@@ -131,16 +131,16 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 			current_display = display_mode_freeview;
 		} else if (mycfg.getkey(KEY_RUDDER_LEFT).equal(event.key.keysym)) {
 			player->rudder_left();
-			add_rudder_message(gm);
+			add_rudder_message();
 		} else if (mycfg.getkey(KEY_RUDDER_HARD_LEFT).equal(event.key.keysym)) {
 			player->rudder_hard_left();
-			add_rudder_message(gm);
+			add_rudder_message();
 		} else if (mycfg.getkey(KEY_RUDDER_RIGHT).equal(event.key.keysym)) {
 			player->rudder_right();
-			add_rudder_message(gm);
+			add_rudder_message();
 		} else if (mycfg.getkey(KEY_RUDDER_HARD_RIGHT).equal(event.key.keysym)) {
 			player->rudder_hard_right();
-			add_rudder_message(gm);
+			add_rudder_message();
 		} else if (mycfg.getkey(KEY_RUDDER_UP).equal(event.key.keysym)) {
 			player->planes_up(1);
 			add_message(texts::get(37));
@@ -176,22 +176,22 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 			player->set_throttle(ship::reverse);
 			add_message(texts::get(48));
 		} else if (mycfg.getkey(KEY_FIRE_TUBE_1).equal(event.key.keysym)) {
-			fire_tube(gm, player, 0);
+			fire_tube(player, 0);
 		} else if (mycfg.getkey(KEY_FIRE_TUBE_2).equal(event.key.keysym)) {
-			fire_tube(gm, player, 1);
+			fire_tube(player, 1);
 		} else if (mycfg.getkey(KEY_FIRE_TUBE_3).equal(event.key.keysym)) {
-			fire_tube(gm, player, 2);
+			fire_tube(player, 2);
 		} else if (mycfg.getkey(KEY_FIRE_TUBE_4).equal(event.key.keysym)) {
-			fire_tube(gm, player, 3);
+			fire_tube(player, 3);
 		} else if (mycfg.getkey(KEY_FIRE_TUBE_5).equal(event.key.keysym)) {
-			fire_tube(gm, player, 4);
+			fire_tube(player, 4);
 		} else if (mycfg.getkey(KEY_FIRE_TUBE_6).equal(event.key.keysym)) {
-			fire_tube(gm, player, 5);
+			fire_tube(player, 5);
 		} else if (mycfg.getkey(KEY_SELECT_TARGET).equal(event.key.keysym)) {
-			target = gm.contact_in_direction(player, /*player->get_heading()+*/bearing);
+			target = mygame->contact_in_direction(player, get_absolute_bearing());
 			if (target) {
 				add_message(texts::get(50));
-				gm.add_logbook_entry(texts::get(50));
+				mygame->add_logbook_entry(texts::get(50));
 			} else {
 				add_message(texts::get(51));
 			}
@@ -208,12 +208,12 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 			// is different from normal diving
 			player->dive_to_depth(unsigned(player->get_alarm_depth()));
 			add_message(texts::get(41));
-			gm.add_logbook_entry(texts::get(41));
+			mygame->add_logbook_entry(texts::get(41));
 		} else if (mycfg.getkey(KEY_GO_TO_SNORKEL_DEPTH).equal(event.key.keysym)) {
 			if (player->has_snorkel () ) {
 				player->dive_to_depth(unsigned(player->get_snorkel_depth()));
 				add_message(texts::get(12));
-				gm.add_logbook_entry(texts::get(97));
+				mygame->add_logbook_entry(texts::get(97));
 			}
 		} else if (mycfg.getkey(KEY_TOGGLE_SNORKEL).equal(event.key.keysym)) {
 			if ( player->has_snorkel () ) {
@@ -221,17 +221,16 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 					player->snorkel_down();
 					//fixme: was an if, why? say "snorkel down only when it was down"
 					add_message (texts::get(96));
-					gm.add_logbook_entry(texts::get(96));
+					mygame->add_logbook_entry(texts::get(96));
 				} else {
 					player->snorkel_up();
 					//fixme: was an if, why? say "snorkel up only when it was up"
 					add_message ( texts::get(95));
-					gm.add_logbook_entry(texts::get(95));
+					mygame->add_logbook_entry(texts::get(95));
 				}
 			}
 		} else if (mycfg.getkey(KEY_SET_HEADING_TO_VIEW).equal(event.key.keysym)) {
-			// store bearing relative to heading, or absolute? fixme
-			angle new_course = /*player->get_heading() + */bearing;
+			angle new_course = get_absolute_bearing();
 			bool turn_left = !player->get_heading().is_cw_nearer(new_course);
 			player->head_to_ang(new_course, turn_left);
 		} else if (mycfg.getkey(KEY_IDENTIFY_TARGET).equal(event.key.keysym)) {
@@ -240,40 +239,39 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 				ostringstream oss;
 				oss << texts::get(79) << target->get_description(2); // fixme
 				add_message( oss.str () );
-				gm.add_logbook_entry(oss.str());
+				mygame->add_logbook_entry(oss.str());
 			} else {
 				add_message(texts::get(80));
 			}
 		} else if (mycfg.getkey(KEY_GO_TO_PERISCOPE_DEPTH).equal(event.key.keysym)) {
 			player->dive_to_depth(unsigned(player->get_periscope_depth()));
 			add_message(texts::get(40));
-			gm.add_logbook_entry(texts::get(40));
+			mygame->add_logbook_entry(texts::get(40));
 		} else if (mycfg.getkey(KEY_GO_TO_SURFACE).equal(event.key.keysym)) {
 			player->dive_to_depth(0);
 			add_message(texts::get(39));
-			gm.add_logbook_entry(texts::get(39));
+			mygame->add_logbook_entry(texts::get(39));
 		} else if (mycfg.getkey(KEY_FIRE_TORPEDO).equal(event.key.keysym)) {
-			if (player->can_torpedo_be_launched(gm, -1, target)) {
+			if (player->can_torpedo_be_launched(*mygame, -1, target)) {
 				add_message(texts::get(49));
 				ostringstream oss;
 				oss << texts::get(49);
 				if (target)
 					oss << " " << texts::get(6) << ": " << target->get_description ( 2 );
-				gm.add_logbook_entry(oss.str());
-				player->launch_torpedo(gm, -1, target);
-				play_sound_effect (gm, se_submarine_torpedo_launch );
+				mygame->add_logbook_entry(oss.str());
+				player->launch_torpedo(*mygame, -1, target);
+				play_sound_effect(se_submarine_torpedo_launch );
 			}
 		} else if (mycfg.getkey(KEY_SET_VIEW_TO_HEADING).equal(event.key.keysym)) {
-			// store bearing absolute or relative to heading? fixme
-			bearing = player->get_heading();//0.0f;
+			bearing = (bearing_is_relative) ? 0.0 : player->get_heading();
 		} else if (mycfg.getkey(KEY_TURN_VIEW_LEFT).equal(event.key.keysym)) {
-			bearing -= angle(1);
+			add_bearing(angle(-1));
 		} else if (mycfg.getkey(KEY_TURN_VIEW_LEFT_FAST).equal(event.key.keysym)) {
-			bearing -= angle(10);
+			add_bearing(angle(-10));
 		} else if (mycfg.getkey(KEY_TURN_VIEW_RIGHT).equal(event.key.keysym)) {
-			bearing += angle(1);
+			add_bearing(angle(1));
 		} else if (mycfg.getkey(KEY_TURN_VIEW_RIGHT_FAST).equal(event.key.keysym)) {
-			bearing += angle(10);
+			add_bearing(angle(10));
 		} else if (mycfg.getkey(KEY_TIME_SCALE_UP).equal(event.key.keysym)) {
 			if (time_scale_up()) {
 				add_message(texts::get(31));
@@ -287,7 +285,7 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 			{
 				if (NULL != target && player != target)
 				{						
-					int res = player->fire_shell_at(gm, *target);
+					int res = player->fire_shell_at(*mygame, *target);
 					
 					if (TARGET_OUT_OF_RANGE == res)
 						add_message(texts::get(218));
@@ -304,7 +302,7 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 			// quit, screenshot, pause etc.
 			switch (event.key.keysym.sym) {
 			case SDLK_ESCAPE:
-				gm.stop();
+				mygame->stop();
 				break;
 			case SDLK_PRINT:
 				system::sys().screenshot();
@@ -317,13 +315,13 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 				break;
 			default:
 				// let display handle the key
-				user_interface::process_input(gm, event);
+				user_interface::process_input(event);
 			}
 		}
 	} else {
 		// fixme panel input. but panel visibility depens on each display... (yet)
 		//a small(er) panel could be visible everywhere
-		user_interface::process_input(gm, event);
+		user_interface::process_input(event);
 	}
 
 }
@@ -344,9 +342,9 @@ bool submarine_interface::object_visible(sea_object* so,
 }
 */
 	
-void submarine_interface::display(game& gm) const
+void submarine_interface::display(void) const
 {
-	submarine* player = dynamic_cast<submarine*>(gm.get_player());
+	submarine* player = dynamic_cast<submarine*>(mygame->get_player());
 	if ((current_display == display_mode_uzo || current_display == display_mode_bridge) &&
 	    player->is_submerged()) {
 		current_display = display_mode_periscope;
@@ -355,7 +353,7 @@ void submarine_interface::display(game& gm) const
 		current_display = display_mode_map;
 	}
 
-	user_interface::display(gm);
+	user_interface::display();
 
 	// panel is drawn in each display function, so the above code is all...
 }

@@ -40,12 +40,6 @@ protected:
 	// draw the whole view
 	virtual void draw_view(class game& gm) const;
 
-	// get/set bearing/elevation from parent
-	virtual angle get_bearing(void) const;
-	virtual angle get_elevation(void) const;
-	virtual void set_bearing(const angle& a);
-	virtual void set_elevation(const angle& a);
-
 public:
 	freeview_display(class user_interface& ui_);
 	virtual ~freeview_display();

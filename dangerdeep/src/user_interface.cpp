@@ -33,6 +33,7 @@
 #include "water.h"
 #include "matrix4.h"
 #include "cfg.h"
+#include "keys.h"
 using namespace std;
 
 #define MAX_PANEL_SIZE 256
@@ -53,11 +54,13 @@ using namespace std;
 */
 
 user_interface::user_interface(game& gm) :
+	mygame(&gm),
 	pause(false),
 	time_scale(1),
 	panel_visible(true),
 	bearing(0),
 	elevation(90),
+	bearing_is_relative(true),
 	current_display(0),
 	target(0),
 	mysky(0),
@@ -90,7 +93,7 @@ user_interface::user_interface(game& gm) :
 	panel_valuetexts[5] = new widget_text(528+160+100, 8+24+5, 0, 0, "00:00:00");
 	for (unsigned i = 0; i < 6; ++i)
 		panel->add_child(panel_valuetexts[i]);
-	panel->add_child(new widget_caller_button<game, void (game::*)(void)>(&gm, &game::stop, 1024-128-8, 128-40, 128, 32, texts::get(177)));
+	panel->add_child(new widget_caller_button<game, void (game::*)(void)>(mygame, &game::stop, 1024-128-8, 128-40, 128, 32, texts::get(177)));
 	add_loading_screen("user interface initialized");
 
 	// create weather effects textures
@@ -203,6 +206,8 @@ user_interface* user_interface::create(game& gm)
 	return 0;
 }
 
+
+
 user_interface::~user_interface ()
 {
 	for (vector<user_display*>::iterator it = displays.begin(); it != displays.end(); ++it)
@@ -223,12 +228,51 @@ user_interface::~user_interface ()
 
 
 
-void user_interface::display(game& gm) const
+angle user_interface::get_relative_bearing(void) const
+{
+	if (bearing_is_relative)
+		return bearing;
+	return bearing - mygame->get_player()->get_heading();
+}
+
+
+
+angle user_interface::get_absolute_bearing(void) const
+{
+	if (bearing_is_relative)
+		return mygame->get_player()->get_heading() + bearing;
+	return bearing;
+}
+
+
+
+angle user_interface::get_elevation(void) const
+{
+	return elevation;
+}
+
+
+
+void user_interface::add_bearing(angle a)
+{
+	bearing += a;
+}
+
+
+
+void user_interface::add_elevation(angle a)
+{
+	elevation += a;
+}
+
+
+
+void user_interface::display(void) const
 {
 	// fixme: brightness needs sun_pos, so compute_sun_pos() is called multiple times per frame
 	// but is very costly. we could cache it.
-	mywater->set_refraction_color(gm.compute_light_brightness(gm.get_player()->get_pos()));
-	displays[current_display]->display(gm);
+	mywater->set_refraction_color(mygame->compute_light_brightness(mygame->get_player()->get_pos()));
+	displays[current_display]->display(*mygame);
 }
 
 
@@ -241,21 +285,29 @@ void user_interface::set_time(double tm)
 
 
 
-void user_interface::process_input(class game& gm, const SDL_Event& event)
+void user_interface::process_input(const SDL_Event& event)
 {
-	displays[current_display]->process_input(gm, event);
+	if (event.type == SDL_KEYDOWN) {
+		if (cfg::instance().getkey(KEY_TOGGLE_RELATIVE_BEARING).equal(event.key.keysym)) {
+			bearing_is_relative = !bearing_is_relative;
+			add_message(texts::get(bearing_is_relative ? 220 : 221));
+			return;
+		}
+	}
+
+	displays[current_display]->process_input(*mygame, event);
 }
 
 
 
-void user_interface::process_input(class game& gm, const list<SDL_Event>& events)
+void user_interface::process_input(const list<SDL_Event>& events)
 {
 	// a bit misplaced here...
 	if (target && !target->is_alive()) target = 0;
 
 	for (list<SDL_Event>::const_iterator it = events.begin();
 	     it != events.end(); ++it)
-		process_input(gm, *it);
+		process_input(*it);
 }
 
 
@@ -344,7 +396,7 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 
 
 
-void user_interface::draw_weather_effects(game& gm) const
+void user_interface::draw_weather_effects(void) const
 {
 #if 0
 	// draw layers of snow flakes or rain drops (test)
@@ -352,8 +404,8 @@ void user_interface::draw_weather_effects(game& gm) const
 	matrix4 c2w = (matrix4::get_gl(GL_PROJECTION_MATRIX) * matrix4::get_gl(GL_MODELVIEW_MATRIX)).inverse();
 	// draw planes between z-near and z-far with ascending distance and 2d texture with flakes/strains
 	glDisable(GL_LIGHTING);
-	unsigned sf = unsigned(gm.get_time() * NR_OF_RAIN_FRAMES) % NR_OF_RAIN_FRAMES;
-//	unsigned sf = unsigned(gm.get_time() * NR_OF_SNOW_FRAMES) % NR_OF_SNOW_FRAMES;
+	unsigned sf = unsigned(mygame->get_time() * NR_OF_RAIN_FRAMES) % NR_OF_RAIN_FRAMES;
+//	unsigned sf = unsigned(mygame->get_time() * NR_OF_SNOW_FRAMES) % NR_OF_SNOW_FRAMES;
 	raintex[sf]->set_gl_texture();
 //	snowtex[sf]->set_gl_texture();
 	//pd.near_z,pd.far_z
@@ -398,26 +450,26 @@ bool user_interface::time_scale_down(void)
 	return false;
 }
 
-void user_interface::draw_infopanel(class game& gm) const
+void user_interface::draw_infopanel(void) const
 {
 	if (panel_visible) {
 		ostringstream os0;
-		os0 << setw(3) << left << gm.get_player()->get_heading().ui_value();
+		os0 << setw(3) << left << mygame->get_player()->get_heading().ui_value();
 		panel_valuetexts[0]->set_text(os0.str());
 		ostringstream os1;
-		os1 << setw(3) << left << unsigned(fabs(round(sea_object::ms2kts(gm.get_player()->get_speed()))));
+		os1 << setw(3) << left << unsigned(fabs(round(sea_object::ms2kts(mygame->get_player()->get_speed()))));
 		panel_valuetexts[1]->set_text(os1.str());
 		ostringstream os2;
-		os2 << setw(3) << left << unsigned(round(-gm.get_player()->get_pos().z));
+		os2 << setw(3) << left << unsigned(round(-mygame->get_player()->get_pos().z));
 		panel_valuetexts[2]->set_text(os2.str());
 		ostringstream os3;
-		os3 << setw(3) << left << bearing.ui_value();
+		os3 << setw(3) << left << get_absolute_bearing().ui_value();
 		panel_valuetexts[3]->set_text(os3.str());
 		ostringstream os4;
 		os4 << setw(3) << left << time_scale;
 		panel_valuetexts[4]->set_text(os4.str());
 		// compute time string
-		panel_valuetexts[5]->set_text(get_time_string(gm.get_time()));
+		panel_valuetexts[5]->set_text(get_time_string(mygame->get_time()));
 
 		panel->draw();
 		// let aside the fact that we should divide DRAWING and INPUT HANDLING
@@ -442,10 +494,10 @@ void user_interface::add_message(const string& s)
 
 
 
-void user_interface::add_rudder_message(game& gm)
+void user_interface::add_rudder_message(void)
 {
 	// this whole function should be replaced...seems ugly
-	ship* s = dynamic_cast<ship*>(gm.get_player());
+	ship* s = dynamic_cast<ship*>(mygame->get_player());
 	if (!s) return;	// ugly hack to allow compilation
 	switch (s->get_rudder_to())
 		{
@@ -487,15 +539,15 @@ void user_interface::set_display_color ( color_mode mode ) const
 	}
 }
 
-void user_interface::set_display_color ( const class game& gm ) const
+void user_interface::set_display_color(void) const
 {
-	if ( gm.is_day_mode () )
+	if ( mygame->is_day_mode () )
 		DAY_MODE_COLOR ();
 	else
 		NIGHT_MODE_COLOR ();
 }
 
-sound* user_interface::get_sound_effect ( game& gm, sound_effect se ) const
+sound* user_interface::get_sound_effect(sound_effect se) const
 {
 	sound* s = 0;
 
@@ -506,7 +558,7 @@ sound* user_interface::get_sound_effect ( game& gm, sound_effect se ) const
 			break;
 		case se_torpedo_detonation:
 			{
-				submarine* sub = dynamic_cast<submarine*>(gm.get_player());
+				submarine* sub = dynamic_cast<submarine*>(mygame->get_player());
 
 				if ( sub && sub->is_submerged () )
 				{
@@ -531,9 +583,9 @@ sound* user_interface::get_sound_effect ( game& gm, sound_effect se ) const
 	return s;
 }
 
-void user_interface::play_sound_effect ( game& gm, sound_effect se, double volume ) const
+void user_interface::play_sound_effect(sound_effect se, double volume ) const
 {
-	sound* s = get_sound_effect ( gm, se );
+	sound* s = get_sound_effect(se);
 
 	if ( s )
 		s->play ( volume );
@@ -541,17 +593,17 @@ void user_interface::play_sound_effect ( game& gm, sound_effect se, double volum
 
 
 
-void user_interface::play_sound_effect_distance(game& gm, sound_effect se, double distance) const
+void user_interface::play_sound_effect_distance(sound_effect se, double distance) const
 {
-	sound* s = get_sound_effect(gm, se);
+	sound* s = get_sound_effect(se);
 
 	if ( s )
 	{
 		double h = 3000.0f;
-		submarine* sub = dynamic_cast<submarine*> ( gm.get_player () );
+		submarine* sub = dynamic_cast<submarine*> ( mygame->get_player () );
 		if ( sub && sub->is_submerged () )
 			h = 10000.0f;
 
-		s->play ( ( 1.0f - gm.get_player()->get_noise_factor () ) * exp ( - distance / h ) );
+		s->play ( ( 1.0f - mygame->get_player()->get_noise_factor () ) * exp ( - distance / h ) );
 	}
 }

@@ -47,16 +47,18 @@ void freeview_display::set_modelview_matrix(game& gm) const
 {
 	glLoadIdentity();
 
-	glRotated(-get_elevation().value(),1,0,0);
+	glRotated(-ui.get_elevation().value(),1,0,0);
+
+	sea_object* pl = gm.get_player();
 
 	// This should be a negative angle, but nautical view dir is clockwise,
 	// OpenGL uses ccw values, so this is a double negation
-	glRotated(get_bearing().value(),0,0,1);
+	glRotated(ui.get_absolute_bearing().value(),0,0,1);
 
 	// if we're aboard the player's vessel move the world instead of the ship
 	if (aboard) {
-		double rollfac = (dynamic_cast<ship*>(gm.get_player()))->get_roll_factor();
-		ui.rotate_by_pos_and_wave(gm.get_player()->get_pos(), rollfac, true);
+		double rollfac = (dynamic_cast<ship*>(pl))->get_roll_factor();
+		ui.rotate_by_pos_and_wave(pl->get_pos(), rollfac, true);
 	}
 
 	glTranslated(-pos.x, -pos.y, -pos.z);
@@ -130,8 +132,8 @@ void freeview_display::process_input(class game& gm, const SDL_Event& event)
 		break;
 	case SDL_MOUSEMOTION:
 		if (event.motion.state & SDL_BUTTON_LMASK) {
-			set_bearing(get_bearing() + event.motion.xrel*0.5);
-			set_elevation(get_elevation() - event.motion.yrel*0.5);
+			ui.add_bearing(event.motion.xrel*0.5);
+			ui.add_elevation(-event.motion.yrel*0.5);
 			//fixme handle clamping of elevation at +-90deg
 		}
 		break;
@@ -331,7 +333,7 @@ void freeview_display::draw_view(game& gm) const
 
 	//   terrain
 	glColor4f(1,1,1,1);//fixme: fog is missing
-	ui.draw_terrain(viewpos, get_bearing(), max_view_dist);
+	ui.draw_terrain(viewpos, ui.get_absolute_bearing(), max_view_dist);
 	//fixme
 	//   models/smoke
 	//fixme
@@ -395,11 +397,11 @@ void freeview_display::draw_view(game& gm) const
 	//ui.get_water().update_foam(1.0/25.0);  //fixme: deltat needed here
 	//ui.get_water().spawn_foam(vector2(myfmod(gm.get_time(),256.0),0));
 	//fixme: viewpos should be submarine pos, not already viewer trans of mv mat added...
-	ui.get_water().display(viewpos, get_bearing(), max_view_dist, reflection_projmvmat);
+	ui.get_water().display(viewpos, ui.get_absolute_bearing(), max_view_dist, reflection_projmvmat);
 
 	// ******** terrain/land ********************************************************
 //	glDisable(GL_FOG);	//testing with new 2d bspline terrain.
-	ui.draw_terrain(viewpos, get_bearing(), max_view_dist);
+	ui.draw_terrain(viewpos, ui.get_absolute_bearing(), max_view_dist);
 //	glEnable(GL_FOG);	
 
 /* test hack, remove
@@ -443,33 +445,5 @@ void freeview_display::draw_view(game& gm) const
 	glDisable(GL_FOG);	
 	glColor4f(1,1,1,1);
 
-	ui.draw_weather_effects(gm);
-}
-
-
-
-angle freeview_display::get_bearing(void) const
-{
-	return ui.get_bearing();
-}
-
-
-
-angle freeview_display::get_elevation(void) const
-{
-	return ui.get_elevation();
-}
-
-
-
-void freeview_display::set_bearing(const angle& a)
-{
-	ui.set_bearing(a);
-}
-
-
-
-void freeview_display::set_elevation(const angle& a)
-{
-	ui.set_elevation(a);
+	ui.draw_weather_effects();
 }

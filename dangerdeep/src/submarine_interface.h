@@ -35,14 +35,14 @@ protected:
 	submarine_interface& operator= (const submarine_interface& other);
 	submarine_interface(const submarine_interface& other);
 
-	void fire_tube(game& gm, submarine* player, unsigned nr);
+	void fire_tube(submarine* player, unsigned nr);
 	
 public:	
 	submarine_interface(class game& gm);
 	virtual ~submarine_interface();
 
-	virtual void display(class game& gm) const;
-	virtual void process_input(class game& gm, const SDL_Event& events);
+	virtual void display(void) const;
+	virtual void process_input(const SDL_Event& events);
 };
 
 #endif

@@ -200,8 +200,15 @@ void cfg::register_option(const string& name, const string& value)
 
 
 
-void cfg::register_key(unsigned nr, const string& name, SDLKey keysym, bool ctrl, bool alt, bool shift)
+void cfg::register_key(const string& name, SDLKey keysym, bool ctrl, bool alt, bool shift)
 {
+	unsigned nr = NR_OF_KEY_IDS;
+	for (unsigned i = 0; i < NR_OF_KEY_IDS; ++i) {
+		if (string(key_names[i].name) == name) {
+			nr = i;
+		}
+	}
+	system::sys().myassert(nr != NR_OF_KEY_IDS, string("register_key with invalid name ")+ name);
 	valk[nr] = key(name, keysym, ctrl, alt, shift);
 }
 

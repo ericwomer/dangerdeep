@@ -1,3 +1,9 @@
+2005-02-20  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* many files
+	  - made bearing switchable between relative and absolute values
+	  - store pointer to game in user_interface simplifying many
+	    functions
+
 2005-02-16 Andy Rice
 	* SConstruct, SConscript
 		- Updated so everything builds on Mac OSX

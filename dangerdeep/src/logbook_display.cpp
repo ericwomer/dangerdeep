@@ -142,7 +142,7 @@ void logbook_display::display(class game& gm) const
 		595,
 		right_arrow_oss.str (), color ( 0, 0, 0 ) );
 
-	ui.draw_infopanel(gm);
+	ui.draw_infopanel();
 
 	system::sys().unprepare_2d_drawing();
 }
