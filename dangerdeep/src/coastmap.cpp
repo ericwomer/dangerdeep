@@ -289,7 +289,7 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, const vec
 		glVertex2d(roff.x, roff.y+cm.segw_real);
 		glEnd();
 	} else if (type > 1) {
-		generate_point_cache(cm, roff, detail);
+		generate_point_cache(cm, roff, detail+2);
 	
 		glBegin(GL_TRIANGLES);
 		for (vector<cacheentry>::const_iterator cit = pointcache.begin(); cit != pointcache.end(); ++cit) {

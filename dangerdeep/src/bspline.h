@@ -11,22 +11,19 @@ template <class T, class U>
 class bsplinet
 {
 protected:
-	int n, m;
+	unsigned n, m;
 	vector<T> cp;		// control points
 	vector<U> tvec;		// t's for control points
-	mutable vector<vector<T> > deBoor_pts;
+	mutable vector<T> deBoor_pts;
 
-	void make_deBoor_pts(void)
+	T& deBoor_at(unsigned row, unsigned column) const
 	{
-		// prepare deBoor-Points Triangle
-		deBoor_pts.resize(n+1);
-		for (int j = 0; j <= n; ++j)
-			deBoor_pts[j].resize(n+1-j);
+		return deBoor_pts[(n+1-row)*(n-row)/2 + column];
 	}
 	
 	bsplinet();
 
-	int find_l(const U& t) const
+	unsigned find_l(const U& t) const
 	{
 		// note: for non-uniform bsplines we have to compute l so that
 		// tvec[l] <= t <= tvec[l+1]
@@ -35,14 +32,14 @@ protected:
 		// it shouldn't cause trouble though, because the bspline value is the same then.
 
 #if 1
-		int l = n + int(floor(t * (m+1-n)));
+		unsigned l = n + unsigned(floor(t * (m+1-n)));
 		if (l > m) l = m;
 		return l;
 		
 		// algorithm for non-uniform bsplines:
 		// note: if t is equal to tvec[x] then l=x-1
 #else
-		int l = n;
+		unsigned l = n;
 		for ( ; l <= m; ++l) {
 			if (tvec[l] <= t && t <= tvec[l+1])
 				break;
@@ -52,25 +49,25 @@ protected:
 	}
 
 public:
-	bsplinet(int n_, const vector<T>& d) : n(n_), m(int(d.size())-1), cp(d)
+	bsplinet(unsigned n_, const vector<T>& d) : n(n_), m(d.size()-1), cp(d)
 	{
-		assert (n < int(d.size()) );
+		assert (n < d.size() );
 		assert (d.size() >= 2);
 		
-		make_deBoor_pts();
+		deBoor_pts.resize((n+1)*(n+2)/2);
 
 		// prepare t-vector
 		// note: this algorithm works also for non-uniform bsplines
 		// (let the user give a t vector)
 		tvec.resize(m+n+2);
-		int k = 0;
+		unsigned k = 0;
 		for ( ; k <= n; ++k) tvec[k] = 0;
 		for ( ; k <= m; ++k) tvec[k] = U(k-n)/U(m-n+1);
 		for ( ; k <= m+n+1; ++k) tvec[k] = 1;
 	}
 
-	bsplinet(const bsplinet& o) : n(o.n), m(o.m), cp(o.cp), tvec(o.tvec) { make_deBoor_pts(); }
-	bsplinet& operator= (const bsplinet& o) { n = o.n; m = o.m; cp = o.cp; tvec = o.tvec; return *this; }
+	bsplinet(const bsplinet& o) : n(o.n), m(o.m), cp(o.cp), tvec(o.tvec) { deBoor_pts.resize((n+1)*(n+2)/2); }
+	bsplinet& operator= (const bsplinet& o) { n = o.n; m = o.m; cp = o.cp; tvec = o.tvec; deBoor_pts.resize((n+1)*(n+2)/2); return *this; }
 
 	~bsplinet() {}
 
@@ -80,26 +77,179 @@ public:
 	{
 		assert (0 <= t && t <= 1);
 
-		int l = find_l(t);
+		unsigned l = find_l(t);
 	
 		// fill in base deBoor points
-		for (int j = 0; j <= n; ++j)
-			deBoor_pts[0][j] = cp[l-n+j];
+		for (unsigned j = 0; j <= n; ++j)
+			deBoor_at(0, j) = cp[l-n+j];
 		
 		// compute new values
-		int doff = l-n;
-		for (int r = 1; r <= n; ++r) {
-			for (int i = l-n; i <= l-r; ++i) {
+		for (unsigned r = 1; r <= n; ++r) {
+			for (unsigned i = l-n; i <= l-r; ++i) {
 				U tv = (t - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
 				assert(isfinite(tv));
-				deBoor_pts[r][i-doff] = deBoor_pts[r-1][i-doff] * (1 - tv)
-					+ deBoor_pts[r-1][i+1-doff] * tv;
+				deBoor_at(r, i+n-l) = deBoor_at(r-1, i+n-l) * (1 - tv)
+					+ deBoor_at(r-1, i+1+n-l) * tv;
 			}
 		}
 
-		return deBoor_pts[n][0];
+		return deBoor_at(n, 0);
 	}
 
 };
+
+
+
+// square b-splines, give square vector of control points
+template <class T, class U>
+class bspline2dt
+{
+protected:
+	unsigned n, m;
+	vector<T> cp;		// control points
+	vector<U> tvec;		// t's for control points
+	mutable vector<T> deBoor_pts;
+
+	T& deBoor_at(unsigned line, unsigned row, unsigned column) const
+	{
+		return deBoor_pts[((n+1)*(n+2)/2)*line + (n+1-row)*(n-row)/2 + column];
+	}
+	
+	bspline2dt();
+
+	unsigned find_l(const U& t) const
+	{
+		// note: for non-uniform bsplines we have to compute l so that
+		// tvec[l] <= t <= tvec[l+1]
+		// because we have uniform bsplines here, we don't need to search!
+		// note: the results of both algorithms differ when t == tvec[x] for any x.
+		// it shouldn't cause trouble though, because the bspline value is the same then.
+
+#if 1
+		unsigned l = n + unsigned(floor(t * (m+1-n)));
+		if (l > m) l = m;
+		return l;
+		
+		// algorithm for non-uniform bsplines:
+		// note: if t is equal to tvec[x] then l=x-1
+#else
+		unsigned l = n;
+		for ( ; l <= m; ++l) {
+			if (tvec[l] <= t && t <= tvec[l+1])
+				break;
+		}
+		return l;
+#endif
+	}
+
+public:
+	// give square vector of control points, in C++ order, line after line
+	bspline2dt(unsigned n_, const vector<T>& d) : n(n_), cp(d)
+	{
+		unsigned ds = unsigned(sqrt(double(d.size())));
+		assert(ds*ds == d.size());
+		assert(n < ds);
+		assert(ds >= 2);
+		m = ds-1;
+
+		deBoor_pts.resize((n+1) * (n+1)*(n+2)/2);
+
+		// prepare t-vector
+		// note: this algorithm works also for non-uniform bsplines
+		// (let the user give a t vector)
+		tvec.resize(m+n+2);
+		unsigned k = 0;
+		for ( ; k <= n; ++k) tvec[k] = 0;
+		for ( ; k <= m; ++k) tvec[k] = U(k-n)/U(m-n+1);
+		for ( ; k <= m+n+1; ++k) tvec[k] = 1;
+	}
+
+	bspline2dt(const bspline2dt& o) : n(o.n), m(o.m), cp(o.cp), tvec(o.tvec) { deBoor_pts.resize((n+1) * (n+1)*(n+2)/2); }
+	bspline2dt& operator= (const bspline2dt& o) { n = o.n; m = o.m; cp = o.cp; tvec = o.tvec; deBoor_pts.resize((n+1) * (n+1)*(n+2)/2); return *this; }
+
+	~bspline2dt() {}
+
+	const vector<T>& control_points(void) const { return cp; }
+	
+	T value(const U& s, const U& t) const
+	{
+		assert (0 <= s && s <= 1);
+		assert (0 <= t && t <= 1);
+
+		unsigned l = find_l(s);
+		unsigned l2 = find_l(t);
+	
+		// fill in base deBoor points
+		for (unsigned j2 = 0; j2 <= n; ++j2)
+			for (unsigned j = 0; j <= n; ++j)
+				deBoor_at(j2, 0, j) = cp[(l2-n+j2)*(m+1) + l-n+j];
+		
+		// compute new values
+		for (unsigned r = 1; r <= n; ++r) {
+			for (unsigned i = l-n; i <= l-r; ++i) {
+				U tv = (s - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
+				assert(isfinite(tv));
+				for (unsigned j = 0; j <= n; ++j) {
+					deBoor_at(j, r, i+n-l) = deBoor_at(j, r-1, i+n-l) * (1 - tv)
+						+ deBoor_at(j, r-1, i+1+n-l) * tv;
+				}
+			}
+		}
+
+		for (unsigned j2 = 0; j2 <= n; ++j2)
+			deBoor_at(0, 0, j2) = deBoor_at(j2, n, 0);
+		for (unsigned r = 1; r <= n; ++r) {
+			for (unsigned i = l2-n; i <= l2-r; ++i) {
+				U tv = (t - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
+				assert(isfinite(tv));
+				deBoor_at(0, r, i+n-l2) = deBoor_at(0, r-1, i+n-l2) * (1 - tv)
+					+ deBoor_at(0, r-1, i+1+n-l2) * tv;
+			}
+		}
+
+		return deBoor_at(0, n, 0);
+	}
+
+};
+
+
+
+// some test code for the 2d bsplines! save as extra file to test it.
+#if 0
+#include "bspline.h"
+#include <fstream>
+using namespace std;
+
+double rnd(void) { return double(rand())/RAND_MAX; }
+
+const unsigned N = 4;
+const unsigned D = 33;
+const unsigned R = 4;
+int main(int, char**)
+{
+	srand(3746867);
+	vector<float> cps(D*D);
+	for (unsigned y = 0; y < D; ++y)
+		for (unsigned x = 0; x < D; ++x)
+			cps[D*y+x] = 8.0f*rnd()/D;
+	bspline2dt<float, float> bsp(N, cps);
+	ofstream out("bspline.off");
+	out << "OFF\n" << D*R*D*R << " " << (R*D-1)*(R*D-1)*2 << " 0\n";
+	for (unsigned y = 0; y < R*D; ++y) {
+		float fy = float(y)/(R*D-1);
+		for (unsigned x = 0; x < R*D; ++x) {
+			float fx = float(x)/(R*D-1);
+			out << fx << " " << fy << " " << bsp.value(fx, fy) << "\n";
+		}
+	}
+	for (unsigned y = 0; y < R*D-1; ++y) {
+		for (unsigned x = 0; x < R*D-1; ++x) {
+			out << "3 " << y*(R*D)+x << " " << y*(R*D)+x+1 << " " << (y+1)*(R*D)+x << "\n";
+			out << "3 " << y*(R*D)+x+1 << " " << (y+1)*(R*D)+x+1 << " " << (y+1)*(R*D)+x << "\n";
+		}
+	}
+	return 0;
+}
+#endif // test code
 
 #endif
