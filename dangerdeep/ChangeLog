@@ -1,3 +1,7 @@
+2003-12-02  Markus Petermann  <markus.petermann@gmx.net>
+	* src/user_interface.cpp: Text of command is written with a fixed
+	  format.
+
 2003-12-01  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* mapcompile.cpp coastline.cpp
 	  - coast lines are smoothed over segment boarders.
