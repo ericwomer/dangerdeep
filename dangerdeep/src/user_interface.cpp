@@ -114,7 +114,10 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 	texturecoords.reserve(2*verts+2);
 	double texscalefac = 1.0/double(4*WAVESIZE);
 	double zdist = 0;
-	vector2 mintexc = viewpos.xy() * texscalefac;
+	vector2 viewpostexoff;	// part of viewpos that is not used for wave texture
+				// coordinate computation
+	viewpostexoff.x = floor(viewpos.x * texscalefac);
+	viewpostexoff.y = floor(viewpos.y * texscalefac);
 	for (unsigned w = 0; w <= WAVEDEPTH; ++w) {
 		vector2 viewbase = viewpos.xy() + viewdir * zdist + viewleft * zdist * tanfovx2;
 		double viewleftfac = -2 * zdist * tanfovx2 / WAVESX;
@@ -126,8 +129,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 			verticecoords.push_back(height);
 			// don't take fractional part of coordinates for texture coordinates
 			// or wrap around error will occour.
-			vector2 texc = viewbase * texscalefac;
-			mintexc = mintexc.min(texc);
+			vector2 texc = viewbase * texscalefac - viewpostexoff;
 			texturecoords.push_back(texc.x);
 			texturecoords.push_back(texc.y);
 			viewbase += viewleft * viewleftfac;
@@ -192,23 +194,14 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 	verticecoords.push_back(horizonl.x);
 	verticecoords.push_back(horizonl.y);
 	verticecoords.push_back(0);
-	texturecoords.push_back(texscalefac * horizonl.x);
-	texturecoords.push_back(texscalefac * horizonl.y);
+	texturecoords.push_back(texscalefac * horizonl.x - viewpostexoff.x);
+	texturecoords.push_back(texscalefac * horizonl.y - viewpostexoff.y);
 	verticecoords.push_back(horizonr.x);
 	verticecoords.push_back(horizonr.y);
 	verticecoords.push_back(0);
-	texturecoords.push_back(texscalefac * horizonr.x);
-	texturecoords.push_back(texscalefac * horizonr.y);
+	texturecoords.push_back(texscalefac * horizonr.x - viewpostexoff.x);
+	texturecoords.push_back(texscalefac * horizonr.y - viewpostexoff.y);
 	
-	// shift texture coordinate minimum to 0 to limit texture coordinates (or else
-	// OpenGL may draw textures falsely) EXPERIMENTAL BUG FIX fixme
-	mintexc.x = floor(mintexc.x);
-	mintexc.y = floor(mintexc.y);
-	for (unsigned tcs = 0; tcs < verts + 2; ++tcs) {
-		texturecoords[tcs*2+0] -= mintexc.x;
-		texturecoords[tcs*2+1] -= mintexc.y;
-	}
-
 	glVertexPointer(3, GL_FLOAT, 0, &verticecoords[0]);
 	glTexCoordPointer(2, GL_FLOAT, 0, &texturecoords[0]);
 	
