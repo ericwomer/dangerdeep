@@ -590,12 +590,12 @@ void sky::display(const vector3& viewpos, double max_view_dist, bool isreflectio
 
 	// set texture coordinate translation for unit 1 (sunglow)
 	double suntxr = ((sundir.z > 1.0) ? 0.0 : acos(sundir.z)) / M_PI;
-	double suntxa = atan2(sundir.x, sundir.y);
+	double suntxa = atan2(sundir.y, sundir.x);
 	glActiveTexture(GL_TEXTURE1);
 	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
 	glLoadIdentity();
-	glTranslated(cos(suntxa)*suntxr, sin(suntxa)*suntxr, 0.0);
+	glTranslated(-cos(suntxa)*suntxr, -sin(suntxa)*suntxr, 0.0);
 	glMatrixMode(GL_MODELVIEW);
 	glActiveTexture(GL_TEXTURE0);	
 
@@ -638,7 +638,7 @@ void sky::display(const vector3& viewpos, double max_view_dist, bool isreflectio
 
 	// draw sun, fixme draw flares/halo
 	vector3 sunpos = sundir * (0.96 * max_view_dist);
-cout << "normiert " << get_sun_pos(viewpos).normal() << " total " << sunpos << "\n";
+//cout << "normiert " << get_sun_pos(viewpos).normal() << " total " << sunpos << "\n";
 	int suns = 5;		// make sun with 10x10 pixels
 	glColor3f(1,1,1);
 	suntex->set_gl_texture();
@@ -746,14 +746,16 @@ color sky::get_light_color(const vector3& viewpos) const
 vector3 sky::get_sun_pos(const vector3& viewpos) const
 {
 	// another try: position above earth
-	double alpha_s = M_PI*(-EARTH_ROT_AXIS_ANGLE*cos(2*M_PI*myfrac((mytime+10*86400)/EARTH_ORBIT_TIME)))/180.0;
-	double beta_s = M_PI - 2 * M_PI * myfrac(mytime/86400.0);
+	// seems to work, but check position dependence and time of year etc.
+	double alpha_s = M_PI - 2 * M_PI * myfrac(mytime/86400.0);
+	double beta_s = M_PI*(EARTH_ROT_AXIS_ANGLE*cos(2*M_PI*myfrac((mytime+10*86400)/EARTH_ORBIT_TIME)))/180.0;
 	double alpha_v = 2*M_PI*(viewpos.x/EARTH_PERIMETER);
-	double beta_v = 2*M_PI*(viewpos.y/EARTH_PERIMETER);
+	double beta_v = 2*M_PI*(-viewpos.y/EARTH_PERIMETER);
 	double r_v = EARTH_RADIUS * cos(beta_v);
-	vector3 earth2viewer(r_v*cos(alpha_v), r_v*sin(alpha_v), EARTH_RADIUS*sin(beta_v));
+	vector3 earth2viewer(r_v*sin(alpha_v), EARTH_RADIUS*sin(beta_v), r_v*cos(alpha_v));
 	double r_s = EARTH_SUN_DISTANCE * cos(beta_s);
-	vector3 earth2sun(r_s*cos(alpha_s), r_s*sin(alpha_s), EARTH_SUN_DISTANCE * sin(beta_s));
+	vector3 earth2sun(r_s*sin(alpha_s), EARTH_SUN_DISTANCE*sin(beta_s), r_s*cos(alpha_s));
+//cout << "posA " << earth2sun - earth2viewer << "\n";
 	return earth2sun - earth2viewer;
 
 
@@ -764,7 +766,6 @@ vector3 sky::get_sun_pos(const vector3& viewpos) const
 cout << "viewpos.x und so " << viewpos.x/EARTH_PERIMETER << " frac " << myfrac(mytime/EARTH_ROTATION_TIME) << "\n";
 cout << "alpha " << alpha << " beta " << beta << " gamma " << gamma << "\n";
 
-//fixme: the sun sets in the north!!! that is awfully wrong
 	matrix4 sun2earth =
 		matrix4( 0, 1, 0, 0,  0, 0, 1, 0,  1, 0, 0, 0,  0, 0, 0, 1) *
 		matrix4::trans(-EARTH_RADIUS, 0, 0) *
@@ -777,7 +778,8 @@ cout << "alpha " << alpha << " beta " << beta << " gamma " << gamma << "\n";
 
 cout << "sun2earth: \n";
 sun2earth.print();
-		
+
+cout << "posB " << sun2earth.column(3) << "\n";
 	return sun2earth.column(3);
 }
 
