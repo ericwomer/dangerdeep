@@ -105,20 +105,10 @@ public:
 	
 	static damage_data_scheme damage_schemes[nr_of_damageable_parts];
 
-	enum damage_indices {
-		dmg_unused,
-		dmg_none,
-		dmg_light,
-		dmg_medium,
-		dmg_heavy,
-		dmg_critical,
-		dmg_wrecked
-	};
-	
 	struct damageable_part {
-		unsigned status;	// categorized in "damage_indices" see above
+		double status;		// damage in percent, negative means part is not existent.
 		double repairtime;
-		damageable_part(unsigned st = dmg_unused, double rt = 0) : status(st), repairtime(rt) {}
+		damageable_part(double st = -1, double rt = 0) : status(st), repairtime(rt) {}
 	};
 		
 protected:

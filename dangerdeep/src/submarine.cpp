@@ -61,7 +61,7 @@ submarine::submarine() : ship(), dive_speed(0.0f), permanent_dive(false),
 {
 	// set all common damageable parts to "no damage"
 	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
-		damageable_parts[i] = damageable_part(dmg_none, 0);
+		damageable_parts[i] = damageable_part(0, 0);
 }
 	
 bool submarine::parse_attribute(parser& p)
@@ -493,6 +493,12 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 	double deadly_radius = DEADLY_DC_RADIUS_SURFACE +
 		get_pos().z * DEADLY_DC_RADIUS_200M / 200;
 	vector3 relpos = get_pos() - dc.get_pos();
+	
+	// this factor is used later in damage strength calculation.
+	// strength is >= 1.0 at deadly radius or nearer.
+	// strength is <= 0.01 at damage radius or farther.
+	double expfac = 4.605170186 / (damage_radius - deadly_radius);	// -4.6 = ln(0.01)
+	
 	// depth differences change destructive power
 	// but only when dc explodes above... fixme
 	// explosion and shock wave strength depends on water depth... fixme
@@ -526,10 +532,10 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 		// circles center.
 	
 		for (unsigned i = 0; i < nr_of_damageable_parts; ++i) {
-			if (damageable_parts[i].status == dmg_unused) continue;
+			if (damageable_parts[i].status < 0) continue;	// avoid non existent parts.
 
 			vector3f tmp = (damage_schemes[i].p1 + damage_schemes[i].p2) * 0.5;
-		if (tmp.square_length() == 0) continue;//hack to avoid yet not exsisting data fixme
+				if (tmp.square_length() == 0) continue;//hack to avoid yet not exsisting data fixme
 			vector3 part_center = get_pos() + vector3(
 				(tmp.x - 0.5) * bb.x,
 				(tmp.y - 0.5) * bb.y,
@@ -538,17 +544,13 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 			// depth differences change destructive power etc. see above
 			double sdlen = relpos.length();
 			
-			double strength = (damage_radius - sdlen) / (damage_radius - deadly_radius);
+//			double strength = (damage_radius - sdlen) / (damage_radius - deadly_radius);
+			double strength = exp((deadly_radius - sdlen) * expfac);
+			
 			if (strength > 0 && strength <= 1) {
-				unsigned dmg = unsigned(round(dmg_wrecked*strength));
-				damageable_parts[i].status += dmg;
-				if (damageable_parts[i].status > dmg_wrecked)
-					damageable_parts[i].status = dmg_wrecked;
+				add_saturated(damageable_parts[i].status, strength, 1.0);
 			}
 	
-//		if (damageable_parts[i].status < dmg_wrecked)
-//		damageable_parts[i].status ++;	// test hack fixme	
-
 				ostringstream os;
 				os << "DC caused damage! relpos " << relpos.x << "," << relpos.y << "," << relpos.z << " dmg " << strength;
 				system::sys()->add_console(os.str());

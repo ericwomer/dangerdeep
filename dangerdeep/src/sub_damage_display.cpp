@@ -89,6 +89,7 @@ void sub_damage_display::display_popup (int x, int y, const string& text, bool a
 void sub_damage_display::display ( class system& sys, class game& gm )
 {
 	int ydrawdiff = (damage_screen_background->get_height()-sub_damage_scheme_all->get_height())/2;
+	glColor4f(1,1,1,1);
 	damage_screen_background->draw(0, 0);
 	sub_damage_scheme_all->draw(0, ydrawdiff);
 
@@ -97,15 +98,15 @@ void sub_damage_display::display ( class system& sys, class game& gm )
 		rect r = rect_data[i];
 			if (r.x == 0) continue;	// display test hack fixme
 		int x = r.x + r.w/2 - 16, y = r.y + r.h/2 - 16 + ydrawdiff;
-		texture* t = 0;
-		switch (damageable_parts[i].status) {
-			case submarine::dmg_light: t = repairlight; break;
-			case submarine::dmg_medium: t = repairmedium; break;
-			case submarine::dmg_heavy: t = repairheavy; break;
-			case submarine::dmg_critical: t = repaircritical; break;
-			case submarine::dmg_wrecked: t = repairwrecked; break;
+		if (damageable_parts[i].status > 0.0) {
+			texture* t = 0;
+			if (damageable_parts[i].status <= 0.25) t = repairlight;
+			else if (damageable_parts[i].status <= 0.50) t = repairmedium;
+			else if (damageable_parts[i].status <= 0.75) t = repairheavy;
+			else if (damageable_parts[i].status < 1.00) t = repaircritical;
+			else t = repairwrecked;
+			sys.draw_image(x, y, 32, 32, t);
 		}
-		if (t)	sys.draw_image(x, y, 32, 32, t);
 	}
 	
 	// fixme: clean up used textures of damage_screen_background & sub_damage_scheme_all
@@ -127,7 +128,22 @@ void sub_damage_display::check_mouse ( int x, int y, int mb )
 			// it is important, that texts are in correct order starting with 400.
 			bool atleft = (r.x+r.w/2) < 1024/2;
 			bool atbottom = (r.y+r.h/2) >= 768/2;
-			display_popup(r.x+r.w/2, r.y+r.h/2, texts::get(400+i), atleft, atbottom);
+
+			unsigned damcat = 0;	// damage category
+			if (damageable_parts[i].status > 0) {
+				if (damageable_parts[i].status <= 0.25) damcat = 1;
+				else if (damageable_parts[i].status <= 0.50) damcat = 2;
+				else if (damageable_parts[i].status <= 0.75) damcat = 3;
+				else if (damageable_parts[i].status < 1.00) damcat = 4;
+				else damcat = 5;
+			}
+			
+			ostringstream dmgstr;
+			dmgstr	<< texts::get(400+i) << "\n"	// name
+				<< texts::get(165) << texts::get(130+damcat)
+				<< " (" << unsigned(round(100*damageable_parts[i].status)) << " "
+				<< texts::get(166) << ")";
+			display_popup(r.x+r.w/2, r.y+r.h/2, dmgstr.str(), atleft, atbottom);
 		}
 	}
 }

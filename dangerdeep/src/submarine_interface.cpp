@@ -288,11 +288,11 @@ void submarine_interface::display(class system& sys, game& gm)
 			break;
 		case display_mode_glasses:
 		case display_mode_bridge:
-            if ( zoom_scope )
-                display_glasses(sys, gm);
-            else
-                display_bridge(sys, gm);
-            break;
+			if ( zoom_scope )
+				display_glasses(sys, gm);
+			else
+			display_bridge(sys, gm);
+			break;
 		case display_mode_map:
 			display_map(sys, gm);
 			break;
@@ -488,6 +488,7 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	submarine* player = dynamic_cast<submarine*> ( get_player () );
 
 	// draw display without display color.
+	glColor4f(1,1,1,1);
 	// draw background
 	sys.prepare_2d_drawing();
 	sys.draw_tiles(0, 0, 1024, 768, 8, 6, background);

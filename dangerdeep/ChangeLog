@@ -1,6 +1,9 @@
 2003-07-31  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* user_interface.cpp game.cpp
 	  - support for multiple cloud textures and one new cloud texture.
+	* sub_damage_display.cpp submarine.cpp
+	  - damages stored as finer values, adapted display.
+	    now damages can be accumulated.
 
 2003-07-30  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* game.cpp submarine.cpp
