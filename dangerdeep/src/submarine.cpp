@@ -71,8 +71,24 @@ submarine::submarine() : ship(), dive_speed(0.0f), dive_acceleration(0.0f), max_
 
 
 
-submarine::submarine(const string& specfilename_) : ship(specfilename_)
+submarine::submarine(const string& specfilename_) : ship(specfilename_),
+	
+	dive_speed(0.0f), dive_acceleration(0.0f), max_dive_speed(1.0f),//TESTING
+	max_depth(150.0f), dive_to(0.0f), permanent_dive(false),
+	scopeup(false), periscope_depth(12.0f), hassnorkel (false), snorkel_depth(10.0f),
+	snorkelup(false),
+	battery_level ( 1.0f ), battery_value_a ( 0.0f ), battery_value_t ( 1.0f ),
+	battery_recharge_value_a ( 0.0f ), battery_recharge_value_t ( 1.0f ),
+	damageable_parts(nr_of_damageable_parts),
+	trp_primaryrange(0), trp_secondaryrange(0), trp_initialturn(0), trp_searchpattern(0),
+	trp_addleadangle(0)
+
 {
+	// set all common damageable parts to "no damage" TESTING
+	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
+		damageable_parts[i] = damageable_part(0, 0);
+
+
 	TiXmlDocument doc(get_ship_dir() + specfilename + ".xml");
 	doc.LoadFile();
 	TiXmlHandle hdoc(&doc);
