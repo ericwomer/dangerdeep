@@ -60,7 +60,7 @@ void menu_notimplemented(void)
 unsigned mission_subtype = 0, mission_cvsize = 0, mission_cvesc = 0, mission_tod = 0;
 void start_custom_mission(void)
 {
-	submarine::types st;
+	submarine::types st = submarine::typeVIIc;
 	switch (mission_subtype) {
 		case 0: st = submarine::typeVIIc; break;
 		case 1: st = submarine::typeXXI; break;

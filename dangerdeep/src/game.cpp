@@ -125,7 +125,7 @@ game::game(parser& p) : running(true), time(0)
 				time = p.parse_number();
 				p.parse(TKN_SEMICOLON);
 				break;
-			default: p.error("Expected definition");
+			default: p.error("game: Expected definition");
 		}
 	}
 	last_trail_time = time - TRAILTIME;

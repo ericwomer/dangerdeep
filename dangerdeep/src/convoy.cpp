@@ -150,7 +150,7 @@ convoy::convoy(class game& gm, parser& p) : sea_object()
 			else if (shp->is_escort())
 				escorts.push_back(sp);
 		} else {
-			p.error("Expected definition");
+			p.error("convoy: Expected definition");
 		}
 	}
 	p.consume();
