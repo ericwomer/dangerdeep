@@ -8,7 +8,12 @@
 using namespace std;
 #include "texture.h"
 #include "color.h"
+#ifdef WIN32
+#include <SDL.h>
+#define for if(0);else for
+#else
 #include <SDL/SDL.h>
+#endif
 
 class font
 {

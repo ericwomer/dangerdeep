@@ -2,14 +2,26 @@
 // (C)+(W) by Thorsten Jordan. See LICENSE
 // Parts taken and adapted from Martin Butterwecks's OOML SDL code (wws.sourceforget.net/projects/ooml/)
 
-#include "system.h"
 #include <iostream>
+#include <sstream>
+#include <cmath>
+using namespace std;
 #define GL_GLEXT_LEGACY
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <SDL.h>
+#include <SDL_image.h>
+#define M_PI 3.1415926535897932	// should be in math.h, but not for Windows. *sigh*
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
-#include <sstream>
+#endif
+#include "system.h"
 
 class system* system::instance = 0;
 
@@ -31,7 +43,7 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	int err = SDL_Init(SDL_INIT_VIDEO);
 	myassert(err>=0, "SDL Video init failed");
 	const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
-	myassert(videoInfo, "Video info query failed");
+	myassert(videoInfo != 0, "Video info query failed");
 	int videoFlags  = SDL_OPENGLBLIT | SDL_GL_DOUBLEBUFFER | SDL_HWPALETTE;
 	videoFlags |= (videoInfo->hw_available) ? SDL_HWSURFACE : SDL_SWSURFACE;
 	if (fullscreen)
@@ -41,7 +53,7 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	int bpp = videoInfo->vfmt->BitsPerPixel;
 	SDL_Surface* screen = SDL_SetVideoMode(res_x, res_y, bpp, videoFlags);
-	myassert(screen, "Video mode set failed");
+	myassert(screen != 0, "Video mode set failed");
 
 	SDL_EventState(SDL_VIDEORESIZE, SDL_IGNORE);//fixme
 	SDL_EventState(SDL_SYSWMEVENT, SDL_IGNORE);//fixme
@@ -79,7 +91,7 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 
 system::~system()
 {
-	myassert(instance);
+	myassert(instance != 0);
 	SDL_Quit();
 	instance = 0;
 }

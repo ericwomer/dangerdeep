@@ -2,8 +2,15 @@
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "game.h"
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <GL/gl.h>
+#include <SDL.h>
+#else
 #include <GL/gl.h>
 #include <SDL/SDL.h>
+#endif
 #include "system.h"
 #include <sstream>
 #include "submarine_interface.h"
@@ -655,8 +662,33 @@ void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
 	}
 }
 
+#ifdef WIN32	// avoid compiler inability.
+
+ship* game::check_unit_list ( torpedo* t, list<ship*>& unit_list )
+{
+	for ( list<ship*>::iterator it = unit_list.begin (); it != unit_list.end (); ++it )
+	{
+		if ( is_collision ( t, *it ) )
+			return *it;
+	}
+
+	return 0;
+}
+ship* game::check_unit_list ( torpedo* t, list<submarine*>& unit_list )
+{
+	for ( list<submarine*>::iterator it = unit_list.begin (); it != unit_list.end (); ++it )
+	{
+		if ( is_collision ( t, *it ) )
+			return *it;
+	}
+
+	return 0;
+}
+
+#else
+
 template<class _C>
-ship* game::check_unit_list ( torpedo* t, list<_C>& unit_list )
+ship* game::check_unit_list ( torpedo* t, typename list<_C>& unit_list )
 {
 	for ( typename list<_C>::iterator it = unit_list.begin (); it != unit_list.end (); ++it )
 	{
@@ -666,6 +698,8 @@ ship* game::check_unit_list ( torpedo* t, list<_C>& unit_list )
 
 	return 0;
 }
+
+#endif
 
 bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 {

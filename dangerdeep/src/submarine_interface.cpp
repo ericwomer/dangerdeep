@@ -1,9 +1,17 @@
 // user interface for controlling a submarine
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <SDL.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL/SDL.h>
+#endif
 #include <sstream>
 #include <map>
 #include <list>

@@ -9,6 +9,11 @@
 #include <iostream>
 using namespace std;
 
+#ifdef WIN32
+#undef min
+#undef max
+#endif
+
 template <class D2> class vector3t;
 
 template <class D>

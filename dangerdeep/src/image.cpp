@@ -2,8 +2,15 @@
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
 #include "image.h"
+#ifdef WIN32
+#include <SDL_image.h>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <GL/gl.h>
+#else
 #include <SDL/SDL_image.h>
 #include <GL/gl.h>
+#endif
 
 image::image(const string& s, unsigned mapping_, bool clamp_, bool morealpha_,
 	bool loaddynamically) :

@@ -1,9 +1,17 @@
 // user interface for controlling a ship
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <SDL.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL/SDL.h>
+#endif
 #include <sstream>
 #include "ship_interface.h"
 #include "system.h"

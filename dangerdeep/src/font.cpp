@@ -2,9 +2,16 @@
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
 #include "font.h"
-#include <GL/gl.h>
 #include <cstring>
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <GL/gl.h>
+#include <SDL_image.h>
+#else
+#include <GL/gl.h>
 #include <SDL/SDL_image.h>
+#endif
 #include "system.h"
 #include <sstream>
 
@@ -86,7 +93,7 @@ font::font(const char* filename, unsigned char_spacing, unsigned blank_length,
 	translate.resize(256, 0xff);
 
 	SDL_Surface* fontimage = IMG_Load(filename);
-	system::sys()->myassert(fontimage, string("font: failed to open")+filename);
+	system::sys()->myassert(fontimage != 0, string("font: failed to open")+filename);
 	unsigned w = fontimage->w;
 	unsigned h = fontimage->h;
 

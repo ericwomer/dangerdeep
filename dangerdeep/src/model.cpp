@@ -5,6 +5,11 @@
 #include "global_data.h"
 #include <GL/gl.h>
 
+#ifdef WIN32
+#undef min
+#undef max
+#endif
+
 float model::read_packed_float(FILE* f)
 {
 	short s = 0;
@@ -42,7 +47,7 @@ void model::read(const string& filename)
 	vertices.clear();
 	faces.clear();
 	FILE* f = fopen(filename.c_str(), "rb");
-	system::sys()->myassert(f, string("model: failed to open")+filename);
+	system::sys()->myassert(f != 0, string("model: failed to open")+filename);
 	char tmp[16];
 	fread(tmp, 16, 1, f);
 	system::sys()->myassert(memcmp("TJ___MODELFILE00", tmp, 16) == 0,
@@ -119,7 +124,7 @@ void model::read_from_OFF(const string& filename, const string& texture_name, un
 	min = vector3f(1e10, 1e10, 1e10);
 	int nr_vertices = 0, nr_faces = 0;
 	FILE *f = fopen(filename.c_str(), "rb");
-	system::sys()->myassert(f, string("model: failed to open")+filename);
+	system::sys()->myassert(f != 0, string("model: failed to open")+filename);
 	int i, j;
 	char header[5];
 	fread(header, 1, 5, f);
@@ -187,7 +192,7 @@ void model::read_from_OFF(const string& filename, const string& texture_name, un
 void model::write(const string& filename) const
 {
 	FILE* f = fopen(filename.c_str(), "wb");
-	system::sys()->myassert(f, string("model: failed to open")+filename);
+	system::sys()->myassert(f != 0, string("model: failed to open")+filename);
 	fwrite("TJ___MODELFILE00", 16, 1, f);
 	if (tex) {
 		string texname = tex->get_name();

@@ -44,8 +44,8 @@ bool ship::parse_attribute(parser& p)
 			fuel_level = p.parse_number () / 100.0f;
 			p.parse ( TKN_SEMICOLON );
 			break;
-		default: return false;
 	}
+	return false;
 }
 
 ship* ship::create(ship::types type_)

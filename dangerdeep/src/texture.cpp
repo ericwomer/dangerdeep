@@ -2,10 +2,20 @@
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
 #define GL_GLEXT_LEGACY
+#define GL_GLEXT_LEGACY
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <SDL.h>
+#include <SDL_image.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
+#endif
 #include "texture.h"
 #include "system.h"
 #include <vector>
@@ -52,6 +62,7 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 
 		internalformat = usealpha ? (morealpha ? GL_RGBA : GL_RGB5_A1) : GL_RGB;
 
+#ifndef WIN32	// i hate windows.
 #ifdef GL_EXT_paletted_texture
 		if (check_for_paletted_textures()) {
 			glColorTableEXT(GL_TEXTURE_2D, internalformat, 256, GL_RGBA, GL_UNSIGNED_BYTE, &(palette[0]));
@@ -68,6 +79,7 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 			}
 		} else {
 #endif
+#endif
 			tmpimage = new unsigned char [tw*th*4];
 			memset(tmpimage, 0, tw*th*4);
 			unsigned* ptr = (unsigned*)tmpimage;
@@ -80,8 +92,10 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 				ptr += tw - sw;
 			}
 			externalformat = GL_RGBA;
+#ifndef WIN32
 #ifdef GL_EXT_paletted_texture
 		}
+#endif
 #endif
 	} else {
 		bool usealpha = teximage->format->Amask != 0;
@@ -145,7 +159,7 @@ texture::texture(const string& filename, unsigned mapping, bool clamp, bool more
 {
 	texfilename = filename;
 	SDL_Surface* teximage = IMG_Load(filename.c_str());
-	system::sys()->myassert(teximage, string("texture: failed to load")+filename);
+	system::sys()->myassert(teximage != 0, string("texture: failed to load")+filename);
 	init(teximage, 0, 0, teximage->w, teximage->h, mapping, clamp, morealpha);
 	SDL_FreeSurface(teximage);
 }	

@@ -4,7 +4,14 @@
 #ifndef COLOR_H
 #define COLOR_H
 
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <GL/gl.h>
+#pragma warning (disable:4786)
+#else
+#include <GL/gl.h>
+#endif
 
 struct color {
 	unsigned char r, g, b;

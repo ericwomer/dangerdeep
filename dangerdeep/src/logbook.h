@@ -14,11 +14,16 @@ using namespace std;
 //
 class logbook
 {
+public:
 	typedef map<unsigned, string> logbook_entry_map;
 	typedef logbook_entry_map::iterator logbook_entry_map_iterator;
 	typedef logbook_entry_map::const_iterator logbook_entry_map_const_iterator;
 
+#ifdef WIN32
+public:		// avoid compiler bug.
+#else
 private:
+#endif
 	logbook_entry_map logbook_entries;
 
 public:

@@ -6,7 +6,11 @@
 
 #include <string>
 using namespace std;
+#ifdef WIN32
+#include <SDL.h>
+#else
 #include <SDL/SDL.h>
+#endif
 
 class texture
 {

@@ -14,9 +14,14 @@ public:
 		July, August, September, October, November, December };
 	enum date_type { year, month, day, hour, minute, second, last_date_type };
 
+#ifdef WIN32
+public:		// avoid compiler bug.
+#else
 private:
+#endif
 	unsigned date_values[last_date_type];
 
+private:
 	/**
 		Copy the content of object d to the actual object.
 		@param d date object which attributes are going to be copied.

@@ -1,9 +1,17 @@
 // user interface common code
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <SDL.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL/SDL.h>
+#endif
 #include <sstream>
 #include "user_interface.h"
 #include "system.h"
@@ -49,9 +57,9 @@ void user_interface::init ()
 	// if the constructors of these classes may ever fail, we should
 	// use C++ exceptions.
 	captains_logbook = new captains_logbook_display;
-	system::sys()->myassert ( captains_logbook, "Error while creating captains_logbook!" );
+	system::sys()->myassert ( captains_logbook != 0, "Error while creating captains_logbook!" );
 	ships_sunk_disp = new ships_sunk_display;
-	system::sys()->myassert ( ships_sunk_disp, "Error while creating ships_sunk!" );
+	system::sys()->myassert ( ships_sunk_disp != 0, "Error while creating ships_sunk!" );
 
 	if (allwaveheights.size() == 0) init_water_data();
 }

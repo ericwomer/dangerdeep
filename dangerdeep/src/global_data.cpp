@@ -7,7 +7,11 @@
 #include "font.h"
 #include "global_data.h"
 #include "sound.h"
+#ifdef WIN32
+#include <SDL_image.h>
+#else
 #include <SDL/SDL_image.h>
+#endif
 
 #define TEXTURE_DIR "textures/"
 #define FONT_DIR "fonts/"

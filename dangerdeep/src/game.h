@@ -154,8 +154,13 @@ public:
 	// various functions (fixme: sort, cleanup)
 	const list<ping>& get_pings(void) const { return pings; };
 
+#ifdef WIN32	// avoid compiler inability.
+	ship* check_unit_list ( torpedo* t, list<ship*>& unit_list );
+	ship* check_unit_list ( torpedo* t, list<submarine*>& unit_list );
+#else
 	template<class _C>
 	ship* check_unit_list ( torpedo* t, list<_C>& unit_list );
+#endif
 	bool check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure);
 
 	sea_object* contact_in_direction(const sea_object* o, const angle& direction);

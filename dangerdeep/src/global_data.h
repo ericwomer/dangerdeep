@@ -5,7 +5,14 @@
 #define GLOBAL_DATA_H
 
 #include <string>
+#ifdef WIN32
+#include <SDL.h>
+#define DATADIR "./data/"
+#define for if(0);else for
+#else
 #include <SDL/SDL.h>
+#endif
+#include <cmath>
 using namespace std;
 #include "date.h"
 

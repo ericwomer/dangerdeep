@@ -1,7 +1,13 @@
 // water splash
 // subsim (C)+(W) Markus Petermann. SEE LICENSE
 
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <GL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
 #include "sea_object.h"
 #include "texture.h"
 #include "water_splash.h"

@@ -1,4 +1,20 @@
 2003-07-06  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* begun Win32 Port.
+	  It compiles, links and runs, BUT:
+	  - there is no mouse pointer.
+	  - models are not read or drawn right, they look like rotated
+	    around their length axis and normal vectors inverted.
+	  - many dirty hacks are neccessary to work with Visual C++ 6,
+	    most ugly:
+	    #define for if(0);else for to avoid VC6 compiler bug.
+	    change private: to public: (VC6 ignores friend decl.)
+	    Disabled glPaletteEXT (MSDN says "ok", VC6 says "no")
+	  - You'll need to alter the SDL paths in the project file.
+	  - Possible trash of memory after exit (Win98 crashed 20 seconds
+	    later)
+	  - Speed seems ok.
+
+2003-07-06  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* convoy.cpp game.cpp subsim.cpp
 	  - first bits of custom mission generation.
 
