@@ -4,6 +4,9 @@
 	* sub_damage_display.cpp submarine.cpp
 	  - damages stored as finer values, adapted display.
 	    now damages can be accumulated.
+	* submarine.cpp
+	  - all parts visible in damage display are now also damageable.
+	  - more information is shown about damages.
 
 2003-07-30  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* game.cpp submarine.cpp

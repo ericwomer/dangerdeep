@@ -48,13 +48,15 @@ static rect rect_data[] = {
 	rect(877,270,906,341),	//     dive planes
 	rect(464,32,493,57),	// aa gun
 	rect(458,66,495,80),	// ammo depot
-	rect(323,261,673,277),	// outer fuel tanks (used left in image)
+	rect(323,261,673,277),	// outer fuel tanks left
+	rect(323,330,673,347),	// outer fuel tanks right
 
 	rect(84,107,106,115),	// outer stern tubes
 	rect(177,107,201,115),	// inner
 	rect(0,0,0,0),	// snorkel
 	rect(587,58,656,80),	// deck gun
 	rect(0,0,0,0),	// radio detection device
+	rect(0,0,0,0),	// radar
 };
 
 
@@ -129,6 +131,7 @@ void sub_damage_display::check_mouse ( int x, int y, int mb )
 			bool atleft = (r.x+r.w/2) < 1024/2;
 			bool atbottom = (r.y+r.h/2) >= 768/2;
 
+			// determine amount of damage
 			unsigned damcat = 0;	// damage category
 			if (damageable_parts[i].status > 0) {
 				if (damageable_parts[i].status <= 0.25) damcat = 1;
@@ -137,12 +140,30 @@ void sub_damage_display::check_mouse ( int x, int y, int mb )
 				else if (damageable_parts[i].status < 1.00) damcat = 4;
 				else damcat = 5;
 			}
-			
+
+			// display basic information			
 			ostringstream dmgstr;
 			dmgstr	<< texts::get(400+i) << "\n"	// name
 				<< texts::get(165) << texts::get(130+damcat)
 				<< " (" << unsigned(round(100*damageable_parts[i].status)) << " "
-				<< texts::get(166) << ")";
+				<< texts::get(166) << ")\n";
+
+			// if part is damages, display repair information
+			if (damcat > 0) {
+				if (submarine::damage_schemes[i].repairable) {
+					if (submarine::damage_schemes[i].surfaced) {
+						dmgstr << texts::get(168);
+					} else {
+						unsigned minutes = unsigned(round(damageable_parts[i].repairtime / 60.0));
+						dmgstr << texts::get(167) << "\n"
+						<< texts::get(170) << minutes << texts::get(minutes == 1 ? 171 : 172);
+					}
+				} else {
+					dmgstr << texts::get(169);
+				}
+			}
+			
+			// display popup with all information. fixme automatic line breaks
 			display_popup(r.x+r.w/2, r.y+r.h/2, dmgstr.str(), atleft, atbottom);
 		}
 	}

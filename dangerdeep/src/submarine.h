@@ -67,7 +67,8 @@ public:
 		bow_dive_planes,
 		aa_gun,
 		ammunition_depot,
-		outer_fuel_tanks,
+		outer_fuel_tanks_left,
+		outer_fuel_tanks_right,
 
 		// parts specific to sub types
 		outer_stern_tubes,
@@ -75,7 +76,7 @@ public:
 		snorkel,//fixme conflicts with bool snorkel;
 		deck_gun,
 		radio_detection_device,
-		// radar,	// maybe
+		radar,
 		
 		nr_of_damageable_parts	// trick to count enum entries
 	};
