@@ -32,6 +32,7 @@
 #include "filehelper.h"
 #include "highscorelist.h"
 #include "user_interface.h"
+#include "cfg.h"
 #include "tinyxml/tinyxml.h"
 
 class system* sys;
@@ -987,32 +988,19 @@ int main(int argc, char** argv)
 	string(getenv("HOME"))+"/."+PACKAGE + "/";
 #endif
 
-/*
-	//fixme use getenv for $(HOME)
-	// move to another function
-	// package game options in own class
-	// config file reading
-	FILE* fcfg = fopen("~/.dangerdeep.rc", "rt");
-	if (!fcfg) {
-		cout << "no config file found\n";
-		fcfg = fopen("~/.dangerdeep.rc", "wt");
-		if (!fcfg) {
-			cout << "could not write config file\n";
-		} else {
-			fclose(fcfg);
-		}
-	} else {
-		fclose(fcfg);
-	}
-*/
+	cfg& mycfg = cfg::instance();
+	mycfg.register_option("screen_res_x", 1024);
+	mycfg.register_option("screen_res_y", 768);
+	mycfg.register_option("fullscreen", true);
+	mycfg.register_option("debug", false);
+	mycfg.register_option("sound", true);
+	
+	mycfg.load(configdirectory + "config");
+	// make sure the default values are stored if there is no config file,
+	// and make sure all registered values are stored in it
+	mycfg.save(configdirectory + "config");
 
 /*
-	cfg::registeru("screen_res_x", 1024);
-	cfg::registeru("screen_res_y", 768);
-	cfg::registerb("fullscreen", true);
-	cfg::registerb("debug", true);
-	cfg::registerb("sound", true);
-	
 	// 100 times...
 	cfg::registeru("key_x", SDLK_x);
 	...
@@ -1029,6 +1017,7 @@ int main(int argc, char** argv)
 	user_interface could init the water with
 	int waterresx = config::ask("water_res_x"); etc...
 	this would be very handy.
+	fixme: finish class cfg, use it!
 */
 
 	// command line argument parsing

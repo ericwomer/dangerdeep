@@ -4,6 +4,8 @@
 	    realistic, the convoy's ships are at the visible border.
 	    Now custom missions are useable (if we ignore the suicidal
 	    destroyers...)
+	* subsim.cpp cfg.h cfg.cpp
+	  - added config file class. (not ready yet)
 
 2004-05-16  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* sea_object, sensor
