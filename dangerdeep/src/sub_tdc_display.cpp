@@ -70,8 +70,10 @@ void sub_tdc_display::display(class game& gm) const
 {
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 
+	// test: clear background, later this is not necessary, fixme
 	glClearColor(0, 0, 0, 0);
-	//glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
+
 	system::sys().prepare_2d_drawing();
 	glColor3f(1,1,1);
 

@@ -1222,7 +1222,7 @@ int mymain(list<string>& args)
 	mycfg.register_key(key_names[KEY_TIME_SCALE_DOWN].name, SDLK_KP_MINUS, 0, 0, 0);
 	mycfg.register_key(key_names[KEY_FIRE_DECK_GUN].name, SDLK_g, 0, 0, 0);
 	mycfg.register_key(key_names[KEY_TOGGLE_RELATIVE_BEARING].name, SDLK_r, 0, 0, 0);
-	mycfg.register_key(key_names[KEY_TOGGLE_MAN_DECK_GUN].name, SDLK_r, 0, 0, 1);
+	mycfg.register_key(key_names[KEY_TOGGLE_MAN_DECK_GUN].name, SDLK_g, 0, 0, 1);
 	mycfg.register_key(key_names[KEY_SHOW_TDC_SCREEN].name, SDLK_F11, 0, 0, 0);
 
 	//mycfg.register_option("invert_mouse", false);
