@@ -14,7 +14,7 @@ depth_charge::depth_charge(const sea_object& parent, double expl_depth) : sea_ob
 	head_to = 0;
 	length = 1;
 	width = 1;
-	explosion_depth = expl_depth;	// fixme: the dcs seem to keep falling eternally after an explosion?!
+	explosion_depth = expl_depth;
 	speed = 0;
 	max_speed = 0;
 	max_rev_speed = 0;
@@ -25,7 +25,8 @@ depth_charge::depth_charge(const sea_object& parent, double expl_depth) : sea_ob
 
 void depth_charge::simulate(game& gm, double delta_time)
 {
-	sea_object::simulate(gm, delta_time);	// nothing happens
+	sea_object::simulate(gm, delta_time);
+	if (is_defunct()) return;
 	position.z -= DEPTH_CHARGE_SINK_SPEED * delta_time;
 	if (position.z < -explosion_depth) {
 		gm.dc_explosion(position);

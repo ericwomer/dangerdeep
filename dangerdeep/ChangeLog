@@ -2,6 +2,9 @@
 	* torpedo.cpp user_interface.cpp
 	  - introduced new torpedo types. Now all historical types available
 	    with authentic data, except T4 (Falke) sensors.
+	* depth_charge.cpp
+	  - fixed bug: depth charges were never removed and kept falling and
+	    exploding eternally.
 
 2003-07-27  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* torpedo.cpp submarine_interface.cpp submarine.cpp

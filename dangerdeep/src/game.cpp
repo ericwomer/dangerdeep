@@ -551,8 +551,9 @@ void game::dc_explosion(const vector3& pos)
 			(*it)->get_pos().z * DAMAGE_DC_RADIUS_200M / 200;
 		double deadly_radius = DEADLY_DC_RADIUS_SURFACE +
 			(*it)->get_pos().z * DEADLY_DC_RADIUS_200M / 200;
-		vector3 sdist = (*it)->get_pos() - pos;
-		sdist.z *= 2;	// depth differences change destructive power
+		vector3 relpos = (*it)->get_pos() - pos;
+		// depth differences change destructive power
+		vector3 sdist(relpos.x, relpos.y, relpos.z*2.0);
 		double sdlen = sdist.length();
 
 		// is submarine killed immidiatly?
@@ -566,7 +567,11 @@ void game::dc_explosion(const vector3& pos)
 
 		} else if (sdlen <= damage_radius) {	// handle damages
 			double strength = (sdlen - deadly_radius) / (damage_radius - deadly_radius);
-			(*it)->add_damage(pos, strength);
+			(*it)->add_damage(relpos, strength);
+
+			ostringstream os;
+			os << "DC caused damage! relpos " << relpos.x << "," << relpos.y << "," << relpos.z << " dmg " << strength;
+			system::sys()->add_console(os.str());
 		}
 	}
 }
