@@ -18,19 +18,21 @@ using namespace std;
 struct coastline
 {
 	bsplinet<vector2f, float> curve;	// points in map coordinates (meters)
+	int beginborder, endborder;	// 0-3: top,right,bottom,left, -1:(part of an) island
 
-	bool cyclic;		// is cyclic, that means an island?, fixme: do we need that?
-	
-	coastline(int n, const vector<vector2f>& p, bool cyclic_) : curve(n, p), cyclic(cyclic_) {}
+	coastline(int n, const vector<vector2f>& p, int bb, int eb) : curve(n, p), beginborder(bb), endborder(eb) {}
 	~coastline() {}
-	coastline(const coastline& o) : curve(o.curve), cyclic(o.cyclic) {}
-	coastline& operator= (const coastline& o) { curve = o.curve; cyclic = o.cyclic; return *this; }
+	coastline(const coastline& o) : curve(o.curve), beginborder(o.beginborder), endborder(o.endborder) {}
+	coastline& operator= (const coastline& o) { curve = o.curve; beginborder = o.beginborder; endborder = o.endborder; return *this; }
 
 	// create vector of real points, detail can be > 0 (additional detail with bspline
 	// interpolation) or even < 0 (reduced detail)
 	// create points between begint and endt with 0<=t<=1
 	// new points are appended on vector "points"
 	void create_points(vector<vector2f>& points, float begint, float endt, int detail = 0) const;
+	
+	// just for testing purposes.
+	void draw_as_map(int detail = 0) const;
 };
 
 
@@ -41,12 +43,11 @@ struct coastsegment
 	{
 		unsigned mapclnr;	// pointer to coastmap::coastlines, global cl number
 		float begint, endt;
-		vector2f beginp, endp;	// do we need that? use coastlines[mapclnr].curve.value(begint) instead...? fixme
+		vector2f beginp, endp;	// = coastlines[mapclnr].curve.value(begint) but storing is faster!
 		int beginborder;// 0-3, top,right,bottom,left of segment, -1 = (part of an) island
-		int endborder;	// dito, fixme do we need that?
+		int endborder;	// dito
 		bool cyclic;
 		int next;
-		//segcl(unsigned n, unsigned s, unsigned e) : mapclnr(n), begint(s), endt(e) {}
 	};
 
 	unsigned type;	// 0 - sea, 1 - land, 2 mixed
@@ -89,7 +90,6 @@ class coastmap
 
 	// some attributes used for map reading/processing
 	vector<Uint8> themap;		// pixel data of map file
-	double segw;			// real width of a segment
 	static const int dmx[4];	// some helper constants.
 	static const int dmy[4];
 	static const int dx[4];
@@ -117,7 +117,7 @@ class coastmap
 	Uint8& mapf(int cx, int cy);
 	bool find_begin_of_coastline(int& x, int& y);
 	bool find_coastline(int x, int y, vector<vector2i>& points, bool& cyclic, int& beginborder, int& endborder);
-	void divide_and_distribute_cl(const coastline& cl, const vector<vector2i>& points);
+	void divide_and_distribute_cl(const coastline& cl, unsigned clnr, const vector<vector2i>& points);
 	void process_coastline(int x, int y);
 	void process_segment(int x, int y);
 
@@ -126,7 +126,6 @@ public:
 	coastmap(const string& filename);
 	~coastmap() {}
 
-	// fixme: handle zoom and offset with OpenGL transformation matrix.
 	// fixme: maybe it's better to give top,left and bottom,right corner of sub area to draw
 	void draw_as_map(const vector2& droff, double mapzoom, int detail = 0) const;
 	// here give point and viewrange for rendering?

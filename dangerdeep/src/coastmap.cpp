@@ -39,6 +39,7 @@ const int coastmap::dy[4] = { -1, 0, 1, 0 };
 */
 void coastline::create_points(vector<vector2f>& points, float begint, float endt, int detail) const
 {
+assert(endt>begint);//fixme quick hack to avoid bugs caused by other fixme's etc.
 	// compute number of points to be generated
 	unsigned totalpts = curve.control_points().size();
 	unsigned nrpts = unsigned(round(float(totalpts) * (endt-begint)));
@@ -48,6 +49,7 @@ void coastline::create_points(vector<vector2f>& points, float begint, float endt
 	points.reserve(points.size() + nrpts);
 	float t = begint, tstep = (endt - begint) / float(nrpts - 1);
 	for (unsigned i = 0; i < nrpts; ++i) {
+		if (t > 1.0f) t = 1.0f;
 		points.push_back(curve.value(t));
 		t += tstep;
 	}
@@ -55,31 +57,32 @@ void coastline::create_points(vector<vector2f>& points, float begint, float endt
 
 
 
-#if 0
 void coastline::draw_as_map(int detail) const
 {
-	// fixme: cache that somehow
-	vector<vector2f> pts = create_points(vector2(off.x, off.y), size, 0, points.size(), detail);
+	vector<vector2f> pts;
+	create_points(pts, 0, 1, detail);
 
-	// fixme: move calculations to opengl's transform matrix.	
 	glBegin(GL_LINE_STRIP);
 	for (vector<vector2f>::const_iterator it = pts.begin(); it != pts.end(); ++it) {
-		glTexCoord2f(t.x + ts.x * it->x / size, 1.0f - (t.y + ts.y * it->y / size));
-		glVertex2f(off.x + it->x, off.y + it->y);
+		glTexCoord2f(it->x, it->y);
+		glVertex2f(it->x, it->y);
 	}
 	glEnd();
 
+#if 0
 	glPointSize(2.0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBegin(GL_POINTS);
 	for (vector<vector2f>::const_iterator it = pts.begin(); it != pts.end(); ++it) {
-		glVertex2f(off.x + it->x, off.y + it->y);
+		glVertex2f(it->x, it->y);
 	}
 	glEnd();
+#endif
 }
 
 
 
+#if 0
 void coastline::render(const vector2& p, int detail) const
 {
 	// fixme: cache that somehow
@@ -146,6 +149,7 @@ void coastsegment::generate_point_cache(const class coastmap& cm, const vector2f
 
 			cacheentry ce;
 
+		cout << "about to find area!\n";
 			// find area
 			unsigned current = i;
 			do {
@@ -164,7 +168,10 @@ void coastsegment::generate_point_cache(const class coastmap& cm, const vector2f
 				const segcl& cl = segcls[current];
 				cm.coastlines[cl.mapclnr].create_points(ce.points, cl.begint, cl.endt, detail);
 				unsigned next = cl.next;
+			cout << "current="<<current<<" next="<<next<<"\n";
 				cl_handled[current] = true;
+			//if(next==0xffffffff)return;
+			//if(current==next)break;
 				// insert corners if needed
 				int ed = cl.endborder, bg = segcls[next].beginborder;
 				if (ed >= 0 && bg >= 0) {
@@ -184,6 +191,7 @@ void coastsegment::generate_point_cache(const class coastmap& cm, const vector2f
 				}
 				current = next;
 			} while (current != i);
+		cout << "area found!\n";
 
 			//more a quick hack, it shouldn't be necessary, fixme!
 			if (ce.points.back().square_distance(ce.points.front()) < 1.0f)
@@ -225,7 +233,8 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, const vec
 		glVertex2d(roff.x, roff.y+cm.segw_real);
 		glEnd();
 	} else if (type > 1) {
-		generate_point_cache(cm, roff, detail);
+		//fixme: disable, causes only bugs and crashes for now :-(
+		//generate_point_cache(cm, roff, detail);
 	
 		glBegin(GL_TRIANGLES);
 		for (vector<cacheentry>::const_iterator cit = pointcache.begin(); cit != pointcache.end(); ++cit) {
@@ -288,6 +297,7 @@ float coastsegment::compute_border_dist(int b0, const vector2f& p0, int b1, cons
 
 unsigned coastsegment::get_successor_for_cl(unsigned cln, float segw) const
 {
+//fixme: this function sometimes returns shit.
 	float mindist = 1e30;
 	unsigned next = 0xffffffff;
 //coastlines[cln].debug_print(cout);
@@ -312,7 +322,7 @@ unsigned coastsegment::get_successor_for_cl(unsigned cln, float segw) const
 			}
 		} // else not compareable
 	}
-	assert(next != 0xffffffff);
+//	assert(next != 0xffffffff);
 //cout << "next was " << next << "\n";	
 	return next;
 }
@@ -497,43 +507,59 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 
 
 
-void coastmap::divide_and_distribute_cl(const coastline& cl, const vector<vector2i>& points)
+void coastmap::divide_and_distribute_cl(const coastline& cl, unsigned clnr, const vector<vector2i>& points)
 {
-#if 0
-	segcl scl;
+	coastsegment::segcl scl;
+	scl.mapclnr = clnr;
+	scl.cyclic = false;
+	scl.next = -1;
 
 	// divide coastline at segment borders
 	// find segment that first point is into
-	scl.beginborder = cl.beginborder;
-	//fixme: finding segment from curve point is: -offset,/pixperseg,/pixwreal
-	//fixme: make own function for that?
-	//fixme: instead of curve.points.front use curve.value(0.0) ?
-	//fixme: it would be handy to keep the intcl's until here!
-	int sx = int(cl.curve.points.front().x / pixelw_real) / pixels_per_seg;
-	int sy = int(cl.curve.points.front().y / pixelw_real) / pixels_per_seg;
-//	int segsx = w/n;
+	int sx = points.front().x / pixels_per_seg;
+	int sy = points.front().y / pixels_per_seg;
 	int seg = sy*segsx+sx;
-	vector2f segoff(sx * segw, sy * segw);
+	vector2f segoff(sx * segw_real + realoffset.x, sy * segw_real + realoffset.y);
 
-	scl.points.push_back(cl.curve.points.front() - segoff);
+	scl.begint = 0;
+	scl.beginp = cl.curve.value(0);
+	scl.beginborder = cl.beginborder;
+	
 	bool sameseg = true;
 	// fixme: avoid just one line of an island/coast to get distributed to another segment.
 	// thus treat borders as part of current segment, for both sides!
-	for (unsigned i = 1; i < dcl.points.size(); ++i) {
-		int csx = int(dcl.points[i].x / pixelw) / n;
-		int csy = int(dcl.points[i].y / pixelw) / n;
+	// fixme: segment of integer position point[x] doesn't need to be the same
+	// that the bspline point cl.curve.value(x/(points.size()-1)) is in!!!!
+	// if that leads to problems or bugs is unclear!!!!!!
+	for (unsigned i = 1; i < points.size(); ++i) {
+		int csx = points[i].x / pixels_per_seg;
+		int csy = points[i].y / pixels_per_seg;
 		int cseg = csy*segsx+csx;
-		if (seg == cseg) {
-			segcl.points.push_back(dcl.points[i] - segoff); // fixme: don't store every point, but only border points!
-		} else {
+		if (seg != cseg) {
 			sameseg = false;
-			vector2 b = dcl.points[i-1];
-			vector2 d = dcl.points[i] - b;
+
+			float t0 = float(i-1)/float(points.size()-1);
+			float t1 = float(i)/float(points.size()-1);
+/*
+		cout<<"frage werte ab fuer t0="<<t0<<" und t1="<<t1<<"\n";
+		if(points.size()==2){
+			cout<<points[0]<<"\n";
+			cout<<points[1]<<"\n";
+			cout<<cl.curve.control_points().size()<<"\n";
+			cout<<cl.curve.control_points()[0]<<"\n";
+			cout<<cl.curve.control_points()[1]<<"\n";
+			cout<<"sind sie gleich?"<<((cl.curve.control_points()[0])==(cl.curve.control_points()[1]))<<"\n";
+		}
+*/
+			vector2f b = cl.curve.value(t0);
+			vector2f d = cl.curve.value(t1) - b;
+//			vector2f b2 = cl.curve.value(t1);
+//			vector2f d = b2 - b;
 
 			// fixme: what is if the next segment is right AND down (line crosses corner)?
 			
 			// find t so that b + t * d is on segment border between seg and cseg
-			double t;
+			float t;
 			int border = -1;
 			if (cseg < seg) {	// border is left or top
 				if (cseg == seg-1) {	// left
@@ -545,44 +571,49 @@ void coastmap::divide_and_distribute_cl(const coastline& cl, const vector<vector
 				}
 			} else {		// border is right or bottom
 				if (cseg == seg+1) {	// right
-					t = (segoff.x + segw - b.x) / d.x;
+					t = (segoff.x + segw_real - b.x) / d.x;
 					border = 1;
 				} else {		// bottom
-					t = (segoff.y + segw - b.y) / d.y;
+					t = (segoff.y + segw_real - b.y) / d.y;
 					border = 2;
 				}
 			}
 			
-			vector2 borderp = b + d * t;	// das hier kommt weg. punkte liegen sowieso schon auf integer coordinaten!
+			// t should be between 0 and 1, but this is sometimes wrong! fixme.
+			// see comment above, points[i] and points[i+1] may be in different
+			// segments, but the bspline results may be in the same segment.
+			// to find t here we would have to approximate it
 			
-			segcl.endborder = border;
+			vector2f borderp = b + d * t;
+			float ct = t0 + (t1 - t0) * t;
+//cout << "t0 " << t0 << " t1 " << t1 << " t " << t << "\n";
+//cout << "b is " << b << " d is " << d << " und b2 ist " << b2 << "\n";
+			scl.endt = ct;
+			scl.endp = borderp;
+			scl.endborder = border;
 
-			// avoid storing too short line segments
-			if (t > 0.0001)
-				segcl.points.push_back(borderp - segoff);
-			cl_per_seg[seg].push_back(segcl);
+			coastsegments[seg].segcls.push_back(scl);
 			sx = csx;
 			sy = csy;
 			seg = cseg;
-			segoff = vector2(sx * segw, sy * segw);
-			segcl.points.clear();
-			segcl.beginborder = (border + 2) % 4;
-			
-			// avoid storing too short line segments
-			if (t < 0.9999)
-				segcl.points.push_back(borderp - segoff);
-			segcl.points.push_back(dcl.points[i] - segoff);
+			segoff = vector2f(sx * segw_real + realoffset.x, sy * segw_real + realoffset.y);
+
+			scl.begint = ct;
+			scl.beginp = borderp;
+			scl.beginborder = (border + 2) % 4;
 		}
 	}
 
-	segcl.endborder = dcl.endborder;
+	scl.endt = 1;
+	scl.endp = cl.curve.value(1);
+	scl.endborder = cl.endborder;
 
-	segcl.cyclic = sameseg;	// we have an island complete in one segment
-	
-//	if (segcl.cyclic) assert(segcl.beginborder==-1 && segcl.endborder==-1);
+	scl.cyclic = sameseg;	// we have an island complete in one segment
 
-	cl_per_seg[seg].push_back(segcl);
-#endif
+	//fixme test that with new code!	
+//	if (scl.cyclic) assert(segcl.beginborder==-1 && segcl.endborder==-1);
+
+	coastsegments[seg].segcls.push_back(scl);
 }
 
 
@@ -603,25 +634,26 @@ void coastmap::process_coastline(int x, int y)
 	vector<vector2f> tmp;
 	tmp.reserve(points.size());
 	for (unsigned i = 0; i < points.size(); ++i)
-		tmp.push_back(vector2f(tmp[i].x * pixelw_real + realoffset.x, tmp[i].y * pixelw_real + realoffset.y));
+		tmp.push_back(vector2f(points[i].x * pixelw_real + realoffset.x, points[i].y * pixelw_real + realoffset.y));
 
+//	cout << "points.size()="<<points.size()<<" cyclic?"<<cyclic<<"\n";
 	if (cyclic) {
 		// close polygon and make sure the first and last line are linear dependent
+		// fixme!!!!!! tmp is now larger than points!!!! could this give errors?!
+		// YES, IT DOES!!! push back points[0] twice to points as solution?!
+		// or don't use points inside divide_and_dist, just tmp! fixme
 		assert(tmp.size()>2);
-		vector2f p0 = tmp[0];
-		vector2f p1 = tmp[1];
-		vector2f p01 = (p0 + p1) * 0.5;
-		tmp[0] = p01;
-		tmp.push_back(p0);
-		tmp.push_back(p01);
+		vector2f p0 = tmp.front();
+		vector2f p2 = tmp.back();
+		vector2f p1 = (p0 + p1) * 0.5;
+		//tmp.push_back(p1);
+		//tmp.push_back(p0);
 	}
 
 	unsigned n = tmp.size() - 1;
 	if (n > 16) n = 16;
-	coastline result(n, tmp, cyclic);
-//	result.beginborder = dcl.beginborder;//fixme: do we need that?
-//	result.endborder = dcl.endborder;
-	divide_and_distribute_cl(result, points);
+	coastline result(n, tmp, beginborder, endborder);
+	divide_and_distribute_cl(result, coastlines.size(), points);
 
 	coastlines.push_back(result);
 }
@@ -640,8 +672,7 @@ void coastmap::process_segment(int sx, int sy)
 		}
 	} else {		// there are coastlines in segment
 		cs.type = 2;
-		// next is important for triangulation!! fixme compute it!
-/*
+
 		// compute cl.next info
 		unsigned ncl = cs.segcls.size();
 		vector<bool> handledcl(ncl, false);
@@ -649,12 +680,11 @@ void coastmap::process_segment(int sx, int sy)
 			if (handledcl[i]) continue;
 			unsigned current = i;
 			do {
-				unsigned next = cs.get_successor_for_cl(current, pixels_per_seg*pixelw_real);
+				unsigned next = cs.get_successor_for_cl(current, segw_real);
 				cs.segcls[current].next = next;
 				handledcl[current] = true;
 			} while (current != i);
 		}
-*/
 	}
 }
 
@@ -692,7 +722,6 @@ coastmap::coastmap(const string& filename)
 	pixelw_real = realwidth/mapw;
 	realheight = maph*realwidth/mapw;
 	pixels_per_seg = 1 << unsigned(ceil(log2(60000/pixelw_real)));
-	segw = pixelw_real * pixels_per_seg;
 	segsx = mapw/pixels_per_seg;
 	segsy = maph/pixels_per_seg;
 	segw_real = pixelw_real * pixels_per_seg;
@@ -803,9 +832,15 @@ void coastmap::draw_as_map(const vector2& droff, double mapzoom, int detail) con
 	for (int yy = y; yy < y + h; ++yy) {
 		for (int xx = x; xx < x + w; ++xx) {
 			vector2f offset(realoffset.x + segw_real * xx, realoffset.y + segw_real * yy);
+		//cout<<"drawing segment " << xx << "," << yy << "\n";			
 			coastsegments[yy*segsx+xx].draw_as_map(*this, xx, yy, offset, detail);
 		}
 	}
+
+	// testing
+	for (unsigned i = 0; i < coastlines.size(); ++i)
+		coastlines[i].draw_as_map();
+
 	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
