@@ -20,6 +20,7 @@ class game;
 class user_display;
 class logbook_display;
 class ships_sunk_display;
+class sky;
 
 class user_interface
 {
@@ -57,18 +58,7 @@ protected:
 	double mapclickdist;
 	vector2 mapoffset;	// additional offset used for display, relative to player
 
-	// sky, clouds
-	texture* stars;
-	texture* skycolor;
-	texture* sunglow;
-	texture* clouds;
-	// fixme: world data maybe should move to class game
-	float cloud_animphase;	// 0-1 phase of interpolation
-	vector<vector<Uint8> > noisemaps_0, noisemaps_1;	// interpolate to animate clouds
-	unsigned clouds_dl;	// display list for sky hemisphere
-	unsigned cloud_levels, cloud_coverage, cloud_sharpness;
-	vector<Uint8> cloud_alpha;	// precomputed alpha texture
-	vector<unsigned> cloud_interpolate_func;	// give fraction as Uint8
+	sky* mysky;		// the one and only sky
 	
 //	vector<char> landsea;	// a test hack. 0 = land, 1 = sea
 	coastmap mycoastmap;	// this may get moved to game.h, yet it is used for display only, that's why it is here
@@ -106,14 +96,6 @@ protected:
 
 	inline virtual sea_object* get_player(void) const { return player_object; }
 	virtual bool keyboard_common(int keycode, game& gm) = 0;
-
-	// generate new clouds, fac (0-1) gives animation phase. animation is cyclic.
-	void advance_cloud_animation(float fac);	// 0-1
-	void compute_clouds(void);
-	vector<vector<Uint8> > compute_noisemaps(void);
-	Uint8 get_value_from_bytemap(unsigned x, unsigned y, unsigned level,
-		const vector<Uint8>& nmap);
-	void smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map1);
 
 	static texture* torptex(unsigned type);
 

@@ -14,6 +14,7 @@ using namespace std;
 
 
 class model {
+public:
 	class material {
 		material(const material& );
 		material& operator= (const material& );
@@ -56,7 +57,8 @@ class model {
 		mesh() : mymaterial(0) {}
 		~mesh() {}
 	};
-	
+
+protected:	
 	vector<material*> materials;
 	vector<mesh> meshes;
 	
@@ -104,7 +106,7 @@ class model {
 
 public:
 	static int mapping;	// GL_* mapping constants
-	model(const string& filename, bool usematerial = true);
+	model(const string& filename, bool usematerial = true, bool makedisplaylist = true);
 	~model();
 	void display(void) const;
 	mesh get_mesh(unsigned nr) const;

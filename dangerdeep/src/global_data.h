@@ -36,9 +36,9 @@ inline string get_map_dir(void) { return get_data_dir() + "maps/"; }
 extern class model *merchant_large, *merchant_medium, *merchant_small,
 	*subVII, *subIXc40, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
-	*skyhemisphere, *corvette_mdl, *freighter_medium, *freighter_large,
+	*corvette_mdl, *freighter_medium, *freighter_large,
 	*tanker_small, *conning_tower_typeVII, *std_plane;
-extern class texture *water, *the_moon, *the_sun, *background, *gauge1,
+extern class texture *water, *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt2, *torpt3, *torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut,

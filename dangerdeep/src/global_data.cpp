@@ -22,10 +22,10 @@
 model	*merchant_large, *merchant_medium, *merchant_small,
 	*subVII, *subIXc40, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
-	*skyhemisphere, *corvette_mdl, *freighter_medium, *freighter_large,
+	*corvette_mdl, *freighter_medium, *freighter_large,
 	*tanker_small, *conning_tower_typeVII, *std_plane;
 
-texture *water, *the_moon, *the_sun, *background, *gauge1,
+texture *water, *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt2, *torpt3, *torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut,
@@ -46,10 +46,7 @@ image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_background,
 
 void init_global_data(void)
 {
-	skyhemisphere = new model(get_model_dir() + "skyhemisphere.3ds", false);
 	water = new texture(get_texture_dir() + "water.png", GL_LINEAR_MIPMAP_LINEAR);//, GL_CLAMP);
-	the_moon = new texture(get_texture_dir() + "themoon.png", GL_LINEAR);
-	the_sun = new texture(get_texture_dir() + "thesun.png", GL_LINEAR);
 	background = new texture(get_texture_dir() + "background.png", GL_LINEAR);
 	merchant_large = new model(get_model_dir() + "large_merchant.3ds");
 	merchant_medium = new model(get_model_dir() + "medium_merchant.3ds");
@@ -142,10 +139,7 @@ void init_global_data(void)
 
 void deinit_global_data(void)
 {
-	delete skyhemisphere;
 	delete water;
-	delete the_moon;
-	delete the_sun;
 	delete background;
 	delete merchant_large;
 	delete merchant_medium;

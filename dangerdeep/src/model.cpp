@@ -12,7 +12,7 @@
 
 int model::mapping = GL_NEAREST;
 
-model::model(const string& filename, bool usematerial_) : display_list(0), usematerial(usematerial_)
+model::model(const string& filename, bool usematerial_, bool makedisplaylist) : display_list(0), usematerial(usematerial_)
 {
 	// fixme: determine loader by extension here. currently only 3ds supported
 	m3ds_load(filename);
@@ -22,13 +22,15 @@ model::model(const string& filename, bool usematerial_) : display_list(0), usema
 	compute_bounds();
 	compute_normals();
 
-	// create display list
-	unsigned dl = glGenLists(1);
-	system::sys().myassert(dl != 0, "no more display list indices available");
-	glNewList(dl, GL_COMPILE);
-	display();
-	glEndList();
-	display_list = dl;
+	if (makedisplaylist) {
+		// create display list
+		unsigned dl = glGenLists(1);
+		system::sys().myassert(dl != 0, "no more display list indices available");
+		glNewList(dl, GL_COMPILE);
+		display();
+		glEndList();
+		display_list = dl;
+	}
 }
 
 model::~model()
