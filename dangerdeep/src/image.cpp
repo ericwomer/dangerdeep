@@ -43,17 +43,16 @@ void image::texturize(void)
 	}
 
 	vector<unsigned> widths, heights;
-	unsigned maxw = texture::get_max_width();
-	unsigned maxh = texture::get_max_height();
+	unsigned maxs = texture::get_max_size();
 	unsigned w = width, h = height;
-	while (w > maxw) {
-		widths.push_back(maxw);
-		w -= maxw;
+	while (w > maxs) {
+		widths.push_back(maxs);
+		w -= maxs;
 	}
 	widths.push_back(w);
-	while (h > maxh) {
-		heights.push_back(maxh);
-		h -= maxh;
+	while (h > maxs) {
+		heights.push_back(maxs);
+		h -= maxs;
 	}
 	heights.push_back(h);
 

@@ -60,8 +60,7 @@ public:
 	void draw_rot(int x, int y, double angle) const;	// draw rotated image
 	void draw_tiles(int x, int y, int w, int h, unsigned tiles, unsigned tilesy) const;	
 
-	static unsigned get_max_width(void);
-	static unsigned get_max_height(void);
+	static unsigned get_max_size(void);
 };
 
 #endif

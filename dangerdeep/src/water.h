@@ -32,15 +32,16 @@ protected:
 	vector<vector<unsigned> > waveindices;	// Outer array for LOD
 
 	vector<vector<float> > wavetilefoam;
-	
+
+	unsigned reflectiontexsize;
 	unsigned reflectiontex;
 	texture* foamtex;
 
 	// Arrays used while drawing a tile. To avoid repeated re-alloc, they're here
 	mutable vector<vector3f> coords;
 	mutable vector<color> colors;
-	mutable vector<vector2f> uv0;
-	mutable vector<vector3f> normals;
+	mutable vector<vector3f> uv0;
+//	mutable vector<vector3f> normals;
 
 #if 0		// old code, kept for reference, especially for foam
 	vector<texture*> water_bumpmaps;
@@ -82,6 +83,8 @@ public:
 	float get_height(const vector2& pos) const;
 	// give f as multiplier for difference to (0,0,1)
 	vector3f get_normal(const vector2& pos, double f = 1.0) const;
+	unsigned get_reflectiontex(void) const { return reflectiontex; }
+	unsigned get_reflectiontex_size(void) const { return reflectiontexsize; }
 };
 
 #endif

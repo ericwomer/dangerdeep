@@ -44,31 +44,26 @@ water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), ti
 
 	glGenTextures(1, &reflectiontex);
 	glBindTexture(GL_TEXTURE_2D, reflectiontex);
-	vector<Uint8> fresnelspecul(256*256*3);
-	for (int y = 0; y < 256; y++) {
-		color wc = color(color(18, 73, 107), color(162, 193, 216 /*54, 98, 104*/), y/255.0f);
-		for (int x = 0; x < 256; x++) {
-			float scal = x/255.0f;
-			color fc = color(wc, color(239, 237, 203 /*255, 255, 255*/), scal);
-			fresnelspecul[(x+y*256)*3+0] = fc.r;
-			fresnelspecul[(x+y*256)*3+1] = fc.g;
-			fresnelspecul[(x+y*256)*3+2] = fc.b;
-		}
-	}
+	unsigned rx = system::sys().get_res_x();
+	unsigned ry = system::sys().get_res_y();
+	unsigned vps = texture::get_max_size();
+	if (ry < vps)
+		for (unsigned i = 1; i < ry; i *= 2) vps = i;
+	reflectiontexsize = vps;
+	vector<Uint8> tmp0(reflectiontexsize*reflectiontexsize*3);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, reflectiontexsize, reflectiontexsize, 0, GL_RGB, GL_UNSIGNED_BYTE, &tmp0[0]);
+	tmp0.clear();
+	// fixme: auto mipmap?
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);//CLAMP_TO_EDGE);
 
 	coords.reserve((tile_res+1)*(tile_res+1));
 	colors.reserve((tile_res+1)*(tile_res+1));
 	uv0.reserve((tile_res+1)*(tile_res+1));
-#ifdef USENORMALS
-	normals.reserve((tile_res+1)*(tile_res+1));
-#endif
+//	normals.reserve((tile_res+1)*(tile_res+1));
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, &fresnelspecul[0]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	
 	foamtex = new texture(get_texture_dir() + "foam.png", GL_LINEAR);//fixme maybe mipmap it
 	
 	// connectivity data is the same for all meshes and thus is reused
@@ -88,7 +83,7 @@ water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), ti
 		}
 	}
 
-	ocean_wave_generator<float> owg(tile_res, vector2f(1,1), 31 /*10*/ /*31*/, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
+	ocean_wave_generator<float> owg(tile_res, vector2f(1,1), 2 /*10*/ /*31*/, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileheights[i] = owg.compute_heights();
@@ -197,23 +192,30 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 	glActiveTexture(GL_TEXTURE0);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, reflectiontex);
+	GLdouble m[16];
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+glTranslated(0.5,0.5,0);
+glScaled(0.5,0.5,1.0);	// check if this matches the texture
+	glGetDoublev(GL_PROJECTION_MATRIX, m);
+	glMultMatrixd(m);
+	glGetDoublev(GL_MODELVIEW_MATRIX, m);
+	glMultMatrixd(m);
+	glMatrixMode(GL_MODELVIEW);
 
-//	float refraccol[4] = { 0.204f, 0.388f, 0.408f, 1.0f };
-//	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, refraccol);
+	float refraccol[4] = { 0.0706f, 0.2863f, 0.4196f, 1.0f };
+	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, refraccol);
 
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-/*
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_CONSTANT);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_CONSTANT);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_PRIMARY_COLOR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);
-*/
 
-/* not needed for fresnel/specular
+/*
 	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
@@ -231,7 +233,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_PRIMARY_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);//COLOR);
 
 	// fixme: automatic generated texture coordinates for foam may be not realistic enough (foam doesn't move then with displacements)
 	GLfloat scalefac1 = 32.0f/WAVE_LENGTH;//fixme: scale to realistic foam size
@@ -250,20 +252,17 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
 	glClientActiveTexture(GL_TEXTURE0);
-#ifdef USENORMALS
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0].x);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-#else
+//	glEnableClientState(GL_NORMAL_ARRAY);
+//	glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0].x);
+//	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &uv0[0].x);
+	glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv0[0].x);
 	glDisableClientState(GL_NORMAL_ARRAY);
-#endif
 	glClientActiveTexture(GL_TEXTURE1);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	// ******************* draw tiles
-	int s = 10;//0;//2
+	int s = 6;//0;//2
 	for (int y = -s; y <= s; ++y) {
 		for (int x = -s; x <= s; ++x) {
 			vector3f transl2 = transl + vector3f(x*WAVE_LENGTH, y*WAVE_LENGTH, 0);
@@ -285,6 +284,11 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	glColor4f(1,1,1,1);
+
+	glActiveTexture(GL_TEXTURE0);
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
 
 	glActiveTexture(GL_TEXTURE1);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -607,29 +611,7 @@ void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillg
 	glColor4f(1,1,1,1);
 #endif
 
-
-/*
-reflection
-// N is the vertex normal, TC the 3D projective texcoords (ie. the vertex position, that gets projected to screenspace texcoords)
-
-// get the displacement offset
-float dofs = VIRTUAL_PLANE_HEIGHT * N->z;
-
-// Displace the texcoords (vertex position) by the offset, in the direction of the normal
-TC->x += dofs*N->x;
-TC->y += dofs*N->y;
-TC->z += dofs*N->z;
-
-// The projective texcoords are now floating above the surface, on the virtual plane.
-// We don't want that. Correct the height. Little hackish, but works.
-TC->z -= VIRTUAL_PLANE_HEIGHT;
-
-// Now you can feed the texcoords TC to the projective matrix (in the texture matrix), and render the surface with the projective texture.
-// ...
-*/
-
-
-//glEnable(GL_LIGHTING);
+	const float VIRTUAL_PLANE_HEIGHT = 0.0f;//5.0f;	// fixme experiment, amount of distorsion
 
 	vector3f L = vector3f(1,0,1).normal();//fixme, get from caller!
 //float tf = myfrac(mytime/10.0f)*2*M_PI;
@@ -647,14 +629,8 @@ TC->z -= VIRTUAL_PLANE_HEIGHT;
 				fx + wavetiledisplacements[phase][ptr].x,
 				fy + wavetiledisplacements[phase][ptr].y,
 				wavetileheights[phase][ptr]);
-			coords[vecptr] = coord;
 			vector3f N = wavetilenormals[phase][ptr];
-#ifdef USENORMALS
-			normals[vecptr] = N;
-#endif			
 			vector3f E = -coord.normal();
-
-			vector3f R = (2.0f*(L*N))*N - L;	// fixme precompute?
 
 #ifdef DRAW_NORMALS
 			glColor3f(1,0,0);
@@ -671,18 +647,6 @@ TC->z -= VIRTUAL_PLANE_HEIGHT;
 			glVertex3fv(&u.x);
 #endif
 
-			float S = E*R;		// specular component
-			S = S * S;		// ^2
-			S = S * S;		// ^4
-			S = S * S;		// ^8
-			S = S * S;		// ^16
-			S = S * S;		// ^32
-			// fixme: specular highlights appear to large, why?
-		S = 0.0f;
-
-			if (S > 1.0f) S = 1.0f;	// clamp value
-			if (S < 0.0f) S = 0.0f;	// fixme: texture clamping does that already
-
 			float F = E*N;		// compute Fresnel term F(x) = 1/(x+1)^8
 			if (F < 0.0f) F = 0.0f;	// avoid angles > 90 deg.
 			F = F + 1.0f;
@@ -690,20 +654,22 @@ TC->z -= VIRTUAL_PLANE_HEIGHT;
 			F = F * F;	// ^4
 			F = F * F;	// ^8
 			F = 1.0f/F;
+			Uint8 c = Uint8(F*255);
+			Uint8 foampart = 255;
+			color primary(c, c, c, foampart);
+
+			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
+			texc.z -= VIRTUAL_PLANE_HEIGHT;
 						
-				// fixme: green/blue depends on slope only? is color of refraction? or fresnel?! read papers!!! fixme
-			uv0[vecptr] = vector2f(S, F);
-			Uint8 foampart = 255; //(((x*x+1)*(y+3))&7)==0?0:255;//test hack
-//			Uint8 c = Uint8(F*255);	// fresnel term as part of color, if tex0 is reflection map
-//			colors[vecptr] = color(c, c, c, Uint8(S*255));
-			colors[vecptr] = color(foampart, foampart, foampart, 255);
+			coords[vecptr] = coord;
+//			normals[vecptr] = N;
+			uv0[vecptr] = texc;
+			colors[vecptr] = primary;
 			fx += add;
 		}
 		fy += add;
 	}
 	
-// fixme: per vertex specular lighting could be done with OpenGL light sources?
-
 #ifdef DRAW_NORMALS
 	glEnd();
 	glEnable(GL_TEXTURE_2D);

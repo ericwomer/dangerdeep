@@ -261,22 +261,57 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glRotatef(dir.value(),0,0,1);
 
 	// ************ compute water reflection ******************************************
-	// clear depth buffer
 	// save projection matrix
-	// set up new viewport size s*s with s<=max_texure_size and s<=w,h of old viewport
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
 	// set up old projection matrix (new width/height of course) with a bit larger fov
 	//   that means completely new proj matrix ;-)
+	glLoadIdentity();
+	system::sys().gl_perspective_fovx(90.0 /*fixme*/, 1.0, 2.0, gm.get_max_view_distance());//fixme
+	// set up new viewport size s*s with s<=max_texure_size and s<=w,h of old viewport
+	unsigned vps = mywater->get_reflectiontex_size();
+	glViewport(0, 0, vps, vps);
+	// clear depth buffer (fixme: maybe clear color with upwelling color, use a bit alpha)
+	glClear(GL_DEPTH_BUFFER_BIT);
 	// shear one clip plane to match world space z=0 plane
+	//fixme
 	// flip geometry at z=0 plane
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glScalef(1.0f, 1.0f, -1.0f);//fixme: mirror must be FIRST transformation!!! (y-mirror)
 	// draw all parts of the scene that are (partly) above the water:
 	//   sky
+	glCullFace(GL_FRONT);
+	mysky->display(viewpos, max_view_dist);
 	//   terrain
+	glDisable(GL_LIGHTING);
+	glColor4f(1,1,1,1);//fixme: fog is missing
+	draw_terrain(viewpos, dir, max_view_dist);
+	//fixme
 	//   models/smoke
+	//fixme
+	glCullFace(GL_BACK);
 	// copy viewport pixel data to reflection texture
-	// clear depth buffer
-	// continue, give reflection tex to water rendering
-	
+	glBindTexture(GL_TEXTURE_2D, mywater->get_reflectiontex());
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, vps, vps, 0);
 
+	vector<Uint8> scrn(vps*vps*3);
+	glReadPixels(0, 0, vps, vps, GL_RGB, GL_UNSIGNED_BYTE, &scrn[0]);
+	ofstream oss("mirror.ppm");
+	oss << "P6\n" << vps << " " << vps << "\n255\n";
+	oss.write((const char*)(&scrn[0]), vps*vps*3);
+
+	// clear depth buffer
+	//glClear(GL_DEPTH_BUFFER_BIT); // if znear/far are the same as in the scene, this clear should be enough
+	// clean up
+	unsigned rx = system::sys().get_res_x();
+	unsigned ry = system::sys().get_res_y();
+	glViewport(0, 0, rx, ry);
+	glPopMatrix();
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glClear(GL_DEPTH_BUFFER_BIT);
 
 	// ************ sky ***************************************************************
 	mysky->display(viewpos, max_view_dist);
@@ -293,32 +328,14 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 
 
 	// ******* water ***************************************************************
-					// fixme: program directional light caused by sun
-					// or moon should be reflected by water.
 	//mywater->update_foam(1.0/25.0);  //fixme: deltat needed here
 	//mywater->spawn_foam(vector2(myfmod(gm.get_time(),256.0),0));
-
 	mywater->display(viewpos, dir, max_view_dist);
 
-/*
-	// pseudo mirror test
-	glCullFace(GL_FRONT);
-	glColor4f(1,1,1,0.5);
-	glPushMatrix();
-	glScalef(1,1,-1);
-	mysky->display(viewpos, max_view_dist);
-	glPopMatrix();
-	glColor4f(1,1,1,1);
-	glCullFace(GL_BACK);	
-*/
-
 	// ******** terrain/land ********************************************************
-	
 	draw_terrain(viewpos, dir, max_view_dist);
 
-
 	// ******************** ships & subs *************************************************
-
 	// 2004/03/07
 	// simulate horizon: d is distance to object (on perimeter of earth)
 	// z is additional height (negative!), r is earth radius
@@ -1255,7 +1272,7 @@ void user_interface::display_glasses(class game& gm)
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	sys.gl_perspective_fovx (5.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
+	sys.gl_perspective_fovx (10.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
 	glViewport(0, res_y/3, res_x, res_x/2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
