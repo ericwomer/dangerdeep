@@ -1294,6 +1294,8 @@ int mymain(list<string>& args)
 	// set language to default
 	texts::set_language();
 
+	// fixme: also allow 1280x1024, set up gl viewport for 4:3 display
+	// with black borders at top/bottom (height 2*32pixels)
 	res_y = res_x*3/4;
 	// weather conditions and earth curvature allow 30km sight at maximum.
 	sys = new class system(1.0, 30000.0+500.0, res_x, fullscreen);
@@ -1440,7 +1442,7 @@ int main(int argc, char** argv)
 {
 	list<string> args;
 	//parse argc, argv
-	while (--argc > 0) args.push_front(string(argv[argc]));
+	while (argc > 0) args.push_front(string(argv[--argc]));
 	return mymain(args);
 }
 
