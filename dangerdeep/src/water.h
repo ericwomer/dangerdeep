@@ -84,7 +84,7 @@ protected:
 	void setup_textures(const matrix4& reflection_projmvmat) const;
 	void cleanup_textures(void) const;
 
-	vector3f compute_coord(int phase, const vector2& xypos, const vector2& transl) const;
+	vector3f compute_coord(int phase, const vector3f& xyzpos, const vector2f& transl) const;
 
 public:
 	water(unsigned xres_, unsigned yres_, double tm = 0.0);	// give day time in seconds
@@ -92,6 +92,7 @@ public:
 	~water();
 	void update_foam(double deltat);		// needed for dynamic foam
 	void spawn_foam(const vector2& pos);		// dito
+	// give absolute position of viewer as viewpos, translation in modelview matrix included!
 	void display(const vector3& viewpos, angle dir, double max_view_dist, const matrix4& reflection_projmvmat) const;
 	float get_height(const vector2& pos) const;
 	// give f as multiplier for difference to (0,0,1)

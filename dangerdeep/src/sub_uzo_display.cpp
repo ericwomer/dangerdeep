@@ -69,6 +69,9 @@ sub_uzo_display::~sub_uzo_display()
 
 void sub_uzo_display::process_input(class game& gm, const SDL_Event& event)
 {
+	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
+	if (sub->is_submerged()) {
+	}
 	switch (event.type) {
 	case SDL_KEYDOWN:
 		switch(event.key.keysym.sym) {

@@ -45,7 +45,7 @@ protected:
 //	angle elevation;	// -90...90 deg (look down ... up)
 
 	// which display is active
-	unsigned current_display;
+	mutable unsigned current_display;
 
 	// fixme: keep this, common data else: panel, sky, water, coastmap
 	sea_object* target;

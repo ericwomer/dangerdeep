@@ -355,11 +355,11 @@ void water::cleanup_textures(void) const
 
 
 //function is nearly the same as get_height, it just adds extra detail
-vector3f water::compute_coord(int phase, const vector2& xypos, const vector2& transl) const
+vector3f water::compute_coord(int phase, const vector3f& xyzpos, const vector2f& transl) const
 {
 	// generate values with mipmap function (needs viewer pos.)
-	float xfrac = myfrac(float((xypos.x + transl.x) / WAVE_LENGTH)) * WAVE_RESOLUTION;
-	float yfrac = myfrac(float((xypos.y + transl.y) / WAVE_LENGTH)) * WAVE_RESOLUTION;
+	float xfrac = myfrac(float((xyzpos.x + transl.x) / WAVE_LENGTH)) * WAVE_RESOLUTION;
+	float yfrac = myfrac(float((xyzpos.y + transl.y) / WAVE_LENGTH)) * WAVE_RESOLUTION;
 	unsigned x0 = unsigned(floor(xfrac));
 	unsigned y0 = unsigned(floor(yfrac));
 	unsigned x1 = (x0 + 1) & (WAVE_RESOLUTION-1);
@@ -387,7 +387,7 @@ vector3f water::compute_coord(int phase, const vector2& xypos, const vector2& tr
 	float fac1 = xfrac*(1.0f-yfrac);
 	float fac2 = (1.0f-xfrac)*yfrac;
 	float fac3 = xfrac*yfrac;
-	vector3f coord = (ca*fac0 + cb*fac1 + cc*fac2 + cd*fac3) + vector3f(xypos.x, xypos.y, 0.0f);
+	vector3f coord = (ca*fac0 + cb*fac1 + cc*fac2 + cd*fac3) + xyzpos;
 
 #ifdef WAVE_SUB_DETAIL
 	// add some extra detail to near waves.
@@ -428,14 +428,24 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	// fixme: displacements must be used to enlarge projector area or else holes will be visible at the border
 	// of the screen (left and right), especially on glasses mode
 
+	// get projection and modelview matrix
 	matrix4 proj = matrix4::get_gl(GL_PROJECTION_MATRIX);
 	matrix4 modl = matrix4::get_gl(GL_MODELVIEW_MATRIX);
-	matrix4 world2camera = proj * modl;
 	matrix4 inv_modl = modl.inverse();
-	matrix4 camera2world = world2camera.inverse();
 
-	vector3f vieweroffset;
-	vieweroffset.assign(modl.inverse().column(3));
+	// modify modelview matrix so that viewer is at (0,0,h) with h in |R with h = cameraheight
+	vector3 correction = inv_modl.column(3);
+
+	// set gl matrix so that viewer is at 0, 0, 0
+	glPushMatrix();
+	glTranslated(correction.x, correction.y, correction.z);
+
+	correction.z -= viewpos.z;
+	modl = modl * matrix4::trans(correction);
+	inv_modl = matrix4::trans(-correction) * inv_modl;
+
+	matrix4 world2camera = proj * modl;
+	matrix4 camera2world = world2camera.inverse();
 
 	// transform frustum corners of rendering camera to world space
 	vector3 frustum[8];
@@ -467,7 +477,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	// compute projector matrix
 	// the last column of the inverse modelview matrix is the camera position
 	// the upper left 3x3 matrix is the camera rotation, so the columns hold the view vectors
-	vector3 camerapos = inv_modl.column(3);
+	vector3 camerapos = vector3(0, 0, viewpos.z);
 	vector3 cameraforward = -inv_modl.column(2); // camera is facing along negative z-axis
 //cout << "camerapos " << camerapos << "\n";
 //cout << "camera forward " << cameraforward << "\n";
@@ -505,7 +515,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	
 	// compute rest of the projector matrix from pos and forward vector
 	vector3 pjz = -projectorforward.normal();
-	vector3 pjx = vector3(0,0,1).cross(pjz).normal(); // fixme: what if pjz==up vector (or very near it)
+	vector3 pjx = vector3(0,0,1).cross(pjz).normal(); // fixme: what if pjz==up vector (or very near it) then errors occour, they're visible!
 	vector3 pjy = pjz.cross(pjx);
 //cout << "pjx " << pjx << " pjy " << pjy << " pjz " << pjz << "\n";
 //cout << "lengths " << pjx.length() << "," << pjy.length() << "," << pjz.length() << "\n";
@@ -597,7 +607,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 #ifdef COMPUTE_EFFICIENCY
 	int vertices = 0, vertices_inside = 0;
 #endif	
-	vector2 transl(myfmod(viewpos.x, WAVE_LENGTH), myfmod(viewpos.y, WAVE_LENGTH));
+	vector2f transl(myfmod(viewpos.x, WAVE_LENGTH), myfmod(viewpos.y, WAVE_LENGTH));
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		double y = double(yy)/yres;
 		// vertices for start and end of two lines are computed and projected
@@ -613,7 +623,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 		vector2 vb = v3.xy() * (1-t2) + v4.xy() * t2;
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			double x = double(xx)/xres;
-			vector2 v = va * (1-x) + vb * x;
+			vector3f v(va.x * (1-x) + vb.x * x, va.y * (1-x) + vb.y * x, -viewpos.z);
 			coords[ptr] = compute_coord(phase, v, transl);
 #ifdef COMPUTE_EFFICIENCY
 			vector3 tmp = world2camera * vector3(coords[ptr].x, coords[ptr].y, coords[ptr].z);
@@ -674,11 +684,11 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
+			// the coordinate is the same as the relative coordinate, because the viewer is at 0,0,0
 			const vector3f& coord = coords[ptr];
 			const vector3f& N = normals[ptr];
-			vector3f rel_coord = coord - vieweroffset;
-			float rel_coord_length = rel_coord.length();
-			vector3f E = -rel_coord * (1.0f/rel_coord_length); // viewer is in (0,0,0)
+			float rel_coord_length = coord.length();
+			vector3f E = -coord * (1.0f/rel_coord_length); // viewer is in (0,0,0)
 			float F = E*N;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
 			// value clamping is done by texture unit.
 
@@ -688,6 +698,8 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 			// water color depends on height of wave and slope
 			// slope (N.z) it mostly > 0.8
 			float colorfac = (coord.z + 3) / 9 + (N.z - 0.8f);
+			//fixme add cameraheight +- here...
+			//fixme: color computation is broken. it is right when viewer height is 0
 
 			uv0[ptr] = vector2f(F, colorfac);	// set fresnel and water color
 			uv1[ptr] = texc;
@@ -765,6 +777,8 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	glPopMatrix();
 
 	// clean up textures
 	cleanup_textures();

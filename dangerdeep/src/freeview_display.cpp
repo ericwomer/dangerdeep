@@ -432,6 +432,7 @@ void freeview_display::draw_view(game& gm) const
 	// ******* water ***************************************************************
 	//ui.get_water().update_foam(1.0/25.0);  //fixme: deltat needed here
 	//ui.get_water().spawn_foam(vector2(myfmod(gm.get_time(),256.0),0));
+	//fixme: viewpos should be submarine pos, not already viewer trans of mv mat added...
 	ui.get_water().display(viewpos, bearing, max_view_dist, reflection_projmvmat);
 
 	// ******** terrain/land ********************************************************

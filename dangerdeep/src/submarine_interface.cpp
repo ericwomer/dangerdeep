@@ -64,6 +64,7 @@ submarine_interface::~submarine_interface()
 void submarine_interface::process_input(game& gm, const SDL_Event& event)
 {
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
+
 	// check for common keys
 	if (event.type == SDL_KEYDOWN) {
 		if (event.key.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) {
@@ -104,9 +105,29 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 			switch (event.key.keysym.sym) {
 			// display switching
 			case SDLK_F1: current_display = display_mode_gauges; break;
-			case SDLK_F2: current_display = display_mode_periscope; break;
-			case SDLK_F3: current_display = display_mode_uzo; break;
-			case SDLK_F4: current_display = display_mode_bridge; break;
+			case SDLK_F2:
+				if (player->get_depth() > player->get_periscope_depth()) {
+					add_message(texts::get(28));
+					// will later be replaced when scope can be raised in smaller steps...
+					// no. height of scope and en/disabling are not the same.
+				} else {
+					current_display = display_mode_periscope;
+				}
+				break;
+			case SDLK_F3:
+				if (player->is_submerged()) {
+					add_message(texts::get(27));
+				} else {
+					current_display = display_mode_uzo;
+				}
+				break;
+			case SDLK_F4:
+				if (player->is_submerged()) {
+					add_message(texts::get(27));
+				} else {
+					current_display = display_mode_bridge;
+				}
+				break;
 			case SDLK_F5: current_display = display_mode_map; break;
 			case SDLK_F6: current_display = display_mode_torpedoroom; break;
 			case SDLK_F7: current_display = display_mode_damagestatus; break;
@@ -286,23 +307,16 @@ bool submarine_interface::object_visible(sea_object* so,
 	
 void submarine_interface::display(game& gm) const
 {
+	submarine* player = dynamic_cast<submarine*>(gm.get_player());
+	if ((current_display == display_mode_uzo || current_display == display_mode_bridge) &&
+	    player->is_submerged()) {
+//		current_display = display_mode_periscope;
+	}
+	if (current_display == display_mode_periscope && player->get_depth() > player->get_periscope_depth()) {
+//		current_display = display_mode_map;
+	}
+
 	user_interface::display(gm);
 
-	submarine* player = dynamic_cast<submarine*>(gm.get_player());
-
 	// panel is drawn in each display function, so the above code is all...
-
-	// switch to map if sub is to deep. fixme collides with constness, make current_display mutable!?
-	//or check it in input function.<-better?
-/*
-	double depth = player->get_depth();
-	if ((depth > SUBMARINE_SUBMERGED_DEPTH &&
-			(current_display == display_mode_uzo || current_display == display_mode_glasses ||
-			 current_display == display_mode_bridge)) ||
-		(depth > player->get_periscope_depth() &&
-			(current_display == display_mode_periscope || current_display == display_mode_uzo ||
-			 current_display == display_mode_glasses || current_display == display_mode_bridge)) ||
-		(current_display == display_mode_periscope && !player->is_scope_up()))
-			current_display = display_mode_map;
-*/
 }
