@@ -909,11 +909,12 @@ void menu_single_mission(void)
 void menu_select_language(void)
 {
 	menu m(26, titlebackgrimg);
-	m.add_item(27, 0);
-	m.add_item(28, 0);
+	m.add_item(500, 0);
+	m.add_item(501, 0);
+	m.add_item(502, 0);
 	m.add_item(11, 0);
 	unsigned sel = m.run();
-	if (sel < 2) {
+	if (sel < 3) {
 		texts::set_language(texts::languages(sel));
 	}
 }

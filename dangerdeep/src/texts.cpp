@@ -15,12 +15,14 @@ texts::languages texts::language = texts::english;
 
 static char* textfilenames[] = {
 	"english",
-	"german"
+	"german",
+	"italian"
 };
 
 static char* languagecodes[] = {
 	"en",
-	"de"
+	"de",
+	"it"
 };
 
 vector<string> texts::txts;

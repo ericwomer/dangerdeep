@@ -12,7 +12,7 @@ class texts {
 	static vector<string> txts;
 
 public:
-	enum languages { english, german };
+	enum languages { english, german, italian };
 	static languages language;
 
 	static void set_language(languages l = english);
