@@ -1,7 +1,7 @@
 # import these variables from the parent build script 
 import sys
 
-Import('env', 'gfxlibs', 'alllibs', 'libpath', 'installprefix', 'datadir', 'datafiles')
+Import('env', 'gfxlibs', 'alllibs', 'libpath', 'installprefix', 'datadir', 'datafiles', 'findCVS')
 
 ################## define sources #######################
 dftdsources = Split("""subsim.cpp
@@ -74,7 +74,7 @@ env.Program('crosssection', 'crosssection.cpp', LIBS = ['dftdmedia'] + gfxlibs, 
 env.StaticLibrary(target = 'oglext', source = oglextsources, LIBPATH = libpath)
 env.StaticLibrary(target = 'tinyxml', source = tinyxmlsources, LIBPATH = libpath)
 
-############ this allows to run "scons install" to install the binary, fixme add data
+############ this allows to run "scons install" to install the binary
 install = env.Alias('install', env.Install(installprefix + 'bin', binary))
 env.Depends(install, binary)
 for i in datafiles:
