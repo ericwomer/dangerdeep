@@ -34,26 +34,12 @@ const int coastmap::dy[4] = { -1, 0, 1, 0 };
 
 
 
-struct intcl
-{
-	vector<vector2i> points;
-	bool cyclic;
-	int beginborder, endborder;
-	intcl() : cyclic(false), beginborder(-1), endborder(-1) {}
-	~intcl() {}
-	intcl(const intcl& c) : points(c.points), cyclic(c.cyclic), beginborder(c.beginborder), endborder(c.endborder) {}
-	intcl& operator=(const intcl& c) { points = c.points; cyclic = c.cyclic; beginborder = c.beginborder; endborder = c.endborder; return *this; }
-};	
-
-
-
-
 /* fixme:
   maybe reuse already generated data: give old point array to. if new detail is higher than
   old detail, just generate new points (50% computation time saving on increasing the detail),
   or drop old points with decreasing detail (100% computation time saving).
 */
-vector<vector2f> coastline::create_points(unsigned begint, unsigned endt, int detail) const
+vector<vector2f> coastline::create_points(const vector2& offset, float scal, unsigned begint, unsigned endt, int detail) const
 {
 	double t0 = double(begint)/double(points.size());
 	double t1 = double(endt)/double(points.size());
@@ -67,7 +53,9 @@ vector<vector2f> coastline::create_points(unsigned begint, unsigned endt, int de
 	vector<vector2f> pointsf;
 	pointsf.reserve(nrpts);
 	for (unsigned i = 0; i < nrpts; ++i) {
-		pointsf.push_back(vector2f(points[begint+i].x /* * scal + off*/, points[begint+i].y /* * scal + off*/));
+		pointsf.push_back(vector2f(
+			points[begint+i].x * scal + offset.x,
+			points[begint+i].y * scal + offset.y ));
 	}
 	
 	for (unsigned n = 0; n < nrpts; ++n) {
@@ -84,7 +72,7 @@ vector<vector2f> coastline::create_points(unsigned begint, unsigned endt, int de
 void coastline::draw_as_map(const vector2f& off, float size, const vector2f& t, const vector2f& ts, int detail) const
 {
 	// fixme: cache that somehow
-	vector<vector2f> pts = create_points(0, points.size(), detail);
+	vector<vector2f> pts = create_points(vector2(off.x, off.y), size, 0, points.size(), detail);
 
 	// fixme: move calculations to opengl's transform matrix.	
 	glBegin(GL_LINE_STRIP);
@@ -110,7 +98,7 @@ void coastline::draw_as_map(const vector2f& off, float size, const vector2f& t, 
 void coastline::render(const vector2& p, int detail) const
 {
 	// fixme: cache that somehow
-	vector<vector2f> pts = create_points(0, points.size(), detail);
+	vector<vector2f> pts = create_points(p, 1, 0, points.size(), detail);
 	
 	glPushMatrix();
 	glTranslatef(-p.x, -p.y, 0);
@@ -820,6 +808,8 @@ void coastmap::draw_as_map(const vector2& droff, double mapzoom, int detail) con
 		t.y += ts.y;
 	}
 
+//	for (unsigned i = 0; i < coastlines.size(); ++i)
+//		coastlines[i].draw_as_map(vector2f(realoffset.x, realoffset.y), float(pixelw_real), vector2f(1,1), vector2f(1,1));
 
 /*
 	// draw cities, fixme move to coastmap

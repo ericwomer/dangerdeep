@@ -34,7 +34,7 @@ struct coastline
 	// create vector of real points, detail can be > 0 (additional detail with bspline
 	// interpolation) or even < 0 (reduced detail)
 	// create points between begint and endt with 0<=t<points.size()
-	vector<vector2f> create_points(unsigned start, unsigned endt, int detail = 0) const;
+	vector<vector2f> create_points(const vector2& offset, float scal, unsigned start, unsigned endt, int detail = 0) const;
 	//fixme: obsolete.
 	void draw_as_map(const vector2f& off, float size, const vector2f& t, const vector2f& ts, int detail = 0) const;
 	// possibly obsolete.fixme
