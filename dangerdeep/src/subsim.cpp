@@ -12,6 +12,12 @@
 #include "menu.h"
 #include "global_data.h"
 #include "texts.h"
+#include "ship_mediummerchant.h"
+#include "ship_mediumtroopship.h"
+#include "ship_destroyertribal.h"
+#include "ship_battleshipmalaya.h"
+#include "submarine_VIIc.h"
+#include "submarine_XXI.h"
 #include <iostream>
 #include <sstream>
 #include "config.h"
@@ -240,29 +246,33 @@ void show_vessels(void)
 	double zangle = 0;
 	double xangle = 0;
 	unsigned lasttime = sys->millisec();
+	int lastvessel = -1;
+	sea_object* s = 0;	// pointer to current vessel
 	while (true) {
-		if (vessel < 0) vessel = 5;
-		if (vessel > 5) vessel = 0;
-		model* m = 0;
-		const char* mname = 0;
-		switch(vessel) {
-			case 0: m = merchant_medium; mname = "Medium merchant ship"; break;
- 			case 1: m = subVII; mname = "Submarine type VII"; break;
- 			case 2: m = subXXI; mname = "Submarine type XXI"; break;
- 			case 3: m = destroyer_tribal; mname = "Detroyer Tribal class"; break;
- 			case 4: m = troopship_medium; mname = "Medium Troopship"; break;
-			case 5: m = battleship_malaya; mname = "Battleship Malaya class"; break;
+		if (vessel != lastvessel) {
+			if (vessel < 0) vessel = 5;
+			if (vessel > 5) vessel = 0;
+			delete s;
+			lastvessel = vessel;
+			switch(vessel) {
+				case 0: s = new ship_mediummerchant(); break;
+				case 1: s = new ship_mediumtroopship(); break;
+				case 2: s = new ship_battleshipmalaya(); break;
+				case 3: s = new ship_destroyertribal(); break;
+				case 4: s = new submarine_XXI(); break;
+				case 5: s = new submarine_VIIc(); break;
+			}
  		}
 
 		glClear(GL_DEPTH_BUFFER_BIT);
 		sys->prepare_2d_drawing();
-		sys->draw_image(0, 0, 512, 512, titel[0]);
-		sys->draw_image(512, 0, 512, 512, titel[1]);
-		sys->draw_image(0, 512, 512, 256, titel[2]);
-		sys->draw_image(512, 512, 512, 256, titel[3]);
-		font_tahoma->print_hc(1024, 650, mname);
+		sys->draw_image(0, 0, 512, 512, threesubs[0]);
+		sys->draw_image(512, 0, 512, 512, threesubs[1]);
+		sys->draw_image(0, 512, 512, 256, threesubs[2]);
+		sys->draw_image(512, 512, 512, 256, threesubs[3]);
+		font_tahoma->print_hc(1024, 650, s->get_description(2).c_str());
 		font_tahoma->print_hc(1024, 768 - font_tahoma->get_height(),
-			"Cursor keys to rotate, Page up/down to cycle, Escape to exit");
+			TXT_Showvesselinstructions[language]);
 		sys->unprepare_2d_drawing();
 
 		glLoadIdentity();
@@ -270,9 +280,9 @@ void show_vessels(void)
 		glRotatef(-80, 1, 0, 0);
 		glRotatef(zangle, 0, 0, 1);
 		glRotatef(xangle, 1, 0, 0);
-		double s = 2.0/vector2(m->get_length(), m->get_width()).length();
-		glScalef(s, s, s);
-		m->display();
+		double sc = 2.0/vector2(s->get_length(), s->get_width()).length();
+		glScalef(sc, sc, sc);
+		s->display();
 		unsigned thistime = sys->millisec();
 		zangle += (thistime - lasttime) * 5 / 1000.0;
 		lasttime = thistime;
@@ -288,6 +298,7 @@ void show_vessels(void)
 		if (key == SDLK_DOWN) xangle -= 5;
 		sys->swap_buffers();
 	}
+	delete s;
 }
 
 int main(int argc, char** argv)

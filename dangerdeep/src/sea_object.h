@@ -61,6 +61,9 @@ protected:
 public:
 	virtual ~sea_object() {}
 	
+	// detail: 0 - category, 1 - finer category, >=2 - exact category
+	virtual string get_description(unsigned detail) const { return "UNKNOWN"; }
+
 	virtual void simulate(class game& gm, double delta_time);
 	virtual bool is_collision(const sea_object* other);
 	virtual bool is_collision(const vector2& pos);

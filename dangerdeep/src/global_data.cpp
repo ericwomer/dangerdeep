@@ -14,7 +14,7 @@ texture *water, *background, *titel[4], *periscope[4], *gauge1,
 	*gauge2, *gauge3, *gauge4, *psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
-	*clock12, *clock24;
+	*clock12, *clock24, *threesubs[4];
 font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
 
 void init_global_data(void)
@@ -70,6 +70,12 @@ void init_global_data(void)
 	clouds = new texture((get_data_dir() + "textures/" + "clouds.png"), 1, false, true);
 	clock12 = new texture((get_data_dir() + "textures/" + "clock12.png"));
 	clock24 = new texture((get_data_dir() + "textures/" + "clock24.png"));
+	SDL_Surface* threesubsimg = IMG_Load((get_data_dir() + "textures/" + "3subs.png").c_str());
+	threesubs[0] = new texture(threesubsimg, 0, 0, 256, 256);
+	threesubs[1] = new texture(threesubsimg, 256, 0, 256, 256);
+	threesubs[2] = new texture(threesubsimg, 0, 256, 256, 128);
+	threesubs[3] = new texture(threesubsimg, 256, 256, 256, 128);
+	SDL_FreeSurface(threesubsimg);
 }
 
 void deinit_global_data(void)
@@ -121,6 +127,10 @@ void deinit_global_data(void)
 	delete clouds;
 	delete clock12;
 	delete clock24;
+	delete threesubs[0];
+	delete threesubs[1];
+	delete threesubs[2];
+	delete threesubs[3];
 }
 
 // returns 1939-1945, 1-12, 1-31

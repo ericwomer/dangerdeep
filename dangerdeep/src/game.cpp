@@ -250,10 +250,10 @@ list<ship*> game::hearable_ships(const vector3& pos)
 	list<ship*> result;
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
 		double d = (*it)->get_pos().xy().distance(pos.xy());
-		double distfac = (2000 / (d + 2000));
+		double distfac = d/30000;
 		double noisefac = (*it)->get_throttle_speed()/(*it)->get_max_speed();
 //printf("df nf %f %f\n",distfac,noisefac);		
-		if (noisefac * distfac > 0.1) {
+		if (noisefac - distfac > 0.1) {
 			result.push_back(*it);
 		}
 	}
@@ -266,10 +266,10 @@ list<submarine*> game::hearable_submarines(const vector3& pos)
 	list<submarine*> result;
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
 		double d = (*it)->get_pos().xy().distance(pos.xy());
-		double distfac = (2000 / (d + 2000));
+		double distfac = d/5000;
 		double noisefac = (*it)->get_throttle_speed()/(*it)->get_max_speed();
 //printf("df nf %f %f\n",distfac,noisefac);		
-		if (noisefac * distfac > 0.1) {
+		if (noisefac - distfac > 0.1) {
 			result.push_back(*it);
 		}
 	}
