@@ -1,3 +1,15 @@
+2004-07-18  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* quaternion.h
+	  - fixed serious bug, new default c'tor
+	    world is displayed correctly now
+	    ships can accelerate again...
+	* convoy
+	  - heirs now from sea_object, not ship. seems reasonable
+	* overall:
+	  - removed silly reference counting, it works now like before, only
+	    class game holds the sea_objects, all users ask is_defunct() and
+	    zero their pointers if an object is defunct.
+
 2004-07-15  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* Internal changes completed with some crude hacks to some point where the
 	  game at least compiles and runs again.

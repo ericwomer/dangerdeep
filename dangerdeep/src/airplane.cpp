@@ -14,7 +14,6 @@ airplane::airplane(TiXmlDocument* specfile) : sea_object(specfile)
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdairplane = hspec.FirstChild();	// ignore node name
 	//head_to = heading;
-	orientation = quaternion::neutral_rot();
 	rollfac = pitchfac = 0.0;
 	//throttle = aheadfull;
 }

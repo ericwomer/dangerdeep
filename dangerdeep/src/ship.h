@@ -41,7 +41,7 @@ protected:
 	bool permanent_turn;	// if true, ignore head_to and move rudder_pos to rudder_to
 	angle head_to;
 	
-	angle turn_rate;	// in angle/(time*speed) = angle/m, means angle change per forward movement in meters, read from spec file
+	double turn_rate;	// in angle/time (at max. speed/throttle), read from spec file
 
 	double max_accel_forward;	// stored. can get computed from engine_torque, screw diameter and ship's mass.
 	double max_speed_forward;	// stored.

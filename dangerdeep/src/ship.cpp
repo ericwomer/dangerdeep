@@ -17,7 +17,7 @@
 // empty c'tor is needed by heirs
 ship::ship() : myai(0), mysmoke(0)
 {
-	max_rudder_angle = 30;
+	max_rudder_angle = 40;
 }
 
 
@@ -50,7 +50,7 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 	emotion->Attribute("acceleration", &max_accel_forward);
 	tmp = 0;
 	if (emotion->Attribute("turnrate", &tmp))
-		turn_rate = angle(tmp);
+		turn_rate = tmp;
 	TiXmlElement* esmoke = hdftdship.FirstChildElement("smoke").Element();
 	mysmoke = 0;
 	if (esmoke) {
@@ -78,7 +78,7 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 	efuel->Attribute("consumption_a", &fuel_value_a);
 	efuel->Attribute("consumption_t", &fuel_value_t);
 	
-	max_rudder_angle = 30;
+	max_rudder_angle = 40;
 }
 
 
@@ -200,8 +200,12 @@ double ship::get_throttle_accel(void) const
 	// and: drag = drag_factor * speed^2
 	// get acceleration for constant throttled speed: accel = drag
 	// solve:
-	// accel = drag_factor * speed = max_accel_forward * speed / max_speed_forward^2
-	return get_throttle_speed() * max_accel_forward / (max_speed_forward * max_speed_forward);
+	// accel = drag_factor * speed^2 = max_accel_forward * speed^2 / max_speed_forward^2
+	// fixme: 2004/07/18: throttle to some speed would mean maximum acceleration until
+	// we get close to this speed... but we don't set speed here but engine throttle...
+	// fixme: reverse throttle doesn't work. obvious why...
+	double speed_fac = get_throttle_speed() / max_speed_forward;
+	return max_accel_forward * (speed_fac * speed_fac);
 }
 
 
@@ -232,7 +236,7 @@ void ship::parse_attributes(TiXmlElement* parent)
 			heading = angle(tmp);
 		tmp = 0;
 		if (emotion->Attribute("speed", &tmp))
-			speed = kts2ms(tmp);
+			speed = kts2ms(tmp);//fixme: set velocity instead
 		string thr = XmlAttrib(emotion, "throttle");
 		if (thr == "stop") throttle = stop;
 		else if (thr == "reverse") throttle = reverse;
@@ -283,6 +287,8 @@ void ship::save(ostream& out, const game& g) const
 
 void ship::simulate(game& gm, double delta_time)
 {
+	speed = sea_object::get_speed();
+	heading = sea_object::get_heading();
 	sea_object::simulate(gm, delta_time);
 	if ( myai )
 		myai->act(gm, delta_time);
@@ -391,6 +397,13 @@ vector3 ship::get_acceleration(void) const		// drag must be already included!
 {
 	// acceleration of ship depends on rudder.
 	// forward acceleration is max_accel_forward * cos(rudder_ang)
+	//fixme 2004/07/18: the drag is too small. engine stop -> the ship slows down but
+	//to slowly, especially on low speeds. it would take a LONG time until it comes
+	//to an halt.
+	//compute max_accel_forward from mass and engine power to have a rough guess.
+	//in general: Power/(rpm * screw_radius * mass) = accel
+	//Power: engine Power (kWatts), rpm (screw turns per second), mass (ship's mass)
+	//SubVIIc: ~3500kW, rad=0.5m, rpm=2 (?), mass=750000kg -> acc=4,666. a bit much...
 	double drag_factor = max_accel_forward / (max_speed_forward * max_speed_forward);
 	return orientation.rotate(0, get_throttle_accel() * cos(rudder_pos * M_PI / 180.0) - drag_factor * (speed * speed), 0);
 }
@@ -403,6 +416,7 @@ quaternion ship::get_rot_acceleration(void) const	// drag must be already includ
 	// angular acceleration (turning) is max_accel_forward * sin(rudder_ang)
 	// this is acceleration around local z-axis.
 	//fixme: do we have to multiply in some factor? we have angular values here not linear...
+	//double drag_factor = 
 	return quaternion::rot(get_throttle_accel() * sin(rudder_pos * M_PI / 180.0), 0, 0, 1);
 }
 

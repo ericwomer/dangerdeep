@@ -119,7 +119,9 @@ public:
 	// command interface - no special commands for a generic sea_object
 
 	virtual vector3 get_pos(void) const { return position; };
+	virtual vector3 get_velocity(void) const { return velocity; };
 	virtual quaternion get_orientation(void) const { return orientation; };
+	virtual quaternion get_rot_velocity(void) const { return rot_velocity; };
 	virtual double get_depth() const { return -position.z; };
 	virtual float get_width(void) const { return size3d.x; };
 	virtual float get_length(void) const { return size3d.y; };

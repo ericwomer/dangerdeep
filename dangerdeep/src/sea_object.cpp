@@ -47,13 +47,14 @@ vector3 sea_object::get_acceleration(void) const
 
 quaternion sea_object::get_rot_acceleration(void) const
 {
-	return quaternion::neutral_rot();
+	return quaternion();
 }
 
 
 
 // some heirs need this empty c'tor
-sea_object::sea_object() : /*speed(0), max_speed(0), max_rev_speed(0), throttle(stop),
+sea_object::sea_object() :
+/*speed(0), max_speed(0), max_rev_speed(0), throttle(stop),
 	acceleration(0), permanent_turn(false), head_chg(0), rudder(0) fixme move to ship */
 	alive_stat(alive), myai(0)
 {
@@ -303,12 +304,20 @@ void sea_object::simulate(game& gm, double delta_time)
 
 	// compute global accel from local with drag:
 	//vector3 accel = orientation.rotate(get_local_acceleration() - local_drag.coeff_mul(velocity.coeff_mul(velocity)));
-	
+
 	vector3 acceleration = get_acceleration();
+
+//	cout << "object " << this << " simulate.\npos: " << position << "\nvelo: " << velocity
+//		<< "\naccel: " << acceleration << "\n";
+
 	position += velocity * delta_time + acceleration * (0.5 * delta_time * delta_time);
 	velocity += acceleration * delta_time;
+
+//	cout << "NEWpos: " << position << "\nNEWvelo: " << velocity << "\n";
+//	cout << "(delta t = " << delta_time << ")\n";
 	
 	quaternion rotacceleration = get_rot_acceleration();
+//cout << "object " << this << " rot accel: " << rotacceleration << "\n orientat: " << orientation << "\nrot_velo: " << rot_velocity << "\n";
 	orientation = rotacceleration.scale_rot_angle(0.5*delta_time*delta_time) * rot_velocity.scale_rot_angle(delta_time) * orientation;
 	rot_velocity = rotacceleration.scale_rot_angle(delta_time) * rot_velocity;
 
