@@ -43,7 +43,7 @@ angle sub_gauges_display::indicator::get_angle(int mx, int my) const
 	return angle(vector2(mx - int(x + w/2), my - int(y + h/2)));
 }
 
-sub_gauges_display::sub_gauges_display(user_interface& ui_) : user_display(ui_),
+sub_gauges_display::sub_gauges_display(user_interface& ui_) : user_display(ui_)
 {
 	controlscreen_normallight = imagecache.ref("ControlScreen_NormalLight.png");
 	controlscreen_nightlight = imagecache.ref("ControlScreen_NightLight.png");
