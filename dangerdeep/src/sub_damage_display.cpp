@@ -82,13 +82,13 @@ void sub_damage_display::display_popup (int x, int y, const string& text, bool a
 
 	color::white().set_gl_color();
 	system::sys()->draw_image(posx, posy, notepadsheet);
-	font_arial2->print_wrapped(posx+8, posy+45, 256-16, 20, text, color(0,0,128));
+	font_arial->print_wrapped(posx+8, posy+45, 256-16, 20, text, color(0,0,128));
 	
 //	color(0,0,0).set_gl_color(128);
 //	system::sys()->draw_rectangle(posx+4,posy+4,width,height);
 //	color(255,255,128).set_gl_color(255);
 //	system::sys()->draw_rectangle(posx,posy,width,height);
-//	font_arial2->print(posx+4,posy+4,text,color::black());
+//	font_arial->print(posx+4,posy+4,text,color::black());
 
 	color::white().set_gl_color();
 }

@@ -80,7 +80,7 @@ void logbook_display::print_buffer ( unsigned i, const string& t ) const
 		( 46 + 20 * ( i - NUMBER_OF_LINES ) );
 	y = unsigned ( y / FONT_SCALE_FACTOR );
 
-	font_arial2->print ( x, y, t, color ( 0, 0, 0 ) );
+	font_arial->print ( x, y, t, color ( 0, 0, 0 ) );
 }
 
 void logbook_display::format_line ( list<string>& entries_list, const string& line )
@@ -226,13 +226,13 @@ void captains_logbook_display::display ( class system& sys, class game& gm )
 	unsigned page_number = 1 + unsigned ( actual_entry / NUMBER_OF_LINES );
 	ostringstream oss1;
 	oss1 << page_number;
-	font_arial2->print (
+	font_arial->print (
 		unsigned ( 260 / FONT_SCALE_FACTOR ),
 		unsigned ( 595 / FONT_SCALE_FACTOR ),
 		oss1.str (), color ( 0, 0, 0 ) );
 	ostringstream oss2;
 	oss2 << ( page_number + 1 );
-	font_arial2->print (
+	font_arial->print (
 		unsigned ( 760 / FONT_SCALE_FACTOR ),
 		unsigned ( 595 / FONT_SCALE_FACTOR ),
 		oss2.str (), color ( 0, 0, 0 ) );
@@ -240,13 +240,13 @@ void captains_logbook_display::display ( class system& sys, class game& gm )
 	// Display arrows.
 	ostringstream left_arrow_oss;
 	left_arrow_oss << "<<";
-	font_arial2->print (
+	font_arial->print (
 		unsigned ( 160 / FONT_SCALE_FACTOR ),
 		unsigned ( 595 / FONT_SCALE_FACTOR ),
 		left_arrow_oss.str (), color ( 0, 0, 0 ) );
 	ostringstream right_arrow_oss;
 	right_arrow_oss << ">>";
-	font_arial2->print (
+	font_arial->print (
 		unsigned ( 860 / FONT_SCALE_FACTOR ),
 		unsigned ( 595 / FONT_SCALE_FACTOR ),
 		right_arrow_oss.str (), color ( 0, 0, 0 ) );

@@ -89,9 +89,9 @@ protected:
 			draw_gauge(sys, gm, nr, x, y, wh, a, text, a);
 	}
 	// draws turnable switch. parameters: pos, first index and number of descriptions,
-	// selected description and text.
+	// selected description, extra description text number and title text nr.
 	void draw_turnswitch(class system& sys, class game& gm, int x, int y,
-		unsigned firstdescr, unsigned nrdescr, unsigned selected, const string& text) const;
+		unsigned firstdescr, unsigned nrdescr, unsigned selected, unsigned extradescr, unsigned title) const;
 	// Matching input function, give pos 0-255,0-255.
 	unsigned turnswitch_input(int x, int y, unsigned nrdescr) const;
 	

@@ -106,8 +106,8 @@ void ship_interface::draw_gauge(class system& sys, unsigned nr, int x, int y,
 	}
 	vector2 d = a.direction();
 	int xx = x+wh/2, yy = y+wh/2;
-	pair<unsigned, unsigned> twh = font_arial2->get_size(text);
-	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text);
+	pair<unsigned, unsigned> twh = font_arial->get_size(text);
+	font_arial->print(xx-twh.first/2, yy-twh.second/2, text);
 	glColor3f(1,0,0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBegin(GL_TRIANGLES);

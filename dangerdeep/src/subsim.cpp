@@ -299,7 +299,7 @@ void draw_vessel(void)
 	glColor3f(1, 1, 1);
 	vessel->display();
 	sys->prepare_2d_drawing();
-	font_tahoma->print_hc(512, 128, vessel->get_description(2), color::white(), true);
+	font_nimbusrom->print_hc(512, 128, vessel->get_description(2), color::white(), true);
 	sys->unprepare_2d_drawing();
 }
 

@@ -16,6 +16,9 @@ using namespace std;
 #include <SDL/SDL.h>
 #endif
 
+// this are ASCII codes 33-126, additionally german umlauts and german quotation marks (may look different)
+#define STANDARD_FONT_CHARACTERS "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ÄÖÜäöüß«»"
+
 class font
 {
 private:
@@ -42,7 +45,7 @@ private:
 		
 public:
 	font(const string& filename, unsigned char_spacing=1, unsigned blank_length=8,
-		const string& font_mapping= "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?;:()<>/\\-+*");
+		const string& font_mapping = STANDARD_FONT_CHARACTERS);
 	~font();
 	void print(int x, int y, const string& text, color col = color(255,255,255), bool with_shadow = false) const;
 	void print_hc(int x, int y, const string& text, color col = color(255,255,255), bool with_shadow = false) const;

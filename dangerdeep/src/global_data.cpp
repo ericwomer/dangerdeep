@@ -40,8 +40,7 @@ texture *water, *background, *gauge1,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
 	*cloudsbackgr;
 	
-font *font_arial, *font_arial2, *font_ellis, *font_panel, *font_tahoma,
-	*font_nimbusrom;
+font *font_arial, *font_panel, *font_nimbusrom;
 
 sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
@@ -70,10 +69,7 @@ void init_global_data(void)
 	tanker_small = new model((get_data_dir() + MODEL_DIR + "smalltanker.mdl"));
 	conning_tower_typeVII = new model((get_data_dir() + MODEL_DIR + "conning_tower_typeVII.mdl"));
 	font_arial = new font(get_data_dir() + FONT_DIR + "font_arial.png");
-	font_arial2 = new font(get_data_dir() + FONT_DIR + "font_arial2.png");
-	font_ellis = new font(get_data_dir() + FONT_DIR + "font_ellis.png");
 	font_panel = new font(get_data_dir() + FONT_DIR + "font_panel.png");
-	font_tahoma = new font(get_data_dir() + FONT_DIR + "font_tahoma.png");
 	font_nimbusrom = new font(get_data_dir() + FONT_DIR + "font_nimbusrom.png");
 	torpedo_g7 = new model((get_data_dir() + MODEL_DIR + "torpedo.mdl"));
 	depth_charge_mdl = new model((get_data_dir() + MODEL_DIR + "depth_charge.mdl"));
@@ -159,10 +155,7 @@ void deinit_global_data(void)
 	delete tanker_small;
 	delete conning_tower_typeVII;
 	delete font_arial;
-	delete font_arial2;
-	delete font_ellis;
 	delete font_panel;
-	delete font_tahoma;
 	delete font_nimbusrom;
 	delete torpedo_g7;
 	delete depth_charge_mdl;

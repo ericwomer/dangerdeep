@@ -543,13 +543,13 @@ void user_interface::draw_gauge(class system& sys, class game& gm,
 	}
 	vector2 d = a.direction();
 	int xx = x+wh/2, yy = y+wh/2;
-	pair<unsigned, unsigned> twh = font_arial2->get_size(text);
+	pair<unsigned, unsigned> twh = font_arial->get_size(text);
 
 	color font_color ( 255, 255, 255 );
 	if ( !gm.is_day_mode () )
 		font_color = color ( 255, 127, 127 );
 
-	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text, font_color);
+	font_arial->print(xx-twh.first/2, yy-twh.second/2, text, font_color);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	if (a2 != a) {
 		vector2 d2 = a2.direction();
@@ -582,13 +582,13 @@ void user_interface::draw_clock(class system& sys, class game& gm,
 		sys.draw_image(x, y, wh, wh, clock24);
 	minutes %= 12*60;
 	int xx = x+wh/2, yy = y+wh/2;
-	pair<unsigned, unsigned> twh = font_arial2->get_size(text);
+	pair<unsigned, unsigned> twh = font_arial->get_size(text);
 
 	color font_color ( 255, 255, 255 );
 	if ( !is_day_mode )
 		font_color = color ( 255, 127, 127 );
 
-	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text, font_color);
+	font_arial->print(xx-twh.first/2, yy-twh.second/2, text, font_color);
 	vector2 d;
 	int l;
 
@@ -627,7 +627,7 @@ void user_interface::draw_clock(class system& sys, class game& gm,
 }
 
 void user_interface::draw_turnswitch(class system& sys, class game& gm, int x, int y,
-	unsigned firstdescr, unsigned nrdescr, unsigned selected, const string& text) const
+	unsigned firstdescr, unsigned nrdescr, unsigned selected, unsigned extradescr, unsigned title) const
 {
 	double full_turn = (nrdescr <= 2) ? 90 : 270;
 	double begin_turn = (nrdescr <= 2) ? -45 : -135;
@@ -639,12 +639,13 @@ void user_interface::draw_turnswitch(class system& sys, class game& gm, int x, i
 		sys.no_tex();
 		glBegin(GL_LINES);
 		glVertex2f(x+128+d.x*36,y+128-d.y*36);
-		glVertex2f(x+128+d.x*64,y+128-d.y*64);
+		glVertex2f(x+128+d.x*80,y+128-d.y*80);
 		glEnd();
 		font_arial->print_c(x+int(d.x*96)+128, y-int(d.y*96)+128, texts::get(firstdescr+i));
 	}
+	font_arial->print_c(x+128, y+196, texts::get(extradescr));
 	sys.draw_rot_image(x+128, y+128, begin_turn+degreesperpos*selected, turnswitch);
-	font_arial2->print_hc(x+128, y+256-36, text);
+	font_arial->print_c(x+128, y+228, texts::get(title));
 }
 
 unsigned user_interface::turnswitch_input(int x, int y, unsigned nrdescr) const
@@ -1095,19 +1096,19 @@ void user_interface::display_successes(class system& sys, game& gm)
 	glClearColor(0.25, 0.25, 0.25, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	sys.prepare_2d_drawing();
-	font_arial2->print(0, 0, "success records - fixme");
-	font_arial2->print(0, 100, "Ships sunk\n----------\n");
+	font_arial->print(0, 0, "success records - fixme");
+	font_arial->print(0, 100, "Ships sunk\n----------\n");
 	unsigned ships = 0, tons = 0;
 	for (list<unsigned>::const_iterator it = tonnage_sunk.begin(); it != tonnage_sunk.end(); ++it) {
 		++ships;
 		char tmp[20];
 		sprintf(tmp, "%u BRT", *it);
-		font_arial2->print(0, 100+(ships+2)*font_arial2->get_height(), tmp);
+		font_arial->print(0, 100+(ships+2)*font_arial->get_height(), tmp);
 		tons += *it;
 	}
 	char tmp[40];
 	sprintf(tmp, "total: %u BRT", tons);
-	font_arial2->print(0, 100+(ships+4)*font_arial2->get_height(), tmp);
+	font_arial->print(0, 100+(ships+4)*font_arial->get_height(), tmp);
 	sys.unprepare_2d_drawing();
 
 	// keyboard processing
@@ -1349,11 +1350,11 @@ void user_interface::draw_manometer_gauge ( class system& sys, class game& gm,
 	angle a ( 292.5f + 135.0f * value );
 	vector2 d = a.direction ();
 	int xx = x + wh / 2, yy = y + wh / 2;
-	pair<unsigned, unsigned> twh = font_arial2->get_size(text);
+	pair<unsigned, unsigned> twh = font_arial->get_size(text);
 
 	// Draw text.
 	color font_color ( 0, 0, 0 );
-	font_arial2->print ( xx - twh.first / 2, yy - twh.second / 2 - wh / 6,
+	font_arial->print ( xx - twh.first / 2, yy - twh.second / 2 - wh / 6,
 		text, font_color );
 
 	// Draw pointer.
