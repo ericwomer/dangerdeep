@@ -37,6 +37,7 @@
 #include "airplane_interface.h"
 #include "sky.h"
 #include "water.h"
+#include "matrix.h"
 using namespace std;
 
 #define MAX_PANEL_SIZE 256
@@ -60,7 +61,7 @@ user_interface::user_interface(sea_object* player, game& gm) :
 	pause(false), time_scale(1), player_object ( player ),
 	panel_visible(true), bearing(0), elevation(0),
 	viewmode(4), target(0), zoom_scope(false), mapzoom(0.1), mysky(0), mywater(0),
-	mycoastmap("default.map"), freeviewsideang(0), freeviewupang(-90), freeviewpos()
+	mycoastmap("default.map"), freeviewsideang(0), freeviewupang(0), freeviewpos()
 {
 	init ();
 	panel = new widget(0, 768-128, 1024, 128, "", 0, panelbackgroundimg);
@@ -245,7 +246,8 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 
 	//fixme: get rid of this, it conflicts with water because it swaps y and z coords.
 	//instead adapt rotation matrices for scope/bridge/free view
-	glRotatef(-90,1,0,0);
+	//glRotatef(-90,1,0,0);
+	
 	// if we're aboard the player's vessel move the world instead of the ship
 	if (aboard) {
 		//fixme: use player height correctly here
@@ -787,6 +789,8 @@ void user_interface::display_bridge(game& gm)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
+	glRotatef(-90, 1,0,0);	// swap y and z coordinates (camera looks at +y axis)
+
 	vector2 phd = player->get_heading().direction();
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6) + phd.xy0();
 	// no torpedoes, no DCs, with player
@@ -1223,16 +1227,19 @@ void user_interface::display_freeview(game& gm)
 	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	glRotatef(-90, 1,0,0);	// swap y and z coordinates (camera looks at +y axis)
+
+	glPushMatrix();	
+	glRotatef(freeviewsideang,0,0,1);
 	glRotatef(freeviewupang,1,0,0);
-	glRotatef(freeviewsideang,0,1,0);
-	float viewmatrix[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, viewmatrix);
-	vector3 sidestep(viewmatrix[0], viewmatrix[4], viewmatrix[8]);
-	vector3 upward(viewmatrix[1], viewmatrix[5], viewmatrix[9]);
-	vector3 forward(viewmatrix[2], viewmatrix[6], viewmatrix[10]);
+	matrix4 viewmatrix = matrix4::get_gl(GL_MODELVIEW_MATRIX);
+	vector3 sidestep = viewmatrix.row(0);
+	vector3 upward = viewmatrix.row(1);
+	vector3 forward = -viewmatrix.row(2);
+	glPopMatrix();
 
 	// draw everything (dir can be ignored/0, all water tiles must get drawn, not only the viewing cone, fixme)
-	draw_view(gm, freeviewpos, player_object->get_heading()+bearing, 0, false, false, true);
+	draw_view(gm, freeviewpos, player_object->get_heading()+bearing+freeviewsideang, freeviewupang, false, false, true);
 
 	int mx, my;
 	sys.get_mouse_motion(mx, my);
@@ -1290,6 +1297,7 @@ void user_interface::display_glasses(class game& gm)
 	glViewport(0, res_y/3, res_x, res_x/2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	glRotatef(-90, 1,0,0);	// swap y and z coordinates (camera looks at +y axis)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6);
 	// no torpedoes, no DCs, no player

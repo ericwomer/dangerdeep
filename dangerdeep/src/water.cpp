@@ -292,6 +292,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	matrix4 proj = matrix4::get_gl(GL_PROJECTION_MATRIX);
 	matrix4 modl = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	matrix4 prmd = proj * modl;
+	matrix4 inv_modl = modl.inverse();
 	matrix4 inv_prmd = prmd.inverse();
 
 	// transform frustum corners of rendering camera to world space
@@ -322,10 +323,10 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	}
 	
 	// compute projector matrix
-	// the last column of the modelview matrix is the inverse camera position
+	// the last column of the modelview matrix is the inverse camera position <- fixme: is not right, check it
 	// the upper left 3x3 matrix is the inverse camera rotation, so the rows hold the view vectors
-	vector3 camerapos = -modl.column(3);
-	vector3 cameraforward = -modl.row(2); // camera is facing along negative z-axis
+	vector3 camerapos = inv_modl.column(3); //-modl.column(3);
+	vector3 cameraforward = -inv_modl.column(2); //-modl.row(2); // camera is facing along negative z-axis
 cout << "camerapos " << camerapos << "\n";
 cout << "camera forward " << cameraforward << "\n";
 	vector3 projectorpos = camerapos, projectorforward = cameraforward;

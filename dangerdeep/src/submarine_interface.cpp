@@ -341,6 +341,8 @@ void submarine_interface::display_periscope(game& gm)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
+	glRotatef(-90, 1,0,0);	// swap y and z coordinates (camera looks at +y axis)
+
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 12+14);//fixme: +14 to be above waves ?!
 	// no torpedoes, no DCs, no player
 	draw_view(gm, viewpos, player->get_heading()+bearing, 0, true, false, false);
@@ -461,6 +463,8 @@ void submarine_interface::display_UZO(game& gm)
 	glViewport(0, res_y/3, res_x, res_x/2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+
+	glRotatef(-90, 1,0,0);	// swap y and z coordinates (camera looks at +y axis)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6);
 	// no torpedoes, no DCs, no player
