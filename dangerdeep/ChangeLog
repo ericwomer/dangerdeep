@@ -1,4 +1,9 @@
 2003-12-05  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* mapcompile.cpp
+	  - now islands are treated right. Just one simple trick worked
+	    better than 4 hours of puzzling/thinking. *argh*
+
+2003-12-05  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* game.h game.cpp
 	  - added handling for (cron) jobs. Now periodic events haven't to
 	    be computed every frame, just every x seconds.
