@@ -260,6 +260,24 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	// This should be a negative angle, but nautical view dir is clockwise, OpenGL uses ccw values, so this is a double negation
 	glRotatef(dir.value(),0,0,1);
 
+	// ************ compute water reflection ******************************************
+	// clear depth buffer
+	// save projection matrix
+	// set up new viewport size s*s with s<=max_texure_size and s<=w,h of old viewport
+	// set up old projection matrix (new width/height of course) with a bit larger fov
+	//   that means completely new proj matrix ;-)
+	// shear one clip plane to match world space z=0 plane
+	// flip geometry at z=0 plane
+	// draw all parts of the scene that are (partly) above the water:
+	//   sky
+	//   terrain
+	//   models/smoke
+	// copy viewport pixel data to reflection texture
+	// clear depth buffer
+	// continue, give reflection tex to water rendering
+	
+
+
 	// ************ sky ***************************************************************
 	mysky->display(viewpos, max_view_dist);
 

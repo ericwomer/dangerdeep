@@ -18,6 +18,7 @@ using namespace std;
 #include <GL/glu.h>
 
 #include "system.h"
+#include "texture.h"
 
 class system* system::instance = 0;
 
@@ -89,6 +90,7 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	cerr << "OpenGL vendor : " << vendor << "\n"
 		<< "GL renderer : " << renderer << "\n"
 		<< "GL version : " << version << "\n"
+		<< "GL max texture size : " << texture::get_max_width() << "\n"
 		<< "Supported GL extensions :\n" << extensions << "\n";
 
 	instance = this;

@@ -241,3 +241,15 @@ void texture::draw_tiles(int x, int y, int w, int h, unsigned tilesx, unsigned t
 	glVertex2i(w,0);
 	glEnd();
 }
+
+unsigned texture::get_max_width(void)
+{
+	GLint i;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &i);
+	return i;
+}
+
+unsigned texture::get_max_height(void)
+{
+	return get_max_width();
+}

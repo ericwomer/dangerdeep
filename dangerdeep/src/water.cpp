@@ -50,36 +50,16 @@ water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), ti
 		for (int x = 0; x < 256; x++) {
 			float scal = x/255.0f;
 			color fc = color(wc, color(239, 237, 203 /*255, 255, 255*/), scal);
-
-//#define SPHEREMAPCOORDS
-#ifdef SPHEREMAPCOORDS
-			float d = vector2f(x-127.5f, y-127.5f).length();
-			d = d / 127.5f;
-			if (d > 1.0f) d = 1.0f;
-			d = cos(asin(d));
-			d = d + 1.0f;
-			d = d*d;
-			d = d*d;
-			d = d*d;
-			d = 1.0f/d;
-			fc = color(color(18, 73, 107), color(162, 193, 216), d);
-#endif			
 			fresnelspecul[(x+y*256)*3+0] = fc.r;
 			fresnelspecul[(x+y*256)*3+1] = fc.g;
 			fresnelspecul[(x+y*256)*3+2] = fc.b;
 		}
 	}
 
-#ifdef SPHEREMAPCOORDS
-	ofstream oss("fresnel.ppm");
-	oss << "P6\n256 256\n255\n";
-	oss.write((const char*)(&fresnelspecul[0]), 256*256*3);
-#endif
-
 	coords.reserve((tile_res+1)*(tile_res+1));
 	colors.reserve((tile_res+1)*(tile_res+1));
 	uv0.reserve((tile_res+1)*(tile_res+1));
-#ifdef SPHEREMAPCOORDS
+#ifdef USENORMALS
 	normals.reserve((tile_res+1)*(tile_res+1));
 #endif
 
@@ -241,13 +221,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
 */
 
-#ifdef SPHEREMAPCOORDS
-	glEnable(GL_TEXTURE_GEN_S);
-	glEnable(GL_TEXTURE_GEN_T);
-	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-#endif
-
 	glActiveTexture(GL_TEXTURE1);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, foamtex->get_opengl_name());
@@ -277,7 +250,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
 	glClientActiveTexture(GL_TEXTURE0);
-#ifdef SPHEREMAPCOORDS
+#ifdef USENORMALS
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0].x);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -561,64 +534,43 @@ int water::compute_lod_by_trans(const vector3f& transl) const
 
 void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillgap) const
 {
-	// use LOD
-	// draw triangle strips or use vertex arrays
-	// draw a grid of quads, for each vertex do:
-	// get height/coordinate from precomputed heights/transl
+	// How we render the water:
+	// Per pixel effects are not possible on geforce2. We could do dot3 bump mapping,
+	// but this gives diffuse lighting effects, and water is mostly reflective, refractive
+	// or specular shaded. Dot3 bump mapping could be used to disturb the color values
+	// a bit, if it would look good is unknown and has to be tested.
+	// We can do specular lighting per vertex only (per pixel would need pixel shaders or
+	// register combiners, which is not compatible to ATI cards). This could be done
+	// even by OpenGL itself. But the triangles are too large for realistic specular
+	// lighting, it just looks very ugly. So we don't use specular lighting.
+	// for each vertex do:
+	// get height/coordinate from precomputed heights/translation pos/displacements
 	// compute normalized vector to watcher = E
 	// get normal vector from precomputed data = N
-	// get vector to light source (directional, so vector is const = L)
-	// Reflection vector (specular) is 2*(L*N)*N - L = R (R may be precomputed and stored!)
-	// compute (E*R)^m with m = specular constant, e.g. 16
-	// result = S (luminance value)
-	// compute Fresnel(E*N) = F, with Fresnel(x) ~ 1/(x+1)^8
-	// compute water color = refractive color * (1-F) + reflective color * F
-	// refractive color is deep blue and constant.
-	// reflective color is obtained from a reflection map (or constant: sky color)
-	// So per pixel color is: water color + S
-	// all per vertex, so primary color is enough. With reflections, the reflection map
-	// goes to tex0, Fresnel as primary color, refractive as const color (texenv) and
-	// S per vertex (per vertex needed, but differs from Fresnel).
-	// tex1 may be needed for foam
-	// in total: pixel color = S + refrac*(1-F) + tex0*F
-	//                         *   -       *      #    *
-	// * per vertex, - const, # per pixel
-	// interpolate and add does not work! add for tex1 doesn't work, we need it to blend in
-	// foam! we need three operations but have two.
-	// However S is mono, so we could set up the blend function to SRC_ALPHA, GL_ONE
-	// (alpha channel controls interpolation between color and white)
-	// and store S as alpha channel in the primary color.
-	// So we have:
-	// Constant color: refractive color
-	// Primary color: Fresnel term (RGB) / Specular value (ALPHA)
-	// Texture 0: Reflection map
-	// Texture 1: Foam
-	// Foam can be mixed in with secondary color. Foam texture coordinates can get
-	// computed by OpenGL.
+	// compute E*N, compute Fresnel(E*N). Fresnel(x) gives a value between 0 and 1
+	// determining how much reflection and how much refraction contributes to the water
+	// color. Fresnel(x) ~ 1/(x+1)^8 =: F. There is no way to compute this per pixel on a gf2
+	// not even an approximation (linear approximation is way too bad).
+	// And we can't use color values as texture indices on a gf2, so per pixel Fresnel
+	// is impossible, although it would increase the realism of the water.
+	// Based on F the water color is: refractive color * (1-F) + reflective color * F
+	// refractive color is const (rgb 18, 73, 107), reflective color is const (sky color)
+	// or better retrieved from a reflection map.
+	// So we have: primary color gives fresnel term (in color or alpha, 1 channel)
+	// Texture0 is reflection map.
+	// Texture1 is bump map (for fresnel fakes) or foam.
+	// Primary color (alpha or color) can give amount of foam (1 channel)
+	// Constant environment color is color of refraction.
+	// A word about automatic Fresnel computation: spheremaps or cubemaps won't work
+	// since reflections are view dependent (most important, they are view *angle*
+	// dependent), recomputation of sphere maps every frame won't work in a way that we
+	// can simulate a view independent value. Next possible way: lighting! set up the light
+	// source at the viewer's pos., give normals for faces -> they're lighted in grey
+	// like the E*N term (diffuse lighting). But we can't get F(E*N) per vertex automatically
+	// so we're stuck.
 	
-	// Secondary color is added after texturing. So it's of no use, maybe it can be used
-	// to add specular color. But it doesn't work either.
-	// We could set specular color and Fresnel color at once by storing them in a texture
-	// and use texture coordinates for mixing. This saves the primary color (maybe as foam
-	// mixing value), but then we can't add a reflection texture. Do we need one?!
-
-	// per pixel specular lighting looks very ugly. grid resolution is too low.
-	// the fresnel term gives much more surface realism than a specular color.
-	// per pixel fake specular lighting: disturb a per vertex lighting with dot3 bump
-	// mapping, maybe linear fresnel (with dot3) is ok for small details?
-	// high frequency waves could be done with perlin noise.
+	// high frequency waves could be done with perlin noise (i.e. bump maps)
 	
-	// if we could approximate the fresnel term good enough then we could use tex0 for
-	// dot3 computation and tex1 for final result computation -> per pixel fresnel.
-	// maybe with lighting/fog we could add the color.
-	// fresnel approximation is 1/(x+1)^8, ~~ 1-4*x which can be computed with one unit
-	// but its too bad, we need a smoother fall-off for the value, 1-4*x gives a too hard
-	// jump to zero reflection. A quadratic approximation would need unit1, and we need an
-	// add/sub too, this is very difficult...
-	// quadratic approx. is also not good enough.
-	// per pixel fresnel on gf2 could work with register combiners, but is not ATI compatible
-	// no way :-(
-
 	// Filling the gaps between various detail tiles:
 	// We could make real meshes by tweaking the indices so that we have more faces in
 	// the last line of the lower detailed tile matching the first line of the following
@@ -631,24 +583,9 @@ void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillg
 	// b's colors and texture coordinates. Simple.
 	// Precondition: Adjacent tiles must not differ by more than one LOD. But this must not be
 	// either for the index tweaking alternative.
-	
-	// fixme: could we use spheremapping/cubemapping, automatic texture coordinate generation
-	// to compute E or E*N?
-	// yes, texture map is Fresnel(cos(asin(d))) with d = unit distance to texture center
-	// i.e. d = 2*sqrt((x-0.5)^2+(y-0.5)^2) for x,y in [0,1]
-	// but this leads to large parts of the texture to be blue, resolution is not high
-	// enough to compute the Fresnel term with satisfying accuracy.
-	// maybe a cube map could do better.
-	// big problem: turning the view changes the texture coordinates, that means
-	// turning the view changes either E (it shouldn't) or N (should only rotate N)
-	// T=Modelviewmatrix, E'=T*E, N'=T*N (it should be, check with redbook, fixme)
-	// E' is (0,0,1) then. n'.z = E'*N' = (T*E)*(T*N) ???
-	// with E'=(0,0,1)=T*E is E=Tinv * E' = Tinv * (0,0,1) = Tinv,3rd col = T,2nd row
-	// however: why does E or N change with turning, Fresnel doesn't?!
-	// hmmm. E is (0,0,1) in eye space?! this is true only for vertices at the center of
-	// the screen. Maybe sphere mapping works that way (E always 0,0,1 for all vertices)
-	// in that case we can't use sphere mapping for fresnel...
-	// NO! E is not always (0,0,1)!!!
+	// Alternative II: draw n*n verts, fill inner parts of tiles only (with varying detail)
+	// fill seams with faces adapting the neighbouring detail levels.
+	// Alternative III: use projective grid
 
 	// Water drawing is slow. It seems that the per vertex computations are not the problem
 	// nor is it the gap filling. Most probable reason is the amount of data that
@@ -656,9 +593,7 @@ void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillg
 	// We have 4 colors, 3 coords, 2 texcoords per vertex (=4+12+8=24bytes)
 	// with 65*65 verts per tile, 21*21 tiles, mean resolution, say, 20 we have
 	// 21*21*21*21*24bytes/frame = ~4.7mb/frame, with 15frames ~ 70mb/second.
-
-// fixme: opengl1.2 has a COLOR MATRIX so colors can get multiplied by a 4x4 matrix before drawing
-// can we use this for anything?
+	// VBOs won't help much, they're also seem to be buggy on a gf4mx.
 
 	unsigned res = (2 << lodlevel);
 	unsigned resi = res+1;
@@ -671,6 +606,28 @@ void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillg
 	glBegin(GL_LINES);
 	glColor4f(1,1,1,1);
 #endif
+
+
+/*
+reflection
+// N is the vertex normal, TC the 3D projective texcoords (ie. the vertex position, that gets projected to screenspace texcoords)
+
+// get the displacement offset
+float dofs = VIRTUAL_PLANE_HEIGHT * N->z;
+
+// Displace the texcoords (vertex position) by the offset, in the direction of the normal
+TC->x += dofs*N->x;
+TC->y += dofs*N->y;
+TC->z += dofs*N->z;
+
+// The projective texcoords are now floating above the surface, on the virtual plane.
+// We don't want that. Correct the height. Little hackish, but works.
+TC->z -= VIRTUAL_PLANE_HEIGHT;
+
+// Now you can feed the texcoords TC to the projective matrix (in the texture matrix), and render the surface with the projective texture.
+// ...
+*/
+
 
 //glEnable(GL_LIGHTING);
 
@@ -692,7 +649,7 @@ void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillg
 				wavetileheights[phase][ptr]);
 			coords[vecptr] = coord;
 			vector3f N = wavetilenormals[phase][ptr];
-#ifdef SPHEREMAPCOORDS
+#ifdef USENORMALS
 			normals[vecptr] = N;
 #endif			
 			vector3f E = -coord.normal();

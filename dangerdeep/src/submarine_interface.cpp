@@ -325,10 +325,16 @@ void submarine_interface::display_periscope(game& gm)
 	glPushMatrix();
 	glLoadIdentity();
 
-	double fov = 20.0f;
+	// scope zoom modes are x1,5 and x6,0. This is meant as width of image.
+	// E.g. normal width of view is tan(fov/2)*distance.
+	// with arbitrary zoom z we have (fov = normal fov angle, newfov = zoom fov angle)
+	// z*tan(newfov/2)*distance = tan(fov/2)*distance =>
+	// newfov = 2*atan(tan(fov/2)/z).
+	// Our values: fov = 90deg, z = 1.5;6.0, newfov = 67.380;18.925
+	double fov = 67.380f;
 
 	if ( zoom_scope )
-		fov = 5.0f;
+		fov = 18.925f;
 	
 	system::sys().gl_perspective_fovx (fov, 1.0/1.0, 2.0, gm.get_max_view_distance());
 	glViewport(res_x/2, res_y/3, res_x/2, res_x/2);
