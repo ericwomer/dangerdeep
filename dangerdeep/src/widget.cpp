@@ -78,8 +78,8 @@ void widget::set_theme(class theme* t)
 	globaltheme = t;
 }
 
-widget::widget(int x, int y, int w, int h, const string& text_, widget* parent_)
-	: pos(x, y), size(w, h), text(text_), parent(parent_), enabled(true), retval(NO_RETURN)
+widget::widget(int x, int y, int w, int h, const string& text_, widget* parent_, image* backgr)
+	: pos(x, y), size(w, h), text(text_), parent(parent_), background(backgr), enabled(true), retval(NO_RETURN)
 {
 }
 
@@ -215,10 +215,13 @@ void widget::draw_rect(int x, int y, int w, int h, bool out)
 		globaltheme->skbackg->draw(x, y, w, h);
 }
 
-void widget::draw_area(int x, int y, int w, int h, bool out)
+void widget::draw_area(int x, int y, int w, int h, bool out) const
 {
 	int fw = globaltheme->frame_size();
-	draw_rect(x+fw, y+fw, w-2*fw, h-2*fw, out);
+	if (background)
+		background->draw(x, y);
+	else
+		draw_rect(x+fw, y+fw, w-2*fw, h-2*fw, out);
 	draw_frame(x, y, w, h, out);
 }
 

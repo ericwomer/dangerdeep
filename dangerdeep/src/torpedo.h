@@ -13,6 +13,8 @@ using namespace std;
 
 // fixme: maybe make heirs of this class for each torpedo type. would be much nicer code.
 
+// fixme: type 6 LUT has same image as empty tube -> bug!
+
 class torpedo : public sea_object
 {
 public:

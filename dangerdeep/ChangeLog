@@ -1,3 +1,12 @@
+2003-12-25  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* version number increased to 0.0.15
+	* first bits of widget usage:
+	  display results in subsim, not in game, using widgets
+	* bug in torpedo handling found, but not in code (not searched yet)
+
+2003-12-23  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* released 0.0.14
+
 2003-12-22  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* uploaded dangerdeep.dsw/dsp files to compile
 	  dftd, adapted tinyxml.h

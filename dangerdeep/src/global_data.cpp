@@ -41,7 +41,7 @@ sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
 
 image *titlebackgr, *periscope, *threesubsimg, *damage_screen_background, *sub_damage_scheme_all,
-	*logbook_spiral, *killedimg, *scopewatcherimg, *depthchargeimg;
+	*logbook_spiral, *killedimg, *scopewatcherimg, *depthchargeimg, *sunken_destroyer;
 
 void init_global_data(void)
 {
@@ -128,6 +128,7 @@ void init_global_data(void)
 	terraintex = new texture(get_texture_dir() + "terrain.png" );
 	cloudsbackgr = new texture(get_texture_dir() + "cloudsbackgr.png" );
 	atlanticmap = new texture(get_texture_dir() + "atlanticmap.png", GL_LINEAR, GL_CLAMP);
+	sunken_destroyer = new image(get_image_dir() + "sunken_destroyer.jpg");
 }
 
 void deinit_global_data(void)

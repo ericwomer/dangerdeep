@@ -40,11 +40,36 @@
 #include <iostream>
 #include <sstream>
 #include "image.h"
+#include "widget.h"
 
 class system* sys;
 int res_x, res_y;
 
 vector<string> missions;
+
+void show_results_for_game(const game* gm)
+{
+	widget w(0, 0, 1024, 768, texts::get(124), 0, sunken_destroyer);
+	widget_list* wl = new widget_list(64, 64, 1024-64-64, 768-64-64);
+	widget_button* wb = new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105));
+	w.add_child(wl);
+	w.add_child(wb);
+	unsigned totaltons = 0;
+	for (list<game::sink_record>::const_iterator it = gm->sunken_ships.begin(); it != gm->sunken_ships.end(); ++it) {
+		ostringstream oss;
+		oss << it->dat.get_value(date::year) << "/"
+			<< it->dat.get_value(date::month) << "/"
+			<< it->dat.get_value(date::day) << "\t"
+			<< it->descr << "\t"
+			<< it->tons << " BRT";
+		totaltons += it->tons;
+		wl->append_entry(oss.str());
+	}
+	ostringstream os;
+	os << "total: " << totaltons;
+	wl->append_entry(os.str());
+	w.run();
+}
 
 void start_mission(int nr)
 {
@@ -52,6 +77,7 @@ void start_mission(int nr)
 	parser p(filename);
 	game* gm = new game(p);
 	gm->main_playloop(*sys);
+	show_results_for_game(gm);
 	delete gm;
 }
 
@@ -73,6 +99,7 @@ void start_custom_mission(void)
 	}
 	game* gm = new game(st, mission_cvsize,	mission_cvesc, mission_tod);
 	gm->main_playloop(*sys);
+	show_results_for_game(gm);
 	delete gm;
 }
 
@@ -238,7 +265,7 @@ void menu_multiplayer(void)
 	menu m;	// just a test
 	m.add_item(TXT_Createnetworkgame[language]);
 	m.add_item(menu::item(TXT_Joinnetworkgame[language], "192.168.0.0"));
-	m.add_item(menu::item(TXT_Enternetworkportnr[language], "7896"));
+	m.add_item(menu::item(TXT_Enternetworkportnr[language], "7896"));//57117=0xdf1d
 	m.add_item(TXT_Returntomainmenu[language]);
 	
 	unsigned short port;
@@ -425,6 +452,9 @@ int main(int argc, char** argv)
 
 	init_global_data();
 	
+	widget::set_theme(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
+		font_arial, color::yellow(), color::red()));
+
 	sys->draw_console_with(font_arial, background);
 	
 	// main menu
@@ -437,6 +467,7 @@ int main(int argc, char** argv)
 	m.add_item(26, menu_select_language);
 	m.add_item(29, menu_options);
 	m.add_item(30, 0);
+
 
 	m.run();
 
