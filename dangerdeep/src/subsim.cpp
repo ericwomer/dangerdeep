@@ -1005,7 +1005,7 @@ void menu_configure_keys(void)
 	wkeys->set_column_width(700);
 	w.add_child(wkeys);
 	
-	for (unsigned i = 600; i <= 650; ++i) {
+	for (unsigned i = 600; i < 600 + NR_OF_KEY_IDS; ++i) {
 		cfg::key k = cfg::instance().getkey(i-600);
 		wkeys->append_entry(texts::get(i) + string("\t") + k.get_name());
 	}
@@ -1179,6 +1179,7 @@ int main(int argc, char** argv)
 	mycfg.register_key(KEY_SHOW_DAMAGE_CONTROL_SCREEN, "KEY_SHOW_DAMAGE_CONTROL_SCREEN", SDLK_F7, 0, 0, 0);
 	mycfg.register_key(KEY_SHOW_LOGBOOK_SCREEN, "KEY_SHOW_LOGBOOK_SCREEN", SDLK_F8, 0, 0, 0);
 	mycfg.register_key(KEY_SHOW_SUCCESS_RECORDS_SCREEN, "KEY_SHOW_SUCCESS_RECORDS_SCREEN", SDLK_F9, 0, 0, 0);
+	mycfg.register_key(KEY_SHOW_FREEVIEW_SCREEN, "KEY_SHOW_FREEVIEW_SCREEN", SDLK_F10, 0, 0, 0);
 	mycfg.register_key(KEY_RUDDER_LEFT, "KEY_RUDDER_LEFT", SDLK_LEFT, 0, 0, 0);
 	mycfg.register_key(KEY_RUDDER_HARD_LEFT, "KEY_RUDDER_HARD_LEFT", SDLK_LEFT, 0, 0, 1);
 	mycfg.register_key(KEY_RUDDER_RIGHT, "KEY_RUDDER_RIGHT", SDLK_RIGHT, 0, 0, 0);

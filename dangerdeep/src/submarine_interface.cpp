@@ -127,6 +127,8 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 			current_display = display_mode_logbook;
 		} else if (mycfg.getkey(KEY_SHOW_SUCCESS_RECORDS_SCREEN).equal(event.key.keysym)) {
 			current_display = display_mode_successes;
+		} else if (mycfg.getkey(KEY_SHOW_FREEVIEW_SCREEN).equal(event.key.keysym)) {
+			current_display = display_mode_freeview;
 		} else if (mycfg.getkey(KEY_RUDDER_LEFT).equal(event.key.keysym)) {
 			player->rudder_left();
 			add_rudder_message(gm);
@@ -228,7 +230,8 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 				}
 			}
 		} else if (mycfg.getkey(KEY_SET_HEADING_TO_VIEW).equal(event.key.keysym)) {
-			angle new_course = player->get_heading () + bearing;
+			// store bearing relative to heading, or absolute? fixme
+			angle new_course = /*player->get_heading() + */bearing;
 			bool turn_left = !player->get_heading().is_cw_nearer(new_course);
 			player->head_to_ang(new_course, turn_left);
 		} else if (mycfg.getkey(KEY_IDENTIFY_TARGET).equal(event.key.keysym)) {
@@ -261,7 +264,8 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 				play_sound_effect (gm, se_submarine_torpedo_launch );
 			}
 		} else if (mycfg.getkey(KEY_SET_VIEW_TO_HEADING).equal(event.key.keysym)) {
-			bearing = 0.0f;
+			// store bearing absolute or relative to heading? fixme
+			bearing = player->get_heading();//0.0f;
 		} else if (mycfg.getkey(KEY_TURN_VIEW_LEFT).equal(event.key.keysym)) {
 			bearing -= angle(1);
 		} else if (mycfg.getkey(KEY_TURN_VIEW_LEFT_FAST).equal(event.key.keysym)) {
