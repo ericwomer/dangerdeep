@@ -223,6 +223,9 @@ public:
 
 	const vector<stored_torpedo>& get_torpedoes(void) const { return torpedoes; }
 
+	// give number from 0-5 (bow tubes first)
+	bool is_tube_ready(unsigned nr) const;
+
 	// get number of tubes / stored reserve torpedoes
 	virtual unsigned get_nr_of_bow_tubes(void) const { return number_of_tubes_at[0]; }
 	virtual unsigned get_nr_of_stern_tubes(void) const { return number_of_tubes_at[1]; }

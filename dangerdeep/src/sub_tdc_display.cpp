@@ -1,174 +1,118 @@
-// user display: submarine's periscope
+// user display: submarine's tdc
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "system.h"
 #include "image.h"
 #include "texture.h"
 #include "game.h"
-#include "sub_periscope_display.h"
+#include "sub_tdc_display.h"
 #include "user_interface.h"
 #include "submarine.h"
 #include "keys.h"
 #include "cfg.h"
+#include <sstream>
+using namespace std;
 
 
 
-void sub_periscope_display::pre_display(game& gm) const
+sub_tdc_display::sub_tdc_display(user_interface& ui_) : user_display(ui_)
 {
-	glClear(GL_DEPTH_BUFFER_BIT);
+	background_normallight = new image(get_image_dir() + "TDC_daylight_base.png", true);
+//	background_nightlight = new image(get_image_dir() + "TDC_redlight_base.png", true);
+
+	tube_textures_daylight.resize(6);
+//	tube_textures_nightlight.resize(6);
+	for (unsigned i = 0; i < 6; ++i) {
+		ostringstream osn;
+		osn << (i+1);
+		tube_textures_daylight[i] = new texture(get_image_dir() + "TDC_daylight_tube" + osn.str() + ".png");
+//		tube_textures_nightlight[i] = new texture(get_image_dir() + "TDC_redlight_tube" + osn.str() + ".png");
+	}
+
+	clock_big_pointer_daylight = new texture(get_image_dir() + "TDC_daylight_clockbigptr.png");
+//	clock_big_pointer_nightlight = new texture(get_image_dir() + "TDC_redlight_clockbigptr.png");
+	clock_small_pointer_daylight = new texture(get_image_dir() + "TDC_daylight_clocksmlptr.png");
+//	clock_small_pointer_nightlight = new texture(get_image_dir() + "TDC_redlight_clocksmlptr.png");
 }
 
 
 
-freeview_display::projection_data sub_periscope_display::get_projection_data(class game& gm) const
+sub_tdc_display::~sub_tdc_display()
 {
-	projection_data pd;
-	pd.x = 453*system::sys().get_res_x()/1024;
-	pd.y = (768-424-193)*system::sys().get_res_x()/1024;
-	pd.w = 424*system::sys().get_res_x()/1024;
-	pd.h = 424*system::sys().get_res_x()/1024;
-	// with normal fov of 70 degrees, this is 1.5 / 6.0 magnification
-	pd.fov_x = zoomed ? 13.31 : 50.05;	//fixme: historic values?
-	pd.near_z = 1.0;
-	pd.far_z = gm.get_max_view_distance();
-	return pd;
+	delete background_normallight;
+//	delete background_nightlight;
+
+	delete clock_big_pointer_daylight;
+//	delete clock_big_pointer_nightlight;
+	delete clock_small_pointer_daylight;
+//	delete clock_small_pointer_nightlight;
+
+	for (unsigned i = 0; i < 6; ++i) {
+		delete tube_textures_daylight[i];
+//		delete tube_textures_redlight[i];
+	}
 }
 
 
 
-void sub_periscope_display::post_display(game& gm) const
+void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 {
+	switch (event.type) {
+	case SDL_KEYDOWN:
+		//fixme
+	default: break;
+	}
+}
+
+
+
+void sub_tdc_display::display(class game& gm) const
+{
+	submarine* player = dynamic_cast<submarine*>(gm.get_player());
+
+	//glClearColor(0, 0, 0, 0);
+	//glClear(GL_COLOR_BUFFER_BIT);
 	system::sys().prepare_2d_drawing();
 	glColor3f(1,1,1);
-
-	// draw compass bar. at most 230 pixel can be seen (of 1878 total width), center is at x=667 on screen
-	// so 360*230/1878 = 44.1 degrees can be seen
-	// 230 is less than the size of one part of the bar (width 235, last 233), so draw at most two
-	// visible area on screen is centerpos +- 115
-	// as first translate bearing to pixel pos
-	int centerpixelpos = int((ui.get_relative_bearing().value() * 1878 + 0.5) / 360);
-	// now compute which parts can be seen
-	// draw part i at x_i = 667+widths[0...i-1]-centerpixelpos
-	// if x_i >= 667-115 and x_i < 667+115 then draw it
-	unsigned ws = compassbar_width.size();
-	for (int i = 0, cw = 0; i < int(ws); ++i) {
-		int xi = 667 + cw - centerpixelpos;
-		int w = int(compassbar_width[i]);
-		// check 360->0 wrap
-		if (xi + w < 667-115)
-			xi += 1878;
-		// check 360->0 wrap other side
-		if (xi >= 667+115)
-			xi -= 1878;
-		// check if part can be seen
-		if (667-115 < xi + w && xi < 667+115) {
-			unsigned h = compassbar_tex[i]->get_height();
-			compassbar_tex[i]->draw_subimage(xi, 586, w, h, 0, 0, w, h);
-		}
-		cw += w;
-	}
 
 	// draw background
 	bool is_day = gm.is_day_mode();
 	if (is_day) {
 		background_normallight->draw(0, 0);
-	} else {
-		background_nightlight->draw(0, 0);
+//	} else {
+//		background_nightlight->draw(0, 0);
 	}
 
 	// draw clock pointers
+/*
 	double t = gm.get_time();
 	double hourang = 360.0*myfrac(t / (86400/2));
 	double minuteang = 360*myfrac(t / 3600);
 	clock_hours_pointer->draw_rot(946, 294, hourang);
 	clock_minutes_pointer->draw_rot(946, 294, minuteang);
+*/
 
-//	ui.draw_infopanel(gm);
+	// draw tubes if ready
+	unsigned tubex[6] = { 33,153,274,395,521,647};
+	unsigned tubey[6] = {618,618,618,618,618,618};
+	for (unsigned i = 0; i < 6; ++i) {
+		if (player->is_tube_ready(i)) {
+			if (is_day) {
+				tube_textures_daylight[i]->draw(tubex[i], tubey[i]);
+//			} else {
+//				tube_textures_nightlight[i]->draw(tubex[i], tubey[i]);
+			}
+		}
+	}
+
 	system::sys().unprepare_2d_drawing();
-}
-
-
-
-sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_display(ui_), zoomed(false)
-{
-	background_normallight = new image(get_image_dir() + "periscope_daylight_rev.1.1b_final.png", true);
-	background_nightlight = new image(get_image_dir() + "periscope_redlight_rev.1.1b_final.png", true);
-
-	clock_minutes_pointer = new texture(get_image_dir() + "clock_minutes_pointer.png");
-	clock_hours_pointer = new texture(get_image_dir() + "clock_hours_pointer.png");
-
-	// read compass bar image and cut to eight separate textures
-	image compassbari(get_image_dir() + "periscope_compassbar.png");
-	const unsigned nrparts = 8;	// 1878/8 ~ 234 so it fits in a 256 texture
-	unsigned tw = compassbari.get_width();
-	unsigned pw = (tw + (nrparts/2)) / nrparts;
-	compassbar_width.resize(nrparts);
-	compassbar_tex.resize(nrparts);
-	for (unsigned i = 0; i < nrparts; ++i) {
-		compassbar_width[i] = (i + 1 < nrparts) ? pw : tw - (nrparts-1)*pw;
-		compassbar_tex[i] = new texture(compassbari.get_SDL_Surface(), i*pw, 0,
-						compassbar_width[i], compassbari.get_height(),
-						GL_NEAREST, GL_CLAMP_TO_EDGE, false);
-	}
-
-	pos = vector3(0, 0, 12);//fixme, depends on sub
-	aboard = true;
-	withunderwaterweapons = false;//they can be seen when scope is partly below water surface, fixme
-	drawbridge = false;
-}
-
-
-
-sub_periscope_display::~sub_periscope_display()
-{
-	delete background_normallight;
-	delete background_nightlight;
-
-	delete clock_minutes_pointer;
-	delete clock_hours_pointer;
-
-	for (unsigned i = 0; i < compassbar_tex.size(); ++i)
-		delete compassbar_tex[i];
-}
-
-
-
-void sub_periscope_display::process_input(class game& gm, const SDL_Event& event)
-{
-	switch (event.type) {
-	case SDL_KEYDOWN:
-		if (cfg::instance().getkey(KEY_TOGGLE_ZOOM_OF_VIEW).equal(event.key.keysym)) {
-			zoomed = !zoomed;
-		} 
-	default: break;
-	}
-	freeview_display::process_input(gm, event);
-}
-
-
-
-void sub_periscope_display::display(class game& gm) const
-{
-	submarine* player = dynamic_cast<submarine*> ( gm.get_player() );
-
-	// with new compassbar lower 32 pixel of 3d view are not visible... maybe shrink 3d view? fixme
-	
-	// if the periscope is down draw nothing (all black)
-	if (true == player->is_scope_up())
-		freeview_display::display(gm);
-	else
-	{
-		glClearColor(0, 0, 0, 0);
-		glClear(GL_COLOR_BUFFER_BIT);
-		post_display(gm);
-	}
 }
 
 
 
 #if 0 //old
 
-void submarine_interface::display_periscope(game& gm)
+void submarine_interface::display_tdc(game& gm)
 {
 	submarine* player = dynamic_cast<submarine*> ( get_player() );
 
@@ -212,7 +156,7 @@ void submarine_interface::display_periscope(game& gm)
 	set_display_color ( gm );
 	for (int x = 0; x < 3; ++x)
 		psbackgr->draw(x*256, 512, 256, 256);
-	periscope->draw(2*256, 0);
+	tdc->draw(2*256, 0);
 	addleadangle->draw(768, 512, 256, 256);
 
 	// Draw lead angle value.

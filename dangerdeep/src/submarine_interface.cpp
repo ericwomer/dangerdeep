@@ -36,6 +36,7 @@ using namespace std;
 #include "logbook_display.h"
 #include "ships_sunk_display.h"
 #include "freeview_display.h"
+#include "sub_tdc_display.h"
 
 submarine_interface::submarine_interface(game& gm) : 
     	user_interface(gm)
@@ -51,6 +52,7 @@ submarine_interface::submarine_interface(game& gm) :
 	displays[display_mode_logbook] = new logbook_display(*this);
 	displays[display_mode_successes] = new ships_sunk_display(*this);
 	displays[display_mode_freeview] = new freeview_display(*this);
+	displays[display_mode_tdc] = new sub_tdc_display(*this);
 	add_loading_screen("submarine interface initialized");
 	
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
@@ -297,11 +299,11 @@ void submarine_interface::process_input(const SDL_Event& event)
 						else if (NO_AMMO_REMAINING == res)
 							add_message(texts::get(219));
 						else if (RELOADING == res)
-							add_message(texts::get(658));
+							add_message(texts::get(758));
 						else if (GUN_NOT_MANNED == res)
-							add_message(texts::get(659));
+							add_message(texts::get(759));
 						else if (GUN_TARGET_IN_BLINDSPOT == res)
-							add_message(texts::get(660));					
+							add_message(texts::get(760));					
 					}
 					else
 						add_message(texts::get(80));
@@ -309,7 +311,7 @@ void submarine_interface::process_input(const SDL_Event& event)
 				else
 					add_message(texts::get(27));
 			}
-		} else if (mycfg.getkey(KEY_CHANGE_MAN_DECK_GUN).equal(event.key.keysym)) {
+		} else if (mycfg.getkey(KEY_TOGGLE_MAN_DECK_GUN).equal(event.key.keysym)) {
 			if (true == player->has_deck_gun())
 			{
 				if (false == player->is_submerged())
@@ -317,14 +319,16 @@ void submarine_interface::process_input(const SDL_Event& event)
 					if (event.key.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT))
 					{
 						if (true == player->toggle_gun_manning())
-							add_message(texts::get(661));
+							add_message(texts::get(761));
 						else
-							add_message(texts::get(654));
+							add_message(texts::get(754));
 					}
 				}			
 				else
 					add_message(texts::get(27));
 			}	
+		} else if (mycfg.getkey(KEY_SHOW_TDC_SCREEN).equal(event.key.keysym)) {
+			current_display = display_mode_tdc;
 		} else {
 			// rest of the keys per switch (not user defineable)
 			// quit, screenshot, pause etc.

@@ -28,6 +28,7 @@ protected:
 		display_mode_logbook,
 		display_mode_successes,
 		display_mode_freeview,
+		display_mode_tdc,
 		nr_of_displays
 	};
 

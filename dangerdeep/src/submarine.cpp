@@ -517,6 +517,20 @@ void submarine::init_fill_torpedo_tubes(const date& d)
 
 
 
+// give number from 0-5 (bow tubes first)
+bool submarine::is_tube_ready(unsigned nr) const
+{
+	if (nr > 5) return false;
+
+	unsigned nrb = get_nr_of_bow_tubes();
+	unsigned nrs = get_nr_of_stern_tubes();
+	if (nr >= nrb + nrs) return false;
+
+	return (torpedoes[nr].status == stored_torpedo::st_loaded);
+}
+
+
+
 pair<unsigned, unsigned> submarine::get_bow_tube_indices(void) const
 {
 	unsigned off = 0;
@@ -724,12 +738,12 @@ void submarine::planes_down(double amount)
 	else
 	{
 		if (NULL != ui)			
-			ui->add_message(texts::get(653));
+			ui->add_message(texts::get(753));
 		delayed_planes_down = amount;
 		delayed_dive_to_depth = 0;
 		toggle_gun_manning();
 		if (NULL != ui)
-			ui->add_message(texts::get(654));
+			ui->add_message(texts::get(754));
 	}
 }
 
@@ -756,12 +770,12 @@ void submarine::dive_to_depth(unsigned meters)
 	else
 	{	
 		if (NULL != ui)			
-			ui->add_message(texts::get(653));
+			ui->add_message(texts::get(753));
 		delayed_planes_down = 0.0;
 		delayed_dive_to_depth = meters;
 		toggle_gun_manning();
 		if (NULL != ui)			
-			ui->add_message(texts::get(654));
+			ui->add_message(texts::get(754));
 	}
 }
 
@@ -1005,21 +1019,21 @@ void submarine::gun_manning_changed(bool isGunManned)
 	if (NULL != ui)
 	{
 		if (true == isGunManned)
-			ui->add_message(texts::get(655));
+			ui->add_message(texts::get(755));
 		else
-			ui->add_message(texts::get(656));		
+			ui->add_message(texts::get(756));		
 		
 		if (0.0 != delayed_planes_down)
 		{
 			planes_down(delayed_planes_down);
 			delayed_planes_down = 0.0;
-			ui->add_message(texts::get(657));		
+			ui->add_message(texts::get(757));		
 		}
 		else if (0 != delayed_dive_to_depth)
 		{
 			dive_to_depth(delayed_dive_to_depth);
 			delayed_dive_to_depth = 0;
-			ui->add_message(texts::get(657));		
+			ui->add_message(texts::get(757));		
 		}
 	}
 }
