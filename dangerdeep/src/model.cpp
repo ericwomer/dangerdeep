@@ -1006,12 +1006,6 @@ void model::m3ds_read_material(istream& in, m3ds_chunk& ch, model::mesh& m)
 	for (vector<model::material*>::iterator it = materials.begin(); it != materials.end(); ++it) {
 		if ((*it)->name == matname) {
 			m.mymaterial = *it;
-			
-/*
-			for (vector<vector2f>::iterator it2 = m.texcoords.begin(); it2 != m.texcoords.end(); ++it2)
-				it2->y = -it2->y;
-*/
-
 			return;
 		}
 	}
