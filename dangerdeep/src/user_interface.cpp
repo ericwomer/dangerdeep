@@ -52,9 +52,15 @@ using namespace std;
 */
 
 user_interface::user_interface(game& gm) :
-	pause(false), time_scale(1),
+	pause(false),
+	time_scale(1),
 	panel_visible(true),
-	current_display(0), target(0), mysky(0), mywater(0),
+	bearing(0),
+	elevation(90),
+	current_display(0),
+	target(0),
+	mysky(0),
+	mywater(0),
 	mycoastmap(get_map_dir() + "default.xml")
 {
 	add_loading_screen("coast map initialized");

@@ -46,7 +46,7 @@ void sub_periscope_display::post_display(game& gm) const
 	// 230 is less than the size of one part of the bar (width 235, last 233), so draw at most two
 	// visible area on screen is centerpos +- 115
 	// as first translate bearing to pixel pos
-	int centerpixelpos = int((bearing.value() * 1878 + 0.5) / 360);
+	int centerpixelpos = int((get_bearing().value() * 1878 + 0.5) / 360);
 	// now compute which parts can be seen
 	// draw part i at x_i = 667+widths[0...i-1]-centerpixelpos
 	// if x_i >= 667-115 and x_i < 667+115 then draw it
@@ -191,7 +191,7 @@ void submarine_interface::display_periscope(game& gm)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 12+14);//fixme: +14 to be above waves ?!
 	// no torpedoes, no DCs, no player
-	draw_view(gm, viewpos, res_x/2, res_y/3, res_x/2, res_x/2, player->get_heading()+bearing, 0, true, false, false);
+	draw_view(gm, viewpos, res_x/2, res_y/3, res_x/2, res_x/2, player->get_heading()+get_bearing(), 0, true, false, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

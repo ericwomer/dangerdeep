@@ -29,9 +29,6 @@ protected:
 	bool pause;
 	unsigned time_scale;
 
-	//fixme: what does that here?! get it from gm!
-	//sea_object* player_object;
-	
 	// command panel, to submarine_interface!
 	// display texts above panel, fading out, no widget! fixme
 	bool panel_visible;
@@ -41,8 +38,7 @@ protected:
 
 	// used in various screens
 	angle bearing;
-//fixme to submarine_interface?
-//	angle elevation;	// -90...90 deg (look down ... up)
+	angle elevation;	// -90...90 deg (look down ... up)
 
 	// which display is active
 	mutable unsigned current_display;
@@ -105,6 +101,11 @@ public:
 	const coastmap& get_coastmap(void) const { return mycoastmap; }
 
 	// helper functions
+
+	virtual angle get_bearing(void) const { return bearing; }
+	virtual angle get_elevation(void) const { return elevation; }
+	virtual void set_bearing(const angle& a) { bearing = a; }
+	virtual void set_elevation(const angle& a) { elevation = a; }
 
 	// 2d drawing must be on for this
 	void draw_infopanel(game& gm) const;

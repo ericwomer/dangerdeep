@@ -19,10 +19,6 @@ public:
 	};
 
 protected:
-	// position and direction of viewer,maybe store in ui
-	angle bearing;
-	angle elevation;	// -90...90 deg (look down ... up)
-
 	vector3 pos;		// maybe via template function, viewing position (additional if aboard)
 
 	bool aboard;		// is player aboard?
@@ -43,6 +39,12 @@ protected:
 
 	// draw the whole view
 	virtual void draw_view(class game& gm) const;
+
+	// get/set bearing/elevation from parent
+	virtual angle get_bearing(void) const;
+	virtual angle get_elevation(void) const;
+	virtual void set_bearing(const angle& a);
+	virtual void set_elevation(const angle& a);
 
 public:
 	freeview_display(class user_interface& ui_);
