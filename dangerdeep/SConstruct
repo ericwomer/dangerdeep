@@ -24,6 +24,9 @@ if ARGUMENTS.get('installdatadir', 0):
 
 
 ################ set environment
+
+osspecificsrc = []
+
 if sys.platform == 'win32':
 	print "Compiling for Win32 Environment"
 	env = Environment(ENV = os.environ, tools = ['mingw'])
@@ -34,17 +37,18 @@ if sys.platform == 'win32':
 	env.Append(CCFLAGS = '-Wall -O2 -D_REENTRANT') # for mingw!
 	datadir = './data'
 	build_dir = 'win32'
-elif sys.platform == 'macosx': #fixme MacOS, which name?
+elif sys.platform == 'darwin':
 	print "Compiling for MacOSX"
-	# fixme adapt!
 	env = Environment(ENV = os.environ)
-	env.Append(CPPPATH = ['/usr/include/SDL', '/usr/include/OpenGL'])
-	libpath = []
-	gllibs = ['GL', 'GLU']
+	env.Append(CPPPATH = ['/System/Library/Frameworks/AGL.framework/Versions/A/Headers', '/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers', '/usr/include/SDL'])
+	libpath = ['/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries', '/sw/lib', '/usr/local/lib', '/usr/lib']
+	gllibs = []
 	sdllibs = ['SDL', 'SDL_image']
-	env.Append(CCFLAGS = '-Wall -g -O2 `sdl-config --cflags`')
+	env.Append(CCFLAGS = '-Wall -g -O2 -fno-coalesce `sdl-config --cflags`')
+	env.Append(LINKFLAGS = '-F/Library/Frameworks -framework AGL -framework OpenGL -framework GLUT -framework Cocoa')
 	datadir = installdatadir
-	build_dir = 'default'
+	build_dir = 'macosx'
+	osspecificsrc = Split("""Mac/SDLMain.m""")
 else:
 	print "Compiling for Unix/Posix/Linux Environment"
 	env = Environment(ENV = os.environ)
@@ -117,7 +121,7 @@ for i in allcvsfilesr:
 
 datafiles = all_entries_that_start_with(allcvsfiles, './data')
 
-Export('env', 'gfxlibs', 'alllibs', 'libpath', 'installbindir', 'installdatadir', 'datadir', 'datafiles', 'version')
+Export('env', 'gfxlibs', 'alllibs', 'libpath', 'installbindir', 'installdatadir', 'datadir', 'datafiles', 'version', 'osspecificsrc')
 
 SConscript(source_base_dir + os.sep + 'SConscript', build_dir = target_dir, duplicate = 0)
 

@@ -1,3 +1,7 @@
+2005-02-16 Andy Rice
+	* SConstruct, SConscript
+		- Updated so everything builds on Mac OSX
+
 2005-02-13  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* read keys by name from config file and not by number
 	 - will avoid problems when adding new keys somewhere in the mid of

@@ -2,7 +2,7 @@
 import os
 import sys
 
-Import('env', 'gfxlibs', 'alllibs', 'libpath', 'installbindir', 'installdatadir', 'datadir', 'datafiles', 'version')
+Import('env', 'gfxlibs', 'alllibs', 'libpath', 'installbindir', 'installdatadir', 'datadir', 'datafiles', 'version', 'osspecificsrc')
 
 ################## define sources #######################
 dftdsources = Split("""subsim.cpp
@@ -68,10 +68,10 @@ oglextsources = Split("""
 ############# programs, libs, etc.
 env.StaticLibrary(target = 'dftdmedia', source = dftdmediasources, LIBS = gfxlibs, LIBPATH = libpath)
 globaldataobj = env.StaticObject('global_data.cpp', CPPDEFINES = [('DATADIR', '\\"' + datadir + '/\\"'), ('VERSION', '\\"' + version + '\\"')])
-binary = env.Program(target = 'dangerdeep', source = dftdsources + globaldataobj, LIBS = alllibs, LIBPATH = libpath)
-env.Program('viewmodel', ['viewmodel.cpp', globaldataobj, 'sound.cpp'], LIBS = alllibs, LIBPATH = libpath)
-env.Program('damagemodel', ['damagemodel.cpp', globaldataobj, 'sound.cpp'], LIBS = alllibs, LIBPATH = libpath)
-env.Program('crosssection', ['crosssection.cpp', globaldataobj, 'sound.cpp'], LIBS = alllibs, LIBPATH = libpath)
+binary = env.Program(target = 'dangerdeep', source = dftdsources + globaldataobj + osspecificsrc, LIBS = alllibs, LIBPATH = libpath)
+env.Program('viewmodel', ['viewmodel.cpp', globaldataobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs, LIBPATH = libpath)
+env.Program('damagemodel', ['damagemodel.cpp', globaldataobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs, LIBPATH = libpath)
+env.Program('crosssection', ['crosssection.cpp', globaldataobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs, LIBPATH = libpath)
 env.StaticLibrary(target = 'oglext', source = oglextsources, LIBPATH = libpath)
 env.StaticLibrary(target = 'tinyxml', source = tinyxmlsources, LIBPATH = libpath)
 
