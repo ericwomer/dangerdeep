@@ -223,26 +223,9 @@ void user_interface::init ()
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileh[i] = owg.compute_heights();
-		wavetilen[i] = owg.compute_normals();
-		vector<float>& h = wavetileh[i];
-		vector<vector3f>& n = wavetilen[i];
 
 		vector<vector2f> d = owg.compute_displacements();
 
-#if 0		// compute normals by finite data, just a test
-		vector<vector3f> n2 = n;
-			// normals computed by heights.
-		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
-			unsigned y1 = (y+FACES_PER_WAVE-1)%FACES_PER_WAVE;
-			unsigned y2 = (y+1)%FACES_PER_WAVE;
-			for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
-				unsigned x1 = (x+FACES_PER_WAVE-1)%FACES_PER_WAVE;
-				unsigned x2 = (x+1)%FACES_PER_WAVE;
-				n[y*FACES_PER_WAVE+x] = vector3f(h[y*FACES_PER_WAVE+x1]-h[y*FACES_PER_WAVE+x2],h[y1*FACES_PER_WAVE+x]-h[y2*FACES_PER_WAVE+x],1).normal();
-			}
-		}
-#endif		
-		
 		glNewList(wavedisplaylists+i, GL_COMPILE);
 
 		// create and use temporary arrays for texture coords (units 0,1), colors and vertices
@@ -254,6 +237,38 @@ void user_interface::init ()
 //		tex1coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*2);
 		colors.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*3);
 		coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*3);
+
+
+#if 1	// use finite normals
+		wavetilen[i].resize(FACES_PER_WAVE*FACES_PER_WAVE);
+		
+		double sf = double(WAVE_LENGTH)/FACES_PER_WAVE;
+		for (int y = 0; y < FACES_PER_WAVE; ++y) {
+			int y1 = (y+FACES_PER_WAVE-1)%FACES_PER_WAVE;
+			int y2 = (y+1)%FACES_PER_WAVE;
+			for (int x = 0; x < FACES_PER_WAVE; ++x) {
+				int x1 = (x+FACES_PER_WAVE-1)%FACES_PER_WAVE;
+				int x2 = (x+1)%FACES_PER_WAVE;
+				vector3f a((x-1)*sf, (y+1)*sf, wavetileh[i][y2*FACES_PER_WAVE+x1]);
+				vector3f b((x-1)*sf, (y  )*sf, wavetileh[i][y *FACES_PER_WAVE+x1]);
+				vector3f c((x-1)*sf, (y-1)*sf, wavetileh[i][y1*FACES_PER_WAVE+x1]);
+				vector3f d((x  )*sf, (y-1)*sf, wavetileh[i][y1*FACES_PER_WAVE+x ]);
+				vector3f e((x+1)*sf, (y-1)*sf, wavetileh[i][y1*FACES_PER_WAVE+x2]);
+				vector3f f((x+1)*sf, (y  )*sf, wavetileh[i][y *FACES_PER_WAVE+x2]);
+				vector3f g((x+1)*sf, (y+1)*sf, wavetileh[i][y2*FACES_PER_WAVE+x2]);
+				vector3f h((x  )*sf, (y+1)*sf, wavetileh[i][y2*FACES_PER_WAVE+x ]);
+				vector3f ortho = (a.cross(b) + b.cross(c) + c.cross(d) + d.cross(e) + e.cross(f) + f.cross(g) + g.cross(h) + h.cross(a));
+				wavetilen[i][y*FACES_PER_WAVE+x] = ortho.normal();
+			}
+		}
+#else	// use fft normals
+#if 0		// compare both
+		vector<vector3f> n2 = owg.compute_normals();
+#else
+		wavetilen[i] = owg.compute_normals();
+#endif
+#endif
+
 
 		float add = 1.0f/FACES_PER_WAVE;
 		float fy = 0;
@@ -268,10 +283,10 @@ void user_interface::init ()
 				// fixme: displacement is ignored here
 				// compute transformation matrix R: light (global) space to tangent space
 				// R = (R0, R1, R2), R2 = n[ptr], R1 = R2 x (1,0,0), R0 = R1 x R2
-				vector3f R1 = vector3f(0, n[ptr].z, -n[ptr].y).normal();
-				vector3f R0 = R1.cross(n[ptr]);
+				vector3f R1 = vector3f(0, wavetilen[i][ptr].z, -wavetilen[i][ptr].y).normal();
+				vector3f R0 = R1.cross(wavetilen[i][ptr]);
 				// multiply inverse (transposed) of R with light vector
-				vector3f nl = vector3f(R0 * lightvec, R1 * lightvec, n[ptr] * lightvec);
+				vector3f nl = vector3f(R0 * lightvec, R1 * lightvec, wavetilen[i][ptr] * lightvec);
 				nl = nl * 0.5 + vector3f(0.5, 0.5, 0.5);
 //				tex0coords.push_back(fx*texscale0);	// use OpenGL automatic texture coord generation to save memory (256*65*65*2*2*4= ~17mb)
 //				tex0coords.push_back(fy*texscale0);
@@ -282,12 +297,13 @@ void user_interface::init ()
 				colors.push_back(GLubyte(255*nl.z));//nl.z);
 				coords.push_back(fx*WAVE_LENGTH+d[ptr].x);
 				coords.push_back(fy*WAVE_LENGTH+d[ptr].y);
-				coords.push_back(h[ptr]);
+				coords.push_back(wavetileh[i][ptr]);
 				fx += add;
 			}
 			fy += add;
 		}
 		
+
 		// now set pointers, enable arrays and draw elements, finally disable pointers
 		glEnableClientState(GL_COLOR_ARRAY);
 		glColorPointer(3, GL_UNSIGNED_BYTE /*GL_FLOAT*/, 0, &colors[0]);
@@ -315,25 +331,35 @@ void user_interface::init ()
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 #if 0		// draw finite and fft normals to compare them, just a test
+/*
+		glActiveTexture(GL_TEXTURE0);
+		glDisable(GL_TEXTURE_2D);
+		glActiveTexture(GL_TEXTURE1);
+		glDisable(GL_TEXTURE_2D);
+*/		
 		glColor3f(1,0,0);
 		glBegin(GL_LINES);
 		fy = 0;
 		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
 			float fx = 0;
 			for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
-				glVertex3f(fx*WAVE_LENGTH, fy*WAVE_LENGTH, h[y*FACES_PER_WAVE+x]);
-				glVertex3f(fx*WAVE_LENGTH+4*n[y*FACES_PER_WAVE+x].x, fy*WAVE_LENGTH+4*n[y*FACES_PER_WAVE+x].y, h[y*FACES_PER_WAVE+x]+4*n[y*FACES_PER_WAVE+x].z);
+				glVertex3f(fx*WAVE_LENGTH, fy*WAVE_LENGTH, wavetileh[i][y*FACES_PER_WAVE+x]);
+				glVertex3f(fx*WAVE_LENGTH+4*wavetilen[i][y*FACES_PER_WAVE+x].x, fy*WAVE_LENGTH+4*wavetilen[i][y*FACES_PER_WAVE+x].y, wavetileh[i][y*FACES_PER_WAVE+x]+4*wavetilen[i][y*FACES_PER_WAVE+x].z);
 				fx += add;
 			}
 			fy += add;
 		}
+		glEnd();
+#endif
+#if 0
 		glColor3f(0,1,0);
+		glBegin(GL_LINES);
 		fy = 0;
 		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
 			float fx = 0;
 			for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
-				glVertex3f(fx*WAVE_LENGTH, fy*WAVE_LENGTH, h[y*FACES_PER_WAVE+x]);
-				glVertex3f(fx*WAVE_LENGTH+4*n2[y*FACES_PER_WAVE+x].x, fy*WAVE_LENGTH+4*n2[y*FACES_PER_WAVE+x].y, h[y*FACES_PER_WAVE+x]+4*n2[y*FACES_PER_WAVE+x].z);
+				glVertex3f(fx*WAVE_LENGTH, fy*WAVE_LENGTH, wavetileh[i][y*FACES_PER_WAVE+x]);
+				glVertex3f(fx*WAVE_LENGTH+4*n2[y*FACES_PER_WAVE+x].x, fy*WAVE_LENGTH+4*n2[y*FACES_PER_WAVE+x].y, wavetileh[i][y*FACES_PER_WAVE+x]+4*n2[y*FACES_PER_WAVE+x].z);
 				fx += add;
 			}
 			fy += add;
