@@ -1,3 +1,20 @@
+2003-04-10  Markus Petermann  <m.petermann@gmx.net>
+
+	* vector2.h, vector2.cpp, vector3.h, vector3.cpp:
+	  - New operator<< introduced.
+
+2003-04-09  Markus Petermann  <m.petermann@gmx.net>
+
+	* game.h, game.cpp:
+	  - New method sonar_acoustical_torpedo_target determines the loudest target
+	    within detection cone and range and returns a pointer to this object.
+	* sensors.h, sensors.cpp:
+	  - sensor_factory removed
+	  - passive_sonar used actual position of target, not its noise source.
+
+	* date.h, date.cpp:
+	  - New module for date calculations and comparisons.
+
 2003-04-06  Markus Petermann  <m.petermann@gmx.net>
 
 	* water_splash.h, water_splash.cpp:
