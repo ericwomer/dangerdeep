@@ -44,17 +44,20 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	if (teximage->format->palette != 0) {
 		system::sys().myassert(bpp == 1, "texture: only 8bit palette files supported");
 		int ncol = teximage->format->palette->ncolors;
+		system::sys().myassert(ncol <= 256, "texture: max. 256 colors in palette supported");
 		bool usealpha = false;
-		vector<unsigned> palette(ncol);
+		vector<unsigned> palette(256);
 		for (int i = 0; i < ncol; i++)
 			palette[i] = ((unsigned*)(teximage->format->palette->colors))[i] | 0xff000000;
 		if (teximage->flags & SDL_SRCCOLORKEY) {
 			palette[teximage->format->colorkey & 0xff] &= 0xffffff;
 			usealpha = true;
 		}
+		cerr << "creating paletted texture, ncol " << ncol << " usealpha " << usealpha << "\n";
 
 		internalformat = usealpha ? GL_RGBA : GL_RGB;
 
+		// fixme: with big endian machines the colors could be stored reversed, check this
 		glColorTable(GL_TEXTURE_2D, internalformat, 256, GL_RGBA, GL_UNSIGNED_BYTE, &(palette[0]));
 		internalformat = GL_COLOR_INDEX8_EXT;
 		externalformat = GL_COLOR_INDEX;
