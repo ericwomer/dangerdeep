@@ -250,6 +250,20 @@ void loadsavequit_dialogue::update_list(void)
 
 
 //
+// show hall of fame
+//
+void show_halloffame(const highscorelist& hsl)
+{
+	widget w(0, 0, 1024, 768, texts::get(197), 0, kruppdocksimg);
+	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
+	hsl.show(&w);
+	w.run();
+}
+void show_halloffame_mission(void) { show_halloffame(hsl_mission); }
+void show_halloffame_career(void) { show_halloffame(hsl_career); }
+
+
+//
 // check if a game is good enough for the high score list
 //
 void check_for_highscore(const game* gm)
@@ -260,18 +274,27 @@ void check_for_highscore(const game* gm)
 	}
 	highscorelist& hsl = (/* check if game is career or mission fixme */ true) ? hsl_mission : hsl_career;
 	unsigned points = totaltons /* compute points from tons etc here fixme */;
+
+	widget w(0, 0, 1024, 768, texts::get(197), 0, kruppdocksimg);
+	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
+	unsigned pos = hsl.get_listpos_for(points);
 	if (hsl.is_good_enough(points)) {
-		// show dialogue, ask for player name
-		string playername = "fixme";
-		widget w(0, 0, 1024, 768, texts::get(124), 0, kruppdocksimg);
-		w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
-		
-		hsl.record(points, playername);
-		
-		hsl.show(&w);
-		
+		w.add_child(new widget_text(200, 200, 0,0, texts::get(199)));
+		if (pos == 0)
+			w.add_child(new widget_text(200, 240, 0,0, texts::get(201)));
+		w.add_child(new widget_text(400, 280, 0,0, texts::get(200)));
+		widget_edit* wname = new widget_edit(300, 320, 424, 32, "");
+		w.add_child(wname);
 		w.run();
+		string playername = wname->get_text();
+		if (playername.length() == 0)
+			playername = "INCOGNITO";
+		hsl.record(points, playername);
+	} else {
+		w.add_child(new widget_text(400, 200, 0,0, texts::get(198)));
 	}
+	w.run();
+	show_halloffame(hsl);
 }
 
 
@@ -907,7 +930,7 @@ int main(int argc, char** argv)
 	m.add_item(22, play_network_game);
 	m.add_item(23, menu_notimplemented);
 	m.add_item(24, menu_show_vessels);
-	m.add_item(25, menu_notimplemented);
+	m.add_item(25, show_halloffame_mission);
 	m.add_item(26, menu_select_language);
 	m.add_item(29, menu_notimplemented /*menu_options*/);
 	m.add_item(30, 0);

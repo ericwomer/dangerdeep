@@ -58,6 +58,7 @@ extern class image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_ba
 void init_global_data(void);
 void deinit_global_data(void);
 
+// fixme: move this to class date
 void get_date(double t, unsigned& year, unsigned& month, unsigned& day);
 void get_date ( double t, unsigned& year, unsigned& month, unsigned& day,
 	unsigned& hour, unsigned& minute, unsigned& second );

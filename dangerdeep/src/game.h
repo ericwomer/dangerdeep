@@ -168,14 +168,14 @@ public:
 //	bool can_see(const sea_object* watcher, const submarine* sub) const;
 
 	// create new objects
-	void spawn_ship(ship* s) { ships.push_back(s); };
-	void spawn_submarine(submarine* u) { submarines.push_back(u); };
-	void spawn_airplane(airplane* a) { airplanes.push_back(a); };
-	void spawn_torpedo(torpedo* t) { torpedoes.push_back(t); };
-	void spawn_gun_shell(gun_shell* s) { gun_shells.push_back(s); };
-	void spawn_depth_charge(depth_charge* dc) { depth_charges.push_back(dc); };
-	void spawn_convoy(convoy* cv) { convoys.push_back(cv); }
-	void spawn_water_splash ( water_splash* ws ) { water_splashs.push_back ( ws ); }
+	void spawn_ship(ship* s);
+	void spawn_submarine(submarine* u);
+	void spawn_airplane(airplane* a);
+	void spawn_torpedo(torpedo* t);
+	void spawn_gun_shell(gun_shell* s);
+	void spawn_depth_charge(depth_charge* dc);
+	void spawn_convoy(convoy* cv);
+	void spawn_water_splash ( water_splash* ws );
 
 	// simulation events
 //fixme: send messages about them to ui (remove sys-console printing in torpedo.cpp etc)

@@ -59,26 +59,29 @@ void highscorelist::save(const string& filename) const
 		entries[i].save(out);
 }
 
+unsigned highscorelist::get_listpos_for(unsigned points) const
+{
+	unsigned i = 0;
+	for ( ; i < entries.size(); ++i)
+		if (entries[i].is_worse_than(points))
+			break;
+	return i;
+}
+
 bool highscorelist::is_good_enough(unsigned points) const
 {
-	for (unsigned i = 0; i < entries.size(); ++i)
-		if (entries[i].is_worse_than(points))
-			return true;
-	return false;
+	return get_listpos_for(points) < entries.size();
 }
 
 void highscorelist::record(unsigned points, const string& name)
 {
-	for (unsigned i = 0; i < entries.size(); ++i) {
-		if (entries[i].is_worse_than(points)) {
-			// move rest down one step
-			for (unsigned j = entries.size(); j > i+1; --j)
-				entries[j-1] = entries[j-2];
-			entries[i] = entry(points, name);
-			return;
-		}
+	unsigned pos = get_listpos_for(points);
+	if (pos < entries.size()) {
+		// move rest down one step
+		for (unsigned j = entries.size(); j > pos+1; --j)
+			entries[j-1] = entries[j-2];
+		entries[pos] = entry(points, name);
 	}
-	// no entry
 }
 
 void highscorelist::show(class widget* parent) const

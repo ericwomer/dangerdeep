@@ -1531,14 +1531,15 @@ void user_interface::draw_pings(class game& gm, const vector2& offset)
 }
 
 void user_interface::draw_sound_contact(class game& gm, const sea_object* player,
-	double max_view_dist)
+	double max_view_dist, const vector2& offset)
 {
-    // draw sound contacts
+	// draw sound contacts
 	list<ship*> ships;
 	gm.sonar_ships(ships, player);
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
 		vector2 ldir = (*it)->get_pos().xy() - player->get_pos().xy();
 		ldir = ldir.normal() * 0.666666 * max_view_dist*mapzoom;
+		vector2 pos = (player_object->get_pos().xy() + offset) * mapzoom;
 		if ((*it)->is_merchant())
 			glColor3f(0,0,0);
 		else if ((*it)->is_warship())
@@ -1547,8 +1548,8 @@ void user_interface::draw_sound_contact(class game& gm, const sea_object* player
 			glColor3f(1,0,0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBegin(GL_LINES);
-		glVertex2f(512,384);
-		glVertex2f(512+ldir.x, 384-ldir.y);
+		glVertex2f(512+pos.x, 384-pos.y);
+		glVertex2f(512+pos.x+ldir.x, 384-pos.y-ldir.y);
 		glEnd();
 		glColor3f(1,1,1);
 	}
@@ -1647,7 +1648,7 @@ void user_interface::display_map(class system& sys, game& gm)
 	double max_view_dist = gm.get_max_view_distance();
 
 	vector2 offset = player->get_pos().xy() + mapoffset;
-unsigned detl = 0xffffff;
+unsigned detl = 0xffffff;	// fixme: remove, lod test hack
 if (mb&2) detl = my*10/384;
 
 	sys.prepare_2d_drawing();
@@ -1698,11 +1699,10 @@ if (mb&2) detl = my*10/384;
 
 	// draw view range
 	glColor3f(1,0,0);
-	float range = max_view_dist*mapzoom;
 	glBegin(GL_LINE_LOOP);
-	for (int i = 0; i < 32+range/4; ++i) {
-		float a = i*2*M_PI/(32+range/4);
-		glVertex2f(512+sin(a)*range, 384-cos(a)*range);
+	for (int i = 0; i < 512; ++i) {
+		float a = i*2*M_PI/512;
+		glVertex2f(512+(sin(a)*max_view_dist-mapoffset.x)*mapzoom, 384-(cos(a)*max_view_dist-mapoffset.y)*mapzoom);
 	}
 	glEnd();
 	glColor3f(1,1,1);
@@ -1714,7 +1714,7 @@ if (mb&2) detl = my*10/384;
 		draw_pings(gm, -offset);
 
 		// draw sound contacts
-		draw_sound_contact(gm, sub_player, max_view_dist);
+		draw_sound_contact(gm, sub_player, max_view_dist, -offset);
 
 		// draw player trails and player
 		draw_trail(player, -offset);

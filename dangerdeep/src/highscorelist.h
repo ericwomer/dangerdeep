@@ -38,6 +38,7 @@ public:
 	highscorelist(const highscorelist& h);
 	highscorelist& operator= (const highscorelist& h);
 	void save(const string& filename) const;
+	unsigned get_listpos_for(unsigned points) const; // returns place in list or entries.size() if not in list
 	bool is_good_enough(unsigned points) const; // check if score is good enough for an entry
 	void record(unsigned points, const string& name); // record entry if it is good enough
 	void show(class widget* parent) const;

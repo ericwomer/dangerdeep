@@ -129,7 +129,7 @@ protected:
 	void draw_trail(sea_object* so, const vector2& offset);
 	virtual void draw_pings(class game& gm, const vector2& offset);
 	virtual void draw_sound_contact(class game& gm, const sea_object* player,
-		double max_view_dist);
+		double max_view_dist, const vector2& offset);
 	virtual void draw_visual_contacts(class system& sys, class game& gm,
 		const sea_object* player, const vector2& offset);
 	virtual void draw_square_mark ( class system& sys, class game& gm,

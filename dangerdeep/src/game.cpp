@@ -166,11 +166,24 @@ game::game(parser& p) : running(true), time(0)
 			case TKN_DESCRIPTION:
 			case TKN_WEATHER:
 */			
-			case TKN_TIME:
+			case TKN_TIME: {
 				p.consume();
-				time = p.parse_number();
+				unsigned year, month, day, hour, minute, second;
+				year = p.parse_number();
+				p.parse(TKN_COMMA);
+				month = p.parse_number();
+				p.parse(TKN_COMMA);
+				day = p.parse_number();
+				p.parse(TKN_COMMA);
+				hour = p.parse_number();
+				p.parse(TKN_COMMA);
+				minute = p.parse_number();
+				p.parse(TKN_COMMA);
+				second = p.parse_number();
 				p.parse(TKN_SEMICOLON);
+				time = ::get_time(year, month, day) + 3600*hour + 60*minute + second;
 				break;
+				}
 			default: p.error("game: Expected definition");
 		}
 	}
@@ -765,6 +778,54 @@ void game::convoy_positions(list<vector2>& result) const
 	}
 }
 
+
+
+//
+// create new objects
+//
+void game::spawn_ship(ship* s)
+{
+	ships.push_back(s);
+}
+
+void game::spawn_submarine(submarine* u)
+{
+	submarines.push_back(u);
+}
+
+void game::spawn_airplane(airplane* a)
+{
+	airplanes.push_back(a);
+}
+
+void game::spawn_torpedo(torpedo* t)
+{
+	torpedoes.push_back(t);
+}
+
+void game::spawn_gun_shell(gun_shell* s)
+{
+	gun_shells.push_back(s);
+}
+
+void game::spawn_depth_charge(depth_charge* dc)
+{
+	ui->add_message(texts::get(205));	// fixme: only if player is near enough
+	depth_charges.push_back(dc);
+}
+
+void game::spawn_convoy(convoy* cv)
+{
+	convoys.push_back(cv);
+}
+
+void game::spawn_water_splash ( water_splash* ws )
+{
+	water_splashs.push_back ( ws );
+}
+
+
+
 void game::dc_explosion(const depth_charge& dc)
 {
 	// Create water splash.
@@ -780,6 +841,7 @@ void game::dc_explosion(const depth_charge& dc)
 			// play detonation sound, volume depends on distance
 		}
 	}
+	ui->add_message(texts::get(204));	// fixme: only when player is near enough
 }
 
 bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
