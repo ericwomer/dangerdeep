@@ -19,9 +19,6 @@ using namespace std;
 #define WAVETIDECYCLETIME 2.0
 
 #define MAPGRIDSIZE 1000	// meters
-#define MAXTRAILNUMBER 20
-#define TRAILTIME 10
-#define MAXPREVPOS 20		// max # of recorded positions per trail
 
 class user_interface
 {
@@ -30,8 +27,6 @@ protected:
 	bool pause;
 	unsigned time_scale;
 	
-	map<sea_object*, list<vector2> > trails;
-
 	user_interface() : quit(false), pause(false), time_scale(1) {
 		if (allwaveheights.size() == 0) init_water_data();
 	}

@@ -145,9 +145,10 @@ bool sea_object::is_collision(const vector2& pos)
 	return false;
 }
 
-void sea_object::damage(const vector3& fromwhere, unsigned strength)
+bool sea_object::damage(const vector3& fromwhere, unsigned strength)
 {
 	sink();
+	return true;
 }
 
 unsigned sea_object::calc_damage(void) const
@@ -207,6 +208,13 @@ void sea_object::set_throttle(throttle_status thr)
 {
 	throttle = thr;
 }
+
+void sea_object::remember_position(void)
+{
+	previous_positions.push_front(get_pos().xy());
+	if (previous_positions.size() > MAXPREVPOS)
+		previous_positions.pop_back();
+}	
 
 void sea_object::set_course_to_pos(const vector2& pos)
 {

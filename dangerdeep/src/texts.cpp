@@ -85,6 +85,7 @@ const char* TXT_Identifiedtargetas[] = {"Identified target as: ", "Ziel identifi
 const char* TXT_Notargetselected[] = {"No target selected", "Kein Ziel ausgewaehlt"};
 const char* TXT_Carrier[] = {"Aircraft carrier", "Flugzeugtraeger"};
 const char* TXT_Carrierbogue[] = {"Carrier Bogue class", "Traeger Bogue-Klasse"};
+const char* TXT_Shipsunk[] = {"Ship was sunk!", "Schiff versenkt!"};
 /*
 const char* TXT_[] = {"", ""};
 const char* TXT_[] = {"", ""};

@@ -20,9 +20,8 @@ void submarine_interface::add_message(const string& s)
 submarine_interface::submarine_interface(submarine* player_sub) : user_interface(),
 	zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
 	viewpos(0, 0, 10), bearing(0), viewmode(4),
-	player(player_sub), target(0), last_trail_time(0), sunken_ship_tonnage(0)
+	player(player_sub), target(0)
 {
-	trails.insert(make_pair(player, list<vector2>()));
 }
 
 submarine_interface::~submarine_interface()
@@ -291,11 +290,12 @@ void submarine_interface::draw_vessel_symbol(class system& sys,
 	glColor3f(1,1,1);
 }
 
-void submarine_interface::draw_trail(const vector2& pos, const list<vector2>& l, const vector2& offset)
+void submarine_interface::draw_trail(sea_object* so, const vector2& offset)
 {
+	list<vector2> l = so->get_previous_positions();
 	glColor4f(1,1,1,1);
 	glBegin(GL_LINE_STRIP);
-	vector2 p = (pos + offset)*mapzoom;
+	vector2 p = (so->get_pos().xy() + offset)*mapzoom;
 	glVertex2f(512+p.x, 384-p.y);
 	float la = 1.0/float(l.size()), lc = 0;
 	for (list<vector2>::const_iterator it = l.begin(); it != l.end(); ++it) {
@@ -360,24 +360,6 @@ void submarine_interface::display(class system& sys, game& gm)
 		case 7: display_logbook(sys, gm); break;
 		case 8: display_successes(sys, gm); break;
 		default: display_freeview(sys, gm); break;
-	}
-
-	// trail recording
-	bool record = (gm.get_time() > last_trail_time + TRAILTIME);
-	if (record) {
-		last_trail_time += TRAILTIME;
-	}
-	for (map<sea_object*, list<vector2> >::iterator it = trails.begin(); it != trails.end(); ) {
-		map<sea_object*, list<vector2> >::iterator it2 = it; ++it;
-		if (it2->first->is_alive() /* && it2->first->is_visible() fixme */ ) {
-			if (record) {
-				it2->second.push_front(it2->first->get_pos().xy());
-				if (it2->second.size() > MAXPREVPOS)
-			                it2->second.pop_back();
-			}
-		} else {
-			trails.erase(it2);
-		}
 	}
 }
 
@@ -675,43 +657,38 @@ void submarine_interface::display_map(class system& sys, game& gm)
 		// else: sub can't hear anything, engines to loud
 		
 		// draw player trails and player
-		map<sea_object*, list<vector2> >::iterator it = trails.find(player);
-		if (it != trails.end()) {	// is false when player gets killed
-			draw_trail(player->get_pos().xy(), it->second, offset);
-			draw_vessel_symbol(sys, offset, player, color(255,255,128));
-		}
+		draw_trail(player, offset);
+		draw_vessel_symbol(sys, offset, player, color(255,255,128));
 
 	} 
-	else 	// enabled as testing hack
+	else	 	// enable drawing of all object as testing hack by commenting this, fixme
 	{	// sub is surfaced
-		// draw trails
-		for (map<sea_object*, list<vector2> >::iterator it = trails.begin(); it != trails.end(); ++it) {
-			if (it->second.size() > 0)
-				draw_trail(it->first->get_pos().xy(), it->second, offset);
-		}
 
-		// draw vessel symbols (since player is submerged, he is drawn too)
+		// draw vessel trails and symbols (since player is submerged, he is drawn too)
 		list<ship*> ships = gm.visible_ships(player->get_pos());
 		list<submarine*> submarines = gm.visible_submarines(player->get_pos());
 		list<airplane*> airplanes = gm.visible_airplanes(player->get_pos());
 		list<torpedo*> torpedoes = gm.visible_torpedoes(player->get_pos());
-		bool record = (gm.get_time() > last_trail_time + TRAILTIME);
-		for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
+
+		// draw trails
+		for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
+			draw_trail(*it, offset);
+		for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
+			draw_trail(*it, offset);
+		for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
+			draw_trail(*it, offset);
+		for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
+			draw_trail(*it, offset);
+
+		// draw vessel symbols
+		for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
 			draw_vessel_symbol(sys, offset, *it, color(192,255,192));
-			if (record) trails.insert(make_pair(*it, list<vector2>()));
-		}
-		for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
+		for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
 			draw_vessel_symbol(sys, offset, *it, color(255,255,128));
-			if (record) trails.insert(make_pair(*it, list<vector2>()));
-		}
-		for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it) {
+		for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
 			draw_vessel_symbol(sys, offset, *it, color(0,0,64));
-			if (record) trails.insert(make_pair(*it, list<vector2>()));
-		}
-		for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
+		for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
 			draw_vessel_symbol(sys, offset, *it, color(255,0,0));
-			if (record) trails.insert(make_pair(*it, list<vector2>()));
-		}
 	}
 	
 	draw_infopanel(sys);
@@ -846,6 +823,18 @@ void submarine_interface::display_successes(class system& sys, game& gm)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	sys.prepare_2d_drawing();
 	font_arial2->print(0, 0, "success records - fixme");
+	font_arial2->print(0, 100, "Ships sunk\n----------\n");
+	unsigned ships = 0, tons = 0;
+	for (list<unsigned>::const_iterator it = tonnage_sunk.begin(); it != tonnage_sunk.end(); ++it) {
+		++ships;
+		char tmp[20];
+		sprintf(tmp, "%u BRT", *it);
+		font_arial2->print(0, 100+(ships+2)*font_arial2->get_height(), tmp);
+		tons += *it;
+	}
+	char tmp[40];
+	sprintf(tmp, "total: %u BRT", tons);
+	font_arial2->print(0, 100+(ships+4)*font_arial2->get_height(), tmp);
 	sys.unprepare_2d_drawing();
 
 	// keyboard processing

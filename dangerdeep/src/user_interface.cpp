@@ -60,7 +60,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	angle direction, bool withplayer, bool withunderwaterweapons)
 {
 	sea_object* player = get_player();
-	int wave = int(gm.get_time()*WAVES/WAVETIDECYCLETIME);
+	int wave = int(fmod(gm.get_time(),86400)*WAVES/WAVETIDECYCLETIME);
 	
 	glRotatef(-90,1,0,0);
 	glRotatef(direction.value(),0,0,1);

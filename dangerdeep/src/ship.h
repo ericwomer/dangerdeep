@@ -36,10 +36,8 @@ public:
 
 	virtual void fire_shell_at(const vector2& pos);	// to subclass?
 
-	virtual void damage(const vector3& fromwhere, unsigned strength);
+	virtual bool damage(const vector3& fromwhere, unsigned strength);
 	virtual unsigned calc_damage(void) const;	// returns damage in percent (0 means dead)
-	virtual void sink(void);
-	virtual void kill(void);
 	ai* get_ai(void) { return myai; }
 	unsigned get_tonnage(void) const { return tonnage; }
 	

@@ -58,12 +58,15 @@ void ship::fire_shell_at(const vector2& pos)
 {
 }
 
-void ship::damage(const vector3& fromwhere, unsigned strength)
+bool ship::damage(const vector3& fromwhere, unsigned strength)
 {
-	sink();//fixme
 	damage_status& where = midship_damage;//fixme
 	int dmg = int(where) + strength;
 	if (dmg > wrecked) where = wrecked; else where = damage_status(dmg);
+	// fixme:
+	stern_damage = midship_damage = bow_damage = wrecked;
+	sink();
+	return true;
 }
 
 unsigned ship::calc_damage(void) const
@@ -72,17 +75,4 @@ unsigned ship::calc_damage(void) const
 		return 100;
 	unsigned dmg = unsigned(round(15*(bow_damage + midship_damage + stern_damage)));
 	return dmg > 100 ? 100 : dmg;
-}
-
-void ship::sink(void)
-{
-	stern_damage = midship_damage = bow_damage = wrecked;
-//	game.ship_sunk(get_tonnage());
-	sea_object::sink();
-}
-
-void ship::kill(void)
-{
-	stern_damage = midship_damage = bow_damage = wrecked;
-	sea_object::kill();
 }

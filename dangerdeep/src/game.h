@@ -51,6 +51,7 @@ protected:
 	user_interface* ui;
 	
 	double time;	// global time (in seconds since 1.1.1939, 0:0 hrs)
+	double last_trail_time;	// for position trail recording
 	
 	enum weathers { sunny, clouded, raining, storm };//fixme
 	double max_view_dist;	// maximum visibility according to weather conditions

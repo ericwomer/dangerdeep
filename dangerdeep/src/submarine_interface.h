@@ -13,8 +13,6 @@ using namespace std;
 #include "color.h"
 
 #define MAPGRIDSIZE 1000	// meters
-#define MAXTRAILNUMBER 20
-#define TRAILTIME 10
 
 class submarine_interface : public user_interface
 {
@@ -35,13 +33,11 @@ protected:
 	submarine *player;
 	ship* target;
 
-	double last_trail_time;	
-	
 	submarine_interface();
 	submarine_interface& operator= (const submarine_interface& other);
 	submarine_interface(const submarine_interface& other);
 	
-	unsigned sunken_ship_tonnage;
+	list<unsigned> tonnage_sunk;
 	
 	list<string> panel_texts;
 	void add_message(const string& s);
@@ -61,7 +57,7 @@ protected:
 	        const char* text) const;
 	void draw_vessel_symbol(class system& sys,
 		const vector2& offset, const sea_object* so, color c) const;
-	void draw_trail(const vector2& pos, const list<vector2>& l, const vector2& offset);
+	void draw_trail(sea_object* so, const vector2& offset);
 	void draw_torpedo(class system& sys, bool usebow, int x, int y,
 		const submarine::stored_torpedo& st);
 
@@ -83,7 +79,7 @@ public:
 	virtual ~submarine_interface();
 
 	virtual void display(class system& sys, class game& gm);
-	virtual void record_ship_tonnage(unsigned tons) { sunken_ship_tonnage += tons; }
+	virtual void record_ship_tonnage(unsigned tons) { tonnage_sunk.push_back(tons); }
 };
 
 #endif

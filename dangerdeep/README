@@ -44,6 +44,7 @@ F10	Free view (for now)
 control:
 ---------------------------------------
 Cursor keys	Rudder left/right/up/down
+Cursor k.+shift	Turn faster
 Return		Center rudders
 1,2,3,4,5,6	Throttle slow,half,full,flank,stop,reverse
 SHIFT 1...6	Fire torpedo in tube 1...6 (bow/stern tube number position

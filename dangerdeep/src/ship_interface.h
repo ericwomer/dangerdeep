@@ -13,8 +13,6 @@ using namespace std;
 #include "color.h"
 
 #define MAPGRIDSIZE 1000	// meters
-#define MAXTRAILNUMBER 20
-#define TRAILTIME 10
 
 class ship_interface : public user_interface
 {
@@ -34,8 +32,6 @@ protected:
 	ship* player;
 	class submarine* target;
 
-	double last_trail_time;	
-	
 	ship_interface();
 	ship_interface& operator= (const ship_interface& other);
 	ship_interface(const ship_interface& other);
@@ -58,7 +54,7 @@ protected:
 		const char* text) const;
 	void draw_vessel_symbol(class system& sys,
 		const vector2& offset, const sea_object* so, color c) const;
-	void draw_trail(const vector2& pos, const list<vector2>& l, const vector2& offset);
+	void draw_trail(sea_object* so, const vector2& offset);
 //	void draw_torpedo(class system& sys, bool usebow, int x, int y,
 //		const ship::stored_torpedo& st);
 

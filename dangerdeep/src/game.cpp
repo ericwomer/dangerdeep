@@ -11,6 +11,8 @@
 #include "tokencodes.h"
 #include "texts.h"
 
+#define TRAILTIME 10
+
 game::game(parser& p) : running(true), time(0)
 {
 	player = 0;
@@ -49,11 +51,16 @@ game::game(parser& p) : running(true), time(0)
 /*			
 			case TKN_DESCRIPTION:
 			case TKN_WEATHER:
-			case TKN_TIME:	// and date
-*/
+*/			
+			case TKN_TIME:
+				p.consume();
+				time = p.parse_number();
+				p.parse(TKN_SEMICOLON);
+				break;
 			default: p.error("Expected definition");
 		}
 	}
+	last_trail_time = time - TRAILTIME;
 	if (player == 0) p.error("No player defined!");
 }
 
@@ -101,11 +108,18 @@ void game::simulate(double delta_t)
 	}
 
 	compute_max_view_dist();
+	
+	bool record = false;
+	if (get_time() >= last_trail_time + TRAILTIME) {
+		last_trail_time += TRAILTIME;
+		record = true;
+	}
 
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ) {
 		list<ship*>::iterator it2 = it++;
 		if (!(*it2)->is_defunct()) {
 			(*it2)->simulate(*this, delta_t);
+			if (record) (*it2)->remember_position();
 		} else {
 			delete (*it2);
 			ships.erase(it2);
@@ -115,6 +129,7 @@ void game::simulate(double delta_t)
 		list<submarine*>::iterator it2 = it++;
 		if (!(*it2)->is_defunct()) {
 			(*it2)->simulate(*this, delta_t);
+			if (record) (*it2)->remember_position();
 		} else {
 			delete (*it2);
 			submarines.erase(it2);
@@ -133,6 +148,7 @@ void game::simulate(double delta_t)
 		list<torpedo*>::iterator it2 = it++;
 		if (!(*it2)->is_defunct()) {
 			(*it2)->simulate(*this, delta_t);
+			if (record) (*it2)->remember_position();
 		} else {
 			delete (*it2);
 			torpedoes.erase(it2);
@@ -388,6 +404,7 @@ void game::torp_explode(const vector3& pos)
 
 void game::ship_sunk(unsigned tons)
 {
+	ui->add_message(TXT_Shipsunk[language]);
 	ui->record_ship_tonnage(tons);
 }
 
@@ -438,7 +455,8 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 				ui->add_message(TXT_Torpedodud[language]);
 				return true;
 			}
-			(*it)->damage((*it)->get_pos(), G7A_HITPOINTS);//fixme
+			if ((*it)->damage((*it)->get_pos(), G7A_HITPOINTS))	// fixme
+				ship_sunk((*it)->get_tonnage());	// fixme
 			torp_explode(t->get_pos());
 			return true;	// only one hit possible
 		}
@@ -518,22 +536,30 @@ bool game::is_collision(const sea_object* s1, const sea_object* s2) const
 
 	// check if any of obj2 corners is inside obj1
 	vector2 pd2[4] = {d2*l2, n2*w2, -d2*l2, -n2*w2};
+	vector2 pdiff = pb2 - pb1;
 	for (int i = 0; i < 4; ++i) {
-		double s, t;
-		(pb2 - pb1).solve(d1, n1, s, t);
-		if (0 <= s && s <= l1 && 0 <= t && t <= w1)
-			return true;
-		pb2 += pd2[i];
+		double s = pdiff.x * d1.x + pdiff.y * d1.y;
+		if (0 <= s && s <= l1) {
+			double t = pdiff.y * d1.x - pdiff.x * d1.y;
+			if (0 <= t && t <= w1) {
+				return true;
+			}
+		}
+		pdiff += pd2[i];
 	}
 
 	// check if any of obj1 corners is inside obj2
 	vector2 pd1[4] = {d1*l1, n1*w1, -d1*l1, -n1*w1};
+	pdiff = pb1 - pb2;
 	for (int i = 0; i < 4; ++i) {
-		double s, t;
-		(pb1 - pb2).solve(d2, n2, s, t);
-		if (0 <= s && s <= l2 && 0 <= t && t <= w2)
-			return true;
-		pb1 += pd1[i];
+		double s = pdiff.x * d2.x + pdiff.y * d2.y;
+		if (0 <= s && s <= l2) {
+			double t = pdiff.y * d2.x - pdiff.x * d2.y;
+			if (0 <= t && t <= w2) {
+				return true;
+			}
+		}
+		pdiff += pd1[i];
 	}
 	return false;
 }
@@ -552,10 +578,14 @@ bool game::is_collision(const sea_object* s, const vector2& pos) const
 	double l = s->get_length(), w = s->get_width();
 
 	vector2 pb = p - d * (l/2) - n * (w/2);
-	double r, t;
-	(pos - pb).solve(d, n, r, t);
-	if (0 <= r && r <= l && 0 <= t && t <= w)
-		return true;
+	vector2 pdiff = pos - pb;
+	double r = pdiff.x * d.x + pdiff.y * d.y;
+	if (0 <= r && r <= l) {
+		double t = pdiff.y * d.x - pdiff.x * d.y;
+		if (0 <= t && t <= w) {
+			return true;
+		}
+	}
 	return false;
 }
 
