@@ -66,16 +66,6 @@ void ship::simulate(game& gm, double delta_time)
 	myai->act(gm, delta_time);
 }
 
-bool ship::can_see(sea_object* other)	// fixme: very simple. better in class game!?
-{
-	vector3 pos = other->get_pos();
-	if (pos.z < -12) return false;
-	double sq = pos.xy().square_distance(get_pos().xy());
-	if (sq > 1e10/*SKYDOMERADIUS*SKYDOMERADIUS*/) return false; // fixme
-	
-	return true;
-}
-
 void ship::display(void) const
 {
 	switch(type) {

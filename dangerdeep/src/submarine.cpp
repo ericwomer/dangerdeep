@@ -18,6 +18,7 @@ submarine::submarine(unsigned type_, const vector3& pos, angle heading)
 	dive_to = position.z;
 	max_dive_speed = 1;
 	dive_acceleration = 0;
+	scopeup = false;
 	switch (type_) {
 		case typeVIIc:
 			speed = 0;

@@ -47,6 +47,7 @@ Cursor keys	Rudder left/right/up/down
 Return		Center rudders
 1,2,3,4,5,6	Throttle slow,half,full,flank,stop,reverse
 Space		Select target
+0 (zero)	Scope up/down
 t		Fire torpedo
 p		Periscope depth
 s		Surface

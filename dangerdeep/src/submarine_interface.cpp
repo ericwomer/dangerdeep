@@ -69,7 +69,7 @@ void submarine_interface::add_panel_text(const string& s)
 
 submarine_interface::submarine_interface(submarine* player_sub) :
 	zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
-	viewpos(0, 0, 10), bearing(0), viewmode(1),
+	viewpos(0, 0, 10), bearing(0), viewmode(4),
 	quit(false), pause(false), time_scale(1),
 	player(player_sub), target(0), last_trail_time(0)
 {
@@ -116,6 +116,10 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 		case SDLK_4: player->set_throttle(sea_object::aheadflank); add_panel_text(TXT_Aheadflank[language]); break;//flank/full change?
 		case SDLK_5: player->set_throttle(sea_object::stop); add_panel_text(TXT_Enginestop[language]); break;
 		case SDLK_6: player->set_throttle(sea_object::reverse); add_panel_text(TXT_Enginereverse[language]); break;
+		case SDLK_0: if (player->is_scope_up()) {
+			player->scope_down(); add_panel_text(TXT_Scopedown[language]); } else {
+			player->scope_up(); add_panel_text(TXT_Scopeup[language]); }
+			break;
 
 		// view
 		case SDLK_COMMA : bearing -= angle(sys.key_shift() ? 10 : 1); break;
@@ -448,9 +452,10 @@ void submarine_interface::display(class system& sys, game& gm)
 
 	// switch to map if sub is to deep.
 	double depth = -player->get_pos().z;
-	if ((depth > 3 && (viewmode >= 2 && viewmode <= 3)) ||
-	    (depth > 12 && (viewmode >= 1 && viewmode <= 3)))
-		viewmode = 4;
+	if (	(depth > 3 && (viewmode >= 2 && viewmode <= 3)) ||
+		(depth > 12 && (viewmode >= 1 && viewmode <= 3)) ||
+		(viewmode == 1 && !player->is_scope_up())	)
+			viewmode = 4;
 
 	switch (viewmode) {
 		case 0: display_gauges(sys, gm); break;

@@ -64,6 +64,9 @@ public:
 	double get_time(void) const { return time; };
 	submarine* get_player(void) { return player; };
 	double get_max_view_distance(void) const { return max_view_dist; }
+	
+	// get view info
+	bool can_see(const sea_object* watcher, const submarine* sub) const;
 
 	void spawn_ship(ship* s) { ships.push_back(s); };
 	void spawn_submarine(submarine* u) { submarines.push_back(u); };

@@ -82,6 +82,7 @@ public:
 	virtual bool is_sinking(void) const { return alive_stat == sinking; };
 	virtual bool is_alive(void) const { return alive_stat == alive; };
 	
+	// command interface
 	virtual void head_to_ang(const angle& a, bool left_or_right);	// true == left
 	virtual void rudder_left(double amount);	// 0 <= amount <= 1
 	virtual void rudder_right(double amount);	// 0 <= amount <= 1
@@ -104,8 +105,6 @@ public:
 	pair<angle, double> bearing_and_range_to(const sea_object* other) const;
 	angle estimate_angle_on_the_bow(angle target_bearing, angle target_heading) const;
 	
-	virtual bool can_see(sea_object* other) {};
-
 	virtual void display(void) const {};
 };
 

@@ -28,6 +28,8 @@ protected:
 	vector<stored_torpedo> torpedoes;
 	unsigned nr_bow_tubes, nr_stern_tubes, nr_bow_storage, nr_stern_storage,
 		nr_bow_top_storage, nr_stern_top_storage;
+		
+	bool scopeup;	// fixme: maybe simulate time for moving scope up/down
 
 	submarine() {};
 	submarine& operator= (const submarine& other);
@@ -61,7 +63,12 @@ public:
 	// it reaches its submerged speed. This is not correct, because speed decreases
 	// too fast, but it should be satisfying for now. fixme
 	virtual double get_max_speed(void) const;
-		
+	
+	virtual bool is_scope_up(void) const { return scopeup; }
+
+	// command interface for subs
+	virtual void scope_up(void) { scopeup = true; };	// fixme
+	virtual void scope_down(void) { scopeup = false; };		
 	virtual void planes_up(double amount);
 	virtual void planes_down(double amount);
 	virtual void planes_middle(void);

@@ -93,6 +93,22 @@ void game::simulate(double delta_t)
 	}
 }
 
+bool game::can_see(const sea_object* watcher, const submarine* sub) const
+{
+	vector3 pos = sub->get_pos();
+	if (pos.z < -12) return false;	// fixme: per define
+	if (pos.z < -8 && !sub->is_scope_up()) return false;	// fixme: per define
+	
+	// wether a sub is visible or not depends on the distance to the watcher
+	// (and of the type of the watcher, e.g. the height of the masts of a watcher etc)
+	// and if the sub's scope is up or the sub is surfaced, it's speed and course
+	
+	double sq = watcher->get_pos().xy().square_distance(sub->get_pos().xy());
+	if (sq > 1e10/*SKYDOMERADIUS*SKYDOMERADIUS*/) return false; // fixme
+	
+	return true;
+}
+
 void game::dc_explosion(const depth_charge& dc)
 {
 	// are subs affected?

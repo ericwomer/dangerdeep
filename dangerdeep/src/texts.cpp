@@ -54,6 +54,8 @@ const char* TXT_Newtargetselected[] = {"New target selected", "Neues Ziel ausgew
 const char* TXT_Notargetindirection[] = {"No target in direction!", "Kein Ziel in dieser Richtung!"};
 const char* TXT_Gamepaused[] = {"Game PAUSED.", "Spiel PAUSE."};
 const char* TXT_Gameunpaused[] = {"Game continued.", "Spiel fortgesetzt."};
+const char* TXT_Scopedown[] = {"Scope down", "Periskop eingefahren"};
+const char* TXT_Scopeup[] = {"Scope up", "Periskop ausgefahren"};
 /*
 const char* TXT_[] = {"Medium merchant ship", "Mittleres Handelsschiff"};
 const char* TXT_[] = {"Medium troop ship", "Mittleres Truppenschiff"};

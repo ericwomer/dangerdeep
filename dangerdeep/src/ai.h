@@ -12,6 +12,8 @@
 #define WPEXACTNESS 100			// how exact a waypoint has to be hit in meters
 #define AI_THINK_CYCLE_TIME 10		// sec
 #define DC_ATTACK_RADIUS 100		// distance to target before DC launching starts
+#define DC_ATTACK_RUN_RADIUS 200	// distance to contact until escort switches to
+					// maximum speed
 
 // fixme: interleave ai computation between frames to avoid
 // time consumption peeks every AI_THINK_CYCLE_TIME seconds
@@ -58,7 +60,7 @@ public:
 	void cycle_waypoints(bool cycle = true) { cyclewaypoints = cycle; };
 	virtual void act(class game& gm, double delta_time);
 
-	// various ai's and helper functions
+	// various ai's and helper functions, fixme replace with subclasses
 	virtual void set_zigzag(bool stat = true);
 	virtual void act_escort(class game& g, double delta_time);
 	virtual void act_dumb(class game& g, double delta_time);

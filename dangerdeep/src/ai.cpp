@@ -16,7 +16,6 @@ void ai::attack_contact(const vector3& c)
 	has_contact = true;
 	contact = c;
 	state = attackcontact;
-	parent->set_throttle(sea_object::aheadflank);
 }
 
 void ai::follow(sea_object* t)
@@ -66,7 +65,7 @@ void ai::act_escort(game& gm, double delta_time)
 	for (list<submarine*>::iterator it = subs.begin(); it != subs.end(); ++it) {
 		double d = (*it)->get_pos().xy().distance(parent->get_pos().xy());
 		if (d < dist) {
-			if (!parent->can_see(*it)) continue;
+			if (!gm.can_see(parent, *it)) continue;
 			attack_contact((*it)->get_pos());
 		}
 	}
@@ -83,9 +82,26 @@ void ai::act_escort(game& gm, double delta_time)
 	if (state == followpath || state == followobject) {
 		act_dumb(gm, delta_time);
 	} else if (state == attackcontact) {	// attack sonar/visible contact
+
 		set_course_to_pos(contact.xy());
-		if (contact.xy().distance(parent->get_pos().xy()) < DC_ATTACK_RADIUS) {
+
+		vector2 delta = contact.xy() - parent->get_pos().xy();
+		double cd = delta.length();
+		if (cd > DC_ATTACK_RUN_RADIUS) {
+			list<vector3> contacts = gm.ping_ASDIC(parent->get_pos().xy(),
+				angle(delta));
+			if (contacts.size() > 0) {	// update contact
+				// fixme: choose best contact!
+				attack_contact(contacts.front());
+			}
+		} else {
+			parent->set_throttle(sea_object::aheadflank);
+		}
+
+		if (cd < DC_ATTACK_RADIUS) {
 			gm.spawn_depth_charge(new depth_charge(*parent, -contact.z));
+			// the escort must run with maximum speed until the depth charges
+			// have exploded to avoid suicide. fixme
 			// fixme: just ai hacking/testing.
 			// after spawning a DC start pinging again.
 			relax();

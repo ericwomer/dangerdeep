@@ -60,6 +60,8 @@ extern const char* TXT_Newtargetselected[];
 extern const char* TXT_Notargetindirection[];
 extern const char* TXT_Gamepaused[];
 extern const char* TXT_Gameunpaused[];
+extern const char* TXT_Scopedown[];
+extern const char* TXT_Scopeup[];
 /*
 extern const char* TXT_[];
 extern const char* TXT_[];
