@@ -1140,20 +1140,22 @@ void user_interface::display_map(class system& sys, game& gm)
 	int lx = int(1024/delta)+2, ly = int(768/delta)+2;
 
 	// draw grid
-	glColor3f(0.5, 0.5, 1);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBegin(GL_LINES);
-	for (int i = 0; i < lx; ++i) {
-		glVertex2f(sx, 0);
-		glVertex2f(sx, 768);
-		sx += delta;
+	if (mapzoom >= 0.01) {
+		glColor3f(0.5, 0.5, 1);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBegin(GL_LINES);
+		for (int i = 0; i < lx; ++i) {
+			glVertex2f(sx, 0);
+			glVertex2f(sx, 768);
+			sx += delta;
+		}
+		for (int i = 0; i < ly; ++i) {
+			glVertex2f(0, sy);
+			glVertex2f(1024, sy);
+			sy -= delta;
+		}
+		glEnd();
 	}
-	for (int i = 0; i < ly; ++i) {
-		glVertex2f(0, sy);
-		glVertex2f(1024, sy);
-		sy -= delta;
-	}
-	glEnd();
 
 /*
 	// draw terrain (mapzoom is pixel/m)
@@ -1234,8 +1236,8 @@ cout << "draw map area " << minx << "," << miny << "," << maxx << "," << maxy <<
 	glColor3f(1,0,0);
 	float range = max_view_dist*mapzoom;
 	glBegin(GL_LINE_LOOP);
-	for (int i = 0; i < range/4; ++i) {
-		float a = i*8*M_PI/range;
+	for (int i = 0; i < 32+range/4; ++i) {
+		float a = i*2*M_PI/(32+range/4);
 		glVertex2f(512+sin(a)*range, 384-cos(a)*range);
 	}
 	glEnd();
@@ -1297,7 +1299,7 @@ cout << "draw map area " << minx << "," << miny << "," << maxx << "," << maxy <<
 			switch(key) {
 				case SDLK_EQUALS :
 				case SDLK_PLUS : if (mapzoom < 1) mapzoom *= 1.5; break;
-				case SDLK_MINUS : if (mapzoom > 0.01) mapzoom /= 1.5; break;
+				case SDLK_MINUS : if (mapzoom > 0.001) mapzoom /= 1.5; break;
 			}
 		}
 		key = sys.get_key();
