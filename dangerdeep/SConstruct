@@ -98,7 +98,7 @@ env = conf.Finish()
 
 ######################### source file lists
 gfxlibs = ['oglext'] + gllibs + sdllibs
-alllibs = ['dftdmedia', 'tinyxml'] + gfxlibs + ['SDL_mixer', 'SDL_net', 'fftw3']
+alllibs = ['dftdmedia', 'tinyxml'] + gfxlibs + ['SDL_mixer', 'SDL_net', 'fftw3f']
 
 ################ helper functions
 def all_entries_that_start_with(list, prefix):
@@ -137,18 +137,20 @@ SConscript(source_base_dir + os.sep + 'SConscript', build_dir = target_dir, dupl
 BuildDir(target_dir, source_base_dir, duplicate=0)
 
 ############### option so that "scons tarball" builds a tarball of source and data
-#fixme: files in the archive should have a prefix 'dangerdeep' + version.
-#tar has no such option, so this must be done somehow different
-filestopack = []
-for i in allcvsfiles:
-	if not(i.endswith('.xcf')):
-		if not(i.startswith('.' + os.sep + 'build')):
-			filestopack += [i]
-
-env.Append(TARFLAGS = '-z')
-env.Append(TARSUFFIX = '.gz')
-tgz = env.Tar('dangerdeep-' + version, filestopack)
-env.Alias('tarball', tgz)
+# tar building works only on linux
+if build_dir == 'linux':
+	basetarfilename = 'dangerdeep-' + version
+	os.system('rm -f ' + basetarfilename)
+	os.system('ln -s . ' + basetarfilename)
+	filestopack = []
+	for i in allcvsfiles:
+		if not(i.endswith('.xcf')):
+			if not(i.startswith('.' + os.sep + 'build')):
+				filestopack += [basetarfilename + os.sep + i]
+	env.Append(TARFLAGS = '-zh')
+	env.Append(TARSUFFIX = '.gz')
+	tgz = env.Tar(basetarfilename, filestopack)
+	env.Alias('tarball', tgz)
 
 #also env.Zip is possible...
 

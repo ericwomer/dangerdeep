@@ -12,14 +12,14 @@ using namespace std;
 
 #include "fftw3.h"
 
-#if 1	// use double fft?
+#if 0	// use double fft?
 #define FFT_COMPLEX_TYPE fftw_complex
 #define FFT_REAL_TYPE double
 #define FFT_PLAN_TYPE fftw_plan
 #define FFT_CREATE_PLAN fftw_plan_dft_c2r_2d
 #define FFT_DELETE_PLAN fftw_destroy_plan
 #define FFT_EXECUTE_PLAN fftw_execute
-// fixme: this doesn't work, the symbols are not found. why?!
+// We have to link with libfftw3f to make these symbols work
 #else	// use float fft?
 #define FFT_COMPLEX_TYPE fftwf_complex
 #define FFT_REAL_TYPE float

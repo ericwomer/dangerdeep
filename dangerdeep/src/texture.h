@@ -51,6 +51,8 @@ protected:
 	// give powers of two for w,h, bpp must be 1!
 	static void make_normals(Uint8* dst, const Uint8* src, unsigned w, unsigned h, float detailh);
 
+	static unsigned mem_used;
+
 public:
 	// if "makenormalmap" is true, format must be GL_LUMINANCE.
 	// give height of detail (scale factor) for normal mapping, mostly much larger than 1.0

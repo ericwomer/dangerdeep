@@ -22,6 +22,8 @@
 using namespace std;
 
 
+unsigned texture::mem_used = 0;
+
 
 void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
 		       bool makenormalmap, float detailh)
@@ -160,6 +162,8 @@ void texture::init(const Uint8* data, bool makenormalmap, float detailh)
 		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
 			     GL_UNSIGNED_BYTE, &nmpix[0]);
 
+		mem_used += gl_width * gl_height * get_bpp();
+
 		if (do_mipmap) {
 			// fixme: if we let GLU do the mipmap calculation, the result is wrong.
 			// A filtered version of the normals is not the same as a normal map
@@ -181,12 +185,12 @@ void texture::init(const Uint8* data, bool makenormalmap, float detailh)
 				w /= 2;
 				h /= 2;
 			}
-
 		}
 	} else {
 		// make gl texture
 		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
 			     GL_UNSIGNED_BYTE, data);
+		mem_used += gl_width * gl_height * get_bpp();
 		if (do_mipmap) {
 			// fixme: does this command set the base level, too?
 			// i.e. are the two gl commands redundant?
@@ -194,6 +198,9 @@ void texture::init(const Uint8* data, bool makenormalmap, float detailh)
 					  format, GL_UNSIGNED_BYTE, data);
 		}
 	}
+
+	ostringstream oss; oss << "Texture memory used " << mem_used/1024 << " kb (without MipMaps)";
+	sys().add_console(oss.str());
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mapping);
@@ -303,6 +310,7 @@ texture::texture(const Uint8* pixels, unsigned w, unsigned h, int format_,
 
 texture::~texture()
 {
+	mem_used -= gl_width * gl_height * get_bpp();
 	glDeleteTextures(1, &opengl_name);
 }
 
