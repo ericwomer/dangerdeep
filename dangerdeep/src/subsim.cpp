@@ -78,7 +78,7 @@ void start_custom_mission(void)
 
 void menu_selectsubtype(void)
 {
-	menu m(9, scopewatcherimg);
+	menu m(16, scopewatcherimg);
 	m.add_item(17, 0);
 	m.add_item(174, 0);
 	m.add_item(18, 0);
@@ -88,7 +88,7 @@ void menu_selectsubtype(void)
 
 void menu_selectconvoysize(void)
 {
-	menu m(9, scopewatcherimg);
+	menu m(84, scopewatcherimg);
 	m.add_item(85, 0);
 	m.add_item(86, 0);
 	m.add_item(87, 0);
@@ -98,7 +98,7 @@ void menu_selectconvoysize(void)
 
 void menu_selectconvoyescort(void)
 {
-	menu m(9, scopewatcherimg);
+	menu m(88, scopewatcherimg);
 	m.add_item(89, 0);
 	m.add_item(85, 0);
 	m.add_item(86, 0);
@@ -109,7 +109,7 @@ void menu_selectconvoyescort(void)
 
 void menu_selecttimeofday(void)
 {
-	menu m(9, scopewatcherimg);
+	menu m(90, scopewatcherimg);
 	m.add_item(91, 0);
 	m.add_item(92, 0);
 	m.add_item(93, 0);

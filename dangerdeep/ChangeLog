@@ -1,4 +1,8 @@
 2003-08-04  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* subsim.cpp
+	  - fixed wrong text numbers in create custom mission.
+
+2003-08-04  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* made release 0.0.12 and increased version number to 0.0.13
 
 2003-08-04  Thorsten Jordan <thorsten_jordan@gmx.de>
