@@ -16,10 +16,7 @@
 #include <list>
 using namespace std;
 #include "date.h"
-#include "user_display.h"
-#include "logbook.h"
 #include "submarine_interface.h"
-#include "sub_damage_display.h"
 #include "system.h"
 #include "game.h"
 #include "texts.h"
@@ -27,6 +24,17 @@ using namespace std;
 #include "image.h"
 #include "widget.h"
 #include "command.h"
+
+#include "sub_gauges_display.h"
+#include "sub_periscope_display.h"
+#include "sub_uzo_display.h"
+#include "sub_bridge_display.h"
+#include "map_display.h"
+#include "sub_torpedo_display.h"
+#include "sub_damage_display.h"
+#include "logbook.h"
+#include "ships_sunk_record.h"
+#include "freeview.h"
 
 submarine_interface::submarine_interface(submarine* player_sub, game& gm) : 
     	user_interface( player_sub, gm )
@@ -266,9 +274,14 @@ bool submarine_interface::object_visible(sea_object* so,
 	
 void submarine_interface::display(game& gm) const
 {
-	submarine* player = dynamic_cast<submarine*> ( get_player() );
+//	submarine* player = dynamic_cast<submarine*> ( get_player() );
+
+	displays[viewmode]->display(gm);
+
+	// panel is drawn in each display function, so the above code is all...
 
 	// switch to map if sub is to deep. fixme collides with constness, make viewmode mutable!
+	//or check it in input function.
 	double depth = player->get_depth();
 	if ((depth > SUBMARINE_SUBMERGED_DEPTH &&
 			(viewmode == display_mode_uzo || viewmode == display_mode_glasses ||
@@ -323,187 +336,35 @@ void submarine_interface::process_input(const list<SDL_Event>& events)
 	//fixme
 }
 
-void submarine_interface::display_periscope(game& gm)
+
+void submarine_interface::play_sound_effect_distance ( sound_effect se, double distance ) const
 {
-	submarine* player = dynamic_cast<submarine*> ( get_player() );
+	sound* s = get_sound_effect ( se );
 
-	glClear(GL_DEPTH_BUFFER_BIT);
+	if ( s )
+	{
+		submarine* sub = dynamic_cast<submarine*> ( get_player () );
+		double h = 3000.0f;
+		if ( sub && sub->is_submerged () )
+			h = 10000.0f;
 
-	unsigned res_x = system::sys().get_res_x(), res_y = system::sys().get_res_y();
-
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-
-	// scope zoom modes are x1,5 and x6,0. This is meant as width of image.
-	// E.g. normal width of view is tan(fov/2)*distance.
-	// with arbitrary zoom z we have (fov = normal fov angle, newfov = zoom fov angle)
-	// z*tan(newfov/2)*distance = tan(fov/2)*distance =>
-	// newfov = 2*atan(tan(fov/2)/z).
-	// Our values: fov = 90deg, z = 1.5;6.0, newfov = 67.380;18.925
-	double fov = 67.380f;
-
-	if ( zoom_scope )
-		fov = 18.925f;
-	
-	system::sys().gl_perspective_fovx (fov, 1.0/1.0, 5.0, gm.get_max_view_distance());
-	glViewport(res_x/2, res_y/3, res_x/2, res_x/2);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	glRotatef(-90, 1,0,0);	// swap y and z coordinates (camera looks at +y axis)
-
-	vector3 viewpos = player->get_pos() + vector3(0, 0, 12+14);//fixme: +14 to be above waves ?!
-	// no torpedoes, no DCs, no player
-	draw_view(gm, viewpos, res_x/2, res_y/3, res_x/2, res_x/2, player->get_heading()+bearing, 0, true, false, false);
-
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glViewport(0, 0, res_x, res_y);
-	glMatrixMode(GL_MODELVIEW);
-	
-	system::sys().prepare_2d_drawing();
-	set_display_color ( gm );
-	for (int x = 0; x < 3; ++x)
-		psbackgr->draw(x*256, 512, 256, 256);
-	periscope->draw(2*256, 0);
-	addleadangle->draw(768, 512, 256, 256);
-
-	// Draw lead angle value.
-	double la = player->get_trp_addleadangle().value();
-
-	if ( la > 180.0f )
-		la -= 360.0f;
-
-	int lax = 896 + int ( 10.8f * la );
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBegin ( GL_TRIANGLE_STRIP );
-	glColor3f ( 1.0f, 0.0f, 0.0f );
-	glVertex2i ( lax-1, 522 );
-	glVertex2i ( lax-1, 550 );
-	glVertex2i ( lax+1, 522 );
-	glVertex2i ( lax+1, 550 );
-	glEnd ();
-
-	angle targetbearing;
-	angle targetaob;
-	angle targetrange;
-	angle targetspeed;
-	angle targetheading;
-	if (target) {
-		pair<angle, double> br = player->bearing_and_range_to(target);
-		targetbearing = br.first;
-		targetaob = player->estimate_angle_on_the_bow(br.first, target->get_heading());
-		unsigned r = unsigned(round(br.second));
-		if (r > 9999) r = 9999;
-		targetrange = r*360.0/9000.0;
-		targetspeed = target->get_speed()*360.0/sea_object::kts2ms(36);
-		targetheading = target->get_heading();
-	}
-	draw_gauge(gm, 1, 0, 0, 256, targetbearing, texts::get(12));
-	draw_gauge(gm, 3, 256, 0, 256, targetrange, texts::get(13));
-	draw_gauge(gm, 2, 0, 256, 256, targetspeed, texts::get(14));
-	draw_gauge(gm, 1, 256, 256, 256, targetheading, texts::get(15));
-	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
-	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();
-	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
-	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
-		int j = i-bow_tube_indices.first;
-		draw_torpedo(gm, true, (j/4)*128, 512+(j%4)*16, torpedoes[i]);
-	}
-	for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
-		draw_torpedo(gm, false, 256, 512+(i-stern_tube_indices.first)*16, torpedoes[i]);
-	}
-	glColor3f(1,1,1);
-	draw_infopanel(gm);
-	system::sys().unprepare_2d_drawing();
-
-	// mouse handling
-	int mx;
-	int my;
-	int mb = system::sys().get_mouse_buttons();
-	system::sys().get_mouse_position(mx, my);
-
-	if (mb & system::sys().left_button) {
-		// Evaluate lead angle box.
-		if ( mx >= 776 && mx <= 1016 && my >= 520 && my <= 552 )
-		{
-			double lav = double ( mx - 896 ) / 10.8f;
-			if ( lav < - 10.0f )
-				lav = -10.0f;
-			else if ( lav > 10.0f )
-				lav = 10.0f;
-
-			gm.send(new command_set_trp_addleadangle(player, lav));
-		}
-	}
-
-	// keyboard processing
-	int key = system::sys().get_key().sym;
-	while (key != 0) {
-		if (!keyboard_common(key, gm)) {
-			// specific keyboard processing
-			switch ( key ) {
-				case SDLK_y:
-					if ( zoom_scope )
-						zoom_scope = false;
-					else
-						zoom_scope = true;
-					break;
-			}
-		}
-		key = system::sys().get_key().sym;
+		s->play ( ( 1.0f - player_object->get_noise_factor () ) * exp ( - distance / h ) );
 	}
 }
 
-void submarine_interface::display_UZO(game& gm)
-{
-	submarine* player = dynamic_cast<submarine*> ( get_player() );
 
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	unsigned res_x = system::sys().get_res_x(), res_y = system::sys().get_res_y();
 
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	system::sys().gl_perspective_fovx (5.0, 2.0/1.0, 5.0, gm.get_max_view_distance());
-	glViewport(0, res_y/3, res_x, res_x/2);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
 
-	glRotatef(-90, 1,0,0);	// swap y and z coordinates (camera looks at +y axis)
 
-	vector3 viewpos = player->get_pos() + vector3(0, 0, 6);
-	// no torpedoes, no DCs, no player
-	draw_view(gm, viewpos, 0, res_y/3, res_x, res_x/2, player->get_heading()+bearing, 0, true, false, false);
 
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glViewport(0, 0, res_x, res_y);
-	glMatrixMode(GL_MODELVIEW);
-	
-	system::sys().prepare_2d_drawing();
-	uzo->draw(0, 0, 512, 512);
-	uzo->draw_hm(512, 0, 512, 512);
-	draw_infopanel(gm);
-	system::sys().unprepare_2d_drawing();
+//
+//
+//
+///////////////////////////////////////// OLD
+//
+//
 
-	// keyboard processing
-	int key = system::sys().get_key().sym;
-	while (key != 0) {
-		if (!keyboard_common(key,  gm)) {
-			// specific keyboard processing
-		}
-		key = system::sys().get_key().sym;
-	}
-}
-
-void submarine_interface::display_torpedoroom(game& gm)
-{
-}
 
 void submarine_interface::display_damagestatus(game& gm)
 //fixme: divide display and key handling information!!!!!!!!!!!!!!
@@ -536,93 +397,3 @@ void submarine_interface::display_damagestatus(game& gm)
 	}
 }
 
-void submarine_interface::play_sound_effect_distance ( sound_effect se, double distance ) const
-{
-	sound* s = get_sound_effect ( se );
-
-	if ( s )
-	{
-		submarine* sub = dynamic_cast<submarine*> ( get_player () );
-		double h = 3000.0f;
-		if ( sub && sub->is_submerged () )
-			h = 10000.0f;
-
-		s->play ( ( 1.0f - player_object->get_noise_factor () ) * exp ( - distance / h ) );
-	}
-}
-
-// fixme: this function is already in user_interface.cpp. are there differences and why?
-// yes! gauges are different for ships/submarines. So THIS is the function that matters.
-
-// replace explicit drawing/input handling by widgets?, fixme. would be a hell lot easier
-// center pos, pos, size, min ang, max ang, turn dir, command to be sent.
-
-void submarine_interface::display_gauges(class game& gm)
-{
-	submarine* player = dynamic_cast<submarine*> ( get_player () );
-	system::sys().prepare_2d_drawing();
-	set_display_color ( gm );
-
-	// fixme: daylight switch here, ask game for which mode, like
-	// gm.is_day()
-	controlscreen_normallight->draw(0, 0);
-
-	// the absolute numbers here depend on the graphics!
-	compass1->draw_rot(148, 564, -player->get_heading().value());
-	depth_indicator->draw_rot(504, 379, player->get_depth()*1.0-51.0, 95, 16);
-	knots_indicator->draw_rot(803, 91, fabs(player->get_speed())*22.33512-133.6, 15, 48);
-	main_rudder_indicator->draw_rot(837, 477, player->get_rudder_pos()*3.5125, 32, 80);
-
-/*
-	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
-	angle player_depth = -player->get_pos().z;
-	draw_gauge(gm, 1, 0, 0, 256, player->get_heading(), texts::get(1),
-		player->get_head_to());
-	draw_gauge(gm, 2, 256, 0, 256, player_speed, texts::get(4));
-	draw_gauge(gm, 4, 2*256, 0, 256, player_depth, texts::get(5));
-	draw_clock(gm, 3*256, 0, 256, gm.get_time(), texts::get(61));
-	draw_manometer_gauge ( gm, 1, 0, 256, 256, player->get_fuel_level (),
-		texts::get(101));
-	draw_manometer_gauge ( gm, 1, 256, 256, 256, player->get_battery_level (),
-		texts::get(102));
-*/
-//	draw_infopanel(gm);
-
-
-	system::sys().unprepare_2d_drawing();
-
-	// mouse handling
-	int mx, my, mb = system::sys().get_mouse_buttons();
-	system::sys().get_mouse_position(mx, my);
-
-	if (mb & 1) {
-		int marea = (my/256)*4+(mx/256);
-		int mareax = (mx/256)*256+128;
-		int mareay = (my/256)*256+128;
-		angle mang(vector2(mx - mareax, mareay - my));
-		if ( marea == 0 )
-		{
-			gm.send(new command_head_to_ang(player, mang, mang.is_cw_nearer(
-				player->get_heading())));
-		}
-		else if ( marea == 1 )
-		{}
-		else if ( marea == 2 )
-		{
-			submarine* sub = dynamic_cast<submarine*> ( player );
-			if ( sub )
-			{
-				gm.send(new command_dive_to_depth(player, mang.ui_value()));
-			}
-		}
-	}
-
-	// keyboard processing
-	int key = system::sys().get_key().sym;
-	while (key != 0) {
-		if (!keyboard_common(key, gm)) {
-			// specific keyboard processing
-		}
-		key = system::sys().get_key().sym;
-	}
-}

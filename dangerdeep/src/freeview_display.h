@@ -11,18 +11,23 @@
 class freeview_display : public user_display
 {
 protected:
-	// position and direction of viewer
+	// position and direction of viewer,maybe store in ui
 	angle bearing;
 	angle elevation;	// -90...90 deg (look down ... up)
-	vector3 pos;
+
+	vector3 pos;		// maybe via template function
 
 	freeview_display();
 
-	void prepare_display(void) const;
-	void set_projection_matrix_and_viewport(void) const;
+	// display() calls these functions
+	void pre_display(void) const;
+	void get_viewport(unsigned& x, unsigned& y, unsigned& w, unsigned& h) const;
+//fixme: reflections need special viewport... depends on detail settings. mabye retrieve from ui
+	void set_projection_matrix(void) const;
 	void set_modelview_matrix(void) const;
+	void post_display(void) const;
 
-	// drawing is split up
+	// drawing is split up, fixme should be in ui, call ui.draw_sky()!!!!!!!
 	void draw_sky(void) const;//maybe some of them need a ref to game!
 	void draw_water(void) const;
 	void draw_terrain(void) const;

@@ -1405,9 +1405,9 @@ game::run_state game::exec(void)
 				simulate(time_scale == 1 ? delta_time : (1.0/30.0));
 		}
 
-		//ui->process_input(events);//process first??
-		ui->display(*this);
+		// maybe limit input processing to 30 fps
 		ui->process_input(events);
+		ui->display(*this);
 		++frames;
 
 		// record fps

@@ -8,9 +8,11 @@
 
 class sub_bridge_display : public freeview_display // user_display
 {
-	void prepare_display(void) const;
-	void set_projection_matrix_and_viewport(void) const;
+	void pre_display(void) const;
+	void get_viewport(unsigned& x, unsigned& y, unsigned& w, unsigned& h) const;
+	void set_projection_matrix(void) const;
 	void set_modelview_matrix(void) const;
+	void post_display(void) const;
 
 public:
 	sub_bridge_display ();
