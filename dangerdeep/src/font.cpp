@@ -46,7 +46,7 @@ void font::print_text(int x, int y, const string& text, bool ignore_colors) cons
 		} else if (c == '\t') {	// tab
 			unsigned tw = char_height*4;
 			x = int((x - xs + tw)/tw)*tw + xs;
-		} else if (c == '$') { // color information, fixme: do we need that anymore?
+		} else if (c == '$') { // color information
 			unsigned nr[6];
 			++ti;
 			for (int i = 0; i < 6; ++i, ++ti) {
@@ -63,7 +63,7 @@ void font::print_text(int x, int y, const string& text, bool ignore_colors) cons
 			if (!ignore_colors)
 				glColor3ub(nr[0]*16+nr[1], nr[2]*16+nr[3], nr[4]*16+nr[5]);
 		} else {
-			unsigned t = translate[c];	// fixme: compile and use display lists?
+			unsigned t = translate[c];
 			if (t == 0xff) {
 				x += blank_width;
 			} else {
@@ -212,23 +212,20 @@ void font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, const st
 			}
 		}
 		oldtextptr = textptr;
-		// collect characters for current word
+		// collect characters for current word, fixme handle tabs
 		while ((text[textptr] != '\n' && text[textptr] != ' ') && textptr < textlen) {
 			++textptr;
 		}
-		if (textptr == textlen) {	// print remaining text
-			print(x, y, text.substr(oldtextptr), col, with_shadow);
-			break;
-		} else {
-			pair<unsigned, unsigned> wh = get_size(text.substr(oldtextptr, textptr - oldtextptr));
-			if (currwidth + wh.first >= w) {
-				y += (lineheight == 0) ? wh.second : lineheight;
-				currwidth = 0;
-			}
-			print(x+currwidth, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
-			currwidth += wh.first;
-			currwidth += blank_width;
+		pair<unsigned, unsigned> wh = get_size(text.substr(oldtextptr, textptr - oldtextptr));
+		if (currwidth + wh.first >= w) {
+			y += (lineheight == 0) ? wh.second : lineheight;
+			currwidth = 0;
 		}
+		print(x+currwidth, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
+		currwidth += wh.first;
+		currwidth += blank_width;
+		if (textptr == textlen)
+			break;
 	}
 }
 

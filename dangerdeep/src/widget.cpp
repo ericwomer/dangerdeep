@@ -22,6 +22,8 @@ int widget::oldmx = 0;
 int widget::oldmy = 0;
 int widget::oldmb = 0;
 
+list<widget*> widget::widgets;
+
 int widget::theme::frame_size(void) const
 {
 	return frame[0]->get_height();
@@ -75,7 +77,7 @@ void widget::set_theme(class theme* t)
 }
 
 widget::widget(int x, int y, int w, int h, const string& text_, widget* parent_)
-	: pos(x, y), size(w, h), text(text_), parent(parent_)
+	: pos(x, y), size(w, h), text(text_), parent(parent_), enabled(true), retval(NO_RETURN)
 {
 }
 
@@ -91,6 +93,17 @@ void widget::add_child(widget* w)
 	w->set_parent(this);
 	w->move_pos(pos);
 	children.push_back(w);
+}
+
+void widget::remove_child(widget* w)
+{
+	for (list<widget*>::iterator it = children.begin(); it != children.end(); ++it) {
+		if (*it == w) {
+			children.erase(it);
+			break;
+		}
+	}
+	delete w;
 }
 
 void widget::move_pos(const vector2i& p)
@@ -121,6 +134,24 @@ bool widget::compute_focus(void)
 		return true;
 	}
 	return false;
+}
+
+bool widget::is_enabled(void) const
+{
+	bool e = enabled;
+	if (parent)
+		e = e && parent->is_enabled();
+	return e;
+}
+
+void widget::enable(void)
+{
+	enabled = true;
+}
+
+void widget::disable(void)
+{
+	enabled = false;
 }
 
 void widget::on_char(void)
@@ -197,6 +228,46 @@ bool widget::is_mouse_over(void) const
 	return (mx >= p.x && my >= p.y && mx < p.x+size.x && my < p.y + size.y);
 }
 
+widget* widget::create_dialogue_ok(const string& text)
+{
+	unsigned res_x = system::sys()->get_res_x();
+	unsigned res_y = system::sys()->get_res_y();
+	widget* w = new widget(res_x/4, res_y/4, res_x/2, res_y/2, "");
+	w->add_child(new widget_text(32, 32, res_x/2-64, res_y/2-96, text));
+	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, 1, res_x/4-50, res_y/2-64, 100, 32, "Ok"));
+	return w;
+}
+
+widget* widget::create_dialogue_ok_cancel(const string& text)
+{
+	unsigned res_x = system::sys()->get_res_x();
+	unsigned res_y = system::sys()->get_res_y();
+	widget* w = new widget(res_x/4, res_y/4, res_x/2, res_y/2, "");
+	w->add_child(new widget_text(32, 32, res_x/2-64, res_y/2-96, text));
+	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, 1, res_x/4-120, res_y/2-64, 100, 32, "Ok"));
+	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, 0, res_x/4+20, res_y/2-64, 100, 32, "Cancel"));
+	return w;
+}
+
+int widget::run(void)
+{
+	widgets.push_back(this);
+	class system* sys = system::sys();
+	while (retval == NO_RETURN) {
+		sys->poll_event_queue();
+		glClear(GL_COLOR_BUFFER_BIT);
+		sys->prepare_2d_drawing();
+		glColor4f(1,1,1,1);
+		for (list<widget*>::iterator it = widgets.begin(); it != widgets.end(); ++it)
+			(*it)->draw();
+		sys->unprepare_2d_drawing();
+		process_input();
+		sys->swap_buffers();
+	}
+	widgets.pop_back();
+	return retval;
+}
+
 widget_button* widget_menu::add_entry(const string& s, widget_button* wb)
 {
 	int x, y, w, h;
@@ -251,7 +322,7 @@ void widget_text::draw(void) const
 	vector2i p = get_pos();
 	class system* sys = system::sys();
 	sys->no_tex();
-	globaltheme->myfont->print(p.x, p.y, text, globaltheme->textcol, true);
+	globaltheme->myfont->print_wrapped(p.x, p.y, size.x, 0, text, globaltheme->textcol, true);
 }
 
 void widget_button::draw(void) const
@@ -259,7 +330,7 @@ void widget_button::draw(void) const
 	vector2i p = get_pos();
 	bool mo = is_mouse_over();
 	draw_area(p.x, p.y, size.x, size.y, !mo);
-	if (mo)
+	if (mo && enabled)
 		globaltheme->myfont->print_c(p.x+size.x/2, p.y+size.y/2, text, globaltheme->textcol, true);
 	else
 		globaltheme->myfont->print_c(p.x+size.x/2, p.y+size.y/2, text, globaltheme->textcol, false);
@@ -278,7 +349,7 @@ void widget_button::on_release(void)
 }
 
 widget_scrollbar::widget_scrollbar(int x, int y, int w, int h, widget* parent_)
-	: widget(x, y, w, h, "", parent_), scrollbarpos(0), scrollbarmaxpos(1)
+	: widget(x, y, w, h, "", parent_), scrollbarpos(0), scrollbarmaxpos(0)
 {
 }
 
@@ -288,15 +359,25 @@ widget_scrollbar::~widget_scrollbar()
 
 void widget_scrollbar::set_nr_of_positions(unsigned s)
 {
-	if (s < 1) s = 1;
 	scrollbarmaxpos = s;
-	if (scrollbarpos + 1 > scrollbarmaxpos) scrollbarpos = scrollbarmaxpos - 1;
+	if (scrollbarmaxpos == 0)
+		scrollbarpos = 0;
+	else if (scrollbarpos >= scrollbarmaxpos)
+		scrollbarpos = scrollbarmaxpos - 1;
 	compute_scrollbarpixelpos();
 }
 
 unsigned widget_scrollbar::get_current_position(void) const
 {
 	return scrollbarpos;
+}
+
+void widget_scrollbar::set_current_position(unsigned p)
+{
+	if (p < scrollbarmaxpos) {
+		scrollbarpos = p;
+		compute_scrollbarpixelpos();
+	}
 }
 
 unsigned widget_scrollbar::get_max_scrollbarsize(void) const
@@ -307,7 +388,10 @@ unsigned widget_scrollbar::get_max_scrollbarsize(void) const
 unsigned widget_scrollbar::get_scrollbarsize(void) const
 {
 	unsigned msbs = get_max_scrollbarsize();
-	return msbs/2 + msbs/scrollbarmaxpos;
+	if (scrollbarmaxpos == 0)
+		return msbs;
+	else
+		return msbs/2 + msbs/(1+scrollbarmaxpos);
 }
 
 void widget_scrollbar::compute_scrollbarpixelpos(void)
@@ -353,13 +437,15 @@ void widget_scrollbar::on_click(void)
 		int rx, ry;
 		system::sys()->get_mouse_motion(rx, ry);
 		if (mb != 0 && ry != 0) {
-			int msbp = get_max_scrollbarsize() - get_scrollbarsize();
-			int sbpp = scrollbarpixelpos;
-			sbpp += ry;
-			if (sbpp < 0) sbpp = 0;
-			else if (sbpp > msbp) sbpp = msbp;
-			scrollbarpixelpos = sbpp;
-			scrollbarpos = scrollbarpixelpos * (scrollbarmaxpos-1) / msbp;
+			if (scrollbarmaxpos > 1) {
+				int msbp = get_max_scrollbarsize() - get_scrollbarsize();
+				int sbpp = scrollbarpixelpos;
+				sbpp += ry;
+				if (sbpp < 0) sbpp = 0;
+				else if (sbpp > msbp) sbpp = msbp;
+				scrollbarpixelpos = sbpp;
+				scrollbarpos = scrollbarpixelpos * (scrollbarmaxpos-1) / msbp;
+			}
 		}
 	}
 	if (oldpos != scrollbarpos)
@@ -374,21 +460,22 @@ void widget_scrollbar::on_drag(void)
 widget_list::widget_list(int x, int y, int w, int h, widget* parent_)
 	: widget(x, y, w, h, "", parent_), listpos(0), selected(-1)
 {
-	struct myscrollbar : public widget_scrollbar
+	struct wls : public widget_scrollbar
 	{
 		unsigned& p;
 		void on_scroll(void) { p = get_current_position(); }
-		myscrollbar(unsigned& p_, int x, int y, int w, int h, widget* parent) : widget_scrollbar(x,y,w,h,parent), p(p_) {}
-		~myscrollbar() {};
+		wls(unsigned& p_, int x, int y, int w, int h, widget* parent) : widget_scrollbar(x,y,w,h,parent), p(p_) {}
+		~wls() {};
 	};
 	int fw = globaltheme->frame_size();
-	add_child(new myscrollbar(listpos, size.x-3*fw-globaltheme->icons[0]->get_width(), fw, globaltheme->icons[0]->get_width()+2*fw, size.y-2*fw, this));
+	myscrollbar = new wls(listpos, size.x-3*fw-globaltheme->icons[0]->get_width(), fw, globaltheme->icons[0]->get_width()+2*fw, size.y-2*fw, this);
+	add_child(myscrollbar);
 }
 
 void widget_list::append_entry(const string& s)
 {
 	entries.push_back(s);
-	dynamic_cast<widget_scrollbar*>(children.front())->set_nr_of_positions(entries.size());
+	myscrollbar->set_nr_of_positions(entries.size());
 }
 
 string widget_list::get_entry(unsigned n) const
@@ -408,11 +495,34 @@ int widget_list::get_selected(void) const
 	return selected;
 }
 
+void widget_list::set_selected(unsigned n)
+{
+	if (n < entries.size()) {
+		selected = int(n);
+		if (listpos > n || n >= listpos + get_nr_of_visible_entries()) {
+			listpos = n;
+			myscrollbar->set_current_position(n);
+		}
+	}
+}
+
 string widget_list::get_selected_entry(void) const
 {
 	if (selected >= 0)
 		return get_entry(selected);
 	return "";
+}
+
+unsigned widget_list::get_nr_of_visible_entries(void) const
+{
+	return (size.y - 2*globaltheme->frame_size()) / globaltheme->myfont->get_height();
+}
+
+void widget_list::clear(void)
+{
+	listpos = 0;
+	selected = -1;
+	entries.clear();
 }
 
 void widget_list::draw(void) const
@@ -422,14 +532,14 @@ void widget_list::draw(void) const
 	list<string>::const_iterator it = entries.begin();
 	for (unsigned lp = 0; lp < listpos; ++lp) ++it;
 	int fw = globaltheme->frame_size();
-	unsigned maxp = (size.y - 2*fw) / globaltheme->myfont->get_height();
+	unsigned maxp = get_nr_of_visible_entries();
 	for (unsigned lp = 0; it != entries.end() && lp < maxp; ++it, ++lp) {
 		if (selected == int(lp + listpos)) {
 			globaltheme->backg->draw(p.x+fw, p.y + fw + lp*globaltheme->myfont->get_height(), size.x-5*fw-globaltheme->icons[0]->get_width(), globaltheme->myfont->get_height());
 		}
 		globaltheme->myfont->print(p.x+fw, p.y+fw + lp*globaltheme->myfont->get_height(), *it, globaltheme->textcol, false);
 	}
-	children.front()->draw();
+	myscrollbar->draw();
 }
 
 void widget_list::on_click(void)
@@ -464,7 +574,8 @@ void widget_edit::draw(void) const
 	pair<unsigned, unsigned> sz = globaltheme->myfont->get_size(text.substr(0, cursorpos));
 	system::sys()->no_tex();
 	globaltheme->textcol.set_gl_color();
-	system::sys()->draw_rectangle(p.x+fw+sz.first, p.y, fw/2, size.y);
+	if (this == focussed)
+		system::sys()->draw_rectangle(p.x+fw+sz.first, p.y+size.y/4, fw/2, size.y/2);
 }
 
 void widget_edit::on_char(void)

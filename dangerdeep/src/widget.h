@@ -12,6 +12,14 @@ using namespace std;
 #include "font.h"
 #include "vector2.h"
 
+// fixme: make yes/no, ok, yes/no/cancel dialogue
+// when a dialogue opens another one, both should be drawn, and the parent
+// should pass draw()/process_input() calls to its child
+// make a special flag: widget* wait_for?
+// process_input(){if (wait_for)wait_for->process_input();else ...old...;} ?
+// ein widget.close fehlt. close:= parent.remove(this), wenn parent==0 dann globale liste nach this
+// durchsuchen. run() läuft dann bis globale liste leer ist.
+
 // theme files:
 // two images, one for elements, one for icons.
 // each image is one row of square elements.
@@ -25,11 +33,13 @@ using namespace std;
 class widget
 {
 protected:
+	enum return_values { NO_RETURN=-1, OK=0 };
 	vector2i pos, size;
 	string text;
 	widget* parent;
 	bool enabled;
 	list<widget*> children;
+	int retval;	// run() is stopped whenever this becomes != NO_RETURN
 	
 	widget();
 	widget(const widget& );
@@ -61,10 +71,10 @@ protected:
 
 public:	
 	static void set_theme(class theme* t);
-	enum status { OK=0, CLOSE=1 };	// one bit per flag. return values are ORed among the subwidgets and sent to parent
 	widget(int x, int y, int w, int h, const string& text_, widget* parent_ = 0);
 	virtual ~widget();
 	virtual void add_child(widget* w);
+	virtual void remove_child(widget* w);
 	virtual bool is_mouse_over(void) const;
 	virtual void draw(void) const;
 	virtual bool compute_focus(void);
@@ -77,15 +87,23 @@ public:
 	virtual void set_parent(widget* w) { parent = w; }
 	virtual string get_text(void) const { return text; }
 	virtual void set_text(const string& s) { text = s; }
-	virtual bool is_enabled(void) const { return enabled; }
-	virtual void enable(void) { enabled = true; }
-	virtual void disable(void) { enabled = false; }
+	virtual bool is_enabled(void) const;
+	virtual void enable(void);
+	virtual void disable(void);
 	virtual void on_char(void);	// called for every key in queue
 	virtual void on_click(void) {};	// called on mouse button down
 	virtual void on_release(void) {};	// called on mouse button up
 	virtual void on_drag(void) {};	// called on mouse move while button is down
-	void prepare_input(void);	// call once before process_input
-	void process_input(void);	// determine type of input, fetch it to on_* functions
+	virtual void prepare_input(void);	// call once before process_input
+	virtual void process_input(void);	// determine type of input, fetch it to on_* functions
+
+	static widget* create_dialogue_ok(const string& text);		// run() always returns 1
+	static widget* create_dialogue_ok_cancel(const string& text);	// run() returns 1 for ok, 0 for cancel
+
+	virtual int run(void);	// show & exec. widget, automatically disable widgets below
+	virtual void close(int val) { retval = val; }	// close this widget (stops run() on next turn, returns val)
+	
+	static list<widget*> widgets;	// stack of dialogues, topmost is back
 };
 
 class widget_text : public widget
@@ -145,11 +163,11 @@ class widget_caller_button : public widget_button
 	Obj* obj;
 	Func func;
 public:
-	widget_caller_button(Obj* obj_, Func func_, int x, int y, int w, int h,
-		const string& text, widget* parent = 0)
+	widget_caller_button(Obj* obj_, Func func_, int x = 0, int y = 0, int w = 0, int h = 0,
+		const string& text = "", widget* parent = 0)
 		: widget_button(x, y, w, h, text, parent), obj(obj_), func(func_) {}
 	~widget_caller_button() {}
-	void on_change(void) { if (!pressed) (obj->*func)(); }
+	void on_release(void) { widget_button::on_release(); (obj->*func)(); }
 };
 
 template<class Obj, class Func, class Arg>
@@ -159,11 +177,24 @@ class widget_caller_arg_button : public widget_button
 	Func func;
 	Arg arg;
 public:
-	widget_caller_arg_button(Obj* obj_, Func func_, Arg arg_, int x, int y, int w, int h,
-		const string& text, widget* parent = 0)
+	widget_caller_arg_button(Obj* obj_, Func func_, Arg arg_, int x = 0, int y = 0, int w = 0, int h = 0,
+		const string& text = "", widget* parent = 0)
 		: widget_button(x, y, w, h, text, parent), obj(obj_), func(func_), arg(arg_) {}
 	~widget_caller_arg_button() {}
-	void on_change(void) { if (!pressed) (obj->*func)(arg); }
+	void on_release(void) { widget_button::on_release(); (obj->*func)(arg); }
+};
+
+template<class Func, class Arg>
+class widget_func_arg_button : public widget_button
+{
+	Func func;
+	Arg arg;
+public:
+	widget_func_arg_button(Func func_, Arg arg_, int x = 0, int y = 0, int w = 0, int h = 0,
+		const string& text = "", widget* parent = 0)
+		: widget_button(x, y, w, h, text, parent), func(func_), arg(arg_) {}
+	~widget_func_arg_button() {}
+	void on_release(void) { widget_button::on_release(); func(arg); }
 };
 
 template<class Obj>
@@ -172,11 +203,11 @@ class widget_set_button : public widget_button
 	Obj& obj;
 	Obj value;
 public:
-	widget_set_button(Obj& obj_, const Obj& val, int x, int y, int w, int h,
-		const string& text, widget* parent = 0)
+	widget_set_button(Obj& obj_, const Obj& val, int x = 0, int y = 0, int w = 0, int h = 0,
+		const string& text = "", widget* parent = 0)
 		: widget_button(x, y, w, h, text, parent), obj(obj_), value(val) {}
 	~widget_set_button() {}
-	void on_change(void) { if (!pressed) obj = value; }
+	void on_release(void) { widget_button::on_release(); obj = value; }
 };
 
 class widget_menu : public widget
@@ -216,6 +247,7 @@ public:
 	~widget_scrollbar();
 	void set_nr_of_positions(unsigned s);
 	unsigned get_current_position(void) const;
+	void set_current_position(unsigned p);
 	void draw(void) const;
 	void on_click(void);
 	void on_drag(void);
@@ -228,6 +260,7 @@ protected:
 	list<string> entries;
 	unsigned listpos;
 	int selected;
+	widget_scrollbar* myscrollbar;	// stored also as child
 
 	widget_list();
 	widget_list(const widget_list& );
@@ -239,7 +272,10 @@ public:
 	string get_entry(unsigned n) const;
 	unsigned get_listsize(void) const;
 	int get_selected(void) const;
+	void set_selected(unsigned n);
 	string get_selected_entry(void) const;
+	unsigned get_nr_of_visible_entries(void) const;
+	void clear(void);
 	void draw(void) const;
 	void on_click(void);
 	void on_drag(void);
