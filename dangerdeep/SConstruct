@@ -200,8 +200,7 @@ def findCVS(basedir):
 			i = l2.find('/')
 			if i != -1:
 				l3 = l2[0:i]
-				if l3.startswith('SCons') == False:
-					myfiles += [basedir + os.sep + l3]
+				myfiles += [basedir + os.sep + l3]
 #	print mydirs
 #	print myfiles
 	for d in mydirs:
@@ -228,6 +227,8 @@ env.Append(TARFLAGS = '-z')
 env.Append(TARSUFFIX = '.gz')
 cvsfiles = findCVS('src')
 cvsfiles += findCVS('data')
+cvsfiles += findCVS('build')
+# fixme: tar replaces build/linux/x with src/x, hack fix with symlink
 env.Tar('dangerdeep-'+version, cvsfiles)
 #env.Zip is also possible
 
