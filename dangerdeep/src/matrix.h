@@ -37,7 +37,8 @@ public:
 
 	matrix4t() : values(size*size, D(0.0)) {}
 
-        matrix4t(D* v) : values(size*size) { // construct in opengl order from D array
+	// construct in C++ order
+        matrix4t(D* v) : values(size*size) {
 		for (unsigned j = 0; j < size; ++j)
 			for (unsigned i = 0; i < size; ++i)
 				values[i+j*size] = v[j+i*size];
@@ -46,6 +47,18 @@ public:
 	matrix4t(const matrix4t<D>& other) : values(other.values) {}
 
 	~matrix4t() {}
+
+	// constuct in C++ order	
+	matrix4t(const D& e0, const D& e1, const D& e2, const D& e3,
+		const D& e4, const D& e5, const D& e6, const D& e7,
+		const D& e8, const D& e9, const D& e10, const D& e11,
+		const D& e12, const D& e13, const D& e14, const D& e15) {
+		values.reserve(size*size);
+		values.push_back(e0); values.push_back(e1); values.push_back(e2); values.push_back(e3);
+		values.push_back(e4); values.push_back(e5); values.push_back(e6); values.push_back(e7);
+		values.push_back(e8); values.push_back(e9); values.push_back(e10); values.push_back(e11);
+		values.push_back(e12); values.push_back(e13); values.push_back(e14); values.push_back(e15);
+	}
 
 	matrix4t<D>& operator= (const matrix4t<D>& other) { values = other.values; return *this; }
 

@@ -243,7 +243,8 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, lposition);
 
-	//fixme: get rid of this
+	//fixme: get rid of this, it conflicts with water because it swaps y and z coords.
+	//instead adapt rotation matrices for scope/bridge/free view
 	glRotatef(-90,1,0,0);
 	// if we're aboard the player's vessel move the world instead of the ship
 	if (aboard) {
