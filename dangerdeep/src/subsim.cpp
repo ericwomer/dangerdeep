@@ -21,6 +21,7 @@ int res_x, res_y;
 
 const char* missions[] = {
 	"testconvoy",
+	"testconvoy2",
 	0
 };
 
