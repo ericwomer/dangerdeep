@@ -48,7 +48,9 @@ vector<vector2f> coastline::create_points(unsigned begint, unsigned endt, /*cons
 	for (unsigned n = 0; n < nrpts; ++n) {
 		// fixme: result bspline point must get scaled by pixelw and translated by offset.
 		// fixme this is only needed while creating pointsf.
-		result.push_back(bspline_val<vector2f>(t, BSPLINE_SMOOTH_FACTOR, pointsf));
+		unsigned n = pointsf.size() - 1;
+		if (n > BSPLINE_SMOOTH_FACTOR) n = BSPLINE_SMOOTH_FACTOR;
+		result.push_back(bspline_val<vector2f>(t, n, pointsf));
 		t += tstep;
 	}
 	return result;
@@ -384,7 +386,7 @@ bool coastmap::find_coastline(int x, int y, coastline& cl)	// returns true if cl
 	while (true) {
 		// store x,y
 		vector2 p(x * pixelw_real, y * pixelw_real);
-		cl.points.push_back(vector2i(x, y)/*p*/);
+		cl.points.push_back(vector2i(x, y)/*p*/);//fixme
 
 		assert(x>=0&&y>=0&&x<mapw&&y<maph);
 		mapf(x, y) |= 0x80;
@@ -552,8 +554,22 @@ coastmap::coastmap(const string& filename)
 		}
 	}
 
-
-
+	// find coastsegment type
+	for (unsigned yy = 0; yy < segsy; ++yy) {
+		for (unsigned xx = 0; xx < segsx; ++xx) {
+			coastsegment& cs = coastsegments[yy*segsx+xx];
+			if (cs.coastlines.size() > 0) {
+				cs.type = 2;
+			} else {
+				// segment is fully land or sea. determine what it is
+				if (mapf(xx*pixels_per_seg + pixels_per_seg/2, yy*pixels_per_seg + pixels_per_seg/2) & 0x7f) {
+					cs.type = 1;
+				} else {
+					cs.type = 0;
+				}
+			}
+		}
+	}
 
 /*
 	// read cities, fixme move to coastmap
