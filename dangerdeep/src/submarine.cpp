@@ -408,16 +408,15 @@ double submarine::get_noise_factor () const
 		// This is an empirical value.
 		noisefac *= 0.007f;
 	}
-#ifdef OLD
 	else
 	{
-		// This might be unrealistic, but its impossible for a submarine to
-		// attack when if can be detected at a range of 10 nm by a drifting
-		// and listening destroyer. Currently there are no empirical values
-		// available.
-		noisefac *= 0.1f;
+		// When a submarine uses its snorkel its maximum diesel speed is
+		// reduced by 50%. This reduces the noise level returned by method
+		// sea_object::get_noise_factor and must be corrected here by
+		// multiply the actual noise factor with 2.
+		if ( snorkel && is_submerged () && snorkel_up )
+			noisefac *= 2.0f;
 	}
-#endif // OLD
 
 	return noisefac;
 }
