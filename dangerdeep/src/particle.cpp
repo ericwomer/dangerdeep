@@ -6,6 +6,44 @@
 
 #include "global_data.h" //for smoke texture, fixme
 
+unsigned particle::init_count = 0;
+texture* particle::tex_smoke = 0;
+vector<texture*> particle::explosionbig;
+vector<texture*> particle::explosionsml;
+
+void particle::init(void)
+{
+	if (++init_count != 1) return;
+	tex_smoke = new texture(get_texture_dir() + "smoke.png" , GL_LINEAR, GL_CLAMP_TO_EDGE);
+	// read in explosions
+#define EXPL_FRAMES 15
+	explosionbig.resize(EXPL_FRAMES);
+	for (unsigned i = 0; i < EXPL_FRAMES; ++i) {
+		char tmp[20];
+		sprintf(tmp, "exbg%04u.png", i+1);
+		explosionbig[i] = new texture(get_texture_dir() + "explosion01/" + tmp, GL_LINEAR, GL_CLAMP_TO_EDGE, false);
+	}
+	explosionsml.resize(EXPL_FRAMES);
+	for (unsigned i = 0; i < EXPL_FRAMES; ++i) {
+		char tmp[20];
+		sprintf(tmp, "exsm%04u.png", i+1);
+		explosionsml[i] = new texture(get_texture_dir() + "explosion02/" + tmp, GL_LINEAR, GL_CLAMP_TO_EDGE, false);
+	}
+}
+
+
+
+void particle::deinit(void)
+{
+	if (--init_count != 0) return;
+	delete tex_smoke;
+	for (unsigned i = 0; i < explosionbig.size(); ++i)
+		delete explosionbig[i];
+	for (unsigned i = 0; i < explosionsml.size(); ++i)
+		delete explosionsml[i];
+}
+
+
 
 void particle::display_all(const list<particle*>& pts, const vector3& viewpos, class game& gm)
 {
@@ -66,6 +104,7 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 
 
 
+// smoke
 
 #define SMOKE_PARTICLE_LIFE_TIME 120.0	// seconds
 #define SMOKE_PARTICLE_ASCEND_SPEED 1.0 // m/s
@@ -100,7 +139,7 @@ double smoke_particle::get_height(void) const
 void smoke_particle::set_texture(class game& gm) const
 {
 	glColor4f(0.5f, 0.5f, 0.5f, live);
-	smoke->set_gl_texture();
+	tex_smoke->set_gl_texture();
 }
 
 
@@ -108,4 +147,47 @@ void smoke_particle::set_texture(class game& gm) const
 double smoke_particle::get_produce_time(void)
 {
 	return SMOKE_PARTICLE_PRODUCE_TIME;
+}
+
+
+
+// explosion(s)
+
+#define EXPLOSION_PARTICLE_LIFE_TIME 2.0
+
+explosion_particle::explosion_particle(const vector3& pos_) : particle(pos_)
+{
+	extype = 0; // rnd(1); //fixme
+}
+
+
+
+void explosion_particle::simulate(game& gm, double delta_t)
+{
+	live -= delta_t/EXPLOSION_PARTICLE_LIFE_TIME;
+}
+
+
+
+double explosion_particle::get_width(void) const
+{
+	return 20.0; //fixme: depends on type
+}
+
+
+
+double explosion_particle::get_height(void) const
+{
+	return 20.0; //fixme: depends on type
+}
+
+
+
+void explosion_particle::set_texture(class game& gm) const
+{
+	glColor4f(1, 1, 1, 1);
+	unsigned f = EXPL_FRAMES * (1.0f - live);
+	if (f < 0 || f >= EXPL_FRAMES) f = EXPL_FRAMES-1;
+	// switch on type, fixme
+	explosionbig[f]->set_gl_texture();
 }

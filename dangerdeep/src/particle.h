@@ -4,8 +4,12 @@
 #define PARTICLE_H
 
 #include "vector3.h"
+#include <vector>
 #include <list>
 using namespace std;
+
+class game;
+class texture;
 
 // particles: smoke, water splahes, fire, explosions, spray caused by ship's bow
 // fire particles can produce smoke particles!
@@ -33,14 +37,23 @@ protected:
 		bool operator< (const particle_dist& other) const { return dist >= other.dist; }
 	};
 
+	// particle textures (generated and stored once)
+	static unsigned init_count;
+	static texture* tex_smoke;
+	static vector<texture*> explosionbig;
+	static vector<texture*> explosionsml;
+
 public:
 	particle(const vector3& pos_) : pos(pos_), live(1.0f) {}
 	virtual ~particle() {}
 
-	// class game is given so that particles can spawn other particles (fire->smoke)
-	virtual void simulate(class game& gm, double delta_t) = 0;
+	static void init(void);
+	static void deinit(void);
 
-	static void display_all(const list<particle*>& pts, const vector3& viewpos, class game& gm);
+	// class game is given so that particles can spawn other particles (fire->smoke)
+	virtual void simulate(game& gm, double delta_t) = 0;
+
+	static void display_all(const list<particle*>& pts, const vector3& viewpos, game& gm);
 
 	// return width/height (in meters) of particle (length of quad edge)
 	virtual double get_width(void) const = 0;
@@ -49,7 +62,7 @@ public:
 	virtual bool is_dead(void) const { return live <= 0.0f; }
 	
 	// set opengl texture by particle type or e.g. game time etc.
-	virtual void set_texture(class game& gm) const = 0;
+	virtual void set_texture(game& gm) const = 0;
 };
 
 
@@ -60,11 +73,25 @@ class smoke_particle : public particle
 public:
 	smoke_particle(const vector3& pos_) : particle(pos_) {}
 	~smoke_particle() {}
-	void simulate(class game& gm, double delta_t);
+	void simulate(game& gm, double delta_t);
 	double get_width(void) const;
 	double get_height(void) const;
-	void set_texture(class game& gm) const;
+	void set_texture(game& gm) const;
 	static double get_produce_time(void);
+};
+
+
+
+class explosion_particle : public particle
+{
+	unsigned extype;	// which texture
+public:
+	explosion_particle(const vector3& pos_);
+	~explosion_particle() {}
+	void simulate(game& gm, double delta_t);
+	double get_width(void) const;
+	double get_height(void) const;
+	void set_texture(game& gm) const;
 };
 
 #endif

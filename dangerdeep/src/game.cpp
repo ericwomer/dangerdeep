@@ -792,7 +792,8 @@ void game::visible_torpedoes(list<torpedo*>& result, const sea_object* o)
 		for (list<torpedo*>::iterator it = torpedoes.begin();
 			it != torpedoes.end(); ++it)
 		{
-			if ( ls->is_detected ( this, o, *it ) )
+//testing: draw all torpedoes
+//			if ( ls->is_detected ( this, o, *it ) )
 				result.push_back (*it);
 		}
 	}
@@ -1143,6 +1144,8 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 			if ( ( s->is_alive () ) &&
 				s->damage ( t->get_pos (), t->get_hit_points () ) )
 				ship_sunk ( s );
+			//test: explosion:
+			spawn_particle(new explosion_particle(s->get_pos() + vector3(0, 0, 5)));
 			torp_explode ( t->get_pos () );
 		}
 		return true;

@@ -47,7 +47,7 @@ extern class texture *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *metalbackgr,
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
-	*woodbackgr, *smoke, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
+	*woodbackgr, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
 	*terraintex, *cloudsbackgr, *atlanticmap;
 extern class font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd;

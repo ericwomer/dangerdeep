@@ -26,7 +26,7 @@ texture *background, *gauge1,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *metalbackgr,
 	*torpt1, *torpt2, *torpt3, *torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut,
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
-	*woodbackgr, *smoke, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
+	*woodbackgr, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
 	*terraintex, *cloudsbackgr, *atlanticmap;
 	
@@ -92,7 +92,6 @@ void init_global_data(void)
 	torpedo_detonation_surfaced[0] = new sound(get_sound_dir() + "torpedo_detonation_surfaced_1.wav" );
 	torpedo_detonation_surfaced[1] = new sound(get_sound_dir() + "torpedo_detonation_surfaced_2.wav" );
 	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png" );
-	smoke = new texture(get_texture_dir() + "smoke.png" , GL_LINEAR, GL_CLAMP_TO_EDGE);
 	notepadsheet = new texture(get_texture_dir() + "notepadsheet.png" /*, GL_CLAMP_TO_EDGE*/);
 	menuframe = new texture(get_texture_dir() + "menuframe.png" );
 	turnswitch = new texture(get_texture_dir() + "turnswitch.png" );
@@ -172,7 +171,6 @@ void deinit_global_data(void)
 	delete torpedo_detonation_surfaced[0];
 	delete torpedo_detonation_surfaced[1];
 	delete woodbackgr;
-	delete smoke;
 	delete notepadsheet;
 	delete menuframe;
 	delete turnswitch;
