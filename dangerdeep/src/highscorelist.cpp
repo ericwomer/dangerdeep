@@ -3,6 +3,9 @@
 
 #include "highscorelist.h"
 #include "binstream.h"
+#include "widget.h"
+#include "texts.h"
+#include <sstream>
 #include <fstream>
 
 highscorelist::entry::entry(istream& in)
@@ -76,4 +79,22 @@ void highscorelist::record(unsigned points, const string& name)
 		}
 	}
 	// no entry
+}
+
+void highscorelist::show(class widget* parent) const
+{
+	const font* fnt = widget::get_theme()->myfont;
+	unsigned lh = fnt->get_height();
+	unsigned scw = fnt->get_size("0000000").first;
+	unsigned y = 2*lh;
+	parent->add_child(new widget_text(scw/2, y, 0, 0, texts::get(202)));
+	parent->add_child(new widget_text(2*scw, y, 0, 0, texts::get(203)));
+	y += 2*lh;
+	for (unsigned i = 0; i < entries.size(); ++i) {
+		ostringstream osp;
+		osp << entries[i].points;
+		parent->add_child(new widget_text(scw/2, y, 0, 0, osp.str()));
+		parent->add_child(new widget_text(2*scw, y, 0, 0, entries[i].name));
+		y += lh*3/2;
+	}
 }

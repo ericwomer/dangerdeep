@@ -73,6 +73,7 @@ protected:
 
 public:	
 	static void set_theme(theme* t);
+	static theme* get_theme(void) { return globaltheme; }
 	static theme* replace_theme(theme* t);
 	widget(int x, int y, int w, int h, const string& text_, widget* parent_ = 0, image* backgr = 0);
 	virtual ~widget();

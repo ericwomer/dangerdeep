@@ -17,7 +17,8 @@ public:
 	struct entry {
 		unsigned points;
 		string name;
-		entry() : points(0), name("-") {}
+		// missing: maybe start & end date, realism factor, rank/merits
+		entry() : points(0), name("--------") {}
 		entry(unsigned p, const string& n) : points(p), name(n) {}
 		entry(istream& in);
 		~entry() {}
@@ -39,7 +40,7 @@ public:
 	void save(const string& filename) const;
 	bool is_good_enough(unsigned points) const; // check if score is good enough for an entry
 	void record(unsigned points, const string& name); // record entry if it is good enough
-//	void show(class widget* parent) const;
+	void show(class widget* parent) const;
 };
 
 #endif

@@ -264,17 +264,11 @@ void check_for_highscore(const game* gm)
 		// show dialogue, ask for player name
 		string playername = "fixme";
 		widget w(0, 0, 1024, 768, texts::get(124), 0, kruppdocksimg);
-		widget_list* wl = new widget_list(64, 64, 1024-64-64, 768-64-64);
-		w.add_child(wl);
 		w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 		
 		hsl.record(points, playername);
 		
-		for (vector<highscorelist::entry>::const_iterator it = hsl.entries.begin(); it != hsl.entries.end(); ++it) {
-			ostringstream os;
-			os << it->points << "\t" << it->name;
-			wl->append_entry(os.str());
-		}
+		hsl.show(&w);
 		
 		w.run();
 	}
@@ -786,6 +780,7 @@ int main(int argc, char** argv)
 #ifdef WIN32
 	"./highscores/";
 #else
+	// fixme: use global /var/games instead
 	string(getenv("HOME"))+"/."+PACKAGE + "/";
 #endif
 
