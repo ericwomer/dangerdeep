@@ -54,13 +54,15 @@ void freeview_display::set_modelview_matrix(game& gm) const
 	// OpenGL uses ccw values, so this is a double negation
 	glRotated(bearing.value(),0,0,1);
 
-	glTranslated(-pos.x, -pos.y, -pos.z);
-
 	// if we're aboard the player's vessel move the world instead of the ship
 	if (aboard) {
 		double rollfac = (dynamic_cast<ship*>(gm.get_player()))->get_roll_factor();
 		ui.rotate_by_pos_and_wave(gm.get_player()->get_pos(), rollfac, true);
 	}
+
+//	cout << "pos ist " << pos << "\n";
+	//fixme: wieso ist pos 0,0,6 wo das doch die extra-pos sein sollte?! viewpos sollte 0,0,6 sein ähhh
+	glTranslated(-pos.x, -pos.y, -pos.z);
 }
 
 
@@ -276,7 +278,9 @@ void freeview_display::draw_view(game& gm) const
 	// *************** compute and set player pos ****************************************
 	set_modelview_matrix(gm);
 	//fixme not fully correct, pos depends on ship's rolling, retrieve that from modelview matrix!
-	vector3 viewpos = player->get_pos() + pos;//seems to be different from modelview matrix fixme, for freeview it is different and that's why the water rendering is wrong there
+	//real viewpos = inverse(modelview).column(3)
+	//this seems to be the reason for the wrong fresnel effect!
+	vector3 viewpos = player->get_pos() + pos;
 
 	// **************** prepare drawing ***************************************************
 
@@ -293,17 +297,24 @@ void freeview_display::draw_view(game& gm) const
 
 	// ********************* draw mirrored scene
 	
+	matrix4 reflection_projmvmat;	// given later to water::display to set up reflection
+
 	// ************ compute water reflection ******************************************
 	// save projection matrix
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	// set up old projection matrix (new width/height of course) with a bit larger fov
-	system::sys().gl_perspective_fovx(pd.fov_x * 1.1, 1.0 /*aspect*/, pd.near_z, pd.far_z);
+	// store the projection matrix
+	system::sys().gl_perspective_fovx(pd.fov_x, 1.0 /*aspect*/, pd.near_z, pd.far_z);
+	reflection_projmvmat = matrix4::get_gl(GL_PROJECTION_MATRIX) * matrix4::get_gl(GL_MODELVIEW_MATRIX);
+	glLoadIdentity();
+	// set up projection matrix (new width/height of course) with a bit larger fov
+	system::sys().gl_perspective_fovx(pd.fov_x * 1.05, 1.0 /*aspect*/, pd.near_z, pd.far_z);
 	// set up new viewport size s*s with s<=max_texure_size and s<=w,h of old viewport
 	unsigned vps = ui.get_water().get_reflectiontex_size();
 	glViewport(0, 0, vps, vps);
 	// clear depth buffer (fixme: maybe clear color with upwelling color, use a bit alpha)
 	glClear(GL_DEPTH_BUFFER_BIT);
+
 	// shear one clip plane to match world space z=0 plane
 	//fixme
 
@@ -330,9 +341,6 @@ void freeview_display::draw_view(game& gm) const
 
 	glBindTexture(GL_TEXTURE_2D, ui.get_water().get_reflectiontex());
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, vps, vps, 0);
-
-	//fixme: the mirror map is not correct. upsidedown?! and seems view direction independent?! now!
-	//view is reversed, i.e. the world is NOT mirrored!!!! why?!
 
 #if 0
 	vector<Uint8> scrn(vps*vps*3);
@@ -377,8 +385,9 @@ void freeview_display::draw_view(game& gm) const
 	// ******* water ***************************************************************
 	//ui.get_water().update_foam(1.0/25.0);  //fixme: deltat needed here
 	//ui.get_water().spawn_foam(vector2(myfmod(gm.get_time(),256.0),0));
-	//fixme !!! viewpos does not contain the viewer translation!!!!!!!!!!!!!!
-	ui.get_water().display(viewpos, bearing, max_view_dist);
+	//fixme !!! viewpos does not contain the viewer translation!!!!!!!!!!!!!! <-------?
+//	cout << "viewpos used for call " << viewpos << "\n";
+	ui.get_water().display(viewpos, bearing, max_view_dist, reflection_projmvmat);
 
 	// ******** terrain/land ********************************************************
 //	glDisable(GL_FOG);	//testing with new 2d bspline terrain.

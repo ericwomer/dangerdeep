@@ -174,7 +174,7 @@ public:
 		glMatrixMode(GL_MODELVIEW);
 	}
 	
-	void multiply_gl(void) {
+	void multiply_gl(void) const {
 		GLdouble m[16];
 		for (unsigned i = 0; i < 4; ++i)
 			for (unsigned j = 0; j < 4; ++j)

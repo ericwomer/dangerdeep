@@ -78,7 +78,7 @@ protected:
 	water& operator= (const water& other);
 	water(const water& other);
 
-	void setup_textures(void) const;
+	void setup_textures(const matrix4& reflection_projmvmat) const;
 	void cleanup_textures(void) const;
 
 	void compute_coord_and_normal(int phase, const vector2& xypos, const vector2& transl,
@@ -90,7 +90,7 @@ public:
 	~water();
 	void update_foam(double deltat);		// needed for dynamic foam
 	void spawn_foam(const vector2& pos);		// dito
-	void display(const vector3& viewpos, angle dir, double max_view_dist) const;
+	void display(const vector3& viewpos, angle dir, double max_view_dist, const matrix4& reflection_projmvmat) const;
 	float get_height(const vector2& pos) const;
 	// give f as multiplier for difference to (0,0,1)
 	vector3f get_normal(const vector2& pos, double f = 1.0) const;

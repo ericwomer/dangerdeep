@@ -27,10 +27,10 @@
 
 // some more interesting values: phase 256, facesperwave 64+,
 // wavelength 256+,
-#define WAVE_PHASES 512 //256		// no. of phases for wave animation
+#define WAVE_PHASES 256		// no. of phases for wave animation
 #define WAVE_RESOLUTION 64	// FFT resolution
 #define WAVE_LENGTH 128.0	// in meters, total length of one wave tile
-#define TIDECYCLE_TIME 20.0 // 10.0	// seconds
+#define TIDECYCLE_TIME 10.0	// seconds
 #define FOAM_VANISH_FACTOR 0.1	// 1/second until foam goes from 1 to 0.
 #define FOAM_SPAWN_FACTOR 0.2	// 1/second until full foam reached. maybe should be equal to vanish factor
 
@@ -249,7 +249,7 @@ water::~water()
 }
 
 
-void water::setup_textures(void) const
+void water::setup_textures(const matrix4& reflection_projmvmat) const
 {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
@@ -269,16 +269,12 @@ void water::setup_textures(void) const
 	glActiveTexture(GL_TEXTURE1);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, reflectiontex);
-	GLdouble m[16];
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	// rescale coordinates [-1,1] to [0,1]
 	glTranslated(0.5,0.5,0);
 	glScaled(0.5,0.5,1.0);
-	glGetDoublev(GL_PROJECTION_MATRIX, m);
-	glMultMatrixd(m);
-	glGetDoublev(GL_MODELVIEW_MATRIX, m);
-	glMultMatrixd(m);
+	reflection_projmvmat.multiply_gl();
 	glMatrixMode(GL_MODELVIEW);
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
@@ -424,15 +420,10 @@ void water::compute_coord_and_normal(int phase, const vector2& xypos, const vect
 }
 
 
-void water::display(const vector3& viewpos, angle dir, double max_view_dist) const
+void water::display(const vector3& viewpos, angle dir, double max_view_dist, const matrix4& reflection_projmvmat) const
 {
-	// move world so that viewer is at (0,0,0)
+	// move world so that viewer is at (0,0,0), fixme obsolete!
 	glPushMatrix();
-	// fixme mirror effect is broken
-	// mirror part seems to be one side of the wave not top any more!
-//	glTranslated(0, 0, -viewpos.z);
-
-//	cout << "viewpos is " << viewpos << " mv says " << matrix4::get_gl(GL_MODELVIEW_MATRIX).column(3) << "\n";
 
 	int phase = int((myfmod(mytime, TIDECYCLE_TIME)/TIDECYCLE_TIME) * WAVE_PHASES);
 	const float VIRTUAL_PLANE_HEIGHT = 25.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok, maybe a bit too much
@@ -673,6 +664,9 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	//simple vertex arrays with locking should do the trick, maybe use
 	//(locked) quadstrips, if they're faster than compiled vertex arrays, test it!
 //	float minh=1000,maxh=-1000;
+
+//relative koordinate zum viewer = modelviewmat * coord fixme
+
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			const vector3f& coord = coords[ptr];
@@ -702,7 +696,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 //	cout << "minh " << minh << " maxh " << maxh << "\n";
 
 	// set up textures
-	setup_textures();
+	setup_textures(reflection_projmvmat);
 
 	glColor4f(1,1,1,1);
 
