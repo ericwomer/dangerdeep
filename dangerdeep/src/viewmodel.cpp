@@ -40,8 +40,8 @@ void view_model(const string& modelfilename)
 		glLoadIdentity();
 		glTranslatef(0, 0, -2.5);
 		glColor3f(1, 1, 1);
-		glRotatef(viewangles.y, 0, 1, 0);
 		glRotatef(viewangles.z, 0, 0, 1);
+		glRotatef(viewangles.y, 0, 1, 0);
 		glRotatef(viewangles.x, 1, 0, 0);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -75,23 +75,17 @@ void view_model(const string& modelfilename)
 		int mx, my;
 		sys->get_mouse_motion(mx, my);
 		if (mb & 1) {
-			viewangles.x += mx * 0.5;
-			viewangles.y += my * 0.5;
+			viewangles.y += mx * 0.5;
+			viewangles.x += my * 0.5;
 		}
 		if (mb & 2) {
 			viewangles.z += mx * 0.5;
-			viewangles.y += my * 0.5;
-		}
-		if (mb & 4) {
-			viewangles.x += mx * 0.5;
-			viewangles.z += my * 0.5;
 		}
 		sys->prepare_2d_drawing();
 		font_arial->print(0, 0, "A simple model viewer for Danger from the Deep.");
 		font_arial->print(0, 16, "Press any key to exit.");
 		font_arial->print(0, 32, "Press left mouse button and move mouse to rotate x/y.");
-		font_arial->print(0, 48, "Press right mouse button and move mouse to rotate z/y.");
-		font_arial->print(0, 64, "Press middle mouse button and move mouse to rotate x/z.");
+		font_arial->print(0, 48, "Press right mouse button and move mouse to rotate z.");
 		vector3f minp = mdl->get_min(), maxp = mdl->get_max();
 		ostringstream os;
 		os << "Rotation " << viewangles.x << ", " << viewangles.y << ", " << viewangles.z <<
