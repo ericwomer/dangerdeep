@@ -22,7 +22,7 @@
 // compute projected grid efficiency, it should be 50-95%
 //#define COMPUTE_EFFICIENCY
 #define DYNAMIC_NORMALS		// this is a must have
-#define DISTANCE_FRESNEL_HACK	// distance related fresnel term reduction
+//#define DISTANCE_FRESNEL_HACK	// distance related fresnel term reduction
 #define WAVE_SUB_DETAIL		// sub fft detail
 
 // some more interesting values: phase 256, facesperwave 64+,
@@ -76,7 +76,8 @@
 	in the buffer).
 */	
 
-water::water(unsigned xres_, unsigned yres_, double tm) : mytime(tm), xres(xres_), yres(yres_), reflectiontex(0), foamtex(0)
+water::water(unsigned xres_, unsigned yres_, double tm) :
+	mytime(tm), xres(xres_), yres(yres_), reflectiontex(0), foamtex(0), fresnelslopetex(0)
 {
 	wavetiledisplacements.resize(WAVE_PHASES);
 	wavetileheights.resize(WAVE_PHASES);
@@ -113,11 +114,25 @@ water::water(unsigned xres_, unsigned yres_, double tm) : mytime(tm), xres(xres_
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	coords.resize((xres+1)*(yres+1));
-	colors.resize((xres+1)*(yres+1));
 	uv0.resize((xres+1)*(yres+1));
+	uv1.resize((xres+1)*(yres+1));
 	normals.resize((xres+1)*(yres+1));
 
 	foamtex = new texture(get_texture_dir() + "foam.png", GL_LINEAR);//fixme maybe mipmap it
+
+	const unsigned fresnelres = 256;
+	vector<color> fresnelfct(fresnelres*fresnelres);
+	for (unsigned s = 0; s < fresnelres; ++s) {
+		float fs = float(s)/(fresnelres-1);
+		for (unsigned f = 0; f < fresnelres; ++f) {
+			float ff = float(f)/(fresnelres-1);
+			color c(color(18, 96, 48), color(18, 73, 107), fs);
+			c.a = Uint8(255*exact_fresnel(ff)+0.5f);
+			fresnelfct[s*fresnelres+f] = c;
+		}
+	}
+	fresnelslopetex = new texture(&fresnelfct[0], fresnelres, fresnelres, GL_RGBA,
+				 GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE, false);
 	
 	// connectivity data is the same for all meshes and thus is reused
 	gridindices.reserve(xres*yres*4);
@@ -206,6 +221,7 @@ water::~water()
 {
 	glDeleteTextures(1, &reflectiontex);
 	delete foamtex;
+	delete fresnelslopetex;
 }
 
 
@@ -214,7 +230,20 @@ void water::setup_textures(void) const
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
 	
+	//tex0: get alpha from fresnelslopetex, just pass color from primary color
+	//tex1: interpolate between previous color and tex1 with previous alpha (fresnel)
 	glActiveTexture(GL_TEXTURE0);
+	fresnelslopetex->set_gl_texture();
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+
+	glActiveTexture(GL_TEXTURE1);
+	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, reflectiontex);
 	GLdouble m[16];
 	glMatrixMode(GL_TEXTURE);
@@ -228,18 +257,24 @@ void water::setup_textures(void) const
 	glMultMatrixd(m);
 	glMatrixMode(GL_MODELVIEW);
 
+	//fixme with the fresnel term in texunit 0 or 1 we can give refraction color
+	//via glColor3f, so we can vry it with the slope!
+	//or even better set slope color to fresnel tex! so no primary color is needed.
 	// 18, 93, 77 as refraction color on waves with high slope
-	float refraccol[4] = { 0.0706f, 0.2863f, 0.4196f, 1.0f };	// 18, 73, 107
-	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, refraccol);
+//	float refraccol[4] = { 0.0706f, 0.2863f, 0.4196f, 1.0f };	// 18, 73, 107
+//	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, refraccol);
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_CONSTANT); //GL_PRIMARY_COLOR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PREVIOUS);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_PRIMARY_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);	// fixme: spec says here is only SRC_ALPHA allowed, the geforce also does SRC_COLOR!
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_PREVIOUS);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);
+	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 
 /*
 	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
@@ -249,6 +284,7 @@ void water::setup_textures(void) const
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
 */
 
+#if 0 //old! (foam)
 	glActiveTexture(GL_TEXTURE1);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, foamtex->get_opengl_name());
@@ -266,6 +302,7 @@ void water::setup_textures(void) const
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);//GL_ONE_MINUS_SRC_ALPHA);//this alpha value isn't taken from constant color! where does it come from? fixme
 
 	// fixme: automatic generated texture coordinates for foam may be not realistic enough (foam doesn't move then with displacements)
+
 	GLfloat scalefac1 = 32.0f/WAVE_LENGTH;//fixme: scale to realistic foam size
 	GLfloat plane_s1[4] = { scalefac1, 0.0f, 0.0f, 0.0f };
 	GLfloat plane_t1[4] = { 0.0f, scalefac1, 0.0f, 0.0f };
@@ -275,6 +312,7 @@ void water::setup_textures(void) const
 	glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t1);
 	glEnable(GL_TEXTURE_GEN_S);
 	glEnable(GL_TEXTURE_GEN_T);
+#endif
 }
 
 
@@ -367,7 +405,6 @@ void water::compute_coord_and_normal(int phase, const vector2& xypos, const vect
 		+ wavetilenormals[phase][i2] * fac2 + wavetilenormals[phase][i3] * fac3).normal();
 #endif
 }
-
 
 
 void water::display(const vector3& viewpos, angle dir, double max_view_dist) const
@@ -619,13 +656,15 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			float rel_coord_length = rel_coord.length();
 			vector3f E = -rel_coord * (1.0f/rel_coord_length); // viewer is in (0,0,0)
 			float F = E*N;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
-			if (F < 0.0f) F = 0.0f;	// avoid angles > 90 deg.
+			// value clamping is done by texture unit.
 
-			F = F + 1.0f;
-			F = F * F;	// ^2
-			F = F * F;	// ^4
-			F = F * F;	// ^8
-			F = 1.0f/F;
+			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
+			texc.z -= VIRTUAL_PLANE_HEIGHT;
+
+			// fixme distance fresnel hack could be done with self computed
+			// mipmap textures, using darker values for distant levels.
+			// or simple scale F down at large distances.
+
 #ifdef DISTANCE_FRESNEL_HACK
 			// With growing distance the water becomes similar to a flat plane
 			// (trilinar filtering and/or drawing with less triangles), so the
@@ -643,42 +682,30 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			if (distfac > 1.0f) distfac = 1.0f;
 			F *= distfac;
 #endif
-			
-			Uint8 c = Uint8(F*255);
-//			float fd = coord.distance(vector3f(-viewpos.x+0,-viewpos.y+10,0))/100.0f;
-//			if (fd > 1.0f) fd = 1.0f;
 
-			Uint8 foampart = 255;//Uint8(fd*255);//coord255*(xx&1);//255;//fixme
-			color primary(foampart, foampart, foampart, c);
-
-/*
-			color ca(18, 93, 77), cb(18, 73, 107);
-			float cscal = slope?height?fresnel?
-			color cc(ca, cb, cscal);
-			color primary(cc.r, cc.g, cc.b, c);
-*/
-			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
-			texc.z -= VIRTUAL_PLANE_HEIGHT;
+			float slopefac = (N.z - 0.8f) / (1.0f - 0.8f);
 						
-			uv0[ptr] = texc;
-			colors[ptr] = primary;
+			uv0[ptr] = vector2f(F, slopefac);	// set fresnel and slope
+			uv1[ptr] = texc;
 		}
 	}
 
 	// set up textures
 	setup_textures();
 
-	// draw elements (fixed index list) with vertex arrays using coords,uv0,normals,colors
-	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(color), &colors[0].r);
+	glColor4f(1,1,1,1);
+
+	// draw elements (fixed index list) with vertex arrays using coords,uv0,normals,uv1
+	glDisableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
 	glClientActiveTexture(GL_TEXTURE0);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv0[0].x);
-	glDisableClientState(GL_NORMAL_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &uv0[0]);
 	glClientActiveTexture(GL_TEXTURE1);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv1[0].x);
+	glDisableClientState(GL_NORMAL_ARRAY);
 
 //	unsigned t0 = system::sys().millisec();
 
@@ -702,6 +729,8 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
+	glClientActiveTexture(GL_TEXTURE1);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
@@ -820,6 +849,8 @@ void water::spawn_foam(const vector2& pos)
 */	
 }
 
+
+
 float water::get_height(const vector2& pos) const
 {
 	double t = myfrac(mytime/TIDECYCLE_TIME);
@@ -841,6 +872,8 @@ float water::get_height(const vector2& pos) const
 	float f = c * (1.0f-fracx) + d * fracx;
 	return (1.0f-fracy) * e + fracy * f;
 }
+
+
 
 vector3f water::get_normal(const vector2& pos, double f) const
 {
@@ -866,9 +899,29 @@ vector3f water::get_normal(const vector2& pos, double f) const
 	return h.normal();
 }
 
+
+
 void water::set_time(double tm)
 {
 	mytime = tm;
+}
+
+
+
+float water::exact_fresnel(float x)
+{
+	// the real formula (recheck it!)
+/*
+	float g = 1.333f + x*x - 1;
+	float z1 = g-x;
+	float z2 = g+x;
+	return (z1*z1)*(1+((x*z2-1)*(x*z2-1))/((x*z1+1)*(x*z1+1)))/(2*z2*z2);
+*/
+	// a good approximation (1/(x+1)^8)
+	float x1 = x + 1.0f;
+	float x2 = x1*x1;
+	float x4 = x2*x2;
+	return 1.0f/(x4*x4);
 }
 
 

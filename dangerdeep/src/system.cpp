@@ -321,6 +321,8 @@ list<SDL_Event> system::poll_event_queue(void)
 }
 */
 
+//intermediate solution: just return list AND handle events, the app client can choose then
+//what he wants (if he handles events by himself, he have to flush the key queue each frame)
 unsigned int system::poll_event_queue(void)
 {
 	SDL_Event event;
