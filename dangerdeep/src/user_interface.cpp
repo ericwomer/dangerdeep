@@ -314,6 +314,77 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glEnable(GL_LIGHTING);
 	glPopMatrix();	// remove scale
 	
+	// ******** the moon **********
+	/* How to compute the moon's position:
+	   Earth's rotational axis is off 23 degrees to moon's rotational axis around earth.
+	   That means the moon rotates on a circle with radius of 384.000km (in fact it's an ellipse)
+	   and the plane that circle is inside is rotated by 23 degrees relative to earth's rotational axis.
+	   The moon's relative position is
+	   (0,0,384*10^6) * zrot(time/moon_orbit_time) * xrot(23) * zrot(+- time/earth_rotation_time).
+	   This position can be transformed relative to the tangential plane at the viewer's position.
+	   To do that take the viewer's position as longitude/latitude values:
+	   (For that we assume that viewpos.z is 0, viewpos.x = +-20000km, viewpos.y += 10000km.
+	   That means the viewer's zero position is at longitude 0 deg and latitude 0 deg.)
+	   The viewer's position and direction can be described as 3 axis rotation (1 matrix)
+	   y-rotation with longitude, x-rotation with latitude, z-rotation with direction.
+	   Multiply the inverse of that rotation with the moon's position vector and you get the moon's
+	   position relative to the tangential plane.
+	   Now we have the moon's height above that plane and the direction and so we can draw it.
+	*/
+	// fixme: exact values?
+	const double EARTH_ROT_AXIS_ANGLE = 23.0;
+	const double MOON_ORBIT_TIME = 28.0*86400.0;
+	const double EARTH_ROTATION_TIME = 86400.0;
+	const double EARTH_CIRCUMFERENCE = 40000000.0;
+	const double MOON_EARTH_DISTANCE = 384000000.0;
+	double universaltime = gm.get_time() * 8640;	// fixme: substract local time
+
+	// let OpenGL do the work.
+	glPushMatrix();
+	glLoadIdentity();
+	// compute the inverse of the tangential plane rotation
+	glRotated(-dir.value(), 0, 0, 1);
+	glRotated(360.0 * -viewpos.x * 2 / EARTH_CIRCUMFERENCE, 1, 0, 0);
+	glRotated(360.0 * -viewpos.y * 4 / EARTH_CIRCUMFERENCE, 0, 1, 0);
+	// compute the moon's position
+	glRotated(360.0 * myfmod(universaltime, EARTH_ROTATION_TIME)/EARTH_ROTATION_TIME, 0, 1, 0);
+	glRotated(EARTH_ROT_AXIS_ANGLE, 1, 0, 0);
+	glRotated(360.0 * myfmod(universaltime, MOON_ORBIT_TIME)/MOON_ORBIT_TIME, 0, 1, 0);
+	glTranslated(0, 0, 0.95*max_view_dist /*MOON_EARTH_DISTANCE*/);
+	
+	// get and multiply that with the moon's initial position
+//	GLdouble moontmp[16] = { 0, 0, 0.95*max_view_dist /*MOON_EARTH_DISTANCE*/, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+//	glMultMatrixd(moontmp);
+//	glGetDoublev(GL_MODELVIEW_MATRIX, moontmp);
+//	glPopMatrix();
+
+//	double moon_scalefac = 0.95 * max_view_dist / MOON_EARTH_DISTANCE;	// use 0.95 to keep moon inside skyhemisphere
+
+//	vector3 moon_pos = vector3(moontmp[0], moontmp[1], moontmp[2]);// * moon_scalefac;
+//for(int j=0;j<16;++j)printf("matrix j=%i v=%f\n",j,moontmp[j]);	
+//printf("moon rel pos %f %f %f\n",moon_pos.x,moon_pos.y,moon_pos.z);
+//	glPushMatrix();
+//	glTranslated(moon_pos.x, moon_pos.y, moon_pos.z);
+	double moons = 1000.0;// 2*sqrt(moon_radius^2/2) * moon_scale_fac
+	glColor3f(1,1,1);
+	the_moon->set_gl_texture();
+	glDisable(GL_LIGHTING);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0,0);
+	glVertex3f(-moons, -moons, 0);
+	glTexCoord2f(0,1);
+	glVertex3f(-moons, moons, 0);
+	glTexCoord2f(1,1);
+	glVertex3f(moons, moons, 0);
+	glTexCoord2f(1,0);
+	glVertex3f(moons, -moons, 0);
+	glEnd();
+//glScalef(200,200,200);
+//subXXI->display();
+	glEnable(GL_LIGHTING);
+	glPopMatrix();
+	
+	
 	// ******** clouds *******
 	glDisable(GL_LIGHTING);		// direct lighting turned off
 	glDisable(GL_DEPTH_TEST);	// draw all clouds
@@ -949,7 +1020,7 @@ void user_interface::display_map(class system& sys, game& gm)
 
 	float delta = MAPGRIDSIZE*mapzoom;
 	float sx = myfmod(512, delta)-myfmod(-offset.x, MAPGRIDSIZE)*mapzoom;
-	float sy = 768.0 - (myfmod(384.0, delta)-myfmod(-offset.y, MAPGRIDSIZE)*mapzoom);
+	float sy = 768.0 - (myfmod(384.0f, delta)-myfmod(-offset.y, MAPGRIDSIZE)*mapzoom);
 	int lx = int(1024/delta)+2, ly = int(768/delta)+2;
 
 	// draw grid

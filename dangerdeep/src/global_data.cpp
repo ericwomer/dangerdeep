@@ -24,7 +24,7 @@ model	*merchant_large, *merchant_medium, *merchant_small,
 	*tanker_small,
 	*conning_tower_typeVII;
 
-texture *water, *background, *gauge1,
+texture *water, *the_moon, *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt2, *torpt3, *torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut,
@@ -46,6 +46,7 @@ void init_global_data(void)
 {
 	skyhemisphere = new model((get_data_dir() + MODEL_DIR + "skyhemisphere.3ds"));
 	water = new texture((get_data_dir() + TEXTURE_DIR + "water.png"), 1, false);
+	the_moon = new texture((get_data_dir() + TEXTURE_DIR + "themoon.png"), 1, false);
 	background = new texture((get_data_dir() + TEXTURE_DIR + "background.png"), 1, false);
 	merchant_large = new model((get_data_dir() + MODEL_DIR + "large_merchant.3ds"));
 	merchant_medium = new model((get_data_dir() + MODEL_DIR + "medium_merchant.3ds"));
@@ -134,6 +135,7 @@ void deinit_global_data(void)
 {
 	delete skyhemisphere;
 	delete water;
+	delete the_moon;
 	delete background;
 	delete merchant_large;
 	delete merchant_medium;

@@ -32,7 +32,7 @@ extern class model *merchant_large, *merchant_medium, *merchant_small,
 	*skyhemisphere, *corvette_mdl, *freighter_medium, *freighter_large,
 	*tanker_small,
 	*conning_tower_typeVII;
-extern class texture *water, *background, *gauge1,
+extern class texture *water, *the_moon, *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt2, *torpt3, *torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut,
@@ -61,8 +61,10 @@ double get_time(unsigned year, unsigned month, unsigned day);
 double get_day_time(double t);
 
 // handle modulo calculation for negative values the way I need it
-inline float myfmod(float a, float b) { return a-floor(a/b)*b; }
-inline float myfrac(float a) { return a-floor(a); }
+inline float myfmod(float a, float b) { return a-floorf(a/b)*b; }
+inline float myfrac(float a) { return a-floorf(a); }
+inline double myfmod(double a, double b) { return a-floor(a/b)*b; }
+inline double myfrac(double a) { return a-floor(a); }
 template<class C> inline void add_saturated(C& sum, const C& add, const C& max) { sum += add; if (sum > max) sum = max; }
 // return a random value in [0, 1(
 inline double rnd(void) { return double(rand())/RAND_MAX; }
