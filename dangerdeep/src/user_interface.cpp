@@ -322,9 +322,13 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 
 	skycol2.set_gl_color();
 	skyhemisphere->display(false);//, &skycol1, &skycol2);
-	color::white().set_gl_color();
+//	color::white().set_gl_color();
 	
 	// clouds
+	
+	/* replace this by a number of clouds (depending on weather) each a QUAD with one single
+	  cloud texture at heights 6-10km, moving. So we'll have multilayered clouds (transparent) */
+	lightcol.set_gl_color();	// cloud color depends on day time
 	double cloudscale = 1;		// depends on scale factor above
 	double cloudoffsetx = 0;	// depends on time for moving clouds
 	double cloudoffsety = 0;
@@ -353,6 +357,9 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	
 
 	// ******************** ships & subs *************************************************
+
+	//fixme: ships are to bright at night. this has changed since i introduced the
+	//new water/cloud code parts. What's wrong? glColor is stll lightcol, which is right
 
 	float dwave = sin((wave%WAVES)*2*M_PI/WAVES);
 	list<ship*> ships;

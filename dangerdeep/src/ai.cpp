@@ -5,6 +5,7 @@
 #include "ai.h"
 #include "game.h"
 #include "convoy.h"
+#include "sea_object.h"
 
 // ai computation between is randomly interleaved between frames to avoid
 // time consumption peeks every AI_THINK_CYCLE_TIME seconds

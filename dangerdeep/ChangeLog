@@ -1,3 +1,13 @@
+2003-07-04  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* smoke_stream.* ship.*
+	  - made smoke less denser and reduce particle number
+	* ship.h ship.cpp
+	  - moved ai/smoke_stream related methods to .cpp file to reduce
+	    header file dependencies. This should be done everywhere to
+	    reduce compile times for developing. Seems ok so far.
+	* ai.h ai.cpp
+	  - shifted dependencies.
+
 2003-07-03  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* menu.h menu.cpp
 	  - improved menu design and input

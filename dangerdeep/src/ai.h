@@ -5,14 +5,17 @@
 #define AI_H
 
 #include "vector3.h"
-#include "sea_object.h"
 #include "global_data.h"
+#include <list>
+using namespace std;
 
 #define WPEXACTNESS 100			// how exact a waypoint has to be hit in meters
 #define AI_THINK_CYCLE_TIME 10		// sec
 #define DC_ATTACK_RADIUS 100		// distance to target before DC launching starts
 #define DC_ATTACK_RUN_RADIUS 200	// distance to contact until escort switches to
 					// maximum speed
+					
+class sea_object;
 
 class ai
 {

@@ -6,16 +6,14 @@
 
 #include "sea_object.h"
 #include "global_data.h"
-#include "ai.h"
 #include "parser.h"
-#include "smoke_stream.h"
 
 class ship : public sea_object
 {
 	friend class convoy;
 
 protected:
-	ai* myai;
+	class ai* myai;
 	unsigned tonnage;	// in BRT
 
 	damage_status stern_damage, midship_damage, bow_damage;
@@ -45,12 +43,12 @@ protected:
 	*/
 	virtual void calculate_fuel_factor ( double delta_time );
 	
-	smoke_stream* mysmoke;
+	class smoke_stream* mysmoke;
 	
 public:
 	// fixme: add more types
 	enum types { mediummerchant, mediumtroopship, destroyertribal, battleshipmalaya, carrierbogue };
-	virtual ~ship() { delete myai; }
+	virtual ~ship();
 	static ship* create(types type_);
 	static ship* create(parser& p);
 	virtual void simulate(class game& gm, double delta_time);
@@ -58,7 +56,7 @@ public:
 	virtual void fire_shell_at(const vector2& pos);	// to subclass?
 
 	virtual bool has_smoke(void) const { return mysmoke != 0; }
-	virtual void smoke_display(double degr) const { if (mysmoke) mysmoke->display(degr); }
+	virtual void smoke_display(double degr) const;
 
 	virtual bool damage(const vector3& fromwhere, unsigned strength);
 	virtual unsigned calc_damage(void) const;	// returns damage in percent (0 means dead)

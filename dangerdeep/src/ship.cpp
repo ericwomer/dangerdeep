@@ -12,10 +12,18 @@
 #include "ship_carrierbogue.h"
 #include "tokencodes.h"
 #include "sensors.h"
+#include "ai.h"
+#include "smoke_stream.h"
 
 ship::ship() : sea_object(), myai ( 0 ), fuel_level ( 1.0f ),
 	fuel_value_a ( 0.0f ), fuel_value_t ( 1.0f ), mysmoke(0)
 {}
+
+ship::~ship()
+{
+	delete myai;
+	delete mysmoke;
+}
 
 bool ship::parse_attribute(parser& p)
 {
@@ -77,6 +85,11 @@ void ship::simulate(game& gm, double delta_time)
 
 void ship::fire_shell_at(const vector2& pos)
 {
+}
+
+void ship::smoke_display(double degr) const
+{
+	if (mysmoke) mysmoke->display(degr);
 }
 
 bool ship::damage(const vector3& fromwhere, unsigned strength)
