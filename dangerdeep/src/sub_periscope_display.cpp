@@ -98,7 +98,7 @@ sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_dis
 	clock_hours_pointer = new texture(get_image_dir() + "clock_hours_pointer.png");
 
 	// read compass bar image and cut to eight separate textures
-	image compassbari(get_image_dir() + "periscope_compassbar2.png");
+	image compassbari(get_image_dir() + "periscope_compassbar.png");
 	const unsigned nrparts = 8;	// 1878/8 ~ 234 so it fits in a 256 texture
 	unsigned tw = compassbari.get_width();
 	unsigned pw = (tw + (nrparts/2)) / nrparts;

@@ -141,7 +141,8 @@ BuildDir(target_dir, source_base_dir, duplicate=0)
 
 allcvsfiles2 = ''
 for i in allcvsfiles:
-	allcvsfiles2 += i + ' '
+	if not(i.endswith('.xcf')):
+		allcvsfiles2 += '"' + i + '" '
 
 #env.Append(TARFLAGS = '-z ' + problematicfiless)
 #env.Append(TARSUFFIX = '.gz')
