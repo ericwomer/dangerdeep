@@ -289,6 +289,19 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		(*it)->display();
 		glPopMatrix();
 	}
+
+	list<water_splash*> water_splashs;
+	gm.visible_water_splashes ( water_splashs, player );
+	for ( list<water_splash*>::const_iterator it = water_splashs.begin ();
+		it != water_splashs.end (); it ++ )
+	{
+		angle view_dir = angle ( (*it)->get_pos ().xy () - viewpos.xy () );
+		glPushMatrix ();
+		glTranslatef ( (*it)->get_pos ().x, (*it)->get_pos ().y, (*it)->get_pos ().z );
+		glRotatef ( view_dir.value (), 0.0f, 0.0f, 1.0f );
+		(*it)->display ();
+		glPopMatrix ();
+	}
 	
 	glColor3f(1,1,1);
 }
@@ -872,7 +885,7 @@ void user_interface::display_glasses(class system& sys, class game& gm)
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	gluPerspective (30.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
+	gluPerspective (5.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
 	glViewport(0, res_y/3, res_x, res_x/2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -899,7 +912,7 @@ void user_interface::display_glasses(class system& sys, class game& gm)
 			// specific keyboard processing
 			switch ( key )
 			{
-				case SDLK_x:
+				case SDLK_y:
 					zoom_scope = false;
 					break;
 			}
