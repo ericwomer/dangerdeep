@@ -14,7 +14,7 @@ protected:
 
 	class ai* myai;
 
-	list<pair<ship*, vector2> > merchants, warships, escorts;
+	list<pair<ship*, vector2> > merchants, warships, escorts;//fixme: make ref's here
 	list<vector2> waypoints;
 
 	convoy();

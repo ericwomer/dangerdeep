@@ -57,14 +57,14 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 			case SDLK_4:
 			case SDLK_5:
 			case SDLK_6:
-				if (player->can_torpedo_be_launched(gm, keycode - SDLK_1, target)) {
+				if (player->can_torpedo_be_launched(gm, keycode - SDLK_1, &(*target))) {
 					add_message(texts::get(49));
 					ostringstream oss;
 					oss << texts::get(49);
-					if ( target )
+					if (!target.is_null())
 						oss << " " << texts::get(6) << ": " << target->get_description ( 2 );
 					add_captains_log_entry( gm, oss.str () );
-					gm.send(new command_launch_torpedo(player, keycode - SDLK_1, target));
+					gm.send(new command_launch_torpedo(&(*player), keycode - SDLK_1, &(*target)));
 					play_sound_effect ( se_submarine_torpedo_launch );
 				}
 				break;
@@ -190,20 +190,20 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 
 			// weapons, fixme
 			case SDLK_t:
-				if (player->can_torpedo_be_launched(gm, -1, target)) {
+				if (player->can_torpedo_be_launched(gm, -1, &(*target))) {
 					add_message(texts::get(49));
 					ostringstream oss;
 					oss << texts::get(49);
-					if ( target )
+					if (!target.is_null())
 						oss << " " << texts::get(6) << ": " << target->get_description ( 2 );
 					add_captains_log_entry( gm, oss.str () );
-					gm.send(new command_launch_torpedo(player, -1, target));
+					gm.send(new command_launch_torpedo(player, -1, &(*target)));
 					play_sound_effect ( se_submarine_torpedo_launch );
 				}
 				break;
 			case SDLK_SPACE:
 				target = gm.contact_in_direction(player, player->get_heading()+bearing);
-				if (target)
+				if (!target.is_null())
 				{
 					add_message(texts::get(50));
 					add_captains_log_entry ( gm, texts::get(50));
@@ -213,7 +213,7 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 				break;
 			case SDLK_i:
 				// calculate distance to target for identification detail
-				if (target)
+				if (!target.is_null())
 				{
 					ostringstream oss;
 					oss << texts::get(79) << target->get_description(2); // fixme
@@ -260,10 +260,6 @@ bool submarine_interface::object_visible(sea_object* so,
 void submarine_interface::display(game& gm)
 {
 	submarine* player = dynamic_cast<submarine*> ( get_player() );
-
-	// A dead or sinking target can be removed as selected target.
-	if (target != 0 && (target->is_dead () || target->is_sinking ()))
-		target = 0;
 
 	// switch to map if sub is to deep.
 	double depth = player->get_depth();
@@ -383,8 +379,8 @@ void submarine_interface::display_periscope(game& gm)
 	angle targetrange;
 	angle targetspeed;
 	angle targetheading;
-	if (target) {
-		pair<angle, double> br = player->bearing_and_range_to(target);
+	if (!target.is_null()) {
+		pair<angle, double> br = player->bearing_and_range_to(&(*target));
 		targetbearing = br.first;
 		targetaob = player->estimate_angle_on_the_bow(br.first, target->get_heading());
 		unsigned r = unsigned(round(br.second));

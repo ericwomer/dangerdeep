@@ -20,7 +20,7 @@ class sensor;
 class sea_object
 {
 public:
-	enum alive_status { defunct, dead, sinking, alive };
+	enum alive_status { defunct, dead, alive };
 
 	// give negative values for fixed speeds, positive values for knots.
 	enum throttle_status { reverse=-7, aheadlisten=-6, aheadsonar=-5, aheadslow=-4,
@@ -46,6 +46,28 @@ public:
 	static void meters2degrees(double x, double y, bool& west, unsigned& degx, unsigned& minx, bool& south,
 		unsigned& degy, unsigned& miny);
 
+	class ref {
+		friend class sea_object;
+		sea_object* myobj;
+	public:
+		ref() : myobj(0) {}
+		ref(sea_object* obj) : myobj(0) { if (obj) obj->register_ref(*this); }
+		~ref() { if (myobj) myobj->unregister_ref(*this); }
+		ref& operator= (const ref& other) {
+			if (this != &other) {
+				if (myobj) myobj->unregister_ref(*this);
+				if (other.myobj) other.myobj->register_ref(*this);
+			}
+			return *this;
+		}
+		ref(const ref& other) : myobj(0) { if (other.myobj) other.myobj->register_ref(*this); }
+		sea_object& operator* () const { return *myobj; }
+		sea_object* operator-> () const { return myobj; }
+		bool is_null(void) const { return myobj == 0; }
+	};
+
+	friend class ref;
+	
 protected:
 	string specfilename;	// filename for specification .xml file, read from spec file
 
@@ -70,11 +92,9 @@ protected:
 
 	double length, width;	// computed from model, indirect read from spec file
 	
-	// an object is alive until it is sunk or killed.
-	// it will sink to some depth then it is killed.
-	// it will be dead for exactly one simulation cycle, to give other
-	// objects a chance to erase their pointers to this dead object, in the next
-	// cycle it will be defunct and erased by its owner.
+	// an object is alive until it is killed.
+	// references to it will get deleted when it is killed.
+	// any object can set to disfunctional status (defunct) (all references will get deleted).
 	alive_status alive_stat;
 
 	list<vector2> previous_positions;
@@ -83,6 +103,13 @@ protected:
 	vector<sensor*> sensors;
 	
 	string descr_near, descr_medium, descr_far;	// read from spec file
+
+	// reference handling
+	list<ref*> references;
+	
+	void register_ref(ref& myref);
+	void unregister_ref(ref& myref);
+	void remove_all_references(void);
 
 	sea_object();
 	sea_object& operator=(const sea_object& other);
@@ -105,7 +132,7 @@ public:
 	virtual ~sea_object();
 	virtual void load(istream& in, class game& g);
 	virtual void save(ostream& out, const class game& g) const;
-
+	
 	// call with ship/submarine/etc node from mission file
 	virtual void parse_attributes(class TiXmlElement* parent);
 
@@ -120,12 +147,10 @@ public:
 	// the strength is proportional to damage_status, 0-none, 1-light, 2-medium...
 	virtual bool damage(const vector3& fromwhere, unsigned strength); // returns true if object was destroyed
 	virtual unsigned calc_damage(void) const;	// returns damage in percent (0 means dead)
-	virtual void sink(void);
 	virtual void kill(void);
-	// fixme: this is ugly.
+	virtual void destroy(void);
 	virtual bool is_defunct(void) const { return alive_stat == defunct; };
 	virtual bool is_dead(void) const { return alive_stat == dead; };
-	virtual bool is_sinking(void) const { return alive_stat == sinking; };
 	virtual bool is_alive(void) const { return alive_stat == alive; };
 
 	// command interface

@@ -1120,9 +1120,9 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 		if (runlengthfailure) {
 			if (ui) ui->add_message(texts::get(59));
 		} else {
-		// Only ships that are alive or defunct can be sunk. Already sinking
-		// or destroyed ships cannot be destroyed again.
-			if ( ( s->is_alive () || s->is_defunct () ) &&
+			// Only ships that are alive can be sunk. Already sinking
+			// or destroyed ships cannot be destroyed again.
+			if ( ( s->is_alive () ) &&
 				s->damage ( t->get_pos (), t->get_hit_points () ) )
 				ship_sunk ( s );
 			torp_explode ( t->get_pos () );
@@ -1163,7 +1163,7 @@ ship* game::ship_in_direction_from_pos(const sea_object* o, const angle& directi
 		{
 			// Only a visible and intact submarine can be selected.
 			if ( ls->is_detected ( this, o, (*it) ) &&
-				( (*it)->is_alive () || (*it)->is_defunct () ) )
+				( (*it)->is_alive () ) )
 			{
 				vector2 df = (*it)->get_pos().xy () - o->get_pos().xy ();
 				double new_ang_diff = (angle(df)).diff(direction);
@@ -1195,7 +1195,7 @@ submarine* game::sub_in_direction_from_pos(const sea_object* o, const angle& dir
 		{
 			// Only a visible and intact submarine can be selected.
 			if ( ls->is_detected ( this, o, (*it) ) &&
-				( (*it)->is_alive () || (*it)->is_defunct () ) )
+				( (*it)->is_alive () ) )
 			{
 				vector2 df = (*it)->get_pos ().xy () - o->get_pos(). xy();
 				double new_ang_diff = (angle(df)).diff(direction);

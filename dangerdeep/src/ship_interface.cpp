@@ -78,7 +78,7 @@ bool ship_interface::keyboard_common(int keycode, class game& gm)
 #endif			
 		}
 		case SDLK_SPACE: target = gm.sub_in_direction_from_pos(player, player->get_heading()+bearing);
-			if (target) add_message(texts::get(50));
+			if (!target.is_null()) add_message(texts::get(50));
 			else add_message(texts::get(51));
 			break;
 
@@ -188,8 +188,6 @@ void ship_interface::draw_torpedo(bool usebow, int x, int y,
 	
 void ship_interface::display(game& gm)
 {
-	if (target != 0 && target->is_dead()) target = 0;
-
 	switch (viewmode) {
 		case 0: display_gauges(gm); break;
 		case 1: display_sonar(gm); break;

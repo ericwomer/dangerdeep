@@ -116,6 +116,7 @@ sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
 
 sea_object::~sea_object()
 {
+	remove_all_references();
 	modelcache.unref(modelname);
 	for (unsigned i = 0; i < sensors.size(); i++)
 		delete sensors[i];
@@ -161,7 +162,7 @@ void sea_object::save(ostream& out, const class game& g) const
 	write_double(out, head_chg);
 	write_i8(out, rudder);
 	write_double(out, head_to.value());
-	write_u8(out, Uint8(alive_stat));
+	write_u8(out, alive_stat);
 
 	write_u8(out, previous_positions.size());
 	for (list<vector2>::const_iterator it = previous_positions.begin(); it != previous_positions.end(); ++it) {
@@ -218,35 +219,6 @@ string sea_object::get_description(unsigned detail) const
 
 void sea_object::simulate(game& gm, double delta_time)
 {
-	/* fixme 2004/06/18 bad model.
-	maybe store references to an object with it, like:
-	sea_object {
-		void register_reference(sea_object** myref);
-		void unregister_reference(sea_object** myref);
-	}
-	killing an object erases all references. so only two states: alive/dead.
-	that is much easier than explicitly testing the references everytime/everywhere.
-	
-	simulation is always done, no matter if alive/dead because it is and keeps an
-	rigid body.
-	but this is not a sane model... copying objects/pointers leads to problems...
-	which model is better?
-	*/
-	// calculate sinking
-	if (is_defunct()) {
-		return;
-	} else if (is_dead()) {
-		alive_stat = defunct;
-		return;
-	} else if (is_sinking()) {
-		position.z -= delta_time * SINK_SPEED;
-		if (position.z < -50)	// used for ships.
-			kill();
-		throttle = stop;
-		rudder_midships();
-		return;
-	}
-
 	// fixme: 2004/06/18
 	// this should be replaced by directional speed.
 	// store spatial position and speed.
@@ -350,7 +322,7 @@ void sea_object::simulate(game& gm, double delta_time)
 
 bool sea_object::damage(const vector3& fromwhere, unsigned strength)
 {
-	sink();
+	kill();	// fixme crude hack, replace by damage simulation
 	return true;
 }
 
@@ -358,14 +330,7 @@ bool sea_object::damage(const vector3& fromwhere, unsigned strength)
 
 unsigned sea_object::calc_damage(void) const
 {
-	return alive_stat == sinking ? 100 : 0;
-}
-
-
-
-void sea_object::sink(void)
-{
-	alive_stat = sinking;
+	return is_dead() ? 100 : 0;
 }
 
 
@@ -373,6 +338,15 @@ void sea_object::sink(void)
 void sea_object::kill(void)
 {
 	alive_stat = dead;
+	remove_all_references();
+}
+
+
+
+void sea_object::destroy(void)
+{
+	alive_stat = defunct;
+	remove_all_references();
 }
 
 
@@ -382,6 +356,46 @@ void sea_object::head_to_ang(const angle& a, bool left_or_right)	// true == left
 	head_to = a;
 	head_chg = (left_or_right) ? -1 : 1;
 	permanent_turn = false;
+}
+
+
+
+void sea_object::register_ref(sea_object::ref& myref)
+{
+#if 1
+	// check for double ref's
+	for (list<ref*>::iterator it = references.begin(); it != references.end(); ++it) {
+		if (*it == &myref) {
+			system::sys().myassert(false, "sea_object::register_ref : reference is already stored!");
+		}
+	}
+#endif
+	references.push_front(&myref);
+	myref.myobj = this;
+}
+
+
+
+void sea_object::unregister_ref(sea_object::ref& myref)
+{
+	for (list<ref*>::iterator it = references.begin(); it != references.end(); ++it) {
+		if (*it == &myref) {
+			myref.myobj = 0;
+			references.erase(it);
+			return;
+		}
+	}
+	system::sys().myassert(false, "sea_object::unregister_ref : reference is not found!");
+}
+
+
+
+void sea_object::remove_all_references(void)
+{
+	for (list<ref*>::iterator it = references.begin(); it != references.end(); ++it) {
+		(*it)->myobj = 0;
+	}
+	references.clear();
 }
 
 

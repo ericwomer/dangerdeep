@@ -7,11 +7,10 @@
 #include "vector3.h"
 #include "global_data.h"
 #include "angle.h"
+#include "sea_object.h"
 #include <list>
 #include <map>
 using namespace std;
-
-class sea_object;
 
 class ai
 {
@@ -27,8 +26,8 @@ protected:
 	bool attackrun;		// true when running full speed shortly before the attack
 	bool evasive_manouver;	// true when set_course tries an alternative route
 	double rem_manouver_time; // remaining time that ai should wait for during an evasive manouver
-	sea_object* parent;
-	sea_object* followme;
+	sea_object::ref parent;
+	sea_object::ref followme;
 	class convoy* myconvoy;	// convoy to which parent belongs (if any)
 	bool has_contact;
 	vector3 contact;	// position of target to attack

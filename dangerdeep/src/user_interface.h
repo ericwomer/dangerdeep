@@ -30,7 +30,7 @@ public:
 protected:
 	bool pause;
 	unsigned time_scale;
-	sea_object* player_object;
+	sea_object::ref player_object;
 	
 	// command panel
 	bool panel_visible;
@@ -42,7 +42,7 @@ protected:
 	angle bearing;
 	angle elevation;	// -90...90 deg (look down ... up)
 	unsigned viewmode;
-	sea_object* target;
+	sea_object::ref target;
 
 	logbook_display* captains_logbook;
 	ships_sunk_display* ships_sunk_disp;
@@ -70,7 +70,7 @@ protected:
 	user_interface(const user_interface& other);
 	user_interface(sea_object* player, game& gm);//why not store reference to game? fixme
 
-	inline virtual sea_object* get_player(void) const { return player_object; }
+	inline virtual sea_object* get_player(void) const { return &(*player_object); }
 	virtual bool keyboard_common(int keycode, game& gm) = 0;
 
 	static texture* torptex(unsigned type);

@@ -99,7 +99,7 @@ void init_global_data(void)
 	torpedo_detonation_surfaced[1] = new sound(get_sound_dir() + "torpedo_detonation_surfaced_2.wav" );
 	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png" );
 	smoke = new texture(get_texture_dir() + "smoke.png" , GL_LINEAR, GL_CLAMP_TO_EDGE);
-	notepadsheet = new texture(get_texture_dir() + "notepadsheet.png" );
+	notepadsheet = new texture(get_texture_dir() + "notepadsheet.png" /*, GL_CLAMP_TO_EDGE*/);
 	menuframe = new texture(get_texture_dir() + "menuframe.png" );
 	turnswitch = new texture(get_texture_dir() + "turnswitch.png" );
 	turnswitchbackgr = new texture(get_texture_dir() + "turnswitchbackgr.png" );

@@ -1032,7 +1032,7 @@ void user_interface::display_map(game& gm)
 			draw_visual_contacts(gm, sub_player, -offset);
 
 			// Draw a red box around the selected target.
-			if ( target )
+			if (!target.is_null())
 			{
 				draw_square_mark ( gm, target->get_pos ().xy (), -offset,
 					color ( 255, 0, 0 ) );
@@ -1045,7 +1045,7 @@ void user_interface::display_map(game& gm)
 		draw_visual_contacts(gm, player, -offset);
 
 		// Draw a red box around the selected target.
-		if ( target )
+		if (!target.is_null())
 		{
 			draw_square_mark ( gm, target->get_pos ().xy (), -offset,
 				color ( 255, 0, 0 ) );
@@ -1054,7 +1054,7 @@ void user_interface::display_map(game& gm)
 	}
 
 	// draw notepad sheet giving target distance, speed and course
-	if (target) {
+	if (!target.is_null()) {
 		int nx = 768, ny = 512;
 		notepadsheet->draw(nx, ny);
 		ostringstream os0, os1, os2;
@@ -1309,19 +1309,19 @@ void user_interface::add_rudder_message()
 {
     switch (player_object->get_rudder())
     {
-        case player_object->rudderfullleft:
+        case sea_object::rudderfullleft:
             add_message(texts::get(35));
             break;
-        case player_object->rudderleft:
+        case sea_object::rudderleft:
             add_message(texts::get(33));
             break;
-        case player_object->ruddermid:
+        case sea_object::ruddermid:
             add_message(texts::get(42));
             break;
-        case player_object->rudderright:
+        case sea_object::rudderright:
             add_message(texts::get(34));
             break;
-        case player_object->rudderfullright:
+        case sea_object::rudderfullright:
             add_message(texts::get(36));
             break;
     }
@@ -1363,7 +1363,7 @@ sound* user_interface::get_sound_effect ( sound_effect se ) const
 			break;
 		case se_torpedo_detonation:
 			{
-				submarine* sub = dynamic_cast<submarine*>( player_object );
+				submarine* sub = dynamic_cast<submarine*>( &(*player_object) );
 
 				if ( sub && sub->is_submerged () )
 				{

@@ -117,9 +117,6 @@ void torpedo::simulate(game& gm, double delta_time)
 {
 	sea_object::simulate(gm, delta_time);
 
-	if (is_defunct() || is_dead())
-		return;
-
 	// Torpedo starts to search for a target when the minimum save
 	// distance for the warhead is passed.
 	if ((type == T4 || type == T5 || type == T11) && run_length >= TORPEDO_SAVE_DISTANCE)
@@ -137,7 +134,7 @@ void torpedo::simulate(game& gm, double delta_time)
 	double old_run_length = run_length;
 	run_length += speed * delta_time;
 	if (run_length > max_run_length) {
-		kill();
+		destroy();
 		return;
 	}
 
@@ -163,7 +160,7 @@ void torpedo::simulate(game& gm, double delta_time)
 		bool runlengthfailure = (run_length < TORPEDO_SAVE_DISTANCE);
 		bool failure = false;	// calculate additional probability of torpedo failure
 		if (gm.check_torpedo_hit(this, runlengthfailure, failure))
-			kill();
+			destroy();
 	}
 }
 

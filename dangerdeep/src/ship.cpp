@@ -78,7 +78,7 @@ ship::~ship()
 
 void ship::sink(void)
 {
-	sea_object::sink();
+	sea_object::kill();
 	if (mysmoke) mysmoke->kill();
 }
 
@@ -130,11 +130,21 @@ void ship::simulate(game& gm, double delta_time)
 	if ( myai )
 		myai->act(gm, delta_time);
 
+	// calculate sinking
+	if (is_dead()) {
+		position.z -= delta_time * SINK_SPEED;
+		if (position.z < -50)	// used for ships.
+			destroy();
+		throttle = stop;
+		rudder_midships();
+		return;
+	}
+
 	// Adjust fuel_level.
 	calculate_fuel_factor ( delta_time );
 	
 	if (mysmoke) {
-		if (!is_sinking())
+		if (is_alive())
 			mysmoke->set_source(position + smokerelpos);
 		mysmoke->simulate(gm, delta_time);
 	}

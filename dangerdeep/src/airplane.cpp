@@ -63,13 +63,6 @@ void airplane::save(ostream& out, const class game& g) const
 
 void airplane::simulate(class game& gm, double delta_time)
 {
-	if (is_defunct()) {
-		return;
-	} else if (is_dead()) {
-		alive_stat = defunct;
-		return;
-	}
-
 	quaternion invrot = rotation.conj();
 	vector3 localvelocity = invrot.rotate(velocity);
 		
