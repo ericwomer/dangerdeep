@@ -1,3 +1,8 @@
+2003-07-02  Markus Petermann  <m.petermann@gmx.net>
+	* game.cpp: When a ship is sunk the right text is choosed now.
+	* submarine_interface.cpp: When a submarine launches a torpedo the
+	  right text is choosed now.
+
 2003-06-16  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* user_interface, submarine_interface, ship_interface
 	  - moved damage related data directly to class submarine
