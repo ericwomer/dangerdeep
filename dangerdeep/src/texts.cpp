@@ -31,6 +31,7 @@ vector<string> texts::txts;
 
 void texts::set_language(languages l)
 {
+	::language = l;
 	parser p(get_data_dir() + TEXTS_DIR + textfilenames[l] + ".text");
 	txts.clear();
 	int count = 0;

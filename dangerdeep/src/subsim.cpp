@@ -30,15 +30,6 @@ int res_x, res_y;
 
 vector<string> missions;
 
-void draw_background_and_logo(void)
-{
-	glPushMatrix();
-	glScalef(2, 2, 1);
-	titelimg->draw(0, 0);
-	glPopMatrix();
-	font_logo->print_hc(1024, 150, "Danger from the Deep", color(255,255,255), true);
-}
-
 void start_mission(int nr)
 {
 	string filename = get_data_dir() + "missions/" + missions[nr] + ".mis";
@@ -104,6 +95,7 @@ void create_and_run_custom_mission(int subtype, int cvsize, int cvesc, int tod)
 
 void menu_convoy_battle(void)
 {
+/*
 	menu m;
 	menu::item mi(TXT_Selectsubtype[language]);
 	mi.add_switch(TXT_subVIIc[language]);
@@ -132,11 +124,11 @@ void menu_convoy_battle(void)
 
 	while (true) {
 		sys->prepare_2d_drawing();
-		draw_background_and_logo();
+//		draw_background_and_logo();
 		
 		sys->poll_event_queue();
 		int key = sys->get_key();
-		m.draw(1024, 768, font_tahoma);
+		m.draw(1024, 768);
 		int mmsel = m.input(key, 0, 0, 0) & 0xffff;
 		sys->unprepare_2d_drawing();
 		sys->swap_buffers();
@@ -149,6 +141,7 @@ void menu_convoy_battle(void)
 				m.get_switch_nr(3) );
 		}
 	}
+*/	
 }
 
 void menu_historical_mission(void)
@@ -163,52 +156,38 @@ void menu_historical_mission(void)
 		++nr_missions;
 	}
 	
-	menu m;
+	menu m(titlebackgr);
 	for (int i = 0; i < nr_missions; ++i)
-		m.add_item(missions[i]);
-	m.add_item(texts::get(20));
-
+		m.add_item(500+i, 0);
+	m.add_item(20, 0);
+	
 	while (true) {
-		sys->prepare_2d_drawing();
-		draw_background_and_logo();
-		
-		sys->poll_event_queue();
-		int key = sys->get_key();
-		m.draw(1024, 768, font_tahoma);
-		int mmsel = m.input(key, 0, 0, 0) & 0xffff;
-		sys->unprepare_2d_drawing();
-		sys->swap_buffers();
-		if (mmsel == nr_missions) break;
-		if (mmsel >= 0 && mmsel < nr_missions) {
-			start_mission(mmsel);
-		}
+		unsigned selected = m.run();
+		if (selected == nr_missions) break;
+		start_mission(selected);
 	}
 }
 
 void menu_single_mission(void)
 {
-	menu m;
-	m.add_item(texts::get(8));
-	m.add_item(texts::get(9));
-	m.add_item(texts::get(10));
-	m.add_item(texts::get(11));
+	menu m(titlebackgr);
+	m.add_item(8, 0);
+	m.add_item(9, menu_convoy_battle);
+	m.add_item(10, menu_historical_mission);
+	m.add_item(11, 0);
+	m.run();
+}
 
-	while (true) {
-		sys->prepare_2d_drawing();
-		draw_background_and_logo();
-		m.draw(1024, 768, font_tahoma);
-
-		sys->poll_event_queue();
-		int key = sys->get_key();
-		int mmsel = m.input(key, 0, 0, 0) & 0xffff;
-		sys->unprepare_2d_drawing();
-		sys->swap_buffers();
-		if (mmsel == 3) break;
-		switch (mmsel) {
-			case 0: break;
-			case 1:	menu_convoy_battle(); break;
-			case 2: menu_historical_mission(); break;
-		}
+void menu_select_language(void)
+{
+	menu m(titlebackgr);
+	m.add_item(27, 0);
+	m.add_item(28, 0);
+	m.add_item(11, 0);
+	unsigned sel = m.run();
+	if (sel < 2) {
+		language = sel;
+		texts::set_language(texts::languages(sel));
 	}
 }
 
@@ -250,6 +229,7 @@ void join_network_game(ip serverip, unsigned short port)
 
 void menu_multiplayer(void)
 {
+/*
 	menu m;	// just a test
 	m.add_item(TXT_Createnetworkgame[language]);
 	m.add_item(menu::item(TXT_Joinnetworkgame[language], "192.168.0.0"));
@@ -261,8 +241,8 @@ void menu_multiplayer(void)
 
 	while (true) {
 		sys->prepare_2d_drawing();
-		draw_background_and_logo();
-		m.draw(1024, 768, font_tahoma);
+//		draw_background_and_logo();
+		m.draw(1024, 768);
 
 		sys->poll_event_queue();
 		int key = sys->get_key();
@@ -284,6 +264,7 @@ void menu_multiplayer(void)
 			case 2: break;
 		}
 	}
+*/	
 }
 
 void show_vessels(void)
@@ -419,51 +400,17 @@ int main(int argc, char** argv)
 	sys->draw_console_with(font_arial, background);
 	
 	// main menu
-	bool quitgame = false;
-	unsigned selected = 0;
-	while (!quitgame) {
-		menu m;
-		m.add_item(texts::get(21));
-		m.add_item(texts::get(22));
-		m.add_item(texts::get(23));
-		m.add_item(texts::get(24));
-		m.add_item(texts::get(25));
-		menu::item mi(texts::get(26));
-		mi.add_switch(texts::get(27));
-		mi.add_switch(texts::get(28));
-		mi.set_switch_nr(language);
-		m.add_item(mi);
-		m.add_item(texts::get(29));
-		m.add_item(texts::get(30));
-		m.set_selected(selected);
+	menu m(titlebackgr);
+	m.add_item(21, menu_single_mission);
+	m.add_item(22, menu_multiplayer);
+	m.add_item(23, 0);
+	m.add_item(24, show_vessels);
+	m.add_item(25, 0);
+	m.add_item(26, menu_select_language);
+	m.add_item(29, 0);
+	m.add_item(30, 0);
 
-		bool rebuildmenu = false;
-		while (!rebuildmenu) {
-			sys->prepare_2d_drawing();
-			draw_background_and_logo();
-
-			sys->poll_event_queue();
-			int key = sys->get_key();
-			m.draw(1024, 768, font_tahoma);
-			int mmsel = m.input(key, 0, 0, 0);
-			sys->unprepare_2d_drawing();
-			sys->swap_buffers();
-			if (mmsel == 7) { quitgame = true; break; }
-			selected = mmsel & 0xffff;
-			switch (selected) {
-				case 0:	menu_single_mission(); break;
-				case 1: menu_multiplayer(); break;
-				case 2: break;
-				case 3: show_vessels(); break;
-				case 4: break;
-				case 5: language = mmsel / 0x10000; 
-					// very ugly.fixme
-					texts::set_language((mmsel / 0x10000 == 0) ? texts::english : texts::german);
-					rebuildmenu = true; break;
-				case 6: break;
-			}
-		}
-	}
+	m.run();
 
 	deinit_global_data();
 	delete sys;

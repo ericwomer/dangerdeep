@@ -19,12 +19,13 @@ extern class texture *water, *background, *gauge1,
 	*addleadangle, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
-	*woodbackgr,
+	*woodbackgr, *blend,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked;
-extern class font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
+extern class font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma,
+	*font_nimbusrom;
 extern class sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
-extern class image *titelimg, *periscope, *threesubsimg, *damage_screen_background,
+extern class image *titlebackgr, *periscope, *threesubsimg, *damage_screen_background,
 	*sub_damage_scheme_all, *logbook_spiral;
 
 void init_global_data(void);
