@@ -1529,6 +1529,9 @@ const double MOON_EARTH_DISTANCE = 384.4e6;		// 384.000km
 const double EARTH_ROT_AXIS_ANGLE = 23.45;		// degrees.
 const double MOON_ORBIT_TIME_SIDEREAL = 27.3333333 * 86400.0;	// sidereal month is 27 1/3 days
 const double MOON_ORBIT_TIME_SYNODIC = 29.5306 * 86400.0;	// synodic month is 29.5306 days
+//more precise values:
+//29.53058867
+//new moon was on 18/11/1998 9:36:00 pm
 const double MOON_ORBIT_AXIS_ANGLE = 5.15;		// degrees
 const double EARTH_ROTATION_TIME = 86164.09;		// 23h56m4.09s, one sidereal day!
 const double EARTH_PERIMETER = 2.0 * M_PI * EARTH_RADIUS;
