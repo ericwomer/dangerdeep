@@ -54,7 +54,7 @@ protected:
 	float mapzoom;	// factor pixel/meter
 	vector2 mapclick;
 	double mapclickdist;
-	vector2 mapoffset;	// additional offset used for display, relative to player
+	vector2 mapoffset;	// additional offset used for display, relative to player (meters)
 
 	class sky* mysky;		// the one and only sky
 	
