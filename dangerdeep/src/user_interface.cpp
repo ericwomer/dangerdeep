@@ -278,9 +278,10 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	int wave = int(fmod(gm.get_time(),86400/*WAVETIDECYCLETIME*/)*256/WAVETIDECYCLETIME);
 	
 	glRotatef(-90,1,0,0);
+	// This should be a negative angle, but nautical view dir is clockwise, OpenGL uses ccw values, so this is a double negation
 	glRotatef(dir.value(),0,0,1);
 	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
-	
+
 	// ************ sky ***************************************************************
 	glPushMatrix();
 	glTranslatef(viewpos.x, viewpos.y, 0);
@@ -318,39 +319,53 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glDisable(GL_LIGHTING);
 	/* How to compute the sun's/moon's position:
 	   Earth and moon rotate around the sun's y-axis and around their own y-axes.
-	   The z-axis is pointing outward and the x-axis around the aquator.
+	   The z-axis is pointing outward and the x-axis around the equator.
 	   Earth's rotational axis differs by 23 degrees from sun's y-axis.
 	   Given that knowledge one can write transformations between local spaces earth->sun, moon->sun,
 	   viewer's position->earth. With them one can compute any transform between any object.
+	   What is when all angles are zero?
+	   1. The earth's rotational axis is pointing towards the sun then meaning we have the 21st. of June
+	      That means we have to translate the zero position backwards to 1st. January.
+	   2. Earth's coordinate system is just that of the sun translated by distance earth-sun along the z-axis.
+	      That means the sun is at +-180 degrees W/E, exactly at the opposite of the null meridian, exact midnight.
+	   3. The moon is exactly in line with sun and earth behind earth and at the southmost position relative to
+	      earth's latitude coordinates.
+	   Summary: Nullposition means top of summer, midnight and new moon (earth hides him) at southmost point.
+	   We have to adjust sun position by 31+28+31+30+31+21=172 days back (ignoring that february may have 29 days)
+	   The "easiest" thing would be to know where sun and moon were at 1st. january 1939, 00:00am.
 	*/
 	// fixme: adjust OpenGL light position to infinite in sun/moon direction.
 	// fixme: exact values?
-	const double EARTH_ROT_AXIS_ANGLE = 23.0;
-	const double MOON_ORBIT_TIME = 28.0*86400.0;
+	const double EARTH_ROT_AXIS_ANGLE = 23.0;	// exact degrees?
+	const double MOON_ORBIT_TIME = 28.0*86400.0;	// not 28 days exactly
 	const double EARTH_ROTATION_TIME = 86400.0;
 	const double EARTH_CIRCUMFERENCE = 40030173.59;
-	const double MOON_EARTH_DISTANCE = 384000000.0;
-	const double EARTH_RADIUS = 6371000;
-	const double EARTH_SUN_DISTANCE = 270.0*300000000.0;
-	const double EARTH_ORBIT_TIME = 365.25*86400.0;
+	const double MOON_EARTH_DISTANCE = 384000000.0;	// more accurate?
+	const double EARTH_RADIUS = 6371000;		// more ...
+	const double EARTH_SUN_DISTANCE = 150e9;	// more ...
+	const double EARTH_ORBIT_TIME = 365.25*86400.0;	// more ... 365.25xxx
+	const double SUN_RADIUS = 5e9;			// exact value?!
+	const double MOON_RADIUS = 2e6;			// exact value?!
 	double universaltime = gm.get_time();//    * 8640;	// fixme: substract local time
+
+	// temporary matrix used for relative sun position computation
+	GLdouble sunmat[16];
 
 	// draw sun
 	glPushMatrix();
 	// Transform earth space to viewer space
-	double sun_scale_fac = 0.96*max_view_dist / EARTH_SUN_DISTANCE;
-	glScaled(sun_scale_fac, sun_scale_fac, sun_scale_fac);
-	glTranslated(0, 0, -EARTH_RADIUS);
-	glRotated(-dir.value(), 0, 0, 1);
+	// to avoid mixing very differently sized floating point values, we scale distances before translation.
+	double sun_scale_fac = 0.96 * max_view_dist / EARTH_SUN_DISTANCE;
+	glTranslated(0, 0, -EARTH_RADIUS * sun_scale_fac);
 	glRotated(360.0 * -viewpos.y * 4 / EARTH_CIRCUMFERENCE, 0, 1, 0);
 	glRotated(360.0 * -viewpos.x * 2 / EARTH_CIRCUMFERENCE, 1, 0, 0);
 	// Transform sun space to earth space
 	glRotated(360.0 * -myfmod(universaltime, EARTH_ROTATION_TIME)/EARTH_ROTATION_TIME, 0, 1, 0);
 	glRotated(-EARTH_ROT_AXIS_ANGLE, 1, 0, 0);
 	glRotated(360.0 * myfmod(universaltime, EARTH_ORBIT_TIME)/EARTH_ORBIT_TIME, 0, 1, 0);
-	glTranslated(0, 0, -EARTH_SUN_DISTANCE);
+	glTranslated(0, 0, -EARTH_SUN_DISTANCE * sun_scale_fac);
 	// draw quad
-	double suns = 5000000000.0;// 2*sqrt(sun_radius^2/2) * sun_scale_fac
+	double suns = SUN_RADIUS * sun_scale_fac;
 	glColor3f(1,1,1);
 	the_sun->set_gl_texture();
 	glDisable(GL_LIGHTING);
@@ -364,24 +379,37 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glTexCoord2f(0,1);
 	glVertex3f(-suns, suns, 0);
 	glEnd();
+	// compute relative sun position
+/*
+	glGetDoublev(GL_MODELVIEW_MATRIX, &sunmat[0]);
+	GLdouble sunx = sunmat[12], suny = sunmat[13], sunz = sunmat[14];
+GLfloat lposition[4] = {sunx,suny,sunz,0};	//fixed for now. fixme
+glLightfv(GL_LIGHT1, GL_POSITION, lposition);
+printf("sunp %f %f %f\n",sunx,suny,sunz);	
+*/
+/*
+	glGetDoublev(GL_MODELVIEW_MATRIX, &sunmat[0]);
+	sunx -= sunmat[12];
+	suny -= sunmat[13];
+	sunz -= sunmat[14];
+printf("sunp %f %f %f\n",sunx,suny,sunz);
+*/
 	glPopMatrix();
 
 	// draw moon
 	glPushMatrix();
 	// Transform earth space to viewer space
 	double moon_scale_fac = 0.95*max_view_dist / MOON_EARTH_DISTANCE;
-	glScaled(moon_scale_fac, moon_scale_fac, moon_scale_fac);
-	glTranslated(0, 0, -EARTH_RADIUS);
-	glRotated(-dir.value(), 0, 0, 1);
+	glTranslated(0, 0, -EARTH_RADIUS * moon_scale_fac);
 	glRotated(360.0 * -viewpos.y * 4 / EARTH_CIRCUMFERENCE, 0, 1, 0);
 	glRotated(360.0 * -viewpos.x * 2 / EARTH_CIRCUMFERENCE, 1, 0, 0);
 	// Transform moon space to earth space
 	glRotated(360.0 * -myfmod(universaltime, EARTH_ROTATION_TIME)/EARTH_ROTATION_TIME, 0, 1, 0);
 	glRotated(-EARTH_ROT_AXIS_ANGLE, 1, 0, 0);
 	glRotated(360.0 * myfmod(universaltime, MOON_ORBIT_TIME)/MOON_ORBIT_TIME, 0, 1, 0);
-	glTranslated(0, 0, MOON_EARTH_DISTANCE);
+	glTranslated(0, 0, MOON_EARTH_DISTANCE * moon_scale_fac);
 	// draw quad	
-	double moons = 10000000.0;// 2*sqrt(moon_radius^2/2) * moon_scale_fac
+	double moons = MOON_RADIUS * moon_scale_fac;
 	glColor3f(1,1,1);
 	the_moon->set_gl_texture();
 	glBegin(GL_QUADS);
@@ -394,7 +422,6 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glTexCoord2f(1,0);
 	glVertex3f(moons, -moons, 0);
 	glEnd();
-	glPopMatrix();
 	glPopMatrix();
 	glEnable(GL_LIGHTING);
 	
