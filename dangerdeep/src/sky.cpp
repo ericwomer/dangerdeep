@@ -23,6 +23,9 @@ const double CLOUD_ANIMATION_CYCLE_TIME = 3600.0;
    use perlin noise data as height (3d depth) of cloud.
    compute normals from it and light clouds with bump mapping
    + ambient
+
+   clouds have self-shadowing effects, and may be lit by sun from behind if they
+   are thin!
    
    add rain! (GL_LINES with varying alpha)
 */
@@ -351,6 +354,8 @@ void sky::compute_clouds(void)
 
 	// fixme: could we interpolate between accumulated noise maps
 	// to further speed up the process?
+	// in theory, yes. formula says that we can...
+	//fixme: use perlin noise generator here!
 	vector<vector<Uint8> > cmaps = noisemaps_0;
 	float f = cloud_animphase;
 	for (unsigned i = 0; i < cloud_levels; ++i)

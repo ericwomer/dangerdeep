@@ -89,4 +89,8 @@ template<class C> inline void add_saturated(C& sum, const C& add, const C& max) 
 inline double rnd(void) { return double(rand())/RAND_MAX; }
 inline unsigned rnd(unsigned b) { return unsigned(b*rnd()); }
 
+// fast clamping
+inline Sint32 clamp_zero(Sint32 x) { return x & ~(x >> 31); }
+inline Sint32 clamp_value(Sint32 x, Sint32 val) { return val - clamp_zero(val - x); }
+
 #endif
