@@ -586,6 +586,7 @@ double spray_particle::get_life_time(void) const
 
 torpedo_water_splash_particle::torpedo_water_splash_particle(const vector3& pos) : particle(pos)
 {
+	position.z += 80.0;
 }
 
 
@@ -624,6 +625,7 @@ double torpedo_water_splash_particle::get_life_time(void) const
 
 gun_shell_water_splash_particle::gun_shell_water_splash_particle(const vector3& pos) : particle(pos)
 {
+	position.z += 5.0;
 }
 
 
@@ -662,6 +664,7 @@ double gun_shell_water_splash_particle::get_life_time(void) const
 
 depth_charge_water_splash_particle::depth_charge_water_splash_particle(const vector3& pos) : particle(pos)
 {
+	position.z += 30.0;
 }
 
 
