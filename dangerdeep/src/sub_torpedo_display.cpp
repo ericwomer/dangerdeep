@@ -7,10 +7,11 @@
 #include "game.h"
 #include "command.h"
 #include "sub_torpedo_display.h"
+#include "texts.h"
 
 
-void sub_torpedo_display::draw_torpedo(class game& gm,
-	bool usebow, const vector2i& pos, const submarine::stored_torpedo& st)
+void sub_torpedo_display::draw_torpedo(class game& gm, bool usebow,
+	const vector2i& pos, const submarine::stored_torpedo& st) const
 {
 	if (usebow) {
 		if (st.status == 0) {	// empty
@@ -103,26 +104,8 @@ unsigned sub_torpedo_display::turnswitch_input(int x, int y, unsigned nrdescr) c
 
 sub_torpedo_display::sub_torpedo_display() :
 	torptranssrc(0xffff)
-
-	controlscreen_normallight(get_image_dir() + "ControlScreen_NormalLight.png"),
-	controlscreen_nightlight(get_image_dir() + "ControlScreen_NightLight.png")
 {
 	// reference images here and fill pointers
-
-	image compassi(get_image_dir() + "ControlScreen_Compass.png");
-	image dials(get_image_dir() + "ControlScreen_Dials.png");
-	//fixme: at night we have different dials! store two textures per dial!
-	indicators.resize(nr_of_indicators);
-	indicators[compass].set(compassi.get_SDL_Surface(), 35, 451, 226, 226);
-	indicators[battery].set(dials.get_SDL_Surface(), 276, 358, 58, 58);
-	indicators[compressor].set(dials.get_SDL_Surface(), 353, 567, 76, 76);
-	indicators[diesel].set(dials.get_SDL_Surface(), 504, 567, 76, 76);
-	indicators[bow_depth_rudder].set(dials.get_SDL_Surface(), 693, 590, 88, 88);
-	indicators[stern_depth_rudder].set(dials.get_SDL_Surface(), 881, 590, 88, 88);
-	indicators[depth].set(dials.get_SDL_Surface(), 420, 295, 168, 168);
-	indicators[knots].set(dials.get_SDL_Surface(), 756, 44, 94, 94);
-	indicators[main_rudder].set(dials.get_SDL_Surface(), 788, 429, 96, 96);
-	indicators[mt].set(dials.get_SDL_Surface(), 442, 52, 126, 126);
 }
 
 

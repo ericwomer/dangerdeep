@@ -13,7 +13,7 @@ class sub_torpedo_display : public user_display
 	unsigned torptranssrc;
 
 	void draw_torpedo(class game& gm, bool
-		usebow, const vector2i& pos, const submarine::stored_torpedo& st);
+		usebow, const vector2i& pos, const submarine::stored_torpedo& st) const;
 
 	static texture* torptex(unsigned type);
 
