@@ -78,6 +78,17 @@ water::water(unsigned xres_, unsigned yres_, double tm) : mytime(tm), xres(xres_
 			gridindices.push_back(x +y2*(xres+1));
 		}
 	}
+	gridindices2.reserve(xres*yres*4);
+	for (unsigned y = 0; y < yres; ++y) {
+		unsigned y2 = y+1;
+		for (unsigned x = 0; x < xres; ++x) {
+			unsigned x2 = x+1;
+			gridindices2.push_back(x +y *(xres+1));
+			gridindices2.push_back(x2+y *(xres+1));
+			gridindices2.push_back(x +y *(xres+1));
+			gridindices2.push_back(x +y2*(xres+1));
+		}
+	}
 
 	ocean_wave_generator<float> owg(WAVE_RESOLUTION, vector2f(1,1), 8 /*10*/ /*31*/, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
@@ -233,11 +244,14 @@ void water::cleanup_textures(void) const
 
 void water::display(const vector3& viewpos, angle dir, double max_view_dist) const
 {
+	// move world so that viewer is at (0,0,0)
+	glPushMatrix();
+	glTranslated(0,0,-viewpos.z);//(-viewpos.x, -viewpos.y, -viewpos.z);
+
 	matrix4 proj = matrix4::get_gl(GL_PROJECTION_MATRIX);
 	matrix4 modl = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	matrix4 prmd = proj * modl;
 
-/*
 	cout << "projection matrix\n";
 	proj.print();
 	cout << "modelview matrix\n";
@@ -250,6 +264,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	modl.inverse().print();
 	cout << "inverse (projection*modelview) matrix\n";
 	prmd.inverse().print();
+/*
 	cout << "accuracy test\n";
 	(proj * proj.inverse()).print();
 	(modl * modl.inverse()).print();
@@ -271,7 +286,10 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	cout << "far plane bl " << (inv_prmd * vector3(-1, -1, 1)) << "\n";
 	cout << "far plane br " << (inv_prmd * vector3(1, -1, 1)) << "\n";
 	cout << "far plane tr " << (inv_prmd * vector3(1, 1, 1)) << "\n";
-*/	
+*/
+
+	GLdouble testy[16]; glGetDoublev(GL_PROJECTION_MATRIX, testy);
+	for(int i=0;i<16;++i)cout<<"i="<<i<<" coeff="<<testy[i]<<"\n";
 
 	int phase = int((myfmod(mytime, TIDECYCLE_TIME)/TIDECYCLE_TIME) * WAVE_PHASES);
 
@@ -281,24 +299,26 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	// compute projector matrix
 	glPushMatrix();
 	glLoadIdentity();
-	glTranslatef(0,0,50);
+	glTranslatef(0,0,-50);
 	glRotatef(45, 1,0,0);
 	matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	glPopMatrix();
-	matrix4 M_projector = (proj * /*mv*/ modl).inverse(); //fixme
+	matrix4 M_projector = (proj * mv /*modl*/).inverse(); //fixme
 
 	// compute coordinates
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		double y = -1.0 + 2.0 * yy/yres;
-		double v[16] = { -1,y,-1,1, -1,y,1,1, 1,y,-1,1, 1,y,1,1 };
-		// vertices for start and end of two lines are computed and projected alltogether
-		(M_projector * matrix4(v)).to_array(v);
+		// vertices for start and end of two lines are computed and projected
+		vector3 v1 = M_projector * vector3(-1,y,-1);
+		vector3 v2 = M_projector * vector3(-1,y,+1);
+		vector3 v3 = M_projector * vector3(+1,y,-1);
+		vector3 v4 = M_projector * vector3(+1,y,+1);
 		// compute intersection with z = 0 plane here
 		// we could compute intersection with earth's sphere here for a curved display
 		// of water to the horizon, fixme
-		double t1 = v[2]/(v[6]-v[2]), t2 = v[10]/(v[14]-v[10]);
-		vector2 va = vector2(v[0], v[1]) * (1-t1) + vector2(v[4], v[5]) * t1;
-		vector2 vb = vector2(v[8], v[9]) * (1-t2) + vector2(v[12], v[13]) * t2;
+		double t1 = v1.z/(v2.z-v1.z), t2 = v3.z/(v4.z-v3.z);
+		vector2 va = v1.xy() * (1-t1) + v2.xy() * t1;
+		vector2 vb = v3.xy() * (1-t2) + v4.xy() * t2;
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			double x = double(xx)/xres;
 			vector2 v = va * (1-x) + vb * x;
@@ -313,6 +333,8 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			const vector3f& coord = coords[ptr];
 			vector3f N = vector3f(0,0,1);	//fixme
+			if(yy<yres&&xx<xres)//dirty normal hack
+				N=((coords[ptr+1]-coords[ptr]).cross(coords[ptr+xres+1]-coords[ptr])).normal();
 			vector3f E = -coord.normal();	// viewer is in (0,0,0)
 			float F = E*N;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
 			if (F < 0.0f) F = 0.0f;	// avoid angles > 90 deg.
@@ -350,6 +372,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
+	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
@@ -359,6 +382,9 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 
 	// clean up textures
 	cleanup_textures();
+
+	// restore world pos.
+	glPopMatrix();
 }
 
 

@@ -36,6 +36,7 @@ protected:
 
 	//projgrid: remove this, one index list for all phases etc.
 	vector<unsigned> gridindices;
+	vector<unsigned> gridindices2;
 
 	//projgrid: mipmaps too
 	vector<vector<float> > wavetilefoam;
