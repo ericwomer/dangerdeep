@@ -966,7 +966,10 @@ void configure_key(widget_list* wkeys)
 		widget_text* keyname;
 		unsigned keynr;
 		void on_char(const SDL_keysym& ks) {
-			if (ks.sym == SDLK_ESCAPE) close(0);
+			if (ks.sym == SDLK_ESCAPE) {
+				close(0);
+				return;
+			}
 			bool ctrl = (ks.mod & (KMOD_LCTRL | KMOD_RCTRL)) != 0;
 			bool alt = (ks.mod & (KMOD_LALT | KMOD_RALT)) != 0;
 			bool shift = (ks.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) != 0;
@@ -1003,6 +1006,14 @@ void menu_configure_keys(void)
 		cfg::key k = cfg::instance().getkey(i-600);
 		wkeys->append_entry(texts::get(i) + string("\t") + k.get_name());
 	}
+
+	//fixme: display current key name, not "undefined"
+
+	// fixme: handle undefined keys!
+
+	// fixme: check for double keys!
+
+	//fixme: change text of current list entry after used pressed a key!
 
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 40, 708, 452, 40, texts::get(20)));
 	w.add_child(new widget_func_arg_button<void (*)(widget_list*), widget_list*>(&configure_key, wkeys, 532, 708, 452, 40, texts::get(215)));

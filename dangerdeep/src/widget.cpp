@@ -655,7 +655,7 @@ void widget_scrollbar::on_wheel(int wd)
 }
 
 widget_list::widget_list(int x, int y, int w, int h, widget* parent_)
-	: widget(x, y, w, h, "", parent_), listpos(0), selected(-1)
+	: widget(x, y, w, h, "", parent_), listpos(0), selected(-1), columnwidth(-1)
 {
 	struct wls : public widget_scrollbar
 	{
@@ -813,7 +813,24 @@ void widget_list::draw(void) const
 			color::white().set_gl_color();
 			globaltheme->backg->draw(p.x+fw, p.y + fw + lp*globaltheme->myfont->get_height(), width, globaltheme->myfont->get_height());
 		}
-		globaltheme->myfont->print(p.x+fw, p.y+fw + lp*globaltheme->myfont->get_height(), *it, tcol, true);
+		// optionally split string into columns
+		if (columnwidth < 0) {
+			globaltheme->myfont->print(p.x+fw, p.y+fw + lp*globaltheme->myfont->get_height(), *it, tcol, true);
+		} else {
+			string tmp = *it;
+			unsigned col = 0;
+			while (true) {
+				string::size_type tp = tmp.find("\t");
+				string ct = tmp.substr(0, tp);
+				globaltheme->myfont->print(p.x+fw+col*unsigned(columnwidth),
+							   p.y+fw + lp*globaltheme->myfont->get_height(),
+							   ct, tcol, true);
+				if (tp == string::npos)
+					break;
+				tmp = tmp.substr(tp+1);
+				++col;
+			}
+		}
 	}
 	if (entries.size() > maxp)
 		myscrollbar->draw();
@@ -837,6 +854,11 @@ void widget_list::on_click(int mx, int my, int mb)
 void widget_list::on_drag(int mx, int my, int rx, int ry, int mb)
 {
 	on_click(mx, my, mb);
+}
+
+void widget_list::set_column_width(int cw)
+{
+	columnwidth = cw;
 }
 
 void widget_edit::draw(void) const

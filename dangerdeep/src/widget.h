@@ -318,6 +318,7 @@ protected:
 	unsigned listpos;
 	int selected;
 	widget_scrollbar* myscrollbar;	// stored also as child
+	int columnwidth;	// in pixels, translates tabs to column switches, set -1 for no columns (default)
 
 	list<string>::iterator ith(unsigned i);
 	list<string>::const_iterator ith(unsigned i) const;
@@ -344,6 +345,7 @@ public:
 	void on_click(int mx, int my, int mb);
 	void on_drag(int mx, int my, int rx, int ry, int mb);
 	virtual void on_sel_change(void) {}
+	void set_column_width(int cw);
 };
 
 class widget_edit : public widget
