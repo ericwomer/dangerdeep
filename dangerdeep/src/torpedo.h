@@ -49,6 +49,8 @@ protected:
 	
 	static double get_speed_by_type(types t);
 
+	bool use_simple_turning_model(void) const { return true; }
+	
 public:
 	torpedo() {};
 	virtual ~torpedo() {};

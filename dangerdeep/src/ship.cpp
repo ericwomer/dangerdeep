@@ -334,33 +334,63 @@ void ship::simulate(game& gm, double delta_time)
 
 	// steering logic, adjust rudder pos so that heading matches head_to
 	if (head_to_fixed) {
+
 		// check if we should turn left or right
 		bool turn_rather_right = (heading.is_cw_nearer(head_to));
 //cout<<this<<" logic: heading " << heading.value() << " head_to " << head_to.value() << " trr " << turn_rather_right << " rudder_to " << rudder_to << " rudder_pos " << rudder_pos << " \n";
 		rudder_to = (turn_rather_right) ? rudderfullright : rudderfullleft;
 //cout <<this<<" logic2 rudder_to " << rudder_to << " turn velo " << turn_velocity << "\n";
-		// check if we approach head_to (brake by turning rudder to the opposite)
-		// if time need to set the rudder to midships is smaller than the time until heading
-		// passes over head_to, we have to brake.
+// cout << "total time " << gm.get_time() << "\n";
+
 		double angledist = fabs((heading - head_to).value_pm180());
-		double time_to_pass = (fabs(turn_velocity) < 0.01) ? 1e30 : angledist / fabs(turn_velocity);
-		double time_to_midships = fabs(rudder_pos) / max_rudder_turn_speed;
 
-		//fixme: time_to_ms assumes when rudder is midships again that turn speed is then roughly zero.
-		//this is ok for ships/subs, but not for fast turning objects (torpedoes)
-		//we should rather guess time to brake here! fixme
+		if (use_simple_turning_model()) {
+			turn_velocity = rudder_pos * max_angular_velocity / max_rudder_angle;
+			if (angledist < 0.1) {
+				rudder_pos = 0;
+				rudder_to = ruddermidships;
+				turn_velocity = 0;
+			}
+		} else {
 
-//cout <<this<<" logic3 angledist " << angledist << " timetopass " << time_to_pass << " time_to_ms " << time_to_midships << "\n";
-		double damping_factor = 0.5;	// set to > 0 to brake earlier, fixme set some value
-		if (time_to_pass < time_to_midships + damping_factor) {
-			rudder_to = (turn_rather_right) ? rudderfullleft : rudderfullright;
-//cout <<this<<" near target! " << rudder_to << "\n";
-		}
-		// check for final rudder midships, fixme adapt values...
-		if (angledist < 0.5 && fabs(rudder_pos) < 1.0) {
-			rudder_to = ruddermidships;
-//cout <<this<<" dest reached " << angledist << "," << fabs(rudder_pos) << "\n";
-			head_to_fixed = false;
+			// check if we approach head_to (brake by turning rudder to the opposite)
+			// if time need to set the rudder to midships is smaller than the time until heading
+			// passes over head_to, we have to brake.
+			double time_to_pass = (fabs(turn_velocity) < 0.01) ? 1e30 : angledist / fabs(turn_velocity);
+			double time_to_midships = fabs(rudder_pos) / max_rudder_turn_speed;
+			double time_to_rudder_opposite = (fabs(rudder_pos) + max_rudder_angle) / max_rudder_turn_speed;
+
+			//fixme: time_to_ms assumes when rudder is midships again that turn speed is then roughly zero.
+			//this is ok for ships/subs, but not for fast turning objects (torpedoes)
+			//we should rather guess time to brake here! fixme
+
+			/*
+			  double rudder_pos_backup = rudder_pos;
+			  rudder_pos = (turn_rather_right) ? -max_rudder_angle : max_rudder_angle;
+			  double ta = get_turn_acceleration();
+			  cout << "ta is " << ta << " turn_velo " << turn_velocity << "\n";
+			  rudder_pos = rudder_pos_backup;
+			  double time_to_turn_stop = (fabs(ta) < 0.0001) ? 0.0 : fabs(turn_velocity / ta);
+			  cout << "time to turn stop " << time_to_turn_stop << "\n";
+			*/
+
+			// back up rudder angle, set it to maximum opposite angle
+			//compute get_turn_acceleration, divide turn_speed by turn_accel
+			//this time factor is time_to_stop_turning
+			// BUT! turn_velocity does not fall immediatly...rudder is not at once on opposite
+
+			//cout <<this<<" logic3 angledist " << angledist << " timetopass " << time_to_pass << " time_to_ms " << time_to_midships << "\n";
+			double damping_factor = 0.5;	// set to > 0 to brake earlier, fixme set some value
+			if (time_to_pass < time_to_midships + damping_factor) {
+				rudder_to = (turn_rather_right) ? rudderfullleft : rudderfullright;
+				//cout <<this<<" near target! " << rudder_to << "\n";
+			}
+			// check for final rudder midships, fixme adapt values...
+			if (angledist < 0.5 && fabs(rudder_pos) < 1.0) {
+				rudder_to = ruddermidships;
+				//cout <<this<<" dest reached " << angledist << "," << fabs(rudder_pos) << "\n";
+				head_to_fixed = false;
+			}
 		}
 	}
 	

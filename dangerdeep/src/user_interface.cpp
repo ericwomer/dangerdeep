@@ -234,6 +234,9 @@ void user_interface::process_input(class game& gm, const SDL_Event& event)
 
 void user_interface::process_input(class game& gm, const list<SDL_Event>& events)
 {
+	// a bit misplaced here...
+	if (target && target->is_dead()) target = 0;
+
 	for (list<SDL_Event>::const_iterator it = events.begin();
 	     it != events.end(); ++it)
 		process_input(gm, *it);

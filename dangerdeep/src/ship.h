@@ -84,6 +84,8 @@ protected:
 	
 	// common constructor. set attributes to sane values.
 	void init(void);
+
+	virtual bool use_simple_turning_model(void) const { return false; }
 	
 public:
 	enum shipclasses {

@@ -364,6 +364,7 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 			double mapclickdist = 1e30;
 			sea_object* target = 0;
 			for (vector<sea_object*>::iterator it = objs.begin(); it != objs.end(); ++it) {
+				if ((*it)->is_dead()) continue;
 				vector2 p = ((*it)->get_pos().xy() - (player->get_pos().xy()
 								      + mapoffset)) * mapzoom;
 				p.x += 512;

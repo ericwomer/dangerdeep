@@ -86,7 +86,7 @@ torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, ang
 
 	// set ship turning values
 	max_rudder_angle = 40;
-	max_rudder_turn_speed = 20;	// with smaller values torpedo course oscillates. damping too high?! steering to crude?! fixme
+	max_rudder_turn_speed = 200;//20;	// with smaller values torpedo course oscillates. damping too high?! steering to crude?! fixme
 	max_angular_velocity = 18;	// ~ 5 seconds for 90 degree turn (50m radius circle with 30 knots)
 	turn_rate = 1; // ? is this needed somewhere?!
 	max_accel_forward = 1;
