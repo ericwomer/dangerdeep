@@ -349,6 +349,8 @@ void widget_menu::draw(void) const
 
 void widget_menu::adjust_buttons(unsigned totalsize)
 {
+	// fixme: if there's not enough space for all buttons, nothing is adjusted.
+	// thats bad - but one can't do anything anyway
 	if (horizontal) {
 		int textw = 0;
 		int fw = globaltheme->frame_size();

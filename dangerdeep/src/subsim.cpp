@@ -24,6 +24,7 @@
 #include "texts.h"
 #include "date.h"
 #include "sound.h"
+#include "network.h"
 #include "ship_largemerchant.h"
 #include "ship_mediummerchant.h"
 #include "ship_smallmerchant.h"
@@ -455,27 +456,55 @@ void create_network_game(void)
 	ostringstream oss; oss << server_port;
 	widget_edit* wportaddr = new widget_edit(280, 90, 200, 40, oss.str());
 	w.add_child(wportaddr);
+	w.add_child(new widget_text(40, 140, 0, 0, texts::get(193)));
+	widget_list* wservers = new widget_list(40, 170, 440, 400);
+	w.add_child(wservers);
+	
+	// scan_for_servers(wservers);
 
 	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
 	w.add_child(wm);
+	// hier muß ne while schleife hin, damit nach spielende oder refresh net gleich wieder das hauptmenü da ist
 	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
 	wm->add_entry(texts::get(191), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 70, 700, 400, 40));
 	wm->add_entry(texts::get(192), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 3, 540, 700, 400, 40));
+	wm->add_entry(texts::get(194), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 4, 540, 700, 400, 40));
 	wm->adjust_buttons(944);
-	int result = w.run();
-
-	if (result == 3) {
-	} else if (result == 2) {	// start game
-		server_wait_for_clients();
+	int result = 0;
+	while (result != 1) {
+		result = w.run();
+		if (result == 2) {
+			// start server
+			network_server sv(56789);
+			while (true) {
+				string msg = sv.receive_message();
+				cout << "message rcvd: '"<<msg<<"'\n";
+				system::sys()->poll_event_queue();
+				SDL_Delay(50);
+			}
+			server_wait_for_clients();
 /*
-		submarine::types st = submarine::typeVIIc;
-		switch (wsubtype->get_selected()) {
-			case 0: st = submarine::typeVIIc; break;
-			case 1: st = submarine::typeIXc40; break;
-			case 2: st = submarine::typeXXI; break;
-		}
-		run_game(new game(st, wcvsize->get_selected(), wescortsize->get_selected(), wtimeofday->get_selected()));
+			submarine::types st = submarine::typeVIIc;
+			switch (wsubtype->get_selected()) {
+				case 0: st = submarine::typeVIIc; break;
+				case 1: st = submarine::typeIXc40; break;
+				case 2: st = submarine::typeXXI; break;
+			}
+			run_game(new game(st, wcvsize->get_selected(), wescortsize->get_selected(), wtimeofday->get_selected()));
 */		
+		} else if (result == 3) {
+			// join game
+			network_client cl("192.168.0.98", 56789);
+			while (true) {
+				ostringstream os;
+				os << "Hallo " << &cl << ", rnd " << rand() << "\n";
+				cl.send_message(os.str());
+				system::sys()->poll_event_queue();
+				SDL_Delay(100);
+			}
+		} else if (result == 4) {
+			// scan_for_servers(wservers);
+		}
 	}
 	
 	SDLNet_Quit();
