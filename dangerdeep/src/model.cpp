@@ -108,7 +108,7 @@ void model::read(const string& filename)
 }
 
 void model::read_from_OFF(const string& filename, const string& texture_name, unsigned mapping,
-	bool swap_normals, unsigned tilesx, unsigned tilesy)
+	bool swap_normals, unsigned tilesx, unsigned tilesy, bool mapxy)
 {
 	double TILESX = tilesx;
 	double TILESY = tilesy;
@@ -149,9 +149,16 @@ void model::read_from_OFF(const string& filename, const string& texture_name, un
 	vector3f deltamaxmin = max - min;
 	// vector3f center = max * 0.5 + min * 0.5; Unused variable
 	if (!withuv) {
-		for (i = 0; i < nr_vertices; i++) {
-			vertices[i].uv.x = TILESX*(vertices[i].pos.y - min.y)/deltamaxmin.y;
-			vertices[i].uv.y = TILESY*(1.0 - (vertices[i].pos.z - min.z)/deltamaxmin.z);
+		if (mapxy) {	// use x coordinates vertical and y horizontal
+			for (i = 0; i < nr_vertices; i++) {
+				vertices[i].uv.x = TILESX*(vertices[i].pos.y - min.y)/deltamaxmin.y;
+				vertices[i].uv.y = TILESY*(1.0 - (vertices[i].pos.x - min.x)/deltamaxmin.x);
+			}
+		} else {	// use z coordinates vertical and y horizontal
+			for (i = 0; i < nr_vertices; i++) {
+				vertices[i].uv.x = TILESX*(vertices[i].pos.y - min.y)/deltamaxmin.y;
+				vertices[i].uv.y = TILESY*(1.0 - (vertices[i].pos.z - min.z)/deltamaxmin.z);
+			}
 		}
 	}
 	for (i = 0; i < nr_faces; i++) {

@@ -51,10 +51,11 @@ public:
 	~model() { delete tex; };
 	model(const string& filename);
 	void read(const string& filename);
+	// fixme: read_from_ASC or similar would be useful (vrml?)
 	// use an empty texture name for textureless model
 	void read_from_OFF(const string& filename, const string& texture_name,
 		unsigned mapping = 0, bool swap_normals = false,
-		unsigned tilesx = 1, unsigned tilesy = 1);
+		unsigned tilesx = 1, unsigned tilesy = 1, bool mapxy = false);
 	void write(const string& filename) const;
 	void display(bool with_texture = true) const;
 	double get_length(void) const { return (max - min).y; };
