@@ -316,7 +316,8 @@ void * CRenderingContext::GetProcAddress(char const * szFunction)
 
 			// W.3: determine the address...
 
-			void * pProcAddress = ::wglGetProcAddress(szNewFunction);
+           // This conversion was modified by Thorsten Jordan to make the code compileable with mingw
+			void * pProcAddress = (void*)(::wglGetProcAddress(szNewFunction));
 
 			delete [] szNewFunction;
 
