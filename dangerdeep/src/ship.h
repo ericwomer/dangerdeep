@@ -67,10 +67,10 @@ public:
 
 	virtual void load(istream& in, class game& g);
 	virtual void save(ostream& out, const class game& g) const;
-	static ship* create(istream& in);
+	static ship* create(istream& in, unsigned type);
 	static ship* create(types type_);
 	static ship* create(parser& p);
-	virtual void save_type(ostream& out) const = 0;
+	virtual unsigned get_type(void) const = 0;
 	virtual void simulate(class game& gm, double delta_time);
 
 	virtual void sink(void);

@@ -188,7 +188,7 @@ public:
 	virtual ~submarine() {}
 	virtual void load(istream& in, class game& g);
 	virtual void save(ostream& out, const class game& g) const;
-	static submarine* create(istream& in);
+	static submarine* create(istream& in, unsigned type);
 	static submarine* create(types type_);
 	static submarine* create(parser& p);
 	

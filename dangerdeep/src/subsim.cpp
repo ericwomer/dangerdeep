@@ -944,10 +944,14 @@ int main(int argc, char** argv)
 			cout << argv[0] << ", usage:\n--help\t\tshow this\n"
 			<< "--res n\t\tuse resolution n horizontal,\n\t\tn is 512,640,800,1024 (recommended) or 1280\n"
 			<< "--nofullscreen\tdon't use fullscreen\n"
+			<< "--debug\t\tdebug mode: no fullscreen, resolution 800\n"
 			<< "--nosound\tdon't use sound\n";
 			return 0;
 		} else if (*it == "--nofullscreen") {
 			fullscreen = false;
+		} else if (*it == "--debug") {
+			fullscreen = false;
+			res_x = 800;
 		} else if (*it == "--nosound") {
 			sound::use_sound = false;
 		} else if (*it == "--res") {

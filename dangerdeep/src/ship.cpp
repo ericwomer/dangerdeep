@@ -60,7 +60,7 @@ void ship::load(istream& in, game& g)
 	sea_object::load(in, g);
 
 	if (read_bool(in))
-		myai = new ai(in, g);	
+		myai = new ai(in, g);
 	
 	tonnage = read_u32(in);
 	stern_damage = damage_status(read_u8(in));
@@ -88,9 +88,8 @@ void ship::save(ostream& out, const game& g) const
 	write_double(out, fuel_value_t);
 }
 
-ship* ship::create(istream& in)
+ship* ship::create(istream& in, unsigned type)
 {
-	unsigned type = read_u16(in);
 	switch (type) {
 		case largemerchant: return new ship_largemerchant();
 		case mediummerchant: return new ship_mediummerchant();
