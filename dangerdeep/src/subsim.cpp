@@ -32,6 +32,7 @@
 #include "filehelper.h"
 #include "highscorelist.h"
 #include "user_interface.h"
+#include "tinyxml/tinyxml.h"
 
 class system* sys;
 int res_x, res_y;
@@ -417,20 +418,36 @@ void choose_historical_mission(void)
 	vector<string> missions;
 	
 	// read missions
-	ifstream ifs((get_mission_dir() + "list").c_str());
-	string s;
 	unsigned nr_missions = 0;
-	while (ifs >> s) {
-		missions.push_back(s);
-		++nr_missions;
+	directory missiondir = open_dir(get_mission_dir());
+	system::sys().myassert(missiondir.is_valid(), "could not open mission directory");
+	while (true) {
+		string e = read_dir(missiondir);
+		if (e.length() == 0) break;
+		if (e.length() > 4 && e.substr(e.length()-4) == ".xml") {
+			missions.push_back(e);
+			++nr_missions;
+		}
 	}
+	close_dir(missiondir);
 
 	// set up window
 	widget w(0, 0, 1024, 768, texts::get(10), 0, sunderlandimg);
 	widget_list* wmission = new widget_list(40, 60, 1024-80, 620);
 	w.add_child(wmission);
-	for (unsigned i = 0; i < nr_missions; ++i)
-		wmission->append_entry(texts::get(500+i));
+	for (unsigned i = 0; i < nr_missions; ++i) {
+		TiXmlDocument doc(get_mission_dir() + missions[i]);
+		doc.LoadFile();
+		TiXmlHandle hdoc(&doc);
+		TiXmlHandle hdftdmission = hdoc.FirstChild("dftd-mission");
+		TiXmlHandle hdescription = hdftdmission.FirstChild("description");
+		cout << hdescription.Element() << "\n";
+		TiXmlHandle hshort = hdescription.FirstChild("short");
+		cout << hshort.Element() << "\n";
+		TiXmlText* ttext = hshort.FirstChild().Text();
+		system::sys().myassert(ttext != 0, string("text node missing in ")+missions[i]);
+		wmission->append_entry(ttext->Value());
+	}
 
 	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
 	w.add_child(wm);

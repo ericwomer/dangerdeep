@@ -275,7 +275,7 @@ void sky::setup_textures(void) const
 	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE1);
+	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 /*
 	// not needed.
@@ -558,7 +558,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glTranslated(sunpos.x, sunpos.y, sunpos.z);
 	matrix4 tmpmat = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	tmpmat.clear_rot();
-	tmpmat.set_gl(GL_MODELVIEW_MATRIX);
+	tmpmat.set_gl(GL_MODELVIEW);
 	glBegin(GL_QUADS);
 	glTexCoord2f(0,0);
 	glVertex3f(-suns, -suns, 0);
@@ -586,7 +586,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glTranslated(moonpos.x, moonpos.y, moonpos.z);
 	tmpmat = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	tmpmat.clear_rot();
-	tmpmat.set_gl(GL_MODELVIEW_MATRIX);
+	tmpmat.set_gl(GL_MODELVIEW);
 	glBegin(GL_QUADS);
 	glTexCoord2f(0,0);
 	glVertex3f(-moons, -moons, 0);
