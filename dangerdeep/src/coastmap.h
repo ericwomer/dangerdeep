@@ -21,19 +21,17 @@ struct coastline
 
 	bool cyclic;		// is cyclic, that means an island?
 	
-	coastline(int n, const vector<vector2f>& p) : curve(n, p), cyclic(false) {}	
+	coastline(int n, const vector<vector2f>& p, bool cyclic_) : curve(n, p), cyclic(cyclic_) {}
 	~coastline() {}
 	coastline(const coastline& o) : curve(o.curve), cyclic(o.cyclic) {}
 	coastline& operator= (const coastline& o) { curve = o.curve; cyclic = o.cyclic; return *this; }
 
-	static float dist_to_corner(int b, const vector2f& p, float segw);//fixme, move to class coastmap?
-
 	// create vector of real points, detail can be > 0 (additional detail with bspline
 	// interpolation) or even < 0 (reduced detail)
 	// create points between begint and endt with 0<=t<points.size()
-	vector<vector2f> create_points(const vector2& offset, float scal, unsigned start, unsigned endt, int detail = 0) const;
+	vector<vector2f> create_points(unsigned begint, unsigned endt, int detail = 0) const;
 	//fixme: obsolete.
-	void draw_as_map(const vector2f& off, float size, const vector2f& t, const vector2f& ts, int detail = 0) const;
+	void draw_as_map(int detail = 0) const;
 	// possibly obsolete.fixme
 	void render(const vector2& p, int detail = 0) const;
 };
@@ -73,6 +71,9 @@ struct coastsegment
 	// check if cache needs to be (re)generated, and do that
 	void generate_point_cache(double size/*what is size?fixme*/, unsigned detail);
 
+	static float dist_to_corner(int b, const vector2f& p, float segw);
+	float compute_border_dist(int b0, const vector2f& p0, int b1, const vector2f& p1);
+
 	unsigned get_successor_for_cl(unsigned cln) const;
 
 	coastsegment() : type(0) {}	
@@ -80,7 +81,7 @@ struct coastsegment
 	coastsegment(const coastsegment& o) : type(o.type), segcls(o.segcls), pointcachedetail(o.pointcachedetail), pointcache(o.pointcache) {}
 	coastsegment& operator= (const coastsegment& o) { type = o.type; segcls = o.segcls; pointcachedetail = o.pointcachedetail; pointcache = o.pointcache; return *this; }
 	
-	void draw_as_map(const vector2f& off, float size, const vector2f& t, const vector2f& ts, int detail = 0) const;
+	void draw_as_map(int x, int y, int detail = 0) const;
 	void render(const vector2& p, int detail = 0) const;
 };
 
@@ -117,7 +118,7 @@ class coastmap
 	unsigned find_seg_for_point(const vector2i& p) const;
 	Uint8& mapf(int cx, int cy);
 	bool find_begin_of_coastline(int& x, int& y);
-	bool find_coastline(int x, int y, coastline& cl);
+	bool find_coastline(int x, int y, vector<vector2i>& points, bool& cyclic, int& beginborder, int& endborder);
 	void process_coastline(int x, int y);
 	void process_segment(int x, int y);
 
