@@ -7,6 +7,7 @@
 #include "game.h"
 #include "sub_periscope_display.h"
 #include "user_interface.h"
+#include "submarine.h"
 #include "keys.h"
 #include "cfg.h"
 
@@ -77,8 +78,20 @@ void sub_periscope_display::process_input(class game& gm, const SDL_Event& event
 	freeview_display::process_input(gm, event);
 }
 
-
-
+void sub_periscope_display::display(class game& gm) const
+{
+	submarine* player = dynamic_cast<submarine*> ( gm.get_player() );
+	
+	// if the periscope is down draw nothing (all black)
+	if (true == player->is_scope_up())
+		freeview_display::display(gm);
+	else
+	{
+		glClearColor(0, 0, 0, 0);
+		glClear(GL_COLOR_BUFFER_BIT);
+		post_display(gm);
+	}
+}
 
 
 
@@ -212,7 +225,7 @@ void submarine_interface::display_periscope(game& gm)
 						zoom_scope = false;
 					else
 						zoom_scope = true;
-					break;
+				break;				
 			}
 		}
 		key = system::sys().get_key().sym;
