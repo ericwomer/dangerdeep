@@ -11,7 +11,7 @@ datadir='usr/share/games/dangerdeep'
 mandir='usr/share/man/man6'
 docdir='usr/share/doc/dangerdeep'
 
-# ./configure --bindir=/$bindir --datadir=/$datadir && make || exit $?
+./configure --bindir=/$bindir --datadir=/$datadir && make || exit $?
 
 cp -R debian $debroot
 for dir in DEBIAN $bindir $datadir $mandir $docdir; do
