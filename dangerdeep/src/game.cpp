@@ -492,22 +492,19 @@ bool game::is_collision(const sea_object* s1, const sea_object* s2) const
 	double w1 = s1->get_width(), w2 = s2->get_width();
 
 	// compute base point and four directions.
-	vector2 pb1 = p1 + d1 * (l1/2) + n1 * (w1/2);
-	vector2 pb2 = p2 + d2 * (l2/2) + n2 * (w2/2);
+	vector2 pdiff = (p1 + d1 * (l1/2) + n1 * (w1/2)) - (p2 + d2 * (l2/2) + n2 * (w2/2));
 	vector2 pd1[4] = { -d1*l1, -n1*w1, d1*l1, n1*w1 };
 	vector2 pd2[4] = { -d2*l2, -n2*w2, d2*l2, n2*w2 };
 
-	// compare every edge ob the first object with every edge of the second object	
-	for (int j = 0; j < 4; ++j) {
-		for (int i = 0; i < 4; ++i) {
+	for (int j = 0; j < 4; ++j) {	// compare every edge of the second object...
+		for (int i = 0; i < 4; ++i) {	// with every edge of the first...
 			double s, t;
-			if ((pb1 - pb2).solve(pd1[j], -pd2[i], s, t)) {
-				if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
+			if (pdiff.solve(pd1[i], pd2[j], s, t))
+				if (0 <= s && s <= 1 && -1 <= t && t <= 0)
 					return true;
-			}
-			pb2 += pd2[i];	// circle around the outer edges
+			pdiff += pd1[i];
 		}
-		pb1 += pd1[j];	// circle around the outer edges
+		pdiff -= pd2[j];
 	}
 	return false;
 }
