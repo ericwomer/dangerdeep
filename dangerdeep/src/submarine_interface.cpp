@@ -310,10 +310,10 @@ void submarine_interface::display(game& gm) const
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 	if ((current_display == display_mode_uzo || current_display == display_mode_bridge) &&
 	    player->is_submerged()) {
-//		current_display = display_mode_periscope;
+		current_display = display_mode_periscope;
 	}
 	if (current_display == display_mode_periscope && player->get_depth() > player->get_periscope_depth()) {
-//		current_display = display_mode_map;
+		current_display = display_mode_map;
 	}
 
 	user_interface::display(gm);

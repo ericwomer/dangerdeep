@@ -1188,6 +1188,7 @@ int main(int argc, char** argv)
 	res_y = res_x*3/4;
 	// weather conditions and earth curvature allow 30km sight at maximum.
 	sys = new class system(1.0, 30000.0+500.0, res_x, fullscreen);
+	sys->set_screenshot_directory(savegamedirectory);
 	sys->set_res_2d(1024, 768);
 	sys->set_max_fps(60);
 	

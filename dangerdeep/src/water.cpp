@@ -24,6 +24,9 @@
 #define DISTANCE_FRESNEL_HACK	// distance related fresnel term reduction
 #define WAVE_SUB_DETAIL		// sub fft detail
 
+// for testing
+//#define DRAW_WATER_AS_GRID
+
 // some more interesting values: phase 256, facesperwave 64+,
 // wavelength 256+,
 #define WAVE_PHASES 256		// no. of phases for wave animation
@@ -152,17 +155,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 				 GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE, false);
 	
 	// connectivity data is the same for all meshes and thus is reused
-	gridindices.reserve(xres*yres*4);
-	for (unsigned y = 0; y < yres; ++y) {
-		unsigned y2 = y+1;
-		for (unsigned x = 0; x < xres; ++x) {
-			unsigned x2 = x+1;
-			gridindices.push_back(x +y *(xres+1));
-			gridindices.push_back(x2+y *(xres+1));
-			gridindices.push_back(x2+y2*(xres+1));
-			gridindices.push_back(x +y2*(xres+1));
-		}
-	}
+#ifdef DRAW_WATER_AS_GRID
 	gridindices2.reserve(xres*yres*4);
 	for (unsigned y = 0; y < yres; ++y) {
 		unsigned y2 = y+1;
@@ -174,8 +167,21 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 			gridindices2.push_back(x +y2*(xres+1));
 		}
 	}
+#else
+	gridindices.reserve(xres*yres*4);
+	for (unsigned y = 0; y < yres; ++y) {
+		unsigned y2 = y+1;
+		for (unsigned x = 0; x < xres; ++x) {
+			unsigned x2 = x+1;
+			gridindices.push_back(x +y *(xres+1));
+			gridindices.push_back(x2+y *(xres+1));
+			gridindices.push_back(x2+y2*(xres+1));
+			gridindices.push_back(x +y2*(xres+1));
+		}
+	}
+#endif
 
-	ocean_wave_generator<float> owg(WAVE_RESOLUTION, vector2f(1,1), 20 /*10*/ /*31*/, 3e-6 /* 5e-6 */, WAVE_LENGTH, TIDECYCLE_TIME);
+	ocean_wave_generator<float> owg(WAVE_RESOLUTION, vector2f(1,1), 20 /*10*/ /*31*/, 2e-6 /* 5e-6 */, WAVE_LENGTH, TIDECYCLE_TIME);
 	minh = 1e10;
 	maxh = -1e10;
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
@@ -697,9 +703,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 
 			// water color depends on height of wave and slope
 			// slope (N.z) it mostly > 0.8
-			float colorfac = (coord.z + 3) / 9 + (N.z - 0.8f);
-			//fixme add cameraheight +- here...
-			//fixme: color computation is broken. it is right when viewer height is 0
+			float colorfac = (coord.z + viewpos.z + 3) / 9 + (N.z - 0.8f);
 
 			uv0[ptr] = vector2f(F, colorfac);	// set fresnel and water color
 			uv1[ptr] = texc;
@@ -748,7 +752,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	bool lockarr = (system::sys().extension_supported("GL_EXT_compiled_vertex_array"));
 	if (lockarr)
 		glLockArraysEXT(0, (xres+1)*(yres+1));
-#if 0 // DRAW_WATER_AS_GRID
+#ifdef DRAW_WATER_AS_GRID
 	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
 #else
 	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
@@ -758,7 +762,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	glDisable(GL_FOG);
 #endif
 
-//	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
 	if (lockarr)
 		glUnlockArraysEXT();
 
