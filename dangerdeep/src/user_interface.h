@@ -12,12 +12,14 @@ using namespace std;
 #include "global_data.h"
 #include "color.h"
 
-#define WAVES 32        // must be 2^x
-#define WATERSIZE 64   // must be 2^x
+	#define WAVES 64        // must be 2^x
+	#define WATERSIZE 64   // must be 2^x
 #define WAVESIZE 10	// meters from wave to wave
-#define WATERRANGE WATERSIZE*WAVESIZE/2
-#define WAVETIDEHEIGHT 1.5      // half amplitude of waves in meters
-#define WAVETIDECYCLETIME 2.0
+	#define WATERRANGE WATERSIZE*WAVESIZE/2
+
+#define WAVEDEPTH 20		// nr of waves drawn in z direction
+#define WAVETIDE 3.0      	// amplitude of waves in meters
+#define WAVETIDECYCLETIME 2.0	// time for full cycle of wave
 
 #define MAPGRIDSIZE 1000	// meters
 
@@ -89,7 +91,7 @@ protected:
 	void draw_trail(sea_object* so, const vector2& offset);
 	virtual void draw_pings(class game& gm, const vector2& offset);
 	virtual void draw_sound_contact(class game& gm, const sea_object* player,
-		const double& max_view_dist);
+		double max_view_dist);
 	virtual void draw_visual_contacts(class system& sys, class game& gm,
 		const sea_object* player, const vector2& offset);
 	virtual void draw_square_mark ( class system& sys, class game& gm,
@@ -110,8 +112,11 @@ protected:
 public:	
 	virtual ~user_interface();
 	virtual void display(class system& sys, class game& gm) = 0;
+
+	// 3d drawing functions
+	virtual void draw_water(const vector3& viewpos, angle dir, unsigned wavephase, double max_view_dist) const;
 	virtual void draw_view(class system& sys, class game& gm, const vector3& viewpos,
-		angle direction, bool withplayer, bool withunderwaterweapons);
+		angle dir, bool withplayer, bool withunderwaterweapons);
 	virtual bool user_quits(void) const { return quit; }
 	virtual bool paused(void) const { return pause; }
 	virtual unsigned time_scaling(void) const { return time_scale; }

@@ -344,6 +344,7 @@ int system::getch(void)
 
 void system::screenshot(void)
 {
+//fixme: use SDL's save bmp feature
 	vector<unsigned char> pic(res_x*res_y*3);
 	glReadPixels(0, 0, res_x, res_y, GL_RGB, GL_UNSIGNED_BYTE, &(pic[0]));
 	ostringstream os;

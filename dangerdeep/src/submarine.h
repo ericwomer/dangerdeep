@@ -75,6 +75,7 @@ public:
 		snorkel,//fixme conflicts with bool snorkel;
 		deck_gun,
 		radio_detection_device,
+		// radar,	// maybe
 		
 		nr_of_damageable_parts	// trick to count enum entries
 	};

@@ -60,7 +60,7 @@ void user_interface::init_water_data(void)
 {
 	vector<float> dwave(WAVES);
 	for (int i = 0; i < WAVES; ++i)
-		dwave[i] = WAVETIDEHEIGHT*sin(i*2*M_PI/WAVES);
+		dwave[i] = WAVETIDE/2*sin(i*2*M_PI/WAVES);
 	vector<unsigned char> waterheight(WATERSIZE*WATERSIZE);
 	for (int j = 0; j < WATERSIZE; ++j)
 		for (int i = 0; i < WATERSIZE; ++i)
@@ -98,65 +98,96 @@ float user_interface::get_waterheight(float x_, float y_, int wave)	// bilinear 
 	return h01*(1-dy) + h23*dy;
 }
 
-void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
-	angle direction, bool withplayer, bool withunderwaterweapons)
+void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wavephase,
+	double max_view_dist) const
 {
-	sea_object* player = get_player();
-	int wave = int(fmod(gm.get_time(),86400)*WAVES/WAVETIDECYCLETIME);
-	
-	glRotatef(-90,1,0,0);
-	glRotatef(direction.value(),0,0,1);
-	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
-	
-	double max_view_dist = gm.get_max_view_distance();
-
-	// ************ sky ***************************************************************
 	glDisable(GL_LIGHTING);
-	glPushMatrix();
-	glTranslatef(viewpos.x, viewpos.y, 0);
-	glScalef(max_view_dist, max_view_dist, max_view_dist);	// fixme dynamic
-	double dt = get_day_time(gm.get_time());
-	color skycol1, skycol2, lightcol;
-	double colscal;
-	if (dt < 1) { colscal = 0; }
-	else if (dt < 2) { colscal = fmod(dt,1); }
-	else if (dt < 3) { colscal = 1; }
-	else { colscal = 1-fmod(dt,1); }
-	lightcol = color(color(64, 64, 64), color(255,255,255), colscal);
-	skycol1 = color(color(8,8,32), color(165,192,247), colscal);
-	skycol2 = color(color(0, 0, 16), color(24,47,244), colscal);
 
-	skyhemisphere->display(false, &skycol1, &skycol2);
-	glBindTexture(GL_TEXTURE_2D, clouds->get_opengl_name());
-	float skysin[SKYSEGS], skycos[SKYSEGS];
-	for (int i = 0; i < SKYSEGS; ++i) {
-		float t = i*2*M_PI/SKYSEGS;
-		skycos[i] = cos(t);
-		skysin[i] = sin(t);
+#if 1	// new water
+	// opengl expects fovy, but we need fovx. :-/
+#define FOV 70.0*1024/768	// fixme: make global accessible
+//#define FOV 45.0*1024/768	// fixme: make global accessible
+	angle fov2(FOV/2);
+	vector2 viewdir = dir.direction();
+	vector2 viewleft = viewdir.orthogonal();
+	double znear = 2.0;	// fixme: global accessible
+
+	// fixme: could this move to init?
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
+
+	// create vertices
+	vector<GLfloat> verticecoords;
+	vector<GLfloat> texturecoords;
+	unsigned verts = (WAVEDEPTH+1)*(WAVEDEPTH+2)/2;
+	verticecoords.reserve(3*verts);
+	texturecoords.reserve(2*verts);
+	double texscalefac = 1.0/double(4*WAVESIZE);
+	// fixme: is znear correct? no... 1.0: weird view (seems that fov wrong), 0.0 fov ok, but
+	// width wrong etc. fixme znear add or subtract?
+// mega-fixme::: I NEVER USE FOV, that's the bug.	
+	vector2 viewbase = viewpos.xy();// - viewdir * znear;
+	for (unsigned w = 0; w <= WAVEDEPTH; ++w) {
+		vector2 viewbase2 = viewbase + viewleft * (w/2.0) * WAVESIZE;
+		for (unsigned p = 0; p <= w; ++p) {
+			// outer border of water must have height 0 to match horizon face
+//			double height = 0;	//testing fixme
+			double height = (w < WAVEDEPTH) ? get_waterheight((float)viewbase2.x, (float)viewbase2.y, (int)wavephase) : 0;
+			verticecoords.push_back(viewbase2.x);
+			verticecoords.push_back(viewbase2.y);
+			verticecoords.push_back(height);
+			// don't take fractional part of coordinates for texture coordinates
+			// or wrap around error will occour. Texture coordinates may get big
+			// (real meter values around the globe/map) but OpenGL can handle this
+			// (and does that right). Scale texture by adjusting this factor.
+			texturecoords.push_back(texscalefac * viewbase2.x);
+			texturecoords.push_back(texscalefac * viewbase2.y);
+			viewbase2 -= viewleft * WAVESIZE;
+		}
+		viewbase += viewdir * WAVESIZE;
 	}
-	double cloudrot = fmod(gm.get_time(), 60)/60;
-	glBegin(GL_QUADS);	// fixme: quad strips!
-	float rl = 0.95, ru = 0.91;
-	float hl = 0.1, hu = 0.4;
-	for (int j = 0; j < SKYSEGS; ++j) {
-		int t = (j+1) % SKYSEGS;
-		lightcol.set_gl_color(0);
-		glTexCoord2f((j+1)*0.5+cloudrot, 0);
-		glVertex3f(rl * skycos[t], rl * skysin[t], hl);
-		glTexCoord2f((j  )*0.5+cloudrot, 0);
-		glVertex3f(rl * skycos[j], rl * skysin[j], hl);
-		lightcol.set_gl_color(255);
-		glTexCoord2f((j  )*0.5+cloudrot, 1);
-		glVertex3f(ru * skycos[j], ru * skysin[j], hu);
-		glTexCoord2f((j+1)*0.5+cloudrot, 1);
-		glVertex3f(ru * skycos[t], ru * skysin[t], hu);
+	glVertexPointer(3, GL_FLOAT, 0, &verticecoords[0]);
+	glTexCoordPointer(2, GL_FLOAT, 0, &texturecoords[0]);
+	
+	// create faces, (WAVEDEPTH+1)^2 in number
+	glBegin(GL_TRIANGLES);
+	unsigned vertexnr = 0;
+	for (unsigned w = 0; w < WAVEDEPTH; ++w) {
+		for (unsigned p = 0; p < w; ++p) {
+			// current vertexnr: vertexnr
+			// vertexnr left in next row: vertexnr + w+1
+			// vertexnr right in next row: vertexnr + w+2
+			// face 1
+			glArrayElement(vertexnr);
+			glArrayElement(vertexnr+w+2);
+			glArrayElement(vertexnr+w+1);
+			// face 2
+			glArrayElement(vertexnr);
+			glArrayElement(vertexnr+1);
+			glArrayElement(vertexnr+w+2);
+			++vertexnr;
+		}
+		glArrayElement(vertexnr);
+		glArrayElement(vertexnr+w+2);
+		glArrayElement(vertexnr+w+1);
+		++vertexnr;
 	}
 	glEnd();
-	glPopMatrix();
-	glEnable(GL_LIGHTING);
+	
+	// fixme: could this move to init?
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	// ************ water *************************************************************
-	glDisable(GL_LIGHTING);
+	// fixme: horizon face (trapez)
+	// near: depth = znear+(WAVEDEPTH+1)*WAVESIZE
+	// far: depth = zfar
+	// viewpos+viewdir*zfar -+ viewleft*znear*FOVfactor  (=tan(FOV/2)) or cotan ?)
+
+#else
+
+	int wave = wavephase;	
+	// fixme: was mache ich hier?
 	glPushMatrix();
 	int wx = int(floor(viewpos.x/WAVESIZE)) & (WATERSIZE-1);
 	int wy = int(floor(viewpos.y/WAVESIZE)) & (WATERSIZE-1);
@@ -175,7 +206,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	// fixme: glclearcolor depends on daytime, too
 
 	// color of water depends on daytime
-	lightcol.set_gl_color();
+//	lightcol.set_gl_color();	// fixme move outside function
 
 	// fixme: with swimming the missing anisotropic filtering causes
 	// the water to shine unnatural. a special distant_water texture doesn't help
@@ -239,8 +270,75 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	}
 	glEnd();
 	glPopMatrix();
-	glEnable(GL_LIGHTING);
 //	glColor3f(1,1,1);
+#endif
+
+	glEnable(GL_LIGHTING);
+}
+
+void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
+	angle dir, bool withplayer, bool withunderwaterweapons)
+{
+	sea_object* player = get_player();
+	int wave = int(fmod(gm.get_time(),86400/*WAVETIDECYCLETIME*/)*WAVES/WAVETIDECYCLETIME);
+	
+	glRotatef(-90,1,0,0);
+	glRotatef(dir.value(),0,0,1);
+	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
+	
+	double max_view_dist = gm.get_max_view_distance();
+
+	// ************ sky ***************************************************************
+	glDisable(GL_LIGHTING);
+	glPushMatrix();
+	glTranslatef(viewpos.x, viewpos.y, 0);
+	glScalef(max_view_dist, max_view_dist, max_view_dist);	// fixme dynamic
+	double dt = get_day_time(gm.get_time());
+	color skycol1, skycol2, lightcol;
+	double colscal;
+	if (dt < 1) { colscal = 0; }
+	else if (dt < 2) { colscal = fmod(dt,1); }
+	else if (dt < 3) { colscal = 1; }
+	else { colscal = 1-fmod(dt,1); }
+	lightcol = color(color(64, 64, 64), color(255,255,255), colscal);
+	skycol1 = color(color(8,8,32), color(165,192,247), colscal);
+	skycol2 = color(color(0, 0, 16), color(24,47,244), colscal);
+
+	skyhemisphere->display(false, &skycol1, &skycol2);
+	glBindTexture(GL_TEXTURE_2D, clouds->get_opengl_name());
+	float skysin[SKYSEGS], skycos[SKYSEGS];
+	for (int i = 0; i < SKYSEGS; ++i) {
+		float t = i*2*M_PI/SKYSEGS;
+		skycos[i] = cos(t);
+		skysin[i] = sin(t);
+	}
+	double cloudrot = fmod(gm.get_time(), 60)/60;
+	glBegin(GL_QUADS);	// fixme: quad strips!
+	float rl = 0.95, ru = 0.91;
+	float hl = 0.1, hu = 0.4;
+	for (int j = 0; j < SKYSEGS; ++j) {
+		int t = (j+1) % SKYSEGS;
+		lightcol.set_gl_color(0);
+		glTexCoord2f((j+1)*0.5+cloudrot, 0);
+		glVertex3f(rl * skycos[t], rl * skysin[t], hl);
+		glTexCoord2f((j  )*0.5+cloudrot, 0);
+		glVertex3f(rl * skycos[j], rl * skysin[j], hl);
+		lightcol.set_gl_color(255);
+		glTexCoord2f((j  )*0.5+cloudrot, 1);
+		glVertex3f(ru * skycos[j], ru * skysin[j], hu);
+		glTexCoord2f((j+1)*0.5+cloudrot, 1);
+		glVertex3f(ru * skycos[t], ru * skysin[t], hu);
+	}
+	glEnd();
+	glPopMatrix();
+	glEnable(GL_LIGHTING);
+
+	// ******* water *********
+	lightcol.set_gl_color();	// water color depends on day time
+					// fixme: program directional light caused by sun
+					// or moon should be reflected by water.
+	draw_water(viewpos, dir, wave, max_view_dist);
+	
 
 	// ******************** ships & subs *************************************************
 
@@ -637,7 +735,7 @@ void user_interface::draw_pings(class game& gm, const vector2& offset)
 }
 
 void user_interface::draw_sound_contact(class game& gm, const sea_object* player,
-    const double& max_view_dist)
+	double max_view_dist)
 {
     // draw sound contacts
 	list<ship*> ships;
@@ -767,7 +865,7 @@ void user_interface::display_map(class system& sys, game& gm)
 
 	// draw convoy positions	fixme: should be static and fade out after some time
 	list<vector2> convoy_pos;
-    gm.convoy_positions(convoy_pos);
+	gm.convoy_positions(convoy_pos);
 	glBegin(GL_LINE_LOOP);
 	for (list<vector2>::iterator it = convoy_pos.begin(); it != convoy_pos.end(); ++it) {
 		draw_square_mark ( sys, gm, (*it), offset, color ( 0, 0, 0 ) );

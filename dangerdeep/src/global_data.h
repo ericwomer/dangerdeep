@@ -43,6 +43,7 @@ double get_day_time(double t);
 
 // handle modulo calculation for negative values the way I need it
 inline float myfmod(float a, float b) { return a-floor(a/b)*b; }
+inline float myfrac(float a) { return a-floor(a); }
 // return a random value in [0, 1(
 inline double rnd(void) { return double(rand())/RAND_MAX; }
 inline unsigned rnd(unsigned b) { return unsigned(b*rnd()); }
