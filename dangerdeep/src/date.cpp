@@ -1,18 +1,26 @@
 // date
 // subsim (C)+(W) Markus Petermann. SEE LICENSE
 
+#include <iomanip>
 #include "date.h"
+#include "texts.h"
 
 void date::copy ( const date& d )
 {
-	year = d.year;
-	month = d.month;
-	day = d.day;
+	memcpy ( &date_values, &d.date_values, sizeof date_values );
 }
 
-date::date ( int year, month_type month, int day ) : year ( year ), month ( month ),
-	day ( day )
-{}
+date::date ( unsigned year_, unsigned month_, unsigned day_, unsigned hour_,
+	unsigned minute_, unsigned second_ )
+{
+	memset ( &date_values, 0, sizeof date_values );
+	date_values[year]   = year_;
+	date_values[month]  = month_;
+	date_values[day]    = day_;
+	date_values[hour]   = hour_;
+	date_values[minute] = minute_;
+	date_values[second] = second_;
+}
 
 date::date ( const date& d )
 {
@@ -62,7 +70,22 @@ bool date::operator> ( const date& d ) const
 
 ostream& operator<< ( ostream& os, const date& d )
 {
-	os << d.day << "." << d.month << "." << d.year;
+	if ( language == GERMAN )
+	{
+		os << d.date_values[d.day]    << "." << d.date_values[d.month] << ".";
+		os << d.date_values[d.year]   << " ";
+		os << setw ( 2 ) << setfill ( '0' ) << d.date_values[d.hour]  << ":";
+		os << setw ( 2 ) << setfill ( '0' ) << d.date_values[d.minute] << ":";
+		os << setw ( 2 ) << setfill ( '0' ) << d.date_values[d.second];
+	}
+	else
+	{
+		os << d.date_values[d.year]   << "-" << d.date_values[d.month] << "-";
+		os << d.date_values[d.day]    << " ";
+		os << setw ( 2 ) << setfill ( '0' ) << d.date_values[d.hour]  << ":";
+		os << setw ( 2 ) << setfill ( '0' ) << d.date_values[d.minute] << ":";
+		os << setw ( 2 ) << setfill ( '0' ) << d.date_values[d.second];
+	}
 
 	return os;
 }

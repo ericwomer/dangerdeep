@@ -10,6 +10,7 @@
 #include "game.h"
 #include "texts.h"
 #include "sound.h"
+#include "logbook.h"
 
 #define SKYSEGS 16
 
@@ -21,6 +22,8 @@ user_interface::user_interface() :
 	zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
 	viewpos(0, 0, 10), bearing(0), viewmode(4), target(0)
 {
+	captains_logbook = new captains_logbook_display;
+	system::sys()->myassert ( captains_logbook, "Error while creating captains_logbook!" );
 	if (allwaveheights.size() == 0) init_water_data();
 }
 
@@ -29,7 +32,14 @@ user_interface::user_interface(sea_object* player) :
     zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
 	viewpos(0, 0, 10), bearing(0), viewmode(4), target(0)
 {
+	captains_logbook = new captains_logbook_display;
+	system::sys()->myassert ( captains_logbook, "Error while creating captains_logbook!" );
 	if (allwaveheights.size() == 0) init_water_data();
+}
+
+user_interface::~user_interface ()
+{
+	if ( captains_logbook ) delete captains_logbook;
 }
 
 void user_interface::init_water_data(void)
@@ -854,17 +864,27 @@ void user_interface::display_damagecontrol(class system& sys, game& gm)
 
 void user_interface::display_logbook(class system& sys, game& gm)
 {
-	glClearColor(0.25, 0.25, 0.25, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	sys.prepare_2d_drawing();
-	font_arial2->print(0, 0, "logbook - fixme");
-	sys.unprepare_2d_drawing();
+	glClearColor ( 0.5f, 0.25f, 0.25f, 0 );
+	glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	sys.prepare_2d_drawing ();
+	captains_logbook->display ( sys, gm );
+	draw_infopanel ( sys, gm );
+	sys.unprepare_2d_drawing ();
+
+	// mouse processing;
+	int mx;
+	int my;
+	int mb = sys.get_mouse_buttons();
+	sys.get_mouse_position(mx, my);
+	if ( mb & sys.left_button )
+		captains_logbook->check_mouse ( mx, my, mb );
 
 	// keyboard processing
 	int key = sys.get_key();
 	while (key != 0) {
 		if (!keyboard_common(key, sys, gm)) {
 			// specific keyboard processing
+			captains_logbook->check_key ( key, sys, gm );
 		}
 		key = sys.get_key();
 	}
@@ -1097,4 +1117,13 @@ void user_interface::play_sound_effect_distance ( sound_effect se, double distan
 
 	if ( s )
 		s->play ( ( 1.0f - player_object->get_noise_factor () ) * exp ( - distance / 3000.0f ) );
+}
+
+void user_interface::add_captains_log_entry ( class game& gm, const string& s)
+{
+	date d;
+	get_date ( gm.get_time (), d );
+
+	if ( captains_logbook )
+		captains_logbook->add_entry( d, s );
 }

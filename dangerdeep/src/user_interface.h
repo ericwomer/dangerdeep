@@ -21,6 +21,9 @@ using namespace std;
 
 #define MAPGRIDSIZE 1000	// meters
 
+class user_display;
+class logbook_display;
+
 class user_interface
 {
 public:
@@ -39,6 +42,8 @@ protected:
 	angle bearing;
 	unsigned viewmode;
 	sea_object* target;
+
+	logbook_display* captains_logbook;
 
 	// periscope
 	bool zoom_scope;	// use 6x instead 1.5 fixme implement
@@ -99,7 +104,7 @@ protected:
 	virtual sound* get_sound_effect ( sound_effect se ) const;
 
 public:	
-	virtual ~user_interface() {};
+	virtual ~user_interface();
 	virtual void display(class system& sys, class game& gm) = 0;
 	virtual void draw_view(class system& sys, class game& gm, const vector3& viewpos,
 		angle direction, bool withplayer, bool withunderwaterweapons);
@@ -107,6 +112,7 @@ public:
 	virtual bool paused(void) const { return pause; }
 	virtual unsigned time_scaling(void) const { return time_scale; }
 	virtual void add_message(const string& s);
+	virtual void add_captains_log_entry ( class game& gm, const string& s);
 	virtual bool time_scale_up(void);	// returns true on success
 	virtual bool time_scale_down(void);
 	virtual void record_ship_tonnage(unsigned tons) { tonnage_sunk.push_back(tons); }

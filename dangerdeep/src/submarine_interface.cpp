@@ -5,6 +5,12 @@
 #include <GL/glu.h>
 #include <SDL/SDL.h>
 #include <sstream>
+#include <map>
+#include <list>
+using namespace std;
+#include "date.h"
+#include "user_display.h"
+#include "logbook.h"
 #include "submarine_interface.h"
 #include "system.h"
 #include "game.h"
@@ -29,49 +35,21 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 		switch (keycode) {
 			// torpedo launching
 			case SDLK_1:
-				if (player->fire_torpedo(gm, 0, target, lead_angle))
-				{
-					add_message(TXT_Torpedofired[language]);
-					play_sound_effect ( se_submarine_torpedo_launch );
-				}
-				break;
 			case SDLK_2:
-				if (player->fire_torpedo(gm, 1, target, lead_angle))
-				{
-					add_message(TXT_Torpedofired[language]);
-					play_sound_effect ( se_submarine_torpedo_launch );
-				}
-				break;
 			case SDLK_3:
-				if (player->fire_torpedo(gm, 2, target, lead_angle))
-				{
-					add_message(TXT_Torpedofired[language]);
-					play_sound_effect ( se_submarine_torpedo_launch );
-				}
-				break;
 			case SDLK_4:
-				if (player->fire_torpedo(gm, 3, target, lead_angle))
-				{
-					add_message(TXT_Torpedofired[language]);
-					play_sound_effect ( se_submarine_torpedo_launch );
-				}
-				break;
 			case SDLK_5:
-				if (player->fire_torpedo(gm, 4, target, lead_angle))
-				{
-					add_message(TXT_Torpedofired[language]);
-					play_sound_effect ( se_submarine_torpedo_launch );
-				}
-				break;
 			case SDLK_6:
-				if (player->fire_torpedo(gm, 5, target, lead_angle))
+				if ( player->fire_torpedo ( gm, keycode - SDLK_1, target, lead_angle ) )
 				{
 					add_message(TXT_Torpedofired[language]);
+					ostringstream oss;
+					oss << TXT_Torpedofired[language] << " " << TXT_Target[language] << ": ";
+					oss << target->get_description ( 2 );
+					add_captains_log_entry( gm, oss.str () );
 					play_sound_effect ( se_submarine_torpedo_launch );
 				}
 				break;
-			
-			// control
 			case SDLK_LEFT:
                 player->rudder_hard_left();
                 add_rudder_message();
@@ -80,7 +58,6 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
                 player->rudder_hard_right();
                 add_rudder_message();
                 break;
-
 			// view
 			case SDLK_COMMA : bearing -= angle(10); break;
 			case SDLK_PERIOD : bearing += angle(10); break;
@@ -118,12 +95,14 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			case SDLK_c:
 				player->dive_to_depth(static_cast<unsigned>(player->get_max_depth()));
 				add_message(TXT_Crashdive[language]);
+				add_captains_log_entry ( gm, TXT_Crashdive[language] );
 				break;
 			case SDLK_d:
 				if ( player->has_snorkel () )
 				{
 					player->dive_to_depth ( static_cast<unsigned> ( player->get_snorkel_depth () ) );
 					add_message ( TXT_SnorkelDepth[language] );
+					add_captains_log_entry ( gm, TXT_SnorkelDepth[language] );
 				}
 				break;
 			case SDLK_f:
@@ -132,12 +111,18 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 					if ( player->is_snorkel_up () )
 					{
 						if ( player->set_snorkel_up ( false ) )
+						{
 							add_message ( TXT_SnorkelDown[language] );
+							add_captains_log_entry ( gm, TXT_SnorkelDown[language] );
+						}
 					}
 					else
 					{
 						if ( player->set_snorkel_up ( true ) )
+						{
 							add_message ( TXT_SnorkelUp[language] );
+							add_captains_log_entry ( gm, TXT_SnorkelUp[language] );
+						}
 					}
 				}
 				break;
@@ -150,10 +135,12 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			case SDLK_p:
 				player->dive_to_depth(static_cast<unsigned>(player->get_periscope_depth()));
 				add_message(TXT_Periscopedepth[language]);
+				add_captains_log_entry ( gm, TXT_Periscopedepth[language] );
 				break;	//fixme
 			case SDLK_s:
 				player->dive_to_depth(0);
 				add_message(TXT_Surface[language]);
+				add_captains_log_entry ( gm, TXT_Surface[language] );
 				break;
 			case SDLK_v:
 				bearing = 0.0f;
@@ -186,17 +173,27 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			case SDLK_SPACE:
 				target = gm.contact_in_direction(player, player->get_heading()+bearing);
 				if (target)
-					add_message(TXT_Newtargetselected[language]);
+				{
+					add_message( TXT_Newtargetselected[language] );
+					add_captains_log_entry ( gm, TXT_Newtargetselected[language] );
+				}
 				else
 					add_message(TXT_Notargetindirection[language]);
 				break;
-			case SDLK_i: {
+			case SDLK_i:
 				// calculate distance to target for identification detail
 				if (target)
-					add_message(TXT_Identifiedtargetas[language] + target->get_description(2));//fixme
+				{
+					ostringstream oss;
+					oss << TXT_Identifiedtargetas[language] << target->get_description(2); // fixme
+					add_message( oss.str () );
+					add_captains_log_entry ( gm, oss.str () );
+				}
 				else
+				{
 					add_message(TXT_Notargetselected[language]);
-				break; }
+				}
+				break;
 
 			// quit, screenshot, pause etc.
 			case SDLK_ESCAPE: quit = true; break;

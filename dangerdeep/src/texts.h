@@ -115,6 +115,8 @@ DEFTYPE const char* TXT_SnorkelDown [] content("Snorkel down", "Schnorchel einge
 DEFTYPE const char* TXT_SnorkelDepth[] content("Go to snorkel depth", "Schnorcheltiefe ansteuern");
 DEFTYPE const char* TXT_TimeCompression[] content("Compression", "Kompression");
 
+DEFTYPE const char* TXT_CaptLogbookNoEntry[] content("No entry", "Kein Eintrag");
+
 /*
 DEFTYPE const char* TXT_[] content("", "");
 DEFTYPE const char* TXT_[] content("", "");

@@ -1,6 +1,7 @@
 // ai
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
+#include "date.h"
 #include "ai.h"
 #include "game.h"
 #include "convoy.h"

@@ -495,10 +495,13 @@ void game::torp_explode(const vector3& pos)
 		player->get_pos ().distance ( pos ) );
 }
 
-void game::ship_sunk(unsigned tons)
+void game::ship_sunk( const ship* s )
 {
-	ui->add_message(TXT_Shipsunk[language]);
-	ui->record_ship_tonnage(tons);
+	ui->add_message ( TXT_Shipsunk[language] );
+	ostringstream oss;
+	oss << TXT_Shipsunk[language] << " " << s->get_description ( 2 );
+	ui->add_captains_log_entry( *this, oss.str () );
+	ui->record_ship_tonnage ( s->get_tonnage () );
 }
 
 void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
@@ -560,7 +563,7 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 				return true;
 			}
 			if ((*it)->damage((*it)->get_pos(), G7A_HITPOINTS))	// fixme
-				ship_sunk((*it)->get_tonnage());	// fixme
+				ship_sunk((*it));	// fixme
 			torp_explode(t->get_pos());
 			return true;	// only one hit possible
 		}

@@ -127,7 +127,7 @@ public:
 	void dc_explosion(const vector3& pos);	// depth charge exploding
 	bool gs_impact(const vector3& pos);	// gun shell impact
 	void torp_explode(const vector3& pos);	// torpedo explosion/impact
-	void ship_sunk(unsigned tonnage);	// a ship sinks
+	void ship_sunk( const ship* s );	// a ship sinks
 
 	// simulation actions
 	virtual void ping_ASDIC(list<vector3>& contacts, sea_object* d,

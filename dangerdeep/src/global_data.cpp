@@ -20,7 +20,8 @@ texture *water, *background, *titel[4], *periscope[4], *gauge1,
 	*gauge2, *gauge3, *gauge4, *psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
-	*clock12, *clock24, *threesubs[4], *glasses, *torp_expl_water_splash[3];
+	*clock12, *clock24, *threesubs[4], *glasses, *torp_expl_water_splash[3],
+	*logbook_spiral[2];
 font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
 sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
@@ -94,6 +95,10 @@ void init_global_data(void)
 	torpedo_detonation_submerged[1] = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_detonation_submerged_2.wav" ) );
 	torpedo_detonation_surfaced[0] = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_detonation_surfaced_1.wav" ) );
 	torpedo_detonation_surfaced[1] = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_detonation_surfaced_2.wav" ) );
+	SDL_Surface* logbook_spiral_img = IMG_Load ( ( get_data_dir () + TEXTURE_DIR + "logbook_spiral.png" ).c_str () );
+	logbook_spiral[0] = new texture ( logbook_spiral_img, 0, 0, 35, 256 );
+	logbook_spiral[1] = new texture ( logbook_spiral_img, 0, 256, 35, 256 );
+	SDL_FreeSurface ( logbook_spiral_img );
 }
 
 void deinit_global_data(void)
@@ -159,6 +164,8 @@ void deinit_global_data(void)
 	delete torpedo_detonation_submerged[1];
 	delete torpedo_detonation_surfaced[0];
 	delete torpedo_detonation_surfaced[1];
+	delete logbook_spiral[0];
+	delete logbook_spiral[1];
 }
 
 // returns 1939-1945, 1-12, 1-31
@@ -209,4 +216,25 @@ double get_day_time(double t)
 	if (d < 18*3600) return 2 + (d-6*3600)/(12*3600);	// sundown at 6pm
 	if (d < 19*3600) return 3 + (d-18*3600)/3600;	// night at 7pm
 	return 0 + (d-19*3600)/(10*3600);
+}
+
+void get_date ( double t, unsigned& year, unsigned& month, unsigned& day,
+	unsigned& hour, unsigned& minute, unsigned& second )
+{
+	get_date ( t, year, month, day );
+
+	double sd = fmod ( t, 86400 );
+	hour   = unsigned ( sd / 3600.0f );
+	sd -= hour * 3600.0f;
+	minute = unsigned ( sd / 60.0f );
+	sd -= minute * 60.0f;
+	second = unsigned ( sd );
+}
+
+void get_date ( double t, date& d )
+{
+	unsigned year, month, day, hour, minute, second;
+	get_date ( t, year, month, day, hour, minute, second );
+
+	d = date ( year, month, day, hour, minute, second );
 }

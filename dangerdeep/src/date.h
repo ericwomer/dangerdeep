@@ -10,16 +10,12 @@ using namespace std;
 class date
 {
 public:
-	enum month_type { January, February, March, April, May, June, July, August, September,
-		November, December };
+	enum month_type { January = 1, February, March, April, May, June,
+		July, August, September, November, December };
+	enum date_type { year, month, day, hour, minute, second, last_date_type };
 
 private:
-	/// Year value.
-	int year;
-	/// Month value.
-	int month;
-	/// Day value.
-	int day;
+	unsigned date_values[last_date_type];
 
 	/**
 		Copy the content of object d to the actual object.
@@ -34,28 +30,16 @@ public:
 		@param month month value. Must be a value of type month_type.
 		@param day day value.
 	*/
-	date ( int year = 1939, month_type month = September, int day = 1 );
+	date ( unsigned year = 1939, unsigned month = September, unsigned day = 1,
+		unsigned hour = 0, unsigned minute = 0, unsigned second = 0 );
 	/**
 		Copy constructor.
 		@param d date object which attributes are going to be copied.
 	*/
 	date ( const date& d );
 
-	/**
-		Returns day value.
-		@return day value
-	*/
-	virtual int get_day () const { return day; }
-	/**
-		Returns month value. Be aware that month 0 is January, 11 is December.
-		@return month value
-	*/
-	virtual int get_month () const { return month; }
-	/**
-		Returns year value.
-		@return year value.
-	*/
-	virtual int get_year () const { return year; }
+	virtual unsigned get_value ( date_type dt ) const { return date_values[dt]; }
+	virtual void set_value ( date_type dt, unsigned val ) { date_values[dt] = val; }
 
 	virtual date& operator= ( const date& d );
 	virtual bool operator< ( const date& d ) const;
