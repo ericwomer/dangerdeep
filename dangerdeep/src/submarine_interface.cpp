@@ -26,7 +26,7 @@ using namespace std;
 #include "command.h"
 
 #include "sub_gauges_display.h"
-//#include "sub_periscope_display.h"
+#include "sub_periscope_display.h"
 #include "sub_uzo_display.h"
 #include "sub_bridge_display.h"
 #include "map_display.h"
@@ -41,8 +41,7 @@ submarine_interface::submarine_interface(game& gm) :
 {
 	displays.resize(nr_of_displays);
 	displays[display_mode_gauges] = new sub_gauges_display(*this);
-	displays[display_mode_periscope] = new sub_gauges_display(*this);
-	//displays[display_mode_periscope] = new sub_periscope_display(*this);
+	displays[display_mode_periscope] = new sub_periscope_display(*this);
 	displays[display_mode_uzo] = new sub_uzo_display(*this);
 	displays[display_mode_bridge] = new sub_bridge_display(*this);
 	displays[display_mode_map] = new map_display(*this);
@@ -50,7 +49,6 @@ submarine_interface::submarine_interface(game& gm) :
 	displays[display_mode_damagestatus] = new sub_damage_display(*this);
 	displays[display_mode_logbook] = new captains_logbook_display(*this);
 	displays[display_mode_successes] = new ships_sunk_display(*this);
-//	displays[display_mode_freeview] = new sub_gauges_display(*this);
 	displays[display_mode_freeview] = new freeview_display(*this);
 }
 

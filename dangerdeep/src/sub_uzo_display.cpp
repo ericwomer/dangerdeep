@@ -26,7 +26,8 @@ freeview_display::projection_data sub_uzo_display::get_projection_data(class gam
 	pd.y = system::sys().get_res_y() - system::sys().get_res_x()/2;
 	pd.w = system::sys().get_res_x();
 	pd.h = system::sys().get_res_x()/2;
-	pd.fov_x = zoomed ? 5.0 : 20.0;	//fixme: historic values?
+	// with normal fov of 70 degrees, this is 1.5 / 6.0 magnification
+	pd.fov_x = zoomed ? 13.31 : 50.05;	//fixme: historic values?
 	pd.near_z = 1.0;
 	pd.far_z = gm.get_max_view_distance();
 	return pd;
