@@ -1,4 +1,7 @@
-2003-12-02  Markus Petermann  <markus.petermann@gmx.net>
+2003-12-03  Markus Petermann  <markus.petermann@gmx.net>
+	* src/damageview.cpp: New damageview program.
+
+2003-12-02  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* coastmap.cpp
 	  - map image is used as texture for map quads.
 	  - new Makefiles to fix missing files at install.
