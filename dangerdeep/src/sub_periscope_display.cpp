@@ -7,6 +7,8 @@
 #include "game.h"
 #include "sub_periscope_display.h"
 #include "user_interface.h"
+#include "keys.h"
+#include "cfg.h"
 
 
 

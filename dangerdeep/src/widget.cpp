@@ -868,6 +868,11 @@ void widget_list::on_drag(int mx, int my, int rx, int ry, int mb)
 	on_click(mx, my, mb);
 }
 
+void widget_list::on_wheel(int wd)
+{
+	myscrollbar->on_wheel(wd);
+}
+
 void widget_list::set_column_width(int cw)
 {
 	columnwidth = cw;

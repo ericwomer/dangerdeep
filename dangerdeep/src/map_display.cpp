@@ -12,6 +12,8 @@
 #include "submarine.h"
 #include "airplane.h"
 #include "texts.h"
+#include "keys.h"
+#include "cfg.h"
 #include <sstream>
 using namespace std;
 
@@ -389,9 +391,9 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 			mapoffset.y += -event.motion.yrel / mapzoom;
 		}
 	case SDL_KEYDOWN:
-		if (event.key.keysym.unicode == '+') {
+		if (cfg::instance().getkey(KEY_ZOOM_MAP).equal(event.key.keysym)) {
 			if (mapzoom < 1) mapzoom *= 2;
-		} else if (event.key.keysym.unicode == '-') {
+		} else if (cfg::instance().getkey(KEY_UNZOOM_MAP).equal(event.key.keysym)) {
 			if (mapzoom > 1.0/16384) mapzoom /= 2;
 		}
 		break;

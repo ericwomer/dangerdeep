@@ -8,6 +8,8 @@
 #include "submarine.h"
 #include "sub_uzo_display.h"
 #include "user_interface.h"
+#include "keys.h"
+#include "cfg.h"
 
 
 
@@ -74,16 +76,19 @@ void sub_uzo_display::process_input(class game& gm, const SDL_Event& event)
 	}
 	switch (event.type) {
 	case SDL_KEYDOWN:
-		switch(event.key.keysym.sym) {
-		case SDLK_y: zoomed = !zoomed; return;
-		// filter away keys NP_1...NP_9 to avoid moving viewer like in freeview mode
-		case SDLK_KP8: return;
-		case SDLK_KP2: return;
-		case SDLK_KP4: return;
-		case SDLK_KP6: return;
-		case SDLK_KP1: return;
-		case SDLK_KP3: return;
-		default: break;
+		if (cfg::instance().getkey(KEY_TOGGLE_ZOOM_OF_VIEW).equal(event.key.keysym)) {
+			zoomed = !zoomed;
+		} else {
+			switch(event.key.keysym.sym) {
+				// filter away keys NP_1...NP_9 to avoid moving viewer like in freeview mode
+			case SDLK_KP8: return;
+			case SDLK_KP2: return;
+			case SDLK_KP4: return;
+			case SDLK_KP6: return;
+			case SDLK_KP1: return;
+			case SDLK_KP3: return;
+			default: break;
+			}
 		}
 	default: break;
 	}

@@ -345,6 +345,7 @@ public:
 	void draw(void) const;
 	void on_click(int mx, int my, int mb);
 	void on_drag(int mx, int my, int rx, int ry, int mb);
+	void on_wheel(int wd);
 	virtual void on_sel_change(void) {}
 	void set_column_width(int cw);
 };
