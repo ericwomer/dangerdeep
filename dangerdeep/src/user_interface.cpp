@@ -242,7 +242,7 @@ void user_interface::init ()
 	}
 	
 	// create water bump maps
-	ocean_wave_generator<float> owgb(64, vector2f(1,1), 1, 0.01, 4.0, WATER_BUMPMAP_CYCLE_TIME);
+	ocean_wave_generator<float> owgb(64, vector2f(1,1), 1, 0.001, 4.0, WATER_BUMPMAP_CYCLE_TIME);
 	for (int i = 0; i < WATER_BUMP_FRAMES; ++i) {
 		owgb.set_time(i*WATER_BUMPMAP_CYCLE_TIME/WATER_BUMP_FRAMES);
 		vector<vector3f> n = owgb.compute_normals();
@@ -725,6 +725,9 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 //	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
 //	glDisable(GL_LIGHTING);
 	double timefac = myfmod(t, TIDECYCLE_TIME)/TIDECYCLE_TIME;
+
+	// fixme: use LOD (fft with less resolution) for distance waves
+	// until about 10km to the horizon
 
 	// compute the rasterization of the triangle p0,p1,p2
 	// with p0 = viewer's pos., p1,2 = p0 + viewrange * direction(brearing +,- fov/2)

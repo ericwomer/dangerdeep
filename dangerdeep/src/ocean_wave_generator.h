@@ -106,7 +106,8 @@ T ocean_wave_generator<T>::phillips(const vector2t<T>& K) const
 	T KdotW = K * W;
 	T KdotWhat = KdotW*KdotW/k2;
 	T eterm = exp(-g2 / (k2 * v4)) / k4;
-	T l2 = v4/g2 * T(0.0005);	// damping of very small waves
+	T dampfac = T(1.0/100);
+	T l2 = v4/g2 * dampfac*dampfac;	// damping of very small waves
 	T result = a * eterm * KdotWhat * exp(-k2*l2);
 	if (KdotW < T(0))	// filter out waves moving against the wind
 		result *= T(0.25);
@@ -147,7 +148,7 @@ complex<T> ocean_wave_generator<T>::h_tilde(const vector2t<T>& K, int kx, int ky
 	T wK2 = floor(wK/w0)*w0;
 	// fixme: replace by sin/cos terms? why should i?
 	const complex<T> I(0,-1);
-	return h0_tildeK * exp(I * wK2 * time) + conj(h0_tildemK * exp(-I * wK2 * time));
+	return h0_tildeK * exp(I * wK2 * time) + conj(h0_tildemK) * exp(-I * wK2 * time);
 }
 
 template <class T>
