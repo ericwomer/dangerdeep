@@ -84,6 +84,7 @@ protected:
 	virtual void display_logbook(class system& sys, class game& gm);
 	virtual void display_successes(class system& sys, class game& gm);
 	virtual void display_freeview(class system& sys, class game& gm);
+    virtual void display_glasses(class system& sys, class game& gm);
 
 public:	
 	virtual ~user_interface() {};
