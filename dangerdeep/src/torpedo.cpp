@@ -32,7 +32,6 @@ torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, ang
 	size3d = vector3f(0.533, 7, 0.533);	// diameter 53.3cm (21inch), length ~ 7m
 	run_length = 0;
 	max_speed_forward = velocity.y = get_speed_by_type(type_);
-	cout<<"initla speed " << this << "," << get_speed() << "," <<get_speed_by_type(type_)<<"\n";
 	max_speed_reverse = 0;
 	switch (type_) {
 		case T1:
@@ -127,7 +126,7 @@ void torpedo::save(ostream& out, const class game& g) const
 
 void torpedo::simulate(game& gm, double delta_time)
 {
-	cout << "torpedo " << this << " heading " << heading.value() << " turn speed " << turn_velocity << "\n";
+//	cout << "torpedo " << this << " heading " << heading.value() << " should head to " << head_to.value() << " turn speed " << turn_velocity << "\n";
 
 	ship::simulate(gm, delta_time);
 

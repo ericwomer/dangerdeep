@@ -345,6 +345,11 @@ void ship::simulate(game& gm, double delta_time)
 		double angledist = fabs((heading - head_to).value_pm180());
 		double time_to_pass = (fabs(turn_velocity) < 0.01) ? 1e30 : angledist / fabs(turn_velocity);
 		double time_to_midships = fabs(rudder_pos) / max_rudder_turn_speed;
+
+		//fixme: time_to_ms assumes when rudder is midships again that turn speed is then roughly zero.
+		//this is ok for ships/subs, but not for fast turning objects (torpedoes)
+		//we should rather guess time to brake here! fixme
+
 //cout <<this<<" logic3 angledist " << angledist << " timetopass " << time_to_pass << " time_to_ms " << time_to_midships << "\n";
 		double damping_factor = 0.5;	// set to > 0 to brake earlier, fixme set some value
 		if (time_to_pass < time_to_midships + damping_factor) {
