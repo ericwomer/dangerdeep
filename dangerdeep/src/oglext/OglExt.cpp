@@ -18,8 +18,6 @@
 //
 // This file was automatically generated on November 14, 2003, 4:54 pm
 
-#define	GLAPI __declspec(dllexport)
-
 #include	"OglExt.h"
 #include	"Macros.h"
 

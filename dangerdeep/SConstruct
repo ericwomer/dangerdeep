@@ -30,7 +30,7 @@ if sys.platform == 'win32':
 	gllibs = ['opengl32', 'glu32']
 	sdllibs = ['SDL', 'SDL_image']
 	env.Append(CCFLAGS = '-Wall -O2 -D_REENTRANT') # for mingw!
-	datadir = '.\\data'
+	datadir = './data'
 else:
 	print "Compiling for Unix/Posix/Linux Environment"
 	env = Environment(ENV = os.environ)

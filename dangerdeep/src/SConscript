@@ -67,7 +67,7 @@ oglextsources = Split("""
 
 ############# programs, libs, etc.
 env.StaticLibrary(target = 'dftdmedia', source = dftdmediasources, LIBS = gfxlibs, LIBPATH = libpath)
-globaldataobj = env.StaticObject('global_data.cpp', CPPDEFINES = [('DATADIR', '\\"' + datadir + os.sep + '\\"')])
+globaldataobj = env.StaticObject('global_data.cpp', CPPDEFINES = [('DATADIR', '\\"' + datadir + '/\\"')])
 binary = env.Program(target = 'dangerdeep', source = dftdsources + globaldataobj, LIBS = alllibs, LIBPATH = libpath)
 env.Program('viewmodel', ['viewmodel.cpp', globaldataobj, 'sound.cpp'], LIBS = alllibs, LIBPATH = libpath)
 env.Program('damagemodel', ['damagemodel.cpp', globaldataobj, 'sound.cpp'], LIBS = alllibs, LIBPATH = libpath)
