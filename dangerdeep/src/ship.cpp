@@ -46,7 +46,6 @@ ship::ship(unsigned type_, const vector3& pos, angle heading)
 			length = destroyer_tribal->get_length();
 			width = destroyer_tribal->get_width();
 			myai = new ai(this, ai::escort);
-			myai->search_enemy();	// watch for subs
 			break;
 		case 3:
 			description = "Battleship Malaya class";

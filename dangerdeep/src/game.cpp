@@ -31,6 +31,12 @@ void game::simulate(double delta_t)
 		running = false;
 		return;
 	}
+	
+	if (ships.size() == 0 && torpedoes.size() == 0 && depth_charges.size() == 0 &&
+			airplanes.size() == 0) {
+		running = false;
+		return;
+	}
 
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ) {
 		list<ship*>::iterator it2 = it++;
@@ -104,18 +110,19 @@ void game::dc_explosion(const depth_charge& dc)
 	}
 }
 
-list<sea_object*> game::ping_ASDIC(const vector2& pos, angle dir)
+list<vector3> game::ping_ASDIC(const vector2& pos, angle dir)
 {
 	// remember ping (for drawing)
 	pings.push_back(ping(pos, dir, time));
 	
 	// calculate contacts
-	list<sea_object*> contacts;
+	list<vector3> contacts;
 	
 	// fixme: noise from ships can disturb ASDIC or may generate more contacs.
 	// ocean floor echoes ASDIC etc...
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
 		vector3 subpos = (*it)->get_pos();
+		if (subpos.z >= -2) continue;	// surfaced subs can't be detected
 		double dist = subpos.distance(vector3(pos.x,pos.y,0));
 		if (dist > ASDICRANGE) continue;
 		angle contactangle(subpos.xy() - pos);
@@ -125,12 +132,14 @@ list<sea_object*> game::ping_ASDIC(const vector2& pos, angle dir)
 		angle subtocontactangle = contactangle + angle(180) - (*it)->get_heading();
 		// fixme: a rather crude approximation
 		// fixme: correct values for angle dependency missing
+		// depends on: sub distance, sub angle to ping, sub depth, sub type
 		double probability = (0.3 + 0.7*fabs(subtocontactangle.sin()))
 			* (1.0 - dist/ASDICRANGE)
 			* (1.0-0.5*subpos.z/400.0);
 		// fixme: this value may vary.
+		// fixme: fuzzyness depends on distance
 		if (probability > 0.3+(rand()%10)*0.02)
-			contacts.push_back(*it);
+			contacts.push_back(subpos + vector3(rand()%40-20,rand()%40-20,rand()%40-20));
 	}
 	
 	return contacts;

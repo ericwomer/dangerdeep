@@ -66,7 +66,9 @@ void menu_convoy_battle(void)
                         	test->spawn_ship(s2);
 				s2 = new ship(2, vector3(-400,-450,0));
 				s2->get_ai()->follow(s);
-				s2->get_ai()->search_enemy();
+                        	test->spawn_ship(s2);
+				s2 = new ship(2, vector3(-800,-850,0));
+				s2->get_ai()->follow(s);
                         	test->spawn_ship(s2);
 				test->main_playloop(*sys);
 				delete test;

@@ -73,7 +73,7 @@ public:
 
 	// actions important to simulation
 	void dc_explosion(const depth_charge& dc);
-	list<sea_object*> ping_ASDIC(const vector2& pos, angle dir);	// returns contacts
+	list<vector3> ping_ASDIC(const vector2& pos, angle dir);	// returns contacts
 	const list<ping>& get_pings(void) const { return pings; };
 	
 	ship* ship_in_direction_from_pos(const vector2& pos, angle direction);

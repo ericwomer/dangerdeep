@@ -4,28 +4,25 @@
 #include "ai.h"
 #include "game.h"
 
-void ai::search_enemy(void)
+void ai::relax(void)
 {
-	if (state != attackenemy)
-		state = searchenemy;
+	has_contact = false;
+	state = (followme != 0) ? followobject : followpath;
+	parent->set_throttle(sea_object::aheadsonar);
 }
 
-void ai::attack(sea_object* t)
+void ai::attack_contact(const vector3& c)
 {
-	target = t;
-	if (target != 0) {
-		state = attackenemy;
-		parent->set_throttle(sea_object::aheadflank);
-	} else {
-		state = searchenemy;
-		parent->set_throttle(sea_object::aheadsonar);
-	}
+	has_contact = true;
+	contact = c;
+	state = attackcontact;
+	parent->set_throttle(sea_object::aheadflank);
 }
 
 void ai::follow(sea_object* t)
 {
-	target = t;
-	state = followtarget;
+	followme = t;
+	state = (followme != 0) ? followobject : followpath;
 }
 
 void ai::act(class game& gm, double delta_time)
@@ -62,61 +59,38 @@ void ai::set_zigzag(bool stat)
 
 void ai::act_escort(game& gm, double delta_time)
 {
-	if (state == followpath || state == followtarget) {
-		act_dumb(gm, delta_time);
-	} else if (state == searchenemy) {	// search activly for subs
-		// watch around	
-		list<submarine*> subs = gm.get_submarines();
-		double dist = AI_AWARENESS_DISTANCE;
-		for (list<submarine*>::iterator it = subs.begin(); it != subs.end(); ++it) {
-			double d = (*it)->get_pos().xy().distance(parent->get_pos().xy());
-			if (d < dist) {
-				if (!parent->can_see(*it)) continue;
-				attack(*it);
-			}
-		}
-		if (state == attackenemy) return;	// further actions next turn
-		
-		// ping around to find something
-		list<sea_object*> contacts = gm.ping_ASDIC(parent->get_pos().xy(),
-			parent->get_heading()+angle(rand()%360));	//fixme
-		if (contacts.size() > 0) {
-			// fixme: add noise to position!
-			// fixme: choose best contact!
-			attack(contacts.front());
-			return;
-		}
-		
-		// nothing found?
-		state = (target != 0) ? followtarget : followpath;
-		act_dumb(gm, delta_time);
-		state = searchenemy;
-
-	} else if (state == attackenemy) {	// attack target
-/*
-		if (!parent->can_see(target)) {
-			target = 0;
-			state = searchenemy;
-			return;
-		}
-*/		
-		set_course_to_target();
-		if (target->get_pos().xy().distance(parent->get_pos().xy()) < 100) {
-			gm.spawn_depth_charge(new depth_charge(*parent, -target->get_pos().z));
-			// fixme: just ai hacking/testing.
-			// after spawning a DC start pinging again.
-			if (!parent->can_see(target)) {
-				target = 0;
-				state = searchenemy;
-				return;
-			}
+	// always watch out/listen/ping for the enemy
+	// watch around	
+	list<submarine*> subs = gm.get_submarines();
+	double dist = AI_AWARENESS_DISTANCE;
+	for (list<submarine*>::iterator it = subs.begin(); it != subs.end(); ++it) {
+		double d = (*it)->get_pos().xy().distance(parent->get_pos().xy());
+		if (d < dist) {
+			if (!parent->can_see(*it)) continue;
+			attack_contact((*it)->get_pos());
 		}
 	}
-}
+	if (state != attackcontact) {	// nothing found? try a ping or listen
+		// ping around to find something
+		list<vector3> contacts = gm.ping_ASDIC(parent->get_pos().xy(),
+			parent->get_heading()+angle(rand()%360));	//fixme
+		if (contacts.size() > 0) {
+			// fixme: choose best contact!
+			attack_contact(contacts.front());
+		}
+	}
 
-void ai::set_course_to_target(void)
-{
-	set_course_to_pos(target->get_pos().xy());
+	if (state == followpath || state == followobject) {
+		act_dumb(gm, delta_time);
+	} else if (state == attackcontact) {	// attack sonar/visible contact
+		set_course_to_pos(contact.xy());
+		if (contact.xy().distance(parent->get_pos().xy()) < DC_ATTACK_RADIUS) {
+			gm.spawn_depth_charge(new depth_charge(*parent, -contact.z));
+			// fixme: just ai hacking/testing.
+			// after spawning a DC start pinging again.
+			relax();
+		}
+	}
 }
 
 void ai::set_course_to_pos(const vector2& pos)
@@ -155,12 +129,12 @@ void ai::set_course_to_pos(const vector2& pos)
 
 void ai::act_dumb(game& gm, double delta_time)
 {
-	if (state == followtarget) {
-		set_course_to_target();
+	if (state == followobject && followme != 0) {
+		set_course_to_pos(followme->get_pos().xy());
 	} else if (state == followpath) {
 		if (waypoints.size() > 0) {
 			set_course_to_pos(waypoints.front());
-			if (parent->get_pos().xy().square_distance(waypoints.front()) < WPEXACTNESS*WPEXACTNESS) {
+			if (parent->get_pos().xy().distance(waypoints.front()) < WPEXACTNESS) {
 				if (cyclewaypoints)
 					waypoints.push_back(waypoints.front());
 				waypoints.erase(waypoints.begin());
