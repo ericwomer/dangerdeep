@@ -11,6 +11,8 @@ class model;
 
 class ships_sunk_display : public user_display
 {
+	//fixme: class game already stores data about sunken ships!
+	//display that data, don't store own data!!!
 	class destroyed_object
 	{
 		string mdl;

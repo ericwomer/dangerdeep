@@ -1002,7 +1002,7 @@ bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 void game::torp_explode(const vector3& pos)
 {
 	spawn_water_splash ( new torpedo_water_splash ( pos ) );
-	if (ui) ui->play_sound_effect_distance ( ui->se_torpedo_detonation,
+	if (ui) ui->play_sound_effect_distance (*this, ui->se_torpedo_detonation,
 		player->get_pos ().distance ( pos ) );
 }
 
@@ -1011,8 +1011,10 @@ void game::ship_sunk( const ship* s )
 	if (ui) ui->add_message ( texts::get(83) );
 	ostringstream oss;
 	oss << texts::get(83) << " " << s->get_description ( 2 );
-	if (ui) ui->add_captains_log_entry( *this, oss.str () );
-	if (ui) ui->record_sunk_ship ( s );
+	// fixme: handle log/sunken ship record as part of class game
+	// let ui display this data, not record that itself
+//	if (ui) ui->add_captains_log_entry( *this, oss.str () );
+//	if (ui) ui->record_sunk_ship ( s );
 	date d((unsigned)time);
 	sunken_ships.push_back(sink_record(d, s->get_description(2),
 		s->get_tonnage()));

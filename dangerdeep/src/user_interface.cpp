@@ -18,16 +18,13 @@
 #include "game.h"
 #include "texts.h"
 #include "sound.h"
-#include "logbook.h"
 #include "model.h"
 #include "airplane.h"
 #include "depth_charge.h"
 #include "gun_shell.h"
 #include "water_splash.h"
-#include "ships_sunk_display.h"
 #include "vector3.h"
 #include "widget.h"
-#include "tokencodes.h"
 #include "command.h"
 #include "submarine_interface.h"
 //#include "ship_interface.h"
@@ -54,11 +51,11 @@ using namespace std;
 	sake. The effect shouldn't be noticeable.
 */
 
-user_interface::user_interface(sea_object* player, game& gm) :
-	pause(false), time_scale(1), player_object ( player ),
-	panel_visible(true), bearing(0), elevation(0),
-	viewmode(4), target(0), zoom_scope(false), mapzoom(0.1), mysky(0), mywater(0),
-	mycoastmap(get_map_dir() + "default.xml"), freeviewsideang(0), freeviewupang(0), freeviewpos()
+user_interface::user_interface(game& gm) :
+	pause(false), time_scale(1),
+	panel_visible(true),
+	current_display(0), target(0), mysky(0), mywater(0),
+	mycoastmap(get_map_dir() + "default.xml")
 {
 	init(gm);
 	panel = new widget(0, 768-128, 1024, 128, "", 0, panelbackgroundimg);
@@ -94,21 +91,14 @@ user_interface::~user_interface ()
 
 	delete panel;
 
-	delete captains_logbook;
-	delete ships_sunk_disp;
-
 	delete mysky;
 	delete mywater;
 }
 
 void user_interface::init(game& gm)
 {
-	// if the constructors of these classes may ever fail, we should use C++ exceptions.
-	captains_logbook = new captains_logbook_display(gm);
-	ships_sunk_disp = new ships_sunk_display(gm);
-
 	mysky = new sky();
-	mywater = new class water(128, 128, 0.0);
+	mywater = new class water(128, 128, 0.0);//fixme: make detail configureable
 }
 
 /* 2003/07/04 idea.
@@ -214,16 +204,17 @@ void user_interface::draw_infopanel(class game& gm) const
 {
 	if (panel_visible) {
 		ostringstream os0;
-		os0 << setw(3) << left << get_player()->get_heading().ui_value();
+		os0 << setw(3) << left << gm.get_player()->get_heading().ui_value();
 		panel_valuetexts[0]->set_text(os0.str());
 		ostringstream os1;
-		os1 << setw(3) << left << unsigned(fabs(round(sea_object::ms2kts(get_player()->get_speed()))));
+		os1 << setw(3) << left << unsigned(fabs(round(sea_object::ms2kts(gm.get_player()->get_speed()))));
 		panel_valuetexts[1]->set_text(os1.str());
 		ostringstream os2;
-		os2 << setw(3) << left << unsigned(round(-get_player()->get_pos().z));
+		os2 << setw(3) << left << unsigned(round(-gm.get_player()->get_pos().z));
 		panel_valuetexts[2]->set_text(os2.str());
 		ostringstream os3;
-		os3 << setw(3) << left << bearing.ui_value();
+		//fixme: make bearing common value!
+//		os3 << setw(3) << left << bearing.ui_value();
 		panel_valuetexts[3]->set_text(os3.str());
 		ostringstream os4;
 		os4 << setw(3) << left << time_scale;
@@ -237,201 +228,17 @@ void user_interface::draw_infopanel(class game& gm) const
 }
 
 
-void user_interface::draw_gauge(class game& gm,
-	unsigned nr, int x, int y, unsigned wh, angle a, const string& text, angle a2) const
-{
-	set_display_color ( gm );
-	switch (nr) {
-		case 1:	gauge1->draw(x, y, wh, wh); break;
-		case 2:	gauge2->draw(x, y, wh, wh); break;
-		case 3:	gauge3->draw(x, y, wh, wh); break;
-		case 4:	gauge4->draw(x, y, wh, wh); break;
-		default: return;
-	}
-	vector2 d = a.direction();
-	int xx = x+wh/2, yy = y+wh/2;
-	pair<unsigned, unsigned> twh = font_arial->get_size(text);
-
-	color font_color ( 255, 255, 255 );
-	if ( !gm.is_day_mode () )
-		font_color = color ( 255, 127, 127 );
-
-	font_arial->print(xx-twh.first/2, yy-twh.second/2, text, font_color);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	if (a2 != a) {
-		vector2 d2 = a2.direction();
-		glColor3f(0.2,0.8,1);
-		glBegin(GL_LINES);
-		glVertex2i(xx, yy);
-		glVertex2i(xx + int(d2.x*wh*3/8),yy - int(d2.y*wh*3/8));
-		glEnd();
-	}
-	glColor3f(1,0,0);
-	glBegin(GL_TRIANGLES);
-	glVertex2i(xx - int(d.y*4),yy - int(d.x*4));
-	glVertex2i(xx + int(d.y*4),yy + int(d.x*4));
-	glVertex2i(xx + int(d.x*wh*3/8),yy - int(d.y*wh*3/8));
-	glEnd();
-	glColor3f(1,1,1);
-}
-
-void user_interface::draw_clock(class game& gm,
-	int x, int y, unsigned wh, double t, const string& text) const
-{
-	unsigned seconds = unsigned(fmod(t, 86400));
-	unsigned minutes = seconds / 60;
-	bool is_day_mode = gm.is_day_mode ();
-
-	set_display_color ( gm );
-	if (minutes < 12*60)
-		clock12->draw(x, y, wh, wh);
-	else
-		clock24->draw(x, y, wh, wh);
-	minutes %= 12*60;
-	int xx = x+wh/2, yy = y+wh/2;
-	pair<unsigned, unsigned> twh = font_arial->get_size(text);
-
-	color font_color ( 255, 255, 255 );
-	if ( !is_day_mode )
-		font_color = color ( 255, 127, 127 );
-
-	font_arial->print(xx-twh.first/2, yy-twh.second/2, text, font_color);
-	vector2 d;
-	int l;
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBegin(GL_TRIANGLES);
-
-	d = (angle(minutes * 360 / (12*60))).direction();
-	l = wh/4;
-	if ( is_day_mode )
-		glColor3f(0,0,0.5);
-	else
-		glColor3f ( 0.5f, 0.0f, 0.5f );
-	glVertex2i(xx - int(d.y*4),yy - int(d.x*4));
-	glVertex2i(xx + int(d.y*4),yy + int(d.x*4));
-	glVertex2i(xx + int(d.x*l),yy - int(d.y*l));
-
-	d = (angle((minutes%60) * 360 / 60)).direction();
-	l = wh*3/8;
-	if ( is_day_mode )
-		glColor3f(0,0,1);
-	else
-		glColor3f ( 0.5f, 0.0f, 1.0f );
-	glVertex2i(xx - int(d.y*4),yy - int(d.x*4));
-	glVertex2i(xx + int(d.y*4),yy + int(d.x*4));
-	glVertex2i(xx + int(d.x*l),yy - int(d.y*l));
-
-	d = (angle((seconds%60) * 360 / 60)).direction();
-	l = wh*7/16;
-	glColor3f(1,0,0);
-	glVertex2i(xx - int(d.y*4),yy - int(d.x*4));
-	glVertex2i(xx + int(d.y*4),yy + int(d.x*4));
-	glVertex2i(xx + int(d.x*l),yy - int(d.y*l));
-
-	glEnd();
-	glColor3f(1,1,1);
-}
-
-void user_interface::display_logbook(game& gm)
-{
-	class system& sys = system::sys();
-
-	// glClearColor ( 0.5f, 0.25f, 0.25f, 0 );
-	glClearColor ( 0, 0, 0, 0 );
-	glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	sys.prepare_2d_drawing ();
-	captains_logbook->display ( gm );
-	draw_infopanel ( gm );
-	sys.unprepare_2d_drawing ();
-
-	// mouse processing;
-	int mx;
-	int my;
-	int mb = sys.get_mouse_buttons();
-	sys.get_mouse_position(mx, my);
-	if ( mb & sys.left_button )
-		captains_logbook->check_mouse ( mx, my, mb );
-
-	// keyboard processing
-	int key = sys.get_key().sym;
-	while (key != 0) {
-		if (!keyboard_common(key, gm)) {
-			// specific keyboard processing
-			captains_logbook->check_key ( key, gm );
-		}
-		key = sys.get_key().sym;
-	}
-}
-
-void user_interface::display_successes(game& gm)
-{
-	class system& sys = system::sys();
-
-	// glClearColor ( 0, 0, 0, 0 );
-	// glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	sys.prepare_2d_drawing ();
-	ships_sunk_disp->display ( gm );
-	draw_infopanel ( gm );
-	sys.unprepare_2d_drawing ();
-
-	// keyboard processing
-	int key = sys.get_key ().sym;
-	while ( key != 0 )
-	{
-		if ( !keyboard_common ( key, gm ) )
-		{
-			// specific keyboard processing
-			ships_sunk_disp->check_key ( key, gm );
-		}
-		key = sys.get_key ().sym;
-	}
-}
-
-#ifdef OLD
-void user_interface::display_successes(game& gm)
-{
-	class system& sys = system::sys();
-
-	glClearColor(0.25, 0.25, 0.25, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	sys.prepare_2d_drawing();
-	font_arial->print(0, 0, "success records - fixme");
-	font_arial->print(0, 100, "Ships sunk\n----------\n");
-	unsigned ships = 0, tons = 0;
-	for (list<unsigned>::const_iterator it = tonnage_sunk.begin(); it != tonnage_sunk.end(); ++it) {
-		++ships;
-		char tmp[20];
-		sprintf(tmp, "%u BRT", *it);
-		font_arial->print(0, 100+(ships+2)*font_arial->get_height(), tmp);
-		tons += *it;
-	}
-	char tmp[40];
-	sprintf(tmp, "total: %u BRT", tons);
-	font_arial->print(0, 100+(ships+4)*font_arial->get_height(), tmp);
-	sys.unprepare_2d_drawing();
-
-	// keyboard processing
-	int key = sys.get_key().sym;
-	while (key != 0) {
-		if (!keyboard_common(key, gm)) {
-			// specific keyboard processing
-		}
-		key = sys.get_key().sym;
-	}
-}
-#endif // OLD
-
+/*
 void user_interface::add_message(const string& s)
 {
 	panel_messages->append_entry(s);
 	if (panel_messages->get_listsize() > panel_messages->get_nr_of_visible_entries())
 		panel_messages->delete_entry(0);
-/*
+///
 	panel_texts.push_back(s);
 	if (panel_texts.size() > 1+MAX_PANEL_SIZE/font_arial->get_height())
 		panel_texts.pop_front();
-*/		
+///		
 }
 
 void user_interface::add_rudder_message()
@@ -457,6 +264,7 @@ void user_interface::add_rudder_message()
             break;
     }
 }
+*/
 
 #define DAY_MODE_COLOR() glColor3f ( 1.0f, 1.0f, 1.0f )
 
@@ -483,7 +291,7 @@ void user_interface::set_display_color ( const class game& gm ) const
 		NIGHT_MODE_COLOR ();
 }
 
-sound* user_interface::get_sound_effect ( sound_effect se ) const
+sound* user_interface::get_sound_effect ( game& gm, sound_effect se ) const
 {
 	sound* s = 0;
 
@@ -494,7 +302,7 @@ sound* user_interface::get_sound_effect ( sound_effect se ) const
 			break;
 		case se_torpedo_detonation:
 			{
-				submarine* sub = dynamic_cast<submarine*>( player_object );
+				submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 
 				if ( sub && sub->is_submerged () )
 				{
@@ -519,22 +327,23 @@ sound* user_interface::get_sound_effect ( sound_effect se ) const
 	return s;
 }
 
-void user_interface::play_sound_effect ( sound_effect se, double volume ) const
+void user_interface::play_sound_effect ( game& gm, sound_effect se, double volume ) const
 {
-	sound* s = get_sound_effect ( se );
+	sound* s = get_sound_effect ( gm, se );
 
 	if ( s )
 		s->play ( volume );
 }
 
-void user_interface::play_sound_effect_distance ( sound_effect se, double distance ) const
+void user_interface::play_sound_effect_distance ( game& gm, sound_effect se, double distance ) const
 {
-	sound* s = get_sound_effect ( se );
+	sound* s = get_sound_effect ( gm, se );
 
 	if ( s )
-		s->play ( ( 1.0f - player_object->get_noise_factor () ) * exp ( - distance / 3000.0f ) );
+		s->play ( ( 1.0f - gm.get_player()->get_noise_factor () ) * exp ( - distance / 3000.0f ) );
 }
 
+/*
 void user_interface::add_captains_log_entry ( class game& gm, const string& s)
 {
 	date d(unsigned(gm.get_time()));
@@ -547,35 +356,5 @@ inline void user_interface::record_sunk_ship ( const ship* so )
 {
 	ships_sunk_disp->add_sunk_ship ( so );
 }
+*/
 
-void user_interface::draw_manometer_gauge ( class game& gm,
-	unsigned nr, int x, int y, unsigned wh, float value, const string& text) const
-{
-	set_display_color ( gm );
-	switch (nr)
-	{
-		case 1:
-			gauge5->draw ( x, y, wh, wh / 2 );
-			break;
-		default:
-			return;
-	}
-	angle a ( 292.5f + 135.0f * value );
-	vector2 d = a.direction ();
-	int xx = x + wh / 2, yy = y + wh / 2;
-	pair<unsigned, unsigned> twh = font_arial->get_size(text);
-
-	// Draw text.
-	color font_color ( 0, 0, 0 );
-	font_arial->print ( xx - twh.first / 2, yy - twh.second / 2 - wh / 6,
-		text, font_color );
-
-	// Draw pointer.
-	glColor3f ( 0.0f, 0.0f, 0.0f );
-	glBindTexture ( GL_TEXTURE_2D, 0 );
-	glBegin ( GL_LINES );
-	glVertex2i ( xx + int ( d.x * wh / 16 ), yy - int ( d.y * wh / 16 ) );
-	glVertex2i ( xx + int ( d.x * wh * 3 / 8 ), yy - int ( d.y * wh * 3 / 8 ) );
-	glEnd ();
-	glColor3f ( 1.0f, 1.0f, 1.0f );
-}
