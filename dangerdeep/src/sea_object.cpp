@@ -129,6 +129,8 @@ bool sea_object::is_collision(const sea_object* other)
 	bool solved = (pos - other_pos).solve(-headdir, other_headdir, s, t);
 	if (solved) {
 		// quick hack. je mehr heading/other.heading unterschiedlich sind, desto besser
+		// 3.7.03: ich hatte da doch mal ne neue Funktion geschrieben!!!
+		// hat die cvs problematik auch die gefressen?????
 		return (fabs(s) <= length/2 + width/2 && fabs(t) <= other->length/2 + other->width/2);
 	}
 	return false;

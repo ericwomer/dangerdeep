@@ -39,10 +39,8 @@ model::model(const string& filename) : tex(0)
 
 void model::read(const string& filename)
 {
-	vcoords.clear();
-	vtexcoords.clear();
-	vnormals.clear();
-	facevalues.clear();
+	vertices.clear();
+	faces.clear();
 	FILE* f = fopen(filename.c_str(), "rb");
 	system::sys()->myassert(f, string("model: failed to open")+filename);
 	char tmp[16];
@@ -72,10 +70,8 @@ void model::read(const string& filename)
 	unsigned nrv = 0, nrf = 0;
 	fread(&nrv, 4, 1, f);
 	fread(&nrf, 4, 1, f);
-	vcoords.reserve(nrv);
-	vnormals.reserve(nrv);
-	vtexcoords.reserve(nrv);
-	facevalues.reserve(3*nrf);
+	vertices.reserve(nrv);
+	faces.reserve(nrf);
 	float tmpf[3];
 	fread(tmpf, sizeof(float), 3, f);
 	min.x = tmpf[0];
@@ -87,26 +83,25 @@ void model::read(const string& filename)
 	max.z = tmpf[2];
 	int indexsize = (nrf < 256) ? 1 : ((nrf < 65536) ? 2 : ((nrf < 16777216) ? 3 : 4 ));
 	for ( ; nrv > 0; --nrv) {
-		vcoords.push_back(vector3(
+		vector3f pos(
 			read_quantified_float(f, min.x, max.x),
 			read_quantified_float(f, min.y, max.y),
-			read_quantified_float(f, min.z, max.z) ));
-		vnormals.push_back(vector3(
+			read_quantified_float(f, min.z, max.z) );
+		vector3f normal(
 			read_packed_float(f),
 			read_packed_float(f),
-			read_packed_float(f) ));
-		vtexcoords.push_back(vector2(
+			read_packed_float(f) );
+		vector2f uv(
 			read_packed_float(f),
-			read_packed_float(f) ));
+			read_packed_float(f) );
+		vertices.push_back(vertex(uv, normal, pos));
 	}
 	for ( ; nrf > 0; --nrf) {
 		unsigned v0 = 0, v1 = 0, v2 = 0;
 		fread(&v0, indexsize, 1, f);
 		fread(&v1, indexsize, 1, f);
 		fread(&v2, indexsize, 1, f);
-		facevalues.push_back(v0);
-		facevalues.push_back(v1);
-		facevalues.push_back(v2);
+		faces.push_back(face(v0, v1, v2));
 	}
 	fclose(f);
 	class system* s = system::sys();	// needed for double use via off2mdl
@@ -120,8 +115,8 @@ void model::read_from_OFF(const string& filename, const string& texture_name, un
 	double TILESY = tilesy;
 	texmapping = mapping;
 	clamp = (tilesx == 1 && tilesy == 1);
-	max = vector3(-1e10, -1e10, -1e10);
-	min = vector3(1e10, 1e10, 1e10);
+	max = vector3f(-1e10, -1e10, -1e10);
+	min = vector3f(1e10, 1e10, 1e10);
 	int nr_vertices = 0, nr_faces = 0;
 	FILE *f = fopen(filename.c_str(), "rb");
 	system::sys()->myassert(f, string("model: failed to open")+filename);
@@ -139,49 +134,44 @@ void model::read_from_OFF(const string& filename, const string& texture_name, un
 		fscanf(f, "OFFUV\n%i %i %i\n", &nr_vertices, &nr_faces, &i);
 	else
 		fscanf(f, "OFF\n%i %i %i\n", &nr_vertices, &nr_faces, &i);
-	vcoords.reserve(nr_vertices);
-	vnormals.resize(nr_vertices);
-	vtexcoords.reserve(nr_vertices);
-	facevalues.reserve(3*nr_faces);
+	vertices.reserve(nr_vertices);
+	faces.reserve(nr_faces);
 	for (i = 0; i < nr_vertices; i++) {
 		float a, b, c, d = 0, e = 0;
 		if (withuv)
 			fscanf(f, "%f %f %f %f %f\n", &a, &b, &c, &d, &e);
 		else
 			fscanf(f, "%f %f %f\n", &a, &b, &c);
-		vector3 abc(a,b,c);
-		vcoords.push_back(abc);
-		vtexcoords.push_back(vector2(d, e));
+		vector3f abc(a,b,c);
+		vertices.push_back(vertex(vector2f(d, e), vector3f(), abc));
 		min = abc.min(min);
 		max = abc.max(max);
 	}
-	vector3 deltamaxmin = max - min;
-	// vector3 center = max * 0.5 + min * 0.5; Unused variable
+	vector3f deltamaxmin = max - min;
+	// vector3f center = max * 0.5 + min * 0.5; Unused variable
 	if (!withuv) {
 		for (i = 0; i < nr_vertices; i++) {
-			vtexcoords[i].x = TILESX*(vcoords[i].y - min.y)/deltamaxmin.y;
-			vtexcoords[i].y = TILESY*(1.0 - (vcoords[i].z - min.z)/deltamaxmin.z);
+			vertices[i].uv.x = TILESX*(vertices[i].pos.y - min.y)/deltamaxmin.y;
+			vertices[i].uv.y = TILESY*(1.0 - (vertices[i].pos.z - min.z)/deltamaxmin.z);
 		}
 	}
 	for (i = 0; i < nr_faces; i++) {
 		unsigned fv0, fv1, fv2;
 		fscanf(f, "%i %i %i %i\n", &j, &fv0, &fv1, &fv2);
-		facevalues.push_back(fv0);
-		facevalues.push_back(fv1);
-		facevalues.push_back(fv2);
+		faces.push_back(face(fv0, fv1, fv2));
 		system::sys()->myassert(j==3, string("model: face has != 3 edges")+filename);
 		// calculate face normal.
-		const vector3& v0 = vcoords[facevalues[3*i+0]];
-		const vector3& v1 = vcoords[facevalues[3*i+1]];
-		const vector3& v2 = vcoords[facevalues[3*i+2]];
-		vector3 face_normal = (v1-v0).orthogonal(v2-v0).normal();
-		vnormals[facevalues[3*i+0]] += face_normal;
-		vnormals[facevalues[3*i+1]] += face_normal;
-		vnormals[facevalues[3*i+2]] += face_normal;
+		const vector3f& v0 = vertices[faces[i].v[0]].pos;
+		const vector3f& v1 = vertices[faces[i].v[1]].pos;
+		const vector3f& v2 = vertices[faces[i].v[2]].pos;
+		vector3f face_normal = (v1-v0).orthogonal(v2-v0).normal();
+		vertices[faces[i].v[0]].normal += face_normal;
+		vertices[faces[i].v[1]].normal += face_normal;
+		vertices[faces[i].v[2]].normal += face_normal;
 	}
 	// calculate vertex normals
 	for (i = 0; i < nr_vertices; i++) {
-		vnormals[i].normalize();
+		vertices[i].normal.normalize();
 	}
 	fclose(f);
 	
@@ -208,7 +198,7 @@ void model::write(const string& filename) const
 	unsigned txm = texmapping;
 	if (!clamp) txm |= 0x80;
 	fwrite(&txm, 1, 1, f);
-	unsigned nrv = vcoords.size(), nrf = facevalues.size()/3;
+	unsigned nrv = vertices.size(), nrf = faces.size();
 	fwrite(&nrv, 4, 1, f);
 	fwrite(&nrf, 4, 1, f);
 	float tmpf[3];
@@ -222,40 +212,36 @@ void model::write(const string& filename) const
 	fwrite(&tmpf, sizeof(float), 3, f);
 	int indexsize = (nrf < 256) ? 1 : ((nrf < 65536) ? 2 : ((nrf < 16777216) ? 3 : 4 ));
 	for (unsigned i = 0; i < nrv; ++i) {
-		write_quantified_float(f, vcoords[i].x, min.x, max.x);
-		write_quantified_float(f, vcoords[i].y, min.y, max.y);
-		write_quantified_float(f, vcoords[i].z, min.z, max.z);
-		write_packed_float(f, vnormals[i].x);
-		write_packed_float(f, vnormals[i].y);
-		write_packed_float(f, vnormals[i].z);
-		write_packed_float(f, vtexcoords[i].x);
-		write_packed_float(f, vtexcoords[i].y);
+		write_quantified_float(f, vertices[i].pos.x, min.x, max.x);
+		write_quantified_float(f, vertices[i].pos.y, min.y, max.y);
+		write_quantified_float(f, vertices[i].pos.z, min.z, max.z);
+		write_packed_float(f, vertices[i].normal.x);
+		write_packed_float(f, vertices[i].normal.y);
+		write_packed_float(f, vertices[i].normal.z);
+		write_packed_float(f, vertices[i].uv.x);
+		write_packed_float(f, vertices[i].uv.y);
 	}
 	for (unsigned i = 0; i < nrf; ++i) {
-		fwrite(&(facevalues[3*i+0]), indexsize, 1, f);
-		fwrite(&(facevalues[3*i+1]), indexsize, 1, f);
-		fwrite(&(facevalues[3*i+2]), indexsize, 1, f);
+		fwrite(&(faces[i].v[0]), indexsize, 1, f);
+		fwrite(&(faces[i].v[1]), indexsize, 1, f);
+		fwrite(&(faces[i].v[2]), indexsize, 1, f);
 	}
 	fclose(f);
 }
 		
 void model::display(bool with_texture) const
 {
-	// fixme use Vertex Arrays (or display lists, or both)
+	// further speedup with display lists possible or sensible?
 	if (with_texture && tex != 0)
 		glBindTexture(GL_TEXTURE_2D, tex->get_opengl_name());
 	else
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glVertexPointer(3, GL_DOUBLE, 0, &(vcoords[0]));
-	glNormalPointer(GL_DOUBLE, 0, &(vnormals[0]));
-	glTexCoordPointer(2, GL_DOUBLE, 0, &(vtexcoords[0]));
+	glInterleavedArrays(GL_T2F_N3F_V3F, 0, &vertices[0]);
 
-	glDrawElements(GL_TRIANGLES, facevalues.size(), GL_UNSIGNED_INT, &facevalues[0]);
+	glDrawElements(GL_TRIANGLES, faces.size()*3, GL_UNSIGNED_INT, &faces[0]);
 
+	// is this needed? fixme: check open gl redbook
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);

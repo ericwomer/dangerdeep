@@ -1,5 +1,5 @@
 //
-//  A 2d vector3 (C)+(W) 2001 Thorsten Jordan
+//  A 2d vector (C)+(W) 2001 Thorsten Jordan
 //
 
 #ifndef VECTOR2_H
@@ -9,36 +9,50 @@
 #include <iostream>
 using namespace std;
 
-class vector2
+template <class D2> class vector3t;
+
+template <class D>
+class vector2t
 {
 	public:
-	double x, y;
+	D x, y;
 
-	vector2() : x(0), y(0) {};
-	vector2(const double &x_, const double &y_) : x(x_), y(y_) {};
-	vector2 normal(void) const { double len = double(1.0/length()); return vector2(x * len, y * len); };
-	void normalize(void) { double len = 1.0/length(); x *= len; y *= len; };
-	vector2 orthogonal(void) const { return vector2(-y, x); };
-	vector2 operator* (const double &scalar) const { return vector2(x * scalar, y * scalar); };
-	vector2 operator+ (const vector2 &other) const { return vector2(x + other.x, y + other.y); };
-	vector2 operator- (const vector2 &other) const { return vector2(x - other.x, y - other.y); };
-	vector2 operator- (void) const { return vector2(-x, -y); };
-	vector2& operator+= (const vector2& other) { x += other.x; y += other.y; return *this; };
-	vector2& operator-= (const vector2& other) { x -= other.x; y -= other.y; return *this; };
-	vector2 min(const vector2& other) { return vector2(x < other.x ? x : other.x, y < other.y ? y : other.y); };
-	vector2 max(const vector2& other) { return vector2(x > other.x ? x : other.x, y > other.y ? y : other.y); };
-	bool operator== (const vector2& other) const { return x == other.x && y == other.y; };
-	double square_length(void) const { return x * x + y * y; };
-	double length(void) const { return double(sqrt(x * x + y * y)); };
-	double square_distance(const vector2 &other) const { vector2 n = *this - other; return n.square_length(); };
-	double distance(const vector2 &other) const { vector2 n = *this - other; return n.length(); };
-	double operator* (const vector2 &other) const { return x * other.x + y * other.y; };
-	bool solve(const vector2 &o1, const vector2 &o2, double &s1, double &s2) const;
-	class vector3 xy0(void) const;
-	friend ostream& operator<< ( ostream& os, const vector2& v );
+	vector2t() : x(0), y(0) {};
+	vector2t(const D &x_, const D &y_) : x(x_), y(y_) {};
+	vector2t<D> normal(void) const { D len = D(1.0)/length(); return vector2t(x * len, y * len); };
+	void normalize(void) { D len = D(1.0)/length(); x *= len; y *= len; };
+	vector2t<D> orthogonal(void) const { return vector2t(-y, x); };
+	vector2t<D> operator* (const D &scalar) const { return vector2t(x * scalar, y * scalar); };
+	vector2t<D> operator+ (const vector2t<D>& other) const { return vector2t(x + other.x, y + other.y); };
+	vector2t<D> operator- (const vector2t<D>& other) const { return vector2t(x - other.x, y - other.y); };
+	vector2t<D> operator- (void) const { return vector2t(-x, -y); };
+	vector2t<D>& operator+= (const vector2t<D>& other) { x += other.x; y += other.y; return *this; };
+	vector2t<D>& operator-= (const vector2t<D>& other) { x -= other.x; y -= other.y; return *this; };
+	vector2t<D> min(const vector2t<D>& other) { return vector2t(x < other.x ? x : other.x, y < other.y ? y : other.y); };
+	vector2t<D> max(const vector2t<D>& other) { return vector2t(x > other.x ? x : other.x, y > other.y ? y : other.y); };
+	bool operator== (const vector2t<D>& other) const { return x == other.x && y == other.y; };
+	D square_length(void) const { return x * x + y * y; };
+	D length(void) const { return D(sqrt(x * x + y * y)); };
+	D square_distance(const vector2t<D>& other) const { vector2t<D> n = *this - other; return n.square_length(); };
+	D distance(const vector2t<D>& other) const { vector2t<D> n = *this - other; return n.length(); };
+	D operator* (const vector2t<D>& other) const { return x * other.x + y * other.y; };
+	bool solve(const vector2t<D>& o1, const vector2t<D>& o2, D& s1, D& s2) const
+	{	// if this is referenced and I put this in the .cpp file, linking failes. why? fixme!!!
+	D det = o1.x*o2.y - o2.x*o1.y;
+	if (!det) return false;
+	s1 = (o2.y*x - o2.x*y) / det;
+	s2 = (o1.x*y - o1.y*x) / det;
+	return true;
+	}
+	vector3t<D> xy0(void) const;	// dito!
+	template<class D2> friend ostream& operator<< ( ostream& os, const vector2t<D2>& v );
+	template<class E> void assign(const vector2t<E>& other) { x = D(other.x); y = D(other.y); }
 };
 
-inline vector2 operator* (const double& scalar, const vector2& v) { return v * scalar; }
-ostream& operator<< ( ostream& os, const vector2& v );
+template<class D2> inline vector2t<D2> operator* (const D2& scalar, const vector2t<D2>& v) { return v * scalar; }
+template<class D2> ostream& operator<< ( ostream& os, const vector2t<D2>& v );
+
+typedef vector2t<double> vector2;
+typedef vector2t<float> vector2f;
 
 #endif
