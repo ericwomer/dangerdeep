@@ -482,6 +482,8 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	vector3 sundir = gm.compute_sun_pos(viewpos).normal();
 	color lightcol = gm.compute_light_color(viewpos);
 
+	//fixme: check if all push and pops match!
+
 	glPushMatrix();
 
 	// 1) draw the stars on a black background
@@ -500,8 +502,6 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glDisable(GL_LIGHTING);
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
-
-//	glTranslatef(0, 0, -viewpos.z);//fixme wozu dies?!
 
 	// the brighter the sun, the deeper is the sky color
 	float atmos = (sundir.z < -0.25) ? 0.0f : ((sundir.z < 0.0) ? 4*(sundir.z+0.25) : 1.0f);

@@ -267,9 +267,9 @@ void freeview_display::draw_view(game& gm) const
 
 	// *************** compute and set player pos ****************************************
 	set_modelview_matrix(gm);
-	//fixme: "playerpos + pos" not fully correct, pos depends on ship's rolling, retrieve that from modelview matrix!
-	//real viewpos = inverse(modelview).column(3)
-	vector3 viewpos = player->get_pos() + matrix4::get_gl(GL_MODELVIEW_MATRIX).inverse().column(3);//pos;
+
+	vector3 camerapos = matrix4::get_gl(GL_MODELVIEW_MATRIX).inverse().column(3);
+	vector3 viewpos = player->get_pos() + camerapos;
 
 	// **************** prepare drawing ***************************************************
 
@@ -306,8 +306,8 @@ void freeview_display::draw_view(game& gm) const
 	glViewport(0, 0, vps, vps);
 	// clear depth buffer (fixme: maybe clear color with upwelling color, use a bit alpha)
 	glClearColor(horizon_color[0], horizon_color[1], horizon_color[2], horizon_color[3]);
-	glClearColor(0, 0, 0, 0);//fixme test, see below
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//	glClearColor(0, 0, 0, 0);//fixme test, see below
+	glClear(/*GL_COLOR_BUFFER_BIT | */ GL_DEPTH_BUFFER_BIT);
 
 	// shear one clip plane to match world space z=0 plane
 	//fixme
@@ -323,7 +323,14 @@ void freeview_display::draw_view(game& gm) const
 	// draw all parts of the scene that are (partly) above the water:
 	//   sky
 	glCullFace(GL_FRONT);
+
+	//fixme: viewpos/pos z translation is not computed correctly here... so mirrored image of sky is wrong
+	glPushMatrix();
+	// compensate camera height. should also be done for other objects...fixme
+	glTranslated(0, 0, -2*camerapos.z);
 	ui.get_sky().display(gm, viewpos, max_view_dist, true);
+	glPopMatrix();
+
 	//   terrain
 	glColor4f(1,1,1,1);//fixme: fog is missing
 	ui.draw_terrain(viewpos, bearing, max_view_dist);
@@ -368,7 +375,7 @@ void freeview_display::draw_view(game& gm) const
 
 	glClearColor(0, 0, 0, 0);
 	// this color clear eats ~ 2 frames (52 to 50 on a gf4mx), but is needed for star sky drawing
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT /*| GL_COLOR_BUFFER_BIT*/);
 
 	// set light! fixme the models are dark now. maybe we have to use the same modelview matrix that we used when creating the initial pos.?!
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
