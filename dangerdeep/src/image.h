@@ -32,7 +32,7 @@ private:
 					// operator=: copy image or assign? fixme
 
 public:
-	image(const string& s, bool maketex = false, int mapping = GL_NEAREST, int clamp = GL_REPEAT);
+	image(const string& s, bool maketex = false, int mapping = GL_NEAREST, int clamp = GL_CLAMP_TO_EDGE);
 	~image();
 	void draw(int x, int y) const;
 	// returns 0 if image is stored in texture

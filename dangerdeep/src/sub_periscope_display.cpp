@@ -46,7 +46,7 @@ void sub_periscope_display::post_display(game& gm) const
 
 sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_display(ui_), zoomed(false)
 {
-	periscopeimg = imagecache.ref("periscope_wip.png");
+	periscopeimg = new image(get_image_dir() + "periscope_wip.png", true);
 
 	pos = vector3(0, 0, 12);//fixme, depends on sub
 	aboard = true;
@@ -58,7 +58,7 @@ sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_dis
 
 sub_periscope_display::~sub_periscope_display()
 {
-	imagecache.unref("periscope_wip.png");
+	delete periscopeimg;
 }
 
 

@@ -48,7 +48,7 @@ void sub_uzo_display::post_display(game& gm) const
 
 sub_uzo_display::sub_uzo_display(user_interface& ui_) : freeview_display(ui_), zoomed(false)
 {
-	uzotex = texturecache.ref("uzo.png");
+	uzotex = new texture(get_image_dir() + "uzo.png");
 
 	pos = vector3(0, 0, 6);//fixme, depends on sub
 	aboard = true;
@@ -60,5 +60,5 @@ sub_uzo_display::sub_uzo_display(user_interface& ui_) : freeview_display(ui_), z
 
 sub_uzo_display::~sub_uzo_display()
 {
-	texturecache.unref("uzo.png");
+	delete uzotex;
 }
