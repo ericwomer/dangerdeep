@@ -5,7 +5,6 @@
 #define IMAGE_H
 
 #include "texture.h"
-#include "oglext/OglExt.h"
 #include <vector>
 
 class image

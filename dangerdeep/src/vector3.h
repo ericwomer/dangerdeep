@@ -45,9 +45,7 @@ class vector3t
 	vector3t<D> coeff_mul(const vector3t<D>& other) const { return vector3t(x * other.x, y * other.y, z * other.z); }
 	vector2t<D> xy(void) const { return vector2t<D>(x, y); };
 	vector2t<D> yz(void) const { return vector2t<D>(y, z); };
-#ifndef NO_IOSTREAM
-	template<class D2> friend ostream& operator<< ( ostream& os, const vector3t<D2>& v );
-#endif
+	template<class D2> friend std::ostream& operator<< ( std::ostream& os, const vector3t<D2>& v );
 	template<class E> void assign(const vector3t<E>& other) { x = D(other.x); y = D(other.y); z = D(other.z); }
 };
 
@@ -85,14 +83,12 @@ vector3t<D> vector3t<D>::matrixmul(const vector3t<D>& c0, const vector3t<D>& c1,
 				c0.z * x + c1.z * y + c2.z * z);
 }
 
-#ifndef NO_IOSTREAM
 template<class D>
-ostream& operator<< ( ostream& os, const vector3t<D>& v )
+std::ostream& operator<< ( std::ostream& os, const vector3t<D>& v )
 {
 	os << "x=" << v.x << "; y=" << v.y << "; z=" << v.z;
 	return os;
 }
-#endif
 
 typedef vector3t<double> vector3;
 typedef vector3t<float> vector3f;

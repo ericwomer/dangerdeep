@@ -8,7 +8,12 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
+
+#ifdef USE_NATIVE_GL
 #include <gl.h>
+#else
+#include "oglext/OglExt.h"
+#endif
 
 #include "binstream.h"
 

@@ -6,9 +6,9 @@
 #include <windows.h>
 #endif
 
-#include <gl.h>
-#include <glu.h>
-#include <SDL.h>
+//#include <gl.h>
+//#include <glu.h>
+//#include <SDL.h>
 
 #include <map>
 #include <iostream>

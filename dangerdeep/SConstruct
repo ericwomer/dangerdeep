@@ -27,6 +27,7 @@ if ARGUMENTS.get('installdatadir', 0):
 
 osspecificsrc = []
 
+fftwlib = 'fftw3'
 if sys.platform == 'win32':
 	print "Compiling for Win32 Environment"
 	env = Environment(ENV = os.environ, tools = ['mingw'])
@@ -96,13 +97,14 @@ if not conf.CheckCHeader('fftw3.h'):
 	Exit(1)
 if conf.CheckLibWithHeader('fftw3f', 'fftw3.h', 'c'):
 	print 'fftw3 library supports float type. Using it...'
+	fftwlib = 'fftw3f'
 	conf.env.Append(CPPFLAGS = '-DWITH_FLOAT_FFTW')
 
 env = conf.Finish()
 
 ######################### source file lists
 gfxlibs = ['oglext'] + gllibs + sdllibs
-alllibs = ['dftdmedia', 'tinyxml'] + gfxlibs + ['SDL_mixer', 'SDL_net', 'fftw3f']
+alllibs = ['dftdmedia', 'tinyxml'] + gfxlibs + ['SDL_mixer', 'SDL_net', fftwlib]
 
 ################ helper functions
 def all_entries_that_start_with(list, prefix):

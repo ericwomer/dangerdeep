@@ -1,0 +1,40 @@
+1.1.0 - 07/06/2004
+==================
+ - New: Added full support for OpenGL 1.5
+ - New: Added support for Mac OS X
+ - Change: Use macros for gl-names (avoids symbol name conflicts)
+ - Change: Better debug output
+ - Change: No makefiles anymore. qmake pro files are distributed.
+ - Bugfix: Better handling for OpenGL version above 1.1
+
+
+1.0.2 - 11/14/2003
+==================
+ - New: Added support for 'GL_SGIS_multitexture'
+ - New: Added support for 'GL_EXT_multitexture'
+ - Bugfix: Header file was missing in archive
+
+
+1.0.1 - 11/07/2003
+==================
+ - New: Added support for 'GL_ARB_occlusion_query'
+ - New: Added support for 'GL_ARB_point_sprite'
+ - New: Added support for 'GL_ARB_shader_objects'
+ - New: Added support for 'GL_ARB_shading_language_100'
+ - New: Added support for 'GL_ARB_texture_non_power_of_two'
+ - New: Added support for 'GL_EXT_depth_bounds_test'
+ - New: Added support for 'GL_EXT_fragment_lighting'
+ - New: Added support for 'GL_EXT_texture_compression_s3tc'
+ - New: Added support for 'GL_EXT_texture_mirror_clamp'
+ - New: Added support for 'GL_IBM_static_data'
+ - New: Added support for 'GL_IBM_texture_mirrored_repeat'
+ - New: Added support for 'GL_SGI_color_matrix'
+ - New: Added specification links to the database
+ - Change: Debug messages changed (when calling unsupported functions)
+ - Change: License changed to GNU Lesser General Public License
+ - Bugfix: Crashed in debug mode when calling unsupported functions
+
+
+1.0.0 - 10/20/2003
+==================
+ - Initial release.

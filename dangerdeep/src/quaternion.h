@@ -8,7 +8,6 @@
 #include <math.h>
 #include "vector3.h"
 #include "matrix4.h"
-using namespace std;
 
 /*
   3d rotations with quaternions:
@@ -44,9 +43,7 @@ class quaterniont
 	D square_length(void) const { return s * s + v * v; }
 	D length(void) const { return D(sqrt(square_length())); }
 	quaterniont<D> operator* (const quaterniont<D>& o) const { return quaterniont(s*o.s-v*o.v, o.v*s+v*o.s+v.cross(o.v)); }
-#ifndef NO_IOSTREAM	
-	template<class D2> friend ostream& operator<< ( ostream& os, const quaterniont<D2>& q );
-#endif
+	template<class D2> friend std::ostream& operator<< ( std::ostream& os, const quaterniont<D2>& q );
 	template<class E> void assign(const vector2t<E>& other) { s = D(other.s); v.assign(other.v); }
 	static quaterniont<D> vec(const D& x, const D& y, const D& z) { return quaterniont(0, vector3t<D>(x, y, z)); }
 	static quaterniont<D> vec(const vector3t<D>& p) { return quaterniont(D(0), p); }
@@ -110,14 +107,12 @@ class quaterniont
 
 template<class D2> inline quaterniont<D2> operator* (const D2& scalar, const quaterniont<D2>& q) { return q * scalar; }
 
-#ifndef NO_IOSTREAM
 template<class D>
-ostream& operator<< ( ostream& os, const quaterniont<D>& q )
+std::ostream& operator<< ( std::ostream& os, const quaterniont<D>& q )
 {
 	os << "r=" << q.s << "; i=" << q.v.x << "; j=" << q.v.y << "; k=" << q.v.z;
 	return os;
 }
-#endif
 
 typedef quaterniont<double> quaternion;
 typedef quaterniont<float> quaternionf;

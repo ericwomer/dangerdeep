@@ -14,10 +14,11 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
-#include <gl.h>
 
-#ifndef NO_IOSTREAM
-#include <iostream>
+#ifdef USE_NATIVE_GL
+#include <gl.h>
+#else
+#include "oglext/OglExt.h"
 #endif
 
 #include "vector3.h"
@@ -117,7 +118,6 @@ public:
 			elem(2, 0) * elem(0, 1) * elem(1, 2) - elem(0, 0) * elem(2, 1) * elem(1, 2);
 	}
 
-#ifndef NO_IOSTREAM
 	void print(void) const {
 		for(unsigned y = 0; y < size; y++) {
 			cout << "/ ";
@@ -127,7 +127,6 @@ public:
 			cout << "\t/\n";
 		}
 	}
-#endif
 
 	void swap_rows(unsigned r1, unsigned r2) {
 		for (unsigned i = 0; i < size; ++i) {

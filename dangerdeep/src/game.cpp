@@ -6,8 +6,12 @@
 #include <windows.h>
 #endif
 
-#include <SDL.h>
+#ifdef USE_NATIVE_GL
 #include <gl.h>
+#else
+#include "oglext/OglExt.h"
+#endif
+#include <SDL.h>
 
 #include "system.h"
 #include <sstream>

@@ -12,10 +12,7 @@
 #undef max
 #endif
 
-#ifndef NO_IOSTREAM
 #include <iostream>
-using namespace std;
-#endif
 
 template <class D2> class vector3t;
 
@@ -49,9 +46,7 @@ class vector2t
 	vector2t<D> matrixmul(const vector2t<D>& c0, const vector2t<D>& c1) const;
 	vector2t<D> coeff_mul(const vector2t<D>& other) const { return vector2t(x * other.x, y * other.y); }
 	vector3t<D> xy0(void) const { return vector3t<D>(x, y, 0); }
-#ifndef NO_IOSTREAM
-	template<class D2> friend ostream& operator<< ( ostream& os, const vector2t<D2>& v );
-#endif
+	template<class D2> friend std::ostream& operator<< ( std::ostream& os, const vector2t<D2>& v );
 	template<class E> void assign(const vector2t<E>& other) { x = D(other.x); y = D(other.y); }
 };
 
@@ -77,13 +72,11 @@ template<class D2> inline vector2t<D2> operator* (const D2& scalar, const vector
 	return v * scalar;
 }
 
-#ifndef NO_IOSTREAM
-template<class D2> ostream& operator<< ( ostream& os, const vector2t<D2>& v )
+template<class D2> std::ostream& operator<< ( std::ostream& os, const vector2t<D2>& v )
 {
 	os << "x=" << v.x << "; y=" << v.y;
 	return os;
 }
-#endif
 
 typedef vector2t<double> vector2;
 typedef vector2t<float> vector2f;
