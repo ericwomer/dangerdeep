@@ -20,6 +20,7 @@ using namespace std;
 // process_input(){if (wait_for)wait_for->process_input();else ...old...;} ?
 // ein widget.close fehlt. close:= parent.remove(this), wenn parent==0 dann globale liste nach this
 // durchsuchen. run() läuft dann bis globale liste leer ist.
+// more widgets: progress bar
 
 // theme files:
 // two images, one for elements, one for icons.

@@ -22,9 +22,10 @@ bool triangulate::is_inside_triangle(const vector2f& a, const vector2f& b, const
 	float s, t;
 	bool solved = (p-a).solve(b-a, c-a, s, t);
 	if (!solved) return true;
-	return (s > 0 && t > 0 && s < 1 && t < 1 && s+t < 1);
+	return (s >= 0 && t >= 0 && s <= 1 && t <= 1 && s+t <= 1);
 }
 
+#include <cassert>//fixme remove
 vector<unsigned> triangulate::compute(const vector<vector2f>& vertices)
 {
 	vector<unsigned> indices;
@@ -38,13 +39,16 @@ vector<unsigned> triangulate::compute(const vector<vector2f>& vertices)
 	list<unsigned>::iterator i2 = i1; next(vl, i2);
 int haengt=0;	// fixme: hack to avoid lock ups. why do they occour? reasons maybe:
 		// 1) there are double points in the input, that means polygon edges are degenerated
-		// or too short.
-		// 2) the polygon is self-intersecting.
-		// 3) polygon is inverted (hole), that means polylines are all in wrong direction
-		// check these cases!
+		// or too short. OCCOUR, fixme, SEE COASTSEGMENT.CPP
+		// 2) the polygon is self-intersecting. ???? CHECK
+		// 3) polygon is inverted (hole), that means polylines are all in wrong direction AVOIDED, FIXED
+		// 4) if several points are on one line a,b,c,d and one is beside (e)
+		// and a triangle d,e,a is formed, the polygon's AREA is triangulated, but
+		// b,c are on line a-d. -> change is_inside test, what about epsilon?! AVOIDED, FIXED
+		// check these cases (1,2)
 	while (vl.size() > 3) {
 ++haengt;
-if(haengt>2000){cout<<"TRIANGULATE: LOCKUP DETECTED!\n";return indices;}
+if(haengt>2000){cout<<"TRIANGULATE: LOCKUP DETECTED!\n";assert(false);return indices;}
 		if (!is_correct_triangle(vertices[*i0], vertices[*i1], vertices[*i2])) {
 			next(vl, i0);
 			next(vl, i1);
@@ -76,9 +80,35 @@ if(haengt>2000){cout<<"TRIANGULATE: LOCKUP DETECTED!\n";return indices;}
 	return indices;
 }
 
+
+#include <fstream>
+void triangulate::debug_test(const vector<vector2f>& vertices, const string& outputfile)
+{
+	cout << "testing in \"" << outputfile << "\"\n";
+	int nverts = int(vertices.size());
+	vector<unsigned> idx = compute(vertices);
+
+#if 0	
+	for (int j = 0; j < nverts; ++j) {	// show poly also
+		idx.push_back(j);
+		idx.push_back(j);
+		idx.push_back((j+1)%nverts);
+	}
+#endif	
+	
+	int nfaces = int(idx.size())/3;
+	ofstream out(outputfile.c_str());
+	out << "OFF\n" << nverts << " " << nfaces << " 0\n";
+	for (int i = 0; i < nverts; ++i) {
+		out << vertices[i].x << " " << vertices[i].y << " 0.0\n";
+	}
+	for (int i = 0; i < nfaces; ++i) {
+		out << "3 " << idx[i*3+0] << " " << idx[i*3+1] << " " << idx[i*3+2] << "\n";
+	}
+}
+
 /*
 // triang test
-#include <fstream>
 int main(int argc, char** argv)
 {
 	int nverts = 50;
@@ -90,15 +120,7 @@ int main(int argc, char** argv)
 		float l = 50.0f+30.0f*rand()/RAND_MAX;
 		verts.push_back(d*l);
 	}
-	vector<unsigned> idx = triangulate::compute(verts);
-	int nfaces = idx.size()/3;
-	ofstream out("test.off");
-	out << "OFF\n" << nverts << " " << nfaces << " 0\n";
-	for (unsigned i = 0; i < nverts; ++i) {
-		out << verts[i].x << " " << verts[i].y << " 0.0\n";
-	}
-	for (unsigned i = 0; i < nfaces; ++i) {
-		out << "3 " << idx[i*3+0] << " " << idx[i*3+1] << " " << idx[i*3+2] << "\n";
-	}
+	
+	vector<unsigned> idx = triangulate::debug_test(verts, "test.off");
 }
 */

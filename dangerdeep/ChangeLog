@@ -1,3 +1,13 @@
+2004-02-09  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* coastmap, coastline, coastsegment, mapcompile, triangulate
+	  - new map format
+	  - added polygon triangulation code
+	  - terrain map (2d) is now displayed much nicer (and faster)
+
+2004-02-01  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* user_interface.cpp
+	  - added some foam code, not yet used
+
 2004-01-26  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* added tool for cross section computation
 	* removed all VIS_CROSS_SECTION code and replaced it with real

@@ -25,6 +25,8 @@ struct triangulate
 	static bool is_inside_triangle(const vector2f& a, const vector2f& b, const vector2f& c, const vector2f& p);
 
 	static vector<unsigned> compute(const vector<vector2f>& vertices);
+	
+	static void debug_test(const vector<vector2f>& vertices, const string& outputfile);
 };
 
 #endif
