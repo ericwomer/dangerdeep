@@ -349,6 +349,11 @@ void sky::compute_clouds(void)
 	// fixme: could we interpolate between accumulated noise maps
 	// to further speed up the process?
 	// in theory, yes. formula says that we can...
+	// NO! different noise levels must get animated with different speeds
+	// for realistic cloud form change (isn't done yet)...
+	// also bump mapping for clouds is missing.
+	// clouds facing away from the sun shouldn't be black though (because of
+	// bump mapping).
 	//fixme: use perlin noise generator here!
 	vector<vector<Uint8> > cmaps = noisemaps_0;
 	float f = cloud_animphase;
