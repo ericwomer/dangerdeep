@@ -1,3 +1,13 @@
+2004-04-28  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* released current status as 0.0.17
+
+2004-04-25  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* countless water experiments and tests, many files modified
+	* water still has some "fixme"'s, but looks already very good
+	* filehelper
+	  - fixed bug that trashed results when using more than one open_dir/read_dir
+	    at once (it did never happen in this project, though)
+	
 2004-02-22  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* all over the place
 	  - introduced a sane command_* API

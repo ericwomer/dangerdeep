@@ -947,6 +947,16 @@ int main(int argc, char** argv)
 	}
 */
 
+/*
+	2004/04/28 idea.
+	make an "options" or "config" class, that is initialized by reading
+	the config file and reading the command line arguments.
+	Every other class can ask the config-class about some values, e.g.
+	user_interface could init the water with
+	int waterresx = config::ask("water_res_x"); etc...
+	this would be very handy.
+*/
+
 	// command line argument parsing
 	res_x = 1024;
 	bool fullscreen = true;

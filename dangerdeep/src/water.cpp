@@ -24,9 +24,11 @@
 
 // compute projected grid efficiency, it should be 50-95%
 //#define COMPUTE_EFFICIENCY
-#define DYNAMIC_NORMALS
+#define DYNAMIC_NORMALS		// this is a must have
+#define DISTANCE_FRESNEL_HACK	// distance related fresnel term reduction
+#define WAVE_SUB_DETAIL		// sub fft detail
 
-// some more interesting values: phase 256, waveperaxis: ask your gfx card, facesperwave 64+,
+// some more interesting values: phase 256, facesperwave 64+,
 // wavelength 256+,
 #define WAVE_PHASES 256		// no. of phases for wave animation
 #define WAVE_RESOLUTION 64	// FFT resolution
@@ -55,6 +57,16 @@ water::water(unsigned xres_, unsigned yres_, double tm) : mytime(tm), xres(xres_
 	// 2004/04/25 Note! decreasing the size of the reflection map improves performance
 	// on a gf4mx! (23fps to 28fps with a 128x128 map to a 512x512 map)
 	// Maybe this is because of some bandwidth limit or cache efficiency of the gf4mx.
+	// Reflections don't look very good on ocean waves because they're too high for
+	// the distorsion to work correct. They need real environment mapping, but this lacks
+	// local reflections. Best example: big waves in front of the coast should hide the
+	// coast (view is blocked) but instead mirror it. Maybe this is because we don't clip
+	// the mirror image at z=0 ? No, test showed that it isn't looking right anyway!
+	// In fact, terrain is seen only at rare moments, vessels' reflections can't be seen
+	// very well in rough seas and sun/moon/stars don't give large reflections.
+	// They're used as fake specular mapping for now. Only explosions/fires at night would
+	// be seen as reflections. So why use them at all? they're rather costly!
+	// make them configureable? fixme
 	reflectiontexsize = vps;
 	vector<Uint8> tmp0(reflectiontexsize*reflectiontexsize*3);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, reflectiontexsize, reflectiontexsize, 0, GL_RGB, GL_UNSIGNED_BYTE, &tmp0[0]);
@@ -283,6 +295,7 @@ void water::compute_coord_and_normal(int phase, const vector2& xypos, const vect
 	vector3f cg = ce * (1.0f-yfrac) + cf * yfrac;
 	coord = cg + vector3f(xypos.x, xypos.y, 0.0f);
 
+#ifdef WAVE_SUB_DETAIL
 	// add some extra detail to near waves.
 	// Every rectangle between four FFT values has
 	// some extra detail. Pattern must be more chaotic to be realistic, a reapeating
@@ -302,6 +315,7 @@ void water::compute_coord_and_normal(int phase, const vector2& xypos, const vect
 	int ixf = (x0 % tilefac)*rfac + int(rfac * xfrac), iyf = (y0 % tilefac)*rfac + int(rfac * yfrac);
 	float addh = wavetileheights[(phase+WAVE_PHASES/2)%WAVE_PHASES][ixf+iyf*WAVE_RESOLUTION] * (1.0f/rfac);
 	coord.z += addh;
+#endif
 
 #ifndef DYNAMIC_NORMALS	
 	// bilinear interpolation of normal
@@ -321,7 +335,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	glTranslated(0, 0, -viewpos.z);
 
 	int phase = int((myfmod(mytime, TIDECYCLE_TIME)/TIDECYCLE_TIME) * WAVE_PHASES);
-	const float VIRTUAL_PLANE_HEIGHT = 30.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok
+	const float VIRTUAL_PLANE_HEIGHT = 15.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok, maybe a bit too much
 	const double WAVE_HEIGHT = 5.0; // maximum height of waves (half amplitude), fixme: get from fft
 	// fixme: always add elevation to projector.z?
 	const double ELEVATION = 10.0; // fixme experiment
@@ -553,29 +567,34 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			const vector3f& coord = coords[ptr];
 			const vector3f& N = normals[ptr];
 			vector3f rel_coord = coord;	// compute coord + translational part of
-			rel_coord.z -= viewpos.z;	// the modelview matrix.
-			vector3f E = -rel_coord.normal();	// viewer is in (0,0,0)
+			rel_coord.z -= viewpos.z;	// the modelview matrix
+			float rel_coord_length = rel_coord.length();
+			vector3f E = -rel_coord * (1.0f/rel_coord_length); // viewer is in (0,0,0)
 			float F = E*N;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
 			if (F < 0.0f) F = 0.0f;	// avoid angles > 90 deg.
+
 			F = F + 1.0f;
 			F = F * F;	// ^2
 			F = F * F;	// ^4
 			F = F * F;	// ^8
 			F = 1.0f/F;
-
+#ifdef DISTANCE_FRESNEL_HACK
 			// With growing distance the water becomes similar to a flat plane
 			// (trilinar filtering and/or drawing with less triangles), so the
 			// Fresnel term becomes nearly 1. This is unrealistic, because the
 			// viewer also sees the side of waves in the distance.
-			// So we have to shrink the Fresnel value with growing distance to 1/2
+			// So we have to shrink the Fresnel value with growing distance.
 			// The distance can be computed without an extra sqrt: it's the length
-			// of rel_coord before normalizing it. But that doesn't look good.
-			// And that's not all. A Fresnel value of 1 means full reflection,
-			// no refraction, but even with full reflection the water has some
-			// blue/green color. In reality ocean water isn't perfect flat.
-			// So we could mix some color into the reflection or multiply the Fresnel
-			// value with 0.9. It seems a bit more realistic.
-			F *= 0.9;
+			// of rel_coord before normalizing it. Any better effect needs
+			// pixel shaders. Without them we could do at most per pixel
+			// bump mapping, that is per pixel linear fresnel, but this
+			// looks awful.
+			// f(x)=a/(b+x),a=x2-x1,b=x2-2*x1,f(x1)=1,f(x2)=0.5
+			// x1=200,x2=3000,a=2800,b=2600
+			float distfac = 2800/(2600+rel_coord_length);
+			if (distfac > 1.0f) distfac = 1.0f;
+			F *= distfac;
+#endif
 			
 			Uint8 c = Uint8(F*255);
 			Uint8 foampart = 255;
