@@ -175,6 +175,26 @@ void game::simulate(double delta_t)
 	}
 }
 
+/******************************************************************************************
+	Visibility computation
+	----------------------
+
+	Visibility is determined by two factors:
+	1) overall visibility
+		- time of day (sun position -> brightness)
+		- weather
+		- moon phase and position during night
+	2) specific visibility
+		- object type
+		- surfaced: course, speed, engine type etc.
+		- submerged: speed, scope height etc.
+	The visibility computation gives a distance within that the object can be seen
+	by other objects. This distance depends on relative distance and courses of
+	both objects (factor2) and overall visibility (factor1).
+	Maybe some randomization should be added (quality of crew, experience, overall
+	visibility +- some meters)
+******************************************************************************************/
+
 list<ship*> game::visible_ships(const vector3& pos)
 {
 	list<ship*> result;
@@ -491,20 +511,29 @@ bool game::is_collision(const sea_object* s1, const sea_object* s2) const
 	vector2 n2 = d2.orthogonal();
 	double l1 = s1->get_length(), l2 = s2->get_length();
 	double w1 = s1->get_width(), w2 = s2->get_width();
-	
+
+	// base points
 	vector2 pb1 = p1 - d1 * (l1/2) - n1 * (w1/2);
 	vector2 pb2 = p2 - d2 * (l2/2) - n2 * (w2/2);
-	vector2 pd2[4] = { d2*l2, n2*w2, -d2*l2, -n2*w2 };
 
+	// check if any of obj2 corners is inside obj1
+	vector2 pd2[4] = {d2*l2, n2*w2, -d2*l2, -n2*w2};
 	for (int i = 0; i < 4; ++i) {
 		double s, t;
-		if ((pb2 - pb1).solve(d1, n1, s, t)) {
-//	printf("try %i s %f t %f\n",i,s,t);
-			if (0 <= s && s <= l1 && 0 <= t && t <= w1) {
-				return true;
-			}
-		}
+		(pb2 - pb1).solve(d1, n1, s, t);
+		if (0 <= s && s <= l1 && 0 <= t && t <= w1)
+			return true;
 		pb2 += pd2[i];
+	}
+
+	// check if any of obj1 corners is inside obj2
+	vector2 pd1[4] = {d1*l1, n1*w1, -d1*l1, -n1*w1};
+	for (int i = 0; i < 4; ++i) {
+		double s, t;
+		(pb1 - pb2).solve(d2, n2, s, t);
+		if (0 <= s && s <= l2 && 0 <= t && t <= w2)
+			return true;
+		pb1 += pd1[i];
 	}
 	return false;
 }
@@ -522,17 +551,12 @@ bool game::is_collision(const sea_object* s, const vector2& pos) const
 	vector2 n = d.orthogonal();
 	double l = s->get_length(), w = s->get_width();
 
-	// compute base point and four directions.
-	vector2 pb = p + d * (l/2) + n * (w/2);
-	vector2 pd[4] = { -d*l, -n*w, d*l, n*w };
-
-	// compare every edge ob the object with pos
-	for (int i = 0; i < 4; ++i) {
-		double t = (pd[i].x * (pos.y - pb.y) + pd[i].y * (pb.x - pos.x));
-		if (t < 0) return false;
-		pb += pd[i];	// circle around the outer edges
-	}
-	return true;
+	vector2 pb = p - d * (l/2) - n * (w/2);
+	double r, t;
+	(pos - pb).solve(d, n, r, t);
+	if (0 <= r && r <= l && 0 <= t && t <= w)
+		return true;
+	return false;
 }
 
 // main play loop
