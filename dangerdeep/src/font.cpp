@@ -214,8 +214,8 @@ void font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, const st
 
 pair<unsigned, unsigned> font::get_size(const string& text) const
 {
-	int x = 0, y = height;
-	int xmax = 0;
+	unsigned x = 0, y = height;
+	unsigned xmax = 0;
 	for (unsigned ti = 0; ti < text.length(); ++ti) {
 		unsigned char c = text[ti];
 		if (c == ' ') {	// space

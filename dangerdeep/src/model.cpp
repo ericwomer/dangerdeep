@@ -9,16 +9,48 @@
 #include "matrix4.h"
 
 #ifdef WIN32
+#define PATH_SEPARATOR "\\"
 #undef min
 #undef max
+#include <float.h>
+#define isfinite(x) _finite(x)
+#else
+#define PATH_SEPARATOR "/"
+#endif
+
+#ifdef DONT_USE_OPENGL
+string modelpath;
 #endif
 
 int model::mapping = GL_LINEAR_MIPMAP_LINEAR;//GL_NEAREST;
 
-model::model(const string& filename, bool usematerial_, bool makedisplaylist) : display_list(0), usematerial(usematerial_)
+model::model(const string& filename, bool usematerial_, bool makedisplaylist) :
+	display_list(0), usematerial(usematerial_)
 {
-	// fixme: determine loader by extension here. currently only 3ds supported
-	m3ds_load(filename);
+	string::size_type st = filename.rfind(".");
+	string extension = (st == string::npos) ? "" : filename.substr(st);
+	for (unsigned e = 0; e < extension.length(); ++e)
+		extension[e] = ::tolower(extension[e]);
+	st = filename.rfind(PATH_SEPARATOR);
+	string path = (st == string::npos) ? "" : filename.substr(0, st+1);
+#ifdef DONT_USE_OPENGL
+	modelpath = path;
+#endif
+	basename = filename.substr(path.length(),
+				   filename.length()-path.length()-extension.length());
+
+	// determine loader by extension here.
+	if (extension == ".3ds") {
+		m3ds_load(filename);
+	} else if (extension == ".off") {
+		read_off_file(filename);
+	} else {
+#ifdef DONT_USE_OPENGL
+		return;
+#else
+		system::sys().myassert(false, "model: unknown extension or file format");
+#endif
+	}
 
 	read_cs_file(filename);	// try to read cross section file
 	
@@ -147,6 +179,38 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 	}
 }
 
+
+
+void model::mesh::transform(const matrix4f& m)
+{
+	for (unsigned i = 0; i < vertices.size(); ++i)
+		vertices[i] = m * vertices[i];
+	// transform normals: only apply rotation
+	matrix4f m2 = m;
+	m2.elem(3,0) = m2.elem(3,1) = m2.elem(3,2) = 0;
+	for (unsigned j = 0; j < normals.size(); ++j)
+		normals[j] = m2 * normals[j];
+}
+
+
+
+void model::mesh::write_off_file(const string& fn) const
+{
+	FILE *f = fopen(fn.c_str(), "wb");
+	if (!f) return;
+	fprintf(f, "OFF\n%u %u %u\n", vertices.size(), indices.size()/3, 0);
+	
+	for (unsigned i = 0; i < vertices.size(); i++) {
+		fprintf(f, "%f %f %f\n", vertices[i].x, vertices[i].y, vertices[i].z);
+	}
+	for (unsigned j = 0; j < indices.size(); j += 3) {
+		fprintf(f, "3 %u %u %u\n", indices[j], indices[j+1], indices[j+2]);
+	}
+	fclose(f);
+}
+
+
+
 void model::material::map::init(int mapping)
 {
 	delete mytexture;
@@ -154,7 +218,7 @@ void model::material::map::init(int mapping)
 	if (filename.length() > 0) {
 //cout << "object has texture '" << filename << "' mapping " << model::mapping << "\n";
 #ifdef DONT_USE_OPENGL
-		mytexture = new texture(filename, GL_LINEAR, GL_REPEAT, true);
+		mytexture = new texture(modelpath + filename, GL_LINEAR, GL_REPEAT, true);
 #else
 		mytexture = new texture(get_texture_dir() + filename, mapping);
 #endif
@@ -164,6 +228,8 @@ void model::material::map::init(int mapping)
 void model::material::init(void)
 {
 	if (tex1) tex1->init(model::mapping);
+	//fixme: bump maps from 3ds are just grey value images or the like,
+	//real bump maps have to be computed after loading!!!
 	if (bump) bump->init(GL_LINEAR_MIPMAP_LINEAR);//fixme: what is best mapping for bump maps?
 }
 
@@ -217,6 +283,7 @@ void model::material::set_gl_values(void) const
 			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA, GL_SRC_ALPHA);
 			glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
 		} else {
+			glColor3f(1, 1, 1);
 			glActiveTexture(GL_TEXTURE0);
 			tex1->mytexture->set_gl_texture();
 			glMatrixMode(GL_TEXTURE);
@@ -340,14 +407,34 @@ void model::display(void) const
 }
 #endif
 
+model::mesh& model::get_mesh(unsigned nr)
+{
+	return meshes.at(nr);
+}
+
 const model::mesh& model::get_mesh(unsigned nr) const
 {
 	return meshes.at(nr);
 }
 
+model::material& model::get_material(unsigned nr)
+{
+	return *(materials.at(nr));
+}
+
 const model::material& model::get_material(unsigned nr) const
 {
 	return *(materials.at(nr));
+}
+
+model::light& model::get_light(unsigned nr)
+{
+	return lights.at(nr);
+}
+
+const model::light& model::get_light(unsigned nr) const
+{
+	return lights.at(nr);
 }
 
 void model::read_cs_file(const string& filename)
@@ -381,36 +468,54 @@ float model::get_cross_section(float angle) const
 	return cross_sections[id0] * (1.0f - fac) + cross_sections[id1] * fac;
 }
 
+string model::tolower(const string& s)
+{
+	string s2 = s;
+	for (unsigned i = 0; i < s.length(); ++i)
+		s2[i] = ::tolower(s[i]);
+	return s2;
+}
+
+void model::transform(const matrix4f& m)
+{
+	for (vector<model::mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
+		it->transform(m);
+	}
+}
+
 // ------------------------------------------ 3ds loading functions -------------------------- 
 // ----------------------------- 3ds file reading data ---------------------------
 // taken from a NeHe tutorial (nehe.gamedev.net)
 // indentations describe the tree structure
-#define M3DS_MAIN3DS	   	0x4D4D
-	#define M3DS_EDIT3DS		0x3D3D
-		#define M3DS_EDIT_MATERIAL	0xAFFF
-			#define M3DS_MATNAME	   	0xA000
-			#define M3DS_MATAMBIENT		0xA010
-			#define M3DS_MATDIFFUSE		0xA020
-			#define M3DS_MATSPECULAR	0xA030
-			#define M3DS_MATTRANSPARENCY	0xA050//not used yet, fixme
-			#define M3DS_MATMAPTEX1		0xA200
-				#define M3DS_MATMAPFILE		0xA300
-				#define M3DS_MATMAP1OVERU_SCAL	0xA354
-				#define M3DS_MATMAP1OVERV_SCAL	0xA356
-				#define M3DS_MATMAPUOFFSET	0xA358
-				#define M3DS_MATMAPVOFFSET	0xA35A
-				#define M3DS_MATMAPANG		0xA35C
-				#define M3DS_MATMAPAMOUNTBUMP	0xA252//double byte chunk, displayed amount of bump, not yet used
-			#define M3DS_MATMAPBUMP		0xA230
-		#define M3DS_EDIT_OBJECT	0x4000
-			#define M3DS_OBJ_TRIMESH   	0x4100
-				#define M3DS_TRI_VERTEXL	0x4110
-				#define M3DS_TRI_FACEL1		0x4120
-					#define M3DS_TRI_MATERIAL	0x4130
-				#define M3DS_TRI_MAPPINGCOORDS	0x4140
-				#define M3DS_TRI_MESHMATRIX  0x4160
-	#define M3DS_VERSION		0x0002
-	#define M3DS_KEYF3DS		0xB000
+#define M3DS_COLOR	0x0010	// three floats
+#define M3DS_COLOR24	0x0011	// 24bit truecolor
+#define	M3DS_MAIN3DS	0x4D4D
+#define 	M3DS_EDIT3DS	0x3D3D
+#define 		M3DS_EDIT_MATERIAL	0xAFFF
+#define 			M3DS_MATNAME	   	0xA000
+#define 			M3DS_MATAMBIENT		0xA010
+#define 			M3DS_MATDIFFUSE		0xA020
+#define 			M3DS_MATSPECULAR	0xA030
+#define 			M3DS_MATTRANSPARENCY	0xA050//not used yet, fixme
+#define 			M3DS_MATMAPTEX1		0xA200
+#define 				M3DS_MATMAPFILE		0xA300
+#define 				M3DS_MATMAP1OVERU_SCAL	0xA354
+#define 				M3DS_MATMAP1OVERV_SCAL	0xA356
+#define 				M3DS_MATMAPUOFFSET	0xA358
+#define 				M3DS_MATMAPVOFFSET	0xA35A
+#define 				M3DS_MATMAPANG		0xA35C
+#define		 			M3DS_MATMAPAMOUNTBUMP	0xA252//double byte chunk, displayed amount of bump, not yet used
+#define 			M3DS_MATMAPBUMP		0xA230
+#define 		M3DS_EDIT_OBJECT	0x4000
+#define 			M3DS_OBJ_TRIMESH   	0x4100
+#define 				M3DS_TRI_VERTEXL	0x4110
+#define 				M3DS_TRI_FACEL1		0x4120
+#define 					M3DS_TRI_MATERIAL	0x4130
+#define 				M3DS_TRI_MAPPINGCOORDS	0x4140
+#define 				M3DS_TRI_MESHMATRIX  0x4160
+#define				M3DS_OBJ_LIGHT	0x4600
+#define 	M3DS_VERSION		0x0002
+#define 	M3DS_KEYF3DS		0xB000
 // ----------------------------- end of 3ds file reading data ----------------------
 
 void model::m3ds_load(const string& fn)
@@ -470,13 +575,14 @@ void model::m3ds_process_model_chunks(istream& in, m3ds_chunk& parent)
 {
 	while (!parent.fully_read()) {
 		m3ds_chunk ch = m3ds_read_chunk(in);
+		string objname;
 		switch (ch.id) {
 			case M3DS_EDIT_MATERIAL:
 				m3ds_process_material_chunks(in, ch);
 				break;
 			case M3DS_EDIT_OBJECT:
-				m3ds_read_string(in, ch);	// read (and ignore) name
-				m3ds_process_object_chunks(in, ch);
+				objname = m3ds_read_string(in, ch);	// read name
+				m3ds_process_object_chunks(in, ch, objname);
 				break;
 		}
 		ch.skip(in);
@@ -484,23 +590,27 @@ void model::m3ds_process_model_chunks(istream& in, m3ds_chunk& parent)
 	}
 }
 
-void model::m3ds_process_object_chunks(istream& in, m3ds_chunk& parent)
+void model::m3ds_process_object_chunks(istream& in, m3ds_chunk& parent, const string& objname)
 {
 	while (!parent.fully_read()) {
 		m3ds_chunk ch = m3ds_read_chunk(in);
 		switch (ch.id) {
-			case M3DS_OBJ_TRIMESH:
-				m3ds_process_trimesh_chunks(in, ch);
-				break;
+		case M3DS_OBJ_TRIMESH:
+			m3ds_process_trimesh_chunks(in, ch, objname);
+			break;
+		case M3DS_OBJ_LIGHT:
+			m3ds_process_light_chunks(in, ch, objname);
+			break;
 		}
 		ch.skip(in);
 		parent.bytes_read += ch.length;
 	}
 }
 
-void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent)
+void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent, const string& objname)
 {
 	meshes.push_back(mesh());
+	meshes.back().name = objname;
 	while (!parent.fully_read()) {
 		m3ds_chunk ch = m3ds_read_chunk(in);
 //	cout<<"found trimesh chunk"<<(void*)ch.id<<"\n";
@@ -522,7 +632,7 @@ void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent)
 			case M3DS_TRI_MESHMATRIX:
 				for (int j = 0; j < 4; ++j) {
 					for (int i = 0; i < 3; ++i) {
-						meshes.back().transformation.elem(i,j) = read_float(in);
+						meshes.back().transformation.elem(j,i) = read_float(in);
 					}
 				}
 /*
@@ -537,6 +647,33 @@ void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent)
 		ch.skip(in);
 		parent.bytes_read += ch.length;
 	}
+}
+
+void model::m3ds_process_light_chunks(istream& in, m3ds_chunk& parent, const string& objname)
+{
+	light lg;
+	lg.name = objname;
+	lg.pos.x = read_float(in);
+	lg.pos.y = read_float(in);
+	lg.pos.z = read_float(in);
+	parent.bytes_read += 4 * 3;
+	while (!parent.fully_read()) {
+		m3ds_chunk ch = m3ds_read_chunk(in);
+		switch (ch.id) {
+		case M3DS_COLOR:
+			lg.colr = read_float(in);
+			lg.colg = read_float(in);
+			lg.colb = read_float(in);
+			ch.bytes_read += 3 * 4;
+			ch.skip(in);
+			parent.bytes_read += ch.length;
+			break;
+		default:
+			ch.skip(in);
+			parent.bytes_read += ch.length;
+		}
+	}
+	lights.push_back(lg);
 }
 
 void model::m3ds_process_face_chunks(istream& in, m3ds_chunk& parent, model::mesh& m)
@@ -608,7 +745,7 @@ void model::m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, mod
 		m3ds_chunk ch = m3ds_read_chunk(in);
 		switch (ch.id) {
 			case M3DS_MATMAPFILE:
-				m->filename = m3ds_read_string(in, ch);
+				m->filename = tolower(m3ds_read_string(in, ch));
 				break;
 			case M3DS_MATMAP1OVERU_SCAL:
 				m->uscal = 1.0f/read_float(in);
@@ -655,7 +792,6 @@ string model::m3ds_read_string(istream& in, m3ds_chunk& ch)
 	string s;
 	while (true) {
 		c = read_u8(in);
-		c = tolower(c);
 		++ch.bytes_read;
 		if (c == 0) break;
 		s += c;
@@ -769,3 +905,45 @@ void model::m3ds_read_material(istream& in, m3ds_chunk& ch, model::mesh& m)
 }		   
 
 // -------------------------------- end of 3ds loading functions -----------------------------------
+
+
+// -------------------------------- off file loading --------------------------------------
+void model::read_off_file(const string& fn)
+{
+	FILE *f = fopen(fn.c_str(), "rb");
+	if (!f) return;
+	unsigned i;
+	unsigned nr_vertices, nr_faces;
+	fscanf(f, "OFF\n%u %u %u\n", &nr_vertices, &nr_faces, &i);
+	mesh m;
+	m.name = basename;
+	m.vertices.resize(nr_vertices);
+	m.indices.resize(3*nr_faces);
+	
+	for (i = 0; i < nr_vertices; i++) {
+		float a, b, c;
+		fscanf(f, "%f %f %f\n", &a, &b, &c);
+		m.vertices[i].x = a;
+		m.vertices[i].y = b;
+		m.vertices[i].z = c;
+	}
+	for (i = 0; i < nr_faces; i++) {
+		unsigned j, v0, v1, v2;
+		fscanf(f, "%u %u %u %u\n", &j, &v0, &v1, &v2);
+		if (j != 3) return;
+		m.indices[i*3] = v0;
+		m.indices[i*3+1] = v1;
+		m.indices[i*3+2] = v2;
+	}
+	fclose(f);
+	meshes.push_back(m);
+
+	// testing...
+	light lg;
+	lg.name = "testlight";
+	lg.pos = vector3f(1000, 1000, 1000);
+	lights.push_back(lg);
+
+}
+
+// -------------------------------- end of off file loading -------------------------------------

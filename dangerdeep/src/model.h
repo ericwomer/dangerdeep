@@ -50,6 +50,7 @@ public:
 	};
 	
 	struct mesh {
+		string name;
 		vector<vector3f> vertices;
 		vector<vector3f> normals;
 		vector<vector3f> tangentsx;
@@ -63,18 +64,46 @@ public:
 		void compute_normals(void);
 		bool compute_tangentx(unsigned i0, unsigned i1, unsigned i2);
 
-		mesh(const mesh& m) : vertices(m.vertices), normals(m.normals), tangentsx(m.tangentsx), texcoords(m.texcoords), indices(m.indices), mymaterial(m.mymaterial) {}
-		mesh& operator= (const mesh& m) { vertices = m.vertices; normals = m.normals; tangentsx = m.tangentsx; texcoords = m.texcoords; indices = m.indices; mymaterial = m.mymaterial; return *this; }
-		mesh() : mymaterial(0) {}
+		mesh(const mesh& m) : name(m.name), vertices(m.vertices), normals(m.normals),
+				      tangentsx(m.tangentsx), texcoords(m.texcoords),
+				      indices(m.indices), transformation(m.transformation),
+				      mymaterial(m.mymaterial) {}
+		mesh& operator= (const mesh& m) { name = m.name; vertices = m.vertices;
+			normals = m.normals; tangentsx = m.tangentsx; texcoords = m.texcoords;
+			indices = m.indices; transformation = m.transformation;
+			mymaterial = m.mymaterial; return *this; }
+		mesh() : transformation(matrix4f::one()), mymaterial(0) {}
 		~mesh() {}
+
+		// transform vertices by matrix
+		void transform(const matrix4f& m);
+		void write_off_file(const string& fn) const;
+	};
+
+	struct light {
+		string name;
+		vector3f pos;
+		float colr, colg, colb;
+#ifndef DONT_USE_OPENGL
+		void set_gl(unsigned nr_of_light) const;
+#endif
+		light(const light& l) : name(l.name), pos(l.pos),
+					colr(l.colr), colg(l.colg), colb(l.colb) {}
+		light& operator= (const light& l) { name = l.name; pos = l.pos;
+			colr = l.colr; colg = l.colg; colb = l.colb; return *this; }
+		light() : colr(1.0f), colg(1.0f), colb(1.0f) {}
+		~light() {}
 	};
 
 protected:	
 	vector<material*> materials;
 	vector<mesh> meshes;
+	vector<light> lights;
 	
 	unsigned display_list;	// OpenGL display list for the model
 	bool usematerial;
+
+	string basename;	// base name of the scene/model, computed from filename
 
 	vector3f min, max;
 
@@ -99,8 +128,9 @@ protected:
 	string m3ds_read_string_from_rest_of_chunk(istream& in, m3ds_chunk& ch);
 	void m3ds_process_toplevel_chunks(istream& in, m3ds_chunk& parent);
 	void m3ds_process_model_chunks(istream& in, m3ds_chunk& parent);
-	void m3ds_process_object_chunks(istream& in, m3ds_chunk& parent);
-	void m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent);
+	void m3ds_process_object_chunks(istream& in, m3ds_chunk& parent, const string& objname);
+	void m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent, const string& objname);
+	void m3ds_process_light_chunks(istream& in, m3ds_chunk& parent, const string& objname);
 	void m3ds_process_face_chunks(istream& in, m3ds_chunk& parent, mesh& m);
 	void m3ds_process_material_chunks(istream& in, m3ds_chunk& parent);
 	void m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, material::map* m);
@@ -111,21 +141,30 @@ protected:
 	void m3ds_read_material(istream& in, m3ds_chunk& ch, mesh& m);
 	// ------------ end of 3ds loading functions ------------------
 	
-	model();
 	model(const model& );
 	model& operator= (const model& );
 
+	void read_off_file(const string& fn);
+
 public:
+	model() : display_list(0), usematerial(true) {}
+
 	static int mapping;	// GL_* mapping constants
+
 	model(const string& filename, bool usematerial = true, bool makedisplaylist = true);
 	~model();
 #ifndef DONT_USE_OPENGL
 	void display(void) const;
 #endif
+	mesh& get_mesh(unsigned nr);
 	const mesh& get_mesh(unsigned nr) const;
+	material& get_material(unsigned nr);
 	const material& get_material(unsigned nr) const;
+	light& get_light(unsigned nr);
+	const light& get_light(unsigned nr) const;
 	unsigned get_nr_of_meshes(void) const { return meshes.size(); }
 	unsigned get_nr_of_materials(void) const { return materials.size(); }
+	unsigned get_nr_of_lights(void) const { return lights.size(); }
 	vector3f get_min(void) const { return min; }
 	vector3f get_max(void) const { return max; }
 	float get_length(void) const { return (max - min).y; }
@@ -133,6 +172,11 @@ public:
 	float get_height(void) const { return (max - min).z; }
 	vector3f get_boundbox_size(void) const { return max-min; }
 	float get_cross_section(float angle) const;	// give angle in degrees.
+	static string tolower(const string& s);
+	void add_mesh(const mesh& m) { meshes.push_back(m); }//fixme: maybe recompute bounds
+	void add_material(material* m) { materials.push_back(m); }
+	// transform meshes by matrix (attention: scaling destroys normals)
+	void transform(const matrix4f& m);
 };	
 
 #endif

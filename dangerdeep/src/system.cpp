@@ -64,7 +64,7 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_NORMALIZE);
+	//glEnable(GL_NORMALIZE);	// fixme!!!! why was that turned on?! we don't need it! it doesn't hurt much though...
 	glEnable(GL_TEXTURE_2D);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
@@ -151,6 +151,18 @@ void system::add_console(const string& tx)
 {
 	console_text.push_back(tx);
 }
+
+/*
+void system::con_printf(const char* fmt, ...)
+{
+	char tmp[256];	// attention: buffer overflow can result
+	va_list ap;
+	va_start(ap, fmt);
+	vsnprintf(tmp, 255, fmt, ap);
+	va_end(ap);
+	add_console(tmp);
+}
+*/
 
 void system::draw_console_with(const font* fnt, const texture* background)
 {
@@ -276,6 +288,38 @@ void system::swap_buffers(void)
 		}
 	}
 }
+
+//new poll event queue API, we need no more keyqueue, get_key or getch...
+/*
+list<SDL_Event> system::poll_event_queue(void)
+{
+	list<SDL_Event> result;
+	SDL_Event event;
+	do {
+		while (SDL_PollEvent(&event)) {
+			// handle some special events
+			switch (event.type) {
+				case SDL_QUIT:			// Quit event
+					SDL_Quit();	// to clean up mouse etc. after kill
+					exit(0);	// maybe a bit dirty...
+				
+				case SDL_ACTIVEEVENT:		// Application activation or focus event
+					if (event.active.gain == 0) {
+						is_sleeping = true;
+						sleep_time = SDL_GetTicks();
+					} else {
+						is_sleeping = false;
+						time_passed_while_sleeping += SDL_GetTicks() - sleep_time;
+					}
+					break;
+				default:
+					result.push_back(event);
+			}
+		}
+	} while (is_sleeping);
+	return result;
+}
+*/
 
 unsigned int system::poll_event_queue(void)
 {

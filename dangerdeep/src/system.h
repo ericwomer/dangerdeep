@@ -31,12 +31,17 @@ public:
 	system(double nearz_, double farz_, unsigned res=640, bool fullscreen=true);
 	~system();
 	void swap_buffers(void);
-	unsigned int poll_event_queue(void); // !must! be called periodically (once per frame)
+
+	// must be called once per frame (or the OS will think your app is dead)
+	unsigned int poll_event_queue(void);
+	//new call: just fetch the events to the application
+	//list<SDL_Event> poll_event_queue(void);
+
+//these functions are useless with new poll event queue
 	void get_mouse_motion(int &x, int &y);
 	void get_mouse_position(int &x, int &y);
 	// get mouse button state as mask of button_type
 	int get_mouse_buttons(void) const { return mouse_b; }
-
 	// get SDL code of next key (0 if no key in queue)
 	SDL_keysym get_key(void);
 	bool is_key_in_queue(void) const;
@@ -44,10 +49,13 @@ public:
 	void flush_key_queue(void);
 	// wait for keypress
 	SDL_keysym getch(void);
+///-------
+
 	void screen_resize(unsigned w, unsigned h, double nearz, double farz);
 	
 	void clear_console(void);
 	// fixme maybe printf-like (va_start,...) input also.
+	//void con_printf(const char* fmt, ...);
 	void add_console(const string& tx);
 	void draw_console_with(const font* fnt, const texture* background = 0);
 	void write_console(bool fileonly = false) const;
@@ -61,18 +69,6 @@ public:
 	
 	void screenshot(void);
 
-	// 2d drawing must be turned on for this functions
-/*	
-	void draw_image(int x, int y, const texture* t) const { t->draw_image(x, y); }
-	void draw_hm_image(int x, int y, const texture* t) const { t->draw_hm_image(x, y); }
-	void draw_vm_image(int x, int y, const texture* t) const { t->draw_vm_image(x, y); }
-	void draw_image(int x, int y, int w, int h, const texture* t) const { t->draw_image(x, y, w, h); }
-	void draw_hm_image(int x, int y, int w, int h, const texture* t) const { t->draw_hm_image(x, y, w, h); }
-	void draw_vm_image(int x, int y, int w, int h, const texture* t) const { t->draw_vm_image(x, y, w, h); }
-	void draw_rot_image(int x, int y, double angle, const texture* t) const { t->draw_rot_image(x, y, angle); }
-	void draw_tiles(int x, int y, int w, int h, unsigned tilesx, unsigned tilesy,
-		const texture* t) const { t->draw_tiles(x, y, w, h, tilesx, tilesy); }
-*/
 	void draw_rectangle(int x, int y, int w, int h);
 	void no_tex(void) const { glBindTexture(GL_TEXTURE_2D, 0); }
 	
@@ -85,7 +81,9 @@ public:
 	// give FOV X in degrees, aspect (w/h), znear and zfar.	
 	void gl_perspective_fovx(double fovx, double aspect, double znear, double zfar);
 
+	//fixme: is useless with new poll event queue
 	bool key_shift(void) const { return is_key_down(SDLK_LSHIFT) || is_key_down(SDLK_RSHIFT) || is_key_down(SDLK_CAPSLOCK); }
+
 	unsigned get_res_x(void) const { return res_x; };
 	unsigned get_res_y(void) const { return res_y; };
 	unsigned get_res_x_2d(void) const { return res_x_2d; };
@@ -109,6 +107,7 @@ private:
 	bool draw_2d;
 	unsigned res_x_2d, res_y_2d;	// real resolution (depends on user settings)
 	
+	// these state variables are uselss with new poll event q
 	queue<SDL_keysym> keyqueue;
 	int mouse_xrel, mouse_yrel, mouse_x, mouse_y;
 	int mouse_b;

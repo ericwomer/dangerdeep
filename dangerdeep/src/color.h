@@ -40,8 +40,8 @@ struct color {
 		);
 	}
 
-	// transform color to grey value (model of human vision, 11% to 59% to 30% RGB)
-	color grey_value(void) const { Uint8 c = (Uint8)(r*0.11+g*0.59+b*0.3); return color(c, c, c, a); }
+	// transform color to grey value (model of human vision, 29.9% to 58.7% to 11.4% RGB)
+	color grey_value(void) const { Uint8 c = (Uint8)(r*0.299+g*0.587+b*0.114); return color(c, c, c, a); }
 	
 	color(istream& in) { r = read_u8(in); g = read_u8(in); b = read_u8(in); a = read_u8(in); }
 	void save(ostream& out) const { write_u8(out, r); write_u8(out, g); write_u8(out, b); write_u8(out, a); }

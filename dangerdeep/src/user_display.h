@@ -7,7 +7,9 @@
 class user_display
 {
 public:
-	virtual void display ( class game& gm ) = 0;
+	virtual void display ( class game& gm ) = 0;//fixme const
+	//fixme: replace key/mouse handling by this function
+	//virtual void process_events(const list<SDL_Event>& events);
 	virtual void check_key ( int keycode, class game& gm ) = 0;
 	virtual void check_mouse ( int x, int y, int mb ) = 0;
 };

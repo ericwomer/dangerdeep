@@ -18,6 +18,10 @@
 #include <GL/gl.h>
 #endif
 
+#ifndef NO_IOSTREAM
+#include <iostream>
+#endif
+
 #include "vector3.h"
 
 #include <vector>
@@ -56,11 +60,11 @@ public:
 		const D& e4, const D& e5, const D& e6, const D& e7,
 		const D& e8, const D& e9, const D& e10, const D& e11,
 		const D& e12, const D& e13, const D& e14, const D& e15) {
-		values.reserve(16);
-		values.push_back(e0); values.push_back(e1); values.push_back(e2); values.push_back(e3);
-		values.push_back(e4); values.push_back(e5); values.push_back(e6); values.push_back(e7);
-		values.push_back(e8); values.push_back(e9); values.push_back(e10); values.push_back(e11);
-		values.push_back(e12); values.push_back(e13); values.push_back(e14); values.push_back(e15);
+		values.resize(16);
+		values[ 0] =  e0; values[ 1] =  e1; values[ 2] =  e2; values[ 3] =  e3;
+		values[ 4] =  e4; values[ 5] =  e5; values[ 6] =  e6; values[ 7] =  e7;
+		values[ 8] =  e8; values[ 9] =  e9; values[10] = e10; values[11] = e11;
+		values[12] = e12; values[13] = e13; values[14] = e14; values[15] = e15;
 	}
 
 	matrix4t<D>& operator= (const matrix4t<D>& other) { values = other.values; return *this; }
@@ -106,9 +110,11 @@ public:
 
 	// no range tests for performance reasons
 	D& elem(unsigned col, unsigned row) { return values[col + row * size]; }
+	const D& elem(unsigned col, unsigned row) const { return values[col + row * size]; }
 	D& elem_at(unsigned col, unsigned row) { return values.at(col + row * size); }
+	const D& elem_at(unsigned col, unsigned row) const { return values.at(col + row * size); }
 
-/*
+#ifndef NO_IOSTREAM
 	void print(void) const {
 		for(unsigned y = 0; y < size; y++) {
 			cout << "/ ";
@@ -118,7 +124,7 @@ public:
 			cout << "\t/\n";
 		}
 	}
-*/
+#endif
 
 	void swap_rows(unsigned r1, unsigned r2) {
 		for (unsigned i = 0; i < size; ++i) {
@@ -194,13 +200,21 @@ public:
 		return matrix4t<D>(c,-s, n, n,  s, c, n, n,  n, n, o, n,  n, n, n, o);
 	}
 	
-	// fixme: add rot matrix around arbitrary angle with quaternions
-
 	static matrix4t<D> trans(const D& x, const D& y, const D& z) {
 		D o = D(1.0), n = D(0.0);
 		return matrix4t<D>(o, n, n, x,  n, o, n, y,  n, n, o, z,  n, n, n, o);
 	}
 	
+	static matrix4t<D> trans(const vector3t<D>& v) {
+		D o = D(1.0), n = D(0.0);
+		return matrix4t<D>(o, n, n, v.x,  n, o, n, v.y,  n, n, o, v.z,  n, n, n, o);
+	}
+	
+	static matrix4t<D> diagonal(const D& x, const D& y, const D& z, const D& w = D(1.0)) {
+		D n = D(0.0);
+		return matrix4t<D>(x, n, n, n,  n, y, n, n,  n, n, z, n,  n, n, n, w);
+	}
+
 	void clear_rot(void) {
 		values[0] = values[5] = values[10] = D(1.0);
 		values[1] = values[2] = values[4] = values[6] = values[8] = values[9] = D(0.0);
