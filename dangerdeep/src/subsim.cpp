@@ -402,12 +402,22 @@ void run_game(game* gm)
 	while (true) {
 		widget::theme* tmp = widget::replace_theme(gametheme);
 		gm->set_user_interface(ui);
-		unsigned state = gm->exec();
+		game::run_state state = gm->exec();
 		widget::replace_theme(tmp);
-		
+
 		//if (state == 2) break;
 		//SDL_ShowCursor(SDL_ENABLE);
-		if (state == 1) {
+		if (state != game::running) {
+//			if (state == game::mission_complete)
+
+			if (state == game::player_killed) {
+				menu m(103, killedimg);
+				m.add_item(105, 0);
+				m.run();
+			}
+
+//			if (state == game::contact_lost)
+
 			//widget* w = widget::create_dialogue_ok_cancel("Quit game?", "");
 			//int q = w->run();
 			//delete w;

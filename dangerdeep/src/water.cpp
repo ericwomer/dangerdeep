@@ -143,7 +143,10 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		for (unsigned f = 0; f < fresnelres; ++f) {
 			float ff = float(f)/(fresnelres-1);
 			color c(color(18, 73, 107), color(18, 93, 77), fs);
-			c.a = Uint8(255*exact_fresnel(ff)+0.5f);
+			//maybe reduce reflections by using 192 or 224 instead of 255 here
+			//looks better! sea water shows less reflections in reality
+			//because it is so rough.
+			c.a = Uint8(192*exact_fresnel(ff)+0.5f);
 			fresnelfct[s*fresnelres+f] = c;
 		}
 	}

@@ -12,6 +12,8 @@
 #include "tinyxml/tinyxml.h"
 #include "system.h"
 
+#include <sstream> //for depthcharge testing
+
 // fixme: this was hard work. most values are a rather rough approximation.
 // if we want a real accurate simulation, these values have to be (re)checked.
 // also they have to fit with "rect" values in sub_damage_display.cpp.
@@ -739,9 +741,6 @@ double submarine::get_noise_factor () const
 
 
 
-#include <sstream>
-#include "system.h"
-#include "menu.h"
 void submarine::depth_charge_explosion(const class depth_charge& dc)
 {
 	// fixme: this should'nt be linear but exponential, e^(-fac*depth) or so...
@@ -773,12 +772,9 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 
 	// is submarine killed immidiatly?
 	if (sdlen <= deadly_radius) {
-			system::sys().add_console("depth charge hit!");
+		system::sys().add_console("depth charge hit!");
 		kill();
-			menu m(103, killedimg);	// move this to game! fixme
-			m.add_item(105, 0);
-			m.run();
-			// ui->add_message(TXT_Depthchargehit[language]);
+		// ui->add_message(TXT_Depthchargehit[language]);
 
 	} else if (sdlen <= damage_radius) {	// handle damages
 		// this is useless. strength must be calculated indivually for each part. fixme

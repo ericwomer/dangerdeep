@@ -25,7 +25,6 @@ using namespace std;
 #include "texts.h"
 #include "sound.h"
 #include "image.h"
-#include "menu.h"	//fixme get rid of this
 #include "widget.h"
 #include "command.h"
 extern void menu_notimplemented(void);	// fixme remove later.
