@@ -827,3 +827,13 @@ void game::main_playloop(class system& sys)
 		sys.swap_buffers();
 	}
 }
+
+bool game::is_day_mode () const
+{
+	double day_time = get_day_time ( get_time () );
+
+	if ( day_time >= 0.5f && day_time <= 2.5f )
+		return true;
+
+	return false;
+}

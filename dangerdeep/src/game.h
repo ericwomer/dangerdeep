@@ -79,6 +79,12 @@ public:
 	double get_time(void) const { return time; };
 	double get_max_view_distance(void) const { return max_view_dist; }
 	/**
+		This method is needed to verify for day and night mode for the
+		display methods within the user interfaces.
+		@return true when day mode, false when night mode
+	*/
+	bool is_day_mode () const;
+	/**
 		This method calculates a depth depending factor. A deep diving
 		submarine is harder to detect with ASDIC than a submarine at
 		periscope depth.
