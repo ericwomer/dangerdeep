@@ -437,6 +437,15 @@ void system::draw_vm_image(int x, int y, int w, int h, const texture* t) const
 	glEnd();
 }
 
+void system::draw_rot_image(int x, int y, double angle, const texture* t) const
+{
+	glPushMatrix();
+	glTranslatef(x, y, 0);
+	glRotatef(angle, 0, 0, 1);
+	draw_image(-int(t->get_width())/2, -int(t->get_height())/2, t);
+	glPopMatrix();
+}
+
 void system::draw_tiles(int x, int y, int w, int h, unsigned tilesx, unsigned tilesy, const texture* t) const
 {
 	glBindTexture(GL_TEXTURE_2D, t->get_opengl_name());

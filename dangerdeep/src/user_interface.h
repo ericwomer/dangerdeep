@@ -52,6 +52,8 @@ protected:
 
 	// map
 	float mapzoom;	// factor pixel/meter
+	vector2 mapclick;
+	double mapclickdist;
 
 	// free view mode
 	float viewsideang, viewupang;	// global spectators viewing angles
@@ -91,7 +93,7 @@ protected:
 	void draw_clock(class system& sys, class game& gm, int x, int y, unsigned wh, double t,
 	        const string& text) const;
 	void draw_vessel_symbol(class system& sys, const vector2& offset, 
-                                const sea_object* so, color c) const;
+                                sea_object* so, color c);
 	void draw_trail(sea_object* so, const vector2& offset);
 	virtual void draw_pings(class game& gm, const vector2& offset);
 	virtual void draw_sound_contact(class game& gm, const sea_object* player,

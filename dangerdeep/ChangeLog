@@ -1,4 +1,10 @@
 2003-07-27  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* user_interface.cpp
+	  - ships are selectable by clicking on the map.
+	* submarine_interface.cpp
+	  - first bits of torpedo programming interface for FATs.
+
+2003-07-27  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* game.cpp
 	  - some preparations for damage simulation
 

@@ -485,11 +485,13 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 {
 	submarine* player = dynamic_cast<submarine*> ( get_player () );
 
+	// draw display without display color.
+	// draw background
 	sys.prepare_2d_drawing();
-	set_display_color ( gm );
 	sys.draw_tiles(0, 0, 1024, 768, 8, 6, background);
 	glClear(GL_DEPTH_BUFFER_BIT);
-	
+
+	// draw sub model	
 	glPushMatrix();
 	glTranslatef(512, 192, 1);
 	glScalef(1024/80.0, 1024/80.0, 0.001);
@@ -497,6 +499,16 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	glRotatef(-90, 0, 1, 0);
 	player->display();
 	glPopMatrix();
+	
+	// draw torpedo programming buttons
+	sys.draw_rot_image(0  +128, 320,  30.0, roundbutton);
+	font_arial2->print_hc(128, 384, texts::get(138));
+	sys.draw_rot_image(256+128, 320, 120.0, roundbutton);
+	font_arial2->print_hc(384, 384, texts::get(139));
+	sys.draw_rot_image(512+128, 320,  50.0, roundbutton);
+	font_arial2->print_hc(640, 384, texts::get(140));
+	sys.draw_rot_image(768+128, 320,  90.0, roundbutton);
+	font_arial2->print_hc(896, 384, texts::get(141));
 
 	// tube handling. compute coordinates for display and mouse use	
 	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
@@ -560,9 +572,9 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	unsigned px = (1024-torptypes.size()*256)/2;
 	for (set<unsigned>::iterator it = torptypes.begin(); it != torptypes.end(); ++it) {
 		color::white().set_gl_color();
-		sys.draw_image(px, 384, notepadsheet);
-		sys.draw_image(px+64, 420, torptex(*it));
-		font_arial2->print(px+16, 448, texts::get(130+*it-1), color(0,0,128));
+		sys.draw_image(px, 384+32, notepadsheet);
+		sys.draw_image(px+64, 420+32, torptex(*it));
+		font_arial2->print(px+16, 448+32, texts::get(130+*it-1), color(0,0,128));
 		px += 256;
 	}
 	
@@ -579,7 +591,7 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 		}
 	}
 
-	if (mb != 0) {
+	if (mb & sys.left_button) {
 		// button down
 		if (	mouseovertube < torpedoes.size()
 			&& torptranssrc >= torpedoes.size()

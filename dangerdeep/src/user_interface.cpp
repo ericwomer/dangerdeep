@@ -466,6 +466,7 @@ void user_interface::draw_infopanel(class system& sys, class game& gm) const
 		panel_border_pos -= panel_height;
 		panel_pos -= panel_height;
 		color::black().set_gl_color(128);
+		sys.no_tex();
 		sys.draw_rectangle(0, panel_pos, 1024, 768);
 		color::white().set_gl_color(255);
 
@@ -607,13 +608,20 @@ void user_interface::draw_clock(class system& sys, class game& gm,
 }
 
 void user_interface::draw_vessel_symbol(class system& sys,
-	const vector2& offset, const sea_object* so, color c) const
+	const vector2& offset, sea_object* so, color c)
 {
 	vector2 d = so->get_heading().direction();
 	float w = so->get_width()*mapzoom/2, l = so->get_length()*mapzoom/2;
 	vector2 p = (so->get_pos().xy() + offset) * mapzoom;
 	p.x += 512;
 	p.y = 384 - p.y;
+
+	double clickd = mapclick.square_distance(p);
+	if (clickd < mapclickdist) {
+		target = so;	// fixme: message?
+		mapclickdist = clickd;
+	}
+
 	c.set_gl_color();
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBegin(GL_QUADS);
@@ -850,6 +858,12 @@ void user_interface::draw_square_mark ( class system& sys, class game& gm,
 
 void user_interface::display_map(class system& sys, game& gm)
 {
+	// get mouse values before drawing (mapclick is used in draw_vessel_symbol)
+	int mx, my, mb = sys.get_mouse_buttons();
+	sys.get_mouse_position(mx, my);
+	mapclick = vector2(mx, my);
+	mapclickdist = (mb & sys.left_button) ? 1e20 : -1;
+
 	sea_object* player = get_player ();
 	bool is_day_mode = gm.is_day_mode ();
 
@@ -954,17 +968,7 @@ void user_interface::display_map(class system& sys, game& gm)
 	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
 
-	// Mouse handling
-	int mx, my, mb = sys.get_mouse_buttons();
-	sys.get_mouse_position(mx, my);
-
-	if ( mb & sys.left_button )
-	{
-		list<ship*> ships;
-		gm.visible_ships(ships, player);
-		list<submarine*> submarines;
-		gm.visible_submarines(submarines, player);
-	}
+	// further Mouse handling
 
 	// keyboard processing
 	int key = sys.get_key();

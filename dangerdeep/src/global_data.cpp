@@ -34,7 +34,7 @@ texture *water, *background, *gauge1,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
-	*woodbackgr, *smoke, *notepadsheet, *menuframe,
+	*woodbackgr, *smoke, *notepadsheet, *menuframe, *roundbutton,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked;
 	
 font *font_arial, *font_arial2, *font_ellis, *font_panel, *font_tahoma,
@@ -113,6 +113,7 @@ void init_global_data(void)
 	smoke = new texture ( ( get_data_dir () + TEXTURE_DIR + "smoke.png" ), 1, true, true);
 	notepadsheet = new texture ( ( get_data_dir () + TEXTURE_DIR + "notepadsheet.png" ), 0, true, true);
 	menuframe = new texture ( ( get_data_dir () + TEXTURE_DIR + "menuframe.png" ), 0, true);
+	roundbutton = new texture ( ( get_data_dir () + TEXTURE_DIR + "roundbutton.png" ), 0, true, true);
 	damage_screen_background = new image((get_data_dir() + IMAGES_DIR + "damage_screen_backg.jpg"), 0, true, true, true);
 	sub_damage_scheme_all = new image((get_data_dir() + IMAGES_DIR + "sub_damage_scheme_all.png"), 0, true, true, true);
 	repairlight = new texture( ( get_data_dir () + TEXTURE_DIR + "repairlight.png" ), 0, true, true );
@@ -190,6 +191,7 @@ void deinit_global_data(void)
 	delete smoke;
 	delete notepadsheet;
 	delete menuframe;
+	delete roundbutton;
 	delete damage_screen_background;
 	delete sub_damage_scheme_all;
 	delete repairlight;

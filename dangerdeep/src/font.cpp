@@ -177,18 +177,18 @@ void font::print(int x, int y, const string& text, color col, bool with_shadow) 
 
 void font::print_hc(int x, int y, const string& text, color col, bool with_shadow) const
 {
-	print((x-get_size(text).first)/2, y, text, col, with_shadow);
+	print(x-get_size(text).first/2, y, text, col, with_shadow);
 }
 	
 void font::print_vc(int x, int y, const string& text, color col, bool with_shadow) const
 {
-	print(x, (y-get_size(text).second)/2, text, col, with_shadow);
+	print(x, y-get_size(text).second/2, text, col, with_shadow);
 }
 
 void font::print_c(int x, int y, const string& text, color col, bool with_shadow) const
 {
 	pair<unsigned, unsigned> wh = get_size(text);
-	print((x-wh.first)/2, (y-wh.second)/2, text, col, with_shadow);
+	print(x-wh.first/2, y-wh.second/2, text, col, with_shadow);
 }
 
 pair<unsigned, unsigned> font::get_size(const string& text) const
