@@ -73,8 +73,7 @@ void logbook_display::print_buffer ( unsigned i, const string& t ) const
 	font_arial2->print ( x, y, t.c_str (), color ( 0, 0, 0 ) );
 }
 
-void logbook_display::format_line ( list<string>& entries_list,
-	const string& line )
+void logbook_display::format_line ( list<string>& entries_list, const string& line )
 {
 	entries_list.clear ();
 
@@ -139,7 +138,7 @@ void logbook_display::add_entry ( const date& d, const string& entry )
 void logbook_display::next_page ()
 {
 	if ( actual_entry + 2 * NUMBER_OF_LINES <= lb.size () )
-			actual_entry += 2 * NUMBER_OF_LINES;
+		actual_entry += 2 * NUMBER_OF_LINES;
 }
 
 void logbook_display::previous_page ()
@@ -238,21 +237,30 @@ void captains_logbook_display::display ( class system& sys, class game& gm )
 
 void captains_logbook_display::check_key ( int keycode, class system& sys, class game& gm )
 {
-	switch ( keycode )
+	if ( sys.key_shift () )
 	{
-		case '<':
-			previous_page ();
-			break;
-		case '>':
-			next_page ();
-			break;
+		switch ( keycode )
+		{
+			case SDLK_LESS:
+				next_page ();
+				break;
+		}
+	}
+	else
+	{
+		switch ( keycode )
+		{
+			case SDLK_LESS:
+				previous_page ();
+				break;
+		}
 	}
 }
 
 void captains_logbook_display::check_mouse ( int x, int y, int mb )
 {
-	if ( x >= 150 && x <= 180 && y >= 585 && y <= 610 )
+	if ( x < 530 )
 		previous_page ();
-	else if ( x >= 850 && x <= 880 && y >= 585 && y <= 610 )
+	else
 		next_page ();
 }
