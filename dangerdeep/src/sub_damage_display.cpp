@@ -108,10 +108,9 @@ void sub_damage_display::check_mouse ( int x, int y, int mb )
 		rect r = rect_data[i];
 		r.y += (damage_screen_background->h-sub_damage_scheme_all->h)/2;
 		if (x >= r.x && x <= r.x+r.w && y >= r.y && y <= r.y+r.h) {
-			ostringstream os;
-			os << "Part No." << i ;	//fixme
-			display_popup(r.x, r.y, os.str());
-//			display_popup(x, y, os.str());
+			// it is important, that texts are in correct order starting with 103.
+			display_popup(r.x, r.y, texts::get(103+i));
+//			display_popup(x, y, texts::get(103+i));
 		}
 	}
 }

@@ -37,7 +37,7 @@ class sub_damage_display : public user_display
 		central_pressure_hull,
 		bilge_lenzpumpe,	//?
 		conning_tower_hatch,
-		acoustic_device,	//? Hoergeraet?
+		listening_device,
 		radio_device,
 		inner_bow_tubes,
 		outer_bow_tubes,
