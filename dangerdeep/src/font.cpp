@@ -59,6 +59,7 @@ void font::print_text(int x, int y, const string& text, bool ignore_colors) cons
 				else
 					nr[i] = 0;
 			}
+			--ti;	// compensate for(...++ti)
 			if (!ignore_colors)
 				glColor3ub(nr[0]*16+nr[1], nr[2]*16+nr[3], nr[4]*16+nr[5]);
 		} else {
@@ -217,6 +218,7 @@ pair<unsigned, unsigned> font::get_size(const string& text) const
 				else
 					nr[i] = 0;
 			}
+			--ti;	// compensate for(...++ti)
 		} else {
 			unsigned t = translate[c];
 			if (t == 0xff) {
