@@ -17,6 +17,7 @@
 #include "texture.h"
 #include "global_data.h"
 #include "ocean_wave_generator.h"
+#include "matrix.h"
 
 #include "system.h"
 #include <fstream>
