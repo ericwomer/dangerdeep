@@ -594,6 +594,22 @@ void submarine_interface::display_map(class system& sys, game& gm)
 	}
 	glEnd();
 	glColor3f(1,1,1);
+	
+	// draw convoy positions	fixme: should be static and fade out after some time
+	list<vector2> convoy_pos = gm.convoy_positions();
+	glColor3f(0,0,0);
+	glBegin(GL_LINE_LOOP);
+	for (list<vector2>::iterator it = convoy_pos.begin(); it != convoy_pos.end(); ++it) {
+		vector2 p = (*it + offset)*mapzoom;
+		int x = int(round(p.x));
+		int y = int(round(p.y));
+		glVertex2i(512-4+x,384-4-y);
+		glVertex2i(512+4+x,384-4-y);
+		glVertex2i(512+4+x,384+4-y);
+		glVertex2i(512-4+x,384+4-y);
+	}
+	glEnd();
+	glColor3f(1,1,1);
 
 	// draw view range
 	glColor3f(1,0,0);

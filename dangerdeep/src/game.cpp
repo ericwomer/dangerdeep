@@ -290,6 +290,15 @@ list<submarine*> game::hearable_submarines(const vector3& pos)
 	return result;
 }
 
+list<vector2> game::convoy_positions(void) const
+{
+	list<vector2> result;
+	for (list<convoy*>::const_iterator it = convoys.begin(); it != convoys.end(); ++it) {
+		result.push_back((*it)->get_pos());
+	}
+	return result;
+}
+
 void game::dc_explosion(const vector3& pos)
 {
 	// are subs affected?

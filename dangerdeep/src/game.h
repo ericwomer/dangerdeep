@@ -80,6 +80,8 @@ public:
 	
 	list<ship*> hearable_ships(const vector3& pos);
 	list<submarine*> hearable_submarines(const vector3& pos);
+
+	list<vector2> convoy_positions(void) const;
 	
 //	bool can_see(const sea_object* watcher, const submarine* sub) const;
 

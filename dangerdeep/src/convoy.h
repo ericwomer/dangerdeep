@@ -28,6 +28,7 @@ public:
 	virtual void simulate(class game& gm, double delta_time);
 	virtual bool is_defunct(void) const { return merchants.size() + warships.size() + escorts.size() == 0; }
 
+	vector2 get_pos(void) const { return position; }
 	ai* get_ai(void) { return myai; }
 };
 

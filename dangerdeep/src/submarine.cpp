@@ -235,15 +235,28 @@ void submarine::dive_to_depth(unsigned meters)
 
 bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target)
 {
-	bool usebowtubes = true;
-	if (target != 0) {
-		angle a = angle(target->get_pos().xy() - get_pos().xy()) - get_heading();
-		if (a.ui_abs_value180() > 90)
-			usebowtubes = false;
-	}
-
 	pair<unsigned, unsigned> bow_tube_indices = get_bow_tube_indices();
 	pair<unsigned, unsigned> stern_tube_indices = get_stern_tube_indices();
+
+	bool usebowtubes = true;
+	if (tubenr < 0) {
+		if (target != 0) {
+			angle a = angle(target->get_pos().xy() - get_pos().xy()) - get_heading();
+			if (a.ui_abs_value180() > 90)
+				usebowtubes = false;
+		}
+	} else {
+		if (tubenr >= bow_tube_indices.first && tubenr < bow_tube_indices.second) {
+			tubenr -= bow_tube_indices.first;
+			usebowtubes = true;
+		} else if (tubenr >= stern_tube_indices.first && tubenr < stern_tube_indices.second) {
+			tubenr -= stern_tube_indices.first;
+			usebowtubes = false;
+		} else {
+			return false;	// illegal tube nr
+		}
+	}
+
 	unsigned torpnr = 0xffff;	// some high illegal value
 	if (tubenr < 0) {
 		if (usebowtubes) {

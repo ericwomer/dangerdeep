@@ -37,9 +37,26 @@ convoy::convoy(class game& gm, parser& p)
 	}
 	p.consume();
 	myai = 0; // new ai(0, ai::convoy); // fixme
+
+	// calculate position
+	position = vector2(0, 0);
+	unsigned nr_ships = 0;
+	for (list<ship*>::iterator it = merchants.begin(); it != merchants.end(); ++it) {
+		position += (*it)->get_pos().xy();
+		++nr_ships;
+	}
+	for (list<ship*>::iterator it = warships.begin(); it != warships.end(); ++it) {
+		position += (*it)->get_pos().xy();
+		++nr_ships;
+	}
+	for (list<ship*>::iterator it = escorts.begin(); it != escorts.end(); ++it) {
+		position += (*it)->get_pos().xy();
+		++nr_ships;
+	}
+	position = position * (1.0/nr_ships);
 }
 
 void convoy::simulate(game& gm, double delta_time)
 {
-	myai->act(gm, delta_time);
+//	myai->act(gm, delta_time);
 }
