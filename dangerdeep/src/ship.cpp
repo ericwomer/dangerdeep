@@ -418,7 +418,9 @@ vector3 ship::get_acceleration(void) const		// drag must be already included!
 	//Power: engine Power (kWatts), rpm (screw turns per second), mass (ship's mass)
 	//SubVIIc: ~3500kW, rad=0.5m, rpm=2 (?), mass=750000kg -> acc=4,666. a bit much...
 	double speed = get_speed();
-	double drag_factor = (speed*speed) * max_accel_forward / (max_speed_forward*max_speed_forward);
+	double speed2 = speed*speed;
+	if (fabs(speed) < 1.0) speed2 = fabs(speed)*max_speed_forward;
+	double drag_factor = (speed2) * max_accel_forward / (max_speed_forward*max_speed_forward);
 	double acceleration = get_throttle_accel() * cos(rudder_pos * M_PI / 180.0);
 	if (speed > 0) drag_factor = -drag_factor;
 	return vector3(0, acceleration + drag_factor, 0);
@@ -436,9 +438,11 @@ double ship::get_turn_acceleration(void) const	// drag must be already included!
 	//double drag_factor = some_factor * current_turn_speed^2
 	//some_factor is given by turn rate
 	double speed = get_speed();
+	double tv2 = turn_velocity*turn_velocity;
+	if (fabs(turn_velocity) < 1.0) tv2 = fabs(turn_velocity) * max_angular_velocity;
 	double accel_factor = 5.0;	// given by turn rate, influenced by rudder area...
 	double max_turn_accel = accel_factor * max_speed_forward * sin(max_rudder_angle * M_PI / 180.0);
-	double drag_factor = (turn_velocity*turn_velocity) * max_turn_accel / (max_angular_velocity*max_angular_velocity);
+	double drag_factor = (tv2) * max_turn_accel / (max_angular_velocity*max_angular_velocity);
 	double acceleration = accel_factor * speed * sin(rudder_pos * M_PI / 180.0);
 	if (turn_velocity > 0) drag_factor = -drag_factor;
 //cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << "\n";
