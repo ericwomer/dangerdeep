@@ -6,11 +6,11 @@
 
 #include <list>
 #include <string>
+#include <vector>
 using namespace std;
 
 #include "vector3.h"
 #include "angle.h"
-#include "parser.h"
 
 #define SINK_SPEED 0.5  // m/sec
 #define MAXPREVPOS 20
@@ -28,21 +28,25 @@ class sea_object
 {
 public:
 	enum alive_status { defunct, dead, sinking, alive };
+
 	// give negative values for fixed speeds, positive values for knots.
 	enum throttle_status { reverse=-7, aheadlisten=-6, aheadsonar=-5, aheadslow=-4,
 		aheadhalf=-3, aheadfull=-2, aheadflank=-1, stop=0  };
+
 	enum damage_status { nodamage, lightdamage, mediumdamage, heavydamage, wrecked };
+
 	enum rudder_status { rudderfullleft, rudderleft, ruddermid, rudderright,
 		rudderfullright };
+
 	enum sensor_system { lookout_system, radar_system, passive_sonar_system,
 		active_sonar_system, last_sensor_system };
 
 	// some useful functions needed for sea_objects
-
 	inline static double kts2ms(double knots) { return knots*1852.0/3600.0; }
 	inline static double ms2kts(double meters) { return meters*3600.0/1852.0; }
 	inline static double kmh2ms(double kmh) { return kmh/3.6; }
 	inline static double ms2kmh(double meters) { return meters*3.6; }
+
 	// translate coordinates from degrees to meters and vice versa
 	static void degrees2meters(bool west, unsigned degx, unsigned minx, bool south,
 		unsigned degy, unsigned miny, double& x, double& y);
@@ -68,9 +72,8 @@ protected:
 	double head_chg;
 	int rudder; // rudder state
 	angle head_to;
-	angle turn_rate;	// in angle/(time*speed) = angle/m
-	// this means angle change per forward
-	// movement in meters
+	angle turn_rate;	// in angle/(time*speed) = angle/m, means angle change per forward movement in meters
+
 	double length, width;	// computed from model
 	
 	// an object is alive until it is sunk or killed.
@@ -85,7 +88,7 @@ protected:
 	// Sensor systems.
 	vector<sensor*> sensors;
 
-	bool parse_attribute(parser& p);        // returns false if invalid token found
+	virtual void parse_attributes(class TiXmlElement* parent);
 
 	sea_object();
 	sea_object& operator=(const sea_object& other);

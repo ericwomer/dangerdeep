@@ -6,7 +6,6 @@
 
 #include "ship.h"
 #include "global_data.h"
-#include "parser.h"
 
 class convoy : public sea_object
 {
@@ -32,7 +31,7 @@ public:
 	void load(istream& in, class game& g);
 	void save(ostream& out, const class game& g) const;
 	convoy(class game& gm, types type_, esctypes esct_);
-	convoy(class game& gm, parser& p);
+	convoy(class game& gm, class TiXmlElement* parent);
 	virtual class ai* get_ai(void) { return myai; }
 	virtual void simulate(class game& gm, double delta_time);
 	virtual void display(void) const {}

@@ -6,7 +6,6 @@
 
 #include "ship.h"
 #include "torpedo.h"
-#include "parser.h"
 #include "binstream.h"
 #include <vector>
 
@@ -157,7 +156,8 @@ protected:
 
 	int find_stored_torpedo(bool usebow);	// returns index or -1 if none
 
-	bool parse_attribute(parser& p);	// returns false if invalid token found
+	virtual void parse_attributes(class TiXmlElement* parent);
+
 	/**
 		This method calculates the battery consumption rate. This value is needed
 		for the simulate function to reduce the battery_level value. An
@@ -194,7 +194,7 @@ public:
 	submarine(const string& specfilename_);
 	
 	// create sub from parser input (mission file), will read type from parser input
-	submarine(parser& p);
+	submarine(class TiXmlElement* parent);
 
 	virtual ~submarine() {}
 

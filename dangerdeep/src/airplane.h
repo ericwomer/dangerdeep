@@ -25,9 +25,9 @@ public:
 	virtual ~airplane() {};
 	void load(istream& in, class game& g);
 	void save(ostream& out, const class game& g) const;
-	static airplane* create(istream& in);
-	static airplane* create(types type_);
-	static airplane* create(parser& p);
+//	static airplane* create(istream& in);	//fixme: make c'tors for them
+//	static airplane* create(types type_);
+//	static airplane* create(parser& p);
 	
 	virtual void simulate(class game& gm, double delta_time);
 

@@ -7,6 +7,7 @@
 #include "sensors.h"
 #include "model.h"
 #include "global_data.h"
+#include "tinyxml/tinyxml.h"
 
 
 void sea_object::degrees2meters(bool west, unsigned degx, unsigned minx, bool south,
@@ -116,8 +117,10 @@ void sea_object::save(ostream& out, const class game& g) const
 }
 
 
-bool sea_object::parse_attribute(parser& p)
+
+void sea_object::parse_attributes(TiXmlElement* parent)
 {
+bool sea_object::parse_attribute(parser& p)
 	switch (p.type()) {
 		case TKN_POSITION: {
 			p.consume();

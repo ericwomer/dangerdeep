@@ -18,7 +18,6 @@ using namespace std;
 #include "angle.h"
 #include "date.h"
 #include "system.h"
-#include "parser.h"
 #include "game.h"
 #include "global_data.h"
 #include "user_display.h"

@@ -23,7 +23,6 @@
 #include "gun_shell.h"
 #include "model.h"
 #include "global_data.h"
-#include "parser.h"
 #include "water_splash.h"
 #include "user_interface.h"
 #include "submarine_interface.h"

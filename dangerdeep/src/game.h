@@ -22,7 +22,6 @@ class depth_charge;
 class gun_shell;
 class model;
 class global_data;
-class parser;
 class sea_object;
 class water_splash;
 class network_connection;

@@ -551,7 +551,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 
 	// draw sun, fixme draw flares/halo
 	vector3 sunpos = sundir * (0.96 * max_view_dist);
-	int suns = max_view_dist/100;		// make sun ~13x13 pixels
+	double suns = max_view_dist/100;		// make sun ~13x13 pixels
 	glColor4f(1,1,1,0.25);
 	suntex->set_gl_texture();
 	glPushMatrix();

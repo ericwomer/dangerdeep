@@ -6,7 +6,6 @@
 
 #include "sea_object.h"
 #include "global_data.h"
-#include "parser.h"
 
 class ship : public sea_object
 {
@@ -31,7 +30,8 @@ protected:
 	ship(const ship& other);
 	ship& operator= (const ship& other);
 
-	bool parse_attribute(parser& p);	// returns false if invalid token found
+	virtual void parse_attributes(class TiXmlElement* parent);
+
 	/**
 		This method calculates the hourly fuel consumption. An
 		exponential is used as a model basing on some fuel consumption values.
@@ -61,7 +61,7 @@ public:
 	ship(const string& specfilename_);
 	
 	// create ship from parser input (mission file), will read type from parser input
-	ship(parser& p);
+	ship(TiXmlElement* parent);
 
 	virtual ~ship();
 
