@@ -12,10 +12,81 @@
 #include "system.h"
 #include "tinyxml/tinyxml.h"
 
-ship::ship() : sea_object(), myai ( 0 ), fuel_level ( 1.0 ),
-	fuel_value_a ( 0.0 ), fuel_value_t ( 1.0 ), mysmoke(0)
+
+
+// xml helper functions
+void firstchildfailed(TiXmlNode* parent, const string& tagchain)
 {
+	string tagchain2 = tagchain;
+	TiXmlNode* m = parent;
+	while (m != 0) {
+		tagchain2 = m->Value() + string(", ") + tagchain2;
+		m = m->Parent();
+	}
+	system::sys().myassert(false, string("xml tag not found: ") + tagchain2);
 }
+TiXmlNode* firstchild(TiXmlNode* parent)
+{
+	TiXmlNode* n = parent->FirstChild();
+	if (!n)
+		firstchildfailed(parent, "FirstChild()");
+	return n;
+}
+TiXmlNode* firstchildn(TiXmlNode* parent, const string& childname)
+{
+	TiXmlNode* n = parent->FirstChild(childname);
+	if (!n)
+		firstchildfailed(parent, childname);
+	return n;
+}
+// end of helper functions
+ship::ship(const string& specfilename_) : sea_object()
+{
+	specfilename = specfilename_;
+	fuel_level = 1.0;
+	fuel_value_a = 0.0;//fixme: move to xml
+	fuel_value_t = 1.0;//fixme: move to xml
+	TiXmlDocument doc(get_ship_dir() + specfilename + ".xml");
+	doc.LoadFile();
+	TiXmlNode* xdftdship = firstchildn(&doc, "dftd-ship");
+	TiXmlNode* xmodelname = firstchildn(xdftdship, "modelname");
+	modelname = firstchild(xmodelname)->Value();
+	modelcache.ref(modelname);
+	TiXmlNode* xdescription = firstchildn(xdftdship, "description");
+	//fixme
+	TiXmlNode* xtype = firstchildn(xdftdship, "type");
+	string ts = firstchild(xtype)->Value();
+	if (ts == "warship") shipclass = WARSHIP;
+	else if (ts == "escort") shipclass = ESCORT;
+	else if (ts == "merchant") shipclass = MERCHANT;
+	else system::sys().myassert(false, string("illegal ship type in ") + specfilename_);
+	TiXmlNode* xcountry = firstchildn(xdftdship, "country");
+	//country = firstchild(xcountry)->Value();
+	TiXmlNode* xmaxspeed = firstchildn(xdftdship, "maxspeed");
+	max_speed = atof(firstchild(xmaxspeed)->Value());
+	TiXmlNode* xmaxrevspeed = firstchildn(xdftdship, "maxrevspeed");
+	max_rev_speed = atof(firstchild(xmaxrevspeed)->Value());
+	TiXmlNode* xacceleration = firstchildn(xdftdship, "acceleration");
+	acceleration = atof(firstchild(xacceleration)->Value());
+	TiXmlNode* xturnrate = firstchildn(xdftdship, "turnrate");
+	turn_rate = atof(firstchild(xturnrate)->Value());
+	TiXmlNode* xtonnage = firstchildn(xdftdship, "tonnage");
+	TiXmlNode* xminton = firstchildn(xtonnage, "min");
+	unsigned minton = atoi(firstchild(xminton)->Value());
+	TiXmlNode* xmaxton = firstchildn(xtonnage, "max");
+	unsigned maxton = atoi(firstchild(xmaxton)->Value());
+	tonnage = minton + rnd(maxton - minton + 1);
+	TiXmlNode* xaitype = firstchildn(xdftdship, "aitype");
+	string aitype = firstchild(xaitype)->Value();
+	if (aitype == "dumb") myai = new ai(this, ai::dumb);
+	else if (aitype == "escort") myai = new ai(this, ai::escort);
+	else system::sys().myassert(false, string("illegal AI type in ") + specfilename_);
+	// fixme smoke
+	mysmoke = 0;
+	// fixme description
+}
+
+
 
 ship::~ship()
 {
@@ -23,11 +94,15 @@ ship::~ship()
 	delete mysmoke;
 }
 
+
+
 void ship::sink(void)
 {
 	sea_object::sink();
 	if (mysmoke) mysmoke->kill();
 }
+
+
 
 bool ship::parse_attribute(parser& p)
 {
@@ -78,46 +153,7 @@ void ship::save(ostream& out, const game& g) const
 	write_double(out, fuel_value_t);
 }
 
-ship* ship::create(istream& in, unsigned type)
-{
 /*
-	switch (type) {
-		case largemerchant: return new ship_largemerchant();
-		case mediummerchant: return new ship_mediummerchant();
-		case smallmerchant: return new ship_smallmerchant();
-		case mediumtroopship: return new ship_mediumtroopship();
-		case destroyertribal: return new ship_destroyertribal();
-		case battleshipmalaya: return new ship_battleshipmalaya();
-		case carrierbogue: return new ship_carrierbogue();
-		case corvette: return new ship_corvette();
-		case largefreighter: return new ship_largefreighter();
-		case mediumfreighter: return new ship_mediumfreighter();
-		case smalltanker: return new ship_smalltanker();
-	}
-*/
-	return 0;
-}
-
-ship* ship::create(ship::types type_)
-{
-/*
-	switch (type_) {
-		case largemerchant: return new ship_largemerchant();
-		case mediummerchant: return new ship_mediummerchant();
-		case smallmerchant: return new ship_smallmerchant();
-		case mediumtroopship: return new ship_mediumtroopship();
-		case destroyertribal: return new ship_destroyertribal();
-		case battleshipmalaya: return new ship_battleshipmalaya();
-		case carrierbogue: return new ship_carrierbogue();
-		case corvette: return new ship_corvette();
-		case largefreighter: return new ship_largefreighter();
-		case mediumfreighter: return new ship_mediumfreighter();
-		case smalltanker: return new ship_smalltanker();
-	}
-*/
-	return 0;
-}
-
 ship* ship::create(parser& p)
 {
 	p.parse(TKN_SHIP);
@@ -140,85 +176,9 @@ ship* ship::create(parser& p)
 //cerr << "token " << s << " unknown.\n";	
 	return 0;
 }
+*/
 
 
-
-void firstchildfailed(TiXmlNode* parent, const string& tagchain)
-{
-	string tagchain2 = tagchain;
-	TiXmlNode* m = parent;
-	while (m != 0) {
-		tagchain2 = m->Value() + string(", ") + tagchain2;
-		m = m->Parent();
-	}
-	system::sys().myassert(false, string("xml tag not found: ") + tagchain2);
-}
-TiXmlNode* firstchild(TiXmlNode* parent)
-{
-	TiXmlNode* n = parent->FirstChild();
-	if (!n) {
-		firstchildfailed(parent, "FirstChild()");
-		return 0;
-	}
-	return n;
-}
-TiXmlNode* firstchildn(TiXmlNode* parent, const string& childname)
-{
-	TiXmlNode* n = parent->FirstChild(childname);
-	if (!n) {
-		firstchildfailed(parent, childname);
-		return 0;
-	}
-	return n;
-}
-ship* ship::create_from_template(const string& type_name)
-{
-	//ship* shp = new ship();//or make non-static constructor?
-	TiXmlDocument doc(get_ship_dir() + type_name + ".xml");
-	doc.LoadFile();
-	TiXmlNode* dftdship = firstchildn(&doc, "dftd-ship");
-	TiXmlNode* modelname = firstchildn(dftdship, "modelname");
-	TiXmlNode* n = firstchild(modelname);
-	// shp->model = modelcache.ref(n);
-	cout << "modelname '" << n->Value() << "'\n";
-	TiXmlNode* description = firstchildn(dftdship, "description");
-	//fixme
-	TiXmlNode* type = firstchildn(dftdship, "type");
-	n = firstchild(type);
-	cout << "type '" << n->Value() << "'\n";
-	string ts = n->Value();
-	if (ts == "warship") shp->type = WARSHIP;
-	else if (ts == "escort") shp->type = ESCORT;
-	else if (ts == "merchant") shp->type = MERCHANT;
-	else system::sys().myassert(false, string("illegal ship type in ") + type_name);
-	TiXmlNode* country = firstchildn(dftdship, "country");
-	n = firstchild(country);
-	cout << "country '" << n->Value() << "'\n";
-	TiXmlNode* maxspeed = firstchildn(dftdship, "maxspeed");
-	n = firstchild(maxspeed);
-	cout << "maxspeed '" << n->Value() << "'\n";
-	TiXmlNode* maxrevspeed = firstchildn(dftdship, "maxrevspeed");
-	n = firstchild(maxrevspeed);
-	cout << "maxrevspeed '" << n->Value() << "'\n";
-	TiXmlNode* acceleration = firstchildn(dftdship, "acceleration");
-	n = firstchild(acceleration);
-	cout << "acceleration '" << n->Value() << "'\n";
-	TiXmlNode* turnrate = firstchildn(dftdship, "turnrate");
-	n = firstchild(turnrate);
-	cout << "turnrate '" << n->Value() << "'\n";
-	TiXmlNode* tonnage = firstchildn(dftdship, "tonnage");
-	TiXmlNode* minton = firstchildn(tonnage, "min");
-	n = firstchild(minton);
-	cout << "tonnage min '" << n->Value() << "'\n";
-	TiXmlNode* maxton = firstchildn(tonnage, "max");
-	n = firstchild(maxton);
-	cout << "tonnage max '" << n->Value() << "'\n";
-	TiXmlNode* aitype = firstchildn(dftdship, "aitype");
-	n = firstchild(aitype);
-	cout << "aitype '" << n->Value() << "'\n";
-
-	return 0;
-}
 
 
 

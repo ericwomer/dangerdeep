@@ -25,6 +25,8 @@ protected:
 	double fuel_value_a;
 	double fuel_value_t;
 
+	unsigned shipclass;
+
 	ship();
 	ship(const ship& other);
 	ship& operator= (const ship& other);
@@ -48,23 +50,30 @@ protected:
 	class smoke_stream* mysmoke;
 	
 public:
-	enum types {
+	enum shipclasses {
 		WARSHIP,
 		ESCORT,
 		MERCHANT
 	};
 	
+	// create empty object from specification xml file
+	ship(const string& specfilename_);
+
 	virtual ~ship();
 
 	virtual void load(istream& in, class game& g);
 	virtual void save(ostream& out, const class game& g) const;
+
 	// fixme: make constructors: create from istream (load), create immidiate (empty), create from parser (mission)
 	// fixme: maybe make missions as xml too, make read_parameters_from_xml function then for mission based ship creation
-	static ship* create(istream& in, unsigned type);
-	static ship* create(types type_);
-	static ship* create(parser& p);
-	static ship* create_from_template(const string& type_name);	// read xml template
-	virtual unsigned get_type(void) const = 0;
+	//static ship* create(istream& in, unsigned type);
+	//static ship* create(types type_);
+	//static ship* create(parser& p);
+	//static ship* create_from_template(const string& type_name);	// read xml template
+	
+	
+	virtual unsigned get_type(void) const = 0;//?????
+	
 	virtual void simulate(class game& gm, double delta_time);
 
 	virtual void sink(void);

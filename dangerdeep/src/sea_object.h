@@ -50,6 +50,8 @@ public:
 		unsigned& degy, unsigned& miny);
 
 protected:
+	string specfilename;	// filename for specification .xml file
+
 	vector3 position;
 	angle heading;	//, pitch, roll; // rotation of object, recomputed every frame for ships, maybe it should get stored
 	double speed, max_speed, max_rev_speed;	// m/sec
