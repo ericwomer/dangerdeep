@@ -562,7 +562,7 @@ bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 {
 	// Create water splash. // FIXME
 	spawn_water_splash ( new gun_shell_water_splash ( pos ) );
-	return false;//fixme testing
+//	return false;//fixme testing
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
 		// fixme: we need a special collision detection, because
 		// the shell is so fast that it can be collisionfree with *it
@@ -573,7 +573,10 @@ bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 		}
 	}
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
+//printf("sub %f %f %f\n",(*it)->get_pos().x,(*it)->get_pos().y,(*it)->get_pos().z);
+//printf("gun %f %f %f\n",pos.x,pos.y,pos.z);
 		if (is_collision(*it, pos.xy())) {
+//printf("sub damaged!!!\n");		
 			(*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS);
 			return true; // only one hit possible
 		}

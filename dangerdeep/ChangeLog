@@ -1,3 +1,9 @@
+2003-08-08  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* ai.cpp
+	  - made gun shell shooting with aiming.
+	    damage simulation is missing, that means a sub is killed
+	    immidiatly after it is hit by a shell.
+
 2003-08-05  Markus Petermann  <m.petermann@gmx.net>
 	* global_data.h, global_data.cpp
 	  - New texture object cloudsbackgr introduced.

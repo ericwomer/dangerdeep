@@ -6,7 +6,7 @@
 
 #include "sea_object.h"
 
-#define GUN_SHELL_HITPOINTS 1	// fixme
+#define GUN_SHELL_HITPOINTS 0.2	// fixme
 #define AIR_RESISTANCE 0.05	// factor of velocity that gets subtracted
 				// from it to slow the shell down
 #define GUN_SHELL_INITIAL_VELOCITY	200.0f	// m/sec, low while testing

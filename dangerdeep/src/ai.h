@@ -10,7 +10,9 @@
 
 #include "vector3.h"
 #include "global_data.h"
+#include "angle.h"
 #include <list>
+#include <map>
 using namespace std;
 
 class sea_object;
@@ -35,9 +37,17 @@ protected:
 	bool has_contact;
 	vector3 contact;	// position of target to attack
 	double remaining_time;	// time to next thought/situation analysis
-	bool cyclewaypoints;
 	
+	bool cyclewaypoints;
 	list<vector2> waypoints;
+	
+	angle last_elevation, last_azimuth;	// remeber last values.
+	
+	// some experience values of the crews to fire a grenade with right angle at any
+	// target. This depends on canon type (shot speed, min/max angles etc.) so we need
+	// several ai classes later.
+	static map<double, double> dist_angle_relation;
+	static void fill_dist_angle_relation_map(void);
 
 	ai();
 	ai(const ai& other);

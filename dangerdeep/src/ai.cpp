@@ -13,6 +13,31 @@
 #define DC_ATTACK_RUN_RADIUS 600	// distance to contact until escort switches to
 					// maximum speed
 
+map<double, double> ai::dist_angle_relation;
+#define MAX_ANGLE 45.0
+#define ANGLE_GAP 0.1
+
+void ai::fill_dist_angle_relation_map(void)
+{
+	if (dist_angle_relation.size() > 0) return;
+	for (double a = 0; a < MAX_ANGLE+ANGLE_GAP; a += ANGLE_GAP) {
+		angle elevation(a);
+		double z = 4;	// meters, initial height above water
+		double vz = GUN_SHELL_INITIAL_VELOCITY * elevation.sin();
+		double dist = 0;
+		double vdist = GUN_SHELL_INITIAL_VELOCITY * elevation.cos();
+		
+		for (double dt = 0; dt < 120.0; dt += 0.01) {
+			dist += vdist * dt;
+			z += vz * dt;
+			vz += -GRAVITY * dt;
+			if (z <= 0) break;
+		}
+		
+		dist_angle_relation[dist] = a;
+	}
+}
+
 // ai computation between is randomly interleaved between frames to avoid
 // time consumption peeks every AI_THINK_CYCLE_TIME seconds
 ai::ai(sea_object* parent_, types type_) : type(type_), state(followpath),
@@ -21,7 +46,9 @@ ai::ai(sea_object* parent_, types type_) : type(type_), state(followpath),
 	myconvoy(0), has_contact(false),
 	remaining_time(rnd() * AI_THINK_CYCLE_TIME),
 	cyclewaypoints(false)
-{}
+{
+	fill_dist_angle_relation_map();
+}
 
 void ai::relax(void)
 {
@@ -200,20 +227,33 @@ void ai::fire_shell_at(game& gm, const sea_object& s)
 	// maybe we should not use current position but rather
 	// estimated position at impact!
 	vector2 deltapos = s.get_pos().xy() - parent->get_pos().xy();
-	// double distance = deltapos.length(); Unused variable
+	double distance = deltapos.length();
 	angle direction(deltapos);
+
+	double max_shooting_distance = (dist_angle_relation.rbegin())->first;
+	if (distance > max_shooting_distance) return;	// can't do anything
 	
 	// initial angle: estimate distance and fire, remember angle
 	// next shots: adjust angle after distance fault:
 	//	estimate new distance from old and fault
 	//	select new angle, fire.
 	//	use an extra bit of correction for wind etc.
-	
-	angle elevation = angle(20);	// fixme
-	
+	//	to do that, we need to know where the last shot impacted!
 
-	// fixme adapt direction & elevation to course and speed of target!	
+	map<double, double>::iterator it = dist_angle_relation.lower_bound(distance);
+	if (it == dist_angle_relation.end()) return;	// unsuccesful angle, fixme
+	angle elevation = angle(it->second);
+
+	// fixme: for a smart ai: try to avoid firing at friendly ships that are in line
+	// of fire.
+	
+	// fixme: snap angle values to simulate real cannon accuracy.
+
+	// fixme: adapt direction & elevation to course and speed of target!
 	gm.spawn_gun_shell(new gun_shell(*parent, direction, elevation));
+
+	last_elevation = elevation;	
+	last_azimuth = direction;
 }
 
 
