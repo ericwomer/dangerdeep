@@ -75,6 +75,8 @@ protected:
 
 	texture* water_bumpmaps[WATER_BUMP_FRAMES];
 	unsigned wavedisplaylists;		// # of first display list
+	vector<vector<float> > wavetileh;	// wave tile heights (generated)
+	vector<vector<vector3f> > wavetilen;	// wave tile normals (generated)
 	void init(void);
 	void deinit(void);
 
@@ -148,9 +150,9 @@ public:
 	virtual void rotate_by_pos_and_wave(const vector3& pos, double timefac,
 		double rollfac = 0.05, bool inverse = false) const;
 	// height depends by time factor (wave shift) t in [0...1)
-	virtual double get_water_height(const vector2& pos, double t) const;
+	virtual float get_water_height(const vector2& pos, double t) const;
 	// give f as multiplier for difference to (0,0,1)
-	virtual vector3 get_water_normal(const vector2& pos, double t, double f = 1.0) const;
+	virtual vector3f get_water_normal(const vector2& pos, double t, double f = 1.0) const;
 
 	// 3d drawing functions
 	virtual void draw_water(const vector3& viewpos, angle dir, double t, double max_view_dist) const;

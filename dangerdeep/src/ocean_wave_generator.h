@@ -66,6 +66,7 @@ public:
 	);
 	vector<T> compute_heights(T time) const;
 	vector<vector3t<T> > compute_normals(T time) const;
+	vector<vector2t<T> > compute_displacements(T time) const;
 	~ocean_wave_generator();
 };
 
@@ -137,7 +138,7 @@ complex<T> ocean_wave_generator<T>::h_tilde(const vector2t<T>& K, int kx, int ky
 	complex<T> h0_tildemK = h0tilde[(N-ky)*(N+1)+(N-kx)];
 	// all frequencies should be multiples of one base frequency (see paper).
 	T wK = sqrt(GRAVITY * K.length());
-	T wK2 = ceil(wK/w0)*w0;
+	T wK2 = floor(wK/w0)*w0;
 	// fixme: replace by sin/cos terms? why should i?
 	const complex<T> I(0,-1);
 	return h0_tildeK * exp(I * wK2 * time) + conj(h0_tildemK * exp(-I * wK2 * time));
@@ -232,10 +233,48 @@ vector<vector3t<T> > ocean_wave_generator<T>::compute_normals(T time) const
 		for (int x = 0; x < N; ++x) {
 			int ptr = y*N+x;
 			T s = signs[(x + y) & 1];
-			wavenormals[ptr] = vector3f<T>(-fft_out[ptr] * s, -fft_out2[ptr] * s, T(1)).normal();
+			wavenormals[ptr] = vector3f<T>(-fft_out[ptr] * s, -fft_out2[ptr] * s, T(0.5)).normal();
 		}
 	}
 	return wavenormals;
+}
+
+template <class T>
+vector<vector2t<T> > ocean_wave_generator<T>::compute_displacements(T time) const
+{
+	const T pi2 = T(2.0)*T(M_PI);
+	for (int y = 0; y <= N/2; ++y) {
+		for (int x = 0; x < N; ++x) {
+			vector2t<T> K(pi2*(x-N/2)/Lm, pi2*(y-N/2)/Lm);
+			complex<T> c = h_tilde(K, x, y, time);
+			T k = K.length();
+			vector2t<T> Kh;
+			if (k != 0)
+				Kh = K * (T(1)/k);
+			else
+				Kh.x = Kh.y = T(0);
+			int ptr = x*(N/2+1)+y;
+			fft_in[ptr][0] =  c.imag() * Kh.x;
+			fft_in[ptr][1] = -c.real() * Kh.x;
+			fft_in2[ptr][0] =  c.imag() * Kh.y;
+			fft_in2[ptr][1] = -c.real() * Kh.y;
+		}
+	}
+
+	FFT_EXECUTE_PLAN(plan);
+	FFT_EXECUTE_PLAN(plan2);
+	
+	vector<vector2t<T> > wavedisplacements(N*N);
+	T signs[2] = { T(1), T(-1) };	// this should be 1,-1 after the formula in the paper, but that would give wrong results
+	T chopfac = Lm / T(2*N);	// fixme should be Lm / (2 * n) but this looks better
+	for (int y = 0; y < N; ++y) {
+		for (int x = 0; x < N; ++x) {
+			int ptr = y*N+x;
+			T s = signs[(x + y) & 1];
+			wavedisplacements[ptr] = vector2f<T>(fft_out[ptr], fft_out2[ptr]) * (s * chopfac);
+		}
+	}
+	return wavedisplacements;
 }
 
 #endif

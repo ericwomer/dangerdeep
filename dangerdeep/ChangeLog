@@ -1,6 +1,9 @@
 2003-12-14  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* user_interface.cpp ocean_wave_generator.h
 	  - added computation for water surface normals.
+	  - added computation for choppy waves.
+	  - some bugfixes.
+	  - correct wave height and normal computation.
 
 2003-12-08  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* user_interface.cpp

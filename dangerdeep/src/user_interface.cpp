@@ -82,11 +82,6 @@ void user_interface::init ()
 	ships_sunk_disp = new ships_sunk_display;
 //	system::sys()->myassert ( ships_sunk_disp != 0, "Error while creating ships_sunk!" );
 
-//fixme: create normals too!!!! (for correct lighting)
-//that is a problem because we scale the result later and thus can't precompute normals,
-//they're screwed up by scaling. Enable auto normaling? But the display lists have borders.
-//what does auto normaling there? recreate Lists when wave height/length changes and don't
-//scale?!
 	// create and fill display lists for water
 	/*
 		this model leads to waves rolling from NE to SW.
@@ -98,14 +93,21 @@ void user_interface::init ()
 		movement direction and let get_water_height/get_water_normal functions
 		use the rotation, too. fixme
 	*/
+	wavetileh.resize(WAVE_PHASES);
+	wavetilen.resize(WAVE_PHASES);
 	wavedisplaylists = glGenLists(WAVE_PHASES);
 	system::sys()->myassert(wavedisplaylists != 0, "no more display list indices available");
-	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(1,1), 15, 0.000005, WAVE_LENGTH, TIDECYCLE_TIME);
+	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(0,1), 20, 0.000005, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
-		vector<float> h = owg.compute_heights(i*TIDECYCLE_TIME/WAVE_PHASES);
-		vector<vector3f> n = owg.compute_normals(i*TIDECYCLE_TIME/WAVE_PHASES);
+		wavetileh[i] = owg.compute_heights(i*TIDECYCLE_TIME/WAVE_PHASES);
+		wavetilen[i] = owg.compute_normals(i*TIDECYCLE_TIME/WAVE_PHASES);
+		vector<float>& h = wavetileh[i];
+		vector<vector3f>& n = wavetilen[i];
 
-		/*	// normals computed by heights.
+		vector<vector2f> d = owg.compute_displacements(i*TIDECYCLE_TIME/WAVE_PHASES);
+/*
+		vector<vector3f> n2 = n;
+			// normals computed by heights.
 		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
 			unsigned y1 = (y+FACES_PER_WAVE-1)%FACES_PER_WAVE;
 			unsigned y2 = (y+1)%FACES_PER_WAVE;
@@ -115,35 +117,67 @@ void user_interface::init ()
 				n[y*FACES_PER_WAVE+x] = vector3f(h[y*FACES_PER_WAVE+x1]-h[y*FACES_PER_WAVE+x2],h[y1*FACES_PER_WAVE+x]-h[y2*FACES_PER_WAVE+x],1).normal();
 			}
 		}
-		*/
-
+*/		
+		
 		glNewList(wavedisplaylists+i, GL_COMPILE);
 		glBegin(GL_QUADS);
 		float add = 1.0f/FACES_PER_WAVE;
 		float fy = 0;
-		float w2bs = 8;
+		float w2bs = 32;	// 128m/4m
 		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
 			float fx = 0;
 			unsigned y2 = (y+1)%FACES_PER_WAVE;
 			for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
 				unsigned x2 = (x+1)%FACES_PER_WAVE;
-				glNormal3fv(&n[y*FACES_PER_WAVE+x].x);
+				int ptr0 = y*FACES_PER_WAVE+x;
+				int ptr1 = y*FACES_PER_WAVE+x2;
+				int ptr2 = y2*FACES_PER_WAVE+x;
+				int ptr3 = y2*FACES_PER_WAVE+x2;
+				glNormal3fv(&n[ptr0].x);
 				glTexCoord2f(fx*w2bs, fy*w2bs);
-				glVertex3f(fx*WAVE_LENGTH, fy*WAVE_LENGTH, h[y*FACES_PER_WAVE+x]);
-				glNormal3fv(&n[y*FACES_PER_WAVE+x2].x);
+				glVertex3f(fx*WAVE_LENGTH+d[ptr0].x, fy*WAVE_LENGTH+d[ptr0].y, h[ptr0]);
+				glNormal3fv(&n[ptr1].x);
 				glTexCoord2f((fx+add)*w2bs, fy*w2bs);
-				glVertex3f((fx+add)*WAVE_LENGTH, fy*WAVE_LENGTH, h[y*FACES_PER_WAVE+x2]);
-				glNormal3fv(&n[y2*FACES_PER_WAVE+x2].x);
+				glVertex3f((fx+add)*WAVE_LENGTH+d[ptr1].x, fy*WAVE_LENGTH+d[ptr1].y, h[ptr1]);
+				glNormal3fv(&n[ptr3].x);
 				glTexCoord2f((fx+add)*w2bs, (fy+add)*w2bs);
-				glVertex3f((fx+add)*WAVE_LENGTH, (fy+add)*WAVE_LENGTH, h[y2*FACES_PER_WAVE+x2]);
-				glNormal3fv(&n[y2*FACES_PER_WAVE+x].x);
+				glVertex3f((fx+add)*WAVE_LENGTH+d[ptr3].x, (fy+add)*WAVE_LENGTH+d[ptr3].y, h[ptr3]);
+				glNormal3fv(&n[ptr2].x);
 				glTexCoord2f(fx*w2bs, (fy+add)*w2bs);
-				glVertex3f(fx*WAVE_LENGTH, (fy+add)*WAVE_LENGTH, h[y2*FACES_PER_WAVE+x]);
+				glVertex3f(fx*WAVE_LENGTH+d[ptr2].x, (fy+add)*WAVE_LENGTH+d[ptr2].y, h[ptr2]);
 				fx += add;
 			}
 			fy += add;
 		}
 		glEnd();
+
+/*
+		glColor3f(1,0,0);
+		glBegin(GL_LINES);
+		fy = 0;
+		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
+			float fx = 0;
+			for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
+				glVertex3f(fx*WAVE_LENGTH, fy*WAVE_LENGTH, h[y*FACES_PER_WAVE+x]);
+				glVertex3f(fx*WAVE_LENGTH+4*n[y*FACES_PER_WAVE+x].x, fy*WAVE_LENGTH+4*n[y*FACES_PER_WAVE+x].y, h[y*FACES_PER_WAVE+x]+4*n[y*FACES_PER_WAVE+x].z);
+				fx += add;
+			}
+			fy += add;
+		}
+		glColor3f(0,1,0);
+		fy = 0;
+		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
+			float fx = 0;
+			for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
+				glVertex3f(fx*WAVE_LENGTH, fy*WAVE_LENGTH, h[y*FACES_PER_WAVE+x]);
+				glVertex3f(fx*WAVE_LENGTH+4*n2[y*FACES_PER_WAVE+x].x, fy*WAVE_LENGTH+4*n2[y*FACES_PER_WAVE+x].y, h[y*FACES_PER_WAVE+x]+4*n2[y*FACES_PER_WAVE+x].z);
+				fx += add;
+			}
+			fy += add;
+		}
+		glEnd();
+*/
+
 		glEndList();
 	}
 	
@@ -465,44 +499,70 @@ void user_interface::smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map1
 void user_interface::rotate_by_pos_and_wave(const vector3& pos, double timefac,
 	double rollfac, bool inverse) const
 {
-	vector3 rz = get_water_normal(pos.xy(), timefac, rollfac);
-	vector3 rx = vector3(1, 0, -rz.x).normal();
-	vector3 ry = vector3(0, 1, -rz.y).normal();
+	vector3f rz = get_water_normal(pos.xy(), timefac, rollfac);
+	vector3f rx = vector3f(1, 0, -rz.x).normal();
+	vector3f ry = vector3f(0, 1, -rz.y).normal();
 	if (inverse) {
-		double mat[16] = {
+		float mat[16] = {
 			rx.x, ry.x, rz.x, 0,
 			rx.y, ry.y, rz.y, 0,
 			rx.z, ry.z, rz.z, 0,
 			0,    0,    0,    1 };
-		glMultMatrixd(&mat[0]);
+		glMultMatrixf(&mat[0]);
 	} else {
-		double mat[16] = {
+		float mat[16] = {
 			rx.x, rx.y, rx.z, 0,
 			ry.x, ry.y, ry.z, 0,
 			rz.x, rz.y, rz.z, 0,
 			0,    0,    0,    1 };
-		glMultMatrixd(&mat[0]);
+		glMultMatrixf(&mat[0]);
 	}
 }
 
-double user_interface::get_water_height(const vector2& pos, double t) const
+float user_interface::get_water_height(const vector2& pos, double t) const
 {
-	double b = WAVE_HEIGHT;
-	double a = 2.0*M_PI/WAVE_LENGTH;
-	double x = myfmod(pos.x, WAVE_LENGTH);
-	double y = myfmod(pos.y, WAVE_LENGTH);
-	double pt = 2.0*M_PI*t;
-	return b * sin(a*x+pt) * sin(a*y+pt);
+	system::sys()->myassert(0 <= t && t < 1, "get water height, t wrong");
+	int wavephase = int(WAVE_PHASES*t);
+	float ffac = FACES_PER_WAVE/WAVE_LENGTH;
+	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
+	float y = float(myfmod(pos.y, WAVE_LENGTH)) * ffac;
+	int ix = int(floor(x));
+	int iy = int(floor(y));
+	int ix2 = (ix+1)%FACES_PER_WAVE;
+	int iy2 = (iy+1)%FACES_PER_WAVE;
+	float fracx = x - ix;
+	float fracy = y - iy;
+	float a = wavetileh[wavephase][ix+iy*FACES_PER_WAVE];
+	float b = wavetileh[wavephase][ix2+iy*FACES_PER_WAVE];
+	float c = wavetileh[wavephase][ix+iy2*FACES_PER_WAVE];
+	float d = wavetileh[wavephase][ix2+iy2*FACES_PER_WAVE];
+	float e = a * (1.0f-fracx) + b * fracx;
+	float f = c * (1.0f-fracx) + d * fracx;
+	return (1.0f-fracy) * e + fracy * f;
 }
 
-vector3 user_interface::get_water_normal(const vector2& pos, double t, double f) const
+vector3f user_interface::get_water_normal(const vector2& pos, double t, double f) const
 {
-	double b = WAVE_HEIGHT * f;
-	double a = 2.0*M_PI/WAVE_LENGTH;
-	double x = myfmod(pos.x, WAVE_LENGTH);
-	double y = myfmod(pos.y, WAVE_LENGTH);
-	double pt = 2.0*M_PI*t;
-	return vector3(-b * a * cos(a*x+pt) * sin(a*y+pt), -b * a * sin(a*x+pt) * cos(a*y+pt), 1).normal();
+	system::sys()->myassert(0 <= t && t < 1, "get water normal, t wrong");
+	int wavephase = int(WAVE_PHASES*t);
+	float ffac = FACES_PER_WAVE/WAVE_LENGTH;
+	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
+	float y = float(myfmod(pos.y, WAVE_LENGTH)) * ffac;
+	int ix = int(floor(x));
+	int iy = int(floor(y));
+	int ix2 = (ix+1)%FACES_PER_WAVE;
+	int iy2 = (iy+1)%FACES_PER_WAVE;
+	float fracx = x - ix;
+	float fracy = y - iy;
+	vector3f a = wavetilen[wavephase][ix+iy*FACES_PER_WAVE];
+	vector3f b = wavetilen[wavephase][ix2+iy*FACES_PER_WAVE];
+	vector3f c = wavetilen[wavephase][ix+iy2*FACES_PER_WAVE];
+	vector3f d = wavetilen[wavephase][ix2+iy2*FACES_PER_WAVE];
+	vector3f e = a * (1.0f-fracx) + b * fracx;
+	vector3f g = c * (1.0f-fracx) + d * fracx;
+	vector3f h = e * (1.0f-fracy) + g * fracy;
+	h.z *= (1.0f/f);
+	return h.normal();
 }
 
 void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
@@ -553,8 +613,8 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glEnd();
 
 	// draw waves
-	glColor3f(1,1,1);
-	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
+//	glColor3f(0.1,0.2,0.5);
+	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());//0);
 	double timefac = myfmod(t, TIDECYCLE_TIME)/TIDECYCLE_TIME;
 	unsigned dl = wavedisplaylists + int(WAVE_PHASES*timefac);
 	for (int y = 0; y < WAVES_PER_AXIS; ++y) {
@@ -566,6 +626,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 		}
 	}
 	glPopMatrix();
+	glColor3f(1,1,1);
 }
 
 void user_interface::draw_terrain(const vector3& viewpos, angle dir,
@@ -594,6 +655,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glRotatef(-90,1,0,0);
 	// if we're aboard the player's vessel move the world instead of the ship
 	if (aboard) {
+		//fixme: use player height correctly here
+		glTranslatef(0, 0, -player->get_pos().z - get_water_height(player->get_pos().xy(), timefac));
 		double rollfac = (dynamic_cast<ship*>(player))->get_roll_factor();
 		rotate_by_pos_and_wave(player->get_pos(), timefac, rollfac, true);
 	}
@@ -793,6 +856,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
+	// fixme: z translate according to water height here
 		rotate_by_pos_and_wave((*it)->get_pos(), timefac, (*it)->get_roll_factor());
 		(*it)->display();
 		glPopMatrix();
@@ -810,6 +874,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
+	// fixme: z translate according to water height here
 		if ((*it)->get_pos().z > -15) {
 			rotate_by_pos_and_wave((*it)->get_pos(), timefac, (*it)->get_roll_factor());
 		}
