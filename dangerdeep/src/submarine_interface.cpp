@@ -604,8 +604,10 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 		
 	// draw line for torpedo transfer if button down
 	if (mb != 0 && torptranssrc < torpedoes.size()) {
+		glColor4f(1,1,1,0.5);
+		sys.draw_image(mx-64, my-8, torptex(torpedoes[torptranssrc].type));
+		glColor4f(1,1,1,1);
 		sys.no_tex();
-		color::white().set_gl_color();
 		glBegin(GL_LINES);
 		glVertex2i(tubecoords[torptranssrc].first+64,
 			tubecoords[torptranssrc].second+8);

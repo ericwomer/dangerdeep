@@ -1,5 +1,9 @@
 2003-07-13  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* submarine_interface.cpp
+	  - show torpedo that is to be moved as ghost image.
+
+2003-07-13  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* submarine_interface.cpp
 	  - implemented manual torpedo (re)loading and transfer.
 	    automatic loading disabled.
 
