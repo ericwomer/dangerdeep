@@ -79,8 +79,6 @@ protected:
 	virtual bool keyboard_common(int keycode, game& gm) = 0;
 	//virtual bool process_common_keys(class game& gm, const SDL_Event& event) = 0;
 
-	static texture* torptex(unsigned type);
-
 	// color funtions.
 	virtual void set_display_color ( color_mode mode ) const;
 	virtual void set_display_color ( const game& gm ) const;
@@ -94,14 +92,7 @@ protected:
 		const string& text) const {
 			draw_gauge(gm, nr, x, y, wh, a, text, a);
 	}
-	// draws turnable switch. parameters: pos, first index and number of descriptions,
-	// selected description, extra description text number and title text nr.
-	// could be replaced by lighted 3d switch!
-	void draw_turnswitch(game& gm, int x, int y,
-		unsigned firstdescr, unsigned nrdescr, unsigned selected, unsigned extradescr, unsigned title) const;
-	// Matching input function, give pos 0-255,0-255.
-	unsigned turnswitch_input(int x, int y, unsigned nrdescr) const;
-	
+
 	void draw_manometer_gauge (game& gm, unsigned nr,
 		int x, int y, unsigned wh, float value, const string& text ) const;
 	void draw_clock(game& gm, int x, int y, unsigned wh, double t,

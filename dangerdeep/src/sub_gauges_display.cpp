@@ -46,6 +46,7 @@ sub_gauges_display::sub_gauges_display() :
 	controlscreen_normallight(get_image_dir() + "ControlScreen_NormalLight.png"),
 	controlscreen_nightlight(get_image_dir() + "ControlScreen_NightLight.png")
 {
+	//fixme: rather use image/texture cache here!
 	image compassi(get_image_dir() + "ControlScreen_Compass.png");
 	image dials(get_image_dir() + "ControlScreen_Dials.png");
 	//fixme: at night we have different dials! store two textures per dial!

@@ -507,23 +507,6 @@ void user_interface::draw_infopanel(class game& gm) const
 }
 
 
-texture* user_interface::torptex(unsigned type)
-{
-	switch (type) {
-		case torpedo::T1: return torpt1;
-		case torpedo::T2: return torpt2;
-		case torpedo::T3: return torpt3;
-		case torpedo::T3a: return torpt3a;
-		case torpedo::T4: return torpt4;
-		case torpedo::T5: return torpt5;
-		case torpedo::T11: return torpt11;
-		case torpedo::T1FAT: return torpt1fat;
-		case torpedo::T3FAT: return torpt3fat;
-		case torpedo::T6LUT: return torpt6lut;
-	}
-	return torpempty;
-}
-
 void user_interface::draw_gauge(class game& gm,
 	unsigned nr, int x, int y, unsigned wh, angle a, const string& text, angle a2) const
 {
@@ -618,41 +601,6 @@ void user_interface::draw_clock(class game& gm,
 
 	glEnd();
 	glColor3f(1,1,1);
-}
-
-void user_interface::draw_turnswitch(class game& gm, int x, int y,
-	unsigned firstdescr, unsigned nrdescr, unsigned selected, unsigned extradescr, unsigned title) const
-{
-	double full_turn = (nrdescr <= 2) ? 90 : 270;
-	double begin_turn = (nrdescr <= 2) ? -45 : -135;
-	turnswitchbackgr->draw(x, y);
-	double degreesperpos = (nrdescr > 1) ? full_turn/(nrdescr-1) : 0;
-	glColor4f(1,1,1,1);
-	for (unsigned i = 0; i < nrdescr; ++i) {
-		vector2 d = angle(begin_turn+degreesperpos*i).direction();
-		system::sys().no_tex();
-		glBegin(GL_LINES);
-		glVertex2f(x+128+d.x*36,y+128-d.y*36);
-		glVertex2f(x+128+d.x*80,y+128-d.y*80);
-		glEnd();
-		font_arial->print_c(x+int(d.x*96)+128, y-int(d.y*96)+128, texts::get(firstdescr+i));
-	}
-	font_arial->print_c(x+128, y+196, texts::get(extradescr));
-	turnswitch->draw_rot(x+128, y+128, begin_turn+degreesperpos*selected);
-	font_arial->print_c(x+128, y+228, texts::get(title));
-}
-
-unsigned user_interface::turnswitch_input(int x, int y, unsigned nrdescr) const
-{
-	if (nrdescr <= 1) return 0;
-	angle a(vector2(x-128, 128-y));
-	double full_turn = (nrdescr <= 2) ? 90 : 270;
-	double begin_turn = (nrdescr <= 2) ? -45 : -135;
-	double degreesperpos = full_turn/(nrdescr-1);
-	double ang = a.value_pm180() - begin_turn;
-	if (ang < 0) ang = 0;
-	if (ang > full_turn) ang = full_turn;
-	return unsigned(round(ang/degreesperpos));
 }
 
 void user_interface::draw_vessel_symbol(const vector2& offset, sea_object* so, color c)

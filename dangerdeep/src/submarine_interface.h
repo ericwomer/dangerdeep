@@ -15,10 +15,6 @@ using namespace std;
 class submarine_interface : public user_interface
 {
 protected:
-	// source tube nr for manual torpedo transfer, used for drag & drop drawing
-	unsigned torptranssrc;
-	
-	class sub_damage_display* sub_damage_disp;
 
 	enum display_mode { display_mode_gauges, display_mode_periscope,
 		display_mode_uzo, display_mode_glasses, display_mode_bridge,
@@ -34,16 +30,7 @@ protected:
 	// panel buttons
 	class widget_button* btn_menu;
 
-	void draw_torpedo(class game& gm, bool
-		usebow, int x, int y, const submarine::stored_torpedo& st);
-
-	// pointers to images/textures of the interface
-	image* controlscreen_normallight;
-	texture *compass1, *battery_indicator, *compressordiesel_indicator,
-		*d_rudder_indicator, *depth_indicator, *knots_indicator,
-		*main_rudder_indicator, *mt_indicator;
-
-	// Display functions for screens.
+	// Display functions for screens.fixme delete
 	virtual void display_gauges(class game& gm);
 	virtual void display_periscope(class game& gm);
 	virtual void display_UZO(class game& gm);
