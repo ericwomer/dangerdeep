@@ -28,8 +28,6 @@ class quaterniont
 	vector3t<D> v;	// i, j, k
 
 	quaterniont() : s(1), v() {}	// note: not fully zero, but neutral rotation instead
-	quaterniont(const quaterniont<D>& o) : s(o.s), v(o.v) {}
-	quaterniont& operator= (const quaterniont<D>& o) { s = o.s; v = o.v; return *this; }
 	quaterniont(const D &r_, const D &i_, const D &j_, const D &k_) : s(r_), v(i_, j_, k_) {}
 	quaterniont(const D &s_, const vector3t<D>& v_) : s(s_), v(v_) {}
 	quaterniont<D> normal(void) const { D len = D(1.0)/length(); return quaterniont(s * len, v * len); }

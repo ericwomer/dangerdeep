@@ -19,9 +19,6 @@ class vector3t
 	D x, y, z;
 
 	vector3t() : x(0), y(0), z(0) {};
-	~vector3t() {}
-	vector3t(const vector3t<D>& o) : x(o.x), y(o.y), z(o.z) {}
-	vector3t& operator= (const vector3t<D>& o) { x = o.x; y = o.y; z = o.z; return *this; }
 	vector3t(const D &x_, const D &y_, const D &z_) : x(x_), y(y_), z(z_) {};
 	vector3t<D> normal(void) const { D len = D(1.0)/length(); return vector3t(x * len, y * len, z * len); };
 	void normalize(void) { D len = D(1.0)/length(); x *= len; y *= len; z *= len; };

@@ -52,10 +52,6 @@ public:
 			values[i] = v[i];
 	}
 
-	matrix4t(const matrix4t<D>& other) : values(other.values) {}
-
-	~matrix4t() {}
-
 	// constuct in C++ order	
 	matrix4t(const D& e0, const D& e1, const D& e2, const D& e3,
 		const D& e4, const D& e5, const D& e6, const D& e7,
@@ -67,8 +63,6 @@ public:
 		values[ 8] =  e8; values[ 9] =  e9; values[10] = e10; values[11] = e11;
 		values[12] = e12; values[13] = e13; values[14] = e14; values[15] = e15;
 	}
-
-	matrix4t<D>& operator= (const matrix4t<D>& other) { values = other.values; return *this; }
 
 	static matrix4t<D> one(void) { matrix4t<D> r; for (unsigned i = 0; i < size; ++i) r.values[i+i*size] = D(1.0); return r; }
 

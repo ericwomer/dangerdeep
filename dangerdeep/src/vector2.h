@@ -26,9 +26,6 @@ class vector2t
 	D x, y;
 
 	vector2t() : x(0), y(0) {};
-	~vector2t() {}
-	vector2t(const vector2t<D>& o) : x(o.x), y(o.y) {}
-	vector2t& operator= (const vector2t<D>& o) { x = o.x; y = o.y; return *this; }
 	vector2t(const D &x_, const D &y_) : x(x_), y(y_) {};
 	vector2t<D> normal(void) const { D len = D(1.0)/length(); return vector2t(x * len, y * len); };
 	void normalize(void) { D len = D(1.0)/length(); x *= len; y *= len; };
