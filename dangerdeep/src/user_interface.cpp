@@ -108,69 +108,13 @@ void user_interface::init ()
 		mapmaxpos.x = mappos.x + maprealw;
 		mapmaxpos.y = mappos.y + maprealw * double(maph)/double(mapw);
 		mapmperpixel = maprealw / double(mapw);
-		landsea.resize(mapw*maph);
-		for (unsigned i = 0; i < mapw*maph; ++i)
-			landsea[i] = read_u8(in);
+//		landsea.resize(mapw*maph);
+//		for (unsigned i = 0; i < mapw*maph; ++i)
+//			landsea[i] = read_u8(in);
+		unsigned s = read_u32(in);
+		for ( ; s > 0; --s)
+			coastlines.push_back(coastline(in));
 	}
-	
-	// create terrain display lists
-	terrain_dl = glGenLists(4);
-	system::sys()->myassert(terrain_dl != 0, "no more display list indices available");
-	double m0 = -mapmperpixel/2, m1 = mapmperpixel/2;
-	double h0 = -10, h1 = 150;
-	// list 0
-	glNewList(terrain_dl, GL_COMPILE);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0, 1);
-	glVertex3f(m0, m0, h0);
-	glTexCoord2f(1, 1);
-	glVertex3f(m1, m0, h0);
-	glTexCoord2f(1, 0);
-	glVertex3f(m1, m1, h1);
-	glTexCoord2f(0, 0);
-	glVertex3f(m0, m1, h1);
-	glEnd();
-	glEndList();
-	// list 1
-	glNewList(terrain_dl+1, GL_COMPILE);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0, 1);
-	glVertex3f(m0, m0, h0);
-	glTexCoord2f(1, 0);
-	glVertex3f(m1, m0, h1);
-	glTexCoord2f(1, 0);	// fixme
-	glVertex3f(m1, m1, h1);
-	glTexCoord2f(0, 0);
-	glVertex3f(m0, m1, h1);
-	glEnd();
-	glEndList();
-	// list 2
-	glNewList(terrain_dl+2, GL_COMPILE);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0, 0);	// fixme: another texture!
-	glVertex3f(m0, m0, h1);
-	glTexCoord2f(0, 0);
-	glVertex3f(m1, m0, h1);
-	glTexCoord2f(0, 0);
-	glVertex3f(m1, m1, h1);
-	glTexCoord2f(0, 0);
-	glVertex3f(m0, m1, h1);
-	glEnd();
-	glEndList();
-	// list 3
-	glNewList(terrain_dl+3, GL_COMPILE);	// fixme total
-	glBegin(GL_QUADS);
-	glTexCoord2f(0, 0);
-	glVertex3f(m0, m0, h1);
-	glTexCoord2f(0, 1);
-	glVertex3f(m0, m1, h0);
-	glTexCoord2f(1, 1);
-	glVertex3f(m1, m1, h0);
-	glTexCoord2f(1, 0);
-	glVertex3f(m1, m0, h1);
-	glEnd();
-	glEndList();
-	
 }
 
 void user_interface::deinit ()
@@ -180,8 +124,6 @@ void user_interface::deinit ()
 
 	// delete display lists for water
 	glDeleteLists(wavedisplaylists, WAVE_PHASES);
-	
-	glDeleteLists(terrain_dl, 4);
 }
 
 /* 2003/07/04 idea.
@@ -347,6 +289,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 	double max_view_dist) const
 {
+#if 0
 	double dist = max_view_dist;
 	vector2 minp(viewpos.x - dist, viewpos.y - dist);
 	vector2 maxp(viewpos.x + dist, viewpos.y + dist);
@@ -369,95 +312,33 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 	if (miny < 1) miny = 1;
 	if (maxx >= mapw-1) maxx = mapw-1;
 	if (maxy >= maph-1) maxy = maph-1;
-	terraintex->set_gl_texture();
-	double yp = -max_view_dist - mapmperpixel/2; //fixme + some offset
-	unsigned mapptr = miny*mapw+minx;
-	double h = 100.0;
+#endif
+	/* the top vertices should be translated along the negative normal of the polyline.
+		that gives an ascending shape for the coast , fixme*/
 	glPushMatrix();
-	glTranslatef(0, 0, -viewpos.z);
-unsigned quads=0;	
-	for (int y = miny; y < maxy; ++y) {
-		double xp = -max_view_dist - mapmperpixel/2; //fixme + some offset
-		for (int x = minx; x < maxx; ++x) {
-			char mv = landsea[mapptr];
-			if (mv == 1) {
-/*
-				glPushMatrix();
-				glTranslated(xp, yp, 0);
-				glCallList(terrain_dl+2);
-				glPopMatrix();
-*/				
-			} else {
-				char tcode = landsea[mapptr-mapw] + landsea[mapptr-1]*2 + landsea[mapptr+1]*4 + landsea[mapptr+mapw]*8;
-				glPushMatrix();
-				glTranslated(xp, yp, 0);
-				switch (tcode) {
-					case 1:
-						glCallList(terrain_dl);
-						break;
-					case 2:
-						glRotatef(-90, 0, 0, 1);
-						glCallList(terrain_dl);
-						break;
-					case 3:
-						glCallList(terrain_dl+1);
-						break;
-					case 4:
-						glRotatef(-180, 0, 0, 1);
-						glCallList(terrain_dl);
-						break;
-					case 5:
-						glCallList(terrain_dl+2);
-						break;
-					case 6:
-						glRotatef(-90, 0, 0, 1);
-						glCallList(terrain_dl+1);
-						break;
-					case 7:
-						glCallList(terrain_dl+3);
-						break;
-					case 8:
-						glRotatef(-270, 0, 0, 1);
-						glCallList(terrain_dl);
-						break;
-					case 9:
-						glRotatef(-270, 0, 0, 1);
-						glCallList(terrain_dl+1);
-						break;
-					case 10:
-						glCallList(terrain_dl+2);
-						break;
-					case 11:
-						glRotatef(-270, 0, 0, 1);
-						glCallList(terrain_dl+3);
-						break;
-					case 12:
-						glRotatef(-180, 0, 0, 1);
-						glCallList(terrain_dl+1);
-						break;
-					case 13:
-						glRotatef(-180, 0, 0, 1);
-						glCallList(terrain_dl+3);
-						break;
-					case 14:
-						glRotatef(-90, 0, 0, 1);
-						glCallList(terrain_dl+3);
-						break;
-					case 15:
-						glCallList(terrain_dl+2);
-						break;
-				}
-			if(tcode != 0)++quads;
-				glPopMatrix();
-			}
-			++mapptr;
-			xp += mapmperpixel;
+	terraintex->set_gl_texture();
+	float cls = mapmperpixel;
+	glTranslatef((mappos.x-viewpos.x), (-mappos.y-viewpos.y), -viewpos.z);
+	glScalef(cls, cls, 1);
+	for (list<coastline>::const_iterator it = coastlines.begin(); it != coastlines.end(); ++it) {
+		glBegin(GL_QUAD_STRIP);
+		vector<vector2f>::const_iterator it2 = --(it->points.end());
+		glTexCoord2f(0, 0);
+		glVertex3f(it2->x, it2->y, 150);
+		glTexCoord2f(0, 1);
+		glVertex3f(it2->x, it2->y, -10);
+		float t = 1.0;
+		for (it2 = it->points.begin(); it2 != it->points.end(); ++it2) {
+			glTexCoord2f(t, 1);
+			glVertex3f(it2->x, it2->y, -10);
+			glTexCoord2f(t, 0);
+			glVertex3f(it2->x, it2->y, 150);
+			t += 1.0;
 		}
-		mapptr += mapw - (maxx - minx);
-		yp += mapmperpixel;
+		glEnd();
 	}
-cout << "quads drawn per frame " << quads << "\n";	
 	glPopMatrix();
+	
 }
 
 void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
@@ -1274,7 +1155,8 @@ void user_interface::display_map(class system& sys, game& gm)
 	}
 	glEnd();
 
-	// draw terrain
+/*
+	// draw terrain (mapzoom is pixel/m)
 	double dist = max_view_dist;
 	vector2 minp(offset.x - dist, offset.y - dist);
 	vector2 maxp(offset.x + dist, offset.y + dist);
@@ -1319,6 +1201,23 @@ cout << "draw map area " << minx << "," << miny << "," << maxx << "," << maxy <<
 	}
 	glEnd();
 	glPointSize(1.0);
+*/
+	glColor3f(0,0.5,0);
+	glPushMatrix();
+	float cls = mapmperpixel * mapzoom;
+	glTranslatef(512 + (mappos.x-offset.x)*mapzoom, 384 + (mappos.y+offset.y)*mapzoom, 0);
+	glScalef(cls, cls, 1);
+	for (list<coastline>::const_iterator it = coastlines.begin(); it != coastlines.end(); ++it) {
+		if (it->cyclic)
+			glBegin(GL_LINE_LOOP);
+		else
+			glBegin(GL_LINE_STRIP);
+		for (vector<vector2f>::const_iterator it2 = it->points.begin(); it2 != it->points.end(); ++it2) {
+			glVertex2f(it2->x, -it2->y);
+		}
+		glEnd();
+	}
+	glPopMatrix();
 
 	// draw convoy positions	fixme: should be static and fade out after some time
 	glColor3f(1,1,1);

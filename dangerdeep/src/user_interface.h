@@ -11,6 +11,7 @@ using namespace std;
 #include "sea_object.h"
 #include "global_data.h"
 #include "color.h"
+#include "coastline.h"
 
 #define MAPGRIDSIZE 1000	// meters
 
@@ -49,12 +50,12 @@ protected:
 	vector2 mapclick;
 	double mapclickdist;
 	
-	vector<char> landsea;	// a test hack. 0 = land, 1 = sea
+//	vector<char> landsea;	// a test hack. 0 = land, 1 = sea
 	unsigned mapw, maph;
 	double maprealw;
 	vector2 mappos, mapmaxpos;
 	double mapmperpixel;	// meter per pixel on map
-	unsigned terrain_dl;	// display lists
+	list<coastline> coastlines;
 
 	// free view mode
 	float viewsideang, viewupang;	// global spectators viewing angles
