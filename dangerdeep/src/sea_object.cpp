@@ -218,6 +218,20 @@ string sea_object::get_description(unsigned detail) const
 
 void sea_object::simulate(game& gm, double delta_time)
 {
+	/* fixme 2004/06/18 bad model.
+	maybe store references to an object with it, like:
+	sea_object {
+		void register_reference(sea_object** myref);
+		void unregister_reference(sea_object** myref);
+	}
+	killing an object erases all references. so only two states: alive/dead.
+	that is much easier than explicitly testing the references everytime/everywhere.
+	
+	simulation is always done, no matter if alive/dead because it is and keeps an
+	rigid body.
+	but this is not a sane model... copying objects/pointers leads to problems...
+	which model is better?
+	*/
 	// calculate sinking
 	if (is_defunct()) {
 		return;
@@ -233,6 +247,43 @@ void sea_object::simulate(game& gm, double delta_time)
 		return;
 	}
 
+	// fixme: 2004/06/18
+	// this should be replaced by directional speed.
+	// store spatial position and speed.
+	// get acceleration (spatial) from virtual function.
+	// solve an ODE with simple x'=x+v*t+a/2*t*t, v'=v+a*t
+	// the sea_object interface should be a bit more general (rigid body)
+	// even rotation/turning could/should be handled with forces.
+	// that is rotational impulse and torque.
+	// So store position and velocity for position/orientation.
+	// get acceleration/torque for time t, change position/orientation accordingly.
+	// attention: torque needs mass. we don't care about that, so use rotaccel.
+	// changing position/orientation depends on inertia and mass of object...
+	// for display, generate a rotation matrix from quaternion.
+	// heading is the angle of the projection of the 2nd column of that matrix onto
+	// the x-y plane.
+	// acceleration is mostly along local axes, so compute it like this:
+	// orientation rotates (0,accel,0) vector (acceleration along local y-axis).
+	// or better: get_acceleration() returns LOCAL acceleration.
+	// use vector3 acceleration = orientation.rotate(get_acceleration()); etc.
+	// or maybe offer both functions (both virtual): get_accel and get_local_accel
+	// the first is predefined with the rotation.
+	/* change header file:
+	vector3 position, velocity;
+	double acceleration -> double max_acceleration;
+	quaternion orientation, rotvelocity;
+	virtual vector3 get_acceleration(const double& t)  maybe t is not needed...
+	virtual quaternion get_rotacceleration();
+	
+	code:
+	vector3 acceleration = get_acceleration();
+	position += velocity * delta_time + acceleration * (0.5 * delta_time * delta_time);
+	velocity += acceleration * delta_time;
+	quaternion rotacceleration = get_rotacceleration();
+	add orientation and rotvelocity and rotacceleration...
+	add rotvelocity and rotacceleration...
+	*/	
+
 	// calculate directional speed
 	vector2 dir_speed_2d = heading.direction() * speed;
 	vector3 dir_speed(dir_speed_2d.x, dir_speed_2d.y, 0);
@@ -241,6 +292,10 @@ void sea_object::simulate(game& gm, double delta_time)
 	position += dir_speed * delta_time;
 	
 	// calculate speed change
+	// 2004/06/18 fixme: this is not part of physical simulation!
+	// changing acceleration to match speed to throttle is more an AI simulation.
+	// so it should move to another function or at least cleanly separated from physical
+	// simulation.
 	double t = get_throttle_speed() - speed;
 	double s = acceleration * delta_time;
 	if (fabs(t) > s) {

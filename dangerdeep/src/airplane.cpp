@@ -79,6 +79,27 @@ void airplane::simulate(class game& gm, double delta_time)
 	vector3 locy = rotation.rotate(0, 1, 0);
 	vector3 locz = rotation.rotate(0, 0, 1);
 
+/*
+	fixme: 2004/06/18
+	the whole model is slightly wrong. When a plane turns, some speed is lost, but the
+	speed doesn't reduce to the part of the old speed vector that is common with the
+	new one. E.g. with the old model a turn from north to east (90 degr.) would drop
+	the speed to zero, a turn to 60 deg, would have speed, etc. that's not true.
+	E.g. a car that turns keeps moving even when changing the direction (without applying
+	further force to the wheels).
+	So the model would be like this:
+	Forces:
+	Thrust: along plane's local y-axis.
+	Drag: along every axis the plane moves, depends on orientation.
+	Lift: along global z-axis.
+	Gravity: along global z-axis.
+	Speed of the plane is along local y-axis (Mass*velocity = impulse)
+	and is not affected by turning (at least not that much).
+	The turn rate is influenced by speed and other forces. The more impulse a plane
+	has the harder it is to turn (change direction of impulse).
+	This has to be modelled with inertia, rotational impulse, torque etc.
+*/
+
 	// fixme: the plane's rotation must change with velocity:
 	// when rolling the plane to the side, it is lifted hence changing the course.
 	// this means that the plane changes its rotation too!
