@@ -1,3 +1,11 @@
+2003-04-30  Markus Petermann  <m.petermann@gmx.net>
+
+	* global_data.h, global_data.cpp, logbook.cpp:
+	  - Variable woodbg renamed to woodbackgr.
+	* ships_sunk_diplay.h, ships_sunk_display.cpp:
+	  - New module introduced. Can be used to display type, tonnage and 
+	    silhouette of ships sunk by player.
+
 2003-04-29  Markus Petermann  <m.petermann@gmx.net>
 
 	* logbook.cpp:
