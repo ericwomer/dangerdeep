@@ -6,7 +6,7 @@ arch=`awk '$1 ~ /Architecture/ { print $2 }' debian/DEBIAN/control`
 debroot="dangerdeep_$version""_$arch"
 debfile="dangerdeep_$version""_$arch.deb"
 bindir='usr/games'
-datadir='usr/share/games/'
+datadir='usr/share/games'
 mandir='usr/share/man/man6'
 docdir='usr/share/doc/dangerdeep'
 
