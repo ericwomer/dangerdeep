@@ -82,8 +82,14 @@ void model::material::set_gl_values(void) const
 void model::mesh::display(void) const
 {
 	// further speedup with display lists possible or sensible?
-	bool has_texture = (mymaterial->mytexture != 0);
-	mymaterial->set_gl_values();
+	bool has_texture = false;
+	if (mymaterial != 0) {
+		has_texture = (mymaterial->mytexture != 0);
+		mymaterial->set_gl_values();
+	} else {
+		glBindTexture(GL_TEXTURE_2D, 0);
+		color::red().set_gl_color();
+	}		
 
 //	if (has_texture)
 		glInterleavedArrays(GL_T2F_N3F_V3F, 0, &(vertices[0].uv));
@@ -222,9 +228,8 @@ void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent)
 				m3ds_read_uv_coords(in, ch, meshes.back());
 				break;
 
-//fixme: does this matrix describe the model rotation and translation that IS ALREADY computed for the vertices
-//or that still has to be computed? it seems the vertices are already transformed, but why do some models
-//are so much off the origin?
+//fixme: this matrix seems to describe the model rotation and translation that IS ALREADY computed for the vertices
+//but why do some models are so much off the origin? (corvette, subIXc40)
 			case M3DS_TRI_MESHMATRIX:
 				{
 				float matrix[4][3];
@@ -237,7 +242,6 @@ void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent)
 				ch.bytes_read += 4 * 3 * 4;
 				}
 				break;
-
 		}
 		ch.skip(in);
 		parent.bytes_read += ch.length;
@@ -374,7 +378,7 @@ void model::m3ds_read_vertices(istream& in, m3ds_chunk& ch, model::mesh& m)
 	m.vertices.resize(nr_verts);
 	for (unsigned n = 0; n < nr_verts; ++n) {
 		m.vertices[n].pos.x = read_float(in);
-		m.vertices[n].pos.y = read_float(in);	// swap y,z and negate z to match OpenGL's coordinate system fixme? why?
+		m.vertices[n].pos.y = read_float(in);
 		m.vertices[n].pos.z = read_float(in);
 	}
 	ch.bytes_read += nr_verts * 3 * 4;

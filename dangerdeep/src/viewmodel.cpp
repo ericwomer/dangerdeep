@@ -43,6 +43,21 @@ void view_model(const string& modelfilename)
 		glRotatef(viewangles.y, 0, 1, 0);
 		glRotatef(viewangles.z, 0, 0, 1);
 		glRotatef(viewangles.x, 1, 0, 0);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBegin(GL_LINES);
+		glColor3f(1,0,0);
+		glVertex3f(0,0,0);
+		glVertex3f(1,0,0);
+		glColor3f(1,1,0);
+		glVertex3f(0,0,0);
+		glVertex3f(0,1,0);
+		glColor3f(0,1,0);
+		glVertex3f(0,0,0);
+		glVertex3f(0,0,1);
+		glColor3f(1,1,1);
+		glEnd();
+		
 		double sc = 1.0/(mdl->get_boundbox_size()*0.5).length();
 		glScalef(sc, sc, sc);
 		glTranslatef(pos.x, pos.y, pos.z);
