@@ -325,10 +325,10 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	glPushMatrix();
 	glLoadIdentity();
 
-	double fov = 60.0f;
+	double fov = 20.0f;
 
 	if ( zoom_scope )
-		fov = 20.0f;
+		fov = 5.0f;
 	
 	sys.gl_perspective_fovx (fov, 1.0/1.0, 2.0, gm.get_max_view_distance());
 	glViewport(res_x/2, res_y/3, res_x/2, res_x/2);
