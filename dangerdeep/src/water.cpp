@@ -22,6 +22,8 @@
 #include "system.h"
 #include <fstream>
 
+// compute projected grid efficiency, it should be 50-95%
+//#define COMPUTE_EFFICIENCY
 
 // some more interesting values: phase 256, waveperaxis: ask your gfx card, facesperwave 64+,
 // wavelength 256+,
@@ -90,7 +92,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) : mytime(tm), xres(xres_
 		}
 	}
 
-	ocean_wave_generator<float> owg(WAVE_RESOLUTION, vector2f(1,1), 8 /*10*/ /*31*/, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
+	ocean_wave_generator<float> owg(WAVE_RESOLUTION, vector2f(1,1), 15 /*10*/ /*31*/, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileheights[i] = owg.compute_heights();
@@ -257,6 +259,13 @@ void water::compute_coord_and_normal(int phase, const vector2& xypos,
 	unsigned i0 = x0+y0*WAVE_RESOLUTION, i1 = x1+y0*WAVE_RESOLUTION, i2 = x0+y1*WAVE_RESOLUTION,
 		i3 = x1+y1*WAVE_RESOLUTION;
 
+	// z distance (for triliniar filtering) is constant along one projected grid line
+	// so compute it per line.
+	// if mipmap level is < 0, we may add some extra detail (noise)
+	// this could be fft itself (height scaled) or some perlin noise
+	// take x,y fraction as texture coordinates in perlin map.
+	// linear filtering should be neccessary -> expensive!
+
 	// fixme: make trilinear
 	// fixme: unite displacements and height in one vector3f for simplicities' sake and performance gain
 	// bilinear interpolation of displacement and height	
@@ -282,11 +291,14 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 {
 	// move world so that viewer is at (0,0,0)
 	glPushMatrix();
-	glTranslated(0,0,-viewpos.z);//(-viewpos.x, -viewpos.y, -viewpos.z);	// fixme !!!
+	// take  viewpos.xy % WAVE_LENGTH, fixme, it makes the waves look weird?!
+	glTranslated(0, 0, -viewpos.z);
+//	glTranslated(myfmod(-viewpos.x, WAVE_LENGTH), myfmod(-viewpos.y, WAVE_LENGTH), -viewpos.z);
 
 	int phase = int((myfmod(mytime, TIDECYCLE_TIME)/TIDECYCLE_TIME) * WAVE_PHASES);
-	const float VIRTUAL_PLANE_HEIGHT = 30.0f;	// fixme experiment, amount of reflection distorsion
-	const double WAVE_HEIGHT = 5.0; // maximum height of waves (half amplitude)
+	const float VIRTUAL_PLANE_HEIGHT = 30.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok
+	const double WAVE_HEIGHT = 5.0; // maximum height of waves (half amplitude), fixme: get from fft
+	// fixme: always add elevation to projector.z?
 	const double ELEVATION = 10.0; // fixme experiment
 
 	matrix4 proj = matrix4::get_gl(GL_PROJECTION_MATRIX);
@@ -365,9 +377,11 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	
 	// compute rest of the projector matrix from pos and forward vector
 	vector3 pjz = -projectorforward.normal();
-	vector3 pjx = vector3(0,0,1).cross(pjz);	// fixme: what if pjz==up vector (or very near it)
+	vector3 pjx = vector3(0,0,1).cross(pjz).normal(); // fixme: what if pjz==up vector (or very near it)
 	vector3 pjy = pjz.cross(pjx);
 //cout << "pjx " << pjx << " pjy " << pjy << " pjz " << pjz << "\n";
+//cout << "lengths " << pjx.length() << "," << pjy.length() << "," << pjz.length() << "\n";
+
 	matrix4 inv_modl_projector(
 		pjx.x, pjy.x, pjz.x, projectorpos.x,
 		pjx.y, pjy.y, pjz.y, projectorpos.y,
@@ -424,8 +438,11 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	glEnd();
 	glColor3f(1,1,1);
 #endif
-	
+
 	// compute coordinates
+#ifdef COMPUTE_EFFICIENCY
+	int vertices = 0, vertices_inside = 0;
+#endif	
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		double y = double(yy)/yres;
 		// vertices for start and end of two lines are computed and projected
@@ -443,8 +460,18 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			double x = double(xx)/xres;
 			vector2 v = va * (1-x) + vb * x;
 			compute_coord_and_normal(phase, v, coords[ptr], normals[ptr]);
+#ifdef COMPUTE_EFFICIENCY
+			vector3 tmp = world2camera * vector3(coords[ptr].x, coords[ptr].y, coords[ptr].z);
+			if (fabs(tmp.x) <= 1.0 && fabs(tmp.y) <= 1.0 && fabs(tmp.z) <= 1.0)
+				++vertices_inside;
+			++vertices;
+#endif
 		}
 	}
+#ifdef COMPUTE_EFFICIENCY
+	cout << "drawn " << vertices << " vertices, " << vertices_inside << " were inside frustum ("
+		<< vertices_inside*100.0f/vertices << " % )\n";
+#endif
 
 	// compute normals and remaining data (Fresnel etc.)
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
