@@ -197,8 +197,8 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 	glArrayElement(verts+1);
 	glEnd();
 	
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 #else
 
@@ -318,15 +318,19 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	else { colscal = 1-fmod(dt,1); }
 	lightcol = color(color(64, 64, 64), color(255,255,255), colscal);
 	skycol1 = color(color(8,8,32), color(165,192,247), colscal);
-	skycol2 = color(color(0, 0, 16), color(24,47,244), colscal);
+	skycol2 = color(color(0, 0, 16), color(74,114,236), colscal);
 
-	skyhemisphere->display(false, &skycol1, &skycol2);
+	skycol2.set_gl_color();
+	skyhemisphere->display(false);//, &skycol1, &skycol2);
+	color::white().set_gl_color();
 	
 	// clouds
-	double cloudscale = 2;		// depends on scale factor above
+	double cloudscale = 1;		// depends on scale factor above
 	double cloudoffsetx = 0;	// depends on time for moving clouds
 	double cloudoffsety = 0;
-	double cloudaltitude = 6000.0/max_view_dist;	// clouds in 6km altitude
+		//fixme: clouds move up/down depending on daytime
+		//why??? glScalef above is compensated by this division!
+	double cloudaltitude = 0.3;//6000.0/max_view_dist;	// clouds in 6km altitude
 	glBindTexture(GL_TEXTURE_2D, clouds->get_opengl_name());
 	glBegin(GL_QUADS);
 	glTexCoord2f(cloudoffsetx, cloudoffsety);

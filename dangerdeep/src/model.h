@@ -11,17 +11,10 @@ using namespace std;
 
 class model
 {
-public:
-	struct vertex {
-		vector3 pos, normal;
-		float u, v;
-	};
-	struct face {
-		unsigned v[3];
-	};
 protected:
-	vector<vertex> vertices;
-	vector<face> faces;
+	vector<vector3> vcoords, vnormals;
+	vector<vector2> vtexcoords;
+	vector<unsigned> facevalues;	// 3 values per face
 	texture* tex;
 	// write floats in [-2,...2) to a short int
 	static float read_packed_float(FILE* f);
@@ -43,10 +36,7 @@ public:
 	void read_from_OFF(const string& filename, const string& texture_name,
 		unsigned mapping = 0, unsigned tilesx = 1, unsigned tilesy = 1);
 	void write(const string& filename) const;
-	// if one color is given it is used for the whole model.
-	// if two colors are given a gradient is computed along the z axis with col1 at bottom.
-	void display(bool with_texture = true, color* col1 = 0, color* col2 = 0) const;
-	void scale(double x, double y, double z);
+	void display(bool with_texture = true) const;
 	double get_length(void) const { return (max - min).y; };
 	double get_width(void) const { return (max - min).x; };
 };
