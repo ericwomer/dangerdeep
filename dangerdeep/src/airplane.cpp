@@ -170,16 +170,35 @@ void airplane::simulate(class game& gm, double delta_time)
 	quaternion invrot = rotation.conj();
 	vector3 localvelocity = invrot.rotate(velocity);
 		
-	speed = localvelocity.y;
-	double speed_sq = speed * speed;
+	speed = localvelocity.y;	// for display
 
-	vector3 wingarea(get_wing_width(), get_wing_length(), 0);
 	vector3 locx = rotation.rotate(1, 0, 0);
 	vector3 locy = rotation.rotate(0, 1, 0);
 	vector3 locz = rotation.rotate(0, 0, 1);
-	vector3 rotwingarea = rotation.rotate(wingarea);
-	double areafac = rotwingarea.x * rotwingarea.y;
-//	if (locz.z < 0) locz = -locz;
+
+	// fixme: the plane's rotation must change with velocity:
+	// when rolling the plane to the side, it is lifted hence changing the course.
+	// this means that the plane changes its rotation too!
+	// according to wind (spatial velocity) it turns its nose!
+	// this would explain why the speed drops when making a dive (for now!):
+	// the plane can dive at its specific rate no matter how strong the wind resistance
+	// is - if the plane would change its rotation with respect to spatial velocity
+	// it couldn't turn or dive that fast, allowing the speed to catch up...
+
+/*	
+	vector3 winddir = localvelocity.normal();
+	double windturnangle = acos(locy * winddir) * 180.0 / M_PI;
+	if (windturnangle <= 0.0001) windturnangle = 0.0;
+	vector3 windturnaxis = (windturnangle > 0.0001) ? locy.cross(winddir).normal() : vector3(0, 0, 0);
+*/	
+/*
+cout << "winddir      " << winddir << "\n";	
+cout << "windta      " << windturnaxis << "\n";	
+cout << "windtan      " << windturnangle << "\n";	
+cout << "windtal      " << windturnaxis.length() << "\n";	
+*/
+//	double windturnfactor = 0.333333;	// 1/sec
+//	quaternion windrotation = quaternion::rot(windturnfactor * windturnangle * delta_time, windturnaxis);
 
 	// forces:
 	// thrust: engine thrust along local y-axis
@@ -194,39 +213,38 @@ void airplane::simulate(class game& gm, double delta_time)
 
 	// compute forces	
 	// propulsion by engine (thrust)
-	double drag_damping = 1.0 - localvelocity.y * localvelocity.y * get_drag_factor();
-	if (drag_damping < 0.0) drag_damping = 0.0;
-	vector3 thrust = get_engine_thrust() * drag_damping * locy;
+	vector3 thrust = get_engine_thrust() * locy;
 	// lift by wings (fixme: works also if plane is upside down or nearly!)
-	double lift_damping = (localvelocity.z < 0) ? 1.0 : 1.0 - localvelocity.z * localvelocity.z * get_antilift_factor();
-	if (lift_damping < 0.0) lift_damping = 0.0;
-	vector3 lift = (areafac * speed_sq * get_lift_factor() * lift_damping) * locz;
-	// gravity, fixme: depends on plane's rotation!
-	double gravity_damping = (velocity.z >= 0) ? 1.0 : 1.0 - velocity.z * velocity.z * get_antilift_factor();
-	if (gravity_damping < 0.0) gravity_damping = 0.0;
-	vector3 gravity = vector3(0, 0, get_mass() * gravity_damping * -GRAVITY);
-	// slide damping
-	double slide_damping = 1.0 - localvelocity.x * localvelocity.x * get_slide_factor();
-	if (slide_damping < 0) slide_damping = 0.0;
-	vector3 slide = (get_mass() * -slide_damping) * locx;
+	vector3 lift = (localvelocity.y * localvelocity.y * get_lift_factor()) * locz;//fixme: negate locz if locz.z<0
+	// gravity
+	vector3 gravity = vector3(0, 0, get_mass() * -GRAVITY);
 
-/*	
+
+	// deceleration by air friction (drag etc.)
+	vector3 airfriction = rotation.rotate(vector3(
+		-mysgn(localvelocity.x) * localvelocity.x * localvelocity.x * get_antislide_factor(),
+		-mysgn(localvelocity.y) * localvelocity.y * localvelocity.y * get_drag_factor(),
+		-mysgn(localvelocity.z) * localvelocity.z * localvelocity.z * get_antilift_factor()
+		));
+
+/*
 cout << "global velocity " << velocity << "\n";
 cout << "local velocity  " << localvelocity << "\n";
 cout << "thrust          " << thrust << "\n";
 cout << "lift            " << lift << "\n";
-cout << "slide           " << slide << "\n";
 cout << "gravity         " << gravity << "\n";
+cout << "air friction    " << airfriction << "\n";
 */
 
 	// update position and speed
-	vector3 accel = (thrust + lift + gravity + slide) * (1.0/get_mass());
+	vector3 accel = (thrust + lift + gravity) * (1.0/get_mass()) + airfriction;
 	position += velocity * delta_time + accel * (0.5 * delta_time * delta_time);
 	velocity += accel * delta_time;
 
 	quaternion qpitch = quaternion::rot(pitchfac * get_pitch_deg_per_sec() * delta_time, 1, 0, 0); // fixme: also depends on speed
 	quaternion qroll = quaternion::rot(rollfac * get_roll_deg_per_sec() * delta_time, 0, 1, 0); // fixme: also depends on speed
 	rotation *= qpitch * qroll;
+	// * windrotation;
 
 //	if ( myai )
 //		myai->act(gm, delta_time);

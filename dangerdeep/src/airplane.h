@@ -33,12 +33,10 @@ public:
 
 	virtual quaternion get_rotation(void) const { return rotation; }
 
-	virtual double get_wing_width(void) const { return 8.0; }
-	virtual double get_wing_length(void) const { return 2.0; }
 	virtual double get_mass(void) const { return 4000.0; }	// 4 tons.
 	virtual double get_engine_thrust(void) const { return 20000.0; }
 	virtual double get_drag_factor(void) const { return 0.00005184; }
-	virtual double get_slide_factor(void) const { return 0.01; }
+	virtual double get_antislide_factor(void) const { return 0.0025; }
 	virtual double get_antilift_factor(void) const { return 0.04; }
 	virtual double get_lift_factor(void) const { return 0.75; }
 	virtual double get_roll_deg_per_sec(void) const { return 90.0; }
