@@ -22,7 +22,6 @@
 #include "airplane.h"
 #include "depth_charge.h"
 #include "gun_shell.h"
-#include "water_splash.h"
 #include "vector3.h"
 #include "widget.h"
 #include "command.h"

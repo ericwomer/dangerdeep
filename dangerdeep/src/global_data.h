@@ -45,7 +45,7 @@ extern class model *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl, *conning_towe
 extern class texture *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *metalbackgr,
-	*clock12, *clock24, *torp_expl_water_splash[3],
+	*clock12, *clock24,
 	*woodbackgr, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
 	*terraintex, *cloudsbackgr, *atlanticmap;

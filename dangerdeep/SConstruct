@@ -31,12 +31,6 @@ else:
 build_base_dir = 'build'
 source_base_dir = 'src'
 
-
-# missing compared to automake:
-# - build source tarballs - doesn't work the way automake does it. Instead
-# store list of files for tar ball and build it automatically.
-
-
 env.Append(CPPDEFINES = [('VERSION', '\\"' + version + '\\"')])
 
 ################ configure
@@ -106,7 +100,6 @@ dftdsources = Split("""subsim.cpp
 	triangulate.cpp
 	user_interface.cpp
 	water.cpp
-	water_splash.cpp
 	widget.cpp""")
 
 dftdmediasources = Split("""
@@ -217,17 +210,18 @@ libpath = libpath + [target_dir]
 Export('env', 'dftdsources', 'dftdmediasources', 'oglextsources', 'tinyxmlsources', 'gfxlibs', 'alllibs', 'libpath')
 
 # each platform needs to define DATADIR
-
+env.BuildDir(target_dir, source_base_dir, duplicate=0) 
 SConscript(target_dir + os.sep + 'SConscript') 
-
-BuildDir(target_dir, source_base_dir, duplicate=0) 
 
 #generate a list of all files from CVS subdirectories and give that list here!
 if sys.platform == 'linux2':
+	env = Environment()
 	env.Append(TARFLAGS = '-z')
 	env.Append(TARSUFFIX = '.gz')
 	cvsfiles = findCVS('.')
 	# fixme: tar replaces build/linux/x with src/x, hack fix with symlink
+	# from src/SConscript to build/linux/SConscript
+	# most probably because that's equal to the build source dir...
 	env.Tar('dangerdeep-'+version, cvsfiles)
 	#env.Zip is also possible
 

@@ -19,12 +19,10 @@ typedef unsigned char Uint8;
 class particle
 {
 protected:
-	//fixme: store textures somewhere! static variables?!
-
 	vector3 position;
 	vector3 velocity;
-	float life;	// 0...1, 0 = faded out
-	particle() : life(1.0f) {}
+	double life;	// 0...1, 0 = faded out
+	particle() : life(1.0) {}
 	particle(const particle& other);
 	particle& operator= (const particle& other);
 
@@ -47,6 +45,7 @@ protected:
 	static vector<texture*> tex_fire;
 	static vector<texture*> explosionbig;
 	static vector<texture*> explosionsml;
+	static vector<texture*> watersplashes;
 
 	// wh must be power of two (returns a square). 1 <= 2^low <= 2^high <= wh
 	static vector<float> interpolate_func;
@@ -58,7 +57,7 @@ protected:
 	virtual vector3 get_acceleration(void) const { return vector3(); }
 
 public:
-	particle(const vector3& pos, const vector3& velo = vector3()) : position(pos), velocity(velo), life(1.0f) {}
+	particle(const vector3& pos, const vector3& velo = vector3()) : position(pos), velocity(velo), life(1.0) {}
 	virtual ~particle() {}
 
 	static void init(void);
@@ -76,8 +75,8 @@ public:
 	virtual double get_width(void) const = 0;
 	virtual double get_height(void) const = 0;
 
-	virtual void kill(void) { life = 0.0f; }
-	virtual bool is_dead(void) const { return life <= 0.0f; }
+	virtual void kill(void) { life = 0.0; }
+	virtual bool is_dead(void) const { return life <= 0.0; }
 	
 	// set opengl texture by particle type or e.g. game time etc.
 	virtual void set_texture(game& gm) const = 0;
@@ -150,6 +149,45 @@ class spray_particle : public particle
 public:
 	spray_particle(const vector3& pos, const vector3& velo);
 	~spray_particle() {}
+	double get_width(void) const;
+	double get_height(void) const;
+	void set_texture(game& gm) const;
+	double get_life_time(void) const;
+};
+
+
+
+class torpedo_water_splash_particle : public particle
+{
+public:
+	torpedo_water_splash_particle(const vector3& pos);
+	~torpedo_water_splash_particle() {}
+	double get_width(void) const;
+	double get_height(void) const;
+	void set_texture(game& gm) const;
+	double get_life_time(void) const;
+};
+
+
+
+class gun_shell_water_splash_particle : public particle
+{
+public:
+	gun_shell_water_splash_particle(const vector3& pos);
+	~gun_shell_water_splash_particle() {}
+	double get_width(void) const;
+	double get_height(void) const;
+	void set_texture(game& gm) const;
+	double get_life_time(void) const;
+};
+
+
+
+class depth_charge_water_splash_particle : public particle
+{
+public:
+	depth_charge_water_splash_particle(const vector3& pos);
+	~depth_charge_water_splash_particle() {}
 	double get_width(void) const;
 	double get_height(void) const;
 	void set_texture(game& gm) const;

@@ -21,7 +21,6 @@
 #include "gun_shell.h"
 #include "model.h"
 #include "global_data.h"
-#include "water_splash.h"
 #include "user_interface.h"
 #include "submarine_interface.h"
 #include "airplane_interface.h"
@@ -368,7 +367,7 @@ void game::save_to_stream(ostream& out) const
 	write_u32(out, depth_charges.size());
 	write_u32(out, gun_shells.size());
 	write_u32(out, convoys.size());
-	write_u32(out, water_splashs.size());
+	write_u32(out, particles.size());
 
 	for (list<ship*>::const_iterator ip = ships.begin(); ip != ships.end(); ++ip)
 		(*ip)->save(out, *this);
@@ -391,8 +390,8 @@ void game::save_to_stream(ostream& out) const
 	for (list<convoy*>::const_iterator ip = convoys.begin(); ip != convoys.end(); ++ip)
 		(*ip)->save(out, *this);
 
-	for (list<water_splash*>::const_iterator ip = water_splashs.begin(); ip != water_splashs.end(); ++ip)
-		(*ip)->save(out, *this);
+//	for (list<particle*>::const_iterator ip = particles.begin(); ip != particles.end(); ++ip)
+//		(*ip)->save(out, *this);
 
 	// my_run_state / stopexec doesn't need to be saved
 	
@@ -424,6 +423,8 @@ void game::save_to_stream(ostream& out) const
 	for (list<sink_record>::const_iterator it = sunken_ships.begin(); it != sunken_ships.end(); ++it) {
 		it->save(out);
 	}
+
+	//fixme save and load logbook
 
 	write_double(out, time);
 	write_double(out, last_trail_time);
@@ -464,7 +465,7 @@ void game::load_from_stream(istream& in)
 	for (unsigned s = read_u32(in); s > 0; --s) depth_charges.push_back(new depth_charge());
 	for (unsigned s = read_u32(in); s > 0; --s) gun_shells.push_back(new gun_shell());
 	for (unsigned s = read_u32(in); s > 0; --s) convoys.push_back(new convoy());
-	for (unsigned s = read_u32(in); s > 0; --s) water_splashs.push_back(new water_splash());
+	//for (unsigned s = read_u32(in); s > 0; --s) particles.push_back(new particle());
 
 	for (list<ship*>::iterator ip = ships.begin(); ip != ships.end(); ++ip)
 		(*ip)->load(in, *this);
@@ -487,8 +488,8 @@ void game::load_from_stream(istream& in)
 	for (list<convoy*>::iterator ip = convoys.begin(); ip != convoys.end(); ++ip)
 		(*ip)->load(in, *this);
 
-	for (list<water_splash*>::iterator ip = water_splashs.begin(); ip != water_splashs.end(); ++ip)
-		(*ip)->load(in, *this);
+//	for (list<particles*>::iterator ip = particles.begin(); ip != particles.end(); ++ip)
+//		(*ip)->load(in, *this);
 
 	// my_run_state / stopexec doesn't need to be saved
 	my_run_state = running;
@@ -644,17 +645,6 @@ void game::simulate(double delta_t)
 		} else {
 			delete (*it2);
 			convoys.erase(it2);
-		}
-	}
-	for (list<water_splash*>::iterator it = water_splashs.begin(); it != water_splashs.end (); )
-	{
-		list<water_splash*>::iterator it2 = it++;
-		if ( !(*it2)->is_defunct() ) {
-			(*it2)->simulate(*this, delta_t);
-		}
-		else {
-			delete (*it2);
-			water_splashs.erase ( it2 );
 		}
 	}
 	for (list<particle*>::iterator it = particles.begin(); it != particles.end (); )
@@ -849,25 +839,6 @@ void game::visible_gun_shells(list<gun_shell*>& result, const sea_object* o)
 	}
 }
 
-void game::visible_water_splashes ( list<water_splash*>& result, const sea_object* o )
-{
-	const sensor* s = o->get_sensor ( o->lookout_system );
-	const lookout_sensor* ls = 0;
-
-	if ( s )
-		ls = dynamic_cast<const lookout_sensor*> ( s );
-
-	if ( ls )
-	{
-		for (list<water_splash*>::iterator it = water_splashs.begin();
-			it != water_splashs.end(); ++it)
-		{
-			if ( ls->is_detected ( this, o, *it ) )
-				result.push_back (*it);
-		}
-	}
-}
-
 void game::visible_particles ( list<particle*>& result, const sea_object* o )
 {
 	const sensor* s = o->get_sensor ( o->lookout_system );
@@ -1008,11 +979,6 @@ void game::spawn_convoy(convoy* cv)
 	convoys.push_back(cv);
 }
 
-void game::spawn_water_splash ( water_splash* ws )
-{
-	water_splashs.push_back ( ws );
-}
-
 void game::spawn_particle(particle* pt)
 {
 	particles.push_back(pt);
@@ -1023,7 +989,7 @@ void game::spawn_particle(particle* pt)
 void game::dc_explosion(const depth_charge& dc)
 {
 	// Create water splash.
-	spawn_water_splash(new depth_charge_water_splash(dc.get_pos()));
+	spawn_particle(new depth_charge_water_splash_particle(dc.get_pos().xy().xy0()));
 
 	// are subs affected?
 	// fixme: ships can be damaged by DCs also...
@@ -1041,7 +1007,7 @@ void game::dc_explosion(const depth_charge& dc)
 bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 {
 	// Create water splash. // FIXME
-	spawn_water_splash ( new gun_shell_water_splash ( pos ) );
+	spawn_particle(new gun_shell_water_splash_particle(pos.xy().xy0()));
 //	return false;//fixme testing
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
 		// fixme: we need a special collision detection, because
@@ -1063,13 +1029,12 @@ bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 	}
 
 	// No impact.
-	spawn_water_splash ( new gun_shell_water_splash ( pos ) );
 	return false;
 }
 
 void game::torp_explode(const vector3& pos)
 {
-	spawn_water_splash ( new torpedo_water_splash ( pos ) );
+	spawn_particle(new torpedo_water_splash_particle(pos.xy().xy0()));
 	if (ui) ui->play_sound_effect_distance (*this, ui->se_torpedo_detonation,
 		player->get_pos ().distance ( pos ) );
 }
@@ -1539,7 +1504,6 @@ unsigned game::listsizes(unsigned n) const
 {
 	unsigned s = 0;
 	switch (n) {
-		case 8: s += water_splashs.size();
 		case 7: s += convoys.size();
 		case 6: s += gun_shells.size();
 		case 5: s += depth_charges.size();
@@ -1773,9 +1737,9 @@ void game::write(ostream& out, const convoy* c) const
 	write_ptr2u16(out, c, convoys, listsizes(6), "convoy");
 }
 
-void game::write(ostream& out, const water_splash* w) const
+void game::write(ostream& out, const particle* p) const
 {
-	write_ptr2u16(out, w, water_splashs, listsizes(7), "water_splash");
+	//fixme
 }
 
 void game::write(ostream& out, const sea_object* s) const
@@ -1791,7 +1755,6 @@ void game::write(ostream& out, const sea_object* s) const
 	const depth_charge* dc = dynamic_cast<const depth_charge*>(s); if (dc) { write(out, dc); return; }
 	const gun_shell* gs = dynamic_cast<const gun_shell*>(s); if (gs) { write(out, gs); return; }
 	const convoy* cv = dynamic_cast<const convoy*>(s); if (cv) { write(out, cv); return; }
-	const water_splash* ws = dynamic_cast<const water_splash*>(s); if (ws) { write(out, ws); return; }
 	system::sys().myassert(false, "internal error: ptr is not 0 and no heir of sea_object");
 }
 
@@ -1830,9 +1793,9 @@ convoy* game::read_convoy(istream& in) const
 	return read_u162ptr(in, convoys, listsizes(6), listsizes(7), "convoy");
 }
 
-water_splash* game::read_water_splash(istream& in) const
+particle* game::read_particle(istream& in) const
 {
-	return read_u162ptr(in, water_splashs, listsizes(7), listsizes(8), "water_splash");
+	return 0;//fixme
 }
 
 sea_object* game::read_sea_object(istream& in) const
@@ -1853,7 +1816,6 @@ sea_object* game::read_sea_object(istream& in) const
 	if (nr > sizes[4] && nr <= sizes[5]) return ith_elem(depth_charges, nr-sizes[4]-1);
 	if (nr > sizes[5] && nr <= sizes[6]) return ith_elem(gun_shells, nr-sizes[5]-1);
 	if (nr > sizes[6] && nr <= sizes[7]) return ith_elem(convoys, nr-sizes[6]-1);
-	if (nr > sizes[7] && nr <= sizes[8]) return ith_elem(water_splashs, nr-sizes[7]-1);
 	system::sys().myassert(false, string("could not translate number to sea_object pointer"));
 	return 0;
 }

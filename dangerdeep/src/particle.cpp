@@ -13,6 +13,7 @@ texture* particle::tex_spray = 0;
 vector<texture*> particle::tex_fire;
 vector<texture*> particle::explosionbig;
 vector<texture*> particle::explosionsml;
+vector<texture*> particle::watersplashes;
 
 #define NR_OF_SMOKE_TEXTURES 16
 #define NR_OF_FIRE_TEXTURES 64
@@ -274,6 +275,12 @@ void particle::init(void)
 		sprintf(tmp, "exsm%04u.png", i+1);
 		explosionsml[i] = new texture(get_texture_dir() + "explosion02/" + tmp, GL_LINEAR, GL_CLAMP_TO_EDGE, false);
 	}
+
+	// read in water splash images (maybe replace later with run time generated images of water particles)
+	watersplashes.resize(3);
+	watersplashes[0] = new texture(get_texture_dir() + "torpedo_expl_water_splash.png" , GL_LINEAR);
+	watersplashes[1] = new texture(get_texture_dir() + "torpedo_expl_water_splash_1.png" , GL_LINEAR);
+	watersplashes[2] = new texture(get_texture_dir() + "torpedo_expl_water_splash_2.png" , GL_LINEAR);
 }
 
 
@@ -290,6 +297,8 @@ void particle::deinit(void)
 		delete explosionbig[i];
 	for (unsigned i = 0; i < explosionsml.size(); ++i)
 		delete explosionsml[i];
+	for (unsigned i = 0; i < watersplashes.size(); ++i)
+		delete watersplashes[i];
 }
 
 
@@ -300,7 +309,7 @@ void particle::simulate(game& gm, double delta_t)
 	position += velocity * delta_t + acc * (delta_t * delta_t * 0.5);
 	velocity += acc * delta_t;
 	life -= delta_t/get_life_time();
-	if (life < 0.0f) life = 0.0f;
+	if (life < 0.0) life = 0.0;
 }
 
 
@@ -378,7 +387,7 @@ vector3 smoke_particle::get_acceleration(void) const
 double smoke_particle::get_width(void) const
 {
 	// min/max size in meters
-	return 2.0 * life + 50.0 * (1.0f - life);
+	return 2.0 * life + 50.0 * (1.0 - life);
 }
 
 
@@ -423,7 +432,7 @@ smoke_particle_escort::smoke_particle_escort(const vector3& pos) : smoke_particl
 
 double smoke_particle_escort::get_width(void) const
 {
-	return 2.0 * life + 25.0 * (1.0f - life);
+	return 2.0 * life + 25.0 * (1.0 - life);
 }
 
 
@@ -468,7 +477,7 @@ double explosion_particle::get_height(void) const
 void explosion_particle::set_texture(class game& gm) const
 {
 	glColor4f(1, 1, 1, 1);
-	unsigned f = unsigned(EXPL_FRAMES * (1.0f - life));
+	unsigned f = unsigned(EXPL_FRAMES * (1.0 - life));
 	if (f < 0 || f >= EXPL_FRAMES) f = EXPL_FRAMES-1;
 	// switch on type, fixme
 	explosionbig[f]->set_gl_texture();
@@ -499,8 +508,8 @@ void fire_particle::simulate(game& gm, double delta_t)
 		gm.spawn_particle(new smoke_particle(position));
 	}
 	particle::simulate(gm, delta_t);
-	if (life <= 0.0f) {
-		life += 1.0f;
+	if (life <= 0.0) {
+		life += 1.0;
 	}
 }
 
@@ -523,7 +532,7 @@ double fire_particle::get_height(void) const
 void fire_particle::set_texture(class game& gm) const
 {
 	glColor4f(1, 1, 1, 1);
-	unsigned i = unsigned(tex_fire.size() * (1.0f - life));
+	unsigned i = unsigned(tex_fire.size() * (1.0 - life));
 	tex_fire[i]->set_gl_texture();
 }
 
@@ -546,7 +555,7 @@ spray_particle::spray_particle(const vector3& pos, const vector3& velo) : partic
 
 double spray_particle::get_width(void) const
 {
-	return (1.0f - life) * 6.0 + 2.0;
+	return (1.0 - life) * 6.0 + 2.0;
 }
 
 
@@ -569,4 +578,120 @@ void spray_particle::set_texture(class game& gm) const
 double spray_particle::get_life_time(void) const
 {
 	return 4.0; // seconds
+}
+
+
+
+// water splashes
+
+torpedo_water_splash_particle::torpedo_water_splash_particle(const vector3& pos) : particle(pos)
+{
+}
+
+
+
+double torpedo_water_splash_particle::get_width(void) const
+{
+	return 40.0;
+}
+
+
+
+double torpedo_water_splash_particle::get_height(void) const
+{
+	const double trd = 1.0/3.0;
+	// 1/3 rise, 2/3 decline
+	double x = (life > trd) ? 1.5 * M_PI * (life - 2 * trd) : life * 0.75 * M_PI;
+	return 80.0 * sin(x);
+}
+
+
+
+void torpedo_water_splash_particle::set_texture(game& gm) const
+{
+	glColor4f(1, 1, 1, 0.5f + float(life) * 0.25f);
+	watersplashes[2]->set_gl_texture();
+}
+
+
+
+double torpedo_water_splash_particle::get_life_time(void) const
+{
+	return 3.0;
+}
+
+
+
+gun_shell_water_splash_particle::gun_shell_water_splash_particle(const vector3& pos) : particle(pos)
+{
+}
+
+
+
+double gun_shell_water_splash_particle::get_width(void) const
+{
+	return 10.0;
+}
+
+
+
+double gun_shell_water_splash_particle::get_height(void) const
+{
+	const double trd = 1.0/3.0;
+	// 1/3 rise, 2/3 decline
+	double x = (life > trd) ? 1.5 * M_PI * (life - 2 * trd) : life * 0.75 * M_PI;
+	return 5.0 * sin(x);
+}
+
+
+
+void gun_shell_water_splash_particle::set_texture(game& gm) const
+{
+	glColor4f(1, 1, 1, 0.5f + float(life) * 0.25f);
+	watersplashes[0]->set_gl_texture();
+}
+
+
+
+double gun_shell_water_splash_particle::get_life_time(void) const
+{
+	return 3.0;
+}
+
+
+
+depth_charge_water_splash_particle::depth_charge_water_splash_particle(const vector3& pos) : particle(pos)
+{
+}
+
+
+
+double depth_charge_water_splash_particle::get_width(void) const
+{
+	return 40.0;
+}
+
+
+
+double depth_charge_water_splash_particle::get_height(void) const
+{
+	const double trd = 1.0/3.0;
+	// 1/3 rise, 2/3 decline
+	double x = (life > trd) ? 1.5 * M_PI * (life - 2 * trd) : life * 0.75 * M_PI;
+	return 60.0 * sin(x);
+}
+
+
+
+void depth_charge_water_splash_particle::set_texture(game& gm) const
+{
+	glColor4f(1, 1, 1, 0.5f + float(life) * 0.25f);
+	watersplashes[1]->set_gl_texture();
+}
+
+
+
+double depth_charge_water_splash_particle::get_life_time(void) const
+{
+	return 3.0;
 }

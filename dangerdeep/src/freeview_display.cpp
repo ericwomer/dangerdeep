@@ -14,7 +14,6 @@
 #include "torpedo.h"
 #include "depth_charge.h"
 #include "gun_shell.h"
-#include "water_splash.h"
 #include "particle.h"
 #include "sky.h"
 #include "water.h"
@@ -269,21 +268,6 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 		(*it)->display();
 		glPopMatrix();
-	}
-
-	//fixme: water splashes are bright in glasses mode, but too dark in normal mode. this is true also for other models. light seems to be ignored somewhere
-	list<water_splash*> water_splashs;
-	gm.visible_water_splashes ( water_splashs, player );
-	for ( list<water_splash*>::const_iterator it = water_splashs.begin ();
-		it != water_splashs.end (); it ++ )
-	{
-		double view_dir = 90.0f - angle ( (*it)->get_pos ().xy () - viewpos.xy () ).value ();
-		glPushMatrix ();
-		vector3 pos = (*it)->get_pos() - viewpos;
-		glTranslated(pos.x, pos.y, pos.z);
-		glRotatef ( view_dir, 0.0f, 0.0f, 1.0f );
-		(*it)->display ();
-		glPopMatrix ();
 	}
 
 	list<particle*> particles;
