@@ -48,6 +48,7 @@ token tokens[] = {
 	token(TKN_MEDIUMTROOPSHIP, "mediumtroopship"),
 	token(TKN_DESTROYERTRIBAL, "destroyertribal"),
 	token(TKN_BATTLESHIPMALAYA, "battleshipmalaya"),
+	token(TKN_CONVOY, "convoy"),
 
 	token()
 };

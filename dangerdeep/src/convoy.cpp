@@ -33,7 +33,7 @@ convoy::convoy(class game& gm, parser& p)
 		else if (shp->is_warship())
 			warships.push_back(shp);
 		else if (shp->is_escort())
-			escorts->push_back(shp);
+			escorts.push_back(shp);
 	}
 	p.consume();
 	myai = 0; // new ai(0, ai::convoy); // fixme

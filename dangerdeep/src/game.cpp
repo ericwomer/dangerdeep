@@ -42,10 +42,10 @@ game::game(parser& p) : running(true), time(0)
 					ui = new ship_interface(shp);
 				}
 				break; }
-			case TKN_CONVOY:
+			case TKN_CONVOY: {
 				convoy* cv = new convoy(*this, p);
 				spawn_convoy(cv);
-				break;
+				break; }
 /*			
 			case TKN_DESCRIPTION:
 			case TKN_WEATHER:
