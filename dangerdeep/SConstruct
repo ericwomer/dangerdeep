@@ -13,17 +13,12 @@ sdlmixerbase = 'd:\\sdl-devel\\SDL_mixer'
 fftw3base = 'd:\\fftw3'
 
 ################ change base of dirs (unix OS)
-installprefix = '/usr/local'
-installbindir = '/bin'
-installdatadir = '/share'
-if ARGUMENTS.get('installprefix', 0):
-	installprefix = ARGUMENTS.get('installprefix', 0)
+installbindir = '/usr/local/bin'
+installdatadir = '/usr/local/share/dangerdeep'
 if ARGUMENTS.get('installbindir', 0):
 	installbindir = ARGUMENTS.get('installbindir', 0)
 if ARGUMENTS.get('installdatadir', 0):
 	installdatadir = ARGUMENTS.get('installdatadir', 0)
-installbindir = installprefix + installbindir
-installdatadir = installprefix + installdatadir + '/dangerdeep'
 
 
 ################ set environment
@@ -50,7 +45,6 @@ else:
 if ARGUMENTS.get('datadir', 0):
 	datadir = ARGUMENTS.get('datadir', 0)
 
-print 'Using install prefix: ' + installprefix
 print 'Install binary path: ' + installbindir
 print 'Install data path: ' + installdatadir
 print 'Using data dir: ' + datadir

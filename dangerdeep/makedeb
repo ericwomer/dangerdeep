@@ -11,7 +11,7 @@ mandir='usr/share/man/man6'
 docdir='usr/share/doc/dangerdeep'
 
 # to build it
-# scons installprefix=$debroot installbindir=/$bindir installdatadir=/$datadir datadir=$datadir/dangerdeep
+# scons installbindir=$debroot/$bindir installdatadir=$debroot/$datadir/dangerdeep datadir=$datadir/dangerdeep
 
 ./configure --bindir=/$bindir --datadir=/$datadir && make clean && make || exit $?
 
@@ -21,7 +21,7 @@ for dir in DEBIAN $bindir $datadir/dangerdeep $mandir $docdir; do
 done
 
 # to install it
-# scons installprefix=$debroot installbindir=/$bindir installdatadir=/$datadir datadir=$datadir/dangerdeep install
+# scons installbindir=$debroot/$bindir installdatadir=$debroot/$datadir/dangerdeep datadir=$datadir/dangerdeep install
 
 install -s src/dangerdeep $debroot/$bindir
 cp -Rf data/* $debroot/$datadir/dangerdeep
