@@ -182,7 +182,7 @@ void model::material::set_gl_values(void) const
 			glScalef(bump->uscal, bump->vscal, 1);
 			bump->mytexture->set_gl_texture();
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-			glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGB); 
+			glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGBA); 
 			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
 			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
 			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
@@ -195,23 +195,27 @@ void model::material::set_gl_values(void) const
 			glTranslatef(tex1->uoffset, tex1->voffset, 0);//fixme order of operations is unclear
 			glRotatef(tex1->angle, 0, 0, 1);
 			glScalef(tex1->uscal, tex1->vscal, 1);
+			// primary color alpha seems to be ONE...
+			float alphac[4] = { 1,1,1, 0.6f };//make ambient value (=alpha) variable
+			// bump map function with ambient:
+			// color * (bump_brightness * (1-ambient) + ambient)
+			// tex1 color is just an replace, we could use it for some effect
+			// like modulating it with environment color (which is free)
+			// e.g. colored ambient light etc.
+			glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, alphac);
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-			glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE); 
-			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+			glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE); 
+			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
 			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-			/*
-			fixme: add some ambient color to the bump map with alpha blending:
-			store ambient as primary color alpha
-			add it to tex0 dot3 result (with tex1alpha op)
-			set blend mode to src_alpha,GL_ZERO
-			add ambient to N*L or use ambient to blend between N*L and 1.
-			the latter is better ;-) use interpolate or add_saturated or something
-			the like.
-			Tex1 could compute something with the color, like modulating the
-			texture with environment color etc. (colored ambient?)
-			*/
+			glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_INTERPOLATE);
+			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PREVIOUS);
+			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+			// we need one here, so we take primary color alpha, which is one.
+			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_PRIMARY_COLOR);
+			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
+			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA, GL_CONSTANT);
+			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA, GL_SRC_ALPHA);
+			glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
 		} else {
 			glActiveTexture(GL_TEXTURE0);
 			tex1->mytexture->set_gl_texture();
@@ -308,6 +312,7 @@ void model::mesh::display(bool usematerial) const
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex1
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void model::display(void) const
