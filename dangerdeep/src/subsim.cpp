@@ -313,6 +313,130 @@ void show_results_for_game(const game* gm)
 
 
 //
+// show the credits
+//
+const char* credits[] = {
+"$80ffc0Project idea and initial code",
+"$ffffffThorsten Jordan",
+"", "", "", "", "",
+"$80ffc0Program",
+"$ffffffThorsten Jordan",
+"Markus Petermann",
+"Viktor Radnai",
+"", "", "", "", "",
+"$80ffc0Graphics",
+"$ffffffLuis Barrancos",
+"Markus Petermann",
+"Christian Kolaß",
+"Thorsten Jordan",
+"", "", "", "", "",
+"$80ffc0Models",
+"$ffffffLuis Barrancos",
+"Christian Kolaß",
+"Thorsten Jordan",
+"", "", "", "", "",
+"$80ffc0Operating system adaption",
+"$ffffffNico Sakschewski (Win32)",
+"", "", "", "", "",
+"$80ffc0Web site administrator",
+"$ffffffViktor Radnai",
+"", "", "", "", "",
+"$80ffc0Packaging",
+"$ffffffMarkus Petermann (SuSE rpm)",
+"Viktor Radnai (Debian)",
+"Giuseppe Borzi (Mandrake rpm)",
+"", "", "", "", "",
+"$80ffc0Bug reporting and thanks",
+"$ffffffRick McDaniel",
+"Markus Petermann",
+"Viktor Radnai",
+"Bernhard Kaindl",
+"Robert Obryk",
+"Giuseppe Lipari",
+"John Hopkin",
+"Michael Wilkinson",
+"Lee Close",
+"Christopher Dean (Naval Warfare Simulations, Sponsoring)",
+"Arthur Anker",
+"Stefan Vilijoen",
+"Luis Barrancos",
+"Tony Becker",
+"Frank Kaune",
+"Paul Marks",
+"Aaron Kulkis",
+"Giuseppe Borzi",
+"...",
+"...and all i may have forgotten here (write me!)",
+0
+};
+void show_credits(void)
+{
+	glClearColor(0.5,0.15,0.1,0);
+
+	model* mdlgear = modelcache.ref("gear.3ds");
+	
+//	mdlgear->get_mesh(0).mymaterial->col = color(255,255,255);
+
+	int lineheight = font_arial->get_height();
+	int lines_per_page = (768+lineheight-1)/lineheight;
+	int textpos = -lines_per_page;
+	int textlines = 0;
+	for ( ; credits[textlines] != 0; ++textlines);
+	int textendpos = textlines;
+	float lineoffset = 0.0f;
+
+	bool quit = false;
+	float ang = 0.0f, ang_per_sec = 10.0f, r = 78, lines_per_sec = 2;
+	unsigned tm = system::sys().millisec();
+	while (!quit) {
+		system::sys().poll_event_queue();
+		if (system::sys().get_key().sym == SDLK_ESCAPE) quit = true;
+
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDisable(GL_DEPTH_TEST);
+
+		glPushMatrix();
+		glTranslatef(-r,r,-150);
+		//glScalef(12.8,12.8,0.1);
+		glRotatef(ang, 0, 0, 1);
+		mdlgear->display();
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(r,-r,-150);
+		//glScalef(12.8,12.8,0.1);
+		glRotatef(4.05-ang, 0, 0, 1);
+		mdlgear->display();
+		glPopMatrix();
+
+		system::sys().prepare_2d_drawing();
+		for (int i = textpos; i <= textpos+lines_per_page; ++i) {
+			if (i >= 0 && i < textlines) {
+				font_arial->print_hc(512, (i-textpos)*lineheight+int(-lineoffset*lineheight), credits[i]);
+			}
+		}
+		system::sys().unprepare_2d_drawing();
+
+		unsigned tm2 = system::sys().millisec();
+		lineoffset += lines_per_sec*(tm2-tm)/1000.0f;
+		int tmp = int(lineoffset);
+		lineoffset -= tmp;
+		textpos += tmp;
+		if (textpos >= textendpos) textpos = -lines_per_page;
+		ang += ang_per_sec*(tm2-tm)/1000.0f;
+		tm = tm2;
+		system::sys().swap_buffers();
+	}
+	
+	modelcache.unref("gear.3ds");
+	
+	glEnable(GL_DEPTH_TEST);
+	glClearColor(0, 0, 1, 0);
+}
+
+
+
+//
 // start and run a game, handle load/save (game menu), show results after game's end, delete game
 //
 void run_game(game* gm)
@@ -1152,6 +1276,7 @@ int main(int argc, char** argv)
 		m.add_item(23, menu_notimplemented);
 		m.add_item(24, menu_show_vessels);
 		m.add_item(25, show_halloffame_mission);
+		m.add_item(213, show_credits);
 		m.add_item(26, menu_select_language);
 		m.add_item(29, menu_notimplemented /*menu_options*/);
 		m.add_item(30, 0);
