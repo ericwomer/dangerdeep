@@ -720,8 +720,8 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 
 	GLfloat scalefac1 = 2.0f/WAVE_LENGTH;
-	GLfloat plane_s1[4] = { scalefac1, 0.0f, 0.0f, 0.0f };
-	GLfloat plane_t1[4] = { 0.0f, scalefac1, 0.0f, 0.0f };
+	GLfloat plane_s1[4] = { 0.0f/*scalefac1*/, 0.0f, 0.0f, 0.0f };
+	GLfloat plane_t1[4] = { 0.0f, 0.0f/*scalefac1*/, 0.0f, 0.0f };
 	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
 	glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s1);
 	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
