@@ -36,14 +36,6 @@ protected:
 		const particle* pt;
 		double dist;
 		vector3 projpos;
-
-/*
-		particle_dist() : pt(0), dist(0) {}
-		~particle_dist() {}
-		particle_dist(const particle_dist& other) : pt(other.pt), dist(other.dist), projpos(other.projpos) {}
-		particle_dist& operator= (const particle_dist& other) { pt = other.pt; dist = other.dist; projpos = other.projpos; return *this; }
-*/
-
 		particle_dist(const particle* p, double d, const vector3& pp) : pt(p), dist(d), projpos(pp) {}
 		bool operator< (const particle_dist& other) const { return dist < other.dist; }
 	};
