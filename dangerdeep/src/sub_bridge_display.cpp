@@ -44,6 +44,7 @@ sub_bridge_display::~sub_bridge_display()
 
 
 
+//fixme: filter away keys NP_1...NP_9 to avoid moving viewer like in freeview mode
 #if 0 //old
 void user_interface::display_glasses(class game& gm)
 {

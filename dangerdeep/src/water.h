@@ -81,8 +81,7 @@ protected:
 	void setup_textures(const matrix4& reflection_projmvmat) const;
 	void cleanup_textures(void) const;
 
-	void compute_coord_and_normal(int phase, const vector2& xypos, const vector2& transl,
-	        vector3f& coord, vector3f& normal) const;
+	vector3f compute_coord(int phase, const vector2& xypos, const vector2& transl) const;
 
 public:
 	water(unsigned xres_, unsigned yres_, double tm = 0.0);	// give day time in seconds

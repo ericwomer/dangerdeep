@@ -60,11 +60,6 @@ void freeview_display::set_modelview_matrix(game& gm) const
 		ui.rotate_by_pos_and_wave(gm.get_player()->get_pos(), rollfac, true);
 	}
 
-//	cout << "pos ist " << pos << "\n";
-	//fixme: wieso ist pos 0,0,6 wo das doch die extra-pos sein sollte?! viewpos sollte 0,0,6 sein ähhh
-
-//fixme: pos ist doch extra... eigentlich müßte das hier playerpos+pos sein, aber playerpos wird ja wieder abgezogen...
-//damit darf von der objekt-pos nur playerpos abgezogen werden, nicht viewpos oder sowas...
 	glTranslated(-pos.x, -pos.y, -pos.z);
 }
 
@@ -274,17 +269,23 @@ void freeview_display::draw_view(game& gm) const
 //2004-03-07 fixme, the position fix doesn't fix the ship's flickering, re-fixme is this still true with new code?
 	double max_view_dist = gm.get_max_view_distance();
 
+	// the modelview matrix is set around the player's object position.
+	// i.e. it has an translation part of zero if the viewer is exactly at the player's object position.
+	// this means all objects have to be drawn with an offset of (-player->get_pos())
+	// this is done because the position's values can be rather large (global coordinates!) which leads
+	// to rounding errors when storing them in the OpenGL matrix. So we have to compute them partly manually
+	// with high(er) precision (double).
+	// the real viewing position (global coordinates) is stored in viewpos.
+
 	sea_object* player = gm.get_player();
 
 	projection_data pd = get_projection_data(gm);
 
 	// *************** compute and set player pos ****************************************
 	set_modelview_matrix(gm);
-	//fixme not fully correct, pos depends on ship's rolling, retrieve that from modelview matrix!
+	//fixme: "playerpos + pos" not fully correct, pos depends on ship's rolling, retrieve that from modelview matrix!
 	//real viewpos = inverse(modelview).column(3)
-	//this seems to be the reason for the wrong fresnel effect!
 	vector3 viewpos = player->get_pos() + matrix4::get_gl(GL_MODELVIEW_MATRIX).inverse().column(3);//pos;
-//	cout << "real pos " << player->get_pos() << " viewpos " << viewpos << "\n";
 
 	// **************** prepare drawing ***************************************************
 
@@ -396,6 +397,7 @@ void freeview_display::draw_view(game& gm) const
 	//ui.get_water().spawn_foam(vector2(myfmod(gm.get_time(),256.0),0));
 //viewpos is right for bridge view mode and wrong for freeview
 //only difference: bridge sets pos fix to (0,0,6)
+//when moving in bridge to -20,0,6 its also wrong.
 //	cout << "viewpos used for call " << viewpos << "\n";
 	ui.get_water().display(viewpos, bearing, max_view_dist, reflection_projmvmat);
 

@@ -21,7 +21,6 @@
 
 // compute projected grid efficiency, it should be 50-95%
 //#define COMPUTE_EFFICIENCY
-#define DYNAMIC_NORMALS		// this is a must have
 #define DISTANCE_FRESNEL_HACK	// distance related fresnel term reduction
 #define WAVE_SUB_DETAIL		// sub fft detail
 
@@ -349,8 +348,7 @@ void water::cleanup_textures(void) const
 
 
 
-void water::compute_coord_and_normal(int phase, const vector2& xypos, const vector2& transl,
-	vector3f& coord, vector3f& normal) const
+vector3f water::compute_coord(int phase, const vector2& xypos, const vector2& transl) const
 {
 	// generate values with mipmap function (needs viewer pos.)
 	float xfrac = myfrac(float((xypos.x + transl.x) / WAVE_LENGTH)) * WAVE_RESOLUTION;
@@ -382,7 +380,7 @@ void water::compute_coord_and_normal(int phase, const vector2& xypos, const vect
 	float fac1 = xfrac*(1.0f-yfrac);
 	float fac2 = (1.0f-xfrac)*yfrac;
 	float fac3 = xfrac*yfrac;
-	coord = (ca*fac0 + cb*fac1 + cc*fac2 + cd*fac3) + vector3f(xypos.x, xypos.y, 0.0f);
+	vector3f coord = (ca*fac0 + cb*fac1 + cc*fac2 + cd*fac3) + vector3f(xypos.x, xypos.y, 0.0f);
 
 #ifdef WAVE_SUB_DETAIL
 	// add some extra detail to near waves.
@@ -405,24 +403,12 @@ void water::compute_coord_and_normal(int phase, const vector2& xypos, const vect
 	float addh = wavetileheights[(phase+WAVE_PHASES/2)%WAVE_PHASES][ixf+iyf*WAVE_RESOLUTION] * (1.0f/rfac);
 	coord.z += addh;
 #endif
-
-#ifndef DYNAMIC_NORMALS	
-	// bilinear interpolation of normal
-	fac0 = (1.0f-xfrac)*(1.0f-yfrac);
-	fac1 = xfrac*(1.0f-yfrac);
-	fac2 = (1.0f-xfrac)*yfrac;
-	fac3 = xfrac*yfrac;
-	normal = (wavetilenormals[phase][i0] * fac0 + wavetilenormals[phase][i1] * fac1
-		+ wavetilenormals[phase][i2] * fac2 + wavetilenormals[phase][i3] * fac3).normal();
-#endif
+	return coord;
 }
 
 
 void water::display(const vector3& viewpos, angle dir, double max_view_dist, const matrix4& reflection_projmvmat) const
 {
-	// move world so that viewer is at (0,0,0), fixme obsolete!
-	glPushMatrix();
-
 	int phase = int((myfmod(mytime, TIDECYCLE_TIME)/TIDECYCLE_TIME) * WAVE_PHASES);
 	const float VIRTUAL_PLANE_HEIGHT = 25.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok, maybe a bit too much
 	// maximum height of waves (half amplitude), fixme: get from fft
@@ -436,6 +422,9 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	matrix4 world2camera = proj * modl;
 	matrix4 inv_modl = modl.inverse();
 	matrix4 camera2world = world2camera.inverse();
+
+	vector3f vieweroffset;
+	vieweroffset.assign(modl.inverse().column(3));
 
 	// transform frustum corners of rendering camera to world space
 	vector3 frustum[8];
@@ -614,7 +603,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			double x = double(xx)/xres;
 			vector2 v = va * (1-x) + vb * x;
-			compute_coord_and_normal(phase, v, transl, coords[ptr], normals[ptr]);
+			coords[ptr] = compute_coord(phase, v, transl);
 #ifdef COMPUTE_EFFICIENCY
 			vector3 tmp = world2camera * vector3(coords[ptr].x, coords[ptr].y, coords[ptr].z);
 			if (fabs(tmp.x) <= 1.0 && fabs(tmp.y) <= 1.0 && fabs(tmp.z) <= 1.0)
@@ -673,15 +662,11 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	//(locked) quadstrips, if they're faster than compiled vertex arrays, test it!
 //	float minh=1000,maxh=-1000;
 
-//relative koordinate zum viewer = modelviewmat * coord fixme
-
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			const vector3f& coord = coords[ptr];
 			const vector3f& N = normals[ptr];
-			vector3f rel_coord = coord;	// compute coord + translational part of
-			rel_coord.z -= viewpos.z;	// the modelview matrix, fixme: viewpos should be substracted here
-			                                // but xy component was already substracted...
+			vector3f rel_coord = coord - vieweroffset;
 			float rel_coord_length = rel_coord.length();
 			vector3f E = -rel_coord * (1.0f/rel_coord_length); // viewer is in (0,0,0)
 			float F = E*N;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
@@ -777,9 +762,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 
 	// clean up textures
 	cleanup_textures();
-
-	// restore world pos.
-	glPopMatrix();
 }
 
 
