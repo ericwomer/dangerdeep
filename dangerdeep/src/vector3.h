@@ -5,8 +5,10 @@
 #ifndef VECTOR3_H
 #define VECTOR3_H
 
+#include <iostream>
 #include "vector2.h"
 #include <cmath>
+using namespace std;
 
 class vector3
 {
@@ -37,8 +39,10 @@ class vector3
 	vector3 matrixmul(const vector3& c0, const vector3& c1, const vector3& c2) const;
 	vector2 xy(void) const { return vector2(x, y); };
 	vector2 yz(void) const { return vector2(y, z); };
+	friend ostream& operator<< ( ostream& os, const vector3& v );
 };
 
 inline vector3 operator* (const double& scalar, const vector3& v) { return v * scalar; }
+ostream& operator<< ( ostream& os, const vector3& v );
 
 #endif

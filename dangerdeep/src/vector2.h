@@ -6,6 +6,8 @@
 #define VECTOR2_H
 
 #include <cmath>
+#include <iostream>
+using namespace std;
 
 class vector2
 {
@@ -33,8 +35,10 @@ class vector2
 	double operator* (const vector2 &other) const { return x * other.x + y * other.y; };
 	bool solve(const vector2 &o1, const vector2 &o2, double &s1, double &s2) const;
 	class vector3 xy0(void) const;
+	friend ostream& operator<< ( ostream& os, const vector2& v );
 };
 
 inline vector2 operator* (const double& scalar, const vector2& v) { return v * scalar; }
+ostream& operator<< ( ostream& os, const vector2& v );
 
 #endif
