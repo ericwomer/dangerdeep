@@ -145,7 +145,7 @@ convoy::convoy(class game& gm, TiXmlElement* parent) : sea_object()
 
 	// set values
 	myai = new ai(this, ai::convoy);
-	acceleration = 0.1;
+	acceleration = 0.1;	// do we need accel and turn_Rate now?
 	turn_rate = 0.05;
 	if (speed < 0) speed = (throttle >= 0) ? kts2ms(throttle) : 0;
 	max_speed = speed;

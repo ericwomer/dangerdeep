@@ -13,6 +13,18 @@ using namespace std;
 #include "angle.h"
 #include "quaternion.h"
 
+/*
+fixme: global todo (2004/06/26):
+-> move much code from sea_object to ship.
+-> maybe remove silly reference counting.
+-> split AI in several children
+-> maybe introduce C++ exceptions.
+-> fix load/save for sea_object and heirs
+-> fix simulate/acceleration code for all sea_objects and heirs.
+-> replace silly head_chg code by real rudder position simulation code
+*/
+
+
 class sensor;
 
 class sea_object
@@ -47,10 +59,10 @@ protected:
 	vector3 position, velocity;
 	quaternion orientation, rot_velocity;
 
-	virtual vector3 get_acceleration(void) const = 0;	// drag must be already included!
-	virtual quaternion get_rot_acceleration(void) const = 0;// drag must be already included!
+	virtual vector3 get_acceleration(void) const;		// drag must be already included!
+	virtual quaternion get_rot_acceleration(void) const;	// drag must be already included!
 
-	double length, width;	// computed from model, indirect read from spec file
+	vector3f size3d;		// computed from model, indirect read from spec file, width, length, height
 	
 	// an object is alive until it is killed.
 	// any object can set to disfunctional status (defunct).
@@ -114,9 +126,11 @@ public:
 	// command interface - no special commands for a generic sea_object
 
 	virtual vector3 get_pos(void) const { return position; };
+	virtual quaternion get_orientation(void) const { return orientation; };
 	virtual double get_depth() const { return -position.z; };
-	virtual double get_length(void) const { return length; };
-	virtual double get_width(void) const { return width; };
+	virtual float get_width(void) const { return size3d.x; };
+	virtual float get_length(void) const { return size3d.y; };
+	virtual float get_height(void) const { return size3d.z; };
 	virtual float surface_visibility(const vector2& watcher) const;
 
 	/**
@@ -128,7 +142,7 @@ public:
 	virtual vector2 get_engine_noise_source () const;
 
 	virtual void display(void) const;
-	double get_bounding_radius(void) const { return width + length; }	// fixme: could be computed more exact
+	double get_bounding_radius(void) const { return size3d.x+size3d.y; }	// fixme: could be computed more exact
 
 	virtual sensor* get_sensor ( sensor_system ss );
 	virtual const sensor* get_sensor ( sensor_system ss ) const;

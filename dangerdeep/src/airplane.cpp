@@ -13,10 +13,10 @@ airplane::airplane(TiXmlDocument* specfile) : sea_object(specfile)
 {
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdairplane = hspec.FirstChild();	// ignore node name
-	head_to = heading;
+	//head_to = heading;
 	orientation = quaternion::neutral_rot();
 	rollfac = pitchfac = 0.0;
-	throttle = aheadfull;
+	//throttle = aheadfull;
 }
 
 
@@ -34,6 +34,7 @@ void airplane::parse_attributes(TiXmlElement* parent)
 void airplane::load(istream& in, class game& g)
 {
 	sea_object::load(in, g);
+/*
 	orientation.s = read_double(in);
 	orientation.v.x = read_double(in);
 	orientation.v.y = read_double(in);
@@ -41,6 +42,7 @@ void airplane::load(istream& in, class game& g)
 	velocity.x = read_double(in);
 	velocity.y = read_double(in);
 	velocity.z = read_double(in);
+*/
 	rollfac = read_double(in);
 	pitchfac = read_double(in);
 }
@@ -48,6 +50,7 @@ void airplane::load(istream& in, class game& g)
 void airplane::save(ostream& out, const class game& g) const
 {
 	sea_object::save(out, g);
+/*
 	write_double(out, orientation.s);
 	write_double(out, orientation.v.x);
 	write_double(out, orientation.v.y);
@@ -55,6 +58,7 @@ void airplane::save(ostream& out, const class game& g) const
 	write_double(out, velocity.x);
 	write_double(out, velocity.y);
 	write_double(out, velocity.z);
+*/
 	write_double(out, rollfac);
 	write_double(out, pitchfac);
 }
@@ -84,7 +88,7 @@ void airplane::simulate(class game& gm, double delta_time)
 	Forces:
 	Thrust: along plane's local y-axis.
 	Drag: along every axis the plane moves, depends on orientation.
-	Lift: along global z-axis.
+	Lift: along global z-axis, depends on orientation, more precisy along local z-axis!
 	Gravity: along global z-axis.
 	Speed of the plane is along local y-axis (Mass*velocity = impulse)
 	and is not affected by turning (at least not that much).
@@ -153,7 +157,7 @@ cout << "gravity         " << gravity << "\n";
 cout << "air friction    " << airfriction << "\n";
 */
 
-	// update position and speed
+	// update position and speed, fixme move to get_acceleration()!
 	vector3 accel = (thrust + lift + gravity) * (1.0/get_mass()) + airfriction;
 	position += velocity * delta_time + accel * (0.5 * delta_time * delta_time);
 	velocity += accel * delta_time;
@@ -172,6 +176,7 @@ cout << "air friction    " << airfriction << "\n";
 
 
 
+// this all should be replaced by rudder states, fixme
 void airplane::roll_left(void)
 {
 	rollfac = -1;

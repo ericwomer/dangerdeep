@@ -112,9 +112,9 @@ public:
 	mesh get_mesh(unsigned nr) const;
 	vector3f get_min(void) const { return min; }
 	vector3f get_max(void) const { return max; }
-	double get_length(void) const { return (max - min).y; }
-	double get_width(void) const { return (max - min).x; }
-	double get_height(void) const { return (max - min).z; }
+	float get_length(void) const { return (max - min).y; }
+	float get_width(void) const { return (max - min).x; }
+	float get_height(void) const { return (max - min).z; }
 	vector3f get_boundbox_size(void) const { return max-min; }
 	float get_cross_section(float angle) const;	// give angle in degrees.
 };	

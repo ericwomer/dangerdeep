@@ -28,6 +28,7 @@ public:
 	depth_charge(const sea_object& parent, double expl_depth);
 	virtual void simulate(class game& gm, double delta_time);
 	virtual void display(void) const;
+	virtual vector3 get_acceleration(void) const;
 };
 
 #endif

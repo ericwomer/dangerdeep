@@ -29,6 +29,7 @@ public:
 	virtual void simulate ( class game& gm, double delta_time );
 	virtual void display () const;
 	virtual bool is_finished () const { return ( finished == true ); }
+	virtual vector3 get_acceleration(void) const { return vector3(); }
 };
 
 typedef list<water_splash_element*> water_splash_element_list;

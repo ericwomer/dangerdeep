@@ -12,6 +12,21 @@
 #include "texts.h"
 
 
+
+vector3 sea_object::get_acceleration(void) const
+{
+	return vector3(0, 0, -GRAVITY);
+}
+
+
+
+quaternion sea_object::get_rot_acceleration(void) const
+{
+	return quaternion::neutral_rot();
+}
+
+
+
 void sea_object::degrees2meters(bool west, unsigned degx, unsigned minx, bool south,
 	unsigned degy, unsigned miny, double& x, double& y)
 {
@@ -37,8 +52,8 @@ void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, 
 
 
 // some heirs need this empty c'tor
-sea_object::sea_object() : speed(0), max_speed(0), max_rev_speed(0), throttle(stop),
-	acceleration(0), permanent_turn(false), head_chg(0), rudder(0), length(0), width(0),
+sea_object::sea_object() : /*speed(0), max_speed(0), max_rev_speed(0), throttle(stop),
+	acceleration(0), permanent_turn(false), head_chg(0), rudder(0), length(0), width(0),*/
 	alive_stat(alive), ref_count(0)
 {
 	sensors.resize ( last_sensor_system );
@@ -47,8 +62,8 @@ sea_object::sea_object() : speed(0), max_speed(0), max_rev_speed(0), throttle(st
 
 
 sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
-	speed(0.0), throttle(stop), permanent_turn(false), head_chg(0.0), rudder(ruddermid),
-	head_to(0.0), alive_stat(alive), ref_count(0)
+	/*speed(0.0), throttle(stop), permanent_turn(false), head_chg(0.0), rudder(ruddermid),
+	head_to(0.0),*/ alive_stat(alive), ref_count(0)
 {
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdobj = hspec.FirstChild(topnodename);
@@ -57,8 +72,7 @@ sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
 	specfilename = XmlAttrib(eclassification, "identifier");
 	modelname = XmlAttrib(eclassification, "modelname");
 	model* mdl = modelcache.ref(modelname);
-	width = mdl->get_width();
-	length = mdl->get_length();
+	size3d = vector3(mdl->get_width(), mdl->get_length(), mdl->get_height());
 	//country = XmlAttrib(eclassification, "country");
 	TiXmlHandle hdescription = hdftdobj.FirstChild("description");
 	TiXmlElement* edescr = hdescription.FirstChild("far").Element();

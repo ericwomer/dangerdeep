@@ -4,7 +4,7 @@
 #ifndef TORPEDO_H
 #define TORPEDO_H
 
-#include "sea_object.h"
+#include "ship.h"
 #include <map>
 using namespace std;
 
@@ -12,8 +12,10 @@ using namespace std;
 #define TORPEDO_SAVE_DISTANCE 250.0f // minimum distance
 
 // fixme: maybe make heirs of this class for each torpedo type. would be much nicer code.
+// unnecessary work. instead maybe use same code as for ships/subs with XML.
+// torpedo should heir from ship, as it has the same rudders/code as a ship.
 
-class torpedo : public sea_object
+class torpedo : public ship
 {
 public:
 	// T1: G7a

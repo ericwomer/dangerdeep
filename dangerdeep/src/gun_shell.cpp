@@ -14,8 +14,8 @@ gun_shell::gun_shell(const sea_object& parent, angle direction, angle elevation,
 	oldpos = position;
 	vector2 d = direction.direction() * elevation.cos() * initial_velocity;
 	velocity = vector3(d.x, d.y, elevation.sin() * initial_velocity);
-	length = gun_shell_mdl->get_length();
-	width = gun_shell_mdl->get_width();
+	//fixme: should be done in sea_object!
+	size3d = vector3f(gun_shell_mdl->get_width(), gun_shell_mdl->get_length(), gun_shell_mdl->get_height());
 
 	system::sys().add_console("shell created");
 }
@@ -45,9 +45,7 @@ void gun_shell::save(ostream& out, const class game& g) const
 void gun_shell::simulate(game& gm, double delta_time)
 {
 	oldpos = position;
-	position += velocity * delta_time;
-//	velocity *= (1.0 - AIR_RESISTANCE) * delta_time;	// fixme: other formula?
-	velocity += vector3(0, 0, -GRAVITY) * delta_time;
+	sea_object::simulate(gm, delta_time);
 
 	if (position.z <= 0) {
 		bool impact = gm.gs_impact(position);
