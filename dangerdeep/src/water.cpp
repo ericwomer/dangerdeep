@@ -22,7 +22,7 @@
 
 // compute projected grid efficiency, it should be 50-95%
 //#define COMPUTE_EFFICIENCY
-//#define WAVE_SUB_DETAIL		// sub fft detail
+#define WAVE_SUB_DETAIL		// sub fft detail
 
 // for testing
 //#define DRAW_WATER_AS_GRID
@@ -206,9 +206,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileheights[i] = owg.compute_heights();
-		for (vector<float>::/*const_*/iterator it = wavetileheights[i].begin(); it != wavetileheights[i].end(); ++it) {
-//fixme!!!!!!!1 debug
-//			*it = 0;
+		for (vector<float>::const_iterator it = wavetileheights[i].begin(); it != wavetileheights[i].end(); ++it) {
 			if (*it > maxh) maxh = *it;
 			if (*it < minh) minh = *it;
 		}
@@ -805,7 +803,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 			const vector3f& N = normals[ptr];
 
 			if (fragment_program_supported && use_fragment_programs) {
-				uv0[ptr] = vector2f(myfmod(coord.x, 4*256)*0.25f, myfmod(coord.y,4*256)*0.25f); // fixme, use noise map texc's
+				uv0[ptr] = vector2f(myfmod(coord.x, 4*256)*0.5f, myfmod(coord.y,4*256)*0.5f); // fixme, use noise map texc's
 				//fixme ^, offset is missing
 				vector3f tx = vector3f(1, 0, 0);//fixme hack
 				vector3f ty = N.cross(tx);
