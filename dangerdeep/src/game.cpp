@@ -615,6 +615,10 @@ void game::ship_sunk( const ship* s )
 	oss << texts::get(83) << " " << s->get_description ( 2 );
 	ui->add_captains_log_entry( *this, oss.str () );
 	ui->record_sunk_ship ( s );
+	date d;
+	::get_date(time, d);
+	sunken_ships.push_back(sink_record(d, s->get_description(2),
+		s->get_tonnage()));
 }
 
 void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
@@ -952,6 +956,27 @@ ship* game::sonar_acoustical_torpedo_target ( const torpedo* o )
 	return loudest_object;
 }
 
+list<game::sink_record> result_sunken_ships;
+void display_results(void)
+{
+	system::sys()->prepare_2d_drawing();
+	unsigned l = 1;
+	unsigned h = font_arial->get_height();
+	for (list<game::sink_record>::iterator it = result_sunken_ships.begin(); it != result_sunken_ships.end(); ++it) {
+		ostringstream ossdate;
+		ossdate << it->dat.get_value(date::year) << "/"
+			<< it->dat.get_value(date::month) << "/"
+			<< it->dat.get_value(date::day);
+		font_arial->print(2*h, l*h, ossdate.str().c_str());
+		font_arial->print(22*h, l*h, it->descr.c_str());
+		ostringstream osstons;
+		osstons << it->tons << " BRT";
+		font_arial->print(52*h, l*h, osstons.str().c_str());
+		++l;
+	}
+	system::sys()->unprepare_2d_drawing();
+}
+
 // main play loop
 void game::main_playloop(class system& sys)
 {
@@ -994,6 +1019,12 @@ void game::main_playloop(class system& sys)
 		
 		sys.swap_buffers();
 	}
+	
+	// display results
+	result_sunken_ships = sunken_ships;
+	menu m(124, 0/*killedimg*/, true);
+	m.add_item(105, 0);
+	m.run(display_results);
 }
 
 bool game::is_day_mode () const

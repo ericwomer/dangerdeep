@@ -1,4 +1,8 @@
 2003-07-06  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* game.h game.cpp
+	  - first bits of result recording and display, rather experimental.
+
+2003-07-06  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* smokestream.cpp
 	  - segfault reason found & fixed
 

@@ -53,6 +53,16 @@ public:
 		bool operator< (const cloud& o) const { return pos.z < o.pos.z; }
 	};
 
+	struct sink_record {
+		date dat;
+		string descr;	// fixme: store type, use a static ship function to retrieve a matching description
+		unsigned tons;
+		sink_record(date d, const string& s, unsigned t) : dat(d), descr(s), tons(t) {}
+		sink_record(const sink_record& s) : dat(s.dat), descr(s.descr), tons(s.tons) {}
+		~sink_record() {}
+		sink_record& operator= (const sink_record& s) { dat = s.dat; descr = s.descr; tons = s.tons; return *this; }
+	};
+	
 protected:
 	list<ship*> ships;
 	list<submarine*> submarines;
@@ -67,6 +77,8 @@ protected:
 	// the player and matching ui (note that playing is not limited to submarines!)
 	sea_object* player;
 	user_interface* ui;
+
+	list<sink_record> sunken_ships;
 	
 	double time;	// global time (in seconds since 1.1.1939, 0:0 hrs)
 	double last_trail_time;	// for position trail recording
