@@ -57,7 +57,7 @@ public:
 	static void deinit(void);
 
 	// class game is given so that particles can spawn other particles (fire->smoke)
-	virtual void simulate(game& gm, double delta_t) = 0;
+	virtual void simulate(game& gm, double delta_t);
 
 	static void display_all(const list<particle*>& pts, const vector3& viewpos, game& gm);
 
@@ -69,6 +69,8 @@ public:
 	
 	// set opengl texture by particle type or e.g. game time etc.
 	virtual void set_texture(game& gm) const = 0;
+
+	virtual double get_life_time(void) const = 0;
 };
 
 
@@ -84,8 +86,22 @@ public:
 	double get_width(void) const;
 	double get_height(void) const;
 	void set_texture(game& gm) const;
+	double get_life_time(void) const;
 	static double get_produce_time(void);
 };
+
+
+
+class smoke_particle_escort : public smoke_particle
+{
+public:
+	smoke_particle_escort(const vector3& pos_);
+	~smoke_particle_escort() {}
+	double get_width(void) const;
+	double get_life_time(void) const;
+	static double get_produce_time(void);
+};
+
 
 
 
@@ -95,10 +111,10 @@ class explosion_particle : public particle
 public:
 	explosion_particle(const vector3& pos_);
 	~explosion_particle() {}
-	void simulate(game& gm, double delta_t);
 	double get_width(void) const;
 	double get_height(void) const;
 	void set_texture(game& gm) const;
+	double get_life_time(void) const;
 };
 
 #endif

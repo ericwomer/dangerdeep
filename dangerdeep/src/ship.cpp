@@ -85,7 +85,7 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 			esmpos->Attribute("x", &smokerelpos.x);
 			esmpos->Attribute("y", &smokerelpos.y);
 			esmpos->Attribute("z", &smokerelpos.z);
-			smoke_type = 1;
+			smoke_type = smtype;
 		}
 	}
 	TiXmlElement* eai = hdftdship.FirstChildElement("ai").Element();
@@ -323,12 +323,22 @@ void ship::simulate(game& gm, double delta_time)
 	// Adjust fuel_level.
 	calculate_fuel_factor ( delta_time );
 	
-	// place smoke particle generation logic here fixme
-	if (is_alive() && smoke_type != 0) {//replace by has_particle
-		double produce_time = smoke_particle::get_produce_time();
+	// smoke particle generation logic
+	if (is_alive() && smoke_type > 0) {//replace by has_particle
+		double produce_time;
+		switch (smoke_type) {
+		case 1: produce_time = smoke_particle::get_produce_time(); break;
+		case 2: produce_time = smoke_particle_escort::get_produce_time(); break;
+		}
 		double t = myfmod(gm.get_time(), produce_time);
-		if (t < produce_time && t + delta_time >= produce_time) {
-			gm.spawn_particle(new smoke_particle(position + smokerelpos));//fixme: maybe add some random offset
+		if (t + delta_time >= produce_time) {
+			particle* p = 0;
+			vector3 ppos = position + smokerelpos;//fixme: maybe add some random offset
+			switch (smoke_type) {
+			case 1: p = new smoke_particle(ppos); break;
+			case 2: p = new smoke_particle_escort(ppos); break;
+			}
+			gm.spawn_particle(p);
 		}
 	}
 

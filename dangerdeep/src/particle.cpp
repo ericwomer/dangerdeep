@@ -138,7 +138,7 @@ void particle::init(void)
 	tex_smoke.resize(NR_OF_SMOKE_TEXTURES);
 	vector<unsigned char> smoketmp(64*64*2);
 	for (unsigned i = 0; i < NR_OF_SMOKE_TEXTURES; ++i) {
-		vector<unsigned char> noise = make_2d_perlin_noise(64, 3);
+		vector<unsigned char> noise = make_2d_perlin_noise(64, 2);
 
 /*
 		ostringstream oss;
@@ -184,6 +184,13 @@ void particle::deinit(void)
 		delete explosionbig[i];
 	for (unsigned i = 0; i < explosionsml.size(); ++i)
 		delete explosionsml[i];
+}
+
+
+
+void particle::simulate(game& gm, double delta_t)
+{
+	live -= delta_t/get_life_time();
 }
 
 
@@ -249,15 +256,8 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 
 // smoke
 
-//fixme: decrease ascend speed with life?
-#define SMOKE_PARTICLE_LIFE_TIME 40.0	// seconds
-#define SMOKE_PARTICLE_INITIAL_ASCEND_SPEED 6.0 // m/s
-#define SMOKE_PARTICLE_ACCEL 6.0
-
-#define SMOKE_PARTICLE_SIZE_MIN 4.0	// meters
-#define SMOKE_PARTICLE_SIZE_MAX 30.0	// meters
-
-#define SMOKE_PARTICLE_PRODUCE_TIME 0.666
+#define SMOKE_PARTICLE_INITIAL_ASCEND_SPEED 4.0 // m/s
+#define SMOKE_PARTICLE_ACCEL 3.0
 
 smoke_particle::smoke_particle(const vector3& pos_) : particle(pos_), texnr(rand() % NR_OF_SMOKE_TEXTURES)
 {
@@ -265,9 +265,11 @@ smoke_particle::smoke_particle(const vector3& pos_) : particle(pos_), texnr(rand
 
 }
 
+
+
 void smoke_particle::simulate(game& gm, double delta_t)
 {
-	live -= delta_t/SMOKE_PARTICLE_LIFE_TIME;
+	particle::simulate(gm, delta_t);
 	pos.z += (SMOKE_PARTICLE_INITIAL_ASCEND_SPEED - (1.0f - live) * SMOKE_PARTICLE_ACCEL) * delta_t;
 }
 
@@ -275,47 +277,76 @@ void smoke_particle::simulate(game& gm, double delta_t)
 
 double smoke_particle::get_width(void) const
 {
-	return SMOKE_PARTICLE_SIZE_MIN * live + SMOKE_PARTICLE_SIZE_MAX * (1.0f - live);
+	// min/max size in meters
+	return 2.0 * live + 50.0 * (1.0f - live);
 }
 
 
 
 double smoke_particle::get_height(void) const
 {
-	return 2.0 * SMOKE_PARTICLE_INITIAL_ASCEND_SPEED * SMOKE_PARTICLE_PRODUCE_TIME;
+	double h = get_width();
+	if (live > 0.9)
+		h *= (live - 0.8) * 10;
+	return h;
 }
 
 
 
 void smoke_particle::set_texture(class game& gm) const
 {
-	glColor4f(0.5f, 0.5f, 0.5f, live);
+	glColor4f(1, 1, 1, live);
 	tex_smoke[texnr]->set_gl_texture();
+}
+
+
+
+double smoke_particle::get_life_time(void) const
+{
+	return 30.0; // seconds
 }
 
 
 
 double smoke_particle::get_produce_time(void)
 {
-	return SMOKE_PARTICLE_PRODUCE_TIME;
+	return 0.6; // seconds
+}
+
+
+
+smoke_particle_escort::smoke_particle_escort(const vector3& pos_) : smoke_particle(pos_)
+{
+}
+
+
+
+double smoke_particle_escort::get_width(void) const
+{
+	return 2.0 * live + 25.0 * (1.0f - live);
+}
+
+
+
+double smoke_particle_escort::get_life_time(void) const
+{
+	return 15.0; // seconds
+}
+
+
+
+double smoke_particle_escort::get_produce_time(void)
+{
+	return 0.3; // seconds
 }
 
 
 
 // explosion(s)
 
-#define EXPLOSION_PARTICLE_LIFE_TIME 2.0
-
 explosion_particle::explosion_particle(const vector3& pos_) : particle(pos_)
 {
 	extype = 0; // rnd(1); //fixme
-}
-
-
-
-void explosion_particle::simulate(game& gm, double delta_t)
-{
-	live -= delta_t/EXPLOSION_PARTICLE_LIFE_TIME;
 }
 
 
@@ -341,4 +372,11 @@ void explosion_particle::set_texture(class game& gm) const
 	if (f < 0 || f >= EXPL_FRAMES) f = EXPL_FRAMES-1;
 	// switch on type, fixme
 	explosionbig[f]->set_gl_texture();
+}
+
+
+
+double explosion_particle::get_life_time(void) const
+{
+	return 2.0; // seconds
 }
