@@ -72,9 +72,9 @@ struct coastsegment
 	void generate_point_cache(double size/*what is size?fixme*/, unsigned detail);
 
 	static float dist_to_corner(int b, const vector2f& p, float segw);
-	float compute_border_dist(int b0, const vector2f& p0, int b1, const vector2f& p1);
+	float compute_border_dist(int b0, const vector2f& p0, int b1, const vector2f& p1, float segw);
 
-	unsigned get_successor_for_cl(unsigned cln) const;
+	unsigned get_successor_for_cl(unsigned cln, float segw) const;
 
 	coastsegment() : type(0) {}	
 	~coastsegment() {}
@@ -119,6 +119,7 @@ class coastmap
 	Uint8& mapf(int cx, int cy);
 	bool find_begin_of_coastline(int& x, int& y);
 	bool find_coastline(int x, int y, vector<vector2i>& points, bool& cyclic, int& beginborder, int& endborder);
+	void divide_and_distribute_cl(const coastline& cl, const vector<vector2i>& points);
 	void process_coastline(int x, int y);
 	void process_segment(int x, int y);
 

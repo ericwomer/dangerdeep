@@ -994,11 +994,16 @@ int main(int argc, char** argv)
 	mycfg.register_option("fullscreen", true);
 	mycfg.register_option("debug", false);
 	mycfg.register_option("sound", true);
-	
-	mycfg.load(configdirectory + "config");
+
 	// make sure the default values are stored if there is no config file,
 	// and make sure all registered values are stored in it
-	mycfg.save(configdirectory + "config");
+	FILE* fconfig = fopen((configdirectory + "config").c_str(), "rt");
+	if (fconfig) {
+		fclose(fconfig);
+	} else {
+		mycfg.save(configdirectory + "config");
+	}
+	mycfg.load(configdirectory + "config");
 
 /*
 	// 100 times...

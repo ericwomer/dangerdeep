@@ -298,7 +298,7 @@ float coastsegment::dist_to_corner(int b, const vector2f& p, float segw)
 
 
 
-float coastsegment::compute_border_dist(int b0, const vector2f& p0, int b1, const vector2f& p1)
+float coastsegment::compute_border_dist(int b0, const vector2f& p0, int b1, const vector2f& p1, float segw)
 {
 	float dist0 = dist_to_corner(b0, p0, segw), dist1 = dist_to_corner(b1, p1, segw);
 	if (b0 == b1 && dist1 > dist0) b1 += 4;
@@ -312,8 +312,9 @@ float coastsegment::compute_border_dist(int b0, const vector2f& p0, int b1, cons
 
 
 
-unsigned coastsegment::get_successor_for_cl(unsigned cln) const
+unsigned coastsegment::get_successor_for_cl(unsigned cln, float segw) const
 {
+#if 0
 	float mindist = 1e30;
 	unsigned next = 0xffffffff;
 //coastlines[cln].debug_print(cout);
@@ -331,7 +332,7 @@ unsigned coastsegment::get_successor_for_cl(unsigned cln) const
 				next = i;
 			}
 		} else if (scl0.endborder >= 0 && scl1.beginborder >= 0) {
-			float dist = compute_border_dist(scl0.endborder, scl0.p1, scl1.beginborder, scl1.p0);
+			float dist = compute_border_dist(scl0.endborder, scl0.p1, scl1.beginborder, scl1.p0, segw);
 			if (dist < mindist) {
 				mindist = dist;
 				next = i;
@@ -341,6 +342,7 @@ unsigned coastsegment::get_successor_for_cl(unsigned cln) const
 	assert(next != 0xffffffff);
 //cout << "next was " << next << "\n";	
 	return next;
+#endif
 }
 
 
@@ -523,8 +525,9 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 
 
 
-void coastmap::divide_and_distribute_cl(const coastline& cl)
+void coastmap::divide_and_distribute_cl(const coastline& cl, const vector<vector2i>& points)
 {
+#if 0
 	segcl scl;
 
 	// divide coastline at segment borders
@@ -607,6 +610,7 @@ void coastmap::divide_and_distribute_cl(const coastline& cl)
 //	if (segcl.cyclic) assert(segcl.beginborder==-1 && segcl.endborder==-1);
 
 	cl_per_seg[seg].push_back(segcl);
+#endif
 }
 
 
@@ -632,9 +636,9 @@ void coastmap::process_coastline(int x, int y)
 	if (cyclic) {
 		// close polygon and make sure the first and last line are linear dependent
 		assert(tmp.size()>2);
-		vector2 p0 = tmp[0];
-		vector2 p1 = tmp[1];
-		vector2 p01 = (p0 + p1) * 0.5;
+		vector2f p0 = tmp[0];
+		vector2f p1 = tmp[1];
+		vector2f p01 = (p0 + p1) * 0.5;
 		tmp[0] = p01;
 		tmp.push_back(p0);
 		tmp.push_back(p01);
@@ -645,7 +649,7 @@ void coastmap::process_coastline(int x, int y)
 	coastline result(n, tmp, cyclic);
 //	result.beginborder = dcl.beginborder;//fixme: do we need that?
 //	result.endborder = dcl.endborder;
-	divide_and_distribute_cl(result);
+	divide_and_distribute_cl(result, points);
 
 	coastlines.push_back(result);
 }
@@ -673,7 +677,7 @@ void coastmap::process_segment(int sx, int sy)
 			if (handledcl[i]) continue;
 			unsigned current = i;
 			do {
-				unsigned next = cs.get_successor_for_cl(current);
+				unsigned next = cs.get_successor_for_cl(current, pixels_per_seg*pixelw_real);
 				cs.segcls[current].next = next;
 				handledcl[current] = true;
 			} while (current != i);
@@ -815,13 +819,14 @@ void coastmap::draw_as_map(const vector2& droff, double mapzoom, int detail) con
 		h = segsy - y;
 	}
 
+	// fixme: use opengl transformation matrix instead of cpu calculations
 	vector2f r(0, realoffset.y + rsegw * y);
 	vector2f t(0, ts.y * y);
 	for (int yy = y; yy < y + h; ++yy) {
 		r.x = realoffset.x + rsegw * x;
 		t.x = ts.x * x;
 		for (int xx = x; xx < x + w; ++xx) {
-			coastsegments[yy*segsx+xx].draw_as_map(r, rsegw, t, ts, detail);
+//			coastsegments[yy*segsx+xx].draw_as_map(r, rsegw, t, ts, detail);
 			r.x += rsegw;
 			t.x += ts.x;
 		}
