@@ -20,12 +20,13 @@ class submarine : public ship
 {
 public:
 	struct stored_torpedo {
+		enum st_status { st_empty, st_reloading, st_unloading, st_loaded };
 		unsigned type;
-		unsigned status;	// 0 empty 1 reloading 2 unloading 3 loaded
+		st_status status;	// 0 empty 1 reloading 2 unloading 3 loaded
 		unsigned associated;	// reloading from/unloading to
 		double remaining_time;	// remaining time until work is finished
-		stored_torpedo() : type(0), status(0), associated(0), remaining_time(0) {}
-		stored_torpedo(unsigned t) : type(t), status(3), associated(0), remaining_time(0) {}
+		stored_torpedo() : type(0), status(st_empty), associated(0), remaining_time(0) {}
+		stored_torpedo(unsigned t) : type(t), status(st_loaded), associated(0), remaining_time(0) {}
 	};
 
 protected:

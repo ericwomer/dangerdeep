@@ -35,7 +35,7 @@ bool submarine::parse_attribute(parser& p)
 			p.parse(TKN_SLPARAN);
 			for (unsigned i = 0; i < torpedoes.size(); ++i) {
 				switch (p.type()) {
-					case TKN_TXTNONE: torpedoes[i].status = 0; break;
+					case TKN_TXTNONE: torpedoes[i].status = stored_torpedo::st_empty; break;
 					case TKN_T1: torpedoes[i] = stored_torpedo(torpedo::T1); break;
 					case TKN_T3: torpedoes[i] = stored_torpedo(torpedo::T3); break;
 					case TKN_T5: torpedoes[i] = stored_torpedo(torpedo::T5); break;
@@ -85,10 +85,11 @@ submarine* submarine::create(parser& p)
 
 bool submarine::transfer_torpedo(unsigned from, unsigned to, double timeneeded)
 {
-	if (torpedoes[from].status == 3 && torpedoes[to].status == 0) {
+	if (torpedoes[from].status == stored_torpedo::st_loaded &&
+		torpedoes[to].status == stored_torpedo::st_empty) {
 		torpedoes[to].type = torpedoes[from].type;
-		torpedoes[from].status = 2;
-		torpedoes[to].status = 1;
+		torpedoes[from].status = stored_torpedo::st_unloading;
+		torpedoes[to].status = stored_torpedo::st_reloading;
 		torpedoes[from].associated = to;
 		torpedoes[to].associated = from;
 		torpedoes[from].remaining_time =
@@ -103,7 +104,7 @@ int submarine::find_stored_torpedo(bool usebow)
 	pair<unsigned, unsigned> indices = (usebow) ? get_bow_storage_indices() : get_stern_storage_indices();
 	int tubenr = -1;
 	for (unsigned i = indices.first; i < indices.second; ++i) {
-		if (torpedoes[i].status == 3) {	// loaded
+		if (torpedoes[i].status == stored_torpedo::st_loaded) {	// loaded
 			tubenr = i; break;
 		}
 	}
@@ -165,15 +166,16 @@ void submarine::simulate(class game& gm, double delta_time)
 	// torpedo transfer
 	for (unsigned i = 0; i < torpedoes.size(); ++i) {
 		stored_torpedo& st = torpedoes[i];
-		if (st.status == 1 || st.status == 2) { // reloading/unloading
+		if (st.status == stored_torpedo::st_reloading ||
+			st.status == stored_torpedo::st_unloading) { // reloading/unloading
 			st.remaining_time -= delta_time;
 			if (st.remaining_time <= 0) {
-				if (st.status == 1) {	// reloading
-					st.status = 3;	// loading
-					torpedoes[st.associated].status = 0;	// empty
+				if (st.status == stored_torpedo::st_reloading) {	// reloading
+					st.status = stored_torpedo::st_loaded;	// loading
+					torpedoes[st.associated].status = stored_torpedo::st_empty;	// empty
 				} else {		// unloading
-					st.status = 0;	// empty
-					torpedoes[st.associated].status = 3;	// loaded
+					st.status = stored_torpedo::st_empty;	// empty
+					torpedoes[st.associated].status = stored_torpedo::st_loaded;	// loaded
 				}
 			}
 		}
@@ -308,14 +310,14 @@ bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target)
 	if (tubenr < 0) {
 		if (usebowtubes) {
 			for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
-				if (torpedoes[i].status == 3) {
+				if (torpedoes[i].status == stored_torpedo::st_loaded) {
 					torpnr = i;
 					break;
 				}
 			}
 		} else {
 			for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
-				if (torpedoes[i].status == 3) {
+				if (torpedoes[i].status == stored_torpedo::st_loaded) {
 					torpnr = i;
 					break;
 				}
@@ -325,7 +327,12 @@ bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target)
 		unsigned d = (usebowtubes) ? bow_tube_indices.second - bow_tube_indices.first :
 			stern_tube_indices.second - stern_tube_indices.first;
 		if (tubenr >= 0 && tubenr < d)
-			torpnr = tubenr + ((usebowtubes) ? bow_tube_indices.first : stern_tube_indices.first);
+		{
+			unsigned i = tubenr + ((usebowtubes) ? bow_tube_indices.first : stern_tube_indices.first);
+
+			if ( torpedoes[i].status == stored_torpedo::st_loaded )
+				torpnr = i;
+		}
 	}
 	if (torpnr == 0xffff)
 		return false;
@@ -342,7 +349,7 @@ bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target)
 	} else {
 		gm.spawn_torpedo(t);
 	}
-	torpedoes[torpnr].status = 0;
+	torpedoes[torpnr].status = stored_torpedo::st_empty;
 	return true;
 }
 
