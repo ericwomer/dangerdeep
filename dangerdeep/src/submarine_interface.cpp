@@ -44,8 +44,9 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 				{
 					add_message(TXT_Torpedofired[language]);
 					ostringstream oss;
-					oss << TXT_Torpedofired[language] << " " << TXT_Target[language] << ": ";
-					oss << target->get_description ( 2 );
+					oss << TXT_Torpedofired[language];
+					if ( target )
+						oss << " " << TXT_Target[language] << ": " << target->get_description ( 2 );
 					add_captains_log_entry( gm, oss.str () );
 					play_sound_effect ( se_submarine_torpedo_launch );
 				}
