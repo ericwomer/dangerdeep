@@ -29,34 +29,85 @@ int res_x, res_y;
 #define MODEL_DIR "models/"
 #define FONT_DIR "fonts/"
 
-void view_model(const string& modelfilename)
+#define SCALE_FACTOR 0.35f
+
+static void draw_model(model* mdl)
+{
+	double sc = 1.0/(SCALE_FACTOR*mdl->get_boundbox_size()).length();
+
+	// Side view.
+	glLoadIdentity();
+	glTranslatef(-0.75f, 1.0f, -2.5f);
+	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+	glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
+	glScalef(0.0f, sc, sc);
+	glColor3f(1.0f, 1.0f, 1.0f);
+	mdl->display();
+
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_LINES);
+	glVertex3f(0.0f, -1.5f/sc, 0.0f);
+	glVertex3f(0.0f, 1.5f/sc, 0.0f);
+	glEnd();
+
+	// Front view.
+	glLoadIdentity();
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glTranslatef(1.5f, 1.0f, -2.5f);
+	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+	glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
+	glScalef(sc, 0.0f, sc);
+	mdl->display();
+
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_LINES);
+	glVertex3f(-0.5f/sc, 0.0f, 0.0f);
+	glVertex3f(0.5f/sc, 0.0f, 0.0f);
+	glEnd();
+
+	// Top view.
+	glLoadIdentity();
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glTranslatef(-0.75f, 0.0f, -2.5f);
+	glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
+	glScalef(sc, sc, 0.0f);
+	mdl->display();
+}
+
+static void print_model_datas(model* mdl)
+{
+	ostringstream os;
+	os << "Length: " << mdl->get_length() << " m" << endl
+	   << "Width : " << mdl->get_width() << " m" << endl
+	   << "Height: " << mdl->get_height() << " m";
+
+	sys->prepare_2d_drawing();
+	font_arial->print(10, 600, os.str());
+	sys->unprepare_2d_drawing();
+}
+
+static void view_model(const string& modelfilename)
 {
 	// vector3 viewangles;
 	vector3 pos;
 	model* mdl = new model(string(DATADIR) + MODEL_DIR + modelfilename);
 
 	while (true) {
+		glMatrixMode(GL_MODELVIEW);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-		glLoadIdentity();
 
-		glColor3f(1.0f, 1.0f, 1.0f);
-		glTranslatef(0.0f, 1.0f, -2.5f);
-		glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-		glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
-
-		glBindTexture(GL_TEXTURE_2D, 0);
-		double sc = 1.0/(mdl->get_boundbox_size()*0.35).length();
-		glScalef(sc, sc, sc);
-		mdl->display();
+		// Draw unit model.
+		draw_model(mdl);
+		print_model_datas(mdl);
 
 		sys->poll_event_queue();
 		int key = sys->get_key().sym;
 		// int mb = sys->get_mouse_buttons();
 		if (key == SDLK_ESCAPE) break;
 
-		sys->prepare_2d_drawing();
+		// sys->prepare_2d_drawing();
 
-		sys->unprepare_2d_drawing();
+		// sys->unprepare_2d_drawing();
 		sys->swap_buffers();
 	}
 }
@@ -99,6 +150,8 @@ int main(int argc, char** argv)
 	sys->add_console("A simple model viewer for DftD-.mdl files");
 	sys->add_console("copyright and written 2003 by Thorsten Jordan");
 
+	glMatrixMode(GL_PROJECTION);
+	gluOrtho2D(0,0, 1024, 768);
 	GLfloat lambient[4] = {0.5,0.5,0.5,1};
 	GLfloat ldiffuse[4] = {1,1,1,1};
 	GLfloat lposition[4] = {0,0,1,0};
