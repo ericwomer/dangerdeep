@@ -42,11 +42,11 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 	system::sys().myassert(emotion != 0, string("motion node missing in ")+specfilename);
 	double tmp = 0;
 	if (emotion->Attribute("maxspeed", &tmp))
-		max_speed = kts2ms(tmp);
+		max_speed_forward = kts2ms(tmp);
 	tmp = 0;
 	if (emotion->Attribute("maxrevspeed", &tmp))
-		max_rev_speed = kts2ms(tmp);
-	emotion->Attribute("acceleration", &acceleration);
+		max_speed_reverse = kts2ms(tmp);
+	emotion->Attribute("acceleration", &max_accel_forward);
 	tmp = 0;
 	if (emotion->Attribute("turnrate", &tmp))
 		turn_rate = angle(tmp);

@@ -10,9 +10,12 @@
 #include "tinyxml/tinyxml.h"
 
 
+// fixme: the whole file is covered with outcommented lines that have to be
+// implemented in a sane way with the new class model (2004/07/15)
+
 
 // empty c'tor needed for loading games
-convoy::convoy() : myai(0)
+convoy::convoy() : sea_object()
 {
 }
 
@@ -20,20 +23,19 @@ convoy::convoy() : myai(0)
 
 convoy::~convoy()
 {
-	delete myai;
 }
 
 
 
 convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : sea_object(), myai(0)
 {
-	myai = new ai(this, ai::convoy);
+	//myai = new ai(this, ai::convoy);
 
 	waypoints.push_back(vector2(0, 0));
 	for (int wp = 0; wp < 4; ++wp)
 		waypoints.push_back(vector2(rnd()*300000-150000,rnd()*300000-150000));
-	heading = angle(*(++waypoints.begin()) - *(waypoints.begin()));
-	vector2 coursevec = heading.direction();
+//	heading = angle(*(++waypoints.begin()) - *(waypoints.begin()));
+	vector2 coursevec = vector2(1,0);//heading.direction();//fixme
 	
 	double intershipdist = 1000.0;	// distance between ships.
 	double convoyescortdist = 3000.0; // distance of escorts to convoy
@@ -44,8 +46,8 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 		unsigned cvsize = unsigned(type_);
 		
 		// speed? could be a slow or fast convoy (~4 or ~8 kts).
-		throttle = 4 + rnd(2)*4;
-		max_speed = speed = kts2ms(throttle);
+//		throttle = 4 + rnd(2)*4;
+//		max_speed = speed = kts2ms(throttle);
 	
 		// compute size and structure of convoy
 		unsigned nrships = (2<<cvsize)*10+rnd(10)-5;
@@ -81,9 +83,9 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 				pos = pos.matrixmul(coursevec, coursevec.orthogonal());
 				s->position.x = waypoints.begin()->x + pos.x;
 				s->position.y = waypoints.begin()->y + pos.y;
-				s->heading = s->head_to = heading;
-				s->speed = speed;
-				s->throttle = throttle;
+				s->heading = s->head_to = 0;//heading;
+				s->speed = 0;//speed;//fixme
+				s->throttle = 0;//throttle;//fixme
 				merchants.push_back(make_pair(s, pos));
 				++shps;
 			}
@@ -117,9 +119,9 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 			pos = pos.matrixmul(coursevec, coursevec.orthogonal());
 			s->position.x = waypoints.begin()->x + pos.x;
 			s->position.y = waypoints.begin()->y + pos.y;
-			s->heading = s->head_to = heading;
-			s->speed = speed;
-			s->throttle = throttle;
+			s->heading = s->head_to = 0;//heading;
+			s->speed = 0;//speed;//fixme
+			s->throttle = 0;//throttle;//fixme
 			escorts.push_back(make_pair(s, pos));
 		}
 			
@@ -144,12 +146,12 @@ convoy::convoy(class game& gm, TiXmlElement* parent) : sea_object()
 	sea_object::parse_attributes(parent);
 
 	// set values
-	myai = new ai(this, ai::convoy);
-	acceleration = 0.1;	// do we need accel and turn_Rate now?
-	turn_rate = 0.05;
-	if (speed < 0) speed = (throttle >= 0) ? kts2ms(throttle) : 0;
-	max_speed = speed;
-	head_to = heading;
+//	myai = new ai(this, ai::convoy);
+//	acceleration = 0.1;	// do we need accel and turn_Rate now?
+//	turn_rate = 0.05;
+//	if (speed < 0) speed = (throttle >= 0) ? kts2ms(throttle) : 0;
+//	max_speed = speed;
+//	head_to = heading;
 
 	TiXmlElement* epath = parent->FirstChildElement("path");
 	if (epath) {
@@ -172,9 +174,9 @@ convoy::convoy(class game& gm, TiXmlElement* parent) : sea_object()
 		shp->parse_attributes(eship);
 		vector2 relpos = shp->position.xy();
 		shp->position += position;
-		shp->heading = shp->head_to = heading;
-		shp->speed = speed;
-		shp->throttle = throttle;
+		shp->heading = shp->head_to = 0;//heading;//fixme
+		shp->speed = 0;//speed;//fixme
+		shp->throttle = 0;//throttle;//fixme
 		for (list<vector2>::iterator it = waypoints.begin(); it != waypoints.end(); ++it)
 			shp->get_ai()->add_waypoint(*it + relpos);
 
@@ -259,6 +261,20 @@ void convoy::save(ostream& out, const class game& g) const
 		write_double(out, it->x);
 		write_double(out, it->y);
 	}
+}
+
+
+
+unsigned convoy::get_nr_of_ships(void) const
+{
+	return merchants.size() + warships.size() + escorts.size();
+}
+
+
+
+bool convoy::is_defunct(void) const
+{
+	return get_nr_of_ships() == 0;
 }
 
 

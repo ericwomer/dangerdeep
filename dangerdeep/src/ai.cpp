@@ -65,7 +65,6 @@ ai::ai(ship* parent_, types type_) : type(type_), state(followpath),
 	remaining_time(rnd() * AI_THINK_CYCLE_TIME),
 	cyclewaypoints(false)
 {
-	if (parent) parent->ref();
 	fill_dist_angle_relation_map();
 }
 
@@ -78,9 +77,7 @@ ai::ai(istream& in, class game& g)
 	evasive_manouver = read_bool(in);
 	rem_manouver_time = read_double(in);
 	parent = g.read_ship(in);
-	if (parent) parent->ref();
 	followme = g.read_sea_object(in);
-	if (followme) followme->ref();
 	myconvoy = g.read_convoy(in);
 	has_contact = read_bool(in);
 	contact.x = read_double(in);
@@ -91,8 +88,6 @@ ai::ai(istream& in, class game& g)
 
 ai::~ai()
 {
-	if (parent) parent->unref();
-	if (followme) followme->unref();
 }
 
 void ai::save(ostream& out, const class game& g) const
@@ -131,7 +126,6 @@ void ai::attack_contact(const vector3& c)
 
 void ai::follow(sea_object* t)
 {
-	sea_object::assign_ref(followme, t);
 	state = (followme) ? followobject : followpath;
 }
 

@@ -7,7 +7,7 @@
 #include "ship.h"
 #include "global_data.h"
 
-class convoy //: public sea_object//really heir from sea_object, rather ship? no!, maybe completly different class?
+class convoy : public sea_object
 {
 protected:
 	friend class game; // for initialization	
@@ -32,6 +32,9 @@ public:
 	virtual ~convoy();
 	void load(istream& in, class game& g);
 	void save(ostream& out, const class game& g) const;
+	
+	unsigned get_nr_of_ships(void) const;
+	virtual bool is_defunct(void) const;
 
 	virtual class ai* get_ai(void) { return myai; }
 	virtual void simulate(class game& gm, double delta_time);

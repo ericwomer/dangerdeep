@@ -54,7 +54,7 @@ void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, 
 // some heirs need this empty c'tor
 sea_object::sea_object() : /*speed(0), max_speed(0), max_rev_speed(0), throttle(stop),
 	acceleration(0), permanent_turn(false), head_chg(0), rudder(0), length(0), width(0),*/
-	alive_stat(alive), ref_count(0)
+	alive_stat(alive), myai(0)
 {
 	sensors.resize ( last_sensor_system );
 }
@@ -63,7 +63,7 @@ sea_object::sea_object() : /*speed(0), max_speed(0), max_rev_speed(0), throttle(
 
 sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
 	/*speed(0.0), throttle(stop), permanent_turn(false), head_chg(0.0), rudder(ruddermid),
-	head_to(0.0),*/ alive_stat(alive), ref_count(0)
+	head_to(0.0),*/ alive_stat(alive)
 {
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdobj = hspec.FirstChild(topnodename);
@@ -118,8 +118,8 @@ sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
 
 sea_object::~sea_object()
 {
-	system::sys().myassert(ref_count == 0, "sea_object : trying to delete object although references still exist");
 	modelcache.unref(modelname);
+	delete myai;
 	for (unsigned i = 0; i < sensors.size(); i++)
 		delete sensors[i];
 }
@@ -144,7 +144,6 @@ void sea_object::load(istream& in, class game& g)
 */
 	alive_stat = alive_status(read_u8(in));
 
-	//ref_count store?
 /*
 	previous_positions.clear();
 	for (unsigned s = read_u8(in); s > 0; --s) {
@@ -411,43 +410,6 @@ void sea_object::head_to_ang(const angle& a, bool left_or_right)	// true == left
 */
 
 
-void sea_object::ref(void)
-{
-	++ref_count;
-}
-
-
-
-void sea_object::unref(void)
-{
-	system::sys().myassert(ref_count > 0, "sea_object::unref() reference count already zero!");
-	--ref_count;
-	//if (ref_count == 0) delete this;	// fixme: maybe senseful
-}
-
-
-
-void sea_object::check_ref(sea_object*& myref)
-{
-	if (myref) {
-		if (myref->is_defunct()) {
-			myref->unref();
-			myref = 0;
-		}
-	}
-}
-
-
-
-void sea_object::assign_ref(sea_object*& dst, sea_object* src)
-{
-	if (src) src->ref();
-	if (dst) dst->unref();
-	dst = src;
-}
-
-
-
 #if 0 // fixme move to ship
 void sea_object::change_rudder (int dir)
 {
@@ -591,6 +553,14 @@ angle sea_object::estimate_angle_on_the_bow(angle target_bearing, angle target_h
 float sea_object::surface_visibility(const vector2& watcher) const
 {
 	return get_cross_section(watcher);
+}
+
+
+
+double sea_object::get_speed(void) const
+{
+	// speed is local velocity along y-axis
+	return (orientation.conj().rotate(velocity)).y;
 }
 
 

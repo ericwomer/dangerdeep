@@ -73,9 +73,8 @@ protected:
 	
 	string descr_near, descr_medium, descr_far;	// read from spec file
 
-	// reference counting
-	unsigned ref_count;
-	
+	class ai* myai;
+
 	sea_object();
 	sea_object& operator=(const sea_object& other);
 	sea_object(const sea_object& other);
@@ -97,12 +96,6 @@ public:
 	virtual void load(istream& in, class game& g);
 	virtual void save(ostream& out, const class game& g) const;
 
-	// reference counting
-	void ref(void);
-	void unref(void);
-	static void check_ref(sea_object*& myref);
-	static void assign_ref(sea_object*& dst, sea_object* src);
-	
 	// call with ship/submarine/etc node from mission file
 	virtual void parse_attributes(class TiXmlElement* parent);
 
@@ -132,7 +125,9 @@ public:
 	virtual float get_length(void) const { return size3d.y; };
 	virtual float get_height(void) const { return size3d.z; };
 	virtual float surface_visibility(const vector2& watcher) const;
+	virtual double get_speed(void) const;	// project velocity, a bit costly.
 	virtual angle get_heading(void) const;	// rotation and atan2 needed, a bit costly.
+	virtual class ai* get_ai(void) { return myai; }
 
 	/**
 		Noise modification for submarines. Submarines are using diesel engines
