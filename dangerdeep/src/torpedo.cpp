@@ -25,6 +25,8 @@ torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, ang
 	position.x += dp.x;
 	position.y += dp.y;
 	head_to_ang(headto_, !heading.is_cw_nearer(headto_));
+	// fixme: simulate variable speeds of T1?
+	// fixme: simulate effect of magnetic influence fuse (much greater damage)
 	turn_rate = 1.0f;	// most submarine simulations seem to ignore this
 			// launching a torpedo will cause it to run in target direction
 			// immidiately instead of turning there from the sub's heading
