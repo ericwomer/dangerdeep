@@ -187,7 +187,13 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 	for (int y = -s; y <= s; ++y) {
 		for (int x = -s; x <= s; ++x) {
 			vector3f transl2 = transl + vector3f(x*WAVE_LENGTH, y*WAVE_LENGTH, 0);
-			draw_tile(transl2, phase);
+			int lod0 = compute_lod_by_trans(transl2);
+			int fillgap = 0;
+			if (compute_lod_by_trans(transl2+vector3f(0,WAVE_LENGTH,0)) < lod0) fillgap |= 1;
+			if (compute_lod_by_trans(transl2+vector3f(WAVE_LENGTH,0,0)) < lod0) fillgap |= 2;
+			if (compute_lod_by_trans(transl2+vector3f(0,-WAVE_LENGTH,0)) < lod0) fillgap |= 4;
+			if (compute_lod_by_trans(transl2+vector3f(-WAVE_LENGTH,0,0)) < lod0) fillgap |= 8;
+			draw_tile(transl2, phase, lod0, fillgap);
 		}
 	}
 
@@ -413,16 +419,25 @@ cout<<"\n";
 }
 
 
-void water::draw_tile(const vector3f& transl, int phase) const
-{
-// the viewer should be in position 0,0,0 for the LOD to work right and also for lighting
 
+// the viewer should be in position 0,0,0 for the LOD to work right and also for lighting
+int water::compute_lod_by_trans(const vector3f& transl) const
+{
 	double meandist = transl.xy().length();
-	float distfac = 560.0f/(meandist + 360.0f);
+	const float maxloddist = 256.0f;
+	const float minloddist = 3000.0f;
+	float a = (minloddist - maxloddist) / (int(base_detail) - 1);
+	float distfac = a/(meandist + a - maxloddist);
 	int lodlevel = int(base_detail*distfac) - 1;
 	if (lodlevel < 0) lodlevel = 0;
-	if (lodlevel >= base_detail) lodlevel = base_detail-1;
-	
+	if (lodlevel >= int(base_detail)) lodlevel = int(base_detail)-1;
+	return lodlevel;
+}
+
+
+
+void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillgap) const
+{
 	// use LOD
 	// draw triangle strips or use vertex arrays
 	// draw a grid of quads, for each vertex do:
@@ -480,6 +495,22 @@ void water::draw_tile(const vector3f& transl, int phase) const
 	// quadratic approx. is also not good enough.
 	// per pixel fresnel on gf2 could work with register combiners, but is not ATI compatible
 	// no way :-(
+
+	// Filling the gaps between various detail tiles:
+	// We could make real meshes by tweaking the indices so that we have more faces in
+	// the last line of the lower detailed tile matching the first line of the following
+	// higher detailed tile. So we need precomputed indices for all cases. Expensive.
+	// Alternative solution: tweak the vertices' positions, not the indices. This leads to
+	// gaps in the mesh, but the faces' edges match, so no gaps can be seen. Just tweak
+	// the values of every second vertex on the last line of the higher detailed tile:
+	// for three vertices a,b,c in a line on the higher detailed tile, a and c will be
+	// also in the lower detailed tile. Set position of b as (a+c)/2, and do the same with
+	// b's colors and texture coordinates. Simple.
+	// Precondition: Adjacent tiles must not differ by more than one LOD. But this must not be
+	// either for the index tweaking alternative.
+	
+	// fixme: could we use spheremapping/cubemapping, automatic texture coordinate generation
+	// to compute E or E*N?
 
 // fixme: opengl1.2 has a COLOR MATRIX so colors can get multiplied by a 4x4 matrix before drawing
 // can we use this for anything?
@@ -634,7 +665,37 @@ glColor4f(1,1,1,1);
 glEnd();
 glEnable(GL_TEXTURE_2D);
 #endif
-	
+
+	// to avoid gaps, reposition the vertices, fillgap bits: 0,1,2,3 for top,right,bottom,left
+	if (fillgap & 1) {
+		for (unsigned i = res*resi+1; i < resi*resi-1; i += 2) {
+			coords[i] = (coords[i-1] + coords[i+1]) * 0.5f;
+			colors[i] = color(colors[i-1], colors[i+1], 0.5f);
+			uv0[i] = (uv0[i-1] + uv0[i+1]) * 0.5f;
+		}
+	}
+	if (fillgap & 2) {
+		for (unsigned i = 2*resi-1; i < resi*resi-1; i += 2*resi) {
+			coords[i] = (coords[i-resi] + coords[i+resi]) * 0.5f;
+			colors[i] = color(colors[i-resi], colors[i+resi], 0.5f);
+			uv0[i] = (uv0[i-resi] + uv0[i+resi]) * 0.5f;
+		}
+	}
+	if (fillgap & 4) {
+		for (unsigned i = 1; i < resi-1; i += 2) {
+			coords[i] = (coords[i-1] + coords[i+1]) * 0.5f;
+			colors[i] = color(colors[i-1], colors[i+1], 0.5f);
+			uv0[i] = (uv0[i-1] + uv0[i+1]) * 0.5f;
+		}
+	}
+	if (fillgap & 8) {
+		for (unsigned i = resi; i < resi*res; i += 2*resi) {
+			coords[i] = (coords[i-resi] + coords[i+resi]) * 0.5f;
+			colors[i] = color(colors[i-resi], colors[i+resi], 0.5f);
+			uv0[i] = (uv0[i-resi] + uv0[i+resi]) * 0.5f;
+		}
+	}
+
 	// now set pointers, enable arrays and draw elements, finally disable pointers
 	glEnableClientState(GL_COLOR_ARRAY);
 	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(color), &colors[0].r);

@@ -123,7 +123,7 @@ user_interface::~user_interface ()
 
 void user_interface::init ()
 {
-	detail = 5;
+	detail = 6;
 
 	// if the constructors of these classes may ever fail, we should use C++ exceptions.
 	captains_logbook = new captains_logbook_display;

@@ -59,8 +59,12 @@ protected:
 	water& operator= (const water& other);
 	water(const water& other);
 
-	// draw a water tile
-	void draw_tile(const vector3f& transl, int phase) const;
+	int compute_lod_by_trans(const vector3f& transl) const;
+	
+	// draw a water tile, give relative translation, animation phase, detail level
+	// and information if adjacent tiles have a lower detail level
+	// (fillgap bits 0,1,2,3 for top,right,bottom,left)
+	void draw_tile(const vector3f& transl, int phase, int lodlevel, int fillgap) const;
 
 public:
 	water(unsigned bdetail = 5, double tm = 0.0);	// give day time in seconds
