@@ -166,7 +166,7 @@ void sub_damage_display::display ( class game& gm ) const
 	}
 }
 
-void sub_damage_display::process_input(const SDL_Event& event)
+void sub_damage_display::process_input(class game& gm, const SDL_Event& event)
 {
 	switch (event.type) {
 	case SDL_MOUSEMOTION:

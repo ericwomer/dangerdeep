@@ -252,7 +252,7 @@ void captains_logbook_display::display ( class game& gm ) const
 	glPopMatrix ();
 }
 
-void captains_logbook_display::process_input(const SDL_Event& event)
+void captains_logbook_display::process_input(class game& gm, const SDL_Event& event)
 {
 	switch (event.type) {
 	case SDL_KEYDOWN:

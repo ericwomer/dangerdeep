@@ -54,13 +54,13 @@ class ships_sunk_display : public user_display
 	int first_displayed_object;
 	
 public:
-	ships_sunk_display ();
+	ships_sunk_display();
 	virtual ~ships_sunk_display ();
 
 	virtual void add_sunk_ship ( const ship* so );
 
-	virtual void display ( class game& gm ) const;
-	virtual void process_input(const SDL_Event& event);
+	virtual void display(class game& gm) const;
+	virtual void process_input(class game& gm, const SDL_Event& event);
 	virtual void next_page ();
 	virtual void previous_page ();
 };

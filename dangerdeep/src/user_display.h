@@ -11,15 +11,20 @@ using namespace std;
 
 class user_display
 {
+protected:
+	// no empty construction, no copy
+	user_display() {};
+	user_display(user_display& );
+	user_display& operator= (const user_display& );
 public:
 	// very basic. Just draw display and handle input.
 	virtual void display(class game& gm) const = 0;
-	virtual void process_input(const SDL_Event& event) = 0;
-	virtual void process_input(const list<SDL_Event>& events)
+	virtual void process_input(class game& gm, const SDL_Event& event) = 0;
+	virtual void process_input(class game& gm, const list<SDL_Event>& events)
 	{
 		for (list<SDL_Event>::const_iterator it = events.begin();
 		     it != events.end(); ++it)
-			process_input(*it);
+			process_input(gm, *it);
 	}
 };
 

@@ -91,7 +91,7 @@ void ships_sunk_display::display ( class game& gm ) const
 	glEnd ();
 }
 
-void ships_sunk_display::process_input(const SDL_Event& event)
+void ships_sunk_display::process_input(class game& gm, const SDL_Event& event)
 {
 	switch (event.type) {
 	case SDL_KEYDOWN:

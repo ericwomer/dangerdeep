@@ -21,8 +21,8 @@ public:
 
 	virtual void display_popup (int x, int y, const string& text, bool atleft, bool atbottom) const;
 
-	virtual void display ( class game& gm ) const;
-	virtual void process_input(const SDL_Event& event);
+	virtual void display(class game& gm) const;
+	virtual void process_input(class game& gm, const SDL_Event& event);
 };
 
 #endif /* SUB_DAMAGE_DISPLAY_H */

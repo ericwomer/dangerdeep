@@ -23,7 +23,7 @@ private:
 	logbook_entry_map logbook_entries;
 
 public:
-	logbook ();
+	logbook();
 	virtual ~logbook ();
 	virtual void add_entry ( const string& entry )
 	{ logbook_entries[logbook_entries.size ()] = entry; }
@@ -55,7 +55,7 @@ protected:
 public:
 	virtual ~logbook_display() {}
 	virtual void display ( class game& gm ) const = 0;
-	virtual void process_input(const SDL_Event& event) = 0;
+	virtual void process_input(class game& gm, const SDL_Event& event) = 0;
 	virtual void add_entry ( const date& d, const string& entry );
 	virtual void next_page ();
 	virtual void previous_page ();
@@ -71,10 +71,10 @@ class captains_logbook_display : public logbook_display
 	void init ();
 
 public:
-	captains_logbook_display ();
+	captains_logbook_display();
 	virtual ~captains_logbook_display () {};
-	virtual void display ( class game& gm ) const;
-	virtual void process_input(const SDL_Event& event);
+	virtual void display(class game& gm) const;
+	virtual void process_input(class game& gm, const SDL_Event& event);
 };
 
 #endif /* LOGBOOK_H_ */

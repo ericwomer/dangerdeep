@@ -35,6 +35,8 @@ public:
 	image(const string& s, bool maketex = false, int mapping = GL_NEAREST, int clamp = GL_REPEAT);
 	~image();
 	void draw(int x, int y) const;
+	// returns 0 if image is stored in texture
+	SDL_Surface* get_SDL_Surface(void) const { return img; }
 	unsigned get_width(void) const { return width; };
 	unsigned get_height(void) const { return height; };
 };

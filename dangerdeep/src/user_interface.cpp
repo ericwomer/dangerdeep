@@ -60,7 +60,7 @@ user_interface::user_interface(sea_object* player, game& gm) :
 	viewmode(4), target(0), zoom_scope(false), mapzoom(0.1), mysky(0), mywater(0),
 	mycoastmap(get_map_dir() + "default.xml"), freeviewsideang(0), freeviewupang(0), freeviewpos()
 {
-	init ();
+	init(gm);
 	panel = new widget(0, 768-128, 1024, 128, "", 0, panelbackgroundimg);
 	panel_messages = new widget_list(8, 8, 512, 128 - 2*8);
 	panel->add_child(panel_messages);
@@ -98,11 +98,11 @@ user_interface::~user_interface ()
 	delete mywater;
 }
 
-void user_interface::init ()
+void user_interface::init(game& gm)
 {
 	// if the constructors of these classes may ever fail, we should use C++ exceptions.
-	captains_logbook = new captains_logbook_display;
-	ships_sunk_disp = new ships_sunk_display;
+	captains_logbook = new captains_logbook_display(gm);
+	ships_sunk_disp = new ships_sunk_display(gm);
 
 	mysky = new sky();
 	mywater = new class water(128, 128, 0.0);

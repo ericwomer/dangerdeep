@@ -129,7 +129,7 @@ protected:
 
 	virtual sound* get_sound_effect ( sound_effect se ) const;
 	
-	void init(void);
+	void init(game& gm);
 
 public:	
 	virtual ~user_interface();
