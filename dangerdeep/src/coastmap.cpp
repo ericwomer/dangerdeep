@@ -7,9 +7,12 @@
 #endif
 #include <GL/gl.h>
 
-#include "global_data.h"
 #include "coastmap.h"
 #include "binstream.h"
+#include "global_data.h"
+#ifndef MAPCOMPILER
+#include "texture.h"
+#endif
 #include <cassert>
 #include <fstream>
 
@@ -50,14 +53,23 @@ void coastmap::draw_as_map(unsigned detail) const
 {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	double rsegw = pixelw_real * pixels_per_seg;
+	double tsx = 1.0/segsx;
+	double tsy = 1.0/segsy;
+#ifndef MAPCOMPILER
+	atlanticmap->set_gl_texture();
+#endif	
 	double ry = offsety;
+	double ty = 0;
 	for (unsigned y = 0; y < segsy; ++y) {
 		double rx = offsetx;
+		double tx = 0;
 		for (unsigned x = 0; x < segsx; ++x) {
-			coastsegments[y*segsx+x].draw_as_map(rx, ry, rsegw, detail);
+			coastsegments[y*segsx+x].draw_as_map(rx, ry, rsegw, tx, ty, tsx, tsy, detail);
 			rx += rsegw;
+			tx += tsx;
 		}
 		ry += rsegw;
+		ty += tsy;
 	}
 }
 

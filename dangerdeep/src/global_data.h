@@ -46,7 +46,7 @@ extern class texture *water, *the_moon, *the_sun, *background, *gauge1,
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
 	*woodbackgr, *smoke, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
-	*terraintex, *cloudsbackgr;
+	*terraintex, *cloudsbackgr, *atlanticmap;
 extern class font *font_arial, *font_panel, *font_nimbusrom;
 extern class sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];

@@ -1,4 +1,9 @@
 2003-12-02  Markus Petermann  <markus.petermann@gmx.net>
+	* coastmap.cpp
+	  - map image is used as texture for map quads.
+	  - new Makefiles to fix missing files at install.
+
+2003-12-02  Markus Petermann  <markus.petermann@gmx.net>
 	* src/user_interface.cpp: Text of command is written with a fixed
 	  format.
 

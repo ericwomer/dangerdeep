@@ -1379,7 +1379,7 @@ if (mb&2) detl = my*10/384;
 		glEnd();
 	}
 
-	glColor3f(0,0.5,0);
+	glColor3f(1,1,1);
 	glPushMatrix();
 	glTranslatef(512, 384, 0);
 	glScalef(mapzoom, mapzoom, 1);
@@ -1387,6 +1387,7 @@ if (mb&2) detl = my*10/384;
 	glTranslatef(-offset.x, -offset.y, 0);
 	mycoastmap.draw_as_map(detl);
 	glPopMatrix();
+	sys.no_tex();
 
 	// draw convoy positions	fixme: should be static and fade out after some time
 	glColor3f(1,1,1);
