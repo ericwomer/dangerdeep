@@ -1,3 +1,8 @@
+2003-10-27  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* user_interface.cpp global_data.h global_data.cpp
+	  - added simulation and display of sun and moon.
+	    (currently works only in freeview mode)
+
 2003-10-22  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* model.cpp model.h viewmodel.cpp
 	  - introduced display lists to speed up drawing.
