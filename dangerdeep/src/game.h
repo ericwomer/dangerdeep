@@ -10,10 +10,6 @@
 #define ASDICRANGE 1500.0	// meters fixme: historic values?
 #define MAX_ACUSTIC_CONTACTS 5	// max. nr of simultaneous trackable acustic contacts
 
-#ifdef WIN32
-#pragma warning (disable : 4786)
-#endif
-
 #include <list>
 #include <vector>
 using namespace std;

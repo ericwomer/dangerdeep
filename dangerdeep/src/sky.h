@@ -21,9 +21,13 @@ class sky
 {
 protected:
 	double mytime;					// store global time in seconds
+	
+	float skycolorfac;				// 0.0 sunny, 1.0 stormy
+	
+	float atmosphericlight;				// 0.0 night 1.0 day, depends on sun pos.
 
 	model* skyhemisphere;
-	texture* stars;
+	texture* skycol;
 	texture* sunglow;
 	texture* clouds;
 	texture* suntex;
@@ -35,9 +39,16 @@ protected:
 	vector<Uint8> cloud_alpha;			// precomputed alpha texture
 	vector<unsigned> cloud_interpolate_func;	// give fraction as Uint8
 	unsigned skyhemisphere_dl;			// display list for sky (background)
+
+	// the stars (positions in world space, constant, and their luminance)
+	vector<vector3f> stars_pos;
+	vector<Uint8> stars_lumin;
 	
 	sky& operator= (const sky& other);
 	sky(const sky& other);
+
+	void setup_textures(void) const;
+	void cleanup_textures(void) const;
 
 	// generate new clouds, fac (0-1) gives animation phase. animation is cyclic.
 	void advance_cloud_animation(double fac);	// 0-1

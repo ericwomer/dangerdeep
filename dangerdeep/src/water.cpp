@@ -4,14 +4,11 @@
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#pragma warning (disable : 4786)
 #endif
 
-#include <GL/gl.h>
+#include "oglext/OglExt.h"
 #include <GL/glu.h>
 #include <SDL.h>
-
-#include "oglext/OglExt.h"
 
 #include "water.h"
 #include "texture.h"
@@ -180,7 +177,6 @@ void water::setup_textures(void) const
 	glDisable(GL_LIGHTING);
 	
 	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, reflectiontex);
 	GLdouble m[16];
 	glMatrixMode(GL_TEXTURE);
@@ -625,10 +621,12 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 
 //	unsigned t0 = system::sys().millisec();
 
+//	glLockArraysEXT(0, (xres+1)*(yres+1));	// doesn't improve performance
 	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
 //	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
+//	glUnlockArraysEXT();
 
-	unsigned t2 = system::sys().millisec();
+//	unsigned t2 = system::sys().millisec();
 //	drawing takes ~28ms with linux/athlon2200+/gf4mx. That would be ~32mb/sec with AGP4x!?
 //	why is it SO SLOW?!
 //	surprising result: fillrate limit! with 512x384 we have 50fps, with 800x600 35fps,

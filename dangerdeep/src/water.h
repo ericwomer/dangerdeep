@@ -38,7 +38,6 @@ protected:
 	vector<vector<float> > wavetileheights;
 	vector<vector<vector3f> > wavetilenormals;
 
-	//projgrid: remove this, one index list for all phases etc.
 	vector<unsigned> gridindices;
 	vector<unsigned> gridindices2;
 

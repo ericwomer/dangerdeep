@@ -7,7 +7,6 @@
 #ifdef WIN32
 #include <SDL_types.h>
 #include <SDL_endian.h>
-#define for if(0);else for
 #else
 #include <SDL/SDL_types.h>
 #include <SDL/SDL_endian.h>

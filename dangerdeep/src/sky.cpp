@@ -7,11 +7,9 @@
 #pragma warning (disable : 4786)
 #endif
 
-#include <GL/gl.h>
+#include "oglext/OglExt.h"
 #include <GL/glu.h>
 #include <SDL.h>
-
-#include "oglext/OglExt.h"
 
 #include "sky.h"
 #include "model.h"
@@ -36,7 +34,6 @@ const double EARTH_ORBIT_TIME = 31556926.5;	// in seconds. 365 days, 5 hours, 48
 // a roughly right position but wrong sun rise time by about 40min. fixme
 const double SUN_POS_ADJUST = 9.8;	// in degrees. 10 days from 21st. Dec. to 1st. Jan. * 360deg/365.24days
 const double MOON_POS_ADJUST = 300.0;	// in degrees. Moon pos in its orbit on 1.1.1939 fixme: this value is a rude guess
-const double STAR_SCALE = 8.0;		// texture scale factor for stars
 
 // moon rotates from west to east ie. ccw ?
 // sun rises in the east so earth turns ccw. around itself.
@@ -57,7 +54,8 @@ draw moon with phases (fixme)
 
 
 
-sky::sky(double tm) : mytime(tm), skyhemisphere(0), stars(0), sunglow(0),
+sky::sky(double tm) : mytime(tm), skycolorfac(0.0f), atmosphericlight(0.5),
+	skyhemisphere(0), skycol(0), sunglow(0),
 	clouds(0), suntex(0), moontex(0), clouds_dl(0), skyhemisphere_dl(0)
 {
 	// ******************************* create display list for sky background
@@ -65,7 +63,6 @@ sky::sky(double tm) : mytime(tm), skyhemisphere(0), stars(0), sunglow(0),
 	model::mesh skyhemisphere_mesh = skyhemisphere->get_mesh(0);
 
 	unsigned smv = skyhemisphere_mesh.vertices.size();
-	vector<Uint8> colors(smv*3);
 	vector<vector2f> uv0(smv);
 	vector<vector2f> uv1(smv);
 	vector3f center = (skyhemisphere->get_min() + skyhemisphere->get_max()) * 0.5f;
@@ -84,56 +81,69 @@ sky::sky(double tm) : mytime(tm), skyhemisphere(0), stars(0), sunglow(0),
 			if (u < 0.0f) u = 0.0f; if (u > 1.0f) u = 1.0f;
 			if (v < 0.0f) v = 0.0f; if (v > 1.0f) v = 1.0f;
 		}
-		uv0[i] = vector2f(u, v);
-		uv1[i] = vector2f(STAR_SCALE * u, STAR_SCALE * v);
-
-		float dist = (vector2f(u - 0.5f, v - 0.5f) * 2.0f).length();
-		if (dist > 1.0f) dist = 1.0f;
-		dist = dist*dist*dist;
-		float dist1 = 1.0f-dist;
-		colors[3*i+0] = Uint8(173*dist +  73*dist1);
-		colors[3*i+1] = Uint8(200*dist + 164*dist1);
-		colors[3*i+2] = Uint8(219*dist + 255*dist1);
+		uv0[i] = vector2f(0.0f, float(2.0*alpha/M_PI));
+		uv1[i] = vector2f(u, v);
 	}
 
 	skyhemisphere_dl = glGenLists(1);
 	glNewList(skyhemisphere_dl, GL_COMPILE);
-	glVertexPointer(3, GL_FLOAT, sizeof(model::mesh::vertex), &(skyhemisphere_mesh.vertices[0].pos));
+	glVertexPointer(3, GL_FLOAT, sizeof(model::mesh::vertex), &(skyhemisphere_mesh.vertices[0].pos.x));
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glNormalPointer(GL_FLOAT, sizeof(model::mesh::vertex), &(skyhemisphere_mesh.vertices[0].normal));
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glColorPointer(3, GL_UNSIGNED_BYTE, 0, &colors[0]);
-	glEnableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
 	glClientActiveTexture(GL_TEXTURE0);
-	glTexCoordPointer(2, GL_FLOAT, 0, &uv0[0]);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &uv0[0].x);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glClientActiveTexture(GL_TEXTURE1);
-	glTexCoordPointer(2, GL_FLOAT, 0, &uv1[0]);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &uv1[0].x);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDrawElements(GL_TRIANGLES, 3*skyhemisphere_mesh.faces.size(), GL_UNSIGNED_INT, &(skyhemisphere_mesh.faces[0].v[0]));
 	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
 	glClientActiveTexture(GL_TEXTURE1);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEndList();
 
-	// ******************************** create maps for stars and sun glow
-	vector<Uint8> starmap(256*256);
-	vector<Uint8> sunglowmap(256*256);
+	// ******************************** create stars
+	const unsigned nr_of_stars = 2000;
+	stars_pos.reserve(nr_of_stars);
+	stars_lumin.reserve(nr_of_stars*3);
+	for (unsigned i = 0; i < nr_of_stars; ++i) {
+		vector3f p(rnd() * 2.0f - 1.0f, rnd() * 2.0f - 1.0f, rnd());
+		stars_pos.push_back(p.normal());
+		float fl = rnd();
+		fl = 1.0f - fl*fl;
+		Uint8 l = Uint8(255*fl);
+		stars_lumin.push_back(l);
+		stars_lumin.push_back(l);
+		stars_lumin.push_back(l);
+	}
+
+	// ******************************** create map for sky color
+	vector<Uint8> skycolmap(256*256*3);
 	for (int y = 0; y < 256; ++y) {
+		// y is height
+		color a = color(color( 73, 164, 255), color(173, 200, 219), float(y)/255);
+		color b = color(color(143, 148, 204), color(138, 156, 168), float(y)/255);
 		for (int x = 0; x < 256; ++x) {
-			Uint8 s = 0;
-			if (rnd() < 0.005)
-				s = Uint8(255*rnd());
-			starmap[y*256+x] = s;
+			// x is weather type (sunny -> storm)
+			color c = color(a, b, float(x)/255);
+			skycolmap[(y*256+x)*3+0] = c.r;
+			skycolmap[(y*256+x)*3+1] = c.g;
+			skycolmap[(y*256+x)*3+2] = c.b;
 		}
 	}
-//	ofstream oss("test2.pgm");
-//	oss << "P5\n256 256\n255\n";
-//	oss.write((const char*)(&starmap[0]), 256*256);
+/*
+	ofstream osg("testsky.ppm");
+	osg << "P6\n256 256\n255\n";
+	osg.write((const char*)(&skycolmap[0]), 256*256*3);
+*/
+	skycol = new texture(&skycolmap[0], 256, 256, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, GL_LINEAR, GL_CLAMP);
+	skycolmap.clear();
+
+	// ******************************** create maps for sun glow
+	vector<Uint8> sunglowmap(256*256);
 	const double expa = 2.0;
 	const double expb = exp(-expa);
 	for (int y = 0; y < 256; ++y) {
@@ -146,13 +156,12 @@ sky::sky(double tm) : mytime(tm), skyhemisphere(0), stars(0), sunglow(0),
 			sunglowmap[y*256+x] = Uint8(val);
 		}
 	}
-//	ofstream osg("test.pgm");
-//	osg << "P5\n256 256\n255\n";
-//	osg.write((const char*)(&sunglowmap[0]), 256*256);
-
-	stars = new texture(&starmap[0], 256, 256, GL_LUMINANCE, GL_LUMINANCE, GL_UNSIGNED_BYTE, GL_LINEAR, GL_REPEAT);
+/*	
+	ofstream osg("testglow.pgm");
+	osg << "P5\n256 256\n255\n";
+	osg.write((const char*)(&sunglowmap[0]), 256*256);
+*/
 	sunglow = new texture(&sunglowmap[0], 256, 256, GL_LUMINANCE, GL_LUMINANCE, /*GL_ALPHA, GL_ALPHA,*/ GL_UNSIGNED_BYTE, GL_LINEAR, GL_CLAMP);
-	starmap.clear();
 	sunglowmap.clear();
 
 	// ********************************** init sun/moon	
@@ -259,13 +268,89 @@ sky::sky(double tm) : mytime(tm), skyhemisphere(0), stars(0), sunglow(0),
 sky::~sky()
 {
 	delete skyhemisphere;
-	delete stars;
+	delete skycol;
 	delete sunglow;
 	delete clouds;
 	delete suntex;
 	delete moontex;
 	glDeleteLists(clouds_dl, 1);
 	glDeleteLists(skyhemisphere_dl, 1);
+}
+
+
+
+void sky::setup_textures(void) const
+{
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+	// *********************** set up texture unit 0
+	// skycol (tex0) is blended into previous color
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, skycol->get_opengl_name());
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+//	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+//	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+/*
+	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_TEXTURE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
+*/
+	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	glLoadIdentity();
+	glTranslatef(skycolorfac, 0.0f, 0.0f);
+	glMatrixMode(GL_MODELVIEW);	
+
+	// *********************** set up texture unit 1
+	glActiveTexture(GL_TEXTURE1);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, sunglow->get_opengl_name());
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
+	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE1);
+	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	glLoadIdentity();
+	glTranslatef(0.25, 0.35, 0.0);
+	glMatrixMode(GL_MODELVIEW);	
+	// fixme: set up texture matrix to move sunglow according to sun position
+
+	glDisable(GL_LIGHTING);
+}
+
+
+
+void sky::cleanup_textures(void) const
+{
+	glColor4f(1,1,1,1);
+
+	// ******************** clean up texture unit 0
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glMatrixMode(GL_TEXTURE);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+
+	// ******************** clean up texture unit 1
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glMatrixMode(GL_TEXTURE);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+
+	glEnable(GL_LIGHTING);
+
+	glPopAttrib();
 }
 
 
@@ -413,10 +498,20 @@ void sky::set_time(double tm)
 {
 	mytime = tm;
 	tm = myfmod(tm, 86400.0);
-	double cf = myfmod(tm, CLOUD_ANIMATION_CYCLE_TIME)/CLOUD_ANIMATION_CYCLE_TIME - cloud_animphase;
+	double cf = myfrac(tm/CLOUD_ANIMATION_CYCLE_TIME) - cloud_animphase;
 	if (fabs(cf) < (1.0/(3600.0*256.0))) cf = 0.0;
 	if (cf < 0) cf += 1.0;
 	advance_cloud_animation(cf);
+
+	double dt = get_day_time(mytime);
+	// fixme: get light color from sun position. 0 at night, 1 when sun is more than 10 degrees above the horizon or something the like
+	double colscal;
+	if (dt < 1) { colscal = 0; }
+	else if (dt < 2) { colscal = fmod(dt,1); }
+	else if (dt < 3) { colscal = 1; }
+	else { colscal = 1-fmod(dt,1); }
+	
+	atmosphericlight = 1.0; // colscal; // fixme testing
 }
 
 
@@ -424,6 +519,7 @@ void sky::set_time(double tm)
 void sky::display(const vector3& viewpos, double max_view_dist) const
 {
 	double dt = get_day_time(mytime);
+	// fixme: get light color from sun position. 0 at night, 1 when sun is more than 10 degrees above the horizon or something the like
 	double colscal;
 	if (dt < 1) { colscal = 0; }
 	else if (dt < 2) { colscal = fmod(dt,1); }
@@ -432,91 +528,59 @@ void sky::display(const vector3& viewpos, double max_view_dist) const
 //colscal = fabs(myfrac(mytime/40.0)*2.0-1.0);//testing
 	color lightcol = color(color(64, 64, 64), color(255,255,255), colscal);
 
+	// 1) draw the stars on a black background
+
 	// skyplanes:
-	// 1) the stars (black with grey random dots)		(texture1)
-	// 2) blue color, shading to grey haze to the horizon	(primary color)
-	// 3) sun glow						(texture0)
+	// 2) blue color, shading to grey haze to the horizon	(tex0, blend into background)
+	// 3) sun glow						(tex1, added)
 	// 4) clouds layer					(separate faces)
-	// 5) sun lens flares					(later, added)
-	// draw: interpolate between 1 and 2 according to time
-	// add sun glow, same faces
-	// draw lower cloud layer
-	// optionally add lens flares
-	// stars must come from a texture, also sun glow (it moves), sky color is drawn with
-	// glColor. So three sources: color (c), stars (t1), glow (t0) ->
-	// formula is: pixel color = (c+t0)*(1-timefac)+t1*timefac
-	// or maybe    pixel color = c*(1-timefac)+t1*timefac + t0	(glow added later)
-	// timefac is blending factor (alpha) and const while drawing (global color alpha?
-	// doesn't work? use texenv alpha?!)
+	// 5) sun lens flares					(later, added, one quad)
+	// draw: time (night/day) changes blend factor for 2, maybe 3
+	// blend factor may be set via global color alpha
+	// set up texture matrix for texture unit 0 (x translation for weather conditions,
+	// x in [0,1] means sunny...storm)
+	// sun glow (it moves) must come from a texture
 
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 
-	// sunglow (tex0) is added to primary color
-	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, sunglow->get_opengl_name());
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-
-	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
-	glTranslatef(0.25, 0.35, 0.0);
-	glMatrixMode(GL_MODELVIEW);	
-	// fixme: set up texture matrix to move sunglow according to sun position
+	glTranslatef(0, 0, -viewpos.z);	//fixme stars are not drawn in freeview mode
 
-	// stars are blended in according to tex env alpha. fixme maybe add sunglow also to stars, that means sunglow affects also starmap?
-	glActiveTexture(GL_TEXTURE1);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, stars->get_opengl_name());
-	float mixcol[4] = {colscal, colscal, colscal, 1.0f};
-	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, mixcol);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE1);
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_CONSTANT);
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);	
-	
+	glPushMatrix();
+	glScalef(max_view_dist * 0.99, max_view_dist * 0.99, max_view_dist * 0.99);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glEnableClientState(GL_COLOR_ARRAY);
+        glColorPointer(3, GL_UNSIGNED_BYTE, 0, &stars_lumin[0]);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &stars_pos[0].x);
+	glDrawArrays(GL_POINTS, 0, stars_pos.size());
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glPopMatrix();
+
+	glColor4f(1, 1, 1, 1);//atmosphericlight);//fixme testing
+
+	setup_textures();
+
 	// fixme: maybe scroll star matrix every day a bit with the texture matrix? rotate with earth rotation? that would be more realistic/cooler
 	// when zooming in scope, star texture map is also zoomed giving an unrealistic behaviour. stars are
 	// always little spots. Very different approach: draw stars as GL_POINTS? this would save a texture unit... fixme
 
 	glPushMatrix();
-	glTranslatef(0, 0, -viewpos.z);
-	glPushMatrix();
 	double scal = max_view_dist / 30000.0;	// sky hemisphere is stored as 30km in radius
 	glScaled(scal, scal, scal);
 
-	glDisable(GL_LIGHTING);
 	color::white().set_gl_color();
 
 	// ********* set up sky textures and call list
+	glDisable(GL_DEPTH_TEST);	// to avoid the stars appearing in front of the sun etc.
 	glCallList(skyhemisphere_dl);
+	glEnable(GL_DEPTH_TEST);
 	
 	color::white().set_gl_color();
-
-	// clean up texture units 1 and 0
-	glActiveTexture(GL_TEXTURE1);
-	glDisable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	
-	glPopAttrib();
-	
-	glMatrixMode(GL_TEXTURE);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);	
-
-	glEnable(GL_LIGHTING);
+	cleanup_textures();
 
 	glPopMatrix();	// remove scale
 	
@@ -554,9 +618,9 @@ void sky::display(const vector3& viewpos, double max_view_dist) const
 	glRotated(360.0 * -viewpos.y * 4 / EARTH_PERIMETER, 0, 1, 0);
 	glRotated(360.0 * -viewpos.x * 2 / EARTH_PERIMETER, 1, 0, 0);
 	// Transform sun space to earth space
-	glRotated(360.0 * -myfmod(universaltime, EARTH_ROTATION_TIME)/EARTH_ROTATION_TIME, 0, 1, 0);
+	glRotated(360.0 * -myfrac(universaltime/EARTH_ROTATION_TIME), 0, 1, 0);
 	glRotated(-EARTH_ROT_AXIS_ANGLE, 1, 0, 0);
-	glRotated(SUN_POS_ADJUST + 360.0 * myfmod(universaltime, EARTH_ORBIT_TIME)/EARTH_ORBIT_TIME, 0, 1, 0);
+	glRotated(SUN_POS_ADJUST + 360.0 * myfrac(universaltime/EARTH_ORBIT_TIME), 0, 1, 0);
 	glTranslated(0, 0, -EARTH_SUN_DISTANCE * sun_scale_fac * 0.96);	// to keep it inside sky hemisphere
 	// draw quad
 	double suns = SUN_RADIUS * sun_scale_fac;
@@ -593,9 +657,9 @@ void sky::display(const vector3& viewpos, double max_view_dist) const
 	glRotated(360.0 * -viewpos.y * 4 / EARTH_PERIMETER, 0, 1, 0);
 	glRotated(360.0 * -viewpos.x * 2 / EARTH_PERIMETER, 1, 0, 0);
 	// Transform moon space to earth space
-	glRotated(360.0 * -myfmod(universaltime, EARTH_ROTATION_TIME)/EARTH_ROTATION_TIME, 0, 1, 0);
+	glRotated(360.0 * -myfrac(universaltime/EARTH_ROTATION_TIME), 0, 1, 0);
 	glRotated(-EARTH_ROT_AXIS_ANGLE, 1, 0, 0);
-	glRotated(MOON_POS_ADJUST + 360.0 * myfmod(universaltime, MOON_ORBIT_TIME)/MOON_ORBIT_TIME, 0, 1, 0);
+	glRotated(MOON_POS_ADJUST + 360.0 * myfrac(universaltime/MOON_ORBIT_TIME), 0, 1, 0);
 	glTranslated(0, 0, MOON_EARTH_DISTANCE * moon_scale_fac * 0.95);	// to keep it inside sky hemisphere
 	// draw quad	
 	double moons = MOON_RADIUS * moon_scale_fac;
@@ -628,7 +692,7 @@ void sky::display(const vector3& viewpos, double max_view_dist) const
 	float clsc = max_view_dist * 0.9;
 	glScalef(clsc, clsc, 3000);	// bottom of cloud layer has altitude of 3km., fixme varies with weather
 	clouds->set_gl_texture();
-	glCallList(clouds_dl);
+//	glCallList(clouds_dl);	// fixme: temporarily disabled for testing
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);

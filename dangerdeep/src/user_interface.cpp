@@ -7,11 +7,9 @@
 #pragma warning (disable : 4786)
 #endif
 
-#include <GL/gl.h>
+#include "oglext/OglExt.h"
 #include <GL/glu.h>
 #include <SDL.h>
-
-#include "oglext/OglExt.h"
 
 #include <iostream>
 #include <sstream>

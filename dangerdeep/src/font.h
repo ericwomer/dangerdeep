@@ -4,10 +4,6 @@
 #ifndef FONT_H
 #define FONT_H
 
-#ifdef WIN32
-#define for if(0);else for
-#endif
-
 #include <SDL.h>
 
 #include <vector>
