@@ -55,6 +55,9 @@ Change into the source directory and type the following commands:
 That's all. It will make a .tar.gz file containing source and data also.
 Copy the contents of the data directoryto a directory named /usr/local/share/dangerdeep
 and the dangerdeep binary to /usr/local/bin.
+From version 0.0.19 onwards you can run "scons install" as root to install
+the game, which is much easier.
+
 
 Version 0.0.17 and older
 ------------------------
