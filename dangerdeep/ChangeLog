@@ -1,3 +1,15 @@
+2004-01-18  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* user_interface.cpp
+	  - terrain display bugfix
+	  - sky display bugfix
+	* submarine_XXI.cpp
+	  - torpedo creation bugfix
+	* submarine_interface.cpp
+	  - periscope display bugfix
+	* subsim.cpp network.*
+	  - add experimental network code, server/client searching and
+	    connecting
+
 2003-12-28  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* released 0.0.15 for linux, VC++6 couldn't compile the code.
 

@@ -809,6 +809,7 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 	double max_view_dist) const
 {
 	glPushMatrix();
+	glTranslatef(0, 0, -viewpos.z);
 	terraintex->set_gl_texture();
 	mycoastmap.render(viewpos.x, viewpos.y);
 	glPopMatrix();

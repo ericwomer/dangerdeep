@@ -324,7 +324,7 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	vector3 viewpos = player->get_pos() + vector3(0, 0, 12+3);//fixme: +3 to be above waves
+	vector3 viewpos = player->get_pos() + vector3(0, 0, 12+14);//fixme: +14 to be above waves ?!
 	// no torpedoes, no DCs, no player
 	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 0, true, false, false);
 
