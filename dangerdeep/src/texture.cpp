@@ -153,9 +153,8 @@ void texture::update(void)
 			newheight = ms;
 			yf = height/ms;
 		}
-		vector<Uint8> data2;
-		data2.reserve(newwidth*newheight);
 		unsigned bpp = get_bpp();
+		vector<Uint8> data2(newwidth*newheight*bpp);
 		unsigned area = xf*yf;
 		for (unsigned y = 0; y < newheight; ++y) {
 			for (unsigned x = 0; x < newwidth; ++x) {
@@ -164,12 +163,12 @@ void texture::update(void)
 					for (unsigned yy = 0; yy < yf; ++yy) {
 						for (unsigned xx = 0; xx < xf; ++xx) {
 							unsigned ptr = ((y*yf+yy) * width +
-									(x*xf+xx)) * bpp;
+									(x*xf+xx)) * bpp + b;
 							valsum += unsigned(data[ptr]);
 						}
 					}
 					valsum /= area;
-					data2[(y*newwidth+x)*bpp] = Uint8(valsum);
+					data2[(y*newwidth+x)*bpp + b] = Uint8(valsum);
 				}
 			}
 		}
