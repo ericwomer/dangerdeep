@@ -324,6 +324,9 @@ void ai::act_convoy(game& gm, double delta_time)
 
 void ai::fire_shell_at(game& gm, const sea_object& s)
 {
+	//fixme!!! move this code to class ship::fire_shell_at. move dist_angle relation also,
+	//maybe approximate that relation with splines.
+
 	// maybe we should not use current position but rather
 	// estimated position at impact!
 	vector2 deltapos = s.get_pos().xy() - parent->get_pos().xy();
