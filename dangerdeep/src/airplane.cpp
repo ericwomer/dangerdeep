@@ -43,6 +43,7 @@ void airplane::load(istream& in, class game& g)
 	velocity.y = read_double(in);
 	velocity.z = read_double(in);
 */
+	speed = read_double(in);
 	rollfac = read_double(in);
 	pitchfac = read_double(in);
 }
@@ -59,6 +60,7 @@ void airplane::save(ostream& out, const class game& g) const
 	write_double(out, velocity.y);
 	write_double(out, velocity.z);
 */
+	write_double(out, speed);
 	write_double(out, rollfac);
 	write_double(out, pitchfac);
 }

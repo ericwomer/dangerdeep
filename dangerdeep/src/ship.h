@@ -27,30 +27,21 @@ protected:
 	class ai* myai;
 	unsigned tonnage;	// in BRT, created after values from spec file (but maybe with some randomness), must get stored!
 
-	//vector3 local_drag;	// leave to heirs.
-	
 	angle heading;		// stored additionally, take (0,1,0), rotate with orientation, project to xy-plane, get angle -> heading
 	double speed;		// m/sec, speed along local y axis, can be computed from velocity,orientation.
-	double max_speed, max_rev_speed;// m/sec, read from spec file
+	//double max_speed, max_rev_speed;// m/sec, read from spec file
 	int throttle;
 	double max_acceleration;	// read from spec file
 
 	// new model: store rudder angle, store if ship heads to a fixed angle and that angle
 	bool head_to_fixed;
-	angle rudder_state;
-	int rudder;		// symbolic pos (full left, left, mid, right, full right)
+	angle rudder_pos;
+	int rudder_to;		// symbolic pos (full left, left, mid, right, full right)
 	double max_rudder_angle;// maximum turn, e.g. 30 degr.
 	double max_angular_velocity;	// depends on turn rate.
-	
-	// -1 <= head_chg <= 1
-	// if head_chg is != 0 the object is turning with head_chg * turn_rate angles/sec.
-	// until heading == head_to or permanently.
-	// if head_chg is == 0, nothing happens.
-	bool permanent_turn;
-	double head_chg;
-//	int rudder; // rudder state
+	bool permanent_turn;	// if true, ignore head_to and move rudder_pos to rudder_to
 	angle head_to;
-	angle turn_rate;	// in angle/(time*speed) = angle/m, means angle change per forward movement in meters, read from spec file
+	//angle turn_rate;	// in angle/(time*speed) = angle/m, means angle change per forward movement in meters, read from spec file
 
 	double max_accel_forward;	// stored. can get computed from engine_torque, screw diameter and ship's mass.
 	double max_speed_forward;	// stored.

@@ -8,6 +8,7 @@
 #include <SDL_endian.h>
 #include <iostream>
 #include <string>
+#include "quaternion.h"
 using namespace std;
 
 // Data is stored in little endian mode.
@@ -175,6 +176,48 @@ inline string read_string(istream& in)
 	} else {
 		return string();
 	}
+}
+
+inline vector2 read_vector2(istream& in)
+{
+	vector2 v;
+	v.x = read_double(in);
+	v.y = read_double(in);
+	return v;
+}
+
+inline void write_vector2(ostream& out, const vector2& v)
+{
+	write_double(out, v.x);
+	write_double(out, v.y);
+}
+
+inline vector3 read_vector3(istream& in)
+{
+	vector3 v;
+	v.x = read_double(in);
+	v.y = read_double(in);
+	v.z = read_double(in);
+	return v;
+}
+
+inline void write_vector3(ostream& out, const vector3& v)
+{
+	write_double(out, v.x);
+	write_double(out, v.y);
+	write_double(out, v.z);
+}
+
+inline quaternion read_quaternion(istream& in)
+{
+	double s = read_double(in);
+	return quaternion(s, read_vector3(in));
+}
+
+inline void write_quaternion(ostream& out, const quaternion& q)
+{
+	write_double(out, q.s);
+	write_vector3(out, q.v);
 }
 
 #endif

@@ -1,3 +1,11 @@
+2004-06-27  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* BIG internal transformation is going on.
+	* airplane_interface and ship_interface disabled (not included anymore in the
+	  game - they're rather useless)
+	* next idea: Split ai class in heirs.
+	* next idea: make convoy standalone class, not heir of sea_object.
+	  convoys are special anyway. And they do not turn like ships, etc.
+
 2004-06-20  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* replaced reference class by sea_object reference counting.
 	  use assign_ref and check_ref to manage references.

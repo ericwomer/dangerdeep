@@ -30,8 +30,8 @@
 #include "tokencodes.h"
 #include "command.h"
 #include "submarine_interface.h"
-#include "ship_interface.h"
-#include "airplane_interface.h"
+//#include "ship_interface.h"
+//#include "airplane_interface.h"
 #include "sky.h"
 #include "water.h"
 #include "matrix4.h"
@@ -82,8 +82,8 @@ user_interface* user_interface::create(game& gm)
 {
 	sea_object* p = gm.get_player();
 	submarine* su = dynamic_cast<submarine*>(p); if (su) return new submarine_interface(su, gm);
-	ship* sh = dynamic_cast<ship*>(p); if (sh) return new ship_interface(sh, gm);
-	airplane* ap = dynamic_cast<airplane*>(p); if (ap) return new airplane_interface(ap, gm);
+	//ship* sh = dynamic_cast<ship*>(p); if (sh) return new ship_interface(sh, gm);
+	//airplane* ap = dynamic_cast<airplane*>(p); if (ap) return new airplane_interface(ap, gm);
 	return 0;
 }
 

@@ -141,9 +141,11 @@ sea_object::~sea_object()
 void sea_object::load(istream& in, class game& g)
 {
 	specfilename = read_string(in);
-	position.x = read_double(in);
-	position.y = read_double(in);
-	position.z = read_double(in);
+	position = read_vector3(in);
+	velocity = read_vector3(in);
+	orientation = read_quaternion(in);
+	rot_velocity = read_quaternion(in);
+/*	
 	heading = angle(read_double(in));
 	speed = read_double(in);
 	throttle = read_i8(in);
@@ -151,14 +153,18 @@ void sea_object::load(istream& in, class game& g)
 	head_chg = read_double(in);
 	rudder = read_i8(in);
 	head_to = angle(read_double(in));
+*/
 	alive_stat = alive_status(read_u8(in));
 
+	//ref_count store?
+/*
 	previous_positions.clear();
 	for (unsigned s = read_u8(in); s > 0; --s) {
 		double x = read_double(in);
 		double y = read_double(in);
 		previous_positions.push_back(vector2(x, y));
 	}
+*/
 }
 
 
@@ -166,8 +172,11 @@ void sea_object::load(istream& in, class game& g)
 void sea_object::save(ostream& out, const class game& g) const
 {
 	write_string(out, specfilename);
-	write_double(out, position.x);
-	write_double(out, position.y);
+	write_vector3(out, position);
+	write_vector3(out, velocity);
+	write_quaternion(out, orientation);
+	write_quaternion(out, rot_velocity);
+/*
 	write_double(out, position.z);
 	write_double(out, heading.value());
 	write_double(out, speed);
@@ -176,13 +185,16 @@ void sea_object::save(ostream& out, const class game& g) const
 	write_double(out, head_chg);
 	write_i8(out, rudder);
 	write_double(out, head_to.value());
+*/	
 	write_u8(out, alive_stat);
 
+/*
 	write_u8(out, previous_positions.size());
 	for (list<vector2>::const_iterator it = previous_positions.begin(); it != previous_positions.end(); ++it) {
 		write_double(out, it->x);
 		write_double(out, it->y);
 	}
+*/
 }
 
 

@@ -7,7 +7,7 @@
 #include "ship.h"
 #include "global_data.h"
 
-class convoy : public sea_object//really heir from sea_object, rather ship? no!, maybe completly different class?
+class convoy //: public sea_object//really heir from sea_object, rather ship? no!, maybe completly different class?
 {
 protected:
 	friend class game; // for initialization	
