@@ -1,3 +1,23 @@
+2003-04-06  Markus Petermann  <m.petermann@gmx.net>
+
+	* water_splash.h, water_splash.cpp:
+	  - Water splash when a torpedo detonates or a gun shell hits water.
+
+	* submarine_interface.cpp:
+	  - Zoomable periscope. Use y key for zoom mode. UZO view is zoomed.
+
+	* user_interface.cpp:
+	  - Glasses view is zoomed.
+
+	* global_data.h, global_data.cpp:
+	  - New texture for torpedo detonation water splash is loaded.
+
+	* game.h, game.cpp:
+	  - New list water_splashs introduced and used.
+
+	* gun_shell.cpp:
+	  - When gun shell impacts on water a splash is created.
+
 2003-04-05  Markus Petermann  <m.petermann@gmx.net>
 
 	* sea_object.h, airplane.h, depth_charge.h, convoy.h, game.cpp, gun_shell.h,
