@@ -446,8 +446,8 @@ double ship::get_turn_acceleration(void) const	// drag must be already included!
 	double drag_factor = (tv2) * max_turn_accel / (max_angular_velocity*max_angular_velocity);
 	double acceleration = accel_factor * speed * sin(rudder_pos * M_PI / 180.0);
 	if (turn_velocity > 0) drag_factor = -drag_factor;
-cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << " turn_velo " << turn_velocity << " heading " << heading.value() << " tv2 " << tv2 << "\n";
-cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << " max_turn_accel " << max_turn_accel << "\n";
+//cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << " turn_velo " << turn_velocity << " heading " << heading.value() << " tv2 " << tv2 << "\n";
+//cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << " max_turn_accel " << max_turn_accel << "\n";
 	return acceleration + drag_factor;
 }
 
