@@ -83,6 +83,8 @@ protected:
 		const double& max_view_dist);
 	virtual void draw_visual_contacts(class system& sys, class game& gm,
 		const sea_object* player, const vector2& offset);
+	virtual void draw_square_mark ( class system& sys, class game& gm,
+		const vector2& mark_pos, const vector2& offset, const color& c );
 
     // Display functions for screens.
 	virtual void display_gauges(class system& sys, class game& gm);
@@ -94,7 +96,7 @@ protected:
 	virtual void display_freeview(class system& sys, class game& gm);
 	virtual void display_glasses(class system& sys, class game& gm);
 
-	static sound* get_sound_effect ( sound_effect se );
+	virtual sound* get_sound_effect ( sound_effect se ) const;
 
 public:	
 	virtual ~user_interface() {};

@@ -592,51 +592,65 @@ void user_interface::display_bridge(class system& sys, game& gm)
 
 void user_interface::draw_pings(class game& gm, const vector2& offset)
 {
-  	// draw pings (just an experiment, you can hear pings, locate their direction
-  	//	a bit fuzzy but not their origin or exact shape).
-  	const list<game::ping>& pings = gm.get_pings();
-  	for (list<game::ping>::const_iterator it = pings.begin(); it != pings.end(); ++it) {
-  		const game::ping& p = *it;
-  		vector2 p1 = (p.pos + offset)*mapzoom;
-  		vector2 p2 = p1 + (p.dir + p.pingAngle).direction() * p.range * mapzoom;
-  		vector2 p3 = p1 + (p.dir - p.pingAngle).direction() * p.range * mapzoom;
-  		glBegin(GL_TRIANGLES);
-  		glColor4f(0.5,0.5,0.5,1);
-  		glVertex2f(512+p1.x, 384-p1.y);
-  		glColor4f(0.5,0.5,0.5,0);
-  		glVertex2f(512+p2.x, 384-p2.y);
-  		glVertex2f(512+p3.x, 384-p3.y);
-  		glEnd();
-  		glColor4f(1,1,1,1);
-  	}
+	// draw pings (just an experiment, you can hear pings, locate their direction
+	//	a bit fuzzy but not their origin or exact shape).
+	const list<game::ping>& pings = gm.get_pings();
+	for (list<game::ping>::const_iterator it = pings.begin(); it != pings.end(); ++it) {
+		const game::ping& p = *it;
+		vector2 r = player_object->get_pos ().xy () - p.pos;
+		vector2 p1 = (p.pos + offset)*mapzoom;
+		vector2 p2 = p1 + (p.dir + p.pingAngle).direction() * p.range * mapzoom;
+		vector2 p3 = p1 + (p.dir - p.pingAngle).direction() * p.range * mapzoom;
+		glBegin(GL_TRIANGLES);
+		glColor4f(0.5,0.5,0.5,1);
+		glVertex2f(512+p1.x, 384-p1.y);
+		glColor4f(0.5,0.5,0.5,0);
+		glVertex2f(512+p2.x, 384-p2.y);
+		glVertex2f(512+p3.x, 384-p3.y);
+		glEnd();
+		glColor4f(1,1,1,1);
+	}
 }
 
 void user_interface::draw_sound_contact(class game& gm, const sea_object* player,
     const double& max_view_dist)
 {
     // draw sound contacts
-    if (player->get_throttle_speed()/player->get_max_speed() < 0.51) {
-		list<ship*> ships;
-		gm.sonar_ships(ships, player);
-   		// fixme: sub's missing
-   		// fixme: differences between ship types missing
-   		for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
-   			vector2 ldir = (*it)->get_pos().xy() - player->get_pos().xy();
-   			ldir = ldir.normal() * 0.666666 * max_view_dist*mapzoom;
-   			if ((*it)->is_merchant())
-   				glColor3f(0,0,0);
-   			else if ((*it)->is_warship())
-   				glColor3f(0,0.5,0);
-   			else if ((*it)->is_escort())
-   				glColor3f(1,0,0);
-   			glBindTexture(GL_TEXTURE_2D, 0);
-   			glBegin(GL_LINES);
-   			glVertex2f(512,384);
-   			glVertex2f(512+ldir.x, 384-ldir.y);
-   			glEnd();
-   			glColor3f(1,1,1);
-   		}
-   	}
+	list<ship*> ships;
+	gm.sonar_ships(ships, player);
+	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
+		vector2 ldir = (*it)->get_pos().xy() - player->get_pos().xy();
+		ldir = ldir.normal() * 0.666666 * max_view_dist*mapzoom;
+		if ((*it)->is_merchant())
+			glColor3f(0,0,0);
+		else if ((*it)->is_warship())
+			glColor3f(0,0.5,0);
+		else if ((*it)->is_escort())
+			glColor3f(1,0,0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBegin(GL_LINES);
+		glVertex2f(512,384);
+		glVertex2f(512+ldir.x, 384-ldir.y);
+		glEnd();
+		glColor3f(1,1,1);
+	}
+
+	list<submarine*> submarines;
+	gm.sonar_submarines ( submarines, player );
+	for ( list<submarine*>::iterator it = submarines.begin ();
+		it != submarines.end (); it ++ )
+	{
+		vector2 ldir = (*it)->get_pos().xy() - player->get_pos().xy();
+		ldir = ldir.normal() * 0.666666 * max_view_dist*mapzoom;
+		// Submarines are drawn in blue.
+		glColor3f(0,0,1);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBegin(GL_LINES);
+		glVertex2f(512,384);
+		glVertex2f(512+ldir.x, 384-ldir.y);
+		glEnd();
+		glColor3f(1,1,1);
+	}
 }
 
 void user_interface::draw_visual_contacts(class system& sys, class game& gm,
@@ -671,6 +685,21 @@ void user_interface::draw_visual_contacts(class system& sys, class game& gm,
    		draw_vessel_symbol(sys, offset, *it, color(0,0,64));
    	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
    		draw_vessel_symbol(sys, offset, *it, color(255,0,0));
+}
+
+void user_interface::draw_square_mark ( class system& sys, class game& gm,
+	const vector2& mark_pos, const vector2& offset, const color& c )
+{
+	c.set_gl_color ();
+	glBegin ( GL_LINE_LOOP );
+	vector2 p = ( mark_pos + offset ) * mapzoom;
+	int x = int ( round ( p.x ) );
+	int y = int ( round ( p.y ) );
+	glVertex2i ( 512-4+x,384-4-y );
+	glVertex2i ( 512+4+x,384-4-y );
+	glVertex2i ( 512+4+x,384+4-y );
+	glVertex2i ( 512-4+x,384+4-y );
+	glEnd ();
 }
 
 void user_interface::display_map(class system& sys, game& gm)
@@ -715,16 +744,9 @@ void user_interface::display_map(class system& sys, game& gm)
 	// draw convoy positions	fixme: should be static and fade out after some time
 	list<vector2> convoy_pos;
     gm.convoy_positions(convoy_pos);
-	glColor3f(0,0,0);
 	glBegin(GL_LINE_LOOP);
 	for (list<vector2>::iterator it = convoy_pos.begin(); it != convoy_pos.end(); ++it) {
-		vector2 p = (*it + offset)*mapzoom;
-		int x = int(round(p.x));
-		int y = int(round(p.y));
-		glVertex2i(512-4+x,384-4-y);
-		glVertex2i(512+4+x,384-4-y);
-		glVertex2i(512+4+x,384+4-y);
-		glVertex2i(512-4+x,384+4-y);
+		draw_square_mark ( sys, gm, (*it), offset, color ( 0, 0, 0 ) );
 	}
 	glEnd();
 	glColor3f(1,1,1);
@@ -760,28 +782,28 @@ void user_interface::display_map(class system& sys, game& gm)
 			sub_player->is_scope_up())
 		{
 			draw_visual_contacts(sys, gm, sub_player, offset);
+
+			// Draw a red box around the selected target.
+			if ( target )
+			{
+				draw_square_mark ( sys, gm, target->get_pos ().xy (), offset,
+					color ( 255, 0, 0 ) );
+				glColor3f ( 1.0f, 1.0f, 1.0f );
+			}
 		}
 	} 
 	else	 	// enable drawing of all object as testing hack by commenting this, fixme
-	{	// sub is surfaced
+	{
 		draw_visual_contacts(sys, gm, player, offset);
-	}
 
-	// Draw a red box around the selected target.
-    if ( target )
-    {
-		glColor3f ( 1.0f, 0.0f, 0.0f );
-		glBegin ( GL_LINE_LOOP );
-		vector2 p = ( target->get_pos ().xy () + offset ) * mapzoom;
-		int x = int ( round ( p.x ) );
-		int y = int ( round ( p.y ) );
-		glVertex2i ( 512-4+x,384-4-y );
-		glVertex2i ( 512+4+x,384-4-y );
-		glVertex2i ( 512+4+x,384+4-y );
-		glVertex2i ( 512-4+x,384+4-y );
-		glEnd ();
-		glColor3f ( 1.0f, 1.0f, 1.0f );
-    }
+		// Draw a red box around the selected target.
+		if ( target )
+		{
+			draw_square_mark ( sys, gm, target->get_pos ().xy (), offset,
+				color ( 255, 0, 0 ) );
+			glColor3f ( 1.0f, 1.0f, 1.0f );
+		}
+	}
 
 	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
@@ -1025,7 +1047,7 @@ void user_interface::set_display_color ( const class game& gm ) const
 		NIGHT_MODE_COLOR ();
 }
 
-sound* user_interface::get_sound_effect ( sound_effect se )
+sound* user_interface::get_sound_effect ( sound_effect se ) const
 {
 	sound* s = 0;
 
@@ -1035,10 +1057,26 @@ sound* user_interface::get_sound_effect ( sound_effect se )
 			s = torpedo_launch_sound;
 			break;
 		case se_torpedo_detonation:
-			if ( rnd ( 10 ) < 5 )
-				s = torpedo_detonation[0];
-			else
-				s = torpedo_detonation[1];
+			{
+				submarine* sub = dynamic_cast<submarine*>( player_object );
+
+				if ( sub && sub->is_submerged () )
+				{
+					double sid = rnd ( 2 );
+					if ( sid < 1.0f )
+						s = torpedo_detonation_submerged[0];
+					else if ( sid < 2.0f )
+						s = torpedo_detonation_submerged[1];
+				}
+				else
+				{
+					double sid = rnd ( 2 );
+					if ( sid < 1.0f )
+						s = torpedo_detonation_surfaced[0];
+					else if ( sid < 2.0f )
+						s = torpedo_detonation_surfaced[1];
+				}
+			}
 			break;
 	}
 
@@ -1058,5 +1096,5 @@ void user_interface::play_sound_effect_distance ( sound_effect se, double distan
 	sound* s = get_sound_effect ( se );
 
 	if ( s )
-		s->play_distance ( s->medium_air, distance );
+		s->play ( ( 1.0f - player_object->get_noise_factor () ) * exp ( - distance / 3000.0f ) );
 }
