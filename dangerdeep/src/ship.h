@@ -40,6 +40,10 @@ public:
 	virtual void kill(void);
 	ai* get_ai(void) { return myai; }
 	unsigned get_tonnage(void) const { return tonnage; }
+	
+	virtual bool is_merchant(void) const { return false; }
+	virtual bool is_escort(void) const { return false; }
+	virtual bool is_warship(void) const { return false; }
 };
 
 #endif

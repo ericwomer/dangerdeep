@@ -42,8 +42,11 @@ game::game(parser& p) : running(true), time(0)
 					ui = new ship_interface(shp);
 				}
 				break; }
-/*
 			case TKN_CONVOY:
+				convoy* cv = new convoy(*this, p);
+				spawn_convoy(cv);
+				break;
+/*			
 			case TKN_DESCRIPTION:
 			case TKN_WEATHER:
 			case TKN_TIME:	// and date
@@ -67,6 +70,8 @@ game::~game()
 	for (list<depth_charge*>::iterator it = depth_charges.begin(); it != depth_charges.end(); ++it)
 		delete (*it);
 	for (list<gun_shell*>::iterator it = gun_shells.begin(); it != gun_shells.end(); ++it)
+		delete (*it);
+	for (list<convoy*>::iterator it = convoys.begin(); it != convoys.end(); ++it)
 		delete (*it);
 	delete ui;
 }
@@ -149,6 +154,15 @@ void game::simulate(double delta_t)
 		} else {
 			delete (*it2);
 			gun_shells.erase(it2);
+		}
+	}
+	for (list<convoy*>::iterator it = convoys.begin(); it != convoys.end(); ) {
+		list<convoy*>::iterator it2 = it++;
+		if (!(*it2)->is_defunct()) {
+			(*it2)->simulate(*this, delta_t);
+		} else {
+			delete (*it2);
+			convoys.erase(it2);
 		}
 	}
 	time += delta_t;

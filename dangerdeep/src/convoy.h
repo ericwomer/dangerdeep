@@ -14,6 +14,7 @@ class convoy
 protected:
 	ai* myai;
 	list<ship*> merchants, warships, escorts;
+	vector2 position;
 
 	convoy();
 	convoy(const convoy& other);
@@ -22,10 +23,10 @@ protected:
 public:
 	enum types { small, medium, large, battleship, supportgroup, carrier };
 	virtual ~convoy() {}
-	static convoy* create(types type_);
-	static convoy* create(parser& p);
-//	virtual void simulate(class game& gm, double delta_time);
-//	virtual void display(void) const = 0;
+	convoy(class game& gm, types type_);	// fixme implement
+	convoy(class game& gm, parser& p);
+	virtual void simulate(class game& gm, double delta_time);
+	virtual bool is_defunct(void) const { return merchants.size() + warships.size() + escorts.size() == 0; }
 
 	ai* get_ai(void) { return myai; }
 };

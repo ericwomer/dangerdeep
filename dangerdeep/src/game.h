@@ -23,6 +23,7 @@ using namespace std;
 #include "global_data.h"
 #include "user_interface.h"
 #include "parser.h"
+#include "convoy.h"
 
 class game	// our "world" with physics etc.
 {
@@ -41,6 +42,7 @@ protected:
 	list<torpedo*> torpedoes;
 	list<depth_charge*> depth_charges;
 	list<gun_shell*> gun_shells;
+	list<convoy*> convoys;
 	bool running;	// if this is false, the player was killed
 	
 	// the player and matching ui (note that playing is not limited to submarines!)
@@ -88,6 +90,7 @@ public:
 	void spawn_torpedo(torpedo* t) { torpedoes.push_back(t); };
 	void spawn_gun_shell(gun_shell* s) { gun_shells.push_back(s); };
 	void spawn_depth_charge(depth_charge* dc) { depth_charges.push_back(dc); };
+	void spawn_convoy(convoy* cv) { convoys.push_back(cv); }
 
 	// simulation events
 //fixme: send messages about them to ui (remove sys-console printing in torpedo.cpp etc)
