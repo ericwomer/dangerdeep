@@ -12,7 +12,7 @@ sea_object::sea_object() : position(vector3(0.0f, 0.0f, 0.0f)), heading(0.0f),
 	head_to(0.0f), turn_rate(0.0f), length(0.0f), width(0.0f), alive_stat(alive),
 	vis_cross_section_factor(1.0f)
 {
-	sensors.resize ( sensor_factory::last_system_item );
+	sensors.resize ( last_sensor_system );
 }
 
 sea_object::~sea_object()
@@ -326,32 +326,26 @@ float sea_object::surface_visibility(const vector2& watcher) const
 	return vis_cross_section_factor * get_profile_factor ( watcher );
 }
 
-void sea_object::set_sensors ( vector<sensor*> sensors )
+sensor* sea_object::get_sensor ( sensor_system ss )
 {
-	int size = this->sensors.size ();
-	for ( int i = 0; i < size; i++ )
-	{
-		if ( this->sensors[i] != 0 )
-			delete this->sensors[i];
-
-		this->sensors[i] = sensors[i];
-	}
-}
-
-sensor* sea_object::get_sensor ( int s )
-{
-	if ( s >= 0 && s < sensor_factory::last_system_item )
-		return sensors[s];
+	if ( ss >= 0 && ss < last_sensor_system )
+		return sensors[ss];
 
 	return 0;
 }
 
-const sensor* sea_object::get_sensor ( int s ) const
+const sensor* sea_object::get_sensor ( sensor_system ss ) const
 {
-	if ( s >= 0 && s < sensor_factory::last_system_item )
-		return sensors[s];
+	if ( ss >= 0 && ss < last_sensor_system )
+		return sensors[ss];
 
 	return 0;
+}
+
+void sea_object::set_sensor ( sensor_system ss, sensor* s )
+{
+	if ( ss >= 0 && ss < last_sensor_system )
+		sensors[ss] = s;
 }
 
 double sea_object::get_profile_factor ( const vector2& d ) const
@@ -366,4 +360,9 @@ double sea_object::get_profile_factor ( const vector2& d ) const
 double sea_object::get_noise_factor () const
 {
     return get_throttle_speed () / max_speed;
+}
+
+vector2 sea_object::get_engine_noise_source () const
+{
+	return get_pos ().xy () - get_heading ().direction () * 0.3f * length;
 }

@@ -235,7 +235,7 @@ void game::simulate(double delta_t)
 
 void game::visible_ships(list<ship*>& result, const sea_object* o)
 {
-	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
+	const sensor* s = o->get_sensor ( o->lookout_system );
 	const lookout_sensor* ls = 0;
 
 	if ( s )
@@ -262,7 +262,7 @@ bool is_in_ellipse(const vector2& p, double xl, double yl, angle& head)
 
 void game::visible_submarines(list<submarine*>& result, const sea_object* o)
 {
-	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
+	const sensor* s = o->get_sensor ( o->lookout_system );
 	const lookout_sensor* ls = 0;
 
 	if ( s )
@@ -282,7 +282,7 @@ void game::visible_submarines(list<submarine*>& result, const sea_object* o)
 
 void game::visible_airplanes(list<airplane*>& result, const sea_object* o)
 {
-	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
+	const sensor* s = o->get_sensor ( o->lookout_system );
 	const lookout_sensor* ls = 0;
 
 	if ( s )
@@ -302,7 +302,7 @@ void game::visible_airplanes(list<airplane*>& result, const sea_object* o)
 
 void game::visible_torpedoes(list<torpedo*>& result, const sea_object* o)
 {
-	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
+	const sensor* s = o->get_sensor ( o->lookout_system );
 	const lookout_sensor* ls = 0;
 	
 	if ( s )
@@ -321,7 +321,7 @@ void game::visible_torpedoes(list<torpedo*>& result, const sea_object* o)
 
 void game::visible_depth_charges(list<depth_charge*>& result, const sea_object* o)
 {
-	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
+	const sensor* s = o->get_sensor ( o->lookout_system );
 	const lookout_sensor* ls = 0;
 
 	if ( s )
@@ -340,7 +340,7 @@ void game::visible_depth_charges(list<depth_charge*>& result, const sea_object* 
 
 void game::visible_gun_shells(list<gun_shell*>& result, const sea_object* o)
 {
-	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
+	const sensor* s = o->get_sensor ( o->lookout_system );
 	const lookout_sensor* ls = 0;
 
 	if ( s )
@@ -359,7 +359,7 @@ void game::visible_gun_shells(list<gun_shell*>& result, const sea_object* o)
 
 void game::sonar_ships ( list<ship*>& result, const sea_object* o )
 {
-	const sensor* s = o->get_sensor ( sensor_factory::passive_sonar_system );
+	const sensor* s = o->get_sensor ( o->passive_sonar_system );
 	const passive_sonar_sensor* pss = 0;
 
 	if ( s )
@@ -403,7 +403,7 @@ void game::sonar_ships ( list<ship*>& result, const sea_object* o )
 
 void game::sonar_submarines ( list<submarine*>& result, const sea_object* o )
 {
-	const sensor* s = o->get_sensor ( sensor_factory::passive_sonar_system );
+	const sensor* s = o->get_sensor ( o->passive_sonar_system );
 	const passive_sonar_sensor* pss = 0;
 
 	if ( s )
@@ -486,7 +486,7 @@ void game::ship_sunk(unsigned tons)
 void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
 	const bool& move_sensor, const angle& dir )
 {
-	sensor* s = d->get_sensor ( sensor_factory::active_sonar_system );
+	sensor* s = d->get_sensor ( d->active_sonar_system );
 	active_sonar_sensor* ass = 0;
 	if ( s )
 		ass = dynamic_cast<active_sonar_sensor*> ( s );
@@ -682,7 +682,7 @@ double game::get_depth_factor ( const vector3& sub ) const
 
 void game::visible_water_splashes ( list<water_splash*>& result, const sea_object* o )
 {
-	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
+	const sensor* s = o->get_sensor ( o->lookout_system );
 	const lookout_sensor* ls = 0;
 
 	if ( s )
@@ -697,6 +697,49 @@ void game::visible_water_splashes ( list<water_splash*>& result, const sea_objec
 				result.push_back (*it);
 		}
 	}
+}
+
+ship* game::sonar_acoustical_torpedo_target ( const torpedo* o )
+{
+	ship* loudest_object = 0;
+	double loudest_object_sf = 0.0f;
+	const sensor* s = o->get_sensor ( o->passive_sonar_system );
+	const passive_sonar_sensor* pss = 0;
+
+	if ( s )
+		pss = dynamic_cast<const passive_sonar_sensor*> ( s );
+
+    if ( pss )
+    {
+		for ( list<ship*>::iterator it = ships.begin (); it != ships.end (); it++ )
+		{
+			double sf = 0.0f;
+			if ( pss->is_detected ( sf, this, o, *it ) )
+			{
+				if ( sf > loudest_object_sf )
+				{
+					loudest_object_sf = sf;
+					loudest_object = *it;
+				}
+			}
+		}
+
+		for ( list<submarine*>::iterator it = submarines.begin ();
+			it != submarines.end (); it++ )
+		{
+			double sf = 0.0f;
+			if ( pss->is_detected ( sf, this, o, *it ) )
+			{
+				if ( sf > loudest_object_sf )
+				{
+					loudest_object_sf = sf;
+					loudest_object = *it;
+				}
+			}
+		}
+	}
+
+	return loudest_object;
 }
 
 // main play loop

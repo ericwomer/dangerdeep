@@ -12,6 +12,7 @@
 #include "menu.h"
 #include "global_data.h"
 #include "texts.h"
+#include "date.h"
 #include "ship_mediummerchant.h"
 #include "ship_mediumtroopship.h"
 #include "ship_destroyertribal.h"

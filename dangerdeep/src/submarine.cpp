@@ -1,13 +1,14 @@
 // submarines
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
-#include "submarine.h"
 #include "model.h"
 #include "game.h"
-#include "submarine_VIIc.h"
-#include "submarine_XXI.h"
 #include "tokencodes.h"
 #include "sensors.h"
+#include "date.h"
+#include "submarine.h"
+#include "submarine_VIIc.h"
+#include "submarine_XXI.h"
 
 submarine::submarine() : ship(), dive_speed(0.0f), permanent_dive(false),
     dive_to(0.0f), max_dive_speed(1.0f), dive_acceleration(0.0f), scopeup(false),

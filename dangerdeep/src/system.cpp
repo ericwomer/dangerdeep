@@ -32,14 +32,15 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	myassert(err>=0, "SDL Video init failed");
 	const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
 	myassert(videoInfo, "Video info query failed");
-	int videoFlags  = SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_HWPALETTE;
+	int videoFlags  = SDL_OPENGLBLIT | SDL_GL_DOUBLEBUFFER | SDL_HWPALETTE;
 	videoFlags |= (videoInfo->hw_available) ? SDL_HWSURFACE : SDL_SWSURFACE;
 	if (fullscreen)
 		videoFlags |= SDL_FULLSCREEN;
 	if (videoInfo->blit_hw)
 		videoFlags |= SDL_HWACCEL;
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_Surface* screen_surface = SDL_SetVideoMode(res_x, res_y, 16, videoFlags);
+	int bpp = videoInfo->vfmt->BitsPerPixel;
+	SDL_Surface* screen_surface = SDL_SetVideoMode(res_x, res_y, bpp, videoFlags);
 	myassert(screen_surface, "Video mode set failed");
 
 	SDL_EventState(SDL_VIDEORESIZE, SDL_IGNORE);//fixme

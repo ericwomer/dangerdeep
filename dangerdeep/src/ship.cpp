@@ -4,6 +4,7 @@
 #include "ship.h"
 #include "model.h"
 #include "game.h"
+#include "date.h"
 #include "ship_mediummerchant.h"
 #include "ship_mediumtroopship.h"
 #include "ship_destroyertribal.h"
@@ -12,10 +13,8 @@
 #include "tokencodes.h"
 #include "sensors.h"
 
-ship::ship() : sea_object()
-{
-	myai = 0;
-}
+ship::ship() : sea_object(), myai ( 0 )
+{}
 
 bool ship::parse_attribute(parser& p)
 {

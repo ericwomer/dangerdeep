@@ -81,6 +81,15 @@ void ai::act_escort(game& gm, double delta_time)
 	// but how can the ai identify contacts? by the objects adress i.e. pointer?
 	// this would be nearly the same as returning a list of pointers (see above).
 
+	// A dead, crippled or sinking unit reacts like a dump unit. It does
+	// not fire shells, depth charges etc. on enemy units and does not try
+	// to locate them anymore.
+	if ( !parent->is_alive () )
+	{
+		act_dumb(gm, delta_time);
+		return;
+	}
+
 	double dist = 1e12;
 	submarine* nearest_contact = 0;
 	list<submarine*> subs;

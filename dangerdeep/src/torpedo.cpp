@@ -19,7 +19,7 @@ torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes) : sea_ob
 	position.x += dp.x;
 	position.y += dp.y;
 	head_to = heading;
-	turn_rate = 1;	// most submarine simulations seem to ignore this
+	turn_rate = 1.0f;	// most submarine simulations seem to ignore this
 			// launching a torpedo will cause it to run in target direction
 			// immidiately instead of turning there from the sub's heading
 	length = 7;
@@ -46,8 +46,8 @@ torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes) : sea_ob
 			max_rev_speed = 0;
 			max_run_length = 5000;	// fixme: historical value?
 			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
-			set_sensors ( sensor_factory::get_sensors ( sensor_factory::de,
-				sensor_factory::torpedo, 1943 ) );
+			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
+				passive_sonar_sensor::passive_sonar_type_tt_t5 ) );
 			break;
 		case T3FAT:		// G7e FAT torpedo
 			speed = kts2ms(30);
@@ -69,8 +69,8 @@ torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes) : sea_ob
 			max_rev_speed = 0;
 			max_run_length = 5000;	// fixme: historical value?
 			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
-			set_sensors ( sensor_factory::get_sensors ( sensor_factory::de,
-				sensor_factory::torpedo, 1944 ) );
+			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
+				passive_sonar_sensor::passive_sonar_type_tt_t11 ) );
 			break;
 	};
 	throttle = aheadfull;
@@ -79,33 +79,29 @@ torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes) : sea_ob
 
 void torpedo::simulate(game& gm, double delta_time)
 {
-	if (parent != 0 && parent->is_dead()) parent = 0;
+	if (parent != 0 && parent->is_dead())
+		parent = 0;
+
 	sea_object::simulate(gm, delta_time);
-	if (is_defunct() || is_dead()) return;
-	
-	if (type == T5 || type == T11) {	// test hack
-		// get subs too... fixme
-		list<ship*> contacts;
-        gm.sonar_ships(contacts, this);
-		// chouse loudest contact (fixme: here: nearest)
-		// fixme: full surround listing is not possible for T5's/T11's.
-		double d = 1e12;
-		ship* target = 0;
-		for (list<ship*>::iterator it = contacts.begin(); it != contacts.end(); ++it) {
-			double d2 = (*it)->get_pos().xy().square_distance(get_pos().xy());
-			if (d2 < d) {
-				d = d2;
-				target = *it;
-			}
-		}
-		if (target) {
-			angle targetang(target->get_pos().xy() - get_pos().xy());
+
+	if (is_defunct() || is_dead())
+		return;
+
+	// Torpedo starts to search for a target when the minimum save
+	// distance for the warhead is passed.
+	if ((type == T5 || type == T11) && run_length >= TORPEDO_SAVE_DISTANCE)
+	{
+		ship* target = gm.sonar_acoustical_torpedo_target ( this );
+
+		if (target)
+		{
+			angle targetang(target->get_engine_noise_source() - get_pos().xy());
 			bool turnright = get_heading().is_cw_nearer(targetang);
 			head_to_ang(targetang, !turnright);
 		}
 	}
-	
-	if (type == T3FAT) {	// FAT, test hack
+
+	if (type == T3FAT) { // FAT, test hack
 		if (run_length > 1600) {	// wrong pattern fixme
 			rudder_right();
 		}
@@ -118,7 +114,7 @@ void torpedo::simulate(game& gm, double delta_time)
 
 	// check for collisions with other subs or ships
 	if (run_length > 10) {	// avoid collision with parent after initial creation
-		bool runlengthfailure = (run_length < 250);
+		bool runlengthfailure = (run_length < TORPEDO_SAVE_DISTANCE);
 		bool failure = false;	// calculate additional probability of torpedo failure
 		if (gm.check_torpedo_hit(this, runlengthfailure, failure))
 			kill();
@@ -172,4 +168,19 @@ bool torpedo::adjust_head_to(const sea_object* target, bool usebowtubes)
 		}
 	}
 	return false;
+}
+
+void torpedo::create_sensor_array ( types t )
+{
+	switch ( t )
+	{
+		case T5:
+			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
+				passive_sonar_sensor::passive_sonar_type_tt_t5 ) );
+			break;
+		case T11:
+			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
+				passive_sonar_sensor::passive_sonar_type_tt_t11 ) );
+			break;
+	}
 }

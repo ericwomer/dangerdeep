@@ -133,7 +133,8 @@ public:
 class passive_sonar_sensor : public sensor
 {
 public:
-	enum passive_sonar_type { passive_sonar_type_default };
+	enum passive_sonar_type { passive_sonar_type_default,
+		passive_sonar_type_tt_t5, passive_sonar_type_tt_t11 };
 
 private:
 	void init ( passive_sonar_type type );
@@ -149,6 +150,15 @@ public:
 		@param t target unit
 	*/
 	virtual bool is_detected ( const game* gm, const sea_object* d, const sea_object* t ) const;
+	/**
+		This method verifies if the target unit t can be detected by
+		detecting unit d.
+		@param sound_level noise level of object t
+		@param gm game object. Some parameters are stored here.
+		@param d detecting unit
+		@param t target unit
+	*/
+	virtual bool is_detected ( double& sound_level, const game* gm, const sea_object* d, const sea_object* t ) const;
 };
 
 /** Base class for all active sensors. */
@@ -217,30 +227,6 @@ public:
 		@param t target unit
 	*/
 	virtual bool is_detected ( const game* gm, const sea_object* d, const sea_object* t ) const;
-};
-
-
-
-// Class sensor_factory
-class sensor_factory
-{
-public:
-	enum nationality { de, gb, us, jp };
-	enum ship_type { capital_ship, destroyer, freighter, submarine, torpedo };
-	enum sensor_system { lookout_system, radar_system, active_sonar_system,
-		passive_sonar_system, hfdf_system, last_system_item };
-
-private:
-	static lookout_sensor* get_lookout_system ( int nation, int year );
-	static radar_sensor* get_radar_system ( int nation, int year );
-	static active_sonar_sensor* get_active_sonar_system ( int nation, int year );
-	static passive_sonar_sensor* get_passive_sonar_system ( int nation, int year );
-/* fixme
-	static hfdf_sensor* get_hfdf_system ( int nation, int year );
-*/
-
-public:
-	static vector<sensor*> get_sensors ( int nation, int ship_type, int year );
 };
 
 #endif /* _SENSORS_H_ */

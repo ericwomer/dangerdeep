@@ -46,6 +46,8 @@ public:
 	enum damage_status { nodamage, lightdamage, mediumdamage, heavydamage, wrecked };
 	enum rudder_status { rudderfullleft, rudderleft, ruddermid, rudderright,
 		rudderfullright };
+	enum sensor_system { lookout_system, radar_system, passive_sonar_system,
+		active_sonar_system, last_sensor_system };
 
 	// some useful functions needed for sea_objects
 
@@ -110,7 +112,7 @@ protected:
 	sea_object(const sea_object& other);
 
 	virtual void change_rudder (const int& dir);
-	virtual void set_sensors ( vector<sensor*> sensors );
+	virtual void set_sensor ( sensor_system ss, sensor* s );
 	/**
 		This method calculates the visible profile value of the target.
 		@param d location vector of the detecting object
@@ -171,6 +173,7 @@ public:
 		@return noise modification factor
 	*/
 	virtual double get_noise_factor () const;
+	virtual vector2 get_engine_noise_source () const;
 
 	// needed for launching torpedoes
 	pair<angle, double> bearing_and_range_to(const sea_object* other) const;
@@ -179,8 +182,8 @@ public:
 	virtual void display(void) const = 0;
 	double get_bounding_radius(void) const { return width + length; }	// fixme: could be computed more exact
 
-	virtual sensor* get_sensor ( int s );
-	virtual const sensor* get_sensor ( int s ) const;
+	virtual sensor* get_sensor ( sensor_system ss );
+	virtual const sensor* get_sensor ( sensor_system ss ) const;
 };
 
 #endif

@@ -9,9 +9,13 @@
 using namespace std;
 
 #define G7A_HITPOINTS 4	// maximum
+#define TORPEDO_SAVE_DISTANCE 250.0f // minimum distance
 
 class torpedo : public sea_object
 {
+public:
+	enum types { none, T1, T3, T5, T3FAT, T6LUT, T11, reloading=0xffffffff };
+
 protected:
 	// Types: G7a, G7e, G7e FAT, G7e acustic (TV)
 	double run_length, max_run_length;
@@ -21,9 +25,11 @@ protected:
 	torpedo();
 	torpedo& operator=(const torpedo& other);
 	torpedo(const torpedo& other);
-public:
-	enum types { none, T1, T3, T5, T3FAT, T6LUT, T11, reloading=0xffffffff };
 
+	// specific damage here:
+	virtual void create_sensor_array ( types t );
+
+public:
 	virtual ~torpedo() {};
 	torpedo(sea_object* parent_, unsigned type_, bool usebowtubes);
 	virtual void simulate(class game& gm, double delta_time);
