@@ -41,7 +41,8 @@ protected:
 	bool scopeup;	// fixme: maybe simulate time for moving scope up/down
 	double periscope_depth;
 	bool electric_engine; // true when electric engine is used.
-	double snorkel_depth; // -1 when snorkel not available.
+	bool snorkel;
+	double snorkel_depth;
 	bool snorkel_up;
 	float sonar_cross_section_factor;
 
@@ -120,12 +121,13 @@ public:
 	virtual double get_max_depth () const { return max_depth; }
 	virtual bool is_electric_engine (void) const { return (electric_engine == true); }
 	virtual bool is_snorkel_up () const { return ( snorkel_up == true ); }
-	virtual bool has_snorkel () const { return ( snorkel_depth != -1.0f ); }
+	virtual bool has_snorkel () const { return ( snorkel == true ); }
 	virtual double get_snorkel_depth () const { return snorkel_depth; }
     
 	// command interface for subs
 	virtual void scope_up(void) { scopeup = true; };	// fixme
-	virtual void scope_down(void) { scopeup = false; };		
+	virtual void scope_down(void) { scopeup = false; };
+	virtual bool set_snorkel_up ( bool snorkel_up );
 	virtual void planes_up(double amount);
 	virtual void planes_down(double amount);
 	virtual void planes_middle(void);

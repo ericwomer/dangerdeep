@@ -12,8 +12,9 @@
 
 submarine::submarine() : ship(), dive_speed(0.0f), permanent_dive(false),
 	dive_to(0.0f), max_dive_speed(1.0f), dive_acceleration(0.0f), scopeup(false),
-	max_depth(150.0f), periscope_depth(12.0f), snorkel_depth(-1.0f),
-	snorkel_up(false), battery_value_a ( 0.0f ), battery_value_t ( 1.0f ),
+	max_depth(150.0f), periscope_depth(12.0f), snorkel_depth(10.0f),
+	snorkel (false), snorkel_up(false),
+	battery_value_a ( 0.0f ), battery_value_t ( 1.0f ),
 	battery_recharge_value_a ( 0.0f ), battery_recharge_value_t ( 1.0f )
 {}
 	
@@ -53,23 +54,17 @@ bool submarine::parse_attribute(parser& p)
 			}
 			p.parse(TKN_SRPARAN);
 			break;
-		case TKN_SNORKELUP:
+		case TKN_SNORKEL:
 			p.consume();
 			p.parse(TKN_ASSIGN);
-			snorkel_up = p.parse_bool();
-			p.parse(TKN_SEMICOLON);
-			break;
-		case TKN_SNORKELDEPTH:
-			p.consume();
-			p.parse(TKN_ASSIGN);
-			snorkel_depth = p.parse_number();
+			snorkel = p.parse_bool();
 			p.parse(TKN_SEMICOLON);
 			break;
 		default: return false;
 	}
 
-	// Activate electric engine if submerged and the snorkel is not up.
-	if (is_submerged() && !snorkel_up)
+	// Activate electric engine if submerged.
+	if (is_submerged())
 	{
 		electric_engine = true;
 	}
@@ -146,7 +141,7 @@ void submarine::simulate(class game& gm, double delta_time)
 		// Activate diesel engine.
 		electric_engine = false;
 	}
-    
+
 	if (dive_speed != 0) {
 		if (permanent_dive) {
 			position.z += delta_depth;
@@ -221,7 +216,23 @@ void submarine::simulate(class game& gm, double delta_time)
 
 double submarine::get_max_speed(void) const
 {
-	return (is_electric_engine())? max_submerged_speed : max_speed;
+	double ms;
+
+	if ( is_electric_engine() )
+	{
+		ms = max_submerged_speed;
+	}
+	else
+	{
+		ms = ship::get_max_speed ();
+
+		// When submarine is submerged and snorkel is used the maximum
+		// diesel speed is halved.
+		if ( snorkel && is_submerged () && snorkel_up )
+			ms *= 0.5f;
+	}
+
+	return ms;
 }
 
 float submarine::surface_visibility(const vector2& watcher) const
@@ -422,4 +433,24 @@ void submarine::calculate_fuel_factor ( double delta_time )
 		if ( battery_level >= 0.0f && battery_level <= 1.0f )
 			battery_level += delta_time * get_battery_recharge_rate ();
 	}
+}
+
+bool submarine::set_snorkel_up ( bool snorkel_up )
+{
+	// Snorkel can be toggled only when it is available 
+	// and the submarine is at least at snorkel depth.
+	if ( snorkel && get_depth () <= snorkel_depth )
+	{
+		this->snorkel_up = snorkel_up;
+
+		// Activate diesel or electric engines if snorkel is up or down.
+		if ( snorkel_up )
+			electric_engine = false;
+		else
+			electric_engine = true;
+
+		return true;
+	}
+
+	return false;
 }
