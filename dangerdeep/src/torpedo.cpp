@@ -31,6 +31,9 @@ torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, ang
 			// fixme historic values??
 	size3d = vector3f(0.533, 7, 0.533);	// diameter 53.3cm (21inch), length ~ 7m
 		//fixme: retrieve from model file referenced in xml file
+		// preheated torpedoes hat longer ranges... this needs to be simulated, too
+		// look at: http://www.uboat.net/technical/torpedoes.htm
+		// and: http://www.uboat.net/history/torpedo_crisis.htm
 	run_length = 0;
 	max_speed_forward = velocity.y = get_speed_by_type(type_);
 	max_speed_reverse = 0;
