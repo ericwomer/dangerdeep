@@ -20,8 +20,8 @@ void coastmap::save(const string& filename) const
 	write_u16(out, segsx);
 	write_u16(out, segsy);
 	write_double(out, pixelw_real);
-	write_double(out, offsety);
 	write_double(out, offsetx);
+	write_double(out, offsety);
 	for (vector<coastsegment>::const_iterator it = coastsegments.begin(); it != coastsegments.end(); ++it) {
 		it->save(out);
 	}
@@ -52,16 +52,6 @@ void coastmap::draw_as_map(unsigned detail) const
 		double rx = offsetx;
 		for (unsigned x = 0; x < segsx; ++x) {
 			coastsegments[y*segsx+x].draw_as_map(rx, ry, rsegw, detail);
-/*
-			glColor4f(0.5,0.5,0.5,1);
-			glBegin(GL_LINE_LOOP);
-			glVertex2d(rx, ry);
-			glVertex2d(rx, ry+rsegw);
-			glVertex2d(rx+rsegw, ry+rsegw);
-			glVertex2d(rx+rsegw, ry);
-			glEnd();
-			glColor4f(1,1,0,0.5);
-*/			
 			rx += rsegw;
 		}
 		ry += rsegw;
@@ -70,9 +60,9 @@ void coastmap::draw_as_map(unsigned detail) const
 
 void coastmap::render(double px, double py, unsigned detail) const
 {
-	px += offsetx;
-	py += offsety;
-	
+	px -= offsetx;
+	py -= offsety;
+
 	// determine which coast segment can be seen (at most 4)
 	// fixme
 	double rsegw = pixelw_real * pixels_per_seg;

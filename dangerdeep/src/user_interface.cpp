@@ -529,74 +529,10 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 	double max_view_dist) const
 {
-	mycoastmap.render(viewpos.x, viewpos.y);
-
-
-#if 0
-	double dist = max_view_dist;
-	vector2 minp(viewpos.x - dist, viewpos.y - dist);
-	vector2 maxp(viewpos.x + dist, viewpos.y + dist);
-//cout << "minp " << minp << "\n";
-//cout << "maxp " << maxp << "\n";
-	vector2 drawmax = mapmaxpos.min(maxp), drawmin = mappos.max(minp);
-//cout << "mappos " << mappos << "\n";	
-//cout << "mapmaxpos " << mapmaxpos << "\n";	
-//cout << "drawmax " << drawmax << "\n";	
-//cout << "drawmin " << drawmin << "\n";	
-	vector2 drawarea = drawmax - drawmin;
-//cout << "draw map area double " << drawmin.x << "," << drawmin.y << "," << drawmax.x << "," << drawmax.y << "\n";
-	vector2 mapoffset = drawmin - mappos;
-	int minx = mapoffset.x / mapmperpixel;
-	int miny = mapoffset.y / mapmperpixel;
-	int maxx = minx + drawarea.x / mapmperpixel;
-	int maxy = miny + drawarea.y / mapmperpixel;
-//cout << "draw map area " << minx << "," << miny << "," << maxx << "," << maxy << "\n";
-	if (minx < 1) minx = 1;
-	if (miny < 1) miny = 1;
-	if (maxx >= mapw-1) maxx = mapw-1;
-	if (maxy >= maph-1) maxy = maph-1;
-#endif
-
-#if 0
-	/* the top vertices are translated along the negative normal of the polyline.
-		that gives an ascending shape for the coast */
 	glPushMatrix();
 	terraintex->set_gl_texture();
-	float cls = mapmperpixel;
-	glTranslatef((mappos.x-viewpos.x), (-mappos.y-viewpos.y), -viewpos.z);
-	glScalef(cls, cls, 1);
-	for (list<coastline>::const_iterator it = coastlines.begin(); it != coastlines.end(); ++it) {
-		unsigned ps = it->points.size();
-		unsigned prevpt = ps-1;
-		unsigned thispt = 0;
-		unsigned nextpt = 1;
-		glBegin(GL_QUAD_STRIP);
-		double coastheight = 100 + double(ps > 1000 ? 1000 : ps) * 0.2;
-		float t = 0.0;
-		for (unsigned s = 0; s < ps; ++s) {
-			const vector2f& p = it->points[thispt];
-			vector2f n = (it->points[nextpt] - it->points[prevpt]).orthogonal().normal() * -3.0;
-			if (s > 0) {
-				glTexCoord2f(t, 1);
-				glVertex3f(p.x, p.y, -10);
-				glTexCoord2f(t, 0);
-				glVertex3f(p.x+n.x, p.y+n.y, coastheight);
-			} else {
-				glTexCoord2f(t, 0);
-				glVertex3f(p.x+n.x, p.y+n.y, coastheight);
-				glTexCoord2f(t, 1);
-				glVertex3f(p.x, p.y, -10);
-			}
-			t += 1.0;
-			prevpt = thispt;
-			thispt = nextpt;
-			nextpt = (nextpt+1)%ps;
-		}
-		glEnd();
-	}
+	mycoastmap.render(viewpos.x, viewpos.y);
 	glPopMatrix();
-#endif
-	
 }
 
 void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
@@ -1441,59 +1377,12 @@ if (mb&2) detl = my*10/384;
 		glEnd();
 	}
 
-/*
-	// draw terrain (mapzoom is pixel/m)
-	double dist = max_view_dist;
-	vector2 minp(offset.x - dist, offset.y - dist);
-	vector2 maxp(offset.x + dist, offset.y + dist);
-	vector2 drawmax = mapmaxpos.min(maxp), drawmin = mappos.max(minp);
-	vector2 drawarea = drawmax - drawmin;
-	vector2 mapoffset = drawmin - mappos;
-	int minx = mapoffset.x / mapmperpixel;
-	int miny = mapoffset.y / mapmperpixel;
-	int maxx = minx + drawarea.x / mapmperpixel;
-	int maxy = miny + drawarea.y / mapmperpixel;
-	if (minx < 0) minx = 0;
-	if (miny < 0) miny = 0;
-	if (maxx >= mapw) maxx = mapw;
-	if (maxy >= maph) maxy = maph;
-cout << "map display\n";	
-cout << "minp " << minp << "\n";
-cout << "maxp " << maxp << "\n";
-cout << "mappos " << mappos << "\n";	
-cout << "mapmaxpos " << mapmaxpos << "\n";	
-cout << "drawmax " << drawmax << "\n";	
-cout << "drawmin " << drawmin << "\n";	
-cout << "draw map area double " << drawmin.x << "," << drawmin.y << "," << drawmax.x << "," << drawmax.y << "\n";
-cout << "draw map area " << minx << "," << miny << "," << maxx << "," << maxy << "\n";
-	glColor3f(0, 0.25, 0);
-	glPointSize(mapmperpixel * mapzoom);
-	glBegin(GL_POINTS);
-	double yp = 384 + drawmin.y * mapzoom;
-	unsigned mapptr = miny*mapw+minx;
-	double h = 100.0;
-	for (int y = miny; y < maxy; ++y) {
-		double xp = 512 + drawmin.x * mapzoom;
-		for (int x = minx; x < maxx; ++x) {
-			char mv = landsea[mapptr];
-			if (mv == 1) {
-				glVertex2i(xp, yp);
-			}
-			++mapptr;
-			xp += mapmperpixel * mapzoom;
-		}
-		mapptr += mapw - (maxx - minx);
-		yp += mapmperpixel * mapzoom;
-	}
-	glEnd();
-	glPointSize(1.0);
-*/
 	glColor3f(0,0.5,0);
 	glPushMatrix();
-	float cls = mapzoom;
 	glTranslatef(512, 384, 0);
-	glScalef(cls, cls, 1);
-	glTranslatef(-offset.x, offset.y, 0);
+	glScalef(mapzoom, mapzoom, 1);
+	glScalef(1,-1,1);
+	glTranslatef(-offset.x, -offset.y, 0);
 	mycoastmap.draw_as_map(detl);
 	glPopMatrix();
 

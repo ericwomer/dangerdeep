@@ -5,8 +5,9 @@
 	    drawing/rendering with LOD possible.
 	    2d map view: moving around the map possible (middle button)
 	    LOD test: right button & move mouse y.
-	  - there are still bugs, but LOD terrain rendering is getting
-	    closer.
+	  - there are still bugs
+	  - map draws correctly, 3d terrain rendering available (LOD
+	    implementation missing yet).
 
 2003-11-23  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* 1.map
