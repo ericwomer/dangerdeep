@@ -92,7 +92,6 @@ public:
 	static submarine* create(types type_);
 	static submarine* create(parser& p);
 	virtual void simulate(class game& gm, double delta_time);
-	virtual void display(void) const = 0;
 
 	const vector<stored_torpedo>& get_torpedoes(void) const { return torpedoes; }
 	// get first index of storage and first index after it.

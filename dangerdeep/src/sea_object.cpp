@@ -5,6 +5,7 @@
 #include "vector2.h"
 #include "tokencodes.h"
 #include "sensors.h"
+#include "model.h"
 
 sea_object::sea_object() : position(vector3(0.0f, 0.0f, 0.0f)), heading(0.0f),
 	speed(0.0f), max_speed(0.0f), max_rev_speed(0.0f), throttle(stop),
@@ -365,4 +366,12 @@ double sea_object::get_noise_factor () const
 vector2 sea_object::get_engine_noise_source () const
 {
 	return get_pos ().xy () - get_heading ().direction () * 0.3f * length;
+}
+
+void sea_object::display(void) const
+{
+	const model* mdl = get_model ();
+
+	if ( mdl )
+		mdl->display ();
 }

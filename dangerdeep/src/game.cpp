@@ -501,7 +501,7 @@ void game::ship_sunk( const ship* s )
 	ostringstream oss;
 	oss << TXT_Shipsunk[language] << " " << s->get_description ( 2 );
 	ui->add_captains_log_entry( *this, oss.str () );
-	ui->record_ship_tonnage ( s->get_tonnage () );
+	ui->record_sunk_ship ( s );
 }
 
 void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,

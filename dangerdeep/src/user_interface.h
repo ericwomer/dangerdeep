@@ -23,6 +23,7 @@ using namespace std;
 
 class user_display;
 class logbook_display;
+class ships_sunk_display;
 
 class user_interface
 {
@@ -36,7 +37,6 @@ protected:
 	unsigned time_scale;
 	sea_object* player_object;
 	list<string> panel_texts;
-	list<unsigned> tonnage_sunk;
 
 	// used in various screens
 	angle bearing;
@@ -44,6 +44,7 @@ protected:
 	sea_object* target;
 
 	logbook_display* captains_logbook;
+	ships_sunk_display* ships_sunk_disp;
 
 	// periscope
 	bool zoom_scope;	// use 6x instead 1.5 fixme implement
@@ -61,6 +62,7 @@ protected:
 	user_interface(sea_object* player);
 
 	static vector<float> allwaveheights;
+	void init ();
 	static void init_water_data(void);
 	static float get_waterheight(int x, int y, int wave);
 	static float get_waterheight(float x_, float y_, int wave);	// bilinear sampling
@@ -115,7 +117,7 @@ public:
 	virtual void add_captains_log_entry ( class game& gm, const string& s);
 	virtual bool time_scale_up(void);	// returns true on success
 	virtual bool time_scale_down(void);
-	virtual void record_ship_tonnage(unsigned tons) { tonnage_sunk.push_back(tons); }
+	virtual void record_sunk_ship ( const ship* so );
 	/** This method creates a message about the rudder state. */
 	virtual void add_rudder_message();
 	virtual void play_sound_effect ( sound_effect se, double volume = 1.0f ) const;

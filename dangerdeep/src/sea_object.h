@@ -36,6 +36,7 @@ class airplane;
 class torpedo;
 class depth_charge;
 class sensor;
+class model;
 
 class sea_object
 {
@@ -125,6 +126,7 @@ public:
 
 	// detail: 0 - category, 1 - finer category, >=2 - exact category
 	virtual string get_description(unsigned detail) const { return "UNKNOWN"; }
+	virtual const model* get_model () const { return 0; }
 
 	virtual void simulate(class game& gm, double delta_time);
 	virtual bool is_collision(const sea_object* other);
@@ -179,7 +181,7 @@ public:
 	pair<angle, double> bearing_and_range_to(const sea_object* other) const;
 	angle estimate_angle_on_the_bow(angle target_bearing, angle target_heading) const;
 
-	virtual void display(void) const = 0;
+	virtual void display(void) const;
 	double get_bounding_radius(void) const { return width + length; }	// fixme: could be computed more exact
 
 	virtual sensor* get_sensor ( sensor_system ss );

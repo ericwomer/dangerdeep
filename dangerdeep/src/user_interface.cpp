@@ -11,6 +11,7 @@
 #include "texts.h"
 #include "sound.h"
 #include "logbook.h"
+#include "ships_sunk_display.h"
 
 #define SKYSEGS 16
 
@@ -22,9 +23,7 @@ user_interface::user_interface() :
 	zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
 	viewpos(0, 0, 10), bearing(0), viewmode(4), target(0)
 {
-	captains_logbook = new captains_logbook_display;
-	system::sys()->myassert ( captains_logbook, "Error while creating captains_logbook!" );
-	if (allwaveheights.size() == 0) init_water_data();
+	init ();
 }
 
 user_interface::user_interface(sea_object* player) :
@@ -32,14 +31,23 @@ user_interface::user_interface(sea_object* player) :
     zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
 	viewpos(0, 0, 10), bearing(0), viewmode(4), target(0)
 {
-	captains_logbook = new captains_logbook_display;
-	system::sys()->myassert ( captains_logbook, "Error while creating captains_logbook!" );
-	if (allwaveheights.size() == 0) init_water_data();
+	init ();
 }
 
 user_interface::~user_interface ()
 {
 	if ( captains_logbook ) delete captains_logbook;
+	if ( ships_sunk_disp ) delete ships_sunk_disp;
+}
+
+void user_interface::init ()
+{
+	captains_logbook = new captains_logbook_display;
+	system::sys()->myassert ( captains_logbook, "Error while creating captains_logbook!" );
+	ships_sunk_disp = new ships_sunk_display;
+	system::sys()->myassert ( ships_sunk_disp, "Error while creating ships_sunk!" );
+
+	if (allwaveheights.size() == 0) init_water_data();
 }
 
 void user_interface::init_water_data(void)
@@ -864,7 +872,8 @@ void user_interface::display_damagecontrol(class system& sys, game& gm)
 
 void user_interface::display_logbook(class system& sys, game& gm)
 {
-	glClearColor ( 0.5f, 0.25f, 0.25f, 0 );
+	// glClearColor ( 0.5f, 0.25f, 0.25f, 0 );
+	glClearColor ( 0, 0, 0, 0 );
 	glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	sys.prepare_2d_drawing ();
 	captains_logbook->display ( sys, gm );
@@ -890,6 +899,29 @@ void user_interface::display_logbook(class system& sys, game& gm)
 	}
 }
 
+void user_interface::display_successes(class system& sys, game& gm)
+{
+	// glClearColor ( 0, 0, 0, 0 );
+	// glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	sys.prepare_2d_drawing ();
+	ships_sunk_disp->display ( sys, gm );
+	draw_infopanel ( sys, gm );
+	sys.unprepare_2d_drawing ();
+
+	// keyboard processing
+	int key = sys.get_key ();
+	while ( key != 0 )
+	{
+		if ( !keyboard_common ( key, sys, gm ) )
+		{
+			// specific keyboard processing
+			ships_sunk_disp->check_key ( key, sys, gm );
+		}
+		key = sys.get_key ();
+	}
+}
+
+#ifdef OLD
 void user_interface::display_successes(class system& sys, game& gm)
 {
 	glClearColor(0.25, 0.25, 0.25, 0);
@@ -919,6 +951,7 @@ void user_interface::display_successes(class system& sys, game& gm)
 		key = sys.get_key();
 	}
 }
+#endif // OLD
 
 void user_interface::display_freeview(class system& sys, game& gm)
 {
@@ -1126,4 +1159,9 @@ void user_interface::add_captains_log_entry ( class game& gm, const string& s)
 
 	if ( captains_logbook )
 		captains_logbook->add_entry( d, s );
+}
+
+inline void user_interface::record_sunk_ship ( const ship* so )
+{
+	ships_sunk_disp->add_sunk_ship ( so );
 }

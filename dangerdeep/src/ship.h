@@ -51,7 +51,6 @@ public:
 	static ship* create(types type_);
 	static ship* create(parser& p);
 	virtual void simulate(class game& gm, double delta_time);
-	virtual void display(void) const = 0;
 
 	virtual void fire_shell_at(const vector2& pos);	// to subclass?
 
