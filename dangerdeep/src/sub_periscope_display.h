@@ -5,6 +5,8 @@
 #define SUB_PERISCOPE_DISPLAY_H
 
 #include "freeview_display.h"
+#include <vector>
+using namespace std;
 
 class sub_periscope_display : public freeview_display
 {
@@ -14,6 +16,9 @@ class sub_periscope_display : public freeview_display
 
 	class image* background_normallight;
 	class image* background_nightlight;
+
+	vector<class texture*> compassbar_tex;
+	vector<unsigned> compassbar_width;
 	
 	bool zoomed;	// use 1,5x (false) or 6x (true) zoom
 

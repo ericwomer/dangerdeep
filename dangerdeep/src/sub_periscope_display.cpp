@@ -41,12 +41,43 @@ void sub_periscope_display::post_display(game& gm) const
 	system::sys().prepare_2d_drawing();
 	glColor3f(1,1,1);
 
+	// draw compass bar. at most 230 pixel can be seen (of 1878 total width), center is at x=667 on screen
+	// so 360*230/1878 = 44.1 degrees can be seen
+	// 230 is less than the size of one part of the bar (width 235, last 233), so draw at most two
+	// visible area on screen is centerpos +- 115
+	// as first translate bearing to pixel pos
+	int centerpixelpos = int((bearing.value() * 1878 + 0.5) / 360);
+	// now compute which parts can be seen
+	// draw part i at x_i = 667+widths[0...i-1]-centerpixelpos
+	// if x_i >= 667-115 and x_i < 667+115 then draw it
+	unsigned ws = compassbar_width.size();
+	for (int i = 0, cw = 0; i < int(ws); ++i) {
+		int xi = 667 + cw - centerpixelpos;
+		int w = int(compassbar_width[i]);
+		// check 360->0 wrap
+		if (xi + w < 667-115)
+			xi += 1878;
+		// check 360->0 wrap other side
+		if (xi >= 667+115)
+			xi -= 1878;
+		// check if part can be seen
+		if (667-115 < xi + w && xi < 667+115) {
+			unsigned h = compassbar_tex[i]->get_height();
+			compassbar_tex[i]->draw_subimage(xi, 586, w, h, 0, 0, w, h);
+		}
+		cw += w;
+	}
+
+	// draw background
 	bool is_day = gm.is_day_mode();
 	if (is_day) {
 		background_normallight->draw(0, 0);
 	} else {
 		background_nightlight->draw(0, 0);
 	}
+
+	// draw clock pointers (fixme)
+	// ...
 
 //	ui.draw_infopanel(gm);
 	system::sys().unprepare_2d_drawing();
@@ -58,6 +89,20 @@ sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_dis
 {
 	background_normallight = new image(get_image_dir() + "periscope_daylight_rev.1.1b_final.png", true);
 	background_nightlight = new image(get_image_dir() + "periscope_redlight_rev.1.1b_final.png", true);
+
+	// read compass bar image and cut to eight separate textures
+	image compassbari(get_image_dir() + "periscope_compassbar2.png");
+	const unsigned nrparts = 8;	// 1878/8 ~ 234 so it fits in a 256 texture
+	unsigned tw = compassbari.get_width();
+	unsigned pw = (tw + (nrparts/2)) / nrparts;
+	compassbar_width.resize(nrparts);
+	compassbar_tex.resize(nrparts);
+	for (unsigned i = 0; i < nrparts; ++i) {
+		compassbar_width[i] = (i + 1 < nrparts) ? pw : tw - (nrparts-1)*pw;
+		compassbar_tex[i] = new texture(compassbari.get_SDL_Surface(), i*pw, 0,
+						compassbar_width[i], compassbari.get_height(),
+						GL_NEAREST, GL_CLAMP_TO_EDGE, false);
+	}
 
 	pos = vector3(0, 0, 12);//fixme, depends on sub
 	aboard = true;
@@ -71,6 +116,9 @@ sub_periscope_display::~sub_periscope_display()
 {
 	delete background_normallight;
 	delete background_nightlight;
+
+	for (unsigned i = 0; i < compassbar_tex.size(); ++i)
+		delete compassbar_tex[i];
 }
 
 
@@ -87,9 +135,13 @@ void sub_periscope_display::process_input(class game& gm, const SDL_Event& event
 	freeview_display::process_input(gm, event);
 }
 
+
+
 void sub_periscope_display::display(class game& gm) const
 {
 	submarine* player = dynamic_cast<submarine*> ( gm.get_player() );
+
+	// with new compassbar lower 32 pixel of 3d view are not visible... maybe shrink 3d view? fixme
 	
 	// if the periscope is down draw nothing (all black)
 	if (true == player->is_scope_up())
