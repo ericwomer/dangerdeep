@@ -35,6 +35,19 @@
 #define WAVE_HEIGHT 2.0		// half of difference top/bottom of wave -> fixme, depends on weather
 #define TIDECYCLE_TIME 8.0
 
+/*
+	a note on our coordinate system (11/10/2003):
+	We simulate earth by projecting objects according to curvature from earth
+	space to Euclidian space. This projection is yet a identity projection, that means
+	we ignore curvature yet.
+	The map forms a cylinder around the earth, that means x,y position on the map translates
+	to longitude,latitude values. Hence valid coordinates go from -20000km...20000km in x
+	direction and -10000km to 10000km in y direction. (we could use exact values, around
+	20015km). The wrap around is a problem, but that's somewhere in the Pacific ocean, so
+	we just ignore it. This mapping leads to some distorsion and wrong distance values
+	when coming to far north or south on the globe. We just ignore this for simplicities
+	sake. The effect should'nt be noticeable.
+*/
 
 user_interface::user_interface() :
 	quit(false), pause(false), time_scale(1), player_object(0),
@@ -74,6 +87,13 @@ void user_interface::init ()
 //what does auto normaling there? recreate Lists when wave height/length changes and don't
 //scale?!
 	// create and fill display lists for water
+	/*
+		this model leads to waves rolling from NE to SW.
+		We could determine wind direction or tide related water movement and
+		simulate wave rolling accordingly. But this would made a recomputation
+		of this display lists necessary, whenever the wind or tide changes.
+		That is very costly
+	*/
 	wavedisplaylists = glGenLists(WAVE_PHASES);
 	system::sys()->myassert(wavedisplaylists != 0, "no more display list indices available");
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
@@ -366,9 +386,6 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	double timefac = fmod(gm.get_time(), TIDECYCLE_TIME)/TIDECYCLE_TIME;
 	
 	glRotatef(-90,1,0,0);
-	// This should be a negative angle, but nautical view dir is clockwise, OpenGL uses ccw values, so this is a double negation
-	glRotatef(dir.value(),0,0,1);
-
 	// if we're aboard the player's vessel move the world instead of the ship
 	if (aboard) {
 		//fixme: the sub's movement/rolling is view dir dependent, which
@@ -377,6 +394,9 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		double rollfac = (dynamic_cast<ship*>(player))->get_roll_factor();
 		rotate_by_pos_and_wave(player->get_pos(), timefac, rollfac, true);
 	}
+
+	// This should be a negative angle, but nautical view dir is clockwise, OpenGL uses ccw values, so this is a double negation
+	glRotatef(dir.value(),0,0,1);
 
 	// ************ sky ***************************************************************
 	glPushMatrix();
