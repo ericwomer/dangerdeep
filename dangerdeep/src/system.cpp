@@ -71,6 +71,7 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 	glColor3f(1, 1, 1);
 	// set up some things for drawing pixels
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
