@@ -170,6 +170,91 @@ texture::~texture()
 	glDeleteTextures(1, &tex_name);
 }
 
+// draw_image
+void texture::draw_image(int x, int y) const
+{
+	draw_image(x, y, get_width(), get_height());
+}
+
+void texture::draw_hm_image(int x, int y) const
+{
+	draw_hm_image(x, y, get_width(), get_height());
+}
+
+void texture::draw_vm_image(int x, int y) const
+{
+	draw_vm_image(x, y, get_width(), get_height());
+}
+
+void texture::draw_image(int x, int y, int w, int h) const
+{
+	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
+	glBegin(GL_QUADS);
+	glTexCoord2i(0,0);
+	glVertex2i(x,y);
+	glTexCoord2i(0,1);
+	glVertex2i(x,y+h);
+	glTexCoord2i(1,1);
+	glVertex2i(x+w,y+h);
+	glTexCoord2i(1,0);
+	glVertex2i(x+w,y);
+	glEnd();
+}
+
+void texture::draw_hm_image(int x, int y, int w, int h) const
+{
+	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
+	glBegin(GL_QUADS);
+	glTexCoord2i(1,0);
+	glVertex2i(x,y);
+	glTexCoord2i(1,1);
+	glVertex2i(x,y+h);
+	glTexCoord2i(0,1);
+	glVertex2i(x+w,y+h);
+	glTexCoord2i(0,0);
+	glVertex2i(x+w,y);
+	glEnd();
+}
+
+void texture::draw_vm_image(int x, int y, int w, int h) const
+{
+	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
+	glBegin(GL_QUADS);
+	glTexCoord2i(0,1);
+	glVertex2i(x,y);
+	glTexCoord2i(0,0);
+	glVertex2i(x,y+h);
+	glTexCoord2i(1,0);
+	glVertex2i(x+w,y+h);
+	glTexCoord2i(1,1);
+	glVertex2i(x+w,y);
+	glEnd();
+}
+
+void texture::draw_rot_image(int x, int y, double angle) const
+{
+	glPushMatrix();
+	glTranslatef(x, y, 0);
+	glRotatef(angle, 0, 0, 1);
+	draw_image(-int(get_width())/2, -int(get_height())/2);
+	glPopMatrix();
+}
+
+void texture::draw_tiles(int x, int y, int w, int h, unsigned tilesx, unsigned tilesy) const
+{
+	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
+	glBegin(GL_QUADS);
+	glTexCoord2i(0,0);
+	glVertex2i(0,0);
+	glTexCoord2i(0,tilesy);
+	glVertex2i(0,h);
+	glTexCoord2i(tilesx,tilesy);
+	glVertex2i(w,h);
+	glTexCoord2i(tilesx,0);
+	glVertex2i(w,0);
+	glEnd();
+}
+
 bool texture::check_for_paletted_textures(void)
 {
 	if (paletted_textures == -1) {

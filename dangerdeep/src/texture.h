@@ -43,6 +43,16 @@ public:
 	unsigned get_width(void) const { return width; };
 	unsigned get_height(void) const { return height; };
 
+	// 2d drawing must be turned on for this functions
+	void draw_image(int x, int y) const;
+	void draw_hm_image(int x, int y) const;	// horizontally mirrored
+	void draw_vm_image(int x, int y) const;	// vertically mirrored
+	void draw_image(int x, int y, int w, int h) const;
+	void draw_hm_image(int x, int y, int w, int h) const;	// horizontally mirrored
+	void draw_vm_image(int x, int y, int w, int h) const;	// vertically mirrored
+	void draw_rot_image(int x, int y, double angle) const;	// draw rotated image
+	void draw_tiles(int x, int y, int w, int h, unsigned tiles, unsigned tilesy) const;	
+
 	static int paletted_textures;	// 0 no 1 yes -1 untested
 	static bool check_for_paletted_textures(void);
 	static unsigned get_max_width(void) { return 256; } // fixme ask opengl

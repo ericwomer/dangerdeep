@@ -1,3 +1,13 @@
+2003-08-02  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* font.cpp
+	  - new print function for wrap around texts
+	    (one bug still to be found and fixed.)
+	* sub_damage_display.cpp
+	  - new popup, fixed bug.
+	* system.cpp texture.cpp
+	  - moved draw image functions to texture class. functions can still
+	    be called via system class.
+
 2003-07-31  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* user_interface.cpp game.cpp
 	  - support for multiple cloud textures and one new cloud texture.

@@ -91,6 +91,10 @@ public:
 	// must be surfaced to get repaired
 	// cannot be repaired at sea	
 	// absolute time needed for repair
+	// new: damage levels (some parts can only be ok/wrecked or ok/damaged/wrecked)
+	// new: damagle from which direction/protected by etc.
+	//      parts that get damaged absorb shock waves, protecing other parts
+	//      either this must be calculated or faked via direction indicators etc.
 	
 	struct damage_data_scheme {
 		vector3f p1, p2;	// corners of bounding box around part, p1 < p2

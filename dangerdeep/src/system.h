@@ -43,15 +43,15 @@ public:
 	void screenshot(void);
 
 	// 2d drawing must be turned on for this functions
-	void draw_image(int x, int y, const texture* t) const;
-	void draw_hm_image(int x, int y, const texture* t) const;	// horizontally mirrored
-	void draw_vm_image(int x, int y, const texture* t) const;	// vertically mirrored
-	void draw_image(int x, int y, int w, int h, const texture* t) const;
-	void draw_hm_image(int x, int y, int w, int h, const texture* t) const;	// horizontally mirrored
-	void draw_vm_image(int x, int y, int w, int h, const texture* t) const;	// vertically mirrored
-	void draw_rot_image(int x, int y, double angle, const texture* t) const;	// draw rotated image
-	void draw_tiles(int x, int y, int w, int h, unsigned tiles, unsigned tilesy,
-		const texture* t) const;	
+	void draw_image(int x, int y, const texture* t) const { t->draw_image(x, y); }
+	void draw_hm_image(int x, int y, const texture* t) const { t->draw_hm_image(x, y); }
+	void draw_vm_image(int x, int y, const texture* t) const { t->draw_vm_image(x, y); }
+	void draw_image(int x, int y, int w, int h, const texture* t) const { t->draw_image(x, y, w, h); }
+	void draw_hm_image(int x, int y, int w, int h, const texture* t) const { t->draw_hm_image(x, y, w, h); }
+	void draw_vm_image(int x, int y, int w, int h, const texture* t) const { t->draw_vm_image(x, y, w, h); }
+	void draw_rot_image(int x, int y, double angle, const texture* t) const { t->draw_rot_image(x, y, angle); }
+	void draw_tiles(int x, int y, int w, int h, unsigned tilesx, unsigned tilesy,
+		const texture* t) const { t->draw_tiles(x, y, w, h, tilesx, tilesy); }
 	void draw_rectangle(int x, int y, int w, int h);
 	void no_tex(void) const { glBindTexture(GL_TEXTURE_2D, 0); }
 	

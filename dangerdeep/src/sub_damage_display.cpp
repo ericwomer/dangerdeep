@@ -72,19 +72,24 @@ sub_damage_display::~sub_damage_display ()
 void sub_damage_display::display_popup (int x, int y, const string& text, bool atleft, bool atbottom) const
 {
 	int posx = atleft ? 100 : 604, posy = atbottom ? 480 : 30, width = 320, height = 140;
+
 	glBindTexture ( GL_TEXTURE_2D, 0 );
-	
 	color::red().set_gl_color();
 	glBegin(GL_LINES);
 	glVertex2f(x, y);
 	glVertex2f(posx+width/2, posy+height/2);
 	glEnd();
+
+	color::white().set_gl_color();
+	system::sys()->draw_image(posx, posy, notepadsheet);
+	font_arial2->print_wrapped(posx+8, posy+45, 256-16, 20, text, color(0,0,128));
 	
-	color(0,0,0).set_gl_color(128);
-	system::sys()->draw_rectangle(posx+4,posy+4,width,height);
-	color(255,255,128).set_gl_color(255);
-	system::sys()->draw_rectangle(posx,posy,width,height);
-	font_arial2->print(posx+4,posy+4,text,color::black());
+//	color(0,0,0).set_gl_color(128);
+//	system::sys()->draw_rectangle(posx+4,posy+4,width,height);
+//	color(255,255,128).set_gl_color(255);
+//	system::sys()->draw_rectangle(posx,posy,width,height);
+//	font_arial2->print(posx+4,posy+4,text,color::black());
+
 	color::white().set_gl_color();
 }
 
@@ -124,6 +129,7 @@ void sub_damage_display::check_mouse ( int x, int y, int mb )
 	// fixme
 	const vector<submarine::damageable_part>& damageable_parts = mysub->get_damage_status();
 	for (unsigned i = 0; i < damageable_parts.size(); ++i) {
+		if (damageable_parts[i].status < 0) continue;	// part does not exist
 		rect r = rect_data[i];
 		r.y += (damage_screen_background->get_height()-sub_damage_scheme_all->get_height())/2;
 		if (x >= r.x && x <= r.x+r.w && y >= r.y && y <= r.y+r.h) {

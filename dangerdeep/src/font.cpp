@@ -191,6 +191,47 @@ void font::print_c(int x, int y, const string& text, color col, bool with_shadow
 	print(x-wh.first/2, y-wh.second/2, text, col, with_shadow);
 }
 
+void font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, const string& text, color col, bool with_shadow) const
+{
+	// loop over spaces
+	unsigned currwidth = 0;
+	unsigned textptr = 0, oldtextptr = 0;
+	unsigned textlen = text.length();
+	while (true) {
+		// remove spaces, treat returns
+		while (textptr < textlen) {	// remove spaces at the beginning
+			char c = text[textptr];
+			if (c == '\n') {
+				y += (lineheight == 0) ? get_height() : lineheight;
+				currwidth = 0;
+				++textptr;
+			} else if (c == ' ') {
+				++textptr;
+			} else {
+				break;
+			}
+		}
+		oldtextptr = textptr;
+		// collect characters for current word
+		while ((text[textptr] != '\n' && text[textptr] != ' ') && textptr < textlen) {
+			++textptr;
+		}
+		if (textptr == textlen) {	// print remaining text
+			print(x, y, text.substr(oldtextptr), col, with_shadow);
+			break;
+		} else {
+			pair<unsigned, unsigned> wh = get_size(text.substr(oldtextptr, textptr - oldtextptr));
+			if (currwidth + wh.first >= w) {
+				y += (lineheight == 0) ? wh.second : lineheight;
+				currwidth = 0;
+			}
+			print(x+currwidth, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
+			currwidth += wh.first;
+			currwidth += blank_width;
+		}
+	}
+}
+
 pair<unsigned, unsigned> font::get_size(const string& text) const
 {
 	int x = 0, y = char_height;
