@@ -32,6 +32,8 @@ protected:
 	vector<vector<unsigned> > waveindices;	// Outer array for LOD
 
 	vector<vector<float> > wavetilefoam;
+	
+	vector<unsigned> waveVBOs;	// VBOs for wave data (2*WAVE_PHASES)
 
 	unsigned reflectiontexsize;
 	unsigned reflectiontex;

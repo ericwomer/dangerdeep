@@ -138,6 +138,17 @@ water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), ti
 #endif
 
 	}
+
+/*	
+	waveVBOs.resize(2*WAVE_PHASES);
+	glGenBuffersARB(2*WAVE_PHASES, &waveVBOs[0]);
+	for (int i = 0; i < WAVE_PHASES; ++i) {
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, waveVBOs[i]);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, wavetilecoords[i].size()*3*sizeof(float), &(wavetilecoords[i][0]), GL_STATIC_DRAW_ARB);
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, waveVBOs[i+WAVE_PHASES]);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, wavetilenormals[i].size()*3*sizeof(float), &(wavetilenormals[i][0]), GL_STATIC_DRAW_ARB);
+	}
+*/
 }
 
 
@@ -383,6 +394,19 @@ void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillg
 	// VBOs won't help much, they're also seem to be buggy on a gf4mx.
 	// Reason: a gf2mx can handle at most 16384 triangles.
 	// A gf4mx may handle more, general limit is 65536.
+
+	// timing: calculation of vertex data ~ 1/3-1/4 compared to DrawElements()
+	// for a large tile DrawElements needs up to 6.2ms per call!
+	// (two of all tiles need ~6ms, some 4, some 2, most of them need less time)
+	// speedups: 1) draw only visible tiles (~1/4 of them can be seen)
+	// 2) use vertex programs.
+	// data per tile (max): 65*65*((3+3)*4+4) (3xcoord,3xtexc,1xcolor4)
+	// = 4225 * 28 = 118300 = ~115.5kb, in 6222us -> ~18.13mb/sec.
+	// even if you assume some overhead, 18mb/sec is VERY slow.
+	// and this is why water display is so horribly slow.
+	// if we wouldn't need to modify 3d data (make adjacent tiles with index manipulation only)
+	// we could store coords and normals in gpu memory (~24mb for all 256frames or store it
+	// once per frame) and upload only the color values (1/7 of space).
 
 	unsigned res = (2 << lodlevel);
 	unsigned resi = res+1;

@@ -297,6 +297,9 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	// copy viewport pixel data to reflection texture
 	glBindTexture(GL_TEXTURE_2D, mywater->get_reflectiontex());
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, vps, vps, 0);
+	
+	// the terrain is too dark. maybe this is because the normals are flipped ?
+	// i.e. light source position is const while geometry is flipped - wrong.
 
 /*
 	vector<Uint8> scrn(vps*vps*3);
