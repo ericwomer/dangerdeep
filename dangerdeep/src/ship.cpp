@@ -626,7 +626,7 @@ int ship::fire_shell_at(game& gm, const sea_object& s)
 	//	to do that, we need to know where the last shot impacted!
 
 	map<double, double>::iterator it = dist_angle_relation.lower_bound(distance);
-	if (it == dist_angle_relation.end()) return;	// unsuccesful angle, fixme
+	if (it == dist_angle_relation.end()) return TARGET_OUT_OF_RANGE;	// unsuccesful angle, fixme
 	angle elevation = angle(it->second);
 
 	// fixme: for a smart ai: try to avoid firing at friendly ships that are in line
