@@ -4,8 +4,14 @@
 #ifndef BINSTREAM_H
 #define BINSTREAM_H
 
+#ifdef WIN32
+#include <SDL_types.h>
+#include <SDL_endian.h>
+#define for if(0);else for
+#else
 #include <SDL/SDL_types.h>
 #include <SDL/SDL_endian.h>
+#endif
 #include <iostream>
 #include <string>
 using namespace std;

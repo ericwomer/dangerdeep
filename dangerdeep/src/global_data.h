@@ -16,6 +16,12 @@
 using namespace std;
 #include "date.h"
 
+#define TEXTURE_DIR "textures/"
+#define FONT_DIR "fonts/"
+#define MODEL_DIR "models/"
+#define SOUND_DIR "sounds/"
+#define IMAGES_DIR "images/"
+
 #define GRAVITY 9.806	// a very global constant
 #define NR_CLOUD_TEXTURES 2
 

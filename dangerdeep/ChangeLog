@@ -1,3 +1,10 @@
+2003-10-21  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* model.h model.cpp
+	  - changed model format from mdl to 3ds
+	    now you can load 3ds models directly, with more than one
+	    texture per model
+	  - converted all models to new format
+
 2003-08-08  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* ai.cpp
 	  - made gun shell shooting with aiming.

@@ -286,7 +286,7 @@ void draw_vessel(void)
 	glRotatef(-80, 1, 0, 0);
 	glRotatef(vessel_zangle, 0, 0, 1);
 	glRotatef(vessel_xangle, 1, 0, 0);
-	double sc = 2.0/vector2(vessel->get_length(), vessel->get_width()).length();
+	double sc = 3.0/(vessel->get_model()->get_boundbox_size().length());
 	glScalef(sc, sc, sc);
 	glColor3f(0, 0, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);

@@ -14,12 +14,6 @@
 #include <SDL/SDL_image.h>
 #endif
 
-#define TEXTURE_DIR "textures/"
-#define FONT_DIR "fonts/"
-#define MODEL_DIR "models/"
-#define SOUND_DIR "sounds/"
-#define IMAGES_DIR "images/"
-
 // fixme: this could be replaced with an array of pointers using enum-names
 // as indices. This would simplify destruction and possibly construction.
 
@@ -50,30 +44,30 @@ image *titlebackgr, *periscope, *threesubsimg, *damage_screen_background, *sub_d
 
 void init_global_data(void)
 {
-	skyhemisphere = new model((get_data_dir() + MODEL_DIR + "skyhemisphere.mdl"));
+	skyhemisphere = new model((get_data_dir() + MODEL_DIR + "skyhemisphere.3ds"));
 	water = new texture((get_data_dir() + TEXTURE_DIR + "water.png"), 1, false);
 	background = new texture((get_data_dir() + TEXTURE_DIR + "background.png"), 1, false);
-	merchant_large = new model((get_data_dir() + MODEL_DIR + "largemerchant.mdl"));
-	merchant_medium = new model((get_data_dir() + MODEL_DIR + "mediummerchant.mdl"));
-	merchant_small = new model((get_data_dir() + MODEL_DIR + "smallmerchant.mdl"));
-	troopship_medium = new model((get_data_dir() + MODEL_DIR + "troopship1.mdl"));
-	battleship_malaya = new model((get_data_dir() + MODEL_DIR + "battleship_malaya.mdl"));
-	carrier_bogue = new model((get_data_dir() + MODEL_DIR + "carrier_bogue.mdl"));
-	subVII = new model((get_data_dir() + MODEL_DIR + "subVII.mdl"));
-	subIXc40 = new model((get_data_dir() + MODEL_DIR + "subIXc40.mdl"));
-	subXXI = new model((get_data_dir() + MODEL_DIR + "subXXI.mdl"));
-	destroyer_tribal = new model((get_data_dir() + MODEL_DIR + "destroyer1.mdl"));
-	corvette_mdl = new model((get_data_dir() + MODEL_DIR + "corvette.mdl"));
-	freighter_large = new model((get_data_dir() + MODEL_DIR + "largefreighter.mdl"));
-	freighter_medium = new model((get_data_dir() + MODEL_DIR + "mediumfreighter.mdl"));
-	tanker_small = new model((get_data_dir() + MODEL_DIR + "smalltanker.mdl"));
-	conning_tower_typeVII = new model((get_data_dir() + MODEL_DIR + "conning_tower_typeVII.mdl"));
+	merchant_large = new model((get_data_dir() + MODEL_DIR + "large_merchant.3ds"));
+	merchant_medium = new model((get_data_dir() + MODEL_DIR + "medium_merchant.3ds"));
+	merchant_small = new model((get_data_dir() + MODEL_DIR + "small_merchant.3ds"));
+	troopship_medium = new model((get_data_dir() + MODEL_DIR + "medium_troopship.3ds"));
+	battleship_malaya = new model((get_data_dir() + MODEL_DIR + "battleship_malaya.3ds"));
+	carrier_bogue = new model((get_data_dir() + MODEL_DIR + "carrier_bogue.3ds"));
+	subVII = new model((get_data_dir() + MODEL_DIR + "submarine_VIIc.3ds"));
+	subIXc40 = new model((get_data_dir() + MODEL_DIR + "submarine_IXc40.3ds"));
+	subXXI = new model((get_data_dir() + MODEL_DIR + "submarine_XXI.3ds"));
+	destroyer_tribal = new model((get_data_dir() + MODEL_DIR + "destroyer_tribal.3ds"));
+	corvette_mdl = new model((get_data_dir() + MODEL_DIR + "corvette.3ds"));
+	freighter_large = new model((get_data_dir() + MODEL_DIR + "large_freighter.3ds"));
+	freighter_medium = new model((get_data_dir() + MODEL_DIR + "medium_freighter.3ds"));
+	tanker_small = new model((get_data_dir() + MODEL_DIR + "small_tanker.3ds"));
+	conning_tower_typeVII = new model((get_data_dir() + MODEL_DIR + "conning_tower_typeVIIc.3ds"));
 	font_arial = new font(get_data_dir() + FONT_DIR + "font_arial.png");
 	font_panel = new font(get_data_dir() + FONT_DIR + "font_panel.png");
 	font_nimbusrom = new font(get_data_dir() + FONT_DIR + "font_nimbusrom.png");
-	torpedo_g7 = new model((get_data_dir() + MODEL_DIR + "torpedo.mdl"));
-	depth_charge_mdl = new model((get_data_dir() + MODEL_DIR + "depth_charge.mdl"));
-	gun_shell_mdl = new model((get_data_dir() + MODEL_DIR + "gun_shell.mdl"));
+	torpedo_g7 = new model((get_data_dir() + MODEL_DIR + "torpedo_g7.3ds"));
+	depth_charge_mdl = new model((get_data_dir() + MODEL_DIR + "depth_charge.3ds"));
+	gun_shell_mdl = new model((get_data_dir() + MODEL_DIR + "gun_shell.3ds"));
 	titlebackgr = new image((get_data_dir() + IMAGES_DIR + "titlebackgr.jpg"));
 	periscope = new image((get_data_dir() + TEXTURE_DIR + "periscope.png"));
 	gauge1 = new texture((get_data_dir() + TEXTURE_DIR + "gauge1.png"));

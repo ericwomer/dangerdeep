@@ -1,270 +1,89 @@
-// A 3d model (C) 2001 Thorsten Jordan
+// A 3d model
+// (C)+(W) by Thorsten Jordan. See LICENSE
 
 #include "model.h"
 #include "system.h"
 #include "global_data.h"
-#include <GL/gl.h>
+#include "error.h"
 
 #ifdef WIN32
 #undef min
 #undef max
 #endif
 
-float model::read_packed_float(FILE* f)
-{
-	short s = 0;
-	fread(&s, 2, 1, f);
-	return float(s)/16384.0;
-}
+unsigned model::mapping = 0;
 
-void model::write_packed_float(FILE* f, float t)
+model::model(const string& filename)
 {
-	if (t < -2.0 || t >= 2.0) t = 0.0;
-	short s = short(t*16384.0);
-	fwrite(&s, 2, 1, f);
-}
-
-float model::read_quantified_float(FILE* f, double min, double max)
-{
-	unsigned short u;
-	fread(&u, 2, 1, f);
-	return double(u)*(max - min)/65535.0 + min;
-}
-
-void model::write_quantified_float(FILE* f, float t, double min, double max)
-{
-	unsigned short u = (unsigned short)((t - min)*65535.0/(max - min));
-	fwrite(&u, 2, 1, f);
-}
-
-model::model(const string& filename) : tex(0)
-{
-	read(filename);
-}
-
-void model::read(const string& filename)
-{
-	vertices.clear();
-	faces.clear();
-	FILE* f = fopen(filename.c_str(), "rb");
-	system::sys()->myassert(f != 0, string("model: failed to open")+filename);
-	char tmp[16];
-	fread(tmp, 16, 1, f);
-	system::sys()->myassert(memcmp("TJ___MODELFILE00", tmp, 16) == 0,
-		string("model: file has no legal model header")+filename);
+	// fixme: determine loader by extension here. currently only 3ds supported
+	m3ds_load(filename);
 	
-	unsigned tns = 0;
-	fread(&tns, 2, 1, f);
-	string texname;
-	if (tns > 0) {
-		texname.resize(tns, ' ');
-		fread(&texname[0], tns, 1, f);
-	}
-	texmapping = 0;
-	fread(&texmapping, 1, 1, f);
-	clamp = ((texmapping & 0x80) == 0);
-	texmapping = texmapping & 0x7f;
-	if (texname != "")
-		tex = new texture(get_data_dir() + "textures/" + texname, texmapping, clamp);
-	else
-		tex = 0;
-
-	unsigned nrv = 0, nrf = 0;
-	fread(&nrv, 4, 1, f);
-	fread(&nrf, 4, 1, f);
-	vertices.reserve(nrv);
-	faces.reserve(nrf);
-	float tmpf[3];
-	fread(tmpf, sizeof(float), 3, f);
-	min.x = tmpf[0];
-	min.y = tmpf[1];
-	min.z = tmpf[2];
-	fread(tmpf, sizeof(float), 3, f);
-	max.x = tmpf[0];
-	max.y = tmpf[1];
-	max.z = tmpf[2];
-	int indexsize = (nrf < 256) ? 1 : ((nrf < 65536) ? 2 : ((nrf < 16777216) ? 3 : 4 ));
-	for ( ; nrv > 0; --nrv) {
-		float px = read_quantified_float(f, min.x, max.x);
-		float py = read_quantified_float(f, min.y, max.y);
-		float pz = read_quantified_float(f, min.z, max.z);
-		float nx = read_packed_float(f);
-		float ny = read_packed_float(f);
-		float nz = read_packed_float(f);
-		float u = read_packed_float(f);
-		float v = read_packed_float(f);
-		vertices.push_back(vertex(vector2f(u, v), vector3f(nx, ny, nz), vector3f(px, py, pz)));
-	}
-	for ( ; nrf > 0; --nrf) {
-		unsigned v0 = 0, v1 = 0, v2 = 0;
-		fread(&v0, indexsize, 1, f);
-		fread(&v1, indexsize, 1, f);
-		fread(&v2, indexsize, 1, f);
-		faces.push_back(face(v0, v1, v2));
-	}
-	fclose(f);
-	class system* s = system::sys();	// needed for double use via off2mdl
-	if (s) s->add_console(string("read model file ")+filename);
+	compute_bounds();
+	compute_normals();
 }
 
-void model::read_from_OFF(const string& filename, const string& texture_name, unsigned mapping,
-	bool swap_normals, unsigned tilesx, unsigned tilesy, bool mapxy)
+model::~model()
 {
-	double TILESX = tilesx;
-	double TILESY = tilesy;
-	texmapping = mapping;
-	clamp = (tilesx == 1 && tilesy == 1);
-	max = vector3f(-1e10, -1e10, -1e10);
-	min = vector3f(1e10, 1e10, 1e10);
-	int nr_vertices = 0, nr_faces = 0;
-	FILE *f = fopen(filename.c_str(), "rb");
-	system::sys()->myassert(f != 0, string("model: failed to open")+filename);
-	int i, j;
-	char header[5];
-	fread(header, 1, 5, f);
-	system::sys()->myassert(header[0]=='O'&&header[1]=='F'&&header[2]=='F', string("model: failed to open OFF")+filename);
-	bool withuv=false;
-	if(header[3]=='U'&&header[4]=='V')
-		withuv=true;
-	else
-		system::sys()->myassert(header[3]=='\n', string("model: no OFF header")+filename);
-	rewind(f);
-	if (withuv)
-		fscanf(f, "OFFUV\n%i %i %i\n", &nr_vertices, &nr_faces, &i);
-	else
-		fscanf(f, "OFF\n%i %i %i\n", &nr_vertices, &nr_faces, &i);
-	vertices.reserve(nr_vertices);
-	faces.reserve(nr_faces);
-	for (i = 0; i < nr_vertices; i++) {
-		float a, b, c, d = 0, e = 0;
-		if (withuv)
-			fscanf(f, "%f %f %f %f %f\n", &a, &b, &c, &d, &e);
-		else
-			fscanf(f, "%f %f %f\n", &a, &b, &c);
-		vector3f abc(a,b,c);
-		vertices.push_back(vertex(vector2f(d, e), vector3f(), abc));
-		min = abc.min(min);
-		max = abc.max(max);
-	}
-	vector3f deltamaxmin = max - min;
-	// vector3f center = max * 0.5 + min * 0.5; Unused variable
-	if (!withuv) {
-		if (mapxy) {	// use x coordinates vertical and y horizontal
-			for (i = 0; i < nr_vertices; i++) {
-				vertices[i].uv.x = TILESX*(vertices[i].pos.y - min.y)/deltamaxmin.y;
-				vertices[i].uv.y = TILESY*(1.0 - (vertices[i].pos.x - min.x)/deltamaxmin.x);
-			}
-		} else {	// use z coordinates vertical and y horizontal
-			for (i = 0; i < nr_vertices; i++) {
-				vertices[i].uv.x = TILESX*(vertices[i].pos.y - min.y)/deltamaxmin.y;
-				vertices[i].uv.y = TILESY*(1.0 - (vertices[i].pos.z - min.z)/deltamaxmin.z);
-			}
+	for (vector<model::material*>::iterator it = materials.begin(); it != materials.end(); ++it)
+		delete *it;
+}
+
+void model::compute_bounds(void)
+{
+	if (meshes.size() == 0) return;
+	min = max = meshes[0].vertices[0].pos;
+
+	for (vector<model::mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
+		for (vector<model::mesh::vertex>::iterator it2 = it->vertices.begin(); it2 != it->vertices.end(); ++it2) {
+			min = it2->pos.min(min);
+			max = it2->pos.max(max);
 		}
 	}
-	for (i = 0; i < nr_faces; i++) {
-		unsigned fv0, fv1, fv2;
-		fscanf(f, "%i %i %i %i\n", &j, &fv0, &fv1, &fv2);
-		if (swap_normals) {
-			unsigned tmp = fv1; fv1 = fv2; fv2 = tmp;
-		}
-		faces.push_back(face(fv0, fv1, fv2));
-		system::sys()->myassert(j==3, string("model: face has != 3 edges")+filename);
-		// calculate face normal.
-		const vector3f& v0 = vertices[faces[i].v[0]].pos;
-		const vector3f& v1 = vertices[faces[i].v[1]].pos;
-		const vector3f& v2 = vertices[faces[i].v[2]].pos;
-		vector3f face_normal = (v1-v0).orthogonal(v2-v0).normal();
-		vertices[faces[i].v[0]].normal += face_normal;
-		vertices[faces[i].v[1]].normal += face_normal;
-		vertices[faces[i].v[2]].normal += face_normal;
-	}
-	// calculate vertex normals
-	for (i = 0; i < nr_vertices; i++) {
-		vertices[i].normal.normalize();
-	}
-	fclose(f);
-	
-	if (texture_name == "")
-		tex = 0;
-	else
-		tex = new texture(texture_name, mapping, clamp);
 }
-		
-void model::write(const string& filename) const
+
+void model::compute_normals(void)
 {
-	FILE* f = fopen(filename.c_str(), "wb");
-	system::sys()->myassert(f != 0, string("model: failed to open")+filename);
-	fwrite("TJ___MODELFILE00", 16, 1, f);
-	if (tex) {
-		string texname = tex->get_name();
-		unsigned tns = texname.size();
-		fwrite(&tns, 2, 1, f);
-		fwrite(&(texname[0]), tns, 1, f);
+	for (vector<model::mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
+		for (vector<model::mesh::vertex>::iterator it2 = it->vertices.begin(); it2 != it->vertices.end(); ++it2)
+			it2->normal = vector3f();
+		for (vector<model::mesh::face>::iterator it2 = it->faces.begin(); it2 != it->faces.end(); ++it2) {
+			const vector3f& v0 = it->vertices[it2->v[0]].pos;
+			const vector3f& v1 = it->vertices[it2->v[1]].pos;
+			const vector3f& v2 = it->vertices[it2->v[2]].pos;
+			vector3f face_normal = (v1-v0).orthogonal(v2-v0).normal();
+			it->vertices[it2->v[0]].normal += face_normal;
+			it->vertices[it2->v[1]].normal += face_normal;
+			it->vertices[it2->v[2]].normal += face_normal;
+		}
+		for (vector<model::mesh::vertex>::iterator it2 = it->vertices.begin(); it2 != it->vertices.end(); ++it2)
+			it2->normal.normalize();
+	}
+}
+
+void model::material::init(void)
+{
+	delete mytexture;
+	mytexture = 0;
+	if (filename.length() > 0)
+		mytexture = new texture(get_data_dir() + MODEL_DIR + filename, model::mapping, false, false);
+}
+
+void model::material::set_gl_values(void) const
+{
+	if (mytexture != 0) {
+		mytexture->set_gl_texture();
+		glColor3f(1, 1, 1);
 	} else {
-		unsigned tns = 0;
-		fwrite(&tns, 2, 1, f);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		col.set_gl_color();
 	}
-	unsigned txm = texmapping;
-	if (!clamp) txm |= 0x80;
-	fwrite(&txm, 1, 1, f);
-	unsigned nrv = vertices.size(), nrf = faces.size();
-	fwrite(&nrv, 4, 1, f);
-	fwrite(&nrf, 4, 1, f);
-	float tmpf[3];
-	tmpf[0] = min.x;
-	tmpf[1] = min.y;
-	tmpf[2] = min.z;
-	fwrite(&tmpf, sizeof(float), 3, f);
-	tmpf[0] = max.x;
-	tmpf[1] = max.y;
-	tmpf[2] = max.z;
-	fwrite(&tmpf, sizeof(float), 3, f);
-	int indexsize = (nrf < 256) ? 1 : ((nrf < 65536) ? 2 : ((nrf < 16777216) ? 3 : 4 ));
-	for (unsigned i = 0; i < nrv; ++i) {
-		write_quantified_float(f, vertices[i].pos.x, min.x, max.x);
-		write_quantified_float(f, vertices[i].pos.y, min.y, max.y);
-		write_quantified_float(f, vertices[i].pos.z, min.z, max.z);
-		write_packed_float(f, vertices[i].normal.x);
-		write_packed_float(f, vertices[i].normal.y);
-		write_packed_float(f, vertices[i].normal.z);
-		write_packed_float(f, vertices[i].uv.x);
-		write_packed_float(f, vertices[i].uv.y);
-	}
-	for (unsigned i = 0; i < nrf; ++i) {
-		fwrite(&(faces[i].v[0]), indexsize, 1, f);
-		fwrite(&(faces[i].v[1]), indexsize, 1, f);
-		fwrite(&(faces[i].v[2]), indexsize, 1, f);
-	}
-	fclose(f);
 }
-		
-void model::display(bool with_texture) const
+
+void model::mesh::display(void) const
 {
 	// further speedup with display lists possible or sensible?
-	if (with_texture && tex != 0)
-		glBindTexture(GL_TEXTURE_2D, tex->get_opengl_name());
-	else
-		glBindTexture(GL_TEXTURE_2D, 0);
+	mymaterial->set_gl_values();
 
-#if 0	// old drawing code. doesn't fix win32 model display bug.
-	glBegin(GL_TRIANGLES);
-	for (unsigned i = 0; i < faces.size(); ++i) {
-		const face& f = faces[i];
-		const vertex& v0 = vertices[f.v[0]];
-		const vertex& v1 = vertices[f.v[1]];
-		const vertex& v2 = vertices[f.v[2]];
-		glTexCoord2f(v0.uv.x, v0.uv.y);
-		glNormal3f(v0.normal.x, v0.normal.y, v0.normal.z);
-		glVertex3f(v0.pos.x, v0.pos.y, v0.pos.z);
-		glTexCoord2f(v1.uv.x, v1.uv.y);
-		glNormal3f(v1.normal.x, v1.normal.y, v1.normal.z);
-		glVertex3f(v1.pos.x, v1.pos.y, v1.pos.z);
-		glTexCoord2f(v2.uv.x, v2.uv.y);
-		glNormal3f(v2.normal.x, v2.normal.y, v2.normal.z);
-		glVertex3f(v2.pos.x, v2.pos.y, v2.pos.z);
-	}
-	glEnd();
-#else	
 	glInterleavedArrays(GL_T2F_N3F_V3F, 0, &vertices[0]);
 
 	glDrawElements(GL_TRIANGLES, faces.size()*3, GL_UNSIGNED_INT, &faces[0]);
@@ -273,20 +92,287 @@ void model::display(bool with_texture) const
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
-#endif	
 }
 
-void model::scale(float s)
+void model::display(void) const
 {
-	for (unsigned i = 0; i < vertices.size(); ++i) {
-		vertices[i].pos.x *= s;
-		vertices[i].pos.y *= s;
-		vertices[i].pos.z *= s;
-	}
-	min.x *= s;
-	min.y *= s;
-	min.z *= s;
-	max.x *= s;
-	max.y *= s;
-	max.z *= s;
+	for (vector<model::mesh>::const_iterator it = meshes.begin(); it != meshes.end(); ++it)
+		it->display();
 }
+
+// ------------------------------------------ 3ds loading functions -------------------------- 
+// ----------------------------- 3ds file reading data ---------------------------
+// taken from a NeHe tutorial (nehe.gamedev.net)
+// intendations describe the tree structure
+#define M3DS_MAIN3DS	   	0x4D4D
+	#define M3DS_EDIT3DS		0x3D3D
+		#define M3DS_EDIT_MATERIAL	0xAFFF
+			#define M3DS_MATNAME	   	0xA000
+			#define M3DS_MATDIFFUSE		0xA020
+			#define M3DS_MATMAP		0xA200
+			#define M3DS_MATMAPFILE		0xA300
+		#define M3DS_EDIT_OBJECT	0x4000
+			#define M3DS_OBJ_TRIMESH   	0x4100
+				#define M3DS_TRI_VERTEXL	0x4110
+				#define M3DS_TRI_FACEL1		0x4120
+					#define M3DS_TRI_MATERIAL	0x4130
+				#define M3DS_TRI_MAPPINGCOORDS	0x4140
+	#define M3DS_VERSION		0x0002
+	#define M3DS_KEYF3DS		0xB000
+// ----------------------------- end of 3ds file reading data ----------------------
+
+void model::m3ds_load(const string& fn)
+{
+	ifstream in(fn.c_str(), ios::in | ios::binary);
+	m3ds_chunk head = m3ds_read_chunk(in);
+	if (head.id != M3DS_MAIN3DS)
+		system::sys()->myassert(false, string("[model::load_m3ds] Unable to load PRIMARY chuck from file \"")+fn+string("\""));
+	m3ds_process_toplevel_chunks(in, head);
+	head.skip(in);
+}
+
+void model::m3ds_chunk::skip(istream& in)
+{
+	if (length > bytes_read) {
+		unsigned n = length - bytes_read;
+		vector<char> x(n);
+		in.read(&x[0], n);
+	}
+}
+
+void model::m3ds_process_toplevel_chunks(istream& in, m3ds_chunk& parent)
+{
+	unsigned version;
+	
+	while (!parent.fully_read()) {
+		m3ds_chunk ch = m3ds_read_chunk(in);
+//printf("toplevel read chunk id %x\n",ch.id);		
+		switch (ch.id) {
+			case M3DS_VERSION:
+				version = read_u16(in);
+				ch.bytes_read += 2;
+				// version should be <= 0x03 or else give a warning
+				// If the file version is over 3, give a warning that there could be a problem
+				if (version > 0x03)
+					cout << "warning: 3ds file version is > 0x03\n";
+				break;
+			case M3DS_EDIT3DS:
+				m3ds_process_model_chunks(in, ch);
+				break;
+			case M3DS_KEYF3DS:	// just ignore
+			default:
+				break;
+		}
+		ch.skip(in);
+		parent.bytes_read += ch.length;
+	}
+}
+
+void model::m3ds_process_model_chunks(istream& in, m3ds_chunk& parent)
+{
+	while (!parent.fully_read()) {
+		m3ds_chunk ch = m3ds_read_chunk(in);
+//printf("modellevel read chunk id %x\n",ch.id);		
+		switch (ch.id) {
+			case M3DS_EDIT_MATERIAL:
+				m3ds_process_material_chunks(in, ch);
+				break;
+			case M3DS_EDIT_OBJECT:
+				m3ds_read_string(in, ch);	// read (and ignore) name
+				m3ds_process_object_chunks(in, ch);
+				break;
+		}
+		ch.skip(in);
+		parent.bytes_read += ch.length;
+	}
+}
+
+void model::m3ds_process_object_chunks(istream& in, m3ds_chunk& parent)
+{
+	while (!parent.fully_read()) {
+		m3ds_chunk ch = m3ds_read_chunk(in);
+//printf("objectlevel read chunk id %x\n",ch.id);		
+		switch (ch.id) {
+			case M3DS_OBJ_TRIMESH:
+				m3ds_process_trimesh_chunks(in, ch);
+				break;
+		}
+		ch.skip(in);
+		parent.bytes_read += ch.length;
+	}
+}
+
+void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent)
+{
+	meshes.push_back(mesh());
+	while (!parent.fully_read()) {
+		m3ds_chunk ch = m3ds_read_chunk(in);
+//printf("trimeshlevel read chunk id %x\n",ch.id);		
+		switch (ch.id) {
+			case M3DS_TRI_VERTEXL:
+				m3ds_read_vertices(in, ch, meshes.back());
+				break;
+			case M3DS_TRI_FACEL1:
+				m3ds_read_faces(in, ch, meshes.back());
+				m3ds_process_face_chunks(in, ch, meshes.back());
+				break;
+			case M3DS_TRI_MAPPINGCOORDS:
+				m3ds_read_uv_coords(in, ch, meshes.back());
+				break;
+		}
+		ch.skip(in);
+		parent.bytes_read += ch.length;
+	}
+}
+
+void model::m3ds_process_face_chunks(istream& in, m3ds_chunk& parent, model::mesh& m)
+{
+	while (!parent.fully_read()) {
+		m3ds_chunk ch = m3ds_read_chunk(in);
+//printf("facelevel read chunk id %x\n",ch.id);		
+		switch (ch.id) {
+			case M3DS_TRI_MATERIAL:
+				m3ds_read_material(in, ch, m);
+				break;
+		}
+		ch.skip(in);
+		parent.bytes_read += ch.length;
+	}
+}
+
+void model::m3ds_process_material_chunks(istream& in, m3ds_chunk& parent)
+{
+	material* m = new material();
+	while (!parent.fully_read()) {
+		m3ds_chunk ch = m3ds_read_chunk(in);
+//printf("materiallevel read chunk id %x\n",ch.id);		
+		switch (ch.id) {
+			case M3DS_MATNAME:
+				m->name = m3ds_read_string(in, ch);
+				break;
+			case M3DS_MATDIFFUSE:
+				m3ds_read_color_chunk(in, ch, m);
+				break;
+			case M3DS_MATMAP:
+				m3ds_process_materialmap_chunks(in, ch, m);
+				break;
+			case M3DS_MATMAPFILE:
+				m->filename = m3ds_read_string(in, ch);
+				break;
+		}
+		ch.skip(in);
+		parent.bytes_read += ch.length;
+	}
+//cout << "material " << m->name << "," << m->filename << "\n";
+	m->init();
+	materials.push_back(m);
+}
+
+void model::m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, model::material* m)
+{
+	while (!parent.fully_read()) {
+		m3ds_chunk ch = m3ds_read_chunk(in);
+//printf("materialmaplevel read chunk id %x\n",ch.id);		
+		switch (ch.id) {
+			case M3DS_MATMAPFILE:
+				m->filename = m3ds_read_string(in, ch);
+				break;
+		}
+		ch.skip(in);
+		parent.bytes_read += ch.length;
+	}
+}
+
+model::m3ds_chunk model::m3ds_read_chunk(istream& in)
+{
+	m3ds_chunk c;
+	c.id = read_u16(in);
+	c.length = read_u32(in);
+	c.bytes_read = 6;
+	return c;
+}
+
+string model::m3ds_read_string(istream& in, m3ds_chunk& ch)
+{
+	Uint8 c;
+	string s;
+	while (true) {
+		c = read_u8(in);
+		c = tolower(c);
+		++ch.bytes_read;
+		if (c == 0) break;
+		s += c;
+	}
+	return s;
+}
+
+void model::m3ds_read_color_chunk(istream& in, m3ds_chunk& parent, model::material* m)
+{
+	m3ds_chunk ch = m3ds_read_chunk(in);
+	m->col.r = read_u8(in);
+	m->col.g = read_u8(in);
+	m->col.b = read_u8(in);
+	ch.bytes_read += 3;
+	ch.skip(in);
+	parent.bytes_read += ch.length;
+}
+
+void model::m3ds_read_faces(istream& in, m3ds_chunk& ch, model::mesh& m)
+{
+	unsigned nr_faces = read_u16(in);
+	ch.bytes_read += 2;
+
+	m.faces.clear();	
+	m.faces.reserve(nr_faces);
+	for (unsigned n = 0; n < nr_faces; ++n) {
+		unsigned a = read_u16(in);
+		unsigned b = read_u16(in);
+		unsigned c = read_u16(in);
+		m.faces.push_back(model::mesh::face(a, b, c));
+		read_u16(in);	// ignore 4th value
+	}
+	ch.bytes_read += nr_faces * 4 * 2;
+}
+
+void model::m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, model::mesh& m)
+{
+	unsigned nr_uv_coords = read_u16(in);
+	ch.bytes_read += 2;
+
+	system::sys()->myassert(nr_uv_coords == m.vertices.size(), "number of texture coordinates doesn't match number of vertices");
+		
+	for (unsigned n = 0; n < nr_uv_coords; ++n) {
+		m.vertices[n].uv.x = read_float(in);
+		m.vertices[n].uv.y = 1.0-read_float(in);
+	}
+	ch.bytes_read += nr_uv_coords * 2 * 4;
+}
+
+void model::m3ds_read_vertices(istream& in, m3ds_chunk& ch, model::mesh& m)
+{
+	unsigned nr_verts = read_u16(in);
+	ch.bytes_read += 2;
+	
+	m.vertices.resize(nr_verts);
+	for (unsigned n = 0; n < nr_verts; ++n) {
+		m.vertices[n].pos.x = read_float(in);
+		m.vertices[n].pos.y = read_float(in);	// swap y,z and negate z to match OpenGL's coordinate system
+		m.vertices[n].pos.z = read_float(in);
+	}
+	ch.bytes_read += nr_verts * 3 * 4;
+}
+
+void model::m3ds_read_material(istream& in, m3ds_chunk& ch, model::mesh& m)
+{
+	string matname = m3ds_read_string(in, ch);
+
+	for (vector<model::material*>::iterator it = materials.begin(); it != materials.end(); ++it) {
+		if ((*it)->name == matname) {
+			m.mymaterial = *it;
+			return;
+		}
+	}
+	system::sys()->myassert(false, "object has unknown material");
+}		   
+
+// -------------------------------- end of 3ds loading functions -----------------------------------

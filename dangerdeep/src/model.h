@@ -1,4 +1,5 @@
-// A 3d model (C) Thorsten Jordan
+// A 3d model
+// (C)+(W) by Thorsten Jordan. See LICENSE
 
 #ifndef MODEL_H
 #define MODEL_H
@@ -7,62 +8,100 @@
 #include "texture.h"
 #include "color.h"
 #include <vector>
+#include <fstream>
 using namespace std;
 
-class model	// fixme: this is a single textured mesh.
-		// rename it to mesh and create model class that can
-		// contain a vector/list of meshes (for improved models)
-{
-public:
-	// the elements of this struct must be packed (use gcc -fpack-struct?)
-	// so that OpenGl interleaved arrays can be used.
-	// this struct is 32 bytes in size (2+3+3)*2 so it it already "packed"
-	struct vertex {
-		vector2f uv;
-		vector3f normal;
-		vector3f pos;
-		vertex() {}
-		~vertex() {}
-		vertex(const vector2f& t, const vector3f& n, const vector3f& p) : uv(t), normal(n), pos(p) {}
-		vertex(const vertex& o) : uv(o.uv), normal(o.normal), pos(o.pos) {}
-		vertex& operator= (const vertex& o) { uv = o.uv; normal = o.normal; pos = o.pos; return *this; }
-	};
-	struct face {
-		unsigned v[3];
-		face(unsigned a, unsigned b, unsigned c) { v[0] = a; v[1] = b; v[2] = c; }
-	};
-protected:
-	vector<vertex> vertices;
-	vector<face> faces;
-	texture* tex;
-	// write floats in [-2,...2) to a short int
-	static float read_packed_float(FILE* f);
-	static void write_packed_float(FILE* f, float t);
-	static float read_quantified_float(FILE* f, double min, double max);
-	static void write_quantified_float(FILE* f, float t, double min, double max);
-	vector3f min, max;
-	unsigned texmapping;	// which mapping to use (nearest, bilinear, mipmap, trilinear)
-	bool clamp;		// clamp texture?
 
-	model(const model& other);
-	model& operator=(const model& other);
+
+class model {
+	class material {
+		material(const material& );
+		material& operator= (const material& );
+	public:
+		string name;
+		string filename;
+		color col;
+		texture* mytexture;
+		material() : mytexture(0) {}
+		void init(void);
+		~material() { delete mytexture; }
+		void set_gl_values(void) const;
+	};
+	
+	struct mesh {
+		struct vertex {
+			vector2f uv;
+			vector3f normal;
+			vector3f pos;
+			vertex() {}
+			~vertex() {}
+			vertex(const vector2f& t, const vector3f& n, const vector3f& p) : uv(t), normal(n), pos(p) {}
+			vertex(const vertex& o) : uv(o.uv), normal(o.normal), pos(o.pos) {}
+			vertex& operator= (const vertex& o) { uv = o.uv; normal = o.normal; pos = o.pos; return *this; }
+		};
+		struct face {
+			unsigned v[3];
+			face(unsigned a, unsigned b, unsigned c) { v[0] = a; v[1] = b; v[2] = c; }
+		};
+	
+		vector<vertex> vertices;
+		vector<face> faces;
+		material* mymaterial;
+		void display(void) const;
+
+		mesh(const mesh& m) : vertices(m.vertices), faces(m.faces), mymaterial(m.mymaterial) {}
+		mesh& operator= (const mesh& m) { vertices = m.vertices; faces = m.faces; mymaterial = m.mymaterial; return *this; }
+		mesh() : mymaterial(0) {}
+		~mesh() {}
+	};
+	
+	vector<material*> materials;
+	vector<mesh> meshes;
+
+	vector3f min, max;
+
+	void compute_bounds(void);	
+	void compute_normals(void);
+	
+	// ------------ 3ds loading functions ------------------
+	struct m3ds_chunk {
+		unsigned short id;
+		unsigned bytes_read;
+		unsigned length;
+		bool fully_read(void) const { return bytes_read >= length; }
+		void skip(istream& in);
+	};
+	void m3ds_load(const string& fn);
+	string m3ds_read_string(istream& in, m3ds_chunk& ch);
+	m3ds_chunk m3ds_read_chunk(istream& in);
+	string m3ds_read_string_from_rest_of_chunk(istream& in, m3ds_chunk& ch);
+	void m3ds_process_toplevel_chunks(istream& in, m3ds_chunk& parent);
+	void m3ds_process_model_chunks(istream& in, m3ds_chunk& parent);
+	void m3ds_process_object_chunks(istream& in, m3ds_chunk& parent);
+	void m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent);
+	void m3ds_process_face_chunks(istream& in, m3ds_chunk& parent, mesh& m);
+	void m3ds_process_material_chunks(istream& in, m3ds_chunk& parent);
+	void m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, material* m);
+	void m3ds_read_color_chunk(istream& in, m3ds_chunk& ch, material* m);
+	void m3ds_read_faces(istream& in, m3ds_chunk& ch, mesh& m);
+	void m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, mesh& m);
+	void m3ds_read_vertices(istream& in, m3ds_chunk& ch, mesh& m);
+	void m3ds_read_material(istream& in, m3ds_chunk& ch, mesh& m);
+	// ------------ end of 3ds loading functions ------------------
+	
+	model();
+	model(const model& );
+	model& operator= (const model& );
+
 public:
-	model() : tex(0), texmapping(0) {};
-	~model() { delete tex; };
+	static unsigned mapping;	// 0 nearest, 1 bilinear, 2 bilinear mipmap, 3 trilinear
 	model(const string& filename);
-	void read(const string& filename);
-	// fixme: read_from_ASC or similar would be useful (vrml?)
-	// use an empty texture name for textureless model
-	void read_from_OFF(const string& filename, const string& texture_name,
-		unsigned mapping = 0, bool swap_normals = false,
-		unsigned tilesx = 1, unsigned tilesy = 1, bool mapxy = false);
-	void write(const string& filename) const;
-	void display(bool with_texture = true) const;
+	~model();
+	void display(void) const;
 	double get_length(void) const { return (max - min).y; }
 	double get_width(void) const { return (max - min).x; }
 	double get_height(void) const { return (max - min).z; }
 	vector3f get_boundbox_size(void) const { return max-min; }
-	void scale(float s);	// scale model by f
-};
+};	
 
 #endif
