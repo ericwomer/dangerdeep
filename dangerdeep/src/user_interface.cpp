@@ -699,7 +699,7 @@ void user_interface::display_bridge(class system& sys, game& gm)
 	glLoadIdentity();
 
 	vector2 phd = player->get_heading().direction();
-	vector3 viewpos = player->get_pos() + vector3(0, 0, 6) + vector3(phd.x, phd.y, 0);//phd.xy0();
+	vector3 viewpos = player->get_pos() + vector3(0, 0, 6) + phd.xy0();
 	// no torpedoes, no DCs, with player
 	draw_view(sys, gm, viewpos, player->get_heading()+bearing, true, false);
 

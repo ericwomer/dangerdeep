@@ -45,7 +45,45 @@ class vector3t
 };
 
 template<class D2> inline vector3t<D2> operator* (const D2& scalar, const vector3t<D2>& v) { return v * scalar; }
-template<class D2> ostream& operator<< ( ostream& os, const vector3t<D2>& v );
+
+template<class D>
+bool vector3t<D>::solve(const vector3t<D> &o1, const vector3t<D> &o2, const vector3t<D> &o3, D &s1, D &s2, D &s3) const
+{
+	D det = // sarrus
+		o1.x*o2.y*o3.z - o1.x*o3.y*o2.z +
+		o2.x*o3.y*o1.z - o2.x*o1.y*o3.z +
+		o3.x*o1.y*o2.z - o3.x*o2.y*o1.z;
+	if (!det)
+		return false;
+
+	s1 = (	  (o2.y*o3.z - o2.z*o3.y)*x
+		+ (o2.z*o3.x - o2.x*o3.z)*y
+		+ (o2.x*o3.y - o2.y*o3.x)*z ) / det;
+
+	s2 = (	  (o1.z*o3.y - o1.y*o3.z)*x
+		+ (o1.x*o3.z - o1.z*o3.x)*y
+		+ (o1.y*o3.x - o1.x*o3.y)*z ) / det;
+
+	s3 = (	  (o1.y*o2.z - o1.z*o2.y)*x
+		+ (o1.z*o2.x - o1.x*o2.z)*y
+		+ (o1.x*o2.y - o1.y*o2.x)*z ) / det;
+	return true;
+}
+
+template<class D>
+vector3t<D> vector3t<D>::matrixmul(const vector3t<D>& c0, const vector3t<D>& c1, const vector3t<D>& c2) const
+{
+	return vector3t<D>(	c0.x * x + c1.x * y + c2.x * z,
+				c0.y * x + c1.y * y + c2.y * z,
+				c0.z * x + c1.z * y + c2.z * z);
+}
+
+template<class D>
+ostream& operator<< ( ostream& os, const vector3t<D>& v )
+{
+	os << "x=" << v.x << "; y=" << v.y << "; z=" << v.z;
+	return os;
+}
 
 typedef vector3t<double> vector3;
 typedef vector3t<float> vector3f;

@@ -36,21 +36,32 @@ class vector2t
 	D square_distance(const vector2t<D>& other) const { vector2t<D> n = *this - other; return n.square_length(); };
 	D distance(const vector2t<D>& other) const { vector2t<D> n = *this - other; return n.length(); };
 	D operator* (const vector2t<D>& other) const { return x * other.x + y * other.y; };
-	bool solve(const vector2t<D>& o1, const vector2t<D>& o2, D& s1, D& s2) const
-	{	// if this is referenced and I put this in the .cpp file, linking failes. why? fixme!!!
+	bool solve(const vector2t<D>& o1, const vector2t<D>& o2, D& s1, D& s2) const;
+	vector3t<D> xy0(void) const { return vector3t<D>(x, y, 0); }
+	template<class D2> friend ostream& operator<< ( ostream& os, const vector2t<D2>& v );
+	template<class E> void assign(const vector2t<E>& other) { x = D(other.x); y = D(other.y); }
+};
+
+template <class D>
+bool vector2t<D>::solve(const vector2t<D>& o1, const vector2t<D>& o2, D& s1, D& s2) const
+{
 	D det = o1.x*o2.y - o2.x*o1.y;
 	if (!det) return false;
 	s1 = (o2.y*x - o2.x*y) / det;
 	s2 = (o1.x*y - o1.y*x) / det;
 	return true;
-	}
-	vector3t<D> xy0(void) const;	// dito!
-	template<class D2> friend ostream& operator<< ( ostream& os, const vector2t<D2>& v );
-	template<class E> void assign(const vector2t<E>& other) { x = D(other.x); y = D(other.y); }
-};
+}
 
-template<class D2> inline vector2t<D2> operator* (const D2& scalar, const vector2t<D2>& v) { return v * scalar; }
-template<class D2> ostream& operator<< ( ostream& os, const vector2t<D2>& v );
+template<class D2> inline vector2t<D2> operator* (const D2& scalar, const vector2t<D2>& v)
+{
+	return v * scalar;
+}
+
+template<class D2> ostream& operator<< ( ostream& os, const vector2t<D2>& v )
+{
+	os << "x=" << v.x << "; y=" << v.y;
+	return os;
+}
 
 typedef vector2t<double> vector2;
 typedef vector2t<float> vector2f;
