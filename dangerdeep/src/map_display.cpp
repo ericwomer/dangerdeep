@@ -207,8 +207,6 @@ map_display::~map_display()
 
 void map_display::display(class game& gm) const
 {
-	class system& sys = system::sys();
-	
 	sea_object* player = gm.get_player ();
 	bool is_day_mode = gm.is_day_mode ();
 
@@ -222,7 +220,7 @@ void map_display::display(class game& gm) const
 
 	vector2 offset = player->get_pos().xy() + mapoffset;
 
-	sys.prepare_2d_drawing();
+	sys().prepare_2d_drawing();
 
 	float delta = MAPGRIDSIZE*mapzoom;
 	float sx = myfmod(512, delta)-myfmod(offset.x, MAPGRIDSIZE)*mapzoom;
@@ -349,7 +347,7 @@ void map_display::display(class game& gm) const
 	font_arial->print(0, 0, rwcoordss.str(), color::white(), true);
 
 	ui.draw_infopanel();
-	sys.unprepare_2d_drawing();
+	sys().unprepare_2d_drawing();
 
 }
 

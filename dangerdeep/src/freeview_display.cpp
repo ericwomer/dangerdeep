@@ -33,8 +33,8 @@ freeview_display::projection_data freeview_display::get_projection_data(game& gm
 	projection_data pd;
 	pd.x = 0;
 	pd.y = 0;
-	pd.w = system::sys().get_res_x();
-	pd.h = system::sys().get_res_y();
+	pd.w = sys().get_res_x();
+	pd.h = sys().get_res_y();
 	pd.fov_x = 70.0;
 	pd.near_z = 1.0;
 	pd.far_z = gm.get_max_view_distance();
@@ -69,9 +69,9 @@ void freeview_display::set_modelview_matrix(game& gm) const
 void freeview_display::post_display(game& gm) const
 {
 /*
-	system::sys().prepare_2d_drawing();
+	sys().prepare_2d_drawing();
 	ui.draw_infopanel(gm);
-	system::sys().unprepare_2d_drawing();
+	sys().unprepare_2d_drawing();
 */
 }
 
@@ -296,11 +296,11 @@ void freeview_display::draw_view(game& gm) const
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	// store the projection matrix
-	system::sys().gl_perspective_fovx(pd.fov_x * 1.0, 1.0 /*aspect*/, pd.near_z, pd.far_z);
+	sys().gl_perspective_fovx(pd.fov_x * 1.0, 1.0 /*aspect*/, pd.near_z, pd.far_z);
 	reflection_projmvmat = matrix4::get_gl(GL_PROJECTION_MATRIX) * matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	glLoadIdentity();
 	// set up projection matrix (new width/height of course) with a bit larger fov
-	system::sys().gl_perspective_fovx(pd.fov_x * 1.0, 1.0 /*aspect*/, pd.near_z, pd.far_z);
+	sys().gl_perspective_fovx(pd.fov_x * 1.0, 1.0 /*aspect*/, pd.near_z, pd.far_z);
 	// set up new viewport size s*s with s<=max_texure_size and s<=w,h of old viewport
 	unsigned vps = ui.get_water().get_reflectiontex_size();
 	glViewport(0, 0, vps, vps);
@@ -363,7 +363,7 @@ void freeview_display::draw_view(game& gm) const
 	glViewport(pd.x, pd.y, pd.w, pd.h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	system::sys().gl_perspective_fovx(pd.fov_x, double(pd.w)/double(pd.h), pd.near_z, pd.far_z);
+	sys().gl_perspective_fovx(pd.fov_x, double(pd.w)/double(pd.h), pd.near_z, pd.far_z);
 	glMatrixMode(GL_MODELVIEW);
 
 	//fixme: water reflections are brighter than the sky, so there must be a difference between sky drawing
@@ -426,7 +426,7 @@ void freeview_display::draw_view(game& gm) const
 //		glMatrixMode(GL_PROJECTION);
 //		glPushMatrix();
 //		glLoadIdentity();
-//		system::sys().gl_perspective_fovx (90.0, 4.0/3.0 /* fixme may change */, 0.5, 100.0);
+//		sys().gl_perspective_fovx (90.0, 4.0/3.0 /* fixme may change */, 0.5, 100.0);
 //		glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();
 		glTranslated(0, 0, 6);

@@ -29,6 +29,7 @@ inline string get_sound_dir(void) { return get_data_dir() + "sounds/"; }
 inline string get_image_dir(void) { return get_data_dir() + "images/"; }
 inline string get_mission_dir(void) { return get_data_dir() + "missions/"; }
 inline string get_map_dir(void) { return get_data_dir() + "maps/"; }
+inline string get_shader_dir(void) { return get_data_dir() + "shaders/"; }
 
 string XmlAttrib(class TiXmlElement* elem, const char* attrname);
 unsigned XmlAttribu(class TiXmlElement* elem, const char* attrname);

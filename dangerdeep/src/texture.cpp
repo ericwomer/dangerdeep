@@ -32,8 +32,8 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	height = th;
 
 //	not longer necessary because of automatic texture resize in update()	
-//	system::sys().myassert(tw <= get_max_size(), "texture: texture width too big");
-//	system::sys().myassert(th <= get_max_size(), "texture: texture height too big");
+//	sys().myassert(tw <= get_max_size(), "texture: texture width too big");
+//	sys().myassert(th <= get_max_size(), "texture: texture height too big");
 
 	glGenTextures(1, &opengl_name);
 	SDL_LockSurface(teximage);
@@ -43,9 +43,9 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	if (teximage->format->palette != 0) {
 		//old color table code, does not work
 		//glEnable(GL_COLOR_TABLE);
-		system::sys().myassert(bpp == 1, "texture: only 8bit palette files supported");
+		sys().myassert(bpp == 1, "texture: only 8bit palette files supported");
 		int ncol = teximage->format->palette->ncolors;
-		system::sys().myassert(ncol <= 256, "texture: max. 256 colors in palette supported");
+		sys().myassert(ncol <= 256, "texture: max. 256 colors in palette supported");
 		bool usealpha = (teximage->flags & SDL_SRCCOLORKEY);
 
 		format = usealpha ? GL_RGBA : GL_RGB;
@@ -104,7 +104,7 @@ texture::texture(const string& filename, int mapping_, int clamp, bool keep)
 	mapping = mapping_;
 	texfilename = filename;
 	SDL_Surface* teximage = IMG_Load(filename.c_str());
-	system::sys().myassert(teximage != 0, string("texture: failed to load ")+filename);
+	sys().myassert(teximage != 0, string("texture: failed to load ")+filename);
 	init(teximage, 0, 0, teximage->w, teximage->h, clamp, keep);
 	SDL_FreeSurface(teximage);
 }	
@@ -197,7 +197,7 @@ unsigned texture::get_bpp(void) const
 		case GL_LUMINANCE_ALPHA: return 2;
 		default:
 			ostringstream oss; oss << "unknown texture format " << format << "\n";
-			system::sys().myassert(false, oss.str());
+			sys().myassert(false, oss.str());
 	}
 	return 4;
 }
@@ -328,4 +328,53 @@ unsigned texture::get_max_size(void)
 	GLint i;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &i);
 	return i;
+}
+
+
+
+GLuint texture::create_shader(GLenum type, const string& filename)
+{
+	GLuint nr;
+/*
+	glGenProgramsARB(1, &nr);
+	glBindProgramARB(type, nr);
+	string prg;
+	glProgramStringARB(type, GL_PROGRAM_FORMAT_ASCII_ARB,
+			   prg.size(), prg.c_str());
+
+	// error handling
+	int errorpos;
+
+	glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &errorpos);
+	if (errorpos != -1) {
+		// get error string
+		string errstr;
+		const char* errstr2 = glGetString(GL_PROGRAM_ERROR_STRING_ARB);
+		if (errstr2 != 0)
+			errstr = errstr2;
+		ostringstream oss;
+		oss << "GL shader program error (program type " << type
+		    << ") at position " << errorpos << " in file "
+		    << filename << ", error string is '" << errstr << "'\n";
+		sys().myassert(false, oss.str());
+	}
+
+	GLint undernativelimits;
+	glGetProgramivARB(type, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &undernativelimits);
+	if (undernativelimits == 0) {
+		ostringstream oss;
+		oss << "GL shader program exceeds native limits (program type "
+		    << type << "), filename "
+		    << filename << "\n";
+		sys().myassert(false, oss.str());
+	}
+*/	
+	return nr;
+}
+
+
+
+void texture::delete_shader(GLuint nr)
+{
+//	glDeleteProgramsARB(1, &nr);
 }

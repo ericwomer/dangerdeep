@@ -91,7 +91,7 @@ sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdobj = hspec.FirstChild(topnodename);
 	TiXmlElement* eclassification = hdftdobj.FirstChildElement("classification").Element();
-	system::sys().myassert(eclassification != 0, string("sea_object: classification node missing in ")+specfile->Value());
+	sys().myassert(eclassification != 0, string("sea_object: classification node missing in ")+specfile->Value());
 	specfilename = XmlAttrib(eclassification, "identifier");
 	modelname = XmlAttrib(eclassification, "modelname");
 	model* mdl = modelcache.ref(modelname);
@@ -102,7 +102,7 @@ sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
 	for ( ; edescr != 0; edescr = edescr->NextSiblingElement("far")) {
 		if (XmlAttrib(edescr, "lang") == texts::get_language_code()) {
 			TiXmlNode* ntext = edescr->FirstChild();
-			system::sys().myassert(ntext != 0, string("sea_object: far description text child node missing in ")+specfilename);
+			sys().myassert(ntext != 0, string("sea_object: far description text child node missing in ")+specfilename);
 			descr_near = ntext->Value();
 			break;
 		}
@@ -111,7 +111,7 @@ sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
 	for ( ; edescr != 0; edescr = edescr->NextSiblingElement("medium")) {
 		if (XmlAttrib(edescr, "lang") == texts::get_language_code()) {
 			TiXmlNode* ntext = edescr->FirstChild();
-			system::sys().myassert(ntext != 0, string("sea_object: medium description text child node missing in ")+specfilename);
+			sys().myassert(ntext != 0, string("sea_object: medium description text child node missing in ")+specfilename);
 			descr_near = ntext->Value();
 			break;
 		}
@@ -120,7 +120,7 @@ sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
 	for ( ; edescr != 0; edescr = edescr->NextSiblingElement("near")) {
 		if (XmlAttrib(edescr, "lang") == texts::get_language_code()) {
 			TiXmlNode* ntext = edescr->FirstChild();
-			system::sys().myassert(ntext != 0, string("sea_object: near description text child node missing in ")+specfilename);
+			sys().myassert(ntext != 0, string("sea_object: near description text child node missing in ")+specfilename);
 			descr_near = ntext->Value();
 			break;
 		}

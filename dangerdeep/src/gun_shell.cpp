@@ -19,7 +19,7 @@ gun_shell::gun_shell(const sea_object& parent, angle direction, angle elevation,
 	//fixme: should be done in sea_object!
 	size3d = vector3f(gun_shell_mdl->get_width(), gun_shell_mdl->get_length(), gun_shell_mdl->get_height());
 
-	system::sys().add_console("shell created");
+	sys().add_console("shell created");
 }
 
 void gun_shell::load(istream& in, class game& g)

@@ -42,7 +42,7 @@ bool airplane_interface::keyboard_common(int keycode, class game& gm)
 	airplane* player = dynamic_cast<airplane*> ( get_player() );
 
 	// handle common keys (fixme: make configureable?)
-	if (system::sys().key_shift()) {
+	if (sys().key_shift()) {
 		switch (keycode) {
 			default: return false;
 		}
@@ -85,7 +85,7 @@ bool airplane_interface::keyboard_common(int keycode, class game& gm)
 			case SDLK_ESCAPE:
 				gm.stop();
 				break;
-			case SDLK_PRINT: system::sys().screenshot(); system::sys().add_console("screenshot taken."); break;
+			case SDLK_PRINT: sys().screenshot(); sys().add_console("screenshot taken."); break;
 			case SDLK_PAUSE: pause = !pause;
 				if (pause) add_message(texts::get(52));
 				else add_message(texts::get(53));
@@ -126,7 +126,7 @@ void airplane_interface::display_cockpit(game& gm)
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	unsigned res_x = system::sys().get_res_x(), res_y = system::sys().get_res_y();
+	unsigned res_x = sys().get_res_x(), res_y = sys().get_res_y();
 
 
 	glMatrixMode(GL_MODELVIEW);
@@ -146,7 +146,7 @@ void airplane_interface::display_cockpit(game& gm)
 	glRotatef(-90, 1, 0, 0);
 	player->display();
 	
-	system::sys().prepare_2d_drawing();
+	sys().prepare_2d_drawing();
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glColor4f(1,1,1,1);
 	glBegin(GL_LINES);
@@ -161,26 +161,26 @@ void airplane_interface::display_cockpit(game& gm)
 //	\nheading " << player->get_heading().value()
 //	<< "\npitch " << player->get_pitch().value() << "\nroll " << player->get_roll().value();
 	font_arial->print(0, 0, oss.str());
-	system::sys().unprepare_2d_drawing();
+	sys().unprepare_2d_drawing();
 
 	// mouse handling
 	int mx;
 	int my;
-	int mb = system::sys().get_mouse_buttons();
-	system::sys().get_mouse_position(mx, my);
+	int mb = sys().get_mouse_buttons();
+	sys().get_mouse_position(mx, my);
 
 	// keyboard processing
-	int key = system::sys().get_key().sym;
+	int key = sys().get_key().sym;
 
-	if (system::sys().is_key_down(SDLK_LEFT))
+	if (sys().is_key_down(SDLK_LEFT))
 		gm.send(new command_roll_left(player));
-	else if (system::sys().is_key_down(SDLK_RIGHT))
+	else if (sys().is_key_down(SDLK_RIGHT))
 		gm.send(new command_roll_right(player));
 	else
 		gm.send(new command_roll_zero(player));
-	if (system::sys().is_key_down(SDLK_UP))
+	if (sys().is_key_down(SDLK_UP))
 		gm.send(new command_pitch_down(player));
-	else if (system::sys().is_key_down(SDLK_DOWN))
+	else if (sys().is_key_down(SDLK_DOWN))
 		gm.send(new command_pitch_up(player));
 	else
 		gm.send(new command_pitch_zero(player));
@@ -199,6 +199,6 @@ void airplane_interface::display_cockpit(game& gm)
 			}
 */			
 		}
-		key = system::sys().get_key().sym;
+		key = sys().get_key().sym;
 	}
 }

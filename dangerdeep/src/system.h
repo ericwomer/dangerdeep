@@ -73,7 +73,7 @@ public:
 
 	unsigned long millisec(void);	// returns time in milliseconds
 
-	static system& sys(void) { return *instance; };
+	static inline system& sys(void) { return *instance; };
 	void myassert(bool cond, const string& msg = "");
 	
 	void set_screenshot_directory(const string& s) { screenshot_dir = s; }
@@ -137,5 +137,8 @@ private:
 	int screenshot_nr;
 	string screenshot_dir;
 };
+
+// to make user's code even shorter
+inline class system& sys(void) { return system::sys(); }
 
 #endif

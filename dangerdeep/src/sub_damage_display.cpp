@@ -94,9 +94,9 @@ void sub_damage_display::display_popup (int x, int y, const string& text, bool a
 	font_arial->print_wrapped(posx+8, posy+45, 256-16, 20, text, color(0,0,128));
 	
 //	color(0,0,0).set_gl_color(128);
-//	system::sys().draw_rectangle(posx+4,posy+4,width,height);
+//	sys().draw_rectangle(posx+4,posy+4,width,height);
 //	color(255,255,128).set_gl_color(255);
-//	system::sys().draw_rectangle(posx,posy,width,height);
+//	sys().draw_rectangle(posx,posy,width,height);
 //	font_arial->print(posx+4,posy+4,text,color::black());
 
 	color::white().set_gl_color();
@@ -104,7 +104,7 @@ void sub_damage_display::display_popup (int x, int y, const string& text, bool a
 
 void sub_damage_display::display ( class game& gm ) const
 {
-	system::sys().prepare_2d_drawing();
+	sys().prepare_2d_drawing();
 
 	int ydrawdiff = (damage_screen_background->get_height()-sub_damage_scheme_all->get_height())/2;
 	glColor4f(1,1,1,1);
@@ -180,7 +180,7 @@ void sub_damage_display::display ( class game& gm ) const
 
 	ui.draw_infopanel();
 
-	system::sys().unprepare_2d_drawing();
+	sys().unprepare_2d_drawing();
 }
 
 void sub_damage_display::process_input(class game& gm, const SDL_Event& event)

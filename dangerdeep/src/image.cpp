@@ -13,7 +13,7 @@ image::image(const string& s, bool maketex, int mapping, int clamp) :
 	gltx(0), glty(0)
 {
 	img = IMG_Load(name.c_str());
-	system::sys().myassert(img != 0, string("image: failed to load '") + s + string("'"));
+	sys().myassert(img != 0, string("image: failed to load '") + s + string("'"));
 	width = img->w;
 	height = img->h;
 	
@@ -99,9 +99,9 @@ void image::draw(int x, int y) const
 			yp += h;
 		}
 	} else {	// use DrawPixels instead
-		system::sys().myassert(img->format->palette == 0, string("image: can't use paletted images for direct pixel draw (fixme), image '")+name+string("'"));
+		sys().myassert(img->format->palette == 0, string("image: can't use paletted images for direct pixel draw (fixme), image '")+name+string("'"));
 		unsigned bpp = img->format->BytesPerPixel;
-		system::sys().myassert(bpp == 3 || bpp == 4, string("image: bpp must be 3 or 4 (RGB or RGBA), image '")+name+string("'"));
+		sys().myassert(bpp == 3 || bpp == 4, string("image: bpp must be 3 or 4 (RGB or RGBA), image '")+name+string("'"));
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glColor4f(1,1,1,1);

@@ -47,7 +47,7 @@ ships_sunk_display::~ships_sunk_display()
 
 void ships_sunk_display::display ( class game& gm ) const
 {
-	system::sys().prepare_2d_drawing();
+	sys().prepare_2d_drawing();
 
 	glColor3f ( 1.0f, 1.0f, 1.0f );
 
@@ -69,7 +69,7 @@ void ships_sunk_display::display ( class game& gm ) const
 		glColor3f ( 1.0f, 1.0f, 1.0f );
 		glBindTexture ( GL_TEXTURE_2D, 0 );
 		glBegin ( GL_QUADS );
-		system::sys().draw_rectangle ( x, y, 200, 150 );
+		sys().draw_rectangle ( x, y, 200, 150 );
 
 		// Print class name.
 		glPushMatrix ();
@@ -103,7 +103,7 @@ void ships_sunk_display::display ( class game& gm ) const
 
 	ui.draw_infopanel();
 
-	system::sys().unprepare_2d_drawing();
+	sys().unprepare_2d_drawing();
 }
 
 

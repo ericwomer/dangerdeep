@@ -20,7 +20,7 @@
 #include "image.h"
 #define VIEWMODEL
 
-class system* sys;
+class system* mysys;
 int res_x, res_y;
 
 #define MODEL_DIR "models/"
@@ -78,9 +78,9 @@ static void print_model_datas(model* mdl)
 	   << "Width : " << mdl->get_width() << " m" << endl
 	   << "Height: " << mdl->get_height() << " m";
 
-	sys->prepare_2d_drawing();
+	mysys->prepare_2d_drawing();
 	font_arial->print(10, 600, os.str());
-	sys->unprepare_2d_drawing();
+	mysys->unprepare_2d_drawing();
 }
 
 static void view_model(const string& modelfilename)
@@ -97,15 +97,15 @@ static void view_model(const string& modelfilename)
 		draw_model(mdl);
 		print_model_datas(mdl);
 
-		sys->poll_event_queue();
-		int key = sys->get_key().sym;
-		// int mb = sys->get_mouse_buttons();
+		mysys->poll_event_queue();
+		int key = mysys->get_key().sym;
+		// int mb = mysys->get_mouse_buttons();
 		if (key == SDLK_ESCAPE) break;
 
-		// sys->prepare_2d_drawing();
+		// mysys->prepare_2d_drawing();
 
-		// sys->unprepare_2d_drawing();
-		sys->swap_buffers();
+		// mysys->unprepare_2d_drawing();
+		mysys->swap_buffers();
 	}
 }
 
@@ -164,11 +164,11 @@ int main(int argc, char** argv)
 
 	res_y = res_x*3/4;
 
-	sys = new class system(1.0, 1000.0, res_x, fullscreen);
-	sys->set_res_2d(1024, 768);
+	mysys = new class system(1.0, 1000.0, res_x, fullscreen);
+	mysys->set_res_2d(1024, 768);
 	
-	sys->add_console("A simple model viewer for DftD-.mdl files");
-	sys->add_console("copyright and written 2003 by Thorsten Jordan");
+	mysys->add_console("A simple model viewer for DftD-.mdl files");
+	mysys->add_console("copyright and written 2003 by Thorsten Jordan");
 
 	glMatrixMode(GL_PROJECTION);
 	gluOrtho2D(0,1024,0,768);//parameters are left,right,bottom,top
@@ -181,13 +181,13 @@ int main(int argc, char** argv)
 	glEnable(GL_LIGHT0);
 
 	font_arial = new font(get_font_dir() + "font_arial");
-	sys->draw_console_with(font_arial, 0);
+	mysys->draw_console_with(font_arial, 0);
 
 	view_model(modelfilename);	
 
-	sys->write_console(true);
+	mysys->write_console(true);
 	delete font_arial;
-	delete sys;
+	delete mysys;
 
 	return 0;
 }

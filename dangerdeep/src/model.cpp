@@ -47,7 +47,7 @@ model::model(const string& filename, bool usematerial_, bool makedisplaylist) :
 	} else if (extension == ".off") {
 		read_off_file(filename);
 	} else {
-		system::sys().myassert(false, "model: unknown extension or file format");
+		sys().myassert(false, "model: unknown extension or file format");
 	}
 
 	read_cs_file(filename);	// try to read cross section file
@@ -60,7 +60,7 @@ model::model(const string& filename, bool usematerial_, bool makedisplaylist) :
 		// without vertex shaders means that we can't compile a list!)
 		// create display list
 		unsigned dl = glGenLists(1);
-		system::sys().myassert(dl != 0, "no more display list indices available");
+		sys().myassert(dl != 0, "no more display list indices available");
 		glNewList(dl, GL_COMPILE);
 		display();
 		glEndList();
@@ -317,7 +317,7 @@ pair<model::mesh, model::mesh> model::mesh::split(const vector3f& abc, float d) 
 			}
 			++splitptr;
 		}
-		system::sys().myassert(splitptr == 2, "splitptr != 2 ?!");
+		sys().myassert(splitptr == 2, "splitptr != 2 ?!");
 		// add indices to parts.
 		part0.indices.push_back(newindi0[0]);
 		part0.indices.push_back(newindi0[1]);
@@ -335,7 +335,7 @@ pair<model::mesh, model::mesh> model::mesh::split(const vector3f& abc, float d) 
 			part1.indices.push_back(newindi1[2]);
 			part1.indices.push_back(newindi1[3]);
 		}
-		system::sys().myassert((newindi0ptr == 3 || newindi1ptr == 3) && (newindi0ptr + newindi1ptr == 7), "newindi ptr corrupt!");
+		sys().myassert((newindi0ptr == 3 || newindi1ptr == 3) && (newindi0ptr + newindi1ptr == 7), "newindi ptr corrupt!");
 	}
 
 	return make_pair(part0, part1);
@@ -651,7 +651,7 @@ void model::m3ds_load(const string& fn)
 	ifstream in(fn.c_str(), ios::in | ios::binary);
 	m3ds_chunk head = m3ds_read_chunk(in);
 	if (head.id != M3DS_MAIN3DS) {
-		system::sys().myassert(false, string("[model::load_m3ds] Unable to load PRIMARY chuck from file \"")+fn+string("\""));
+		sys().myassert(false, string("[model::load_m3ds] Unable to load PRIMARY chuck from file \"")+fn+string("\""));
 	}
 	m3ds_process_toplevel_chunks(in, head);
 	head.skip(in);
@@ -959,7 +959,7 @@ void model::m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, model::mesh& m)
 		return;
 	}
 
-	system::sys().myassert(nr_uv_coords == m.vertices.size(), "number of texture coordinates doesn't match number of vertices");
+	sys().myassert(nr_uv_coords == m.vertices.size(), "number of texture coordinates doesn't match number of vertices");
 
 	m.texcoords.clear();
 	m.texcoords.reserve(nr_uv_coords);		
@@ -997,7 +997,7 @@ void model::m3ds_read_material(istream& in, m3ds_chunk& ch, model::mesh& m)
 			return;
 		}
 	}
-	system::sys().myassert(false, "object has unknown material");
+	sys().myassert(false, "object has unknown material");
 }		   
 
 // -------------------------------- end of 3ds loading functions -----------------------------------

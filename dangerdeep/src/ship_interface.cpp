@@ -60,8 +60,8 @@ bool ship_interface::keyboard_common(int keycode, class game& gm)
 		case SDLK_6: gm.send(new command_set_throttle(player, sea_object::reverse)); add_message(texts::get(48)); break;
 
 		// view
-		case SDLK_COMMA : bearing -= angle(system::sys().key_shift() ? 10 : 1); break;
-		case SDLK_PERIOD : bearing += angle(system::sys().key_shift() ? 10 : 1); break;
+		case SDLK_COMMA : bearing -= angle(sys().key_shift() ? 10 : 1); break;
+		case SDLK_PERIOD : bearing += angle(sys().key_shift() ? 10 : 1); break;
 
 		// weapons, fixme
 		case SDLK_t: {
@@ -84,7 +84,7 @@ bool ship_interface::keyboard_common(int keycode, class game& gm)
 
 		// quit, screenshot, pause etc.
 		case SDLK_ESCAPE: gm.stop(); break;
-		case SDLK_i: system::sys().screenshot(); system::sys().add_console("screenshot taken."); break;
+		case SDLK_i: sys().screenshot(); sys().add_console("screenshot taken."); break;
 		case SDLK_PAUSE: pause = !pause;
 			if (pause) add_message(texts::get(52));
 			else add_message(texts::get(53));
@@ -164,23 +164,23 @@ void ship_interface::draw_torpedo(bool usebow, int x, int y,
 {
 	if (usebow) {
 		if (st.status == 0) {	// empty
-			system::sys().draw_image(x, y, 256, 32, torpempty);
+			sys().draw_image(x, y, 256, 32, torpempty);
 		} else {
-			system::sys().draw_image(x, y, 256, 32, torptex(st.type));
+			sys().draw_image(x, y, 256, 32, torptex(st.type));
 			if (st.status == 1) // reloading
-				system::sys().draw_image(x, y, 256, 32, torpreload);
+				sys().draw_image(x, y, 256, 32, torpreload);
 			else if (st.status == 2) // unloading
-				system::sys().draw_image(x, y, 256, 32, torpunload);
+				sys().draw_image(x, y, 256, 32, torpunload);
 		}
 	} else {
 		if (st.status == 0) {	// empty
-			system::sys().draw_hm_image(x, y, 256, 32, torpempty);
+			sys().draw_hm_image(x, y, 256, 32, torpempty);
 		} else {
-			system::sys().draw_hm_image(x, y, 256, 32, torptex(st.type));
+			sys().draw_hm_image(x, y, 256, 32, torptex(st.type));
 			if (st.status == 1) // reloading
-				system::sys().draw_hm_image(x, y, 256, 32, torpreload);
+				sys().draw_hm_image(x, y, 256, 32, torpreload);
 			else if (st.status == 2) // unloading
-				system::sys().draw_hm_image(x, y, 256, 32, torpunload);
+				sys().draw_hm_image(x, y, 256, 32, torpunload);
 		}
 	}
 }
@@ -207,12 +207,12 @@ void ship_interface::display_sonar(game& gm)
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 #if 0
-	unsigned res_x = system::sys().get_res_x(), res_y = system::sys().get_res_y();
+	unsigned res_x = sys().get_res_x(), res_y = sys().get_res_y();
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	system::sys().gl_perspective_fovx (20.0, 1.0/1.0, 2.0, gm.get_max_view_distance());
+	sys().gl_perspective_fovx (20.0, 1.0/1.0, 2.0, gm.get_max_view_distance());
 	glViewport(res_x/2, res_y/3, res_x/2, res_x/2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -227,13 +227,13 @@ void ship_interface::display_sonar(game& gm)
 	glViewport(0, 0, res_x, res_y);
 	glMatrixMode(GL_MODELVIEW);
 	
-	system::sys().prepare_2d_drawing();
+	sys().prepare_2d_drawing();
 	for (int x = 0; x < 3; ++x)
-		system::sys().draw_image(x*256, 512, 256, 256, psbackgr);
-	system::sys().draw_image(2*256, 0, 256, 256, periscope[0]);
-	system::sys().draw_image(3*256, 0, 256, 256, periscope[1]);
-	system::sys().draw_image(2*256, 256, 256, 256, periscope[2]);
-	system::sys().draw_image(3*256, 256, 256, 256, periscope[3]);
+		sys().draw_image(x*256, 512, 256, 256, psbackgr);
+	sys().draw_image(2*256, 0, 256, 256, periscope[0]);
+	sys().draw_image(3*256, 0, 256, 256, periscope[1]);
+	sys().draw_image(2*256, 256, 256, 256, periscope[2]);
+	sys().draw_image(3*256, 256, 256, 256, periscope[3]);
 	angle targetbearing;
 	angle targetaob;
 	angle targetrange;
@@ -253,7 +253,7 @@ void ship_interface::display_sonar(game& gm)
 	draw_gauge(3, 256, 0, 256, targetrange, texts::get(13));
 	draw_gauge(2, 0, 256, 256, targetspeed, texts::get(14));
 	draw_gauge(1, 256, 256, 256, targetheading, texts::get(15));
-	system::sys().draw_image(768, 512, 256, 256, addleadangle);
+	sys().draw_image(768, 512, 256, 256, addleadangle);
 	const vector<ship::stored_torpedo>& torpedoes = player->get_torpedoes();
 	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();
 	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
@@ -266,16 +266,16 @@ void ship_interface::display_sonar(game& gm)
 	}
 	glColor3f(1,1,1);
 	draw_infopanel(sys);
-	system::sys().unprepare_2d_drawing();
+	sys().unprepare_2d_drawing();
 #endif	
 
 	// keyboard processing
-	int key = system::sys().get_key().sym;
+	int key = sys().get_key().sym;
 	while (key != 0) {
 		if (!keyboard_common(key, gm)) {
 			// specific keyboard processing
 		}
-		key = system::sys().get_key().sym;
+		key = sys().get_key().sym;
 	}
 }
 
@@ -287,12 +287,12 @@ void ship_interface::display_glasses(game& gm)
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	unsigned res_x = system::sys().get_res_x(), res_y = system::sys().get_res_y();
+	unsigned res_x = sys().get_res_x(), res_y = sys().get_res_y();
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	system::sys().gl_perspective_fovx (30.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
+	sys().gl_perspective_fovx (30.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
 	glViewport(0, res_y/3, res_x, res_x/2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -308,25 +308,25 @@ void ship_interface::display_glasses(game& gm)
 	glViewport(0, 0, res_x, res_y);
 	glMatrixMode(GL_MODELVIEW);
 	
-	system::sys().prepare_2d_drawing();
+	sys().prepare_2d_drawing();
 	uzo->draw(0, 0, 512, 512);
 	uzo->draw_hm(512, 0, 512, 512);
 	draw_infopanel(gm);
-	system::sys().unprepare_2d_drawing();
+	sys().unprepare_2d_drawing();
 
 	// keyboard processing
-	int key = system::sys().get_key().sym;
+	int key = sys().get_key().sym;
 	while (key != 0) {
 		if (!keyboard_common(key, gm)) {
 			// specific keyboard processing
 		}
-		key = system::sys().get_key().sym;
+		key = sys().get_key().sym;
 	}
 }
 
 void ship_interface::display_dc_throwers(game& gm)
 {
-	system::sys().prepare_2d_drawing();
+	sys().prepare_2d_drawing();
 	// fixme adapt
 #if 0	
 	glBindTexture(GL_TEXTURE_2D, background->get_opengl_name());
@@ -384,38 +384,38 @@ void ship_interface::display_dc_throwers(game& gm)
 
 #endif
 	draw_infopanel(gm);
-	system::sys().unprepare_2d_drawing();
+	sys().unprepare_2d_drawing();
 
 	// mouse handling
-	int mx, my; // mb = system::sys().get_mouse_buttons(); Unused variable
-	system::sys().get_mouse_position(mx, my);
+	int mx, my; // mb = sys().get_mouse_buttons(); Unused variable
+	sys().get_mouse_position(mx, my);
 
 	// keyboard processing
-	int key = system::sys().get_key().sym;
+	int key = sys().get_key().sym;
 	while (key != 0) {
 		if (!keyboard_common(key, gm)) {
 			// specific keyboard processing
 		}
-		key = system::sys().get_key().sym;
+		key = sys().get_key().sym;
 	}
 }
 
 void ship_interface::display_damagestatus(game& gm)
 {
-	system::sys().prepare_2d_drawing();
+	sys().prepare_2d_drawing();
 	draw_infopanel(gm);
-	system::sys().unprepare_2d_drawing();
+	sys().unprepare_2d_drawing();
 
 	// mouse handling
-	int mx, my; // mb = system::sys().get_mouse_buttons(); Unused variable
-	system::sys().get_mouse_position(mx, my);
+	int mx, my; // mb = sys().get_mouse_buttons(); Unused variable
+	sys().get_mouse_position(mx, my);
 
 	// keyboard processing
-	int key = system::sys().get_key().sym;
+	int key = sys().get_key().sym;
 	while (key != 0) {
 		if (!keyboard_common(key, gm)) {
 			// specific keyboard processing
 		}
-		key = system::sys().get_key().sym;
+		key = sys().get_key().sym;
 	}
 }

@@ -23,10 +23,10 @@ void sub_periscope_display::pre_display(game& gm) const
 freeview_display::projection_data sub_periscope_display::get_projection_data(class game& gm) const
 {
 	projection_data pd;
-	pd.x = 453*system::sys().get_res_x()/1024;
-	pd.y = (768-424-193)*system::sys().get_res_x()/1024;
-	pd.w = 424*system::sys().get_res_x()/1024;
-	pd.h = 424*system::sys().get_res_x()/1024;
+	pd.x = 453*sys().get_res_x()/1024;
+	pd.y = (768-424-193)*sys().get_res_x()/1024;
+	pd.w = 424*sys().get_res_x()/1024;
+	pd.h = 424*sys().get_res_x()/1024;
 	// with normal fov of 70 degrees, this is 1.5 / 6.0 magnification
 	pd.fov_x = zoomed ? 13.31 : 50.05;	//fixme: historic values?
 	pd.near_z = 1.0;
@@ -38,7 +38,7 @@ freeview_display::projection_data sub_periscope_display::get_projection_data(cla
 
 void sub_periscope_display::post_display(game& gm) const
 {
-	system::sys().prepare_2d_drawing();
+	sys().prepare_2d_drawing();
 	glColor3f(1,1,1);
 
 	// draw compass bar. at most 230 pixel can be seen (of 1878 total width), center is at x=667 on screen
@@ -84,7 +84,7 @@ void sub_periscope_display::post_display(game& gm) const
 	clock_minutes_pointer->draw_rot(946, 294, minuteang);
 
 //	ui.draw_infopanel(gm);
-	system::sys().unprepare_2d_drawing();
+	sys().unprepare_2d_drawing();
 }
 
 
@@ -174,7 +174,7 @@ void submarine_interface::display_periscope(game& gm)
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	unsigned res_x = system::sys().get_res_x(), res_y = system::sys().get_res_y();
+	unsigned res_x = sys().get_res_x(), res_y = sys().get_res_y();
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
@@ -192,7 +192,7 @@ void submarine_interface::display_periscope(game& gm)
 	if ( zoom_scope )
 		fov = 18.925f;
 	
-	system::sys().gl_perspective_fovx (fov, 1.0/1.0, 5.0, gm.get_max_view_distance());
+	sys().gl_perspective_fovx (fov, 1.0/1.0, 5.0, gm.get_max_view_distance());
 	glViewport(res_x/2, res_y/3, res_x/2, res_x/2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -208,7 +208,7 @@ void submarine_interface::display_periscope(game& gm)
 	glViewport(0, 0, res_x, res_y);
 	glMatrixMode(GL_MODELVIEW);
 	
-	system::sys().prepare_2d_drawing();
+	sys().prepare_2d_drawing();
 	set_display_color ( gm );
 	for (int x = 0; x < 3; ++x)
 		psbackgr->draw(x*256, 512, 256, 256);
@@ -263,15 +263,15 @@ void submarine_interface::display_periscope(game& gm)
 	}
 	glColor3f(1,1,1);
 	draw_infopanel(gm);
-	system::sys().unprepare_2d_drawing();
+	sys().unprepare_2d_drawing();
 
 	// mouse handling
 	int mx;
 	int my;
-	int mb = system::sys().get_mouse_buttons();
-	system::sys().get_mouse_position(mx, my);
+	int mb = sys().get_mouse_buttons();
+	sys().get_mouse_position(mx, my);
 
-	if (mb & system::sys().left_button) {
+	if (mb & sys().left_button) {
 		// Evaluate lead angle box.
 		if ( mx >= 776 && mx <= 1016 && my >= 520 && my <= 552 )
 		{
@@ -286,7 +286,7 @@ void submarine_interface::display_periscope(game& gm)
 	}
 
 	// keyboard processing
-	int key = system::sys().get_key().sym;
+	int key = sys().get_key().sym;
 	while (key != 0) {
 		if (!keyboard_common(key, gm)) {
 			// specific keyboard processing
@@ -299,7 +299,7 @@ void submarine_interface::display_periscope(game& gm)
 				break;				
 			}
 		}
-		key = system::sys().get_key().sym;
+		key = sys().get_key().sym;
 	}
 }
 

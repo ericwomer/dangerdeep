@@ -33,7 +33,7 @@
 #include "tinyxml/tinyxml.h"
 #include "keys.h"
 
-class system* sys;
+class system* mysys;
 int res_x, res_y;
 
 highscorelist hsl_mission, hsl_career;
@@ -207,7 +207,7 @@ void loadsavequit_dialogue::update_list(void)
 
 	// read save games in directory
 	directory savegamedir = open_dir(savegamedirectory);
-	system::sys().myassert(savegamedir.is_valid(), "game: could not open save game directory");
+	sys().myassert(savegamedir.is_valid(), "game: could not open save game directory");
 	while (true) {
 		string e = read_dir(savegamedir);
 		if (e.length() == 0) break;
@@ -325,7 +325,7 @@ void show_credits(void)
 
 	model* mdlgear = new model(get_model_dir() + "gear.3ds", true, false);
 	bool ok = modelcache.ref("gear.3ds", mdlgear);
-	system::sys().myassert(ok, "weird error");
+	sys().myassert(ok, "weird error");
 	
 //	mdlgear->get_mesh(0).mymaterial->col = color(255,255,255);
 
@@ -341,10 +341,10 @@ void show_credits(void)
 
 	bool quit = false;
 	float ang = 0.0f, ang_per_sec = 10.0f, r = 78, lines_per_sec = 2, d = -150;
-	unsigned tm = system::sys().millisec();
+	unsigned tm = sys().millisec();
 	while (!quit) {
-		system::sys().poll_event_queue();
-		if (system::sys().get_key().sym == SDLK_ESCAPE) quit = true;
+		sys().poll_event_queue();
+		if (sys().get_key().sym == SDLK_ESCAPE) quit = true;
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -367,15 +367,15 @@ void show_credits(void)
 		
 		glPopMatrix();
 
-		system::sys().prepare_2d_drawing();
+		sys().prepare_2d_drawing();
 		for (int i = textpos; i <= textpos+lines_per_page; ++i) {
 			if (i >= 0 && i < textlines) {
 				font_arial->print_hc(512, (i-textpos)*lineheight+int(-lineoffset*lineheight), credits[i], color::white(), true);
 			}
 		}
-		system::sys().unprepare_2d_drawing();
+		sys().unprepare_2d_drawing();
 
-		unsigned tm2 = system::sys().millisec();
+		unsigned tm2 = sys().millisec();
 		lineoffset += lines_per_sec*(tm2-tm)/1000.0f;
 		int tmp = int(lineoffset);
 		lineoffset -= tmp;
@@ -383,7 +383,7 @@ void show_credits(void)
 		if (textpos >= textendpos) textpos = -lines_per_page;
 		ang += ang_per_sec*(tm2-tm)/1000.0f;
 		tm = tm2;
-		system::sys().swap_buffers();
+		sys().swap_buffers();
 	}
 	
 	modelcache.unref("gear.3ds");
@@ -536,7 +536,7 @@ void choose_historical_mission(void)
 	// read missions
 	unsigned nr_missions = 0;
 	directory missiondir = open_dir(get_mission_dir());
-	system::sys().myassert(missiondir.is_valid(), "could not open mission directory");
+	sys().myassert(missiondir.is_valid(), "could not open mission directory");
 	while (true) {
 		string e = read_dir(missiondir);
 		if (e.length() == 0) break;
@@ -578,7 +578,7 @@ void choose_historical_mission(void)
 		for ( ; eshort != 0; eshort = eshort->NextSiblingElement("short")) {
 			if (XmlAttrib(eshort, "lang") == texts::get_language_code()) {
 				TiXmlNode* ntext = eshort->FirstChild();
-				system::sys().myassert(ntext != 0, string("short description text child node missing in ")+doc.Value());
+				sys().myassert(ntext != 0, string("short description text child node missing in ")+doc.Value());
 				wmission->append_entry(ntext->Value());
 				break;
 			}
@@ -587,7 +587,7 @@ void choose_historical_mission(void)
 		for ( ; elong != 0; elong = elong->NextSiblingElement("long")) {
 			if (XmlAttrib(elong, "lang") == texts::get_language_code()) {
 				TiXmlNode* ntext = elong->FirstChild();
-				system::sys().myassert(ntext != 0, string("long description text child node missing in ")+doc.Value());
+				sys().myassert(ntext != 0, string("long description text child node missing in ")+doc.Value());
 				descrs.push_back(ntext->Value());
 				break;
 			}
@@ -634,7 +634,7 @@ bool send_and_wait(network_connection& nc, const string& sendmsg, const string& 
 	string answer;
 	unsigned waited = 0;
 	do {
-		system::sys().poll_event_queue();
+		sys().poll_event_queue();
 		SDL_Delay(50);
 		waited += 50;
 		answer = nc.receive_message();
@@ -681,7 +681,7 @@ bool server_wait_for_clients(network_connection& sv, Uint16 server_port, vector<
 {
 	IPaddress hostip;
 	int error = SDLNet_ResolveHost(&hostip, 0, server_port);
-	system::sys().myassert(error == 0, "can resolve host ip for this computer");
+	sys().myassert(error == 0, "can resolve host ip for this computer");
 	
 	widget w(0, 0, 1024, 768, texts::get(22), 0, swordfishimg);
 	w.add_child(new widget_text(40, 60, 0, 0, texts::get(195)));
@@ -797,7 +797,7 @@ void join_network_game(const string& servername, Uint16 server_port, network_con
 			client.unbind();
 			return;
 		}
-		system::sys().poll_event_queue();
+		sys().poll_event_queue();
 		SDL_Delay(50);
 	}
 	
@@ -813,7 +813,7 @@ void join_network_game(const string& servername, Uint16 server_port, network_con
 			client.unbind();
 			return;
 		}
-		system::sys().poll_event_queue();
+		sys().poll_event_queue();
 		SDL_Delay(50);
 	}
 
@@ -836,9 +836,9 @@ void play_network_game(void)
 	
 	// initialize network play
 	int network_ok = SDLNet_Init();
-	system::sys().myassert(network_ok != -1, "failed to initialize SDLnet");
+	sys().myassert(network_ok != -1, "failed to initialize SDLnet");
 	int error = SDLNet_ResolveHost(&computer_ip, NULL, local_port);
-	system::sys().myassert(error == 0, "can't resolve host ip for this computer");
+	sys().myassert(error == 0, "can't resolve host ip for this computer");
 
 	network_connection client;	// used for scanning and later for playing
 
@@ -1080,9 +1080,9 @@ void draw_ship(void)
 	glEnd();
 	glColor3f(1, 1, 1);
 	shp->display();
-	sys->prepare_2d_drawing();
+	mysys->prepare_2d_drawing();
 	font_times->print_hc(512, 128, shp->get_description(2), color::white(), true);
-	sys->unprepare_2d_drawing();
+	mysys->unprepare_2d_drawing();
 	glEnable(GL_LIGHTING);
 }
 
@@ -1299,15 +1299,15 @@ int mymain(list<string>& args)
 	// with black borders at top/bottom (height 2*32pixels)
 	res_y = res_x*3/4;
 	// weather conditions and earth curvature allow 30km sight at maximum.
-	sys = new class system(1.0, 30000.0+500.0, res_x, fullscreen);
-	sys->set_screenshot_directory(savegamedirectory);
-	sys->set_res_2d(1024, 768);
-	sys->set_max_fps(60);
+	mysys = new class system(1.0, 30000.0+500.0, res_x, fullscreen);
+	mysys->set_screenshot_directory(savegamedirectory);
+	mysys->set_res_2d(1024, 768);
+	mysys->set_max_fps(60);
 	
-	sys->add_console("$ffffffDanger $c0c0c0from the $ffffffDeep");
-	sys->add_console("$ffff00copyright and written 2003 by $ff0000Thorsten Jordan");
-	sys->add_console(string("$ff8000version ") + get_program_version());
-	sys->add_console("$80ff80*** welcome ***");
+	mysys->add_console("$ffffffDanger $c0c0c0from the $ffffffDeep");
+	mysys->add_console("$ffff00copyright and written 2003 by $ff0000Thorsten Jordan");
+	mysys->add_console(string("$ff8000version ") + get_program_version());
+	mysys->add_console("$80ff80*** welcome ***");
 
 	GLfloat lambient[4] = {0.5,0.5,0.5,1};
 	GLfloat ldiffuse[4] = {1,1,1,1};
@@ -1326,7 +1326,7 @@ int mymain(list<string>& args)
 	widget::set_theme(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
 		font_times, color(255, 204, 0), color(255, 64, 64), color(64,64,32)));
 
-	sys->draw_console_with(font_arial, background);
+	mysys->draw_console_with(font_arial, background);
 
 
 	// try to make directories (again)
@@ -1334,7 +1334,7 @@ int mymain(list<string>& args)
 	if (!savegamedir.is_valid()) {
 		bool ok = make_dir(savegamedirectory);
 		if (!ok) {
-			system::sys().myassert(false, "could not create save game directory.");
+			sys().myassert(false, "could not create save game directory.");
 		}
 	}
 	// init config dir
@@ -1342,7 +1342,7 @@ int mymain(list<string>& args)
 	if (!configdir.is_valid()) {
 		bool ok = make_dir(configdirectory);
 		if (!ok) {
-			system::sys().myassert(false, "could not create config directory.");
+			sys().myassert(false, "could not create config directory.");
 		}
 	}
 	// init highscore dir
@@ -1350,7 +1350,7 @@ int mymain(list<string>& args)
 	if (!highscoredir.is_valid()) {
 		bool ok = make_dir(highscoredirectory);
 		if (!ok) {
-			system::sys().myassert(false, "could not create highscore directory.");
+			sys().myassert(false, "could not create highscore directory.");
 		}
 	}
 
@@ -1398,14 +1398,14 @@ int mymain(list<string>& args)
 	// deinit sound
 	sound::deinit();
 	
-	sys->write_console(true);
+	mysys->write_console(true);
 
 	hsl_mission.save(highscoredirectory + HSL_MISSION_NAME);
 	hsl_career.save(highscoredirectory + HSL_CAREER_NAME);
 	mycfg.save(configdirectory + "config");
 
 	deinit_global_data();
-	delete sys;
+	delete mysys;
 
 	return 0;
 }

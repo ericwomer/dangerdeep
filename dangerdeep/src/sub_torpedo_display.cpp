@@ -223,7 +223,7 @@ void sub_torpedo_display::display(class game& gm) const
 	// draw display without display color.
 	glColor4f(1,1,1,1);
 	// draw background
-	system::sys().prepare_2d_drawing();
+	sys().prepare_2d_drawing();
 	background->draw_tiles(0, 0, 1024, 768);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -317,7 +317,7 @@ void sub_torpedo_display::display(class game& gm) const
 	}
 	
 	ui.draw_infopanel();
-	system::sys().unprepare_2d_drawing();
+	sys().unprepare_2d_drawing();
 }
 
 

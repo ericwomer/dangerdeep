@@ -91,7 +91,7 @@ void cfg::load(const string& filename)
 	TiXmlDocument doc(filename);
 	doc.LoadFile();
 	TiXmlElement* root = doc.FirstChildElement("dftd-cfg");
-	system::sys().myassert(root != 0, string("cfg: load(), no root element found in ") + filename);
+	sys().myassert(root != 0, string("cfg: load(), no root element found in ") + filename);
 	TiXmlElement* eattr = root->FirstChildElement();
 	for ( ; eattr != 0; eattr = eattr->NextSiblingElement()) {
 		if (string(eattr->Value()) == "keys") {
@@ -107,7 +107,7 @@ void cfg::load(const string& filename)
 					}
 				}
 				if (nr == NR_OF_KEY_IDS) {
-					system::sys().add_console(string("WARNING: found key with invalid name ") +
+					sys().add_console(string("WARNING: found key with invalid name ") +
 								  keyname + string(" in config file"));
 					continue;
 				}
@@ -120,7 +120,7 @@ void cfg::load(const string& filename)
 		} else {
 			string attrstr = XmlAttrib(eattr, "value");
 			bool found = set_str(eattr->Value(), attrstr);
-			system::sys().myassert(found, string("cfg: load(), name not registered : ") + eattr->Value());
+			sys().myassert(found, string("cfg: load(), name not registered : ") + eattr->Value());
 		}
 	}
 }
@@ -208,7 +208,7 @@ void cfg::register_key(const string& name, SDLKey keysym, bool ctrl, bool alt, b
 			nr = i;
 		}
 	}
-	system::sys().myassert(nr != NR_OF_KEY_IDS, string("register_key with invalid name ")+ name);
+	sys().myassert(nr != NR_OF_KEY_IDS, string("register_key with invalid name ")+ name);
 	valk[nr] = key(name, keysym, ctrl, alt, shift);
 }
 
@@ -220,7 +220,7 @@ void cfg::set(const string& name, bool value)
 	if (it != valb.end())
 		it->second = value;
 	else
-		system::sys().myassert(false, string("cfg: set(), name not registered: ") + name);
+		sys().myassert(false, string("cfg: set(), name not registered: ") + name);
 }
 
 
@@ -231,7 +231,7 @@ void cfg::set(const string& name, int value)
 	if (it != vali.end())
 		it->second = value;
 	else
-		system::sys().myassert(false, string("cfg: set(), name not registered: ") + name);
+		sys().myassert(false, string("cfg: set(), name not registered: ") + name);
 }
 
 
@@ -242,7 +242,7 @@ void cfg::set(const string& name, float value)
 	if (it != valf.end())
 		it->second = value;
 	else
-		system::sys().myassert(false, string("cfg: set(), name not registered: ") + name);
+		sys().myassert(false, string("cfg: set(), name not registered: ") + name);
 }
 
 
@@ -253,7 +253,7 @@ void cfg::set(const string& name, const string& value)
 	if (it != vals.end())
 		it->second = value;
 	else
-		system::sys().myassert(false, string("cfg: set(), name not registered: ") + name);
+		sys().myassert(false, string("cfg: set(), name not registered: ") + name);
 }
 
 
@@ -264,7 +264,7 @@ void cfg::set_key(unsigned nr, SDLKey keysym, bool ctrl, bool alt, bool shift)
 	if (it != valk.end())
 		it->second = key(it->second.action, keysym, ctrl, alt, shift);
 	else
-		system::sys().myassert(false, string("cfg: set_key(), key number not registered: "));
+		sys().myassert(false, string("cfg: set_key(), key number not registered: "));
 }
 
 
@@ -275,7 +275,7 @@ bool cfg::getb(const string& name) const
 	if (it != valb.end())
 		return it->second;
 	else
-		system::sys().myassert(false, string("cfg: get(), name not registered: ") + name);
+		sys().myassert(false, string("cfg: get(), name not registered: ") + name);
 	return 0;
 }
 
@@ -287,7 +287,7 @@ int cfg::geti(const string& name) const
 	if (it != vali.end())
 		return it->second;
 	else
-		system::sys().myassert(false, string("cfg: get(), name not registered: ") + name);
+		sys().myassert(false, string("cfg: get(), name not registered: ") + name);
 	return 0;
 }
 
@@ -299,7 +299,7 @@ float cfg::getf(const string& name) const
 	if (it != valf.end())
 		return it->second;
 	else
-		system::sys().myassert(false, string("cfg: get(), name not registered: ") + name);
+		sys().myassert(false, string("cfg: get(), name not registered: ") + name);
 	return 0;
 }
 
@@ -311,7 +311,7 @@ string cfg::gets(const string& name) const
 	if (it != vals.end())
 		return it->second;
 	else
-		system::sys().myassert(false, string("cfg: get(), name not registered: ") + name);
+		sys().myassert(false, string("cfg: get(), name not registered: ") + name);
 	return 0;
 }
 
@@ -323,7 +323,7 @@ cfg::key cfg::getkey(unsigned nr) const
 	if (it != valk.end())
 		return it->second;
 	else
-		system::sys().myassert(false, string("cfg: getkey(), key number not registered: "));
+		sys().myassert(false, string("cfg: getkey(), key number not registered: "));
 	return key();
 }
 

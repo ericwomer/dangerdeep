@@ -24,9 +24,9 @@ freeview_display::projection_data sub_bridge_display::get_projection_data(game& 
 	projection_data pd = freeview_display::get_projection_data(gm);
 	if (glasses_in_use) {
 		pd.x = 0;
-		pd.y = system::sys().get_res_y()-system::sys().get_res_x()/2;
-		pd.w = system::sys().get_res_x();
-		pd.h = system::sys().get_res_x()/2;
+		pd.y = sys().get_res_y()-sys().get_res_x()/2;
+		pd.w = sys().get_res_x();
+		pd.h = sys().get_res_x()/2;
 		pd.fov_x = 20.0;
 	}
 	return pd;
@@ -36,16 +36,16 @@ freeview_display::projection_data sub_bridge_display::get_projection_data(game& 
 
 void sub_bridge_display::post_display(game& gm) const
 {
-	system::sys().prepare_2d_drawing();
+	sys().prepare_2d_drawing();
 	if (glasses_in_use) {
 		glasses_tex->draw(0, 0, 512, 512);
 		glasses_tex->draw_hm(512, 0, 512, 512);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glColor3ub(0, 0, 0);
-		system::sys().draw_rectangle(0, 512, 1024, 256);
+		sys().draw_rectangle(0, 512, 1024, 256);
 	}
 	ui.draw_infopanel();
-	system::sys().unprepare_2d_drawing();
+	sys().unprepare_2d_drawing();
 }
 
 

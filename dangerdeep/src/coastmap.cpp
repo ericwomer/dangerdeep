@@ -916,14 +916,14 @@ coastmap::coastmap(const string& filename)
 	TiXmlDocument doc(filename);
 	doc.LoadFile();
 	TiXmlElement* root = doc.FirstChildElement("dftd-map");
-	system::sys().myassert(root != 0, string("coastmap: no root element found in ") + filename);
+	sys().myassert(root != 0, string("coastmap: no root element found in ") + filename);
 	TiXmlElement* etopology = root->FirstChildElement("topology");
-	system::sys().myassert(etopology != 0, string("coastmap: no topology node found in ") + filename);
+	sys().myassert(etopology != 0, string("coastmap: no topology node found in ") + filename);
 	const char* img = etopology->Attribute("image");
-	system::sys().myassert(img != 0, string("coastmap: no image attribute found in ") + filename);
+	sys().myassert(img != 0, string("coastmap: no image attribute found in ") + filename);
 	realwidth = 0;
 	etopology->Attribute("realwidth", &realwidth);
-	system::sys().myassert(realwidth != 0, string("coastmap: realwidth not given or zero in ") + filename);
+	sys().myassert(realwidth != 0, string("coastmap: realwidth not given or zero in ") + filename);
 	etopology->Attribute("realoffsetx", &realoffset.x);
 	etopology->Attribute("realoffsety", &realoffset.y);
 	TiXmlElement* ecities = root->FirstChildElement("cities");
@@ -936,7 +936,7 @@ coastmap::coastmap(const string& filename)
 
 	SDL_Surface* surf = IMG_Load((get_map_dir() + img).c_str());
 	add_loading_screen("map image loaded");
-	system::sys().myassert(surf != 0, string("coastmap: error loading image ") + img + string(" referenced in file ") + filename);
+	sys().myassert(surf != 0, string("coastmap: error loading image ") + img + string(" referenced in file ") + filename);
 
 	mapw = surf->w;
 	maph = surf->h;
@@ -946,12 +946,12 @@ coastmap::coastmap(const string& filename)
 	segsx = mapw/pixels_per_seg;
 	segsy = maph/pixels_per_seg;
 	segw_real = pixelw_real * pixels_per_seg;
-	system::sys().myassert((segsx*pixels_per_seg == mapw) && (segsy*pixels_per_seg == maph), string("coastmap: map size must be integer multiple of segment size, in") + filename);
+	sys().myassert((segsx*pixels_per_seg == mapw) && (segsy*pixels_per_seg == maph), string("coastmap: map size must be integer multiple of segment size, in") + filename);
 
 	themap.resize(mapw*maph);
 
 	SDL_LockSurface(surf);
-	system::sys().myassert(surf->format->BytesPerPixel == 1 && surf->format->palette != 0 && surf->format->palette->ncolors == 2, string("coastmap: image is no black/white 1bpp paletted image, in ") + filename);
+	sys().myassert(surf->format->BytesPerPixel == 1 && surf->format->palette != 0 && surf->format->palette->ncolors == 2, string("coastmap: image is no black/white 1bpp paletted image, in ") + filename);
 
 	Uint8* offset = (Uint8*)(surf->pixels);
 	for (int yy = 0; yy < int(maph); yy++) {

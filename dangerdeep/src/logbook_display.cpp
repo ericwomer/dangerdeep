@@ -77,7 +77,7 @@ logbook_display::~logbook_display()
 void logbook_display::display(class game& gm) const
 {
 	// fixme: old code wrapped text when entry was too long. this is missing here
-	system::sys().prepare_2d_drawing();
+	sys().prepare_2d_drawing();
 
 	// Wooden background.
 	glColor3f ( 1.0f, 1.0f, 1.0f );
@@ -85,8 +85,8 @@ void logbook_display::display(class game& gm) const
 
 	// Two white pages.
 	glBindTexture ( GL_TEXTURE_2D, 0 );
-	system::sys().draw_rectangle (  20, 20, 476, 600 );
-	system::sys().draw_rectangle ( 528, 20, 476, 600 );
+	sys().draw_rectangle (  20, 20, 476, 600 );
+	sys().draw_rectangle ( 528, 20, 476, 600 );
 
 	// Draw lines.
 	glColor3f ( 0.5f, 0.5f, 0.5f );
@@ -144,7 +144,7 @@ void logbook_display::display(class game& gm) const
 
 	ui.draw_infopanel();
 
-	system::sys().unprepare_2d_drawing();
+	sys().unprepare_2d_drawing();
 }
 
 

@@ -101,20 +101,20 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdship = hspec.FirstChild(topnodename);
 	TiXmlElement* eclassification = hdftdship.FirstChildElement("classification").Element();
-	system::sys().myassert(eclassification != 0, string("ship: classification node missing in ")+specfilename);
+	sys().myassert(eclassification != 0, string("ship: classification node missing in ")+specfilename);
 	string typestr = XmlAttrib(eclassification, "type");
 	if (typestr == "warship") shipclass = WARSHIP;
 	else if (typestr == "escort") shipclass = ESCORT;
 	else if (typestr == "merchant") shipclass = MERCHANT;
 	else if (typestr == "submarine") shipclass = SUBMARINE;
-	else system::sys().myassert(false, string("illegal ship type in ") + specfilename);
+	else sys().myassert(false, string("illegal ship type in ") + specfilename);
 	TiXmlElement* etonnage = hdftdship.FirstChildElement("tonnage").Element();
-	system::sys().myassert(etonnage != 0, string("tonnage node missing in ")+specfilename);
+	sys().myassert(etonnage != 0, string("tonnage node missing in ")+specfilename);
 	unsigned minton = XmlAttribu(etonnage, "min");
 	unsigned maxton = XmlAttribu(etonnage, "max");
 	tonnage = minton + rnd(maxton - minton + 1);
 	TiXmlElement* emotion = hdftdship.FirstChildElement("motion").Element();
-	system::sys().myassert(emotion != 0, string("motion node missing in ")+specfilename);
+	sys().myassert(emotion != 0, string("motion node missing in ")+specfilename);
 	double tmp = 0;
 	if (emotion->Attribute("maxspeed", &tmp))
 		max_speed_forward = kts2ms(tmp);
@@ -132,7 +132,7 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 		esmoke->Attribute("type", &smtype);
 		if (smtype > 0) {
 			TiXmlElement* esmpos = esmoke->FirstChildElement("position");
-			system::sys().myassert(esmpos != 0, string("no smoke position given in ")+specfilename);
+			sys().myassert(esmpos != 0, string("no smoke position given in ")+specfilename);
 			esmpos->Attribute("x", &smokerelpos.x);
 			esmpos->Attribute("y", &smokerelpos.y);
 			esmpos->Attribute("z", &smokerelpos.z);
@@ -140,14 +140,14 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 		}
 	}
 	TiXmlElement* eai = hdftdship.FirstChildElement("ai").Element();
-	system::sys().myassert(eai != 0, string("ai node missing in ")+specfilename);
+	sys().myassert(eai != 0, string("ai node missing in ")+specfilename);
 	string aitype = XmlAttrib(eai, "type");
 	if (aitype == "dumb") myai = new ai(this, ai::dumb);
 	else if (aitype == "escort") myai = new ai(this, ai::escort);
 	else if (aitype == "none") myai = 0;
-	else system::sys().myassert(false, string("illegal AI type in ") + specfilename);
+	else sys().myassert(false, string("illegal AI type in ") + specfilename);
 	TiXmlElement* efuel = hdftdship.FirstChildElement("fuel").Element();
-	system::sys().myassert(efuel != 0, string("fuel node missing in ")+specfilename);
+	sys().myassert(efuel != 0, string("fuel node missing in ")+specfilename);
 	fuel_capacity = XmlAttribu(efuel, "capacity");
 	efuel->Attribute("consumption_a", &fuel_value_a);
 	efuel->Attribute("consumption_t", &fuel_value_t);

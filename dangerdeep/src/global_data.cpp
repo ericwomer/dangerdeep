@@ -231,10 +231,9 @@ unsigned starttime;
 void display_loading_screen(void)
 {
 	if (!loading_screen_usable) return;
-	class system& sys = system::sys();
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	sys.prepare_2d_drawing();
+	sys().prepare_2d_drawing();
 	glColor4f(1, 1, 1, 1);
 	unsigned fh = font_arial->get_height();
 	unsigned y = 0;
@@ -243,28 +242,28 @@ void display_loading_screen(void)
 		font_arial->print(0, y, *it);
 		y += fh;
 	}
-	sys.unprepare_2d_drawing();
-	sys.swap_buffers();
+	sys().unprepare_2d_drawing();
+	sys().swap_buffers();
 }
 
 void reset_loading_screen(void)
 {
 	loading_screen_messages.clear();
 	loading_screen_messages.push_back("Loading...");
-	system::sys().add_console("Loading...");
+	sys().add_console("Loading...");
 	display_loading_screen();
-	starttime = system::sys().millisec();
+	starttime = sys().millisec();
 }
 
 void add_loading_screen(const string& msg)
 {
-	unsigned tm = system::sys().millisec();
+	unsigned tm = sys().millisec();
 	unsigned deltatime = tm - starttime;
 	starttime = tm;
 	ostringstream oss;
 	oss << msg << " (" << deltatime << "ms)";
 	loading_screen_messages.push_back(oss.str());
-	system::sys().add_console(oss.str());
+	sys().add_console(oss.str());
 	display_loading_screen();
 }
 

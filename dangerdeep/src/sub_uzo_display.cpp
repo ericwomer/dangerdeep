@@ -24,9 +24,9 @@ freeview_display::projection_data sub_uzo_display::get_projection_data(class gam
 {
 	projection_data pd;
 	pd.x = 0;
-	pd.y = system::sys().get_res_y() - system::sys().get_res_x()/2;
-	pd.w = system::sys().get_res_x();
-	pd.h = system::sys().get_res_x()/2;
+	pd.y = sys().get_res_y() - sys().get_res_x()/2;
+	pd.w = sys().get_res_x();
+	pd.h = sys().get_res_x()/2;
 	// with normal fov of 70 degrees, this is 1.5 / 6.0 magnification
 	pd.fov_x = zoomed ? 13.31 : 50.05;	//fixme: historic values?
 	pd.near_z = 1.0;
@@ -38,14 +38,14 @@ freeview_display::projection_data sub_uzo_display::get_projection_data(class gam
 
 void sub_uzo_display::post_display(game& gm) const
 {
-	system::sys().prepare_2d_drawing();
+	sys().prepare_2d_drawing();
 	uzotex->draw(0, 0, 512, 512);
 	uzotex->draw_hm(512, 0, 512, 512);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glColor3ub(0, 0, 0);
-	system::sys().draw_rectangle(0, 512, 1024, 256);
+	sys().draw_rectangle(0, 512, 1024, 256);
 	ui.draw_infopanel();
-	system::sys().unprepare_2d_drawing();
+	sys().unprepare_2d_drawing();
 }
 
 

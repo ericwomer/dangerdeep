@@ -132,7 +132,7 @@ submarine::submarine(TiXmlDocument* specfile, const char* topnodename) : ship(sp
 	TiXmlHandle hdftdsub = hspec.FirstChild(topnodename);
 	TiXmlElement* emotion = hdftdsub.FirstChildElement("motion").Element();
 	TiXmlElement* esubmerged = emotion->FirstChildElement("submerged");
-	system::sys().myassert(esubmerged != 0, string("submerged node missing in ")+specfilename);
+	sys().myassert(esubmerged != 0, string("submerged node missing in ")+specfilename);
 	double tmp = 0;
 	esubmerged->Attribute("maxspeed", &tmp);
 	max_submerged_speed = kts2ms(tmp);
@@ -143,7 +143,7 @@ submarine::submarine(TiXmlDocument* specfile, const char* topnodename) : ship(sp
 	esubmerged->Attribute("maxdepth", &maxdepth);
 	max_depth = safedepth + rnd() * (maxdepth - safedepth);
 	TiXmlElement* edepths = hdftdsub.FirstChildElement("depths").Element();
-	system::sys().myassert(edepths != 0, string("depths node missing in ")+specfilename);
+	sys().myassert(edepths != 0, string("depths node missing in ")+specfilename);
 	periscope_depth = 12;
 	snorkel_depth = 0;
 	alarm_depth = 150;
@@ -152,7 +152,7 @@ submarine::submarine(TiXmlDocument* specfile, const char* topnodename) : ship(sp
 	edepths->Attribute("alarm", &alarm_depth);
 	TiXmlHandle htorpedoes = hdftdsub.FirstChildElement("torpedoes");
 	TiXmlElement* etubes = htorpedoes.FirstChildElement("tubes").Element();
-	system::sys().myassert(etubes != 0, string("tubes node missing in ")+specfilename);
+	sys().myassert(etubes != 0, string("tubes node missing in ")+specfilename);
 	number_of_tubes_at[0] = XmlAttribu(etubes, "bow");
 	number_of_tubes_at[1] = XmlAttribu(etubes, "stern");
 	number_of_tubes_at[2] = XmlAttribu(etubes, "bowreserve");
@@ -163,14 +163,14 @@ submarine::submarine(TiXmlDocument* specfile, const char* topnodename) : ship(sp
 	for (unsigned i = 0; i < 6; ++i) nrtrp += number_of_tubes_at[i];
 	torpedoes.resize(nrtrp);
 	TiXmlElement* etransfertimes = htorpedoes.FirstChildElement("transfertimes").Element();
-	system::sys().myassert(etransfertimes != 0, string("transfertimes node missing in ")+specfilename);
+	sys().myassert(etransfertimes != 0, string("transfertimes node missing in ")+specfilename);
 	torp_transfer_times[0] = XmlAttribu(etransfertimes, "bow");
 	torp_transfer_times[1] = XmlAttribu(etransfertimes, "stern");
 	torp_transfer_times[2] = XmlAttribu(etransfertimes, "bowdeck");
 	torp_transfer_times[3] = XmlAttribu(etransfertimes, "sterndeck");
 	torp_transfer_times[4] = XmlAttribu(etransfertimes, "bowsterndeck");
 	TiXmlElement* ebattery = hdftdsub.FirstChildElement("battery").Element();
-	system::sys().myassert(ebattery != 0, string("battery node missing in ")+specfilename);
+	sys().myassert(ebattery != 0, string("battery node missing in ")+specfilename);
 	battery_capacity = XmlAttribu(ebattery, "capacity");
 	ebattery->Attribute("consumption_a", &battery_value_a);
 	ebattery->Attribute("consumption_t", &battery_value_t);
@@ -876,13 +876,13 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 		
 		ostringstream dcd;
 		dcd << "depth charge explosion distance to sub: " << relpos.length() << "m.";
-		system::sys().add_console(dcd.str());
+		sys().add_console(dcd.str());
 	vector3 sdist(relpos.x, relpos.y, relpos.z /* *2.0 */);
 	double sdlen = sdist.length();
 
 	// is submarine killed immidiatly?
 	if (sdlen <= deadly_radius) {
-		system::sys().add_console("depth charge hit!");
+		sys().add_console("depth charge hit!");
 		kill();
 		// ui->add_message(TXT_Depthchargehit[language]);
 
@@ -920,7 +920,7 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 	
 				ostringstream os;
 				os << "DC caused damage! relpos " << relpos.x << "," << relpos.y << "," << relpos.z << " dmg " << strength;
-				system::sys().add_console(os.str());
+				sys().add_console(os.str());
 		}
 	}
 }

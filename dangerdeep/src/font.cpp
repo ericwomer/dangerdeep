@@ -97,11 +97,11 @@ font::font(const string& basefilename, unsigned char_spacing)
 
 	// load image
 	SDL_Surface* fontimage = IMG_Load((basefilename + ".png").c_str());
-	system::sys().myassert(fontimage != 0, string("font: failed to open ")+basefilename);
+	sys().myassert(fontimage != 0, string("font: failed to open ")+basefilename);
 
 	// process image data, create textures
 	SDL_LockSurface(fontimage);
-	system::sys().myassert(fontimage->format->BytesPerPixel == 1, string("font: only grayscale images are supported! font ")+basefilename);
+	sys().myassert(fontimage->format->BytesPerPixel == 1, string("font: only grayscale images are supported! font ")+basefilename);
 
 	for (unsigned i = 0; i < characters.size(); i++) {
 		character& c = characters[i];

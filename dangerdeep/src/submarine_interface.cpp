@@ -337,8 +337,8 @@ void submarine_interface::process_input(const SDL_Event& event)
 				mygame->stop();
 				break;
 			case SDLK_PRINT:
-				system::sys().screenshot();
-				system::sys().add_console("screenshot taken.");
+				sys().screenshot();
+				sys().add_console("screenshot taken.");
 				break;
 			case SDLK_PAUSE:
 				pause = !pause;
