@@ -116,12 +116,21 @@ list<sea_object*> game::ping_ASDIC(const vector2& pos, angle dir)
 	// ocean floor echoes ASDIC etc...
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
 		vector3 subpos = (*it)->get_pos();
-		double dist = subpos.square_distance(vector3(pos.x,pos.y,0));
-		if (dist > ASDICRANGE*ASDICRANGE) continue;
-		angle diffang = dir - angle(subpos.xy() - pos);
+		double dist = subpos.distance(vector3(pos.x,pos.y,0));
+		if (dist > ASDICRANGE) continue;
+		angle contactangle(subpos.xy() - pos);
+		angle diffang = dir - contactangle;
 		double deltaang = diffang.value_pm180();
 		if (deltaang < -PINGANGLE/2 || deltaang > PINGANGLE/2) continue;
-		contacts.push_back(*it);
+		angle subtocontactangle = contactangle + angle(180) - (*it)->get_heading();
+		// fixme: a rather crude approximation
+		// fixme: correct values for angle dependency missing
+		double probability = (0.3 + 0.7*fabs(subtocontactangle.sin()))
+			* (1.0 - dist/ASDICRANGE)
+			* (1.0-0.5*subpos.z/400.0);
+		// fixme: this value may vary.
+		if (probability > 0.3+(rand()%10)*0.02)
+			contacts.push_back(*it);
 	}
 	
 	return contacts;
