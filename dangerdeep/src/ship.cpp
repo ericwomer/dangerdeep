@@ -21,9 +21,10 @@
 #include "ai.h"
 #include "smoke_stream.h"
 
-ship::ship() : sea_object(), myai ( 0 ), fuel_level ( 1.0f ),
-	fuel_value_a ( 0.0f ), fuel_value_t ( 1.0f ), mysmoke(0)
-{}
+ship::ship() : sea_object(), myai ( 0 ), fuel_level ( 1.0 ),
+	fuel_value_a ( 0.0 ), fuel_value_t ( 1.0 ), mysmoke(0)
+{
+}
 
 ship::~ship()
 {

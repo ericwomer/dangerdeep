@@ -40,13 +40,13 @@ class water_splash : public sea_object
 	water_splash_element_list water_splashes;
 
 protected:
-	water_splash();
 	water_splash& operator=(const water_splash& other);
 	water_splash(const water_splash& other);
 	virtual void spawn_water_splash_element ( water_splash_element* new_element )
 	{ water_splashes.push_back ( new_element ); }
 
 public:
+	water_splash();
 	water_splash ( const vector3& position );
 	virtual ~water_splash ();
 	virtual float surface_visibility(const vector2& watcher) const;

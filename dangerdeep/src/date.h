@@ -54,6 +54,9 @@ public:
 	virtual bool operator> ( const date& d ) const;
 
 	friend ostream& operator<< ( ostream& os, const date& d );
+	
+	virtual void load(istream& in);
+	virtual void save(ostream& out) const;
 };
 
 ostream& operator<< ( ostream& os, const date& d );

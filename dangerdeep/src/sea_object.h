@@ -124,6 +124,8 @@ protected:
    
 public:
 	virtual ~sea_object();
+	virtual void load(istream& in, class game& g);
+	virtual void save(ostream& out, const class game& g) const;
 
 	// detail: 0 - category, 1 - finer category, >=2 - exact category
 	virtual string get_description(unsigned detail) const { return "UNKNOWN"; }

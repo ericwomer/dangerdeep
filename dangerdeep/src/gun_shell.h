@@ -17,11 +17,13 @@ protected:
 	vector3 velocity;	// current velocity
 	vector3 oldpos;		// position at last iteration (for collision detection)
 
-	gun_shell();
 	gun_shell& operator=(const gun_shell& other);
 	gun_shell(const gun_shell& other);
 public:
+	gun_shell() {};
 	virtual ~gun_shell() {};
+	void load(istream& in, class game& g);
+	void save(ostream& out, const class game& g) const;
 	gun_shell(const sea_object& parent, angle direction, angle elevation,
 		double initial_velocity = GUN_SHELL_INITIAL_VELOCITY);
 	virtual void simulate(class game& gm, double delta_time);

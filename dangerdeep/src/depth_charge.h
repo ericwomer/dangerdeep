@@ -18,11 +18,13 @@ class depth_charge : public sea_object
 protected:
 	double explosion_depth;
 
-	depth_charge();
 	depth_charge& operator=(const depth_charge& other);
 	depth_charge(const depth_charge& other);
 public:
+	depth_charge() {};
 	virtual ~depth_charge() {};
+	void load(istream& in, class game& g);
+	void save(ostream& out, const class game& g) const;
 	depth_charge(const sea_object& parent, double expl_depth);
 	virtual void simulate(class game& gm, double delta_time);
 	virtual void display(void) const;

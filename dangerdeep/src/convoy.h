@@ -17,16 +17,18 @@ protected:
 	list<pair<ship*, vector2> > merchants, warships, escorts;
 	list<vector2> waypoints;
 
-	convoy();
 	convoy(const convoy& other);
 	convoy& operator= (const convoy& other);
 	
 	double remaining_time;	// time to next thought/situation analysis
 
 public:
+	convoy() {};
 	enum types { small, medium, large, battleship, supportgroup, carrier };
 	enum esctypes { etnone, etsmall, etmedium, etlarge };	// escort size
 	virtual ~convoy() {}
+	void load(istream& in, class game& g);
+	void save(ostream& out, const class game& g) const;
 	convoy(class game& gm, types type_, esctypes esct_);
 	convoy(class game& gm, parser& p);
 	virtual void simulate(class game& gm, double delta_time);

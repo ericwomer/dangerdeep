@@ -29,6 +29,18 @@ airplane::airplane(unsigned type_, const vector3& pos, double heading) : sea_obj
 	throttle = aheadfull;
 }
 
+void airplane::load(istream& in, class game& g)
+{
+	sea_object::load(in, g);
+	type = read_u32(in);
+}
+
+void airplane::save(ostream& out, const class game& g) const
+{
+	sea_object::save(out, g);
+	write_u32(out, type);
+}
+
 void airplane::display(void) const
 {
 	switch(type) {

@@ -119,6 +119,8 @@ void widget::draw(void) const
 {
 	vector2i p = get_pos();
 	draw_area(p.x, p.y, size.x, size.y, /*fixme: replace by property?*/true);
+	int fw = globaltheme->frame_size();
+	draw_rect(p.x+fw, p.y+fw, size.x-2*fw, globaltheme->myfont->get_height(), false);
 	globaltheme->myfont->print_hc(
 		p.x+size.x/2, p.y+globaltheme->frame_size(), text,
 		globaltheme->textcol, false);

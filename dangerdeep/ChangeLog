@@ -1,3 +1,10 @@
+2003-12-26  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* game, sea_object and heirs, date
+	  - introduced load/save functions
+	  - most objects can be loaded and saved binary now
+	  - factory functions for ship/sub/water_splash still missing
+	  - fixed bug in file selection dialogue
+
 2003-12-25  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* game, user_interface
 	  - moved menu display and handling outside of game, thus fixing the

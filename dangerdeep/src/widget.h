@@ -333,7 +333,8 @@ protected:
 	
 	struct filelist : public widget_list
 	{
-		void on_sel_change(void) {
+		void on_click(void) {
+			widget_list::on_click();
 			dynamic_cast<widget_fileselector*>(parent)->listclick();
 		}
 		filelist(int x, int y, int w, int h) : widget_list(x, y, w, h) {}

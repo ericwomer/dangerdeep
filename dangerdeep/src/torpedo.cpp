@@ -116,6 +116,32 @@ torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes,
 	system::sys()->add_console("torpedo created");
 }
 
+void torpedo::load(istream& in, class game& g)
+{
+	sea_object::load(in, g);
+	run_length = read_double(in);
+	max_run_length = read_double(in);
+	type = read_u8(in);
+	influencefuse = read_bool(in);
+	primaryrange = read_u16(in);
+	secondaryrange = read_u16(in);
+	initialturn = read_u8(in);
+	searchpattern = read_u8(in);
+}
+
+void torpedo::save(ostream& out, const class game& g) const
+{
+	sea_object::save(out, g);
+	write_double(out, run_length);
+	write_double(out, max_run_length);
+	write_u8(out, type);
+	write_bool(out, influencefuse);
+	write_u16(out, primaryrange);
+	write_u16(out, secondaryrange);
+	write_u8(out, initialturn);
+	write_u8(out, searchpattern);
+}
+
 void torpedo::simulate(game& gm, double delta_time)
 {
 	if (parent != 0 && parent->is_dead())

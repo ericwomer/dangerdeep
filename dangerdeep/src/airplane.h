@@ -12,11 +12,13 @@ class airplane : public sea_object
 protected:
 	unsigned type;
 
-	airplane();
 	airplane& operator=(const airplane& other);
 	airplane(const airplane& other);
 public:
+	airplane() {}
 	virtual ~airplane() {};
+	void load(istream& in, class game& g);
+	void save(ostream& out, const class game& g) const;
 
 	// types:
 	airplane(unsigned type_, const vector3& pos, double heading);

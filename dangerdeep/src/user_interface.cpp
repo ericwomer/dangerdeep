@@ -1510,8 +1510,8 @@ void user_interface::draw_pings(class game& gm, const vector2& offset)
 		const game::ping& p = *it;
 		// vector2 r = player_object->get_pos ().xy () - p.pos;
 		vector2 p1 = (p.pos + offset)*mapzoom;
-		vector2 p2 = p1 + (p.dir + p.pingAngle).direction() * p.range * mapzoom;
-		vector2 p3 = p1 + (p.dir - p.pingAngle).direction() * p.range * mapzoom;
+		vector2 p2 = p1 + (p.dir + p.ping_angle).direction() * p.range * mapzoom;
+		vector2 p3 = p1 + (p.dir - p.ping_angle).direction() * p.range * mapzoom;
 		glBegin(GL_TRIANGLES);
 		glColor4f(0.5,0.5,0.5,1);
 		glVertex2f(512+p1.x, 384-p1.y);

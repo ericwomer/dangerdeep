@@ -4,6 +4,7 @@
 #include "convoy.h"
 #include "game.h"
 #include "tokencodes.h"
+#include "binstream.h"
 
 convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : sea_object()
 {
@@ -186,6 +187,73 @@ convoy::convoy(class game& gm, parser& p) : sea_object()
 	}
 	
 }
+
+void convoy::load(istream& in, class game& g)
+{
+	sea_object::load(in, g);
+
+	merchants.clear();
+	for (unsigned s = read_u8(in); s > 0; --s) {
+		ship* sh = g.read_ship(in);
+		double x = read_double(in);
+		double y = read_double(in);
+		merchants.push_back(make_pair(sh, vector2(x, y)));
+	}
+	warships.clear();
+	for (unsigned s = read_u8(in); s > 0; --s) {
+		ship* sh = g.read_ship(in);
+		double x = read_double(in);
+		double y = read_double(in);
+		warships.push_back(make_pair(sh, vector2(x, y)));
+	}
+	escorts.clear();
+	for (unsigned s = read_u8(in); s > 0; --s) {
+		ship* sh = g.read_ship(in);
+		double x = read_double(in);
+		double y = read_double(in);
+		escorts.push_back(make_pair(sh, vector2(x, y)));
+	}
+	waypoints.clear();
+	for (unsigned s = read_u16(in); s > 0; --s) {
+		double x = read_double(in);
+		double y = read_double(in);
+		waypoints.push_back(vector2(x, y));
+	}
+		
+	remaining_time = read_double(in);
+}
+
+void convoy::save(ostream& out, const class game& g) const
+{
+	sea_object::save(out, g);
+
+	write_u8(out, merchants.size());
+	for (list<pair<ship*, vector2> >::const_iterator it = merchants.begin(); it != merchants.end(); ++it) {
+		g.write(out, it->first);
+		write_double(out, it->second.x);
+		write_double(out, it->second.y);
+	}
+	write_u8(out, warships.size());
+	for (list<pair<ship*, vector2> >::const_iterator it = warships.begin(); it != warships.end(); ++it) {
+		g.write(out, it->first);
+		write_double(out, it->second.x);
+		write_double(out, it->second.y);
+	}
+	write_u8(out, escorts.size());
+	for (list<pair<ship*, vector2> >::const_iterator it = escorts.begin(); it != escorts.end(); ++it) {
+		g.write(out, it->first);
+		write_double(out, it->second.x);
+		write_double(out, it->second.y);
+	}
+	write_u16(out, waypoints.size());
+	for (list<vector2>::const_iterator it = waypoints.begin(); it != waypoints.end(); ++it) {
+		write_double(out, it->x);
+		write_double(out, it->y);
+	}
+	
+	write_double(out, remaining_time);
+}
+
 
 void convoy::simulate(game& gm, double delta_time)
 {

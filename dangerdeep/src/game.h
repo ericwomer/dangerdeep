@@ -46,11 +46,14 @@ public:
 		angle dir;
 		double time;
 		double range;
-		angle pingAngle;
+		angle ping_angle;
 		ping(const vector2& p, angle d, double t, const double& range,
-			const angle& pingAngle ) :
-			pos(p), dir(d), time(t), range ( range ), pingAngle ( pingAngle )
+			const angle& ping_angle_ ) :
+			pos(p), dir(d), time(t), range ( range ), ping_angle ( ping_angle_ )
 			{}
+		~ping() {}
+		ping(istream& in);
+		void save(ostream& out) const;
 	};
 
 	struct sink_record {
@@ -61,6 +64,8 @@ public:
 		sink_record(const sink_record& s) : dat(s.dat), descr(s.descr), tons(s.tons) {}
 		~sink_record() {}
 		sink_record& operator= (const sink_record& s) { dat = s.dat; descr = s.descr; tons = s.tons; return *this; }
+		sink_record(istream& in);
+		void save(ostream& out) const;
 	};
 	
 	struct job {
@@ -108,6 +113,15 @@ public:
 	game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday);
 	game(parser& p);
 	virtual ~game();
+
+	// fixme: add a factory function (game is virtual)
+	// game types: mission, career, multiplayer mission, multiplayer career/patrol (?)
+	// fixme: add partial_load flag for network vs. savegame (full save / variable save)
+	// maybe only needed for loading (build structure or not)
+	virtual void save(const string& savefilename, const string& description) const;
+	virtual void load(const string& savefilename);
+	virtual void save_to_stream(ostream& out) const;
+	virtual void load_from_stream(istream& in);
 
 	void stop(void) { stopexec = true; }
 
@@ -197,9 +211,13 @@ public:
 	// returns 0 for show menu, 1 for exit game
 	unsigned exec(void);
 
-	// loading and saving games. since game is virtual, use a factory function for loading
-	static game* load(const string& filename);
-	virtual void save(const string& filename) const;
+	// Translate pointers to numbers and vice versa. Used for load/save
+	void write(ostream& out, const ship* s) const;
+	void write(ostream& out, const submarine* s) const;
+	void write(ostream& out, const sea_object* s) const;
+	ship* read_ship(istream& in) const;
+	submarine* read_submarine(istream& in) const;
+	sea_object* read_sea_object(istream& in) const;
 };
 
 #endif

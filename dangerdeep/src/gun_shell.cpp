@@ -21,6 +21,28 @@ gun_shell::gun_shell(const sea_object& parent, angle direction, angle elevation,
 	vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 }
 
+void gun_shell::load(istream& in, class game& g)
+{
+	sea_object::load(in, g);
+	velocity.x = read_double(in);
+	velocity.y = read_double(in);
+	velocity.z = read_double(in);
+	oldpos.x = read_double(in);
+	oldpos.y = read_double(in);
+	oldpos.z = read_double(in);
+}
+
+void gun_shell::save(ostream& out, const class game& g) const
+{
+	sea_object::save(out, g);
+	write_double(out, velocity.x);
+	write_double(out, velocity.y);
+	write_double(out, velocity.z);
+	write_double(out, oldpos.x);
+	write_double(out, oldpos.y);
+	write_double(out, oldpos.z);
+}
+
 void gun_shell::simulate(game& gm, double delta_time)
 {
 	oldpos = position;

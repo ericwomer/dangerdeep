@@ -7,11 +7,11 @@
 #include "sensors.h"
 #include "model.h"
 
-sea_object::sea_object() : position(vector3(0.0f, 0.0f, 0.0f)), heading(0.0f),
-	speed(0.0f), max_speed(0.0f), max_rev_speed(0.0f), throttle(stop),
-	rudder(ruddermid), acceleration(0.0f), permanent_turn(false), head_chg(0.0f),
-	head_to(0.0f), turn_rate(0.0f), length(0.0f), width(0.0f), alive_stat(alive),
-	vis_cross_section_factor(1.0f)
+sea_object::sea_object() : position(), heading(),
+	speed(0.0), max_speed(0.0), max_rev_speed(0.0), throttle(stop),
+	acceleration(0.0), permanent_turn(false), head_chg(0.0), rudder(ruddermid),
+	head_to(0.0), turn_rate(0.0), length(0.0), width(0.0), vis_cross_section_factor(1.0f),
+	alive_stat(alive)
 {
 	sensors.resize ( last_sensor_system );
 }
@@ -25,6 +25,69 @@ sea_object::~sea_object()
 			delete sensors[i];
 	}
 }
+
+void sea_object::load(istream& in, class game& g)
+{
+	position.x = read_double(in);
+	position.y = read_double(in);
+	position.z = read_double(in);
+	heading = angle(read_double(in));
+	speed = read_double(in);
+	max_speed = read_double(in);
+	max_rev_speed = read_double(in);
+	throttle = read_i8(in);
+	acceleration = read_double(in);
+	permanent_turn = read_bool(in);
+	head_chg = read_double(in);
+	rudder = read_i8(in);
+	head_to = angle(read_double(in));
+	turn_rate = angle(read_double(in));
+	length = read_double(in);
+	width = read_double(in);
+	vis_cross_section_factor = read_float(in);
+	alive_stat = alive_status(read_u8(in));
+
+	previous_positions.clear();
+	for (unsigned s = read_u8(in); s > 0; --s) {
+		double x = read_double(in);
+		double y = read_double(in);
+		previous_positions.push_back(vector2(x, y));
+	}
+	
+	// sensors are created by sea_object/type
+	// fixme
+}
+
+void sea_object::save(ostream& out, const class game& g) const
+{
+	write_double(out, position.x);
+	write_double(out, position.y);
+	write_double(out, position.z);
+	write_double(out, heading.value());
+	write_double(out, speed);
+	write_double(out, max_speed);
+	write_double(out, max_rev_speed);
+	write_i8(out, throttle);
+	write_double(out, acceleration);
+	write_bool(out, permanent_turn);
+	write_double(out, head_chg);
+	write_i8(out, rudder);
+	write_double(out, head_to.value());
+	write_double(out, turn_rate.value());
+	write_double(out, length);
+	write_double(out, width);
+	write_float(out, vis_cross_section_factor);
+	write_u8(out, Uint8(alive_stat));
+
+	write_u8(out, previous_positions.size());
+	for (list<vector2>::const_iterator it = previous_positions.begin(); it != previous_positions.end(); ++it) {
+		write_double(out, it->x);
+		write_double(out, it->y);
+	}
+	
+	// sensors are created by sea_object/type
+}
+
 
 bool sea_object::parse_attribute(parser& p)
 {

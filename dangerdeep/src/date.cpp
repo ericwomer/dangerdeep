@@ -4,6 +4,7 @@
 #include <iomanip>
 #include "date.h"
 #include "texts.h"
+#include "binstream.h"
 
 void date::copy ( const date& d )
 {
@@ -88,4 +89,16 @@ ostream& operator<< ( ostream& os, const date& d )
 	}
 
 	return os;
+}
+
+void date::load(istream& in)
+{
+	for (unsigned i = 0; i < last_date_type; ++i)
+		date_values[i] = read_u8(in);
+}
+
+void date::save(ostream& out) const
+{
+	for (unsigned i = 0; i < last_date_type; ++i)
+		write_u8(out, date_values[i]);
 }

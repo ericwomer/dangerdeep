@@ -40,7 +40,6 @@ protected:
 	unsigned initialturn;	// 0/1 left/right
 	unsigned searchpattern;	// 0/1 turn 180 or 90 degrees
 
-	torpedo();
 	torpedo& operator=(const torpedo& other);
 	torpedo(const torpedo& other);
 
@@ -48,7 +47,11 @@ protected:
 	virtual void create_sensor_array ( types t );
 
 public:
+	torpedo() {};
 	virtual ~torpedo() {};
+	void load(istream& in, class game& g);
+	void save(ostream& out, const class game& g) const;
+	
 	// additional FAT/LUT values as indices (0-16,0-1,0-1,0-1)
 	torpedo(sea_object* parent_, unsigned type_, bool usebowtubes,
 		unsigned pr = 0, unsigned sr = 0, unsigned it = 0, unsigned sp = 0);

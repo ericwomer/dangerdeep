@@ -23,6 +23,18 @@ depth_charge::depth_charge(const sea_object& parent, double expl_depth) : sea_ob
 	vis_cross_section_factor = CROSS_SECTION_VIS_NULL;;
 }
 
+void depth_charge::load(istream& in, class game& g)
+{
+	sea_object::load(in, g);
+	explosion_depth = read_double(in);
+}
+
+void depth_charge::save(ostream& out, const class game& g) const
+{
+	sea_object::save(out, g);
+	write_double(out, explosion_depth);
+}
+
 void depth_charge::simulate(game& gm, double delta_time)
 {
 	sea_object::simulate(gm, delta_time);
