@@ -32,6 +32,7 @@ torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, ang
 	size3d = vector3f(0.533, 7, 0.533);	// diameter 53.3cm (21inch), length ~ 7m
 	run_length = 0;
 	max_speed_forward = velocity.y = get_speed_by_type(type_);
+	cout<<"initla speed " << this << "," << get_speed() << "," <<get_speed_by_type(type_)<<"\n";
 	max_speed_reverse = 0;
 	switch (type_) {
 		case T1:
@@ -83,6 +84,18 @@ torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, ang
 			break;
 	};
 	throttle = aheadfull;
+
+	// set ship turning values
+	max_rudder_angle = 40;
+	max_rudder_turn_speed = 20;	// with smaller values torpedo course oscillates. damping too high?! steering to crude?! fixme
+	max_angular_velocity = 18;	// ~ 5 seconds for 90 degree turn (50m radius circle with 30 knots)
+	turn_rate = 1; // ? is this needed somewhere?!
+	max_accel_forward = 1;
+	max_speed_forward = 10;
+	max_speed_reverse = 0;
+
+	// torpedoes run too slow, fixme
+
 	system::sys().add_console("torpedo created");
 }
 
@@ -114,7 +127,11 @@ void torpedo::save(ostream& out, const class game& g) const
 
 void torpedo::simulate(game& gm, double delta_time)
 {
-	sea_object::simulate(gm, delta_time);
+	cout << " simul speed 1 " << this << "," << get_speed() << " velo " << velocity << "\n";
+
+	ship::simulate(gm, delta_time);
+
+	cout << " simul speed 2 " << this << "," << get_speed() << " velo " << velocity << "\n";
 
 	// Torpedo starts to search for a target when the minimum save
 	// distance for the warhead is passed.
@@ -131,7 +148,9 @@ void torpedo::simulate(game& gm, double delta_time)
 	}
 
 	double old_run_length = run_length;
+	cout << "rl vorher " << this << "," << run_length << "\n";
 	run_length += get_speed() * delta_time;
+	cout << "rl nachher " << this << "," << run_length << "," << get_speed() << "," << delta_time << "\n";
 	if (run_length > max_run_length) {
 		destroy();
 		return;
@@ -155,6 +174,7 @@ void torpedo::simulate(game& gm, double delta_time)
 	}
 	
 	// check for collisions with other subs or ships
+	cout << "torpedo " << this << " run lenght is " << run_length << "\n";
 	if (run_length > 10) {	// avoid collision with parent after initial creation
 		bool runlengthfailure = (run_length < TORPEDO_SAVE_DISTANCE);
 		bool failure = false;	// calculate additional probability of torpedo failure

@@ -43,7 +43,6 @@ protected:
 	double max_accel_forward;	// stored. can get computed from engine_torque, screw diameter and ship's mass.
 	double max_speed_forward;	// stored.
 	double max_speed_reverse;	// stored.
-	double max_turn_speed;		// angular velocity. computed from turn_rate.
 
 	// fixme: replace by finer model: -> damage editor!
 	damage_status stern_damage, midship_damage, bow_damage;

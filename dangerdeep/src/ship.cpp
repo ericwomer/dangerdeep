@@ -18,7 +18,7 @@
 
 
 // empty c'tor is needed by heirs
-ship::ship() : myai(0), smoke_type(0)
+ship::ship() : sea_object(), myai(0), smoke_type(0)
 {
 	init();
 }
@@ -27,6 +27,7 @@ ship::ship() : myai(0), smoke_type(0)
 
 void ship::init(void)
 {
+	// set some default values
 	heading = 0;
 	throttle = 0;
 	head_to_fixed = false;
@@ -35,6 +36,10 @@ void ship::init(void)
 	max_rudder_angle = 40;
 	max_rudder_turn_speed = 10;
 	max_angular_velocity = 2;
+	turn_rate = 1;
+	max_accel_forward = 1;
+	max_speed_forward = 10;
+	max_speed_reverse = 0;
 }
 
 

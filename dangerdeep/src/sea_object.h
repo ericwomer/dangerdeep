@@ -79,6 +79,7 @@ protected:
 	class ai* myai;
 
 	sea_object();
+
 	sea_object& operator=(const sea_object& other);
 	sea_object(const sea_object& other);
 
