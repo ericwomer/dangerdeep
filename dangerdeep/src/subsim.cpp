@@ -83,6 +83,14 @@ void show_results_for_game(const game* gm)
 
 
 //
+// save a game to disk
+//
+void save_game(const game* gm)
+{
+	gm->save("TESTSAVEGAME", "DO NOT USE THIS");
+}
+
+//
 // start and run a game, handle load/save (game menu), show results after game's end, delete game
 //
 void run_game(game* gm)
@@ -102,7 +110,7 @@ void run_game(game* gm)
 			widget_menu* wmn = new widget_menu(312, 260, 400, 40, false);
 			woptions.add_child(wmn);
 			wmn->add_entry(texts::get(118), new widget_func_button<void (*)(void)>(menu_notimplemented));
-			wmn->add_entry(texts::get(119), new widget_func_button<void (*)(void)>(menu_notimplemented));
+			wmn->add_entry(texts::get(119), new widget_func_arg_button<void (*)(const game*), const game*>(save_game, gm));
 			wmn->add_entry(texts::get(120), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&woptions, &widget::close, 1));
 			wmn->add_entry(texts::get(121), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&woptions, &widget::close, 2));
 			unsigned sel = woptions.run();

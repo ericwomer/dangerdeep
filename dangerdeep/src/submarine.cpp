@@ -133,6 +133,87 @@ bool submarine::parse_attribute(parser& p)
 	return true;
 }
 
+void submarine::load(istream& in, game& g)
+{
+	ship::load(in, g);
+
+	dive_speed = read_double(in);
+	dive_acceleration = read_double(in);
+	max_dive_speed = read_double(in);
+	max_depth = read_double(in);
+	dive_to = read_double(in);
+	permanent_dive = read_bool(in);
+	max_submerged_speed = read_double(in);
+
+	torpedoes.clear();
+	for (unsigned s = read_u8(in); s > 0; --s)
+		torpedoes.push_back(stored_torpedo(in));
+
+	scopeup = read_bool(in);
+	periscope_depth = read_double(in);
+	electric_engine = read_bool(in);
+	hassnorkel = read_bool(in);
+	snorkel_depth = read_double(in);
+	snorkel_up = read_bool(in);
+	sonar_cross_section_factor = read_float(in);
+	battery_level = read_double(in);
+	battery_value_a = read_double(in);
+	battery_value_t = read_double(in);
+	battery_recharge_value_a = read_double(in);
+	battery_recharge_value_t = read_double(in);
+    
+	damageable_parts.clear();
+	for (unsigned s = read_u8(in); s > 0; --s)
+		damageable_parts.push_back(damageable_part(in));
+}
+
+void submarine::save(ostream& out, const game& g) const
+{
+	ship::save(out, g);
+
+	write_double(out, dive_speed);
+	write_double(out, dive_acceleration);
+	write_double(out, max_dive_speed);
+	write_double(out, max_depth);
+	write_double(out, dive_to);
+	write_bool(out, permanent_dive);
+	write_double(out, max_submerged_speed);
+
+	write_u8(out, torpedoes.size());
+	for (vector<stored_torpedo>::const_iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
+		it->save(out);
+	}
+
+	write_bool(out, scopeup);
+	write_double(out, periscope_depth);
+	write_bool(out, electric_engine);
+	write_bool(out, hassnorkel);
+	write_double(out, snorkel_depth);
+	write_bool(out, snorkel_up);
+	write_float(out, sonar_cross_section_factor);
+	write_double(out, battery_level);
+	write_double(out, battery_value_a);
+	write_double(out, battery_value_t);
+	write_double(out, battery_recharge_value_a);
+	write_double(out, battery_recharge_value_t);
+    
+	write_u8(out, damageable_parts.size());
+	for (vector<damageable_part>::const_iterator it = damageable_parts.begin(); it != damageable_parts.end(); ++it) {
+		it->save(out);
+	}
+}
+
+submarine* submarine::create(istream& in)
+{
+	unsigned type = read_u8(in);
+	switch (type) {
+		case typeVIIc: return new submarine_VIIc();
+		case typeIXc40: return new submarine_IXc40();
+		case typeXXI: return new submarine_XXI();
+	}
+	return 0;
+}
+
 submarine* submarine::create(submarine::types type_)
 {
 	switch (type_) {

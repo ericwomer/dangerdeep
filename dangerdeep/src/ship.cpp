@@ -54,6 +54,55 @@ bool ship::parse_attribute(parser& p)
 	return false;
 }
 
+void ship::load(istream& in, game& g)
+{
+	sea_object::load(in, g);
+	
+	// how to load the ai? fixme
+	
+	tonnage = read_u32(in);
+	stern_damage = damage_status(read_u8(in));
+	midship_damage = damage_status(read_u8(in));
+	bow_damage = damage_status(read_u8(in));
+	fuel_level = read_double(in);
+	fuel_value_a = read_double(in);
+	fuel_value_t = read_double(in);
+}
+
+void ship::save(ostream& out, const game& g) const
+{
+	sea_object::save(out, g);
+	
+	// how to save the ai? fixme
+	
+	write_u32(out, tonnage);
+	write_u8(out, stern_damage);
+	write_u8(out, midship_damage);
+	write_u8(out, bow_damage);
+	write_double(out, fuel_level);
+	write_double(out, fuel_value_a);
+	write_double(out, fuel_value_t);
+}
+
+ship* ship::create(istream& in)
+{
+	unsigned type = read_u8(in);
+	switch (type) {
+		case largemerchant: return new ship_largemerchant();
+		case mediummerchant: return new ship_mediummerchant();
+		case smallmerchant: return new ship_smallmerchant();
+		case mediumtroopship: return new ship_mediumtroopship();
+		case destroyertribal: return new ship_destroyertribal();
+		case battleshipmalaya: return new ship_battleshipmalaya();
+		case carrierbogue: return new ship_carrierbogue();
+		case corvette: return new ship_corvette();
+		case largefreighter: return new ship_largefreighter();
+		case mediumfreighter: return new ship_mediumfreighter();
+		case smalltanker: return new ship_smalltanker();
+	}
+	return 0;
+}
+
 ship* ship::create(ship::types type_)
 {
 	switch (type_) {

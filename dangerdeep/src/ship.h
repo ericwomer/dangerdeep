@@ -64,11 +64,16 @@ public:
 	};
 	
 	virtual ~ship();
-	virtual void sink(void);
+
+	virtual void load(istream& in, class game& g);
+	virtual void save(ostream& out, const class game& g) const;
+	static ship* create(istream& in);
 	static ship* create(types type_);
 	static ship* create(parser& p);
+	virtual void save_type(ostream& out) const = 0;
 	virtual void simulate(class game& gm, double delta_time);
 
+	virtual void sink(void);
 	virtual void fire_shell_at(const vector2& pos);	// to subclass?
 
 	virtual bool has_smoke(void) const { return mysmoke != 0; }

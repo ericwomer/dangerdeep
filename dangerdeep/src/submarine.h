@@ -7,6 +7,7 @@
 #include "ship.h"
 #include "torpedo.h"
 #include "parser.h"
+#include "binstream.h"
 #include <vector>
 
 #define SUBMARINE_SUBMERGED_DEPTH 2.0f // meters
@@ -27,6 +28,8 @@ public:
 		double remaining_time;	// remaining time until work is finished
 		stored_torpedo() : type(0), status(st_empty), associated(0), remaining_time(0) {}
 		stored_torpedo(unsigned t) : type(t), status(st_loaded), associated(0), remaining_time(0) {}
+		stored_torpedo(istream& in) { type = read_u8(in); status = st_status(read_u8(in)); associated = read_u8(in); remaining_time = read_double(in); }
+		void save(ostream& out) const { write_u8(out, type); write_u8(out, status); write_u8(out, associated); write_double(out, remaining_time); }
 	};
 
 	// submarine parts and their damages
@@ -114,6 +117,8 @@ public:
 		double status;		// damage in percent, negative means part is not existent.
 		double repairtime;
 		damageable_part(double st = -1, double rt = 0) : status(st), repairtime(rt) {}
+		damageable_part(istream& in) { status = read_double(in); repairtime = read_double(in); }
+		void save(ostream& out) const { write_double(out, status); write_double(out, repairtime); }
 	};
 		
 protected:
@@ -173,14 +178,18 @@ public:
 	// there were two IXd1 boats similar to type d2, but with different
 	// engines.
 	enum types {
-		typeIIa, typeIIb, typeIIc, typeIId,
+		typeIIa=256, typeIIb, typeIIc, typeIId,
 		typeVIIa, typeVIIb, typeVIIc, typeVIIc41,
 		typeIX, typeIXb, typeIXc, typeIXc40, typeIXd2,
 		typeXXI,
 		typeXXIII };
 	virtual ~submarine() {}
+	virtual void load(istream& in, class game& g);
+	virtual void save(ostream& out, const class game& g) const;
+	static submarine* create(istream& in);
 	static submarine* create(types type_);
 	static submarine* create(parser& p);
+	
 	virtual void simulate(class game& gm, double delta_time);
 
 	const vector<stored_torpedo>& get_torpedoes(void) const { return torpedoes; }
