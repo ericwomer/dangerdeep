@@ -63,7 +63,7 @@ extern class texture *background, *gauge1,
 	*terraintex, *cloudsbackgr, *atlanticmap;
 extern class font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd;
 
-extern class image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_background,
+extern class image *titlebackgrimg, *threesubsimg, *damage_screen_background,
 	*sub_damage_scheme_all, *killedimg, *scopewatcherimg,
 	*depthchargeimg, *sunkendestroyerimg, *kruppdocksimg, *rescuedestroyerimg, *sunderlandimg,
 	*swordfishimg, *hedgehogimg, *panelbackgroundimg;
