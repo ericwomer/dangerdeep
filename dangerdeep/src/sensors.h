@@ -133,7 +133,7 @@ public:
 class passive_sonar_sensor : public sensor
 {
 public:
-	enum passive_sonar_type { passive_sonar_type_default,
+	enum passive_sonar_type { passive_sonar_type_default,	/* fixme: tt_t4 is missing here */
 		passive_sonar_type_tt_t5, passive_sonar_type_tt_t11 };
 
 private:

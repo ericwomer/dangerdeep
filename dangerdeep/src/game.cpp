@@ -831,6 +831,17 @@ void game::ship_sunk( const ship* s )
 		s->get_tonnage()));
 }
 
+
+/*
+	fixme: does this function make sense in this place?
+	it does:
+	- move sensor (could be done in sensor's parent simulate function)
+	- stores ping (could be done in a spawn_ping function)
+	- detects objects (could be done in a get_asdic_detected_objects(thisping) )
+	This function is yet the only "action" function. This concept doesn't seem to match
+	with class game or the rest of the simulation.
+	maybe ged rid of this (for simplicity of network game this would be useful)
+*/
 void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
 	const bool& move_sensor, const angle& dir )
 {
