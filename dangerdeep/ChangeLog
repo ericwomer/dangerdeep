@@ -1,3 +1,11 @@
+2003-10-30  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* user_interface.cpp
+	  - updated and corrected simulation as far as possible.
+	    sun and moon seem to be too small, but numerical results seem
+	    correct?!
+	    simulation is roughly accurate by rise/set times and degrees for
+	    both.
+
 2003-10-27  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* user_interface.cpp global_data.h global_data.cpp
 	  - added simulation and display of sun and moon.
