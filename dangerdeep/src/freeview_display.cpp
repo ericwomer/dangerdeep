@@ -17,6 +17,8 @@
 #include "water_splash.h"
 #include "sky.h"
 #include "water.h"
+#include "global_data.h"
+#include "model.h"
 #include <fstream>
 
 
@@ -325,9 +327,6 @@ void freeview_display::draw_view(game& gm) const
 	glCullFace(GL_BACK);
 	// copy viewport pixel data to reflection texture
 
-	//dirty hack to test water without mirror fixme
-	glClear(GL_COLOR_BUFFER_BIT);
-
 	glBindTexture(GL_TEXTURE_2D, ui.get_water().get_reflectiontex());
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, vps, vps, 0);
 
@@ -399,23 +398,24 @@ void freeview_display::draw_view(game& gm) const
 	// ******************** draw the bridge in higher detail
 	if (aboard && drawbridge) {
 		// after everything was drawn, draw conning tower (new projection matrix needed)
-		glClear(GL_DEPTH_BUFFER_BIT);
+//		glClear(GL_DEPTH_BUFFER_BIT);
 //		glDisable(GL_DEPTH_TEST);
-		glMatrixMode(GL_PROJECTION);
+//		glMatrixMode(GL_PROJECTION);
+//		glPushMatrix();
+//		glLoadIdentity();
+//		system::sys().gl_perspective_fovx (90.0, 4.0/3.0 /* fixme may change */, 0.5, 100.0);
+//		glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();
-		glLoadIdentity();
-		system::sys().gl_perspective_fovx (90.0, 4.0/3.0 /* fixme may change */, 0.5, 100.0);
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-		glRotatef(-elevation.value()-90,1,0,0);
-		glRotatef((bearing - player->get_heading()).value(),0,0,1);
+		glTranslated(0, 0, 6);
+//		glLoadIdentity();
+//		glRotatef(-elevation.value()-90,1,0,0);
+//		glRotatef((bearing - player->get_heading()).value(),0,0,1);
 //fixme handle different! with modelcache!
-//		conning_tower_typeVII->display();
+		conning_tower_typeVII->display();
+//		glPopMatrix();
+//		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
+//		glMatrixMode(GL_MODELVIEW);
 //		glEnable(GL_DEPTH_TEST);
 	}
 	
