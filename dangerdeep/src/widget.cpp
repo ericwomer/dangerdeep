@@ -37,7 +37,7 @@ int widget::theme::icon_size(void) const
 }
 
 widget::theme::theme(const char* elements_filename, const char* icons_filename, const font* fnt,
-	color tc, color tsc) : myfont(fnt), textcol(tc), textselectcol(tsc)
+	color tc, color tsc, color tdc) : myfont(fnt), textcol(tc), textselectcol(tsc), textdisabledcol(tdc)
 {
 	int fw;
 	SDL_Surface* tmp;
@@ -121,9 +121,10 @@ void widget::draw(void) const
 	draw_area(p.x, p.y, size.x, size.y, /*fixme: replace by property?*/true);
 	int fw = globaltheme->frame_size();
 	draw_rect(p.x+fw, p.y+fw, size.x-2*fw, globaltheme->myfont->get_height(), false);
+	color tcol = is_enabled() ? globaltheme->textcol : globaltheme->textdisabledcol;
 	globaltheme->myfont->print_hc(
 		p.x+size.x/2, p.y+globaltheme->frame_size(), text,
-		globaltheme->textcol, true);
+		tcol, true);
 	for (list<widget*>::const_iterator it = children.begin(); it != children.end(); ++it)
 		(*it)->draw();
 }
@@ -202,6 +203,7 @@ void widget::process_input(void)
 	if (mclick & 1)
 		compute_focus();
 	if (focussed) {
+		if (!focussed->is_enabled()) { sys->flush_key_queue(); return; }
 		if (sys->is_key_in_queue()) focussed->on_char();
 		if (mclick & 1) focussed->on_click();
 		if (mrelease & 1) focussed->on_release();
@@ -401,8 +403,8 @@ void widget_button::draw(void) const
 	vector2i p = get_pos();
 	bool mover = is_enabled() && is_mouse_over();
 	draw_area(p.x, p.y, size.x, size.y, !mover);
-	globaltheme->myfont->print_c(p.x+size.x/2, p.y+size.y/2, text,
-		mover ? globaltheme->textselectcol : globaltheme->textcol, true);
+	color col = (is_enabled() ? (is_mouse_over() ? globaltheme->textselectcol : globaltheme->textcol) : globaltheme->textdisabledcol);
+	globaltheme->myfont->print_c(p.x+size.x/2, p.y+size.y/2, text, col, true);
 }
 
 void widget_button::on_click(void)
@@ -529,6 +531,7 @@ void widget_scrollbar::on_drag(void)
 void widget_scrollbar::on_wheel(void)
 {
 	widget::process_input();
+	if (!is_enabled()) return;
 	unsigned oldpos = scrollbarpos;
 	int mb = system::sys()->get_mouse_buttons();
 	if (mb & 0x8) {
@@ -624,11 +627,12 @@ void widget_list::draw(void) const
 	for (unsigned lp = 0; lp < listpos; ++lp) ++it;
 	int fw = globaltheme->frame_size();
 	unsigned maxp = get_nr_of_visible_entries();
+	color tcol = is_enabled() ? globaltheme->textcol : globaltheme->textdisabledcol;
 	for (unsigned lp = 0; it != entries.end() && lp < maxp; ++it, ++lp) {
 		if (selected == int(lp + listpos)) {
 			globaltheme->backg->draw(p.x+fw, p.y + fw + lp*globaltheme->myfont->get_height(), size.x-5*fw-globaltheme->icons[0]->get_width(), globaltheme->myfont->get_height());
 		}
-		globaltheme->myfont->print(p.x+fw, p.y+fw + lp*globaltheme->myfont->get_height(), *it, globaltheme->textcol, true);
+		globaltheme->myfont->print(p.x+fw, p.y+fw + lp*globaltheme->myfont->get_height(), *it, tcol, true);
 	}
 	myscrollbar->draw();
 }
@@ -661,7 +665,7 @@ void widget_edit::draw(void) const
 	vector2i p = get_pos();
 	draw_area(p.x, p.y, size.x, size.y, false);
 	int fw = globaltheme->frame_size();
-	globaltheme->myfont->print_vc(p.x+fw, p.y+size.y/2, text, globaltheme->textcol, true);
+	globaltheme->myfont->print_vc(p.x+fw, p.y+size.y/2, text, is_enabled() ? globaltheme->textcol : globaltheme->textdisabledcol, true);
 	pair<unsigned, unsigned> sz = globaltheme->myfont->get_size(text.substr(0, cursorpos));
 	system::sys()->no_tex();
 	globaltheme->textcol.set_gl_color();

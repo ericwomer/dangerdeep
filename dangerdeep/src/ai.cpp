@@ -52,6 +52,43 @@ ai::ai(sea_object* parent_, types type_) : type(type_), state(followpath),
 	fill_dist_angle_relation_map();
 }
 
+ai::ai(istream& in, class game& g)
+{
+	type = types(read_u8(in));
+	state = states(read_u8(in));
+	zigzagstate = read_u32(in);
+	attackrun = read_bool(in);
+	evasive_manouver = read_bool(in);
+	rem_manouver_time = read_double(in);
+	parent = g.read_sea_object(in);
+	followme = g.read_sea_object(in);
+	myconvoy = g.read_convoy(in);
+	has_contact = read_bool(in);
+	contact.x = read_double(in);
+	contact.y = read_double(in);
+	contact.z = read_double(in);
+	remaining_time = read_double(in);
+}
+
+void ai::save(ostream& out, const class game& g) const
+{
+	write_u8(out, Uint8(type));
+	write_u8(out, Uint8(state));
+	write_u32(out, zigzagstate);
+	write_bool(out, attackrun);
+	write_bool(out, evasive_manouver);
+	write_double(out, rem_manouver_time);
+	g.write(out, parent);
+	g.write(out, followme);
+	g.write(out, myconvoy);
+	write_bool(out, has_contact);
+	write_double(out, contact.x);
+	write_double(out, contact.y);
+	write_double(out, contact.z);
+	write_double(out, remaining_time);
+}
+
+
 void ai::relax(void)
 {
 	has_contact = false;

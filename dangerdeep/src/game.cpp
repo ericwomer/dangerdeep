@@ -201,6 +201,7 @@ game::~game()
 
 void game::save(const string& savefilename, const string& description) const
 {
+cout<<"saving game...\n";
 	ofstream out(savefilename.c_str(), ios::out|ios::binary);
 	write_string(out, "DANGER FROM THE DEEP game save file");
 	write_string(out, description);
@@ -208,8 +209,9 @@ void game::save(const string& savefilename, const string& description) const
 	save_to_stream(out);
 }
 
-void game::load(const string& savefilename)
+game::game(const string& savefilename)
 {
+cout<<"loading game...\n";
 	ifstream in(savefilename.c_str(), ios::in|ios::binary);
 	read_string(in);
 	string description = read_string(in);
@@ -1240,92 +1242,179 @@ bool game::is_day_mode () const
 	return false;
 }
 
-void game::write(ostream& out, const ship* s) const
+template <class T>
+T* ith_elem(const list<T*>& lst, unsigned i)
 {
-	if (!s) { write_u16(out, 0); return; }
-//cout << "try to translate " << s << " (is a sub? " << (dynamic_cast<const submarine*>(s) != 0) << ")\n";
-	list<ship*>::const_iterator it = ships.begin();
-	for (unsigned i = 1; it != ships.end(); ++i, ++it) {
-		if (*it == s) {
-			write_u16(out, i);
+	for (typename list<T*>::const_iterator it = lst.begin(); it != lst.end(); ++it, --i)
+		if (i == 0)
+			return *it;
+	system::sys()->myassert(false, "weird: could not access i'th element");
+	return 0;
+}
+
+template <class T>
+void write_ptr2u16(ostream& out, const T* p, const list<T*>& lst, unsigned offset, const string& ptrtype)
+{
+	if (!p) {
+//cout<<"write #late "<<0<<"\n";
+		write_u16(out, 0);
+		return;
+	}
+	typename list<T*>::const_iterator it = lst.begin();
+	for (unsigned i = 1; it != lst.end(); ++i, ++it) {
+		if (*it == p) {
+//cout<<"write #late "<<i + offset<<"\n";
+			write_u16(out, i + offset);
 			return;
 		}
 	}
-	system::sys()->myassert(false, "[game::write(ship)] could not translate ship* to number");
+	system::sys()->myassert(false, string("could not translate ") + ptrtype + " pointer to number");
+}
+
+template <class T>
+T* read_u162ptr(istream& in, const list<T*>& lst, unsigned n0, unsigned n1, const string& ptrtype)
+{
+	unsigned nr = read_u16(in);
+//cout <<"read #late "<<nr<<"\n";
+	if (nr == 0) return 0;
+	if (nr > n0 && nr <= n1) {
+		return ith_elem(lst, nr-n0-1);
+	}
+	system::sys()->myassert(false, string("could not translate number to ") + ptrtype + " pointer");
+	return 0;
+}
+
+unsigned game::listsizes(unsigned n) const
+{
+	unsigned s = 0;
+	switch (n) {
+		case 8: s += water_splashs.size();
+		case 7: s += convoys.size();
+		case 6: s += gun_shells.size();
+		case 5: s += depth_charges.size();
+		case 4: s += torpedoes.size();
+		case 3: s += airplanes.size();
+		case 2: s += submarines.size();
+		case 1: s += ships.size();
+		case 0: s += 0; break;
+		default: system::sys()->myassert(false, "game::listsizes  n too high");
+	}
+	return s;
+}
+
+void game::write(ostream& out, const ship* s) const
+{
+	write_ptr2u16(out, s, ships, listsizes(0), "ship");
 }
 
 void game::write(ostream& out, const submarine* s) const
 {
-	if (!s) { write_u16(out, 0); return; }
-	list<submarine*>::const_iterator it = submarines.begin();
-	for (unsigned i = 1; it != submarines.end(); ++i, ++it) {
-		if (*it == s) {
-			write_u16(out, i + ships.size());
-			return;
-		}
-	}
-	system::sys()->myassert(false, "[game::write(submarine)] could not translate submarine* to number");
+	write_ptr2u16(out, s, submarines, listsizes(1), "submarine");
+}
+
+void game::write(ostream& out, const airplane* a) const
+{
+	write_ptr2u16(out, a, airplanes, listsizes(2), "airplane");
+}
+
+void game::write(ostream& out, const torpedo* t) const
+{
+	write_ptr2u16(out, t, torpedoes, listsizes(3), "torpedo");
+}
+
+void game::write(ostream& out, const depth_charge* d) const
+{
+	write_ptr2u16(out, d, depth_charges, listsizes(4), "depth_charge");
+}
+
+void game::write(ostream& out, const gun_shell* q) const
+{
+	write_ptr2u16(out, q, gun_shells, listsizes(5), "gun_shell");
+}
+
+void game::write(ostream& out, const convoy* c) const
+{
+	write_ptr2u16(out, c, convoys, listsizes(6), "convoy");
+}
+
+void game::write(ostream& out, const water_splash* w) const
+{
+	write_ptr2u16(out, w, water_splashs, listsizes(7), "water_splash");
 }
 
 void game::write(ostream& out, const sea_object* s) const
 {
-	system::sys()->myassert(false, "function used?!");
-/*
-	if (!s) { write_u16(out, 0); return; }
-	list<ship*>::const_iterator it = ships.begin();
-	for (unsigned i = 1; it != ships.end(); ++i, ++it) {
-		if (*it == s) {
-			write_u16(out, i);
-			return;
-		}
-	}
-	system::sys()->myassert(false, "[game::write(ship)] could not translate ship* to number");
-*/	
+	if (s == 0) { /*cout<<"write #late 0\n";*/ write_u16(out, 0); return; }
+	const ship* sh = dynamic_cast<const ship*>(s); if (s) { write(out, sh); return; }
+	const submarine* su = dynamic_cast<const submarine*>(s); if (s) { write(out, su); return; }
+	const airplane* ap = dynamic_cast<const airplane*>(s); if (s) { write(out, ap); return; }
+	const torpedo* tp = dynamic_cast<const torpedo*>(s); if (s) { write(out, tp); return; }
+	const depth_charge* dc = dynamic_cast<const depth_charge*>(s); if (s) { write(out, dc); return; }
+	const gun_shell* gs = dynamic_cast<const gun_shell*>(s); if (s) { write(out, gs); return; }
+	const convoy* cv = dynamic_cast<const convoy*>(s); if (s) { write(out, cv); return; }
+	const water_splash* ws = dynamic_cast<const water_splash*>(s); if (s) { write(out, ws); return; }
+	system::sys()->myassert(false, "internal error: ptr is not 0 and no heir of sea_object");
 }
 
 ship* game::read_ship(istream& in) const
 {
-	unsigned nr = read_u16(in);
-	if (nr == 0) return 0;
-	if (nr <= ships.size()) {
-		for (list<ship*>::const_iterator it = ships.begin(); it != ships.end(); ++it, --nr)
-			if (nr == 1)
-				return *it;
-	}
-	system::sys()->myassert(false, "[read_ship] could not translate number to ship*");
-	return 0;
+	return read_u162ptr(in, ships, listsizes(0), listsizes(1), "ship");
 }
 
 submarine* game::read_submarine(istream& in) const
 {
-	unsigned nr = read_u16(in);
-	if (nr == 0) return 0;
-	if (nr > ships.size() && nr <= ships.size() + submarines.size()) {
-		for (list<submarine*>::const_iterator it = submarines.begin(); it != submarines.end(); ++it, --nr)
-			if (nr == 1 + ships.size())
-				return *it;
-	}
-	system::sys()->myassert("[read_submarine] could not translate number to submarine*");
-	return 0;
+	return read_u162ptr(in, submarines, listsizes(1), listsizes(2), "submarine");
+}
+
+airplane* game::read_airplane(istream& in) const
+{
+	return read_u162ptr(in, airplanes, listsizes(2), listsizes(3), "airplane");
+}
+
+torpedo* game::read_torpedo(istream& in) const
+{
+	return read_u162ptr(in, torpedoes, listsizes(3), listsizes(4), "torpedo");
+}
+
+depth_charge* game::read_depth_charge(istream& in) const
+{
+	return read_u162ptr(in, depth_charges, listsizes(4), listsizes(5), "depth_charge");
+}
+
+gun_shell* game::read_gun_shell(istream& in) const
+{
+	return read_u162ptr(in, gun_shells, listsizes(5), listsizes(6), "gun_shell");
+}
+
+convoy* game::read_convoy(istream& in) const
+{
+	return read_u162ptr(in, convoys, listsizes(6), listsizes(7), "convoy");
+}
+
+water_splash* game::read_water_splash(istream& in) const
+{
+	return read_u162ptr(in, water_splashs, listsizes(7), listsizes(8), "water_splash");
 }
 
 sea_object* game::read_sea_object(istream& in) const
 {
-	system::sys()->myassert(false, "function used?!");
-/*
 	unsigned nr = read_u16(in);
+//cout << "xlate nr "<<nr<<"\n";
 	if (nr == 0) return 0;
-	if (nr <= persons.size()) {
-		for (list<person*>::const_iterator it = persons.begin(); it != persons.end(); ++it, --nr)
-			if (nr == 1)
-				return *it;
-	} else if (nr > persons.size() + rooms.size() && nr <= persons.size() + rooms.size() + things.size()) {
-		nr -= persons.size() + rooms.size();
-		for (list<thing*>::const_iterator it = things.begin(); it != things.end(); ++it, --nr)
-			if (nr == 1)
-				return *it;
-	}
-	error("[get_collectable] nr not found");
-*/
+	unsigned sizes[9];
+	for (unsigned typen = 0; typen <= 8; ++typen)
+{
+//cout<<"typen "<<typen<<" sizes "<<listsizes(typen)<<"\n";	
+		sizes[typen] = listsizes(typen);
+}
+	if (nr > sizes[0] && nr <= sizes[1]) return ith_elem(ships, nr-sizes[0]-1);
+	if (nr > sizes[1] && nr <= sizes[2]) return ith_elem(submarines, nr-sizes[1]-1);
+	if (nr > sizes[2] && nr <= sizes[3]) return ith_elem(airplanes, nr-sizes[2]-1);
+	if (nr > sizes[3] && nr <= sizes[4]) return ith_elem(torpedoes, nr-sizes[3]-1);
+	if (nr > sizes[4] && nr <= sizes[5]) return ith_elem(depth_charges, nr-sizes[4]-1);
+	if (nr > sizes[5] && nr <= sizes[6]) return ith_elem(gun_shells, nr-sizes[5]-1);
+	if (nr > sizes[6] && nr <= sizes[7]) return ith_elem(convoys, nr-sizes[6]-1);
+	if (nr > sizes[7] && nr <= sizes[8]) return ith_elem(water_splashs, nr-sizes[7]-1);
+	system::sys()->myassert(false, string("could not translate number to sea_object pointer"));
 	return 0;
 }

@@ -20,6 +20,7 @@
 #include "sensors.h"
 #include "ai.h"
 #include "smoke_stream.h"
+#include "system.h"
 
 ship::ship() : sea_object(), myai ( 0 ), fuel_level ( 1.0 ),
 	fuel_value_a ( 0.0 ), fuel_value_t ( 1.0 ), mysmoke(0)
@@ -57,8 +58,9 @@ bool ship::parse_attribute(parser& p)
 void ship::load(istream& in, game& g)
 {
 	sea_object::load(in, g);
-	
-	// how to load the ai? fixme
+
+	if (read_bool(in))
+		myai = new ai(in, g);	
 	
 	tonnage = read_u32(in);
 	stern_damage = damage_status(read_u8(in));
@@ -72,8 +74,10 @@ void ship::load(istream& in, game& g)
 void ship::save(ostream& out, const game& g) const
 {
 	sea_object::save(out, g);
-	
-	// how to save the ai? fixme
+
+	write_bool(out, (myai != 0));
+	if (myai)
+		myai->save(out, g);
 	
 	write_u32(out, tonnage);
 	write_u8(out, stern_damage);

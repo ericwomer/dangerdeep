@@ -1,3 +1,17 @@
+2003-12-28  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* game:
+	  - added read/write functions for pointer to number translation and
+	    vice versa (store numbers instead of pointers in save games)
+	  - removed "parent" attribute in class torpedo
+	  - fixed loading and saving except of water splashes
+	    now games can be saved and loaded!!! (water splashes are ignored)
+	  - fixed bugs in widget and font
+	  - wishlist/todo: replace myassert(false,..) calls with exceptions
+	  - IMPORTANT NOTE: the user interface is generated after the game
+	    has been loaded. This means all data stored in the
+	    user_interface class (and related classes) IS LOST!
+	    We shouldn't store data here OR save it extra.
+
 2003-12-27  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* widget.h widget.cpp subsim.cpp
 	  - fixed some widget bugs, made some menues nicer

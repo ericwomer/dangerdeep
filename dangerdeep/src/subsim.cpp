@@ -65,37 +65,18 @@ string savegamedirectory =
 	string(getenv("HOME"))+"/."+PACKAGE + "/";
 #endif	
 
-string number2alpha(unsigned num)
-{
-	char tmp[5] = {
-		'a' + ((num / 0x1000) & 0x0f),
-		'a' + ((num / 0x0100) & 0x0f),
-		'a' + ((num / 0x0010) & 0x0f),
-		'a' + ((num / 0x0001) & 0x0f),
-		0 };
-	return string(tmp);
-}
-
-unsigned alpha2number(const string& s)
-{
-	if (s.length() < 4) return 0xffffffff;
-	return
-		(int(s[0] - 'a') * 0x1000) +
-		(int(s[1] - 'a') * 0x0100) +
-		(int(s[2] - 'a') * 0x0010) +
-		(int(s[3] - 'a') * 0x0001) ;
-}
-
 string get_savegame_name_for(const string& descr, map<string, string>& savegames)
 {
 	unsigned num = 1;
 	for (map<string, string>::iterator it = savegames.begin(); it != savegames.end(); ++it) {
 		if (it->second == descr)
 			return savegamedirectory + it->first;
-		unsigned num2 = alpha2number(it->first.substr(5, 4));
+		unsigned num2 = unsigned(atoi((it->first.substr(5, 4)).c_str()));
 		if (num2 >= num) num = num2+1;
 	}
-	return savegamedirectory + "save_" + number2alpha(num) + ".dftd";
+	char tmp[20];
+	sprintf(tmp, "save_%04u.dftd", num);
+	return savegamedirectory + tmp;
 }
 
 bool is_savegame_name(const string& s)
@@ -104,7 +85,7 @@ bool is_savegame_name(const string& s)
 	if (s.substr(0, 5) != "save_") return false;
 	if (s.substr(9, 7) != ".dftd") return false;
 	for (int i = 5; i < 9; ++i)
-		if (s[i] < 'a' || s[i] > 'p') return false;
+		if (s[i] < '0' || s[i] > '9') return false;
 	return true;
 }
 
@@ -125,10 +106,11 @@ class loadsavequit_dialogue : public widget
 	void save(void);
 	void erase(void);
 	void quit(void);
-	void cancel(void) { close(0); }
+	void cancel(void) { close(0); }	// return 0 for cancel/return, 1 for quit (if saving is enabled), 2 for loaded
 	void update_list(void);
 
 public:	
+	game* get_game(void) const { return mygame; }
 	widget_edit* get_gamename(void) const { return gamename; }
 	loadsavequit_dialogue(game* g);	// give 0 to disable saving
 	~loadsavequit_dialogue() {};
@@ -167,10 +149,13 @@ loadsavequit_dialogue::loadsavequit_dialogue(game *g) : widget(0, 0, 1024, 768, 
 
 void loadsavequit_dialogue::load(void)
 {
-	mygame->load(get_savegame_name_for(gamename->get_text(), savegames));
+	//fixme: ask: replace this game?
+	delete mygame;
+	mygame = new game(get_savegame_name_for(gamename->get_text(), savegames));
 	widget* w = create_dialogue_ok(texts::get(185), texts::get(180) + gamename->get_text() + texts::get(181));
 	w->run();
 	delete w;
+	close(2);	// load and close
 }
 
 void loadsavequit_dialogue::save(void)
@@ -280,26 +265,6 @@ void show_results_for_game(const game* gm)
 	os << "total: " << totaltons;
 	wl->append_entry(os.str());
 	w.run();
-}
-
-
-//
-// save a game to disk
-//
-void save_game(const game* gm)
-{
-	gm->save("TESTSAVEGAME", "DO NOT USE THIS");
-}
-
-
-//
-// load a game to disk
-//
-void load_game(game** gm)
-{
-	delete *gm;
-	*gm = new game();
-	(*gm)->load("TESTSAVEGAME");
 }
 
 
@@ -426,9 +391,10 @@ void choose_saved_game(void)
 {
 	loadsavequit_dialogue dlg(0);
 	int q = dlg.run();
-//	if (q == 1)
-//		break;
-// fixme
+	if (q == 0) return;
+	if (q == 2) {
+		run_game(dlg.get_game());
+	}
 }
 
 
@@ -715,7 +681,7 @@ int main(int argc, char** argv)
 	init_global_data();
 	
 	widget::set_theme(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
-		font_nimbusrom, color::white(), color(255, 64, 64)));
+		font_nimbusrom, color::white(), color(255, 64, 64), color(64,64,32)));
 
 	sys->draw_console_with(font_arial, background);
 	

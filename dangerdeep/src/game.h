@@ -103,25 +103,23 @@ protected:
 	
 	list<ping> pings;
 	
-//	game();
 	game& operator= (const game& other);
 	game(const game& other);
+	
+	unsigned listsizes(unsigned n) const;	// counts # of list elemens over n lists above
 
 public:
-	game() {};	// for loading, fixme get rid of this
-	
 	// expects: size small,medium,large, escort size none,small,medium,large,
 	// time of day [0,4) night,dawn,day,dusk
 	game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday);
 	game(parser& p);
 	virtual ~game();
 
-	// fixme: add a factory function (game is virtual)
 	// game types: mission, career, multiplayer mission, multiplayer career/patrol (?)
 	// fixme: add partial_load flag for network vs. savegame (full save / variable save)
 	// maybe only needed for loading (build structure or not)
 	virtual void save(const string& savefilename, const string& description) const;
-	virtual void load(const string& savefilename);
+	game(const string& savefilename);	// load a game
 	static string read_description_of_savegame(const string& filename);
 	virtual void save_to_stream(ostream& out) const;
 	virtual void load_from_stream(istream& in);
@@ -217,9 +215,21 @@ public:
 	// Translate pointers to numbers and vice versa. Used for load/save
 	void write(ostream& out, const ship* s) const;
 	void write(ostream& out, const submarine* s) const;
+	void write(ostream& out, const airplane* s) const;
+	void write(ostream& out, const torpedo* s) const;
+	void write(ostream& out, const depth_charge* s) const;
+	void write(ostream& out, const gun_shell* s) const;
+	void write(ostream& out, const convoy* s) const;
+	void write(ostream& out, const water_splash* s) const;
 	void write(ostream& out, const sea_object* s) const;
 	ship* read_ship(istream& in) const;
 	submarine* read_submarine(istream& in) const;
+	airplane* read_airplane(istream& in) const;
+	torpedo* read_torpedo(istream& in) const;
+	depth_charge* read_depth_charge(istream& in) const;
+	gun_shell* read_gun_shell(istream& in) const;
+	convoy* read_convoy(istream& in) const;
+	water_splash* read_water_splash(istream& in) const;
 	sea_object* read_sea_object(istream& in) const;
 };
 

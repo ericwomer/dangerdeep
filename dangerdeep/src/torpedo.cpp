@@ -10,10 +10,9 @@
 
 // fixme: type T XI has same image as empty tube -> bug!
 
-torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes,
+torpedo::torpedo(sea_object* parent, unsigned type_, bool usebowtubes,
 	unsigned pr, unsigned sr, unsigned it, unsigned sp) : sea_object()
 {
-	parent = parent_;
 	type = type_;
 	primaryrange = (pr <= 16) ? 1600+pr*100 : 1600;
 	secondaryrange = (sr & 1) ? 1600 : 800;
@@ -144,9 +143,6 @@ void torpedo::save(ostream& out, const class game& g) const
 
 void torpedo::simulate(game& gm, double delta_time)
 {
-	if (parent != 0 && parent->is_dead())
-		parent = 0;
-
 	sea_object::simulate(gm, delta_time);
 
 	if (is_defunct() || is_dead())
@@ -219,10 +215,9 @@ double torpedo::expected_run_time(angle lead_angle,
 }
 
 //#include <sstream>
-bool torpedo::adjust_head_to(const sea_object* target, bool usebowtubes,
+bool torpedo::adjust_head_to(const sea_object* parent, const sea_object* target, bool usebowtubes,
 	const angle& manual_lead_angle)
 {
-	if (parent == 0) return false;
 	pair<angle, double> br = parent->bearing_and_range_to(target);
 	angle ab = parent->estimate_angle_on_the_bow(br.first, target->get_heading());
 	pair<angle, bool> la = lead_angle(target->get_speed(), ab);

@@ -5,6 +5,8 @@
 #define AI_H
 
 //this should move to ai.cpp, it is here because convoy.cpp depends on it. fime
+// fixme: we have bspline code ready. convoys should follow their routes along a bspline
+// curve for realistic results.
 #define WPEXACTNESS 100			// how exact a waypoint has to be hit in meters
 #define AI_THINK_CYCLE_TIME 10		// sec
 
@@ -20,7 +22,7 @@ class sea_object;
 class ai
 {
 public:
-	enum types { dumb, escort };
+	enum types { dumb, escort };	// fixme: make heir classes for this
 	enum states { retreat, followpath, followobject,
 		attackcontact };
 
@@ -29,7 +31,7 @@ protected:
 	states state;
 	unsigned zigzagstate;
 	bool attackrun;		// true when running full speed shortly before the attack
-	bool evasive_manouver;	// true when set_course tries and alternative route
+	bool evasive_manouver;	// true when set_course tries an alternative route
 	double rem_manouver_time; // remaining time that ai should wait for during an evasive manouver
 	sea_object* parent;
 	sea_object* followme;
@@ -56,6 +58,9 @@ protected:
 public:
 	ai::ai(sea_object* parent_, types type_);
 	virtual ~ai() {};
+
+	ai(istream& in, class game& g);	// attention: all sea_objects must exist BEFORE this is called!
+	void save(ostream& out, const class game& g) const;
 
 	void clear_waypoints(void) { waypoints.clear(); };
 	void add_waypoint(const vector2& wp) { waypoints.push_back(wp); };

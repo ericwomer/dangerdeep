@@ -57,11 +57,11 @@ public:
 	public:
 		class texture *backg, *skbackg, *frame[8], *frameinv[8], *icons[4];
 		const font* myfont;
-		color textcol, textselectcol;
+		color textcol, textselectcol, textdisabledcol;
 		int frame_size(void) const;
 		int icon_size(void) const;
 		theme(const char* elements_filename, const char* icons_filename, const font* fnt,
-			color tc, color tsc);
+			color tc, color tsc, color tdc);
 		~theme();
 	};
 

@@ -32,7 +32,6 @@ public:
 
 protected:
 	double run_length, max_run_length;
-	sea_object* parent;
 	unsigned type;
 	bool influencefuse;	// determined by type
 	
@@ -53,7 +52,7 @@ public:
 	void save(ostream& out, const class game& g) const;
 	
 	// additional FAT/LUT values as indices (0-16,0-1,0-1,0-1)
-	torpedo(sea_object* parent_, unsigned type_, bool usebowtubes,
+	torpedo(sea_object* parent, unsigned type_, bool usebowtubes,
 		unsigned pr = 0, unsigned sr = 0, unsigned it = 0, unsigned sp = 0);
 	virtual void simulate(class game& gm, double delta_time);
 	virtual void display(void) const;
@@ -65,7 +64,7 @@ public:
 	        angle angle_on_the_bow, double target_range) const;
 
 	// adjust heading of torpedo, returns false if impossible
-	bool adjust_head_to(const sea_object* target, bool usebowtubes,
+	bool adjust_head_to(const sea_object* parent, const sea_object* target, bool usebowtubes,
 		const angle& manual_lead_angle);
 	virtual unsigned get_hit_points () const;
 };
