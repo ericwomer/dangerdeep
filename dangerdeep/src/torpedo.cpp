@@ -98,7 +98,7 @@ torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, ang
 	turn_rate = 1; // ? is this needed somewhere?!
 	max_accel_forward = 1;
 
-	system::sys().add_console("torpedo created");
+	sys().add_console("torpedo created");
 }
 
 void torpedo::load(istream& in, class game& g)

@@ -106,12 +106,25 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 
 	glGenTextures(1, &reflectiontex);
 	glBindTexture(GL_TEXTURE_2D, reflectiontex);
-	unsigned rx = system::sys().get_res_x();
-	unsigned ry = system::sys().get_res_y();
+	unsigned rx = sys().get_res_x();
+	unsigned ry = sys().get_res_y();
 	unsigned vps = texture::get_max_size();
 	if (ry < vps)
 		for (unsigned i = 1; i < ry; i *= 2) vps = i;
-	
+
+	vertex_program_supported = sys().extension_supported("GL_ARB_vertex_program");
+	fragment_program_supported = sys().extension_supported("GL_ARB_fragment_program");
+	compiled_vertex_arrays_supported = sys().extension_supported("GL_EXT_compiled_vertex_array");
+
+	use_vertex_programs = false;
+	use_fragment_programs = true;
+
+	// initialize shaders if wanted
+	if (fragment_program_supported && use_fragment_programs) {
+		water_fragment_program = texture::create_shader(GL_FRAGMENT_PROGRAM_ARB,
+								get_shader_dir() + "water_fp.shader");
+	}
+
 	// 2004/04/25 Note! decreasing the size of the reflection map improves performance
 	// on a gf4mx! (23fps to 28fps with a 128x128 map to a 512x512 map)
 	// Maybe this is because of some bandwidth limit or cache efficiency of the gf4mx.
@@ -251,6 +264,10 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 
 water::~water()
 {
+	if (fragment_program_supported && use_fragment_programs) {
+		texture::delete_shader(water_fragment_program);
+	}
+
 	glDeleteTextures(1, &reflectiontex);
 	delete foamtex;
 	delete fresnelcolortex;
@@ -727,11 +744,10 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv1[0].x);
 	glDisableClientState(GL_NORMAL_ARRAY);
 
-//	unsigned t0 = system::sys().millisec();
+//	unsigned t0 = sys().millisec();
 
 	// lock Arrays for extra performance.
-	bool lockarr = (system::sys().extension_supported("GL_EXT_compiled_vertex_array"));
-	if (lockarr)
+	if (compiled_vertex_arrays_supported)
 		glLockArraysEXT(0, (xres+1)*(yres+1));
 #ifdef DRAW_WATER_AS_GRID
 	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
@@ -739,10 +755,10 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
 #endif
 
-	if (lockarr)
+	if (compiled_vertex_arrays_supported)
 		glUnlockArraysEXT();
 
-//	unsigned t2 = system::sys().millisec();
+//	unsigned t2 = sys().millisec();
 //	drawing takes ~28ms with linux/athlon2200+/gf4mx. That would be ~32mb/sec with AGP4x!?
 //	why is it SO SLOW?!
 //	surprising result: fillrate limit! with 512x384 we have 50fps, with 800x600 35fps,

@@ -83,6 +83,11 @@ public:
 		unsigned tw, unsigned th) const;
 
 	static unsigned get_max_size(void);
+
+	// shader handling.
+	// give GL_FRAGMENT_PROGRAM_ARB or GL_VERTEX_PROGRAM_ARB as type
+	static GLuint create_shader(GLenum type, const string& filename);
+	static void delete_shader(GLuint nr);
 };
 
 #endif

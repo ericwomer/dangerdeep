@@ -21,7 +21,7 @@
 #include "image.h"
 #define VIEWMODEL
 
-class system* sys;
+class system* mysys;
 int res_x, res_y;
 
 #define MODEL_DIR "models/"
@@ -60,9 +60,9 @@ void view_model(const string& modelfilename)
 		glScalef(sc, sc, sc);
 		glTranslatef(pos.x, pos.y, pos.z);
 		mdl->display();
-		sys->poll_event_queue();
-		int key = sys->get_key().sym;
-		int mb = sys->get_mouse_buttons();
+		mysys->poll_event_queue();
+		int key = mysys->get_key().sym;
+		int mb = mysys->get_mouse_buttons();
 		if (key == SDLK_ESCAPE) break;
 		if (key == SDLK_KP4) pos.x -= 1.0;
 		if (key == SDLK_KP6) pos.x += 1.0;
@@ -80,7 +80,7 @@ void view_model(const string& modelfilename)
 		}
 		
 		int mx, my;
-		sys->get_mouse_motion(mx, my);
+		mysys->get_mouse_motion(mx, my);
 		if (mb & 1) {
 			viewangles.y += mx * 0.5;
 			viewangles.x += my * 0.5;
@@ -88,7 +88,7 @@ void view_model(const string& modelfilename)
 		if (mb & 2) {
 			viewangles.z += mx * 0.5;
 		}
-		sys->prepare_2d_drawing();
+		mysys->prepare_2d_drawing();
 		vector3f minp = mdl->get_min(), maxp = mdl->get_max();
 		ostringstream os;
 		os << "A simple model viewer for Danger from the Deep.\n"
@@ -102,8 +102,8 @@ void view_model(const string& modelfilename)
 			"\n";
 			
 		font_arial->print(0, 0, os.str());
-		sys->unprepare_2d_drawing();
-		sys->swap_buffers();
+		mysys->unprepare_2d_drawing();
+		mysys->swap_buffers();
 	}
 }
 
@@ -162,11 +162,11 @@ int main(int argc, char** argv)
 
 	res_y = res_x*3/4;
 
-	sys = new class system(1.0, 1000.0, res_x, fullscreen);
-	sys->set_res_2d(1024, 768);
+	mysys = new class system(1.0, 1000.0, res_x, fullscreen);
+	mysys->set_res_2d(1024, 768);
 	
-	sys->add_console("A simple model viewer for DftD-.mdl files");
-	sys->add_console("copyright and written 2003 by Thorsten Jordan");
+	mysys->add_console("A simple model viewer for DftD-.mdl files");
+	mysys->add_console("copyright and written 2003 by Thorsten Jordan");
 
 	GLfloat lambient[4] = {0.1,0.1,0.1,1};
 	GLfloat ldiffuse[4] = {1,1,1,1};
@@ -180,13 +180,13 @@ int main(int argc, char** argv)
 	glEnable(GL_NORMALIZE);
 
 	font_arial = new font(get_font_dir() + "font_arial");
-	sys->draw_console_with(font_arial, 0);
+	mysys->draw_console_with(font_arial, 0);
 	
 	view_model(modelfilename);	
 
-	sys->write_console(true);
+	mysys->write_console(true);
 	delete font_arial;
-	delete sys;
+	delete mysys;
 
 	return 0;
 }

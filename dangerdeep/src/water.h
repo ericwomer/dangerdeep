@@ -82,6 +82,19 @@ protected:
 	unsigned wavefoamtex;
 #endif
 
+	// Booleans for supported OpenGL extensions
+	bool vertex_program_supported;
+	bool fragment_program_supported;
+	bool compiled_vertex_arrays_supported;
+
+	// Config options (only used when supported)
+	bool use_vertex_programs;
+	bool use_fragment_programs;
+
+	// Shader programs
+	GLuint water_vertex_program;
+	GLuint water_fragment_program;
+
 	water& operator= (const water& other);
 	water(const water& other);
 

@@ -6,9 +6,10 @@
 #include <windows.h>
 #endif
 
-#include "system.h"
 #include "oglext/OglExt.h"
 #include <glu.h>
+
+#include "system.h"
 
 #include <SDL.h>
 #include <SDL_image.h>
@@ -16,6 +17,7 @@
 #include "texture.h"
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 using namespace std;
 
@@ -335,10 +337,13 @@ unsigned texture::get_max_size(void)
 GLuint texture::create_shader(GLenum type, const string& filename)
 {
 	GLuint nr;
-/*
+
 	glGenProgramsARB(1, &nr);
 	glBindProgramARB(type, nr);
+	ifstream ifprg(filename.c_str(), ios::in);
 	string prg;
+	ifprg >> prg;
+	cout << "test: " << prg << "\n";//fixme read whole program!
 	glProgramStringARB(type, GL_PROGRAM_FORMAT_ASCII_ARB,
 			   prg.size(), prg.c_str());
 
@@ -349,7 +354,7 @@ GLuint texture::create_shader(GLenum type, const string& filename)
 	if (errorpos != -1) {
 		// get error string
 		string errstr;
-		const char* errstr2 = glGetString(GL_PROGRAM_ERROR_STRING_ARB);
+		const char* errstr2 = (const char*)glGetString(GL_PROGRAM_ERROR_STRING_ARB);
 		if (errstr2 != 0)
 			errstr = errstr2;
 		ostringstream oss;
@@ -368,7 +373,7 @@ GLuint texture::create_shader(GLenum type, const string& filename)
 		    << filename << "\n";
 		sys().myassert(false, oss.str());
 	}
-*/	
+	
 	return nr;
 }
 
@@ -376,5 +381,5 @@ GLuint texture::create_shader(GLenum type, const string& filename)
 
 void texture::delete_shader(GLuint nr)
 {
-//	glDeleteProgramsARB(1, &nr);
+	glDeleteProgramsARB(1, &nr);
 }

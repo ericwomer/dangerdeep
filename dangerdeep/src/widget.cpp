@@ -36,7 +36,7 @@ widget::theme::theme(const char* elements_filename, const char* icons_filename, 
 	int fw;
 	SDL_Surface* tmp;
 	tmp = IMG_Load((get_texture_dir() + elements_filename).c_str());
-	system::sys().myassert(tmp != 0, string("Unable to load widget theme elements file: ") + get_texture_dir() + elements_filename);
+	sys().myassert(tmp != 0, string("Unable to load widget theme elements file: ") + get_texture_dir() + elements_filename);
 	fw = tmp->h;
 	backg = new texture(tmp, 0, 0, fw, fw);
 	skbackg = new texture(tmp, fw, 0, fw, fw);
@@ -46,7 +46,7 @@ widget::theme::theme(const char* elements_filename, const char* icons_filename, 
 		frameinv[i] = new texture(tmp, (i+10)*fw, 0, fw, fw);
 	SDL_FreeSurface(tmp);
 	tmp = IMG_Load((get_texture_dir() + icons_filename).c_str());
-	system::sys().myassert(tmp != 0, "Unable to load widget theme icons file");
+	sys().myassert(tmp != 0, "Unable to load widget theme icons file");
 	fw = tmp->h;
 	for (int i = 0; i < 4; ++i)
 		icons[i] = new texture(tmp, i*fw, 0, fw, fw);
@@ -131,8 +131,8 @@ void widget::align(int h, int v)
 	if (parent) {
 		sz = parent->get_size();
 	} else {
-		sz.x = int(system::sys().get_res_x_2d());
-		sz.y = int(system::sys().get_res_y_2d());
+		sz.x = int(sys().get_res_x_2d());
+		sz.y = int(sys().get_res_y_2d());
 	}
 	set_pos(vector2i(
 		(h < 0) ? 0 : ((h > 0) ? (sz.x-size.x) : ((sz.x-size.x)/2)),
@@ -312,8 +312,8 @@ bool widget::is_mouse_over(int mx, int my) const
 
 widget* widget::create_dialogue_ok(widget* parent_, const string& title, const string& text)
 {
-	unsigned res_x = system::sys().get_res_x_2d();
-	unsigned res_y = system::sys().get_res_y_2d();
+	unsigned res_x = sys().get_res_x_2d();
+	unsigned res_y = sys().get_res_y_2d();
 	widget* w = new widget(res_x/4, res_y/4, res_x/2, res_y/2, title, parent_);
 	w->add_child(new widget_text(32, 64, res_x/2-64, res_y/2-128, text));
 	int fw = globaltheme->frame_size();
@@ -325,8 +325,8 @@ widget* widget::create_dialogue_ok(widget* parent_, const string& title, const s
 
 widget* widget::create_dialogue_ok_cancel(widget* parent_, const string& title, const string& text)
 {
-	unsigned res_x = system::sys().get_res_x_2d();
-	unsigned res_y = system::sys().get_res_y_2d();
+	unsigned res_x = sys().get_res_x_2d();
+	unsigned res_y = sys().get_res_y_2d();
 	widget* w = new widget(res_x/4, res_y/4, res_x/2, res_y/2, title, parent_);
 	w->add_child(new widget_text(32, 64, res_x/2-64, res_y/2-128, text));
 	int fw = globaltheme->frame_size();
@@ -346,21 +346,20 @@ int widget::run(unsigned timeout, bool do_stacking)
 	if (myparent) myparent->disable();
 	closeme = false;
 	widgets.push_back(this);
-	class system& sys = system::sys();
-	unsigned endtime = sys.millisec() + timeout;
+	unsigned endtime = sys().millisec() + timeout;
 	focussed = this;
 	while (!closeme) {
-		unsigned time = sys.millisec();
+		unsigned time = sys().millisec();
 		if (timeout != 0 && time > endtime) break;
 
-		list<SDL_Event> events = sys.poll_event_queue();
+		list<SDL_Event> events = sys().poll_event_queue();
 		if (!redrawme && inited && events.size() == 0) {
 			SDL_Delay(50);
 			continue;
 		}
 		inited = true;
 		glClear(GL_COLOR_BUFFER_BIT);
-		sys.prepare_2d_drawing();
+		sys().prepare_2d_drawing();
 		glColor4f(1,1,1,1);
 		if (do_stacking) {
 			for (list<widget*>::iterator it = widgets.begin(); it != widgets.end();
@@ -369,9 +368,9 @@ int widget::run(unsigned timeout, bool do_stacking)
 		} else {
 			draw();
 		}
-		sys.unprepare_2d_drawing();
+		sys().unprepare_2d_drawing();
 		process_input(events);
-		sys.swap_buffers();
+		sys().swap_buffers();
 	}
 	widgets.pop_back();
 	if (myparent) myparent->enable();
@@ -888,7 +887,7 @@ void widget_edit::draw(void) const
 	glBindTexture(GL_TEXTURE_2D, 0);
 	globaltheme->textcol.set_gl_color();
 	if (this == (const widget*)focussed)
-		system::sys().draw_rectangle(p.x+fw+sz.first, p.y+size.y/4, fw/2, size.y/2);
+		sys().draw_rectangle(p.x+fw+sz.first, p.y+size.y/4, fw/2, size.y/2);
 }
 
 void widget_edit::on_char(const SDL_keysym& ks)
@@ -950,7 +949,7 @@ void widget_fileselector::read_current_dir(void)
 {
 	current_dir->clear();
 	directory dir = open_dir(current_path->get_text());
-	system::sys().myassert(dir.is_valid(), "[widget_fileselector::read_current_dir] could not open directory");
+	sys().myassert(dir.is_valid(), "[widget_fileselector::read_current_dir] could not open directory");
 	set<string> dirs, files;
 	while (true) {
 		string e = read_dir(dir);
