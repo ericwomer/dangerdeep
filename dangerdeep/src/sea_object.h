@@ -81,6 +81,8 @@ protected:
 
 	// Sensor systems, created after data in spec file
 	vector<sensor*> sensors;
+	
+	string descr_near, descr_medium, descr_far;	// read from spec file
 
 	sea_object();
 	sea_object& operator=(const sea_object& other);
@@ -108,7 +110,7 @@ public:
 	virtual void parse_attributes(class TiXmlElement* parent);
 
 	// detail: 0 - category, 1 - finer category, >=2 - exact category
-	virtual string get_description(unsigned detail) const { return "UNKNOWN"; }
+	virtual string get_description(unsigned detail) const;
 	virtual string get_specfilename(void) const { return specfilename; }
 	virtual string get_modelname(void) const { return modelname; }
 

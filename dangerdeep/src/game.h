@@ -61,11 +61,6 @@ class user_interface;
  game::time_faster/slower are also commands!
 */
 
-/* fixme 2004/02/22
- idea: store name AND description for all languages in mission file (like in pingus)
- maybe a mission should be stored in xml format (like in pingus)
- */
-
 class game	// our "world" with physics etc.
 {
 	friend void show_results_for_game(const game* );

@@ -9,6 +9,7 @@
 #include "global_data.h"
 #include "tinyxml/tinyxml.h"
 #include "system.h"
+#include "texts.h"
 
 
 void sea_object::degrees2meters(bool west, unsigned degx, unsigned minx, bool south,
@@ -58,8 +59,37 @@ sea_object::sea_object(class TiXmlDocument* specfile, const char* topnodename) :
 	width = mdl->get_width();
 	length = mdl->get_length();
 	//country = eclassification->Attribute("country");
-	TiXmlHandle hdescription = hdftdobj.FirstChild("description");//fixme: parse
-	
+	TiXmlHandle hdescription = hdftdobj.FirstChild("description");
+	TiXmlElement* edescr = hdescription.FirstChild("far").Element();
+	for ( ; edescr != 0; edescr = edescr->NextSiblingElement()) {
+		string langcode = edescr->Attribute("lang");
+		if (langcode == texts::get_language_code()) {
+			TiXmlNode* ntext = edescr->FirstChild();
+			system::sys().myassert(ntext != 0, string("sea_object: far description text child node missing in ")+specfilename);
+			descr_near = ntext->Value();
+			break;
+		}
+	}
+	edescr = hdescription.FirstChild("medium").Element();
+	for ( ; edescr != 0; edescr = edescr->NextSiblingElement()) {
+		string langcode = edescr->Attribute("lang");
+		if (langcode == texts::get_language_code()) {
+			TiXmlNode* ntext = edescr->FirstChild();
+			system::sys().myassert(ntext != 0, string("sea_object: medium description text child node missing in ")+specfilename);
+			descr_near = ntext->Value();
+			break;
+		}
+	}
+	edescr = hdescription.FirstChild("near").Element();
+	for ( ; edescr != 0; edescr = edescr->NextSiblingElement()) {
+		string langcode = edescr->Attribute("lang");
+		if (langcode == texts::get_language_code()) {
+			TiXmlNode* ntext = edescr->FirstChild();
+			system::sys().myassert(ntext != 0, string("sea_object: near description text child node missing in ")+specfilename);
+			descr_near = ntext->Value();
+			break;
+		}
+	}
 	TiXmlElement* emotion = hdftdobj.FirstChildElement("motion").Element();
 	system::sys().myassert(emotion != 0, string("motion node missing in ")+specfilename);
 	max_speed = atof(emotion->Attribute("maxspeed"));
@@ -156,6 +186,15 @@ void sea_object::parse_attributes(TiXmlElement* parent)
 		else if (thr == "aheadflank") throttle = aheadflank;
 		else throttle = atoi(thr.c_str());
 	}
+}
+
+
+
+string sea_object::get_description(unsigned detail) const
+{
+	if (detail == 0) return descr_far;
+	else if (detail == 1) return descr_medium;
+	else return descr_near;
 }
 
 
