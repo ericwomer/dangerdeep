@@ -51,7 +51,7 @@ class ships_sunk_display : public user_display
 
 	destroyed_object_map dom;
 	// The ID of the first destroyed object on the current screen.
-	int first_displayed_object;
+	unsigned first_displayed_object;
 	
 public:
 	ships_sunk_display();

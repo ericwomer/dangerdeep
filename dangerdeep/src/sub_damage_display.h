@@ -14,6 +14,7 @@ using namespace std;
 class sub_damage_display : public user_display
 {
 	submarine* mysub;
+	texture repairlight, repairmedium, repairheavy, repaircritical, repairwrecked;
 	int mx, my;	// last mouse position, needed for popup display
 public:
 	sub_damage_display (submarine* s = 0);	// fixme: give sub type... maybe we don't need this

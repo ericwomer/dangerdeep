@@ -106,21 +106,21 @@ void init_global_data(void)
 	menuframe = new texture(get_texture_dir() + "menuframe.png" );
 	turnswitch = new texture(get_texture_dir() + "turnswitch.png" );
 	turnswitchbackgr = new texture(get_texture_dir() + "turnswitchbackgr.png" );
-	repairlight = new texture(get_texture_dir() + "repairlight.png" );
-	repairmedium = new texture(get_texture_dir() + "repairmedium.png" );
-	repairheavy = new texture(get_texture_dir() + "repairheavy.png" );
-	repaircritical = new texture(get_texture_dir() + "repaircritical.png" );
-	repairwrecked = new texture(get_texture_dir() + "repairwrecked.png" );
 	terraintex = new texture(get_texture_dir() + "terrain2.jpg", GL_LINEAR);
 	cloudsbackgr = new texture(get_texture_dir() + "cloudsbackgr.jpg" );
 	atlanticmap = new texture(get_texture_dir() + "atlanticmap.jpg", GL_LINEAR, GL_CLAMP_TO_EDGE);
 
 	titlebackgrimg = new image(get_image_dir() + "titlebackgr.jpg");
 	periscope = new image(get_texture_dir() + "periscope.png", true);
+
 	threesubsimg = new image(get_image_dir() + "threesubs.jpg");
+
 	logbook_spiral = new image(get_texture_dir() + "logbook_spiral.png", true);
+
 	damage_screen_background = new image(get_image_dir() + "damage_screen_backg.jpg");
+
 	sub_damage_scheme_all = new image(get_image_dir() + "sub_damage_scheme_all.png");
+
 	killedimg = new image(get_image_dir() + "killed.jpg");
 	scopewatcherimg = new image(get_image_dir() + "scopewatcher.jpg");
 	depthchargeimg = new image(get_image_dir() + "depthcharge.jpg");
@@ -186,11 +186,6 @@ void deinit_global_data(void)
 	delete menuframe;
 	delete turnswitch;
 	delete turnswitchbackgr;
-	delete repairlight;
-	delete repairmedium;
-	delete repairheavy;
-	delete repaircritical;
-	delete repairwrecked;
 	delete terraintex;
 	delete cloudsbackgr;
 	delete atlanticmap;

@@ -6,8 +6,11 @@
 
 #include "user_display.h"
 
-class sub_bridge_display : public user_display
+class sub_bridge_display : public freeview_display // user_display
 {
+	void prepare_display(void) const;
+	void set_projection_matrix_and_viewport(void) const;
+	void set_modelview_matrix(void) const;
 
 public:
 	sub_bridge_display ();

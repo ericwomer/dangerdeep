@@ -61,7 +61,13 @@ static rect rect_data[] = {
 
 
 
-sub_damage_display::sub_damage_display (submarine* s) : mysub(s)
+sub_damage_display::sub_damage_display (submarine* s) :
+	mysub(s),
+	repairlight(get_texture_dir() + "repairlight.png"),
+	repairmedium(get_texture_dir() + "repairmedium.png"),
+	repairheavy(get_texture_dir() + "repairheavy.png"),
+	repaircritical(get_texture_dir() + "repaircritical.png"),
+	repairwrecked(get_texture_dir() + "repairwrecked.png")
 {
 }
 
@@ -106,12 +112,12 @@ void sub_damage_display::display ( class game& gm ) const
 			if (r.x == 0) continue;	// display test hack fixme
 		int x = r.x + r.w/2 - 16, y = r.y + r.h/2 - 16 + ydrawdiff;
 		if (damageable_parts[i].status > 0.0) {
-			texture* t = 0;
-			if (damageable_parts[i].status <= 0.25) t = repairlight;
-			else if (damageable_parts[i].status <= 0.50) t = repairmedium;
-			else if (damageable_parts[i].status <= 0.75) t = repairheavy;
-			else if (damageable_parts[i].status < 1.00) t = repaircritical;
-			else t = repairwrecked;
+			const texture* t = 0;
+			if (damageable_parts[i].status <= 0.25) t = &repairlight;
+			else if (damageable_parts[i].status <= 0.50) t = &repairmedium;
+			else if (damageable_parts[i].status <= 0.75) t = &repairheavy;
+			else if (damageable_parts[i].status < 1.00) t = &repaircritical;
+			else t = &repairwrecked;
 			t->draw(x, y, 32, 32);
 		}
 	}

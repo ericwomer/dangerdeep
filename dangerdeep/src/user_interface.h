@@ -32,20 +32,18 @@ protected:
 	unsigned time_scale;
 	sea_object* player_object;
 	
-	// command panel
+	// command panel, to submarine_interface!
+	// display texts above panel, fading out, no widget! fixme
 	bool panel_visible;
 	class widget* panel;
 	class widget_list* panel_messages;
 	class widget_text* panel_valuetexts[5];
 
-	// used in various screens
+	// used in various screens, fixme to submarine_interface!
 	angle bearing;
 	angle elevation;	// -90...90 deg (look down ... up)
 	unsigned viewmode;
 	sea_object* target;
-
-	logbook_display* captains_logbook;
-	ships_sunk_display* ships_sunk_disp;
 
 	// fixme replace the above with: THE ONE AND ONLY DATA UI SHOULD HAVE
 	vector<user_display*> displays;
@@ -59,6 +57,8 @@ protected:
 	double mapclickdist;
 	vector2 mapoffset;	// additional offset used for display, relative to player (meters)
 
+	// to submarine_interface... fixme. how do displays handle water,if there are
+	//several displays using it?!
 	class sky* mysky;		// the one and only sky
 	
 	class water* mywater;		// the ocean water

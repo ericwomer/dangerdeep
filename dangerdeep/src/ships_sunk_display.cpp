@@ -121,6 +121,6 @@ void ships_sunk_display::next_page ()
 
 void ships_sunk_display::previous_page ()
 {
-	if ( first_displayed_object - 12 >= 0 )
+	if ( first_displayed_object >= 12 )
 		first_displayed_object -= 12;
 }

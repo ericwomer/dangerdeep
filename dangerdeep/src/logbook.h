@@ -47,7 +47,7 @@ class logbook_display : public user_display
 {
 protected:
 	logbook lb;
-	int actual_entry;
+	unsigned actual_entry;
 
 	virtual void print_buffer ( unsigned i, const string& t ) const;
 	static void format_line ( list<string>& entries_list, const string& line );

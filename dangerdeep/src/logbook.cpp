@@ -211,7 +211,7 @@ void captains_logbook_display::display ( class game& gm ) const
 	// Prepare OpenGL.
 	glPushMatrix ();
 	glScalef ( FONT_SCALE_FACTOR, FONT_SCALE_FACTOR, 1.0f );
-	int max_size = lb.size ();
+	unsigned max_size = lb.size ();
 	for ( unsigned j = 0, i = actual_entry; ( j < 2 * NUMBER_OF_LINES ) &&
 		( i < max_size ); i++, j++ )
 	{
