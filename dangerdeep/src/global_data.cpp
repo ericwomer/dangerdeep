@@ -38,11 +38,10 @@ string get_program_version(void)
 
 model	*torpedo_g7, *depth_charge_mdl, *gun_shell_mdl, *conning_tower_typeVII;
 
-texture *background, *gauge1,
-	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
+texture *background,
+	*psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *metalbackgr,
 	*torpt1, *torpt2, *torpt3, *torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut,
-	*clock12, *clock24,
 	*woodbackgr, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
 	*terraintex, *cloudsbackgr, *atlanticmap;
@@ -87,17 +86,10 @@ void init_global_data(void)
 	torpedo_g7 = new model(get_model_dir() + "torpedo_g7.3ds");
 	depth_charge_mdl = new model(get_model_dir() + "depth_charge.3ds");
 	gun_shell_mdl = new model(get_model_dir() + "gun_shell.3ds");
-	gauge1 = new texture(get_texture_dir() + "gauge1.png");
-	gauge2 = new texture(get_texture_dir() + "gauge2.png");
-	gauge3 = new texture(get_texture_dir() + "gauge3.png");
-	gauge4 = new texture(get_texture_dir() + "gauge4.png");
-	gauge5 = new texture(get_texture_dir() + "gauge5.png");
 	psbackgr = new texture(get_texture_dir() + "psbackgr.png");
 	panelbackgr = new texture(get_texture_dir() + "panelbackgr.png", GL_LINEAR);
 	addleadangle = new texture(get_texture_dir() + "addleadangle.png");
 	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", GL_LINEAR);
-	clock12 = new texture(get_texture_dir() + "clock12.png");
-	clock24 = new texture(get_texture_dir() + "clock24.png");
 	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png" );
 	notepadsheet = new texture(get_texture_dir() + "notepadsheet.png" /*, GL_CLAMP_TO_EDGE*/);
 	menuframe = new texture(get_texture_dir() + "menuframe.png" );
@@ -153,11 +145,6 @@ void deinit_global_data(void)
 	delete torpedo_g7;
 	delete depth_charge_mdl;
 	delete gun_shell_mdl;
-	delete gauge1;
-	delete gauge2;
-	delete gauge3;
-	delete gauge4;
-	delete gauge5;
 	delete psbackgr;
 	delete panelbackgr;
 	delete addleadangle;
@@ -175,8 +162,6 @@ void deinit_global_data(void)
 	delete torpt1fat;
 	delete torpt3fat;
 	delete torpt6lut;
-	delete clock12;
-	delete clock24;
 	delete woodbackgr;
 	delete notepadsheet;
 	delete menuframe;

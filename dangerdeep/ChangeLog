@@ -1,3 +1,11 @@
+2005-03-27  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* fixed big memory leak caused by missing destructor of user_display
+	* removed obsolete data
+	* made memory usage / pointer handling more stable by using auto_ptr
+	* hacked wild experiments with water bump mapping and shaders
+	  (currently disabled).
+	* more integration of TDC graphics.
+
 2005-03-14 Andy Rice
 	* aegeanconvoy.xml, battleships.xml
 	 - submarine starts at periscope depth (to avoid radar detection straight away)	 
