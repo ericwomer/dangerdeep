@@ -940,6 +940,13 @@ float water::exact_fresnel(float x)
 	float z2 = g+x;
 	return (z1*z1)*(1+((x*z2-1)*(x*z2-1))/((x*z1+1)*(x*z1+1)))/(2*z2*z2);
 */
+
+/*
+	// a very crude guess
+	float tmp = 1-4*x;
+	if (tmp < 0.0f) tmp = 0.0f;
+	return tmp;
+*/
 	// a good approximation (1/(x+1)^8)
 	float x1 = x + 1.0f;
 	float x2 = x1*x1;
