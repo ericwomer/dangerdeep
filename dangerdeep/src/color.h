@@ -13,6 +13,8 @@
 #include <GL/gl.h>
 #endif
 
+#include "binstream.h"
+
 #include <iostream>
 using namespace std;
 
@@ -30,8 +32,8 @@ struct color {
 	// transform color to grey value (model of human vision, 11% to 59% to 30% RGB)
 	color grey_value(void) const { unsigned char c = (unsigned char)(r*0.11+g*0.59+b*0.3); return color(c, c, c); }
 	
-	color(istream& in) { in.read((char*)&r, sizeof(unsigned char)); in.read((char*)&g, sizeof(unsigned char)); in.read((char*)&b, sizeof(unsigned char)); }
-	void save(ostream& out) const { out.write((const char*)&r, sizeof(unsigned char)); out.write((const char*)&g, sizeof(unsigned char)); out.write((const char*)&b, sizeof(unsigned char)); }
+	color(istream& in) { r = read_u8(in); g = read_u8(in); b = read_u8(in); }
+	void save(ostream& out) const { write_u8(out, r); write_u8(out, g); write_u8(out, b); }
 	
 	// some useful standard colors
 	static color black(void) { return color(0,0,0); }
