@@ -166,8 +166,15 @@ void captains_logbook_display::init ()
 
 void captains_logbook_display::display ( class system& sys, class game& gm )
 {
-	// Two white pages.
+	// Wooden background.
 	glColor3f ( 1.0f, 1.0f, 1.0f );
+	for ( int i = 0; i < 8; i++ )
+	{
+		for ( int j = 0; j < 6; j++ )
+			sys.draw_image ( 128*i, 128*j, 128, 128, woodbg );
+	}
+
+	// Two white pages.
 	glBindTexture ( GL_TEXTURE_2D, 0 );
 	sys.draw_rectangle (  20, 20, 476, 600 );
 	sys.draw_rectangle ( 528, 20, 476, 600 );
