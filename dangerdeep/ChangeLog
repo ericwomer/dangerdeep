@@ -1,3 +1,9 @@
+2003-07-25  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* user_interface.cpp
+	  - introduced fog.
+	* game.cpp
+	  - fixed cloud clip bug.
+
 2003-07-23  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* Improved conning tower model with textures.
 

@@ -26,17 +26,17 @@ vector<float> user_interface::sinvec;
 
 
 user_interface::user_interface() :
-	player_object(0), quit(false), pause(false), time_scale(1),
-	zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
-	viewpos(0, 0, 10), bearing(0), viewmode(4), target(0)
+	quit(false), pause(false), time_scale(1), player_object(0), bearing(0),
+	viewmode(4), target(0),	zoom_scope(false), mapzoom(0.1), viewsideang(0),
+	viewupang(-90),	viewpos(0, 0, 10)
 {
 	init ();
 }
 
 user_interface::user_interface(sea_object* player) :
-    player_object ( player ), quit(false), pause(false), time_scale(1),
-    zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
-	viewpos(0, 0, 10), bearing(0), viewmode(4), target(0)
+	quit(false), pause(false), time_scale(1), player_object ( player ), bearing(0),
+	viewmode(4), target(0), zoom_scope(false), mapzoom(0.1), viewsideang(0),
+	viewupang(-90),	viewpos(0, 0, 10)
 {
 	init ();
 }
@@ -239,6 +239,8 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
 	angle dir, bool withplayer, bool withunderwaterweapons)
 {
+	double max_view_dist = gm.get_max_view_distance();
+
 	sea_object* player = get_player();
 	// fixme: this wave is used double. for waves the commented version would be
 	// best, but ships' movement depend on it also. ugly.
@@ -248,8 +250,6 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glRotatef(dir.value(),0,0,1);
 	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
 	
-	double max_view_dist = gm.get_max_view_distance();
-
 	// ************ sky ***************************************************************
 	glPushMatrix();
 	glTranslatef(viewpos.x, viewpos.y, 0);
@@ -303,6 +303,16 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	color::white().set_gl_color();
+
+	// ********* fog test ************ fog color is skycol2
+	GLfloat fog_color[4] = {skycol2.r/255.0, skycol2.g/255.0, skycol2.b/255.0, 1.0};
+	glFogi(GL_FOG_MODE, GL_LINEAR );
+	glFogfv(GL_FOG_COLOR, fog_color);
+	glFogf(GL_FOG_DENSITY, 1.0);	// not used in linear mode
+	glHint(GL_FOG_HINT, GL_NICEST /*GL_FASTEST*/ /*GL_DONT_CARE*/);
+	glFogf(GL_FOG_START, max_view_dist*0.75);	// ships disappear earlier :-(
+	glFogf(GL_FOG_END, max_view_dist);
+	glEnable(GL_FOG);	
 
 	// ******* water *********
 					// fixme: program directional light caused by sun
@@ -422,6 +432,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 //		glEnable(GL_DEPTH_TEST);
 	}
 	
+	glDisable(GL_FOG);	
 	glColor3f(1,1,1);
 }
 
