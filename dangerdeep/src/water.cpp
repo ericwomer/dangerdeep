@@ -291,15 +291,15 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 
 	matrix4 proj = matrix4::get_gl(GL_PROJECTION_MATRIX);
 	matrix4 modl = matrix4::get_gl(GL_MODELVIEW_MATRIX);
-	matrix4 prmd = proj * modl;
+	matrix4 world2camera = proj * modl;
 	matrix4 inv_modl = modl.inverse();
-	matrix4 inv_prmd = prmd.inverse();
+	matrix4 camera2world = world2camera.inverse();
 
 	// transform frustum corners of rendering camera to world space
 	vector3 frustum[8];
 	for (unsigned i = 0; i < 8; ++i) {
 		vector3 fc((i & 1) ? 1 : -1, (i & 2) ? 1 : -1, (i & 4) ? 1 : -1);
-		frustum[i] = inv_prmd * fc;
+		frustum[i] = camera2world * fc;
 	}
 	
 	// check intersections of frustum with water volume
@@ -323,10 +323,10 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	}
 	
 	// compute projector matrix
-	// the last column of the modelview matrix is the inverse camera position <- fixme: is not right, check it
-	// the upper left 3x3 matrix is the inverse camera rotation, so the rows hold the view vectors
-	vector3 camerapos = inv_modl.column(3); //-modl.column(3);
-	vector3 cameraforward = -inv_modl.column(2); //-modl.row(2); // camera is facing along negative z-axis
+	// the last column of the inverse modelview matrix is the camera position
+	// the upper left 3x3 matrix is the camera rotation, so the columns hold the view vectors
+	vector3 camerapos = inv_modl.column(3);
+	vector3 cameraforward = -inv_modl.column(2); // camera is facing along negative z-axis
 cout << "camerapos " << camerapos << "\n";
 cout << "camera forward " << cameraforward << "\n";
 	vector3 projectorpos = camerapos, projectorforward = cameraforward;
@@ -364,16 +364,19 @@ cout << "camera forward " << cameraforward << "\n";
 	vector3 pjz = -projectorforward.normal();
 	vector3 pjx = vector3(0,1,0).cross(pjz);
 	vector3 pjy = pjz.cross(pjx);
-	matrix4 prmd_projector = proj * matrix4(pjx.x, pjx.y, pjx.z, -projectorpos.x, pjy.x, pjy.y, pjy.z, -projectorpos.y, pjz.x, pjz.y, pjz.z, -projectorpos.z, 0, 0, 0, 1);
-	matrix4 inv_prmd_projector = prmd_projector.inverse();
-//prmd_projector = prmd;
-//inv_prmd_projector = prmd_projector.inverse();
-
+	matrix4 inv_modl_projector(
+		pjx.x, pjy.x, pjz.x, projectorpos.x,
+		pjx.y, pjy.y, pjz.y, projectorpos.y,
+		pjx.z, pjy.z, pjz.z, projectorpos.z,
+		0, 0, 0, 1);
+	matrix4 world2projector = proj * inv_modl_projector.inverse();
+	matrix4 projector2world = world2projector.inverse();
+	
 	// project frustum intersection points to z=0 plane
 	// transform their coords to projector space
 	for (vector<vector3>::iterator it = proj_points.begin(); it != proj_points.end(); ++it) {
 		it->z = 0;
-		*it = inv_prmd_projector * *it;
+		*it = world2projector * *it;
 	}
 	
 	// compute min-max values and range matrix
@@ -388,8 +391,8 @@ cout << "camera forward " << cameraforward << "\n";
 		matrix4 mrange(x_max-x_min, 0, 0, x_min, 0, y_max-y_min, 0, y_min, 0, 0, 1, 0, 0, 0, 0, 1);
 	//range matrix seems to be wrong, fixme
 	//mrange = matrix4::one();
-		prmd_projector = mrange * prmd_projector;
-		inv_prmd_projector = prmd_projector.inverse();
+		projector2world = projector2world * mrange;
+		world2projector = projector2world.inverse();
 	} // else return;
 
 	// show projector frustum as test
@@ -399,7 +402,7 @@ cout << "camera forward " << cameraforward << "\n";
 	vector3 prfrustum[8];
 	for (unsigned i = 0; i < 8; ++i) {
 		vector3 fc((i & 1) ? 1 : -1, (i & 2) ? 1 : -1, (i & 4) ? 1 : -1);
-		prfrustum[i] = inv_prmd_projector * fc;	// fixme maybe without range matrix
+		prfrustum[i] = projector2world * fc;	// fixme maybe without range matrix
 	}
 	for (unsigned i = 0; i < 12; ++i) {
 		glVertex3dv(&prfrustum[cube[2*i]].x);
@@ -421,10 +424,10 @@ cout << "camera forward " << cameraforward << "\n";
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		double y = -1.0 + 2.0 * yy/yres;
 		// vertices for start and end of two lines are computed and projected
-		vector3 v1 = inv_prmd_projector * vector3(-1,y,-1);
-		vector3 v2 = inv_prmd_projector * vector3(-1,y,+1);
-		vector3 v3 = inv_prmd_projector * vector3(+1,y,-1);
-		vector3 v4 = inv_prmd_projector * vector3(+1,y,+1);
+		vector3 v1 = projector2world * vector3(-1,y,-1);
+		vector3 v2 = projector2world * vector3(-1,y,+1);
+		vector3 v3 = projector2world * vector3(+1,y,-1);
+		vector3 v4 = projector2world * vector3(+1,y,+1);
 		// compute intersection with z = 0 plane here
 		// we could compute intersection with earth's sphere here for a curved display
 		// of water to the horizon, fixme

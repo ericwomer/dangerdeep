@@ -39,9 +39,8 @@ public:
 
 	// construct in C++ order
         matrix4t(D* v) : values(size*size) {
-		for (unsigned j = 0; j < size; ++j)
-			for (unsigned i = 0; i < size; ++i)
-				values[i+j*size] = v[j+i*size];
+		for (unsigned i = 0; i < size*size; ++i)
+			values[i] = v[i];
 	}
 
 	matrix4t(const matrix4t<D>& other) : values(other.values) {}
@@ -53,7 +52,7 @@ public:
 		const D& e4, const D& e5, const D& e6, const D& e7,
 		const D& e8, const D& e9, const D& e10, const D& e11,
 		const D& e12, const D& e13, const D& e14, const D& e15) {
-		values.reserve(size*size);
+		values.reserve(16);
 		values.push_back(e0); values.push_back(e1); values.push_back(e2); values.push_back(e3);
 		values.push_back(e4); values.push_back(e5); values.push_back(e6); values.push_back(e7);
 		values.push_back(e8); values.push_back(e9); values.push_back(e10); values.push_back(e11);
@@ -83,10 +82,10 @@ public:
 
 	matrix4t<D> operator- (void) const { matrix4t<D> r; for (unsigned i = 0; i < size*size; ++i) r.values[i] = -values[i]; return r; }
 
+	// store in C++ order
 	void to_array(D* v) const {	// store in OpenGL order
-		for (unsigned j = 0; j < size; ++j)
-			for (unsigned i = 0; i < size; ++i)
-				v[i+j*size] = values[j+i*size];
+		for (unsigned i = 0; i < size*size; ++i)
+			v[i] = values[i];
 	}
 
 	// no range tests for performance reasons
@@ -131,9 +130,9 @@ public:
 
 	void set_gl(GLenum pname) {		// GL_PROJECTION, GL_MODELVIEW, GL_TEXTURE
 		GLdouble m[16];
-		for (unsigned i = 0; i < size; ++i)
-			for (unsigned j = 0; j < size; ++j)
-				m[i+j*size] = GLdouble(r.values[j+i*size]);
+		for (unsigned i = 0; i < 4; ++i)
+			for (unsigned j = 0; j < 4; ++j)
+				m[i+j*4] = GLdouble(r.values[j+i*4]);
 		glMatrixMode(pname);
 		glLoadMatrixd(m);
 		glMatrixMode(GL_MODELVIEW);
@@ -143,16 +142,16 @@ public:
 		GLdouble m[16];
 		glGetDoublev(pname, m);
 		matrix4t<D> r;
-		for (unsigned i = 0; i < size; ++i)
-			for (unsigned j = 0; j < size; ++j)
-				r.values[j+i*size] = D(m[i+j*size]);
+		for (unsigned i = 0; i < 4; ++i)
+			for (unsigned j = 0; j < 4; ++j)
+				r.values[j+i*4] = D(m[i+j*4]);
 		return r;
 	}
 	
 	vector3t<D> operator* (const vector3t<D>& v) const {
-		D r[size];
-		for (unsigned j = 0; j < size; ++j) {	// rows of "this"
-			r[j] = values[j*size+0] * v.x + values[j*size+1] * v.y + values[j*size+2] * v.z + values[j*size+3];
+		D r[4];
+		for (unsigned j = 0; j < 4; ++j) {	// rows of "this"
+			r[j] = values[j*4+0] * v.x + values[j*4+1] * v.y + values[j*4+2] * v.z + values[j*4+3];
 		}
 		// divide x,y,z by w
 		return vector3t<D>(r[0]/r[3], r[1]/r[3], r[2]/r[3]);
@@ -160,10 +159,10 @@ public:
 
 	// get n-th row/col, ignores last value
 	vector3t<D> row(unsigned i) const {
-		return vector3t<D>(values[i*size], values[i*size+1], values[i*size+2]);
+		return vector3t<D>(values[i*4], values[i*4+1], values[i*4+2]);
 	}
 	vector3t<D> column(unsigned i) const {
-		return vector3t<D>(values[i], values[i+size], values[i+2*size]);
+		return vector3t<D>(values[i], values[i+4], values[i+2*4]);
 	}
 };
 
