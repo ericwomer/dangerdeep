@@ -8,10 +8,15 @@
 #include "game.h"
 #include "sensors.h"
 
-torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes) : sea_object()
+torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes,
+	unsigned pr, unsigned sr, unsigned it, unsigned sp) : sea_object()
 {
 	parent = parent_;
 	type = type_;
+	primaryrange = (pr <= 16) ? 1600+pr*100 : 1600;
+	secondaryrange = (sr & 1) ? 1600 : 800;
+	initialturn = it;
+	searchpattern = sp;
 	position = parent->get_pos();
 	heading = parent->get_heading();
 	if (!usebowtubes) heading += angle(180);
@@ -101,17 +106,30 @@ void torpedo::simulate(game& gm, double delta_time)
 		}
 	}
 
-	if (type == T3FAT) { // FAT, test hack
-		if (run_length > 1600) {	// wrong pattern fixme
-			rudder_right();
-		}
-	}
+	double old_run_length = run_length;
 	run_length += speed * delta_time;
 	if (run_length > max_run_length) {
 		kill();
 		return;
 	}
 
+	if (type == T3FAT || type == T6LUT) { // FAT and LUT
+		angle turnang(180);
+		if (type == T6LUT && searchpattern == 1) turnang = (initialturn == 0) ? angle(-90) : angle(90);
+		if (old_run_length < primaryrange && run_length >= primaryrange) {
+			head_to_ang(get_heading()+turnang, initialturn == 0);
+		} else if (old_run_length >= primaryrange) {
+			unsigned phase = 0;
+			while (primaryrange + phase*secondaryrange < old_run_length) ++phase;
+			double tmp = primaryrange + phase*secondaryrange;
+			if (old_run_length < tmp && run_length >= tmp) {
+				if (type == T6LUT && searchpattern == 1) phase = 0;	// always turn in same direction
+				bool turnsleft = ((initialturn + phase) & 1) == 0;
+				head_to_ang(get_heading() + turnang, turnsleft);
+			}
+		}
+	}
+	
 	// check for collisions with other subs or ships
 	if (run_length > 10) {	// avoid collision with parent after initial creation
 		bool runlengthfailure = (run_length < TORPEDO_SAVE_DISTANCE);

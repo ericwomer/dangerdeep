@@ -56,7 +56,8 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			case SDLK_4:
 			case SDLK_5:
 			case SDLK_6:
-				if ( player->fire_torpedo ( gm, keycode - SDLK_1, target, lead_angle ) )
+				if ( player->fire_torpedo ( gm, keycode - SDLK_1, target, lead_angle,
+					primaryrange, secondaryrange, initialturn, searchpattern))
 				{
 					add_message(texts::get(49));
 					ostringstream oss;
@@ -185,7 +186,8 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 
 			// weapons, fixme
 			case SDLK_t:
-				if (player->fire_torpedo(gm, -1, target, lead_angle))
+				if (player->fire_torpedo(gm, -1, target, lead_angle,
+						primaryrange, secondaryrange, initialturn, searchpattern))
 					add_message(texts::get(49));
 				break;
 			case SDLK_SPACE:

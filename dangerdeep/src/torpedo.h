@@ -11,6 +11,8 @@ using namespace std;
 #define G7A_HITPOINTS 4	// maximum
 #define TORPEDO_SAVE_DISTANCE 250.0f // minimum distance
 
+// fixme: maybe make heirs of this class for each torpedo type. would be much nicer code.
+
 class torpedo : public sea_object
 {
 public:
@@ -21,6 +23,10 @@ protected:
 	double run_length, max_run_length;
 	sea_object* parent;
 	unsigned type;
+	
+	unsigned primaryrange, secondaryrange;	// meters
+	unsigned initialturn;	// 0/1 left/right
+	unsigned searchpattern;	// 0/1 turn 180 or 90 degrees
 
 	torpedo();
 	torpedo& operator=(const torpedo& other);
@@ -31,7 +37,9 @@ protected:
 
 public:
 	virtual ~torpedo() {};
-	torpedo(sea_object* parent_, unsigned type_, bool usebowtubes);
+	// additional FAT/LUT values as indices (0-16,0-1,0-1,0-1)
+	torpedo(sea_object* parent_, unsigned type_, bool usebowtubes,
+		unsigned pr = 0, unsigned sr = 0, unsigned it = 0, unsigned sp = 0);
 	virtual void simulate(class game& gm, double delta_time);
 	virtual void display(void) const;
 

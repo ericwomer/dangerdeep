@@ -203,9 +203,11 @@ public:
 	virtual void planes_down(double amount);
 	virtual void planes_middle(void);
 	virtual void dive_to_depth(unsigned meters);
-	// give tubenr -1 for any loaded tube, or else 0-5
+	// give tubenr -1 for any loaded tube, or else 0-5,
+	// and FAT values as index (primary & secondary range, initial turn, seach pattern)
 	virtual bool fire_torpedo(class game& gm, int tubenr, sea_object* target,
-		const angle& manual_lead_angle);
+		const angle& manual_lead_angle,
+		unsigned pr=0, unsigned sr=0, unsigned it=0, unsigned sp=0);
 
 	// fixme: time that is needed depends on sub type and how many torpedoes
 	// are already in transfer. So this argument is nonesense. fixme

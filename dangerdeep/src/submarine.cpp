@@ -337,7 +337,8 @@ void submarine::dive_to_depth(unsigned meters)
 }
 
 bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target,
-	const angle& manual_lead_angle)
+	const angle& manual_lead_angle,
+	unsigned pr, unsigned sr, unsigned it, unsigned sp)
 {
 	pair<unsigned, unsigned> bow_tube_indices = get_bow_tube_indices();
 	pair<unsigned, unsigned> stern_tube_indices = get_stern_tube_indices();
@@ -393,7 +394,7 @@ bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target,
 	if (torpnr == 0xffff)
 		return false;
 		
-	torpedo* t = new torpedo(this, torpedoes[torpnr].type, usebowtubes);
+	torpedo* t = new torpedo(this, torpedoes[torpnr].type, usebowtubes, pr, sr, it, sp);
 	if (target) {
 		if (t->adjust_head_to(target, usebowtubes, manual_lead_angle)) {
 			gm.spawn_torpedo(t);

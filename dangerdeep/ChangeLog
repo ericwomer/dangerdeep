@@ -1,4 +1,9 @@
 2003-07-27  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* torpedo.cpp submarine_interface.cpp submarine.cpp
+	  - FAT/LUT programmable and simulated.
+	  - Now all torpedo types are simulated.
+
+2003-07-27  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* user_interface.cpp
 	  - ships are selectable by clicking on the map.
 	* submarine_interface.cpp
