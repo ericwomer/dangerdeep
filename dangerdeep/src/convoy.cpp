@@ -37,9 +37,9 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 //	heading = angle(*(++waypoints.begin()) - *(waypoints.begin()));
 	vector2 coursevec = vector2(1,0);//heading.direction();//fixme
 	
-	double intershipdist = 1000.0;	// distance between ships.
+	double intershipdist = 1000.0;	// distance between ships. it is 1000m sidewards and 600m forward... fixme
 	double convoyescortdist = 3000.0; // distance of escorts to convoy
-	double interescortdist = 1500.0;	// distance between escorts
+	double interescortdist = 1500.0;	// distance between escorts, seems a bit low...
 	
 	// merchant convoy?
 	if (type_ == small || type_ == medium || type_ == large) {

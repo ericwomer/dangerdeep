@@ -60,7 +60,7 @@ void ai::fill_dist_angle_relation_map(void)
 // ai computation between is randomly interleaved between frames to avoid
 // time consumption peeks every AI_THINK_CYCLE_TIME seconds
 ai::ai(ship* parent_, types type_) : type(type_), state(followpath),
-	zigzagstate(0), attackrun(false), evasive_manouver(false),
+	zigzagstate(1/*0 fixme*/), attackrun(false), evasive_manouver(false),
 	rem_manouver_time(0), parent(parent_), followme(0),
 	myconvoy(0), has_contact(false),
 	remaining_time(rnd() * AI_THINK_CYCLE_TIME),
@@ -85,6 +85,7 @@ ai::ai(istream& in, class game& g)
 	contact.y = read_double(in);
 	contact.z = read_double(in);
 	remaining_time = read_double(in);
+	main_course = angle(read_double(in));
 }
 
 ai::~ai()
@@ -107,6 +108,7 @@ void ai::save(ostream& out, const class game& g) const
 	write_double(out, contact.y);
 	write_double(out, contact.z);
 	write_double(out, remaining_time);
+	write_double(out, main_course.value());
 }
 
 
@@ -148,12 +150,13 @@ void ai::act(class game& gm, double delta_time)
 	}
 	
 	if (zigzagstate > 0) {	// this depends on ai type, convoys zigzag different! fixme
-		if (zigzagstate == 5)
-			parent->rudder_left();
-		else if (zigzagstate == 15)
-			parent->rudder_right();
+		// course diff up to 45 deg for dd's, depends on ship type
+		if (zigzagstate == 7)
+			parent->head_to_ang(main_course - angle(45), true);
+		else if (zigzagstate == 13)
+			parent->head_to_ang(main_course + angle(45), false);
 		++zigzagstate;
-		if (zigzagstate > 20)
+		if (zigzagstate > 18)
 			zigzagstate = 1;
 	}
 }
@@ -250,11 +253,11 @@ void ai::act_escort(game& gm, double delta_time)
 				if (myconvoy) myconvoy->add_contact(contacts.front());
 				attack_contact(contacts.front());
 			}
-			//set_zigzag((cd > 500 && cd < 2500));//fixme test hack, doesn't work
+			set_zigzag((cd > 500 && cd < 2500) ? 1 : 0); // zig-zag near the sub - fixme test hack, doesn't work
 		} else {
 			parent->set_throttle(ship::aheadflank);
 			attackrun = true;
-			//set_zigzag(false);//fixme test hack, doesn't work
+			set_zigzag(0); // run straight - fixme test hack, doesn't work
 		}
 
 		if (cd < DC_ATTACK_RADIUS) {
@@ -372,16 +375,20 @@ bool ai::set_course_to_pos(game& gm, const vector2& pos)
 	double r2 = 1.0/parent->get_turn_rate().rad();
 	if (a <= 0) {	// target is behind us
 		if (b < 0) {	// target is left
-			parent->head_to_ang(parent->get_heading() - angle(180), true);
+			main_course = parent->get_heading() - angle(180);
+			parent->head_to_ang(main_course, true);
 		} else {
-			parent->head_to_ang(parent->get_heading() + angle(180), false);
+			main_course = parent->get_heading() + angle(180);
+			parent->head_to_ang(main_course, false);
 		}
 		return false;
 	} else if (r2 > r1) {	// target can not be reached with smallest curve possible
 		if (b < 0) {	// target is left
-			parent->head_to_ang(parent->get_heading() + angle(180), false);
+			main_course = parent->get_heading() + angle(180);
+			parent->head_to_ang(main_course, false);
 		} else {
-			parent->head_to_ang(parent->get_heading() - angle(180), true);
+			main_course = parent->get_heading() - angle(180);
+			parent->head_to_ang(main_course, true);
 		}
 		return false;
 	} else {	// target can be reached, steer curve

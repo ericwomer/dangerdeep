@@ -33,6 +33,7 @@ protected:
 	bool has_contact;
 	vector3 contact;	// position of target to attack
 	double remaining_time;	// time to next thought/situation analysis
+	angle main_course;	// which angle to steer, ship zig-zags around it.
 	
 	bool cyclewaypoints;
 	list<vector2> waypoints;
