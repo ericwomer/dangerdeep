@@ -15,6 +15,7 @@
 #include "depth_charge.h"
 #include "gun_shell.h"
 #include "water_splash.h"
+#include "particle.h"
 #include "sky.h"
 #include "water.h"
 #include "global_data.h"
@@ -167,6 +168,44 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 		ui.rotate_by_pos_and_wave((*it)->get_pos(), (*it)->get_roll_factor());
 		(*it)->display();
+
+		//draw spray with particles... not needed here, all particles drawn at once below
+
+/*
+		// draw spray
+		glDisable(GL_LIGHTING);
+		float y0 = (*it)->get_length()/2;
+		float y1 = y0 - 8;
+		float x1 = 4;
+		float z0 = 4;
+		float z1 = -4;
+		vector3 p0(0, (*it)->get_length()/2, 0);
+		ui.get_spray()->set_gl_texture();
+		glBegin(GL_QUADS);
+
+		//fixme: add other side
+		glTexCoord2f(0, 0);
+		glVertex3f(0, y0, z0);
+		glTexCoord2f(0, 1);
+		glVertex3f(0, y0, z1);
+		glTexCoord2f(1, 1);
+		glVertex3f(-x1, y1, z1);
+		glTexCoord2f(1, 0);
+		glVertex3f(-x1, y1, z0);
+
+		glTexCoord2f(0, 0);
+		glVertex3f(0, y0, z0);
+		glTexCoord2f(1, 0);
+		glVertex3f(x1, y1, z0);
+		glTexCoord2f(1, 1);
+		glVertex3f(x1, y1, z1);
+		glTexCoord2f(0, 1);
+		glVertex3f(0, y0, z1);
+
+		glEnd();
+		glEnable(GL_LIGHTING);
+*/
+
 		glPopMatrix();
 
 		// fixme: all effects with alpha != 1.0 have to be sorted by depth.
@@ -254,6 +293,10 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
 		(*it)->display ();
 		glPopMatrix ();
 	}
+
+	list<particle*> particles;
+	gm.visible_particles(particles, player);
+	particle::display_all(particles, viewpos, gm);
 }
 
 
