@@ -78,7 +78,6 @@ protected:
 	virtual void set_display_color ( const game& gm ) const;
 	
 	// 2d drawing must be turned on for them
-	void draw_infopanel(game& gm) const;
 	// soon they're senseless (Luis makes new gauges). Are thy used yet?! yes, in scope mode
 	void draw_gauge(game& gm, unsigned nr, int x, int y, unsigned wh, angle a,
 		const string& text, angle a2) const;
@@ -120,6 +119,9 @@ public:
 	static user_interface* create(game& gm);
 
 	// helper functions
+
+	// 2d drawing must be on for this
+	void draw_infopanel(game& gm) const;
 
 	// this rotates the modelview matrix to match the water surface normal
 	// rollfac (0...1) determines how much the ship is influenced by wave movement

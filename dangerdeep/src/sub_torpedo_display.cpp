@@ -8,8 +8,13 @@
 #include "command.h"
 #include "sub_torpedo_display.h"
 #include "texts.h"
+#include "user_interface.h"
 #include <sstream>
+#include <iomanip>
 using namespace std;
+
+#define ILLEGAL_TUBE 0xffffffff
+
 
 
 void sub_torpedo_display::draw_torpedo(class game& gm, bool usebow,
@@ -63,15 +68,15 @@ texture* sub_torpedo_display::torptex(unsigned type) const
 
 
 
-vector<vector2i> sub_torpedo_display::get_tubecoords(submarine* player) const
+vector<vector2i> sub_torpedo_display::get_tubecoords(submarine* sub) const
 {
-	vector<vector2i> tubecoords(player->get_torpedoes().size());
-	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();
-	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
-	pair<unsigned, unsigned> bow_reserve_indices = player->get_bow_reserve_indices();
-	pair<unsigned, unsigned> stern_reserve_indices = player->get_stern_reserve_indices();
-	pair<unsigned, unsigned> bow_deckreserve_indices = player->get_bow_deckreserve_indices();
-	pair<unsigned, unsigned> stern_deckreserve_indices = player->get_stern_deckreserve_indices();
+	vector<vector2i> tubecoords(sub->get_torpedoes().size());
+	pair<unsigned, unsigned> bow_tube_indices = sub->get_bow_tube_indices();
+	pair<unsigned, unsigned> stern_tube_indices = sub->get_stern_tube_indices();
+	pair<unsigned, unsigned> bow_reserve_indices = sub->get_bow_reserve_indices();
+	pair<unsigned, unsigned> stern_reserve_indices = sub->get_stern_reserve_indices();
+	pair<unsigned, unsigned> bow_deckreserve_indices = sub->get_bow_deckreserve_indices();
+	pair<unsigned, unsigned> stern_deckreserve_indices = sub->get_stern_deckreserve_indices();
 	unsigned k = bow_tube_indices.second - bow_tube_indices.first;
 	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
 		tubecoords[i] = vector2i(0, 192+(i-k/2)*16);
@@ -97,6 +102,40 @@ vector<vector2i> sub_torpedo_display::get_tubecoords(submarine* player) const
 		tubecoords[i] = vector2i(704-(j/2)*128, 96+(j%2)*16);
 	}
 	return tubecoords;
+}
+
+
+
+unsigned sub_torpedo_display::get_tube_below_mouse(const vector<vector2i>& tubecoords) const
+{
+	for (unsigned i = 0; i < tubecoords.size(); ++i) {
+		if (mx >= tubecoords[i].x && mx < tubecoords[i].x+128 &&
+				my >= tubecoords[i].y && my < tubecoords[i].y+16) {
+			return i;
+		}
+	}
+	return ILLEGAL_TUBE;
+}
+
+
+
+void sub_torpedo_display::check_turnswitch_input(game& gm, int x, int y)
+{
+	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
+	if (y >= 384 && y < 640) {
+		if (x < 256)
+			gm.send(new command_set_trp_primaryrange(sub,
+				turnswitch_input(x, y-384, 17)));
+		else if (x < 512)
+			gm.send(new command_set_trp_secondaryrange(sub,
+				turnswitch_input(x-256, y-384, 2)));
+		else if (x < 768)
+			gm.send(new command_set_trp_initialturn(sub,
+				turnswitch_input(x-512, y-384, 2)));
+		else
+			gm.send(new command_set_trp_searchpattern(sub,
+				turnswitch_input(x-768, y-384, 2)));
+	}
 }
 
 
@@ -143,7 +182,7 @@ unsigned sub_torpedo_display::turnswitch_input(int x, int y, unsigned nrdescr) c
 
 
 sub_torpedo_display::sub_torpedo_display() :
-	torptranssrc(0xffff)
+	torptranssrc(ILLEGAL_TUBE), mx(0), my(0), mb(0)
 {
 	// reference images here and fill pointers
 	torpempty = texturecache.ref("torpempty.png");
@@ -184,7 +223,7 @@ sub_torpedo_display::~sub_torpedo_display()
 
 void sub_torpedo_display::display(class game& gm) const
 {
-	submarine* player = dynamic_cast<submarine*>(gm.get_player());
+	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 
 	// draw display without display color.
 	glColor4f(1,1,1,1);
@@ -199,24 +238,24 @@ void sub_torpedo_display::display(class game& gm) const
 	glScalef(1024/80.0, 1024/80.0, 0.001);
 	glRotatef(90, 0, 0, 1);
 	glRotatef(-90, 0, 1, 0);
-	player->display();
+	sub->display();
 	glPopMatrix();
 	
 	// draw torpedo programming buttons
-	draw_turnswitch(gm,   0, 384, 142, 17, player->get_trp_primaryrange(), 175, 138);
-	draw_turnswitch(gm, 256, 384, 159, 2, player->get_trp_secondaryrange(), 0, 139);
-	draw_turnswitch(gm, 512, 384, 161, 2, player->get_trp_initialturn(), 0, 140);
-	draw_turnswitch(gm, 768, 384, 163, 2, player->get_trp_searchpattern(), 176, 141);
+	draw_turnswitch(gm,   0, 384, 142, 17, sub->get_trp_primaryrange(), 175, 138);
+	draw_turnswitch(gm, 256, 384, 159, 2, sub->get_trp_secondaryrange(), 0, 139);
+	draw_turnswitch(gm, 512, 384, 161, 2, sub->get_trp_initialturn(), 0, 140);
+	draw_turnswitch(gm, 768, 384, 163, 2, sub->get_trp_searchpattern(), 176, 141);
 
 	// tube handling. compute coordinates for display and mouse use	
-	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
-	vector<vector2i> tubecoords = get_tubecoords(player);
-	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();
-	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
-	pair<unsigned, unsigned> bow_reserve_indices = player->get_bow_reserve_indices();
-	pair<unsigned, unsigned> stern_reserve_indices = player->get_stern_reserve_indices();
-	pair<unsigned, unsigned> bow_deckreserve_indices = player->get_bow_deckreserve_indices();
-	pair<unsigned, unsigned> stern_deckreserve_indices = player->get_stern_deckreserve_indices();
+	const vector<submarine::stored_torpedo>& torpedoes = sub->get_torpedoes();
+	vector<vector2i> tubecoords = get_tubecoords(sub);
+	pair<unsigned, unsigned> bow_tube_indices = sub->get_bow_tube_indices();
+	pair<unsigned, unsigned> stern_tube_indices = sub->get_stern_tube_indices();
+	pair<unsigned, unsigned> bow_reserve_indices = sub->get_bow_reserve_indices();
+	pair<unsigned, unsigned> stern_reserve_indices = sub->get_stern_reserve_indices();
+	pair<unsigned, unsigned> bow_deckreserve_indices = sub->get_bow_deckreserve_indices();
+	pair<unsigned, unsigned> stern_deckreserve_indices = sub->get_stern_deckreserve_indices();
 
 	// draw tubes
 	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i)
@@ -233,85 +272,8 @@ void sub_torpedo_display::display(class game& gm) const
 		draw_torpedo(gm, false, tubecoords[i], torpedoes[i]);
 	
 	// draw transfer graphics if needed
-
-	system::sys().unprepare_2d_drawing();
-}
-
-
-
-void sub_torpedo_display::process_input(class game& gm, const SDL_Event& event)
-{
-
-
-	// mouse handling
-	int mx, my, mb = system::sys().get_mouse_buttons();
-	system::sys().get_mouse_position(mx, my);
-
-	unsigned mouseovertube = 0xffff;
-	for (unsigned i = 0; i < torpedoes.size(); ++i) {
-		if (mx >= tubecoords[i].x && mx < tubecoords[i].x+128 &&
-				my >= tubecoords[i].y && my < tubecoords[i].y+16) {
-			mouseovertube = i;
-			break;
-		}
-	}
-
-	if (mb & system::sys().left_button) {
-		// button down
-		if (	mouseovertube < torpedoes.size()
-			&& torptranssrc >= torpedoes.size()
-			&& torpedoes[mouseovertube].status == submarine::stored_torpedo::st_loaded)
-		{
-			torptranssrc = mouseovertube;
-		} else {
-			if (torpedoes[mouseovertube].status == submarine::stored_torpedo::st_reloading ||
-					torpedoes[mouseovertube].status == submarine::stored_torpedo::st_unloading) {
-				glColor4f(1,1,1,1);
-				notepadsheet->draw(mx, my);
-				unsigned seconds = unsigned(torpedoes[mouseovertube].remaining_time + 0.5);	
-				unsigned hours = seconds / 3600;
-				unsigned minutes = (seconds % 3600) / 60;
-				seconds = seconds % 60;
-				ostringstream oss;
-				oss << texts::get(211) << hours << ":" << minutes << ":" << seconds;
-				font_arial->print(mx+32, my+32, oss.str(), color(0,0,128));
-			}
-		}
-		
-		// torpedo programming buttons
-		if (my >= 384 && my < 640) {
-			if (mx < 256) gm.send(new command_set_trp_primaryrange(player, turnswitch_input(mx, my-384, 17)));
-			else if (mx < 512) gm.send(new command_set_trp_secondaryrange(player, turnswitch_input(mx-256, my-384, 2)));
-			else if (mx < 768) gm.send(new command_set_trp_initialturn(player, turnswitch_input(mx-512, my-384, 2)));
-			else gm.send(new command_set_trp_searchpattern(player, turnswitch_input(mx-768, my-384, 2)));
-		}
-	
-	} else {
-		
-		// button released
-		if (	   mouseovertube < torpedoes.size()
-			&& torptranssrc < torpedoes.size()
-			&& torpedoes[mouseovertube].status == submarine::stored_torpedo::st_empty
-			&& mouseovertube != torptranssrc)
-		{
-			// transport
-			gm.send(new command_transfer_torpedo(player, torptranssrc, mouseovertube));
-		}
-		torptranssrc = 0xffff;
-
-		// display type info
-		if (	mouseovertube < torpedoes.size()
-				&& torpedoes[mouseovertube].type != torpedo::none
-				&& torpedoes[mouseovertube].status == submarine::stored_torpedo::st_loaded) {
-			color::white().set_gl_color();
-			notepadsheet->draw(mx, my);
-			torptex(torpedoes[mouseovertube].type)->draw(mx+64, my+36);
-			font_arial->print(mx+16, my+60, texts::get(300+torpedoes[mouseovertube].type-1), color(0,0,128));
-		}
-	}
-		
-	// draw line for torpedo transfer if button down
-	if (mb != 0 && torptranssrc < torpedoes.size()) {
+	if (torptranssrc != ILLEGAL_TUBE && torpedoes[torptranssrc].status ==
+	    submarine::stored_torpedo::st_loaded) {
 		glColor4f(1,1,1,0.5);
 		torptex(torpedoes[torptranssrc].type)->draw(mx-64, my-8);
 		glColor4f(1,1,1,1);
@@ -323,31 +285,88 @@ void sub_torpedo_display::process_input(class game& gm, const SDL_Event& event)
 		glEnd();
 	}
 
-	draw_infopanel(gm);
-	system::sys().unprepare_2d_drawing();
-
-	// keyboard processing
-	int key = system::sys().get_key().sym;
-	while (key != 0) {
-		if (!keyboard_common(key,  gm)) {
-			// specific keyboard processing
+	// draw information about torpedo in tube if needed
+	unsigned tb = get_tube_below_mouse(tubecoords);
+	if (tb != ILLEGAL_TUBE) {
+		if (mb & SDL_BUTTON_LMASK) {
+			// display remaining time if possible
+			if (torpedoes[tb].status == submarine::stored_torpedo::st_reloading ||
+			    torpedoes[tb].status == submarine::stored_torpedo::st_unloading) {
+				glColor4f(1,1,1,1);
+				notepadsheet->draw(mx, my);
+				unsigned seconds = unsigned(torpedoes[tb].remaining_time + 0.5);
+				unsigned hours = seconds / 3600;
+				unsigned minutes = (seconds % 3600) / 60;
+				seconds = seconds % 60;
+				ostringstream oss;
+				oss << texts::get(211) << hours << ":" 
+				    << setw(2) << setfill('0') << minutes << ":"
+				    << setw(2) << setfill('0') << seconds;
+				font_arial->print(mx+32, my+32, oss.str(), color(0,0,128));
+			}
+		} else {
+			// display type info
+			if (torpedoes[tb].type != torpedo::none
+			    && torpedoes[tb].status == submarine::stored_torpedo::st_loaded) {
+				color::white().set_gl_color();
+				notepadsheet->draw(mx, my);
+				torptex(torpedoes[tb].type)->draw(mx+64, my+36);
+				font_arial->print(mx+16, my+60,
+						  texts::get(300+torpedoes[tb].type-1),
+						  color(0,0,128));
+			}
 		}
-		key = system::sys().get_key().sym;
 	}
 
+	ui.draw_infopanel(gm);
+	system::sys().unprepare_2d_drawing();
+}
 
 
-//new
+
+void sub_torpedo_display::process_input(class game& gm, const SDL_Event& event)
+{
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
-	int mx, my;
+	const vector<submarine::stored_torpedo>& torpedoes = sub->get_torpedoes();
 	switch (event.type) {
 	case SDL_MOUSEBUTTONDOWN:
-		mx = event.button.x;
-		my = event.button.y;
-		//if mouse is over control c, compute angle a, set matching command, fixme
-		if (indicators[compass].is_over(mx, my)) {
-			angle mang = -indicators[compass].get_angle(mx, my);
-			gm.send(new command_head_to_ang(sub, mang, mang.is_cw_nearer(sub->get_heading())));
+		// check if there is a tube below the mouse and set torptranssrc
+		if (event.button.button == SDL_BUTTON_LEFT) {
+			torptranssrc = get_tube_below_mouse(get_tubecoords(sub));
+			if (torptranssrc != ILLEGAL_TUBE) {
+				if (torpedoes[torptranssrc].status !=
+				    submarine::stored_torpedo::st_loaded) {
+					torptranssrc = ILLEGAL_TUBE;
+				}
+			}
+			// if mouse is over turnswitch, set it
+			check_turnswitch_input(gm, event.button.x, event.button.y);
+			mb |= SDL_BUTTON_LMASK;
+		}
+		break;
+	case SDL_MOUSEBUTTONUP:
+		// check if there is a tube below and if its empty
+		if (event.button.button == SDL_BUTTON_LEFT) {
+			unsigned torptransdst = get_tube_below_mouse(get_tubecoords(sub));
+			if (torptransdst != ILLEGAL_TUBE) {
+				if (torpedoes[torptransdst].status !=
+				    submarine::stored_torpedo::st_empty) {
+					gm.send(new command_transfer_torpedo(sub,
+						torptranssrc, torptransdst));
+				}
+			}
+			torptranssrc = ILLEGAL_TUBE;
+			mb &= ~SDL_BUTTON_LMASK;
+		}
+		break;
+	case SDL_MOUSEMOTION:
+		mx = event.motion.x;
+		my = event.motion.y;
+		mb = event.motion.state;
+
+		// if mouse is over turnswitch and button is down, set switch
+		if (event.motion.state & SDL_BUTTON_LMASK) {
+			check_turnswitch_input(gm, mx, my);
 		}
 		break;
 	default:

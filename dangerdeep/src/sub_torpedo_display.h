@@ -18,9 +18,15 @@ class sub_torpedo_display : public user_display
 	void draw_torpedo(class game& gm, bool
 		usebow, const vector2i& pos, const submarine::stored_torpedo& st) const;
 
+	int mx, my, mb;
+
 	texture* torptex(unsigned type) const;
 
-	vector<vector2i> get_tubecoords(class submarine* player) const;
+	vector<vector2i> get_tubecoords(class submarine* sub) const;
+
+	unsigned get_tube_below_mouse(const vector<vector2i>& tubecoords) const;
+
+	void check_turnswitch_input(class game& gm, int x, int y);
 
 	// draws turnable switch. parameters: pos, first index and number of descriptions,
 	// selected description, extra description text number and title text nr.
