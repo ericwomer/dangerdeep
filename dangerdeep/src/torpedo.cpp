@@ -95,7 +95,7 @@ void torpedo::simulate(game& gm, double delta_time)
 	
 	if (type == T3FAT) {	// FAT, test hack
 		if (run_length > 1600) {	// wrong pattern fixme
-			rudder_right(0.5);
+			rudder_right();
 		}
 	}
 	run_length += speed * delta_time;

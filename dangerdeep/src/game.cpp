@@ -186,6 +186,7 @@ list<ship*> game::visible_ships(const vector3& pos)
 		}
 	}
 	return result;
+//	return ships;	// test hack fixme
 }
 
 list<submarine*> game::visible_submarines(const vector3& pos)
@@ -204,6 +205,7 @@ list<submarine*> game::visible_submarines(const vector3& pos)
 		}
 	}
 	return result;
+//	return list<submarine*>();	// test hack fixme
 }
 
 list<airplane*> game::visible_airplanes(const vector3& pos)
@@ -294,7 +296,7 @@ list<vector2> game::convoy_positions(void) const
 {
 	list<vector2> result;
 	for (list<convoy*>::const_iterator it = convoys.begin(); it != convoys.end(); ++it) {
-		result.push_back((*it)->get_pos());
+		result.push_back((*it)->get_pos().xy());
 	}
 	return result;
 }

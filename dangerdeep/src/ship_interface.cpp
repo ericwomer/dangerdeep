@@ -49,8 +49,8 @@ bool ship_interface::keyboard_common(int keycode, class system& sys, class game&
 		case SDLK_F12: if (time_scale > 1) { --time_scale; add_message(TXT_Timescaledown[language]); } break;
 
 		// control
-		case SDLK_LEFT: player->rudder_left(1); add_message(TXT_Rudderleft[language]); break;
-		case SDLK_RIGHT: player->rudder_right(1); add_message(TXT_Rudderright[language]); break;
+		case SDLK_LEFT: player->rudder_left(); add_message(TXT_Rudderleft[language]); break;
+		case SDLK_RIGHT: player->rudder_right(); add_message(TXT_Rudderright[language]); break;
 		case SDLK_RETURN : player->rudder_midships(); add_message(TXT_Ruddermidships[language]); break;
 		case SDLK_1: player->set_throttle(sea_object::aheadslow); add_message(TXT_Aheadslow[language]); break;
 		case SDLK_2: player->set_throttle(sea_object::aheadhalf); add_message(TXT_Aheadhalf[language]); break;

@@ -172,15 +172,27 @@ void sea_object::head_to_ang(const angle& a, bool left_or_right)	// true == left
 	permanent_turn = false;
 }
 
-void sea_object::rudder_left(double amount)	// 0 <= amount <= 1
+void sea_object::rudder_left(void)
 {
-	head_chg = -amount;
+	head_chg = -0.5;
 	permanent_turn = true;
 }
 
-void sea_object::rudder_right(double amount)	// 0 <= amount <= 1
+void sea_object::rudder_right(void)
 {
-	head_chg = amount;
+	head_chg = 0.5;
+	permanent_turn = true;
+}
+
+void sea_object::rudder_hard_left(void)
+{
+	head_chg = -1.0;
+	permanent_turn = true;
+}
+
+void sea_object::rudder_hard_right(void)
+{
+	head_chg = 1.0;
 	permanent_turn = true;
 }
 
@@ -194,6 +206,40 @@ void sea_object::rudder_midships(void)
 void sea_object::set_throttle(throttle_status thr)
 {
 	throttle = thr;
+}
+
+void sea_object::set_course_to_pos(const vector2& pos)
+{
+	vector2 d = pos - get_pos().xy();
+	vector2 hd = get_heading().direction();
+	double a = d.x*hd.x + d.y*hd.y;
+	double b = d.x*hd.y - d.y*hd.x;
+	// if a is < 0 then target lies behind our pos.
+	// if b is < 0 then target is left, else right of our pos.
+	double r1 = (b == 0) ? 1e10 : (a*a + b*b)/fabs(2*b);
+	double r2 = 1.0/get_turn_rate().rad();
+	if (a <= 0) {	// target is behind us
+		if (b < 0) {	// target is left
+			head_to_ang(get_heading() - angle(180), true);
+		} else {
+			head_to_ang(get_heading() + angle(180), false);
+		}
+	} else if (r2 > r1) {	// target can not be reached with smallest curve possible
+		if (b < 0) {	// target is left
+			head_to_ang(get_heading() + angle(180), false);
+		} else {
+			head_to_ang(get_heading() - angle(180), true);
+		}
+	} else {	// target can be reached, steer curve
+		head_to_ang(angle::from_math(atan2(d.y, d.x)), (b < 0));
+//	this code computes the curve that hits the target
+//	but it is much better to turn fast and then steam straight ahead
+/*
+		double needed_turn_rate = (r1 == 0) ? 0 : 1.0/r1; //speed/r1;
+		double fac = ((180.0*needed_turn_rate)/PI)/fabs(turn_rate.value_pm180());
+		head_chg = (b < 0) ? -fac : fac;
+*/		
+	}
 }
 
 double sea_object::get_throttle_speed(void) const

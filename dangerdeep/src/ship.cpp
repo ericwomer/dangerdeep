@@ -12,6 +12,7 @@
 
 ship::ship() : sea_object()
 {
+	myai = 0;
 }
 
 bool ship::parse_attribute(parser& p)

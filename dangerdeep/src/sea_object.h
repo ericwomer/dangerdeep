@@ -80,10 +80,14 @@ public:
 	
 	// command interface
 	virtual void head_to_ang(const angle& a, bool left_or_right);	// true == left
-	virtual void rudder_left(double amount);	// 0 <= amount <= 1
-	virtual void rudder_right(double amount);	// 0 <= amount <= 1
+	virtual void rudder_left(void);
+	virtual void rudder_right(void);
+	virtual void rudder_hard_left(void);
+	virtual void rudder_hard_right(void);
 	virtual void rudder_midships(void);
-	virtual void set_throttle(throttle_status thr);	// 0 <= amount <= 1
+	virtual void set_throttle(throttle_status thr);
+
+	virtual void set_course_to_pos(const vector2& pos);
 
 	virtual vector3 get_pos(void) const { return position; };
 	virtual angle get_heading(void) const { return heading; };

@@ -43,6 +43,8 @@ extern const char* TXT_Timescaleup[];
 extern const char* TXT_Timescaledown[];
 extern const char* TXT_Rudderleft[];
 extern const char* TXT_Rudderright[];
+extern const char* TXT_Rudderhardleft[];
+extern const char* TXT_Rudderhardright[];
 extern const char* TXT_Planesup[];
 extern const char* TXT_Planesdown[];
 extern const char* TXT_Surface[];

@@ -60,6 +60,10 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 					add_message(TXT_Torpedofired[language]);
 				break;
 			
+			// control
+			case SDLK_LEFT: player->rudder_hard_left(); add_message(TXT_Rudderhardleft[language]); break;
+			case SDLK_RIGHT: player->rudder_hard_right(); add_message(TXT_Rudderhardright[language]); break;
+
 			// view
 			case SDLK_COMMA : bearing -= angle(10); break;
 			case SDLK_PERIOD : bearing += angle(10); break;
@@ -84,8 +88,8 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			case SDLK_F12: if (time_scale_down()) { add_message(TXT_Timescaledown[language]); } break;
 
 			// control
-			case SDLK_LEFT: player->rudder_left(1); add_message(TXT_Rudderleft[language]); break;
-			case SDLK_RIGHT: player->rudder_right(1); add_message(TXT_Rudderright[language]); break;
+			case SDLK_LEFT: player->rudder_left(); add_message(TXT_Rudderleft[language]); break;
+			case SDLK_RIGHT: player->rudder_right(); add_message(TXT_Rudderright[language]); break;
 			case SDLK_UP: player->planes_up(1); add_message(TXT_Planesup[language]); break;
 			case SDLK_DOWN: player->planes_down(1); add_message(TXT_Planesdown[language]); break;
 			case SDLK_s: player->dive_to_depth(0); add_message(TXT_Surface[language]); break;

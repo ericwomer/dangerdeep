@@ -41,7 +41,7 @@ protected:
 
 public:
 
-	// ai computation between is rndly interleaved between frames to avoid
+	// ai computation between is randomly interleaved between frames to avoid
 	// time consumption peeks every AI_THINK_CYCLE_TIME seconds
 	ai(sea_object* parent_, types type_) : type(type_), state(followpath),
 		zigzagstate(0), parent(parent_), followme(0),
@@ -49,7 +49,7 @@ public:
 		remaining_time(rnd() * AI_THINK_CYCLE_TIME),
 		cyclewaypoints(false) {};
 	virtual ~ai() {};
-	
+
 	void clear_waypoints(void) { waypoints.clear(); };
 	void add_waypoint(const vector2& wp) { waypoints.push_back(wp); };
 
@@ -63,7 +63,6 @@ public:
 	virtual void set_zigzag(bool stat = true);
 	virtual void act_escort(class game& g, double delta_time);
 	virtual void act_dumb(class game& g, double delta_time);
-	virtual void set_course_to_pos(const vector2& pos);
 	virtual void fire_shell_at(class game& gm, const sea_object& s);
 };
 
