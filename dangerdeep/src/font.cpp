@@ -127,8 +127,7 @@ font::font(const string& basefilename, unsigned char_spacing)
 
 font::~font()
 {
-	for (vector<character>::iterator it = characters.begin(); it != characters.end(); ++it)
-		delete it->tex;
+	// character textures are deleted by character destructor itself!
 }
 
 void font::print(int x, int y, const string& text, color col, bool with_shadow) const

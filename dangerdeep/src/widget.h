@@ -13,6 +13,11 @@ using namespace std;
 #include "font.h"
 #include "vector2.h"
 
+// fixme: add image-widget
+// fixme: implement checkbox widget
+
+// maybe give mouse pos / movement as arguments of the on_click/on_drag functions.
+
 // fixme: add header for menu widget (like old dftd menues)
 
 // fixme: probably add: if a window's title is empty, don't draw title bar
