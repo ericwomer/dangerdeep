@@ -35,12 +35,16 @@ class angle
 	static angle from_math(double d) { return angle((M_PI/2-d)*180.0/M_PI); };
 	angle& operator+=(const angle& other) { val += other.val; return *this; };
 	angle& operator-=(const angle& other) { val -= other.val; return *this; };
-	bool operator==(const angle& other) const { return value() == other.value(); };
 	double diff(const angle& other) const { double d = clamped(other.val - val); if (d > 180.0) d = 360.0 - d; return d; };
 	double sin(void) const { return ::sin(rad()); };
 	double cos(void) const { return ::cos(rad()); };
 	vector2 direction(void) const { double r = rad(); return vector2(::sin(r), ::cos(r)); };
 	angle(const vector2& v) { val = (v == vector2(0,0)) ? 0 : 90-atan2(v.y, v.x)*180.0/M_PI; };
+	bool operator < ( const angle& b ) const { return value () < b.value (); }
+	bool operator <= ( const angle& b ) const { return !(b < *this); }
+	bool operator == ( const angle& b ) const { return !(*this < b) && !(b < *this); }
+	bool operator > ( const angle& b ) const { return b < *this; }
+	bool operator >= ( const angle& b ) const { return !(*this < b); }
 };
 
 #endif
