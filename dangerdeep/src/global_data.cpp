@@ -9,6 +9,7 @@
 #include "sound.h"
 #include <sstream>
 #include "oglext/OglExt.h"
+#include "tinyxml/tinyxml.h"
 #include <SDL_image.h>
 
 
@@ -40,6 +41,17 @@ image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_background,
 objcachet<class model> modelcache(get_model_dir());
 objcachet<class image> imagecache(get_image_dir());
 objcachet<class texture> texturecache(get_texture_dir());
+
+string XmlAttrib(class TiXmlElement* elem, const char* attrname)
+{
+	const char* tmp = elem->Attribute(attrname);
+	if (tmp) return string(tmp);
+	return string();
+}
+unsigned XmlAttribu(class TiXmlElement* elem, const char* attrname)
+{
+	return unsigned(atoi(XmlAttrib(elem, attrname).c_str()));
+}
 
 void init_global_data(void)
 {

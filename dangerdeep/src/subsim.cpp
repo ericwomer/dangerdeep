@@ -441,7 +441,7 @@ void choose_historical_mission(void)
 		TiXmlHandle hdoc(&doc);
 		TiXmlHandle hdftdmission = hdoc.FirstChild("dftd-mission");
 		TiXmlHandle hdescription = hdftdmission.FirstChild("description");
-		TiXmlHandle hshort = hdescription.FirstChild("short");
+		TiXmlHandle hshort = hdescription.FirstChild("short");//fixme: look for language here!!!!
 		TiXmlText* ttext = hshort.FirstChild().Text();
 		system::sys().myassert(ttext != 0, string("text node missing in ")+missions[i]);
 		wmission->append_entry(ttext->Value());
@@ -454,8 +454,9 @@ void choose_historical_mission(void)
 	wm->adjust_buttons(944);
 	int result = w.run();
 	if (result == 2) {	// start game
-		string filename = get_mission_dir() + missions[wmission->get_selected()];
-		run_game(new game(filename, true));
+		TiXmlDocument doc(get_mission_dir() + missions[wmission->get_selected()]);
+		doc.LoadFile();
+		run_game(new game(&doc));
 	}
 }
 
@@ -986,6 +987,7 @@ int main(int argc, char** argv)
 	// command line argument parsing
 	res_x = 1024;
 	bool fullscreen = true;
+	string cmdmissionfilename;
 	list<string> args;
 	while (--argc > 0) args.push_front(string(argv[argc]));
 	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
@@ -994,6 +996,7 @@ int main(int argc, char** argv)
 			<< "--res n\t\tuse resolution n horizontal,\n\t\tn is 512,640,800,1024 (recommended) or 1280\n"
 			<< "--nofullscreen\tdon't use fullscreen\n"
 			<< "--debug\t\tdebug mode: no fullscreen, resolution 800\n"
+			<< "--mission fn\trun mission from file fn (just the filename in the mission directory)\n"
 			<< "--nosound\tdon't use sound\n";
 			return 0;
 		} else if (*it == "--nofullscreen") {
@@ -1001,6 +1004,12 @@ int main(int argc, char** argv)
 		} else if (*it == "--debug") {
 			fullscreen = false;
 			res_x = 800;
+		} else if (*it == "--mission") {
+			list<string>::iterator it2 = it; ++it2;
+			if (it2 != args.end()) {
+				cmdmissionfilename = *it2;
+				++it;
+			}
 		} else if (*it == "--nosound") {
 			sound::use_sound = false;
 		} else if (*it == "--res") {
@@ -1078,19 +1087,24 @@ int main(int argc, char** argv)
 	hsl_career = highscorelist(highscoredirectory + HSL_CAREER_NAME);
 
 
-	// main menu
-	menu m(104, titlebackgrimg);
-	m.add_item(21, menu_single_mission);
-	m.add_item(22, play_network_game);
-	m.add_item(23, menu_notimplemented);
-	m.add_item(24, menu_show_vessels);
-	m.add_item(25, show_halloffame_mission);
-	m.add_item(26, menu_select_language);
-	m.add_item(29, menu_notimplemented /*menu_options*/);
-	m.add_item(30, 0);
-
-
-	m.run();
+	// check if there was a mission given at the command line
+	if (cmdmissionfilename.length() > 0) {
+		TiXmlDocument doc(get_mission_dir() + cmdmissionfilename);
+		doc.LoadFile();
+		run_game(new game(&doc));
+	} else {
+		// main menu
+		menu m(104, titlebackgrimg);
+		m.add_item(21, menu_single_mission);
+		m.add_item(22, play_network_game);
+		m.add_item(23, menu_notimplemented);
+		m.add_item(24, menu_show_vessels);
+		m.add_item(25, show_halloffame_mission);
+		m.add_item(26, menu_select_language);
+		m.add_item(29, menu_notimplemented /*menu_options*/);
+		m.add_item(30, 0);
+		m.run();
+	}
 
 	sys->write_console(true);
 

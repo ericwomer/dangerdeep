@@ -27,7 +27,7 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 	TiXmlHandle hdftdship = hspec.FirstChild(topnodename);
 	TiXmlElement* eclassification = hdftdship.FirstChildElement("classification").Element();
 	system::sys().myassert(eclassification != 0, string("ship: classification node missing in ")+specfilename);
-	string typestr = eclassification->Attribute("type");
+	string typestr = XmlAttrib(eclassification, "type");
 	if (typestr == "warship") shipclass = WARSHIP;
 	else if (typestr == "escort") shipclass = ESCORT;
 	else if (typestr == "merchant") shipclass = MERCHANT;
@@ -35,8 +35,8 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 	else system::sys().myassert(false, string("illegal ship type in ") + specfilename);
 	TiXmlElement* etonnage = hdftdship.FirstChildElement("tonnage").Element();
 	system::sys().myassert(etonnage != 0, string("tonnage node missing in ")+specfilename);
-	unsigned minton = atoi(etonnage->Attribute("min"));
-	unsigned maxton = atoi(etonnage->Attribute("max"));
+	unsigned minton = XmlAttribu(etonnage, "min");
+	unsigned maxton = XmlAttribu(etonnage, "max");
 	tonnage = minton + rnd(maxton - minton + 1);
 	TiXmlElement* esmoke = hdftdship.FirstChildElement("smoke").Element();
 	mysmoke = 0;
@@ -45,16 +45,16 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 	}
 	TiXmlElement* eai = hdftdship.FirstChildElement("ai").Element();
 	system::sys().myassert(eai != 0, string("ai node missing in ")+specfilename);
-	string aitype = eai->Attribute("type");
+	string aitype = XmlAttrib(eai, "type");
 	if (aitype == "dumb") myai = new ai(this, ai::dumb);
 	else if (aitype == "escort") myai = new ai(this, ai::escort);
 	else if (aitype == "none") myai = 0;
 	else system::sys().myassert(false, string("illegal AI type in ") + specfilename);
 	TiXmlElement* efuel = hdftdship.FirstChildElement("fuel").Element();
 	system::sys().myassert(efuel != 0, string("fuel node missing in ")+specfilename);
-	fuel_level = atof(efuel->Attribute("capacity"));
-	fuel_value_a = atof(efuel->Attribute("consumption_a"));
-	fuel_value_t = atof(efuel->Attribute("consumption_t"));
+	fuel_capacity = XmlAttribu(efuel, "capacity");
+	efuel->Attribute("consumption_a", &fuel_value_a);
+	efuel->Attribute("consumption_t", &fuel_value_t);
 }
 
 

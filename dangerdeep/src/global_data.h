@@ -30,6 +30,9 @@ inline string get_image_dir(void) { return get_data_dir() + "images/"; }
 inline string get_mission_dir(void) { return get_data_dir() + "missions/"; }
 inline string get_map_dir(void) { return get_data_dir() + "maps/"; }
 
+string XmlAttrib(class TiXmlElement* elem, const char* attrname);
+unsigned XmlAttribu(class TiXmlElement* elem, const char* attrname);
+
 #define GRAVITY 9.806	// a very global constant
 #define NR_CLOUD_TEXTURES 2
 

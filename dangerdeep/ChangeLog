@@ -1,3 +1,10 @@
+2004-05-13  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* replaced own text file parsing with xml code
+	* now missions and descriptions are fully dynamic
+	* look at the data files for examples
+	* some features are not fully ported or tested yet (look for fixme's)
+	* added --mission cmd line param to start missions directly
+
 2004-05-03  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* game, user_interface, sky, global_data
 	  - got rid of get_day_time() code

@@ -64,38 +64,41 @@ submarine::submarine(TiXmlDocument* specfile, const char* topnodename) : ship(sp
 	TiXmlElement* emotion = hdftdsub.FirstChildElement("motion").Element();
 	TiXmlElement* esubmerged = emotion->FirstChildElement("submerged");
 	system::sys().myassert(esubmerged != 0, string("submerged node missing in ")+specfilename);
-	max_submerged_speed = atof(esubmerged->Attribute("maxspeed"));
+	double tmp = 0;
+	esubmerged->Attribute("maxspeed", &tmp);
+	max_submerged_speed = kts2ms(tmp);
 	dive_acceleration = 0.0;	// not used yet
 	max_dive_speed = 1.0;		// yet a crude approximation
-	double safedepth = atof(esubmerged->Attribute("safedepth"));
-	double maxdepth = atof(esubmerged->Attribute("maxdepth"));
+	double safedepth = 0, maxdepth = 0;
+	esubmerged->Attribute("safedepth", &safedepth);
+	esubmerged->Attribute("maxdepth", &maxdepth);
 	max_depth = safedepth + rnd() * (maxdepth - safedepth);
 	TiXmlHandle htorpedoes = hdftdsub.FirstChildElement("torpedoes");
 	TiXmlElement* etubes = htorpedoes.FirstChildElement("tubes").Element();
 	system::sys().myassert(etubes != 0, string("tubes node missing in ")+specfilename);
-	number_of_tubes_at[0] = atoi(etubes->Attribute("bow"));
-	number_of_tubes_at[1] = atoi(etubes->Attribute("stern"));
-	number_of_tubes_at[2] = atoi(etubes->Attribute("bowreserve"));
-	number_of_tubes_at[3] = atoi(etubes->Attribute("sternreserve"));
-	number_of_tubes_at[4] = atoi(etubes->Attribute("bowdeckreserve"));
-	number_of_tubes_at[5] = atoi(etubes->Attribute("sterndeckreserve"));
+	number_of_tubes_at[0] = XmlAttribu(etubes, "bow");
+	number_of_tubes_at[1] = XmlAttribu(etubes, "stern");
+	number_of_tubes_at[2] = XmlAttribu(etubes, "bowreserve");
+	number_of_tubes_at[3] = XmlAttribu(etubes, "sternreserve");
+	number_of_tubes_at[4] = XmlAttribu(etubes, "bowdeckreserve");
+	number_of_tubes_at[5] = XmlAttribu(etubes, "sterndeckreserve");
 	unsigned nrtrp = 0;
 	for (unsigned i = 0; i < 6; ++i) nrtrp += number_of_tubes_at[i];
 	torpedoes.resize(nrtrp);
 	TiXmlElement* etransfertimes = htorpedoes.FirstChildElement("transfertimes").Element();
 	system::sys().myassert(etransfertimes != 0, string("transfertimes node missing in ")+specfilename);
-	torp_transfer_times[0] = atoi(etransfertimes->Attribute("bow"));
-	torp_transfer_times[1] = atoi(etransfertimes->Attribute("stern"));
-	torp_transfer_times[2] = atoi(etransfertimes->Attribute("bowdeck"));
-	torp_transfer_times[3] = atoi(etransfertimes->Attribute("sterndeck"));
-	torp_transfer_times[4] = atoi(etransfertimes->Attribute("bowsterndeck"));
+	torp_transfer_times[0] = XmlAttribu(etransfertimes, "bow");
+	torp_transfer_times[1] = XmlAttribu(etransfertimes, "stern");
+	torp_transfer_times[2] = XmlAttribu(etransfertimes, "bowdeck");
+	torp_transfer_times[3] = XmlAttribu(etransfertimes, "sterndeck");
+	torp_transfer_times[4] = XmlAttribu(etransfertimes, "bowsterndeck");
 	TiXmlElement* ebattery = hdftdsub.FirstChildElement("battery").Element();
 	system::sys().myassert(ebattery != 0, string("battery node missing in ")+specfilename);
-	battery_capacity = atoi(ebattery->Attribute("capacity"));
-	battery_value_a = atof(ebattery->Attribute("consumption_a"));
-	battery_value_t = atof(ebattery->Attribute("consumption_t"));
-	battery_recharge_value_a = atof(ebattery->Attribute("recharge_a"));
-	battery_recharge_value_t = atof(ebattery->Attribute("recharge_t"));
+	battery_capacity = XmlAttribu(ebattery, "capacity");
+	ebattery->Attribute("consumption_a", &battery_value_a);
+	ebattery->Attribute("consumption_t", &battery_value_t);
+	ebattery->Attribute("recharge_a", &battery_recharge_value_a);
+	ebattery->Attribute("recharge_t", &battery_recharge_value_t);
 
 	// set all common damageable parts to "no damage", fixme move to ship?, replace by damage editor data reading
 	damageable_parts.resize(nr_of_damageable_parts);
@@ -132,18 +135,18 @@ void submarine::parse_attributes(class TiXmlElement* parent)
 	TiXmlHandle hdftdsub(parent);
 	TiXmlElement* escope = hdftdsub.FirstChildElement("scope").Element();
 	if (escope) {
-		string stat = escope->Attribute("up");
+		string stat = XmlAttrib(escope, "up");
 		if (stat == "up") scopeup = true;
 		else scopeup = false;
 	}
 	TiXmlElement* etorpedoes = hdftdsub.FirstChildElement("torpedoes").Element();
 	if (etorpedoes) {
 		TiXmlElement* etorpedo = etorpedoes->FirstChildElement("torpedo");
-		for (unsigned tubenr = 0; etorpedo != 0; etorpedo = etorpedo->NextSiblingElement(), ++tubenr) {
-			int tubenr = atoi(etorpedo->Attribute("tube"));
-			if (tubenr < 0 || tubenr >= int(torpedoes.size()))
+		for (unsigned tubenr = 0; etorpedo != 0; etorpedo = etorpedo->NextSiblingElement("torpedo"), ++tubenr) {
+			unsigned tubenr = XmlAttribu(etorpedo, "tube");
+			if (tubenr >= int(torpedoes.size()))
 				continue;	// ignore it, maybe send a message to user
-			string trptype = etorpedo->Attribute("type");
+			string trptype = XmlAttrib(etorpedo, "type");
 			if (trptype == "T1") torpedoes[tubenr] = stored_torpedo(torpedo::T1);
 			else if (trptype == "T2") torpedoes[tubenr] = stored_torpedo(torpedo::T2);
 			else if (trptype == "T3") torpedoes[tubenr] = stored_torpedo(torpedo::T3);

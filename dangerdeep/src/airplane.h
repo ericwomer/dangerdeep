@@ -19,8 +19,6 @@ protected:
 	airplane& operator=(const airplane& other);
 	airplane(const airplane& other);
 	
-	virtual void parse_attributes(class TiXmlElement* parent);
-	
 public:
 	// create empty object from specification xml file
 	airplane(class TiXmlDocument* specfile);
@@ -29,6 +27,8 @@ public:
 
 	void load(istream& in, class game& g);
 	void save(ostream& out, const class game& g) const;
+
+	virtual void parse_attributes(class TiXmlElement* parent);
 
 	virtual void simulate(class game& gm, double delta_time);
 

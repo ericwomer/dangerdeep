@@ -45,7 +45,7 @@ sea_object::sea_object() : speed(0), max_speed(0), max_rev_speed(0), throttle(st
 
 
 
-sea_object::sea_object(class TiXmlDocument* specfile, const char* topnodename) :
+sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
 	speed(0.0), throttle(stop), permanent_turn(false), head_chg(0.0), rudder(ruddermid),
 	head_to(0.0), alive_stat(alive)
 {
@@ -53,17 +53,16 @@ sea_object::sea_object(class TiXmlDocument* specfile, const char* topnodename) :
 	TiXmlHandle hdftdobj = hspec.FirstChild(topnodename);
 	TiXmlElement* eclassification = hdftdobj.FirstChildElement("classification").Element();
 	system::sys().myassert(eclassification != 0, string("sea_object: classification node missing in ")+specfile->Value());
-	specfilename = eclassification->Attribute("identifier");
-	modelname = eclassification->Attribute("modelname");
+	specfilename = XmlAttrib(eclassification, "identifier");
+	modelname = XmlAttrib(eclassification, "modelname");
 	model* mdl = modelcache.ref(modelname);
 	width = mdl->get_width();
 	length = mdl->get_length();
-	//country = eclassification->Attribute("country");
+	//country = XmlAttrib(eclassification, "country");
 	TiXmlHandle hdescription = hdftdobj.FirstChild("description");
 	TiXmlElement* edescr = hdescription.FirstChild("far").Element();
-	for ( ; edescr != 0; edescr = edescr->NextSiblingElement()) {
-		string langcode = edescr->Attribute("lang");
-		if (langcode == texts::get_language_code()) {
+	for ( ; edescr != 0; edescr = edescr->NextSiblingElement("far")) {
+		if (XmlAttrib(edescr, "lang") == texts::get_language_code()) {
 			TiXmlNode* ntext = edescr->FirstChild();
 			system::sys().myassert(ntext != 0, string("sea_object: far description text child node missing in ")+specfilename);
 			descr_near = ntext->Value();
@@ -71,9 +70,8 @@ sea_object::sea_object(class TiXmlDocument* specfile, const char* topnodename) :
 		}
 	}
 	edescr = hdescription.FirstChild("medium").Element();
-	for ( ; edescr != 0; edescr = edescr->NextSiblingElement()) {
-		string langcode = edescr->Attribute("lang");
-		if (langcode == texts::get_language_code()) {
+	for ( ; edescr != 0; edescr = edescr->NextSiblingElement("medium")) {
+		if (XmlAttrib(edescr, "lang") == texts::get_language_code()) {
 			TiXmlNode* ntext = edescr->FirstChild();
 			system::sys().myassert(ntext != 0, string("sea_object: medium description text child node missing in ")+specfilename);
 			descr_near = ntext->Value();
@@ -81,9 +79,8 @@ sea_object::sea_object(class TiXmlDocument* specfile, const char* topnodename) :
 		}
 	}
 	edescr = hdescription.FirstChild("near").Element();
-	for ( ; edescr != 0; edescr = edescr->NextSiblingElement()) {
-		string langcode = edescr->Attribute("lang");
-		if (langcode == texts::get_language_code()) {
+	for ( ; edescr != 0; edescr = edescr->NextSiblingElement("near")) {
+		if (XmlAttrib(edescr, "lang") == texts::get_language_code()) {
 			TiXmlNode* ntext = edescr->FirstChild();
 			system::sys().myassert(ntext != 0, string("sea_object: near description text child node missing in ")+specfilename);
 			descr_near = ntext->Value();
@@ -92,15 +89,21 @@ sea_object::sea_object(class TiXmlDocument* specfile, const char* topnodename) :
 	}
 	TiXmlElement* emotion = hdftdobj.FirstChildElement("motion").Element();
 	system::sys().myassert(emotion != 0, string("motion node missing in ")+specfilename);
-	max_speed = atof(emotion->Attribute("maxspeed"));
-	max_rev_speed = atof(emotion->Attribute("maxrevspeed"));
-	acceleration = atof(emotion->Attribute("acceleration"));
-	turn_rate = atof(emotion->Attribute("turnrate"));
+	double tmp = 0;
+	if (emotion->Attribute("maxspeed", &tmp))
+		max_speed = kts2ms(tmp);
+	tmp = 0;
+	if (emotion->Attribute("maxrevspeed", &tmp))
+		max_rev_speed = kts2ms(tmp);
+	emotion->Attribute("acceleration", &acceleration);
+	tmp = 0;
+	if (emotion->Attribute("turnrate", &tmp))
+		turn_rate = angle(tmp);
 	TiXmlHandle hsensors = hdftdobj.FirstChild("sensors");
 	sensors.resize ( last_sensor_system );
 	TiXmlElement* esensor = hsensors.FirstChild("sensor").Element();
-	for ( ; esensor != 0; esensor = esensor->NextSiblingElement()) {
-		string typestr = esensor->Attribute("type");
+	for ( ; esensor != 0; esensor = esensor->NextSiblingElement("sensor")) {
+		string typestr = XmlAttrib(esensor, "type");
 		if (typestr == "lookout") set_sensor(lookout_system, new lookout_sensor());
 		else if (typestr == "passivesonar") set_sensor(passive_sonar_system, new passive_sonar_sensor());
 		else if (typestr == "activesonar") set_sensor(active_sonar_system, new active_sonar_sensor());
@@ -112,7 +115,8 @@ sea_object::sea_object(class TiXmlDocument* specfile, const char* topnodename) :
 
 sea_object::~sea_object()
 {
-	modelcache.unref(modelname);
+	if (modelname.length() > 0)
+		modelcache.unref(modelname);
 	for (unsigned i = 0; i < sensors.size(); i++)
 		delete sensors[i];
 }
@@ -173,16 +177,21 @@ void sea_object::parse_attributes(TiXmlElement* parent)
 	TiXmlHandle hdftdobj(parent);
 	TiXmlElement* eposition = hdftdobj.FirstChildElement("position").Element();
 	if (eposition) {
-		position = vector3(
-			atof(eposition->Attribute("x")),
-			atof(eposition->Attribute("y")),
-			atof(eposition->Attribute("z")) );
+		vector3 p;
+		eposition->Attribute("x", &p.x);
+		eposition->Attribute("y", &p.y);
+		eposition->Attribute("z", &p.z);
+		position = p;
 	}
 	TiXmlElement* emotion = hdftdobj.FirstChildElement("motion").Element();
 	if (emotion) {
-		heading = angle(atof(emotion->Attribute("heading")));
-		speed = kts2ms(atof(emotion->Attribute("speed")));
-		string thr = emotion->Attribute("throttle");
+		double tmp = 0;
+		if (emotion->Attribute("heading", &tmp))
+			heading = angle(tmp);
+		tmp = 0;
+		if (emotion->Attribute("speed", &tmp))
+			speed = kts2ms(tmp);
+		string thr = XmlAttrib(emotion, "throttle");
 		if (thr == "stop") throttle = stop;
 		else if (thr == "reverse") throttle = reverse;
 		else if (thr == "aheadlisten") throttle = aheadlisten;

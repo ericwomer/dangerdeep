@@ -178,138 +178,61 @@ we have to put some torpedoes according to mission time into the subs!
 
 
 
-
-game::game(const string& missionfilename, bool ) : running(true), time(0), networktype(0), servercon(0), player(0), ui(0)
+game::game(TiXmlDocument* doc) : running(true), time(0), networktype(0), servercon(0), player(0), ui(0)
 {
-	TiXmlDocument doc(missionfilename);
-	doc.LoadFile();
-	TiXmlHandle hdoc(&doc);
+	TiXmlHandle hdoc(doc);
 	TiXmlHandle hdftdmission = hdoc.FirstChild("dftd-mission");
 	TiXmlElement* etime = hdftdmission.FirstChildElement("time").Element();
-	system::sys().myassert(etime != 0, string("time node missing in ")+missionfilename);
-	unsigned year = atoi(etime->Attribute("year"));
-	unsigned month = atoi(etime->Attribute("month"));
-	unsigned day = atoi(etime->Attribute("day"));
-	unsigned hour = atoi(etime->Attribute("hour"));
-	unsigned minute = atoi(etime->Attribute("minute"));
-	unsigned second = atoi(etime->Attribute("second"));
+	system::sys().myassert(etime != 0, string("time node missing in ")+doc->Value());
+	unsigned year = XmlAttribu(etime, "year");
+	unsigned month = XmlAttribu(etime, "month");
+	unsigned day = XmlAttribu(etime, "day");
+	unsigned hour = XmlAttribu(etime, "hour");
+	unsigned minute = XmlAttribu(etime, "minute");
+	unsigned second = XmlAttribu(etime, "second");
 	time = ::get_time(year, month, day) + 3600*hour + 60*minute + second;
 	TiXmlElement* eobjects = hdftdmission.FirstChildElement("objects").Element();
-	system::sys().myassert(eobjects != 0, string("objects node missing in ")+missionfilename);
+	system::sys().myassert(eobjects != 0, string("objects node missing in ")+doc->Value());
+
 	// now read and interprete childs of eobject
-
-	//fixme: setze: maxviewdist,lasttrailtime,player
-/*
-	TiXmlHandle hdftdship = hdoc.FirstChild("dftd-ship");
-	TiXmlElement* eclassification = hdftdship.FirstChildElement("classification").Element();
-	system::sys().myassert(eclassification != 0, string("classification node missing in ")+specfilename);
-	modelname = eclassification->Attribute("modelname");
-	modelcache.ref(modelname);
-	string typestr = eclassification->Attribute("type");
-	if (typestr == "warship") shipclass = WARSHIP;
-	else if (typestr == "escort") shipclass = ESCORT;
-	else if (typestr == "merchant") shipclass = MERCHANT;
-	else if (typestr == "submarine") shipclass = SUBMARINE;
-	else system::sys().myassert(false, string("illegal ship type in ") + specfilename);
-	string country = eclassification->Attribute("country");
-	TiXmlHandle hdescription = hdftdship.FirstChild("description");//fixme: parse
-	TiXmlElement* emotion = hdftdship.FirstChildElement("motion").Element();
-	system::sys().myassert(emotion != 0, string("motion node missing in ")+specfilename);
-	max_speed = atof(emotion->Attribute("maxspeed"));
-	max_rev_speed = atof(emotion->Attribute("maxrevspeed"));
-	acceleration = atof(emotion->Attribute("acceleration"));
-	turn_rate = atof(emotion->Attribute("turnrate"));
-	TiXmlElement* etonnage = hdftdship.FirstChildElement("tonnage").Element();
-	system::sys().myassert(etonnage != 0, string("tonnage node missing in ")+specfilename);
-	unsigned minton = atoi(etonnage->Attribute("min"));
-	unsigned maxton = atoi(etonnage->Attribute("max"));
-	tonnage = minton + rnd(maxton - minton + 1);
-	TiXmlHandle hsmoke = hdftdship.FirstChild("smoke");//fixme parse
-	TiXmlHandle hsensors = hdftdship.FirstChild("sensors");//fixme parse
-	TiXmlElement* eai = hdftdship.FirstChildElement("ai").Element();
-	system::sys().myassert(eai != 0, string("ai node missing in ")+specfilename);
-	string aitype = eai->Attribute("type");
-	if (aitype == "dumb") myai = new ai(this, ai::dumb);
-	else if (aitype == "escort") myai = new ai(this, ai::escort);
-	else if (aitype == "none") myai = 0;
-	else system::sys().myassert(false, string("illegal AI type in ") + specfilename);
-	TiXmlElement* efuel = hdftdship.FirstChildElement("fuel").Element();
-	system::sys().myassert(efuel != 0, string("fuel node missing in ")+specfilename);
-	fuel_level = atof(efuel->Attribute("capacity"));
-	fuel_value_a = atof(efuel->Attribute("consumption_a"));
-	fuel_value_t = atof(efuel->Attribute("consumption_t"));
-*/
-}	
-
-/*
-game::game(parser& p) : running(true), time(0)
-{
-	networktype = 0;
-	servercon = 0;
-	
-	player = 0;
-	ui = 0;
-	while (!p.is_empty()) {
-		bool nextisplayer = false;
-		if (p.type() == TKN_PLAYER) {
-			if (player != 0) {
-				p.error("Player defined twice!");
-			}
-			p.consume();
-			nextisplayer = true;
-		}
-		switch (p.type()) {
-			case TKN_SUBMARINE: {
-				submarine* sub = new submarine(p);
-				spawn_submarine(sub);
-				if (nextisplayer)
-					player = sub;
-				break; }
-			case TKN_SHIP: {
-				ship* shp = new ship(p);
-				spawn_ship(shp);
-				if (nextisplayer)
-					player = shp;
-				break; }
-			case TKN_AIRPLANE: {
-				airplane* apl = airplane::create(p);
-				spawn_airplane(apl);
-				if (nextisplayer)
-					player = apl;
-				break; }
-			case TKN_CONVOY: {
-				convoy* cv = new convoy(*this, p);
-				spawn_convoy(cv);
-				break; }
-			case TKN_DESCRIPTION:
-			case TKN_WEATHER:
-			case TKN_TIME: {
-				p.consume();
-				unsigned year, month, day, hour, minute, second;
-				year = p.parse_number();
-				p.parse(TKN_COMMA);
-				month = p.parse_number();
-				p.parse(TKN_COMMA);
-				day = p.parse_number();
-				p.parse(TKN_COMMA);
-				hour = p.parse_number();
-				p.parse(TKN_COMMA);
-				minute = p.parse_number();
-				p.parse(TKN_COMMA);
-				second = p.parse_number();
-				p.parse(TKN_SEMICOLON);
-				time = ::get_time(year, month, day) + 3600*hour + 60*minute + second;
-				break;
-				}
-			default: p.error("game: Expected definition");
+	for (TiXmlElement* eobj = eobjects->FirstChildElement(); eobj != 0; eobj = eobj->NextSiblingElement()) {
+		string objname = eobj->Value();
+		if (objname == "ship") {
+			string shiptype = XmlAttrib(eobj, "type");
+			TiXmlDocument doc(get_ship_dir() + shiptype + ".xml");
+			doc.LoadFile();
+			ship* shp = new ship(&doc);
+			spawn_ship(shp);
+			shp->parse_attributes(eobj);
+			if (XmlAttrib(eobj, "player") == "true") player = shp;
+		} else if (objname == "submarine") {
+			string submarinetype = XmlAttrib(eobj, "type");
+			TiXmlDocument doc(get_submarine_dir() + submarinetype + ".xml");
+			doc.LoadFile();
+			submarine* sub = new submarine(&doc);
+			spawn_submarine(sub);
+			sub->parse_attributes(eobj);
+			if (XmlAttrib(eobj, "player") == "true") player = sub;
+		} else if (objname == "airplane") {
+			string airplanetype = XmlAttrib(eobj, "type");
+			TiXmlDocument doc(get_airplane_dir() + airplanetype + ".xml");
+			doc.LoadFile();
+			airplane* apl = new airplane(&doc);
+			spawn_airplane(apl);
+			apl->parse_attributes(eobj);
+			if (XmlAttrib(eobj, "player") == "true") player = apl;
+		} else if (objname == "convoy") {
+			convoy* cvy = new convoy(*this, eobj);
+			spawn_convoy(cvy);
+		} else {
+			system::sys().myassert(false, string("unknown object name '") + objname + string("' found in ") + doc->Value());
 		}
 	}
+
 	last_trail_time = time - TRAILTIME;
-	if (player == 0) p.error("No player defined!");
-	
+	system::sys().myassert(player != 0, string("No player defined in ") + doc->Value());
 	compute_max_view_dist();
-}
-*/
+}	
 
 
 

@@ -141,111 +141,51 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 
 convoy::convoy(class game& gm, TiXmlElement* parent) : sea_object()
 {
-	myai = new ai(this, ai::convoy);
-
-	TiXmlElement* epath = parent->FirstChildElement("path");
-	if (epath) {
-		// fixme;
-	}
-	
-	// parse objects, fixme
-	
-
-/*
-		position = vector3(
-			atof(eposition->Attribute("x")),
-			atof(eposition->Attribute("y")),
-			atof(eposition->Attribute("z")) );
-	}
-	TiXmlElement* emotion = hdftdobj.FirstChildElement("motion").Element();
-	if (emotion) {
-		heading = angle(atof(emotion->Attribute("heading")));
-		speed = kts2ms(atof(emotion->Attribute("speed")));
-		string thr = emotion->Attribute("throttle");
-		if (thr == "stop") throttle = stop;
-		else if (thr == "reverse") throttle = reverse;
-		else if (thr == "aheadlisten") throttle = aheadlisten;
-		else if (thr == "aheadsonar") throttle = aheadsonar;
-		else if (thr == "aheadslow") throttle = aheadslow;
-		else if (thr == "aheadhalf") throttle = aheadhalf;
-		else if (thr == "aheadfull") throttle = aheadfull;
-		else if (thr == "aheadflank") throttle = aheadflank;
-		else throttle = atoi(thr.c_str());
-	}
-
-
-	p.parse(TKN_CONVOY);
-	p.parse(TKN_SLPARAN);
-	speed = -1;
-	while (p.type() != TKN_SRPARAN) {
-		bool ok = parse_attribute(p);
-		if (!ok) {
-			if (p.type() == TKN_WAYPOINT) {
-				p.consume();
-				p.parse(TKN_ASSIGN);
-				int x = p.parse_number();
-				p.parse(TKN_COMMA);
-				int y = p.parse_number();
-				p.parse(TKN_SEMICOLON);
-				waypoints.push_back(vector2(x, y));
-			} else if (p.type() == TKN_SHIP) {
-				ship* shp = new ship(p);
-				gm.spawn_ship(shp);
-				pair<ship*, vector2> sp = make_pair(shp, vector2(0, 0));
-				shp->heading = shp->head_to = heading;
-				shp->speed = speed;
-				shp->throttle = throttle;	// ?
-				if (shp->get_class() == ship::MERCHANT)	// one of these must be true
-					merchants.push_back(sp);
-				else if (shp->get_class() == ship::WARSHIP)
-					warships.push_back(sp);
-				else if (shp->get_class() == ship::ESCORT)
-					escorts.push_back(sp);
-			} else {
-				p.error("convoy: Expected definition");
-			}
-		}
-	}
-	p.consume();
+	sea_object::parse_attributes(parent);
 
 	// set values
+	myai = new ai(this, ai::convoy);
 	acceleration = 0.1;
 	turn_rate = 0.05;
 	if (speed < 0) speed = (throttle >= 0) ? kts2ms(throttle) : 0;
 	max_speed = speed;
 	head_to = heading;
-*/
 
-	// calculate positions and speeds of convoy's ships.
-	// set their waypoints from convoy's waypoints.
-	for (list<pair<ship*, vector2> >::iterator it = merchants.begin(); it != merchants.end(); ++it) {
-		it->second = it->first->get_pos().xy();
-		it->first->position += position;
-		it->first->speed = speed;
-		it->first->throttle = throttle;
-		for (list<vector2>::iterator it2 = waypoints.begin(); it2 != waypoints.end(); ++it2) {
-			it->first->get_ai()->add_waypoint(*it2 + it->second);
-		}
-	}
-	for (list<pair<ship*, vector2> >::iterator it = warships.begin(); it != warships.end(); ++it) {
-		it->second = it->first->get_pos().xy();
-		it->first->position += position;
-		it->first->speed = speed;
-		it->first->throttle = throttle;
-		for (list<vector2>::iterator it2 = waypoints.begin(); it2 != waypoints.end(); ++it2) {
-			it->first->get_ai()->add_waypoint(*it2 + it->second);
-		}
-	}
-	for (list<pair<ship*, vector2> >::iterator it = escorts.begin(); it != escorts.end(); ++it) {
-		it->second = it->first->get_pos().xy();
-		it->first->position += position;
-		it->first->speed = speed;
-		it->first->throttle = throttle;
-		for (list<vector2>::iterator it2 = waypoints.begin(); it2 != waypoints.end(); ++it2) {
-			it->first->get_ai()->add_waypoint(*it2 + it->second);
+	TiXmlElement* epath = parent->FirstChildElement("path");
+	if (epath) {
+		TiXmlElement* ewaypoint = epath->FirstChildElement("waypoint");
+		for ( ; ewaypoint != 0; ewaypoint = ewaypoint->NextSiblingElement("waypoint")) {
+			vector2 wp;
+			ewaypoint->Attribute("x", &wp.x);
+			ewaypoint->Attribute("y", &wp.x);
+			waypoints.push_back(wp);
 		}
 	}
 	
+	TiXmlElement* eship = parent->FirstChildElement("ship");
+	for ( ; eship != 0; eship = eship->NextSiblingElement("ship")) {
+		string shiptype = XmlAttrib(eship, "type");
+		TiXmlDocument doc(get_ship_dir() + shiptype + ".xml");
+		doc.LoadFile();
+		ship* shp = new ship(&doc);
+		gm.spawn_ship(shp);
+		shp->parse_attributes(eship);
+		vector2 relpos = shp->position.xy();
+		shp->position += position;
+		shp->heading = shp->head_to = heading;
+		shp->speed = speed;
+		shp->throttle = throttle;
+		for (list<vector2>::iterator it = waypoints.begin(); it != waypoints.end(); ++it)
+			shp->get_ai()->add_waypoint(*it + relpos);
+
+		pair<ship*, vector2> sp = make_pair(shp, relpos);
+		if (shp->get_class() == ship::MERCHANT)	// one of these must be true
+			merchants.push_back(sp);
+		else if (shp->get_class() == ship::WARSHIP)
+			warships.push_back(sp);
+		else if (shp->get_class() == ship::ESCORT)
+			escorts.push_back(sp);
+	}
 }
 
 
