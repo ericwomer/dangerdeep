@@ -26,7 +26,7 @@ texture *water, *background, *titel[4], *periscope[4], *gauge1,
 font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
 sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
-SDL_Surface* damage_screen_background;	
+SDL_Surface* damage_screen_background, *sub_damage_scheme_all;
 
 void init_global_data(void)
 {
@@ -104,6 +104,7 @@ void init_global_data(void)
 	SDL_FreeSurface ( logbook_spiral_img );
 	woodbackgr = new texture ( ( get_data_dir () + TEXTURE_DIR + "wooden_desk.png" ) );
 	damage_screen_background = IMG_Load( (get_data_dir() + IMAGES_DIR + "damage_screen_backg.png").c_str() );
+	sub_damage_scheme_all = IMG_Load( (get_data_dir() + IMAGES_DIR + "sub_damage_scheme_all.png").c_str() );
 }
 
 void deinit_global_data(void)
@@ -174,6 +175,7 @@ void deinit_global_data(void)
 	delete logbook_spiral[1];
 	delete woodbackgr;
 	SDL_FreeSurface(damage_screen_background);
+	SDL_FreeSurface(sub_damage_scheme_all);
 }
 
 // returns 1939-1945, 1-12, 1-31

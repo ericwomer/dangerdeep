@@ -12,6 +12,7 @@
 #include "sound.h"
 #include "logbook.h"
 #include "ships_sunk_display.h"
+#include "sub_damage_display.h"
 
 #define SKYSEGS 16
 
@@ -42,10 +43,15 @@ user_interface::~user_interface ()
 
 void user_interface::init ()
 {
+	// fixme: replace this check.
+	// if the constructors of these classes may ever fail, we should
+	// use C++ exceptions.
 	captains_logbook = new captains_logbook_display;
 	system::sys()->myassert ( captains_logbook, "Error while creating captains_logbook!" );
 	ships_sunk_disp = new ships_sunk_display;
 	system::sys()->myassert ( ships_sunk_disp, "Error while creating ships_sunk!" );
+	sub_damage_disp = new sub_damage_display;
+	system::sys()->myassert ( sub_damage_disp, "Error while creating sub_damage_disp!" );
 
 	if (allwaveheights.size() == 0) init_water_data();
 }
@@ -852,29 +858,29 @@ void user_interface::display_map(class system& sys, game& gm)
 	}
 }
 
-void user_interface::display_damagecontrol(class system& sys, game& gm)
+void user_interface::display_damagestatus(class system& sys, game& gm)
 {
 //	glClearColor(0.25, 0.25, 0.25, 0);
 //	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	sys.prepare_2d_drawing();
-
-//	font_arial2->print(0, 0, "damage control - fixme");
-	// the source image is 8bpp, paletted. It is transformed to
-	// 16bpp plain on the fly by SDL, that is slow! fixme
-	// This could be done by copying it once to the auxiliary buffer.
-	// Maybe we don't need OpenGL auxiliary buffers, if we use a
-	// SDL Hardware surface instead.
-	SDL_BlitSurface(damage_screen_background, 0, SDL_GetVideoSurface(), 0);
-	SDL_UpdateRect(SDL_GetVideoSurface(), 0, 0, 1024, 640);
-
+	sub_damage_disp->display(sys, gm);
 	draw_infopanel ( sys, gm );
 	sys.unprepare_2d_drawing();
 
-	// keyboard processing
+	// mouse processing;
+	int mx;
+	int my;
+	int mb = sys.get_mouse_buttons();
+	sys.get_mouse_position(mx, my);
+	sub_damage_disp->check_mouse ( mx, my, mb );
+
+	// keyboard processing, fixme: do we need extra keyboard input here?
 	int key = sys.get_key();
 	while (key != 0) {
 		if (!keyboard_common(key, sys, gm)) {
 			// specific keyboard processing
+			sub_damage_disp->check_key ( key, sys, gm );
 		}
 		key = sys.get_key();
 	}

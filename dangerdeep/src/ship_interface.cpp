@@ -205,7 +205,7 @@ void ship_interface::display(class system& sys, game& gm)
 		case 3: display_bridge(sys, gm); break;
 		case 4: display_map(sys, gm); break;
 		case 5: display_dc_throwers(sys, gm); break;
-		case 6: display_damagecontrol(sys, gm); break;
+		case 6: display_damagestatus(sys, gm); break;
 		case 7: display_logbook(sys, gm); break;
 		case 8: display_successes(sys, gm); break;
 		default: display_freeview(sys, gm); break;

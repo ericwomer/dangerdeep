@@ -73,7 +73,7 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			case SDLK_F4: viewmode = display_mode_bridge; break;
 			case SDLK_F5: viewmode = display_mode_map; break;
 			case SDLK_F6: viewmode = display_mode_torpedoroom; break;
-			case SDLK_F7: viewmode = display_mode_damagecontrol; break;
+			case SDLK_F7: viewmode = display_mode_damagestatus; break;
 			case SDLK_F8: viewmode = display_mode_logbook; break;
 			case SDLK_F9: viewmode = display_mode_successes; break;
 			case SDLK_F10: viewmode = display_mode_freeview; break;
@@ -267,8 +267,8 @@ void submarine_interface::display(class system& sys, game& gm)
 		case display_mode_torpedoroom:
 			display_torpedoroom(sys, gm);
 			break;
-		case display_mode_damagecontrol:
-			display_damagecontrol(sys, gm);
+		case display_mode_damagestatus:
+			display_damagestatus(sys, gm);
 			break;
 		case display_mode_logbook:
 			display_logbook(sys, gm);

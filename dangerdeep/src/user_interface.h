@@ -24,6 +24,7 @@ using namespace std;
 class user_display;
 class logbook_display;
 class ships_sunk_display;
+class sub_damage_display;
 
 class user_interface
 {
@@ -45,6 +46,7 @@ protected:
 
 	logbook_display* captains_logbook;
 	ships_sunk_display* ships_sunk_disp;
+	sub_damage_display* sub_damage_disp;	// shouldn't this go to submarine_interface? fixme
 
 	// periscope
 	bool zoom_scope;	// use 6x instead 1.5 fixme implement
@@ -99,7 +101,7 @@ protected:
 	virtual void display_gauges(class system& sys, class game& gm);
 	virtual void display_bridge(class system& sys, class game& gm);
 	virtual void display_map(class system& sys, class game& gm);
-	virtual void display_damagecontrol(class system& sys, class game& gm);
+	virtual void display_damagestatus(class system& sys, class game& gm);
 	virtual void display_logbook(class system& sys, class game& gm);
 	virtual void display_successes(class system& sys, class game& gm);
 	virtual void display_freeview(class system& sys, class game& gm);
