@@ -248,74 +248,73 @@ void texture::set_gl_texture(void) const
 // draw_image
 void texture::draw(int x, int y) const
 {
-	draw(x, y, get_gl_width(), get_gl_height());
+	draw(x, y, width, height);
 }
 
 void texture::draw_hm(int x, int y) const
 {
-	// fixme: results are invalid if gl_width is != width...
-	draw_hm(x, y, get_gl_width(), get_gl_height());
+	draw_hm(x, y, width, height);
 }
 
 void texture::draw_vm(int x, int y) const
 {
-	// fixme: results are invalid if gl_height is != height...
-	draw_vm(x, y, get_gl_width(), get_gl_height());
+	draw_vm(x, y, width, height);
 }
 
 void texture::draw(int x, int y, int w, int h) const
 {
+	float u = float(width)/gl_width;
+	float v = float(height)/gl_height;
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
 	glBegin(GL_QUADS);
-	glTexCoord2i(0,0);
+	glTexCoord2f(0,0);
 	glVertex2i(x,y);
-	glTexCoord2i(0,1);
+	glTexCoord2f(0,v);
 	glVertex2i(x,y+h);
-	glTexCoord2i(1,1);
+	glTexCoord2f(u,v);
 	glVertex2i(x+w,y+h);
-	glTexCoord2i(1,0);
+	glTexCoord2f(u,0);
 	glVertex2i(x+w,y);
 	glEnd();
 }
 
 void texture::draw_hm(int x, int y, int w, int h) const
 {
+	float u = float(width)/gl_width;
+	float v = float(height)/gl_height;
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
 	glBegin(GL_QUADS);
-	glTexCoord2i(1,0);
+	glTexCoord2f(u,0);
 	glVertex2i(x,y);
-	glTexCoord2i(1,1);
+	glTexCoord2f(u,v);
 	glVertex2i(x,y+h);
-	glTexCoord2i(0,1);
+	glTexCoord2f(0,v);
 	glVertex2i(x+w,y+h);
-	glTexCoord2i(0,0);
+	glTexCoord2f(0,0);
 	glVertex2i(x+w,y);
 	glEnd();
 }
 
 void texture::draw_vm(int x, int y, int w, int h) const
 {
+	float u = float(width)/gl_width;
+	float v = float(height)/gl_height;
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
 	glBegin(GL_QUADS);
-	glTexCoord2i(0,1);
+	glTexCoord2f(0,v);
 	glVertex2i(x,y);
-	glTexCoord2i(0,0);
+	glTexCoord2f(0,0);
 	glVertex2i(x,y+h);
-	glTexCoord2i(1,0);
+	glTexCoord2f(u,0);
 	glVertex2i(x+w,y+h);
-	glTexCoord2i(1,1);
+	glTexCoord2f(u,v);
 	glVertex2i(x+w,y);
 	glEnd();
 }
 
 void texture::draw_rot(int x, int y, double angle) const
 {
-	// fixme if gl_w/h is != w/h result is wrong
-	glPushMatrix();
-	glTranslatef(x, y, 0);
-	glRotatef(angle, 0, 0, 1);
-	draw(-int(get_gl_width())/2, -int(get_gl_height())/2);
-	glPopMatrix();
+	draw_rot(x, y, angle, get_width()/2, get_height()/2);
 }
 
 void texture::draw_rot(int x, int y, double angle, int tx, int ty) const
