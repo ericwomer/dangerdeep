@@ -67,7 +67,7 @@ sub_gauges_display::sub_gauges_display(user_interface& ui_) : user_display(ui_)
 	indicators[depth].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 420, 295, 168, 168);
 	indicators[knots].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 756, 44, 94, 94);
 	indicators[main_rudder].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 788, 429, 96, 96);
-	indicators[mt].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 442, 52, 126, 126);
+	indicators[mt].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 426, 37, 158, 158);
 }
 
 sub_gauges_display::~sub_gauges_display()
@@ -122,6 +122,7 @@ void sub_gauges_display::display(class game& gm) const
 
 void sub_gauges_display::process_input(class game& gm, const SDL_Event& event)
 {
+	// fixme: actions are executed, but no messages are sent...
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 	int mx, my;
 	switch (event.type) {
@@ -132,6 +133,32 @@ void sub_gauges_display::process_input(class game& gm, const SDL_Event& event)
 		if (indicators[compass].is_over(mx, my)) {
 			angle mang = angle(180)-indicators[compass].get_angle(mx, my);
 			gm.send(new command_head_to_ang(sub, mang, mang.is_cw_nearer(sub->get_heading())));
+		} else if (indicators[depth].is_over(mx, my)) {
+			angle mang = angle(-39/*51-90*/) - indicators[depth].get_angle(mx, my);
+			if (mang.value() < 270) {
+				sub->dive_to_depth(unsigned(mang.value()));
+			}
+		} else if (indicators[mt].is_over(mx, my)) {
+			unsigned opt = (indicators[mt].get_angle(mx, my) - angle(210)).value() / 20;
+			if (opt >= 15) opt = 14;
+			switch (opt) {
+			case 0: sub->set_throttle(ship::aheadflank); break;
+			case 1: sub->set_throttle(ship::aheadfull); break;
+			case 2: sub->set_throttle(ship::aheadhalf); break;
+			case 3: sub->set_throttle(ship::aheadslow); break;
+			case 4: sub->set_throttle(ship::aheadlisten); break;
+			case 7: sub->set_throttle(ship::stop); break;
+			case 11: sub->set_throttle(ship::reverse); break;//fixme: various reverse speeds!
+			case 12: sub->set_throttle(ship::reverse); break;
+			case 13: sub->set_throttle(ship::reverse); break;
+			case 14: sub->set_throttle(ship::reverse); break;
+			case 5: // diesel engines
+			case 6: // attention
+			case 8: // electric engines
+			case 9: // surface
+			case 10:// dive
+				break;
+			}
 		}
 		break;
 	default:
