@@ -50,7 +50,7 @@ void menu_convoy_battle(void)
 			case 1:	{
 				unsigned subtype = m.get_switch_nr(0);
 				// just a test, fixme
-				submarine* playersub = new submarine(subtype == 0 ? submarine::typeVIIc : submarine::typeXXI, vector3(2000, 1000, 0), 270);
+				submarine* playersub = new submarine(subtype == 0 ? submarine::typeVIIc : submarine::typeXXI, vector3(2000, 1000, -30), 270);
 				game* test = new game(playersub);
 				ship* s = new ship(3, vector3(0,150,0));
 				s->get_ai()->add_waypoint(vector2(0,3000));

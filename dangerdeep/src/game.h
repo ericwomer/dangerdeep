@@ -4,6 +4,11 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
+#define PINGREMAINTIME 1.0	// seconds
+#define PINGANGLE 30		// angle
+#define PINGLENGTH 1000		// meters. for drawing
+#define ASDICRANGE 5000.0	// meters fixme: historic values?
+
 #include <list>
 #include <vector>
 using namespace std;
@@ -19,6 +24,14 @@ using namespace std;
 
 class game	// our "world" with physics etc.
 {
+public:
+	struct ping {
+		vector2 pos;
+		angle dir;
+		double time;
+		ping(const vector2& p, angle d, double t) : pos(p), dir(d), time(t) {}
+	};
+
 protected:
 	list<ship*> ships;
 	list<submarine*> submarines;
@@ -35,6 +48,8 @@ protected:
 	
 	enum weathers { sunny, clouded, raining, storm };
 	double max_view_dist;	// maximum visibility according to weather conditions
+	
+	list<ping> pings;
 	
 	game();
 	game& operator= (const game& other);
@@ -56,12 +71,13 @@ public:
 //	void spawn_shell(shell* s) { shells.push_back(s); };
 	void spawn_depth_charge(depth_charge* dc) { depth_charges.push_back(dc); };
 
-
 	// actions important to simulation
 	void dc_explosion(const depth_charge& dc);
-	void ping_ASDIC(const vector2& pos, angle dir) {};//fixme: put to another place
+	list<sea_object*> ping_ASDIC(const vector2& pos, angle dir);	// returns contacts
+	const list<ping>& get_pings(void) const { return pings; };
 	
 	ship* ship_in_direction_from_pos(const vector2& pos, angle direction);
+	// fixme: change to references for speed reason
 	list<ship*> get_ships(void) { return ships; };
 	list<submarine*> get_submarines(void) { return submarines; };
 	list<airplane*> get_airplanes(void) { return airplanes; };

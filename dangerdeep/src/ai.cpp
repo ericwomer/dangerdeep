@@ -78,7 +78,14 @@ void ai::act_escort(game& gm, double delta_time)
 		if (state == attackenemy) return;	// further actions next turn
 		
 		// ping around to find something
-		gm.ping_ASDIC(parent->get_pos().xy(), parent->get_heading()+angle(90));	//fixme
+		list<sea_object*> contacts = gm.ping_ASDIC(parent->get_pos().xy(),
+			parent->get_heading()+angle(rand()%360));	//fixme
+		if (contacts.size() > 0) {
+			// fixme: add noise to position!
+			// fixme: choose best contact!
+			attack(contacts.front());
+			return;
+		}
 		
 		// nothing found?
 		state = (target != 0) ? followtarget : followpath;
@@ -86,14 +93,23 @@ void ai::act_escort(game& gm, double delta_time)
 		state = searchenemy;
 
 	} else if (state == attackenemy) {	// attack target
+/*
 		if (!parent->can_see(target)) {
 			target = 0;
 			state = searchenemy;
 			return;
 		}
+*/		
 		set_course_to_target();
 		if (target->get_pos().xy().distance(parent->get_pos().xy()) < 100) {
 			gm.spawn_depth_charge(new depth_charge(*parent, -target->get_pos().z));
+			// fixme: just ai hacking/testing.
+			// after spawning a DC start pinging again.
+			if (!parent->can_see(target)) {
+				target = 0;
+				state = searchenemy;
+				return;
+			}
 		}
 	}
 }

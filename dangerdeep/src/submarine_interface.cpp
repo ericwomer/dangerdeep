@@ -652,6 +652,23 @@ void submarine_interface::display_map(class system& sys, game& gm)
 	}
 	glEnd();
 	glColor3f(1,1,1);
+
+	// draw pings
+	const list<game::ping>& pings = gm.get_pings();
+	for (list<game::ping>::const_iterator it = pings.begin(); it != pings.end(); ++it) {
+		const game::ping& p = *it;
+		vector2 p1 = (p.pos + offset)*mapzoom;
+		vector2 p2 = p1 + (p.dir + angle(PINGANGLE/2)).direction() * PINGLENGTH * mapzoom;
+		vector2 p3 = p1 + (p.dir - angle(PINGANGLE/2)).direction() * PINGLENGTH * mapzoom;
+		glBegin(GL_TRIANGLES);
+		glColor4f(0.5,0.5,0.5,1);
+		glVertex2f(res_x/2+p1.x, res_y/2-p1.y);
+		glColor4f(0.5,0.5,0.5,0);
+		glVertex2f(res_x/2+p2.x, res_y/2-p2.y);
+		glVertex2f(res_x/2+p3.x, res_y/2-p3.y);
+		glEnd();
+		glColor4f(1,1,1,1);
+	}
 	
 	// draw trails
 	list<ship*> ships = gm.get_ships();

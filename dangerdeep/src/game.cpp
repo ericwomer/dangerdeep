@@ -78,11 +78,19 @@ void game::simulate(double delta_t)
 		}
 	}
 	time += delta_t;
+	
+	// remove old pings
+	for (list<ping>::iterator it = pings.begin(); it != pings.end(); ) {
+		list<ping>::iterator it2 = it++;
+		if (time - it2->time > PINGREMAINTIME)
+			pings.erase(it2);
+	}
 }
 
 void game::dc_explosion(const depth_charge& dc)
 {
 	// are subs affected?
+	// fixme: ships cna be damaged by DCs also...
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
 		double deadly_radius = DEADLY_DC_RADIUS_SURFACE +
 			(*it)->get_pos().z * DEADLY_DC_RADIUS_200M / 200;
@@ -94,6 +102,29 @@ void game::dc_explosion(const depth_charge& dc)
 		}
 		// fixme handle damages!
 	}
+}
+
+list<sea_object*> game::ping_ASDIC(const vector2& pos, angle dir)
+{
+	// remember ping (for drawing)
+	pings.push_back(ping(pos, dir, time));
+	
+	// calculate contacts
+	list<sea_object*> contacts;
+	
+	// fixme: noise from ships can disturb ASDIC or may generate more contacs.
+	// ocean floor echoes ASDIC etc...
+	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
+		vector3 subpos = (*it)->get_pos();
+		double dist = subpos.square_distance(vector3(pos.x,pos.y,0));
+		if (dist > ASDICRANGE*ASDICRANGE) continue;
+		angle diffang = dir - angle(subpos.xy() - pos);
+		double deltaang = diffang.value_pm180();
+		if (deltaang < -PINGANGLE/2 || deltaang > PINGANGLE/2) continue;
+		contacts.push_back(*it);
+	}
+	
+	return contacts;
 }
 
 list<sea_object*> game::get_all_sea_objects(void)
