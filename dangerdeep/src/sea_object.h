@@ -33,7 +33,7 @@ public:
 
 protected:
 	vector3 position;
-	angle heading;	// angles 0-359
+	angle heading;
 	double speed, max_speed, max_rev_speed;	// m/sec
 	throttle_status throttle;
 	double acceleration;
@@ -48,10 +48,8 @@ protected:
 	angle turn_rate;	// in angle/(time*speed) = angle/m
 				// this means angle change per forward
 				// movement in meters
-	double length, width;
+	double length, width;	// computed from model
 
-	// this should be adapted by heirs.
-	damage_status stern_damage, midship_damage, bow_damage;
 	// an object is alive until it is sunk or killed.
 	// it will sink to some depth then it is killed.
 	// it will be dead for exactly one simulation cycle, to give other
@@ -61,16 +59,8 @@ protected:
 	
 	list<vector2> previous_positions;
 
-	void init_empty(void) {	// init data that is at most constant in the beginning
-		speed = 0;
-		throttle = stop, acceleration = 0;
-		permanent_turn = false;
-		head_chg = 0;
-		alive_stat = alive;
-		stern_damage = midship_damage = bow_damage = nodamage;
-	};
-
-	sea_object() {};
+	sea_object() : speed(0), throttle(stop), acceleration(0), permanent_turn(false),
+		head_chg(0), alive_stat(alive) {};
 	sea_object& operator=(const sea_object& other);
 	sea_object(const sea_object& other);
 public:
@@ -83,6 +73,7 @@ public:
 	virtual unsigned calc_damage(void) const;	// returns damage in percent (0 means dead)
 	virtual void sink(void);
 	virtual void kill(void);
+	// fixme: this is ugly.
 	virtual bool is_defunct(void) const { return alive_stat == defunct; };
 	virtual bool is_dead(void) const { return alive_stat == dead; };
 	virtual bool is_sinking(void) const { return alive_stat == sinking; };
@@ -94,16 +85,17 @@ public:
 	virtual void rudder_right(double amount);	// 0 <= amount <= 1
 	virtual void rudder_midships(void);
 	virtual void set_throttle(throttle_status thr);	// 0 <= amount <= 1
-	
+
+	// for trail recording used in user interfaces.	
 	virtual void remember_position(void);
 	virtual list<vector2> get_previous_positions(void) const { return previous_positions; };
 
-	vector3 get_pos(void) const { return position; };
-	angle get_heading(void) const { return heading; };
-	angle get_turn_rate(void) const { return turn_rate; };
-	double get_length(void) const { return length; };
-	double get_width(void) const { return width; };
-	double get_speed(void) const { return speed; };
+	virtual vector3 get_pos(void) const { return position; };
+	virtual angle get_heading(void) const { return heading; };
+	virtual angle get_turn_rate(void) const { return turn_rate; };
+	virtual double get_length(void) const { return length; };
+	virtual double get_width(void) const { return width; };
+	virtual double get_speed(void) const { return speed; };
 	virtual double get_max_speed(void) const { return max_speed; };
 	virtual double get_throttle_speed(void) const;
 
@@ -111,7 +103,7 @@ public:
 	pair<angle, double> bearing_and_range_to(const sea_object* other) const;
 	angle estimate_angle_on_the_bow(angle target_bearing, angle target_heading) const;
 	
-	virtual void display(void) const {};
+	virtual void display(void) const = 0;
 };
 
 #endif

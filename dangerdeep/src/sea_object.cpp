@@ -72,29 +72,21 @@ bool sea_object::is_collision(const sea_object* other)
 
 void sea_object::damage(const vector3& fromwhere, unsigned strength)
 {
-	sink();//fixme
-	damage_status& where = midship_damage;//fixme
-	int dmg = int(where) + strength;
-	if (dmg > wrecked) where = wrecked; else where = damage_status(dmg);
+	sink();
 }
 
 unsigned sea_object::calc_damage(void) const
 {
-	if (bow_damage == wrecked || midship_damage == wrecked || stern_damage == wrecked)
-		return 100;
-	unsigned dmg = unsigned(round(15*(bow_damage + midship_damage + stern_damage)));
-	return dmg > 100 ? 100 : dmg;
+	return alive_stat == sinking ? 100 : 0;
 }
 
 void sea_object::sink(void)
 {
-	stern_damage = midship_damage = bow_damage = wrecked;
 	alive_stat = sinking;
 }
 
 void sea_object::kill(void)
 {
-	sink();
 	alive_stat = dead;
 }
 

@@ -5,9 +5,8 @@
 #include "model.h"
 #include "game.h"
 
-submarine::submarine(unsigned type_, const vector3& pos, angle heading)
+submarine::submarine(unsigned type_, const vector3& pos, angle heading) : ship()
 {
-	init_empty();
 	type = type_;
 	position = pos;
 	this->heading = heading;

@@ -7,9 +7,8 @@
 #include "system.h"
 #include "game.h"
 
-depth_charge::depth_charge(const sea_object& parent, double expl_depth)
+depth_charge::depth_charge(const sea_object& parent, double expl_depth) : sea_object()
 {
-	init_empty();
 	position = parent.get_pos();	// fixme bei schiffen + length/2 bla...
 	heading = parent.get_heading();	// not used
 	head_to = 0;
