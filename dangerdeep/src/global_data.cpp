@@ -119,7 +119,7 @@ void init_global_data(void)
 	atlanticmap = new texture(get_texture_dir() + "atlanticmap.png", GL_LINEAR, GL_CLAMP);
 
 	titlebackgrimg = new image(get_image_dir() + "titlebackgr.jpg");
-	periscope = new image(get_texture_dir() + "periscope.png");
+	periscope = new image(get_texture_dir() + "periscope.png", true);
 	threesubsimg = new image(get_image_dir() + "threesubs.jpg");
 	logbook_spiral = new image(get_texture_dir() + "logbook_spiral.png", true);
 	damage_screen_background = new image(get_image_dir() + "damage_screen_backg.jpg");

@@ -187,6 +187,28 @@ water::~water()
 
 void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, bool onlyflatwater */) const
 {
+	matrix4 proj = matrix4::get_gl(GL_PROJECTION_MATRIX);
+	matrix4 modl = matrix4::get_gl(GL_MODELVIEW_MATRIX);
+	matrix4 prmd = proj * modl;
+	
+	cout << "projection matrix\n";
+	proj.print();
+	cout << "modelview matrix\n";
+	modl.print();
+	cout << "projection*modelview matrix\n";
+	prmd.print();
+	cout << "inverse projection matrix\n";
+	proj.inverse().print();
+	cout << "inverse modelview matrix\n";
+	modl.inverse().print();
+	cout << "inverse (projection*modelview) matrix\n";
+	prmd.inverse().print();
+	
+	cout << "accuracy test\n";
+	(proj * proj.inverse()).print();
+	(modl * modl.inverse()).print();
+	(prmd * prmd.inverse()).print();
+
 	bool onlyflatwater = false;
 
 	// fixme: draw some quads between the farest wave tiles and the horizon to fill the gaps

@@ -107,9 +107,9 @@ void image::draw(int x, int y) const
 			yp += h;
 		}
 	} else {	// use DrawPixels instead
-		system::sys().myassert(img->format->palette == 0, "image: can't use paletted images for direct pixel draw (fixme)");
+		system::sys().myassert(img->format->palette == 0, string("image: can't use paletted images for direct pixel draw (fixme), image '")+name+string("'"));
 		unsigned bpp = img->format->BytesPerPixel;
-		system::sys().myassert(bpp == 3 || bpp == 4, "image: bpp must be 3 or 4 (RGB or RGBA)");
+		system::sys().myassert(bpp == 3 || bpp == 4, string("image: bpp must be 3 or 4 (RGB or RGBA), image '")+name+string("'"));
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glColor4f(1,1,1,1);
