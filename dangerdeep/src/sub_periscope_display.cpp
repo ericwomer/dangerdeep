@@ -6,7 +6,7 @@
 #include "texture.h"
 #include "game.h"
 #include "sub_periscope_display.h"
-#include "user_interface.h"
+#include "submarine_interface.h"
 #include "submarine.h"
 #include "keys.h"
 #include "cfg.h"
@@ -156,6 +156,15 @@ void sub_periscope_display::display(class game& gm) const
 		glClear(GL_COLOR_BUFFER_BIT);
 		post_display(gm);
 	}
+}
+
+
+
+unsigned sub_periscope_display::get_popup_allow_mask(void) const
+{
+	return
+		(1 << submarine_interface::popup_mode_control) |
+		(1 << submarine_interface::popup_mode_tdc);
 }
 
 

@@ -42,6 +42,9 @@ using namespace std;
 #include "freeview_display.h"
 #include "sub_tdc_display.h"
 
+#include "sub_control_popup.h"
+#include "sub_tdc_popup.h"
+
 submarine_interface::submarine_interface(game& gm) : 
     	user_interface(gm)
 {
@@ -57,10 +60,15 @@ submarine_interface::submarine_interface(game& gm) :
 	displays[display_mode_successes] = new ships_sunk_display(*this);
 	displays[display_mode_freeview] = new freeview_display(*this);
 	displays[display_mode_tdc] = new sub_tdc_display(*this);
-	add_loading_screen("submarine interface initialized");
+
+	popups.resize(nr_of_popups);
+	popups[popup_mode_control] = new sub_control_popup(*this);
+	popups[popup_mode_tdc] = new sub_tdc_popup(*this);
 	
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 	player->set_ui(this);
+
+	add_loading_screen("submarine interface initialized");
 }
 
 

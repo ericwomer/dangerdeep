@@ -35,6 +35,8 @@ public:
 		     it != events.end(); ++it)
 			process_input(gm, *it);
 	}
+	// mask contains one bit per popup (at most 31 popups)
+	virtual unsigned get_popup_allow_mask(void) const { return 0; }
 };
 
 #endif /* USER_DISPLAY_H */

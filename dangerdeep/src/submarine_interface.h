@@ -24,7 +24,7 @@ using namespace std;
 
 class submarine_interface : public user_interface
 {
-protected:
+public:
 
 	// the indices for the displays
 	enum {
@@ -42,6 +42,13 @@ protected:
 		nr_of_displays
 	};
 
+	enum {
+		popup_mode_control,
+		popup_mode_tdc,
+		nr_of_popups
+	};
+
+private:
 	submarine_interface();
 	submarine_interface& operator= (const submarine_interface& other);
 	submarine_interface(const submarine_interface& other);

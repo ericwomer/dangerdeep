@@ -42,14 +42,17 @@ protected:
 	angle elevation;	// -90...90 deg (look down ... up)
 	bool bearing_is_relative;	// bearing means angle relative to course or absolute? (default = true)
 
-	// which display is active
-	mutable unsigned current_display;
-
 	// fixme: keep this, common data else: panel, sky, water, coastmap
 	sea_object* target;
 
+	// which display is active
+	mutable unsigned current_display;
+
 	// fixme replace the above with: THE ONE AND ONLY DATA UI SHOULD HAVE
 	vector<user_display*> displays;
+
+	// which popup is shown (0 = none)
+	mutable unsigned current_popup;
 
 	// possible popups
 	vector<user_popup*> popups;
@@ -91,7 +94,7 @@ public:
 
 	// process common events (common keys, mouse input to panel)
 	virtual void process_input(const SDL_Event& event);
-	virtual void process_input(const list<SDL_Event>& events);
+	virtual void process_input(list<SDL_Event>& events);
 
 	// create ui matching to player type (requested from game)
 	static user_interface* create(game& gm);

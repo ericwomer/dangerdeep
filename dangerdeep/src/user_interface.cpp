@@ -274,6 +274,10 @@ void user_interface::display(void) const
 	// but is very costly. we could cache it.
 	mywater->set_refraction_color(mygame->compute_light_brightness(mygame->get_player()->get_pos()));
 	displays[current_display]->display(*mygame);
+
+	// popups
+	if (current_popup > 0)
+		popups[current_popup-1]->display(*mygame);
 }
 
 
@@ -293,6 +297,14 @@ void user_interface::process_input(const SDL_Event& event)
 			bearing_is_relative = !bearing_is_relative;
 			add_message(texts::get(bearing_is_relative ? 220 : 221));
 			return;
+		} else if (cfg::instance().getkey(KEY_TOGGLE_POPUP).equal(event.key.keysym)) {
+			// determine which pop is shown and which is allowed and switch to it
+			//fixme: make function for that: is_popup_allowed()
+			//because automatic screen switching needs it too
+			unsigned mask = displays[current_display]->get_popup_allow_mask();
+			++current_popup;
+			if (((1 << current_popup) & mask) == 0)
+				current_popup = 0;
 		}
 	}
 
@@ -301,10 +313,16 @@ void user_interface::process_input(const SDL_Event& event)
 
 
 
-void user_interface::process_input(const list<SDL_Event>& events)
+void user_interface::process_input(list<SDL_Event>& events)
 {
 	// a bit misplaced here...
+	// when a ui is informed about events, like a ship sinks, then target should be
+	// compared against the sinking ship there.
+	// fixme: check also when target gets out of sight
 	if (target && !target->is_alive()) target = 0;
+
+	if (current_popup > 0)
+		popups[current_popup-1]->process_input(*mygame, events);
 
 	for (list<SDL_Event>::const_iterator it = events.begin();
 	     it != events.end(); ++it)

@@ -16,7 +16,7 @@ private:
 	user_popup& operator= (const user_popup& );
 
 protected:
-	// display position.
+	// display position. (fixme: could vary for each display - maybe store there)
 	unsigned x, y;
 
 	// the display needs to know its parent (user_interface) to access common data
