@@ -1,4 +1,8 @@
 2003-11-16  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* all source and build files (makefiles, KDE, VC6)
+	  - moved to subdir "src"
+
+2003-11-16  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* global_data.h global_data.cpp model.cpp
 	  - replaced path DEFINEs by inline functions.
 
