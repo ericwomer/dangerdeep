@@ -36,6 +36,8 @@ protected:
 	unsigned time_scale;
 	sea_object* player_object;
 	list<string> panel_texts;
+	unsigned panel_height;
+	bool panel_visible;
 
 	// used in various screens
 	angle bearing;

@@ -21,12 +21,15 @@
 #include "logbook.h"
 #include "ships_sunk_display.h"
 
+#define MAX_PANEL_SIZE 256
+
 vector<unsigned char> user_interface::waveheights;
 vector<float> user_interface::sinvec;
 
 
 user_interface::user_interface() :
-	quit(false), pause(false), time_scale(1), player_object(0), bearing(0),
+	quit(false), pause(false), time_scale(1), player_object(0),
+	panel_height(128), panel_visible(true), bearing(0),
 	viewmode(4), target(0),	zoom_scope(false), mapzoom(0.1), viewsideang(0),
 	viewupang(-90),	viewpos(0, 0, 10)
 {
@@ -34,7 +37,8 @@ user_interface::user_interface() :
 }
 
 user_interface::user_interface(sea_object* player) :
-	quit(false), pause(false), time_scale(1), player_object ( player ), bearing(0),
+	quit(false), pause(false), time_scale(1), player_object ( player ),
+	panel_height(128), panel_visible(true), bearing(0),
 	viewmode(4), target(0), zoom_scope(false), mapzoom(0.1), viewsideang(0),
 	viewupang(-90),	viewpos(0, 0, 10)
 {
@@ -456,36 +460,40 @@ bool user_interface::time_scale_down(void)
 
 void user_interface::draw_infopanel(class system& sys, class game& gm) const
 {
-	glBindTexture(GL_TEXTURE_2D, panelbackgr->get_opengl_name());
-	glColor3f ( 1.0f, 1.0f, 1.0f );
-	glBegin(GL_QUADS);
-	glTexCoord2i(0,0);
-	glVertex2i(0,640);
-	glTexCoord2i(0,1);
-	glVertex2i(0,768);
-	glTexCoord2i(8,1);
-	glVertex2i(1024,768);
-	glTexCoord2i(8,0);
-	glVertex2i(1024,640);
-	glEnd();
-	glBindTexture(GL_TEXTURE_2D, 0);
-	ostringstream os;
-	os << texts::get(1) << ": " << get_player()->get_heading().ui_value()
-		<< "   " << texts::get(4) << ": "
-		<< unsigned(fabs(round(sea_object::ms2kts(get_player()->get_speed()))))
-		<< "   " << texts::get(5) << ": "
-		<< unsigned(round(-get_player()->get_pos().z))
-		<< "   " << texts::get(2) << ": "
-		<< bearing.ui_value()
-		<< "   " << texts::get(98) << ": "
-		<< time_scale;
-	font_panel->print(0, 648, os.str());
-	int y = 768 - 24;
-	for (list<string>::const_reverse_iterator it = panel_texts.rbegin(); 
-             it != panel_texts.rend(); ++it) {
-		font_panel->print(0, y, *it);
-		y -= 24;	// font_panel's height is 24.
+	int panel_border_pos = 768 - panelbackgr->get_height();
+	int panel_pos = 768;
+	if (panel_visible) {
+		panel_border_pos -= panel_height;
+		panel_pos -= panel_height;
+		color::black().set_gl_color(128);
+		sys.draw_rectangle(0, panel_pos, 1024, 768);
+		color::white().set_gl_color(255);
+
+		ostringstream os;
+		os << texts::get(1) << ": " << get_player()->get_heading().ui_value()
+			<< "   " << texts::get(4) << ": "
+			<< unsigned(fabs(round(sea_object::ms2kts(get_player()->get_speed()))))
+			<< "   " << texts::get(5) << ": "
+			<< unsigned(round(-get_player()->get_pos().z))
+			<< "   " << texts::get(2) << ": "
+			<< bearing.ui_value()
+			<< "   " << texts::get(98) << ": "
+			<< time_scale;
+		int fph = font_panel->get_height();	// should be 24.
+		int y = 768 - fph;
+		font_panel->print(0, y, os.str(), color::green(), true);
+		y -= fph + (panel_height % fph);
+		
+		for (list<string>::const_reverse_iterator it = panel_texts.rbegin(); 
+	             it != panel_texts.rend(); ++it) {
+			font_panel->print(0, y, *it, color::white(), true);
+			y -= fph;
+			if (y < panel_pos) break;
+		}
 	}
+
+	color::white().set_gl_color();			
+	sys.draw_image(0, panel_border_pos, 1024, panel_pos-panel_border_pos, panelbackgr);
 }
 
 
@@ -708,7 +716,7 @@ void user_interface::display_bridge(class system& sys, game& gm)
 	draw_view(sys, gm, viewpos, player->get_heading()+bearing, true, false);
 
 	sys.prepare_2d_drawing();
-//	draw_infopanel(sys, gm);	//fixme: disabled for conning tower display test
+	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
 
 	// keyboard processing
@@ -1103,7 +1111,7 @@ void user_interface::display_freeview(class system& sys, game& gm)
 void user_interface::add_message(const string& s)
 {
 	panel_texts.push_back(s);
-	if (panel_texts.size() > 4)	// (128-8)/24-1 ;-)
+	if (panel_texts.size() > 1+MAX_PANEL_SIZE/font_panel->get_height())
 		panel_texts.pop_front();
 }
 

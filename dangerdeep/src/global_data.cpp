@@ -34,7 +34,7 @@ texture *water, *background, *gauge1,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
-	*woodbackgr, *smoke, *notepadsheet,
+	*woodbackgr, *smoke, *notepadsheet, *menuframe,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked;
 	
 font *font_arial, *font_arial2, *font_ellis, *font_panel, *font_tahoma,
@@ -82,7 +82,7 @@ void init_global_data(void)
 	gauge4 = new texture((get_data_dir() + TEXTURE_DIR + "gauge4.png"));
 	gauge5 = new texture((get_data_dir() + TEXTURE_DIR + "gauge5.png"));
 	psbackgr = new texture((get_data_dir() + TEXTURE_DIR + "psbackgr.png"));
-	panelbackgr = new texture((get_data_dir() + TEXTURE_DIR + "panelbackgr.png"), 1, false);
+	panelbackgr = new texture((get_data_dir() + TEXTURE_DIR + "panelbackgr.png"), 1, false, true);
 	addleadangle = new texture((get_data_dir() + TEXTURE_DIR + "addleadangle.png"));
 	torpempty = new texture((get_data_dir() + TEXTURE_DIR + "torpempty.png"));
 	torpreload = new texture((get_data_dir() + TEXTURE_DIR + "torpreload.png"));
@@ -112,6 +112,7 @@ void init_global_data(void)
 	woodbackgr = new texture ( ( get_data_dir () + TEXTURE_DIR + "wooden_desk.png" ));
 	smoke = new texture ( ( get_data_dir () + TEXTURE_DIR + "smoke.png" ), 1, true, true);
 	notepadsheet = new texture ( ( get_data_dir () + TEXTURE_DIR + "notepadsheet.png" ), 0, true, true);
+	menuframe = new texture ( ( get_data_dir () + TEXTURE_DIR + "menuframe.png" ), 0, true);
 	damage_screen_background = new image((get_data_dir() + IMAGES_DIR + "damage_screen_backg.jpg"), 0, true, true, true);
 	sub_damage_scheme_all = new image((get_data_dir() + IMAGES_DIR + "sub_damage_scheme_all.png"), 0, true, true, true);
 	repairlight = new texture( ( get_data_dir () + TEXTURE_DIR + "repairlight.png" ), 0, true, true );
@@ -188,6 +189,7 @@ void deinit_global_data(void)
 	delete woodbackgr;
 	delete smoke;
 	delete notepadsheet;
+	delete menuframe;
 	delete damage_screen_background;
 	delete sub_damage_scheme_all;
 	delete repairlight;

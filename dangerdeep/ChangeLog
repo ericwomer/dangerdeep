@@ -1,3 +1,7 @@
+2003-07-26  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* user_interface.cpp
+	  - new panel design, panel features resize, hiding planned.
+
 2003-07-25  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* user_interface.cpp
 	  - introduced fog.
