@@ -104,6 +104,7 @@ public:
     virtual list<vector2> get_previous_positions(void) const { return previous_positions; }
 
     virtual vector3 get_pos(void) const { return position; };
+    virtual double get_depth () const { return -get_pos().z; };
     virtual angle get_heading(void) const { return heading; };
     virtual angle get_turn_rate(void) const { return turn_rate; };
     virtual double get_length(void) const { return length; };
