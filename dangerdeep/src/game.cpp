@@ -549,40 +549,49 @@ void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
 	}
 }
 
+template<class _C>
+ship* game::check_unit_list ( torpedo* t, list<_C>& unit_list )
+{
+	for ( list<_C>::iterator it = unit_list.begin (); it != unit_list.end (); ++it )
+	{
+		if ( is_collision ( t, *it ) )
+			return *it;
+	}
+
+	return 0;
+}
 
 bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 {
-	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
-		if (is_collision(t, *it)) {
-			if (runlengthfailure) {
-				ui->add_message(TXT_Torpedodudrangetooshort[language]);
-				return true;
-			}
-			if (failure) {
-				ui->add_message(TXT_Torpedodud[language]);
-				return true;
-			}
-			if ((*it)->damage((*it)->get_pos(), G7A_HITPOINTS))	// fixme
-				ship_sunk((*it));	// fixme
-			torp_explode(t->get_pos());
-			return true;	// only one hit possible
-		}
+    if (failure)
+    {
+		ui->add_message(TXT_Torpedodud[language]);
+		return true;
 	}
-	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		if (is_collision(t, *it)) {
-			if (runlengthfailure) {
-				ui->add_message(TXT_Torpedodudrangetooshort[language]);
-				return true;
-			}
-			if (failure) {
-				ui->add_message(TXT_Torpedodud[language]);
-				return true;
-			}
-			(*it)->damage((*it)->get_pos(), G7A_HITPOINTS);//fixme
-			torp_explode(t->get_pos());
-			return true; // only one hit possible
+
+	ship* s = check_unit_list<ship*> ( t, ships );
+
+	if ( !s )
+		s = check_unit_list<submarine*> ( t, submarines );
+
+	if ( s )
+	{
+		if (runlengthfailure)
+		{
+			ui->add_message(TXT_Torpedodudrangetooshort[language]);
 		}
+		// Only ships that are alive or defunct can be sunk. Already sinking
+		// or destroyed ships cannot be destroyed again.
+		else
+		{
+			if ( ( s->is_alive () || s->is_defunct () ) &&
+				s->damage ( s->get_pos (), t->get_hit_points () ) )
+				ship_sunk ( s );
+			torp_explode ( t->get_pos () );
+		}
+		return true;
 	}
+
 	return false;
 }
 

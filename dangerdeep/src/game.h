@@ -136,6 +136,8 @@ public:
 	// various functions (fixme: sort, cleanup)
 	const list<ping>& get_pings(void) const { return pings; };
 
+	template<class _C>
+	ship* check_unit_list ( torpedo* t, list<_C>& unit_list );
 	bool check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure);
 
 	sea_object* contact_in_direction(const sea_object* o, const angle& direction);
