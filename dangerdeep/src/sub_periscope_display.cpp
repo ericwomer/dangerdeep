@@ -5,7 +5,6 @@
 #include "image.h"
 #include "texture.h"
 #include "game.h"
-#include "command.h"
 #include "sub_periscope_display.h"
 #include "user_interface.h"
 
@@ -182,7 +181,7 @@ void submarine_interface::display_periscope(game& gm)
 			else if ( lav > 10.0f )
 				lav = 10.0f;
 
-			gm.send(new command_set_trp_addleadangle(player, lav));
+			player->set_trp_addleadangle(lav);
 		}
 	}
 

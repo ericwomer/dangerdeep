@@ -30,7 +30,6 @@
 #include "convoy.h"
 #include "particle.h"
 #include "sensors.h"
-#include "command.h"
 #include "network.h"
 #include "matrix4.h"
 #include "quaternion.h"
@@ -1519,6 +1518,7 @@ unsigned game::listsizes(unsigned n) const
 	return s;
 }
 
+/*
 void game::receive_commands(void)
 {
 	// only used for multiplayer games!
@@ -1584,7 +1584,7 @@ void game::send(command* cmd)
 	// finally, delete it
 	delete cmd;
 }
-
+*/
 
 
 double game::compute_light_brightness(const vector3& viewpos) const

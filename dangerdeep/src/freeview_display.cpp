@@ -5,7 +5,6 @@
 #include "image.h"
 #include "texture.h"
 #include "game.h"
-#include "command.h"
 #include "user_interface.h"
 #include "freeview_display.h"
 #include "ship.h"

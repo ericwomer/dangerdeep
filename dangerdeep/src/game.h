@@ -143,9 +143,6 @@ protected:
 	
 	unsigned listsizes(unsigned n) const;	// counts # of list elemens over n lists above
 
-	// receive commands from network, send them to the objects
-	void receive_commands(void);
-
 public:
 	// create new custom mission
 	// expects: size small,medium,large, escort size none,small,medium,large,
@@ -220,8 +217,7 @@ public:
 	
 //	bool can_see(const sea_object* watcher, const submarine* sub) const;	fixme what's that?
 
-	// create new objects, fixme: send command for each spawn over net if i am server
-	// move to protected, introduce command_spawn_x instead? rather not
+	// create new objects
 	void spawn_ship(ship* s);
 	void spawn_submarine(submarine* u);
 	void spawn_airplane(airplane* a);
@@ -233,7 +229,6 @@ public:
 
 	// simulation events
 //fixme: send messages about them to ui (remove sys-console printing in torpedo.cpp etc)
-//fixme: and also send something over net about them (replace by commands? rather not)
 	void dc_explosion(const depth_charge& dc);	// depth charge exploding
 	bool gs_impact(const vector3& pos);	// gun shell impact
 	void torp_explode(const vector3& pos);	// torpedo explosion/impact
@@ -268,11 +263,6 @@ public:
 	// main game loop
 	run_state exec(void);
 	
-	// send commands to objects (and over net), this function is called by user_interface
-	// and heirs, it should be the one and only function anyone calls if he wants to change
-	// any sea_object
-	void send(class command* cmd);
-
 	// sun/moon and light color/brightness
 	double compute_light_brightness(const vector3& viewpos) const;	// depends on sun/moon
 	color compute_light_color(const vector3& viewpos) const;	// depends on sun/moon

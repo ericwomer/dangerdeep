@@ -93,6 +93,11 @@ public:
 	//      parts that get damaged absorb shock waves, protecing other parts
 	//      either this must be calculated or faked via direction indicators etc.
 	
+	// addition damage for ships: armor, i.e. resistance against shells.
+	// two shell types AP and HE (armor piercing and high explosive)
+	// we would have only HE shells in Dftd, because we have no battleship simulator...
+	// although PD could be also needed...
+	
 	struct damage_data_scheme {
 		vector3f p1, p2;	// corners of bounding box around part, p1 < p2
 					// coordinates in 0...1 relative to left,bottom,aft
@@ -268,7 +273,7 @@ public:
 	// give tubenr -1 for any loaded tube, or else 0-5
 	virtual bool can_torpedo_be_launched(class game& gm, int tubenr, sea_object* target) const;
 
-	// damage is added if dc damages sub. - fixme: this must be send over net somehow. or send a "damage part x with amount y" command instead?
+	// damage is added if dc damages sub.
 	virtual void depth_charge_explosion(const class depth_charge& dc);
     
 	// command interface for subs

@@ -5,7 +5,6 @@
 #include "image.h"
 #include "texture.h"
 #include "game.h"
-#include "command.h"
 #include "sub_bridge_display.h"
 #include "user_interface.h"
 

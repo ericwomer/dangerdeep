@@ -8,7 +8,7 @@
 #include "sea_object.h"
 #include "gun_shell.h"
 #include "depth_charge.h"
-#include "command.h"
+#include "submarine.h"
 
 // fixme: we have bspline code ready. convoys should follow their routes along a bspline
 // curve for realistic results.
@@ -113,7 +113,7 @@ void ai::relax(game& gm)
 {
 	has_contact = false;
 	state = (followme) ? followobject : followpath;
-	gm.send(new command_set_throttle(parent, ship::aheadsonar));
+	parent->set_throttle(ship::aheadsonar);
 	attackrun = false;
 }
 
@@ -148,9 +148,9 @@ void ai::act(class game& gm, double delta_time)
 	
 	if (zigzagstate > 0) {	// this depends on ai type, convoys zigzag different! fixme
 		if (zigzagstate == 5)
-			gm.send(new command_rudder_left(parent));
+			parent->rudder_left();
 		else if (zigzagstate == 15)
-			gm.send(new command_rudder_right(parent));
+			parent->rudder_right();
 		++zigzagstate;
 		if (zigzagstate > 20)
 			zigzagstate = 1;
@@ -202,7 +202,7 @@ void ai::act_escort(game& gm, double delta_time)
 		fire_shell_at(gm, *nearest_contact);
 		attack_contact(nearest_contact->get_pos());
 		if (myconvoy) myconvoy->add_contact(nearest_contact->get_pos());
-		gm.send(new command_set_throttle(parent, ship::aheadflank));
+		parent->set_throttle(ship::aheadflank);
 		attackrun = true;
 	}
 
@@ -251,7 +251,7 @@ void ai::act_escort(game& gm, double delta_time)
 			}
 			//set_zigzag((cd > 500 && cd < 2500));//fixme test hack, doesn't work
 		} else {
-			gm.send(new command_set_throttle(parent, ship::aheadflank));
+			parent->set_throttle(ship::aheadflank);
 			attackrun = true;
 			//set_zigzag(false);//fixme test hack, doesn't work
 		}
@@ -368,20 +368,20 @@ bool ai::set_course_to_pos(game& gm, const vector2& pos)
 	double r2 = 1.0/parent->get_turn_rate().rad();
 	if (a <= 0) {	// target is behind us
 		if (b < 0) {	// target is left
-			gm.send(new command_head_to_ang(parent, parent->get_heading() - angle(180), true));
+			parent->head_to_ang(parent->get_heading() - angle(180), true);
 		} else {
-			gm.send(new command_head_to_ang(parent, parent->get_heading() + angle(180), false));
+			parent->head_to_ang(parent->get_heading() + angle(180), false);
 		}
 		return false;
 	} else if (r2 > r1) {	// target can not be reached with smallest curve possible
 		if (b < 0) {	// target is left
-			gm.send(new command_head_to_ang(parent, parent->get_heading() + angle(180), false));
+			parent->head_to_ang(parent->get_heading() + angle(180), false);
 		} else {
-			gm.send(new command_head_to_ang(parent, parent->get_heading() - angle(180), true));
+			parent->head_to_ang(parent->get_heading() - angle(180), true);
 		}
 		return false;
 	} else {	// target can be reached, steer curve
-		gm.send(new command_head_to_ang(parent, angle::from_math(atan2(d.y, d.x)), (b < 0)));
+		parent->head_to_ang(angle::from_math(atan2(d.y, d.x)), (b < 0));
 //	this code computes the curve that hits the target
 //	but it is much better to turn fast and then steam straight ahead.
 //	however, the straight path does not hit the target exactly, since the ship moves

@@ -5,10 +5,12 @@
 #include "image.h"
 #include "texture.h"
 #include "game.h"
-#include "command.h"
 #include "coastmap.h"
 #include "map_display.h"
 #include "user_interface.h"
+#include "ship.h"
+#include "submarine.h"
+#include "airplane.h"
 #include "texts.h"
 #include <sstream>
 using namespace std;

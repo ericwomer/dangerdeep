@@ -5,7 +5,6 @@
 #include "image.h"
 #include "texture.h"
 #include "game.h"
-#include "command.h"
 #include "sub_torpedo_display.h"
 #include "texts.h"
 #include "user_interface.h"
@@ -124,17 +123,13 @@ void sub_torpedo_display::check_turnswitch_input(game& gm, int x, int y)
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 	if (y >= 384 && y < 640) {
 		if (x < 256)
-			gm.send(new command_set_trp_primaryrange(sub,
-				turnswitch_input(x, y-384, 17)));
+			sub->set_trp_primaryrange(turnswitch_input(x, y-384, 17));
 		else if (x < 512)
-			gm.send(new command_set_trp_secondaryrange(sub,
-				turnswitch_input(x-256, y-384, 2)));
+			sub->set_trp_secondaryrange(turnswitch_input(x-256, y-384, 2));
 		else if (x < 768)
-			gm.send(new command_set_trp_initialturn(sub,
-				turnswitch_input(x-512, y-384, 2)));
+			sub->set_trp_initialturn(turnswitch_input(x-512, y-384, 2));
 		else
-			gm.send(new command_set_trp_searchpattern(sub,
-				turnswitch_input(x-768, y-384, 2)));
+			sub->set_trp_searchpattern(turnswitch_input(x-768, y-384, 2));
 	}
 }
 
@@ -344,8 +339,7 @@ void sub_torpedo_display::process_input(class game& gm, const SDL_Event& event)
 			if (torptransdst != ILLEGAL_TUBE) {
 				if (torpedoes[torptransdst].status ==
 				    submarine::stored_torpedo::st_empty) {
-					gm.send(new command_transfer_torpedo(sub,
-						torptranssrc, torptransdst));
+					sub->transfer_torpedo(torptranssrc, torptransdst);
 				}
 			}
 			torptranssrc = ILLEGAL_TUBE;

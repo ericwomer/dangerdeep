@@ -5,6 +5,7 @@
 #define SUB_TORPEDO_DISPLAY_H
 
 #include "user_display.h"
+#include "submarine.h"
 #include "vector2.h"
 
 class sub_torpedo_display : public user_display
@@ -15,8 +16,7 @@ class sub_torpedo_display : public user_display
 	class texture *torpempty, *torpreload, *torpunload, *torpt1, *torpt2, *torpt3,
 		*torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut;
 
-	void draw_torpedo(class game& gm, bool
-		usebow, const vector2i& pos, const submarine::stored_torpedo& st) const;
+	void draw_torpedo(class game& gm, bool usebow, const vector2i& pos, const submarine::stored_torpedo& st) const;
 
 	int mx, my, mb;
 

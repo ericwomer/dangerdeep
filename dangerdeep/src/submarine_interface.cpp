@@ -23,7 +23,6 @@ using namespace std;
 #include "sound.h"
 #include "image.h"
 #include "widget.h"
-#include "command.h"
 
 #include "sub_gauges_display.h"
 #include "sub_periscope_display.h"
@@ -83,16 +82,16 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 					if (target)
 						oss << " " << texts::get(6) << ": " << target->get_description(2 );
 					gm.add_logbook_entry(oss.str());
-					gm.send(new command_launch_torpedo(player, event.key.keysym.sym - SDLK_1, target));
+					player->launch_torpedo(gm, event.key.keysym.sym - SDLK_1, target);
 					play_sound_effect(gm, se_submarine_torpedo_launch );
 				}
 				break;
 			case SDLK_LEFT:
-				gm.send(new command_rudder_hard_left(player));
+				player->rudder_hard_left();
 				add_rudder_message(gm);
 				break;
 			case SDLK_RIGHT:
-				gm.send(new command_rudder_hard_right(player));
+				player->rudder_hard_right();
 				add_rudder_message(gm);
 				break;
 				// view
@@ -141,26 +140,26 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 
 				// control
 			case SDLK_LEFT:
-				gm.send(new command_rudder_left(player));
+				player->rudder_left();
 				add_rudder_message(gm);
 				break;
 			case SDLK_RIGHT:
-				gm.send(new command_rudder_right(player));
+				player->rudder_right();
 				add_rudder_message(gm);
 				break;
-			case SDLK_UP: gm.send(new command_planes_up(player, 1)); add_message(texts::get(37)); break;
-			case SDLK_DOWN: gm.send(new command_planes_down(player, 1)); add_message(texts::get(38)); break;
+			case SDLK_UP: player->planes_up(1); add_message(texts::get(37)); break;
+			case SDLK_DOWN: player->planes_down(1); add_message(texts::get(38)); break;
 			case SDLK_c:
 				// fixme: we should introduce a new command here, because crash diving
 				// is different from normal diving
-				gm.send(new command_dive_to_depth(player, unsigned(player->get_alarm_depth())));
+				player->dive_to_depth(unsigned(player->get_alarm_depth()));
 				add_message(texts::get(41));
 				gm.add_logbook_entry(texts::get(41));
 				break;
 			case SDLK_d:
 				if (player->has_snorkel () )
 					{
-						gm.send(new command_dive_to_depth(player, unsigned(player->get_snorkel_depth())));
+						player->dive_to_depth(unsigned(player->get_snorkel_depth()));
 						add_message(texts::get(12));
 						gm.add_logbook_entry(texts::get(97));
 					}
@@ -170,7 +169,7 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 					{
 						if ( player->is_snorkel_up () )
 							{
-								gm.send(new command_snorkel_down ( player ) );
+								player->snorkel_down();
 								//fixme: was an if, why? say "snorkel down only when it was down"
 								{
 									add_message (texts::get(96));
@@ -179,7 +178,7 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 							}
 						else
 							{
-								gm.send(new command_snorkel_up ( player ) );
+								player->snorkel_up();
 								//fixme: was an if, why? say "snorkel up only when it was up"
 								{
 									add_message ( texts::get(95));
@@ -192,16 +191,16 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 				{
 					angle new_course = player->get_heading () + bearing;
 					bool turn_left = !player->get_heading().is_cw_nearer(new_course);
-					gm.send(new command_head_to_ang (player, new_course, turn_left ));
+					player->head_to_ang(new_course, turn_left);
 				}
 				break;
 			case SDLK_p:
-				gm.send(new command_dive_to_depth(player, unsigned(player->get_periscope_depth())));
+				player->dive_to_depth(unsigned(player->get_periscope_depth()));
 				add_message(texts::get(40));
 				gm.add_logbook_entry(texts::get(40));
 				break;	//fixme
 			case SDLK_s:
-				gm.send(new command_dive_to_depth(player, 0));
+				player->dive_to_depth(0);
 				add_message(texts::get(39));
 				gm.add_logbook_entry(texts::get(39));
 				break;
@@ -209,19 +208,19 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 				bearing = 0.0f;
 				break;
 			case SDLK_RETURN :
-				gm.send(new command_rudder_midships(player));
-				gm.send(new command_planes_middle(player));
+				player->rudder_midships();
+				player->planes_middle();
 				add_message(texts::get(42));
 				break;
-			case SDLK_1: gm.send(new command_set_throttle(player, ship::aheadslow)); add_message(texts::get(43)); break;
-			case SDLK_2: gm.send(new command_set_throttle(player, ship::aheadhalf)); add_message(texts::get(44)); break;
-			case SDLK_3: gm.send(new command_set_throttle(player, ship::aheadfull)); add_message(texts::get(45)); break;
-			case SDLK_4: gm.send(new command_set_throttle(player, ship::aheadflank)); add_message(texts::get(46)); break;//flank/full change?
-			case SDLK_5: gm.send(new command_set_throttle(player, ship::stop)); add_message(texts::get(47)); break;
-			case SDLK_6: gm.send(new command_set_throttle(player, ship::reverse)); add_message(texts::get(48)); break;
+			case SDLK_1: player->set_throttle(ship::aheadslow); add_message(texts::get(43)); break;
+			case SDLK_2: player->set_throttle(ship::aheadhalf); add_message(texts::get(44)); break;
+			case SDLK_3: player->set_throttle(ship::aheadfull); add_message(texts::get(45)); break;
+			case SDLK_4: player->set_throttle(ship::aheadflank); add_message(texts::get(46)); break;//flank/full change?
+			case SDLK_5: player->set_throttle(ship::stop); add_message(texts::get(47)); break;
+			case SDLK_6: player->set_throttle(ship::reverse); add_message(texts::get(48)); break;
 			case SDLK_0: if (player->is_scope_up()) {
-					gm.send(new command_scope_down(player)); add_message(texts::get(54)); } else {
-					gm.send(new command_scope_up(player)); add_message(texts::get(55)); }
+					player->scope_down(); add_message(texts::get(54)); } else {
+					player->scope_up(); add_message(texts::get(55)); }
 				break;
 
 				// view
@@ -237,7 +236,7 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 					if (target)
 						oss << " " << texts::get(6) << ": " << target->get_description ( 2 );
 					gm.add_logbook_entry(oss.str());
-					gm.send(new command_launch_torpedo(player, -1, target));
+					player->launch_torpedo(gm, -1, target);
 					play_sound_effect (gm, se_submarine_torpedo_launch );
 				}
 				break;

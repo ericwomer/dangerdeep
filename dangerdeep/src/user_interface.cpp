@@ -24,7 +24,6 @@
 #include "gun_shell.h"
 #include "vector3.h"
 #include "widget.h"
-#include "command.h"
 #include "submarine_interface.h"
 #include "submarine.h"	// needed for underwater sound reduction
 //#include "ship_interface.h"
