@@ -109,6 +109,14 @@ def all_entries_that_start_with(list, prefix):
 	return list2
 
 
+################ show some help when running scons -h
+Help("""
+	Danger from the Deep, SConstruct file help:
+	Type 'scons' to build the binary.
+	Type 'scons -c' to clean up.
+	Type 'scons install' to install the game (as root).
+	""")
+
 ################ build
 libpath = libpath + [target_dir]
 
