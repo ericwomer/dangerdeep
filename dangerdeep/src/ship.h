@@ -10,6 +10,8 @@
 #define SINK_SPEED 0.5  // m/sec, fixme move to ship. include in local drag.
 #define MAXPREVPOS 20	//move to ship!
 
+class game;
+
 class ship : public sea_object
 {
 	friend class convoy;
@@ -82,8 +84,8 @@ protected:
 	unsigned smoke_type;	// 0 - none, 1-x particle type
 	vector3 smokerelpos;	// read from spec file
 
-	class particle* firepart;
-	bool firepart_ok;
+	// pointer to fire particle (0 means ship is not burning)
+	class particle* myfire;
 	
 	// common constructor. set attributes to sane values.
 	void init(void);
@@ -103,16 +105,19 @@ public:
 	
 	virtual ~ship();
 
-	virtual void load(istream& in, class game& g);
-	virtual void save(ostream& out, const class game& g) const;
+	virtual void load(istream& in, game& g);
+	virtual void save(ostream& out, const game& g) const;
 
 	virtual void parse_attributes(class TiXmlElement* parent);
 
 	virtual unsigned get_class(void) const { return shipclass; }
 
-	virtual void simulate(class game& gm, double delta_time);
+	virtual void simulate(game& gm, double delta_time);
 
 	virtual void sink(void);
+
+	virtual void ignite(game& gm);
+	bool is_burning(void) const { return myfire != 0; }
 
 	// command interface
 	virtual void fire_shell_at(const vector2& pos);

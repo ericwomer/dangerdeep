@@ -1141,9 +1141,14 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 		} else {
 			// Only ships that are alive can be sunk. Already sinking
 			// or destroyed ships cannot be destroyed again.
-			if ( ( s->is_alive () ) &&
-				s->damage ( t->get_pos (), t->get_hit_points () ) )
-				ship_sunk ( s );
+			if (s->is_alive()) {
+				if (s->damage(t->get_pos(), t->get_hit_points())) {
+					ship_sunk(s);
+				} else {
+					s->ignite(*this);
+				}
+			}
+			
 			//test: explosion:
 			spawn_particle(new explosion_particle(s->get_pos() + vector3(0, 0, 5)));
 			torp_explode ( t->get_pos () );

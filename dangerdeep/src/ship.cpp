@@ -40,8 +40,7 @@ void ship::init(void)
 	max_accel_forward = 1;
 	max_speed_forward = 10;
 	max_speed_reverse = 0;
-	firepart = new fire_particle(get_pos());
-	firepart_ok = false;
+	myfire = 0;
 }
 
 
@@ -116,8 +115,21 @@ ship::~ship()
 void ship::sink(void)
 {
 	sea_object::kill();
-	if (firepart)
-		firepart->kill();
+	if (myfire) {
+		myfire->kill();
+		myfire = 0;
+	}
+}
+
+
+
+void ship::ignite(game& gm)
+{
+	if (myfire) {
+		myfire->kill();
+	}
+	myfire = new fire_particle(get_pos());
+	gm.spawn_particle(myfire);
 }
 
 
@@ -325,14 +337,12 @@ void ship::simulate(game& gm, double delta_time)
 	}
 
 	// Adjust fuel_level.
-	calculate_fuel_factor ( delta_time );
+	calculate_fuel_factor(delta_time);
 
-	if (!firepart_ok) {
-		gm.spawn_particle(firepart);
-		firepart_ok = true;
+	// adjust fire pos if burning
+	if (myfire) {
+		myfire->set_pos(get_pos() + vector3(0, 0, 12));
 	}
-	firepart->set_pos(get_pos() + vector3(0, 0, 12));
-	firepart->simulate(gm, delta_time);
 	
 	// smoke particle generation logic
 	if (is_alive() && smoke_type > 0) {//replace by has_particle
@@ -458,9 +468,14 @@ bool ship::damage(const vector3& fromwhere, unsigned strength)
 	int dmg = int(where) + strength;
 	if (dmg > wrecked) where = wrecked; else where = damage_status(dmg);
 	// fixme:
-	stern_damage = midship_damage = bow_damage = wrecked;
-	sink();
-	return true;
+	if (rand() % 2 == 0) {
+		stern_damage = midship_damage = bow_damage = wrecked;
+		sink();
+		return true;
+	} else{
+		stern_damage = midship_damage = bow_damage = mediumdamage;
+		return false;
+	}
 }
 
 
