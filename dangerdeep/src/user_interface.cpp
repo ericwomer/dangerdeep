@@ -1799,14 +1799,12 @@ if (mb&2) detl = my*10/384;
 	glColor3f(1,1,1);
 	list<vector2> convoy_pos;
 	gm.convoy_positions(convoy_pos);
-	glBegin(GL_LINE_LOOP);
 	for (list<vector2>::iterator it = convoy_pos.begin(); it != convoy_pos.end(); ++it) {
 		draw_square_mark ( gm, (*it), -offset, color ( 0, 0, 0 ) );
 	}
-	glEnd();
 	glColor3f(1,1,1);
 
-	// draw view range
+	// draw view range, fixme: this is not drawn since the new map was implemented. maybe i forgot to initialize max_view_dist or used a glBegin() without a glEnd() somewhere, check this!
 	glColor3f(1,0,0);
 	glBegin(GL_LINE_LOOP);
 	for (int i = 0; i < 512; ++i) {

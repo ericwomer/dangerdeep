@@ -588,6 +588,19 @@ void submarine_interface::display_torpedoroom(game& gm)
 			&& torpedoes[mouseovertube].status == submarine::stored_torpedo::st_loaded)
 		{
 			torptranssrc = mouseovertube;
+		} else {
+			if (torpedoes[mouseovertube].status == submarine::stored_torpedo::st_reloading ||
+					torpedoes[mouseovertube].status == submarine::stored_torpedo::st_unloading) {
+				glColor4f(1,1,1,1);
+				notepadsheet->draw(mx, my);
+				unsigned seconds = unsigned(torpedoes[mouseovertube].remaining_time + 0.5);	
+				unsigned hours = seconds / 3600;
+				unsigned minutes = (seconds % 3600) / 60;
+				seconds = seconds % 60;
+				ostringstream oss;
+				oss << texts::get(211) << hours << ":" << minutes << ":" << seconds;
+				font_arial->print(mx+32, my+32, oss.str(), color(0,0,128));
+			}
 		}
 		
 		// torpedo programming buttons

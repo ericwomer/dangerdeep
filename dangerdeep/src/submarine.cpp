@@ -235,17 +235,18 @@ submarine* submarine::create(parser& p)
 	return 0;
 }
 
-bool submarine::transfer_torpedo(unsigned from, unsigned to, double timeneeded)
+bool submarine::transfer_torpedo(unsigned from, unsigned to)
 {
 	if (torpedoes[from].status == stored_torpedo::st_loaded &&
-		torpedoes[to].status == stored_torpedo::st_empty) {
+			torpedoes[to].status == stored_torpedo::st_empty) {
 		torpedoes[to].type = torpedoes[from].type;
 		torpedoes[from].status = stored_torpedo::st_unloading;
 		torpedoes[to].status = stored_torpedo::st_reloading;
 		torpedoes[from].associated = to;
 		torpedoes[to].associated = from;
 		torpedoes[from].remaining_time =
-			torpedoes[to].remaining_time = timeneeded;
+		torpedoes[to].remaining_time = 
+			get_torp_transfer_time(from, to);	// fixme: add time for torpedos already in transfer (one transfer may block another!)
 		return true;
 	}
 	return false;
@@ -358,6 +359,85 @@ void submarine::simulate(class game& gm, double delta_time)
 		}
 	}
 }
+
+
+pair<unsigned, unsigned> submarine::get_bow_tube_indices(void) const
+{
+	unsigned off = 0;
+	return make_pair(off, off+get_nr_of_bow_tubes());
+}
+
+pair<unsigned, unsigned> submarine::get_stern_tube_indices(void) const
+{
+	unsigned off = get_nr_of_bow_tubes();
+	return make_pair(off, off+get_nr_of_stern_tubes());
+}
+
+pair<unsigned, unsigned> submarine::get_bow_storage_indices(void) const
+{
+	unsigned off = get_nr_of_bow_tubes()+get_nr_of_stern_tubes();
+	return make_pair(off, off+get_nr_of_bow_reserve());
+}
+
+pair<unsigned, unsigned> submarine::get_stern_storage_indices(void) const
+{
+	unsigned off = get_nr_of_bow_tubes()+get_nr_of_stern_tubes()+get_nr_of_bow_reserve();
+	return make_pair(off, off+get_nr_of_stern_reserve());
+}
+
+pair<unsigned, unsigned> submarine::get_bow_top_storage_indices(void) const
+{
+	unsigned off = get_nr_of_bow_tubes()+get_nr_of_stern_tubes()+get_nr_of_bow_reserve()+get_nr_of_stern_reserve();
+	return make_pair(off, off+get_nr_of_bow_deckreserve());
+}
+
+pair<unsigned, unsigned> submarine::get_stern_top_storage_indices(void) const
+{
+	unsigned off = get_nr_of_bow_tubes()+get_nr_of_stern_tubes()+get_nr_of_bow_reserve()+get_nr_of_stern_reserve()+get_nr_of_bow_deckreserve();
+	return make_pair(off, off+get_nr_of_stern_deckreserve());
+}
+
+unsigned submarine::get_location_by_tubenr(unsigned tn) const
+{
+	pair<unsigned, unsigned> idx = get_bow_tube_indices();
+	if (tn >= idx.first && tn < idx.second) return 1;
+	idx = get_stern_tube_indices();
+	if (tn >= idx.first && tn < idx.second) return 2;
+	idx = get_bow_storage_indices();
+	if (tn >= idx.first && tn < idx.second) return 3;
+	idx = get_stern_storage_indices();
+	if (tn >= idx.first && tn < idx.second) return 4;
+	idx = get_bow_top_storage_indices();
+	if (tn >= idx.first && tn < idx.second) return 5;
+	idx = get_stern_top_storage_indices();
+	if (tn >= idx.first && tn < idx.second) return 6;
+	return 0;
+}
+
+
+double submarine::get_torp_transfer_time(unsigned from, unsigned to) const
+{
+	unsigned fl = get_location_by_tubenr(from), tl = get_location_by_tubenr(to);
+	if (fl == 0 || tl == 0) return 0.0;
+	if (fl == tl) return 0.0;
+	// possible path of transportation is: 1 <-> 3 <-> 5 <-> 6 <-> 4 <-> 2
+	// each connection has a type specific time
+	unsigned transl[7] = { 0, 1, 6, 2, 5, 3, 4 };	// translate to linear order
+	unsigned flin = transl[fl], tlin = transl[tl];
+	if (flin > tlin) { unsigned tmp = flin; flin = tlin; tlin = tmp; }
+	double tm = 0.0;
+	for (unsigned i = flin; i < tlin; ++i) {
+		switch(i) {
+			case 1: tm += get_bow_reload_time(); break;
+			case 2: tm += get_bow_deck_reload_time(); break;
+			case 3: tm += get_bow_stern_deck_transfer_time(); break;
+			case 4: tm += get_stern_deck_reload_time(); break;
+			case 5: tm += get_stern_reload_time(); break;
+		}
+	}
+	return tm;
+}
+
 
 double submarine::get_max_speed(void) const
 {

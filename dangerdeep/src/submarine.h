@@ -188,13 +188,23 @@ public:
 	virtual void simulate(class game& gm, double delta_time);
 
 	const vector<stored_torpedo>& get_torpedoes(void) const { return torpedoes; }
-	// get first index of storage and first index after it.
-	virtual pair<unsigned, unsigned> get_bow_tube_indices(void) const = 0;
-	virtual pair<unsigned, unsigned> get_stern_tube_indices(void) const = 0;
-	virtual pair<unsigned, unsigned> get_bow_storage_indices(void) const = 0;
-	virtual pair<unsigned, unsigned> get_stern_storage_indices(void) const = 0;
-	virtual pair<unsigned, unsigned> get_bow_top_storage_indices(void) const = 0;
-	virtual pair<unsigned, unsigned> get_stern_top_storage_indices(void) const = 0;
+
+	// get number of tubes / stored reserve torpedoes
+	virtual unsigned get_nr_of_bow_tubes(void) const = 0;
+	virtual unsigned get_nr_of_stern_tubes(void) const = 0;
+	virtual unsigned get_nr_of_bow_reserve(void) const = 0;
+	virtual unsigned get_nr_of_stern_reserve(void) const = 0;
+	virtual unsigned get_nr_of_bow_deckreserve(void) const = 0;
+	virtual unsigned get_nr_of_stern_deckreserve(void) const = 0;
+
+	// get first index of storage and first index after it (computed with functions above)
+	pair<unsigned, unsigned> get_bow_tube_indices(void) const;
+	pair<unsigned, unsigned> get_stern_tube_indices(void) const;
+	pair<unsigned, unsigned> get_bow_storage_indices(void) const;
+	pair<unsigned, unsigned> get_stern_storage_indices(void) const;
+	pair<unsigned, unsigned> get_bow_top_storage_indices(void) const;
+	pair<unsigned, unsigned> get_stern_top_storage_indices(void) const;
+	unsigned get_location_by_tubenr(unsigned tn) const; // returns 1-6 as location number, 0 if not supported
 
 	// The simulation of acceleration when switching between electro and diesel
 	// engines is done via engine simulation. So the boat "brakes" until
@@ -219,6 +229,14 @@ public:
 	virtual double get_battery_level () const { return battery_level; }
 	virtual const vector<damageable_part>& get_damage_status(void) const { return damageable_parts; }
 
+	// get/compute torpedo transfer time and helper functions (uses functions below to compute)
+	virtual double get_torp_transfer_time(unsigned from, unsigned to) const;
+	virtual double get_bow_reload_time(void) const = 0;
+	virtual double get_stern_reload_time(void) const = 0;
+	virtual double get_bow_deck_reload_time(void) const = 0;
+	virtual double get_stern_deck_reload_time(void) const = 0;
+	virtual double get_bow_stern_deck_transfer_time(void) const = 0;
+
 	// damage is added if dc damages sub.
 	virtual void depth_charge_explosion(const class depth_charge& dc);
     
@@ -239,11 +257,9 @@ public:
 		const angle& manual_lead_angle,
 		unsigned pr=0, unsigned sr=0, unsigned it=0, unsigned sp=0);
 
-	// fixme: time that is needed depends on sub type and how many torpedoes
-	// are already in transfer. So this argument is nonesense. fixme
 	// returns true if transfer was initiated.
 	// fixme: make virtual?
-	bool transfer_torpedo(unsigned from, unsigned to, double timeneeded = 120);
+	bool transfer_torpedo(unsigned from, unsigned to);
 };
 
 #endif

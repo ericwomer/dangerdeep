@@ -13,6 +13,8 @@ using namespace std;
 #include "font.h"
 #include "vector2.h"
 
+// fixme: when editing in a widget_edit you have to click twice on a button to lose focus AND click the button .. bad
+
 // fixme: make yes/no, ok, yes/no/cancel dialogue
 // when a dialogue opens another one, both should be drawn, and the parent
 // should pass draw()/process_input() calls to its child
