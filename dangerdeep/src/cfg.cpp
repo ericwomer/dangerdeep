@@ -141,6 +141,17 @@ void cfg::register_option(const string& name, const string& value)
 
 
 
+void cfg::register_option(const string& name, int keysym, bool ctrl, bool alt, bool shift)
+{
+	int i = keysym;
+	if (ctrl)  i |= 0x40000000;
+	if (alt)   i |= 0x20000000;
+	if (shift) i |= 0x10000000;
+	vali[name] = i;
+}
+
+
+
 void cfg::set(const string& name, bool value)
 {
 	map<string, bool>::iterator it = valb.find(name);
@@ -185,6 +196,17 @@ void cfg::set(const string& name, const string& value)
 
 
 	
+void cfg::set(const string& name, int keysym, bool ctrl, bool alt, bool shift)
+{
+	int i = keysym;
+	if (ctrl)  i |= 0x40000000;
+	if (alt)   i |= 0x20000000;
+	if (shift) i |= 0x10000000;
+	set(name, i);
+}
+
+
+
 bool cfg::getb(const string& name) const
 {
 	map<string, bool>::const_iterator it = valb.find(name);

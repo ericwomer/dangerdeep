@@ -1003,7 +1003,8 @@ void menu_configure_keys(void)
 	
 	for (unsigned i = 600; i <= 649; ++i) {
 		//fixme: draw current combination in right column of list
-		wkeys->append_entry(texts::get(i));
+		string curkeystr = "?";
+		wkeys->append_entry(texts::get(i) + string("\t\t\t") + curkeystr);
 	}
 
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 40, 708, 452, 40, texts::get(20)));
@@ -1160,13 +1161,62 @@ int main(int argc, char** argv)
 	mycfg.register_option("fullscreen", true);
 	mycfg.register_option("debug", false);
 	mycfg.register_option("sound", true);
+	
+	mycfg.register_option("key_zoom_map", SDLK_PLUS, 0, 0, 0);
+	mycfg.register_option("key_unzoom_map", SDLK_MINUS, 0, 0, 0);
+	mycfg.register_option("key_show_gauges_screen", SDLK_F1, 0, 0, 0);
+	mycfg.register_option("key_show_periscope_screen", SDLK_F2, 0, 0, 0);
+	mycfg.register_option("key_show_uzo_screen", SDLK_F3, 0, 0, 0);
+	mycfg.register_option("key_show_bridge_screen", SDLK_F4, 0, 0, 0);
+	mycfg.register_option("key_show_map_screen", SDLK_F5, 0, 0, 0);
+	mycfg.register_option("key_show_torpedo_screen", SDLK_F6, 0, 0, 0);
+	mycfg.register_option("key_show_damage_control_screen", SDLK_F7, 0, 0, 0);
+	mycfg.register_option("key_show_logbook_screen", SDLK_F8, 0, 0, 0);
+	mycfg.register_option("key_show_success_records_screen", SDLK_F9, 0, 0, 0);
+	mycfg.register_option("key_rudder_left", SDLK_LEFT, 0, 0, 0);
+	mycfg.register_option("key_rudder_hard_left", SDLK_LEFT, 0, 0, 1);
+	mycfg.register_option("key_rudder_right", SDLK_RIGHT, 0, 0, 0);
+	mycfg.register_option("key_rudder_hard_right", SDLK_RIGHT, 0, 0, 1);
+	mycfg.register_option("key_rudder_up", SDLK_UP, 0, 0, 0);
+	mycfg.register_option("key_rudder_hard_up", SDLK_UP, 0, 0, 1);
+	mycfg.register_option("key_rudder_down", SDLK_DOWN, 0, 0, 0);
+	mycfg.register_option("key_rudder_hard_down", SDLK_DOWN, 0, 0, 1);
+	mycfg.register_option("key_center_rudders", SDLK_RETURN, 0, 0, 0);
+	mycfg.register_option("key_throttle_slow", SDLK_1, 0, 0, 0);
+	mycfg.register_option("key_throttle_half", SDLK_2, 0, 0, 0);
+	mycfg.register_option("key_throttle_full", SDLK_3, 0, 0, 0);
+	mycfg.register_option("key_throttle_flank", SDLK_4, 0, 0, 0);
+	mycfg.register_option("key_throttle_stop", SDLK_5, 0, 0, 0);
+	mycfg.register_option("key_throttle_reverse", SDLK_6, 0, 0, 0);
+	mycfg.register_option("key_fire_tube_1", SDLK_1, 0, 0, 1);
+	mycfg.register_option("key_fire_tube_2", SDLK_2, 0, 0, 1);
+	mycfg.register_option("key_fire_tube_3", SDLK_3, 0, 0, 1);
+	mycfg.register_option("key_fire_tube_4", SDLK_4, 0, 0, 1);
+	mycfg.register_option("key_fire_tube_5", SDLK_5, 0, 0, 1);
+	mycfg.register_option("key_fire_tube_6", SDLK_6, 0, 0, 1);
+	mycfg.register_option("key_select_target", SDLK_SPACE, 0, 0, 0);
+	mycfg.register_option("key_scope_up_down", SDLK_0, 0, 0, 0);
+	mycfg.register_option("key_crash_dive", SDLK_c, 0, 0, 0);
+	mycfg.register_option("key_go_to_snorkel_depth", SDLK_d, 0, 0, 0);
+	mycfg.register_option("key_toggle_snorkel", SDLK_f, 0, 0, 0);
+	mycfg.register_option("key_set_heading_to_view", SDLK_h, 0, 0, 0);
+	mycfg.register_option("key_identify_target", SDLK_i, 0, 0, 0);
+	mycfg.register_option("key_go_to_periscope_depth", SDLK_p, 0, 0, 0);
+	mycfg.register_option("key_go_to_surface", SDLK_s, 0, 0, 0);
+	mycfg.register_option("key_fire_torpedo", SDLK_t, 0, 0, 0);
+	mycfg.register_option("key_set_view_to_heading", SDLK_v, 0, 0, 0);
+	mycfg.register_option("key_toggle_zoom_of_view", SDLK_y, 0, 0, 0);
+	mycfg.register_option("key_turn_view_left", SDLK_COMMA, 0, 0, 0);
+	mycfg.register_option("key_turn_view_left_fast", SDLK_COMMA, 0, 0, 1);
+	mycfg.register_option("key_turn_view_right", SDLK_PERIOD, 0, 0, 0);
+	mycfg.register_option("key_turn_view_right_fast", SDLK_PERIOD, 0, 0, 1);
+	mycfg.register_option("key_time_scale_up", SDLK_F11, 0, 0, 0);
+	mycfg.register_option("key_time_scale_down", SDLK_F12, 0, 0, 0);
+
+
 	//mycfg.register_option("invert_mouse", false);
 	//mycfg.register_option("ocean_res_x", 128);
 	//mycfg.register_option("ocean_res_y", 128);
-	//mycfg.register_option("key_fire_torp_1", "shift 1");
-	//mycfg.register_option("key_fire_torp_1", SDLK_1, shift|alt);
-	//mycfg.register_option("key_surface", "s");
-	//mycfg.register_option("key_special", "ctrl alt shift 3");
 	//mycfg.register_option("", );
 
 

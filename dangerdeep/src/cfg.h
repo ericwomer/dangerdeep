@@ -40,11 +40,13 @@ public:
 	void register_option(const string& name, int value);
 	void register_option(const string& name, float value);
 	void register_option(const string& name, const string& value);
+	void register_option(const string& name, int keysym, bool ctrl, bool alt, bool shift);
 
 	void set(const string& name, bool value);
 	void set(const string& name, int value);
 	void set(const string& name, float value);
 	void set(const string& name, const string& value);
+	void set(const string& name, int keysym, bool ctrl, bool alt, bool shift);
 	
 	bool getb(const string& name) const;
 	int geti(const string& name) const;
