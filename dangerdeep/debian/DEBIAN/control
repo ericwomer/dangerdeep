@@ -3,7 +3,7 @@ Version: 0.0.18-pre2
 Section: games
 Priority: extra
 Architecture: i386
-Depends: aalib1, libasound2, libc6, libgcc1, libgpmg1, libjpeg62, libncurses5, libogg0, libpng12-0, libsdl-image1.2, libsdl-mixer1.2, libsdl-net1.2, libsdl1.2debian-all, libsmpeg0, libstdc++5, libsvga1, libtiff3g, libvorbis0a, libvorbisfile3, nvidia-glx | xlibmesa3-gl | xlibmesa-gl, slang1, slang1a-utf8, xlibmesa3-glu | xlibmesa-glu, xlibs, zlib1g, fftw3
+Depends: aalib1, libasound2, libc6, libgcc1, libgpmg1, libjpeg62, libncurses5, libogg0, libpng12-0, libsdl-image1.2, libsdl-mixer1.2, libsdl-net1.2, libsdl1.2debian-all, libsmpeg0, libstdc++5, libsvga1, libvorbis0a, libvorbisfile3, nvidia-glx | xlibmesa3-gl | xlibmesa-gl, slang1, slang1a-utf8, xlibmesa3-glu | xlibmesa-glu, xlibs, zlib1g, fftw3
 Maintainer: Viktor Radnai <efti@gotiao.com>
 Description: Danger from the Deep is a World War II German submarine simulator game
  The game has custom and historical missions, three submarines,
