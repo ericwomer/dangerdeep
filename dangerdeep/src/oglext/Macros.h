@@ -17,12 +17,10 @@
 #ifndef	_OGL_MACROS_H_
 #define	_OGL_MACROS_H_
 
-#ifndef	_WIN32
 
 // changed: use SDL_GL_GetProcAddress instead of wgl/GLX
 #include <SDL.h>
 
-#endif
 
 
 // ---[ INTERNAL API WRAPPER MACROS ]---------------------------------------------------------------------------
