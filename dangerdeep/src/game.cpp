@@ -166,7 +166,7 @@ void game::simulate(double delta_t)
 	}
 	for (list<gun_shell*>::iterator it = gun_shells.begin(); it != gun_shells.end(); ) {
 		list<gun_shell*>::iterator it2 = it++;
-		if (!(*it2)->is_defunct()) {
+		if (!(*it2)->is_dead()) {
 			(*it2)->simulate(*this, delta_t);
 		} else {
 			delete (*it2);
@@ -180,6 +180,17 @@ void game::simulate(double delta_t)
 		} else {
 			delete (*it2);
 			convoys.erase(it2);
+		}
+	}
+	for (list<water_splash*>::iterator it = water_splashs.begin(); it != water_splashs.end (); )
+	{
+		list<water_splash*>::iterator it2 = it++;
+		if ( !(*it2)->is_dead () ) {
+			(*it2)->simulate ( *this, delta_t );
+		}
+		else {
+			delete (*it2);
+			water_splashs.erase ( it2 );
 		}
 	}
 	time += delta_t;
@@ -438,28 +449,32 @@ void game::dc_explosion(const vector3& pos)
 	}
 }
 
-void game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
+bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 {
-	return;//fixme testing
+	return false;//fixme testing
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
 		// fixme: we need a special collision detection, because
 		// the shell is so fast that it can be collisionfree with *it
 		// delta_time ago and now, but hit *it in between
 		if (is_collision(*it, pos.xy())) {
 			(*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS);
-			return;	// only one hit possible
+			return true;	// only one hit possible
 		}
 	}
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
 		if (is_collision(*it, pos.xy())) {
 			(*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS);
-			return; // only one hit possible
+			return true; // only one hit possible
 		}
 	}
+
+	// No impact.
+	return false;
 }
 
 void game::torp_explode(const vector3& pos)
 {
+	spawn_water_splash ( new water_splash ( pos, water_splash::torpedo ) );
 }
 
 void game::ship_sunk(unsigned tons)
@@ -663,6 +678,25 @@ bool game::is_collision(const sea_object* s, const vector2& pos) const
 double game::get_depth_factor ( const vector3& sub ) const
 {
 	return ( 1.0f - 0.5f * sub.z / 400.0f );
+}
+
+void game::visible_water_splashes ( list<water_splash*>& result, const sea_object* o )
+{
+	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
+	const lookout_sensor* ls = 0;
+
+	if ( s )
+		ls = dynamic_cast<const lookout_sensor*> ( s );
+
+	if ( ls )
+	{
+		for (list<water_splash*>::iterator it = water_splashs.begin();
+			it != water_splashs.end(); ++it)
+		{
+			if ( ls->is_detected ( this, o, *it ) )
+				result.push_back (*it);
+		}
+	}
 }
 
 // main play loop

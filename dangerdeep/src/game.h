@@ -25,6 +25,7 @@ using namespace std;
 #include "user_interface.h"
 #include "parser.h"
 #include "convoy.h"
+#include "water_splash.h"
 
 class game	// our "world" with physics etc.
 {
@@ -49,6 +50,7 @@ protected:
 	list<depth_charge*> depth_charges;
 	list<gun_shell*> gun_shells;
 	list<convoy*> convoys;
+	list<water_splash*> water_splashs;
 	bool running;	// if this is false, the player was killed
 	
 	// the player and matching ui (note that playing is not limited to submarines!)
@@ -92,6 +94,7 @@ public:
 	virtual void visible_torpedoes(list<torpedo*>& result, const sea_object* o);
 	virtual void visible_depth_charges(list<depth_charge*>& result, const sea_object* o);
 	virtual void visible_gun_shells(list<gun_shell*>& result, const sea_object* o);
+	virtual void visible_water_splashes ( list<water_splash*>& result, const sea_object* o );
 
 	virtual void sonar_ships ( list<ship*>& result, const sea_object* o );
 	virtual void sonar_submarines ( list<submarine*>& result, const sea_object* o );
@@ -110,11 +113,12 @@ public:
 	void spawn_gun_shell(gun_shell* s) { gun_shells.push_back(s); };
 	void spawn_depth_charge(depth_charge* dc) { depth_charges.push_back(dc); };
 	void spawn_convoy(convoy* cv) { convoys.push_back(cv); }
+	void spawn_water_splash ( water_splash* ws ) { water_splashs.push_back ( ws ); }
 
 	// simulation events
 //fixme: send messages about them to ui (remove sys-console printing in torpedo.cpp etc)
 	void dc_explosion(const vector3& pos);	// depth charge exploding
-	void gs_impact(const vector3& pos);	// gun shell impact
+	bool gs_impact(const vector3& pos);	// gun shell impact
 	void torp_explode(const vector3& pos);	// torpedo explosion/impact
 	void ship_sunk(unsigned tonnage);	// a ship sinks
 
