@@ -1067,6 +1067,10 @@ int main(int argc, char** argv)
 	hsl_career = highscorelist(highscoredirectory + HSL_CAREER_NAME);
 
 
+	// test
+	ship::create_from_template("battleship_malaya");
+
+
 	// main menu
 	menu m(104, titlebackgrimg);
 	m.add_item(21, menu_single_mission);

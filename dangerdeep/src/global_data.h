@@ -22,6 +22,7 @@ inline string get_data_dir(void) { return DATADIR; }
 inline string get_texture_dir(void) { return get_data_dir() + "textures/"; }
 inline string get_font_dir(void) { return get_data_dir() + "fonts/"; }
 inline string get_model_dir(void) { return get_data_dir() + "models/"; }
+inline string get_ship_dir(void) { return get_data_dir() + "ships/"; }
 inline string get_sound_dir(void) { return get_data_dir() + "sounds/"; }
 inline string get_image_dir(void) { return get_data_dir() + "images/"; }
 inline string get_mission_dir(void) { return get_data_dir() + "missions/"; }

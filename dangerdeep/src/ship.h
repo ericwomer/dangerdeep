@@ -70,6 +70,7 @@ public:
 	static ship* create(istream& in, unsigned type);
 	static ship* create(types type_);
 	static ship* create(parser& p);
+	static ship* create_from_template(const string& type_name);	// read xml template
 	virtual unsigned get_type(void) const = 0;
 	virtual void simulate(class game& gm, double delta_time);
 

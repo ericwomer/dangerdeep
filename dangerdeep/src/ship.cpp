@@ -21,6 +21,7 @@
 #include "ai.h"
 #include "smoke_stream.h"
 #include "system.h"
+#include "tinyxml/tinyxml.h"
 
 ship::ship() : sea_object(), myai ( 0 ), fuel_level ( 1.0 ),
 	fuel_value_a ( 0.0 ), fuel_value_t ( 1.0 ), mysmoke(0)
@@ -146,6 +147,87 @@ ship* ship::create(parser& p)
 //cerr << "token " << s << " unknown.\n";	
 	return 0;
 }
+
+
+
+TiXmlNode* firstchild(TiXmlNode* parent)
+{
+	TiXmlNode* n = parent->FirstChild();
+	if (!n) {
+		string tagchain = "FirstChild()";
+		TiXmlNode* m = parent;
+		while (m != 0) {
+			tagchain = m->Value() + string(", ") + tagchain;
+			m = m->Parent();
+		}
+		system::sys().myassert(false, string("xml tag not found: ") + tagchain);
+		return 0;
+	}
+	return n;
+}
+TiXmlNode* firstchildn(TiXmlNode* parent, const string& childname)
+{
+	TiXmlNode* n = parent->FirstChild(childname);
+	if (!n) {
+		string tagchain = childname;
+		TiXmlNode* m = parent;
+		while (m != 0) {
+			tagchain = m->Value() + string(", ") + tagchain;
+			m = m->Parent();
+		}
+		system::sys().myassert(false, string("xml tag not found: ") + tagchain);
+		return 0;
+	}
+	return n;
+}
+ship* ship::create_from_template(const string& type_name)
+{
+	//ship* shp = new ship();//or make non-static constructor?
+	TiXmlDocument doc(get_ship_dir() + type_name + ".xml");
+	doc.LoadFile();
+	TiXmlNode* dftdship = firstchildn(&doc, "dftd-ship");
+	TiXmlNode* modelname = firstchildn(dftdship, "modelname");
+	TiXmlNode* n = firstchild(modelname);
+	// shp->model = modelcache.ref(n);
+	cout << "modelname '" << n->Value() << "'\n";
+	TiXmlNode* description = firstchildn(dftdship, "description");
+	//fixme
+	TiXmlNode* type = firstchildn(dftdship, "type");
+	n = firstchild(type);
+	cout << "type '" << n->Value() << "'\n";
+	string ts = n->Value();
+/*
+	if (ts == "warship") shp->type = WARSHIP;
+	else if (ts == "escort") shp->type = ESCORT;
+	else if (ts == "merchant") shp->type = MERCHANT;
+	else return 0;
+*/
+	TiXmlNode* country = firstchildn(dftdship, "country");
+	n = firstchild(country);
+	cout << "country '" << n->Value() << "'\n";
+	TiXmlNode* maxspeed = firstchildn(dftdship, "maxspeed");
+	n = firstchild(maxspeed);
+	cout << "maxspeed '" << n->Value() << "'\n";
+	TiXmlNode* maxrevspeed = firstchildn(dftdship, "maxrevspeed");
+	n = firstchild(maxrevspeed);
+	cout << "maxrevspeed '" << n->Value() << "'\n";
+	TiXmlNode* acceleration = firstchildn(dftdship, "acceleration");
+	n = firstchild(acceleration);
+	cout << "acceleration '" << n->Value() << "'\n";
+	TiXmlNode* turnrate = firstchildn(dftdship, "turnrate");
+	n = firstchild(turnrate);
+	cout << "turnrate '" << n->Value() << "'\n";
+	TiXmlNode* tonnage = firstchildn(dftdship, "tonnage");
+	n = firstchild(tonnage);
+	cout << "tonnage '" << n->Value() << "'\n";
+	TiXmlNode* aitype = firstchildn(dftdship, "aitype");
+	n = firstchild(aitype);
+	cout << "aitype '" << n->Value() << "'\n";
+
+	return 0;
+}
+
+
 
 void ship::simulate(game& gm, double delta_time)
 {
