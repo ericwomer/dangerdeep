@@ -43,7 +43,7 @@ sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_background,
 	*sub_damage_scheme_all, *logbook_spiral, *killedimg, *scopewatcherimg,
 	*depthchargeimg, *sunkendestroyerimg, *kruppdocksimg, *rescuedestroyerimg, *sunderlandimg,
-	*swordfishimg, *hedgehogimg;
+	*swordfishimg, *hedgehogimg, *panelbackgroundimg;
 
 void init_global_data(void)
 {
@@ -137,6 +137,7 @@ void init_global_data(void)
 	sunderlandimg = new image(get_image_dir() + "sunderland.jpg");
 	swordfishimg = new image(get_image_dir() + "swordfish.jpg");
 	hedgehogimg = new image(get_image_dir() + "hedgehog.jpg");
+	panelbackgroundimg = new image(get_image_dir() + "panelbackground.jpg");
 }
 
 void deinit_global_data(void)
@@ -231,6 +232,7 @@ void deinit_global_data(void)
 	delete sunderlandimg;
 	delete swordfishimg;
 	delete hedgehogimg;
+	delete panelbackgroundimg;
 }
 
 // returns 1939-1945, 1-12, 1-31

@@ -244,11 +244,33 @@ void loadsavequit_dialogue::update_list(void)
 
 
 //
+// check if a game is good enough for the high score list
+//
+void check_for_highscore(const game* gm)
+{
+#if 0
+	unsigned totaltons = 0;
+	for (list<game::sink_record>::const_iterator it = gm->sunken_ships.begin(); it != gm->sunken_ships.end(); ++it) {
+		totaltons += it->tons;
+	}
+	highscorelist& hsl = (/* check if game is career or mission fixme */ true) ? highscore_mission : highscore_career;
+	unsigned points = totaltons /* compute points from tons etc here fixme */;
+	if (hsl.is_good_enough(points)) {
+		// show dialogue, ask for player name
+		string playername;
+		
+		hsl.record(points, playername);
+	}
+#endif
+}
+
+
+//
 // show results after a game ended
 //
 void show_results_for_game(const game* gm)
 {
-	widget w(0, 0, 1024, 768, texts::get(124), 0, sunkendestroyerimg);
+	widget w(0, 0, 1024, 768, texts::get(124), 0, kruppdocksimg);
 	widget_list* wl = new widget_list(64, 64, 1024-64-64, 768-64-64);
 	w.add_child(wl);
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
@@ -275,8 +297,14 @@ void show_results_for_game(const game* gm)
 //
 void run_game(game* gm)
 {
+	widget::theme* gametheme =
+		new widget::theme("widgetelements_game.png", "widgeticons_game.png",
+		font_panel /* font_arial */, color(224,224,224), color(180, 180, 255), color(64,64,64));
 	while (true) {
+		widget::theme* tmp = widget::replace_theme(gametheme);
 		unsigned state = gm->exec();
+		widget::replace_theme(tmp);
+		
 		//if (state == 2) break;
 		//SDL_ShowCursor(SDL_ENABLE);
 		if (state == 1) {
@@ -293,7 +321,9 @@ void run_game(game* gm)
 		}
 		//SDL_ShowCursor(SDL_DISABLE);
 	}
+	delete gametheme;
 	show_results_for_game(gm);
+	check_for_highscore(gm);
 	delete gm;
 }
 

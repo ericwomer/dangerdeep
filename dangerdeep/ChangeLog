@@ -1,3 +1,10 @@
+2004-01-19  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* widget.cpp
+	  - list fixed, add-ons
+	* user_interface
+	  - more use of new widgets
+	  - map display fix (display is faster)
+
 2004-01-18  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* user_interface.cpp
 	  - terrain display bugfix

@@ -42,6 +42,9 @@ protected:
 	// returns true if processed
 	virtual bool keyboard_common(int keycode, class system& sys, class game& gm);
 
+	// panel buttons
+	class widget_button* btn_menu;
+
 	void draw_torpedo(class system& sys, class game& gm, bool
 		usebow, int x, int y, const submarine::stored_torpedo& st);
 
@@ -53,7 +56,7 @@ protected:
 	virtual void display_damagestatus(class system& sys, class game& gm);
 
 public:	
-	submarine_interface(submarine* player_sub);
+	submarine_interface(submarine* player_sub, class game& gm);
 	virtual ~submarine_interface();
 
 	virtual void display(class system& sys, class game& gm);

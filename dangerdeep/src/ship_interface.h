@@ -38,7 +38,7 @@ protected:
 	void display_damagestatus(class system& sys, class game& gm);
 	
 public:	
-	ship_interface(ship* player_ship);
+	ship_interface(ship* player_ship, class game& gm);
 	virtual ~ship_interface();
 
 	virtual void display(class system& sys, class game& gm);

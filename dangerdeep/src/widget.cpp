@@ -72,10 +72,17 @@ widget::theme::~theme()
 	}
 }
 
-void widget::set_theme(class theme* t)
+void widget::set_theme(widget::theme* t)
 {
 	delete globaltheme;
 	globaltheme = t;
+}
+
+widget::theme* widget::replace_theme(widget::theme* t)
+{
+	widget::theme* tmp = globaltheme;
+	globaltheme = t;
+	return tmp;
 }
 
 widget::widget(int x, int y, int w, int h, const string& text_, widget* parent_, image* backgr)
@@ -120,11 +127,14 @@ void widget::draw(void) const
 	vector2i p = get_pos();
 	draw_area(p.x, p.y, size.x, size.y, /*fixme: replace by property?*/true);
 	int fw = globaltheme->frame_size();
-	draw_rect(p.x+fw, p.y+fw, size.x-2*fw, globaltheme->myfont->get_height(), false);
-	color tcol = is_enabled() ? globaltheme->textcol : globaltheme->textdisabledcol;
-	globaltheme->myfont->print_hc(
-		p.x+size.x/2, p.y+globaltheme->frame_size(), text,
-		tcol, true);
+	// draw titlebar only when there is a title
+	if (text.length() > 0) {
+		draw_rect(p.x+fw, p.y+fw, size.x-2*fw, globaltheme->myfont->get_height(), false);
+		color tcol = is_enabled() ? globaltheme->textcol : globaltheme->textdisabledcol;
+		globaltheme->myfont->print_hc(
+			p.x+size.x/2, p.y+globaltheme->frame_size(), text,
+			tcol, true);
+	}
 	for (list<widget*>::const_iterator it = children.begin(); it != children.end(); ++it)
 		(*it)->draw();
 }
@@ -186,7 +196,7 @@ void widget::prepare_input(void)
 	oldmb = sys->get_mouse_buttons() & 1;
 }
 
-void widget::process_input(void)
+void widget::process_input(bool ignorekeys)
 {
 	class system* sys = system::sys();
 	int mx, my;		
@@ -203,8 +213,10 @@ void widget::process_input(void)
 	if (mclick & 1)
 		compute_focus();
 	if (focussed) {
-		if (!focussed->is_enabled()) { sys->flush_key_queue(); return; }
-		if (sys->is_key_in_queue()) focussed->on_char();
+		if (!ignorekeys) {
+			if (!focussed->is_enabled()) { sys->flush_key_queue(); return; }
+			if (sys->is_key_in_queue()) focussed->on_char();
+		}
 		if (mclick & 1) focussed->on_click();
 		if (mrelease & 1) focussed->on_release();
 		if (mb & 0x18) focussed->on_wheel();
@@ -572,11 +584,61 @@ widget_list::widget_list(int x, int y, int w, int h, widget* parent_)
 	add_child(myscrollbar);
 }
 
+list<string>::iterator widget_list::ith(unsigned i)
+{
+	list<string>::iterator it = entries.begin();
+	while (it != entries.end() && i > 0) {
+		--i;
+		++it;
+	}
+	return it;
+}
+
+list<string>::const_iterator widget_list::ith(unsigned i) const
+{
+	list<string>::const_iterator it = entries.begin();
+	while (it != entries.end() && i > 0) {
+		--i;
+		++it;
+	}
+	return it;
+}
+
+void widget_list::delete_entry(unsigned n)
+{
+	list<string>::iterator it = ith(n);
+	if (it != entries.end())
+		entries.erase(it);
+	unsigned es = entries.size();
+	if (es == 0) selected = -1;	// remove selection
+	else if (es == 1) set_selected(0);	// set to first entry
+	unsigned ve = get_nr_of_visible_entries();
+	if (es > ve)
+		myscrollbar->set_nr_of_positions(es - ve + 1);
+}
+
+void widget_list::insert_entry(unsigned n, const string& s)
+{
+	list<string>::iterator it = ith(n);
+	if (it != entries.end())
+		entries.insert(it, s);
+	else
+		entries.push_back(s);
+	unsigned es = entries.size();
+	if (es == 1) set_selected(0);	// set to first entry
+	unsigned ve = get_nr_of_visible_entries();
+	if (es > ve)
+		myscrollbar->set_nr_of_positions(es - ve + 1);
+}
+
 void widget_list::append_entry(const string& s)
 {
 	entries.push_back(s);
-	if (entries.size() == 1) set_selected(0);	// set to first entry
-	myscrollbar->set_nr_of_positions(entries.size());
+	unsigned es = entries.size();
+	if (es == 1) set_selected(0);	// set to first entry
+	unsigned ve = get_nr_of_visible_entries();
+	if (es > ve)
+		myscrollbar->set_nr_of_positions(es - ve + 1);
 }
 
 string widget_list::get_entry(unsigned n) const
@@ -600,9 +662,10 @@ void widget_list::set_selected(unsigned n)
 {
 	if (n < entries.size()) {
 		selected = int(n);
-		if (listpos > n || n >= listpos + get_nr_of_visible_entries()) {
+		unsigned ve = get_nr_of_visible_entries();
+		if (listpos > n || n >= listpos + ve) {
 			listpos = n;
-			myscrollbar->set_current_position(n);
+			myscrollbar->set_current_position(n - ve);
 		}
 	}
 }
@@ -630,18 +693,23 @@ void widget_list::draw(void) const
 {
 	vector2i p = get_pos();
 	draw_area(p.x, p.y, size.x, size.y, false);
-	list<string>::const_iterator it = entries.begin();
-	for (unsigned lp = 0; lp < listpos; ++lp) ++it;
+	list<string>::const_iterator it = ith(listpos);
 	int fw = globaltheme->frame_size();
 	unsigned maxp = get_nr_of_visible_entries();
 	color tcol = is_enabled() ? globaltheme->textcol : globaltheme->textdisabledcol;
+	bool scrollbarvisible = (entries.size() > maxp);
 	for (unsigned lp = 0; it != entries.end() && lp < maxp; ++it, ++lp) {
 		if (selected == int(lp + listpos)) {
-			globaltheme->backg->draw(p.x+fw, p.y + fw + lp*globaltheme->myfont->get_height(), size.x-5*fw-globaltheme->icons[0]->get_width(), globaltheme->myfont->get_height());
+			int width = size.x-2*fw;
+			if (scrollbarvisible)
+				width -= 3*fw+globaltheme->icons[0]->get_width();
+			color::white().set_gl_color();
+			globaltheme->backg->draw(p.x+fw, p.y + fw + lp*globaltheme->myfont->get_height(), width, globaltheme->myfont->get_height());
 		}
 		globaltheme->myfont->print(p.x+fw, p.y+fw + lp*globaltheme->myfont->get_height(), *it, tcol, true);
 	}
-	myscrollbar->draw();
+	if (entries.size() > maxp)
+		myscrollbar->draw();
 }
 
 void widget_list::on_click(void)

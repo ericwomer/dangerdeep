@@ -33,9 +33,12 @@ protected:
 	bool pause;
 	unsigned time_scale;
 	sea_object* player_object;
-	list<string> panel_texts;
-	unsigned panel_height;
+
+	// command panel
 	bool panel_visible;
+	class widget* panel;
+	class widget_list* panel_messages;
+	class widget_text* panel_valuetexts[5];
 
 	// used in various screens
 	angle bearing;
@@ -72,7 +75,7 @@ protected:
 
 	user_interface& operator= (const user_interface& other);
 	user_interface(const user_interface& other);
-	user_interface(sea_object* player);
+	user_interface(sea_object* player, class game& gm);
 
 	texture* water_bumpmaps[WATER_BUMP_FRAMES];
 	unsigned wavedisplaylists;		// # of first display list

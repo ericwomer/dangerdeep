@@ -31,6 +31,7 @@
 #include "vector3.h"
 #include "coastmap.h"
 #include "ocean_wave_generator.h"
+#include "widget.h"
 using namespace std;
 
 #define MAX_PANEL_SIZE 256
@@ -63,18 +64,34 @@ using namespace std;
 	sake. The effect shouldn't be noticeable.
 */
 
-user_interface::user_interface(sea_object* player) :
+user_interface::user_interface(sea_object* player, game& gm) :
 	pause(false), time_scale(1), player_object ( player ),
-	panel_height(128), panel_visible(true), bearing(0), elevation(0),
+	panel_visible(true), bearing(0), elevation(0),
 	viewmode(4), target(0), zoom_scope(false), mapzoom(0.1),
 	mycoastmap("default.map"), freeviewsideang(0), freeviewupang(-90), freeviewpos()
 {
 	clouds = 0;
 	init ();
+	panel = new widget(0, 768-128, 1024, 128, "", 0, panelbackgroundimg);
+	panel_messages = new widget_list(8, 8, 512, 128 - 2*8);
+	panel->add_child(panel_messages);
+	panel->add_child(new widget_text(528, 8, 0, 0, texts::get(1)));
+	panel->add_child(new widget_text(528, 8+24+5, 0, 0, texts::get(4)));
+	panel->add_child(new widget_text(528, 8+48+10, 0, 0, texts::get(5)));
+	panel->add_child(new widget_text(528, 8+72+15, 0, 0, texts::get(2)));
+	panel->add_child(new widget_text(528+160, 8, 0, 0, texts::get(98)));
+	panel_valuetexts[0] = new widget_text(528+100, 8, 0, 0, "000");
+	panel_valuetexts[1] = new widget_text(528+100, 8+24+5, 0, 0, "000");
+	panel_valuetexts[2] = new widget_text(528+100, 8+48+10, 0, 0, "000");
+	panel_valuetexts[3] = new widget_text(528+100, 8+72+15, 0, 0, "000");
+	panel_valuetexts[4] = new widget_text(528+160+100, 8, 0, 0, "000");
+	for (unsigned i = 0; i < 5; ++i)
+		panel->add_child(panel_valuetexts[i]);
 }
 
 user_interface::~user_interface ()
 {
+	delete panel;
 	deinit();
 }
 
@@ -1166,41 +1183,26 @@ bool user_interface::time_scale_down(void)
 
 void user_interface::draw_infopanel(class system& sys, class game& gm) const
 {
-	int panel_border_pos = 768 - panelbackgr->get_height();
-	int panel_pos = 768;
 	if (panel_visible) {
-		panel_border_pos -= panel_height;
-		panel_pos -= panel_height;
-		color::black().set_gl_color(128);
-		sys.no_tex();
-		sys.draw_rectangle(0, panel_pos, 1024, 768);
-		color::white().set_gl_color(255);
+		ostringstream os0;
+		os0 << setw(3) << left << get_player()->get_heading().ui_value();
+		panel_valuetexts[0]->set_text(os0.str());
+		ostringstream os1;
+		os1 << setw(3) << left << unsigned(fabs(round(sea_object::ms2kts(get_player()->get_speed()))));
+		panel_valuetexts[1]->set_text(os1.str());
+		ostringstream os2;
+		os2 << setw(3) << left << unsigned(round(-get_player()->get_pos().z));
+		panel_valuetexts[2]->set_text(os2.str());
+		ostringstream os3;
+		os3 << setw(3) << left << bearing.ui_value();
+		panel_valuetexts[3]->set_text(os3.str());
+		ostringstream os4;
+		os4 << setw(3) << left << time_scale;
+		panel_valuetexts[4]->set_text(os4.str());
 
-		ostringstream os;
-		os << texts::get(1) << ": " << get_player()->get_heading().ui_value()
-			<< "\t" << texts::get(4) << ": " << setw(3) << left
-			<< unsigned(fabs(round(sea_object::ms2kts(get_player()->get_speed()))))
-			<< "\t" << texts::get(5) << ": " << setw(3) << left
-			<< unsigned(round(-get_player()->get_pos().z))
-			<< "\t" << texts::get(2) << ": " << setw(3) << left
-			<< bearing.ui_value()
-			<< "\t" << texts::get(98) << ": "
-			<< time_scale;
-		int fph = font_panel->get_height();	// should be 24.
-		int y = 768 - fph;
-		font_panel->print(0, y, os.str(), color::green(), true);
-		y -= fph + (panel_height % fph);
-		
-		for (list<string>::const_reverse_iterator it = panel_texts.rbegin(); 
-	             it != panel_texts.rend(); ++it) {
-			font_panel->print(0, y, *it, color::white(), true);
-			y -= fph;
-			if (y < panel_pos) break;
-		}
+		panel->draw();
+		panel->process_input(true);
 	}
-
-	color::white().set_gl_color();			
-	panelbackgr->draw(0, panel_border_pos, 1024, panel_pos-panel_border_pos);
 }
 
 
@@ -1675,7 +1677,7 @@ if (mb&2) detl = my*10/384;
 	glScalef(mapzoom, mapzoom, 1);
 	glScalef(1,-1,1);
 	glTranslatef(-offset.x, -offset.y, 0);
-	mycoastmap.draw_as_map(detl);
+	mycoastmap.draw_as_map(offset, mapzoom, detl);
 	glPopMatrix();
 	sys.no_tex();
 
@@ -1896,9 +1898,14 @@ void user_interface::display_freeview(class system& sys, game& gm)
 
 void user_interface::add_message(const string& s)
 {
+	panel_messages->append_entry(s);
+	if (panel_messages->get_listsize() > panel_messages->get_nr_of_visible_entries())
+		panel_messages->delete_entry(0);
+/*
 	panel_texts.push_back(s);
 	if (panel_texts.size() > 1+MAX_PANEL_SIZE/font_panel->get_height())
 		panel_texts.pop_front();
+*/		
 }
 
 void user_interface::display_glasses(class system& sys, class game& gm)

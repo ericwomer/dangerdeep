@@ -74,7 +74,7 @@ PRINT		Take screenshot (uncompressed ppm, for now)
 
 special for now:
 ----------------------------------------
-w a d x q e	step forward/left/right/backward/up/down in freeview mode
+Numpad 8,4,6,2,1,3	step forward/left/right/backward/up/down in freeview mode
 
 Closing words
 --------------------------------------------------------

@@ -49,8 +49,14 @@ coastmap::coastmap(const string& filename)
 	}
 }
 
-void coastmap::draw_as_map(unsigned detail) const
+void coastmap::draw_as_map(const vector2& droff, double mapzoom, unsigned detail) const
 {
+	int x, y, w, h;
+	double mperseg = pixels_per_seg * pixelw_real;
+	w = int(ceil((1024/mapzoom)/mperseg)) +2;
+	h = int(ceil((768/mapzoom)/mperseg)) +2;	// fixme: use 640 and translate map y - 64
+	x = int(floor((droff.x - offsetx)/mperseg)) - w/2;
+	y = int(floor((droff.y - offsety)/mperseg)) - h/2;
 	glBindTexture(GL_TEXTURE_2D, 0);
 	double rsegw = pixelw_real * pixels_per_seg;
 	double tsx = 1.0/segsx;
@@ -58,13 +64,27 @@ void coastmap::draw_as_map(unsigned detail) const
 #ifndef MAPCOMPILER
 	atlanticmap->set_gl_texture();
 #endif	
-	double ry = offsety;
-	double ty = 0;
-	for (unsigned y = 0; y < segsy; ++y) {
-		double rx = offsetx;
-		double tx = 0;
-		for (unsigned x = 0; x < segsx; ++x) {
-			coastsegments[y*segsx+x].draw_as_map(rx, ry, rsegw, tx, ty, tsx, tsy, detail);
+	if (x < 0) {
+		w += x;
+		x = 0;
+	}
+	if (y < 0) {
+		h += y;
+		y = 0;
+	}
+	if (x + w > segsx) {
+		w = segsx - x;
+	}
+	if (y + h > segsy) {
+		h = segsy - y;
+	}
+	double ry = offsety + rsegw * y;
+	double ty = tsy * y;
+	for (int yy = y; yy < y + h; ++yy) {
+		double rx = offsetx + rsegw * x;
+		double tx = tsx * x;
+		for (int xx = x; xx < x + w; ++xx) {
+			coastsegments[yy*segsx+xx].draw_as_map(rx, ry, rsegw, tx, ty, tsx, tsy, detail);
 			rx += rsegw;
 			tx += tsx;
 		}

@@ -26,13 +26,16 @@ using namespace std;
 #include "sound.h"
 #include "image.h"
 #include "menu.h"
+#include "widget.h"
 extern void menu_notimplemented(void);	// fixme remove later.
 
-submarine_interface::submarine_interface(submarine* player_sub) : 
-    	user_interface( player_sub ), sub_damage_disp(new sub_damage_display(player_sub)),
+submarine_interface::submarine_interface(submarine* player_sub, game& gm) : 
+    	user_interface( player_sub, gm ), sub_damage_disp(new sub_damage_display(player_sub)),
     	lead_angle(0), torptranssrc(0xffff), primaryrange(0), secondaryrange(0),
     	initialturn(0), searchpattern(0)
 {
+	btn_menu = new widget_caller_button<game, void (game::*)(void)>(&gm, &game::stop, 1024-128-8, 128-40, 128, 32, texts::get(177));
+	panel->add_child(btn_menu);
 }
 
 submarine_interface::~submarine_interface()

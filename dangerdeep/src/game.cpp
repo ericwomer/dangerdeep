@@ -121,7 +121,7 @@ game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned t
 	
 	spawn_submarine(sub);
 	player = sub;
-	ui = new submarine_interface(sub);
+	ui = new submarine_interface(sub, *this);
 
 	running = true;
 	last_trail_time = time - TRAILTIME;
@@ -147,7 +147,7 @@ game::game(parser& p) : running(true), time(0)
 				spawn_submarine(sub);
 				if (nextisplayer) {
 					player = sub;
-					ui = new submarine_interface(sub);
+					ui = new submarine_interface(sub, *this);
 				}
 				break; }
 			case TKN_SHIP: {
@@ -155,7 +155,7 @@ game::game(parser& p) : running(true), time(0)
 				spawn_ship(shp);
 				if (nextisplayer) {
 					player = shp;
-					ui = new ship_interface(shp);
+					ui = new ship_interface(shp, *this);
 				}
 				break; }
 			case TKN_CONVOY: {
@@ -358,11 +358,11 @@ void game::load_from_stream(istream& in)
 	if (playertype == 0) {
 		ship* s = read_ship(in);
 		player = s;
-		ui = new ship_interface(s);	// fixme: move to load(), dirty hack
+		ui = new ship_interface(s, *this);	// fixme: move to load(), dirty hack
 	} else if (playertype == 1) {
 		submarine* s = read_submarine(in);
 		player = s;
-		ui = new submarine_interface(s);	// fixme: move to load(), dirty hack
+		ui = new submarine_interface(s, *this);	// fixme: move to load(), dirty hack
 	} else {
 		system::sys()->myassert(false, "savegame error: player is no sub or ship");
 	}

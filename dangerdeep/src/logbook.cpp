@@ -74,8 +74,8 @@ void logbook_display::print_buffer ( unsigned i, const string& t ) const
 {
 	unsigned x = ( i < NUMBER_OF_LINES )? 42 : 550;
 	x = unsigned ( x / FONT_SCALE_FACTOR );
-	unsigned y = ( i < NUMBER_OF_LINES )? ( 46 + 20 * i ) :
-		( 46 + 20 * ( i - NUMBER_OF_LINES ) );
+	unsigned y = ( i < NUMBER_OF_LINES )? ( 40 + 20 * i ) :
+		( 40 + 20 * ( i - NUMBER_OF_LINES ) );
 	y = unsigned ( y / FONT_SCALE_FACTOR );
 
 	font_arial->print ( x, y, t, color ( 0, 0, 0 ) );

@@ -53,7 +53,7 @@ extern class sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 extern class image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_background,
 	*sub_damage_scheme_all, *logbook_spiral, *killedimg, *scopewatcherimg,
 	*depthchargeimg, *sunkendestroyerimg, *kruppdocksimg, *rescuedestroyerimg, *sunderlandimg,
-	*swordfishimg, *hedgehogimg;
+	*swordfishimg, *hedgehogimg, *panelbackgroundimg;
 
 void init_global_data(void);
 void deinit_global_data(void);

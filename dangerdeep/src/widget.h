@@ -72,7 +72,8 @@ protected:
 	static int oldmx, oldmy, oldmb;	// used for input calculation
 
 public:	
-	static void set_theme(class theme* t);
+	static void set_theme(theme* t);
+	static theme* replace_theme(theme* t);
 	widget(int x, int y, int w, int h, const string& text_, widget* parent_ = 0, image* backgr = 0);
 	virtual ~widget();
 	virtual void add_child(widget* w);
@@ -100,7 +101,7 @@ public:
 	virtual void on_release(void) {};	// called on mouse button up
 	virtual void on_drag(void) {};	// called on mouse move while button is down
 	virtual void prepare_input(void);	// call once before process_input
-	virtual void process_input(void);	// determine type of input, fetch it to on_* functions
+	virtual void process_input(bool ignorekeys = false);	// determine type of input, fetch it to on_* functions
 
 	// run() always returns 1    - fixme: make own widget classes for them?
 	static widget* create_dialogue_ok(widget* parent_, const string& title, const string& text = "");
@@ -292,12 +293,17 @@ protected:
 	int selected;
 	widget_scrollbar* myscrollbar;	// stored also as child
 
+	list<string>::iterator ith(unsigned i);
+	list<string>::const_iterator ith(unsigned i) const;
+
 	widget_list();
 	widget_list(const widget_list& );
 	widget_list& operator= (const widget_list& );
 public:
 	widget_list(int x, int y, int w, int h, widget* parent_ = 0);
 	~widget_list() {};
+	void delete_entry(unsigned n);
+	void insert_entry(unsigned n, const string& s);
 	void append_entry(const string& s);
 	string get_entry(unsigned n) const;
 	unsigned get_listsize(void) const;

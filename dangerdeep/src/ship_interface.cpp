@@ -17,8 +17,8 @@
 #include "game.h"
 #include "texts.h"
 
-ship_interface::ship_interface(ship* player_ship) :
-	user_interface( player_ship )
+ship_interface::ship_interface(ship* player_ship, game& gm) :
+	user_interface( player_ship, gm )
 {
 }
 
