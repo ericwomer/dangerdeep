@@ -768,7 +768,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	// the origin of the coordinate system is the bottom left corner of the tile
 	// that the viewer position projected to xy plane is inside.
 	glPushMatrix();
-	glTranslatef(-myfmod(viewpos.x, WAVE_LENGTH), -myfmod(viewpos.y, WAVE_LENGTH), -viewpos.z);
+	glTranslated(-myfmod(viewpos.x, WAVE_LENGTH), -myfmod(viewpos.y, WAVE_LENGTH), -viewpos.z);
 
 	// draw polygons to the horizon
 	float wr = WAVES_PER_AXIS * WAVE_LENGTH / 2;
@@ -961,10 +961,7 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	angle dir, angle elev, bool aboard, bool drawbridge, bool withunderwaterweapons)
 {
-	//fixme: vessels are flickering in the water, zbuffer seems to be a bit random
-	//maybe this is because of large values for translate (up to 11000000 meters)
-	//that are stored/treated with less accuracy than needed in opengl
-
+//2004-03-07 fixme, the position fix doesn't fix the ship's flickering
 	double max_view_dist = gm.get_max_view_distance();
 
 	sea_object* player = get_player();
@@ -1174,6 +1171,12 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 
 
 	// ******************** ships & subs *************************************************
+
+	// 2004/03/07
+	// simulate horizon: d is distance to object (on perimeter of earth)
+	// z is additional height (negative!), r is earth radius
+	// z = r*sin(PI/2 - d/r) - r
+	// d = PI/2*r - r*arcsin(z/r+1)
 	
 	// rest of scene is displayed relative to world coordinates
 	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
@@ -1183,7 +1186,9 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	for (list<ship*>::const_iterator it = ships.begin(); it != ships.end(); ++it) {
 		if (aboard && *it == player) continue;	// only ships or subs playable!
 		glPushMatrix();
-		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
+		vector3 pos = (*it)->get_pos();
+//		pos.z += EARTH_RADIUS * (sin(M_PI/2 - pos.xy().length()/EARTH_RADIUS) - 1.0);
+		glTranslated(pos.x, pos.y, pos.z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 	// fixme: z translate according to water height here
 		rotate_by_pos_and_wave((*it)->get_pos(), timefac, (*it)->get_roll_factor());
@@ -1201,7 +1206,8 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	for (list<submarine*>::const_iterator it = submarines.begin(); it != submarines.end(); ++it) {
 		if (aboard && *it == player) continue; // only ships or subs playable!
 		glPushMatrix();
-		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
+		vector3 pos = (*it)->get_pos();
+		glTranslated(pos.x, pos.y, pos.z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 	// fixme: z translate according to water height here
 		if ((*it)->get_pos().z > -15) {
@@ -1215,7 +1221,8 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	gm.visible_airplanes(airplanes, player);
 	for (list<airplane*>::const_iterator it = airplanes.begin(); it != airplanes.end(); ++it) {
 		glPushMatrix();
-		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
+		vector3 pos = (*it)->get_pos();
+		glTranslated(pos.x, pos.y, pos.z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);	// simulate pitch, roll etc.
 		(*it)->display();
 		glPopMatrix();
@@ -1226,7 +1233,8 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 		gm.visible_torpedoes(torpedoes, player);
 		for (list<torpedo*>::const_iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
 			glPushMatrix();
-			glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
+			vector3 pos = (*it)->get_pos();
+			glTranslated(pos.x, pos.y, pos.z);
 			glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 			(*it)->display();
 			glPopMatrix();
@@ -1235,7 +1243,8 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 		gm.visible_depth_charges(depth_charges, player);
 		for (list<depth_charge*>::const_iterator it = depth_charges.begin(); it != depth_charges.end(); ++it) {
 			glPushMatrix();
-			glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
+			vector3 pos = (*it)->get_pos();
+			glTranslated(pos.x, pos.y, pos.z);
 			glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 			(*it)->display();
 			glPopMatrix();
@@ -1246,13 +1255,15 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	gm.visible_gun_shells(gun_shells, player);
 	for (list<gun_shell*>::const_iterator it = gun_shells.begin(); it != gun_shells.end(); ++it) {
 		glPushMatrix();
-		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
+		vector3 pos = (*it)->get_pos();
+		glTranslated(pos.x, pos.y, pos.z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 		glScalef(10,10,10);//fixme: to control functionality for now
 		(*it)->display();
 		glPopMatrix();
 	}
 
+	//fixme: water splashes are bright in glasses mode, but too dark in normal mode. this is true also for other models. light seems to be ignored somewhere
 	list<water_splash*> water_splashs;
 	gm.visible_water_splashes ( water_splashs, player );
 	for ( list<water_splash*>::const_iterator it = water_splashs.begin ();
@@ -1260,7 +1271,8 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	{
 		double view_dir = 90.0f - angle ( (*it)->get_pos ().xy () - player->get_pos ().xy () ).value ();
 		glPushMatrix ();
-		glTranslatef ( (*it)->get_pos ().x, (*it)->get_pos ().y, (*it)->get_pos ().z );
+		vector3 pos = (*it)->get_pos();
+		glTranslated(pos.x, pos.y, pos.z);
 		glRotatef ( view_dir, 0.0f, 0.0f, 1.0f );
 		(*it)->display ();
 		glPopMatrix ();
@@ -2038,10 +2050,9 @@ void user_interface::display_freeview(game& gm)
 	vector3 sidestep(viewmatrix[0], viewmatrix[4], viewmatrix[8]);
 	vector3 upward(viewmatrix[1], viewmatrix[5], viewmatrix[9]);
 	vector3 forward(viewmatrix[2], viewmatrix[6], viewmatrix[10]);
-	glTranslatef(-freeviewpos.x, -freeviewpos.y, -freeviewpos.z);
 
 	// draw everything
-	draw_view(gm, player_object->get_pos() + freeviewpos, 0, 0, false, false, true);
+	draw_view(gm, freeviewpos, 0, 0, false, false, true);
 
 	int mx, my;
 	sys.get_mouse_motion(mx, my);

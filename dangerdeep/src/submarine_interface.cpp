@@ -93,7 +93,7 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 			case SDLK_F7: viewmode = display_mode_damagestatus; break;
 			case SDLK_F8: viewmode = display_mode_logbook; break;
 			case SDLK_F9: viewmode = display_mode_successes; break;
-			case SDLK_F10: viewmode = display_mode_freeview; break;
+			case SDLK_F10: viewmode = display_mode_freeview; freeviewpos = player_object->get_pos(); break;
 
 			// time scaling fixme: too simple
 			case SDLK_F11: if (time_scale_up()) { add_message(texts::get(31)); } break;
