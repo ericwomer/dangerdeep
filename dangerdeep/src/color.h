@@ -39,6 +39,9 @@ struct color {
 			(Uint8)(unsigned(a)*unsigned(c.a)/255)
 		);
 	}
+	
+	void store_rgb(Uint8* ptr) const { ptr[0] = r; ptr[1] = g; ptr[2] = b; }
+	void store_rgba(Uint8* ptr) const { ptr[0] = r; ptr[1] = g; ptr[2] = b; ptr[3] = a; }
 
 	// transform color to grey value (model of human vision, 29.9% to 58.7% to 11.4% RGB)
 	color grey_value(void) const { Uint8 c = (Uint8)(r*0.299+g*0.587+b*0.114); return color(c, c, c, a); }

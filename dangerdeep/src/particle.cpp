@@ -140,8 +140,8 @@ vector<Uint8> particle::compute_fire_frame(unsigned wh, const vector<Uint8>& old
 	}
 
 	for (unsigned k = 0; k < 2; ++k) {
-		for (unsigned j = 0; j < wh/10; ++j) {
-			unsigned x = (rand() % (wh-2)) + 1;
+		for (unsigned j = 0; j < wh/4; ++j) {
+			unsigned x = (j < wh*7/32) ? (rand() % (wh/2) + wh/4) : (rand() % (wh-2)) + 1;
 			Uint8 c;
 			if (rand() % 4 == 0)
 				c = 0;
@@ -196,29 +196,30 @@ void particle::init(void)
 	// compute random fire textures here.
 	tex_fire.resize(NR_OF_FIRE_TEXTURES);
 #define FIRE_RES 64
-	vector<Uint8> firepal(256*4);
-	Uint8 fire_r[5] = { 0, 255, 255, 255, 255 };
-	Uint8 fire_g[5] = { 0, 128,   0, 255, 255 };
-	Uint8 fire_b[5] = { 0,  32,   0,   0, 255 };
-	Uint8 fire_a[5] = { 0,  32, 128, 192, 255 };
+	vector<color> firepal(256);
+	color firepal_p[9] = {
+		color(  0,   0,   0,   0),
+		color(255, 128,  32,  16),
+		color(255, 128,  32,  32),
+		color(255,   0,   0,  64),
+		color(255,  64,  32, 128),
+		color(255, 160,  16, 160),		
+		color(255, 255,   0, 192),
+		color(255, 255,  64, 192),
+		color(255, 255, 255, 255)
+	};
 	for (unsigned i = 1; i < 256; ++i) {
-		unsigned j = i / 64;
-		float fac2 = float(i % 64)/64;
-		float fac1 = 1.0f - fac2;
-		firepal[4*i+0] = (Uint8)(fire_r[j] * fac1 + fire_r[j+1] * fac2);
-		firepal[4*i+1] = (Uint8)(fire_g[j] * fac1 + fire_g[j+1] * fac2);
-		firepal[4*i+2] = (Uint8)(fire_b[j] * fac1 + fire_b[j+1] * fac2);
-		firepal[4*i+3] = (Uint8)(fire_a[j] * fac1 + fire_a[j+1] * fac2);
+		unsigned j = i / 32;
+		firepal[i] = color(firepal_p[j], firepal_p[j+1], float(i%32)/32);
 	}
+	firepal[0] = firepal_p[0];
 	vector<Uint8> firetmp(FIRE_RES*FIRE_RES);
 	for (unsigned i = 0; i < NR_OF_FIRE_TEXTURES * 2; ++i) {
 		firetmp = compute_fire_frame(FIRE_RES, firetmp);
 /*
 		vector<Uint8> tmp2(firetmp.size() * 3);
 		for (unsigned j = 0; j < firetmp.size(); ++j) {
-			tmp2[3*j+0] = firepal[4*unsigned(firetmp[j])+0];
-			tmp2[3*j+1] = firepal[4*unsigned(firetmp[j])+1];
-			tmp2[3*j+2] = firepal[4*unsigned(firetmp[j])+2];
+			firepal[firetmp[j]].store_rgb(&tmp2[3*j]);
 		}
 		ostringstream oss;
 		oss << "argh" << i << ".ppm";
@@ -229,20 +230,15 @@ void particle::init(void)
 	}
 	for (unsigned i = 0; i < NR_OF_FIRE_TEXTURES; ++i) {
 		vector<Uint8> tmp(firetmp.size() * 4);
-		for (unsigned j = 0; j < firetmp.size(); ++j) {
-			tmp[4*j+0] = firepal[4*unsigned(firetmp[j])+0];
-			tmp[4*j+1] = firepal[4*unsigned(firetmp[j])+1];
-			tmp[4*j+2] = firepal[4*unsigned(firetmp[j])+2];
-			tmp[4*j+3] = firepal[4*unsigned(firetmp[j])+3];
+		for (unsigned j = 0; j < firetmp.size() - 2 * FIRE_RES; ++j) {
+			firepal[firetmp[j]].store_rgba(&tmp[4*(j + 2*FIRE_RES)]);
 		}
 		tex_fire[i] = new texture(&tmp[0], FIRE_RES, FIRE_RES, GL_RGBA, GL_LINEAR, GL_CLAMP_TO_EDGE, false);
 
 /*
 		vector<Uint8> tmp2(firetmp.size() * 3);
 		for (unsigned j = 0; j < firetmp.size(); ++j) {
-			tmp2[3*j+0] = firepal[4*unsigned(firetmp[j])+0];
-			tmp2[3*j+1] = firepal[4*unsigned(firetmp[j])+1];
-			tmp2[3*j+2] = firepal[4*unsigned(firetmp[j])+2];
+			firepal[firetmp[j]].store_rgb(&tmp2[3*j]);
 		}
 		ostringstream oss;
 		oss << "argh" << NR_OF_FIRE_TEXTURES * 2 + i << ".ppm";
@@ -250,6 +246,7 @@ void particle::init(void)
 		osg << "P6\n" << FIRE_RES << " " << FIRE_RES << "\n255\n";
 		osg.write((const char*)(&tmp2[0]), FIRE_RES*FIRE_RES*3);
 */
+
 		firetmp = compute_fire_frame(FIRE_RES, firetmp);
 	}
 
@@ -491,10 +488,14 @@ fire_particle::fire_particle(const vector3& pos_) : particle(pos_)
 
 void fire_particle::simulate(game& gm, double delta_t)
 {
+	float lf = get_life_time();
+	float l = myfrac(live * lf);
+	if (l - lf * delta_t <= 0) {
+		gm.spawn_particle(new smoke_particle(pos));
+	}
 	particle::simulate(gm, delta_t);
 	if (live <= 0.0f) {
 		live += 1.0f;
-		gm.spawn_particle(new smoke_particle(pos));
 	}
 }
 
