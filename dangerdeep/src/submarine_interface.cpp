@@ -580,3 +580,60 @@ void submarine_interface::play_sound_effect_distance ( sound_effect se, double d
 		s->play ( ( 1.0f - player_object->get_noise_factor () ) * exp ( - distance / h ) );
 	}
 }
+
+void submarine_interface::display_gauges(class system& sys, class game& gm)
+{
+	submarine* player = dynamic_cast<submarine*> ( get_player () );
+	sys.prepare_2d_drawing();
+	set_display_color ( gm );
+	for (int y = 0; y < 3; ++y)	// fixme: replace with gauges
+		for (int x = 0; x < 4; ++x)
+			sys.draw_image(x*256, y*256, 256, 256, psbackgr);
+	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
+	angle player_depth = -player->get_pos().z;
+	draw_gauge(sys, gm, 1, 0, 0, 256, player->get_heading(), TXT_Heading[language]);
+	draw_gauge(sys, gm, 2, 256, 0, 256, player_speed, TXT_Speed[language]);
+	draw_gauge(sys, gm, 4, 2*256, 0, 256, player_depth, TXT_Depth[language]);
+	draw_clock(sys, gm, 3*256, 0, 256, gm.get_time(), TXT_Time[language]);
+	draw_manometer_gauge ( sys, gm, 1, 0, 256, 256, player->get_fuel_level (),
+		TXT_FuelGauge[language] );
+	draw_manometer_gauge ( sys, gm, 1, 256, 256, 256, player->get_battery_level (),
+		TXT_BatteriesGauge[language] );
+	draw_infopanel(sys, gm);
+	sys.unprepare_2d_drawing();
+
+	// mouse handling
+	int mx, my, mb = sys.get_mouse_buttons();
+	sys.get_mouse_position(mx, my);
+
+	if (mb & 1) {
+		int marea = (my/256)*4+(mx/256);
+		int mareax = (mx/256)*256+128;
+		int mareay = (my/256)*256+128;
+		angle mang(vector2(mx - mareax, mareay - my));
+		if ( marea == 0 )
+		{
+			player->head_to_ang(mang, mang.is_cw_nearer(
+				player->get_heading()));
+		}
+		else if ( marea == 1 )
+		{}
+		else if ( marea == 2 )
+		{
+			submarine* sub = dynamic_cast<submarine*> ( player );
+			if ( sub )
+			{
+				sub->dive_to_depth(mang.ui_value());
+			}
+		}
+	}
+
+	// keyboard processing
+	int key = sys.get_key();
+	while (key != 0) {
+		if (!keyboard_common(key, sys, gm)) {
+			// specific keyboard processing
+		}
+		key = sys.get_key();
+	}
+}

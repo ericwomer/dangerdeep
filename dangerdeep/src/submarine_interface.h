@@ -35,6 +35,7 @@ protected:
 		usebow, int x, int y, const submarine::stored_torpedo& st);
 
     // Display functions for screens.
+    virtual void display_gauges(class system& sys, class game& gm);
 	virtual void display_periscope(class system& sys, class game& gm);
 	virtual void display_UZO(class system& sys, class game& gm);
 	virtual void display_torpedoroom(class system& sys, class game& gm);
