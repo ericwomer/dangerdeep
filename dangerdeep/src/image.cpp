@@ -18,6 +18,17 @@ const image* image::cached_object = 0;
 unsigned image::gltx = 0;
 unsigned image::glty = 0;
 vector<texture*> image::textures;
+// fixme: if the program needs to display more than one image as once the cache
+// will get mad and cause a severe slowdown.
+// we need a real cache with aging counter:
+// - cache every that is drawn
+// - each time an image is drawn set its cache timestamp to current time
+// - each time a new object is stored in the cache (or one is drawn), check all time stamps
+//   all images with timestamps older than n seconds are discarded.
+// that way the cache size will increase dramatically, especially if the user switches
+// screens fast causing many images to be created.
+// so limit cache to the size of 2-3 full screen images and offer a clear_cache() function
+// that is called by ui when user changes screens.
 
 
 void image::clear_cache(void)

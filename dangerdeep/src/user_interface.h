@@ -51,6 +51,9 @@ protected:
 	// fixme replace the above with: THE ONE AND ONLY DATA UI SHOULD HAVE
 	vector<user_display*> displays;
 
+	// possible popups
+	//vector<user_popup*> popups;
+
 	// environmental data
 	class sky* mysky;		// the one and only sky
 	class water* mywater;		// the ocean water

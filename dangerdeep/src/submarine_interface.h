@@ -12,6 +12,16 @@ using namespace std;
 #include "user_interface.h"
 #include "color.h"
 
+// pop-ups:
+// can be used in various screens, so they should be stored in submarine_interface
+// each screen states which popups are allowed when they're displayed and where to place
+// the popus.
+// input: every mouse event inside the popup rectangle goes to the popup.
+// only clicks outside go to the screen.
+// should popups receive keyboard messages?
+// if yes then let the popup handle them, and pass unhandled keys to the main screen.
+// popup-concept could also be declared in user_interface
+
 class submarine_interface : public user_interface
 {
 protected:
