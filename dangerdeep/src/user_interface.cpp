@@ -123,12 +123,14 @@ user_interface::~user_interface ()
 
 void user_interface::init ()
 {
+	detail = 5;
+
 	// if the constructors of these classes may ever fail, we should use C++ exceptions.
 	captains_logbook = new captains_logbook_display;
 	ships_sunk_disp = new ships_sunk_display;
 
 	mysky = new sky();
-	mywater = new class water(0.0);
+	mywater = new class water(detail, 0.0);
 }
 
 /* 2003/07/04 idea.
@@ -1202,6 +1204,8 @@ void user_interface::display_freeview(game& gm)
 				case SDLK_KP6: freeviewpos += sidestep * 5; break;
 				case SDLK_KP1: freeviewpos -= upward * 5; break;
 				case SDLK_KP3: freeviewpos += upward * 5; break;
+				case SDLK_KP_MULTIPLY: if (detail < 10) ++detail; mywater = new water(detail, gm.get_time()); break;
+				case SDLK_KP_DIVIDE: if (detail > 3) --detail; mywater = new water(detail, gm.get_time()); break;
 			}
 		}
 		key = sys.get_key().sym;

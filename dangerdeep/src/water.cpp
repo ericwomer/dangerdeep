@@ -25,9 +25,7 @@
 // wavelength 256+,
 #define WAVE_PHASES 256		// no. of phases for wave animation
 #define WAVES_PER_AXIS 8	// no. of waves along x or y axis
-#define FACES_PER_WAVE 64	// resolution of wave model in x/y dir.
-#define LOD_LEVELS 6		// 2^LOD_LEVELS==FACES_PER_WAVE
-#define FACES_PER_AXIS (WAVES_PER_AXIS*FACES_PER_WAVE)
+#define FACES_PER_AXIS (WAVES_PER_AXIS*tile_res)
 #define WAVE_LENGTH 128.0	// in meters, total length of one wave tile
 #define TIDECYCLE_TIME 10.0	// seconds
 #define FOAM_VANISH_FACTOR 0.1	// 1/second until foam goes from 1 to 0.
@@ -37,7 +35,7 @@
 
 
 
-water::water(double tm) : mytime(tm), reflectiontex(0), foamtex(0)
+water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), tile_res(1<<bdetail), reflectiontex(0), foamtex(0)
 {
 	wavetiledisplacements.resize(WAVE_PHASES);
 	wavetileheights.resize(WAVE_PHASES);
@@ -66,8 +64,8 @@ water::water(double tm) : mytime(tm), reflectiontex(0), foamtex(0)
 	foamtex = new texture(get_texture_dir() + "foam.png", GL_LINEAR);//fixme maybe mipmap it
 	
 	// connectivity data is the same for all meshes and thus is reused
-	waveindices.resize(LOD_LEVELS);		// level 0 is minimum detail (4 quads per tile)
-	for (unsigned i = 0; i < LOD_LEVELS; ++i) {
+	waveindices.resize(base_detail);		// level 0 is minimum detail (4 quads per tile)
+	for (unsigned i = 0; i < base_detail; ++i) {
 		unsigned res = (2<<i);
 		waveindices[i].reserve(res*res*4);
 		for (unsigned y = 0; y < res; ++y) {
@@ -82,7 +80,7 @@ water::water(double tm) : mytime(tm), reflectiontex(0), foamtex(0)
 		}
 	}
 
-	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(1,1), 31 /*10*/ /*31*/, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
+	ocean_wave_generator<float> owg(tile_res, vector2f(1,1), 31 /*10*/ /*31*/, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileheights[i] = owg.compute_heights();
@@ -109,11 +107,11 @@ water::water(double tm) : mytime(tm), reflectiontex(0), foamtex(0)
 		glColor3f(1,0,0);
 		glBegin(GL_LINES);
 		fy = 0;
-		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
+		for (unsigned y = 0; y < tile_res; ++y) {
 			float fx = 0;
-			for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
-				glVertex3f(fx*WAVE_LENGTH, fy*WAVE_LENGTH, wavetileh[i][y*FACES_PER_WAVE+x]);
-				glVertex3f(fx*WAVE_LENGTH+4*wavetilen[i][y*FACES_PER_WAVE+x].x, fy*WAVE_LENGTH+4*wavetilen[i][y*FACES_PER_WAVE+x].y, wavetileh[i][y*FACES_PER_WAVE+x]+4*wavetilen[i][y*FACES_PER_WAVE+x].z);
+			for (unsigned x = 0; x < tile_res; ++x) {
+				glVertex3f(fx*WAVE_LENGTH, fy*WAVE_LENGTH, wavetileh[i][y*tile_res+x]);
+				glVertex3f(fx*WAVE_LENGTH+4*wavetilen[i][y*tile_res+x].x, fy*WAVE_LENGTH+4*wavetilen[i][y*tile_res+x].y, wavetileh[i][y*tile_res+x]+4*wavetilen[i][y*tile_res+x].z);
 				fx += add;
 			}
 			fy += add;
@@ -124,11 +122,11 @@ water::water(double tm) : mytime(tm), reflectiontex(0), foamtex(0)
 		glColor3f(0,1,0);
 		glBegin(GL_LINES);
 		fy = 0;
-		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
+		for (unsigned y = 0; y < tile_res; ++y) {
 			float fx = 0;
-			for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
-				glVertex3f(fx*WAVE_LENGTH, fy*WAVE_LENGTH, wavetileh[i][y*FACES_PER_WAVE+x]);
-				glVertex3f(fx*WAVE_LENGTH+4*n2[y*FACES_PER_WAVE+x].x, fy*WAVE_LENGTH+4*n2[y*FACES_PER_WAVE+x].y, wavetileh[i][y*FACES_PER_WAVE+x]+4*n2[y*FACES_PER_WAVE+x].z);
+			for (unsigned x = 0; x < tile_res; ++x) {
+				glVertex3f(fx*WAVE_LENGTH, fy*WAVE_LENGTH, wavetileh[i][y*tile_res+x]);
+				glVertex3f(fx*WAVE_LENGTH+4*n2[y*tile_res+x].x, fy*WAVE_LENGTH+4*n2[y*tile_res+x].y, wavetileh[i][y*tile_res+x]+4*n2[y*tile_res+x].z);
 				fx += add;
 			}
 			fy += add;
@@ -421,9 +419,9 @@ void water::draw_tile(const vector3f& transl, int phase) const
 
 	double meandist = transl.xy().length();
 	float distfac = 560.0f/(meandist + 360.0f);
-	int lodlevel = int(LOD_LEVELS*distfac) - 1;
+	int lodlevel = int(base_detail*distfac) - 1;
 	if (lodlevel < 0) lodlevel = 0;
-	if (lodlevel >= LOD_LEVELS) lodlevel = LOD_LEVELS-1;
+	if (lodlevel >= base_detail) lodlevel = base_detail-1;
 	
 	// use LOD
 	// draw triangle strips or use vertex arrays
@@ -471,6 +469,17 @@ void water::draw_tile(const vector3f& transl, int phase) const
 	// per pixel fake specular lighting: disturb a per vertex lighting with dot3 bump
 	// mapping, maybe linear fresnel (with dot3) is ok for small details?
 	// high frequency waves could be done with perlin noise.
+	
+	// if we could approximate the fresnel term good enough then we could use tex0 for
+	// dot3 computation and tex1 for final result computation -> per pixel fresnel.
+	// maybe with lighting/fog we could add the color.
+	// fresnel approximation is 1/(x+1)^8, ~~ 1-4*x which can be computed with one unit
+	// but its too bad, we need a smoother fall-off for the value, 1-4*x gives a too hard
+	// jump to zero reflection. A quadratic approximation would need unit1, and we need an
+	// add/sub too, this is very difficult...
+	// quadratic approx. is also not good enough.
+	// per pixel fresnel on gf2 could work with register combiners, but is not ATI compatible
+	// no way :-(
 
 // fixme: opengl1.2 has a COLOR MATRIX so colors can get multiplied by a 4x4 matrix before drawing
 // can we use this for anything?
@@ -530,7 +539,7 @@ void water::draw_tile(const vector3f& transl, int phase) const
 	unsigned res = (2 << lodlevel);
 	unsigned resi = res+1;
 	unsigned resd = res-1;
-	unsigned revres = (1 << (LOD_LEVELS-1 - lodlevel));
+	unsigned revres = (1 << (base_detail-1 - lodlevel));
 
 	vector<vector3f> coords;
 	coords.reserve(resi*resi);
@@ -556,12 +565,12 @@ glColor4f(1,1,1,1);
 //L = vector3f(cos(tf),sin(tf),1).normal();
 	float add = float(WAVE_LENGTH)/res;
 	float fy = 0;
-	for (unsigned y = 0; y <= FACES_PER_WAVE; y += revres) {
+	for (unsigned y = 0; y <= tile_res; y += revres) {
 		float fx = 0;
-		unsigned cy = y & (FACES_PER_WAVE-1);
-		for (unsigned x = 0; x <= FACES_PER_WAVE; x += revres) {
-			unsigned cx = x & (FACES_PER_WAVE-1);
-			unsigned ptr = cy*FACES_PER_WAVE+cx;
+		unsigned cy = y & (tile_res-1);
+		for (unsigned x = 0; x <= tile_res; x += revres) {
+			unsigned cx = x & (tile_res-1);
+			unsigned ptr = cy*tile_res+cx;
 			vector3f coord = transl + vector3f(
 				fx + wavetiledisplacements[phase][ptr].x,
 				fy + wavetiledisplacements[phase][ptr].y,
@@ -607,6 +616,7 @@ glColor4f(1,1,1,1);
 			F = F * F;	// ^4
 			F = F * F;	// ^8
 			F = 1.0f/F;
+						
 				// fixme: green/blue depends on slope only? is color of refraction? or fresnel?! read papers!!! fixme
 			uv0.push_back(vector2f(S, F));
 			Uint8 foampart = 255; //(((x*x+1)*(y+3))&7)==0?0:255;//test hack
@@ -689,19 +699,19 @@ float water::get_height(const vector2& pos) const
 {
 	double t = myfrac(mytime/TIDECYCLE_TIME);
 	int wavephase = int(WAVE_PHASES*t);
-	float ffac = FACES_PER_WAVE/WAVE_LENGTH;
+	float ffac = tile_res/WAVE_LENGTH;
 	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
 	float y = float(myfmod(pos.y, WAVE_LENGTH)) * ffac;
 	int ix = int(floor(x));
 	int iy = int(floor(y));
-	int ix2 = (ix+1)%FACES_PER_WAVE;
-	int iy2 = (iy+1)%FACES_PER_WAVE;
+	int ix2 = (ix+1)%tile_res;
+	int iy2 = (iy+1)%tile_res;
 	float fracx = x - ix;
 	float fracy = y - iy;
-	float a = wavetileheights[wavephase][ix+iy*FACES_PER_WAVE];
-	float b = wavetileheights[wavephase][ix2+iy*FACES_PER_WAVE];
-	float c = wavetileheights[wavephase][ix+iy2*FACES_PER_WAVE];
-	float d = wavetileheights[wavephase][ix2+iy2*FACES_PER_WAVE];
+	float a = wavetileheights[wavephase][ix+iy*tile_res];
+	float b = wavetileheights[wavephase][ix2+iy*tile_res];
+	float c = wavetileheights[wavephase][ix+iy2*tile_res];
+	float d = wavetileheights[wavephase][ix2+iy2*tile_res];
 	float e = a * (1.0f-fracx) + b * fracx;
 	float f = c * (1.0f-fracx) + d * fracx;
 	return (1.0f-fracy) * e + fracy * f;
@@ -711,19 +721,19 @@ vector3f water::get_normal(const vector2& pos, double f) const
 {
 	double t = myfrac(mytime/TIDECYCLE_TIME);
 	int wavephase = int(WAVE_PHASES*t);
-	float ffac = FACES_PER_WAVE/WAVE_LENGTH;
+	float ffac = tile_res/WAVE_LENGTH;
 	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
 	float y = float(myfmod(pos.y, WAVE_LENGTH)) * ffac;
 	int ix = int(floor(x));
 	int iy = int(floor(y));
-	int ix2 = (ix+1)%FACES_PER_WAVE;
-	int iy2 = (iy+1)%FACES_PER_WAVE;
+	int ix2 = (ix+1)%tile_res;
+	int iy2 = (iy+1)%tile_res;
 	float fracx = x - ix;
 	float fracy = y - iy;
-	vector3f a = wavetilenormals[wavephase][ix+iy*FACES_PER_WAVE];
-	vector3f b = wavetilenormals[wavephase][ix2+iy*FACES_PER_WAVE];
-	vector3f c = wavetilenormals[wavephase][ix+iy2*FACES_PER_WAVE];
-	vector3f d = wavetilenormals[wavephase][ix2+iy2*FACES_PER_WAVE];
+	vector3f a = wavetilenormals[wavephase][ix+iy*tile_res];
+	vector3f b = wavetilenormals[wavephase][ix2+iy*tile_res];
+	vector3f c = wavetilenormals[wavephase][ix+iy2*tile_res];
+	vector3f d = wavetilenormals[wavephase][ix2+iy2*tile_res];
 	vector3f e = a * (1.0f-fracx) + b * fracx;
 	vector3f g = c * (1.0f-fracx) + d * fracx;
 	vector3f h = e * (1.0f-fracy) + g * fracy;

@@ -20,7 +20,9 @@ class texture;
 class water
 {
 protected:
-	double mytime;					// store global time in seconds
+	double mytime;			// store global time in seconds
+	unsigned base_detail;		// base detail, tile resolution is 2^base_detail
+	unsigned tile_res;		// 2^base_detail = detail resolution
 
 	// precomputed data. Outer array for phases
 	vector<vector<vector2f> > wavetiledisplacements;
@@ -61,7 +63,7 @@ protected:
 	void draw_tile(const vector3f& transl, int phase) const;
 
 public:
-	water(double tm = 0.0);				// give day time in seconds
+	water(unsigned bdetail = 5, double tm = 0.0);	// give day time in seconds
 	void set_time(double tm);
 	~water();
 	void update_foam(double deltat);		// needed for dynamic foam
