@@ -44,9 +44,7 @@ public:
 		material() : tex1(0), bump(0) {}
 		void init(void);
 		~material() { delete tex1; delete bump; }
-#ifndef DONT_USE_OPENGL
 		void set_gl_values(void) const;
-#endif
 	};
 	
 	struct mesh {
@@ -58,20 +56,21 @@ public:
 		vector<unsigned> indices;	// 3 indices per face
 		matrix4f transformation;	// rot., transl., scaling
 		material* mymaterial;
-#ifndef DONT_USE_OPENGL
+		vector3f min, max;
+
 		void display(bool usematerial) const;
-#endif
+		void compute_bounds(void);	
 		void compute_normals(void);
 		bool compute_tangentx(unsigned i0, unsigned i1, unsigned i2);
 
 		mesh(const mesh& m) : name(m.name), vertices(m.vertices), normals(m.normals),
 				      tangentsx(m.tangentsx), texcoords(m.texcoords),
 				      indices(m.indices), transformation(m.transformation),
-				      mymaterial(m.mymaterial) {}
+				      mymaterial(m.mymaterial), min(m.min), max(m.max) {}
 		mesh& operator= (const mesh& m) { name = m.name; vertices = m.vertices;
 			normals = m.normals; tangentsx = m.tangentsx; texcoords = m.texcoords;
 			indices = m.indices; transformation = m.transformation;
-			mymaterial = m.mymaterial; return *this; }
+			mymaterial = m.mymaterial; min = m.min; max = m.max; return *this; }
 		mesh() : transformation(matrix4f::one()), mymaterial(0) {}
 		~mesh() {}
 
@@ -87,9 +86,7 @@ public:
 		string name;
 		vector3f pos;
 		float colr, colg, colb;
-#ifndef DONT_USE_OPENGL
 		void set_gl(unsigned nr_of_light) const;
-#endif
 		light(const light& l) : name(l.name), pos(l.pos),
 					colr(l.colr), colg(l.colg), colb(l.colb) {}
 		light& operator= (const light& l) { name = l.name; pos = l.pos;
@@ -110,7 +107,7 @@ protected:
 
 	vector3f min, max;
 
-	void compute_bounds(void);	
+	void compute_bounds(void);
 	void compute_normals(void);
 	
 	vector<float> cross_sections;	// array over angles
@@ -156,9 +153,7 @@ public:
 
 	model(const string& filename, bool usematerial = true, bool makedisplaylist = true);
 	~model();
-#ifndef DONT_USE_OPENGL
 	void display(void) const;
-#endif
 	mesh& get_mesh(unsigned nr);
 	const mesh& get_mesh(unsigned nr) const;
 	material& get_material(unsigned nr);

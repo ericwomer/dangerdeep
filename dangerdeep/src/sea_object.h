@@ -51,6 +51,26 @@ public:
 		unsigned degy, unsigned miny, double& x, double& y);
 	static void meters2degrees(double x, double y, bool& west, unsigned& degx, unsigned& minx, bool& south,
 		unsigned& degy, unsigned& miny);
+		
+	// each sea_object has some damageable parts.
+	struct damageable_part {
+		string id;		// id of part
+		vector3f p1, p2;	// corners of bounding box around part, p1 < p2
+					// coordinates in absolute values (meters)
+		float strength;		// weakness to shock waves (1.0 = normal, 0.1 very weak), damage factor
+		unsigned repairtime;	// seconds
+		bool surfaced;		// must sub be surfaced to repair this?
+		bool repairable;	// is repairable at sea?
+		bool floodable;		// does part leak when damaged?
+		// variable data
+		float damage;		// 0-1, 1 wrecked, 0 ok
+		double remainingtime;	// time until repair is completed
+		float floodlevel;	// how much water is inside (0-1, part of volume, 1 = full)
+		
+//		damage_data_scheme(const vector3f& a, const vector3f& b, float w, unsigned t, bool s = false, bool r = true) :
+//			p1(a), p2(b), weakness(w), repairtime(t), surfaced(s), repairable(r) {}
+	};
+	
 
 protected:
 	string specfilename;	// filename for specification .xml file, read from spec file
@@ -118,7 +138,7 @@ public:
 //	virtual bool is_collision(const vector2& pos);
 	// the strength is proportional to damage_status, 0-none, 1-light, 2-medium...
 	virtual bool damage(const vector3& fromwhere, unsigned strength); // returns true if object was destroyed
-	virtual unsigned calc_damage(void) const;	// returns damage in percent (0 means dead)
+	virtual unsigned calc_damage(void) const;	// returns damage in percent (100 means dead)
 	virtual void set_inactive(void);
 	virtual void kill(void);
 	virtual void destroy(void);

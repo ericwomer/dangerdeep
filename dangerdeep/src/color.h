@@ -4,13 +4,11 @@
 #ifndef COLOR_H
 #define COLOR_H
 
-#ifndef DONT_USE_OPENGL
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
 #include <gl.h>
-#endif
 
 #include "binstream.h"
 
@@ -20,10 +18,8 @@ using namespace std;
 struct color {
 	Uint8 r, g, b, a;
 	color(Uint8 r_ = 0, Uint8 g_ = 0, Uint8 b_ = 0, Uint8 a_ = 255) : r(r_), g(g_), b(b_), a(a_) {};
-#ifndef DONT_USE_OPENGL
 	void set_gl_color(void) const { glColor4ub(r, g, b, a); }
 	void set_gl_color(Uint8 alpha) const { glColor4ub(r, g, b, alpha); }
-#endif
 	color(const color& c1, const color &c2, float scal) {
 		r = (Uint8)(c1.r*(1-scal) + c2.r*scal);
 		g = (Uint8)(c1.g*(1-scal) + c2.g*scal);

@@ -19,16 +19,12 @@
 #define isfinite(x) finite(x)
 #endif
 
-#ifndef DONT_USE_OPENGL
 #include "system.h"
 #include "global_data.h"
 #include "oglext/OglExt.h"
-#endif
 #include "matrix4.h"
 
-#ifdef DONT_USE_OPENGL
 string modelpath;
-#endif
 
 int model::mapping = GL_LINEAR_MIPMAP_LINEAR;//GL_NEAREST;
 
@@ -41,9 +37,7 @@ model::model(const string& filename, bool usematerial_, bool makedisplaylist) :
 		extension[e] = ::tolower(extension[e]);
 	st = filename.rfind(PATH_SEPARATOR);
 	string path = (st == string::npos) ? "" : filename.substr(0, st+1);
-#ifdef DONT_USE_OPENGL
 	modelpath = path;
-#endif
 	basename = filename.substr(path.length(),
 				   filename.length()-path.length()-extension.length());
 
@@ -53,11 +47,7 @@ model::model(const string& filename, bool usematerial_, bool makedisplaylist) :
 	} else if (extension == ".off") {
 		read_off_file(filename);
 	} else {
-#ifdef DONT_USE_OPENGL
-		return;
-#else
 		system::sys().myassert(false, "model: unknown extension or file format");
-#endif
 	}
 
 	read_cs_file(filename);	// try to read cross section file
@@ -65,7 +55,6 @@ model::model(const string& filename, bool usematerial_, bool makedisplaylist) :
 	compute_bounds();
 	compute_normals();
 
-#ifndef DONT_USE_OPENGL
 	if (makedisplaylist) {
 		// fixme: determine automatically if we can make one (bump mapping
 		// without vertex shaders means that we can't compile a list!)
@@ -77,14 +66,11 @@ model::model(const string& filename, bool usematerial_, bool makedisplaylist) :
 		glEndList();
 		display_list = dl;
 	}
-#endif
 }
 
 model::~model()
 {
-#ifndef DONT_USE_OPENGL
 	glDeleteLists(display_list, 1);
-#endif
 	for (vector<model::material*>::iterator it = materials.begin(); it != materials.end(); ++it)
 		delete *it;
 }
@@ -92,13 +78,14 @@ model::~model()
 void model::compute_bounds(void)
 {
 	if (meshes.size() == 0) return;
-	min = max = meshes[0].vertices[0];
+	meshes[0].compute_bounds();
+	min = meshes[0].min;
+	max = meshes[0].max;
 
-	for (vector<model::mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
-		for (vector<vector3f>::iterator it2 = it->vertices.begin(); it2 != it->vertices.end(); ++it2) {
-			min = it2->min(min);
-			max = it2->max(max);
-		}
+	for (vector<model::mesh>::iterator it = ++meshes.begin(); it != meshes.end(); ++it) {
+		it->compute_bounds();
+		min = it->min.min(min);
+		max = it->max.max(max);
 	}
 }
 
@@ -106,6 +93,17 @@ void model::compute_normals(void)
 {
 	for (vector<model::mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
 		it->compute_normals();
+	}
+}
+
+void model::mesh::compute_bounds(void)
+{
+	if (vertices.size() == 0) return;
+	min = max = vertices[0];
+
+	for (vector<vector3f>::iterator it2 = ++vertices.begin(); it2 != vertices.end(); ++it2) {
+		min = it2->min(min);
+		max = it2->max(max);
 	}
 }
 
@@ -350,12 +348,7 @@ void model::material::map::init(int mapping)
 	delete mytexture;
 	mytexture = 0;
 	if (filename.length() > 0) {
-//cout << "object has texture '" << filename << "' mapping " << model::mapping << "\n";
-#ifdef DONT_USE_OPENGL
-		mytexture = new texture(modelpath + filename, GL_LINEAR, GL_REPEAT, true);
-#else
 		mytexture = new texture(get_texture_dir() + filename, mapping);
-#endif
 	}
 }
 
@@ -367,7 +360,7 @@ void model::material::init(void)
 	if (bump) bump->init(GL_LINEAR_MIPMAP_LINEAR);//fixme: what is best mapping for bump maps?
 }
 
-#ifndef DONT_USE_OPENGL
+
 void model::material::set_gl_values(void) const
 {
 	diffuse.set_gl_color();
@@ -541,7 +534,6 @@ void model::display(void) const
 	glColor4f(1,1,1,1);
 	glMatrixMode(GL_MODELVIEW);
 }
-#endif
 
 model::mesh& model::get_mesh(unsigned nr)
 {
@@ -659,12 +651,7 @@ void model::m3ds_load(const string& fn)
 	ifstream in(fn.c_str(), ios::in | ios::binary);
 	m3ds_chunk head = m3ds_read_chunk(in);
 	if (head.id != M3DS_MAIN3DS) {
-#ifdef DONT_USE_OPENGL
-		cerr << "[model::load_m3ds] Unable to load PRIMARY chuck from file \"" << fn << "\"\n";
-		exit(-1);
-#else
 		system::sys().myassert(false, string("[model::load_m3ds] Unable to load PRIMARY chuck from file \"")+fn+string("\""));
-#endif
 	}
 	m3ds_process_toplevel_chunks(in, head);
 	head.skip(in);
@@ -972,14 +959,7 @@ void model::m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, model::mesh& m)
 		return;
 	}
 
-#ifdef DONT_USE_OPENGL
-	if (nr_uv_coords != m.vertices.size()) {
-		cerr << "number of texture coordinates doesn't match number of vertices\n";
-		exit(-1);
-	}
-#else
 	system::sys().myassert(nr_uv_coords == m.vertices.size(), "number of texture coordinates doesn't match number of vertices");
-#endif
 
 	m.texcoords.clear();
 	m.texcoords.reserve(nr_uv_coords);		
@@ -1017,12 +997,7 @@ void model::m3ds_read_material(istream& in, m3ds_chunk& ch, model::mesh& m)
 			return;
 		}
 	}
-#ifdef DONT_USE_OPENGL
-	cerr << "object has unknown material\n";
-	exit(-1);
-#else
 	system::sys().myassert(false, "object has unknown material");
-#endif
 }		   
 
 // -------------------------------- end of 3ds loading functions -----------------------------------

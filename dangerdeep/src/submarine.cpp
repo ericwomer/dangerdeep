@@ -62,6 +62,10 @@ repair time (not time to pump it dry! instead time to fix leaks, if possible)
 must be surfaced to repair (subs)
 weakness (to explosions, multiplier for damage)
 steps of damage (binary or finer steps)
+variable data:
+amount of damage
+time until repairs finish
+amount of flooding
 
 a part leaks more if the damage is heavier. wrecked parts will flood fastest and can not
 be repaired. the time needed to pump a part dry depends on its volume and the amount
@@ -72,6 +76,8 @@ a part can have two or five statii (binary / variable).
 
 we must know how many pumps a ship has and how much water they can pump outside per second.
 submarine's hull can be damaged independent on amount of flooded water... difficult
+also flooded parts can lead to capsizing, or the ship sinks because the bow or stern dives below
+the waterline although the ship would swim in total.
 */
 
 submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damageable_parts] = {

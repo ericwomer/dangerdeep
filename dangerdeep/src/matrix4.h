@@ -10,13 +10,11 @@
 #undef max
 #endif
 
-#ifndef DONT_USE_OPENGL
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
 #include <gl.h>
-#endif
 
 #ifndef NO_IOSTREAM
 #include <iostream>
@@ -163,7 +161,6 @@ public:
 		return r;
 	}
 
-#ifndef DONT_USE_OPENGL
 	void set_gl(GLenum pname) {		// GL_PROJECTION, GL_MODELVIEW, GL_TEXTURE
 		GLdouble m[16];
 		for (unsigned i = 0; i < 4; ++i)
@@ -201,7 +198,6 @@ public:
 				r.values[j+i*4] = D(m[i+j*4]);
 		return r;
 	}
-#endif
 	
 	static matrix4t<D> rot_x(const D& degrees) {
 		D a = degrees * pi_div_180();

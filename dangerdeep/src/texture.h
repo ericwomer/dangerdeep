@@ -11,22 +11,7 @@
 
 #include <SDL.h>
 
-#ifdef DONT_USE_OPENGL
-#define GL_NEAREST				0x2600
-#define GL_REPEAT				0x2901
-#define GL_CLAMP				0x2900
-#define GL_LINEAR				0x2601
-#define GL_NEAREST_MIPMAP_NEAREST		0x2700
-#define GL_NEAREST_MIPMAP_LINEAR		0x2702
-#define GL_LINEAR_MIPMAP_NEAREST		0x2701
-#define GL_LINEAR_MIPMAP_LINEAR			0x2703
-#define GL_RGB					0x1907
-#define GL_RGBA					0x1908
-#define GL_LUMINANCE				0x1909
-#define GL_LUMINANCE_ALPHA			0x190A
-#else
 #include <gl.h>
-#endif /*DONT_USE_OPENGL*/
 
 #include <vector>
 #include <string>
@@ -69,22 +54,17 @@ public:
 	~texture();
 	
 	// (re)creates OpenGL texture from stored data
-#ifndef DONT_USE_OPENGL
 	void update(void) const;
-#endif
 	int get_format(void) const { return format; }
 	unsigned get_bpp(void) const;
 	vector<Uint8>& get_data(void) { return data; }
 
-#ifndef DONT_USE_OPENGL
 	unsigned get_opengl_name(void) const { return opengl_name; };
 	void set_gl_texture(void) const;
 	string get_name(void) const { return texfilename; };
-#endif
 	unsigned get_width(void) const { return width; };
 	unsigned get_height(void) const { return height; };
 
-#ifndef DONT_USE_OPENGL
 	// 2d drawing must be turned on for this functions
 	void draw(int x, int y) const;
 	void draw_hm(int x, int y) const;	// horizontally mirrored
@@ -103,7 +83,6 @@ public:
 		unsigned tw, unsigned th) const;
 
 	static unsigned get_max_size(void);
-#endif
 };
 
 #endif
