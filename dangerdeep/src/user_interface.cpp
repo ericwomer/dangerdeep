@@ -95,6 +95,54 @@ float user_interface::get_waterheight(float x_, float y_, int wave)	// bilinear 
 void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wavephase,
 	double max_view_dist) const
 {
+#if 0
+#define NRWAV 64
+	glPushMatrix();
+	glRotatef(dir.value(), 0, 0, 1);
+	unsigned nrverts = (NRWAV+1)*(NRWAV+1);
+	vector<GLfloat> verticecoords;
+	vector<GLfloat> texturecoords;
+	verticecoords.reserve(3*nrverts);
+	texturecoords.reserve(2*nrverts);
+	for (int y = 0; y <= NRWAV; ++y) {
+		float yp = viewpos.y + (y-NRWAV/2)*3;
+		float sy = sin(0.2*(yp + wavephase*0.05));
+		for (int x = 0; x <= NRWAV; ++x) {
+			float xp = viewpos.x + (x-NRWAV/2)*3;
+			float sx = sin(0.2*(xp + wavephase*0.05));
+			verticecoords.push_back(xp);
+			verticecoords.push_back(yp);
+			verticecoords.push_back(3.0*sx*sy);
+			texturecoords.push_back(myfmod(xp, 4.0));//*NRWAV)-2.0*NRWAV);
+			texturecoords.push_back(myfmod(yp, 4.0));//*NRWAV)-2.0*NRWAV);
+		}
+	}
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
+	glVertexPointer(3, GL_FLOAT, 0, &verticecoords[0]);
+	glTexCoordPointer(2, GL_FLOAT, 0, &texturecoords[0]);
+
+	glBegin(GL_TRIANGLES);
+	unsigned vn = 0;
+	for (int y = 0; y < NRWAV; ++y) {
+		for (int x = 0; x < NRWAV; ++x) {
+			glArrayElement(vn);
+			glArrayElement(vn+1);
+			glArrayElement(vn+NRWAV+1);
+			glArrayElement(vn+1);
+			glArrayElement(vn+NRWAV+2);
+			glArrayElement(vn+NRWAV+1);
+			++vn;
+		}
+		++vn;
+	}
+	glEnd();
+	
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			
+#else
 #define WAVESX 16	// number of waves per screen scanline
 
 	// fixme: add "moving" water texture
@@ -114,8 +162,8 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 	vector<GLfloat> verticecoords;
 	vector<GLfloat> texturecoords;
 	unsigned verts = (WAVEDEPTH+1)*(WAVESX+1);
-	verticecoords.reserve(3*verts+2);
-	texturecoords.reserve(2*verts+2);
+	verticecoords.reserve(3*verts);
+	texturecoords.reserve(2*verts);
 	double texscalefac = 1.0/double(4*WAVESIZE);
 	double zdist = 0;
 	vector2 viewpostexoff;	// part of viewpos that is not used for wave texture
@@ -216,6 +264,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 	
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#endif	
 }
 
 void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
@@ -249,7 +298,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	skycol2 = color(color(0, 0, 16), color(74,114,236), colscal);
 
 	// compute light source position and brightness
-	GLfloat lambient[4] = {lightcol.r/255.0/2.0, lightcol.g/255.0/2.0, lightcol.b/255.0/2.0, 1};
+	GLfloat lambient[4] = {0.2, 0.2, 0.2, 1};//lightcol.r/255.0/2.0, lightcol.g/255.0/2.0, lightcol.b/255.0/2.0, 1};
 	GLfloat ldiffuse[4] = {lightcol.r/255.0, lightcol.g/255.0, lightcol.b/255.0, 1};
 	GLfloat lposition[4] = {0,0,1,0};	//fixed for now. fixme
 	glLightfv(GL_LIGHT1, GL_AMBIENT, lambient);

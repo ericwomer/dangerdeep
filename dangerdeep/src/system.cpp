@@ -81,7 +81,7 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	glEnable(GL_BLEND);
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
-	glEnable(GL_COLOR_MATERIAL);
+	glEnable(GL_COLOR_MATERIAL);//fixme: this is not really needed. just used for ambient color. could be done better
 	glColor3f(1, 1, 1);
 	
 	// Screen resize
