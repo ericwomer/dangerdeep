@@ -30,6 +30,7 @@ class parser;
 class sea_object;
 class water_splash;
 class network_connection;
+class user_interface;
 
 #include "submarine.h"
 #include "convoy.h"
@@ -54,12 +55,12 @@ class network_connection;
 
 /* fixme 2004/02/22
  add functions for:
- receive commands from net and execute them
- get commands from interface, send them and execute them
- send event commands: spawn/hit/kill
+ receive commands from net and execute them OK!
+ get commands from interface, send them and execute them OK!
+ send event commands: spawn/hit/kill MISSING!
  move command interface of objects to protected and declare game as friend?
  this would help in finding unallowed direct accesses from interface to sea_objects
- other way: make "sea_object*" in user_interface to "const sea_object*",
+ other way: make "sea_object*" in user_interface to "const sea_object*", NOT POSSIBLE WITHOUT STATIC CAST (CONST TO NON CONST)
  but this collides with command() parameter format (which can't be const)
  game::time_faster/slower are also commands!
 */
@@ -125,7 +126,7 @@ protected:
 	
 	// the player and matching ui (note that playing is not limited to submarines!)
 	sea_object* player;
-	class user_interface* ui;
+	user_interface* ui;	// can be zero, is set from game's owner
 
 	list<sink_record> sunken_ships;
 	
@@ -190,6 +191,9 @@ public:
 		@return depth factor
 	*/
 	virtual double get_depth_factor ( const vector3& sub ) const;
+	
+	sea_object* get_player(void) const { return player; }
+	void set_user_interface(user_interface* ui_) { ui = ui_; }
 
 	// compute visibility data
 	// fixme: gcc3.2+ optimizes return values that are complex data types.

@@ -76,7 +76,7 @@ protected:
 
 	user_interface& operator= (const user_interface& other);
 	user_interface(const user_interface& other);
-	user_interface(sea_object* player, game& gm);
+	user_interface(sea_object* player, game& gm);//why not store reference to game? fixme
 
 	texture* water_bumpmaps[WATER_BUMP_FRAMES];
 	
@@ -161,6 +161,9 @@ protected:
 public:	
 	virtual ~user_interface();
 	virtual void display(game& gm) = 0;
+
+	// create ui matching to player type (requested from game)
+	static user_interface* create(game& gm);
 
 	// helper functions
 	void update_foam(double deltat);

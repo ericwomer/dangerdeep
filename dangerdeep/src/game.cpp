@@ -97,6 +97,7 @@ game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned t
 ***********************************************************************/	
 	networktype = 0;
 	servercon = 0;
+	ui = 0;
 
 	time = 86400*500;	// fixme random dependent of period
 	
@@ -153,7 +154,6 @@ game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned t
 		spawn_submarine(sub);
 	}
 	player = psub;
-	ui = new submarine_interface(psub, *this);
 
 	running = true;
 	last_trail_time = time - TRAILTIME;
@@ -180,26 +180,20 @@ game::game(parser& p) : running(true), time(0)
 			case TKN_SUBMARINE: {
 				submarine* sub = submarine::create(p);
 				spawn_submarine(sub);
-				if (nextisplayer) {
+				if (nextisplayer)
 					player = sub;
-					ui = new submarine_interface(sub, *this);
-				}
 				break; }
 			case TKN_SHIP: {
 				ship* shp = ship::create(p);
 				spawn_ship(shp);
-				if (nextisplayer) {
+				if (nextisplayer)
 					player = shp;
-					ui = new ship_interface(shp, *this);
-				}
 				break; }
 			case TKN_AIRPLANE: {
 				airplane* apl = airplane::create(p);
 				spawn_airplane(apl);
-				if (nextisplayer) {
+				if (nextisplayer)
 					player = apl;
-					ui = new airplane_interface(apl, *this);
-				}
 				break; }
 			case TKN_CONVOY: {
 				convoy* cv = new convoy(*this, p);
@@ -250,7 +244,6 @@ game::~game()
 		delete (*it);
 	for (list<convoy*>::iterator it = convoys.begin(); it != convoys.end(); ++it)
 		delete (*it);
-	delete ui;
 	for (list<pair<double, job*> >::iterator it = jobs.begin(); it != jobs.end(); ++it)
 		delete it->second;
 }
@@ -269,6 +262,7 @@ game::game(const string& savefilename)
 {
 	networktype = 0;
 	servercon = 0;	//fixme maybe move to load_from_stream? to allow loading network games?
+	ui = 0;
 
 cout<<"loading game...\n";
 	ifstream in(savefilename.c_str(), ios::in|ios::binary);
@@ -282,6 +276,7 @@ game::game(istream& in)
 {
 	networktype = 0;
 	servercon = 0;	//fixme maybe move to load_from_stream? to allow loading network games?
+	ui = 0;
 	load_from_stream(in);
 }
 
@@ -382,7 +377,6 @@ void game::save_to_stream(ostream& out) const
 
 void game::load_from_stream(istream& in)
 {
-//fixme: sometimes ui is 0 when loading (save, return to game, load again)
 	int versionnr = read_i32(in);
 	if (versionnr != SAVEVERSION) system::sys().myassert(false, "invalid save game version");
 	int gametype = read_i32(in);
@@ -437,15 +431,12 @@ void game::load_from_stream(istream& in)
 	if (playertype == 0) {
 		ship* s = read_ship(in);
 		player = s;
-		ui = new ship_interface(s, *this);	// fixme: move to load(), dirty hack
 	} else if (playertype == 1) {
 		submarine* s = read_submarine(in);
 		player = s;
-		ui = new submarine_interface(s, *this);	// fixme: move to load(), dirty hack
 	} else if (playertype == 2) {
 		airplane* a = read_airplane(in);
 		player = a;
-		ui = new airplane_interface(a, *this);	// fixme: move to load(), dirty hack
 	} else {
 		system::sys().myassert(false, "savegame error: player is no sub or ship");
 	}
@@ -880,7 +871,7 @@ void game::spawn_gun_shell(gun_shell* s)
 
 void game::spawn_depth_charge(depth_charge* dc)
 {
-	ui->add_message(texts::get(205));	// fixme: only if player is near enough
+	if (ui) ui->add_message(texts::get(205));	// fixme: only if player is near enough
 	depth_charges.push_back(dc);
 }
 
@@ -911,7 +902,7 @@ void game::dc_explosion(const depth_charge& dc)
 			// play detonation sound, volume depends on distance
 		}
 	}
-	ui->add_message(texts::get(204));	// fixme: only when player is near enough
+	if (ui) ui->add_message(texts::get(204));	// fixme: only when player is near enough
 }
 
 bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
@@ -946,17 +937,17 @@ bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 void game::torp_explode(const vector3& pos)
 {
 	spawn_water_splash ( new torpedo_water_splash ( pos ) );
-	ui->play_sound_effect_distance ( ui->se_torpedo_detonation,
+	if (ui) ui->play_sound_effect_distance ( ui->se_torpedo_detonation,
 		player->get_pos ().distance ( pos ) );
 }
 
 void game::ship_sunk( const ship* s )
 {
-	ui->add_message ( texts::get(83) );
+	if (ui) ui->add_message ( texts::get(83) );
 	ostringstream oss;
 	oss << texts::get(83) << " " << s->get_description ( 2 );
-	ui->add_captains_log_entry( *this, oss.str () );
-	ui->record_sunk_ship ( s );
+	if (ui) ui->add_captains_log_entry( *this, oss.str () );
+	if (ui) ui->record_sunk_ship ( s );
 	date d;
 	::get_date(time, d);
 	sunken_ships.push_back(sink_record(d, s->get_description(2),
@@ -1051,7 +1042,7 @@ ship* game::check_unit_list ( torpedo* t, list<_C>& unit_list )
 bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 {
 	if (failure) {
-		ui->add_message(texts::get(60));
+		if (ui) ui->add_message(texts::get(60));
 		return true;
 	}
 
@@ -1062,7 +1053,7 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 
 	if ( s ) {
 		if (runlengthfailure) {
-			ui->add_message(texts::get(59));
+			if (ui) ui->add_message(texts::get(59));
 		} else {
 		// Only ships that are alive or defunct can be sunk. Already sinking
 		// or destroyed ships cannot be destroyed again.
@@ -1300,6 +1291,7 @@ ship* game::sonar_acoustical_torpedo_target ( const torpedo* o )
 }
 
 // main play loop
+// fixme: a bit misplaced here, especially after ui was moved away from game
 unsigned game::exec(void)
 {
 	class system& sys = system::sys();
@@ -1313,6 +1305,7 @@ unsigned game::exec(void)
 	stopexec = false;
 	
 	// draw one initial frame
+	system::sys().myassert(ui != 0, "game::exec() called for a game without an user_interface");
 	ui->display(*this);
 	
 	while (running && !stopexec) {

@@ -45,6 +45,7 @@
 #include "widget.h"
 #include "filehelper.h"
 #include "highscorelist.h"
+#include "user_interface.h"
 
 class system* sys;
 int res_x, res_y;
@@ -107,9 +108,10 @@ class loadsavequit_dialogue : public widget
 	widget_edit* gamename;
 	widget_list* gamelist;
 	widget_button *btnload, *btnsave, *btndel, *btnquit, *btncancel;
-	game* mygame;
+	const game* mygame;
 	bool gamesaved;
 	map<string, string> savegames;
+	string gamefilename_to_load;
 	void load(void);
 	void save(void);
 	void erase(void);
@@ -118,13 +120,13 @@ class loadsavequit_dialogue : public widget
 	void update_list(void);
 
 public:	
-	game* get_game(void) const { return mygame; }
+	string get_gamefilename_to_load(void) const { return gamefilename_to_load; }
 	widget_edit* get_gamename(void) const { return gamename; }
-	loadsavequit_dialogue(game* g);	// give 0 to disable saving
+	loadsavequit_dialogue(const game* g);	// give 0 to disable saving
 	~loadsavequit_dialogue() {};
 };
 
-loadsavequit_dialogue::loadsavequit_dialogue(game *g) : widget(0, 0, 1024, 768, texts::get(177), 0, depthchargeimg), mygame(g), gamesaved(false)
+loadsavequit_dialogue::loadsavequit_dialogue(const game *g) : widget(0, 0, 1024, 768, texts::get(177), 0, depthchargeimg), mygame(g), gamesaved(false)
 {
 	add_child(new widget_text(40, 40, 0, 0, texts::get(178)));
 	gamename = new widget_edit(200, 40, 684, 40, "");
@@ -157,9 +159,8 @@ loadsavequit_dialogue::loadsavequit_dialogue(game *g) : widget(0, 0, 1024, 768, 
 
 void loadsavequit_dialogue::load(void)
 {
+	gamefilename_to_load = get_savegame_name_for(gamename->get_text(), savegames);
 	//fixme: ask: replace this game?
-	delete mygame;
-	mygame = new game(get_savegame_name_for(gamename->get_text(), savegames));
 	widget* w = create_dialogue_ok(texts::get(185), texts::get(180) + gamename->get_text() + texts::get(181));
 	w->run();
 	delete w;
@@ -331,8 +332,10 @@ void run_game(game* gm)
 	widget::theme* gametheme =
 		new widget::theme("widgetelements_game.png", "widgeticons_game.png",
 		font_panel /* font_arial */, color(224,224,224), color(180, 180, 255), color(64,64,64));
+	user_interface* ui = user_interface::create(*gm);
 	while (true) {
 		widget::theme* tmp = widget::replace_theme(gametheme);
+		gm->set_user_interface(ui);
 		unsigned state = gm->exec();
 		widget::replace_theme(tmp);
 		
@@ -347,6 +350,14 @@ void run_game(game* gm)
 		} else {
 			loadsavequit_dialogue dlg(gm);
 			int q = dlg.run();
+			// replace game and ui if new game was loaded
+			if (q == 2) {
+				delete gm;
+				delete ui;
+				gm = new game(dlg.get_gamefilename_to_load());
+				ui = user_interface::create(*gm);
+			}
+			//replace ui after loading!!!!
 			if (q == 1)
 				break;
 		}
@@ -355,6 +366,8 @@ void run_game(game* gm)
 	delete gametheme;
 	show_results_for_game(gm);
 	check_for_highscore(gm);
+	gm->set_user_interface(0);
+	delete ui;
 	delete gm;
 }
 
@@ -456,7 +469,7 @@ void choose_saved_game(void)
 	int q = dlg.run();
 	if (q == 0) return;
 	if (q == 2) {
-		run_game(dlg.get_game());
+		run_game(new game(dlg.get_gamefilename_to_load()));
 	}
 }
 
