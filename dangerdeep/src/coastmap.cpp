@@ -149,6 +149,8 @@ void coastsegment::cacheentry::push_back_point(const vector2f& p)
 
 
 
+// fixme: 2004/05/29
+// this code has to be reviewed again. remove bugs, check "dist_to_corner" usage etc.
 float gmd=1e30;
 void coastsegment::generate_point_cache(const class coastmap& cm, const vector2f& roff, int detail) const
 {
@@ -240,6 +242,30 @@ if(d <= 0.01f)cout<<"fault: "<<d<<","<<m<<","<<(m+1)%ce.points.size()<<"\n";
 
 
 //			cout << "compute triang for segment " << this << "\n";
+			
+			// fixme: 2004/05/30:
+			// the remaining triangulation bugs have two reasons:
+			// 1. double points (hack-fix with this code)
+			// 2. "flat" polygons (degenerated), which can't be triangulated
+			// we have 11 failed triangulations and with double point removal
+			// only 6, all degenerated polygon cases.
+			// this gives a clue to fix the triangulation problems finally...
+			// check which segment fails to triangulate and check the map
+			// image what case it is.
+			// first case: north of iceland: the coastline lies exactly on a
+			// segment border!!!
+			cout << "segment no: " << (this - &cm.coastsegments[0]) << "\n";
+			unsigned dbl = 0;
+			for (unsigned i = 0; i + 1 < ce.points.size(); ++i) {
+				unsigned j = i+1;
+				if (ce.points[j].square_distance(ce.points[i]) < 0.1f) {
+					ce.points.erase(ce.points.begin()+j);
+					--i;
+					++dbl;
+				}
+			}
+			if (dbl > 0) cout << "erased " << dbl << " double points!\n";
+			
 			ce.indices = triangulate::compute(ce.points);
 			pointcache.push_back(ce);
 		}
@@ -745,6 +771,8 @@ void coastmap::divide_and_distribute_cl(const coastline& cl, unsigned clnr, int 
 	scl.endborder = endb;
 	scl.cyclic = sameseg;	// fixme: not always true. cl's beginning at the map border
 				// and ending there don't need to be cyclic!
+				// real value: scl is cyclic IF sameseg is true AND the parent
+				// of scl (scl.mapclnr) is cylic.
 	coastsegments[seg].segcls.push_back(scl);
 }
 
