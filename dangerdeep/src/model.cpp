@@ -211,6 +211,132 @@ void model::mesh::write_off_file(const string& fn) const
 
 
 
+pair<model::mesh, model::mesh> model::mesh::split(const vector3f& abc, float d) const
+{
+	model::mesh part0, part1;
+	part0.name = name + "_part0";
+	part1.name = name + "_part1";
+	part0.transformation = part1.transformation = transformation;
+	part0.mymaterial = part1.mymaterial = mymaterial;
+	part0.vertices.reserve(vertices.size()/2);
+	part1.vertices.reserve(vertices.size()/2);
+	part0.texcoords.reserve(texcoords.size()/2);
+	part1.texcoords.reserve(texcoords.size()/2);
+	part0.normals.reserve(normals.size()/2);
+	part1.normals.reserve(normals.size()/2);
+	part0.tangentsx.reserve(tangentsx.size()/2);
+	part1.tangentsx.reserve(tangentsx.size()/2);
+	part0.indices.reserve(indices.size()/2);
+	part1.indices.reserve(indices.size()/2);
+
+	// determine on which side the vertices are
+	vector<float> dists(vertices.size());
+	vector<unsigned> ixtrans(vertices.size());
+	for (unsigned i = 0; i < vertices.size(); ++i) {
+		dists[i] = vertices[i] * abc + d;
+		if (dists[i] >= 0) {
+			ixtrans[i] = part0.vertices.size();
+			part0.vertices.push_back(vertices[i]);
+			if (texcoords.size() > 0) part0.texcoords.push_back(texcoords[i]);
+			if (normals.size() > 0) part0.normals.push_back(normals[i]);
+			if (tangentsx.size() > 0) part0.tangentsx.push_back(tangentsx[i]);
+		} else {
+			ixtrans[i] = part1.vertices.size();
+			part1.vertices.push_back(vertices[i]);
+			if (texcoords.size() > 0) part1.texcoords.push_back(texcoords[i]);
+			if (normals.size() > 0) part1.normals.push_back(normals[i]);
+			if (tangentsx.size() > 0) part1.tangentsx.push_back(tangentsx[i]);
+		}
+	}
+
+	// now loop over all faces and split them
+	for (unsigned i = 0; i < indices.size(); i += 3) {
+		unsigned ix[3];
+		float ds[3];
+		for (unsigned j = 0; j < 3; ++j) {
+			ix[j] = indices[i+j];
+			ds[j] = dists[ix[j]];
+		}
+
+		// check for faces completly on one side
+		if (ds[0] >= 0 && ds[1] >= 0 && ds[2] >= 0) {
+			part0.indices.push_back(ixtrans[ix[0]]);
+			part0.indices.push_back(ixtrans[ix[1]]);
+			part0.indices.push_back(ixtrans[ix[2]]);
+			continue;
+		}
+		if (ds[0] < 0 && ds[1] < 0 && ds[2] < 0) {
+			part1.indices.push_back(ixtrans[ix[0]]);
+			part1.indices.push_back(ixtrans[ix[1]]);
+			part1.indices.push_back(ixtrans[ix[2]]);
+			continue;
+		}
+
+		// face needs to get splitted
+		unsigned p0v = part0.vertices.size();
+		unsigned p1v = part1.vertices.size();
+		unsigned splitptr = 0;
+		unsigned newindi0[4];	// at most 4 indices
+		unsigned newindi0ptr = 0;
+		unsigned newindi1[4];	// at most 4 indices
+		unsigned newindi1ptr = 0;
+		unsigned next[3] = { 1, 2, 0 };
+		for (unsigned j = 0; j < 3; ++j) {
+			float d0 = ds[j], d1 = ds[next[j]];
+			if (d0 >= 0)
+				newindi0[newindi0ptr++] = ixtrans[ix[j]];
+			else
+				newindi1[newindi1ptr++] = ixtrans[ix[j]];
+			if (d0 * d1 >= 0) continue;
+			newindi0[newindi0ptr++] = p0v+splitptr;
+			newindi1[newindi1ptr++] = p1v+splitptr;
+			float fac = fabs(d0) / (fabs(d0) + fabs(d1));
+			vector3f newv = vertices[ix[j]] * (1 - fac) + vertices[ix[next[j]]] * fac;
+			part0.vertices.push_back(newv);
+			part1.vertices.push_back(newv);
+			if (texcoords.size() > 0) {
+				vector2f newtexc = texcoords[ix[j]] * (1 - fac) + texcoords[ix[next[j]]] * fac;
+				part0.texcoords.push_back(newtexc);
+				part1.texcoords.push_back(newtexc);
+			}
+			if (normals.size() > 0) {
+				vector3f newnorm = (normals[ix[j]] * (1 - fac) + normals[ix[next[j]]] * fac).normal();
+				part0.normals.push_back(newnorm);
+				part1.normals.push_back(newnorm);
+			}
+			if (tangentsx.size() > 0) {
+				vector3f newtanx = (tangentsx[ix[j]] * (1 - fac) + tangentsx[ix[next[j]]] * fac).normal();
+				part0.tangentsx.push_back(newtanx);
+				part1.tangentsx.push_back(newtanx);
+			}
+			++splitptr;
+		}
+		system::sys().myassert(splitptr == 2, "splitptr != 2 ?!");
+		// add indices to parts.
+		part0.indices.push_back(newindi0[0]);
+		part0.indices.push_back(newindi0[1]);
+		part0.indices.push_back(newindi0[2]);
+		if (newindi0ptr == 4) {
+			part0.indices.push_back(newindi0[0]);
+			part0.indices.push_back(newindi0[2]);
+			part0.indices.push_back(newindi0[3]);
+		}
+		part1.indices.push_back(newindi1[0]);
+		part1.indices.push_back(newindi1[1]);
+		part1.indices.push_back(newindi1[2]);
+		if (newindi1ptr == 4) {
+			part1.indices.push_back(newindi1[0]);
+			part1.indices.push_back(newindi1[2]);
+			part1.indices.push_back(newindi1[3]);
+		}
+		system::sys().myassert((newindi0ptr == 3 || newindi1ptr == 3) && (newindi0ptr + newindi1ptr == 7), "newindi ptr corrupt!");
+	}
+
+	return make_pair(part0, part1);
+}
+
+
+
 void model::material::map::init(int mapping)
 {
 	delete mytexture;

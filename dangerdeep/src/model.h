@@ -78,6 +78,9 @@ public:
 		// transform vertices by matrix
 		void transform(const matrix4f& m);
 		void write_off_file(const string& fn) const;
+
+		// give plane equation (abc must have length 1)
+		pair<mesh, mesh> split(const vector3f& abc, float d) const;
 	};
 
 	struct light {

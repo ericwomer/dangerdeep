@@ -72,6 +72,15 @@ void view_model(const string& modelfilename)
 		if (key == SDLK_KP2) pos.y += 1.0;
 		if (key == SDLK_KP1) pos.z -= 1.0;
 		if (key == SDLK_KP3) pos.z += 1.0;
+		
+		if (key == SDLK_s) {
+			pair<model::mesh, model::mesh> parts = mdl->get_mesh(0).split(vector3f(0,1,0), -1);
+			parts.first.transform(matrix4f::trans(0, 30, 50));
+			parts.second.transform(matrix4f::trans(0, -30, 50));
+			mdl->add_mesh(parts.first);
+			mdl->add_mesh(parts.second);
+		}
+		
 		int mx, my;
 		sys->get_mouse_motion(mx, my);
 		if (mb & 1) {
