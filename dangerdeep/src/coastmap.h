@@ -15,23 +15,22 @@ using namespace std;
 
 
 struct coastline {
-	vector<vector2i> points;// points in map coordinates (pixels)
-	vector<vector2f> pointsf;// points in map coordinates (real)	// fixme: copy c'tor!
+	vector<vector2f> points;// points in map coordinates (real)
 
-	bool cyclic;		// is cyclic, that means an island?	// fixme: copy c'tor!
+	bool cyclic;		// is cyclic, that means an island?
 	
 	int beginborder;	// 0-3, top,right,bottom,left of segment (clockwise), -1 = (part of an) island
 	int endborder;		// dito
 
-	coastline() : beginborder(-1), endborder(-1) {}	
+	coastline() : cyclic(false), beginborder(-1), endborder(-1) {}	
 	~coastline() {}
-	coastline(const coastline& o) : points(o.points), beginborder(o.beginborder), endborder(o.endborder) {}
-	coastline& operator= (const coastline& o) { points = o.points; beginborder = o.beginborder; endborder = o.endborder; return *this; }
+	coastline(const coastline& o) : points(o.points), cyclic(o.cyclic), beginborder(o.beginborder), endborder(o.endborder) {}
+	coastline& operator= (const coastline& o) { points = o.points; cyclic = o.cyclic; beginborder = o.beginborder; endborder = o.endborder; return *this; }
 
 	// create vector of real points, detail can be > 0 (additional detail with bspline
 	// interpolation) or even < 0 (reduced detail)
 	// create points between startt and endt with 0<=t<points.size()
-	vector<vector2f> create_points(unsigned start, unsigned endt, /*const vector2f& offset, float pixelw_real,*/ int detail = 0) const;
+	vector<vector2f> create_points(unsigned start, unsigned endt, int detail = 0) const;
 	void draw_as_map(const vector2f& off, float size, const vector2f& t, const vector2f& ts, int detail = 0) const;
 	void render(const vector2& p, int detail = 0) const;
 };
@@ -98,7 +97,7 @@ class coastmap
 
 	// very fast integer clamping (no branch needed, only for 32bit signed integers!)
 	Sint32 clamp_zero(Sint32 x) { return x & ~(x >> 31); }
-	unsigned find_seg_for_point(const vector2i& p) const;
+	unsigned find_seg_for_point(const vector2f& p) const;
 	Uint8& mapf(int cx, int cy);
 	bool find_begin_of_coastline(int& x, int& y);
 	bool find_coastline(int x, int y, coastline& cl);

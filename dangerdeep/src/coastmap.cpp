@@ -25,7 +25,7 @@ using namespace std;
 
 
 
-const unsigned BSPLINE_SMOOTH_FACTOR = 8;	// should be 3...16
+const unsigned BSPLINE_SMOOTH_FACTOR = 16;	// should be 3...16
 
 const int coastmap::dmx[4] = { -1, 0, 0, -1 };
 const int coastmap::dmy[4] = { -1, -1, 0, 0 };
@@ -34,7 +34,12 @@ const int coastmap::dy[4] = { -1, 0, 1, 0 };
 
 
 
-vector<vector2f> coastline::create_points(unsigned begint, unsigned endt, /*const vector2f& offset, float pixelw_real,*/ int detail) const
+/* fixme:
+  maybe reuse already generated data: give old point array to. if new detail is higher than
+  old detail, just generate new points (50% computation time saving on increasing the detail),
+  or drop old points with decreasing detail (100% computation time saving).
+*/
+vector<vector2f> coastline::create_points(unsigned begint, unsigned endt, int detail) const
 {
 	double t0 = double(begint)/double(points.size());
 	double t1 = double(endt)/double(points.size());
@@ -46,11 +51,9 @@ vector<vector2f> coastline::create_points(unsigned begint, unsigned endt, /*cons
 	result.reserve(nrpts);
 	double t = t0;
 	for (unsigned n = 0; n < nrpts; ++n) {
-		// fixme: result bspline point must get scaled by pixelw and translated by offset.
-		// fixme this is only needed while creating pointsf.
-		unsigned n = pointsf.size() - 1;
+		unsigned n = points.size() - 1;
 		if (n > BSPLINE_SMOOTH_FACTOR) n = BSPLINE_SMOOTH_FACTOR;
-		result.push_back(bspline_val<vector2f>(t, n, pointsf));
+		result.push_back(bspline_val<vector2f>(t, n, points));
 		t += tstep;
 	}
 	return result;
@@ -61,8 +64,9 @@ vector<vector2f> coastline::create_points(unsigned begint, unsigned endt, /*cons
 void coastline::draw_as_map(const vector2f& off, float size, const vector2f& t, const vector2f& ts, int detail) const
 {
 	// fixme: cache that somehow
-	vector<vector2f> pts = create_points(0, pointsf.size(), detail);
-	
+	vector<vector2f> pts = create_points(0, points.size(), detail);
+
+	// fixme: move calculations to opengl's transform matrix.	
 	glBegin(GL_LINE_STRIP);
 	for (vector<vector2f>::const_iterator it = pts.begin(); it != pts.end(); ++it) {
 		glTexCoord2f(t.x + ts.x * it->x / size, 1.0f - (t.y + ts.y * it->y / size));
@@ -86,7 +90,7 @@ void coastline::draw_as_map(const vector2f& off, float size, const vector2f& t, 
 void coastline::render(const vector2& p, int detail) const
 {
 	// fixme: cache that somehow
-	vector<vector2f> pts = create_points(0, pointsf.size(), detail);
+	vector<vector2f> pts = create_points(0, points.size(), detail);
 	
 	glPushMatrix();
 	glTranslatef(-p.x, -p.y, 0);
@@ -307,9 +311,9 @@ for displaying purposes but should influence the game!
 
 
 
-unsigned coastmap::find_seg_for_point(const vector2i& p) const
+unsigned coastmap::find_seg_for_point(const vector2f& p) const
 {
-	return (p.x/pixels_per_seg)+(p.y/pixels_per_seg)*segsx;
+	return (p.x/(pixelw_real * pixels_per_seg))+(p.y/(pixelw_real * pixels_per_seg))*segsx;
 }
 
 
@@ -385,8 +389,8 @@ bool coastmap::find_coastline(int x, int y, coastline& cl)	// returns true if cl
 	int sx = x, sy = y, j2 = 0, lastj = -1, turncount = 0;
 	while (true) {
 		// store x,y
-		vector2 p(x * pixelw_real, y * pixelw_real);
-		cl.points.push_back(vector2i(x, y)/*p*/);//fixme
+		vector2f p(x * pixelw_real, y * pixelw_real);//fixme add map offset here
+		cl.points.push_back(p);
 
 		assert(x>=0&&y>=0&&x<mapw&&y<maph);
 		mapf(x, y) |= 0x80;
