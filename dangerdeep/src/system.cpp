@@ -32,8 +32,8 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	mouse_y(res*3/8), mouse_b(0), time_passed_while_sleeping(0), sleep_time(0),
 	is_sleeping(false), screenshot_nr(0)
 {
-	myassert(res==640||res==800||res==1024||res==1280||res==512);
-	myassert(!instance);
+	myassert(res==640||res==800||res==1024||res==1280||res==512, "illegal resolution requested");
+	myassert(!instance, "system construction: system instance already exists");
 
 	res_x_2d = res_x;
 	res_y_2d = res_y;
@@ -91,7 +91,7 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 
 system::~system()
 {
-	myassert(instance != 0);
+	myassert(instance != 0, "system destruction: system instance doesn't exist");
 	SDL_Quit();
 	instance = 0;
 }
@@ -173,7 +173,7 @@ void system::write_console(bool fileonly) const
 
 void system::prepare_2d_drawing()
 {
-	myassert(draw_2d == false);
+	myassert(draw_2d == false, "2d drawing already turned on");
 	glFlush();
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
@@ -191,7 +191,7 @@ void system::prepare_2d_drawing()
 
 void system::unprepare_2d_drawing()
 {
-	myassert(draw_2d == true);
+	myassert(draw_2d == true, "2d drawing already turned off");
 	glFlush();
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
