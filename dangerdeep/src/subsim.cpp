@@ -54,6 +54,23 @@ void menu_convoy_battle(void)
 	mi.add_switch(TXT_subXXI[language]);
 	mi.set_switch_nr(0);
 	m.add_item(mi);
+	menu::item mi2(TXT_Selectconvoysize[language]);
+	mi2.add_switch(TXT_small[language]);
+	mi2.add_switch(TXT_medium[language]);
+	mi2.add_switch(TXT_large[language]);
+	m.add_item(mi2);
+	menu::item mi3(TXT_Selectconvoyescort[language]);
+	mi3.add_switch(TXT_none[language]);
+	mi3.add_switch(TXT_small[language]);
+	mi3.add_switch(TXT_medium[language]);
+	mi3.add_switch(TXT_large[language]);
+	m.add_item(mi3);
+	menu::item mi4(TXT_Selecttimeofday[language]);
+	mi4.add_switch(TXT_night[language]);
+	mi4.add_switch(TXT_morning[language]);
+	mi4.add_switch(TXT_midday[language]);
+	mi4.add_switch(TXT_evening[language]);
+	m.add_item(mi4);
 	m.add_item(TXT_Startmission[language]);
 	m.add_item(TXT_Returntopreviousmenu[language]);
 
@@ -67,10 +84,10 @@ void menu_convoy_battle(void)
 		int mmsel = m.input(key, 0, 0, 0) & 0xffff;
 		sys->unprepare_2d_drawing();
 		sys->swap_buffers();
-		if (mmsel == 2) break;
+		if (mmsel == 5) break;
 		switch (mmsel & 0xffff) {
 			case 0: break;
-			case 1:	{
+			case 4:	{
 /*			
 				unsigned subtype = m.get_switch_nr(0);
 				// just a test, fixme
