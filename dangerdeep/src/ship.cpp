@@ -150,17 +150,21 @@ ship* ship::create(parser& p)
 
 
 
+void firstchildfailed(TiXmlNode* parent, const string& tagchain)
+{
+	string tagchain2 = tagchain;
+	TiXmlNode* m = parent;
+	while (m != 0) {
+		tagchain2 = m->Value() + string(", ") + tagchain2;
+		m = m->Parent();
+	}
+	system::sys().myassert(false, string("xml tag not found: ") + tagchain2);
+}
 TiXmlNode* firstchild(TiXmlNode* parent)
 {
 	TiXmlNode* n = parent->FirstChild();
 	if (!n) {
-		string tagchain = "FirstChild()";
-		TiXmlNode* m = parent;
-		while (m != 0) {
-			tagchain = m->Value() + string(", ") + tagchain;
-			m = m->Parent();
-		}
-		system::sys().myassert(false, string("xml tag not found: ") + tagchain);
+		firstchildfailed(parent, "FirstChild()");
 		return 0;
 	}
 	return n;
@@ -169,13 +173,7 @@ TiXmlNode* firstchildn(TiXmlNode* parent, const string& childname)
 {
 	TiXmlNode* n = parent->FirstChild(childname);
 	if (!n) {
-		string tagchain = childname;
-		TiXmlNode* m = parent;
-		while (m != 0) {
-			tagchain = m->Value() + string(", ") + tagchain;
-			m = m->Parent();
-		}
-		system::sys().myassert(false, string("xml tag not found: ") + tagchain);
+		firstchildfailed(parent, childname);
 		return 0;
 	}
 	return n;
