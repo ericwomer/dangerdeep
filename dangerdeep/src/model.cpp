@@ -255,7 +255,7 @@ void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent)
 				for (int j = 0; j < 4; ++j) {
 					for (int i = 0; i < 3; ++i) {
 						meshes.back().xformmat[j][i] = read_float(in);
-						cout << "j="<<j<<", i="<<i<<": "<<meshes.back().xformmat[j][i]<<"\n";
+//						cout << "j="<<j<<", i="<<i<<": "<<meshes.back().xformmat[j][i]<<"\n";
 					}
 				}
 /*
@@ -320,7 +320,7 @@ void model::m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, mod
 			case M3DS_MATMAPANG:
 				m->angle = read_float(in);
 				ch.bytes_read += 4;
-			printf("angle %f\n",m->angle);
+//			printf("angle %f\n",m->angle);
 				break;
 		}
 		ch.skip(in);
@@ -332,7 +332,7 @@ model::m3ds_chunk model::m3ds_read_chunk(istream& in)
 {
 	m3ds_chunk c;
 	c.id = read_u16(in);
-printf("read chunk id %x\n", c.id);	
+//printf("read chunk id %x\n", c.id);	
 	c.length = read_u32(in);
 	c.bytes_read = 6;
 	return c;

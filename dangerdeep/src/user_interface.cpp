@@ -357,17 +357,20 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 	glScalef(cls, cls, 1);
 	for (list<coastline>::const_iterator it = coastlines.begin(); it != coastlines.end(); ++it) {
 		glBegin(GL_QUAD_STRIP);
-		vector<vector2f>::const_iterator it2 = --(it->points.end());
+		vector<vector2f>::const_iterator it2 = it->points.begin();
 		glTexCoord2f(0, 0);
 		glVertex3f(it2->x, it2->y, 150);
 		glTexCoord2f(0, 1);
-		glVertex3f(it2->x, it2->y, -10);
+		glVertex3f(it2->x, it2->y, -10);	//fixme use normal here, too
 		float t = 1.0;
-		for (it2 = it->points.begin(); it2 != it->points.end(); ++it2) {
+		for (++it2; it2 != it->points.end(); ++it2) {
+			vector<vector2f>::const_iterator it3 = it2; --it3;
+			vector<vector2f>::const_iterator it4 = it2; ++it4; if (it4 == it->points.end()) it4 = it->points.begin();
+			vector2f n = (*it4 - *it3).orthogonal().normal() * -3.0;
 			glTexCoord2f(t, 1);
 			glVertex3f(it2->x, it2->y, -10);
 			glTexCoord2f(t, 0);
-			glVertex3f(it2->x, it2->y, 150);
+			glVertex3f(it2->x + n.x, it2->y + n.y, 150);
 			t += 1.0;
 		}
 		glEnd();
