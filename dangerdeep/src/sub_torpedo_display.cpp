@@ -349,7 +349,7 @@ void sub_torpedo_display::process_input(class game& gm, const SDL_Event& event)
 		if (event.button.button == SDL_BUTTON_LEFT) {
 			unsigned torptransdst = get_tube_below_mouse(get_tubecoords(sub));
 			if (torptransdst != ILLEGAL_TUBE) {
-				if (torpedoes[torptransdst].status !=
+				if (torpedoes[torptransdst].status ==
 				    submarine::stored_torpedo::st_empty) {
 					gm.send(new command_transfer_torpedo(sub,
 						torptranssrc, torptransdst));
