@@ -54,7 +54,7 @@ protected:
 
 	vector<color> fresnelcolortexd;	// stored for updates of water color
 
-	float last_light_brightness;		// used to determine when new refraction color tex must get computed
+	float last_light_brightness;	// used to determine when new refraction color tex must get computed
 
 	// Arrays used while drawing a tile. To avoid repeated re-alloc, they're here
 	mutable vector<vector3f> coords;

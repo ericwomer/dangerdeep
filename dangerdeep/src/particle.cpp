@@ -104,6 +104,7 @@ vector<Uint8> particle::make_2d_perlin_noise(unsigned wh, unsigned highestlevel)
 		unsigned res = 1<<(highestlevel + i);
 		lookup_maps.push_back(make_2d_smoothed_noise_map(res));
 	}
+
 	// generate result
 	vector<Uint8> result(wh * wh);
 	for (unsigned y = 0; y < wh; ++y) {

@@ -83,13 +83,14 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 	// ******************************** create stars
 	const unsigned nr_of_stars = 2000;
 	stars_pos.reserve(nr_of_stars);
-	stars_lumin.reserve(nr_of_stars*3);
+	stars_lumin.reserve(nr_of_stars*4);
 	for (unsigned i = 0; i < nr_of_stars; ++i) {
 		vector3f p(rnd() * 2.0f - 1.0f, rnd() * 2.0f - 1.0f, rnd());
 		stars_pos.push_back(p.normal());
 		float fl = rnd();
 		fl = 1.0f - fl*fl*fl;
 		Uint8 l = Uint8(255*fl);
+		stars_lumin.push_back(l);
 		stars_lumin.push_back(l);
 		stars_lumin.push_back(l);
 		stars_lumin.push_back(l);
@@ -254,8 +255,6 @@ sky::~sky()
 void sky::setup_textures(void) const
 {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-	glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
 
 	// *********************** set up texture unit 0
 	// skycol (tex0) is blended into previous color
@@ -510,16 +509,23 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 
 	skycolorfac = (sundir.z > 0.5) ? 0.0 : (1.0 - sundir.z * 2);
 
+	// if stars are drawn after the sky, they can appear in front of the sun glow, which is wrong.
+	// sky should be blended into the stars, not vice versa, but then we would have to clear
+	// the back buffer, that takes 2 frames... DST_ALPHA could be used IF sky stores its alpha
+
 	// because the reflection map may have a lower resolution than the screen
 	// we shouldn't draw stars while computing this map. They would appear to big.
 	// in fact star light is to weak for water reflections, isn't it?
 	// fixme: maybe rotate star positions every day a bit? rotate with earth rotation? that would be more realistic/cooler
-	if (!isreflection) {
+	if (isreflection) {
+		// no stars, blend sky into black
+		glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
+	} else {
 		glPushMatrix();
 		glScalef(max_view_dist * 0.95, max_view_dist * 0.95, max_view_dist * 0.95);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glEnableClientState(GL_COLOR_ARRAY);
-	        glColorPointer(3, GL_UNSIGNED_BYTE, 0, &stars_lumin[0]);
+	        glColorPointer(4, GL_UNSIGNED_BYTE, 0, &stars_lumin[0]);
         	glEnableClientState(GL_VERTEX_ARRAY);
 	        glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &stars_pos[0].x);
 		glDrawArrays(GL_POINTS, 0, stars_pos.size());
@@ -556,6 +562,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	color::white().set_gl_color();
 	
 	cleanup_textures();
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glPopMatrix();	// remove scale
 

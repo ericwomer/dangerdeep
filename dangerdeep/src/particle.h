@@ -54,6 +54,8 @@ protected:
 	static vector<float> interpolate_func;
 	static vector<Uint8> make_2d_smoothed_noise_map(unsigned wh);
 	static unsigned interpolate_2d_map(const vector<Uint8>& mp, unsigned res, unsigned x, unsigned y, unsigned res2);
+
+	// 1 <= highest_level <= log2(wh)
 	static vector<Uint8> make_2d_perlin_noise(unsigned wh, unsigned highestlevel);
 	static vector<Uint8> compute_fire_frame(unsigned wh, const vector<Uint8>& oldframe);
 

@@ -244,6 +244,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 #endif
 
 	}
+
 	add_loading_screen("water height data computed");
 }
 
@@ -408,10 +409,11 @@ vector3f water::compute_coord(int phase, const vector3f& xyzpos, const vector2f&
 	// additional detail is taken from same fft values, but that's not very good (similar
 	// pattern is noticeable), so we make a phase shift (maybe some perlin noise values
 	// would be better)
-	int tilefac = 4;
-	int rfac = WAVE_RESOLUTION/tilefac;
-	int ixf = (x0 % tilefac)*rfac + int(rfac * xfrac), iyf = (y0 % tilefac)*rfac + int(rfac * yfrac);
-	float addh = wavetileheights[(phase+WAVE_PHASES/2)%WAVE_PHASES][ixf+iyf*WAVE_RESOLUTION] * (1.0f/rfac);
+	int tilefac = 8;//4;
+	int rfac = WAVE_RESOLUTION /tilefac;
+	int ixf = (x0 & (tilefac-1))*rfac + int(rfac * xfrac);
+	int iyf = (y0 & (tilefac-1))*rfac + int(rfac * yfrac);
+	float addh = wavetileheights[(phase+WAVE_PHASES/2)%WAVE_PHASES][ixf + iyf * WAVE_RESOLUTION] * (1.0f/rfac);
 	coord.z += addh;
 #endif
 	return coord;

@@ -304,10 +304,10 @@ void freeview_display::draw_view(game& gm) const
 	// set up new viewport size s*s with s<=max_texure_size and s<=w,h of old viewport
 	unsigned vps = ui.get_water().get_reflectiontex_size();
 	glViewport(0, 0, vps, vps);
-	// clear depth buffer (fixme: maybe clear color with upwelling color, use a bit alpha)
-	glClearColor(horizon_color[0], horizon_color[1], horizon_color[2], horizon_color[3]);
-//	glClearColor(0, 0, 0, 0);//fixme test, see below
-	glClear(/*GL_COLOR_BUFFER_BIT | */ GL_DEPTH_BUFFER_BIT);
+	// clear depth buffer (not needed for sky drawing, but this color can be seen as mirror
+	// image when looking from below the water surface (scope) fixme: clear color with upwelling color!)
+	glClearColor(0, 1.0f/16, 1.0f/8, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// shear one clip plane to match world space z=0 plane
 	//fixme
@@ -375,7 +375,7 @@ void freeview_display::draw_view(game& gm) const
 
 	glClearColor(0, 0, 0, 0);
 	// this color clear eats ~ 2 frames (52 to 50 on a gf4mx), but is needed for star sky drawing
-	glClear(GL_DEPTH_BUFFER_BIT /*| GL_COLOR_BUFFER_BIT*/);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	// set light! fixme the models are dark now. maybe we have to use the same modelview matrix that we used when creating the initial pos.?!
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
