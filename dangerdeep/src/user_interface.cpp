@@ -827,9 +827,9 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 
-	GLfloat scalefac1 = 2.0f/WAVE_LENGTH;//fixme: what is/was this?
-	GLfloat plane_s1[4] = { 0.0f/*scalefac1*/, 0.0f, 0.0f, 0.0f };
-	GLfloat plane_t1[4] = { 0.0f, 0.0f/*scalefac1*/, 0.0f, 0.0f };
+	GLfloat scalefac1 = 32.0f/WAVE_LENGTH;//fixme: what is/was this?
+	GLfloat plane_s1[4] = { scalefac1, 0.0f, 0.0f, 0.0f };
+	GLfloat plane_t1[4] = { 0.0f, scalefac1, 0.0f, 0.0f };
 	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
 	glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s1);
 	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -865,6 +865,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 		// fixme: use LOD (fft with less resolution) for distance waves
 		// until about 10km to the horizon
 
+/*
 		glActiveTexture(GL_TEXTURE1);
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, wavefoamtex);
@@ -874,19 +875,20 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
 		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
 		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-
+*/
 		//fixme: automatic texture coordinate generation ignores wave displacements (choppy waves)
 		//so foam is mapped wrongly!
-		GLfloat scalefac2 = 1.0f/(WAVE_LENGTH*WAVES_PER_AXIS);
+		GLfloat scalefac2 = 32.0f*1.0f/(WAVE_LENGTH*WAVES_PER_AXIS);
 		GLfloat plane_s2[4] = { scalefac2, 0.0f, 0.0f, 0.0f };
 		GLfloat plane_t2[4] = { 0.0f, scalefac2, 0.0f, 0.0f };
+/*
 		glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
 		glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s2);
 		glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
 		glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t2);
 		glEnable(GL_TEXTURE_GEN_S);
 		glEnable(GL_TEXTURE_GEN_T);
-
+*/
 		unsigned dl = wavedisplaylists + int(WAVE_PHASES*timefac);
 
 
