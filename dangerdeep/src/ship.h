@@ -81,6 +81,9 @@ protected:
 
 	unsigned smoke_type;	// 0 - none, 1-x particle type
 	vector3 smokerelpos;	// read from spec file
+
+	class particle* firepart;
+	bool firepart_ok;
 	
 	// common constructor. set attributes to sane values.
 	void init(void);

@@ -8,18 +8,20 @@
 
 unsigned particle::init_count = 0;
 vector<texture*> particle::tex_smoke;
+vector<texture*> particle::tex_fire;
 vector<texture*> particle::explosionbig;
 vector<texture*> particle::explosionsml;
 
 #define NR_OF_SMOKE_TEXTURES 16
+#define NR_OF_FIRE_TEXTURES 64
 
 vector<float> particle::interpolate_func;
 
-vector<unsigned char> particle::make_2d_smoothed_noise_map(unsigned wh)
+vector<Uint8> particle::make_2d_smoothed_noise_map(unsigned wh)
 {
-	vector<unsigned char> tmp(wh * wh);
+	vector<Uint8> tmp(wh * wh);
 	for (unsigned i = 0; i < wh * wh; ++i)
-		tmp[i] = (unsigned char)(rand() % 256);
+		tmp[i] = (Uint8)(rand() % 256);
 	for (unsigned i = 0; i < wh; ++i) {
 		tmp[i] = 0;
 		if (rand() % 2 == 0)
@@ -34,7 +36,7 @@ vector<unsigned char> particle::make_2d_smoothed_noise_map(unsigned wh)
 		if (rand() % 2 == 0)
 			tmp[(wh - 2) * wh + i] = 0;
 	}
-	vector<unsigned char> tmp2(wh * wh);
+	vector<Uint8> tmp2(wh * wh);
 	unsigned rmin = 255, rmax = 0;
 	for (unsigned y = 0; y < wh; ++y) {
 		unsigned y1 = (y + wh - 1) & (wh - 1);
@@ -51,7 +53,7 @@ vector<unsigned char> particle::make_2d_smoothed_noise_map(unsigned wh)
 				   + unsigned(tmp[y1 * wh + x])
 				   + unsigned(tmp[y2 * wh + x])) / 8
 				+ unsigned(tmp[y * wh +x]) / 4;
-			unsigned char r2 = (unsigned char)(r);
+			Uint8 r2 = (Uint8)(r);
 			tmp2[y * wh + x] = r2;
 			if (r2 > rmax) rmax = r2;
 			if (r2 < rmin) rmin = r2;
@@ -60,13 +62,13 @@ vector<unsigned char> particle::make_2d_smoothed_noise_map(unsigned wh)
 	for (unsigned y = 0; y < wh; ++y) {
 		for (unsigned x = 0; x < wh; ++x) {
 			unsigned r = tmp2[y * wh + x];
-			tmp[y * wh + x] = (unsigned char)((r - rmin) * 256 / (rmax - rmin + 1));
+			tmp[y * wh + x] = (Uint8)((r - rmin) * 256 / (rmax - rmin + 1));
 		}
 	}
 	return tmp;
 }
 
-unsigned particle::interpolate_2d_map(const vector<unsigned char>& mp, unsigned res, unsigned x, unsigned y, unsigned res2)
+unsigned particle::interpolate_2d_map(const vector<Uint8>& mp, unsigned res, unsigned x, unsigned y, unsigned res2)
 {
 	unsigned fac = res2 / res;
 	unsigned xi = x / fac;
@@ -86,21 +88,21 @@ unsigned particle::interpolate_2d_map(const vector<unsigned char>& mp, unsigned 
 	return unsigned(f0 * mp[y1 * res + x1] + f1 * mp[y1 * res + x2] + f2 * mp[y2 * res + x1] + f3 * mp[y2 * res + x2]);
 }
 
-vector<unsigned char> particle::make_2d_perlin_noise(unsigned wh, unsigned highestlevel)
+vector<Uint8> particle::make_2d_perlin_noise(unsigned wh, unsigned highestlevel)
 {
 	unsigned whlevel = 0;
 	while (wh > unsigned(1 << whlevel))
 		++whlevel;
 	// prepare lookup maps
 	unsigned levels = whlevel - highestlevel + 1;
-	vector<vector<unsigned char> > lookup_maps;
+	vector<vector<Uint8> > lookup_maps;
 	lookup_maps.reserve(levels);
 	for (unsigned i = 0; i < levels; ++i) {
 		unsigned res = 1<<(highestlevel + i);
 		lookup_maps.push_back(make_2d_smoothed_noise_map(res));
 	}
 	// generate result
-	vector<unsigned char> result(wh * wh);
+	vector<Uint8> result(wh * wh);
 	for (unsigned y = 0; y < wh; ++y) {
 		for (unsigned x = 0; x < wh; ++x) {
 			unsigned r = 0;
@@ -110,7 +112,7 @@ vector<unsigned char> particle::make_2d_perlin_noise(unsigned wh, unsigned highe
 			}
 			r /= 65536;
 			if (r > 255) r = 510 - r;
-			result[y * wh + x] = (unsigned char)(r);
+			result[y * wh + x] = (Uint8)(r);
 		}
 	}
 	return result;
@@ -118,10 +120,45 @@ vector<unsigned char> particle::make_2d_perlin_noise(unsigned wh, unsigned highe
 
 
 
-/*
+vector<Uint8> particle::compute_fire_frame(unsigned wh, const vector<Uint8>& oldframe)
+{
+	vector<Uint8> result = oldframe;
+	for (unsigned y = 0; y < wh-2; ++y) {
+		for (unsigned x = 1; x < wh-1; ++x) {
+			unsigned sum = 0;
+			for (unsigned yy = y; yy <= y+2; ++yy) {
+				for (unsigned xx = x-1; xx <= x+1; ++xx) {
+					sum += unsigned(oldframe[yy*wh+xx]);
+				}
+			}
+			unsigned r = rand() % 64;
+			sum = (r > sum) ? 0 : sum - r;
+			sum = (sum * 28) / 256;
+			if (sum > 255) sum = 511 - sum;
+			result[y * wh + x] = Uint8(sum);
+		}
+	}
+
+	for (unsigned k = 0; k < 2; ++k) {
+		for (unsigned j = 0; j < wh/10; ++j) {
+			unsigned x = (rand() % (wh-2)) + 1;
+			Uint8 c;
+			if (rand() % 4 == 0)
+				c = 0;
+			else
+				c = rand() % 55 + 200;
+			result[(wh-1-k) * wh + x] = c;
+		}
+	}
+	return result;
+}
+
+
+
+
 #include <fstream>
 #include <sstream>
-*/
+
 void particle::init(void)
 {
 	if (++init_count != 1) return;
@@ -133,12 +170,10 @@ void particle::init(void)
 	// compute random smoke textures here.
 	// just random noise with smoke color gradients and irregular outline
 	// resolution 64x64, outline 8x8 scaled, smoke structure 8x8 or 16x16
-	//fixme: we need some sort of plasma here, clouds too, etc. make a class for it
-	//perlin noise for smoke particles would also be good...
 	tex_smoke.resize(NR_OF_SMOKE_TEXTURES);
-	vector<unsigned char> smoketmp(64*64*2);
+	vector<Uint8> smoketmp(64*64*2);
 	for (unsigned i = 0; i < NR_OF_SMOKE_TEXTURES; ++i) {
-		vector<unsigned char> noise = make_2d_perlin_noise(64, 2);
+		vector<Uint8> noise = make_2d_perlin_noise(64, 2);
 
 /*
 		ostringstream oss;
@@ -151,12 +186,73 @@ void particle::init(void)
 		for (unsigned y = 0; y < 64; ++y) {
 			for (unsigned x = 0; x < 64; ++x) {
 				unsigned r = noise[y*64+x];
-				smoketmp[2*(y*64+x)+0] = (unsigned char)r;
+				smoketmp[2*(y*64+x)+0] = (Uint8)r;
 				smoketmp[2*(y*64+x)+1] = (r < 64) ? 0 : r - 64;
 			}
 		}
-		tex_smoke[i] = new texture(&smoketmp[0], 64, 64, GL_LUMINANCE_ALPHA, GL_LINEAR, GL_REPEAT, false);
+		tex_smoke[i] = new texture(&smoketmp[0], 64, 64, GL_LUMINANCE_ALPHA, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE, false);
 	}
+
+	// compute random fire textures here.
+	tex_fire.resize(NR_OF_FIRE_TEXTURES);
+#define FIRE_RES 64
+	vector<Uint8> firepal(256*4);
+	Uint8 fire_r[5] = { 0, 255, 255, 255, 255 };
+	Uint8 fire_g[5] = { 0, 128,   0, 255, 255 };
+	Uint8 fire_b[5] = { 0,  32,   0,   0, 255 };
+	Uint8 fire_a[5] = { 0,  32, 128, 192, 255 };
+	for (unsigned i = 1; i < 256; ++i) {
+		unsigned j = i / 64;
+		float fac2 = float(i % 64)/64;
+		float fac1 = 1.0f - fac2;
+		firepal[4*i+0] = (Uint8)(fire_r[j] * fac1 + fire_r[j+1] * fac2);
+		firepal[4*i+1] = (Uint8)(fire_g[j] * fac1 + fire_g[j+1] * fac2);
+		firepal[4*i+2] = (Uint8)(fire_b[j] * fac1 + fire_b[j+1] * fac2);
+		firepal[4*i+3] = (Uint8)(fire_a[j] * fac1 + fire_a[j+1] * fac2);
+	}
+	vector<Uint8> firetmp(FIRE_RES*FIRE_RES);
+	for (unsigned i = 0; i < NR_OF_FIRE_TEXTURES * 2; ++i) {
+		firetmp = compute_fire_frame(FIRE_RES, firetmp);
+/*
+		vector<Uint8> tmp2(firetmp.size() * 3);
+		for (unsigned j = 0; j < firetmp.size(); ++j) {
+			tmp2[3*j+0] = firepal[4*unsigned(firetmp[j])+0];
+			tmp2[3*j+1] = firepal[4*unsigned(firetmp[j])+1];
+			tmp2[3*j+2] = firepal[4*unsigned(firetmp[j])+2];
+		}
+		ostringstream oss;
+		oss << "argh" << i << ".ppm";
+		ofstream osg(oss.str().c_str());
+		osg << "P6\n" << FIRE_RES << " " << FIRE_RES << "\n255\n";
+		osg.write((const char*)(&tmp2[0]), FIRE_RES*FIRE_RES*3);
+*/
+	}
+	for (unsigned i = 0; i < NR_OF_FIRE_TEXTURES; ++i) {
+		vector<Uint8> tmp(firetmp.size() * 4);
+		for (unsigned j = 0; j < firetmp.size(); ++j) {
+			tmp[4*j+0] = firepal[4*unsigned(firetmp[j])+0];
+			tmp[4*j+1] = firepal[4*unsigned(firetmp[j])+1];
+			tmp[4*j+2] = firepal[4*unsigned(firetmp[j])+2];
+			tmp[4*j+3] = firepal[4*unsigned(firetmp[j])+3];
+		}
+		tex_fire[i] = new texture(&tmp[0], FIRE_RES, FIRE_RES, GL_RGBA, GL_LINEAR, GL_CLAMP_TO_EDGE, false);
+
+/*
+		vector<Uint8> tmp2(firetmp.size() * 3);
+		for (unsigned j = 0; j < firetmp.size(); ++j) {
+			tmp2[3*j+0] = firepal[4*unsigned(firetmp[j])+0];
+			tmp2[3*j+1] = firepal[4*unsigned(firetmp[j])+1];
+			tmp2[3*j+2] = firepal[4*unsigned(firetmp[j])+2];
+		}
+		ostringstream oss;
+		oss << "argh" << NR_OF_FIRE_TEXTURES * 2 + i << ".ppm";
+		ofstream osg(oss.str().c_str());
+		osg << "P6\n" << FIRE_RES << " " << FIRE_RES << "\n255\n";
+		osg.write((const char*)(&tmp2[0]), FIRE_RES*FIRE_RES*3);
+*/
+		firetmp = compute_fire_frame(FIRE_RES, firetmp);
+	}
+
 	// read in explosions
 #define EXPL_FRAMES 15
 	explosionbig.resize(EXPL_FRAMES);
@@ -180,6 +276,8 @@ void particle::deinit(void)
 	if (--init_count != 0) return;
 	for (unsigned i = 0; i < tex_smoke.size(); ++i)
 		delete tex_smoke[i];
+	for (unsigned i = 0; i < tex_fire.size(); ++i)
+		delete tex_fire[i];
 	for (unsigned i = 0; i < explosionbig.size(); ++i)
 		delete explosionbig[i];
 	for (unsigned i = 0; i < explosionsml.size(); ++i)
@@ -209,7 +307,8 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 	}
 	sort(pds.begin(), pds.end());
 
-	glNormal3f(0, 0, 1);
+	glDisable(GL_LIGHTING);
+	//glNormal3f(0, 0, 1);
 
 	// generate coordinates
 	vector<vector3> coords(4*pds.size());
@@ -218,7 +317,7 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 		const vector3& z = -pds[i].projpos;
 		vector3 y = vector3(0, 0, 1);
 		vector3 x = y.cross(z).normal();
-//		if (!part.is_z_up())//fixme
+		if (!part.is_z_up())//fixme
 			y = z.cross(x).normal();
 		double w2 = part.get_width()/2;
 		double h2 = part.get_height()/2;
@@ -249,6 +348,7 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 	}
 	glDisableClientState(GL_VERTEX_ARRAY);
 
+	glEnable(GL_LIGHTING);
 	glDepthMask(GL_TRUE);
 }
 
@@ -261,8 +361,6 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 
 smoke_particle::smoke_particle(const vector3& pos_) : particle(pos_), texnr(rand() % NR_OF_SMOKE_TEXTURES)
 {
-
-
 }
 
 
@@ -295,7 +393,7 @@ double smoke_particle::get_height(void) const
 
 void smoke_particle::set_texture(class game& gm) const
 {
-	glColor4f(1, 1, 1, live);
+	glColor4f(0.5f, 0.5f, 0.5f, live);
 	tex_smoke[texnr]->set_gl_texture();
 }
 
@@ -379,4 +477,53 @@ void explosion_particle::set_texture(class game& gm) const
 double explosion_particle::get_life_time(void) const
 {
 	return 2.0; // seconds
+}
+
+
+
+// fire
+
+fire_particle::fire_particle(const vector3& pos_) : particle(pos_)
+{
+}
+
+
+
+void fire_particle::simulate(game& gm, double delta_t)
+{
+	particle::simulate(gm, delta_t);
+	if (live <= 0.0f) {
+		live += 1.0f;
+		gm.spawn_particle(new smoke_particle(pos));
+	}
+}
+
+
+
+double fire_particle::get_width(void) const
+{
+	return 20.0; //fixme: depends on type
+}
+
+
+
+double fire_particle::get_height(void) const
+{
+	return 20.0; //fixme: depends on type
+}
+
+
+
+void fire_particle::set_texture(class game& gm) const
+{
+	glColor4f(1, 1, 1, 1);
+	unsigned i = unsigned(tex_fire.size() * (1.0f - live));
+	tex_fire[i]->set_gl_texture();
+}
+
+
+
+double fire_particle::get_life_time(void) const
+{
+	return 4.0; // seconds
 }

@@ -40,6 +40,8 @@ void ship::init(void)
 	max_accel_forward = 1;
 	max_speed_forward = 10;
 	max_speed_reverse = 0;
+	firepart = new fire_particle(get_pos());
+	firepart_ok = false;
 }
 
 
@@ -322,10 +324,17 @@ void ship::simulate(game& gm, double delta_time)
 
 	// Adjust fuel_level.
 	calculate_fuel_factor ( delta_time );
+
+	if (!firepart_ok) {
+		gm.spawn_particle(firepart);
+		firepart_ok = true;
+	}
+	firepart->set_pos(get_pos() + vector3(0, 0, 12));
+	firepart->simulate(gm, delta_time);
 	
 	// smoke particle generation logic
 	if (is_alive() && smoke_type > 0) {//replace by has_particle
-		double produce_time;
+		double produce_time = 1e10;
 		switch (smoke_type) {
 		case 1: produce_time = smoke_particle::get_produce_time(); break;
 		case 2: produce_time = smoke_particle_escort::get_produce_time(); break;
