@@ -1,4 +1,4 @@
-################ maybe needed fixme recheck, os is surely needed
+################ needed imports
 import os
 import sys
 
@@ -152,5 +152,7 @@ if not(sys.platform == 'win32'):
 	env.Alias('tarball', env.Command('dangerdeep-' + version + '.tar.gz', '', ['tar -zcf ' + 'dangerdeep-' + version + '.tar.gz ' + allcvsfiles2]))
 
 #also env.Zip is possible...
+
+# fixme: try env.MSVSProject(...) to create MS VS project files
 
 ############# eof
