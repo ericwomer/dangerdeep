@@ -28,16 +28,15 @@ protected:
                           const submarine::stored_torpedo& st);
 
     // Display functions for screens.
-	void display_periscope(class system& sys, class game& gm);
-	void display_UZO(class system& sys, class game& gm);
-	void display_torpedoroom(class system& sys, class game& gm);
+	virtual void display_periscope(class system& sys, class game& gm);
+	virtual void display_UZO(class system& sys, class game& gm);
+	virtual void display_torpedoroom(class system& sys, class game& gm);
 
 public:	
 	submarine_interface(submarine* player_sub);
 	virtual ~submarine_interface();
 
 	virtual void display(class system& sys, class game& gm);
-	
 };
 
 #endif
