@@ -116,6 +116,10 @@ submarine::submarine(const string& specfilename_) : ship(specfilename_)
 	// fixme smoke
 	mysmoke = 0;
 */
+	// fixme: resize torpedoes vector according to # of tubes
+	// compute max depth with rnd
+	// get width and height from model! also in class ship!
+	// create sensor arrays after data! also in class ship!
 }
 
 
