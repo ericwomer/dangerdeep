@@ -18,6 +18,7 @@ using namespace std;
 
 
 string get_data_dir(void);
+string get_program_version(void);
 inline string get_texture_dir(void) { return get_data_dir() + "textures/"; }
 inline string get_font_dir(void) { return get_data_dir() + "fonts/"; }
 inline string get_model_dir(void) { return get_data_dir() + "models/"; }

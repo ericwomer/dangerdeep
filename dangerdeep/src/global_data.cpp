@@ -24,6 +24,15 @@ string get_data_dir(void)
 }
 
 
+
+// same with version string
+string get_program_version(void)
+{
+	return string(VERSION);
+}
+
+
+
 // fixme: this could be replaced with an array of pointers using enum-names
 // as indices. This would simplify destruction and possibly construction.
 

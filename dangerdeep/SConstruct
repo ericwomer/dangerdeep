@@ -54,8 +54,6 @@ print 'Using data dir: ' + datadir
 target_dir = '#build' + os.sep + build_dir
 source_base_dir = 'src'
 
-env.Append(CPPDEFINES = [('VERSION', '\\"' + version + '\\"')])
-
 ################ configure
 conf = Configure(env)
 if not conf.CheckCHeader('GL/gl.h'):
@@ -106,7 +104,7 @@ for i in allcvsfilesr:
 
 datafiles = all_entries_that_start_with(allcvsfiles, './data')
 
-Export('env', 'gfxlibs', 'alllibs', 'libpath', 'installbindir', 'installdatadir', 'datadir', 'datafiles')
+Export('env', 'gfxlibs', 'alllibs', 'libpath', 'installbindir', 'installdatadir', 'datadir', 'datafiles', 'version')
 
 SConscript(source_base_dir + os.sep + 'SConscript', build_dir = target_dir, duplicate = 0)
 

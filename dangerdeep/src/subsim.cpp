@@ -959,6 +959,17 @@ void menu_resolution(void)
 
 
 
+void configure_key(widget_list* wkeys)
+{
+	//fixme: redefine widget to get key combination, draw current combination name
+	widget w(256, 256, 512, 256, texts::get(216), 0, 0);
+	w.add_child(new widget_text(40, 40, 432, 32, wkeys->get_selected_entry()));
+	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 40, 112, 432, 32, texts::get(117)));
+	w.run(0, false);
+}
+
+
+
 void menu_configure_keys(void)
 {
 	widget w(0, 0, 1024, 768, texts::get(214), 0, sunkendestroyerimg);
@@ -970,7 +981,8 @@ void menu_configure_keys(void)
 		wkeys->append_entry(texts::get(i));
 	}
 
-	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 40, 708, 944, 40, texts::get(20)));
+	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 40, 708, 452, 40, texts::get(20)));
+	w.add_child(new widget_func_arg_button<void (*)(widget_list*), widget_list*>(&configure_key, wkeys, 532, 708, 452, 40, texts::get(215)));
 	w.run(0, false);
 }
 
@@ -1244,7 +1256,7 @@ int main(int argc, char** argv)
 	
 	sys->add_console("$ffffffDanger $c0c0c0from the $ffffffDeep");
 	sys->add_console("$ffff00copyright and written 2003 by $ff0000Thorsten Jordan");
-	sys->add_console(string("$ff8000version ")+VERSION);
+	sys->add_console(string("$ff8000version ") + get_program_version());
 	sys->add_console("$80ff80*** welcome ***");
 
 	GLfloat lambient[4] = {0.5,0.5,0.5,1};
