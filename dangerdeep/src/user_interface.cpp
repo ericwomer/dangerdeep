@@ -214,6 +214,7 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 }
 
 void user_interface::draw_view(class game& gm, const vector3& viewpos,
+	int vpx, int vpy, int vpw, int vph,
 	angle dir, angle elev, bool aboard, bool drawbridge, bool withunderwaterweapons)
 {
 //2004-03-07 fixme, the position fix doesn't fix the ship's flickering
@@ -315,9 +316,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	// clear depth buffer
 	//glClear(GL_DEPTH_BUFFER_BIT); // if znear/far are the same as in the scene, this clear should be enough
 	// clean up
-	unsigned rx = system::sys().get_res_x();
-	unsigned ry = system::sys().get_res_y();
-	glViewport(0, 0, rx, ry);
+	glViewport(vpx, vpy, vpw, vph);
 	glPopMatrix();
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -785,9 +784,11 @@ void user_interface::display_gauges(game& gm)
 void user_interface::display_bridge(game& gm)
 {
 	class system& sys = system::sys();
+	unsigned res_x = system::sys().get_res_x();
+	unsigned res_y = system::sys().get_res_y();
 	sea_object* player = get_player();
     
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);	// fixme remove color buffer bit for speedup
+	glClear(GL_DEPTH_BUFFER_BIT /* | GL_COLOR_BUFFER_BIT */);	// fixme remove color buffer bit for speedup
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
@@ -796,7 +797,7 @@ void user_interface::display_bridge(game& gm)
 	vector2 phd = player->get_heading().direction();
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6) + phd.xy0();
 	// no torpedoes, no DCs, with player
-	draw_view(gm, viewpos, player->get_heading()+bearing, elevation, true, true, false);
+	draw_view(gm, viewpos, 0,0,res_x,res_y, player->get_heading()+bearing, elevation, true, true, false);
 
 	sys.prepare_2d_drawing();
 	draw_infopanel(gm);
@@ -1222,6 +1223,8 @@ void user_interface::display_successes(game& gm)
 void user_interface::display_freeview(game& gm)
 {
 	class system& sys = system::sys();
+	unsigned res_x = system::sys().get_res_x();
+	unsigned res_y = system::sys().get_res_y();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -1241,7 +1244,7 @@ void user_interface::display_freeview(game& gm)
 	glPopMatrix();
 
 	// draw everything (dir can be ignored/0, all water tiles must get drawn, not only the viewing cone, fixme)
-	draw_view(gm, freeviewpos, player_object->get_heading()+bearing+freeviewsideang, freeviewupang, false, false, true);
+	draw_view(gm, freeviewpos, 0,0,res_x,res_y, player_object->get_heading()+bearing+freeviewsideang, freeviewupang, false, false, true);
 
 	int mx, my;
 	sys.get_mouse_motion(mx, my);
@@ -1287,23 +1290,22 @@ void user_interface::display_glasses(class game& gm)
 	class system& sys = system::sys();
 	sea_object* player = get_player();
 
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	unsigned res_x = sys.get_res_x(), res_y = sys.get_res_y();
+	unsigned res_x = system::sys().get_res_x();
+	unsigned res_y = system::sys().get_res_y();
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
 	sys.gl_perspective_fovx (10.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
-	glViewport(0, res_y/3, res_x, res_x/2);
+	glViewport(0, res_y-res_x/2, res_x, res_x/2);
+	glClear(GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glRotatef(-90, 1,0,0);	// swap y and z coordinates (camera looks at +y axis)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6);
 	// no torpedoes, no DCs, no player
-	draw_view(gm, viewpos, player->get_heading()+bearing, 0, false/*true*/, false, false);
+	draw_view(gm, viewpos, 0,res_y-res_x/2,res_x,res_x/2, player->get_heading()+bearing, 0, false/*true*/, false, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -1313,6 +1315,9 @@ void user_interface::display_glasses(class game& gm)
 	sys.prepare_2d_drawing();
 	glasses->draw(0, 0, 512, 512);
 	glasses->draw_hm(512, 0, 512, 512);
+	sys.no_tex();
+	color::black().set_gl_color();
+	sys.draw_rectangle(0, 512, 1024, 256);
 	draw_infopanel(gm);
 	sys.unprepare_2d_drawing();
 

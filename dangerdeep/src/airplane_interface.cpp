@@ -140,7 +140,7 @@ void airplane_interface::display_cockpit(game& gm)
 	player->get_rotation().angleaxis(angle, axis);
 	glRotated(-angle, axis.x, axis.y, axis.z);
 	glRotatef(90,1,0,0);	// compensate for later rotation
-	draw_view(gm, viewpos, 0, 0, false, false, false);
+	draw_view(gm, viewpos, 0,0,res_x,res_y, 0, 0, false, false, false);
 	glLoadIdentity();
 	glTranslatef(0,-40,-100);
 	glRotatef(-90, 1, 0, 0);

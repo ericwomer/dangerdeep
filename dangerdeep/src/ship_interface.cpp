@@ -222,7 +222,7 @@ void ship_interface::display_sonar(game& gm)
 	glRotatef(-90, 1,0,0);	// swap y and z coordinates (camera looks at +y axis)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 12+3);//fixme: +3 to be above waves
-	draw_view(gm, viewpos, false);
+	draw_view(gm, viewpos, res_x/2, res_y/3, res_x/2, res_x/2, 0,0, true, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -303,7 +303,7 @@ void ship_interface::display_glasses(game& gm)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6);
 	// no torpedoes, no DCs, no player
-	draw_view(gm, viewpos, player->get_heading()+bearing, 0, true, false, false);
+	draw_view(gm, viewpos, 0, res_y/3, res_x, res_x/2, player->get_heading()+bearing, 0, true, false, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

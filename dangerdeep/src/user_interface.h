@@ -141,6 +141,7 @@ public:
 	// 3d drawing functions
 	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist) const;
 	virtual void draw_view(game& gm, const vector3& viewpos,
+		int vpx, int vpy, int vpw, int vph,
 		angle dir, angle elev, bool aboard, bool drawbridge, bool withunderwaterweapons);
 	virtual bool paused(void) const { return pause; }
 	virtual unsigned time_scaling(void) const { return time_scale; }
