@@ -52,14 +52,18 @@ SHIFT 1...6	Fire torpedo in tube 1...6 (bow/stern tube number position
 		enumerated, then the stern tubes)
 Space		Select target
 0 (zero)	Scope up/down
-t		Fire torpedo (automatic selection of bow/stern tubes)
+c		Crash dive (to 150 meters)
+d		Snorkel depth
+h		Set heading to view
+i		identify target
 p		Periscope depth
 s		Surface
-c		Crash dive (to 150 meters)
-+ -		Zoom/unzoom
+t		Fire torpedo (automatic selection of bow/stern tubes)
+v		Set view to heading
+z		Zoom view (glasses, bridge and periscope view)
++ -		Zoom/unzoom map
 , .		turn view
 ; :		turn view fast
-i		identify target
 F11/F12		time scale faster/slower
 Pause		(Un)pause game
 ESC		quit (for now)
