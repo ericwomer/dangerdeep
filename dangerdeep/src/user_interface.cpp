@@ -40,8 +40,8 @@ using namespace std;
 // some more interesting values: phase 256, waveperaxis: ask your gfx card, facesperwave 64+,
 // wavelength 256+,
 #define WAVE_PHASES 256		// no. of phases for wave animation
-#define WAVES_PER_AXIS 4	// no. of waves along x or y axis
-#define FACES_PER_WAVE 32//64	// resolution of wave model in x/y dir.
+#define WAVES_PER_AXIS 8	// no. of waves along x or y axis
+#define FACES_PER_WAVE 64	// resolution of wave model in x/y dir.
 #define WAVE_LENGTH 128.0	// in meters, total length of one wave (one sine function)
 #define TIDECYCLE_TIME 10.0
 // obsolete:
@@ -151,12 +151,12 @@ void user_interface::init ()
 		glNewList(wavedisplaylists+i, GL_COMPILE);
 
 		// create and use temporary arrays for texture coords (units 0,1), colors and vertices
-		vector<GLfloat> tex0coords;
-		vector<GLfloat> tex1coords;
-		vector<GLfloat> colors;
+//		vector<GLfloat> tex0coords;
+//		vector<GLfloat> tex1coords;
+		vector<GLubyte/*GLfloat*/> colors;
 		vector<GLfloat> coords;
-		tex0coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*2);
-		tex1coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*2);
+//		tex0coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*2);
+//		tex1coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*2);
 		colors.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*3);
 		coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*3);
 
@@ -178,13 +178,13 @@ void user_interface::init ()
 				// multiply inverse (transposed) of R with light vector
 				vector3f nl = vector3f(R0 * lightvec, R1 * lightvec, n[ptr] * lightvec);
 				nl = nl * 0.5 + vector3f(0.5, 0.5, 0.5);
-				tex0coords.push_back(fx*texscale0);
-				tex0coords.push_back(fy*texscale0);
-				tex1coords.push_back(fx*texscale1);
-				tex1coords.push_back(fy*texscale1);
-				colors.push_back(nl.x);
-				colors.push_back(nl.y);
-				colors.push_back(nl.z);
+//				tex0coords.push_back(fx*texscale0);	// use OpenGL automatic texture coord generation to save memory (256*65*65*2*2*4= ~17mb)
+//				tex0coords.push_back(fy*texscale0);
+//				tex1coords.push_back(fx*texscale1);
+//				tex1coords.push_back(fy*texscale1);
+				colors.push_back(GLubyte(255*nl.x));//nl.x);			// store it as ubyte to save space (256*65*65*3*(4-1)= ~9.5mb)
+				colors.push_back(GLubyte(255*nl.y));//nl.y);
+				colors.push_back(GLubyte(255*nl.z));//nl.z);
 				coords.push_back(fx*WAVE_LENGTH+d[ptr].x);
 				coords.push_back(fy*WAVE_LENGTH+d[ptr].y);
 				coords.push_back(h[ptr]);
@@ -195,20 +195,20 @@ void user_interface::init ()
 		
 		// now set pointers, enable arrays and draw elements, finally disable pointers
 		glEnableClientState(GL_COLOR_ARRAY);
-		glColorPointer(3, GL_FLOAT, 0, &colors[0]);
+		glColorPointer(3, GL_UNSIGNED_BYTE /*GL_FLOAT*/, 0, &colors[0]);
 		
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, &coords[0]);
 		
 		glDisableClientState(GL_NORMAL_ARRAY);
 		
-		glClientActiveTextureARB(GL_TEXTURE0_ARB);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, 0, &tex0coords[0]);
+//		glClientActiveTextureARB(GL_TEXTURE0_ARB);
+//		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+//		glTexCoordPointer(2, GL_FLOAT, 0, &tex0coords[0]);
 		
-		glClientActiveTextureARB(GL_TEXTURE1_ARB);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, 0, &tex1coords[0]);
+//		glClientActiveTextureARB(GL_TEXTURE1_ARB);
+//		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+//		glTexCoordPointer(2, GL_FLOAT, 0, &tex1coords[0]);
 		
 		glActiveTextureARB(GL_TEXTURE0_ARB);
 		glDrawElements(GL_QUADS, waveindices.size(), GL_UNSIGNED_INT, &waveindices[0]);
@@ -679,7 +679,16 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
-	
+	GLfloat scalefac0 = 8.0f/WAVE_LENGTH;
+	GLfloat plane_s0[4] = { scalefac0, 0.0f, 0.0f, 0.0f };
+	GLfloat plane_t0[4] = { 0.0f, scalefac0, 0.0f, 0.0f };
+	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+	glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s0);
+	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+	glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t0);
+	glEnable(GL_TEXTURE_GEN_S);
+	glEnable(GL_TEXTURE_GEN_T);
+
 	glActiveTextureARB(GL_TEXTURE1_ARB);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
@@ -689,38 +698,47 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+	GLfloat scalefac1 = 2.0f/WAVE_LENGTH;
+	GLfloat plane_s1[4] = { scalefac1, 0.0f, 0.0f, 0.0f };
+	GLfloat plane_t1[4] = { 0.0f, scalefac1, 0.0f, 0.0f };
+	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+	glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s1);
+	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+	glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t1);
+	glEnable(GL_TEXTURE_GEN_S);
+	glEnable(GL_TEXTURE_GEN_T);
 
 	glDisable(GL_LIGHTING);
 	glBegin(GL_TRIANGLE_STRIP);
-	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t0,t3);
-	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t0,t3);
+	//glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t0,t3);
+	//glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t0,t3);
 	glVertex3f(c0,c3,0);
-	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t1,t2);
-	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t1,t2);
+	//glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t1,t2);
+	//glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t1,t2);
 	glVertex3f(c1,c2,wz);
-	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t3,t3);
-	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t3,t3);
+	//glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t3,t3);
+	//glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t3,t3);
 	glVertex3f(c3,c3,0);
-	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t2,t2);
-	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t2,t2);
+	//glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t2,t2);
+	//glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t2,t2);
 	glVertex3f(c2,c2,wz);
-	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t3,t0);
-	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t3,t0);
+	//glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t3,t0);
+	//glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t3,t0);
 	glVertex3f(c3,c0,0);
-	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t2,t1);
-	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t2,t1);
+	//glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t2,t1);
+	//glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t2,t1);
 	glVertex3f(c2,c1,wz);
-	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t0,t0);
-	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t0,t0);
+	//glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t0,t0);
+	//glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t0,t0);
 	glVertex3f(c0,c0,0);
-	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t1,t1);
-	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t1,t1);
+	//glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t1,t1);
+	//glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t1,t1);
 	glVertex3f(c1,c1,wz);
-	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t0,t3);
-	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t0,t3);
+	//glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t0,t3);
+	//glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t0,t3);
 	glVertex3f(c0,c3,0);
-	glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t1,t2);
-	glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t1,t2);
+	//glMultiTexCoord2fARB(GL_TEXTURE0_ARB,t1,t2);
+	//glMultiTexCoord2fARB(GL_TEXTURE1_ARB,t1,t2);
 	glVertex3f(c1,c2,wz);
 	glEnd();
 	

@@ -3,6 +3,9 @@
 	  dftd, adapted tinyxml.h
 	* used SDL_GL_GetProcAddress for OpenGL extensions instead
 	  of wgl/glx functions.
+	* user_interface.cpp
+	  - used automatic OpenGL texture coordinate generation to save
+	    space (display lists are smaller)
 
 2003-12-17  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* several files:
