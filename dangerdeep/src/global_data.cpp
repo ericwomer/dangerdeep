@@ -32,7 +32,8 @@ model	*merchant_large, *merchant_medium, *merchant_small,
 texture *water, *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
-	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
+	*torpt1, *torpt2, *torpt3, *torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut,
+	*clouds,
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
 	*woodbackgr, *smoke, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked;
@@ -90,11 +91,15 @@ void init_global_data(void)
 	uzo = new texture((get_data_dir() + TEXTURE_DIR + "uzo.png"), 1, true, true);
 	metalbackgr = new texture((get_data_dir() + TEXTURE_DIR + "metalbackgr.png"), 1, false);
 	torpt1 = new texture((get_data_dir() + TEXTURE_DIR + "torpt1.png"));
+	torpt2 = new texture((get_data_dir() + TEXTURE_DIR + "torpt2.png"));
 	torpt3 = new texture((get_data_dir() + TEXTURE_DIR + "torpt3.png"));
-	torpt3fat = new texture((get_data_dir() + TEXTURE_DIR + "torpt3fat.png"));
+	torpt3a = new texture((get_data_dir() + TEXTURE_DIR + "torpt3a.png"));
+	torpt4 = new texture((get_data_dir() + TEXTURE_DIR + "torpt4.png"));
 	torpt5 = new texture((get_data_dir() + TEXTURE_DIR + "torpt5.png"));
-	torpt6lut = new texture((get_data_dir() + TEXTURE_DIR + "torpt6lut.png"));
 	torpt11 = new texture((get_data_dir() + TEXTURE_DIR + "torpt11.png"));
+	torpt1fat = new texture((get_data_dir() + TEXTURE_DIR + "torpt1fat.png"));
+	torpt3fat = new texture((get_data_dir() + TEXTURE_DIR + "torpt3fat.png"));
+	torpt6lut = new texture((get_data_dir() + TEXTURE_DIR + "torpt6lut.png"));
 	clouds = new texture((get_data_dir() + TEXTURE_DIR + "clouds.png"), 1, false, true);
 	clock12 = new texture((get_data_dir() + TEXTURE_DIR + "clock12.png"));
 	clock24 = new texture((get_data_dir() + TEXTURE_DIR + "clock24.png"));
@@ -170,11 +175,15 @@ void deinit_global_data(void)
 	delete uzo;
 	delete metalbackgr;
 	delete torpt1;
+	delete torpt2;
 	delete torpt3;
-	delete torpt3fat;
+	delete torpt3a;
+	delete torpt4;
 	delete torpt5;
-	delete torpt6lut;
 	delete torpt11;
+	delete torpt1fat;
+	delete torpt3fat;
+	delete torpt6lut;
 	delete clouds;
 	delete clock12;
 	delete clock24;

@@ -16,13 +16,25 @@ using namespace std;
 class torpedo : public sea_object
 {
 public:
-	enum types { none, T1, T3, T5, T3FAT, T6LUT, T11, reloading=0xffffffff };
+	// T1: G7a
+	// T2: G7e with contact fuse
+	// T3: G7e with influence fuse
+	// T3a: range improved (150%) T3, available mid 1942
+	// T4: G7e acoustic (Falke/Falcon) 7500m at 20kts. Used in march 1943
+	// T5: G7e acoustic (Zaunkoenig/Gnat) 24kts
+	// T11: like T5, less affected by "foxer" noise-making decoy
+	// FAT: available for T1 or T3s
+	// LUT: available for T3s (named T6 ?)
+	// fixme: how widely was influence fuse used? there were severly
+	// malfunctions, even later in the war. Influence fuse is not simulated yet
+	// so T2 == T3
+	enum types { none, T1, T2, T3, T3a, T4, T5, T11, T1FAT, T3FAT, T6LUT, reloading=0xffffffff };
 
 protected:
-	// Types: G7a, G7e, G7e FAT, G7e acustic (TV)
 	double run_length, max_run_length;
 	sea_object* parent;
 	unsigned type;
+	bool influencefuse;	// determined by type
 	
 	unsigned primaryrange, secondaryrange;	// meters
 	unsigned initialturn;	// 0/1 left/right

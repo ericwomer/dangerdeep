@@ -502,11 +502,15 @@ texture* user_interface::torptex(unsigned type)
 {
 	switch (type) {
 		case torpedo::T1: return torpt1;
+		case torpedo::T2: return torpt2;
 		case torpedo::T3: return torpt3;
+		case torpedo::T3a: return torpt3a;
+		case torpedo::T4: return torpt4;
 		case torpedo::T5: return torpt5;
+		case torpedo::T11: return torpt11;
+		case torpedo::T1FAT: return torpt1fat;
 		case torpedo::T3FAT: return torpt3fat;
 		case torpedo::T6LUT: return torpt6lut;
-		case torpedo::T11: return torpt11;
 	}
 	return torpempty;
 }

@@ -1,3 +1,8 @@
+2003-07-28  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* torpedo.cpp user_interface.cpp
+	  - introduced new torpedo types. Now all historical types available
+	    with authentic data, except T4 (Falke) sensors.
+
 2003-07-27  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* torpedo.cpp submarine_interface.cpp submarine.cpp
 	  - FAT/LUT programmable and simulated.

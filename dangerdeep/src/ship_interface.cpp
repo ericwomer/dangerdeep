@@ -94,21 +94,6 @@ bool ship_interface::keyboard_common(int keycode, class system& sys, class game&
 	return true;
 }
 
-/*
-texture* ship_interface::torptex(unsigned type)
-{
-	switch (type) {
-		case torpedo::T1: return torpt1;
-		case torpedo::T3: return torpt3;
-		case torpedo::T5: return torpt5;
-		case torpedo::T3FAT: return torpt3fat;
-		case torpedo::T6LUT: return torpt6lut;
-		case torpedo::T11: return torpt11;
-	}
-	return torpempty;
-}
-*/
-	
 void ship_interface::draw_gauge(class system& sys, unsigned nr, int x, int y,
 	unsigned wh, angle a, const string& text) const
 {

@@ -27,55 +27,87 @@ torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes,
 	turn_rate = 1.0f;	// most submarine simulations seem to ignore this
 			// launching a torpedo will cause it to run in target direction
 			// immidiately instead of turning there from the sub's heading
+			// fixme historic values??
 	length = 7;
-	width = 1;
+	width = 1.066;
 	run_length = 0;
 	switch (type_) {
-		case T1:		// G7a steam torpedo
-			speed = kts2ms(30);
-			max_speed = kts2ms(30);
+		case T1:
+			max_speed = speed = kts2ms(30);
 			max_rev_speed = 0;
-			max_run_length = 12500;
+			max_run_length = 14000;
 			vis_cross_section_factor = CROSS_SECTION_VIS_TORPWB;
+			influencefuse = false;
 			break;
-		case T3:		// G7e electric torpedo (T2/T3)
-			speed = kts2ms(30);
-			max_speed = kts2ms(30);
+		case T2:
+			max_speed = speed = kts2ms(30);
+			max_rev_speed = 0;
+			max_run_length = 5000;
+			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
+			influencefuse = false;
+			break;
+		case T3:
+			max_speed = speed = kts2ms(30);
+			max_rev_speed = 0;
+			max_run_length = 5000;
+			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
+			influencefuse = true;
+			break;
+		case T3a:
+			max_speed = speed = kts2ms(30);
 			max_rev_speed = 0;
 			max_run_length = 7500;
 			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
+			influencefuse = true;
 			break;
-		case T5:		// G7e acustic torpedo
-			speed = kts2ms(24);
-			max_speed = kts2ms(24);
+		case T4:
+			max_speed = speed = kts2ms(20);
 			max_rev_speed = 0;
-			max_run_length = 5000;	// fixme: historical value?
+			max_run_length = 7500;
+			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
+			// fixme: Falke sensor
+			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
+				passive_sonar_sensor::passive_sonar_type_tt_t5 ) );
+			influencefuse = true;
+			break;
+		case T5:
+			max_speed = speed = kts2ms(24);
+			max_rev_speed = 0;
+			max_run_length = 5700;
 			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
 				passive_sonar_sensor::passive_sonar_type_tt_t5 ) );
+			influencefuse = true;
 			break;
-		case T3FAT:		// G7e FAT torpedo
-			speed = kts2ms(30);
-			max_speed = kts2ms(30);
+		case T11:
+			max_speed = speed = kts2ms(24);
 			max_rev_speed = 0;
-			max_run_length = 7500;
-			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
-			break;
-		case T6LUT:		// G7e LUT torpedo
-			speed = kts2ms(30);	//fixme: wrong values
-			max_speed = kts2ms(30);
-			max_rev_speed = 0;
-			max_run_length = 12500;
-			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
-			break;
-		case T11:		// G7e acustic torpedo (improved T5)
-			speed = kts2ms(24);	// fixme: historical value?
-			max_speed = kts2ms(24);
-			max_rev_speed = 0;
-			max_run_length = 5000;	// fixme: historical value?
+			max_run_length = 5700;
 			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
 				passive_sonar_sensor::passive_sonar_type_tt_t11 ) );
+			influencefuse = true;
+			break;
+		case T1FAT:
+			max_speed = speed = kts2ms(30);
+			max_rev_speed = 0;
+			max_run_length = 14000;
+			vis_cross_section_factor = CROSS_SECTION_VIS_TORPWB;
+			influencefuse = false;
+			break;
+		case T3FAT:
+			max_speed = speed = kts2ms(30);
+			max_rev_speed = 0;
+			max_run_length = 7500;
+			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
+			influencefuse = true;
+			break;
+		case T6LUT:
+			max_speed = speed = kts2ms(30);
+			max_rev_speed = 0;
+			max_run_length = 7500;
+			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
+			influencefuse = true;
 			break;
 	};
 	throttle = aheadfull;
@@ -94,7 +126,7 @@ void torpedo::simulate(game& gm, double delta_time)
 
 	// Torpedo starts to search for a target when the minimum save
 	// distance for the warhead is passed.
-	if ((type == T5 || type == T11) && run_length >= TORPEDO_SAVE_DISTANCE)
+	if ((type == T4 || type == T5 || type == T11) && run_length >= TORPEDO_SAVE_DISTANCE)
 	{
 		ship* target = gm.sonar_acoustical_torpedo_target ( this );
 
@@ -113,7 +145,7 @@ void torpedo::simulate(game& gm, double delta_time)
 		return;
 	}
 
-	if (type == T3FAT || type == T6LUT) { // FAT and LUT
+	if (type == T1FAT || T3FAT || type == T6LUT) { // FAT and LUT
 		angle turnang(180);
 		if (type == T6LUT && searchpattern == 1) turnang = (initialturn == 0) ? angle(-90) : angle(90);
 		if (old_run_length < primaryrange && run_length >= primaryrange) {
@@ -194,6 +226,10 @@ void torpedo::create_sensor_array ( types t )
 {
 	switch ( t )
 	{
+		case T4:	// fixme
+			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
+				passive_sonar_sensor::passive_sonar_type_tt_t5 ) );
+			break;
 		case T5:
 			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
 				passive_sonar_sensor::passive_sonar_type_tt_t5 ) );
@@ -205,7 +241,7 @@ void torpedo::create_sensor_array ( types t )
 	}
 }
 
-unsigned torpedo::get_hit_points () const
+unsigned torpedo::get_hit_points () const	// awful, useless, replace, fixme
 {
 	return G7A_HITPOINTS;
 }

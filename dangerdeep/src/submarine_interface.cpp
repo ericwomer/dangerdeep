@@ -572,7 +572,7 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 		color::white().set_gl_color();
 		sys.draw_image(px, 512, notepadsheet);
 		sys.draw_image(px+64, 548, torptex(*it));
-		font_arial2->print(px+16, 576, texts::get(130+*it-1), color(0,0,128));
+		font_arial2->print(px+16, 576, texts::get(300+*it-1), color(0,0,128));
 		px += 256;
 	}
 	
@@ -679,12 +679,6 @@ void submarine_interface::display_damagestatus(class system& sys, game& gm)
 void submarine_interface::draw_torpedo(class system& sys, class game& gm,
 	bool usebow, int x, int y, const submarine::stored_torpedo& st)
 {
-	// Use a special color to display the torpedos.
-	if ( gm.is_day_mode () )
-		glColor3f ( 1.0f, 1.0f, 1.0f );
-	else
-		glColor3f ( 1.0f, 0.5f, 0.5f );
-
 	if (usebow) {
 		if (st.status == 0) {	// empty
 			sys.draw_image(x, y, torpempty);
