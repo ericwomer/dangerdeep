@@ -131,8 +131,10 @@ public:
 	const list<ping>& get_pings(void) const { return pings; };
 
 	bool check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure);
-	ship* ship_in_direction_from_pos(const vector2& pos, angle direction);
-	submarine* sub_in_direction_from_pos(const vector2& pos, angle direction);
+
+	sea_object* contact_in_direction(const sea_object* o, const angle& direction);
+	ship* ship_in_direction_from_pos(const sea_object* o, const angle& direction);
+	submarine* sub_in_direction_from_pos(const sea_object* o, const angle& direction);
 
 	bool is_collision(const sea_object* s1, const sea_object* s2) const;
 	bool is_collision(const sea_object* s, const vector2& pos) const;

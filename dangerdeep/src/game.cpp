@@ -565,33 +565,78 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 	return false;
 }
 
-ship* game::ship_in_direction_from_pos(const vector2& pos, angle direction)
+sea_object* game::contact_in_direction(const sea_object* o, const angle& direction)
 {
+	sea_object* result = 0;
+
+	// Try ship first.
+	result = ship_in_direction_from_pos ( o, direction );
+
+	// Now submarines.
+	if ( !result )
+		result = sub_in_direction_from_pos ( o, direction );
+
+	return result;
+}
+
+ship* game::ship_in_direction_from_pos(const sea_object* o, const angle& direction)
+{
+	const sensor* s = o->get_sensor( o->lookout_system );
+	const lookout_sensor* ls = 0;
 	ship* result = 0;
-	double angle_diff = 30;	// fixme: use range also, use ship width's etc.
-	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
-		vector2 df = vector2((*it)->get_pos().x, (*it)->get_pos().y) - pos;
-		double new_ang_diff = (angle(df)).diff(direction);
-//		double range = diff.length();
-		if (new_ang_diff < angle_diff) {
-			angle_diff = new_ang_diff;
-			result = *it;
+
+	if ( s )
+		ls = dynamic_cast<const lookout_sensor*> ( s );
+
+	if ( ls )
+	{
+		double angle_diff = 30;	// fixme: use range also, use ship width's etc.
+		for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
+		{
+			// Only a visible and intact submarine can be selected.
+			if ( ls->is_detected ( this, o, (*it) ) &&
+				( (*it)->is_alive () || (*it)->is_defunct () ) )
+			{
+				vector2 df = (*it)->get_pos().xy () - o->get_pos().xy ();
+				double new_ang_diff = (angle(df)).diff(direction);
+				if (new_ang_diff < angle_diff)
+				{
+					angle_diff = new_ang_diff;
+					result = *it;
+				}
+			}
 		}
 	}
 	return result;
 }
 
-submarine* game::sub_in_direction_from_pos(const vector2& pos, angle direction)
+submarine* game::sub_in_direction_from_pos(const sea_object* o, const angle& direction)
 {
+	const sensor* s = o->get_sensor( o->lookout_system );
+	const lookout_sensor* ls = 0;
 	submarine* result = 0;
-	double angle_diff = 30;	// fixme: use range also, use ship width's etc.
-	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		vector2 df = vector2((*it)->get_pos().x, (*it)->get_pos().y) - pos;
-		double new_ang_diff = (angle(df)).diff(direction);
-//		double range = diff.length();
-		if (new_ang_diff < angle_diff) {
-			angle_diff = new_ang_diff;
-			result = *it;
+
+	if ( s )
+		ls = dynamic_cast<const lookout_sensor*> ( s );
+
+	if ( ls )
+	{
+		double angle_diff = 30;	// fixme: use range also, use ship width's etc.
+		for (list<submarine*>::iterator it = submarines.begin();
+			it != submarines.end(); ++it)
+		{
+			// Only a visible and intact submarine can be selected.
+			if ( ls->is_detected ( this, o, (*it) ) &&
+				( (*it)->is_alive () || (*it)->is_defunct () ) )
+			{
+				vector2 df = (*it)->get_pos ().xy () - o->get_pos(). xy();
+				double new_ang_diff = (angle(df)).diff(direction);
+				if (new_ang_diff < angle_diff)
+				{
+					angle_diff = new_ang_diff;
+					result = *it;
+				}
+			}
 		}
 	}
 	return result;
