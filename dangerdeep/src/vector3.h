@@ -94,5 +94,6 @@ ostream& operator<< ( ostream& os, const vector3t<D>& v )
 
 typedef vector3t<double> vector3;
 typedef vector3t<float> vector3f;
+typedef vector3t<int> vector3i;
 
 #endif
