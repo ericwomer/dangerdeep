@@ -25,7 +25,8 @@ void airplane::parse_attributes(TiXmlElement* parent)
 {
 	sea_object::parse_attributes(parent);
 	
-	// parse data, fixme
+	// parse data, fixme: rotation,velocity,rollfac,pitchfac
+	
 }
 
 

@@ -79,7 +79,7 @@ void ship::parse_attributes(TiXmlElement* parent)
 {
 	sea_object::parse_attributes(parent);
 	
-	// parse fuel level, fixme
+	// parse tonnage, fuel level, damage status, fixme
 }
 
 

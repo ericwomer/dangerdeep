@@ -193,6 +193,7 @@ void sea_object::parse_attributes(TiXmlElement* parent)
 		else if (thr == "aheadflank") throttle = aheadflank;
 		else throttle = atoi(thr.c_str());
 	}
+	// fixme: parse permanent_turn,head_chg,head_to,rudder  maybe also alive_stat,previous_positions
 }
 
 

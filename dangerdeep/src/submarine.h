@@ -153,7 +153,7 @@ protected:
 	unsigned trp_secondaryrange;	// selected option 0-1 (800 or 1600m)
 	unsigned trp_initialturn;	// selected option 0-1 (left or right)
 	unsigned trp_searchpattern;	// selected option 0-1 (turn 180 or 90 deg.) fixme what are historical correct patterns?
-	angle trp_addleadangle;	// additional lead angle for torpedoes
+	angle trp_addleadangle;		// additional lead angle for torpedoes
 
 	submarine();
 	submarine& operator= (const submarine& other);

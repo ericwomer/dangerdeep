@@ -123,129 +123,39 @@ submarine::submarine() : ship(), dive_speed(0.0f), dive_acceleration(0.0f), max_
 
 
 
-/*
-submarine::submarine(const string& specfilename_) : ship(specfilename_),
-	
-	dive_speed(0.0f), dive_acceleration(0.0f), max_dive_speed(1.0f),//TESTING
-	max_depth(150.0f), dive_to(0.0f), permanent_dive(false),
-	scopeup(false), periscope_depth(12.0f), hassnorkel (false), snorkel_depth(10.0f),
-	snorkelup(false),
-	battery_level ( 1.0f ), battery_value_a ( 0.0f ), battery_value_t ( 1.0f ),
-	battery_recharge_value_a ( 0.0f ), battery_recharge_value_t ( 1.0f ),
-	damageable_parts(nr_of_damageable_parts),
-	trp_primaryrange(0), trp_secondaryrange(0), trp_initialturn(0), trp_searchpattern(0),
-	trp_addleadangle(0)
-
-{
-	// set all common damageable parts to "no damage" TESTING
-	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
-		damageable_parts[i] = damageable_part(0, 0);
-
-
-	TiXmlDocument doc(get_ship_dir() + specfilename + ".xml");
-	doc.LoadFile();
-	TiXmlHandle hdoc(&doc);
-	TiXmlHandle hdftdship = hdoc.FirstChild("dftd-ship");
-	TiXmlElement* eclassification = hdftdship.FirstChildElement("classification").Element();
-	system::sys().myassert(eclassification != 0, string("submarine: classification node missing in ")+specfilename);
-	modelname = eclassification->Attribute("modelname");
-	string typestr = eclassification->Attribute("type");
-	if (typestr == "warship") shipclass = WARSHIP;
-	else if (typestr == "escort") shipclass = ESCORT;
-	else if (typestr == "merchant") shipclass = MERCHANT;
-	else system::sys().myassert(false, string("illegal ship type in ") + specfilename);
-	string country = eclassification->Attribute("country");
-	TiXmlHandle hdescription = hdftdship.FirstChild("description");//fixme: parse
-	TiXmlElement* emotion = hdftdship.FirstChildElement("motion").Element();
-	system::sys().myassert(emotion != 0, string("motion node missing in ")+specfilename);
-	max_speed = atof(emotion->Attribute("maxspeed"));
-	max_rev_speed = atof(emotion->Attribute("maxrevspeed"));
-	acceleration = atof(emotion->Attribute("acceleration"));
-	turn_rate = atof(emotion->Attribute("turnrate"));
-	TiXmlElement* etonnage = hdftdship.FirstChildElement("tonnage").Element();
-	system::sys().myassert(etonnage != 0, string("tonnage node missing in ")+specfilename);
-	unsigned minton = atoi(etonnage->Attribute("min"));
-	unsigned maxton = atoi(etonnage->Attribute("max"));
-	tonnage = minton + rnd(maxton - minton + 1);
-	TiXmlHandle hsmoke = hdftdship.FirstChild("smoke");//fixme parse
-	TiXmlHandle hsensors = hdftdship.FirstChild("sensors");//fixme parse
-	TiXmlElement* eai = hdftdship.FirstChildElement("ai").Element();
-	system::sys().myassert(eai != 0, string("ai node missing in ")+specfilename);
-	string aitype = eai->Attribute("type");
-	if (aitype == "dumb") myai = new ai(this, ai::dumb);
-	else if (aitype == "escort") myai = new ai(this, ai::escort);
-	else system::sys().myassert(false, string("illegal AI type in ") + specfilename);
-	TiXmlElement* efuel = hdftdship.FirstChildElement("fuel").Element();
-	system::sys().myassert(efuel != 0, string("fuel node missing in ")+specfilename);
-	fuel_level = atof(efuel->Attribute("capacity"));
-	fuel_value_a = atof(efuel->Attribute("consumption_a"));
-	fuel_value_t = atof(efuel->Attribute("consumption_t"));
-
-	// fixme smoke
-	mysmoke = 0;
-	// fixme: resize torpedoes vector according to # of tubes
-	// compute max depth with rnd
-	// get width and height from model! also in class ship!
-	// create sensor arrays after data! also in class ship!
-}
-*/
-
-
-
 void submarine::parse_attributes(class TiXmlElement* parent)
 {
-/*
-	if (ship::parse_attribute(p)) return true;
-	switch (p.type()) {
-		case TKN_SCOPEUP:
-			p.consume();
-			p.parse(TKN_ASSIGN);
-			scopeup = p.parse_bool();
-			p.parse(TKN_SEMICOLON);
-			break;
-		case TKN_MAXDEPTH:
-			p.consume();
-			p.parse(TKN_ASSIGN);
-			max_depth = p.parse_number();
-			p.parse(TKN_SEMICOLON);
-			break;
-		case TKN_TORPEDOES:
-			p.consume();
-			p.parse(TKN_SLPARAN);
-			for (unsigned i = 0; i < torpedoes.size(); ++i) {
-				switch (p.type()) {
-					case TKN_TXTNONE: torpedoes[i].status = stored_torpedo::st_empty; break;
-					case TKN_T1: torpedoes[i] = stored_torpedo(torpedo::T1); break;
-					case TKN_T2: torpedoes[i] = stored_torpedo(torpedo::T2); break;
-					case TKN_T3: torpedoes[i] = stored_torpedo(torpedo::T3); break;
-					case TKN_T3A: torpedoes[i] = stored_torpedo(torpedo::T3a); break;
-					case TKN_T4: torpedoes[i] = stored_torpedo(torpedo::T4); break;
-					case TKN_T5: torpedoes[i] = stored_torpedo(torpedo::T5); break;
-					case TKN_T11: torpedoes[i] = stored_torpedo(torpedo::T11); break;
-					case TKN_T1FAT: torpedoes[i] = stored_torpedo(torpedo::T1FAT); break;
-					case TKN_T3FAT: torpedoes[i] = stored_torpedo(torpedo::T3FAT); break;
-					case TKN_T6LUT: torpedoes[i] = stored_torpedo(torpedo::T6LUT); break;
-					default: p.error("Expected torpedo type");
-				}
-				p.consume();
-				if (p.type() == TKN_SRPARAN) break;
-				p.parse(TKN_COMMA);
-			}
-			p.parse(TKN_SRPARAN);
-			break;
-		case TKN_SNORKEL:
-			p.consume();
-			p.parse(TKN_ASSIGN);
-			hassnorkel = p.parse_bool();
-			p.parse(TKN_SEMICOLON);
-			break;
-		case TKN_BATTERY:
-			p.consume ();
-			p.parse ( TKN_ASSIGN );
-			battery_level = p.parse_number () / 100.0f;
-			p.parse ( TKN_SEMICOLON );
-			break;
-		default: return false;
+	ship::parse_attributes(parent);
+	
+	// parse dive_speed,dive_to,permanent_dive,max_depth,battery level,snorkelup,electricengine fixme
+
+	TiXmlHandle hdftdsub(parent);
+	TiXmlElement* escope = hdftdsub.FirstChildElement("scope").Element();
+	if (escope) {
+		string stat = escope->Attribute("up");
+		if (stat == "up") scopeup = true;
+		else scopeup = false;
+	}
+	TiXmlElement* etorpedoes = hdftdsub.FirstChildElement("torpedoes").Element();
+	if (etorpedoes) {
+		TiXmlElement* etorpedo = etorpedoes->FirstChildElement("torpedo");
+		for (unsigned tubenr = 0; etorpedo != 0; etorpedo = etorpedo->NextSiblingElement(), ++tubenr) {
+			int tubenr = atoi(etorpedo->Attribute("tube"));
+			if (tubenr < 0 || tubenr >= int(torpedoes.size()))
+				continue;	// ignore it, maybe send a message to user
+			string trptype = etorpedo->Attribute("type");
+			if (trptype == "T1") torpedoes[tubenr] = stored_torpedo(torpedo::T1);
+			else if (trptype == "T2") torpedoes[tubenr] = stored_torpedo(torpedo::T2);
+			else if (trptype == "T3") torpedoes[tubenr] = stored_torpedo(torpedo::T3);
+			else if (trptype == "T3a") torpedoes[tubenr] = stored_torpedo(torpedo::T3a);
+			else if (trptype == "T4") torpedoes[tubenr] = stored_torpedo(torpedo::T4);
+			else if (trptype == "T5") torpedoes[tubenr] = stored_torpedo(torpedo::T5);
+			else if (trptype == "T11") torpedoes[tubenr] = stored_torpedo(torpedo::T11);
+			else if (trptype == "T1FAT") torpedoes[tubenr] = stored_torpedo(torpedo::T1FAT);
+			else if (trptype == "T3FAT") torpedoes[tubenr] = stored_torpedo(torpedo::T3FAT);
+			else if (trptype == "T6LUT") torpedoes[tubenr] = stored_torpedo(torpedo::T6LUT);
+			else torpedoes[tubenr] = stored_torpedo(torpedo::none);
+		}
 	}
 
 	// Activate electric engine if submerged.
@@ -253,9 +163,6 @@ void submarine::parse_attributes(class TiXmlElement* parent)
 	{
 		electric_engine = true;
 	}
-    
-	return true;
-*/
 }
 
 
