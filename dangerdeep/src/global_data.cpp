@@ -77,6 +77,7 @@ void init_global_data(void)
 	font_timesbd = new font(get_font_dir() + "font_timesbd");
 	font_verdana = new font(get_font_dir() + "font_verdana");
 	font_verdanabd = new font(get_font_dir() + "font_verdanabd");
+	add_loading_screen("fonts loaded");
 	torpedo_g7 = new model(get_model_dir() + "torpedo_g7.3ds");
 	depth_charge_mdl = new model(get_model_dir() + "depth_charge.3ds");
 	gun_shell_mdl = new model(get_model_dir() + "gun_shell.3ds");
@@ -91,11 +92,6 @@ void init_global_data(void)
 	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", GL_LINEAR);
 	clock12 = new texture(get_texture_dir() + "clock12.png");
 	clock24 = new texture(get_texture_dir() + "clock24.png");
-	torpedo_launch_sound = new sound(get_sound_dir() + "torpedo_launch.wav" );
-	torpedo_detonation_submerged[0] = new sound(get_sound_dir() + "torpedo_detonation_submerged_1.wav" );
-	torpedo_detonation_submerged[1] = new sound(get_sound_dir() + "torpedo_detonation_submerged_2.wav" );
-	torpedo_detonation_surfaced[0] = new sound(get_sound_dir() + "torpedo_detonation_surfaced_1.wav" );
-	torpedo_detonation_surfaced[1] = new sound(get_sound_dir() + "torpedo_detonation_surfaced_2.wav" );
 	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png" );
 	notepadsheet = new texture(get_texture_dir() + "notepadsheet.png" /*, GL_CLAMP_TO_EDGE*/);
 	menuframe = new texture(get_texture_dir() + "menuframe.png" );
@@ -105,6 +101,13 @@ void init_global_data(void)
 	cloudsbackgr = new texture(get_texture_dir() + "cloudsbackgr.jpg" );
 	atlanticmap = new texture(get_texture_dir() + "atlanticmap.jpg", GL_LINEAR, GL_CLAMP_TO_EDGE);
 	add_loading_screen("textures loaded");
+
+	torpedo_launch_sound = new sound(get_sound_dir() + "torpedo_launch.wav" );
+	torpedo_detonation_submerged[0] = new sound(get_sound_dir() + "torpedo_detonation_submerged_1.wav" );
+	torpedo_detonation_submerged[1] = new sound(get_sound_dir() + "torpedo_detonation_submerged_2.wav" );
+	torpedo_detonation_surfaced[0] = new sound(get_sound_dir() + "torpedo_detonation_surfaced_1.wav" );
+	torpedo_detonation_surfaced[1] = new sound(get_sound_dir() + "torpedo_detonation_surfaced_2.wav" );
+	add_loading_screen("sounds loaded");
 
 	titlebackgrimg = new image(get_image_dir() + "titlebackgr.jpg");
 	periscope = new image(get_texture_dir() + "periscope.png", true);

@@ -942,6 +942,7 @@ void menu_select_language(void)
 // - detail for map/terrain/water (wave tile detail, # of wave tiles, global terrain detail, wave bump map detail)
 // - set fullscreen
 // - invert mouse in view
+// - set keys
 //
 void menu_resolution(void)
 {
@@ -956,14 +957,35 @@ void menu_resolution(void)
 */
 }
 
+
+
+void menu_configure_keys(void)
+{
+	widget w(0, 0, 1024, 768, texts::get(214), 0, sunkendestroyerimg);
+	//w.add_child(new widget_text(40, 60, 0, 0, texts::get(16)));
+	widget_list* wkeys = new widget_list(40, 50, 944, 640);
+	w.add_child(wkeys);
+
+	for (unsigned i = 600; i <= 649; ++i) {
+		wkeys->append_entry(texts::get(i));
+	}
+
+	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 40, 708, 944, 40, texts::get(20)));
+	w.run(0, false);
+}
+
+
+
 void menu_options(void)
 {
-/*
-	menu m(29, titlebackgrimg);
-	m.add_item(106, menu_resolution);
-	m.add_item(11, 0);
-	m.run();
-*/
+	widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
+	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(29));
+	w.add_child(wm);
+	wm->add_entry(texts::get(214), new widget_func_button<void (*)(void)>(&menu_configure_keys, 0, 0, 0, 0));
+	//wm->add_entry(texts::get(106), new widget_func_button<void (*)(void)>(&menu_resolution, 0, 0, 0, 0));
+	wm->add_entry(texts::get(11), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
+	wm->align(0, 0);
+	w.run(0, false);
 }
 
 
@@ -1105,6 +1127,7 @@ int main(int argc, char** argv)
 	//mycfg.register_option("ocean_res_x", 128);
 	//mycfg.register_option("ocean_res_y", 128);
 	//mycfg.register_option("key_fire_torp_1", "shift 1");
+	//mycfg.register_option("key_fire_torp_1", SDLK_1, shift|alt);
 	//mycfg.register_option("key_surface", "s");
 	//mycfg.register_option("key_special", "ctrl alt shift 3");
 	//mycfg.register_option("", );
@@ -1297,7 +1320,7 @@ int main(int argc, char** argv)
 			wm->add_entry(texts::get(25), new widget_func_button<void (*)(void)>(&show_halloffame_mission, 0, 0, 0, 0));
 			wm->add_entry(texts::get(213), new widget_func_button<void (*)(void)>(&show_credits, 0, 0, 0, 0));
 			wm->add_entry(texts::get(26), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 0, 0, 0, 0));
-			wm->add_entry(texts::get(29), new widget_func_button<void (*)(void)>(&menu_notimplemented /*menu_options*/, 0, 0, 0, 0));
+			wm->add_entry(texts::get(29), new widget_func_button<void (*)(void)>(&menu_options, 0, 0, 0, 0));
 
 			wm->add_entry(texts::get(30), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
 			wm->align(0, 0);
