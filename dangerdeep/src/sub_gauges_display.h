@@ -16,8 +16,8 @@ class image;
 class sub_gauges_display : public user_display
 {
 	// pointers to images/textures of the interface
-	image controlscreen_normallight;
-	image controlscreen_nightlight;
+	image* controlscreen_normallight;
+	image* controlscreen_nightlight;
 
 	struct indicator {
 		texture* mytex;

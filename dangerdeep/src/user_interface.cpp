@@ -205,7 +205,8 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 {
 #if 1
 	glPushMatrix();
-	glTranslatef(0, 0, -viewpos.z);
+	//fixme this should be removed...
+//	glTranslatef(0, 0, -viewpos.z);
 	terraintex->set_gl_texture();
 	mycoastmap.render(viewpos.xy());
 	glPopMatrix();

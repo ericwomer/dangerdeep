@@ -17,6 +17,9 @@
 #include "water_splash.h"
 #include "sky.h"
 #include "water.h"
+#include <fstream>
+
+
 
 void freeview_display::pre_display(game& gm) const
 {
@@ -300,19 +303,19 @@ void freeview_display::draw_view(game& gm) const
 	glClear(GL_DEPTH_BUFFER_BIT);
 	// shear one clip plane to match world space z=0 plane
 	//fixme
-	// flip light!
-	lposition[2] = -lposition[2];
-	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
+
 	// flip geometry at z=0 plane
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glScalef(1.0f, 1.0f, -1.0f);
+
+	// flip light!
+	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
+
 	// draw all parts of the scene that are (partly) above the water:
 	//   sky
 	glCullFace(GL_FRONT);
-	glPushMatrix();
 	ui.get_sky().display(gm, viewpos, max_view_dist, true);
-	glPopMatrix();
 	//   terrain
 	glColor4f(1,1,1,1);//fixme: fog is missing
 	ui.draw_terrain(viewpos, bearing, max_view_dist);
@@ -321,16 +324,24 @@ void freeview_display::draw_view(game& gm) const
 	//fixme
 	glCullFace(GL_BACK);
 	// copy viewport pixel data to reflection texture
+
+	//dirty hack to test water without mirror fixme
+	glClear(GL_COLOR_BUFFER_BIT);
+
 	glBindTexture(GL_TEXTURE_2D, ui.get_water().get_reflectiontex());
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, vps, vps, 0);
 
-/*
+	//fixme: the mirror map is not correct. upsidedown?! and seems view direction independent?! now!
+	//view is reversed, i.e. the world is NOT mirrored!!!! why?!
+
+#if 1
 	vector<Uint8> scrn(vps*vps*3);
 	glReadPixels(0, 0, vps, vps, GL_RGB, GL_UNSIGNED_BYTE, &scrn[0]);
+	scrn[0] = 255;//test to see where is up
 	ofstream oss("mirror.ppm");
 	oss << "P6\n" << vps << " " << vps << "\n255\n";
 	oss.write((const char*)(&scrn[0]), vps*vps*3);
-*/
+#endif
 
 	// clean up
 	glPopMatrix();
@@ -345,8 +356,7 @@ void freeview_display::draw_view(game& gm) const
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	// restore light! fixme the models are dark now. maybe we have to use the same modelview matrix that we used when creating the initial pos.?!
-	lposition[2] = -lposition[2];
+	// set light! fixme the models are dark now. maybe we have to use the same modelview matrix that we used when creating the initial pos.?!
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 
 
@@ -412,70 +422,3 @@ void freeview_display::draw_view(game& gm) const
 	glDisable(GL_FOG);	
 	glColor3f(1,1,1);
 }
-
-
-
-
-
-
-
-
-
-
-/////// old !!!!! look up input here
-#if 0
-
-void user_interface::display_freeview(game& gm)
-{
-	class system& sys = system::sys();
-	unsigned res_x = system::sys().get_res_x();
-	unsigned res_y = system::sys().get_res_y();
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-//	SDL_ShowCursor(SDL_DISABLE);
-	
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glRotatef(-90, 1,0,0);	// swap y and z coordinates (camera looks at +y axis)
-
-	glPushMatrix();	
-	glRotatef(freeviewsideang,0,0,1);
-	glRotatef(freeviewupang,1,0,0);
-	matrix4 viewmatrix = matrix4::get_gl(GL_MODELVIEW_MATRIX);
-	vector3 sidestep = viewmatrix.row(0);
-	vector3 upward = viewmatrix.row(1);
-	vector3 forward = -viewmatrix.row(2);
-	glPopMatrix();
-
-	// draw everything (dir can be ignored/0, all water tiles must get drawn, not only the viewing cone, fixme)
-	draw_view(gm, freeviewpos, 0,0,res_x,res_y, player_object->get_heading()+bearing+freeviewsideang, freeviewupang, false, false, true);
-
-	int mx, my;
-	sys.get_mouse_motion(mx, my);
-	freeviewsideang += mx*0.5;
-	freeviewupang -= my*0.5;
-
-	sys.prepare_2d_drawing();
-	draw_infopanel(gm);
-	sys.unprepare_2d_drawing();
-
-	// keyboard processing
-	int key = sys.get_key().sym;
-	while (key != 0) {
-		if (!keyboard_common(key, gm)) {
-			// specific keyboard processing
-			switch(key) {
-				case SDLK_KP8: freeviewpos -= forward * 5; break;
-				case SDLK_KP2: freeviewpos += forward * 5; break;
-				case SDLK_KP4: freeviewpos -= sidestep * 5; break;
-				case SDLK_KP6: freeviewpos += sidestep * 5; break;
-				case SDLK_KP1: freeviewpos -= upward * 5; break;
-				case SDLK_KP3: freeviewpos += upward * 5; break;
-			}
-		}
-		key = sys.get_key().sym;
-	}
-}
-
-#endif

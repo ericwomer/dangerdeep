@@ -316,7 +316,7 @@ void sky::cleanup_textures(void) const
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glMatrixMode(GL_TEXTURE);
-	glPopMatrix();
+	glPopMatrix();	// pushed in display(), fixme ugly
 	glMatrixMode(GL_MODELVIEW);
 
 	glEnable(GL_LIGHTING);
@@ -478,8 +478,11 @@ void sky::set_time(double tm)
 
 void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, bool isreflection) const
 {
+	//fixme: for reflections this is wrong, so get LIGHT_POS!
 	vector3 sundir = gm.compute_sun_pos(viewpos).normal();
 	color lightcol = gm.compute_light_color(viewpos);
+
+	glPushMatrix();
 
 	// 1) draw the stars on a black background
 
@@ -503,8 +506,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 
-	glPushMatrix();
-	glTranslatef(0, 0, -viewpos.z);
+//	glTranslatef(0, 0, -viewpos.z);//fixme wozu dies?!
 
 	// because the reflection map may have a lower resolution than the screen
 	// we shouldn't draw stars while computing this map. They would appear to big.
@@ -542,7 +544,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	double scal = 0.1;//max_view_dist / 30000.0;	// sky hemisphere is stored as 30km in radius
 	glScaled(scal, scal, scal);
 
-	// set texture coordinate translation for unit 1 (sunglow)
+	// set texture coordinate translation for unit 1 (sunglow), why this isn't in setup_tex?! fixme
 	double suntxr = ((sundir.z > 1.0) ? 0.0 : acos(sundir.z)) / M_PI;
 	double suntxa = atan2(sundir.y, sundir.x);
 	glActiveTexture(GL_TEXTURE1);
@@ -636,8 +638,5 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glEnable(GL_LIGHTING);
 	color::white().set_gl_color();
 
-	glPopMatrix();	// remove z translate for sky
-	
-	// modelview matrix is around viewpos now.
-
+	glPopMatrix();
 }

@@ -61,7 +61,21 @@ public:
 		if (it != cache.end()) {
 			--(it->second.first);
 			if (it->second.first == 0) {
+				delete it->second.second;
 				cache.erase(it);
+			}
+		}
+	}
+	
+	void unref(T* obj) {
+		for (typename map<string, pair<unsigned, T*> >::iterator it = cache.begin(); it != cache.end(); ++it) {
+			if (it->second.second == obj) {
+				--(it->second.first);
+				if (it->second.first == 0) {
+					delete it->second.second;
+					cache.erase(it);
+				}
+				break;
 			}
 		}
 	}
