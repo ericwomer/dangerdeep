@@ -45,8 +45,8 @@ angle sub_gauges_display::indicator::get_angle(int mx, int my) const
 
 sub_gauges_display::sub_gauges_display(user_interface& ui_) : user_display(ui_),
 {
-	controlscreen_normallight = imagecache.ref(get_image_dir() + "ControlScreen_NormalLight.png");
-	controlscreen_nightlight = imagecache.ref(get_image_dir() + "ControlScreen_NightLight.png");
+	controlscreen_normallight = imagecache.ref("ControlScreen_NormalLight.png");
+	controlscreen_nightlight = imagecache.ref("ControlScreen_NightLight.png");
 	image compassi(get_image_dir() + "ControlScreen_Compass.png");
 	image dials(get_image_dir() + "ControlScreen_Dials.png");
 	//fixme: at night we have different dials! store two textures per dial!

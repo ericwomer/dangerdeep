@@ -427,7 +427,9 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 {
 	// move world so that viewer is at (0,0,0)
 	glPushMatrix();
-	glTranslated(0, 0, -viewpos.z);
+	// fixme mirror effect is broken
+	// mirror part seems to be one side of the wave not top any more!
+//	glTranslated(0, 0, -viewpos.z);
 
 	int phase = int((myfmod(mytime, TIDECYCLE_TIME)/TIDECYCLE_TIME) * WAVE_PHASES);
 	const float VIRTUAL_PLANE_HEIGHT = 25.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok, maybe a bit too much
