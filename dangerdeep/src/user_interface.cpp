@@ -266,8 +266,10 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glPushMatrix();
 	// set up old projection matrix (new width/height of course) with a bit larger fov
 	//   that means completely new proj matrix ;-)
-	glLoadIdentity();
-	system::sys().gl_perspective_fovx(90.0 /*fixme*/, 1.0, 2.0, gm.get_max_view_distance());//fixme
+//the wrong mirror effect is caused by this projection matrix.
+//we should use the current matrix, but with a slightly bigger fov.
+//	glLoadIdentity();
+//	system::sys().gl_perspective_fovx(90.0 /*fixme*/, 1.0, 2.0, gm.get_max_view_distance());//fixme
 	// set up new viewport size s*s with s<=max_texure_size and s<=w,h of old viewport
 	unsigned vps = mywater->get_reflectiontex_size();
 	glViewport(0, 0, vps, vps);
@@ -278,13 +280,14 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	// flip geometry at z=0 plane
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
-	glScalef(1.0f, 1.0f, -1.0f);//fixme: mirror must be FIRST transformation!!! (y-mirror)
+	glScalef(1.0f, 1.0f, -1.0f);
 	// draw all parts of the scene that are (partly) above the water:
 	//   sky
 	glCullFace(GL_FRONT);
+	glPushMatrix();
 	mysky->display(viewpos, max_view_dist);
+	glPopMatrix();
 	//   terrain
-	glDisable(GL_LIGHTING);
 	glColor4f(1,1,1,1);//fixme: fog is missing
 	draw_terrain(viewpos, dir, max_view_dist);
 	//fixme
@@ -295,11 +298,13 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glBindTexture(GL_TEXTURE_2D, mywater->get_reflectiontex());
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, vps, vps, 0);
 
+/*
 	vector<Uint8> scrn(vps*vps*3);
 	glReadPixels(0, 0, vps, vps, GL_RGB, GL_UNSIGNED_BYTE, &scrn[0]);
 	ofstream oss("mirror.ppm");
 	oss << "P6\n" << vps << " " << vps << "\n255\n";
 	oss.write((const char*)(&scrn[0]), vps*vps*3);
+*/
 
 	// clear depth buffer
 	//glClear(GL_DEPTH_BUFFER_BIT); // if znear/far are the same as in the scene, this clear should be enough
@@ -334,6 +339,15 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 
 	// ******** terrain/land ********************************************************
 	draw_terrain(viewpos, dir, max_view_dist);
+
+/* test hack, remove
+	glCullFace(GL_FRONT);
+	glPushMatrix();
+	glScalef(1,1,-1);
+	draw_terrain(viewpos, dir, max_view_dist);
+	glCullFace(GL_BACK);
+	glPopMatrix();
+*/
 
 	// ******************** ships & subs *************************************************
 	// 2004/03/07

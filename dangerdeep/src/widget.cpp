@@ -42,7 +42,7 @@ widget::theme::theme(const char* elements_filename, const char* icons_filename, 
 	int fw;
 	SDL_Surface* tmp;
 	tmp = IMG_Load((get_texture_dir() + elements_filename).c_str());
-	system::sys().myassert(tmp != 0, "Unable to load widget theme elements file");
+	system::sys().myassert(tmp != 0, string("Unable to load widget theme elements file: ") + get_texture_dir() + elements_filename);
 	fw = tmp->h;
 	backg = new texture(tmp, 0, 0, fw, fw);
 	skbackg = new texture(tmp, fw, 0, fw, fw);

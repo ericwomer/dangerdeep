@@ -56,8 +56,8 @@ water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), ti
 	// fixme: auto mipmap?
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);//CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	coords.reserve((tile_res+1)*(tile_res+1));
 	colors.reserve((tile_res+1)*(tile_res+1));
@@ -83,7 +83,7 @@ water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), ti
 		}
 	}
 
-	ocean_wave_generator<float> owg(tile_res, vector2f(1,1), 2 /*10*/ /*31*/, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
+	ocean_wave_generator<float> owg(tile_res, vector2f(1,1), 8 /*10*/ /*31*/, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileheights[i] = owg.compute_heights();
@@ -182,7 +182,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 	
 	// set texture unit to combine primary color with texture color via dot3
 	int phase = int((myfmod(mytime, TIDECYCLE_TIME)/TIDECYCLE_TIME) * WAVE_PHASES);
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 	glDisable(GL_LIGHTING);
 
@@ -195,8 +194,9 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 	GLdouble m[16];
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
-glTranslated(0.5,0.5,0);
-glScaled(0.5,0.5,1.0);	// check if this matches the texture
+	// rescale coordinates [-1,1] to [0,1]
+	glTranslated(0.5,0.5,0);
+	glScaled(0.5,0.5,1.0);
 	glGetDoublev(GL_PROJECTION_MATRIX, m);
 	glMultMatrixd(m);
 	glGetDoublev(GL_MODELVIEW_MATRIX, m);
@@ -294,9 +294,288 @@ glScaled(0.5,0.5,1.0);	// check if this matches the texture
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glActiveTexture(GL_TEXTURE0);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
 	glPopAttrib();
 
+	glPopMatrix();
+	glColor3f(1,1,1);
+}
 
+
+
+// the viewer should be in position 0,0,0 for the LOD to work right and also for lighting
+int water::compute_lod_by_trans(const vector3f& transl) const
+{
+	double meandist = transl.xy().length();
+	const float maxloddist = 256.0f;
+	const float minloddist = 5000.0f;
+	float a = (minloddist - maxloddist) / (int(base_detail) - 1);
+	float distfac = a/(meandist + a - maxloddist);
+	int lodlevel = int(base_detail*distfac) - 1;
+	if (lodlevel < 0) lodlevel = 0;
+	if (lodlevel >= int(base_detail)) lodlevel = int(base_detail)-1;
+	return lodlevel;
+}
+
+
+
+void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillgap) const
+{
+	// How we render the water:
+	// Per pixel effects are not possible on geforce2. We could do dot3 bump mapping,
+	// but this gives diffuse lighting effects, and water is mostly reflective, refractive
+	// or specular shaded. Dot3 bump mapping could be used to disturb the color values
+	// a bit, if it would look good is unknown and has to be tested.
+	// We can do specular lighting per vertex only (per pixel would need pixel shaders or
+	// register combiners, which is not compatible to ATI cards). This could be done
+	// even by OpenGL itself. But the triangles are too large for realistic specular
+	// lighting, it just looks very ugly. So we don't use specular lighting.
+	// for each vertex do:
+	// get height/coordinate from precomputed heights/translation pos/displacements
+	// compute normalized vector to watcher = E
+	// get normal vector from precomputed data = N
+	// compute E*N, compute Fresnel(E*N). Fresnel(x) gives a value between 0 and 1
+	// determining how much reflection and how much refraction contributes to the water
+	// color. Fresnel(x) ~ 1/(x+1)^8 =: F. There is no way to compute this per pixel on a gf2
+	// not even an approximation (linear approximation is way too bad).
+	// And we can't use color values as texture indices on a gf2, so per pixel Fresnel
+	// is impossible, although it would increase the realism of the water.
+	// Based on F the water color is: refractive color * (1-F) + reflective color * F
+	// refractive color is const (rgb 18, 73, 107), reflective color is const (sky color)
+	// or better retrieved from a reflection map.
+	// So we have: primary color gives fresnel term (in color or alpha, 1 channel)
+	// Texture0 is reflection map.
+	// Texture1 is bump map (for fresnel fakes) or foam.
+	// Primary color (alpha or color) can give amount of foam (1 channel)
+	// Constant environment color is color of refraction.
+	// A word about automatic Fresnel computation: spheremaps or cubemaps won't work
+	// since reflections are view dependent (most important, they are view *angle*
+	// dependent), recomputation of sphere maps every frame won't work in a way that we
+	// can simulate a view independent value. Next possible way: lighting! set up the light
+	// source at the viewer's pos., give normals for faces -> they're lighted in grey
+	// like the E*N term (diffuse lighting). But we can't get F(E*N) per vertex automatically
+	// so we're stuck.
+	
+	// high frequency waves could be done with perlin noise (i.e. bump maps)
+	
+	// Filling the gaps between various detail tiles:
+	// We could make real meshes by tweaking the indices so that we have more faces in
+	// the last line of the lower detailed tile matching the first line of the following
+	// higher detailed tile. So we need precomputed indices for all cases. Expensive.
+	// Alternative solution: tweak the vertices' positions, not the indices. This leads to
+	// gaps in the mesh, but the faces' edges match, so no gaps can be seen. Just tweak
+	// the values of every second vertex on the last line of the higher detailed tile:
+	// for three vertices a,b,c in a line on the higher detailed tile, a and c will be
+	// also in the lower detailed tile. Set position of b as (a+c)/2, and do the same with
+	// b's colors and texture coordinates. Simple.
+	// Precondition: Adjacent tiles must not differ by more than one LOD. But this must not be
+	// either for the index tweaking alternative.
+	// Alternative II: draw n*n verts, fill inner parts of tiles only (with varying detail)
+	// fill seams with faces adapting the neighbouring detail levels.
+	// Alternative III: use projective grid
+
+	// Water drawing is slow. It seems that the per vertex computations are not the problem
+	// nor is it the gap filling. Most probable reason is the amount of data that
+	// has to be transferred each frame.
+	// We have 4 colors, 3 coords, 2 texcoords per vertex (=4+12+8=24bytes)
+	// with 65*65 verts per tile, 21*21 tiles, mean resolution, say, 20 we have
+	// 21*21*21*21*24bytes/frame = ~4.7mb/frame, with 15frames ~ 70mb/second.
+	// VBOs won't help much, they're also seem to be buggy on a gf4mx.
+	// Reason: a gf2mx can handle at most 16384 triangles.
+	// A gf4mx may handle more, general limit is 65536.
+
+	unsigned res = (2 << lodlevel);
+	unsigned resi = res+1;
+	unsigned revres = (1 << (base_detail-1 - lodlevel));
+
+//#define DRAW_NORMALS
+#ifdef DRAW_NORMALS
+	glActiveTexture(GL_TEXTURE0);
+	glDisable(GL_TEXTURE_2D);
+	glBegin(GL_LINES);
+	glColor4f(1,1,1,1);
+#endif
+
+	const float VIRTUAL_PLANE_HEIGHT = 30.0f;	// fixme experiment, amount of distorsion
+
+	vector3f L = vector3f(1,0,1).normal();//fixme, get from caller!
+//float tf = myfrac(mytime/10.0f)*2*M_PI;
+//L = vector3f(cos(tf),sin(tf),1).normal();
+	float add = float(WAVE_LENGTH)/res;
+	float fy = 0;
+	unsigned vecptr = 0;
+	for (unsigned y = 0; y <= tile_res; y += revres) {
+		float fx = 0;
+		unsigned cy = y & (tile_res-1);
+		for (unsigned x = 0; x <= tile_res; x += revres, ++vecptr) {
+			unsigned cx = x & (tile_res-1);
+			unsigned ptr = cy*tile_res+cx;
+			vector3f coord = transl + vector3f(
+				fx + wavetiledisplacements[phase][ptr].x,
+				fy + wavetiledisplacements[phase][ptr].y,
+				wavetileheights[phase][ptr]);
+			vector3f N = wavetilenormals[phase][ptr];
+			vector3f E = -coord.normal();
+
+#ifdef DRAW_NORMALS
+			glColor3f(1,0,0);
+			vector3f u = coord + N * 1.0f;
+			glVertex3fv(&coord.x);
+			glVertex3fv(&u.x);
+			glColor3f(1,1,0);
+			u = coord + E * 10.0f + vector3f(0.1, 0.1, 0.0);
+			glVertex3fv(&coord.x);
+			glVertex3fv(&u.x);
+			glColor3f(0,1,0);
+			u = coord + R * 1.0f;
+			glVertex3fv(&coord.x);
+			glVertex3fv(&u.x);
+#endif
+
+			float F = E*N;		// compute Fresnel term F(x) = 1/(x+1)^8
+			if (F < 0.0f) F = 0.0f;	// avoid angles > 90 deg.
+			F = F + 1.0f;
+			F = F * F;	// ^2
+			F = F * F;	// ^4
+			F = F * F;	// ^8
+			F = 1.0f/F;
+			Uint8 c = Uint8(F*255);
+			Uint8 foampart = 255;
+			color primary(c, c, c, foampart);
+
+			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
+			texc.z -= VIRTUAL_PLANE_HEIGHT;
+						
+			coords[vecptr] = coord;
+//			normals[vecptr] = N;
+			uv0[vecptr] = texc;
+			colors[vecptr] = primary;
+			fx += add;
+		}
+		fy += add;
+	}
+	
+#ifdef DRAW_NORMALS
+	glEnd();
+	glEnable(GL_TEXTURE_2D);
+#endif
+
+	// to avoid gaps, reposition the vertices, fillgap bits: 0,1,2,3 for top,right,bottom,left
+	if (fillgap & 1) {
+		for (unsigned i = res*resi+1; i < resi*resi-1; i += 2) {
+			coords[i] = (coords[i-1] + coords[i+1]) * 0.5f;
+			colors[i] = color(colors[i-1], colors[i+1], 0.5f);
+			uv0[i] = (uv0[i-1] + uv0[i+1]) * 0.5f;
+		}
+	}
+	if (fillgap & 2) {
+		for (unsigned i = 2*resi-1; i < resi*resi-1; i += 2*resi) {
+			coords[i] = (coords[i-resi] + coords[i+resi]) * 0.5f;
+			colors[i] = color(colors[i-resi], colors[i+resi], 0.5f);
+			uv0[i] = (uv0[i-resi] + uv0[i+resi]) * 0.5f;
+		}
+	}
+	if (fillgap & 4) {
+		for (unsigned i = 1; i < resi-1; i += 2) {
+			coords[i] = (coords[i-1] + coords[i+1]) * 0.5f;
+			colors[i] = color(colors[i-1], colors[i+1], 0.5f);
+			uv0[i] = (uv0[i-1] + uv0[i+1]) * 0.5f;
+		}
+	}
+	if (fillgap & 8) {
+		for (unsigned i = resi; i < resi*res; i += 2*resi) {
+			coords[i] = (coords[i-resi] + coords[i+resi]) * 0.5f;
+			colors[i] = color(colors[i-resi], colors[i+resi], 0.5f);
+			uv0[i] = (uv0[i-resi] + uv0[i+resi]) * 0.5f;
+		}
+	}
+
+	// draw precomputed index list according to detail level
+	glDrawElements(GL_QUADS, res*res*4, GL_UNSIGNED_INT, &(waveindices[lodlevel][0]));
+}
+
+
+void water::update_foam(double deltat)
+{
+/*
+	float foamvanish = deltat * FOAM_VANISH_FACTOR;
+	for (unsigned k = 0; k < FACES_PER_AXIS*FACES_PER_AXIS; ++k) {
+		float& foam = wavefoam[k];
+		foam -= foamvanish;
+		if (foam < 0.0f) foam = 0.0f;
+		wavefoamtexdata[k] = Uint8(255*foam);
+	}
+	glBindTexture(GL_TEXTURE_2D, wavefoamtex);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FACES_PER_AXIS, FACES_PER_AXIS, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, &wavefoamtexdata[0]);
+*/	
+}
+
+void water::spawn_foam(const vector2& pos)
+{
+/*
+	// compute texel position from pos here
+	unsigned texel = FACES_PER_AXIS*FACES_PER_AXIS/2+FACES_PER_AXIS/2;
+	float& f = wavefoam[texel];
+	f += 0.1;
+	if (f > 1.0f) f = 1.0f;
+	wavefoamtexdata[texel] = Uint8(255*f);
+*/	
+}
+
+float water::get_height(const vector2& pos) const
+{
+	double t = myfrac(mytime/TIDECYCLE_TIME);
+	int wavephase = int(WAVE_PHASES*t);
+	float ffac = tile_res/WAVE_LENGTH;
+	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
+	float y = float(myfmod(pos.y, WAVE_LENGTH)) * ffac;
+	int ix = int(floor(x));
+	int iy = int(floor(y));
+	int ix2 = (ix+1)%tile_res;
+	int iy2 = (iy+1)%tile_res;
+	float fracx = x - ix;
+	float fracy = y - iy;
+	float a = wavetileheights[wavephase][ix+iy*tile_res];
+	float b = wavetileheights[wavephase][ix2+iy*tile_res];
+	float c = wavetileheights[wavephase][ix+iy2*tile_res];
+	float d = wavetileheights[wavephase][ix2+iy2*tile_res];
+	float e = a * (1.0f-fracx) + b * fracx;
+	float f = c * (1.0f-fracx) + d * fracx;
+	return (1.0f-fracy) * e + fracy * f;
+}
+
+vector3f water::get_normal(const vector2& pos, double f) const
+{
+	double t = myfrac(mytime/TIDECYCLE_TIME);
+	int wavephase = int(WAVE_PHASES*t);
+	float ffac = tile_res/WAVE_LENGTH;
+	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
+	float y = float(myfmod(pos.y, WAVE_LENGTH)) * ffac;
+	int ix = int(floor(x));
+	int iy = int(floor(y));
+	int ix2 = (ix+1)%tile_res;
+	int iy2 = (iy+1)%tile_res;
+	float fracx = x - ix;
+	float fracy = y - iy;
+	vector3f a = wavetilenormals[wavephase][ix+iy*tile_res];
+	vector3f b = wavetilenormals[wavephase][ix2+iy*tile_res];
+	vector3f c = wavetilenormals[wavephase][ix+iy2*tile_res];
+	vector3f d = wavetilenormals[wavephase][ix2+iy2*tile_res];
+	vector3f e = a * (1.0f-fracx) + b * fracx;
+	vector3f g = c * (1.0f-fracx) + d * fracx;
+	vector3f h = e * (1.0f-fracy) + g * fracy;
+	h.z *= (1.0f/f);
+	return h.normal();
+}
+
+void water::set_time(double tm)
+{
+	mytime = tm;
+}
+
+
+
+// old code
 #if 0
 
 	glActiveTexture(GL_TEXTURE0);
@@ -512,278 +791,3 @@ cout<<"\n";
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 #endif
 
-	glPopAttrib();
-
-	glPopMatrix();
-	glColor3f(1,1,1);
-}
-
-
-
-// the viewer should be in position 0,0,0 for the LOD to work right and also for lighting
-int water::compute_lod_by_trans(const vector3f& transl) const
-{
-	double meandist = transl.xy().length();
-	const float maxloddist = 256.0f;
-	const float minloddist = 5000.0f;
-	float a = (minloddist - maxloddist) / (int(base_detail) - 1);
-	float distfac = a/(meandist + a - maxloddist);
-	int lodlevel = int(base_detail*distfac) - 1;
-	if (lodlevel < 0) lodlevel = 0;
-	if (lodlevel >= int(base_detail)) lodlevel = int(base_detail)-1;
-	return lodlevel;
-}
-
-
-
-void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillgap) const
-{
-	// How we render the water:
-	// Per pixel effects are not possible on geforce2. We could do dot3 bump mapping,
-	// but this gives diffuse lighting effects, and water is mostly reflective, refractive
-	// or specular shaded. Dot3 bump mapping could be used to disturb the color values
-	// a bit, if it would look good is unknown and has to be tested.
-	// We can do specular lighting per vertex only (per pixel would need pixel shaders or
-	// register combiners, which is not compatible to ATI cards). This could be done
-	// even by OpenGL itself. But the triangles are too large for realistic specular
-	// lighting, it just looks very ugly. So we don't use specular lighting.
-	// for each vertex do:
-	// get height/coordinate from precomputed heights/translation pos/displacements
-	// compute normalized vector to watcher = E
-	// get normal vector from precomputed data = N
-	// compute E*N, compute Fresnel(E*N). Fresnel(x) gives a value between 0 and 1
-	// determining how much reflection and how much refraction contributes to the water
-	// color. Fresnel(x) ~ 1/(x+1)^8 =: F. There is no way to compute this per pixel on a gf2
-	// not even an approximation (linear approximation is way too bad).
-	// And we can't use color values as texture indices on a gf2, so per pixel Fresnel
-	// is impossible, although it would increase the realism of the water.
-	// Based on F the water color is: refractive color * (1-F) + reflective color * F
-	// refractive color is const (rgb 18, 73, 107), reflective color is const (sky color)
-	// or better retrieved from a reflection map.
-	// So we have: primary color gives fresnel term (in color or alpha, 1 channel)
-	// Texture0 is reflection map.
-	// Texture1 is bump map (for fresnel fakes) or foam.
-	// Primary color (alpha or color) can give amount of foam (1 channel)
-	// Constant environment color is color of refraction.
-	// A word about automatic Fresnel computation: spheremaps or cubemaps won't work
-	// since reflections are view dependent (most important, they are view *angle*
-	// dependent), recomputation of sphere maps every frame won't work in a way that we
-	// can simulate a view independent value. Next possible way: lighting! set up the light
-	// source at the viewer's pos., give normals for faces -> they're lighted in grey
-	// like the E*N term (diffuse lighting). But we can't get F(E*N) per vertex automatically
-	// so we're stuck.
-	
-	// high frequency waves could be done with perlin noise (i.e. bump maps)
-	
-	// Filling the gaps between various detail tiles:
-	// We could make real meshes by tweaking the indices so that we have more faces in
-	// the last line of the lower detailed tile matching the first line of the following
-	// higher detailed tile. So we need precomputed indices for all cases. Expensive.
-	// Alternative solution: tweak the vertices' positions, not the indices. This leads to
-	// gaps in the mesh, but the faces' edges match, so no gaps can be seen. Just tweak
-	// the values of every second vertex on the last line of the higher detailed tile:
-	// for three vertices a,b,c in a line on the higher detailed tile, a and c will be
-	// also in the lower detailed tile. Set position of b as (a+c)/2, and do the same with
-	// b's colors and texture coordinates. Simple.
-	// Precondition: Adjacent tiles must not differ by more than one LOD. But this must not be
-	// either for the index tweaking alternative.
-	// Alternative II: draw n*n verts, fill inner parts of tiles only (with varying detail)
-	// fill seams with faces adapting the neighbouring detail levels.
-	// Alternative III: use projective grid
-
-	// Water drawing is slow. It seems that the per vertex computations are not the problem
-	// nor is it the gap filling. Most probable reason is the amount of data that
-	// has to be transferred each frame.
-	// We have 4 colors, 3 coords, 2 texcoords per vertex (=4+12+8=24bytes)
-	// with 65*65 verts per tile, 21*21 tiles, mean resolution, say, 20 we have
-	// 21*21*21*21*24bytes/frame = ~4.7mb/frame, with 15frames ~ 70mb/second.
-	// VBOs won't help much, they're also seem to be buggy on a gf4mx.
-
-	unsigned res = (2 << lodlevel);
-	unsigned resi = res+1;
-	unsigned revres = (1 << (base_detail-1 - lodlevel));
-
-//#define DRAW_NORMALS
-#ifdef DRAW_NORMALS
-	glActiveTexture(GL_TEXTURE0);
-	glDisable(GL_TEXTURE_2D);
-	glBegin(GL_LINES);
-	glColor4f(1,1,1,1);
-#endif
-
-	const float VIRTUAL_PLANE_HEIGHT = 0.0f;//5.0f;	// fixme experiment, amount of distorsion
-
-	vector3f L = vector3f(1,0,1).normal();//fixme, get from caller!
-//float tf = myfrac(mytime/10.0f)*2*M_PI;
-//L = vector3f(cos(tf),sin(tf),1).normal();
-	float add = float(WAVE_LENGTH)/res;
-	float fy = 0;
-	unsigned vecptr = 0;
-	for (unsigned y = 0; y <= tile_res; y += revres) {
-		float fx = 0;
-		unsigned cy = y & (tile_res-1);
-		for (unsigned x = 0; x <= tile_res; x += revres, ++vecptr) {
-			unsigned cx = x & (tile_res-1);
-			unsigned ptr = cy*tile_res+cx;
-			vector3f coord = transl + vector3f(
-				fx + wavetiledisplacements[phase][ptr].x,
-				fy + wavetiledisplacements[phase][ptr].y,
-				wavetileheights[phase][ptr]);
-			vector3f N = wavetilenormals[phase][ptr];
-			vector3f E = -coord.normal();
-
-#ifdef DRAW_NORMALS
-			glColor3f(1,0,0);
-			vector3f u = coord + N * 1.0f;
-			glVertex3fv(&coord.x);
-			glVertex3fv(&u.x);
-			glColor3f(1,1,0);
-			u = coord + E * 10.0f + vector3f(0.1, 0.1, 0.0);
-			glVertex3fv(&coord.x);
-			glVertex3fv(&u.x);
-			glColor3f(0,1,0);
-			u = coord + R * 1.0f;
-			glVertex3fv(&coord.x);
-			glVertex3fv(&u.x);
-#endif
-
-			float F = E*N;		// compute Fresnel term F(x) = 1/(x+1)^8
-			if (F < 0.0f) F = 0.0f;	// avoid angles > 90 deg.
-			F = F + 1.0f;
-			F = F * F;	// ^2
-			F = F * F;	// ^4
-			F = F * F;	// ^8
-			F = 1.0f/F;
-			Uint8 c = Uint8(F*255);
-			Uint8 foampart = 255;
-			color primary(c, c, c, foampart);
-
-			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
-			texc.z -= VIRTUAL_PLANE_HEIGHT;
-						
-			coords[vecptr] = coord;
-//			normals[vecptr] = N;
-			uv0[vecptr] = texc;
-			colors[vecptr] = primary;
-			fx += add;
-		}
-		fy += add;
-	}
-	
-#ifdef DRAW_NORMALS
-	glEnd();
-	glEnable(GL_TEXTURE_2D);
-#endif
-
-	// to avoid gaps, reposition the vertices, fillgap bits: 0,1,2,3 for top,right,bottom,left
-	if (fillgap & 1) {
-		for (unsigned i = res*resi+1; i < resi*resi-1; i += 2) {
-			coords[i] = (coords[i-1] + coords[i+1]) * 0.5f;
-			colors[i] = color(colors[i-1], colors[i+1], 0.5f);
-			uv0[i] = (uv0[i-1] + uv0[i+1]) * 0.5f;
-		}
-	}
-	if (fillgap & 2) {
-		for (unsigned i = 2*resi-1; i < resi*resi-1; i += 2*resi) {
-			coords[i] = (coords[i-resi] + coords[i+resi]) * 0.5f;
-			colors[i] = color(colors[i-resi], colors[i+resi], 0.5f);
-			uv0[i] = (uv0[i-resi] + uv0[i+resi]) * 0.5f;
-		}
-	}
-	if (fillgap & 4) {
-		for (unsigned i = 1; i < resi-1; i += 2) {
-			coords[i] = (coords[i-1] + coords[i+1]) * 0.5f;
-			colors[i] = color(colors[i-1], colors[i+1], 0.5f);
-			uv0[i] = (uv0[i-1] + uv0[i+1]) * 0.5f;
-		}
-	}
-	if (fillgap & 8) {
-		for (unsigned i = resi; i < resi*res; i += 2*resi) {
-			coords[i] = (coords[i-resi] + coords[i+resi]) * 0.5f;
-			colors[i] = color(colors[i-resi], colors[i+resi], 0.5f);
-			uv0[i] = (uv0[i-resi] + uv0[i+resi]) * 0.5f;
-		}
-	}
-
-	// draw precomputed index list according to detail level
-	glDrawElements(GL_QUADS, res*res*4, GL_UNSIGNED_INT, &(waveindices[lodlevel][0]));
-}
-
-
-void water::update_foam(double deltat)
-{
-/*
-	float foamvanish = deltat * FOAM_VANISH_FACTOR;
-	for (unsigned k = 0; k < FACES_PER_AXIS*FACES_PER_AXIS; ++k) {
-		float& foam = wavefoam[k];
-		foam -= foamvanish;
-		if (foam < 0.0f) foam = 0.0f;
-		wavefoamtexdata[k] = Uint8(255*foam);
-	}
-	glBindTexture(GL_TEXTURE_2D, wavefoamtex);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FACES_PER_AXIS, FACES_PER_AXIS, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, &wavefoamtexdata[0]);
-*/	
-}
-
-void water::spawn_foam(const vector2& pos)
-{
-/*
-	// compute texel position from pos here
-	unsigned texel = FACES_PER_AXIS*FACES_PER_AXIS/2+FACES_PER_AXIS/2;
-	float& f = wavefoam[texel];
-	f += 0.1;
-	if (f > 1.0f) f = 1.0f;
-	wavefoamtexdata[texel] = Uint8(255*f);
-*/	
-}
-
-float water::get_height(const vector2& pos) const
-{
-	double t = myfrac(mytime/TIDECYCLE_TIME);
-	int wavephase = int(WAVE_PHASES*t);
-	float ffac = tile_res/WAVE_LENGTH;
-	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
-	float y = float(myfmod(pos.y, WAVE_LENGTH)) * ffac;
-	int ix = int(floor(x));
-	int iy = int(floor(y));
-	int ix2 = (ix+1)%tile_res;
-	int iy2 = (iy+1)%tile_res;
-	float fracx = x - ix;
-	float fracy = y - iy;
-	float a = wavetileheights[wavephase][ix+iy*tile_res];
-	float b = wavetileheights[wavephase][ix2+iy*tile_res];
-	float c = wavetileheights[wavephase][ix+iy2*tile_res];
-	float d = wavetileheights[wavephase][ix2+iy2*tile_res];
-	float e = a * (1.0f-fracx) + b * fracx;
-	float f = c * (1.0f-fracx) + d * fracx;
-	return (1.0f-fracy) * e + fracy * f;
-}
-
-vector3f water::get_normal(const vector2& pos, double f) const
-{
-	double t = myfrac(mytime/TIDECYCLE_TIME);
-	int wavephase = int(WAVE_PHASES*t);
-	float ffac = tile_res/WAVE_LENGTH;
-	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
-	float y = float(myfmod(pos.y, WAVE_LENGTH)) * ffac;
-	int ix = int(floor(x));
-	int iy = int(floor(y));
-	int ix2 = (ix+1)%tile_res;
-	int iy2 = (iy+1)%tile_res;
-	float fracx = x - ix;
-	float fracy = y - iy;
-	vector3f a = wavetilenormals[wavephase][ix+iy*tile_res];
-	vector3f b = wavetilenormals[wavephase][ix2+iy*tile_res];
-	vector3f c = wavetilenormals[wavephase][ix+iy2*tile_res];
-	vector3f d = wavetilenormals[wavephase][ix2+iy2*tile_res];
-	vector3f e = a * (1.0f-fracx) + b * fracx;
-	vector3f g = c * (1.0f-fracx) + d * fracx;
-	vector3f h = e * (1.0f-fracy) + g * fracy;
-	h.z *= (1.0f/f);
-	return h.normal();
-}
-
-void water::set_time(double tm)
-{
-	mytime = tm;
-}
