@@ -37,11 +37,7 @@ extern objcachet<class image> imagecache;
 extern objcachet<class texture> texturecache;
 
 // global models, textures, fonts
-extern class model *merchant_large, *merchant_medium, *merchant_small,
-	*subVII, *subIXc40, *subXXI, *destroyer_tribal, *troopship_medium,
-	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
-	*corvette_mdl, *freighter_medium, *freighter_large,
-	*tanker_small, *conning_tower_typeVII;
+extern class model *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl, *conning_tower_typeVII;//fixme: make use of cache for them!
 extern class texture *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,

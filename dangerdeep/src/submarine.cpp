@@ -8,6 +8,7 @@
 #include "date.h"
 #include "submarine.h"
 #include "depth_charge.h"
+#include "tinyxml/tinyxml.h"
 
 // fixme: this was hard work. most values are a rather rough approximation.
 // if we want a real accurate simulation, these values have to be (re)checked.
@@ -53,10 +54,10 @@ submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damagea
 	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, true, true),	// radar
 };
 
-submarine::submarine() : ship(), dive_speed(0.0f), permanent_dive(false),
-	dive_to(0.0f), max_dive_speed(1.0f), dive_acceleration(0.0f), scopeup(false),
-	max_depth(150.0f), periscope_depth(12.0f), snorkel_depth(10.0f),
-	hassnorkel (false), snorkelup(false),
+submarine::submarine() : ship(), dive_speed(0.0f), dive_acceleration(0.0f), max_dive_speed(1.0f),
+	max_depth(150.0f), dive_to(0.0f), permanent_dive(false),
+	scopeup(false), periscope_depth(12.0f), hassnorkel (false), snorkel_depth(10.0f),
+	snorkelup(false),
 	battery_level ( 1.0f ), battery_value_a ( 0.0f ), battery_value_t ( 1.0f ),
 	battery_recharge_value_a ( 0.0f ), battery_recharge_value_t ( 1.0f ),
 	damageable_parts(nr_of_damageable_parts),
@@ -67,6 +68,63 @@ submarine::submarine() : ship(), dive_speed(0.0f), permanent_dive(false),
 	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
 		damageable_parts[i] = damageable_part(0, 0);
 }
+
+
+
+submarine::submarine(const string& specfilename_) : ship(specfilename_)
+{
+	TiXmlDocument doc(get_ship_dir() + specfilename + ".xml");
+	doc.LoadFile();
+	TiXmlHandle hdoc(&doc);
+	TiXmlHandle hdftdship = hdoc.FirstChild("dftd-ship");
+/*
+	TiXmlElement* eclassification = hdftdship.FirstChildElement("classification").Element();
+	system::sys().myassert(eclassification != 0, string("classification node missing in ")+specfilename);
+	modelname = eclassification->Attribute("modelname");
+	string typestr = eclassification->Attribute("type");
+	if (typestr == "warship") shipclass = WARSHIP;
+	else if (typestr == "escort") shipclass = ESCORT;
+	else if (typestr == "merchant") shipclass = MERCHANT;
+	else system::sys().myassert(false, string("illegal ship type in ") + specfilename);
+	string country = eclassification->Attribute("country");
+	TiXmlHandle hdescription = hdftdship.FirstChild("description");//fixme: parse
+	TiXmlElement* emotion = hdftdship.FirstChildElement("motion").Element();
+	system::sys().myassert(emotion != 0, string("motion node missing in ")+specfilename);
+	max_speed = atof(emotion->Attribute("maxspeed"));
+	max_rev_speed = atof(emotion->Attribute("maxrevspeed"));
+	acceleration = atof(emotion->Attribute("acceleration"));
+	turn_rate = atof(emotion->Attribute("turnrate"));
+	TiXmlElement* etonnage = hdftdship.FirstChildElement("tonnage").Element();
+	system::sys().myassert(etonnage != 0, string("tonnage node missing in ")+specfilename);
+	unsigned minton = atoi(etonnage->Attribute("min"));
+	unsigned maxton = atoi(etonnage->Attribute("max"));
+	tonnage = minton + rnd(maxton - minton + 1);
+	TiXmlHandle hsmoke = hdftdship.FirstChild("smoke");//fixme parse
+	TiXmlHandle hsensors = hdftdship.FirstChild("sensors");//fixme parse
+	TiXmlElement* eai = hdftdship.FirstChildElement("ai").Element();
+	system::sys().myassert(eai != 0, string("ai node missing in ")+specfilename);
+	string aitype = eai->Attribute("type");
+	if (aitype == "dumb") myai = new ai(this, ai::dumb);
+	else if (aitype == "escort") myai = new ai(this, ai::escort);
+	else system::sys().myassert(false, string("illegal AI type in ") + specfilename);
+	TiXmlElement* efuel = hdftdship.FirstChildElement("fuel").Element();
+	system::sys().myassert(efuel != 0, string("fuel node missing in ")+specfilename);
+	fuel_level = atof(efuel->Attribute("capacity"));
+	fuel_value_a = atof(efuel->Attribute("consumption_a"));
+	fuel_value_t = atof(efuel->Attribute("consumption_t"));
+
+	// fixme smoke
+	mysmoke = 0;
+*/
+}
+
+
+
+submarine::submarine(parser& p)
+{
+}
+
+
 	
 bool submarine::parse_attribute(parser& p)
 {
@@ -136,6 +194,7 @@ void submarine::load(istream& in, game& g)
 {
 	ship::load(in, g);
 
+//fixme: add values from xml read
 	dive_speed = read_double(in);
 	dive_acceleration = read_double(in);
 	max_dive_speed = read_double(in);
@@ -175,6 +234,7 @@ void submarine::save(ostream& out, const game& g) const
 {
 	ship::save(out, g);
 
+//fixme: add values from xml read
 	write_double(out, dive_speed);
 	write_double(out, dive_acceleration);
 	write_double(out, max_dive_speed);
@@ -212,38 +272,7 @@ void submarine::save(ostream& out, const game& g) const
 	write_double(out, trp_addleadangle.value());
 }
 
-submarine* submarine::create(istream& in, unsigned type)
-{
-	switch (type) {
-		case typeVIIc: return new submarine_VIIc();
-		case typeIXc40: return new submarine_IXc40();
-		case typeXXI: return new submarine_XXI();
-	}
-	return 0;
-}
 
-submarine* submarine::create(submarine::types type_)
-{
-	switch (type_) {
-		case typeVIIc: return new submarine_VIIc();
-		case typeIXc40: return new submarine_IXc40();
-		case typeXXI: return new submarine_XXI();
-	}
-	return 0;
-}
-
-submarine* submarine::create(parser& p)
-{
-	p.parse(TKN_SUBMARINE);
-	int t = p.type();
-	p.consume();
-	switch (t) {
-		case TKN_TYPEVIIC: return new submarine_VIIc(p);
-		case TKN_TYPEIXC40: return new submarine_IXc40(p);
-		case TKN_TYPEXXI: return new submarine_XXI(p);
-	}
-	return 0;
-}
 
 void submarine::transfer_torpedo(unsigned from, unsigned to)
 {

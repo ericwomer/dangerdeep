@@ -14,76 +14,66 @@
 
 
 
-// xml helper functions
-void firstchildfailed(TiXmlNode* parent, const string& tagchain)
+ship::ship()
 {
-	string tagchain2 = tagchain;
-	TiXmlNode* m = parent;
-	while (m != 0) {
-		tagchain2 = m->Value() + string(", ") + tagchain2;
-		m = m->Parent();
-	}
-	system::sys().myassert(false, string("xml tag not found: ") + tagchain2);
 }
-TiXmlNode* firstchild(TiXmlNode* parent)
-{
-	TiXmlNode* n = parent->FirstChild();
-	if (!n)
-		firstchildfailed(parent, "FirstChild()");
-	return n;
-}
-TiXmlNode* firstchildn(TiXmlNode* parent, const string& childname)
-{
-	TiXmlNode* n = parent->FirstChild(childname);
-	if (!n)
-		firstchildfailed(parent, childname);
-	return n;
-}
-// end of helper functions
+
+
+
 ship::ship(const string& specfilename_) : sea_object()
 {
 	specfilename = specfilename_;
-	fuel_level = 1.0;
-	fuel_value_a = 0.0;//fixme: move to xml
-	fuel_value_t = 1.0;//fixme: move to xml
+
 	TiXmlDocument doc(get_ship_dir() + specfilename + ".xml");
 	doc.LoadFile();
-	TiXmlNode* xdftdship = firstchildn(&doc, "dftd-ship");
-	TiXmlNode* xmodelname = firstchildn(xdftdship, "modelname");
-	modelname = firstchild(xmodelname)->Value();
+	TiXmlHandle hdoc(&doc);
+	TiXmlHandle hdftdship = hdoc.FirstChild("dftd-ship");
+	TiXmlElement* eclassification = hdftdship.FirstChildElement("classification").Element();
+	system::sys().myassert(eclassification != 0, string("classification node missing in ")+specfilename);
+	modelname = eclassification->Attribute("modelname");
 	modelcache.ref(modelname);
-	TiXmlNode* xdescription = firstchildn(xdftdship, "description");
-	//fixme
-	TiXmlNode* xtype = firstchildn(xdftdship, "type");
-	string ts = firstchild(xtype)->Value();
-	if (ts == "warship") shipclass = WARSHIP;
-	else if (ts == "escort") shipclass = ESCORT;
-	else if (ts == "merchant") shipclass = MERCHANT;
-	else system::sys().myassert(false, string("illegal ship type in ") + specfilename_);
-	TiXmlNode* xcountry = firstchildn(xdftdship, "country");
-	//country = firstchild(xcountry)->Value();
-	TiXmlNode* xmaxspeed = firstchildn(xdftdship, "maxspeed");
-	max_speed = atof(firstchild(xmaxspeed)->Value());
-	TiXmlNode* xmaxrevspeed = firstchildn(xdftdship, "maxrevspeed");
-	max_rev_speed = atof(firstchild(xmaxrevspeed)->Value());
-	TiXmlNode* xacceleration = firstchildn(xdftdship, "acceleration");
-	acceleration = atof(firstchild(xacceleration)->Value());
-	TiXmlNode* xturnrate = firstchildn(xdftdship, "turnrate");
-	turn_rate = atof(firstchild(xturnrate)->Value());
-	TiXmlNode* xtonnage = firstchildn(xdftdship, "tonnage");
-	TiXmlNode* xminton = firstchildn(xtonnage, "min");
-	unsigned minton = atoi(firstchild(xminton)->Value());
-	TiXmlNode* xmaxton = firstchildn(xtonnage, "max");
-	unsigned maxton = atoi(firstchild(xmaxton)->Value());
+	string typestr = eclassification->Attribute("type");
+	if (typestr == "warship") shipclass = WARSHIP;
+	else if (typestr == "escort") shipclass = ESCORT;
+	else if (typestr == "merchant") shipclass = MERCHANT;
+	else if (typestr == "submarine") shipclass = SUBMARINE;
+	else system::sys().myassert(false, string("illegal ship type in ") + specfilename);
+	string country = eclassification->Attribute("country");
+	TiXmlHandle hdescription = hdftdship.FirstChild("description");//fixme: parse
+	TiXmlElement* emotion = hdftdship.FirstChildElement("motion").Element();
+	system::sys().myassert(emotion != 0, string("motion node missing in ")+specfilename);
+	max_speed = atof(emotion->Attribute("maxspeed"));
+	max_rev_speed = atof(emotion->Attribute("maxrevspeed"));
+	acceleration = atof(emotion->Attribute("acceleration"));
+	turn_rate = atof(emotion->Attribute("turnrate"));
+	TiXmlElement* etonnage = hdftdship.FirstChildElement("tonnage").Element();
+	system::sys().myassert(etonnage != 0, string("tonnage node missing in ")+specfilename);
+	unsigned minton = atoi(etonnage->Attribute("min"));
+	unsigned maxton = atoi(etonnage->Attribute("max"));
 	tonnage = minton + rnd(maxton - minton + 1);
-	TiXmlNode* xaitype = firstchildn(xdftdship, "aitype");
-	string aitype = firstchild(xaitype)->Value();
+	TiXmlHandle hsmoke = hdftdship.FirstChild("smoke");//fixme parse
+	TiXmlHandle hsensors = hdftdship.FirstChild("sensors");//fixme parse
+	TiXmlElement* eai = hdftdship.FirstChildElement("ai").Element();
+	system::sys().myassert(eai != 0, string("ai node missing in ")+specfilename);
+	string aitype = eai->Attribute("type");
 	if (aitype == "dumb") myai = new ai(this, ai::dumb);
 	else if (aitype == "escort") myai = new ai(this, ai::escort);
-	else system::sys().myassert(false, string("illegal AI type in ") + specfilename_);
+	else if (aitype == "none") myai = 0;
+	else system::sys().myassert(false, string("illegal AI type in ") + specfilename);
+	TiXmlElement* efuel = hdftdship.FirstChildElement("fuel").Element();
+	system::sys().myassert(efuel != 0, string("fuel node missing in ")+specfilename);
+	fuel_level = atof(efuel->Attribute("capacity"));
+	fuel_value_a = atof(efuel->Attribute("consumption_a"));
+	fuel_value_t = atof(efuel->Attribute("consumption_t"));
+
 	// fixme smoke
 	mysmoke = 0;
-	// fixme description
+}
+
+
+
+ship::ship(parser& p)
+{
 }
 
 
@@ -124,6 +114,7 @@ void ship::load(istream& in, game& g)
 {
 	sea_object::load(in, g);
 
+//fixme: add values from xml read
 	if (read_bool(in))
 		myai = new ai(in, g);
 	
@@ -144,6 +135,7 @@ void ship::save(ostream& out, const game& g) const
 	if (myai)
 		myai->save(out, g);
 	
+//fixme: add values from xml read
 	write_u32(out, tonnage);
 	write_u8(out, stern_damage);
 	write_u8(out, midship_damage);
@@ -152,33 +144,6 @@ void ship::save(ostream& out, const game& g) const
 	write_double(out, fuel_value_a);
 	write_double(out, fuel_value_t);
 }
-
-/*
-ship* ship::create(parser& p)
-{
-	p.parse(TKN_SHIP);
-	int t = p.type();
-//string s = p.text();
-	p.consume();
-	switch (t) {
-		case TKN_LARGEMERCHANT: return new ship_largemerchant(p);
-		case TKN_MEDIUMMERCHANT: return new ship_mediummerchant(p);
-		case TKN_SMALLMERCHANT: return new ship_smallmerchant(p);
-		case TKN_MEDIUMTROOPSHIP: return new ship_mediumtroopship(p);
-		case TKN_DESTROYERTRIBAL: return new ship_destroyertribal(p);
-		case TKN_BATTLESHIPMALAYA: return new ship_battleshipmalaya(p);
-		case TKN_CARRIERBOGUE: return new ship_carrierbogue(p);
-		case TKN_CORVETTE: return new ship_corvette(p);
-		case TKN_LARGEFREIGHTER: return new ship_largefreighter(p);
-		case TKN_MEDIUMFREIGHTER: return new ship_mediumfreighter(p);
-		case TKN_SMALLTANKER: return new ship_smalltanker(p);
-	}
-//cerr << "token " << s << " unknown.\n";	
-	return 0;
-}
-*/
-
-
 
 
 

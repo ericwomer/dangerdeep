@@ -25,20 +25,6 @@
 #include "date.h"
 #include "sound.h"
 #include "network.h"
-#include "ship_largemerchant.h"
-#include "ship_mediummerchant.h"
-#include "ship_smallmerchant.h"
-#include "ship_mediumtroopship.h"
-#include "ship_destroyertribal.h"
-#include "ship_battleshipmalaya.h"
-#include "ship_carrierbogue.h"
-#include "ship_corvette.h"
-#include "ship_largefreighter.h"
-#include "ship_mediumfreighter.h"
-#include "ship_smalltanker.h"
-#include "submarine_VIIc.h"
-#include "submarine_IXc40.h"
-#include "submarine_XXI.h"
 #include <iostream>
 #include <sstream>
 #include "image.h"
@@ -1069,10 +1055,6 @@ int main(int argc, char** argv)
 		highscorelist().save(highscoredirectory + HSL_CAREER_NAME);
 	hsl_mission = highscorelist(highscoredirectory + HSL_MISSION_NAME);
 	hsl_career = highscorelist(highscoredirectory + HSL_CAREER_NAME);
-
-
-	// test
-	ship::create_from_template("battleship_malaya");
 
 
 	// main menu

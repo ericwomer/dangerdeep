@@ -16,6 +16,7 @@
 
 #include "game.h"
 #include "ship.h"
+#include "submarine.h"
 #include "airplane.h"
 #include "torpedo.h"
 #include "depth_charge.h"

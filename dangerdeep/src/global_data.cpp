@@ -16,11 +16,7 @@
 // fixme: this could be replaced with an array of pointers using enum-names
 // as indices. This would simplify destruction and possibly construction.
 
-model	*merchant_large, *merchant_medium, *merchant_small,
-	*subVII, *subIXc40, *subXXI, *destroyer_tribal, *troopship_medium,
-	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
-	*corvette_mdl, *freighter_medium, *freighter_large,
-	*tanker_small, *conning_tower_typeVII;
+model	*torpedo_g7, *depth_charge_mdl, *gun_shell_mdl, *conning_tower_typeVII;
 
 texture *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
@@ -48,20 +44,6 @@ objcachet<class texture> texturecache(get_texture_dir());
 void init_global_data(void)
 {
 	background = new texture(get_texture_dir() + "background.png", GL_LINEAR);
-	merchant_large = new model(get_model_dir() + "large_merchant.3ds");
-	merchant_medium = new model(get_model_dir() + "medium_merchant.3ds");
-	merchant_small = new model(get_model_dir() + "small_merchant.3ds");
-	troopship_medium = new model(get_model_dir() + "medium_troopship.3ds");
-	battleship_malaya = new model(get_model_dir() + "battleship_malaya.3ds");
-	carrier_bogue = new model(get_model_dir() + "carrier_bogue.3ds");
-	subVII = new model(get_model_dir() + "submarine_VIIc.3ds");
-	subIXc40 = new model(get_model_dir() + "submarine_IXc40.3ds");
-	subXXI = new model(get_model_dir() + "submarine_XXI.3ds");
-	destroyer_tribal = new model(get_model_dir() + "destroyer_tribal.3ds");
-	corvette_mdl = new model(get_model_dir() + "corvette.3ds");
-	freighter_large = new model(get_model_dir() + "large_freighter.3ds");
-	freighter_medium = new model(get_model_dir() + "medium_freighter.3ds");
-	tanker_small = new model(get_model_dir() + "small_tanker.3ds");
 	conning_tower_typeVII = new model(get_model_dir() + "conning_tower_typeVIIc.3ds");
 	font_arial = new font(get_font_dir() + "font_arial.png");
 	font_panel = new font(get_font_dir() + "font_panel.png");
@@ -139,20 +121,6 @@ void init_global_data(void)
 void deinit_global_data(void)
 {
 	delete background;
-	delete merchant_large;
-	delete merchant_medium;
-	delete merchant_small;
-	delete troopship_medium;
-	delete battleship_malaya;
-	delete carrier_bogue;
-	delete subVII;
-	delete subIXc40;
-	delete subXXI;
-	delete destroyer_tribal;
-	delete corvette_mdl;
-	delete freighter_large;
-	delete freighter_medium;
-	delete tanker_small;
 	delete conning_tower_typeVII;
 	delete font_arial;
 	delete font_panel;

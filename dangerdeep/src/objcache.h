@@ -6,6 +6,7 @@
 
 #include <string>
 #include <map>
+#include <iostream>
 using namespace std;
 
 template <class T>
@@ -49,7 +50,13 @@ public:
 				cache.erase(it);
 			}
 		}
-	}	
+	}
+	
+	void print(void) const {
+		cout << "objcache: " << cache.size() << " entries.\n";
+		for (typename map<string, pair<unsigned, T*> >::const_iterator it = cache.begin(); it != cache.end(); ++it)
+			cout << "key=\"" << it->first << "\" ref=" << it->second.first << " addr=" << it->second.second << "\n";
+	}
 };
 
 #endif
