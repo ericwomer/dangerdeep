@@ -493,7 +493,7 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 
 	// draw sub model	
 	glPushMatrix();
-	glTranslatef(512, 192, 1);
+	glTranslatef(512, 160, 1);
 	glScalef(1024/80.0, 1024/80.0, 0.001);
 	glRotatef(90, 0, 0, 1);
 	glRotatef(-90, 0, 1, 0);
@@ -501,14 +501,10 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	glPopMatrix();
 	
 	// draw torpedo programming buttons
-	sys.draw_rot_image(0  +128, 320,  30.0, roundbutton);
-	font_arial2->print_hc(128, 384, texts::get(138));
-	sys.draw_rot_image(256+128, 320, 120.0, roundbutton);
-	font_arial2->print_hc(384, 384, texts::get(139));
-	sys.draw_rot_image(512+128, 320,  50.0, roundbutton);
-	font_arial2->print_hc(640, 384, texts::get(140));
-	sys.draw_rot_image(768+128, 320,  90.0, roundbutton);
-	font_arial2->print_hc(896, 384, texts::get(141));
+	draw_turnswitch(sys, gm,   0, 256, 142, 17, 3, texts::get(138));
+	draw_turnswitch(sys, gm, 256, 256, 159, 2, 0, texts::get(139));
+	draw_turnswitch(sys, gm, 512, 256, 161, 2, 1, texts::get(140));
+	draw_turnswitch(sys, gm, 768, 256, 163, 2, 0, texts::get(141));
 
 	// tube handling. compute coordinates for display and mouse use	
 	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
@@ -572,9 +568,9 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	unsigned px = (1024-torptypes.size()*256)/2;
 	for (set<unsigned>::iterator it = torptypes.begin(); it != torptypes.end(); ++it) {
 		color::white().set_gl_color();
-		sys.draw_image(px, 384+32, notepadsheet);
-		sys.draw_image(px+64, 420+32, torptex(*it));
-		font_arial2->print(px+16, 448+32, texts::get(130+*it-1), color(0,0,128));
+		sys.draw_image(px, 512, notepadsheet);
+		sys.draw_image(px+64, 548, torptex(*it));
+		font_arial2->print(px+16, 576, texts::get(130+*it-1), color(0,0,128));
 		px += 256;
 	}
 	

@@ -88,6 +88,10 @@ protected:
 		const string& text) const {
 			draw_gauge(sys, gm, nr, x, y, wh, a, text, a);
 	}
+	// draws turnable switch. parameters: pos, first index and number of descriptions,
+	// selected description and text.
+	void draw_turnswitch(class system& sys, class game& gm, int x, int y,
+		unsigned firstdescr, unsigned nrdescr, unsigned selected, const string& text) const;
 	void draw_manometer_gauge ( class system& sys, class game& gm, unsigned nr,
 		int x, int y, unsigned wh, float value, const string& text ) const;
 	void draw_clock(class system& sys, class game& gm, int x, int y, unsigned wh, double t,

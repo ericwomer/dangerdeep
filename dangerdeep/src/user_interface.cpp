@@ -607,6 +607,27 @@ void user_interface::draw_clock(class system& sys, class game& gm,
 	glColor3f(1,1,1);
 }
 
+void user_interface::draw_turnswitch(class system& sys, class game& gm, int x, int y,
+	unsigned firstdescr, unsigned nrdescr, unsigned selected, const string& text) const
+{
+	double full_turn = (nrdescr <= 2) ? 90 : 270;
+	double begin_turn = (nrdescr <= 2) ? -45 : -135;
+	sys.draw_image(x, y, turnswitchbackgr);
+	double degreesperpos = (nrdescr > 1) ? full_turn/(nrdescr-1) : 0;
+	glColor4f(1,1,1,1);
+	for (unsigned i = 0; i < nrdescr; ++i) {
+		vector2 d = angle(begin_turn+degreesperpos*i).direction();
+		sys.no_tex();
+		glBegin(GL_LINES);
+		glVertex2f(x+128+d.x*36,y+128-d.y*36);
+		glVertex2f(x+128+d.x*64,y+128-d.y*64);
+		glEnd();
+		font_arial->print_c(x+int(d.x*96)+128, y-int(d.y*96)+128, texts::get(firstdescr+i));
+	}
+	sys.draw_rot_image(x+128, y+128, begin_turn+degreesperpos*selected, turnswitch);
+	font_arial2->print_hc(x+128, y+256-36, text);
+}	
+
 void user_interface::draw_vessel_symbol(class system& sys,
 	const vector2& offset, sea_object* so, color c)
 {
