@@ -7,6 +7,7 @@
 #include "ship.h"
 #include "torpedo.h"
 #include "binstream.h"
+#include "user_interface.h"
 #include <vector>
 
 #define SUBMARINE_SUBMERGED_DEPTH 2.0f // meters
@@ -184,7 +185,13 @@ protected:
     	exp ( - get_throttle_speed () / battery_recharge_value_t ) ) ); }
 
 	virtual void calculate_fuel_factor ( double delta_time );
+	
+	virtual void gun_manning_changed(bool isGunManned);	
 
+	user_interface *ui;
+	unsigned int delayed_dive_to_depth;
+	double delayed_planes_down;
+	
 public:
 	// there were more types, I, X (mine layer), XIV (milk cow), VIIf, (and VIId)
 	// and some experimental types. (VIIc42, XVIIa/b)
@@ -294,6 +301,8 @@ public:
 	virtual void set_trp_searchpattern(unsigned x) { trp_searchpattern = x; }
 	virtual void set_trp_addleadangle(angle x) { trp_addleadangle = x; }
 	virtual void launch_torpedo(class game& gm, int tubenr, sea_object* target); // give tubenr -1 for any loaded tube, or else 0-5
+	virtual void set_ui(user_interface *messageDisplay) { ui = messageDisplay; }
+	virtual bool has_deck_gun() { return !gun_turrets.empty(); }
 };
 
 #endif

@@ -53,8 +53,9 @@ extern class texture *background, *gauge1,
 	*terraintex, *cloudsbackgr, *atlanticmap;
 extern class font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd;
 extern class sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
-	*torpedo_detonation_surfaced[2], *deck_gun_firing_sound, *depth_charge_firing_sound, *depth_charge_exploding_sound, 
-	*ping_sound, *shell_exploding_sound, *shell_splash_sound;
+	*torpedo_detonation_surfaced[2], *depth_charge_firing_sound, *depth_charge_exploding_sound, 
+	*ping_sound, *shell_exploding_sound, *shell_splash_sound, *small_gun_firing_sound, *medium_gun_firing_sound, 
+	*large_gun_firing_sound;
 extern class image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_background,
 	*sub_damage_scheme_all, *killedimg, *scopewatcherimg,
 	*depthchargeimg, *sunkendestroyerimg, *kruppdocksimg, *rescuedestroyerimg, *sunderlandimg,

@@ -11,6 +11,7 @@
 
 #include "system.h"
 #include <sstream>
+#include <float.h>
 
 #include "game.h"
 #include "ship.h"
@@ -962,12 +963,24 @@ void game::spawn_torpedo(torpedo* t)
 	torpedoes.push_back(t);
 }
 
-void game::spawn_gun_shell(gun_shell* s)
+void game::spawn_gun_shell(gun_shell* s, const double &calibre)
 {
 	gun_shells.push_back(s);
 	
 	if (ui) 
-		ui->play_sound_effect_distance(ui->se_deck_gun_firing, player->get_pos().distance(s->get_pos()));
+	{
+		user_interface::sound_effect se;
+		
+		// vary the sound effect based on the gun size
+		if (calibre <= 120.0)
+			se = ui->se_small_gun_firing;
+		else if (calibre <= 200.0)
+			se = ui->se_medium_gun_firing;
+		else
+			se = ui->se_large_gun_firing;
+		
+		ui->play_sound_effect_distance(se, player->get_pos().distance(s->get_pos()));
+	}
 }
 
 void game::spawn_depth_charge(depth_charge* dc)
@@ -1011,7 +1024,7 @@ void game::dc_explosion(const depth_charge& dc)
 	if (ui) ui->add_message(texts::get(204));	// fixme: only when player is near enough
 }
 
-bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
+bool game::gs_impact(const vector3& pos, const double &damage)	// fixme: vector2 would be enough
 {
 	// Create water splash. // FIXME
 	spawn_particle(new gun_shell_water_splash_particle(pos.xy().xy0()));
@@ -1021,7 +1034,7 @@ bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 		// the shell is so fast that it can be collisionfree with *it
 		// delta_time ago and now, but hit *it in between
 		if (is_collision(*it, pos.xy())) {
-			if ((*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS))
+			if ((*it)->damage((*it)->get_pos() /*fixme*/,damage))
 			{
 				ship_sunk(*it);
 			} else {
@@ -1040,7 +1053,7 @@ bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 //printf("gun %f %f %f\n",pos.x,pos.y,pos.z);
 		if (is_collision(*it, pos.xy())) {
 //printf("sub damaged!!!\n");		
-			(*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS);
+			(*it)->damage((*it)->get_pos() /*fixme*/,damage);
 			
 			// play gun shell explosion sound effect
 			if (ui) 

@@ -306,6 +306,16 @@ void sub_torpedo_display::display(class game& gm) const
 		}
 	}
 
+	// draw deck gun ammo remaining
+	if (true == sub->has_deck_gun())
+	{
+		char a[10];
+		sprintf(a, "%ld", sub->num_shells_remaining());
+		font_arial->print(400, 85,
+						a,
+						color(255,255,255));
+	}
+	
 	ui.draw_infopanel();
 	system::sys().unprepare_2d_drawing();
 }

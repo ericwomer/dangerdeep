@@ -93,6 +93,8 @@ public:
 	// normal mode (running), or stop on next cycle (reason given by value)
 	enum run_state { running, player_killed, mission_complete, contact_lost };
 	
+	user_interface* get_ui() { return ui; }
+	
 protected:
 	list<ship*> ships;	// fixme: maybe vectors would be better here (simpler, faster access)
 	list<submarine*> submarines; // reserve space for torps,dcs,gunshells,watersplashes
@@ -222,7 +224,7 @@ public:
 	void spawn_submarine(submarine* u);
 	void spawn_airplane(airplane* a);
 	void spawn_torpedo(torpedo* t);
-	void spawn_gun_shell(gun_shell* s);
+	void spawn_gun_shell(gun_shell* s, const double &calibre);
 	void spawn_depth_charge(depth_charge* dc);
 	void spawn_convoy(convoy* cv);
 	void spawn_particle(particle* pt);
@@ -230,7 +232,7 @@ public:
 	// simulation events
 //fixme: send messages about them to ui (remove sys-console printing in torpedo.cpp etc)
 	void dc_explosion(const depth_charge& dc);	// depth charge exploding
-	bool gs_impact(const vector3& pos);	// gun shell impact
+	bool gs_impact(const vector3& pos, const double &damage);	// gun shell impact
 	void torp_explode(const vector3& pos);	// torpedo explosion/impact
 	void ship_sunk( const ship* s );	// a ship sinks
 

@@ -52,6 +52,9 @@ submarine_interface::submarine_interface(game& gm) :
 	displays[display_mode_successes] = new ships_sunk_display(*this);
 	displays[display_mode_freeview] = new freeview_display(*this);
 	add_loading_screen("submarine interface initialized");
+	
+	submarine* player = dynamic_cast<submarine*>(gm.get_player());
+	player->set_ui(this);
 }
 
 
@@ -147,12 +150,12 @@ void submarine_interface::process_input(const SDL_Event& event)
 		} else if (mycfg.getkey(KEY_RUDDER_HARD_UP).equal(event.key.keysym)) {
 			player->planes_up(2);
 			add_message(texts::get(37));
-		} else if (mycfg.getkey(KEY_RUDDER_DOWN).equal(event.key.keysym)) {
+		} else if (mycfg.getkey(KEY_RUDDER_DOWN).equal(event.key.keysym)) {			
+			add_message(texts::get(38));
 			player->planes_down(1);
+		} else if (mycfg.getkey(KEY_RUDDER_HARD_DOWN).equal(event.key.keysym)) {			
 			add_message(texts::get(38));
-		} else if (mycfg.getkey(KEY_RUDDER_HARD_DOWN).equal(event.key.keysym)) {
 			player->planes_down(2);
-			add_message(texts::get(38));
 		} else if (mycfg.getkey(KEY_CENTER_RUDDERS).equal(event.key.keysym)) {
 			player->rudder_midships();
 			player->planes_middle();
@@ -206,9 +209,9 @@ void submarine_interface::process_input(const SDL_Event& event)
 		} else if (mycfg.getkey(KEY_CRASH_DIVE).equal(event.key.keysym)) {
 			// fixme: we should introduce a new command here, because crash diving
 			// is different from normal diving
-			player->dive_to_depth(unsigned(player->get_alarm_depth()));
 			add_message(texts::get(41));
 			mygame->add_logbook_entry(texts::get(41));
+			player->dive_to_depth(unsigned(player->get_alarm_depth()));
 		} else if (mycfg.getkey(KEY_GO_TO_SNORKEL_DEPTH).equal(event.key.keysym)) {
 			if (player->has_snorkel () ) {
 				player->dive_to_depth(unsigned(player->get_snorkel_depth()));
@@ -244,9 +247,9 @@ void submarine_interface::process_input(const SDL_Event& event)
 				add_message(texts::get(80));
 			}
 		} else if (mycfg.getkey(KEY_GO_TO_PERISCOPE_DEPTH).equal(event.key.keysym)) {
-			player->dive_to_depth(unsigned(player->get_periscope_depth()));
 			add_message(texts::get(40));
 			mygame->add_logbook_entry(texts::get(40));
+			player->dive_to_depth(unsigned(player->get_periscope_depth()));
 		} else if (mycfg.getkey(KEY_GO_TO_SURFACE).equal(event.key.keysym)) {
 			player->dive_to_depth(0);
 			add_message(texts::get(39));
@@ -281,22 +284,47 @@ void submarine_interface::process_input(const SDL_Event& event)
 				add_message(texts::get(32));
 			}
 		} else if (mycfg.getkey(KEY_FIRE_DECK_GUN).equal(event.key.keysym)) {
-			if (false == player->is_submerged())
+			if (true == player->has_deck_gun())
 			{
-				if (NULL != target && player != target)
-				{						
-					int res = player->fire_shell_at(*mygame, *target);
-					
-					if (TARGET_OUT_OF_RANGE == res)
-						add_message(texts::get(218));
-					else if (NO_AMMO_REMAINING == res)
-						add_message(texts::get(219));
+				if (false == player->is_submerged())
+				{
+					if (NULL != target && player != target)
+					{						
+						int res = player->fire_shell_at(*mygame, *target);
+						
+						if (TARGET_OUT_OF_RANGE == res)
+							add_message(texts::get(218));
+						else if (NO_AMMO_REMAINING == res)
+							add_message(texts::get(219));
+						else if (RELOADING == res)
+							add_message(texts::get(658));
+						else if (GUN_NOT_MANNED == res)
+							add_message(texts::get(659));
+						else if (GUN_TARGET_IN_BLINDSPOT == res)
+							add_message(texts::get(660));					
+					}
+					else
+						add_message(texts::get(80));
 				}
 				else
-					add_message(texts::get(80));
+					add_message(texts::get(27));
 			}
-			else
-				add_message(texts::get(27));
+		} else if (mycfg.getkey(KEY_CHANGE_MAN_DECK_GUN).equal(event.key.keysym)) {
+			if (true == player->has_deck_gun())
+			{
+				if (false == player->is_submerged())
+				{
+					if (event.key.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT))
+					{
+						if (true == player->toggle_gun_manning())
+							add_message(texts::get(661));
+						else
+							add_message(texts::get(654));
+					}
+				}			
+				else
+					add_message(texts::get(27));
+			}	
 		} else {
 			// rest of the keys per switch (not user defineable)
 			// quit, screenshot, pause etc.

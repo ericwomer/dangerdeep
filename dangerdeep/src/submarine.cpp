@@ -11,6 +11,7 @@
 #include "date.h"
 #include "tinyxml/tinyxml.h"
 #include "system.h"
+#include "texts.h"
 
 #include <sstream> //for depthcharge testing
 
@@ -125,7 +126,7 @@ submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damagea
 
 submarine::submarine(TiXmlDocument* specfile, const char* topnodename) : ship(specfile, topnodename),
 	trp_primaryrange(0), trp_secondaryrange(0), trp_initialturn(0), trp_searchpattern(0),
-	trp_addleadangle(0)
+	trp_addleadangle(0), ui(NULL), delayed_dive_to_depth(0), delayed_planes_down(0.0)
 {
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdsub = hspec.FirstChild(topnodename);
@@ -193,7 +194,7 @@ submarine::submarine() : ship(), dive_speed(0.0f), dive_acceleration(0.0f), max_
 	battery_recharge_value_a ( 0.0f ), battery_recharge_value_t ( 1.0f ),
 	damageable_parts(nr_of_damageable_parts),
 	trp_primaryrange(0), trp_secondaryrange(0), trp_initialturn(0), trp_searchpattern(0),
-	trp_addleadangle(0)
+	trp_addleadangle(0), ui(NULL), delayed_dive_to_depth(0), delayed_planes_down(0.0)
 {
 	// set all common damageable parts to "no damage"
 	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
@@ -274,6 +275,9 @@ void submarine::load(istream& in, game& g)
 	trp_initialturn = read_u8(in);
 	trp_searchpattern = read_u8(in);
 	trp_addleadangle = read_double(in);
+	
+	delayed_dive_to_depth = read_u32(in);
+	delayed_planes_down = read_double(in);
 }
 
 
@@ -308,6 +312,9 @@ void submarine::save(ostream& out, const game& g) const
 	write_u8(out, trp_initialturn);
 	write_u8(out, trp_searchpattern);
 	write_double(out, trp_addleadangle.value());
+	
+	write_u32(out, delayed_dive_to_depth);
+	write_double(out, delayed_planes_down);
 }
 
 
@@ -708,9 +715,22 @@ void submarine::planes_up(double amount)
 
 void submarine::planes_down(double amount)
 {
-//	dive_acceleration = 1;
-	dive_speed = -max_dive_speed;
-	permanent_dive = true;
+	if (false == is_gun_manned())
+	{
+	//	dive_acceleration = 1;
+		dive_speed = -max_dive_speed;
+		permanent_dive = true;
+	}
+	else
+	{
+		if (NULL != ui)			
+			ui->add_message(texts::get(653));
+		delayed_planes_down = amount;
+		delayed_dive_to_depth = 0;
+		toggle_gun_manning();
+		if (NULL != ui)
+			ui->add_message(texts::get(654));
+	}
 }
 
 
@@ -727,9 +747,22 @@ void submarine::planes_middle(void)
 
 void submarine::dive_to_depth(unsigned meters)
 {
-	dive_to = -int(meters);
-	permanent_dive = false;
-	dive_speed = (dive_to < position.z) ? -max_dive_speed : max_dive_speed;
+	if (false == is_gun_manned())
+	{	
+		dive_to = -int(meters);
+		permanent_dive = false;
+		dive_speed = (dive_to < position.z) ? -max_dive_speed : max_dive_speed;
+	}
+	else
+	{	
+		if (NULL != ui)			
+			ui->add_message(texts::get(653));
+		delayed_planes_down = 0.0;
+		delayed_dive_to_depth = meters;
+		toggle_gun_manning();
+		if (NULL != ui)			
+			ui->add_message(texts::get(654));
+	}
 }
 
 
@@ -964,5 +997,29 @@ void submarine::launch_torpedo(class game& gm, int tubenr, sea_object* target)
 		gm.spawn_torpedo(t);    // fixme add command
 		torpedoes[tubenr].type = torpedo::none;
 		torpedoes[tubenr].status = stored_torpedo::st_empty;
+	}
+}
+
+void submarine::gun_manning_changed(bool isGunManned)
+{	
+	if (NULL != ui)
+	{
+		if (true == isGunManned)
+			ui->add_message(texts::get(655));
+		else
+			ui->add_message(texts::get(656));		
+		
+		if (0.0 != delayed_planes_down)
+		{
+			planes_down(delayed_planes_down);
+			delayed_planes_down = 0.0;
+			ui->add_message(texts::get(657));		
+		}
+		else if (0 != delayed_dive_to_depth)
+		{
+			dive_to_depth(delayed_dive_to_depth);
+			delayed_dive_to_depth = 0;
+			ui->add_message(texts::get(657));		
+		}
 	}
 }

@@ -175,7 +175,8 @@ void ai::act_escort(game& gm, double delta_time)
 		}
 	}
 	if (nearest_contact) {	// is there a contact?
-		parent->fire_shell_at(gm, *nearest_contact);
+		if (GUN_NOT_MANNED == parent->fire_shell_at(gm, *nearest_contact))
+			parent->toggle_gun_manning();
 		attack_contact(nearest_contact->get_pos());
 		if (myconvoy) myconvoy->add_contact(nearest_contact->get_pos());
 		parent->set_throttle(ship::aheadflank);

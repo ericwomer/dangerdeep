@@ -1228,6 +1228,7 @@ int main(int argc, char** argv)
 	mycfg.register_key(key_names[KEY_TIME_SCALE_DOWN].name, SDLK_F12, 0, 0, 0);
 	mycfg.register_key(key_names[KEY_FIRE_DECK_GUN].name, SDLK_g, 0, 0, 0);
 	mycfg.register_key(key_names[KEY_TOGGLE_RELATIVE_BEARING].name, SDLK_r, 0, 0, 0);
+	mycfg.register_key(key_names[KEY_CHANGE_MAN_DECK_GUN].name, SDLK_g, 0, 0, 1);
 
 	//mycfg.register_option("invert_mouse", false);
 	//mycfg.register_option("ocean_res_x", 128);

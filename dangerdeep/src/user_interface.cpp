@@ -578,8 +578,14 @@ sound* user_interface::get_sound_effect(sound_effect se) const
 				}
 			}
 			break;
-		case se_deck_gun_firing:
-			s = deck_gun_firing_sound;
+		case se_small_gun_firing:
+			s = small_gun_firing_sound;
+			break;
+		case se_medium_gun_firing:
+			s = medium_gun_firing_sound;
+			break;
+		case se_large_gun_firing: 
+			s = large_gun_firing_sound;
 			break;
 		case se_depth_charge_firing:
 			s = depth_charge_firing_sound;

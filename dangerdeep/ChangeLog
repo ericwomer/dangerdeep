@@ -1,3 +1,10 @@
+2005-02-28 Andy Rice
+	* ai.cpp, game.cpp, game.h, global_data.cpp, global_data.h, gun_shell.cpp, gun_shell.h,
+	  keys.cpp, keys.h, ship.cpp, ship.h, sub_torpedo_display.cpp, submarine.cpp,
+	  submarine.h, submmarine_interface.cpp, subsim.cpp, user_interface.cpp, user_interface.h	
+	* corvette.xml, destroyer_oclass.xml, destroyer_tribal.xml, english.text, german.text, 
+	  italien.text, submarine_IXc40.xml, submarine_VIIc.xml, submarine_XXI.xml
+	  - More deck gun/ships gun work and more sound effects.
 2005-02-24 Andy Rice
 	* crosssection.cpp, damagemodel.cpp, viewmodel.cpp
 	  - crosssection.exe, damagemodel.exe & viewmodel.exe can compile on Windows 

@@ -8,10 +8,12 @@
 #include "game.h"
 
 gun_shell::gun_shell(const sea_object& parent, angle direction, angle elevation,
-	double initial_velocity) : sea_object()
+	double initial_velocity, double damage) : sea_object()
 {
 	position = parent.get_pos();	// fixme: calc correct position
+	position.z = 4;
 	oldpos = position;
+	damage_amount = damage;
 	vector2 d = direction.direction() * elevation.cos() * initial_velocity;
 	velocity = vector3(d.x, d.y, elevation.sin() * initial_velocity);
 	//fixme: should be done in sea_object!
@@ -24,12 +26,14 @@ void gun_shell::load(istream& in, class game& g)
 {
 	sea_object::load(in, g);
 	oldpos = read_vector3(in);
+	damage_amount = read_double(in);
 }
 
 void gun_shell::save(ostream& out, const class game& g) const
 {
 	sea_object::save(out, g);
 	write_vector3(out, oldpos);
+	write_double(out, damage_amount);
 }
 
 void gun_shell::simulate(game& gm, double delta_time)
@@ -40,7 +44,7 @@ void gun_shell::simulate(game& gm, double delta_time)
 
 	// very crude, fixme. compute intersection of line oldpos->position with objects.
 	if (position.z <= 0) {
-		bool impact = gm.gs_impact(position);
+		bool impact = gm.gs_impact(position, damage_amount);
 		kill();
 	}
 }

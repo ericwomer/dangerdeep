@@ -14,8 +14,10 @@
 #include "gun_shell.h"
 
 map<double, double> ship::dist_angle_relation;
-#define MAX_ANGLE 45.0
+#define MAX_INCLINATION 45.0
+#define MAX_DECLINATION -20.0
 #define ANGLE_GAP 0.1
+#define GUN_RELOAD_TIME 5.0
 
 //fixme: redefine display, call base display
 
@@ -44,20 +46,44 @@ void ship::init(void)
 	max_accel_forward = 1;
 	max_speed_forward = 10;
 	max_speed_reverse = 0;
-	myfire = 0;
+	myfire = 0;		
+	gun_manning_is_changing = false;
+	gun_turrets.clear();
 }
 
 void ship::fill_dist_angle_relation_map(void)
 {
+	// fixme: GUN_SHELL_INITIAL_VELOCITY is not a constant anymore but can vary depending
+	// on the ship and gun used
+	const double GUN_SHELL_INITIAL_VELOCITY = 200.0;
+
 	if (dist_angle_relation.size() > 0) return;
-	for (double a = 0; a < MAX_ANGLE+ANGLE_GAP; a += ANGLE_GAP) {
+
+	for (double a = 0; a > MAX_DECLINATION+ANGLE_GAP; a -= ANGLE_GAP) {
 		angle elevation(a);
 		double z = 4;	// meters, initial height above water
 		double vz = GUN_SHELL_INITIAL_VELOCITY * elevation.sin();
 		double dist = 0;
 		double vdist = GUN_SHELL_INITIAL_VELOCITY * elevation.cos();
 		
-		for (double dt = 0; dt < 120.0; dt += 0.01) {
+		for (double dt = 0; dt < 120.0; dt += 0.001) {
+			dist += vdist * dt;
+			z += vz * dt;
+			vz += -GRAVITY * dt;
+			if (z <= 0) break;
+		}
+		
+		dist_angle_relation[dist] = a;
+	}
+	
+	for (double a = 0; a < MAX_INCLINATION+ANGLE_GAP; a += ANGLE_GAP) {
+		angle elevation(a);
+		double z = 4;	// meters, initial height above water
+		double vz = GUN_SHELL_INITIAL_VELOCITY * elevation.sin();
+		double dist = 0;
+		double vdist = GUN_SHELL_INITIAL_VELOCITY * elevation.cos();
+		
+		for (double dt = 0; dt < 120.0; dt += 0.001) {
 			dist += vdist * dt;
 			z += vz * dt;
 			vz += -GRAVITY * dt;
@@ -125,6 +151,50 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 	fuel_capacity = XmlAttribu(efuel, "capacity");
 	efuel->Attribute("consumption_a", &fuel_value_a);
 	efuel->Attribute("consumption_t", &fuel_value_t);
+		
+	TiXmlElement* turrets = hdftdship.FirstChildElement("gun_turrets").Element();
+	if (NULL != turrets)
+	{
+		TiXmlElement* turret = NULL;
+
+		while(turret = (TiXmlElement*)turrets->IterateChildren(turret))
+		{
+			struct gun_turret new_turret;
+			int num_barrels = 0;
+			
+			if (NULL == turret->Attribute("barrels", &num_barrels))
+				assert(false);
+			if (NULL == turret->Attribute("shell_capacity", &new_turret.shell_capacity))
+				assert(false);
+			new_turret.num_shells_remaining = new_turret.shell_capacity;
+			if (NULL == turret->Attribute("initial_velocity", &new_turret.initial_velocity))
+				assert(false);
+			if (NULL == turret->Attribute("max_declination", &new_turret.max_declination))
+				assert(false);
+			if (NULL == turret->Attribute("max_inclination", &new_turret.max_inclination))
+				assert(false);
+			if (NULL == turret->Attribute("time_to_man", &new_turret.time_to_man))
+				assert(false);
+			if (NULL == turret->Attribute("time_to_man", &new_turret.time_to_unman))
+				assert(false);
+			if (NULL == turret->Attribute("shell_damage", &new_turret.shell_damage))
+				assert(false);
+			if (NULL == turret->Attribute("exclusion_radius_start", &new_turret.start_of_exclusion_radius))
+				assert(false);
+			if (NULL == turret->Attribute("exclusion_radius_end", &new_turret.end_of_exclusion_radius))
+				assert(false);
+			if (NULL == turret->Attribute("calibre", &new_turret.calibre))
+				assert(false);
+			
+			for (int x = 0; x < num_barrels; x++)
+			{
+				struct gun_barrel new_barrel;												
+				new_turret.gun_barrels.push_back(new_barrel);
+			}
+			
+			gun_turrets.push_back(new_turret);
+		}
+	}
 }
 
 
@@ -328,6 +398,44 @@ void ship::load(istream& in, game& g)
 	midship_damage = damage_status(read_u8(in));
 	bow_damage = damage_status(read_u8(in));
 	fuel_level = read_double(in);
+	
+	// gun turrets
+	unsigned long num_turrets = read_u32(in);
+		
+	for (unsigned long x = 0; x < num_turrets; x++)
+	{
+		struct gun_turret turret;
+		unsigned long num_barrels = 0;
+		
+		turret.num_shells_remaining = read_u32(in);
+		turret.shell_capacity = read_u32(in);
+		turret.initial_velocity = read_double(in);		
+		turret.max_declination = read_u32(in);
+		turret.max_inclination = read_u32(in);
+		turret.time_to_man = read_double(in);
+		turret.time_to_unman = read_double(in);
+		turret.is_gun_manned = read_bool(in);
+		turret.manning_time = read_double(in);
+		turret.shell_damage = read_double(in);
+		turret.start_of_exclusion_radius = read_u32(in);
+		turret.end_of_exclusion_radius = read_u32(in);
+		turret.calibre = read_double(in);
+
+		num_barrels = read_u32(in);
+		
+		for (unsigned long x = 0; x < num_barrels; x++)
+		{
+			struct gun_barrel new_barrel;	
+			
+			new_barrel.load_time_remaining = read_double(in);
+			new_barrel.last_elevation = read_double(in);
+			new_barrel.last_azimuth = read_double(in);
+			
+			turret.gun_barrels.push_back(new_barrel);
+		}
+		
+		gun_turrets.push_back(turret);
+	}
 }
 
 void ship::save(ostream& out, const game& g) const
@@ -343,9 +451,42 @@ void ship::save(ostream& out, const game& g) const
 	write_u8(out, midship_damage);
 	write_u8(out, bow_damage);
 	write_double(out, fuel_level);
+	
+	// gun turrets
+	write_u32(out, gun_turrets.size());
+	
+	const_gun_turret_itr turret = gun_turrets.begin();
+	while (turret != gun_turrets.end())
+	{
+		write_u32(out, turret->num_shells_remaining);
+		write_u32(out, turret->shell_capacity);
+		write_double(out, turret->initial_velocity);		
+		write_u32(out, turret->max_declination);
+		write_u32(out, turret->max_inclination);
+		write_double(out, turret->time_to_man);
+		write_double(out, turret->time_to_unman);
+		write_bool(out, turret->is_gun_manned);
+		write_double(out, turret->manning_time);
+		write_double(out, turret->shell_damage);
+		write_u32(out, turret->start_of_exclusion_radius);
+		write_u32(out, turret->end_of_exclusion_radius);
+		write_double(out, turret->calibre);
+		
+		write_u32(out, turret->gun_barrels.size());
+		
+		const_gun_barrel_itr barrel = turret->gun_barrels.begin();
+		while (barrel != turret->gun_barrels.begin())
+		{		
+			write_double(out, barrel->load_time_remaining);
+			write_double(out, barrel->last_elevation.value());
+			write_double(out, barrel->last_azimuth.value());
+			
+			barrel++;
+		}
+								  
+		turret++;
+	}
 }
-
-
 
 void ship::simulate(game& gm, double delta_time)
 {
@@ -483,6 +624,36 @@ void ship::simulate(game& gm, double delta_time)
 			rudder_pos += max_rudder_turn_dist;
 		}
 	}
+	
+	// gun turrets
+	gun_turret_itr gun_turret = gun_turrets.begin();	
+	while (gun_turret != gun_turrets.end())
+	{
+		if (gun_turret->manning_time > 0.0)
+		{
+			gun_turret->manning_time -= delta_time;
+			if (gun_turret->manning_time <= 0.0)
+			{
+				gun_turret->is_gun_manned = !gun_turret->is_gun_manned;					
+				gun_manning_is_changing = false;
+				gun_manning_changed(gun_turret->is_gun_manned);
+			}
+		}
+		
+		if (gun_turret->manning_time <= 0.0)
+		{
+			gun_barrel_itr gun_barrel = gun_turret->gun_barrels.begin();
+			while (gun_barrel != gun_turret->gun_barrels.end())
+			{		
+				if (gun_barrel->load_time_remaining > 0.0)
+					gun_barrel->load_time_remaining -= delta_time;
+										
+				gun_barrel++;
+			}
+		}
+			
+		gun_turret++;
+	}	
 }
 
 
@@ -606,39 +777,162 @@ void ship::calculate_fuel_factor ( double delta_time )
 
 int ship::fire_shell_at(game& gm, const sea_object& s)
 {
+	int res = GUN_FIRED;
+	gun_turret_itr gun_turret = gun_turrets.begin();
+	gun_barrel_itr gun_barrel;
 	//fixme!!! move this code to class ship::fire_shell_at. move dist_angle relation also,
-	//maybe approximate that relation with splines.
-
-	// maybe we should not use current position but rather
-	// estimated position at impact!
-	vector2 deltapos = s.get_pos().xy() - get_pos().xy();
-	double distance = deltapos.length();
-	angle direction(deltapos);
-
-	double max_shooting_distance = (dist_angle_relation.rbegin())->first;
-	if (distance > max_shooting_distance) return TARGET_OUT_OF_RANGE;	// can't do anything
+	//maybe approximate that relation with splines.		
 	
-	// initial angle: estimate distance and fire, remember angle
-	// next shots: adjust angle after distance fault:
-	//	estimate new distance from old and fault
-	//	select new angle, fire.
-	//	use an extra bit of correction for wind etc.
-	//	to do that, we need to know where the last shot impacted!
+	while (gun_turret != gun_turrets.end())
+	{
+		struct gun_turret *gun = &(*gun_turret);
+
+		if (gun->num_shells_remaining > 0)
+		{
+			if (true == gun->is_gun_manned && gun->manning_time <= 0.0)
+			{
+				gun_barrel = gun_turret->gun_barrels.begin();
+				while (gun_barrel != gun_turret->gun_barrels.end())
+				{				
+					if (gun_barrel->load_time_remaining <= 0.0)
+					{
+						// maybe we should not use current position but rather
+						// estimated position at impact!
+						vector2 deltapos = s.get_pos().xy() - get_pos().xy();
+						double distance = deltapos.length();
+						angle direction(deltapos);
+
+						double max_shooting_distance = (dist_angle_relation.rbegin())->first;
+						if (distance > max_shooting_distance) 
+							res = TARGET_OUT_OF_RANGE;	// can't do anything
+						
+						if (GUN_FIRED == res)
+						{
+							if (false == is_target_in_blindspot(gun, heading - direction))
+							{
+								// initial angle: estimate distance and fire, remember angle
+								// next shots: adjust angle after distance fault:
+								//	estimate new distance from old and fault
+								//	select new angle, fire.
+								//	use an extra bit of correction for wind etc.
+								//	to do that, we need to know where the last shot impacted!							
+								angle elevation;
+								if (true == calculate_gun_angle(distance, elevation))
+								{														
+									if (elevation.value() > gun->max_inclination)
+										res = TARGET_OUT_OF_RANGE;
+									else if (elevation.value() < gun->max_declination)
+										res = GUN_TARGET_IN_BLINDSPOT;
+									else
+									{
+										// fixme: for a smart ai: try to avoid firing at friendly ships that are in line
+										// of fire.
+										
+										// fixme: snap angle values to simulate real cannon accuracy.
+
+										// fixme: adapt direction & elevation to course and speed of target!
+										gm.spawn_gun_shell(new gun_shell(*this, direction, elevation, gun->initial_velocity, gun->shell_damage), 
+														   gun->calibre);
+										gun->num_shells_remaining--;
+										gun_barrel->load_time_remaining = GUN_RELOAD_TIME;
+										gun_barrel->last_elevation = elevation;	
+										gun_barrel->last_azimuth = direction;
+									}
+								}
+								else
+									res = TARGET_OUT_OF_RANGE;	// unsuccesful angle, fixme
+							}
+							else
+								res = GUN_TARGET_IN_BLINDSPOT;
+						}
+					}
+					else
+						res = RELOADING;
+					
+					gun_barrel++;
+				}
+			}
+			else
+				res = GUN_NOT_MANNED;
+		}
+		else
+			res = NO_AMMO_REMAINING;
+		
+		gun_turret++;
+	}
+		
+	return res;
+}
+
+bool ship::toggle_gun_manning()
+{
+	if (false == gun_manning_is_changing)
+	{
+		gun_turrets.begin()->manning_time = (true == gun_turrets.begin()->is_gun_manned) ? 
+											gun_turrets.begin()->time_to_unman : gun_turrets.begin()->time_to_man;
+		gun_manning_is_changing = true;
+	}
+	
+	return !gun_turrets.begin()->is_gun_manned;
+}
+
+void ship::gun_manning_changed(bool)
+{ }
+
+// This function determines is the target for the gun is within the exclusion radius for 
+// the turret. The exclusion radius defines one constant arc where the gun cannot aim (i.e. on a sub
+// this would usually be the area directly behind the gun where the conning tower is, you can't shoot 
+// through that). 
+bool ship::is_target_in_blindspot(const struct gun_turret *gun, angle bearingToTarget)
+{
+	bool isInBlindSpot = false;
+	
+	if (gun->start_of_exclusion_radius != gun->end_of_exclusion_radius)
+	{
+		if (gun->start_of_exclusion_radius < gun->end_of_exclusion_radius)
+		{
+			if (bearingToTarget.value() >= gun->start_of_exclusion_radius && bearingToTarget.value() <= gun->end_of_exclusion_radius)
+				isInBlindSpot = true;
+		}
+		else
+		{
+			if (bearingToTarget.value() >= gun->start_of_exclusion_radius || bearingToTarget.value() <= gun->end_of_exclusion_radius)
+				isInBlindSpot = true;
+		}
+	}
+	
+	return isInBlindSpot;
+}
+
+long ship::num_shells_remaining()
+{
+	long numShells = 0;
+	gun_turret_itr gunTurret = gun_turrets.begin();
+	
+	while (gunTurret != gun_turrets.end())
+	{
+		numShells += gunTurret->num_shells_remaining;
+		gunTurret++;
+	}
+	
+	return numShells;
+}
+
+bool ship::is_gun_manned()
+{
+	return gun_turrets.begin()->is_gun_manned;
+}
+
+bool ship::calculate_gun_angle(const double distance, angle &elevation)
+{
+	bool withinRange = false;
 
 	map<double, double>::iterator it = dist_angle_relation.lower_bound(distance);
-	if (it == dist_angle_relation.end()) return TARGET_OUT_OF_RANGE;	// unsuccesful angle, fixme
-	angle elevation = angle(it->second);
+	if (it != dist_angle_relation.end()) 
+	{
+		elevation = angle(it->second);
+		withinRange = true;
+	}
 
-	// fixme: for a smart ai: try to avoid firing at friendly ships that are in line
-	// of fire.
-	
-	// fixme: snap angle values to simulate real cannon accuracy.
-
-	// fixme: adapt direction & elevation to course and speed of target!
-	gm.spawn_gun_shell(new gun_shell(*this, direction, elevation));
-
-	last_elevation = elevation;	
-	last_azimuth = direction;
-	
-	return 1;
+	return withinRange;
 }
