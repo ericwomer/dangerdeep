@@ -9,6 +9,7 @@
 #include "sound.h"
 #include <sstream>
 #include <list>
+#include <iomanip>
 #include "oglext/OglExt.h"
 #include "tinyxml/tinyxml.h"
 #include "system.h"
@@ -45,6 +46,7 @@ bool loading_screen_usable = false;
 objcachet<class model> modelcache(get_model_dir());
 objcachet<class image> imagecache(get_image_dir());
 objcachet<class texture> texturecache(get_texture_dir());
+//objcachet<class sound> soundcache(get_sound_dir());	// fixme: add something like that
 
 string XmlAttrib(class TiXmlElement* elem, const char* attrname)
 {
@@ -238,4 +240,17 @@ void add_loading_screen(const string& msg)
 	loading_screen_messages.push_back(oss.str());
 	system::sys().add_console(oss.str());
 	display_loading_screen();
+}
+
+string get_time_string(double tm)
+{
+	unsigned seconds = unsigned(floor(myfmod(tm, 86400)));
+	unsigned hours = seconds / 3600;
+	unsigned minutes = (seconds % 3600) / 60;
+	seconds = seconds % 60;
+	ostringstream oss;
+	oss << setw(2) << setfill('0') << hours << ":" 
+	    << setw(2) << setfill('0') << minutes << ":"
+	    << setw(2) << setfill('0') << seconds;
+	return oss.str();
 }

@@ -1,7 +1,6 @@
 // Object to create and display the number and tonnage of sunk ships.
 // subsim (C)+(W) Markus Petermann and Thorsten Jordan. SEE LICENSE
 
-#include <map>
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -9,31 +8,42 @@ using namespace std;
 #include "system.h"
 #include "model.h"
 #include "texts.h"
+#include "game.h"
 #include "global_data.h"
-#include "sea_object.h"
-#include "ship.h"
 #include "ships_sunk_display.h"
 #include "user_interface.h"
 
 #define FONT_SCALE_FACTOR 0.7f
 
-ships_sunk_display::ships_sunk_display(user_interface& ui_) :
-	user_display(ui_), first_displayed_object ( 0 )
+
+void ships_sunk_display::next_page(unsigned nrships)
 {
-	dom.clear ();
+	if (first_displayed_object + 12 < nrships)
+		first_displayed_object += 12;
 }
+
+
+
+void ships_sunk_display::previous_page(unsigned nrships)
+{
+	if (first_displayed_object >= 12)
+		first_displayed_object -= 12;
+}
+
+
+
+ships_sunk_display::ships_sunk_display(user_interface& ui_) :
+	user_display(ui_), first_displayed_object(0)
+{
+}
+
+
 
 ships_sunk_display::~ships_sunk_display()
 {
-	dom.clear ();
 }
 
-void ships_sunk_display::add_sunk_ship ( const ship* so )
-{
-	unsigned size = dom.size ();
-	dom[size] = destroyed_object ( so->get_modelname(), so->get_tonnage (),
-		so->get_description ( 2 ) );
-}
+
 
 void ships_sunk_display::display ( class game& gm ) const
 {
@@ -42,20 +52,18 @@ void ships_sunk_display::display ( class game& gm ) const
 	glColor3f ( 1.0f, 1.0f, 1.0f );
 
 	// Draw background image.
-	for ( int i = 0; i < 4; i++ )
-		for ( int j = 0; j < 3; j++ )
-			cloudsbackgr->draw ( i*256, j*256, 256, 256 );
+	cloudsbackgr->draw_tiles(0, 0, 1024, 768);
 
-	for ( unsigned i = first_displayed_object; i < first_displayed_object + 12; i ++ )
-	{
-		destroyed_object_map_c_it it = dom.find ( i );
-
-		if ( it == dom.end () )
-			break;
-
-		int j = i % 12;
-		unsigned x = 35 + 250 * unsigned ( j / 3 );
-		unsigned y = 40 + 200 * ( j % 3 );
+	unsigned j = first_displayed_object;
+	const list<game::sink_record>& sunken_ships = gm.get_sunken_ships();
+	list<game::sink_record>::const_iterator it = sunken_ships.begin();
+	while (j > 0 && it != sunken_ships.end()) {
+		--j;
+		++it;
+	}
+	for (unsigned i = 0; it != sunken_ships.end() && i < 12; ++it, ++i) {
+		unsigned x = 35 + 250 * unsigned ( i / 3 );
+		unsigned y = 40 + 200 * ( i % 3 );
 
 		// Draw flag.
 		glColor3f ( 1.0f, 1.0f, 1.0f );
@@ -69,12 +77,12 @@ void ships_sunk_display::display ( class game& gm ) const
 		font_arial->print (
 			unsigned ( ( x + 10 ) / FONT_SCALE_FACTOR ),
 			unsigned ( ( y + 10 ) / FONT_SCALE_FACTOR ),
-			it->second.get_class_name(),
+			it->descr,
 			color ( 0, 0, 0 ) );
 
 		// Print tonnage of ship.
 		ostringstream oss;
-		oss << (*it).second.get_tonnage () << " " << texts::get(99);
+		oss << it->tons << " " << texts::get(99);
 		font_arial->print (
 			unsigned ( ( x + 10 ) / FONT_SCALE_FACTOR ),
 			unsigned ( ( y + 30 ) / FONT_SCALE_FACTOR ),
@@ -88,7 +96,7 @@ void ships_sunk_display::display ( class game& gm ) const
 		glScalef (1, 1, 0.001f);
 		glRotatef (90, 0, 0, 1);
 		glRotatef (-90, 0, 1, 0);
-		modelcache.find((*it).second.get_model())->display ();
+		modelcache.find(it->mdlname)->display();
 		glPopMatrix ();
 	}
 	glEnd ();
@@ -98,36 +106,27 @@ void ships_sunk_display::display ( class game& gm ) const
 	system::sys().unprepare_2d_drawing();
 }
 
+
+
 void ships_sunk_display::process_input(class game& gm, const SDL_Event& event)
 {
+	unsigned nrships = gm.get_sunken_ships().size();
 	switch (event.type) {
 	case SDL_KEYDOWN:
 		if (event.key.keysym.sym == SDLK_LESS) {
 			if (event.key.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT))
-				next_page();
+				next_page(nrships);
 			else
-				previous_page();
+				previous_page(nrships);
 		}
 		break;
 	case SDL_MOUSEBUTTONDOWN:
 		if (event.button.x < 530)
-			previous_page();
+			previous_page(nrships);
 		else
-			next_page();
+			next_page(nrships);
 		break;
 	default:
 		break;
 	}
-}
-
-void ships_sunk_display::next_page ()
-{
-	if ( first_displayed_object + 12 < dom.size () )
-		first_displayed_object += 12;
-}
-
-void ships_sunk_display::previous_page ()
-{
-	if ( first_displayed_object >= 12 )
-		first_displayed_object -= 12;
 }

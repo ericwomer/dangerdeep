@@ -65,6 +65,9 @@ void deinit_global_data(void);
 void reset_loading_screen(void);
 void add_loading_screen(const string& msg);
 
+// transform time in seconds to 24h time of clock string (takes remainder of 86400 seconds first = 1 day)
+string get_time_string(double tm);
+
 // handle modulo calculation for negative values the way I need it
 inline float myfmod(float a, float b) { return a-floorf(a/b)*b; }
 inline float myfrac(float a) { return a-floorf(a); }

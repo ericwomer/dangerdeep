@@ -402,14 +402,8 @@ void user_interface::draw_infopanel(class game& gm) const
 		ostringstream os4;
 		os4 << setw(3) << left << time_scale;
 		panel_valuetexts[4]->set_text(os4.str());
-		ostringstream os5;
 		// compute time string
-		double tm = gm.get_time();
-		double hour = floor(myfmod(tm, 86400) / 3600);
-		double minute = floor(myfmod(tm, 3600) / 60);
-		double second = floor(myfmod(tm, 60));
-		os5 << setw(2) << right << hour << ":" << setw(2) << right << minute << ":" << setw(2) << right << second;
-		panel_valuetexts[5]->set_text(os5.str());
+		panel_valuetexts[5]->set_text(get_time_string(gm.get_time()));
 
 		panel->draw();
 		// let aside the fact that we should divide DRAWING and INPUT HANDLING

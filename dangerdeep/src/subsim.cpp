@@ -259,7 +259,8 @@ void show_halloffame_career(void) { show_halloffame(hsl_career); }
 void check_for_highscore(const game* gm)
 {
 	unsigned totaltons = 0;
-	for (list<game::sink_record>::const_iterator it = gm->sunken_ships.begin(); it != gm->sunken_ships.end(); ++it) {
+	const list<game::sink_record>& sunken_ships = gm->get_sunken_ships();
+	for (list<game::sink_record>::const_iterator it = sunken_ships.begin(); it != sunken_ships.end(); ++it) {
 		totaltons += it->tons;
 	}
 	highscorelist& hsl = (/* check if game is career or mission fixme */ true) ? hsl_mission : hsl_career;
@@ -298,7 +299,8 @@ void show_results_for_game(const game* gm)
 	w.add_child(wl);
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 	unsigned totaltons = 0;
-	for (list<game::sink_record>::const_iterator it = gm->sunken_ships.begin(); it != gm->sunken_ships.end(); ++it) {
+	const list<game::sink_record>& sunken_ships = gm->get_sunken_ships();
+	for (list<game::sink_record>::const_iterator it = sunken_ships.begin(); it != sunken_ships.end(); ++it) {
 		ostringstream oss;
 		oss << texts::numeric_from_date(it->dat) << "\t"
 			<< it->descr << "\t"

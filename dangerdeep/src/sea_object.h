@@ -30,7 +30,7 @@ class sensor;
 class sea_object
 {
 public:
-	enum alive_status { defunct, dead, alive };
+	enum alive_status { defunct, dead, alive };	// fixme: add more here: alive==active,inactive,burning,sinking,dead,etc.
 
 	//fixme: should move to damageable_part class ...
 	enum damage_status { nodamage, lightdamage, mediumdamage, heavydamage, wrecked };

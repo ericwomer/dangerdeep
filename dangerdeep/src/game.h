@@ -50,23 +50,9 @@ class convoy;
 #define MSG_command	"DFTD-command:   "
 
 
-/* fixme 2004/02/22
- add functions for:
- receive commands from net and execute them OK!
- get commands from interface, send them and execute them OK!
- send event commands: spawn/hit/kill MISSING!
- move command interface of objects to protected and declare game as friend?
- this would help in finding unallowed direct accesses from interface to sea_objects
- other way: make "sea_object*" in user_interface to "const sea_object*", NOT POSSIBLE WITHOUT STATIC CAST (CONST TO NON CONST)
- but this collides with command() parameter format (which can't be const)
- game::time_faster/slower are also commands!
-*/
 
 class game	// our "world" with physics etc.
 {
-	friend void show_results_for_game(const game* );
-	friend void check_for_highscore(const game* );
-	
 public:
 	struct ping {
 		vector2 pos;
@@ -86,11 +72,12 @@ public:
 	struct sink_record {
 		date dat;
 		string descr;	// fixme: store type, use a static ship function to retrieve a matching description
+		string mdlname;	// model file name string
 		unsigned tons;
-		sink_record(date d, const string& s, unsigned t) : dat(d), descr(s), tons(t) {}
-		sink_record(const sink_record& s) : dat(s.dat), descr(s.descr), tons(s.tons) {}
+		sink_record(date d, const string& s, const string& m, unsigned t) : dat(d), descr(s), mdlname(m), tons(t) {}
+		sink_record(const sink_record& s) : dat(s.dat), descr(s.descr), mdlname(s.mdlname), tons(s.tons) {}
 		~sink_record() {}
-		sink_record& operator= (const sink_record& s) { dat = s.dat; descr = s.descr; tons = s.tons; return *this; }
+		sink_record& operator= (const sink_record& s) { dat = s.dat; descr = s.descr; mdlname = s.mdlname; tons = s.tons; return *this; }
 		sink_record(istream& in);
 		void save(ostream& out) const;
 	};
@@ -185,6 +172,7 @@ public:
 	void compute_max_view_dist(void);	// fixme - public?
 	void simulate(double delta_t);
 
+	const list<sink_record>& get_sunken_ships(void) const { return sunken_ships; };
 	double get_time(void) const { return time; };
 	double get_max_view_distance(void) const { return max_view_dist; }
 	/**

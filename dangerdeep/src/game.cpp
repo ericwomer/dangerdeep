@@ -73,6 +73,7 @@ game::sink_record::sink_record(istream& in)
 {
 	dat.load(in);
 	descr = read_string(in);
+	mdlname = read_string(in);
 	tons = read_u32(in);
 }
 
@@ -82,6 +83,7 @@ void game::sink_record::save(ostream& out) const
 {
 	dat.save(out);
 	write_string(out, descr);
+	write_string(out, mdlname);
 	write_u32(out, tons);
 }
 
@@ -1032,8 +1034,7 @@ void game::ship_sunk( const ship* s )
 //	if (ui) ui->add_captains_log_entry( *this, oss.str () );
 //	if (ui) ui->record_sunk_ship ( s );
 	date d((unsigned)time);
-	sunken_ships.push_back(sink_record(d, s->get_description(2),
-		s->get_tonnage()));
+	sunken_ships.push_back(sink_record(d, s->get_description(2), s->get_modelname(), s->get_tonnage()));
 }
 
 
