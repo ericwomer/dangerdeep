@@ -12,6 +12,8 @@
 #include "texts.h"
 #include "sensors.h"
 #include "menu.h"
+#include "config.h"
+#include "binstore.h"
 
 #define TRAILTIME 10
 
@@ -880,5 +882,26 @@ game* game::load(const string& filename)
 
 void game::save(const string& filename) const
 {
+	binstore bs;
+	bs.push_string(VERSION);
+	
+	// push sea objects
+	bs.push_unsigned(0);
+	bs.push_unsigned(0);
+	bs.push_unsigned(0);
+	bs.push_unsigned(0);
+	bs.push_unsigned(0);
+	bs.push_unsigned(0);
+	bs.push_unsigned(0);
+	bs.push_unsigned(0);
+	
+	// push further data
+	bs.push_bool(running);
+	
+	// push player type and his # on lists stored above
+//	bs.push_unsigned(
+	// store user interface? or is this unneccessary?
+	
+	bs.save(filename);
 }
 
