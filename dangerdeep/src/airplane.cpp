@@ -11,7 +11,7 @@ airplane::airplane(unsigned type_, const vector3& pos, double heading) : sea_obj
 	position = pos;
 	this->heading = heading;
 	head_to = heading;
-	pitch = roll = 0;
+	rotation = quaternion::neutral_rot();
 	rollfac = pitchfac = 0.0;
 //	turn_rate = deg2rad(5);
 //	length = 7;
@@ -35,8 +35,10 @@ void airplane::load(istream& in, class game& g)
 {
 	sea_object::load(in, g);
 	type = read_u32(in);
-	pitch = angle(read_double(in));
-	roll = angle(read_double(in));
+	rotation.s = read_double(in);
+	rotation.v.x = read_double(in);
+	rotation.v.y = read_double(in);
+	rotation.v.z = read_double(in);
 	velocity.x = read_double(in);
 	velocity.y = read_double(in);
 	velocity.z = read_double(in);
@@ -48,8 +50,10 @@ void airplane::save(ostream& out, const class game& g) const
 {
 	sea_object::save(out, g);
 	write_u32(out, type);
-	write_double(out, pitch.value());
-	write_double(out, roll.value());
+	write_double(out, rotation.s);
+	write_double(out, rotation.v.x);
+	write_double(out, rotation.v.y);
+	write_double(out, rotation.v.z);
 	write_double(out, velocity.x);
 	write_double(out, velocity.y);
 	write_double(out, velocity.z);
@@ -163,26 +167,17 @@ void airplane::simulate(class game& gm, double delta_time)
 		return;
 	}
 
-	double c0 = heading.cos(), s0 = -heading.sin();
-	double c1 = pitch.cos(), s1 = -pitch.sin();
-	double c2 = roll.cos(), s2 = -roll.sin();
-	vector3 R0(c0*c2-s0*s1*s2, s0*c2+c0*s1*s2, -c1*s2);
-	vector3 R1(-s0*c1, c0*c1, s1);
-	vector3 R2(c0*s2+s0*s1*c2, s0*s2-c0*s1*c2, c1*c2);
-	vector3 R0i(R0.x, R1.x, R2.x);
-	vector3 R1i(R0.y, R1.y, R2.y);
-	vector3 R2i(R0.z, R1.z, R2.z);
-
-	vector3 sp = velocity.matrixmul(R0i, R1i, R2i);
-//cout<<"sp: "<<sp<<"\n";
-//cout<<"velocity: "<<velocity<<"\n";	
-	speed = velocity.matrixmul(R0i, R1i, R2i).y;	// why minus?
+	quaternion invrot = rotation.conj();
+	speed = invrot.rotate(velocity).y;
 	vector3 wingarea(get_wing_width(), get_wing_length(), 0);
-	vector3 locy = R1;
-	vector3 rotwingarea = wingarea.matrixmul(R0, R1, R2);
+	vector3 locy = rotation.rotate(0, 1, 0);
+	vector3 rotwingarea = rotation.rotate(wingarea);
 	double areafac = rotwingarea.x * rotwingarea.y;
-	vector3 locz = R2;
+	vector3 locz = rotation.rotate(0, 0, 1);
 	if (locz.z < 0) locz = -locz;
+
+	// fixme: simulate stall: if speed drops below a specific quantum, the plane's nose
+	// drops down. This avoids negative values for speed
 	
 	vector3 accel = (1.0/get_mass()) * (
 		get_engine_force() * locy - speed * get_friction_factor() * locy +
@@ -194,8 +189,10 @@ void airplane::simulate(class game& gm, double delta_time)
 //cout << "accel.z " << accel.z << " (" << ((1.0/get_mass()) * (areafac * speed * get_buoyancy_factor() * locz) + vector3(0, 0, -GRAVITY)) << ")\n";
 	position += velocity * delta_time;
 	velocity += accel * delta_time;
-	roll += rollfac * get_roll_deg_per_sec() * delta_time;    // fixme: also depends on speed
-	pitch += pitchfac * get_pitch_deg_per_sec() * delta_time; // fixme: also depends on speed
+//cout << "pitchang " << pitchfac * get_pitch_deg_per_sec() * delta_time << " rollang " << rollfac * get_roll_deg_per_sec() * delta_time << "\n";
+	quaternion qpitch = quaternion::rot(pitchfac * get_pitch_deg_per_sec() * delta_time, 1, 0, 0); // fixme: also depends on speed
+	quaternion qroll = quaternion::rot(rollfac * get_roll_deg_per_sec() * delta_time, 0, 1, 0); // fixme: also depends on speed
+	rotation *= qpitch * qroll;
 
 //	if ( myai )
 //		myai->act(gm, delta_time);
@@ -206,12 +203,12 @@ void airplane::simulate(class game& gm, double delta_time)
 
 void airplane::roll_left(void)
 {
-	rollfac = 1;
+	rollfac = -1;
 }
 
 void airplane::roll_right(void)
 {
-	rollfac = -1;
+	rollfac = 1;
 }
 
 void airplane::roll_zero(void)
@@ -221,12 +218,12 @@ void airplane::roll_zero(void)
 
 void airplane::pitch_down(void)
 {
-	pitchfac = 1;
+	pitchfac = -1;
 }
 
 void airplane::pitch_up(void)
 {
-	pitchfac = -1;
+	pitchfac = 1;
 }
 
 void airplane::pitch_zero(void)

@@ -22,6 +22,7 @@ class vector3t
 	D x, y, z;
 
 	vector3t() : x(0), y(0), z(0) {};
+	~vector3t() {}
 	vector3t(const vector3t<D>& o) : x(o.x), y(o.y), z(o.z) {}
 	vector3t& operator= (const vector3t<D>& o) { x = o.x; y = o.y; z = o.z; return *this; }
 	vector3t(const D &x_, const D &y_, const D &z_) : x(x_), y(y_), z(z_) {};
@@ -38,30 +39,22 @@ class vector3t
 	vector3t<D> max(const vector3t<D>& other) const { return vector3t(x > other.x ? x : other.x, y > other.y ? y : other.y, z > other.z ? z : other.z); };
 	bool operator== (const vector3t<D>& other) const { return x == other.x && y == other.y && z == other.z; };
 	D square_length(void) const { return x * x + y * y + z * z; };
-	D length(void) const { return D(sqrt(x * x + y * y + z * z)); };
+	D length(void) const { return D(sqrt(square_length())); };
 	D square_distance(const vector3t<D>& other) const { vector3t<D> n = *this - other; return n.square_length(); };
 	D distance(const vector3t<D>& other) const { vector3t<D> n = *this - other; return n.length(); };
 	D operator* (const vector3t<D>& other) const { return x * other.x + y * other.y + z * other.z; };
-	vector3t<D> cross(const vector3t<D>& other) const;
+	vector3t<D> cross(const vector3t<D>& other) const {
+		return vector3t(y * other.z - z * other.y, z * other.x - x * other.z, x * other.y - y * other.x ); }
 	bool solve(const vector3t<D>& o1, const vector3t<D>& o2, const vector3t<D>& o3, D &s1, D &s2, D &s3) const;
 	// multiplies 3x3 matrix (given in columns c0-c2) with *this.
 	vector3t<D> matrixmul(const vector3t<D>& c0, const vector3t<D>& c1, const vector3t<D>& c2) const;
 	vector2t<D> xy(void) const { return vector2t<D>(x, y); };
 	vector2t<D> yz(void) const { return vector2t<D>(y, z); };
 	template<class D2> friend ostream& operator<< ( ostream& os, const vector3t<D2>& v );
-	template<class E> void assign(const vector2t<E>& other) { x = D(other.x); y = D(other.y); }
+	template<class E> void assign(const vector3t<E>& other) { x = D(other.x); y = D(other.y); z = D(other.z); }
 };
 
 template<class D2> inline vector3t<D2> operator* (const D2& scalar, const vector3t<D2>& v) { return v * scalar; }
-
-template<class D>
-vector3t<D> vector3t<D>::cross(const vector3t<D>& other) const
-{
-	return vector3t(
-		y * other.z - z * other.y,
-		z * other.x - x * other.z,
-		x * other.y - y * other.x );
-}
 
 template<class D>
 bool vector3t<D>::solve(const vector3t<D> &o1, const vector3t<D> &o2, const vector3t<D> &o3, D &s1, D &s2, D &s3) const

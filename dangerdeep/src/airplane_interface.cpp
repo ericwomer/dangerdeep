@@ -134,9 +134,10 @@ void airplane_interface::display_cockpit(game& gm)
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 2);
 
 	glRotatef(-90,1,0,0);
-	glRotated(player->get_heading().value(), 0, 0, 1);
-	glRotated(player->get_pitch().value(), 1, 0, 0);
-	glRotated(player->get_roll().value(), 0, 1, 0);
+	double angle;
+	vector3 axis;
+	player->get_rotation().angleaxis(angle, axis);
+	glRotated(-angle, axis.x, axis.y, axis.z);
 	glRotatef(90,1,0,0);	// compensate for later rotation
 	draw_view(gm, viewpos, 0, 0, false, false, false);
 	glLoadIdentity();
@@ -148,8 +149,10 @@ void airplane_interface::display_cockpit(game& gm)
 	system::sys().no_tex();
 	glColor4f(1,1,1,1);
 	ostringstream oss;
-	oss << "height " << player->get_pos().z << "\nspeed " << player->get_speed() * 3.6 << "km/h\nheading " << player->get_heading().value()
-	<< "\npitch " << player->get_pitch().value() << "\nroll " << player->get_roll().value();
+	oss << "height " << player->get_pos().z << "\nspeed " << player->get_speed() * 3.6 << "km/h\nrotation (quat): "
+	<< player->get_rotation();
+//	\nheading " << player->get_heading().value()
+//	<< "\npitch " << player->get_pitch().value() << "\nroll " << player->get_roll().value();
 	font_arial->print(0, 0, oss.str());
 	system::sys().unprepare_2d_drawing();
 

@@ -23,6 +23,7 @@ class vector2t
 	D x, y;
 
 	vector2t() : x(0), y(0) {};
+	~vector2t() {}
 	vector2t(const vector2t<D>& o) : x(o.x), y(o.y) {}
 	vector2t& operator= (const vector2t<D>& o) { x = o.x; y = o.y; return *this; }
 	vector2t(const D &x_, const D &y_) : x(x_), y(y_) {};
@@ -39,7 +40,7 @@ class vector2t
 	vector2t<D> max(const vector2t<D>& other) const { return vector2t(x > other.x ? x : other.x, y > other.y ? y : other.y); };
 	bool operator== (const vector2t<D>& other) const { return x == other.x && y == other.y; };
 	D square_length(void) const { return x * x + y * y; };
-	D length(void) const { return D(sqrt(x * x + y * y)); };
+	D length(void) const { return D(sqrt(square_length())); };
 	D square_distance(const vector2t<D>& other) const { vector2t<D> n = *this - other; return n.square_length(); };
 	D distance(const vector2t<D>& other) const { vector2t<D> n = *this - other; return n.length(); };
 	D operator* (const vector2t<D>& other) const { return x * other.x + y * other.y; };
