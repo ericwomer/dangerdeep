@@ -10,12 +10,14 @@
 #include "global_data.h"
 #include "coastmap.h"
 #include "binstream.h"
+#include <cassert>
 #include <fstream>
 
 
 void coastmap::save(const string& filename) const
 {
 	ofstream out((get_map_dir() + filename).c_str(), ios::binary|ios::out);
+	assert(out.good() && "can't write map file");
 	write_u16(out, pixels_per_seg);
 	write_u16(out, segsx);
 	write_u16(out, segsy);
@@ -30,6 +32,7 @@ void coastmap::save(const string& filename) const
 coastmap::coastmap(const string& filename)
 {
 	ifstream in((get_map_dir() + filename).c_str(), ios::in | ios::binary);
+	assert(in.good() && "can't read map file");
 	pixels_per_seg = read_u16(in);
 	segsx = read_u16(in);
 	segsy = read_u16(in);
