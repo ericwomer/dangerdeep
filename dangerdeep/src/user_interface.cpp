@@ -1110,7 +1110,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	// ************ sky ***************************************************************
 	glActiveTexture(GL_TEXTURE0);
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, stars /*skycolor*/->get_opengl_name());
+	glBindTexture(GL_TEXTURE_2D, /*stars*/ skycolor->get_opengl_name());
 	
 	// skyplanes:
 	// 1) the stars (black with grey random dots)
