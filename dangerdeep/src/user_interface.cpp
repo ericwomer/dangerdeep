@@ -203,17 +203,49 @@ vector3 user_interface::get_water_normal(const vector2& pos, double t, double f)
 void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	double max_view_dist) const
 {
-	// fixme draw polygones to the horizon
-	// fixme use animated water texture(s)
-
-//	class system* sys = system::sys();	
-//	unsigned res_x = sys->get_res_x(), res_y = sys->get_res_y();
-//	sys->prepare_2d_drawing();
-//	water->draw_tiles(0, res_y/2, res_x, res_y/8, 8, 2);
-//	sys->unprepare_2d_drawing();
 
 	glPushMatrix();
 	glTranslatef(-myfmod(viewpos.x, WAVE_LENGTH), -myfmod(viewpos.y, WAVE_LENGTH), -viewpos.z);
+
+	// fixme use animated water texture(s)
+
+	// draw polygons to the horizon
+	float wr = WAVES_PER_AXIS * WAVE_LENGTH / 2;
+	float c0 = -max_view_dist;
+	float c1 = -wr;
+	float c2 = wr;
+	float c3 = max_view_dist;
+	float t0 = c0/64;
+	float t1 = c1/64;
+	float t2 = c2/64;
+	float t3 = c3/64;
+	float wz = 0;//-WAVE_HEIGHT; // this leads to hole between waves and horizon faces, fixme
+
+	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
+	glBegin(GL_TRIANGLE_STRIP);
+	glTexCoord2f(t0,t3);
+	glVertex3f(c0,c3,0);
+	glTexCoord2f(t1,t2);
+	glVertex3f(c1,c2,wz);
+	glTexCoord2f(t3,t3);
+	glVertex3f(c3,c3,0);
+	glTexCoord2f(t2,t2);
+	glVertex3f(c2,c2,wz);
+	glTexCoord2f(t3,t0);
+	glVertex3f(c3,c0,0);
+	glTexCoord2f(t2,t1);
+	glVertex3f(c2,c1,wz);
+	glTexCoord2f(t0,t0);
+	glVertex3f(c0,c0,0);
+	glTexCoord2f(t1,t1);
+	glVertex3f(c1,c1,wz);
+	glTexCoord2f(t0,t3);
+	glVertex3f(c0,c3,0);
+	glTexCoord2f(t1,t2);
+	glVertex3f(c1,c2,wz);
+	glEnd();
+
+	// draw waves
 	glScalef(WAVE_LENGTH, WAVE_LENGTH, WAVE_HEIGHT);
 	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
 	unsigned dl = wavedisplaylists + int(WAVE_PHASES*t);
@@ -269,7 +301,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	skycol2.set_gl_color();
 	float tmp = 1.0/30000.0;
 	glScalef(tmp, tmp, tmp);	// sky hemisphere is stored as 30km in radius
-	skyhemisphere->display();//, &skycol1, &skycol2);
+	skyhemisphere->display();
 	color::white().set_gl_color();
 	glEnable(GL_LIGHTING);
 	glPopMatrix();	// remove scale
