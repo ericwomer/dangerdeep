@@ -30,6 +30,11 @@ inline string get_map_dir(void) { return get_data_dir() + "maps/"; }
 #define GRAVITY 9.806	// a very global constant
 #define NR_CLOUD_TEXTURES 2
 
+#include "objcache.h"
+extern objcachet<class model> modelcache;
+extern objcachet<class image> imagecache;
+extern objcachet<class texture> texturecache;
+
 // global models, textures, fonts
 extern class model *merchant_large, *merchant_medium, *merchant_small,
 	*subVII, *subIXc40, *subXXI, *destroyer_tribal, *troopship_medium,

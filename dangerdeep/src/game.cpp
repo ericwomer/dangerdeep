@@ -34,7 +34,7 @@
 #include "menu.h"	// fixme why this? get rid of it
 #include "command.h"
 #include "network.h"
-#include "matrix.h"
+#include "matrix4.h"
 #include "quaternion.h"
 
 const int SAVEVERSION = 0;

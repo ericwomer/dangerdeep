@@ -34,7 +34,7 @@
 #include "airplane_interface.h"
 #include "sky.h"
 #include "water.h"
-#include "matrix.h"
+#include "matrix4.h"
 using namespace std;
 
 #define MAX_PANEL_SIZE 256

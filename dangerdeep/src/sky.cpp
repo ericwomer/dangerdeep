@@ -15,7 +15,7 @@
 #include "texture.h"
 #include "global_data.h"
 #include "game.h"
-#include "matrix.h"
+#include "matrix4.h"
 
 const double CLOUD_ANIMATION_CYCLE_TIME = 3600.0;
 
