@@ -832,7 +832,7 @@ bool game::is_day_mode () const
 {
 	double day_time = get_day_time ( get_time () );
 
-	if ( day_time >= 0.5f && day_time <= 2.5f )
+	if ( day_time >= 1.5f && day_time <= 3.5f )
 		return true;
 
 	return false;
