@@ -35,11 +35,11 @@ using namespace std;
 
 #define WATER_BUMPMAP_CYCLE_TIME 10.0
 
-#define WAVE_PHASES 128		// no. of phases for wave animation
+#define WAVE_PHASES 256		// no. of phases for wave animation
 #define WAVES_PER_AXIS 4	// no. of waves along x or y axis
 #define FACES_PER_WAVE 32	// resolution of wave model in x/y dir.
 #define WAVE_LENGTH 128.0	// in meters, total length of one wave (one sine function)
-#define WAVE_HEIGHT 1.0		// half of difference top/bottom of wave -> fixme, depends on weather
+#define WAVE_HEIGHT 4.0		// half of difference top/bottom of wave -> fixme, depends on weather
 #define TIDECYCLE_TIME 10.0
 
 #define CLOUD_ANIMATION_CYCLE_TIME 3600.0
@@ -103,6 +103,20 @@ void user_interface::init ()
 	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(1,1), 15, 0.000005, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		vector<float> h = owg.compute_heights(i*TIDECYCLE_TIME/WAVE_PHASES);
+		vector<vector3f> n = owg.compute_normals(i*TIDECYCLE_TIME/WAVE_PHASES);
+
+		/*	// normals computed by heights.
+		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
+			unsigned y1 = (y+FACES_PER_WAVE-1)%FACES_PER_WAVE;
+			unsigned y2 = (y+1)%FACES_PER_WAVE;
+			for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
+				unsigned x1 = (x+FACES_PER_WAVE-1)%FACES_PER_WAVE;
+				unsigned x2 = (x+1)%FACES_PER_WAVE;
+				n[y*FACES_PER_WAVE+x] = vector3f(h[y*FACES_PER_WAVE+x1]-h[y*FACES_PER_WAVE+x2],h[y1*FACES_PER_WAVE+x]-h[y2*FACES_PER_WAVE+x],1).normal();
+			}
+		}
+		*/
+
 		glNewList(wavedisplaylists+i, GL_COMPILE);
 		glBegin(GL_QUADS);
 		float add = 1.0f/FACES_PER_WAVE;
@@ -113,14 +127,18 @@ void user_interface::init ()
 			unsigned y2 = (y+1)%FACES_PER_WAVE;
 			for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
 				unsigned x2 = (x+1)%FACES_PER_WAVE;
+				glNormal3fv(&n[y*FACES_PER_WAVE+x].x);
 				glTexCoord2f(fx*w2bs, fy*w2bs);
-				glVertex3f(fx, fy, h[y*FACES_PER_WAVE+x]);
+				glVertex3f(fx*WAVE_LENGTH, fy*WAVE_LENGTH, h[y*FACES_PER_WAVE+x]);
+				glNormal3fv(&n[y*FACES_PER_WAVE+x2].x);
 				glTexCoord2f((fx+add)*w2bs, fy*w2bs);
-				glVertex3f(fx+add, fy, h[y*FACES_PER_WAVE+x2]);
+				glVertex3f((fx+add)*WAVE_LENGTH, fy*WAVE_LENGTH, h[y*FACES_PER_WAVE+x2]);
+				glNormal3fv(&n[y2*FACES_PER_WAVE+x2].x);
 				glTexCoord2f((fx+add)*w2bs, (fy+add)*w2bs);
-				glVertex3f(fx+add, fy+add, h[y2*FACES_PER_WAVE+x2]);
+				glVertex3f((fx+add)*WAVE_LENGTH, (fy+add)*WAVE_LENGTH, h[y2*FACES_PER_WAVE+x2]);
+				glNormal3fv(&n[y2*FACES_PER_WAVE+x].x);
 				glTexCoord2f(fx*w2bs, (fy+add)*w2bs);
-				glVertex3f(fx, fy+add, h[y2*FACES_PER_WAVE+x]);
+				glVertex3f(fx*WAVE_LENGTH, (fy+add)*WAVE_LENGTH, h[y2*FACES_PER_WAVE+x]);
 				fx += add;
 			}
 			fy += add;
@@ -537,13 +555,12 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	// draw waves
 	glColor3f(1,1,1);
 	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
-	glScalef(WAVE_LENGTH, WAVE_LENGTH, WAVE_HEIGHT);
 	double timefac = myfmod(t, TIDECYCLE_TIME)/TIDECYCLE_TIME;
 	unsigned dl = wavedisplaylists + int(WAVE_PHASES*timefac);
 	for (int y = 0; y < WAVES_PER_AXIS; ++y) {
 		for (int x = 0; x < WAVES_PER_AXIS; ++x) {
 			glPushMatrix();
-			glTranslatef(-WAVES_PER_AXIS/2+x, -WAVES_PER_AXIS/2+y, 0);
+			glTranslatef((-WAVES_PER_AXIS/2+x)*WAVE_LENGTH, (-WAVES_PER_AXIS/2+y)*WAVE_LENGTH, 0);
 			glCallList(dl);
 			glPopMatrix();
 		}
@@ -603,9 +620,9 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	skycol2 = color(color(0, 0, 16), color(74,114,236), colscal);
 
 	// compute light source position and brightness
-	GLfloat lambient[4] = {0.2, 0.2, 0.2, 1};//lightcol.r/255.0/2.0, lightcol.g/255.0/2.0, lightcol.b/255.0/2.0, 1};
+	GLfloat lambient[4] = {0,0,0,1};//{0.2, 0.2, 0.2, 1};//lightcol.r/255.0/2.0, lightcol.g/255.0/2.0, lightcol.b/255.0/2.0, 1};
 	GLfloat ldiffuse[4] = {lightcol.r/255.0, lightcol.g/255.0, lightcol.b/255.0, 1};
-	GLfloat lposition[4] = {0,0,1,0};	//fixed for now. fixme
+	GLfloat lposition[4] = {0,1,1,0};	//fixed for now. fixme
 	glLightfv(GL_LIGHT1, GL_AMBIENT, lambient);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, ldiffuse);
 	glLightfv(GL_LIGHT1, GL_POSITION, lposition);

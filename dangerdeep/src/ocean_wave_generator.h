@@ -51,9 +51,9 @@ class ocean_wave_generator
 	void compute_h0tilde(void);
 	complex<T> h_tilde(const vector2t<T>& K, int kx, int ky, T time) const;
 	
-	FFT_COMPLEX_TYPE* fft_in;	// can't be a vector, since the type is an array
-	FFT_REAL_TYPE* fft_out;		// for sake of uniformity
-	FFT_PLAN_TYPE plan;
+	FFT_COMPLEX_TYPE *fft_in, *fft_in2;	// can't be a vector, since the type is an array
+	FFT_REAL_TYPE *fft_out, *fft_out2;	// for sake of uniformity
+	FFT_PLAN_TYPE plan, plan2;
 	
 public:
 	ocean_wave_generator(
@@ -65,6 +65,7 @@ public:
 		T cycletime = T(10.0)
 	);
 	vector<T> compute_heights(T time) const;
+	vector<vector3t<T> > compute_normals(T time) const;
 	~ocean_wave_generator();
 };
 
@@ -131,6 +132,7 @@ void ocean_wave_generator<T>::compute_h0tilde(void)
 template <class T>
 complex<T> ocean_wave_generator<T>::h_tilde(const vector2t<T>& K, int kx, int ky, T time) const
 {
+	//fixme: compute h~ once and reuse it for normals
 	complex<T> h0_tildeK = h0tilde[ky*(N+1)+kx];
 	complex<T> h0_tildemK = h0tilde[(N-ky)*(N+1)+(N-kx)];
 	// all frequencies should be multiples of one base frequency (see paper).
@@ -155,8 +157,11 @@ ocean_wave_generator<T>::ocean_wave_generator<T>(
 	h0tilde.resize((N+1)*(N+1));
 	compute_h0tilde();
 	fft_in = new FFT_COMPLEX_TYPE[N*(N/2+1)];
+	fft_in2 = new FFT_COMPLEX_TYPE[N*(N/2+1)];
 	fft_out = new FFT_REAL_TYPE[N*N];
+	fft_out2 = new FFT_REAL_TYPE[N*N];
 	plan = FFT_CREATE_PLAN(N, N, fft_in, fft_out, 0);
+	plan2 = FFT_CREATE_PLAN(N, N, fft_in2, fft_out2, 0);
 }
 
 template <class T>
@@ -164,7 +169,9 @@ ocean_wave_generator<T>::~ocean_wave_generator<T>()
 {
 	FFT_DELETE_PLAN(plan);
 	delete[] fft_in;
+	delete[] fft_in2;
 	delete[] fft_out;
+	delete[] fft_out2;
 }
 
 template <class T>
@@ -195,6 +202,40 @@ vector<T> ocean_wave_generator<T>::compute_heights(T time) const
 		for (int x = 0; x < N; ++x)
 			waveheights[y*N+x] = fft_out[y*N+x] * signs[(x + y) & 1];
 	return waveheights;
+}
+
+template <class T>
+vector<vector3t<T> > ocean_wave_generator<T>::compute_normals(T time) const
+{
+	// fixme: these normals differ from the finite normals by a significant
+	// amount, they seem to be too flat. taking 0.5 for z instead of 1 seems better,
+	// but still isn't right.
+	const T pi2 = T(2.0)*T(M_PI);
+	for (int y = 0; y <= N/2; ++y) {
+		for (int x = 0; x < N; ++x) {
+			vector2t<T> K(pi2*(x-N/2)/Lm, pi2*(y-N/2)/Lm);
+			complex<T> c = h_tilde(K, x, y, time);
+			int ptr = x*(N/2+1)+y;
+			fft_in[ptr][0] = -c.imag() * K.x;
+			fft_in[ptr][1] =  c.real() * K.x;
+			fft_in2[ptr][0] = -c.imag() * K.y;
+			fft_in2[ptr][1] =  c.real() * K.y;
+		}
+	}
+
+	FFT_EXECUTE_PLAN(plan);
+	FFT_EXECUTE_PLAN(plan2);
+	
+	vector<vector3t<T> > wavenormals(N*N);
+	T signs[2] = { T(1), T(-1) };
+	for (int y = 0; y < N; ++y) {
+		for (int x = 0; x < N; ++x) {
+			int ptr = y*N+x;
+			T s = signs[(x + y) & 1];
+			wavenormals[ptr] = vector3f<T>(-fft_out[ptr] * s, -fft_out2[ptr] * s, T(1)).normal();
+		}
+	}
+	return wavenormals;
 }
 
 #endif
