@@ -66,7 +66,7 @@ public:
 	void add_waypoint(const vector2& wp) { waypoints.push_back(wp); };
 	void set_convoy(class convoy* cv) { myconvoy = cv; }
 
-	virtual void relax(void);	// follow path/object, remove contact info
+	virtual void relax(class game& gm);	// follow path/object, remove contact info
 	virtual void attack_contact(const vector3& c);
 	virtual void follow(sea_object* t = 0);	// follows path if t is 0
 	void cycle_waypoints(bool cycle = true) { cyclewaypoints = cycle; };

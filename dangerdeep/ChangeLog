@@ -1,4 +1,14 @@
 2004-02-22  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* all over the place
+	  - introduced a sane command_* API
+	  - mostly got rid of direct sea_object.do_something(data) calls,
+	    replaced them with game.send(new command_do_something(sea_object*, data)
+	    This is a precondition for networking.
+	  - added many "fixme"s that have to be fixed before network play
+	  - fixed bug in game::write(sea_object*)
+	  - next major release would be with network support (0.1.0)
+
+2004-02-22  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* command.h command.cpp
 	  - added command class (needed for network communication)
 

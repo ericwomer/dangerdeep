@@ -1380,7 +1380,7 @@ void game::send(command* cmd)
 	
 	// and send it over net
 	ostringstream osscmd;
-//	cmd->save(osscmd, *this);//fixme, fails with rudder_left?!
+	cmd->save(osscmd, *this);//fixme, fails with rudder_left?!
 	string cmdstr = osscmd.str();
 	//for all network connections
 	//send(cmd.length(), &cmd[0]);
@@ -1432,9 +1432,12 @@ void game::write(ostream& out, const water_splash* w) const
 
 void game::write(ostream& out, const sea_object* s) const
 {
-	if (s == 0) { /*cout<<"write #late 0\n";*/ write_u16(out, 0); return; }
-	const ship* sh = dynamic_cast<const ship*>(s); if (s) { write(out, sh); return; }
+	if (s == 0) { /*cout<<"write translate 0\n";*/ write_u16(out, 0); return; }
+	// note! we have to test submarine first, because each submarine is also a ship, but
+	// the write() functions expect the same class type, not a heir!
+	// calling write(ostream&, ship* s) with submarine type s will fail!
 	const submarine* su = dynamic_cast<const submarine*>(s); if (s) { write(out, su); return; }
+	const ship* sh = dynamic_cast<const ship*>(s); if (s) { write(out, sh); return; }
 	const airplane* ap = dynamic_cast<const airplane*>(s); if (s) { write(out, ap); return; }
 	const torpedo* tp = dynamic_cast<const torpedo*>(s); if (s) { write(out, tp); return; }
 	const depth_charge* dc = dynamic_cast<const depth_charge*>(s); if (s) { write(out, dc); return; }

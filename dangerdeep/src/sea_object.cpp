@@ -371,8 +371,8 @@ bool sea_object::set_course_to_pos(const vector2& pos)
 	} else {	// target can be reached, steer curve
 		head_to_ang(angle::from_math(atan2(d.y, d.x)), (b < 0));
 //	this code computes the curve that hits the target
-//	but it is much better to turn fast and then steam straight ahead
-//	however, this path does not hit the target exactly, since the ship moves
+//	but it is much better to turn fast and then steam straight ahead.
+//	however, the straight path does not hit the target exactly, since the ship moves
 //	while turning. In reality the ship would turn until it is facing the target
 //	directly. Here the ai recomputes the path every 10seconds, so this doesn't matter.
 /*

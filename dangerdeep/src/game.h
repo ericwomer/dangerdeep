@@ -189,7 +189,7 @@ public:
 	
 //	bool can_see(const sea_object* watcher, const submarine* sub) const;
 
-	// create new objects
+	// create new objects, fixme: send command for each spawn over net if i am server
 	void spawn_ship(ship* s);
 	void spawn_submarine(submarine* u);
 	void spawn_airplane(airplane* a);
@@ -201,12 +201,13 @@ public:
 
 	// simulation events
 //fixme: send messages about them to ui (remove sys-console printing in torpedo.cpp etc)
+//fixme: and also send something over net about them
 	void dc_explosion(const depth_charge& dc);	// depth charge exploding
 	bool gs_impact(const vector3& pos);	// gun shell impact
 	void torp_explode(const vector3& pos);	// torpedo explosion/impact
 	void ship_sunk( const ship* s );	// a ship sinks
 
-	// simulation actions
+	// simulation actions, fixme send something over net for them
 	virtual void ping_ASDIC(list<vector3>& contacts, sea_object* d,
 		const bool& move_sensor, const angle& dir = angle ( 0.0f ) );
 

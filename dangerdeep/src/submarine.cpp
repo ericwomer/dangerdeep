@@ -62,7 +62,9 @@ submarine::submarine() : ship(), dive_speed(0.0f), permanent_dive(false),
 	hassnorkel (false), snorkelup(false),
 	battery_level ( 1.0f ), battery_value_a ( 0.0f ), battery_value_t ( 1.0f ),
 	battery_recharge_value_a ( 0.0f ), battery_recharge_value_t ( 1.0f ),
-	damageable_parts(nr_of_damageable_parts)
+	damageable_parts(nr_of_damageable_parts),
+	trp_primaryrange(0), trp_secondaryrange(0), trp_initialturn(0), trp_searchpattern(0),
+	trp_addleadangle(0)
 {
 	// set all common damageable parts to "no damage"
 	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
@@ -164,6 +166,12 @@ void submarine::load(istream& in, game& g)
 	damageable_parts.clear();
 	for (unsigned s = read_u8(in); s > 0; --s)
 		damageable_parts.push_back(damageable_part(in));
+		
+	trp_primaryrange = read_u8(in);
+	trp_secondaryrange = read_u8(in);
+	trp_initialturn = read_u8(in);
+	trp_searchpattern = read_u8(in);
+	trp_addleadangle = read_double(in);
 }
 
 void submarine::save(ostream& out, const game& g) const
@@ -199,6 +207,12 @@ void submarine::save(ostream& out, const game& g) const
 	for (vector<damageable_part>::const_iterator it = damageable_parts.begin(); it != damageable_parts.end(); ++it) {
 		it->save(out);
 	}
+	
+	write_u8(out, trp_primaryrange);
+	write_u8(out, trp_secondaryrange);
+	write_u8(out, trp_initialturn);
+	write_u8(out, trp_searchpattern);
+	write_double(out, trp_addleadangle.value());
 }
 
 submarine* submarine::create(istream& in)
@@ -545,9 +559,7 @@ void submarine::dive_to_depth(unsigned meters)
 	dive_speed = (dive_to < position.z) ? -max_dive_speed : max_dive_speed;
 }
 
-bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target,
-	const angle& manual_lead_angle,
-	unsigned pr, unsigned sr, unsigned it, unsigned sp)
+bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target)
 {
 	pair<unsigned, unsigned> bow_tube_indices = get_bow_tube_indices();
 	pair<unsigned, unsigned> stern_tube_indices = get_stern_tube_indices();
@@ -556,7 +568,7 @@ bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target,
 	if (tubenr < 0) {
 		if (target != 0) {
 			angle a = angle(target->get_pos().xy() - get_pos().xy())
-				- get_heading() + manual_lead_angle;
+				- get_heading() + trp_addleadangle;
 			if (a.ui_abs_value180() > 90)
 				usebowtubes = false;
 		}
@@ -603,9 +615,10 @@ bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target,
 	if (torpnr == 0xffff)
 		return false;
 		
-	torpedo* t = new torpedo(this, torpedoes[torpnr].type, usebowtubes, pr, sr, it, sp);
+	torpedo* t = new torpedo(this, torpedoes[torpnr].type, usebowtubes,
+		trp_primaryrange, trp_secondaryrange, trp_initialturn, trp_searchpattern);
 	if (target) {
-		if (t->adjust_head_to(this, target, usebowtubes, manual_lead_angle)) {
+		if (t->adjust_head_to(this, target, usebowtubes, trp_addleadangle)) {
 			gm.spawn_torpedo(t);
 		} else {
 			// gyro angle invalid, fixme send message to ui

@@ -283,6 +283,8 @@ void convoy::simulate(game& gm, double delta_time)
 		remaining_time = AI_THINK_CYCLE_TIME;
 	}
 
+//fixme 2004/02/23 this code should be in an ai class! this would also move set_course_to_pos calls
+//to ai, where it should be
 	// follow waypoints
 	if (waypoints.size() > 0) {
 		set_course_to_pos(waypoints.front());

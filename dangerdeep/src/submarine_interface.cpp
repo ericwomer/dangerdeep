@@ -32,8 +32,7 @@ extern void menu_notimplemented(void);	// fixme remove later.
 
 submarine_interface::submarine_interface(submarine* player_sub, game& gm) : 
     	user_interface( player_sub, gm ), sub_damage_disp(new sub_damage_display(player_sub)),
-    	lead_angle(0), torptranssrc(0xffff), primaryrange(0), secondaryrange(0),
-    	initialturn(0), searchpattern(0)
+    	torptranssrc(0xffff)
 {
 	btn_menu = new widget_caller_button<game, void (game::*)(void)>(&gm, &game::stop, 1024-128-8, 128-40, 128, 32, texts::get(177));
 	panel->add_child(btn_menu);
@@ -58,11 +57,7 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 			case SDLK_4:
 			case SDLK_5:
 			case SDLK_6:
-				// fixme: store TDC programming in class submarine!
-				//add_command(CMD_FIRE_TORPEDO, keycode - SDLK_1, target  );
-				//gm.send(new command_fire_torpedo(player, keycode-SDLK_1, target, lead_angle
-				if ( player->fire_torpedo ( gm, keycode - SDLK_1, target, lead_angle,
-					primaryrange, secondaryrange, initialturn, searchpattern))
+				if ( player->fire_torpedo ( gm, keycode - SDLK_1, target))
 				{
 					add_message(texts::get(49));
 					ostringstream oss;
@@ -193,8 +188,7 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 
 			// weapons, fixme
 			case SDLK_t:
-				if (player->fire_torpedo(gm, -1, target, lead_angle,//fixme
-						primaryrange, secondaryrange, initialturn, searchpattern))
+				if (player->fire_torpedo(gm, -1, target))
 					add_message(texts::get(49));
 				break;
 			case SDLK_SPACE:
@@ -350,7 +344,7 @@ void submarine_interface::display_periscope(game& gm)
 	addleadangle->draw(768, 512, 256, 256);
 
 	// Draw lead angle value.
-	double la = lead_angle.value ();
+	double la = player->get_trp_addleadangle().value();
 
 	if ( la > 180.0f )
 		la -= 360.0f;
@@ -415,7 +409,7 @@ void submarine_interface::display_periscope(game& gm)
 			else if ( lav > 10.0f )
 				lav = 10.0f;
 
-			lead_angle = angle ( lav );
+			gm.send(new command_set_trp_addleadangle(player, lav));
 		}
 	}
 
@@ -500,10 +494,10 @@ void submarine_interface::display_torpedoroom(game& gm)
 	glPopMatrix();
 	
 	// draw torpedo programming buttons
-	draw_turnswitch(gm,   0, 256, 142, 17, primaryrange, 175, 138);
-	draw_turnswitch(gm, 256, 256, 159, 2, secondaryrange, 0, 139);
-	draw_turnswitch(gm, 512, 256, 161, 2, initialturn, 0, 140);
-	draw_turnswitch(gm, 768, 256, 163, 2, searchpattern, 176, 141);
+	draw_turnswitch(gm,   0, 256, 142, 17, player->get_trp_primaryrange(), 175, 138);
+	draw_turnswitch(gm, 256, 256, 159, 2, player->get_trp_secondaryrange(), 0, 139);
+	draw_turnswitch(gm, 512, 256, 161, 2, player->get_trp_initialturn(), 0, 140);
+	draw_turnswitch(gm, 768, 256, 163, 2, player->get_trp_searchpattern(), 176, 141);
 
 	// tube handling. compute coordinates for display and mouse use	
 	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
@@ -610,10 +604,10 @@ void submarine_interface::display_torpedoroom(game& gm)
 		
 		// torpedo programming buttons
 		if (my >= 256 && my < 512) {
-			if (mx < 256) primaryrange = turnswitch_input(mx, my-256, 17);
-			else if (mx < 512) secondaryrange = turnswitch_input(mx-256, my-256, 2);
-			else if (mx < 768) initialturn = turnswitch_input(mx-512, my-256, 2);
-			else searchpattern = turnswitch_input(mx-768, my-256, 2);
+			if (mx < 256) gm.send(new command_set_trp_primaryrange(player, turnswitch_input(mx, my-256, 17)));
+			else if (mx < 512) gm.send(new command_set_trp_secondaryrange(player, turnswitch_input(mx-256, my-256, 2)));
+			else if (mx < 768) gm.send(new command_set_trp_initialturn(player, turnswitch_input(mx-512, my-256, 2)));
+			else gm.send(new command_set_trp_searchpattern(player, turnswitch_input(mx-768, my-256, 2)));
 		}
 	
 	} else {

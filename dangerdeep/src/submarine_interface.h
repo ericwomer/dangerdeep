@@ -15,18 +15,9 @@ using namespace std;
 class submarine_interface : public user_interface
 {
 protected:
-	// Manual angle correction to fire a spread of torpedoes., fixme: maybe move to submarine
-	angle lead_angle;
-	
 	// source tube nr for manual torpedo transfer, used for drag & drog drawing
 	unsigned torptranssrc;
 	
-	// FAT torpedo programming data, fixme move to submarine
-	unsigned primaryrange;		// selected option 0-16 (1600 to 3200m)
-	unsigned secondaryrange;	// selected option 0-1 (800 or 1600m)
-	unsigned initialturn;		// selected option 0-1 (left or right)
-	unsigned searchpattern;		// selected option 0-1 (turn 180 or 90 deg.) fixme what are historical correct patterns?
-
 	class sub_damage_display* sub_damage_disp;
 
 	enum display_mode { display_mode_gauges, display_mode_periscope,

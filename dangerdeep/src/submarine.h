@@ -142,6 +142,13 @@ protected:
     
 	vector<damageable_part> damageable_parts;
 
+	// FAT torpedo programming data
+	unsigned trp_primaryrange;	// selected option 0-16 (1600 to 3200m)
+	unsigned trp_secondaryrange;	// selected option 0-1 (800 or 1600m)
+	unsigned trp_initialturn;	// selected option 0-1 (left or right)
+	unsigned trp_searchpattern;	// selected option 0-1 (turn 180 or 90 deg.) fixme what are historical correct patterns?
+	angle trp_addleadangle;	// additional lead angle for torpedoes
+
 	submarine();
 	submarine& operator= (const submarine& other);
 	submarine(const submarine& other);
@@ -217,6 +224,11 @@ public:
 	virtual float surface_visibility(const vector2& watcher) const;
 	virtual float sonar_visibility ( const vector2& watcher ) const;
 	virtual double get_noise_factor () const;
+	virtual unsigned get_trp_primaryrange(void) const { return trp_primaryrange; }
+	virtual unsigned get_trp_secondaryrange(void) const { return trp_secondaryrange; }
+	virtual unsigned get_trp_initialturn(void) const { return trp_initialturn; }
+	virtual unsigned get_trp_searchpattern(void) const { return trp_searchpattern; }
+	virtual angle get_trp_addleadangle(void) const { return trp_addleadangle; }
 
 	virtual bool is_scope_up(void) const { return ( scopeup == true ); }
 	virtual double get_periscope_depth() const { return periscope_depth; }
@@ -237,28 +249,32 @@ public:
 	virtual double get_stern_deck_reload_time(void) const = 0;
 	virtual double get_bow_stern_deck_transfer_time(void) const = 0;
 
-	// damage is added if dc damages sub.
+	// damage is added if dc damages sub. - fixme: this must be send over net somehow. or send a "damage part x with amount y" command instead?
 	virtual void depth_charge_explosion(const class depth_charge& dc);
     
 	// command interface for subs
-	virtual void scope_up(void) { scopeup = true; };	// fixme
+	virtual void scope_up(void) { scopeup = true; };	// fixme, do we need these?
 	virtual void scope_down(void) { scopeup = false; };
 	virtual void scope_to(double amount) {};	// set scope to "amount" (0-1) of full height, fixme
-	virtual bool set_snorkel_up ( bool snorkel_up );
+	virtual bool set_snorkel_up ( bool snorkel_up );	// fixme get rid of this
 	virtual void snorkel_up ( void ) { set_snorkel_up(true); }
 	virtual void snorkel_down ( void ) { set_snorkel_up(false); }
 	virtual void planes_up(double amount);		// fixme: functions for both dive planes needed?
 	virtual void planes_down(double amount);
 	virtual void planes_middle(void);
-	virtual void dive_to_depth(unsigned meters);	// fixme: is this really a command?
+	virtual void dive_to_depth(unsigned meters);
 	virtual void transfer_torpedo(unsigned from, unsigned to);
+	virtual void set_trp_primaryrange(unsigned x) { trp_primaryrange = x; }
+	virtual void set_trp_secondaryrange(unsigned x) { trp_secondaryrange = x; }
+	virtual void set_trp_initialturn(unsigned x) { trp_initialturn = x; }
+	virtual void set_trp_searchpattern(unsigned x) { trp_searchpattern = x; }
+	virtual void set_trp_addleadangle(angle x) { trp_addleadangle = x; }
 	// give tubenr -1 for any loaded tube, or else 0-5,
 	// and FAT values as index (primary & secondary range, initial turn, seach pattern)
 	// fixme: it would make more sense to store these values in this class rather than
 	// in submarine_interface.
-	virtual bool fire_torpedo(class game& gm, int tubenr, sea_object* target,
-		const angle& manual_lead_angle,
-		unsigned pr=0, unsigned sr=0, unsigned it=0, unsigned sp=0);
+	// fixme: split in function and command: "can be fired?" and "fire"
+	virtual bool fire_torpedo(class game& gm, int tubenr, sea_object* target);
 };
 
 #endif

@@ -8,6 +8,7 @@
 #include "sea_object.h"
 #include "gun_shell.h"
 #include "depth_charge.h"
+#include "command.h"
 
 //#define WPEXACTNESS 100			// how exact a waypoint has to be hit in meters
 //#define AI_THINK_CYCLE_TIME 10		// sec
@@ -102,11 +103,11 @@ void ai::save(ostream& out, const class game& g) const
 }
 
 
-void ai::relax(void)
+void ai::relax(game& gm)
 {
 	has_contact = false;
 	state = (followme != 0) ? followobject : followpath;
-	parent->set_throttle(sea_object::aheadsonar);
+	gm.send(new command_set_throttle(parent, sea_object::aheadsonar));
 	attackrun = false;
 }
 
@@ -139,9 +140,9 @@ void ai::act(class game& gm, double delta_time)
 	
 	if (zigzagstate > 0) {
 		if (zigzagstate == 5)
-			parent->rudder_left();
+			gm.send(new command_rudder_left(parent));
 		else if (zigzagstate == 15)
-			parent->rudder_right();
+			gm.send(new command_rudder_right(parent));
 		++zigzagstate;
 		if (zigzagstate > 20)
 			zigzagstate = 1;
@@ -193,7 +194,7 @@ void ai::act_escort(game& gm, double delta_time)
 		fire_shell_at(gm, *nearest_contact);
 		attack_contact(nearest_contact->get_pos());
 		if (myconvoy) myconvoy->add_contact(nearest_contact->get_pos());
-		parent->set_throttle(sea_object::aheadflank);
+		gm.send(new command_set_throttle(parent, sea_object::aheadflank));
 		attackrun = true;
 	}
 
@@ -208,7 +209,7 @@ void ai::act_escort(game& gm, double delta_time)
 		} else {
 			// ping around to find something
 			list<vector3> contacts;
-			gm.ping_ASDIC(contacts, parent, true);
+			gm.ping_ASDIC(contacts, parent, true);//fixme add command!!!!
 			if (contacts.size() > 0) {
 				// fixme: choose best contact!
 				if (myconvoy) myconvoy->add_contact(contacts.front());
@@ -222,7 +223,7 @@ void ai::act_escort(game& gm, double delta_time)
 	} else if (state == attackcontact) {	// attack sonar/visible contact
 
 		if (!(evasive_manouver && rem_manouver_time > 0)) {
-			evasive_manouver = ! parent->set_course_to_pos(contact.xy());
+			evasive_manouver = ! parent->set_course_to_pos(contact.xy());//fixme move function to ai!!!
 			if (evasive_manouver) {
 				// wait for half circle to complete
 				double waittime = 180.0 / (parent->get_turn_rate().value() * parent->get_speed());
@@ -234,7 +235,7 @@ void ai::act_escort(game& gm, double delta_time)
 		double cd = delta.length();
 		if (cd > DC_ATTACK_RUN_RADIUS && !attackrun) {
 			list<vector3> contacts;
-			gm.ping_ASDIC(contacts, parent, false, angle(delta));
+			gm.ping_ASDIC(contacts, parent, false, angle(delta));//fixme add command
 			if (contacts.size() > 0) {	// update contact
 				// fixme: choose best contact!
 				if (myconvoy) myconvoy->add_contact(contacts.front());
@@ -242,18 +243,18 @@ void ai::act_escort(game& gm, double delta_time)
 			}
 			//set_zigzag((cd > 500 && cd < 2500));//fixme test hack, doesn't work
 		} else {
-			parent->set_throttle(sea_object::aheadflank);
+			gm.send(new command_set_throttle(parent, sea_object::aheadflank));
 			attackrun = true;
 			//set_zigzag(false);//fixme test hack, doesn't work
 		}
 
 		if (cd < DC_ATTACK_RADIUS) {
-			gm.spawn_depth_charge(new depth_charge(*parent, -contact.z));
+			gm.spawn_depth_charge(new depth_charge(*parent, -contact.z));//fixme add command
 			// the escort must run with maximum speed until the depth charges
 			// have exploded to avoid suicide. fixme
 			// fixme: just ai hacking/testing.
 			// after spawning a DC start pinging again.
-			relax();
+			relax(gm);
 		}
 	}
 	
@@ -264,9 +265,11 @@ void ai::act_dumb(game& gm, double delta_time)
 {
 	if (state == followobject && followme != 0) {
 		parent->set_course_to_pos(followme->get_pos().xy());
+		//gm.send(new command_set_course_to_pos(parent, followme->get_pos().xy()));//argh fixme
 	} else if (state == followpath) {
 		if (waypoints.size() > 0) {
-			parent->set_course_to_pos(waypoints.front());
+			parent->set_course_to_pos(waypoints.front());//argh fixme
+			//gm.send(new command_set_course_to_pos(parent, waypoints.front()));
 			if (parent->get_pos().xy().distance(waypoints.front()) < WPEXACTNESS) {
 				if (cyclewaypoints)
 					waypoints.push_back(waypoints.front());
@@ -304,7 +307,7 @@ void ai::fire_shell_at(game& gm, const sea_object& s)
 	// fixme: snap angle values to simulate real cannon accuracy.
 
 	// fixme: adapt direction & elevation to course and speed of target!
-	gm.spawn_gun_shell(new gun_shell(*parent, direction, elevation));
+	gm.spawn_gun_shell(new gun_shell(*parent, direction, elevation));//fixme add command
 
 	last_elevation = elevation;	
 	last_azimuth = direction;
