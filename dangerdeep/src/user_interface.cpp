@@ -1605,8 +1605,8 @@ cout << "draw map area " << minx << "," << miny << "," << maxx << "," << maxy <<
 			// specific keyboard processing
 			switch(key) {
 				case SDLK_EQUALS :
-				case SDLK_PLUS : if (mapzoom < 1) mapzoom *= 1.5; break;
-				case SDLK_MINUS : if (mapzoom > 0.001) mapzoom /= 1.5; break;
+				case SDLK_PLUS : if (mapzoom < 1) mapzoom *= 2; break;
+				case SDLK_MINUS : if (mapzoom > 1.0/16384) mapzoom /= 2; break;
 			}
 		}
 		key = sys.get_key().sym;

@@ -1,4 +1,10 @@
 2003-11-23  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* 1.map
+	  - compiled section of atlantic as map that should be enough for
+	    this game (15000km x 11000km, resolution ~ 4.8km per pixel.)
+	    Finer data is available for a few bucks from NASA (GTOPO30 maps,
+	    around 1km resolution).
+	    The new map shows some terrain bugs (no surprise).
 	* user_interface.cpp
 	  - further improvement of cloud appearance
 	* filehelper, widget
