@@ -1014,6 +1014,7 @@ void user_interface::display_map(class system& sys, game& gm)
 		if (!keyboard_common(key, sys, gm)) {
 			// specific keyboard processing
 			switch(key) {
+				case SDLK_EQUALS :
 				case SDLK_PLUS : if (mapzoom < 1) mapzoom *= 1.5; break;
 				case SDLK_MINUS : if (mapzoom > 0.01) mapzoom /= 1.5; break;
 			}
