@@ -11,7 +11,7 @@
 #undef max
 #endif
 
-unsigned model::mapping = 0;
+int model::mapping = GL_NEAREST;
 
 model::model(const string& filename) : display_list(0)
 {
@@ -82,7 +82,7 @@ void model::material::init(void)
 	delete mytexture;
 	mytexture = 0;
 	if (filename.length() > 0)
-		mytexture = new texture(get_data_dir() + MODEL_DIR + filename, model::mapping, false, false);
+		mytexture = new texture(get_data_dir() + MODEL_DIR + filename, model::mapping);
 }
 
 void model::material::set_gl_values(void) const

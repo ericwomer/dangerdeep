@@ -98,7 +98,7 @@ class model {
 	model& operator= (const model& );
 
 public:
-	static unsigned mapping;	// 0 nearest, 1 bilinear, 2 bilinear mipmap, 3 trilinear
+	static int mapping;	// GL_* mapping constants
 	model(const string& filename);
 	~model();
 	void display(void) const;

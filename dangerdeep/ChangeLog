@@ -1,4 +1,10 @@
 2003-11-08  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* image.h image.cpp texture.h texture.cpp font.cpp global_data.cpp
+	  - removed silly "morealpha" option.
+	    made texture attributes more flexible (direct passing of OpenGL
+	    codes is posssible).
+
+2003-11-08  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* user_interface.cpp user_interface.h
 	  - again i implemented a new water code.
 	    this is much like the original code:

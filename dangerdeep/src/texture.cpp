@@ -21,19 +21,11 @@
 #include <vector>
 using namespace std;
 
-/*
-   fixme:
-   maybe we can determine "more alpha" automatically.
-   For paletted textures, there can be only two alpha values.
-   For RGB textures we could count the alpha values (2 or more)
-   For 32 bit displays always use RGBA (8-8-8-8) (no matter if morealpha or not)
-   For 16 bit displays use RGB5_A1 or RGBA (4-4-4-4).
-*/   
 
 int texture::paletted_textures = -1;
 
 void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-	unsigned mapping, bool clamp, bool morealpha)
+	int mapping, int clamp)
 {
 	GLuint texname;
 	
@@ -69,7 +61,7 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 			usealpha = true;
 		}
 
-		internalformat = usealpha ? (morealpha ? GL_RGBA : GL_RGB5_A1) : GL_RGB;
+		internalformat = usealpha ? GL_RGBA : GL_RGB;
 
 #ifndef WIN32	// i hate windows.
 #ifdef GL_EXT_paletted_texture
@@ -108,7 +100,7 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 #endif
 	} else {
 		bool usealpha = teximage->format->Amask != 0;
-		internalformat = usealpha ? (morealpha ? GL_RGBA : GL_RGB5_A1) : GL_RGB;
+		internalformat = usealpha ? GL_RGBA : GL_RGB;
 		externalformat = usealpha ? GL_RGBA : GL_RGB;
 		tmpimage = new unsigned char [tw*th*bpp];
 		memset(tmpimage, 0, tw*th*bpp);
@@ -126,50 +118,33 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	// create texture
 	glTexImage2D(GL_TEXTURE_2D, 0, internalformat, tw, th, 0,
 		externalformat, GL_UNSIGNED_BYTE, tmpimage);
-	if (mapping >= 2) {
+	if (	mapping == GL_NEAREST_MIPMAP_NEAREST
+		|| mapping == GL_NEAREST_MIPMAP_LINEAR
+		|| mapping == GL_LINEAR_MIPMAP_NEAREST
+		|| mapping == GL_LINEAR_MIPMAP_LINEAR ) {
+
 		gluBuild2DMipmaps(GL_TEXTURE_2D, internalformat, tw, th, externalformat,
 			GL_UNSIGNED_BYTE, tmpimage);
 	}
 	
 	delete [] tmpimage;
 	
-	switch (mapping) {
-		case 1:
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			break;
-		case 2:
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-			break;
-		case 3:
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			break;
-		default:
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			break;
-	}
-	if (clamp) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	} else {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	}
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mapping);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp);
 
 	opengl_name = texname;
 	width = tw;
 	height = th;
 }
 	
-texture::texture(const string& filename, unsigned mapping, bool clamp, bool morealpha)
+texture::texture(const string& filename, int mapping, int clamp)
 {
 	texfilename = filename;
 	SDL_Surface* teximage = IMG_Load(filename.c_str());
 	system::sys()->myassert(teximage != 0, string("texture: failed to load")+filename);
-	init(teximage, 0, 0, teximage->w, teximage->h, mapping, clamp, morealpha);
+	init(teximage, 0, 0, teximage->w, teximage->h, mapping, clamp);
 	SDL_FreeSurface(teximage);
 }	
 	

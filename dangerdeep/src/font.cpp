@@ -151,7 +151,7 @@ font::font(const string& filename, unsigned char_spacing, unsigned blank_length,
 	}
 
 	for (unsigned i = 0; i < nr_chars; i++) {
-		characters[i].tex = new texture(fontimage, offsets[i], 0, characters[i].width, h, 1, true, true);
+		characters[i].tex = new texture(fontimage, offsets[i], 0, characters[i].width, h, GL_LINEAR, GL_CLAMP);
 	}
 		
 	for (unsigned i = 0; i < nr_chars; i++)

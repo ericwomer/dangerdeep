@@ -8,8 +8,10 @@
 using namespace std;
 #ifdef WIN32
 #include <SDL.h>
+#include <gl.h>
 #else
 #include <SDL/SDL.h>
+#include <GL/gl.h>
 #endif
 
 class texture
@@ -24,17 +26,15 @@ private:
 	
 	// share common constructor code
 	void init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-		unsigned mapping, bool clamp, bool morealpha);
+		int mapping, int clamp);
 public:
-	// mapping: 0 nearest, 1 bilinear, 2 mipmap bilinear, 3 trilinear
-	texture(const string& filename, unsigned mapping = 0,
-		bool clamp = true, bool morealpha = false);
+	texture(const string& filename, int mapping = GL_NEAREST, int clamp = GL_REPEAT);
 
 	// create texture from subimage of SDL surface.
 	// sw,sh need not to be powers of two.
 	texture(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-		unsigned mapping = 0, bool clamp = true, bool morealpha = false) {
-			init(teximage, sx, sy, sw, sh, mapping, clamp, morealpha);
+		int mapping = GL_NEAREST, int clamp = GL_REPEAT) {
+			init(teximage, sx, sy, sw, sh, mapping, clamp);
 		};
 	
 	~texture();

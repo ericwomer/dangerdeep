@@ -44,92 +44,92 @@ image *titlebackgr, *periscope, *threesubsimg, *damage_screen_background, *sub_d
 
 void init_global_data(void)
 {
-	skyhemisphere = new model((get_data_dir() + MODEL_DIR + "skyhemisphere.3ds"));
-	water = new texture((get_data_dir() + TEXTURE_DIR + "water.png"), 1, false);
-	the_moon = new texture((get_data_dir() + TEXTURE_DIR + "themoon.png"), 1, false);
-	the_sun = new texture((get_data_dir() + TEXTURE_DIR + "thesun.png"), 1, false);
-	background = new texture((get_data_dir() + TEXTURE_DIR + "background.png"), 1, false);
-	merchant_large = new model((get_data_dir() + MODEL_DIR + "large_merchant.3ds"));
-	merchant_medium = new model((get_data_dir() + MODEL_DIR + "medium_merchant.3ds"));
-	merchant_small = new model((get_data_dir() + MODEL_DIR + "small_merchant.3ds"));
-	troopship_medium = new model((get_data_dir() + MODEL_DIR + "medium_troopship.3ds"));
-	battleship_malaya = new model((get_data_dir() + MODEL_DIR + "battleship_malaya.3ds"));
-	carrier_bogue = new model((get_data_dir() + MODEL_DIR + "carrier_bogue.3ds"));
-	subVII = new model((get_data_dir() + MODEL_DIR + "submarine_VIIc.3ds"));
-	subIXc40 = new model((get_data_dir() + MODEL_DIR + "submarine_IXc40.3ds"));
-	subXXI = new model((get_data_dir() + MODEL_DIR + "submarine_XXI.3ds"));
-	destroyer_tribal = new model((get_data_dir() + MODEL_DIR + "destroyer_tribal.3ds"));
-	corvette_mdl = new model((get_data_dir() + MODEL_DIR + "corvette.3ds"));
-	freighter_large = new model((get_data_dir() + MODEL_DIR + "large_freighter.3ds"));
-	freighter_medium = new model((get_data_dir() + MODEL_DIR + "medium_freighter.3ds"));
-	tanker_small = new model((get_data_dir() + MODEL_DIR + "small_tanker.3ds"));
-	conning_tower_typeVII = new model((get_data_dir() + MODEL_DIR + "conning_tower_typeVIIc.3ds"));
+	skyhemisphere = new model(get_data_dir() + MODEL_DIR + "skyhemisphere.3ds");
+	water = new texture(get_data_dir() + TEXTURE_DIR + "water.png", GL_LINEAR);
+	the_moon = new texture(get_data_dir() + TEXTURE_DIR + "themoon.png", GL_LINEAR);
+	the_sun = new texture(get_data_dir() + TEXTURE_DIR + "thesun.png", GL_LINEAR);
+	background = new texture(get_data_dir() + TEXTURE_DIR + "background.png", GL_LINEAR);
+	merchant_large = new model(get_data_dir() + MODEL_DIR + "large_merchant.3ds");
+	merchant_medium = new model(get_data_dir() + MODEL_DIR + "medium_merchant.3ds");
+	merchant_small = new model(get_data_dir() + MODEL_DIR + "small_merchant.3ds");
+	troopship_medium = new model(get_data_dir() + MODEL_DIR + "medium_troopship.3ds");
+	battleship_malaya = new model(get_data_dir() + MODEL_DIR + "battleship_malaya.3ds");
+	carrier_bogue = new model(get_data_dir() + MODEL_DIR + "carrier_bogue.3ds");
+	subVII = new model(get_data_dir() + MODEL_DIR + "submarine_VIIc.3ds");
+	subIXc40 = new model(get_data_dir() + MODEL_DIR + "submarine_IXc40.3ds");
+	subXXI = new model(get_data_dir() + MODEL_DIR + "submarine_XXI.3ds");
+	destroyer_tribal = new model(get_data_dir() + MODEL_DIR + "destroyer_tribal.3ds");
+	corvette_mdl = new model(get_data_dir() + MODEL_DIR + "corvette.3ds");
+	freighter_large = new model(get_data_dir() + MODEL_DIR + "large_freighter.3ds");
+	freighter_medium = new model(get_data_dir() + MODEL_DIR + "medium_freighter.3ds");
+	tanker_small = new model(get_data_dir() + MODEL_DIR + "small_tanker.3ds");
+	conning_tower_typeVII = new model(get_data_dir() + MODEL_DIR + "conning_tower_typeVIIc.3ds");
 	font_arial = new font(get_data_dir() + FONT_DIR + "font_arial.png");
 	font_panel = new font(get_data_dir() + FONT_DIR + "font_panel.png");
 	font_nimbusrom = new font(get_data_dir() + FONT_DIR + "font_nimbusrom.png");
-	torpedo_g7 = new model((get_data_dir() + MODEL_DIR + "torpedo_g7.3ds"));
-	depth_charge_mdl = new model((get_data_dir() + MODEL_DIR + "depth_charge.3ds"));
-	gun_shell_mdl = new model((get_data_dir() + MODEL_DIR + "gun_shell.3ds"));
-	titlebackgr = new image((get_data_dir() + IMAGES_DIR + "titlebackgr.jpg"));
-	periscope = new image((get_data_dir() + TEXTURE_DIR + "periscope.png"));
-	gauge1 = new texture((get_data_dir() + TEXTURE_DIR + "gauge1.png"));
-	gauge2 = new texture((get_data_dir() + TEXTURE_DIR + "gauge2.png"));
-	gauge3 = new texture((get_data_dir() + TEXTURE_DIR + "gauge3.png"));
-	gauge4 = new texture((get_data_dir() + TEXTURE_DIR + "gauge4.png"));
-	gauge5 = new texture((get_data_dir() + TEXTURE_DIR + "gauge5.png"));
-	psbackgr = new texture((get_data_dir() + TEXTURE_DIR + "psbackgr.png"));
-	panelbackgr = new texture((get_data_dir() + TEXTURE_DIR + "panelbackgr.png"), 1, false, true);
-	addleadangle = new texture((get_data_dir() + TEXTURE_DIR + "addleadangle.png"));
-	torpempty = new texture((get_data_dir() + TEXTURE_DIR + "torpempty.png"));
-	torpreload = new texture((get_data_dir() + TEXTURE_DIR + "torpreload.png"));
-	torpunload = new texture((get_data_dir() + TEXTURE_DIR + "torpunload.png"));
-	uzo = new texture((get_data_dir() + TEXTURE_DIR + "uzo.png"), 1, true, true);
-	metalbackgr = new texture((get_data_dir() + TEXTURE_DIR + "metalbackgr.png"), 1, false);
-	torpt1 = new texture((get_data_dir() + TEXTURE_DIR + "torpt1.png"));
-	torpt2 = new texture((get_data_dir() + TEXTURE_DIR + "torpt2.png"));
-	torpt3 = new texture((get_data_dir() + TEXTURE_DIR + "torpt3.png"));
-	torpt3a = new texture((get_data_dir() + TEXTURE_DIR + "torpt3a.png"));
-	torpt4 = new texture((get_data_dir() + TEXTURE_DIR + "torpt4.png"));
-	torpt5 = new texture((get_data_dir() + TEXTURE_DIR + "torpt5.png"));
-	torpt11 = new texture((get_data_dir() + TEXTURE_DIR + "torpt11.png"));
-	torpt1fat = new texture((get_data_dir() + TEXTURE_DIR + "torpt1fat.png"));
-	torpt3fat = new texture((get_data_dir() + TEXTURE_DIR + "torpt3fat.png"));
-	torpt6lut = new texture((get_data_dir() + TEXTURE_DIR + "torpt6lut.png"));
+	torpedo_g7 = new model(get_data_dir() + MODEL_DIR + "torpedo_g7.3ds");
+	depth_charge_mdl = new model(get_data_dir() + MODEL_DIR + "depth_charge.3ds");
+	gun_shell_mdl = new model(get_data_dir() + MODEL_DIR + "gun_shell.3ds");
+	titlebackgr = new image(get_data_dir() + IMAGES_DIR + "titlebackgr.jpg");
+	periscope = new image(get_data_dir() + TEXTURE_DIR + "periscope.png");
+	gauge1 = new texture(get_data_dir() + TEXTURE_DIR + "gauge1.png");
+	gauge2 = new texture(get_data_dir() + TEXTURE_DIR + "gauge2.png");
+	gauge3 = new texture(get_data_dir() + TEXTURE_DIR + "gauge3.png");
+	gauge4 = new texture(get_data_dir() + TEXTURE_DIR + "gauge4.png");
+	gauge5 = new texture(get_data_dir() + TEXTURE_DIR + "gauge5.png");
+	psbackgr = new texture(get_data_dir() + TEXTURE_DIR + "psbackgr.png");
+	panelbackgr = new texture(get_data_dir() + TEXTURE_DIR + "panelbackgr.png", GL_LINEAR);
+	addleadangle = new texture(get_data_dir() + TEXTURE_DIR + "addleadangle.png");
+	torpempty = new texture(get_data_dir() + TEXTURE_DIR + "torpempty.png");
+	torpreload = new texture(get_data_dir() + TEXTURE_DIR + "torpreload.png");
+	torpunload = new texture(get_data_dir() + TEXTURE_DIR + "torpunload.png");
+	uzo = new texture(get_data_dir() + TEXTURE_DIR + "uzo.png", GL_LINEAR, GL_CLAMP);
+	metalbackgr = new texture(get_data_dir() + TEXTURE_DIR + "metalbackgr.png", GL_LINEAR);
+	torpt1 = new texture(get_data_dir() + TEXTURE_DIR + "torpt1.png");
+	torpt2 = new texture(get_data_dir() + TEXTURE_DIR + "torpt2.png");
+	torpt3 = new texture(get_data_dir() + TEXTURE_DIR + "torpt3.png");
+	torpt3a = new texture(get_data_dir() + TEXTURE_DIR + "torpt3a.png");
+	torpt4 = new texture(get_data_dir() + TEXTURE_DIR + "torpt4.png");
+	torpt5 = new texture(get_data_dir() + TEXTURE_DIR + "torpt5.png");
+	torpt11 = new texture(get_data_dir() + TEXTURE_DIR + "torpt11.png");
+	torpt1fat = new texture(get_data_dir() + TEXTURE_DIR + "torpt1fat.png");
+	torpt3fat = new texture(get_data_dir() + TEXTURE_DIR + "torpt3fat.png");
+	torpt6lut = new texture(get_data_dir() + TEXTURE_DIR + "torpt6lut.png");
 	for (unsigned i = 0; i < NR_CLOUD_TEXTURES; ++i) {
 		ostringstream filename;
 		filename << get_data_dir() << TEXTURE_DIR << "clouds" << (i+1) << ".png";
-		cloud_textures[i] = new texture(filename.str(), 1, false, true);
+		cloud_textures[i] = new texture(filename.str(), GL_LINEAR);
 	}
-	clock12 = new texture((get_data_dir() + TEXTURE_DIR + "clock12.png"));
-	clock24 = new texture((get_data_dir() + TEXTURE_DIR + "clock24.png"));
-	glasses = new texture((get_data_dir() + TEXTURE_DIR + "glasses.png"), 1, true, true);
-	threesubsimg = new image((get_data_dir() + IMAGES_DIR + "threesubs.jpg"));
-	torp_expl_water_splash[0] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash.png" ), 1 );
-	torp_expl_water_splash[1] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_1.png" ), 1 );
-	torp_expl_water_splash[2] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_2.png" ), 1 );
-	torpedo_launch_sound = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_launch.wav" ) );
-	torpedo_detonation_submerged[0] = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_detonation_submerged_1.wav" ) );
-	torpedo_detonation_submerged[1] = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_detonation_submerged_2.wav" ) );
-	torpedo_detonation_surfaced[0] = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_detonation_surfaced_1.wav" ) );
-	torpedo_detonation_surfaced[1] = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_detonation_surfaced_2.wav" ) );
-	logbook_spiral = new image((get_data_dir () + TEXTURE_DIR + "logbook_spiral.png"));
-	woodbackgr = new texture ( ( get_data_dir () + TEXTURE_DIR + "wooden_desk.png" ));
-	smoke = new texture ( ( get_data_dir () + TEXTURE_DIR + "smoke.png" ), 1, true, true);
-	notepadsheet = new texture ( ( get_data_dir () + TEXTURE_DIR + "notepadsheet.png" ), 0, true, true);
-	menuframe = new texture ( ( get_data_dir () + TEXTURE_DIR + "menuframe.png" ), 0, true);
-	turnswitch = new texture ( ( get_data_dir () + TEXTURE_DIR + "turnswitch.png" ), 0, true, true);
-	turnswitchbackgr = new texture ( ( get_data_dir () + TEXTURE_DIR + "turnswitchbackgr.png" ), 0, true);
-	damage_screen_background = new image((get_data_dir() + IMAGES_DIR + "damage_screen_backg.jpg"), 0, true, true, true);
-	sub_damage_scheme_all = new image((get_data_dir() + IMAGES_DIR + "sub_damage_scheme_all.png"), 0, true, true, true);
-	repairlight = new texture( ( get_data_dir () + TEXTURE_DIR + "repairlight.png" ), 0, true, true );
-	repairmedium = new texture( ( get_data_dir () + TEXTURE_DIR + "repairmedium.png" ), 0, true, true );
-	repairheavy = new texture( ( get_data_dir () + TEXTURE_DIR + "repairheavy.png" ), 0, true, true );
-	repaircritical = new texture( ( get_data_dir () + TEXTURE_DIR + "repaircritical.png" ), 0, true, true );
-	repairwrecked = new texture( ( get_data_dir () + TEXTURE_DIR + "repairwrecked.png" ), 0, true, true );
-	killedimg = new image((get_data_dir() + IMAGES_DIR + "killed.jpg"), 0, true, true, true);
-	scopewatcherimg = new image((get_data_dir() + IMAGES_DIR + "scopewatcher.jpg"), 0, true, true, true);
-	depthchargeimg = new image((get_data_dir() + IMAGES_DIR + "depthcharge.jpg"), 0, true, true, true);
-	cloudsbackgr = new texture ( ( get_data_dir () + TEXTURE_DIR + "cloudsbackgr.png" ), 0, true);
+	clock12 = new texture(get_data_dir() + TEXTURE_DIR + "clock12.png");
+	clock24 = new texture(get_data_dir() + TEXTURE_DIR + "clock24.png");
+	glasses = new texture(get_data_dir() + TEXTURE_DIR + "glasses.png", GL_LINEAR, GL_CLAMP);
+	threesubsimg = new image(get_data_dir() + IMAGES_DIR + "threesubs.jpg");
+	torp_expl_water_splash[0] = new texture(get_data_dir() + TEXTURE_DIR + "torpedo_expl_water_splash.png" , GL_LINEAR);
+	torp_expl_water_splash[1] = new texture(get_data_dir() + TEXTURE_DIR + "torpedo_expl_water_splash_1.png" , GL_LINEAR);
+	torp_expl_water_splash[2] = new texture(get_data_dir() + TEXTURE_DIR + "torpedo_expl_water_splash_2.png" , GL_LINEAR);
+	torpedo_launch_sound = new sound(get_data_dir() + SOUND_DIR + "torpedo_launch.wav" );
+	torpedo_detonation_submerged[0] = new sound(get_data_dir() + SOUND_DIR + "torpedo_detonation_submerged_1.wav" );
+	torpedo_detonation_submerged[1] = new sound(get_data_dir() + SOUND_DIR + "torpedo_detonation_submerged_2.wav" );
+	torpedo_detonation_surfaced[0] = new sound(get_data_dir() + SOUND_DIR + "torpedo_detonation_surfaced_1.wav" );
+	torpedo_detonation_surfaced[1] = new sound(get_data_dir() + SOUND_DIR + "torpedo_detonation_surfaced_2.wav" );
+	logbook_spiral = new image(get_data_dir() + TEXTURE_DIR + "logbook_spiral.png");
+	woodbackgr = new texture(get_data_dir() + TEXTURE_DIR + "wooden_desk.png" );
+	smoke = new texture(get_data_dir() + TEXTURE_DIR + "smoke.png" , GL_LINEAR, GL_CLAMP);
+	notepadsheet = new texture(get_data_dir() + TEXTURE_DIR + "notepadsheet.png" );
+	menuframe = new texture(get_data_dir() + TEXTURE_DIR + "menuframe.png" );
+	turnswitch = new texture(get_data_dir() + TEXTURE_DIR + "turnswitch.png" );
+	turnswitchbackgr = new texture(get_data_dir() + TEXTURE_DIR + "turnswitchbackgr.png" );
+	damage_screen_background = new image(get_data_dir() + IMAGES_DIR + "damage_screen_backg.jpg");
+	sub_damage_scheme_all = new image(get_data_dir() + IMAGES_DIR + "sub_damage_scheme_all.png");
+	repairlight = new texture(get_data_dir() + TEXTURE_DIR + "repairlight.png" );
+	repairmedium = new texture(get_data_dir() + TEXTURE_DIR + "repairmedium.png" );
+	repairheavy = new texture(get_data_dir() + TEXTURE_DIR + "repairheavy.png" );
+	repaircritical = new texture(get_data_dir() + TEXTURE_DIR + "repaircritical.png" );
+	repairwrecked = new texture(get_data_dir() + TEXTURE_DIR + "repairwrecked.png" );
+	killedimg = new image(get_data_dir() + IMAGES_DIR + "killed.jpg");
+	scopewatcherimg = new image(get_data_dir() + IMAGES_DIR + "scopewatcher.jpg");
+	depthchargeimg = new image(get_data_dir() + IMAGES_DIR + "depthcharge.jpg");
+	cloudsbackgr = new texture(get_data_dir() + TEXTURE_DIR + "cloudsbackgr.png" );
 }
 
 void deinit_global_data(void)
@@ -184,7 +184,7 @@ void deinit_global_data(void)
 	delete torpt1fat;
 	delete torpt3fat;
 	delete torpt6lut;
-	for (unsigned i = 0; i < NR_CLOUD_TEXTURES; ++i)
+	for(unsigned i = 0; i < NR_CLOUD_TEXTURES; ++i)
 		delete cloud_textures[i];
 	delete clock12;
 	delete clock24;
@@ -231,14 +231,14 @@ void get_date(double t, unsigned& year, unsigned& month, unsigned& day)
 	unsigned secs = unsigned(t);
 	unsigned days = secs/86400;
 	unsigned i, daysum;
-	for (i = 0, daysum = 0; i < 7*12; ++i) {
-		if (daysum + month_lengths[i] > days) break;
+	for(i = 0, daysum = 0; i < 7*12; ++i) {
+		if(daysum + month_lengths[i] > days) break;
 		daysum += month_lengths[i];
 	}
 	day = days - daysum + 1;
 	unsigned j, monthsum;
-	for (j = 0, monthsum = 0; j < 7; ++j) {
-		if (monthsum + 12 > i) break;
+	for(j = 0, monthsum = 0; j < 7; ++j) {
+		if(monthsum + 12 > i) break;
 		monthsum += 12;
 	}
 	month = i - monthsum + 1;
@@ -248,9 +248,9 @@ void get_date(double t, unsigned& year, unsigned& month, unsigned& day)
 double get_time(unsigned year, unsigned month, unsigned day)
 {
 	// unsigned y = year-1939; Unused variable
-	unsigned m = (year-1939)*12 + month-1;
+	unsigned m =(year-1939)*12 + month-1;
 	unsigned d = 0;
-	for (unsigned i = 0; i < m; ++i) d += month_lengths[i];
+	for(unsigned i = 0; i < m; ++i) d += month_lengths[i];
 	d += day-1;
 	return d*86400.0;
 }
@@ -259,30 +259,30 @@ double get_day_time(double t)
 {
 	// fixme: calculate sunrise and fall etc.
 	double d = fmod(t, 86400);
-	if (d < 5*3600) return 0 + (d+5*3600)/(10*3600);	// sunrise at 5am
-	if (d < 6*3600) return 1 + (d-5*3600)/3600;	// day at 6am
-	if (d < 18*3600) return 2 + (d-6*3600)/(12*3600);	// sundown at 6pm
-	if (d < 19*3600) return 3 + (d-18*3600)/3600;	// night at 7pm
-	return 0 + (d-19*3600)/(10*3600);
+	if(d < 5*3600) return 0 +(d+5*3600)/(10*3600);	// sunrise at 5am
+	if(d < 6*3600) return 1 +(d-5*3600)/3600;	// day at 6am
+	if(d < 18*3600) return 2 +(d-6*3600)/(12*3600);	// sundown at 6pm
+	if(d < 19*3600) return 3 +(d-18*3600)/3600;	// night at 7pm
+	return 0 +(d-19*3600)/(10*3600);
 }
 
-void get_date ( double t, unsigned& year, unsigned& month, unsigned& day,
+void get_date( double t, unsigned& year, unsigned& month, unsigned& day,
 	unsigned& hour, unsigned& minute, unsigned& second )
 {
-	get_date ( t, year, month, day );
+	get_date( t, year, month, day );
 
-	double sd = fmod ( t, 86400 );
-	hour   = unsigned ( sd / 3600.0f );
+	double sd = fmod( t, 86400 );
+	hour   = unsigned( sd / 3600.0f );
 	sd -= hour * 3600.0f;
-	minute = unsigned ( sd / 60.0f );
+	minute = unsigned( sd / 60.0f );
 	sd -= minute * 60.0f;
-	second = unsigned ( sd );
+	second = unsigned( sd );
 }
 
-void get_date ( double t, date& d )
+void get_date( double t, date& d )
 {
 	unsigned year, month, day, hour, minute, second;
-	get_date ( t, year, month, day, hour, minute, second );
+	get_date( t, year, month, day, hour, minute, second );
 
-	d = date ( year, month, day, hour, minute, second );
+	d = date( year, month, day, hour, minute, second );
 }

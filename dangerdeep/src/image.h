@@ -18,9 +18,8 @@ class image
 	bool texturized;
 	unsigned gltx, glty;	// no. of textures in x and y direction
 	vector<texture*> textures;
-	unsigned mapping;
-	bool clamp;
-	bool morealpha;
+	int mapping;
+	int clamp;
 	unsigned lastcolw, lastrowh;	// textures for last row/column of array may be wider
 	float lastcolu, lastrowv;	// than needed (OpenGL needs texture sizes that are
 					// powers of two).
@@ -34,8 +33,7 @@ private:
 					// operator=: copy image or assign? fixme
 
 public:
-	image(const string& s, unsigned mapping = 0, bool clamp = true,
-		bool morealpha = false, bool loaddynamically = false);
+	image(const string& s, bool loaddynamically = true, int mapping = GL_NEAREST, int clamp = GL_REPEAT);
 	~image();
 	void texturize(void);		// called automatically by draw
 	void draw(int x, int y);	// can't be const, may call texturize()

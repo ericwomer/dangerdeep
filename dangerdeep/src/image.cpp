@@ -12,11 +12,10 @@
 #include <GL/gl.h>
 #endif
 
-image::image(const string& s, unsigned mapping_, bool clamp_, bool morealpha_,
-	bool loaddynamically) :
+image::image(const string& s, bool loaddynamically, int mapping_, int clamp_) :
 	img(0), dynamic(loaddynamically), name(s), width(0), height(0),
 	texturized(false), gltx(0), glty(0),
-	mapping(mapping_), clamp(clamp_), morealpha(morealpha_)
+	mapping(mapping_), clamp(clamp_)
 {
 	if (!dynamic) {
 		img = IMG_Load(name.c_str());
@@ -65,7 +64,7 @@ void image::texturize(void)
 		unsigned cw = 0;
 		for (unsigned x = 0; x < gltx; ++x) {
 			textures.push_back(new texture(img, cw, ch, widths[x], heights[y],
-				mapping, clamp, morealpha));
+				mapping, clamp));
 			cw += widths[x];
 		}
 		ch += heights[y];
