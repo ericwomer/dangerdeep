@@ -147,6 +147,9 @@ convoy::convoy(class game& gm, parser& p) : sea_object()
 			ship* shp = ship::create(p);
 			gm.spawn_ship(shp);
 			pair<ship*, vector2> sp = make_pair(shp, vector2(0, 0));
+			shp->heading = shp->head_to = heading;
+			shp->speed = speed;
+			shp->throttle = throttle;	// ?
 			if (shp->is_merchant())		// one of these must be true
 				merchants.push_back(sp);
 			else if (shp->is_warship())

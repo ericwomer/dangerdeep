@@ -75,6 +75,7 @@ ship* ship::create(parser& p)
 {
 	p.parse(TKN_SHIP);
 	int t = p.type();
+//string s = p.text();
 	p.consume();
 	switch (t) {
 		case TKN_LARGEMERCHANT: return new ship_largemerchant(p);
@@ -89,6 +90,7 @@ ship* ship::create(parser& p)
 		case TKN_MEDIUMFREIGHTER: return new ship_mediumfreighter(p);
 		case TKN_SMALLTANKER: return new ship_smalltanker(p);
 	}
+//cerr << "token " << s << " unknown.\n";	
 	return 0;
 }
 

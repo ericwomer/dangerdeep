@@ -193,10 +193,12 @@ void submarine::simulate(class game& gm, double delta_time)
 			if (st.remaining_time <= 0) {
 				if (st.status == stored_torpedo::st_reloading) {	// reloading
 					st.status = stored_torpedo::st_loaded;	// loading
-					torpedoes[st.associated].status = stored_torpedo::st_empty;	// empty
+//					torpedoes[st.associated].type = torpedo::none;
+//					torpedoes[st.associated].status = stored_torpedo::st_empty;	// empty
 				} else {		// unloading
 					st.status = stored_torpedo::st_empty;	// empty
-					torpedoes[st.associated].status = stored_torpedo::st_loaded;	// loaded
+					st.type = torpedo::none;
+//					torpedoes[st.associated].status = stored_torpedo::st_loaded;	// loaded
 					// fixme: message: torpedo reloaded
 				}
 			}
