@@ -80,6 +80,8 @@ protected:
 	void draw_infopanel(class system& sys, class game& gm) const;
 	void draw_gauge(class system& sys, class game& gm, unsigned nr, int x, int y, unsigned wh, angle a,
 		const char* text) const;
+	void draw_manometer_gauge ( class system& sys, class game& gm, unsigned nr,
+		int x, int y, unsigned wh, float value, const char* text ) const;
 	void draw_clock(class system& sys, class game& gm, int x, int y, unsigned wh, double t,
 	        const char* text) const;
 	void draw_vessel_symbol(class system& sys, const vector2& offset, 

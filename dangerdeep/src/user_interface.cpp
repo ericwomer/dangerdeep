@@ -1165,3 +1165,35 @@ inline void user_interface::record_sunk_ship ( const ship* so )
 {
 	ships_sunk_disp->add_sunk_ship ( so );
 }
+
+void user_interface::draw_manometer_gauge ( class system& sys, class game& gm,
+	unsigned nr, int x, int y, unsigned wh, float value, const char* text) const
+{
+	set_display_color ( gm );
+	switch (nr)
+	{
+		case 1:
+			sys.draw_image ( x, y, wh, wh / 2, gauge5 );
+			break;
+		default:
+			return;
+	}
+	angle a ( 292.5f + 135.0f * value );
+	vector2 d = a.direction ();
+	int xx = x + wh / 2, yy = y + wh / 2;
+	pair<unsigned, unsigned> twh = font_arial2->get_size(text);
+
+	// Draw text.
+	color font_color ( 0, 0, 0 );
+	font_arial2->print ( xx - twh.first / 2, yy - twh.second / 2 - wh / 6,
+		text, font_color );
+
+	// Draw pointer.
+	glColor3f ( 0.0f, 0.0f, 0.0f );
+	glBindTexture ( GL_TEXTURE_2D, 0 );
+	glBegin ( GL_LINES );
+	glVertex2i ( xx + int ( d.x * wh / 16 ), yy - int ( d.y * wh / 16 ) );
+	glVertex2i ( xx + int ( d.x * wh * 3 / 8 ), yy - int ( d.y * wh * 3 / 8 ) );
+	glEnd ();
+	glColor3f ( 1.0f, 1.0f, 1.0f );
+}
