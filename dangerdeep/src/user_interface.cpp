@@ -39,9 +39,9 @@ using namespace std;
 
 // some more interesting values: phase 256, waveperaxis: ask your gfx card, facesperwave 64+,
 // wavelength 256+,
-#define WAVE_PHASES 256		// no. of phases for wave animation
-#define WAVES_PER_AXIS 8	// no. of waves along x or y axis
-#define FACES_PER_WAVE 32	// resolution of wave model in x/y dir.
+#define WAVE_PHASES 128//256		// no. of phases for wave animation
+#define WAVES_PER_AXIS 4	// no. of waves along x or y axis
+#define FACES_PER_WAVE 64	// resolution of wave model in x/y dir.
 #define WAVE_LENGTH 128.0	// in meters, total length of one wave (one sine function)
 #define TIDECYCLE_TIME 10.0
 // obsolete:
@@ -124,7 +124,7 @@ void user_interface::init ()
 	// this doesn't affect the lighting now, since we use a 1,1,1 light vector
 	vector3f lightvec = vector3f(1,1,1).normal();	// fixme: direction to light source (directional light)
 
-	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(0,1), 20, 0.00001, WAVE_LENGTH, TIDECYCLE_TIME);
+	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(0,1), 20, 0.000005, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileh[i] = owg.compute_heights();
@@ -153,7 +153,7 @@ void user_interface::init ()
 		// create and use temporary arrays for texture coords (units 0,1), colors and vertices
 		vector<GLfloat> tex0coords;
 		vector<GLfloat> tex1coords;
-		vector<GLfloat> colors;
+		vector<GLubyte/*GLfloat*/> colors;
 		vector<GLfloat> coords;
 		tex0coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*2);
 		tex1coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*2);
@@ -162,7 +162,7 @@ void user_interface::init ()
 
 		float add = 1.0f/FACES_PER_WAVE;
 		float fy = 0;
-		float texscale0 = 8;//32;	// 128m/4m
+		float texscale0 = 32;//8;//32;	// 128m/4m
 		float texscale1 = 2;
 		for (unsigned y = 0; y <= FACES_PER_WAVE; ++y) {
 			float fx = 0;
@@ -182,9 +182,9 @@ void user_interface::init ()
 				tex0coords.push_back(fy*texscale0);
 				tex1coords.push_back(fx*texscale1);
 				tex1coords.push_back(fy*texscale1);
-				colors.push_back(nl.x);
-				colors.push_back(nl.y);
-				colors.push_back(nl.z);
+				colors.push_back(GLubyte(nl.x*255));
+				colors.push_back(GLubyte(nl.y*255));
+				colors.push_back(GLubyte(nl.z*255));
 				coords.push_back(fx*WAVE_LENGTH+d[ptr].x);
 				coords.push_back(fy*WAVE_LENGTH+d[ptr].y);
 				coords.push_back(h[ptr]);
@@ -195,7 +195,7 @@ void user_interface::init ()
 		
 		// now set pointers, enable arrays and draw elements, finally disable pointers
 		glEnableClientState(GL_COLOR_ARRAY);
-		glColorPointer(3, GL_FLOAT, 0, &colors[0]);
+		glColorPointer(3, GL_UNSIGNED_BYTE /*GL_FLOAT*/, 0, &colors[0]);
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, &coords[0]);
 		glDisableClientState(GL_NORMAL_ARRAY);
@@ -810,6 +810,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 
 	// fixme: make use of game::job interface, 3600/256 = 14.25 secs job period
 	float cf = myfmod(gm.get_time(), CLOUD_ANIMATION_CYCLE_TIME)/CLOUD_ANIMATION_CYCLE_TIME - cloud_animphase;
+	if (fabs(cf) < (1.0/(3600.0*256.0))) cf = 0;
 	if (cf < 0) cf += 1.0;
 	advance_cloud_animation(cf);
 
