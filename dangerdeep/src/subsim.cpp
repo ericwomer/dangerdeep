@@ -315,63 +315,10 @@ void show_results_for_game(const game* gm)
 //
 // show the credits
 //
-const char* credits[] = {
-"$80ffc0Project idea and initial code",
-"$ffffffThorsten Jordan",
-"", "", "", "", "",
-"$80ffc0Program",
-"$ffffffThorsten Jordan",
-"Markus Petermann",
-"Viktor Radnai",
-"", "", "", "", "",
-"$80ffc0Graphics",
-"$ffffffLuis Barrancos",
-"Markus Petermann",
-"Christian Kolaﬂ",
-"Thorsten Jordan",
-"", "", "", "", "",
-"$80ffc0Models",
-"$ffffffLuis Barrancos",
-"Christian Kolaﬂ",
-"Thorsten Jordan",
-"", "", "", "", "",
-"$80ffc0Operating system adaption",
-"$ffffffNico Sakschewski (Win32)",
-"", "", "", "", "",
-"$80ffc0Web site administrator",
-"$ffffffViktor Radnai",
-"", "", "", "", "",
-"$80ffc0Packaging",
-"$ffffffMarkus Petermann (SuSE rpm)",
-"Viktor Radnai (Debian)",
-"Giuseppe Borzi (Mandrake rpm)",
-"", "", "", "", "",
-"$80ffc0Bug reporting and thanks",
-"$ffffffRick McDaniel",
-"Markus Petermann",
-"Viktor Radnai",
-"Bernhard Kaindl",
-"Robert Obryk",
-"Giuseppe Lipari",
-"John Hopkin",
-"Michael Wilkinson",
-"Lee Close",
-"Christopher Dean (Naval Warfare Simulations, Sponsoring)",
-"Arthur Anker",
-"Stefan Vilijoen",
-"Luis Barrancos",
-"Tony Becker",
-"Frank Kaune",
-"Paul Marks",
-"Aaron Kulkis",
-"Giuseppe Borzi",
-"...",
-"...and all i may have forgotten here (write me!)",
-0
-};
+#include "credits.h"
 void show_credits(void)
 {
-	glClearColor(0.5,0.15,0.1,0);
+	glClearColor(0.1,0.25,0.4,0);
 
 	model* mdlgear = modelcache.ref("gear.3ds");
 	
@@ -392,10 +339,10 @@ void show_credits(void)
 		system::sys().poll_event_queue();
 		if (system::sys().get_key().sym == SDLK_ESCAPE) quit = true;
 
-		glClear(GL_COLOR_BUFFER_BIT);
-		glDisable(GL_DEPTH_TEST);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glPushMatrix();
+		glRotatef(ang/10, 0, 0, 1);
 		glTranslatef(-r,r,-150);
 		//glScalef(12.8,12.8,0.1);
 		glRotatef(ang, 0, 0, 1);
@@ -403,6 +350,7 @@ void show_credits(void)
 		glPopMatrix();
 
 		glPushMatrix();
+		glRotatef(ang/10, 0, 0, 1);
 		glTranslatef(r,-r,-150);
 		//glScalef(12.8,12.8,0.1);
 		glRotatef(4.05-ang, 0, 0, 1);
@@ -412,7 +360,7 @@ void show_credits(void)
 		system::sys().prepare_2d_drawing();
 		for (int i = textpos; i <= textpos+lines_per_page; ++i) {
 			if (i >= 0 && i < textlines) {
-				font_arial->print_hc(512, (i-textpos)*lineheight+int(-lineoffset*lineheight), credits[i]);
+				font_arial->print_hc(512, (i-textpos)*lineheight+int(-lineoffset*lineheight), credits[i], color::white(), true);
 			}
 		}
 		system::sys().unprepare_2d_drawing();
@@ -430,7 +378,6 @@ void show_credits(void)
 	
 	modelcache.unref("gear.3ds");
 	
-	glEnable(GL_DEPTH_TEST);
 	glClearColor(0, 0, 1, 0);
 }
 
