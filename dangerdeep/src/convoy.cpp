@@ -7,15 +7,17 @@
 
 convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : sea_object()
 {
+	vis_cross_section_factor = CROSS_SECTION_VIS_CONVOY;
+
 	waypoints.push_back(vector2(0, 0));
 	for (int wp = 0; wp < 4; ++wp)
 		waypoints.push_back(vector2(rnd()*300000-150000,rnd()*300000-150000));
-	// course?
-	angle course(*(++waypoints.begin()) - *(waypoints.begin()));
-	vector2 coursevec = course.direction();
-
-//fixme: convoy bewegt sich woanders hin als schiffe (90° verdreht anscheinend)
-//fixme: rotation des gesamtconvoys scheint scherung zu sein, vielleicht weil coursevec falsch, wie anderer fehler
+	heading = angle(*(++waypoints.begin()) - *(waypoints.begin()));
+	vector2 coursevec = heading.direction();
+	
+	double intershipdist = 1000.0;	// distance between ships.
+	double convoyescortdist = 3000.0; // distance of escorts to convoy
+	double interescortdist = 1500.0;	// distance between escorts
 	
 	// merchant convoy?
 	if (type_ == small || type_ == medium || type_ == large) {
@@ -39,13 +41,12 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 				ship::types shiptype = (d < 0.2) ? ship::mediumtroopship : ship::mediummerchant;
 				ship* s = ship::create(shiptype);
 				vector2 pos = vector2(
-					dx*500.0 + rnd()*60.0-30.0,
-					dy*500.0 + rnd()*60.0-30.0 );
-				pos.x = pos.x*coursevec.x - pos.y*coursevec.y;
-				pos.y = pos.x*coursevec.y + pos.y*coursevec.x;
+					dx*intershipdist + rnd()*60.0-30.0,
+					dy*intershipdist + rnd()*60.0-30.0 );
+				pos = pos.matrixmul(coursevec, coursevec.orthogonal());
 				s->position.x = waypoints.begin()->x + pos.x;
 				s->position.y = waypoints.begin()->y + pos.y;
-				s->heading = course;
+				s->heading = s->head_to = heading;
 				s->speed = speed;
 				s->throttle = throttle;
 				merchants.push_back(make_pair(s, pos));
@@ -56,6 +57,7 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 		// compute nr of escorts
 		unsigned nrescs = esct_ * 5;
 		for (unsigned i = 0; i < nrescs; ++i) {
+			//fixme: give commands/tasks to escorts: "patrol left side of convoy" etc.
 			int side = i % 4;
 			float dx = 0, dy = 0, nx = 0, ny = 0;
 			switch (side) {
@@ -65,19 +67,21 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 				case 3: dx = -1; dy = 0; break;
 			}
 			nx = -dy; ny = dx;
-			dx *= sqrtnrships/2 * 500.0 + 3000.0;
-			dy *= sqrtnrships/2 * 500.0 + 3000.0;
-			nx *= (int(nrescs/4)-1)*1000.0-int(i/4)*1000.0;
-			ny *= (int(nrescs/4)-1)*1000.0-int(i/4)*1000.0;
+			dx *= sqrtnrships/2 * intershipdist + convoyescortdist;
+			dy *= sqrtnrships/2 * intershipdist + convoyescortdist;
+			nx *= (int(nrescs/4)-1)*interescortdist-int(i/4)*interescortdist;
+			ny *= (int(nrescs/4)-1)*interescortdist-int(i/4)*interescortdist;
 			unsigned esctp = rnd(2);
 			ship *s = ship::create(esctp == 0 ? ship::destroyertribal : ship::corvette);
 			vector2 pos = vector2(
 				dx+nx + rnd()*100.0-50.0,
 				dy+ny + rnd()*100.0-50.0 );
-			pos.x = pos.x*coursevec.x - pos.y*coursevec.y;
-			pos.y = pos.x*coursevec.y + pos.y*coursevec.x;
+			pos = pos.matrixmul(coursevec, coursevec.orthogonal());
 			s->position.x = waypoints.begin()->x + pos.x;
 			s->position.y = waypoints.begin()->y + pos.y;
+			s->heading = s->head_to = heading;
+			s->speed = speed;
+			s->throttle = throttle;
 			escorts.push_back(make_pair(s, pos));
 		}
 			
@@ -93,7 +97,6 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 		case supportgroup: break;
 		case carrier: break;
 	}
-	vis_cross_section_factor = CROSS_SECTION_VIS_CONVOY;
 }
 
 convoy::convoy(class game& gm, parser& p) : sea_object()

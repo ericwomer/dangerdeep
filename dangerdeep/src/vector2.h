@@ -42,6 +42,8 @@ class vector2t
 	D distance(const vector2t<D>& other) const { vector2t<D> n = *this - other; return n.length(); };
 	D operator* (const vector2t<D>& other) const { return x * other.x + y * other.y; };
 	bool solve(const vector2t<D>& o1, const vector2t<D>& o2, D& s1, D& s2) const;
+	// multiplies 2x2 matrix (given in columns c0-c1) with *this.
+	vector2t<D> matrixmul(const vector2t<D>& c0, const vector2t<D>& c1) const;
 	vector3t<D> xy0(void) const { return vector3t<D>(x, y, 0); }
 	template<class D2> friend ostream& operator<< ( ostream& os, const vector2t<D2>& v );
 	template<class E> void assign(const vector2t<E>& other) { x = D(other.x); y = D(other.y); }
@@ -55,6 +57,13 @@ bool vector2t<D>::solve(const vector2t<D>& o1, const vector2t<D>& o2, D& s1, D& 
 	s1 = (o2.y*x - o2.x*y) / det;
 	s2 = (o1.x*y - o1.y*x) / det;
 	return true;
+}
+
+template<class D>
+vector2t<D> vector2t<D>::matrixmul(const vector2t<D>& c0, const vector2t<D>& c1) const
+{
+	return vector2t<D>(	c0.x * x + c1.x * y,
+				c0.y * x + c1.y * y );
 }
 
 template<class D2> inline vector2t<D2> operator* (const D2& scalar, const vector2t<D2>& v)

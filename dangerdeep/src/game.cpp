@@ -47,10 +47,10 @@ game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned t
 	
 	// all code from here on is fixme and experimental.
 	switch (timeofday) {
-		case 0: time += 3*3600*rnd(); break;		
-		case 1: time += 6*3600+1800*rnd(); break;		
-		case 2: time += 18*3600+1800*rnd(); break;		
-		case 3: time += 20*3600+5*3600*rnd(); break;		
+		case 0: time += 20*3600+5*3600*rnd(); break;		
+		case 1: time += 3*3600*rnd(); break;		
+		case 2: time += 6*3600+1800*rnd(); break;		
+		case 3: time += 18*3600+1800*rnd(); break;		
 	};
 	
 	compute_max_view_dist();
@@ -200,6 +200,8 @@ void game::simulate(double delta_t)
 		last_trail_time += TRAILTIME;
 		record = true;
 	}
+	
+	//fixme 2003/07/11: time compression trashes trail recording.
 
 	double nearest_contact = 1e10;
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ) {
