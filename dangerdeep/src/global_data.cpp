@@ -8,7 +8,8 @@
 #include <SDL/SDL_image.h>
 
 model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium,
-	*battleship_malaya, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl;
+	*battleship_malaya, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
+	*skyhemisphere;
 texture *water, *background, *titel[4], *periscope[4], *gauge1,
 	*gauge2, *gauge3, *gauge4, *psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
@@ -17,6 +18,7 @@ font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_taho
 
 void init_global_data(void)
 {
+	skyhemisphere = new model((get_data_dir() + "models/" + "skyhemisphere.mdl"));
 	water = new texture((get_data_dir() + "textures/" + "water.png"), 1, false);
 	background = new texture((get_data_dir() + "textures/" + "background.png"), 1, false);
 	merchant_medium = new model((get_data_dir() + "models/" + "merchant1.mdl"));
@@ -64,11 +66,12 @@ void init_global_data(void)
 	torpt5 = new texture((get_data_dir() + "textures/" + "torpt5.png"));
 	torpt6lut = new texture((get_data_dir() + "textures/" + "torpt6lut.png"));
 	torpt11 = new texture((get_data_dir() + "textures/" + "torpt11.png"));
-	clouds = new texture((get_data_dir() + "textures/" + "clouds.png"), 1, false);
+	clouds = new texture((get_data_dir() + "textures/" + "clouds.png"), 1, false, true);
 }
 
 void deinit_global_data(void)
 {
+	delete skyhemisphere;
 	delete water;
 	delete background;
 	delete merchant_medium;

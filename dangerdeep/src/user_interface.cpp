@@ -73,8 +73,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glPushMatrix();
 	glTranslatef(viewpos.x, viewpos.y, 0);
 	glScalef(max_view_dist, max_view_dist, max_view_dist);	// fixme dynamic
-	// fixme: one should really tabelize sin/cos for this! My Duron does this
-	// very fast, but not my K6-III...
+	color skycol1(24, 47, 244), skycol2(165,192,247);
+	skyhemisphere->display(false, &skycol2, &skycol1);
 	glBindTexture(GL_TEXTURE_2D, clouds->get_opengl_name());
 	float skysin[SKYSEGS], skycos[SKYSEGS];
 	for (int i = 0; i < SKYSEGS; ++i) {
@@ -82,25 +82,20 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		skycos[i] = cos(t);
 		skysin[i] = sin(t);
 	}
-	glBegin(GL_QUADS);	// fixme: vertex lists or quad strips!
-				// fixme: top of sky dome can't be modeled with quads,
-				// texturing error
-	for (int i = 0; i < SKYSEGS/4; ++i) {
-		float rl = skycos[i], ru = skycos[i+1];
-		float hl = skysin[i], hu = skysin[i+1];
-		for (int j = 0; j < SKYSEGS; ++j) {
-			int t = (j+1) % SKYSEGS;
-			glTexCoord2f((j+1)*0.5, (i+1)*0.5);
-			glVertex3f(ru * skycos[t], ru * skysin[t], hu);
-			glTexCoord2f((j+1)*0.5, (i  )*0.5);
-			glVertex3f(rl * skycos[t], rl * skysin[t], hl);
-			glTexCoord2f((j  )*0.5, (i  )*0.5);
-			glVertex3f(rl * skycos[j], rl * skysin[j], hl);
-			glTexCoord2f((j  )*0.5, (i+1)*0.5);
-			glVertex3f(ru * skycos[j], ru * skysin[j], hu);
-		}
+	glBegin(GL_QUADS);	// fixme: quad strips!
+	float rl = 0.95, ru = 0.91;
+	float hl = 0.1, hu = 0.4;
+	for (int j = 0; j < SKYSEGS; ++j) {
+		int t = (j+1) % SKYSEGS;
+		glTexCoord2f((j+1)*0.5, 1);
+		glVertex3f(ru * skycos[t], ru * skysin[t], hu);
+		glTexCoord2f((j+1)*0.5, 0);
+		glVertex3f(rl * skycos[t], rl * skysin[t], hl);
+		glTexCoord2f((j  )*0.5, 0);
+		glVertex3f(rl * skycos[j], rl * skysin[j], hl);
+		glTexCoord2f((j  )*0.5, 1);
+		glVertex3f(ru * skycos[j], ru * skysin[j], hu);
 	}
-//	color skycol1(24, 47, 244), skycol2(165,192,247);
 	glEnd();
 	glPopMatrix();
 	glEnable(GL_LIGHTING);
