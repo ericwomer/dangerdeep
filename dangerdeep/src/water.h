@@ -21,16 +21,23 @@ class water
 {
 protected:
 	double mytime;			// store global time in seconds
-	unsigned base_detail;		// base detail, tile resolution is 2^base_detail
-	unsigned tile_res;		// 2^base_detail = detail resolution
+	unsigned xres, yres;		// resolution of grid
 
 	// precomputed data. Outer array for phases
+	//projgrid: per vertex: height,displacement,normal
+	//values must be stored in mipmap fashion, linear interpolation of heights/displacements
+	//is ok, interpolation of normals requires one sqrt per vertex. alternatively we could
+	//recompute the normals per vertex (also one sqrt), this needs less memory and more
+	//computations.
+	//mipmap: we need 4/3 of space, 1+4+16+64+256+...n = ~ 4/3 n
 	vector<vector<vector2f> > wavetiledisplacements;
 	vector<vector<float> > wavetileheights;
 	vector<vector<vector3f> > wavetilenormals;
 
-	vector<vector<unsigned> > waveindices;	// Outer array for LOD
+	//projgrid: remove this, one index list for all phases etc.
+	vector<unsigned> gridindices;
 
+	//projgrid: mipmaps too
 	vector<vector<float> > wavetilefoam;
 	
 	unsigned reflectiontexsize;
@@ -41,7 +48,7 @@ protected:
 	mutable vector<color> colors;
 	mutable vector<vector3f> coords;
 	mutable vector<vector3f> uv0;
-//	mutable vector<vector3f> normals;
+	mutable vector<vector3f> normals;
 
 #if 0		// old code, kept for reference, especially for foam
 	vector<texture*> water_bumpmaps;
@@ -66,15 +73,11 @@ protected:
 	water& operator= (const water& other);
 	water(const water& other);
 
-	int compute_lod_by_trans(const vector3f& transl) const;
-	
-	// draw a water tile, give relative translation, animation phase, detail level
-	// and information if adjacent tiles have a lower detail level
-	// (fillgap bits 0,1,2,3 for top,right,bottom,left)
-	void draw_tile(int phase, int lodlevel, int fillgap) const;
+	void setup_textures(void) const;
+	void cleanup_textures(void) const;
 
 public:
-	water(unsigned bdetail = 5, double tm = 0.0);	// give day time in seconds
+	water(unsigned xres_, unsigned yres_, double tm = 0.0);	// give day time in seconds
 	void set_time(double tm);
 	~water();
 	void update_foam(double deltat);		// needed for dynamic foam

@@ -32,8 +32,6 @@ protected:
 	unsigned time_scale;
 	sea_object* player_object;
 	
-	unsigned detail;	// details for waves
-
 	// command panel
 	bool panel_visible;
 	class widget* panel;

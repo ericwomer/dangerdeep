@@ -70,6 +70,12 @@ public:
 
 	matrix4t<D> operator- (void) const { matrix4t<D> r; for (unsigned i = 0; i < size*size; ++i) r.values[i] = -values[i]; return r; }
 
+	void to_array(D* v) const {	// store in OpenGL order
+		for (unsigned j = 0; j < size; ++j)
+			for (unsigned i = 0; i < size; ++i)
+				v[i+j*size] = values[j+i*size];
+	}
+
 	// no range tests for performance reasons
 	D& elem(unsigned col, unsigned row) { return values[col + row * size]; }
 	D& elem_at(unsigned col, unsigned row) { return values.at(col + row * size); }
@@ -137,7 +143,15 @@ public:
 		}
 		// divide x,y,z by w
 		return vector3t<D>(r[0]/r[3], r[1]/r[3], r[2]/r[3]);
-	}		
+	}
+
+	// get n-th row/col, ignores last value
+	vector3t<D> row(unsigned i) const {
+		return vector3t<D>(values[i*size], values[i*size+1], values[i*size+2]);
+	}
+	vector3t<D> column(unsigned i) const {
+		return vector3t<D>(values[i], values[i+size], values[i+2*size]);
+	}
 };
 
 

@@ -26,8 +26,7 @@
 // some more interesting values: phase 256, waveperaxis: ask your gfx card, facesperwave 64+,
 // wavelength 256+,
 #define WAVE_PHASES 256		// no. of phases for wave animation
-#define WAVES_PER_AXIS 8	// no. of waves along x or y axis
-#define FACES_PER_AXIS (WAVES_PER_AXIS*tile_res)
+#define WAVE_RESOLUTION 64	// FFT resolution
 #define WAVE_LENGTH 128.0	// in meters, total length of one wave tile
 #define TIDECYCLE_TIME 10.0	// seconds
 #define FOAM_VANISH_FACTOR 0.1	// 1/second until foam goes from 1 to 0.
@@ -37,7 +36,7 @@
 
 
 
-water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), tile_res(1<<bdetail), reflectiontex(0), foamtex(0)
+water::water(unsigned xres_, unsigned yres_, double tm) : mytime(tm), xres(xres_), yres(yres_), reflectiontex(0), foamtex(0)
 {
 	wavetiledisplacements.resize(WAVE_PHASES);
 	wavetileheights.resize(WAVE_PHASES);
@@ -60,32 +59,27 @@ water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), ti
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	coords.reserve((tile_res+1)*(tile_res+1));
-	colors.resize((tile_res+1)*(tile_res+1));
-	uv0.reserve((tile_res+1)*(tile_res+1));
-//	normals.reserve((tile_res+1)*(tile_res+1));
+	coords.resize((xres+1)*(yres+1));
+	colors.resize((xres+1)*(yres+1));
+	uv0.resize((xres+1)*(yres+1));
+	normals.resize((xres+1)*(yres+1));
 
 	foamtex = new texture(get_texture_dir() + "foam.png", GL_LINEAR);//fixme maybe mipmap it
 	
 	// connectivity data is the same for all meshes and thus is reused
-	waveindices.resize(base_detail);		// level 0 is minimum detail (4 quads per tile)
-	for (unsigned i = 0; i < base_detail; ++i) {
-		unsigned res = (2<<i);
-		unsigned revres = (1 << (base_detail-1 - i));
-		waveindices[i].reserve(res*res*4);
-		for (unsigned y = 0; y < tile_res; y += revres) {
-			unsigned y2 = y+revres;
-			for (unsigned x = 0; x < tile_res; x += revres) {
-				unsigned x2 = x+revres;
-				waveindices[i].push_back(x +y *(tile_res+1));
-				waveindices[i].push_back(x2+y *(tile_res+1));
-				waveindices[i].push_back(x2+y2*(tile_res+1));
-				waveindices[i].push_back(x +y2*(tile_res+1));
-			}
+	gridindices.reserve(xres*yres*4);
+	for (unsigned y = 0; y < yres; ++y) {
+		unsigned y2 = y+1;
+		for (unsigned x = 0; x < xres; ++x) {
+			unsigned x2 = x+1;
+			gridindices.push_back(x +y *(xres+1));
+			gridindices.push_back(x2+y *(xres+1));
+			gridindices.push_back(x2+y2*(xres+1));
+			gridindices.push_back(x +y2*(xres+1));
 		}
 	}
 
-	ocean_wave_generator<float> owg(tile_res, vector2f(1,1), 8 /*10*/ /*31*/, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
+	ocean_wave_generator<float> owg(WAVE_RESOLUTION, vector2f(1,1), 8 /*10*/ /*31*/, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileheights[i] = owg.compute_heights();
@@ -140,41 +134,6 @@ water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), ti
 #endif
 
 	}
-
-#if 0
-	waveVBOs.resize(2*WAVE_PHASES);
-	glGenBuffersARB(2*WAVE_PHASES, &waveVBOs[0]);
-	for (int i = 0; i < WAVE_PHASES; ++i) {
-		vector<float> tmp, tmp2;
-		tmp.reserve(3*(tile_res+1)*(tile_res+1));
-		tmp2.reserve(3*(tile_res+1)*(tile_res+1));
-		float add = float(WAVE_LENGTH)/tile_res;
-		float fy = 0;
-		for (unsigned y = 0; y <= tile_res; ++y) {
-			float fx = 0;
-			unsigned cy = y & (tile_res-1);
-			for (unsigned x = 0; x <= tile_res; ++x) {
-				unsigned cx = x & (tile_res-1);
-				unsigned ptr = cy*tile_res+cx;
-				tmp.push_back(fx + wavetiledisplacements[i][ptr].x);
-				tmp.push_back(fy + wavetiledisplacements[i][ptr].y);
-				tmp.push_back(wavetileheights[i][ptr]);
-
-			//unless vertex programs are used, we need texcoords here, but they depend on the position fixme
-				tmp2.push_back(wavetilenormals[i][ptr].x);
-				tmp2.push_back(wavetilenormals[i][ptr].y);
-				tmp2.push_back(wavetilenormals[i][ptr].z);
-				fx += add;
-			}
-			fy += add;
-		}
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, waveVBOs[i]);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, (tile_res+1)*(tile_res+1)*3*sizeof(float), &(tmp[0]), GL_STATIC_DRAW_ARB);
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, waveVBOs[i+WAVE_PHASES]);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, (tile_res+1)*(tile_res+1)*3*sizeof(float), &(tmp2[0]), GL_STATIC_DRAW_ARB);
-	}
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-#endif	
 }
 
 
@@ -185,78 +144,10 @@ water::~water()
 }
 
 
-void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, bool onlyflatwater */) const
+void water::setup_textures(void) const
 {
-	matrix4 proj = matrix4::get_gl(GL_PROJECTION_MATRIX);
-	matrix4 modl = matrix4::get_gl(GL_MODELVIEW_MATRIX);
-	matrix4 prmd = proj * modl;
-
-//test	
-	cout << "projection matrix\n";
-	proj.print();
-	cout << "modelview matrix\n";
-	modl.print();
-	cout << "projection*modelview matrix\n";
-	prmd.print();
-	cout << "inverse projection matrix\n";
-	proj.inverse().print();
-	cout << "inverse modelview matrix\n";
-	modl.inverse().print();
-	cout << "inverse (projection*modelview) matrix\n";
-	prmd.inverse().print();
-	cout << "accuracy test\n";
-	(proj * proj.inverse()).print();
-	(modl * modl.inverse()).print();
-	(prmd * prmd.inverse()).print();
-//end test
-	matrix4 inv_proj = proj.inverse();
-	matrix4 inv_prmd = prmd.inverse();
-	cout << "inv +x " << (inv_prmd * vector3(1, 0, 0)) << "\n";
-	cout << "inv -x " << (inv_prmd * vector3(-1, 0, 0)) << "\n";
-	cout << "inv +y " << (inv_prmd * vector3(0, 1, 0)) << "\n";
-	cout << "inv -y " << (inv_prmd * vector3(0, -1, 0)) << "\n";
-	cout << "inv +z " << (inv_prmd * vector3(0, 0, 1)) << "\n";
-	cout << "inv -z " << (inv_prmd * vector3(0, 0, -1)) << "\n";
-	
-
-
-	bool onlyflatwater = false;
-
-	// fixme: draw some quads between the farest wave tiles and the horizon to fill the gaps
-	// wave tiles are drawn in triangle shape, like a rasterized triangle. draw some quads
-	// from the border of the outmost tiles (matching their resolution and height) to a line
-	// parallel to horizon/user view. from that line begin to bend the water faces according to
-	// earth curvature. this avoids gaps and looks right.
-
-	// the origin of the coordinate system is the bottom left corner of the tile
-	// that the viewer position projected to xy plane is inside.
-	glPushMatrix();
-
-	vector3f transl(-myfmod(viewpos.x, WAVE_LENGTH), -myfmod(viewpos.y, WAVE_LENGTH), -viewpos.z);
-//	glTranslated(-myfmod(viewpos.x, WAVE_LENGTH), -myfmod(viewpos.y, WAVE_LENGTH), -viewpos.z);
-
-	// draw polygons to the horizon
-	float wr = WAVES_PER_AXIS * WAVE_LENGTH / 2;
-	float c0 = -max_view_dist;
-	float c1 = -wr;
-	float c2 = wr;
-	float c3 = max_view_dist;
-	float wz = 0;//-WAVE_HEIGHT; // this leads to hole between waves and horizon faces, fixme
-
-	// set Color to light vector transformed to object space
-	// (we need the inverse of the modelview matrix for that, at least the 3x3 upper left
-	// part if we have directional light only)
-	vector3f lightvec = vector3f(-1,0.5,1).normal();
-	lightvec = lightvec * 0.5 + vector3f(0.5, 0.5, 0.5);
-	glColor3f(lightvec.x, lightvec.y, lightvec.z);
-	
-	// set texture unit to combine primary color with texture color via dot3
-	int phase = int((myfmod(mytime, TIDECYCLE_TIME)/TIDECYCLE_TIME) * WAVE_PHASES);
-
-	glDisable(GL_LIGHTING);
-
-	// ******************* set up textures
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glDisable(GL_LIGHTING);
 	
 	glActiveTexture(GL_TEXTURE0);
 	glEnable(GL_TEXTURE_2D);
@@ -315,47 +206,12 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 	glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t1);
 	glEnable(GL_TEXTURE_GEN_S);
 	glEnable(GL_TEXTURE_GEN_T);
+}
 
-	// now set pointers, enable arrays
-	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(color), &colors[0].r);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
-	glClientActiveTexture(GL_TEXTURE0);
-//	glEnableClientState(GL_NORMAL_ARRAY);
-//	glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0].x);
-//	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv0[0].x);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glClientActiveTexture(GL_TEXTURE1);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	// ******************* draw tiles
-	int s = 6;//0;//2
-	for (int y = -s; y <= s; ++y) {
-		for (int x = -s; x <= s; ++x) {
-			vector3f transl2 = transl + vector3f(x*WAVE_LENGTH, y*WAVE_LENGTH, 0);
-			int lod0 = compute_lod_by_trans(transl2);
-			int fillgap = 0;
-			if (compute_lod_by_trans(transl2+vector3f(0,WAVE_LENGTH,0)) < lod0) fillgap |= 1;
-			if (compute_lod_by_trans(transl2+vector3f(WAVE_LENGTH,0,0)) < lod0) fillgap |= 2;
-			if (compute_lod_by_trans(transl2+vector3f(0,-WAVE_LENGTH,0)) < lod0) fillgap |= 4;
-			if (compute_lod_by_trans(transl2+vector3f(-WAVE_LENGTH,0,0)) < lod0) fillgap |= 8;
-			glPushMatrix();
-			glTranslatef(transl2.x, transl2.y, transl2.z);
-			draw_tile(phase, lod0, fillgap);
-			glPopMatrix();
-		}
-	}
 
-	// ******************* restore old texture state, disable arrays
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glClientActiveTexture(GL_TEXTURE0);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
+void water::cleanup_textures(void) const
+{
 	glColor4f(1,1,1,1);
 
 	glActiveTexture(GL_TEXTURE0);
@@ -368,32 +224,145 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 	glActiveTexture(GL_TEXTURE0);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
+	glEnable(GL_LIGHTING);
+
 	glPopAttrib();
+}
 
+
+
+void water::display(const vector3& viewpos, angle dir, double max_view_dist) const
+{
+	matrix4 proj = matrix4::get_gl(GL_PROJECTION_MATRIX);
+	matrix4 modl = matrix4::get_gl(GL_MODELVIEW_MATRIX);
+	matrix4 prmd = proj * modl;
+
+/*
+	cout << "projection matrix\n";
+	proj.print();
+	cout << "modelview matrix\n";
+	modl.print();
+	cout << "projection*modelview matrix\n";
+	prmd.print();
+	cout << "inverse projection matrix\n";
+	proj.inverse().print();
+	cout << "inverse modelview matrix\n";
+	modl.inverse().print();
+	cout << "inverse (projection*modelview) matrix\n";
+	prmd.inverse().print();
+	cout << "accuracy test\n";
+	(proj * proj.inverse()).print();
+	(modl * modl.inverse()).print();
+	(prmd * prmd.inverse()).print();
+	matrix4 inv_proj = proj.inverse();
+	matrix4 inv_prmd = prmd.inverse();
+	cout << "inv +x " << (inv_prmd * vector3(1, 0, 0)) << "\n";
+	cout << "inv -x " << (inv_prmd * vector3(-1, 0, 0)) << "\n";
+	cout << "inv +y " << (inv_prmd * vector3(0, 1, 0)) << "\n";
+	cout << "inv -y " << (inv_prmd * vector3(0, -1, 0)) << "\n";
+	cout << "inv +z " << (inv_prmd * vector3(0, 0, 1)) << "\n";
+	cout << "inv -z " << (inv_prmd * vector3(0, 0, -1)) << "\n";
+	cout << "frustum coords in world space\n";
+	cout << "near plane tl " << (inv_prmd * vector3(-1, 1, -1)) << "\n";
+	cout << "near plane bl " << (inv_prmd * vector3(-1, -1, -1)) << "\n";
+	cout << "near plane br " << (inv_prmd * vector3(1, -1, -1)) << "\n";
+	cout << "near plane tr " << (inv_prmd * vector3(1, 1, -1)) << "\n";
+	cout << "far plane tl " << (inv_prmd * vector3(-1, 1, 1)) << "\n";
+	cout << "far plane bl " << (inv_prmd * vector3(-1, -1, 1)) << "\n";
+	cout << "far plane br " << (inv_prmd * vector3(1, -1, 1)) << "\n";
+	cout << "far plane tr " << (inv_prmd * vector3(1, 1, 1)) << "\n";
+*/	
+
+	int phase = int((myfmod(mytime, TIDECYCLE_TIME)/TIDECYCLE_TIME) * WAVE_PHASES);
+
+	const float VIRTUAL_PLANE_HEIGHT = 30.0f;	// fixme experiment, amount of distorsion
+
+
+	// compute projector matrix
+	glPushMatrix();
+	glLoadIdentity();
+	glTranslatef(0,0,50);
+	glRotatef(45, 1,0,0);
+	matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	glPopMatrix();
-	glColor3f(1,1,1);
+	matrix4 M_projector = (proj * /*mv*/ modl).inverse(); //fixme
+
+	// compute coordinates
+	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
+		double y = -1.0 + 2.0 * yy/yres;
+		double v[16] = { -1,y,-1,1, -1,y,1,1, 1,y,-1,1, 1,y,1,1 };
+		// vertices for start and end of two lines are computed and projected alltogether
+		(M_projector * matrix4(v)).to_array(v);
+		// compute intersection with z = 0 plane here
+		// we could compute intersection with earth's sphere here for a curved display
+		// of water to the horizon, fixme
+		double t1 = v[2]/(v[6]-v[2]), t2 = v[10]/(v[14]-v[10]);
+		vector2 va = vector2(v[0], v[1]) * (1-t1) + vector2(v[4], v[5]) * t1;
+		vector2 vb = vector2(v[8], v[9]) * (1-t2) + vector2(v[12], v[13]) * t2;
+		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
+			double x = double(xx)/xres;
+			vector2 v = va * (1-x) + vb * x;
+			double h = get_height(v);//fixme replace by mipmap function get_coord
+			coords[ptr] = vector3f(v.x, v.y, h);//get_coord(v);	// computes pos, height and displacements etc.	fixme
+			
+		}
+	}
+
+	// compute normals and remaining data (Fresnel etc.)
+	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
+		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
+			const vector3f& coord = coords[ptr];
+			vector3f N = vector3f(0,0,1);	//fixme
+			vector3f E = -coord.normal();	// viewer is in (0,0,0)
+			float F = E*N;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
+			if (F < 0.0f) F = 0.0f;	// avoid angles > 90 deg.
+			F = F + 1.0f;
+			F = F * F;	// ^2
+			F = F * F;	// ^4
+			F = F * F;	// ^8
+			F = 1.0f/F;
+			Uint8 c = Uint8(F*255);
+			Uint8 foampart = 255;
+			color primary(c, c, c, foampart);
+
+			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
+			texc.z -= VIRTUAL_PLANE_HEIGHT;
+						
+			normals[ptr] = N;
+			uv0[ptr] = texc;
+			colors[ptr] = primary;
+		}
+	}
+
+	// set up textures
+	setup_textures();
+
+	// draw elements (fixed index list) with vertex arrays using coords,uv0,normals,colors
+	glEnableClientState(GL_COLOR_ARRAY);
+	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(color), &colors[0].r);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
+	glClientActiveTexture(GL_TEXTURE0);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv0[0].x);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glClientActiveTexture(GL_TEXTURE1);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
+
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glClientActiveTexture(GL_TEXTURE0);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	// clean up textures
+	cleanup_textures();
 }
 
 
 
-// the viewer should be in position 0,0,0 for the LOD to work right and also for lighting
-int water::compute_lod_by_trans(const vector3f& transl) const
-{
-	double meandist = transl.xy().length();
-	const float maxloddist = 256.0f;
-	const float minloddist = 5000.0f;
-	float a = (minloddist - maxloddist) / (int(base_detail) - 1);
-	float distfac = a/(meandist + a - maxloddist);
-	int lodlevel = int(base_detail*distfac) - 1;
-	if (lodlevel < 0) lodlevel = 0;
-	if (lodlevel >= int(base_detail)) lodlevel = int(base_detail)-1;
-	return lodlevel;
-}
-
-
-
-void water::draw_tile(int phase, int lodlevel, int fillgap) const
-{
 	// How we render the water:
 	// Per pixel effects are not possible on geforce2. We could do dot3 bump mapping,
 	// but this gives diffuse lighting effects, and water is mostly reflective, refractive
@@ -470,117 +439,7 @@ void water::draw_tile(int phase, int lodlevel, int fillgap) const
 	// we could store coords and normals in gpu memory (~24mb for all 256frames or store it
 	// once per frame) and upload only the color values (1/7 of space).
 
-	unsigned res = (2 << lodlevel);
-//	unsigned resi = res+1;
-	unsigned revres = (1 << (base_detail-1 - lodlevel));
 
-//#define DRAW_NORMALS
-#ifdef DRAW_NORMALS
-	glActiveTexture(GL_TEXTURE0);
-	glDisable(GL_TEXTURE_2D);
-	glBegin(GL_LINES);
-	glColor4f(1,1,1,1);
-#endif
-
-	const float VIRTUAL_PLANE_HEIGHT = 30.0f;	// fixme experiment, amount of distorsion
-
-	vector3f L = vector3f(1,0,1).normal();//fixme, get from caller!
-//float tf = myfrac(mytime/10.0f)*2*M_PI;
-//L = vector3f(cos(tf),sin(tf),1).normal();
-	float add = float(WAVE_LENGTH)/res;
-	float fy = 0;
-	unsigned vecptr = 0;
-	for (unsigned y = 0; y <= tile_res; y += revres) {
-		float fx = 0;
-		unsigned cy = y & (tile_res-1);
-		for (unsigned x = 0; x <= tile_res; x += revres, ++vecptr) {
-			unsigned cx = x & (tile_res-1);
-			unsigned ptr = cy*tile_res+cx;
-			vector3f coord = vector3f(
-				fx + wavetiledisplacements[phase][ptr].x,
-				fy + wavetiledisplacements[phase][ptr].y,
-				wavetileheights[phase][ptr]);
-			vector3f N = wavetilenormals[phase][ptr];
-			vector3f E = -coord.normal();	// translation for tile is missing here, fixme
-
-#ifdef DRAW_NORMALS
-			glColor3f(1,0,0);
-			vector3f u = coord + N * 1.0f;
-			glVertex3fv(&coord.x);
-			glVertex3fv(&u.x);
-			glColor3f(1,1,0);
-			u = coord + E * 10.0f + vector3f(0.1, 0.1, 0.0);
-			glVertex3fv(&coord.x);
-			glVertex3fv(&u.x);
-			glColor3f(0,1,0);
-			u = coord + R * 1.0f;
-			glVertex3fv(&coord.x);
-			glVertex3fv(&u.x);
-#endif
-
-			float F = E*N;		// compute Fresnel term F(x) = 1/(x+1)^8
-			if (F < 0.0f) F = 0.0f;	// avoid angles > 90 deg.
-			F = F + 1.0f;
-			F = F * F;	// ^2
-			F = F * F;	// ^4
-			F = F * F;	// ^8
-			F = 1.0f/F;
-			Uint8 c = Uint8(F*255);
-			Uint8 foampart = 255;
-			color primary(c, c, c, foampart);
-
-			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
-			texc.z -= VIRTUAL_PLANE_HEIGHT;
-						
-			coords[vecptr] = coord;
-//			normals[vecptr] = N;
-			uv0[vecptr] = texc;
-			colors[vecptr] = primary;
-			fx += add;
-		}
-		fy += add;
-	}
-	
-#ifdef DRAW_NORMALS
-	glEnd();
-	glEnable(GL_TEXTURE_2D);
-#endif
-
-/*
-	// to avoid gaps, reposition the vertices, fillgap bits: 0,1,2,3 for top,right,bottom,left
-	if (fillgap & 1) {
-		for (unsigned i = res*resi+1; i < resi*resi-1; i += 2) {
-			coords[i] = (coords[i-1] + coords[i+1]) * 0.5f;
-			colors[i] = color(colors[i-1], colors[i+1], 0.5f);
-			uv0[i] = (uv0[i-1] + uv0[i+1]) * 0.5f;
-		}
-	}
-	if (fillgap & 2) {
-		for (unsigned i = 2*resi-1; i < resi*resi-1; i += 2*resi) {
-			coords[i] = (coords[i-resi] + coords[i+resi]) * 0.5f;
-			colors[i] = color(colors[i-resi], colors[i+resi], 0.5f);
-			uv0[i] = (uv0[i-resi] + uv0[i+resi]) * 0.5f;
-		}
-	}
-	if (fillgap & 4) {
-		for (unsigned i = 1; i < resi-1; i += 2) {
-			coords[i] = (coords[i-1] + coords[i+1]) * 0.5f;
-			colors[i] = color(colors[i-1], colors[i+1], 0.5f);
-			uv0[i] = (uv0[i-1] + uv0[i+1]) * 0.5f;
-		}
-	}
-	if (fillgap & 8) {
-		for (unsigned i = resi; i < resi*res; i += 2*resi) {
-			coords[i] = (coords[i-resi] + coords[i+resi]) * 0.5f;
-			colors[i] = color(colors[i-resi], colors[i+resi], 0.5f);
-			uv0[i] = (uv0[i-resi] + uv0[i+resi]) * 0.5f;
-		}
-	}
-*/
-
-	// draw precomputed index list according to detail level
-	glDrawElements(GL_QUADS, res*res*4, GL_UNSIGNED_INT, &(waveindices[lodlevel][0]));
-}
 
 
 void water::update_foam(double deltat)
@@ -614,19 +473,19 @@ float water::get_height(const vector2& pos) const
 {
 	double t = myfrac(mytime/TIDECYCLE_TIME);
 	int wavephase = int(WAVE_PHASES*t);
-	float ffac = tile_res/WAVE_LENGTH;
+	float ffac = WAVE_RESOLUTION/WAVE_LENGTH;
 	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
 	float y = float(myfmod(pos.y, WAVE_LENGTH)) * ffac;
 	int ix = int(floor(x));
 	int iy = int(floor(y));
-	int ix2 = (ix+1)%tile_res;
-	int iy2 = (iy+1)%tile_res;
+	int ix2 = (ix+1)%WAVE_RESOLUTION;
+	int iy2 = (iy+1)%WAVE_RESOLUTION;
 	float fracx = x - ix;
 	float fracy = y - iy;
-	float a = wavetileheights[wavephase][ix+iy*tile_res];
-	float b = wavetileheights[wavephase][ix2+iy*tile_res];
-	float c = wavetileheights[wavephase][ix+iy2*tile_res];
-	float d = wavetileheights[wavephase][ix2+iy2*tile_res];
+	float a = wavetileheights[wavephase][ix+iy*WAVE_RESOLUTION];
+	float b = wavetileheights[wavephase][ix2+iy*WAVE_RESOLUTION];
+	float c = wavetileheights[wavephase][ix+iy2*WAVE_RESOLUTION];
+	float d = wavetileheights[wavephase][ix2+iy2*WAVE_RESOLUTION];
 	float e = a * (1.0f-fracx) + b * fracx;
 	float f = c * (1.0f-fracx) + d * fracx;
 	return (1.0f-fracy) * e + fracy * f;
@@ -636,19 +495,19 @@ vector3f water::get_normal(const vector2& pos, double f) const
 {
 	double t = myfrac(mytime/TIDECYCLE_TIME);
 	int wavephase = int(WAVE_PHASES*t);
-	float ffac = tile_res/WAVE_LENGTH;
+	float ffac = WAVE_RESOLUTION/WAVE_LENGTH;
 	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
 	float y = float(myfmod(pos.y, WAVE_LENGTH)) * ffac;
 	int ix = int(floor(x));
 	int iy = int(floor(y));
-	int ix2 = (ix+1)%tile_res;
-	int iy2 = (iy+1)%tile_res;
+	int ix2 = (ix+1)%WAVE_RESOLUTION;
+	int iy2 = (iy+1)%WAVE_RESOLUTION;
 	float fracx = x - ix;
 	float fracy = y - iy;
-	vector3f a = wavetilenormals[wavephase][ix+iy*tile_res];
-	vector3f b = wavetilenormals[wavephase][ix2+iy*tile_res];
-	vector3f c = wavetilenormals[wavephase][ix+iy2*tile_res];
-	vector3f d = wavetilenormals[wavephase][ix2+iy2*tile_res];
+	vector3f a = wavetilenormals[wavephase][ix+iy*WAVE_RESOLUTION];
+	vector3f b = wavetilenormals[wavephase][ix2+iy*WAVE_RESOLUTION];
+	vector3f c = wavetilenormals[wavephase][ix+iy2*WAVE_RESOLUTION];
+	vector3f d = wavetilenormals[wavephase][ix2+iy2*WAVE_RESOLUTION];
 	vector3f e = a * (1.0f-fracx) + b * fracx;
 	vector3f g = c * (1.0f-fracx) + d * fracx;
 	vector3f h = e * (1.0f-fracy) + g * fracy;
@@ -660,6 +519,10 @@ void water::set_time(double tm)
 {
 	mytime = tm;
 }
+
+
+
+
 
 
 
