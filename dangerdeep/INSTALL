@@ -1,0 +1,37 @@
+Installation instructions
+-------------------------
+
+To install Danger for the Deep on Linux, see the Compiling from Source section
+
+Installing on Windows
+---------------------
+
+You will need the following libraries:
+
+Simple Directmedia Layer (libsdl):
+    SDL.dll
+SDL Image library (SDL_image):
+    SDL_image.dll, libpng.dll, jpeg.dll and zlib.dll
+FFTW (Fastest Fourier Transform in the West ;) )
+    fftw3.dll
+Microsoft Visual C++ runtime libraries:
+    msvcp70.dll
+    msvcr70.dll
+
+Just copy all the DLLs to the folder containing dangerdeep.exe and double-click dangerdeep.exe to start the game. To run Danger from the Deep in a different resolution or in windowed mode, see the Command-line Options section below.
+
+
+Compiling from Source
+---------------------
+
+To compile Danger from the Deep, you will need the SDL, SDL-image, FFTW3 and optionally the SDL-mixer libraries and development packages.
+
+Extract the files using the following command (substitute the name of the file instead of <file.tar.bz2>): tar -xjvf <file.tar.bz2>
+
+Change into the source directory and type the following commands:
+
+	./configure
+	make
+	make install (you need to be root for this step)
+
+To run the game, type 'dangerdeep'. To run Danger from the Deep in a different resolution or in windowed mode, see the command-line options.
