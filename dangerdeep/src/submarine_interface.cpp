@@ -53,8 +53,14 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 				break;
 			
 			// control
-			case SDLK_LEFT: player->rudder_hard_left(); add_message(TXT_Rudderhardleft[language]); break;
-			case SDLK_RIGHT: player->rudder_hard_right(); add_message(TXT_Rudderhardright[language]); break;
+			case SDLK_LEFT:
+                player->rudder_hard_left();
+                add_rudder_message();
+                break;
+			case SDLK_RIGHT:
+                player->rudder_hard_right();
+                add_rudder_message();
+                break;
 
 			// view
 			case SDLK_COMMA : bearing -= angle(10); break;
@@ -80,14 +86,30 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			case SDLK_F12: if (time_scale_down()) { add_message(TXT_Timescaledown[language]); } break;
 
 			// control
-			case SDLK_LEFT: player->rudder_left(); add_message(TXT_Rudderleft[language]); break;
-			case SDLK_RIGHT: player->rudder_right(); add_message(TXT_Rudderright[language]); break;
+			case SDLK_LEFT:
+                player->rudder_left();
+                add_rudder_message();
+                break;
+			case SDLK_RIGHT:
+                player->rudder_right();
+                add_rudder_message();
+                break;
 			case SDLK_UP: player->planes_up(1); add_message(TXT_Planesup[language]); break;
 			case SDLK_DOWN: player->planes_down(1); add_message(TXT_Planesdown[language]); break;
 			case SDLK_s: player->dive_to_depth(0); add_message(TXT_Surface[language]); break;
-			case SDLK_p: player->dive_to_depth(12); add_message(TXT_Periscopedepth[language]); break;	//fixme
-			case SDLK_c: player->dive_to_depth(150); add_message(TXT_Crashdive[language]); break;
-			case SDLK_RETURN : player->rudder_midships(); player->planes_middle(); add_message(TXT_Ruddermidships[language]); break;
+			case SDLK_p:
+                player->dive_to_depth(static_cast<unsigned>(player->get_periscope_depth()));
+                add_message(TXT_Periscopedepth[language]);
+                break;	//fixme
+			case SDLK_c:
+                player->dive_to_depth(static_cast<unsigned>(player->get_max_depth()));
+                add_message(TXT_Crashdive[language]);
+                break;
+			case SDLK_RETURN :
+                player->rudder_midships();
+                player->planes_middle();
+                add_message(TXT_Ruddermidships[language]);
+                break;
 			case SDLK_1: player->set_throttle(sea_object::aheadslow); add_message(TXT_Aheadslow[language]); break;
 			case SDLK_2: player->set_throttle(sea_object::aheadhalf); add_message(TXT_Aheadhalf[language]); break;
 			case SDLK_3: player->set_throttle(sea_object::aheadfull); add_message(TXT_Aheadfull[language]); break;
@@ -157,7 +179,7 @@ void submarine_interface::display(class system& sys, game& gm)
 
 	// switch to map if sub is to deep.
 	double depth = player->get_depth();
-	if ((depth > 3 && (viewmode >= 2 && viewmode <= 3)) ||
+	if ((depth > SUBMARINE_SUBMERGED_DEPTH && (viewmode >= 2 && viewmode <= 3)) ||
 		(depth > player->get_periscope_depth() && (viewmode >= 1 && viewmode <= 3)) ||
 		(viewmode == 1 && !player->is_scope_up()))
 			viewmode = 4;
@@ -166,7 +188,12 @@ void submarine_interface::display(class system& sys, game& gm)
 		case 0: display_gauges(sys, gm); break;
 		case 1: display_periscope(sys, gm); break;
 		case 2: display_UZO(sys, gm); break;
-		case 3: display_bridge(sys, gm); break;
+		case 3:
+            if ( zoom_scope )
+                display_glasses(sys, gm);
+            else
+                display_bridge(sys, gm);
+            break;
 		case 4: display_map(sys, gm); break;
 		case 5: display_torpedoroom(sys, gm); break;
 		case 6: display_damagecontrol(sys, gm); break;
@@ -397,4 +424,26 @@ void submarine_interface::draw_torpedo(class system& sys, bool usebow, int x, in
 			sys.draw_hm_image(x, y, 256, 32, torptex(st.type));
 		}
 	}
+}
+
+void submarine_interface::add_rudder_message()
+{
+    switch (player_object->get_rudder())
+    {
+        case player_object->rudderfullleft:
+            add_message(TXT_Rudderhardleft[language]);
+            break;
+        case player_object->rudderleft:
+            add_message(TXT_Rudderleft[language]);
+            break;
+        case player_object->ruddermid:
+            add_message(TXT_Ruddermidships[language]);
+            break;
+        case player_object->rudderright:
+            add_message(TXT_Rudderright[language]);
+            break;
+        case player_object->rudderfullright:
+            add_message(TXT_Rudderhardright[language]);
+            break;
+    }
 }
