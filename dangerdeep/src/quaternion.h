@@ -57,6 +57,7 @@ class quaterniont
 	void angleaxis(D& angle, vector3t<D>& axis) const { D a = acos(s); angle = D(2*a*180.0/M_PI); axis = v * (D(1.0)/sin(a)); }
 	vector3t<D> rotate(const D& x, const D& y, const D& z) const { quaterniont<D> p2 = *this * vec(x, y, z) * this->conj(); return p2.v; }
 	vector3t<D> rotate(const vector3t<D>& p) const { quaterniont<D> p2 = *this * vec(p) * this->conj(); return p2.v; }
+	quaterniont<D> scale_rot_angle(const D& scal) { D ang = acos(s); D sa = sin(ang*scal)/sin(ang); return quaterniont(cos(ang*scal), v * sa); }
 };
 
 template<class D2> inline quaterniont<D2> operator* (const D2& scalar, const quaterniont<D2>& q) { return q * scalar; }

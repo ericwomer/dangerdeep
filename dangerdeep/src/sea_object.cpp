@@ -278,17 +278,18 @@ void sea_object::simulate(game& gm, double delta_time)
 	quaternion orientation, rotvelocity;
 	virtual vector3 get_acceleration(const double& t)  maybe t is not needed...
 	virtual quaternion get_rotacceleration();
-	
-	code:
-	vector3 acceleration = get_acceleration();
+	*/
+
+	/*
+	vector3 acceleration = get_acceleration() - drag * velocity*velocity;
 	position += velocity * delta_time + acceleration * (0.5 * delta_time * delta_time);
 	velocity += acceleration * delta_time;
+	*/
+	
+	/*
 	quaternion rotacceleration = get_rotacceleration();
-	add orientation and rotvelocity and rotacceleration...
-	orientation *= quatrotvelo, quatrotvelo = rotvelo with angle = rotvelo.angle * t
-	rotvelo.s = sin(alpha/2), quatrotvelo.s = sin(2*arcsin(rotvelo.s)*t/2)
-	  = sin(arcsin(rotvelo.s)*t)
-	add rotvelocity and rotacceleration...
+	orientation = rotaccel.scale_rot_angle(0.5*delta_time*delta_time) * rot_velocity.scale_rot_angle(delta_time) * orientation;
+	rot_velocity = rotaccel.scale_rot_angle(delta_time) * rot_velocity;
 	*/	
 
 	// calculate directional speed
@@ -311,6 +312,17 @@ void sea_object::simulate(game& gm, double delta_time)
 		speed = get_throttle_speed();
 	}
 
+	/*
+	double s = get_throttle_speed();
+	double throttle_accel = 0;
+	//if (speed > s)
+	//	throttle_accel = 0;
+	if (speed < s)
+		throttle_accel = max_acceleration;
+	else
+		throttle_accel = drag * s*s;
+	*/
+	
 	/*
 		correct turning model:
 		object can only accelerate to left or right

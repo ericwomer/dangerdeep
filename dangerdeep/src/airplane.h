@@ -13,7 +13,7 @@ class airplane : public sea_object
 protected:
 	quaternion rotation;	// local plane space to world space
 	vector3 velocity;	//fixme: move to sea_object?
-	double rollfac, pitchfac;
+	double rollfac, pitchfac;	// can be computed from "rotation" by projecting unit vectors
 
 	airplane();
 	airplane& operator=(const airplane& other);

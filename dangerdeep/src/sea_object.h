@@ -75,14 +75,14 @@ protected:
 
 	/* have:
 	vector3 position, velocity;
-	vector3 local_velocity;
+	vector3 local_velocity;		// along local axes
 	quaternion orientation, rot_velocity;
 	virtual vector3 get_acceleration(void) const { return orientation.rotate(get_local_acceleration()); }
 	virtual vector3 get_local_acceleration(void) const;
 	virtual quaternion get_rot_acceleration(void) const;
 	double max_accel_forward;	// stored. can get computed from engine_torque, screw diameter and ship's mass.
-	double max_speed_forward;
-	double max_turn_speed;	// angular velocity.
+	double max_speed_forward;	// stored.
+	double max_turn_speed;		// angular velocity. computed from turn_rate.
 	*/
 	
 	vector3 position;
