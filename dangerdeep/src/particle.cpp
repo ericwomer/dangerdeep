@@ -322,7 +322,7 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 	//glNormal3f(0, 0, 1);
 
 	// draw particles, generate coordinates on the fly
-	for (vector<particle_dist>::reverse_iterator it = pds.rbegin(); it != pds.rend(); ++it) {
+	for (vector<particle_dist>::iterator it = pds.begin(); it != pds.end(); ++it) {
 		const particle& part = *(it->pt);
 		const vector3& z = -it->projpos;
 		vector3 y = vector3(0, 0, 1);

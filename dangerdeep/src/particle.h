@@ -37,9 +37,7 @@ protected:
 		double dist;
 		vector3 projpos;
 		particle_dist(const particle* p, double d, const vector3& pp) : pt(p), dist(d), projpos(pp) {}
-		// note! do not use >= or > for reverse sorting here. it will result in random crashes
-		// with gcc-3.3.5. Instead iterate the result reversely.
-		bool operator< (const particle_dist& other) const { return dist < other.dist; }
+		bool operator< (const particle_dist& other) const { return dist > other.dist; }
 	};
 
 	// particle textures (generated and stored once)
