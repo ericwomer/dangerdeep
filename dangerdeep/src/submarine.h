@@ -116,32 +116,37 @@ public:
 	};
 		
 protected:
-	double dive_speed, dive_acceleration, max_dive_speed, max_depth, dive_to;
+	double dive_speed;
+	double dive_acceleration;	// read from spec file
+	double max_dive_speed;		// read from spec file
+	double max_depth;		// created with some randomness after spec file, must get stored!
+	double dive_to;
 	bool permanent_dive;
-	double max_submerged_speed;
+	double max_submerged_speed;	// read from spec file
 
 	// stored torpedoes (including tubes)
 	// special functions calculate indices for bow/stern tubes etc., see below
 	vector<stored_torpedo> torpedoes;
-	unsigned number_of_tubes_at[6];
-	unsigned torp_transfer_times[5];
+	unsigned number_of_tubes_at[6];	// read from spec file
+	unsigned torp_transfer_times[5];// read from spec file
 
-	bool scopeup;	// fixme: maybe simulate time for moving scope up/down
-	double periscope_depth;
-	bool electric_engine; // true when electric engine is used.
-	bool hassnorkel;	// fixme: replace by (damageable_parts[snorkel] != unused)
-	double snorkel_depth;
+	bool scopeup;			// fixme: maybe simulate time for moving scope up/down
+	double periscope_depth;		// read from spec file, fixme add this to .xml files
+	bool electric_engine;		// true when electric engine is used.
+	bool hassnorkel;		// fixme: replace by (damageable_parts[snorkel] != unused)
+	double snorkel_depth;		// read from spec file, fixme add this to .xml files
 	bool snorkelup;
 //	float sonar_cross_section_factor;
 
 	// Charge level of battery: 0 = empty, 1 = fully charged
 	double battery_level;
-	double battery_value_a;
-	double battery_value_t;
-	double battery_recharge_value_a;
-	double battery_recharge_value_t;
+	double battery_value_a;		// read from spec file
+	double battery_value_t;		// read from spec file
+	double battery_recharge_value_a;// read from spec file
+	double battery_recharge_value_t;// read from spec file
+	unsigned battery_capacity;	// read from spec file
     
-	vector<damageable_part> damageable_parts;
+	vector<damageable_part> damageable_parts;	// read from data/spec file, fixme do that!
 
 	// FAT torpedo programming data
 	unsigned trp_primaryrange;	// selected option 0-16 (1600 to 3200m)

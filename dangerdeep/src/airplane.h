@@ -13,7 +13,7 @@ class airplane : public sea_object
 public:
 	enum types { standard };
 protected:
-	unsigned type;
+	unsigned type;	// fixme obsolete with specfilename
 	quaternion rotation;	// local plane space to world space
 	vector3 velocity;	//fixme: move to sea_object?
 	double rollfac, pitchfac;
@@ -21,7 +21,8 @@ protected:
 	airplane& operator=(const airplane& other);
 	airplane(const airplane& other);
 public:
-	airplane() { rotation = quaternion::neutral_rot(); velocity = vector3(0,100,0); }
+	airplane(const string& specfilename_);
+//	airplane() { rotation = quaternion::neutral_rot(); velocity = vector3(0,100,0); } obsolete
 	virtual ~airplane() {};
 	void load(istream& in, class game& g);
 	void save(ostream& out, const class game& g) const;
@@ -51,7 +52,7 @@ public:
 	virtual void pitch_zero(void);
 
 	// types:
-	airplane(unsigned type_, const vector3& pos, double heading);
+//	airplane(unsigned type_, const vector3& pos, double heading); obsolete
 };
 
 #endif

@@ -56,13 +56,14 @@ public:
 protected:
 	string specfilename;	// filename for specification .xml file
 
-	string modelname;	// filename for model file (also used for modelcache requests)
+	string modelname;	// filename for model file (also used for modelcache requests), read from spec file
 
 	vector3 position;
 	angle heading;	//, pitch, roll; // rotation of object, recomputed every frame for ships, maybe it should get stored
-	double speed, max_speed, max_rev_speed;	// m/sec
+	double speed;		// m/sec
+	double max_speed, max_rev_speed;	// m/sec, read from spec file
 	int throttle;
-	double acceleration;
+	double acceleration;	// read from spec file
 
 	// -1 <= head_chg <= 1
 	// if head_chg is != 0 the object is turning with head_chg * turn_rate angles/sec.
@@ -72,9 +73,9 @@ protected:
 	double head_chg;
 	int rudder; // rudder state
 	angle head_to;
-	angle turn_rate;	// in angle/(time*speed) = angle/m, means angle change per forward movement in meters
+	angle turn_rate;	// in angle/(time*speed) = angle/m, means angle change per forward movement in meters, read from spec file
 
-	double length, width;	// computed from model
+	double length, width;	// computed from model, indirect read from spec file
 	
 	// an object is alive until it is sunk or killed.
 	// it will sink to some depth then it is killed.
@@ -85,7 +86,7 @@ protected:
 
 	list<vector2> previous_positions;
 
-	// Sensor systems.
+	// Sensor systems, created after data in spec file
 	vector<sensor*> sensors;
 
 	virtual void parse_attributes(class TiXmlElement* parent);
@@ -103,6 +104,8 @@ protected:
 		@return cross section in square meters.
 	*/
 	virtual double get_cross_section ( const vector2& d ) const;
+
+	sea_object(const string& specfilename_);	// create object from spec file
 	
 public:
 	virtual ~sea_object();

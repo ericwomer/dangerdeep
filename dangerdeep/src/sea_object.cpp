@@ -88,23 +88,17 @@ void sea_object::load(istream& in, class game& g)
 void sea_object::save(ostream& out, const class game& g) const
 {
 	write_string(out, specfilename);
-	write_string(out, modelname);
 	write_double(out, position.x);
 	write_double(out, position.y);
 	write_double(out, position.z);
 	write_double(out, heading.value());
 	write_double(out, speed);
-	write_double(out, max_speed);
-	write_double(out, max_rev_speed);
 	write_i8(out, throttle);
 	write_double(out, acceleration);
 	write_bool(out, permanent_turn);
 	write_double(out, head_chg);
 	write_i8(out, rudder);
 	write_double(out, head_to.value());
-	write_double(out, turn_rate.value());
-	write_double(out, length);
-	write_double(out, width);
 	write_u8(out, Uint8(alive_stat));
 
 	write_u8(out, previous_positions.size());

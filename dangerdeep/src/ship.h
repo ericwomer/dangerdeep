@@ -14,17 +14,18 @@ class ship : public sea_object
 
 protected:
 	class ai* myai;
-	unsigned tonnage;	// in BRT
+	unsigned tonnage;	// in BRT, created after values from spec file (but maybe with some randomness), must get stored!
 
 	// fixme: replace by finer model: -> damage editor!
 	damage_status stern_damage, midship_damage, bow_damage;
 
 	// Fuel percentage: 0 = empty, 1 = full.
 	double fuel_level;
-	double fuel_value_a;
-	double fuel_value_t;
+	double fuel_value_a;	// read from spec file
+	double fuel_value_t;	// read from spec file
+	unsigned fuel_capacity;	// read from spec file
 
-	unsigned shipclass;
+	unsigned shipclass;	// read from spec file, e.g. warship/merchant/escort/...
 
 	ship();
 	ship(const ship& other);
