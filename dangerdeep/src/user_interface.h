@@ -81,7 +81,11 @@ protected:
 	// 2d drawing must be turned on for them
 	void draw_infopanel(class system& sys, class game& gm) const;
 	void draw_gauge(class system& sys, class game& gm, unsigned nr, int x, int y, unsigned wh, angle a,
-		const string& text) const;
+		const string& text, angle a2) const;
+	void draw_gauge(class system& sys, class game& gm, unsigned nr, int x, int y, unsigned wh, angle a,
+		const string& text) const {
+			draw_gauge(sys, gm, nr, x, y, wh, a, text, a);
+	}
 	void draw_manometer_gauge ( class system& sys, class game& gm, unsigned nr,
 		int x, int y, unsigned wh, float value, const string& text ) const;
 	void draw_clock(class system& sys, class game& gm, int x, int y, unsigned wh, double t,

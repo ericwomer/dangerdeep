@@ -575,7 +575,7 @@ texture* user_interface::torptex(unsigned type)
 }
 
 void user_interface::draw_gauge(class system& sys, class game& gm,
-	unsigned nr, int x, int y, unsigned wh, angle a, const string& text) const
+	unsigned nr, int x, int y, unsigned wh, angle a, const string& text, angle a2) const
 {
 	set_display_color ( gm );
 	switch (nr) {
@@ -594,8 +594,16 @@ void user_interface::draw_gauge(class system& sys, class game& gm,
 		font_color = color ( 255, 127, 127 );
 
 	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text.c_str(), font_color);
-	glColor3f(1,0,0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+	if (a2 != a) {
+		vector2 d2 = a2.direction();
+		glColor3f(0.5,0.5,1);
+		glBegin(GL_LINES);
+		glVertex2i(xx, yy);
+		glVertex2i(xx + int(d2.x*wh*3/8),yy - int(d2.y*wh*3/8));
+		glEnd();
+	}
+	glColor3f(1,0,0);
 	glBegin(GL_TRIANGLES);
 	glVertex2i(xx - int(d.y*4),yy - int(d.x*4));
 	glVertex2i(xx + int(d.y*4),yy + int(d.x*4));
@@ -713,7 +721,8 @@ void user_interface::display_gauges(class system& sys, game& gm)
 			sys.draw_image(x*256, y*256, 256, 256, psbackgr);
 	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
 	angle player_depth = -player->get_pos().z;
-	draw_gauge(sys, gm, 1, 0, 0, 256, player->get_heading(), texts::get(1));
+	draw_gauge(sys, gm, 1, 0, 0, 256, player->get_heading(), texts::get(1),
+		player->get_head_to());
 	draw_gauge(sys, gm, 2, 256, 0, 256, player_speed, texts::get(4));
 	draw_gauge(sys, gm, 4, 2*256, 0, 256, player_depth, texts::get(5));
 	draw_clock(sys, gm, 3*256, 0, 256, gm.get_time(), texts::get(61));

@@ -161,6 +161,7 @@ public:
 	virtual vector3 get_pos(void) const { return position; };
 	virtual double get_depth () const { return -position.z; };
 	virtual angle get_heading(void) const { return heading; };
+	virtual angle get_head_to(void) const { return permanent_turn ? heading : head_to; };
 	virtual angle get_turn_rate(void) const { return turn_rate; };
 	virtual double get_length(void) const { return length; };
 	virtual double get_width(void) const { return width; };

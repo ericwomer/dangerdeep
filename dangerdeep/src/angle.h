@@ -40,11 +40,8 @@ class angle
 	double sin(void) const { return ::sin(rad()); };
 	double cos(void) const { return ::cos(rad()); };
 	vector2 direction(void) const { double r = rad(); return vector2(::sin(r), ::cos(r)); };
-	bool operator < ( const angle& b ) const { double d = diff ( b ); return ( d >= 0.0f && d < 180.0f )? false : true; }
-	bool operator <= ( const angle& b ) const { return !(b < *this); }
-	bool operator == ( const angle& b ) const { return !(*this < b) && !(b < *this); }
-	bool operator > ( const angle& b ) const { return b < *this; }
-	bool operator >= ( const angle& b ) const { return !(*this < b); }
+	bool operator == ( const angle& b ) const { return value() == b.value(); }
+	bool operator != ( const angle& b ) const { return value() != b.value(); }
 };
 
 #endif

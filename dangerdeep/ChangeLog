@@ -5,6 +5,10 @@
 	  - made destroyer course computation a bit smarter.
 	* game.h game.cpp user_interface.cpp
 	  - new clouds.
+	* submarine_interface.cpp user_interface.cpp
+	  - head to course is shown in gauge.
+	* angle.h
+	  - removed silly operator<,>,<=,>= functions.
 
 2003-07-04  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* smoke_stream.* ship.*

@@ -134,8 +134,9 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 				break;
 			case SDLK_h:
 				{
-					bool turn_left = ( angle ( 180.0f ) <= bearing && bearing < angle ( 359.999f ) );
-					player->head_to_ang ( player->get_heading () + bearing, turn_left );
+					angle new_course = player->get_heading () + bearing;
+					bool turn_left = !player->get_heading().is_cw_nearer(new_course);
+					player->head_to_ang ( new_course, turn_left );
 				}
 				break;
 			case SDLK_p:
@@ -626,6 +627,7 @@ void submarine_interface::play_sound_effect_distance ( sound_effect se, double d
 	}
 }
 
+// fixme: this function is already in user_interface.cpp. are there differences and why?
 void submarine_interface::display_gauges(class system& sys, class game& gm)
 {
 	submarine* player = dynamic_cast<submarine*> ( get_player () );
@@ -636,7 +638,8 @@ void submarine_interface::display_gauges(class system& sys, class game& gm)
 			sys.draw_image(x*256, y*256, 256, 256, psbackgr);
 	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
 	angle player_depth = -player->get_pos().z;
-	draw_gauge(sys, gm, 1, 0, 0, 256, player->get_heading(), texts::get(1));
+	draw_gauge(sys, gm, 1, 0, 0, 256, player->get_heading(), texts::get(1),
+		player->get_head_to());
 	draw_gauge(sys, gm, 2, 256, 0, 256, player_speed, texts::get(4));
 	draw_gauge(sys, gm, 4, 2*256, 0, 256, player_depth, texts::get(5));
 	draw_clock(sys, gm, 3*256, 0, 256, gm.get_time(), texts::get(61));
