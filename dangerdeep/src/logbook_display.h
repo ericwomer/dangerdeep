@@ -9,6 +9,7 @@
 class logbook_display : public user_display
 {
 protected:
+	class texture *spiral;
 	unsigned actual_entry;
 
 	void print_buffer(unsigned i, const string& t) const;
@@ -16,8 +17,8 @@ protected:
 	virtual void previous_page(unsigned nrentries);
 
 public:
-	logbook_display(class user_interface& ui_) : user_display(ui_), actual_entry(0) {}
-	virtual ~logbook_display() {}
+	logbook_display(class user_interface& ui_);
+	virtual ~logbook_display();
 	virtual void display(class game& gm) const;
 	virtual void process_input(class game& gm, const SDL_Event& event);
 };

@@ -28,7 +28,6 @@ using namespace std;
 #include "user_interface.h"
 
 #define NUMBER_OF_LINES		27
-#define FONT_SCALE_FACTOR	0.75f
 #define CHARACTER_PER_LINE	50
 #define LINE_INDENT "    "
 
@@ -37,12 +36,10 @@ using namespace std;
 void logbook_display::print_buffer(unsigned i, const string& t) const
 {
 	unsigned x = ( i < NUMBER_OF_LINES )? 42 : 550;
-	x = unsigned ( x / FONT_SCALE_FACTOR );
 	unsigned y = ( i < NUMBER_OF_LINES )? ( 40 + 20 * i ) :
 		( 40 + 20 * ( i - NUMBER_OF_LINES ) );
-	y = unsigned ( y / FONT_SCALE_FACTOR );
 
-	font_arial->print(x, y, t, color(0, 0, 0));
+	font_arial->print(x, y, t, color(0, 0, 128));
 }
 
 
@@ -59,6 +56,20 @@ void logbook_display::previous_page(unsigned nrentries)
 {
 	if (actual_entry >= 2 * NUMBER_OF_LINES)
 		actual_entry -= 2 * NUMBER_OF_LINES;
+}
+
+
+
+logbook_display::logbook_display(class user_interface& ui_) : user_display(ui_), actual_entry(0)
+{
+	spiral = new texture(get_texture_dir() + "logbook_spiral.png");
+}
+
+
+
+logbook_display::~logbook_display()
+{
+	delete spiral;
 }
 
 
@@ -91,16 +102,10 @@ void logbook_display::display(class game& gm) const
 
 	// Middle spiral.
 	glColor3f ( 1.0f, 1.0f, 1.0f );
-	glPushMatrix();		// a trick to enlarge spiral y from 512 to 600
-	glTranslatef(0, 20, 0);
-	glScalef(1, 600.0/512.0, 1);
-	logbook_spiral->draw(496, 0);
-	glPopMatrix();
+	spiral->draw_tiles(496, 20, 32, 600);
 
 	// Create entries.
 	// Prepare OpenGL.
-	glPushMatrix ();
-	glScalef ( FONT_SCALE_FACTOR, FONT_SCALE_FACTOR, 1.0f );
 	const logbook& lb = gm.get_players_logbook();
 	list<string>::const_iterator it = lb.get_entry(actual_entry);
 	for ( unsigned j = 0; ( j < 2 * NUMBER_OF_LINES ) && it != lb.end(); ++j, ++it) {
@@ -112,32 +117,29 @@ void logbook_display::display(class game& gm) const
 	ostringstream oss1;
 	oss1 << page_number;
 	font_arial->print (
-		unsigned ( 260 / FONT_SCALE_FACTOR ),
-		unsigned ( 595 / FONT_SCALE_FACTOR ),
+		260,
+		595,
 		oss1.str (), color ( 0, 0, 0 ) );
 	ostringstream oss2;
 	oss2 << ( page_number + 1 );
 	font_arial->print (
-		unsigned ( 760 / FONT_SCALE_FACTOR ),
-		unsigned ( 595 / FONT_SCALE_FACTOR ),
+		760,
+		595,
 		oss2.str (), color ( 0, 0, 0 ) );
 
 	// Display arrows.
 	ostringstream left_arrow_oss;
 	left_arrow_oss << "<<";
 	font_arial->print (
-		unsigned ( 160 / FONT_SCALE_FACTOR ),
-		unsigned ( 595 / FONT_SCALE_FACTOR ),
+		160,
+		595,
 		left_arrow_oss.str (), color ( 0, 0, 0 ) );
 	ostringstream right_arrow_oss;
 	right_arrow_oss << ">>";
 	font_arial->print (
-		unsigned ( 860 / FONT_SCALE_FACTOR ),
-		unsigned ( 595 / FONT_SCALE_FACTOR ),
+		860,
+		595,
 		right_arrow_oss.str (), color ( 0, 0, 0 ) );
-
-	// Reset OpenGL matrix.
-	glPopMatrix ();
 
 	ui.draw_infopanel(gm);
 

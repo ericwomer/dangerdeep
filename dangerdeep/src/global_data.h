@@ -54,7 +54,7 @@ extern class font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_
 extern class sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
 extern class image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_background,
-	*sub_damage_scheme_all, *logbook_spiral, *killedimg, *scopewatcherimg,
+	*sub_damage_scheme_all, *killedimg, *scopewatcherimg,
 	*depthchargeimg, *sunkendestroyerimg, *kruppdocksimg, *rescuedestroyerimg, *sunderlandimg,
 	*swordfishimg, *hedgehogimg, *panelbackgroundimg;
 

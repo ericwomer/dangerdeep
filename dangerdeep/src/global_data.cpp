@@ -37,7 +37,7 @@ sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
 
 image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_background,
-	*sub_damage_scheme_all, *logbook_spiral, *killedimg, *scopewatcherimg,
+	*sub_damage_scheme_all, *killedimg, *scopewatcherimg,
 	*depthchargeimg, *sunkendestroyerimg, *kruppdocksimg, *rescuedestroyerimg, *sunderlandimg,
 	*swordfishimg, *hedgehogimg, *panelbackgroundimg;
 
@@ -107,8 +107,6 @@ void init_global_data(void)
 	periscope = new image(get_texture_dir() + "periscope.png", true);
 
 	threesubsimg = new image(get_image_dir() + "threesubs.jpg");
-
-	logbook_spiral = new image(get_texture_dir() + "logbook_spiral.png", true);
 
 	damage_screen_background = new image(get_image_dir() + "damage_screen_backg.jpg");
 
@@ -184,7 +182,6 @@ void deinit_global_data(void)
 	delete titlebackgrimg;
 	delete periscope;
 	delete threesubsimg;
-	delete logbook_spiral;
 	delete damage_screen_background;
 	delete sub_damage_scheme_all;
 	delete killedimg;
