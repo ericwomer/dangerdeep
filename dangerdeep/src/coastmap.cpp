@@ -50,7 +50,7 @@ assert(endt>begint);//fixme quick hack to avoid bugs caused by other fixme's etc
 	// compute number of points to be generated
 	unsigned totalpts = curve.control_points().size();
 	unsigned nrpts = unsigned(round(float(totalpts) * (endt-begint)));
-	if (detail < 0) nrpts = (nrpts >> -detail); else nrpts = (nrpts << detail);
+	nrpts = (nrpts << detail);
 	if (nrpts < 2) nrpts = 2;
 
 	points.reserve(points.size() + nrpts);
@@ -325,8 +325,60 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, const vec
 
 
 
-void coastsegment::render(const vector2& p, int detail) const
+#include <sstream>
+void coastsegment::render(const class coastmap& cm, int x, int y, const vector2& p, int detail) const
 {
+	unsigned res = cm.pixels_per_seg;
+	res = (res << detail);
+	vector<vector3f> coords;
+	coords.reserve((res+1)*(res+1));
+	vector<vector2f> uv0;
+	uv0.reserve((res+1)*(res+1));
+	vector2f segoff(x*cm.segw_real + cm.realoffset.x, y*cm.segw_real + cm.realoffset.y);
+	for (unsigned yy = 0; yy <= res; ++yy) {
+		for (unsigned xx = 0; xx <= res; ++xx) {
+			float s = float(xx)/res;
+			float t = float(yy)/res;
+			float h = topo.value(s, t);
+			coords.push_back(vector3f(segoff.x + s*cm.segw_real, segoff.y + t*cm.segw_real, h));
+			uv0.push_back(vector2f(s, t));
+		}
+	}
+	vector<unsigned> indices;
+	indices.reserve(res*res*4);
+	for (unsigned yy = 0; yy < res; ++yy) {
+		for (unsigned xx = 0; xx < res; ++xx) {
+			indices.push_back(yy*(res+1)+xx);
+			indices.push_back(yy*(res+1)+xx+1);
+			indices.push_back((yy+1)*(res+1)+xx+1);
+			indices.push_back((yy+1)*(res+1)+xx);
+		}
+	}
+	
+	ostringstream oss;
+	oss << "test_render_" << x << "_" << y << ".off";
+	ofstream out(oss.str().c_str());
+	out << "OFF\n" << coords.size() << " " << indices.size()/2 << " 0\n";
+	for (unsigned i = 0; i < coords.size(); ++i)
+		out << coords[i].x << " " << coords[i].y << " " << coords[i].z << "\n";
+	for (unsigned i = 0; i < indices.size()/4; ++i) {
+		out << "3 " << indices[i*4] << " " << indices[i*4+1] << " " << indices[i*4+3] << "\n";
+		out << "3 " << indices[i*4+1] << " " << indices[i*4+3] << " " << indices[i*4+2] << "\n";
+	}
+
+	terraintex->set_gl_texture();
+	glColor4f(1,1,1,1);
+	glNormal3f(0,0,1);//fixme
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
+	glClientActiveTexture(GL_TEXTURE0);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &uv0[0].x);
+	glDrawElements(GL_QUADS, indices.size(), GL_UNSIGNED_INT, &(indices[0]));
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
 /*
 	if (type > 1) {
 		for (vector<coastline>::const_iterator it = coastlines.begin(); it != coastlines.end(); ++it) {
@@ -902,7 +954,22 @@ coastmap::coastmap(const string& filename)
 	SDL_FreeSurface(surf);
 
 	// they are filled in by process_coastline
-	coastsegments.resize(segsx*segsy);
+	coastsegments.reserve(segsx*segsy);
+	for (unsigned yy = 0; yy < segsy; ++yy) {
+		for (unsigned xx = 0; xx < segsx; ++xx) {
+			vector<float> d(pixels_per_seg*pixels_per_seg);
+			for (unsigned y2 = 0; y2 < pixels_per_seg; ++y2) {
+				for (unsigned x2 = 0; x2 < pixels_per_seg; ++x2) {
+				// the values don't seem to match the png map?! fixme
+					char m = mapf(xx*pixels_per_seg+x2, yy*pixels_per_seg+y2);
+					float h = 30;//30.0f + rnd() * 500.0f;
+					float elev = (m == 0) ? -h : h;
+					d[y2*pixels_per_seg+x2] = elev;
+				}
+			}
+			coastsegments.push_back(coastsegment(pixels_per_seg/4, d));
+		}
+	}
 
 	// find coastlines
 	for (int yy = 0; yy < int(maph); ++yy) {
@@ -1048,6 +1115,12 @@ void coastmap::render(const vector2& p, int detail, bool withterraintop) const
 	int moffx = int(pnew.x/rsegw);
 	int moffy = int(pnew.y/rsegw);
 
+	glPushMatrix();
+	glLoadIdentity();
+	glTranslated(-p.x, -p.y, 0.0);
+
 	if (moffx >= 0 && moffy >= 0 && moffx < int(segsx) && moffy < int(segsy))	
-		coastsegments[moffy*segsx+moffx].render(pnew - vector2(moffx*rsegw, moffy*rsegw), detail);
+		coastsegments[moffy*segsx+moffx].render(*this, moffx, moffy, pnew - vector2(moffx*rsegw, moffy*rsegw), detail +2);
+
+	glPopMatrix();
 }

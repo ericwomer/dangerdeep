@@ -36,8 +36,10 @@ struct coastline
 
 
 
-struct coastsegment
+class coastsegment
 {
+	coastsegment();
+public:
 	struct segcl
 	{
 		unsigned mapclnr;	// pointer to coastmap::coastlines, global cl number
@@ -51,6 +53,9 @@ struct coastsegment
 
 	unsigned type;	// 0 - sea, 1 - land, 2 mixed
 	vector<segcl> segcls;
+	
+	// terrain elevation (no matter if land or sea, total elevation in meters)
+	bspline2dt<float, float> topo;
 
 	// cache generated points.
 	struct cacheentry {
@@ -77,13 +82,13 @@ struct coastsegment
 
 	unsigned get_successor_for_cl(unsigned cln, const vector2f& segoff, float segw) const;
 
-	coastsegment() : type(0), pointcachedetail(0) {}	
+	coastsegment(unsigned topon, const vector<float>& topod) : type(0), topo(topon, topod), pointcachedetail(0) {}
 	~coastsegment() {}
-	coastsegment(const coastsegment& o) : type(o.type), segcls(o.segcls), pointcachedetail(o.pointcachedetail), pointcache(o.pointcache) {}
-	coastsegment& operator= (const coastsegment& o) { type = o.type; segcls = o.segcls; pointcachedetail = o.pointcachedetail; pointcache = o.pointcache; return *this; }
+	coastsegment(const coastsegment& o) : type(o.type), segcls(o.segcls), topo(o.topo), pointcachedetail(o.pointcachedetail), pointcache(o.pointcache) {}
+	coastsegment& operator= (const coastsegment& o) { type = o.type; segcls = o.segcls; topo = o.topo; pointcachedetail = o.pointcachedetail; pointcache = o.pointcache; return *this; }
 	
 	void draw_as_map(const class coastmap& cm, int x, int y, const vector2f& roff, int detail = 0) const;
-	void render(const vector2& p, int detail = 0) const;
+	void render(const class coastmap& cm, int x, int y, const vector2& p, int detail = 0) const;
 };
 
 
