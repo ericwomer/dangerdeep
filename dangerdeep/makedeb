@@ -10,9 +10,6 @@ datadir='usr/share/games'
 mandir='usr/share/man/man6'
 docdir='usr/share/doc/dangerdeep'
 
-#not needed any longer
-#./configure --bindir=/$bindir --datadir=/$datadir && make clean && make || exit $?
-
 mkdir -p $debroot && cp -R debian/* $debroot
 for dir in DEBIAN $bindir $datadir/dangerdeep $mandir $docdir; do
 	mkdir -p $debroot/$dir
@@ -21,8 +18,8 @@ done
 # to compile and install it
 scons installbindir=\#/$debroot/$bindir installdatadir=\#/$debroot/$datadir/dangerdeep datadir=/$datadir/dangerdeep install
 
-#install -s src/dangerdeep $debroot/$bindir
-#cp -Rf data/* $debroot/$datadir/dangerdeep
+# remove debug symbols from the binary
+strip -R .comment -x -s $debroot/$bindir/dangerdeep
 
 cp -f doc/man/*.[0-9] $debroot/$mandir
 cp -f ChangeLog $debroot/$docdir/changelog
@@ -35,15 +32,9 @@ gzip -f --best $debroot/$docdir/changelog
 gzip -f --best $debroot/$docdir/changelog.Debian
 
 find $debroot -type f -exec chmod 0644 \{\} \; -type d -exec chmod 0755 \{\} \;
-chmod 755 $debroot/$bindir/dangerdeep
+chmod 0755 $debroot/$bindir/dangerdeep
 
-# remove debug symbols
-strip -s $debroot/$bindir/dangerdeep
-
-#rm `find $debroot -type f -and -name 'Makefile*'`
-
-chmod -R a-s $debroot
-
+# Is this really needed? The 'chmod' lines above should remove the setuid bit for all files and directories
 chmod -R a-s $debroot
 
 fakeroot dpkg-deb --build $debroot && \
