@@ -36,6 +36,19 @@ class water_splash;
 #include "date.h"
 #include "vector2.h"
 #include "vector3.h"
+#include "command.h"
+
+/* fixme 2004/02/22
+ add functions for:
+ receive commands from net and execute them
+ get commands from interface, send them and execute them
+ send event commands: spawn/hit/kill
+*/
+
+/* fixme 2004/02/22
+ idea: store name AND description for all languages in mission file (like in pingus)
+ maybe a mission should be stored in xml format (like in pingus)
+ */
 
 class game	// our "world" with physics etc.
 {
@@ -168,6 +181,10 @@ public:
 	void convoy_positions(list<vector2>& result) const;	// fixme
 	
 //	bool can_see(const sea_object* watcher, const submarine* sub) const;
+
+	// command related functions
+	void send_command(command* c);	// send commands and execute them locally, use it to issue commands to objects
+	void receive_commands(void);	// receive commands and execute them locally, run once per frame
 
 	// create new objects
 	void spawn_ship(ship* s);

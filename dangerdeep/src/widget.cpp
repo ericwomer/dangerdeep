@@ -122,6 +122,20 @@ void widget::move_pos(const vector2i& p)
 		(*it)->move_pos(p);
 }
 
+void widget::align(int h, int v)
+{
+	vector2i sz;
+	if (parent) {
+		sz = parent->get_size();
+	} else {
+		sz.x = int(system::sys().get_res_x_2d());
+		sz.y = int(system::sys().get_res_y_2d());
+	}
+	set_pos(vector2i(
+		(h < 0) ? 0 : ((h > 0) ? (sz.x-size.x) : ((sz.x-size.x)/2)),
+		(v < 0) ? 0 : ((v > 0) ? (sz.y-size.y) : ((sz.y-size.y)/2)) ));
+}
+
 void widget::draw(void) const
 {
 	vector2i p = get_pos();

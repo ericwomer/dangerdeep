@@ -166,6 +166,7 @@ void ship::simulate(game& gm, double delta_time)
 
 void ship::fire_shell_at(const vector2& pos)
 {
+	// fixme!!!!!!
 }
 
 void ship::smoke_display(double degr) const

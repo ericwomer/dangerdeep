@@ -1,3 +1,11 @@
+2004-02-22  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* command.h command.cpp
+	  - added command class (needed for network communication)
+
+2004-02-21  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* airplane.* airplane_interface.*
+	  - added experimental airplane interface and test mission
+
 2004-02-09  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* coastmap, coastline, coastsegment, mapcompile, triangulate
 	  - new map format

@@ -611,7 +611,7 @@ bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target,
 			gm.spawn_torpedo(t);
 		} else {
 			// gyro angle invalid, fixme send message to ui
-			delete t;
+			delete t;	// this is ugly.
 			return false;
 		}
 	} else {

@@ -88,6 +88,7 @@ public:
 	virtual vector2i get_pos(void) const { return pos; }
 	virtual void set_pos(const vector2i& p) { move_pos(p - pos); }
 	virtual void move_pos(const vector2i& p);
+	virtual void align(int h, int v);	// give <0,0,>0 for left,center,right
 	virtual vector2i get_size(void) const { return size; }
 	virtual void set_size(const vector2i& s) { size = s; }
 	virtual widget* get_parent(void) const { return parent; }
@@ -116,7 +117,7 @@ public:
 
 	// show & exec. widget, automatically disable widgets below
 	// run() runs for "time" milliseconds (or forever if time == 0), then returns
-	virtual int run(unsigned timeout = 0);
+	virtual int run(unsigned timeout = 0);//fixme: add some "bool showbelowwidgets=true" parameter
 	virtual void close(int val);	// close this widget (stops run() on next turn, returns val)
 	
 	static list<widget*> widgets;	// stack of dialogues, topmost is back

@@ -58,6 +58,8 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 			case SDLK_5:
 			case SDLK_6:
 				// fixme: store TDC programming in class submarine!
+				//add_command(CMD_FIRE_TORPEDO, keycode - SDLK_1, target  );
+				//gm.add_command(new submarine_command(CMD_FIRE_TORPEDO, player, keycode-SDLK_1, target, lead_angle
 				if ( player->fire_torpedo ( gm, keycode - SDLK_1, target, lead_angle,
 					primaryrange, secondaryrange, initialturn, searchpattern))
 				{
