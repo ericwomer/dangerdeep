@@ -3,6 +3,11 @@
 	  - changed visibility formula and factors.
 	    A bit better now, but still not realistic. Added many comments
 	    about that.
+	* submarine.cpp, game.cpp
+	  - torpedoes are created for subs in custom missions now
+	  - fixed date creation after period (typo bug)
+	* submarine_interface.cpp
+	  - view torpedo type info for each torpedo, changed controls layout
 
 2004-05-15  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* subsim, game

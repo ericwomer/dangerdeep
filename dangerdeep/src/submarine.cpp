@@ -8,6 +8,7 @@
 #include "date.h"
 #include "submarine.h"
 #include "depth_charge.h"
+#include "date.h"
 #include "tinyxml/tinyxml.h"
 #include "system.h"
 
@@ -57,7 +58,9 @@ submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damagea
 
 
 
-submarine::submarine(TiXmlDocument* specfile, const char* topnodename) : ship(specfile, topnodename)
+submarine::submarine(TiXmlDocument* specfile, const char* topnodename) : ship(specfile, topnodename),
+	trp_primaryrange(0), trp_secondaryrange(0), trp_initialturn(0), trp_searchpattern(0),
+	trp_addleadangle(0)
 {
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdsub = hspec.FirstChild(topnodename);
@@ -152,7 +155,7 @@ void submarine::parse_attributes(class TiXmlElement* parent)
 		TiXmlElement* etorpedo = etorpedoes->FirstChildElement("torpedo");
 		for (unsigned tubenr = 0; etorpedo != 0; etorpedo = etorpedo->NextSiblingElement("torpedo"), ++tubenr) {
 			unsigned tubenr = XmlAttribu(etorpedo, "tube");
-			if (tubenr >= int(torpedoes.size()))
+			if (tubenr >= torpedoes.size())
 				continue;	// ignore it, maybe send a message to user
 			string trptype = XmlAttrib(etorpedo, "type");
 			if (trptype == "T1") torpedoes[tubenr] = stored_torpedo(torpedo::T1);
@@ -263,7 +266,7 @@ void submarine::transfer_torpedo(unsigned from, unsigned to)
 
 int submarine::find_stored_torpedo(bool usebow)
 {
-	pair<unsigned, unsigned> indices = (usebow) ? get_bow_storage_indices() : get_stern_storage_indices();
+	pair<unsigned, unsigned> indices = (usebow) ? get_bow_reserve_indices() : get_stern_reserve_indices();
 	int tubenr = -1;
 	for (unsigned i = indices.first; i < indices.second; ++i) {
 		if (torpedoes[i].status == stored_torpedo::st_loaded) {	// loaded
@@ -373,8 +376,71 @@ void submarine::simulate(class game& gm, double delta_time)
 
 
 
-void submarine::init_fill_torpedo_tubes(double)
+void submarine::init_fill_torpedo_tubes(const date& d)
 {
+	// we ignore T2, T1FAT, T4 here, fixme
+
+	// standard1, special1 2/3, standard2, special2 1/3, 1/2 standard, 1/2 special
+	// hence random 0-5, 0,1:std1, 2:std2, 3,4:spc1, 5:spc2
+	torpedo::types standard1, standard2, special1, special2, stern;
+	if (d < date(1942, 6, 1)) {
+		standard1 = torpedo::T1;
+		standard2 = special1 = special2 = stern = torpedo::T3;
+	} else if (d < date(1943, 8, 1)) {
+		standard1 = stern = torpedo::T3a;
+		standard2 = torpedo::T1;
+		special1 = special2 = torpedo::T3FAT;
+	} else if (d < date(1945, 4, 1)) {
+		standard1 = torpedo::T3a;
+		standard2 = torpedo::T3FAT;
+		special1 = torpedo::T6LUT;
+		special2 = torpedo::T5;
+		stern = torpedo::T5;
+	} else {
+		standard1 = torpedo::T3a;
+		standard2 = torpedo::T3FAT;
+		special1 = torpedo::T6LUT;
+		special2 = torpedo::T11;
+		stern = torpedo::T11;
+	}
+	
+	pair<unsigned, unsigned> idx;
+	idx = get_bow_tube_indices();
+	for (unsigned i = idx.first; i < idx.second; ++i) {
+		unsigned r = rnd(6);
+		if (r <= 1) torpedoes[i] = standard1;
+		else if (r <= 2) torpedoes[i] = standard2;
+		else if (r <= 4) torpedoes[i] = special1;
+		else torpedoes[i] = special2;
+	}
+	idx = get_stern_tube_indices();
+	for (unsigned i = idx.first; i < idx.second; ++i) {
+		torpedoes[i] = stern;
+	}
+	idx = get_bow_reserve_indices();
+	for (unsigned i = idx.first; i < idx.second; ++i) {
+		unsigned r = rnd(6);
+		if (r <= 1) torpedoes[i] = standard1;
+		else if (r <= 2) torpedoes[i] = standard2;
+		else if (r <= 4) torpedoes[i] = special1;
+		else torpedoes[i] = special2;
+	}
+	idx = get_stern_reserve_indices();
+	for (unsigned i = idx.first; i < idx.second; ++i) {
+		unsigned r = rnd(2);
+		if (r < 1) torpedoes[i] = stern;
+		else torpedoes[i] = special2;
+	}
+	idx = get_bow_deckreserve_indices();
+	for (unsigned i = idx.first; i < idx.second; ++i) {
+		// later in the war no torpedoes were stored at deck, fixme
+		torpedoes[i] = stored_torpedo(torpedo::T1);
+	}
+	idx = get_stern_deckreserve_indices();
+	for (unsigned i = idx.first; i < idx.second; ++i) {
+		// later in the war no torpedoes were stored at deck, fixme
+		torpedoes[i] = stored_torpedo(torpedo::T1);
+	}
 }
 
 
@@ -395,7 +461,7 @@ pair<unsigned, unsigned> submarine::get_stern_tube_indices(void) const
 
 
 
-pair<unsigned, unsigned> submarine::get_bow_storage_indices(void) const
+pair<unsigned, unsigned> submarine::get_bow_reserve_indices(void) const
 {
 	unsigned off = get_nr_of_bow_tubes()+get_nr_of_stern_tubes();
 	return make_pair(off, off+get_nr_of_bow_reserve());
@@ -403,7 +469,7 @@ pair<unsigned, unsigned> submarine::get_bow_storage_indices(void) const
 
 
 
-pair<unsigned, unsigned> submarine::get_stern_storage_indices(void) const
+pair<unsigned, unsigned> submarine::get_stern_reserve_indices(void) const
 {
 	unsigned off = get_nr_of_bow_tubes()+get_nr_of_stern_tubes()+get_nr_of_bow_reserve();
 	return make_pair(off, off+get_nr_of_stern_reserve());
@@ -411,7 +477,7 @@ pair<unsigned, unsigned> submarine::get_stern_storage_indices(void) const
 
 
 
-pair<unsigned, unsigned> submarine::get_bow_top_storage_indices(void) const
+pair<unsigned, unsigned> submarine::get_bow_deckreserve_indices(void) const
 {
 	unsigned off = get_nr_of_bow_tubes()+get_nr_of_stern_tubes()+get_nr_of_bow_reserve()+get_nr_of_stern_reserve();
 	return make_pair(off, off+get_nr_of_bow_deckreserve());
@@ -419,7 +485,7 @@ pair<unsigned, unsigned> submarine::get_bow_top_storage_indices(void) const
 
 
 
-pair<unsigned, unsigned> submarine::get_stern_top_storage_indices(void) const
+pair<unsigned, unsigned> submarine::get_stern_deckreserve_indices(void) const
 {
 	unsigned off = get_nr_of_bow_tubes()+get_nr_of_stern_tubes()+get_nr_of_bow_reserve()+get_nr_of_stern_reserve()+get_nr_of_bow_deckreserve();
 	return make_pair(off, off+get_nr_of_stern_deckreserve());
@@ -433,13 +499,13 @@ unsigned submarine::get_location_by_tubenr(unsigned tn) const
 	if (tn >= idx.first && tn < idx.second) return 1;
 	idx = get_stern_tube_indices();
 	if (tn >= idx.first && tn < idx.second) return 2;
-	idx = get_bow_storage_indices();
+	idx = get_bow_reserve_indices();
 	if (tn >= idx.first && tn < idx.second) return 3;
-	idx = get_stern_storage_indices();
+	idx = get_stern_reserve_indices();
 	if (tn >= idx.first && tn < idx.second) return 4;
-	idx = get_bow_top_storage_indices();
+	idx = get_bow_deckreserve_indices();
 	if (tn >= idx.first && tn < idx.second) return 5;
-	idx = get_stern_top_storage_indices();
+	idx = get_stern_deckreserve_indices();
 	if (tn >= idx.first && tn < idx.second) return 6;
 	return 0;
 }
@@ -832,6 +898,7 @@ void submarine::launch_torpedo(class game& gm, int tubenr, sea_object* target)
 	pair<angle, bool> launchdata = torpedo::compute_launch_data(
 		torpedoes[tubenr].type, this, target, usebowtubes, trp_addleadangle);
 	if (launchdata.second) {
+		// fixme: primary range seems weird wrong (13mio)!!!! 2004/05/16
 		torpedo* t = new torpedo(this, torpedoes[tubenr].type, usebowtubes, launchdata.first,
 			trp_primaryrange, trp_secondaryrange, trp_initialturn, trp_searchpattern);
 		gm.spawn_torpedo(t);    // fixme add command

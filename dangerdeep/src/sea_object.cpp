@@ -41,6 +41,7 @@ sea_object::sea_object() : speed(0), max_speed(0), max_rev_speed(0), throttle(st
 	acceleration(0), permanent_turn(false), head_chg(0), rudder(0), length(0), width(0),
 	alive_stat(alive)
 {
+	sensors.resize ( last_sensor_system );
 }
 
 

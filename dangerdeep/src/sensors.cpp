@@ -96,10 +96,12 @@ bool lookout_sensor::is_detected ( const game* gm, const sea_object* d,
 		// A large freighter (889m²) is then visible from its broadside at 17780 meters.
 		// A VIIc sub (120m²) is then visible from its broadside at 2400 meters.
 		// The factor is obviously too large. A sub can be seen from its broadside
-		// at superb conditions in 8km at least, but that would lead to a factor so
-		// that large freighters are visible from 60km!
+		// at superb conditions in 5km at least, but that would lead to a factor so
+		// that large freighters are visible from 37km (~20sm)!
 		// Effects like smoke or wake are ignored here, but are essential, fixme!!!
+		// A ship's/sub's speed influenced the visibility, especially for subs!
 		// fixme: earth curvature is ignored here!!!
+		// fixme: we should visualize the visibility for testing purposes.
 		const double visfactor = 0.05;
 
 		// multiply with overall visibility factor: max_view_dist/30km.

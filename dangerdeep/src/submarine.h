@@ -207,7 +207,7 @@ public:
 	virtual void simulate(class game& gm, double delta_time);
 	
 	// fill available tubes with common types depending on time period (used for custom missions)
-	virtual void init_fill_torpedo_tubes(double time /* or int period */);
+	virtual void init_fill_torpedo_tubes(const class date& d);
 
 	const vector<stored_torpedo>& get_torpedoes(void) const { return torpedoes; }
 
@@ -222,10 +222,10 @@ public:
 	// get first index of storage and first index after it (computed with functions above)
 	pair<unsigned, unsigned> get_bow_tube_indices(void) const;
 	pair<unsigned, unsigned> get_stern_tube_indices(void) const;
-	pair<unsigned, unsigned> get_bow_storage_indices(void) const;
-	pair<unsigned, unsigned> get_stern_storage_indices(void) const;
-	pair<unsigned, unsigned> get_bow_top_storage_indices(void) const;
-	pair<unsigned, unsigned> get_stern_top_storage_indices(void) const;
+	pair<unsigned, unsigned> get_bow_reserve_indices(void) const;
+	pair<unsigned, unsigned> get_stern_reserve_indices(void) const;
+	pair<unsigned, unsigned> get_bow_deckreserve_indices(void) const;
+	pair<unsigned, unsigned> get_stern_deckreserve_indices(void) const;
 	unsigned get_location_by_tubenr(unsigned tn) const; // returns 1-6 as location number, 0 if not supported
 
 	// The simulation of acceleration when switching between electro and diesel

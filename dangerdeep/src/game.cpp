@@ -122,8 +122,8 @@ we have to put some torpedoes according to mission time into the subs!
 		case 3: datebegin = date(1942, 1, 1); dateend = date(1942, 6, 30); break;
 		case 4: datebegin = date(1942, 7, 1); dateend = date(1942, 12, 31); break;
 		case 5: datebegin = date(1943, 1, 1); dateend = date(1943, 5, 31); break;
-		case 6: datebegin = date(1943, 6, 1); dateend = date(1940, 6, 30); break;
-		case 7: datebegin = date(1944, 7, 1); dateend = date(1940, 5, 4); break;
+		case 6: datebegin = date(1943, 6, 1); dateend = date(1944, 6, 30); break;
+		case 7: datebegin = date(1944, 7, 1); dateend = date(1945, 5, 8); break;
 	}
 
 	double tpr = rnd();	
@@ -136,6 +136,8 @@ we have to put some torpedoes according to mission time into the subs!
 		case 2: time += 6*3600+1800*rnd(); break;		
 		case 3: time += 18*3600+1800*rnd(); break;		
 	};
+	
+	date currentdate((unsigned)time);
 
 	convoy* cv = new convoy(*this, (convoy::types)(cvsize), (convoy::esctypes)(cvesc));
 	for (list<pair<ship*, vector2> >::iterator it = cv->merchants.begin(); it != cv->merchants.end(); ++it)
@@ -152,6 +154,7 @@ we have to put some torpedoes according to mission time into the subs!
 		TiXmlDocument doc(get_submarine_dir() + subtype + ".xml");
 		doc.LoadFile();
 		submarine* sub = new submarine(&doc);//fixme give time for init
+		sub->init_fill_torpedo_tubes(currentdate);
 		if (i == 0) {
 			psub = sub;
 			player = psub;

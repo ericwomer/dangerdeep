@@ -514,32 +514,32 @@ void submarine_interface::display_torpedoroom(game& gm)
 	glPopMatrix();
 	
 	// draw torpedo programming buttons
-	draw_turnswitch(gm,   0, 256, 142, 17, player->get_trp_primaryrange(), 175, 138);
-	draw_turnswitch(gm, 256, 256, 159, 2, player->get_trp_secondaryrange(), 0, 139);
-	draw_turnswitch(gm, 512, 256, 161, 2, player->get_trp_initialturn(), 0, 140);
-	draw_turnswitch(gm, 768, 256, 163, 2, player->get_trp_searchpattern(), 176, 141);
+	draw_turnswitch(gm,   0, 384, 142, 17, player->get_trp_primaryrange(), 175, 138);
+	draw_turnswitch(gm, 256, 384, 159, 2, player->get_trp_secondaryrange(), 0, 139);
+	draw_turnswitch(gm, 512, 384, 161, 2, player->get_trp_initialturn(), 0, 140);
+	draw_turnswitch(gm, 768, 384, 163, 2, player->get_trp_searchpattern(), 176, 141);
 
 	// tube handling. compute coordinates for display and mouse use	
 	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
 	vector<pair<int, int> > tubecoords(torpedoes.size());
 	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();
 	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
-	pair<unsigned, unsigned> bow_storage_indices = player->get_bow_storage_indices();
-	pair<unsigned, unsigned> stern_storage_indices = player->get_stern_storage_indices();
-	pair<unsigned, unsigned> bow_top_storage_indices = player->get_bow_top_storage_indices();
-	pair<unsigned, unsigned> stern_top_storage_indices = player->get_stern_top_storage_indices();
+	pair<unsigned, unsigned> bow_reserve_indices = player->get_bow_reserve_indices();
+	pair<unsigned, unsigned> stern_reserve_indices = player->get_stern_reserve_indices();
+	pair<unsigned, unsigned> bow_deckreserve_indices = player->get_bow_deckreserve_indices();
+	pair<unsigned, unsigned> stern_deckreserve_indices = player->get_stern_deckreserve_indices();
 	unsigned k = bow_tube_indices.second - bow_tube_indices.first;
 	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
 		tubecoords[i].first = 0;
 		tubecoords[i].second = 192+(i-k/2)*16;	
 	}
-	for (unsigned i = bow_storage_indices.first; i < bow_storage_indices.second; ++i) {
-		unsigned j = i - bow_storage_indices.first;
+	for (unsigned i = bow_reserve_indices.first; i < bow_reserve_indices.second; ++i) {
+		unsigned j = i - bow_reserve_indices.first;
 		tubecoords[i].first = 192+(j/k)*128;
 		tubecoords[i].second = 192+(j%k-k/2)*16;	
 	}
-	for (unsigned i = bow_top_storage_indices.first; i < bow_top_storage_indices.second; ++i) {
-		unsigned j = i - bow_top_storage_indices.first;
+	for (unsigned i = bow_deckreserve_indices.first; i < bow_deckreserve_indices.second; ++i) {
+		unsigned j = i - bow_deckreserve_indices.first;
 		tubecoords[i].first = 192+(j/2)*128;
 		tubecoords[i].second = 96+(j%2)*16;	
 	}
@@ -548,13 +548,13 @@ void submarine_interface::display_torpedoroom(game& gm)
 		tubecoords[i].first = 896;
 		tubecoords[i].second = 160+j*16;	
 	}
-	for (unsigned i = stern_storage_indices.first; i < stern_storage_indices.second; ++i) {
-		unsigned j = i - stern_storage_indices.first;
+	for (unsigned i = stern_reserve_indices.first; i < stern_reserve_indices.second; ++i) {
+		unsigned j = i - stern_reserve_indices.first;
 		tubecoords[i].first = 704;
 		tubecoords[i].second = 160+j*16;	
 	}
-	for (unsigned i = stern_top_storage_indices.first; i < stern_top_storage_indices.second; ++i) {
-		unsigned j = i - stern_top_storage_indices.first;
+	for (unsigned i = stern_deckreserve_indices.first; i < stern_deckreserve_indices.second; ++i) {
+		unsigned j = i - stern_deckreserve_indices.first;
 		tubecoords[i].first = 704-(j/2)*128;
 		tubecoords[i].second = 96+(j%2)*16;
 	}
@@ -562,30 +562,16 @@ void submarine_interface::display_torpedoroom(game& gm)
 	// draw tubes
 	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i)
 		draw_torpedo(gm, true, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
-	for (unsigned i = bow_storage_indices.first; i < bow_storage_indices.second; ++i)
+	for (unsigned i = bow_reserve_indices.first; i < bow_reserve_indices.second; ++i)
 		draw_torpedo(gm, true, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
-	for (unsigned i = bow_top_storage_indices.first; i < bow_top_storage_indices.second; ++i)
+	for (unsigned i = bow_deckreserve_indices.first; i < bow_deckreserve_indices.second; ++i)
 		draw_torpedo(gm, true, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
 	for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i)
 		draw_torpedo(gm, false, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
-	for (unsigned i = stern_storage_indices.first; i < stern_storage_indices.second; ++i)
+	for (unsigned i = stern_reserve_indices.first; i < stern_reserve_indices.second; ++i)
 		draw_torpedo(gm, false, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
-	for (unsigned i = stern_top_storage_indices.first; i < stern_top_storage_indices.second; ++i)
+	for (unsigned i = stern_deckreserve_indices.first; i < stern_deckreserve_indices.second; ++i)
 		draw_torpedo(gm, false, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
-	
-	// collect and draw type info
-	set<unsigned> torptypes;
-	for (unsigned i = 0; i < torpedoes.size(); ++i)
-		if (torpedoes[i].type != torpedo::none)
-			torptypes.insert(torpedoes[i].type);
-	unsigned px = (1024-torptypes.size()*256)/2;
-	for (set<unsigned>::iterator it = torptypes.begin(); it != torptypes.end(); ++it) {
-		color::white().set_gl_color();
-		notepadsheet->draw(px, 512);
-		torptex(*it)->draw(px+64, 548);
-		font_arial->print(px+16, 576, texts::get(300+*it-1), color(0,0,128));
-		px += 256;
-	}
 	
 	// mouse handling
 	int mx, my, mb = system::sys().get_mouse_buttons();
@@ -623,11 +609,11 @@ void submarine_interface::display_torpedoroom(game& gm)
 		}
 		
 		// torpedo programming buttons
-		if (my >= 256 && my < 512) {
-			if (mx < 256) gm.send(new command_set_trp_primaryrange(player, turnswitch_input(mx, my-256, 17)));
-			else if (mx < 512) gm.send(new command_set_trp_secondaryrange(player, turnswitch_input(mx-256, my-256, 2)));
-			else if (mx < 768) gm.send(new command_set_trp_initialturn(player, turnswitch_input(mx-512, my-256, 2)));
-			else gm.send(new command_set_trp_searchpattern(player, turnswitch_input(mx-768, my-256, 2)));
+		if (my >= 384 && my < 640) {
+			if (mx < 256) gm.send(new command_set_trp_primaryrange(player, turnswitch_input(mx, my-384, 17)));
+			else if (mx < 512) gm.send(new command_set_trp_secondaryrange(player, turnswitch_input(mx-256, my-384, 2)));
+			else if (mx < 768) gm.send(new command_set_trp_initialturn(player, turnswitch_input(mx-512, my-384, 2)));
+			else gm.send(new command_set_trp_searchpattern(player, turnswitch_input(mx-768, my-384, 2)));
 		}
 	
 	} else {
@@ -642,6 +628,16 @@ void submarine_interface::display_torpedoroom(game& gm)
 			gm.send(new command_transfer_torpedo(player, torptranssrc, mouseovertube));
 		}
 		torptranssrc = 0xffff;
+
+		// display type info
+		if (	mouseovertube < torpedoes.size()
+				&& torpedoes[mouseovertube].type != torpedo::none
+				&& torpedoes[mouseovertube].status == submarine::stored_torpedo::st_loaded) {
+			color::white().set_gl_color();
+			notepadsheet->draw(mx, my);
+			torptex(torpedoes[mouseovertube].type)->draw(mx+64, my+36);
+			font_arial->print(mx+16, my+60, texts::get(300+torpedoes[mouseovertube].type-1), color(0,0,128));
+		}
 	}
 		
 	// draw line for torpedo transfer if button down
