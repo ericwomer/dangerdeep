@@ -51,7 +51,7 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 					ostringstream oss;
 					oss << texts::get(49);
 					if ( target )
-						oss << " " << texts::get(46) << ": " << target->get_description ( 2 );
+						oss << " " << texts::get(6) << ": " << target->get_description ( 2 );
 					add_captains_log_entry( gm, oss.str () );
 					play_sound_effect ( se_submarine_torpedo_launch );
 				}
