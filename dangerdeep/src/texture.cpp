@@ -23,6 +23,8 @@ using namespace std;
 
 
 unsigned texture::mem_used = 0;
+unsigned texture::mem_alloced = 0;
+unsigned texture::mem_freed = 0;
 
 
 void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
@@ -201,9 +203,14 @@ void texture::init(const Uint8* data, bool makenormalmap, float detailh)
 		}
 	}
 
+	if (do_mipmap)
+		add_mem_used = (4*add_mem_used)/3;
 	mem_used += add_mem_used;
-	ostringstream oss; oss << "Allocated " << add_mem_used << " bytes of video memory for texture '" << texfilename << "', total video mem use " << mem_used/1024 << " kb (without MipMaps)";
+	ostringstream oss; oss << "Allocated " << add_mem_used << " bytes of video memory for texture '" << texfilename << "', total video mem use " << mem_used/1024 << " kb";
 	sys().add_console(oss.str());
+	mem_alloced += add_mem_used;
+	ostringstream oss2; oss2 << "Video mem usage " << mem_alloced << " vs " << mem_freed;
+	sys().add_console(oss2.str());
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mapping);
@@ -313,10 +320,20 @@ texture::texture(const Uint8* pixels, unsigned w, unsigned h, int format_,
 
 texture::~texture()
 {
+	bool do_mipmap = (mapping == GL_NEAREST_MIPMAP_NEAREST
+			  || mapping == GL_NEAREST_MIPMAP_LINEAR
+			  || mapping == GL_LINEAR_MIPMAP_NEAREST
+			  || mapping == GL_LINEAR_MIPMAP_LINEAR );
+
 	unsigned sub_mem_used = gl_width * gl_height * get_bpp();
+	if (do_mipmap)
+		sub_mem_used = (4*sub_mem_used)/3;
 	mem_used -= sub_mem_used;
-	ostringstream oss; oss << "Freed " << sub_mem_used << " bytes of video memory for texture '" << texfilename << "', total video mem use " << mem_used/1024 << " kb (without MipMaps)";
+	ostringstream oss; oss << "Freed " << sub_mem_used << " bytes of video memory for texture '" << texfilename << "', total video mem use " << mem_used/1024 << " kb";
 	sys().add_console(oss.str());
+	mem_freed += sub_mem_used;
+	ostringstream oss2; oss2 << "Video mem usage " << mem_alloced << " vs " << mem_freed;
+	sys().add_console(oss2.str());
 	glDeleteTextures(1, &opengl_name);
 }
 

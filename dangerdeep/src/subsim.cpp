@@ -1247,6 +1247,7 @@ int mymain(list<string>& args)
 			make_dir(configdirectory);
 		}
 		mycfg.save(configdirectory + "config");
+		//fixme: memory leak here, close_dir() is missing. make class for directory?
 	}
 
 	// command line argument parsing

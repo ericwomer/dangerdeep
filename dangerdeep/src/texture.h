@@ -52,6 +52,8 @@ protected:
 	static void make_normals(Uint8* dst, const Uint8* src, unsigned w, unsigned h, float detailh);
 
 	static unsigned mem_used;
+	static unsigned mem_alloced;
+	static unsigned mem_freed;
 
 public:
 	// if "makenormalmap" is true, format must be GL_LUMINANCE.
