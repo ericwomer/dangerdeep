@@ -80,8 +80,7 @@ protected:
 	*/
 	virtual void calculate_fuel_factor ( double delta_time );
 
-	//fixme: replace by unsigned smoke_type; // 0 - none, 1-x different types
-	class smoke_stream* mysmoke;
+	unsigned smoke_type;	// 0 - none, 1-x particle type
 	vector3 smokerelpos;	// read from spec file
 	
 	// common constructor. set attributes to sane values.
@@ -126,8 +125,7 @@ public:
 	virtual void remember_position(void);
 	virtual list<vector2> get_previous_positions(void) const { return previous_positions; }
 
-	virtual bool has_smoke(void) const { return mysmoke != 0; }
-	virtual void smoke_display(double degr) const;
+	virtual bool has_smoke(void) const { return smoke_type != 0; }
 
 	virtual bool damage(const vector3& fromwhere, unsigned strength);
 	virtual unsigned calc_damage(void) const;	// returns damage in percent (100 means dead)

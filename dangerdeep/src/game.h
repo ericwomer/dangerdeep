@@ -16,6 +16,7 @@ using namespace std;
 
 // use forward declarations to avoid unneccessary compile dependencies
 class ship;
+class submarine;
 class airplane;
 class torpedo;
 class depth_charge;
@@ -26,9 +27,9 @@ class sea_object;
 class water_splash;
 class network_connection;
 class user_interface;
+class particle;
+class convoy;
 
-#include "submarine.h"
-#include "convoy.h"
 #include "angle.h"
 #include "date.h"
 #include "vector2.h"
@@ -114,6 +115,7 @@ protected:
 	list<gun_shell*> gun_shells;
 	list<convoy*> convoys;
 	list<water_splash*> water_splashs;
+	list<particle*> particles;
 	run_state my_run_state;
 	bool stopexec;	// if this is true, execution stops and the menu is displayed
 	
@@ -214,6 +216,7 @@ public:
 	virtual void visible_depth_charges(list<depth_charge*>& result, const sea_object* o);
 	virtual void visible_gun_shells(list<gun_shell*>& result, const sea_object* o);
 	virtual void visible_water_splashes ( list<water_splash*>& result, const sea_object* o );
+	virtual void visible_particles ( list<particle*>& result, const sea_object* o ) { result = particles; };//fixme
 	// computes visible ships, submarines (surfaced) and airplanes
 	virtual vector<sea_object*> visible_surface_objects(const sea_object* o);
 
@@ -237,6 +240,7 @@ public:
 	void spawn_depth_charge(depth_charge* dc);
 	void spawn_convoy(convoy* cv);
 	void spawn_water_splash ( water_splash* ws );
+	void spawn_particle ( particle* pt );
 
 	// simulation events
 //fixme: send messages about them to ui (remove sys-console printing in torpedo.cpp etc)
@@ -295,6 +299,7 @@ public:
 	void write(ostream& out, const gun_shell* s) const;
 	void write(ostream& out, const convoy* s) const;
 	void write(ostream& out, const water_splash* s) const;
+	//void write(ostream& out, const particle* p) const;//fixme: replace with particle write function
 	void write(ostream& out, const sea_object* s) const;
 	ship* read_ship(istream& in) const;
 	submarine* read_submarine(istream& in) const;

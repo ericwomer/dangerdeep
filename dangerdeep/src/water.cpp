@@ -348,6 +348,7 @@ void water::cleanup_textures(void) const
 
 
 
+//function is nearly the same as get_height, it just adds extra detail
 vector3f water::compute_coord(int phase, const vector2& xypos, const vector2& transl) const
 {
 	// generate values with mipmap function (needs viewer pos.)

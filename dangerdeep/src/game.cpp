@@ -30,6 +30,8 @@
 #include "ship_interface.h"
 #include "tokencodes.h"
 #include "texts.h"
+#include "convoy.h"
+#include "particle.h"
 #include "sensors.h"
 #include "command.h"
 #include "network.h"
@@ -648,11 +650,21 @@ void game::simulate(double delta_t)
 	{
 		list<water_splash*>::iterator it2 = it++;
 		if ( !(*it2)->is_dead () ) {
-			(*it2)->simulate ( *this, delta_t );
+			(*it2)->simulate(*this, delta_t);
 		}
 		else {
 			delete (*it2);
 			water_splashs.erase ( it2 );
+		}
+	}
+	for (list<particle*>::iterator it = particles.begin(); it != particles.end (); )
+	{
+		list<particle*>::iterator it2 = it++;
+		if (!(*it2)->is_dead ()) {
+			(*it2)->simulate(*this, delta_t);
+		} else {
+			delete (*it2);
+			particles.erase(it2);
 		}
 	}
 	time += delta_t;
@@ -948,6 +960,11 @@ void game::spawn_convoy(convoy* cv)
 void game::spawn_water_splash ( water_splash* ws )
 {
 	water_splashs.push_back ( ws );
+}
+
+void game::spawn_particle(particle* pt)
+{
+	particles.push_back(pt);
 }
 
 

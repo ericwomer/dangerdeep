@@ -207,13 +207,6 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
 */
 
 		glPopMatrix();
-
-		// fixme: all effects with alpha != 1.0 have to be sorted by depth.
-		// all use billboarding, so maybe create common parent for them
-		if ((*it)->has_smoke()) {
-			double view_dir = 90.0f - angle ( (*it)->get_pos ().xy () - player->get_pos ().xy () ).value ();
-			(*it)->smoke_display (view_dir);
-		}
 	}
 
 	list<submarine*> submarines;

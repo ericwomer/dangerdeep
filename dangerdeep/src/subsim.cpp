@@ -19,6 +19,7 @@
 #include "model.h"
 #include "texture.h"
 #include "game.h"
+#include "ship.h"
 #include "global_data.h"
 #include "texts.h"
 #include "date.h"

@@ -8,14 +8,17 @@
 #include "tokencodes.h"
 #include "sensors.h"
 #include "ai.h"
-#include "smoke_stream.h"
 #include "system.h"
+#include "particle.h"
 #include "tinyxml/tinyxml.h"
 
 
+//fixme: redefine display, call base display, add spray at bow (2 quads with spray texture, maybe animated,
+//parallel to bow hull sides ~ 30degrees or so)
+
 
 // empty c'tor is needed by heirs
-ship::ship() : myai(0), mysmoke(0)
+ship::ship() : myai(0), smoke_type(0)
 {
 	init();
 }
@@ -67,7 +70,7 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 	if (emotion->Attribute("turnrate", &tmp))
 		turn_rate = tmp;
 	TiXmlElement* esmoke = hdftdship.FirstChildElement("smoke").Element();
-	mysmoke = 0;
+	smoke_type = 0;
 	if (esmoke) {
 		int smtype = 0;
 		esmoke->Attribute("type", &smtype);
@@ -77,7 +80,7 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 			esmpos->Attribute("x", &smokerelpos.x);
 			esmpos->Attribute("y", &smokerelpos.y);
 			esmpos->Attribute("z", &smokerelpos.z);
-			mysmoke = new smoke_stream(position+smokerelpos, 2);
+			smoke_type = 1;
 		}
 	}
 	TiXmlElement* eai = hdftdship.FirstChildElement("ai").Element();
@@ -99,7 +102,6 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 ship::~ship()
 {
 	delete myai;
-	delete mysmoke;
 }
 
 
@@ -107,7 +109,6 @@ ship::~ship()
 void ship::sink(void)
 {
 	sea_object::kill();
-	if (mysmoke) mysmoke->kill();
 }
 
 
@@ -317,10 +318,13 @@ void ship::simulate(game& gm, double delta_time)
 	// Adjust fuel_level.
 	calculate_fuel_factor ( delta_time );
 	
-	if (mysmoke) {
-		if (is_alive())
-			mysmoke->set_source(position + smokerelpos);
-		mysmoke->simulate(gm, delta_time);
+	// place smoke particle generation logic here fixme
+	if (is_alive() && smoke_type != 0) {//replace by has_particle
+		double produce_time = smoke_particle::get_produce_time();
+		double t = myfmod(gm.get_time(), produce_time);
+		if (t < produce_time && t + delta_time >= produce_time) {
+			gm.spawn_particle(new smoke_particle(position + smokerelpos));//fixme: maybe add some random offset
+		}
 	}
 
 	// steering logic, adjust rudder pos so that heading matches head_to
@@ -383,13 +387,6 @@ void ship::head_to_ang(const angle& a, bool left_or_right)	// true == left
 	//not crude with steering logic somewhere else... in simulate
 	rudder_to = (left_or_right) ? rudderfullleft : rudderfullright;
 	head_to_fixed = true;
-}
-
-
-
-void ship::smoke_display(double degr) const
-{
-	if (mysmoke) mysmoke->display(degr);
 }
 
 
