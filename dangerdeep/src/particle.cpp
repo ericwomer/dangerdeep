@@ -316,19 +316,15 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 		vector3 pp = (mvtrans + (*it)->get_pos() - viewpos);
 		pds.push_back(particle_dist(*it, pp.square_length(), pp));
 	}
-//fixme: this seems to be the problem... add a copy c'tor / operator= to helper class?
-//not sorting seems to help!
-//but without spray particles sorting never caused a problem...
-//	sort(pds.begin(), pds.end());
+	sort(pds.begin(), pds.end());
 
 	glDisable(GL_LIGHTING);
 	//glNormal3f(0, 0, 1);
 
-	// generate coordinates
-	vector<vector3> coords(4*pds.size());
-	for (unsigned i = 0; i < pds.size(); ++i) {
-		const particle& part = *(pds[i].pt);
-		const vector3& z = -pds[i].projpos;
+	// draw particles, generate coordinates on the fly
+	for (vector<particle_dist>::reverse_iterator it = pds.rbegin(); it != pds.rend(); ++it) {
+		const particle& part = *(it->pt);
+		const vector3& z = -it->projpos;
 		vector3 y = vector3(0, 0, 1);
 		vector3 x = y.cross(z).normal();
 		if (!part.is_z_up())//fixme
@@ -336,31 +332,23 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 		double w2 = part.get_width()/2;
 		double h2 = part.get_height()/2;
 		vector3 pp = part.get_pos() - viewpos;
-		coords[4*i+0] = pp + x * -w2 + y * h2;
-		coords[4*i+1] = pp + x * -w2 + y * -h2;
-		coords[4*i+2] = pp + x * w2 + y * -h2;
-		coords[4*i+3] = pp + x * w2 + y * h2;
-	}
-
-	// draw arrays
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_DOUBLE, sizeof(vector3), &coords[0].x);
-	glClientActiveTexture(GL_TEXTURE0);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
-	
-	vector2f texcs[4] = { vector2f(0, 0), vector2f(0, 1), vector2f(1, 1), vector2f(1, 0) };
-	for (unsigned i = 0; i < pds.size(); ++i) {
-		pds[i].pt->set_texture(gm);//not valid between glBegin and glEnd
+		vector3 coord;
+		part.set_texture(gm);//not valid between glBegin and glEnd
 		glBegin(GL_QUADS);
-		for (unsigned j = 0; j < 4; ++j) {
-			glTexCoord2fv(&texcs[j].x);
-			glArrayElement(4 * i + j);
-		}
+		coord = pp + x * -w2 + y * h2;
+		glTexCoord2f(0, 0);
+		glVertex3dv(&coord.x);
+		coord = pp + x * -w2 + y * -h2;
+		glTexCoord2f(0, 1);
+		glVertex3dv(&coord.x);
+		coord = pp + x * w2 + y * -h2;
+		glTexCoord2f(1, 1);
+		glVertex3dv(&coord.x);
+		coord = pp + x * w2 + y * h2;
+		glTexCoord2f(1, 0);
+		glVertex3dv(&coord.x);
 		glEnd();
 	}
-	glDisableClientState(GL_VERTEX_ARRAY);
 
 	glEnable(GL_LIGHTING);
 	glDepthMask(GL_TRUE);
@@ -546,6 +534,8 @@ double fire_particle::get_life_time(void) const
 }
 
 
+
+// spray
 
 spray_particle::spray_particle(const vector3& pos, const vector3& velo) : particle(pos, velo)
 {
