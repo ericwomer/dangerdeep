@@ -224,13 +224,13 @@ void game::simulate(double delta_t)
 
 void game::visible_ships(list<ship*>& result, const sea_object* o)
 {
-	const Sensor* s = o->get_sensor ( SensorFactory::LookoutSystem );
+	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
 	if ( s )
 	{
-		const LookoutSensor* ls = s->getLookoutSensor ();
+		const lookout_sensor* ls = s->get_lookout_sensor ();
 		for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
 		{
-			if ( ls->isDetected ( this, o, *it ) )
+			if ( ls->is_detected ( this, o, *it ) )
 				result.push_back (*it);
 		}
 	}
@@ -247,14 +247,14 @@ bool is_in_ellipse(const vector2& p, double xl, double yl, angle& head)
 
 void game::visible_submarines(list<submarine*>& result, const sea_object* o)
 {
-	const Sensor* s = o->get_sensor ( SensorFactory::LookoutSystem );
+	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
 	if ( s )
 	{
-		const LookoutSensor* ls = s->getLookoutSensor ();
+		const lookout_sensor* ls = s->get_lookout_sensor ();
 		for (list<submarine*>::iterator it = submarines.begin();
 			it != submarines.end(); ++it)
 		{
-			if ( ls->isDetected ( this, o, *it ) )
+			if ( ls->is_detected ( this, o, *it ) )
 				result.push_back (*it);
 		}
 	}
@@ -262,14 +262,14 @@ void game::visible_submarines(list<submarine*>& result, const sea_object* o)
 
 void game::visible_airplanes(list<airplane*>& result, const sea_object* o)
 {
-	const Sensor* s = o->get_sensor ( SensorFactory::LookoutSystem );
+	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
 	if ( s )
 	{
-		const LookoutSensor* ls = s->getLookoutSensor ();
+		const lookout_sensor* ls = s->get_lookout_sensor ();
 		for (list<airplane*>::iterator it = airplanes.begin();
 			it != airplanes.end(); ++it)
 		{
-			if ( ls->isDetected ( this, o, *it ) )
+			if ( ls->is_detected ( this, o, *it ) )
 				result.push_back (*it);
 		}
 	}
@@ -277,14 +277,14 @@ void game::visible_airplanes(list<airplane*>& result, const sea_object* o)
 
 void game::visible_torpedoes(list<torpedo*>& result, const sea_object* o)
 {
-	const Sensor* s = o->get_sensor ( SensorFactory::LookoutSystem );
+	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
 	if ( s )
 	{
-		const LookoutSensor* ls = s->getLookoutSensor ();
+		const lookout_sensor* ls = s->get_lookout_sensor ();
 		for (list<torpedo*>::iterator it = torpedoes.begin();
 			it != torpedoes.end(); ++it)
 		{
-			if ( ls->isDetected ( this, o, *it ) )
+			if ( ls->is_detected ( this, o, *it ) )
 				result.push_back (*it);
 		}
 	}
@@ -292,14 +292,14 @@ void game::visible_torpedoes(list<torpedo*>& result, const sea_object* o)
 
 void game::visible_depth_charges(list<depth_charge*>& result, const sea_object* o)
 {
-	const Sensor* s = o->get_sensor ( SensorFactory::LookoutSystem );
+	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
 	if ( s )
 	{
-		const LookoutSensor* ls = s->getLookoutSensor ();
+		const lookout_sensor* ls = s->get_lookout_sensor ();
 		for (list<depth_charge*>::iterator it = depth_charges.begin();
 			it != depth_charges.end(); ++it)
 		{
-			if ( ls->isDetected ( this, o, *it ) )
+			if ( ls->is_detected ( this, o, *it ) )
 				result.push_back (*it);
 		}
 	}
@@ -307,14 +307,14 @@ void game::visible_depth_charges(list<depth_charge*>& result, const sea_object* 
 
 void game::visible_gun_shells(list<gun_shell*>& result, const sea_object* o)
 {
-	const Sensor* s = o->get_sensor ( SensorFactory::LookoutSystem );
+	const sensor* s = o->get_sensor ( sensor_factory::lookout_system );
 	if ( s )
 	{
-		const LookoutSensor* ls = s->getLookoutSensor ();
+		const lookout_sensor* ls = s->get_lookout_sensor ();
 		for (list<gun_shell*>::iterator it = gun_shells.begin();
 			it != gun_shells.end(); ++it)
 		{
-			if ( ls->isDetected ( this, o, *it ) )
+			if ( ls->is_detected ( this, o, *it ) )
 				result.push_back (*it);
 		}
 	}
@@ -322,29 +322,54 @@ void game::visible_gun_shells(list<gun_shell*>& result, const sea_object* o)
 
 void game::sonar_ships ( list<ship*>& result, const sea_object* o )
 {
-	const Sensor* s = o->get_sensor ( SensorFactory::PassiveSonarSystem );
+	const sensor* s = o->get_sensor ( sensor_factory::passive_sonar_system );
 	if ( s )
 	{
-		const PassiveSonarSensor* ss = s->getPassiveSonarSensor ();
-		for (list<ship*>::iterator it = ships.begin ();
-			it != ships.end (); it++ )
+		// collect the nearest contacts, limited to some value!
+		vector<pair<double, ship*> > contacts ( MAX_ACUSTIC_CONTACTS, make_pair ( 1e30, (ship*) 0 ) );
+
+		for ( list<ship*>::iterator it = ships.begin (); it != ships.end (); ++it) {
+			double d = (*it)->get_pos ().xy ().square_distance ( o->get_pos ().xy () );
+			unsigned i = 0;
+			for ( ; i < contacts.size (); ++i )
+			{
+				if ( contacts[i].first > d )
+					break;
+			}
+
+			if ( i < contacts.size () )
+			{
+				for ( unsigned j = contacts.size ()-1; j > i; --j )
+					contacts[j] = contacts[j-1];
+
+				contacts[i] = make_pair ( d, *it );
+			}
+		}
+
+		unsigned size = contacts.size ();
+		const passive_sonar_sensor* pss = s->get_passive_sonar_sensor ();
+		for (unsigned i = 0; i < size; i++ )
 		{
-			if ( ss->isDetected ( this, o, *it ) )
-				result.push_back (*it);
+			ship* s = contacts[i].second;
+			if ( s == 0 )
+				break;
+
+			if ( pss->is_detected ( this, o, s ) )
+				result.push_back ( s );
 		}
     }
 }
 
 void game::sonar_submarines ( list<submarine*>& result, const sea_object* o )
 {
-	const Sensor* s = o->get_sensor ( SensorFactory::PassiveSonarSystem );
+	const sensor* s = o->get_sensor ( sensor_factory::passive_sonar_system );
 	if ( s )
 	{
-		const PassiveSonarSensor* ss = s->getPassiveSonarSensor ();
+		const passive_sonar_sensor* pss = s->get_passive_sonar_sensor ();
 		for (list<submarine*>::iterator it = submarines.begin ();
 			it != submarines.end (); it++ )
 		{
-			if ( ss->isDetected ( this, o, *it ) )
+			if ( pss->is_detected ( this, o, *it ) )
 				result.push_back (*it);
 		}
 	}
@@ -410,27 +435,27 @@ void game::ship_sunk(unsigned tons)
 }
 
 void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
-	const bool& moveSensor, const angle& dir )
+	const bool& move_sensor, const angle& dir )
 {
-	Sensor* s = d->get_sensor ( SensorFactory::ActiveSonarSystem );
+	sensor* s = d->get_sensor ( sensor_factory::active_sonar_system );
 	if ( s )
 	{
-		ActiveSonarSensor* ss = s->getActiveSonarSensor ();
+		active_sonar_sensor* ass = s->get_active_sonar_sensor ();
 
-		if ( !moveSensor )
-			ss->setBearing( dir - d->get_heading () );
+		if ( !move_sensor )
+			ass->set_bearing( dir - d->get_heading () );
 
 		// remember ping (for drawing)
 		pings.push_back ( ping ( d->get_pos ().xy (),
-			ss->getBearing () + d->get_heading (), time,
-			ss->getRange (), ss->getDetectionCone () ) );
+			ass->get_bearing () + d->get_heading (), time,
+			ass->get_range (), ass->get_detection_cone () ) );
 
 		// fixme: noise from ships can disturb ASDIC or may generate more contacs.
 		// ocean floor echoes ASDIC etc...
 		for ( list<submarine*>::iterator it = submarines.begin ();
 			it != submarines.end (); ++it )
 		{
-			if ( ss->isDetected ( this, d, *it ) )
+			if ( ass->is_detected ( this, d, *it ) )
 			{
 				contacts.push_back((*it)->get_pos () +
 					vector3 ( rnd ( 40 ) - 20.0f, rnd ( 40 ) - 20.0f,
@@ -438,16 +463,16 @@ void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
 			}
 		}
 
-		if ( moveSensor )
+		if ( move_sensor )
 		{
-			Sensor::SensorMoveMode mode = Sensor::Sweep;
+			sensor::sensor_move_mode mode = sensor::sweep;
 			// Ships cannot rotate the active sonar sensor because of
 			// their screws. A submarine can do so when it is submerged
 			// and running on electric engines.
 			submarine* sub = d->get_submarine_ptr ();
 			if ( sub && sub->is_submerged() && sub->is_electric_engine() )
-				mode = Sensor::Rotate;
-			ss->autoMoveBearing ( mode );
+				mode = sensor::rotate;
+			ass->auto_move_bearing ( mode );
 		}
 	}
 }
@@ -597,6 +622,11 @@ bool game::is_collision(const sea_object* s, const vector2& pos) const
 		}
 	}
 	return false;
+}
+
+double game::get_depth_factor ( const vector3& sub ) const
+{
+	return ( 1.0f - 0.5f * sub.z / 400.0f );
 }
 
 // main play loop

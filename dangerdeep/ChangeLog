@@ -1,3 +1,20 @@
+2003-04-05  Markus Petermann  <m.petermann@gmx.net>
+
+	* game.cpp:
+	  - Passive sonar contacts are grouped and not more than 5 are displayed.
+	  - New method get_depth_factor introduced.
+
+	* sensors.h, sensors.cpp:
+	  - Method do_noise_mod removed. This is a ship, submarine etc. specific value.
+
+	* sea_object.h, sea_object.cpp, submarine.h, submarine.cpp:
+	  - New method get_noise_factor introduced.
+
+	* gun_shell.cpp:
+	  - Error in method simulate corrected. The position of the shell is now
+	    calculated correctly. But their is still something to do within the
+	    ai module to adjust the firing parameter (elevation and direction).
+
 2003-04-04  Markus Petermann  <m.petermann@gmx.net>
 
 	* submarine.h, submarine.cpp, submarine_VII.cpp, submarine_XXI.cpp:
