@@ -8,80 +8,106 @@
 #include <sstream>
 
 
+#define MAX_CACHE_SIZE 2
+
+
 unsigned image::mem_used = 0;
 unsigned image::mem_alloced = 0;
 unsigned image::mem_freed = 0;
 
 
 // cache
-const image* image::cached_object = 0;
-unsigned image::gltx = 0;
-unsigned image::glty = 0;
-vector<texture*> image::textures;
-// fixme: if the program needs to display more than one image as once the cache
-// will get mad and cause a severe slowdown.
-// we need a real cache with aging counter:
-// - cache every that is drawn
-// - each time an image is drawn set its cache timestamp to current time
-// - each time a new object is stored in the cache (or one is drawn), check all time stamps
-//   all images with timestamps older than n seconds are discarded.
-// that way the cache size will increase dramatically, especially if the user switches
-// screens fast causing many images to be created.
-// so limit cache to the size of 2-3 full screen images and offer a clear_cache() function
-// that is called by ui when user changes screens.
+list<image::cache_entry> image::cache;
 
-
-void image::clear_cache(void)
+image::cache_entry& image::check_cache(const image* obj)
 {
-	for (vector<texture*>::iterator it = textures.begin(); it != textures.end(); ++it)
-		delete *it;
-	textures.clear();
-	gltx = glty = 0;
-	cached_object = 0;
+	// check if image is already stored in cache
+	for (list<cache_entry>::iterator it = cache.begin(); it != cache.end(); ++it) {
+		if (it->object == obj) {
+			// everything is fine
+			it->time_stamp = sys().millisec();
+			return *it;
+		}
+	}
+
+	// image is not in cache, so expand cache or kill oldest image
+	// we could limit cache by memory size and not entry count...
+	if (cache.size() < MAX_CACHE_SIZE) {
+		cache.push_back(cache_entry());
+		cache.back().generate(obj);
+		return cache.back();
+	}
+
+	// cache is full, replace oldest entry
+	list<cache_entry>::iterator oldest_entry = cache.begin();
+	for (list<cache_entry>::iterator it = cache.begin(); it != cache.end(); ++it) {
+		if (it->time_stamp < oldest_entry->time_stamp) {
+			oldest_entry = it;
+		}
+	}
+
+	cache.erase(oldest_entry);
+	cache.push_back(cache_entry());
+	cache.back().generate(obj);
+	return cache.back();
+}
+
+
+image::cache_entry::cache_entry() : object(0), time_stamp(0), gltx(0), glty(0)
+{
 }
 
 
 
-void image::check_cache(const image* obj)
+void image::cache_entry::generate(const image* obj)
 {
-	if (cached_object != obj) {
-		clear_cache();
-		cached_object = obj;
+	sys().myassert(object == 0, "internal image cache error");
 
-		// generate cache values
-		vector<unsigned> widths, heights;
-		unsigned maxs = texture::get_max_size();
+	object = obj;
 
-		// avoid wasting too much memory.
-		if (maxs > 256) maxs = 256;
+	// generate cache values
+	vector<unsigned> widths, heights;
+	unsigned maxs = texture::get_max_size();
 
-		unsigned w = obj->width, h = obj->height;
-		while (w > maxs) {
-			widths.push_back(maxs);
-			w -= maxs;
-		}
-		widths.push_back(w);
-		while (h > maxs) {
-			heights.push_back(maxs);
-			h -= maxs;
-		}
-		heights.push_back(h);
+	// avoid wasting too much memory.
+	if (maxs > 256) maxs = 256;
 
-		gltx = widths.size();
-		glty = heights.size();
-		textures.reserve(gltx*glty);
-		unsigned ch = 0;
-		for (unsigned y = 0; y < glty; ++y) {
-			unsigned cw = 0;
-			for (unsigned x = 0; x < gltx; ++x) {
-				textures.push_back(new texture(obj->img, cw, ch,
-							       widths[x], heights[y],
-							       GL_NEAREST, GL_CLAMP_TO_EDGE));
-				cw += widths[x];
-			}
-			ch += heights[y];
-		}
+	unsigned w = obj->width, h = obj->height;
+	while (w > maxs) {
+		widths.push_back(maxs);
+		w -= maxs;
 	}
+	widths.push_back(w);
+	while (h > maxs) {
+		heights.push_back(maxs);
+		h -= maxs;
+	}
+	heights.push_back(h);
+
+	gltx = widths.size();
+	glty = heights.size();
+	textures.reserve(gltx*glty);
+	unsigned ch = 0;
+	for (unsigned y = 0; y < glty; ++y) {
+		unsigned cw = 0;
+		for (unsigned x = 0; x < gltx; ++x) {
+			textures.push_back(new texture(obj->img, cw, ch,
+						       widths[x], heights[y],
+						       GL_NEAREST, GL_CLAMP_TO_EDGE));
+			cw += widths[x];
+		}
+		ch += heights[y];
+	}
+
+	time_stamp = sys().millisec();
+}
+
+
+
+image::cache_entry::~cache_entry()
+{
+	for (unsigned i = 0; i < textures.size(); ++i)
+		delete textures[i];
 }
 
 
@@ -114,8 +140,13 @@ image::~image()
 	ostringstream oss2; oss2 << "Image system mem usage " << mem_alloced << " vs " << mem_freed;
 	sys().add_console(oss2.str());
 
-	if (cached_object == this)
-		clear_cache();
+	for (list<cache_entry>::iterator it = cache.begin(); it != cache.end(); ++it) {
+		if (it->object == this) {
+			cache.erase(it);
+			break;
+		}
+	}
+
 	if (img)
 		SDL_FreeSurface(img);
 }
@@ -124,44 +155,47 @@ image::~image()
 
 void image::draw(int x, int y) const
 {
-	check_cache(this);
-	if (textures.size() > 0) {
-		unsigned texptr = 0;
-		int yp = y;
-		for (unsigned yy = 0; yy < glty; ++yy) {
-			int xp = x;
-			unsigned h = textures[texptr]->get_height();
-			for (unsigned xx = 0; xx < gltx; ++xx) {
-				textures[texptr]->draw(xp, yp);
-				xp += textures[texptr]->get_width();
-				++texptr;
-			}
-			yp += h;
+	cache_entry& ce = check_cache(this);
+	unsigned texptr = 0;
+	int yp = y;
+	for (unsigned yy = 0; yy < ce.glty; ++yy) {
+		int xp = x;
+		unsigned h = ce.textures[texptr]->get_height();
+		for (unsigned xx = 0; xx < ce.gltx; ++xx) {
+			ce.textures[texptr]->draw(xp, yp);
+			xp += ce.textures[texptr]->get_width();
+			++texptr;
 		}
-	} else {	// use DrawPixels instead
-		sys().myassert(false, "could should never reach this!");
-		sys().myassert(img->format->palette == 0, string("image: can't use paletted images for direct pixel draw (fixme), image '")+name+string("'"));
-		unsigned bpp = img->format->BytesPerPixel;
-		sys().myassert(bpp == 3 || bpp == 4, string("image: bpp must be 3 or 4 (RGB or RGBA), image '")+name+string("'"));
-
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glColor4f(1,1,1,1);
-		SDL_LockSurface(img);
-		GLenum pixelformat = (img->format->Amask != 0) ? GL_RGBA : GL_RGB;
-		unsigned pixelpitch = img->pitch / bpp;
-		// images with 3 bpp and an odd width could give problems (997*3=2991,pitch is 2992, doesn't work with OpenGL's pixel pitch)
-		if (pixelpitch * bpp == img->pitch) {
-			glRasterPos2i(x, y);
-			glPixelStorei(GL_UNPACK_ROW_LENGTH, img->pitch / bpp);
-			glDrawPixels(width, height, pixelformat, GL_UNSIGNED_BYTE, img->pixels);
-		} else {	// we have to draw each line individually
-			for (int l = 0; l < int(height); ++l) {
-				glRasterPos2i(x, y+l);
-				glDrawPixels(width, 1, pixelformat, GL_UNSIGNED_BYTE, (unsigned char*)(img->pixels) + img->pitch*l);
-			}
-		}
-		SDL_UnlockSurface(img);
-		glRasterPos2i(0, 0);	// fixme: the RedBook suggests using RasterPos 0.375 for 3d drawing, check if this must be set up here, too
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+		yp += h;
 	}
+}
+
+
+
+void image::draw_direct(int x, int y) const
+{
+	// no cache handling
+	sys().myassert(img->format->palette == 0, string("image: can't use paletted images for direct pixel draw (fixme), image '")+name+string("'"));
+	unsigned bpp = img->format->BytesPerPixel;
+	sys().myassert(bpp == 3 || bpp == 4, string("image: bpp must be 3 or 4 (RGB or RGBA), image '")+name+string("'"));
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glColor4f(1,1,1,1);
+	SDL_LockSurface(img);
+	GLenum pixelformat = (img->format->Amask != 0) ? GL_RGBA : GL_RGB;
+	unsigned pixelpitch = img->pitch / bpp;
+	// images with 3 bpp and an odd width could give problems (997*3=2991,pitch is 2992, doesn't work with OpenGL's pixel pitch)
+	if (pixelpitch * bpp == img->pitch) {
+		glRasterPos2i(x, y);
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, img->pitch / bpp);
+		glDrawPixels(width, height, pixelformat, GL_UNSIGNED_BYTE, img->pixels);
+	} else {	// we have to draw each line individually
+		for (int l = 0; l < int(height); ++l) {
+			glRasterPos2i(x, y+l);
+			glDrawPixels(width, 1, pixelformat, GL_UNSIGNED_BYTE, (unsigned char*)(img->pixels) + img->pitch*l);
+		}
+	}
+	SDL_UnlockSurface(img);
+	glRasterPos2i(0, 0);	// fixme: the RedBook suggests using RasterPos 0.375 for 3d drawing, check if this must be set up here, too
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }

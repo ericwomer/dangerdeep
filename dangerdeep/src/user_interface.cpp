@@ -63,6 +63,7 @@ user_interface::user_interface(game& gm) :
 	bearing_is_relative(true),
 	target(0),
 	current_display(0),
+	current_popup(0),
 	mysky(0),
 	mywater(0),
 	mycoastmap(get_map_dir() + "default.xml")
