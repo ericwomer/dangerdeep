@@ -422,8 +422,7 @@ fixme: check wether we have to count cw or ccw around the segment border!
 		}
 	}
 
-	if (next == 0xffffffff) return cln;//fixme hack
-//	assert(next != 0xffffffff);
+	assert(next != 0xffffffff);
 	return next;
 	
 
