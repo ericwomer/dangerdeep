@@ -17,15 +17,20 @@
 model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
 	*skyhemisphere;
+
 texture *water, *background, *titel[4], *periscope[4], *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
 	*clock12, *clock24, *threesubs[4], *glasses, *torp_expl_water_splash[3],
-	*logbook_spiral[2], *woodbackgr;
+	*logbook_spiral[2], *woodbackgr,
+	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked;
+	
 font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
+
 sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
+
 SDL_Surface* damage_screen_background, *sub_damage_scheme_all;
 
 void init_global_data(void)
@@ -105,6 +110,11 @@ void init_global_data(void)
 	woodbackgr = new texture ( ( get_data_dir () + TEXTURE_DIR + "wooden_desk.png" ) );
 	damage_screen_background = IMG_Load( (get_data_dir() + IMAGES_DIR + "damage_screen_backg.png").c_str() );
 	sub_damage_scheme_all = IMG_Load( (get_data_dir() + IMAGES_DIR + "sub_damage_scheme_all.png").c_str() );
+	repairlight = new texture( ( get_data_dir () + TEXTURE_DIR + "repairlight.png" ) );
+	repairmedium = new texture( ( get_data_dir () + TEXTURE_DIR + "repairmedium.png" ) );
+	repairheavy = new texture( ( get_data_dir () + TEXTURE_DIR + "repairheavy.png" ) );
+	repaircritical = new texture( ( get_data_dir () + TEXTURE_DIR + "repaircritical.png" ) );
+	repairwrecked = new texture( ( get_data_dir () + TEXTURE_DIR + "repairwrecked.png" ) );
 }
 
 void deinit_global_data(void)
@@ -176,6 +186,11 @@ void deinit_global_data(void)
 	delete woodbackgr;
 	SDL_FreeSurface(damage_screen_background);
 	SDL_FreeSurface(sub_damage_scheme_all);
+	delete repairlight;
+	delete repairmedium;
+	delete repairheavy;
+	delete repaircritical;
+	delete repairwrecked;
 }
 
 // returns 1939-1945, 1-12, 1-31

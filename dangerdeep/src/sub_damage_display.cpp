@@ -13,53 +13,52 @@ using namespace std;
 
 struct rect {
 	int x, y, w, h;
-	// values measured with gimp
-	rect(int xr, int yb, int wi, int he) : x(xr-wi), y(yb-he), w(wi), h(he) {};
+	rect(int x1, int y1, int x2, int y2) : x(x1), y(y1), w(x2-x1), h(y2-y1) {};
 };
 
 static rect rect_data[] = {
-	//fixme out of date
-	rect(105,116,25,10),	// fixme: measure directly in the program.
-	rect(129,144,22,30),
-	rect(169,148,20,28),
-	rect(286,141,85,10),
-	rect(148,336,26,68),
-	rect(201,116,46,10),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(300,313,24,22),
-	rect(362,141,56,24),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(628,144,72,24),
-	rect(467,141,95,24),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(720,144,76,24),
-	rect(545,106,10,80),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(0,0,0,0),
-	rect(0,0,0,0)
+	rect(108,115,128,143),	// rudder
+	rect(150,121,164,146),	// screws
+	rect(165,130,304,140),	// screw shaft
+	rect(123,268,146,336),	// stern dive planes
+	rect(0,0,0,0),	//       water pump
+	rect(147,277,274,331),	//       pressure hull
+	rect(275,290,300,312),	//       hatch
+	rect(314,122,355,145),	// electric engines
+	rect(0,0,0,0),	// air compressor
+	rect(0,0,0,0),	// machine water pump
+	rect(301,277,466,331),	//          pressure hull
+	rect(557,123,628,145),	// aft battery
+	rect(376,120,464,145),	// diesel engines
+	rect(0,0,0,0),	// kitchen hatch
+	rect(0,0,0,0),	// balance tank valves
+	rect(645,123,721,145),	// forward battery
+	rect(535,28,545,104),	// periscope
+	rect(467,277,575,331),	// central pressure hull
+	rect(0,0,0,0),	// bilge? water pump
+	rect(517,50,532,62),	// conning tower hatch
+	rect(0,0,0,0),	// listening device
+	rect(0,0,0,0),	// radio device
+	rect(808,103,825,132),	// inner bow tubes
+	rect(905,103,944,132),	// outer
+	rect(0,0,0,0),	// bow water pump
+	rect(732,293,756,314),	//     hatch
+	rect(576,277,731,331),	//     pressure hull
+	rect(877,270,906,341),	//     dive planes
+	rect(464,32,493,57),	// aa gun
+	rect(458,66,495,80),	// ammo depot
+	rect(323,261,673,277),	// outer fuel tanks (used left in image)
+
+	rect(84,107,106,115),	// outer stern tubes
+	rect(177,107,201,115),	// inner
+	rect(0,0,0,0),	// snorkel
+	rect(587,58,656,80),	// deck gun
+	rect(0,0,0,0),	// radio detection device
 };
 
 
 
-sub_damage_display::sub_damage_display (submarine* s) : mysub(s)  // fixme: give sub type
+sub_damage_display::sub_damage_display (submarine* s) : mysub(s)
 {
 }
 
@@ -67,9 +66,9 @@ sub_damage_display::~sub_damage_display ()
 {
 }
 
-void sub_damage_display::display_popup (int x, int y, const string& text, bool atbottom) const
+void sub_damage_display::display_popup (int x, int y, const string& text, bool atleft, bool atbottom) const
 {
-	int posx = 100, posy = atbottom ? 480 : 30, width = 320, height = 140;
+	int posx = atleft ? 100 : 604, posy = atbottom ? 480 : 30, width = 320, height = 140;
 	glBindTexture ( GL_TEXTURE_2D, 0 );
 	
 	color::red().set_gl_color();
@@ -99,6 +98,23 @@ void sub_damage_display::display ( class system& sys, class game& gm )
 	dstr.y = (damage_screen_background->h-sub_damage_scheme_all->h)/2;
 	SDL_BlitSurface(sub_damage_scheme_all, 0, SDL_GetVideoSurface(), &dstr);
 	SDL_UpdateRect(SDL_GetVideoSurface(), 0, 0, 1024, 640);
+
+	const vector<submarine::damage_status> damages = mysub->get_damage_status();
+	for (unsigned i = 0; i < damages.size(); ++i) {
+		rect r = rect_data[i];
+			if (r.x == 0) continue;	// display test hack fixme
+		int x = r.x + r.w/2 - 16, y = r.y + r.h/2 - 16 +
+			(damage_screen_background->h-sub_damage_scheme_all->h)/2;
+		texture* t = 0;
+		switch (damages[i]) {
+			case submarine::light: t = repairlight; break;
+			case submarine::medium: t = repairmedium; break;
+			case submarine::heavy: t = repairheavy; break;
+			case submarine::critical: t = repaircritical; break;
+			case submarine::wrecked: t = repairwrecked; break;
+		}
+		if (t)	sys.draw_image(x, y, 32, 32, t);
+	}
 }
 
 void sub_damage_display::check_key ( int keycode, class system& sys, class game& gm )
@@ -115,8 +131,9 @@ void sub_damage_display::check_mouse ( int x, int y, int mb )
 		r.y += (damage_screen_background->h-sub_damage_scheme_all->h)/2;
 		if (x >= r.x && x <= r.x+r.w && y >= r.y && y <= r.y+r.h) {
 			// it is important, that texts are in correct order starting with 103.fixme
+			bool atleft = (r.x+r.w/2) < 1024/2;
 			bool atbottom = (r.y+r.h/2) >= 768/2;
-			display_popup(r.x+r.w/2, r.y+r.h/2, texts::get(103+i), atbottom);
+			display_popup(r.x+r.w/2, r.y+r.h/2, texts::get(103+i), atleft, atbottom);
 		}
 	}
 }

@@ -31,33 +31,37 @@ public:
 
 	// submarine parts and their damages
 	// fixme: replace german names by correct translations
+	// lenzpumpe (water pump???)
+	// bilge???
+	// kitchen - kombuese?
+	// balance tank - trimmtank?
 	enum damageable_parts {
 		// common parts
 		rudder,
 		screws,
 		screw_shaft,
 		stern_dive_planes,
-		stern_lenzpumpe,	//?
+		stern_water_pump,	//?
 		stern_pressure_hull,
 		stern_hatch,
 		electric_engines,
 		air_compressor,
-		maschine_lenzpumpe,	//?
-		maschine_pressure_hull,
-		stern_battery,
+		machine_water_pump,	//?
+		machine_pressure_hull,
+		aft_battery,
 		diesel_engines,
-		kombuese_hatch,		//?	// there was only one hatch at the stern!? fixme
-		trimm_tank_valves,	//?
-		bow_battery,
-		periscope,
+		kitchen_hatch,		//?	// there was only one hatch at the stern!? fixme
+		balance_tank_valves,	//?
+		forward_battery,
+		periscope,	// fixme: there were two...
 		central_pressure_hull,
-		bilge_lenzpumpe,	//?
+		bilge_water_pump,	//?
 		conning_tower_hatch,
 		listening_device,
 		radio_device,
 		inner_bow_tubes,
 		outer_bow_tubes,
-		bow_lenzpumpe,		//?
+		bow_water_pump,		//?
 		bow_hatch,
 		bow_pressure_hull,
 		bow_dive_planes,
@@ -68,7 +72,7 @@ public:
 		// parts specific to sub types
 		outer_stern_tubes,
 		inner_stern_tubes,
-//		snorkel,//fixme conflicts with bool snorkel;
+		snorkel,//fixme conflicts with bool snorkel;
 		deck_gun,
 		radio_detection_device,
 		

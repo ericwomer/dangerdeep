@@ -20,7 +20,7 @@ submarine::submarine() : ship(), dive_speed(0.0f), permanent_dive(false),
 {
 	// set all common damageable parts to "no damage"
 	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
-		damageable_parts[i] = none;
+		damageable_parts[i] = damage_status(i%5+2); //none; // experimental hack fixme
 }
 	
 bool submarine::parse_attribute(parser& p)
