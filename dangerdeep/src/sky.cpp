@@ -14,42 +14,65 @@
 #include "model.h"
 #include "texture.h"
 #include "global_data.h"
+#include "matrix.h"
 
+/*
+	The model:
+	Sun, moon and earth have an local space, moon and earth rotate around their z-axis.
+	Z-axis are all up, that means earth's z-axis points to the north pole.
+	The moon rotates counter clockwise around the earth in 27 1/3 days (one sidereal month).
+	The earth rotates counter clockwise around the sun in 365d 5h 48m 46.5s.
+	The earth rotates around itself in 23h 56m (one sidereal day).
+	Earths rotational axis is rotated by 23.45 degrees.
+	Moon orbits in a plane that is 5,15 degress rotated to the xy-plane (plane that
+	earth rotates in, sun orbit).
+	Due to the earth rotation around the sun, the days/months appear longer (the earth
+	rotation must compensate the movement).
+	So the experienced lengths are 24h for a day and 29.5306 days for a full moon cycle.
+	Earth rotational axis points towards the sun at top of summer on the northern hemisphere
+	(around 21st. of June).
+	On top of summer (northern hemisphere) the earth orbit pos is 0.
+	On midnight at longitude 0, the earth rotation is 0.
+	At a full moon the moon rotation/orbit position is 0.
+	As result the earth takes ~ 366 rotations per year (365d 5h 48m 46.5s / 23h 56m = 366.2596)
+	We need the exact values/configuration on 1.1.1939, 0:0am.
+	And we need the configuration of the moon rotational plane at this date and time.
+	
+	We could compute space transforms (moon<->earth, earth<->sun) and use them to compute
+	the positions, or we could use an earth local model, drawing sun/moon positions as
+	sinus curves or something similar. fixme
+*/	
 
-const double CLOUD_ANIMATION_CYCLE_TIME = 3600.0;
 const double EARTH_RADIUS = 6.378e6;			// 6378km
 const double SUN_RADIUS = 696e6;			// 696.000km
 const double MOON_RADIUS = 1.738e6;			// 1738km
 const double EARTH_SUN_DISTANCE = 149600e6;		// 149.6 million km.
 const double MOON_EARTH_DISTANCE = 384.4e6;		// 384.000km
-const double EARTH_ROT_AXIS_ANGLE = 23.45;
-const double MOON_ORBIT_TIME = 27.3333333 * 86400.0;	// sidereal month is 27 1/3 days, time from full moon to next is 29.5306 days because of earth's rotation around sun
-//moon rotational plane is ~ 5 degrees rotated to that of earth/sun, fixme
+const double EARTH_ROT_AXIS_ANGLE = 23.45;		// degrees.
+const double MOON_ORBIT_TIME = 27.3333333 * 86400.0;	// sidereal month is 27 1/3 days
+const double MOON_ORBIT_PLANE_ROT = 5.15;		// degrees
 const double EARTH_ROTATION_TIME = 86160.0;		// 23h56min, one sidereal day!
-// as a result, earth takes ~366 rotations around its axis per year.
 const double EARTH_PERIMETER = 2.0 * M_PI * EARTH_RADIUS;
-const double EARTH_ORBIT_TIME = 31556926.5;	// in seconds. 365 days, 5 hours, 48 minutes, 46.5 seconds
+const double EARTH_ORBIT_TIME = 31556926.5;		// in seconds. 365 days, 5 hours, 48 minutes, 46.5 seconds
 // these values are difficult to get. SUN_POS_ADJUST should be around +9.8deg (10days of 365 later) but that gives
 // a roughly right position but wrong sun rise time by about 40min. fixme
 const double SUN_POS_ADJUST = 9.8;	// in degrees. 10 days from 21st. Dec. to 1st. Jan. * 360deg/365.24days
 const double MOON_POS_ADJUST = 300.0;	// in degrees. Moon pos in its orbit on 1.1.1939 fixme: this value is a rude guess
-
-// moon rotates from west to east ie. ccw ?
-// sun rises in the east so earth turns ccw. around itself.
 
 /*
 what has to be fixed for sun/earth/moon simulation:
 get exact distances and diameters (done)
 get exact rotation times (sidereal day, not solar day) for earth and moon (done)
 get exact orbit times for earth and moon around sun / earth (done)
-get angle of rotational axes for earth and moon (fixme, 23.45 and ~5)
-get direction of rotation for earth and moon relative to each other (fixme)
-get position of objects and axis states for a fix date (optimum 1.1.1939) (fixme)
+get angle of rotational axes for earth and moon (fixme, 23.45 and 5.15) (done)
+get direction of rotation for earth and moon relative to each other (done)
+get position of objects and axis states for a fix date (optimum 1.1.1939) (!fixme!)
 compute formulas for determining the positions for the following years (fixme)
 write code that computes sun/moon pos relative to earth and relative to local coordinates (fixme)
 draw moon with phases (fixme)
 */
 
+const double CLOUD_ANIMATION_CYCLE_TIME = 3600.0;
 
 
 
@@ -591,7 +614,8 @@ void sky::display(const vector3& viewpos, double max_view_dist, bool isreflectio
 
 	// ******** the sun and the moon *****************************************************
 	glDisable(GL_LIGHTING);
-	/* How to compute the sun's/moon's position:
+	/* fixme: this is out of date!!!!!!!!!
+	   How to compute the sun's/moon's position:
 	   Earth and moon rotate around the sun's y-axis and around their own y-axes.
 	   The z-axis is pointing outward and the x-axis around the equator.
 	   Earth's rotational axis differs by 23.45 degrees from sun's y-axis.
@@ -625,9 +649,13 @@ void sky::display(const vector3& viewpos, double max_view_dist, bool isreflectio
 	glRotated(360.0 * -myfrac(universaltime/EARTH_ROTATION_TIME), 0, 1, 0);
 	glRotated(-EARTH_ROT_AXIS_ANGLE, 1, 0, 0);
 	glRotated(SUN_POS_ADJUST + 360.0 * myfrac(universaltime/EARTH_ORBIT_TIME), 0, 1, 0);
+	// fixme (0,0,-1) points to sun? so negative third column of current modelview matrix
+	// should hold direction of sun.
+	matrix4 earth2sun = matrix4::get_gl(GL_MODELVIEW_MATRIX);
+	vector3 sundirection = -earth2sun.column(2);
 	glTranslated(0, 0, -EARTH_SUN_DISTANCE * sun_scale_fac * 0.96);	// to keep it inside sky hemisphere
 	// draw quad
-	double suns = SUN_RADIUS * sun_scale_fac;
+	double suns = SUN_RADIUS * sun_scale_fac       * 2;	// * 2 is hack fixme
 	glColor3f(1,1,1);
 	suntex->set_gl_texture();
 	glDisable(GL_LIGHTING);
@@ -666,7 +694,7 @@ void sky::display(const vector3& viewpos, double max_view_dist, bool isreflectio
 	glRotated(MOON_POS_ADJUST + 360.0 * myfrac(universaltime/MOON_ORBIT_TIME), 0, 1, 0);
 	glTranslated(0, 0, MOON_EARTH_DISTANCE * moon_scale_fac * 0.95);	// to keep it inside sky hemisphere
 	// draw quad	
-	double moons = MOON_RADIUS * moon_scale_fac;
+	double moons = MOON_RADIUS * moon_scale_fac    * 2;	// * 2 is hack, fixme
 	glColor3f(1,1,1);
 	moontex->set_gl_texture();
 	glBegin(GL_QUADS);

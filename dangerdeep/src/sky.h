@@ -23,6 +23,7 @@ protected:
 	double mytime;					// store global time in seconds
 	
 	float skycolorfac;				// 0.0 sunny, 1.0 stormy
+						//fixme: maybe rather use it for sunrise/fall colors
 	
 	float atmosphericlight;				// 0.0 night 1.0 day, depends on sun pos.
 
