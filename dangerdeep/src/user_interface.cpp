@@ -183,8 +183,8 @@ void user_interface::init ()
 				colors.push_back(nl.x);
 				colors.push_back(nl.y);
 				colors.push_back(nl.z);
-				coords.push_back(fx*WAVE_LENGTH+0.25*d[ptr].x);
-				coords.push_back(fy*WAVE_LENGTH+0.25*d[ptr].y);
+				coords.push_back(fx*WAVE_LENGTH+d[ptr].x);
+				coords.push_back(fy*WAVE_LENGTH+d[ptr].y);
 				coords.push_back(h[ptr]);
 				fx += add;
 			}
