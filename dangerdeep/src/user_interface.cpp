@@ -9,6 +9,7 @@
 #include "system.h"
 #include "game.h"
 #include "texts.h"
+#include "sound.h"
 
 #define SKYSEGS 16
 
@@ -784,7 +785,19 @@ void user_interface::display_map(class system& sys, game& gm)
 
 	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
-	
+
+	// Mouse handling
+	int mx, my, mb = sys.get_mouse_buttons();
+	sys.get_mouse_position(mx, my);
+
+	if ( mb & sys.left_button )
+	{
+		list<ship*> ships;
+		gm.visible_ships(ships, player);
+		list<submarine*> submarines;
+		gm.visible_submarines(submarines, player);
+	}
+
 	// keyboard processing
 	int key = sys.get_key();
 	while (key != 0) {
@@ -1010,4 +1023,40 @@ void user_interface::set_display_color ( const class game& gm ) const
 		DAY_MODE_COLOR ();
 	else
 		NIGHT_MODE_COLOR ();
+}
+
+sound* user_interface::get_sound_effect ( sound_effect se )
+{
+	sound* s = 0;
+
+	switch ( se )
+	{
+		case se_submarine_torpedo_launch:
+			s = torpedo_launch_sound;
+			break;
+		case se_torpedo_detonation:
+			if ( rnd ( 10 ) < 5 )
+				s = torpedo_detonation[0];
+			else
+				s = torpedo_detonation[1];
+			break;
+	}
+
+	return s;
+}
+
+void user_interface::play_sound_effect ( sound_effect se, double volume ) const
+{
+	sound* s = get_sound_effect ( se );
+
+	if ( s )
+		s->play ( volume );
+}
+
+void user_interface::play_sound_effect_distance ( sound_effect se, double distance ) const
+{
+	sound* s = get_sound_effect ( se );
+
+	if ( s )
+		s->play_distance ( s->medium_air, distance );
 }

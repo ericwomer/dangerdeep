@@ -408,6 +408,7 @@ double submarine::get_noise_factor () const
 		// This is an empirical value.
 		noisefac *= 0.007f;
 	}
+#ifdef OLD
 	else
 	{
 		// This might be unrealistic, but its impossible for a submarine to
@@ -416,6 +417,7 @@ double submarine::get_noise_factor () const
 		// available.
 		noisefac *= 0.1f;
 	}
+#endif // OLD
 
 	return noisefac;
 }

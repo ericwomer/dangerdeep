@@ -5,11 +5,13 @@
 #include "texture.h"
 #include "font.h"
 #include "global_data.h"
+#include "sound.h"
 #include <SDL/SDL_image.h>
 
 #define TEXTURE_DIR "textures/"
 #define FONT_DIR "fonts/"
 #define MODEL_DIR "models/"
+#define SOUND_DIR "sounds/"
 
 model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
@@ -20,6 +22,7 @@ texture *water, *background, *titel[4], *periscope[4], *gauge1,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
 	*clock12, *clock24, *threesubs[4], *glasses, *torp_expl_water_splash[3];
 font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
+sound *torpedo_launch_sound, *torpedo_detonation[2];
 
 void init_global_data(void)
 {
@@ -85,6 +88,9 @@ void init_global_data(void)
 	torp_expl_water_splash[0] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash.png" ), 1, true, true );
 	torp_expl_water_splash[1] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_1.png" ), 1, true, true );
 	torp_expl_water_splash[2] = new texture ( ( get_data_dir () + TEXTURE_DIR + "torpedo_expl_water_splash_2.png" ), 1, true, true );
+	torpedo_launch_sound = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_launch.wav" ) );
+	torpedo_detonation[0] = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_detonation_1.wav" ) );
+	torpedo_detonation[1] = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_detonation_2.wav" ) );
 }
 
 void deinit_global_data(void)
@@ -144,6 +150,10 @@ void deinit_global_data(void)
 	delete threesubs[3];
 	delete torp_expl_water_splash[0];
 	delete torp_expl_water_splash[1];
+	delete torp_expl_water_splash[2];
+	delete torpedo_launch_sound;
+	delete torpedo_detonation[0];
+	delete torpedo_detonation[1];
 }
 
 // returns 1939-1945, 1-12, 1-31

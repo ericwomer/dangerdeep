@@ -429,6 +429,9 @@ void game::convoy_positions(list<vector2>& result) const
 
 void game::dc_explosion(const vector3& pos)
 {
+	// Create water splash.
+	spawn_water_splash ( new depth_charge_water_splash ( pos ) );
+
 	// are subs affected?
 	// fixme: ships can be damaged by DCs also...
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
@@ -451,6 +454,8 @@ void game::dc_explosion(const vector3& pos)
 
 bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 {
+	// Create water splash. // FIXME
+	spawn_water_splash ( new gun_shell_water_splash ( pos ) );
 	return false;//fixme testing
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
 		// fixme: we need a special collision detection, because
@@ -469,12 +474,15 @@ bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 	}
 
 	// No impact.
+	spawn_water_splash ( new gun_shell_water_splash ( pos ) );
 	return false;
 }
 
 void game::torp_explode(const vector3& pos)
 {
-	spawn_water_splash ( new water_splash ( pos, water_splash::torpedo ) );
+	spawn_water_splash ( new torpedo_water_splash ( pos ) );
+	ui->play_sound_effect_distance ( ui->se_torpedo_detonation,
+		player->get_pos ().distance ( pos ) );
 }
 
 void game::ship_sunk(unsigned tons)

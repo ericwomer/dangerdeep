@@ -9,6 +9,7 @@
 #include "system.h"
 #include "game.h"
 #include "texts.h"
+#include "sound.h"
 
 submarine_interface::submarine_interface(submarine* player_sub) : 
     	user_interface( player_sub )
@@ -29,27 +30,45 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			// torpedo launching
 			case SDLK_1:
 				if (player->fire_torpedo(gm, 0, target, lead_angle))
+				{
 					add_message(TXT_Torpedofired[language]);
+					play_sound_effect ( se_submarine_torpedo_launch );
+				}
 				break;
 			case SDLK_2:
 				if (player->fire_torpedo(gm, 1, target, lead_angle))
+				{
 					add_message(TXT_Torpedofired[language]);
+					play_sound_effect ( se_submarine_torpedo_launch );
+				}
 				break;
 			case SDLK_3:
 				if (player->fire_torpedo(gm, 2, target, lead_angle))
+				{
 					add_message(TXT_Torpedofired[language]);
+					play_sound_effect ( se_submarine_torpedo_launch );
+				}
 				break;
 			case SDLK_4:
 				if (player->fire_torpedo(gm, 3, target, lead_angle))
+				{
 					add_message(TXT_Torpedofired[language]);
+					play_sound_effect ( se_submarine_torpedo_launch );
+				}
 				break;
 			case SDLK_5:
 				if (player->fire_torpedo(gm, 4, target, lead_angle))
+				{
 					add_message(TXT_Torpedofired[language]);
+					play_sound_effect ( se_submarine_torpedo_launch );
+				}
 				break;
 			case SDLK_6:
 				if (player->fire_torpedo(gm, 5, target, lead_angle))
+				{
 					add_message(TXT_Torpedofired[language]);
+					play_sound_effect ( se_submarine_torpedo_launch );
+				}
 				break;
 			
 			// control
@@ -125,7 +144,7 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			case SDLK_h:
 				{
 					bool turn_left = ( angle ( 180.0f ) <= bearing && bearing < angle ( 359.999f ) );
-					player->head_to_ang ( bearing, turn_left );
+					player->head_to_ang ( player->get_heading () + bearing, turn_left );
 				}
 				break;
 			case SDLK_p:
@@ -137,7 +156,7 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 				add_message(TXT_Surface[language]);
 				break;
 			case SDLK_v:
-				bearing = player->get_heading ();
+				bearing = 0.0f;
 				break;
 			case SDLK_RETURN :
                 player->rudder_midships();
@@ -546,5 +565,28 @@ void submarine_interface::draw_torpedo(class system& sys, class game& gm,
 		} else {		// loaded
 			sys.draw_hm_image(x, y, 256, 32, torptex(st.type));
 		}
+	}
+}
+
+void submarine_interface::play_sound_effect ( sound_effect se, double volume ) const
+{
+	sound* s = get_sound_effect ( se );
+
+	if ( s )
+		s->play ( volume );
+}
+
+void submarine_interface::play_sound_effect_distance ( sound_effect se, double distance ) const
+{
+	sound* s = get_sound_effect ( se );
+
+	if ( s )
+	{
+		sound::medium m = s->medium_air;
+		submarine* sub = dynamic_cast<submarine*> ( get_player () );
+		if ( sub && sub->is_submerged () )
+			m = s->medium_water;
+
+		s->play_distance ( m, distance );
 	}
 }

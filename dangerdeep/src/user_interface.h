@@ -25,6 +25,7 @@ class user_interface
 {
 public:
 	enum color_mode { day_color_mode, night_color_mode };
+	enum sound_effect { se_submarine_torpedo_launch, se_torpedo_detonation };
 
 protected:
 	bool quit;		// whishes user to quit?
@@ -93,6 +94,8 @@ protected:
 	virtual void display_freeview(class system& sys, class game& gm);
 	virtual void display_glasses(class system& sys, class game& gm);
 
+	static sound* get_sound_effect ( sound_effect se );
+
 public:	
 	virtual ~user_interface() {};
 	virtual void display(class system& sys, class game& gm) = 0;
@@ -106,7 +109,9 @@ public:
 	virtual bool time_scale_down(void);
 	virtual void record_ship_tonnage(unsigned tons) { tonnage_sunk.push_back(tons); }
 	/** This method creates a message about the rudder state. */
-    virtual void add_rudder_message();
+	virtual void add_rudder_message();
+	virtual void play_sound_effect ( sound_effect se, double volume = 1.0f ) const;
+	virtual void play_sound_effect_distance ( sound_effect se, double distance ) const;
 };
 
 #endif
