@@ -207,23 +207,37 @@ void font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, const st
 				++textptr;
 			} else if (c == ' ') {
 				++textptr;
+			} else if (c == '\t') {
+				++textptr;
 			} else {
 				break;
 			}
 		}
 		oldtextptr = textptr;
-		// collect characters for current word, fixme handle tabs
-		while ((text[textptr] != '\n' && text[textptr] != ' ') && textptr < textlen) {
+		// collect characters for current word
+		unsigned charw = 0;
+		bool breaktext = false;
+		while ((text[textptr] != '\n' && text[textptr] != ' ' && text[textptr] != '\t') && textptr < textlen) {
+			charw += get_char_width(text[textptr]);
+			if (currwidth == 0 && charw >= w) {	// word is longer than line
+				breaktext = true;
+				break;
+			}
+			charw += spacing;
 			++textptr;
 		}
-		pair<unsigned, unsigned> wh = get_size(text.substr(oldtextptr, textptr - oldtextptr));
-		if (currwidth + wh.first >= w) {
-			y += (lineheight == 0) ? wh.second : lineheight;
-			currwidth = 0;
+		if (breaktext) {
+			print(x, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
+			y += (lineheight == 0) ? get_height() : lineheight;
+		} else {
+			unsigned tw = get_size(text.substr(oldtextptr, textptr - oldtextptr)).first;
+			if (currwidth + tw >= w) {
+				y += (lineheight == 0) ? get_height() : lineheight;
+				currwidth = 0;
+			}
+			print(x+currwidth, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
+			currwidth += tw + blank_width;
 		}
-		print(x+currwidth, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
-		currwidth += wh.first;
-		currwidth += blank_width;
 		if (textptr == textlen)
 			break;
 	}
@@ -269,4 +283,15 @@ pair<unsigned, unsigned> font::get_size(const string& text) const
 	}
 	if (x == 0) y -= char_height;
 	return make_pair(xmax, y);
+}
+
+unsigned font::get_char_width(char c) const
+{
+	unsigned t = translate[c];
+	if (c == ' ')
+		return blank_width;
+	else if (t == 0xff)
+		return 0;
+	else
+		return characters[t].width;
 }

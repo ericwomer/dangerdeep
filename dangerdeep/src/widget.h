@@ -97,8 +97,10 @@ public:
 	virtual void prepare_input(void);	// call once before process_input
 	virtual void process_input(void);	// determine type of input, fetch it to on_* functions
 
-	static widget* create_dialogue_ok(const string& text);		// run() always returns 1
-	static widget* create_dialogue_ok_cancel(const string& text);	// run() returns 1 for ok, 0 for cancel
+	// run() always returns 1    - fixme: make own widget classes for them?
+	static widget* create_dialogue_ok(const string& text);
+	// run() returns 1 for ok, 0 for cancel
+	static widget* create_dialogue_ok_cancel(const string& text);
 
 	virtual int run(void);	// show & exec. widget, automatically disable widgets below
 	virtual void close(int val) { retval = val; }	// close this widget (stops run() on next turn, returns val)
@@ -294,10 +296,40 @@ public:
 	widget_edit(int x, int y, int w, int h, const string& text_, widget* parent_ = 0)
 		: widget(x, y, w, h, text_, parent_), cursorpos(0) {}
 	~widget_edit() {}
+	void set_text(const string& s) { widget::set_text(s); cursorpos = s.length(); }
 	void draw(void) const;
 	void on_char(void);
 	virtual void on_enter(void) {}	// run on pressed ENTER-key
 	virtual void on_change(void) {}
+};
+
+class widget_fileselector : public widget
+{
+protected:
+	widget_list* current_dir;
+	widget_edit* current_filename;
+	widget_text* current_path;
+
+	void read_current_dir(void);
+	void listclick(void);
+	unsigned nr_dirs, nr_files;
+	
+	struct filelist : public widget_list
+	{
+		void on_sel_change(void) {
+			dynamic_cast<widget_fileselector*>(parent)->listclick();
+		}
+		filelist(int x, int y, int w, int h) : widget_list(x, y, w, h) {}
+		~filelist() {}
+	};
+
+	widget_fileselector();
+	widget_fileselector(const widget_fileselector& );
+	widget_fileselector& operator= (const widget_fileselector& );
+public:
+	widget_fileselector(int x, int y, int w, int h, const string& text_, widget* parent_ = 0);
+	~widget_fileselector() {}
+	string get_filename(void) const { return current_path->get_text() + current_filename->get_text(); }
 };
 
 #endif

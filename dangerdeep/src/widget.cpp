@@ -15,6 +15,7 @@
 #include "global_data.h"
 #include "system.h"
 #include "texture.h"
+#include <set>
 
 widget::theme* widget::globaltheme = 0;
 widget* widget::focussed = 0;
@@ -615,5 +616,77 @@ void widget_edit::on_char(void)
 		text = text.erase(cursorpos-1, 1);
 		--cursorpos;
 		on_change();
+	}
+}
+
+widget_fileselector::widget_fileselector(int x, int y, int w, int h, const string& text_, widget* parent_)
+	: widget(x, y, w, h, text_, parent_)
+{
+	current_path = new widget_text(120, 40, size.x-140, 32, get_current_directory());
+	current_dir = new filelist(120, 80, size.x-140, size.y-136);
+	current_filename = new widget_edit(120, size.y - 52, size.x-140, 32, "");
+	add_child(current_path);
+	add_child(current_dir);
+	add_child(current_filename);
+	add_child(new widget_text(20, 40, 80, 32, "Path:"));
+	add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(this, &widget::close, 1, 20, 80, 80, 32, "Ok"));
+	add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(this, &widget::close, 0, 20, 120, 80, 32, "Cancel"));
+	
+	read_current_dir();
+}
+
+void widget_fileselector::read_current_dir(void)
+{
+	current_dir->clear();
+	directory dir = open_dir(current_path->get_text());
+cout << "opendir '"<<current_path->get_text()<<"'\n";	
+	system::sys()->myassert(dir != 0, "[widget_fileselector::read_current_dir] could not open directory");
+	set<string> dirs, files;
+	while (true) {
+		string e = read_dir(dir);
+		if (e.length() == 0) break;
+		if (e[0] == '.') continue;	// avoid . .. and hidden files
+		bool isdir = false;
+		directory tmp = open_dir(current_path->get_text() + e);
+		if (tmp) {
+			isdir = true;
+			close_dir(tmp);
+			dirs.insert(e);
+		} else {
+			files.insert(e);
+		}
+	}
+	closedir(dir);
+	nr_dirs = dirs.size()+1;
+	nr_files = files.size();
+	current_dir->append_entry("[..]");
+	for (set<string>::iterator it = dirs.begin(); it != dirs.end(); ++it)
+		current_dir->append_entry(string("[") + *it + string("]"));
+	for (set<string>::iterator it = files.begin(); it != files.end(); ++it)
+		current_dir->append_entry(*it);
+}
+
+void widget_fileselector::listclick(void)
+{
+	int n = current_dir->get_selected();
+	if (n < 0 || unsigned(n) > nr_dirs + nr_files) return;
+	string p = current_path->get_text();
+	string filesep = p.substr(p.length()-1, 1);
+	if (n == 0) {
+		string::size_type st = p.rfind(filesep, p.length()-2);
+		if (st != string::npos) {
+			p = p.substr(0, st) + filesep;
+		}
+		current_path->set_text(p);
+		read_current_dir();
+	} else if (unsigned(n) < nr_dirs) {
+		string p = current_path->get_text();
+		string d = current_dir->get_selected_entry();
+		d = d.substr(1, d.length()-2);	// remove [ ] characters
+		p += d + filesep;
+		current_path->set_text(p);
+		read_current_dir();
+	} else {
+		current_filename->set_text(current_dir->get_selected_entry());
 	}
 }

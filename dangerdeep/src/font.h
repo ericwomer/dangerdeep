@@ -54,6 +54,7 @@ public:
 	// print text with wrap around, use lineheight 0 for automatic line height
 	void print_wrapped(int x, int y, unsigned w, unsigned lineheight, const string& text, color col = color(255,255,255), bool with_shadow = false) const;
 	pair<unsigned, unsigned> get_size(const string& text) const;
+	unsigned get_char_width(char c) const;
 	unsigned get_height(void) const { return char_height; };
 };
 
