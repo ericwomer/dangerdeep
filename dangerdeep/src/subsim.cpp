@@ -100,7 +100,7 @@ bool is_savegame_name(const string& s)
 
 
 //
-// the game options menu, loading, saving games
+// loading, saving games
 //
 class loadsavequit_dialogue : public widget
 {
@@ -682,7 +682,8 @@ void menu_select_language(void)
 // options:
 // - set resolution
 // - enable bump mapping
-// - detail for map/terrain/water
+// - enable wave foam
+// - detail for map/terrain/water (wave tile detail, # of wave tiles, global terrain detail, wave bump map detail)
 // - set fullscreen
 // - invert mouse in view
 //

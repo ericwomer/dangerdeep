@@ -44,7 +44,7 @@ using namespace std;
 #define WAVES_PER_AXIS 8	// no. of waves along x or y axis
 #define FACES_PER_WAVE 32	// resolution of wave model in x/y dir.
 #define FACES_PER_AXIS (WAVES_PER_AXIS*FACES_PER_WAVE)
-#define WAVE_LENGTH 128.0	// in meters, total length of one wave (one sine function)
+#define WAVE_LENGTH 128.0	// in meters, total length of one wave tile
 #define TIDECYCLE_TIME 10.0
 #define FOAM_VANISH_FACTOR 0.1	// 1/second until foam goes from 1 to 0.
 #define FOAM_SPAWN_FACTOR 0.2	// 1/second until full foam reached. maybe should be equal to vanish factor
@@ -146,8 +146,6 @@ void user_interface::init ()
 	// init foam
 	wavefoam.resize(FACES_PER_AXIS*FACES_PER_AXIS);
 	wavefoamtexdata.resize(FACES_PER_AXIS*FACES_PER_AXIS);
-for (unsigned k = 0; k < FACES_PER_AXIS*FACES_PER_AXIS; ++k) {
-wavefoam[k]=rnd();wavefoamtexdata[k]=Uint8(255.0f*wavefoam[k]);}
 	glGenTextures(1, &wavefoamtex);
 	glBindTexture(GL_TEXTURE_2D, wavefoamtex);
 	vector<Uint8> wavefoampalette(3*256);
@@ -273,7 +271,7 @@ wavefoam[k]=rnd();wavefoamtexdata[k]=Uint8(255.0f*wavefoam[k]);}
 //		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 //		glTexCoordPointer(2, GL_FLOAT, 0, &tex1coords[0]);
 		
-		glActiveTexture(GL_TEXTURE0);
+//		glActiveTexture(GL_TEXTURE0);
 		glDrawElements(GL_QUADS, waveindices.size(), GL_UNSIGNED_INT, &waveindices[0]);
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_COLOR_ARRAY);
@@ -868,7 +866,9 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 
-	GLfloat scalefac2 = 2.0f/WAVE_LENGTH;	// fixme: adapt
+//fixme: automatic texture coordinate generation ignores wave displacements (choppy waves)
+//so foam is mapped wrongly!
+	GLfloat scalefac2 = 1.0f/(WAVE_LENGTH*WAVES_PER_AXIS);
 	GLfloat plane_s2[4] = { scalefac2, 0.0f, 0.0f, 0.0f };
 	GLfloat plane_t2[4] = { 0.0f, scalefac2, 0.0f, 0.0f };
 	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -880,7 +880,13 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 
 	unsigned dl = wavedisplaylists + int(WAVE_PHASES*timefac);
 	for (int y = 0; y < WAVES_PER_AXIS; ++y) {
+		plane_t2[3] = float(y)/WAVES_PER_AXIS;
+		glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+		glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t2);
 		for (int x = 0; x < WAVES_PER_AXIS; ++x) {
+			plane_s2[3] = float(x)/WAVES_PER_AXIS;
+			glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+			glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s2);
 			glPushMatrix();
 			glTranslatef((-WAVES_PER_AXIS/2+x)*WAVE_LENGTH, (-WAVES_PER_AXIS/2+y)*WAVE_LENGTH, 0);
 			glCallList(dl);

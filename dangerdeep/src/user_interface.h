@@ -92,6 +92,8 @@ protected:
 	// thus it is #tiles*#vertices_per_tile wide and high. We use an color table indexed texture, so
 	// we have to transfer (32*8)^2=64k or (64*16)^2=256k per frame, far less memory than updating geometry data
 	// each frame (like with vertex arrays).
+	// alternative foam generation: clear texture every frame (or 1/10th second), draw lines from ship trails
+	// into the texture (if they're inside) and use this texture
 	vector<Uint8> wavefoamtexdata;
 	unsigned wavefoamtex;
 	
