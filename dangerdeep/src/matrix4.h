@@ -87,9 +87,21 @@ public:
 	matrix4t<D> operator- (void) const { matrix4t<D> r; for (unsigned i = 0; i < size*size; ++i) r.values[i] = -values[i]; return r; }
 
 	// store in C++ order
-	void to_array(D* v) const {	// store in OpenGL order
+	void to_array(D* v) const {
 		for (unsigned i = 0; i < size*size; ++i)
 			v[i] = values[i];
+	}
+
+	// store in OpenGL order
+	void to_gl_array(D* v) const {
+		for (unsigned i = 0; i < 4; ++i)
+			for (unsigned j = 0; j < 4; ++j)
+				v[i+j*4] = values[j+i*4];
+	}
+
+	// return pointer to array of elements
+	const D* elemarray(void) const {
+		return &values[0];
 	}
 
 	// no range tests for performance reasons
