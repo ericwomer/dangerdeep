@@ -240,6 +240,38 @@ void sea_object::simulate(game& gm, double delta_time)
 	// use vector3 acceleration = orientation.rotate(get_acceleration()); etc.
 	// or maybe offer both functions (both virtual): get_accel and get_local_accel
 	// the first is predefined with the rotation.
+
+	// this leads to another model for acceleration/max_speed/turning etc.
+	// the object applies force to the screws etc. with Force = acceleration * mass.
+	// there is some drag caused by air/water opposite to the force.
+	// this drag damps the speed curve so that acceleration is zero at speed==max_speed.
+	// drag depends on speed (v or v^2).
+	// v = v0 + a * delta_t, v <= v_max, a = engine_force/mass - drag
+	// now we have: drag(v) = max_accel = engine_force/mass.
+	// and: v=v_max, hence: drag(v_max) = max_accel, max_accel is given, v_max too.
+	// so choose a drag formula: factor*v or factor*v^2 and compute factor.
+	// we have: factor*v_max^2 = max_accel => factor = max_accel/v_max^2
+	// finally: v = v0 + delta_t * (max_accel - dragfactor * v0^2)
+	// if v0 == 0 then we have maximum acceleration.
+	// acceleration lowers quadratically until we have maximum velocity.
+	// we also have side drag (limit turning speed!):
+
+	// compute force for some velocity v: find accel so that accel - dragfactor * v^2 = 0
+	// hence: accel = dragfactor * v^2, this means force is proportional to square
+	// of speed -> fuel comsumption depends ~quadratically on speed.
+	// To throttle to a given speed, apply max_accel until we have it then apply accel.
+
+	// more difficult: change acceleration to match a certain position (or angle)
+	// s = s0 + v0 * t + a/2 * t^2, v = v0 + a * t
+	// compute a over time so that s_final = s_desired and v_final = 0, with arbitrary s0,v0.
+	// a can be 0<=a<=max_accel. three phases (in time) speed grows until max_speed,
+	// constant max speed, speed shrinks to zero (sometimes only phases 1 and 3 needed).
+	// determine phase, in phase 1 and 2 give max. acceleration, in phase 3 give zero.
+
+	// Screw force splits in forward force and sideward force (dependend on rudder position)
+	// so compute side drag from turn_rate
+	// compute turn_rate to maximum angular velocity, limited by ship's draught and shape.
+
 	/* change header file:
 	vector3 position, velocity;
 	double acceleration -> double max_acceleration;
@@ -253,6 +285,9 @@ void sea_object::simulate(game& gm, double delta_time)
 	velocity += acceleration * delta_time;
 	quaternion rotacceleration = get_rotacceleration();
 	add orientation and rotvelocity and rotacceleration...
+	orientation *= quatrotvelo, quatrotvelo = rotvelo with angle = rotvelo.angle * t
+	rotvelo.s = sin(alpha/2), quatrotvelo.s = sin(2*arcsin(rotvelo.s)*t/2)
+	  = sin(arcsin(rotvelo.s)*t)
 	add rotvelocity and rotacceleration...
 	*/	
 

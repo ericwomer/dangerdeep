@@ -67,12 +67,24 @@ public:
 	};
 
 	friend class ref;
-	
+
 protected:
 	string specfilename;	// filename for specification .xml file, read from spec file
 
 	string modelname;	// filename for model file (also used for modelcache requests), read from spec file
 
+	/* have:
+	vector3 position, velocity;
+	vector3 local_velocity;
+	quaternion orientation, rot_velocity;
+	virtual vector3 get_acceleration(void) const { return orientation.rotate(get_local_acceleration()); }
+	virtual vector3 get_local_acceleration(void) const;
+	virtual quaternion get_rot_acceleration(void) const;
+	double max_accel_forward;	// stored. can get computed from engine_torque, screw diameter and ship's mass.
+	double max_speed_forward;
+	double max_turn_speed;	// angular velocity.
+	*/
+	
 	vector3 position;
 	angle heading;	//, pitch, roll; // rotation of object, recomputed every frame for ships, maybe it should get stored
 	double speed;		// m/sec
