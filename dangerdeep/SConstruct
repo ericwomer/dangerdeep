@@ -31,6 +31,7 @@ if sys.platform == 'win32':
 	sdllibs = ['SDL', 'SDL_image']
 	env.Append(CCFLAGS = '-Wall -O2 -D_REENTRANT') # for mingw!
 	datadir = './data'
+	build_dir = 'win32'
 else:
 	print "Compiling for Unix/Posix/Linux Environment"
 	env = Environment(ENV = os.environ)
@@ -40,6 +41,7 @@ else:
 	sdllibs = ['SDL', 'SDL_image']
 	env.Append(CCFLAGS = '-Wall -g -O2 `sdl-config --cflags`')
 	datadir = installdatadir
+	build_dir = 'linux'
 
 ###### optionally change install and data dirs
 if ARGUMENTS.get('datadir', 0):
@@ -49,7 +51,7 @@ print 'Install binary path: ' + installbindir
 print 'Install data path: ' + installdatadir
 print 'Using data dir: ' + datadir
 
-build_base_dir = 'build'
+target_dir = '#build' + os.sep + build_dir
 source_base_dir = 'src'
 
 env.Append(CPPDEFINES = [('VERSION', '\\"' + version + '\\"')])
@@ -84,51 +86,6 @@ gfxlibs = ['oglext'] + gllibs + sdllibs
 alllibs = ['dftdmedia', 'tinyxml'] + gfxlibs + ['SDL_mixer', 'SDL_net', 'fftw3']
 
 ################ helper functions
-# taken from bombyx build system
-def SelectBuildDir(build_dir, platform=None):
-	# if no platform is specified, then default to sys.platform
-	if not(platform):
-		platform = sys.platform
-
-	print "Looking for build directory for platform '%s'" % platform
-
-	# setup where we start looking at first
-	test_dir = build_dir + os.sep + platform
-	default_dir = build_dir + os.sep + 'default'
-
-	# we look for a directory named exactly after the
-	# platform so that very specific builds can be done
-	if os.path.exists(test_dir):
-		# make sure it is a directory
-		target_dir = test_dir
-	else:
-		print "Exact match not found, finding closest guess"
-		
-		# looks like there isn't an exact match
-		# find the closest matching directory
-		dirs = os.listdir(build_dir)
-		found_match = 0
-		for dir in dirs:
-			if platform.find(dir) != -1:
-				# found a match (hopefully the right one)
-				target_dir = build_dir + os.sep + dir
-				found_match = 1
-				break
-		if not(found_match):
-			print "No match found, looking for 'default' directory"
-			# looks like this platform isn't available
-			# try the default target
-			if os.path.exists(default_dir):
-				target_dir = default_dir
-			else:
-				# bad, nothing is available, tell the user
-				print "No build directories found for your platform '%s'" % platform
-				return None
-			
-	print "Found directory %s, will build there" % target_dir
-	return target_dir
-
-
 def all_entries_that_start_with(list, prefix):
 	list2 = []
 	for i in list:
@@ -138,8 +95,6 @@ def all_entries_that_start_with(list, prefix):
 
 
 ################ build
-selected_build_dir = SelectBuildDir(build_base_dir)
-target_dir = '#' + selected_build_dir
 libpath = libpath + [target_dir]
 
 f = open('files.txt')
