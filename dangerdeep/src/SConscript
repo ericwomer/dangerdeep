@@ -69,11 +69,15 @@ oglextsources = Split("""
 env.StaticLibrary(target = 'dftdmedia', source = dftdmediasources, LIBS = gfxlibs, LIBPATH = libpath)
 globaldataobj = env.StaticObject('global_data.cpp', CPPDEFINES = [('DATADIR', '\\"' + datadir + '/\\"'), ('VERSION', '\\"' + version + '\\"')])
 binary = env.Program(target = 'dangerdeep', source = dftdsources + globaldataobj + osspecificsrc, LIBS = alllibs, LIBPATH = libpath)
-env.Program('viewmodel', ['viewmodel.cpp', globaldataobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs, LIBPATH = libpath)
-env.Program('damagemodel', ['damagemodel.cpp', globaldataobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs, LIBPATH = libpath)
-env.Program('crosssection', ['crosssection.cpp', globaldataobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs, LIBPATH = libpath)
+tool1 = env.Program('viewmodel', ['viewmodel.cpp', globaldataobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs, LIBPATH = libpath)
+tool2 = env.Program('damagemodel', ['damagemodel.cpp', globaldataobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs, LIBPATH = libpath)
+tool3 = env.Program('crosssection', ['crosssection.cpp', globaldataobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs, LIBPATH = libpath)
 env.StaticLibrary(target = 'oglext', source = oglextsources, LIBPATH = libpath)
 env.StaticLibrary(target = 'tinyxml', source = tinyxmlsources, LIBPATH = libpath)
+env.Default(binary)
+env.Default(tool1)
+env.Default(tool2)
+env.Default(tool3)
 
 ############ this allows to run "scons install" to install the binary
 install = env.Alias('install', env.Install(installbindir, binary))

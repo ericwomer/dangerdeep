@@ -115,6 +115,7 @@ Help("""
 	Type 'scons' to build the binary.
 	Type 'scons -c' to clean up.
 	Type 'scons install' to install the game (as root).
+	Type 'scons tarball' to build a tarball of the source.
 	""")
 
 ################ build
@@ -136,24 +137,21 @@ SConscript(source_base_dir + os.sep + 'SConscript', build_dir = target_dir, dupl
 BuildDir(target_dir, source_base_dir, duplicate=0)
 
 ############### option so that "scons tarball" builds a tarball of source and data
-#fixme: change that so that e.g. "scons tarball" does that only, and it
-#isn't done everytime we build the program
-
-allcvsfiles2 = ''
+#fixme: files in the archive should have a prefix 'dangerdeep' + version.
+#tar has no such option, so this must be done somehow different
+filestopack = []
 for i in allcvsfiles:
 	if not(i.endswith('.xcf')):
-		allcvsfiles2 += '"' + i + '" '
+		if not(i.startswith('.' + os.sep + 'build')):
+			filestopack += [i]
 
-#env.Append(TARFLAGS = '-z ' + problematicfiless)
-#env.Append(TARSUFFIX = '.gz')
-#tarball = env.Alias('tarball', env.Tar('dangerdeep-'+version, filestopack))
-#### we have an own tar version here...
-#fixme! every file should be in a dangerdeep-$version subdirectory!!!
-if not(sys.platform == 'win32'):
-	env.Alias('tarball', env.Command('dangerdeep-' + version + '.tar.gz', '', ['tar -zcf ' + 'dangerdeep-' + version + '.tar.gz ' + allcvsfiles2]))
+env.Append(TARFLAGS = '-z')
+env.Append(TARSUFFIX = '.gz')
+tgz = env.Tar('dangerdeep-' + version, filestopack)
+env.Alias('tarball', tgz)
 
 #also env.Zip is possible...
 
-# fixme: try env.MSVSProject(...) to create MS VS project files
+# fixme: maybe try env.MSVSProject(...) to create MS VS project files
 
 ############# eof
