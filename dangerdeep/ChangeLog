@@ -1,4 +1,7 @@
 2003-12-28  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* released 0.0.15 for linux, VC++6 couldn't compile the code.
+
+2003-12-28  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* game:
 	  - added read/write functions for pointer to number translation and
 	    vice versa (store numbers instead of pointers in save games)

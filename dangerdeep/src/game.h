@@ -191,7 +191,7 @@ public:
 	void unregister_job(job* j);
 	const list<ping>& get_pings(void) const { return pings; };
 
-#ifdef WIN32	// avoid compiler inability.
+#ifdef WIN32	// avoid compiler inability. fixme replace this with VC7 compiler
 	ship* check_unit_list ( torpedo* t, list<ship*>& unit_list );
 	ship* check_unit_list ( torpedo* t, list<submarine*>& unit_list );
 #else
