@@ -62,6 +62,9 @@ void freeview_display::set_modelview_matrix(game& gm) const
 
 //	cout << "pos ist " << pos << "\n";
 	//fixme: wieso ist pos 0,0,6 wo das doch die extra-pos sein sollte?! viewpos sollte 0,0,6 sein ähhh
+
+//fixme: pos ist doch extra... eigentlich müßte das hier playerpos+pos sein, aber playerpos wird ja wieder abgezogen...
+//damit darf von der objekt-pos nur playerpos abgezogen werden, nicht viewpos oder sowas...
 	glTranslated(-pos.x, -pos.y, -pos.z);
 }
 
@@ -280,7 +283,8 @@ void freeview_display::draw_view(game& gm) const
 	//fixme not fully correct, pos depends on ship's rolling, retrieve that from modelview matrix!
 	//real viewpos = inverse(modelview).column(3)
 	//this seems to be the reason for the wrong fresnel effect!
-	vector3 viewpos = player->get_pos() + pos;
+	vector3 viewpos = player->get_pos() + matrix4::get_gl(GL_MODELVIEW_MATRIX).inverse().column(3);//pos;
+//	cout << "real pos " << player->get_pos() << " viewpos " << viewpos << "\n";
 
 	// **************** prepare drawing ***************************************************
 
@@ -387,7 +391,8 @@ void freeview_display::draw_view(game& gm) const
 	// ******* water ***************************************************************
 	//ui.get_water().update_foam(1.0/25.0);  //fixme: deltat needed here
 	//ui.get_water().spawn_foam(vector2(myfmod(gm.get_time(),256.0),0));
-	//fixme !!! viewpos does not contain the viewer translation!!!!!!!!!!!!!! <-------?
+//viewpos is right for bridge view mode and wrong for freeview
+//only difference: bridge sets pos fix to (0,0,6)
 //	cout << "viewpos used for call " << viewpos << "\n";
 	ui.get_water().display(viewpos, bearing, max_view_dist, reflection_projmvmat);
 
@@ -406,7 +411,9 @@ void freeview_display::draw_view(game& gm) const
 */
 
 	// ******************** ships & subs *************************************************
-	draw_objects(gm, viewpos);
+//	cout << "mv trans pos " << matrix4::get_gl(GL_MODELVIEW_MATRIX).column(3) << "\n";
+	// substract player pos.
+	draw_objects(gm, player->get_pos());
 
 	// ******************** draw the bridge in higher detail
 	if (aboard && drawbridge) {
