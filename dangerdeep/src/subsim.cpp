@@ -657,6 +657,7 @@ void play_network_game(void)
 // old menus are used from here on
 void menu_single_mission(void)
 {
+/*
 	widget w(0, 0, 1024, 768, texts::get(21), 0, titlebackgrimg);
 	widget_menu* wm = new widget_menu(312, 0, 400, 40);
 	w.add_child(wm);
@@ -667,9 +668,9 @@ void menu_single_mission(void)
 	wm->add_entry(texts::get(11), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
 	wm->align(0, 0);
 	w.run();
+*/
 
 
-/*
 	menu m(21, titlebackgrimg);
 	m.add_item(8, menu_notimplemented);
 	m.add_item(9, create_convoy_mission);
@@ -677,7 +678,7 @@ void menu_single_mission(void)
 	m.add_item(118, choose_saved_game);
 	m.add_item(11, 0);
 	m.run();
-*/	
+	
 }
 
 void menu_select_language(void)
