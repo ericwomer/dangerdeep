@@ -111,7 +111,7 @@ texture::texture(const string& filename, int mapping_, int clamp, bool keep)
 	SDL_FreeSurface(teximage);
 }	
 
-texture::texture(void* pixels, unsigned w, unsigned h, int format_,
+texture::texture(Uint8* pixels, unsigned w, unsigned h, int format_,
 	int mapping_, int clamp, bool keep)
 {
 	width = w;
@@ -132,6 +132,39 @@ texture::texture(void* pixels, unsigned w, unsigned h, int format_,
 
 	if (!keep) data.clear();
 }
+
+
+texture* texture::make_normal_map(Uint8* heights, unsigned w, unsigned h, float detailh,
+				  int mapping, int clamp)
+{
+	vector<Uint8> nmpix(3*w*h);
+	float zh = 255.0f/detailh;
+	unsigned ptr = 0;
+	for (unsigned yy = 0; yy < h; ++yy) {
+		unsigned y1 = (yy + h - 1) & (h - 1);
+		unsigned y2 = (yy +     1) & (h - 1);
+		for (unsigned xx = 0; xx < w; ++xx) {
+			unsigned x1 = (xx + w - 1) & (w - 1);
+			unsigned x2 = (xx +     1) & (w - 1);
+			float h = heights[yy*w+xx];
+			float hr = heights[yy*w+x2];
+			float ho = heights[y1*w+xx];
+			float hl = heights[yy*w+x1];
+			float hu = heights[y2*w+xx];
+			vector3f nm = (
+				vector3f(h-hr, h-ho, zh).normal() +
+				vector3f(hl-h, h-ho, zh).normal() +
+				vector3f(hl-h, hu-h, zh).normal() +
+				vector3f(h-hr, hu-h, zh).normal() ).normal();
+			nmpix[ptr + 0] = Uint8(nm.x*127 + 128);
+			nmpix[ptr + 1] = Uint8(-nm.y*127 + 128);
+			nmpix[ptr + 2] = Uint8(nm.z*127 + 128);
+			ptr += 3;
+		}
+	}
+	return new texture(&nmpix[0], w, h, GL_RGB, mapping, clamp, false);
+}
+
 
 texture::~texture()
 {

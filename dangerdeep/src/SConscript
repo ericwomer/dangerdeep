@@ -25,6 +25,7 @@ dftdsources = Split("""subsim.cpp
 	network.cpp
 	parser.cpp
 	particle.cpp
+	perlinnoise.cpp
 	sea_object.cpp
 	sensors.cpp
 	ship.cpp

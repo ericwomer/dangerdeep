@@ -48,8 +48,13 @@ public:
 	// create texture from memory values (use openGl constants for format,etc.
 	// w,h must be powers of two.
 	// you may give a NULL pointer to pixels, the texture will then be inited with black.
-	texture(void* pixels, unsigned w, unsigned h, int format_,
+	texture(Uint8* pixels, unsigned w, unsigned h, int format_,
 		int mapping_, int clamp, bool keep = true);
+
+	// create a RGB texture with normal values from heights (0-255, grey values)
+	// give height of details, 1.0 = direct values
+	static texture* make_normal_map(Uint8* heights, unsigned w, unsigned h, float detailh,
+				 int mapping, int clamp);
 	
 	~texture();
 	

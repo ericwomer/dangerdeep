@@ -17,6 +17,7 @@
 #include "matrix4.h"
 #include "cfg.h"
 #include "system.h"
+#include "perlinnoise.h"
 #include <fstream>
 
 // compute projected grid efficiency, it should be 50-95%
@@ -265,6 +266,15 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 
 	}
 
+	perlinnoise_generator png(7, 32);
+	perlinnoise pn = png.generate_map(512/*256*/);
+#if 0
+	vector<Uint8> wbtmp2 = pn.noisemap;
+	ofstream osg("noisemap.pgm");
+	osg << "P5\n256 256\n255\n";
+	osg.write((const char*)(&wbtmp2[0]), 256*256);
+#endif
+#if 0
 	vector<Uint8> wbtmp(WAVE_RESOLUTION*WAVE_RESOLUTION*3);
 	for (unsigned i = 0; i < WAVE_RESOLUTION*WAVE_RESOLUTION; ++i) {
 		wbtmp[3*i+0] = (wavetilenormals[0][i].x+1.0f)/2.0f*255;
@@ -273,6 +283,9 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	}
 	water_bumpmap = new texture(&wbtmp[0], WAVE_RESOLUTION, WAVE_RESOLUTION,
 				    GL_RGB, GL_LINEAR /*_MIPMAP_LINEAR*/, GL_REPEAT, false);
+#endif
+	water_bumpmap = texture::make_normal_map(&(pn.noisemap[0]), 512, 512, 8.0f,
+						 GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
 	add_loading_screen("water height data computed");
 }
@@ -1069,7 +1082,7 @@ void water::set_refraction_color(float light_brightness)
 			tgt.b = c.b;
 		}
 	}
-	fresnelcolortex = new texture(&fresnelcolortexd[0], FRESNEL_FCT_RES, REFRAC_COLOR_RES, GL_RGBA,
+	fresnelcolortex = new texture((&fresnelcolortexd[0].r), FRESNEL_FCT_RES, REFRAC_COLOR_RES, GL_RGBA,
 				 GL_LINEAR/*_MIPMAP_LINEAR*/, GL_CLAMP_TO_EDGE, false);
 }
 
