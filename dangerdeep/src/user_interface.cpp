@@ -864,7 +864,7 @@ void user_interface::display_map(class system& sys, game& gm)
 
 void user_interface::display_damagestatus(class system& sys, game& gm)
 {
-//	glClearColor(0.25, 0.25, 0.25, 0);
+//	glClearColor(0.25, 0.25, 0.25, 0);	// isn't needed
 //	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	sys.prepare_2d_drawing();

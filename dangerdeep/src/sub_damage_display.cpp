@@ -74,6 +74,7 @@ void sub_damage_display::add_damage ( const vector3& fromwhere, float amount )
 
 void sub_damage_display::display_popup (int x, int y, const string& text) const
 {
+	glBindTexture ( GL_TEXTURE_2D, 0 );
 	color(255,255,128).set_gl_color();
 	system::sys()->draw_rectangle(x-32,y-32,64,64);	//fixme
 	font_arial->print(x-30,y-30,text.c_str(),color::black());
@@ -109,7 +110,8 @@ void sub_damage_display::check_mouse ( int x, int y, int mb )
 		if (x >= r.x && x <= r.x+r.w && y >= r.y && y <= r.y+r.h) {
 			ostringstream os;
 			os << "Part No." << i ;	//fixme
-			display_popup(x, y, os.str());
+			display_popup(r.x, r.y, os.str());
+//			display_popup(x, y, os.str());
 		}
 	}
 }

@@ -4,6 +4,23 @@
 #ifndef TEXTS_H
 #define TEXTS_H
 
+#include <vector>
+using namespace std;
+
+class texts {
+	static vector<string> txts;
+
+public:
+	enum languages { english, german };
+
+	static void set_language(languages l = english);
+	static string get(unsigned no);
+};
+
+
+// old code
+
+
 #ifndef TEXTS_H_USECPP
 
 #define DEFTYPE extern

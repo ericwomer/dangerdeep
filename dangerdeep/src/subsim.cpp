@@ -165,7 +165,7 @@ void menu_historical_mission(void)
 	menu m;
 	for (int i = 0; i < nr_missions; ++i)
 		m.add_item(missions[i]);
-	m.add_item(TXT_Returntopreviousmenu[language]);
+	m.add_item(texts::get(20));
 
 	while (true) {
 		sys->prepare_2d_drawing();
@@ -187,10 +187,10 @@ void menu_historical_mission(void)
 void menu_single_mission(void)
 {
 	menu m;
-	m.add_item(TXT_Warshipengagement[language]);
-	m.add_item(TXT_Convoybattle[language]);
-	m.add_item(TXT_Historicalmission[language]);
-	m.add_item(TXT_Returntomainmenu[language]);
+	m.add_item(texts::get(8));
+	m.add_item(texts::get(9));
+	m.add_item(texts::get(10));
+	m.add_item(texts::get(11));
 
 	while (true) {
 		sys->prepare_2d_drawing();
@@ -392,6 +392,9 @@ int main(int argc, char** argv)
 		}
 	}
 
+	// set language to default
+	texts::set_language();
+
 	res_y = res_x*3/4;
 	// weather conditions and earth curvature allow 30km sight at maximum.
 	sys = new class system(1.0, 30000.0, res_x, fullscreen);
@@ -419,18 +422,18 @@ int main(int argc, char** argv)
 	unsigned selected = 0;
 	while (!quitgame) {
 		menu m;
-		m.add_item(TXT_Playsinglemission[language]);
-		m.add_item(TXT_Multiplayermenu[language]);
-		m.add_item(TXT_Careermenu[language]);
-		m.add_item(TXT_Showvessels[language]);
-		m.add_item(TXT_Halloffame[language]);
-		menu::item mi(TXT_Selectlanguage[language]);
-		mi.add_switch(TXT_English[language]);
-		mi.add_switch(TXT_German[language]);
+		m.add_item(texts::get(21));
+		m.add_item(texts::get(22));
+		m.add_item(texts::get(23));
+		m.add_item(texts::get(24));
+		m.add_item(texts::get(25));
+		menu::item mi(texts::get(26));
+		mi.add_switch(texts::get(27));
+		mi.add_switch(texts::get(28));
 		mi.set_switch_nr(language);
 		m.add_item(mi);
-		m.add_item(TXT_Options[language]);
-		m.add_item(TXT_Quit[language]);
+		m.add_item(texts::get(29));
+		m.add_item(texts::get(30));
 		m.set_selected(selected);
 
 		bool rebuildmenu = false;
@@ -452,7 +455,10 @@ int main(int argc, char** argv)
 				case 2: break;
 				case 3: show_vessels(); break;
 				case 4: break;
-				case 5: language = mmsel / 0x10000; rebuildmenu = true; break;
+				case 5: language = mmsel / 0x10000; 
+					// very ugly.fixme
+					texts::set_language((mmsel / 0x10000 == 0) ? texts::english : texts::german);
+					rebuildmenu = true; break;
 				case 6: break;
 			}
 		}

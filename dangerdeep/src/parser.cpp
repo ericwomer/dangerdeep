@@ -107,7 +107,15 @@ string parser::parse_string(void)
 		error("expected string");
 	tkn->read_next();
 	string tmp = tkn->get_previous().text;
-	return tmp.substr(1, tmp.length() - 2);
+
+	// remove " signs
+	tmp = tmp.substr(1, tmp.length() - 2);
+
+	// translate returns
+	for (string::size_type st = tmp.find("\\n"); st != string::npos; st = tmp.find("\\n"))
+		tmp.replace(st, 2, "\n");
+		
+	return tmp;
 }
 
 int parser::parse_number(void)
