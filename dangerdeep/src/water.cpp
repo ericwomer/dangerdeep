@@ -186,6 +186,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		wavetiledisplacements[i] = owg.compute_displacements(-2.0f);
 
 #if 1	// use finite normals
+		// we need the normals to compute ship rolling
 		wavetilenormals[i] = owg.compute_finite_normals(wavetileheights[i]);
 		
 #else	// use fft normals

@@ -284,6 +284,8 @@ void freeview_display::draw_view(game& gm) const
 
 	// **************** prepare drawing ***************************************************
 
+	GLfloat fog_color[4] = { 0.68, 0.78, 0.86, 1.0};//fixme: depends on sky color at the horizon! influenced by sun etc.
+
 	color lightcol = gm.compute_light_color(viewpos);
 
 	// compute light source position and brightness (must be set AFTER modelview matrix)
@@ -304,16 +306,17 @@ void freeview_display::draw_view(game& gm) const
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	// store the projection matrix
-	system::sys().gl_perspective_fovx(pd.fov_x * 1.05, 1.0 /*aspect*/, pd.near_z, pd.far_z);
+	system::sys().gl_perspective_fovx(pd.fov_x * 1.0, 1.0 /*aspect*/, pd.near_z, pd.far_z);
 	reflection_projmvmat = matrix4::get_gl(GL_PROJECTION_MATRIX) * matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	glLoadIdentity();
 	// set up projection matrix (new width/height of course) with a bit larger fov
-	system::sys().gl_perspective_fovx(pd.fov_x * 1.05, 1.0 /*aspect*/, pd.near_z, pd.far_z);
+	system::sys().gl_perspective_fovx(pd.fov_x * 1.0, 1.0 /*aspect*/, pd.near_z, pd.far_z);
 	// set up new viewport size s*s with s<=max_texure_size and s<=w,h of old viewport
 	unsigned vps = ui.get_water().get_reflectiontex_size();
 	glViewport(0, 0, vps, vps);
 	// clear depth buffer (fixme: maybe clear color with upwelling color, use a bit alpha)
-	glClear(GL_DEPTH_BUFFER_BIT);
+	glClearColor(fog_color[0], fog_color[1], fog_color[2], fog_color[3]);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// shear one clip plane to match world space z=0 plane
 	//fixme
@@ -372,7 +375,6 @@ void freeview_display::draw_view(game& gm) const
 	ui.get_sky().display(gm, viewpos, max_view_dist, false);
 
 	// ********* set fog for scene ****************************************************
-	GLfloat fog_color[4] = {0.5, 0.5, 0.5, 1.0};//fixme: depends on sky color at the horizon! influenced by sun etc.
 	glFogi(GL_FOG_MODE, GL_LINEAR );
 	glFogfv(GL_FOG_COLOR, fog_color);
 	glFogf(GL_FOG_DENSITY, 1.0);	// not used in linear mode

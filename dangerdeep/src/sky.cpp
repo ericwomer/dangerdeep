@@ -500,8 +500,9 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	//fixme: instead of clearing the screen with black we could set the blend function
 	//to GL_SRC_ALPHA, GL_ZERO to blend the sky color into black. This saves
 	//the glClear(), Stars can be drawn after the sky color, with reversed sky alpha.
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+//clear is done in freeview display with fog color now
+//	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+//	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_LIGHTING);
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
