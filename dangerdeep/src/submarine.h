@@ -9,6 +9,8 @@
 #include "parser.h"
 #include <vector>
 
+#define SUBMARINE_SUBMERGED_DEPTH 2.0f // meters
+
 class submarine : public ship
 {
 public:
@@ -32,7 +34,9 @@ protected:
 		
 	bool scopeup;	// fixme: maybe simulate time for moving scope up/down
     double periscope_depth;
-
+    bool electric_engine; // true when electric engine is used.
+    double snorkel_depth; // -1 when snorkel not available.
+    
 	submarine();
 	submarine& operator= (const submarine& other);
 	submarine(const submarine& other);
@@ -77,7 +81,9 @@ public:
 	
 	virtual bool is_scope_up(void) const { return scopeup; }
     virtual double get_periscope_depth() const { return periscope_depth; }
-    virtual bool is_submerged () const { return get_depth() > 2.0f; }
+    virtual bool is_submerged () const { return get_depth() > SUBMARINE_SUBMERGED_DEPTH; }
+    virtual double get_max_depth () const { return max_depth; }
+    virtual bool is_electic_engine (void) const { return (electric_engine == true); }
     
 	// command interface for subs
 	virtual void scope_up(void) { scopeup = true; };	// fixme
