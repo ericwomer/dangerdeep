@@ -166,8 +166,8 @@ void model::material::set_gl_values(void) const
 			glActiveTexture(GL_TEXTURE0);
 			glMatrixMode(GL_TEXTURE);
 			glLoadIdentity();
-			glRotatef(bump->angle, 0, 0, 1);//fixme order of operations is unclear
-			glTranslatef(bump->uoffset, bump->voffset, 0);
+			glTranslatef(bump->uoffset, bump->voffset, 0);//fixme order of operations is unclear
+			glRotatef(bump->angle, 0, 0, 1);
 			glScalef(bump->uscal, bump->vscal, 1);
 			bump->mytexture->set_gl_texture();
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
@@ -181,8 +181,8 @@ void model::material::set_gl_values(void) const
 			tex1->mytexture->set_gl_texture();
 			glMatrixMode(GL_TEXTURE);
 			glLoadIdentity();
+			glTranslatef(tex1->uoffset, tex1->voffset, 0);//fixme order of operations is unclear
 			glRotatef(tex1->angle, 0, 0, 1);
-			glTranslatef(tex1->uoffset, tex1->voffset, 0);
 			glScalef(tex1->uscal, tex1->vscal, 1);
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 			glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE); 
