@@ -572,14 +572,16 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	glClientActiveTexture(GL_TEXTURE1);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	unsigned t0 = system::sys().millisec();
-	glFlush();
-	unsigned t1 = system::sys().millisec();
+//	unsigned t0 = system::sys().millisec();
+//	glFlush();
+//	unsigned t1 = system::sys().millisec();
+
 	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
 //	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
-	unsigned t2 = system::sys().millisec();
-	glFlush();
-	unsigned t3 = system::sys().millisec();
+
+//	unsigned t2 = system::sys().millisec();
+//	glFlush();
+//	unsigned t3 = system::sys().millisec();
 //	drawing takes ~28ms with linux/athlon2200+/gf4mx. That would be ~32mb/sec with AGP4x!?
 //	why is it SO SLOW?!
 //	cout << "t0 " << t0 << " t1 " << t1 << " t2 " << t2 << " t3 " << t3 << "\n";

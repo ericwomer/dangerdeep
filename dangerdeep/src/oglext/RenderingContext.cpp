@@ -1728,7 +1728,6 @@ bool CRenderingContext::InitExtColorSubtable()
 bool CRenderingContext::InitExtCompiledVertexArray()
 {
 	// 1: get all function pointers...
-
 	GET_PROC_ADDRESS(LockArraysEXT);
 	GET_PROC_ADDRESS(UnlockArraysEXT);
 
