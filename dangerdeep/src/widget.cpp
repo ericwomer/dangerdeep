@@ -315,7 +315,7 @@ widget* widget::create_dialogue_ok_cancel(widget* parent_, const string& title, 
 	return w;
 }
 
-int widget::run(unsigned timeout)
+int widget::run(unsigned timeout, bool do_stacking)
 {
 	unsigned short inited = false; // draw first, then only draw when an event occurred
 	glClearColor(0, 0, 0, 0);
@@ -332,15 +332,20 @@ int widget::run(unsigned timeout)
 		
 		list<SDL_Event> events = sys.poll_event_queue();
 		if(inited && events.size() == 0) {
-			SDL_Delay(30);
+			SDL_Delay(50);
 			continue;
 		}
 		inited = true;
 		glClear(GL_COLOR_BUFFER_BIT);
 		sys.prepare_2d_drawing();
 		glColor4f(1,1,1,1);
-		for (list<widget*>::iterator it = widgets.begin(); it != widgets.end(); ++it)
-			(*it)->draw();
+		if (do_stacking) {
+			for (list<widget*>::iterator it = widgets.begin(); it != widgets.end();
+			     ++it)
+				(*it)->draw();
+		} else {
+			draw();
+		}
 		sys.unprepare_2d_drawing();
 		process_input(events);
 		sys.swap_buffers();

@@ -137,7 +137,8 @@ public:
 
 	// show & exec. widget, automatically disable widgets below
 	// run() runs for "time" milliseconds (or forever if time == 0), then returns
-	virtual int run(unsigned timeout = 0);//fixme: add some "bool showbelowwidgets=true" parameter
+	// if do_stacking is false only this widget is drawn, but none of its parents
+	virtual int run(unsigned timeout = 0, bool do_stacking = true);
 	virtual void close(int val);	// close this widget (stops run() on next turn, returns val)
 	
 	static list<widget*> widgets;	// stack of dialogues, topmost is back

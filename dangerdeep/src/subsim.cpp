@@ -50,7 +50,7 @@ void menu_notimplemented(void)
 	w.add_child(wm);
 	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
 	wm->align(0, 0);
-	w.run();
+	w.run(0, false);
 }
 
 
@@ -248,7 +248,7 @@ void show_halloffame(const highscorelist& hsl)
 	widget w(0, 0, 1024, 768, texts::get(197), 0, kruppdocksimg);
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 	hsl.show(&w);
-	w.run();
+	w.run(0, false);
 }
 void show_halloffame_mission(void) { show_halloffame(hsl_mission); }
 void show_halloffame_career(void) { show_halloffame(hsl_career); }
@@ -276,7 +276,7 @@ void check_for_highscore(const game* gm)
 		w.add_child(new widget_text(400, 280, 0,0, texts::get(200)));
 		widget_edit* wname = new widget_edit(300, 320, 424, 32, "");
 		w.add_child(wname);
-		w.run();
+		w.run(0, false);
 		string playername = wname->get_text();
 		if (playername.length() == 0)
 			playername = "INCOGNITO";
@@ -284,7 +284,7 @@ void check_for_highscore(const game* gm)
 	} else {
 		w.add_child(new widget_text(400, 200, 0,0, texts::get(198)));
 	}
-	w.run();
+	w.run(0, false);
 	show_halloffame(hsl);
 }
 
@@ -310,7 +310,7 @@ void show_results_for_game(const game* gm)
 	ostringstream os;
 	os << "total: " << totaltons;
 	wl->append_entry(os.str());
-	w.run();
+	w.run(0, false);
 }
 
 
@@ -418,7 +418,7 @@ void run_game(game* gm)
 				w.add_child(wm);
 				wm->add_entry(texts::get(105), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
 				wm->align(0, 0);
-				w.run();
+				w.run(0, false);
 			}
 
 //			if (state == game::contact_lost)
@@ -430,7 +430,7 @@ void run_game(game* gm)
 				break;
 		} else {
 			loadsavequit_dialogue dlg(gm);
-			int q = dlg.run();
+			int q = dlg.run(0, false);
 			// replace game and ui if new game was loaded
 			if (q == 2) {
 				delete gm;
@@ -502,7 +502,7 @@ void create_convoy_mission(void)
 	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
 	wm->add_entry(texts::get(19), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 540, 700, 400, 40));
 	wm->adjust_buttons(944);
-	int result = w.run();
+	int result = w.run(0, false);
 	if (result == 2) {	// start game
 		string st;
 		switch (wsubtype->get_selected()) {
@@ -593,7 +593,7 @@ void choose_historical_mission(void)
 	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
 	wm->add_entry(texts::get(19), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 70, 700, 400, 40));
 	wm->adjust_buttons(944);
-	int result = w.run();
+	int result = w.run(0, false);
 	if (result == 2) {	// start game
 		TiXmlDocument doc(get_mission_dir() + missions[wmission->get_selected()]);
 		doc.LoadFile();
@@ -608,7 +608,7 @@ void choose_historical_mission(void)
 void choose_saved_game(void)
 {
 	loadsavequit_dialogue dlg(0);
-	int q = dlg.run();
+	int q = dlg.run(0, false);
 	if (q == 0) return;
 	if (q == 2) {
 		run_game(new game(dlg.get_gamefilename_to_load()));
@@ -690,7 +690,7 @@ bool server_wait_for_clients(network_connection& sv, Uint16 server_port, vector<
 	wm->adjust_buttons(944);
 
 	while (true) {
-		int result = w.run(50);
+		int result = w.run(50, false);
 		if (result == 1) {
 			send_msg_to_all(sv, clients, MSG_cancel);
 			return false;
@@ -875,7 +875,7 @@ void play_network_game(void)
 	int result = 0;
 	while (result != 1) {
 		w.set_return_value(-1);
-		result = w.run(50);
+		result = w.run(50, false);
 		listen_for_offered_games(wservers, server_port, client);
 		if (result == 2) {
 			create_network_game(local_port);	// start server, wait for players
@@ -906,7 +906,7 @@ void menu_single_mission(void)
 	wm->add_entry(texts::get(118), new widget_func_button<void (*)(void)>(&choose_saved_game, 0, 0, 0, 0));
 	wm->add_entry(texts::get(11), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
 	wm->align(0, 0);
-	w.run();
+	w.run(0, false);
 }
 
 void set_selected_language(pair<widget*, unsigned> w_nr)
@@ -930,7 +930,7 @@ void menu_select_language(void)
 	}
 	wm->add_entry(texts::get(11), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
 	wm->align(0, 0);
-	w.run();
+	w.run(0, false);
 }
 
 //
@@ -1244,24 +1244,28 @@ int main(int argc, char** argv)
 		doc.LoadFile();
 		run_game(new game(&doc));
 	} else {
-		// main menu
-		widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
-		widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(104));
-		wm->set_entry_spacing(8);
-		w.add_child(wm);
-		wm->add_entry(texts::get(21), new widget_func_button<void (*)(void)>(&menu_single_mission, 0, 0, 0, 0));
-		wm->add_entry(texts::get(22), new widget_func_button<void (*)(void)>(&play_network_game, 0, 0, 0, 0));
-		wm->add_entry(texts::get(23), new widget_func_button<void (*)(void)>(&menu_notimplemented /* career menu */, 0, 0, 0, 0));
-		wm->add_entry(texts::get(24), new widget_func_button<void (*)(void)>(&menu_notimplemented /*menu_show_vessels*/, 0, 0, 0, 0));
-		wm->add_entry(texts::get(25), new widget_func_button<void (*)(void)>(&show_halloffame_mission, 0, 0, 0, 0));
-		wm->add_entry(texts::get(213), new widget_func_button<void (*)(void)>(&show_credits, 0, 0, 0, 0));
-		wm->add_entry(texts::get(26), new widget_func_button<void (*)(void)>(&menu_select_language, 0, 0, 0, 0));
-		wm->add_entry(texts::get(29), new widget_func_button<void (*)(void)>(&menu_notimplemented /*menu_options*/, 0, 0, 0, 0));
+		int retval = 1;
+		do {	// loop until menu is closed.
+			// main menu
+			widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
+			widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(104));
+			wm->set_entry_spacing(8);
+			w.add_child(wm);
+			wm->add_entry(texts::get(21), new widget_func_button<void (*)(void)>(&menu_single_mission, 0, 0, 0, 0));
+			wm->add_entry(texts::get(22), new widget_func_button<void (*)(void)>(&play_network_game, 0, 0, 0, 0));
+			wm->add_entry(texts::get(23), new widget_func_button<void (*)(void)>(&menu_notimplemented /* career menu */, 0, 0, 0, 0));
+			wm->add_entry(texts::get(24), new widget_func_button<void (*)(void)>(&menu_notimplemented /*menu_show_vessels*/, 0, 0, 0, 0));
+			wm->add_entry(texts::get(25), new widget_func_button<void (*)(void)>(&show_halloffame_mission, 0, 0, 0, 0));
+			wm->add_entry(texts::get(213), new widget_func_button<void (*)(void)>(&show_credits, 0, 0, 0, 0));
+			wm->add_entry(texts::get(26), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 0, 0, 0, 0));
+			wm->add_entry(texts::get(29), new widget_func_button<void (*)(void)>(&menu_notimplemented /*menu_options*/, 0, 0, 0, 0));
 
-		wm->add_entry(texts::get(30), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
-		wm->align(0, 0);
-		w.run();
-
+			wm->add_entry(texts::get(30), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
+			wm->align(0, 0);
+			retval = w.run(0, false);
+			if (retval == 1)
+				menu_select_language();
+		} while (retval != 0);
 	}
 
 	sys->write_console(true);
