@@ -21,6 +21,15 @@
 #include <vector>
 using namespace std;
 
+/*
+   fixme:
+   maybe we can determine "more alpha" automatically.
+   For paletted textures, there can be only two alpha values.
+   For RGB textures we could count the alpha values (2 or more)
+   For 32 bit displays always use RGBA (8-8-8-8) (no matter if morealpha or not)
+   For 16 bit displays use RGB5_A1 or RGBA (4-4-4-4).
+*/   
+
 int texture::paletted_textures = -1;
 
 void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,

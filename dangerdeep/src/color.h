@@ -13,6 +13,9 @@
 #include <GL/gl.h>
 #endif
 
+#include <iostream>
+using namespace std;
+
 struct color {
 	unsigned char r, g, b;
 	color(unsigned char r_ = 0, unsigned char g_ = 0, unsigned char b_ = 0) : r(r_), g(g_), b(b_) {};
@@ -26,6 +29,9 @@ struct color {
 
 	// transform color to grey value (model of human vision, 11% to 59% to 30% RGB)
 	color grey_value(void) const { unsigned char c = (unsigned char)(r*0.11+g*0.59+b*0.3); return color(c, c, c); }
+	
+	color(istream& in) { in.read((char*)&r, sizeof(unsigned char)); in.read((char*)&g, sizeof(unsigned char)); in.read((char*)&b, sizeof(unsigned char)); }
+	void save(ostream& out) const { out.write((const char*)&r, sizeof(unsigned char)); out.write((const char*)&g, sizeof(unsigned char)); out.write((const char*)&b, sizeof(unsigned char)); }
 	
 	// some useful standard colors
 	static color black(void) { return color(0,0,0); }

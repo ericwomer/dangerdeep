@@ -5,6 +5,11 @@
 #ifndef VECTOR3_H
 #define VECTOR3_H
 
+#ifdef WIN32
+#undef min
+#undef max
+#endif
+
 #include <iostream>
 #include "vector2.h"
 #include <cmath>
@@ -17,6 +22,8 @@ class vector3t
 	D x, y, z;
 
 	vector3t() : x(0), y(0), z(0) {};
+	vector3t(const vector3t<D>& o) : x(o.x), y(o.y), z(o.z) {}
+	vector3t& operator= (const vector3t<D>& o) { x = o.x; y = o.y; z = o.z; return *this; }
 	vector3t(const D &x_, const D &y_, const D &z_) : x(x_), y(y_), z(z_) {};
 	vector3t<D> normal(void) const { D len = D(1.0)/length(); return vector3t(x * len, y * len, z * len); };
 	void normalize(void) { D len = D(1.0)/length(); x *= len; y *= len; z *= len; };
@@ -42,6 +49,8 @@ class vector3t
 	vector2t<D> yz(void) const { return vector2t<D>(y, z); };
 	template<class D2> friend ostream& operator<< ( ostream& os, const vector3t<D2>& v );
 	template<class E> void assign(const vector2t<E>& other) { x = D(other.x); y = D(other.y); }
+	vector3t(istream& in) { in.read((char*)&x, sizeof(x)); in.read((char*)&y, sizeof(y)); in.read((char*)&z, sizeof(z)); }
+	void save(ostream& out) const { out.write((const char*)&x, sizeof(x)); out.write((const char*)&y, sizeof(y)); out.write((const char*)&z, sizeof(z)); }
 };
 
 template<class D2> inline vector3t<D2> operator* (const D2& scalar, const vector3t<D2>& v) { return v * scalar; }

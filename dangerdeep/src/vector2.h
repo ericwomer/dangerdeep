@@ -23,6 +23,8 @@ class vector2t
 	D x, y;
 
 	vector2t() : x(0), y(0) {};
+	vector2t(const vector2t<D>& o) : x(o.x), y(o.y) {}
+	vector2t& operator= (const vector2t<D>& o) { x = o.x; y = o.y; return *this; }
 	vector2t(const D &x_, const D &y_) : x(x_), y(y_) {};
 	vector2t<D> normal(void) const { D len = D(1.0)/length(); return vector2t(x * len, y * len); };
 	void normalize(void) { D len = D(1.0)/length(); x *= len; y *= len; };
@@ -47,6 +49,8 @@ class vector2t
 	vector3t<D> xy0(void) const { return vector3t<D>(x, y, 0); }
 	template<class D2> friend ostream& operator<< ( ostream& os, const vector2t<D2>& v );
 	template<class E> void assign(const vector2t<E>& other) { x = D(other.x); y = D(other.y); }
+	vector2t(istream& in) { in.read((char*)&x, sizeof(x)); in.read((char*)&y, sizeof(y)); }
+	void save(ostream& out) const { out.write((const char*)&x, sizeof(x)); out.write((const char*)&y, sizeof(y)); }
 };
 
 template <class D>
