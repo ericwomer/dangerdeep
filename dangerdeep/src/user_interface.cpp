@@ -155,6 +155,8 @@ void user_interface::init ()
 	captains_logbook = new captains_logbook_display;
 	ships_sunk_disp = new ships_sunk_display;
 
+	mysky = new sky();
+	
 	// create and fill display lists for water
 	/*
 		this model leads to waves rolling from NE to SW.
@@ -723,6 +725,7 @@ cout<<"\n";
 
 	glActiveTexture(GL_TEXTURE1);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glDisable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
@@ -753,6 +756,24 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	// fixme: make use of game::job interface, 3600/256 = 14.25 secs job period
 	mysky->set_time(gm.get_time());
 
+	double dt = get_day_time(gm.get_time());
+	color skycol1, skycol2, lightcol;
+	double colscal;
+	if (dt < 1) { colscal = 0; }
+	else if (dt < 2) { colscal = fmod(dt,1); }
+	else if (dt < 3) { colscal = 1; }
+	else { colscal = 1-fmod(dt,1); }
+	lightcol = color(color(64, 64, 64), color(255,255,255), colscal);
+	skycol1 = color(color(8,8,32), color(165,192,247), colscal);
+	skycol2 = color(color(0, 0, 16), color(74,114,236), colscal);
+	// compute light source position and brightness fixme fixme fixme - move back to user_interface!!!!!
+	GLfloat lambient[4] = {0,0,0,1};//{0.2, 0.2, 0.2, 1};//lightcol.r/255.0/2.0, lightcol.g/255.0/2.0, lightcol.b/255.0/2.0, 1};
+	GLfloat ldiffuse[4] = {lightcol.r/255.0, lightcol.g/255.0, lightcol.b/255.0, 1};
+	GLfloat lposition[4] = {0,1,1,0};	//fixed for now. fixme
+	glLightfv(GL_LIGHT1, GL_AMBIENT, lambient);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, ldiffuse);
+	glLightfv(GL_LIGHT1, GL_POSITION, lposition);
+
 	double timefac = myfmod(gm.get_time(), TIDECYCLE_TIME)/TIDECYCLE_TIME;
 	
 	//fixme: get rid of this
@@ -774,7 +795,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	mysky->display(viewpos, max_view_dist);
 
 	// ********* fog test ************ fog color is skycol2 ************************
-	GLfloat fog_color[4] = {0.5,0.5,0.6};//fixme{skycol2.r/255.0, skycol2.g/255.0, skycol2.b/255.0, 1.0};
+	GLfloat fog_color[4] = {skycol2.r/255.0, skycol2.g/255.0, skycol2.b/255.0, 1.0};
 	glFogi(GL_FOG_MODE, GL_LINEAR );
 	glFogfv(GL_FOG_COLOR, fog_color);
 	glFogf(GL_FOG_DENSITY, 1.0);	// not used in linear mode

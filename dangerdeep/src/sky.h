@@ -24,7 +24,6 @@ protected:
 
 	model* skyhemisphere;
 	texture* stars;
-	texture* skycolor;
 	texture* sunglow;
 	texture* clouds;
 	texture* suntex;
