@@ -324,9 +324,10 @@ bool user_interface::time_scale_down(void)
 	return false;
 }
 
-void user_interface::draw_infopanel(class system& sys) const
+void user_interface::draw_infopanel(class system& sys, class game& gm) const
 {
 	glBindTexture(GL_TEXTURE_2D, panelbackgr->get_opengl_name());
+	set_display_color ( gm );
 	glBegin(GL_QUADS);
 	glTexCoord2i(0,0);
 	glVertex2i(0,640);
@@ -345,7 +346,9 @@ void user_interface::draw_infopanel(class system& sys) const
 		<< "   " << TXT_Depth[language] << ": "
 		<< unsigned(round(-get_player()->get_pos().z))
 		<< "   " << TXT_Bearing[language] << ": "
-		<< bearing.ui_value();
+		<< bearing.ui_value()
+		<< "   " << TXT_TimeCompression[language] << ": "
+		<< time_scale;
 	font_panel->print(0, 648, os.str().c_str());
 	int y = 768 - 24;
 	for (list<string>::const_reverse_iterator it = panel_texts.rbegin(); 
@@ -369,9 +372,10 @@ texture* user_interface::torptex(unsigned type)
 	return torpempty;
 }
 
-void user_interface::draw_gauge(class system& sys, unsigned nr, int x, int y,
-	unsigned wh, angle a, const char* text) const
+void user_interface::draw_gauge(class system& sys, class game& gm,
+	unsigned nr, int x, int y, unsigned wh, angle a, const char* text) const
 {
+	set_display_color ( gm );
 	switch (nr) {
 		case 1:	sys.draw_image(x, y, wh, wh, gauge1); break;
 		case 2:	sys.draw_image(x, y, wh, wh, gauge2); break;
@@ -382,7 +386,12 @@ void user_interface::draw_gauge(class system& sys, unsigned nr, int x, int y,
 	vector2 d = a.direction();
 	int xx = x+wh/2, yy = y+wh/2;
 	pair<unsigned, unsigned> twh = font_arial2->get_size(text);
-	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text);
+
+	color font_color ( 255, 255, 255 );
+	if ( !gm.is_day_mode () )
+		font_color = color ( 255, 127, 127 );
+
+	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text, font_color);
 	glColor3f(1,0,0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBegin(GL_TRIANGLES);
@@ -393,11 +402,14 @@ void user_interface::draw_gauge(class system& sys, unsigned nr, int x, int y,
 	glColor3f(1,1,1);
 }
 
-void user_interface::draw_clock(class system& sys, int x, int y, unsigned wh, double t,
-	const char* text) const
+void user_interface::draw_clock(class system& sys, class game& gm,
+	int x, int y, unsigned wh, double t, const char* text) const
 {
 	unsigned seconds = unsigned(fmod(t, 86400));
 	unsigned minutes = seconds / 60;
+	bool is_day_mode = gm.is_day_mode ();
+
+	set_display_color ( gm );
 	if (minutes < 12*60)
 		sys.draw_image(x, y, wh, wh, clock12);
 	else
@@ -405,7 +417,12 @@ void user_interface::draw_clock(class system& sys, int x, int y, unsigned wh, do
 	minutes %= 12*60;
 	int xx = x+wh/2, yy = y+wh/2;
 	pair<unsigned, unsigned> twh = font_arial2->get_size(text);
-	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text);
+
+	color font_color ( 255, 255, 255 );
+	if ( !is_day_mode )
+		font_color = color ( 255, 127, 127 );
+
+	font_arial2->print(xx-twh.first/2, yy-twh.second/2, text, font_color);
 	vector2 d;
 	int l;
 
@@ -414,14 +431,20 @@ void user_interface::draw_clock(class system& sys, int x, int y, unsigned wh, do
 
 	d = (angle(minutes * 360 / (12*60))).direction();
 	l = wh/4;
-	glColor3f(0,0,0.5);
+	if ( is_day_mode )
+		glColor3f(0,0,0.5);
+	else
+		glColor3f ( 0.5f, 0.0f, 0.5f );
 	glVertex2i(xx - int(d.y*4),yy - int(d.x*4));
 	glVertex2i(xx + int(d.y*4),yy + int(d.x*4));
 	glVertex2i(xx + int(d.x*l),yy - int(d.y*l));
 
 	d = (angle((minutes%60) * 360 / 60)).direction();
 	l = wh*3/8;
-	glColor3f(0,0,1);
+	if ( is_day_mode )
+		glColor3f(0,0,1);
+	else
+		glColor3f ( 0.5f, 0.0f, 1.0f );
 	glVertex2i(xx - int(d.y*4),yy - int(d.x*4));
 	glVertex2i(xx + int(d.y*4),yy + int(d.x*4));
 	glVertex2i(xx + int(d.x*l),yy - int(d.y*l));
@@ -482,17 +505,18 @@ void user_interface::display_gauges(class system& sys, game& gm)
 {
 	sea_object* player = get_player ();
 	sys.prepare_2d_drawing();
+	set_display_color ( gm );
 	for (int y = 0; y < 3; ++y)	// fixme: replace with gauges
 		for (int x = 0; x < 4; ++x)
 			sys.draw_image(x*256, y*256, 256, 256, psbackgr);
 	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
 	angle player_depth = -player->get_pos().z;
-	draw_gauge(sys, 1, 0, 0, 256, player->get_heading(), TXT_Heading[language]);
-	draw_gauge(sys, 2, 256, 0, 256, player_speed, TXT_Speed[language]);
-	draw_gauge(sys, 4, 2*256, 0, 256, player_depth, TXT_Depth[language]);
-	draw_clock(sys, 3*256, 0, 256, gm.get_time(), TXT_Time[language]);
+	draw_gauge(sys, gm, 1, 0, 0, 256, player->get_heading(), TXT_Heading[language]);
+	draw_gauge(sys, gm, 2, 256, 0, 256, player_speed, TXT_Speed[language]);
+	draw_gauge(sys, gm, 4, 2*256, 0, 256, player_depth, TXT_Depth[language]);
+	draw_clock(sys, gm, 3*256, 0, 256, gm.get_time(), TXT_Time[language]);
 
-	draw_infopanel(sys);
+	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
 
 	// mouse handling
@@ -545,7 +569,7 @@ void user_interface::display_bridge(class system& sys, game& gm)
 	draw_view(sys, gm, viewpos, player->get_heading()+bearing, true, false);
 
 	sys.prepare_2d_drawing();
-	draw_infopanel(sys);
+	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
 
 	// keyboard processing
@@ -651,8 +675,12 @@ void user_interface::draw_visual_contacts(class system& sys, class game& gm,
 void user_interface::display_map(class system& sys, game& gm)
 {
 	sea_object* player = get_player ();
-    
-	glClearColor(0, 0, 1, 1);	// fixme
+	bool is_day_mode = gm.is_day_mode ();
+
+	if ( is_day_mode )
+		glClearColor ( 0.0f, 0.0f, 1.0f, 1.0f );
+	else
+		glClearColor ( 0.0f, 0.0f, 0.75f, 1.0f );
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	double max_view_dist = gm.get_max_view_distance();
@@ -754,7 +782,7 @@ void user_interface::display_map(class system& sys, game& gm)
 		glColor3f ( 1.0f, 1.0f, 1.0f );
     }
 
-	draw_infopanel(sys);
+	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
 	
 	// keyboard processing
@@ -861,7 +889,7 @@ void user_interface::display_freeview(class system& sys, game& gm)
 	viewupang -= my*0.5;
 
 	sys.prepare_2d_drawing();
-	draw_infopanel(sys);
+	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
 
 	// keyboard processing
@@ -918,7 +946,7 @@ void user_interface::display_glasses(class system& sys, class game& gm)
 	sys.prepare_2d_drawing();
 	sys.draw_image(0, 0, 512, 512, glasses);
 	sys.draw_hm_image(512, 0, 512, 512, glasses);
-	draw_infopanel(sys);
+	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
 
 	// keyboard processing
@@ -963,7 +991,7 @@ void user_interface::add_rudder_message()
 
 #define NIGHT_MODE_COLOR() glColor3f ( 1.0f, 0.0f, 0.0f )
 
-void user_interface::set_color ( color_mode mode )
+void user_interface::set_display_color ( color_mode mode ) const
 {
 	switch ( mode )
 	{
@@ -976,7 +1004,7 @@ void user_interface::set_color ( color_mode mode )
 	}
 }
 
-void user_interface::set_color ( class game& gm )
+void user_interface::set_display_color ( const class game& gm ) const
 {
 	if ( gm.is_day_mode () )
 		DAY_MODE_COLOR ();

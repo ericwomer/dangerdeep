@@ -65,14 +65,14 @@ protected:
 	static texture* torptex(unsigned type);
 
 	// color funtions.
-    virtual void set_color ( color_mode mode );
-    virtual void set_color ( class game& gm );
+    virtual void set_display_color ( color_mode mode ) const;
+    virtual void set_display_color ( const class game& gm ) const;
 	
 	// 2d drawing must be turned on for them
-	void draw_infopanel(class system& sys) const;
-	void draw_gauge(class system& sys, unsigned nr, int x, int y, unsigned wh, angle a,
+	void draw_infopanel(class system& sys, class game& gm) const;
+	void draw_gauge(class system& sys, class game& gm, unsigned nr, int x, int y, unsigned wh, angle a,
 		const char* text) const;
-	void draw_clock(class system& sys, int x, int y, unsigned wh, double t,
+	void draw_clock(class system& sys, class game& gm, int x, int y, unsigned wh, double t,
 	        const char* text) const;
 	void draw_vessel_symbol(class system& sys, const vector2& offset, 
                                 const sea_object* so, color c) const;
