@@ -32,6 +32,9 @@ protected:
 	virtual void display_UZO(class system& sys, class game& gm);
 	virtual void display_torpedoroom(class system& sys, class game& gm);
 
+    /** This method creates a message about the rudder state. */
+    virtual void add_rudder_message();
+
 public:	
 	submarine_interface(submarine* player_sub);
 	virtual ~submarine_interface();
