@@ -33,6 +33,10 @@ sub_tdc_display::sub_tdc_display(user_interface& ui_) : user_display(ui_)
 //	clock_big_pointer_nightlight = new texture(get_image_dir() + "TDC_redlight_clockbigptr.png");
 	clock_small_pointer_daylight = new texture(get_image_dir() + "TDC_daylight_clocksmlptr.png");
 //	clock_small_pointer_nightlight = new texture(get_image_dir() + "TDC_redlight_clocksmlptr.png");
+	targetpos_ptr_daylight = new texture(get_image_dir() + "TDC_daylight_targetposition.png");
+//	targetpos_ptr_nightlight = new texture(get_image_dir() + "TDC_redlight_targetposition.png");
+	targetcourse_ptr_daylight = new texture(get_image_dir() + "TDC_daylight_targetcourse.png");
+//	targetcourse_ptr_nightlight = new texture(get_image_dir() + "TDC_redlight_targetcourse.png");
 }
 
 
@@ -42,15 +46,19 @@ sub_tdc_display::~sub_tdc_display()
 	delete background_normallight;
 //	delete background_nightlight;
 
-	delete clock_big_pointer_daylight;
-//	delete clock_big_pointer_nightlight;
-	delete clock_small_pointer_daylight;
-//	delete clock_small_pointer_nightlight;
-
 	for (unsigned i = 0; i < 6; ++i) {
 		delete tube_textures_daylight[i];
 //		delete tube_textures_redlight[i];
 	}
+
+	delete clock_big_pointer_daylight;
+//	delete clock_big_pointer_nightlight;
+	delete clock_small_pointer_daylight;
+//	delete clock_small_pointer_nightlight;
+	delete targetpos_ptr_daylight;
+//	delete targetpos_ptr_nightlight;
+	delete targetcourse_ptr_daylight;
+//	delete targetcourse_ptr_nightlight;
 }
 
 
@@ -81,8 +89,8 @@ void sub_tdc_display::display(class game& gm) const
 	bool is_day = true;//gm.is_day_mode();
 	if (is_day) {
 		background_normallight->draw(0, 0);
-//	} else {
-//		background_nightlight->draw(0, 0);
+	} else {
+		background_nightlight->draw(0, 0);
 	}
 
 	// draw clock pointers
@@ -94,6 +102,29 @@ void sub_tdc_display::display(class game& gm) const
 	clock_minutes_pointer->draw_rot(946, 294, minuteang);
 */
 
+	// get pointer to target and values
+	sea_object* target = ui.get_target();
+	double tgtcourse = 0, tgtpos = 0;
+	if (target) {
+		tgtcourse = target->get_heading().value();
+		tgtpos = (angle(target->get_pos().xy() - player->get_pos().xy())
+			  - player->get_heading()).value();
+	}
+
+	// draw target position
+	if (is_day) {
+		targetpos_ptr_daylight->draw_rot(126, 188, tgtpos);
+	} else {
+		targetpos_ptr_nightlight->draw_rot(126, 188, tgtpos);
+	}
+
+	// draw target course
+	if (is_day) {
+		targetcourse_ptr_daylight->draw_rot(586, 453, tgtcourse);
+	} else {
+		targetcourse_ptr_nightlight->draw_rot(586, 453, tgtcourse);
+	}
+
 	// draw tubes if ready
 	unsigned tubex[6] = { 33,153,274,395,521,647};
 	unsigned tubey[6] = {618,618,618,618,618,618};
@@ -101,8 +132,8 @@ void sub_tdc_display::display(class game& gm) const
 		if (player->is_tube_ready(i)) {
 			if (is_day) {
 				tube_textures_daylight[i]->draw(tubex[i], tubey[i]);
-//			} else {
-//				tube_textures_nightlight[i]->draw(tubex[i], tubey[i]);
+			} else {
+				tube_textures_nightlight[i]->draw(tubex[i], tubey[i]);
 			}
 		}
 	}

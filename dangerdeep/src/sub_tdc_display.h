@@ -11,15 +11,19 @@ using namespace std;
 class sub_tdc_display : public user_display
 {
 	class image* background_normallight;
-//	class image* background_nightlight;
+	class image* background_nightlight;
 
 	vector<class texture*> tube_textures_daylight;
-//	vector<class texture*> tube_textures_nightlight;
+	vector<class texture*> tube_textures_nightlight;
 
 	texture* clock_big_pointer_daylight;
-//	texture* clock_big_pointer_nightlight;
+	texture* clock_big_pointer_nightlight;
 	texture* clock_small_pointer_daylight;
-//	texture* clock_small_pointer_nightlight;
+	texture* clock_small_pointer_nightlight;
+	texture* targetpos_ptr_daylight;
+	texture* targetpos_ptr_nightlight;
+	texture* targetcourse_ptr_daylight;
+	texture* targetcourse_ptr_nightlight;
 	
 public:
 	sub_tdc_display(class user_interface& ui_);
