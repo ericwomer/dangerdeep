@@ -31,6 +31,7 @@ protected:
 	vector<stored_torpedo> torpedoes;
 		
 	bool scopeup;	// fixme: maybe simulate time for moving scope up/down
+    double periscope_depth;
 
 	submarine();
 	submarine& operator= (const submarine& other);
@@ -75,7 +76,9 @@ public:
 	virtual float surface_visibility(const vector2& watcher) const;
 	
 	virtual bool is_scope_up(void) const { return scopeup; }
-
+    virtual double get_periscope_depth() const { return periscope_depth; }
+    virtual bool is_submerged () const { return get_depth() > 2.0f; }
+    
 	// command interface for subs
 	virtual void scope_up(void) { scopeup = true; };	// fixme
 	virtual void scope_down(void) { scopeup = false; };		
