@@ -159,7 +159,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	// we have to adjust its texture coordinates by remainder of viewpos.xy/WAVESIZE
 	// fixme use multitexturing for distant water with various moving around the
 	// texture for more realism?
-	
+
 	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
 	glBegin(GL_TRIANGLE_STRIP);
 	glTexCoord2f(t0,t3);
@@ -183,7 +183,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glTexCoord2f(t1,t2);
 	glVertex3f(c1,c2,0);
 	glEnd();
-	
+
 	//fixme waterheight of äußerstem rand des allwaveheight-gemachten wassers auf 0
 	//damit keine lücken zu obigem wasser da sind SCHNELLER machen
 	//fixme vertex lists
@@ -279,7 +279,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
-	glScalef(100,100,100);//fixme: to control functionality for now
+        glScalef(100,100,100);//fixme: to control functionality for now
 		(*it)->display();
 		glPopMatrix();
 	}
@@ -533,6 +533,13 @@ void user_interface::display_bridge(class system& sys, game& gm)
 	while (key != 0) {
 		if (!keyboard_common(key, sys, gm)) {
 			// specific keyboard processing
+            switch ( key )
+            {
+                // Zoom view
+                case SDLK_y:
+                    zoom_scope = true;
+                    break;
+            }
 		}
 		key = sys.get_key();
 	}
@@ -838,4 +845,52 @@ void user_interface::add_message(const string& s)
 	panel_texts.push_back(s);
 	if (panel_texts.size() > 4)	// (128-8)/24-1 ;-)
 		panel_texts.pop_front();
+}
+
+void user_interface::display_glasses(class system& sys, class game& gm)
+{
+    sea_object* player = get_player();
+
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	unsigned res_x = sys.get_res_x(), res_y = sys.get_res_y();
+
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	gluPerspective (30.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
+	glViewport(0, res_y/3, res_x, res_x/2);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	vector3 viewpos = player->get_pos() + vector3(0, 0, 6);
+	// no torpedoes, no DCs, no player
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, false, false);
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glViewport(0, 0, res_x, res_y);
+	glMatrixMode(GL_MODELVIEW);
+
+	sys.prepare_2d_drawing();
+	sys.draw_image(0, 0, 512, 512, glasses);
+	sys.draw_hm_image(512, 0, 512, 512, glasses);
+	draw_infopanel(sys);
+	sys.unprepare_2d_drawing();
+
+	// keyboard processing
+	int key = sys.get_key();
+	while (key != 0) {
+		if (!keyboard_common(key, sys, gm)) {
+			// specific keyboard processing
+            switch ( key )
+            {
+                case SDLK_x:
+                    zoom_scope = false;
+                    break;
+            }
+		}
+		key = sys.get_key();
+	}
 }
