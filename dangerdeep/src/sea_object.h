@@ -28,6 +28,8 @@ public:
     enum throttle_status { reverse, stop, aheadlisten, aheadsonar, aheadslow,
                            aheadhalf, aheadfull, aheadflank };
     enum damage_status { nodamage, lightdamage, mediumdamage, heavydamage, wrecked };
+    enum rudder_status { rudderfullleft, rudderleft, ruddermid, rudderright,
+        rudderfullright };
 		
     // some useful functions needed for sea_objects
 
@@ -49,6 +51,7 @@ protected:
     // if head_chg is == 0, nothing happens.
     bool permanent_turn;
     double head_chg;
+    int rudder; // rudder state
     angle head_to;
     angle turn_rate;	// in angle/(time*speed) = angle/m
     // this means angle change per forward
@@ -69,6 +72,9 @@ protected:
     sea_object();
     sea_object& operator=(const sea_object& other);
     sea_object(const sea_object& other);
+
+    virtual void change_rudder (const int& dir);
+    
 public:
     virtual ~sea_object() {}
 	
@@ -104,7 +110,7 @@ public:
     virtual list<vector2> get_previous_positions(void) const { return previous_positions; }
 
     virtual vector3 get_pos(void) const { return position; };
-    virtual double get_depth () const { return -get_pos().z; };
+    virtual double get_depth () const { return -position.z; };
     virtual angle get_heading(void) const { return heading; };
     virtual angle get_turn_rate(void) const { return turn_rate; };
     virtual double get_length(void) const { return length; };
@@ -112,6 +118,7 @@ public:
     virtual double get_speed(void) const { return speed; };
     virtual double get_max_speed(void) const { return max_speed; };
     virtual double get_throttle_speed(void) const;
+    virtual int get_rudder (void) const { return rudder; }
 
     // needed for launching torpedoes
     pair<angle, double> bearing_and_range_to(const sea_object* other) const;
