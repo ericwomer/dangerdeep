@@ -1,3 +1,14 @@
+2003-04-13  Markus Petermann  <m.petermann@gmx.net>
+
+	* game.h, game.cpp:
+	  - ..._in_direction methods modified.
+	  - New method contact_in_direction introduced.
+	* user_interface.cpp:
+	  - Draw a red box around the selected target.
+	  - Moved method add_rudder_message from submarine_interface to this module.
+	* submarine_interface.h, submarine_interface.cpp:
+	  - Moved method add_rudder_message to module user_interface.
+
 2003-04-10  Markus Petermann  <m.petermann@gmx.net>
 
 	* vector2.h, vector2.cpp, vector3.h, vector3.cpp:
