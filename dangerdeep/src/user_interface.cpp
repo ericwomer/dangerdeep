@@ -101,7 +101,8 @@ float user_interface::get_waterheight(float x_, float y_, int wave)	// bilinear 
 void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wavephase,
 	double max_view_dist) const
 {
-	glDisable(GL_LIGHTING);
+//	glDisable(GL_LIGHTING);	// fixme: why? it would be easier to remove that lightcol
+				// crap and use OpenGL lighting
 
 #if 1	// new water 47.2fps (old water 44.0fps)
 
@@ -335,7 +336,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 //	glColor3f(1,1,1);
 #endif
 
-	glEnable(GL_LIGHTING);
+//	glEnable(GL_LIGHTING);
 }
 
 void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
@@ -351,7 +352,6 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	double max_view_dist = gm.get_max_view_distance();
 
 	// ************ sky ***************************************************************
-	glDisable(GL_LIGHTING);
 	glPushMatrix();
 	glTranslatef(viewpos.x, viewpos.y, 0);
 	glPushMatrix();
@@ -367,11 +367,23 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	skycol1 = color(color(8,8,32), color(165,192,247), colscal);
 	skycol2 = color(color(0, 0, 16), color(74,114,236), colscal);
 
+	// compute light source position and brightness
+	GLfloat lambient[4] = {lightcol.r/255.0/2.0, lightcol.g/255.0/2.0, lightcol.b/255.0/2.0, 1};
+	GLfloat ldiffuse[4] = {lightcol.r/255.0, lightcol.g/255.0, lightcol.b/255.0, 1};
+	GLfloat lposition[4] = {0,0,1,0};	//fixed for now. fixme
+	glLightfv(GL_LIGHT1, GL_AMBIENT, lambient);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, ldiffuse);
+	glLightfv(GL_LIGHT1, GL_POSITION, lposition);
+
+	glDisable(GL_LIGHTING);
 	skycol2.set_gl_color();
 	skyhemisphere->display(false);//, &skycol1, &skycol2);
+	color::white().set_gl_color();
+	glEnable(GL_LIGHTING);
 	glPopMatrix();	// remove scale
 	
 	// ******** clouds *******
+	glDisable(GL_LIGHTING);		// direct lighting turned off
 	lightcol.set_gl_color();	// cloud color depends on day time
 	glBindTexture(GL_TEXTURE_2D, clouds->get_opengl_name());
 	glBegin(GL_QUADS);
@@ -389,9 +401,9 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glEnd();
 	glPopMatrix();	// remove translate
 	glEnable(GL_LIGHTING);
+	color::white().set_gl_color();
 
 	// ******* water *********
-	lightcol.set_gl_color();	// water color depends on day time
 					// fixme: program directional light caused by sun
 					// or moon should be reflected by water.
 	draw_water(viewpos, dir, wave, max_view_dist);
