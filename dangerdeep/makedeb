@@ -1,0 +1,34 @@
+#!/bin/bash
+set -e
+set -x
+
+version=`awk '$1 ~ /Version/ { print $2 }' debian/DEBIAN/control`
+arch=`awk '$1 ~ /Architecture/ { print $2 }' debian/DEBIAN/control`
+debroot="dangerdeep_$version""_$arch"
+debfile="dangerdeep_$version""_$arch.deb"
+bindir='usr/games'
+datadir='usr/share/games/dangerdeep'
+mandir='usr/share/man/man6'
+docdir='usr/share/doc/dangerdeep'
+
+# ./configure --bindir=/$bindir --datadir=/$datadir && make || exit $?
+
+cp -R debian $debroot
+for dir in DEBIAN $bindir $datadir $mandir $docdir; do
+	mkdir -p $debroot/$dir
+done
+
+install -s src/dangerdeep $debroot/$bindir
+cp -R data/* $debroot/$datadir
+cp doc/man/* $debroot/$mandir && gzip --best $debroot/$mandir/*.[0-9]
+cp ChangeLog $debroot/$docdir/changelog && gzip --best $debroot/$docdir/changelog
+cp doc/debian/* $debroot/$docdir && gzip --best $debroot/$docdir/changelog.Debian
+
+find $debroot -type f -exec chmod 644 \{\} \;
+chmod 755 $debroot/$bindir/dangerdeep
+rm -r `find $debroot -name CVS`
+rm `find $debroot/$datadir -type f -and -name 'Makefile*'`
+
+fakeroot dpkg-deb --build $debroot && \
+	lintian $debfile && \
+	echo "$debfile created"
