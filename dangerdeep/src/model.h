@@ -31,29 +31,17 @@ public:
 	};
 	
 	struct mesh {
-		struct vertex {
-			vector2f uv;
-			vector3f normal;
-			vector3f pos;
-			vertex() {}
-			~vertex() {}
-			vertex(const vector2f& t, const vector3f& n, const vector3f& p) : uv(t), normal(n), pos(p) {}
-			vertex(const vertex& o) : uv(o.uv), normal(o.normal), pos(o.pos) {}
-			vertex& operator= (const vertex& o) { uv = o.uv; normal = o.normal; pos = o.pos; return *this; }
-		};
-		struct face {
-			unsigned v[3];
-			face(unsigned a, unsigned b, unsigned c) { v[0] = a; v[1] = b; v[2] = c; }
-		};
-	
-		vector<vertex> vertices;
-		vector<face> faces;
+		vector<vector3f> vertices;
+		vector<vector3f> normals;
+		vector<vector3f> tangentsx;
+		vector<vector2f> texcoords;
+		vector<unsigned> indices;	// 3 indices per face
 		float xformmat[4][3];	// rotation and translation
 		material* mymaterial;
 		void display(bool usematerial) const;
 
-		mesh(const mesh& m) : vertices(m.vertices), faces(m.faces), mymaterial(m.mymaterial) {}
-		mesh& operator= (const mesh& m) { vertices = m.vertices; faces = m.faces; mymaterial = m.mymaterial; return *this; }
+		mesh(const mesh& m) : vertices(m.vertices), normals(m.normals), tangentsx(m.tangentsx), texcoords(m.texcoords), indices(m.indices), mymaterial(m.mymaterial) {}
+		mesh& operator= (const mesh& m) { vertices = m.vertices; normals = m.normals; tangentsx = m.tangentsx; texcoords = m.texcoords; indices = m.indices; mymaterial = m.mymaterial; return *this; }
 		mesh() : mymaterial(0) {}
 		~mesh() {}
 	};

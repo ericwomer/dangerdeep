@@ -35,7 +35,7 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 	vector3f center = (skyhemisphere->get_min() + skyhemisphere->get_max()) * 0.5f;
 	center.z = skyhemisphere->get_min().z;
 	for (unsigned i = 0; i < smv; ++i) {
-		vector3f d = (skyhemisphere_mesh.vertices[i].pos - center).normal();
+		vector3f d = (skyhemisphere_mesh.vertices[i] - center).normal();
 		d.z = fabs(d.z);
 		if (d.z > 1.0f) d.z = 1.0f;
 		float alpha = acos(fabs(d.z));
@@ -54,7 +54,7 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 
 	skyhemisphere_dl = glGenLists(1);
 	glNewList(skyhemisphere_dl, GL_COMPILE);
-	glVertexPointer(3, GL_FLOAT, sizeof(model::mesh::vertex), &(skyhemisphere_mesh.vertices[0].pos.x));
+	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &(skyhemisphere_mesh.vertices[0]));
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
@@ -64,7 +64,7 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 	glClientActiveTexture(GL_TEXTURE1);
 	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &uv1[0].x);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDrawElements(GL_TRIANGLES, 3*skyhemisphere_mesh.faces.size(), GL_UNSIGNED_INT, &(skyhemisphere_mesh.faces[0].v[0]));
+	glDrawElements(GL_TRIANGLES, skyhemisphere_mesh.indices.size(), GL_UNSIGNED_INT, &(skyhemisphere_mesh.indices[0]));
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glClientActiveTexture(GL_TEXTURE1);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);

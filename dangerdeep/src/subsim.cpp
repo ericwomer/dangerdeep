@@ -333,7 +333,7 @@ void show_credits(void)
 	float lineoffset = 0.0f;
 
 	bool quit = false;
-	float ang = 0.0f, ang_per_sec = 10.0f, r = 78, lines_per_sec = 2;
+	float ang = 0.0f, ang_per_sec = 10.0f, r = 78, lines_per_sec = 2, d = -500;
 	unsigned tm = system::sys().millisec();
 	while (!quit) {
 		system::sys().poll_event_queue();
@@ -343,18 +343,31 @@ void show_credits(void)
 
 		glPushMatrix();
 		glRotatef(ang/10, 0, 0, 1);
-		glTranslatef(-r,r,-150);
-		//glScalef(12.8,12.8,0.1);
+
+		glPushMatrix();
+		glTranslatef(-3*r,3*r,d);
+		glRotatef(4.05-ang, 0, 0, 1);
+		mdlgear->display();
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-r,r,d);
 		glRotatef(ang, 0, 0, 1);
 		mdlgear->display();
 		glPopMatrix();
 
 		glPushMatrix();
-		glRotatef(ang/10, 0, 0, 1);
-		glTranslatef(r,-r,-150);
-		//glScalef(12.8,12.8,0.1);
+		glTranslatef(r,-r,d);
 		glRotatef(4.05-ang, 0, 0, 1);
 		mdlgear->display();
+		glPopMatrix();
+		
+		glPushMatrix();
+		glTranslatef(3*r,-3*r,d);
+		glRotatef(ang, 0, 0, 1);
+		mdlgear->display();
+		glPopMatrix();
+		
 		glPopMatrix();
 
 		system::sys().prepare_2d_drawing();

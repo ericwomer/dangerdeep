@@ -43,12 +43,12 @@ model::~model()
 void model::compute_bounds(void)
 {
 	if (meshes.size() == 0) return;
-	min = max = meshes[0].vertices[0].pos;
+	min = max = meshes[0].vertices[0];
 
 	for (vector<model::mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
-		for (vector<model::mesh::vertex>::iterator it2 = it->vertices.begin(); it2 != it->vertices.end(); ++it2) {
-			min = it2->pos.min(min);
-			max = it2->pos.max(max);
+		for (vector<vector3f>::iterator it2 = it->vertices.begin(); it2 != it->vertices.end(); ++it2) {
+			min = it2->min(min);
+			max = it2->max(max);
 		}
 	}
 }
@@ -57,27 +57,35 @@ void model::compute_normals(void)
 {
 	//fixme: 3ds may have stored some normals already
 	for (vector<model::mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
-		for (vector<model::mesh::vertex>::iterator it2 = it->vertices.begin(); it2 != it->vertices.end(); ++it2)
-			it2->normal = vector3f();
-		for (vector<model::mesh::face>::iterator it2 = it->faces.begin(); it2 != it->faces.end(); ++it2) {
-			const vector3f& v0 = it->vertices[it2->v[0]].pos;
-			const vector3f& v1 = it->vertices[it2->v[1]].pos;
-			const vector3f& v2 = it->vertices[it2->v[2]].pos;
+		it->normals.clear();
+		it->normals.resize(it->vertices.size());
+		for (unsigned i = 0; i < it->indices.size(); i += 3) {
+			const vector3f& v0 = it->vertices[it->indices[i+0]];
+			const vector3f& v1 = it->vertices[it->indices[i+1]];
+			const vector3f& v2 = it->vertices[it->indices[i+2]];
 			vector3f ortho = (v1-v0).orthogonal(v2-v0);
 			// avoid degenerated triangles
 			float lf = 1.0/ortho.length();
 			if (isfinite(lf)) {
 				vector3f face_normal = ortho * lf;
-				it->vertices[it2->v[0]].normal += face_normal;
-				it->vertices[it2->v[1]].normal += face_normal;
-				it->vertices[it2->v[2]].normal += face_normal;
+				//normals could be weighted by face area, that gives better results.
+				it->normals[it->indices[i+0]] += face_normal;
+				it->normals[it->indices[i+1]] += face_normal;
+				it->normals[it->indices[i+2]] += face_normal;
 			}
 		}
-		for (vector<model::mesh::vertex>::iterator it2 = it->vertices.begin(); it2 != it->vertices.end(); ++it2) {
+		for (vector<vector3f>::iterator it2 = it->normals.begin(); it2 != it->normals.end(); ++it2) {
 			// this can lead to NAN values in vertex normals.
 			// but only for degenerated vertices, so we don't care.
-			it2->normal.normalize();
+			it2->normalize();
 		}
+		
+		// if we use bump mapping for this mesh, we need tangents, too! fixme
+		// tangentsy get computed at runtime from normals and tangentsx
+		// tangentsx are computed that way:
+		// from each vertex we find a vector in positive u direction
+		// and project it onto the plane given by the normal -> tangentx
+		// because bump maps use stored texture coordinates (x = positive u!)
 	}
 }
 
@@ -85,8 +93,10 @@ void model::material::init(void)
 {
 	delete mytexture;
 	mytexture = 0;
-	if (filename.length() > 0)
+	if (filename.length() > 0) {
+//cout << "object has texture '" << filename << "' mapping " << model::mapping << "\n";
 		mytexture = new texture(get_model_dir() + filename, model::mapping);
+	}
 }
 
 void model::material::set_gl_values(void) const
@@ -102,25 +112,53 @@ void model::material::set_gl_values(void) const
 
 void model::mesh::display(bool usematerial) const
 {
-	bool has_texture = false;
+	bool has_texture_u0 = false, has_texture_u1 = false;
 	if (usematerial) {
 		if (mymaterial != 0) {
-			has_texture = (mymaterial->mytexture != 0);
+			has_texture_u0 = (mymaterial->mytexture != 0);
+			//fixme: check usage of tex unit 2 (...and beyond)
 			mymaterial->set_gl_values();
 		} else {
 			glBindTexture(GL_TEXTURE_2D, 0);
-			glColor3f(0,0,0);
+			glColor3f(0.5,0.5,0.5);
 		}
 	}
 
-	if (has_texture)
-		glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(mesh::vertex), &(vertices[0].uv));
-	else
-		glInterleavedArrays(GL_N3F_V3F, sizeof(mesh::vertex), &(vertices[0].normal));
-	glDrawElements(GL_TRIANGLES, 3*faces.size(), GL_UNSIGNED_INT, &faces[0].v[0]);
+	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
+	glEnableClientState(GL_VERTEX_ARRAY);
+
+	glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0]);	
+	glEnableClientState(GL_NORMAL_ARRAY);
+
+	glClientActiveTexture(GL_TEXTURE0);
+	if (has_texture_u0 && texcoords.size() == vertices.size()) {
+		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0].x);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	} else {
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	}
+
+	glClientActiveTexture(GL_TEXTURE1);
+	if (has_texture_u1 && texcoords.size() == vertices.size()) {
+		// maybe offer second texture coords. how are they stored in .3ds files?!
+		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0].x);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	} else {
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	}
+
+	//with bump mapping, we need colors.
+	//glColorPointer(3, GL_UNSIGNED_BYTE, 0, &colors[0]);
+	//glEnableClientState(GL_COLOR_ARRAY);
+	
+	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, &indices[0]);
+
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	//glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex1
+	glClientActiveTexture(GL_TEXTURE0);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
 }
 
 void model::display(void) const
@@ -207,6 +245,7 @@ void model::m3ds_load(const string& fn)
 
 void model::m3ds_chunk::skip(istream& in)
 {
+//cout << "skipped id " << id << " (hex " << (void*)id << ") while reading chunk.\n";
 	if (length > bytes_read) {
 		unsigned n = length - bytes_read;
 		vector<char> x(n);
@@ -343,6 +382,7 @@ void model::m3ds_process_material_chunks(istream& in, m3ds_chunk& parent)
 			case M3DS_MATMAP:
 				m3ds_process_materialmap_chunks(in, ch, m);
 				break;
+//			default: cout << "SKIP:\n";
 		}
 		ch.skip(in);
 		parent.bytes_read += ch.length;
@@ -400,6 +440,7 @@ void model::m3ds_read_color_chunk(istream& in, m3ds_chunk& parent, model::materi
 	m->col.r = read_u8(in);
 	m->col.g = read_u8(in);
 	m->col.b = read_u8(in);
+//cout << "read color chunk " << int(m->col.r) << ","  << int(m->col.g) << ","  << int(m->col.b) << "\n";
 	ch.bytes_read += 3;
 	ch.skip(in);
 	parent.bytes_read += ch.length;
@@ -410,13 +451,12 @@ void model::m3ds_read_faces(istream& in, m3ds_chunk& ch, model::mesh& m)
 	unsigned nr_faces = read_u16(in);
 	ch.bytes_read += 2;
 
-	m.faces.clear();	
-	m.faces.reserve(nr_faces);
+	m.indices.clear();	
+	m.indices.reserve(nr_faces*3);
 	for (unsigned n = 0; n < nr_faces; ++n) {
-		unsigned a = read_u16(in);
-		unsigned b = read_u16(in);
-		unsigned c = read_u16(in);
-		m.faces.push_back(model::mesh::face(a, b, c));
+		m.indices.push_back(read_u16(in));
+		m.indices.push_back(read_u16(in));
+		m.indices.push_back(read_u16(in));
 		read_u16(in);	// ignore 4th value
 	}
 	ch.bytes_read += nr_faces * 4 * 2;
@@ -427,11 +467,19 @@ void model::m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, model::mesh& m)
 	unsigned nr_uv_coords = read_u16(in);
 	ch.bytes_read += 2;
 
+	if (nr_uv_coords == 0) {
+		m.texcoords.clear();
+		return;
+	}
+
 	system::sys().myassert(nr_uv_coords == m.vertices.size(), "number of texture coordinates doesn't match number of vertices");
-		
+
+	m.texcoords.clear();
+	m.texcoords.reserve(nr_uv_coords);		
 	for (unsigned n = 0; n < nr_uv_coords; ++n) {
-		m.vertices[n].uv.x = read_float(in);
-		m.vertices[n].uv.y = read_float(in);
+		float u = read_float(in);
+		float v = read_float(in);
+		m.texcoords.push_back(vector2f(u, v));
 	}
 	ch.bytes_read += nr_uv_coords * 2 * 4;
 }
@@ -441,11 +489,13 @@ void model::m3ds_read_vertices(istream& in, m3ds_chunk& ch, model::mesh& m)
 	unsigned nr_verts = read_u16(in);
 	ch.bytes_read += 2;
 	
-	m.vertices.resize(nr_verts);
+	m.vertices.clear();
+	m.vertices.reserve(nr_verts);
 	for (unsigned n = 0; n < nr_verts; ++n) {
-		m.vertices[n].pos.x = read_float(in);
-		m.vertices[n].pos.y = read_float(in);
-		m.vertices[n].pos.z = read_float(in);
+		float x = read_float(in);
+		float y = read_float(in);
+		float z = read_float(in);
+		m.vertices.push_back(vector3f(x, y, z));
 	}
 	ch.bytes_read += nr_verts * 3 * 4;
 }
@@ -461,11 +511,11 @@ void model::m3ds_read_material(istream& in, m3ds_chunk& ch, model::mesh& m)
 			// rotate texture coords (and negate v also)
 			float ca = cos(m.mymaterial->angle * M_PI / 180.0);
 			float sa = sin(m.mymaterial->angle * M_PI / 180.0);
-			for (vector<model::mesh::vertex>::iterator it2 = m.vertices.begin(); it2 != m.vertices.end(); ++it2) {
-				float u = it2->uv.x;
-				float v = it2->uv.y;
-				it2->uv.x = ca * u - sa * v;
-				it2->uv.y = sa * u - ca * v;
+			for (vector<vector2f>::iterator it2 = m.texcoords.begin(); it2 != m.texcoords.end(); ++it2) {
+				float u = it2->x;
+				float v = it2->y;
+				it2->x = ca * u - sa * v;
+				it2->y = sa * u - ca * v;
 			}
 
 			return;
