@@ -111,12 +111,22 @@ void image::draw(int x, int y) const
 		unsigned bpp = img->format->BytesPerPixel;
 		system::sys().myassert(bpp == 3 || bpp == 4, "image: bpp must be 3 or 4 (RGB or RGBA)");
 
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glColor4f(1,1,1,1);
 		SDL_LockSurface(img);
 		GLenum pixelformat = (img->format->Amask != 0) ? GL_RGBA : GL_RGB;
-		glRasterPos2i(x, y);
-//cout<<"draw: x " << x << " y " << y << " bpp " << bpp << " pitch " << img->pitch << " w " << width << " h " << height << " pf " << pixelformat << "," << GL_RGB << " rowl " << img->pitch / bpp << "\n";
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, img->pitch / bpp);
-		glDrawPixels(width, height, pixelformat, GL_UNSIGNED_BYTE, img->pixels);
+		unsigned pixelpitch = img->pitch / bpp;
+		// images with 3 bpp and an odd width could give problems (997*3=2991,pitch is 2992, doesn't work with OpenGL's pixel pitch)
+		if (pixelpitch * bpp == img->pitch) {
+			glRasterPos2i(x, y);
+			glPixelStorei(GL_UNPACK_ROW_LENGTH, img->pitch / bpp);
+			glDrawPixels(width, height, pixelformat, GL_UNSIGNED_BYTE, img->pixels);
+		} else {	// we have to draw each line individually
+			for (int l = 0; l < int(height); ++l) {
+				glRasterPos2i(x, y+l);
+				glDrawPixels(width, 1, pixelformat, GL_UNSIGNED_BYTE, (unsigned char*)(img->pixels) + img->pitch*l);
+			}
+		}
 		SDL_UnlockSurface(img);
 		glRasterPos2i(0, 0);	// fixme: the RedBook suggests using RasterPos 0.375 for 3d drawing, check if this must be set up here, too
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
