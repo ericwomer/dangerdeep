@@ -39,8 +39,8 @@ class sub_tdc_display : public user_display
 		texture::ptr tubeswitch[6];
 		texture::ptr firebutton;
 		texture::ptr automode[2];	// on/off
-		rotat_tex gyro_a;
-		rotat_tex gyro_v;
+		rotat_tex gyro360;
+		rotat_tex gyro10;
 		texture::ptr firesolutionquality;
 		rotat_tex torpspeed;
 		scheme();

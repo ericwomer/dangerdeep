@@ -13,8 +13,10 @@
 #include <sstream>
 using namespace std;
 
-static int tubelightx[6] = { 31,150,271,392,518,641};
-static int tubelighty[6] = {617,610,612,612,617,611};
+static int tubelightdx[6] = { 31,150,271,392,518,641};
+static int tubelightdy[6] = {617,610,612,612,617,611};
+static int tubelightnx[6] = { 34,154,276,396,521,647};
+static int tubelightny[6] = {618,618,618,618,618,618};
 static int tubeswitchx = 760, tubeswitchy = 492;
 
 
@@ -60,46 +62,48 @@ sub_tdc_display::sub_tdc_display(user_interface& ui_) : user_display(ui_)
 	selected_mode = 0;
 
 	normallight.background = image::ptr(new image(get_image_dir() + "TDC_daylight_base.png"));
-//	nightlight.background = image::ptr(new image(get_image_dir() + "TDC_redlight_base.png"));
+	nightlight.background = image::ptr(new image(get_image_dir() + "TDC_redlight_base.png"));
 
+	//fixme: recheck layer coords for clock,target*,spreadangle,torpspeed for redlight!
+	//fixme: what is with target position external pointer?
 	normallight.clockbig.set("TDC_daylight_clockbigptr.png", 921, 124, 930, 134);
-//	nightlight.clockbig.set("TDC_redlight_clockbigptr.png", 921, 124, 930, 134);
+	nightlight.clockbig.set("TDC_redlight_clockbigptr.png", 922, 125, 930, 134);
 	normallight.clocksml.set("TDC_daylight_clocksmlptr.png", 926, 76, 929, 99);
-//	nightlight.clocksml.set("TDC_redlight_clocksmlptr.png", 926, 76, 929, 99);
+	nightlight.clocksml.set("TDC_redlight_clocksmlptr.png", 926, 77, 929, 99);
 	normallight.targetcourse.set("TDC_daylight_targetcourse.png", 567, 365, 585, 451);
-//	nightlight.targetcourse.set("TDC_redlight_targetcourse.png", 567, 365, 585, 451);
+	nightlight.targetcourse.set("TDC_redlight_targetcourse.png", 567, 366, 585, 451);
 	normallight.targetrange.set("TDC_daylight_targetrange.png", 755, 231, 774, 317);
-//	nightlight.targetrange.set("TDC_redlight_targetrange.png", 755, 231, 774, 317);
+	nightlight.targetrange.set("TDC_redlight_targetrange.png", 756, 230, 774, 317);
 	normallight.targetspeed.set("TDC_daylight_targetspeed.png", 568, 101, 586, 187);
-//	nightlight.targetspeed.set("TDC_redlight_targetspeed.png", 568, 101, 586, 187);
+	nightlight.targetspeed.set("TDC_redlight_targetspeed.png", 567, 101, 586, 187);
 	normallight.spreadangle.set("TDC_daylight_spreadangle.png", 339, 102, 358, 188);
-//	nightlight.spreadangle.set("TDC_redlight_spreadangle.png", 339, 102, 358, 188);
+	nightlight.spreadangle.set("TDC_redlight_spreadangle.png", 338, 102, 358, 188);
 	normallight.targetpos.set("TDC_daylight_targetposition.png", 102, 109, 128, 188);
-//	nightlight.targetpos.set("TDC_redlight_targetposition.png", 102, 109, 128, 188);
-	normallight.gyro_a.set("TDC_daylight_gyroa.png", 66, 389, 127, 450);
-//	nightlight.gyro_a.set("TDC_redlight_gyroa.png", 66, 389, 127, 450);
-	normallight.gyro_v.set("TDC_daylight_gyrov.png", 282, 389, 345, 450);
-//	nightlight.gyro_v.set("TDC_redlight_gyrov.png", 282, 389, 345, 450);
+	nightlight.targetpos.set("TDC_redlight_targetposition.png", 103, 109, 128, 188);
+	normallight.gyro360.set("TDC_daylight_gyro360.png", 106, 365, 127, 451);
+	nightlight.gyro360.set("TDC_redlight_gyro360.png", 105, 365, 127, 451);
+	normallight.gyro10.set("TDC_daylight_gyro10.png", 323, 363, 345, 451);
+	nightlight.gyro10.set("TDC_redlight_gyro10.png", 323, 363, 345, 451);
 	normallight.torpspeed.set("TDC_daylight_torpspeed.png", 512, 116, 585, 188);
-//	nightlight.torpspeed.set("TDC_redlight_torpspeed.png", 512, 116, 585, 188);
+	nightlight.torpspeed.set("TDC_redlight_torpspeed.png", 512, 116, 585, 188);
 
 	for (unsigned i = 0; i < 6; ++i) {
 		ostringstream osn;
 		osn << (i+1);
 		normallight.tubelight[i] = texture::ptr(new texture(get_image_dir() + "TDC_daylight_tube" + osn.str() + ".png"));
-//		nightlight.tubelight[i] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_tube" + osn.str() + ".png"));
+		nightlight.tubelight[i] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_tube" + osn.str() + ".png"));
 		normallight.tubeswitch[i] = texture::ptr(new texture(get_image_dir() + "TDC_daylight_switchtube" + osn.str() + ".png"));
-//		nightlight.tubeswitch[i] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_switchtube" + osn.str() + ".png"));
+		nightlight.tubeswitch[i] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_switchtube" + osn.str() + ".png"));
 	}
 
 	normallight.firebutton = texture::ptr(new texture(get_image_dir() + "TDC_daylight_firebutton.png"));
-//	nightlight.firebutton = texture::ptr(new texture(get_image_dir() + "TDC_redlight_firebutton.png"));
+	nightlight.firebutton = texture::ptr(new texture(get_image_dir() + "TDC_redlight_firebutton.png"));
 	normallight.automode[0] = texture::ptr(new texture(get_image_dir() + "TDC_daylight_autoswitchon.png"));
-//	nightlight.automode[0] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_autoswitchon.png"));
+	nightlight.automode[0] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_autoswitchon.png"));
 	normallight.automode[1] = texture::ptr(new texture(get_image_dir() + "TDC_daylight_autoswitchoff.png"));
-//	nightlight.automode[1] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_autoswitchoff.png"));
+	nightlight.automode[1] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_autoswitchoff.png"));
 	normallight.firesolutionquality = texture::ptr(new texture(get_image_dir() + "TDC_daylight_firesolutionquality.png"));
-//	nightlight.firesolutionquality = texture::ptr(new texture(get_image_dir() + "TDC_redlight_firesolutionquality.png"));
+	nightlight.firesolutionquality = texture::ptr(new texture(get_image_dir() + "TDC_redlight_firesolutionquality.png"));
 }
 
 
@@ -113,7 +117,9 @@ sub_tdc_display::~sub_tdc_display()
 void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 {
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
-	bool is_day = true;//gm.is_day_mode();
+	bool is_day = gm.is_day_mode();
+	int* tubelightx = (is_day) ? tubelightdx : tubelightnx;
+	int* tubelighty = (is_day) ? tubelightdy : tubelightny;
 	const scheme& s = (is_day) ? normallight : nightlight;
 	int mx, my;
 	switch (event.type) {
@@ -198,17 +204,21 @@ void sub_tdc_display::display(class game& gm) const
 	glColor3f(1,1,1);
 
 	// determine time of day
-	bool is_day = true;//gm.is_day_mode();
+	bool is_day = gm.is_day_mode();
+	int* tubelightx = (is_day) ? tubelightdx : tubelightnx;
+	int* tubelighty = (is_day) ? tubelightdy : tubelightny;
 	const scheme& s = (is_day) ? normallight : nightlight;
 
-	// draw background pointers/dials: gyros, firesolutionquality
-	s.gyro_a.draw(33/*fixme*/);
-	s.gyro_v.draw(33/*fixme*/);
+	// draw background pointers/dials: firesolutionquality
 	float quality = 0.333f; // per cent, fixme
 	s.firesolutionquality->draw(926, 50+int(288*quality+0.5f));
 
 	// draw background
 	s.background->draw(0, 0);
+
+	// draw gyro pointers
+	s.gyro360.draw(33/*fixme*/);
+	s.gyro10.draw(33/*fixme*/);
 
 	// clock (torpedo run time), fixme: use real time as test
 	double t = gm.get_time();
