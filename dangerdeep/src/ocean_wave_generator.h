@@ -129,7 +129,6 @@ complex<T> ocean_wave_generator<T>::h0_tilde(const vector2t<T>& K) const
 template <class T>
 void ocean_wave_generator<T>::compute_h0tilde(void)
 {
-//fixme: compute h0_tilde for all K's is not needed.
 	const T pi2 = T(2.0*M_PI);
 	for (int y = 0; y <= N; ++y) {
 		for (int x = 0; x <= N; ++x) {
@@ -142,15 +141,15 @@ void ocean_wave_generator<T>::compute_h0tilde(void)
 template <class T>
 complex<T> ocean_wave_generator<T>::h_tilde(const vector2t<T>& K, int kx, int ky, T time) const
 {
-	//fixme: compute h~ once and reuse it for normals
 	complex<T> h0_tildeK = h0tilde[ky*(N+1)+kx];
-	complex<T> h0_tildemK = h0tilde[(N-ky)*(N+1)+(N-kx)];
+	complex<T> h0_tildemKconj = conj(h0tilde[(N-ky)*(N+1)+(N-kx)]);
 	// all frequencies should be multiples of one base frequency (see paper).
 	T wK = sqrt(GRAVITY * K.length());
 	T wK2 = floor(wK/w0)*w0;
-	// fixme: replace by sin/cos terms? why should i?
-	const complex<T> I(0,-1);
-	return h0_tildeK * exp(I * wK2 * time) + conj(h0_tildemK) * exp(-I * wK2 * time);
+	T xp = wK2 * time;
+	T cxp = cos(xp);
+	T sxp = sin(xp);
+	return h0_tildeK * complex<T>(cxp, sxp) + h0_tildemKconj * complex<T>(cxp, -sxp);
 }
 
 template <class T>
@@ -207,6 +206,9 @@ void ocean_wave_generator<T>::set_time(T time)
 template <class T>
 vector<T> ocean_wave_generator<T>::compute_heights(void) const
 {
+	// this loop is a bit overhead, we could store htilde already a fft_complex array
+	// then we must transpose it, fftw has x*(N/2+1)+y, we use y*N+x
+	// this overhead shouldn't matter.
 	for (int y = 0; y <= N/2; ++y) {
 		for (int x = 0; x < N; ++x) {
 			const complex<T>& c = htilde[y*N+x];
@@ -234,9 +236,6 @@ vector<T> ocean_wave_generator<T>::compute_heights(void) const
 template <class T>
 vector<vector3t<T> > ocean_wave_generator<T>::compute_normals(void) const
 {
-	// fixme: these normals differ from the finite normals by a significant
-	// amount, they seem to be too flat. taking 0.5 for z instead of 1 seems better,
-	// but still isn't right. Maybe this difference is ok?
 	const T pi2 = T(2.0)*T(M_PI);
 	for (int y = 0; y <= N/2; ++y) {
 		for (int x = 0; x < N; ++x) {

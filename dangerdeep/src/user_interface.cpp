@@ -134,7 +134,7 @@ void user_interface::init ()
 
 		vector<vector2f> d = owg.compute_displacements();
 
-#if 0	// compute normals by finite data
+#if 0		// compute normals by finite data, just a test
 		vector<vector3f> n2 = n;
 			// normals computed by heights.
 		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
@@ -213,7 +213,7 @@ void user_interface::init ()
 		glClientActiveTextureARB(GL_TEXTURE0_ARB);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-/*
+#if 0		// draw finite and fft normals to compare them, just a test
 		glColor3f(1,0,0);
 		glBegin(GL_LINES);
 		fy = 0;
@@ -238,7 +238,7 @@ void user_interface::init ()
 			fy += add;
 		}
 		glEnd();
-*/
+#endif
 
 		glEndList();
 	}
@@ -800,6 +800,10 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
 	angle dir, angle elev, bool aboard, bool drawbridge, bool withunderwaterweapons)
 {
+	//fixme: vessels are flickering in the water, zbuffer seems to be a bit random
+	//maybe this is because of large values for translate (up to 11000000 meters)
+	//that are stored/treated with less accuracy than needed in opengl
+
 	double max_view_dist = gm.get_max_view_distance();
 
 	sea_object* player = get_player();
