@@ -30,7 +30,8 @@ class sensor;
 class sea_object
 {
 public:
-	enum alive_status { defunct, dead, alive };	// fixme: add more here: alive==active,inactive,burning,sinking,dead,etc.
+	// inactive means burning, sinking etc.
+	enum alive_status { defunct, dead, inactive, alive };
 
 	//fixme: should move to damageable_part class ...
 	enum damage_status { nodamage, lightdamage, mediumdamage, heavydamage, wrecked };
@@ -69,8 +70,10 @@ protected:
 
 	vector3f size3d;		// computed from model, indirect read from spec file, width, length, height
 	
-	// an object is alive until it is killed.
-	// any object can set to disfunctional status (defunct).
+	// an object is alive until it is killed or inactive.
+	// killed (dead) objects exists at least one simulation step. All other objects must remove their
+	// pointers to an object, if it is dead.
+	// The next step it is set to disfunctional status (defunct) and removed the next step.
 	alive_status alive_stat;
 
 	// Sensor systems, created after data in spec file
@@ -116,10 +119,12 @@ public:
 	// the strength is proportional to damage_status, 0-none, 1-light, 2-medium...
 	virtual bool damage(const vector3& fromwhere, unsigned strength); // returns true if object was destroyed
 	virtual unsigned calc_damage(void) const;	// returns damage in percent (0 means dead)
+	virtual void set_inactive(void);
 	virtual void kill(void);
 	virtual void destroy(void);
 	virtual bool is_defunct(void) const { return alive_stat == defunct; };
 	virtual bool is_dead(void) const { return alive_stat == dead; };
+	virtual bool is_inactive(void) const { return alive_stat == inactive; };
 	virtual bool is_alive(void) const { return alive_stat == alive; };
 
 	// command interface - no special commands for a generic sea_object

@@ -113,7 +113,7 @@ ship::~ship()
 
 void ship::sink(void)
 {
-	sea_object::kill();
+	sea_object::set_inactive();
 	if (myfire) {
 		myfire->kill();
 		myfire = 0;
@@ -330,10 +330,10 @@ void ship::simulate(game& gm, double delta_time)
 		myai->act(gm, delta_time);
 
 	// calculate sinking
-	if (is_dead()) {
+	if (is_inactive()) {
 		position.z -= delta_time * SINK_SPEED;
 		if (position.z < -50)	// used for ships.
-			destroy();
+			kill();
 		throttle = stop;
 		rudder_midships();
 		return;

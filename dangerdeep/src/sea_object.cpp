@@ -335,6 +335,13 @@ unsigned sea_object::calc_damage(void) const
 
 
 
+void sea_object::set_inactive(void)
+{
+	alive_stat = inactive;
+}
+
+
+
 void sea_object::kill(void)
 {
 	alive_stat = dead;
