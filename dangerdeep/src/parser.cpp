@@ -53,6 +53,8 @@ token tokens[] = {
 	token(TKN_WAYPOINT, "waypoint"),
 	token(TKN_SPEED, "speed"),
 	token(TKN_TIME, "time"),
+	token(TKN_SNORKELUP, "snorkelup"),
+	token(TKN_SNORKELDEPTH, "snorkeldepth"),
 
 	token()
 };
