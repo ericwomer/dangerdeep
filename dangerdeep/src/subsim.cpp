@@ -90,6 +90,18 @@ void save_game(const game* gm)
 	gm->save("TESTSAVEGAME", "DO NOT USE THIS");
 }
 
+
+//
+// load a game to disk
+//
+void load_game(game** gm)
+{
+	delete *gm;
+	*gm = new game();
+	(*gm)->load("TESTSAVEGAME");
+}
+
+
 //
 // start and run a game, handle load/save (game menu), show results after game's end, delete game
 //
@@ -109,7 +121,7 @@ void run_game(game* gm)
 			widget woptions(0, 0, 1024, 768, texts::get(29), 0, depthchargeimg);
 			widget_menu* wmn = new widget_menu(312, 260, 400, 40, false);
 			woptions.add_child(wmn);
-			wmn->add_entry(texts::get(118), new widget_func_button<void (*)(void)>(menu_notimplemented));
+			wmn->add_entry(texts::get(118), new widget_func_arg_button<void (*)(game**), game**>(load_game, &gm));
 			wmn->add_entry(texts::get(119), new widget_func_arg_button<void (*)(const game*), const game*>(save_game, gm));
 			wmn->add_entry(texts::get(120), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&woptions, &widget::close, 1));
 			wmn->add_entry(texts::get(121), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&woptions, &widget::close, 2));

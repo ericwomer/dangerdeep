@@ -344,9 +344,13 @@ void game::load_from_stream(istream& in)
 
 	int playertype = read_i32(in);
 	if (playertype == 0) {
-		player = read_ship(in);
+		ship* s = read_ship(in);
+		player = s;
+		ui = new ship_interface(s);	// fixme: move to load(), dirty hack
 	} else if (playertype == 1) {
-		player = read_submarine(in);
+		submarine* s = read_submarine(in);
+		player = s;
+		ui = new submarine_interface(s);	// fixme: move to load(), dirty hack
 	} else {
 		system::sys()->myassert(false, "savegame error: player is no sub or ship");
 	}

@@ -86,7 +86,7 @@ void ship::save(ostream& out, const game& g) const
 
 ship* ship::create(istream& in)
 {
-	unsigned type = read_u8(in);
+	unsigned type = read_u16(in);
 	switch (type) {
 		case largemerchant: return new ship_largemerchant();
 		case mediummerchant: return new ship_mediummerchant();

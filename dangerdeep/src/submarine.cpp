@@ -205,7 +205,7 @@ void submarine::save(ostream& out, const game& g) const
 
 submarine* submarine::create(istream& in)
 {
-	unsigned type = read_u8(in);
+	unsigned type = read_u16(in);
 	switch (type) {
 		case typeVIIc: return new submarine_VIIc();
 		case typeIXc40: return new submarine_IXc40();

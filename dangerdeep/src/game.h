@@ -103,11 +103,13 @@ protected:
 	
 	list<ping> pings;
 	
-	game();
+//	game();
 	game& operator= (const game& other);
 	game(const game& other);
 
 public:
+	game() {};	// for loading, fixme get rid of this
+	
 	// expects: size small,medium,large, escort size none,small,medium,large,
 	// time of day [0,4) night,dawn,day,dusk
 	game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday);
