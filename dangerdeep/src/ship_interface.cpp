@@ -300,7 +300,7 @@ void ship_interface::display_glasses(class system& sys, game& gm)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6);
 	// no torpedoes, no DCs, no player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, true, false, false);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 0, true, false, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

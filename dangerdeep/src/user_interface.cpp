@@ -54,8 +54,8 @@
 
 user_interface::user_interface() :
 	quit(false), pause(false), time_scale(1), player_object(0),
-	panel_height(128), panel_visible(true), bearing(0),
-	viewmode(4), target(0),	zoom_scope(false), mapzoom(0.1), viewsideang(0),
+	panel_height(128), panel_visible(true), bearing(0), elevation(0),
+	viewmode(4), target(0),	zoom_scope(false), freelook(false), mapzoom(0.1), viewsideang(0),
 	viewupang(-90),	viewpos(0, 0, 10)
 {
 	clouds = 0;
@@ -64,8 +64,8 @@ user_interface::user_interface() :
 
 user_interface::user_interface(sea_object* player) :
 	quit(false), pause(false), time_scale(1), player_object ( player ),
-	panel_height(128), panel_visible(true), bearing(0),
-	viewmode(4), target(0), zoom_scope(false), mapzoom(0.1), viewsideang(0),
+	panel_height(128), panel_visible(true), bearing(0), elevation(0),
+	viewmode(4), target(0), zoom_scope(false), freelook(false), mapzoom(0.1), viewsideang(0),
 	viewupang(-90),	viewpos(0, 0, 10)
 {
 	clouds = 0;
@@ -175,6 +175,10 @@ void user_interface::init ()
 	cloud_coverage = 128;	// 0-256 (none-full)
 	cloud_sharpness = 256;	// 0-256
 	cloud_animphase = 0;
+	
+	cloud_interpolate_func.resize(256);
+	for (unsigned n = 0; n < 256; ++n)
+		cloud_interpolate_func[n] = unsigned(128-cos(n*M_PI/256)*128);
 
 	cloud_alpha.resize(256*256);
 	for (unsigned y = 0; y < 256; ++y) {
@@ -289,15 +293,16 @@ void user_interface::compute_clouds(void)
 			unsigned v = 0;
 			// accumulate values
 			for (unsigned k = 0; k < cloud_levels; ++k) {
-				unsigned tv = get_value_from_bytemap(x, y, cloud_levels-1-k, mapsize2, cmaps[k]);
+				unsigned tv = get_value_from_bytemap(x, y, k, cmaps[k]);
 				v += (tv >> k);
 			}
 			// fixme generate a lookup table for this function, depending on coverage/sharpness
 			if (v > 255) v = 255;
-			if (v < (256 - cloud_coverage))
+			unsigned invcover = 256-cloud_coverage;
+			if (v < invcover)
 				v = 0;
 			else
-				v -= (256 - cloud_coverage);
+				v -= invcover;
 			// use sharpness for exp function
 			v = 255 - v * 256 / cloud_coverage;	// equalize
 			fullmap[fullmapptr++] = 255;
@@ -327,23 +332,33 @@ vector<vector<Uint8> > user_interface::compute_noisemaps(void)
 }
 
 Uint8 user_interface::get_value_from_bytemap(unsigned x, unsigned y, unsigned level,
-	unsigned s, const vector<Uint8>& nmap)
+	const vector<Uint8>& nmap)
 {
-	unsigned rest = (1<<level);
-	unsigned xr = x % rest;
-	unsigned yr = y % rest;
-	x = (x >> level) % s;
-	y = (y >> level) % s;
-	unsigned x2 = (x+1) % s;
-	unsigned y2 = (y+1) % s;
-	unsigned v0 = nmap[y*s+x];
-	unsigned v1 = nmap[y*s+x2];
-	unsigned v2 = nmap[y2*s+x];
-	unsigned v3 = nmap[y2*s+x2];
-	unsigned v4 = (v0*(rest-xr)+v1*xr);
-	unsigned v5 = (v2*(rest-xr)+v3*xr);
-	unsigned v6 = (v4*(rest-yr)+v5*yr);
-	return v6 / (rest*rest);
+	// x,y are in 0...255, shift them according to level
+	unsigned shift = cloud_levels - 1 - level;
+	unsigned mapshift = 9 - cloud_levels;
+	unsigned mapmask = (1 << mapshift) - 1;
+	unsigned rshift = 8 - shift;
+	unsigned xfrac = ((x << rshift) & 255);
+	unsigned yfrac = ((y << rshift) & 255);
+	x = (x >> shift);
+	y = (y >> shift);
+	x = x & mapmask;
+	y = y & mapmask;
+	unsigned x2 = (x+1) & mapmask;
+	unsigned y2 = (y+1) & mapmask;
+
+	xfrac = cloud_interpolate_func[xfrac];
+	yfrac = cloud_interpolate_func[yfrac];
+	
+	unsigned v0 = nmap[(y<<mapshift)+x];
+	unsigned v1 = nmap[(y<<mapshift)+x2];
+	unsigned v2 = nmap[(y2<<mapshift)+x];
+	unsigned v3 = nmap[(y2<<mapshift)+x2];
+	unsigned v4 = (v0*(256-xfrac)+v1*xfrac);
+	unsigned v5 = (v2*(256-xfrac)+v3*xfrac);
+	unsigned v6 = (v4*(256-yfrac)+v5*yfrac);
+	return Uint8(v6 >> 16);
 }
 
 void user_interface::smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map)
@@ -606,7 +621,7 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 }
 
 void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
-	angle dir, bool aboard, bool drawbridge, bool withunderwaterweapons)
+	angle dir, angle elev, bool aboard, bool drawbridge, bool withunderwaterweapons)
 {
 	double max_view_dist = gm.get_max_view_distance();
 
@@ -624,6 +639,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		double rollfac = (dynamic_cast<ship*>(player))->get_roll_factor();
 		rotate_by_pos_and_wave(player->get_pos(), timefac, rollfac, true);
 	}
+
+	glRotatef(-elev.value(),1,0,0);
 
 	// This should be a negative angle, but nautical view dir is clockwise, OpenGL uses ccw values, so this is a double negation
 	glRotatef(dir.value(),0,0,1);
@@ -908,7 +925,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();
 		glLoadIdentity();
-		glRotatef(-90,1,0,0);
+		glRotatef(-elev.value()-90,1,0,0);
 		glRotatef((dir - player->get_heading()).value(),0,0,1);
 		conning_tower_typeVII->display();
 		glPopMatrix();
@@ -1242,11 +1259,33 @@ void user_interface::display_bridge(class system& sys, game& gm)
 	vector2 phd = player->get_heading().direction();
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6) + phd.xy0();
 	// no torpedoes, no DCs, with player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, true, true, false);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, elevation, true, true, false);
 
 	sys.prepare_2d_drawing();
 	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
+	
+	if (sys.get_mouse_buttons() & system::right_button) {
+		if (!freelook) {
+			SDL_ShowCursor(SDL_DISABLE);
+			int mx, my;
+			sys.get_mouse_motion(mx, my);	// throw away
+			freelook = true;
+		} else {
+			int mx, my;
+			sys.get_mouse_motion(mx, my);
+			bearing += angle(float(mx)/4);
+			float e = elevation.value_pm180() + float(my)/4;
+			if (e < 0) e = 0;
+			if (e > 90) e = 90;
+			elevation = angle(e);
+		}
+	} else {
+		if (freelook) {
+			SDL_ShowCursor(SDL_ENABLE);
+			freelook = false;
+		}
+	}
 
 	// keyboard processing
 	int key = sys.get_key().sym;
@@ -1671,7 +1710,7 @@ void user_interface::display_freeview(class system& sys, game& gm)
 	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
 
 	// draw everything
-	draw_view(sys, gm, viewpos, 0, false, false, true);
+	draw_view(sys, gm, viewpos, 0, 0, false, false, true);
 
 	int mx, my;
 	sys.get_mouse_motion(mx, my);
@@ -1726,7 +1765,7 @@ void user_interface::display_glasses(class system& sys, class game& gm)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6);
 	// no torpedoes, no DCs, no player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, true, false, false);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 0, true, false, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

@@ -36,6 +36,7 @@ protected:
 
 	// used in various screens
 	angle bearing;
+	angle elevation;	// -90...90 deg (look down ... up)
 	unsigned viewmode;
 	sea_object* target;
 
@@ -44,6 +45,9 @@ protected:
 
 	// periscope
 	bool zoom_scope;	// use 6x instead 1.5 fixme implement
+
+	// bridge
+	bool freelook;	// when right mouse button is down
 
 	// map
 	float mapzoom;	// factor pixel/meter
@@ -56,6 +60,7 @@ protected:
 	unsigned clouds_dl;	// display list for sky hemisphere
 	unsigned cloud_levels, cloud_coverage, cloud_sharpness;
 	vector<Uint8> cloud_alpha;	// precomputed alpha texture
+	vector<unsigned> cloud_interpolate_func;	// give fraction as Uint8
 	
 //	vector<char> landsea;	// a test hack. 0 = land, 1 = sea
 	unsigned mapw, maph;
@@ -84,8 +89,8 @@ protected:
 	void advance_cloud_animation(float fac);	// 0-1
 	void compute_clouds(void);
 	vector<vector<Uint8> > compute_noisemaps(void);
-	static Uint8 get_value_from_bytemap(unsigned x, unsigned y, unsigned level,
-		unsigned s, const vector<Uint8>& nmap);
+	Uint8 get_value_from_bytemap(unsigned x, unsigned y, unsigned level,
+		const vector<Uint8>& nmap);
 	void smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map);
 
 	static texture* torptex(unsigned type);
@@ -155,7 +160,7 @@ public:
 	virtual void draw_water(const vector3& viewpos, angle dir, double t, double max_view_dist) const;
 	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist) const;
 	virtual void draw_view(class system& sys, class game& gm, const vector3& viewpos,
-		angle dir, bool aboard, bool drawbridge, bool withunderwaterweapons);
+		angle dir, angle elev, bool aboard, bool drawbridge, bool withunderwaterweapons);
 	virtual bool user_quits(void) const { return quit; }
 	virtual bool paused(void) const { return pause; }
 	virtual unsigned time_scaling(void) const { return time_scale; }
