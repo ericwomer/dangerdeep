@@ -8,16 +8,10 @@
 #include "submarine_XXI.h"
 #include "tokencodes.h"
 
-submarine::submarine() : ship()
-{
-	dive_speed = 0;
-	permanent_dive = false;
-	dive_to = 0;
-	max_dive_speed = 1;
-	dive_acceleration = 0;
-	scopeup = false;
-	max_depth = 150;
-}
+submarine::submarine() : ship(), dive_speed(0.0f), permanent_dive(false),
+    dive_to(0.0f), max_dive_speed(1.0f), dive_acceleration(0.0f), scopeup(false),
+    max_depth(150.0f), periscope_depth(12.0f)
+{}
 	
 bool submarine::parse_attribute(parser& p)
 {
