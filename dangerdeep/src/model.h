@@ -59,6 +59,8 @@ class model {
 	
 	vector<material*> materials;
 	vector<mesh> meshes;
+	
+	unsigned display_list;	// OpenGL display list for the model
 
 	vector3f min, max;
 

@@ -1,3 +1,10 @@
+2003-10-22  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* model.cpp model.h viewmodel.cpp
+	  - introduced display lists to speed up drawing.
+	  - fixed NAN vertex normal drawing bug
+	* user_interface.cpp
+	  - removed "hack" comments, made water "hack" to current code.
+
 2003-10-21  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* model.h model.cpp
 	  - changed model format from mdl to 3ds

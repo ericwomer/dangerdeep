@@ -13,17 +13,26 @@
 
 unsigned model::mapping = 0;
 
-model::model(const string& filename)
+model::model(const string& filename) : display_list(0)
 {
 	// fixme: determine loader by extension here. currently only 3ds supported
 	m3ds_load(filename);
 	
 	compute_bounds();
 	compute_normals();
+	
+	// create display list
+	unsigned dl = glGenLists(1);
+	system::sys()->myassert(dl != 0, "no more display list indices available");
+	glNewList(dl, GL_COMPILE);
+	display();
+	glEndList();
+	display_list = dl;
 }
 
 model::~model()
 {
+	glDeleteLists(display_list, 1);
 	for (vector<model::material*>::iterator it = materials.begin(); it != materials.end(); ++it)
 		delete *it;
 }
@@ -50,12 +59,19 @@ void model::compute_normals(void)
 			const vector3f& v0 = it->vertices[it2->v[0]].pos;
 			const vector3f& v1 = it->vertices[it2->v[1]].pos;
 			const vector3f& v2 = it->vertices[it2->v[2]].pos;
-			vector3f face_normal = (v1-v0).orthogonal(v2-v0).normal();
-			it->vertices[it2->v[0]].normal += face_normal;
-			it->vertices[it2->v[1]].normal += face_normal;
-			it->vertices[it2->v[2]].normal += face_normal;
+			vector3f ortho = (v1-v0).orthogonal(v2-v0);
+			// avoid degenerated triangles
+			float sql = ortho.square_length();
+			if (sql > 0.001) {
+				vector3f face_normal = ortho * (1.0/sqrt(sql));
+				it->vertices[it2->v[0]].normal += face_normal;
+				it->vertices[it2->v[1]].normal += face_normal;
+				it->vertices[it2->v[2]].normal += face_normal;
+			}
 		}
 		for (vector<model::mesh::vertex>::iterator it2 = it->vertices.begin(); it2 != it->vertices.end(); ++it2)
+			// this can lead to NAN values in vertex normals.
+			// but only for degenerated vertices, so we don't care.
 			it2->normal.normalize();
 	}
 }
@@ -81,33 +97,36 @@ void model::material::set_gl_values(void) const
 
 void model::mesh::display(void) const
 {
-	// further speedup with display lists possible or sensible?
 	bool has_texture = false;
 	if (mymaterial != 0) {
 		has_texture = (mymaterial->mytexture != 0);
 		mymaterial->set_gl_values();
 	} else {
 		glBindTexture(GL_TEXTURE_2D, 0);
-		color::red().set_gl_color();
-	}		
+		glColor3f(0, 1, 0);
+	}
 
-//	if (has_texture)
-		glInterleavedArrays(GL_T2F_N3F_V3F, 0, &(vertices[0].uv));
-//	else
-//		glInterleavedArrays(GL_T2F_N3F_V3F/*GL_N3F_V3F*/, 0/*2*sizeof(float)*/, &(vertices[0].uv/*normal*/));
-
-	glDrawElements(GL_TRIANGLES, faces.size()*3, GL_UNSIGNED_INT, &faces[0]);
-
-	// is this needed? fixme: check open gl redbook
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
+	glBegin(GL_TRIANGLES);
+	for (vector<face>::const_iterator it = faces.begin(); it != faces.end(); ++it) {
+		for (unsigned j = 0; j < 3; ++j) {
+			const vertex& v = vertices[it->v[j]];
+			if (has_texture)
+				glTexCoord2f(v.uv.x, v.uv.y);
+			glNormal3f(v.normal.x, v.normal.y, v.normal.z);
+			glVertex3f(v.pos.x, v.pos.y, v.pos.z);
+		}
+	}
+	glEnd();
 }
 
 void model::display(void) const
 {
-	for (vector<model::mesh>::const_iterator it = meshes.begin(); it != meshes.end(); ++it)
-		it->display();
+	if (display_list) {
+		glCallList(display_list);
+	} else {
+		for (vector<model::mesh>::const_iterator it = meshes.begin(); it != meshes.end(); ++it)
+			it->display();
+	}
 }
 
 // ------------------------------------------ 3ds loading functions -------------------------- 
