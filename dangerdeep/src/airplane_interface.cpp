@@ -148,6 +148,12 @@ void airplane_interface::display_cockpit(game& gm)
 	system::sys().prepare_2d_drawing();
 	system::sys().no_tex();
 	glColor4f(1,1,1,1);
+	glBegin(GL_LINES);
+	glVertex2f(res_x/2, res_y/2-res_y/20);
+	glVertex2f(res_x/2, res_y/2+res_y/20);
+	glVertex2f(res_x/2-res_y/20, res_y/2);
+	glVertex2f(res_x/2+res_y/20, res_y/2);
+	glEnd();
 	ostringstream oss;
 	oss << "height " << player->get_pos().z << "\nspeed " << player->get_speed() * 3.6 << "km/h\nrotation (quat): "
 	<< player->get_rotation();

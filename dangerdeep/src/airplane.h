@@ -21,7 +21,7 @@ protected:
 	airplane& operator=(const airplane& other);
 	airplane(const airplane& other);
 public:
-	airplane() { rotation = quaternion::neutral_rot(); }
+	airplane() { rotation = quaternion::neutral_rot(); velocity = vector3(0,100,0); }
 	virtual ~airplane() {};
 	void load(istream& in, class game& g);
 	void save(ostream& out, const class game& g) const;
@@ -36,9 +36,10 @@ public:
 	virtual double get_wing_width(void) const { return 8.0; }
 	virtual double get_wing_length(void) const { return 2.0; }
 	virtual double get_mass(void) const { return 4000.0; }	// 4 tons.
-	virtual double get_engine_force(void) const { return 1200000.0; }
-	virtual double get_friction_factor(void) const { return 7150.0; }
-	virtual double get_buoyancy_factor(void) const { return 20.0; }
+	virtual double get_engine_thrust(void) const { return 20000.0; }
+	virtual double get_drag_factor(void) const { return 1.0368; }
+	virtual double get_lift_friction_factor(void) const { return 98.062; }//fixme, max 50m/s
+	virtual double get_lift_factor(void) const { return 0.7943; }
 	virtual double get_roll_deg_per_sec(void) const { return 90.0; }
 	virtual double get_pitch_deg_per_sec(void) const { return 45.0; }
 
