@@ -3,7 +3,7 @@ import os
 import sys
 
 ################ global config values
-version = '0.0.19'
+version = '0.0.20'
 
 ################ base paths (needed for Win32 OS)
 sdlbase = 'd:\\sdl-devel\\SDL'
