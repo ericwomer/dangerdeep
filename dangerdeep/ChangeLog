@@ -1,3 +1,19 @@
+2003-04-19  Markus Petermann  <m.petermann@gmx.net>
+
+	* sound.h, sound.cpp:
+	  - New module for sound effects.
+	* game.cpp:
+	  - Sound effects for torpedo detonation
+	* submarine.cpp:
+	  - Sound effect for torpedo launch
+	  - noise modification factor changed
+	* global_data.cpp, global_data.h:
+	  - Sound effects are loaded now
+	* water_splash.h, water_splash.cpp:
+	  - Created new classes for diverse water splash types.
+	* makedatapack:
+	  - data/sounds is now copied to archive now.
+
 2003-04-18  Markus Petermann  <m.petermann@gmx.net>
 
 	* water_splash.h, water_splash.cpp:
