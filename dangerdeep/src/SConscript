@@ -2,7 +2,7 @@
 import os
 import sys
 
-Import('env', 'gfxlibs', 'alllibs', 'libpath', 'installprefix', 'datadir', 'datafiles')
+Import('env', 'gfxlibs', 'alllibs', 'libpath', 'installbindir', 'installdatadir', 'datadir', 'datafiles')
 
 ################## define sources #######################
 dftdsources = Split("""subsim.cpp
@@ -17,7 +17,6 @@ dftdsources = Split("""subsim.cpp
 	filehelper.cpp
 	freeview_display.cpp
 	game.cpp
-	global_data.cpp
 	gun_shell.cpp
 	highscorelist.cpp
 	logbook.cpp
@@ -68,18 +67,19 @@ oglextsources = Split("""
 
 ############# programs, libs, etc.
 env.StaticLibrary(target = 'dftdmedia', source = dftdmediasources, LIBS = gfxlibs, LIBPATH = libpath)
-binary = env.Program(target = 'dangerdeep', source = dftdsources, LIBS = alllibs, LIBPATH = libpath)
-env.Program('viewmodel', 'viewmodel.cpp', LIBS = ['dftdmedia'] + gfxlibs, LIBPATH = libpath)
-env.Program('damagemodel', 'damagemodel.cpp', LIBS = ['dftdmedia'] + gfxlibs, LIBPATH = libpath)
-env.Program('crosssection', 'crosssection.cpp', LIBS = ['dftdmedia'] + gfxlibs, LIBPATH = libpath)
+globaldataobj = env.StaticObject('global_data.cpp', CPPDEFINES = [('DATADIR', '\\"' + datadir + os.sep + '\\"')])
+binary = env.Program(target = 'dangerdeep', source = dftdsources + globaldataobj, LIBS = alllibs, LIBPATH = libpath)
+env.Program('viewmodel', ['viewmodel.cpp', globaldataobj, 'sound.cpp'], LIBS = alllibs, LIBPATH = libpath)
+env.Program('damagemodel', ['damagemodel.cpp', globaldataobj, 'sound.cpp'], LIBS = alllibs, LIBPATH = libpath)
+env.Program('crosssection', ['crosssection.cpp', globaldataobj, 'sound.cpp'], LIBS = alllibs, LIBPATH = libpath)
 env.StaticLibrary(target = 'oglext', source = oglextsources, LIBPATH = libpath)
 env.StaticLibrary(target = 'tinyxml', source = tinyxmlsources, LIBPATH = libpath)
 
 ############ this allows to run "scons install" to install the binary
-install = env.Alias('install', env.Install(installprefix + 'bin', binary))
+install = env.Alias('install', env.Install(installbindir, binary))
 env.Depends(install, binary)
 for i in datafiles:
 	# remove './data' from begin of i and filename from end
 	j = i.rfind(os.sep)
 	ipath = i[6:j]
-	env.Depends(install, env.Install(datadir + ipath, '#/' + i))
+	env.Depends(install, env.Install(installdatadir + ipath, '#/' + i))

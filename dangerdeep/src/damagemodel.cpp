@@ -4,7 +4,6 @@
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#define DATADIR "./data/"
 #endif
 
 #include <GL/gl.h>
@@ -13,13 +12,13 @@
 
 #include "system.h"
 #include "vector3.h"
+#include "global_data.h"
 #include "model.h"
 #include "texture.h"
 #include <iostream>
 #include <sstream>
 #include "image.h"
 #define VIEWMODEL
-font* font_arial;
 
 class system* sys;
 int res_x, res_y;
@@ -88,7 +87,7 @@ static void view_model(const string& modelfilename)
 {
 	// vector3 viewangles;
 	vector3 pos;
-	model* mdl = new model(string(DATADIR) + MODEL_DIR + modelfilename);
+	model* mdl = new model(get_model_dir() + modelfilename);
 
 	while (true) {
 		glMatrixMode(GL_MODELVIEW);
@@ -158,7 +157,7 @@ int main(int argc, char** argv)
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 	glEnable(GL_LIGHT0);
 
-	font_arial = new font(string(DATADIR) + FONT_DIR + "font_arial");
+	font_arial = new font(get_font_dir() + "font_arial");
 	sys->draw_console_with(font_arial, 0);
 
 	view_model(modelfilename);	

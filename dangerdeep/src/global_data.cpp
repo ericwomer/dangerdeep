@@ -16,6 +16,13 @@
 #include <SDL_image.h>
 
 
+// return global data directory. all other directories depend on this.
+// by defining it only here, we need to recompile only one object file
+string get_data_dir(void)
+{
+	return string(DATADIR);
+}
+
 
 // fixme: this could be replaced with an array of pointers using enum-names
 // as indices. This would simplify destruction and possibly construction.

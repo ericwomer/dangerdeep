@@ -10,12 +10,18 @@ datadir='usr/share/games'
 mandir='usr/share/man/man6'
 docdir='usr/share/doc/dangerdeep'
 
+# to build it
+# scons installprefix=$debroot installbindir=/$bindir installdatadir=/$datadir datadir=$datadir/dangerdeep
+
 ./configure --bindir=/$bindir --datadir=/$datadir && make clean && make || exit $?
 
 mkdir -p $debroot && cp -R debian/* $debroot
 for dir in DEBIAN $bindir $datadir/dangerdeep $mandir $docdir; do
 	mkdir -p $debroot/$dir
 done
+
+# to install it
+# scons installprefix=$debroot installbindir=/$bindir installdatadir=/$datadir datadir=$datadir/dangerdeep install
 
 install -s src/dangerdeep $debroot/$bindir
 cp -Rf data/* $debroot/$datadir/dangerdeep

@@ -12,12 +12,19 @@ sdlnetbase = 'd:\\sdl-devel\\SDL_net'
 sdlmixerbase = 'd:\\sdl-devel\\SDL_mixer'
 fftw3base = 'd:\\fftw3'
 
-############### install path prefix (needed for unix OS)
-installprefix = '/usr/local/'
-#installprefix = '/usr/' # for debian packages, better give that as argument
+################ change base of dirs (unix OS)
+installprefix = '/usr/local'
+installbindir = '/bin'
+installdatadir = '/share'
 if ARGUMENTS.get('installprefix', 0):
-	installprefix = ARGLIST[0][1]
-print 'Using install prefix: ' + installprefix
+	installprefix = ARGUMENTS.get('installprefix', 0)
+if ARGUMENTS.get('installbindir', 0):
+	installbindir = ARGUMENTS.get('installbindir', 0)
+if ARGUMENTS.get('installdatadir', 0):
+	installdatadir = ARGUMENTS.get('installdatadir', 0)
+installbindir = installprefix + installbindir
+installdatadir = installprefix + installdatadir + '/dangerdeep'
+
 
 ################ set environment
 if sys.platform == 'win32':
@@ -28,8 +35,7 @@ if sys.platform == 'win32':
 	gllibs = ['opengl32', 'glu32']
 	sdllibs = ['SDL', 'SDL_image']
 	env.Append(CCFLAGS = '-Wall -O2 -D_REENTRANT') # for mingw!
-	datadir = './data'
-	env.Append(CPPDEFINES = [('DATADIR', '\\"' + datadir + '/\\"')])
+	datadir = '.\\data'
 else:
 	print "Compiling for Unix/Posix/Linux Environment"
 	env = Environment(ENV = os.environ)
@@ -38,8 +44,16 @@ else:
 	gllibs = ['GL', 'GLU']
 	sdllibs = ['SDL', 'SDL_image']
 	env.Append(CCFLAGS = '-Wall -g -O2 `sdl-config --cflags`')
-	datadir = installprefix + 'share/dangerdeep'
-	env.Append(CPPDEFINES = [('DATADIR', '\\"' + datadir + '/\\"')])
+	datadir = installdatadir
+
+###### optionally change install and data dirs
+if ARGUMENTS.get('datadir', 0):
+	datadir = ARGUMENTS.get('datadir', 0)
+
+print 'Using install prefix: ' + installprefix
+print 'Install binary path: ' + installbindir
+print 'Install data path: ' + installdatadir
+print 'Using data dir: ' + datadir
 
 build_base_dir = 'build'
 source_base_dir = 'src'
@@ -143,7 +157,7 @@ for i in allcvsfilesr:
 
 datafiles = all_entries_that_start_with(allcvsfiles, './data')
 
-Export('env', 'gfxlibs', 'alllibs', 'libpath', 'installprefix', 'datadir', 'datafiles')
+Export('env', 'gfxlibs', 'alllibs', 'libpath', 'installbindir', 'installdatadir', 'datadir', 'datafiles')
 
 SConscript(source_base_dir + os.sep + 'SConscript', build_dir = target_dir, duplicate = 0)
 
