@@ -1,3 +1,9 @@
+2005-03-13  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* all over the place
+	 - substituted system::sys() by just sys()
+	* water.cpp water.h
+	 - optional usage of fragment programs (pixel shaders)
+
 2005-03-04  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* subsim.cpp
 	 - separated system specific main(), makes multiplatform compilation

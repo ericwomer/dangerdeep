@@ -272,7 +272,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		wbtmp[3*i+2] = (wavetilenormals[0][i].z+1.0f)/2.0f*255;
 	}
 	water_bumpmap = new texture(&wbtmp[0], WAVE_RESOLUTION, WAVE_RESOLUTION,
-				    GL_RGB, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, false);
+				    GL_RGB, GL_LINEAR /*_MIPMAP_LINEAR*/, GL_REPEAT, false);
 
 	add_loading_screen("water height data computed");
 }
@@ -334,10 +334,12 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 	glBindTexture(GL_TEXTURE_2D, reflectiontex);
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
+/*
 	// rescale coordinates [-1,1] to [0,1]
 	glTranslated(0.5,0.5,0);
 	glScaled(0.5,0.5,1.0);
 	reflection_projmvmat.multiply_gl();
+*/
 	glMatrixMode(GL_MODELVIEW);
 
 	if (!(fragment_program_supported && use_fragment_programs)) {
