@@ -21,6 +21,7 @@ class angle
 	public:
 	angle() : val(0) {};
 	angle(double d) : val(d) {};
+	angle(const vector2& v) { val = (v == vector2(0,0)) ? 0 : 90-atan2(v.y, v.x)*180.0/M_PI; };
 	double value(void) const { return clamped(val); };
 	unsigned ui_value(void) const { return unsigned(clamped(round(val))); };
 	unsigned ui_abs_value180(void) const { return unsigned(fabs(round(value_pm180()))); };
@@ -39,8 +40,7 @@ class angle
 	double sin(void) const { return ::sin(rad()); };
 	double cos(void) const { return ::cos(rad()); };
 	vector2 direction(void) const { double r = rad(); return vector2(::sin(r), ::cos(r)); };
-	angle(const vector2& v) { val = (v == vector2(0,0)) ? 0 : 90-atan2(v.y, v.x)*180.0/M_PI; };
-	bool operator < ( const angle& b ) const { return value () < b.value (); }
+	bool operator < ( const angle& b ) const { double d = diff ( b ); return ( d >= 0.0f && d < 180.0f )? false : true; }
 	bool operator <= ( const angle& b ) const { return !(b < *this); }
 	bool operator == ( const angle& b ) const { return !(*this < b) && !(b < *this); }
 	bool operator > ( const angle& b ) const { return b < *this; }
