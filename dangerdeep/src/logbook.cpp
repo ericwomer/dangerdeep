@@ -171,7 +171,7 @@ void captains_logbook_display::display ( class system& sys, class game& gm )
 	for ( int i = 0; i < 8; i++ )
 	{
 		for ( int j = 0; j < 6; j++ )
-			sys.draw_image ( 128*i, 128*j, 128, 128, woodbg );
+			sys.draw_image ( 128*i, 128*j, 128, 128, woodbackgr );
 	}
 
 	// Two white pages.

@@ -18,7 +18,7 @@ extern class texture *water, *background, *titel[4], *periscope[4], *gauge1,
 	*addleadangle, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
 	*clock12, *clock24, *threesubs[4], *glasses, *torp_expl_water_splash[3],
-	*logbook_spiral[2];
+	*logbook_spiral[2], *woodbackgr;
 extern class font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
 extern class sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
