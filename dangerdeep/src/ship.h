@@ -17,6 +17,7 @@ protected:
 	class ai* myai;
 	unsigned tonnage;	// in BRT
 
+	// fixme: replace by finer model: -> damage editor!
 	damage_status stern_damage, midship_damage, bow_damage;
 
 	// Fuel percentage: 0 = empty, 1 = full.
@@ -81,6 +82,7 @@ public:
 	virtual unsigned get_tonnage(void) const { return tonnage; }
 	virtual double get_fuel_level () const { return fuel_level; }
 
+	// maybe replace with class structure: sea_object <- ship <- battleship <- malaya, ship <- merchant <- liberty
 	virtual bool is_merchant(void) const { return false; }
 	virtual bool is_escort(void) const { return false; }
 	virtual bool is_warship(void) const { return false; }

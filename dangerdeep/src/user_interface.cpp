@@ -41,7 +41,7 @@ using namespace std;
 // wavelength 256+,
 #define WAVE_PHASES 256		// no. of phases for wave animation
 #define WAVES_PER_AXIS 8	// no. of waves along x or y axis
-#define FACES_PER_WAVE 64	// resolution of wave model in x/y dir.
+#define FACES_PER_WAVE 32	// resolution of wave model in x/y dir.
 #define WAVE_LENGTH 128.0	// in meters, total length of one wave (one sine function)
 #define TIDECYCLE_TIME 10.0
 // obsolete:
