@@ -57,11 +57,12 @@ vector<vector2f> coastline::create_points(const vector2& offset, float scal, uns
 			points[begint+i].x * scal + offset.x,
 			points[begint+i].y * scal + offset.y ));
 	}
-	
+
+	unsigned n = points.size() - 1;
+	if (n > BSPLINE_SMOOTH_FACTOR) n = BSPLINE_SMOOTH_FACTOR;
+	bsplinet<vector2f> spl(n, pointsf);	
 	for (unsigned n = 0; n < nrpts; ++n) {
-		unsigned n = points.size() - 1;
-		if (n > BSPLINE_SMOOTH_FACTOR) n = BSPLINE_SMOOTH_FACTOR;
-		result.push_back(bspline_val<vector2f>(t, n, pointsf));
+		result.push_back(spl.value(t));
 		t += tstep;
 	}
 	return result;

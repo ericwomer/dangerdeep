@@ -1,4 +1,4 @@
-//  A bspline curve point generation algorithm (C)+(W) 2003 Thorsten Jordan
+//  A bspline curve (C)+(W) Thorsten Jordan
 
 #ifndef BSPLINE_H
 #define BSPLINE_H
@@ -8,50 +8,80 @@
 using namespace std;
 
 template <class T>
-T bspline_val(double t, int n, const vector<T>& d)
+class bsplinet
 {
-	assert (0 <= t && t <= 1);
-	assert (n < int(d.size()) );
+protected:
+	int n;
+	vector<T> cp;		// control points
+	vector<double> tvec;	// t's for control points
+	mutable vector<vector<T> > deBoor_pts;
 	
-	int m = int(d.size())-1;
-	
-	vector<vector<T> > deBoor_pts;
+	bsplinet();
+	bsplinet(const bsplinet& );
+	bsplinet& operator= (const bsplinet& );
 
-	// prepare deBoor-Points Triangle
-	deBoor_pts.resize(n+1);
-	for (int j = 0; j <= n; ++j)
-		deBoor_pts[j].resize(n+1-j);
-
-	// prepare t-vector
-	vector<double> tvec;
-	tvec.resize(m+n+2);	// fixme: THIS is the performance bottleneck. for large coastlines
-	int k = 0;		// m is around 1000, recreated for every point! fixme reuse this vector, it is constant for one spline
-	for ( ; k <= n; ++k) tvec[k] = 0;
-	for ( ; k <= m; ++k) tvec[k] = double(k-n)/double(m-n+1);
-	for ( ; k <= m+n+1; ++k) tvec[k] = 1;
-	
-	// find l, also fixme: general bsplines may have non uniform t distances for their control points
-	int l = n;	// but we know how the tvec is created so we don't need to find t but can find its position in O(1) time!
-	for ( ; l < m+1; ++l) {
-		if (tvec[l] <= t && t <= tvec[l+1])
-			break;
-	}
-	
-	// fill in base deBoor points
-	for (int j = 0; j <= n; ++j)
-		deBoor_pts[0][j] = d[l-n+j];
+	int find_l(const double t) const {
+		// note: for non-uniform bsplines we have to compute l so that
+		// tvec[l] <= t <= tvec[l+1]
+		// because we have uniform bsplines here, we don't need to search!
 		
-	// compute new values
-	int doff = l-n;
-	for (int r = 1; r <= n; ++r) {
-		for (int i = l-n; i <= l-r; ++i) {
-			double tv = (t - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
-			deBoor_pts[r][i-doff] = deBoor_pts[r-1][i-doff] * (1 - tv)
-				+ deBoor_pts[r-1][i+1-doff] * tv;
+		return n + int(floor(t * (cp.size()-n)));
+
+		// algorithm for non-uniform bsplines:
+		/*
+		int l = n;
+		for ( ; l < m+1; ++l) {
+			if (tvec[l] <= t && t <= tvec[l+1])
+				break;
 		}
+		return l;
+		*/
 	}
 
-	return deBoor_pts[n][0];
-}
+public:
+	bsplinet(int n_, const vector<T>& d) : n(n_), cp(d) {
+		assert (n < int(d.size()) );
+		
+		// prepare deBoor-Points Triangle
+		deBoor_pts.resize(n+1);
+		for (int j = 0; j <= n; ++j)
+			deBoor_pts[j].resize(n+1-j);
+
+		// prepare t-vector
+		// note: this algorithm works also for non-uniform bsplines
+		// (let the user give a t vector)
+		int m = int(d.size())-1;
+		tvec.resize(m+n+2);
+		int k = 0;
+		for ( ; k <= n; ++k) tvec[k] = 0;
+		for ( ; k <= m; ++k) tvec[k] = double(k-n)/double(m-n+1);
+		for ( ; k <= m+n+1; ++k) tvec[k] = 1;
+	}
+
+	~bsplinet() {}
+	
+	T value(const double& t) {
+		assert (0 <= t && t <= 1);
+
+		int l = find_l(t);
+	
+		// fill in base deBoor points
+		for (int j = 0; j <= n; ++j)
+			deBoor_pts[0][j] = cp[l-n+j];
+		
+		// compute new values
+		int doff = l-n;
+		for (int r = 1; r <= n; ++r) {
+			for (int i = l-n; i <= l-r; ++i) {
+				double tv = (t - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
+				deBoor_pts[r][i-doff] = deBoor_pts[r-1][i-doff] * (1 - tv)
+					+ deBoor_pts[r-1][i+1-doff] * tv;
+			}
+		}
+
+		return deBoor_pts[n][0];
+	}
+
+};
 
 #endif
