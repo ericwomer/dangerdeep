@@ -52,8 +52,6 @@ using namespace std;
 #define TIDECYCLE_TIME 10.0
 #define FOAM_VANISH_FACTOR 0.1	// 1/second until foam goes from 1 to 0.
 #define FOAM_SPAWN_FACTOR 0.2	// 1/second until full foam reached. maybe should be equal to vanish factor
-// obsolete:
-#define WAVE_HEIGHT 4.0		// half of difference top/bottom of wave -> fixme, depends on weather
 
 #define CLOUD_ANIMATION_CYCLE_TIME 3600.0
 
@@ -371,7 +369,8 @@ void user_interface::init ()
 	}
 	
 	// create water bump maps
-	ocean_wave_generator<float> owgb(64, vector2f(1,1), 1, 0.01, 4.0, WATER_BUMPMAP_CYCLE_TIME);
+	unsigned bumpmap_texsize = 64;
+	ocean_wave_generator<float> owgb(bumpmap_texsize, vector2f(1,1), 1, 0.01, 4.0, WATER_BUMPMAP_CYCLE_TIME);
 	for (int i = 0; i < WATER_BUMP_FRAMES; ++i) {
 		owgb.set_time(i*WATER_BUMPMAP_CYCLE_TIME/WATER_BUMP_FRAMES);
 		vector<vector3f> n = owgb.compute_normals();
@@ -382,7 +381,7 @@ void user_interface::init ()
 			un[3*j+1] = Uint8(s + n[j].y * s);
 			un[3*j+2] = Uint8(s + n[j].z * s);
 		}
-		water_bumpmaps[i] = new texture(&un[0], 64, 64, GL_RGB, GL_RGB,
+		water_bumpmaps[i] = new texture(&un[0], bumpmap_texsize, bumpmap_texsize, GL_RGB, GL_RGB,
 			GL_UNSIGNED_BYTE, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 	}
 	
