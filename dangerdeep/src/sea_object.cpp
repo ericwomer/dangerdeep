@@ -6,6 +6,28 @@
 #include "tokencodes.h"
 #include "sensors.h"
 #include "model.h"
+#include "global_data.h"
+
+
+void sea_object::degrees2meters(bool west, unsigned degx, unsigned minx, bool south,
+	unsigned degy, unsigned miny, double& x, double& y)
+{
+	x = (west ? -1.0 : 1.0)*(double(degx)+double(minx)/60.0)*20000000.0/180.0;
+	y = (south ? -1.0 : 1.0)*(double(degy)+double(miny)/60.0)*20000000.0/180.0;
+}
+
+void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, unsigned& minx, bool& south,
+	unsigned& degy, unsigned& miny)
+{
+	double fracdegrx = fabs(x*180.0/20000000.0);
+	double fracdegry = fabs(y*180.0/20000000.0);
+	degx = unsigned(floor(fracdegrx)),
+	degy = unsigned(floor(fracdegry)),
+	minx = unsigned(60.0*myfrac(fracdegrx) + 0.5);
+	miny = unsigned(60.0*myfrac(fracdegry) + 0.5);
+	west = (x < 0.0);
+	south = (y < 0.0);
+}
 
 sea_object::sea_object() : position(), heading(),
 	speed(0.0), max_speed(0.0), max_rev_speed(0.0), throttle(stop),
@@ -238,7 +260,7 @@ void sea_object::head_to_ang(const angle& a, bool left_or_right)	// true == left
 	permanent_turn = false;
 }
 
-void sea_object::change_rudder (const int& dir)
+void sea_object::change_rudder (int dir)
 {
     // Change rudder state first.
     if ( dir < 0 )
@@ -280,24 +302,24 @@ void sea_object::change_rudder (const int& dir)
 
 void sea_object::rudder_left(void)
 {
-    change_rudder ( -1 );
+	change_rudder ( -1 );
 }
 
 void sea_object::rudder_right(void)
 {
-    change_rudder ( 1 );
+	change_rudder ( 1 );
 }
 
 void sea_object::rudder_hard_left(void)
 {
-    rudder = rudderfullleft;
+	rudder = rudderfullleft;
 	head_chg = -1.0f;
 	permanent_turn = true;
 }
 
 void sea_object::rudder_hard_right(void)
 {
-    rudder = rudderfullright;
+	rudder = rudderfullright;
 	head_chg = 1.0f;
 	permanent_turn = true;
 }

@@ -109,7 +109,7 @@ user_interface::user_interface(sea_object* player, game& gm) :
 		cityfile.parse(TKN_COMMA);
 		string n = cityfile.parse_string();
 		double x, y;
-		degrees2meters(xneg, xd, xm, yneg, yd, ym, x, y);
+		sea_object::degrees2meters(xneg, xd, xm, yneg, yd, ym, x, y);
 		cities.push_back(make_pair(vector2(x, y), n));
 	}
 }
@@ -1878,7 +1878,7 @@ if (mb&2) detl = my*10/384;
 	double mouserealmy = double(384 - my) / mapzoom + offset.y;
 	unsigned degrx, degry, minutx, minuty;
 	bool west, south;
-	meters2degrees(mouserealmx, mouserealmy, west, degrx, minutx, south, degry, minuty);
+	sea_object::meters2degrees(mouserealmx, mouserealmy, west, degrx, minutx, south, degry, minuty);
 	ostringstream rwcoordss;
 	rwcoordss	<< degry << "/" << minuty << (south ? "S" : "N") << ", "
 			<< degrx << "/" << minutx << (west ? "W" : "E");

@@ -38,6 +38,9 @@ vector<unsigned> triangulate::compute(const vector<vector2f>& vertices)
 	list<unsigned>::iterator i1 = i0; next(vl, i1);
 	list<unsigned>::iterator i2 = i1; next(vl, i2);
 // fixme: 2004/02/14, with the new map the lockups reoccour. why?!	
+int iscorrecttests=0;
+int notriangpossible=0;
+int polyscreated=0;
 int haengt=0;	// fixme: hack to avoid lock ups. why do they occour? reasons maybe:
 		// 1) there are double points in the input, that means polygon edges are degenerated
 		// or too short. OCCOUR, fixme, SEE COASTSEGMENT.CPP
@@ -49,8 +52,9 @@ int haengt=0;	// fixme: hack to avoid lock ups. why do they occour? reasons mayb
 		// check these cases (1,2)
 	while (vl.size() > 3) {
 ++haengt;
-if(haengt>2000){cout<<"TRIANGULATE: LOCKUP DETECTED!\n";return indices;}
+if(haengt>2000){cout<<"TRIANGULATE: LOCKUP DETECTED! ("<<polyscreated<<","<<iscorrecttests<<","<<notriangpossible<<")\n";return indices;}
 		if (!is_correct_triangle(vertices[*i0], vertices[*i1], vertices[*i2])) {
+++iscorrecttests;
 			next(vl, i0);
 			next(vl, i1);
 			next(vl, i2);
@@ -62,6 +66,7 @@ if(haengt>2000){cout<<"TRIANGULATE: LOCKUP DETECTED!\n";return indices;}
 				break;
 		}
 		if (i3 == i0) {
+++polyscreated;		
 			indices.push_back(*i0);
 			indices.push_back(*i1);
 			indices.push_back(*i2);
@@ -69,6 +74,7 @@ if(haengt>2000){cout<<"TRIANGULATE: LOCKUP DETECTED!\n";return indices;}
 			i1 = i2;
 			next(vl, i2);
 		} else {
+++notriangpossible;
 			next(vl, i0);
 			next(vl, i1);
 			next(vl, i2);

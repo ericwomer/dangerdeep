@@ -42,6 +42,11 @@ public:
 	inline static double ms2kts(double meters) { return meters*3600.0/1852.0; }
 	inline static double kmh2ms(double kmh) { return kmh/3.6; }
 	inline static double ms2kmh(double meters) { return meters*3.6; }
+	// translate coordinates from degrees to meters and vice versa
+	static void degrees2meters(bool west, unsigned degx, unsigned minx, bool south,
+		unsigned degy, unsigned miny, double& x, double& y);
+	static void meters2degrees(double x, double y, bool& west, unsigned& degx, unsigned& minx, bool& south,
+		unsigned& degy, unsigned& miny);
 
 protected:
 	vector3 position;
@@ -81,7 +86,7 @@ protected:
 	sea_object& operator=(const sea_object& other);
 	sea_object(const sea_object& other);
 
-	virtual void change_rudder (const int& dir);
+	virtual void change_rudder (int dir);
 	virtual void set_sensor ( sensor_system ss, sensor* s );
 
 	/**

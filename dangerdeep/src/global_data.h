@@ -78,11 +78,4 @@ template<class C> inline void add_saturated(C& sum, const C& add, const C& max) 
 inline double rnd(void) { return double(rand())/RAND_MAX; }
 inline unsigned rnd(unsigned b) { return unsigned(b*rnd()); }
 
-// translate coordinates from degrees to meters and vice versa
-void degrees2meters(bool west, unsigned degx, unsigned minx, bool south,
-	unsigned degy, unsigned miny, double& x, double& y);
-
-void meters2degrees(double x, double y, bool& west, unsigned& degx, unsigned& minx, bool& south,
-	unsigned& degy, unsigned& miny);
-
 #endif
