@@ -34,7 +34,7 @@
 #include "menu.h"
 
 #define TRAILTIME 10
-#define ENEMYCONTACTLOST 50000.0	// meters
+#define ENEMYCONTACTLOST 100000.0	// meters
 
 game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday)
 {
