@@ -1,3 +1,13 @@
+2003-04-18  Markus Petermann  <m.petermann@gmx.net>
+
+	* water_splash.h, water_splash.cpp:
+	  - New system for multiple texture display introduced. Does not work. FIXME
+	* user_interface.cpp:
+	  - Night mode color changed.
+	  - Console is no longer displayed in night mode.
+	* submarine_interface.cpp:
+	  - Lead angle system activated.
+
 2003-04-17  Markus Petermann  <m.petermann@gmx.net>
 
 	* ship.h, ship.cpp, submarine.h, submarine.cpp:
