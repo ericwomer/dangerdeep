@@ -25,7 +25,7 @@
 // compute projected grid efficiency, it should be 50-95%
 //#define COMPUTE_EFFICIENCY
 #define DYNAMIC_NORMALS
-#define DISTANCE_FRESNEL
+#define DISTANCE_FRESNEL	// with growing distance fresnel becomes less effective. with pixel shaders this may be obsolete
 
 // some more interesting values: phase 256, waveperaxis: ask your gfx card, facesperwave 64+,
 // wavelength 256+,
@@ -572,8 +572,18 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	glClientActiveTexture(GL_TEXTURE1);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
+	unsigned t0 = system::sys().millisec();
+	glFlush();
+	unsigned t1 = system::sys().millisec();
 	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
 //	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
+	unsigned t2 = system::sys().millisec();
+	glFlush();
+	unsigned t3 = system::sys().millisec();
+//	drawing takes ~28ms with linux/athlon2200+/gf4mx. That would be ~32mb/sec with AGP4x!?
+//	why is it SO SLOW?!
+//	cout << "t0 " << t0 << " t1 " << t1 << " t2 " << t2 << " t3 " << t3 << "\n";
+//	cout << "t2-t1 " << t2-t1 << " t3-t1 " << t3-t1 << "\n";
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
