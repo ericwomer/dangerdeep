@@ -43,8 +43,11 @@ using namespace std;
 #define WAVE_PHASES 256		// no. of phases for wave animation
 #define WAVES_PER_AXIS 8	// no. of waves along x or y axis
 #define FACES_PER_WAVE 32	// resolution of wave model in x/y dir.
+#define FACES_PER_AXIS (WAVES_PER_AXIS*FACES_PER_WAVE)
 #define WAVE_LENGTH 128.0	// in meters, total length of one wave (one sine function)
 #define TIDECYCLE_TIME 10.0
+#define FOAM_VANISH_FACTOR 0.1	// 1/second until foam goes from 1 to 0.
+#define FOAM_SPAWN_FACTOR 0.2	// 1/second until full foam reached. maybe should be equal to vanish factor
 // obsolete:
 #define WAVE_HEIGHT 4.0		// half of difference top/bottom of wave -> fixme, depends on weather
 
@@ -95,14 +98,34 @@ user_interface::~user_interface ()
 	deinit();
 }
 
+void user_interface::update_foam(double deltat)
+{
+	float foamvanish = deltat * FOAM_VANISH_FACTOR;
+	for (unsigned k = 0; k < FACES_PER_AXIS*FACES_PER_AXIS; ++k) {
+		float& foam = wavefoam[k];
+		foam -= foamvanish;
+		if (foam < 0.0f) foam = 0.0f;
+		wavefoamtexdata[k] = Uint8(255*foam);
+	}
+	glBindTexture(GL_TEXTURE_2D, wavefoamtex);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FACES_PER_AXIS, FACES_PER_AXIS, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, &wavefoamtexdata[0]);
+}
+
+void user_interface::spawn_foam(const vector2& pos)
+{
+	// compute texel position from pos here
+	unsigned texel = FACES_PER_AXIS*FACES_PER_AXIS/2+FACES_PER_AXIS/2;
+	float& f = wavefoam[texel];
+	f += 0.1;
+	if (f > 1.0f) f = 1.0f;
+	wavefoamtexdata[texel] = Uint8(255*f);
+}
+
 void user_interface::init ()
 {
-	// if the constructors of these classes may ever fail, we should
-	// use C++ exceptions.
+	// if the constructors of these classes may ever fail, we should use C++ exceptions.
 	captains_logbook = new captains_logbook_display;
-//	system::sys()->myassert ( captains_logbook != 0, "Error while creating captains_logbook!" );
 	ships_sunk_disp = new ships_sunk_display;
-//	system::sys()->myassert ( ships_sunk_disp != 0, "Error while creating ships_sunk!" );
 
 	// create and fill display lists for water
 	/*
@@ -119,6 +142,29 @@ void user_interface::init ()
 	wavetilen.resize(WAVE_PHASES);
 	wavedisplaylists = glGenLists(WAVE_PHASES);
 	system::sys()->myassert(wavedisplaylists != 0, "no more display list indices available");
+
+	// init foam
+	wavefoam.resize(FACES_PER_AXIS*FACES_PER_AXIS);
+	wavefoamtexdata.resize(FACES_PER_AXIS*FACES_PER_AXIS);
+for (unsigned k = 0; k < FACES_PER_AXIS*FACES_PER_AXIS; ++k) {
+wavefoam[k]=rnd();wavefoamtexdata[k]=Uint8(255.0f*wavefoam[k]);}
+	glGenTextures(1, &wavefoamtex);
+	glBindTexture(GL_TEXTURE_2D, wavefoamtex);
+	vector<Uint8> wavefoampalette(3*256);
+	color wavefoam0(51,88,124), wavefoam1(255,255,255);
+	for (unsigned k = 0; k < 256; ++k) {
+		color c(wavefoam0, wavefoam1, k/255.0f);
+		wavefoampalette[k*3+0] = c.r;
+		wavefoampalette[k*3+1] = c.g;
+		wavefoampalette[k*3+2] = c.b;
+	}
+	glColorTable(GL_TEXTURE_2D, GL_RGB, 256, GL_RGB, GL_UNSIGNED_BYTE, &(wavefoampalette[0]));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_COLOR_INDEX8_EXT, FACES_PER_AXIS, FACES_PER_AXIS, 0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, &wavefoamtexdata[0]);
+	//gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COLOR_INDEX8_EXT, FACES_PER_AXIS, FACES_PER_AXIS, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, &wavefoamtexdata[0]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
 	// connectivity data is the same for all meshes and thus is reused
 	vector<unsigned> waveindices;
@@ -382,6 +428,8 @@ void user_interface::deinit ()
 {
 	delete captains_logbook;
 	delete ships_sunk_disp;
+
+	glDeleteTextures(1, &wavefoamtex);
 	
 	delete clouds;
 	glDeleteLists(clouds_dl, 1);
@@ -810,6 +858,26 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	}
 */
 
+	glActiveTexture(GL_TEXTURE1);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, wavefoamtex);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+
+	GLfloat scalefac2 = 2.0f/WAVE_LENGTH;	// fixme: adapt
+	GLfloat plane_s2[4] = { scalefac2, 0.0f, 0.0f, 0.0f };
+	GLfloat plane_t2[4] = { 0.0f, scalefac2, 0.0f, 0.0f };
+	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+	glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s2);
+	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+	glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t2);
+	glEnable(GL_TEXTURE_GEN_S);
+	glEnable(GL_TEXTURE_GEN_T);
+
 	unsigned dl = wavedisplaylists + int(WAVE_PHASES*timefac);
 	for (int y = 0; y < WAVES_PER_AXIS; ++y) {
 		for (int x = 0; x < WAVES_PER_AXIS; ++x) {
@@ -1041,6 +1109,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	// ******* water *********
 					// fixme: program directional light caused by sun
 					// or moon should be reflected by water.
+	update_foam(1.0/25.0);  //fixme: deltat needed here
+//	spawn_foam(vector2(myfmod(gm.get_time(),256.0),0));
 	draw_water(viewpos, dir, gm.get_time(), max_view_dist);
 	
 

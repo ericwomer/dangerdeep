@@ -79,13 +79,22 @@ protected:
 	user_interface(sea_object* player, class game& gm);
 
 	texture* water_bumpmaps[WATER_BUMP_FRAMES];
+	
+	// waves are stored in display lists to speed up drawing.
+	// this increases fps > 100% compared to vertex arrays / glDrawElements
+	// the display lists can take MUCH ram!
 	unsigned wavedisplaylists;		// # of first display list
-	// these are stored for get_water_height/normal functions, but take MUCH ram.
-	// for a 64x64 grid there are 64*64*(1+3)*4*256 = 16M of ram.
-	// the information is stored in display lists too. here we have
-	// 65*65*(3+3+2)*4*256 = ~33MB. Maybe we should merge this information.
 	vector<vector<float> > wavetileh;	// wave tile heights (generated)
 	vector<vector<vector3f> > wavetilen;	// wave tile normals (generated)
+	vector<float> wavefoam;			// 2d array with foam values (0-1), maybe use fixed point integer here
+	// display lists are const, but we need dynamic data for foam. So we store foam in a texture and update this
+	// texture each frame or each 1/10th second. The texture has a texel for each wave vertex and each tile,
+	// thus it is #tiles*#vertices_per_tile wide and high. We use an color table indexed texture, so
+	// we have to transfer (32*8)^2=64k or (64*16)^2=256k per frame, far less memory than updating geometry data
+	// each frame (like with vertex arrays).
+	vector<Uint8> wavefoamtexdata;
+	unsigned wavefoamtex;
+	
 	void init(void);
 	void deinit(void);
 
@@ -153,6 +162,8 @@ public:
 	virtual void display(class system& sys, class game& gm) = 0;
 
 	// helper functions
+	void update_foam(double deltat);
+	void spawn_foam(const vector2& pos);
 	
 	// this rotates the modelview matrix to match the water surface normal
 	// rollfac (0...1) determines how much the ship is influenced by wave movement
