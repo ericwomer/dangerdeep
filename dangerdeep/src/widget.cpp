@@ -420,8 +420,13 @@ void widget_text::draw(void) const
 {
 	vector2i p = get_pos();
 	class system& sys = system::sys();
-	sys.no_tex();
-	globaltheme->myfont->print_wrapped(p.x, p.y, size.x, 0, text, globaltheme->textcol, true);
+	if (sunken) {
+		draw_area(p.x, p.y, size.x, size.y, false);
+		int fw = globaltheme->frame_size();
+		globaltheme->myfont->print_wrapped(p.x+2*fw, p.y+2*fw, size.x-4*fw, 0, text, globaltheme->textcol, true);
+	} else {
+		globaltheme->myfont->print_wrapped(p.x, p.y, size.x, 0, text, globaltheme->textcol, true);
+	}
 }
 
 void widget_button::draw(void) const

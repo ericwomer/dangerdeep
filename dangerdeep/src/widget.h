@@ -132,13 +132,14 @@ public:
 class widget_text : public widget
 {
 protected:
+	bool sunken;
 
 	widget_text();
 	widget_text(const widget_text& );
 	widget_text& operator= (const widget_text& );
 public:
-	widget_text(int x, int y, int w, int h, const string& text_, widget* parent_ = 0)
-		: widget(x, y, w, h, text_, parent_) {}
+	widget_text(int x, int y, int w, int h, const string& text_, widget* parent_ = 0, bool sunken_ = false)
+		: widget(x, y, w, h, text_, parent_), sunken(sunken_) {}
 	~widget_text() {}
 	void draw(void) const;
 };

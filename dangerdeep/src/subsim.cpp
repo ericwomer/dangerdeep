@@ -431,20 +431,51 @@ void choose_historical_mission(void)
 	}
 	close_dir(missiondir);
 
-	// set up window
+	// read descriptions, set up windows
 	widget w(0, 0, 1024, 768, texts::get(10), 0, sunderlandimg);
-	widget_list* wmission = new widget_list(40, 60, 1024-80, 620);
+	vector<string> descrs;
+	struct msnlist : public widget_list
+	{
+		const vector<string>& descrs;
+		widget_text* wdescr;
+		void on_sel_change(void) {
+			int sel = get_selected();
+			if (sel >= 0 && sel < int(descrs.size()))
+				wdescr->set_text(descrs[sel]);
+			else
+				wdescr->set_text("");
+		}
+		msnlist(int x, int y, int w, int h, const vector<string>& descrs_, widget_text* wdescr_) : widget_list(x, y, w, h), descrs(descrs_), wdescr(wdescr_) {}
+		~msnlist() {}
+	};
+	widget_text* wdescr = new widget_text(40, 380, 1024-80, 300, "", 0, true);
+	widget_list* wmission = new msnlist(40, 60, 1024-80, 300, descrs, wdescr);
 	w.add_child(wmission);
+	w.add_child(wdescr);
 	for (unsigned i = 0; i < nr_missions; ++i) {
 		TiXmlDocument doc(get_mission_dir() + missions[i]);
 		doc.LoadFile();
 		TiXmlHandle hdoc(&doc);
 		TiXmlHandle hdftdmission = hdoc.FirstChild("dftd-mission");
 		TiXmlHandle hdescription = hdftdmission.FirstChild("description");
-		TiXmlHandle hshort = hdescription.FirstChild("short");//fixme: look for language here!!!!
-		TiXmlText* ttext = hshort.FirstChild().Text();
-		system::sys().myassert(ttext != 0, string("text node missing in ")+missions[i]);
-		wmission->append_entry(ttext->Value());
+		TiXmlElement* eshort = hdescription.FirstChild("short").Element();
+		for ( ; eshort != 0; eshort = eshort->NextSiblingElement("short")) {
+			if (XmlAttrib(eshort, "lang") == texts::get_language_code()) {
+				TiXmlNode* ntext = eshort->FirstChild();
+				system::sys().myassert(ntext != 0, string("short description text child node missing in ")+doc.Value());
+				wmission->append_entry(ntext->Value());
+				break;
+			}
+		}
+		TiXmlElement* elong = hdescription.FirstChild("long").Element();
+		for ( ; elong != 0; elong = elong->NextSiblingElement("long")) {
+			if (XmlAttrib(elong, "lang") == texts::get_language_code()) {
+				TiXmlNode* ntext = elong->FirstChild();
+				system::sys().myassert(ntext != 0, string("long description text child node missing in ")+doc.Value());
+				descrs.push_back(ntext->Value());
+				break;
+			}
+		}
 	}
 
 	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
