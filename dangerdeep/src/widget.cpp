@@ -655,6 +655,21 @@ void widget_list::append_entry(const string& s)
 		myscrollbar->set_nr_of_positions(es - ve + 1);
 }
 
+void widget_list::sort_entries(void)
+{
+	entries.sort();
+}
+
+void widget_list::make_entries_unique(void)
+{
+	unique(entries.begin(), entries.end());
+	unsigned es = entries.size();
+	if (es == 1) set_selected(0);	// set to first entry
+	unsigned ve = get_nr_of_visible_entries();
+	if (es > ve)
+		myscrollbar->set_nr_of_positions(es - ve + 1);
+}
+
 string widget_list::get_entry(unsigned n) const
 {
 	for (list<string>::const_iterator i = entries.begin(); i != entries.end(); ++i, --n)

@@ -516,7 +516,7 @@ void server_wait_for_clients(network_connection& sv, Uint16 server_port)
 	}
 }		
 
-void scan_for_servers(widget_list* wservers, Uint16 server_port, network_connection& scan)
+void ask_for_offered_games(widget_list* wservers, Uint16 server_port, network_connection& scan)
 {
 	wservers->clear();
 	
@@ -524,37 +524,21 @@ void scan_for_servers(widget_list* wservers, Uint16 server_port, network_connect
 	scan.bind("192.168.0.0", server_port);
 	scan.send_message(MSG_ask_for_game);
 	scan.unbind();
+}
 
-	// now listen for an answer
-	unsigned t = system::sys().millisec();
-	unsigned timeout = 2000;
-	while (true) {
-		unsigned t2 = system::sys().millisec();
-		if (t2 > t + timeout)
-			break;
-		system::sys().poll_event_queue();
-		int key = system::sys().get_key().sym;
-		if (key == SDLK_ESCAPE)
-			break;
+void listen_for_offered_games(widget_list* wservers, Uint16 server_port, network_connection& scan)
+{
+	string msg;
+	do {
 		IPaddress ip;
-		string msg = scan.receive_message(&ip);
+		msg = scan.receive_message(&ip);
 		if (msg == MSG_offer_game) {
 			wservers->append_entry(network_connection::ip2string(ip));
 		}
-		SDL_Delay(50);
-	}
+	} while (msg.length() != 0);
+	wservers->sort_entries();
+	wservers->make_entries_unique();
 }
-/*
-// multi threaded server search...just an idea
-int scan_for_servers_MT_runs = 0;
-void scan_for_servers_MT(void* wls)
-{
-	++scan_for_servers_MT_runs;		// not really mutual exclusive
-	if (scan_for_servers_MT_runs > 1) return;
-	scan_for_servers((widget_list*)wls);
-	--scan_for_servers_MT_runs;
-}
-*/
 
 void create_network_game(Uint16 server_port)
 {
@@ -622,13 +606,12 @@ void play_network_game(void)
 	widget_list* wservers = new widget_list(40, 170, 440, 400);
 	w.add_child(wservers);
 	
-	scan_for_servers(wservers, server_port, client);
+	ask_for_offered_games(wservers, server_port, client);
 	
 	// fixme: set ip editbox when user clicks on list
 
 	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
 	w.add_child(wm);
-	// hier muß ne while schleife hin, damit nach spielende oder refresh net gleich wieder das hauptmenü da ist
 	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
 	wm->add_entry(texts::get(191), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 70, 700, 400, 40));
 	wm->add_entry(texts::get(192), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 3, 540, 700, 400, 40));
@@ -636,13 +619,15 @@ void play_network_game(void)
 	wm->adjust_buttons(944);
 	int result = 0;
 	while (result != 1) {
-		result = w.run();
+		w.set_return_value(-1);
+		result = w.run(50);
+		listen_for_offered_games(wservers, server_port, client);
 		if (result == 2) {
 			create_network_game(server_port);	// start server, wait for players
 		} else if (result == 3) {
 			join_network_game(wserverip->get_text(), server_port, client);
 		} else if (result == 4) {
-			scan_for_servers(wservers, server_port, client);
+			ask_for_offered_games(wservers, server_port, client);
 		}
 	}
 	

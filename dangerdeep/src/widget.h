@@ -102,6 +102,7 @@ public:
 	virtual void set_text(const string& s) { text = s; }
 	virtual image* get_background(void) const { return background; }
 	virtual void set_background(image* b) { background = b; }
+	virtual void set_return_value(int rv) { retval = rv; }
 	virtual bool is_enabled(void) const;
 	virtual void enable(void);
 	virtual void disable(void);
@@ -315,6 +316,8 @@ public:
 	void delete_entry(unsigned n);
 	void insert_entry(unsigned n, const string& s);
 	void append_entry(const string& s);
+	void sort_entries(void);
+	void make_entries_unique(void);
 	string get_entry(unsigned n) const;
 	unsigned get_listsize(void) const;
 	int get_selected(void) const;
