@@ -19,7 +19,8 @@ using namespace std;
 #define GRAVITY 9.806	// a very global constant
 
 // global models, textures, fonts
-extern class model *merchant_large, *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium,
+extern class model *merchant_large, *merchant_medium, *merchant_small,
+	*subVII, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
 	*skyhemisphere, *corvette_mdl, *freighter_medium, *freighter_large;
 extern class texture *water, *background, *gauge1,

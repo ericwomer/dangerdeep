@@ -51,6 +51,7 @@ public:
 	enum types {
 		largemerchant,
 		mediummerchant, 
+		smallmerchant,
 		mediumtroopship, 
 		destroyertribal, 
 		battleshipmalaya, 

@@ -19,7 +19,8 @@
 #define SOUND_DIR "sounds/"
 #define IMAGES_DIR "images/"
 
-model	*merchant_large, *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium,
+model	*merchant_large, *merchant_medium, *merchant_small,
+	*subVII, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
 	*skyhemisphere, *corvette_mdl, *freighter_medium, *freighter_large;
 
@@ -46,7 +47,8 @@ void init_global_data(void)
 	water = new texture((get_data_dir() + TEXTURE_DIR + "water.png"), 1, false);
 	background = new texture((get_data_dir() + TEXTURE_DIR + "background.png"), 1, false);
 	merchant_large = new model((get_data_dir() + MODEL_DIR + "largemerchant.mdl"));
-	merchant_medium = new model((get_data_dir() + MODEL_DIR + "merchant1.mdl"));
+	merchant_medium = new model((get_data_dir() + MODEL_DIR + "mediummerchant.mdl"));
+	merchant_small = new model((get_data_dir() + MODEL_DIR + "smallmerchant.mdl"));
 	troopship_medium = new model((get_data_dir() + MODEL_DIR + "troopship1.mdl"));
 	battleship_malaya = new model((get_data_dir() + MODEL_DIR + "battleship_malaya.mdl"));
 	carrier_bogue = new model((get_data_dir() + MODEL_DIR + "carrier_bogue.mdl"));
@@ -121,6 +123,7 @@ void deinit_global_data(void)
 	delete background;
 	delete merchant_large;
 	delete merchant_medium;
+	delete merchant_small;
 	delete troopship_medium;
 	delete battleship_malaya;
 	delete carrier_bogue;

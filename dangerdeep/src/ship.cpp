@@ -7,6 +7,7 @@
 #include "date.h"
 #include "ship_largemerchant.h"
 #include "ship_mediummerchant.h"
+#include "ship_smallmerchant.h"
 #include "ship_mediumtroopship.h"
 #include "ship_destroyertribal.h"
 #include "ship_battleshipmalaya.h"
@@ -56,6 +57,7 @@ ship* ship::create(ship::types type_)
 	switch (type_) {
 		case largemerchant: return new ship_largemerchant();
 		case mediummerchant: return new ship_mediummerchant();
+		case smallmerchant: return new ship_smallmerchant();
 		case mediumtroopship: return new ship_mediumtroopship();
 		case destroyertribal: return new ship_destroyertribal();
 		case battleshipmalaya: return new ship_battleshipmalaya();
@@ -75,6 +77,7 @@ ship* ship::create(parser& p)
 	switch (t) {
 		case TKN_LARGEMERCHANT: return new ship_largemerchant(p);
 		case TKN_MEDIUMMERCHANT: return new ship_mediummerchant(p);
+		case TKN_SMALLMERCHANT: return new ship_smallmerchant(p);
 		case TKN_MEDIUMTROOPSHIP: return new ship_mediumtroopship(p);
 		case TKN_DESTROYERTRIBAL: return new ship_destroyertribal(p);
 		case TKN_BATTLESHIPMALAYA: return new ship_battleshipmalaya(p);

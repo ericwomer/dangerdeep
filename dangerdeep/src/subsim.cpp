@@ -23,6 +23,7 @@
 #include "date.h"
 #include "ship_largemerchant.h"
 #include "ship_mediummerchant.h"
+#include "ship_smallmerchant.h"
 #include "ship_mediumtroopship.h"
 #include "ship_destroyertribal.h"
 #include "ship_battleshipmalaya.h"
@@ -323,22 +324,23 @@ void menu_show_vessels(void)
 		}
 #undef ROTANG		
 		if (current_vessel != lastvessel) {
-			if (current_vessel < 0) current_vessel = 10;
-			if (current_vessel > 10) current_vessel = 0;
+			if (current_vessel < 0) current_vessel = 11;
+			if (current_vessel > 11) current_vessel = 0;
 			delete vessel;
 			lastvessel = current_vessel;
 			switch(current_vessel) {
 				case  0: vessel = new ship_largemerchant(); break;
 				case  1: vessel = new ship_mediummerchant(); break;
-				case  2: vessel = new ship_mediumtroopship(); break;
-				case  3: vessel = new ship_battleshipmalaya(); break;
-				case  4: vessel = new ship_destroyertribal(); break;
-				case  5: vessel = new ship_carrierbogue(); break;
-				case  6: vessel = new ship_corvette(); break;
-				case  7: vessel = new ship_largefreighter(); break;
-				case  8: vessel = new ship_mediumfreighter(); break;
-				case  9: vessel = new submarine_XXI(); break;
-				case 10: vessel = new submarine_VIIc(); break;
+				case  2: vessel = new ship_smallmerchant(); break;
+				case  3: vessel = new ship_mediumtroopship(); break;
+				case  4: vessel = new ship_battleshipmalaya(); break;
+				case  5: vessel = new ship_destroyertribal(); break;
+				case  6: vessel = new ship_carrierbogue(); break;
+				case  7: vessel = new ship_corvette(); break;
+				case  8: vessel = new ship_largefreighter(); break;
+				case  9: vessel = new ship_mediumfreighter(); break;
+				case 10: vessel = new submarine_XXI(); break;
+				case 11: vessel = new submarine_VIIc(); break;
 			}
  		}
 	}

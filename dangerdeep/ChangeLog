@@ -1,3 +1,9 @@
+2003-07-13  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* replaced medium merchant model by new model.
+	* introduced small merchant model.
+	  - now ten ships available, 3 merchants, 2 freighters, 2 warships,
+	    1 troopships, 2 escorts.
+
 2003-07-12  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* further new model.
 

@@ -4,14 +4,13 @@ Danger from the Deep - WW2 german submarine simulation
 ------------------------------------------------------
 
 Authors:
-Thorsten Jordan (thorsten_jordan@gmx.de)
-Markus Petermann (<m.petermann@gmx.net>)
+See "CREDITS".
 
 Web:
 http://dangerdeep.sourceforge.net
 
 License:
-See "LICENSE"
+See "LICENSE".
 
 Install:
 ./configure

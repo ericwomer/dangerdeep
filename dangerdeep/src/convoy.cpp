@@ -42,11 +42,12 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 				if (d < 0.2) {
 					shiptype = ship::mediumtroopship;
 				} else {
-					unsigned r = rnd(4);
+					unsigned r = rnd(5);
 					if (r == 0) shiptype = ship::largemerchant;
 					if (r == 1) shiptype = ship::mediummerchant;
-					if (r == 2) shiptype = ship::largefreighter;
-					if (r == 3) shiptype = ship::mediumfreighter;
+					if (r == 2) shiptype = ship::smallmerchant;
+					if (r == 3) shiptype = ship::largefreighter;
+					if (r == 4) shiptype = ship::mediumfreighter;
 				}
 				ship* s = ship::create(shiptype);
 				vector2 pos = vector2(
