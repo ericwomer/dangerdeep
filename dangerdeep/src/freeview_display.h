@@ -17,14 +17,19 @@ protected:
 
 	vector3 pos;		// maybe via template function
 
+	bool aboard;		// is player aboard?
+	bool withunderwaterweapons;	// draw underwater weapons?
+
 	freeview_display();
 
 	// display() calls these functions
 	void pre_display(void) const;
 	void get_viewport(unsigned& x, unsigned& y, unsigned& w, unsigned& h) const;
 //fixme: reflections need special viewport... depends on detail settings. mabye retrieve from ui
-	void set_projection_matrix(void) const;
-	void set_modelview_matrix(void) const;
+	matrix4 get_projection_matrix(void) const;
+	matrix4 get_modelview_matrix(void) const;
+//	void set_projection_matrix(void) const;
+//	void set_modelview_matrix(void) const;
 	void post_display(void) const;
 
 	// drawing is split up, fixme should be in ui, call ui.draw_sky()!!!!!!!
