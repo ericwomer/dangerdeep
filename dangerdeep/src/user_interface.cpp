@@ -27,6 +27,7 @@
 #include "widget.h"
 #include "command.h"
 #include "submarine_interface.h"
+#include "submarine.h"	// needed for underwater sound reduction
 //#include "ship_interface.h"
 //#include "airplane_interface.h"
 #include "sky.h"
@@ -57,7 +58,8 @@ user_interface::user_interface(game& gm) :
 	current_display(0), target(0), mysky(0), mywater(0),
 	mycoastmap(get_map_dir() + "default.xml")
 {
-	init(gm);
+	mysky = new sky();
+	mywater = new class water(128, 128, 0.0);//fixme: make detail configureable
 	panel = new widget(0, 768-128, 1024, 128, "", 0, panelbackgroundimg);
 	panel_messages = new widget_list(8, 8, 512, 128 - 2*8);
 	panel->add_child(panel_messages);
@@ -73,14 +75,15 @@ user_interface::user_interface(game& gm) :
 	panel_valuetexts[4] = new widget_text(528+160+100, 8, 0, 0, "000");
 	for (unsigned i = 0; i < 5; ++i)
 		panel->add_child(panel_valuetexts[i]);
+	panel->add_child(new widget_caller_button<game, void (game::*)(void)>(&gm, &game::stop, 1024-128-8, 128-40, 128, 32, texts::get(177)));
 }
 
 user_interface* user_interface::create(game& gm)
 {
 	sea_object* p = gm.get_player();
-	submarine* su = dynamic_cast<submarine*>(p); if (su) return new submarine_interface(su, gm);
-	//ship* sh = dynamic_cast<ship*>(p); if (sh) return new ship_interface(sh, gm);
-	//airplane* ap = dynamic_cast<airplane*>(p); if (ap) return new airplane_interface(ap, gm);
+	submarine* su = dynamic_cast<submarine*>(p); if (su) return new submarine_interface(gm);
+	//ship* sh = dynamic_cast<ship*>(p); if (sh) return new ship_interface(gm);
+	//airplane* ap = dynamic_cast<airplane*>(p); if (ap) return new airplane_interface(gm);
 	return 0;
 }
 
@@ -95,11 +98,23 @@ user_interface::~user_interface ()
 	delete mywater;
 }
 
-void user_interface::init(game& gm)
+
+
+void user_interface::display(game& gm) const
 {
-	mysky = new sky();
-	mywater = new class water(128, 128, 0.0);//fixme: make detail configureable
+	displays[current_display]->display(gm);
 }
+
+
+
+void user_interface::process_input(class game& gm, const list<SDL_Event>& events)
+{
+	for (list<SDL_Event>::const_iterator it = events.begin();
+	     it != events.end(); ++it)
+		process_input(gm, *it);
+}
+
+
 
 /* 2003/07/04 idea.
    simulate earth curvature by drawing several horizon faces
@@ -228,21 +243,25 @@ void user_interface::draw_infopanel(class game& gm) const
 }
 
 
-/*
+
 void user_interface::add_message(const string& s)
 {
 	panel_messages->append_entry(s);
 	if (panel_messages->get_listsize() > panel_messages->get_nr_of_visible_entries())
 		panel_messages->delete_entry(0);
-///
+/*
 	panel_texts.push_back(s);
 	if (panel_texts.size() > 1+MAX_PANEL_SIZE/font_arial->get_height())
 		panel_texts.pop_front();
-///		
+*/
 }
 
+
+
+/*
 void user_interface::add_rudder_message()
 {
+
 	ship* s = dynamic_cast<ship*>(player_object);
 	if (!s) return;	// ugly hack to allow compilation
     switch (s->get_rudder_to())
@@ -263,8 +282,10 @@ void user_interface::add_rudder_message()
             add_message(texts::get(36));
             break;
     }
+
 }
 */
+
 
 #define DAY_MODE_COLOR() glColor3f ( 1.0f, 1.0f, 1.0f )
 
@@ -335,12 +356,21 @@ void user_interface::play_sound_effect ( game& gm, sound_effect se, double volum
 		s->play ( volume );
 }
 
-void user_interface::play_sound_effect_distance ( game& gm, sound_effect se, double distance ) const
+
+
+void user_interface::play_sound_effect_distance(game& gm, sound_effect se, double distance) const
 {
-	sound* s = get_sound_effect ( gm, se );
+	sound* s = get_sound_effect(gm, se);
 
 	if ( s )
-		s->play ( ( 1.0f - gm.get_player()->get_noise_factor () ) * exp ( - distance / 3000.0f ) );
+	{
+		double h = 3000.0f;
+		submarine* sub = dynamic_cast<submarine*> ( gm.get_player () );
+		if ( sub && sub->is_submerged () )
+			h = 10000.0f;
+
+		s->play ( ( 1.0f - gm.get_player()->get_noise_factor () ) * exp ( - distance / h ) );
+	}
 }
 
 /*

@@ -37,8 +37,8 @@ class sub_torpedo_display : public user_display
 	unsigned turnswitch_input(int x, int y, unsigned nrdescr) const;
 
 public:
-	sub_torpedo_display ();
-	virtual ~sub_torpedo_display ();
+	sub_torpedo_display(class user_interface& ui_);
+	virtual ~sub_torpedo_display();
 
 	virtual void display(class game& gm) const;
 	virtual void process_input(class game& gm, const SDL_Event& event);

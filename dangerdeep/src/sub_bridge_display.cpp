@@ -53,6 +53,8 @@ sub_bridge_display::~sub_bridge_display()
 
 void sub_bridge_display::display(class game& gm) const
 {
+	//fixme: switch between glasses and normal mode
+
 	submarine* player = dynamic_cast<submarine*> ( gm.get_player () );
 	system::sys().prepare_2d_drawing();
 

@@ -24,26 +24,12 @@ protected:
 	submarine_interface& operator= (const submarine_interface& other);
 	submarine_interface(const submarine_interface& other);
 	
-	// returns true if processed
-	virtual bool keyboard_common(int keycode, class game& gm);
-
-	// panel buttons
-	class widget_button* btn_menu;
-
-	// Display functions for screens.fixme delete
-	virtual void display_gauges(class game& gm);
-	virtual void display_periscope(class game& gm);
-	virtual void display_UZO(class game& gm);
-	virtual void display_torpedoroom(class game& gm);
-	virtual void display_damagestatus(class game& gm);
-
 public:	
-	submarine_interface(submarine* player_sub, class game& gm);
+	submarine_interface(class game& gm);
 	virtual ~submarine_interface();
 
 	virtual void display(class game& gm) const;
-	virtual void process_input(const list<SDL_Event>& events);
-	virtual void play_sound_effect_distance ( sound_effect se, double distance ) const;
+	virtual void process_input(class game& gm, const SDL_Event& events);
 };
 
 #endif

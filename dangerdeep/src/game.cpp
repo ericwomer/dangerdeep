@@ -1408,7 +1408,7 @@ game::run_state game::exec(void)
 		}
 
 		// maybe limit input processing to 30 fps
-		ui->process_input(events);
+		ui->process_input(*this, events);
 		ui->display(*this);
 		++frames;
 

@@ -78,21 +78,21 @@ protected:
 //	        const string& text) const;
 
 	virtual sound* get_sound_effect ( game& gm, sound_effect se ) const;
-	
-	void init(game& gm);
 
 public:	
 	virtual ~user_interface();
 
 	// display (const) and input handling
-	virtual void display(game& gm) const = 0;
+	virtual void display(game& gm) const;
 
 	// process common events (common keys, mouse input to panel)
-	virtual bool process_input(class game& gm, const SDL_Event& event);
-	virtual void process_input(const list<SDL_Event>& events);
+	virtual void process_input(class game& gm, const SDL_Event& event) = 0;
+	virtual void process_input(class game& gm, const list<SDL_Event>& events);
 
 	// create ui matching to player type (requested from game)
 	static user_interface* create(game& gm);
+
+	const coastmap& get_coastmap(void) const { return mycoastmap; }
 
 	// helper functions
 
@@ -126,8 +126,8 @@ public:
 //	virtual void record_sunk_ship ( const class ship* so );
 	/** This method creates a message about the rudder state. */
 //	virtual void add_rudder_message();
-	virtual void play_sound_effect ( class game& gm, sound_effect se, double volume = 1.0f ) const;
-	virtual void play_sound_effect_distance ( class game& gm, sound_effect se, double distance ) const;
+	virtual void play_sound_effect(class game& gm, sound_effect se, double volume = 1.0f) const;
+	virtual void play_sound_effect_distance(class game& gm, sound_effect se, double distance) const;
 };
 
 #endif

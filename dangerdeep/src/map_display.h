@@ -18,8 +18,6 @@ protected:
 	vector2 mapoffset;	// additional offset used for display, relative to player (meters)
 	int mx, my;	// last mouse position
 
-	const class coastmap& mycoastmap;
-
 	void draw_vessel_symbol(const vector2& offset, sea_object* so, color c) const;
 	void draw_trail(sea_object* so, const vector2& offset) const;
 	void draw_pings(game& gm, const vector2& offset) const;
@@ -34,7 +32,7 @@ private:
 	map_display();
 
 public:
-	map_display(const class coastmap& thecoastmap);
+	map_display(class user_interface& ui_);
 	virtual ~map_display();
 
 	virtual void display(class game& gm) const;

@@ -5,9 +5,9 @@
 #define SHIPS_SUNK_DISPLAY_H
 
 #include "user_display.h"
+#include "model.h"
 
 class ship;
-class model;
 
 class ships_sunk_display : public user_display
 {

@@ -26,42 +26,48 @@ using namespace std;
 #include "command.h"
 
 #include "sub_gauges_display.h"
-#include "sub_periscope_display.h"
-#include "sub_uzo_display.h"
-#include "sub_bridge_display.h"
+//#include "sub_periscope_display.h"
+//#include "sub_uzo_display.h"
+//#include "sub_bridge_display.h"
 #include "map_display.h"
 #include "sub_torpedo_display.h"
 #include "sub_damage_display.h"
 #include "logbook.h"
-#include "ships_sunk_record.h"
-#include "freeview.h"
+#include "ships_sunk_display.h"
+//#include "freeview_display.h"
 
-submarine_interface::submarine_interface(submarine* player_sub, game& gm) : 
-    	user_interface( player_sub, gm )
+submarine_interface::submarine_interface(game& gm) : 
+    	user_interface(gm)
 {
-	btn_menu = new widget_caller_button<game, void (game::*)(void)>(&gm, &game::stop, 1024-128-8, 128-40, 128, 32, texts::get(177));
-	panel->add_child(btn_menu);
-
 	displays.push_back(new sub_gauges_display(*this));
-	displays.push_back(new sub_periscope_display(*this));
-	displays.push_back(new sub_uzo_display(*this));
-	displays.push_back(new sub_bridge_display(*this));
+	displays.push_back(new sub_gauges_display(*this));
+	displays.push_back(new sub_gauges_display(*this));
+	displays.push_back(new sub_gauges_display(*this));
+//	displays.push_back(new sub_periscope_display(*this));
+//	displays.push_back(new sub_uzo_display(*this));
+//	displays.push_back(new sub_bridge_display(*this));
 	displays.push_back(new map_display(*this));
 	displays.push_back(new sub_torpedo_display(*this));
 	displays.push_back(new sub_damage_display(*this));
 	displays.push_back(new captains_logbook_display(*this));
 	displays.push_back(new ships_sunk_display(*this));
-	displays.push_back(new freeview_display(*this));
+	displays.push_back(new sub_gauges_display(*this));
+//	displays.push_back(new freeview_display(*this));
 }
+
+
 
 submarine_interface::~submarine_interface()
 {
 }
 
-bool submarine_interface::keyboard_common(int keycode, class game& gm)
-{
-	submarine* player = dynamic_cast<submarine*> ( get_player() );
 
+
+void submarine_interface::process_input(game& gm, const SDL_Event& event)
+{
+	submarine* player = dynamic_cast<submarine*>(gm.get_player());
+
+/*
 	// handle common keys (fixme: make configureable?)
 	if (system::sys().key_shift()) {
 		switch (keycode) {
@@ -77,10 +83,10 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 				ostringstream oss;
 				oss << texts::get(49);
 				if (target)
-					oss << " " << texts::get(6) << ": " << target->get_description ( 2 );
+					oss << " " << texts::get(6) << ": " << target->get_description(2 );
 				add_captains_log_entry( gm, oss.str () );
 				gm.send(new command_launch_torpedo(player, keycode - SDLK_1, target));
-				play_sound_effect ( se_submarine_torpedo_launch );
+				play_sound_effect(se_submarine_torpedo_launch );
 			}
 			break;
 		case SDLK_LEFT:
@@ -130,13 +136,13 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 			// is different from normal diving
 			gm.send(new command_dive_to_depth(player, unsigned(player->get_alarm_depth())));
 			add_message(texts::get(41));
-			add_captains_log_entry ( gm, texts::get(41));
+			add_captains_log_entry(gm, texts::get(41));
 			break;
 		case SDLK_d:
-			if ( player->has_snorkel () )
+			if (player->has_snorkel () )
 				{
 					gm.send(new command_dive_to_depth(player, unsigned(player->get_snorkel_depth())));
-					add_message ( texts::get(12));
+					add_message(texts::get(12));
 					add_captains_log_entry ( gm, texts::get(97));
 				}
 			break;
@@ -254,6 +260,7 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 		}
 	}
 	return true;
+*/
 }
 
 /*
@@ -274,14 +281,15 @@ bool submarine_interface::object_visible(sea_object* so,
 	
 void submarine_interface::display(game& gm) const
 {
-//	submarine* player = dynamic_cast<submarine*> ( get_player() );
+	user_interface::display(gm);
 
-	displays[viewmode]->display(gm);
+	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 
 	// panel is drawn in each display function, so the above code is all...
 
-	// switch to map if sub is to deep. fixme collides with constness, make viewmode mutable!
-	//or check it in input function.
+	// switch to map if sub is to deep. fixme collides with constness, make viewmode mutable!?
+	//or check it in input function.<-better?
+/*
 	double depth = player->get_depth();
 	if ((depth > SUBMARINE_SUBMERGED_DEPTH &&
 			(viewmode == display_mode_uzo || viewmode == display_mode_glasses ||
@@ -291,109 +299,5 @@ void submarine_interface::display(game& gm) const
 			 viewmode == display_mode_glasses || viewmode == display_mode_bridge)) ||
 		(viewmode == display_mode_periscope && !player->is_scope_up()))
 			viewmode = display_mode_map;
-
-	switch (viewmode) {
-		case display_mode_gauges:
-			display_gauges(gm);
-			break;
-		case display_mode_periscope:
-			display_periscope(gm);
-			break;
-		case display_mode_uzo:
-			display_UZO(gm);
-			break;
-		case display_mode_glasses:
-		case display_mode_bridge:
-			if ( zoom_scope )
-				display_glasses(gm);
-			else
-			display_bridge(gm);
-			break;
-		case display_mode_map:
-			display_map(gm);
-			break;
-		case display_mode_torpedoroom:
-			display_torpedoroom(gm);
-			break;
-		case display_mode_damagestatus:
-			display_damagestatus(gm);
-			break;
-		case display_mode_logbook:
-			display_logbook(gm);
-			break;
-		case display_mode_successes:
-			display_successes(gm);
-			break;
-		case display_mode_freeview:
-		default:
-			display_freeview(gm);
-			break;
-	}
+*/
 }
-
-void submarine_interface::process_input(const list<SDL_Event>& events)
-{
-	//fixme
-}
-
-
-void submarine_interface::play_sound_effect_distance ( sound_effect se, double distance ) const
-{
-	sound* s = get_sound_effect ( se );
-
-	if ( s )
-	{
-		submarine* sub = dynamic_cast<submarine*> ( get_player () );
-		double h = 3000.0f;
-		if ( sub && sub->is_submerged () )
-			h = 10000.0f;
-
-		s->play ( ( 1.0f - player_object->get_noise_factor () ) * exp ( - distance / h ) );
-	}
-}
-
-
-
-
-
-
-
-//
-//
-//
-///////////////////////////////////////// OLD
-//
-//
-
-
-void submarine_interface::display_damagestatus(game& gm)
-//fixme: divide display and key handling information!!!!!!!!!!!!!!
-{
-//	glClearColor(0.25, 0.25, 0.25, 0);	// isn't needed
-//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	system::sys().prepare_2d_drawing();
-	sub_damage_disp->display(gm);
-	draw_infopanel ( gm );
-
-	// mouse processing;
-	int mx;
-	int my;
-	int mb = system::sys().get_mouse_buttons();
-	system::sys().get_mouse_position(mx, my);
-	sub_damage_disp->check_mouse ( mx, my, mb );
-
-	// note: mouse processing must be done first, to display pop-ups.
-	system::sys().unprepare_2d_drawing();
-
-	// keyboard processing, fixme: do we need extra keyboard input here?
-	int key = system::sys().get_key().sym;
-	while (key != 0) {
-		if (!keyboard_common(key, gm)) {
-			// specific keyboard processing
-			sub_damage_disp->check_key ( key, gm );
-		}
-		key = system::sys().get_key().sym;
-	}
-}
-

@@ -188,8 +188,8 @@ void map_display::draw_square_mark ( class game& gm,
 
 
 
-map_display::map_display(const coastmap& thecoastmap) :
-	mapzoom(0.1), mx(0), my(0), mycoastmap(thecoastmap)
+map_display::map_display(user_interface& ui_) :
+	user_display(ui), mapzoom(0.1), mx(0), my(0)
 {
 }
 
@@ -249,7 +249,7 @@ void map_display::display(class game& gm) const
 	glScalef(mapzoom, mapzoom, 1);
 	glScalef(1,-1,1);
 	glTranslatef(-offset.x, -offset.y, 0);
-	mycoastmap.draw_as_map(offset, mapzoom);//, detl); // detail should depend on zoom, fixme
+	ui.get_coastmap().draw_as_map(offset, mapzoom);//, detl); // detail should depend on zoom, fixme
 	glPopMatrix();
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -344,7 +344,7 @@ void map_display::display(class game& gm) const
 			<< degrx << "/" << minutx << (west ? "W" : "E");
 	font_arial->print(0, 0, rwcoordss.str(), color::white(), true);
 
-//	draw_infopanel(gm);
+	ui.draw_infopanel(gm);
 	sys.unprepare_2d_drawing();
 
 }

@@ -181,8 +181,8 @@ unsigned sub_torpedo_display::turnswitch_input(int x, int y, unsigned nrdescr) c
 
 
 
-sub_torpedo_display::sub_torpedo_display() :
-	torptranssrc(ILLEGAL_TUBE), mx(0), my(0), mb(0)
+sub_torpedo_display::sub_torpedo_display(user_interface& ui_) :
+	user_display(ui_), torptranssrc(ILLEGAL_TUBE), mx(0), my(0), mb(0)
 {
 	// reference images here and fill pointers
 	torpempty = texturecache.ref("torpempty.png");
