@@ -77,7 +77,7 @@
 */	
 
 water::water(unsigned xres_, unsigned yres_, double tm) :
-	mytime(tm), xres(xres_), yres(yres_), reflectiontex(0), foamtex(0), fresnelslopetex(0)
+	mytime(tm), xres(xres_), yres(yres_), reflectiontex(0), foamtex(0), fresnelcolortex(0)
 {
 	wavetiledisplacements.resize(WAVE_PHASES);
 	wavetileheights.resize(WAVE_PHASES);
@@ -126,12 +126,12 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		float fs = float(s)/(fresnelres-1);
 		for (unsigned f = 0; f < fresnelres; ++f) {
 			float ff = float(f)/(fresnelres-1);
-			color c(color(18, 96, 48), color(18, 73, 107), fs);
+			color c(color(18, 73, 107), color(18, 93, 77), fs);
 			c.a = Uint8(255*exact_fresnel(ff)+0.5f);
 			fresnelfct[s*fresnelres+f] = c;
 		}
 	}
-	fresnelslopetex = new texture(&fresnelfct[0], fresnelres, fresnelres, GL_RGBA,
+	fresnelcolortex = new texture(&fresnelfct[0], fresnelres, fresnelres, GL_RGBA,
 				 GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE, false);
 	
 	// connectivity data is the same for all meshes and thus is reused
@@ -221,7 +221,7 @@ water::~water()
 {
 	glDeleteTextures(1, &reflectiontex);
 	delete foamtex;
-	delete fresnelslopetex;
+	delete fresnelcolortex;
 }
 
 
@@ -230,10 +230,10 @@ void water::setup_textures(void) const
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
 	
-	//tex0: get alpha from fresnelslopetex, just pass color from primary color
+	//tex0: get alpha from fresnelcolortex, just pass color from primary color
 	//tex1: interpolate between previous color and tex1 with previous alpha (fresnel)
 	glActiveTexture(GL_TEXTURE0);
-	fresnelslopetex->set_gl_texture();
+	fresnelcolortex->set_gl_texture();
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
@@ -256,13 +256,6 @@ void water::setup_textures(void) const
 	glGetDoublev(GL_MODELVIEW_MATRIX, m);
 	glMultMatrixd(m);
 	glMatrixMode(GL_MODELVIEW);
-
-	//fixme with the fresnel term in texunit 0 or 1 we can give refraction color
-	//via glColor3f, so we can vry it with the slope!
-	//or even better set slope color to fresnel tex! so no primary color is needed.
-	// 18, 93, 77 as refraction color on waves with high slope
-//	float refraccol[4] = { 0.0706f, 0.2863f, 0.4196f, 1.0f };	// 18, 73, 107
-//	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, refraccol);
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
@@ -649,6 +642,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	//coords and normals change per frame, so no display lists can be used.
 	//simple vertex arrays with locking should do the trick, maybe use
 	//(locked) quadstrips, if they're faster than compiled vertex arrays, test it!
+	float minh=1000,maxh=-1000;
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			const vector3f& coord = coords[ptr];
@@ -685,12 +679,18 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			F *= distfac;
 #endif
 
-			float slopefac = (N.z - 0.8f) / (1.0f - 0.8f);
-						
-			uv0[ptr] = vector2f(F, slopefac);	// set fresnel and slope
+			if (coord.z < minh) minh = coord.z;
+			if (coord.z > maxh) maxh = coord.z;
+
+			// water color depends on height of wave and slope
+			// slope (N.z) it mostly > 0.8
+			float colorfac = (coord.z + 3) / 9 + (N.z - 0.8f);
+
+			uv0[ptr] = vector2f(F, colorfac);	// set fresnel and water color
 			uv1[ptr] = texc;
 		}
 	}
+	cout << "minh " << minh << " maxh " << maxh << "\n";
 
 	// set up textures
 	setup_textures();

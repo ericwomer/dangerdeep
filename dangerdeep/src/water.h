@@ -47,7 +47,7 @@ protected:
 	unsigned reflectiontexsize;
 	unsigned reflectiontex;//fixme better handle that with class texture
 	texture* foamtex;
-	texture* fresnelslopetex;	// texture for fresnel values and water color (by slope)
+	texture* fresnelcolortex;	// texture for fresnel values and water color
 
 	// Arrays used while drawing a tile. To avoid repeated re-alloc, they're here
 	mutable vector<vector3f> coords;
