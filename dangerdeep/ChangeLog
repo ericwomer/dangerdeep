@@ -1,3 +1,7 @@
+2005-02-06  Andrew Rice
+	* many files
+	 - added code for deck gun simulation and shooting
+
 2005-01-30  Thorsten Jordan  <thorsten_jordan@gmx.de>, Andrew Rice
 	* replaced direct SDL audio usage by SDL mixer usage
 	 - now sound effects can be ogg files
@@ -11,6 +15,8 @@
 	 - stored in config
 	 - now keyboard language independent input
 	* various small fixes all over the place
+
+--- release 0.0.19
 
 2004-12-07  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* everywhere LOTS OF THINGS
