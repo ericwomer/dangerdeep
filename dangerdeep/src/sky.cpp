@@ -255,6 +255,8 @@ void sky::setup_textures(void) const
 {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
+	glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
+
 	// *********************** set up texture unit 0
 	// skycol (tex0) is blended into previous color
 	glActiveTexture(GL_TEXTURE0);
