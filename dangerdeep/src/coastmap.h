@@ -16,11 +16,11 @@ using namespace std;
 
 struct coastline
 {
-	vector<vector2f> points;// points in map coordinates (real)
+	vector<vector2i> points;// points in map coordinates (pixels)
 
 	bool cyclic;		// is cyclic, that means an island?
 	
-	int next;		// index of next coastline in segment.
+	int next;		// index of next coastline in segment. obsolete??fixme
 	int beginborder;	// 0-3, top,right,bottom,left of segment (clockwise), -1 = (part of an) island
 	int endborder;		// dito
 
@@ -29,13 +29,15 @@ struct coastline
 	coastline(const coastline& o) : points(o.points), cyclic(o.cyclic), next(o.next), beginborder(o.beginborder), endborder(o.endborder) {}
 	coastline& operator= (const coastline& o) { points = o.points; cyclic = o.cyclic; next = o.next; beginborder = o.beginborder; endborder = o.endborder; return *this; }
 
-	static float dist_to_corner(int b, const vector2f& p, float segw);
+	static float dist_to_corner(int b, const vector2f& p, float segw);//fixme
 
 	// create vector of real points, detail can be > 0 (additional detail with bspline
 	// interpolation) or even < 0 (reduced detail)
-	// create points between startt and endt with 0<=t<points.size()
+	// create points between begint and endt with 0<=t<points.size()
 	vector<vector2f> create_points(unsigned start, unsigned endt, int detail = 0) const;
+	//fixme: obsolete.
 	void draw_as_map(const vector2f& off, float size, const vector2f& t, const vector2f& ts, int detail = 0) const;
+	// possibly obsolete.fixme
 	void render(const vector2& p, int detail = 0) const;
 };
 
@@ -44,8 +46,15 @@ struct coastline
 
 struct coastsegment
 {
+	struct segcl
+	{
+		unsigned mapclnr;
+		unsigned begint, endt;
+		segcl(unsigned n, unsigned s, unsigned e) : mapclnr(n), begint(s), endt(e) {}
+	};
+
 	unsigned type;	// 0 - sea, 1 - land, 2 mixed
-	vector<coastline> coastlines;
+	vector<segcl> segcls;
 
 	// cache generated points.
 	struct cacheentry {
@@ -59,15 +68,15 @@ struct coastsegment
 	};
 	unsigned pointcachedetail;
 	vector<cacheentry> pointcache;
-	// check if cache need to be (re)generated, and do that
-	void generate_point_cache(double size, unsigned detail);
+	// check if cache needs to be (re)generated, and do that
+	void generate_point_cache(double size/*what is size?fixme*/, unsigned detail);
 
 	unsigned get_successor_for_cl(unsigned cln) const;
 
 	coastsegment() : type(0) {}	
 	~coastsegment() {}
-	coastsegment(const coastsegment& o) : type(o.type), coastlines(o.coastlines), pointcachedetail(o.pointcachedetail), pointcache(o.pointcache) {}
-	coastsegment& operator= (const coastsegment& o) { type = o.type; coastlines = o.coastlines; pointcachedetail = o.pointcachedetail; pointcache = o.pointcache; return *this; }
+	coastsegment(const coastsegment& o) : type(o.type), segcls(o.segcls), pointcachedetail(o.pointcachedetail), pointcache(o.pointcache) {}
+	coastsegment& operator= (const coastsegment& o) { type = o.type; segcls = o.segcls; pointcachedetail = o.pointcachedetail; pointcache = o.pointcache; return *this; }
 	
 	void draw_as_map(const vector2f& off, float size, const vector2f& t, const vector2f& ts, int detail = 0) const;
 	void render(const vector2& p, int detail = 0) const;
@@ -93,6 +102,7 @@ class coastmap
 	double pixelw_real;		// width/height of one pixel in reality, in meters
 	vector2 realoffset;		// offset in meters for map (position of pixel pos 0,0)
 	vector<coastsegment> coastsegments;
+	vector<coastline> coastlines;
 
 	list<pair<vector2f, string> > cities;	// city positions (real) and names
 	
@@ -102,7 +112,7 @@ class coastmap
 
 	// very fast integer clamping (no branch needed, only for 32bit signed integers!)
 	Sint32 clamp_zero(Sint32 x) { return x & ~(x >> 31); }
-	unsigned find_seg_for_point(const vector2f& p) const;
+	unsigned find_seg_for_point(const vector2i& p) const;
 	Uint8& mapf(int cx, int cy);
 	bool find_begin_of_coastline(int& x, int& y);
 	bool find_coastline(int x, int y, coastline& cl);
