@@ -23,6 +23,7 @@
 #include "binstore.h"
 
 #define TRAILTIME 10
+#define ENEMYCONTACTLOST 50000.0	// meters
 
 game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday)
 {
@@ -226,8 +227,11 @@ void game::simulate(double delta_t)
 		record = true;
 	}
 
+	double nearest_contact = 1e10;
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ) {
 		list<ship*>::iterator it2 = it++;
+		double dist = (*it2)->get_pos().distance(player->get_pos());
+		if (dist < nearest_contact) nearest_contact = dist;
 		if (!(*it2)->is_defunct()) {
 			(*it2)->simulate(*this, delta_t);
 			if (record) (*it2)->remember_position();
@@ -238,6 +242,10 @@ void game::simulate(double delta_t)
 	}
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ) {
 		list<submarine*>::iterator it2 = it++;
+		if ((*it2) != player) {
+			double dist = (*it2)->get_pos().distance(player->get_pos());
+			if (dist < nearest_contact) nearest_contact = dist;
+		}
 		if (!(*it2)->is_defunct()) {
 			(*it2)->simulate(*this, delta_t);
 			if (record) (*it2)->remember_position();
@@ -248,6 +256,8 @@ void game::simulate(double delta_t)
 	}
 	for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ) {
 		list<airplane*>::iterator it2 = it++;
+		double dist = (*it2)->get_pos().distance(player->get_pos());
+		if (dist < nearest_contact) nearest_contact = dist;
 		if (!(*it2)->is_defunct()) {
 			(*it2)->simulate(*this, delta_t);
 		} else {
@@ -311,6 +321,8 @@ void game::simulate(double delta_t)
 		if (time - it2->time > PINGREMAINTIME)
 			pings.erase(it2);
 	}
+	
+	if (nearest_contact > ENEMYCONTACTLOST) running = false;
 }
 
 /******************************************************************************************
