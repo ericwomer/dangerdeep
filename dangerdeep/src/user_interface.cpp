@@ -471,13 +471,13 @@ void user_interface::draw_infopanel(class system& sys, class game& gm) const
 
 		ostringstream os;
 		os << texts::get(1) << ": " << get_player()->get_heading().ui_value()
-			<< "   " << texts::get(4) << ": "
+			<< "\t" << texts::get(4) << ": "
 			<< unsigned(fabs(round(sea_object::ms2kts(get_player()->get_speed()))))
-			<< "   " << texts::get(5) << ": "
+			<< "\t" << texts::get(5) << ": "
 			<< unsigned(round(-get_player()->get_pos().z))
-			<< "   " << texts::get(2) << ": "
+			<< "\t" << texts::get(2) << ": "
 			<< bearing.ui_value()
-			<< "   " << texts::get(98) << ": "
+			<< "\t" << texts::get(98) << ": "
 			<< time_scale;
 		int fph = font_panel->get_height();	// should be 24.
 		int y = 768 - fph;

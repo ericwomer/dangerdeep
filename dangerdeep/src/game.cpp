@@ -547,22 +547,26 @@ void game::dc_explosion(const vector3& pos)
 	// are subs affected?
 	// fixme: ships can be damaged by DCs also...
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
+		double damage_radius = DAMAGE_DC_RADIUS_SURFACE +
+			(*it)->get_pos().z * DAMAGE_DC_RADIUS_200M / 200;
 		double deadly_radius = DEADLY_DC_RADIUS_SURFACE +
 			(*it)->get_pos().z * DEADLY_DC_RADIUS_200M / 200;
 		vector3 sdist = (*it)->get_pos() - pos;
 		sdist.z *= 2;	// depth differences change destructive power
-		/*
-		if (sdist.length() <= damage_radius) {
-			(*it)->dc_damage(pos);
-		}
-		*/
-		if (sdist.length() <= deadly_radius) {
+		double sdlen = sdist.length();
+
+		// is submarine killed immidiatly?
+		if (sdlen <= deadly_radius) {
 			system::sys()->add_console("depth charge hit!");
-			(*it)->kill();	// sub is killed. //  fixme handle damages!
+			(*it)->kill();
 			menu m(103, killedimg);
 			m.add_item(105, 0);
 			m.run();
 			// ui->add_message(TXT_Depthchargehit[language]);
+
+		} else if (sdlen <= damage_radius) {	// handle damages
+			double strength = (sdlen - deadly_radius) / (damage_radius - deadly_radius);
+			(*it)->add_damage(pos, strength);
 		}
 	}
 }

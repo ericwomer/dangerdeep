@@ -79,7 +79,17 @@ public:
 		
 		nr_of_damageable_parts	// trick to count enum entries
 	};
-	
+
+	// we need a struct for each part:
+	// VARIABLE:
+	// damage status
+	// remaining repair time
+	// INVARIABLE: (maybe dependent on sub type)
+	// position inside sub
+	// relative weakness (how sensitive is part to shock waves)
+	// must be surfaced to get repaired
+	// cannot be repaired at sea	
+	// absolute time needed for repair
 	enum damage_status {
 		unused,
 		none,

@@ -1,3 +1,7 @@
+2003-07-27  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* game.cpp
+	  - some preparations for damage simulation
+
 2003-07-26  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* user_interface.cpp
 	  - new panel design, panel features resize, hiding planned.

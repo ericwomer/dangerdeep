@@ -6,9 +6,12 @@
 
 #include "sea_object.h"
 
+// fixme: these values depend on depth charge type.
 #define DEPTH_CHARGE_SINK_SPEED 4	// m/sec
 #define DEADLY_DC_RADIUS_SURFACE 120	// meters
 #define DEADLY_DC_RADIUS_200M 80
+#define DAMAGE_DC_RADIUS_SURFACE 240	// meters
+#define DAMAGE_DC_RADIUS_200M 200
 
 class depth_charge : public sea_object
 {
