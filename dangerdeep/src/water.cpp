@@ -163,7 +163,9 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileheights[i] = owg.compute_heights();
 		// choppy factor: formula from "waterengine": 0.5*WX/N = 0.5*wavelength/waveres, here = 1.0
-		wavetiledisplacements[i] = owg.compute_displacements(-1.0f);	// fixme 5.0 default? - it seems that choppy waves don't look right. bug? fixme, with negative values it seems right. check this!
+		// fixme 5.0 default? - it seems that choppy waves don't look right. bug? fixme, with negative values it seems right. check this!
+		// -2.0f also looks nice, -5.0f is too much. -1.0f should be ok
+		wavetiledisplacements[i] = owg.compute_displacements(-2.0f);
 
 #if 1	// use finite normals
 		wavetilenormals[i] = owg.compute_finite_normals(wavetileheights[i]);
@@ -459,13 +461,11 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	vector3 aimpoint, aimpoint2;
 	
 	// make sure projector is high enough above the plane
-	// fixme: what about mirroring it when it is under water and do ONE test?!
-	if (camerapos.z < WAVE_HEIGHT + ELEVATION) {
-		if (camerapos.z < 0)
-			projectorpos.z += WAVE_HEIGHT + ELEVATION - 2 * camerapos.z;
-		else
-			projectorpos.z += WAVE_HEIGHT + ELEVATION - camerapos.z;
-	}
+	// mirror it if camera is below water surface
+	if (projectorpos.z < 0)
+		projectorpos.z = -projectorpos.z;
+	if (projectorpos.z < WAVE_HEIGHT + ELEVATION)
+		projectorpos.z = WAVE_HEIGHT + ELEVATION;
 
 	// compute intersection of forward vector with plane (fixme forward.z == 0 -> NaN)
 	if ((cameraforward.z < 0.0 && camerapos.z >= 0.0) || (cameraforward.z >= 0.0 && camerapos.z < 0.0)) {
@@ -521,7 +521,10 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	// zoomscope/glasses view). We don't really need mrange but could generate any quadri-
 	// lateral with x/y values, but it's simpler to use mrange.
 	// If (!) we can generate a tranformation matrix that makes a trapez from a rectangle.
-	// This seams inpossible...
+	// This seams impossible... ?!
+	// improving the efficiency here should give the biggest gain.
+	// drawing half of the triangles gives 33% more performanc, so 25% of performance
+	// is currently wasted!
 	matrix4 rangeprojector2world;
 	if (proj_points.size() > 0) {
 		double x_min = proj_points[0].x, x_max = proj_points[0].x, y_min = proj_points[0].y, y_max = proj_points[0].y;
@@ -566,6 +569,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 #endif
 
 	// compute coordinates
+
 #ifdef COMPUTE_EFFICIENCY
 	int vertices = 0, vertices_inside = 0;
 #endif	
@@ -670,8 +674,8 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			// The distance can be computed without an extra sqrt: it's the length
 			// of rel_coord before normalizing it. Any better effect needs
 			// pixel shaders. Without them we could do at most per pixel
-			// bump mapping, that is per pixel linear fresnel, but this
-			// looks awful.
+			// bump mapping, that is per pixel *linear* fresnel, but this
+			// looks ugly and not realistic.
 			// f(x)=a/(b+x),a=x2-x1,b=x2-2*x1,f(x1)=1,f(x2)=0.5
 			// x1=200,x2=3000,a=2800,b=2600
 			float distfac = 2800/(2600+rel_coord_length);
