@@ -102,7 +102,25 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 				break;
 			case SDLK_d:
 				if ( player->has_snorkel () )
+				{
 					player->dive_to_depth ( static_cast<unsigned> ( player->get_snorkel_depth () ) );
+					add_message ( TXT_SnorkelDepth[language] );
+				}
+				break;
+			case SDLK_f:
+				if ( player->has_snorkel () )
+				{
+					if ( player->is_snorkel_up () )
+					{
+						if ( player->set_snorkel_up ( false ) )
+							add_message ( TXT_SnorkelDown[language] );
+					}
+					else
+					{
+						if ( player->set_snorkel_up ( true ) )
+							add_message ( TXT_SnorkelUp[language] );
+					}
+				}
 				break;
 			case SDLK_h:
 				{
@@ -280,12 +298,14 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	glMatrixMode(GL_MODELVIEW);
 	
 	sys.prepare_2d_drawing();
+	set_display_color ( gm );
 	for (int x = 0; x < 3; ++x)
 		sys.draw_image(x*256, 512, 256, 256, psbackgr);
 	sys.draw_image(2*256, 0, 256, 256, periscope[0]);
 	sys.draw_image(3*256, 0, 256, 256, periscope[1]);
 	sys.draw_image(2*256, 256, 256, 256, periscope[2]);
 	sys.draw_image(3*256, 256, 256, 256, periscope[3]);
+	sys.draw_image(768, 512, 256, 256, addleadangle);
 	angle targetbearing;
 	angle targetaob;
 	angle targetrange;
@@ -301,23 +321,22 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 		targetspeed = target->get_speed()*360.0/sea_object::kts2ms(36);
 		targetheading = target->get_heading();
 	}
-	draw_gauge(sys, 1, 0, 0, 256, targetbearing, TXT_Targetbearing[language]);
-	draw_gauge(sys, 3, 256, 0, 256, targetrange, TXT_Targetrange[language]);
-	draw_gauge(sys, 2, 0, 256, 256, targetspeed, TXT_Targetspeed[language]);
-	draw_gauge(sys, 1, 256, 256, 256, targetheading, TXT_Targetcourse[language]);
-	sys.draw_image(768, 512, 256, 256, addleadangle);
+	draw_gauge(sys, gm, 1, 0, 0, 256, targetbearing, TXT_Targetbearing[language]);
+	draw_gauge(sys, gm, 3, 256, 0, 256, targetrange, TXT_Targetrange[language]);
+	draw_gauge(sys, gm, 2, 0, 256, 256, targetspeed, TXT_Targetspeed[language]);
+	draw_gauge(sys, gm, 1, 256, 256, 256, targetheading, TXT_Targetcourse[language]);
 	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
 	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();
 	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
 	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
 		int j = i-bow_tube_indices.first;
-		draw_torpedo(sys, true, (j/4)*256, 512+(j%4)*32, torpedoes[i]);
+		draw_torpedo(sys, gm, true, (j/4)*256, 512+(j%4)*32, torpedoes[i]);
 	}
 	for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
-		draw_torpedo(sys, false, 512, 512+(i-stern_tube_indices.first)*32, torpedoes[i]);
+		draw_torpedo(sys, gm, false, 512, 512+(i-stern_tube_indices.first)*32, torpedoes[i]);
 	}
 	glColor3f(1,1,1);
-	draw_infopanel(sys);
+	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
 
 	// keyboard processing
@@ -367,7 +386,7 @@ void submarine_interface::display_UZO(class system& sys, game& gm)
 	sys.prepare_2d_drawing();
 	sys.draw_image(0, 0, 512, 512, uzo);
 	sys.draw_hm_image(512, 0, 512, 512, uzo);
-	draw_infopanel(sys);
+	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
 
 	// keyboard processing
@@ -386,6 +405,7 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 
 	sys.prepare_2d_drawing();
 	glBindTexture(GL_TEXTURE_2D, background->get_opengl_name());
+	set_display_color ( gm );
 	glBegin(GL_QUADS);
 	glTexCoord2i(0,0);
 	glVertex2i(0,0);
@@ -415,30 +435,30 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	pair<unsigned, unsigned> bow_top_storage_indices = player->get_bow_top_storage_indices();
 	pair<unsigned, unsigned> stern_top_storage_indices = player->get_stern_top_storage_indices();
 	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
-		draw_torpedo(sys, true, 0, 256+i*32, torpedoes[i]);
+		draw_torpedo(sys, gm, true, 0, 256+i*32, torpedoes[i]);
 	}
 	for (unsigned i = bow_storage_indices.first; i < bow_storage_indices.second; ++i) {
 		unsigned j = i - bow_storage_indices.first;
-		draw_torpedo(sys, true, (1+j/6)*256, 256+(j%6)*32, torpedoes[i]);
+		draw_torpedo(sys, gm, true, (1+j/6)*256, 256+(j%6)*32, torpedoes[i]);
 	}
 	for (unsigned i = bow_top_storage_indices.first; i < bow_top_storage_indices.second; ++i) {
 		unsigned j = i - bow_top_storage_indices.first;
-		draw_torpedo(sys, true, 0, j*32, torpedoes[i]);
+		draw_torpedo(sys, gm, true, 0, j*32, torpedoes[i]);
 	}
 	for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
 		unsigned j = i - stern_tube_indices.first;
-		draw_torpedo(sys, false, 768, 256+j*32, torpedoes[i]);
+		draw_torpedo(sys, gm, false, 768, 256+j*32, torpedoes[i]);
 	}
 	for (unsigned i = stern_storage_indices.first; i < stern_storage_indices.second; ++i) {
 		unsigned j = i - stern_storage_indices.first;
-		draw_torpedo(sys, false, 512, 256+j*32, torpedoes[i]);
+		draw_torpedo(sys, gm, false, 512, 256+j*32, torpedoes[i]);
 	}
 	for (unsigned i = stern_top_storage_indices.first; i < stern_top_storage_indices.second; ++i) {
 		unsigned j = i - stern_top_storage_indices.first;
-		draw_torpedo(sys, false, 768, j*32, torpedoes[i]);
+		draw_torpedo(sys, gm, false, 768, j*32, torpedoes[i]);
 	}
 
-	draw_infopanel(sys);
+	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
 
 	// mouse handling
@@ -455,9 +475,15 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	}
 }
 
-void submarine_interface::draw_torpedo(class system& sys, bool usebow, int x, int y,
-	const submarine::stored_torpedo& st)
+void submarine_interface::draw_torpedo(class system& sys, class game& gm,
+	bool usebow, int x, int y, const submarine::stored_torpedo& st)
 {
+	// Use a special color to display the torpedos.
+	if ( gm.is_day_mode () )
+		glColor3f ( 1.0f, 1.0f, 1.0f );
+	else
+		glColor3f ( 1.0f, 0.5f, 0.5f );
+
 	if (usebow) {
 		if (st.status == 0) {	// empty
 			sys.draw_image(x, y, 256, 32, torpempty);

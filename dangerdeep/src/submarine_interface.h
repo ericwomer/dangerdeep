@@ -28,8 +28,8 @@ protected:
 	// returns true if processed
 	virtual bool keyboard_common(int keycode, class system& sys, class game& gm);
 
-	void draw_torpedo(class system& sys, bool usebow, int x, int y,
-                          const submarine::stored_torpedo& st);
+	void draw_torpedo(class system& sys, class game& gm, bool
+		usebow, int x, int y, const submarine::stored_torpedo& st);
 
     // Display functions for screens.
 	virtual void display_periscope(class system& sys, class game& gm);
