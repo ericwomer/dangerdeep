@@ -218,14 +218,15 @@ void water::setup_textures(void) const
 	glMultMatrixd(m);
 	glMatrixMode(GL_MODELVIEW);
 
-	float refraccol[4] = { 0.0706f, 0.2863f, 0.4196f, 1.0f };
+	// 18, 93, 77 as refraction color on waves with high slope
+	float refraccol[4] = { 0.0706f, 0.2863f, 0.4196f, 1.0f };	// 18, 73, 107
 	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, refraccol);
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_CONSTANT);
+	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_CONSTANT); //GL_PRIMARY_COLOR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_PRIMARY_COLOR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);	// fixme: spec says here is only SRC_ALPHA allowed, the geforce also does SRC_COLOR!
@@ -242,7 +243,7 @@ void water::setup_textures(void) const
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, foamtex->get_opengl_name());
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);	// BLEND?
+	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);//GL_INTERPOLATE);	// BLEND?//fixme: foam mixing is disabled for now
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
@@ -625,11 +626,18 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 #endif
 			
 			Uint8 c = Uint8(F*255);
-//			float fd = fabs(coord.y)/100.0f;
+//			float fd = coord.distance(vector3f(-viewpos.x+0,-viewpos.y+10,0))/100.0f;
 //			if (fd > 1.0f) fd = 1.0f;
+
 			Uint8 foampart = 255;//Uint8(fd*255);//coord255*(xx&1);//255;//fixme
 			color primary(foampart, foampart, foampart, c);
 
+/*
+			color ca(18, 93, 77), cb(18, 73, 107);
+			float cscal = slope?height?fresnel?
+			color cc(ca, cb, cscal);
+			color primary(cc.r, cc.g, cc.b, c);
+*/
 			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
 			texc.z -= VIRTUAL_PLANE_HEIGHT;
 						
