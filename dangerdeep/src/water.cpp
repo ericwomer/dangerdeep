@@ -25,6 +25,7 @@
 // compute projected grid efficiency, it should be 50-95%
 //#define COMPUTE_EFFICIENCY
 #define DYNAMIC_NORMALS
+#define DISTANCE_FRESNEL
 
 // some more interesting values: phase 256, waveperaxis: ask your gfx card, facesperwave 64+,
 // wavelength 256+,
@@ -245,12 +246,12 @@ void water::cleanup_textures(void) const
 
 
 
-void water::compute_coord_and_normal(int phase, const vector2& xypos,
+void water::compute_coord_and_normal(int phase, const vector2& xypos, const vector2& transl,
 	vector3f& coord, vector3f& normal) const
 {
 	// generate values with mipmap function (needs viewer pos.)
-	float xfrac = myfrac(float(xypos.x / WAVE_LENGTH)) * WAVE_RESOLUTION;
-	float yfrac = myfrac(float(xypos.y / WAVE_LENGTH)) * WAVE_RESOLUTION;
+	float xfrac = myfrac(float((xypos.x + transl.x) / WAVE_LENGTH)) * WAVE_RESOLUTION;
+	float yfrac = myfrac(float((xypos.y + transl.y) / WAVE_LENGTH)) * WAVE_RESOLUTION;
 	unsigned x0 = unsigned(floor(xfrac));
 	unsigned y0 = unsigned(floor(yfrac));
 	unsigned x1 = (x0 + 1) & (WAVE_RESOLUTION-1);
@@ -294,9 +295,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 {
 	// move world so that viewer is at (0,0,0)
 	glPushMatrix();
-	// take  viewpos.xy % WAVE_LENGTH, fixme, it makes the waves look weird?!
 	glTranslated(0, 0, -viewpos.z);
-//	glTranslated(myfmod(-viewpos.x, WAVE_LENGTH), myfmod(-viewpos.y, WAVE_LENGTH), -viewpos.z);
 
 	int phase = int((myfmod(mytime, TIDECYCLE_TIME)/TIDECYCLE_TIME) * WAVE_PHASES);
 	const float VIRTUAL_PLANE_HEIGHT = 30.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok
@@ -446,6 +445,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 #ifdef COMPUTE_EFFICIENCY
 	int vertices = 0, vertices_inside = 0;
 #endif	
+	vector2 transl(myfmod(viewpos.x, WAVE_LENGTH), myfmod(viewpos.y, WAVE_LENGTH));
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		double y = double(yy)/yres;
 		// vertices for start and end of two lines are computed and projected
@@ -462,7 +462,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			double x = double(xx)/xres;
 			vector2 v = va * (1-x) + vb * x;
-			compute_coord_and_normal(phase, v, coords[ptr], normals[ptr]);
+			compute_coord_and_normal(phase, v, transl, coords[ptr], normals[ptr]);
 #ifdef COMPUTE_EFFICIENCY
 			vector3 tmp = world2camera * vector3(coords[ptr].x, coords[ptr].y, coords[ptr].z);
 			if (fabs(tmp.x) <= 1.0 && fabs(tmp.y) <= 1.0 && fabs(tmp.z) <= 1.0)
@@ -516,8 +516,14 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			const vector3f& coord = coords[ptr];
 			const vector3f& N = normals[ptr];
-			vector3f rel_coord = coord + vector3f(0,0,-viewpos.z);//fixme: add translation part of MODELVIEW matrix here
+			vector3f rel_coord = coord;	// compute coord + translational part of
+			rel_coord.z -= viewpos.z;	// the modelview matrix.
+#ifdef DISTANCE_FRESNEL
+			float rcl = rel_coord.length();
+			vector3f E = -rel_coord * (1.0f/rcl);
+#else
 			vector3f E = -rel_coord.normal();	// viewer is in (0,0,0)
+#endif
 			float F = E*N;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
 			if (F < 0.0f) F = 0.0f;	// avoid angles > 90 deg.
 			F = F + 1.0f;
@@ -525,6 +531,20 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			F = F * F;	// ^4
 			F = F * F;	// ^8
 			F = 1.0f/F;
+#ifdef DISTANCE_FRESNEL
+			const float nearfull = 200.0f;
+			const float farhalf = 10000.0f;
+			float shrinkfac = (farhalf-nearfull)/(farhalf-2*nearfull + rcl);
+			if (shrinkfac > 1.0f) shrinkfac = 1.0f;
+			F *= shrinkfac;
+#endif
+			// fixme: with growing distance the water becomes similar to a flat plane
+			// (trilinar filtering and/or drawing with less triangles), so the
+			// Fresnel term becomes nearly 1. This is unrealistic, because the
+			// viewer also sees the side of waves in the distance.
+			// So we have to shrink the Fresnel value with growing distance to 1/2
+			// The distance can be computed without an extra sqrt: it's the length
+			// of rel_coord before normalizing it.
 			Uint8 c = Uint8(F*255);
 			Uint8 foampart = 255;
 			color primary(c, c, c, foampart);

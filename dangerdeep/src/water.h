@@ -81,7 +81,7 @@ protected:
 	void setup_textures(void) const;
 	void cleanup_textures(void) const;
 
-	void compute_coord_and_normal(int phase, const vector2& xypos,
+	void compute_coord_and_normal(int phase, const vector2& xypos, const vector2& transl,
 	        vector3f& coord, vector3f& normal) const;
 
 public:
