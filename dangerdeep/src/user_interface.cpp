@@ -626,7 +626,20 @@ void user_interface::draw_turnswitch(class system& sys, class game& gm, int x, i
 	}
 	sys.draw_rot_image(x+128, y+128, begin_turn+degreesperpos*selected, turnswitch);
 	font_arial2->print_hc(x+128, y+256-36, text);
-}	
+}
+
+unsigned user_interface::turnswitch_input(int x, int y, unsigned nrdescr) const
+{
+	if (nrdescr <= 1) return 0;
+	angle a(vector2(x-128, 128-y));
+	double full_turn = (nrdescr <= 2) ? 90 : 270;
+	double begin_turn = (nrdescr <= 2) ? -45 : -135;
+	double degreesperpos = full_turn/(nrdescr-1);
+	double ang = a.value_pm180() - begin_turn;
+	if (ang < 0) ang = 0;
+	if (ang > full_turn) ang = full_turn;
+	return unsigned(round(ang/degreesperpos));
+}
 
 void user_interface::draw_vessel_symbol(class system& sys,
 	const vector2& offset, sea_object* so, color c)
@@ -699,7 +712,7 @@ void user_interface::display_gauges(class system& sys, game& gm)
 	int mx, my, mb = sys.get_mouse_buttons();
 	sys.get_mouse_position(mx, my);
 
-	if (mb & 1) {
+	if (mb & sys.left_button) {
 		int marea = (my/256)*4+(mx/256);
 		int mareax = (mx/256)*256+128;
 		int mareay = (my/256)*256+128;

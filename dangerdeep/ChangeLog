@@ -3,6 +3,7 @@
 	  - ships are selectable by clicking on the map.
 	* submarine_interface.cpp
 	  - first bits of torpedo programming interface for FATs.
+	  - turn switches are drawn and are turnable.
 
 2003-07-27  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* game.cpp

@@ -31,10 +31,10 @@ using namespace std;
 extern void menu_notimplemented(void);	// fixme remove later.
 
 submarine_interface::submarine_interface(submarine* player_sub) : 
-    	user_interface( player_sub ), sub_damage_disp(new sub_damage_display(player_sub))
+    	user_interface( player_sub ), sub_damage_disp(new sub_damage_display(player_sub)),
+    	lead_angle(0), torptranssrc(0xffff), primaryrange(0), secondaryrange(0),
+    	initialturn(0), searchpattern(0)
 {
-	lead_angle = 0;
-	torptranssrc = 0xffff;
 }
 
 submarine_interface::~submarine_interface()
@@ -501,10 +501,10 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	glPopMatrix();
 	
 	// draw torpedo programming buttons
-	draw_turnswitch(sys, gm,   0, 256, 142, 17, 3, texts::get(138));
-	draw_turnswitch(sys, gm, 256, 256, 159, 2, 0, texts::get(139));
-	draw_turnswitch(sys, gm, 512, 256, 161, 2, 1, texts::get(140));
-	draw_turnswitch(sys, gm, 768, 256, 163, 2, 0, texts::get(141));
+	draw_turnswitch(sys, gm,   0, 256, 142, 17, primaryrange, texts::get(138));
+	draw_turnswitch(sys, gm, 256, 256, 159, 2, secondaryrange, texts::get(139));
+	draw_turnswitch(sys, gm, 512, 256, 161, 2, initialturn, texts::get(140));
+	draw_turnswitch(sys, gm, 768, 256, 163, 2, searchpattern, texts::get(141));
 
 	// tube handling. compute coordinates for display and mouse use	
 	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
@@ -594,6 +594,14 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 			&& torpedoes[mouseovertube].status == submarine::stored_torpedo::st_loaded)
 		{
 			torptranssrc = mouseovertube;
+		}
+		
+		// torpedo programming buttons
+		if (my >= 256 && my < 512) {
+			if (mx < 256) primaryrange = turnswitch_input(mx, my-256, 17);
+			else if (mx < 512) secondaryrange = turnswitch_input(mx-256, my-256, 2);
+			else if (mx < 768) initialturn = turnswitch_input(mx-512, my-256, 2);
+			else searchpattern = turnswitch_input(mx-768, my-256, 2);
 		}
 	
 	} else {
