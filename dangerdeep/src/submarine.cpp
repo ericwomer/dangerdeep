@@ -30,13 +30,16 @@ submarine::submarine(unsigned type_, const vector3& pos, angle heading)
 			length = subVII->get_length();
 			width = subVII->get_width();
 			max_depth = 220+rand()%20;
-			bow_tubes.resize(4, torpedo::T3);
-			stern_tubes.resize(1, torpedo::T5);
-			bow_storage.resize(6, torpedo::T1);
-			bow_storage[5] = torpedo::T3FAT;
-			stern_storage.resize(1, torpedo::T3);
-			bow_top_storage.resize(1, torpedo::T1);
-			stern_top_storage.resize(1, torpedo::T1);
+			torpedoes.resize(14, stored_torpedo(torpedo::T3));
+			nr_bow_tubes = 4;
+			nr_stern_tubes = 1;
+			nr_bow_storage = 6;
+			nr_stern_storage = 1;
+			nr_bow_top_storage = 1;
+			nr_stern_top_storage = 1;
+			torpedoes[4].type = torpedoes[11].type = torpedo::T5;
+			torpedoes[5].type = torpedoes[6].type = torpedo::T3FAT;
+			torpedoes[12].type = torpedoes[13].type = torpedo::T1;
 			break;
 		case typeXXI:
 			description = "Submarine type XXI";
@@ -49,17 +52,46 @@ submarine::submarine(unsigned type_, const vector3& pos, angle heading)
 			length = subXXI->get_length();
 			width = subXXI->get_width();
 			max_depth = 280+rand()%20;	// fixme > planned values, protypes only 170
-			bow_tubes.resize(6, torpedo::T6LUT);
-			stern_tubes.resize(0, torpedo::none);
-			bow_storage.resize(17, torpedo::T6LUT);
-			bow_tubes[2] = bow_tubes[5] = torpedo::T11;
-			bow_storage[0] = bow_storage[4] = bow_storage[8] = bow_storage[12] = 
-				torpedo::T11;
-			stern_storage.resize(0, torpedo::none);
-			bow_top_storage.resize(0, torpedo::none);
-			stern_top_storage.resize(0, torpedo::none);
+			torpedoes.resize(23, stored_torpedo(torpedo::T6LUT));
+			nr_bow_tubes = 6;
+			nr_stern_tubes = 0;
+			nr_bow_storage = 17;
+			nr_stern_storage = 0;
+			nr_bow_top_storage = 0;
+			nr_stern_top_storage = 0;
+			torpedoes[2].type = torpedoes[5].type = torpedoes[8].type =
+				torpedoes[11].type = torpedoes[14].type = torpedoes[17].type =
+				torpedoes[20].type = torpedo::T11;
+				
 			break;
 	}
+}
+
+bool submarine::transfer_torpedo(unsigned from, unsigned to, double timeneeded)
+{
+	if (torpedoes[from].status == 3 && torpedoes[to].status == 0) {
+		torpedoes[to].type = torpedoes[from].type;
+		torpedoes[from].status = 2;
+		torpedoes[to].status = 1;
+		torpedoes[from].associated = to;
+		torpedoes[to].associated = from;
+		torpedoes[from].remaining_time =
+			torpedoes[to].remaining_time = timeneeded;
+		return true;
+	}
+	return false;
+}
+
+int submarine::find_stored_torpedo(bool usebow)
+{
+	pair<unsigned, unsigned> indices = (usebow) ? get_bow_storage_indices() : get_stern_storage_indices();
+	int tubenr = -1;
+	for (unsigned i = indices.first; i < indices.second; ++i) {
+		if (torpedoes[i].status == 3) {	// loaded
+			tubenr = i; break;
+		}
+	}
+	return tubenr;
 }
 
 void submarine::simulate(class game& gm, double delta_time)
@@ -98,6 +130,45 @@ void submarine::simulate(class game& gm, double delta_time)
 		
 	if (-position.z > max_depth)
 		kill();
+		
+	// torpedo transfer
+	for (unsigned i = 0; i < torpedoes.size(); ++i) {
+		stored_torpedo& st = torpedoes[i];
+		if (st.status == 1 || st.status == 2) { // reloading/unloading
+			st.remaining_time -= delta_time;
+			if (st.remaining_time <= 0) {
+				if (st.status == 1) {	// reloading
+					st.status = 3;	// loading
+					torpedoes[st.associated].status = 0;	// empty
+				} else {		// unloading
+					st.status = 0;	// empty
+					torpedoes[st.associated].status = 3;	// loaded
+				}
+			}
+		}
+	}
+
+	// automatic reloading if desired	
+	if (true /*automatic_reloading*/) {
+		pair<unsigned, unsigned> bow_tube_indices = get_bow_tube_indices();
+		pair<unsigned, unsigned> stern_tube_indices = get_stern_tube_indices();
+		for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
+			if (torpedoes[i].status == 0) {
+				int reload = find_stored_torpedo(true);		// bow
+				if (reload >= 0) {
+					transfer_torpedo(reload, i);
+				}
+			}
+		}
+		for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
+			if (torpedoes[i].status == 0) {
+				int reload = find_stored_torpedo(false);	// stern
+				if (reload >= 0) {
+					transfer_torpedo(reload, i);
+				}
+			}
+		}
+	}
 }
 
 void submarine::display(void) const
@@ -106,6 +177,41 @@ void submarine::display(void) const
 		case typeVIIc: subVII->display(); break;
 		case typeXXI: subXXI->display(); break;
 	}
+}
+
+pair<unsigned, unsigned> submarine::get_bow_tube_indices(void) const
+{
+	return make_pair(0, nr_bow_tubes);
+}
+
+pair<unsigned, unsigned> submarine::get_stern_tube_indices(void) const
+{
+	return make_pair(nr_bow_tubes, nr_bow_tubes+nr_stern_tubes);
+}
+
+pair<unsigned, unsigned> submarine::get_bow_storage_indices(void) const
+{
+	unsigned offset = nr_bow_tubes+nr_stern_tubes;
+	return make_pair(offset, offset+nr_bow_storage);
+}
+
+pair<unsigned, unsigned> submarine::get_stern_storage_indices(void) const
+{
+	unsigned offset = nr_bow_tubes+nr_stern_tubes+nr_bow_storage;
+	return make_pair(offset, offset+nr_stern_storage);
+}
+
+pair<unsigned, unsigned> submarine::get_bow_top_storage_indices(void) const
+{
+	unsigned offset = nr_bow_tubes+nr_stern_tubes+nr_bow_storage+nr_stern_storage;
+	return make_pair(offset, offset+nr_bow_top_storage);
+}
+
+pair<unsigned, unsigned> submarine::get_stern_top_storage_indices(void) const
+{
+	unsigned offset = nr_bow_tubes+nr_stern_tubes+nr_bow_storage+nr_stern_storage+
+		nr_bow_top_storage;
+	return make_pair(offset, offset+nr_stern_top_storage);
 }
 
 double submarine::get_max_speed(void) const
@@ -145,36 +251,35 @@ void submarine::dive_to_depth(unsigned meters)
 bool submarine::fire_torpedo(class game& gm, bool usebowtubes, int tubenr,
 	sea_object* target)
 {
-	unsigned ttype = torpedo::none;
-	if (usebowtubes) {
-		if (tubenr < 0) {
-			for (unsigned i = 0; i < bow_tubes.size(); ++i) {
-				if (bow_tubes[i] == torpedo::none || bow_tubes[i] == torpedo::reloading) {
-					continue;
-				} else {
-					tubenr = i; break;
+	pair<unsigned, unsigned> bow_tube_indices = get_bow_tube_indices();
+	pair<unsigned, unsigned> stern_tube_indices = get_stern_tube_indices();
+	unsigned torpnr = 0xffff;	// some high illegal value
+	if (tubenr < 0) {
+		if (usebowtubes) {
+			for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
+				if (torpedoes[i].status == 3) {
+					torpnr = i;
+					break;
+				}
+			}
+		} else {
+			for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
+				if (torpedoes[i].status == 3) {
+					torpnr = i;
+					break;
 				}
 			}
 		}
-		if (tubenr < 0 || tubenr >= bow_tubes.size()) return false;
-		ttype = bow_tubes[tubenr];
 	} else {
-		if (tubenr < 0) {
-			for (unsigned i = 0; i < stern_tubes.size(); ++i) {
-				if (stern_tubes[i] == torpedo::none || stern_tubes[i] == torpedo::reloading) {
-					continue;
-				} else {
-					tubenr = i; break;
-				}
-			}
-		}
-		if (tubenr < 0 || tubenr >= stern_tubes.size()) return false;
-		ttype = stern_tubes[tubenr];
+		unsigned d = (usebowtubes) ? bow_tube_indices.second - bow_tube_indices.first :
+			stern_tube_indices.second - stern_tube_indices.first;
+		if (tubenr >= 0 && tubenr < d)
+			torpnr = tubenr + ((usebowtubes) ? bow_tube_indices.first : stern_tube_indices.first);
 	}
-	if (ttype == torpedo::none || ttype == torpedo::reloading)
+	if (torpnr == 0xffff)
 		return false;
 		
-	torpedo* t = new torpedo(this, ttype);
+	torpedo* t = new torpedo(this, torpedoes[torpnr].type);
 	if (target) {
 		if (t->adjust_head_to(target, usebowtubes)) {
 			gm.spawn_torpedo(t);
@@ -186,10 +291,6 @@ bool submarine::fire_torpedo(class game& gm, bool usebowtubes, int tubenr,
 	} else {
 		gm.spawn_torpedo(t);
 	}
-	if (usebowtubes) {
-		bow_tubes[tubenr] = torpedo::none;
-	} else {
-		stern_tubes[tubenr] = torpedo::none;
-	}
+	torpedoes[torpnr].status = 0;
 	return true;
 }

@@ -152,9 +152,8 @@ texture* submarine_interface::torptex(unsigned type)
 		case torpedo::T3FAT: return torpt3fat;
 		case torpedo::T6LUT: return torpt6lut;
 		case torpedo::T11: return torpt11;
-//		case torpedo::reloading:
 	}
-	return torp;
+	return torpempty;
 }
 	
 void submarine_interface::draw_infopanel(class system& sys) const
@@ -166,7 +165,7 @@ void submarine_interface::draw_infopanel(class system& sys) const
 		unsigned(round(-player->get_pos().z)),
 		bearing.ui_value()
 		);
-	font_panel->print(0, sys.get_res_y()-font_panel->get_height(), paneltext);
+	font_panel->print(0, 768-font_panel->get_height(), paneltext);
 }
 
 void submarine_interface::draw_gauge(class system& sys, unsigned nr, int x, int y,
@@ -193,15 +192,15 @@ void submarine_interface::draw_gauge(class system& sys, unsigned nr, int x, int 
 	glColor3f(1,1,1);
 }
 
-void submarine_interface::draw_vessel_symbol(class system& sys, unsigned res_x, unsigned res_y,
-	const vector2& offset, const sea_object* so, float r, float g, float b) const
+void submarine_interface::draw_vessel_symbol(class system& sys,
+	const vector2& offset, const sea_object* so, color c) const
 {
 	vector2 d = so->get_heading().direction();
 	float w = so->get_width()*mapzoom/2, l = so->get_length()*mapzoom/2;
 	vector2 p = (so->get_pos().xy() + offset) * mapzoom;
-	p.x += res_x/2;
-	p.y = int(res_y/2) - p.y;
-	glColor3f(r,g,b);
+	p.x += 512;
+	p.y = 384 - p.y;
+	c.set_gl_color();
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBegin(GL_QUADS);
 	glVertex2f(p.x - d.y*w, p.y - d.x*w);
@@ -216,19 +215,18 @@ void submarine_interface::draw_vessel_symbol(class system& sys, unsigned res_x, 
 	glColor3f(1,1,1);
 }
 
-void submarine_interface::draw_trail(sea_object* so, const vector2& offset, unsigned res_x,
-	unsigned res_y)
+void submarine_interface::draw_trail(sea_object* so, const vector2& offset)
 {
 	list<vector2> l = so->get_previous_positions();
 	glColor4f(1,1,1,1);
 	glBegin(GL_LINE_STRIP);
 	vector2 p = (so->get_pos().xy() + offset)*mapzoom;
-	glVertex2f(res_x/2+p.x, res_y/2-p.y);
+	glVertex2f(512+p.x, 384-p.y);
 	float la = 1.0/float(l.size()), lc = 0;
 	for (list<vector2>::const_iterator it = l.begin(); it != l.end(); ++it) {
 		glColor4f(1,1,1,1-lc);
 		vector2 p = (*it + offset)*mapzoom;
-		glVertex2f(res_x/2+p.x, res_y/2-p.y);
+		glVertex2f(512+p.x, 384-p.y);
 		lc += la;
 	}
 	glEnd();
@@ -389,6 +387,32 @@ void submarine_interface::draw_view(class system& sys, class game& gm, const vec
 */
 }
 
+void submarine_interface::draw_torpedo(class system& sys, bool usebow, int x, int y,
+	const submarine::stored_torpedo& st)
+{
+	if (usebow) {
+		if (st.status == 0) {	// empty
+			sys.draw_image(x, y, 256, 32, torpempty);
+		} else {
+			sys.draw_image(x, y, 256, 32, torptex(st.type));
+			if (st.status == 1) // reloading
+				sys.draw_image(x, y, 256, 32, torpreload);
+			else if (st.status == 2) // unloading
+				sys.draw_image(x, y, 256, 32, torpunload);
+		}
+	} else {
+		if (st.status == 0) {	// empty
+			sys.draw_hm_image(x, y, 256, 32, torpempty);
+		} else {
+			sys.draw_hm_image(x, y, 256, 32, torptex(st.type));
+			if (st.status == 1) // reloading
+				sys.draw_hm_image(x, y, 256, 32, torpreload);
+			else if (st.status == 2) // unloading
+				sys.draw_hm_image(x, y, 256, 32, torpunload);
+		}
+	}
+}
+	
 void submarine_interface::display(class system& sys, game& gm)
 {
 	if (target != 0 && target->is_dead()) target = 0;
@@ -435,16 +459,15 @@ void submarine_interface::display(class system& sys, game& gm)
 
 void submarine_interface::display_gauges(class system& sys, game& gm)
 {
-	unsigned res_x = sys.get_res_x(), res_y = sys.get_res_y();
 	sys.prepare_2d_drawing();
 	for (int y = 0; y < 3; ++y)	// fixme: replace with gauges
 		for (int x = 0; x < 4; ++x)
-			sys.draw_image(x*res_x/4, y*res_x/4, res_x/4, res_x/4, psbackgr);
+			sys.draw_image(x*256, y*256, 256, 256, psbackgr);
 	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
 	angle player_depth = -player->get_pos().z;
-	draw_gauge(sys, 1, 0, 0, res_x/4, player->get_heading(), TXT_Heading[language]);
-	draw_gauge(sys, 2, res_x/4, 0, res_x/4, player_speed, TXT_Speed[language]);
-	draw_gauge(sys, 4, 2*res_x/4, 0, res_x/4, player_depth, TXT_Depth[language]);
+	draw_gauge(sys, 1, 0, 0, 256, player->get_heading(), TXT_Heading[language]);
+	draw_gauge(sys, 2, 256, 0, 256, player_speed, TXT_Speed[language]);
+	draw_gauge(sys, 4, 2*256, 0, 256, player_depth, TXT_Depth[language]);
 
 	draw_infopanel(sys);
 	sys.unprepare_2d_drawing();
@@ -484,11 +507,11 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	sys.prepare_2d_drawing();
 	for (int y = 2; y < 3; ++y)
 		for (int x = 1; x < 4; ++x)
-			sys.draw_image(x*res_x/4, y*res_x/4, res_x/4, res_x/4, psbackgr);
-	sys.draw_image(2*res_x/4, 0, res_x/4, res_x/4, periscope[0]);
-	sys.draw_image(3*res_x/4, 0, res_x/4, res_x/4, periscope[1]);
-	sys.draw_image(2*res_x/4, res_x/4, res_x/4, res_x/4, periscope[2]);
-	sys.draw_image(3*res_x/4, res_x/4, res_x/4, res_x/4, periscope[3]);
+			sys.draw_image(x*256, y*256, 256, 256, psbackgr);
+	sys.draw_image(2*256, 0, 256, 256, periscope[0]);
+	sys.draw_image(3*256, 0, 256, 256, periscope[1]);
+	sys.draw_image(2*256, 256, 256, 256, periscope[2]);
+	sys.draw_image(3*256, 256, 256, 256, periscope[3]);
 	angle targetbearing;
 	angle targetaob;
 	angle targetrange;
@@ -504,18 +527,19 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 		targetspeed = target->get_speed()*360.0/sea_object::kts2ms(36);
 		targetheading = target->get_heading();
 	}
-	draw_gauge(sys, 1, 0, 0, res_x/4, targetbearing, TXT_Targetbearing[language]);
-	draw_gauge(sys, 3, res_x/4, 0, res_x/4, targetrange, TXT_Targetrange[language]);
-	draw_gauge(sys, 2, 0, res_x/4, res_x/4, targetspeed, TXT_Targetspeed[language]);
-	draw_gauge(sys, 1, res_x/4, res_x/4, res_x/4, targetheading, TXT_Targetcourse[language]);
-	sys.draw_image(0, res_x/2, res_x/4, res_x/4, addleadangle);
-	const vector<unsigned>& bow_tubes = player->get_bow_tubes();
-	const vector<unsigned>& stern_tubes = player->get_stern_tubes();
-	for (unsigned i = 0; i < bow_tubes.size(); ++i) {
-		sys.draw_image(1*res_x/4, res_x/2+i*res_x/32, res_x/4, res_x/32, torptex(bow_tubes[i]));
+	draw_gauge(sys, 1, 0, 0, 256, targetbearing, TXT_Targetbearing[language]);
+	draw_gauge(sys, 3, 256, 0, 256, targetrange, TXT_Targetrange[language]);
+	draw_gauge(sys, 2, 0, 256, 256, targetspeed, TXT_Targetspeed[language]);
+	draw_gauge(sys, 1, 256, 256, 256, targetheading, TXT_Targetcourse[language]);
+	sys.draw_image(0, 512, 256, 256, addleadangle);
+	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
+	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();
+	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
+	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
+		draw_torpedo(sys, true, 256, 512+i*32, torpedoes[i]);
 	}
-	for (unsigned i = 0; i < stern_tubes.size(); ++i) {
-		sys.draw_hm_image(2*res_x/4, res_x/2+i*res_x/32, res_x/4, res_x/32, torptex(stern_tubes[i]));
+	for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
+		draw_torpedo(sys, false, 512, 512+i*32, torpedoes[i]);
 	}
 	glColor3f(1,1,1);
 	draw_infopanel(sys);
@@ -555,8 +579,8 @@ void submarine_interface::display_UZO(class system& sys, game& gm)
 	glMatrixMode(GL_MODELVIEW);
 	
 	sys.prepare_2d_drawing();
-	sys.draw_image(0, 0, res_x/2, res_x/2, uzo);
-	sys.draw_hm_image(res_x/2, 0, res_x/2, res_x/2, uzo);
+	sys.draw_image(0, 0, 512, 512, uzo);
+	sys.draw_hm_image(512, 0, 512, 512, uzo);
 	draw_infopanel(sys);
 	sys.unprepare_2d_drawing();
 
@@ -572,8 +596,6 @@ void submarine_interface::display_UZO(class system& sys, game& gm)
 
 void submarine_interface::display_bridge(class system& sys, game& gm)
 {
-	unsigned res_x = sys.get_res_x(), res_y = sys.get_res_y();
-
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -601,15 +623,14 @@ void submarine_interface::display_map(class system& sys, game& gm)
 	glClearColor(0, 0, 1, 1);	// fixme
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	unsigned res_x = sys.get_res_x(), res_y = sys.get_res_y();
 	vector2 offset = -player->get_pos().xy();
 
 	sys.prepare_2d_drawing();
 
 	float delta = MAPGRIDSIZE*mapzoom;
-	float sx = myfmod(res_x/2, delta)-myfmod(-offset.x, MAPGRIDSIZE)*mapzoom;
-	float sy = float(res_y) - (myfmod(res_y/2, delta)-myfmod(-offset.y, MAPGRIDSIZE)*mapzoom);
-	int lx = int(int(res_x)/delta)+2, ly = int(int(res_y)/delta)+2;
+	float sx = myfmod(512, delta)-myfmod(-offset.x, MAPGRIDSIZE)*mapzoom;
+	float sy = 768.0 - (myfmod(384.0, delta)-myfmod(-offset.y, MAPGRIDSIZE)*mapzoom);
+	int lx = int(1024/delta)+2, ly = int(768/delta)+2;
 
 	// draw grid
 	glColor3f(0.5, 0.5, 1);
@@ -617,12 +638,12 @@ void submarine_interface::display_map(class system& sys, game& gm)
 	glBegin(GL_LINES);
 	for (int i = 0; i < lx; ++i) {
 		glVertex2f(sx, 0);
-		glVertex2f(sx, res_y);
+		glVertex2f(sx, 768);
 		sx += delta;
 	}
 	for (int i = 0; i < ly; ++i) {
 		glVertex2f(0, sy);
-		glVertex2f(res_x, sy);
+		glVertex2f(1024, sy);
 		sy -= delta;
 	}
 	glEnd();
@@ -634,7 +655,7 @@ void submarine_interface::display_map(class system& sys, game& gm)
 	glBegin(GL_LINE_LOOP);
 	for (int i = 0; i < range/4; ++i) {
 		float a = i*8*M_PI/range;
-		glVertex2f(res_x/2+sin(a)*range, res_y/2-cos(a)*range);
+		glVertex2f(512+sin(a)*range, 384-cos(a)*range);
 	}
 	glEnd();
 	glColor3f(1,1,1);
@@ -648,10 +669,10 @@ void submarine_interface::display_map(class system& sys, game& gm)
 		vector2 p3 = p1 + (p.dir - angle(PINGANGLE/2)).direction() * PINGLENGTH * mapzoom;
 		glBegin(GL_TRIANGLES);
 		glColor4f(0.5,0.5,0.5,1);
-		glVertex2f(res_x/2+p1.x, res_y/2-p1.y);
+		glVertex2f(512+p1.x, 384-p1.y);
 		glColor4f(0.5,0.5,0.5,0);
-		glVertex2f(res_x/2+p2.x, res_y/2-p2.y);
-		glVertex2f(res_x/2+p3.x, res_y/2-p3.y);
+		glVertex2f(512+p2.x, 384-p2.y);
+		glVertex2f(512+p3.x, 384-p3.y);
 		glEnd();
 		glColor4f(1,1,1,1);
 	}
@@ -662,27 +683,27 @@ void submarine_interface::display_map(class system& sys, game& gm)
 	list<airplane*> airplanes = gm.get_airplanes();
 	list<torpedo*> torpedoes = gm.get_torpedoes();
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
-		draw_trail(*it, offset, res_x, res_y);
+		draw_trail(*it, offset);
 	}
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		draw_trail(*it, offset, res_x, res_y);
+		draw_trail(*it, offset);
 	}
 	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
-		draw_trail(*it, offset, res_x, res_y);
+		draw_trail(*it, offset);
 	}
 
 	// draw vessel symbols
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
-		draw_vessel_symbol(sys, res_x, res_y, offset, *it, 0.75,1,0.75);
+		draw_vessel_symbol(sys, offset, *it, color(192,255,192));
 	}
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		draw_vessel_symbol(sys, res_x, res_y, offset, *it, 1,1,0.5);
+		draw_vessel_symbol(sys, offset, *it, color(255,255,128));
 	}
 	for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it) {
-		draw_vessel_symbol(sys, res_x, res_y, offset, *it, 0,0,0.5);
+		draw_vessel_symbol(sys, offset, *it, color(0,0,64));
 	}
 	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
-		draw_vessel_symbol(sys, res_x, res_y, offset, *it, 1,0,0);
+		draw_vessel_symbol(sys, offset, *it, color(255,0,0));
 	}
 	
 	draw_infopanel(sys);
@@ -704,57 +725,66 @@ void submarine_interface::display_map(class system& sys, game& gm)
 
 void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 {
-	unsigned res_x = sys.get_res_x(), res_y = sys.get_res_y();
 	sys.prepare_2d_drawing();
 	glBindTexture(GL_TEXTURE_2D, background->get_opengl_name());
 	glBegin(GL_QUADS);
 	glTexCoord2i(0,0);
 	glVertex2i(0,0);
 	glTexCoord2i(0,6);
-	glVertex2i(0,res_y);
+	glVertex2i(0,768);
 	glTexCoord2i(8,6);
-	glVertex2i(res_x,res_y);
+	glVertex2i(1024,768);
 	glTexCoord2i(8,0);
-	glVertex2i(res_x,0);
+	glVertex2i(1024,0);
 	glEnd();
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
 	glPushMatrix();
-	glTranslatef(res_x/2, res_y/4, 1);
-	glScalef(res_x/80.0, res_x/80.0, 0.001);
+	glTranslatef(512, 192, 1);
+	glScalef(1024/80.0, 1024/80.0, 0.001);
 	glRotatef(90, 0, 0, 1);
 	glRotatef(-90, 0, 1, 0);
 	player->display();
 	glPopMatrix();
 	
 	// draw tubes
-	const vector<unsigned>& bow_tubes = player->get_bow_tubes();
-	const vector<unsigned>& stern_tubes = player->get_stern_tubes();
-	const vector<unsigned>& bow_storage = player->get_bow_storage();
-	const vector<unsigned>& stern_storage = player->get_stern_storage();
-	const vector<unsigned>& bow_top_storage = player->get_bow_top_storage();
-	const vector<unsigned>& stern_top_storage = player->get_stern_top_storage();
-	for (unsigned i = 0; i < bow_tubes.size(); ++i) {
-		sys.draw_image(0*res_x/4, 1*res_x/4+i*res_x/32, res_x/4, res_x/32, torptex(bow_tubes[i]));
+	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
+	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();
+	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
+	pair<unsigned, unsigned> bow_storage_indices = player->get_bow_storage_indices();
+	pair<unsigned, unsigned> stern_storage_indices = player->get_stern_storage_indices();
+	pair<unsigned, unsigned> bow_top_storage_indices = player->get_bow_top_storage_indices();
+	pair<unsigned, unsigned> stern_top_storage_indices = player->get_stern_top_storage_indices();
+	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
+		draw_torpedo(sys, true, 0, 256+i*32, torpedoes[i]);
 	}
-	for (unsigned i = 0; i < bow_storage.size(); ++i) {
-		sys.draw_image((1+i/6)*res_x/4, res_x/4+(i%6)*res_x/32, res_x/4, res_x/32, torptex(bow_storage[i]));
+	for (unsigned i = bow_storage_indices.first; i < bow_storage_indices.second; ++i) {
+		unsigned j = i - bow_storage_indices.first;
+		draw_torpedo(sys, true, (1+j/6)*256, 256+(j%6)*32, torpedoes[i]);
 	}
-	for (unsigned i = 0; i < bow_top_storage.size(); ++i) {
-		sys.draw_image(0*res_x/4, 0*res_x/4+i*res_x/32, res_x/4, res_x/32, torptex(bow_top_storage[i]));
+	for (unsigned i = bow_top_storage_indices.first; i < bow_top_storage_indices.second; ++i) {
+		unsigned j = i - bow_top_storage_indices.first;
+		draw_torpedo(sys, true, 0, j*32, torpedoes[i]);
 	}
-	for (unsigned i = 0; i < stern_tubes.size(); ++i) {
-		sys.draw_hm_image(3*res_x/4, 1*res_x/4+i*res_x/32, res_x/4, res_x/32, torptex(stern_tubes[i]));
+	for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
+		unsigned j = i - stern_tube_indices.first;
+		draw_torpedo(sys, false, 768, 256+j*32, torpedoes[i]);
 	}
-	for (unsigned i = 0; i < stern_storage.size(); ++i) {
-		sys.draw_hm_image(2*res_x/4, 1*res_x/4+i*res_x/32, res_x/4, res_x/32, torptex(stern_storage[i]));
+	for (unsigned i = stern_storage_indices.first; i < stern_storage_indices.second; ++i) {
+		unsigned j = i - stern_storage_indices.first;
+		draw_torpedo(sys, false, 512, 256+j*32, torpedoes[i]);
 	}
-	for (unsigned i = 0; i < stern_top_storage.size(); ++i) {
-		sys.draw_hm_image(3*res_x/4, 0*res_x/4+i*res_x/32, res_x/4, res_x/32, torptex(stern_top_storage[i]));
+	for (unsigned i = stern_top_storage_indices.first; i < stern_top_storage_indices.second; ++i) {
+		unsigned j = i - stern_top_storage_indices.first;
+		draw_torpedo(sys, false, 768, j*32, torpedoes[i]);
 	}
 
 	draw_infopanel(sys);
 	sys.unprepare_2d_drawing();
+
+	// mouse handling
+	int mx, my, mb = sys.get_mouse_buttons();
+	sys.get_mouse_motion(mx, my);
 
 	// keyboard processing
 	int key = sys.get_key();

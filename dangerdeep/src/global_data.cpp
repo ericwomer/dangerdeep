@@ -11,7 +11,7 @@ model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium, 
 	*battleship_malaya, *torpedo_g7, *depth_charge_mdl;
 texture *water, *background, *titel[4], *periscope[4], *gauge1,
 	*gauge2, *gauge3, *gauge4, *psbackgr,
-	*addleadangle, *torpleft, *torp, *uzo, *metalbackgr,
+	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11;
 font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
 
@@ -46,13 +46,15 @@ void init_global_data(void)
 	periscope[2] = new texture(periscopeimg, 0, 256, 256, 256);
 	periscope[3] = new texture(periscopeimg, 256, 256, 256, 256);
 	SDL_FreeSurface(periscopeimg);
-	gauge1 = new texture(datafilename("manometer1.png"));
-	gauge2 = new texture(datafilename("manometer2.png"));
-	gauge3 = new texture(datafilename("manometer3.png"));
-	gauge4 = new texture(datafilename("manometer4.png"));
+	gauge1 = new texture(datafilename("gauge1.png"));
+	gauge2 = new texture(datafilename("gauge2.png"));
+	gauge3 = new texture(datafilename("gauge3.png"));
+	gauge4 = new texture(datafilename("gauge4.png"));
 	psbackgr = new texture(datafilename("psbackgr.png"));
 	addleadangle = new texture(datafilename("addleadangle.png"));
-	torp = new texture(datafilename("torp.png"));
+	torpempty = new texture(datafilename("torpempty.png"));
+	torpreload = new texture(datafilename("torpreload.png"));
+	torpunload = new texture(datafilename("torpunload.png"));
 	uzo = new texture(datafilename("uzo.png"), 1, true, true);
 	metalbackgr = new texture(datafilename("metalbackgr.png"), 1, false);
 	torpt1 = new texture(datafilename("torpt1.png"));
@@ -96,7 +98,9 @@ void deinit_global_data(void)
 	delete gauge4;
 	delete psbackgr;
 	delete addleadangle;
-	delete torp;
+	delete torpempty;
+	delete torpreload;
+	delete torpunload;
 	delete uzo;
 	delete metalbackgr;
 	delete torpt1;

@@ -9,25 +9,36 @@
 
 class submarine : public ship
 {
+public:
+	struct stored_torpedo {
+		unsigned type;
+		unsigned status;	// 0 empty 1 reloading 2 unloading 3 loaded
+		unsigned associated;	// reloading from/unloading to
+		double remaining_time;	// remaining time until work is finished
+		stored_torpedo(unsigned t) : type(t), status(3), associated(0), remaining_time(0) {}
+	};
+	
 protected:
 	double dive_speed, dive_acceleration, max_dive_speed, max_depth, dive_to;
 	bool permanent_dive;
 	double max_submerged_speed;
 	
-	// store torpedo type, 0 empty, <0 reloading
-	// we need a class "tube" or something the like:
-	// torpedo type stored, status (loaded, unloading, reloading, empty)
-	// unloading/reloading from which tube and finish time.
-	vector<unsigned> bow_tubes;
-	vector<unsigned> stern_tubes;
-	vector<unsigned> bow_storage;
-	vector<unsigned> stern_storage;
-	vector<unsigned> bow_top_storage;
-	vector<unsigned> stern_top_storage;
+	// stored torpedoes (including tubes)
+	// special functions calculate indices for bow/stern tubes etc., see below
+	vector<stored_torpedo> torpedoes;
+	unsigned nr_bow_tubes, nr_stern_tubes, nr_bow_storage, nr_stern_storage,
+		nr_bow_top_storage, nr_stern_top_storage;
 
 	submarine() {};
 	submarine& operator= (const submarine& other);
 	submarine(const submarine& other);
+	
+	// fixme: time that is needed depends on sub type and how many torpedoes
+	// are already in transfer. So this argument is nonesense. fixme
+	// returns true if transfer was initiated.
+	bool transfer_torpedo(unsigned from, unsigned to, double timeneeded = 120);
+	int find_stored_torpedo(bool usebow);	// returns index or -1 if none
+	
 public:
 	enum types { typeII, typeVII, typeVIIb, typeVIIc, typeVIIc41,
 		typeIXb, typeIXc, typeIXd2, typeXXI, typeXXIII };
@@ -36,12 +47,14 @@ public:
 	virtual void simulate(class game& gm, double delta_time);
 	virtual void display(void) const;
 
-	const vector<unsigned>& get_bow_tubes(void) const { return bow_tubes; }
-	const vector<unsigned>& get_stern_tubes(void) const { return stern_tubes; }
-	const vector<unsigned>& get_bow_storage(void) const { return bow_storage; }
-	const vector<unsigned>& get_stern_storage(void) const { return stern_storage; }
-	const vector<unsigned>& get_bow_top_storage(void) const { return bow_top_storage; }
-	const vector<unsigned>& get_stern_top_storage(void) const { return stern_top_storage; }
+	const vector<stored_torpedo>& get_torpedoes(void) const { return torpedoes; }
+	// get first index of storage and first index after it.
+	virtual pair<unsigned, unsigned> get_bow_tube_indices(void) const;
+	virtual pair<unsigned, unsigned> get_stern_tube_indices(void) const;
+	virtual pair<unsigned, unsigned> get_bow_storage_indices(void) const;
+	virtual pair<unsigned, unsigned> get_stern_storage_indices(void) const;
+	virtual pair<unsigned, unsigned> get_bow_top_storage_indices(void) const;
+	virtual pair<unsigned, unsigned> get_stern_top_storage_indices(void) const;
 
 	// The simulation of acceleration when switching between electro and diesel
 	// engines is done via engine simulation. So the boat "brakes" until

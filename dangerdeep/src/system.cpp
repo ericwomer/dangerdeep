@@ -23,6 +23,9 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	myassert(res==640||res==800||res==1024||res==1280||res==512);
 	myassert(!instance);
 
+	res_x_2d = res_x;
+	res_y_2d = res_y;
+
 	keys.resize(SDLK_LAST - SDLK_FIRST + 1);
 	
 	int err = SDL_Init(SDL_INIT_VIDEO);
@@ -123,9 +126,9 @@ void system::draw_console(void)
 		glTexCoord2f(0,2);
 		glVertex2i(0,res_y/2);
 		glTexCoord2f(4,2);
-		glVertex2i(res_x,res_y/2);
+		glVertex2i(res_x_2d,res_y_2d/2);
 		glTexCoord2f(4,0);
-		glVertex2i(res_x,0);
+		glVertex2i(res_x_2d,0);
 		glEnd();
 	}
 	glColor4f(1,1,1,1);
@@ -161,11 +164,11 @@ void system::prepare_2d_drawing()
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	gluOrtho2D(0, res_x, 0, res_y);
+	gluOrtho2D(0, res_x_2d, 0, res_y_2d);
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
-	glTranslatef(0, res_y, 0);
+	glTranslatef(0, res_y_2d, 0);
 	glScalef(1, -1, 1);
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
@@ -411,32 +414,4 @@ void system::draw_rectangle(int x, int y, int w, int h)
 	glVertex2i(x+w, y+h);
 	glVertex2i(x+w, y);
 	glEnd();
-}
-
-void system::draw_button(int x, int y, const char* text, const font* fnt)
-{
-	unsigned sizex, sizey;
-	pair<unsigned, unsigned> size = fnt->get_size(text);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBegin(GL_TRIANGLES);
-	glColor3f(0.75, 0.75, 0.75);
-	glVertex2i(x, y);
-	glVertex2i(x, y+size.second+8);
-	glVertex2i(x+size.first+8, y);
-	glColor3f(0.25, 0.25, 0.25);
-	glVertex2i(x+size.first+8, y);
-	glVertex2i(x, y+size.second+8);
-	glVertex2i(x+size.first+8, y+size.second+8);
-	glColor3f(0.5, 0.5, 0.5);
-	glVertex2i(x+1, y+1);
-	glVertex2i(x+1, y+size.second+8-1);
-	glVertex2i(x+size.first+8-1, y+1);
-	glVertex2i(x+size.first+8-1, y+1);
-	glVertex2i(x+1, y+size.second+8-1);
-	glVertex2i(x+size.first+8-1, y+size.second+8-1);
-	glEnd();
-	glColor3f(0.25, 0.25, 0.25);
-	fnt->print(x+4+1, y+4+1, text);
-	glColor3f(0.85, 0.85, 0.85);
-	fnt->print(x+4, y+4, text);
 }

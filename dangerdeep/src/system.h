@@ -47,7 +47,9 @@ public:
 	void draw_vm_image(int x, int y, int w, int h, const texture* t) const;	// vertically mirrored
 	
 	void draw_rectangle(int x, int y, int w, int h);
-	void draw_button(int x, int y, const char* text, const font* fnt);
+	
+	// takes effect only after next prepare_2d_drawing()
+	void set_res_2d(unsigned x, unsigned y) { res_x_2d = x; res_y_2d = y; }
 	
 private:
 	system() {};
@@ -60,6 +62,7 @@ private:
 	list<string> console_text;
 	
 	bool draw_2d;
+	unsigned res_x_2d, res_y_2d;
 	
 	vector<bool> keys;
 	queue<int> keyqueue;

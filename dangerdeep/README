@@ -18,6 +18,11 @@ run "subsim"
 
 Gameplay
 ------------------------------------------------------
+The game recommends a resolution of 1024x768 strongly.
+It can be played with different resoultions, but will
+look ugly. Just type subsim --help and check for
+resolution switching. Using a higher resolution is not as
+bad as using a smaller, though.
 General rule: what does not work that is just not
 implemented yet ;-)
 

@@ -32,15 +32,15 @@ void menu_convoy_battle(void)
 
 	while (true) {
 		sys->prepare_2d_drawing();
-		sys->draw_image(0, 0, res_x/2, res_x/2, titel[0]);
-		sys->draw_image(res_x/2, 0, res_x/2, res_x/2, titel[1]);
-		sys->draw_image(0, res_x/2, res_x/2, res_x/4, titel[2]);
-		sys->draw_image(res_x/2, res_x/2, res_x/2, res_x/4, titel[3]);
+		sys->draw_image(0, 0, 512, 512, titel[0]);
+		sys->draw_image(512, 0, 512, 512, titel[1]);
+		sys->draw_image(0, 512, 512, 256, titel[2]);
+		sys->draw_image(512, 512, 512, 256, titel[3]);
 
 		sys->poll_event_queue();
 		int key = sys->get_key();
-		font_logo->print_hc(res_x, res_y/5, "Danger from the Deep", color(255,255,255), true);
-		m.draw(res_x, res_y, font_tahoma);
+		font_logo->print_hc(1024, 150, "Danger from the Deep", color(255,255,255), true);
+		m.draw(1024, 768, font_tahoma);
 		int mmsel = m.input(key, 0, 0, 0) & 0xffff;
 		sys->unprepare_2d_drawing();
 		sys->swap_buffers();
@@ -89,15 +89,15 @@ void menu_single_mission(void)
 
 	while (true) {
 		sys->prepare_2d_drawing();
-		sys->draw_image(0, 0, res_x/2, res_x/2, titel[0]);
-		sys->draw_image(res_x/2, 0, res_x/2, res_x/2, titel[1]);
-		sys->draw_image(0, res_x/2, res_x/2, res_x/4, titel[2]);
-		sys->draw_image(res_x/2, res_x/2, res_x/2, res_x/4, titel[3]);
+		sys->draw_image(0, 0, 512, 512, titel[0]);
+		sys->draw_image(512, 0, 512, 512, titel[1]);
+		sys->draw_image(0, 512, 512, 256, titel[2]);
+		sys->draw_image(512, 512, 512, 256, titel[3]);
 
 		sys->poll_event_queue();
 		int key = sys->get_key();
-		font_logo->print_hc(res_x, res_y/5, "Danger from the Deep", color(255,255,255), true);
-		m.draw(res_x, res_y, font_tahoma);
+		font_logo->print_hc(1024, 150, "Danger from the Deep", color(255,255,255), true);
+		m.draw(1024, 768, font_tahoma);
 		int mmsel = m.input(key, 0, 0, 0) & 0xffff;
 		sys->unprepare_2d_drawing();
 		sys->swap_buffers();
@@ -134,12 +134,12 @@ void show_vessels(void)
 
 		glClear(GL_DEPTH_BUFFER_BIT);
 		sys->prepare_2d_drawing();
-		sys->draw_image(0, 0, res_x/2, res_x/2, titel[0]);
-		sys->draw_image(res_x/2, 0, res_x/2, res_x/2, titel[1]);
-		sys->draw_image(0, res_x/2, res_x/2, res_x/4, titel[2]);
-		sys->draw_image(res_x/2, res_x/2, res_x/2, res_x/4, titel[3]);
-		font_tahoma->print_hc(res_x, res_y*4/5, mname);
-		font_tahoma->print_hc(res_x, res_y - font_tahoma->get_height(),
+		sys->draw_image(0, 0, 512, 512, titel[0]);
+		sys->draw_image(512, 0, 512, 512, titel[1]);
+		sys->draw_image(0, 512, 512, 256, titel[2]);
+		sys->draw_image(512, 512, 512, 256, titel[3]);
+		font_tahoma->print_hc(1024, 650, mname);
+		font_tahoma->print_hc(1024, 768 - font_tahoma->get_height(),
 			"Cursor keys to rotate, Page up/down to cycle, Escape to exit");
 		sys->unprepare_2d_drawing();
 
@@ -170,6 +170,25 @@ void show_vessels(void)
 
 int main(int argc, char** argv)
 {
+/*
+	//fixme use getenv for $(HOME)
+	// move to another function
+	// package game options in own class
+	// config file reading
+	FILE* fcfg = fopen("~/.dangerdeep.rc", "rt");
+	if (!fcfg) {
+		cout << "no config file found\n";
+		fcfg = fopen("~/.dangerdeep.rc", "wt");
+		if (!fcfg) {
+			cout << "could not write config file\n";
+		} else {
+			fclose(fcfg);
+		}
+	} else {
+		fclose(fcfg);
+	}
+*/
+
 	// command line argument parsing
 	res_x = 1024;
 	bool fullscreen = true;
@@ -197,6 +216,7 @@ int main(int argc, char** argv)
 	res_y = res_x*3/4;
 	// weather conditions and earth curvature allow 30km sight at maximum.
 	sys = new class system(1.0, 30000.0, res_x, fullscreen);
+	sys->set_res_2d(1024, 768);
 	
 	sys->add_console("$ffffffDanger $c0c0c0from the $ffffffDeep");
 	sys->add_console("$ffff00copyright and written 2003 by $ff0000Thorsten Jordan");
@@ -237,15 +257,15 @@ int main(int argc, char** argv)
 		bool rebuildmenu = false;
 		while (!rebuildmenu) {
 			sys->prepare_2d_drawing();
-			sys->draw_image(0, 0, res_x/2, res_x/2, titel[0]);
-			sys->draw_image(res_x/2, 0, res_x/2, res_x/2, titel[1]);
-			sys->draw_image(0, res_x/2, res_x/2, res_x/4, titel[2]);
-			sys->draw_image(res_x/2, res_x/2, res_x/2, res_x/4, titel[3]);
+			sys->draw_image(0, 0, 512, 512, titel[0]);
+			sys->draw_image(512, 0, 512, 512, titel[1]);
+			sys->draw_image(0, 512, 512, 256, titel[2]);
+			sys->draw_image(512, 512, 512, 256, titel[3]);
 
 			sys->poll_event_queue();
 			int key = sys->get_key();
-			font_logo->print_hc(res_x, res_y/5, "Danger from the Deep", color(255,255,255), true);
-			m.draw(res_x, res_y, font_tahoma);
+			font_logo->print_hc(1024, 150, "Danger from the Deep", color(255,255,255), true);
+			m.draw(1024, 768, font_tahoma);
 			int mmsel = m.input(key, 0, 0, 0);
 			sys->unprepare_2d_drawing();
 			sys->swap_buffers();

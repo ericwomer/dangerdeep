@@ -10,6 +10,7 @@ using namespace std;
 #include "submarine.h"
 #include "global_data.h"
 #include "user_interface.h"
+#include "color.h"
 
 #define WAVES 32        // must be 2^x
 #define WATERSIZE 64   // must be 2^x
@@ -76,12 +77,13 @@ private:
 	void draw_infopanel(class system& sys) const;
 	void draw_gauge(class system& sys, unsigned nr, int x, int y, unsigned wh, angle a,
 		const char* text) const;
-	void draw_vessel_symbol(class system& sys, unsigned res_x, unsigned res_y,
-		const vector2& offset, const sea_object* so, float r, float g, float b) const;
-	void draw_trail(sea_object* so, const vector2& offset, unsigned res_x,
-	        unsigned res_y);
+	void draw_vessel_symbol(class system& sys,
+		const vector2& offset, const sea_object* so, color c) const;
+	void draw_trail(sea_object* so, const vector2& offset);
 	void draw_view(class system& sys, class game& gm, const vector3& viewpos,
 		bool withplayer);
+	void draw_torpedo(class system& sys, bool usebow, int x, int y,
+		const submarine::stored_torpedo& st);
 
 	void display_gauges(class system& sys, class game& gm);
 	void display_periscope(class system& sys, class game& gm);
