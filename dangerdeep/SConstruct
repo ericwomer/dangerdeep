@@ -121,48 +121,7 @@ def SelectBuildDir(build_dir, platform=None):
 	return target_dir
 
 
-# how this should work:
-# read basedir/CVS/Entries
-#  each directory has a D/aaa at the beginning, each file a /bbb
-#  recursivly subdivide into basedir/aaa
-#  add basedir/bbb to return list
-#  returns list of files in cvs
-def findCVS(basedir):
-	f = open(basedir + os.sep + 'CVS' + os.sep + 'Entries')
-	lines = f.readlines()
-	mydirs = []
-	myfiles = []
-	for l in lines:
-		if l.startswith('D/'):
-			l2 = l[2:]
-			i = l2.find('/')
-			if i != -1:
-				l3 = l2[0:i]
-				mydirs += [l3]
-		elif l.startswith('/'):
-			l2 = l[1:]
-			i = l2.find('/')
-			if i != -1:
-				l3 = l2[0:i]
-				myfiles += [basedir + os.sep + l3]
-#	print mydirs
-#	print myfiles
-	for d in mydirs:
-		nextdir = basedir + os.sep + d
-		if os.path.isdir(nextdir):
-			myfiles += findCVS(nextdir)
-	myfiles += [basedir + os.sep + 'CVS' + os.sep + 'Entries']
-	return myfiles
-
-
-def remove_entries_that_start_with(list, prefix):
-	list2 = []
-	for i in list:
-		if not(i.startswith(prefix)):
-			list2 += [i]
-	return list2
-
-def remove_entries_that_not_start_with(list, prefix):
+def all_entries_that_start_with(list, prefix):
 	list2 = []
 	for i in list:
 		if i.startswith(prefix):
@@ -175,9 +134,12 @@ selected_build_dir = SelectBuildDir(build_base_dir)
 target_dir = '#' + selected_build_dir
 libpath = libpath + [target_dir]
 
-datafiles = findCVS('./data')
+f = open('files.txt')
+allcvsfiles = f.readlines()
 
-Export('env', 'gfxlibs', 'alllibs', 'libpath', 'installprefix', 'datadir', 'datafiles', 'findCVS')
+datafiles = all_entries_that_start_with(allcvsfiles, './data')
+
+Export('env', 'gfxlibs', 'alllibs', 'libpath', 'installprefix', 'datadir', 'datafiles')
 
 SConscript(source_base_dir + os.sep + 'SConscript', build_dir = target_dir, duplicate = 0)
 
@@ -187,10 +149,9 @@ BuildDir(target_dir, source_base_dir, duplicate=0)
 #fixme: change that so that e.g. "scons tarball" does that only, and it
 #isn't done everytime we build the program
 
-allcvsfiles = findCVS('.')
 allcvsfiles2 = ''
 for i in allcvsfiles:
-	allcvsfiles2 += i + ' '
+	allcvsfiles2 += i[:len(i)-1] + ' '
 
 #env.Append(TARFLAGS = '-z ' + problematicfiless)
 #env.Append(TARSUFFIX = '.gz')

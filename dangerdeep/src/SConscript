@@ -2,7 +2,7 @@
 import os
 import sys
 
-Import('env', 'gfxlibs', 'alllibs', 'libpath', 'installprefix', 'datadir', 'datafiles', 'findCVS')
+Import('env', 'gfxlibs', 'alllibs', 'libpath', 'installprefix', 'datadir', 'datafiles')
 
 ################## define sources #######################
 dftdsources = Split("""subsim.cpp
