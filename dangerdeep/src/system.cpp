@@ -218,6 +218,7 @@ void system::prepare_2d_drawing()
 {
 	myassert(draw_2d == false, "2d drawing already turned on");
 	glFlush();
+	glViewport(0, 0, res_x, res_y);
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();

@@ -21,7 +21,7 @@ model	*torpedo_g7, *depth_charge_mdl, *gun_shell_mdl, *conning_tower_typeVII;
 
 texture *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
-	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
+	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *metalbackgr,
 	*torpt1, *torpt2, *torpt3, *torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut,
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
 	*woodbackgr, *smoke, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
@@ -74,7 +74,6 @@ void init_global_data(void)
 	psbackgr = new texture(get_texture_dir() + "psbackgr.png");
 	panelbackgr = new texture(get_texture_dir() + "panelbackgr.png", GL_LINEAR);
 	addleadangle = new texture(get_texture_dir() + "addleadangle.png");
-	uzo = new texture(get_texture_dir() + "uzo.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
 	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", GL_LINEAR);
 	clock12 = new texture(get_texture_dir() + "clock12.png");
 	clock24 = new texture(get_texture_dir() + "clock24.png");
@@ -144,7 +143,6 @@ void deinit_global_data(void)
 	delete torpempty;
 	delete torpreload;
 	delete torpunload;
-	delete uzo;
 	delete metalbackgr;
 	delete torpt1;
 	delete torpt2;

@@ -418,7 +418,7 @@ void freeview_display::draw_view(game& gm) const
 //		glMatrixMode(GL_MODELVIEW);
 //		glEnable(GL_DEPTH_TEST);
 	}
-	
+
 	glDisable(GL_FOG);	
-	glColor3f(1,1,1);
+	glColor4f(1,1,1,1);
 }

@@ -32,17 +32,17 @@ protected:
 	freeview_display();
 
 	// display() calls these functions
-	void pre_display(class game& gm) const;
+	virtual void pre_display(class game& gm) const;
 //fixme: reflections need special viewport... depends on detail settings. mabye retrieve from ui
-	projection_data get_projection_data(class game& gm) const;
-	void set_modelview_matrix(class game& gm) const;
-	void post_display(class game& gm) const;
+	virtual projection_data get_projection_data(class game& gm) const;
+	virtual void set_modelview_matrix(class game& gm) const;
+	virtual void post_display(class game& gm) const;
 
 	// draw all sea_objects
-	void draw_objects(class game& gm, const vector3& viewpos) const;
+	virtual void draw_objects(class game& gm, const vector3& viewpos) const;
 
 	// draw the whole view
-	void draw_view(class game& gm) const;
+	virtual void draw_view(class game& gm) const;
 
 public:
 	freeview_display(class user_interface& ui_);
