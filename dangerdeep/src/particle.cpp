@@ -250,14 +250,14 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 // smoke
 
 //fixme: decrease ascend speed with life?
-#define SMOKE_PARTICLE_LIFE_TIME 60.0	// seconds
-#define SMOKE_PARTICLE_INITIAL_ASCEND_SPEED 5.0 // m/s
-#define SMOKE_PARTICLE_ACCEL 5.0
+#define SMOKE_PARTICLE_LIFE_TIME 40.0	// seconds
+#define SMOKE_PARTICLE_INITIAL_ASCEND_SPEED 6.0 // m/s
+#define SMOKE_PARTICLE_ACCEL 6.0
 
 #define SMOKE_PARTICLE_SIZE_MIN 4.0	// meters
-#define SMOKE_PARTICLE_SIZE_MAX 60.0	// meters
+#define SMOKE_PARTICLE_SIZE_MAX 30.0	// meters
 
-#define SMOKE_PARTICLE_PRODUCE_TIME 1.0
+#define SMOKE_PARTICLE_PRODUCE_TIME 0.666
 
 smoke_particle::smoke_particle(const vector3& pos_) : particle(pos_), texnr(rand() % NR_OF_SMOKE_TEXTURES)
 {
