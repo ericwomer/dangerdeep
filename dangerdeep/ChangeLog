@@ -1,3 +1,11 @@
+2005-02-24 Andy Rice
+	* crosssection.cpp, damagemodel.cpp, viewmodel.cpp
+	  - crosssection.exe, damagemodel.exe & viewmodel.exe can compile on Windows 
+	* game.cpp, global_data.cpp, global_data.h, sound.cpp, user_interface.cpp, user_interface.h
+	  - added files: ping.ogg, shell splash.ogg, shell explosion.ogg, small gun firing.ogg
+	  	big gun firing.ogg, depth charge launching.ogg, deck gun firing.ogg, 
+	  	depth charge exploding.ogg
+	  - added new sound effects for weapons and explosions
 2005-02-20  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* many files
 	  - made bearing switchable between relative and absolute values

@@ -23,7 +23,7 @@ class user_interface
 	user_interface();
 public:
 	enum color_mode { day_color_mode, night_color_mode };
-	enum sound_effect { se_submarine_torpedo_launch, se_torpedo_detonation };
+	enum sound_effect { se_submarine_torpedo_launch, se_torpedo_detonation, se_deck_gun_firing, se_depth_charge_firing, se_depth_charge_exploding, se_ping, se_shell_exploding, se_shell_splash };
 
 protected:
 	game* mygame;	// pointer to game object that is displayed

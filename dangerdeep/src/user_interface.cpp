@@ -578,6 +578,24 @@ sound* user_interface::get_sound_effect(sound_effect se) const
 				}
 			}
 			break;
+		case se_deck_gun_firing:
+			s = deck_gun_firing_sound;
+			break;
+		case se_depth_charge_firing:
+			s = depth_charge_firing_sound;
+			break;
+		case se_depth_charge_exploding:
+			s = depth_charge_exploding_sound;
+			break;
+		case se_ping:
+			s = ping_sound;
+			break;
+		case se_shell_exploding:
+			s = shell_exploding_sound;
+			break;
+		case se_shell_splash:
+			s = shell_splash_sound;
+			break;
 	}
 
 	return s;

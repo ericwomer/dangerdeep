@@ -965,12 +965,18 @@ void game::spawn_torpedo(torpedo* t)
 void game::spawn_gun_shell(gun_shell* s)
 {
 	gun_shells.push_back(s);
+	
+	if (ui) 
+		ui->play_sound_effect_distance(ui->se_deck_gun_firing, player->get_pos().distance(s->get_pos()));
 }
 
 void game::spawn_depth_charge(depth_charge* dc)
 {
 	if (ui) ui->add_message(texts::get(205));	// fixme: only if player is near enough
 	depth_charges.push_back(dc);
+	
+	if (ui) 
+		ui->play_sound_effect_distance(ui->se_depth_charge_firing, player->get_pos().distance(dc->get_pos()));
 }
 
 void game::spawn_convoy(convoy* cv)
@@ -998,6 +1004,8 @@ void game::dc_explosion(const depth_charge& dc)
 		(*it)->depth_charge_explosion(dc);
 		if (*it == player) {
 			// play detonation sound, volume depends on distance
+			if (ui) 
+				ui->play_sound_effect_distance(ui->se_depth_charge_exploding, player->get_pos().distance(dc.get_pos()));
 		}
 	}
 	if (ui) ui->add_message(texts::get(204));	// fixme: only when player is near enough
@@ -1021,6 +1029,8 @@ bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 			}		
 			
 			// play gun shell explosion sound effect
+			if (ui) 
+				ui->play_sound_effect_distance(ui->se_shell_exploding, player->get_pos().distance(pos));
 			
 			return true;	// only one hit possible
 		}
@@ -1033,11 +1043,19 @@ bool game::gs_impact(const vector3& pos)	// fixme: vector2 would be enough
 			(*it)->damage((*it)->get_pos() /*fixme*/,GUN_SHELL_HITPOINTS);
 			
 			// play gun shell explosion sound effect
+			if (ui) 
+				ui->play_sound_effect_distance(ui->se_shell_exploding, player->get_pos().distance(pos));
 			
 			return true; // only one hit possible
 		}
 	}
 
+	if (pos.z <= 0)
+	{
+		if (ui) 
+			ui->play_sound_effect_distance(ui->se_shell_splash, player->get_pos().distance(pos));
+	}
+	
 	// No impact.
 	return false;
 }
@@ -1093,6 +1111,9 @@ void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
 		pings.push_back ( ping ( d->get_pos ().xy (),
 			ass->get_bearing () + d->get_heading (), time,
 			ass->get_range (), ass->get_detection_cone () ) );
+		
+		if (ui) 
+			ui->play_sound_effect_distance(ui->se_ping, player->get_pos().distance(d->get_pos()));
 
 		// fixme: noise from ships can disturb ASDIC or may generate more contacs.
 		// ocean floor echoes ASDIC etc...
