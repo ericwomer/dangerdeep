@@ -11,7 +11,9 @@
 #include <GL/glu.h>
 #include <SDL.h>
 
+#include <iostream>
 #include <sstream>
+#include <iomanip>
 #include "user_interface.h"
 #include "system.h"
 #include "game.h"
@@ -26,6 +28,7 @@
 #include "ships_sunk_display.h"
 #include "vector3.h"
 #include "coastmap.h"
+using namespace std;
 
 #define MAX_PANEL_SIZE 256
 
@@ -662,7 +665,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 //	float m[16];
 //	glGetFloatv(GL_MODELVIEW_MATRIX, &m[0]);
 //	glLoadIdentity();
-	GLfloat lp[4] = {0,0,0,1};//{m[12], m[13], m[14], 0};	// light comes from sun (maybe use directional light)
+	// GLfloat lp[4] = {0,0,0,1};//{m[12], m[13], m[14], 0};	// light comes from sun (maybe use directional light)
 //	glLightfv(GL_LIGHT1, GL_POSITION, lp);
 
 	glPopMatrix();	// remove sun space
@@ -885,11 +888,11 @@ void user_interface::draw_infopanel(class system& sys, class game& gm) const
 
 		ostringstream os;
 		os << texts::get(1) << ": " << get_player()->get_heading().ui_value()
-			<< "\t" << texts::get(4) << ": "
+			<< "\t" << texts::get(4) << ": " << setw(3) << left
 			<< unsigned(fabs(round(sea_object::ms2kts(get_player()->get_speed()))))
-			<< "\t" << texts::get(5) << ": "
+			<< "\t" << texts::get(5) << ": " << setw(3) << left
 			<< unsigned(round(-get_player()->get_pos().z))
-			<< "\t" << texts::get(2) << ": "
+			<< "\t" << texts::get(2) << ": " << setw(3) << left
 			<< bearing.ui_value()
 			<< "\t" << texts::get(98) << ": "
 			<< time_scale;
@@ -1216,7 +1219,7 @@ void user_interface::draw_pings(class game& gm, const vector2& offset)
 	const list<game::ping>& pings = gm.get_pings();
 	for (list<game::ping>::const_iterator it = pings.begin(); it != pings.end(); ++it) {
 		const game::ping& p = *it;
-		vector2 r = player_object->get_pos ().xy () - p.pos;
+		// vector2 r = player_object->get_pos ().xy () - p.pos;
 		vector2 p1 = (p.pos + offset)*mapzoom;
 		vector2 p2 = p1 + (p.dir + p.pingAngle).direction() * p.range * mapzoom;
 		vector2 p3 = p1 + (p.dir - p.pingAngle).direction() * p.range * mapzoom;
