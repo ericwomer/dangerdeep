@@ -226,9 +226,7 @@ BuildDir(target_dir, source_base_dir, duplicate=0)
 if sys.platform == 'linux2':
 	env.Append(TARFLAGS = '-z')
 	env.Append(TARSUFFIX = '.gz')
-	cvsfiles = findCVS('src')
-	cvsfiles += findCVS('data')
-	cvsfiles += findCVS('build')
+	cvsfiles = findCVS('.')
 	# fixme: tar replaces build/linux/x with src/x, hack fix with symlink
 	env.Tar('dangerdeep-'+version, cvsfiles)
 	#env.Zip is also possible
