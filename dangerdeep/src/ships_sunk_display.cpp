@@ -85,7 +85,7 @@ void ships_sunk_display::display ( class game& gm )
 		glScalef (1, 1, 0.001f);
 		glRotatef (90, 0, 0, 1);
 		glRotatef (-90, 0, 1, 0);
-		(*it).second.get_model ()->display ();
+		modelcache.find((*it).second.get_model ())->display ();
 		glPopMatrix ();
 	}
 	glEnd ();

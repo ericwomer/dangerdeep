@@ -49,6 +49,7 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 				if (shps >= nrships) break;
 				int dx = int(i)-sqrtnrships/2;
 				float d = 4*float(dx*dx+dy*dy)/nrships;
+				//fixme!!! replace by parsing ship dir for available types or hardcode them!!!
 				ship::types shiptype = ship::mediummerchant;
 				if (d < 0.2) {
 					unsigned r = rnd(2);

@@ -24,10 +24,17 @@ public:
 			delete it->second.second;
 	}
 
+	T* find(const string& objname) {
+		typename map<string, pair<unsigned, T*> >::iterator it = cache.find(objname);
+		if (it == cache.end())
+			return 0;
+		return it->second.second;
+	}
+
 	T* ref(const string& objname) {
 		typename map<string, pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it == cache.end()) {
-			it = cache.insert(make_pair(objname, make_pair(1, new T(basedir + objname))));
+			it = cache.insert(make_pair(objname, make_pair(1, new T(basedir + objname)))).first;
 		} else {
 			++(it->second.first);
 		}

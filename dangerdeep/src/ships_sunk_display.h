@@ -13,22 +13,23 @@ class ships_sunk_display : public user_display
 {
 	class destroyed_object
 	{
-		// This model pointer is needed for a symbolical display of the target.
-		const model* mdl;
+		string mdl;
 		unsigned tonnage;
 		string class_name;
 
 	public:
-		destroyed_object () : mdl ( 0 ), tonnage ( 0 ) {};
-		destroyed_object ( const model* mdl, unsigned tonnage,
-			const string& class_name ) : mdl ( mdl ), tonnage ( tonnage ),
-			class_name ( class_name ) {}
+		destroyed_object () : tonnage ( 0 ) {};
+		destroyed_object ( const string& mdl_, unsigned tonnage,
+			const string& class_name ) : mdl ( mdl_ ), tonnage ( tonnage ),
+			class_name ( class_name ) { modelcache.ref(mdl); }
 		destroyed_object ( const destroyed_object& d ) { copy ( d ); }
-		virtual ~destroyed_object () { mdl = 0; }
-		virtual void display () const { mdl->display (); }
+		virtual ~destroyed_object () { modelcache.unref(mdl); }
+		virtual void display () const { modelcache.find(mdl)->display (); }
 		virtual void copy ( const destroyed_object& d )
 		{
+			modelcache.unref(this->mdl);
 			this->mdl = d.mdl;
+			modelcache.ref(this->mdl);
 			this->tonnage = d.tonnage;
 			this->class_name = d.class_name;
 		}
@@ -39,7 +40,7 @@ class ships_sunk_display : public user_display
 
 			return *this;
 		}
-		const model* get_model () const { return mdl; }
+		string get_model () const { return mdl; }
 		unsigned get_tonnage () const { return tonnage; }
 		string get_class_name () const { return class_name; }
 	};

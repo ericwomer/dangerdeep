@@ -29,6 +29,7 @@ airplane::airplane(unsigned type_, const vector3& pos, double heading) : sea_obj
 	}
 	
 	throttle = aheadfull;
+	modelname = "flugzeug3.3ds";
 }
 
 void airplane::load(istream& in, class game& g)
@@ -281,13 +282,4 @@ void airplane::pitch_up(void)
 void airplane::pitch_zero(void)
 {
 	pitchfac = 0;
-}
-
-
-const model* airplane::get_model(void) const
-{
-	switch(type) {
-		default:
-			return std_plane;
-	}
 }

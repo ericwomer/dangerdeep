@@ -35,11 +35,14 @@ sea_object::sea_object() : position(), heading(),
 	head_to(0.0), turn_rate(0.0), length(0.0), width(0.0),
 	alive_stat(alive)
 {
+	if (modelname.length() > 0)
+		modelcache.ref(modelname);
 	sensors.resize ( last_sensor_system );
 }
 
 sea_object::~sea_object()
 {
+	modelcache.unref(modelname);
 	int size = sensors.size ();
 	for ( int i = 0; i < size; i++ )
 	{
@@ -406,7 +409,7 @@ void sea_object::set_sensor ( sensor_system ss, sensor* s )
 
 double sea_object::get_cross_section ( const vector2& d ) const
 {
-	const model* mdl = get_model();
+	model* mdl = modelcache.find(modelname);
 	if (mdl) {
 		vector2 r = get_pos().xy() - d;
 		angle diff = angle(r) - heading;
@@ -427,7 +430,7 @@ vector2 sea_object::get_engine_noise_source () const
 
 void sea_object::display(void) const
 {
-	const model* mdl = get_model ();
+	model* mdl = modelcache.find(modelname);
 
 	if ( mdl )
 		mdl->display ();

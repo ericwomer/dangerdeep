@@ -5,17 +5,6 @@
 #include "model.h"
 #include "game.h"
 #include "date.h"
-#include "ship_largemerchant.h"
-#include "ship_mediummerchant.h"
-#include "ship_smallmerchant.h"
-#include "ship_mediumtroopship.h"
-#include "ship_destroyertribal.h"
-#include "ship_battleshipmalaya.h"
-#include "ship_carrierbogue.h"
-#include "ship_corvette.h"
-#include "ship_largefreighter.h"
-#include "ship_mediumfreighter.h"
-#include "ship_smalltanker.h"
 #include "tokencodes.h"
 #include "sensors.h"
 #include "ai.h"
@@ -91,6 +80,7 @@ void ship::save(ostream& out, const game& g) const
 
 ship* ship::create(istream& in, unsigned type)
 {
+/*
 	switch (type) {
 		case largemerchant: return new ship_largemerchant();
 		case mediummerchant: return new ship_mediummerchant();
@@ -104,11 +94,13 @@ ship* ship::create(istream& in, unsigned type)
 		case mediumfreighter: return new ship_mediumfreighter();
 		case smalltanker: return new ship_smalltanker();
 	}
+*/
 	return 0;
 }
 
 ship* ship::create(ship::types type_)
 {
+/*
 	switch (type_) {
 		case largemerchant: return new ship_largemerchant();
 		case mediummerchant: return new ship_mediummerchant();
@@ -122,6 +114,7 @@ ship* ship::create(ship::types type_)
 		case mediumfreighter: return new ship_mediumfreighter();
 		case smalltanker: return new ship_smalltanker();
 	}
+*/
 	return 0;
 }
 
@@ -194,12 +187,10 @@ ship* ship::create_from_template(const string& type_name)
 	n = firstchild(type);
 	cout << "type '" << n->Value() << "'\n";
 	string ts = n->Value();
-/*
 	if (ts == "warship") shp->type = WARSHIP;
 	else if (ts == "escort") shp->type = ESCORT;
 	else if (ts == "merchant") shp->type = MERCHANT;
-	else return 0;
-*/
+	else system::sys().myassert(false, string("illegal ship type in ") + type_name);
 	TiXmlNode* country = firstchildn(dftdship, "country");
 	n = firstchild(country);
 	cout << "country '" << n->Value() << "'\n";
@@ -216,8 +207,12 @@ ship* ship::create_from_template(const string& type_name)
 	n = firstchild(turnrate);
 	cout << "turnrate '" << n->Value() << "'\n";
 	TiXmlNode* tonnage = firstchildn(dftdship, "tonnage");
-	n = firstchild(tonnage);
-	cout << "tonnage '" << n->Value() << "'\n";
+	TiXmlNode* minton = firstchildn(tonnage, "min");
+	n = firstchild(minton);
+	cout << "tonnage min '" << n->Value() << "'\n";
+	TiXmlNode* maxton = firstchildn(tonnage, "max");
+	n = firstchild(maxton);
+	cout << "tonnage max '" << n->Value() << "'\n";
 	TiXmlNode* aitype = firstchildn(dftdship, "aitype");
 	n = firstchild(aitype);
 	cout << "aitype '" << n->Value() << "'\n";

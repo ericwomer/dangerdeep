@@ -670,7 +670,7 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 		double strength = (damage_radius - sdlen) / (damage_radius - deadly_radius);
 
 		// add damage
-		vector3f bb = get_model()->get_boundbox_size();
+		vector3f bb = modelcache.find(get_model())->get_boundbox_size();
 	
 		// project relative position to circle on 2d plane (y,z) parallel to sub.
 		// circle's radius is proportional to strength.

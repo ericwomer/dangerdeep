@@ -23,7 +23,6 @@ class airplane;
 class torpedo;
 class depth_charge;
 class sensor;
-class model;
 
 class sea_object
 {
@@ -97,6 +96,8 @@ protected:
 		@return cross section in square meters.
 	*/
 	virtual double get_cross_section ( const vector2& d ) const;
+	
+	string modelname;
    
 public:
 	virtual ~sea_object();
@@ -105,7 +106,7 @@ public:
 
 	// detail: 0 - category, 1 - finer category, >=2 - exact category
 	virtual string get_description(unsigned detail) const { return "UNKNOWN"; }
-	virtual const model* get_model (void) const { return 0; }
+	virtual string get_model (void) const { return modelname; }
 
 	virtual void simulate(class game& gm, double delta_time);
 //	virtual bool is_collision(const sea_object* other);

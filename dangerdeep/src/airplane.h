@@ -52,8 +52,6 @@ public:
 
 	// types:
 	airplane(unsigned type_, const vector3& pos, double heading);
-
-	const model* get_model (void) const;
 };
 
 #endif

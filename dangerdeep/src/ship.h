@@ -48,25 +48,18 @@ protected:
 	class smoke_stream* mysmoke;
 	
 public:
-	// fixme: add more types
 	enum types {
-		largemerchant,
-		mediummerchant, 
-		smallmerchant,
-		mediumtroopship, 
-		destroyertribal, 
-		battleshipmalaya, 
-		carrierbogue,
-		corvette,
-		largefreighter,
-		mediumfreighter,
-		smalltanker,
+		WARSHIP,
+		ESCORT,
+		MERCHANT
 	};
 	
 	virtual ~ship();
 
 	virtual void load(istream& in, class game& g);
 	virtual void save(ostream& out, const class game& g) const;
+	// fixme: make constructors: create from istream (load), create immidiate (empty), create from parser (mission)
+	// fixme: maybe make missions as xml too, make read_parameters_from_xml function then for mission based ship creation
 	static ship* create(istream& in, unsigned type);
 	static ship* create(types type_);
 	static ship* create(parser& p);
