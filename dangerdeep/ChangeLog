@@ -1,3 +1,8 @@
+2005-03-04  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* subsim.cpp
+	 - separated system specific main(), makes multiplatform compilation
+	   easier, could be used for the other binaries too...
+
 2005-02-28 Andy Rice
 	* ai.cpp, game.cpp, game.h, global_data.cpp, global_data.h, gun_shell.cpp, gun_shell.h,
 	  keys.cpp, keys.h, ship.cpp, ship.h, sub_torpedo_display.cpp, submarine.cpp,

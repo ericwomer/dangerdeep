@@ -1142,15 +1142,9 @@ bool file_exists(const string& fn)
 }
 
 
-#ifdef WIN32
-int WinMain(HINSTANCE, HINSTANCE, LPSTR cmdline, int)
-{
-    string mycmdline(cmdline);
-#else
-int main(int argc, char** argv)
-{
-#endif
 
+int mymain(list<string>& args)
+{
 	string highscoredirectory =
 #ifdef WIN32
 	"./highscores/";
@@ -1255,22 +1249,9 @@ int main(int argc, char** argv)
 	bool fullscreen = true;
 	string cmdmissionfilename;
 
-	list<string> args;
-	string programname;
-#ifdef WIN32
-       // parse mycmdline
-       while (mycmdline != "") {
-           string::size_type st = mycmdline.find(" ");
-           args.push_back(mycmdline.substr(0, st));
-           if (st == string::npos) break;
-           mycmdline = mycmdline.substr(st+1);
-       }
-       programname = "dangerdeep.exe";
-#else
-       //parse argc, argv
-     while (--argc > 0) args.push_front(string(argv[argc]));
-     programname = argv[0];
-#endif
+	// parse commandline
+	string programname = args.front();
+	args.pop_front();
 
 	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
 		if (*it == "--help") {
@@ -1425,3 +1406,42 @@ int main(int argc, char** argv)
 
 	return 0;
 }
+
+
+
+//
+// system dependent main
+//
+// WIN32: use WinMain, divide cmd line to list of strings
+// UNIX: C-like main, make strings from char** array
+// MacOSX: ? fixed with objective C code ?
+//
+
+#ifdef WIN32
+
+int WinMain(HINSTANCE, HINSTANCE, LPSTR cmdline, int)
+{
+	string mycmdline(cmdline);
+	list<string> args;
+	args.push_back("dangerdeep.exe"); // program name (argv[0]), maybe retrieve somehow from windows
+	// parse mycmdline
+	while (mycmdline.length() > 0) {
+		string::size_type st = mycmdline.find(" ");
+		args.push_back(mycmdline.substr(0, st));
+		if (st == string::npos) break;
+		mycmdline = mycmdline.substr(st+1);
+	}
+	return mymain(args);
+}
+
+#else	// UNIX
+
+int main(int argc, char** argv)
+{
+	list<string> args;
+	//parse argc, argv
+	while (--argc > 0) args.push_front(string(argv[argc]));
+	return mymain(args);
+}
+
+#endif
