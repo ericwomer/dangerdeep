@@ -30,7 +30,7 @@ void ship::init(void)
 	rudder_pos = 0;
 	rudder_to = 0;
 	max_rudder_angle = 40;
-	max_angular_velocity = 10;
+	max_angular_velocity = 2;
 }
 
 
@@ -404,8 +404,9 @@ double ship::get_noise_factor (void) const
 
 
 //fixme: deceleration is to low at low speeds, causing the sub the turn a LONG time after
-//rudder is midships/screws stopped.
+//rudder is midships/screws stopped. Is fixed by setting drag to linear at speeds < 1.0
 //fixme: drag can go nuts when time is scaled causing NaN in double...
+//this is because damping becomes to crude at high time scale
 vector3 ship::get_acceleration(void) const		// drag must be already included!
 {
 	// acceleration of ship depends on rudder.
@@ -440,13 +441,13 @@ double ship::get_turn_acceleration(void) const	// drag must be already included!
 	double speed = get_speed();
 	double tv2 = turn_velocity*turn_velocity;
 	if (fabs(turn_velocity) < 1.0) tv2 = fabs(turn_velocity) * max_angular_velocity;
-	double accel_factor = 5.0;	// given by turn rate, influenced by rudder area...
+	double accel_factor = 1.0;	// given by turn rate, influenced by rudder area...
 	double max_turn_accel = accel_factor * max_speed_forward * sin(max_rudder_angle * M_PI / 180.0);
 	double drag_factor = (tv2) * max_turn_accel / (max_angular_velocity*max_angular_velocity);
 	double acceleration = accel_factor * speed * sin(rudder_pos * M_PI / 180.0);
 	if (turn_velocity > 0) drag_factor = -drag_factor;
-//cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << "\n";
-//cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << "\n";
+cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << " turn_velo " << turn_velocity << " heading " << heading.value() << " tv2 " << tv2 << "\n";
+cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << " max_turn_accel " << max_turn_accel << "\n";
 	return acceleration + drag_factor;
 }
 

@@ -41,7 +41,7 @@
 const int SAVEVERSION = 0;
 const int GAMETYPE = 0;//fixme
 
-#define TRAILTIME 10
+#define TRAILTIME 5
 #define ENEMYCONTACTLOST 100000.0	// meters
 
 
@@ -1380,13 +1380,15 @@ unsigned game::exec(void)
 		// this time_scaling is bad. hits may get computed wrong when time
 		// scaling is too high. fixme
 		unsigned thistime = sys.millisec();
-		double delta_time = (thistime - lasttime)/1000.0 * ui->time_scaling();
+		unsigned time_scale = ui->time_scaling();
+		double delta_time = (thistime - lasttime)/1000.0; // * time_scale;
 		totaltime += (thistime - lasttime)/1000.0;
 		lasttime = thistime;
 		
 		// next simulation step
 		if (!ui->paused()) {
-			simulate(delta_time);
+			for (unsigned j = 0; j < time_scale; ++j)
+				simulate(time_scale == 1 ? delta_time : (1.0/30.0));
 		}
 
 		ui->display(*this);
