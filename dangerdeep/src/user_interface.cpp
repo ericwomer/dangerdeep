@@ -500,7 +500,9 @@ void user_interface::draw_infopanel(class game& gm) const
 		panel_valuetexts[4]->set_text(os4.str());
 
 		panel->draw();
-		panel->process_input(true);
+		// let aside the fact that we should divide DRAWING and INPUT HANDLING
+		// the new process_input function eats SDL_Events which we don't have here
+//		panel->process_input(true);
 	}
 }
 

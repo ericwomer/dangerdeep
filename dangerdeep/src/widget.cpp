@@ -13,6 +13,7 @@
 
 widget::theme* widget::globaltheme = 0;
 widget* widget::focussed = 0;
+widget* widget::mouseover = 0;
 int widget::oldmx = 0;
 int widget::oldmy = 0;
 int widget::oldmb = 0;
@@ -88,6 +89,7 @@ widget::~widget()
 	for (list<widget*>::iterator it = children.begin(); it != children.end(); ++it)
 		delete *it;
 	if (this == focussed) focussed = parent;
+	if (this == mouseover) mouseover = 0;
 }
 
 void widget::add_child(widget* w)
@@ -142,17 +144,32 @@ void widget::draw(void) const
 			p.x+size.x/2, p.y+globaltheme->frame_size(), text,
 			tcol, true);
 	}
+	// fixme: if childs have the same size as parent, don't draw parent?
+	// i.e. do not use stacking then...
+	// maybe make chooseable via argument of run()
 	for (list<widget*>::const_iterator it = children.begin(); it != children.end(); ++it)
 		(*it)->draw();
 }
 
-bool widget::compute_focus(void)
+bool widget::compute_focus(int mx, int my)
 {
 	focussed = 0;
-	if (is_mouse_over()) {
+	if (is_mouse_over(mx, my)) {
 		for (list<widget*>::const_iterator it = children.begin(); it != children.end(); ++it)
-			if ((*it)->compute_focus()) return true;
+			if ((*it)->compute_focus(mx, my)) return true;
 		focussed = this;
+		return true;
+	}
+	return false;
+}
+
+bool widget::compute_mouseover(int mx, int my)
+{
+	mouseover = 0;
+	if (is_mouse_over(mx, my)) {
+		for (list<widget*>::const_iterator it = children.begin(); it != children.end(); ++it)
+			if ((*it)->compute_mouseover(mx, my)) return true;
+		mouseover = this;
 		return true;
 	}
 	return false;
@@ -176,9 +193,9 @@ void widget::disable(void)
 	enabled = false;
 }
 
-void widget::on_char(void)
+void widget::on_char(const SDL_keysym& ks)
 {
-	system::sys().get_key();	// just ignore it
+	// just ignore it
 }
 
 void widget::draw_frame(int x, int y, int w, int h, bool out)
@@ -196,40 +213,53 @@ void widget::draw_frame(int x, int y, int w, int h, bool out)
 	frelem[7]->draw(x, y+fw, fw, h-2*fw);
 }
 
-void widget::prepare_input(void)
-{
-	class system& sys = system::sys();
-	sys.get_mouse_position(oldmx, oldmy);
-	oldmb = sys.get_mouse_buttons() & 1;
-}
 
-void widget::process_input(bool ignorekeys)
-{
-	class system& sys = system::sys();
-	int mx, my;		
-	sys.get_mouse_position(mx, my);
-	int mb = sys.get_mouse_buttons() & 1;
-	int mclick = mb & ~oldmb;
-	int mrelease = oldmb & ~mb;
-	oldmb = mb;
-	int dx = mx - oldmx;
-	int dy = my - oldmy;
-	oldmx = mx;
-	oldmy = my;
 
-	if (mclick & 1)
-		compute_focus();
-	if (focussed) {
-		if (!ignorekeys) {
-			if (!focussed->is_enabled()) { sys.flush_key_queue(); return; }
-			if (sys.is_key_in_queue()) focussed->on_char();
+void widget::process_input(const SDL_Event& event)
+{
+	switch (event.type) {
+	case SDL_KEYDOWN:
+		if (focussed && focussed->is_enabled())
+			focussed->on_char(event.key.keysym);
+		break;
+
+	case SDL_KEYUP:	// ignore for now
+		break;
+
+	case SDL_MOUSEBUTTONDOWN:
+		if (event.button.button == SDL_BUTTON_LEFT) {
+			compute_focus(event.button.x, event.button.y);
+			if (focussed) focussed->on_click(event.button.x, event.button.y, 1);
+		} else if (event.button.button == SDL_BUTTON_WHEELUP) {
+			if (focussed) focussed->on_wheel(1);
+		} else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
+			if (focussed) focussed->on_wheel(2);
 		}
-		if (mclick & 1) focussed->on_click();
-		if (mrelease & 1) focussed->on_release();
-		if (mb & 0x18) focussed->on_wheel();
-		if ((dx != 0 || dy != 0) && (mb & 1)) focussed->on_drag();
+		break;
+
+	case SDL_MOUSEBUTTONUP:
+		if (event.button.button == SDL_BUTTON_LEFT) {
+			if (focussed) focussed->on_release();
+		}
+		break;
+
+	case SDL_MOUSEMOTION:
+		compute_mouseover(event.motion.x, event.motion.y);
+		if (focussed) focussed->on_drag(event.motion.x, event.motion.y,
+						event.motion.xrel, event.motion.yrel,
+						event.motion.state);
+		break;
 	}
 }
+
+void widget::process_input(const list<SDL_Event>& events)
+{
+	for (list<SDL_Event>::const_iterator it = events.begin(); it != events.end(); ++it) {
+		process_input(*it);
+	}
+}
+
+
 
 void widget::draw_rect(int x, int y, int w, int h, bool out)
 {
@@ -252,10 +282,8 @@ void widget::draw_area(int x, int y, int w, int h, bool out) const
 	draw_frame(x, y, w, h, out);
 }
 
-bool widget::is_mouse_over(void) const
+bool widget::is_mouse_over(int mx, int my) const
 {
-	int mx, my;
-	system::sys().get_mouse_position(mx, my);
 	vector2i p = get_pos();
 	return (mx >= p.x && my >= p.y && mx < p.x+size.x && my < p.y + size.y);
 }
@@ -302,8 +330,9 @@ int widget::run(unsigned timeout)
 		unsigned time = sys.millisec();
 		if (timeout != 0 && time > endtime) break;
 		
-		if(inited && !sys.poll_event_queue()) {
-			SDL_Delay(1000/120);	
+		list<SDL_Event> events = sys.poll_event_queue();
+		if(inited && events.size() == 0) {
+			SDL_Delay(30);
 			continue;
 		}
 		inited = true;
@@ -313,7 +342,7 @@ int widget::run(unsigned timeout)
 		for (list<widget*>::iterator it = widgets.begin(); it != widgets.end(); ++it)
 			(*it)->draw();
 		sys.unprepare_2d_drawing();
-		process_input();
+		process_input(events);
 		sys.swap_buffers();
 	}
 	widgets.pop_back();
@@ -328,25 +357,39 @@ void widget::close(int val)
 	closeme = true;
 }
 
+widget_menu::widget_menu(int x, int y, int w, int h, const string& text_, bool horizontal_,
+			 widget* parent_)
+		: widget(x, y, 0, 0, text_, parent_), horizontal(horizontal_),
+		entryw(w), entryh(h), entryspacing(16)
+{
+	if (text.length() > 0) {
+		size.x = entryw;
+		size.y = entryh;
+	}
+}
+
 widget_button* widget_menu::add_entry(const string& s, widget_button* wb)
 {
 	int x, y, w, h;
+	unsigned mult = children.size();
+	if (text.length() > 0)
+		++mult;
 	if (horizontal) {
-		x = children.size() * (entryw + entryspacing);
+		x = mult * (entryw + entryspacing);
 		y = 0;
 		w = entryw;
 		h = entryh;
 		size.x += entryw;
 		size.y = entryh;
-		if (children.size() > 0) size.x += entryspacing;
+		if (mult > 0) size.x += entryspacing;
 	} else {
 		x = 0;
-		y = children.size() * (entryh + entryspacing);
+		y = mult * (entryh + entryspacing);
 		w = entryw;
 		h = entryh;
 		size.x = entryw;
 		size.y += entryh;
-		if (children.size() > 0) size.y += entryspacing;
+		if (mult > 0) size.y += entryspacing;
 	}
 	if (wb) {
 		wb->set_size(vector2i(w, h));
@@ -372,6 +415,13 @@ int widget_menu::get_selected(void) const
 void widget_menu::draw(void) const
 {
 	vector2i p = get_pos();
+	// draw tile bar if there is text
+	if (text.length() > 0) {
+		draw_area(p.x, p.y, entryw, entryh, true);
+		draw_area(p.x, p.y, entryw, entryh, false);
+		globaltheme->myfont->print_c(p.x+entryw/2, p.y+entryh/2, text,
+					     globaltheme->textcol, true);
+	}
 	for (list<widget*>::const_iterator it = children.begin(); it != children.end(); ++it)
 		(*it)->draw();
 }
@@ -424,7 +474,6 @@ void widget_menu::adjust_buttons(unsigned totalsize)
 void widget_text::draw(void) const
 {
 	vector2i p = get_pos();
-	class system& sys = system::sys();
 	if (sunken) {
 		draw_area(p.x, p.y, size.x, size.y, false);
 		int fw = globaltheme->frame_size();
@@ -437,13 +486,13 @@ void widget_text::draw(void) const
 void widget_button::draw(void) const
 {
 	vector2i p = get_pos();
-	bool mover = is_enabled() && is_mouse_over();
+	bool mover = is_enabled() && mouseover == this;
 	draw_area(p.x, p.y, size.x, size.y, !mover);
-	color col = (is_enabled() ? (is_mouse_over() ? globaltheme->textselectcol : globaltheme->textcol) : globaltheme->textdisabledcol);
+	color col = (is_enabled() ? (mouseover == this ? globaltheme->textselectcol : globaltheme->textcol) : globaltheme->textdisabledcol);
 	globaltheme->myfont->print_c(p.x+size.x/2, p.y+size.y/2, text, col, true);
 }
 
-void widget_button::on_click(void)
+void widget_button::on_click(int mx, int my, int mb)
 {
 	pressed = true;
 	on_change();
@@ -519,13 +568,10 @@ void widget_scrollbar::draw(void) const
 	draw_area(p.x, p.y + globaltheme->icons[0]->get_height() + 2*fw + scrollbarpixelpos, globaltheme->icons[0]->get_width()+2*fw, get_scrollbarsize(), true);
 }
 
-void widget_scrollbar::on_click(void)
+void widget_scrollbar::on_click(int mx, int my, int mb)
 {
 	unsigned oldpos = scrollbarpos;
 	vector2i p = get_pos();
-	int mx, my, mb;
-	system::sys().get_mouse_position(mx, my);
-	mb = system::sys().get_mouse_buttons();
 	if (my < int(p.y + globaltheme->icons[0]->get_height() + 4)) {
 		if (mb != 0) {
 			if (scrollbarpos > 0) {
@@ -540,9 +586,17 @@ void widget_scrollbar::on_click(void)
 				compute_scrollbarpixelpos();
 			}
 		}
-	} else {
-		int rx, ry;
-		system::sys().get_mouse_motion(rx, ry);
+	}
+	if (oldpos != scrollbarpos)
+		on_scroll();
+}
+
+void widget_scrollbar::on_drag(int mx, int my, int rx, int ry, int mb)
+{
+	unsigned oldpos = scrollbarpos;
+	vector2i p = get_pos();
+	if ((my >= int(p.y + globaltheme->icons[0]->get_height() + 4)) &&
+	    (my < int(p.y + size.y - globaltheme->icons[1]->get_height() - 4))) {
 		if (mb != 0 && ry != 0) {
 			if (scrollbarmaxpos > 1) {
 				int msbp = get_max_scrollbarsize() - get_scrollbarsize();
@@ -554,29 +608,21 @@ void widget_scrollbar::on_click(void)
 				scrollbarpos = scrollbarpixelpos * (scrollbarmaxpos-1) / msbp;
 			}
 		}
+		if (oldpos != scrollbarpos)
+			on_scroll();
 	}
-	if (oldpos != scrollbarpos)
-		on_scroll();
 }
 
-void widget_scrollbar::on_drag(void)
+void widget_scrollbar::on_wheel(int wd)
 {
-	on_click();
-}
-
-void widget_scrollbar::on_wheel(void)
-{
-	widget::process_input();
-	if (!is_enabled()) return;
 	unsigned oldpos = scrollbarpos;
-	int mb = system::sys().get_mouse_buttons();
-	if (mb & 0x8) {
+	if (wd == 1) {
 		if (scrollbarpos > 0) {
 			--scrollbarpos;
 			compute_scrollbarpixelpos();
 		}
 	}
-	if (mb != 0x10) {
+	if (wd == 2) {
 		if (scrollbarpos+1 < scrollbarmaxpos) {
 			++scrollbarpos;
 			compute_scrollbarpixelpos();
@@ -751,14 +797,11 @@ void widget_list::draw(void) const
 		myscrollbar->draw();
 }
 
-void widget_list::on_click(void)
+void widget_list::on_click(int mx, int my, int mb)
 {
 	vector2i p = get_pos();
-	int mx, my;
-	system::sys().get_mouse_position(mx, my);
-	int mbc = system::sys().get_mouse_buttons();	// fixme
 	int oldselected = selected;
-	if (mbc & 1) {
+	if (mb & 1) {
 		int fw = globaltheme->frame_size();
 		int sp = (my - p.y - fw)/int(globaltheme->myfont->get_height());
 		if (sp < 0) sp = 0;
@@ -769,9 +812,9 @@ void widget_list::on_click(void)
 		on_sel_change();
 }
 
-void widget_list::on_drag(void)
+void widget_list::on_drag(int mx, int my, int rx, int ry, int mb)
 {
-	on_click();
+	on_click(mx, my, mb);
 }
 
 void widget_edit::draw(void) const
@@ -787,9 +830,8 @@ void widget_edit::draw(void) const
 		system::sys().draw_rectangle(p.x+fw+sz.first, p.y+size.y/4, fw/2, size.y/2);
 }
 
-void widget_edit::on_char(void)
+void widget_edit::on_char(const SDL_keysym& ks)
 {
-	SDL_keysym ks = system::sys().get_key();
 	int c = ks.sym;
 	unsigned l = text.length();
 	unsigned textw = globaltheme->myfont->get_size(text).first;

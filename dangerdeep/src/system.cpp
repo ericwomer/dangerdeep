@@ -323,13 +323,15 @@ list<SDL_Event> system::poll_event_queue(void)
 
 //intermediate solution: just return list AND handle events, the app client can choose then
 //what he wants (if he handles events by himself, he have to flush the key queue each frame)
-unsigned int system::poll_event_queue(void)
+list<SDL_Event> system::poll_event_queue(void)
 {
+	list<SDL_Event> events;
+
 	SDL_Event event;
 	SDL_keysym keysym;
-	unsigned int eventcount = 0;
 	do {
 		while (SDL_PollEvent(&event)) {
+			events.push_back(event);
 			switch (event.type) {
 				case SDL_QUIT:			// Quit event
 					SDL_Quit();	// to clean up mouse etc. after kill
@@ -342,14 +344,13 @@ unsigned int system::poll_event_queue(void)
 					} else {
 						is_sleeping = false;
 						time_passed_while_sleeping += SDL_GetTicks() - sleep_time;
-						eventcount++;
 					}
+					events.pop_back();	// filter these events.
 					break;
 				
 				case SDL_KEYDOWN:		// Keyboard event - key down
 					keysym = event.key.keysym;
 					keyqueue.push(keysym);
-					eventcount++;
 					break;
 				
 				case SDL_KEYUP:			// Keyboard event - key up
@@ -362,7 +363,6 @@ unsigned int system::poll_event_queue(void)
 					mouse_yrel += event.motion.yrel;
 					mouse_x = event.motion.x;
 					mouse_y = event.motion.y;
-					eventcount++;
 					break;
 				
 				case SDL_MOUSEBUTTONDOWN:	// Mouse button event - button down
@@ -384,7 +384,6 @@ unsigned int system::poll_event_queue(void)
 							mouse_b |= wheel_down;
 							break;
 					}
-					eventcount++;
 					break;
 				
 				case SDL_MOUSEBUTTONUP:		// Mouse button event - button up
@@ -406,7 +405,6 @@ unsigned int system::poll_event_queue(void)
 							mouse_b &= ~wheel_down;
 							break;
 					}
-					eventcount++;
 					break;
 					
 				default:			// Should NEVER happen !
@@ -418,7 +416,7 @@ unsigned int system::poll_event_queue(void)
 		}
 	} while (is_sleeping);
 
-	return eventcount;
+	return events;
 }
 
 void system::get_mouse_motion(int &x, int &y)

@@ -19,7 +19,6 @@
 #include "model.h"
 #include "texture.h"
 #include "game.h"
-#include "menu.h"
 #include "global_data.h"
 #include "texts.h"
 #include "date.h"
@@ -46,9 +45,12 @@ highscorelist hsl_mission, hsl_career;
 // a dirty hack
 void menu_notimplemented(void)
 {
-	menu m(110, titlebackgrimg);
-	m.add_item(20, 0);
-	m.run();
+	widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
+	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(110));
+	w.add_child(wm);
+	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
+	wm->align(0, 0);
+	w.run();
 }
 
 
@@ -119,7 +121,7 @@ loadsavequit_dialogue::loadsavequit_dialogue(const game *g) : widget(0, 0, 1024,
 	add_child(new widget_text(40, 40, 0, 0, texts::get(178)));
 	gamename = new widget_edit(200, 40, 684, 40, "");
 	add_child(gamename);
-	widget_menu* wm = new widget_menu(40, 700, 180, 40, true);
+	widget_menu* wm = new widget_menu(40, 700, 180, 40, "", true);
 	add_child(wm);
 	btnload = wm->add_entry(texts::get(118), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::load));
 	if (mygame)
@@ -411,9 +413,12 @@ void run_game(game* gm)
 //			if (state == game::mission_complete)
 
 			if (state == game::player_killed) {
-				menu m(103, killedimg);
-				m.add_item(105, 0);
-				m.run();
+				widget w(0, 0, 1024, 768, "", 0, killedimg);
+				widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(103));
+				w.add_child(wm);
+				wm->add_entry(texts::get(105), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
+				wm->align(0, 0);
+				w.run();
 			}
 
 //			if (state == game::contact_lost)
@@ -492,7 +497,7 @@ void create_convoy_mission(void)
 	wtimeperiod->append_entry(texts::get(69));
 	wtimeperiod->append_entry(texts::get(70));
 
-	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
+	widget_menu* wm = new widget_menu(40, 700, 0, 40, "", true);
 	w.add_child(wm);
 	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
 	wm->add_entry(texts::get(19), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 540, 700, 400, 40));
@@ -583,7 +588,7 @@ void choose_historical_mission(void)
 	}
 	wmission->on_sel_change();
 
-	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
+	widget_menu* wm = new widget_menu(40, 700, 0, 40, "", true);
 	w.add_child(wm);
 	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
 	wm->add_entry(texts::get(19), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 70, 700, 400, 40));
@@ -676,7 +681,7 @@ bool server_wait_for_clients(network_connection& sv, Uint16 server_port, vector<
 	widget_list* wplayers = new widget_list(40, 90, 500, 400);
 	w.add_child(wplayers);
 	
-	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
+	widget_menu* wm = new widget_menu(40, 700, 0, 40, "", true);
 	w.add_child(wm);
 	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
 	widget_button* startgame = new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 70, 700, 400, 40);
@@ -860,7 +865,7 @@ void play_network_game(void)
 	
 	ask_for_offered_games(wservers, server_port, client);
 	
-	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
+	widget_menu* wm = new widget_menu(40, 700, 0, 40, "", true);
 	w.add_child(wm);
 	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
 	wm->add_entry(texts::get(191), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 70, 700, 400, 40));
@@ -892,9 +897,8 @@ void play_network_game(void)
 // old menus are used from here on
 void menu_single_mission(void)
 {
-/*
-	widget w(0, 0, 1024, 768, texts::get(21), 0, titlebackgrimg);
-	widget_menu* wm = new widget_menu(312, 0, 400, 40);
+	widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
+	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(21));
 	w.add_child(wm);
 	wm->add_entry(texts::get(8), new widget_func_button<void (*)(void)>(&menu_notimplemented, 0, 0, 0, 0));
 	wm->add_entry(texts::get(9), new widget_func_button<void (*)(void)>(&create_convoy_mission, 0, 0, 0, 0));
@@ -903,30 +907,30 @@ void menu_single_mission(void)
 	wm->add_entry(texts::get(11), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
 	wm->align(0, 0);
 	w.run();
-*/
+}
 
-
-	menu m(21, titlebackgrimg);
-	m.add_item(8, menu_notimplemented);
-	m.add_item(9, create_convoy_mission);
-	m.add_item(10, choose_historical_mission);
-	m.add_item(118, choose_saved_game);
-	m.add_item(11, 0);
-	m.run();
-	
+void set_selected_language(pair<widget*, unsigned> w_nr)
+{
+	if (w_nr.second < texts::nr_of_languages) {
+		texts::set_language(texts::languages(w_nr.second));
+	}
+	w_nr.first->close(0);
 }
 
 void menu_select_language(void)
 {
-	menu m(26, titlebackgrimg);
-	m.add_item(500, 0);
-	m.add_item(501, 0);
-	m.add_item(502, 0);
-	m.add_item(11, 0);
-	unsigned sel = m.run();
-	if (sel < 3) {
-		texts::set_language(texts::languages(sel));
+	widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
+	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(26));
+	w.add_child(wm);
+	for (unsigned i = 0; i < texts::nr_of_languages; ++i) {
+		widget_button* wb = new widget_func_arg_button<void (*)(pair<widget*, unsigned>),
+			pair<widget*, unsigned> >(&set_selected_language, make_pair(&w, i),
+						  0, 0, 0, 0);
+		wm->add_entry(texts::get(500+i), wb);
 	}
+	wm->add_entry(texts::get(11), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
+	wm->align(0, 0);
+	w.run();
 }
 
 //
@@ -940,6 +944,7 @@ void menu_select_language(void)
 //
 void menu_resolution(void)
 {
+/*
 	menu m(106, titlebackgrimg);
 	m.add_item(107, menu_notimplemented);
 	m.add_item(108, menu_notimplemented);
@@ -947,14 +952,17 @@ void menu_resolution(void)
 	m.add_item(20, 0);
 	unsigned sel = m.run();
 	// fixme: change resolution
+*/
 }
 
 void menu_options(void)
 {
+/*
 	menu m(29, titlebackgrimg);
 	m.add_item(106, menu_resolution);
 	m.add_item(11, 0);
 	m.run();
+*/
 }
 
 
@@ -1008,6 +1016,7 @@ void draw_ship(void)
 
 void menu_show_vessels(void)
 {
+/*
 	menu m(24, threesubsimg, true);
 	m.add_item(111, 0);
 	m.add_item(112, 0);
@@ -1050,6 +1059,7 @@ void menu_show_vessels(void)
  		}
 	}
 	delete shp;
+*/
 }
 
 
@@ -1235,17 +1245,23 @@ int main(int argc, char** argv)
 		run_game(new game(&doc));
 	} else {
 		// main menu
-		menu m(104, titlebackgrimg);
-		m.add_item(21, menu_single_mission);
-		m.add_item(22, play_network_game);
-		m.add_item(23, menu_notimplemented);
-		m.add_item(24, menu_show_vessels);
-		m.add_item(25, show_halloffame_mission);
-		m.add_item(213, show_credits);
-		m.add_item(26, menu_select_language);
-		m.add_item(29, menu_notimplemented /*menu_options*/);
-		m.add_item(30, 0);
-		m.run();
+		widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
+		widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(104));
+		wm->set_entry_spacing(8);
+		w.add_child(wm);
+		wm->add_entry(texts::get(21), new widget_func_button<void (*)(void)>(&menu_single_mission, 0, 0, 0, 0));
+		wm->add_entry(texts::get(22), new widget_func_button<void (*)(void)>(&play_network_game, 0, 0, 0, 0));
+		wm->add_entry(texts::get(23), new widget_func_button<void (*)(void)>(&menu_notimplemented /* career menu */, 0, 0, 0, 0));
+		wm->add_entry(texts::get(24), new widget_func_button<void (*)(void)>(&menu_notimplemented /*menu_show_vessels*/, 0, 0, 0, 0));
+		wm->add_entry(texts::get(25), new widget_func_button<void (*)(void)>(&show_halloffame_mission, 0, 0, 0, 0));
+		wm->add_entry(texts::get(213), new widget_func_button<void (*)(void)>(&show_credits, 0, 0, 0, 0));
+		wm->add_entry(texts::get(26), new widget_func_button<void (*)(void)>(&menu_select_language, 0, 0, 0, 0));
+		wm->add_entry(texts::get(29), new widget_func_button<void (*)(void)>(&menu_notimplemented /*menu_options*/, 0, 0, 0, 0));
+
+		wm->add_entry(texts::get(30), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
+		wm->align(0, 0);
+		w.run();
+
 	}
 
 	sys->write_console(true);

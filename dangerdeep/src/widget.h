@@ -20,8 +20,6 @@ using namespace std;
 
 // fixme: add header for menu widget (like old dftd menues)
 
-// fixme: probably add: if a window's title is empty, don't draw title bar
-
 // fixme: when editing in a widget_edit you have to click twice on a button to lose focus AND click the button .. bad
 
 // fixme: make yes/no, ok, yes/no/cancel dialogue
@@ -81,6 +79,7 @@ public:
 protected:
 	static class widget::theme* globaltheme;
 	static widget* focussed;	// which widget has the focus
+	static widget* mouseover;	// which widget the mouse is over
 	
 	static int oldmx, oldmy, oldmb;	// used for input calculation
 
@@ -92,9 +91,10 @@ public:
 	virtual ~widget();
 	virtual void add_child(widget* w);
 	virtual void remove_child(widget* w);
-	virtual bool is_mouse_over(void) const;
+	virtual bool is_mouse_over(int mx, int my) const;
 	virtual void draw(void) const;
-	virtual bool compute_focus(void);
+	virtual bool compute_focus(int mx, int my);
+	virtual bool compute_mouseover(int mx, int my);
 	virtual vector2i get_pos(void) const { return pos; }
 	virtual void set_pos(const vector2i& p) { move_pos(p - pos); }
 	virtual void move_pos(const vector2i& p);
@@ -111,13 +111,22 @@ public:
 	virtual bool is_enabled(void) const;
 	virtual void enable(void);
 	virtual void disable(void);
-	virtual void on_char(void);	// called for every key in queue
-	virtual void on_click(void) {};	// called on mouse button down
-	virtual void on_wheel(void) {};	// called on mouse wheel action
-	virtual void on_release(void) {};	// called on mouse button up
-	virtual void on_drag(void) {};	// called on mouse move while button is down
-	virtual void prepare_input(void);	// call once before process_input
-	virtual void process_input(bool ignorekeys = false);	// determine type of input, fetch it to on_* functions
+
+	// called for every key in queue
+	virtual void on_char(const SDL_keysym& ks);
+	// called on mouse button down
+	virtual void on_click(int mx, int my, int mb) {}
+	// called on mouse wheel action, mb is 1 for up, 2 for down
+	virtual void on_wheel(int wd) {}
+	// called on mouse button up
+	virtual void on_release(void) {}
+	// called on mouse move while button is down
+	virtual void on_drag(int mx, int my, int rx, int ry, int mb) {}
+
+	// determine type of input, fetch it to on_* functions
+	virtual void process_input(const SDL_Event& event);
+	// just calls the previous function repeatedly
+	virtual void process_input(const list<SDL_Event>& events);
 
 	// run() always returns 1    - fixme: make own widget classes for them?
 	static widget* create_dialogue_ok(widget* parent_, const string& title, const string& text = "");
@@ -162,7 +171,7 @@ public:
 		: widget(x, y, w, h, text_, parent_) {}
 	~widget_checkbox() {}
 	void draw(void) const;
-	void on_click(void);
+	void on_click(int mx, int my, int mb);
 	bool is_checked(void) const { return checked; }
 	virtual void on_change(void) {}
 };
@@ -180,7 +189,7 @@ public:
 		widget* parent_ = 0, const image* backgr = 0) : widget(x, y, w, h, text_, parent_, backgr), pressed(false) {}
 	~widget_button() {}
 	void draw(void) const;
-	void on_click(void);
+	void on_click(int mx, int my, int mb);
 	void on_release(void);
 	bool is_pressed(void) const { return pressed; }
 	virtual void on_change(void) {}
@@ -265,8 +274,8 @@ protected:
 	void add_child(widget* w) { widget::add_child(w); };	// clients must use add_entry
 	
 public:
-	widget_menu(int x, int y, int w, int h, bool horizontal_ = false, widget* parent_ = 0)
-		: widget(x, y, 0, 0, "", parent_), horizontal(horizontal_), entryw(w), entryh(h), entryspacing(16) {}
+	widget_menu(int x, int y, int w, int h, const string& text_, bool horizontal_ = false,
+		    widget* parent_ = 0);
 	void set_entry_spacing(int spc) { entryspacing = spc; }
 	void adjust_buttons(unsigned totalsize);	// width or height
 	widget_button* add_entry(const string& s, widget_button* wb = 0); // wb's text is always set to s
@@ -296,9 +305,9 @@ public:
 	unsigned get_current_position(void) const;
 	void set_current_position(unsigned p);
 	void draw(void) const;
-	void on_click(void);
-	void on_drag(void);
-	void on_wheel(void);
+	void on_click(int mx, int my, int mb);
+	void on_drag(int mx, int my, int rx, int ry, int mb);
+	void on_wheel(int wd);
 	virtual void on_scroll(void) {}
 };
 
@@ -332,8 +341,8 @@ public:
 	unsigned get_nr_of_visible_entries(void) const;
 	void clear(void);
 	void draw(void) const;
-	void on_click(void);
-	void on_drag(void);
+	void on_click(int mx, int my, int mb);
+	void on_drag(int mx, int my, int rx, int ry, int mb);
 	virtual void on_sel_change(void) {}
 };
 
@@ -351,7 +360,7 @@ public:
 	~widget_edit() {}
 	void set_text(const string& s) { widget::set_text(s); cursorpos = s.length(); }
 	void draw(void) const;
-	void on_char(void);
+	void on_char(const SDL_keysym& ks);
 	virtual void on_enter(void) {}	// run on pressed ENTER-key
 	virtual void on_change(void) {}
 };
@@ -368,8 +377,8 @@ protected:
 	
 	struct filelist : public widget_list
 	{
-		void on_click(void) {
-			widget_list::on_click();
+		void on_click(int mx, int my, int mb) {
+			widget_list::on_click(mx, my, mb);
 			dynamic_cast<widget_fileselector*>(parent)->listclick();
 		}
 		filelist(int x, int y, int w, int h) : widget_list(x, y, w, h) {}

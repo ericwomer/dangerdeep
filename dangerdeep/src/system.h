@@ -33,9 +33,16 @@ public:
 	void swap_buffers(void);
 
 	// must be called once per frame (or the OS will think your app is dead)
-	unsigned int poll_event_queue(void);
-	//new call: just fetch the events to the application
-	//list<SDL_Event> poll_event_queue(void);
+	// the events are also bypassed to the application.
+	// if you want to interpret the events yourself, just call flush_key_queue()
+	// after poll_event_queue to avoid filling the queue.
+	list<SDL_Event> poll_event_queue(void);
+	//fixme: mouse position translation is now missing!!!!
+	//but if the position is translated here, e.g. from high to a low resolution
+	//many small movements may get mapped to < 1.0 movements, they are zero ->
+	//mouse movement is NEVER noticed.
+	// We have to translate the events and handle screen res, mouse pos/movement
+	//must be correct also for subpixel cases! big fixme!
 
 //these functions are useless with new poll event queue
 	void get_mouse_motion(int &x, int &y);
