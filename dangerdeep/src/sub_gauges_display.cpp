@@ -74,6 +74,8 @@ void sub_gauges_display::display(class game& gm) const
 	submarine* player = dynamic_cast<submarine*> ( gm.get_player () );
 	system::sys().prepare_2d_drawing();
 
+	glColor3f(1,1,1);
+
 	if (gm.is_day_mode()) {
 		controlscreen_normallight->draw(0, 0);
 	} else {

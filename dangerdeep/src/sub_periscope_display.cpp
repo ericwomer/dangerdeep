@@ -37,6 +37,7 @@ freeview_display::projection_data sub_periscope_display::get_projection_data(cla
 void sub_periscope_display::post_display(game& gm) const
 {
 	system::sys().prepare_2d_drawing();
+	glColor3f(1,1,1);
 	periscopeimg->draw(0, 0);
 //	ui.draw_infopanel(gm);
 	system::sys().unprepare_2d_drawing();
