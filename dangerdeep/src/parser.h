@@ -6,9 +6,9 @@ class parser;
 #ifndef PARSER_H
 #define PARSER_H
 
+#include <string>
 using namespace std;
 
-#include <string>
 #include "tokenizer.h"
 
 class parser

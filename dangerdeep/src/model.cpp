@@ -242,7 +242,7 @@ void model::display(bool with_texture) const
 	else
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-#ifdef WIN32
+#if 0	// old drawing code. doesn't fix win32 model display bug.
 	glBegin(GL_TRIANGLES);
 	for (unsigned i = 0; i < faces.size(); ++i) {
 		const face& f = faces[i];
