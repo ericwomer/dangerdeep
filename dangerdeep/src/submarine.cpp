@@ -17,6 +17,63 @@
 // fixme: this was hard work. most values are a rather rough approximation.
 // if we want a real accurate simulation, these values have to be (re)checked.
 // also they have to fit with "rect" values in sub_damage_display.cpp.
+
+/*
+make as xml in ship type description file
+<damageable-parts>
+<part id="rudder" x0="" y0="" z0="" x1="" y1="" z1="" weakness="0.2" repairtime="3600" surfaced="true" repairable="true"/>
+
+
+parts can be inside the hull and thus damaged or be part of the hull and thus flooded.
+some parts are exterior and are not flooded (screws, rudder).
+the more are part is damaged the more it is flooded.
+the game will read the ship description xml file and a part layout file (3ds).
+it can determine the total volume of all parts from the 3ds file.
+it must know the ships water draught and weight.
+formula, if the ship swims: draught * 1 >= weight ?
+draught is given by total volume of all parts and height of waterline.
+when a part is damaged, it begins to flood with water, at most to the height of the waterline.
+the higher the damage, the more water per second gets into it.
+the ship gets heavier: ship weight = base weight + flooded_water in cubic meters * 1
+if ship weight > draught then the ship sinks with some speed that depends on the difference
+between weight and draught.
+When it sinks, the draught increases, and later also the amount of flooded water.
+So it can happen, that the ship will not sink totally, but just lies deeper in the water.
+if the waterline is too height (<1m below deck?) it will sink (for ships!) because the water
+will run through the bulkheads from top, or it capsizes.
+
+So compute volume of all floodable parts.
+Compute part of volume that is below water line.
+this gives the standard weight of the ship.
+compute difference D to given real weight.
+now at any time: A = weight = real weight - D + amount of flooded water
+B = draught = sum of all parts below waterline, depends on height (pos.z) of ship.
+if A > B then ship sinks, i.e. set acceleration.z to -G
+if B < A set acc.z to +G, else to 0.
+
+some parts could be mostly above the waterline and not add to the draught, but may
+sink below it when the ship gets heavier.
+
+so a part has the following attributes:
+size/pos
+floodable
+repairable
+repair time (not time to pump it dry! instead time to fix leaks, if possible)
+must be surfaced to repair (subs)
+weakness (to explosions, multiplier for damage)
+steps of damage (binary or finer steps)
+
+a part leaks more if the damage is heavier. wrecked parts will flood fastest and can not
+be repaired. the time needed to pump a part dry depends on its volume and the amount
+of water the pumps can handle.
+
+damage statii: none, light, medium, heavy, wrecked. (0,25,50,75,100%)
+a part can have two or five statii (binary / variable).
+
+we must know how many pumps a ship has and how much water they can pump outside per second.
+submarine's hull can be damaged independent on amount of flooded water... difficult
+*/
+
 submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damageable_parts] = {
 	damage_data_scheme(vector3f(0.090517,0.108696,0.892857), vector3f(0.066810,0.297101,0.083333), 0.2, 3600, true, true),	// rudder
 	damage_data_scheme(vector3f(0.131466,0.086957,0.678571), vector3f(0.114224,0.253623,0.321429), 0.2, 3600, true, false),	// screws
