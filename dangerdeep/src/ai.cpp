@@ -77,9 +77,6 @@ ai::ai(istream& in, class game& g)
 	evasive_manouver = read_bool(in);
 	rem_manouver_time = read_double(in);
 	parent = g.read_sea_object(in);
-//network: fixme: here parent is 0!!!! why?! fixme! not only network, simple savegame loading fails, too!
-cout << "ai::ai, read parent " << parent << " (shouldn't be 0)\n";
-if (parent == 0) {char* c = 0; cout << *c; }
 	followme = g.read_sea_object(in);
 	myconvoy = g.read_convoy(in);
 	has_contact = read_bool(in);
@@ -97,8 +94,6 @@ void ai::save(ostream& out, const class game& g) const
 	write_bool(out, attackrun);
 	write_bool(out, evasive_manouver);
 	write_double(out, rem_manouver_time);
-//network: fixme: here parent is != 0, some sane value
-cout << "about to write parent " << parent << " (hex, shouldn't be 0)\n";
 	g.write(out, parent);
 	g.write(out, followme);
 	g.write(out, myconvoy);

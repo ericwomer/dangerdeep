@@ -301,16 +301,6 @@ void game::save_to_stream(ostream& out) const
 
 	write_i32(out, GAMETYPE);
 
-cout<<"SAVE\n";
-cout<<"shipss "<<ships.size()<<"\n";	
-cout<<"submariness "<<submarines.size()<<"\n";	
-cout<<"airplaness "<<airplanes.size()<<"\n";	
-cout<<"torpedoess "<<torpedoes.size()<<"\n";	
-cout<<"depth_chargess "<<depth_charges.size()<<"\n";	
-cout<<"gun_shellss "<<gun_shells.size()<<"\n";	
-cout<<"convoyss "<<convoys.size()<<"\n";	
-cout<<"water_splashss "<<water_splashs.size()<<"\n";	
-	
 	write_u32(out, ships.size());
 	for (list<ship*>::const_iterator ip = ships.begin(); ip != ships.end(); ++ip)
 		write_u16(out, (*ip)->get_type());
@@ -410,22 +400,9 @@ void game::load_from_stream(istream& in)
 	for (unsigned s = read_u32(in); s > 0; --s) gun_shells.push_back(new gun_shell());
 	for (unsigned s = read_u32(in); s > 0; --s) convoys.push_back(new convoy());
 	for (unsigned s = read_u32(in); s > 0; --s) water_splashs.push_back(new water_splash());
-cout<<"LOAD\n";
-cout<<"shipss "<<ships.size()<<"\n";	
-cout<<"submariness "<<submarines.size()<<"\n";	
-cout<<"airplaness "<<airplanes.size()<<"\n";	
-cout<<"torpedoess "<<torpedoes.size()<<"\n";	
-cout<<"depth_chargess "<<depth_charges.size()<<"\n";	
-cout<<"gun_shellss "<<gun_shells.size()<<"\n";	
-cout<<"convoyss "<<convoys.size()<<"\n";	
-cout<<"water_splashss "<<water_splashs.size()<<"\n";	
 
-unsigned z=0;	
 	for (list<ship*>::iterator ip = ships.begin(); ip != ships.end(); ++ip)
-{
-cout<<"about to load nr "<<z++<<"\n";	
 		(*ip)->load(in, *this);
-}
 
 	for (list<submarine*>::iterator ip = submarines.begin(); ip != submarines.end(); ++ip)
 		(*ip)->load(in, *this);
@@ -1556,7 +1533,7 @@ void game::write(ostream& out, const sea_object* s) const
 	const ship* sh = dynamic_cast<const ship*>(s); if (sh) { write(out, sh); return; }
 	const airplane* ap = dynamic_cast<const airplane*>(s); if (ap) { write(out, ap); return; }
 	const torpedo* tp = dynamic_cast<const torpedo*>(s); if (tp) { write(out, tp); return; }
-	const depth_charge* dc = dynamic_cast<const depth_charge*>(dc); if (s) { write(out, dc); return; }
+	const depth_charge* dc = dynamic_cast<const depth_charge*>(s); if (dc) { write(out, dc); return; }
 	const gun_shell* gs = dynamic_cast<const gun_shell*>(s); if (gs) { write(out, gs); return; }
 	const convoy* cv = dynamic_cast<const convoy*>(s); if (cv) { write(out, cv); return; }
 	const water_splash* ws = dynamic_cast<const water_splash*>(s); if (ws) { write(out, ws); return; }
