@@ -13,10 +13,8 @@
 using namespace std;
 #include "color.h"
 #include "vector3.h"
-
+#include "model.h"
 class game;
-class model;
-class texture;
 
 class sky
 {
@@ -27,12 +25,12 @@ protected:
 	float skycolorfac;				// 0.0 sunny, 1.0 stormy
 						//fixme: maybe rather use it for sunrise/fall colors
 	
-	model* skyhemisphere;
-	texture* skycol;
-	texture* sunglow;
-	texture* clouds;
-	texture* suntex;
-	texture* moontex;
+	model::ptr skyhemisphere;
+	texture::ptr skycol;
+	texture::ptr sunglow;
+	texture::ptr clouds;
+	texture::ptr suntex;
+	texture::ptr moontex;
 	double cloud_animphase;				// 0-1 phase of interpolation
 	vector<vector<Uint8> > noisemaps_0, noisemaps_1;// interpolate to animate clouds
 	unsigned clouds_dl;				// display list for clouds

@@ -37,7 +37,7 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 	clouds(0), suntex(0), moontex(0), clouds_dl(0), skyhemisphere_dl(0)
 {
 	// ******************************* create display list for sky background
-	skyhemisphere = new model(get_model_dir() + "skyhemisphere.3ds", false, false);
+	skyhemisphere = model::ptr(new model(get_model_dir() + "skyhemisphere.3ds", false, false));
 	const model::mesh& skyhemisphere_mesh = skyhemisphere->get_mesh(0);
 
 	unsigned smv = skyhemisphere_mesh.vertices.size();
@@ -118,7 +118,7 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 	osg << "P6\n256 256\n255\n";
 	osg.write((const char*)(&skycolmap[0]), 256*256*3);
 */
-	skycol = new texture(&skycolmap[0], 256, 256, GL_RGB, GL_LINEAR, GL_CLAMP_TO_EDGE);
+	skycol = texture::ptr(new texture(&skycolmap[0], 256, 256, GL_RGB, GL_LINEAR, GL_CLAMP_TO_EDGE));
 	skycolmap.clear();
 
 	// ******************************** create maps for sun glow
@@ -137,12 +137,12 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 	osg << "P5\n256 256\n255\n";
 	osg.write((const char*)(&sunglowmap[0]), 256*256);
 */
-	sunglow = new texture(&sunglowmap[0], 256, 256, GL_LUMINANCE, GL_LINEAR, GL_CLAMP_TO_EDGE);
+	sunglow = texture::ptr(new texture(&sunglowmap[0], 256, 256, GL_LUMINANCE, GL_LINEAR, GL_CLAMP_TO_EDGE));
 	sunglowmap.clear();
 
 	// ********************************** init sun/moon	
-	suntex = new texture(get_texture_dir() + "thesun.png", GL_LINEAR);
-	moontex = new texture(get_texture_dir() + "themoon.png", GL_LINEAR);
+	suntex = texture::ptr(new texture(get_texture_dir() + "thesun.png", GL_LINEAR));
+	moontex = texture::ptr(new texture(get_texture_dir() + "themoon.png", GL_LINEAR));
 	
 	// ********************************** init clouds
 	// clouds are generated with Perlin noise.
@@ -167,7 +167,7 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 	// That means a circle with radius 512 of the original map is used.
 
 	cloud_levels = 5;
-	cloud_coverage = 128;	// 0-256 (none-full)
+	cloud_coverage = 192;//128;	// 0-256 (none-full)
 	cloud_sharpness = 256;	// 0-256
 	cloud_animphase = 0;
 	
@@ -243,12 +243,6 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 
 sky::~sky()
 {
-	delete skyhemisphere;
-	delete skycol;
-	delete sunglow;
-	delete clouds;
-	delete suntex;
-	delete moontex;
 	glDeleteLists(clouds_dl, 1);
 	glDeleteLists(skyhemisphere_dl, 1);
 }
@@ -390,8 +384,7 @@ void sky::compute_clouds(void)
 		}
 	}
 
-	delete clouds;	
-	clouds = new texture(&fullmap[0], 256, 256, GL_LUMINANCE_ALPHA, GL_LINEAR, GL_CLAMP_TO_EDGE);
+	clouds = texture::ptr(new texture(&fullmap[0], 256, 256, GL_LUMINANCE_ALPHA, GL_LINEAR, GL_CLAMP_TO_EDGE));
 }
 
 
