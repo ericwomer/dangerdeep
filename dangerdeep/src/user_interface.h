@@ -93,6 +93,8 @@ public:
 	// create ui matching to player type (requested from game)
 	static user_interface* create(game& gm);
 
+	const sky& get_sky(void) const { return *mysky; }
+	const water& get_water(void) const { return *mywater; }
 	const coastmap& get_coastmap(void) const { return mycoastmap; }
 
 	// helper functions

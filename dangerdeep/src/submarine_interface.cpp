@@ -34,7 +34,7 @@ using namespace std;
 #include "sub_damage_display.h"
 #include "logbook.h"
 #include "ships_sunk_display.h"
-//#include "freeview_display.h"
+#include "freeview_display.h"
 
 submarine_interface::submarine_interface(game& gm) : 
     	user_interface(gm)
@@ -52,8 +52,8 @@ submarine_interface::submarine_interface(game& gm) :
 	displays[display_mode_damagestatus] = new sub_damage_display(*this);
 	displays[display_mode_logbook] = new captains_logbook_display(*this);
 	displays[display_mode_successes] = new ships_sunk_display(*this);
-	displays[display_mode_freeview] = new sub_gauges_display(*this);
-	//displays[display_mode_freeview] = new freeview_display(*this);
+//	displays[display_mode_freeview] = new sub_gauges_display(*this);
+	displays[display_mode_freeview] = new freeview_display(*this);
 }
 
 

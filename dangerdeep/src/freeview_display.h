@@ -15,30 +15,27 @@ protected:
 	angle bearing;
 	angle elevation;	// -90...90 deg (look down ... up)
 
-	vector3 pos;		// maybe via template function
+	vector3 pos;		// maybe via template function, viewing position (additional if aboard)
 
 	bool aboard;		// is player aboard?
 	bool withunderwaterweapons;	// draw underwater weapons?
+	bool drawbridge;	// draw bridge if aboard?
 
 	freeview_display();
 
 	// display() calls these functions
-	void pre_display(void) const;
+	void pre_display(class game& gm) const;
 	void get_viewport(unsigned& x, unsigned& y, unsigned& w, unsigned& h) const;
 //fixme: reflections need special viewport... depends on detail settings. mabye retrieve from ui
 	matrix4 get_projection_matrix(void) const;
 	matrix4 get_modelview_matrix(void) const;
-//	void set_projection_matrix(void) const;
-//	void set_modelview_matrix(void) const;
-	void post_display(void) const;
+	void post_display(class game& gm) const;
 
-	// drawing is split up, fixme should be in ui, call ui.draw_sky()!!!!!!!
-	void draw_sky(void) const;//maybe some of them need a ref to game!
-	void draw_water(void) const;
-	void draw_terrain(void) const;
-	// choose wether the function should draw only things that are completely above
-	// the water surface (for mirror images) or complete objects.
-	void draw_objects(void/*bool onlyabovewater, bool withunderwaterweapons*/) const;
+	// draw all sea_objects
+	void draw_objects(class game& gm, const vector3& viewpos) const;
+
+	// draw the whole view
+	void draw_view(class game& gm) const;
 
 public:
 	freeview_display(class user_interface& ui_);
