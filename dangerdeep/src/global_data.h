@@ -22,4 +22,7 @@ void deinit_global_data(void);
 void get_date(double t, unsigned& year, unsigned& month, unsigned& day);
 double get_time(unsigned year, unsigned month, unsigned day);
 
+// handle modulo calculation for negative values the way I need it
+inline float myfmod(float a, float b) { return a-floor(a/b)*b; }
+
 #endif

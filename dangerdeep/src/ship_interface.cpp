@@ -1,34 +1,34 @@
-// user interface for controlling a submarine
+// user interface for controlling a ship
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL/SDL.h>
 #include <sstream>
-#include "submarine_interface.h"
+#include "ship_interface.h"
 #include "system.h"
 #include "game.h"
 #include "texts.h"
 
-void submarine_interface::add_panel_text(const string& s)
+void ship_interface::add_panel_text(const string& s)
 {
 	panel_texts.push_back(s);
 	if (panel_texts.size() > 4)	// (128-8)/24-1 ;-)
 		panel_texts.pop_front();
 }
 
-submarine_interface::submarine_interface(submarine* player_sub) : user_interface(),
-	zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
+ship_interface::ship_interface(ship* player_ship) : user_interface(),
+	zoom_glasses(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
 	viewpos(0, 0, 10), bearing(0), viewmode(4),
-	player(player_sub), target(0), last_trail_time(0)
+	player(player_ship), target(0), last_trail_time(0)
 {
 }
 
-submarine_interface::~submarine_interface()
+ship_interface::~ship_interface()
 {
 }
 
-bool submarine_interface::keyboard_common(int keycode, class system& sys, class game& gm)
+bool ship_interface::keyboard_common(int keycode, class system& sys, class game& gm)
 {
 	// handle common keys (fixme: make configureable?)
 	switch (keycode) {
@@ -51,22 +51,13 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 		// control
 		case SDLK_LEFT: player->rudder_left(1); add_panel_text(TXT_Rudderleft[language]); break;
 		case SDLK_RIGHT: player->rudder_right(1); add_panel_text(TXT_Rudderright[language]); break;
-		case SDLK_UP: player->planes_up(1); add_panel_text(TXT_Planesup[language]); break;
-		case SDLK_DOWN: player->planes_down(1); add_panel_text(TXT_Planesdown[language]); break;
-		case SDLK_s: player->dive_to_depth(0); add_panel_text(TXT_Surface[language]); break;
-		case SDLK_p: player->dive_to_depth(12); add_panel_text(TXT_Periscopedepth[language]); break;	//fixme
-		case SDLK_c: player->dive_to_depth(150); add_panel_text(TXT_Crashdive[language]); break;
-		case SDLK_RETURN : player->rudder_midships(); player->planes_middle(); add_panel_text(TXT_Ruddermidships[language]); break;
+		case SDLK_RETURN : player->rudder_midships(); add_panel_text(TXT_Ruddermidships[language]); break;
 		case SDLK_1: player->set_throttle(sea_object::aheadslow); add_panel_text(TXT_Aheadslow[language]); break;
 		case SDLK_2: player->set_throttle(sea_object::aheadhalf); add_panel_text(TXT_Aheadhalf[language]); break;
 		case SDLK_3: player->set_throttle(sea_object::aheadfull); add_panel_text(TXT_Aheadfull[language]); break;
 		case SDLK_4: player->set_throttle(sea_object::aheadflank); add_panel_text(TXT_Aheadflank[language]); break;//flank/full change?
 		case SDLK_5: player->set_throttle(sea_object::stop); add_panel_text(TXT_Enginestop[language]); break;
 		case SDLK_6: player->set_throttle(sea_object::reverse); add_panel_text(TXT_Enginereverse[language]); break;
-		case SDLK_0: if (player->is_scope_up()) {
-			player->scope_down(); add_panel_text(TXT_Scopedown[language]); } else {
-			player->scope_up(); add_panel_text(TXT_Scopeup[language]); }
-			break;
 
 		// view
 		case SDLK_COMMA : bearing -= angle(sys.key_shift() ? 10 : 1); break;
@@ -74,6 +65,7 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 
 		// weapons, fixme
 		case SDLK_t: {
+#if 0
 			bool bow = true;
 			if (target != 0) {
 				angle a(target->get_pos().xy() - player->get_pos().xy());
@@ -83,8 +75,9 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			if (player->fire_torpedo(gm, bow, -1/*fixme*/, target))
 				add_panel_text(TXT_Torpedofired[language]);
 			break;
+#endif			
 		}
-		case SDLK_SPACE: target = gm.ship_in_direction_from_pos(player->get_pos().xy(), player->get_heading()+bearing);
+		case SDLK_SPACE: target = gm.sub_in_direction_from_pos(player->get_pos().xy(), player->get_heading()+bearing);
 			if (target) add_panel_text(TXT_Newtargetselected[language]);
 			else add_panel_text(TXT_Notargetindirection[language]);
 			break;
@@ -102,22 +95,7 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 }
 
 /*
-bool submarine_interface::object_visible(sea_object* so,
-	const vector2& dl, const vector2& dr) const //fixme buggy
-{
-	vector2 p = so->get_pos().xy();
-	double rad = so->get_length()/2, s, t;	// most objects are longer than wide...fixme
-	s = p.x*dl.x + p.y*dl.y;
-	t = p.y*dl.x - p.x*dl.y;
-	if (s < -rad || t > rad) return false;
-	s = p.x*dr.x + p.y*dr.y;
-	t = p.y*dr.x - p.x*dr.y;
-	if (s < -rad || t < -rad) return false;
-	return true;
-}
-*/
-
-texture* submarine_interface::torptex(unsigned type)
+texture* ship_interface::torptex(unsigned type)
 {
 	switch (type) {
 		case torpedo::T1: return torpt1;
@@ -129,8 +107,9 @@ texture* submarine_interface::torptex(unsigned type)
 	}
 	return torpempty;
 }
+*/
 	
-void submarine_interface::draw_infopanel(class system& sys) const
+void ship_interface::draw_infopanel(class system& sys) const
 {
 	glBindTexture(GL_TEXTURE_2D, panelbackgr->get_opengl_name());
 	glBegin(GL_QUADS);
@@ -148,8 +127,6 @@ void submarine_interface::draw_infopanel(class system& sys) const
 	os << TXT_Heading[language] << ": " << player->get_heading().ui_value()
 		<< "   " << TXT_Speed[language] << ": "
 		<< unsigned(fabs(round(sea_object::ms2kts(player->get_speed()))))
-		<< "   " << TXT_Depth[language] << ": "
-		<< unsigned(round(-player->get_pos().z))
 		<< "   " << TXT_Bearing[language] << ": "
 		<< bearing.ui_value();
 	font_panel->print(0, 648, os.str().c_str());
@@ -160,7 +137,7 @@ void submarine_interface::draw_infopanel(class system& sys) const
 	}
 }
 
-void submarine_interface::draw_gauge(class system& sys, unsigned nr, int x, int y,
+void ship_interface::draw_gauge(class system& sys, unsigned nr, int x, int y,
 	unsigned wh, angle a, const char* text) const
 {
 	switch (nr) {
@@ -184,7 +161,7 @@ void submarine_interface::draw_gauge(class system& sys, unsigned nr, int x, int 
 	glColor3f(1,1,1);
 }
 
-void submarine_interface::draw_vessel_symbol(class system& sys,
+void ship_interface::draw_vessel_symbol(class system& sys,
 	const vector2& offset, const sea_object* so, color c) const
 {
 	vector2 d = so->get_heading().direction();
@@ -207,7 +184,7 @@ void submarine_interface::draw_vessel_symbol(class system& sys,
 	glColor3f(1,1,1);
 }
 
-void submarine_interface::draw_trail(sea_object* so, const vector2& offset)
+void ship_interface::draw_trail(sea_object* so, const vector2& offset)
 {
 	list<vector2> l = so->get_previous_positions();
 	glColor4f(1,1,1,1);
@@ -225,8 +202,9 @@ void submarine_interface::draw_trail(sea_object* so, const vector2& offset)
 	glColor4f(1,1,1,1);
 }
 
-void submarine_interface::draw_torpedo(class system& sys, bool usebow, int x, int y,
-	const submarine::stored_torpedo& st)
+/*
+void ship_interface::draw_torpedo(class system& sys, bool usebow, int x, int y,
+	const ship::stored_torpedo& st)
 {
 	if (usebow) {
 		if (st.status == 0) {	// empty
@@ -250,25 +228,19 @@ void submarine_interface::draw_torpedo(class system& sys, bool usebow, int x, in
 		}
 	}
 }
+*/
 	
-void submarine_interface::display(class system& sys, game& gm)
+void ship_interface::display(class system& sys, game& gm)
 {
 	if (target != 0 && target->is_dead()) target = 0;
 
-	// switch to map if sub is to deep.
-	double depth = -player->get_pos().z;
-	if (	(depth > 3 && (viewmode >= 2 && viewmode <= 3)) ||
-		(depth > 12 && (viewmode >= 1 && viewmode <= 3)) ||
-		(viewmode == 1 && !player->is_scope_up())	)
-			viewmode = 4;
-
 	switch (viewmode) {
 		case 0: display_gauges(sys, gm); break;
-		case 1: display_periscope(sys, gm); break;
-		case 2: display_UZO(sys, gm); break;
+		case 1: display_sonar(sys, gm); break;
+		case 2: display_glasses(sys, gm); break;
 		case 3: display_bridge(sys, gm); break;
 		case 4: display_map(sys, gm); break;
-		case 5: display_torpedoroom(sys, gm); break;
+		case 5: display_dc_throwers(sys, gm); break;
 		case 6: display_damagecontrol(sys, gm); break;
 		case 7: display_logbook(sys, gm); break;
 		case 8: display_successes(sys, gm); break;
@@ -296,7 +268,7 @@ void submarine_interface::display(class system& sys, game& gm)
 	}
 }
 
-void submarine_interface::display_gauges(class system& sys, game& gm)
+void ship_interface::display_gauges(class system& sys, game& gm)
 {
 	sys.prepare_2d_drawing();
 	for (int y = 0; y < 3; ++y)	// fixme: replace with gauges
@@ -306,7 +278,6 @@ void submarine_interface::display_gauges(class system& sys, game& gm)
 	angle player_depth = -player->get_pos().z;
 	draw_gauge(sys, 1, 0, 0, 256, player->get_heading(), TXT_Heading[language]);
 	draw_gauge(sys, 2, 256, 0, 256, player_speed, TXT_Speed[language]);
-	draw_gauge(sys, 4, 2*256, 0, 256, player_depth, TXT_Depth[language]);
 
 	draw_infopanel(sys);
 	sys.unprepare_2d_drawing();
@@ -327,9 +298,6 @@ void submarine_interface::display_gauges(class system& sys, game& gm)
 				break;
 			case 1:	// change speed
 				break;
-			case 2:	// change depth
-				player->dive_to_depth(mang.ui_value());
-				break;
 		}
 	}
 
@@ -343,10 +311,11 @@ void submarine_interface::display_gauges(class system& sys, game& gm)
 	}
 }
 
-void submarine_interface::display_periscope(class system& sys, game& gm)
+void ship_interface::display_sonar(class system& sys, game& gm)
 {
 	glClear(GL_DEPTH_BUFFER_BIT);
 
+#if 0
 	unsigned res_x = sys.get_res_x(), res_y = sys.get_res_y();
 
 	glMatrixMode(GL_PROJECTION);
@@ -358,8 +327,7 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	glLoadIdentity();
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 12+3);//fixme: +3 to be above waves
-	// no torpedoes, no DCs, no player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, player, false, false);
+	draw_view(sys, gm, viewpos, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -393,7 +361,7 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	draw_gauge(sys, 2, 0, 256, 256, targetspeed, TXT_Targetspeed[language]);
 	draw_gauge(sys, 1, 256, 256, 256, targetheading, TXT_Targetcourse[language]);
 	sys.draw_image(768, 512, 256, 256, addleadangle);
-	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
+	const vector<ship::stored_torpedo>& torpedoes = player->get_torpedoes();
 	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();
 	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
 	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
@@ -406,6 +374,7 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	glColor3f(1,1,1);
 	draw_infopanel(sys);
 	sys.unprepare_2d_drawing();
+#endif	
 
 	// keyboard processing
 	int key = sys.get_key();
@@ -417,8 +386,9 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	}
 }
 
-void submarine_interface::display_UZO(class system& sys, game& gm)
+void ship_interface::display_glasses(class system& sys, game& gm)
 {
+	//fixme ugly hack
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -457,8 +427,9 @@ void submarine_interface::display_UZO(class system& sys, game& gm)
 	}
 }
 
-void submarine_interface::display_bridge(class system& sys, game& gm)
+void ship_interface::display_bridge(class system& sys, game& gm)
 {
+	//fixme adapt
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -482,7 +453,7 @@ void submarine_interface::display_bridge(class system& sys, game& gm)
 	}
 }
 
-void submarine_interface::display_map(class system& sys, game& gm)
+void ship_interface::display_map(class system& sys, game& gm)
 {
 	glClearColor(0, 0, 1, 1);	// fixme
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -561,14 +532,18 @@ void submarine_interface::display_map(class system& sys, game& gm)
 		draw_vessel_symbol(sys, offset, *it, color(192,255,192));
 	}
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
+		double depth = (*it)->get_pos().z;
+		if (depth < 12 || (depth < 8 && !(*it)->is_scope_up())) continue;
 		draw_vessel_symbol(sys, offset, *it, color(255,255,128));
 	}
 	for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it) {
 		draw_vessel_symbol(sys, offset, *it, color(0,0,64));
 	}
+/*
 	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
 		draw_vessel_symbol(sys, offset, *it, color(255,0,0));
 	}
+*/
 	
 	draw_infopanel(sys);
 	sys.unprepare_2d_drawing();
@@ -587,9 +562,11 @@ void submarine_interface::display_map(class system& sys, game& gm)
 	}
 }
 
-void submarine_interface::display_torpedoroom(class system& sys, game& gm)
+void ship_interface::display_dc_throwers(class system& sys, game& gm)
 {
 	sys.prepare_2d_drawing();
+	// fixme adapt
+#if 0	
 	glBindTexture(GL_TEXTURE_2D, background->get_opengl_name());
 	glBegin(GL_QUADS);
 	glTexCoord2i(0,0);
@@ -612,7 +589,7 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	glPopMatrix();
 	
 	// draw tubes
-	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
+	const vector<ship::stored_torpedo>& torpedoes = player->get_torpedoes();
 	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();
 	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
 	pair<unsigned, unsigned> bow_storage_indices = player->get_bow_storage_indices();
@@ -643,6 +620,7 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 		draw_torpedo(sys, false, 768, j*32, torpedoes[i]);
 	}
 
+#endif
 	draw_infopanel(sys);
 	sys.unprepare_2d_drawing();
 
@@ -660,7 +638,7 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	}
 }
 
-void submarine_interface::display_damagecontrol(class system& sys, game& gm)
+void ship_interface::display_damagecontrol(class system& sys, game& gm)
 {
 	glClearColor(0.25, 0.25, 0.25, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -678,7 +656,7 @@ void submarine_interface::display_damagecontrol(class system& sys, game& gm)
 	}
 }
 
-void submarine_interface::display_logbook(class system& sys, game& gm)
+void ship_interface::display_logbook(class system& sys, game& gm)
 {
 	glClearColor(0.25, 0.25, 0.25, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -696,7 +674,7 @@ void submarine_interface::display_logbook(class system& sys, game& gm)
 	}
 }
 
-void submarine_interface::display_successes(class system& sys, game& gm)
+void ship_interface::display_successes(class system& sys, game& gm)
 {
 	glClearColor(0.25, 0.25, 0.25, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -714,7 +692,7 @@ void submarine_interface::display_successes(class system& sys, game& gm)
 	}
 }
 
-void submarine_interface::display_freeview(class system& sys, game& gm)
+void ship_interface::display_freeview(class system& sys, game& gm)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -730,7 +708,7 @@ void submarine_interface::display_freeview(class system& sys, game& gm)
 	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
 
 	// draw everything
-	draw_view(sys, gm, viewpos, 0, 0, true, true);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 0, true, true);
 
 	int mx, my;
 	sys.get_mouse_motion(mx, my);

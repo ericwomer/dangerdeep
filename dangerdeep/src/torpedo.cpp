@@ -65,8 +65,8 @@ void torpedo::simulate(game& gm, double delta_time)
 	}
 
 	// check for collisions with other subs or ships
-	list<ship*> ships = gm.get_ships();
-	list<submarine*> submarines = gm.get_submarines();
+	list<ship*>& ships = gm.get_ships();
+	list<submarine*>& submarines = gm.get_submarines();
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
 		if (is_collision(*it)) {
 			hit(*it);

@@ -7,11 +7,19 @@
 #include "system.h"
 #include <sstream>
 #include "submarine_interface.h"
+#include "ship_interface.h"
 
 game::game(submarine* player_sub) : running(true), player(player_sub), time(0)
 {
-	submarines.push_back(player);
-	ui = new submarine_interface(player);
+	submarines.push_back(player_sub);
+	ui = new submarine_interface(player_sub);
+	max_view_dist = 10000;	// fixme, introduce weather
+}
+
+game::game(ship* player_ship) : running(true), player(player_ship), time(0)
+{
+	ships.push_back(player_ship);
+	ui = new ship_interface(player_ship);
 	max_view_dist = 10000;	// fixme, introduce weather
 }
 
@@ -182,6 +190,22 @@ ship* game::ship_in_direction_from_pos(const vector2& pos, angle direction)
 	ship* result = 0;
 	double angle_diff = 30;	// fixme: use range also, use ship width's etc.
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
+		vector2 df = vector2((*it)->get_pos().x, (*it)->get_pos().y) - pos;
+		double new_ang_diff = (angle(df)).diff(direction);
+//		double range = diff.length();
+		if (new_ang_diff < angle_diff) {
+			angle_diff = new_ang_diff;
+			result = *it;
+		}
+	}
+	return result;
+}
+
+submarine* game::sub_in_direction_from_pos(const vector2& pos, angle direction)
+{
+	submarine* result = 0;
+	double angle_diff = 30;	// fixme: use range also, use ship width's etc.
+	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
 		vector2 df = vector2((*it)->get_pos().x, (*it)->get_pos().y) - pos;
 		double new_ang_diff = (angle(df)).diff(direction);
 //		double range = diff.length();

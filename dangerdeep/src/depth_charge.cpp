@@ -16,7 +16,7 @@ depth_charge::depth_charge(const sea_object& parent, double expl_depth)
 	length = 1;
 	width = 1;
 	hitpoints = 1;
-	explosion_depth = expl_depth;
+	explosion_depth = expl_depth;	// fixme: the dcs seem to keep falling eternally after an explosion?!
 	speed = 0;
 	max_speed = 0;
 	max_rev_speed = 0;

@@ -1,13 +1,13 @@
-// user interface for controlling a submarine
+// user interface for controlling a ship
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
-#ifndef SUBMARINE_INTERFACE_H
-#define SUBMARINE_INTERFACE_H
+#ifndef SHIP_INTERFACE_H
+#define SHIP_INTERFACE_H
 
 #include <list>
 #include <vector>
 using namespace std;
-#include "submarine.h"
+#include "ship.h"
 #include "global_data.h"
 #include "user_interface.h"
 #include "color.h"
@@ -16,11 +16,10 @@ using namespace std;
 #define MAXTRAILNUMBER 20
 #define TRAILTIME 10
 
-class submarine_interface : public user_interface
+class ship_interface : public user_interface
 {
 protected:
-	// periscope
-	bool zoom_scope;	// use 6x instead 1.5 fixme implement
+	bool zoom_glasses;	// fixme implement
 
 	// map
 	float mapzoom;	// factor pixel/meter
@@ -32,14 +31,14 @@ protected:
 	// used in various screens
 	angle bearing;
 	unsigned viewmode;
-	submarine *player;
-	ship* target;
+	ship* player;
+	class submarine* target;
 
 	double last_trail_time;	
 	
-	submarine_interface();
-	submarine_interface& operator= (const submarine_interface& other);
-	submarine_interface(const submarine_interface& other);
+	ship_interface();
+	ship_interface& operator= (const ship_interface& other);
+	ship_interface(const ship_interface& other);
 	
 	list<string> panel_texts;
 	void add_panel_text(const string& s);
@@ -49,7 +48,7 @@ protected:
 
 //	bool object_visible(sea_object* so, const vector2& dl, const vector2& dr) const;
 
-	static texture* torptex(unsigned type);
+//	static texture* torptex(unsigned type);
 	
 	// 2d drawing must be turned on for them
 	void draw_infopanel(class system& sys) const;
@@ -58,23 +57,23 @@ protected:
 	void draw_vessel_symbol(class system& sys,
 		const vector2& offset, const sea_object* so, color c) const;
 	void draw_trail(sea_object* so, const vector2& offset);
-	void draw_torpedo(class system& sys, bool usebow, int x, int y,
-		const submarine::stored_torpedo& st);
+//	void draw_torpedo(class system& sys, bool usebow, int x, int y,
+//		const ship::stored_torpedo& st);
 
 	void display_gauges(class system& sys, class game& gm);
-	void display_periscope(class system& sys, class game& gm);
-	void display_UZO(class system& sys, class game& gm);
+	void display_sonar(class system& sys, class game& gm);
+	void display_glasses(class system& sys, class game& gm);
 	void display_bridge(class system& sys, class game& gm);
 	void display_map(class system& sys, class game& gm);
-	void display_torpedoroom(class system& sys, class game& gm);
+	void display_dc_throwers(class system& sys, class game& gm);
 	void display_damagecontrol(class system& sys, class game& gm);
 	void display_logbook(class system& sys, class game& gm);
 	void display_successes(class system& sys, class game& gm);
 	void display_freeview(class system& sys, class game& gm);
 
 public:	
-	submarine_interface(submarine* player_sub);
-	virtual ~submarine_interface();
+	ship_interface(ship* player_ship);
+	virtual ~ship_interface();
 
 	virtual void display(class system& sys, class game& gm);
 };

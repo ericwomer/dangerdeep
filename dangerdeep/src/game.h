@@ -40,9 +40,9 @@ protected:
 	list<depth_charge*> depth_charges;
 	bool running;	// if this is false, the player was killed
 	
-	// fixme later we may control a destroyer?
-	submarine* player; // sea_object* player;
-	user_interface* ui; //submarine_interface* ui;
+	// the player and matching ui (note that playing is not limited to submarines!)
+	sea_object* player;
+	user_interface* ui;
 	
 	double time;	// global time (in seconds since 1.1.1939, 0:0 hrs)
 	
@@ -56,13 +56,14 @@ protected:
 	game(const game& other);
 
 public:
-	game(submarine* player_sub);
+	game(submarine* player_sub);	// play a submarine
+	game(ship* player_ship);	// play an escort
 	~game();
 
 	void simulate(double delta_t);
 
 	double get_time(void) const { return time; };
-	submarine* get_player(void) { return player; };
+	sea_object* get_player(void) { return player; };
 	double get_max_view_distance(void) const { return max_view_dist; }
 	
 	// get view info
@@ -80,12 +81,13 @@ public:
 	const list<ping>& get_pings(void) const { return pings; };
 	
 	ship* ship_in_direction_from_pos(const vector2& pos, angle direction);
-	// fixme: change to references for speed reason
-	list<ship*> get_ships(void) { return ships; };
-	list<submarine*> get_submarines(void) { return submarines; };
-	list<airplane*> get_airplanes(void) { return airplanes; };
-	list<torpedo*> get_torpedoes(void) { return torpedoes; };
-	list<depth_charge*> get_depth_charges(void) { return depth_charges; };
+	submarine* sub_in_direction_from_pos(const vector2& pos, angle direction);
+	list<ship*>& get_ships(void) { return ships; };
+	list<submarine*>& get_submarines(void) { return submarines; };
+	list<airplane*>& get_airplanes(void) { return airplanes; };
+	list<torpedo*>& get_torpedoes(void) { return torpedoes; };
+	list<depth_charge*>& get_depth_charges(void) { return depth_charges; };
+	// note: no reference, a copy is needed
 	list<sea_object*> get_all_sea_objects(void);
 
 	double water_depth(const vector2& pos) const;

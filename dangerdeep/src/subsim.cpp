@@ -19,6 +19,15 @@
 class system* sys;
 int res_x, res_y;
 
+void draw_background_and_logo(void)
+{
+	sys->draw_image(0, 0, 512, 512, titel[0]);
+	sys->draw_image(512, 0, 512, 512, titel[1]);
+	sys->draw_image(0, 512, 512, 256, titel[2]);
+	sys->draw_image(512, 512, 512, 256, titel[3]);
+	font_logo->print_hc(1024, 150, "Danger from the Deep", color(255,255,255), true);
+}
+
 void menu_convoy_battle(void)
 {
 	menu m;
@@ -32,14 +41,10 @@ void menu_convoy_battle(void)
 
 	while (true) {
 		sys->prepare_2d_drawing();
-		sys->draw_image(0, 0, 512, 512, titel[0]);
-		sys->draw_image(512, 0, 512, 512, titel[1]);
-		sys->draw_image(0, 512, 512, 256, titel[2]);
-		sys->draw_image(512, 512, 512, 256, titel[3]);
-
+		draw_background_and_logo();
+		
 		sys->poll_event_queue();
 		int key = sys->get_key();
-		font_logo->print_hc(1024, 150, "Danger from the Deep", color(255,255,255), true);
 		m.draw(1024, 768, font_tahoma);
 		int mmsel = m.input(key, 0, 0, 0) & 0xffff;
 		sys->unprepare_2d_drawing();
@@ -51,7 +56,9 @@ void menu_convoy_battle(void)
 				unsigned subtype = m.get_switch_nr(0);
 				// just a test, fixme
 				submarine* playersub = new submarine(subtype == 0 ? submarine::typeVIIc : submarine::typeXXI, vector3(2000, 1000, -30), 270);
+//				ship* playership = new ship(2, vector3(2000, 1000, 0), 270);
 				game* test = new game(playersub);
+//				game* test = new game(playership);
 				ship* s = new ship(3, vector3(0,150,0));
 				s->get_ai()->add_waypoint(vector2(0,3000));
 				s->get_ai()->add_waypoint(vector2(3000,3000));
@@ -89,15 +96,11 @@ void menu_single_mission(void)
 
 	while (true) {
 		sys->prepare_2d_drawing();
-		sys->draw_image(0, 0, 512, 512, titel[0]);
-		sys->draw_image(512, 0, 512, 512, titel[1]);
-		sys->draw_image(0, 512, 512, 256, titel[2]);
-		sys->draw_image(512, 512, 512, 256, titel[3]);
+		draw_background_and_logo();
+		m.draw(1024, 768, font_tahoma);
 
 		sys->poll_event_queue();
 		int key = sys->get_key();
-		font_logo->print_hc(1024, 150, "Danger from the Deep", color(255,255,255), true);
-		m.draw(1024, 768, font_tahoma);
 		int mmsel = m.input(key, 0, 0, 0) & 0xffff;
 		sys->unprepare_2d_drawing();
 		sys->swap_buffers();
@@ -105,6 +108,33 @@ void menu_single_mission(void)
 		switch (mmsel) {
 			case 0: break;
 			case 1:	menu_convoy_battle(); break;
+			case 2: break;
+		}
+	}
+}
+
+void menu_multiplayer(void)
+{
+	menu m;	// just a test
+	m.add_item(TXT_Createnetworkgame[language]);
+	m.add_item(TXT_Joinnetworkgame[language]);
+	m.add_item(menu::item(TXT_Enternetworkportnr[language], "7896"));
+	m.add_item(TXT_Returntomainmenu[language]);
+
+	while (true) {
+		sys->prepare_2d_drawing();
+		draw_background_and_logo();
+		m.draw(1024, 768, font_tahoma);
+
+		sys->poll_event_queue();
+		int key = sys->get_key();
+		int mmsel = m.input(key, 0, 0, 0) & 0xffff;
+		sys->unprepare_2d_drawing();
+		sys->swap_buffers();
+		if (mmsel == 3) break;
+		switch (mmsel) {
+			case 0: break;
+			case 1:	break;
 			case 2: break;
 		}
 	}
@@ -257,14 +287,10 @@ int main(int argc, char** argv)
 		bool rebuildmenu = false;
 		while (!rebuildmenu) {
 			sys->prepare_2d_drawing();
-			sys->draw_image(0, 0, 512, 512, titel[0]);
-			sys->draw_image(512, 0, 512, 512, titel[1]);
-			sys->draw_image(0, 512, 512, 256, titel[2]);
-			sys->draw_image(512, 512, 512, 256, titel[3]);
+			draw_background_and_logo();
 
 			sys->poll_event_queue();
 			int key = sys->get_key();
-			font_logo->print_hc(1024, 150, "Danger from the Deep", color(255,255,255), true);
 			m.draw(1024, 768, font_tahoma);
 			int mmsel = m.input(key, 0, 0, 0);
 			sys->unprepare_2d_drawing();
@@ -273,7 +299,7 @@ int main(int argc, char** argv)
 			selected = mmsel & 0xffff;
 			switch (selected) {
 				case 0:	menu_single_mission(); break;
-				case 1: break;//fixme!
+				case 1: menu_multiplayer(); break;
 				case 2: break;
 				case 3: show_vessels(); break;
 				case 4: break;
