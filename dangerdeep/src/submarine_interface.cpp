@@ -45,8 +45,8 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 		case SDLK_F10: viewmode = 9; break;
 
 		// time scaling fixme: too simple
-		case SDLK_F11: if (time_scale < 100) { ++time_scale; add_message(TXT_Timescaleup[language]); } break;
-		case SDLK_F12: if (time_scale > 1) { --time_scale; add_message(TXT_Timescaledown[language]); } break;
+		case SDLK_F11: if (time_scale_up()) { add_message(TXT_Timescaleup[language]); } break;
+		case SDLK_F12: if (time_scale_down()) { add_message(TXT_Timescaledown[language]); } break;
 
 		// control
 		case SDLK_LEFT: player->rudder_left(1); add_message(TXT_Rudderleft[language]); break;
@@ -231,22 +231,26 @@ void submarine_interface::draw_torpedo(class system& sys, bool usebow, int x, in
 	if (usebow) {
 		if (st.status == 0) {	// empty
 			sys.draw_image(x, y, 256, 32, torpempty);
-		} else {
+		} else if (st.status == 1) {	// reloading
 			sys.draw_image(x, y, 256, 32, torptex(st.type));
-			if (st.status == 1) // reloading
-				sys.draw_image(x, y, 256, 32, torpreload);
-			else if (st.status == 2) // unloading
-				sys.draw_image(x, y, 256, 32, torpunload);
+			sys.draw_image(x, y, 256, 32, torpreload);
+		} else if (st.status == 2) {	// unloading
+			sys.draw_image(x, y, 256, 32, torpempty);
+			sys.draw_image(x, y, 256, 32, torpunload);
+		} else {		// loaded
+			sys.draw_image(x, y, 256, 32, torptex(st.type));
 		}
 	} else {
 		if (st.status == 0) {	// empty
 			sys.draw_hm_image(x, y, 256, 32, torpempty);
-		} else {
+		} else if (st.status == 1) {	// reloading
 			sys.draw_hm_image(x, y, 256, 32, torptex(st.type));
-			if (st.status == 1) // reloading
-				sys.draw_hm_image(x, y, 256, 32, torpreload);
-			else if (st.status == 2) // unloading
-				sys.draw_hm_image(x, y, 256, 32, torpunload);
+			sys.draw_hm_image(x, y, 256, 32, torpreload);
+		} else if (st.status == 2) {	// unloading
+			sys.draw_hm_image(x, y, 256, 32, torpempty);
+			sys.draw_hm_image(x, y, 256, 32, torpunload);
+		} else {		// loaded
+			sys.draw_hm_image(x, y, 256, 32, torptex(st.type));
 		}
 	}
 }
@@ -548,6 +552,17 @@ void submarine_interface::display_map(class system& sys, game& gm)
 	// draw vessel symbols
 	list<ship*> ships = gm.visible_ships(player->get_pos());
 	list<submarine*> submarines = gm.visible_submarines(player->get_pos());
+
+	// insert player if he's submerged.
+	bool player_drawn = false;
+	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
+		if (*it == player) {
+			player_drawn = true;
+			break;
+		}
+	}
+	if (!player_drawn) submarines.push_back(player);
+
 	list<airplane*> airplanes = gm.visible_airplanes(player->get_pos());
 	list<torpedo*> torpedoes = gm.visible_torpedoes(player->get_pos());
 	bool record = (gm.get_time() > last_trail_time + TRAILTIME);

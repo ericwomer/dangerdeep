@@ -15,7 +15,7 @@ torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes)
 	position = parent->get_pos();
 	heading = parent->get_heading();
 	if (!usebowtubes) heading += angle(180);
-	vector2 dp = heading.direction() * (parent->get_length()/2 + 4); // 7/2 + 0.5 extra distance
+	vector2 dp = heading.direction() * (parent->get_length()/2 + 3.5);
 	position.x += dp.x;
 	position.y += dp.y;
 	head_to = heading;
@@ -68,10 +68,12 @@ void torpedo::simulate(game& gm, double delta_time)
 	}
 
 	// check for collisions with other subs or ships
-	bool runlengthfailure = (run_length < 250);
-	bool failure = false;	// calculate additional probability of torpedo failure
-	if (gm.check_torpedo_hit(this, runlengthfailure, failure))
-		kill();
+	if (run_length > 10) {	// avoid collision with parent after initial creation
+		bool runlengthfailure = (run_length < 250);
+		bool failure = false;	// calculate additional probability of torpedo failure
+		if (gm.check_torpedo_hit(this, runlengthfailure, failure))
+			kill();
+	}
 }
 
 void torpedo::display(void) const

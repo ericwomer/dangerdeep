@@ -155,10 +155,6 @@ list<ship*> game::visible_ships(const vector3& pos)
 	double d = get_max_view_distance();
 	d = d*d;
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
-		if (*it == player) {
-			result.push_back(*it);
-			continue;
-		}
 		if ((*it)->get_pos().xy().square_distance(pos.xy()) < d) {
 			result.push_back(*it);
 		}
@@ -172,10 +168,6 @@ list<submarine*> game::visible_submarines(const vector3& pos)
 	double d = get_max_view_distance();
 	d = d*d;
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		if (*it == player) {
-			result.push_back(*it);
-			continue;
-		}
 		if ((*it)->get_pos().xy().square_distance(pos.xy()) < d) {
 			// the probabilty of visibility depends on indivial values
 			// relative course, distance to and type of watcher.

@@ -55,6 +55,8 @@ public:
 	virtual unsigned time_scaling(void) const { return time_scale; }
 	virtual void record_ship_tonnage(unsigned tons) = 0;
 	virtual void add_message(const string& s) = 0;
+	virtual bool time_scale_up(void);	// returns true on success
+	virtual bool time_scale_down(void);
 };
 
 #endif
