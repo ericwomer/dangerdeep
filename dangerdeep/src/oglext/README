@@ -1,0 +1,75 @@
+SHORT DOCUMENTATION
+===================
+
+* Include "glext.h" if you want to use the new API functions in your source
+  code (without any additional OglExt function) in the following way:
+
+      #define  GL_GLEXT_PROTOTYPES
+      #include <glext.h>
+
+
+* Include "OglExt.h" if you want to use the additional functions
+    - glexExtensionsSupported()
+    - glexGetVersion()
+  in the following way:
+
+      #include <OglExt.h>
+
+
+API REFERENCE
+=============
+
+Note: For all OpenGL API functions, take a look at the offical documentation
+(can be found at http://www.opengl.org).
+
+___
+
+
+GLboolean glexExtensionsSupported(char const * szExtensions)
+
+   Call this function with a space-separated list of extension names. It will
+   return 'GL_TRUE' if all of the extensions are supported for the active
+   OpenGL rendering context. It will return 'GL_FALSE' if at least one of the
+   specified extensions is not supported.
+
+   EXAMPLE (check for two extensions):
+
+      GLboolean br;
+      br = glexExtensionsSupported("GL_ARB_multitexture GL_ARB_shadow");
+      if(br == GL_FALSE) return;
+
+   Note: Don't check for specific OpenGL versions using this function. Use
+   glexGetVersion() instead.
+
+___
+
+
+GLuint glexGetVersion()
+
+   Call this function to get the supported OpenGL version. It will return an
+   unsigned integer with the following format:
+
+      Bit 31-24 = OpenGL major version.
+      Bit 23-16 = OpenGL minor version.
+      Bit 15- 0 = OpenGL release version.
+
+   Use the GLEX_VERSION macro to create a version in such a format.
+
+   EXAMPLE (check if at least OpenGL version 1.3 is supported):
+
+      GLuint uv;
+      uv = glexGetVersion();
+      if(uv < GLEX_VERSION(1, 3, 0)) return;
+
+___
+
+
+Note: The additional OglExt functions (glexExtensionsSupported() and
+glexGetVersion()) are optional. They are not required for developing OpenGL
+applications and need not to be included in that case.
+
+
+AUTHORS
+=======
+Thomas Jansen <jansen@caesar.de>
+Zbigniew Burgielski <burgielski@caesar.de> [linux port]

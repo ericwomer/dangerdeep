@@ -7,6 +7,8 @@
 #pragma warning (disable : 4786)
 #endif
 
+#include "oglext/OglExt.h"
+
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL.h>
@@ -242,7 +244,7 @@ void user_interface::init ()
 	}
 	
 	// create water bump maps
-	ocean_wave_generator<float> owgb(64, vector2f(1,1), 1, 0.001, 4.0, WATER_BUMPMAP_CYCLE_TIME);
+	ocean_wave_generator<float> owgb(64, vector2f(1,1), 1, 0.01, 4.0, WATER_BUMPMAP_CYCLE_TIME);
 	for (int i = 0; i < WATER_BUMP_FRAMES; ++i) {
 		owgb.set_time(i*WATER_BUMPMAP_CYCLE_TIME/WATER_BUMP_FRAMES);
 		vector<vector3f> n = owgb.compute_normals();

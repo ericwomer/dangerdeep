@@ -1,3 +1,9 @@
+2003-12-17  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* several files:
+	  - restored win32 compilability
+	* ocean_wave_generator.h
+	  - bugfixes.
+
 2003-12-15  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* user_interface.cpp
 	  - new bump mapped water.

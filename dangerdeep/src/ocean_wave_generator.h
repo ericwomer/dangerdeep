@@ -121,7 +121,9 @@ complex<T> ocean_wave_generator<T>::h0_tilde(const vector2t<T>& K) const
 	//there this complex number is multiplied with a random sinus value
 	//that means a random phase. But it doesn't seem to change the appearance much.
 	// T f = sin(2*M_PI*T(rand())/RAND_MAX);
-	return gaussrand() * (sqrt(T(0.5) * phillips(K)));	// * f
+	complex<T> g = gaussrand();	// split in two expressions to make it compileable under VC6
+	T p = sqrt(T(0.5) * phillips(K));
+	return g * p;	// * f;
 }
 
 template <class T>
