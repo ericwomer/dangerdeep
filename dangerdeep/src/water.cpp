@@ -94,7 +94,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) : mytime(tm), xres(xres_
 		}
 	}
 
-	ocean_wave_generator<float> owg(WAVE_RESOLUTION, vector2f(1,1), 15 /*10*/ /*31*/, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
+	ocean_wave_generator<float> owg(WAVE_RESOLUTION, vector2f(1,1), 20 /*10*/ /*31*/, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileheights[i] = owg.compute_heights();
@@ -279,6 +279,26 @@ void water::compute_coord_and_normal(int phase, const vector2& xypos, const vect
 	vector3f cf = cc * (1.0f-xfrac) + cd * xfrac;
 	vector3f cg = ce * (1.0f-yfrac) + cf * yfrac;
 	coord = cg + vector3f(xypos.x, xypos.y, 0.0f);
+
+	// add some extra detail to near waves.
+	// Every rectangle between four FFT values has
+	// some extra detail. Pattern must be more chaotic to be realistic, a reapeating
+	// pattern every 2m is not good. so use x0,y0 too.
+/*
+	// old code. matches new code with tilefac = 1
+	int ixf = int(WAVE_RESOLUTION * xfrac), iyf = int(WAVE_RESOLUTION * yfrac);
+	float addh = wavetileheights[phase][ixf+iyf*WAVE_RESOLUTION] * (1.0f/WAVE_RESOLUTION);
+	coord.z += addh;
+*/
+	// 0 <= x0,y0 < WAVE_RESOLUTION
+	// additional detail is taken from same fft values, but that's not very good (similar
+	// pattern is noticeable), so we make a phase shift (maybe some perlin noise values
+	// would be better)
+	int tilefac = 4;
+	int rfac = WAVE_RESOLUTION/tilefac;
+	int ixf = (x0 % tilefac)*rfac + int(rfac * xfrac), iyf = (y0 % tilefac)*rfac + int(rfac * yfrac);
+	float addh = wavetileheights[(phase+WAVE_PHASES/2)%WAVE_PHASES][ixf+iyf*WAVE_RESOLUTION] * (1.0f/rfac);
+	coord.z += addh;
 
 #ifndef DYNAMIC_NORMALS	
 	// bilinear interpolation of normal
