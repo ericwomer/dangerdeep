@@ -21,6 +21,12 @@ class image
 	unsigned mapping;
 	bool clamp;
 	bool morealpha;
+	unsigned lastcolw, lastrowh;	// textures for last row/column of array may be wider
+	float lastcolu, lastrowv;	// than needed (OpenGL needs texture sizes that are
+					// powers of two).
+					// so we need the real values as unsigneds and texture
+					// coordinates.
+	
 private:
 	image();
 	image& operator= (const image& other);	// later fixme

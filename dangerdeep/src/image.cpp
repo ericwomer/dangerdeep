@@ -20,6 +20,7 @@ image::image(const string& s, unsigned mapping_, bool clamp_, bool morealpha_,
 {
 	if (!dynamic) {
 		img = IMG_Load(name.c_str());
+		if (img == 0) { width = height = 0; return; }
 		// assert img != 0 fixme
 		width = img->w;
 		height = img->h;
@@ -69,6 +70,11 @@ void image::texturize(void)
 		}
 		ch += heights[y];
 	}
+
+	lastcolw = widths.back();
+	lastrowh = heights.back();
+	lastcolu = float(lastcolw)/float(textures[gltx-1]->get_width());
+	lastrowv = float(lastrowh)/float(textures[gltx*(glty-1)]->get_height());
 	
 	texturized = true;
 }
@@ -80,25 +86,26 @@ void image::draw(int x, int y)
 	int yp = y;
 	for (unsigned yy = 0; yy < glty; ++yy) {
 		int xp = x;
-		int ypadd = textures[texptr]->get_height();
+		unsigned h = (yy == glty-1) ? lastrowh : textures[texptr]->get_height();
+		float v = (yy == glty-1) ? lastrowv : 1.0f;
 		for (unsigned xx = 0; xx < gltx; ++xx) {
-			unsigned w = textures[texptr]->get_width();
-			unsigned h = textures[texptr]->get_height();
+			unsigned w = (xx = gltx-1) ? lastcolw : textures[texptr]->get_width();
+			float u = (xx == gltx-1) ? lastcolu : 1.0f;
 			glBindTexture(GL_TEXTURE_2D, textures[texptr]->get_opengl_name());
 			glBegin(GL_QUADS);
-			glTexCoord2i(0,0);
+			glTexCoord2f(0,0);
 			glVertex2i(xp,yp);
-			glTexCoord2i(0,1);
+			glTexCoord2f(0,v);
 			glVertex2i(xp,yp+h);
-			glTexCoord2i(1,1);
+			glTexCoord2f(u,v);
 			glVertex2i(xp+w,yp+h);
-			glTexCoord2i(1,0);
+			glTexCoord2f(u,0);
 			glVertex2i(xp+w,yp);
 			glEnd();
 			++texptr;
 			xp += w;
 		}
-		yp += ypadd;
+		yp += h;
 	}
 }
 
