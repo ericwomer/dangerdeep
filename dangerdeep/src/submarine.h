@@ -32,7 +32,7 @@ protected:
 		
 	bool scopeup;	// fixme: maybe simulate time for moving scope up/down
 
-	submarine() {};
+	submarine();
 	submarine& operator= (const submarine& other);
 	submarine(const submarine& other);
 	
@@ -43,7 +43,6 @@ protected:
 	bool transfer_torpedo(unsigned from, unsigned to, double timeneeded = 120);
 	int find_stored_torpedo(bool usebow);	// returns index or -1 if none
 
-	void init(void);	
 	bool parse_attribute(parser& p);	// returns false if invalid token found
 	
 public:

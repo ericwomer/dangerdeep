@@ -46,6 +46,7 @@ game::game(parser& p) : running(true), time(0)
 			case TKN_CONVOY:
 			case TKN_DESCRIPTION:
 			case TKN_WEATHER:
+			case TKN_TIME:	// and date
 */
 			default: p.error("Expected definition");
 		}

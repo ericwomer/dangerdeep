@@ -8,9 +8,8 @@
 #include "submarine_XXI.h"
 #include "tokencodes.h"
 
-void submarine::init(void)
+submarine::submarine() : ship()
 {
-	ship::init();
 	dive_speed = 0;
 	permanent_dive = false;
 	dive_to = 0;

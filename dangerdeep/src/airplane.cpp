@@ -4,9 +4,8 @@
 #include "airplane.h"
 #include "model.h"
 
-airplane::airplane(unsigned type_, const vector3& pos, double heading)
+airplane::airplane(unsigned type_, const vector3& pos, double heading) : sea_object()
 {
-	sea_object::init();
 	type = type_;
 	position = pos;
 	this->heading = heading;

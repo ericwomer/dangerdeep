@@ -5,7 +5,7 @@
 #include "vector2.h"
 #include "tokencodes.h"
 
-void sea_object::init(void)
+sea_object::sea_object()
 {
 	position = vector3(0, 0, 0);
 	heading = 0;

@@ -53,10 +53,9 @@ protected:
 	// cycle it will be defunct and erased by its owner.
 	alive_status alive_stat;
 	
-	void init(void);	// clear values to default
 	bool parse_attribute(parser& p);        // returns false if invalid token found
 
-	sea_object() {};	// fixme: airplane,gun_shell,depth_charge need it. why?!?!
+	sea_object();
 	sea_object& operator=(const sea_object& other);
 	sea_object(const sea_object& other);
 public:

@@ -12,7 +12,7 @@ class airplane : public sea_object
 protected:
 	unsigned type;
 
-	airplane() {};
+	airplane();
 	airplane& operator=(const airplane& other);
 	airplane(const airplane& other);
 public:

@@ -17,11 +17,10 @@ protected:
 
 	damage_status stern_damage, midship_damage, bow_damage;
 	
-	ship() : sea_object() {}
+	ship();
 	ship(const ship& other);
 	ship& operator= (const ship& other);
 
-	void init(void);
 	bool parse_attribute(parser& p);	// returns false if invalid token found
 	
 public:

@@ -10,9 +10,8 @@
 #include "ship_battleshipmalaya.h"
 #include "tokencodes.h"
 
-void ship::init(void)
+ship::ship() : sea_object()
 {
-	sea_object::init();
 }
 
 bool ship::parse_attribute(parser& p)

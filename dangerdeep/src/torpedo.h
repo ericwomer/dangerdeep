@@ -18,7 +18,7 @@ protected:
 	sea_object* parent;
 	unsigned type;
 	
-	torpedo() {};
+	torpedo();
 	torpedo& operator=(const torpedo& other);
 	torpedo(const torpedo& other);
 public:
