@@ -1,3 +1,10 @@
+2003-12-01  Markus Petermann  <markus.petermann@gmx.net>
+
+	* src/submarine_interface.cpp: Periscope view size changed to 20 degrees
+	  in unzoomed and 5 degrees in zoomed mode. 5 degrees is the view size
+	  when using normal glasses.
+	* src/dangerdeep.kdevprj: Updates project files for KDevelop.
+
 2003-11-30  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* fixed package build scripts.
 	* renamed main linux binary from "subsim" to "dangerdeep"
