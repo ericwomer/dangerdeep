@@ -278,7 +278,7 @@ bool submarine::fire_torpedo(class game& gm, bool usebowtubes, int tubenr,
 	if (torpnr == 0xffff)
 		return false;
 		
-	torpedo* t = new torpedo(this, torpedoes[torpnr].type);
+	torpedo* t = new torpedo(this, torpedoes[torpnr].type, usebowtubes);
 	if (target) {
 		if (t->adjust_head_to(target, usebowtubes)) {
 			gm.spawn_torpedo(t);

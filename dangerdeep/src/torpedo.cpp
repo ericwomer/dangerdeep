@@ -7,13 +7,14 @@
 #include "system.h"
 #include "game.h"
 
-torpedo::torpedo(sea_object* parent_, unsigned type_)
+torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes)
 {
 	init_empty();
 	parent = parent_;
 	type = type_;
 	position = parent->get_pos();	// fixme bei ubooten + length/2 bla...
 	heading = parent->get_heading();
+	if (!usebowtubes) heading += angle(180);
 	head_to = heading;
 	turn_rate = 1;	// most submarine simulations seem to ignore this
 			// launching a torpedo will cause it to run in target direction

@@ -25,7 +25,7 @@ public:
 	enum types { none, T1, T3, T5, T3FAT, T6LUT, T11, reloading=0xffffffff };
 
 	virtual ~torpedo() {};
-	torpedo(sea_object* parent_, unsigned type_);
+	torpedo(sea_object* parent_, unsigned type_, bool usebowtubes);
 	virtual void simulate(class game& gm, double delta_time);
 	virtual void hit(sea_object* other);	// action when object is hit
 	virtual void display(void) const;
