@@ -129,7 +129,7 @@ public:
 	// 3d drawing functions
 	virtual void draw_water(const vector3& viewpos, angle dir, unsigned wavephase, double max_view_dist) const;
 	virtual void draw_view(class system& sys, class game& gm, const vector3& viewpos,
-		angle dir, bool withplayer, bool withunderwaterweapons);
+		angle dir, unsigned withplayer, bool withunderwaterweapons); // give 0-2 for "withplayer": draw 0 - nothing, 1 - sub/ship, 2 - bridge
 	virtual bool user_quits(void) const { return quit; }
 	virtual bool paused(void) const { return pause; }
 	virtual unsigned time_scaling(void) const { return time_scale; }

@@ -268,7 +268,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, unsigned wave
 }
 
 void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
-	angle dir, bool withplayer, bool withunderwaterweapons)
+	angle dir, unsigned withplayer, bool withunderwaterweapons)
 {
 	double max_view_dist = gm.get_max_view_distance();
 
@@ -347,8 +347,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	// Transform sun space to earth space
 	glRotated(360.0 * -myfmod(universaltime, EARTH_ROTATION_TIME)/EARTH_ROTATION_TIME, 0, 1, 0);
 	glRotated(-EARTH_ROT_AXIS_ANGLE, 1, 0, 0);
-	glTranslated(0, 0, -EARTH_SUN_DISTANCE);
 	glRotated(360.0 * myfmod(universaltime, EARTH_ORBIT_TIME)/EARTH_ORBIT_TIME, 0, 1, 0);
+	glTranslated(0, 0, -EARTH_SUN_DISTANCE);
 	// draw quad
 	double suns = 5000000000.0;// 2*sqrt(sun_radius^2/2) * sun_scale_fac
 	glColor3f(1,1,1);
@@ -357,12 +357,12 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glBegin(GL_QUADS);
 	glTexCoord2f(0,0);
 	glVertex3f(-suns, -suns, 0);
-	glTexCoord2f(0,1);
-	glVertex3f(-suns, suns, 0);
-	glTexCoord2f(1,1);
-	glVertex3f(suns, suns, 0);
 	glTexCoord2f(1,0);
 	glVertex3f(suns, -suns, 0);
+	glTexCoord2f(1,1);
+	glVertex3f(suns, suns, 0);
+	glTexCoord2f(0,1);
+	glVertex3f(-suns, suns, 0);
 	glEnd();
 	glPopMatrix();
 
@@ -444,7 +444,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	list<ship*> ships;
 	gm.visible_ships(ships, player);
 	for (list<ship*>::const_iterator it = ships.begin(); it != ships.end(); ++it) {
-		if (/*!withplayer &&*/ *it == player) continue;	// only ships or subs playable!
+		if (withplayer != 1 && *it == player) continue;	// only ships or subs playable!
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
@@ -462,7 +462,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	list<submarine*> submarines;
 	gm.visible_submarines(submarines, player);
 	for (list<submarine*>::const_iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		if (/*!withplayer &&*/ *it == player) continue; // only ships or subs playable!
+		if (withplayer != 1 && *it == player) continue; // only ships or subs playable!
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
@@ -529,7 +529,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glPopMatrix ();
 	}
 
-	if (withplayer) {
+	if (withplayer == 2) {
 		// after everything was drawn, draw conning tower (new projection matrix needed)
 		glClear(GL_DEPTH_BUFFER_BIT);
 //		glDisable(GL_DEPTH_TEST);
@@ -874,7 +874,7 @@ void user_interface::display_bridge(class system& sys, game& gm)
 	vector2 phd = player->get_heading().direction();
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6) + phd.xy0();
 	// no torpedoes, no DCs, with player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, true, false);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 2, false);
 
 	sys.prepare_2d_drawing();
 	draw_infopanel(sys, gm);
@@ -1237,7 +1237,7 @@ void user_interface::display_freeview(class system& sys, game& gm)
 	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
 
 	// draw everything
-	draw_view(sys, gm, viewpos, 0, true, true);
+	draw_view(sys, gm, viewpos, 0, 1, true);
 
 	int mx, my;
 	sys.get_mouse_motion(mx, my);
@@ -1292,7 +1292,7 @@ void user_interface::display_glasses(class system& sys, class game& gm)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6);
 	// no torpedoes, no DCs, no player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, false, false);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 0, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
