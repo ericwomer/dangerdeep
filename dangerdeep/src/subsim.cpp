@@ -474,7 +474,7 @@ void create_convoy_mission(void)
 	widget_list* wtimeofday = new widget_list(760, 90, 200, 200);
 	w.add_child(wtimeofday);
 	w.add_child(new widget_text(40, 310, 0, 0, texts::get(62)));
-	widget_list* wtimeperiod = new widget_list(40, 340, 440, 200);
+	widget_list* wtimeperiod = new widget_list(40, 340, 640, 200);
 	w.add_child(wtimeperiod);
 	wsubtype->append_entry(texts::get(17));
 	wsubtype->append_entry(texts::get(174));

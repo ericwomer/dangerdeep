@@ -176,9 +176,15 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	}
 
 	ocean_wave_generator<float> owg(WAVE_RESOLUTION, vector2f(1,1), 20 /*10*/ /*31*/, 3e-6 /* 5e-6 */, WAVE_LENGTH, TIDECYCLE_TIME);
+	minh = 1e10;
+	maxh = -1e10;
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileheights[i] = owg.compute_heights();
+		for (vector<float>::const_iterator it = wavetileheights[i].begin(); it != wavetileheights[i].end(); ++it) {
+			if (*it > maxh) maxh = *it;
+			if (*it < minh) minh = *it;
+		}
 		// choppy factor: formula from "waterengine": 0.5*WX/N = 0.5*wavelength/waveres, here = 1.0
 		// fixme 5.0 default? - it seems that choppy waves don't look right. bug? fixme, with negative values it seems right. check this!
 		// -2.0f also looks nice, -5.0f is too much. -1.0f should be ok
@@ -234,6 +240,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 #endif
 
 	}
+	cout << "minh " << minh << " maxh " << maxh << " diff " << maxh-minh << "\n";
 	add_loading_screen("water height data computed");
 }
 
@@ -412,11 +419,15 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 {
 	int phase = int((myfmod(mytime, TIDECYCLE_TIME)/TIDECYCLE_TIME) * WAVE_PHASES);
 	const float VIRTUAL_PLANE_HEIGHT = 25.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok, maybe a bit too much
-	// maximum height of waves (half amplitude), fixme: get from fft
-	// 2.0 seems to be enough...
-	const double WAVE_HEIGHT = 2.0;//5.0;
+
+	// maximum height of waves (half amplitude)
+	double WAVE_HEIGHT = (maxh > fabs(minh)) ? maxh : fabs(minh);
+
 	// fixme: always add elevation to projector.z?
 	const double ELEVATION = 10.0; // fixme experiment
+
+	// fixme: displacements must be used to enlarge projector area or else holes will be visible at the border
+	// of the screen (left and right), especially on glasses mode
 
 	matrix4 proj = matrix4::get_gl(GL_PROJECTION_MATRIX);
 	matrix4 modl = matrix4::get_gl(GL_MODELVIEW_MATRIX);

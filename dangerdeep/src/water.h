@@ -43,6 +43,9 @@ protected:
 
 	//projgrid: mipmaps too
 	vector<vector<float> > wavetilefoam;
+
+	// minimum and maximum heights of water (over all values)
+	float minh, maxh;
 	
 	unsigned reflectiontexsize;
 	unsigned reflectiontex;//fixme better handle that with class texture
