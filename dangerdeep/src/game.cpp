@@ -1458,7 +1458,7 @@ game::run_state game::exec(void)
 bool game::is_day_mode () const
 {
 	double br = compute_light_brightness(player->get_pos());
-	return (br > 0.1);
+	return (br > 0.3); // fixme: a bit crude. brightness has 0.2 ambient...
 }
 
 template <class T>

@@ -70,12 +70,14 @@ user_interface::user_interface(game& gm) :
 	panel->add_child(new widget_text(528, 8+48+10, 0, 0, texts::get(5)));
 	panel->add_child(new widget_text(528, 8+72+15, 0, 0, texts::get(2)));
 	panel->add_child(new widget_text(528+160, 8, 0, 0, texts::get(98)));
+	panel->add_child(new widget_text(528+160, 8+24+5, 0, 0, texts::get(61)));
 	panel_valuetexts[0] = new widget_text(528+100, 8, 0, 0, "000");
 	panel_valuetexts[1] = new widget_text(528+100, 8+24+5, 0, 0, "000");
 	panel_valuetexts[2] = new widget_text(528+100, 8+48+10, 0, 0, "000");
 	panel_valuetexts[3] = new widget_text(528+100, 8+72+15, 0, 0, "000");
 	panel_valuetexts[4] = new widget_text(528+160+100, 8, 0, 0, "000");
-	for (unsigned i = 0; i < 5; ++i)
+	panel_valuetexts[5] = new widget_text(528+160+100, 8+24+5, 0, 0, "00:00:00");
+	for (unsigned i = 0; i < 6; ++i)
 		panel->add_child(panel_valuetexts[i]);
 	panel->add_child(new widget_caller_button<game, void (game::*)(void)>(&gm, &game::stop, 1024-128-8, 128-40, 128, 32, texts::get(177)));
 	add_loading_screen("user interface initialized");
@@ -400,6 +402,14 @@ void user_interface::draw_infopanel(class game& gm) const
 		ostringstream os4;
 		os4 << setw(3) << left << time_scale;
 		panel_valuetexts[4]->set_text(os4.str());
+		ostringstream os5;
+		// compute time string
+		double tm = gm.get_time();
+		double hour = floor(myfmod(tm, 86400) / 3600);
+		double minute = floor(myfmod(tm, 3600) / 60);
+		double second = floor(myfmod(tm, 60));
+		os5 << setw(2) << right << hour << ":" << setw(2) << right << minute << ":" << setw(2) << right << second;
+		panel_valuetexts[5]->set_text(os5.str());
 
 		panel->draw();
 		// let aside the fact that we should divide DRAWING and INPUT HANDLING

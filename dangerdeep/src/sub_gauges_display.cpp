@@ -10,23 +10,29 @@
 #include "user_interface.h"
 
 sub_gauges_display::indicator::indicator() :
-	mytex(0), x(0), y(0), w(0), h(0)
+	mytexday(0), mytexnight(0), x(0), y(0), w(0), h(0)
 {
 }
 
 sub_gauges_display::indicator::~indicator()
 {
-	delete mytex;
+	delete mytexday;
+	delete mytexnight;
 }
 
-void sub_gauges_display::indicator::display(const double& angle) const
+void sub_gauges_display::indicator::display(bool is_day_mode, const double& angle) const
 {
-	mytex->draw_rot(x+w/2, y+h/2, angle, w/2, h/2);
+	const texture* tex = mytexday;
+	if (!is_day_mode && mytexnight != 0)
+		tex = mytexnight;
+	tex->draw_rot(x+w/2, y+h/2, angle, w/2, h/2);
 }
 
-void sub_gauges_display::indicator::set(SDL_Surface* s, unsigned x_, unsigned y_, unsigned w_, unsigned h_)
+void sub_gauges_display::indicator::set(SDL_Surface* sday, SDL_Surface* snight, unsigned x_, unsigned y_, unsigned w_, unsigned h_)
 {
-	mytex = new texture(s, x_, y_, w_, h_, GL_LINEAR, GL_CLAMP_TO_EDGE);
+	mytexday = new texture(sday, x_, y_, w_, h_, GL_LINEAR, GL_CLAMP_TO_EDGE);
+	if (snight)
+		mytexnight = new texture(snight, x_, y_, w_, h_, GL_LINEAR, GL_CLAMP_TO_EDGE);
 	x = x_;
 	y = y_;
 	w = w_;
@@ -45,22 +51,23 @@ angle sub_gauges_display::indicator::get_angle(int mx, int my) const
 
 sub_gauges_display::sub_gauges_display(user_interface& ui_) : user_display(ui_)
 {
-	controlscreen_normallight = new image(get_image_dir() + "ControlScreen_NormalLight.png", true);
-	controlscreen_nightlight = new image(get_image_dir() + "ControlScreen_NightLight.png", true);
-	image compassi(get_image_dir() + "ControlScreen_Compass.png");
-	image dials(get_image_dir() + "ControlScreen_Dials.png");
-	//fixme: at night we have different dials! store two textures per dial!
+	controlscreen_normallight = new image(get_image_dir() + "rev.1.0_controlscreen_normallylit_daylight_final.png", true);
+	controlscreen_nightlight = new image(get_image_dir() + "red_controlscreen_rev.0.99_b21_base.png", true);
+	image compassi(get_image_dir() + "final_sw_compass.png");
+	image dialsday(get_image_dir() + "dials_indicators.png");
+	image dialsnight(get_image_dir() + "red_controlscreen_rev.0.99_b21_indicatorsMasked.png");
+	//fusebox lights are missing here
 	indicators.resize(nr_of_indicators);
-	indicators[compass].set(compassi.get_SDL_Surface(), 35, 451, 226, 226);
-	indicators[battery].set(dials.get_SDL_Surface(), 276, 358, 58, 58);
-	indicators[compressor].set(dials.get_SDL_Surface(), 353, 567, 76, 76);
-	indicators[diesel].set(dials.get_SDL_Surface(), 504, 567, 76, 76);
-	indicators[bow_depth_rudder].set(dials.get_SDL_Surface(), 693, 590, 88, 88);
-	indicators[stern_depth_rudder].set(dials.get_SDL_Surface(), 881, 590, 88, 88);
-	indicators[depth].set(dials.get_SDL_Surface(), 420, 295, 168, 168);
-	indicators[knots].set(dials.get_SDL_Surface(), 756, 44, 94, 94);
-	indicators[main_rudder].set(dials.get_SDL_Surface(), 788, 429, 96, 96);
-	indicators[mt].set(dials.get_SDL_Surface(), 442, 52, 126, 126);
+	indicators[compass].set(compassi.get_SDL_Surface(), (SDL_Surface*)0, 35, 451, 226, 226);
+	indicators[battery].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 276, 358, 58, 58);
+	indicators[compressor].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 353, 567, 76, 76);
+	indicators[diesel].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 504, 567, 76, 76);
+	indicators[bow_depth_rudder].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 693, 590, 88, 88);
+	indicators[stern_depth_rudder].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 881, 590, 88, 88);
+	indicators[depth].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 420, 295, 168, 168);
+	indicators[knots].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 756, 44, 94, 94);
+	indicators[main_rudder].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 788, 429, 96, 96);
+	indicators[mt].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 442, 52, 126, 126);
 }
 
 sub_gauges_display::~sub_gauges_display()
@@ -76,23 +83,24 @@ void sub_gauges_display::display(class game& gm) const
 
 	glColor3f(1,1,1);
 
-	if (gm.is_day_mode()) {
+	bool is_day = gm.is_day_mode();
+	if (is_day) {
 		controlscreen_normallight->draw(0, 0);
 	} else {
 		controlscreen_nightlight->draw(0, 0);
 	}
 
 	// the absolute numbers here depend on the graphics!
-	indicators[compass].display(-player->get_heading().value());
-	indicators[battery].display(0);
-	indicators[compressor].display(0);
-	indicators[diesel].display(0);
-	indicators[bow_depth_rudder].display(0);
-	indicators[stern_depth_rudder].display(0);
-	indicators[depth].display(player->get_depth()*1.0-51.0);
-	indicators[knots].display(fabs(player->get_speed())*22.33512-133.6);
-	indicators[main_rudder].display(player->get_rudder_pos()*3.5125);
-	indicators[mt].display(0);
+	indicators[compass].display(is_day, -player->get_heading().value());
+	indicators[battery].display(is_day, 0);
+	indicators[compressor].display(is_day, 0);
+	indicators[diesel].display(is_day, 0);
+	indicators[bow_depth_rudder].display(is_day, 0);
+	indicators[stern_depth_rudder].display(is_day, 0);
+	indicators[depth].display(is_day, player->get_depth()*1.0-51.0);
+	indicators[knots].display(is_day, fabs(player->get_speed())*22.33512-133.6);
+	indicators[main_rudder].display(is_day, player->get_rudder_pos()*3.5125);
+	indicators[mt].display(is_day, 0);
 
 /*	// kept as text reference for tooltips/popups.
 	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);

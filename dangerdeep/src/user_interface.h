@@ -37,7 +37,7 @@ protected:
 	bool panel_visible;
 	class widget* panel;
 	class widget_list* panel_messages;
-	class widget_text* panel_valuetexts[5];
+	class widget_text* panel_valuetexts[6];
 
 	// used in various screens
 	angle bearing;

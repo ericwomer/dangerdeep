@@ -20,12 +20,14 @@ class sub_gauges_display : public user_display
 	image* controlscreen_nightlight;
 
 	struct indicator {
-		texture* mytex;
+		texture* mytexday;
+		texture* mytexnight;
 		unsigned x, y, w, h;
 		indicator();
 		~indicator();
-		void display(const double& angle) const;
-		void set(SDL_Surface* s, unsigned x_, unsigned y_, unsigned w_, unsigned h_);
+		void display(bool is_day_mode, const double& angle) const;
+		// snight can be 0 if daymode image should always be used (e.g. compass)
+		void set(SDL_Surface* sday, SDL_Surface* snight, unsigned x_, unsigned y_, unsigned w_, unsigned h_);
 		bool is_over(int mx, int my) const;
 		angle get_angle(int mx, int my) const;
 	};
