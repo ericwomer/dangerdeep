@@ -22,7 +22,7 @@
 
 // compute projected grid efficiency, it should be 50-95%
 //#define COMPUTE_EFFICIENCY
-//#define WAVE_SUB_DETAIL		// sub fft detail
+#define WAVE_SUB_DETAIL		// sub fft detail
 
 // for testing
 //#define DRAW_WATER_AS_GRID
@@ -30,7 +30,7 @@
 // some more interesting values: phase 256, facesperwave 64+,
 // wavelength 256+,
 #define WAVE_PHASES 256		// no. of phases for wave animation
-#define WAVE_RESOLUTION 64	// FFT resolution
+#define WAVE_RESOLUTION 128//64	// FFT resolution
 #define WAVE_LENGTH 128.0	// in meters, total length of one wave tile
 #define TIDECYCLE_TIME 10.0	// seconds
 #define FOAM_VANISH_FACTOR 0.1	// 1/second until foam goes from 1 to 0.
@@ -38,6 +38,7 @@
 
 #define REFRAC_COLOR_RES 32
 #define FRESNEL_FCT_RES 256
+#define WATER_BUMP_DETAIL_HEIGHT 4.0
 
 /*
 	2004/05/06
@@ -311,13 +312,14 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 			wbtmp[3*i+2] = (wavetilenormals[n][i].z+1.0f)/2.0f*255;
 		}
 		water_bumpmap[n] = new texture(&wbtmp[0], WAVE_RESOLUTION, WAVE_RESOLUTION,
-					    GL_RGB, GL_LINEAR /*_MIPMAP_LINEAR*/, GL_REPEAT);
+					    GL_RGB, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 #else
 		//fixme: mipmap levels of normal map should be computed
 		//by this class, not glu!
 		//mipmap scaling of a normal map is not the same as the normal version
 		//of a mipmapped height map!
-		water_bumpmap[n] = texture::make_normal_map(&(pn.noisemap[0]), 256, 256, 4.0f, //16.0f,
+		water_bumpmap[n] = texture::make_normal_map(&(pn.noisemap[0]), 256, 256,
+							    WATER_BUMP_DETAIL_HEIGHT,
 							    GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 #endif
 	}
@@ -365,7 +367,7 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 		// local parameters:
 		// local 0 : upwelling color
 		glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 0,
-					     0.0, 0.1, 0.3, 1.0);//fixme test
+					     18.0f/255, 73.0f/255, 107.0f/255, 1.0);//fixme test
 	} else {
 		// standard code path, no fragment programs
 	
@@ -814,7 +816,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 			const vector3f& N = normals[ptr];
 
 			if (fragment_program_supported && use_fragment_programs) {
-				uv0[ptr] = vector2f(coord.x/16.0f, coord.y/16.0f); // fixme, use noise map texc's
+				uv0[ptr] = vector2f(coord.x/8.0f, coord.y/8.0f); // fixme, use noise map texc's
 				//fixme ^, offset is missing
 				vector3f tx = vector3f(1, 0, 0);//fixme hack
 				vector3f ty = N.cross(tx);

@@ -23,7 +23,8 @@ using namespace std;
 
 
 
-void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh)
+void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
+		       bool makenormalmap, float detailh)
 {
 	// compute texture width and height
 	unsigned tw = 1, th = 1;
@@ -92,12 +93,12 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 	}
 	SDL_UnlockSurface(teximage);
 	
-	init(&data[0]);
+	init(&data[0], makenormalmap, detailh);
 }
 	
 
 
-void texture::init(const Uint8* data, bool makenormalmap /* fixme */)
+void texture::init(const Uint8* data, bool makenormalmap, float detailh)
 {
 	// automatic resizing of textures if they're too large
 	vector<Uint8> data2;
@@ -139,16 +140,59 @@ void texture::init(const Uint8* data, bool makenormalmap /* fixme */)
 
 	glGenTextures(1, &opengl_name);
 	glBindTexture(GL_TEXTURE_2D, opengl_name);
-	glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format, GL_UNSIGNED_BYTE, data);
-	// make own mipmap building for normal maps here...
-	// give increasing levels with decreasing w/h down to 1x1
-	// e.g. 64x16 -> 32x8, 16x4, 8x2, 4x1, 2x1, 1x1
-	if (	mapping == GL_NEAREST_MIPMAP_NEAREST
-		|| mapping == GL_NEAREST_MIPMAP_LINEAR
-		|| mapping == GL_LINEAR_MIPMAP_NEAREST
-		|| mapping == GL_LINEAR_MIPMAP_LINEAR ) {
 
-		gluBuild2DMipmaps(GL_TEXTURE_2D, format, gl_width, gl_height, format, GL_UNSIGNED_BYTE, data);
+	bool do_mipmap = (mapping == GL_NEAREST_MIPMAP_NEAREST
+			  || mapping == GL_NEAREST_MIPMAP_LINEAR
+			  || mapping == GL_LINEAR_MIPMAP_NEAREST
+			  || mapping == GL_LINEAR_MIPMAP_LINEAR );
+
+	if (makenormalmap) {
+		// make own mipmap building for normal maps here...
+		// give increasing levels with decreasing w/h down to 1x1
+		// e.g. 64x16 -> 32x8, 16x4, 8x2, 4x1, 2x1, 1x1
+
+		sys().myassert(format == GL_LUMINANCE, string("tried to create a normal map from a non-luminance texture, from ") + texfilename);
+
+		format = GL_RGB;
+
+		vector<Uint8> nmpix(3*gl_width*gl_height);
+		make_normals(&nmpix[0], data, gl_width, gl_height, detailh);
+		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
+			     GL_UNSIGNED_BYTE, &nmpix[0]);
+
+		if (do_mipmap) {
+			// fixme: if we let GLU do the mipmap calculation, the result is wrong.
+			// A filtered version of the normals is not the same as a normal map
+			// of the filtered height field!
+			// E.g. scaling down the map to 1x1 pixel gives a medium height of 128,
+			// that is a flat plane with a normal of (0,0,1)
+			// But filtering down the normals to one pixel could give
+			// RGB=0.5 -> normal of (0,0,0) (rare...)!
+			vector<Uint8> curlvl;
+			const Uint8* gdat = data;
+			for (unsigned level = 1, w = gl_width/2, h = gl_height/2;
+			     w > 0 && h > 0; w /= 2, h /= 2) {
+				curlvl = scale_half(gdat, w, h, 1);
+				gdat = &curlvl[0];
+				vector<Uint8> nmpix(3*w*h);
+				make_normals(&nmpix[0], gdat, w, h, detailh);
+				glTexImage2D(GL_TEXTURE_2D, level, GL_RGB, w, h, 0, GL_RGB,
+					     GL_UNSIGNED_BYTE, &nmpix[0]);
+				w /= 2;
+				h /= 2;
+			}
+
+		}
+	} else {
+		// make gl texture
+		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
+			     GL_UNSIGNED_BYTE, data);
+		if (do_mipmap) {
+			// fixme: does this command set the base level, too?
+			// i.e. are the two gl commands redundant?
+			gluBuild2DMipmaps(GL_TEXTURE_2D, format, gl_width, gl_height,
+					  format, GL_UNSIGNED_BYTE, data);
+		}
 	}
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
@@ -159,31 +203,88 @@ void texture::init(const Uint8* data, bool makenormalmap /* fixme */)
 
 
 
-texture::texture(const string& filename, int mapping_, int clamp)
+
+vector<Uint8> texture::scale_half(const Uint8* src, unsigned w, unsigned h, unsigned bpp)
+{
+	// fixme
+	sys().myassert(w > 1 && (w & (w-1)) == 0, "texture width is no power of two!");
+	sys().myassert(h > 1 && (h & (h-1)) == 0, "texture height is no power of two!");
+
+	vector<Uint8> dst(w*h*bpp/4);
+	unsigned ptr = 0;
+	for (unsigned y = 0; y < h; y += 2) {
+		for (unsigned x = 0; x < w; w += 2) {
+			for (unsigned b = 0; b < bpp; ++b) {
+				dst[ptr++] =
+					Uint8((unsigned(src[(y*w+x)*bpp+b]) +
+					       unsigned(src[(y*w+x+1)*bpp+b]) +
+					       unsigned(src[((y+1)*w+x)*bpp+b]) +
+					       unsigned(src[((y+1)*w+x+1)*bpp+b])) / 4);
+			}
+		}
+	}
+	return dst;
+}
+	
+
+
+void texture::make_normals(Uint8* dst, const Uint8* src, unsigned w, unsigned h, float detailh)
+{
+	// dst size must be 3*w*h, src size w*h
+	float zh = 255.0f/detailh;
+	unsigned ptr = 0;
+	for (unsigned yy = 0; yy < h; ++yy) {
+		unsigned y1 = (yy + h - 1) & (h - 1);
+		unsigned y2 = (yy +     1) & (h - 1);
+		for (unsigned xx = 0; xx < w; ++xx) {
+			unsigned x1 = (xx + w - 1) & (w - 1);
+			unsigned x2 = (xx +     1) & (w - 1);
+			float h = src[yy*w+xx];
+			float hr = src[yy*w+x2];
+			float ho = src[y1*w+xx];
+			float hl = src[yy*w+x1];
+			float hu = src[y2*w+xx];
+			vector3f nm = (
+				vector3f(h-hr, h-ho, zh).normal() +
+				vector3f(hl-h, h-ho, zh).normal() +
+				vector3f(hl-h, hu-h, zh).normal() +
+				vector3f(h-hr, hu-h, zh).normal() ).normal();
+			dst[ptr + 0] = Uint8(nm.x*127 + 128);
+			dst[ptr + 1] = Uint8(-nm.y*127 + 128);
+			dst[ptr + 2] = Uint8(nm.z*127 + 128);
+			ptr += 3;
+		}
+	}
+}
+
+
+
+texture::texture(const string& filename, int mapping_, int clamp,
+		 bool makenormalmap, float detailh)
 {
 	mapping = mapping_;
 	clamping = clamp;
 	texfilename = filename;
 	SDL_Surface* teximage = IMG_Load(filename.c_str());
 	sys().myassert(teximage != 0, string("texture: failed to load ")+filename);
-	sdl_init(teximage, 0, 0, teximage->w, teximage->h);
+	sdl_init(teximage, 0, 0, teximage->w, teximage->h, makenormalmap, detailh);
 	SDL_FreeSurface(teximage);
 }	
 
 
 
 texture::texture(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-		 int mapping_, int clamp)
+		 int mapping_, int clamp, bool makenormalmap, float detailh)
 {
 	mapping = mapping_;
 	clamping = clamp;
-	sdl_init(teximage, sx, sy, sw, sh);
+	sdl_init(teximage, sx, sy, sw, sh, makenormalmap, detailh);
 }
 
 
 
 texture::texture(const Uint8* pixels, unsigned w, unsigned h, int format_,
-	int mapping_, int clamp)
+		 int mapping_, int clamp, bool makenormalmap, float detailh)
 {
 	mapping = mapping_;
 	clamping = clamp;
@@ -195,47 +296,7 @@ texture::texture(const Uint8* pixels, unsigned w, unsigned h, int format_,
 	height = gl_height = h;
 	format = format_;
 
-	init(pixels);
-}
-
-
-
-
-texture* texture::make_normal_map(const Uint8* heights, unsigned w, unsigned h, float detailh,
-				  int mapping, int clamp)
-{
-	vector<Uint8> nmpix(3*w*h);
-	float zh = 255.0f/detailh;
-	unsigned ptr = 0;
-	for (unsigned yy = 0; yy < h; ++yy) {
-		unsigned y1 = (yy + h - 1) & (h - 1);
-		unsigned y2 = (yy +     1) & (h - 1);
-		for (unsigned xx = 0; xx < w; ++xx) {
-			unsigned x1 = (xx + w - 1) & (w - 1);
-			unsigned x2 = (xx +     1) & (w - 1);
-			float h = heights[yy*w+xx];
-			float hr = heights[yy*w+x2];
-			float ho = heights[y1*w+xx];
-			float hl = heights[yy*w+x1];
-			float hu = heights[y2*w+xx];
-			vector3f nm = (
-				vector3f(h-hr, h-ho, zh).normal() +
-				vector3f(hl-h, h-ho, zh).normal() +
-				vector3f(hl-h, hu-h, zh).normal() +
-				vector3f(h-hr, hu-h, zh).normal() ).normal();
-			nmpix[ptr + 0] = Uint8(nm.x*127 + 128);
-			nmpix[ptr + 1] = Uint8(-nm.y*127 + 128);
-			nmpix[ptr + 2] = Uint8(nm.z*127 + 128);
-			ptr += 3;
-		}
-	}
-	// fixme: if we let GLU do the mipmap calculation, the result is wrong.
-	// A filtered version of the normals is not the same as a normal map
-	// of the filtered height field!
-	// E.g. scaling down the map to 1x1 pixel gives a medium height of 128,
-	// that is a flat plane with a normal of (0,0,1)
-	// But filtering down the normals to one pixel gives RGB=0.5 -> normal of (0,0,0)!
-	return new texture(&nmpix[0], w, h, GL_RGB, mapping, clamp);
+	init(pixels, makenormalmap, detailh);
 }
 
 
