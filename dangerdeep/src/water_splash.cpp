@@ -16,8 +16,7 @@
 water_splash::water_splash ( const vector3& position, water_splash_type type ) :
 	sea_object (), type ( type )
 {
-	this->position = position;
-	this->position.z - 4.0f;
+	this->position = position - vector3 ( 0.0f, 0.0f, 4.0f );
 	init ();
 }
 
@@ -57,7 +56,6 @@ void water_splash::simulate ( class game& gm, double delta_time )
 	{
 		h = h_peak * sin ( M_PI * t / ( 2.0f * WATER_SPLASH_RISE_TIME ) );
 	}
-#ifdef OLD
 	else if ( t >= WATER_SPLASH_RISE_TIME )
 	{
 		h = h_peak * cos ( M_PI * ( t - WATER_SPLASH_RISE_TIME ) / ( 2.0f * WATER_SPLASH_DECLINE_TIME ) );
@@ -65,24 +63,13 @@ void water_splash::simulate ( class game& gm, double delta_time )
 		if ( h <= 0.0f )
 			kill ();
 	}
-#endif
 }
 
 void water_splash::display () const
 {
-	glColor3f ( 0, 0, 0 );
+	// glColor3f ( 0, 0, 0 );
 	glBindTexture ( GL_TEXTURE_2D, tex->get_opengl_name () );
 	glBegin ( GL_QUADS );
-	/*
-	glTexCoord2f ( 0.0f, 1.0f );
-	glVertex3f   ( -w, 0.0f, 0.0f );
-	glTexCoord2f ( 0.0f, 0.0f );
-	glVertex3f   ( -w, 0.0f, h );
-	glTexCoord2f ( 1.0f, 0.0f );
-	glVertex3f   (  w, 0.0f, h );
-	glTexCoord2f ( 1.0f, 1.0f );
-	glVertex3f   (  w, 0.0f, 0.0f );
-	*/
 	glTexCoord2f ( 0.0f, 1.0f );
 	glVertex3f   ( 0.0f, -w, 0.0f );
 	glTexCoord2f ( 0.0f, 0.0f );
