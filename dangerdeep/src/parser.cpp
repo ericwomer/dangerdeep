@@ -50,6 +50,8 @@ token tokens[] = {
 	token(TKN_BATTLESHIPMALAYA, "battleshipmalaya"),
 	token(TKN_CARRIERBOGUE, "carrierbogue"),
 	token(TKN_CORVETTE, "corvette"),
+	token(TKN_LARGEFREIGHTER, "largefreighter"),
+	token(TKN_MEDIUMFREIGHTER, "mediumfreighter"),
 	token(TKN_CONVOY, "convoy"),
 	token(TKN_WAYPOINT, "waypoint"),
 	token(TKN_SPEED, "speed"),

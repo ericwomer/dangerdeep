@@ -38,7 +38,15 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 				if (shps >= nrships) break;
 				int dx = int(i)-sqrtnrships/2;
 				float d = 4*float(dx*dx+dy*dy)/nrships;
-				ship::types shiptype = (d < 0.2) ? ship::mediumtroopship : ship::mediummerchant;
+				ship::types shiptype = ship::mediummerchant;
+				if (d < 0.2) {
+					shiptype = ship::mediumtroopship;
+				} else {
+					unsigned r = rnd(3);
+					if (r == 0) shiptype = ship::mediummerchant;
+					if (r == 1) shiptype = ship::largefreighter;
+					if (r == 2) shiptype = ship::mediumfreighter;
+				}
 				ship* s = ship::create(shiptype);
 				vector2 pos = vector2(
 					dx*intershipdist + rnd()*60.0-30.0,

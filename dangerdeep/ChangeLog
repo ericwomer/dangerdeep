@@ -1,4 +1,7 @@
 2003-07-11  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* introduced two new models.
+
+2003-07-11  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* sea_object.cpp game.cpp convoy.cpp etc.
 	  - new throttle model. more code for custom mission generation.
 

@@ -55,6 +55,8 @@ public:
 		battleshipmalaya, 
 		carrierbogue,
 		corvette,
+		largefreighter,
+		mediumfreighter,
 	};
 	
 	virtual ~ship();
