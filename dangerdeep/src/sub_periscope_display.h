@@ -19,8 +19,11 @@ class sub_periscope_display : public freeview_display
 
 	vector<class texture*> compassbar_tex;
 	vector<unsigned> compassbar_width;
+
+	//texture* clock_hourpointer;
+	//texture* clock_minutepointer;
 	
-	bool zoomed;	// use 1,5x (false) or 6x (true) zoom
+	bool zoomed;	// use 1,5x (false) or 6x zoom (true)
 
 public:
 	sub_periscope_display(class user_interface& ui_);
