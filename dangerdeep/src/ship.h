@@ -49,6 +49,7 @@ protected:
 public:
 	// fixme: add more types
 	enum types {
+		largemerchant,
 		mediummerchant, 
 		mediumtroopship, 
 		destroyertribal, 

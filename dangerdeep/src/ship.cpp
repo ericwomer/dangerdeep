@@ -5,6 +5,7 @@
 #include "model.h"
 #include "game.h"
 #include "date.h"
+#include "ship_largemerchant.h"
 #include "ship_mediummerchant.h"
 #include "ship_mediumtroopship.h"
 #include "ship_destroyertribal.h"
@@ -53,6 +54,7 @@ bool ship::parse_attribute(parser& p)
 ship* ship::create(ship::types type_)
 {
 	switch (type_) {
+		case largemerchant: return new ship_largemerchant();
 		case mediummerchant: return new ship_mediummerchant();
 		case mediumtroopship: return new ship_mediumtroopship();
 		case destroyertribal: return new ship_destroyertribal();
@@ -71,6 +73,7 @@ ship* ship::create(parser& p)
 	int t = p.type();
 	p.consume();
 	switch (t) {
+		case TKN_LARGEMERCHANT: return new ship_largemerchant(p);
 		case TKN_MEDIUMMERCHANT: return new ship_mediummerchant(p);
 		case TKN_MEDIUMTROOPSHIP: return new ship_mediumtroopship(p);
 		case TKN_DESTROYERTRIBAL: return new ship_destroyertribal(p);

@@ -44,6 +44,7 @@ token tokens[] = {
 	token(TKN_T3FAT, "T3FAT"),
 	token(TKN_T6LUT, "T6LUT"),
 	token(TKN_T11, "T11"),
+	token(TKN_LARGEMERCHANT, "largemerchant"),
 	token(TKN_MEDIUMMERCHANT, "mediummerchant"),
 	token(TKN_MEDIUMTROOPSHIP, "mediumtroopship"),
 	token(TKN_DESTROYERTRIBAL, "destroyertribal"),
