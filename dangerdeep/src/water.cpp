@@ -604,6 +604,8 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 //	unsigned t3 = system::sys().millisec();
 //	drawing takes ~28ms with linux/athlon2200+/gf4mx. That would be ~32mb/sec with AGP4x!?
 //	why is it SO SLOW?!
+//	surprising result: fillrate limit! with 512x384 we have 50fps, with 800x600 35fps,
+//	with 1024x768 25fps. Water has approximatly 1Mpixels/frame. Bad for a gf4mx!!
 //	cout << "t0 " << t0 << " t1 " << t1 << " t2 " << t2 << " t3 " << t3 << "\n";
 //	cout << "t2-t1 " << t2-t1 << " t3-t1 " << t3-t1 << "\n";
 
