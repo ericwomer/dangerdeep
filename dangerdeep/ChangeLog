@@ -4,18 +4,29 @@
 
     * global_data.cpp:
       - glasses object is filled.
-      
+
+    * seaobject.h:
+      - New rudder feature added.
+
+    * seaobject.cpp:
+      - New rudder feature added.
+
     * submarine.h:
       - New method get_max_depth returns the maximum dive depth of a submarine.
       - New switch for electric engine. This is needed e.g. for detection reasons
         using passive sonar.
+      - snorkel_depth added
 
     * submarine.cpp:
       - max_submerged_speed is returned when electric engine is activated. max_speed
         else.
+      - Electric engine is launched while diving.
     
     * submarine_interface.cpp:
       - Changed the way the rudder works.
+
+    * submarine_interface.h:
+      - New method to create a message about the rudder state.
 
 	* user_interface.h:
       - New method display_glasses.
