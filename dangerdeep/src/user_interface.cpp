@@ -33,7 +33,7 @@
 #define FACES_PER_WAVE 4	// resolution of wave model in x/y dir.
 #define WAVE_LENGTH 40.0	// in meters, total length of one wave (one sine function)
 #define WAVE_HEIGHT 2.0		// half of difference top/bottom of wave -> fixme, depends on weather
-#define TIDECYCLE_TIME 4.0
+#define TIDECYCLE_TIME 8.0
 
 
 user_interface::user_interface() :
@@ -68,6 +68,11 @@ void user_interface::init ()
 	ships_sunk_disp = new ships_sunk_display;
 //	system::sys()->myassert ( ships_sunk_disp != 0, "Error while creating ships_sunk!" );
 
+//fixme: create normals too!!!! (for correct lighting)
+//that is a problem because we scale the result later and thus can't precompute normals,
+//they're screwed up by scaling. Enable auto normaling? But the display lists have borders.
+//what does auto normaling there? recreate Lists when wave height/length changes and don't
+//scale?!
 	// create and fill display lists for water
 	wavedisplaylists = glGenLists(WAVE_PHASES);
 	system::sys()->myassert(wavedisplaylists != 0, "no more display list indices available");
@@ -193,17 +198,27 @@ void user_interface::deinit ()
 	The normal is needed to simulate ship rolling.
 */	
 
-void user_interface::rotate_by_pos_and_wave(const vector3& pos, double timefac) const
+void user_interface::rotate_by_pos_and_wave(const vector3& pos, double timefac,
+	double rollfac, bool inverse) const
 {
-	vector3 rz = get_water_normal(pos.xy(), timefac, 0.05); // fixme: factor depends on ship mass and form
+	vector3 rz = get_water_normal(pos.xy(), timefac, rollfac);
 	vector3 rx = vector3(1, 0, -rz.x).normal();
 	vector3 ry = vector3(0, 1, -rz.y).normal();
-	double mat[16] = {
-		rx.x, rx.y, rx.z, 0,
-		ry.x, ry.y, ry.z, 0,
-		rz.x, rz.y, rz.z, 0,
-		0, 0, 0, 1 };
-	glMultMatrixd(&mat[0]);
+	if (inverse) {
+		double mat[16] = {
+			rx.x, ry.x, rz.x, 0,
+			rx.y, ry.y, rz.y, 0,
+			rx.z, ry.z, rz.z, 0,
+			0,    0,    0,    1 };
+		glMultMatrixd(&mat[0]);
+	} else {
+		double mat[16] = {
+			rx.x, rx.y, rx.z, 0,
+			ry.x, ry.y, ry.z, 0,
+			rz.x, rz.y, rz.z, 0,
+			0,    0,    0,    1 };
+		glMultMatrixd(&mat[0]);
+	}
 }
 
 double user_interface::get_water_height(const vector2& pos, double t) const
@@ -342,7 +357,7 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 }
 
 void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
-	angle dir, unsigned withplayer, bool withunderwaterweapons)
+	angle dir, bool aboard, bool drawbridge, bool withunderwaterweapons)
 {
 	double max_view_dist = gm.get_max_view_distance();
 
@@ -353,6 +368,15 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glRotatef(-90,1,0,0);
 	// This should be a negative angle, but nautical view dir is clockwise, OpenGL uses ccw values, so this is a double negation
 	glRotatef(dir.value(),0,0,1);
+
+	// if we're aboard the player's vessel move the world instead of the ship
+	if (aboard) {
+		//fixme: the sub's movement/rolling is view dir dependent, which
+		//it should'nt be.
+		//maybe the translates at draw_water/terrain should be before rotating?!
+		double rollfac = (dynamic_cast<ship*>(player))->get_roll_factor();
+		rotate_by_pos_and_wave(player->get_pos(), timefac, rollfac, true);
+	}
 
 	// ************ sky ***************************************************************
 	glPushMatrix();
@@ -547,11 +571,11 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	list<ship*> ships;
 	gm.visible_ships(ships, player);
 	for (list<ship*>::const_iterator it = ships.begin(); it != ships.end(); ++it) {
-		if (withplayer != 1 && *it == player) continue;	// only ships or subs playable!
+		if (aboard && *it == player) continue;	// only ships or subs playable!
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
-		rotate_by_pos_and_wave((*it)->get_pos(), timefac);
+		rotate_by_pos_and_wave((*it)->get_pos(), timefac, (*it)->get_roll_factor());
 		(*it)->display();
 		glPopMatrix();
 
@@ -564,12 +588,12 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	list<submarine*> submarines;
 	gm.visible_submarines(submarines, player);
 	for (list<submarine*>::const_iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		if (withplayer != 1 && *it == player) continue; // only ships or subs playable!
+		if (aboard && *it == player) continue; // only ships or subs playable!
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 		if ((*it)->get_pos().z > -15) {
-			rotate_by_pos_and_wave((*it)->get_pos(), timefac);
+			rotate_by_pos_and_wave((*it)->get_pos(), timefac, (*it)->get_roll_factor());
 		}
 		(*it)->display();
 		glPopMatrix();
@@ -630,7 +654,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glPopMatrix ();
 	}
 
-	if (withplayer == 2) {
+	if (aboard && drawbridge) {
 		// after everything was drawn, draw conning tower (new projection matrix needed)
 		glClear(GL_DEPTH_BUFFER_BIT);
 //		glDisable(GL_DEPTH_TEST);
@@ -643,7 +667,6 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glLoadIdentity();
 		glRotatef(-90,1,0,0);
 		glRotatef((dir - player->get_heading()).value(),0,0,1);
-		rotate_by_pos_and_wave(get_player()->get_pos(), timefac);
 		conning_tower_typeVII->display();
 		glPopMatrix();
 		glMatrixMode(GL_PROJECTION);
@@ -976,7 +999,7 @@ void user_interface::display_bridge(class system& sys, game& gm)
 	vector2 phd = player->get_heading().direction();
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6) + phd.xy0();
 	// no torpedoes, no DCs, with player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 2, false);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, true, true, false);
 
 	sys.prepare_2d_drawing();
 	draw_infopanel(sys, gm);
@@ -1405,7 +1428,7 @@ void user_interface::display_freeview(class system& sys, game& gm)
 	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
 
 	// draw everything
-	draw_view(sys, gm, viewpos, 0, 1, true);
+	draw_view(sys, gm, viewpos, 0, false, false, true);
 
 	int mx, my;
 	sys.get_mouse_motion(mx, my);
@@ -1460,7 +1483,7 @@ void user_interface::display_glasses(class system& sys, class game& gm)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6);
 	// no torpedoes, no DCs, no player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 0, false);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, true, false, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

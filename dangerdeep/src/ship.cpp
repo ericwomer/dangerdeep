@@ -138,6 +138,11 @@ unsigned ship::calc_damage(void) const
 	return dmg > 100 ? 100 : dmg;
 }
 
+double ship::get_roll_factor(void) const
+{
+	return 400.0 / (get_tonnage() + 6000.0);	// fixme: rather simple yet. should be overloaded by each ship
+}
+
 void ship::calculate_fuel_factor ( double delta_time )
 {
 	fuel_level -= delta_time * get_fuel_consumption_rate ();

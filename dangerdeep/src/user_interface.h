@@ -128,7 +128,9 @@ public:
 	// helper functions
 	
 	// this rotates the modelview matrix to match the water surface normal
-	virtual void rotate_by_pos_and_wave(const vector3& pos, double timefac) const;
+	// rollfac (0...1) determines how much the ship is influenced by wave movement
+	virtual void rotate_by_pos_and_wave(const vector3& pos, double timefac,
+		double rollfac = 0.05, bool inverse = false) const;
 	// height depends by time factor (wave shift) t in [0...1)
 	virtual double get_water_height(const vector2& pos, double t) const;
 	// give f as multiplier for difference to (0,0,1)
@@ -138,7 +140,7 @@ public:
 	virtual void draw_water(const vector3& viewpos, angle dir, double t, double max_view_dist) const;
 	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist) const;
 	virtual void draw_view(class system& sys, class game& gm, const vector3& viewpos,
-		angle dir, unsigned withplayer, bool withunderwaterweapons); // give 0-2 for "withplayer": draw 0 - nothing, 1 - sub/ship, 2 - bridge
+		angle dir, bool aboard, bool drawbridge, bool withunderwaterweapons);
 	virtual bool user_quits(void) const { return quit; }
 	virtual bool paused(void) const { return pause; }
 	virtual unsigned time_scaling(void) const { return time_scale; }

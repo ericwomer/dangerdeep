@@ -339,7 +339,7 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 12+3);//fixme: +3 to be above waves
 	// no torpedoes, no DCs, no player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, false, false);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, true, false, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -460,7 +460,7 @@ void submarine_interface::display_UZO(class system& sys, game& gm)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6);
 	// no torpedoes, no DCs, no player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, false, false);
+	draw_view(sys, gm, viewpos, player->get_heading()+bearing, true, false, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

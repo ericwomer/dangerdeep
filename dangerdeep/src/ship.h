@@ -76,7 +76,9 @@ public:
 	virtual bool damage(const vector3& fromwhere, unsigned strength);
 	virtual unsigned calc_damage(void) const;	// returns damage in percent (0 means dead)
 	ai* get_ai(void) { return myai; }
-	unsigned get_tonnage(void) const { return tonnage; }
+	// this depends on ship's tonnage, type, draught and depth (subs/sinking ships)
+	virtual double get_roll_factor(void) const;
+	virtual unsigned get_tonnage(void) const { return tonnage; }
 	virtual double get_fuel_level () const { return fuel_level; }
 
 	virtual bool is_merchant(void) const { return false; }
