@@ -82,7 +82,7 @@ bool ship_interface::keyboard_common(int keycode, class system& sys, class game&
 			break;
 
 		// quit, screenshot, pause etc.
-		case SDLK_ESCAPE: quit = true; break;
+		case SDLK_ESCAPE: gm.stop(); break;
 		case SDLK_i: sys.screenshot(); sys.add_console("screenshot taken."); break;
 		case SDLK_PAUSE: pause = !pause;
 			if (pause) add_message(texts::get(52));

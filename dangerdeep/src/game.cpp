@@ -962,19 +962,22 @@ ship* game::sonar_acoustical_torpedo_target ( const torpedo* o )
 }
 
 // main play loop
-void game::main_playloop(class system& sys)
+unsigned game::exec(void)
 {
+	class system& sys = *(system::sys());
 	unsigned frames = 1;
 	unsigned lasttime = sys.millisec();
 	unsigned lastframes = 1;
 	double fpstime = 0;
 	double totaltime = 0;
 	double measuretime = 5;	// seconds
+
+	stopexec = false;
 	
 	// draw one initial frame
 	ui->display(sys, *this);
 	
-	while (running && !ui->user_quits()) {
+	while (running && !stopexec) {
 		sys.poll_event_queue();
 
 		// this time_scaling is bad. hits may get computed wrong when time
@@ -1003,6 +1006,8 @@ void game::main_playloop(class system& sys)
 		
 		sys.swap_buffers();
 	}
+	
+	return (running ? 0 : 1);	// if player is killed, end game (1), else show menu (0)
 }
 
 bool game::is_day_mode () const

@@ -40,8 +40,10 @@ font *font_arial, *font_panel, *font_nimbusrom;
 sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
 
-image *titlebackgr, *periscope, *threesubsimg, *damage_screen_background, *sub_damage_scheme_all,
-	*logbook_spiral, *killedimg, *scopewatcherimg, *depthchargeimg, *sunken_destroyer;
+image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_background,
+	*sub_damage_scheme_all, *logbook_spiral, *killedimg, *scopewatcherimg,
+	*depthchargeimg, *sunkendestroyerimg, *kruppdocksimg, *rescuedestroyerimg, *sunderlandimg,
+	*swordfishimg, *hedgehogimg;
 
 void init_global_data(void)
 {
@@ -71,8 +73,6 @@ void init_global_data(void)
 	torpedo_g7 = new model(get_model_dir() + "torpedo_g7.3ds");
 	depth_charge_mdl = new model(get_model_dir() + "depth_charge.3ds");
 	gun_shell_mdl = new model(get_model_dir() + "gun_shell.3ds");
-	titlebackgr = new image(get_image_dir() + "titlebackgr.jpg");
-	periscope = new image(get_texture_dir() + "periscope.png");
 	gauge1 = new texture(get_texture_dir() + "gauge1.png");
 	gauge2 = new texture(get_texture_dir() + "gauge2.png");
 	gauge3 = new texture(get_texture_dir() + "gauge3.png");
@@ -99,7 +99,6 @@ void init_global_data(void)
 	clock12 = new texture(get_texture_dir() + "clock12.png");
 	clock24 = new texture(get_texture_dir() + "clock24.png");
 	glasses = new texture(get_texture_dir() + "glasses.png", GL_LINEAR, GL_CLAMP);
-	threesubsimg = new image(get_image_dir() + "threesubs.jpg");
 	torp_expl_water_splash[0] = new texture(get_texture_dir() + "torpedo_expl_water_splash.png" , GL_LINEAR);
 	torp_expl_water_splash[1] = new texture(get_texture_dir() + "torpedo_expl_water_splash_1.png" , GL_LINEAR);
 	torp_expl_water_splash[2] = new texture(get_texture_dir() + "torpedo_expl_water_splash_2.png" , GL_LINEAR);
@@ -108,27 +107,36 @@ void init_global_data(void)
 	torpedo_detonation_submerged[1] = new sound(get_sound_dir() + "torpedo_detonation_submerged_2.wav" );
 	torpedo_detonation_surfaced[0] = new sound(get_sound_dir() + "torpedo_detonation_surfaced_1.wav" );
 	torpedo_detonation_surfaced[1] = new sound(get_sound_dir() + "torpedo_detonation_surfaced_2.wav" );
-	logbook_spiral = new image(get_texture_dir() + "logbook_spiral.png");
 	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png" );
 	smoke = new texture(get_texture_dir() + "smoke.png" , GL_LINEAR, GL_CLAMP);
 	notepadsheet = new texture(get_texture_dir() + "notepadsheet.png" );
 	menuframe = new texture(get_texture_dir() + "menuframe.png" );
 	turnswitch = new texture(get_texture_dir() + "turnswitch.png" );
 	turnswitchbackgr = new texture(get_texture_dir() + "turnswitchbackgr.png" );
-	damage_screen_background = new image(get_image_dir() + "damage_screen_backg.jpg");
-	sub_damage_scheme_all = new image(get_image_dir() + "sub_damage_scheme_all.png");
 	repairlight = new texture(get_texture_dir() + "repairlight.png" );
 	repairmedium = new texture(get_texture_dir() + "repairmedium.png" );
 	repairheavy = new texture(get_texture_dir() + "repairheavy.png" );
 	repaircritical = new texture(get_texture_dir() + "repaircritical.png" );
 	repairwrecked = new texture(get_texture_dir() + "repairwrecked.png" );
-	killedimg = new image(get_image_dir() + "killed.jpg");
-	scopewatcherimg = new image(get_image_dir() + "scopewatcher.jpg");
-	depthchargeimg = new image(get_image_dir() + "depthcharge.jpg");
 	terraintex = new texture(get_texture_dir() + "terrain.png" );
 	cloudsbackgr = new texture(get_texture_dir() + "cloudsbackgr.png" );
 	atlanticmap = new texture(get_texture_dir() + "atlanticmap.png", GL_LINEAR, GL_CLAMP);
-	sunken_destroyer = new image(get_image_dir() + "sunken_destroyer.jpg");
+
+	titlebackgrimg = new image(get_image_dir() + "titlebackgr.jpg");
+	periscope = new image(get_texture_dir() + "periscope.png");
+	threesubsimg = new image(get_image_dir() + "threesubs.jpg");
+	logbook_spiral = new image(get_texture_dir() + "logbook_spiral.png");
+	damage_screen_background = new image(get_image_dir() + "damage_screen_backg.jpg");
+	sub_damage_scheme_all = new image(get_image_dir() + "sub_damage_scheme_all.png");
+	killedimg = new image(get_image_dir() + "killed.jpg");
+	scopewatcherimg = new image(get_image_dir() + "scopewatcher.jpg");
+	depthchargeimg = new image(get_image_dir() + "depthcharge.jpg");
+	sunkendestroyerimg = new image(get_image_dir() + "sunken_destroyer.jpg");
+	kruppdocksimg = new image(get_image_dir() + "krupp_docks.jpg");
+	rescuedestroyerimg = new image(get_image_dir() + "rescue_destroyer.jpg");
+	sunderlandimg = new image(get_image_dir() + "sunderland.jpg");
+	swordfishimg = new image(get_image_dir() + "swordfish.jpg");
+	hedgehogimg = new image(get_image_dir() + "hedgehog.jpg");
 }
 
 void deinit_global_data(void)
@@ -149,6 +157,8 @@ void deinit_global_data(void)
 	delete subXXI;
 	delete destroyer_tribal;
 	delete corvette_mdl;
+	delete freighter_large;
+	delete freighter_medium;
 	delete tanker_small;
 	delete conning_tower_typeVII;
 	delete font_arial;
@@ -157,14 +167,11 @@ void deinit_global_data(void)
 	delete torpedo_g7;
 	delete depth_charge_mdl;
 	delete gun_shell_mdl;
-	delete titlebackgr;
-	delete periscope;
 	delete gauge1;
 	delete gauge2;
 	delete gauge3;
 	delete gauge4;
 	delete gauge5;
-	delete glasses;
 	delete psbackgr;
 	delete panelbackgr;
 	delete addleadangle;
@@ -185,7 +192,7 @@ void deinit_global_data(void)
 	delete torpt6lut;
 	delete clock12;
 	delete clock24;
-	delete threesubsimg;
+	delete glasses;
 	delete torp_expl_water_splash[0];
 	delete torp_expl_water_splash[1];
 	delete torp_expl_water_splash[2];
@@ -194,26 +201,36 @@ void deinit_global_data(void)
 	delete torpedo_detonation_submerged[1];
 	delete torpedo_detonation_surfaced[0];
 	delete torpedo_detonation_surfaced[1];
-	delete logbook_spiral;
 	delete woodbackgr;
 	delete smoke;
 	delete notepadsheet;
 	delete menuframe;
 	delete turnswitch;
 	delete turnswitchbackgr;
-	delete damage_screen_background;
-	delete sub_damage_scheme_all;
 	delete repairlight;
 	delete repairmedium;
 	delete repairheavy;
 	delete repaircritical;
 	delete repairwrecked;
-	delete killedimg;
-	delete scopewatcherimg;
-	delete depthchargeimg;
 	delete terraintex;
 	delete cloudsbackgr;
 	delete atlanticmap;
+
+	delete titlebackgrimg;
+	delete periscope;
+	delete threesubsimg;
+	delete logbook_spiral;
+	delete damage_screen_background;
+	delete sub_damage_scheme_all;
+	delete killedimg;
+	delete scopewatcherimg;
+	delete depthchargeimg;
+	delete sunkendestroyerimg;
+	delete kruppdocksimg;
+	delete rescuedestroyerimg;
+	delete sunderlandimg;
+	delete swordfishimg;
+	delete hedgehogimg;
 }
 
 // returns 1939-1945, 1-12, 1-31

@@ -45,15 +45,25 @@
 class system* sys;
 int res_x, res_y;
 
-vector<string> missions;
+// a dirty hack
+void menu_notimplemented(void)
+{
+	menu m(110, titlebackgrimg);
+	m.add_item(20, 0);
+	m.run();
+}
 
+
+
+//
+// show results after a game ended
+//
 void show_results_for_game(const game* gm)
 {
-	widget w(0, 0, 1024, 768, texts::get(124), 0, sunken_destroyer);
+	widget w(0, 0, 1024, 768, texts::get(124), 0, sunkendestroyerimg);
 	widget_list* wl = new widget_list(64, 64, 1024-64-64, 768-64-64);
-	widget_button* wb = new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105));
 	w.add_child(wl);
-	w.add_child(wb);
+	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 	unsigned totaltons = 0;
 	for (list<game::sink_record>::const_iterator it = gm->sunken_ships.begin(); it != gm->sunken_ships.end(); ++it) {
 		ostringstream oss;
@@ -71,96 +81,95 @@ void show_results_for_game(const game* gm)
 	w.run();
 }
 
-void start_mission(int nr)
-{
-	string filename = get_mission_dir() + missions[nr] + ".mis";
-	parser p(filename);
-	game* gm = new game(p);
-	gm->main_playloop(*sys);
-	show_results_for_game(gm);
-	delete gm;
-}
 
-void menu_notimplemented(void)
+//
+// start and run a game, handle load/save (game menu), show results after game's end, delete game
+//
+void run_game(game* gm)
 {
-	menu m(110, titlebackgr);
-	m.add_item(20, 0);
-	m.run();
-}
-
-unsigned mission_subtype = 0, mission_cvsize = 0, mission_cvesc = 0, mission_tod = 0;
-void start_custom_mission(void)
-{
-	submarine::types st = submarine::typeVIIc;
-	switch (mission_subtype) {
-		case 0: st = submarine::typeVIIc; break;
-		case 1: st = submarine::typeIXc40; break;
-		case 2: st = submarine::typeXXI; break;
+	while (true) {
+		unsigned state = gm->exec();
+		//if (state == 2) break;
+		//SDL_ShowCursor(SDL_ENABLE);
+		if (state == 1) {
+			//widget* w = widget::create_dialogue_ok_cancel("Quit game?");
+			//int q = w->run();
+			//delete w;
+			//if (q == 1)
+				break;
+		} else {
+			widget woptions(0, 0, 1024, 768, texts::get(29), 0, depthchargeimg);
+			woptions.add_child(new widget_func_button<void (*)(void)>(menu_notimplemented, 312, 244, 400, 40, texts::get(118)));
+			woptions.add_child(new widget_func_button<void (*)(void)>(menu_notimplemented, 312, 324, 400, 40, texts::get(119)));
+			woptions.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&woptions, &widget::close, 1, 312, 404, 400, 40, texts::get(120)));
+			woptions.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&woptions, &widget::close, 2, 312, 484, 400, 40, texts::get(121)));
+			unsigned sel = woptions.run();
+			if (sel == 1)
+				break;
+		}
+		//SDL_ShowCursor(SDL_DISABLE);
 	}
-	game* gm = new game(st, mission_cvsize,	mission_cvesc, mission_tod);
-	gm->main_playloop(*sys);
 	show_results_for_game(gm);
 	delete gm;
 }
 
-void menu_selectsubtype(void)
+
+//
+// create a custom convoy mission
+//
+void create_convoy_mission(void)
 {
-	menu m(16, scopewatcherimg);
-	m.add_item(17, 0);
-	m.add_item(174, 0);
-	m.add_item(18, 0);
-	m.add_item(20, 0);
-	mission_subtype = m.run();
+	widget w(0, 0, 1024, 768, texts::get(9), 0, scopewatcherimg);
+	w.add_child(new widget_text(40, 60, 0, 0, texts::get(16)));
+	widget_list* wsubtype = new widget_list(40, 90, 200, 200);
+	w.add_child(wsubtype);
+	w.add_child(new widget_text(280, 60, 0, 0, texts::get(84)));
+	widget_list* wcvsize = new widget_list(280, 90, 200, 200);
+	w.add_child(wcvsize);
+	w.add_child(new widget_text(520, 60, 0, 0, texts::get(88)));
+	widget_list* wescortsize = new widget_list(520, 90, 200, 200);
+	w.add_child(wescortsize);
+	w.add_child(new widget_text(760, 60, 0, 0, texts::get(90)));
+	widget_list* wtimeofday = new widget_list(760, 90, 200, 200);
+	w.add_child(wtimeofday);
+	wsubtype->append_entry(texts::get(17));
+	wsubtype->append_entry(texts::get(174));
+	wsubtype->append_entry(texts::get(18));
+	wcvsize->append_entry(texts::get(85));
+	wcvsize->append_entry(texts::get(86));
+	wcvsize->append_entry(texts::get(87));
+	wescortsize->append_entry(texts::get(89));
+	wescortsize->append_entry(texts::get(85));
+	wescortsize->append_entry(texts::get(86));
+	wescortsize->append_entry(texts::get(87));
+	wtimeofday->append_entry(texts::get(91));
+	wtimeofday->append_entry(texts::get(92));
+	wtimeofday->append_entry(texts::get(93));
+	wtimeofday->append_entry(texts::get(94));
+
+	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40, texts::get(20)));
+	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 540, 700, 400, 40, texts::get(19)));
+	int result = w.run();
+	if (result == 2) {	// start game
+		submarine::types st = submarine::typeVIIc;
+		switch (wsubtype->get_selected()) {
+			case 0: st = submarine::typeVIIc; break;
+			case 1: st = submarine::typeIXc40; break;
+			case 2: st = submarine::typeXXI; break;
+		}
+		run_game(new game(st, wcvsize->get_selected(), wescortsize->get_selected(), wtimeofday->get_selected()));
+	}
 }
 
-void menu_selectconvoysize(void)
-{
-	menu m(84, scopewatcherimg);
-	m.add_item(85, 0);
-	m.add_item(86, 0);
-	m.add_item(87, 0);
-	m.add_item(20, 0);
-	mission_cvsize = m.run();
-}
 
-void menu_selectconvoyescort(void)
+//
+// choose a historical mission
+//
+void choose_historical_mission(void)
 {
-	menu m(88, scopewatcherimg);
-	m.add_item(89, 0);
-	m.add_item(85, 0);
-	m.add_item(86, 0);
-	m.add_item(87, 0);
-	m.add_item(20, 0);
-	mission_cvesc = m.run();
-}
-
-void menu_selecttimeofday(void)
-{
-	menu m(90, scopewatcherimg);
-	m.add_item(91, 0);
-	m.add_item(92, 0);
-	m.add_item(93, 0);
-	m.add_item(94, 0);
-	m.add_item(20, 0);
-	mission_tod = m.run();
-}
-
-void menu_convoy_battle(void)
-{
-	menu m(9, scopewatcherimg);
-	m.add_item(16, menu_selectsubtype);
-	m.add_item(84, menu_selectconvoysize);
-	m.add_item(88, menu_selectconvoyescort);
-	m.add_item(90, menu_selecttimeofday);
-	m.add_item(19, start_custom_mission);
-	m.add_item(20, 0);
-	m.run();
-}
-
-void menu_historical_mission(void)
-{
+	vector<string> missions;
+	
 	// read missions
-	missions.clear();
 	ifstream ifs((get_mission_dir() + "list").c_str());
 	string s;
 	unsigned nr_missions = 0;
@@ -168,32 +177,41 @@ void menu_historical_mission(void)
 		missions.push_back(s);
 		++nr_missions;
 	}
-	
-	menu m(10, titlebackgr);
+
+	// set up window
+	widget w(0, 0, 1024, 768, texts::get(10), 0, sunderlandimg);
+	widget_list* wmission = new widget_list(40, 60, 1024-80, 620);
+	w.add_child(wmission);
 	for (unsigned i = 0; i < nr_missions; ++i)
-		m.add_item(500+i, 0);
-	m.add_item(20, 0);
+		wmission->append_entry(texts::get(500+i));
 	
-	while (true) {
-		unsigned selected = m.run();
-		if (selected == nr_missions) break;
-		start_mission(selected);
+	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40, texts::get(20)));
+	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 540, 700, 400, 40, texts::get(19)));
+	int result = w.run();
+	if (result == 2) {	// start game
+		string filename = get_mission_dir() + missions[wmission->get_selected()] + ".mis";
+		parser p(filename);
+		run_game(new game(p));
 	}
 }
 
+
+
+
+// old menus are used from here on
 void menu_single_mission(void)
 {
-	menu m(21, titlebackgr);
+	menu m(21, titlebackgrimg);
 	m.add_item(8, menu_notimplemented);
-	m.add_item(9, menu_convoy_battle);
-	m.add_item(10, menu_historical_mission);
+	m.add_item(9, create_convoy_mission);
+	m.add_item(10, choose_historical_mission);
 	m.add_item(11, 0);
 	m.run();
 }
 
 void menu_select_language(void)
 {
-	menu m(26, titlebackgr);
+	menu m(26, titlebackgrimg);
 	m.add_item(27, 0);
 	m.add_item(28, 0);
 	m.add_item(11, 0);
@@ -203,9 +221,15 @@ void menu_select_language(void)
 	}
 }
 
+//
+// options:
+// - set resolution
+// - enable bump mapping
+// - set fullscreen
+//
 void menu_resolution(void)
 {
-	menu m(106, titlebackgr);
+	menu m(106, titlebackgrimg);
 	m.add_item(107, menu_notimplemented);
 	m.add_item(108, menu_notimplemented);
 	m.add_item(109, menu_notimplemented);
@@ -216,7 +240,7 @@ void menu_resolution(void)
 
 void menu_options(void)
 {
-	menu m(29, titlebackgr);
+	menu m(29, titlebackgrimg);
 	m.add_item(106, menu_resolution);
 	m.add_item(11, 0);
 	m.run();
@@ -306,8 +330,8 @@ double vessel_xangle = 0;
 sea_object* vessel = 0;
 void draw_vessel(void)
 {
-//fixme: gl light source is not reseted. so last mission's brightness changes this view.
 	glClear(GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_LIGHTING);
 	glLoadIdentity();
 	glTranslatef(0, 0, -2.5);
 	glRotatef(-80, 1, 0, 0);
@@ -328,6 +352,7 @@ void draw_vessel(void)
 	sys->prepare_2d_drawing();
 	font_nimbusrom->print_hc(512, 128, vessel->get_description(2), color::white(), true);
 	sys->unprepare_2d_drawing();
+	glEnable(GL_LIGHTING);
 }
 
 void menu_show_vessels(void)
@@ -453,19 +478,19 @@ int main(int argc, char** argv)
 	init_global_data();
 	
 	widget::set_theme(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
-		font_arial, color::yellow(), color::red()));
+		font_nimbusrom, color::white(), color(255, 64, 64)));
 
 	sys->draw_console_with(font_arial, background);
 	
 	// main menu
-	menu m(104, titlebackgr);
+	menu m(104, titlebackgrimg);
 	m.add_item(21, menu_single_mission);
 	m.add_item(22, menu_notimplemented);//menu_multiplayer);
 	m.add_item(23, menu_notimplemented);
 	m.add_item(24, menu_show_vessels);
 	m.add_item(25, menu_notimplemented);
 	m.add_item(26, menu_select_language);
-	m.add_item(29, menu_options);
+	m.add_item(29, menu_notimplemented /*menu_options*/);
 	m.add_item(30, 0);
 
 

@@ -28,7 +28,6 @@ public:
 	enum sound_effect { se_submarine_torpedo_launch, se_torpedo_detonation };
 
 protected:
-	bool quit;		// whishes user to quit?
 	bool pause;
 	unsigned time_scale;
 	sea_object* player_object;
@@ -163,7 +162,6 @@ public:
 	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist) const;
 	virtual void draw_view(class system& sys, class game& gm, const vector3& viewpos,
 		angle dir, angle elev, bool aboard, bool drawbridge, bool withunderwaterweapons);
-	virtual bool user_quits(void) const { return quit; }
 	virtual bool paused(void) const { return pause; }
 	virtual unsigned time_scaling(void) const { return time_scale; }
 	virtual void add_message(const string& s);

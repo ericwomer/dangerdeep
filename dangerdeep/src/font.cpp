@@ -226,6 +226,10 @@ void font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, const st
 			charw += spacing;
 			++textptr;
 		}
+		if (textptr == 0) {	// space is not enough to wrap first word. so disable wrapping
+			w = 0xffffffff;
+			continue;
+		}
 		if (breaktext) {
 			print(x, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
 			y += (lineheight == 0) ? get_height() : lineheight;

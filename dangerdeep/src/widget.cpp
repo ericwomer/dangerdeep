@@ -209,6 +209,7 @@ void widget::process_input(void)
 
 void widget::draw_rect(int x, int y, int w, int h, bool out)
 {
+	glColor4f(1,1,1,1);
 	if (out)
 		globaltheme->backg->draw(x, y, w, h);
 	else
@@ -218,10 +219,12 @@ void widget::draw_rect(int x, int y, int w, int h, bool out)
 void widget::draw_area(int x, int y, int w, int h, bool out) const
 {
 	int fw = globaltheme->frame_size();
-	if (background)
-		background->draw(x, y);
-	else
-		draw_rect(x+fw, y+fw, w-2*fw, h-2*fw, out);
+	draw_rect(x+fw, y+fw, w-2*fw, h-2*fw, out);
+	if (background) {
+		int bw = int(background->get_width());
+		int bh = int(background->get_height());
+		background->draw(x + (w-bw)/2, y + (h-bh)/2);
+	}
 	draw_frame(x, y, w, h, out);
 }
 
@@ -256,6 +259,7 @@ widget* widget::create_dialogue_ok_cancel(const string& text)
 
 int widget::run(void)
 {
+	glClearColor(0, 0, 0, 0);
 	widgets.push_back(this);
 	class system* sys = system::sys();
 	while (retval == NO_RETURN) {
@@ -336,7 +340,7 @@ void widget_button::draw(void) const
 	bool mo = is_mouse_over();
 	draw_area(p.x, p.y, size.x, size.y, !mo);
 	if (mo && enabled)
-		globaltheme->myfont->print_c(p.x+size.x/2, p.y+size.y/2, text, globaltheme->textcol, true);
+		globaltheme->myfont->print_c(p.x+size.x/2, p.y+size.y/2, text, globaltheme->textselectcol, true);
 	else
 		globaltheme->myfont->print_c(p.x+size.x/2, p.y+size.y/2, text, globaltheme->textcol, false);
 }
@@ -480,6 +484,7 @@ widget_list::widget_list(int x, int y, int w, int h, widget* parent_)
 void widget_list::append_entry(const string& s)
 {
 	entries.push_back(s);
+	if (entries.size() == 1) set_selected(0);	// set to first entry
 	myscrollbar->set_nr_of_positions(entries.size());
 }
 

@@ -50,9 +50,10 @@ extern class texture *water, *the_moon, *the_sun, *background, *gauge1,
 extern class font *font_arial, *font_panel, *font_nimbusrom;
 extern class sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
 	*torpedo_detonation_surfaced[2];
-extern class image *titlebackgr, *periscope, *threesubsimg, *damage_screen_background,
+extern class image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_background,
 	*sub_damage_scheme_all, *logbook_spiral, *killedimg, *scopewatcherimg,
-	*depthchargeimg, *sunken_destroyer;
+	*depthchargeimg, *sunkendestroyerimg, *kruppdocksimg, *rescuedestroyerimg, *sunderlandimg,
+	*swordfishimg, *hedgehogimg;
 
 void init_global_data(void);
 void deinit_global_data(void);

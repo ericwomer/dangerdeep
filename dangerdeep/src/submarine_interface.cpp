@@ -215,19 +215,8 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 
 			// quit, screenshot, pause etc.
 			case SDLK_ESCAPE:
-				{
-					//fixme: time continues until menu is shown?
-					menu m(29, depthchargeimg);
-					m.add_item(118, menu_notimplemented);
-					m.add_item(119, menu_notimplemented);
-					m.add_item(120, 0);
-					m.add_item(121, 0);
-					unsigned sel = m.run();
-					if (sel == 2) {
-						quit = true;
-					}
-					break;
-				}
+				gm.stop();
+				break;
 			case SDLK_PRINT: sys.screenshot(); sys.add_console("screenshot taken."); break;
 			case SDLK_PAUSE: pause = !pause;
 				if (pause) add_message(texts::get(52));

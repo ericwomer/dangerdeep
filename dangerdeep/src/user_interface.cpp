@@ -64,7 +64,7 @@ using namespace std;
 */
 
 user_interface::user_interface(sea_object* player) :
-	quit(false), pause(false), time_scale(1), player_object ( player ),
+	pause(false), time_scale(1), player_object ( player ),
 	panel_height(128), panel_visible(true), bearing(0), elevation(0),
 	viewmode(4), target(0), zoom_scope(false), mapzoom(0.1),
 	mycoastmap("default.map"), freeviewsideang(0), freeviewupang(-90), freeviewpos()

@@ -1,4 +1,16 @@
 2003-12-25  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* game, user_interface
+	  - moved menu display and handling outside of game, thus fixing the
+	    bug, that time continues while the game menu is shown.
+	    And a sane handling of a game by its caller is now realized.
+	    Now more chain: subsim -> game -> user_interface -> resultmenu
+	    In short: the whole structure is saner, it is similar to that in
+	    ADVSE
+	  - more widget usage: menues historical/custom mission, results,
+	    game options
+	  - added all scanned images that were resting in some data folder
+
+2003-12-25  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* version number increased to 0.0.15
 	* first bits of widget usage:
 	  display results in subsim, not in game, using widgets

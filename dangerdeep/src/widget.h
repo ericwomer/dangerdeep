@@ -190,6 +190,18 @@ public:
 	void on_release(void) { widget_button::on_release(); (obj->*func)(arg); }
 };
 
+template<class Func>
+class widget_func_button : public widget_button
+{
+	Func func;
+public:
+	widget_func_button(Func func_, int x = 0, int y = 0, int w = 0, int h = 0,
+		const string& text = "", widget* parent = 0)
+		: widget_button(x, y, w, h, text, parent), func(func_) {}
+	~widget_func_button() {}
+	void on_release(void) { widget_button::on_release(); func(); }
+};
+
 template<class Func, class Arg>
 class widget_func_arg_button : public widget_button
 {

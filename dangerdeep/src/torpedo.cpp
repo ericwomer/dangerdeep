@@ -8,6 +8,8 @@
 #include "game.h"
 #include "sensors.h"
 
+// fixme: type T XI has same image as empty tube -> bug!
+
 torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes,
 	unsigned pr, unsigned sr, unsigned it, unsigned sp) : sea_object()
 {
