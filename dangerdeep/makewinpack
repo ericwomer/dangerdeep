@@ -12,6 +12,9 @@ rm dangerdeep-$VERSION.tar.gz
 cd ../..
 cp build/win32/dangerdeep.exe $TMP/$BASEDIR
 cp dlls/*.dll $TMP/$BASEDIR
+mkdir $TMP/$BASEDIR/config
+mkdir $TMP/$BASEDIR/save
+mkdir $TMP/$BASEDIR/highscores
 cd $TMP
 rm -rf $BASEDIR/src
 rm -rf $BASEDIR/build
