@@ -10,6 +10,7 @@
 #include "depth_charge.h"
 #include "submarine.h"
 
+
 // fixme: we have bspline code ready. convoys should follow their routes along a bspline
 // curve for realistic results.
 #define WPEXACTNESS 100			// how exact a waypoint has to be hit in meters

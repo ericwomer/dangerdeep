@@ -183,18 +183,18 @@ BuildDir(target_dir, source_base_dir, duplicate=0)
 ############### option so that "scons tarball" builds a tarball of source and data
 #fixme: change that so that e.g. "scons tarball" does that only, and it
 #isn't done everytime we build the program
-#some hack so that scons doesn't replace the filename from build/linux to src
 
 allcvsfiles = findCVS('.')
-filestopack = remove_entries_that_start_with(allcvsfiles, '.' + os.sep + selected_build_dir)
-problematicfiles = remove_entries_that_not_start_with(allcvsfiles, '.' + os.sep + selected_build_dir)
-problematicfiless = ''
-for i in problematicfiles:
-	problematicfiless += i + ' '
+allcvsfiles2 = ''
+for i in allcvsfiles:
+	allcvsfiles2 += i + ' '
 
-env.Append(TARFLAGS = '-z ' + problematicfiless)
-env.Append(TARSUFFIX = '.gz')
-tarball = env.Alias('tarball', env.Tar('dangerdeep-'+version, filestopack))
+#env.Append(TARFLAGS = '-z ' + problematicfiless)
+#env.Append(TARSUFFIX = '.gz')
+#tarball = env.Alias('tarball', env.Tar('dangerdeep-'+version, filestopack))
+#### we have an own tar version here...
+if not(sys.platform == 'win32'):
+	env.Alias('tarball', env.Command('dangerdeep-' + version + '.tar.gz', '', ['tar -zcf ' + 'dangerdeep-' + version + '.tar.gz ' + allcvsfiles2]))
 
 #also env.Zip is possible...
 
