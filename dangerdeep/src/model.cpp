@@ -175,7 +175,7 @@ float model::get_cross_section(float angle) const
 // ------------------------------------------ 3ds loading functions -------------------------- 
 // ----------------------------- 3ds file reading data ---------------------------
 // taken from a NeHe tutorial (nehe.gamedev.net)
-// intendations describe the tree structure
+// indentations describe the tree structure
 #define M3DS_MAIN3DS	   	0x4D4D
 	#define M3DS_EDIT3DS		0x3D3D
 		#define M3DS_EDIT_MATERIAL	0xAFFF

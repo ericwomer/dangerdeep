@@ -14,20 +14,6 @@
 
 
 
-vector3 sea_object::get_acceleration(void) const
-{
-	return vector3(0, 0, -GRAVITY);
-}
-
-
-
-quaternion sea_object::get_rot_acceleration(void) const
-{
-	return quaternion::neutral_rot();
-}
-
-
-
 void sea_object::degrees2meters(bool west, unsigned degx, unsigned minx, bool south,
 	unsigned degy, unsigned miny, double& x, double& y)
 {
@@ -52,12 +38,50 @@ void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, 
 
 
 
+vector3 sea_object::get_acceleration(void) const
+{
+	return vector3(0, 0, -GRAVITY);
+}
+
+
+
+quaternion sea_object::get_rot_acceleration(void) const
+{
+	return quaternion::neutral_rot();
+}
+
+
+
 // some heirs need this empty c'tor
 sea_object::sea_object() : /*speed(0), max_speed(0), max_rev_speed(0), throttle(stop),
-	acceleration(0), permanent_turn(false), head_chg(0), rudder(0), length(0), width(0),*/
+	acceleration(0), permanent_turn(false), head_chg(0), rudder(0) fixme move to ship */
 	alive_stat(alive), myai(0)
 {
 	sensors.resize ( last_sensor_system );
+}
+
+
+
+void sea_object::set_sensor ( sensor_system ss, sensor* s )
+{
+	if ( ss >= 0 && ss < last_sensor_system ){
+		sensors[ss] = s;
+	}
+}
+
+
+
+double sea_object::get_cross_section ( const vector2& d ) const
+{
+	model* mdl = modelcache.find(modelname);
+	if (mdl) {
+		vector2 r = get_pos().xy() - d;
+		angle diff = angle(r) - get_heading();
+		return mdl->get_cross_section(diff.value());
+	}
+	return 0.0;
+
+
 }
 
 
@@ -423,6 +447,25 @@ angle sea_object::get_heading(void) const
 
 
 
+//fixme: should move to ship or maybe return pos. airplanes have engines, but not
+//dc's/shells.
+vector2 sea_object::get_engine_noise_source () const
+{
+	return get_pos ().xy () - get_heading().direction () * 0.3f * get_length();
+}
+
+
+
+void sea_object::display(void) const
+{
+	model* mdl = modelcache.find(modelname);
+
+	if ( mdl )
+		mdl->display ();
+}
+
+
+
 sensor* sea_object::get_sensor ( sensor_system ss )
 {
 	if ( ss >= 0 && ss < last_sensor_system )
@@ -439,45 +482,4 @@ const sensor* sea_object::get_sensor ( sensor_system ss ) const
 		return sensors[ss];
 
 	return 0;
-}
-
-
-
-void sea_object::set_sensor ( sensor_system ss, sensor* s )
-{
-	if ( ss >= 0 && ss < last_sensor_system ){
-		sensors[ss] = s;
-	}
-}
-
-
-
-double sea_object::get_cross_section ( const vector2& d ) const
-{
-	model* mdl = modelcache.find(modelname);
-	if (mdl) {
-		vector2 r = get_pos().xy() - d;
-		angle diff = angle(r) - get_heading();
-		return mdl->get_cross_section(diff.value());
-	}
-	return 0.0;
-
-
-}
-
-
-
-vector2 sea_object::get_engine_noise_source () const
-{
-	return get_pos ().xy () - get_heading().direction () * 0.3f * get_length();
-}
-
-
-
-void sea_object::display(void) const
-{
-	model* mdl = modelcache.find(modelname);
-
-	if ( mdl )
-		mdl->display ();
 }
