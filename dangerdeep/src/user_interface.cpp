@@ -14,6 +14,15 @@
 
 vector<float> user_interface::allwaveheights;
 
+
+user_interface::user_interface() :
+        player_object(0), quit(false), pause(false), time_scale(1),
+        zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
+    	viewpos(0, 0, 10), bearing(0), viewmode(4), target(0)
+{
+	if (allwaveheights.size() == 0) init_water_data();
+}
+
 user_interface::user_interface(sea_object* player) :
     	player_object ( player ), quit(false), pause(false), time_scale(1),
         zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
@@ -529,6 +538,84 @@ void user_interface::display_bridge(class system& sys, game& gm)
 	}
 }
 
+void user_interface::draw_pings(class game& gm, const vector2& offset)
+{
+  	// draw pings (just an experiment, you can hear pings, locate their direction
+  	//	a bit fuzzy but not their origin or exact shape).
+  	const list<game::ping>& pings = gm.get_pings();
+  	for (list<game::ping>::const_iterator it = pings.begin(); it != pings.end(); ++it) {
+  		const game::ping& p = *it;
+  		vector2 p1 = (p.pos + offset)*mapzoom;
+  		vector2 p2 = p1 + (p.dir + angle(PINGANGLE/2)).direction() * PINGLENGTH * mapzoom;
+  		vector2 p3 = p1 + (p.dir - angle(PINGANGLE/2)).direction() * PINGLENGTH * mapzoom;
+  		glBegin(GL_TRIANGLES);
+  		glColor4f(0.5,0.5,0.5,1);
+  		glVertex2f(512+p1.x, 384-p1.y);
+  		glColor4f(0.5,0.5,0.5,0);
+  		glVertex2f(512+p2.x, 384-p2.y);
+  		glVertex2f(512+p3.x, 384-p3.y);
+  		glEnd();
+  		glColor4f(1,1,1,1);
+  	}
+}
+
+void user_interface::draw_sound_contact(class game& gm, const sea_object* player,
+    const double& max_view_dist)
+{
+    // draw sound contacts
+   	if (player->get_throttle_speed()/player->get_max_speed() < 0.51) {
+   		list<ship*> ships = gm.hearable_ships(player->get_pos());
+   		// fixme: sub's missing
+   		// fixme: differences between ship types missing
+   		for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
+   			vector2 ldir = (*it)->get_pos().xy() - player->get_pos().xy();
+   			ldir = ldir.normal() * 0.666666 * max_view_dist*mapzoom;
+   			if ((*it)->is_merchant())
+   				glColor3f(0,0,0);
+   			else if ((*it)->is_warship())
+   				glColor3f(0,0.5,0);
+   			else if ((*it)->is_escort())
+   				glColor3f(1,0,0);
+   			glBindTexture(GL_TEXTURE_2D, 0);
+   			glBegin(GL_LINES);
+   			glVertex2f(512,384);
+   			glVertex2f(512+ldir.x, 384-ldir.y);
+   			glEnd();
+   			glColor3f(1,1,1);
+   		}
+   	}
+}
+
+void user_interface::draw_visual_contacts(class system& sys, class game& gm,
+    const sea_object* player, const vector2& offset)
+{
+    // draw vessel trails and symbols (since player is submerged, he is drawn too)
+   	list<ship*> ships = gm.visible_ships(player->get_pos());
+   	list<submarine*> submarines = gm.visible_submarines(player->get_pos());
+   	list<airplane*> airplanes = gm.visible_airplanes(player->get_pos());
+   	list<torpedo*> torpedoes = gm.visible_torpedoes(player->get_pos());
+
+   	// draw trails
+   	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
+   		draw_trail(*it, offset);
+   	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
+   		draw_trail(*it, offset);
+   	for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
+   		draw_trail(*it, offset);
+   	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
+   		draw_trail(*it, offset);
+
+   	// draw vessel symbols
+   	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
+   		draw_vessel_symbol(sys, offset, *it, color(192,255,192));
+   	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
+   		draw_vessel_symbol(sys, offset, *it, color(255,255,128));
+   	for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
+   		draw_vessel_symbol(sys, offset, *it, color(0,0,64));
+   	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
+   		draw_vessel_symbol(sys, offset, *it, color(255,0,0));
+}
+
 void user_interface::display_map(class system& sys, game& gm)
 {
     sea_object* player = get_player ();
@@ -591,85 +678,31 @@ void user_interface::display_map(class system& sys, game& gm)
 	glEnd();
 	glColor3f(1,1,1);
 
-	bool player_is_submerged = (player->get_pos().z < -2);
-
 	// draw vessel symbols (or noise contacts)
-	if (player_is_submerged) {
-		// draw pings (just an experiment, you can hear pings, locate their direction
-		//	a bit fuzzy but not their origin or exact shape).
-		const list<game::ping>& pings = gm.get_pings();
-		for (list<game::ping>::const_iterator it = pings.begin(); it != pings.end(); ++it) {
-			const game::ping& p = *it;
-			vector2 p1 = (p.pos + offset)*mapzoom;
-			vector2 p2 = p1 + (p.dir + angle(PINGANGLE/2)).direction() * PINGLENGTH * mapzoom;
-			vector2 p3 = p1 + (p.dir - angle(PINGANGLE/2)).direction() * PINGLENGTH * mapzoom;
-			glBegin(GL_TRIANGLES);
-			glColor4f(0.5,0.5,0.5,1);
-			glVertex2f(512+p1.x, 384-p1.y);
-			glColor4f(0.5,0.5,0.5,0);
-			glVertex2f(512+p2.x, 384-p2.y);
-			glVertex2f(512+p3.x, 384-p3.y);
-			glEnd();
-			glColor4f(1,1,1,1);
-		}
+    submarine* sub_player = player->get_submarine_ptr();
+	if (sub_player && sub_player->is_submerged ()) {
+        // draw pings
+        draw_pings(gm, offset);
 
-		// draw sound contacts
-		if (player->get_throttle_speed()/player->get_max_speed() < 0.51) {
-			list<ship*> ships = gm.hearable_ships(player->get_pos());
-			// fixme: sub's missing
-			// fixme: differences between ship types missing
-			for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
-				vector2 ldir = (*it)->get_pos().xy() - player->get_pos().xy();
-				ldir = ldir.normal() * 0.666666 * max_view_dist*mapzoom;
-				if ((*it)->is_merchant())
-					glColor3f(0,0,0);
-				else if ((*it)->is_warship())
-					glColor3f(0,0.5,0);
-				else if ((*it)->is_escort())
-					glColor3f(1,0,0);
-				glBindTexture(GL_TEXTURE_2D, 0);
-				glBegin(GL_LINES);
-				glVertex2f(512,384);
-				glVertex2f(512+ldir.x, 384-ldir.y);
-				glEnd();
-				glColor3f(1,1,1);
-			}
-		}
-		// else: sub can't hear anything, engines to loud
-		
+        // draw sound contacts
+		draw_sound_contact(gm, sub_player, max_view_dist);
+
 		// draw player trails and player
 		draw_trail(player, offset);
-		draw_vessel_symbol(sys, offset, player, color(255,255,128));
+		draw_vessel_symbol(sys, offset, sub_player, color(255,255,128));
 
+        // Special handling for submarine player: When the submarine is
+        // on periscope depth and the periscope is up the visual contact
+        // must be drawn on map.
+        if ((sub_player->get_depth() <= sub_player->get_periscope_depth()) &&
+            sub_player->is_scope_up())
+        {
+            draw_visual_contacts(sys, gm, sub_player, offset);
+        }
 	} 
 	else	 	// enable drawing of all object as testing hack by commenting this, fixme
 	{	// sub is surfaced
-
-		// draw vessel trails and symbols (since player is submerged, he is drawn too)
-		list<ship*> ships = gm.visible_ships(player->get_pos());
-		list<submarine*> submarines = gm.visible_submarines(player->get_pos());
-		list<airplane*> airplanes = gm.visible_airplanes(player->get_pos());
-		list<torpedo*> torpedoes = gm.visible_torpedoes(player->get_pos());
-
-		// draw trails
-		for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
-			draw_trail(*it, offset);
-		for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
-			draw_trail(*it, offset);
-		for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
-			draw_trail(*it, offset);
-		for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
-			draw_trail(*it, offset);
-
-		// draw vessel symbols
-		for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
-			draw_vessel_symbol(sys, offset, *it, color(192,255,192));
-		for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
-			draw_vessel_symbol(sys, offset, *it, color(255,255,128));
-		for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
-			draw_vessel_symbol(sys, offset, *it, color(0,0,64));
-		for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
-			draw_vessel_symbol(sys, offset, *it, color(255,0,0));
+        draw_visual_contacts(sys, gm, player, offset);
 	}
 	
 	draw_infopanel(sys);
