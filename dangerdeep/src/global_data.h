@@ -37,8 +37,7 @@ extern class model *merchant_large, *merchant_medium, *merchant_small,
 	*subVII, *subIXc40, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
 	*skyhemisphere, *corvette_mdl, *freighter_medium, *freighter_large,
-	*tanker_small,
-	*conning_tower_typeVII;
+	*tanker_small, *conning_tower_typeVII, *std_plane;
 extern class texture *water, *the_moon, *the_sun, *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
 	*addleadangle, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,

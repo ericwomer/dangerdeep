@@ -724,7 +724,7 @@ vector3f user_interface::get_water_normal(const vector2& pos, double t, double f
 }
 
 void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
-	double max_view_dist) const
+	double max_view_dist, bool onlyflatwater) const
 {
 
 	// the origin of the coordinate system is the bottom left corner of the tile
@@ -759,7 +759,6 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, water_bumpmaps[unsigned(framepart*WATER_BUMP_FRAMES)]->get_opengl_name());
 
-	// GL_DOT3_RGB doesn't work, why?!?!?!
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGB); 
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
@@ -799,120 +798,109 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 
 	glDisable(GL_LIGHTING);
 	glBegin(GL_TRIANGLE_STRIP);
-	//glMultiTexCoord2f(GL_TEXTURE0,t0,t3);
-	//glMultiTexCoord2f(GL_TEXTURE1,t0,t3);
-	glVertex3f(c0,c3,0);
-	//glMultiTexCoord2f(GL_TEXTURE0,t1,t2);
-	//glMultiTexCoord2f(GL_TEXTURE1,t1,t2);
-	glVertex3f(c1,c2,wz);
-	//glMultiTexCoord2f(GL_TEXTURE0,t3,t3);
-	//glMultiTexCoord2f(GL_TEXTURE1,t3,t3);
-	glVertex3f(c3,c3,0);
-	//glMultiTexCoord2f(GL_TEXTURE0,t2,t2);
-	//glMultiTexCoord2f(GL_TEXTURE1,t2,t2);
-	glVertex3f(c2,c2,wz);
-	//glMultiTexCoord2f(GL_TEXTURE0,t3,t0);
-	//glMultiTexCoord2f(GL_TEXTURE1,t3,t0);
-	glVertex3f(c3,c0,0);
-	//glMultiTexCoord2f(GL_TEXTURE0,t2,t1);
-	//glMultiTexCoord2f(GL_TEXTURE1,t2,t1);
-	glVertex3f(c2,c1,wz);
-	//glMultiTexCoord2f(GL_TEXTURE0,t0,t0);
-	//glMultiTexCoord2f(GL_TEXTURE1,t0,t0);
-	glVertex3f(c0,c0,0);
-	//glMultiTexCoord2f(GL_TEXTURE0,t1,t1);
-	//glMultiTexCoord2f(GL_TEXTURE1,t1,t1);
-	glVertex3f(c1,c1,wz);
-	//glMultiTexCoord2f(GL_TEXTURE0,t0,t3);
-	//glMultiTexCoord2f(GL_TEXTURE1,t0,t3);
-	glVertex3f(c0,c3,0);
-	//glMultiTexCoord2f(GL_TEXTURE0,t1,t2);
-	//glMultiTexCoord2f(GL_TEXTURE1,t1,t2);
-	glVertex3f(c1,c2,wz);
-	glEnd();
-	
-	// draw waves
-	double timefac = myfmod(t, TIDECYCLE_TIME)/TIDECYCLE_TIME;
-
-	// fixme: use LOD (fft with less resolution) for distance waves
-	// until about 10km to the horizon
-
-	// compute the rasterization of the triangle p0,p1,p2
-	// with p0 = viewer's pos., p1,2 = p0 + viewrange * direction(brearing +,- fov/2)
-
-	vector2 p0(myfmod(viewpos.x, WAVE_LENGTH)/WAVE_LENGTH, myfmod(viewpos.y, WAVE_LENGTH)/WAVE_LENGTH);
-	vector2 p1 = p0 + angle(90/*bearing*/+45/*fov/2*/).direction() * 8 /* view dist */;
-	vector2 p2 = p0 + angle(90/*bearing*/-45/*fov/2*/).direction() * 8 /* view dist */;
-/*
-	vector2 *top = &p0, *middle = &p0, *bottom = &p0;
-	if (p1.y < top->y) top = &p1;
-	if (p2.y < top->y) top = &p2;
-	if (p1.y > bottom->y) bottom = &p1;
-	if (p2.y > bottom->y) bottom = &p2;
-	if (p1.y > top->y && p1.y < bottom->y) middle = &p1;
-	if (p2.y > top->y && p2.y < bottom->y) middle = &p2;
-//cout << "p0 1 2 y "<<p0.y<<","<<p1.y<<","<<p2.y<<" t m b y "<<top->y<<","<<middle->y<<","<<bottom->y<<"\n";
-	vector2f d0x = (p1.x - p0.x)/(p1.y - p0.y);
-	vector2f d1x = (p2.x - p0.x)/(p2.y - p0.y);
-	float h0 = ceil(p0.x) - p0.x;
-	float p0x = p0.x + h0 * d0x;
-	float p1x = p0.x + h0 * d1x;
-	while (y < bottom->y) {
-		if (y >= middle->y) {
-			float hmid = ceil(middle->y) - middle->y;
-			if (middle_is_left) {
-				d0x = (p2.x - p1.x)/(p2.y - p1.y);
-				p0x = middle->x + hmid * d0x;
-			} else {
-				d1x = (p1.x - p2.x)/(p1.y - p2.y);
-				p1x = middle->x + hmid * d1x;
-			}
-		}
-		// rasterline
-		for (int i = int(floor(p0x)); i < int(ceil(p1x)); ++i) {
-			// draw tile
-		}
-		p0x += d0x;
-		p1x += d1x;
-		++y;
+	if (onlyflatwater) {
+		glVertex3f(c0,c3,0);
+		glVertex3f(c0,c0,0);
+		glVertex3f(c3,c3,0);
+		glVertex3f(c3,c0,0);
+	} else {
+		glVertex3f(c0,c3,0);
+		glVertex3f(c1,c2,wz);
+		glVertex3f(c3,c3,0);
+		glVertex3f(c2,c2,wz);
+		glVertex3f(c3,c0,0);
+		glVertex3f(c2,c1,wz);
+		glVertex3f(c0,c0,0);
+		glVertex3f(c1,c1,wz);
+		glVertex3f(c0,c3,0);
+		glVertex3f(c1,c2,wz);
 	}
-*/
+	glEnd();
 
-	glActiveTexture(GL_TEXTURE1);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, wavefoamtex);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+	if (!onlyflatwater) {	
+		// draw waves
+		double timefac = myfmod(t, TIDECYCLE_TIME)/TIDECYCLE_TIME;
 
-//fixme: automatic texture coordinate generation ignores wave displacements (choppy waves)
-//so foam is mapped wrongly!
-	GLfloat scalefac2 = 1.0f/(WAVE_LENGTH*WAVES_PER_AXIS);
-	GLfloat plane_s2[4] = { scalefac2, 0.0f, 0.0f, 0.0f };
-	GLfloat plane_t2[4] = { 0.0f, scalefac2, 0.0f, 0.0f };
-	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-	glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s2);
-	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-	glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t2);
-	glEnable(GL_TEXTURE_GEN_S);
-	glEnable(GL_TEXTURE_GEN_T);
+		// fixme: use LOD (fft with less resolution) for distance waves
+		// until about 10km to the horizon
 
-	unsigned dl = wavedisplaylists + int(WAVE_PHASES*timefac);
-	for (int y = 0; y < WAVES_PER_AXIS; ++y) {
-		plane_t2[3] = float(y)/WAVES_PER_AXIS;
+		// compute the rasterization of the triangle p0,p1,p2
+		// with p0 = viewer's pos., p1,2 = p0 + viewrange * direction(brearing +,- fov/2)
+
+		vector2 p0(myfmod(viewpos.x, WAVE_LENGTH)/WAVE_LENGTH, myfmod(viewpos.y, WAVE_LENGTH)/WAVE_LENGTH);
+		vector2 p1 = p0 + angle(90/*bearing*/+45/*fov/2*/).direction() * 8 /* view dist */;
+		vector2 p2 = p0 + angle(90/*bearing*/-45/*fov/2*/).direction() * 8 /* view dist */;
+		/*
+		  vector2 *top = &p0, *middle = &p0, *bottom = &p0;
+		  if (p1.y < top->y) top = &p1;
+		  if (p2.y < top->y) top = &p2;
+		  if (p1.y > bottom->y) bottom = &p1;
+		  if (p2.y > bottom->y) bottom = &p2;
+		  if (p1.y > top->y && p1.y < bottom->y) middle = &p1;
+		  if (p2.y > top->y && p2.y < bottom->y) middle = &p2;
+		  //cout << "p0 1 2 y "<<p0.y<<","<<p1.y<<","<<p2.y<<" t m b y "<<top->y<<","<<middle->y<<","<<bottom->y<<"\n";
+		  vector2f d0x = (p1.x - p0.x)/(p1.y - p0.y);
+		  vector2f d1x = (p2.x - p0.x)/(p2.y - p0.y);
+		  float h0 = ceil(p0.x) - p0.x;
+		  float p0x = p0.x + h0 * d0x;
+		  float p1x = p0.x + h0 * d1x;
+		  while (y < bottom->y) {
+		  if (y >= middle->y) {
+		  float hmid = ceil(middle->y) - middle->y;
+		  if (middle_is_left) {
+		  d0x = (p2.x - p1.x)/(p2.y - p1.y);
+		  p0x = middle->x + hmid * d0x;
+		  } else {
+		  d1x = (p1.x - p2.x)/(p1.y - p2.y);
+		  p1x = middle->x + hmid * d1x;
+		  }
+		  }
+		  // rasterline
+		  for (int i = int(floor(p0x)); i < int(ceil(p1x)); ++i) {
+		  // draw tile
+		  }
+		  p0x += d0x;
+		  p1x += d1x;
+		  ++y;
+		  }
+		*/
+
+		glActiveTexture(GL_TEXTURE1);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, wavefoamtex);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+
+		//fixme: automatic texture coordinate generation ignores wave displacements (choppy waves)
+		//so foam is mapped wrongly!
+		GLfloat scalefac2 = 1.0f/(WAVE_LENGTH*WAVES_PER_AXIS);
+		GLfloat plane_s2[4] = { scalefac2, 0.0f, 0.0f, 0.0f };
+		GLfloat plane_t2[4] = { 0.0f, scalefac2, 0.0f, 0.0f };
+		glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+		glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s2);
 		glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
 		glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t2);
-		for (int x = 0; x < WAVES_PER_AXIS; ++x) {
-			plane_s2[3] = float(x)/WAVES_PER_AXIS;
-			glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-			glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s2);
-			glPushMatrix();
-			glTranslatef((-WAVES_PER_AXIS/2+x)*WAVE_LENGTH, (-WAVES_PER_AXIS/2+y)*WAVE_LENGTH, 0);
-			glCallList(dl);
-			glPopMatrix();
+		glEnable(GL_TEXTURE_GEN_S);
+		glEnable(GL_TEXTURE_GEN_T);
+
+		unsigned dl = wavedisplaylists + int(WAVE_PHASES*timefac);
+		for (int y = 0; y < WAVES_PER_AXIS; ++y) {
+			plane_t2[3] = float(y)/WAVES_PER_AXIS;
+			glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+			glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t2);
+			for (int x = 0; x < WAVES_PER_AXIS; ++x) {
+				plane_s2[3] = float(x)/WAVES_PER_AXIS;
+				glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+				glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s2);
+				glPushMatrix();
+				glTranslatef((-WAVES_PER_AXIS/2+x)*WAVE_LENGTH, (-WAVES_PER_AXIS/2+y)*WAVE_LENGTH, 0);
+				glCallList(dl);
+				glPopMatrix();
+			}
 		}
 	}
 

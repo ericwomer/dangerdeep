@@ -24,7 +24,7 @@ struct coastmap {
 	coastmap(const string& filename);
 	
 	void draw_as_map(const vector2& droff, double mapzoom, unsigned detail = 0xffffffff);
-	void render(double px, double py, unsigned detail = 0xffffffff) const;
+	void render(double px, double py, unsigned detail = 0xffffffff, bool withterraintop = false) const;
 };
 
 #endif

@@ -50,7 +50,7 @@ public:
 
 protected:
 	vector3 position;
-	angle heading;
+	angle heading;	//, pitch, roll; // rotation of object, recomputed every frame for ships, maybe it should get stored
 	double speed, max_speed, max_rev_speed;	// m/sec
 	int throttle;
 	double acceleration;
@@ -103,7 +103,7 @@ public:
 
 	// detail: 0 - category, 1 - finer category, >=2 - exact category
 	virtual string get_description(unsigned detail) const { return "UNKNOWN"; }
-	virtual const model* get_model () const { return 0; }
+	virtual const model* get_model (void) const { return 0; }
 
 	virtual void simulate(class game& gm, double delta_time);
 //	virtual bool is_collision(const sea_object* other);

@@ -11,6 +11,7 @@ class airplane : public sea_object
 {
 protected:
 	unsigned type;
+	angle pitch, roll;
 
 	airplane& operator=(const airplane& other);
 	airplane(const airplane& other);
@@ -22,7 +23,8 @@ public:
 
 	// types:
 	airplane(unsigned type_, const vector3& pos, double heading);
-	virtual void display(void) const;
+
+	const model* get_model (void) const;
 };
 
 #endif

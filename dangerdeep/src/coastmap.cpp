@@ -93,7 +93,7 @@ void coastmap::draw_as_map(const vector2& droff, double mapzoom, unsigned detail
 	}
 }
 
-void coastmap::render(double px, double py, unsigned detail) const
+void coastmap::render(double px, double py, unsigned detail, bool withterraintop) const
 {
 	px -= offsetx;
 	py -= offsety;

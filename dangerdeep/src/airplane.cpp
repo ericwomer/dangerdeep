@@ -10,6 +10,7 @@ airplane::airplane(unsigned type_, const vector3& pos, double heading) : sea_obj
 	position = pos;
 	this->heading = heading;
 	head_to = heading;
+	pitch = roll = 0;
 //	turn_rate = deg2rad(5);
 //	length = 7;
 //	width = 1;
@@ -32,16 +33,22 @@ void airplane::load(istream& in, class game& g)
 {
 	sea_object::load(in, g);
 	type = read_u32(in);
+	pitch = angle(read_double(in));
+	roll = angle(read_double(in));
 }
 
 void airplane::save(ostream& out, const class game& g) const
 {
 	sea_object::save(out, g);
 	write_u32(out, type);
+	write_double(out, pitch.value());
+	write_double(out, roll.value());
 }
 
-void airplane::display(void) const
+const model* airplane::get_model(void) const
 {
 	switch(type) {
+		default:
+			return std_plane;
 	}
 }

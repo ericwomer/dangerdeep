@@ -12,8 +12,6 @@ using namespace std;
 #include "user_interface.h"
 #include "color.h"
 
-#define MAPGRIDSIZE 1000	// meters
-
 class submarine_interface : public user_interface
 {
 protected:

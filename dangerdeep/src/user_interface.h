@@ -176,7 +176,7 @@ public:
 	virtual vector3f get_water_normal(const vector2& pos, double t, double f = 1.0) const;
 
 	// 3d drawing functions
-	virtual void draw_water(const vector3& viewpos, angle dir, double t, double max_view_dist) const;
+	virtual void draw_water(const vector3& viewpos, angle dir, double t, double max_view_dist, bool onlyflatwater = false) const;
 	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist) const;
 	virtual void draw_view(game& gm, const vector3& viewpos,
 		angle dir, angle elev, bool aboard, bool drawbridge, bool withunderwaterweapons);

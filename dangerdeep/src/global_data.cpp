@@ -23,8 +23,7 @@ model	*merchant_large, *merchant_medium, *merchant_small,
 	*subVII, *subIXc40, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
 	*skyhemisphere, *corvette_mdl, *freighter_medium, *freighter_large,
-	*tanker_small,
-	*conning_tower_typeVII;
+	*tanker_small, *conning_tower_typeVII, *std_plane;
 
 texture *water, *the_moon, *the_sun, *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
@@ -67,6 +66,7 @@ void init_global_data(void)
 	freighter_medium = new model(get_model_dir() + "medium_freighter.3ds");
 	tanker_small = new model(get_model_dir() + "small_tanker.3ds");
 	conning_tower_typeVII = new model(get_model_dir() + "conning_tower_typeVIIc.3ds");
+	std_plane = new model(get_model_dir() + "flugzeug3.3ds");
 	font_arial = new font(get_font_dir() + "font_arial.png");
 	font_panel = new font(get_font_dir() + "font_panel.png");
 	font_nimbusrom = new font(get_font_dir() + "font_nimbusrom.png");
@@ -162,6 +162,7 @@ void deinit_global_data(void)
 	delete freighter_medium;
 	delete tanker_small;
 	delete conning_tower_typeVII;
+	delete std_plane;
 	delete font_arial;
 	delete font_panel;
 	delete font_nimbusrom;
