@@ -2,6 +2,7 @@
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "parser.h"
+#include "system.h"
 #include <vector>
 #include <sstream>
 #include <algorithm>
@@ -13,70 +14,42 @@ token tokens[] = {
 	token(TKN_SRPARAN, "}"),
 	token(TKN_TRUE, "true"),
 	token(TKN_FALSE, "false"),
-/*
-	token(TKN_DOT, "."),
-	token(TKN_SEMICOLON, ";"),
+	token(TKN_MINUS, "-"),
+	token(TKN_PLAYER, "player"),
+	token(TKN_SUBMARINE, "submarine"),
+	token(TKN_SHIP, "ship"),
+	token(TKN_TYPEVIIC, "typeVIIc"),
+	token(TKN_TYPEXXI, "typeXXI"),
+	token(TKN_POSITION, "position"),
 	token(TKN_ASSIGN, "="),
 	token(TKN_COMMA, ","),
-	token(TKN_LPARAN, "("),
-	token(TKN_RPARAN, ")"),
-	
-	token(TKN_LESS, "<"),
-	token(TKN_LESSEQUAL, "<="),
-	token(TKN_GREATER, ">"),
-	token(TKN_GREATEREQUAL, ">="),
-	token(TKN_EQUAL, "=="),
-	token(TKN_NOTEQUAL, "!="),
-	token(TKN_PLUSPLUS, "++"),
-	token(TKN_MINUSMINUS, "--"),
+	token(TKN_SEMICOLON, ";"),
+	token(TKN_HEADING, "heading"),
+	token(TKN_SCOPEUP, "scopeup"),
+	token(TKN_MAXDEPTH, "maxdepth"),
+	token(TKN_THROTTLE, "throttle"),
+	token(TKN_STOP, "stop"),
+	token(TKN_REVERSE, "reverse"),
+	token(TKN_AHEADLISTEN, "listen"),
+	token(TKN_AHEADSONAR, "sonar"),
+	token(TKN_AHEADSLOW, "slow"),
+	token(TKN_AHEADHALF, "half"),
+	token(TKN_AHEADFULL, "full"),
+	token(TKN_AHEADFLANK, "flank"),
+	token(TKN_TORPEDOES, "torpedoes"),
+	token(TKN_TXTNONE, "none"),
+	token(TKN_T1, "T1"),
+	token(TKN_T3, "T3"),
+	token(TKN_T5, "T5"),
+	token(TKN_T3FAT, "T3FAT"),
+	token(TKN_T6LUT, "T6LUT"),
+	token(TKN_T11, "T11"),
+	token(TKN_MEDIUMMERCHANT, "mediummerchant"),
+	token(TKN_MEDIUMTROOPSHIP, "mediumtroopship"),
+	token(TKN_DESTROYERTRIBAL, "destroyertribal"),
+	token(TKN_BATTLESHIPMALAYA, "battleshipmalaya"),
 
-	token(TKN_PLAYER, "player"),
-	token(TKN_THING, "thing"),
-	token(TKN_PERSON, "person"),
-	token(TKN_ROOM, "room"),
-	token(TKN_NAME, "name"),
-	token(TKN_CLICK, "click"),
-	token(TKN_LOOK, "look"),
-	token(TKN_USE, "use"),
-	token(TKN_SIZE, "size"),
-	token(TKN_WEIGHT, "weight"),
-	token(TKN_FLAGS, "flags"),
-	token(TKN_ON, "on"),
-	token(TKN_MAXSIZE, "maxsize"),
-	token(TKN_MAXWEIGHT, "maxweight"),
-	token(TKN_THINGS, "things"),
-	token(TKN_PERSONS, "persons"),
-	token(TKN_ENTER, "enter"),
-	token(TKN_LEAVE, "leave"),
-
-	token(TKN_SAY, "say"),
-	token(TKN_TELEPORT, "teleport"),
-	token(TKN_DEFAULT, "default"),
-	token(TKN_TO, "to"),
-	token(TKN_IF, "if"),
-	token(TKN_THEN, "then"),
-	token(TKN_ELSE, "else"),
-	token(TKN_ELSEIF, "elseif"),
-	token(TKN_END, "end"),
-	token(TKN_AND, "and"),
-	token(TKN_OR, "or"),
-	token(TKN_NOT, "not"),
-//	token(TKN_THIS, "this"),
-//	token(TKN_OTHER, "other"),
-//	token(TKN_ACTOR, "actor"),
-	token(TKN_SWITCH, "switch"),
-	token(TKN_TAKE, "take"),
-	token(TKN_CONTAINS, "contains"),
-	token(TKN_IS, "is"),
-	token(TKN_INVERT, "invert"),
-	token(TKN_MOVE, "move"),
-	token(TKN_PLAY, "play"),
-	token(TKN_SET, "set"),
-	token(TKN_RESIZE, "resize"),
-	token(TKN_SELECT, "select"),
-	token(TKN_WALK, "walk"),
 	token()
-*/	
 };
 
 void parser::error(const string& s)
@@ -86,9 +59,7 @@ void parser::error(const string& s)
 		<< ", Line " << tkn->get_line()
 		<< ", Col " << tkn->get_column()
 		<< "\nParsed token text '" << tkn->get_current().text << "'\n";
-//	::error(oss.str());
-	cerr << oss.str();//fixme
-	assert(false);//fixme
+	system::sys()->myassert(false, oss.str());
 }
 
 parser::parser(const string& filename_)
@@ -131,15 +102,20 @@ string parser::parse_string(void)
 	return tmp.substr(1, tmp.length() - 2);
 }
 
-unsigned parser::parse_number(void)
+int parser::parse_number(void)
 {
+	bool negative = false;
+	if (tkn->get_current().type == TKN_MINUS) {
+		negative = true;
+		tkn->read_next();
+	}
 	if (tkn->get_current().type != TKN_NUMBER)
 		error("expected number");
 	tkn->read_next();
 	stringstream s(tkn->get_previous().text);
-	unsigned n = 0;
+	int n = 0;
 	s >> n;
-	return n;
+	return (negative) ? -n : n;
 }
 
 string parser::parse_id(void)

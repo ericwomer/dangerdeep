@@ -20,7 +20,7 @@ class parser
 	void error(const string& s);
 	void parse(int type);
 	string parse_string(void);
-	unsigned parse_number(void);
+	int parse_number(void);
 	string parse_id(void);
 	bool parse_bool(void);
 	void register_thisid(const string& s) { thisid = s; };

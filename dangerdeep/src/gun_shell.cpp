@@ -8,8 +8,9 @@
 #include "game.h"
 
 gun_shell::gun_shell(const sea_object& parent, angle direction, angle elevation,
-	double initial_velocity) : sea_object()
+	double initial_velocity)
 {
+	sea_object::init();
 	position = parent.get_pos();	// fixme: calc correct position
 	heading = direction;
 	length = 0.2;

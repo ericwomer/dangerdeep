@@ -6,6 +6,7 @@
 
 #include "ship.h"
 #include "torpedo.h"
+#include "parser.h"
 #include <vector>
 
 class submarine : public ship
@@ -16,6 +17,7 @@ public:
 		unsigned status;	// 0 empty 1 reloading 2 unloading 3 loaded
 		unsigned associated;	// reloading from/unloading to
 		double remaining_time;	// remaining time until work is finished
+		stored_torpedo() : type(0), status(0), associated(0), remaining_time(0) {}
 		stored_torpedo(unsigned t) : type(t), status(3), associated(0), remaining_time(0) {}
 	};
 	
@@ -27,8 +29,6 @@ protected:
 	// stored torpedoes (including tubes)
 	// special functions calculate indices for bow/stern tubes etc., see below
 	vector<stored_torpedo> torpedoes;
-	unsigned nr_bow_tubes, nr_stern_tubes, nr_bow_storage, nr_stern_storage,
-		nr_bow_top_storage, nr_stern_top_storage;
 		
 	bool scopeup;	// fixme: maybe simulate time for moving scope up/down
 
@@ -39,25 +39,31 @@ protected:
 	// fixme: time that is needed depends on sub type and how many torpedoes
 	// are already in transfer. So this argument is nonesense. fixme
 	// returns true if transfer was initiated.
+	// fixme: make virtual?
 	bool transfer_torpedo(unsigned from, unsigned to, double timeneeded = 120);
 	int find_stored_torpedo(bool usebow);	// returns index or -1 if none
+
+	void init(void);	
+	bool parse_attribute(parser& p);	// returns false if invalid token found
 	
 public:
+	// fixme type II has some subtypes.
 	enum types { typeII, typeVII, typeVIIb, typeVIIc, typeVIIc41,
-		typeIXb, typeIXc, typeIXd2, typeXXI, typeXXIII };
+		typeIX, typeIXb, typeIXc, typeIXc40, typeIXd2, typeXXI, typeXXIII };
 	virtual ~submarine() {}
-	submarine(unsigned type_, const vector3& pos, angle heading);
+	static submarine* create(types type_);
+	static submarine* create(parser& p);
 	virtual void simulate(class game& gm, double delta_time);
-	virtual void display(void) const;
+	virtual void display(void) const = 0;
 
 	const vector<stored_torpedo>& get_torpedoes(void) const { return torpedoes; }
 	// get first index of storage and first index after it.
-	virtual pair<unsigned, unsigned> get_bow_tube_indices(void) const;
-	virtual pair<unsigned, unsigned> get_stern_tube_indices(void) const;
-	virtual pair<unsigned, unsigned> get_bow_storage_indices(void) const;
-	virtual pair<unsigned, unsigned> get_stern_storage_indices(void) const;
-	virtual pair<unsigned, unsigned> get_bow_top_storage_indices(void) const;
-	virtual pair<unsigned, unsigned> get_stern_top_storage_indices(void) const;
+	virtual pair<unsigned, unsigned> get_bow_tube_indices(void) const = 0;
+	virtual pair<unsigned, unsigned> get_stern_tube_indices(void) const = 0;
+	virtual pair<unsigned, unsigned> get_bow_storage_indices(void) const = 0;
+	virtual pair<unsigned, unsigned> get_stern_storage_indices(void) const = 0;
+	virtual pair<unsigned, unsigned> get_bow_top_storage_indices(void) const = 0;
+	virtual pair<unsigned, unsigned> get_stern_top_storage_indices(void) const = 0;
 
 	// The simulation of acceleration when switching between electro and diesel
 	// engines is done via engine simulation. So the boat "brakes" until

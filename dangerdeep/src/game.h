@@ -22,6 +22,7 @@ using namespace std;
 #include "model.h"
 #include "global_data.h"
 #include "user_interface.h"
+#include "parser.h"
 
 class game	// our "world" with physics etc.
 {
@@ -58,8 +59,7 @@ protected:
 	game(const game& other);
 
 public:
-	game(submarine* player_sub);	// play a submarine
-	game(ship* player_ship);	// play an escort
+	game(parser& p);
 	~game();
 
 	void simulate(double delta_t);

@@ -19,6 +19,11 @@
 class system* sys;
 int res_x, res_y;
 
+const char* missions[] = {
+	"testconvoy",
+	0
+};
+
 void draw_background_and_logo(void)
 {
 	sys->draw_image(0, 0, 512, 512, titel[0]);
@@ -26,6 +31,15 @@ void draw_background_and_logo(void)
 	sys->draw_image(0, 512, 512, 256, titel[2]);
 	sys->draw_image(512, 512, 512, 256, titel[3]);
 	font_logo->print_hc(1024, 150, "Danger from the Deep", color(255,255,255), true);
+}
+
+void start_mission(int nr)
+{
+	string filename = get_data_dir() + "missions/" + missions[nr] + ".mis";
+	parser p(filename);
+	game* gm = new game(p);
+	gm->main_playloop(*sys);
+	delete gm;
 }
 
 void menu_convoy_battle(void)
@@ -53,6 +67,7 @@ void menu_convoy_battle(void)
 		switch (mmsel & 0xffff) {
 			case 0: break;
 			case 1:	{
+/*			
 				unsigned subtype = m.get_switch_nr(0);
 				// just a test, fixme
 				submarine* playersub = new submarine(subtype == 0 ? submarine::typeVIIc : submarine::typeXXI, vector3(2000, 1000, -30), 270);
@@ -80,8 +95,37 @@ void menu_convoy_battle(void)
                         	test->spawn_ship(s2);
 				test->main_playloop(*sys);
 				delete test;
+*/				
 				break;
 				}
+		}
+	}
+}
+
+void menu_historical_mission(void)
+{
+	// count missions
+	int nr_missions = 0;
+	while (missions[nr_missions] != 0) ++nr_missions;
+	
+	menu m;
+	for (int i = 0; i < nr_missions; ++i)
+		m.add_item(missions[i]);
+	m.add_item(TXT_Returntopreviousmenu[language]);
+
+	while (true) {
+		sys->prepare_2d_drawing();
+		draw_background_and_logo();
+		
+		sys->poll_event_queue();
+		int key = sys->get_key();
+		m.draw(1024, 768, font_tahoma);
+		int mmsel = m.input(key, 0, 0, 0) & 0xffff;
+		sys->unprepare_2d_drawing();
+		sys->swap_buffers();
+		if (mmsel == nr_missions) break;
+		if (mmsel >= 0 && mmsel < nr_missions) {
+			start_mission(mmsel);
 		}
 	}
 }
@@ -108,7 +152,7 @@ void menu_single_mission(void)
 		switch (mmsel) {
 			case 0: break;
 			case 1:	menu_convoy_battle(); break;
-			case 2: break;
+			case 2: menu_historical_mission(); break;
 		}
 	}
 }

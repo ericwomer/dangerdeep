@@ -7,8 +7,9 @@
 #include "system.h"
 #include "game.h"
 
-torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes) : sea_object()
+torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes)
 {
+	sea_object::init();
 	parent = parent_;
 	type = type_;
 	position = parent->get_pos();	// fixme bei ubooten + length/2 bla...

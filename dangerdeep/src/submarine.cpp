@@ -4,64 +4,82 @@
 #include "submarine.h"
 #include "model.h"
 #include "game.h"
+#include "submarine_VIIc.h"
+#include "submarine_XXI.h"
+#include "tokencodes.h"
 
-submarine::submarine(unsigned type_, const vector3& pos, angle heading) : ship()
+void submarine::init(void)
 {
-	type = type_;
-	position = pos;
-	this->heading = heading;
-	head_to = heading;
+	ship::init();
 	dive_speed = 0;
 	permanent_dive = false;
-	dive_to = position.z;
+	dive_to = 0;
 	max_dive_speed = 1;
 	dive_acceleration = 0;
 	scopeup = false;
-	switch (type_) {
-		case typeVIIc:
-			speed = 0;
-			max_speed = kts2ms(17.7);
-			max_submerged_speed = kts2ms(7.6);
-			max_rev_speed = kts2ms(5);
-			acceleration = 0.6;
-			turn_rate = 0.2;
-			length = subVII->get_length();
-			width = subVII->get_width();
-			max_depth = 220+rnd(20);
-			torpedoes.resize(14, stored_torpedo(torpedo::T3));
-			nr_bow_tubes = 4;
-			nr_stern_tubes = 1;
-			nr_bow_storage = 6;
-			nr_stern_storage = 1;
-			nr_bow_top_storage = 1;
-			nr_stern_top_storage = 1;
-			torpedoes[4].type = torpedoes[11].type = torpedo::T5;
-			torpedoes[5].type = torpedoes[6].type = torpedo::T3FAT;
-			torpedoes[12].type = torpedoes[13].type = torpedo::T1;
+	max_depth = 150;
+}
+	
+bool submarine::parse_attribute(parser& p)
+{
+	if (ship::parse_attribute(p)) return true;
+	switch (p.type()) {
+		case TKN_SCOPEUP:
+			p.consume();
+			p.parse(TKN_ASSIGN);
+			scopeup = p.parse_bool();
+			p.parse(TKN_SEMICOLON);
 			break;
-		case typeXXI:
-			speed = 0;
-			max_speed = kts2ms(15.6);
-			max_submerged_speed = kts2ms(17);
-			max_rev_speed = kts2ms(5);
-			acceleration = 0.6;
-			turn_rate = 0.2;
-			length = subXXI->get_length();
-			width = subXXI->get_width();
-			max_depth = 280+rnd(20);	// fixme > planned values, protypes only 170
-			torpedoes.resize(23, stored_torpedo(torpedo::T6LUT));
-			nr_bow_tubes = 6;
-			nr_stern_tubes = 0;
-			nr_bow_storage = 17;
-			nr_stern_storage = 0;
-			nr_bow_top_storage = 0;
-			nr_stern_top_storage = 0;
-			torpedoes[2].type = torpedoes[5].type = torpedoes[8].type =
-				torpedoes[11].type = torpedoes[14].type = torpedoes[17].type =
-				torpedoes[20].type = torpedo::T11;
-				
+		case TKN_MAXDEPTH:
+			p.consume();
+			p.parse(TKN_ASSIGN);
+			max_depth = p.parse_number();
+			p.parse(TKN_SEMICOLON);
 			break;
+		case TKN_TORPEDOES:
+			p.consume();
+			p.parse(TKN_SLPARAN);
+			for (unsigned i = 0; i < torpedoes.size(); ++i) {
+				switch (p.type()) {
+					case TKN_TXTNONE: torpedoes[i].status = 0; break;
+					case TKN_T1: torpedoes[i] = stored_torpedo(torpedo::T1); break;
+					case TKN_T3: torpedoes[i] = stored_torpedo(torpedo::T3); break;
+					case TKN_T5: torpedoes[i] = stored_torpedo(torpedo::T5); break;
+					case TKN_T3FAT: torpedoes[i] = stored_torpedo(torpedo::T3FAT); break;
+					case TKN_T6LUT: torpedoes[i] = stored_torpedo(torpedo::T6LUT); break;
+					case TKN_T11: torpedoes[i] = stored_torpedo(torpedo::T11); break;
+					default: p.error("Expected torpedo type");
+				}
+				p.consume();
+				if (p.type() == TKN_SRPARAN) break;
+				p.parse(TKN_COMMA);
+			}
+			p.parse(TKN_SRPARAN);
+			break;
+		default: return false;
 	}
+	return true;
+}
+
+submarine* submarine::create(submarine::types type_)
+{
+	switch (type_) {
+		case typeVIIc: return new submarine_VIIc();
+		case typeXXI: return new submarine_XXI();
+	}
+	return 0;
+}
+
+submarine* submarine::create(parser& p)
+{
+	p.parse(TKN_SUBMARINE);
+	int t = p.type();
+	p.consume();
+	switch (t) {
+		case TKN_TYPEVIIC: return new submarine_VIIc(p);
+		case TKN_TYPEXXI: return new submarine_XXI(p);
+	}
+	return 0;
 }
 
 bool submarine::transfer_torpedo(unsigned from, unsigned to, double timeneeded)
@@ -166,49 +184,6 @@ void submarine::simulate(class game& gm, double delta_time)
 			}
 		}
 	}
-}
-
-void submarine::display(void) const
-{
-	switch(type) {
-		case typeVIIc: subVII->display(); break;
-		case typeXXI: subXXI->display(); break;
-	}
-}
-
-pair<unsigned, unsigned> submarine::get_bow_tube_indices(void) const
-{
-	return make_pair(0, nr_bow_tubes);
-}
-
-pair<unsigned, unsigned> submarine::get_stern_tube_indices(void) const
-{
-	return make_pair(nr_bow_tubes, nr_bow_tubes+nr_stern_tubes);
-}
-
-pair<unsigned, unsigned> submarine::get_bow_storage_indices(void) const
-{
-	unsigned offset = nr_bow_tubes+nr_stern_tubes;
-	return make_pair(offset, offset+nr_bow_storage);
-}
-
-pair<unsigned, unsigned> submarine::get_stern_storage_indices(void) const
-{
-	unsigned offset = nr_bow_tubes+nr_stern_tubes+nr_bow_storage;
-	return make_pair(offset, offset+nr_stern_storage);
-}
-
-pair<unsigned, unsigned> submarine::get_bow_top_storage_indices(void) const
-{
-	unsigned offset = nr_bow_tubes+nr_stern_tubes+nr_bow_storage+nr_stern_storage;
-	return make_pair(offset, offset+nr_bow_top_storage);
-}
-
-pair<unsigned, unsigned> submarine::get_stern_top_storage_indices(void) const
-{
-	unsigned offset = nr_bow_tubes+nr_stern_tubes+nr_bow_storage+nr_stern_storage+
-		nr_bow_top_storage;
-	return make_pair(offset, offset+nr_stern_top_storage);
 }
 
 double submarine::get_max_speed(void) const

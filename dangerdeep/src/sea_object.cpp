@@ -3,6 +3,66 @@
 
 #include "sea_object.h"
 #include "vector2.h"
+#include "tokencodes.h"
+
+void sea_object::init(void)
+{
+	position = vector3(0, 0, 0);
+	heading = 0;
+	speed = 0;
+	max_speed = 0;
+	max_rev_speed = 0;
+	throttle = stop;
+	acceleration = 0;
+	permanent_turn = false;
+	head_chg = 0;
+	head_to = 0;
+	turn_rate = 0;
+	length = width = 0;
+	alive_stat = alive;
+}
+
+bool sea_object::parse_attribute(parser& p)
+{
+	switch (p.type()) {
+		case TKN_POSITION: {
+			p.consume();
+			p.parse(TKN_ASSIGN);
+			int x = p.parse_number();//fixme parser returns unsigned!!!
+			p.parse(TKN_COMMA);
+			int y = p.parse_number();//fixme parser returns unsigned!!!
+			p.parse(TKN_COMMA);
+			int z = p.parse_number();//fixme parser returns unsigned!!!
+			p.parse(TKN_SEMICOLON);
+			position = vector3(x, y, z);
+			break; }
+		case TKN_HEADING:
+			p.consume();
+			p.parse(TKN_ASSIGN);
+			heading = angle(p.parse_number());
+			p.parse(TKN_SEMICOLON);
+			break;
+		case TKN_THROTTLE:
+			p.consume();
+			p.parse(TKN_ASSIGN);
+			switch (p.type()) {
+				case TKN_STOP: throttle = stop; break;
+				case TKN_REVERSE: throttle = reverse; break;
+				case TKN_AHEADLISTEN: throttle = aheadlisten; break;
+				case TKN_AHEADSONAR: throttle = aheadsonar; break;
+				case TKN_AHEADSLOW: throttle = aheadslow; break;
+				case TKN_AHEADHALF: throttle = aheadhalf; break;
+				case TKN_AHEADFULL: throttle = aheadfull; break;
+				case TKN_AHEADFLANK: throttle = aheadflank; break;
+				default: p.error("Expected throttle value");
+			}
+			p.consume();
+			p.parse(TKN_SEMICOLON);
+			break;
+		default: return false;
+	}
+	return true;
+}
 
 void sea_object::simulate(game& gm, double delta_time)
 {

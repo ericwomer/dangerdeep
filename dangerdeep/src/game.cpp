@@ -8,19 +8,48 @@
 #include <sstream>
 #include "submarine_interface.h"
 #include "ship_interface.h"
+#include "tokencodes.h"
 
-game::game(submarine* player_sub) : running(true), player(player_sub), time(0)
+game::game(parser& p) : running(true), time(0)
 {
-	submarines.push_back(player_sub);
-	ui = new submarine_interface(player_sub);
+	player = 0;
+	ui = 0;
 	max_view_dist = 10000;	// fixme, introduce weather
-}
-
-game::game(ship* player_ship) : running(true), player(player_ship), time(0)
-{
-	ships.push_back(player_ship);
-	ui = new ship_interface(player_ship);
-	max_view_dist = 10000;	// fixme, introduce weather
+	while (!p.is_empty()) {
+		bool nextisplayer = false;
+		if (p.type() == TKN_PLAYER) {
+			if (player != 0) {
+				p.error("Player defined twice!");
+			}
+			p.consume();
+			nextisplayer = true;
+		}
+		switch (p.type()) {
+			case TKN_SUBMARINE: {
+				submarine* sub = submarine::create(p);
+				spawn_submarine(sub);
+				if (nextisplayer) {
+					player = sub;
+					ui = new submarine_interface(sub);
+				}
+				break; }
+			case TKN_SHIP: {
+				ship* shp = ship::create(p);
+				spawn_ship(shp);
+				if (nextisplayer) {
+					player = shp;
+					ui = new ship_interface(shp);
+				}
+				break; }
+/*
+			case TKN_CONVOY:
+			case TKN_DESCRIPTION:
+			case TKN_WEATHER:
+*/
+			default: p.error("Expected definition");
+		}
+	}
+	if (player == 0) p.error("No player defined!");
 }
 
 game::~game()
@@ -40,7 +69,7 @@ void game::simulate(double delta_t)
 		return;
 	}
 	
-	if (ships.size() == 0 && torpedoes.size() == 0 && depth_charges.size() == 0 &&
+	if (/* submarines.size() == 0 && */ ships.size() == 0 && torpedoes.size() == 0 && depth_charges.size() == 0 &&
 			airplanes.size() == 0 && gun_shells.size() == 0) {
 		running = false;
 		return;

@@ -4,58 +4,45 @@
 #include "ship.h"
 #include "model.h"
 #include "game.h"
+#include "ship_mediummerchant.h"
+#include "ship_mediumtroopship.h"
+#include "ship_destroyertribal.h"
+#include "ship_battleshipmalaya.h"
+#include "tokencodes.h"
 
-ship::ship(unsigned type_, const vector3& pos, angle heading) : sea_object()
+void ship::init(void)
 {
-	type = type_;
-	position = pos;
-	this->heading = heading;
-	head_to = heading;
+	sea_object::init();
+}
+
+bool ship::parse_attribute(parser& p)
+{
+	return sea_object::parse_attribute(p);
+}
+
+ship* ship::create(ship::types type_)
+{
 	switch (type_) {
-		case 0:
-			speed = kts2ms(8);
-			max_speed = kts2ms(8);
-			max_rev_speed = 0;
-			acceleration = 0.1;
-			turn_rate = 0.1;
-			length = merchant_medium->get_length();
-			width = merchant_medium->get_width();
-			myai = new ai(this, ai::dumb);
-			break;
-		case 1:
-			speed = kts2ms(8);
-			max_speed = kts2ms(14);
-			max_rev_speed = 0;
-			acceleration = 0.1;
-			turn_rate = 0.09;
-			length = troopship_medium->get_length();
-			width = troopship_medium->get_width();
-			myai = new ai(this, ai::dumb);
-			break;
-		case 2:
-			speed = kts2ms(8);
-			max_speed = kts2ms(34);
-			max_rev_speed = 0;
-			acceleration = 1.0;
-			turn_rate = 0.2;
-			length = destroyer_tribal->get_length();
-			width = destroyer_tribal->get_width();
-			myai = new ai(this, ai::escort);
-			break;
-		case 3:
-			speed = kts2ms(8);
-			max_speed = kts2ms(24);
-			max_rev_speed = 0;
-			acceleration = 0.4;
-			turn_rate = 0.08;
-			length = battleship_malaya->get_length();
-			width = battleship_malaya->get_width();
-			myai = new ai(this, ai::dumb);
-			myai->set_zigzag();	// test
-			break;
+		case mediummerchant: return new ship_mediummerchant();
+		case mediumtroopship: return new ship_mediumtroopship();
+		case destroyertribal: return new ship_destroyertribal();
+		case battleshipmalaya: return new ship_battleshipmalaya();
 	}
-	
-	throttle = aheadhalf;	// fixme
+	return 0;
+}
+
+ship* ship::create(parser& p)
+{
+	p.parse(TKN_SHIP);
+	int t = p.type();
+	p.consume();
+	switch (t) {
+		case TKN_MEDIUMMERCHANT: return new ship_mediummerchant(p);
+		case TKN_MEDIUMTROOPSHIP: return new ship_mediumtroopship(p);
+		case TKN_DESTROYERTRIBAL: return new ship_destroyertribal(p);
+		case TKN_BATTLESHIPMALAYA: return new ship_battleshipmalaya(p);
+	}
+	return 0;
 }
 
 void ship::simulate(game& gm, double delta_time)
@@ -94,14 +81,4 @@ void ship::kill(void)
 {
 	stern_damage = midship_damage = bow_damage = wrecked;
 	sea_object::kill();
-}
-
-void ship::display(void) const
-{
-	switch(type) {
-		case 0:	merchant_medium->display(); break;
-		case 1:	troopship_medium->display(); break;
-		case 2:	destroyer_tribal->display(); break;
-		case 3:	battleship_malaya->display(); break;
-	}
 }

@@ -6,14 +6,11 @@
 
 #include "vector3.h"
 #include "angle.h"
+#include "parser.h"
 #include <list>
 using namespace std;
 
 #define SINK_SPEED 0.5  // m/sec
-#define THROTTLE_SLOW 0.333
-#define THROTTLE_HALF 0.5
-#define THROTTLE_FULL 0.75
-#define THROTTLE_FLANK 1.0
 #define MAXPREVPOS 20
 
 class sea_object
@@ -58,9 +55,11 @@ protected:
 	alive_status alive_stat;
 	
 	list<vector2> previous_positions;
+	
+	void init(void);	// clear values to default
+	bool parse_attribute(parser& p);        // returns false if invalid token found
 
-	sea_object() : speed(0), throttle(stop), acceleration(0), permanent_turn(false),
-		head_chg(0), alive_stat(alive) {};
+	sea_object() {};	// fixme: airplane,gun_shell,depth_charge need it. why?!?!
 	sea_object& operator=(const sea_object& other);
 	sea_object(const sea_object& other);
 public:
