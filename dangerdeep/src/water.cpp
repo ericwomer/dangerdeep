@@ -100,7 +100,8 @@ water::water(unsigned xres_, unsigned yres_, double tm) : mytime(tm), xres(xres_
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileheights[i] = owg.compute_heights();
-		wavetiledisplacements[i] = owg.compute_displacements(-2.0f);	// fixme 5.0 default? - it seems that choppy waves don't look right. bug? fixme, with negative values it seems right. check this!
+		// choppy factor: formula from "waterengine": 0.5*WX/N = 0.5*wavelength/waveres, here = 1.0
+		wavetiledisplacements[i] = owg.compute_displacements(-1.0f);	// fixme 5.0 default? - it seems that choppy waves don't look right. bug? fixme, with negative values it seems right. check this!
 
 #if 1	// use finite normals
 		wavetilenormals[i] = owg.compute_finite_normals(wavetileheights[i]);
@@ -422,10 +423,23 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	}
 	
 	// compute min-max values and range matrix
+	// fixme: the efficiency is mostly around 50%. We could increase it dramatically if
+	// we don't take a bounding rectangle around the projected points, but some other
+	// shape. Mostly the points form a trapez, and mostly the number of points is six.
+	// Best solution: shape with exactly four points and minimum area surrounding all
+	// points (convex hull with four points). Or compute the trapez.
+	// Compute a shape so that we can transform a rectangle with a 4x4 matrix to the shape.
+	// This gives nearly 100% efficiency, which should improve detail a lot (especially in
+	// zoomscope/glasses view). We don't really need mrange but could generate any quadri-
+	// lateral with x/y values, but it's simpler to use mrange.
+	// If (!) we can generate a tranformation matrix that makes a trapez from a rectangle.
+	// This seams inpossible...
 	matrix4 rangeprojector2world;
 	if (proj_points.size() > 0) {
 		double x_min = proj_points[0].x, x_max = proj_points[0].x, y_min = proj_points[0].y, y_max = proj_points[0].y;
+//cout << "pts0.xy " << x_min << ", " << y_min << "\n";
 		for (vector<vector3>::iterator it = ++proj_points.begin(); it != proj_points.end(); ++it) {
+//cout << "ptsi.xy " << it->x << ", " << it->y << "\n";
 			if (it->x < x_min) x_min = it->x;
 			if (it->x > x_max) x_max = it->x;
 			if (it->y < y_min) y_min = it->y;
