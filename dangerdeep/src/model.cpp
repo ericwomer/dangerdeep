@@ -52,6 +52,7 @@ void model::compute_bounds(void)
 
 void model::compute_normals(void)
 {
+	//fixme: 3ds may have stored some normals already
 	for (vector<model::mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
 		for (vector<model::mesh::vertex>::iterator it2 = it->vertices.begin(); it2 != it->vertices.end(); ++it2)
 			it2->normal = vector3f();
@@ -107,17 +108,14 @@ void model::mesh::display(void) const
 		glColor3f(0, 1, 0);
 	}
 
-	glBegin(GL_TRIANGLES);
-	for (vector<face>::const_iterator it = faces.begin(); it != faces.end(); ++it) {
-		for (unsigned j = 0; j < 3; ++j) {
-			const vertex& v = vertices[it->v[j]];
-			if (has_texture)
-				glTexCoord2f(v.uv.x, v.uv.y);
-			glNormal3f(v.normal.x, v.normal.y, v.normal.z);
-			glVertex3f(v.pos.x, v.pos.y, v.pos.z);
-		}
-	}
-	glEnd();
+	if (has_texture)
+		glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(mesh::vertex), &(vertices[0].uv));
+	else
+		glInterleavedArrays(GL_N3F_V3F, sizeof(mesh::vertex), &(vertices[0].normal));
+	glDrawElements(GL_TRIANGLES, 3*faces.size(), GL_UNSIGNED_INT, &faces[0].v[0]);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
 void model::display(void) const

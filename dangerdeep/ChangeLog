@@ -1,3 +1,8 @@
+2003-11-15  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* model.cpp
+	  - combined display lists with vertex arrays.
+	    Now maximum performance for displaying meshes is obtained.
+
 2003-11-08  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* everywhere, beginning at game.cpp
 	  - removed compile dependencies
