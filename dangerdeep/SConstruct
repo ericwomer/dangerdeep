@@ -152,10 +152,17 @@ def findCVS(basedir):
 	return myfiles
 
 
-def remove_entry(list, s):
+def remove_entries_that_start_with(list, prefix):
 	list2 = []
 	for i in list:
-		if not(i == s):
+		if not(i.startswith(prefix)):
+			list2 += [i]
+	return list2
+
+def remove_entries_that_not_start_with(list, prefix):
+	list2 = []
+	for i in list:
+		if i.startswith(prefix):
 			list2 += [i]
 	return list2
 
@@ -177,10 +184,17 @@ BuildDir(target_dir, source_base_dir, duplicate=0)
 #fixme: change that so that e.g. "scons tarball" does that only, and it
 #isn't done everytime we build the program
 #some hack so that scons doesn't replace the filename from build/linux to src
-problemfile = selected_build_dir + os.sep + 'note.txt'
-env.Append(TARFLAGS = '-z ' + problemfile)
+
+allcvsfiles = findCVS('.')
+filestopack = remove_entries_that_start_with(allcvsfiles, '.' + os.sep + selected_build_dir)
+problematicfiles = remove_entries_that_not_start_with(allcvsfiles, '.' + os.sep + selected_build_dir)
+problematicfiless = ''
+for i in problematicfiles:
+	problematicfiless += i + ' '
+
+env.Append(TARFLAGS = '-z ' + problematicfiless)
 env.Append(TARSUFFIX = '.gz')
-tarball = env.Alias('tarball', env.Tar('dangerdeep-'+version, remove_entry(findCVS('.'), problemfile)))
+tarball = env.Alias('tarball', env.Tar('dangerdeep-'+version, filestopack))
 
 #also env.Zip is possible...
 
