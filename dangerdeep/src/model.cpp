@@ -83,7 +83,7 @@ void model::material::init(void)
 	delete mytexture;
 	mytexture = 0;
 	if (filename.length() > 0)
-		mytexture = new texture(get_data_dir() + MODEL_DIR + filename, model::mapping);
+		mytexture = new texture(get_model_dir() + filename, model::mapping);
 }
 
 void model::material::set_gl_values(void) const

@@ -16,11 +16,12 @@
 using namespace std;
 #include "date.h"
 
-#define TEXTURE_DIR "textures/"
-#define FONT_DIR "fonts/"
-#define MODEL_DIR "models/"
-#define SOUND_DIR "sounds/"
-#define IMAGES_DIR "images/"
+inline string get_data_dir(void) { return DATADIR; }
+inline string get_texture_dir(void) { return get_data_dir() + "textures/"; }
+inline string get_font_dir(void) { return get_data_dir() + "fonts/"; }
+inline string get_model_dir(void) { return get_data_dir() + "models/"; }
+inline string get_sound_dir(void) { return get_data_dir() + "sounds/"; }
+inline string get_image_dir(void) { return get_data_dir() + "images/"; }
 
 #define GRAVITY 9.806	// a very global constant
 #define NR_CLOUD_TEXTURES 2
@@ -69,7 +70,5 @@ template<class C> inline void add_saturated(C& sum, const C& add, const C& max) 
 // return a random value in [0, 1(
 inline double rnd(void) { return double(rand())/RAND_MAX; }
 inline unsigned rnd(unsigned b) { return unsigned(b*rnd()); }
-
-inline string get_data_dir(void) { return DATADIR; }
 
 #endif
