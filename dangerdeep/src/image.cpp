@@ -1,15 +1,8 @@
 // OpenGL texture drawing based on SDL Surfaces
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
-#ifdef WIN32
+#include "oglext/OglExt.h"
 #include <SDL_image.h>
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <GL/gl.h>
-#else
-#include <SDL/SDL_image.h>
-#include <GL/gl.h>
-#endif
 
 #include "image.h"
 #include "system.h"

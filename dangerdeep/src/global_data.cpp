@@ -8,11 +8,8 @@
 #include "global_data.h"
 #include "sound.h"
 #include <sstream>
-#ifdef WIN32
+#include "oglext/OglExt.h"
 #include <SDL_image.h>
-#else
-#include <SDL/SDL_image.h>
-#endif
 
 
 
@@ -80,7 +77,7 @@ void init_global_data(void)
 	torpempty = new texture(get_texture_dir() + "torpempty.png");
 	torpreload = new texture(get_texture_dir() + "torpreload.png");
 	torpunload = new texture(get_texture_dir() + "torpunload.png");
-	uzo = new texture(get_texture_dir() + "uzo.png", GL_LINEAR, GL_CLAMP);
+	uzo = new texture(get_texture_dir() + "uzo.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
 	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", GL_LINEAR);
 	torpt1 = new texture(get_texture_dir() + "torpt1.png");
 	torpt2 = new texture(get_texture_dir() + "torpt2.png");
@@ -94,7 +91,7 @@ void init_global_data(void)
 	torpt6lut = new texture(get_texture_dir() + "torpt6lut.png");
 	clock12 = new texture(get_texture_dir() + "clock12.png");
 	clock24 = new texture(get_texture_dir() + "clock24.png");
-	glasses = new texture(get_texture_dir() + "glasses.png", GL_LINEAR, GL_CLAMP);
+	glasses = new texture(get_texture_dir() + "glasses.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
 	torp_expl_water_splash[0] = new texture(get_texture_dir() + "torpedo_expl_water_splash.png" , GL_LINEAR);
 	torp_expl_water_splash[1] = new texture(get_texture_dir() + "torpedo_expl_water_splash_1.png" , GL_LINEAR);
 	torp_expl_water_splash[2] = new texture(get_texture_dir() + "torpedo_expl_water_splash_2.png" , GL_LINEAR);
@@ -104,7 +101,7 @@ void init_global_data(void)
 	torpedo_detonation_surfaced[0] = new sound(get_sound_dir() + "torpedo_detonation_surfaced_1.wav" );
 	torpedo_detonation_surfaced[1] = new sound(get_sound_dir() + "torpedo_detonation_surfaced_2.wav" );
 	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png" );
-	smoke = new texture(get_texture_dir() + "smoke.png" , GL_LINEAR, GL_CLAMP);
+	smoke = new texture(get_texture_dir() + "smoke.png" , GL_LINEAR, GL_CLAMP_TO_EDGE);
 	notepadsheet = new texture(get_texture_dir() + "notepadsheet.png" );
 	menuframe = new texture(get_texture_dir() + "menuframe.png" );
 	turnswitch = new texture(get_texture_dir() + "turnswitch.png" );
@@ -116,7 +113,7 @@ void init_global_data(void)
 	repairwrecked = new texture(get_texture_dir() + "repairwrecked.png" );
 	terraintex = new texture(get_texture_dir() + "terrain.png" );
 	cloudsbackgr = new texture(get_texture_dir() + "cloudsbackgr.png" );
-	atlanticmap = new texture(get_texture_dir() + "atlanticmap.png", GL_LINEAR, GL_CLAMP);
+	atlanticmap = new texture(get_texture_dir() + "atlanticmap.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
 
 	titlebackgrimg = new image(get_image_dir() + "titlebackgr.jpg");
 	periscope = new image(get_texture_dir() + "periscope.png", true);

@@ -1,3 +1,15 @@
+2004-04-29  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* global_data.cpp font.cpp
+	  - used GL_CLAMP_TO_EDGE instead of GL_CLAMP
+	  - included OglExt where it is needed
+	  - removed silly WIN32 #ifdef's
+	  - replaced #include<SDL/SDL_x> by #include<SDL_x> everywhere
+
+2004-04-29  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* improved sky and star display
+	* re-released current version as win32 package (improved .exe, needs
+	  less dll's)
+
 2004-04-28  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* released current status as 0.0.17
 

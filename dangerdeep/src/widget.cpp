@@ -1,15 +1,8 @@
 // OpenGL based widgets
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
-#ifdef WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <GL/gl.h>
+#include "oglext/OglExt.h"
 #include <SDL_image.h>
-#else
-#include <GL/gl.h>
-#include <SDL/SDL_image.h>
-#endif
 
 #include "widget.h"
 #include "global_data.h"

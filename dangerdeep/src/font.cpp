@@ -3,15 +3,8 @@
 
 #include "font.h"
 #include <cstring>
-#ifdef WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <GL/gl.h>
+#include "oglext/OglExt.h"
 #include <SDL_image.h>
-#else
-#include <GL/gl.h>
-#include <SDL/SDL_image.h>
-#endif
 #include "system.h"
 #include <sstream>
 
@@ -151,7 +144,7 @@ font::font(const string& filename, unsigned char_spacing, unsigned blank_length,
 	}
 
 	for (unsigned i = 0; i < nr_chars; i++) {
-		characters[i].tex = new texture(fontimage, offsets[i], 0, characters[i].width, h, GL_LINEAR, GL_CLAMP);
+		characters[i].tex = new texture(fontimage, offsets[i], 0, characters[i].width, h, GL_LINEAR, GL_CLAMP_TO_EDGE);
 	}
 		
 	for (unsigned i = 0; i < nr_chars; i++)
