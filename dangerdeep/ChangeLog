@@ -1,3 +1,41 @@
+2003-05-14  Markus Petermann  <m.petermann@gmx.net>
+
+	* submarine_VII.cpp, submarine_XXI.cpp:
+	  - Fuel and battery consumption factors modified: The original t values where
+	    calculated for knots, not meters per seconds.
+	* user_interface.cpp, submarine_interface.cpp:
+	  - New gauges for diesel fuel amount and battery charge.
+	* game.cpp:
+	  - Use the torpedos position as detonation point, not the ships position.
+	* global_data.h, global_data.cpp:
+	  - Load one further gauge.
+	* parser.cpp:
+	  - New tokens for fuel amount and battery charge.
+	* ship.cpp:
+	  - Set fuel_level default value to 1.
+	  - Use parser for mission specific fuel values.
+	  - Call ai only when AI is available. That is not the case on the players unit.
+	* ship.h:
+	  - Method to return fuel_level.
+	* submarine.cpp:
+	  - Set battery_level default value to 1.
+	  - Use parser for mission specific battery charge.
+	  - Call ship::simulate and not sea_object::simulate method. ship is the direct
+	    father class of submarine, not sea_object.
+	* submarine.h:
+	  - Method to return battery_level.
+	* submarine_XXI.cpp, submarine_VII.cpp:
+	  - Fuel consumption and battery decharge rate modified. The original values
+	    were calculated for knots, but meters per second is used.
+	* submarine_interface.h, submarine_interface.cpp:
+	  - New method display_gauges.
+	* texts.h:
+	  - New texts for battery and diesel fuel gauges.
+	* tokencodes.h:
+	  - New tokens for fuel amount and battery charge.
+	* user_interface.h, user_interface.cpp:
+	  - New methods display_manometer_gauge.
+
 2003-05-12  Markus Petermann  <m.petermann@gmx.net>
 
 	* submarine_interface.cpp:
