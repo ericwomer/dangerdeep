@@ -359,7 +359,6 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 		if (event.button.button == SDL_BUTTON_LEFT) {
 			// set target. get visible objects and determine which is nearest to
 			// mouse position. set target for player object
-			//fixme: the position is not right... clicking doesn't work
 			vector2 mapclick(event.button.x, event.button.y);
 			vector<sea_object*> objs = gm.visible_surface_objects(player);
 			double mapclickdist = 1e30;
@@ -367,6 +366,8 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 			for (vector<sea_object*>::iterator it = objs.begin(); it != objs.end(); ++it) {
 				vector2 p = ((*it)->get_pos().xy() - (player->get_pos().xy()
 								      + mapoffset)) * mapzoom;
+				p.x += 512;
+				p.y = 384 - p.y;
 				double clickd = mapclick.square_distance(p);
 				if (clickd < mapclickdist) {
 					target = *it;	// fixme: message?
