@@ -27,6 +27,7 @@
 #include "water_splash.h"
 #include "ships_sunk_display.h"
 #include "vector3.h"
+#include "coastmap.h"
 
 #define MAX_PANEL_SIZE 256
 
