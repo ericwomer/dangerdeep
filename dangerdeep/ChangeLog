@@ -1,3 +1,8 @@
+2004-05-22  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* coastmap, mapcompile
+	  - moved map processing to runtime code (currently broken)
+	  - removed obsolete map compiler
+
 2004-05-21  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* game.cpp
 	  - custom missions are improved: the sub's position is now

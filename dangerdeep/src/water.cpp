@@ -323,7 +323,7 @@ void water::compute_coord_and_normal(int phase, const vector2& xypos, const vect
 	// linear filtering should be neccessary -> expensive!
 
 	// fixme: make trilinear
-	// fixme: unite displacements and height in one vector3f for simplicities' sake and performance gain
+	// fixme: unite displacements and height in one vector3f for simplicity's sake and performance gain
 	// bilinear interpolation of displacement and height	
 	vector3f ca(wavetiledisplacements[phase][i0].x, wavetiledisplacements[phase][i0].y, wavetileheights[phase][i0]);
 	vector3f cb(wavetiledisplacements[phase][i1].x, wavetiledisplacements[phase][i1].y, wavetileheights[phase][i1]);

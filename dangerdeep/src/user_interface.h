@@ -60,9 +60,7 @@ protected:
 	
 	class water* mywater;		// the ocean water
 	
-//	vector<char> landsea;	// a test hack. 0 = land, 1 = sea
 	coastmap mycoastmap;	// this may get moved to game.h, yet it is used for display only, that's why it is here
-	list<pair<vector2, string /* fixme maybe unsigned for texts */> > cities;
 
 	// free view mode
 	float freeviewsideang, freeviewupang;	// global spectators viewing angles

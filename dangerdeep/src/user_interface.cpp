@@ -51,7 +51,7 @@ using namespace std;
 	direction and -10000km to 10000km in y direction. (we could use exact values, around
 	20015km). The wrap around is a problem, but that's somewhere in the Pacific ocean, so
 	we just ignore it. This mapping leads to some distorsion and wrong distance values
-	when coming to far north or south on the globe. We just ignore this for simplicities
+	when coming to far north or south on the globe. We just ignore this for simplicity's
 	sake. The effect shouldn't be noticeable.
 */
 
@@ -59,7 +59,7 @@ user_interface::user_interface(sea_object* player, game& gm) :
 	pause(false), time_scale(1), player_object ( player ),
 	panel_visible(true), bearing(0), elevation(0),
 	viewmode(4), target(0), zoom_scope(false), mapzoom(0.1), mysky(0), mywater(0),
-	mycoastmap("default.map"), freeviewsideang(0), freeviewupang(0), freeviewpos()
+	mycoastmap(get_map_dir() + "default.xml"), freeviewsideang(0), freeviewupang(0), freeviewpos()
 {
 	init ();
 	panel = new widget(0, 768-128, 1024, 128, "", 0, panelbackgroundimg);
@@ -77,27 +77,6 @@ user_interface::user_interface(sea_object* player, game& gm) :
 	panel_valuetexts[4] = new widget_text(528+160+100, 8, 0, 0, "000");
 	for (unsigned i = 0; i < 5; ++i)
 		panel->add_child(panel_valuetexts[i]);
-		
-	// read cities
-	parser cityfile(get_map_dir() + "cities.txt");
-	while (!cityfile.is_empty()) {
-		bool xneg = cityfile.type() == TKN_MINUS;
-		cityfile.consume();
-		int xd = cityfile.parse_number();
-		cityfile.parse(TKN_COMMA);
-		int xm = cityfile.parse_number();
-		cityfile.parse(TKN_COMMA);
-		bool yneg = cityfile.type() == TKN_MINUS;
-		cityfile.consume();
-		int yd = cityfile.parse_number();
-		cityfile.parse(TKN_COMMA);
-		int ym = cityfile.parse_number();
-		cityfile.parse(TKN_COMMA);
-		string n = cityfile.parse_string();
-		double x, y;
-		sea_object::degrees2meters(xneg, xd, xm, yneg, yd, ym, x, y);
-		cities.push_back(make_pair(vector2(x, y), n));
-	}
 }
 
 user_interface* user_interface::create(game& gm)
@@ -206,7 +185,7 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 	glPushMatrix();
 	glTranslatef(0, 0, -viewpos.z);
 	terraintex->set_gl_texture();
-	mycoastmap.render(viewpos.x, viewpos.y);
+	mycoastmap.render(viewpos.xy());
 	glPopMatrix();
 #endif
 }
@@ -1009,14 +988,6 @@ if (mb&2) detl = my*10/384;
 	mycoastmap.draw_as_map(offset, mapzoom, detl);
 	glPopMatrix();
 	sys.no_tex();
-
-	// draw cities
-	for (list<pair<vector2, string> >::const_iterator it = cities.begin(); it != cities.end(); ++it) {
-		sys.no_tex();
-		draw_square_mark(gm, it->first, -offset, color(255, 0, 0));
-		vector2 pos = (it->first - offset) * mapzoom;
-		font_arial->print(int(512 + pos.x), int(384 - pos.y), it->second);
-	}
 
 	// draw convoy positions	fixme: should be static and fade out after some time
 	glColor3f(1,1,1);
