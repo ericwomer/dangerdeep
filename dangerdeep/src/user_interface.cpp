@@ -217,7 +217,7 @@ void user_interface::init ()
 	// this doesn't affect the lighting now, since we use a 1,1,1 light vector
 	vector3f lightvec = vector3f(1,1,1).normal();	// fixme: direction to light source (directional light)
 
-	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(0,1), 20, 0.000005, WAVE_LENGTH, TIDECYCLE_TIME);
+	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(0,1), 31/*20*/, 0.000005, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileh[i] = owg.compute_heights();
@@ -370,9 +370,10 @@ void user_interface::init ()
 	
 	// create water bump maps
 	unsigned bumpmap_texsize = 64;
-	ocean_wave_generator<float> owgb(bumpmap_texsize, vector2f(1,1), 1, 0.01, 4.0, WATER_BUMPMAP_CYCLE_TIME);
+	ocean_wave_generator<float> owgb(bumpmap_texsize, vector2f(1,1), 1, 0.005/*0.01*/, 4.0, WATER_BUMPMAP_CYCLE_TIME);
 	for (int i = 0; i < WATER_BUMP_FRAMES; ++i) {
 		owgb.set_time(i*WATER_BUMPMAP_CYCLE_TIME/WATER_BUMP_FRAMES);
+		//fixme: we could compute height info here and compute finite normals from it. this saves 50% ffts, nearly doubling speed
 		vector<vector3f> n = owgb.compute_normals();
 		vector<Uint8> un(n.size()*3);
 		for (unsigned j = 0; j < n.size(); ++j) {

@@ -289,8 +289,8 @@ vector<vector2t<T> > ocean_wave_generator<T>::compute_displacements(void) const
 	FFT_EXECUTE_PLAN(plan2);
 	
 	vector<vector2t<T> > wavedisplacements(N*N);
-	T signs[2] = { T(1), T(-1) };	// this should be 1,-1 after the formula in the paper, but that would give wrong results
-	T chopfac = Lm / T(2*N);	// fixme should be Lm / (2 * n)
+	T signs[2] = { T(1), T(-1) };
+	T chopfac = Lm / T(2*N);
 	for (int y = 0; y < N; ++y) {
 		for (int x = 0; x < N; ++x) {
 			int ptr = y*N+x;
