@@ -1127,6 +1127,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	// formula is: pixel color = c*(1-timefac)+stars*timefac + glow
 	// timefac is blending factor (alpha) and const while drawing (global color alpha?)
 	// sky hemisphere is missing multitexture coordinates! fixme
+	// read mesh data from model, add anything else? this removes auto texgen in model!fixme
 
 /*
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);//tex0 is sky color, but should also be scaleable (texsubimage?)
