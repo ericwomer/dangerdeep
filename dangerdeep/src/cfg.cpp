@@ -3,15 +3,33 @@
 
 #include "cfg.h"
 #include "tinyxml/tinyxml.h"
+#include "global_data.h"
 #include "system.h"
 #include <sstream>
 using namespace std;
+
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
+#include <SDL.h>
 
 
 cfg* cfg::myinst = 0;
 
 
 	
+string cfg::key::get_name(void) const
+{
+	string result = SDL_GetKeyName(SDLKey(keysym));
+	if (shift) result = string("Shift + ") + result;
+	if (alt) result = string("Alt + ") + result;
+	if (ctrl) result = string("Ctrl + ") + result;
+	return result;
+}
+
+
 cfg::cfg()
 {
 }
@@ -70,10 +88,22 @@ void cfg::load(const string& filename)
 	system::sys().myassert(root != 0, string("cfg: load(), no root element found in ") + filename);
 	TiXmlElement* eattr = root->FirstChildElement();
 	for ( ; eattr != 0; eattr = eattr->NextSiblingElement()) {
-		const char* attrstr = eattr->Attribute("value");
-		system::sys().myassert(attrstr != 0, string("cfg: load(), no value for node ") + eattr->Value());
-		bool found = set_str(eattr->Value(), attrstr);
-		system::sys().myassert(found, string("cfg: load(), name not registered : ") + eattr->Value());
+		if (string(eattr->Value()) == "keys") {
+			// read keys
+			TiXmlElement* ke = eattr->FirstChildElement();
+			for ( ; ke != 0; ke = ke->NextSiblingElement()) {
+				unsigned nr = XmlAttribu(ke, "nr");
+				int keysym = XmlAttribu(ke, "keysym");
+				bool ctrl = XmlAttribu(ke, "ctrl") != 0;
+				bool alt = XmlAttribu(ke, "alt") != 0;
+				bool shift = XmlAttribu(ke, "shift") != 0;
+				set_key(nr, keysym, ctrl, alt, shift);
+			}
+		} else {
+			string attrstr = XmlAttrib(eattr, "value");
+			bool found = set_str(eattr->Value(), attrstr);
+			system::sys().myassert(found, string("cfg: load(), name not registered : ") + eattr->Value());
+		}
 	}
 }
 
@@ -108,6 +138,18 @@ void cfg::save(const string& filename) const
 		attr->SetAttribute("value", it->second);
 		root->LinkEndChild(attr);
 	}
+	TiXmlElement* keys = new TiXmlElement("keys");
+	root->LinkEndChild(keys);
+	for (map<unsigned, key>::const_iterator it = valk.begin(); it != valk.end(); ++it) {
+		TiXmlElement* attr = new TiXmlElement("key");
+		attr->SetAttribute("nr", it->first);
+		attr->SetAttribute("action", it->second.action);
+		attr->SetAttribute("keysym", it->second.keysym);
+		attr->SetAttribute("ctrl", it->second.ctrl);
+		attr->SetAttribute("alt", it->second.alt);
+		attr->SetAttribute("shift", it->second.shift);
+		keys->LinkEndChild(attr);
+	}
 	doc.SaveFile();
 }
 
@@ -141,13 +183,9 @@ void cfg::register_option(const string& name, const string& value)
 
 
 
-void cfg::register_option(const string& name, int keysym, bool ctrl, bool alt, bool shift)
+void cfg::register_key(unsigned nr, const string& name, int keysym, bool ctrl, bool alt, bool shift)
 {
-	int i = keysym;
-	if (ctrl)  i |= 0x40000000;
-	if (alt)   i |= 0x20000000;
-	if (shift) i |= 0x10000000;
-	vali[name] = i;
+	valk[nr] = key(name, keysym, ctrl, alt, shift);
 }
 
 
@@ -196,13 +234,13 @@ void cfg::set(const string& name, const string& value)
 
 
 	
-void cfg::set(const string& name, int keysym, bool ctrl, bool alt, bool shift)
+void cfg::set_key(unsigned nr, int keysym, bool ctrl, bool alt, bool shift)
 {
-	int i = keysym;
-	if (ctrl)  i |= 0x40000000;
-	if (alt)   i |= 0x20000000;
-	if (shift) i |= 0x10000000;
-	set(name, i);
+	map<unsigned, key>::iterator it = valk.find(nr);
+	if (it != valk.end())
+		it->second = key(it->second.action, keysym, ctrl, alt, shift);
+	else
+		system::sys().myassert(false, string("cfg: set_key(), key number not registered: "));
 }
 
 
@@ -251,6 +289,18 @@ string cfg::gets(const string& name) const
 	else
 		system::sys().myassert(false, string("cfg: get(), name not registered: ") + name);
 	return 0;
+}
+
+
+
+cfg::key cfg::getkey(unsigned nr) const
+{
+	map<unsigned, key>::const_iterator it = valk.find(nr);
+	if (it != valk.end())
+		return it->second;
+	else
+		system::sys().myassert(false, string("cfg: getkey(), key number not registered: "));
+	return key();
 }
 
 

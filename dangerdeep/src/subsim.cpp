@@ -31,6 +31,7 @@
 #include "user_interface.h"
 #include "cfg.h"
 #include "tinyxml/tinyxml.h"
+#include "keys.h"
 
 class system* sys;
 int res_x, res_y;
@@ -38,7 +39,6 @@ int res_x, res_y;
 highscorelist hsl_mission, hsl_career;
 #define HSL_MISSION_NAME "mission.hsc"
 #define HSL_CAREER_NAME "career.hsc"
-
 
 // a dirty hack
 void menu_notimplemented(void)
@@ -295,6 +295,7 @@ void show_results_for_game(const game* gm)
 {
 	widget w(0, 0, 1024, 768, texts::get(124), 0, sunkendestroyerimg);
 	widget_list* wl = new widget_list(64, 64, 1024-64-64, 768-64-64);
+	wl->set_column_width((1024-2*64)/4);
 	w.add_child(wl);
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 	unsigned totaltons = 0;
@@ -302,7 +303,7 @@ void show_results_for_game(const game* gm)
 	for (list<game::sink_record>::const_iterator it = sunken_ships.begin(); it != sunken_ships.end(); ++it) {
 		ostringstream oss;
 		oss << texts::numeric_from_date(it->dat) << "\t"
-			<< it->descr << "\t"
+			<< it->descr << "\t\t"
 			<< it->tons << " BRT";
 		totaltons += it->tons;
 		wl->append_entry(oss.str());
@@ -962,22 +963,20 @@ void menu_resolution(void)
 void configure_key(widget_list* wkeys)
 {
 	struct confkey_widget : public widget {
-		string curkeyname;
 		widget_text* keyname;
+		unsigned keynr;
 		void on_char(const SDL_keysym& ks) {
-			curkeyname = SDL_GetKeyName(ks.sym);
+			if (ks.sym == SDLK_ESCAPE) close(0);
 			bool ctrl = (ks.mod & (KMOD_LCTRL | KMOD_RCTRL)) != 0;
 			bool alt = (ks.mod & (KMOD_LALT | KMOD_RALT)) != 0;
 			bool shift = (ks.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) != 0;
-			if (shift) curkeyname = string("Shift + ") + curkeyname;
-			if (alt) curkeyname = string("Alt + ") + curkeyname;
-			if (ctrl) curkeyname = string("Ctrl + ") + curkeyname;
-			keyname->set_text(curkeyname);
-			if (ks.sym == SDLK_ESCAPE) close(0);
+			cfg::instance().set_key(keynr, ks.sym, ctrl, alt, shift);
+			keyname->set_text(cfg::instance().getkey(keynr).get_name());
 			redraw();
 		}
-		confkey_widget(int x, int y, int w, int h, const string& text_, widget* parent_ = 0, const image* backgr = 0) :
-			widget(x, y, w, h, text_, parent_, backgr)
+		confkey_widget(int x, int y, int w, int h, const string& text_, widget* parent_,
+			       const image* backgr, unsigned sel) :
+			widget(x, y, w, h, text_, parent_, backgr), keynr(sel)
 			{
 				keyname = new widget_text(40, 80, 432, 40, "undefined");
 				add_child(keyname);
@@ -985,9 +984,7 @@ void configure_key(widget_list* wkeys)
 			}
 		~confkey_widget() {}
 	};
-	//fixme: redefine widget to get key combination, draw current combination name
-	//overload on_char
-	confkey_widget w(256, 256, 512, 256, texts::get(216), 0, 0);
+	confkey_widget w(256, 256, 512, 256, texts::get(216), 0, 0, unsigned(wkeys->get_selected()));
 	w.add_child(new widget_text(40, 40, 432, 32, wkeys->get_selected_entry()));
 	w.run(0, true);
 }
@@ -999,12 +996,12 @@ void menu_configure_keys(void)
 	widget w(0, 0, 1024, 768, texts::get(214), 0, titlebackgrimg);
 	//w.add_child(new widget_text(40, 60, 0, 0, texts::get(16)));
 	widget_list* wkeys = new widget_list(40, 50, 944, 640);
+	wkeys->set_column_width(600);
 	w.add_child(wkeys);
 	
 	for (unsigned i = 600; i <= 649; ++i) {
-		//fixme: draw current combination in right column of list
-		string curkeystr = "?";
-		wkeys->append_entry(texts::get(i) + string("\t\t\t") + curkeystr);
+		cfg::key k = cfg::instance().getkey(i-600);
+		wkeys->append_entry(texts::get(i) + string("\t") + k.get_name());
 	}
 
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 40, 708, 452, 40, texts::get(20)));
@@ -1162,57 +1159,56 @@ int main(int argc, char** argv)
 	mycfg.register_option("debug", false);
 	mycfg.register_option("sound", true);
 	
-	mycfg.register_option("key_zoom_map", SDLK_PLUS, 0, 0, 0);
-	mycfg.register_option("key_unzoom_map", SDLK_MINUS, 0, 0, 0);
-	mycfg.register_option("key_show_gauges_screen", SDLK_F1, 0, 0, 0);
-	mycfg.register_option("key_show_periscope_screen", SDLK_F2, 0, 0, 0);
-	mycfg.register_option("key_show_uzo_screen", SDLK_F3, 0, 0, 0);
-	mycfg.register_option("key_show_bridge_screen", SDLK_F4, 0, 0, 0);
-	mycfg.register_option("key_show_map_screen", SDLK_F5, 0, 0, 0);
-	mycfg.register_option("key_show_torpedo_screen", SDLK_F6, 0, 0, 0);
-	mycfg.register_option("key_show_damage_control_screen", SDLK_F7, 0, 0, 0);
-	mycfg.register_option("key_show_logbook_screen", SDLK_F8, 0, 0, 0);
-	mycfg.register_option("key_show_success_records_screen", SDLK_F9, 0, 0, 0);
-	mycfg.register_option("key_rudder_left", SDLK_LEFT, 0, 0, 0);
-	mycfg.register_option("key_rudder_hard_left", SDLK_LEFT, 0, 0, 1);
-	mycfg.register_option("key_rudder_right", SDLK_RIGHT, 0, 0, 0);
-	mycfg.register_option("key_rudder_hard_right", SDLK_RIGHT, 0, 0, 1);
-	mycfg.register_option("key_rudder_up", SDLK_UP, 0, 0, 0);
-	mycfg.register_option("key_rudder_hard_up", SDLK_UP, 0, 0, 1);
-	mycfg.register_option("key_rudder_down", SDLK_DOWN, 0, 0, 0);
-	mycfg.register_option("key_rudder_hard_down", SDLK_DOWN, 0, 0, 1);
-	mycfg.register_option("key_center_rudders", SDLK_RETURN, 0, 0, 0);
-	mycfg.register_option("key_throttle_slow", SDLK_1, 0, 0, 0);
-	mycfg.register_option("key_throttle_half", SDLK_2, 0, 0, 0);
-	mycfg.register_option("key_throttle_full", SDLK_3, 0, 0, 0);
-	mycfg.register_option("key_throttle_flank", SDLK_4, 0, 0, 0);
-	mycfg.register_option("key_throttle_stop", SDLK_5, 0, 0, 0);
-	mycfg.register_option("key_throttle_reverse", SDLK_6, 0, 0, 0);
-	mycfg.register_option("key_fire_tube_1", SDLK_1, 0, 0, 1);
-	mycfg.register_option("key_fire_tube_2", SDLK_2, 0, 0, 1);
-	mycfg.register_option("key_fire_tube_3", SDLK_3, 0, 0, 1);
-	mycfg.register_option("key_fire_tube_4", SDLK_4, 0, 0, 1);
-	mycfg.register_option("key_fire_tube_5", SDLK_5, 0, 0, 1);
-	mycfg.register_option("key_fire_tube_6", SDLK_6, 0, 0, 1);
-	mycfg.register_option("key_select_target", SDLK_SPACE, 0, 0, 0);
-	mycfg.register_option("key_scope_up_down", SDLK_0, 0, 0, 0);
-	mycfg.register_option("key_crash_dive", SDLK_c, 0, 0, 0);
-	mycfg.register_option("key_go_to_snorkel_depth", SDLK_d, 0, 0, 0);
-	mycfg.register_option("key_toggle_snorkel", SDLK_f, 0, 0, 0);
-	mycfg.register_option("key_set_heading_to_view", SDLK_h, 0, 0, 0);
-	mycfg.register_option("key_identify_target", SDLK_i, 0, 0, 0);
-	mycfg.register_option("key_go_to_periscope_depth", SDLK_p, 0, 0, 0);
-	mycfg.register_option("key_go_to_surface", SDLK_s, 0, 0, 0);
-	mycfg.register_option("key_fire_torpedo", SDLK_t, 0, 0, 0);
-	mycfg.register_option("key_set_view_to_heading", SDLK_v, 0, 0, 0);
-	mycfg.register_option("key_toggle_zoom_of_view", SDLK_y, 0, 0, 0);
-	mycfg.register_option("key_turn_view_left", SDLK_COMMA, 0, 0, 0);
-	mycfg.register_option("key_turn_view_left_fast", SDLK_COMMA, 0, 0, 1);
-	mycfg.register_option("key_turn_view_right", SDLK_PERIOD, 0, 0, 0);
-	mycfg.register_option("key_turn_view_right_fast", SDLK_PERIOD, 0, 0, 1);
-	mycfg.register_option("key_time_scale_up", SDLK_F11, 0, 0, 0);
-	mycfg.register_option("key_time_scale_down", SDLK_F12, 0, 0, 0);
-
+	mycfg.register_key(KEY_ZOOM_MAP, "KEY_ZOOM_MAP", SDLK_PLUS, 0, 0, 0);
+	mycfg.register_key(KEY_UNZOOM_MAP, "KEY_UNZOOM_MAP", SDLK_MINUS, 0, 0, 0);
+	mycfg.register_key(KEY_SHOW_GAUGES_SCREEN, "KEY_SHOW_GAUGES_SCREEN", SDLK_F1, 0, 0, 0);
+	mycfg.register_key(KEY_SHOW_PERISCOPE_SCREEN, "KEY_SHOW_PERISCOPE_SCREEN", SDLK_F2, 0, 0, 0);
+	mycfg.register_key(KEY_SHOW_UZO_SCREEN, "KEY_SHOW_UZO_SCREEN", SDLK_F3, 0, 0, 0);
+	mycfg.register_key(KEY_SHOW_BRIDGE_SCREEN, "KEY_SHOW_BRIDGE_SCREEN", SDLK_F4, 0, 0, 0);
+	mycfg.register_key(KEY_SHOW_MAP_SCREEN, "KEY_SHOW_MAP_SCREEN", SDLK_F5, 0, 0, 0);
+	mycfg.register_key(KEY_SHOW_TORPEDO_SCREEN, "KEY_SHOW_TORPEDO_SCREEN", SDLK_F6, 0, 0, 0);
+	mycfg.register_key(KEY_SHOW_DAMAGE_CONTROL_SCREEN, "KEY_SHOW_DAMAGE_CONTROL_SCREEN", SDLK_F7, 0, 0, 0);
+	mycfg.register_key(KEY_SHOW_LOGBOOK_SCREEN, "KEY_SHOW_LOGBOOK_SCREEN", SDLK_F8, 0, 0, 0);
+	mycfg.register_key(KEY_SHOW_SUCCESS_RECORDS_SCREEN, "KEY_SHOW_SUCCESS_RECORDS_SCREEN", SDLK_F9, 0, 0, 0);
+	mycfg.register_key(KEY_RUDDER_LEFT, "KEY_RUDDER_LEFT", SDLK_LEFT, 0, 0, 0);
+	mycfg.register_key(KEY_RUDDER_HARD_LEFT, "KEY_RUDDER_HARD_LEFT", SDLK_LEFT, 0, 0, 1);
+	mycfg.register_key(KEY_RUDDER_RIGHT, "KEY_RUDDER_RIGHT", SDLK_RIGHT, 0, 0, 0);
+	mycfg.register_key(KEY_RUDDER_HARD_RIGHT, "KEY_RUDDER_HARD_RIGHT", SDLK_RIGHT, 0, 0, 1);
+	mycfg.register_key(KEY_RUDDER_UP, "KEY_RUDDER_UP", SDLK_UP, 0, 0, 0);
+	mycfg.register_key(KEY_RUDDER_HARD_UP, "KEY_RUDDER_HARD_UP", SDLK_UP, 0, 0, 1);
+	mycfg.register_key(KEY_RUDDER_DOWN, "KEY_RUDDER_DOWN", SDLK_DOWN, 0, 0, 0);
+	mycfg.register_key(KEY_RUDDER_HARD_DOWN, "KEY_RUDDER_HARD_DOWN", SDLK_DOWN, 0, 0, 1);
+	mycfg.register_key(KEY_CENTER_RUDDERS, "KEY_CENTER_RUDDERS", SDLK_RETURN, 0, 0, 0);
+	mycfg.register_key(KEY_THROTTLE_SLOW, "KEY_THROTTLE_SLOW", SDLK_1, 0, 0, 0);
+	mycfg.register_key(KEY_THROTTLE_HALF, "KEY_THROTTLE_HALF", SDLK_2, 0, 0, 0);
+	mycfg.register_key(KEY_THROTTLE_FULL, "KEY_THROTTLE_FULL", SDLK_3, 0, 0, 0);
+	mycfg.register_key(KEY_THROTTLE_FLANK, "KEY_THROTTLE_FLANK", SDLK_4, 0, 0, 0);
+	mycfg.register_key(KEY_THROTTLE_STOP, "KEY_THROTTLE_STOP", SDLK_5, 0, 0, 0);
+	mycfg.register_key(KEY_THROTTLE_REVERSE, "KEY_THROTTLE_REVERSE", SDLK_6, 0, 0, 0);
+	mycfg.register_key(KEY_FIRE_TUBE_1, "KEY_FIRE_TUBE_1", SDLK_1, 0, 0, 1);
+	mycfg.register_key(KEY_FIRE_TUBE_2, "KEY_FIRE_TUBE_2", SDLK_2, 0, 0, 1);
+	mycfg.register_key(KEY_FIRE_TUBE_3, "KEY_FIRE_TUBE_3", SDLK_3, 0, 0, 1);
+	mycfg.register_key(KEY_FIRE_TUBE_4, "KEY_FIRE_TUBE_4", SDLK_4, 0, 0, 1);
+	mycfg.register_key(KEY_FIRE_TUBE_5, "KEY_FIRE_TUBE_5", SDLK_5, 0, 0, 1);
+	mycfg.register_key(KEY_FIRE_TUBE_6, "KEY_FIRE_TUBE_6", SDLK_6, 0, 0, 1);
+	mycfg.register_key(KEY_SELECT_TARGET, "KEY_SELECT_TARGET", SDLK_SPACE, 0, 0, 0);
+	mycfg.register_key(KEY_SCOPE_UP_DOWN, "KEY_SCOPE_UP_DOWN", SDLK_0, 0, 0, 0);
+	mycfg.register_key(KEY_CRASH_DIVE, "KEY_CRASH_DIVE", SDLK_c, 0, 0, 0);
+	mycfg.register_key(KEY_GO_TO_SNORKEL_DEPTH, "KEY_GO_TO_SNORKEL_DEPTH", SDLK_d, 0, 0, 0);
+	mycfg.register_key(KEY_TOGGLE_SNORKEL, "KEY_TOGGLE_SNORKEL", SDLK_f, 0, 0, 0);
+	mycfg.register_key(KEY_SET_HEADING_TO_VIEW, "KEY_SET_HEADING_TO_VIEW", SDLK_h, 0, 0, 0);
+	mycfg.register_key(KEY_IDENTIFY_TARGET, "KEY_IDENTIFY_TARGET", SDLK_i, 0, 0, 0);
+	mycfg.register_key(KEY_GO_TO_PERISCOPE_DEPTH, "KEY_GO_TO_PERISCOPE_DEPTH", SDLK_p, 0, 0, 0);
+	mycfg.register_key(KEY_GO_TO_SURFACE, "KEY_GO_TO_SURFACE", SDLK_s, 0, 0, 0);
+	mycfg.register_key(KEY_FIRE_TORPEDO, "KEY_FIRE_TORPEDO", SDLK_t, 0, 0, 0);
+	mycfg.register_key(KEY_SET_VIEW_TO_HEADING, "KEY_SET_VIEW_TO_HEADING", SDLK_v, 0, 0, 0);
+	mycfg.register_key(KEY_TOGGLE_ZOOM_OF_VIEW, "KEY_TOGGLE_ZOOM_OF_VIEW", SDLK_y, 0, 0, 0);
+	mycfg.register_key(KEY_TURN_VIEW_LEFT, "KEY_TURN_VIEW_LEFT", SDLK_COMMA, 0, 0, 0);
+	mycfg.register_key(KEY_TURN_VIEW_LEFT_FAST, "KEY_TURN_VIEW_LEFT_FAST", SDLK_COMMA, 0, 0, 1);
+	mycfg.register_key(KEY_TURN_VIEW_RIGHT, "KEY_TURN_VIEW_RIGHT", SDLK_PERIOD, 0, 0, 0);
+	mycfg.register_key(KEY_TURN_VIEW_RIGHT_FAST, "KEY_TURN_VIEW_RIGHT_FAST", SDLK_PERIOD, 0, 0, 1);
+	mycfg.register_key(KEY_TIME_SCALE_UP, "KEY_TIME_SCALE_UP", SDLK_F11, 0, 0, 0);
+	mycfg.register_key(KEY_TIME_SCALE_DOWN, "KEY_TIME_SCALE_DOWN", SDLK_F12, 0, 0, 0);
 
 	//mycfg.register_option("invert_mouse", false);
 	//mycfg.register_option("ocean_res_x", 128);
@@ -1222,11 +1218,6 @@ int main(int argc, char** argv)
 
 	// make sure the default values are stored if there is no config file,
 	// and make sure all registered values are stored in it
-	//fixme: 2004/05/29, this failes if there is no config dir
-	//(no .dangerdeep in user's home). This is created after sys
-	//has been initialised, but config loading must be done before
-	//sys is inited, because it must be done before the command line
-	//is read and this must happen before sys is inited...
 	FILE* fconfig = fopen((configdirectory + "config").c_str(), "rt");
 	if (fconfig) {
 		fclose(fconfig);
@@ -1238,26 +1229,6 @@ int main(int argc, char** argv)
 		}
 		mycfg.save(configdirectory + "config");
 	}
-
-/*
-	// 100 times...
-	cfg::registeru("key_x", SDLK_x);
-	...
-	cfg::registeru("key_zoommap", SDLK_PLUS);
-	...
-	cfg::registeru("key_flankspeed", SDLK_4);
-*/
-
-/*
-	2004/04/28 idea.
-	make an "options" or "config" class, that is initialized by reading
-	the config file and reading the command line arguments.
-	Every other class can ask the config-class about some values, e.g.
-	user_interface could init the water with
-	int waterresx = config::ask("water_res_x"); etc...
-	this would be very handy.
-	fixme: finish class cfg, use it!
-*/
 
 	// command line argument parsing
 	res_x = 1024;
@@ -1421,6 +1392,7 @@ int main(int argc, char** argv)
 
 	hsl_mission.save(highscoredirectory + HSL_MISSION_NAME);
 	hsl_career.save(highscoredirectory + HSL_CAREER_NAME);
+	mycfg.save(configdirectory + "config");
 
 	deinit_global_data();
 	delete sys;
