@@ -1002,7 +1002,7 @@ void menu_configure_keys(void)
 {
 	widget w(0, 0, 1024, 768, texts::get(214), 0, titlebackgrimg);
 	widget_list* wkeys = new widget_list(40, 50, 944, 640);
-	wkeys->set_column_width(600);
+	wkeys->set_column_width(700);
 	w.add_child(wkeys);
 	
 	for (unsigned i = 600; i <= 649; ++i) {
