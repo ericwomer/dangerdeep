@@ -109,8 +109,8 @@ void init_global_data(void)
 	repaircritical = new texture(get_texture_dir() + "repaircritical.png" );
 	repairwrecked = new texture(get_texture_dir() + "repairwrecked.png" );
 	terraintex = new texture(get_texture_dir() + "terrain.png" );
-	cloudsbackgr = new texture(get_texture_dir() + "cloudsbackgr.png" );
-	atlanticmap = new texture(get_texture_dir() + "atlanticmap.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
+	cloudsbackgr = new texture(get_texture_dir() + "cloudsbackgr.jpg" );
+	atlanticmap = new texture(get_texture_dir() + "atlanticmap.jpg", GL_LINEAR, GL_CLAMP_TO_EDGE);
 
 	titlebackgrimg = new image(get_image_dir() + "titlebackgr.jpg");
 	periscope = new image(get_texture_dir() + "periscope.png", true);
