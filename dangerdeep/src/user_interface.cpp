@@ -176,6 +176,21 @@ user_interface::user_interface(game& gm) :
 		snowtex[i] = new texture(&snowtmptex[0], SNOW_TEX_W, SNOW_TEX_H, GL_LUMINANCE_ALPHA, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, false);
 	}
 #endif
+
+	// read in explosions
+#define EXPL_FRAMES 15
+	explosionbig.resize(EXPL_FRAMES);
+	for (unsigned i = 0; i < EXPL_FRAMES; ++i) {
+		char tmp[20];
+		sprintf(tmp, "exbg%04u.png", i+1);
+		explosionbig[i] = new texture(get_texture_dir() + "explosion01/" + tmp, GL_LINEAR, GL_CLAMP_TO_EDGE, false);
+	}
+	explosionsml.resize(EXPL_FRAMES);
+	for (unsigned i = 0; i < EXPL_FRAMES; ++i) {
+		char tmp[20];
+		sprintf(tmp, "exsm%04u.png", i+1);
+		explosionsml[i] = new texture(get_texture_dir() + "explosion02/" + tmp, GL_LINEAR, GL_CLAMP_TO_EDGE, false);
+	}
 }
 
 user_interface* user_interface::create(game& gm)
@@ -201,6 +216,10 @@ user_interface::~user_interface ()
 		delete raintex[i];
 	for (unsigned i = 0; i < snowtex.size(); ++i)
 		delete snowtex[i];
+	for (unsigned i = 0; i < explosionbig.size(); ++i)
+		delete explosionbig[i];
+	for (unsigned i = 0; i < explosionsml.size(); ++i)
+		delete explosionsml[i];
 }
 
 

@@ -62,6 +62,10 @@ protected:
 	vector<texture*> raintex;	// images (animation) of rain drops
 	vector<texture*> snowtex;	// images (animation) of snow flakes
 
+	// explosions
+	vector<texture*> explosionbig;
+	vector<texture*> explosionsml;
+
 	// free view mode
 //	float freeviewsideang, freeviewupang;	// global spectators viewing angles
 //	vector3 freeviewpos;
