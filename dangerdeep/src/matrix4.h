@@ -10,7 +10,7 @@
 #undef max
 #endif
 
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -134,7 +134,7 @@ public:
 		return r;
 	}
 
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 	void set_gl(GLenum pname) {		// GL_PROJECTION, GL_MODELVIEW, GL_TEXTURE
 		GLdouble m[16];
 		for (unsigned i = 0; i < 4; ++i)

@@ -44,7 +44,7 @@ public:
 		material() : tex1(0), bump(0) {}
 		void init(void);
 		~material() { delete tex1; delete bump; }
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 		void set_gl_values(void) const;
 #endif
 	};
@@ -57,7 +57,7 @@ public:
 		vector<unsigned> indices;	// 3 indices per face
 		matrix4f transformation;	// rot., transl., scaling
 		material* mymaterial;
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 		void display(bool usematerial) const;
 #endif
 		void compute_normals(void);
@@ -119,7 +119,7 @@ public:
 	static int mapping;	// GL_* mapping constants
 	model(const string& filename, bool usematerial = true, bool makedisplaylist = true);
 	~model();
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 	void display(void) const;
 #endif
 	const mesh& get_mesh(unsigned nr) const;

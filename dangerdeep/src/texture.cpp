@@ -1,7 +1,7 @@
 // SDL/OpenGL based textures
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -12,7 +12,7 @@
 #include "oglext/OglExt.h"
 #include <GL/glu.h>
 
-#endif /*MODEL_JUST_LOAD*/
+#endif /*DONT_USE_OPENGL*/
 
 #include <SDL.h>
 #include <SDL_image.h>
@@ -35,7 +35,7 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	width = tw;
 	height = th;
 	
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 	system::sys().myassert(tw <= get_max_size(), "texture: texture width too big");
 	system::sys().myassert(th <= get_max_size(), "texture: texture height too big");
 	glGenTextures(1, &opengl_name);
@@ -47,7 +47,7 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	if (teximage->format->palette != 0) {
 		//old color table code, does not work
 		//glEnable(GL_COLOR_TABLE);
-#ifdef MODEL_JUST_LOAD
+#ifdef DONT_USE_OPENGL
 		if (bpp != 1) {
 			cerr << "texture: only 8bit palette files supported\n";
 			exit(-1);
@@ -56,7 +56,7 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 		system::sys().myassert(bpp == 1, "texture: only 8bit palette files supported");
 #endif
 		int ncol = teximage->format->palette->ncolors;
-#ifdef MODEL_JUST_LOAD
+#ifdef DONT_USE_OPENGL
 		if (ncol > 256) {
 			cerr << "texture: max. 256 colors in palette supported\n";
 			exit(-1);
@@ -107,7 +107,7 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	}
 	SDL_UnlockSurface(teximage);
 	
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 	update();
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
@@ -124,7 +124,7 @@ texture::texture(const string& filename, int mapping_, int clamp, bool keep)
 	mapping = mapping_;
 	texfilename = filename;
 	SDL_Surface* teximage = IMG_Load(filename.c_str());
-#ifdef MODEL_JUST_LOAD
+#ifdef DONT_USE_OPENGL
 	if (teximage == 0) {
 		cerr << "texture: failed to load " << filename << "\n";
 		exit(-1);
@@ -143,14 +143,14 @@ texture::texture(void* pixels, unsigned w, unsigned h, int format_,
 	height = h;
 	format = format_;
 	mapping = mapping_;
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 	glGenTextures(1, &opengl_name);
 #endif
 	data.resize(get_bpp()*w*h);
 	if (pixels)
 		memcpy(&data[0], pixels, data.size());
 	
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 	update();
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
@@ -164,12 +164,12 @@ texture::texture(void* pixels, unsigned w, unsigned h, int format_,
 
 texture::~texture()
 {
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 	glDeleteTextures(1, &opengl_name);
 #endif
 }
 
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 void texture::update(void) const
 {
 	if (data.size() == 0) return;
@@ -194,7 +194,7 @@ unsigned texture::get_bpp(void) const
 		case GL_LUMINANCE: return 1;
 		case GL_LUMINANCE_ALPHA: return 2;
 		default:
-#ifdef MODEL_JUST_LOAD
+#ifdef DONT_USE_OPENGL
 			cerr << "unknown texture format " << format << "\n";
 			exit(-1);
 #else
@@ -205,7 +205,7 @@ unsigned texture::get_bpp(void) const
 	return 4;
 }
 
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 void texture::set_gl_texture(void) const
 {
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
@@ -324,4 +324,4 @@ unsigned texture::get_max_size(void)
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &i);
 	return i;
 }
-#endif /*MODEL_JUST_LOAD*/
+#endif /*DONT_USE_OPENGL*/

@@ -2,7 +2,7 @@
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
 #include "model.h"
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 #include "system.h"
 #include "global_data.h"
 #endif
@@ -25,7 +25,7 @@ model::model(const string& filename, bool usematerial_, bool makedisplaylist) : 
 	compute_bounds();
 	compute_normals();
 
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 	if (makedisplaylist) {
 		// fixme: determine automatically if we can make one (bump mapping
 		// without vertex shaders means that we can't compile a list!)
@@ -42,7 +42,7 @@ model::model(const string& filename, bool usematerial_, bool makedisplaylist) : 
 
 model::~model()
 {
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 	glDeleteLists(display_list, 1);
 #endif
 	for (vector<model::material*>::iterator it = materials.begin(); it != materials.end(); ++it)
@@ -153,7 +153,7 @@ void model::material::map::init(int mapping)
 	mytexture = 0;
 	if (filename.length() > 0) {
 //cout << "object has texture '" << filename << "' mapping " << model::mapping << "\n";
-#ifdef MODEL_JUST_LOAD
+#ifdef DONT_USE_OPENGL
 		mytexture = new texture(filename, GL_LINEAR, GL_REPEAT, true);
 #else
 		mytexture = new texture(get_texture_dir() + filename, mapping);
@@ -167,7 +167,7 @@ void model::material::init(void)
 	if (bump) bump->init(GL_LINEAR_MIPMAP_LINEAR);//fixme: what is best mapping for bump maps?
 }
 
-#ifndef MODEL_JUST_LOAD
+#ifndef DONT_USE_OPENGL
 void model::material::set_gl_values(void) const
 {
 	diffuse.set_gl_color();
@@ -418,7 +418,7 @@ void model::m3ds_load(const string& fn)
 	ifstream in(fn.c_str(), ios::in | ios::binary);
 	m3ds_chunk head = m3ds_read_chunk(in);
 	if (head.id != M3DS_MAIN3DS) {
-#ifdef MODEL_JUST_LOAD
+#ifdef DONT_USE_OPENGL
 		cerr << "[model::load_m3ds] Unable to load PRIMARY chuck from file \"" << fn << "\"\n";
 		exit(-1);
 #else
@@ -700,7 +700,7 @@ void model::m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, model::mesh& m)
 		return;
 	}
 
-#ifdef MODEL_JUST_LOAD
+#ifdef DONT_USE_OPENGL
 	if (nr_uv_coords != m.vertices.size()) {
 		cerr << "number of texture coordinates doesn't match number of vertices\n";
 		exit(-1);
@@ -760,7 +760,7 @@ void model::m3ds_read_material(istream& in, m3ds_chunk& ch, model::mesh& m)
 			return;
 		}
 	}
-#ifdef MODEL_JUST_LOAD
+#ifdef DONT_USE_OPENGL
 	cerr << "object has unknown material\n";
 	exit(-1);
 #else
