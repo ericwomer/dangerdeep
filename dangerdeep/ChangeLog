@@ -1,6 +1,10 @@
 2003-06-07  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* shifted damage display to own class, some adds.
 
+2003-05-31  Markus Petermann  <m.petermann@gmx.net>
+	* date.h:
+	  - Month october added.
+	
 2003-05-30  Thorsten Jordan <thorsten_jordan@gmx.de>
 
 	* global_data.h, global_data.cpp
