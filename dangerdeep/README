@@ -54,6 +54,7 @@ Space		Select target
 0 (zero)	Scope up/down
 c		Crash dive (to 150 meters)
 d		Snorkel depth
+f		Snorkel up/down
 h		Set heading to view
 i		identify target
 p		Periscope depth
