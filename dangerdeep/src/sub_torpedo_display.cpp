@@ -72,7 +72,7 @@ void sub_torpedo_display::draw_turnswitch(class game& gm, int x, int y,
 	glColor4f(1,1,1,1);
 	for (unsigned i = 0; i < nrdescr; ++i) {
 		vector2 d = angle(begin_turn+degreesperpos*i).direction();
-		system::sys().no_tex();
+		glBindTexture(GL_TEXTURE_2D, 0);
 		glBegin(GL_LINES);
 		glVertex2f(x+128+d.x*36,y+128-d.y*36);
 		glVertex2f(x+128+d.x*80,y+128-d.y*80);
@@ -285,7 +285,7 @@ void sub_torpedo_display::display(class game& gm) const
 		glColor4f(1,1,1,0.5);
 		torptex(torpedoes[torptranssrc].type)->draw(mx-64, my-8);
 		glColor4f(1,1,1,1);
-		system::sys().no_tex();
+		glBindTexture(GL_TEXTURE_2D, 0);
 		glBegin(GL_LINES);
 		glVertex2i(tubecoords[torptranssrc].x+64,
 			tubecoords[torptranssrc].y+8);

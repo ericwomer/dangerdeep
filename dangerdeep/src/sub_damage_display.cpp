@@ -61,13 +61,14 @@ static rect rect_data[] = {
 
 
 
-sub_damage_display::sub_damage_display (submarine* s) :
-	mysub(s),
+sub_damage_display::sub_damage_display (user_interface& ui) :
+	user_display(ui_),
 	repairlight(get_texture_dir() + "repairlight.png"),
 	repairmedium(get_texture_dir() + "repairmedium.png"),
 	repairheavy(get_texture_dir() + "repairheavy.png"),
 	repaircritical(get_texture_dir() + "repaircritical.png"),
-	repairwrecked(get_texture_dir() + "repairwrecked.png")
+	repairwrecked(get_texture_dir() + "repairwrecked.png"),
+	mx(0), my(0)
 {
 }
 
@@ -105,6 +106,8 @@ void sub_damage_display::display ( class game& gm ) const
 	glColor4f(1,1,1,1);
 	damage_screen_background->draw(0, 0);
 	sub_damage_scheme_all->draw(0, ydrawdiff);
+
+	submarine* mysub = dynamic_cast<submarine*>(gm.get_player());
 
 	const vector<submarine::damageable_part>& damageable_parts = mysub->get_damage_status();
 	for (unsigned i = 0; i < damageable_parts.size(); ++i) {

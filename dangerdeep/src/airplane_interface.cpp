@@ -147,7 +147,7 @@ void airplane_interface::display_cockpit(game& gm)
 	player->display();
 	
 	system::sys().prepare_2d_drawing();
-	system::sys().no_tex();
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glColor4f(1,1,1,1);
 	glBegin(GL_LINES);
 	glVertex2f(res_x/2, res_y/2-res_y/20);

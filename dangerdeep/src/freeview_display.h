@@ -16,10 +16,6 @@ protected:
 	angle elevation;	// -90...90 deg (look down ... up)
 	vector3 pos;
 
-	class water& mywater;
-	class sky& mysky;
-	class coastmap& myterrain;
-
 	freeview_display();
 
 	void prepare_display(void) const;
@@ -35,7 +31,7 @@ protected:
 	void draw_objects(void/*bool onlyabovewater, bool withunderwaterweapons*/) const;
 
 public:
-	freeview_display(class water& thewater, class sky& thesky, class coastmap& theterrain);
+	freeview_display(class user_interface& ui_);
 	virtual ~freeview_display();
 
 	virtual void display(class game& gm) const;

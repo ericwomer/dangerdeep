@@ -7,6 +7,7 @@
 #include "game.h"
 #include "command.h"
 #include "sub_gauges_display.h"
+#include "user_interface.h"
 
 sub_gauges_display::indicator::indicator() :
 	mytex(0), x(0), y(0), w(0), h(0)
@@ -42,7 +43,7 @@ angle sub_gauges_display::indicator::get_angle(int mx, int my) const
 	return angle(vector2(mx - int(x + w/2), my - int(y + h/2)));
 }
 
-sub_gauges_display::sub_gauges_display() :
+sub_gauges_display::sub_gauges_display(user_interface& ui_) : user_display(ui_),
 	controlscreen_normallight(get_image_dir() + "ControlScreen_NormalLight.png"),
 	controlscreen_nightlight(get_image_dir() + "ControlScreen_NightLight.png")
 {
@@ -71,7 +72,7 @@ void sub_gauges_display::display(class game& gm) const
 	submarine* player = dynamic_cast<submarine*> ( gm.get_player () );
 	system::sys().prepare_2d_drawing();
 
-	if (true /*gm.is_day() fixme*/) {
+	if (gm.is_day_mode()) {
 		controlscreen_normallight.draw(0, 0);
 	} else {
 		controlscreen_nightlight.draw(0, 0);

@@ -54,7 +54,7 @@ class ships_sunk_display : public user_display
 	unsigned first_displayed_object;
 	
 public:
-	ships_sunk_display();
+	ships_sunk_display(class user_interface& ui_);
 	virtual ~ships_sunk_display ();
 
 	virtual void add_sunk_ship ( const ship* so );

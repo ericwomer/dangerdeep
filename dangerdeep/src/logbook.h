@@ -51,6 +51,7 @@ protected:
 
 	virtual void print_buffer ( unsigned i, const string& t ) const;
 	static void format_line ( list<string>& entries_list, const string& line );
+	logbook_display(class user_interface& ui_) : user_display(ui_) {}
 
 public:
 	virtual ~logbook_display() {}
@@ -71,7 +72,7 @@ class captains_logbook_display : public logbook_display
 	void init ();
 
 public:
-	captains_logbook_display();
+	captains_logbook_display(class user_interface& ui);
 	virtual ~captains_logbook_display () {};
 	virtual void display(class game& gm) const;
 	virtual void process_input(class game& gm, const SDL_Event& event);

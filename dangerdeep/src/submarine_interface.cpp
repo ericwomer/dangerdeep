@@ -34,16 +34,16 @@ submarine_interface::submarine_interface(submarine* player_sub, game& gm) :
 	btn_menu = new widget_caller_button<game, void (game::*)(void)>(&gm, &game::stop, 1024-128-8, 128-40, 128, 32, texts::get(177));
 	panel->add_child(btn_menu);
 
-	displays.push_back(new sub_gauges_display());
-	displays.push_back(new sub_periscope_display());
-	displays.push_back(new sub_uzo_display());
-	displays.push_back(new sub_bridge_display(/*player_sub?*/));
-	displays.push_back(new map_display());
-	displays.push_back(new sub_torpedo_display(/*player_sub?*/));
-	displays.push_back(new sub_damage_display(player_sub));
-	displays.push_back(new captains_logbook_display());
-	displays.push_back(new ships_sunk_display());
-	displays.push_back(new freeview_display());
+	displays.push_back(new sub_gauges_display(*this));
+	displays.push_back(new sub_periscope_display(*this));
+	displays.push_back(new sub_uzo_display(*this));
+	displays.push_back(new sub_bridge_display(*this));
+	displays.push_back(new map_display(*this));
+	displays.push_back(new sub_torpedo_display(*this));
+	displays.push_back(new sub_damage_display(*this));
+	displays.push_back(new captains_logbook_display(*this));
+	displays.push_back(new ships_sunk_display(*this));
+	displays.push_back(new freeview_display(*this));
 }
 
 submarine_interface::~submarine_interface()

@@ -13,9 +13,17 @@ class user_display
 {
 protected:
 	// no empty construction, no copy
-	user_display() {};
+	user_display();
 	user_display(user_display& );
 	user_display& operator= (const user_display& );
+
+	// common functions: draw_infopanel(class game& gm)
+
+	// the display needs to know its parent (user_interface) to access common data
+	class user_interface& ui;
+
+	user_display(class user_interface& ui_) : ui(ui_) {}
+
 public:
 	// very basic. Just draw display and handle input.
 	virtual void display(class game& gm) const = 0;

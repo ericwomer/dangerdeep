@@ -15,8 +15,6 @@ using namespace std;
 
 #include "user_display.h"
 
-#define MAPGRIDSIZE 1000	// meters, fixme to mapdisplay.h
-
 class game;
 class user_display;
 
@@ -43,6 +41,8 @@ protected:
 	angle bearing;
 	angle elevation;	// -90...90 deg (look down ... up)
 	unsigned viewmode;
+
+	// fixme: keep this, common data else: panel, sky, water, coastmap
 	sea_object* target;
 
 	// fixme replace the above with: THE ONE AND ONLY DATA UI SHOULD HAVE
@@ -50,12 +50,6 @@ protected:
 
 	// periscope
 	bool zoom_scope;	// use 6x instead 1.5 fixme implement, fixme: maybe to submarine
-
-	// map
-	float mapzoom;	// factor pixel/meter
-	vector2 mapclick;
-	double mapclickdist;
-	vector2 mapoffset;	// additional offset used for display, relative to player (meters)
 
 	// to submarine_interface... fixme. how do displays handle water,if there are
 	//several displays using it?!
@@ -97,15 +91,6 @@ protected:
 		int x, int y, unsigned wh, float value, const string& text ) const;
 	void draw_clock(game& gm, int x, int y, unsigned wh, double t,
 	        const string& text) const;
-	void draw_vessel_symbol(const vector2& offset, sea_object* so, color c);
-	void draw_trail(sea_object* so, const vector2& offset);
-	virtual void draw_pings(game& gm, const vector2& offset);
-	virtual void draw_sound_contact(game& gm, const sea_object* player,
-		double max_view_dist, const vector2& offset);
-	virtual void draw_visual_contacts(game& gm,
-		const sea_object* player, const vector2& offset);
-	virtual void draw_square_mark (game& gm,
-		const vector2& mark_pos, const vector2& offset, const color& c );
 
 	// Display functions for screens.
 	//fixme: we have to divide display and input processing!
@@ -140,6 +125,8 @@ public:
 	// rollfac (0...1) determines how much the ship is influenced by wave movement
 	virtual void rotate_by_pos_and_wave(const vector3& pos,
 		double rollfac = 0.05, bool inverse = false) const;
+
+	virtual sea_object* get_target(void) const { return target; }
 
 	// 3d drawing functions
 	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist) const;

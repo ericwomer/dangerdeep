@@ -1389,8 +1389,9 @@ game::run_state game::exec(void)
 				simulate(time_scale == 1 ? delta_time : (1.0/30.0));
 		}
 
-		ui->process_input(events);
+		//ui->process_input(events);//process first??
 		ui->display(*this);
+		ui->process_input(events);
 		++frames;
 
 		// record fps
@@ -1411,7 +1412,7 @@ game::run_state game::exec(void)
 bool game::is_day_mode () const
 {
 	double br = compute_light_brightness(player->get_pos());
-	return (br > 0.0);
+	return (br > 0.1);
 }
 
 template <class T>

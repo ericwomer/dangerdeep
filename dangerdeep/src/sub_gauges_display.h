@@ -36,8 +36,8 @@ class sub_gauges_display : public user_display
 	       depth, knots, main_rudder, mt, nr_of_indicators };
 
 public:
-	sub_gauges_display ();
-	virtual ~sub_gauges_display ();
+	sub_gauges_display(class user_interface& ui_);
+	virtual ~sub_gauges_display();
 
 	virtual void display(class game& gm) const;
 	virtual void process_input(class game& gm, const SDL_Event& event);

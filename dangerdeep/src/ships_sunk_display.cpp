@@ -12,17 +12,18 @@ using namespace std;
 #include "global_data.h"
 #include "sea_object.h"
 #include "ship.h"
-#include "user_display.h"
 #include "ships_sunk_display.h"
+#include "user_interface.h"
 
 #define FONT_SCALE_FACTOR 0.7f
 
-ships_sunk_display::ships_sunk_display () : first_displayed_object ( 0 )
+ships_sunk_display::ships_sunk_display(user_interface& ui) :
+	user_display(ui_), first_displayed_object ( 0 )
 {
 	dom.clear ();
 }
 
-ships_sunk_display::~ships_sunk_display ()
+ships_sunk_display::~ships_sunk_display()
 {
 	dom.clear ();
 }

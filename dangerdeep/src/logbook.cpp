@@ -25,6 +25,7 @@ using namespace std;
 #include "font.h"
 #include "texts.h"
 #include "image.h"
+#include "user_interface.h"
 
 #define NUMBER_OF_LINES		27
 #define FONT_SCALE_FACTOR	0.75f
@@ -159,8 +160,8 @@ void logbook_display::previous_page ()
 //
 // Class captain_logbook_display.
 //
-captains_logbook_display::captains_logbook_display () :
-	logbook_display ()
+captains_logbook_display::captains_logbook_display(user_interface& ui_) :
+	logbook_display(ui_)
 {
 	init ();
 }

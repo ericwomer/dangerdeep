@@ -837,7 +837,7 @@ void widget_edit::draw(void) const
 	int fw = globaltheme->frame_size();
 	globaltheme->myfont->print_vc(p.x+fw, p.y+size.y/2, text, is_enabled() ? globaltheme->textcol : globaltheme->textdisabledcol, true);
 	pair<unsigned, unsigned> sz = globaltheme->myfont->get_size(text.substr(0, cursorpos));
-	system::sys().no_tex();
+	glBindTexture(GL_TEXTURE_2D, 0);
 	globaltheme->textcol.set_gl_color();
 	if (this == (const widget*)focussed)
 		system::sys().draw_rectangle(p.x+fw+sz.first, p.y+size.y/4, fw/2, size.y/2);
