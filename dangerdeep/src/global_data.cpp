@@ -37,7 +37,8 @@ texture *water, *background, *gauge1,
 	*cloud_textures[NR_CLOUD_TEXTURES],
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
 	*woodbackgr, *smoke, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
-	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked;
+	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
+	*cloudsbackgr;
 	
 font *font_arial, *font_arial2, *font_ellis, *font_panel, *font_tahoma,
 	*font_nimbusrom;
@@ -136,6 +137,7 @@ void init_global_data(void)
 	killedimg = new image((get_data_dir() + IMAGES_DIR + "killed.jpg"), 0, true, true, true);
 	scopewatcherimg = new image((get_data_dir() + IMAGES_DIR + "scopewatcher.jpg"), 0, true, true, true);
 	depthchargeimg = new image((get_data_dir() + IMAGES_DIR + "depthcharge.jpg"), 0, true, true, true);
+	cloudsbackgr = new texture ( ( get_data_dir () + TEXTURE_DIR + "cloudsbackgr.png" ), 0, true);
 }
 
 void deinit_global_data(void)
