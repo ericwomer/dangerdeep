@@ -18,11 +18,7 @@ image::image(const string& s, bool loaddynamically, int mapping_, int clamp_) :
 	mapping(mapping_), clamp(clamp_)
 {
 	if (!dynamic) {
-		img = IMG_Load(name.c_str());
-		if (img == 0) { width = height = 0; return; }
-		// assert img != 0 fixme
-		width = img->w;
-		height = img->h;
+		texturize();
 	}
 }
 
@@ -37,6 +33,11 @@ void image::texturize(void)
 	if (!img) {
 		img = IMG_Load(name.c_str());
 		// assert img != 0 fixme
+		if (img == 0) {		// failed to load
+			texturized = true;
+			gltx = glty = 0;
+			return;
+		}
 		width = img->w;
 		height = img->h;
 	}

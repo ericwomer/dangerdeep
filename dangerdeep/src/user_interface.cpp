@@ -92,7 +92,10 @@ void user_interface::init ()
 		We could determine wind direction or tide related water movement and
 		simulate wave rolling accordingly. But this would made a recomputation
 		of this display lists necessary, whenever the wind or tide changes.
-		That is very costly
+		That is very costly.
+		Another idea: rotate the waves before displaying according to wind/water
+		movement direction and let get_water_height/get_water_normal functions
+		use the rotation, too. fixme
 	*/
 	wavedisplaylists = glGenLists(WAVE_PHASES);
 	system::sys()->myassert(wavedisplaylists != 0, "no more display list indices available");
@@ -348,30 +351,39 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 	if (maxx >= mapw-1) maxx = mapw-1;
 	if (maxy >= maph-1) maxy = maph-1;
 #endif
-	/* the top vertices should be translated along the negative normal of the polyline.
-		that gives an ascending shape for the coast , fixme*/
+	/* the top vertices are translated along the negative normal of the polyline.
+		that gives an ascending shape for the coast */
 	glPushMatrix();
 	terraintex->set_gl_texture();
 	float cls = mapmperpixel;
 	glTranslatef((mappos.x-viewpos.x), (-mappos.y-viewpos.y), -viewpos.z);
 	glScalef(cls, cls, 1);
 	for (list<coastline>::const_iterator it = coastlines.begin(); it != coastlines.end(); ++it) {
+		unsigned ps = it->points.size();
+		unsigned prevpt = ps-1;
+		unsigned thispt = 0;
+		unsigned nextpt = 1;
 		glBegin(GL_QUAD_STRIP);
-		vector<vector2f>::const_iterator it2 = it->points.begin();
-		glTexCoord2f(0, 0);
-		glVertex3f(it2->x, it2->y, 150);
-		glTexCoord2f(0, 1);
-		glVertex3f(it2->x, it2->y, -10);	//fixme use normal here, too
-		float t = 1.0;
-		for (++it2; it2 != it->points.end(); ++it2) {
-			vector<vector2f>::const_iterator it3 = it2; --it3;
-			vector<vector2f>::const_iterator it4 = it2; ++it4; if (it4 == it->points.end()) it4 = it->points.begin();
-			vector2f n = (*it4 - *it3).orthogonal().normal() * -3.0;
-			glTexCoord2f(t, 1);
-			glVertex3f(it2->x, it2->y, -10);
-			glTexCoord2f(t, 0);
-			glVertex3f(it2->x + n.x, it2->y + n.y, 150);
+		double coastheight = 100 + double(ps > 1000 ? 1000 : ps) * 0.2;
+		float t = 0.0;
+		for (unsigned s = 0; s < ps; ++s) {
+			const vector2f& p = it->points[thispt];
+			vector2f n = (it->points[nextpt] - it->points[prevpt]).orthogonal().normal() * -3.0;
+			if (s > 0) {
+				glTexCoord2f(t, 1);
+				glVertex3f(p.x, p.y, -10);
+				glTexCoord2f(t, 0);
+				glVertex3f(p.x+n.x, p.y+n.y, coastheight);
+			} else {
+				glTexCoord2f(t, 0);
+				glVertex3f(p.x+n.x, p.y+n.y, coastheight);
+				glTexCoord2f(t, 1);
+				glVertex3f(p.x, p.y, -10);
+			}
 			t += 1.0;
+			prevpt = thispt;
+			thispt = nextpt;
+			nextpt = (nextpt+1)%ps;
 		}
 		glEnd();
 	}
@@ -391,9 +403,6 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glRotatef(-90,1,0,0);
 	// if we're aboard the player's vessel move the world instead of the ship
 	if (aboard) {
-		//fixme: the sub's movement/rolling is view dir dependent, which
-		//it should'nt be.
-		//maybe the translates at draw_water/terrain should be before rotating?!
 		double rollfac = (dynamic_cast<ship*>(player))->get_roll_factor();
 		rotate_by_pos_and_wave(player->get_pos(), timefac, rollfac, true);
 	}
