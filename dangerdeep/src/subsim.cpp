@@ -1101,6 +1101,13 @@ int main(int argc, char** argv)
 	mycfg.register_option("fullscreen", true);
 	mycfg.register_option("debug", false);
 	mycfg.register_option("sound", true);
+	//mycfg.register_option("invert_mouse", false);
+	//mycfg.register_option("ocean_res_x", 128);
+	//mycfg.register_option("ocean_res_y", 128);
+	//mycfg.register_option("key_fire_torp_1", "shift 1");
+	//mycfg.register_option("key_surface", "s");
+	//mycfg.register_option("key_special", "ctrl alt shift 3");
+	//mycfg.register_option("", );
 
 
 	// make sure the default values are stored if there is no config file,
