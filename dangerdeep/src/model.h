@@ -44,7 +44,9 @@ public:
 		material() : tex1(0), bump(0) {}
 		void init(void);
 		~material() { delete tex1; delete bump; }
+#ifndef MODEL_JUST_LOAD
 		void set_gl_values(void) const;
+#endif
 	};
 	
 	struct mesh {
@@ -55,8 +57,9 @@ public:
 		vector<unsigned> indices;	// 3 indices per face
 		matrix4f transformation;	// rot., transl., scaling
 		material* mymaterial;
+#ifndef MODEL_JUST_LOAD
 		void display(bool usematerial) const;
-		
+#endif
 		void compute_normals(void);
 		bool compute_tangentx(unsigned i0, unsigned i1, unsigned i2);
 
@@ -116,7 +119,9 @@ public:
 	static int mapping;	// GL_* mapping constants
 	model(const string& filename, bool usematerial = true, bool makedisplaylist = true);
 	~model();
+#ifndef MODEL_JUST_LOAD
 	void display(void) const;
+#endif
 	mesh get_mesh(unsigned nr) const;
 	vector3f get_min(void) const { return min; }
 	vector3f get_max(void) const { return max; }

@@ -10,24 +10,29 @@
 #undef max
 #endif
 
+#ifndef MODEL_JUST_LOAD
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
 #include <GL/gl.h>
+#endif
 
 #include "vector3.h"
 
 #include <vector>
-#include <cmath>
-#include <iostream>
 using namespace std;
+
+#ifndef M_PI
+#define M_PI 3.1415926536
+#endif
 
 template<class D>
 class matrix4t
 {
 protected:
-	static const unsigned size = 4;	// routines are generic, so use constant here
+#define size 4
+	//static const unsigned size;	// routines are generic, so use constant here
 	vector<D> values;
 
         void columnpivot(vector<unsigned>& p, unsigned offset);
@@ -91,6 +96,7 @@ public:
 	D& elem(unsigned col, unsigned row) { return values[col + row * size]; }
 	D& elem_at(unsigned col, unsigned row) { return values.at(col + row * size); }
 
+/*
 	void print(void) const {
 		for(unsigned y = 0; y < size; y++) {
 			cout << "/ ";
@@ -100,6 +106,7 @@ public:
 			cout << "\t/\n";
 		}
 	}
+*/
 
 	void swap_rows(unsigned r1, unsigned r2) {
 		for (unsigned i = 0; i < size; ++i) {
@@ -127,6 +134,7 @@ public:
 		return r;
 	}
 
+#ifndef MODEL_JUST_LOAD
 	void set_gl(GLenum pname) {		// GL_PROJECTION, GL_MODELVIEW, GL_TEXTURE
 		GLdouble m[16];
 		for (unsigned i = 0; i < 4; ++i)
@@ -146,6 +154,7 @@ public:
 				r.values[j+i*4] = D(m[i+j*4]);
 		return r;
 	}
+#endif
 	
 	static matrix4t<D> rot_x(const D& degrees) {
 		double a = M_PI*degrees/180.0;
@@ -298,8 +307,7 @@ matrix4t<D> matrix4t<D>::inverse(void) const
 
 	return r;
 }
-
-
+#undef size
 
 typedef matrix4t<double> matrix4;
 typedef matrix4t<float> matrix4f;

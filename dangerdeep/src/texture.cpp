@@ -1,21 +1,47 @@
 // SDL/OpenGL based textures
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
+#ifndef MODEL_JUST_LOAD
+
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
 
+#include "system.h"
 #include "oglext/OglExt.h"
 #include <GL/glu.h>
+
+#endif /*MODEL_JUST_LOAD*/
+
 #include <SDL.h>
 #include <SDL_image.h>
 
 #include "texture.h"
-#include "system.h"
 #include <vector>
+#include <iostream>
+#include <sstream>
 using namespace std;
 
+
+int texture::get_bpp(void) const
+{
+	switch (format) {
+		case GL_RGB: return 3;
+		case GL_RGBA: return 4;
+		case GL_LUMINANCE: return 1;
+		case GL_LUMINANCE_ALPHA: return 2;
+		default:
+#ifdef MODEL_JUST_LOAD
+			cerr << "unknown texture format " << format << "\n";
+			exit(-1);
+#else
+			ostringstream oss; oss << "unknown texture format " << format << "\n";
+			system::sys().myassert(false, oss.str());
+#endif
+	}
+	return 4;
+}
 
 void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
 	int clamp, bool keep)
@@ -27,10 +53,11 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	width = tw;
 	height = th;
 	
+#ifndef MODEL_JUST_LOAD
 	system::sys().myassert(tw <= get_max_size(), "texture: texture width too big");
 	system::sys().myassert(th <= get_max_size(), "texture: texture height too big");
-
 	glGenTextures(1, &opengl_name);
+#endif
 	SDL_LockSurface(teximage);
 
 	unsigned bpp = teximage->format->BytesPerPixel;
@@ -38,9 +65,23 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	if (teximage->format->palette != 0) {
 		//old color table code, does not work
 		//glEnable(GL_COLOR_TABLE);
+#ifdef MODEL_JUST_LOAD
+		if (bpp != 1) {
+			cerr << "texture: only 8bit palette files supported\n";
+			exit(-1);
+		}
+#else
 		system::sys().myassert(bpp == 1, "texture: only 8bit palette files supported");
+#endif
 		int ncol = teximage->format->palette->ncolors;
+#ifdef MODEL_JUST_LOAD
+		if (ncol > 256) {
+			cerr << "texture: max. 256 colors in palette supported\n";
+			exit(-1);
+		}
+#else
 		system::sys().myassert(ncol <= 256, "texture: max. 256 colors in palette supported");
+#endif
 		bool usealpha = (teximage->flags & SDL_SRCCOLORKEY);
 
 		format = usealpha ? GL_RGBA : GL_RGB;
@@ -84,14 +125,16 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	}
 	SDL_UnlockSurface(teximage);
 	
+#ifndef MODEL_JUST_LOAD
 	update();
 	
-	if (!keep) data.clear();
-
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mapping);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp);
+#endif
+
+	if (!keep) data.clear();
 }
 	
 texture::texture(const string& filename, int mapping_, int clamp, bool keep)
@@ -99,39 +142,52 @@ texture::texture(const string& filename, int mapping_, int clamp, bool keep)
 	mapping = mapping_;
 	texfilename = filename;
 	SDL_Surface* teximage = IMG_Load(filename.c_str());
-	system::sys().myassert(teximage != 0, string("texture: failed to load")+filename);
+#ifdef MODEL_JUST_LOAD
+	if (teximage == 0) {
+		cerr << "texture: failed to load " << filename << "\n";
+		exit(-1);
+	}
+#else
+	system::sys().myassert(teximage != 0, string("texture: failed to load ")+filename);
+#endif
 	init(teximage, 0, 0, teximage->w, teximage->h, clamp, keep);
 	SDL_FreeSurface(teximage);
 }	
 
-texture::texture(void* pixels, unsigned w, unsigned h, int format_, int type,
+texture::texture(void* pixels, unsigned w, unsigned h, int format_,
 	int mapping_, int clamp, bool keep)
 {
 	width = w;
 	height = h;
 	format = format_;
 	mapping = mapping_;
+#ifndef MODEL_JUST_LOAD
 	glGenTextures(1, &opengl_name);
-
-	unsigned bpp = (format == GL_RGB) ? 3 : 4;	// GL_RGB or GL_RGBA	
-	data.resize(bpp*w*h);
-	memcpy(&data[0], pixels, data.size());
+#endif
+	data.resize(get_bpp()*w*h);
+	if (pixels)
+		memcpy(&data[0], pixels, data.size());
 	
+#ifndef MODEL_JUST_LOAD
 	update();
-	
-	if (!keep) data.clear();
-	
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mapping);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp);
+#endif
+
+	if (!keep) data.clear();
 }
 
 texture::~texture()
 {
+#ifndef MODEL_JUST_LOAD
 	glDeleteTextures(1, &opengl_name);
+#endif
 }
 
+#ifndef MODEL_JUST_LOAD
 void texture::update(void) const
 {
 	if (data.size() == 0) return;
@@ -265,3 +321,4 @@ unsigned texture::get_max_size(void)
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &i);
 	return i;
 }
+#endif /*MODEL_JUST_LOAD*/

@@ -118,7 +118,7 @@ font::font(const string& basefilename, unsigned char_spacing)
 			ptr += fontimage->pitch;
 		}
 		
-		characters[i].tex = new texture(&tmpimage[0], w, h, GL_LUMINANCE_ALPHA, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, GL_LINEAR, GL_CLAMP_TO_EDGE);
+		characters[i].tex = new texture(&tmpimage[0], w, h, GL_LUMINANCE_ALPHA, GL_LINEAR, GL_CLAMP_TO_EDGE);
 	}
 	
 	SDL_UnlockSurface(fontimage);

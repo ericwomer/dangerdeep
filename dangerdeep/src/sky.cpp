@@ -106,7 +106,7 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 	osg << "P6\n256 256\n255\n";
 	osg.write((const char*)(&skycolmap[0]), 256*256*3);
 */
-	skycol = new texture(&skycolmap[0], 256, 256, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, GL_LINEAR, GL_CLAMP_TO_EDGE);
+	skycol = new texture(&skycolmap[0], 256, 256, GL_RGB, GL_LINEAR, GL_CLAMP_TO_EDGE);
 	skycolmap.clear();
 
 	// ******************************** create maps for sun glow
@@ -125,7 +125,7 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 	osg << "P5\n256 256\n255\n";
 	osg.write((const char*)(&sunglowmap[0]), 256*256);
 */
-	sunglow = new texture(&sunglowmap[0], 256, 256, GL_LUMINANCE, GL_LUMINANCE, GL_UNSIGNED_BYTE, GL_LINEAR, GL_CLAMP_TO_EDGE);
+	sunglow = new texture(&sunglowmap[0], 256, 256, GL_LUMINANCE, GL_LINEAR, GL_CLAMP_TO_EDGE);
 	sunglowmap.clear();
 
 	// ********************************** init sun/moon	
@@ -377,8 +377,7 @@ void sky::compute_clouds(void)
 	}
 
 	delete clouds;	
-	clouds = new texture(&fullmap[0], 256, 256, GL_LUMINANCE_ALPHA, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE,
-		GL_LINEAR, GL_CLAMP_TO_EDGE);
+	clouds = new texture(&fullmap[0], 256, 256, GL_LUMINANCE_ALPHA, GL_LINEAR, GL_CLAMP_TO_EDGE);
 }
 
 
