@@ -32,12 +32,49 @@ cfg::~cfg()
 
 
 
+bool cfg::set_str(const string& name, const string& value)
+{
+	map<string, bool>::iterator it = valb.find(name);
+	if (it != valb.end()) {
+		if (value == "true" || value == "yes") it->second = true;
+		else if (value == "false" || value == "no") it->second = false;
+		else it->second = bool(atoi(value.c_str()));
+	} else {
+		map<string, int>::iterator it = vali.find(name);
+		if (it != vali.end()) {
+			it->second = atoi(value.c_str());
+		} else {
+			map<string, float>::iterator it = valf.find(name);
+			if (it != valf.end()) {
+				it->second = atof(value.c_str());
+			} else {
+				map<string, string>::iterator it = vals.find(name);
+				if (it != vals.end()) {
+					it->second = value;
+				} else {
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+
+
 void cfg::load(const string& filename)
 {
 	TiXmlDocument doc(filename);
 	doc.LoadFile();
-	// just one node dftd-cfg, element childs of <name value="value's value"/>
-	//parse values!, fixme
+	TiXmlElement* root = doc.FirstChildElement("dftd-cfg");
+	system::sys().myassert(root != 0, string("cfg: load(), no root element found in ") + filename);
+	TiXmlElement* eattr = root->FirstChildElement();
+	for ( ; eattr != 0; eattr = eattr->NextSiblingElement()) {
+		const char* attrstr = eattr->Attribute("value");
+		system::sys().myassert(attrstr != 0, string("cfg: load(), no value for node ") + eattr->Value());
+		bool found = set_str(eattr->Value(), attrstr);
+		system::sys().myassert(found, string("cfg: load(), name not registered : ") + eattr->Value());
+	}
 }
 
 
@@ -196,9 +233,24 @@ string cfg::gets(const string& name) const
 
 
 
-void cfg::parse_value(const char* c)
+// format of s must be --name=value or --name or --noname for bool values.
+void cfg::parse_value(const string& s)
 {
-	// give elements of command line array to it! fixme
-	// format of c must be --name=value or --name or --noname for bool values.
-	// search for "=" in the string as first
+	// fixme: ignore values for unregistered names?
+	if (s.length() < 3 || s[0] != '-' || s[1] != '-') return;	// ignore it
+	string::size_type st = s.find("=");
+	string s0, s1;
+	if (st == string::npos) {
+		if (s.substr(2, 2) == "no") {
+			s0 = s.substr(4);
+			s1 = "false";
+		} else {
+			s0 = s.substr(2);
+			s1 = "true";
+		}
+	} else {
+		s0 = s.substr(2, st-2);
+		s1 = s.substr(st+1);
+	}
+	set_str(s0, s1);	// ignore value if name is unkown
 }

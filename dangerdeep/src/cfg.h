@@ -22,6 +22,10 @@ private:
 	static cfg* myinst;
 	
 	cfg();
+	
+	// set dependent on registered type, used by load() and parse(), returns false if name
+	// is unknown
+	bool set_str(const string& name, const string& value);
 
 public:
 	static cfg& instance(void);
@@ -47,7 +51,7 @@ public:
 	float getf(const string& name) const;
 	string gets(const string& name) const;
 	
-	void parse_value(const char* c);	// give elements of command line array to it!
+	void parse_value(const string& s);	// give elements of command line array to it!
 };
 
 #endif

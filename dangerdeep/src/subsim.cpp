@@ -1056,8 +1056,13 @@ int main(int argc, char** argv)
 					res_x = r;
 				++it;
 			}
+		} else {
+			cout << "unknown " << *it << " parse cfg.\n";
+			mycfg.parse_value(*it);//fixme test
 		}
 	}
+
+//	mycfg.save("./testconf");
 
 	// set language to default
 	texts::set_language();
