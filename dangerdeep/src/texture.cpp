@@ -18,29 +18,23 @@ using namespace std;
 
 
 void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-	int mapping, int clamp)
+	int clamp, bool keep)
 {
-	GLuint texname;
-	
 	// compute texture width and height
 	unsigned tw = 1, th = 1;
 	while (tw < sw) tw *= 2;
 	while (th < sh) th *= 2;
+	width = tw;
+	height = th;
 	
 	system::sys().myassert(tw <= get_max_size(), "texture: texture width too big");
 	system::sys().myassert(th <= get_max_size(), "texture: texture height too big");
 
-	glGenTextures(1, &texname);
-	glBindTexture(GL_TEXTURE_2D, texname);
+	glGenTextures(1, &opengl_name);
 	SDL_LockSurface(teximage);
 
 	unsigned bpp = teximage->format->BytesPerPixel;
 
-	GLenum internalformat;
-	GLenum externalformat;
-
-	unsigned char* tmpimage = 0;
-	
 	if (teximage->format->palette != 0) {
 		//old color table code, does not work
 		//glEnable(GL_COLOR_TABLE);
@@ -49,17 +43,15 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 		system::sys().myassert(ncol <= 256, "texture: max. 256 colors in palette supported");
 		bool usealpha = (teximage->flags & SDL_SRCCOLORKEY);
 
-		internalformat = usealpha ? GL_RGBA : GL_RGB;
-		externalformat = usealpha ? GL_RGBA : GL_RGB;
+		format = usealpha ? GL_RGBA : GL_RGB;
 		bpp = usealpha ? 4 : 3;
 
 		//old color table code, does not work		
 		//glColorTable(GL_TEXTURE_2D, internalformat, 256, GL_RGBA, GL_UNSIGNED_BYTE, &(palette[0]));
 		//internalformat = GL_COLOR_INDEX8_EXT;
 		//externalformat = GL_COLOR_INDEX;
-		tmpimage = new unsigned char [tw*th*bpp];
-		memset(tmpimage, 0, tw*th*bpp);
-		unsigned char* ptr = tmpimage;
+		data.resize(tw*th*bpp);
+		unsigned char* ptr = &data[0];
 		unsigned char* offset = ((unsigned char*)(teximage->pixels)) + sy*teximage->pitch + sx;
 		for (unsigned y = 0; y < sh; y++) {
 			unsigned char* ptr2 = ptr;
@@ -79,11 +71,9 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 		}
 	} else {
 		bool usealpha = teximage->format->Amask != 0;
-		internalformat = usealpha ? GL_RGBA : GL_RGB;
-		externalformat = usealpha ? GL_RGBA : GL_RGB;
-		tmpimage = new unsigned char [tw*th*bpp];
-		memset(tmpimage, 0, tw*th*bpp);
-		unsigned char* ptr = tmpimage;
+		format = usealpha ? GL_RGBA : GL_RGB;
+		data.resize(tw*th*bpp);
+		unsigned char* ptr = &data[0];
 		unsigned char* offset = ((unsigned char*)(teximage->pixels))
 			+ sy*teximage->pitch + sx*bpp;
 		for (unsigned y = 0; y < sh; y++) {
@@ -94,60 +84,42 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	}
 	SDL_UnlockSurface(teximage);
 	
-	// create texture
-	glTexImage2D(GL_TEXTURE_2D, 0, internalformat, tw, th, 0,
-		externalformat, GL_UNSIGNED_BYTE, tmpimage);
-	if (	mapping == GL_NEAREST_MIPMAP_NEAREST
-		|| mapping == GL_NEAREST_MIPMAP_LINEAR
-		|| mapping == GL_LINEAR_MIPMAP_NEAREST
-		|| mapping == GL_LINEAR_MIPMAP_LINEAR ) {
-
-		gluBuild2DMipmaps(GL_TEXTURE_2D, internalformat, tw, th, externalformat,
-			GL_UNSIGNED_BYTE, tmpimage);
-	}
-
-	delete [] tmpimage;
+	update();
 	
+	if (!keep) data.clear();
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mapping);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp);
-
-	opengl_name = texname;
-	width = tw;
-	height = th;
 }
 	
-texture::texture(const string& filename, int mapping, int clamp)
+texture::texture(const string& filename, int mapping_, int clamp, bool keep)
 {
+	mapping = mapping_;
 	texfilename = filename;
 	SDL_Surface* teximage = IMG_Load(filename.c_str());
 	system::sys().myassert(teximage != 0, string("texture: failed to load")+filename);
-	init(teximage, 0, 0, teximage->w, teximage->h, mapping, clamp);
+	init(teximage, 0, 0, teximage->w, teximage->h, clamp, keep);
 	SDL_FreeSurface(teximage);
 }	
 
-texture::texture(void* pixels, unsigned w, unsigned h, int extformat, int intformat, int type,
-	int mapping, int clamp)
+texture::texture(void* pixels, unsigned w, unsigned h, int format_, int type,
+	int mapping_, int clamp, bool keep)
 {
 	width = w;
 	height = h;
+	format = format_;
+	mapping = mapping_;
 	glGenTextures(1, &opengl_name);
-	glBindTexture(GL_TEXTURE_2D, opengl_name);
 
-	GLenum internalformat = intformat;
-	GLenum externalformat = extformat;
-
-	glTexImage2D(GL_TEXTURE_2D, 0, internalformat, w, h, 0,
-		externalformat, type, pixels);
-	if (	mapping == GL_NEAREST_MIPMAP_NEAREST
-		|| mapping == GL_NEAREST_MIPMAP_LINEAR
-		|| mapping == GL_LINEAR_MIPMAP_NEAREST
-		|| mapping == GL_LINEAR_MIPMAP_LINEAR ) {
-
-		gluBuild2DMipmaps(GL_TEXTURE_2D, internalformat, w, h, externalformat,
-			type, pixels);
-	}
+	unsigned bpp = (format == GL_RGB) ? 3 : 4;	// GL_RGB or GL_RGBA	
+	data.resize(bpp*w*h);
+	memcpy(&data[0], pixels, data.size());
+	
+	update();
+	
+	if (!keep) data.clear();
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mapping);
@@ -157,8 +129,22 @@ texture::texture(void* pixels, unsigned w, unsigned h, int extformat, int intfor
 
 texture::~texture()
 {
-	GLuint tex_name = opengl_name;
-	glDeleteTextures(1, &tex_name);
+	glDeleteTextures(1, &opengl_name);
+}
+
+void texture::update(void) const
+{
+	if (data.size() == 0) return;
+	
+	glBindTexture(GL_TEXTURE_2D, opengl_name);
+	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, &data[0]);
+	if (	mapping == GL_NEAREST_MIPMAP_NEAREST
+		|| mapping == GL_NEAREST_MIPMAP_LINEAR
+		|| mapping == GL_LINEAR_MIPMAP_NEAREST
+		|| mapping == GL_LINEAR_MIPMAP_LINEAR ) {
+
+		gluBuild2DMipmaps(GL_TEXTURE_2D, format, width, height, format, GL_UNSIGNED_BYTE, &data[0]);
+	}
 }
 
 void texture::set_gl_texture(void) const

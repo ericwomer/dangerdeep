@@ -5,6 +5,7 @@
 #define MODEL_H
 
 #include "vector3.h"
+#include "matrix4.h"
 #include "texture.h"
 #include "color.h"
 #include <vector>
@@ -52,7 +53,7 @@ public:
 		vector<vector3f> tangentsx;
 		vector<vector2f> texcoords;
 		vector<unsigned> indices;	// 3 indices per face
-		float xformmat[4][3];	// rotation and translation
+		matrix4f transformation;	// rot., transl., scaling
 		material* mymaterial;
 		void display(bool usematerial) const;
 		

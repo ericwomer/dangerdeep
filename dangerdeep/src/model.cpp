@@ -497,8 +497,7 @@ void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent)
 			case M3DS_TRI_MESHMATRIX:
 				for (int j = 0; j < 4; ++j) {
 					for (int i = 0; i < 3; ++i) {
-						meshes.back().xformmat[j][i] = read_float(in);
-//						cout << "j="<<j<<", i="<<i<<": "<<meshes.back().xformmat[j][i]<<"\n";
+						meshes.back().transformation.elem(i,j) = read_float(in);
 					}
 				}
 /*
