@@ -441,9 +441,7 @@ void choose_historical_mission(void)
 		TiXmlHandle hdoc(&doc);
 		TiXmlHandle hdftdmission = hdoc.FirstChild("dftd-mission");
 		TiXmlHandle hdescription = hdftdmission.FirstChild("description");
-		cout << hdescription.Element() << "\n";
 		TiXmlHandle hshort = hdescription.FirstChild("short");
-		cout << hshort.Element() << "\n";
 		TiXmlText* ttext = hshort.FirstChild().Text();
 		system::sys().myassert(ttext != 0, string("text node missing in ")+missions[i]);
 		wmission->append_entry(ttext->Value());
@@ -456,9 +454,8 @@ void choose_historical_mission(void)
 	wm->adjust_buttons(944);
 	int result = w.run();
 	if (result == 2) {	// start game
-		string filename = get_mission_dir() + missions[wmission->get_selected()] + ".mis";
-		parser p(filename);
-		run_game(new game(p));
+		string filename = get_mission_dir() + missions[wmission->get_selected()];
+		run_game(game::create_from_missionfile(filename));
 	}
 }
 

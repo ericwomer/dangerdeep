@@ -18,6 +18,11 @@ static char* textfilenames[] = {
 	"german"
 };
 
+static char* languagecodes[] = {
+	"en",
+	"de"
+};
+
 vector<string> texts::txts;
 
 void texts::set_language(languages l)
@@ -35,6 +40,11 @@ void texts::set_language(languages l)
 		}
 		txts[n] = s;
 	}
+}
+
+string texts::get_language_code(void)
+{
+	return languagecodes[language];
 }
 
 string texts::get(unsigned no)

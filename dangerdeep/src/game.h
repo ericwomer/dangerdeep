@@ -151,10 +151,13 @@ protected:
 	void receive_commands(void);
 
 public:
+	// create new custom mission
 	// expects: size small,medium,large, escort size none,small,medium,large,
 	// time of day [0,4) night,dawn,day,dusk
 	game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday, unsigned nr_of_players = 1);
-	game(parser& p);
+
+	static game* create_from_missionfile(const string& missionfilename);
+
 	virtual ~game();
 
 	// game types: mission, career, multiplayer mission, multiplayer career/patrol (?)

@@ -162,6 +162,72 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	last_trail_time = time - TRAILTIME;
 }
 
+
+
+//game::game() : running(true), time(0), networktype(0), servercon(0), player(0), ui(0) {}
+game* game::create_from_missionfile(const string& missionfilename)
+{
+	game* gm = new game();
+
+	TiXmlDocument doc(missionfilename);
+	doc.LoadFile();
+	TiXmlHandle hdoc(&doc);
+	TiXmlHandle hdftdmission = hdoc.FirstChild("dftd-mission");
+	TiXmlElement* etime = hdftdmission.FirstChildElement("time").Element();
+	system::sys().myassert(etime != 0, string("time node missing in ")+missionfilename);
+	unsigned year = atoi(etime->Attribute("year"));
+	unsigned month = atoi(etime->Attribute("month"));
+	unsigned day = atoi(etime->Attribute("day"));
+	unsigned hour = atoi(etime->Attribute("hour"));
+	unsigned minute = atoi(etime->Attribute("minute"));
+	unsigned second = atoi(etime->Attribute("second"));
+	time = ::get_time(year, month, day) + 3600*hour + 60*minute + second;
+	TiXmlElement* eobjects = hdftdmission.FirstChildElement("objects").Element();
+	system::sys().myassert(eobjects != 0, string("objects node missing in ")+missionfilename);
+	// now read and interprete childs of eobject
+/*
+	TiXmlHandle hdftdship = hdoc.FirstChild("dftd-ship");
+	TiXmlElement* eclassification = hdftdship.FirstChildElement("classification").Element();
+	system::sys().myassert(eclassification != 0, string("classification node missing in ")+specfilename);
+	modelname = eclassification->Attribute("modelname");
+	modelcache.ref(modelname);
+	string typestr = eclassification->Attribute("type");
+	if (typestr == "warship") shipclass = WARSHIP;
+	else if (typestr == "escort") shipclass = ESCORT;
+	else if (typestr == "merchant") shipclass = MERCHANT;
+	else if (typestr == "submarine") shipclass = SUBMARINE;
+	else system::sys().myassert(false, string("illegal ship type in ") + specfilename);
+	string country = eclassification->Attribute("country");
+	TiXmlHandle hdescription = hdftdship.FirstChild("description");//fixme: parse
+	TiXmlElement* emotion = hdftdship.FirstChildElement("motion").Element();
+	system::sys().myassert(emotion != 0, string("motion node missing in ")+specfilename);
+	max_speed = atof(emotion->Attribute("maxspeed"));
+	max_rev_speed = atof(emotion->Attribute("maxrevspeed"));
+	acceleration = atof(emotion->Attribute("acceleration"));
+	turn_rate = atof(emotion->Attribute("turnrate"));
+	TiXmlElement* etonnage = hdftdship.FirstChildElement("tonnage").Element();
+	system::sys().myassert(etonnage != 0, string("tonnage node missing in ")+specfilename);
+	unsigned minton = atoi(etonnage->Attribute("min"));
+	unsigned maxton = atoi(etonnage->Attribute("max"));
+	tonnage = minton + rnd(maxton - minton + 1);
+	TiXmlHandle hsmoke = hdftdship.FirstChild("smoke");//fixme parse
+	TiXmlHandle hsensors = hdftdship.FirstChild("sensors");//fixme parse
+	TiXmlElement* eai = hdftdship.FirstChildElement("ai").Element();
+	system::sys().myassert(eai != 0, string("ai node missing in ")+specfilename);
+	string aitype = eai->Attribute("type");
+	if (aitype == "dumb") myai = new ai(this, ai::dumb);
+	else if (aitype == "escort") myai = new ai(this, ai::escort);
+	else if (aitype == "none") myai = 0;
+	else system::sys().myassert(false, string("illegal AI type in ") + specfilename);
+	TiXmlElement* efuel = hdftdship.FirstChildElement("fuel").Element();
+	system::sys().myassert(efuel != 0, string("fuel node missing in ")+specfilename);
+	fuel_level = atof(efuel->Attribute("capacity"));
+	fuel_value_a = atof(efuel->Attribute("consumption_a"));
+	fuel_value_t = atof(efuel->Attribute("consumption_t"));
+*/
+}	
+
+/*
 game::game(parser& p) : running(true), time(0)
 {
 	networktype = 0;
@@ -201,10 +267,8 @@ game::game(parser& p) : running(true), time(0)
 				convoy* cv = new convoy(*this, p);
 				spawn_convoy(cv);
 				break; }
-/*			
 			case TKN_DESCRIPTION:
 			case TKN_WEATHER:
-*/			
 			case TKN_TIME: {
 				p.consume();
 				unsigned year, month, day, hour, minute, second;
@@ -231,6 +295,9 @@ game::game(parser& p) : running(true), time(0)
 	
 	compute_max_view_dist();
 }
+*/
+
+
 
 game::~game()
 {
