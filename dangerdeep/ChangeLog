@@ -1,3 +1,10 @@
+2003-07-30  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* game.cpp submarine.cpp
+	  - moved dc explosion dependend parts to submarine.cpp
+	    and improved damage calculation.
+	* system.cpp
+	  - write_console new parameter: write to file only.
+
 2003-07-28  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* torpedo.cpp user_interface.cpp
 	  - introduced new torpedo types. Now all historical types available

@@ -31,7 +31,7 @@ public:
 	// fixme maybe printf-like (va_start,...) input also.
 	void add_console(const string& tx);
 	void draw_console_with(const font* fnt, const texture* background = 0);
-	void write_console(void) const;
+	void write_console(bool fileonly = false) const;
 	void prepare_2d_drawing(void);	// must be called as pair!
 	void unprepare_2d_drawing(void);
 

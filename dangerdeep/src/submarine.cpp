@@ -9,6 +9,7 @@
 #include "submarine.h"
 #include "submarine_VIIc.h"
 #include "submarine_XXI.h"
+#include "depth_charge.h"
 
 submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damageable_parts] = {
 	damage_data_scheme(vector3f(0.090517,0.108696,0.892857), vector3f(0.066810,0.297101,0.083333), 0.2, 3600, false, true),	// rudder
@@ -481,38 +482,78 @@ double submarine::get_noise_factor () const
 	return noisefac;
 }
 
-void submarine::add_damage(const vector3& fromwhere, float amount)
+#include <sstream>
+#include "system.h"
+#include "menu.h"
+void submarine::depth_charge_explosion(const class depth_charge& dc)
 {
-	vector3f bb = get_model()->get_boundbox_size();
-	
-	// project relative position to circle on 2d plane (y,z) parallel to sub.
-	// circle's radius is proportional to strength.
-	// all parts within this circle are affected to damage relative to their distance to the
-	// circles center.
-	
-	double damage_radius = DAMAGE_DC_RADIUS_SURFACE*amount;	// meters, fixme
-	
-	for (unsigned i = 0; i < nr_of_damageable_parts; ++i) {
-		if (damageable_parts[i].status == dmg_unused) continue;
+	// fixme: this should'nt be linear but exponential, e^(-fac*depth) or so...
+	double damage_radius = DAMAGE_DC_RADIUS_SURFACE +
+		get_pos().z * DAMAGE_DC_RADIUS_200M / 200;
+	double deadly_radius = DEADLY_DC_RADIUS_SURFACE +
+		get_pos().z * DEADLY_DC_RADIUS_200M / 200;
+	vector3 relpos = get_pos() - dc.get_pos();
+	// depth differences change destructive power
+	// but only when dc explodes above... fixme
+	// explosion and shock wave strength depends on water depth... fixme
+	// damage/deadly radii depend on this power and on sub type. fixme
+		
+		ostringstream dcd;
+		dcd << "depth charge explosion distance to sub: " << relpos.length() << "m.";
+		system::sys()->add_console(dcd.str());
+	vector3 sdist(relpos.x, relpos.y, relpos.z /* *2.0 */);
+	double sdlen = sdist.length();
 
-		vector3f tmp = (damage_schemes[i].p1 + damage_schemes[i].p2) * 0.5;
-		vector3 part_center(tmp.x, tmp.y, tmp.z);
-		part_center.x *= bb.x;
-		part_center.y *= bb.y;
-		part_center.z *= bb.z;
-		part_center = part_center - position;
-		double sd = part_center.distance(fromwhere);
-		if (sd < damage_radius) {
-			unsigned dmg = unsigned((dmg_wrecked)*sd/damage_radius);
-			damageable_parts[i].status += dmg;
-			if (damageable_parts[i].status > dmg_wrecked)
-				damageable_parts[i].status = dmg_wrecked;
-		}
+	// is submarine killed immidiatly?
+	if (sdlen <= deadly_radius) {
+			system::sys()->add_console("depth charge hit!");
+		kill();
+			menu m(103, killedimg);	// move this to game! fixme
+			m.add_item(105, 0);
+			m.run();
+			// ui->add_message(TXT_Depthchargehit[language]);
+
+	} else if (sdlen <= damage_radius) {	// handle damages
+		// this is useless. strength must be calculated indivually for each part. fixme
+		double strength = (damage_radius - sdlen) / (damage_radius - deadly_radius);
+
+		// add damage
+		vector3f bb = get_model()->get_boundbox_size();
+	
+		// project relative position to circle on 2d plane (y,z) parallel to sub.
+		// circle's radius is proportional to strength.
+		// all parts within this circle are affected to damage relative to their distance to the
+		// circles center.
+	
+		for (unsigned i = 0; i < nr_of_damageable_parts; ++i) {
+			if (damageable_parts[i].status == dmg_unused) continue;
+
+			vector3f tmp = (damage_schemes[i].p1 + damage_schemes[i].p2) * 0.5;
+		if (tmp.square_length() == 0) continue;//hack to avoid yet not exsisting data fixme
+			vector3 part_center = get_pos() + vector3(
+				(tmp.x - 0.5) * bb.x,
+				(tmp.y - 0.5) * bb.y,
+				(tmp.z - 0.5) * bb.z );
+			vector3 relpos = part_center - dc.get_pos();
+			// depth differences change destructive power etc. see above
+			double sdlen = relpos.length();
+			
+			double strength = (damage_radius - sdlen) / (damage_radius - deadly_radius);
+			if (strength > 0 && strength <= 1) {
+				unsigned dmg = unsigned(round(dmg_wrecked*strength));
+				damageable_parts[i].status += dmg;
+				if (damageable_parts[i].status > dmg_wrecked)
+					damageable_parts[i].status = dmg_wrecked;
+			}
 	
 //		if (damageable_parts[i].status < dmg_wrecked)
 //		damageable_parts[i].status ++;	// test hack fixme	
+
+				ostringstream os;
+				os << "DC caused damage! relpos " << relpos.x << "," << relpos.y << "," << relpos.z << " dmg " << strength;
+				system::sys()->add_console(os.str());
+		}
 	}
-	
 }
 
 void submarine::calculate_fuel_factor ( double delta_time )

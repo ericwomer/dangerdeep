@@ -436,6 +436,8 @@ int main(int argc, char** argv)
 
 	m.run();
 
+	sys->write_console();
+
 	deinit_global_data();
 	delete sys;
 

@@ -157,13 +157,14 @@ void system::draw_console(void)
 	unprepare_2d_drawing();
 }
 
-void system::write_console(void) const
+void system::write_console(bool fileonly) const
 {
 	FILE* f = fopen("console_log.txt", "wb");
 	if (!f) return;
 	const char* rtn = "\n";
 	for (list<string>::const_iterator it = console_text.begin(); it != console_text.end(); ++it) {
-		cerr << "console log: " << *it << "\n";
+		if (!fileonly)
+			cerr << "console log: " << *it << "\n";
 		fwrite(&((*it)[0]), it->length(), 1, f);
 		fwrite(rtn, strlen(rtn), 1, f);
 	}

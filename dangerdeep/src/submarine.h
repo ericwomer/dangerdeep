@@ -173,9 +173,16 @@ protected:
 	virtual void calculate_fuel_factor ( double delta_time );
 
 public:
-	// fixme type II has some subtypes.
-	enum types { typeII, typeVII, typeVIIb, typeVIIc, typeVIIc41,
-		typeIX, typeIXb, typeIXc, typeIXc40, typeIXd2, typeXXI, typeXXIII };
+	// there were more types, I, X (mine layer), XIV (milk cow), VIIf, (VIId?,e?)
+	// and some experimental types. (VIIc42, XVIIa/b)
+	// there were two IXd1 boats similar to type d2, but with different
+	// engines.
+	enum types {
+		typeIIa, typeIIb, typeIIc, typeIId,
+		typeVIIa, typeVIIb, typeVIIc, typeVIIc41,
+		typeIX, typeIXb, typeIXc, typeIXc40, typeIXd2,
+		typeXXI,
+		typeXXIII };
 	virtual ~submarine() {}
 	static submarine* create(types type_);
 	static submarine* create(parser& p);
@@ -213,8 +220,8 @@ public:
 	virtual double get_battery_level () const { return battery_level; }
 	virtual const vector<damageable_part>& get_damage_status(void) const { return damageable_parts; }
 
-	// give relative direction and amount between 0 and 1.
-	virtual void add_damage(const vector3& fromwhere, float amount);
+	// damage is added if dc damages sub.
+	virtual void depth_charge_explosion(const class depth_charge& dc);
     
 	// command interface for subs
 	virtual void scope_up(void) { scopeup = true; };	// fixme

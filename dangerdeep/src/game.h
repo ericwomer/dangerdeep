@@ -154,7 +154,7 @@ public:
 
 	// simulation events
 //fixme: send messages about them to ui (remove sys-console printing in torpedo.cpp etc)
-	void dc_explosion(const vector3& pos);	// depth charge exploding
+	void dc_explosion(const depth_charge& dc);	// depth charge exploding
 	bool gs_impact(const vector3& pos);	// gun shell impact
 	void torp_explode(const vector3& pos);	// torpedo explosion/impact
 	void ship_sunk( const ship* s );	// a ship sinks

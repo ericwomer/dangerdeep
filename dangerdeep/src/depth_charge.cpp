@@ -29,7 +29,7 @@ void depth_charge::simulate(game& gm, double delta_time)
 	if (is_defunct()) return;
 	position.z -= DEPTH_CHARGE_SINK_SPEED * delta_time;
 	if (position.z < -explosion_depth) {
-		gm.dc_explosion(position);
+		gm.dc_explosion(*this);
 		kill();	// dc is "dead"
 	}
 }

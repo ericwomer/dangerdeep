@@ -539,39 +539,19 @@ void game::convoy_positions(list<vector2>& result) const
 	}
 }
 
-void game::dc_explosion(const vector3& pos)
+void game::dc_explosion(const depth_charge& dc)
 {
 	// Create water splash.
-	spawn_water_splash ( new depth_charge_water_splash ( pos ) );
+	spawn_water_splash(new depth_charge_water_splash(dc.get_pos()));
 
 	// are subs affected?
 	// fixme: ships can be damaged by DCs also...
+	// fixme: ai should not be able to release dcs with a depth less than 30m or so, to
+	// avoid suicide
 	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		double damage_radius = DAMAGE_DC_RADIUS_SURFACE +
-			(*it)->get_pos().z * DAMAGE_DC_RADIUS_200M / 200;
-		double deadly_radius = DEADLY_DC_RADIUS_SURFACE +
-			(*it)->get_pos().z * DEADLY_DC_RADIUS_200M / 200;
-		vector3 relpos = (*it)->get_pos() - pos;
-		// depth differences change destructive power
-		vector3 sdist(relpos.x, relpos.y, relpos.z*2.0);
-		double sdlen = sdist.length();
-
-		// is submarine killed immidiatly?
-		if (sdlen <= deadly_radius) {
-			system::sys()->add_console("depth charge hit!");
-			(*it)->kill();
-			menu m(103, killedimg);
-			m.add_item(105, 0);
-			m.run();
-			// ui->add_message(TXT_Depthchargehit[language]);
-
-		} else if (sdlen <= damage_radius) {	// handle damages
-			double strength = (sdlen - deadly_radius) / (damage_radius - deadly_radius);
-			(*it)->add_damage(relpos, strength);
-
-			ostringstream os;
-			os << "DC caused damage! relpos " << relpos.x << "," << relpos.y << "," << relpos.z << " dmg " << strength;
-			system::sys()->add_console(os.str());
+		(*it)->depth_charge_explosion(dc);
+		if (*it == player) {
+			// play detonation sound, volume depends on distance
 		}
 	}
 }
