@@ -242,6 +242,25 @@ void model::display(bool with_texture) const
 	else
 		glBindTexture(GL_TEXTURE_2D, 0);
 
+#ifdef WIN32
+	glBegin(GL_TRIANGLES);
+	for (unsigned i = 0; i < faces.size(); ++i) {
+		const face& f = faces[i];
+		const vertex& v0 = vertices[f.v[0]];
+		const vertex& v1 = vertices[f.v[1]];
+		const vertex& v2 = vertices[f.v[2]];
+		glTexCoord2f(v0.uv.x, v0.uv.y);
+		glNormal3f(v0.normal.x, v0.normal.y, v0.normal.z);
+		glVertex3f(v0.pos.x, v0.pos.y, v0.pos.z);
+		glTexCoord2f(v1.uv.x, v1.uv.y);
+		glNormal3f(v1.normal.x, v1.normal.y, v1.normal.z);
+		glVertex3f(v1.pos.x, v1.pos.y, v1.pos.z);
+		glTexCoord2f(v2.uv.x, v2.uv.y);
+		glNormal3f(v2.normal.x, v2.normal.y, v2.normal.z);
+		glVertex3f(v2.pos.x, v2.pos.y, v2.pos.z);
+	}
+	glEnd();
+#else	
 	glInterleavedArrays(GL_T2F_N3F_V3F, 0, &vertices[0]);
 
 	glDrawElements(GL_TRIANGLES, faces.size()*3, GL_UNSIGNED_INT, &faces[0]);
@@ -250,4 +269,5 @@ void model::display(bool with_texture) const
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
+#endif	
 }
