@@ -29,6 +29,14 @@ struct color {
 		b = (unsigned char)(c1.b*(1-scal) + c2.b*scal);
 	}
 
+	color operator* (const color& c) const {
+		return color(
+			(unsigned char)(unsigned(r)*unsigned(c.r)/255),
+			(unsigned char)(unsigned(g)*unsigned(c.g)/255),
+			(unsigned char)(unsigned(b)*unsigned(c.b)/255)
+		);
+	}
+
 	// transform color to grey value (model of human vision, 11% to 59% to 30% RGB)
 	color grey_value(void) const { unsigned char c = (unsigned char)(r*0.11+g*0.59+b*0.3); return color(c, c, c); }
 	

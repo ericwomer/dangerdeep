@@ -90,7 +90,7 @@ void model::material::set_gl_values(void) const
 {
 	if (mytexture != 0) {
 		mytexture->set_gl_texture();
-		glColor3f(1, 1, 1);
+		glColor3f(1,1,1);
 	} else {
 		glBindTexture(GL_TEXTURE_2D, 0);
 		col.set_gl_color();
@@ -105,7 +105,7 @@ void model::mesh::display(void) const
 		mymaterial->set_gl_values();
 	} else {
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glColor3f(0, 1, 0);
+		glColor3f(0,0,0);
 	}
 
 	if (has_texture)

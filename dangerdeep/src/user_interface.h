@@ -55,6 +55,7 @@ protected:
 	vector<vector<Uint8> > noisemaps_0, noisemaps_1;	// interpolate to animate clouds
 	unsigned clouds_dl;	// display list for sky hemisphere
 	unsigned cloud_levels, cloud_coverage, cloud_sharpness;
+	vector<Uint8> cloud_alpha;	// precomputed alpha texture
 	
 //	vector<char> landsea;	// a test hack. 0 = land, 1 = sea
 	unsigned mapw, maph;

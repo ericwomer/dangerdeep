@@ -25,6 +25,7 @@
 #include "gun_shell.h"
 #include "water_splash.h"
 #include "ships_sunk_display.h"
+#include "vector3.h"
 
 #define MAX_PANEL_SIZE 256
 
@@ -175,6 +176,18 @@ void user_interface::init ()
 	cloud_sharpness = 256;	// 0-256
 	cloud_animphase = 0;
 
+	cloud_alpha.resize(256*256);
+	for (unsigned y = 0; y < 256; ++y) {
+		for (unsigned x = 0; x < 256; ++x) {
+			float fx = float(x)-128;
+			float fy = float(y)-128;
+			float d = 1.0-sqrt(fx*fx+fy*fy)/128.0;
+			d = 1.0-exp(-d*5);
+			if (d < 0) d = 0;
+			cloud_alpha[y*256+x] = Uint8(255*d);
+		}
+	}
+
 	noisemaps_0 = compute_noisemaps();
 	noisemaps_1 = compute_noisemaps();
 	compute_clouds();
@@ -184,40 +197,46 @@ void user_interface::init ()
 	unsigned skyhsegs = 4*skyvsegs;
 	clouds_dl = glGenLists(1);
 	glNewList(clouds_dl, GL_COMPILE);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0,1);
-	glVertex3f(-1,1,1);
-	glTexCoord2f(1,1);
-	glVertex3f(1,1,1);
-	glTexCoord2f(1,0);
-	glVertex3f(1,-1,1);
-	glTexCoord2f(0,0);
-	glVertex3f(-1,-1,1);
-/*
+	unsigned skysegs = skyvsegs*skyhsegs;
+	vector<vector3f> points;
+	points.reserve(skysegs+1);
+	vector<vector2f> texcoords;
+	texcoords.reserve(skysegs+1);
 	for (unsigned beta = 0; beta < skyvsegs; ++beta) {
 		float t = (1.0-float(beta)/skyvsegs)/2;
-		float t2 = (1.0-float(beta+1)/skyvsegs)/2;
-		float r = cos(M_PI/2*beta/skyvsegs)/2;
-		float h = sin(M_PI/2*beta/skyvsegs)/2;
-		float r2 = cos(M_PI/2*(beta+1)/skyvsegs)/2;
-		float h2 = sin(M_PI/2*(beta+1)/skyvsegs)/2;
+		float r = cos(M_PI/2*beta/skyvsegs);
+		float h = sin(M_PI/2*beta/skyvsegs);
 		for (unsigned alpha = 0; alpha < skyhsegs; ++alpha) {
 			float x = cos(2*M_PI*alpha/skyhsegs);
 			float y = sin(2*M_PI*alpha/skyhsegs);
-			float x2 = cos(2*M_PI*(alpha+1)/skyhsegs);
-			float y2 = sin(2*M_PI*(alpha+1)/skyhsegs);
-			glTexCoord2f(x*t+0.5, y*t+0.5);
-			glVertex3f(x*r, y*r, h);
-			glTexCoord2f(x2*t+0.5, y2*t+0.5);
-			glVertex3f(x2*r, y2*r, h);
-			glTexCoord2f(x2*t2+0.5, y2*t2+0.5);
-			glVertex3f(x2*r2, y2*r2, h2);
-			glTexCoord2f(x*t2+0.5, y*t2+0.5);
-			glVertex3f(x*r2, y*r2, h2);
+			points.push_back(vector3f(x*r, y*r, h));
+			texcoords.push_back(vector2f(x*t+0.5, y*t+0.5));
 		}
 	}
-*/	
-	glEnd();
+	points.push_back(vector3f(0, 0, 1));
+	texcoords.push_back(vector2f(0.5, 0.5));
+	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &points[0]);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	vector<unsigned> indices;
+	indices.reserve(skysegs*4);
+	for (unsigned beta = 0; beta < skyvsegs; ++beta) {
+		for (unsigned alpha = 0; alpha < skyhsegs; ++alpha) {
+			unsigned i0 = beta*skyhsegs+alpha;
+//			if((alpha+beta)&1)continue;
+			unsigned i1 = beta*skyhsegs+(alpha+1)%skyhsegs;
+			unsigned i2 = (beta==skyvsegs-1) ? skysegs : (beta+1)*skyhsegs+alpha;
+			unsigned i3 = (beta==skyvsegs-1) ? skysegs : (beta+1)*skyhsegs+(alpha+1)%skyhsegs;
+			indices.push_back(i0);
+			indices.push_back(i2);
+			indices.push_back(i3);
+			indices.push_back(i1);
+		}
+	}
+	glDrawElements(GL_QUADS, skysegs*4 /* /2 */, GL_UNSIGNED_INT, &indices[0]);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEndList();
 
 }
@@ -254,6 +273,8 @@ void user_interface::compute_clouds(void)
 	unsigned mapsize = 8 - cloud_levels;
 	unsigned mapsize2 = (2<<mapsize);
 
+	// fixme: could we interpolate between accumulated noise maps
+	// to further speed up the process?
 	vector<vector<Uint8> > cmaps = noisemaps_0;
 	float f = cloud_animphase;
 	for (unsigned i = 0; i < cloud_levels; ++i)
@@ -271,6 +292,7 @@ void user_interface::compute_clouds(void)
 				unsigned tv = get_value_from_bytemap(x, y, cloud_levels-1-k, mapsize2, cmaps[k]);
 				v += (tv >> k);
 			}
+			// fixme generate a lookup table for this function, depending on coverage/sharpness
 			if (v > 255) v = 255;
 			if (v < (256 - cloud_coverage))
 				v = 0;
@@ -281,7 +303,7 @@ void user_interface::compute_clouds(void)
 			fullmap[fullmapptr++] = 255;
 			fullmap[fullmapptr++] = 255;
 			fullmap[fullmapptr++] = 255;
-			fullmap[fullmapptr++] = v;
+			fullmap[fullmapptr++] = Uint8(v * unsigned(cloud_alpha[y*256+x]) / 255);
 		}
 	}
 
@@ -631,7 +653,6 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glLightfv(GL_LIGHT1, GL_POSITION, lposition);
 
 	glDisable(GL_LIGHTING);
-	skycol2.set_gl_color();
 	float tmp = 1.0/30000.0;
 	glScalef(tmp, tmp, tmp);	// sky hemisphere is stored as 30km in radius
 	skyhemisphere->display();
@@ -751,8 +772,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	lightcol.set_gl_color();	// cloud color depends on day time
 
 	float clsc = max_view_dist * 0.9;
-	glScalef(clsc, clsc, 3000/*clsc fixme*/);
-	glBindTexture(GL_TEXTURE_2D, clouds->get_opengl_name());
+	glScalef(clsc, clsc, 3000);	// bottom of cloud layer has altitude of 3km.
+	clouds->set_gl_texture();
 	glCallList(clouds_dl);
 
 	glEnable(GL_DEPTH_TEST);
@@ -772,6 +793,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glFogf(GL_FOG_START, max_view_dist*0.75);	// ships disappear earlier :-(
 	glFogf(GL_FOG_END, max_view_dist);
 	glEnable(GL_FOG);	
+
 
 	// ******* water *********
 					// fixme: program directional light caused by sun
