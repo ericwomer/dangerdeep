@@ -34,6 +34,7 @@ torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, ang
 		// preheated torpedoes hat longer ranges... this needs to be simulated, too
 		// look at: http://www.uboat.net/technical/torpedoes.htm
 		// and: http://www.uboat.net/history/torpedo_crisis.htm
+		// and: http://www.u-boot-greywolf.de/utorpedo.htm
 	run_length = 0;
 	max_speed_forward = velocity.y = get_speed_by_type(type_);
 	max_speed_reverse = 0;
