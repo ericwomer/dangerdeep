@@ -30,6 +30,9 @@ public:
 	// fixme: how widely was influence fuse used? there were severly
 	// malfunctions, even later in the war. Influence fuse is not simulated yet
 	// so T2 == T3
+	// what happens if an influence fuse torpedo hits a ship hull?
+	// does that ignite the fuse because of the magnetism or did they have an additional
+	// contact fuse?? fixme
 	enum types { none, T1, T2, T3, T3a, T4, T5, T11, T1FAT, T3FAT, T6LUT, reloading=0xffffffff };
 
 protected:

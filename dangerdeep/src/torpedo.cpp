@@ -30,6 +30,7 @@ torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, ang
 			// immidiately instead of turning there from the sub's heading
 			// fixme historic values??
 	size3d = vector3f(0.533, 7, 0.533);	// diameter 53.3cm (21inch), length ~ 7m
+		//fixme: retrieve from model file referenced in xml file
 	run_length = 0;
 	max_speed_forward = velocity.y = get_speed_by_type(type_);
 	max_speed_reverse = 0;
