@@ -492,6 +492,7 @@ void choose_historical_mission(void)
 			}
 		}
 	}
+	wmission->on_sel_change();
 
 	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
 	w.add_child(wm);
