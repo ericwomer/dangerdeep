@@ -299,6 +299,7 @@ void particle::simulate(game& gm, double delta_t)
 	position += velocity * delta_t + acc * (delta_t * delta_t * 0.5);
 	velocity += acc * delta_t;
 	life -= delta_t/get_life_time();
+	if (life < 0.0f) life = 0.0f;
 }
 
 
@@ -315,7 +316,10 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 		vector3 pp = (mvtrans + (*it)->get_pos() - viewpos);
 		pds.push_back(particle_dist(*it, pp.square_length(), pp));
 	}
-	sort(pds.begin(), pds.end());
+//fixme: this seems to be the problem... add a copy c'tor / operator= to helper class?
+//not sorting seems to help!
+//but without spray particles sorting never caused a problem...
+//	sort(pds.begin(), pds.end());
 
 	glDisable(GL_LIGHTING);
 	//glNormal3f(0, 0, 1);
@@ -566,7 +570,7 @@ double spray_particle::get_height(void) const
 void spray_particle::set_texture(class game& gm) const
 {
 	glColor4f(1, 1, 1, life);
-	tex_spray->set_gl_texture();//fixme
+	tex_spray->set_gl_texture();
 }
 
 

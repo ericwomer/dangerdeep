@@ -341,12 +341,18 @@ list<SDL_Event> system::poll_event_queue(void)
 					exit(0);	// fixme
 				
 				case SDL_ACTIVEEVENT:		// Application activation or focus event
-					if (event.active.gain==0) {
-						is_sleeping = true;
-						sleep_time = SDL_GetTicks();
-					} else {
-						is_sleeping = false;
-						time_passed_while_sleeping += SDL_GetTicks() - sleep_time;
+					if (event.active.state & SDL_APPMOUSEFOCUS) {
+						if (event.active.gain == 0) {
+							if (!is_sleeping) {
+								is_sleeping = true;
+								sleep_time = SDL_GetTicks();
+							}
+						} else {
+							if (is_sleeping) {
+								is_sleeping = false;
+								time_passed_while_sleeping += SDL_GetTicks() - sleep_time;
+							}
+						}
 					}
 					events.pop_back();	// filter these events.
 					break;

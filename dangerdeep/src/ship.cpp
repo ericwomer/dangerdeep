@@ -13,8 +13,7 @@
 #include "tinyxml/tinyxml.h"
 
 
-//fixme: redefine display, call base display, add spray at bow (2 quads with spray texture, maybe animated,
-//parallel to bow hull sides ~ 30degrees or so)
+//fixme: redefine display, call base display
 
 
 // empty c'tor is needed by heirs
@@ -352,8 +351,10 @@ void ship::simulate(game& gm, double delta_time)
 			vector3 forward = global_velocity.normal();
 			vector3 sideward = forward.cross(vector3(0, 0, 1)).normal() * 2.0;//speed 2.0 m/s
 			vector3 spawnpos = get_pos() + forward * (get_length() * 0.5);
+#if 1
 			gm.spawn_particle(new spray_particle(spawnpos, sideward));
 			gm.spawn_particle(new spray_particle(spawnpos, -sideward));
+#endif
 		}
 	}
 	

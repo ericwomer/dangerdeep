@@ -225,12 +225,12 @@ void reset_loading_screen(void)
 	loading_screen_messages.push_back("Loading...");
 	system::sys().add_console("Loading...");
 	display_loading_screen();
-	starttime = SDL_GetTicks();
+	starttime = system::sys().millisec();
 }
 
 void add_loading_screen(const string& msg)
 {
-	unsigned tm = SDL_GetTicks();
+	unsigned tm = system::sys().millisec();
 	unsigned deltatime = tm - starttime;
 	starttime = tm;
 	ostringstream oss;
