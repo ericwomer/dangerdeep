@@ -597,7 +597,7 @@ void user_interface::draw_gauge(class system& sys, class game& gm,
 	glBindTexture(GL_TEXTURE_2D, 0);
 	if (a2 != a) {
 		vector2 d2 = a2.direction();
-		glColor3f(0.5,0.5,1);
+		glColor3f(0.2,0.8,1);
 		glBegin(GL_LINES);
 		glVertex2i(xx, yy);
 		glVertex2i(xx + int(d2.x*wh*3/8),yy - int(d2.y*wh*3/8));

@@ -26,6 +26,12 @@ ship::~ship()
 	delete mysmoke;
 }
 
+void ship::sink(void)
+{
+	sea_object::sink();
+	if (mysmoke) mysmoke->kill();
+}
+
 bool ship::parse_attribute(parser& p)
 {
 	if ( sea_object::parse_attribute(p) )
@@ -81,7 +87,8 @@ void ship::simulate(game& gm, double delta_time)
 	calculate_fuel_factor ( delta_time );
 	
 	if (mysmoke) {
-		mysmoke->set_source(position + vector3(0, 0, 10));//fixme add pos. relative to ship
+		if (!is_sinking())
+			mysmoke->set_source(position + vector3(0, 0, 10));//fixme add pos. relative to ship
 		mysmoke->simulate(gm, delta_time);
 	}
 }

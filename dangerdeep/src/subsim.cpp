@@ -269,6 +269,15 @@ void draw_vessel(void)
 	glRotatef(vessel_xangle, 1, 0, 0);
 	double sc = 2.0/vector2(vessel->get_length(), vessel->get_width()).length();
 	glScalef(sc, sc, sc);
+	glColor3f(0, 0, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBegin(GL_LINES);
+	glVertex3f(-10.0, 0.0, -10.0);
+	glVertex3f( 10.0, 0.0, -10.0);
+	glVertex3f( 0.0,-50.0, -10.0);
+	glVertex3f( 0.0, 50.0, -10.0);
+	glEnd();
+	glColor3f(1, 1, 1);
 	vessel->display();
 	sys->prepare_2d_drawing();
 	font_tahoma->print_hc(1024, 128, vessel->get_description(2).c_str(), color::white(), true);

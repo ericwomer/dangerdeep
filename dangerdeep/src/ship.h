@@ -57,6 +57,7 @@ public:
 	};
 	
 	virtual ~ship();
+	virtual void sink(void);
 	static ship* create(types type_);
 	static ship* create(parser& p);
 	virtual void simulate(class game& gm, double delta_time);
