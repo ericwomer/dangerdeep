@@ -225,7 +225,7 @@ void model::write(const string& filename) const
 	fclose(f);
 }
 		
-void model::display(bool with_texture, const vector3* col1, const vector3* col2) const
+void model::display(bool with_texture, color* col1, color* col2) const
 {
 	// fixme use Vertex Arrays (or display lists, or both)
 	if (with_texture && tex != 0)
@@ -233,7 +233,7 @@ void model::display(bool with_texture, const vector3* col1, const vector3* col2)
 	else
 		glBindTexture(GL_TEXTURE_2D, 0);
 	if (col1 != 0 && col2 == 0)
-		glColor3f(col1->x, col1->y, col1->z);
+		col1->set_gl_color();
 	glBegin(GL_TRIANGLES);
 	double zdiff = max.z - min.z;
 	for (vector<face>::const_iterator it = faces.begin(); it != faces.end(); ++it) {
@@ -244,9 +244,7 @@ void model::display(bool with_texture, const vector3* col1, const vector3* col2)
 			glNormal3f(vn.x, vn.y, vn.z);
 			glTexCoord2f(v.u, v.v);
 			if (col1 != 0 && col2 != 0) {
-				double s = (vp.z - min.z)/zdiff;
-				vector3 c = (*col1) * (1-s) + (*col2) * s;
-				glColor3f(c.x, c.y, c.z);
+				color(*col1, *col2, (vp.z - min.z)/zdiff).set_gl_color();
 			}
 			glVertex3f(vp.x, vp.y, vp.z);
 		}

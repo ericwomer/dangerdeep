@@ -5,6 +5,7 @@
 
 #include "vector3.h"
 #include "texture.h"
+#include "color.h"
 #include <vector>
 using namespace std;
 
@@ -42,7 +43,7 @@ public:
 	void write(const string& filename) const;
 	// if one color is given it is used for the whole model.
 	// if two colors are given a gradient is computed along the z axis with col1 at bottom.
-	void display(bool with_texture = true, const vector3* col1 = 0, const vector3* col2 = 0) const;
+	void display(bool with_texture = true, color* col1 = 0, color* col2 = 0) const;
 	void scale(double x, double y, double z);
 	double get_length(void) const { return (max - min).y; };
 	double get_width(void) const { return (max - min).x; };

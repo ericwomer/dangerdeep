@@ -39,7 +39,7 @@ void menu_convoy_battle(void)
 
 		sys->poll_event_queue();
 		int key = sys->get_key();
-		font_logo->print_hc(res_x, res_y/5, "Danger from the Deep");
+		font_logo->print_hc(res_x, res_y/5, "Danger from the Deep", color(255,255,255), true);
 		m.draw(res_x, res_y, font_tahoma);
 		int mmsel = m.input(key, 0, 0, 0) & 0xffff;
 		sys->unprepare_2d_drawing();
@@ -94,7 +94,7 @@ void menu_single_mission(void)
 
 		sys->poll_event_queue();
 		int key = sys->get_key();
-		font_logo->print_hc(res_x, res_y/5, "Danger from the Deep");
+		font_logo->print_hc(res_x, res_y/5, "Danger from the Deep", color(255,255,255), true);
 		m.draw(res_x, res_y, font_tahoma);
 		int mmsel = m.input(key, 0, 0, 0) & 0xffff;
 		sys->unprepare_2d_drawing();
@@ -218,7 +218,7 @@ int main(int argc, char** argv)
 
 			sys->poll_event_queue();
 			int key = sys->get_key();
-			font_logo->print_hc(res_x, res_y/5, "Danger from the Deep");
+			font_logo->print_hc(res_x, res_y/5, "Danger from the Deep", color(255,255,255), true);
 			m.draw(res_x, res_y, font_tahoma);
 			int mmsel = m.input(key, 0, 0, 0);
 			sys->unprepare_2d_drawing();

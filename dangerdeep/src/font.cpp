@@ -26,6 +26,55 @@ unsigned font::get_pixel(SDL_Surface* s, unsigned x, unsigned y) const
 	}
 }
 
+void font::print_text(int x, int y, const char* text, bool ignore_colors) const
+{
+	int xs = x;
+	while (*text) {
+		unsigned c = (unsigned char)*text++;
+		if (c == ' ') {	// space
+			x += blank_width;
+		} else if (c == '\n') {	// return
+			x = xs;
+			y += char_height;
+		} else if (c == '$') { // color information
+			unsigned nr[6];
+			for (int i = 0; i < 6; i++) {
+				if (*text >= '0' && *text <= '9')
+					nr[i] = *text - '0';
+				else if (*text >= 'a' && *text <= 'f')
+					nr[i] = 10 + *text - 'a';
+				else if (*text == 0)
+					break;
+				else
+					nr[i] = 0;
+				text++;
+			}
+			if (!ignore_colors)
+				glColor3ub(nr[0]*16+nr[1], nr[2]*16+nr[3], nr[4]*16+nr[5]);
+		} else {
+			unsigned t = translate[c];
+			if (t == 0xff) {
+				x += blank_width;
+			} else {
+				float u1 = float(characters[t].width)/characters[t].tex->get_width();
+				float v1 = float(char_height)/characters[t].tex->get_height();
+				glBindTexture(GL_TEXTURE_2D, characters[t].tex->get_opengl_name());
+			        glBegin(GL_QUADS);
+			        glTexCoord2f(0,0);
+			        glVertex2i(x,y); 
+			        glTexCoord2f(0,v1);
+		        	glVertex2i(x,y+char_height);
+			        glTexCoord2f(u1,v1);
+			        glVertex2i(x+characters[t].width,y+char_height);
+			        glTexCoord2f(u1,0);
+		        	glVertex2i(x+characters[t].width,y);
+			        glEnd();
+				x += characters[t].width + spacing;
+			}
+		}
+	}
+}
+
 font::font(const char* filename, unsigned char_spacing, unsigned blank_length,
 	const char* font_mapping)
 {
@@ -99,54 +148,30 @@ font::~font()
 	}
 }
 
-void font::print(int x, int y, const char* text) const
+void font::print(int x, int y, const char* text, color col, bool with_shadow) const
 {
-	int xs = x;
-	while (*text) {
-		unsigned c = (unsigned char)*text++;
-		if (c == ' ') {	// space
-			x += blank_width;
-		} else if (c == '\n') {	// return
-			x = xs;
-			y += char_height;
-		} else if (c == '$') { // color information
-			unsigned nr[6];
-			for (int i = 0; i < 6; i++) {
-				if (*text >= '0' && *text <= '9')
-					nr[i] = *text - '0';
-				else if (*text >= 'a' && *text <= 'f')
-					nr[i] = 10 + *text - 'a';
-				else if (*text == 0)
-					break;
-				else
-					nr[i] = 0;
-				text++;
-			}
-			glColor3f(float(nr[0]*16+nr[1])/255.0, float(nr[2]*16+nr[3])/255.0,
-				float(nr[4]*16+nr[5])/255.0);
-		} else {
-			unsigned t = translate[c];
-			if (t == 0xff) {
-				x += blank_width;
-			} else {
-				float u1 = float(characters[t].width)/characters[t].tex->get_width();
-				float v1 = float(char_height)/characters[t].tex->get_height();
-				glBindTexture(GL_TEXTURE_2D, characters[t].tex->get_opengl_name());
-			        glBegin(GL_QUADS);
-			        glTexCoord2f(0,0);
-			        glVertex2i(x,y); 
-			        glTexCoord2f(0,v1);
-		        	glVertex2i(x,y+char_height);
-			        glTexCoord2f(u1,v1);
-			        glVertex2i(x+characters[t].width,y+char_height);
-			        glTexCoord2f(u1,0);
-		        	glVertex2i(x+characters[t].width,y);
-			        glEnd();
-				x += characters[t].width + spacing;
-			}
-		}
+	if (with_shadow) {
+		glColor3f(0,0,0);
+		print_text(x+2, y+2, text, true);
 	}
-	glColor3f(1,1,1);
+	col.set_gl_color();
+	print_text(x, y, text);
+}
+
+void font::print_hc(int x, int y, const char* text, color col, bool with_shadow) const
+{
+	print((x-get_size(text).first)/2, y, text, col, with_shadow);
+}
+	
+void font::print_vc(int x, int y, const char* text, color col, bool with_shadow) const
+{
+	print(x, (y-get_size(text).second)/2, text, col, with_shadow);
+}
+
+void font::print_c(int x, int y, const char* text, color col, bool with_shadow) const
+{
+	pair<unsigned, unsigned> wh = get_size(text);
+	print((x-wh.first)/2, (y-wh.second)/2, text, col, with_shadow);
 }
 
 pair<unsigned, unsigned> font::get_size(const char* text) const

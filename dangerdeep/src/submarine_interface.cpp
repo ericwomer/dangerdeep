@@ -266,7 +266,7 @@ void submarine_interface::draw_view(class system& sys, class game& gm, const vec
 	glPushMatrix();
 	glTranslatef(viewpos.x, viewpos.y, 0);
 	glScalef(max_view_dist, max_view_dist, max_view_dist);	// fixme dynamic
-	vector3 skycol1(RGB(24, 47, 244)), skycol2(RGB(165,192,247));
+	color skycol1(24, 47, 244), skycol2(165,192,247);
 	sky->display(false, &skycol2, &skycol1);
 	glPopMatrix();
 	glEnable(GL_LIGHTING);
@@ -859,7 +859,7 @@ void submarine_interface::display_freeview(class system& sys, game& gm)
 	glPushMatrix();
 	glTranslatef(viewpos.x, viewpos.y, 0);
 	glScalef(max_view_dist, max_view_dist, max_view_dist);	// fixme dynamic
-	vector3 skycol1(RGB(24, 47, 244)), skycol2(RGB(165,192,247));
+	color skycol1(24, 47, 244), skycol2(165,192,247);
 	sky->display(false, &skycol2, &skycol1);
 	glPopMatrix();
 	glEnable(GL_LIGHTING);
