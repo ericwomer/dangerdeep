@@ -97,29 +97,23 @@ void model::mesh::compute_normals(void)
 	// because bump maps use stored texture coordinates (x = positive u!)
 	if (mymaterial && mymaterial->bump) {
 		tangentsx.clear();
-		tangentsx.resize(vertices.size());
+		tangentsx.resize(vertices.size(), vector3f(0, 0, 1));
 		vector<bool> vertexok(vertices.size());
 		for (unsigned i = 0; i < indices.size(); i += 3) {
 			unsigned i0 = indices[i+0];
 			unsigned i1 = indices[i+1];
 			unsigned i2 = indices[i+2];
-			if (!vertexok[i0]) {
-				compute_tangentx(i0, i1, i2);
-				vertexok[i0] = true;
-			}
-			if (!vertexok[i1]) {
-				compute_tangentx(i1, i2, i0);
-				vertexok[i1] = true;
-			}
-			if (!vertexok[i2]) {
-				compute_tangentx(i2, i0, i1);
-				vertexok[i2] = true;
-			}
+			if (!vertexok[i0])
+				vertexok[i0] = compute_tangentx(i0, i1, i2);
+			if (!vertexok[i1])
+				vertexok[i1] = compute_tangentx(i1, i2, i0);
+			if (!vertexok[i2])
+				vertexok[i2] = compute_tangentx(i2, i0, i1);
 		}
 	}
 }
 
-void model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
+bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 {
 	const vector2f& uv0 = texcoords[i0];
 	const vector2f& uv1 = texcoords[i1];
@@ -129,19 +123,21 @@ void model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 	vector2f d_uv1 = uv2 - uv0;
 	float det = d_uv0.x * d_uv1.y - d_uv1.x * d_uv0.y;
 	if (fabsf(det) < 0.0001f) {
-		//fixme: find sane solution for this situation
+		//find sane solution for this situation!
 		//if delta_u is zero for d_uv0 and d_uv1, but delta_v is not, we could
 		//compute tangentsy from v and tangentsx with the cross product
 		//or we just don't store a tangentsx value and hope that the vertex
 		//can be computed via another triangle
-		tangentsx[i0] = vector3f(0,0,1);
-		//cout<<"PROBLEM! " << d_uv0 << ":" << d_uv1 << "\n";
+		//just hope and wait seems to work, at least one face adjacent to the vertex
+		//should give sane tangent values.
+		return false;
 	} else {
 		float a = d_uv1.y/det;
 		float b = -d_uv0.y/det;
 		vector3f rv = (vertices[i1] - vertices[i0]) * a + (vertices[i2] - vertices[i0]) * b;
 		rv = rv - (rv * n) * n;
 		tangentsx[i0] = rv;
+		return true;
 	}
 }
 
@@ -151,7 +147,7 @@ void model::material::map::init(int mapping)
 	mytexture = 0;
 	if (filename.length() > 0) {
 //cout << "object has texture '" << filename << "' mapping " << model::mapping << "\n";
-		mytexture = new texture(get_model_dir() + filename, mapping);
+		mytexture = new texture(get_texture_dir() + filename, mapping);
 	}
 }
 

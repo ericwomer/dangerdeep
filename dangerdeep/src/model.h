@@ -57,7 +57,7 @@ public:
 		void display(bool usematerial) const;
 		
 		void compute_normals(void);
-		void compute_tangentx(unsigned i0, unsigned i1, unsigned i2);
+		bool compute_tangentx(unsigned i0, unsigned i1, unsigned i2);
 
 		mesh(const mesh& m) : vertices(m.vertices), normals(m.normals), tangentsx(m.tangentsx), texcoords(m.texcoords), indices(m.indices), mymaterial(m.mymaterial) {}
 		mesh& operator= (const mesh& m) { vertices = m.vertices; normals = m.normals; tangentsx = m.tangentsx; texcoords = m.texcoords; indices = m.indices; mymaterial = m.mymaterial; return *this; }
