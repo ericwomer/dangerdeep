@@ -168,6 +168,32 @@ void sea_object::simulate(game& gm, double delta_time)
 		speed = get_throttle_speed();
 	}
 
+	/*
+		correct turning model:
+		object can only accelerate to left or right
+		water decelerates the object proportional to its speed
+		speed is limited
+		acceleration is a non-linear function, we assume a(t) values of +a,0,-a only
+		hence speed v(t) is integral over time of a(t)
+		and position s(t) is integral over time of v(t) with v(t) <= vmax
+		user wants to change depth/course etc. about s units.
+		This takes tf seconds.
+		Three phases: acceleration (tv seconds), constant speed (tc), deceleration (tv)
+		Two modes: tf >= 2*tv or not.
+		tv=vmax/a
+		s(t) after acceleration is (s=a/2*t^2,t=tv=vmax/a) s'=(vmax^2/a)/2
+		hence if s < 2*s' = vmax^2/a then mode 2.
+		here tf=2*t with s/2=a/2*t^2 -> s/2=a/2*(tf/2)^2 -> s=a*tf^2/4 ->
+		tf = sqrt(4*s/a) -> tf = 2*sqrt(s/a)
+		Else mode 1: s'' = s-2*s', tc=s''/vmax and tf = 2*tv+tc = 2*vmax/a + (s-2*s')/vmax
+		= 2*vmax/a + (s - vmax^2/a)/vmax
+		= 2*vmax/a + s/vmax - vmax/a
+		= vmax/a + s/vmax = tf
+		How to steer:
+		check if s < vmax^2/a then use mode 1: tf=2*sqrt(s/a), accelerate for tf/2 seconds, then decelerate.
+		or else use mode 2: accelerate for tv seconds, hold tc, decelerate.
+	*/
+
 	// calculate heading change (fixme, this turning is not physically correct)
 	angle maxturnangle = turn_rate * (head_chg * delta_time * speed);
 	if (permanent_turn) {
@@ -278,7 +304,7 @@ void sea_object::rudder_hard_right(void)
 
 void sea_object::rudder_midships(void)
 {
-    rudder = ruddermid;
+	rudder = ruddermid;
 	head_chg = 0.0f;
 	head_to = heading;
 	permanent_turn = false;
@@ -324,6 +350,9 @@ bool sea_object::set_course_to_pos(const vector2& pos)
 		head_to_ang(angle::from_math(atan2(d.y, d.x)), (b < 0));
 //	this code computes the curve that hits the target
 //	but it is much better to turn fast and then steam straight ahead
+//	however, this path does not hit the target exactly, since the ship moves
+//	while turning. In reality the ship would turn until it is facing the target
+//	directly. Here the ai recomputes the path every 10seconds, so this doesn't matter.
 /*
 		double needed_turn_rate = (r1 == 0) ? 0 : 1.0/r1; //speed/r1;
 		double fac = ((180.0*needed_turn_rate)/PI)/fabs(turn_rate.value_pm180());

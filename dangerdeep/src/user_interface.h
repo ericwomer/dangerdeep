@@ -50,7 +50,7 @@ protected:
 	ships_sunk_display* ships_sunk_disp;
 
 	// periscope
-	bool zoom_scope;	// use 6x instead 1.5 fixme implement
+	bool zoom_scope;	// use 6x instead 1.5 fixme implement, fixme: maybe to submarine
 
 	// map
 	float mapzoom;	// factor pixel/meter
@@ -59,6 +59,7 @@ protected:
 	vector2 mapoffset;	// additional offset used for display, relative to player
 
 	texture* clouds;
+	// fixme: world data maybe should move to class game
 	float cloud_animphase;	// 0-1 phase of interpolation
 	vector<vector<Uint8> > noisemaps_0, noisemaps_1;	// interpolate to animate clouds
 	unsigned clouds_dl;	// display list for sky hemisphere

@@ -38,10 +38,10 @@ public:
 
 	// some useful functions needed for sea_objects
 
-	inline static double kts2ms(double knots) { return knots*1852.0f/3600.0f; }
-	inline static double ms2kts(double meters) { return meters*3600.0f/1852.0f; }
-	inline static double kmh2ms(double kmh) { return kmh/3.6f; }
-	inline static double ms2kmh(double meters) { return meters*3.6f; }
+	inline static double kts2ms(double knots) { return knots*1852.0/3600.0; }
+	inline static double ms2kts(double meters) { return meters*3600.0/1852.0; }
+	inline static double kmh2ms(double kmh) { return kmh/3.6; }
+	inline static double ms2kmh(double meters) { return meters*3.6; }
 
 protected:
 	vector3 position;

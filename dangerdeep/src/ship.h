@@ -74,13 +74,15 @@ public:
 	virtual void simulate(class game& gm, double delta_time);
 
 	virtual void sink(void);
+
+	// command interface
 	virtual void fire_shell_at(const vector2& pos);	// to subclass?
 
 	virtual bool has_smoke(void) const { return mysmoke != 0; }
 	virtual void smoke_display(double degr) const;
 
 	virtual bool damage(const vector3& fromwhere, unsigned strength);
-	virtual unsigned calc_damage(void) const;	// returns damage in percent (0 means dead)
+	virtual unsigned calc_damage(void) const;	// returns damage in percent (100 means dead)
 	ai* get_ai(void) { return myai; }
 	// this depends on ship's tonnage, type, draught and depth (subs/sinking ships)
 	virtual double get_roll_factor(void) const;

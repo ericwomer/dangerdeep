@@ -149,6 +149,8 @@ public:
 	virtual double get_depth_factor ( const vector3& sub ) const;
 
 	// compute visibility data
+	// fixme: gcc3.2+ optimizes return values that are complex data types.
+	// hence change signature to list<xxx*> visible_xxxs(const...);
 	virtual void visible_ships(list<ship*>& result, const sea_object* o);
 	virtual void visible_submarines(list<submarine*>& result, const sea_object* o);
 	virtual void visible_airplanes(list<airplane*>& result, const sea_object* o);

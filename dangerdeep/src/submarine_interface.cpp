@@ -57,6 +57,7 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			case SDLK_4:
 			case SDLK_5:
 			case SDLK_6:
+				// fixme: store TDC programming in class submarine!
 				if ( player->fire_torpedo ( gm, keycode - SDLK_1, target, lead_angle,
 					primaryrange, secondaryrange, initialturn, searchpattern))
 				{

@@ -15,6 +15,19 @@
 #define DC_ATTACK_RUN_RADIUS 600	// distance to contact until escort switches to
 					// maximum speed
 
+// fixme:
+// should ai know class game?
+// instead of calling game::spawn_dc call parent->fire_dc etc.
+// (make use of command encapsulation for network play!)
+
+// fixme: zigzag is possible, but never used.
+// zig zag for:
+// convoys do a large scale zig zag to make it difficult for submarines to keep contact
+// merchants should zigzig when convoy is attacked (or they are) to avoid torpedo hits
+// escorts should zigzag when patrolling (or maybe their speed makes zigzagging unneccessary?)
+// escorts should zigzag when following/hunting a submarine that is in torpedo range, but not
+// to close (250-400m minimum, 3000m? maximum) to avoid headon torpedo hits
+
 map<double, double> ai::dist_angle_relation;
 #define MAX_ANGLE 45.0
 #define ANGLE_GAP 0.1
@@ -227,9 +240,11 @@ void ai::act_escort(game& gm, double delta_time)
 				if (myconvoy) myconvoy->add_contact(contacts.front());
 				attack_contact(contacts.front());
 			}
+			//set_zigzag((cd > 500 && cd < 2500));//fixme test hack, doesn't work
 		} else {
 			parent->set_throttle(sea_object::aheadflank);
 			attackrun = true;
+			//set_zigzag(false);//fixme test hack, doesn't work
 		}
 
 		if (cd < DC_ATTACK_RADIUS) {

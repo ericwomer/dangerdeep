@@ -225,13 +225,16 @@ public:
 	// command interface for subs
 	virtual void scope_up(void) { scopeup = true; };	// fixme
 	virtual void scope_down(void) { scopeup = false; };
+	//virtual void scope_to(double amount);	// set scope to "amount" (0-1) of full height
 	virtual bool set_snorkel_up ( bool snorkel_up );
-	virtual void planes_up(double amount);
+	virtual void planes_up(double amount);		// fixme: functions for both dive planes needed?
 	virtual void planes_down(double amount);
 	virtual void planes_middle(void);
 	virtual void dive_to_depth(unsigned meters);
 	// give tubenr -1 for any loaded tube, or else 0-5,
 	// and FAT values as index (primary & secondary range, initial turn, seach pattern)
+	// fixme: it would make more sense to store these values in this class rather than
+	// in submarine_interface.
 	virtual bool fire_torpedo(class game& gm, int tubenr, sea_object* target,
 		const angle& manual_lead_angle,
 		unsigned pr=0, unsigned sr=0, unsigned it=0, unsigned sp=0);
