@@ -961,11 +961,34 @@ void menu_resolution(void)
 
 void configure_key(widget_list* wkeys)
 {
+	struct confkey_widget : public widget {
+		string curkeyname;
+		widget_text* keyname;
+		void on_char(const SDL_keysym& ks) {
+			curkeyname = SDL_GetKeyName(ks.sym);
+			bool ctrl = (ks.mod & (KMOD_LCTRL | KMOD_RCTRL)) != 0;
+			bool alt = (ks.mod & (KMOD_LALT | KMOD_RALT)) != 0;
+			bool shift = (ks.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) != 0;
+			if (shift) curkeyname = string("Shift + ") + curkeyname;
+			if (alt) curkeyname = string("Alt + ") + curkeyname;
+			if (ctrl) curkeyname = string("Ctrl + ") + curkeyname;
+			keyname->set_text(curkeyname);
+			if (ks.sym == SDLK_ESCAPE) close(0);
+			redraw();
+		}
+		confkey_widget(int x, int y, int w, int h, const string& text_, widget* parent_ = 0, const image* backgr = 0) :
+			widget(x, y, w, h, text_, parent_, backgr)
+			{
+				keyname = new widget_text(40, 80, 432, 40, "undefined");
+				add_child(keyname);
+				add_child(new widget_text(40, 120, 432, 40, texts::get(217)));
+			}
+		~confkey_widget() {}
+	};
 	//fixme: redefine widget to get key combination, draw current combination name
 	//overload on_char
-	widget w(256, 256, 512, 256, texts::get(216), 0, 0);
+	confkey_widget w(256, 256, 512, 256, texts::get(216), 0, 0);
 	w.add_child(new widget_text(40, 40, 432, 32, wkeys->get_selected_entry()));
-	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 40, 176, 432, 40, texts::get(117)));
 	w.run(0, true);
 }
 

@@ -141,6 +141,7 @@ void widget::align(int h, int v)
 
 void widget::draw(void) const
 {
+	redrawme = false;
 	vector2i p = get_pos();
 	draw_area(p.x, p.y, size.x, size.y, /*fixme: replace by property?*/true);
 	int fw = globaltheme->frame_size();
@@ -201,9 +202,16 @@ void widget::disable(void)
 	enabled = false;
 }
 
+void widget::redraw(void)
+{
+	redrawme = true;
+	if (parent) parent->redraw();
+}
+
 void widget::on_char(const SDL_keysym& ks)
 {
-	// just ignore it
+	// we can't handle it, so pass it to the parent
+	if (parent) parent->on_char(ks);
 }
 
 void widget::draw_frame(int x, int y, int w, int h, bool out)
@@ -334,12 +342,13 @@ int widget::run(unsigned timeout, bool do_stacking)
 	widgets.push_back(this);
 	class system& sys = system::sys();
 	unsigned endtime = sys.millisec() + timeout;
+	focussed = this;
 	while (!closeme) {
 		unsigned time = sys.millisec();
 		if (timeout != 0 && time > endtime) break;
-		
+
 		list<SDL_Event> events = sys.poll_event_queue();
-		if(inited && events.size() == 0) {
+		if (!redrawme && inited && events.size() == 0) {
 			SDL_Delay(50);
 			continue;
 		}

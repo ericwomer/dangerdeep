@@ -49,6 +49,7 @@ protected:
 	list<widget*> children;
 	int retval;
 	bool closeme;	// is set to true by close(), stops run() the next turn
+	mutable bool redrawme;	// is set to true by redraw(), cleared each time draw() is called
 	
 	widget();
 	widget(const widget& );
@@ -108,6 +109,7 @@ public:
 	virtual bool is_enabled(void) const;
 	virtual void enable(void);
 	virtual void disable(void);
+	virtual void redraw(void);
 
 	// called for every key in queue
 	virtual void on_char(const SDL_keysym& ks);
