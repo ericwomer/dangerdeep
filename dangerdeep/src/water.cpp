@@ -280,21 +280,38 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 	glDisable(GL_LIGHTING);
 
 	if (fragment_program_supported && use_fragment_programs) {
+		// use fragment programs
+
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, water_fragment_program);
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
-	}
+
+		// texture units / coordinates:
+		// tex0: noise map (color normals) / matching texcoords
+		// tex1: reflection map / matching texcoords
+		// tex2: --- / vector to viewer
+		glActiveTexture(GL_TEXTURE0);
+		//bind bump map texture, fixme
+		texture("/usr/local/share/dangerdeep/textures/bumpmapx.png").set_gl_texture();
+
+		// local parameters:
+		// local 0 : upwelling color
+		glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 0,
+					     1.0, 1.0, 0.0, 1.0);//fixme test
+	} else {
+		// standard code path, no fragment programs
 	
-	//tex0: get alpha from fresnelcolortex, just pass color from primary color
-	//tex1: interpolate between previous color and tex1 with previous alpha (fresnel)
-	glActiveTexture(GL_TEXTURE0);
-	fresnelcolortex->set_gl_texture();
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+		//tex0: get alpha from fresnelcolortex, just pass color from primary color
+		//tex1: interpolate between previous color and tex1 with previous alpha (fresnel)
+		glActiveTexture(GL_TEXTURE0);
+		fresnelcolortex->set_gl_texture();
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+	}
 
 	glActiveTexture(GL_TEXTURE1);
 	glEnable(GL_TEXTURE_2D);
@@ -307,18 +324,19 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 	reflection_projmvmat.multiply_gl();
 	glMatrixMode(GL_MODELVIEW);
 
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PREVIOUS);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_PREVIOUS);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);
-	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-
+	if (!(fragment_program_supported && use_fragment_programs)) {
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PREVIOUS);
+		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_PREVIOUS);
+		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);
+		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+	}
 /*
 	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
@@ -748,7 +766,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
 	glClientActiveTexture(GL_TEXTURE0);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &uv0[0]);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &uv0[0].x);
 	glClientActiveTexture(GL_TEXTURE1);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv1[0].x);
