@@ -1,5 +1,14 @@
 2003-04-05  Markus Petermann  <m.petermann@gmx.net>
 
+	* sea_object.h, airplane.h, depth_charge.h, convoy.h, game.cpp, gun_shell.h,
+	  sensors.h, sensors.cpp, ship.h, ship_interface.h, submarine.cpp,
+	  submarine.h, submarine_interface.cpp, torpedo.h, user_interface.h,
+	  user_interface.cpp:
+	  - Removed conversion methods. dynamic_cast are now used to verify the
+	    exact class of an object.
+
+2003-04-05  Markus Petermann  <m.petermann@gmx.net>
+
 	* game.cpp:
 	  - Passive sonar contacts are grouped and not more than 5 are displayed.
 	  - New method get_depth_factor introduced.
