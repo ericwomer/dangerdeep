@@ -514,7 +514,7 @@ void system::screenshot(void)
 	rmask = 0x000000ff;
 	gmask = 0x0000ff00;
 	bmask = 0x00ff0000;
-#endif	                                
+#endif
 	vector<Uint8> pic(res_x*res_y*3);
 	glReadPixels(0, 0, res_x, res_y, GL_RGB, GL_UNSIGNED_BYTE, &pic[0]);
 	// flip image vertically

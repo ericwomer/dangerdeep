@@ -1183,6 +1183,8 @@ int main(int argc, char** argv)
 	sys = new class system(1.0, 30000.0+500.0, res_x, fullscreen);
 	sys->set_res_2d(1024, 768);
 	sys->set_max_fps(60);
+
+	sys->set_screenshot_directory(savegamedirectory);
 	
 	sys->add_console("$ffffffDanger $c0c0c0from the $ffffffDeep");
 	sys->add_console("$ffff00copyright and written 2003 by $ff0000Thorsten Jordan");

@@ -74,6 +74,7 @@ public:
 	static system& sys(void) { return *instance; };
 	void myassert(bool cond, const string& msg = "");
 	
+	void set_screenshot_directory(const string& s) { screenshot_dir = s; }
 	void screenshot(void);
 
 	void draw_rectangle(int x, int y, int w, int h);
@@ -132,6 +133,7 @@ private:
 	double xscal_2d, yscal_2d;	// factors needed for 2d drawing
 	
 	int screenshot_nr;
+	string screenshot_dir;
 };
 
 #endif
