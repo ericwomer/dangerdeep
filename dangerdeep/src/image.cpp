@@ -86,6 +86,7 @@ image::image(const string& s) :
 	mem_used += add_mem_used;
 	mem_alloced += add_mem_used;
 	ostringstream oss; oss << "Allocated " << add_mem_used << " bytes of system memory for image '" << name << "', total image system mem use " << mem_used/1024 << " kb";
+	sys().add_console(oss.str());
 	ostringstream oss2; oss2 << "Image system mem usage " << mem_alloced << " vs " << mem_freed;
 	sys().add_console(oss2.str());
 }
