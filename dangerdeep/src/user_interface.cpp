@@ -291,21 +291,17 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	}
 
 	list<water_splash*> water_splashs;
-// Thorsten: the splash is always dark, why? GL_LIGHTING, glColor both don't change anything
-//	glDisable(GL_LIGHTING);
-//	glColor3f(1,1,1);
 	gm.visible_water_splashes ( water_splashs, player );
 	for ( list<water_splash*>::const_iterator it = water_splashs.begin ();
 		it != water_splashs.end (); it ++ )
 	{
-		angle view_dir = angle ( (*it)->get_pos ().xy () - viewpos.xy () );
+		double view_dir = 90.0f - angle ( (*it)->get_pos ().xy () - player->get_pos ().xy () ).value ();
 		glPushMatrix ();
 		glTranslatef ( (*it)->get_pos ().x, (*it)->get_pos ().y, (*it)->get_pos ().z );
-		glRotatef (90-direction.value(), 0.0f, 0.0f, 1.0f );
+		glRotatef ( view_dir, 0.0f, 0.0f, 1.0f );
 		(*it)->display ();
 		glPopMatrix ();
 	}
-//	glEnable(GL_LIGHTING);
 	
 	glColor3f(1,1,1);
 }
