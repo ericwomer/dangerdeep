@@ -99,12 +99,13 @@ void user_interface::init ()
 	system::sys()->myassert(wavedisplaylists != 0, "no more display list indices available");
 	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(0,1), 20, 0.000005, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
-		wavetileh[i] = owg.compute_heights(i*TIDECYCLE_TIME/WAVE_PHASES);
-		wavetilen[i] = owg.compute_normals(i*TIDECYCLE_TIME/WAVE_PHASES);
+		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
+		wavetileh[i] = owg.compute_heights();
+		wavetilen[i] = owg.compute_normals();
 		vector<float>& h = wavetileh[i];
 		vector<vector3f>& n = wavetilen[i];
 
-		vector<vector2f> d = owg.compute_displacements(i*TIDECYCLE_TIME/WAVE_PHASES);
+		vector<vector2f> d = owg.compute_displacements();
 /*
 		vector<vector3f> n2 = n;
 			// normals computed by heights.
@@ -184,7 +185,8 @@ void user_interface::init ()
 	// create water bump maps
 	ocean_wave_generator<float> owgb(64, vector2f(1,1), 1, 0.95, 4.0, WATER_BUMPMAP_CYCLE_TIME);
 	for (int i = 0; i < WATER_BUMP_FRAMES; ++i) {
-		vector<float> h = owgb.compute_heights(i*WATER_BUMPMAP_CYCLE_TIME/WATER_BUMP_FRAMES);
+		owgb.set_time(i*WATER_BUMPMAP_CYCLE_TIME/WATER_BUMP_FRAMES);
+		vector<float> h = owgb.compute_heights();
 		vector<Uint8> uh(h.size());
 		for (unsigned n = 0; n < h.size(); ++n)
 			uh[n] = Uint8((h[n] + 0.5)*255);
@@ -613,8 +615,9 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glEnd();
 
 	// draw waves
-//	glColor3f(0.1,0.2,0.5);
-	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());//0);
+	glColor3f(0.1,0.2,0.5);
+	glBindTexture(GL_TEXTURE_2D, 0);
+//	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
 	double timefac = myfmod(t, TIDECYCLE_TIME)/TIDECYCLE_TIME;
 	unsigned dl = wavedisplaylists + int(WAVE_PHASES*timefac);
 	for (int y = 0; y < WAVES_PER_AXIS; ++y) {

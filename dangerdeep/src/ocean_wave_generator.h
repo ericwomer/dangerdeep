@@ -41,6 +41,7 @@ class ocean_wave_generator
 	T Lm;		// tile size in m
 	T w0;		// cycle time
 	vector<complex<T> > h0tilde;
+	vector<complex<T> > htilde;	// holds values for one fix time.
 	
 	ocean_wave_generator& operator= (const ocean_wave_generator& );
 	ocean_wave_generator(const ocean_wave_generator& );
@@ -50,6 +51,7 @@ class ocean_wave_generator
 	complex<T> h0_tilde(const vector2t<T>& K) const;
 	void compute_h0tilde(void);
 	complex<T> h_tilde(const vector2t<T>& K, int kx, int ky, T time) const;
+	void compute_htilde(T time);
 	
 	FFT_COMPLEX_TYPE *fft_in, *fft_in2;	// can't be a vector, since the type is an array
 	FFT_REAL_TYPE *fft_out, *fft_out2;	// for sake of uniformity
@@ -60,13 +62,14 @@ public:
 		unsigned gridsize = 64,
 		const vector2t<T>& winddir = vector2t<T>(T(0.6), T(0.8)),
 		T windspeed = T(20.0),
-		T waveheight = T(0.0001),
+		T waveheight = T(0.0001),	// fixme: compute that automatically from Lm, etc.?
 		T tilesize = T(100.0),
 		T cycletime = T(10.0)
 	);
-	vector<T> compute_heights(T time) const;
-	vector<vector3t<T> > compute_normals(T time) const;
-	vector<vector2t<T> > compute_displacements(T time) const;
+	void set_time(T time);	// call this before any compute_*() function
+	vector<T> compute_heights(void) const;
+	vector<vector3t<T> > compute_normals(void) const;
+	vector<vector2t<T> > compute_displacements(void) const;
 	~ocean_wave_generator();
 };
 
@@ -113,15 +116,18 @@ T ocean_wave_generator<T>::phillips(const vector2t<T>& K) const
 template <class T>
 complex<T> ocean_wave_generator<T>::h0_tilde(const vector2t<T>& K) const
 {
-//in comparison to the water engine by ??? here some randomization is missing.
-//but this is like Tessendorff's paper it says.
-	return gaussrand() * (sqrt(T(0.5) * phillips(K)));
+	//in comparison to the water engine by ??? here some randomization is missing.
+	//there this complex number is multiplied with a random sinus value
+	//that means a random phase. But it doesn't seem to change the appearance much.
+	// T f = sin(2*M_PI*T(rand())/RAND_MAX);
+	return gaussrand() * (sqrt(T(0.5) * phillips(K)));	// * f
 }
 
 template <class T>
 void ocean_wave_generator<T>::compute_h0tilde(void)
 {
-	const T pi2 = T(2.0)*T(M_PI);
+//fixme: compute h0_tilde for all K's is not needed.
+	const T pi2 = T(2.0*M_PI);
 	for (int y = 0; y <= N; ++y) {
 		for (int x = 0; x <= N; ++x) {
 			vector2t<T> K(pi2*(x-N/2)/Lm, pi2*(y-N/2)/Lm);
@@ -145,6 +151,18 @@ complex<T> ocean_wave_generator<T>::h_tilde(const vector2t<T>& K, int kx, int ky
 }
 
 template <class T>
+void ocean_wave_generator<T>::compute_htilde(T time)
+{
+	const T pi2 = T(2.0*M_PI);
+	for (int y = 0; y <= N/2; ++y) {
+		for (int x = 0; x < N; ++x) {
+			vector2t<T> K(pi2*(x-N/2)/Lm, pi2*(y-N/2)/Lm);
+			htilde[y*N+x] = h_tilde(K, x, y, time);
+		}
+	}
+}
+
+template <class T>
 ocean_wave_generator<T>::ocean_wave_generator<T>(
 		unsigned gridsize,
 		const vector2t<T>& winddir,
@@ -157,6 +175,7 @@ ocean_wave_generator<T>::ocean_wave_generator<T>(
 {
 	h0tilde.resize((N+1)*(N+1));
 	compute_h0tilde();
+	htilde.resize(N*(N/2+1));
 	fft_in = new FFT_COMPLEX_TYPE[N*(N/2+1)];
 	fft_in2 = new FFT_COMPLEX_TYPE[N*(N/2+1)];
 	fft_out = new FFT_REAL_TYPE[N*N];
@@ -169,6 +188,7 @@ template <class T>
 ocean_wave_generator<T>::~ocean_wave_generator<T>()
 {
 	FFT_DELETE_PLAN(plan);
+	FFT_DELETE_PLAN(plan2);
 	delete[] fft_in;
 	delete[] fft_in2;
 	delete[] fft_out;
@@ -176,14 +196,17 @@ ocean_wave_generator<T>::~ocean_wave_generator<T>()
 }
 
 template <class T>
-vector<T> ocean_wave_generator<T>::compute_heights(T time) const
+void ocean_wave_generator<T>::set_time(T time)
 {
-	const T pi2 = T(2.0)*T(M_PI);
-//fixme: compute h0_tilde for all K's is not needed.
+	compute_htilde(time);
+}
+
+template <class T>
+vector<T> ocean_wave_generator<T>::compute_heights(void) const
+{
 	for (int y = 0; y <= N/2; ++y) {
 		for (int x = 0; x < N; ++x) {
-			vector2t<T> K(pi2*(x-N/2)/Lm, pi2*(y-N/2)/Lm);
-			complex<T> c = h_tilde(K, x, y, time);
+			const complex<T>& c = htilde[y*N+x];
 			int ptr = x*(N/2+1)+y;
 			fft_in[ptr][0] = c.real();
 			fft_in[ptr][1] = c.imag();
@@ -206,16 +229,16 @@ vector<T> ocean_wave_generator<T>::compute_heights(T time) const
 }
 
 template <class T>
-vector<vector3t<T> > ocean_wave_generator<T>::compute_normals(T time) const
+vector<vector3t<T> > ocean_wave_generator<T>::compute_normals(void) const
 {
 	// fixme: these normals differ from the finite normals by a significant
 	// amount, they seem to be too flat. taking 0.5 for z instead of 1 seems better,
-	// but still isn't right.
+	// but still isn't right. Maybe this difference is ok?
 	const T pi2 = T(2.0)*T(M_PI);
 	for (int y = 0; y <= N/2; ++y) {
 		for (int x = 0; x < N; ++x) {
+			const complex<T>& c = htilde[y*N+x];
 			vector2t<T> K(pi2*(x-N/2)/Lm, pi2*(y-N/2)/Lm);
-			complex<T> c = h_tilde(K, x, y, time);
 			int ptr = x*(N/2+1)+y;
 			fft_in[ptr][0] = -c.imag() * K.x;
 			fft_in[ptr][1] =  c.real() * K.x;
@@ -233,20 +256,19 @@ vector<vector3t<T> > ocean_wave_generator<T>::compute_normals(T time) const
 		for (int x = 0; x < N; ++x) {
 			int ptr = y*N+x;
 			T s = signs[(x + y) & 1];
-			wavenormals[ptr] = vector3f<T>(-fft_out[ptr] * s, -fft_out2[ptr] * s, T(0.5)).normal();
+			wavenormals[ptr] = vector3t<T>(-fft_out[ptr] * s, -fft_out2[ptr] * s, T(0.5)).normal();
 		}
 	}
 	return wavenormals;
 }
 
 template <class T>
-vector<vector2t<T> > ocean_wave_generator<T>::compute_displacements(T time) const
+vector<vector2t<T> > ocean_wave_generator<T>::compute_displacements(void) const
 {
-	const T pi2 = T(2.0)*T(M_PI);
 	for (int y = 0; y <= N/2; ++y) {
 		for (int x = 0; x < N; ++x) {
-			vector2t<T> K(pi2*(x-N/2)/Lm, pi2*(y-N/2)/Lm);
-			complex<T> c = h_tilde(K, x, y, time);
+			const complex<T>& c = htilde[y*N+x];
+			vector2t<T> K((x-N/2), (y-N/2));	// the factor 2*PI/Lm gets divided out later, so we don't need to multiply it.
 			T k = K.length();
 			vector2t<T> Kh;
 			if (k != 0)
@@ -266,12 +288,12 @@ vector<vector2t<T> > ocean_wave_generator<T>::compute_displacements(T time) cons
 	
 	vector<vector2t<T> > wavedisplacements(N*N);
 	T signs[2] = { T(1), T(-1) };	// this should be 1,-1 after the formula in the paper, but that would give wrong results
-	T chopfac = Lm / T(2*N);	// fixme should be Lm / (2 * n) but this looks better
+	T chopfac = Lm / T(2*N);	// fixme should be Lm / (2 * n)
 	for (int y = 0; y < N; ++y) {
 		for (int x = 0; x < N; ++x) {
 			int ptr = y*N+x;
 			T s = signs[(x + y) & 1];
-			wavedisplacements[ptr] = vector2f<T>(fft_out[ptr], fft_out2[ptr]) * (s * chopfac);
+			wavedisplacements[ptr] = vector2t<T>(fft_out[ptr], fft_out2[ptr]) * (s * chopfac);
 		}
 	}
 	return wavedisplacements;
