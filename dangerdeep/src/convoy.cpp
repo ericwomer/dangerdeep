@@ -170,3 +170,10 @@ void convoy::simulate(game& gm, double delta_time)
 	if (merchants.size() + warships.size() + escorts.size() == 0)
 		alive_stat = defunct;
 }
+
+void convoy::add_contact(const vector3& pos)	// fixme: simple, crude, ugly
+{
+	for (list<pair<ship*, vector2> >::iterator it = escorts.begin(); it != escorts.end(); ++it) {
+		it->first->get_ai()->attack_contact(pos);
+	}
+}

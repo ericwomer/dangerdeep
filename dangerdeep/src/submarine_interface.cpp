@@ -681,7 +681,9 @@ void submarine_interface::display_map(class system& sys, game& gm)
 			draw_vessel_symbol(sys, offset, player, color(255,255,128));
 		}
 
-	} else {	// sub is surfaced
+	} 
+//	else 	// enabled as testing hack
+	{	// sub is surfaced
 		// draw trails
 		for (map<sea_object*, list<vector2> >::iterator it = trails.begin(); it != trails.end(); ++it) {
 			if (it->second.size() > 0)

@@ -52,7 +52,7 @@ protected:
 	
 	double time;	// global time (in seconds since 1.1.1939, 0:0 hrs)
 	
-	enum weathers { sunny, clouded, raining, storm };
+	enum weathers { sunny, clouded, raining, storm };//fixme
 	double max_view_dist;	// maximum visibility according to weather conditions
 	
 	list<ping> pings;
@@ -84,7 +84,7 @@ public:
 	
 	// list<*> radardetected_ships(...);	// later!
 
-	list<vector2> convoy_positions(void) const;
+	list<vector2> convoy_positions(void) const;	// fixme
 	
 //	bool can_see(const sea_object* watcher, const submarine* sub) const;
 

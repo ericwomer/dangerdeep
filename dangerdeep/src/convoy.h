@@ -28,6 +28,7 @@ public:
 	convoy(class game& gm, parser& p);
 	virtual void simulate(class game& gm, double delta_time);
 	virtual void display(void) const {}
+	virtual void add_contact(const vector3& pos);
 };
 
 #endif

@@ -3,6 +3,7 @@
 
 #include "ai.h"
 #include "game.h"
+#include "convoy.h"
 
 void ai::relax(void)
 {
@@ -84,6 +85,7 @@ void ai::act_escort(game& gm, double delta_time)
 	if (nearest_contact) {	// is there a contact?
 		fire_shell_at(gm, *nearest_contact);
 		attack_contact(nearest_contact->get_pos());
+		if (myconvoy) myconvoy->add_contact(nearest_contact->get_pos());
 		parent->set_throttle(sea_object::aheadflank);
 		attackrun = true;
 	}
@@ -101,6 +103,7 @@ void ai::act_escort(game& gm, double delta_time)
 				parent->get_heading()+angle(rnd(360)));	//fixme
 			if (contacts.size() > 0) {
 				// fixme: choose best contact!
+				if (myconvoy) myconvoy->add_contact(contacts.front());
 				attack_contact(contacts.front());
 			}
 		}
@@ -118,6 +121,7 @@ void ai::act_escort(game& gm, double delta_time)
 			list<vector3> contacts = gm.ping_ASDIC(parent->get_pos().xy(), angle(delta));
 			if (contacts.size() > 0) {	// update contact
 				// fixme: choose best contact!
+				if (myconvoy) myconvoy->add_contact(contacts.front());
 				attack_contact(contacts.front());
 			}
 		} else {

@@ -28,6 +28,7 @@ protected:
 	bool attackrun;		// true when running full speed shortly before the attack
 	sea_object* parent;
 	sea_object* followme;
+	class convoy* myconvoy;	// convoy to which parent belongs (if any)
 	bool has_contact;
 	vector3 contact;	// position of target to attack
 	double remaining_time;	// time to next thought/situation analysis
@@ -45,6 +46,7 @@ public:
 	// time consumption peeks every AI_THINK_CYCLE_TIME seconds
 	ai(sea_object* parent_, types type_) : type(type_), state(followpath),
 		zigzagstate(0), parent(parent_), followme(0),
+		myconvoy(0),
 		has_contact(false),
 		remaining_time(rnd() * AI_THINK_CYCLE_TIME),
 		cyclewaypoints(false) {};
@@ -52,6 +54,7 @@ public:
 
 	void clear_waypoints(void) { waypoints.clear(); };
 	void add_waypoint(const vector2& wp) { waypoints.push_back(wp); };
+	void set_convoy(class convoy* cv) { myconvoy = cv; }
 
 	virtual void relax(void);	// follow path/object, remove contact info
 	virtual void attack_contact(const vector3& c);
