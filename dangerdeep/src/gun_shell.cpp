@@ -34,8 +34,11 @@ void gun_shell::simulate(game& gm, double delta_time)
 	position.y = launchPos.y + deltapos.y;
 
 	if (position.z <= 0) {
-		gm.gs_impact(position);
+		bool impact = gm.gs_impact(position);
 		kill();
+
+		if ( !impact )
+			gm.spawn_water_splash ( new water_splash ( position, water_splash::gun_shell ) );
 	}
 }
 
