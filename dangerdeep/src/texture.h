@@ -39,6 +39,7 @@ public:
 	
 	~texture();
 	unsigned get_opengl_name(void) const { return opengl_name; };
+	void set_gl_texture(void) const;
 	string get_name(void) const { return texfilename; };
 	unsigned get_width(void) const { return width; };
 	unsigned get_height(void) const { return height; };

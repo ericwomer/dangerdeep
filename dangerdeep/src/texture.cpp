@@ -179,6 +179,11 @@ texture::~texture()
 	glDeleteTextures(1, &tex_name);
 }
 
+void texture::set_gl_texture(void) const
+{
+	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
+}
+
 // draw_image
 void texture::draw_image(int x, int y) const
 {
