@@ -46,11 +46,15 @@ bool submarine::parse_attribute(parser& p)
 				switch (p.type()) {
 					case TKN_TXTNONE: torpedoes[i].status = stored_torpedo::st_empty; break;
 					case TKN_T1: torpedoes[i] = stored_torpedo(torpedo::T1); break;
+					case TKN_T2: torpedoes[i] = stored_torpedo(torpedo::T2); break;
 					case TKN_T3: torpedoes[i] = stored_torpedo(torpedo::T3); break;
+					case TKN_T3A: torpedoes[i] = stored_torpedo(torpedo::T3a); break;
+					case TKN_T4: torpedoes[i] = stored_torpedo(torpedo::T4); break;
 					case TKN_T5: torpedoes[i] = stored_torpedo(torpedo::T5); break;
+					case TKN_T11: torpedoes[i] = stored_torpedo(torpedo::T11); break;
+					case TKN_T1FAT: torpedoes[i] = stored_torpedo(torpedo::T1FAT); break;
 					case TKN_T3FAT: torpedoes[i] = stored_torpedo(torpedo::T3FAT); break;
 					case TKN_T6LUT: torpedoes[i] = stored_torpedo(torpedo::T6LUT); break;
-					case TKN_T11: torpedoes[i] = stored_torpedo(torpedo::T11); break;
 					default: p.error("Expected torpedo type");
 				}
 				p.consume();

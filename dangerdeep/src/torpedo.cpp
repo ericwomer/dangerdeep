@@ -145,7 +145,7 @@ void torpedo::simulate(game& gm, double delta_time)
 		return;
 	}
 
-	if (type == T1FAT || T3FAT || type == T6LUT) { // FAT and LUT
+	if (type == T1FAT || type == T3FAT || type == T6LUT) { // FAT and LUT
 		angle turnang(180);
 		if (type == T6LUT && searchpattern == 1) turnang = (initialturn == 0) ? angle(-90) : angle(90);
 		if (old_run_length < primaryrange && run_length >= primaryrange) {
