@@ -65,6 +65,7 @@ ai::ai(sea_object* parent_, types type_) : type(type_), state(followpath),
 	remaining_time(rnd() * AI_THINK_CYCLE_TIME),
 	cyclewaypoints(false)
 {
+	if (parent) parent->ref();
 	fill_dist_angle_relation_map();
 }
 
@@ -77,13 +78,21 @@ ai::ai(istream& in, class game& g)
 	evasive_manouver = read_bool(in);
 	rem_manouver_time = read_double(in);
 	parent = g.read_sea_object(in);
+	if (parent) parent->ref();
 	followme = g.read_sea_object(in);
+	if (followme) followme->ref();
 	myconvoy = g.read_convoy(in);
 	has_contact = read_bool(in);
 	contact.x = read_double(in);
 	contact.y = read_double(in);
 	contact.z = read_double(in);
 	remaining_time = read_double(in);
+}
+
+ai::~ai()
+{
+	if (parent) parent->unref();
+	if (followme) followme->unref();
 }
 
 void ai::save(ostream& out, const class game& g) const
@@ -94,8 +103,8 @@ void ai::save(ostream& out, const class game& g) const
 	write_bool(out, attackrun);
 	write_bool(out, evasive_manouver);
 	write_double(out, rem_manouver_time);
-	g.write(out, &(*parent));
-	g.write(out, &(*followme));
+	g.write(out, parent);
+	g.write(out, followme);
 	g.write(out, myconvoy);
 	write_bool(out, has_contact);
 	write_double(out, contact.x);
@@ -108,8 +117,8 @@ void ai::save(ostream& out, const class game& g) const
 void ai::relax(game& gm)
 {
 	has_contact = false;
-	state = (followme.is_null()) ? followpath : followobject;
-	gm.send(new command_set_throttle(&(*parent), sea_object::aheadsonar));
+	state = (followme) ? followobject : followpath;
+	gm.send(new command_set_throttle(parent, sea_object::aheadsonar));
 	attackrun = false;
 }
 
@@ -122,8 +131,8 @@ void ai::attack_contact(const vector3& c)
 
 void ai::follow(sea_object* t)
 {
-	followme = t;
-	state = (followme.is_null()) ? followpath : followobject;
+	sea_object::assign_ref(followme, t);
+	state = (followme) ? followobject : followpath;
 }
 
 void ai::act(class game& gm, double delta_time)
@@ -135,7 +144,7 @@ void ai::act(class game& gm, double delta_time)
 		remaining_time = AI_THINK_CYCLE_TIME * ( 0.75f + 0.25f * rnd ( 1 ) );
 	}
 	
-	if (parent.is_null()) return;
+	if (!parent) return;
 
 	switch (type) {
 		case escort: act_escort(gm, delta_time); break;
@@ -145,9 +154,9 @@ void ai::act(class game& gm, double delta_time)
 	
 	if (zigzagstate > 0) {	// this depends on ai type, convoys zigzag different! fixme
 		if (zigzagstate == 5)
-			gm.send(new command_rudder_left(&(*parent)));
+			gm.send(new command_rudder_left(parent));
 		else if (zigzagstate == 15)
-			gm.send(new command_rudder_right(&(*parent)));
+			gm.send(new command_rudder_right(parent));
 		++zigzagstate;
 		if (zigzagstate > 20)
 			zigzagstate = 1;
@@ -187,7 +196,7 @@ void ai::act_escort(game& gm, double delta_time)
 	double dist = 1e12;
 	submarine* nearest_contact = 0;
 	list<submarine*> subs;
-	gm.visible_submarines(subs, &(*parent));
+	gm.visible_submarines(subs, parent);
 	for (list<submarine*>::iterator it = subs.begin(); it != subs.end(); ++it) {
 		double d = (*it)->get_pos().xy().square_distance(parent->get_pos().xy());
 		if (d < dist) {
@@ -199,7 +208,7 @@ void ai::act_escort(game& gm, double delta_time)
 		fire_shell_at(gm, *nearest_contact);
 		attack_contact(nearest_contact->get_pos());
 		if (myconvoy) myconvoy->add_contact(nearest_contact->get_pos());
-		gm.send(new command_set_throttle(&(*parent), sea_object::aheadflank));
+		gm.send(new command_set_throttle(parent, sea_object::aheadflank));
 		attackrun = true;
 	}
 
@@ -208,13 +217,13 @@ void ai::act_escort(game& gm, double delta_time)
 	
 		// listen for subs
 		list<submarine*> hearable_subs;
-		gm.sonar_submarines(hearable_subs, &(*parent));
+		gm.sonar_submarines(hearable_subs, parent);
 		if (hearable_subs.size() > 0) {
 			attack_contact(hearable_subs.front()->get_pos());
 		} else {
 			// ping around to find something
 			list<vector3> contacts;
-			gm.ping_ASDIC(contacts, &(*parent), true);//fixme add command!!!!
+			gm.ping_ASDIC(contacts, parent, true);//fixme add command!!!!
 			if (contacts.size() > 0) {
 				// fixme: choose best contact!
 				if (myconvoy) myconvoy->add_contact(contacts.front());
@@ -240,7 +249,7 @@ void ai::act_escort(game& gm, double delta_time)
 		double cd = delta.length();
 		if (cd > DC_ATTACK_RUN_RADIUS && !attackrun) {
 			list<vector3> contacts;
-			gm.ping_ASDIC(contacts, &(*parent), false, angle(delta));//fixme add command
+			gm.ping_ASDIC(contacts, parent, false, angle(delta));//fixme add command
 			if (contacts.size() > 0) {	// update contact
 				// fixme: choose best contact!
 				if (myconvoy) myconvoy->add_contact(contacts.front());
@@ -248,7 +257,7 @@ void ai::act_escort(game& gm, double delta_time)
 			}
 			//set_zigzag((cd > 500 && cd < 2500));//fixme test hack, doesn't work
 		} else {
-			gm.send(new command_set_throttle(&(*parent), sea_object::aheadflank));
+			gm.send(new command_set_throttle(parent, sea_object::aheadflank));
 			attackrun = true;
 			//set_zigzag(false);//fixme test hack, doesn't work
 		}
@@ -268,7 +277,7 @@ void ai::act_escort(game& gm, double delta_time)
 
 void ai::act_dumb(game& gm, double delta_time)
 {
-	if (state == followobject && !followme.is_null()) {
+	if (state == followobject && followme) {
 		set_course_to_pos(gm, followme->get_pos().xy());
 	} else if (state == followpath) {
 		if (waypoints.size() > 0) {
@@ -365,20 +374,20 @@ bool ai::set_course_to_pos(game& gm, const vector2& pos)
 	double r2 = 1.0/parent->get_turn_rate().rad();
 	if (a <= 0) {	// target is behind us
 		if (b < 0) {	// target is left
-			gm.send(new command_head_to_ang(&(*parent), parent->get_heading() - angle(180), true));
+			gm.send(new command_head_to_ang(parent, parent->get_heading() - angle(180), true));
 		} else {
-			gm.send(new command_head_to_ang(&(*parent), parent->get_heading() + angle(180), false));
+			gm.send(new command_head_to_ang(parent, parent->get_heading() + angle(180), false));
 		}
 		return false;
 	} else if (r2 > r1) {	// target can not be reached with smallest curve possible
 		if (b < 0) {	// target is left
-			gm.send(new command_head_to_ang(&(*parent), parent->get_heading() + angle(180), false));
+			gm.send(new command_head_to_ang(parent, parent->get_heading() + angle(180), false));
 		} else {
-			gm.send(new command_head_to_ang(&(*parent), parent->get_heading() - angle(180), true));
+			gm.send(new command_head_to_ang(parent, parent->get_heading() - angle(180), true));
 		}
 		return false;
 	} else {	// target can be reached, steer curve
-		gm.send(new command_head_to_ang(&(*parent), angle::from_math(atan2(d.y, d.x)), (b < 0)));
+		gm.send(new command_head_to_ang(parent, angle::from_math(atan2(d.y, d.x)), (b < 0)));
 //	this code computes the curve that hits the target
 //	but it is much better to turn fast and then steam straight ahead.
 //	however, the straight path does not hit the target exactly, since the ship moves

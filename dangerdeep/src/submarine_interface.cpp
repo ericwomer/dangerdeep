@@ -57,14 +57,14 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 			case SDLK_4:
 			case SDLK_5:
 			case SDLK_6:
-				if (player->can_torpedo_be_launched(gm, keycode - SDLK_1, &(*target))) {
+				if (player->can_torpedo_be_launched(gm, keycode - SDLK_1, target)) {
 					add_message(texts::get(49));
 					ostringstream oss;
 					oss << texts::get(49);
 					if (!target.is_null())
 						oss << " " << texts::get(6) << ": " << target->get_description ( 2 );
 					add_captains_log_entry( gm, oss.str () );
-					gm.send(new command_launch_torpedo(&(*player), keycode - SDLK_1, &(*target)));
+					gm.send(new command_launch_torpedo(player, keycode - SDLK_1, target));
 					play_sound_effect ( se_submarine_torpedo_launch );
 				}
 				break;
@@ -190,14 +190,14 @@ bool submarine_interface::keyboard_common(int keycode, class game& gm)
 
 			// weapons, fixme
 			case SDLK_t:
-				if (player->can_torpedo_be_launched(gm, -1, &(*target))) {
+				if (player->can_torpedo_be_launched(gm, -1, target)) {
 					add_message(texts::get(49));
 					ostringstream oss;
 					oss << texts::get(49);
 					if (!target.is_null())
 						oss << " " << texts::get(6) << ": " << target->get_description ( 2 );
 					add_captains_log_entry( gm, oss.str () );
-					gm.send(new command_launch_torpedo(player, -1, &(*target)));
+					gm.send(new command_launch_torpedo(player, -1, target));
 					play_sound_effect ( se_submarine_torpedo_launch );
 				}
 				break;
@@ -380,7 +380,7 @@ void submarine_interface::display_periscope(game& gm)
 	angle targetspeed;
 	angle targetheading;
 	if (!target.is_null()) {
-		pair<angle, double> br = player->bearing_and_range_to(&(*target));
+		pair<angle, double> br = player->bearing_and_range_to(target);
 		targetbearing = br.first;
 		targetaob = player->estimate_angle_on_the_bow(br.first, target->get_heading());
 		unsigned r = unsigned(round(br.second));

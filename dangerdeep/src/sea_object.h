@@ -39,28 +39,6 @@ public:
 	static void meters2degrees(double x, double y, bool& west, unsigned& degx, unsigned& minx, bool& south,
 		unsigned& degy, unsigned& miny);
 
-	class ref {
-		friend class sea_object;
-		sea_object* myobj;
-	public:
-		ref() : myobj(0) {}
-		ref(sea_object* obj) : myobj(0) { if (obj) obj->register_ref(*this); }
-		~ref() { if (myobj) myobj->unregister_ref(*this); }
-		ref& operator= (const ref& other) {
-			if (this != &other) {
-				if (myobj) myobj->unregister_ref(*this);
-				if (other.myobj) other.myobj->register_ref(*this);
-			}
-			return *this;
-		}
-		ref(const ref& other) : myobj(0) { if (other.myobj) other.myobj->register_ref(*this); }
-		sea_object& operator* () const { return *myobj; }
-		sea_object* operator-> () const { return myobj; }
-		bool is_null(void) const { return myobj == 0; }
-	};
-
-	friend class ref;
-
 protected:
 	string specfilename;	// filename for specification .xml file, read from spec file
 
@@ -75,8 +53,7 @@ protected:
 	double length, width;	// computed from model, indirect read from spec file
 	
 	// an object is alive until it is killed.
-	// references to it will get deleted when it is killed.
-	// any object can set to disfunctional status (defunct) (all references will get deleted).
+	// any object can set to disfunctional status (defunct).
 	alive_status alive_stat;
 
 	// Sensor systems, created after data in spec file
@@ -84,13 +61,13 @@ protected:
 	
 	string descr_near, descr_medium, descr_far;	// read from spec file
 
-	// reference handling
-	list<ref*> references;
+	// reference counting
+	unsigned ref_count;
+	void ref(void);
+	void unref(void);
+	static void check_ref(sea_object*& myref);
+	static void assign_ref(sea_object*& dst, sea_object* src);
 	
-	void register_ref(ref& myref);
-	void unregister_ref(ref& myref);
-	void remove_all_references(void);
-
 	sea_object();
 	sea_object& operator=(const sea_object& other);
 	sea_object(const sea_object& other);

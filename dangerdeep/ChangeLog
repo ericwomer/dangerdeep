@@ -1,3 +1,7 @@
+2004-06-20  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* replaced reference class by sea_object reference counting.
+	  use assign_ref and check_ref to manage references.
+
 2004-06-19  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* BIG internal change: sea_object and heirs
 	  - sea_object contained many things that are right for ships but not for

@@ -39,7 +39,7 @@ void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, 
 // some heirs need this empty c'tor
 sea_object::sea_object() : speed(0), max_speed(0), max_rev_speed(0), throttle(stop),
 	acceleration(0), permanent_turn(false), head_chg(0), rudder(0), length(0), width(0),
-	alive_stat(alive)
+	alive_stat(alive), ref_count(0)
 {
 	sensors.resize ( last_sensor_system );
 }
@@ -48,7 +48,7 @@ sea_object::sea_object() : speed(0), max_speed(0), max_rev_speed(0), throttle(st
 
 sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
 	speed(0.0), throttle(stop), permanent_turn(false), head_chg(0.0), rudder(ruddermid),
-	head_to(0.0), alive_stat(alive)
+	head_to(0.0), alive_stat(alive), ref_count(0)
 {
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdobj = hspec.FirstChild(topnodename);
@@ -116,7 +116,7 @@ sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
 
 sea_object::~sea_object()
 {
-	remove_all_references();
+	system::sys().myassert(ref_count == 0, "sea_object : trying to delete object although references still exist");
 	modelcache.unref(modelname);
 	for (unsigned i = 0; i < sensors.size(); i++)
 		delete sensors[i];
@@ -393,7 +393,6 @@ unsigned sea_object::calc_damage(void) const
 void sea_object::kill(void)
 {
 	alive_stat = dead;
-	remove_all_references();
 }
 
 
@@ -401,7 +400,6 @@ void sea_object::kill(void)
 void sea_object::destroy(void)
 {
 	alive_stat = defunct;
-	remove_all_references();
 }
 
 
@@ -415,42 +413,39 @@ void sea_object::head_to_ang(const angle& a, bool left_or_right)	// true == left
 
 
 
-void sea_object::register_ref(sea_object::ref& myref)
+void sea_object::ref(void)
 {
-#if 1
-	// check for double ref's
-	for (list<ref*>::iterator it = references.begin(); it != references.end(); ++it) {
-		if (*it == &myref) {
-			system::sys().myassert(false, "sea_object::register_ref : reference is already stored!");
-		}
-	}
-#endif
-	references.push_front(&myref);
-	myref.myobj = this;
+	++ref_count;
 }
 
 
 
-void sea_object::unregister_ref(sea_object::ref& myref)
+void sea_object::unref(void)
 {
-	for (list<ref*>::iterator it = references.begin(); it != references.end(); ++it) {
-		if (*it == &myref) {
-			myref.myobj = 0;
-			references.erase(it);
-			return;
-		}
-	}
-	system::sys().myassert(false, "sea_object::unregister_ref : reference is not found!");
+	system::sys().myassert(ref_count > 0, "sea_object::unref() reference count already zero!");
+	--ref_count;
+	//if (ref_count == 0) delete this;	// fixme: maybe senseful
 }
 
 
 
-void sea_object::remove_all_references(void)
+void sea_object::check_ref(sea_object*& myref)
 {
-	for (list<ref*>::iterator it = references.begin(); it != references.end(); ++it) {
-		(*it)->myobj = 0;
+	if (myref) {
+		if (myref->is_defunct()) {
+			myref->unref();
+			myref = 0;
+		}
 	}
-	references.clear();
+}
+
+
+
+void sea_object::assign_ref(sea_object*& dst, sea_object* src)
+{
+	if (src) src->ref();
+	if (dst) dst->unref();
+	dst = src;
 }
 
 

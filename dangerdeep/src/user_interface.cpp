@@ -1363,7 +1363,7 @@ sound* user_interface::get_sound_effect ( sound_effect se ) const
 			break;
 		case se_torpedo_detonation:
 			{
-				submarine* sub = dynamic_cast<submarine*>( &(*player_object) );
+				submarine* sub = dynamic_cast<submarine*>( player_object );
 
 				if ( sub && sub->is_submerged () )
 				{
