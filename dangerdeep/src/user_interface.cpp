@@ -1140,9 +1140,12 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 
 	// fixme: texture coords for unit 1 are missing. this is why sky display fails.
 	glActiveTexture(GL_TEXTURE1);
+	glDisable(GL_TEXTURE_2D);
+/*
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, sunglow->get_opengl_name());
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+*/
 /*
 	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);

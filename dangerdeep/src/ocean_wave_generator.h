@@ -103,6 +103,7 @@ T ocean_wave_generator<T>::phillips(const vector2t<T>& K) const
 	T g2 = GRAVITY * GRAVITY;
 	// note: Khat = K.normal() * W should be taken, but we use K
 	// and divide |K * W|^2 by |K|^2 = k2 later.
+	// note: a greater exponent could be used (e.g. 6) to align waves even more to the wind
 	T KdotW = K * W;
 	T KdotWhat = KdotW*KdotW/k2;
 	T eterm = exp(-g2 / (k2 * v4)) / k4;
@@ -206,7 +207,7 @@ void ocean_wave_generator<T>::set_time(T time)
 template <class T>
 vector<T> ocean_wave_generator<T>::compute_heights(void) const
 {
-	// this loop is a bit overhead, we could store htilde already a fft_complex array
+	// this loop is a bit overhead, we could store htilde already in a fft_complex array
 	// then we must transpose it, fftw has x*(N/2+1)+y, we use y*N+x
 	// this overhead shouldn't matter.
 	for (int y = 0; y <= N/2; ++y) {
