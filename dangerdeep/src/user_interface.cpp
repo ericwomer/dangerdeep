@@ -35,7 +35,6 @@
 #include "sky.h"
 #include "water.h"
 #include "matrix4.h"
-#include "parser.h"
 using namespace std;
 
 #define MAX_PANEL_SIZE 256
@@ -951,8 +950,8 @@ void user_interface::display_map(game& gm)
 	double max_view_dist = gm.get_max_view_distance();
 
 	vector2 offset = player->get_pos().xy() + mapoffset;
-unsigned detl = 0xffffff;	// fixme: remove, lod test hack
-if (mb&2) detl = my*10/384;
+//unsigned detl = 0xffffff;	// fixme: remove, lod test hack
+//if (mb&2) detl = my*10/384;
 
 	sys.prepare_2d_drawing();
 
@@ -985,7 +984,7 @@ if (mb&2) detl = my*10/384;
 	glScalef(mapzoom, mapzoom, 1);
 	glScalef(1,-1,1);
 	glTranslatef(-offset.x, -offset.y, 0);
-	mycoastmap.draw_as_map(offset, mapzoom, detl);
+	mycoastmap.draw_as_map(offset, mapzoom);//, detl);
 	glPopMatrix();
 	sys.no_tex();
 

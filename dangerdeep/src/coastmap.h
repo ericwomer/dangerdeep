@@ -19,7 +19,7 @@ struct coastline
 {
 	bsplinet<vector2f, float> curve;	// points in map coordinates (meters)
 
-	bool cyclic;		// is cyclic, that means an island?
+	bool cyclic;		// is cyclic, that means an island?, fixme: do we need that?
 	
 	coastline(int n, const vector<vector2f>& p, bool cyclic_) : curve(n, p), cyclic(cyclic_) {}
 	~coastline() {}
@@ -28,14 +28,10 @@ struct coastline
 
 	// create vector of real points, detail can be > 0 (additional detail with bspline
 	// interpolation) or even < 0 (reduced detail)
-	// create points between begint and endt with 0<=t<points.size()
-	vector<vector2f> create_points(unsigned begint, unsigned endt, int detail = 0) const;
-	//fixme: obsolete.
-	void draw_as_map(int detail = 0) const;
-	// possibly obsolete.fixme
-	void render(const vector2& p, int detail = 0) const;
+	// create points between begint and endt with 0<=t<=1
+	// new points are appended on vector "points"
+	void create_points(vector<vector2f>& points, float begint, float endt, int detail = 0) const;
 };
-
 
 
 
@@ -43,14 +39,14 @@ struct coastsegment
 {
 	struct segcl
 	{
-		unsigned mapclnr;
-		unsigned begint, endt;
-		vector2f beginp, endp;
-		int beginborder;// 0-3, top,right,bottom,left of segment (clockwise), -1 = (part of an) island
-		int endborder;	// dito
+		unsigned mapclnr;	// pointer to coastmap::coastlines, global cl number
+		float begint, endt;
+		vector2f beginp, endp;	// do we need that? use coastlines[mapclnr].curve.value(begint) instead...? fixme
+		int beginborder;// 0-3, top,right,bottom,left of segment, -1 = (part of an) island
+		int endborder;	// dito, fixme do we need that?
 		bool cyclic;
-		//int next;
-		segcl(unsigned n, unsigned s, unsigned e) : mapclnr(n), begint(s), endt(e) {}
+		int next;
+		//segcl(unsigned n, unsigned s, unsigned e) : mapclnr(n), begint(s), endt(e) {}
 	};
 
 	unsigned type;	// 0 - sea, 1 - land, 2 mixed
@@ -58,7 +54,7 @@ struct coastsegment
 
 	// cache generated points.
 	struct cacheentry {
-		vector<vector2f> points;
+		vector<vector2f> points;	// that is a 2d mesh.
 		vector<unsigned> indices;
 		cacheentry() {}
 		~cacheentry() {}
@@ -66,13 +62,13 @@ struct coastsegment
 		cacheentry& operator=(const cacheentry& c) { points = c.points; indices = c.indices; return *this; }
 		void push_back_point(const vector2f& p);	// avoids double points.
 	};
-	unsigned pointcachedetail;
-	vector<cacheentry> pointcache;
+	mutable unsigned pointcachedetail;
+	mutable vector<cacheentry> pointcache;
 	// check if cache needs to be (re)generated, and do that
-	void generate_point_cache(double size/*what is size?fixme*/, unsigned detail);
+	void generate_point_cache(const class coastmap& cm, const vector2f& roff, unsigned detail) const;
 
 	static float dist_to_corner(int b, const vector2f& p, float segw);
-	float compute_border_dist(int b0, const vector2f& p0, int b1, const vector2f& p1, float segw);
+	float compute_border_dist(int b0, const vector2f& p0, int b1, const vector2f& p1, float segw) const;
 
 	unsigned get_successor_for_cl(unsigned cln, float segw) const;
 
@@ -81,15 +77,16 @@ struct coastsegment
 	coastsegment(const coastsegment& o) : type(o.type), segcls(o.segcls), pointcachedetail(o.pointcachedetail), pointcache(o.pointcache) {}
 	coastsegment& operator= (const coastsegment& o) { type = o.type; segcls = o.segcls; pointcachedetail = o.pointcachedetail; pointcache = o.pointcache; return *this; }
 	
-	void draw_as_map(int x, int y, int detail = 0) const;
+	void draw_as_map(const class coastmap& cm, int x, int y, const vector2f& roff, int detail = 0) const;
 	void render(const vector2& p, int detail = 0) const;
 };
 
 
 
-
 class coastmap
 {
+	friend class coastsegment;	// just request some values
+
 	// some attributes used for map reading/processing
 	vector<Uint8> themap;		// pixel data of map file
 	double segw;			// real width of a segment
@@ -101,8 +98,9 @@ class coastmap
 	unsigned pixels_per_seg;	// "n"
 	unsigned mapw, maph;		// map width/height in pixels.
 	unsigned segsx, segsy;		// nr of segs in x/y dimensions
-	double realwidth;		// width of map in reality (meters)
+	double realwidth, realheight;	// width/height of map in reality (meters)
 	double pixelw_real;		// width/height of one pixel in reality, in meters
+	double segw_real;		// width/height of one segment in reality, in meters
 	vector2 realoffset;		// offset in meters for map (position of pixel pos 0,0)
 	vector<coastsegment> coastsegments;
 	vector<coastline> coastlines;

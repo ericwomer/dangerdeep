@@ -64,8 +64,10 @@ public:
 	bsplinet& operator= (const bsplinet& o) { n = o.n; cp = o.cp; tvec = o.tvec; return *this; }
 
 	~bsplinet() {}
+
+	const vector<T> control_points(void) const { return cp; }
 	
-	T value(const U& t) {
+	T value(const U& t) const {
 		assert (0 <= t && t <= 1);
 
 		int l = find_l(t);
