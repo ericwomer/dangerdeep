@@ -10,7 +10,7 @@
 
 // fixme: type T XI has same image as empty tube -> bug!
 
-torpedo::torpedo(sea_object* parent, unsigned type_, bool usebowtubes,
+torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, angle headto_,
 	unsigned pr, unsigned sr, unsigned it, unsigned sp) : sea_object()
 {
 	type = type_;
@@ -24,7 +24,7 @@ torpedo::torpedo(sea_object* parent, unsigned type_, bool usebowtubes,
 	vector2 dp = heading.direction() * (parent->get_length()/2 + 3.5);
 	position.x += dp.x;
 	position.y += dp.y;
-	head_to = heading;
+	head_to_ang(headto_, !heading.is_cw_nearer(headto_));
 	turn_rate = 1.0f;	// most submarine simulations seem to ignore this
 			// launching a torpedo will cause it to run in target direction
 			// immidiately instead of turning there from the sub's heading
@@ -32,34 +32,26 @@ torpedo::torpedo(sea_object* parent, unsigned type_, bool usebowtubes,
 	length = 7;
 	width = 1.066;
 	run_length = 0;
+	max_speed = speed = get_speed_by_type(type_);
+	max_rev_speed = 0;
 	switch (type_) {
 		case T1:
-			max_speed = speed = kts2ms(30);
-			max_rev_speed = 0;
 			max_run_length = 14000;
 			influencefuse = false;
 			break;
 		case T2:
-			max_speed = speed = kts2ms(30);
-			max_rev_speed = 0;
 			max_run_length = 5000;
 			influencefuse = false;
 			break;
 		case T3:
-			max_speed = speed = kts2ms(30);
-			max_rev_speed = 0;
 			max_run_length = 5000;
 			influencefuse = true;
 			break;
 		case T3a:
-			max_speed = speed = kts2ms(30);
-			max_rev_speed = 0;
 			max_run_length = 7500;
 			influencefuse = true;
 			break;
 		case T4:
-			max_speed = speed = kts2ms(20);
-			max_rev_speed = 0;
 			max_run_length = 7500;
 			// fixme: Falke sensor
 			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
@@ -67,36 +59,26 @@ torpedo::torpedo(sea_object* parent, unsigned type_, bool usebowtubes,
 			influencefuse = true;
 			break;
 		case T5:
-			max_speed = speed = kts2ms(24);
-			max_rev_speed = 0;
 			max_run_length = 5700;
 			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
 				passive_sonar_sensor::passive_sonar_type_tt_t5 ) );
 			influencefuse = true;
 			break;
 		case T11:
-			max_speed = speed = kts2ms(24);
-			max_rev_speed = 0;
 			max_run_length = 5700;
 			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
 				passive_sonar_sensor::passive_sonar_type_tt_t11 ) );
 			influencefuse = true;
 			break;
 		case T1FAT:
-			max_speed = speed = kts2ms(30);
-			max_rev_speed = 0;
 			max_run_length = 14000;
 			influencefuse = false;
 			break;
 		case T3FAT:
-			max_speed = speed = kts2ms(30);
-			max_rev_speed = 0;
 			max_run_length = 7500;
 			influencefuse = true;
 			break;
 		case T6LUT:
-			max_speed = speed = kts2ms(30);
-			max_rev_speed = 0;
 			max_run_length = 7500;
 			influencefuse = true;
 			break;
@@ -110,7 +92,7 @@ void torpedo::load(istream& in, class game& g)
 	sea_object::load(in, g);
 	run_length = read_double(in);
 	max_run_length = read_double(in);
-	type = read_u8(in);
+	type = (torpedo::types)(read_u8(in));
 	influencefuse = read_bool(in);
 	primaryrange = read_u16(in);
 	secondaryrange = read_u16(in);
@@ -123,7 +105,7 @@ void torpedo::save(ostream& out, const class game& g) const
 	sea_object::save(out, g);
 	write_double(out, run_length);
 	write_double(out, max_run_length);
-	write_u8(out, type);
+	write_u8(out, unsigned(type));
 	write_bool(out, influencefuse);
 	write_u16(out, primaryrange);
 	write_u16(out, secondaryrange);
@@ -190,49 +172,42 @@ void torpedo::display(void) const
 	torpedo_g7->display();
 }
 
-pair<angle, bool> torpedo::lead_angle(double target_speed, angle angle_on_the_bow) const
+pair<angle, bool> torpedo::lead_angle(torpedo::types torptype, double target_speed, angle angle_on_the_bow)
 {
-	double sla = target_speed*angle_on_the_bow.sin()/speed;
+	double sla = target_speed*angle_on_the_bow.sin()/get_speed_by_type(torptype);
 	if (fabs(sla) >= 1.0) return make_pair(angle(), false);
 	return make_pair(angle::from_rad(asin(sla)), true);
 }
 
-double torpedo::expected_run_time(angle lead_angle,
-	angle angle_on_the_bow, double target_range) const
+double torpedo::expected_run_time(torpedo::types torptype, angle lead_angle,
+	angle angle_on_the_bow, double target_range)
 {
 	angle ang = angle(180) - angle_on_the_bow - lead_angle;
-	return (angle_on_the_bow.sin() * target_range) / (speed * ang.sin());
+	return (angle_on_the_bow.sin() * target_range) / (get_speed_by_type(torptype) * ang.sin());
 }
 
-//#include <sstream>
-bool torpedo::adjust_head_to(const sea_object* parent, const sea_object* target, bool usebowtubes,
-	const angle& manual_lead_angle)
+pair<angle, bool> torpedo::compute_launch_data(torpedo::types torptype, const sea_object* parent,
+	const sea_object* target, bool usebowtubes, const angle& manual_lead_angle)
 {
 	pair<angle, double> br = parent->bearing_and_range_to(target);
 	angle ab = parent->estimate_angle_on_the_bow(br.first, target->get_heading());
-	pair<angle, bool> la = lead_angle(target->get_speed(), ab);
+	pair<angle, bool> la = lead_angle(torptype, target->get_speed(), ab);
 	if (la.second) {
 		angle gyro_angle = br.first - parent->get_heading() + la.first +
 			manual_lead_angle;
 		angle headto = parent->get_heading() + gyro_angle;
-//ostringstream os;
-//	os << "lead angle " << la.first.value() << " gyro angle " << gyro_angle.value() << ", trp head to " << headto.value()
-//	<< ", expected run time " << expected_run_time(la.first, ab, br.second);
-//	system::sys().add_console(os.str());
 		double fga = fabs(gyro_angle.value_pm180());
 		if (usebowtubes) {
 			if (fga <= 90) {
-				head_to_ang(headto, gyro_angle.value_pm180() < 0);
-				return true;
+				return make_pair(headto, true);
 			}
 		} else {	// stern tubes
 			if (fga >= 90) {
-				head_to_ang(headto, gyro_angle.value_pm180() > 0);
-				return true;
+				return make_pair(headto, true);
 			}
 		}
 	}
-	return false;
+	return make_pair(0, false);
 }
 
 void torpedo::create_sensor_array ( types t )
@@ -252,6 +227,26 @@ void torpedo::create_sensor_array ( types t )
 				passive_sonar_sensor::passive_sonar_type_tt_t11 ) );
 			break;
 	}
+}
+
+double torpedo::get_speed_by_type(types t)
+{
+	switch (t) {
+		case T1:
+		case T2:
+		case T3:
+		case T3a:
+		case T1FAT:
+		case T3FAT:
+		case T6LUT:
+			return kts2ms(30);
+		case T4:
+			return kts2ms(20);
+		case T5:
+		case T11:
+			return kts2ms(24);
+	}
+	return 0;
 }
 
 unsigned torpedo::get_hit_points () const	// awful, useless, replace, fixme

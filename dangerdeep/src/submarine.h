@@ -17,14 +17,14 @@ class submarine : public ship
 public:
 	struct stored_torpedo {
 		enum st_status { st_empty, st_reloading, st_unloading, st_loaded };
-		unsigned type;
+		torpedo::types type;
 		st_status status;	// 0 empty 1 reloading 2 unloading 3 loaded
 		unsigned associated;	// reloading from/unloading to
 		double remaining_time;	// remaining time until work is finished
-		stored_torpedo() : type(0), status(st_empty), associated(0), remaining_time(0) {}
-		stored_torpedo(unsigned t) : type(t), status(st_loaded), associated(0), remaining_time(0) {}
-		stored_torpedo(istream& in) { type = read_u8(in); status = st_status(read_u8(in)); associated = read_u8(in); remaining_time = read_double(in); }
-		void save(ostream& out) const { write_u8(out, type); write_u8(out, status); write_u8(out, associated); write_double(out, remaining_time); }
+		stored_torpedo() : type(torpedo::none), status(st_empty), associated(0), remaining_time(0) {}
+		stored_torpedo(torpedo::types t) : type(t), status(st_loaded), associated(0), remaining_time(0) {}
+		stored_torpedo(istream& in) { type = (torpedo::types)(read_u8(in)); status = st_status(read_u8(in)); associated = read_u8(in); remaining_time = read_double(in); }
+		void save(ostream& out) const { write_u8(out, unsigned(type)); write_u8(out, status); write_u8(out, associated); write_double(out, remaining_time); }
 	};
 
 	// submarine parts and their damages
@@ -248,6 +248,9 @@ public:
 	virtual double get_bow_deck_reload_time(void) const = 0;
 	virtual double get_stern_deck_reload_time(void) const = 0;
 	virtual double get_bow_stern_deck_transfer_time(void) const = 0;
+	
+	// give tubenr -1 for any loaded tube, or else 0-5
+	virtual bool can_torpedo_be_launched(class game& gm, int tubenr, sea_object* target) const;
 
 	// damage is added if dc damages sub. - fixme: this must be send over net somehow. or send a "damage part x with amount y" command instead?
 	virtual void depth_charge_explosion(const class depth_charge& dc);
@@ -269,12 +272,7 @@ public:
 	virtual void set_trp_initialturn(unsigned x) { trp_initialturn = x; }
 	virtual void set_trp_searchpattern(unsigned x) { trp_searchpattern = x; }
 	virtual void set_trp_addleadangle(angle x) { trp_addleadangle = x; }
-	// give tubenr -1 for any loaded tube, or else 0-5,
-	// and FAT values as index (primary & secondary range, initial turn, seach pattern)
-	// fixme: it would make more sense to store these values in this class rather than
-	// in submarine_interface.
-	// fixme: split in function and command: "can be fired?" and "fire"
-	virtual bool fire_torpedo(class game& gm, int tubenr, sea_object* target);
+	virtual void launch_torpedo(class game& gm, int tubenr, sea_object* target); // give tubenr -1 for any loaded tube, or else 0-5
 };
 
 #endif

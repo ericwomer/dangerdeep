@@ -349,7 +349,7 @@ void submarine::simulate(class game& gm, double delta_time)
 		}
 	}
 
-	// automatic reloading if desired, fixed: move to fire_torpedo
+	// automatic reloading if desired, fixed: move to fire_torpedo.
 	if (false /*true*/ /*automatic_reloading*/) {
 		pair<unsigned, unsigned> bow_tube_indices = get_bow_tube_indices();
 		pair<unsigned, unsigned> stern_tube_indices = get_stern_tube_indices();
@@ -559,78 +559,44 @@ void submarine::dive_to_depth(unsigned meters)
 	dive_speed = (dive_to < position.z) ? -max_dive_speed : max_dive_speed;
 }
 
-bool submarine::fire_torpedo(class game& gm, int tubenr, sea_object* target)
+// mostly the same code as launch_torpedo. cut & paste is ugly, but sometimes unavoidable.
+bool submarine::can_torpedo_be_launched(class game& gm, int tubenr, sea_object* target) const
 {
-	pair<unsigned, unsigned> bow_tube_indices = get_bow_tube_indices();
-	pair<unsigned, unsigned> stern_tube_indices = get_stern_tube_indices();
+	if (target == 0) return false;	// maybe assert this?
+	if (target == this) return false;  // maybe assert this?
+	
+	bool usebowtubes = false;
 
-	bool usebowtubes = true;
-	if (tubenr < 0) {
-		if (target != 0) {
-			angle a = angle(target->get_pos().xy() - get_pos().xy())
-				- get_heading() + trp_addleadangle;
-			if (a.ui_abs_value180() > 90)
-				usebowtubes = false;
+	// if tubenr is < 0, choose a tube
+	if (tubenr < 0) {	// check if target is behind
+		angle a = angle(target->get_pos().xy() - get_pos().xy())
+			- get_heading() + trp_addleadangle;
+		usebowtubes = (a.ui_abs_value180() <= 90.0);
+		// search for a filled tube
+		pair<unsigned, unsigned> idx = usebowtubes ? get_bow_tube_indices() : get_stern_tube_indices();
+		for (unsigned i = idx.first; i < idx.second; ++i) {
+			if (torpedoes[i].status == stored_torpedo::st_loaded) {
+				tubenr = int(i);
+				break;
+			}
 		}
-	} else {
-		if (tubenr >= bow_tube_indices.first && tubenr < bow_tube_indices.second) {
-			tubenr -= bow_tube_indices.first;
+		if (tubenr < 0) return false;	// no torpedo found
+	} else {	// check if tube nr is bow or stern
+		unsigned tn = unsigned(tubenr);
+		pair<unsigned, unsigned> idx = get_bow_tube_indices();
+		if (tn >= idx.first && tn < idx.second) {
 			usebowtubes = true;
-		} else if (tubenr >= stern_tube_indices.first && tubenr < stern_tube_indices.second) {
-			tubenr -= stern_tube_indices.first;
-			usebowtubes = false;
 		} else {
-			return false;	// illegal tube nr
+			idx = get_stern_tube_indices();
+			if (tn < idx.first || tn >= idx.second)
+				return false;	// illegal tube nr.
 		}
 	}
 
-	unsigned torpnr = 0xffff;	// some high illegal value
-	if (tubenr < 0) {
-		if (usebowtubes) {
-			for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
-				if (torpedoes[i].status == stored_torpedo::st_loaded) {
-					torpnr = i;
-					break;
-				}
-			}
-		} else {
-			for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
-				if (torpedoes[i].status == stored_torpedo::st_loaded) {
-					torpnr = i;
-					break;
-				}
-			}
-		}
-	} else {
-		unsigned d = (usebowtubes) ? bow_tube_indices.second - bow_tube_indices.first :
-			stern_tube_indices.second - stern_tube_indices.first;
-		if (tubenr >= 0 && tubenr < d)
-		{
-			unsigned i = tubenr + ((usebowtubes) ? bow_tube_indices.first : stern_tube_indices.first);
-
-			if ( torpedoes[i].status == stored_torpedo::st_loaded )
-				torpnr = i;
-		}
-	}
-	if (torpnr == 0xffff)
-		return false;
-		
-	torpedo* t = new torpedo(this, torpedoes[torpnr].type, usebowtubes,
-		trp_primaryrange, trp_secondaryrange, trp_initialturn, trp_searchpattern);
-	if (target) {
-		if (t->adjust_head_to(this, target, usebowtubes, trp_addleadangle)) {
-			gm.spawn_torpedo(t);
-		} else {
-			// gyro angle invalid, fixme send message to ui
-			delete t;	// this is ugly.
-			return false;
-		}
-	} else {
-		gm.spawn_torpedo(t);
-	}
-	torpedoes[torpnr].type = torpedo::none;
-	torpedoes[torpnr].status = stored_torpedo::st_empty;
-	return true;
+	// check if torpedo can be fired with that tube, if yes, then fire it
+	pair<angle, bool> launchdata = torpedo::compute_launch_data(
+		torpedoes[tubenr].type, this, target, usebowtubes, trp_addleadangle);
+	return launchdata.second;
 }
 
 double submarine::get_noise_factor () const
@@ -774,4 +740,49 @@ bool submarine::set_snorkel_up ( bool snorkelup )
 	}
 
 	return false;
+}
+
+void submarine::launch_torpedo(class game& gm, int tubenr, sea_object* target)
+{
+	if (target == 0) return;	// maybe assert this?
+	if (target == this) return;
+	
+	bool usebowtubes = false;
+
+	// if tubenr is < 0, choose a tube
+	if (tubenr < 0) {	// check if target is behind
+		angle a = angle(target->get_pos().xy() - get_pos().xy())
+			- get_heading() + trp_addleadangle;
+		usebowtubes = (a.ui_abs_value180() <= 90.0);
+		// search for a filled tube
+		pair<unsigned, unsigned> idx = usebowtubes ? get_bow_tube_indices() : get_stern_tube_indices();
+		for (unsigned i = idx.first; i < idx.second; ++i) {
+			if (torpedoes[i].status == stored_torpedo::st_loaded) {
+				tubenr = int(i);
+				break;
+			}
+		}
+		if (tubenr < 0) return;	// no torpedo found
+	} else {	// check if tube nr is bow or stern
+		unsigned tn = unsigned(tubenr);
+		pair<unsigned, unsigned> idx = get_bow_tube_indices();
+		if (tn >= idx.first && tn < idx.second) {
+			usebowtubes = true;
+		} else {
+			idx = get_stern_tube_indices();
+			if (tn < idx.first || tn >= idx.second)
+				return;	// illegal tube nr.
+		}
+	}
+
+	// check if torpedo can be fired with that tube, if yes, then fire it
+	pair<angle, bool> launchdata = torpedo::compute_launch_data(
+		torpedoes[tubenr].type, this, target, usebowtubes, trp_addleadangle);
+	if (launchdata.second) {
+		torpedo* t = new torpedo(this, torpedoes[tubenr].type, usebowtubes, launchdata.first,
+			trp_primaryrange, trp_secondaryrange, trp_initialturn, trp_searchpattern);
+		gm.spawn_torpedo(t);    // fixme add command
+		torpedoes[tubenr].type = torpedo::none;
+		torpedoes[tubenr].status = stored_torpedo::st_empty;
+	}
 }

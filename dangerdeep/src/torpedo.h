@@ -32,7 +32,7 @@ public:
 
 protected:
 	double run_length, max_run_length;
-	unsigned type;
+	types type;
 	bool influencefuse;	// determined by type
 	
 	unsigned primaryrange, secondaryrange;	// meters
@@ -44,6 +44,8 @@ protected:
 
 	// specific damage here:
 	virtual void create_sensor_array ( types t );
+	
+	static double get_speed_by_type(types t);
 
 public:
 	torpedo() {};
@@ -52,20 +54,21 @@ public:
 	void save(ostream& out, const class game& g) const;
 	
 	// additional FAT/LUT values as indices (0-16,0-1,0-1,0-1)
-	torpedo(sea_object* parent, unsigned type_, bool usebowtubes,
+	torpedo(sea_object* parent, types type_, bool usebowtubes, angle headto_,
 		unsigned pr = 0, unsigned sr = 0, unsigned it = 0, unsigned sp = 0);
 	virtual void simulate(class game& gm, double delta_time);
 	virtual void display(void) const;
 
 	// compute gyro lead angle and expected run time of torpedo
-	pair<angle, bool> lead_angle(double target_speed,
-		angle angle_on_the_bow) const;
-	double expected_run_time(angle lead_angle,
-	        angle angle_on_the_bow, double target_range) const;
+	static pair<angle, bool> lead_angle(types torptype, double target_speed,
+		angle angle_on_the_bow);
+	static double expected_run_time(types torptype, angle lead_angle,
+	        angle angle_on_the_bow, double target_range);
 
-	// adjust heading of torpedo, returns false if impossible
-	bool adjust_head_to(const sea_object* parent, const sea_object* target, bool usebowtubes,
-		const angle& manual_lead_angle);
+	// can torpedo gyroscope be adjusted to this target?
+	static pair<angle, bool> compute_launch_data(types torptype, const sea_object* parent,
+		const sea_object* target, bool usebowtubes, const angle& manual_lead_angle);
+
 	virtual unsigned get_hit_points () const;
 };
 
