@@ -458,8 +458,8 @@ void game::dc_explosion(const vector3& pos)
 		if (sdist.length() <= deadly_radius) {
 			system::sys()->add_console("depth charge hit!");
 			(*it)->kill();	// sub is killed. //  fixme handle damages!
-			menu m(killedimg);
-			m.add_item(150, 0);
+			menu m(103, killedimg);
+			m.add_item(105, 0);
 			m.run();
 			// ui->add_message(TXT_Depthchargehit[language]);
 		}

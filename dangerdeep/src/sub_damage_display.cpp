@@ -124,10 +124,10 @@ void sub_damage_display::check_mouse ( int x, int y, int mb )
 		rect r = rect_data[i];
 		r.y += (damage_screen_background->get_height()-sub_damage_scheme_all->get_height())/2;
 		if (x >= r.x && x <= r.x+r.w && y >= r.y && y <= r.y+r.h) {
-			// it is important, that texts are in correct order starting with 103.fixme
+			// it is important, that texts are in correct order starting with 400.
 			bool atleft = (r.x+r.w/2) < 1024/2;
 			bool atbottom = (r.y+r.h/2) >= 768/2;
-			display_popup(r.x+r.w/2, r.y+r.h/2, texts::get(103+i), atleft, atbottom);
+			display_popup(r.x+r.w/2, r.y+r.h/2, texts::get(400+i), atleft, atbottom);
 		}
 	}
 }

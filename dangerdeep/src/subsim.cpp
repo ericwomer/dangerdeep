@@ -156,8 +156,8 @@ void menu_historical_mission(void)
 		++nr_missions;
 	}
 	
-	menu m(titlebackgr);
-	for (int i = 0; i < nr_missions; ++i)
+	menu m(10, titlebackgr);
+	for (unsigned i = 0; i < nr_missions; ++i)
 		m.add_item(500+i, 0);
 	m.add_item(20, 0);
 	
@@ -170,7 +170,7 @@ void menu_historical_mission(void)
 
 void menu_single_mission(void)
 {
-	menu m(titlebackgr);
+	menu m(21, titlebackgr);
 	m.add_item(8, 0);
 	m.add_item(9, menu_convoy_battle);
 	m.add_item(10, menu_historical_mission);
@@ -180,7 +180,7 @@ void menu_single_mission(void)
 
 void menu_select_language(void)
 {
-	menu m(titlebackgr);
+	menu m(26, titlebackgr);
 	m.add_item(27, 0);
 	m.add_item(28, 0);
 	m.add_item(11, 0);
@@ -188,6 +188,25 @@ void menu_select_language(void)
 	if (sel < 2) {
 		texts::set_language(texts::languages(sel));
 	}
+}
+
+void menu_resolution(void)
+{
+	menu m(106, titlebackgr);
+	m.add_item(107, 0);
+	m.add_item(108, 0);
+	m.add_item(109, 0);
+	m.add_item(20, 0);
+	unsigned sel = m.run();
+	// fixme: change resolution
+}
+
+void menu_options(void)
+{
+	menu m(29, titlebackgr);
+	m.add_item(106, menu_resolution);
+	m.add_item(11, 0);
+	m.run();
 }
 
 struct ip
@@ -399,14 +418,14 @@ int main(int argc, char** argv)
 	sys->draw_console_with(font_arial, background);
 	
 	// main menu
-	menu m(titlebackgr);
+	menu m(104, titlebackgr);
 	m.add_item(21, menu_single_mission);
 	m.add_item(22, menu_multiplayer);
 	m.add_item(23, 0);
 	m.add_item(24, show_vessels);
 	m.add_item(25, 0);
 	m.add_item(26, menu_select_language);
-	m.add_item(29, 0);
+	m.add_item(29, menu_options);
 	m.add_item(30, 0);
 
 	m.run();
