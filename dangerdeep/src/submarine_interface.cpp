@@ -214,7 +214,13 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	gluPerspective (20.0, 1.0/1.0, 2.0, gm.get_max_view_distance());
+
+    double fov = 20.0f;
+
+    if ( zoom_scope )
+		fov = 5.0f;
+	
+	gluPerspective (fov, 1.0/1.0, 2.0, gm.get_max_view_distance());
 	glViewport(res_x/2, res_y/3, res_x/2, res_x/2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -274,6 +280,14 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	while (key != 0) {
 		if (!keyboard_common(key, sys, gm)) {
 			// specific keyboard processing
+			switch ( key ) {
+				case SDLK_y:
+					if ( zoom_scope )
+						zoom_scope = false;
+					else
+						zoom_scope = true;
+					break;
+			}
 		}
 		key = sys.get_key();
 	}
@@ -291,7 +305,7 @@ void submarine_interface::display_UZO(class system& sys, game& gm)
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	gluPerspective (30.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
+	gluPerspective (5.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
 	glViewport(0, res_y/3, res_x, res_x/2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
