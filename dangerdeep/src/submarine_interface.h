@@ -36,7 +36,7 @@ protected:
 	submarine_interface& operator= (const submarine_interface& other);
 	submarine_interface(const submarine_interface& other);
 
-	void fire_tube(submarine* player, unsigned nr);
+	void fire_tube(submarine* player, int nr);
 	
 public:	
 	submarine_interface(class game& gm);

@@ -17,8 +17,13 @@ sensor::sensor ( double range, double detection_cone ) :
 
 double sensor::get_distance_factor ( double d ) const
 {
-	double df = range / d;
-	df *= df;
+	double df = 0;
+	
+	if (d <= range)
+	{
+		df = range / d;
+		df *= df;
+	}
 
 	return df;
 }
@@ -236,9 +241,14 @@ active_sensor::active_sensor ( double range ) : sensor ( range )
 
 double active_sensor::get_distance_factor ( double d ) const
 {
-	double df = get_range () / d;
-	df *= df;
-	df *= df;
+	double df = 0;
+	
+	if (d <= get_range())
+	{
+		df = get_range () / d;
+		df *= df;
+		df *= df;
+	}
 
 	return df;
 }
@@ -258,6 +268,32 @@ void radar_sensor::init ( radar_type type )
 		case radar_type_default:
 			set_range  ( 0.0f );
 			break;
+		case radar_british_type_271:
+		case radar_british_type_272:
+		case radar_british_type_273:
+			set_range(18520); // 10-25 nautical miles
+			break;
+		case radar_british_type_277:
+			set_range(46300); // 25-35 nautical miles
+			break;
+			
+		case radar_german_fumo_29:
+			set_range(7500);
+			set_bearing(0);
+			set_detection_cone(20);
+			break;
+		case radar_german_fumo_30:	
+			set_range(7000);
+			set_bearing(0);
+			set_detection_cone(60);
+			break;
+		case radar_german_fumo_61:
+		case radar_german_fumo_64:
+			set_range(7000);
+			break;
+		case radar_german_fumo_391:
+			set_range(10000);
+			break;
 	}
 }
 
@@ -265,15 +301,24 @@ bool radar_sensor::is_detected ( const game* gm, const sea_object* d,
 	const sea_object* t ) const
 {
 	bool detected = false;
-	vector2 r = t->get_pos ().xy () - d->get_pos ().xy ();
-	double df = get_distance_factor ( r.length () );
-	double vis = 1.0f;
-
-	// Radars use the surface visibility factor. 2004/05/16 fixme adapt constants
-	vis = t->surface_visibility ( d->get_pos ().xy () );
-
-	if ( df * vis > 0.1f + 0.01f * rnd ( 10 ) )
-		detected = true;
+	
+	// Surfaced submarines cannot use ASDIC.
+	const submarine* dsub = dynamic_cast<const submarine*> ( d );
+    if ( dsub && !dsub->is_submerged () || !dsub)
+	{
+		vector2 r = t->get_pos ().xy () - d->get_pos ().xy ();
+		if ( is_within_detection_cone ( r, d->get_heading () ) )
+		{
+			double df = get_distance_factor ( r.length () );
+			double vis = 1.0f;
+			
+			// Radars use the surface visibility factor. 2004/05/16 fixme adapt constants
+			vis = t->surface_visibility ( d->get_pos ().xy () );
+			
+			if ( df * vis > (0.1f + 0.01f * rnd ( 10 )) )
+				detected = true;
+		}
+	}	
 
 	return detected;
 }

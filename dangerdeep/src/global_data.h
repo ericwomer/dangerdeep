@@ -15,7 +15,16 @@
 using namespace std;
 #include "date.h"
 
-
+#define se_submarine_torpedo_launch "liquidblast.ogg"
+#define se_torpedo_detonation "shell explosion.ogg"
+#define se_small_gun_firing "deck gun firing.ogg"
+#define se_medium_gun_firing "medium gun firing.ogg"
+#define se_large_gun_firing "big gun firing.ogg"
+#define se_depth_charge_firing "depth charge launching.ogg"
+#define se_depth_charge_exploding "depth charge exploding.ogg"
+#define se_ping "ping.ogg"
+#define se_shell_exploding "shell explosion.ogg"
+#define se_shell_splash "shell splash.ogg"
 
 string get_data_dir(void);
 string get_program_version(void);
@@ -53,10 +62,7 @@ extern class texture *background, *gauge1,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
 	*terraintex, *cloudsbackgr, *atlanticmap;
 extern class font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd;
-extern class sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
-	*torpedo_detonation_surfaced[2], *depth_charge_firing_sound, *depth_charge_exploding_sound, 
-	*ping_sound, *shell_exploding_sound, *shell_splash_sound, *small_gun_firing_sound, *medium_gun_firing_sound, 
-	*large_gun_firing_sound;
+
 extern class image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_background,
 	*sub_damage_scheme_all, *killedimg, *scopewatcherimg,
 	*depthchargeimg, *sunkendestroyerimg, *kruppdocksimg, *rescuedestroyerimg, *sunderlandimg,

@@ -214,6 +214,8 @@ public:
 	virtual ship* sonar_acoustical_torpedo_target ( const torpedo* o );
 	
 	// list<*> radardetected_ships(...);	// later!
+	virtual void radar_submarines(list<submarine*>& result, const sea_object* o);
+	virtual void radar_ships(list<ship*>& result, const sea_object* o);
 
 	void convoy_positions(list<vector2>& result) const;	// fixme
 	

@@ -931,6 +931,46 @@ void game::sonar_submarines ( list<submarine*>& result, const sea_object* o )
 	}
 }
 
+void game::radar_submarines(list<submarine*>& result, const sea_object* o)
+{
+	const sensor* s = o->get_sensor ( o->radar_system );
+	const radar_sensor* ls = 0;
+	
+	if ( s )
+		ls = dynamic_cast<const radar_sensor*> ( s );
+	
+	if ( ls )
+	{
+		const radar_sensor* ls = dynamic_cast<const radar_sensor*> ( s );
+		for (list<submarine*>::iterator it = submarines.begin();
+			 it != submarines.end(); ++it)
+		{
+			if ( ls->is_detected ( this, o, *it ) )
+				result.push_back (*it);
+		}
+	}
+}
+
+void game::radar_ships(list<ship*>& result, const sea_object* o)
+{
+	const sensor* s = o->get_sensor ( o->radar_system );
+	const radar_sensor* ls = 0;
+	
+	if ( s )
+		ls = dynamic_cast<const radar_sensor*> ( s );
+	
+	if ( ls )
+	{
+		const radar_sensor* ls = dynamic_cast<const radar_sensor*> ( s );
+		for (list<ship*>::iterator it = ships.begin();
+			 it != ships.end(); ++it)
+		{
+			if ( ls->is_detected ( this, o, *it ) )
+				result.push_back (*it);
+		}
+	}
+}
+
 void game::convoy_positions(list<vector2>& result) const
 {
 	for (list<convoy*>::const_iterator it = convoys.begin(); it != convoys.end(); ++it) {
@@ -969,15 +1009,15 @@ void game::spawn_gun_shell(gun_shell* s, const double &calibre)
 	
 	if (ui) 
 	{
-		user_interface::sound_effect se;
+		string se;
 		
 		// vary the sound effect based on the gun size
 		if (calibre <= 120.0)
-			se = ui->se_small_gun_firing;
+			se = se_small_gun_firing;
 		else if (calibre <= 200.0)
-			se = ui->se_medium_gun_firing;
+			se = se_medium_gun_firing;
 		else
-			se = ui->se_large_gun_firing;
+			se = se_large_gun_firing;
 		
 		ui->play_sound_effect_distance(se, player->get_pos().distance(s->get_pos()));
 	}
@@ -989,7 +1029,7 @@ void game::spawn_depth_charge(depth_charge* dc)
 	depth_charges.push_back(dc);
 	
 	if (ui) 
-		ui->play_sound_effect_distance(ui->se_depth_charge_firing, player->get_pos().distance(dc->get_pos()));
+		ui->play_sound_effect_distance(se_depth_charge_firing, player->get_pos().distance(dc->get_pos()));
 }
 
 void game::spawn_convoy(convoy* cv)
@@ -1018,7 +1058,7 @@ void game::dc_explosion(const depth_charge& dc)
 		if (*it == player) {
 			// play detonation sound, volume depends on distance
 			if (ui) 
-				ui->play_sound_effect_distance(ui->se_depth_charge_exploding, player->get_pos().distance(dc.get_pos()));
+				ui->play_sound_effect_distance(se_depth_charge_exploding, player->get_pos().distance(dc.get_pos()));
 		}
 	}
 	if (ui) ui->add_message(texts::get(204));	// fixme: only when player is near enough
@@ -1043,7 +1083,7 @@ bool game::gs_impact(const vector3& pos, const double &damage)	// fixme: vector2
 			
 			// play gun shell explosion sound effect
 			if (ui) 
-				ui->play_sound_effect_distance(ui->se_shell_exploding, player->get_pos().distance(pos));
+				ui->play_sound_effect_distance(se_shell_exploding, player->get_pos().distance(pos));
 			
 			return true;	// only one hit possible
 		}
@@ -1057,7 +1097,7 @@ bool game::gs_impact(const vector3& pos, const double &damage)	// fixme: vector2
 			
 			// play gun shell explosion sound effect
 			if (ui) 
-				ui->play_sound_effect_distance(ui->se_shell_exploding, player->get_pos().distance(pos));
+				ui->play_sound_effect_distance(se_shell_exploding, player->get_pos().distance(pos));
 			
 			return true; // only one hit possible
 		}
@@ -1066,7 +1106,7 @@ bool game::gs_impact(const vector3& pos, const double &damage)	// fixme: vector2
 	if (pos.z <= 0)
 	{
 		if (ui) 
-			ui->play_sound_effect_distance(ui->se_shell_splash, player->get_pos().distance(pos));
+			ui->play_sound_effect_distance(se_shell_splash, player->get_pos().distance(pos));
 	}
 	
 	// No impact.
@@ -1079,7 +1119,7 @@ void game::torp_explode(const vector3& pos)
 	// fixme!
 	spawn_particle(new torpedo_water_splash_particle(pos.xy().xy0()));
 	//fixme: game should know nothing about ui!
-	if (ui) ui->play_sound_effect_distance (ui->se_torpedo_detonation,
+	if (ui) ui->play_sound_effect_distance (se_torpedo_detonation,
 		player->get_pos ().distance ( pos ) );
 }
 
@@ -1126,7 +1166,7 @@ void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
 			ass->get_range (), ass->get_detection_cone () ) );
 		
 		if (ui) 
-			ui->play_sound_effect_distance(ui->se_ping, player->get_pos().distance(d->get_pos()));
+			ui->play_sound_effect_distance(se_ping, player->get_pos().distance(d->get_pos()));
 
 		// fixme: noise from ships can disturb ASDIC or may generate more contacs.
 		// ocean floor echoes ASDIC etc...
@@ -1388,14 +1428,26 @@ vector<sea_object*> game::visible_surface_objects(const sea_object* o)
 	visible_submarines(vsubmarines, o);
 	list<airplane*> vairplanes;
 	visible_airplanes(vairplanes, o);
+	
+	list<ship*> rships;
+	radar_ships(rships, o);
+	list<submarine*> rsubmarines;
+	radar_submarines(rsubmarines, o);
+	
 	vector<sea_object*> result;
-	result.reserve(vships.size() + vsubmarines.size() + vairplanes.size());
+	result.reserve(vships.size() + vsubmarines.size() + vairplanes.size() +
+				   rships.size() + rsubmarines.size());
 	for (list<ship*>::iterator is = vships.begin(); is != vships.end(); ++is)
 		result.push_back(*is);
 	for (list<submarine*>::iterator iu = vsubmarines.begin(); iu != vsubmarines.end(); ++iu)
 		result.push_back(*iu);
 	for (list<airplane*>::iterator ia = vairplanes.begin(); ia != vairplanes.end(); ++ia)
 		result.push_back(*ia);
+	for (list<ship*>::iterator is = rships.begin(); is != rships.end(); ++is)
+		result.push_back(*is);
+	for (list<submarine*>::iterator iu = rsubmarines.begin(); iu != rsubmarines.end(); ++iu)
+		result.push_back(*iu);
+	
 	return result;
 }
 

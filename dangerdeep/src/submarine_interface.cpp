@@ -67,18 +67,49 @@ submarine_interface::~submarine_interface()
 
 
 
-void submarine_interface::fire_tube(submarine* player, unsigned nr)
+void submarine_interface::fire_tube(submarine* player, int nr)
 {
-	if (player->can_torpedo_be_launched(*mygame, nr, target)) {
-		add_message(texts::get(49));
-		ostringstream oss;
-		oss << texts::get(49);
-		if (target)
-			oss << " " << texts::get(6) << ": " << target->get_description(2);
-		mygame->add_logbook_entry(oss.str());
-		player->launch_torpedo(*mygame, nr, target);
-		play_sound_effect(se_submarine_torpedo_launch);
-	}
+	if (NULL != target && target != player)	{
+		submarine::stored_torpedo::st_status tube_status = submarine::stored_torpedo::st_empty;		
+		
+		if (player->can_torpedo_be_launched(*mygame, nr, target, tube_status)) {
+			add_message(texts::get(49));
+			ostringstream oss;
+			oss << texts::get(49);
+			if (target)
+				oss << " " << texts::get(6) << ": " << target->get_description(2);
+			mygame->add_logbook_entry(oss.str());
+			player->launch_torpedo(*mygame, nr, target);
+			play_sound_effect(se_submarine_torpedo_launch);
+		} else {
+			string failed_to_fire_msg;
+			
+			if (-1 != nr) {
+				switch (tube_status)
+				{
+					case submarine::stored_torpedo::st_empty:
+						failed_to_fire_msg = texts::get(762);  
+						break;
+					case submarine::stored_torpedo::st_reloading:
+						failed_to_fire_msg = texts::get(763);
+						break;
+					case submarine::stored_torpedo::st_unloading:
+						failed_to_fire_msg = texts::get(764);
+						break;
+					default:
+						assert(false);
+				}
+			} else {
+				if (true == player->get_torpedoes().empty())
+					failed_to_fire_msg = texts::get(765);
+				else
+					failed_to_fire_msg = texts::get(766);
+			}
+			
+			add_message(failed_to_fire_msg);
+		}
+	} else
+		add_message(texts::get(80));
 }
 
 
@@ -257,16 +288,7 @@ void submarine_interface::process_input(const SDL_Event& event)
 			add_message(texts::get(39));
 			mygame->add_logbook_entry(texts::get(39));
 		} else if (mycfg.getkey(KEY_FIRE_TORPEDO).equal(event.key.keysym)) {
-			if (player->can_torpedo_be_launched(*mygame, -1, target)) {
-				add_message(texts::get(49));
-				ostringstream oss;
-				oss << texts::get(49);
-				if (target)
-					oss << " " << texts::get(6) << ": " << target->get_description ( 2 );
-				mygame->add_logbook_entry(oss.str());
-				player->launch_torpedo(*mygame, -1, target);
-				play_sound_effect(se_submarine_torpedo_launch );
-			}
+			fire_tube(player, -1);
 		} else if (mycfg.getkey(KEY_SET_VIEW_TO_HEADING).equal(event.key.keysym)) {
 			bearing = (bearing_is_relative) ? 0.0 : player->get_heading();
 		} else if (mycfg.getkey(KEY_TURN_VIEW_LEFT).equal(event.key.keysym)) {

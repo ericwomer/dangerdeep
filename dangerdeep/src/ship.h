@@ -104,8 +104,8 @@ protected:
 	// some experience values of the crews to fire a grenade with right angle at any
 	// target. This depends on canon type (shot speed, min/max angles etc.) so we need
 	// several ai classes later.
-	static map<double, double> dist_angle_relation;
-	static void fill_dist_angle_relation_map(void);
+	static map<double, map<double, double> > dist_angle_relation;
+	static void fill_dist_angle_relation_map(const double initial_velocity);
 	
 	// deck gun
 	struct gun_barrel
@@ -162,10 +162,12 @@ protected:
 	typedef list<struct gun_turret>::iterator gun_turret_itr;
 	typedef list<struct gun_turret>::const_iterator const_gun_turret_itr;
 	typedef list<struct gun_barrel>::iterator gun_barrel_itr;
-	typedef list<struct gun_barrel>::const_iterator const_gun_barrel_itr;
+	typedef list<struct gun_barrel>::const_iterator const_gun_barrel_itr;	
+	double maximum_gun_range;
 	
 	bool is_target_in_blindspot(const struct gun_turret *gun, angle bearingToTarget);
-	bool calculate_gun_angle(const double distance, angle &elevation);
+	bool calculate_gun_angle(const double distance, angle &elevation, const double initial_velocity);
+	void calc_max_gun_range(double initial_velocity);
 
 public:
 	enum shipclasses {
@@ -237,6 +239,7 @@ public:
 	virtual bool is_gun_manned();
 	virtual void gun_manning_changed(bool isGunManned);	
 	virtual long num_shells_remaining();
+	virtual double max_gun_range() { return maximum_gun_range; };
 };
 
 #endif

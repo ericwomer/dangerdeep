@@ -281,7 +281,8 @@ public:
 	virtual double get_bow_stern_deck_transfer_time(void) const { return torp_transfer_times[4]; }
 	
 	// give tubenr -1 for any loaded tube, or else 0-5
-	virtual bool can_torpedo_be_launched(class game& gm, int tubenr, sea_object* target) const;
+	virtual bool can_torpedo_be_launched(class game& gm, int tubenr, sea_object* target, 
+										 stored_torpedo::st_status &tube_status) const;
 
 	// damage is added if dc damages sub.
 	virtual void depth_charge_explosion(const class depth_charge& dc);

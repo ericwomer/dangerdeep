@@ -166,17 +166,35 @@ void ai::act_escort(game& gm, double delta_time)
 	double dist = 1e12;
 	submarine* nearest_contact = 0;
 	list<submarine*> subs;
+	// any subs in visual range to attack?
 	gm.visible_submarines(subs, parent);
 	for (list<submarine*>::iterator it = subs.begin(); it != subs.end(); ++it) {
-		double d = (*it)->get_pos().xy().square_distance(parent->get_pos().xy());
+		double d = (*it)->get_pos().xy().distance(parent->get_pos().xy());
 		if (d < dist) {
 			dist = d;
 			nearest_contact = *it;
 		}
 	}
+	
+	if (!nearest_contact) {		
+		// any subs in radar range to attack?
+		subs.clear();
+		gm.radar_submarines(subs, parent);
+		for (list<submarine*>::iterator it = subs.begin(); it != subs.end(); ++it) {
+			double d = (*it)->get_pos().xy().distance(parent->get_pos().xy());
+			if (d < dist) {
+				dist = d;
+				nearest_contact = *it;
+			}
+		}
+	}
+		
 	if (nearest_contact) {	// is there a contact?
-		if (GUN_NOT_MANNED == parent->fire_shell_at(gm, *nearest_contact))
-			parent->toggle_gun_manning();
+		if (dist <= parent->max_gun_range())
+		{
+			if (GUN_NOT_MANNED == parent->fire_shell_at(gm, *nearest_contact))
+				parent->toggle_gun_manning();
+		}
 		attack_contact(nearest_contact->get_pos());
 		if (myconvoy) myconvoy->add_contact(nearest_contact->get_pos());
 		parent->set_throttle(ship::aheadflank);

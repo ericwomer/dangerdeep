@@ -59,6 +59,8 @@ i		identify target
 p		Periscope depth
 s		Surface
 t		Fire torpedo (automatic selection of bow/stern tubes)
+g + SHIFT	Man/unman deck gun
+g		Fire deck gun
 v		Set view to heading
 z		Zoom view (glasses, bridge and periscope view)
 + -		Zoom/unzoom map

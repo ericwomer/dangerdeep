@@ -547,79 +547,21 @@ void user_interface::set_display_color(void) const
 		NIGHT_MODE_COLOR ();
 }
 
-sound* user_interface::get_sound_effect(sound_effect se) const
+void user_interface::play_sound_effect(const string &se, double volume ) const
 {
-	sound* s = 0;
-
-	switch ( se )
-	{
-		case se_submarine_torpedo_launch:
-			s = torpedo_launch_sound;
-			break;
-		case se_torpedo_detonation:
-			{
-				submarine* sub = dynamic_cast<submarine*>(mygame->get_player());
-
-				if ( sub && sub->is_submerged () )
-				{
-					double sid = rnd ( 2 );
-					if ( sid < 1.0f )
-						s = torpedo_detonation_submerged[0];
-					else if ( sid < 2.0f )
-						s = torpedo_detonation_submerged[1];
-				}
-				else
-				{
-					double sid = rnd ( 2 );
-					if ( sid < 1.0f )
-						s = torpedo_detonation_surfaced[0];
-					else if ( sid < 2.0f )
-						s = torpedo_detonation_surfaced[1];
-				}
-			}
-			break;
-		case se_small_gun_firing:
-			s = small_gun_firing_sound;
-			break;
-		case se_medium_gun_firing:
-			s = medium_gun_firing_sound;
-			break;
-		case se_large_gun_firing: 
-			s = large_gun_firing_sound;
-			break;
-		case se_depth_charge_firing:
-			s = depth_charge_firing_sound;
-			break;
-		case se_depth_charge_exploding:
-			s = depth_charge_exploding_sound;
-			break;
-		case se_ping:
-			s = ping_sound;
-			break;
-		case se_shell_exploding:
-			s = shell_exploding_sound;
-			break;
-		case se_shell_splash:
-			s = shell_splash_sound;
-			break;
-	}
-
-	return s;
-}
-
-void user_interface::play_sound_effect(sound_effect se, double volume ) const
-{
-	sound* s = get_sound_effect(se);
-
+	sound* s = soundcache.find(se);
+	assert(NULL != s);
+	
 	if ( s )
 		s->play ( volume );
 }
 
 
 
-void user_interface::play_sound_effect_distance(sound_effect se, double distance) const
+void user_interface::play_sound_effect_distance(const string &se, double distance) const
 {
-	sound* s = get_sound_effect(se);
+	sound* s = soundcache.find(se);
+	assert(NULL != s);
 
 	if ( s )
 	{

@@ -13,7 +13,7 @@ Meer entdeckt. Beeilen Sie sich, denn Eskorten könnten in der Nähe sein.</long>
   <time year="1942" month="4" day="15" hour="12" minute="35" second="0"/>
   <objects>
     <submarine type="submarine_VIIc" player="true">
-      <position x="2748150" y="4133500" z="0"/>
+      <position x="2748150" y="4133500" z="-12"/>
       <motion heading="180" speed="0" throttle="stop" maxdepth="233"/>
       <scope up="false"/>
       <torpedoes>

@@ -192,7 +192,10 @@ public:
 class radar_sensor : public active_sensor
 {
 public:
-	enum radar_type { radar_type_default };
+	enum radar_type { radar_type_default, 
+					  radar_british_type_271, radar_british_type_272, radar_british_type_273, radar_british_type_277, 
+					  radar_german_fumo_29, radar_german_fumo_30, radar_german_fumo_61, radar_german_fumo_64,
+					  radar_german_fumo_391 };
 
 private:
 	void init ( radar_type type );

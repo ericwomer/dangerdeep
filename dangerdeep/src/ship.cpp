@@ -13,7 +13,7 @@
 #include "tinyxml/tinyxml.h"
 #include "gun_shell.h"
 
-map<double, double> ship::dist_angle_relation;
+map<double, map<double, double> > ship::dist_angle_relation;
 #define MAX_INCLINATION 45.0
 #define MAX_DECLINATION -20.0
 #define ANGLE_GAP 0.1
@@ -26,7 +26,6 @@ map<double, double> ship::dist_angle_relation;
 ship::ship() : sea_object(), myai(0), smoke_type(0)
 {
 	init();
-	fill_dist_angle_relation_map();
 }
 
 
@@ -49,55 +48,52 @@ void ship::init(void)
 	myfire = 0;		
 	gun_manning_is_changing = false;
 	gun_turrets.clear();
+	maximum_gun_range = 0.0;
 }
 
-void ship::fill_dist_angle_relation_map(void)
+void ship::fill_dist_angle_relation_map(const double initial_velocity)
 {
-	// fixme: GUN_SHELL_INITIAL_VELOCITY is not a constant anymore but can vary depending
-	// on the ship and gun used
-	const double GUN_SHELL_INITIAL_VELOCITY = 200.0;
-
-	if (dist_angle_relation.size() > 0) return;
-
-	for (double a = 0; a > MAX_DECLINATION+ANGLE_GAP; a -= ANGLE_GAP) {
-		angle elevation(a);
-		double z = 4;	// meters, initial height above water
-		double vz = GUN_SHELL_INITIAL_VELOCITY * elevation.sin();
-		double dist = 0;
-		double vdist = GUN_SHELL_INITIAL_VELOCITY * elevation.cos();
-		
-		for (double dt = 0; dt < 120.0; dt += 0.001) {
-			dist += vdist * dt;
-			z += vz * dt;
-			vz += -GRAVITY * dt;
-			if (z <= 0) break;
+	if (dist_angle_relation.find(initial_velocity) == dist_angle_relation.end())
+	{
+		for (double a = 0; a > MAX_DECLINATION+ANGLE_GAP; a -= ANGLE_GAP) {
+			angle elevation(a);
+			double z = 4;	// meters, initial height above water
+			double vz = initial_velocity * elevation.sin();
+			double dist = 0;
+			double vdist = initial_velocity * elevation.cos();
+			
+			for (double dt = 0; dt < 120.0; dt += 0.001) {
+				dist += vdist * dt;
+				z += vz * dt;
+				vz += -GRAVITY * dt;
+				if (z <= 0) break;
+			}
+			
+			dist_angle_relation[initial_velocity][dist] = a;
 		}
 		
-		dist_angle_relation[dist] = a;
-	}
-	
-	for (double a = 0; a < MAX_INCLINATION+ANGLE_GAP; a += ANGLE_GAP) {
-		angle elevation(a);
-		double z = 4;	// meters, initial height above water
-		double vz = GUN_SHELL_INITIAL_VELOCITY * elevation.sin();
-		double dist = 0;
-		double vdist = GUN_SHELL_INITIAL_VELOCITY * elevation.cos();
-		
-		for (double dt = 0; dt < 120.0; dt += 0.001) {
-			dist += vdist * dt;
-			z += vz * dt;
-			vz += -GRAVITY * dt;
-			if (z <= 0) break;
+		for (double a = 0; a < MAX_INCLINATION+ANGLE_GAP; a += ANGLE_GAP) {
+			angle elevation(a);
+			double z = 4;	// meters, initial height above water
+			double vz = initial_velocity * elevation.sin();
+			double dist = 0;
+			double vdist = initial_velocity * elevation.cos();
+			
+			for (double dt = 0; dt < 120.0; dt += 0.001) {
+				dist += vdist * dt;
+				z += vz * dt;
+				vz += -GRAVITY * dt;
+				if (z <= 0) break;
+			}
+			
+			dist_angle_relation[initial_velocity][dist] = a;
 		}
-		
-		dist_angle_relation[dist] = a;
 	}
 }
 
 ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfile, topnodename)
 {
-	init();
-	fill_dist_angle_relation_map();
+	init();	
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdship = hspec.FirstChild(topnodename);
 	TiXmlElement* eclassification = hdftdship.FirstChildElement("classification").Element();
@@ -184,7 +180,7 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 			if (NULL == turret->Attribute("exclusion_radius_end", &new_turret.end_of_exclusion_radius))
 				assert(false);
 			if (NULL == turret->Attribute("calibre", &new_turret.calibre))
-				assert(false);
+				assert(false);						
 			
 			for (int x = 0; x < num_barrels; x++)
 			{
@@ -192,9 +188,13 @@ ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfi
 				new_turret.gun_barrels.push_back(new_barrel);
 			}
 			
-			gun_turrets.push_back(new_turret);
+			// setup angles map for this initial velocity
+			fill_dist_angle_relation_map(new_turret.initial_velocity);
+			calc_max_gun_range(new_turret.initial_velocity);
+			
+			gun_turrets.push_back(new_turret);		
 		}
-	}
+	}		
 }
 
 
@@ -410,8 +410,8 @@ void ship::load(istream& in, game& g)
 		turret.num_shells_remaining = read_u32(in);
 		turret.shell_capacity = read_u32(in);
 		turret.initial_velocity = read_double(in);		
-		turret.max_declination = read_u32(in);
-		turret.max_inclination = read_u32(in);
+		turret.max_declination = read_i32(in);
+		turret.max_inclination = read_i32(in);
 		turret.time_to_man = read_double(in);
 		turret.time_to_unman = read_double(in);
 		turret.is_gun_manned = read_bool(in);
@@ -434,8 +434,12 @@ void ship::load(istream& in, game& g)
 			turret.gun_barrels.push_back(new_barrel);
 		}
 		
+		// setup angles map for this initial velocity
+		fill_dist_angle_relation_map(turret.initial_velocity);
+		calc_max_gun_range(turret.initial_velocity);
+		
 		gun_turrets.push_back(turret);
-	}
+	}	
 }
 
 void ship::save(ostream& out, const game& g) const
@@ -461,8 +465,8 @@ void ship::save(ostream& out, const game& g) const
 		write_u32(out, turret->num_shells_remaining);
 		write_u32(out, turret->shell_capacity);
 		write_double(out, turret->initial_velocity);		
-		write_u32(out, turret->max_declination);
-		write_u32(out, turret->max_inclination);
+		write_i32(out, turret->max_declination);
+		write_i32(out, turret->max_inclination);
 		write_double(out, turret->time_to_man);
 		write_double(out, turret->time_to_unman);
 		write_bool(out, turret->is_gun_manned);
@@ -802,7 +806,7 @@ int ship::fire_shell_at(game& gm, const sea_object& s)
 						double distance = deltapos.length();
 						angle direction(deltapos);
 
-						double max_shooting_distance = (dist_angle_relation.rbegin())->first;
+						double max_shooting_distance = (dist_angle_relation[gun_turret->initial_velocity].rbegin())->first;
 						if (distance > max_shooting_distance) 
 							res = TARGET_OUT_OF_RANGE;	// can't do anything
 						
@@ -817,7 +821,7 @@ int ship::fire_shell_at(game& gm, const sea_object& s)
 								//	use an extra bit of correction for wind etc.
 								//	to do that, we need to know where the last shot impacted!							
 								angle elevation;
-								if (true == calculate_gun_angle(distance, elevation))
+								if (true == calculate_gun_angle(distance, elevation, gun_turret->initial_velocity))
 								{														
 									if (elevation.value() > gun->max_inclination)
 										res = TARGET_OUT_OF_RANGE;
@@ -923,16 +927,23 @@ bool ship::is_gun_manned()
 	return gun_turrets.begin()->is_gun_manned;
 }
 
-bool ship::calculate_gun_angle(const double distance, angle &elevation)
+bool ship::calculate_gun_angle(const double distance, angle &elevation, const double initial_velocity)
 {
 	bool withinRange = false;
 
-	map<double, double>::iterator it = dist_angle_relation.lower_bound(distance);
-	if (it != dist_angle_relation.end()) 
+	map<double, double>::iterator it = dist_angle_relation[initial_velocity].lower_bound(distance);
+	if (it != dist_angle_relation[initial_velocity].end()) 
 	{
 		elevation = angle(it->second);
 		withinRange = true;
 	}
 
 	return withinRange;
+}
+
+void ship::calc_max_gun_range(double initial_velocity)
+{
+	double max_range = dist_angle_relation[initial_velocity].rbegin()->first;
+	
+	maximum_gun_range = (max_range > maximum_gun_range) ? max_range : maximum_gun_range;
 }

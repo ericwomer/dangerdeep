@@ -133,6 +133,34 @@ sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
 		if (typestr == "lookout") set_sensor(lookout_system, new lookout_sensor());
 		else if (typestr == "passivesonar") set_sensor(passive_sonar_system, new passive_sonar_sensor());
 		else if (typestr == "activesonar") set_sensor(active_sonar_system, new active_sonar_sensor());
+		else if (typestr == "radar") 
+		{
+			radar_sensor::radar_type type = radar_sensor::radar_type_default;
+			string radar_model = XmlAttrib(esensor, "model");
+
+			if ("British Type 271" == radar_model)
+				type = radar_sensor::radar_british_type_271;
+			else if ("British Type 272" == radar_model)
+				type = radar_sensor::radar_british_type_272;
+			else if ("British Type 273" == radar_model)
+				type = radar_sensor::radar_british_type_273;
+			else if ("British Type 277" == radar_model)
+				type = radar_sensor::radar_british_type_277;
+			else if ("German FuMO 29" == radar_model)
+				type  = radar_sensor::radar_german_fumo_29;
+			else if ("German FuMO 30" == radar_model)
+				type  = radar_sensor::radar_german_fumo_30;
+			else if ("German FuMO 61" == radar_model)
+				type  = radar_sensor::radar_german_fumo_61;
+			else if ("German FuMO 64" == radar_model)
+				type  = radar_sensor::radar_german_fumo_64;
+			else if ("German FuMO 391" == radar_model)
+				type  = radar_sensor::radar_german_fumo_391;
+			else
+				assert(false);
+					
+			set_sensor(radar_system, new radar_sensor(type));
+		}
 		// ignore unknown sensors.
 	}
 }

@@ -1,3 +1,26 @@
+2005-03-14 Andy Rice
+	* aegeanconvoy.xml, battleships.xml
+	 - submarine starts at periscope depth (to avoid radar detection straight away)	 
+	* battleship_malaya.xml, corvette.xml, destroyer_oclass.xml, destoryer_tribal.xml,
+	  submarine_IXc40.xml, submarine_VIIc.xml, submarine_XXI.xml
+	 - added radar
+	 - increased gun initial velocities (which increases there range)	 
+	* ai.cpp, game.cpp, game.h, global_data.cpp, global_data.h, sea_object.cpp, sensors.cpp,
+	  sensors.h, ship.cpp, ship.h, submarine.cpp, submarine.h, submarine_interface.cpp,
+	  submarine_interface.h, user_interface.cpp, user_interface.h
+	 - ships and subs now have radar
+	 - ai uses radar to detect player
+	 - radar contacts displayed in map display
+	 - all sensor types cannot detect anything past there range now
+	 - sound effects use cache
+	 - gun ranges/angles are generated for all initial velocities required 
+	   (allows variable gun ranges)
+	 - now says why a torpedo could no be fired (i.e. tube reloading)	 
+	* english.text, german.text, italian.text
+	 - added messages for torpedo tube status
+	* README
+	 - added deck gun commands
+
 2005-03-13  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* all over the place
 	 - substituted system::sys() by just sys()
@@ -9,13 +32,20 @@
 	 - separated system specific main(), makes multiplatform compilation
 	   easier, could be used for the other binaries too...
 
+2005-03-02 Andy Rice
+	* english.text, german.text, italian.text, submarine_interface.cpp, submarine_interface.h,
+	  submarine.cpp, submarine.h
+	 - Improved torpedo firing messages when the tube is not ready to fire
+
 2005-02-28 Andy Rice
 	* ai.cpp, game.cpp, game.h, global_data.cpp, global_data.h, gun_shell.cpp, gun_shell.h,
 	  keys.cpp, keys.h, ship.cpp, ship.h, sub_torpedo_display.cpp, submarine.cpp,
 	  submarine.h, submmarine_interface.cpp, subsim.cpp, user_interface.cpp, user_interface.h	
 	* corvette.xml, destroyer_oclass.xml, destroyer_tribal.xml, english.text, german.text, 
-	  italien.text, submarine_IXc40.xml, submarine_VIIc.xml, submarine_XXI.xml
+	  italien.text, submarine_IXc40.xml, submarine_VIIc.xml, submarine_XXI.xml,
+	  big gun firing.ogg, medium gun firing.ogg
 	  - More deck gun/ships gun work and more sound effects.
+	  
 2005-02-24 Andy Rice
 	* crosssection.cpp, damagemodel.cpp, viewmodel.cpp
 	  - crosssection.exe, damagemodel.exe & viewmodel.exe can compile on Windows 
@@ -24,6 +54,7 @@
 	  	big gun firing.ogg, depth charge launching.ogg, deck gun firing.ogg, 
 	  	depth charge exploding.ogg
 	  - added new sound effects for weapons and explosions
+	  
 2005-02-20  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* many files
 	  - made bearing switchable between relative and absolute values

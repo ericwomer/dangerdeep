@@ -49,11 +49,6 @@ texture *background, *gauge1,
 	
 font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd;
 
-sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
-	*torpedo_detonation_surfaced[2], *depth_charge_firing_sound, *depth_charge_exploding_sound, 
-	*ping_sound, *shell_exploding_sound, *shell_splash_sound, *small_gun_firing_sound, *medium_gun_firing_sound,
-	*large_gun_firing_sound;
-
 image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_background,
 	*sub_damage_scheme_all, *killedimg, *scopewatcherimg,
 	*depthchargeimg, *sunkendestroyerimg, *kruppdocksimg, *rescuedestroyerimg, *sunderlandimg,
@@ -113,19 +108,16 @@ void init_global_data(void)
 	atlanticmap = new texture(get_texture_dir() + "atlanticmap.jpg", GL_LINEAR, GL_CLAMP_TO_EDGE);
 	add_loading_screen("textures loaded");
 
-	torpedo_launch_sound = new sound(get_sound_dir() + "liquidblast.ogg"); // "torpedo_launch.wav" );
-	torpedo_detonation_submerged[0] = new sound(get_sound_dir() + "shell explosion.ogg");//"torpedo_detonation_submerged_1.wav" );
-	torpedo_detonation_submerged[1] = new sound(get_sound_dir() + "shell explosion.ogg");//"torpedo_detonation_submerged_2.wav" );
-	torpedo_detonation_surfaced[0] = new sound(get_sound_dir() + "shell explosion.ogg");//"torpedo_detonation_surfaced_1.wav" );
-	torpedo_detonation_surfaced[1] = new sound(get_sound_dir() + "shell explosion.ogg");//"torpedo_detonation_surfaced_2.wav" );
-	small_gun_firing_sound = new sound(get_sound_dir() + "deck gun firing.ogg");	
-	medium_gun_firing_sound = new sound(get_sound_dir() + "medium gun firing.ogg");	
-	large_gun_firing_sound = new sound(get_sound_dir() + "big gun firing.ogg");	
-	depth_charge_firing_sound = new sound(get_sound_dir() + "depth charge launching.ogg");	
-	depth_charge_exploding_sound = new sound(get_sound_dir() + "depth charge exploding.ogg");	
-	ping_sound = new sound(get_sound_dir() + "ping.ogg");
-	shell_exploding_sound = new sound(get_sound_dir() + "shell explosion.ogg");
-	shell_splash_sound = new sound(get_sound_dir() + "shell splash.ogg");
+	soundcache.ref(se_submarine_torpedo_launch);
+	soundcache.ref(se_torpedo_detonation);
+	soundcache.ref(se_small_gun_firing);
+	soundcache.ref(se_medium_gun_firing);
+	soundcache.ref(se_large_gun_firing);
+	soundcache.ref(se_depth_charge_firing);
+	soundcache.ref(se_depth_charge_exploding);
+	soundcache.ref(se_ping);
+	soundcache.ref(se_shell_exploding);
+	soundcache.ref(se_shell_splash);				   				   
 	add_loading_screen("sounds loaded");
 
 	titlebackgrimg = new image(get_image_dir() + "titlebackgr.jpg");
@@ -186,19 +178,6 @@ void deinit_global_data(void)
 	delete torpt6lut;
 	delete clock12;
 	delete clock24;
-	delete torpedo_launch_sound;
-	delete torpedo_detonation_submerged[0];
-	delete torpedo_detonation_submerged[1];
-	delete torpedo_detonation_surfaced[0];
-	delete torpedo_detonation_surfaced[1];
-	delete small_gun_firing_sound;
-	delete medium_gun_firing_sound;
-	delete large_gun_firing_sound;
-	delete depth_charge_firing_sound;
-	delete depth_charge_exploding_sound;
-	delete ping_sound;
-	delete shell_exploding_sound;
-	delete shell_splash_sound;
 	delete woodbackgr;
 	delete notepadsheet;
 	delete menuframe;

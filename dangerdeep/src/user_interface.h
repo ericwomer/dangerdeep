@@ -23,7 +23,6 @@ class user_interface
 	user_interface();
 public:
 	enum color_mode { day_color_mode, night_color_mode };
-	enum sound_effect { se_submarine_torpedo_launch, se_torpedo_detonation, se_small_gun_firing, se_medium_gun_firing, se_large_gun_firing, se_depth_charge_firing, se_depth_charge_exploding, se_ping, se_shell_exploding, se_shell_splash };
 
 protected:
 	game* mygame;	// pointer to game object that is displayed
@@ -78,8 +77,6 @@ protected:
 //	void draw_clock(game& gm, int x, int y, unsigned wh, double t,
 //	        const string& text) const;
 
-	virtual sound* get_sound_effect(sound_effect se) const;
-
 public:	
 	virtual ~user_interface();
 
@@ -133,8 +130,8 @@ public:
 //	virtual void record_sunk_ship ( const class ship* so );
 	/** This method creates a message about the rudder state. */
 	virtual void add_rudder_message(void);
-	virtual void play_sound_effect(sound_effect se, double volume = 1.0f) const;
-	virtual void play_sound_effect_distance(sound_effect se, double distance) const;
+	virtual void play_sound_effect(const string &se, double volume = 1.0f) const;
+	virtual void play_sound_effect_distance(const string &se, double distance) const;
 };
 
 #endif

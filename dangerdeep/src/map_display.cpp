@@ -172,7 +172,26 @@ void map_display::draw_visual_contacts(class game& gm,
    		draw_vessel_symbol(offset, *it, color(255,0,0));
 }
 
-
+void map_display::draw_radar_contacts(class game& gm, 
+									  const sea_object* player, const vector2& offset) const
+{
+	list<ship*> ships;
+	list<submarine*> submarines;
+	gm.radar_ships(ships, player);
+	gm.radar_submarines(submarines, player);
+	
+	// draw trails
+   	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
+   		draw_trail(*it, offset);
+   	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
+   		draw_trail(*it, offset);
+	
+	// draw vessel symbols
+   	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
+   		draw_vessel_symbol(offset, *it, color(192,255,192));
+   	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
+   		draw_vessel_symbol(offset, *it, color(255,255,128));
+}
 
 void map_display::draw_square_mark ( class game& gm,
 	const vector2& mark_pos, const vector2& offset, const color& c ) const
@@ -311,6 +330,7 @@ void map_display::display(class game& gm) const
 	else	 	// enable drawing of all object as testing hack by commenting this, fixme
 	{
 		draw_visual_contacts(gm, player, -offset);
+		draw_radar_contacts(gm, player, -offset);
 
 		// Draw a red box around the selected target.
 		if (target)

@@ -782,7 +782,8 @@ void submarine::dive_to_depth(unsigned meters)
 
 
 // mostly the same code as launch_torpedo. cut & paste is ugly, but sometimes unavoidable.
-bool submarine::can_torpedo_be_launched(class game& gm, int tubenr, sea_object* target) const
+bool submarine::can_torpedo_be_launched(class game& gm, int tubenr, sea_object* target, 
+										stored_torpedo::st_status &tube_status) const
 {
 	if (target == 0) return false;	// maybe assert this?
 	if (target == this) return false;  // maybe assert this?
@@ -802,7 +803,10 @@ bool submarine::can_torpedo_be_launched(class game& gm, int tubenr, sea_object* 
 				break;
 			}
 		}
-		if (tubenr < 0) return false;	// no torpedo found
+		if (tubenr < 0) {
+			tube_status = stored_torpedo::st_empty;
+			return false;	// no torpedo found
+		}
 	} else {	// check if tube nr is bow or stern
 		unsigned tn = unsigned(tubenr);
 		pair<unsigned, unsigned> idx = get_bow_tube_indices();
@@ -813,11 +817,18 @@ bool submarine::can_torpedo_be_launched(class game& gm, int tubenr, sea_object* 
 			if (tn < idx.first || tn >= idx.second)
 				return false;	// illegal tube nr.
 		}
+		
+		if (torpedoes[tubenr].status != stored_torpedo::st_loaded) {
+			tube_status = torpedoes[tubenr].status;
+			return false;
+		}
 	}
 
 	// check if torpedo can be fired with that tube, if yes, then fire it
 	pair<angle, bool> launchdata = torpedo::compute_launch_data(
-		torpedoes[tubenr].type, this, target, usebowtubes, trp_addleadangle);
+		torpedoes[tubenr].type, this, target, usebowtubes, trp_addleadangle);	
+	
+	tube_status = torpedoes[tubenr].status;
 	return launchdata.second;
 }
 
