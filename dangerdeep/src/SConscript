@@ -18,6 +18,7 @@ dftdsources = Split("""subsim.cpp
 	game.cpp
 	gun_shell.cpp
 	highscorelist.cpp
+	keys.cpp
 	logbook.cpp
 	logbook_display.cpp
 	map_display.cpp

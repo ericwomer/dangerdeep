@@ -60,4 +60,12 @@ enum KEY_NAMES {
 	NR_OF_KEY_IDS
 };
 
+struct key_name
+{
+	unsigned nr;
+	const char* name;
+};
+
+extern key_name key_names[NR_OF_KEY_IDS];
+
 #endif

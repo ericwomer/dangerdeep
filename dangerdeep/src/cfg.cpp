@@ -2,6 +2,7 @@
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "cfg.h"
+#include "keys.h"
 #include "tinyxml/tinyxml.h"
 #include "global_data.h"
 #include "system.h"
@@ -97,7 +98,19 @@ void cfg::load(const string& filename)
 			// read keys
 			TiXmlElement* ke = eattr->FirstChildElement();
 			for ( ; ke != 0; ke = ke->NextSiblingElement()) {
-				unsigned nr = XmlAttribu(ke, "nr");
+				string keyname = XmlAttrib(ke, "action");
+				// get key number for this action from table
+				unsigned nr = NR_OF_KEY_IDS;
+				for (unsigned i = 0; i < NR_OF_KEY_IDS; ++i) {
+					if (string(key_names[i].name) == keyname) {
+						nr = i;
+					}
+				}
+				if (nr == NR_OF_KEY_IDS) {
+					system::sys().add_console(string("WARNING: found key with invalid name ") +
+								  keyname + string(" in config file"));
+					continue;
+				}
 				SDLKey keysym = SDLKey(XmlAttribu(ke, "keysym"));
 				bool ctrl = XmlAttribu(ke, "ctrl") != 0;
 				bool alt = XmlAttribu(ke, "alt") != 0;
@@ -147,7 +160,6 @@ void cfg::save(const string& filename) const
 	root->LinkEndChild(keys);
 	for (map<unsigned, key>::const_iterator it = valk.begin(); it != valk.end(); ++it) {
 		TiXmlElement* attr = new TiXmlElement("key");
-		attr->SetAttribute("nr", it->first);
 		attr->SetAttribute("action", it->second.action);
 		attr->SetAttribute("keysym", it->second.keysym);
 		attr->SetAttribute("ctrl", it->second.ctrl);

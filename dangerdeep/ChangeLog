@@ -1,4 +1,9 @@
-2005-12-07  Thorsten Jordan  <thorsten_jordan@gmx.de>
+2005-02-13  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* read keys by name from config file and not by number
+	 - will avoid problems when adding new keys somewhere in the mid of
+           the key list
+
+2005-02-12  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* fixed some keys
 	* added analogue clock to periscope screen
 
