@@ -1102,6 +1102,7 @@ int main(int argc, char** argv)
 	mycfg.register_option("debug", false);
 	mycfg.register_option("sound", true);
 
+
 	// make sure the default values are stored if there is no config file,
 	// and make sure all registered values are stored in it
 	//fixme: 2004/05/29, this failes if there is no config dir
@@ -1112,10 +1113,14 @@ int main(int argc, char** argv)
 	FILE* fconfig = fopen((configdirectory + "config").c_str(), "rt");
 	if (fconfig) {
 		fclose(fconfig);
+		mycfg.load(configdirectory + "config");
 	} else {
+		directory configdir = open_dir(configdirectory);
+		if (!configdir.is_valid()) {
+			make_dir(configdirectory);
+		}
 		mycfg.save(configdirectory + "config");
 	}
-	mycfg.load(configdirectory + "config");
 
 /*
 	// 100 times...
@@ -1229,7 +1234,7 @@ int main(int argc, char** argv)
 	sys->draw_console_with(font_arial, background);
 
 	
-	// init save game dir
+	// try to make directories (again)
 	directory savegamedir = open_dir(savegamedirectory);
 	if (!savegamedir.is_valid()) {
 		bool ok = make_dir(savegamedirectory);
