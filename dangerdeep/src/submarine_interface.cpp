@@ -50,6 +50,7 @@ submarine_interface::submarine_interface(game& gm) :
 	displays[display_mode_logbook] = new captains_logbook_display(*this);
 	displays[display_mode_successes] = new ships_sunk_display(*this);
 	displays[display_mode_freeview] = new freeview_display(*this);
+	add_loading_screen("submarine interface initialized");
 }
 
 

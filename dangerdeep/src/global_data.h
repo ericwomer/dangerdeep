@@ -61,6 +61,10 @@ extern class image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_ba
 void init_global_data(void);
 void deinit_global_data(void);
 
+// display loading progress
+void reset_loading_screen(void);
+void add_loading_screen(const string& msg);
+
 // handle modulo calculation for negative values the way I need it
 inline float myfmod(float a, float b) { return a-floorf(a/b)*b; }
 inline float myfrac(float a) { return a-floorf(a); }

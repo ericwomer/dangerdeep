@@ -400,6 +400,7 @@ void run_game(game* gm)
 	widget::theme* gametheme =
 		new widget::theme("widgetelements_game.png", "widgeticons_game.png",
 		font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64));
+	reset_loading_screen();
 	user_interface* ui = user_interface::create(*gm);
 	while (true) {
 		widget::theme* tmp = widget::replace_theme(gametheme);
@@ -1195,6 +1196,7 @@ int main(int argc, char** argv)
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 	glEnable(GL_LIGHT0);
 
+	reset_loading_screen();
 	init_global_data();
 	
 	widget::set_theme(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",

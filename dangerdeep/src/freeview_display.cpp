@@ -351,7 +351,10 @@ void freeview_display::draw_view(game& gm) const
 
 #if 0
 	vector<Uint8> scrn(vps*vps*3);
+	//unsigned t0 = SDL_GetTicks();
 	glReadPixels(0, 0, vps, vps, GL_RGB, GL_UNSIGNED_BYTE, &scrn[0]);
+	//unsigned t1 = SDL_GetTicks();
+	//cout << "time for " << vps << " size tex: " << t1-t0 << "\n"; // 14-20 ms each, ~1-2ms for a 128pixel texture
 	scrn[0] = 255;//test to see where is up
 	ofstream oss("mirror.ppm");
 	oss << "P6\n" << vps << " " << vps << "\n255\n";

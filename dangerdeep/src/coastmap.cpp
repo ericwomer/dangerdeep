@@ -935,6 +935,7 @@ coastmap::coastmap(const string& filename)
 	}
 
 	SDL_Surface* surf = IMG_Load((get_map_dir() + img).c_str());
+	add_loading_screen("map image loaded");
 	system::sys().myassert(surf != 0, string("coastmap: error loading image ") + img + string(" referenced in file ") + filename);
 
 	mapw = surf->w;
@@ -963,6 +964,8 @@ coastmap::coastmap(const string& filename)
 
 	SDL_UnlockSurface(surf);
 	SDL_FreeSurface(surf);
+
+	add_loading_screen("image transformed");
 
 	// they are filled in by process_coastline
 	coastsegments.reserve(segsx*segsy);

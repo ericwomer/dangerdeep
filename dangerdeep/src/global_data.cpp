@@ -8,8 +8,10 @@
 #include "global_data.h"
 #include "sound.h"
 #include <sstream>
+#include <list>
 #include "oglext/OglExt.h"
 #include "tinyxml/tinyxml.h"
+#include "system.h"
 #include <SDL_image.h>
 
 
@@ -38,6 +40,8 @@ image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_background,
 	*depthchargeimg, *sunkendestroyerimg, *kruppdocksimg, *rescuedestroyerimg, *sunderlandimg,
 	*swordfishimg, *hedgehogimg, *panelbackgroundimg;
 
+bool loading_screen_usable = false;
+
 objcachet<class model> modelcache(get_model_dir());
 objcachet<class image> imagecache(get_image_dir());
 objcachet<class texture> texturecache(get_texture_dir());
@@ -58,6 +62,7 @@ void init_global_data(void)
 	background = new texture(get_texture_dir() + "background.png", GL_LINEAR);
 	conning_tower_typeVII = new model(get_model_dir() + "conning_tower_typeVIIc.3ds");
 	font_arial = new font(get_font_dir() + "font_arial");
+	loading_screen_usable = true;
 	font_arialbd = new font(get_font_dir() + "font_arialbd");
 	font_times = new font(get_font_dir() + "font_times");
 	font_timesbd = new font(get_font_dir() + "font_timesbd");
@@ -95,6 +100,7 @@ void init_global_data(void)
 	terraintex = new texture(get_texture_dir() + "terrain2.jpg", GL_LINEAR);
 	cloudsbackgr = new texture(get_texture_dir() + "cloudsbackgr.jpg" );
 	atlanticmap = new texture(get_texture_dir() + "atlanticmap.jpg", GL_LINEAR, GL_CLAMP_TO_EDGE);
+	add_loading_screen("textures loaded");
 
 	titlebackgrimg = new image(get_image_dir() + "titlebackgr.jpg");
 	periscope = new image(get_texture_dir() + "periscope.png", true);
@@ -191,4 +197,47 @@ void deinit_global_data(void)
 	delete swordfishimg;
 	delete hedgehogimg;
 	delete panelbackgroundimg;
+}
+
+// display loading progress
+list<string> loading_screen_messages;
+unsigned starttime;
+void display_loading_screen(void)
+{
+	if (!loading_screen_usable) return;
+	class system& sys = system::sys();
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	sys.prepare_2d_drawing();
+	glColor4f(1, 1, 1, 1);
+	unsigned fh = font_arial->get_height();
+	unsigned y = 0;
+	for (list<string>::const_iterator it = loading_screen_messages.begin();
+	     it != loading_screen_messages.end(); ++it) {
+		font_arial->print(0, y, *it);
+		y += fh;
+	}
+	sys.unprepare_2d_drawing();
+	sys.swap_buffers();
+}
+
+void reset_loading_screen(void)
+{
+	loading_screen_messages.clear();
+	loading_screen_messages.push_back("Loading...");
+	system::sys().add_console("Loading...");
+	display_loading_screen();
+	starttime = SDL_GetTicks();
+}
+
+void add_loading_screen(const string& msg)
+{
+	unsigned tm = SDL_GetTicks();
+	unsigned deltatime = tm - starttime;
+	starttime = tm;
+	ostringstream oss;
+	oss << msg << " (" << deltatime << "ms)";
+	loading_screen_messages.push_back(oss.str());
+	system::sys().add_console(oss.str());
+	display_loading_screen();
 }

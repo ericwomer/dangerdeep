@@ -58,6 +58,7 @@ user_interface::user_interface(game& gm) :
 	current_display(0), target(0), mysky(0), mywater(0),
 	mycoastmap(get_map_dir() + "default.xml")
 {
+	add_loading_screen("coast map initialized");
 	mysky = new sky();
 	mywater = new class water(128, 128, 0.0);//fixme: make detail configureable
 	panel = new widget(0, 768-128, 1024, 128, "", 0, panelbackgroundimg);
@@ -76,6 +77,7 @@ user_interface::user_interface(game& gm) :
 	for (unsigned i = 0; i < 5; ++i)
 		panel->add_child(panel_valuetexts[i]);
 	panel->add_child(new widget_caller_button<game, void (game::*)(void)>(&gm, &game::stop, 1024-128-8, 128-40, 128, 32, texts::get(177)));
+	add_loading_screen("user interface initialized");
 }
 
 user_interface* user_interface::create(game& gm)

@@ -235,6 +235,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 #endif
 
 	}
+	add_loading_screen("water height data computed");
 }
 
 
@@ -584,6 +585,15 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 
 	// compute coordinates
 
+	// this loop takes ~ 6ms of full 19ms per frame.
+	// we could let the GPU compute the loop:
+	// store fft heights as 8bit luminance texture
+	// project it to a gridsize * gridsize framebuffer
+	// using a single quad textured with this texture and trilinear filtering
+	// read in the pixel data as heights.
+	// with 50% time save (3ms) fps would go from 51 to 60.
+	// earth curvature could be simulated by darkening the texture in distance (darker = lower!)
+
 #ifdef COMPUTE_EFFICIENCY
 	int vertices = 0, vertices_inside = 0;
 #endif	
@@ -613,6 +623,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 #endif
 		}
 	}
+
 #ifdef COMPUTE_EFFICIENCY
 	cout << "drawn " << vertices << " vertices, " << vertices_inside << " were inside frustum ("
 		<< vertices_inside*100.0f/vertices << " % )\n";
