@@ -1,3 +1,9 @@
+2004-05-03  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* game, user_interface, sky, global_data
+	  - got rid of get_day_time() code
+	  - computation of sun/moon position now ok
+	  - daylight/brightness depends on sun
+
 2004-04-29  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* global_data.cpp font.cpp
 	  - used GL_CLAMP_TO_EDGE instead of GL_CLAMP
@@ -12,6 +18,11 @@
 
 2004-04-28  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* released current status as 0.0.17
+
+2004-04-26  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* filehelper
+	  - fixed critical bugs in Win32 implementation
+	  - new unix "is_dir" code
 
 2004-04-25  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* countless water experiments and tests, many files modified

@@ -31,6 +31,8 @@ rm `find $debroot -type f -and -name 'Makefile*'`
 
 chmod -R a-s $debroot
 
+chmod -R a-s $debroot
+
 fakeroot dpkg-deb --build $debroot && \
 	lintian $debfile && \
 	echo "$debfile created"
