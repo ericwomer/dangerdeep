@@ -5,6 +5,12 @@
 	* depth_charge.cpp
 	  - fixed bug: depth charges were never removed and kept falling and
 	    exploding eternally.
+	* sound.cpp subsim.cpp
+	  - option to disable sound.
+	  - fixed sound bug, SDL audio gots initialized whenever a sample was
+	    constructed
+	  - also a (more paranoid) check has been added to avoid array out
+	    of bounds bug
 
 2003-07-27  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* torpedo.cpp submarine_interface.cpp submarine.cpp
