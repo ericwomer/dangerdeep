@@ -1,0 +1,13 @@
+#!/bin/bash
+VERSION=`cat version`
+mkdir .tmpbuild
+cd .tmpbuild
+mkdir dangerdeep-$VERSION
+cd dangerdeep-$VERSION
+mkdir data
+echo "Place data files here (directories fonts/ textures/ images/ and so on)." > data/readme
+cp ../../dangerdeep.exe .
+cd ..
+zip -9 -r ../dangerdeep-win32.exe-$VERSION.zip .
+cd ..
+rm -rf .tmpbuild

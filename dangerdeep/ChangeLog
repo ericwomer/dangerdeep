@@ -1,5 +1,7 @@
 2003-11-29  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* made 0.0.13 release. increased version number to 0.0.14
+	* improved build scripts and package format.
+	  now all packages have a common directory structure.
 
 2003-11-29  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* Makefile/configure
