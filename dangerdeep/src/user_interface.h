@@ -48,6 +48,13 @@ protected:
 	float mapzoom;	// factor pixel/meter
 	vector2 mapclick;
 	double mapclickdist;
+	
+	vector<char> landsea;	// a test hack. 0 = land, 1 = sea
+	unsigned mapw, maph;
+	double maprealw;
+	vector2 mappos, mapmaxpos;
+	double mapmperpixel;	// meter per pixel on map
+	unsigned terrain_dl;	// display lists
 
 	// free view mode
 	float viewsideang, viewupang;	// global spectators viewing angles
@@ -128,6 +135,7 @@ public:
 
 	// 3d drawing functions
 	virtual void draw_water(const vector3& viewpos, angle dir, double t, double max_view_dist) const;
+	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist) const;
 	virtual void draw_view(class system& sys, class game& gm, const vector3& viewpos,
 		angle dir, unsigned withplayer, bool withunderwaterweapons); // give 0-2 for "withplayer": draw 0 - nothing, 1 - sub/ship, 2 - bridge
 	virtual bool user_quits(void) const { return quit; }

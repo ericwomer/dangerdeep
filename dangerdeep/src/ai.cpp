@@ -6,6 +6,8 @@
 #include "game.h"
 #include "convoy.h"
 #include "sea_object.h"
+#include "gun_shell.h"
+#include "depth_charge.h"
 
 //#define WPEXACTNESS 100			// how exact a waypoint has to be hit in meters
 //#define AI_THINK_CYCLE_TIME 10		// sec

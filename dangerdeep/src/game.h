@@ -13,19 +13,25 @@
 #include <list>
 #include <vector>
 using namespace std;
-#include "ship.h"
+
+// use forward declarations to avoid unneccessary compile dependencies
+class ship;
+class airplane;
+class torpedo;
+class depth_charge;
+class gun_shell;
+class model;
+class global_data;
+class parser;
+class sea_object;
+class water_splash;
+
 #include "submarine.h"
-#include "airplane.h"
-#include "torpedo.h"
-#include "depth_charge.h"
-#include "gun_shell.h"
-#include "vector2.h"
-#include "model.h"
-#include "global_data.h"
-#include "user_interface.h"
-#include "parser.h"
 #include "convoy.h"
-#include "water_splash.h"
+#include "angle.h"
+#include "date.h"
+#include "vector2.h"
+#include "vector3.h"
 
 class game	// our "world" with physics etc.
 {
@@ -76,7 +82,7 @@ protected:
 	
 	// the player and matching ui (note that playing is not limited to submarines!)
 	sea_object* player;
-	user_interface* ui;
+	class user_interface* ui;
 
 	list<sink_record> sunken_ships;
 	

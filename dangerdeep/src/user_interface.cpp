@@ -19,6 +19,11 @@
 #include "texts.h"
 #include "sound.h"
 #include "logbook.h"
+#include "model.h"
+#include "airplane.h"
+#include "depth_charge.h"
+#include "gun_shell.h"
+#include "water_splash.h"
 #include "ships_sunk_display.h"
 
 #define MAX_PANEL_SIZE 256
@@ -89,6 +94,83 @@ void user_interface::init ()
 		glEnd();
 		glEndList();
 	}
+	
+	// load and init map
+	mapw = maph = 0;
+	maprealw = 0;
+	ifstream in("1.map", ios::in | ios::binary);
+	if (in.good()) {	// does file exist?
+		mapw = read_u16(in);
+		maph = read_u16(in);
+		maprealw = read_double(in);
+		mappos.x = read_double(in);
+		mappos.y = read_double(in);
+		mapmaxpos.x = mappos.x + maprealw;
+		mapmaxpos.y = mappos.y + maprealw * double(maph)/double(mapw);
+		mapmperpixel = maprealw / double(mapw);
+		landsea.resize(mapw*maph);
+		for (unsigned i = 0; i < mapw*maph; ++i)
+			landsea[i] = read_u8(in);
+	}
+	
+	// create terrain display lists
+	terrain_dl = glGenLists(4);
+	system::sys()->myassert(terrain_dl != 0, "no more display list indices available");
+	double m0 = -mapmperpixel/2, m1 = mapmperpixel/2;
+	double h0 = -10, h1 = 150;
+	// list 0
+	glNewList(terrain_dl, GL_COMPILE);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0, 1);
+	glVertex3f(m0, m0, h0);
+	glTexCoord2f(1, 1);
+	glVertex3f(m1, m0, h0);
+	glTexCoord2f(1, 0);
+	glVertex3f(m1, m1, h1);
+	glTexCoord2f(0, 0);
+	glVertex3f(m0, m1, h1);
+	glEnd();
+	glEndList();
+	// list 1
+	glNewList(terrain_dl+1, GL_COMPILE);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0, 1);
+	glVertex3f(m0, m0, h0);
+	glTexCoord2f(1, 0);
+	glVertex3f(m1, m0, h1);
+	glTexCoord2f(1, 0);	// fixme
+	glVertex3f(m1, m1, h1);
+	glTexCoord2f(0, 0);
+	glVertex3f(m0, m1, h1);
+	glEnd();
+	glEndList();
+	// list 2
+	glNewList(terrain_dl+2, GL_COMPILE);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0, 0);	// fixme: another texture!
+	glVertex3f(m0, m0, h1);
+	glTexCoord2f(0, 0);
+	glVertex3f(m1, m0, h1);
+	glTexCoord2f(0, 0);
+	glVertex3f(m1, m1, h1);
+	glTexCoord2f(0, 0);
+	glVertex3f(m0, m1, h1);
+	glEnd();
+	glEndList();
+	// list 3
+	glNewList(terrain_dl+3, GL_COMPILE);	// fixme total
+	glBegin(GL_QUADS);
+	glTexCoord2f(0, 0);
+	glVertex3f(m0, m0, h1);
+	glTexCoord2f(0, 1);
+	glVertex3f(m0, m1, h0);
+	glTexCoord2f(1, 1);
+	glVertex3f(m1, m1, h0);
+	glTexCoord2f(1, 0);
+	glVertex3f(m1, m0, h1);
+	glEnd();
+	glEndList();
+	
 }
 
 void user_interface::deinit ()
@@ -98,6 +180,8 @@ void user_interface::deinit ()
 
 	// delete display lists for water
 	glDeleteLists(wavedisplaylists, WAVE_PHASES);
+	
+	glDeleteLists(terrain_dl, 4);
 }
 
 /* 2003/07/04 idea.
@@ -260,6 +344,122 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glPopMatrix();
 }
 
+void user_interface::draw_terrain(const vector3& viewpos, angle dir,
+	double max_view_dist) const
+{
+	double dist = max_view_dist;
+	vector2 minp(viewpos.x - dist, viewpos.y - dist);
+	vector2 maxp(viewpos.x + dist, viewpos.y + dist);
+//cout << "minp " << minp << "\n";
+//cout << "maxp " << maxp << "\n";
+	vector2 drawmax = mapmaxpos.min(maxp), drawmin = mappos.max(minp);
+//cout << "mappos " << mappos << "\n";	
+//cout << "mapmaxpos " << mapmaxpos << "\n";	
+//cout << "drawmax " << drawmax << "\n";	
+//cout << "drawmin " << drawmin << "\n";	
+	vector2 drawarea = drawmax - drawmin;
+//cout << "draw map area double " << drawmin.x << "," << drawmin.y << "," << drawmax.x << "," << drawmax.y << "\n";
+	vector2 mapoffset = drawmin - mappos;
+	int minx = mapoffset.x / mapmperpixel;
+	int miny = mapoffset.y / mapmperpixel;
+	int maxx = minx + drawarea.x / mapmperpixel;
+	int maxy = miny + drawarea.y / mapmperpixel;
+//cout << "draw map area " << minx << "," << miny << "," << maxx << "," << maxy << "\n";
+	if (minx < 1) minx = 1;
+	if (miny < 1) miny = 1;
+	if (maxx >= mapw-1) maxx = mapw-1;
+	if (maxy >= maph-1) maxy = maph-1;
+	terraintex->set_gl_texture();
+	double yp = -max_view_dist - mapmperpixel/2; //fixme + some offset
+	unsigned mapptr = miny*mapw+minx;
+	double h = 100.0;
+	glPushMatrix();
+	glTranslatef(0, 0, -viewpos.z);
+unsigned quads=0;	
+	for (int y = miny; y < maxy; ++y) {
+		double xp = -max_view_dist - mapmperpixel/2; //fixme + some offset
+		for (int x = minx; x < maxx; ++x) {
+			char mv = landsea[mapptr];
+			if (mv == 1) {
+/*
+				glPushMatrix();
+				glTranslated(xp, yp, 0);
+				glCallList(terrain_dl+2);
+				glPopMatrix();
+*/				
+			} else {
+				char tcode = landsea[mapptr-mapw] + landsea[mapptr-1]*2 + landsea[mapptr+1]*4 + landsea[mapptr+mapw]*8;
+				glPushMatrix();
+				glTranslated(xp, yp, 0);
+				switch (tcode) {
+					case 1:
+						glCallList(terrain_dl);
+						break;
+					case 2:
+						glRotatef(-90, 0, 0, 1);
+						glCallList(terrain_dl);
+						break;
+					case 3:
+						glCallList(terrain_dl+1);
+						break;
+					case 4:
+						glRotatef(-180, 0, 0, 1);
+						glCallList(terrain_dl);
+						break;
+					case 5:
+						glCallList(terrain_dl+2);
+						break;
+					case 6:
+						glRotatef(-90, 0, 0, 1);
+						glCallList(terrain_dl+1);
+						break;
+					case 7:
+						glCallList(terrain_dl+3);
+						break;
+					case 8:
+						glRotatef(-270, 0, 0, 1);
+						glCallList(terrain_dl);
+						break;
+					case 9:
+						glRotatef(-270, 0, 0, 1);
+						glCallList(terrain_dl+1);
+						break;
+					case 10:
+						glCallList(terrain_dl+2);
+						break;
+					case 11:
+						glRotatef(-270, 0, 0, 1);
+						glCallList(terrain_dl+3);
+						break;
+					case 12:
+						glRotatef(-180, 0, 0, 1);
+						glCallList(terrain_dl+1);
+						break;
+					case 13:
+						glRotatef(-180, 0, 0, 1);
+						glCallList(terrain_dl+3);
+						break;
+					case 14:
+						glRotatef(-90, 0, 0, 1);
+						glCallList(terrain_dl+3);
+						break;
+					case 15:
+						glCallList(terrain_dl+2);
+						break;
+				}
+			if(tcode != 0)++quads;
+				glPopMatrix();
+			}
+			++mapptr;
+			xp += mapmperpixel;
+		}
+		mapptr += mapw - (maxx - minx);
+		yp += mapmperpixel;
+	}
+cout << "quads drawn per frame " << quads << "\n";	
+	glPopMatrix();
+}
+
 void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
 	angle dir, unsigned withplayer, bool withunderwaterweapons)
 {
@@ -378,7 +578,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 //	glGetFloatv(GL_MODELVIEW_MATRIX, &m[0]);
 //	glLoadIdentity();
 	GLfloat lp[4] = {0,0,0,1};//{m[12], m[13], m[14], 0};	// light comes from sun (maybe use directional light)
-	glLightfv(GL_LIGHT1, GL_POSITION, lp);
+//	glLightfv(GL_LIGHT1, GL_POSITION, lp);
 
 	glPopMatrix();	// remove sun space
 
@@ -452,6 +652,11 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 					// or moon should be reflected by water.
 	draw_water(viewpos, dir, timefac, max_view_dist);
 	
+
+	// ******** terrain/land *******
+	
+	draw_terrain(viewpos, dir, max_view_dist);
+
 
 	// ******************** ships & subs *************************************************
 	
@@ -1044,13 +1249,13 @@ void user_interface::display_map(class system& sys, game& gm)
 
 	double max_view_dist = gm.get_max_view_distance();
 
-	vector2 offset = -player->get_pos().xy();
+	vector2 offset = player->get_pos().xy();
 
 	sys.prepare_2d_drawing();
 
 	float delta = MAPGRIDSIZE*mapzoom;
-	float sx = myfmod(512, delta)-myfmod(-offset.x, MAPGRIDSIZE)*mapzoom;
-	float sy = 768.0 - (myfmod(384.0f, delta)-myfmod(-offset.y, MAPGRIDSIZE)*mapzoom);
+	float sx = myfmod(512, delta)-myfmod(offset.x, MAPGRIDSIZE)*mapzoom;
+	float sy = 768.0 - (myfmod(384.0f, delta)-myfmod(offset.y, MAPGRIDSIZE)*mapzoom);
 	int lx = int(1024/delta)+2, ly = int(768/delta)+2;
 
 	// draw grid
@@ -1068,14 +1273,60 @@ void user_interface::display_map(class system& sys, game& gm)
 		sy -= delta;
 	}
 	glEnd();
-	glColor3f(1,1,1);
+
+	// draw terrain
+	double dist = max_view_dist;
+	vector2 minp(offset.x - dist, offset.y - dist);
+	vector2 maxp(offset.x + dist, offset.y + dist);
+	vector2 drawmax = mapmaxpos.min(maxp), drawmin = mappos.max(minp);
+	vector2 drawarea = drawmax - drawmin;
+	vector2 mapoffset = drawmin - mappos;
+	int minx = mapoffset.x / mapmperpixel;
+	int miny = mapoffset.y / mapmperpixel;
+	int maxx = minx + drawarea.x / mapmperpixel;
+	int maxy = miny + drawarea.y / mapmperpixel;
+	if (minx < 0) minx = 0;
+	if (miny < 0) miny = 0;
+	if (maxx >= mapw) maxx = mapw;
+	if (maxy >= maph) maxy = maph;
+cout << "map display\n";	
+cout << "minp " << minp << "\n";
+cout << "maxp " << maxp << "\n";
+cout << "mappos " << mappos << "\n";	
+cout << "mapmaxpos " << mapmaxpos << "\n";	
+cout << "drawmax " << drawmax << "\n";	
+cout << "drawmin " << drawmin << "\n";	
+cout << "draw map area double " << drawmin.x << "," << drawmin.y << "," << drawmax.x << "," << drawmax.y << "\n";
+cout << "draw map area " << minx << "," << miny << "," << maxx << "," << maxy << "\n";
+	glColor3f(0, 0.25, 0);
+	glPointSize(mapmperpixel * mapzoom);
+	glBegin(GL_POINTS);
+	double yp = 384 + drawmin.y * mapzoom;
+	unsigned mapptr = miny*mapw+minx;
+	double h = 100.0;
+	for (int y = miny; y < maxy; ++y) {
+		double xp = 512 + drawmin.x * mapzoom;
+		for (int x = minx; x < maxx; ++x) {
+			char mv = landsea[mapptr];
+			if (mv == 1) {
+				glVertex2i(xp, yp);
+			}
+			++mapptr;
+			xp += mapmperpixel * mapzoom;
+		}
+		mapptr += mapw - (maxx - minx);
+		yp += mapmperpixel * mapzoom;
+	}
+	glEnd();
+	glPointSize(1.0);
 
 	// draw convoy positions	fixme: should be static and fade out after some time
+	glColor3f(1,1,1);
 	list<vector2> convoy_pos;
 	gm.convoy_positions(convoy_pos);
 	glBegin(GL_LINE_LOOP);
 	for (list<vector2>::iterator it = convoy_pos.begin(); it != convoy_pos.end(); ++it) {
-		draw_square_mark ( sys, gm, (*it), offset, color ( 0, 0, 0 ) );
+		draw_square_mark ( sys, gm, (*it), -offset, color ( 0, 0, 0 ) );
 	}
 	glEnd();
 	glColor3f(1,1,1);
@@ -1095,14 +1346,14 @@ void user_interface::display_map(class system& sys, game& gm)
 	submarine* sub_player = dynamic_cast<submarine*> ( player );
 	if (sub_player && sub_player->is_submerged ()) {
 		// draw pings
-		draw_pings(gm, offset);
+		draw_pings(gm, -offset);
 
 		// draw sound contacts
 		draw_sound_contact(gm, sub_player, max_view_dist);
 
 		// draw player trails and player
-		draw_trail(player, offset);
-		draw_vessel_symbol(sys, offset, sub_player, color(255,255,128));
+		draw_trail(player, -offset);
+		draw_vessel_symbol(sys, -offset, sub_player, color(255,255,128));
 
 		// Special handling for submarine player: When the submarine is
 		// on periscope depth and the periscope is up the visual contact
@@ -1110,12 +1361,12 @@ void user_interface::display_map(class system& sys, game& gm)
 		if ((sub_player->get_depth() <= sub_player->get_periscope_depth()) &&
 			sub_player->is_scope_up())
 		{
-			draw_visual_contacts(sys, gm, sub_player, offset);
+			draw_visual_contacts(sys, gm, sub_player, -offset);
 
 			// Draw a red box around the selected target.
 			if ( target )
 			{
-				draw_square_mark ( sys, gm, target->get_pos ().xy (), offset,
+				draw_square_mark ( sys, gm, target->get_pos ().xy (), -offset,
 					color ( 255, 0, 0 ) );
 				glColor3f ( 1.0f, 1.0f, 1.0f );
 			}
@@ -1123,12 +1374,12 @@ void user_interface::display_map(class system& sys, game& gm)
 	} 
 	else	 	// enable drawing of all object as testing hack by commenting this, fixme
 	{
-		draw_visual_contacts(sys, gm, player, offset);
+		draw_visual_contacts(sys, gm, player, -offset);
 
 		// Draw a red box around the selected target.
 		if ( target )
 		{
-			draw_square_mark ( sys, gm, target->get_pos ().xy (), offset,
+			draw_square_mark ( sys, gm, target->get_pos ().xy (), -offset,
 				color ( 255, 0, 0 ) );
 			glColor3f ( 1.0f, 1.0f, 1.0f );
 		}

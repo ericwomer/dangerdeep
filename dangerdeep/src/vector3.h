@@ -34,8 +34,8 @@ class vector3t
 	vector3t<D> operator- (void) const { return vector3t(-x, -y, -z); };
 	vector3t<D>& operator+= (const vector3t<D>& other) { x += other.x; y += other.y; z += other.z; return *this; };
 	vector3t<D>& operator-= (const vector3t<D>& other) { x -= other.x; y -= other.y; z -= other.z; return *this; };
-	vector3t<D> min(const vector3t<D>& other) { return vector3t(x < other.x ? x : other.x, y < other.y ? y : other.y, z < other.z ? z : other.z); };
-	vector3t<D> max(const vector3t<D>& other) { return vector3t(x > other.x ? x : other.x, y > other.y ? y : other.y, z > other.z ? z : other.z); };
+	vector3t<D> min(const vector3t<D>& other) const { return vector3t(x < other.x ? x : other.x, y < other.y ? y : other.y, z < other.z ? z : other.z); };
+	vector3t<D> max(const vector3t<D>& other) const { return vector3t(x > other.x ? x : other.x, y > other.y ? y : other.y, z > other.z ? z : other.z); };
 	bool operator== (const vector3t<D>& other) const { return x == other.x && y == other.y && z == other.z; };
 	D square_length(void) const { return x * x + y * y + z * z; };
 	D length(void) const { return D(sqrt(x * x + y * y + z * z)); };

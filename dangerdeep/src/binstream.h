@@ -154,7 +154,7 @@ inline float read_float(istream& in)
 
 inline void write_double(ostream& out, double d)
 {
-	write_u64(out, *(Uint32*)(&d));
+	write_u64(out, *(Uint64*)(&d));
 }
 
 inline double read_double(istream& in)

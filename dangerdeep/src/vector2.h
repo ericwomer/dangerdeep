@@ -35,8 +35,8 @@ class vector2t
 	vector2t<D> operator- (void) const { return vector2t(-x, -y); };
 	vector2t<D>& operator+= (const vector2t<D>& other) { x += other.x; y += other.y; return *this; };
 	vector2t<D>& operator-= (const vector2t<D>& other) { x -= other.x; y -= other.y; return *this; };
-	vector2t<D> min(const vector2t<D>& other) { return vector2t(x < other.x ? x : other.x, y < other.y ? y : other.y); };
-	vector2t<D> max(const vector2t<D>& other) { return vector2t(x > other.x ? x : other.x, y > other.y ? y : other.y); };
+	vector2t<D> min(const vector2t<D>& other) const { return vector2t(x < other.x ? x : other.x, y < other.y ? y : other.y); };
+	vector2t<D> max(const vector2t<D>& other) const { return vector2t(x > other.x ? x : other.x, y > other.y ? y : other.y); };
 	bool operator== (const vector2t<D>& other) const { return x == other.x && y == other.y; };
 	D square_length(void) const { return x * x + y * y; };
 	D length(void) const { return D(sqrt(x * x + y * y)); };

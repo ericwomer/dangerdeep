@@ -13,6 +13,17 @@
 #endif
 #include "system.h"
 #include <sstream>
+
+#include "ship.h"
+#include "airplane.h"
+#include "torpedo.h"
+#include "depth_charge.h"
+#include "gun_shell.h"
+#include "model.h"
+#include "global_data.h"
+#include "parser.h"
+#include "water_splash.h"
+#include "user_interface.h"
 #include "submarine_interface.h"
 #include "ship_interface.h"
 #include "tokencodes.h"

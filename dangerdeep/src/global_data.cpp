@@ -32,7 +32,7 @@ texture *water, *the_moon, *the_sun, *background, *gauge1,
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
 	*woodbackgr, *smoke, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
-	*cloudsbackgr;
+	*cloudsbackgr, *terraintex;
 	
 font *font_arial, *font_panel, *font_nimbusrom;
 
@@ -130,6 +130,7 @@ void init_global_data(void)
 	scopewatcherimg = new image(get_data_dir() + IMAGES_DIR + "scopewatcher.jpg");
 	depthchargeimg = new image(get_data_dir() + IMAGES_DIR + "depthcharge.jpg");
 	cloudsbackgr = new texture(get_data_dir() + TEXTURE_DIR + "cloudsbackgr.png" );
+	terraintex = new texture(get_data_dir() + TEXTURE_DIR + "terrain.png" );
 }
 
 void deinit_global_data(void)
@@ -214,6 +215,7 @@ void deinit_global_data(void)
 	delete killedimg;
 	delete scopewatcherimg;
 	delete depthchargeimg;
+	delete terraintex;
 }
 
 // returns 1939-1945, 1-12, 1-31

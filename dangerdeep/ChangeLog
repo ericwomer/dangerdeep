@@ -1,4 +1,11 @@
 2003-11-08  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* everywhere, beginning at game.cpp
+	  - removed compile dependencies
+	* user_interface.cpp
+	  - first bits of terrain simulation
+	    (you'll have to unbzip2 the 1.map.bz2 for testing)
+
+2003-11-08  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* image.h image.cpp texture.h texture.cpp font.cpp global_data.cpp
 	  - removed silly "morealpha" option.
 	    made texture attributes more flexible (direct passing of OpenGL
