@@ -248,6 +248,14 @@ string sea_object::get_description(unsigned detail) const
 
 void sea_object::simulate(game& gm, double delta_time)
 {
+	// check and change states
+        if (is_defunct()) {
+                return;
+        } else if (is_dead()) {
+                alive_stat = defunct;
+                return;
+        }
+
 	// this leads to another model for acceleration/max_speed/turning etc.
 	// the object applies force to the screws etc. with Force = acceleration * mass.
 	// there is some drag caused by air/water opposite to the force.

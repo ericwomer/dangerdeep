@@ -630,7 +630,7 @@ void game::simulate(double delta_t)
 	}
 	for (list<gun_shell*>::iterator it = gun_shells.begin(); it != gun_shells.end(); ) {
 		list<gun_shell*>::iterator it2 = it++;
-		if (!(*it2)->is_dead()) {
+		if (!(*it2)->is_defunct()) {
 			(*it2)->simulate(*this, delta_t);
 		} else {
 			delete (*it2);
@@ -649,7 +649,7 @@ void game::simulate(double delta_t)
 	for (list<water_splash*>::iterator it = water_splashs.begin(); it != water_splashs.end (); )
 	{
 		list<water_splash*>::iterator it2 = it++;
-		if ( !(*it2)->is_dead () ) {
+		if ( !(*it2)->is_defunct() ) {
 			(*it2)->simulate(*this, delta_t);
 		}
 		else {
@@ -660,7 +660,7 @@ void game::simulate(double delta_t)
 	for (list<particle*>::iterator it = particles.begin(); it != particles.end (); )
 	{
 		list<particle*>::iterator it2 = it++;
-		if (!(*it2)->is_dead ()) {
+		if (!(*it2)->is_dead()) {
 			(*it2)->simulate(*this, delta_t);
 		} else {
 			delete (*it2);

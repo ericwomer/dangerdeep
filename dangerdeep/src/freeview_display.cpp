@@ -265,6 +265,7 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
 	for (list<gun_shell*>::const_iterator it = gun_shells.begin(); it != gun_shells.end(); ++it) {
 		glPushMatrix();
 		vector3 pos = (*it)->get_pos() - viewpos;
+		cout << "displaying grenade " << *it << " at " << (*it)->get_pos() << "\n";
 		glTranslated(pos.x, pos.y, pos.z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 		glScalef(10,10,10);//fixme: to control functionality for now
@@ -302,7 +303,9 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
 void freeview_display::draw_view(game& gm) const
 {
 
-//2004-03-07 fixme, the position fix doesn't fix the ship's flickering, re-fixme is this still true with new code?
+	//fixme: viewpos plus additional player pos leads to wrong water drawing.
+	//just add up both positions, let mv matrix have zero translation.
+
 	double max_view_dist = gm.get_max_view_distance();
 
 	// the modelview matrix is set around the player's object position.
