@@ -1,5 +1,9 @@
 2003-12-03  Markus Petermann  <markus.petermann@gmx.net>
-	* src/damageview.cpp: New damageview program.
+	* src/tinyxml: Added TinyXML parser.
+
+2003-12-03  Markus Petermann  <markus.petermann@gmx.net>
+	* src/damageview.cpp: New damageview program. The top, side and front
+	  view as well as waterline is displayed.
 
 2003-12-02  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* coastmap.cpp
