@@ -38,6 +38,7 @@ public:
 	font(const char* filename, unsigned char_spacing=1, unsigned blank_length=8,
 		const char* font_mapping= "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?;:()<>/\\-+*");
 	~font();
+	//fixme replace const char* with string?
 	void print(int x, int y, const char* text, color col = color(255,255,255), bool with_shadow = false) const;
 	void print_hc(int x, int y, const char* text, color col = color(255,255,255), bool with_shadow = false) const;
 	void print_vc(int x, int y, const char* text, color col = color(255,255,255), bool with_shadow = false) const;

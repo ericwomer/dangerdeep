@@ -15,7 +15,6 @@ ship::ship(unsigned type_, const vector3& pos, angle heading)
 	hitpoints = 1;
 	switch (type_) {
 		case 0:
-			description = "Medium merchant ship";
 			speed = kts2ms(8);
 			max_speed = kts2ms(8);
 			max_rev_speed = 0;
@@ -26,7 +25,6 @@ ship::ship(unsigned type_, const vector3& pos, angle heading)
 			myai = new ai(this, ai::dumb);
 			break;
 		case 1:
-			description = "Medium troopship";
 			speed = kts2ms(8);
 			max_speed = kts2ms(14);
 			max_rev_speed = 0;
@@ -37,7 +35,6 @@ ship::ship(unsigned type_, const vector3& pos, angle heading)
 			myai = new ai(this, ai::dumb);
 			break;
 		case 2:
-			description = "Destroyer Tribal class";
 			speed = kts2ms(8);
 			max_speed = kts2ms(34);
 			max_rev_speed = 0;
@@ -48,7 +45,6 @@ ship::ship(unsigned type_, const vector3& pos, angle heading)
 			myai = new ai(this, ai::escort);
 			break;
 		case 3:
-			description = "Battleship Malaya class";
 			speed = kts2ms(8);
 			max_speed = kts2ms(24);
 			max_rev_speed = 0;

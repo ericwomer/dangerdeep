@@ -22,7 +22,6 @@ depth_charge::depth_charge(const sea_object& parent, double expl_depth)
 	max_rev_speed = 0;
 	throttle = stop;
 	system::sys()->add_console("depth charge created");
-	description = "Allied depth charge";
 }
 
 void depth_charge::simulate(game& gm, double delta_time)

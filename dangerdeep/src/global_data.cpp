@@ -10,7 +10,7 @@
 model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium, *sky,
 	*battleship_malaya, *torpedo_g7, *depth_charge_mdl;
 texture *water, *background, *titel[4], *periscope[4], *gauge1,
-	*gauge2, *gauge3, *gauge4, *psbackgr,
+	*gauge2, *gauge3, *gauge4, *psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11;
 font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
@@ -30,7 +30,7 @@ void init_global_data(void)
 	font_arial2 = new font(datafilename("font_arial2.png").c_str());
 	font_ellis = new font(datafilename("font_ellis.png").c_str());
 	font_logo = new font(datafilename("font_logo.png").c_str(), 1, 8, "Dangerfomthp");
-	font_panel = new font(datafilename("font_panel.png").c_str(), 0, 8, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.0123456789");
+	font_panel = new font(datafilename("font_panel.png").c_str(), 0, 8);
 	font_tahoma = new font(datafilename("font_tahoma.png").c_str());
 	torpedo_g7 = new model(datafilename("torpedo.mdl"));
 	depth_charge_mdl = new model(datafilename("depth_charge.mdl"));
@@ -51,6 +51,7 @@ void init_global_data(void)
 	gauge3 = new texture(datafilename("gauge3.png"));
 	gauge4 = new texture(datafilename("gauge4.png"));
 	psbackgr = new texture(datafilename("psbackgr.png"));
+	panelbackgr = new texture(datafilename("panelbackgr.png"), 1, false);
 	addleadangle = new texture(datafilename("addleadangle.png"));
 	torpempty = new texture(datafilename("torpempty.png"));
 	torpreload = new texture(datafilename("torpreload.png"));
@@ -97,6 +98,7 @@ void deinit_global_data(void)
 	delete gauge3;
 	delete gauge4;
 	delete psbackgr;
+	delete panelbackgr;
 	delete addleadangle;
 	delete torpempty;
 	delete torpreload;

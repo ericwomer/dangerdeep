@@ -31,7 +31,6 @@ public:
 	static double ms2kmh(double meters) { return meters*3.6; }
 
 protected:
-	const char* description;
 	vector3 position;
 	angle heading;	// angles 0-359
 	double speed, max_speed, max_rev_speed;	// m/sec
@@ -92,7 +91,6 @@ public:
 	virtual void remember_position(void);
 	virtual list<vector2> get_previous_positions(void) const { return previous_positions; };
 
-	const char* get_description(void) const { return description; };
 	vector3 get_pos(void) const { return position; };
 	angle get_heading(void) const { return heading; };
 	angle get_turn_rate(void) const { return turn_rate; };

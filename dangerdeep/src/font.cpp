@@ -99,7 +99,11 @@ font::font(const char* filename, unsigned char_spacing, unsigned blank_length,
 	char_height = h;
 	SDL_LockSurface(fontimage);
 	for (unsigned i = 0; i < w; i++) {
-		system::sys()->myassert(charnr < nr_chars, string("font: too many characters found ")+filename);
+		if (onchar && !(charnr < nr_chars)) {
+			ostringstream os;
+			os << "font: too many (" << charnr << "/" << nr_chars << ") found in " << filename;
+			system::sys()->myassert(false, os.str());
+		}
 		bool emptycolumn = true;
 		for (unsigned j = 0; j < h; j++) {
 			unsigned c = get_pixel(fontimage, i, j);
@@ -129,9 +133,11 @@ font::font(const char* filename, unsigned char_spacing, unsigned blank_length,
 	}
 	SDL_UnlockSurface(fontimage);
 
-	ostringstream os;
-	os << "font: detected " << charnr << " characters, expected " << nr_chars << " in " << filename;
-	system::sys()->myassert(charnr == nr_chars, os.str());
+	if (charnr != nr_chars) {
+		ostringstream os;
+		os << "font: detected " << charnr << " characters, expected " << nr_chars << " in " << filename;
+		system::sys()->myassert(false, os.str());
+	}
 
 	for (unsigned i = 0; i < nr_chars; i++) {
 		characters[i].tex = new texture(fontimage, offsets[i], 0, characters[i].width, h, 1, true, true);

@@ -20,7 +20,6 @@ submarine::submarine(unsigned type_, const vector3& pos, angle heading)
 	dive_acceleration = 0;
 	switch (type_) {
 		case typeVIIc:
-			description = "Submarine type VIIc";
 			speed = 0;
 			max_speed = kts2ms(17.7);
 			max_submerged_speed = kts2ms(7.6);
@@ -42,7 +41,6 @@ submarine::submarine(unsigned type_, const vector3& pos, angle heading)
 			torpedoes[12].type = torpedoes[13].type = torpedo::T1;
 			break;
 		case typeXXI:
-			description = "Submarine type XXI";
 			speed = 0;
 			max_speed = kts2ms(15.6);
 			max_submerged_speed = kts2ms(17);

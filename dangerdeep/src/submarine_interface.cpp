@@ -1,10 +1,11 @@
 // user interface for controlling a submarine
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
-#include "submarine_interface.h"
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL/SDL.h>
+#include <sstream>
+#include "submarine_interface.h"
 #include "system.h"
 #include "game.h"
 #include "texts.h"
@@ -59,6 +60,13 @@ float submarine_interface::get_waterheight(float x_, float y_, int wave)	// bili
 	return h01*(1-dy) + h23*dy;
 }
 
+void submarine_interface::add_panel_text(const string& s)
+{
+	panel_texts.push_back(s);
+	if (panel_texts.size() > 4)	// (128-8)/24-1 ;-)
+		panel_texts.pop_front();
+}
+
 submarine_interface::submarine_interface(submarine* player_sub) :
 	zoom_scope(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
 	viewpos(0, 0, 10), bearing(0), viewmode(1),
@@ -90,40 +98,43 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 		case SDLK_F10: viewmode = 9; break;
 
 		// time scaling fixme: too simple
-		case SDLK_F11: if (time_scale < 100) ++time_scale; sys.add_console("time scale +"); break;
-		case SDLK_F12: if (time_scale > 1) --time_scale; sys.add_console("time scale -"); break;
+		case SDLK_F11: if (time_scale < 100) { ++time_scale; add_panel_text(TXT_Timescaleup[language]); } break;
+		case SDLK_F12: if (time_scale > 1) { --time_scale; add_panel_text(TXT_Timescaledown[language]); } break;
 
 		// control
-		case SDLK_LEFT: player->rudder_left(1); break;
-		case SDLK_RIGHT: player->rudder_right(1); break;
-		case SDLK_UP: player->planes_up(1); break;
-		case SDLK_DOWN: player->planes_down(1); break;
-		case SDLK_s: player->dive_to_depth(0); break;
-		case SDLK_p: player->dive_to_depth(12); break;	//fixme
-		case SDLK_c: player->dive_to_depth(150); break;
-		case SDLK_RETURN : player->rudder_midships(); player->planes_middle(); break;
-		case SDLK_1: player->set_throttle(sea_object::aheadslow); break;
-		case SDLK_2: player->set_throttle(sea_object::aheadhalf); break;
-		case SDLK_3: player->set_throttle(sea_object::aheadfull); break;
-		case SDLK_4: player->set_throttle(sea_object::aheadflank); break;//flank/full change?
-		case SDLK_5: player->set_throttle(sea_object::stop); break;
-		case SDLK_6: player->set_throttle(sea_object::reverse); break;
+		case SDLK_LEFT: player->rudder_left(1); add_panel_text(TXT_Rudderleft[language]); break;
+		case SDLK_RIGHT: player->rudder_right(1); add_panel_text(TXT_Rudderright[language]); break;
+		case SDLK_UP: player->planes_up(1); add_panel_text(TXT_Planesup[language]); break;
+		case SDLK_DOWN: player->planes_down(1); add_panel_text(TXT_Planesdown[language]); break;
+		case SDLK_s: player->dive_to_depth(0); add_panel_text(TXT_Surface[language]); break;
+		case SDLK_p: player->dive_to_depth(12); add_panel_text(TXT_Periscopedepth[language]); break;	//fixme
+		case SDLK_c: player->dive_to_depth(150); add_panel_text(TXT_Crashdive[language]); break;
+		case SDLK_RETURN : player->rudder_midships(); player->planes_middle(); add_panel_text(TXT_Ruddermidships[language]); break;
+		case SDLK_1: player->set_throttle(sea_object::aheadslow); add_panel_text(TXT_Aheadslow[language]); break;
+		case SDLK_2: player->set_throttle(sea_object::aheadhalf); add_panel_text(TXT_Aheadhalf[language]); break;
+		case SDLK_3: player->set_throttle(sea_object::aheadfull); add_panel_text(TXT_Aheadfull[language]); break;
+		case SDLK_4: player->set_throttle(sea_object::aheadflank); add_panel_text(TXT_Aheadflank[language]); break;//flank/full change?
+		case SDLK_5: player->set_throttle(sea_object::stop); add_panel_text(TXT_Enginestop[language]); break;
+		case SDLK_6: player->set_throttle(sea_object::reverse); add_panel_text(TXT_Enginereverse[language]); break;
 
 		// view
 		case SDLK_COMMA : bearing -= angle(sys.key_shift() ? 10 : 1); break;
 		case SDLK_PERIOD : bearing += angle(sys.key_shift() ? 10 : 1); break;
 
 		// weapons, fixme
-		case SDLK_t: player->fire_torpedo(gm, true/*fixme*/, -1/*fixme*/, target); break;
+		case SDLK_t: if (player->fire_torpedo(gm, true/*fixme*/, -1/*fixme*/, target)) add_panel_text(TXT_Torpedofired[language]); break;
 		case SDLK_SPACE: target = gm.ship_in_direction_from_pos(player->get_pos().xy(), player->get_heading()+bearing);
-			if (target) sys.add_console("new target selected");
-			else sys.add_console("no target in direction");
+			if (target) add_panel_text(TXT_Newtargetselected[language]);
+			else add_panel_text(TXT_Notargetindirection[language]);
 			break;
 
 		// quit, screenshot, pause etc.
 		case SDLK_ESCAPE: quit = true; break;
-		case SDLK_i: sys.screenshot(); break;
-		case SDLK_PAUSE: pause = !pause; break;
+		case SDLK_i: sys.screenshot(); sys.add_console("screenshot taken."); break;
+		case SDLK_PAUSE: pause = !pause;
+			if (pause) add_panel_text(TXT_Gamepaused[language]);
+			else add_panel_text(TXT_Gameunpaused[language]);
+			break;
 		default: return false;		
 	}
 	return true;
@@ -158,14 +169,32 @@ texture* submarine_interface::torptex(unsigned type)
 	
 void submarine_interface::draw_infopanel(class system& sys) const
 {
-	char paneltext[256];
-	sprintf(paneltext, "Heading.%03u....Speed.%02u....Depth.%03u....Bearing.%03u........................................................",
-		player->get_heading().ui_value(),
-		unsigned(fabs(round(sea_object::ms2kts(player->get_speed())))),
-		unsigned(round(-player->get_pos().z)),
-		bearing.ui_value()
-		);
-	font_panel->print(0, 768-font_panel->get_height(), paneltext);
+	glBindTexture(GL_TEXTURE_2D, panelbackgr->get_opengl_name());
+	glBegin(GL_QUADS);
+	glTexCoord2i(0,0);
+	glVertex2i(0,640);
+	glTexCoord2i(0,1);
+	glVertex2i(0,768);
+	glTexCoord2i(8,1);
+	glVertex2i(1024,768);
+	glTexCoord2i(8,0);
+	glVertex2i(1024,640);
+	glEnd();
+	glBindTexture(GL_TEXTURE_2D, 0);
+	ostringstream os;
+	os << TXT_Heading[language] << ": " << player->get_heading().ui_value()
+		<< "   " << TXT_Speed[language] << ": "
+		<< unsigned(fabs(round(sea_object::ms2kts(player->get_speed()))))
+		<< "   " << TXT_Depth[language] << ": "
+		<< unsigned(round(-player->get_pos().z))
+		<< "   " << TXT_Bearing[language] << ": "
+		<< bearing.ui_value();
+	font_panel->print(0, 648, os.str().c_str());
+	int y = 768 - 24;
+	for (list<string>::const_reverse_iterator it = panel_texts.rbegin(); it != panel_texts.rend(); ++it) {
+		font_panel->print(0, y, it->c_str());
+		y -= 24;	// font_panel's height is 24.
+	}
 }
 
 void submarine_interface::draw_gauge(class system& sys, unsigned nr, int x, int y,
@@ -472,6 +501,28 @@ void submarine_interface::display_gauges(class system& sys, game& gm)
 	draw_infopanel(sys);
 	sys.unprepare_2d_drawing();
 
+	// mouse handling
+	int mx, my, mb = sys.get_mouse_buttons();
+	sys.get_mouse_position(mx, my);
+
+	if (mb & 1) {
+		int marea = (my/256)*4+(mx/256);
+		int mareax = (mx/256)*256+128;
+		int mareay = (my/256)*256+128;
+		angle mang(vector2(mx - mareax, mareay - my));
+		switch (marea) {
+			case 0:	// change heading
+				player->head_to_ang(mang, mang.is_cw_nearer(
+					player->get_heading()));
+				break;
+			case 1:	// change speed
+				break;
+			case 2:	// change depth
+				player->dive_to_depth(mang.ui_value());
+				break;
+		}
+	}
+
 	// keyboard processing
 	int key = sys.get_key();
 	while (key != 0) {
@@ -505,9 +556,8 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	glMatrixMode(GL_MODELVIEW);
 	
 	sys.prepare_2d_drawing();
-	for (int y = 2; y < 3; ++y)
-		for (int x = 1; x < 4; ++x)
-			sys.draw_image(x*256, y*256, 256, 256, psbackgr);
+	for (int x = 0; x < 3; ++x)
+		sys.draw_image(x*256, 512, 256, 256, psbackgr);
 	sys.draw_image(2*256, 0, 256, 256, periscope[0]);
 	sys.draw_image(3*256, 0, 256, 256, periscope[1]);
 	sys.draw_image(2*256, 256, 256, 256, periscope[2]);
@@ -531,15 +581,16 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	draw_gauge(sys, 3, 256, 0, 256, targetrange, TXT_Targetrange[language]);
 	draw_gauge(sys, 2, 0, 256, 256, targetspeed, TXT_Targetspeed[language]);
 	draw_gauge(sys, 1, 256, 256, 256, targetheading, TXT_Targetcourse[language]);
-	sys.draw_image(0, 512, 256, 256, addleadangle);
+	sys.draw_image(768, 512, 256, 256, addleadangle);
 	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
 	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();
 	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
 	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
-		draw_torpedo(sys, true, 256, 512+i*32, torpedoes[i]);
+		int j = i-bow_tube_indices.first;
+		draw_torpedo(sys, true, (j/4)*256, 512+(j%4)*32, torpedoes[i]);
 	}
 	for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
-		draw_torpedo(sys, false, 512, 512+i*32, torpedoes[i]);
+		draw_torpedo(sys, false, 512, 512+(i-stern_tube_indices.first)*32, torpedoes[i]);
 	}
 	glColor3f(1,1,1);
 	draw_infopanel(sys);
@@ -784,7 +835,7 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 
 	// mouse handling
 	int mx, my, mb = sys.get_mouse_buttons();
-	sys.get_mouse_motion(mx, my);
+	sys.get_mouse_position(mx, my);
 
 	// keyboard processing
 	int key = sys.get_key();

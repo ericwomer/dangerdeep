@@ -55,6 +55,9 @@ private:
 	static void init_water_data(void);
 	static float get_waterheight(int x, int y, int wave);
 	static float get_waterheight(float x_, float y_, int wave);	// bilinear sampling
+	
+	list<string> panel_texts;
+	void add_panel_text(const string& s);
 
 public:	
 	submarine_interface(submarine* player_sub);

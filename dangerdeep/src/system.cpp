@@ -124,7 +124,7 @@ void system::draw_console(void)
 		glTexCoord2f(0,0);
 		glVertex2i(0,0);
 		glTexCoord2f(0,2);
-		glVertex2i(0,res_y/2);
+		glVertex2i(0,res_y_2d/2);
 		glTexCoord2f(4,2);
 		glVertex2i(res_x_2d,res_y_2d/2);
 		glTexCoord2f(4,0);
@@ -303,15 +303,15 @@ void system::poll_event_queue(void)
 
 void system::get_mouse_motion(int &x, int &y)
 {
-	x = mouse_xrel;
-	y = mouse_yrel;
+	x = mouse_xrel * int(res_x_2d) / int(res_x);
+	y = mouse_yrel * int(res_y_2d) / int(res_y);
 	mouse_xrel = mouse_yrel = 0;
 }
 
 void system::get_mouse_position(int &x, int &y)
 {
-	x = mouse_x;
-	y = mouse_y;
+	x = mouse_x * int(res_x_2d) / int(res_x);
+	y = mouse_y * int(res_y_2d) / int(res_y);
 }
 
 int system::get_key(void)

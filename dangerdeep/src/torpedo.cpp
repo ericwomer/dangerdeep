@@ -24,14 +24,12 @@ torpedo::torpedo(sea_object* parent_, unsigned type_)
 	run_length = 0;
 	switch (type_) {
 		case T3FAT:		// G7e FAT
-			description = "G7e FAT torpedo";
 			speed = kts2ms(30);
 			max_speed = kts2ms(30);
 			max_rev_speed = 0;
 			max_run_length = 7500;
 			break;
 		case T3:	// G7e electric torpedo (T2/T3)
-			description = "G7e electric torpedo";
 			speed = kts2ms(30);
 			max_speed = kts2ms(30);
 			max_rev_speed = 0;
@@ -41,7 +39,6 @@ torpedo::torpedo(sea_object* parent_, unsigned type_)
 		case T6LUT:
 		case T11:		
 		default:	// G7a steam torpedo
-			description = "G7a steam torpedo";
 			speed = kts2ms(30);
 			max_speed = kts2ms(30);
 			max_rev_speed = 0;
