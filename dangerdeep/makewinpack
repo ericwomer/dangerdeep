@@ -5,14 +5,15 @@ BASEDIR=dangerdeep-$VERSION
 rm -rf $TMP
 mkdir $TMP
 mkdir $TMP/$BASEDIR
-cp -r data $TMP/$BASEDIR
+cp dangerdeep-$VERSION.tar.gz $TMP/$BASEDIR
+cd $TMP/$BASEDIR
+tar zxf dangerdeep-$VERSION.tar.gz
+rm dangerdeep-$VERSION.tar.gz
+cd ../..
 cp build/win32/dangerdeep.exe $TMP/$BASEDIR
 cp dlls/*.dll $TMP/$BASEDIR
 cd $TMP
-DELETE1=`find . -name "Makefile*"`
-DELETE2=`find . -name "CVS"`
-DELETE3=`find . -name ".xvpics"`
-rm -rf $DELETE1 $DELETE2 $DELETE3
+rm -rf $BASEDIR/src
 zip -9r dangerdeep-$VERSION-win32.zip *
 cd ..
 mv $TMP/dangerdeep-$VERSION-win32.zip .

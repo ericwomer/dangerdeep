@@ -186,19 +186,29 @@ def SelectBuildDir(build_dir, platform=None):
 def findCVS(basedir):
 	f = open(basedir + os.sep + 'CVS' + os.sep + 'Entries')
 	lines = f.readlines()
+	mydirs = []
+	myfiles = []
 	for l in lines:
-		print l
-		if l[0] == 'D':
-			print l.lstrip('D/')
-		else:
-			print l.lstrip('/')
-
-#	dirs = os.listdir(basedir)
-#	for dir in dirs:
-#		if os.path.isdir(dir):
-#			dirname = basedir + os.sep + dir
-#			print dirname
-#			findCVS(dirname)
+		if l.startswith('D/'):
+			l2 = l[2:]
+			i = l2.find('/')
+			if i != -1:
+				l3 = l2[0:i]
+				mydirs += [l3]
+		elif l.startswith('/'):
+			l2 = l[1:]
+			i = l2.find('/')
+			if i != -1:
+				l3 = l2[0:i]
+				if l3.startswith('SCons') == False:
+					myfiles += [basedir + os.sep + l3]
+#	print mydirs
+#	print myfiles
+	for d in mydirs:
+		nextdir = basedir + os.sep + d
+		if os.path.isdir(nextdir):
+			myfiles += findCVS(nextdir)
+	return myfiles
 
 
 ################ build
@@ -211,14 +221,14 @@ Export('env', 'dftdsources', 'dftdmediasources', 'oglextsources', 'tinyxmlsource
 
 SConscript(target_dir + os.sep + 'SConscript') 
 
-#generate a list of all files from CVS subdirectories and give that list here!
-#env.Append(TARFLAGS = '-c -z')
-#env.Append(TARSUFFIX = '.gz')
-#env.Tar('dangerdeep-'+version, ['src', 'data'])
-#env.Zip is also possible
-
 BuildDir(target_dir, source_base_dir, duplicate=0) 
 
-print findCVS('.')
+#generate a list of all files from CVS subdirectories and give that list here!
+env.Append(TARFLAGS = '-z')
+env.Append(TARSUFFIX = '.gz')
+cvsfiles = findCVS('src')
+cvsfiles += findCVS('data')
+env.Tar('dangerdeep-'+version, cvsfiles)
+#env.Zip is also possible
 
 ############# eof
