@@ -573,6 +573,8 @@ void submarine_interface::display_map(class system& sys, game& gm)
 	glClearColor(0, 0, 1, 1);	// fixme
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
+	double max_view_dist = gm.get_max_view_distance();
+	
 	vector2 offset = -player->get_pos().xy();
 
 	sys.prepare_2d_drawing();
@@ -617,7 +619,7 @@ void submarine_interface::display_map(class system& sys, game& gm)
 
 	// draw view range
 	glColor3f(1,0,0);
-	float range = gm.get_max_view_distance()*mapzoom;
+	float range = max_view_dist*mapzoom;
 	glBegin(GL_LINE_LOOP);
 	for (int i = 0; i < range/4; ++i) {
 		float a = i*8*M_PI/range;
@@ -655,7 +657,7 @@ void submarine_interface::display_map(class system& sys, game& gm)
 			// fixme: differences between ship types missing
 			for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
 				vector2 ldir = (*it)->get_pos().xy() - player->get_pos().xy();
-				ldir = ldir.normal() * 2000;	// draw lines to the screen's border
+				ldir = ldir.normal() * 0.666666 * max_view_dist*mapzoom;
 				if ((*it)->is_merchant())
 					glColor3f(0,0,0);
 				else if ((*it)->is_warship())

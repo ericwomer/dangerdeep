@@ -8,6 +8,7 @@
 #define PINGANGLE 15		// angle
 #define PINGLENGTH 1000		// meters. for drawing
 #define ASDICRANGE 1500.0	// meters fixme: historic values?
+#define MAX_ACUSTIC_CONTACTS 5	// max. nr of simultaneous trackable acustic contacts
 
 #include <list>
 #include <vector>
@@ -80,6 +81,8 @@ public:
 	
 	list<ship*> hearable_ships(const vector3& pos);
 	list<submarine*> hearable_submarines(const vector3& pos);
+	
+	// list<*> radardetected_ships(...);	// later!
 
 	list<vector2> convoy_positions(void) const;
 	
@@ -114,14 +117,6 @@ public:
 	// fixme: remove sea_object::is_collision , replace with some function(s) of this class
 
 	double water_depth(const vector2& pos) const;
-
-/*
-	// compute visibility information for any object
-	// fixme separate for airplanes, ships, subs, torpedos, dcs?
-	list<sea_object*> objects_seen(const vector3& pos, angle dir);
-	list<sea_object*> objects_heard(const vector3& pos, angle dir);
-	list<sea_object*> objects_radardetected(const vector3& pos, angle dir);
-*/
 
 	// fixme: superseded by game(parser& p)	
 	game(const char* filename) { read(filename); };

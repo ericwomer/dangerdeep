@@ -263,15 +263,33 @@ list<gun_shell*> game::visible_gun_shells(const vector3& pos)
 // fixme: noises are disturbing each other!
 list<ship*> game::hearable_ships(const vector3& pos)
 {
-	list<ship*> result;
+	// fixme: long distance contacts (AOD: white lines) missing/filtering
+
+	// collect the nearest contacts, limited to some value!
+	vector<pair<double, ship*> > contacts(MAX_ACUSTIC_CONTACTS, make_pair(1e30, (ship*)0));
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
-		double d = (*it)->get_pos().xy().distance(pos.xy());
-		double distfac = d/30000;
-		double noisefac = (*it)->get_throttle_speed()/(*it)->get_max_speed();
-//printf("df nf %f %f\n",distfac,noisefac);		
-		if (noisefac - distfac > 0.1) {
-			result.push_back(*it);
+		double d = (*it)->get_pos().xy().square_distance(pos.xy());
+		unsigned i = 0;
+		for ( ; i < contacts.size(); ++i)
+			if (contacts[i].first > d) break;
+		if (i < contacts.size()) {
+			for (unsigned j = contacts.size()-1; j > i; --j)
+				contacts[j] = contacts[j-1];
+			contacts[i] = make_pair(d, *it);
 		}
+	}
+
+	// compute result	
+	list<ship*> result;
+	for (unsigned i = 0; i < contacts.size(); ++i) {
+		ship* s = contacts[i].second;
+		if (s == 0) break;
+		double distance = sqrt(contacts[i].first);
+		double distfac = (distance > 30000) ? 0 : 1.0 - distance/30000;	// fixme: wrong relation?!
+		double noisefac = s->get_throttle_speed()/s->get_max_speed();
+//printf("df nf %f %f\n",distfac,noisefac);		
+		if (noisefac * distfac > 0.1)
+			result.push_back(s);
 	}
 	return result;
 }
