@@ -1,3 +1,13 @@
+2003-11-28  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* coast* user_interface mapcompile.cpp
+	  - map compiles to normal stored format (further compression like
+	    jpeg possible and sensible).
+	    drawing/rendering with LOD possible.
+	    2d map view: moving around the map possible (middle button)
+	    LOD test: right button & move mouse y.
+	  - there are still bugs, but LOD terrain rendering is getting
+	    closer.
+
 2003-11-23  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* 1.map
 	  - compiled section of atlantic as map that should be enough for

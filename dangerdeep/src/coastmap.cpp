@@ -9,6 +9,7 @@
 
 #include "global_data.h"
 #include "coastmap.h"
+#include "binstream.h"
 #include <fstream>
 
 
@@ -42,15 +43,15 @@ coastmap::coastmap(const string& filename)
 	}
 }
 
-void coastmap::draw_as_map(void) const
+void coastmap::draw_as_map(unsigned detail) const
 {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	double rsegw = pixelw_real * pixels_per_seg;
-	double ry = 0;//-offsety;
+	double ry = offsety;
 	for (unsigned y = 0; y < segsy; ++y) {
 		double rx = offsetx;
 		for (unsigned x = 0; x < segsx; ++x) {
-			const coastsegment& cs = coastsegments[y*segsx+x];
+			coastsegments[y*segsx+x].draw_as_map(rx, ry, rsegw, detail);
 /*
 			glColor4f(0.5,0.5,0.5,1);
 			glBegin(GL_LINE_LOOP);
@@ -61,29 +62,23 @@ void coastmap::draw_as_map(void) const
 			glEnd();
 			glColor4f(1,1,0,0.5);
 */			
-			if (cs.type == 1) {
-//cout<<"draw land at "<<rx<<","<<ry<<"\n";			
-				glBegin(GL_QUADS);
-				glVertex2d(rx, ry);
-				glVertex2d(rx, ry+rsegw);
-				glVertex2d(rx+rsegw, ry+rsegw);
-				glVertex2d(rx+rsegw, ry);
-				glEnd();
-			} else if (cs.type > 1) {
-				for (vector<coastline>::const_iterator it = cs.coastlines.begin(); it != cs.coastlines.end(); ++it) {
-					if (it->cyclic)
-						glBegin(GL_LINE_LOOP);
-					else
-						glBegin(GL_LINE_STRIP);
-					for (vector<vector2f>::const_iterator it2 = it->points.begin(); it2 != it->points.end(); ++it2) {
-//cout<<"render "<<it2->x<<","<<it2->y<<"\n";
-						glVertex2f(rx + it2->x, ry + it2->y);
-					}
-					glEnd();
-				}
-			}
 			rx += rsegw;
 		}
 		ry += rsegw;
 	}
+}
+
+void coastmap::render(double px, double py, unsigned detail) const
+{
+	px += offsetx;
+	py += offsety;
+	
+	// determine which coast segment can be seen (at most 4)
+	// fixme
+	double rsegw = pixelw_real * pixels_per_seg;
+	int moffx = int(px/rsegw);
+	int moffy = int(py/rsegw);
+
+	if (moffx >= 0 && moffy >= 0 && moffx < int(segsx) && moffy < int(segsy))	
+		coastsegments[moffy*segsx+moffx].render(px - moffx*rsegw, py - moffy*rsegw, detail);
 }

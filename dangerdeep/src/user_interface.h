@@ -47,13 +47,11 @@ protected:
 	// periscope
 	bool zoom_scope;	// use 6x instead 1.5 fixme implement
 
-	// bridge
-	bool freelook;	// when right mouse button is down
-
 	// map
 	float mapzoom;	// factor pixel/meter
 	vector2 mapclick;
 	double mapclickdist;
+	vector2 mapoffset;	// additional offset used for display, relative to player
 
 	texture* clouds;
 	float cloud_animphase;	// 0-1 phase of interpolation

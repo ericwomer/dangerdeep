@@ -57,7 +57,7 @@
 user_interface::user_interface(sea_object* player) :
 	quit(false), pause(false), time_scale(1), player_object ( player ),
 	panel_height(128), panel_visible(true), bearing(0), elevation(0),
-	viewmode(4), target(0), zoom_scope(false), freelook(false), mapzoom(0.1),
+	viewmode(4), target(0), zoom_scope(false), mapzoom(0.1),
 	mycoastmap("default.map"), viewsideang(0), viewupang(-90), viewpos(0, 0, 10)
 {
 	clouds = 0;
@@ -529,6 +529,9 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 	double max_view_dist) const
 {
+	mycoastmap.render(viewpos.x, viewpos.y);
+
+
 #if 0
 	double dist = max_view_dist;
 	vector2 minp(viewpos.x - dist, viewpos.y - dist);
@@ -1240,27 +1243,18 @@ void user_interface::display_bridge(class system& sys, game& gm)
 	sys.prepare_2d_drawing();
 	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
-	
+
+	int mmx, mmy;
+	sys.get_mouse_motion(mmx, mmy);	
 	if (sys.get_mouse_buttons() & system::right_button) {
-		if (!freelook) {
-			SDL_ShowCursor(SDL_DISABLE);
-			int mx, my;
-			sys.get_mouse_motion(mx, my);	// throw away
-			freelook = true;
-		} else {
-			int mx, my;
-			sys.get_mouse_motion(mx, my);
-			bearing += angle(float(mx)/4);
-			float e = elevation.value_pm180() + float(my)/4;
-			if (e < 0) e = 0;
-			if (e > 90) e = 90;
-			elevation = angle(e);
-		}
+		SDL_ShowCursor(SDL_DISABLE);
+		bearing += angle(float(mmx)/4);
+		float e = elevation.value_pm180() + float(mmy)/4;
+		if (e < 0) e = 0;
+		if (e > 90) e = 90;
+		elevation = angle(e);
 	} else {
-		if (freelook) {
-			SDL_ShowCursor(SDL_ENABLE);
-			freelook = false;
-		}
+		SDL_ShowCursor(SDL_ENABLE);
 	}
 
 	// keyboard processing
@@ -1400,6 +1394,13 @@ void user_interface::display_map(class system& sys, game& gm)
 	mapclick = vector2(mx, my);
 	mapclickdist = (mb & sys.left_button) ? 1e20 : -1;
 
+	int mmx, mmy;
+	sys.get_mouse_motion(mmx, mmy);
+	if (mb & sys.middle_button) {
+		mapoffset.x += mmx / mapzoom;
+		mapoffset.y += -mmy / mapzoom;
+	}
+
 	sea_object* player = get_player ();
 	bool is_day_mode = gm.is_day_mode ();
 
@@ -1411,7 +1412,9 @@ void user_interface::display_map(class system& sys, game& gm)
 
 	double max_view_dist = gm.get_max_view_distance();
 
-	vector2 offset = player->get_pos().xy();
+	vector2 offset = player->get_pos().xy() + mapoffset;
+unsigned detl = 0xffffff;
+if (mb&2) detl = my*10/384;
 
 	sys.prepare_2d_drawing();
 
@@ -1490,8 +1493,8 @@ cout << "draw map area " << minx << "," << miny << "," << maxx << "," << maxy <<
 	float cls = mapzoom;
 	glTranslatef(512, 384, 0);
 	glScalef(cls, cls, 1);
-	glTranslatef(-offset.x, -offset.y, 0);
-	mycoastmap.draw_as_map();
+	glTranslatef(-offset.x, offset.y, 0);
+	mycoastmap.draw_as_map(detl);
 	glPopMatrix();
 
 	// draw convoy positions	fixme: should be static and fade out after some time
