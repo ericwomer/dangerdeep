@@ -545,7 +545,7 @@ spray_particle::spray_particle(const vector3& pos, const vector3& velo) : partic
 
 double spray_particle::get_width(void) const
 {
-	return (1.0f - life) * 7.0 + 3.0;
+	return (1.0f - life) * 6.0 + 2.0;
 }
 
 

@@ -58,7 +58,7 @@ protected:
 	virtual vector3 get_acceleration(void) const { return vector3(); }
 
 public:
-	particle(const vector3& pos, const vector3& velo = vector3()) : position(pos), life(1.0f) {}
+	particle(const vector3& pos, const vector3& velo = vector3()) : position(pos), velocity(velo), life(1.0f) {}
 	virtual ~particle() {}
 
 	static void init(void);
