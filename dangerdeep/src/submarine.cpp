@@ -7,9 +7,6 @@
 #include "sensors.h"
 #include "date.h"
 #include "submarine.h"
-#include "submarine_VIIc.h"
-#include "submarine_IXc40.h"
-#include "submarine_XXI.h"
 #include "depth_charge.h"
 
 // fixme: this was hard work. most values are a rather rough approximation.
