@@ -24,10 +24,10 @@ texture *water, *background, *gauge1,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
-	*woodbackgr, *blend,
+	*woodbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked;
 	
-font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma,
+font *font_arial, *font_arial2, *font_ellis, *font_panel, *font_tahoma,
 	*font_nimbusrom;
 
 sound *torpedo_launch_sound, *torpedo_detonation_submerged[2],
@@ -51,7 +51,6 @@ void init_global_data(void)
 	font_arial = new font((get_data_dir() + FONT_DIR + "font_arial.png").c_str());
 	font_arial2 = new font((get_data_dir() + FONT_DIR + "font_arial2.png").c_str());
 	font_ellis = new font((get_data_dir() + FONT_DIR + "font_ellis.png").c_str());
-	font_logo = new font((get_data_dir() + FONT_DIR + "font_logo.png").c_str(), 1, 8, "Dangerfomthp");
 	font_panel = new font((get_data_dir() + FONT_DIR + "font_panel.png").c_str(), 0, 8);
 	font_tahoma = new font((get_data_dir() + FONT_DIR + "font_tahoma.png").c_str());
 	font_nimbusrom = new font((get_data_dir() + FONT_DIR + "font_nimbusrom.png").c_str());
@@ -94,7 +93,6 @@ void init_global_data(void)
 	torpedo_detonation_surfaced[1] = new sound ( ( get_data_dir () + SOUND_DIR + "torpedo_detonation_surfaced_2.wav" ) );
 	logbook_spiral = new image((get_data_dir () + TEXTURE_DIR + "logbook_spiral.png"));
 	woodbackgr = new texture ( ( get_data_dir () + TEXTURE_DIR + "wooden_desk.png" ) );
-	blend = new texture ( ( get_data_dir () + TEXTURE_DIR + "blend.png" ) );
 	damage_screen_background = new image((get_data_dir() + IMAGES_DIR + "damage_screen_backg.png"), 0, true, true, true);
 	sub_damage_scheme_all = new image((get_data_dir() + IMAGES_DIR + "sub_damage_scheme_all.png"), 0, true, true, true);
 	repairlight = new texture( ( get_data_dir () + TEXTURE_DIR + "repairlight.png" ), 0, true, true );
@@ -119,7 +117,6 @@ void deinit_global_data(void)
 	delete font_arial;
 	delete font_arial2;
 	delete font_ellis;
-	delete font_logo;
 	delete font_panel;
 	delete font_tahoma;
 	delete font_nimbusrom;
@@ -162,7 +159,6 @@ void deinit_global_data(void)
 	delete torpedo_detonation_surfaced[1];
 	delete logbook_spiral;
 	delete woodbackgr;
-	delete blend;
 	delete damage_screen_background;
 	delete sub_damage_scheme_all;
 	delete repairlight;
