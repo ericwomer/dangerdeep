@@ -61,18 +61,19 @@ void model::compute_normals(void)
 			const vector3f& v2 = it->vertices[it2->v[2]].pos;
 			vector3f ortho = (v1-v0).orthogonal(v2-v0);
 			// avoid degenerated triangles
-			float sql = ortho.square_length();
-			if (sql > 0.001) {
-				vector3f face_normal = ortho * (1.0/sqrt(sql));
+			float lf = 1.0/ortho.length();
+			if (isfinite(lf)) {
+				vector3f face_normal = ortho * lf;
 				it->vertices[it2->v[0]].normal += face_normal;
 				it->vertices[it2->v[1]].normal += face_normal;
 				it->vertices[it2->v[2]].normal += face_normal;
 			}
 		}
-		for (vector<model::mesh::vertex>::iterator it2 = it->vertices.begin(); it2 != it->vertices.end(); ++it2)
+		for (vector<model::mesh::vertex>::iterator it2 = it->vertices.begin(); it2 != it->vertices.end(); ++it2) {
 			// this can lead to NAN values in vertex normals.
 			// but only for degenerated vertices, so we don't care.
 			it2->normal.normalize();
+		}
 	}
 }
 
@@ -248,8 +249,8 @@ void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent)
 				break;
 
 //fixme: this matrix seems to describe the model rotation and translation that IS ALREADY computed for the vertices
-//but why are some models so much off the origin? (corvette, subIXc40)
-//lib3ds-dev: invertieren & draufmultiplizieren (transponieren evtl vorher?)
+//but why are some models so much off the origin? (corvette, largefreighter)
+//is there another chunk i missed while reading?
 			case M3DS_TRI_MESHMATRIX:
 				for (int j = 0; j < 4; ++j) {
 					for (int i = 0; i < 3; ++i) {

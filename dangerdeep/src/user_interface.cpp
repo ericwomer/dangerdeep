@@ -258,6 +258,8 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 
 	glDisable(GL_LIGHTING);
 	skycol2.set_gl_color();
+	float tmp = 1.0/30000.0;
+	glScalef(tmp, tmp, tmp);	// sky hemisphere is stored as 30km in radius
 	skyhemisphere->display();//, &skycol1, &skycol2);
 	color::white().set_gl_color();
 	glEnable(GL_LIGHTING);
