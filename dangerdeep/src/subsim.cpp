@@ -971,7 +971,7 @@ void configure_key(widget_list* wkeys)
 				return;
 			}
 			bool ctrl = (ks.mod & (KMOD_LCTRL | KMOD_RCTRL)) != 0;
-			bool alt = (ks.mod & (KMOD_LALT | KMOD_RALT)) != 0;
+			bool alt = (ks.mod & (KMOD_LALT | KMOD_RALT | KMOD_MODE /* Alt Gr */)) != 0;
 			bool shift = (ks.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) != 0;
 			cfg::instance().set_key(keynr, ks.sym, ctrl, alt, shift);
 			keyname->set_text(cfg::instance().getkey(keynr).get_name());

@@ -29,7 +29,7 @@ bool cfg::key::equal(const SDL_keysym& ks) const
 {
 	return (ks.sym == keysym
 		&& ctrl == ((ks.mod & (KMOD_LCTRL | KMOD_RCTRL)) != 0)
-		&& alt == ((ks.mod & (KMOD_LALT | KMOD_RALT)) != 0)
+		&& alt == ((ks.mod & (KMOD_LALT | KMOD_RALT | KMOD_MODE)) != 0)
 		&& shift == ((ks.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) != 0));
 }
 
