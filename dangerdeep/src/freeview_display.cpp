@@ -446,4 +446,6 @@ void freeview_display::draw_view(game& gm) const
 
 	glDisable(GL_FOG);	
 	glColor4f(1,1,1,1);
+
+	ui.draw_weather_effects(gm);
 }

@@ -78,6 +78,104 @@ user_interface::user_interface(game& gm) :
 		panel->add_child(panel_valuetexts[i]);
 	panel->add_child(new widget_caller_button<game, void (game::*)(void)>(&gm, &game::stop, 1024-128-8, 128-40, 128, 32, texts::get(177)));
 	add_loading_screen("user interface initialized");
+
+	// create weather effects textures
+
+	// rain
+#if 0
+#define NR_OF_RAIN_FRAMES 16
+#define NR_OF_RAIN_DROPS 800
+#define RAIN_TEX_W 256
+#define RAIN_TEX_H 256
+	raintex.resize(NR_OF_RAIN_FRAMES);
+	vector<Uint8> raintmptex(RAIN_TEX_W * RAIN_TEX_H * 2);
+
+	for (unsigned j = 0; j < NR_OF_RAIN_FRAMES; ++j) {
+		for (unsigned k = 0; k < RAIN_TEX_W * RAIN_TEX_H * 2; k += 2) {
+			raintmptex[k + 0] = 128;
+			raintmptex[k + 1] = 0;
+		}
+		for (unsigned i = 0; i < NR_OF_RAIN_DROPS; ++i) {
+			vector2i pos(rnd(RAIN_TEX_W-2)+2, rnd(RAIN_TEX_H-2));
+			Uint8 c = rnd(64)+128;
+			raintmptex[(RAIN_TEX_W*pos.y + pos.x) * 2 + 0] = c;
+			raintmptex[(RAIN_TEX_W*pos.y + pos.x) * 2 + 1] = 128;
+			pos.x -= 1; pos.y += 1;
+			raintmptex[(RAIN_TEX_W*pos.y + pos.x) * 2 + 0] = c;
+			raintmptex[(RAIN_TEX_W*pos.y + pos.x) * 2 + 1] = 192;
+			pos.x -= 1; pos.y += 1;
+			raintmptex[(RAIN_TEX_W*pos.y + pos.x) * 2 + 0] = c;
+			raintmptex[(RAIN_TEX_W*pos.y + pos.x) * 2 + 1] = 255;
+		}
+		raintex[j] = new texture(&raintmptex[0], RAIN_TEX_W, RAIN_TEX_H, GL_LUMINANCE_ALPHA, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, false);
+	}
+#endif
+	// snow
+#if 0
+#define NR_OF_SNOW_FRAMES 23
+#define NR_OF_SNOW_FLAKES 2000
+#define SNOW_TEX_W 256
+#define SNOW_TEX_H 256
+	snowtex.resize(NR_OF_SNOW_FRAMES);
+	vector<Uint8> snowtmptex(SNOW_TEX_W * SNOW_TEX_H * 2, 255);
+	vector<vector2i> snowflakepos(NR_OF_SNOW_FLAKES);
+	vector<int> snowxrand(NR_OF_SNOW_FRAMES);
+
+	// create random x coordinate sequence (perturbation)
+	vector<unsigned> snowxtrans(SNOW_TEX_W);
+	for (unsigned k = 0; k < SNOW_TEX_W; ++k) {
+		snowxtrans[k] = k;
+	}
+	for (unsigned k = 0; k < SNOW_TEX_W * 20; ++k) {
+		unsigned a = rnd(SNOW_TEX_W), b = rnd(SNOW_TEX_W);
+		unsigned c = snowxtrans[a];
+		snowxtrans[a] = snowxtrans[b];
+		snowxtrans[b] = c;
+	}
+
+	for (unsigned j = 0; j < NR_OF_SNOW_FRAMES; ++j) {
+		snowxrand[j] = rnd(3)-1;
+	}
+	snowflakepos[0] = vector2i(snowxtrans[0], 0);
+	for (unsigned i = 1; i < NR_OF_SNOW_FLAKES; ++i) {
+		vector2i oldpos = snowflakepos[i-1];
+		for (unsigned j = 0; j < NR_OF_SNOW_FRAMES; ++j) {
+			oldpos.x += snowxrand[(j+3*i)%NR_OF_SNOW_FRAMES];
+			if (oldpos.x < 0) oldpos.x += SNOW_TEX_W;
+			if (oldpos.x >= SNOW_TEX_W) oldpos.x -= SNOW_TEX_W;
+			oldpos.y += 1;	// fixme add more complex "fall down" function
+			if (oldpos.y >= SNOW_TEX_H) {
+				oldpos.x = snowxtrans[oldpos.x];
+				oldpos.y = 0;
+			}
+		}
+		snowflakepos[i] = oldpos;
+	}
+	for (unsigned i = 0; i < NR_OF_SNOW_FRAMES; ++i) {
+		for (unsigned k = 0; k < SNOW_TEX_W * SNOW_TEX_H * 2; k += 2)
+			snowtmptex[k + 1] = 0;
+		for (unsigned j = 0; j < NR_OF_SNOW_FLAKES; ++j) {
+			snowtmptex[(SNOW_TEX_H*snowflakepos[j].y + snowflakepos[j].x) * 2 + 1] = 255;
+			vector2i& oldpos = snowflakepos[j];
+			oldpos.x += snowxrand[(j+3*i)%NR_OF_SNOW_FRAMES];
+			if (oldpos.x < 0) oldpos.x += SNOW_TEX_W;
+			if (oldpos.x >= SNOW_TEX_W) oldpos.x -= SNOW_TEX_W;
+			oldpos.y += 1;	// fixme add more complex "fall down" function
+			if (oldpos.y >= SNOW_TEX_H) {
+				oldpos.x = snowxtrans[oldpos.x];
+				oldpos.y = 0;
+			}
+		}
+/*
+		ostringstream oss;
+		oss << "snowframe"<<i<<".pgm";
+		ofstream osg(oss.str().c_str());
+		osg << "P5\n"<<SNOW_TEX_W<<" "<<SNOW_TEX_H<<"\n255\n";
+		osg.write((const char*)(&snowtmptex[0]), SNOW_TEX_W * SNOW_TEX_H);
+*/
+		snowtex[i] = new texture(&snowtmptex[0], SNOW_TEX_W, SNOW_TEX_H, GL_LUMINANCE_ALPHA, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, false);
+	}
+#endif
 }
 
 user_interface* user_interface::create(game& gm)
@@ -98,6 +196,11 @@ user_interface::~user_interface ()
 
 	delete mysky;
 	delete mywater;
+
+	for (unsigned i = 0; i < raintex.size(); ++i)
+		delete raintex[i];
+	for (unsigned i = 0; i < snowtex.size(); ++i)
+		delete snowtex[i];
 }
 
 
@@ -214,6 +317,44 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 	glPopMatrix();
 #endif
 }
+
+
+
+void user_interface::draw_weather_effects(game& gm) const
+{
+#if 0
+	// draw layers of snow flakes or rain drops (test)
+	// get projection from frustum to view
+	matrix4 c2w = (matrix4::get_gl(GL_PROJECTION_MATRIX) * matrix4::get_gl(GL_MODELVIEW_MATRIX)).inverse();
+	// draw planes between z-near and z-far with ascending distance and 2d texture with flakes/strains
+	glDisable(GL_LIGHTING);
+	unsigned sf = unsigned(gm.get_time() * NR_OF_RAIN_FRAMES) % NR_OF_RAIN_FRAMES;
+//	unsigned sf = unsigned(gm.get_time() * NR_OF_SNOW_FRAMES) % NR_OF_SNOW_FRAMES;
+	raintex[sf]->set_gl_texture();
+//	snowtex[sf]->set_gl_texture();
+	//pd.near_z,pd.far_z
+	double zd[3] = { 0.3, 0.9, 0.7 };
+	glBegin(GL_QUADS);
+	//fixme: planes should be orthogonal to z=0 plane (xy billboarding)
+	for (unsigned i = 0; i < 1; ++i) {
+		vector3 p0 = c2w * vector3(-1,  1, zd[i]);
+		vector3 p1 = c2w * vector3(-1, -1, zd[i]);
+		vector3 p2 = c2w * vector3( 1, -1, zd[i]);
+		vector3 p3 = c2w * vector3( 1,  1, zd[i]);
+		glTexCoord2f(0, 0);	//fixme: uv size changes with depth
+		glVertex3dv(&p0.x);
+		glTexCoord2f(0, 3);
+		glVertex3dv(&p1.x);
+		glTexCoord2f(3, 3);
+		glVertex3dv(&p2.x);
+		glTexCoord2f(3, 0);
+		glVertex3dv(&p3.x);
+	}
+	glEnd();
+#endif
+}
+
+
 
 bool user_interface::time_scale_up(void)
 {

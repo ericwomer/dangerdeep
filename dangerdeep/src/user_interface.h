@@ -58,6 +58,10 @@ protected:
 	class water* mywater;		// the ocean water
 	coastmap mycoastmap;	// this may get moved to game.h, yet it is used for display only, that's why it is here
 
+	// weather graphics
+	vector<texture*> raintex;	// images (animation) of rain drops
+	vector<texture*> snowtex;	// images (animation) of snow flakes
+
 	// free view mode
 //	float freeviewsideang, freeviewupang;	// global spectators viewing angles
 //	vector3 freeviewpos;
@@ -90,8 +94,8 @@ public:
 	void set_time(double tm);
 
 	// process common events (common keys, mouse input to panel)
-	virtual void process_input(class game& gm, const SDL_Event& event);
-	virtual void process_input(class game& gm, const list<SDL_Event>& events);
+	virtual void process_input(game& gm, const SDL_Event& event);
+	virtual void process_input(game& gm, const list<SDL_Event>& events);
 
 	// create ui matching to player type (requested from game)
 	static user_interface* create(game& gm);
@@ -116,6 +120,8 @@ public:
 	// 3d drawing functions
 	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist) const;
 
+	virtual void draw_weather_effects(game& gm) const;
+
 	//fixme: should be const!!!!!! input handling in another function!!!
 /*
 	virtual void draw_view(game& gm, const vector3& viewpos,
@@ -131,9 +137,9 @@ public:
 	virtual bool time_scale_down(void);
 //	virtual void record_sunk_ship ( const class ship* so );
 	/** This method creates a message about the rudder state. */
-	virtual void add_rudder_message(class game& gm);
-	virtual void play_sound_effect(class game& gm, sound_effect se, double volume = 1.0f) const;
-	virtual void play_sound_effect_distance(class game& gm, sound_effect se, double distance) const;
+	virtual void add_rudder_message(game& gm);
+	virtual void play_sound_effect(game& gm, sound_effect se, double volume = 1.0f) const;
+	virtual void play_sound_effect_distance(game& gm, sound_effect se, double distance) const;
 };
 
 #endif
