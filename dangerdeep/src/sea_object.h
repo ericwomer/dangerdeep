@@ -21,12 +21,14 @@ class sea_object
 {
 public:
 	enum alive_status { defunct, dead, sinking, alive };
+	enum throttle_status { reverse, stop, aheadlisten, aheadsonar, aheadslow,
+		aheadhalf, aheadfull, aheadflank };
 protected:
 	const char* description;
 	vector3 position;
 	angle heading;	// angles 0-359
 	double speed, max_speed, max_rev_speed;	// m/sec
-	double throttle;	// |t| <= 1
+	throttle_status throttle;
 	double acceleration;
 	
 	// -1 <= head_chg <= 1
@@ -52,7 +54,7 @@ protected:
 
 	void init_empty(void) {	// init data that is at most constant in the beginning
 		speed = 0;
-		throttle = 0, acceleration = 0;
+		throttle = stop, acceleration = 0;
 		permanent_turn = false;
 		head_chg = 0;
 		alive_stat = alive;
@@ -78,7 +80,7 @@ public:
 	virtual void rudder_left(double amount);	// 0 <= amount <= 1
 	virtual void rudder_right(double amount);	// 0 <= amount <= 1
 	virtual void rudder_midships(void);
-	virtual void set_throttle(double amount);	// 0 <= amount <= 1
+	virtual void set_throttle(throttle_status thr);	// 0 <= amount <= 1
 	
 	virtual void remember_position(void);
 	virtual list<vector2> get_previous_positions(void) const { return previous_positions; };
@@ -91,6 +93,7 @@ public:
 	double get_width(void) const { return width; };
 	double get_speed(void) const { return speed; };
 	virtual double get_max_speed(void) const { return max_speed; };
+	virtual double get_throttle_speed(void) const;
 
 	// needed for launching torpedoes
 	pair<angle, double> bearing_and_range_to(const sea_object* other) const;

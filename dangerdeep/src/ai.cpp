@@ -13,10 +13,13 @@ void ai::search_enemy(void)
 void ai::attack(sea_object* t)
 {
 	target = t;
-	if (target != 0)
+	if (target != 0) {
 		state = attackenemy;
-	else
+		parent->set_throttle(sea_object::aheadflank);
+	} else {
 		state = searchenemy;
+		parent->set_throttle(sea_object::aheadsonar);
+	}
 }
 
 void ai::follow(sea_object* t)

@@ -47,7 +47,7 @@ torpedo::torpedo(sea_object* parent_, unsigned type_)
 			max_rev_speed = 0;
 			max_run_length = 12500;
 	};
-	throttle = 1;
+	throttle = aheadfull;
 	system::sys()->add_console("torpedo created");
 }
 

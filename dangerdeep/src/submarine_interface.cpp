@@ -96,19 +96,19 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 		case SDLK_p: player->dive_to_depth(12); break;	//fixme
 		case SDLK_c: player->dive_to_depth(150); break;
 		case SDLK_RETURN : player->rudder_midships(); player->planes_middle(); break;
-		case SDLK_1: player->set_throttle(THROTTLE_SLOW); break;
-		case SDLK_2: player->set_throttle(THROTTLE_HALF); break;
-		case SDLK_3: player->set_throttle(THROTTLE_FULL); break;
-		case SDLK_4: player->set_throttle(THROTTLE_FLANK); break;//flank/full change?
-		case SDLK_5: player->set_throttle(0); break;
-//		case SDLK_6: player->set_throttle(THROTTLE_REVERSE); break;
+		case SDLK_1: player->set_throttle(sea_object::aheadslow); break;
+		case SDLK_2: player->set_throttle(sea_object::aheadhalf); break;
+		case SDLK_3: player->set_throttle(sea_object::aheadfull); break;
+		case SDLK_4: player->set_throttle(sea_object::aheadflank); break;//flank/full change?
+		case SDLK_5: player->set_throttle(sea_object::stop); break;
+		case SDLK_6: player->set_throttle(sea_object::reverse); break;
 
 		// view
 		case SDLK_COMMA : bearing -= angle(sys.key_shift() ? 10 : 1); break;
 		case SDLK_PERIOD : bearing += angle(sys.key_shift() ? 10 : 1); break;
 
 		// weapons, fixme
-		case SDLK_t: player->fire_torpedo(gm, true/*fixme*/, 0/*fixme*/, target); break;
+		case SDLK_t: player->fire_torpedo(gm, true/*fixme*/, -1/*fixme*/, target); break;
 /*
 		case SDLK_f: {	// FAT hack test
 			torpedo* t = new torpedo(player, 2);

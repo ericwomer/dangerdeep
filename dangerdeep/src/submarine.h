@@ -15,6 +15,9 @@ protected:
 	double max_submerged_speed;
 	
 	// store torpedo type, 0 empty, <0 reloading
+	// we need a class "tube" or something the like:
+	// torpedo type stored, status (loaded, unloading, reloading, empty)
+	// unloading/reloading from which tube and finish time.
 	vector<unsigned> bow_tubes;
 	vector<unsigned> stern_tubes;
 	vector<unsigned> bow_storage;
@@ -50,7 +53,8 @@ public:
 	virtual void planes_down(double amount);
 	virtual void planes_middle(void);
 	virtual void dive_to_depth(unsigned meters);
-	virtual bool fire_torpedo(class game& gm, bool usebowtubes, unsigned tubenr,
+	// give tubenr -1 for any loaded tube, or else 0-5
+	virtual bool fire_torpedo(class game& gm, bool usebowtubes, int tubenr,
 		sea_object* target);
 };
 

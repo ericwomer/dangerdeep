@@ -17,7 +17,7 @@ void sea_object::simulate(game& gm, double delta_time)
 		position.z -= delta_time * SINK_SPEED;
 		if (position.z < -50)	// used for ships.
 			kill();
-		throttle = 0;
+		throttle = stop;
 		rudder_midships();
 		return;
 	}
@@ -30,14 +30,12 @@ void sea_object::simulate(game& gm, double delta_time)
 	position += dir_speed * delta_time;
 	
 	// calculate speed change
-	if (throttle > 1) throttle = 1;
-	if (throttle < -1) throttle = -1;
-	double t = throttle * get_max_speed() - speed;
+	double t = get_throttle_speed() - speed;
 	double s = acceleration * delta_time;
 	if (fabs(t) > s) {
 		speed += (t < 0) ? -s : s;
 	} else {
-		speed = throttle * get_max_speed();
+		speed = get_throttle_speed();
 	}
 
 	// calculate heading change (fixme, this turning is not physically correct)
@@ -108,9 +106,9 @@ void sea_object::rudder_midships(void)
 	permanent_turn = false;
 }
 
-void sea_object::set_throttle(double amount)
+void sea_object::set_throttle(throttle_status thr)
 {
-	throttle = amount;	// fixme: throttle to knots or to percent of max speed?
+	throttle = thr;
 }
 
 void sea_object::remember_position(void)
@@ -119,6 +117,22 @@ void sea_object::remember_position(void)
 	if (previous_positions.size() > MAXPREVPOS)
 		previous_positions.pop_back();
 }	
+
+double sea_object::get_throttle_speed(void) const
+{
+	double ms = get_max_speed();
+	switch (throttle) {
+		case reverse: return -ms*0.25;
+		case stop: return 0;
+		case aheadlisten: return ms*0.25;
+		case aheadsonar: return ms*0.25;
+		case aheadslow: return ms/3.0;
+		case aheadhalf: return ms*0.5;
+		case aheadfull: return ms*0.75;
+		case aheadflank: return ms;
+	}
+	return 0;
+}
 
 pair<angle, double> sea_object::bearing_and_range_to(const sea_object* other) const
 {

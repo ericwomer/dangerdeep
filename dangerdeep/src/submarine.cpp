@@ -74,8 +74,8 @@ void submarine::simulate(class game& gm, double delta_time)
 		} else {
 			double fac = (dive_to - position.z)/delta_depth;
 			if (0 <= fac && fac <= 1) {
-				planes_middle();
 				position.z = dive_to;
+				planes_middle();
 			} else {
 				position.z += delta_depth;
 			}
@@ -142,15 +142,33 @@ void submarine::dive_to_depth(unsigned meters)
 	dive_speed = (dive_to < position.z) ? -max_dive_speed : max_dive_speed;
 }
 
-bool submarine::fire_torpedo(class game& gm, bool usebowtubes, unsigned tubenr,
+bool submarine::fire_torpedo(class game& gm, bool usebowtubes, int tubenr,
 	sea_object* target)
 {
 	unsigned ttype = torpedo::none;
 	if (usebowtubes) {
-		if (tubenr >= bow_tubes.size()) return false;
+		if (tubenr < 0) {
+			for (unsigned i = 0; i < bow_tubes.size(); ++i) {
+				if (bow_tubes[i] == torpedo::none || bow_tubes[i] == torpedo::reloading) {
+					continue;
+				} else {
+					tubenr = i; break;
+				}
+			}
+		}
+		if (tubenr < 0 || tubenr >= bow_tubes.size()) return false;
 		ttype = bow_tubes[tubenr];
 	} else {
-		if (tubenr >= stern_tubes.size()) return false;
+		if (tubenr < 0) {
+			for (unsigned i = 0; i < stern_tubes.size(); ++i) {
+				if (stern_tubes[i] == torpedo::none || stern_tubes[i] == torpedo::reloading) {
+					continue;
+				} else {
+					tubenr = i; break;
+				}
+			}
+		}
+		if (tubenr < 0 || tubenr >= stern_tubes.size()) return false;
 		ttype = stern_tubes[tubenr];
 	}
 	if (ttype == torpedo::none || ttype == torpedo::reloading)

@@ -27,7 +27,7 @@ airplane::airplane(unsigned type_, const vector3& pos, double heading)
 */			
 	}
 	
-	throttle = 1;
+	throttle = aheadfull;
 }
 
 void airplane::display(void) const

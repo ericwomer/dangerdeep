@@ -62,7 +62,7 @@ ship::ship(unsigned type_, const vector3& pos, angle heading)
 			break;
 	}
 	
-	throttle = 0.5;	// fixme
+	throttle = aheadhalf;	// fixme
 }
 
 void ship::simulate(game& gm, double delta_time)
