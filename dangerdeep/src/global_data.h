@@ -45,8 +45,7 @@ extern objcachet<class texture> texturecache;
 extern class model *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl, *conning_tower_typeVII;
 extern class texture *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
-	*addleadangle, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
-	*torpt1, *torpt2, *torpt3, *torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut,
+	*addleadangle, *uzo, *metalbackgr,
 	*clock12, *clock24, *glasses, *torp_expl_water_splash[3],
 	*woodbackgr, *smoke, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,

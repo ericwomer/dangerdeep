@@ -12,10 +12,15 @@ class sub_torpedo_display : public user_display
 	// source tube nr for manual torpedo transfer, used for drag & drop drawing
 	unsigned torptranssrc;
 
+	class texture *torpempty, *torpreload, *torpunload, *torpt1, *torpt2, *torpt3,
+		*torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut;
+
 	void draw_torpedo(class game& gm, bool
 		usebow, const vector2i& pos, const submarine::stored_torpedo& st) const;
 
-	static texture* torptex(unsigned type);
+	texture* torptex(unsigned type) const;
+
+	vector<vector2i> get_tubecoords(class submarine* player) const;
 
 	// draws turnable switch. parameters: pos, first index and number of descriptions,
 	// selected description, extra description text number and title text nr.

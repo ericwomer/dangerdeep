@@ -8,6 +8,8 @@
 #include "command.h"
 #include "sub_torpedo_display.h"
 #include "texts.h"
+#include <sstream>
+using namespace std;
 
 
 void sub_torpedo_display::draw_torpedo(class game& gm, bool usebow,
@@ -42,7 +44,7 @@ void sub_torpedo_display::draw_torpedo(class game& gm, bool usebow,
 
 
 
-texture* sub_torpedo_display::torptex(unsigned type)
+texture* sub_torpedo_display::torptex(unsigned type) const
 {
 	switch (type) {
 		case torpedo::T1: return torpt1;
@@ -57,6 +59,44 @@ texture* sub_torpedo_display::torptex(unsigned type)
 		case torpedo::T6LUT: return torpt6lut;
 	}
 	return torpempty;
+}
+
+
+
+vector<vector2i> sub_torpedo_display::get_tubecoords(submarine* player) const
+{
+	vector<vector2i> tubecoords(player->get_torpedoes().size());
+	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();
+	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
+	pair<unsigned, unsigned> bow_reserve_indices = player->get_bow_reserve_indices();
+	pair<unsigned, unsigned> stern_reserve_indices = player->get_stern_reserve_indices();
+	pair<unsigned, unsigned> bow_deckreserve_indices = player->get_bow_deckreserve_indices();
+	pair<unsigned, unsigned> stern_deckreserve_indices = player->get_stern_deckreserve_indices();
+	unsigned k = bow_tube_indices.second - bow_tube_indices.first;
+	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
+		tubecoords[i] = vector2i(0, 192+(i-k/2)*16);
+	}
+	for (unsigned i = bow_reserve_indices.first; i < bow_reserve_indices.second; ++i) {
+		unsigned j = i - bow_reserve_indices.first;
+		tubecoords[i] = vector2i(192+(j/k)*128, 192+(j%k-k/2)*16);
+	}
+	for (unsigned i = bow_deckreserve_indices.first; i < bow_deckreserve_indices.second; ++i) {
+		unsigned j = i - bow_deckreserve_indices.first;
+		tubecoords[i] = vector2i(192+(j/2)*128, 96+(j%2)*16);
+	}
+	for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
+		unsigned j = i - stern_tube_indices.first;
+		tubecoords[i] = vector2i(896, 160+j*16);
+	}
+	for (unsigned i = stern_reserve_indices.first; i < stern_reserve_indices.second; ++i) {
+		unsigned j = i - stern_reserve_indices.first;
+		tubecoords[i] = vector2i(704, 160+j*16);
+	}
+	for (unsigned i = stern_deckreserve_indices.first; i < stern_deckreserve_indices.second; ++i) {
+		unsigned j = i - stern_deckreserve_indices.first;
+		tubecoords[i] = vector2i(704-(j/2)*128, 96+(j%2)*16);
+	}
+	return tubecoords;
 }
 
 
@@ -106,12 +146,38 @@ sub_torpedo_display::sub_torpedo_display() :
 	torptranssrc(0xffff)
 {
 	// reference images here and fill pointers
+	torpempty = texturecache.ref("torpempty.png");
+	torpreload = texturecache.ref("torpreload.png");
+	torpunload = texturecache.ref("torpunload.png");
+	torpt1 = texturecache.ref("torpt1.png");
+	torpt2 = texturecache.ref("torpt2.png");
+	torpt3 = texturecache.ref("torpt3.png");
+	torpt3a = texturecache.ref("torpt3a.png");
+	torpt4 = texturecache.ref("torpt4.png");
+	torpt5 = texturecache.ref("torpt5.png");
+	torpt11 = texturecache.ref("torpt11.png");
+	torpt1fat = texturecache.ref("torpt1fat.png");
+	torpt3fat = texturecache.ref("torpt3fat.png");
+	torpt6lut = texturecache.ref("torpt6lut.png");
 }
 
 
 
 sub_torpedo_display::~sub_torpedo_display()
 {
+	texturecache.unref("torpempty.png");
+	texturecache.unref("torpreload.png");
+	texturecache.unref("torpunload.png");
+	texturecache.unref("torpt1.png");
+	texturecache.unref("torpt2.png");
+	texturecache.unref("torpt3.png");
+	texturecache.unref("torpt3a.png");
+	texturecache.unref("torpt4.png");
+	texturecache.unref("torpt5.png");
+	texturecache.unref("torpt11.png");
+	texturecache.unref("torpt1fat.png");
+	texturecache.unref("torpt3fat.png");
+	texturecache.unref("torpt6lut.png");
 }
 
 
@@ -144,37 +210,13 @@ void sub_torpedo_display::display(class game& gm) const
 
 	// tube handling. compute coordinates for display and mouse use	
 	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
-	vector<vector2i> tubecoords(torpedoes.size());
+	vector<vector2i> tubecoords = get_tubecoords(player);
 	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();
 	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
 	pair<unsigned, unsigned> bow_reserve_indices = player->get_bow_reserve_indices();
 	pair<unsigned, unsigned> stern_reserve_indices = player->get_stern_reserve_indices();
 	pair<unsigned, unsigned> bow_deckreserve_indices = player->get_bow_deckreserve_indices();
 	pair<unsigned, unsigned> stern_deckreserve_indices = player->get_stern_deckreserve_indices();
-	unsigned k = bow_tube_indices.second - bow_tube_indices.first;
-	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
-		tubecoords[i] = vector2i(0, 192+(i-k/2)*16);
-	}
-	for (unsigned i = bow_reserve_indices.first; i < bow_reserve_indices.second; ++i) {
-		unsigned j = i - bow_reserve_indices.first;
-		tubecoords[i] = vector2i(192+(j/k)*128, 192+(j%k-k/2)*16);
-	}
-	for (unsigned i = bow_deckreserve_indices.first; i < bow_deckreserve_indices.second; ++i) {
-		unsigned j = i - bow_deckreserve_indices.first;
-		tubecoords[i] = vector2i(192+(j/2)*128, 96+(j%2)*16);
-	}
-	for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
-		unsigned j = i - stern_tube_indices.first;
-		tubecoords[i] = vector2i(896, 160+j*16);
-	}
-	for (unsigned i = stern_reserve_indices.first; i < stern_reserve_indices.second; ++i) {
-		unsigned j = i - stern_reserve_indices.first;
-		tubecoords[i] = vector2i(704, 160+j*16);
-	}
-	for (unsigned i = stern_deckreserve_indices.first; i < stern_deckreserve_indices.second; ++i) {
-		unsigned j = i - stern_deckreserve_indices.first;
-		tubecoords[i] = vector2i(704-(j/2)*128, 96+(j%2)*16);
-	}
 
 	// draw tubes
 	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i)
@@ -190,10 +232,15 @@ void sub_torpedo_display::display(class game& gm) const
 	for (unsigned i = stern_deckreserve_indices.first; i < stern_deckreserve_indices.second; ++i)
 		draw_torpedo(gm, false, tubecoords[i], torpedoes[i]);
 	
+	// draw transfer graphics if needed
+
+	system::sys().unprepare_2d_drawing();
+}
 
 
-//INPUT:
 
+void sub_torpedo_display::process_input(class game& gm, const SDL_Event& event)
+{
 
 
 	// mouse handling
@@ -290,55 +337,7 @@ void sub_torpedo_display::display(class game& gm) const
 
 
 
-
-
-
-
-
-
-
-FROM GAUGES DISPLAY:
-	submarine* player = dynamic_cast<submarine*> ( gm.get_player () );
-	system::sys().prepare_2d_drawing();
-
-	if (true /*gm.is_day() fixme*/) {
-		controlscreen_normallight.draw(0, 0);
-	} else {
-		controlscreen_nightlight.draw(0, 0);
-	}
-
-	// the absolute numbers here depend on the graphics!
-	indicators[compass].display(-player->get_heading().value());
-	indicators[battery].display(0);
-	indicators[compressor].display(0);
-	indicators[diesel].display(0);
-	indicators[bow_depth_rudder].display(0);
-	indicators[stern_depth_rudder].display(0);
-	indicators[depth].display(player->get_depth()*1.0-51.0);
-	indicators[knots].display(fabs(player->get_speed())*22.33512-133.6);
-	indicators[main_rudder].display(player->get_rudder_pos()*3.5125);
-	indicators[mt].display(0);
-
-/*	// kept as text reference for tooltips/popups.
-	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
-	angle player_depth = -player->get_pos().z;
-	draw_gauge(gm, 1, 0, 0, 256, player->get_heading(), texts::get(1),
-		player->get_head_to());
-	draw_gauge(gm, 2, 256, 0, 256, player_speed, texts::get(4));
-	draw_gauge(gm, 4, 2*256, 0, 256, player_depth, texts::get(5));
-	draw_clock(gm, 3*256, 0, 256, gm.get_time(), texts::get(61));
-	draw_manometer_gauge ( gm, 1, 0, 256, 256, player->get_fuel_level (),
-		texts::get(101));
-	draw_manometer_gauge ( gm, 1, 256, 256, 256, player->get_battery_level (),
-		texts::get(102));
-*/
-//	draw_infopanel(gm);
-
-	system::sys().unprepare_2d_drawing();
-}
-
-void sub_torpedo_display::process_input(class game& gm, const SDL_Event& event)
-{
+//new
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 	int mx, my;
 	switch (event.type) {
