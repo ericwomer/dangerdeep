@@ -24,6 +24,7 @@
 
 // compute projected grid efficiency, it should be 50-95%
 //#define COMPUTE_EFFICIENCY
+#define DYNAMIC_NORMALS
 
 // some more interesting values: phase 256, waveperaxis: ask your gfx card, facesperwave 64+,
 // wavelength 256+,
@@ -277,12 +278,14 @@ void water::compute_coord_and_normal(int phase, const vector2& xypos,
 	vector3f cf = cc * (1.0f-xfrac) + cd * xfrac;
 	vector3f cg = ce * (1.0f-yfrac) + cf * yfrac;
 	coord = cg + vector3f(xypos.x, xypos.y, 0.0f);
-	
+
+#ifndef DYNAMIC_NORMALS	
 	// bilinear interpolation of normal
 	ce = wavetilenormals[phase][i0] * (1.0f-xfrac) + wavetilenormals[phase][i1] * xfrac;
 	cf = wavetilenormals[phase][i2] * (1.0f-xfrac) + wavetilenormals[phase][i3] * xfrac;
 	cg = ce * (1.0f-yfrac) + cf * yfrac;
 	normal = cg.normal();
+#endif
 }
 
 
@@ -473,12 +476,47 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 		<< vertices_inside*100.0f/vertices << " % )\n";
 #endif
 
-	// compute normals and remaining data (Fresnel etc.)
+	// compute dynamic normals
+	// clear values from last frame
+	for (unsigned i = 0; i < (xres+1)*(yres+1); ++i)
+		normals[i] = vector3f(0.0f, 0.0f, 0.0f);
+	// compute normals for all faces, add them to vertex normals
+	// fixme: angles at vertices are ignored yet
+	for (unsigned y = 0; y < yres; ++y) {
+		unsigned y2 = y+1;
+		for (unsigned x = 0; x < xres; ++x) {
+			unsigned x2 = x+1;
+			unsigned i0 = x +y *(xres+1);
+			unsigned i1 = x2+y *(xres+1);
+			unsigned i2 = x2+y2*(xres+1);
+			unsigned i3 = x +y2*(xres+1);
+			// scheme: 3 2
+			//         0 1
+			// triangulation: 0,1,2 and 0,2,3 (fixme: check if that matches OpenGL order)
+			const vector3f& p0 = coords[i0];
+			const vector3f& p1 = coords[i1];
+			const vector3f& p2 = coords[i2];
+			const vector3f& p3 = coords[i3];
+			vector3f n0 = (p1 - p0).cross(p2 - p0);
+			vector3f n1 = (p2 - p0).cross(p3 - p0);
+			normals[i0] += n0;
+			normals[i1] += n0;
+			normals[i2] += n0;
+			normals[i0] += n1;
+			normals[i2] += n1;
+			normals[i3] += n1;
+		}
+	}
+	// make normals normal ;-)
+	for (unsigned i = 0; i < (xres+1)*(yres+1); ++i)
+		normals[i].normalize();
+
+	// compute remaining data (Fresnel etc.)
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			const vector3f& coord = coords[ptr];
 			const vector3f& N = normals[ptr];
-			vector3f rel_coord = coord + vector3f(0,0,-viewpos.z);
+			vector3f rel_coord = coord + vector3f(0,0,-viewpos.z);//fixme: add translation part of MODELVIEW matrix here
 			vector3f E = -rel_coord.normal();	// viewer is in (0,0,0)
 			float F = E*N;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
 			if (F < 0.0f) F = 0.0f;	// avoid angles > 90 deg.
