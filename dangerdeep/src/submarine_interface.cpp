@@ -156,10 +156,10 @@ void submarine_interface::display(class system& sys, game& gm)
 	if (target != 0 && target->is_dead()) target = 0;
 
 	// switch to map if sub is to deep.
-	double depth = -player->get_pos().z;
-	if (	(depth > 3 && (viewmode >= 2 && viewmode <= 3)) ||
-		(depth > 12 && (viewmode >= 1 && viewmode <= 3)) ||
-		(viewmode == 1 && !player->is_scope_up())	)
+	double depth = player->get_depth();
+	if ((depth > 3 && (viewmode >= 2 && viewmode <= 3)) ||
+		(depth > player->get_periscope_depth() && (viewmode >= 1 && viewmode <= 3)) ||
+		(viewmode == 1 && !player->is_scope_up()))
 			viewmode = 4;
 
 	switch (viewmode) {
