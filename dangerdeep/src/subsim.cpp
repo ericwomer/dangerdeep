@@ -658,7 +658,7 @@ void play_network_game(void)
 void menu_single_mission(void)
 {
 	widget w(0, 0, 1024, 768, texts::get(21), 0, titlebackgrimg);
-	widget_menu* wm = new widget_menu(384, 0, 256, 40);
+	widget_menu* wm = new widget_menu(312, 0, 400, 40);
 	w.add_child(wm);
 	wm->add_entry(texts::get(8), new widget_func_button<void (*)(void)>(&menu_notimplemented, 0, 0, 0, 0));
 	wm->add_entry(texts::get(9), new widget_func_button<void (*)(void)>(&create_convoy_mission, 0, 0, 0, 0));

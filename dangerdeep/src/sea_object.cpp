@@ -344,46 +344,6 @@ void sea_object::remember_position(void)
 		previous_positions.pop_back();
 }	
 
-bool sea_object::set_course_to_pos(const vector2& pos)
-{
-	vector2 d = pos - get_pos().xy();
-	vector2 hd = get_heading().direction();
-	double a = d.x*hd.x + d.y*hd.y;
-	double b = d.x*hd.y - d.y*hd.x;
-	// if a is < 0 then target lies behind our pos.
-	// if b is < 0 then target is left, else right of our pos.
-	double r1 = (b == 0) ? 1e10 : (a*a + b*b)/fabs(2*b);
-	double r2 = 1.0/get_turn_rate().rad();
-	if (a <= 0) {	// target is behind us
-		if (b < 0) {	// target is left
-			head_to_ang(get_heading() - angle(180), true);
-		} else {
-			head_to_ang(get_heading() + angle(180), false);
-		}
-		return false;
-	} else if (r2 > r1) {	// target can not be reached with smallest curve possible
-		if (b < 0) {	// target is left
-			head_to_ang(get_heading() + angle(180), false);
-		} else {
-			head_to_ang(get_heading() - angle(180), true);
-		}
-		return false;
-	} else {	// target can be reached, steer curve
-		head_to_ang(angle::from_math(atan2(d.y, d.x)), (b < 0));
-//	this code computes the curve that hits the target
-//	but it is much better to turn fast and then steam straight ahead.
-//	however, the straight path does not hit the target exactly, since the ship moves
-//	while turning. In reality the ship would turn until it is facing the target
-//	directly. Here the ai recomputes the path every 10seconds, so this doesn't matter.
-/*
-		double needed_turn_rate = (r1 == 0) ? 0 : 1.0/r1; //speed/r1;
-		double fac = ((180.0*needed_turn_rate)/PI)/fabs(turn_rate.value_pm180());
-		head_chg = (b < 0) ? -fac : fac;
-*/		
-		return true;
-	}
-}
-
 double sea_object::get_throttle_speed(void) const
 {
 	double ms = get_max_speed();

@@ -1382,6 +1382,7 @@ void game::send(command* cmd)
 	ostringstream osscmd;
 	cmd->save(osscmd, *this);//fixme, fails with rudder_left?!
 	string cmdstr = osscmd.str();
+//	cerr << cmdstr;
 	//for all network connections
 	//send(cmd.length(), &cmd[0]);
 	//fixme

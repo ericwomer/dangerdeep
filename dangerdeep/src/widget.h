@@ -13,6 +13,10 @@ using namespace std;
 #include "font.h"
 #include "vector2.h"
 
+// fixme: add header for menu widget (like old dftd menues)
+
+// fixme: probably add: if a window's title is empty, don't draw title bar
+
 // fixme: when editing in a widget_edit you have to click twice on a button to lose focus AND click the button .. bad
 
 // fixme: make yes/no, ok, yes/no/cancel dialogue
@@ -22,6 +26,7 @@ using namespace std;
 // process_input(){if (wait_for)wait_for->process_input();else ...old...;} ?
 // ein widget.close fehlt. close:= parent.remove(this), wenn parent==0 dann globale liste nach this
 // durchsuchen. run() läuft dann bis globale liste leer ist.
+
 // more widgets: progress bar
 
 // theme files:

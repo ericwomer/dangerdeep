@@ -4,12 +4,6 @@
 #ifndef AI_H
 #define AI_H
 
-//this should move to ai.cpp, it is here because convoy.cpp depends on it. fime
-// fixme: we have bspline code ready. convoys should follow their routes along a bspline
-// curve for realistic results.
-#define WPEXACTNESS 100			// how exact a waypoint has to be hit in meters
-#define AI_THINK_CYCLE_TIME 10		// sec
-
 #include "vector3.h"
 #include "global_data.h"
 #include "angle.h"
@@ -22,7 +16,7 @@ class sea_object;
 class ai
 {
 public:
-	enum types { dumb, escort };	// fixme: make heir classes for this
+	enum types { dumb, escort, convoy };	// fixme: make heir classes for this
 	enum states { retreat, followpath, followobject,
 		attackcontact };
 
@@ -76,7 +70,9 @@ public:
 	virtual void set_zigzag(bool stat = true);
 	virtual void act_escort(class game& g, double delta_time);
 	virtual void act_dumb(class game& g, double delta_time);
+	virtual void act_convoy(class game& g, double delta_time);
 	virtual void fire_shell_at(class game& gm, const sea_object& s);
+	virtual bool set_course_to_pos(class game& gm, const vector2& pos);	// steer parent to pos, returns true if direct turn is possible
 };
 
 #endif

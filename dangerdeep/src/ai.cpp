@@ -10,9 +10,11 @@
 #include "depth_charge.h"
 #include "command.h"
 
-//#define WPEXACTNESS 100			// how exact a waypoint has to be hit in meters
-//#define AI_THINK_CYCLE_TIME 10		// sec
-#define DC_ATTACK_RADIUS 100	// distance to target before DC launching starts
+// fixme: we have bspline code ready. convoys should follow their routes along a bspline
+// curve for realistic results.
+#define WPEXACTNESS 100			// how exact a waypoint has to be hit in meters
+#define AI_THINK_CYCLE_TIME 10		// sec
+#define DC_ATTACK_RADIUS 100		// distance to target before DC launching starts
 #define DC_ATTACK_RUN_RADIUS 600	// distance to contact until escort switches to
 					// maximum speed
 
@@ -135,10 +137,11 @@ void ai::act(class game& gm, double delta_time)
 
 	switch (type) {
 		case escort: act_escort(gm, delta_time); break;
+		case convoy: act_convoy(gm, delta_time); break;
 		default: act_dumb(gm, delta_time); break;
 	}
 	
-	if (zigzagstate > 0) {
+	if (zigzagstate > 0) {	// this depends on ai type, convoys zigzag different! fixme
 		if (zigzagstate == 5)
 			gm.send(new command_rudder_left(parent));
 		else if (zigzagstate == 15)
@@ -223,7 +226,7 @@ void ai::act_escort(game& gm, double delta_time)
 	} else if (state == attackcontact) {	// attack sonar/visible contact
 
 		if (!(evasive_manouver && rem_manouver_time > 0)) {
-			evasive_manouver = ! parent->set_course_to_pos(contact.xy());//fixme move function to ai!!!
+			evasive_manouver = ! set_course_to_pos(gm, contact.xy());//fixme move function to ai!!!
 			if (evasive_manouver) {
 				// wait for half circle to complete
 				double waittime = 180.0 / (parent->get_turn_rate().value() * parent->get_speed());
@@ -264,12 +267,10 @@ void ai::act_escort(game& gm, double delta_time)
 void ai::act_dumb(game& gm, double delta_time)
 {
 	if (state == followobject && followme != 0) {
-		parent->set_course_to_pos(followme->get_pos().xy());
-		//gm.send(new command_set_course_to_pos(parent, followme->get_pos().xy()));//argh fixme
+		set_course_to_pos(gm, followme->get_pos().xy());
 	} else if (state == followpath) {
 		if (waypoints.size() > 0) {
-			parent->set_course_to_pos(waypoints.front());//argh fixme
-			//gm.send(new command_set_course_to_pos(parent, waypoints.front()));
+			set_course_to_pos(gm, waypoints.front());
 			if (parent->get_pos().xy().distance(waypoints.front()) < WPEXACTNESS) {
 				if (cyclewaypoints)
 					waypoints.push_back(waypoints.front());
@@ -277,6 +278,43 @@ void ai::act_dumb(game& gm, double delta_time)
 			}
 		}
 	}
+}
+
+void ai::act_convoy(game& gm, double delta_time)
+{
+	// follow waypoints
+	if (waypoints.size() > 0) {
+		set_course_to_pos(gm, waypoints.front());
+		if (parent->get_pos().xy().distance(waypoints.front()) < WPEXACTNESS) {
+/*
+			if (cyclewaypoints)
+				waypoints.push_back(waypoints.front());
+*/				
+			waypoints.erase(waypoints.begin());
+		}
+	}
+
+	// set actions for convoy's ships.
+	// civil ships continue their course with zigzags eventually
+//fixme: the ships don't follow their waypoint exactly, they're zigzagging wild around it
+//if i use set_course_to_pos direct, everything is fine. maybe the ai of each ship
+//must "think" shortly after setting the waypoint
+//fixme: don't set the immidiate next wp, just use the next convoy wp + rel. position as waypoint!
+//or set all wps at the beginning. fixme is this really a good idea?
+//this could be done in the constructor!
+//	for (list<pair<ship*, vector2> >::iterator it = merchants.begin(); it != merchants.end(); ++it) {
+//		it->first->get_ai()->set_waypoint(position.xy() + it->second);
+//	}
+
+	// war ships follow their course, with zigzags / evasive manouvers / increasing speed
+//	for (list<pair<ship*, vector2> >::iterator it = warships.begin(); it != warships.end(); ++it) {
+//		it->first->get_ai()->set_waypoint(position.xy() + it->second);
+//	}
+	
+	// escorts follow their escort pattern or attack if alarmed
+//	for (list<pair<ship*, vector2> >::iterator it = escorts.begin(); it != escorts.end(); ++it) {
+//		it->first->get_ai()->set_waypoint(position.xy() + it->second);
+//	}
 }
 
 void ai::fire_shell_at(game& gm, const sea_object& s)
@@ -311,6 +349,51 @@ void ai::fire_shell_at(game& gm, const sea_object& s)
 
 	last_elevation = elevation;	
 	last_azimuth = direction;
+}
+
+bool ai::set_course_to_pos(game& gm, const vector2& pos)
+{
+	vector2 d = pos - parent->get_pos().xy();
+	vector2 hd = parent->get_heading().direction();
+	double a = d.x*hd.x + d.y*hd.y;
+	double b = d.x*hd.y - d.y*hd.x;
+	// if a is < 0 then target lies behind our pos.
+	// if b is < 0 then target is left, else right of our pos.
+	double r1 = (b == 0) ? 1e10 : (a*a + b*b)/fabs(2*b);
+	double r2 = 1.0/parent->get_turn_rate().rad();
+	if (a <= 0) {	// target is behind us
+		if (b < 0) {	// target is left
+			gm.send(new command_head_to_ang(parent, parent->get_heading() - angle(180), true));
+		} else {
+			gm.send(new command_head_to_ang(parent, parent->get_heading() + angle(180), false));
+		}
+		return false;
+	} else if (r2 > r1) {	// target can not be reached with smallest curve possible
+		if (b < 0) {	// target is left
+			gm.send(new command_head_to_ang(parent, parent->get_heading() + angle(180), false));
+		} else {
+			gm.send(new command_head_to_ang(parent, parent->get_heading() - angle(180), true));
+		}
+		return false;
+	} else {	// target can be reached, steer curve
+		gm.send(new command_head_to_ang(parent, angle::from_math(atan2(d.y, d.x)), (b < 0)));
+//	this code computes the curve that hits the target
+//	but it is much better to turn fast and then steam straight ahead.
+//	however, the straight path does not hit the target exactly, since the ship moves
+//	while turning. In reality the ship would turn until it is facing the target
+//	directly. Here the ai recomputes the path every 10seconds, so this doesn't matter.
+//	2004/02/24. an even better course would be: turn to a course so that when it is reached
+//	the target position lies exactly in that direction, e.g. target bearing is 30 degrees,
+//	if we turn to 30, we're already a bit off the target (bearing then is not 0, maybe 5)
+//	so turn to ~35 degrees and then run straight. Such exact path computation is not
+//	realistic though, humans are no computers...
+/*
+		double needed_turn_rate = (r1 == 0) ? 0 : 1.0/r1; //speed/r1;
+		double fac = ((180.0*needed_turn_rate)/PI)/fabs(turn_rate.value_pm180());
+		head_chg = (b < 0) ? -fac : fac;
+*/		
+		return true;
+	}
 }
 
 
@@ -553,4 +636,5 @@ int main(int argc, char** argv)
 		cout << "New elevation " << alpha2 << " degrees.\n";
 	}
 }
+
 #endif

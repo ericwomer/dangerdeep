@@ -5,9 +5,21 @@
 #include "game.h"
 #include "tokencodes.h"
 #include "binstream.h"
+#include "ai.h"
 
-convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : sea_object()
+convoy::convoy() : myai(0)
 {
+}
+
+convoy::~convoy()
+{
+	delete myai;
+}
+
+convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : sea_object(), myai(0)
+{
+	myai = new ai(this, ai::convoy);
+
 	waypoints.push_back(vector2(0, 0));
 	for (int wp = 0; wp < 4; ++wp)
 		waypoints.push_back(vector2(rnd()*300000-150000,rnd()*300000-150000));
@@ -110,9 +122,9 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 	}
 }
 
-convoy::convoy(class game& gm, parser& p) : sea_object()
+convoy::convoy(class game& gm, parser& p) : sea_object(), myai(0)
 {
-	remaining_time = rnd() * AI_THINK_CYCLE_TIME;
+	myai = new ai(this, ai::convoy);
 	p.parse(TKN_CONVOY);
 	p.parse(TKN_SLPARAN);
 	speed = -1;
@@ -190,6 +202,9 @@ void convoy::load(istream& in, class game& g)
 {
 	sea_object::load(in, g);
 
+	if (read_bool(in))
+		myai = new ai(in, g);	
+
 	merchants.clear();
 	for (unsigned s = read_u8(in); s > 0; --s) {
 		ship* sh = g.read_ship(in);
@@ -217,13 +232,15 @@ void convoy::load(istream& in, class game& g)
 		double y = read_double(in);
 		waypoints.push_back(vector2(x, y));
 	}
-		
-	remaining_time = read_double(in);
 }
 
 void convoy::save(ostream& out, const class game& g) const
 {
 	sea_object::save(out, g);
+
+	write_bool(out, (myai != 0));
+	if (myai)
+		myai->save(out, g);
 
 	write_u8(out, merchants.size());
 	for (list<pair<ship*, vector2> >::const_iterator it = merchants.begin(); it != merchants.end(); ++it) {
@@ -248,8 +265,6 @@ void convoy::save(ostream& out, const class game& g) const
 		write_double(out, it->x);
 		write_double(out, it->y);
 	}
-	
-	write_double(out, remaining_time);
 }
 
 
@@ -274,50 +289,8 @@ void convoy::simulate(game& gm, double delta_time)
 			escorts.erase(it2);
 	}
 
-	// ai behaviour
-	// ai action in time intervals
-	remaining_time -= delta_time;
-	if (remaining_time > 0) {
-		return;
-	} else {
-		remaining_time = AI_THINK_CYCLE_TIME;
-	}
-
-//fixme 2004/02/23 this code should be in an ai class! this would also move set_course_to_pos calls
-//to ai, where it should be
-	// follow waypoints
-	if (waypoints.size() > 0) {
-		set_course_to_pos(waypoints.front());
-		if (get_pos().xy().distance(waypoints.front()) < WPEXACTNESS) {
-/*
-			if (cyclewaypoints)
-				waypoints.push_back(waypoints.front());
-*/				
-			waypoints.erase(waypoints.begin());
-		}
-	}
-
-	// set actions for convoy's ships.
-	// civil ships continue their course with zigzags eventually
-//fixme: the ships don't follow their waypoint exactly, they're zigzagging wild around it
-//if i use set_course_to_pos direct, everything is fine. maybe the ai of each ship
-//must "think" shortly after setting the waypoint
-//fixme: don't set the immidiate next wp, just use the next convoy wp + rel. position as waypoint!
-//or set all wps at the beginning. fixme is this really a good idea?
-//this could be done in the constructor!
-	for (list<pair<ship*, vector2> >::iterator it = merchants.begin(); it != merchants.end(); ++it) {
-//		it->first->get_ai()->set_waypoint(position.xy() + it->second);
-	}
-
-	// war ships follow their course, with zigzags / evasive manouvers / increasing speed
-	for (list<pair<ship*, vector2> >::iterator it = warships.begin(); it != warships.end(); ++it) {
-//		it->first->get_ai()->set_waypoint(position.xy() + it->second);
-	}
-	
-	// escorts follow their escort pattern or attack if alarmed
-	for (list<pair<ship*, vector2> >::iterator it = escorts.begin(); it != escorts.end(); ++it) {
-//		it->first->get_ai()->set_waypoint(position.xy() + it->second);
-	}
+	if ( myai )
+		myai->act(gm, delta_time);
 
 	// convoy erased?
 	if (merchants.size() + warships.size() + escorts.size() == 0)

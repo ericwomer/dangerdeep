@@ -1478,6 +1478,7 @@ void user_interface::draw_trail(sea_object* so, const vector2& offset)
 {
 	list<vector2> l = so->get_previous_positions();
 	glColor4f(1,1,1,1);
+	system::sys().no_tex();
 	glBegin(GL_LINE_STRIP);
 	vector2 p = (so->get_pos().xy() + offset)*mapzoom;
 	glVertex2f(512+p.x, 384-p.y);
@@ -1698,6 +1699,7 @@ void user_interface::draw_square_mark ( class game& gm,
 	const vector2& mark_pos, const vector2& offset, const color& c )
 {
 	c.set_gl_color ();
+	system::sys().no_tex();
 	glBegin ( GL_LINE_LOOP );
 	vector2 p = ( mark_pos + offset ) * mapzoom;
 	int x = int ( round ( p.x ) );
@@ -1793,8 +1795,9 @@ if (mb&2) detl = my*10/384;
 	}
 	glColor3f(1,1,1);
 
-	// draw view range, fixme: this is not drawn since the new map was implemented. maybe i forgot to initialize max_view_dist or used a glBegin() without a glEnd() somewhere, check this!
+	// draw view range
 	glColor3f(1,0,0);
+	sys.no_tex();
 	glBegin(GL_LINE_LOOP);
 	for (int i = 0; i < 512; ++i) {
 		float a = i*2*M_PI/512;

@@ -128,10 +128,6 @@ public:
 	virtual void rudder_midships(void);
 	virtual void set_throttle(throttle_status thr);
 
-	// returns true if position can be reached with direct turn & run
-	// maybe this should move to class ai. (fixme - it must be a command, but commands must not return values, so another reson to move it to class ai)
-	virtual bool set_course_to_pos(const vector2& pos);
-
 	virtual void remember_position(void);
 	virtual list<vector2> get_previous_positions(void) const { return previous_positions; }
 
