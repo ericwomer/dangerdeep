@@ -29,6 +29,62 @@ public:
 		stored_torpedo(unsigned t) : type(t), status(st_loaded), associated(0), remaining_time(0) {}
 	};
 
+	// submarine parts and their damages
+	// fixme: replace german names by correct translations
+	enum damageable_parts {
+		// common parts
+		rudder,
+		screws,
+		screw_shaft,
+		stern_dive_planes,
+		stern_lenzpumpe,	//?
+		stern_pressure_hull,
+		stern_hatch,
+		electric_engines,
+		air_compressor,
+		maschine_lenzpumpe,	//?
+		maschine_pressure_hull,
+		stern_battery,
+		diesel_engines,
+		kombuese_hatch,		//?	// there was only one hatch at the stern!? fixme
+		trimm_tank_valves,	//?
+		bow_battery,
+		periscope,
+		central_pressure_hull,
+		bilge_lenzpumpe,	//?
+		conning_tower_hatch,
+		listening_device,
+		radio_device,
+		inner_bow_tubes,
+		outer_bow_tubes,
+		bow_lenzpumpe,		//?
+		bow_hatch,
+		bow_pressure_hull,
+		bow_dive_planes,
+		aa_gun,
+		ammunition_depot,
+		outer_fuel_tanks,
+
+		// parts specific to sub types
+		outer_stern_tubes,
+		inner_stern_tubes,
+//		snorkel,//fixme conflicts with bool snorkel;
+		deck_gun,
+		radio_detection_device,
+		
+		nr_of_damageable_parts	// trick to count enum entries
+	};
+	
+	enum damage_status {
+		unused,
+		none,
+		light,
+		medium,
+		heavy,
+		critical,
+		wrecked
+	};
+	
 protected:
 	double dive_speed, dive_acceleration, max_dive_speed, max_depth, dive_to;
 	bool permanent_dive;
@@ -41,7 +97,7 @@ protected:
 	bool scopeup;	// fixme: maybe simulate time for moving scope up/down
 	double periscope_depth;
 	bool electric_engine; // true when electric engine is used.
-	bool snorkel;
+	bool hassnorkel;	// fixme: replace by (damageable_parts[snorkel] != unused)
 	double snorkel_depth;
 	bool snorkel_up;
 	float sonar_cross_section_factor;
@@ -53,6 +109,8 @@ protected:
 	double battery_recharge_value_a;
 	double battery_recharge_value_t;
     
+	vector<damage_status> damageable_parts;
+
 	submarine();
 	submarine& operator= (const submarine& other);
 	submarine(const submarine& other);
@@ -119,9 +177,13 @@ public:
 	virtual double get_max_depth () const { return max_depth; }
 	virtual bool is_electric_engine (void) const { return (electric_engine == true); }
 	virtual bool is_snorkel_up () const { return ( snorkel_up == true ); }
-	virtual bool has_snorkel () const { return ( snorkel == true ); }
+	virtual bool has_snorkel () const { return ( hassnorkel == true ); }
 	virtual double get_snorkel_depth () const { return snorkel_depth; }
 	virtual double get_battery_level () const { return battery_level; }
+	virtual const vector<damage_status>& get_damage_status(void) const { return damageable_parts; }
+
+	// give relative direction and amount between 0 and 1.
+	virtual void add_damage(const vector3& fromwhere, float amount) { /*fixme*/ };
     
 	// command interface for subs
 	virtual void scope_up(void) { scopeup = true; };	// fixme

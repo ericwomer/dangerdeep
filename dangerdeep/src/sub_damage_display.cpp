@@ -18,6 +18,7 @@ struct rect {
 };
 
 static rect rect_data[] = {
+	//fixme out of date
 	rect(105,116,25,10),	// fixme: measure directly in the program.
 	rect(129,144,22,30),
 	rect(169,148,20,28),
@@ -58,17 +59,11 @@ static rect rect_data[] = {
 
 
 
-sub_damage_display::sub_damage_display ()  // fixme: give sub type
+sub_damage_display::sub_damage_display (submarine* s) : mysub(s)  // fixme: give sub type
 {
-	unsigned s = unsigned(nr_of_damageable_parts);
-	all_parts.resize(s, none);
 }
 
 sub_damage_display::~sub_damage_display ()
-{
-}
-
-void sub_damage_display::add_damage ( const vector3& fromwhere, float amount )
 {
 }
 
@@ -112,13 +107,14 @@ void sub_damage_display::check_key ( int keycode, class system& sys, class game&
 
 void sub_damage_display::check_mouse ( int x, int y, int mb )
 {
+	if (!mysub) return;
 	// fixme
-	unsigned s = unsigned(nr_of_damageable_parts);
-	for (unsigned i = 0; i < s; ++i) {
+	const vector<submarine::damage_status> damages = mysub->get_damage_status();
+	for (unsigned i = 0; i < damages.size(); ++i) {
 		rect r = rect_data[i];
 		r.y += (damage_screen_background->h-sub_damage_scheme_all->h)/2;
 		if (x >= r.x && x <= r.x+r.w && y >= r.y && y <= r.y+r.h) {
-			// it is important, that texts are in correct order starting with 103.
+			// it is important, that texts are in correct order starting with 103.fixme
 			bool atbottom = (r.y+r.h/2) >= 768/2;
 			display_popup(r.x+r.w/2, r.y+r.h/2, texts::get(103+i), atbottom);
 		}

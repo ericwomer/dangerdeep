@@ -13,9 +13,10 @@
 submarine::submarine() : ship(), dive_speed(0.0f), permanent_dive(false),
 	dive_to(0.0f), max_dive_speed(1.0f), dive_acceleration(0.0f), scopeup(false),
 	max_depth(150.0f), periscope_depth(12.0f), snorkel_depth(10.0f),
-	snorkel (false), snorkel_up(false),
+	hassnorkel (false), snorkel_up(false),
 	battery_level ( 1.0f ), battery_value_a ( 0.0f ), battery_value_t ( 1.0f ),
-	battery_recharge_value_a ( 0.0f ), battery_recharge_value_t ( 1.0f )
+	battery_recharge_value_a ( 0.0f ), battery_recharge_value_t ( 1.0f ),
+	damageable_parts(nr_of_damageable_parts, unused)
 {}
 	
 bool submarine::parse_attribute(parser& p)
@@ -57,7 +58,7 @@ bool submarine::parse_attribute(parser& p)
 		case TKN_SNORKEL:
 			p.consume();
 			p.parse(TKN_ASSIGN);
-			snorkel = p.parse_bool();
+			hassnorkel = p.parse_bool();
 			p.parse(TKN_SEMICOLON);
 			break;
 		case TKN_BATTERY:
@@ -234,7 +235,7 @@ double submarine::get_max_speed(void) const
 
 		// When submarine is submerged and snorkel is used the maximum
 		// diesel speed is halved.
-		if ( snorkel && is_submerged () && snorkel_up )
+		if ( has_snorkel() && is_submerged () && snorkel_up )
 			ms *= 0.5f;
 	}
 
@@ -420,7 +421,7 @@ double submarine::get_noise_factor () const
 		// reduced by 50%. This reduces the noise level returned by method
 		// sea_object::get_noise_factor and must be corrected here by
 		// multiply the actual noise factor with 2.
-		if ( snorkel && is_submerged () && snorkel_up )
+		if ( has_snorkel() && is_submerged () && snorkel_up )
 			noisefac *= 2.0f;
 	}
 
@@ -448,7 +449,7 @@ bool submarine::set_snorkel_up ( bool snorkel_up )
 {
 	// Snorkel can be toggled only when it is available 
 	// and the submarine is at least at snorkel depth.
-	if ( snorkel && get_depth () <= snorkel_depth )
+	if ( has_snorkel() && get_depth () <= snorkel_depth )
 	{
 		this->snorkel_up = snorkel_up;
 
