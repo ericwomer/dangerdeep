@@ -162,14 +162,13 @@ double get_time(unsigned year, unsigned month, unsigned day)
 	return d*86400.0;
 }
 
-// returns 0 night, 1 dawn, 2 day, 3 dusk
-unsigned get_day_time(double t)
+double get_day_time(double t)
 {
 	// fixme: calculate sunrise and fall etc.
 	double d = fmod(t, 86400);
-	if (d < 5*3600) return 0;	// sunrise at 5am
-	if (d < 6*3600) return 1;	// day at 6am
-	if (d < 18*3600) return 2;	// sundown at 6pm
-	if (d < 19*3600) return 3;	// night at 7pm
-	return 0;
+	if (d < 5*3600) return 0 + (d+5*3600)/(10*3600);	// sunrise at 5am
+	if (d < 6*3600) return 1 + (d-5*3600)/3600;	// day at 6am
+	if (d < 18*3600) return 2 + (d-6*3600)/(12*3600);	// sundown at 6pm
+	if (d < 19*3600) return 3 + (d-18*3600)/3600;	// night at 7pm
+	return 0 + (d-19*3600)/(10*3600);
 }

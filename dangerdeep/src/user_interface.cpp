@@ -73,17 +73,17 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	glPushMatrix();
 	glTranslatef(viewpos.x, viewpos.y, 0);
 	glScalef(max_view_dist, max_view_dist, max_view_dist);	// fixme dynamic
-	unsigned dt = get_day_time(gm.get_time());
+	double dt = get_day_time(gm.get_time());
 	color skycol1, skycol2, lightcol;
-	if (dt < 2) {
-		lightcol = color(100, 100, 100);
-		skycol1 = color(16,16,64);
-		skycol2 = color(0, 0, 32);
-	} else {
-		lightcol = color(255,255,255);
-		skycol1 = color(165,192,247);
-		skycol2 = color(24,47,244);
-	}
+	double colscal;
+	if (dt < 1) { colscal = 0; }
+	else if (dt < 2) { colscal = fmod(dt,1); }
+	else if (dt < 3) { colscal = 1; }
+	else { colscal = 1-fmod(dt,1); }
+	lightcol = color(color(64, 64, 64), color(255,255,255), colscal);
+	skycol1 = color(color(8,8,32), color(165,192,247), colscal);
+	skycol2 = color(color(0, 0, 16), color(24,47,244), colscal);
+
 	skyhemisphere->display(false, &skycol1, &skycol2);
 	glBindTexture(GL_TEXTURE_2D, clouds->get_opengl_name());
 	float skysin[SKYSEGS], skycos[SKYSEGS];
@@ -92,20 +92,21 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		skycos[i] = cos(t);
 		skysin[i] = sin(t);
 	}
+	double cloudrot = fmod(gm.get_time(), 60)/60;
 	glBegin(GL_QUADS);	// fixme: quad strips!
 	float rl = 0.95, ru = 0.91;
 	float hl = 0.1, hu = 0.4;
 	for (int j = 0; j < SKYSEGS; ++j) {
 		int t = (j+1) % SKYSEGS;
 		lightcol.set_gl_color(0);
-		glTexCoord2f((j+1)*0.5, 0);
+		glTexCoord2f((j+1)*0.5+cloudrot, 0);
 		glVertex3f(rl * skycos[t], rl * skysin[t], hl);
-		glTexCoord2f((j  )*0.5, 0);
+		glTexCoord2f((j  )*0.5+cloudrot, 0);
 		glVertex3f(rl * skycos[j], rl * skysin[j], hl);
 		lightcol.set_gl_color(255);
-		glTexCoord2f((j  )*0.5, 1);
+		glTexCoord2f((j  )*0.5+cloudrot, 1);
 		glVertex3f(ru * skycos[j], ru * skysin[j], hu);
-		glTexCoord2f((j+1)*0.5, 1);
+		glTexCoord2f((j+1)*0.5+cloudrot, 1);
 		glVertex3f(ru * skycos[t], ru * skysin[t], hu);
 	}
 	glEnd();

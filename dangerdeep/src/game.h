@@ -62,6 +62,7 @@ public:
 	game(parser& p);
 	~game();
 
+	void compute_max_view_dist(void);
 	void simulate(double delta_t);
 
 	double get_time(void) const { return time; };

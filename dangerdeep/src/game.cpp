@@ -15,7 +15,7 @@ game::game(parser& p) : running(true), time(0)
 {
 	player = 0;
 	ui = 0;
-	max_view_dist = 10000;	// fixme, introduce weather
+	compute_max_view_dist();
 	while (!p.is_empty()) {
 		bool nextisplayer = false;
 		if (p.type() == TKN_PLAYER) {
@@ -70,6 +70,15 @@ game::~game()
 	delete ui;
 }
 
+void game::compute_max_view_dist(void)
+{
+	double dt = get_day_time(get_time());
+	if (dt < 1) { max_view_dist = 5000; return; }
+	if (dt < 2) { max_view_dist = 5000 + 25000*fmod(dt,1); return; }
+	if (dt < 3) { max_view_dist = 30000; return; }
+	max_view_dist = 30000 - 25000*fmod(dt,1);
+}
+
 void game::simulate(double delta_t)
 {
 	if (!running) return;
@@ -84,6 +93,8 @@ void game::simulate(double delta_t)
 		running = false;
 		return;
 	}
+
+	compute_max_view_dist();
 
 	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ) {
 		list<ship*>::iterator it2 = it++;
