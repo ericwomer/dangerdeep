@@ -3,6 +3,7 @@
 #include "particle.h"
 #include "game.h"
 #include "texture.h"
+#include "oglext/OglExt.h"
 
 #include "global_data.h" //for smoke texture, fixme
 

@@ -1,11 +1,10 @@
 // OpenGL texture drawing based on SDL Surfaces
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
-#include "oglext/OglExt.h"
-#include <SDL_image.h>
-
 #include "image.h"
 #include "system.h"
+#include "oglext/OglExt.h"
+#include <SDL_image.h>
 
 
 

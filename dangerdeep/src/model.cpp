@@ -2,21 +2,25 @@
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
 #include "model.h"
-#ifndef DONT_USE_OPENGL
-#include "system.h"
-#include "global_data.h"
-#endif
-#include "matrix4.h"
 
 #ifdef WIN32
 #define PATH_SEPARATOR "\\"
 #undef min
 #undef max
 #include <float.h>
+#ifndef isfinite
 #define isfinite(x) _finite(x)
+#endif
 #else
 #define PATH_SEPARATOR "/"
 #endif
+
+#ifndef DONT_USE_OPENGL
+#include "system.h"
+#include "global_data.h"
+#include "oglext/OglExt.h"
+#endif
+#include "matrix4.h"
 
 #ifdef DONT_USE_OPENGL
 string modelpath;

@@ -6,21 +6,27 @@ import sys
 version = '0.0.18'
 
 ################ base paths (needed for non-unix OS)
-sdlbase = 'd:\sdl-devel\sdl'
-sdlimagebase = 'd:\sdl-devel\SDL_image'
-sdlnetbase = 'd:\sdl-devel\SDL_net'
-sdlmixerbase = 'd:\sdl-devel\SDL_mixer'
-fftw3base = 'd:\fftw3'
+sdlbase = 'd:\\sdl-devel\\SDL'
+sdlimagebase = 'd:\\sdl-devel\\SDL_image'
+sdlnetbase = 'd:\\sdl-devel\\SDL_net'
+sdlmixerbase = 'd:\\sdl-devel\\SDL_mixer'
+fftw3base = 'd:\\fftw3'
 
 ################ set environment
-if os.environ == 'win32':
+if sys.platform == 'win32':
+	print "Compiling for Win32 Environment"
 	env = Environment(ENV = os.environ, tools = ['mingw'])
-	env.Append(CPPPATH = [sdlbase + '\include', sdlimagebase + '\include', sdlnetbase + '\include', sdlmixerbase + '\include', fftw3base + '\include'])
-	libpath = [sdlbase + '\lib', sdlimagebase + '\lib', sdlnetbase + '\lib', sdlmixerbase + '\lib', fftw3base + '\lib']
+	env.Append(CPPPATH = [sdlbase + '\\include\\SDL', sdlimagebase + '\\include', sdlnetbase + '\\include', sdlmixerbase + '\\include', fftw3base])
+	libpath = [sdlbase + '\\lib', sdlimagebase + '\\lib', sdlnetbase + '\\lib', sdlmixerbase + '\\lib', fftw3base]
+	gllibs = ['opengl32', 'glu32']
+	sdllibs = ['SDL', 'SDL_image']
 else:
+	print "Compiling for Unix/Posix/Linux Environment"
 	env = Environment(ENV = os.environ)
 	env.Append(CPPPATH = ['/usr/include/SDL'])
 	libpath = []
+	gllibs = ['GL', 'GLU']
+	sdllibs = ['SDL', 'SDL_image']
 
 build_base_dir = 'build'
 source_base_dir = 'src'
@@ -121,8 +127,8 @@ oglextsources = Split("""
 	oglext/RenderingContext.cpp
 	oglext/RenderingContext.hpp""")
 
-gfxlibs = ['oglext', 'SDL', 'SDL_image', 'GL', 'GLU']
-alllibs = gfxlibs + ['tinyxml', 'SDL_mixer', 'SDL_net', 'fftw3', 'dftdmedia']
+gfxlibs = ['oglext'] + gllibs + sdllibs
+alllibs = ['dftdmedia', 'tinyxml'] + gfxlibs + ['SDL_mixer', 'SDL_net', 'fftw3']
 
 
 ################ helper functions

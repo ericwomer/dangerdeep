@@ -12,9 +12,9 @@ using namespace std;
 #include <windows.h>
 #endif
 
+#include "oglext/OglExt.h"
 #include <SDL.h>
 #include <SDL_image.h>
-#include <GL/gl.h>
 #include <GL/glu.h>
 
 #include "system.h"
