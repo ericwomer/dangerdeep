@@ -1,4 +1,9 @@
 2003-11-16  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* system.h system.cpp (and client classes)
+	  - major cleanup. More keyboard info available.
+	  - removed silly ->draw_*image in system. Adapted all code.
+
+2003-11-16  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* all source and build files (makefiles, KDE, VC6)
 	  - moved to subdir "src"
 
