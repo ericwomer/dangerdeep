@@ -1,5 +1,12 @@
 2003-04-04  Markus Petermann  <m.petermann@gmx.net>
 
+	* submarine.h, submarine.cpp, submarine_VII.cpp, submarine_XXI.cpp:
+	  - New sonar cross section introduced. This factor is needed for active
+	    sonar detection, because the visual cross section are (maybe) not
+	    appropiate for this.
+
+2003-04-04  Markus Petermann  <m.petermann@gmx.net>
+
 	* ai.cpp:
 	  - The attribute attackrun was not initialized. Due to this error the
 	    destroyers are immediately in attack mode and do not using their

@@ -11,6 +11,11 @@
 
 #define SUBMARINE_SUBMERGED_DEPTH 2.0f // meters
 
+#define CROSS_SECTION_ACT_SONAR_LSUB     0.20f        // Large Submarines (?)
+#define CROSS_SECTION_ACT_SONAR_NSUB     0.15f        // Normal Submarines (?)
+#define CROSS_SECTION_ACT_SONAR_MSUB_AC  0.05f        // Midget Submarines (?), Aircrafts
+#define CROSS_SECTION_ACT_SONAR_TORPWB   0.01f        // Torpedo
+
 class submarine : public ship
 {
 public:
@@ -36,6 +41,7 @@ protected:
 	double periscope_depth;
 	bool electric_engine; // true when electric engine is used.
 	double snorkel_depth; // -1 when snorkel not available.
+	float sonar_cross_section_factor;
     
 	submarine();
 	submarine& operator= (const submarine& other);

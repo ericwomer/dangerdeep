@@ -10,7 +10,7 @@ sea_object::sea_object() : position(vector3(0.0f, 0.0f, 0.0f)), heading(0.0f),
 	speed(0.0f), max_speed(0.0f), max_rev_speed(0.0f), throttle(stop),
 	rudder(ruddermid), acceleration(0.0f), permanent_turn(false), head_chg(0.0f),
 	head_to(0.0f), turn_rate(0.0f), length(0.0f), width(0.0f), alive_stat(alive),
-	cross_section_factor(1.0f)
+	vis_cross_section_factor(1.0f)
 {
 	sensors.resize ( SensorFactory::LastSystemItem );
 }
@@ -323,7 +323,7 @@ angle sea_object::estimate_angle_on_the_bow(angle target_bearing, angle target_h
 
 float sea_object::surface_visibility(const vector2& watcher) const
 {
-	return cross_section_factor * getProfileFactor ( watcher );
+	return vis_cross_section_factor * getProfileFactor ( watcher );
 }
 
 void sea_object::set_sensors ( vector<Sensor*> sensors )

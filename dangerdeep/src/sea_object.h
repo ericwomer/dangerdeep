@@ -28,11 +28,6 @@ using namespace std;
 #define CROSS_SECTION_VIS_TORPWB   0.05f        // Torpedo w/ bubble tail (?)
 #define CROSS_SECTION_VIS_NULL     1.0f         // Gun shell, torpedos w/o bubble tail
 
-#define CROSS_SECTION_ACT_SONAR_LSUB     0.20f        // Large Submarines (?)
-#define CROSS_SECTION_ACT_SONAR_NSUB     0.15f        // Normal Submarines (?)
-#define CROSS_SECTION_ACT_SONAR_MSUB_AC  0.05f        // Midget Submarines (?), Aircrafts
-#define CROSS_SECTION_ACT_SONAR_TORPWB   0.01f        // Torpedo w/ bubble tail (?)
-
 class ship;
 class submarine;
 class gun_shell;
@@ -94,7 +89,7 @@ protected:
 		0.0f         Gun shell, torpedos w/o bubble tail
 		</pre>
 	*/
-	float cross_section_factor; 
+	float vis_cross_section_factor; 
 
 	// an object is alive until it is sunk or killed.
 	// it will sink to some depth then it is killed.
@@ -167,8 +162,8 @@ public:
 	virtual double get_max_speed(void) const { return max_speed; };
 	virtual double get_throttle_speed(void) const;
 	virtual int get_rudder (void) const { return rudder; }
-	virtual float get_cross_section_factor (void) const { return cross_section_factor; }
-	virtual void set_cross_section_factor ( const float& factor ) { cross_section_factor = factor; }
+	virtual float get_vis_cross_section_factor (void) const { return vis_cross_section_factor; }
+	virtual void set_vis_cross_section_factor ( const float& factor ) { vis_cross_section_factor = factor; }
 	virtual float surface_visibility(const vector2& watcher) const;
 
 	// needed for launching torpedoes

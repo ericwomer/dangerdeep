@@ -31,21 +31,21 @@ torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes) : sea_ob
 			max_speed = kts2ms(30);
 			max_rev_speed = 0;
 			max_run_length = 12500;
-			cross_section_factor = CROSS_SECTION_VIS_TORPWB;
+			vis_cross_section_factor = CROSS_SECTION_VIS_TORPWB;
 			break;
 		case T3:		// G7e electric torpedo (T2/T3)
 			speed = kts2ms(30);
 			max_speed = kts2ms(30);
 			max_rev_speed = 0;
 			max_run_length = 7500;
-			cross_section_factor = CROSS_SECTION_VIS_NULL;
+			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 			break;
 		case T5:		// G7e acustic torpedo
 			speed = kts2ms(24);
 			max_speed = kts2ms(24);
 			max_rev_speed = 0;
 			max_run_length = 5000;	// fixme: historical value?
-			cross_section_factor = CROSS_SECTION_VIS_NULL;
+			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 			set_sensors ( SensorFactory::getSensors ( SensorFactory::DE,
 				SensorFactory::Torpedo, 1943 ) );
 			break;
@@ -54,21 +54,21 @@ torpedo::torpedo(sea_object* parent_, unsigned type_, bool usebowtubes) : sea_ob
 			max_speed = kts2ms(30);
 			max_rev_speed = 0;
 			max_run_length = 7500;
-			cross_section_factor = CROSS_SECTION_VIS_NULL;
+			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 			break;
 		case T6LUT:		// G7e LUT torpedo
 			speed = kts2ms(30);	//fixme: wrong values
 			max_speed = kts2ms(30);
 			max_rev_speed = 0;
 			max_run_length = 12500;
-			cross_section_factor = CROSS_SECTION_VIS_NULL;
+			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 			break;
 		case T11:		// G7e acustic torpedo (improved T5)
 			speed = kts2ms(24);	// fixme: historical value?
 			max_speed = kts2ms(24);
 			max_rev_speed = 0;
 			max_run_length = 5000;	// fixme: historical value?
-			cross_section_factor = CROSS_SECTION_VIS_NULL;
+			vis_cross_section_factor = CROSS_SECTION_VIS_NULL;
 			set_sensors ( SensorFactory::getSensors ( SensorFactory::DE,
 				SensorFactory::Torpedo, 1944 ) );
 			break;
