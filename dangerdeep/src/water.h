@@ -40,9 +40,7 @@ protected:
 	texture* foamtex;
 
 	// Arrays used while drawing a tile. To avoid repeated re-alloc, they're here
-	mutable vector<vector3f> coords;
 	mutable vector<color> colors;
-	mutable vector<vector3f> uv0;
 //	mutable vector<vector3f> normals;
 
 #if 0		// old code, kept for reference, especially for foam
@@ -73,7 +71,7 @@ protected:
 	// draw a water tile, give relative translation, animation phase, detail level
 	// and information if adjacent tiles have a lower detail level
 	// (fillgap bits 0,1,2,3 for top,right,bottom,left)
-	void draw_tile(const vector3f& transl, int phase, int lodlevel, int fillgap) const;
+	void draw_tile(int phase, int lodlevel, int fillgap) const;
 
 public:
 	water(unsigned bdetail = 5, double tm = 0.0);	// give day time in seconds

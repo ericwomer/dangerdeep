@@ -59,9 +59,9 @@ water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), ti
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	coords.reserve((tile_res+1)*(tile_res+1));
-	colors.reserve((tile_res+1)*(tile_res+1));
-	uv0.reserve((tile_res+1)*(tile_res+1));
+//	coords.reserve((tile_res+1)*(tile_res+1));
+	colors.resize((tile_res+1)*(tile_res+1));
+//	uv0.reserve((tile_res+1)*(tile_res+1));
 //	normals.reserve((tile_res+1)*(tile_res+1));
 
 	foamtex = new texture(get_texture_dir() + "foam.png", GL_LINEAR);//fixme maybe mipmap it
@@ -70,15 +70,16 @@ water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), ti
 	waveindices.resize(base_detail);		// level 0 is minimum detail (4 quads per tile)
 	for (unsigned i = 0; i < base_detail; ++i) {
 		unsigned res = (2<<i);
+		unsigned revres = (1 << (base_detail-1 - i));
 		waveindices[i].reserve(res*res*4);
-		for (unsigned y = 0; y < res; ++y) {
-			unsigned y2 = y+1;
-			for (unsigned x = 0; x < res; ++x) {
-				unsigned x2 = x+1;
-				waveindices[i].push_back(x +y *(res+1));
-				waveindices[i].push_back(x2+y *(res+1));
-				waveindices[i].push_back(x2+y2*(res+1));
-				waveindices[i].push_back(x +y2*(res+1));
+		for (unsigned y = 0; y < tile_res; y += revres) {
+			unsigned y2 = y+revres;
+			for (unsigned x = 0; x < tile_res; x += revres) {
+				unsigned x2 = x+revres;
+				waveindices[i].push_back(x +y *(tile_res+1));
+				waveindices[i].push_back(x2+y *(tile_res+1));
+				waveindices[i].push_back(x2+y2*(tile_res+1));
+				waveindices[i].push_back(x +y2*(tile_res+1));
 			}
 		}
 	}
@@ -139,16 +140,38 @@ water::water(unsigned bdetail, double tm) : mytime(tm), base_detail(bdetail), ti
 
 	}
 
-/*	
 	waveVBOs.resize(2*WAVE_PHASES);
 	glGenBuffersARB(2*WAVE_PHASES, &waveVBOs[0]);
 	for (int i = 0; i < WAVE_PHASES; ++i) {
+		vector<float> tmp, tmp2;
+		tmp.reserve(3*(tile_res+1)*(tile_res+1));
+		tmp2.reserve(3*(tile_res+1)*(tile_res+1));
+		float add = float(WAVE_LENGTH)/tile_res;
+		float fy = 0;
+		for (unsigned y = 0; y <= tile_res; ++y) {
+			float fx = 0;
+			unsigned cy = y & (tile_res-1);
+			for (unsigned x = 0; x <= tile_res; ++x) {
+				unsigned cx = x & (tile_res-1);
+				unsigned ptr = cy*tile_res+cx;
+				tmp.push_back(fx + wavetiledisplacements[i][ptr].x);
+				tmp.push_back(fy + wavetiledisplacements[i][ptr].y);
+				tmp.push_back(wavetileheights[i][ptr]);
+
+			//unless vertex programs are used, we need texcoords here, but they depend on the position fixme
+				tmp2.push_back(wavetilenormals[i][ptr].x);
+				tmp2.push_back(wavetilenormals[i][ptr].y);
+				tmp2.push_back(wavetilenormals[i][ptr].z);
+				fx += add;
+			}
+			fy += add;
+		}
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, waveVBOs[i]);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, wavetilecoords[i].size()*3*sizeof(float), &(wavetilecoords[i][0]), GL_STATIC_DRAW_ARB);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, (tile_res+1)*(tile_res+1)*3*sizeof(float), &(tmp[0]), GL_STATIC_DRAW_ARB);
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, waveVBOs[i+WAVE_PHASES]);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, wavetilenormals[i].size()*3*sizeof(float), &(wavetilenormals[i][0]), GL_STATIC_DRAW_ARB);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, (tile_res+1)*(tile_res+1)*3*sizeof(float), &(tmp2[0]), GL_STATIC_DRAW_ARB);
 	}
-*/
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 }
 
 
@@ -156,6 +179,7 @@ water::~water()
 {
 	glDeleteTextures(1, &reflectiontex);
 	delete foamtex;
+	glDeleteBuffersARB(2*WAVE_PHASES, &waveVBOs[0]);
 }
 
 
@@ -261,16 +285,19 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 	glEnableClientState(GL_COLOR_ARRAY);
 	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(color), &colors[0].r);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, waveVBOs[phase]);
+	glVertexPointer(3, GL_FLOAT, 0, 0);
 	glClientActiveTexture(GL_TEXTURE0);
 //	glEnableClientState(GL_NORMAL_ARRAY);
 //	glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0].x);
 //	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv0[0].x);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, waveVBOs[phase+WAVE_PHASES]);
+	glTexCoordPointer(3, GL_FLOAT, 0, 0);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glClientActiveTexture(GL_TEXTURE1);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
 	// ******************* draw tiles
 	int s = 6;//0;//2
@@ -283,7 +310,10 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist /*, 
 			if (compute_lod_by_trans(transl2+vector3f(WAVE_LENGTH,0,0)) < lod0) fillgap |= 2;
 			if (compute_lod_by_trans(transl2+vector3f(0,-WAVE_LENGTH,0)) < lod0) fillgap |= 4;
 			if (compute_lod_by_trans(transl2+vector3f(-WAVE_LENGTH,0,0)) < lod0) fillgap |= 8;
-			draw_tile(transl2, phase, lod0, fillgap);
+			glPushMatrix();
+			glTranslatef(transl2.x, transl2.y, transl2.z);
+			draw_tile(phase, lod0, fillgap);
+			glPopMatrix();
 		}
 	}
 
@@ -330,7 +360,7 @@ int water::compute_lod_by_trans(const vector3f& transl) const
 
 
 
-void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillgap) const
+void water::draw_tile(int phase, int lodlevel, int fillgap) const
 {
 	// How we render the water:
 	// Per pixel effects are not possible on geforce2. We could do dot3 bump mapping,
@@ -409,7 +439,7 @@ void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillg
 	// once per frame) and upload only the color values (1/7 of space).
 
 	unsigned res = (2 << lodlevel);
-	unsigned resi = res+1;
+//	unsigned resi = res+1;
 	unsigned revres = (1 << (base_detail-1 - lodlevel));
 
 //#define DRAW_NORMALS
@@ -434,12 +464,12 @@ void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillg
 		for (unsigned x = 0; x <= tile_res; x += revres, ++vecptr) {
 			unsigned cx = x & (tile_res-1);
 			unsigned ptr = cy*tile_res+cx;
-			vector3f coord = transl + vector3f(
+			vector3f coord = vector3f(
 				fx + wavetiledisplacements[phase][ptr].x,
 				fy + wavetiledisplacements[phase][ptr].y,
 				wavetileheights[phase][ptr]);
 			vector3f N = wavetilenormals[phase][ptr];
-			vector3f E = -coord.normal();
+			vector3f E = -coord.normal();	// translation for tile is missing here, fixme
 
 #ifdef DRAW_NORMALS
 			glColor3f(1,0,0);
@@ -470,9 +500,9 @@ void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillg
 			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
 			texc.z -= VIRTUAL_PLANE_HEIGHT;
 						
-			coords[vecptr] = coord;
+//			coords[vecptr] = coord;
 //			normals[vecptr] = N;
-			uv0[vecptr] = texc;
+//			uv0[vecptr] = texc;
 			colors[vecptr] = primary;
 			fx += add;
 		}
@@ -484,6 +514,7 @@ void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillg
 	glEnable(GL_TEXTURE_2D);
 #endif
 
+/*
 	// to avoid gaps, reposition the vertices, fillgap bits: 0,1,2,3 for top,right,bottom,left
 	if (fillgap & 1) {
 		for (unsigned i = res*resi+1; i < resi*resi-1; i += 2) {
@@ -513,6 +544,7 @@ void water::draw_tile(const vector3f& transl, int phase, int lodlevel, int fillg
 			uv0[i] = (uv0[i-resi] + uv0[i+resi]) * 0.5f;
 		}
 	}
+*/
 
 	// draw precomputed index list according to detail level
 	glDrawElements(GL_QUADS, res*res*4, GL_UNSIGNED_INT, &(waveindices[lodlevel][0]));
