@@ -54,6 +54,8 @@ token tokens[] = {
 	token(TKN_SPEED, "speed"),
 	token(TKN_TIME, "time"),
 	token(TKN_SNORKEL, "snorkel"),
+	token(TKN_FUEL, "fuel"),
+	token(TKN_BATTERY, "battery"),
 
 	token()
 };
