@@ -1167,6 +1167,8 @@ int main(int argc, char** argv)
 	mycfg.register_option("fullscreen", true);
 	mycfg.register_option("debug", false);
 	mycfg.register_option("sound", true);
+	mycfg.register_option("water_res_x", 128);
+	mycfg.register_option("water_res_y", 128);
 	
 	mycfg.register_key(KEY_ZOOM_MAP, "KEY_ZOOM_MAP", SDLK_PLUS, 0, 0, 0);
 	mycfg.register_key(KEY_UNZOOM_MAP, "KEY_UNZOOM_MAP", SDLK_MINUS, 0, 0, 0);

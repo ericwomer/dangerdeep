@@ -32,6 +32,7 @@
 #include "particle.h"
 #include "water.h"
 #include "matrix4.h"
+#include "cfg.h"
 using namespace std;
 
 #define MAX_PANEL_SIZE 256
@@ -65,7 +66,13 @@ user_interface::user_interface(game& gm) :
 {
 	add_loading_screen("coast map initialized");
 	mysky = new sky();
-	mywater = new class water(128, 128, 0.0);//fixme: make detail configureable
+	unsigned water_res_x = unsigned(cfg::instance().geti("water_res_x"));
+	unsigned water_res_y = unsigned(cfg::instance().geti("water_res_y"));
+	if (water_res_x < 16) water_res_x = 16;
+	if (water_res_x > 1024) water_res_x = 1024;
+	if (water_res_y < 16) water_res_y = 16;
+	if (water_res_y > 1024) water_res_y = 1024;
+	mywater = new class water(water_res_x, water_res_y, 0.0);
 	panel = new widget(0, 768-128, 1024, 128, "", 0, panelbackgroundimg);
 	panel_messages = new widget_list(8, 8, 512, 128 - 2*8);
 	panel->add_child(panel_messages);

@@ -2,6 +2,7 @@
 	* read keys by name from config file and not by number
 	 - will avoid problems when adding new keys somewhere in the mid of
            the key list
+	* make water detail configureable by config file
 
 2005-02-12  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* fixed some keys
