@@ -4,11 +4,13 @@
 #ifndef SEA_OBJECT_H
 #define SEA_OBJECT_H
 
+#include <list>
+#include <string>
+using namespace std;
+
 #include "vector3.h"
 #include "angle.h"
 #include "parser.h"
-#include <list>
-using namespace std;
 
 #define SINK_SPEED 0.5  // m/sec
 #define MAXPREVPOS 20

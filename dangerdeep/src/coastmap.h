@@ -4,6 +4,9 @@
 #ifndef COASTMAP_H
 #define COASTMAP_H
 
+#include <string>
+using namespace std;
+
 #include "coastsegment.h"
 
 

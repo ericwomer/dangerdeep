@@ -29,7 +29,6 @@
 #include "water_splash.h"
 #include "ships_sunk_display.h"
 #include "vector3.h"
-#include "coastmap.h"
 #include "ocean_wave_generator.h"
 #include "widget.h"
 #include "tokencodes.h"
