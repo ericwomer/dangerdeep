@@ -315,7 +315,9 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	mywater->display(viewpos, dir, max_view_dist);
 
 	// ******** terrain/land ********************************************************
+	glDisable(GL_FOG);	//testing with new 2d bspline terrain.
 	draw_terrain(viewpos, dir, max_view_dist);
+	glEnable(GL_FOG);	
 
 /* test hack, remove
 	glCullFace(GL_FRONT);

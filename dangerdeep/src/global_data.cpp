@@ -108,7 +108,7 @@ void init_global_data(void)
 	repairheavy = new texture(get_texture_dir() + "repairheavy.png" );
 	repaircritical = new texture(get_texture_dir() + "repaircritical.png" );
 	repairwrecked = new texture(get_texture_dir() + "repairwrecked.png" );
-	terraintex = new texture(get_texture_dir() + "terrain.png" );
+	terraintex = new texture(get_texture_dir() + "terrain2.jpg", GL_LINEAR);
 	cloudsbackgr = new texture(get_texture_dir() + "cloudsbackgr.jpg" );
 	atlanticmap = new texture(get_texture_dir() + "atlanticmap.jpg", GL_LINEAR, GL_CLAMP_TO_EDGE);
 

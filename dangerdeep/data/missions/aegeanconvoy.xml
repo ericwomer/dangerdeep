@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<dftd-mission>
+  <description>
+    <short lang="en">Small convoy in the Aegean sea</short>
+    <short lang="de">Kleiner Konvoi in der Ägäis</short>
+    <long lang="en">You have detected a small unprotected merchant convoy in the Aegean
+sea. Be quick because some escorts may be nearby.</long>
+    <long lang="de">Sie haben einen kleinen, unbewachten Konvoi im ägäischen
+Meer entdeckt. Beeilen Sie sich, denn Eskorten könnten in der Nähe sein.</long>
+  </description>
+  <time year="1942" month="4" day="15" hour="12" minute="35" second="0"/>
+  <objects>
+    <submarine type="submarine_VIIc" player="true">
+      <position x="2748150" y="4133500" z="0"/>
+      <motion heading="180" speed="0" throttle="stop" maxdepth="233"/>
+      <scope up="false"/>
+      <torpedoes>
+        <torpedo tube="0" type="T3"/>
+        <torpedo tube="1" type="T3"/>
+        <torpedo tube="2" type="T1"/>
+        <torpedo tube="3" type="T1"/>
+        <torpedo tube="4" type="T3"/>
+        <torpedo tube="5" type="T3"/>
+        <torpedo tube="6" type="T3"/>
+        <torpedo tube="7" type="T3"/>
+        <torpedo tube="8" type="T1"/>
+        <torpedo tube="9" type="T1"/>
+        <torpedo tube="10" type="T3"/>
+        <torpedo tube="11" type="T3"/>
+        <torpedo tube="12" type="T1"/>
+        <torpedo tube="13" type="T1"/>
+      </torpedoes>
+    </submarine>
+    <convoy>
+      <position x="2748150" y="4131500" z="0"/>
+      <motion heading="90" speed="4" throttle="4"/>
+      <path>
+        <waypoint x="2768150" y="4131500"/>
+        <waypoint x="2768150" y="4081500"/>
+      </path>
+      <ship type="merchant_small">
+        <position x="1000" y="0" z="0"/>
+        <motion heading="90"/>
+      </ship>
+      <ship type="merchant_small">
+        <position x="0" y="80" z="0"/>
+        <motion heading="90"/>
+      </ship>
+      <ship type="merchant_small">
+        <position x="-950" y="-40" z="0"/>
+        <motion heading="90"/>
+      </ship>
+      <ship type="merchant_small">
+        <position x="-1950" y="50" z="0"/>
+        <motion heading="90"/>
+      </ship>
+    </convoy>
+  </objects>
+</dftd-mission>
