@@ -1,0 +1,186 @@
+################ maybe needed fixme recheck, os is surely needed
+import os
+import sys
+
+################ global config values
+version = '0.0.18'
+
+################ base paths (needed for non-unix OS)
+sdlbase = 'd:\sdl-devel\sdl'
+sdlimagebase = 'd:\sdl-devel\SDL_image'
+sdlnetbase = 'd:\sdl-devel\SDL_net'
+sdlmixerbase = 'd:\sdl-devel\SDL_mixer'
+fftw3base = 'd:\fftw3'
+
+################ set environment
+if os.environ == 'win32':
+	env = Environment(ENV = os.environ, tools = ['mingw'])
+	env.Append(CPPPATH = [sdlbase + '\include', sdlimagebase + '\include', sdlnetbase + '\include', sdlmixerbase + '\include', fftw3base + '\include'])
+	libpath = [sdlbase + '\lib', sdlimagebase + '\lib', sdlnetbase + '\lib', sdlmixerbase + '\lib', fftw3base + '\lib']
+else:
+	env = Environment(ENV = os.environ)
+	env.Append(CPPPATH = ['/usr/include/SDL'])
+	libpath = []
+
+build_base_dir = 'build'
+source_base_dir = 'src'
+
+
+# missing compared to automake:
+# - build source tarballs - doesn't work the way automake does it. Instead
+# store list of files for tar ball and build it automatically.
+
+
+env.Append(CPPDEFINES = [('VERSION', '\\"' + version + '\\"')])
+
+################ configure
+conf = Configure(env)
+if not conf.CheckCHeader('GL/gl.h'):
+	print 'GL library must be installed!'
+	Exit(1)
+if not conf.CheckCHeader('GL/glu.h'):
+	print 'GLU library must be installed!'
+	Exit(1)
+if not conf.CheckCHeader('SDL.h'):
+	print 'SDL library must be installed!'
+	Exit(1)
+if not conf.CheckCHeader('SDL_image.h'):
+	print 'SDL_image library must be installed!'
+	Exit(1)
+if not conf.CheckCHeader('SDL_net.h'):
+	print 'SDL_net library is needed for network code!'
+	Exit(1)
+if not conf.CheckCHeader('SDL_mixer.h'):
+	print 'SDL_mixer library is needed for sound support!'
+	Exit(1)
+if not conf.CheckCHeader('fftw3.h'):
+	print 'fftw3 library must be installed!'
+	Exit(1)
+env = conf.Finish()
+
+######################### source file lists
+dftdsources = Split("""subsim.cpp
+	ai.cpp
+	airplane.cpp
+	cfg.cpp
+	coastmap.cpp
+	command.cpp
+	convoy.cpp
+	date.cpp
+	depth_charge.cpp
+	filehelper.cpp
+	freeview_display.cpp
+	game.cpp
+	global_data.cpp
+	gun_shell.cpp
+	highscorelist.cpp
+	logbook.cpp
+	logbook_display.cpp
+	map_display.cpp
+	network.cpp
+	parser.cpp
+	particle.cpp
+	sea_object.cpp
+	sensors.cpp
+	ship.cpp
+	ships_sunk_display.cpp
+	sky.cpp
+	sound.cpp
+	submarine.cpp
+	submarine_interface.cpp
+	sub_bridge_display.cpp
+	sub_damage_display.cpp
+	sub_gauges_display.cpp
+	sub_periscope_display.cpp
+	sub_torpedo_display.cpp
+	sub_uzo_display.cpp
+	texts.cpp
+	tokenizer.cpp
+	torpedo.cpp
+	triangulate.cpp
+	user_interface.cpp
+	water.cpp
+	water_splash.cpp
+	widget.cpp""")
+
+dftdmediasources = Split("""
+	font.cpp
+	image.cpp
+	model.cpp
+	system.cpp
+	texture.cpp""")
+
+tinyxmlsources = Split("""
+	tinyxml/tinystr.cpp
+	tinyxml/tinyxml.cpp
+	tinyxml/tinyxmlerror.cpp
+	tinyxml/tinyxmlparser.cpp""")
+
+oglextsources = Split("""
+	oglext/OglExt.cpp
+	oglext/RenderingContext.cpp
+	oglext/RenderingContext.hpp""")
+
+gfxlibs = ['oglext', 'SDL', 'SDL_image', 'GL', 'GLU']
+alllibs = gfxlibs + ['tinyxml', 'SDL_mixer', 'SDL_net', 'fftw3', 'dftdmedia']
+
+
+################ helper functions
+# taken from bombyx build system
+def SelectBuildDir(build_dir, platform=None):
+	# if no platform is specified, then default to sys.platform
+	if not(platform):
+		platform = sys.platform
+
+	print "Looking for build directory for platform '%s'" % platform
+
+	# setup where we start looking at first
+	test_dir = build_dir + os.sep + platform
+	default_dir = build_dir + os.sep + 'default'
+
+	# we look for a directory named exactly after the
+	# platform so that very specific builds can be done
+	if os.path.exists(test_dir):
+		# make sure it is a directory
+		target_dir = test_dir
+	else:
+		print "Exact match not found, finding closest guess"
+		
+		# looks like there isn't an exact match
+		# find the closest matching directory
+		dirs = os.listdir(build_dir)
+		found_match = 0
+		for dir in dirs:
+			if platform.find(dir) != -1:
+				# found a match (hopefully the right one)
+				target_dir = build_dir + os.sep + dir
+				found_match = 1
+				break
+		if not(found_match):
+			print "No match found, looking for 'default' directory"
+			# looks like this platform isn't available
+			# try the default target
+			if os.path.exists(default_dir):
+				target_dir = default_dir
+			else:
+				# bad, nothing is available, tell the user
+				print "No build directories found for your platform '%s'" % platform
+				return None
+			
+	print "Found directory %s, will build there" % target_dir
+	return target_dir
+
+
+################ build
+target_dir = '#' + SelectBuildDir(build_base_dir) 
+libpath = libpath + [target_dir]
+
+Export('env', 'dftdsources', 'dftdmediasources', 'oglextsources', 'tinyxmlsources', 'gfxlibs', 'alllibs', 'libpath')
+
+# each platform needs to define DATADIR
+
+SConscript(target_dir + os.sep + 'SConscript') 
+
+BuildDir(target_dir, source_base_dir, duplicate=0) 
+
+############# eof
