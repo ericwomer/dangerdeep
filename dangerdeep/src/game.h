@@ -148,7 +148,7 @@ public:
 
 	void stop(void) { stopexec = true; }
 
-	void compute_max_view_dist(void);
+	void compute_max_view_dist(void);	// fixme - public?
 	void simulate(double delta_t);
 
 	double get_time(void) const { return time; };
@@ -171,6 +171,7 @@ public:
 	// compute visibility data
 	// fixme: gcc3.2+ optimizes return values that are complex data types.
 	// hence change signature to list<xxx*> visible_xxxs(const...);
+	// fixme: these functions should be const...
 	virtual void visible_ships(list<ship*>& result, const sea_object* o);
 	virtual void visible_submarines(list<submarine*>& result, const sea_object* o);
 	virtual void visible_airplanes(list<airplane*>& result, const sea_object* o);
@@ -187,9 +188,10 @@ public:
 
 	void convoy_positions(list<vector2>& result) const;	// fixme
 	
-//	bool can_see(const sea_object* watcher, const submarine* sub) const;
+//	bool can_see(const sea_object* watcher, const submarine* sub) const;	fixme what's that?
 
 	// create new objects, fixme: send command for each spawn over net if i am server
+	// move to protected, introduce command_spawn_x instead? rather not
 	void spawn_ship(ship* s);
 	void spawn_submarine(submarine* u);
 	void spawn_airplane(airplane* a);
@@ -201,7 +203,7 @@ public:
 
 	// simulation events
 //fixme: send messages about them to ui (remove sys-console printing in torpedo.cpp etc)
-//fixme: and also send something over net about them
+//fixme: and also send something over net about them (replace by commands? rather not)
 	void dc_explosion(const depth_charge& dc);	// depth charge exploding
 	bool gs_impact(const vector3& pos);	// gun shell impact
 	void torp_explode(const vector3& pos);	// torpedo explosion/impact
@@ -219,8 +221,11 @@ public:
 	template<class _C>
 	ship* check_unit_list ( torpedo* t, list<_C>& unit_list );
 
+	// fixme why is this not const? if it changes game, it must be send over network, and
+	// then it can't be a function!
 	bool check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure);
 
+	// dito, see check_torpedo_hit-comment
 	sea_object* contact_in_direction(const sea_object* o, const angle& direction);
 	ship* ship_in_direction_from_pos(const sea_object* o, const angle& direction);
 	submarine* sub_in_direction_from_pos(const sea_object* o, const angle& direction);
@@ -233,7 +238,9 @@ public:
 	// returns 0 for show menu, 1 for exit game
 	unsigned exec(void);
 	
-	// send commands to objects (and over net), this function is called by user_interface and heirs
+	// send commands to objects (and over net), this function is called by user_interface
+	// and heirs, it should be the one and only function anyone calls if he wants to change
+	// any sea_object
 	void send(class command* cmd);
 
 	// Translate pointers to numbers and vice versa. Used for load/save
