@@ -100,6 +100,21 @@ void user_interface::init ()
 	wavetilen.resize(WAVE_PHASES);
 	wavedisplaylists = glGenLists(WAVE_PHASES);
 	system::sys()->myassert(wavedisplaylists != 0, "no more display list indices available");
+
+	// connectivity data is the same for all meshes and thus is reused
+	vector<unsigned> waveindices;
+	waveindices.reserve(FACES_PER_WAVE*FACES_PER_WAVE*4);
+	for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
+		unsigned y2 = y+1;
+		for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
+			unsigned x2 = x+1;
+			waveindices.push_back(x +y *(FACES_PER_WAVE+1));
+			waveindices.push_back(x2+y *(FACES_PER_WAVE+1));
+			waveindices.push_back(x2+y2*(FACES_PER_WAVE+1));
+			waveindices.push_back(x +y2*(FACES_PER_WAVE+1));
+		}
+	}
+
 	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(0,1), 20, 0.00001, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
@@ -109,7 +124,8 @@ void user_interface::init ()
 		vector<vector3f>& n = wavetilen[i];
 
 		vector<vector2f> d = owg.compute_displacements();
-/*
+
+#if 0	// compute normals by finite data
 		vector<vector3f> n2 = n;
 			// normals computed by heights.
 		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
@@ -121,39 +137,40 @@ void user_interface::init ()
 				n[y*FACES_PER_WAVE+x] = vector3f(h[y*FACES_PER_WAVE+x1]-h[y*FACES_PER_WAVE+x2],h[y1*FACES_PER_WAVE+x]-h[y2*FACES_PER_WAVE+x],1).normal();
 			}
 		}
-*/		
+#endif		
 		
 		glNewList(wavedisplaylists+i, GL_COMPILE);
-		glBegin(GL_QUADS);
+
+		vector<GLfloat> tmp;
+		tmp.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*8);
 		float add = 1.0f/FACES_PER_WAVE;
 		float fy = 0;
 		float w2bs = 8; // 32;	// 128m/4m
-		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
+		for (unsigned y = 0; y <= FACES_PER_WAVE; ++y) {
 			float fx = 0;
-			unsigned y2 = (y+1)%FACES_PER_WAVE;
-			for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
-				unsigned x2 = (x+1)%FACES_PER_WAVE;
-				int ptr0 = y*FACES_PER_WAVE+x;
-				int ptr1 = y*FACES_PER_WAVE+x2;
-				int ptr2 = y2*FACES_PER_WAVE+x;
-				int ptr3 = y2*FACES_PER_WAVE+x2;
-				glNormal3fv(&n[ptr0].x);
-				glTexCoord2f(fx*w2bs, fy*w2bs);
-				glVertex3f(fx*WAVE_LENGTH+d[ptr0].x, fy*WAVE_LENGTH+d[ptr0].y, h[ptr0]);
-				glNormal3fv(&n[ptr1].x);
-				glTexCoord2f((fx+add)*w2bs, fy*w2bs);
-				glVertex3f((fx+add)*WAVE_LENGTH+d[ptr1].x, fy*WAVE_LENGTH+d[ptr1].y, h[ptr1]);
-				glNormal3fv(&n[ptr3].x);
-				glTexCoord2f((fx+add)*w2bs, (fy+add)*w2bs);
-				glVertex3f((fx+add)*WAVE_LENGTH+d[ptr3].x, (fy+add)*WAVE_LENGTH+d[ptr3].y, h[ptr3]);
-				glNormal3fv(&n[ptr2].x);
-				glTexCoord2f(fx*w2bs, (fy+add)*w2bs);
-				glVertex3f(fx*WAVE_LENGTH+d[ptr2].x, (fy+add)*WAVE_LENGTH+d[ptr2].y, h[ptr2]);
+			unsigned cy = y%FACES_PER_WAVE;
+			for (unsigned x = 0; x <= FACES_PER_WAVE; ++x) {
+				unsigned cx = x%FACES_PER_WAVE;
+				unsigned ptr = cy*FACES_PER_WAVE+cx;
+				tmp.push_back(fx*w2bs);	// texture coords
+				tmp.push_back(fy*w2bs);
+				tmp.push_back(n[ptr].x);	// normal
+				tmp.push_back(n[ptr].y);
+				tmp.push_back(n[ptr].z);
+				tmp.push_back(fx*WAVE_LENGTH+d[ptr].x);	// 3d coords
+				tmp.push_back(fy*WAVE_LENGTH+d[ptr].y);
+				tmp.push_back(h[ptr]);
 				fx += add;
 			}
 			fy += add;
 		}
-		glEnd();
+
+		glInterleavedArrays(GL_T2F_N3F_V3F, 0, &tmp[0]);
+		glDrawElements(GL_QUADS, waveindices.size(), GL_UNSIGNED_INT, &waveindices[0]);
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
 
 /*
 		glColor3f(1,0,0);

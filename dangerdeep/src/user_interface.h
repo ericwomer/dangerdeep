@@ -75,6 +75,10 @@ protected:
 
 	texture* water_bumpmaps[WATER_BUMP_FRAMES];
 	unsigned wavedisplaylists;		// # of first display list
+	// these are stored for get_water_height/normal functions, but take MUCH ram.
+	// for a 64x64 grid there are 64*64*(1+3)*4*256 = 16M of ram.
+	// the information is stored in display lists too. here we have
+	// 65*65*(3+3+2)*4*256 = ~33MB. Maybe we should merge this information.
 	vector<vector<float> > wavetileh;	// wave tile heights (generated)
 	vector<vector<vector3f> > wavetilen;	// wave tile normals (generated)
 	void init(void);
