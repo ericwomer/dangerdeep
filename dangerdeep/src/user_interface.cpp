@@ -237,9 +237,11 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	GLfloat lambient[4] = {0,0,0,1};//{0.2, 0.2, 0.2, 1};//lightcol.r/255.0/2.0, lightcol.g/255.0/2.0, lightcol.b/255.0/2.0, 1};
 	GLfloat ldiffuse[4] = {lightcol.r/255.0, lightcol.g/255.0, lightcol.b/255.0, 1};
 	GLfloat lposition[4] = {0,1,1,0};	//fixed for now. fixme
-	glLightfv(GL_LIGHT1, GL_AMBIENT, lambient);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, ldiffuse);
-	glLightfv(GL_LIGHT1, GL_POSITION, lposition);
+	GLfloat lspecular[4] = {1,1,1,1};
+	glLightfv(GL_LIGHT0, GL_AMBIENT, lambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, ldiffuse);
+	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, lposition);
 
 	//fixme: get rid of this
 	glRotatef(-90,1,0,0);

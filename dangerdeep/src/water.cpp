@@ -47,9 +47,11 @@ water::water(double tm) : mytime(tm), reflectiontex(0), foamtex(0)
 	glBindTexture(GL_TEXTURE_2D, reflectiontex);
 	vector<Uint8> fresnelspecul(256*256*3);
 	for (int y = 0; y < 256; y++) {
-		color wc = color(color(18, 73, 107), color(54, 98, 104), y/255.0f);
+		color wc = color(color(18, 73, 107), color(162, 193, 216 /*54, 98, 104*/), y/255.0f);
 		for (int x = 0; x < 256; x++) {
-			color fc = color(wc, color(239, 237, 203 /*255, 255, 255*/), x/255.0f);
+			float scal = x/255.0f;
+			//scal = scal*scal;//*scal*scal*scal*scal*scal*scal;	// ^8
+			color fc = color(wc, color(239, 237, 203 /*255, 255, 255*/), scal);
 			fresnelspecul[(x+y*256)*3+0] = fc.r;
 			fresnelspecul[(x+y*256)*3+1] = fc.g;
 			fresnelspecul[(x+y*256)*3+2] = fc.b;
@@ -103,7 +105,7 @@ water::water(double tm) : mytime(tm), reflectiontex(0), foamtex(0)
 		}
 	}
 
-	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(1,1), 31, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
+	ocean_wave_generator<float> owg(FACES_PER_WAVE, vector2f(1,1), 10/*31*/, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		vector<float> h = owg.compute_heights();
@@ -459,7 +461,9 @@ cout<<"\n";
 
 void water::draw_tile(const vector3f& transl, int phase) const
 {
-	double meandist = transl.length();
+// the viewer should be in position 0,0,0 for the LOD to work right and also for lighting
+
+	double meandist = transl.xy().length();
 	float distfac = 560.0f/(meandist + 360.0f);
 	int lodlevel = int(LOD_LEVELS*distfac) - 1;
 	if (lodlevel < 0) lodlevel = 0;
@@ -507,6 +511,9 @@ void water::draw_tile(const vector3f& transl, int phase) const
 	// We could set specular color and Fresnel color at once by storing them in a texture
 	// and use texture coordinates for mixing. This saves the primary color (maybe as foam
 	// mixing value), but then we can't add a reflection texture. Do we need one?!
+
+// fixme: opengl1.2 has a COLOR MATRIX so colors can get multiplied by a 4x4 matrix before drawing
+// can we use this for anything?
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	
@@ -572,14 +579,18 @@ glDisable(GL_TEXTURE_2D);
 	colors.reserve(resi*resi);
 	vector<vector2f> uv0;
 	uv0.reserve(resi*resi);
+//vector<vector3f> normals;
+//normals.reserve(resi*resi);	
 
 //#define DRAW_NORMALS
-#if DRAW_NORMALS
+#ifdef DRAW_NORMALS
 glActiveTexture(GL_TEXTURE0);
 glDisable(GL_TEXTURE_2D);
 glBegin(GL_LINES);
 glColor4f(1,1,1,1);
 #endif
+
+//glEnable(GL_LIGHTING);
 
 	vector3f L = vector3f(1,0,1).normal();//fixme, 1,0,3?
 	float add = 1.0f/res;
@@ -593,18 +604,19 @@ glColor4f(1,1,1,1);
 			vector3f coord = transl + wavetilecoords[phase][y*(FACES_PER_WAVE+1)+x];
 			coords.push_back(coord);
 			vector3f N = wavetilenormals[phase][ptr];
+//		normals.push_back(N);
 			vector3f E = -coord.normal();
 		//fixme: rotate light for testing? draw vectors for testing?
 			vector3f R = (2.0f*(L*N))*N - L;	// fixme precompute?
 
-#if DRAW_NORMALS
+#ifdef DRAW_NORMALS
 		glColor3f(1,0,0);
 		vector3f u = coord + N * 1.0f;
 		glVertex3fv(&coord.x);
 		glVertex3fv(&u.x);
 		glColor3f(1,1,0);
 //cout << "E is " << E << "\n";
-		u = coord + E * 1.0f + vector3f(1,0,0);
+		u = coord + E * 10.0f + vector3f(0.1, 0.1, 0.0);
 		glVertex3fv(&coord.x);
 		glVertex3fv(&u.x);
 		glColor3f(0,1,0);
@@ -613,31 +625,29 @@ glColor4f(1,1,1,1);
 		glVertex3fv(&u.x);
 #endif
 
-			float tmp = E*R;		// m = 16 here
-			tmp = tmp*tmp;
-			tmp = tmp*tmp;
-			tmp = tmp*tmp;
-			tmp = tmp*tmp;
-			float S = tmp*tmp;	// specular component
+			float S = E*R;		// specular component
+			S = S * S;		// ^2
+			S = S * S;		// ^4
+			S = S * S;		// ^8
+			S = S * S;		// ^16
+
 			if (S > 1.0f) S = 1.0f;	// clamp value
 			if (S < 0.0f) S = 0.0f;	// fixme: texture clamping does that already
-//			system::sys().myassert(S >= 0.0f, "S < 0");
-//			system::sys().myassert(S <= 1.0f, "S > 1");
-//		if (S > 1.0f) S = 1.0f; if (S < 0.0f) S = 0.0f;
-			tmp = E*N;		// compute Fresnel term F(x) = 1/(x+1)^8
-			if (tmp < 0.0f) tmp = 0.0f;	// avoid angles > 90 deg.
+
+			float F = E*N;		// compute Fresnel term F(x) = 1/(x+1)^8
+			if (F < 0.0f) F = 0.0f;	// avoid angles > 90 deg.
 //			system::sys().myassert(tmp >= 0.0f, "E*N < 0");
 //			system::sys().myassert(tmp <= 1.0f, "E*N > 1");
-			tmp = tmp + 1.0f;
-			tmp = tmp * tmp;	// ^2
-			tmp = tmp * tmp;	// ^4
-			tmp = tmp * tmp;	// ^8
-			float F = 1.0f/tmp;	// Fresnel component
+			F = F + 1.0f;
+			F = F * F;	// ^2
+			F = F * F;	// ^4
+			F = F * F;	// ^8
+			F = 1.0f/F;
 				// fixme: green/blue depends on slope only? is color of refraction? or fresnel?! read papers!!! fixme
 //			system::sys().myassert(F >= 0.0f, "F < 0");
 //			system::sys().myassert(F <= 1.0f, "F > 1");
 //		if (F > 1.0f) F = 1.0f; if (F < 0.0f) F = 0.0f;
-			uv0.push_back(vector2f(F,S));//S, F));	// fixme: fresnel 1 means full reflection. but fresnel map is vice versa
+			uv0.push_back(vector2f(S, F));	// fixme: fresnel 1 means full reflection. but fresnel map is vice versa
 			Uint8 foampart = 0;//((x+y)&3)*255/3;
 //			Uint8 c = Uint8(F*255);
 //			colors.push_back(color(c, c, c, Uint8(S*255)));
@@ -646,8 +656,10 @@ glColor4f(1,1,1,1);
 		}
 		fy += add;
 	}
+	
+// fixme: per vertex specular lighting could be done with OpenGL light sources?
 
-#if DRAW_NORMALS
+#ifdef DRAW_NORMALS
 glEnd();
 glEnable(GL_TEXTURE_2D);
 #endif
@@ -658,6 +670,8 @@ glEnable(GL_TEXTURE_2D);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
 	glDisableClientState(GL_NORMAL_ARRAY);
+//	glEnableClientState(GL_NORMAL_ARRAY);
+//	glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0].x);
 	glClientActiveTexture(GL_TEXTURE0);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &uv0[0].x);
@@ -669,6 +683,7 @@ glEnable(GL_TEXTURE_2D);
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 

@@ -29,7 +29,8 @@ const double EARTH_ROT_AXIS_ANGLE = 23.45;
 //const double MOON_ORBIT_TIME = 27.3333333 * 86400.0;	// fixme: the moon rotates in 27 1/3 days around the earth, but full moon is every 29,5 days
 const double MOON_ORBIT_TIME = 29.5306 * 86400.0;	// fixme: the moon rotates in 27 1/3 days around the earth, but full moon is every 29,5 days
 //moon rotational plane is ~ 5 degrees rotated to that of earth/sun, fixme
-const double EARTH_ROTATION_TIME = 86400.0;		// exactly 1 day, really? compare to moon: earth moves and rotates!!!
+const double EARTH_ROTATION_TIME = 86160.0;		// 23h56min, one sidereal day!
+// as a result, earth takes ~366 rotations around its axis per year.
 const double EARTH_PERIMETER = 2.0 * M_PI * EARTH_RADIUS;
 const double EARTH_ORBIT_TIME = 31556926.5;	// in seconds. 365 days, 5 hours, 48 minutes, 46.5 seconds
 // these values are difficult to get. SUN_POS_ADJUST should be around +9.8deg (10days of 365 later) but that gives
@@ -37,6 +38,20 @@ const double EARTH_ORBIT_TIME = 31556926.5;	// in seconds. 365 days, 5 hours, 48
 const double SUN_POS_ADJUST = 9.8;	// in degrees. 10 days from 21st. Dec. to 1st. Jan. * 360deg/365.24days
 const double MOON_POS_ADJUST = 300.0;	// in degrees. Moon pos in its orbit on 1.1.1939 fixme: this value is a rude guess
 const double STAR_SCALE = 8.0;		// texture scale factor for stars
+
+/*
+what has to be fixed for sun/earth/moon simulation:
+get exact distances and diameters (done)
+get exact rotation times (sidereal day, not solar day) for earth and moon (done)
+get exact orbit times for earth and moon around sun / earth (fixme)
+get angle of rotational axes for earth and moon (fixme, 23.45 and ~5)
+get direction of rotation for earth and moon relative to each other (fixme)
+get position of objects and axis states for a fix date (optimum 1.1.1939) (fixme)
+compute formulas for determining the positions for the following years (fixme)
+write code that computes sun/moon pos relative to earth and relative to local coordinates (fixme)
+draw moon with phases (fixme)
+*/
+
 
 
 
@@ -564,7 +579,7 @@ void sky::display(const vector3& viewpos, double max_view_dist) const
 //	glGetFloatv(GL_MODELVIEW_MATRIX, &m[0]);
 //	glLoadIdentity();
 	// GLfloat lp[4] = {0,0,0,1};//{m[12], m[13], m[14], 0};	// light comes from sun (maybe use directional light)
-//	glLightfv(GL_LIGHT1, GL_POSITION, lp);
+//	glLightfv(GL_LIGHT0, GL_POSITION, lp);
 
 	glPopMatrix();	// remove sun space
 

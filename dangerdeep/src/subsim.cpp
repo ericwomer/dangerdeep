@@ -994,10 +994,10 @@ int main(int argc, char** argv)
 	GLfloat lambient[4] = {0.5,0.5,0.5,1};
 	GLfloat ldiffuse[4] = {1,1,1,1};
 	GLfloat lposition[4] = {0,0,1,0};
-	glLightfv(GL_LIGHT1, GL_AMBIENT, lambient);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, ldiffuse);
-	glLightfv(GL_LIGHT1, GL_POSITION, lposition);
-	glEnable(GL_LIGHT1);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, lambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, ldiffuse);
+	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
+	glEnable(GL_LIGHT0);
 
 	init_global_data();
 	
