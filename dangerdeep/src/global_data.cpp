@@ -7,6 +7,10 @@
 #include "global_data.h"
 #include <SDL/SDL_image.h>
 
+#define TEXTURE_DIR "textures/"
+#define FONT_DIR "fonts/"
+#define MODEL_DIR "models/"
+
 model *merchant_medium, *subVII, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
 	*skyhemisphere;
@@ -14,70 +18,71 @@ texture *water, *background, *titel[4], *periscope[4], *gauge1,
 	*gauge2, *gauge3, *gauge4, *psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *uzo, *metalbackgr,
 	*torpt1, *torpt3, *torpt3fat, *torpt5, *torpt6lut, *torpt11, *clouds,
-	*clock12, *clock24, *threesubs[4], *glasses;
+	*clock12, *clock24, *threesubs[4], *glasses, *torp_expl_water_splash;
 font *font_arial, *font_arial2, *font_ellis, *font_logo, *font_panel, *font_tahoma;
 
 void init_global_data(void)
 {
-	skyhemisphere = new model((get_data_dir() + "models/" + "skyhemisphere.mdl"));
-	water = new texture((get_data_dir() + "textures/" + "water.png"), 1, false);
-	background = new texture((get_data_dir() + "textures/" + "background.png"), 1, false);
-	merchant_medium = new model((get_data_dir() + "models/" + "merchant1.mdl"));
-	troopship_medium = new model((get_data_dir() + "models/" + "troopship1.mdl"));
-	battleship_malaya = new model((get_data_dir() + "models/" + "battleship_malaya.mdl"));
-	carrier_bogue = new model((get_data_dir() + "models/" + "carrier_bogue.mdl"));
-	subVII = new model((get_data_dir() + "models/" + "subVII.mdl"));
-	subXXI = new model((get_data_dir() + "models/" + "subXXI.mdl"));
-	destroyer_tribal = new model((get_data_dir() + "models/" + "destroyer1.mdl"));
-	font_arial = new font((get_data_dir() + "fonts/" + "font_arial.png").c_str());
-	font_arial2 = new font((get_data_dir() + "fonts/" + "font_arial2.png").c_str());
-	font_ellis = new font((get_data_dir() + "fonts/" + "font_ellis.png").c_str());
-	font_logo = new font((get_data_dir() + "fonts/" + "font_logo.png").c_str(), 1, 8, "Dangerfomthp");
-	font_panel = new font((get_data_dir() + "fonts/" + "font_panel.png").c_str(), 0, 8);
-	font_tahoma = new font((get_data_dir() + "fonts/" + "font_tahoma.png").c_str());
-	torpedo_g7 = new model((get_data_dir() + "models/" + "torpedo.mdl"));
-	depth_charge_mdl = new model((get_data_dir() + "models/" + "depth_charge.mdl"));
-	gun_shell_mdl = new model((get_data_dir() + "models/" + "gun_shell.mdl"));
-	SDL_Surface* titelimg = IMG_Load((get_data_dir() + "textures/" + "titel.png").c_str());
+	skyhemisphere = new model((get_data_dir() + MODEL_DIR + "skyhemisphere.mdl"));
+	water = new texture((get_data_dir() + TEXTURE_DIR + "water.png"), 1, false);
+	background = new texture((get_data_dir() + TEXTURE_DIR + "background.png"), 1, false);
+	merchant_medium = new model((get_data_dir() + MODEL_DIR + "merchant1.mdl"));
+	troopship_medium = new model((get_data_dir() + MODEL_DIR + "troopship1.mdl"));
+	battleship_malaya = new model((get_data_dir() + MODEL_DIR + "battleship_malaya.mdl"));
+	carrier_bogue = new model((get_data_dir() + MODEL_DIR + "carrier_bogue.mdl"));
+	subVII = new model((get_data_dir() + MODEL_DIR + "subVII.mdl"));
+	subXXI = new model((get_data_dir() + MODEL_DIR + "subXXI.mdl"));
+	destroyer_tribal = new model((get_data_dir() + MODEL_DIR + "destroyer1.mdl"));
+	font_arial = new font((get_data_dir() + FONT_DIR + "font_arial.png").c_str());
+	font_arial2 = new font((get_data_dir() + FONT_DIR + "font_arial2.png").c_str());
+	font_ellis = new font((get_data_dir() + FONT_DIR + "font_ellis.png").c_str());
+	font_logo = new font((get_data_dir() + FONT_DIR + "font_logo.png").c_str(), 1, 8, "Dangerfomthp");
+	font_panel = new font((get_data_dir() + FONT_DIR + "font_panel.png").c_str(), 0, 8);
+	font_tahoma = new font((get_data_dir() + FONT_DIR + "font_tahoma.png").c_str());
+	torpedo_g7 = new model((get_data_dir() + MODEL_DIR + "torpedo.mdl"));
+	depth_charge_mdl = new model((get_data_dir() + MODEL_DIR + "depth_charge.mdl"));
+	gun_shell_mdl = new model((get_data_dir() + MODEL_DIR + "gun_shell.mdl"));
+	SDL_Surface* titelimg = IMG_Load((get_data_dir() + TEXTURE_DIR + "titel.png").c_str());
 	titel[0] = new texture(titelimg, 0, 0, 256, 256);
 	titel[1] = new texture(titelimg, 256, 0, 256, 256);
 	titel[2] = new texture(titelimg, 0, 256, 256, 128);
 	titel[3] = new texture(titelimg, 256, 256, 256, 128);
 	SDL_FreeSurface(titelimg);
-	SDL_Surface* periscopeimg = IMG_Load((get_data_dir() + "textures/" + "periscope.png").c_str());
+	SDL_Surface* periscopeimg = IMG_Load((get_data_dir() + TEXTURE_DIR + "periscope.png").c_str());
 	periscope[0] = new texture(periscopeimg, 0, 0, 256, 256);
 	periscope[1] = new texture(periscopeimg, 256, 0, 256, 256);
 	periscope[2] = new texture(periscopeimg, 0, 256, 256, 256);
 	periscope[3] = new texture(periscopeimg, 256, 256, 256, 256);
 	SDL_FreeSurface(periscopeimg);
-	gauge1 = new texture((get_data_dir() + "textures/" + "gauge1.png"));
-	gauge2 = new texture((get_data_dir() + "textures/" + "gauge2.png"));
-	gauge3 = new texture((get_data_dir() + "textures/" + "gauge3.png"));
-	gauge4 = new texture((get_data_dir() + "textures/" + "gauge4.png"));
-	psbackgr = new texture((get_data_dir() + "textures/" + "psbackgr.png"));
-	panelbackgr = new texture((get_data_dir() + "textures/" + "panelbackgr.png"), 1, false);
-	addleadangle = new texture((get_data_dir() + "textures/" + "addleadangle.png"));
-	torpempty = new texture((get_data_dir() + "textures/" + "torpempty.png"));
-	torpreload = new texture((get_data_dir() + "textures/" + "torpreload.png"));
-	torpunload = new texture((get_data_dir() + "textures/" + "torpunload.png"));
-	uzo = new texture((get_data_dir() + "textures/" + "uzo.png"), 1, true, true);
-	metalbackgr = new texture((get_data_dir() + "textures/" + "metalbackgr.png"), 1, false);
-	torpt1 = new texture((get_data_dir() + "textures/" + "torpt1.png"));
-	torpt3 = new texture((get_data_dir() + "textures/" + "torpt3.png"));
-	torpt3fat = new texture((get_data_dir() + "textures/" + "torpt3fat.png"));
-	torpt5 = new texture((get_data_dir() + "textures/" + "torpt5.png"));
-	torpt6lut = new texture((get_data_dir() + "textures/" + "torpt6lut.png"));
-	torpt11 = new texture((get_data_dir() + "textures/" + "torpt11.png"));
-	clouds = new texture((get_data_dir() + "textures/" + "clouds.png"), 1, false, true);
-	clock12 = new texture((get_data_dir() + "textures/" + "clock12.png"));
-	clock24 = new texture((get_data_dir() + "textures/" + "clock24.png"));
-	glasses = new texture((get_data_dir() + "textures/" + "glasses.png"), 1, true, true);
-	SDL_Surface* threesubsimg = IMG_Load((get_data_dir() + "textures/" + "3subs.png").c_str());
+	gauge1 = new texture((get_data_dir() + TEXTURE_DIR + "gauge1.png"));
+	gauge2 = new texture((get_data_dir() + TEXTURE_DIR + "gauge2.png"));
+	gauge3 = new texture((get_data_dir() + TEXTURE_DIR + "gauge3.png"));
+	gauge4 = new texture((get_data_dir() + TEXTURE_DIR + "gauge4.png"));
+	psbackgr = new texture((get_data_dir() + TEXTURE_DIR + "psbackgr.png"));
+	panelbackgr = new texture((get_data_dir() + TEXTURE_DIR + "panelbackgr.png"), 1, false);
+	addleadangle = new texture((get_data_dir() + TEXTURE_DIR + "addleadangle.png"));
+	torpempty = new texture((get_data_dir() + TEXTURE_DIR + "torpempty.png"));
+	torpreload = new texture((get_data_dir() + TEXTURE_DIR + "torpreload.png"));
+	torpunload = new texture((get_data_dir() + TEXTURE_DIR + "torpunload.png"));
+	uzo = new texture((get_data_dir() + TEXTURE_DIR + "uzo.png"), 1, true, true);
+	metalbackgr = new texture((get_data_dir() + TEXTURE_DIR + "metalbackgr.png"), 1, false);
+	torpt1 = new texture((get_data_dir() + TEXTURE_DIR + "torpt1.png"));
+	torpt3 = new texture((get_data_dir() + TEXTURE_DIR + "torpt3.png"));
+	torpt3fat = new texture((get_data_dir() + TEXTURE_DIR + "torpt3fat.png"));
+	torpt5 = new texture((get_data_dir() + TEXTURE_DIR + "torpt5.png"));
+	torpt6lut = new texture((get_data_dir() + TEXTURE_DIR + "torpt6lut.png"));
+	torpt11 = new texture((get_data_dir() + TEXTURE_DIR + "torpt11.png"));
+	clouds = new texture((get_data_dir() + TEXTURE_DIR + "clouds.png"), 1, false, true);
+	clock12 = new texture((get_data_dir() + TEXTURE_DIR + "clock12.png"));
+	clock24 = new texture((get_data_dir() + TEXTURE_DIR + "clock24.png"));
+	glasses = new texture((get_data_dir() + TEXTURE_DIR + "glasses.png"), 1, true, true);
+	SDL_Surface* threesubsimg = IMG_Load((get_data_dir() + TEXTURE_DIR + "3subs.png").c_str());
 	threesubs[0] = new texture(threesubsimg, 0, 0, 256, 256);
 	threesubs[1] = new texture(threesubsimg, 256, 0, 256, 256);
 	threesubs[2] = new texture(threesubsimg, 0, 256, 256, 128);
 	threesubs[3] = new texture(threesubsimg, 256, 256, 256, 128);
 	SDL_FreeSurface(threesubsimg);
+	torp_expl_water_splash = new texture ((get_data_dir() + TEXTURE_DIR + "torpedo_expl_water_splash.png"), 1, true, true);
 }
 
 void deinit_global_data(void)
@@ -113,6 +118,7 @@ void deinit_global_data(void)
 	delete gauge2;
 	delete gauge3;
 	delete gauge4;
+	delete glasses;
 	delete psbackgr;
 	delete panelbackgr;
 	delete addleadangle;
@@ -134,6 +140,7 @@ void deinit_global_data(void)
 	delete threesubs[1];
 	delete threesubs[2];
 	delete threesubs[3];
+	delete torp_expl_water_splash;
 }
 
 // returns 1939-1945, 1-12, 1-31
