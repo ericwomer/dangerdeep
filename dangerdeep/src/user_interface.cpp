@@ -1750,6 +1750,21 @@ if (mb&2) detl = my*10/384;
 		}
 	}
 
+	// draw notepad sheet giving target distance, speed and course
+	if (target) {
+		int nx = 768, ny = 512;
+		notepadsheet->draw(nx, ny);
+		ostringstream os0, os1, os2;
+		// fixme: use estimated values from target/tdc estimation here, make functions for that
+		os0 << texts::get(3) << ": " << unsigned(target->get_pos().xy().distance(player->get_pos().xy())) << texts::get(206);
+		os1 << texts::get(4) << ": " << unsigned(sea_object::ms2kts(target->get_speed())) << texts::get(208);
+		os2 << texts::get(1) << ": " << unsigned(target->get_heading().value()) << texts::get(207);
+		font_arial->print(nx+16, ny+40, os0.str(), color(0,0,128));
+		font_arial->print(nx+16, ny+60, os1.str(), color(0,0,128));
+		font_arial->print(nx+16, ny+80, os2.str(), color(0,0,128));
+	}
+
+
 	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
 
