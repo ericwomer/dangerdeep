@@ -107,12 +107,12 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	To do this we need a simulation of convoys in the atlantic.
 	Then we place the sub somewhere randomly around the convoy with maximum viewing distance.
 	Multiplayer: place several subs around the convoy with a minimum distance between each.
-fixme: with new xml design the subs have no torpedoes on board when created.
-we have to put some torpedoes according to mission time into the subs!
 ***********************************************************************/	
 	networktype = 0;
 	servercon = 0;
 	ui = 0;
+
+	// fixme: show some info like in Silent Service II? sun/moon pos,time,visibility?
 
 	date datebegin, dateend;
 	switch (timeperiod) {
@@ -128,14 +128,17 @@ we have to put some torpedoes according to mission time into the subs!
 
 	double tpr = rnd();	
 	time = datebegin.get_time() * (1.0-tpr) + dateend.get_time() * tpr;
+	time = floor(time/86400)*86400;		// set to begin of day
 	
 	// all code from here on is fixme and experimental.
+	// fixme: we need exact sunrise and fall times for a day. (also moon state is needed
+	// later) The compute_sun_pos func is not enough
 	switch (timeofday) {
-		case 0: time += 20*3600+5*3600*rnd(); break;		
-		case 1: time += 3*3600*rnd(); break;		
-		case 2: time += 6*3600+1800*rnd(); break;		
-		case 3: time += 18*3600+1800*rnd(); break;		
-	};
+		case 0: time += myfmod(20+10*rnd(), 24)*3600; break;	// night
+		case 1: time += ( 6+ 2*rnd())*3600; break;		// dawn
+		case 2: time += ( 8+10*rnd())*3600; break;		// day
+		case 3: time += (18+ 2*rnd())*3600; break;		// dusk
+	}
 	
 	date currentdate((unsigned)time);
 

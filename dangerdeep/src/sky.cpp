@@ -520,7 +520,11 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	// fixme: maybe rotate star positions every day a bit? rotate with earth rotation? that would be more realistic/cooler
 
 	glPushMatrix();
-	double scal = max_view_dist / 30000.0;	// sky hemisphere is stored as 30km in radius
+	// with scal=0.1 we draw a sky hemisphere with 3km radius. We don't write to
+	// the z-buffer, so any scale within znear and zfar is ok. To avoid clipping of
+	// parts of the sky hemisphere with the zfar plane, we scale it to a much smaller
+	// size than 30km=zfar. fixme, does a disabled DEPTH_TEST write to the zbuffer, too?
+	double scal = 0.1;//max_view_dist / 30000.0;	// sky hemisphere is stored as 30km in radius
 	glScaled(scal, scal, scal);
 
 	// set texture coordinate translation for unit 1 (sunglow)
@@ -536,8 +540,9 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 
 	// ********* set up sky textures and call list
 	glDisable(GL_DEPTH_TEST);	// to avoid the stars appearing in front of the sun etc.
+	glDisable(GL_LIGHTING);
+	
 	glCallList(skyhemisphere_dl);	// this overdraws the stars! why?!
-	glEnable(GL_DEPTH_TEST);
 	
 	color::white().set_gl_color();
 	
@@ -547,8 +552,6 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 
 
 	// ******** the sun and the moon *****************************************************
-	glDisable(GL_LIGHTING);
-
 	// draw sun, fixme draw flares/halo
 	vector3 sunpos = sundir * (0.96 * max_view_dist);
 	double suns = max_view_dist/100;		// make sun ~13x13 pixels
@@ -600,20 +603,19 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glPopMatrix();
 
 
-	glEnable(GL_LIGHTING);
-	
-
 	// ******** clouds ********************************************************************
-	glDisable(GL_LIGHTING);		// direct lighting turned off
-	glDisable(GL_DEPTH_TEST);	// draw all clouds
 	lightcol.set_gl_color();	// cloud color depends on day time
 
 	// fixme: cloud color varies with direction to sun (clouds aren't flat, but round, so
 	// border are brighter if sun is above/nearby)
+	// also thin clouds appear bright even when facing away from the sun (sunlight
+	// passes through them, diffuse lighting in a cloud, radiosity).
+	// Dynamic clouds are nice, but "real" clouds (fotographies) look much more realistic.
+	// Realistic clouds can be computed, but the question is, how much time this would take.
+	// Fotos are better, but static...
 	// fixme: add flares after cloud layer (?)
 
-	float clsc = max_view_dist * 0.9;
-	glScalef(clsc, clsc, 3000);	// bottom of cloud layer has altitude of 3km., fixme varies with weather
+	glScalef(3000, 3000, 333);	// bottom of cloud layer has altitude of 3km., fixme varies with weather
 	clouds->set_gl_texture();
 	glCallList(clouds_dl);
 
