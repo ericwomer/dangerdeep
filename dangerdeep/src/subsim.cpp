@@ -1443,7 +1443,9 @@ int main(int argc, char** argv)
 {
 	list<string> args;
 	//parse argc, argv
-	while (argc > 0) args.push_front(string(argv[--argc]));
+	while (argc > 0) {
+		args.push_front(string(argv[--argc]));
+	}
 	return mymain(args);
 }
 

@@ -150,6 +150,10 @@ void system::clear_console(void)
 
 void system::add_console(const string& tx)
 {
+	if (instance == 0) {
+		cerr << tx << " (SYSTEM not yet initialized)\n";
+		return;
+	}
 	console_text.push_back(tx);
 }
 

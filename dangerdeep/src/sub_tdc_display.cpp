@@ -70,13 +70,13 @@ void sub_tdc_display::display(class game& gm) const
 {
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 
-	//glClearColor(0, 0, 0, 0);
+	glClearColor(0, 0, 0, 0);
 	//glClear(GL_COLOR_BUFFER_BIT);
 	system::sys().prepare_2d_drawing();
 	glColor3f(1,1,1);
 
 	// draw background
-	bool is_day = gm.is_day_mode();
+	bool is_day = true;//gm.is_day_mode();
 	if (is_day) {
 		background_normallight->draw(0, 0);
 //	} else {
