@@ -317,7 +317,7 @@ void ship_interface::display_glasses(class system& sys, game& gm)
 	sys.prepare_2d_drawing();
 	sys.draw_image(0, 0, 512, 512, uzo);
 	sys.draw_hm_image(512, 0, 512, 512, uzo);
-	draw_infopanel(sys);
+	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
 
 	// keyboard processing
@@ -389,7 +389,7 @@ void ship_interface::display_dc_throwers(class system& sys, game& gm)
 	}
 
 #endif
-	draw_infopanel(sys);
+	draw_infopanel(sys, gm);
 	sys.unprepare_2d_drawing();
 
 	// mouse handling
