@@ -115,7 +115,7 @@ Help("""
 	Type 'scons' to build the binary.
 	Type 'scons -c' to clean up.
 	Type 'scons install' to install the game (as root).
-	Type 'scons tarball' to build a tarball of the source.
+	Type 'scons tarball' to build a tarball of the source (works only with Linux).
 	""")
 
 ################ build
