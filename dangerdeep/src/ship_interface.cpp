@@ -10,17 +10,8 @@
 #include "game.h"
 #include "texts.h"
 
-void ship_interface::add_message(const string& s)
-{
-	panel_texts.push_back(s);
-	if (panel_texts.size() > 4)	// (128-8)/24-1 ;-)
-		panel_texts.pop_front();
-}
-
-ship_interface::ship_interface(ship* player_ship) : user_interface(),
-	zoom_glasses(false), mapzoom(0.1), viewsideang(0), viewupang(-90),
-	viewpos(0, 0, 10), bearing(0), viewmode(4),
-	player(player_ship), target(0), sunken_ship_tonnage(0)
+ship_interface::ship_interface(ship* player_ship) :
+    user_interface( player_ship )
 {
 }
 
@@ -30,6 +21,8 @@ ship_interface::~ship_interface()
 
 bool ship_interface::keyboard_common(int keycode, class system& sys, class game& gm)
 {
+    ship* player = get_player()->get_ship_ptr();
+    
 	// handle common keys (fixme: make configureable?)
 	switch (keycode) {
 		// viewmode switching
@@ -109,34 +102,6 @@ texture* ship_interface::torptex(unsigned type)
 }
 */
 	
-void ship_interface::draw_infopanel(class system& sys) const
-{
-	glBindTexture(GL_TEXTURE_2D, panelbackgr->get_opengl_name());
-	glBegin(GL_QUADS);
-	glTexCoord2i(0,0);
-	glVertex2i(0,640);
-	glTexCoord2i(0,1);
-	glVertex2i(0,768);
-	glTexCoord2i(8,1);
-	glVertex2i(1024,768);
-	glTexCoord2i(8,0);
-	glVertex2i(1024,640);
-	glEnd();
-	glBindTexture(GL_TEXTURE_2D, 0);
-	ostringstream os;
-	os << TXT_Heading[language] << ": " << player->get_heading().ui_value()
-		<< "   " << TXT_Speed[language] << ": "
-		<< unsigned(fabs(round(sea_object::ms2kts(player->get_speed()))))
-		<< "   " << TXT_Bearing[language] << ": "
-		<< bearing.ui_value();
-	font_panel->print(0, 648, os.str().c_str());
-	int y = 768 - 24;
-	for (list<string>::const_reverse_iterator it = panel_texts.rbegin(); it != panel_texts.rend(); ++it) {
-		font_panel->print(0, y, it->c_str());
-		y -= 24;	// font_panel's height is 24.
-	}
-}
-
 void ship_interface::draw_gauge(class system& sys, unsigned nr, int x, int y,
 	unsigned wh, angle a, const char* text) const
 {
@@ -248,49 +213,6 @@ void ship_interface::display(class system& sys, game& gm)
 	}
 }
 
-void ship_interface::display_gauges(class system& sys, game& gm)
-{
-	sys.prepare_2d_drawing();
-	for (int y = 0; y < 3; ++y)	// fixme: replace with gauges
-		for (int x = 0; x < 4; ++x)
-			sys.draw_image(x*256, y*256, 256, 256, psbackgr);
-	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
-	angle player_depth = -player->get_pos().z;
-	draw_gauge(sys, 1, 0, 0, 256, player->get_heading(), TXT_Heading[language]);
-	draw_gauge(sys, 2, 256, 0, 256, player_speed, TXT_Speed[language]);
-
-	draw_infopanel(sys);
-	sys.unprepare_2d_drawing();
-
-	// mouse handling
-	int mx, my, mb = sys.get_mouse_buttons();
-	sys.get_mouse_position(mx, my);
-
-	if (mb & 1) {
-		int marea = (my/256)*4+(mx/256);
-		int mareax = (mx/256)*256+128;
-		int mareay = (my/256)*256+128;
-		angle mang(vector2(mx - mareax, mareay - my));
-		switch (marea) {
-			case 0:	// change heading
-				player->head_to_ang(mang, mang.is_cw_nearer(
-					player->get_heading()));
-				break;
-			case 1:	// change speed
-				break;
-		}
-	}
-
-	// keyboard processing
-	int key = sys.get_key();
-	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
-			// specific keyboard processing
-		}
-		key = sys.get_key();
-	}
-}
-
 void ship_interface::display_sonar(class system& sys, game& gm)
 {
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -368,6 +290,8 @@ void ship_interface::display_sonar(class system& sys, game& gm)
 
 void ship_interface::display_glasses(class system& sys, game& gm)
 {
+    ship* player = get_player()->get_ship_ptr();
+    
 	//fixme ugly hack
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -402,134 +326,6 @@ void ship_interface::display_glasses(class system& sys, game& gm)
 	while (key != 0) {
 		if (!keyboard_common(key, sys, gm)) {
 			// specific keyboard processing
-		}
-		key = sys.get_key();
-	}
-}
-
-void ship_interface::display_bridge(class system& sys, game& gm)
-{
-	//fixme adapt
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	vector2 phd = player->get_heading().direction();
-	vector3 viewpos = player->get_pos() + vector3(0, 0, 6) + phd.xy0();
-	// no torpedoes, no DCs, with player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, true, false);
-
-	sys.prepare_2d_drawing();
-	draw_infopanel(sys);
-	sys.unprepare_2d_drawing();
-
-	// keyboard processing
-	int key = sys.get_key();
-	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
-			// specific keyboard processing
-		}
-		key = sys.get_key();
-	}
-}
-
-void ship_interface::display_map(class system& sys, game& gm)
-{
-	glClearColor(0, 0, 1, 1);	// fixme
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	vector2 offset = -player->get_pos().xy();
-
-	sys.prepare_2d_drawing();
-
-	float delta = MAPGRIDSIZE*mapzoom;
-	float sx = myfmod(512, delta)-myfmod(-offset.x, MAPGRIDSIZE)*mapzoom;
-	float sy = 768.0 - (myfmod(384.0, delta)-myfmod(-offset.y, MAPGRIDSIZE)*mapzoom);
-	int lx = int(1024/delta)+2, ly = int(768/delta)+2;
-
-	// draw grid
-	glColor3f(0.5, 0.5, 1);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBegin(GL_LINES);
-	for (int i = 0; i < lx; ++i) {
-		glVertex2f(sx, 0);
-		glVertex2f(sx, 768);
-		sx += delta;
-	}
-	for (int i = 0; i < ly; ++i) {
-		glVertex2f(0, sy);
-		glVertex2f(1024, sy);
-		sy -= delta;
-	}
-	glEnd();
-	glColor3f(1,1,1);
-
-	// draw view range
-	glColor3f(1,0,0);
-	float range = gm.get_max_view_distance()*mapzoom;
-	glBegin(GL_LINE_LOOP);
-	for (int i = 0; i < range/4; ++i) {
-		float a = i*8*M_PI/range;
-		glVertex2f(512+sin(a)*range, 384-cos(a)*range);
-	}
-	glEnd();
-	glColor3f(1,1,1);
-
-	// draw pings
-	const list<game::ping>& pings = gm.get_pings();
-	for (list<game::ping>::const_iterator it = pings.begin(); it != pings.end(); ++it) {
-		const game::ping& p = *it;
-		vector2 p1 = (p.pos + offset)*mapzoom;
-		vector2 p2 = p1 + (p.dir + angle(PINGANGLE/2)).direction() * PINGLENGTH * mapzoom;
-		vector2 p3 = p1 + (p.dir - angle(PINGANGLE/2)).direction() * PINGLENGTH * mapzoom;
-		glBegin(GL_TRIANGLES);
-		glColor4f(0.5,0.5,0.5,1);
-		glVertex2f(512+p1.x, 384-p1.y);
-		glColor4f(0.5,0.5,0.5,0);
-		glVertex2f(512+p2.x, 384-p2.y);
-		glVertex2f(512+p3.x, 384-p3.y);
-		glEnd();
-		glColor4f(1,1,1,1);
-	}
-	
-	// draw trails and vessel symbols
-	list<ship*> ships = gm.visible_ships(player->get_pos());
-	list<submarine*> submarines = gm.visible_submarines(player->get_pos());
-	list<airplane*> airplanes = gm.visible_airplanes(player->get_pos());
-	list<torpedo*> torpedoes = gm.visible_torpedoes(player->get_pos());
-
-	// draw trails
-	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
-		draw_trail(*it, offset);
-	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
-		draw_trail(*it, offset);
-	for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
-		draw_trail(*it, offset);
-	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
-		draw_trail(*it, offset);
-
-	// draw vessel symbols
-	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
-		draw_vessel_symbol(sys, offset, *it, color(192,255,192));
-	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
-		draw_vessel_symbol(sys, offset, *it, color(255,255,128));
-	for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
-		draw_vessel_symbol(sys, offset, *it, color(0,0,64));
-	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
-		draw_vessel_symbol(sys, offset, *it, color(255,0,0));
-
-	draw_infopanel(sys);
-	sys.unprepare_2d_drawing();
-	
-	// keyboard processing
-	int key = sys.get_key();
-	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
-			// specific keyboard processing
-			switch(key) {
-				case SDLK_PLUS : if (mapzoom < 1) mapzoom *= 1.5; break;
-				case SDLK_MINUS : if (mapzoom > 0.01) mapzoom /= 1.5; break;
-			}
 		}
 		key = sys.get_key();
 	}
@@ -606,105 +402,6 @@ void ship_interface::display_dc_throwers(class system& sys, game& gm)
 	while (key != 0) {
 		if (!keyboard_common(key, sys, gm)) {
 			// specific keyboard processing
-		}
-		key = sys.get_key();
-	}
-}
-
-void ship_interface::display_damagecontrol(class system& sys, game& gm)
-{
-	glClearColor(0.25, 0.25, 0.25, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	sys.prepare_2d_drawing();
-	font_arial2->print(0, 0, "damage control - fixme");
-	sys.unprepare_2d_drawing();
-
-	// keyboard processing
-	int key = sys.get_key();
-	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
-			// specific keyboard processing
-		}
-		key = sys.get_key();
-	}
-}
-
-void ship_interface::display_logbook(class system& sys, game& gm)
-{
-	glClearColor(0.25, 0.25, 0.25, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	sys.prepare_2d_drawing();
-	font_arial2->print(0, 0, "logbook - fixme");
-	sys.unprepare_2d_drawing();
-
-	// keyboard processing
-	int key = sys.get_key();
-	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
-			// specific keyboard processing
-		}
-		key = sys.get_key();
-	}
-}
-
-void ship_interface::display_successes(class system& sys, game& gm)
-{
-	glClearColor(0.25, 0.25, 0.25, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	sys.prepare_2d_drawing();
-	font_arial2->print(0, 0, "success records - fixme");
-	sys.unprepare_2d_drawing();
-
-	// keyboard processing
-	int key = sys.get_key();
-	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
-			// specific keyboard processing
-		}
-		key = sys.get_key();
-	}
-}
-
-void ship_interface::display_freeview(class system& sys, game& gm)
-{
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glRotatef(viewupang,1,0,0);
-	glRotatef(viewsideang,0,1,0);
-	float viewmatrix[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, viewmatrix);
-	vector3 sidestep(viewmatrix[0], viewmatrix[4], viewmatrix[8]);
-	vector3 upward(viewmatrix[1], viewmatrix[5], viewmatrix[9]);
-	vector3 forward(viewmatrix[2], viewmatrix[6], viewmatrix[10]);
-	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
-
-	// draw everything
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, true, true);
-
-	int mx, my;
-	sys.get_mouse_motion(mx, my);
-	viewsideang += mx*0.5;
-	viewupang -= my*0.5;
-
-	sys.prepare_2d_drawing();
-	draw_infopanel(sys);
-	sys.unprepare_2d_drawing();
-
-	// keyboard processing
-	int key = sys.get_key();
-	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
-			// specific keyboard processing
-			switch(key) {
-				case SDLK_w: viewpos -= forward * 5; break;
-				case SDLK_x: viewpos += forward * 5; break;
-				case SDLK_a: viewpos -= sidestep * 5; break;
-				case SDLK_d: viewpos += sidestep * 5; break;
-				case SDLK_q: viewpos -= upward * 5; break;
-				case SDLK_e: viewpos += upward * 5; break;
-			}
 		}
 		key = sys.get_key();
 	}

@@ -17,69 +17,27 @@ using namespace std;
 class submarine_interface : public user_interface
 {
 protected:
-	// periscope
-	bool zoom_scope;	// use 6x instead 1.5 fixme implement
-
-	// map
-	float mapzoom;	// factor pixel/meter
-
-	// free view mode
-	float viewsideang, viewupang;	// global spectators viewing angles
-	vector3 viewpos;
-
-	// used in various screens
-	angle bearing;
-	unsigned viewmode;
-	submarine *player;
-	ship* target;
-
 	submarine_interface();
 	submarine_interface& operator= (const submarine_interface& other);
 	submarine_interface(const submarine_interface& other);
 	
-	list<unsigned> tonnage_sunk;
-	
-	list<string> panel_texts;
-	void add_message(const string& s);
-
 	// returns true if processed
-	bool keyboard_common(int keycode, class system& sys, class game& gm);
+	virtual bool keyboard_common(int keycode, class system& sys, class game& gm);
 
-//	bool object_visible(sea_object* so, const vector2& dl, const vector2& dr) const;
-
-	static texture* torptex(unsigned type);
-	
-	// 2d drawing must be turned on for them
-	void draw_infopanel(class system& sys) const;
-	void draw_gauge(class system& sys, unsigned nr, int x, int y, unsigned wh, angle a,
-		const char* text) const;
-	void draw_clock(class system& sys, int x, int y, unsigned wh, double t,
-	        const char* text) const;
-	void draw_vessel_symbol(class system& sys,
-		const vector2& offset, const sea_object* so, color c) const;
-	void draw_trail(sea_object* so, const vector2& offset);
 	void draw_torpedo(class system& sys, bool usebow, int x, int y,
-		const submarine::stored_torpedo& st);
+                          const submarine::stored_torpedo& st);
 
-	void display_gauges(class system& sys, class game& gm);
+    // Display functions for screens.
 	void display_periscope(class system& sys, class game& gm);
 	void display_UZO(class system& sys, class game& gm);
-	void display_bridge(class system& sys, class game& gm);
-	void display_map(class system& sys, class game& gm);
 	void display_torpedoroom(class system& sys, class game& gm);
-	void display_damagecontrol(class system& sys, class game& gm);
-	void display_logbook(class system& sys, class game& gm);
-	void display_successes(class system& sys, class game& gm);
-	void display_freeview(class system& sys, class game& gm);
-	
-	virtual sea_object* get_player(void) const { return player; }
 
 public:	
 	submarine_interface(submarine* player_sub);
 	virtual ~submarine_interface();
 
 	virtual void display(class system& sys, class game& gm);
-	virtual void record_ship_tonnage(unsigned tons) { tonnage_sunk.push_back(tons); }
+	
 };
 
 #endif
