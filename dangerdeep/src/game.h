@@ -40,6 +40,8 @@ class water_splash;
 class game	// our "world" with physics etc.
 {
 	friend void show_results_for_game(const game* );
+	friend void check_for_highscore(const game* );
+	
 public:
 	struct ping {
 		vector2 pos;

@@ -165,19 +165,22 @@ inline double read_double(istream& in)
 
 inline void write_string(ostream& out, const string& s)
 {
-	int l = s.size();
-	write_i32(out, l);
-	out.write((char*)s.c_str(), l+1);
+	unsigned l = s.size();
+	write_u32(out, l);
+	if (l > 0)
+		out.write((char*)&s[0], l);
 }
 
 inline string read_string(istream& in)
 {
-	int l = read_i32(in);
-	char* c = new char [l+1];
-	in.read(c, l+1);
-	string s(c);
-	delete c;
-	return s;
+	unsigned l = read_u32(in);
+	if (l > 0) {
+		string s(l, 'x');
+		in.read(&s[0], l);
+		return s;
+	} else {
+		return string();
+	}
 }
 
 #endif

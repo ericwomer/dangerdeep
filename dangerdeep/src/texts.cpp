@@ -5,6 +5,7 @@
 
 #include "parser.h"
 #include "global_data.h"
+#include "date.h"
 
 #define TEXTS_DIR "texts/"
 
@@ -41,3 +42,18 @@ string texts::get(unsigned no)
 	return "!INVALID TEXT NUMBER!";
 }
 
+string texts::numeric_from_date(const date& d)
+{
+	ostringstream oss;
+	switch (language) {
+		case english :	// format mm/dd/yyyy
+			oss << d.get_value(date::month) << "/" << d.get_value(date::day) << "/"
+				<< d.get_value(date::year);
+			break;
+		case german:	// format dd.mm.yyyy
+			oss << d.get_value(date::day) << "." << d.get_value(date::month) << "."
+				<< d.get_value(date::year);
+			break;
+	}
+	return oss.str();
+}

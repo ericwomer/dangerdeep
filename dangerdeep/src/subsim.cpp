@@ -44,9 +44,15 @@
 #include "image.h"
 #include "widget.h"
 #include "filehelper.h"
+#include "highscorelist.h"
 
 class system* sys;
 int res_x, res_y;
+
+highscorelist hsl_mission, hsl_career;
+#define HSL_MISSION_NAME "mission.hsc"
+#define HSL_CAREER_NAME "career.hsc"
+
 
 // a dirty hack
 void menu_notimplemented(void)
@@ -248,20 +254,30 @@ void loadsavequit_dialogue::update_list(void)
 //
 void check_for_highscore(const game* gm)
 {
-#if 0
 	unsigned totaltons = 0;
 	for (list<game::sink_record>::const_iterator it = gm->sunken_ships.begin(); it != gm->sunken_ships.end(); ++it) {
 		totaltons += it->tons;
 	}
-	highscorelist& hsl = (/* check if game is career or mission fixme */ true) ? highscore_mission : highscore_career;
+	highscorelist& hsl = (/* check if game is career or mission fixme */ true) ? hsl_mission : hsl_career;
 	unsigned points = totaltons /* compute points from tons etc here fixme */;
 	if (hsl.is_good_enough(points)) {
 		// show dialogue, ask for player name
-		string playername;
+		string playername = "fixme";
+		widget w(0, 0, 1024, 768, texts::get(124), 0, kruppdocksimg);
+		widget_list* wl = new widget_list(64, 64, 1024-64-64, 768-64-64);
+		w.add_child(wl);
+		w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 		
 		hsl.record(points, playername);
+		
+		for (vector<highscorelist::entry>::const_iterator it = hsl.entries.begin(); it != hsl.entries.end(); ++it) {
+			ostringstream os;
+			os << it->points << "\t" << it->name;
+			wl->append_entry(os.str());
+		}
+		
+		w.run();
 	}
-#endif
 }
 
 
@@ -270,16 +286,14 @@ void check_for_highscore(const game* gm)
 //
 void show_results_for_game(const game* gm)
 {
-	widget w(0, 0, 1024, 768, texts::get(124), 0, kruppdocksimg);
+	widget w(0, 0, 1024, 768, texts::get(124), 0, sunkendestroyerimg);
 	widget_list* wl = new widget_list(64, 64, 1024-64-64, 768-64-64);
 	w.add_child(wl);
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 	unsigned totaltons = 0;
 	for (list<game::sink_record>::const_iterator it = gm->sunken_ships.begin(); it != gm->sunken_ships.end(); ++it) {
 		ostringstream oss;
-		oss << it->dat.get_value(date::year) << "/"
-			<< it->dat.get_value(date::month) << "/"
-			<< it->dat.get_value(date::day) << "\t"
+		oss << texts::numeric_from_date(it->dat) << "\t"
 			<< it->descr << "\t"
 			<< it->tons << " BRT";
 		totaltons += it->tons;
@@ -758,8 +772,30 @@ void menu_show_vessels(void)
 	delete vessel;
 }
 
+
+bool file_exists(const string& fn)
+{
+	ifstream in(fn.c_str(), ios::in|ios::binary);
+	return in.good();
+}
+
+
 int main(int argc, char** argv)
 {
+	string highscoredirectory =
+#ifdef WIN32
+	"./highscores/";
+#else
+	string(getenv("HOME"))+"/."+PACKAGE + "/";
+#endif
+
+	string configdirectory =
+#ifdef WIN32
+	"./config/";
+#else
+	string(getenv("HOME"))+"/."+PACKAGE + "/";
+#endif
+
 /*
 	//fixme use getenv for $(HOME)
 	// move to another function
@@ -833,9 +869,9 @@ int main(int argc, char** argv)
 		font_nimbusrom, color::white(), color(255, 64, 64), color(64,64,32)));
 
 	sys->draw_console_with(font_arial, background);
-	
 
-	// init config and save game dir
+	
+	// init save game dir
 	directory savegamedir = open_dir(savegamedirectory);
 	if (savegamedir == 0) {
 		bool ok = make_dir(savegamedirectory);
@@ -843,6 +879,31 @@ int main(int argc, char** argv)
 			system::sys()->myassert(false, "could not create save game directory.");
 		}
 	}
+	// init config dir
+	directory configdir = open_dir(configdirectory);
+	if (configdir == 0) {
+		bool ok = make_dir(configdirectory);
+		if (!ok) {
+			system::sys()->myassert(false, "could not create config directory.");
+		}
+	}
+	// init highscore dir
+	directory highscoredir = open_dir(highscoredirectory);
+	if (highscoredir == 0) {
+		bool ok = make_dir(highscoredirectory);
+		if (!ok) {
+			system::sys()->myassert(false, "could not create highscore directory.");
+		}
+	}
+
+
+	// read highscores
+	if (!file_exists(highscoredirectory + HSL_MISSION_NAME))
+		highscorelist().save(highscoredirectory + HSL_MISSION_NAME);
+	if (!file_exists(highscoredirectory + HSL_CAREER_NAME))
+		highscorelist().save(highscoredirectory + HSL_CAREER_NAME);
+	hsl_mission = highscorelist(highscoredirectory + HSL_MISSION_NAME);
+	hsl_career = highscorelist(highscoredirectory + HSL_CAREER_NAME);
 
 
 	// main menu
@@ -860,6 +921,9 @@ int main(int argc, char** argv)
 	m.run();
 
 	sys->write_console(true);
+
+	hsl_mission.save(highscoredirectory + HSL_MISSION_NAME);
+	hsl_career.save(highscoredirectory + HSL_CAREER_NAME);
 
 	deinit_global_data();
 	delete sys;
