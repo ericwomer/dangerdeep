@@ -241,27 +241,8 @@ void user_interface::init ()
 
 
 #if 1	// use finite normals
-		wavetilen[i].resize(FACES_PER_WAVE*FACES_PER_WAVE);
+		wavetilen[i] = owg.compute_finite_normals(wavetileh[i]);
 		
-		double sf = double(WAVE_LENGTH)/FACES_PER_WAVE;
-		for (int y = 0; y < FACES_PER_WAVE; ++y) {
-			int y1 = (y+FACES_PER_WAVE-1)%FACES_PER_WAVE;
-			int y2 = (y+1)%FACES_PER_WAVE;
-			for (int x = 0; x < FACES_PER_WAVE; ++x) {
-				int x1 = (x+FACES_PER_WAVE-1)%FACES_PER_WAVE;
-				int x2 = (x+1)%FACES_PER_WAVE;
-				vector3f a((x-1)*sf, (y+1)*sf, wavetileh[i][y2*FACES_PER_WAVE+x1]);
-				vector3f b((x-1)*sf, (y  )*sf, wavetileh[i][y *FACES_PER_WAVE+x1]);
-				vector3f c((x-1)*sf, (y-1)*sf, wavetileh[i][y1*FACES_PER_WAVE+x1]);
-				vector3f d((x  )*sf, (y-1)*sf, wavetileh[i][y1*FACES_PER_WAVE+x ]);
-				vector3f e((x+1)*sf, (y-1)*sf, wavetileh[i][y1*FACES_PER_WAVE+x2]);
-				vector3f f((x+1)*sf, (y  )*sf, wavetileh[i][y *FACES_PER_WAVE+x2]);
-				vector3f g((x+1)*sf, (y+1)*sf, wavetileh[i][y2*FACES_PER_WAVE+x2]);
-				vector3f h((x  )*sf, (y+1)*sf, wavetileh[i][y2*FACES_PER_WAVE+x ]);
-				vector3f ortho = (a.cross(b) + b.cross(c) + c.cross(d) + d.cross(e) + e.cross(f) + f.cross(g) + g.cross(h) + h.cross(a));
-				wavetilen[i][y*FACES_PER_WAVE+x] = ortho.normal();
-			}
-		}
 #else	// use fft normals
 #if 0		// compare both
 		vector<vector3f> n2 = owg.compute_normals();
@@ -372,12 +353,13 @@ void user_interface::init ()
 	}
 	
 	// create water bump maps
-	unsigned bumpmap_texsize = 64;
-	ocean_wave_generator<float> owgb(bumpmap_texsize, vector2f(1,1), 1, 0.005/*0.01*/, 4.0, WATER_BUMPMAP_CYCLE_TIME);
+	unsigned bumpmap_texsize = 128; //64;	// use at least 128 for a good look. 2^7*2^7*2^7*3 bytes = 6mb
+	ocean_wave_generator<float> owgb(bumpmap_texsize, vector2f(0,1), 31, 0.000005, WAVE_LENGTH, WATER_BUMPMAP_CYCLE_TIME);
+//	ocean_wave_generator<float> owgb(bumpmap_texsize, vector2f(1,1), 1, 0.005/*0.01*/, 4.0, WATER_BUMPMAP_CYCLE_TIME);//old bump map code, fixme remove
 	for (int i = 0; i < WATER_BUMP_FRAMES; ++i) {
 		owgb.set_time(i*WATER_BUMPMAP_CYCLE_TIME/WATER_BUMP_FRAMES);
-		//fixme: we could compute height info here and compute finite normals from it. this saves 50% ffts, nearly doubling speed
-		vector<vector3f> n = owgb.compute_normals();
+		owgb.clear_inner_frequencies(FACES_PER_WAVE/2);//fixme: should be FACES_PER_WAVE, but to leave some low frequencies looks better (FACES_PER_WAVE/2)
+		vector<vector3f> n = owgb.compute_finite_normals(owgb.compute_heights());
 		vector<Uint8> un(n.size()*3);
 		for (unsigned j = 0; j < n.size(); ++j) {
 			float s = 127.5;
@@ -871,7 +853,7 @@ void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 
-	GLfloat scalefac0 = 8.0f/WAVE_LENGTH;
+	GLfloat scalefac0 = 1.0f/WAVE_LENGTH;	// was 8.0f/WL for old bumpmapping fixme
 	GLfloat plane_s0[4] = { scalefac0, 0.0f, 0.0f, 0.0f };
 	GLfloat plane_t0[4] = { 0.0f, scalefac0, 0.0f, 0.0f };
 	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);

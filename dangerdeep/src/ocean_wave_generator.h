@@ -67,7 +67,10 @@ public:
 		T cycletime = T(10.0)
 	);
 	void set_time(T time);	// call this before any compute_*() function
+	void clear_inner_frequencies(int M);	// clear inner M entries of h_tilde (handy for bump map computation)
 	vector<T> compute_heights(void) const;
+	// use this after height computation to avoid the overhead of fft normals
+	vector<vector3t<T> > compute_finite_normals(const vector<T>& heights) const;
 	vector<vector3t<T> > compute_normals(void) const;
 	vector<vector2t<T> > compute_displacements(void) const;
 	~ocean_wave_generator();
@@ -205,6 +208,16 @@ void ocean_wave_generator<T>::set_time(T time)
 }
 
 template <class T>
+void ocean_wave_generator<T>::clear_inner_frequencies(int M)
+{
+	for (int y = N/2-M/2; y <= N/2; ++y) {
+		for (int x = N/2-M/2; x < N/2+M/2; ++x) {
+			htilde[y*N+x] = T(0.0);
+		}
+	}
+}
+
+template <class T>
 vector<T> ocean_wave_generator<T>::compute_heights(void) const
 {
 	// this loop is a bit overhead, we could store htilde already in a fft_complex array
@@ -232,6 +245,35 @@ vector<T> ocean_wave_generator<T>::compute_heights(void) const
 		for (int x = 0; x < N; ++x)
 			waveheights[y*N+x] = fft_out[y*N+x] * signs[(x + y) & 1];
 	return waveheights;
+}
+
+template <class T>
+vector<vector3t<T> > ocean_wave_generator<T>::compute_finite_normals(const vector<T>& heights) const
+{
+	vector<vector3t<T> > normals;
+	normals.reserve(N*N);
+
+	T sf = Lm/T(N);
+	for (int y = 0; y < N; ++y) {
+		int y1 = (y+N-1)%N;
+		int y2 = (y+1)%N;
+		for (int x = 0; x < N; ++x) {
+			int x1 = (x+N-1)%N;
+			int x2 = (x+1)%N;
+			vector3t<T> a((x-1)*sf, (y+1)*sf, heights[y2*N+x1]);
+			vector3t<T> b((x-1)*sf, (y  )*sf, heights[y *N+x1]);
+			vector3t<T> c((x-1)*sf, (y-1)*sf, heights[y1*N+x1]);
+			vector3t<T> d((x  )*sf, (y-1)*sf, heights[y1*N+x ]);
+			vector3t<T> e((x+1)*sf, (y-1)*sf, heights[y1*N+x2]);
+			vector3t<T> f((x+1)*sf, (y  )*sf, heights[y *N+x2]);
+			vector3t<T> g((x+1)*sf, (y+1)*sf, heights[y2*N+x2]);
+			vector3t<T> h((x  )*sf, (y+1)*sf, heights[y2*N+x ]);
+			vector3t<T> ortho = (a.cross(b) + b.cross(c) + c.cross(d) + d.cross(e) + e.cross(f) + f.cross(g) + g.cross(h) + h.cross(a));
+			normals.push_back(ortho.normal());
+		}
+	}
+
+	return normals;
 }
 
 template <class T>
