@@ -49,7 +49,7 @@ void sub_periscope_display::post_display(game& gm) const
 
 sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_display(ui_), zoomed(false)
 {
-	periscopeimg = new image(get_image_dir() + "periscope_wip.png", true);
+	periscopeimg = new image(get_image_dir() + "periscope_daylight_rev.1.0_maskedfinal.png", true);
 
 	pos = vector3(0, 0, 12);//fixme, depends on sub
 	aboard = true;
