@@ -79,14 +79,37 @@ bool lookout_sensor::is_detected ( const game* gm, const sea_object* d,
 
 	if (dist < max_view_dist)
 	{
+		if (dist < 1.0) return true;	// avoid divide by zero
+	
 		// the probabilty of visibility depends on indivial values
 		// relative course, distance to and type of watcher.
 		// (height of masts, experience etc.), weather fixme
 		double vis = t->surface_visibility ( d->get_pos ().xy () );
 
-		if ( dist < max_view_dist * vis )
+		// The Malaya has 1500 m² cross section at broadside.
+		// It can be seen at maximum distance (30km)
+		// 1500/30000 = 0.05, so the factor must be less or equal than that.
+		// A destroyer (771m²) is then visible from its broadside at 15420 meters.
+		// A corvette (232m²) is then visible from its broadside at 4640 meters.
+		// A carrier (1087m²) is then visible from its broadside at 21740 meters.
+		// A small tanker (576m²) is then visible from its broadside at 11520 meters.
+		// A large freighter (889m²) is then visible from its broadside at 17780 meters.
+		// A VIIc sub (120m²) is then visible from its broadside at 2400 meters.
+		// The factor is obviously too large. A sub can be seen from its broadside
+		// at superb conditions in 8km at least, but that would lead to a factor so
+		// that large freighters are visible from 60km!
+		// Effects like smoke or wake are ignored here, but are essential, fixme!!!
+		// fixme: earth curvature is ignored here!!!
+		const double visfactor = 0.05;
+
+		// multiply with overall visibility factor: max_view_dist/30km.
+		double condition_visfactor = (max_view_dist/30000.0) * 0.5 + 0.5;
+
+		// visibility depends on visible area in viewer's projected space.
+		// Projected area ~ Real area / Real distance.
+		if (condition_visfactor * vis/dist >= visfactor)
 			detected = true;
-		// fixme: add some randomization!
+		// fixme: add some randomization! really?
 	}
 
 	return detected;
@@ -205,7 +228,7 @@ bool radar_sensor::is_detected ( const game* gm, const sea_object* d,
 	double df = get_distance_factor ( r.length () );
 	double vis = 1.0f;
 
-	// Radars use the surface visibility factor.
+	// Radars use the surface visibility factor. 2004/05/16 fixme adapt constants
 	vis = t->surface_visibility ( d->get_pos ().xy () );
 
 	if ( df * vis > 0.1f + 0.01f * rnd ( 10 ) )

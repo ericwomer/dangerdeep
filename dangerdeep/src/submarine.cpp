@@ -496,6 +496,15 @@ double submarine::get_max_speed(void) const
 
 float submarine::surface_visibility(const vector2& watcher) const
 {
+	// fixme: that model is too crude,
+	// we compute cross sections with standard draught, so the hull is ~ 1m above
+	// the water. In reality it is hidden in the waves when watched from a longer
+	// distance (it doesn't need to be under water, just hidden by higher waves nearby).
+	// So the only visible thing of a sub is the conning tower, making it less visible.
+	
+	// fixme: 2004/05/16, i removed the 1/750 factor from sea_object.cpp
+	// the rest of the code has to be adapted
+
 	double depth = get_depth();
 	float dive_factor = 0.0f;
 

@@ -1,3 +1,9 @@
+2004-05-16  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* sea_object, sensor
+	  - changed visibility formula and factors.
+	    A bit better now, but still not realistic. Added many comments
+	    about that.
+
 2004-05-15  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* subsim, game
 	  - added choice for time period for custom missions

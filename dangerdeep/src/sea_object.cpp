@@ -471,7 +471,7 @@ angle sea_object::estimate_angle_on_the_bow(angle target_bearing, angle target_h
 
 float sea_object::surface_visibility(const vector2& watcher) const
 {
-	return 1.0/750.0 * get_cross_section(watcher);
+	return get_cross_section(watcher);
 }
 
 
