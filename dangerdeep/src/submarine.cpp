@@ -14,7 +14,7 @@ submarine::submarine() : ship(), dive_speed(0.0f), permanent_dive(false),
 	dive_to(0.0f), max_dive_speed(1.0f), dive_acceleration(0.0f), scopeup(false),
 	max_depth(150.0f), periscope_depth(12.0f), snorkel_depth(10.0f),
 	snorkel (false), snorkel_up(false),
-	battery_value_a ( 0.0f ), battery_value_t ( 1.0f ),
+	battery_level ( 1.0f ), battery_value_a ( 0.0f ), battery_value_t ( 1.0f ),
 	battery_recharge_value_a ( 0.0f ), battery_recharge_value_t ( 1.0f )
 {}
 	
@@ -59,6 +59,12 @@ bool submarine::parse_attribute(parser& p)
 			p.parse(TKN_ASSIGN);
 			snorkel = p.parse_bool();
 			p.parse(TKN_SEMICOLON);
+			break;
+		case TKN_BATTERY:
+			p.consume ();
+			p.parse ( TKN_ASSIGN );
+			battery_level = p.parse_number () / 100.0f;
+			p.parse ( TKN_SEMICOLON );
 			break;
 		default: return false;
 	}
@@ -123,7 +129,7 @@ int submarine::find_stored_torpedo(bool usebow)
 
 void submarine::simulate(class game& gm, double delta_time)
 {
-	sea_object::simulate(gm, delta_time);
+	ship::simulate(gm, delta_time);
 
 	// calculate new depth (fixme this is not physically correct)
 	double delta_depth = dive_speed * delta_time;
