@@ -373,6 +373,12 @@ void submarine::simulate(class game& gm, double delta_time)
 
 
 
+void submarine::init_fill_torpedo_tubes(double)
+{
+}
+
+
+
 pair<unsigned, unsigned> submarine::get_bow_tube_indices(void) const
 {
 	unsigned off = 0;

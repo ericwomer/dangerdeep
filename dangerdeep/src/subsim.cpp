@@ -377,6 +377,9 @@ void create_convoy_mission(void)
 	w.add_child(new widget_text(760, 60, 0, 0, texts::get(90)));
 	widget_list* wtimeofday = new widget_list(760, 90, 200, 200);
 	w.add_child(wtimeofday);
+	w.add_child(new widget_text(40, 310, 0, 0, texts::get(62)));
+	widget_list* wtimeperiod = new widget_list(40, 340, 440, 200);
+	w.add_child(wtimeperiod);
 	wsubtype->append_entry(texts::get(17));
 	wsubtype->append_entry(texts::get(174));
 	wsubtype->append_entry(texts::get(18));
@@ -391,6 +394,14 @@ void create_convoy_mission(void)
 	wtimeofday->append_entry(texts::get(92));
 	wtimeofday->append_entry(texts::get(93));
 	wtimeofday->append_entry(texts::get(94));
+	wtimeperiod->append_entry(texts::get(63));
+	wtimeperiod->append_entry(texts::get(64));
+	wtimeperiod->append_entry(texts::get(65));
+	wtimeperiod->append_entry(texts::get(66));
+	wtimeperiod->append_entry(texts::get(67));
+	wtimeperiod->append_entry(texts::get(68));
+	wtimeperiod->append_entry(texts::get(69));
+	wtimeperiod->append_entry(texts::get(70));
 
 	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
 	w.add_child(wm);
@@ -405,7 +416,11 @@ void create_convoy_mission(void)
 			case 1: st = "submarine_IXc40"; break;
 			case 2: st = "submarine_XXI"; break;
 		}
-		run_game(new game(st, wcvsize->get_selected(), wescortsize->get_selected(), wtimeofday->get_selected()));
+		run_game(new game(st,
+			wcvsize->get_selected(),
+			wescortsize->get_selected(),
+			wtimeofday->get_selected(),
+			wtimeperiod->get_selected()));
 	}
 }
 
@@ -619,7 +634,7 @@ void create_network_game(Uint16 server_port)
 	
 	// create a game
 	unsigned nr_of_players = 2;	// fixme
-	game* gm = new game("submarine_VIIc", 1, 1, 1);		// fixme
+	game* gm = new game("submarine_VIIc", 1, 1, 1, 1);		// fixme
 	
 	// wait for clients to join, reply to "ask" messages
 	vector<IPaddress> clients;

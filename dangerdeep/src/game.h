@@ -149,7 +149,8 @@ public:
 	// create new custom mission
 	// expects: size small,medium,large, escort size none,small,medium,large,
 	// time of day [0,4) night,dawn,day,dusk
-	game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday, unsigned nr_of_players = 1);
+	game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
+		unsigned timeperiod, unsigned nr_of_players = 1);
 
 	// create from mission file
 	game(class TiXmlDocument* doc);

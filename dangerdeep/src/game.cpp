@@ -88,7 +88,8 @@ void game::sink_record::save(ostream& out) const
 
 
 
-game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday, unsigned nr_of_players)
+game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
+	unsigned timeperiod, unsigned nr_of_players)
 {
 /****************************************************************
 	custom mission generation:
@@ -113,7 +114,20 @@ we have to put some torpedoes according to mission time into the subs!
 	servercon = 0;
 	ui = 0;
 
-	time = 86400*500;	// fixme random dependent of period
+	date datebegin, dateend;
+	switch (timeperiod) {
+		case 0: datebegin = date(1939, 9, 1); dateend = date(1940, 5, 31); break;
+		case 1: datebegin = date(1940, 6, 1); dateend = date(1941, 3, 31); break;
+		case 2: datebegin = date(1941, 4, 1); dateend = date(1941, 12, 31); break;
+		case 3: datebegin = date(1942, 1, 1); dateend = date(1942, 6, 30); break;
+		case 4: datebegin = date(1942, 7, 1); dateend = date(1942, 12, 31); break;
+		case 5: datebegin = date(1943, 1, 1); dateend = date(1943, 5, 31); break;
+		case 6: datebegin = date(1943, 6, 1); dateend = date(1940, 6, 30); break;
+		case 7: datebegin = date(1944, 7, 1); dateend = date(1940, 5, 4); break;
+	}
+
+	double tpr = rnd();	
+	time = datebegin.get_time() * (1.0-tpr) + dateend.get_time() * tpr;
 	
 	// all code from here on is fixme and experimental.
 	switch (timeofday) {
@@ -190,7 +204,7 @@ game::game(TiXmlDocument* doc) : running(true), time(0), networktype(0), serverc
 	unsigned hour = XmlAttribu(etime, "hour");
 	unsigned minute = XmlAttribu(etime, "minute");
 	unsigned second = XmlAttribu(etime, "second");
-	time = ::get_time(year, month, day) + 3600*hour + 60*minute + second;
+	time = date(year, month, day, hour, minute, second).get_time();
 	TiXmlElement* eobjects = hdftdmission.FirstChildElement("objects").Element();
 	system::sys().myassert(eobjects != 0, string("objects node missing in ")+doc->Value());
 
@@ -962,8 +976,7 @@ void game::ship_sunk( const ship* s )
 	oss << texts::get(83) << " " << s->get_description ( 2 );
 	if (ui) ui->add_captains_log_entry( *this, oss.str () );
 	if (ui) ui->record_sunk_ship ( s );
-	date d;
-	::get_date(time, d);
+	date d((unsigned)time);
 	sunken_ships.push_back(sink_record(d, s->get_description(2),
 		s->get_tonnage()));
 }

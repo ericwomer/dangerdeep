@@ -1434,8 +1434,7 @@ void user_interface::play_sound_effect_distance ( sound_effect se, double distan
 
 void user_interface::add_captains_log_entry ( class game& gm, const string& s)
 {
-	date d;
-	get_date ( gm.get_time (), d );
+	date d(unsigned(gm.get_time()));
 
 	if ( captains_logbook )
 		captains_logbook->add_entry( d, s );

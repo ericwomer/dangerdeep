@@ -205,6 +205,9 @@ public:
 	virtual void parse_attributes(class TiXmlElement* parent);
 
 	virtual void simulate(class game& gm, double delta_time);
+	
+	// fill available tubes with common types depending on time period (used for custom missions)
+	virtual void init_fill_torpedo_tubes(double time /* or int period */);
 
 	const vector<stored_torpedo>& get_torpedoes(void) const { return torpedoes; }
 

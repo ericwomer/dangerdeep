@@ -61,13 +61,6 @@ extern class image *titlebackgrimg, *periscope, *threesubsimg, *damage_screen_ba
 void init_global_data(void);
 void deinit_global_data(void);
 
-// fixme: move this to class date
-void get_date(double t, unsigned& year, unsigned& month, unsigned& day);
-void get_date ( double t, unsigned& year, unsigned& month, unsigned& day,
-	unsigned& hour, unsigned& minute, unsigned& second );
-void get_date ( double t, date& d );
-double get_time(unsigned year, unsigned month, unsigned day);
-
 // handle modulo calculation for negative values the way I need it
 inline float myfmod(float a, float b) { return a-floorf(a/b)*b; }
 inline float myfrac(float a) { return a-floorf(a); }
