@@ -28,8 +28,8 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	while (th < sh) th *= 2;
 	
 	// fixme: replace 256 in message with real value
-	system::sys()->myassert(tw <= get_max_width(), "texture: textures wider than 256 texels are not supported");
-	system::sys()->myassert(th <= get_max_height(), "texture: textures heigher than 256 texels are not supported");
+	system::sys().myassert(tw <= get_max_width(), "texture: textures wider than 256 texels are not supported");
+	system::sys().myassert(th <= get_max_height(), "texture: textures heigher than 256 texels are not supported");
 
 	glGenTextures(1, &texname);
 	glBindTexture(GL_TEXTURE_2D, texname);
@@ -43,7 +43,7 @@ void texture::init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw,
 	unsigned char* tmpimage = 0;
 	
 	if (teximage->format->palette != 0) {
-		system::sys()->myassert(bpp == 1, "texture: only 8bit palette files supported");
+		system::sys().myassert(bpp == 1, "texture: only 8bit palette files supported");
 		int ncol = teximage->format->palette->ncolors;
 		bool usealpha = false;
 		vector<unsigned> palette(ncol);
@@ -113,7 +113,7 @@ texture::texture(const string& filename, int mapping, int clamp)
 {
 	texfilename = filename;
 	SDL_Surface* teximage = IMG_Load(filename.c_str());
-	system::sys()->myassert(teximage != 0, string("texture: failed to load")+filename);
+	system::sys().myassert(teximage != 0, string("texture: failed to load")+filename);
 	init(teximage, 0, 0, teximage->w, teximage->h, mapping, clamp);
 	SDL_FreeSurface(teximage);
 }	

@@ -58,8 +58,8 @@ public:
 
 	virtual void add_sunk_ship ( const ship* so );
 
-	virtual void display ( class system& sys, class game& gm );
-	virtual void check_key ( int keycode, class system& sys, class game& gm );
+	virtual void display ( class game& gm );
+	virtual void check_key ( int keycode, class game& gm );
 	virtual void check_mouse ( int x, int y, int mb );
 	virtual void next_page ();
 	virtual void previous_page ();

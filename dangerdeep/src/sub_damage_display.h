@@ -20,8 +20,8 @@ public:
 
 	virtual void display_popup (int x, int y, const string& text, bool atleft, bool atbottom) const;
 
-	virtual void display ( class system& sys, class game& gm );
-	virtual void check_key ( int keycode, class system& sys, class game& gm );
+	virtual void display ( class game& gm );
+	virtual void check_key ( int keycode, class game& gm );
 	virtual void check_mouse ( int x, int y, int mb );
 };
 

@@ -17,7 +17,7 @@ gun_shell::gun_shell(const sea_object& parent, angle direction, angle elevation,
 	length = gun_shell_mdl->get_length();
 	width = gun_shell_mdl->get_width();
 
-	system::sys()->add_console("shell created");
+	system::sys().add_console("shell created");
 }
 
 void gun_shell::load(istream& in, class game& g)

@@ -238,7 +238,7 @@ string game::read_description_of_savegame(const string& filename)
 	read_string(in);
 	string desc = read_string(in);
 	int versionnr = read_i32(in);
-	if (versionnr != SAVEVERSION) system::sys()->myassert(false, "invalid save game version");
+	if (versionnr != SAVEVERSION) system::sys().myassert(false, "invalid save game version");
 	return desc;
 }
 
@@ -299,7 +299,7 @@ void game::save_to_stream(ostream& out) const
 			write_i32(out, 0);	// player is ship
 			write(out, tmpship);
 		} else {
-			system::sys()->myassert(false, "internal error: player is no sub or ship");
+			system::sys().myassert(false, "internal error: player is no sub or ship");
 		}
 	}
 	
@@ -324,7 +324,7 @@ void game::save_to_stream(ostream& out) const
 void game::load_from_stream(istream& in)
 {
 	int versionnr = read_i32(in);
-	if (versionnr != SAVEVERSION) system::sys()->myassert(false, "invalid save game version");
+	if (versionnr != SAVEVERSION) system::sys().myassert(false, "invalid save game version");
 	int gametype = read_i32(in);
 
 	for (unsigned s = read_u32(in); s > 0; --s) ships.push_back(ship::create(in));
@@ -377,7 +377,7 @@ void game::load_from_stream(istream& in)
 		player = s;
 		ui = new submarine_interface(s, *this);	// fixme: move to load(), dirty hack
 	} else {
-		system::sys()->myassert(false, "savegame error: player is no sub or ship");
+		system::sys().myassert(false, "savegame error: player is no sub or ship");
 	}
 	
 	// user interface is generated according to player object by dftd
@@ -421,14 +421,14 @@ void game::simulate(double delta_t)
 
 	// this could be done in jobs, fixme
 	if (!player->is_alive()) {
-		system::sys()->add_console("player killed!");//testing fixme
+		system::sys().add_console("player killed!");//testing fixme
 		running = false;
 		return;
 	}
 	
 	if (/* submarines.size() == 0 && */ ships.size() == 0 && torpedoes.size() == 0 && depth_charges.size() == 0 &&
 			airplanes.size() == 0 && gun_shells.size() == 0) {
-		system::sys()->add_console("no objects except player left!");//testing fixme
+		system::sys().add_console("no objects except player left!");//testing fixme
 		running = false;
 		return;
 	}
@@ -539,7 +539,7 @@ void game::simulate(double delta_t)
 	}
 	
 	if (nearest_contact > ENEMYCONTACTLOST) {
-		system::sys()->add_console("player lost contact to enemy!");//testing fixme
+		system::sys().add_console("player lost contact to enemy!");//testing fixme
 		running = false;
 	}
 }
@@ -963,7 +963,7 @@ void game::unregister_job(job* j)
 			return;
 		}
 	}
-	system::sys()->myassert(false, "[game::unregister_job] job not found in list");
+	system::sys().myassert(false, "[game::unregister_job] job not found in list");
 }
 
 template<class _C>
@@ -1232,7 +1232,7 @@ ship* game::sonar_acoustical_torpedo_target ( const torpedo* o )
 // main play loop
 unsigned game::exec(void)
 {
-	class system& sys = *(system::sys());
+	class system& sys = system::sys();
 	unsigned frames = 1;
 	unsigned lasttime = sys.millisec();
 	unsigned lastframes = 1;
@@ -1243,7 +1243,7 @@ unsigned game::exec(void)
 	stopexec = false;
 	
 	// draw one initial frame
-	ui->display(sys, *this);
+	ui->display(*this);
 	
 	while (running && !stopexec) {
 		sys.poll_event_queue();
@@ -1260,7 +1260,7 @@ unsigned game::exec(void)
 			simulate(delta_time);
 		}
 
-		ui->display(sys, *this);
+		ui->display(*this);
 		++frames;
 
 		// record fps
@@ -1294,7 +1294,7 @@ T* ith_elem(const list<T*>& lst, unsigned i)
 	for (typename list<T*>::const_iterator it = lst.begin(); it != lst.end(); ++it, --i)
 		if (i == 0)
 			return *it;
-	system::sys()->myassert(false, "weird: could not access i'th element");
+	system::sys().myassert(false, "weird: could not access i'th element");
 	return 0;
 }
 
@@ -1314,7 +1314,7 @@ void write_ptr2u16(ostream& out, const T* p, const list<T*>& lst, unsigned offse
 			return;
 		}
 	}
-	system::sys()->myassert(false, string("could not translate ") + ptrtype + " pointer to number");
+	system::sys().myassert(false, string("could not translate ") + ptrtype + " pointer to number");
 }
 
 template <class T>
@@ -1326,7 +1326,7 @@ T* read_u162ptr(istream& in, const list<T*>& lst, unsigned n0, unsigned n1, cons
 	if (nr > n0 && nr <= n1) {
 		return ith_elem(lst, nr-n0-1);
 	}
-	system::sys()->myassert(false, string("could not translate number to ") + ptrtype + " pointer");
+	system::sys().myassert(false, string("could not translate number to ") + ptrtype + " pointer");
 	return 0;
 }
 
@@ -1343,7 +1343,7 @@ unsigned game::listsizes(unsigned n) const
 		case 2: s += submarines.size();
 		case 1: s += ships.size();
 		case 0: s += 0; break;
-		default: system::sys()->myassert(false, "game::listsizes  n too high");
+		default: system::sys().myassert(false, "game::listsizes  n too high");
 	}
 	return s;
 }
@@ -1399,7 +1399,7 @@ void game::write(ostream& out, const sea_object* s) const
 	const gun_shell* gs = dynamic_cast<const gun_shell*>(s); if (s) { write(out, gs); return; }
 	const convoy* cv = dynamic_cast<const convoy*>(s); if (s) { write(out, cv); return; }
 	const water_splash* ws = dynamic_cast<const water_splash*>(s); if (s) { write(out, ws); return; }
-	system::sys()->myassert(false, "internal error: ptr is not 0 and no heir of sea_object");
+	system::sys().myassert(false, "internal error: ptr is not 0 and no heir of sea_object");
 }
 
 ship* game::read_ship(istream& in) const
@@ -1461,6 +1461,6 @@ sea_object* game::read_sea_object(istream& in) const
 	if (nr > sizes[5] && nr <= sizes[6]) return ith_elem(gun_shells, nr-sizes[5]-1);
 	if (nr > sizes[6] && nr <= sizes[7]) return ith_elem(convoys, nr-sizes[6]-1);
 	if (nr > sizes[7] && nr <= sizes[8]) return ith_elem(water_splashs, nr-sizes[7]-1);
-	system::sys()->myassert(false, string("could not translate number to sea_object pointer"));
+	system::sys().myassert(false, string("could not translate number to sea_object pointer"));
 	return 0;
 }

@@ -16,8 +16,7 @@ using namespace std;
 #define MAPGRIDSIZE 1000	// meters
 #define WATER_BUMP_FRAMES 256
 
-#include "system.h"
-
+class game;
 class user_display;
 class logbook_display;
 class ships_sunk_display;
@@ -69,6 +68,7 @@ protected:
 	
 //	vector<char> landsea;	// a test hack. 0 = land, 1 = sea
 	coastmap mycoastmap;	// this may get moved to game.h, yet it is used for display only, that's why it is here
+	list<pair<vector2, string /* fixme maybe unsigned for texts */> > cities;
 
 	// free view mode
 	float freeviewsideang, freeviewupang;	// global spectators viewing angles
@@ -76,7 +76,7 @@ protected:
 
 	user_interface& operator= (const user_interface& other);
 	user_interface(const user_interface& other);
-	user_interface(sea_object* player, class game& gm);
+	user_interface(sea_object* player, game& gm);
 
 	texture* water_bumpmaps[WATER_BUMP_FRAMES];
 	
@@ -101,7 +101,7 @@ protected:
 	void deinit(void);
 
 	inline virtual sea_object* get_player(void) const { return player_object; }
-	virtual bool keyboard_common(int keycode, class system& sys, class game& gm) = 0;
+	virtual bool keyboard_common(int keycode, game& gm) = 0;
 
 	// generate new clouds, fac (0-1) gives animation phase. animation is cyclic.
 	void advance_cloud_animation(float fac);	// 0-1
@@ -115,53 +115,52 @@ protected:
 
 	// color funtions.
 	virtual void set_display_color ( color_mode mode ) const;
-	virtual void set_display_color ( const class game& gm ) const;
+	virtual void set_display_color ( const game& gm ) const;
 	
 	// 2d drawing must be turned on for them
-	void draw_infopanel(class system& sys, class game& gm) const;
-	void draw_gauge(class system& sys, class game& gm, unsigned nr, int x, int y, unsigned wh, angle a,
+	void draw_infopanel(game& gm) const;
+	void draw_gauge(game& gm, unsigned nr, int x, int y, unsigned wh, angle a,
 		const string& text, angle a2) const;
-	void draw_gauge(class system& sys, class game& gm, unsigned nr, int x, int y, unsigned wh, angle a,
+	void draw_gauge(game& gm, unsigned nr, int x, int y, unsigned wh, angle a,
 		const string& text) const {
-			draw_gauge(sys, gm, nr, x, y, wh, a, text, a);
+			draw_gauge(gm, nr, x, y, wh, a, text, a);
 	}
 	// draws turnable switch. parameters: pos, first index and number of descriptions,
 	// selected description, extra description text number and title text nr.
-	void draw_turnswitch(class system& sys, class game& gm, int x, int y,
+	void draw_turnswitch(game& gm, int x, int y,
 		unsigned firstdescr, unsigned nrdescr, unsigned selected, unsigned extradescr, unsigned title) const;
 	// Matching input function, give pos 0-255,0-255.
 	unsigned turnswitch_input(int x, int y, unsigned nrdescr) const;
 	
-	void draw_manometer_gauge ( class system& sys, class game& gm, unsigned nr,
+	void draw_manometer_gauge (game& gm, unsigned nr,
 		int x, int y, unsigned wh, float value, const string& text ) const;
-	void draw_clock(class system& sys, class game& gm, int x, int y, unsigned wh, double t,
+	void draw_clock(game& gm, int x, int y, unsigned wh, double t,
 	        const string& text) const;
-	void draw_vessel_symbol(class system& sys, const vector2& offset, 
-                                sea_object* so, color c);
+	void draw_vessel_symbol(const vector2& offset, sea_object* so, color c);
 	void draw_trail(sea_object* so, const vector2& offset);
-	virtual void draw_pings(class game& gm, const vector2& offset);
-	virtual void draw_sound_contact(class game& gm, const sea_object* player,
+	virtual void draw_pings(game& gm, const vector2& offset);
+	virtual void draw_sound_contact(game& gm, const sea_object* player,
 		double max_view_dist, const vector2& offset);
-	virtual void draw_visual_contacts(class system& sys, class game& gm,
+	virtual void draw_visual_contacts(game& gm,
 		const sea_object* player, const vector2& offset);
-	virtual void draw_square_mark ( class system& sys, class game& gm,
+	virtual void draw_square_mark (game& gm,
 		const vector2& mark_pos, const vector2& offset, const color& c );
 
 	// Display functions for screens.
-	virtual void display_gauges(class system& sys, class game& gm);
-	virtual void display_bridge(class system& sys, class game& gm);
-	virtual void display_map(class system& sys, class game& gm);
-	virtual void display_logbook(class system& sys, class game& gm);
-	virtual void display_successes(class system& sys, class game& gm);
-	virtual void display_freeview(class system& sys, class game& gm);
-	virtual void display_glasses(class system& sys, class game& gm);
-	virtual void display_damagestatus(class system& sys, class game& gm) = 0;
+	virtual void display_gauges(game& gm);
+	virtual void display_bridge(game& gm);
+	virtual void display_map(game& gm);
+	virtual void display_logbook(game& gm);
+	virtual void display_successes(game& gm);
+	virtual void display_freeview(game& gm);
+	virtual void display_glasses(game& gm);
+	virtual void display_damagestatus(game& gm) = 0;
 
 	virtual sound* get_sound_effect ( sound_effect se ) const;
 
 public:	
 	virtual ~user_interface();
-	virtual void display(class system& sys, class game& gm) = 0;
+	virtual void display(game& gm) = 0;
 
 	// helper functions
 	void update_foam(double deltat);
@@ -179,12 +178,12 @@ public:
 	// 3d drawing functions
 	virtual void draw_water(const vector3& viewpos, angle dir, double t, double max_view_dist) const;
 	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist) const;
-	virtual void draw_view(class system& sys, class game& gm, const vector3& viewpos,
+	virtual void draw_view(game& gm, const vector3& viewpos,
 		angle dir, angle elev, bool aboard, bool drawbridge, bool withunderwaterweapons);
 	virtual bool paused(void) const { return pause; }
 	virtual unsigned time_scaling(void) const { return time_scale; }
 	virtual void add_message(const string& s);
-	virtual void add_captains_log_entry ( class game& gm, const string& s);
+	virtual void add_captains_log_entry ( game& gm, const string& s);
 	virtual bool time_scale_up(void);	// returns true on success
 	virtual bool time_scale_down(void);
 	virtual void record_sunk_ship ( const ship* so );

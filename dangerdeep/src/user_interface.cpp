@@ -32,6 +32,7 @@
 #include "coastmap.h"
 #include "ocean_wave_generator.h"
 #include "widget.h"
+#include "tokencodes.h"
 using namespace std;
 
 #define MAX_PANEL_SIZE 256
@@ -90,6 +91,27 @@ user_interface::user_interface(sea_object* player, game& gm) :
 	panel_valuetexts[4] = new widget_text(528+160+100, 8, 0, 0, "000");
 	for (unsigned i = 0; i < 5; ++i)
 		panel->add_child(panel_valuetexts[i]);
+		
+	// read cities
+	parser cityfile(get_map_dir() + "cities.txt");
+	while (!cityfile.is_empty()) {
+		bool xneg = cityfile.type() == TKN_MINUS;
+		cityfile.consume();
+		int xd = cityfile.parse_number();
+		cityfile.parse(TKN_COMMA);
+		int xm = cityfile.parse_number();
+		cityfile.parse(TKN_COMMA);
+		bool yneg = cityfile.type() == TKN_MINUS;
+		cityfile.consume();
+		int yd = cityfile.parse_number();
+		cityfile.parse(TKN_COMMA);
+		int ym = cityfile.parse_number();
+		cityfile.parse(TKN_COMMA);
+		string n = cityfile.parse_string();
+		double x = (xneg ? -1.0 : 1.0)*(double(xd)+double(xm)/60.0)*20000000.0/180.0;
+		double y = (yneg ? -1.0 : 1.0)*(double(yd)+double(ym)/60.0)*20000000.0/180.0;
+		cities.push_back(make_pair(vector2(x, y), n));
+	}
 }
 
 user_interface::~user_interface ()
@@ -141,7 +163,7 @@ void user_interface::init ()
 	wavetileh.resize(WAVE_PHASES);
 	wavetilen.resize(WAVE_PHASES);
 	wavedisplaylists = glGenLists(WAVE_PHASES);
-	system::sys()->myassert(wavedisplaylists != 0, "no more display list indices available");
+	system::sys().myassert(wavedisplaylists != 0, "no more display list indices available");
 
 	// init foam
 	wavefoam.resize(FACES_PER_AXIS*FACES_PER_AXIS);
@@ -657,7 +679,7 @@ void user_interface::rotate_by_pos_and_wave(const vector3& pos, double timefac,
 
 float user_interface::get_water_height(const vector2& pos, double t) const
 {
-	system::sys()->myassert(0 <= t && t < 1, "get water height, t wrong");
+	system::sys().myassert(0 <= t && t < 1, "get water height, t wrong");
 	int wavephase = int(WAVE_PHASES*t);
 	float ffac = FACES_PER_WAVE/WAVE_LENGTH;
 	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
@@ -679,7 +701,7 @@ float user_interface::get_water_height(const vector2& pos, double t) const
 
 vector3f user_interface::get_water_normal(const vector2& pos, double t, double f) const
 {
-	system::sys()->myassert(0 <= t && t < 1, "get water normal, t wrong");
+	system::sys().myassert(0 <= t && t < 1, "get water normal, t wrong");
 	int wavephase = int(WAVE_PHASES*t);
 	float ffac = FACES_PER_WAVE/WAVE_LENGTH;
 	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
@@ -910,7 +932,7 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 	glPopMatrix();
 }
 
-void user_interface::draw_view(class system& sys, class game& gm, const vector3& viewpos,
+void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	angle dir, angle elev, bool aboard, bool drawbridge, bool withunderwaterweapons)
 {
 	//fixme: vessels are flickering in the water, zbuffer seems to be a bit random
@@ -1225,7 +1247,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
 		glLoadIdentity();
-		sys.gl_perspective_fovx (90.0, 4.0/3.0 /* fixme may change */, 0.5, 100.0);
+		system::sys().gl_perspective_fovx (90.0, 4.0/3.0 /* fixme may change */, 0.5, 100.0);
 		glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();
 		glLoadIdentity();
@@ -1261,7 +1283,7 @@ bool user_interface::time_scale_down(void)
 	return false;
 }
 
-void user_interface::draw_infopanel(class system& sys, class game& gm) const
+void user_interface::draw_infopanel(class game& gm) const
 {
 	if (panel_visible) {
 		ostringstream os0;
@@ -1303,7 +1325,7 @@ texture* user_interface::torptex(unsigned type)
 	return torpempty;
 }
 
-void user_interface::draw_gauge(class system& sys, class game& gm,
+void user_interface::draw_gauge(class game& gm,
 	unsigned nr, int x, int y, unsigned wh, angle a, const string& text, angle a2) const
 {
 	set_display_color ( gm );
@@ -1341,7 +1363,7 @@ void user_interface::draw_gauge(class system& sys, class game& gm,
 	glColor3f(1,1,1);
 }
 
-void user_interface::draw_clock(class system& sys, class game& gm,
+void user_interface::draw_clock(class game& gm,
 	int x, int y, unsigned wh, double t, const string& text) const
 {
 	unsigned seconds = unsigned(fmod(t, 86400));
@@ -1399,7 +1421,7 @@ void user_interface::draw_clock(class system& sys, class game& gm,
 	glColor3f(1,1,1);
 }
 
-void user_interface::draw_turnswitch(class system& sys, class game& gm, int x, int y,
+void user_interface::draw_turnswitch(class game& gm, int x, int y,
 	unsigned firstdescr, unsigned nrdescr, unsigned selected, unsigned extradescr, unsigned title) const
 {
 	double full_turn = (nrdescr <= 2) ? 90 : 270;
@@ -1409,7 +1431,7 @@ void user_interface::draw_turnswitch(class system& sys, class game& gm, int x, i
 	glColor4f(1,1,1,1);
 	for (unsigned i = 0; i < nrdescr; ++i) {
 		vector2 d = angle(begin_turn+degreesperpos*i).direction();
-		sys.no_tex();
+		system::sys().no_tex();
 		glBegin(GL_LINES);
 		glVertex2f(x+128+d.x*36,y+128-d.y*36);
 		glVertex2f(x+128+d.x*80,y+128-d.y*80);
@@ -1434,8 +1456,7 @@ unsigned user_interface::turnswitch_input(int x, int y, unsigned nrdescr) const
 	return unsigned(round(ang/degreesperpos));
 }
 
-void user_interface::draw_vessel_symbol(class system& sys,
-	const vector2& offset, sea_object* so, color c)
+void user_interface::draw_vessel_symbol(const vector2& offset, sea_object* so, color c)
 {
 	vector2 d = so->get_heading().direction();
 	float w = so->get_width()*mapzoom/2, l = so->get_length()*mapzoom/2;
@@ -1482,8 +1503,9 @@ void user_interface::draw_trail(sea_object* so, const vector2& offset)
 	glColor4f(1,1,1,1);
 }
 
-void user_interface::display_gauges(class system& sys, game& gm)
+void user_interface::display_gauges(game& gm)
 {
+	class system& sys = system::sys();
 	sea_object* player = get_player ();
 	sys.prepare_2d_drawing();
 	set_display_color ( gm );
@@ -1492,13 +1514,13 @@ void user_interface::display_gauges(class system& sys, game& gm)
 			psbackgr->draw(x*256, y*256, 256, 256);
 	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
 	angle player_depth = -player->get_pos().z;
-	draw_gauge(sys, gm, 1, 0, 0, 256, player->get_heading(), texts::get(1),
+	draw_gauge(gm, 1, 0, 0, 256, player->get_heading(), texts::get(1),
 		player->get_head_to());
-	draw_gauge(sys, gm, 2, 256, 0, 256, player_speed, texts::get(4));
-	draw_gauge(sys, gm, 4, 2*256, 0, 256, player_depth, texts::get(5));
-	draw_clock(sys, gm, 3*256, 0, 256, gm.get_time(), texts::get(61));
+	draw_gauge(gm, 2, 256, 0, 256, player_speed, texts::get(4));
+	draw_gauge(gm, 4, 2*256, 0, 256, player_depth, texts::get(5));
+	draw_clock(gm, 3*256, 0, 256, gm.get_time(), texts::get(61));
 
-	draw_infopanel(sys, gm);
+	draw_infopanel(gm);
 	sys.unprepare_2d_drawing();
 
 	// mouse handling
@@ -1530,15 +1552,16 @@ void user_interface::display_gauges(class system& sys, game& gm)
 	// keyboard processing
 	int key = sys.get_key().sym;
 	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
+		if (!keyboard_common(key, gm)) {
 			// specific keyboard processing
 		}
 		key = sys.get_key().sym;
 	}
 }
 
-void user_interface::display_bridge(class system& sys, game& gm)
+void user_interface::display_bridge(game& gm)
 {
+	class system& sys = system::sys();
 	sea_object* player = get_player();
     
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -1548,10 +1571,10 @@ void user_interface::display_bridge(class system& sys, game& gm)
 	vector2 phd = player->get_heading().direction();
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6) + phd.xy0();
 	// no torpedoes, no DCs, with player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, elevation, true, true, false);
+	draw_view(gm, viewpos, player->get_heading()+bearing, elevation, true, true, false);
 
 	sys.prepare_2d_drawing();
-	draw_infopanel(sys, gm);
+	draw_infopanel(gm);
 	sys.unprepare_2d_drawing();
 
 	int mmx, mmy;
@@ -1570,7 +1593,7 @@ void user_interface::display_bridge(class system& sys, game& gm)
 	// keyboard processing
 	int key = sys.get_key().sym;
 	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
+		if (!keyboard_common(key, gm)) {
 			// specific keyboard processing
 			switch ( key )
 			{
@@ -1648,7 +1671,7 @@ void user_interface::draw_sound_contact(class game& gm, const sea_object* player
 	}
 }
 
-void user_interface::draw_visual_contacts(class system& sys, class game& gm,
+void user_interface::draw_visual_contacts(class game& gm,
     const sea_object* player, const vector2& offset)
 {
 	// draw vessel trails and symbols (since player is submerged, he is drawn too)
@@ -1673,16 +1696,16 @@ void user_interface::draw_visual_contacts(class system& sys, class game& gm,
 
    	// draw vessel symbols
    	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
-   		draw_vessel_symbol(sys, offset, *it, color(192,255,192));
+   		draw_vessel_symbol(offset, *it, color(192,255,192));
    	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
-   		draw_vessel_symbol(sys, offset, *it, color(255,255,128));
+   		draw_vessel_symbol(offset, *it, color(255,255,128));
    	for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
-   		draw_vessel_symbol(sys, offset, *it, color(0,0,64));
+   		draw_vessel_symbol(offset, *it, color(0,0,64));
    	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
-   		draw_vessel_symbol(sys, offset, *it, color(255,0,0));
+   		draw_vessel_symbol(offset, *it, color(255,0,0));
 }
 
-void user_interface::draw_square_mark ( class system& sys, class game& gm,
+void user_interface::draw_square_mark ( class game& gm,
 	const vector2& mark_pos, const vector2& offset, const color& c )
 {
 	c.set_gl_color ();
@@ -1697,8 +1720,10 @@ void user_interface::draw_square_mark ( class system& sys, class game& gm,
 	glEnd ();
 }
 
-void user_interface::display_map(class system& sys, game& gm)
+void user_interface::display_map(game& gm)
 {
+	class system& sys = system::sys();
+	
 	// get mouse values before drawing (mapclick is used in draw_vessel_symbol)
 	int mx, my, mb = sys.get_mouse_buttons();
 	sys.get_mouse_position(mx, my);
@@ -1762,13 +1787,21 @@ if (mb&2) detl = my*10/384;
 	glPopMatrix();
 	sys.no_tex();
 
+	// draw cities
+	for (list<pair<vector2, string> >::const_iterator it = cities.begin(); it != cities.end(); ++it) {
+		sys.no_tex();
+		draw_square_mark(gm, it->first, -offset, color(255, 0, 0));
+		vector2 pos = (it->first - offset) * mapzoom;
+		font_arial->print(int(512 + pos.x), int(384 - pos.y), it->second);
+	}
+
 	// draw convoy positions	fixme: should be static and fade out after some time
 	glColor3f(1,1,1);
 	list<vector2> convoy_pos;
 	gm.convoy_positions(convoy_pos);
 	glBegin(GL_LINE_LOOP);
 	for (list<vector2>::iterator it = convoy_pos.begin(); it != convoy_pos.end(); ++it) {
-		draw_square_mark ( sys, gm, (*it), -offset, color ( 0, 0, 0 ) );
+		draw_square_mark ( gm, (*it), -offset, color ( 0, 0, 0 ) );
 	}
 	glEnd();
 	glColor3f(1,1,1);
@@ -1794,7 +1827,7 @@ if (mb&2) detl = my*10/384;
 
 		// draw player trails and player
 		draw_trail(player, -offset);
-		draw_vessel_symbol(sys, -offset, sub_player, color(255,255,128));
+		draw_vessel_symbol(-offset, sub_player, color(255,255,128));
 
 		// Special handling for submarine player: When the submarine is
 		// on periscope depth and the periscope is up the visual contact
@@ -1802,12 +1835,12 @@ if (mb&2) detl = my*10/384;
 		if ((sub_player->get_depth() <= sub_player->get_periscope_depth()) &&
 			sub_player->is_scope_up())
 		{
-			draw_visual_contacts(sys, gm, sub_player, -offset);
+			draw_visual_contacts(gm, sub_player, -offset);
 
 			// Draw a red box around the selected target.
 			if ( target )
 			{
-				draw_square_mark ( sys, gm, target->get_pos ().xy (), -offset,
+				draw_square_mark ( gm, target->get_pos ().xy (), -offset,
 					color ( 255, 0, 0 ) );
 				glColor3f ( 1.0f, 1.0f, 1.0f );
 			}
@@ -1815,12 +1848,12 @@ if (mb&2) detl = my*10/384;
 	} 
 	else	 	// enable drawing of all object as testing hack by commenting this, fixme
 	{
-		draw_visual_contacts(sys, gm, player, -offset);
+		draw_visual_contacts(gm, player, -offset);
 
 		// Draw a red box around the selected target.
 		if ( target )
 		{
-			draw_square_mark ( sys, gm, target->get_pos ().xy (), -offset,
+			draw_square_mark ( gm, target->get_pos ().xy (), -offset,
 				color ( 255, 0, 0 ) );
 			glColor3f ( 1.0f, 1.0f, 1.0f );
 		}
@@ -1840,8 +1873,20 @@ if (mb&2) detl = my*10/384;
 		font_arial->print(nx+16, ny+80, os2.str(), color(0,0,128));
 	}
 
+	// draw world coordinates for mouse
+	double mouserealmx = double(mx - 512) / mapzoom + offset.x;
+	double mouserealmy = double(384 - my) / mapzoom + offset.y;
+	double fracdegrx = fabs(mouserealmx*180.0/20000000.0);
+	double fracdegry = fabs(mouserealmy*180.0/20000000.0);
+	int degrx = int(floor(fracdegrx)), minutx = int(60.0*myfrac(fracdegrx) + 0.5);
+	int degry = int(floor(fracdegry)), minuty = int(60.0*myfrac(fracdegry) + 0.5);
+	ostringstream rwcoordss;
+	rwcoordss	<< degry << "/" << minuty << (mouserealmy < 0.0 ? "S" : "N") << ", "
+			<< degrx << "/" << minutx << (mouserealmx < 0.0 ? "W" : "E");
+	font_arial->print(0, 0, rwcoordss.str(), color::white(), true);
 
-	draw_infopanel(sys, gm);
+
+	draw_infopanel(gm);
 	sys.unprepare_2d_drawing();
 
 	// further Mouse handling
@@ -1849,7 +1894,7 @@ if (mb&2) detl = my*10/384;
 	// keyboard processing
 	int key = sys.get_key().sym;
 	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
+		if (!keyboard_common(key, gm)) {
 			// specific keyboard processing
 			switch(key) {
 				case SDLK_EQUALS :
@@ -1861,14 +1906,16 @@ if (mb&2) detl = my*10/384;
 	}
 }
 
-void user_interface::display_logbook(class system& sys, game& gm)
+void user_interface::display_logbook(game& gm)
 {
+	class system& sys = system::sys();
+
 	// glClearColor ( 0.5f, 0.25f, 0.25f, 0 );
 	glClearColor ( 0, 0, 0, 0 );
 	glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	sys.prepare_2d_drawing ();
-	captains_logbook->display ( sys, gm );
-	draw_infopanel ( sys, gm );
+	captains_logbook->display ( gm );
+	draw_infopanel ( gm );
 	sys.unprepare_2d_drawing ();
 
 	// mouse processing;
@@ -1882,39 +1929,43 @@ void user_interface::display_logbook(class system& sys, game& gm)
 	// keyboard processing
 	int key = sys.get_key().sym;
 	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
+		if (!keyboard_common(key, gm)) {
 			// specific keyboard processing
-			captains_logbook->check_key ( key, sys, gm );
+			captains_logbook->check_key ( key, gm );
 		}
 		key = sys.get_key().sym;
 	}
 }
 
-void user_interface::display_successes(class system& sys, game& gm)
+void user_interface::display_successes(game& gm)
 {
+	class system& sys = system::sys();
+
 	// glClearColor ( 0, 0, 0, 0 );
 	// glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	sys.prepare_2d_drawing ();
-	ships_sunk_disp->display ( sys, gm );
-	draw_infopanel ( sys, gm );
+	ships_sunk_disp->display ( gm );
+	draw_infopanel ( gm );
 	sys.unprepare_2d_drawing ();
 
 	// keyboard processing
 	int key = sys.get_key ().sym;
 	while ( key != 0 )
 	{
-		if ( !keyboard_common ( key, sys, gm ) )
+		if ( !keyboard_common ( key, gm ) )
 		{
 			// specific keyboard processing
-			ships_sunk_disp->check_key ( key, sys, gm );
+			ships_sunk_disp->check_key ( key, gm );
 		}
 		key = sys.get_key ().sym;
 	}
 }
 
 #ifdef OLD
-void user_interface::display_successes(class system& sys, game& gm)
+void user_interface::display_successes(game& gm)
 {
+	class system& sys = system::sys();
+
 	glClearColor(0.25, 0.25, 0.25, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	sys.prepare_2d_drawing();
@@ -1936,7 +1987,7 @@ void user_interface::display_successes(class system& sys, game& gm)
 	// keyboard processing
 	int key = sys.get_key().sym;
 	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
+		if (!keyboard_common(key, gm)) {
 			// specific keyboard processing
 		}
 		key = sys.get_key().sym;
@@ -1944,8 +1995,10 @@ void user_interface::display_successes(class system& sys, game& gm)
 }
 #endif // OLD
 
-void user_interface::display_freeview(class system& sys, game& gm)
+void user_interface::display_freeview(game& gm)
 {
+	class system& sys = system::sys();
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 //	SDL_ShowCursor(SDL_DISABLE);
@@ -1962,7 +2015,7 @@ void user_interface::display_freeview(class system& sys, game& gm)
 	glTranslatef(-freeviewpos.x, -freeviewpos.y, -freeviewpos.z);
 
 	// draw everything
-	draw_view(sys, gm, player_object->get_pos() + freeviewpos, 0, 0, false, false, true);
+	draw_view(gm, player_object->get_pos() + freeviewpos, 0, 0, false, false, true);
 
 	int mx, my;
 	sys.get_mouse_motion(mx, my);
@@ -1970,13 +2023,13 @@ void user_interface::display_freeview(class system& sys, game& gm)
 	freeviewupang -= my*0.5;
 
 	sys.prepare_2d_drawing();
-	draw_infopanel(sys, gm);
+	draw_infopanel(gm);
 	sys.unprepare_2d_drawing();
 
 	// keyboard processing
 	int key = sys.get_key().sym;
 	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
+		if (!keyboard_common(key, gm)) {
 			// specific keyboard processing
 			switch(key) {
 				case SDLK_KP8: freeviewpos -= forward * 5; break;
@@ -2003,8 +2056,9 @@ void user_interface::add_message(const string& s)
 */		
 }
 
-void user_interface::display_glasses(class system& sys, class game& gm)
+void user_interface::display_glasses(class game& gm)
 {
+	class system& sys = system::sys();
 	sea_object* player = get_player();
 
 	glClearColor(0, 0, 0, 0);
@@ -2022,7 +2076,7 @@ void user_interface::display_glasses(class system& sys, class game& gm)
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6);
 	// no torpedoes, no DCs, no player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 0, false/*true*/, false, false);
+	draw_view(gm, viewpos, player->get_heading()+bearing, 0, false/*true*/, false, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -2032,13 +2086,13 @@ void user_interface::display_glasses(class system& sys, class game& gm)
 	sys.prepare_2d_drawing();
 	glasses->draw(0, 0, 512, 512);
 	glasses->draw_hm(512, 0, 512, 512);
-	draw_infopanel(sys, gm);
+	draw_infopanel(gm);
 	sys.unprepare_2d_drawing();
 
 	// keyboard processing
 	int key = sys.get_key().sym;
 	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
+		if (!keyboard_common(key, gm)) {
 			// specific keyboard processing
 			switch ( key )
 			{
@@ -2164,7 +2218,7 @@ inline void user_interface::record_sunk_ship ( const ship* so )
 	ships_sunk_disp->add_sunk_ship ( so );
 }
 
-void user_interface::draw_manometer_gauge ( class system& sys, class game& gm,
+void user_interface::draw_manometer_gauge ( class game& gm,
 	unsigned nr, int x, int y, unsigned wh, float value, const string& text) const
 {
 	set_display_color ( gm );

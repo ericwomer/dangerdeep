@@ -102,7 +102,7 @@ torpedo::torpedo(sea_object* parent, unsigned type_, bool usebowtubes,
 			break;
 	};
 	throttle = aheadfull;
-	system::sys()->add_console("torpedo created");
+	system::sys().add_console("torpedo created");
 }
 
 void torpedo::load(istream& in, class game& g)
@@ -218,7 +218,7 @@ bool torpedo::adjust_head_to(const sea_object* parent, const sea_object* target,
 //ostringstream os;
 //	os << "lead angle " << la.first.value() << " gyro angle " << gyro_angle.value() << ", trp head to " << headto.value()
 //	<< ", expected run time " << expected_run_time(la.first, ab, br.second);
-//	system::sys()->add_console(os.str());
+//	system::sys().add_console(os.str());
 		double fga = fabs(gyro_angle.value_pm180());
 		if (usebowtubes) {
 			if (fga <= 90) {

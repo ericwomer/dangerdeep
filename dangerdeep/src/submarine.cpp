@@ -596,13 +596,13 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 		
 		ostringstream dcd;
 		dcd << "depth charge explosion distance to sub: " << relpos.length() << "m.";
-		system::sys()->add_console(dcd.str());
+		system::sys().add_console(dcd.str());
 	vector3 sdist(relpos.x, relpos.y, relpos.z /* *2.0 */);
 	double sdlen = sdist.length();
 
 	// is submarine killed immidiatly?
 	if (sdlen <= deadly_radius) {
-			system::sys()->add_console("depth charge hit!");
+			system::sys().add_console("depth charge hit!");
 		kill();
 			menu m(103, killedimg);	// move this to game! fixme
 			m.add_item(105, 0);
@@ -643,7 +643,7 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 	
 				ostringstream os;
 				os << "DC caused damage! relpos " << relpos.x << "," << relpos.y << "," << relpos.z << " dmg " << strength;
-				system::sys()->add_console(os.str());
+				system::sys().add_console(os.str());
 		}
 	}
 }

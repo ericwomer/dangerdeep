@@ -34,7 +34,7 @@ void ships_sunk_display::add_sunk_ship ( const ship* so )
 		so->get_description ( 2 ) );
 }
 
-void ships_sunk_display::display ( class system& sys, class game& gm )
+void ships_sunk_display::display ( class game& gm )
 {
 	glColor3f ( 1.0f, 1.0f, 1.0f );
 
@@ -58,7 +58,7 @@ void ships_sunk_display::display ( class system& sys, class game& gm )
 		glColor3f ( 1.0f, 1.0f, 1.0f );
 		glBindTexture ( GL_TEXTURE_2D, 0 );
 		glBegin ( GL_QUADS );
-		sys.draw_rectangle ( x, y, 200, 150 );
+		system::sys().draw_rectangle ( x, y, 200, 150 );
 
 		// Print class name.
 		glPushMatrix ();
@@ -91,9 +91,9 @@ void ships_sunk_display::display ( class system& sys, class game& gm )
 	glEnd ();
 }
 
-void ships_sunk_display::check_key ( int keycode, class system& sys, class game& gm )
+void ships_sunk_display::check_key ( int keycode, class game& gm )
 {
-	if ( sys.key_shift () )
+	if ( system::sys().key_shift () )
 	{
 		switch ( keycode )
 		{

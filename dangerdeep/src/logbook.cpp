@@ -172,7 +172,7 @@ void captains_logbook_display::init ()
 	lb.add_entry ( texts::get(99) );
 }
 
-void captains_logbook_display::display ( class system& sys, class game& gm )
+void captains_logbook_display::display ( class game& gm )
 {
 	// Wooden background.
 	glColor3f ( 1.0f, 1.0f, 1.0f );
@@ -184,8 +184,8 @@ void captains_logbook_display::display ( class system& sys, class game& gm )
 
 	// Two white pages.
 	glBindTexture ( GL_TEXTURE_2D, 0 );
-	sys.draw_rectangle (  20, 20, 476, 600 );
-	sys.draw_rectangle ( 528, 20, 476, 600 );
+	system::sys().draw_rectangle (  20, 20, 476, 600 );
+	system::sys().draw_rectangle ( 528, 20, 476, 600 );
 
 	// Draw lines.
 	glColor3f ( 0.5f, 0.5f, 0.5f );
@@ -253,9 +253,9 @@ void captains_logbook_display::display ( class system& sys, class game& gm )
 	glPopMatrix ();
 }
 
-void captains_logbook_display::check_key ( int keycode, class system& sys, class game& gm )
+void captains_logbook_display::check_key ( int keycode, class game& gm )
 {
-	if ( sys.key_shift () )
+	if ( system::sys().key_shift () )
 	{
 		switch ( keycode )
 		{

@@ -78,7 +78,7 @@ void parser::error(const string& s)
 		<< ", Line " << tkn->get_line()
 		<< ", Col " << tkn->get_column()
 		<< "\nParsed token text '" << tkn->get_current().text << "'\n";
-	system::sys()->myassert(false, oss.str());
+	system::sys().myassert(false, oss.str());
 }
 
 parser::parser(const string& filename_)

@@ -18,7 +18,7 @@
 unsigned font::get_pixel(SDL_Surface* s, unsigned x, unsigned y) const
 {
 	unsigned bpp = s->format->BytesPerPixel;
-	system::sys()->myassert(bpp == 1 || bpp == 4, "font: get_pixel: bpp not allowed");
+	system::sys().myassert(bpp == 1 || bpp == 4, "font: get_pixel: bpp not allowed");
 	unsigned offset = s->pitch * y + bpp * x;
 	if (s->format->palette != 0) {
 		unsigned char c = *((unsigned char*)(s->pixels) + offset);
@@ -97,7 +97,7 @@ font::font(const string& filename, unsigned char_spacing, unsigned blank_length,
 	translate.resize(256, 0xff);
 
 	SDL_Surface* fontimage = IMG_Load(filename.c_str());
-	system::sys()->myassert(fontimage != 0, string("font: failed to open")+filename);
+	system::sys().myassert(fontimage != 0, string("font: failed to open")+filename);
 	unsigned w = fontimage->w;
 	unsigned h = fontimage->h;
 
@@ -113,7 +113,7 @@ font::font(const string& filename, unsigned char_spacing, unsigned blank_length,
 		if (onchar && !(charnr < nr_chars)) {
 			ostringstream os;
 			os << "font: too many (" << charnr << "/" << nr_chars << ") found in " << filename;
-			system::sys()->myassert(false, os.str());
+			system::sys().myassert(false, os.str());
 		}
 		bool emptycolumn = true;
 		for (unsigned j = 0; j < h; j++) {
@@ -147,7 +147,7 @@ font::font(const string& filename, unsigned char_spacing, unsigned blank_length,
 	if (charnr != nr_chars) {
 		ostringstream os;
 		os << "font: detected " << charnr << " characters, expected " << nr_chars << " in " << filename;
-		system::sys()->myassert(false, os.str());
+		system::sys().myassert(false, os.str());
 	}
 
 	for (unsigned i = 0; i < nr_chars; i++) {

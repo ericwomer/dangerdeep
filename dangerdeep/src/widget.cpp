@@ -42,7 +42,7 @@ widget::theme::theme(const char* elements_filename, const char* icons_filename, 
 	int fw;
 	SDL_Surface* tmp;
 	tmp = IMG_Load((get_texture_dir() + elements_filename).c_str());
-	system::sys()->myassert(tmp != 0, "Unable to load widget theme elements file");
+	system::sys().myassert(tmp != 0, "Unable to load widget theme elements file");
 	fw = tmp->h;
 	backg = new texture(tmp, 0, 0, fw, fw);
 	skbackg = new texture(tmp, fw, 0, fw, fw);
@@ -52,7 +52,7 @@ widget::theme::theme(const char* elements_filename, const char* icons_filename, 
 		frameinv[i] = new texture(tmp, (i+10)*fw, 0, fw, fw);
 	SDL_FreeSurface(tmp);
 	tmp = IMG_Load((get_texture_dir() + icons_filename).c_str());
-	system::sys()->myassert(tmp != 0, "Unable to load widget theme icons file");
+	system::sys().myassert(tmp != 0, "Unable to load widget theme icons file");
 	fw = tmp->h;
 	for (int i = 0; i < 4; ++i)
 		icons[i] = new texture(tmp, i*fw, 0, fw, fw);
@@ -171,7 +171,7 @@ void widget::disable(void)
 
 void widget::on_char(void)
 {
-	system::sys()->get_key();	// just ignore it
+	system::sys().get_key();	// just ignore it
 }
 
 void widget::draw_frame(int x, int y, int w, int h, bool out)
@@ -191,17 +191,17 @@ void widget::draw_frame(int x, int y, int w, int h, bool out)
 
 void widget::prepare_input(void)
 {
-	class system* sys = system::sys();
-	sys->get_mouse_position(oldmx, oldmy);
-	oldmb = sys->get_mouse_buttons() & 1;
+	class system& sys = system::sys();
+	sys.get_mouse_position(oldmx, oldmy);
+	oldmb = sys.get_mouse_buttons() & 1;
 }
 
 void widget::process_input(bool ignorekeys)
 {
-	class system* sys = system::sys();
+	class system& sys = system::sys();
 	int mx, my;		
-	sys->get_mouse_position(mx, my);
-	int mb = sys->get_mouse_buttons() & 1;
+	sys.get_mouse_position(mx, my);
+	int mb = sys.get_mouse_buttons() & 1;
 	int mclick = mb & ~oldmb;
 	int mrelease = oldmb & ~mb;
 	oldmb = mb;
@@ -214,8 +214,8 @@ void widget::process_input(bool ignorekeys)
 		compute_focus();
 	if (focussed) {
 		if (!ignorekeys) {
-			if (!focussed->is_enabled()) { sys->flush_key_queue(); return; }
-			if (sys->is_key_in_queue()) focussed->on_char();
+			if (!focussed->is_enabled()) { sys.flush_key_queue(); return; }
+			if (sys.is_key_in_queue()) focussed->on_char();
 		}
 		if (mclick & 1) focussed->on_click();
 		if (mrelease & 1) focussed->on_release();
@@ -248,15 +248,15 @@ void widget::draw_area(int x, int y, int w, int h, bool out) const
 bool widget::is_mouse_over(void) const
 {
 	int mx, my;
-	system::sys()->get_mouse_position(mx, my);
+	system::sys().get_mouse_position(mx, my);
 	vector2i p = get_pos();
 	return (mx >= p.x && my >= p.y && mx < p.x+size.x && my < p.y + size.y);
 }
 
 widget* widget::create_dialogue_ok(widget* parent_, const string& title, const string& text)
 {
-	unsigned res_x = system::sys()->get_res_x_2d();
-	unsigned res_y = system::sys()->get_res_y_2d();
+	unsigned res_x = system::sys().get_res_x_2d();
+	unsigned res_y = system::sys().get_res_y_2d();
 	widget* w = new widget(res_x/4, res_y/4, res_x/2, res_y/2, title, parent_);
 	w->add_child(new widget_text(32, 64, res_x/2-64, res_y/2-128, text));
 	int fw = globaltheme->frame_size();
@@ -268,8 +268,8 @@ widget* widget::create_dialogue_ok(widget* parent_, const string& title, const s
 
 widget* widget::create_dialogue_ok_cancel(widget* parent_, const string& title, const string& text)
 {
-	unsigned res_x = system::sys()->get_res_x_2d();
-	unsigned res_y = system::sys()->get_res_y_2d();
+	unsigned res_x = system::sys().get_res_x_2d();
+	unsigned res_y = system::sys().get_res_y_2d();
 	widget* w = new widget(res_x/4, res_y/4, res_x/2, res_y/2, title, parent_);
 	w->add_child(new widget_text(32, 64, res_x/2-64, res_y/2-128, text));
 	int fw = globaltheme->frame_size();
@@ -288,21 +288,21 @@ int widget::run(unsigned timeout)
 	if (myparent) myparent->disable();
 	closeme = false;
 	widgets.push_back(this);
-	class system* sys = system::sys();
-	unsigned endtime = sys->millisec() + timeout;
+	class system& sys = system::sys();
+	unsigned endtime = sys.millisec() + timeout;
 	while (!closeme) {
-		unsigned time = sys->millisec();
+		unsigned time = sys.millisec();
 		if (timeout != 0 && time > endtime) break;
 		
-		sys->poll_event_queue();
+		sys.poll_event_queue();
 		glClear(GL_COLOR_BUFFER_BIT);
-		sys->prepare_2d_drawing();
+		sys.prepare_2d_drawing();
 		glColor4f(1,1,1,1);
 		for (list<widget*>::iterator it = widgets.begin(); it != widgets.end(); ++it)
 			(*it)->draw();
-		sys->unprepare_2d_drawing();
+		sys.unprepare_2d_drawing();
 		process_input();
-		sys->swap_buffers();
+		sys.swap_buffers();
 	}
 	widgets.pop_back();
 	if (myparent) myparent->enable();
@@ -412,8 +412,8 @@ void widget_menu::adjust_buttons(unsigned totalsize)
 void widget_text::draw(void) const
 {
 	vector2i p = get_pos();
-	class system* sys = system::sys();
-	sys->no_tex();
+	class system& sys = system::sys();
+	sys.no_tex();
 	globaltheme->myfont->print_wrapped(p.x, p.y, size.x, 0, text, globaltheme->textcol, true);
 }
 
@@ -507,8 +507,8 @@ void widget_scrollbar::on_click(void)
 	unsigned oldpos = scrollbarpos;
 	vector2i p = get_pos();
 	int mx, my, mb;
-	system::sys()->get_mouse_position(mx, my);
-	mb = system::sys()->get_mouse_buttons();
+	system::sys().get_mouse_position(mx, my);
+	mb = system::sys().get_mouse_buttons();
 	if (my < int(p.y + globaltheme->icons[0]->get_height() + 4)) {
 		if (mb != 0) {
 			if (scrollbarpos > 0) {
@@ -525,7 +525,7 @@ void widget_scrollbar::on_click(void)
 		}
 	} else {
 		int rx, ry;
-		system::sys()->get_mouse_motion(rx, ry);
+		system::sys().get_mouse_motion(rx, ry);
 		if (mb != 0 && ry != 0) {
 			if (scrollbarmaxpos > 1) {
 				int msbp = get_max_scrollbarsize() - get_scrollbarsize();
@@ -552,7 +552,7 @@ void widget_scrollbar::on_wheel(void)
 	widget::process_input();
 	if (!is_enabled()) return;
 	unsigned oldpos = scrollbarpos;
-	int mb = system::sys()->get_mouse_buttons();
+	int mb = system::sys().get_mouse_buttons();
 	if (mb & 0x8) {
 		if (scrollbarpos > 0) {
 			--scrollbarpos;
@@ -716,8 +716,8 @@ void widget_list::on_click(void)
 {
 	vector2i p = get_pos();
 	int mx, my;
-	system::sys()->get_mouse_position(mx, my);
-	int mbc = system::sys()->get_mouse_buttons();	// fixme
+	system::sys().get_mouse_position(mx, my);
+	int mbc = system::sys().get_mouse_buttons();	// fixme
 	int oldselected = selected;
 	if (mbc & 1) {
 		int fw = globaltheme->frame_size();
@@ -742,15 +742,15 @@ void widget_edit::draw(void) const
 	int fw = globaltheme->frame_size();
 	globaltheme->myfont->print_vc(p.x+fw, p.y+size.y/2, text, is_enabled() ? globaltheme->textcol : globaltheme->textdisabledcol, true);
 	pair<unsigned, unsigned> sz = globaltheme->myfont->get_size(text.substr(0, cursorpos));
-	system::sys()->no_tex();
+	system::sys().no_tex();
 	globaltheme->textcol.set_gl_color();
 	if (this == (const widget*)focussed)
-		system::sys()->draw_rectangle(p.x+fw+sz.first, p.y+size.y/4, fw/2, size.y/2);
+		system::sys().draw_rectangle(p.x+fw+sz.first, p.y+size.y/4, fw/2, size.y/2);
 }
 
 void widget_edit::on_char(void)
 {
-	SDL_keysym ks = system::sys()->get_key();
+	SDL_keysym ks = system::sys().get_key();
 	int c = ks.sym;
 	unsigned l = text.length();
 	unsigned textw = globaltheme->myfont->get_size(text).first;
@@ -808,7 +808,7 @@ void widget_fileselector::read_current_dir(void)
 {
 	current_dir->clear();
 	directory dir = open_dir(current_path->get_text());
-	system::sys()->myassert(dir != 0, "[widget_fileselector::read_current_dir] could not open directory");
+	system::sys().myassert(dir != 0, "[widget_fileselector::read_current_dir] could not open directory");
 	set<string> dirs, files;
 	while (true) {
 		string e = read_dir(dir);

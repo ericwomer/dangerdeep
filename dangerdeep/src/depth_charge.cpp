@@ -19,7 +19,7 @@ depth_charge::depth_charge(const sea_object& parent, double expl_depth) : sea_ob
 	max_speed = 0;
 	max_rev_speed = 0;
 	throttle = stop;
-	system::sys()->add_console("depth charge created");
+	system::sys().add_console("depth charge created");
 }
 
 void depth_charge::load(istream& in, class game& g)

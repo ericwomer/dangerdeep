@@ -218,7 +218,7 @@ void loadsavequit_dialogue::update_list(void)
 
 	// read save games in directory
 	directory savegamedir = open_dir(savegamedirectory);
-	system::sys()->myassert(savegamedir != 0, "game: could not open save game directory");
+	system::sys().myassert(savegamedir != 0, "game: could not open save game directory");
 	while (true) {
 		string e = read_dir(savegamedir);
 		if (e.length() == 0) break;
@@ -476,7 +476,7 @@ void server_wait_for_clients(network_connection& sv, Uint16 server_port)
 {
 	IPaddress hostip;
 	int error = SDLNet_ResolveHost(&hostip, 0, server_port);
-	system::sys()->myassert(error == 0, "can resolve host ip for this computer");
+	system::sys().myassert(error == 0, "can resolve host ip for this computer");
 	
 	widget w(0, 0, 1024, 768, texts::get(22), 0, swordfishimg);
 	w.add_child(new widget_text(40, 60, 0, 0, texts::get(195)));
@@ -526,14 +526,14 @@ void scan_for_servers(widget_list* wservers, Uint16 server_port, network_connect
 	scan.unbind();
 
 	// now listen for an answer
-	unsigned t = system::sys()->millisec();
+	unsigned t = system::sys().millisec();
 	unsigned timeout = 2000;
 	while (true) {
-		unsigned t2 = system::sys()->millisec();
+		unsigned t2 = system::sys().millisec();
 		if (t2 > t + timeout)
 			break;
-		system::sys()->poll_event_queue();
-		int key = system::sys()->get_key().sym;
+		system::sys().poll_event_queue();
+		int key = system::sys().get_key().sym;
 		if (key == SDLK_ESCAPE)
 			break;
 		IPaddress ip;
@@ -564,7 +564,7 @@ void create_network_game(Uint16 server_port)
 	while (true) {
 		string msg = sv.receive_message();
 		cout << "message rcvd: '"<<msg<<"'\n";
-		system::sys()->poll_event_queue();
+		system::sys().poll_event_queue();
 		SDL_Delay(50);
 	}
 */
@@ -591,7 +591,7 @@ void join_network_game(const string& servername, Uint16 server_port, network_con
 		ostringstream os;
 		os << "Hallo " << &cl << ", rnd " << rand() << "\n";
 		cl.send_message(os.str());
-		system::sys()->poll_event_queue();
+		system::sys().poll_event_queue();
 		SDL_Delay(100);
 	}
 */	
@@ -606,9 +606,9 @@ void play_network_game(void)
 	
 	// initialize network play
 	int network_ok = SDLNet_Init();
-	system::sys()->myassert(network_ok != -1, "failed to initialize SDLnet");
+	system::sys().myassert(network_ok != -1, "failed to initialize SDLnet");
 	int error = SDLNet_ResolveHost(&computer_ip, NULL, server_port);
-	system::sys()->myassert(error == 0, "can resolve host ip for this computer");
+	system::sys().myassert(error == 0, "can resolve host ip for this computer");
 
 	widget w(0, 0, 1024, 768, texts::get(22), 0, swordfishimg);
 	w.add_child(new widget_text(40, 60, 0, 0, texts::get(57)));
@@ -895,7 +895,7 @@ int main(int argc, char** argv)
 	if (savegamedir == 0) {
 		bool ok = make_dir(savegamedirectory);
 		if (!ok) {
-			system::sys()->myassert(false, "could not create save game directory.");
+			system::sys().myassert(false, "could not create save game directory.");
 		}
 	}
 	// init config dir
@@ -903,7 +903,7 @@ int main(int argc, char** argv)
 	if (configdir == 0) {
 		bool ok = make_dir(configdirectory);
 		if (!ok) {
-			system::sys()->myassert(false, "could not create config directory.");
+			system::sys().myassert(false, "could not create config directory.");
 		}
 	}
 	// init highscore dir
@@ -911,7 +911,7 @@ int main(int argc, char** argv)
 	if (highscoredir == 0) {
 		bool ok = make_dir(highscoredirectory);
 		if (!ok) {
-			system::sys()->myassert(false, "could not create highscore directory.");
+			system::sys().myassert(false, "could not create highscore directory.");
 		}
 	}
 

@@ -24,7 +24,7 @@ model::model(const string& filename, bool usematerial_) : display_list(0), usema
 	
 	// create display list
 	unsigned dl = glGenLists(1);
-	system::sys()->myassert(dl != 0, "no more display list indices available");
+	system::sys().myassert(dl != 0, "no more display list indices available");
 	glNewList(dl, GL_COMPILE);
 	display();
 	glEndList();
@@ -190,7 +190,7 @@ void model::m3ds_load(const string& fn)
 	ifstream in(fn.c_str(), ios::in | ios::binary);
 	m3ds_chunk head = m3ds_read_chunk(in);
 	if (head.id != M3DS_MAIN3DS)
-		system::sys()->myassert(false, string("[model::load_m3ds] Unable to load PRIMARY chuck from file \"")+fn+string("\""));
+		system::sys().myassert(false, string("[model::load_m3ds] Unable to load PRIMARY chuck from file \"")+fn+string("\""));
 	m3ds_process_toplevel_chunks(in, head);
 	head.skip(in);
 }
@@ -417,7 +417,7 @@ void model::m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, model::mesh& m)
 	unsigned nr_uv_coords = read_u16(in);
 	ch.bytes_read += 2;
 
-	system::sys()->myassert(nr_uv_coords == m.vertices.size(), "number of texture coordinates doesn't match number of vertices");
+	system::sys().myassert(nr_uv_coords == m.vertices.size(), "number of texture coordinates doesn't match number of vertices");
 		
 	for (unsigned n = 0; n < nr_uv_coords; ++n) {
 		m.vertices[n].uv.x = read_float(in);
@@ -461,7 +461,7 @@ void model::m3ds_read_material(istream& in, m3ds_chunk& ch, model::mesh& m)
 			return;
 		}
 	}
-	system::sys()->myassert(false, "object has unknown material");
+	system::sys().myassert(false, "object has unknown material");
 }		   
 
 // -------------------------------- end of 3ds loading functions -----------------------------------

@@ -43,12 +43,12 @@ submarine_interface::~submarine_interface()
 	delete sub_damage_disp;
 }
 
-bool submarine_interface::keyboard_common(int keycode, class system& sys, class game& gm)
+bool submarine_interface::keyboard_common(int keycode, class game& gm)
 {
 	submarine* player = dynamic_cast<submarine*> ( get_player() );
 
 	// handle common keys (fixme: make configureable?)
-	if (sys.key_shift()) {
+	if (system::sys().key_shift()) {
 		switch (keycode) {
 			// torpedo launching
 			case SDLK_1:
@@ -221,7 +221,7 @@ bool submarine_interface::keyboard_common(int keycode, class system& sys, class 
 			case SDLK_ESCAPE:
 				gm.stop();
 				break;
-			case SDLK_PRINT: sys.screenshot(); sys.add_console("screenshot taken."); break;
+			case SDLK_PRINT: system::sys().screenshot(); system::sys().add_console("screenshot taken."); break;
 			case SDLK_PAUSE: pause = !pause;
 				if (pause) add_message(texts::get(52));
 				else add_message(texts::get(53));
@@ -248,7 +248,7 @@ bool submarine_interface::object_visible(sea_object* so,
 }
 */
 	
-void submarine_interface::display(class system& sys, game& gm)
+void submarine_interface::display(game& gm)
 {
 	submarine* player = dynamic_cast<submarine*> ( get_player() );
 
@@ -269,50 +269,50 @@ void submarine_interface::display(class system& sys, game& gm)
 
 	switch (viewmode) {
 		case display_mode_gauges:
-			display_gauges(sys, gm);
+			display_gauges(gm);
 			break;
 		case display_mode_periscope:
-			display_periscope(sys, gm);
+			display_periscope(gm);
 			break;
 		case display_mode_uzo:
-			display_UZO(sys, gm);
+			display_UZO(gm);
 			break;
 		case display_mode_glasses:
 		case display_mode_bridge:
 			if ( zoom_scope )
-				display_glasses(sys, gm);
+				display_glasses(gm);
 			else
-			display_bridge(sys, gm);
+			display_bridge(gm);
 			break;
 		case display_mode_map:
-			display_map(sys, gm);
+			display_map(gm);
 			break;
 		case display_mode_torpedoroom:
-			display_torpedoroom(sys, gm);
+			display_torpedoroom(gm);
 			break;
 		case display_mode_damagestatus:
-			display_damagestatus(sys, gm);
+			display_damagestatus(gm);
 			break;
 		case display_mode_logbook:
-			display_logbook(sys, gm);
+			display_logbook(gm);
 			break;
 		case display_mode_successes:
-			display_successes(sys, gm);
+			display_successes(gm);
 			break;
 		case display_mode_freeview:
 		default:
-			display_freeview(sys, gm);
+			display_freeview(gm);
 			break;
 	}
 }
 
-void submarine_interface::display_periscope(class system& sys, game& gm)
+void submarine_interface::display_periscope(game& gm)
 {
 	submarine* player = dynamic_cast<submarine*> ( get_player() );
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	unsigned res_x = sys.get_res_x(), res_y = sys.get_res_y();
+	unsigned res_x = system::sys().get_res_x(), res_y = system::sys().get_res_y();
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
@@ -323,21 +323,21 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	if ( zoom_scope )
 		fov = 5.0f;
 	
-	sys.gl_perspective_fovx (fov, 1.0/1.0, 2.0, gm.get_max_view_distance());
+	system::sys().gl_perspective_fovx (fov, 1.0/1.0, 2.0, gm.get_max_view_distance());
 	glViewport(res_x/2, res_y/3, res_x/2, res_x/2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 12+14);//fixme: +14 to be above waves ?!
 	// no torpedoes, no DCs, no player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 0, true, false, false);
+	draw_view(gm, viewpos, player->get_heading()+bearing, 0, true, false, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glViewport(0, 0, res_x, res_y);
 	glMatrixMode(GL_MODELVIEW);
 	
-	sys.prepare_2d_drawing();
+	system::sys().prepare_2d_drawing();
 	set_display_color ( gm );
 	for (int x = 0; x < 3; ++x)
 		psbackgr->draw(x*256, 512, 256, 256);
@@ -376,31 +376,31 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 		targetspeed = target->get_speed()*360.0/sea_object::kts2ms(36);
 		targetheading = target->get_heading();
 	}
-	draw_gauge(sys, gm, 1, 0, 0, 256, targetbearing, texts::get(12));
-	draw_gauge(sys, gm, 3, 256, 0, 256, targetrange, texts::get(13));
-	draw_gauge(sys, gm, 2, 0, 256, 256, targetspeed, texts::get(14));
-	draw_gauge(sys, gm, 1, 256, 256, 256, targetheading, texts::get(15));
+	draw_gauge(gm, 1, 0, 0, 256, targetbearing, texts::get(12));
+	draw_gauge(gm, 3, 256, 0, 256, targetrange, texts::get(13));
+	draw_gauge(gm, 2, 0, 256, 256, targetspeed, texts::get(14));
+	draw_gauge(gm, 1, 256, 256, 256, targetheading, texts::get(15));
 	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
 	pair<unsigned, unsigned> bow_tube_indices = player->get_bow_tube_indices();
 	pair<unsigned, unsigned> stern_tube_indices = player->get_stern_tube_indices();
 	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
 		int j = i-bow_tube_indices.first;
-		draw_torpedo(sys, gm, true, (j/4)*128, 512+(j%4)*16, torpedoes[i]);
+		draw_torpedo(gm, true, (j/4)*128, 512+(j%4)*16, torpedoes[i]);
 	}
 	for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
-		draw_torpedo(sys, gm, false, 256, 512+(i-stern_tube_indices.first)*16, torpedoes[i]);
+		draw_torpedo(gm, false, 256, 512+(i-stern_tube_indices.first)*16, torpedoes[i]);
 	}
 	glColor3f(1,1,1);
-	draw_infopanel(sys, gm);
-	sys.unprepare_2d_drawing();
+	draw_infopanel(gm);
+	system::sys().unprepare_2d_drawing();
 
 	// mouse handling
 	int mx;
 	int my;
-	int mb = sys.get_mouse_buttons();
-	sys.get_mouse_position(mx, my);
+	int mb = system::sys().get_mouse_buttons();
+	system::sys().get_mouse_position(mx, my);
 
-	if (mb & sys.left_button) {
+	if (mb & system::sys().left_button) {
 		// Evaluate lead angle box.
 		if ( mx >= 776 && mx <= 1016 && my >= 520 && my <= 552 )
 		{
@@ -415,9 +415,9 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 	}
 
 	// keyboard processing
-	int key = sys.get_key().sym;
+	int key = system::sys().get_key().sym;
 	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
+		if (!keyboard_common(key, gm)) {
 			// specific keyboard processing
 			switch ( key ) {
 				case SDLK_y:
@@ -428,60 +428,60 @@ void submarine_interface::display_periscope(class system& sys, game& gm)
 					break;
 			}
 		}
-		key = sys.get_key().sym;
+		key = system::sys().get_key().sym;
 	}
 }
 
-void submarine_interface::display_UZO(class system& sys, game& gm)
+void submarine_interface::display_UZO(game& gm)
 {
 	submarine* player = dynamic_cast<submarine*> ( get_player() );
 
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	unsigned res_x = sys.get_res_x(), res_y = sys.get_res_y();
+	unsigned res_x = system::sys().get_res_x(), res_y = system::sys().get_res_y();
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	sys.gl_perspective_fovx (5.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
+	system::sys().gl_perspective_fovx (5.0, 2.0/1.0, 2.0, gm.get_max_view_distance());
 	glViewport(0, res_y/3, res_x, res_x/2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
 	vector3 viewpos = player->get_pos() + vector3(0, 0, 6);
 	// no torpedoes, no DCs, no player
-	draw_view(sys, gm, viewpos, player->get_heading()+bearing, 0, true, false, false);
+	draw_view(gm, viewpos, player->get_heading()+bearing, 0, true, false, false);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glViewport(0, 0, res_x, res_y);
 	glMatrixMode(GL_MODELVIEW);
 	
-	sys.prepare_2d_drawing();
+	system::sys().prepare_2d_drawing();
 	uzo->draw(0, 0, 512, 512);
 	uzo->draw_hm(512, 0, 512, 512);
-	draw_infopanel(sys, gm);
-	sys.unprepare_2d_drawing();
+	draw_infopanel(gm);
+	system::sys().unprepare_2d_drawing();
 
 	// keyboard processing
-	int key = sys.get_key().sym;
+	int key = system::sys().get_key().sym;
 	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
+		if (!keyboard_common(key,  gm)) {
 			// specific keyboard processing
 		}
-		key = sys.get_key().sym;
+		key = system::sys().get_key().sym;
 	}
 }
 
-void submarine_interface::display_torpedoroom(class system& sys, game& gm)
+void submarine_interface::display_torpedoroom(game& gm)
 {
 	submarine* player = dynamic_cast<submarine*> ( get_player () );
 
 	// draw display without display color.
 	glColor4f(1,1,1,1);
 	// draw background
-	sys.prepare_2d_drawing();
+	system::sys().prepare_2d_drawing();
 	background->draw_tiles(0, 0, 1024, 768, 8, 6);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -495,10 +495,10 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	glPopMatrix();
 	
 	// draw torpedo programming buttons
-	draw_turnswitch(sys, gm,   0, 256, 142, 17, primaryrange, 175, 138);
-	draw_turnswitch(sys, gm, 256, 256, 159, 2, secondaryrange, 0, 139);
-	draw_turnswitch(sys, gm, 512, 256, 161, 2, initialturn, 0, 140);
-	draw_turnswitch(sys, gm, 768, 256, 163, 2, searchpattern, 176, 141);
+	draw_turnswitch(gm,   0, 256, 142, 17, primaryrange, 175, 138);
+	draw_turnswitch(gm, 256, 256, 159, 2, secondaryrange, 0, 139);
+	draw_turnswitch(gm, 512, 256, 161, 2, initialturn, 0, 140);
+	draw_turnswitch(gm, 768, 256, 163, 2, searchpattern, 176, 141);
 
 	// tube handling. compute coordinates for display and mouse use	
 	const vector<submarine::stored_torpedo>& torpedoes = player->get_torpedoes();
@@ -542,17 +542,17 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 
 	// draw tubes
 	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i)
-		draw_torpedo(sys, gm, true, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
+		draw_torpedo(gm, true, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
 	for (unsigned i = bow_storage_indices.first; i < bow_storage_indices.second; ++i)
-		draw_torpedo(sys, gm, true, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
+		draw_torpedo(gm, true, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
 	for (unsigned i = bow_top_storage_indices.first; i < bow_top_storage_indices.second; ++i)
-		draw_torpedo(sys, gm, true, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
+		draw_torpedo(gm, true, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
 	for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i)
-		draw_torpedo(sys, gm, false, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
+		draw_torpedo(gm, false, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
 	for (unsigned i = stern_storage_indices.first; i < stern_storage_indices.second; ++i)
-		draw_torpedo(sys, gm, false, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
+		draw_torpedo(gm, false, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
 	for (unsigned i = stern_top_storage_indices.first; i < stern_top_storage_indices.second; ++i)
-		draw_torpedo(sys, gm, false, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
+		draw_torpedo(gm, false, tubecoords[i].first, tubecoords[i].second, torpedoes[i]);
 	
 	// collect and draw type info
 	set<unsigned> torptypes;
@@ -569,8 +569,8 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 	}
 	
 	// mouse handling
-	int mx, my, mb = sys.get_mouse_buttons();
-	sys.get_mouse_position(mx, my);
+	int mx, my, mb = system::sys().get_mouse_buttons();
+	system::sys().get_mouse_position(mx, my);
 
 	unsigned mouseovertube = 0xffff;
 	for (unsigned i = 0; i < torpedoes.size(); ++i) {
@@ -581,7 +581,7 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 		}
 	}
 
-	if (mb & sys.left_button) {
+	if (mb & system::sys().left_button) {
 		// button down
 		if (	mouseovertube < torpedoes.size()
 			&& torptranssrc >= torpedoes.size()
@@ -617,7 +617,7 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 		glColor4f(1,1,1,0.5);
 		torptex(torpedoes[torptranssrc].type)->draw(mx-64, my-8);
 		glColor4f(1,1,1,1);
-		sys.no_tex();
+		system::sys().no_tex();
 		glBegin(GL_LINES);
 		glVertex2i(tubecoords[torptranssrc].first+64,
 			tubecoords[torptranssrc].second+8);
@@ -625,50 +625,50 @@ void submarine_interface::display_torpedoroom(class system& sys, game& gm)
 		glEnd();
 	}
 
-	draw_infopanel(sys, gm);
-	sys.unprepare_2d_drawing();
+	draw_infopanel(gm);
+	system::sys().unprepare_2d_drawing();
 
 	// keyboard processing
-	int key = sys.get_key().sym;
+	int key = system::sys().get_key().sym;
 	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
+		if (!keyboard_common(key,  gm)) {
 			// specific keyboard processing
 		}
-		key = sys.get_key().sym;
+		key = system::sys().get_key().sym;
 	}
 }
 
-void submarine_interface::display_damagestatus(class system& sys, game& gm)
+void submarine_interface::display_damagestatus(game& gm)
 {
 //	glClearColor(0.25, 0.25, 0.25, 0);	// isn't needed
 //	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	sys.prepare_2d_drawing();
-	sub_damage_disp->display(sys, gm);
-	draw_infopanel ( sys, gm );
+	system::sys().prepare_2d_drawing();
+	sub_damage_disp->display(gm);
+	draw_infopanel ( gm );
 
 	// mouse processing;
 	int mx;
 	int my;
-	int mb = sys.get_mouse_buttons();
-	sys.get_mouse_position(mx, my);
+	int mb = system::sys().get_mouse_buttons();
+	system::sys().get_mouse_position(mx, my);
 	sub_damage_disp->check_mouse ( mx, my, mb );
 
 	// note: mouse processing must be done first, to display pop-ups.
-	sys.unprepare_2d_drawing();
+	system::sys().unprepare_2d_drawing();
 
 	// keyboard processing, fixme: do we need extra keyboard input here?
-	int key = sys.get_key().sym;
+	int key = system::sys().get_key().sym;
 	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
+		if (!keyboard_common(key, gm)) {
 			// specific keyboard processing
-			sub_damage_disp->check_key ( key, sys, gm );
+			sub_damage_disp->check_key ( key, gm );
 		}
-		key = sys.get_key().sym;
+		key = system::sys().get_key().sym;
 	}
 }
 
-void submarine_interface::draw_torpedo(class system& sys, class game& gm,
+void submarine_interface::draw_torpedo(class game& gm,
 	bool usebow, int x, int y, const submarine::stored_torpedo& st)
 {
 	if (usebow) {
@@ -714,31 +714,31 @@ void submarine_interface::play_sound_effect_distance ( sound_effect se, double d
 }
 
 // fixme: this function is already in user_interface.cpp. are there differences and why?
-void submarine_interface::display_gauges(class system& sys, class game& gm)
+void submarine_interface::display_gauges(class game& gm)
 {
 	submarine* player = dynamic_cast<submarine*> ( get_player () );
-	sys.prepare_2d_drawing();
+	system::sys().prepare_2d_drawing();
 	set_display_color ( gm );
 	for (int y = 0; y < 3; ++y)	// fixme: replace with gauges
 		for (int x = 0; x < 4; ++x)
 			psbackgr->draw(x*256, y*256, 256, 256);
 	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
 	angle player_depth = -player->get_pos().z;
-	draw_gauge(sys, gm, 1, 0, 0, 256, player->get_heading(), texts::get(1),
+	draw_gauge(gm, 1, 0, 0, 256, player->get_heading(), texts::get(1),
 		player->get_head_to());
-	draw_gauge(sys, gm, 2, 256, 0, 256, player_speed, texts::get(4));
-	draw_gauge(sys, gm, 4, 2*256, 0, 256, player_depth, texts::get(5));
-	draw_clock(sys, gm, 3*256, 0, 256, gm.get_time(), texts::get(61));
-	draw_manometer_gauge ( sys, gm, 1, 0, 256, 256, player->get_fuel_level (),
+	draw_gauge(gm, 2, 256, 0, 256, player_speed, texts::get(4));
+	draw_gauge(gm, 4, 2*256, 0, 256, player_depth, texts::get(5));
+	draw_clock(gm, 3*256, 0, 256, gm.get_time(), texts::get(61));
+	draw_manometer_gauge ( gm, 1, 0, 256, 256, player->get_fuel_level (),
 		texts::get(101));
-	draw_manometer_gauge ( sys, gm, 1, 256, 256, 256, player->get_battery_level (),
+	draw_manometer_gauge ( gm, 1, 256, 256, 256, player->get_battery_level (),
 		texts::get(102));
-	draw_infopanel(sys, gm);
-	sys.unprepare_2d_drawing();
+	draw_infopanel(gm);
+	system::sys().unprepare_2d_drawing();
 
 	// mouse handling
-	int mx, my, mb = sys.get_mouse_buttons();
-	sys.get_mouse_position(mx, my);
+	int mx, my, mb = system::sys().get_mouse_buttons();
+	system::sys().get_mouse_position(mx, my);
 
 	if (mb & 1) {
 		int marea = (my/256)*4+(mx/256);
@@ -763,11 +763,11 @@ void submarine_interface::display_gauges(class system& sys, class game& gm)
 	}
 
 	// keyboard processing
-	int key = sys.get_key().sym;
+	int key = system::sys().get_key().sym;
 	while (key != 0) {
-		if (!keyboard_common(key, sys, gm)) {
+		if (!keyboard_common(key, gm)) {
 			// specific keyboard processing
 		}
-		key = sys.get_key().sym;
+		key = system::sys().get_key().sym;
 	}
 }

@@ -54,7 +54,7 @@ public:
 
 	unsigned long millisec(void);	// returns time in milliseconds
 
-	static system* sys(void) { return instance; };
+	static system& sys(void) { return *instance; };
 	void myassert(bool cond, const string& msg = "");
 	
 	void screenshot(void);

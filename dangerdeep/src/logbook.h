@@ -55,8 +55,8 @@ protected:
 
 public:
 	virtual ~logbook_display() {}
-	virtual void display ( class system& sys, class game& gm ) = 0;
-	virtual void check_key ( int keycode, class system& sys, class game& gm ) = 0;
+	virtual void display ( class game& gm ) = 0;
+	virtual void check_key ( int keycode, class game& gm ) = 0;
 	virtual void check_mouse ( int x, int y, int mb ) = 0;
 	virtual void add_entry ( const date& d, const string& entry );
 	virtual void next_page ();
@@ -75,8 +75,8 @@ class captains_logbook_display : public logbook_display
 public:
 	captains_logbook_display ();
 	virtual ~captains_logbook_display () {};
-	virtual void display ( class system& sys, class game& gm );
-	virtual void check_key ( int keycode, class system& sys, class game& gm );
+	virtual void display ( class game& gm );
+	virtual void check_key ( int keycode, class game& gm );
 	virtual void check_mouse ( int x, int y, int mb );
 };
 
