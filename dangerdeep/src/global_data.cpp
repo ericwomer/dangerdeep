@@ -71,7 +71,7 @@ void init_global_data(void)
 	clouds = new texture((get_data_dir() + "textures/" + "clouds.png"), 1, false, true);
 	clock12 = new texture((get_data_dir() + "textures/" + "clock12.png"));
 	clock24 = new texture((get_data_dir() + "textures/" + "clock24.png"));
-    glasses = new texture((get_data_dir() + "textures/" + "glasses.png"));
+    glasses = new texture((get_data_dir() + "textures/" + "glasses.png"), 1, true, true);
 	SDL_Surface* threesubsimg = IMG_Load((get_data_dir() + "textures/" + "3subs.png").c_str());
 	threesubs[0] = new texture(threesubsimg, 0, 0, 256, 256);
 	threesubs[1] = new texture(threesubsimg, 256, 0, 256, 256);
