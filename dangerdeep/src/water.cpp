@@ -624,21 +624,17 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 //	unsigned t0 = system::sys().millisec();
-//	glFlush();
-//	unsigned t1 = system::sys().millisec();
 
 	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
 //	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
 
-//	unsigned t2 = system::sys().millisec();
-//	glFlush();
-//	unsigned t3 = system::sys().millisec();
+	unsigned t2 = system::sys().millisec();
 //	drawing takes ~28ms with linux/athlon2200+/gf4mx. That would be ~32mb/sec with AGP4x!?
 //	why is it SO SLOW?!
 //	surprising result: fillrate limit! with 512x384 we have 50fps, with 800x600 35fps,
 //	with 1024x768 25fps. Water has approximatly 1Mpixels/frame. Bad for a gf4mx!!
-//	cout << "t0 " << t0 << " t1 " << t1 << " t2 " << t2 << " t3 " << t3 << "\n";
-//	cout << "t2-t1 " << t2-t1 << " t3-t1 " << t3-t1 << "\n";
+//	ATI Radeon 9600 Pro: 35fps with catalyst 3.7.6, 14.4 (!!!) with catalyst 3.2.8. WHY?!
+//	cout << "t0 " << t0 << " t1 " << t1 << " diff " << t1-t0 << "\n";
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
