@@ -51,7 +51,7 @@ public:
 	sky(double tm = 0.0);				// give day time in seconds
 	void set_time(double tm);
 	~sky();
-	void display(const vector3& viewpos, double max_view_dist);
+	void display(const vector3& viewpos, double max_view_dist) const;
 };
 
 #endif

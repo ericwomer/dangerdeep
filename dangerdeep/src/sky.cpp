@@ -404,7 +404,7 @@ void sky::set_time(double tm)
 
 
 
-void sky::display(const vector3& viewpos, double max_view_dist)
+void sky::display(const vector3& viewpos, double max_view_dist) const
 {
 	double dt = get_day_time(mytime);
 	double colscal;
@@ -444,7 +444,11 @@ void sky::display(const vector3& viewpos, double max_view_dist)
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-	
+
+	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	glTranslatef(0.25, 0.35, 0.0);
+	glMatrixMode(GL_MODELVIEW);	
 	// fixme: set up texture matrix to move sunglow according to sun position
 
 	// stars are blended in according to tex env alpha. fixme maybe add sunglow also to stars, that means sunglow affects also starmap?
@@ -463,28 +467,21 @@ void sky::display(const vector3& viewpos, double max_view_dist)
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);	
 	
 	// fixme: maybe scroll star matrix every day a bit with the texture matrix? rotate with earth rotation? that would be more realistic/cooler
+	// when zooming in scope, star texture map is also zoomed giving an unrealistic behaviour. stars are
+	// always little spots. Very different approach: draw stars as GL_POINTS? this would save a texture unit... fixme
 
 	glPushMatrix();
 	glTranslatef(0, 0, -viewpos.z);
 	glPushMatrix();
-	glScalef(max_view_dist, max_view_dist, max_view_dist);	// fixme dynamic
+	double scal = max_view_dist / 30000.0;	// sky hemisphere is stored as 30km in radius
+	glScaled(scal, scal, scal);
 
 	glDisable(GL_LIGHTING);
-	float tmp = 1.0/30000.0;
-	glScalef(tmp, tmp, tmp);	// sky hemisphere is stored as 30km in radius
 	color::white().set_gl_color();
-	glActiveTexture(GL_TEXTURE0);
-	glMatrixMode(GL_TEXTURE);
-	glPushMatrix();
-	glLoadIdentity();
-//	glScalef(8.0f, 8.0f, 1.0f);
-//	glTranslatef(0.2f, 0.3f, 0.0f);
 
 	// ********* set up sky textures and call list
 	glCallList(skyhemisphere_dl);
 	
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
 	color::white().set_gl_color();
 
 	// clean up texture units 1 and 0
@@ -497,6 +494,10 @@ void sky::display(const vector3& viewpos, double max_view_dist)
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	
 	glPopAttrib();
+	
+	glMatrixMode(GL_TEXTURE);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);	
 
 	glEnable(GL_LIGHTING);
 

@@ -14,13 +14,11 @@ using namespace std;
 #include "coastmap.h"
 
 #define MAPGRIDSIZE 1000	// meters
-#define WATER_BUMP_FRAMES 256
 
 class game;
 class user_display;
 class logbook_display;
 class ships_sunk_display;
-class sky;
 
 class user_interface
 {
@@ -58,7 +56,9 @@ protected:
 	double mapclickdist;
 	vector2 mapoffset;	// additional offset used for display, relative to player
 
-	sky* mysky;		// the one and only sky
+	class sky* mysky;		// the one and only sky
+	
+	class water* mywater;		// the ocean water
 	
 //	vector<char> landsea;	// a test hack. 0 = land, 1 = sea
 	coastmap mycoastmap;	// this may get moved to game.h, yet it is used for display only, that's why it is here
@@ -71,28 +71,6 @@ protected:
 	user_interface& operator= (const user_interface& other);
 	user_interface(const user_interface& other);
 	user_interface(sea_object* player, game& gm);//why not store reference to game? fixme
-
-	texture* water_bumpmaps[WATER_BUMP_FRAMES];
-	
-	// waves are stored in display lists to speed up drawing.
-	// this increases fps > 100% compared to vertex arrays / glDrawElements
-	// the display lists can take MUCH ram!
-	unsigned wavedisplaylists;		// # of first display list
-	vector<vector<float> > wavetileh;	// wave tile heights (generated)
-	vector<vector<vector3f> > wavetilen;	// wave tile normals (generated)
-	vector<float> wavefoam;			// 2d array with foam values (0-1), maybe use fixed point integer here
-	// display lists are const, but we need dynamic data for foam. So we store foam in a texture and update this
-	// texture each frame or each 1/10th second. The texture has a texel for each wave vertex and each tile,
-	// thus it is #tiles*#vertices_per_tile wide and high. We use an color table indexed texture, so
-	// we have to transfer (32*8)^2=64k or (64*16)^2=256k per frame, far less memory than updating geometry data
-	// each frame (like with vertex arrays).
-	// alternative foam generation: clear texture every frame (or 1/10th second), draw lines from ship trails
-	// into the texture (if they're inside) and use this texture
-	vector<Uint8> wavefoamtexdata;
-	unsigned wavefoamtex;
-	
-	void init(void);
-	void deinit(void);
 
 	inline virtual sea_object* get_player(void) const { return player_object; }
 	virtual bool keyboard_common(int keycode, game& gm) = 0;
@@ -143,6 +121,8 @@ protected:
 	virtual void display_damagestatus(game& gm) = 0;
 
 	virtual sound* get_sound_effect ( sound_effect se ) const;
+	
+	void init(void);
 
 public:	
 	virtual ~user_interface();
@@ -152,20 +132,13 @@ public:
 	static user_interface* create(game& gm);
 
 	// helper functions
-	void update_foam(double deltat);
-	void spawn_foam(const vector2& pos);
-	
+
 	// this rotates the modelview matrix to match the water surface normal
 	// rollfac (0...1) determines how much the ship is influenced by wave movement
-	virtual void rotate_by_pos_and_wave(const vector3& pos, double timefac,
+	virtual void rotate_by_pos_and_wave(const vector3& pos,
 		double rollfac = 0.05, bool inverse = false) const;
-	// height depends by time factor (wave shift) t in [0...1)
-	virtual float get_water_height(const vector2& pos, double t) const;
-	// give f as multiplier for difference to (0,0,1)
-	virtual vector3f get_water_normal(const vector2& pos, double t, double f = 1.0) const;
 
 	// 3d drawing functions
-	virtual void draw_water(const vector3& viewpos, angle dir, double t, double max_view_dist, bool onlyflatwater = false) const;
 	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist) const;
 	virtual void draw_view(game& gm, const vector3& viewpos,
 		angle dir, angle elev, bool aboard, bool drawbridge, bool withunderwaterweapons);

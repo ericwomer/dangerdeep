@@ -29,7 +29,6 @@
 #include "water_splash.h"
 #include "ships_sunk_display.h"
 #include "vector3.h"
-#include "ocean_wave_generator.h"
 #include "widget.h"
 #include "tokencodes.h"
 #include "command.h"
@@ -37,20 +36,11 @@
 #include "ship_interface.h"
 #include "airplane_interface.h"
 #include "sky.h"
+#include "water.h"
 using namespace std;
 
 #define MAX_PANEL_SIZE 256
 
-// some more interesting values: phase 256, waveperaxis: ask your gfx card, facesperwave 64+,
-// wavelength 256+,
-#define WAVE_PHASES 256		// no. of phases for wave animation
-#define WAVES_PER_AXIS 8	// no. of waves along x or y axis
-#define FACES_PER_WAVE 32	// resolution of wave model in x/y dir.
-#define FACES_PER_AXIS (WAVES_PER_AXIS*FACES_PER_WAVE)
-#define WAVE_LENGTH 128.0	// in meters, total length of one wave tile
-#define TIDECYCLE_TIME 10.0	// seconds
-#define FOAM_VANISH_FACTOR 0.1	// 1/second until foam goes from 1 to 0.
-#define FOAM_SPAWN_FACTOR 0.2	// 1/second until full foam reached. maybe should be equal to vanish factor
 
 /*
 	a note on our coordinate system (11/10/2003):
@@ -69,7 +59,7 @@ using namespace std;
 user_interface::user_interface(sea_object* player, game& gm) :
 	pause(false), time_scale(1), player_object ( player ),
 	panel_visible(true), bearing(0), elevation(0),
-	viewmode(4), target(0), zoom_scope(false), mapzoom(0.1), mysky(0),
+	viewmode(4), target(0), zoom_scope(false), mapzoom(0.1), mysky(0), mywater(0),
 	mycoastmap("default.map"), freeviewsideang(0), freeviewupang(-90), freeviewpos()
 {
 	init ();
@@ -123,30 +113,12 @@ user_interface* user_interface::create(game& gm)
 user_interface::~user_interface ()
 {
 	delete panel;
-	deinit();
-}
 
-void user_interface::update_foam(double deltat)
-{
-	float foamvanish = deltat * FOAM_VANISH_FACTOR;
-	for (unsigned k = 0; k < FACES_PER_AXIS*FACES_PER_AXIS; ++k) {
-		float& foam = wavefoam[k];
-		foam -= foamvanish;
-		if (foam < 0.0f) foam = 0.0f;
-		wavefoamtexdata[k] = Uint8(255*foam);
-	}
-	glBindTexture(GL_TEXTURE_2D, wavefoamtex);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FACES_PER_AXIS, FACES_PER_AXIS, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, &wavefoamtexdata[0]);
-}
+	delete captains_logbook;
+	delete ships_sunk_disp;
 
-void user_interface::spawn_foam(const vector2& pos)
-{
-	// compute texel position from pos here
-	unsigned texel = FACES_PER_AXIS*FACES_PER_AXIS/2+FACES_PER_AXIS/2;
-	float& f = wavefoam[texel];
-	f += 0.1;
-	if (f > 1.0f) f = 1.0f;
-	wavefoamtexdata[texel] = Uint8(255*f);
+	delete mysky;
+	delete mywater;
 }
 
 void user_interface::init ()
@@ -156,199 +128,7 @@ void user_interface::init ()
 	ships_sunk_disp = new ships_sunk_display;
 
 	mysky = new sky();
-	
-	// create and fill display lists for water
-	/*
-		this model leads to waves rolling from NE to SW.
-		We could determine wind direction or tide related water movement and
-		simulate wave rolling accordingly. But this would made a recomputation
-		of this display lists necessary, whenever the wind or tide changes.
-		That is very costly.
-		Another idea: rotate the waves before displaying according to wind/water
-		movement direction and let get_water_height/get_water_normal functions
-		use the rotation, too. fixme
-		
-		With global normals instead of per-face normals (needs a full frequency large fft)
-		we don't need to project the light vector to each face's tangent space.
-		Hence we don't need to set glColor for each vertex. This reduces memory usage and
-		frees 4 per-vertex channels. Now we could store light direction as texture
-		environment color (instead of primary_color) to make free use of this channels.
-		The color channels could hold the water color (depending on slope), then texture
-		unit 2 would be free for a foam map (not only white/blue, but structured!)
-	*/
-	wavetileh.resize(WAVE_PHASES);
-	wavetilen.resize(WAVE_PHASES);
-	wavedisplaylists = glGenLists(WAVE_PHASES);
-	system::sys().myassert(wavedisplaylists != 0, "no more display list indices available");
-
-	// init foam
-	wavefoam.resize(FACES_PER_AXIS*FACES_PER_AXIS);
-	wavefoamtexdata.resize(FACES_PER_AXIS*FACES_PER_AXIS);
-	glGenTextures(1, &wavefoamtex);
-	glBindTexture(GL_TEXTURE_2D, wavefoamtex);
-	vector<Uint8> wavefoampalette(3*256);
-	color wavefoam0(51,88,124), wavefoam1(255,255,255);
-	for (unsigned k = 0; k < 256; ++k) {
-		color c(wavefoam0, wavefoam1, k/255.0f);
-		wavefoampalette[k*3+0] = c.r;
-		wavefoampalette[k*3+1] = c.g;
-		wavefoampalette[k*3+2] = c.b;
-	}
-	glColorTable(GL_TEXTURE_2D, GL_RGB, 256, GL_RGB, GL_UNSIGNED_BYTE, &(wavefoampalette[0]));
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_COLOR_INDEX8_EXT, FACES_PER_AXIS, FACES_PER_AXIS, 0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, &wavefoamtexdata[0]);
-	//gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COLOR_INDEX8_EXT, FACES_PER_AXIS, FACES_PER_AXIS, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, &wavefoamtexdata[0]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-	// connectivity data is the same for all meshes and thus is reused
-	vector<unsigned> waveindices;
-	waveindices.reserve(FACES_PER_WAVE*FACES_PER_WAVE*4);
-	for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
-		unsigned y2 = y+1;
-		for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
-			unsigned x2 = x+1;
-			waveindices.push_back(x +y *(FACES_PER_WAVE+1));
-			waveindices.push_back(x2+y *(FACES_PER_WAVE+1));
-			waveindices.push_back(x2+y2*(FACES_PER_WAVE+1));
-			waveindices.push_back(x +y2*(FACES_PER_WAVE+1));
-		}
-	}
-
-	// We do NOT translate to tangent space of each face (as common bump mapping would do)
-	// Because we store global normals in the bump map. Thus we don't need to store or
-	// recompute the light but can use THE SAME COLOR (light direction) FOR ALL FACES.
-	// So if light's direction changes, the display list can be kept!
-
-	unsigned bumpmap_texsize = 128; //64;	// use at least 128 for a good look. 2^7*2^7*2^7*3 bytes = 6mb
-	ocean_wave_generator<float> owgb(bumpmap_texsize, vector2f(1,1), 31, 5e-6, WAVE_LENGTH, TIDECYCLE_TIME);
-	ocean_wave_generator<float> owg(owgb, FACES_PER_WAVE);
-	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
-		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
-		wavetileh[i] = owg.compute_heights();
-
-		vector<vector2f> d = owg.compute_displacements();
-
-		glNewList(wavedisplaylists+i, GL_COMPILE);
-
-		// create and use temporary array for vertices
-		vector<GLfloat> coords;
-		coords.reserve((FACES_PER_WAVE+1)*(FACES_PER_WAVE+1)*3);
-
-
-#if 1	// use finite normals
-		wavetilen[i] = owg.compute_finite_normals(wavetileh[i]);
-		
-#else	// use fft normals
-#if 0		// compare both
-		vector<vector3f> n2 = owg.compute_normals();
-#else
-		wavetilen[i] = owg.compute_normals();
-#endif
-#endif
-
-
-		float chopfac = -2.0;	// 4.0;	// default. it seems that choppy waves don't look right. bug? fixme, with negative values it seems right. check this!
-		float add = 1.0f/FACES_PER_WAVE;
-		float fy = 0;
-		for (unsigned y = 0; y <= FACES_PER_WAVE; ++y) {
-			float fx = 0;
-			unsigned cy = y%FACES_PER_WAVE;
-			for (unsigned x = 0; x <= FACES_PER_WAVE; ++x) {
-				unsigned cx = x%FACES_PER_WAVE;
-				unsigned ptr = cy*FACES_PER_WAVE+cx;
-				coords.push_back(fx*WAVE_LENGTH + chopfac * d[ptr].x);
-				coords.push_back(fy*WAVE_LENGTH + chopfac * d[ptr].y);
-				coords.push_back(wavetileh[i][ptr]);
-				fx += add;
-			}
-			fy += add;
-		}
-		
-
-		// now set pointers, enable arrays and draw elements, finally disable pointers
-		glDisableClientState(GL_COLOR_ARRAY);
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, &coords[0]);
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glClientActiveTexture(GL_TEXTURE1);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glClientActiveTexture(GL_TEXTURE0);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		
-		glDrawElements(GL_QUADS, waveindices.size(), GL_UNSIGNED_INT, &waveindices[0]);
-		glDisableClientState(GL_VERTEX_ARRAY);
-
-#if 0		// draw finite and fft normals to compare them, just a test
-/*
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, 0);
-*/		
-		glColor3f(1,0,0);
-		glBegin(GL_LINES);
-		fy = 0;
-		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
-			float fx = 0;
-			for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
-				glVertex3f(fx*WAVE_LENGTH, fy*WAVE_LENGTH, wavetileh[i][y*FACES_PER_WAVE+x]);
-				glVertex3f(fx*WAVE_LENGTH+4*wavetilen[i][y*FACES_PER_WAVE+x].x, fy*WAVE_LENGTH+4*wavetilen[i][y*FACES_PER_WAVE+x].y, wavetileh[i][y*FACES_PER_WAVE+x]+4*wavetilen[i][y*FACES_PER_WAVE+x].z);
-				fx += add;
-			}
-			fy += add;
-		}
-		glEnd();
-#endif
-#if 0
-		glColor3f(0,1,0);
-		glBegin(GL_LINES);
-		fy = 0;
-		for (unsigned y = 0; y < FACES_PER_WAVE; ++y) {
-			float fx = 0;
-			for (unsigned x = 0; x < FACES_PER_WAVE; ++x) {
-				glVertex3f(fx*WAVE_LENGTH, fy*WAVE_LENGTH, wavetileh[i][y*FACES_PER_WAVE+x]);
-				glVertex3f(fx*WAVE_LENGTH+4*n2[y*FACES_PER_WAVE+x].x, fy*WAVE_LENGTH+4*n2[y*FACES_PER_WAVE+x].y, wavetileh[i][y*FACES_PER_WAVE+x]+4*n2[y*FACES_PER_WAVE+x].z);
-				fx += add;
-			}
-			fy += add;
-		}
-		glEnd();
-#endif
-
-		glEndList();
-	}
-	
-	// create water bump maps
-	for (int i = 0; i < WATER_BUMP_FRAMES; ++i) {
-		owgb.set_time(i*TIDECYCLE_TIME/WATER_BUMP_FRAMES);
-		vector<vector3f> n = owgb.compute_finite_normals(owgb.compute_heights());
-		vector<Uint8> un(n.size()*3);
-		for (unsigned j = 0; j < n.size(); ++j) {
-			float s = 127.5;
-			un[3*j+0] = Uint8(s + n[j].x * s);
-			un[3*j+1] = Uint8(s + n[j].y * s);
-			un[3*j+2] = Uint8(s + n[j].z * s);
-		}
-		water_bumpmaps[i] = new texture(&un[0], bumpmap_texsize, bumpmap_texsize, GL_RGB, GL_RGB,
-			GL_UNSIGNED_BYTE, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
-	}
-
-}
-
-void user_interface::deinit ()
-{
-	delete captains_logbook;
-	delete ships_sunk_disp;
-
-	glDeleteTextures(1, &wavefoamtex);
-	
-	for (int i = 0; i < WATER_BUMP_FRAMES; ++i)
-		delete water_bumpmaps[i];
-		
-	// delete display lists for water
-	glDeleteLists(wavedisplaylists, WAVE_PHASES);
+	mywater = new class water(0.0);
 }
 
 /* 2003/07/04 idea.
@@ -397,31 +177,10 @@ void user_interface::deinit ()
    Waves are disturbing sight but are ignored here.
 */	   
 
-// ------------------------------------- water --------------------------------
-/*
-	The water surface is given by the following implicit function:
-	z = WAVE_HEIGHT * sin(2*PI*(x/WAVE_LENGTH+t)) * sin(2*PI*(y/WAVE_LENGTH+t))
-	with t is a time factor in [0...1) that determines tide rise and fall speed.
-	That means that the water surface is made of one tile repeated infinitly.
-	This tile is WAVE_LENGTH * WAVE_LENGTH in size and contains two waves.
-	(Function sin(x)*sin(y) for x,y in [0...2PI] )
-	The normal of the surface at any position x,y is thus given by:
-		Tangential plane is spanned by
-			(1, 0, dz/dx), (0, 1, dz/dy) with
-			b = WAVEHEIGHT, a = 2*PI/WAVE_LENGTH, c=2*PI
-			z = b * sin(a*x+c*t) * sin(a*y+c*t)
-			dz/dx = b * a * cos(a*x+c*t) * sin(a*y+c*t)
-			dz/dy = b * a * sin(a*x+c*t) * cos(a*y+c*t)
-		Cross product gives normal:
-			(-dz/dx, -dz/dy, 1)
-	Total: (-b * a * cos(a*x+c*t) * sin(a*y+c*t), -b * a * sin(a*x+c*t) * cos(a*y+c*t), 1)
-	The normal is needed to simulate ship rolling.
-*/	
-
-void user_interface::rotate_by_pos_and_wave(const vector3& pos, double timefac,
+void user_interface::rotate_by_pos_and_wave(const vector3& pos,
 	double rollfac, bool inverse) const
 {
-	vector3f rz = get_water_normal(pos.xy(), timefac, rollfac);
+	vector3f rz = mywater->get_normal(pos.xy(), rollfac);
 	vector3f rx = vector3f(1, 0, -rz.x).normal();
 	vector3f ry = vector3f(0, 1, -rz.y).normal();
 	if (inverse) {
@@ -439,300 +198,6 @@ void user_interface::rotate_by_pos_and_wave(const vector3& pos, double timefac,
 			0,    0,    0,    1 };
 		glMultMatrixf(&mat[0]);
 	}
-}
-
-float user_interface::get_water_height(const vector2& pos, double t) const
-{
-	system::sys().myassert(0 <= t && t < 1, "get water height, t wrong");
-	int wavephase = int(WAVE_PHASES*t);
-	float ffac = FACES_PER_WAVE/WAVE_LENGTH;
-	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
-	float y = float(myfmod(pos.y, WAVE_LENGTH)) * ffac;
-	int ix = int(floor(x));
-	int iy = int(floor(y));
-	int ix2 = (ix+1)%FACES_PER_WAVE;
-	int iy2 = (iy+1)%FACES_PER_WAVE;
-	float fracx = x - ix;
-	float fracy = y - iy;
-	float a = wavetileh[wavephase][ix+iy*FACES_PER_WAVE];
-	float b = wavetileh[wavephase][ix2+iy*FACES_PER_WAVE];
-	float c = wavetileh[wavephase][ix+iy2*FACES_PER_WAVE];
-	float d = wavetileh[wavephase][ix2+iy2*FACES_PER_WAVE];
-	float e = a * (1.0f-fracx) + b * fracx;
-	float f = c * (1.0f-fracx) + d * fracx;
-	return (1.0f-fracy) * e + fracy * f;
-}
-
-vector3f user_interface::get_water_normal(const vector2& pos, double t, double f) const
-{
-	system::sys().myassert(0 <= t && t < 1, "get water normal, t wrong");
-	int wavephase = int(WAVE_PHASES*t);
-	float ffac = FACES_PER_WAVE/WAVE_LENGTH;
-	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
-	float y = float(myfmod(pos.y, WAVE_LENGTH)) * ffac;
-	int ix = int(floor(x));
-	int iy = int(floor(y));
-	int ix2 = (ix+1)%FACES_PER_WAVE;
-	int iy2 = (iy+1)%FACES_PER_WAVE;
-	float fracx = x - ix;
-	float fracy = y - iy;
-	vector3f a = wavetilen[wavephase][ix+iy*FACES_PER_WAVE];
-	vector3f b = wavetilen[wavephase][ix2+iy*FACES_PER_WAVE];
-	vector3f c = wavetilen[wavephase][ix+iy2*FACES_PER_WAVE];
-	vector3f d = wavetilen[wavephase][ix2+iy2*FACES_PER_WAVE];
-	vector3f e = a * (1.0f-fracx) + b * fracx;
-	vector3f g = c * (1.0f-fracx) + d * fracx;
-	vector3f h = e * (1.0f-fracy) + g * fracy;
-	h.z *= (1.0f/f);
-	return h.normal();
-}
-
-void user_interface::draw_water(const vector3& viewpos, angle dir, double t,
-	double max_view_dist, bool onlyflatwater) const
-{
-
-	// fixme: draw some quads between the farest wave tiles and the horizon to fill the gaps
-	// wave tiles are drawn in triangle shape, like a rasterized triangle. draw some quads
-	// from the border of the outmost tiles (matching their resolution and height) to a line
-	// parallel to horizon/user view. from that line begin to bend the water faces according to
-	// earth curvature. this avoids gaps and looks right.
-
-	// the origin of the coordinate system is the bottom left corner of the tile
-	// that the viewer position projected to xy plane is inside.
-	glPushMatrix();
-	glTranslated(-myfmod(viewpos.x, WAVE_LENGTH), -myfmod(viewpos.y, WAVE_LENGTH), -viewpos.z);
-
-	// draw polygons to the horizon
-	float wr = WAVES_PER_AXIS * WAVE_LENGTH / 2;
-	float c0 = -max_view_dist;
-	float c1 = -wr;
-	float c2 = wr;
-	float c3 = max_view_dist;
-	float wz = 0;//-WAVE_HEIGHT; // this leads to hole between waves and horizon faces, fixme
-
-	// set Color to light vector transformed to object space
-	// (we need the inverse of the modelview matrix for that, at least the 3x3 upper left
-	// part if we have directional light only)
-	vector3f lightvec = vector3f(-1,0.5,1).normal();
-	lightvec = lightvec * 0.5 + vector3f(0.5, 0.5, 0.5);
-	glColor3f(lightvec.x, lightvec.y, lightvec.z);
-	
-	// set texture unit to combine primary color with texture color via dot3
-	float framepart = myfmod(t, TIDECYCLE_TIME)/TIDECYCLE_TIME;
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, water_bumpmaps[unsigned(framepart*WATER_BUMP_FRAMES)]->get_opengl_name());
-
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGB); 
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-
-	GLfloat scalefac0 = 1.0f/WAVE_LENGTH;
-	GLfloat plane_s0[4] = { scalefac0, 0.0f, 0.0f, 0.0f };
-	GLfloat plane_t0[4] = { 0.0f, scalefac0, 0.0f, 0.0f };
-	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-	glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s0);
-	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-	glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t0);
-	glEnable(GL_TEXTURE_GEN_S);
-	glEnable(GL_TEXTURE_GEN_T);
-
-	glActiveTexture(GL_TEXTURE1);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, water->get_opengl_name());
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-
-	GLfloat scalefac1 = 32.0f/WAVE_LENGTH;//fixme: what is/was this?
-	GLfloat plane_s1[4] = { scalefac1, 0.0f, 0.0f, 0.0f };
-	GLfloat plane_t1[4] = { 0.0f, scalefac1, 0.0f, 0.0f };
-	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-	glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s1);
-	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-	glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t1);
-	glEnable(GL_TEXTURE_GEN_S);
-	glEnable(GL_TEXTURE_GEN_T);
-
-	glDisable(GL_LIGHTING);
-	glBegin(GL_TRIANGLE_STRIP);
-	if (onlyflatwater) {
-		glVertex3f(c0,c3,0);
-		glVertex3f(c0,c0,0);
-		glVertex3f(c3,c3,0);
-		glVertex3f(c3,c0,0);
-	} else {
-		glVertex3f(c0,c3,0);
-		glVertex3f(c1,c2,wz);
-		glVertex3f(c3,c3,0);
-		glVertex3f(c2,c2,wz);
-		glVertex3f(c3,c0,0);
-		glVertex3f(c2,c1,wz);
-		glVertex3f(c0,c0,0);
-		glVertex3f(c1,c1,wz);
-		glVertex3f(c0,c3,0);
-		glVertex3f(c1,c2,wz);
-	}
-	glEnd();
-
-	if (!onlyflatwater) {	
-		// draw waves
-		double timefac = myfmod(t, TIDECYCLE_TIME)/TIDECYCLE_TIME;
-
-		// fixme: use LOD (fft with less resolution) for distance waves
-		// until about 10km to the horizon
-
-/*
-		glActiveTexture(GL_TEXTURE1);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, wavefoamtex);
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
-		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-*/
-		//fixme: automatic texture coordinate generation ignores wave displacements (choppy waves)
-		//so foam is mapped wrongly!
-		GLfloat scalefac2 = 1.0f/WAVE_LENGTH; //1.0f/(WAVE_LENGTH*WAVES_PER_AXIS);
-		GLfloat plane_s2[4] = { scalefac2, 0.0f, 0.0f, 0.0f };
-		GLfloat plane_t2[4] = { 0.0f, scalefac2, 0.0f, 0.0f };
-/*
-		glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-		glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s2);
-		glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-		glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t2);
-		glEnable(GL_TEXTURE_GEN_S);
-		glEnable(GL_TEXTURE_GEN_T);
-*/
-		unsigned dl = wavedisplaylists + int(WAVE_PHASES*timefac);
-
-
-		// ************ draw water tiles ****************
-		if (false /* draw_only_tiles_in_viewing_cone */) {
-			// *********** draw water tiles in viewing cone
-
-			// compute the rasterization of the triangle p0,p1,p2
-			// with p0 = viewer's pos., p1,2 = p0 + viewrange * direction(brearing +,- fov/2)
-
-			vector2 p[3];	// vertices for triangle
-			p[0] = vector2(myfmod(viewpos.x, WAVE_LENGTH)/WAVE_LENGTH, myfmod(viewpos.y, WAVE_LENGTH)/WAVE_LENGTH);
-			p[1] = p[0] + (dir+angle(45/*fov/2*/)).direction() * 8 /* view dist */;
-			p[2] = p[0] + (dir-angle(45/*fov/2*/)).direction() * 8 /* view dist */;
-
-		char tmp[21][21];
-		memset(tmp, '.', 21*21);
-		tmp[10][10]='o';
-
-			// rasterize a ccw triangle, coordinate system is right handed (greater y is top)
-			struct edge {
-				double x, dx;
-				int y, height;
-				inline void step(void) { x += dx; --y; --height; }
-				edge(const vector2& ptop, const vector2& pbot) {
-					y = int(floor(ptop.y));
-					height = y - int(floor(pbot.y));
-					dx = (ptop.x - pbot.x)/(pbot.y - ptop.y);
-					x = dx*(ptop.y - y) + ptop.x;
-				}
-			};
-
-			int top = 0, middle = 1, bottom = 2;
-			bool middle_is_left = true;
-			if (p[1].y > p[top].y) top = 1;
-			if (p[2].y > p[top].y) top = 2;
-			middle = (top+1)%3;
-			bottom = (top+2)%3;
-			if (p[middle].y < p[bottom].y) {
-				middle_is_left = false;
-				bottom = (top+1)%3;
-				middle = (top+2)%3;
-			}
-			edge top_bottom(p[top], p[bottom]);
-			edge top_middle(p[top], p[middle]);
-			edge middle_bottom(p[middle], p[bottom]);
-			edge *eleft, *eright;
-			if (middle_is_left) {
-				eleft = &top_middle; eright = &top_bottom;
-			} else {
-				eleft = &top_bottom; eright = &top_middle;
-			}
-			// draw triangle, first upper half, then lower half
-			int h = top_middle.height;
-			int half_rasterized = 0;
-cout << "raster test\np[0]: "<<p[0]<<"\np[1]: "<<p[1]<<"\np[2]: "<<p[2]<<"\ntop "<<top<<" middle "<<middle<<" bottom "<<bottom<<" m_is_l:"<<middle_is_left<<"\n";
-			while (true) {
-				for ( ; h > 0; --h) {
-cout << "eleft: x=" << eleft->x << " y=" << eleft->y << " h=" <<eleft->height << " dx="<<eleft->dx<<"\n";
-cout << "eright: x=" << eright->x << " y=" << eright->y << " h=" <<eright->height << " dx="<<eright->dx<<"\n";
-					//raster a line
-					for (int i = int(floor(eleft->x)); i < int(ceil(eright->x)); ++i) {
-						//draw tile [i,eleft->y]
-						cout<<"raster draw "<<i<<","<<eleft->y<<"\n";
-						tmp[i+10][(eleft->y)+10] = 'x';
-						int x = i + WAVES_PER_AXIS/2;
-						int y = eleft->y + WAVES_PER_AXIS/2;
-						glPushMatrix();
-						glTranslatef((-WAVES_PER_AXIS/2+x)*WAVE_LENGTH, (-WAVES_PER_AXIS/2+y)*WAVE_LENGTH, 0);
-						glCallList(dl);
-						glPopMatrix();
-					}
-					eleft->step();
-					eright->step();
-				}
-				++half_rasterized;
-				if (half_rasterized == 2) break;
-				// change edge pointers
-				if (middle_is_left)
-					eleft = &middle_bottom;
-				else
-					eright = &middle_bottom;
-				h = middle_bottom.height;
-			}
-cout << "raster result\n";
-for(int ry=0;ry<21;++ry){
-for(int rx=0;rx<21;++rx){
-cout<<tmp[rx][20-ry];
-}
-cout<<"\n";
-}
-		} else {	// draw all tiles in visible range
-			for (int y = 0; y < WAVES_PER_AXIS; ++y) {
-				plane_t2[3] = float(y)/WAVES_PER_AXIS;
-				glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-				glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t2);
-				for (int x = 0; x < WAVES_PER_AXIS; ++x) {
-					plane_s2[3] = float(x)/WAVES_PER_AXIS;
-					glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-					glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s2);
-					glPushMatrix();
-					glTranslatef((-WAVES_PER_AXIS/2+x)*WAVE_LENGTH, (-WAVES_PER_AXIS/2+y)*WAVE_LENGTH, 0);
-					glCallList(dl);
-					glPopMatrix();
-				}
-			}
-		}
-	}
-
-	glActiveTexture(GL_TEXTURE1);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glDisable(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE0);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-	glPopAttrib();
-
-	glPopMatrix();
-	glColor3f(1,1,1);
 }
 
 void user_interface::draw_terrain(const vector3& viewpos, angle dir,
@@ -755,6 +220,8 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 
 	// fixme: make use of game::job interface, 3600/256 = 14.25 secs job period
 	mysky->set_time(gm.get_time());
+	
+	mywater->set_time(gm.get_time());
 
 	double dt = get_day_time(gm.get_time());
 	color skycol1, skycol2, lightcol;
@@ -774,16 +241,14 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, ldiffuse);
 	glLightfv(GL_LIGHT1, GL_POSITION, lposition);
 
-	double timefac = myfmod(gm.get_time(), TIDECYCLE_TIME)/TIDECYCLE_TIME;
-	
 	//fixme: get rid of this
 	glRotatef(-90,1,0,0);
 	// if we're aboard the player's vessel move the world instead of the ship
 	if (aboard) {
 		//fixme: use player height correctly here
-		glTranslatef(0, 0, -player->get_pos().z - get_water_height(player->get_pos().xy(), timefac));
+		glTranslatef(0, 0, -player->get_pos().z - mywater->get_height(player->get_pos().xy()));
 		double rollfac = (dynamic_cast<ship*>(player))->get_roll_factor();
-		rotate_by_pos_and_wave(player->get_pos(), timefac, rollfac, true);
+		rotate_by_pos_and_wave(player->get_pos(), rollfac, true);
 	}
 
 	glRotatef(-elev.value(),1,0,0);
@@ -808,10 +273,22 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	// ******* water ***************************************************************
 					// fixme: program directional light caused by sun
 					// or moon should be reflected by water.
-	update_foam(1.0/25.0);  //fixme: deltat needed here
-//	spawn_foam(vector2(myfmod(gm.get_time(),256.0),0));
-	draw_water(viewpos, dir, gm.get_time(), max_view_dist);
-	
+	//mywater->update_foam(1.0/25.0);  //fixme: deltat needed here
+	//mywater->spawn_foam(vector2(myfmod(gm.get_time(),256.0),0));
+
+	mywater->display(viewpos, dir, max_view_dist);
+
+/*
+	// pseudo mirror test
+	glCullFace(GL_FRONT);
+	glColor4f(1,1,1,0.5);
+	glPushMatrix();
+	glScalef(1,1,-1);
+	mysky->display(viewpos, max_view_dist);
+	glPopMatrix();
+	glColor4f(1,1,1,1);
+	glCullFace(GL_BACK);	
+*/
 
 	// ******** terrain/land ********************************************************
 	
@@ -839,7 +316,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 		glTranslated(pos.x, pos.y, pos.z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 	// fixme: z translate according to water height here
-		rotate_by_pos_and_wave((*it)->get_pos(), timefac, (*it)->get_roll_factor());
+		rotate_by_pos_and_wave((*it)->get_pos(), (*it)->get_roll_factor());
 		(*it)->display();
 		glPopMatrix();
 
@@ -859,7 +336,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 	// fixme: z translate according to water height here
 		if ((*it)->get_pos().z > -15) {
-			rotate_by_pos_and_wave((*it)->get_pos(), timefac, (*it)->get_roll_factor());
+			rotate_by_pos_and_wave((*it)->get_pos(), (*it)->get_roll_factor());
 		}
 		(*it)->display();
 		glPopMatrix();
