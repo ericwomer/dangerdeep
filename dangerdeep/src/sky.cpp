@@ -54,7 +54,7 @@ draw moon with phases (fixme)
 
 
 
-sky::sky(double tm) : mytime(tm), skycolorfac(0.0f), atmosphericlight(0.5),
+sky::sky(double tm) : mytime(tm), skycolorfac(0.0f), atmosphericlight(0.0),
 	skyhemisphere(0), skycol(0), sunglow(0),
 	clouds(0), suntex(0), moontex(0), clouds_dl(0), skyhemisphere_dl(0)
 {
@@ -113,7 +113,7 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f), atmosphericlight(0.5),
 		vector3f p(rnd() * 2.0f - 1.0f, rnd() * 2.0f - 1.0f, rnd());
 		stars_pos.push_back(p.normal());
 		float fl = rnd();
-		fl = 1.0f - fl*fl;
+		fl = 1.0f - fl*fl*fl;
 		Uint8 l = Uint8(255*fl);
 		stars_lumin.push_back(l);
 		stars_lumin.push_back(l);
@@ -139,7 +139,7 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f), atmosphericlight(0.5),
 	osg << "P6\n256 256\n255\n";
 	osg.write((const char*)(&skycolmap[0]), 256*256*3);
 */
-	skycol = new texture(&skycolmap[0], 256, 256, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, GL_LINEAR, GL_CLAMP);
+	skycol = new texture(&skycolmap[0], 256, 256, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, GL_LINEAR, GL_CLAMP_TO_EDGE);
 	skycolmap.clear();
 
 	// ******************************** create maps for sun glow
@@ -161,7 +161,7 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f), atmosphericlight(0.5),
 	osg << "P5\n256 256\n255\n";
 	osg.write((const char*)(&sunglowmap[0]), 256*256);
 */
-	sunglow = new texture(&sunglowmap[0], 256, 256, GL_LUMINANCE, GL_LUMINANCE, /*GL_ALPHA, GL_ALPHA,*/ GL_UNSIGNED_BYTE, GL_LINEAR, GL_CLAMP);
+	sunglow = new texture(&sunglowmap[0], 256, 256, GL_LUMINANCE, GL_LUMINANCE, GL_UNSIGNED_BYTE, GL_LINEAR, GL_CLAMP_TO_EDGE);
 	sunglowmap.clear();
 
 	// ********************************** init sun/moon	
@@ -291,14 +291,11 @@ void sky::setup_textures(void) const
 	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-//	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-//	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 /*
-	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+	// not needed.
+	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_TEXTURE);
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
 */
 	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
@@ -316,6 +313,12 @@ void sky::setup_textures(void) const
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE1);
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+/*
+	// not needed.
+	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+*/
 	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
 	glLoadIdentity();
@@ -415,7 +418,7 @@ void sky::compute_clouds(void)
 
 	delete clouds;	
 	clouds = new texture(&fullmap[0], 256, 256, GL_LUMINANCE_ALPHA, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE,
-		GL_LINEAR, GL_CLAMP);
+		GL_LINEAR, GL_CLAMP_TO_EDGE);
 }
 
 
@@ -511,12 +514,12 @@ void sky::set_time(double tm)
 	else if (dt < 3) { colscal = 1; }
 	else { colscal = 1-fmod(dt,1); }
 	
-	atmosphericlight = 1.0; // colscal; // fixme testing
+	atmosphericlight = colscal;
 }
 
 
 
-void sky::display(const vector3& viewpos, double max_view_dist) const
+void sky::display(const vector3& viewpos, double max_view_dist, bool isreflection) const
 {
 	double dt = get_day_time(mytime);
 	// fixme: get light color from sun position. 0 at night, 1 when sun is more than 10 degrees above the horizon or something the like
@@ -545,37 +548,39 @@ void sky::display(const vector3& viewpos, double max_view_dist) const
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glPushMatrix();
-	glTranslatef(0, 0, -viewpos.z);	//fixme stars are not drawn in freeview mode
+	glTranslatef(0, 0, -viewpos.z);
 
-	glPushMatrix();
-	glScalef(max_view_dist * 0.99, max_view_dist * 0.99, max_view_dist * 0.99);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glEnableClientState(GL_COLOR_ARRAY);
-        glColorPointer(3, GL_UNSIGNED_BYTE, 0, &stars_lumin[0]);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &stars_pos[0].x);
-	glDrawArrays(GL_POINTS, 0, stars_pos.size());
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glPopMatrix();
+	// because the reflection map may have a lower resolution than the screen
+	// we shouldn't draw stars while computing this map. They would appear to big.
+	// in fact star light is to weak for water reflections, isn't it?
+	if (!isreflection) {
+		glPushMatrix();
+		glScalef(max_view_dist * 0.95, max_view_dist * 0.95, max_view_dist * 0.95);
+		glDisable(GL_LIGHTING);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glEnableClientState(GL_COLOR_ARRAY);
+	        glColorPointer(3, GL_UNSIGNED_BYTE, 0, &stars_lumin[0]);
+        	glEnableClientState(GL_VERTEX_ARRAY);
+	        glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &stars_pos[0].x);
+		glDrawArrays(GL_POINTS, 0, stars_pos.size());
+		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glPopMatrix();
+	}
 
-	glColor4f(1, 1, 1, 1);//atmosphericlight);//fixme testing
+	glColor4f(1, 1, 1, atmosphericlight);
 
 	setup_textures();
 
-	// fixme: maybe scroll star matrix every day a bit with the texture matrix? rotate with earth rotation? that would be more realistic/cooler
-	// when zooming in scope, star texture map is also zoomed giving an unrealistic behaviour. stars are
-	// always little spots. Very different approach: draw stars as GL_POINTS? this would save a texture unit... fixme
+	// fixme: maybe rotate star positions every day a bit? rotate with earth rotation? that would be more realistic/cooler
 
 	glPushMatrix();
 	double scal = max_view_dist / 30000.0;	// sky hemisphere is stored as 30km in radius
 	glScaled(scal, scal, scal);
 
-	color::white().set_gl_color();
-
 	// ********* set up sky textures and call list
 	glDisable(GL_DEPTH_TEST);	// to avoid the stars appearing in front of the sun etc.
-	glCallList(skyhemisphere_dl);
+	glCallList(skyhemisphere_dl);	// this overdraws the stars! why?!
 	glEnable(GL_DEPTH_TEST);
 	
 	color::white().set_gl_color();
@@ -692,7 +697,7 @@ void sky::display(const vector3& viewpos, double max_view_dist) const
 	float clsc = max_view_dist * 0.9;
 	glScalef(clsc, clsc, 3000);	// bottom of cloud layer has altitude of 3km., fixme varies with weather
 	clouds->set_gl_texture();
-//	glCallList(clouds_dl);	// fixme: temporarily disabled for testing
+	glCallList(clouds_dl);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);

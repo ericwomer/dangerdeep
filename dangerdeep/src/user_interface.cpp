@@ -290,7 +290,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	//   sky
 	glCullFace(GL_FRONT);
 	glPushMatrix();
-	mysky->display(viewpos, max_view_dist);
+	mysky->display(viewpos, max_view_dist, true);
 	glPopMatrix();
 	//   terrain
 	glColor4f(1,1,1,1);//fixme: fog is missing
@@ -326,7 +326,7 @@ void user_interface::draw_view(class game& gm, const vector3& viewpos,
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 
 	// ************ sky ***************************************************************
-	mysky->display(viewpos, max_view_dist);
+	mysky->display(viewpos, max_view_dist, false);
 
 	// ********* fog test ************ fog color is skycol2 ************************
 	GLfloat fog_color[4] = {skycol2.r/255.0, skycol2.g/255.0, skycol2.b/255.0, 1.0};
