@@ -29,6 +29,7 @@ class global_data;
 class parser;
 class sea_object;
 class water_splash;
+class network_connection;
 
 #include "submarine.h"
 #include "convoy.h"
@@ -36,6 +37,20 @@ class water_splash;
 #include "date.h"
 #include "vector2.h"
 #include "vector3.h"
+
+// network messages
+#define MSG_length	16
+#define MSG_cancel	"DFTD-cancel!    "
+#define MSG_ask		"DFTD-ask?       "
+#define MSG_offer	"DFTD-offer!     "
+#define MSG_join	"DFTD-join?      "
+#define MSG_joined	"DFTD-joined!    "
+#define MSG_initgame	"DFTD-init!      "
+#define MSG_ready	"DFTD-ready!     "
+#define MSG_start	"DFTD-start!     "
+#define MSG_gamestate	"DFTD-gamestate: "
+#define MSG_command	"DFTD-command:   "
+
 
 /* fixme 2004/02/22
  add functions for:
@@ -121,6 +136,13 @@ protected:
 	double max_view_dist;	// maximum visibility according to weather conditions
 	
 	list<ping> pings;
+	
+	// network game type (0 = single player, 1 = server, 2 = client)
+	unsigned networktype;
+	// the connection to the server (zero if this is the server)
+	network_connection* servercon;
+	// the connections to the clients (at least one if this is the server, else empty)
+	vector<network_connection*> clientcons;
 	
 	game& operator= (const game& other);
 	game(const game& other);

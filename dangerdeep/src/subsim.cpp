@@ -465,16 +465,6 @@ void choose_saved_game(void)
 // create a network mission
 //
 
-#define MSG_cancel "DFTD-cancel!"
-#define MSG_ask "DFTD-ask?"
-#define MSG_offer "DFTD-offer!"
-#define MSG_join "DFTD-join?"
-#define MSG_joined "DFTD-joined!"
-#define MSG_initgame "DFTD-init!"
-#define MSG_ready "DFTD-ready!"
-#define MSG_start "DFTD-start!"
-#define MSG_gamestate "DFTD-gamestate:"
-
 // send message, wait for answer, returns true if answer received
 bool send_and_wait(network_connection& nc, const string& sendmsg, const string& waitmsg, unsigned timeout = 0xffffffff)
 {
@@ -653,8 +643,8 @@ void join_network_game(const string& servername, Uint16 server_port, network_con
 	string gamestate;
 	while (true) {
 		string serv = client.receive_message();
-		if (serv.substr(0, string(MSG_gamestate).length()) == MSG_gamestate) {
-			gamestate = serv.substr(string(MSG_gamestate).length());
+		if (serv.substr(0, MSG_length) == MSG_gamestate) {
+			gamestate = serv.substr(MSG_length);
 			break;
 		}
 		if (serv == MSG_cancel) {

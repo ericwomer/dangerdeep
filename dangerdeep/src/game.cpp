@@ -34,6 +34,7 @@
 #include "sensors.h"
 #include "menu.h"	// fixme why this? get rid of it
 #include "command.h"
+#include "network.h"
 
 const int SAVEVERSION = 0;
 const int GAMETYPE = 0;//fixme
@@ -94,6 +95,9 @@ game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned t
 	Then we place the sub somewhere randomly around the convoy with maximum viewing distance.
 	Multiplayer: place several subs around the convoy with a minimum distance between each.
 ***********************************************************************/	
+	networktype = 0;
+	servercon = 0;
+
 	time = 86400*500;	// fixme random dependent of period
 	
 	// all code from here on is fixme and experimental.
@@ -157,6 +161,9 @@ game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned t
 
 game::game(parser& p) : running(true), time(0)
 {
+	networktype = 0;
+	servercon = 0;
+	
 	player = 0;
 	ui = 0;
 	compute_max_view_dist();
@@ -260,6 +267,9 @@ cout<<"saving game...\n";
 
 game::game(const string& savefilename)
 {
+	networktype = 0;
+	servercon = 0;	//fixme maybe move to load_from_stream? to allow loading network games?
+
 cout<<"loading game...\n";
 	ifstream in(savefilename.c_str(), ios::in|ios::binary);
 	read_string(in);
@@ -270,6 +280,8 @@ cout<<"loading game...\n";
 
 game::game(istream& in)
 {
+	networktype = 0;
+	servercon = 0;	//fixme maybe move to load_from_stream? to allow loading network games?
 	load_from_stream(in);
 }
 
@@ -1401,22 +1413,65 @@ unsigned game::listsizes(unsigned n) const
 
 void game::receive_commands(void)
 {
-	// fixme
+	// only used for multiplayer games!
+	if (networktype > 0) {
+		if (servercon) {	// i am client, receive commands from server
+			string msg = servercon->receive_message();
+			while (msg.length() > 0) {
+				if (msg.substr(MSG_length) == MSG_command) {
+					string cmd = msg.substr(MSG_length);
+					istringstream iss(cmd);
+					command* c = command::create(iss, *this);
+					c->exec(*this);
+					delete c;
+				}
+				msg = servercon->receive_message();
+			}
+		} else {		// i am server, receive commands from all clients
+			for (vector<network_connection*>::iterator it = clientcons.begin(); it != clientcons.end(); ++it) {
+				string msg = (*it)->receive_message();
+				while (msg.length() > 0) {
+					if (msg.substr(MSG_length) == MSG_command) {
+						// fetch it to other clients
+						for (vector<network_connection*>::iterator it2 = clientcons.begin(); it2 != clientcons.end(); ++it2) {
+							if (it != it2) {
+								(*it2)->send_message(msg);
+							}
+						}
+						// execute it locally
+						string cmd = msg.substr(MSG_length);
+						istringstream iss(cmd);
+						command* c = command::create(iss, *this);
+						c->exec(*this);
+						delete c;
+					}
+					msg = (*it)->receive_message();
+				}
+			}
+		}
+	}
 }
 
 void game::send(command* cmd)
 {
-	// execute locally
-	cmd->exec(*this);
+	// multiplayer?
+	if (networktype > 0) {
+		// send it over next
+		ostringstream osscmd;
+		cmd->save(osscmd, *this);
+		string msg = string(MSG_command) + osscmd.str();
 	
-	// and send it over net
-	ostringstream osscmd;
-	cmd->save(osscmd, *this);//fixme, fails with rudder_left?!
-	string cmdstr = osscmd.str();
-//	cerr << cmdstr;
-	//for all network connections
-	//send(cmd.length(), &cmd[0]);
-	//fixme
+		if (servercon) {	// i am client, send command to the server
+			servercon->send_message(msg);
+		} else {		// i am server, send command to all clients
+			for (vector<network_connection*>::iterator it = clientcons.begin(); it != clientcons.end(); ++it) {
+				(*it)->send_message(msg);
+			}
+		}
+	}
+
+	// and execute it locally
+	cmd->exec(*this);
 
 	// finally, delete it
 	delete cmd;
