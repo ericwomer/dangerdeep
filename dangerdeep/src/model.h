@@ -53,7 +53,8 @@ public:
 	void read(const string& filename);
 	// use an empty texture name for textureless model
 	void read_from_OFF(const string& filename, const string& texture_name,
-		unsigned mapping = 0, unsigned tilesx = 1, unsigned tilesy = 1);
+		unsigned mapping = 0, bool swap_normals = false,
+		unsigned tilesx = 1, unsigned tilesy = 1);
 	void write(const string& filename) const;
 	void display(bool with_texture = true) const;
 	double get_length(void) const { return (max - min).y; };

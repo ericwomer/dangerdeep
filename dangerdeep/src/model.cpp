@@ -109,7 +109,7 @@ void model::read(const string& filename)
 }
 
 void model::read_from_OFF(const string& filename, const string& texture_name, unsigned mapping,
-	unsigned tilesx, unsigned tilesy)
+	bool swap_normals, unsigned tilesx, unsigned tilesy)
 {
 	double TILESX = tilesx;
 	double TILESY = tilesy;
@@ -158,6 +158,9 @@ void model::read_from_OFF(const string& filename, const string& texture_name, un
 	for (i = 0; i < nr_faces; i++) {
 		unsigned fv0, fv1, fv2;
 		fscanf(f, "%i %i %i %i\n", &j, &fv0, &fv1, &fv2);
+		if (swap_normals) {
+			unsigned tmp = fv1; fv1 = fv2; fv2 = tmp;
+		}
 		faces.push_back(face(fv0, fv1, fv2));
 		system::sys()->myassert(j==3, string("model: face has != 3 edges")+filename);
 		// calculate face normal.
