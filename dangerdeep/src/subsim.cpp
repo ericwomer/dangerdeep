@@ -12,6 +12,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL.h>
+#include <SDL_net.h>
 
 #include "system.h"
 #include "vector3.h"
@@ -398,6 +399,91 @@ void choose_saved_game(void)
 }
 
 
+//
+// create a network mission
+//
+IPaddress computer_ip;
+Uint16 server_port = 0xdf7d;
+string ip2string(IPaddress ip, bool withport = true)
+{
+	ostringstream os;
+	os <<	unsigned((ip.host>>24)&0xff) << "." <<
+		unsigned((ip.host>>16)&0xff) << "." <<
+		unsigned((ip.host>> 8)&0xff) << "." <<
+		unsigned((ip.host    )&0xff) ;
+	if (withport)
+		os << ":" << unsigned(ip.port);
+	return os.str();
+}
+void server_wait_for_clients(void)
+{
+	IPaddress hostip;
+	int error = SDLNet_ResolveHost(&hostip, 0, server_port);
+	system::sys()->myassert(error == 0, "can resolve host ip for this computer");
+	
+	widget w(0, 0, 1024, 768, texts::get(22), 0, swordfishimg);
+	w.add_child(new widget_text(280, 60, 0, 0, texts::get(57) + ip2string(hostip)));
+	w.add_child(new widget_text(40, 60, 0, 0, texts::get(57)));
+	widget_list* wplayers = new widget_list(40, 90, 200, 400);
+	const char* c = SDLNet_ResolveIP(&hostip);
+	string hostname = "???";
+	if (c) hostname = c;
+	wplayers->append_entry(hostname);
+	w.add_child(wplayers);
+
+	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
+	w.add_child(wm);
+	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
+	wm->add_entry(texts::get(191), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 70, 700, 400, 40));
+	wm->adjust_buttons(944);
+	int result = w.run();
+}
+
+void create_network_game(void)
+{
+	// initialize network play
+	int network_ok = SDLNet_Init();
+	system::sys()->myassert(network_ok != -1, "failed to initialize SDLnet");
+	int error = SDLNet_ResolveHost(&computer_ip, NULL, server_port);
+	system::sys()->myassert(error == 0, "can resolve host ip for this computer");
+
+	widget w(0, 0, 1024, 768, texts::get(22), 0, swordfishimg);
+	w.add_child(new widget_text(40, 60, 0, 0, texts::get(57)));
+	widget_edit* wserverip = new widget_edit(40, 90, 200, 40, ip2string(computer_ip, false));
+	w.add_child(wserverip);
+	w.add_child(new widget_text(280, 60, 0, 0, texts::get(58)));
+	ostringstream oss; oss << server_port;
+	widget_edit* wportaddr = new widget_edit(280, 90, 200, 40, oss.str());
+	w.add_child(wportaddr);
+
+	widget_menu* wm = new widget_menu(40, 700, 0, 40, true);
+	w.add_child(wm);
+	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
+	wm->add_entry(texts::get(191), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 70, 700, 400, 40));
+	wm->add_entry(texts::get(192), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 3, 540, 700, 400, 40));
+	wm->adjust_buttons(944);
+	int result = w.run();
+
+	if (result == 3) {
+	} else if (result == 2) {	// start game
+		server_wait_for_clients();
+/*
+		submarine::types st = submarine::typeVIIc;
+		switch (wsubtype->get_selected()) {
+			case 0: st = submarine::typeVIIc; break;
+			case 1: st = submarine::typeIXc40; break;
+			case 2: st = submarine::typeXXI; break;
+		}
+		run_game(new game(st, wcvsize->get_selected(), wescortsize->get_selected(), wtimeofday->get_selected()));
+*/		
+	}
+	
+	SDLNet_Quit();
+}
+
+
+
+
 
 
 // old menus are used from here on
@@ -428,7 +514,9 @@ void menu_select_language(void)
 // options:
 // - set resolution
 // - enable bump mapping
+// - detail for map/terrain/water
 // - set fullscreen
+// - invert mouse in view
 //
 void menu_resolution(void)
 {
@@ -699,7 +787,7 @@ int main(int argc, char** argv)
 	// main menu
 	menu m(104, titlebackgrimg);
 	m.add_item(21, menu_single_mission);
-	m.add_item(22, menu_notimplemented);//menu_multiplayer);
+	m.add_item(22, create_network_game);
 	m.add_item(23, menu_notimplemented);
 	m.add_item(24, menu_show_vessels);
 	m.add_item(25, menu_notimplemented);
