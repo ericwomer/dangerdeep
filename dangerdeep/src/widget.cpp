@@ -214,6 +214,12 @@ void widget::on_char(const SDL_keysym& ks)
 	if (parent) parent->on_char(ks);
 }
 
+void widget::on_wheel(int wd)
+{
+	// we can't handle it, so pass it to the parent
+	if (parent) parent->on_wheel(wd);
+}
+
 void widget::draw_frame(int x, int y, int w, int h, bool out)
 {
 	glColor4f(1,1,1,1);
@@ -727,6 +733,12 @@ void widget_list::append_entry(const string& s)
 	unsigned ve = get_nr_of_visible_entries();
 	if (es > ve)
 		myscrollbar->set_nr_of_positions(es - ve + 1);
+}
+
+void widget_list::set_entry(unsigned n, const string& s)
+{
+	for (list<string>::iterator i = entries.begin(); i != entries.end(); ++i, --n)
+		if (n == 0) *i = s;
 }
 
 void widget_list::sort_entries(void)

@@ -8,22 +8,25 @@
 #include <string>
 using namespace std;
 
+#include <SDL.h>
+
 class cfg
 {
 public:
 	struct key
 	{
 		string action;
-		int keysym;
+		SDLKey keysym;
 		bool ctrl, alt, shift;
-		key() : keysym(-1), ctrl(false), alt(false), shift(false) {}
+		key() : keysym(SDLK_UNKNOWN), ctrl(false), alt(false), shift(false) {}
 		~key() {}
-		key(const string& ac, int ks, bool c, bool a, bool s) :
+		key(const string& ac, SDLKey ks, bool c, bool a, bool s) :
 			action(ac), keysym(ks), ctrl(c), alt(a), shift(s) {}
 		key(const key& k) : action(k.action), keysym(k.keysym), ctrl(k.ctrl), alt(k.alt), shift(k.shift) {}
 		key& operator= (const key& k) { action = k.action; keysym = k.keysym; ctrl = k.ctrl; alt = k.alt;
 			shift = k.shift; return *this; }
 		string get_name(void) const; // uses SDLK_GetKeyName
+		bool equal(const SDL_keysym& ks) const;
 	};
 private:
 	cfg(const cfg& );
@@ -56,13 +59,13 @@ public:
 	void register_option(const string& name, int value);
 	void register_option(const string& name, float value);
 	void register_option(const string& name, const string& value);
-	void register_key(unsigned nr, const string& name, int keysym, bool ctrl, bool alt, bool shift);
+	void register_key(unsigned nr, const string& name, SDLKey keysym, bool ctrl, bool alt, bool shift);
 
 	void set(const string& name, bool value);
 	void set(const string& name, int value);
 	void set(const string& name, float value);
 	void set(const string& name, const string& value);
-	void set_key(unsigned nr, int keysym, bool ctrl, bool alt, bool shift);
+	void set_key(unsigned nr, SDLKey keysym, bool ctrl, bool alt, bool shift);
 	
 	bool getb(const string& name) const;
 	int geti(const string& name) const;

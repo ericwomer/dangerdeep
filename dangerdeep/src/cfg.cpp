@@ -8,12 +8,6 @@
 #include <sstream>
 using namespace std;
 
-#ifdef WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#endif
-
-#include <SDL.h>
 
 
 cfg* cfg::myinst = 0;
@@ -28,6 +22,17 @@ string cfg::key::get_name(void) const
 	if (ctrl) result = string("Ctrl + ") + result;
 	return result;
 }
+
+
+
+bool cfg::key::equal(const SDL_keysym& ks) const
+{
+	return (ks.sym == keysym
+		&& ctrl == ((ks.mod & (KMOD_LCTRL | KMOD_RCTRL)) != 0)
+		&& alt == ((ks.mod & (KMOD_LALT | KMOD_RALT)) != 0)
+		&& shift == ((ks.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) != 0));
+}
+
 
 
 cfg::cfg()
@@ -93,7 +98,7 @@ void cfg::load(const string& filename)
 			TiXmlElement* ke = eattr->FirstChildElement();
 			for ( ; ke != 0; ke = ke->NextSiblingElement()) {
 				unsigned nr = XmlAttribu(ke, "nr");
-				int keysym = XmlAttribu(ke, "keysym");
+				SDLKey keysym = SDLKey(XmlAttribu(ke, "keysym"));
 				bool ctrl = XmlAttribu(ke, "ctrl") != 0;
 				bool alt = XmlAttribu(ke, "alt") != 0;
 				bool shift = XmlAttribu(ke, "shift") != 0;
@@ -183,7 +188,7 @@ void cfg::register_option(const string& name, const string& value)
 
 
 
-void cfg::register_key(unsigned nr, const string& name, int keysym, bool ctrl, bool alt, bool shift)
+void cfg::register_key(unsigned nr, const string& name, SDLKey keysym, bool ctrl, bool alt, bool shift)
 {
 	valk[nr] = key(name, keysym, ctrl, alt, shift);
 }
@@ -234,7 +239,7 @@ void cfg::set(const string& name, const string& value)
 
 
 	
-void cfg::set_key(unsigned nr, int keysym, bool ctrl, bool alt, bool shift)
+void cfg::set_key(unsigned nr, SDLKey keysym, bool ctrl, bool alt, bool shift)
 {
 	map<unsigned, key>::iterator it = valk.find(nr);
 	if (it != valk.end())

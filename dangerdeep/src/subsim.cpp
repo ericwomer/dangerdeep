@@ -981,15 +981,19 @@ void configure_key(widget_list* wkeys)
 			       const image* backgr, unsigned sel) :
 			widget(x, y, w, h, text_, parent_, backgr), keynr(sel)
 			{
-				keyname = new widget_text(40, 80, 432, 40, "undefined");
+				keyname = new widget_text(40, 80, 432, 40, cfg::instance().getkey(keynr).get_name());
 				add_child(keyname);
 				add_child(new widget_text(40, 120, 432, 40, texts::get(217)));
 			}
 		~confkey_widget() {}
 	};
-	confkey_widget w(256, 256, 512, 256, texts::get(216), 0, 0, unsigned(wkeys->get_selected()));
-	w.add_child(new widget_text(40, 40, 432, 32, wkeys->get_selected_entry()));
+	unsigned sel = wkeys->get_selected();
+	confkey_widget w(256, 256, 512, 256, texts::get(216), 0, 0, sel);
+	string wks = wkeys->get_selected_entry();
+	wks = wks.substr(0, wks.find("\t"));
+	w.add_child(new widget_text(40, 40, 432, 32, wks));
 	w.run(0, true);
+	wkeys->set_entry(sel, texts::get(sel+600) + string("\t") + cfg::instance().getkey(sel).get_name());
 }
 
 
@@ -997,7 +1001,6 @@ void configure_key(widget_list* wkeys)
 void menu_configure_keys(void)
 {
 	widget w(0, 0, 1024, 768, texts::get(214), 0, titlebackgrimg);
-	//w.add_child(new widget_text(40, 60, 0, 0, texts::get(16)));
 	widget_list* wkeys = new widget_list(40, 50, 944, 640);
 	wkeys->set_column_width(600);
 	w.add_child(wkeys);
@@ -1007,13 +1010,8 @@ void menu_configure_keys(void)
 		wkeys->append_entry(texts::get(i) + string("\t") + k.get_name());
 	}
 
-	//fixme: display current key name, not "undefined"
-
 	// fixme: handle undefined keys!
-
 	// fixme: check for double keys!
-
-	//fixme: change text of current list entry after used pressed a key!
 
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 40, 708, 452, 40, texts::get(20)));
 	w.add_child(new widget_func_arg_button<void (*)(widget_list*), widget_list*>(&configure_key, wkeys, 532, 708, 452, 40, texts::get(215)));

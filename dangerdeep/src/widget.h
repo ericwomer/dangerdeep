@@ -116,7 +116,7 @@ public:
 	// called on mouse button down
 	virtual void on_click(int mx, int my, int mb) {}
 	// called on mouse wheel action, mb is 1 for up, 2 for down
-	virtual void on_wheel(int wd) {}
+	virtual void on_wheel(int wd);
 	// called on mouse button up
 	virtual void on_release(void) {}
 	// called on mouse move while button is down
@@ -332,6 +332,7 @@ public:
 	void delete_entry(unsigned n);
 	void insert_entry(unsigned n, const string& s);
 	void append_entry(const string& s);
+	void set_entry(unsigned n, const string& s);
 	void sort_entries(void);
 	void make_entries_unique(void);
 	string get_entry(unsigned n) const;

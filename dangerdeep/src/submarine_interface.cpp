@@ -23,6 +23,8 @@ using namespace std;
 #include "sound.h"
 #include "image.h"
 #include "widget.h"
+#include "keys.h"
+#include "cfg.h"
 
 #include "sub_gauges_display.h"
 #include "sub_periscope_display.h"
@@ -75,6 +77,12 @@ void submarine_interface::process_input(game& gm, const SDL_Event& event)
 
 	// check for common keys
 	if (event.type == SDL_KEYDOWN) {
+		const cfg& mycfg = cfg::instance();
+		if (mycfg.getkey(KEY_FIRE_TUBE_1).equal(event.key.keysym)) {
+			// test. fixme replace all key commands, here and in *display classes
+			cout << "it works!\n";
+		}
+
 		if (event.key.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) {
 			switch (event.key.keysym.sym) {
 				// torpedo launching
