@@ -22,7 +22,7 @@
 
 // compute projected grid efficiency, it should be 50-95%
 //#define COMPUTE_EFFICIENCY
-#define WAVE_SUB_DETAIL		// sub fft detail
+//#define WAVE_SUB_DETAIL		// sub fft detail
 
 // for testing
 //#define DRAW_WATER_AS_GRID
@@ -99,7 +99,7 @@
 
 water::water(unsigned xres_, unsigned yres_, double tm) :
 	mytime(tm), xres(xres_), yres(yres_), reflectiontex(0), foamtex(0), fresnelcolortex(0),
-	last_light_brightness(-10000), water_bumpmap(0),
+	last_light_brightness(-10000), //water_bumpmap(0),
 	vertex_program_supported(false),
 	fragment_program_supported(false),
 	compiled_vertex_arrays_supported(false),
@@ -206,7 +206,9 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileheights[i] = owg.compute_heights();
-		for (vector<float>::const_iterator it = wavetileheights[i].begin(); it != wavetileheights[i].end(); ++it) {
+		for (vector<float>::/*const_*/iterator it = wavetileheights[i].begin(); it != wavetileheights[i].end(); ++it) {
+//fixme!!!!!!!1 debug
+//			*it = 0;
 			if (*it > maxh) maxh = *it;
 			if (*it < minh) minh = *it;
 		}
@@ -266,11 +268,29 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 
 	}
 
-	perlinnoise_generator png(7, 32);
-	perlinnoise pn = png.generate_map(256);
-#if 1
+	unsigned tm3 = 0, tm6 = 0, tm7 = 0;
+	srand(time(0));
+	perlinnoise_generator png;
+	png.add_noise_func(perlinnoise_generator::noise_func(3, 1, 256));
+	png.add_noise_func(perlinnoise_generator::noise_func(4, 1, 128));
+	png.add_noise_func(perlinnoise_generator::noise_func(5, 1,  64));
+	png.add_noise_func(perlinnoise_generator::noise_func(6, 1,  32));
+	png.add_noise_func(perlinnoise_generator::noise_func(6, 2,  16));
+	png.add_noise_func(perlinnoise_generator::noise_func(6, 4,   8));
+	water_bumpmap.resize(64);
+	for (unsigned n = 0; n < water_bumpmap.size(); ++n) {
+		for (unsigned k = 0; k < 6; ++k)
+			png.set_phase(0, float(n)/128, 0);
+
+		unsigned tm1 = SDL_GetTicks();
+	perlinnoise pn = png.generate_map(8);
+		unsigned tm2 = SDL_GetTicks();
+		tm3 += (tm2 - tm1);
+#if 0
 	vector<Uint8> wbtmp2 = pn.noisemap;
-	ofstream osg("noisemap.pgm");
+	ostringstream osgname;
+	osgname << "noisemap" << n << ".pgm";
+	ofstream osg(osgname.str().c_str());
 	osg << "P5\n256 256\n255\n";
 	osg.write((const char*)(&wbtmp2[0]), 256*256);
 #endif
@@ -284,8 +304,14 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	water_bumpmap = new texture(&wbtmp[0], WAVE_RESOLUTION, WAVE_RESOLUTION,
 				    GL_RGB, GL_LINEAR /*_MIPMAP_LINEAR*/, GL_REPEAT, false);
 #endif
-	water_bumpmap = texture::make_normal_map(&(pn.noisemap[0]), 256, 256, 8.0f,
+	unsigned tm4 = SDL_GetTicks() - tm1;
+	water_bumpmap[n] = texture::make_normal_map(&(pn.noisemap[0]), 256, 256, 8.0f, //16.0f,
 						 GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	unsigned tm5 = SDL_GetTicks() - tm1;
+	tm6 += tm4;
+	tm7 += tm5;
+	//printf("tm cur total %u %u   %u %u  %u %u\n",tm3,tm3/(n+1),tm4,tm5,tm6,tm7);
+	}
 
 	add_loading_screen("water height data computed");
 }
@@ -300,7 +326,8 @@ water::~water()
 	glDeleteTextures(1, &reflectiontex);
 	delete foamtex;
 	delete fresnelcolortex;
-	delete water_bumpmap;
+	for (unsigned n = 0; n < water_bumpmap.size(); ++n)
+	delete water_bumpmap[n];
 }
 
 
@@ -320,7 +347,11 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 		// tex1: reflection map / matching texcoords
 		// tex2: --- / vector to viewer
 		glActiveTexture(GL_TEXTURE0);
-		water_bumpmap->set_gl_texture();
+		float bt = myfmod(mytime, 10.0) / 10.0f;// seconds, fixme
+		if (bt >= 0.5f) bt = 1.0f - bt;
+		bt *= 2.0f;
+		unsigned wb = unsigned(water_bumpmap.size()*bt);
+		water_bumpmap[wb]->set_gl_texture();
 
 		// local parameters:
 		// local 0 : upwelling color
@@ -774,11 +805,12 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 			const vector3f& N = normals[ptr];
 
 			if (fragment_program_supported && use_fragment_programs) {
-				uv0[ptr] = vector2f(myfmod(coord.x, 256)*4.0f, myfmod(coord.y,256)*4.0f); // fixme, use noise map texc's
+				uv0[ptr] = vector2f(myfmod(coord.x, 4*256)*0.25f, myfmod(coord.y,4*256)*0.25f); // fixme, use noise map texc's
 				//fixme ^, offset is missing
 				vector3f tx = vector3f(1, 0, 0);//fixme hack
 				vector3f ty = N.cross(tx);
 				vector3f tz = N;
+				tx = ty.cross(tz);
 				vector3f worldE = -coord;
 				vector3f tangentE = vector3f(tx * worldE, ty * worldE, tz * worldE);
 				uv2[ptr] = tangentE;

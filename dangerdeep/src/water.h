@@ -63,7 +63,7 @@ protected:
 	mutable vector<vector2f> uv0;
 
 	// testing: with fragment programs we need some sub-noise
-	texture* water_bumpmap;
+	vector<texture*> water_bumpmap;
 
 #if 0		// old code, kept for reference, especially for foam
 	vector<texture*> water_bumpmaps;

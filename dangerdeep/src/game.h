@@ -14,6 +14,11 @@
 #include <vector>
 using namespace std;
 
+// c++ idea: use auto_ptr's whereever possible
+// to store a vector of pointers, write a ptrvector<T> container, like a
+// vector storing T* ptrs.
+// operations: iterator, at, [], begin, end, push_back, size
+
 // use forward declarations to avoid unneccessary compile dependencies
 class ship;
 class submarine;
