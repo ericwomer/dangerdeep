@@ -1,3 +1,7 @@
+2003-07-22  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* user_display.cpp
+	  - added display of conning tower model.
+
 2003-07-17  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* sound.cpp
 	  - used SDL_InitSubSystem at pre-Init stage.

@@ -316,7 +316,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	list<ship*> ships;
 	gm.visible_ships(ships, player);
 	for (list<ship*>::const_iterator it = ships.begin(); it != ships.end(); ++it) {
-		if (!withplayer && *it == player) continue;	// only ships or subs playable!
+		if (/*!withplayer &&*/ *it == player) continue;	// only ships or subs playable!
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
@@ -334,7 +334,7 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 	list<submarine*> submarines;
 	gm.visible_submarines(submarines, player);
 	for (list<submarine*>::const_iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		if (!withplayer && *it == player) continue; // only ships or subs playable!
+		if (/*!withplayer &&*/ *it == player) continue; // only ships or subs playable!
 		glPushMatrix();
 		glTranslatef((*it)->get_pos().x, (*it)->get_pos().y, (*it)->get_pos().z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
@@ -399,6 +399,27 @@ void user_interface::draw_view(class system& sys, class game& gm, const vector3&
 		glRotatef ( view_dir, 0.0f, 0.0f, 1.0f );
 		(*it)->display ();
 		glPopMatrix ();
+	}
+
+	if (withplayer) {
+		// after everything was drawn, draw conning tower (new projection matrix needed)
+		glClear(GL_DEPTH_BUFFER_BIT);
+//		glDisable(GL_DEPTH_TEST);
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		sys.gl_perspective_fovx (90.0, 4.0/3.0 /* fixme may change */, 0.5, 100.0);
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glRotatef(-90,1,0,0);
+		glRotatef((dir - player->get_heading()).value(),0,0,1);
+		conning_tower_typeVII->display();
+		glPopMatrix();
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+//		glEnable(GL_DEPTH_TEST);
 	}
 	
 	glColor3f(1,1,1);
@@ -676,7 +697,7 @@ void user_interface::display_bridge(class system& sys, game& gm)
 	draw_view(sys, gm, viewpos, player->get_heading()+bearing, true, false);
 
 	sys.prepare_2d_drawing();
-	draw_infopanel(sys, gm);
+//	draw_infopanel(sys, gm);	//fixme: disabled for conning tower display test
 	sys.unprepare_2d_drawing();
 
 	// keyboard processing

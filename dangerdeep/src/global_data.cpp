@@ -19,11 +19,15 @@
 #define SOUND_DIR "sounds/"
 #define IMAGES_DIR "images/"
 
+// fixme: this could be replaced with an array of pointers using enum-names
+// as indices. This would simplify destruction and possibly construction.
+
 model	*merchant_large, *merchant_medium, *merchant_small,
 	*subVII, *subXXI, *destroyer_tribal, *troopship_medium,
 	*battleship_malaya, *carrier_bogue, *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl,
 	*skyhemisphere, *corvette_mdl, *freighter_medium, *freighter_large,
-	*tanker_small;
+	*tanker_small,
+	*conning_tower_typeVII;
 
 texture *water, *background, *gauge1,
 	*gauge2, *gauge3, *gauge4, *gauge5, *psbackgr, *panelbackgr,
@@ -60,6 +64,7 @@ void init_global_data(void)
 	freighter_large = new model((get_data_dir() + MODEL_DIR + "largefreighter.mdl"));
 	freighter_medium = new model((get_data_dir() + MODEL_DIR + "mediumfreighter.mdl"));
 	tanker_small = new model((get_data_dir() + MODEL_DIR + "smalltanker.mdl"));
+	conning_tower_typeVII = new model((get_data_dir() + MODEL_DIR + "conning_tower_typeVII.mdl"));
 	font_arial = new font(get_data_dir() + FONT_DIR + "font_arial.png");
 	font_arial2 = new font(get_data_dir() + FONT_DIR + "font_arial2.png");
 	font_ellis = new font(get_data_dir() + FONT_DIR + "font_ellis.png");
@@ -134,6 +139,8 @@ void deinit_global_data(void)
 	delete subXXI;
 	delete destroyer_tribal;
 	delete corvette_mdl;
+	delete tanker_small;
+	delete conning_tower_typeVII;
 	delete font_arial;
 	delete font_arial2;
 	delete font_ellis;
