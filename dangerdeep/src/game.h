@@ -87,7 +87,7 @@ protected:
 public:
 	// expects: size small,medium,large, escort size none,small,medium,large,
 	// time of day [0,4) night,dawn,day,dusk
-	game(submarine::types subtype, unsigned cvsize, unsigned cvesc, float timeofday);
+	game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday);
 	game(parser& p);
 	virtual ~game();
 

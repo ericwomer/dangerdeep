@@ -5,8 +5,75 @@
 #include "game.h"
 #include "tokencodes.h"
 
-convoy::convoy(class game& gm, convoy::types type_) : sea_object()
+convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : sea_object()
 {
+	waypoints.push_back(vector2(0, 0));
+	for (int wp = 0; wp < 4; ++wp)
+		waypoints.push_back(vector2(rnd()*300000-150000,rnd()*300000-150000));
+	// course?
+	angle course(*(++waypoints.begin()) - *(waypoints.begin()));
+	vector2 coursevec = course.direction();
+	
+	// merchant convoy?
+	if (type_ == small || type_ == medium || type_ == large) {
+		unsigned cvsize = unsigned(type_);
+	
+		// compute size and structure of convoy
+		unsigned nrships = (2<<cvsize)*10+rnd(10)-5;
+		unsigned sqrtnrships = unsigned(floor(sqrt(float(nrships))));
+		unsigned shps = 0;
+		for (unsigned j = 0; j <= sqrtnrships; ++j) {
+			if (shps >= nrships) break;
+			int dy = int(j)-sqrtnrships/2;
+			for (unsigned i = 0; i <= sqrtnrships; ++i) {
+				if (shps >= nrships) break;
+				int dx = int(i)-sqrtnrships/2;
+				float d = 4*float(dx*dx+dy*dy)/nrships;
+				ship::types shiptype = (d < 0.2) ? ship::mediumtroopship : ship::mediummerchant;
+				ship* s = ship::create(shiptype);
+				vector2 pos = vector2(
+					dx*500.0 + rnd()*60.0-30.0,
+					dy*500.0 + rnd()*60.0-30.0 );
+				pos.x = pos.x*coursevec.x - pos.y*coursevec.y;
+				pos.y = pos.x*coursevec.y + pos.y*coursevec.x;
+				s->position.x = waypoints.begin()->x + pos.x;
+				s->position.y = waypoints.begin()->y + pos.y;
+				merchants.push_back(make_pair(s, pos));
+				++shps;
+			}
+		}
+		
+		// compute nr of escorts
+		unsigned nrescs = esct_ * 5;
+		for (unsigned i = 0; i < nrescs; ++i) {
+			int side = i % 4;
+			float dx, dy, nx, ny;
+			switch (side) {
+				case 0: dx = 0; dy = 1; break;
+				case 1: dx = 1; dy = 0; break;
+				case 2: dx = 0; dy = -1; break;
+				case 3: dx = -1; dy = 0; break;
+			}
+			nx = -dy; ny = dx;
+			dx *= sqrtnrships/2 * 500.0 + 3000.0;
+			dy *= sqrtnrships/2 * 500.0 + 3000.0;
+			nx *= (int(nrescs/4)-1)*1000.0-int(i/4)*1000.0;
+			ny *= (int(nrescs/4)-1)*1000.0-int(i/4)*1000.0;
+			unsigned esctp = rnd(2);
+			ship *s = ship::create(esctp == 0 ? ship::destroyertribal : ship::corvette);
+			vector2 pos = vector2(
+				dx+nx + rnd()*100.0-50.0,
+				dy+ny + rnd()*100.0-50.0 );
+			pos.x = pos.x*coursevec.x - pos.y*coursevec.y;
+			pos.y = pos.x*coursevec.y + pos.y*coursevec.x;
+			s->position.x = waypoints.begin()->x + pos.x;
+			s->position.y = waypoints.begin()->y + pos.y;
+			escorts.push_back(make_pair(s, pos));
+		}
+			
+		return;
+	}
+	
 	// fixme
 	switch (type_) {
 		case small: break;

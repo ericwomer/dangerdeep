@@ -11,6 +11,7 @@
 class ship : public sea_object
 {
 	friend class convoy;
+	friend class game;	// for initialization
 
 protected:
 	class ai* myai;

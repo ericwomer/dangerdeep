@@ -1,3 +1,7 @@
+2003-07-06  Thorsten Jordan <thorsten_jordan@gmx.de>
+	* convoy.cpp game.cpp subsim.cpp
+	  - first bits of custom mission generation.
+
 2003-07-05  Thorsten Jordan <thorsten_jordan@gmx.de>
 	* ship_corvette.* and related files.
 	  - new model.

@@ -17,7 +17,7 @@
 
 #define TRAILTIME 10
 
-game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, float timeofday)
+game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday)
 {
 /****************************************************************
 	custom mission generation:
@@ -35,7 +35,36 @@ game::game(submarine::types subtype, unsigned cvsize, unsigned cvesc, float time
 	To do this we need a simulation of convoys in the atlantic.
 	Then we place the sub somewhere randomly around the convoy with maximum viewing distance.
 ***********************************************************************/	
-
+	time = 86400*500;	// fixme random dependent of period
+	
+	// all code from here on is fixme and experimental.
+	switch (timeofday) {
+		case 0: time += 3*3600*rnd(); break;		
+		case 1: time += 6*3600+1800*rnd(); break;		
+		case 2: time += 18*3600+1800*rnd(); break;		
+		case 3: time += 20*3600+5*3600*rnd(); break;		
+	};
+	
+	compute_max_view_dist();
+	generate_clouds();
+	double mvd = get_max_view_distance();
+	
+	convoy* cv = new convoy(*this, (convoy::types)(cvsize), (convoy::esctypes)(cvesc));
+	for (list<pair<ship*, vector2> >::iterator it = cv->merchants.begin(); it != cv->merchants.end(); ++it)
+		spawn_ship(it->first);
+	for (list<pair<ship*, vector2> >::iterator it = cv->warships.begin(); it != cv->warships.end(); ++it)
+		spawn_ship(it->first);
+	for (list<pair<ship*, vector2> >::iterator it = cv->escorts.begin(); it != cv->escorts.end(); ++it)
+		spawn_ship(it->first);
+	spawn_convoy(cv);
+	
+	submarine* sub = submarine::create(subtype);
+	angle tmpa(rnd()*360.0);
+	vector2 tmpp = tmpa.direction() * (mvd/2);
+	sub->position = vector3(tmpp.x, tmpp.y, timeofday == 2 ? 0 : -12);
+	spawn_submarine(sub);
+	player = sub;
+	ui = new submarine_interface(sub);
 
 /*
 	submarine* playersub = new submarine(subtype == 0 ? submarine::typeVIIc : submarine::typeXXI, vector3(2000, 1000, -30), 270);
@@ -629,7 +658,7 @@ void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
 template<class _C>
 ship* game::check_unit_list ( torpedo* t, list<_C>& unit_list )
 {
-	for ( list<_C>::iterator it = unit_list.begin (); it != unit_list.end (); ++it )
+	for ( typename list<_C>::iterator it = unit_list.begin (); it != unit_list.end (); ++it )
 	{
 		if ( is_collision ( t, *it ) )
 			return *it;

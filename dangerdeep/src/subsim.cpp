@@ -48,13 +48,14 @@ void menu_notimplemented(void)
 }
 
 unsigned mission_subtype = 0, mission_cvsize = 0, mission_cvesc = 0, mission_tod = 0;
-void start_custom_mission(void)//int subtype, int cvsize, int cvesc, int tod)
+void start_custom_mission(void)
 {
-	menu_notimplemented();
-	return;
-	
-	game* gm = new game((submarine::types)(mission_subtype), mission_cvsize,
-		mission_cvesc, mission_tod);
+	submarine::types st;
+	switch (mission_subtype) {
+		case 0: st = submarine::typeVIIc; break;
+		case 1: st = submarine::typeXXI; break;
+	}
+	game* gm = new game(st, mission_cvsize,	mission_cvesc, mission_tod);
 	gm->main_playloop(*sys);
 	delete gm;
 }

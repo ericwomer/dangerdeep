@@ -12,6 +12,8 @@
 class convoy : public sea_object
 {
 protected:
+	friend class game; // for initialization	
+
 	list<pair<ship*, vector2> > merchants, warships, escorts;
 	list<vector2> waypoints;
 
@@ -23,8 +25,9 @@ protected:
 
 public:
 	enum types { small, medium, large, battleship, supportgroup, carrier };
+	enum esctypes { etnone, etsmall, etmedium, etlarge };	// escort size
 	virtual ~convoy() {}
-	convoy(class game& gm, types type_);	// fixme implement
+	convoy(class game& gm, types type_, esctypes esct_);
 	convoy(class game& gm, parser& p);
 	virtual void simulate(class game& gm, double delta_time);
 	virtual void display(void) const {}
