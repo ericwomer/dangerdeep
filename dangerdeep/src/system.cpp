@@ -333,7 +333,9 @@ list<SDL_Event> system::poll_event_queue(void)
 	SDL_Event event;
 	SDL_keysym keysym;
 	do {
+		unsigned nr_of_events = 0;
 		while (SDL_PollEvent(&event)) {
+			++nr_of_events;
 			events.push_back(event);
 			switch (event.type) {
 				case SDL_QUIT:			// Quit event
@@ -446,6 +448,9 @@ list<SDL_Event> system::poll_event_queue(void)
 					break;
 			}
 		}
+		// do not waste CPU time when sleeping
+		if (nr_of_events == 0 && is_sleeping)
+			SDL_Delay(25);
 	} while (is_sleeping);
 
 	return events;
