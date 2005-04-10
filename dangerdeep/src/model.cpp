@@ -23,6 +23,8 @@
 #include "global_data.h"
 #include "oglext/OglExt.h"
 #include "matrix4.h"
+#include "tinyxml/tinyxml.h"
+#include <sstream>
 
 string modelpath;
 
@@ -622,6 +624,168 @@ void model::transform(const matrix4f& m)
 		it->transform(m);
 	}
 }
+
+
+// write our own model file format.
+void model::write_to_dftd_model_file(const std::string& filename) const
+{
+	TiXmlDocument doc(filename);
+	TiXmlElement* root = new TiXmlElement("dftd-model");
+	doc.LinkEndChild(root);
+	root->SetAttribute("version", "1.0");
+
+	// save materials.
+	unsigned nr = 0;
+	for (vector<material*>::const_iterator it = materials.begin(); it != materials.end(); ++it, ++nr) {
+		TiXmlElement* mat = new TiXmlElement("material");
+		root->LinkEndChild(mat);
+		mat->SetAttribute("name", (*it)->name);
+		mat->SetAttribute("id", nr);
+		const material* m = *it;
+
+		// colors.
+		write_color_to_dftd_model_file(mat, m->ambient, "ambient");
+		write_color_to_dftd_model_file(mat, m->diffuse, "diffuse");
+		write_color_to_dftd_model_file(mat, m->specular, "specular");
+
+		// maps.
+		if (m->tex1) {
+			m->tex1->write_to_dftd_model_file(mat, "diffuse");
+		}
+		if (m->bump) {
+			m->bump->write_to_dftd_model_file(mat, "normal");
+		}
+		/*
+		if (m->specularmap) {
+			m->specularmap->write_to_dftd_model_file(mat, "specular");
+		}
+		*/
+	}
+
+	// save meshes.
+	nr = 0;
+	for (vector<mesh>::const_iterator it = meshes.begin(); it != meshes.end(); ++it, ++nr) {
+		TiXmlElement* msh = new TiXmlElement("mesh");
+		root->LinkEndChild(msh);
+		msh->SetAttribute("name", it->name);
+		msh->SetAttribute("id", nr);
+
+		// material.
+		if (it->mymaterial) {
+			unsigned matid = 0;
+			for ( ; matid < materials.size(); ++matid) {
+				if (materials[matid] == it->mymaterial)
+					break;
+			}
+			msh->SetAttribute("material", matid);
+		}
+
+		// vertices.
+		TiXmlElement* verts = new TiXmlElement("vertices");
+		msh->LinkEndChild(verts);
+		verts->SetAttribute("nr", it->vertices.size());
+		ostringstream ossv;
+		for (vector<vector3f>::const_iterator vit = it->vertices.begin(); vit != it->vertices.end(); ++vit) {
+			ossv << vit->x << " " << vit->y << " " << vit->z << " ";
+		}
+		TiXmlText* vertt = new TiXmlText(ossv.str());
+		verts->LinkEndChild(vertt);
+
+		// indices.
+		TiXmlElement* indis = new TiXmlElement("indices");
+		msh->LinkEndChild(indis);
+		verts->SetAttribute("nr", it->indices.size());
+		ostringstream ossi;
+		for (vector<unsigned>::const_iterator iit = it->indices.begin(); iit != it->indices.end(); ++iit) {
+			ossi << *iit << " ";
+		}
+		TiXmlText* indit = new TiXmlText(ossi.str());
+		indis->LinkEndChild(indit);
+
+		// texcoords.
+		if (it->mymaterial) {
+			TiXmlElement* texcs = new TiXmlElement("texcoords");
+			msh->LinkEndChild(texcs);
+			ostringstream osst;
+			for (vector<vector2f>::const_iterator tit = it->texcoords.begin(); tit != it->texcoords.end(); ++tit) {
+				osst << tit->x << " " << tit->y << " ";
+			}
+			TiXmlText* texct = new TiXmlText(osst.str());
+			texcs->LinkEndChild(texct);
+		}
+
+		// normals.
+		TiXmlElement* nrmls = new TiXmlElement("normals");
+		msh->LinkEndChild(nrmls);
+		ostringstream ossn;
+		for (vector<vector3f>::const_iterator nit = it->normals.begin(); nit != it->normals.end(); ++nit) {
+			ossn << nit->x << " " << nit->y << " " << nit->z << " ";
+		}
+		TiXmlText* nrmlt = new TiXmlText(ossn.str());
+		nrmls->LinkEndChild(nrmlt);
+
+		// transformation.
+		if (true /*it->transformation != matrix4f::one()*/) {
+			TiXmlElement* trans = new TiXmlElement("transformation");
+			msh->LinkEndChild(trans);
+			ostringstream osst;
+			for (unsigned y = 0; y < 4; ++y) {
+				for (unsigned x = 0; x < 4; ++x) {
+					osst << it->transformation.elem(x, y) << " ";
+				}
+			}
+			TiXmlText* transt = new TiXmlText(osst.str());
+			trans->LinkEndChild(transt);
+		}
+	}
+
+	// save lights.
+	for (vector<light>::const_iterator it = lights.begin(); it != lights.end(); ++it) {
+		TiXmlElement* lgt = new TiXmlElement("light");
+		root->LinkEndChild(lgt);
+		lgt->SetAttribute("name", it->name);
+		ostringstream lpos; lpos << it->pos.x << " " << it->pos.y << " " << it->pos.z;
+		lgt->SetAttribute("pos", lpos.str());
+		ostringstream lcol; lcol << it->colr << " " << it->colg << " " << it->colb;
+		lgt->SetAttribute("color", lcol.str());
+	}
+
+	// finally save file.
+	doc.SaveFile();
+}
+
+
+void model::write_color_to_dftd_model_file(TiXmlElement* parent, const color& c,
+					   const string& type) const
+{
+	TiXmlElement* cl = new TiXmlElement(type);
+	parent->LinkEndChild(cl);
+	ostringstream osscl;
+	osscl << float(c.r)/255 << " " << float(c.g)/255 << " " << float(c.b)/255;
+	cl->SetAttribute("color", osscl.str());
+}
+
+
+void model::material::map::write_to_dftd_model_file(TiXmlElement* parent,
+						    const std::string& type) const
+{
+	TiXmlElement* mmap = new TiXmlElement("map");
+	parent->LinkEndChild(mmap);
+	mmap->SetAttribute("type", type);
+	mmap->SetAttribute("filename", filename);
+	ostringstream ossus; ossus << uscal;
+	mmap->SetAttribute("uscal", ossus.str());
+	ostringstream ossvs; ossvs << vscal;
+	mmap->SetAttribute("vscal", ossvs.str());
+	ostringstream ossuo; ossuo << uoffset;
+	mmap->SetAttribute("uoffset", ossuo.str());
+	ostringstream ossvo; ossvo << voffset;
+	mmap->SetAttribute("voffset", ossvo.str());
+	ostringstream ossan; ossan << angle;
+	mmap->SetAttribute("angle", ossan.str());
+}
+
+
 
 // ------------------------------------------ 3ds loading functions -------------------------- 
 // ----------------------------- 3ds file reading data ---------------------------

@@ -11,6 +11,8 @@
 #include <vector>
 #include <fstream>
 
+class TiXmlElement;
+
 class model {
 public:
 	typedef std::auto_ptr<model> ptr;
@@ -30,6 +32,8 @@ public:
 			map() : uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0.0f), angle(0.0f), mytexture(0) {}
 			~map() { delete mytexture; }
 			void init(int mapping);
+			void write_to_dftd_model_file(TiXmlElement* parent,
+						      const std::string& type) const;
 		};
 	
 		std::string name;
@@ -39,6 +43,7 @@ public:
 		color transparency;//????
 		map* tex1;
 		map* bump;
+		//map* specularmap;
 		
 		material() : tex1(0), bump(0) {}
 		void init(void);
@@ -174,6 +179,11 @@ public:
 	void add_material(material* m) { materials.push_back(m); }
 	// transform meshes by matrix (attention: scaling destroys normals)
 	void transform(const matrix4f& m);
+
+	// write our own model file format.
+	void write_to_dftd_model_file(const std::string& filename) const;
+	void write_color_to_dftd_model_file(TiXmlElement* parent, const color& c,
+					    const std::string& type) const;
 };	
 
 #endif

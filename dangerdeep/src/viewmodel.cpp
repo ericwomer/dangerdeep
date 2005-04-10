@@ -32,6 +32,8 @@ void view_model(const string& modelfilename)
 	vector3 pos;
 	model* mdl = new model(get_model_dir() + modelfilename, true, false);
 
+	mdl->write_to_dftd_model_file("test.xml");
+
 	while (true) {
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		glLoadIdentity();
