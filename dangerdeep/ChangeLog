@@ -1,3 +1,11 @@
+2005-04-03  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* introduced 4d vector and operations
+	* changed texture class interface
+	* new model file format with reading and writing
+	* now can read LUMINANCE textures
+	* many fixes around texture mapping and bump mapping (some bugs
+	  remain)
+
 2005-04-10 Andy Rice
 	* Support for stereo/directional sound
 	* Sub engine noise sound effects
