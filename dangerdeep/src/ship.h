@@ -223,6 +223,7 @@ public:
 	virtual angle get_head_to(void) const { return head_to_fixed ? head_to : heading; };
 	virtual angle get_turn_rate(void) const { return turn_rate; };
 	virtual double get_max_speed(void) const { return max_speed_forward; };
+	virtual throttle_status get_throttle() { return (throttle_status)throttle; }
 	virtual double get_throttle_speed(void) const;
 	virtual double get_throttle_accel(void) const;	// returns acceleration caused by current throttle
 	virtual double get_rudder_pos(void) const { return rudder_pos; }

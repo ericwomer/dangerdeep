@@ -1048,3 +1048,72 @@ void submarine::gun_manning_changed(bool isGunManned)
 		}
 	}
 }
+
+void submarine::set_throttle(ship::throttle_status thr)
+{	
+	if (get_throttle() != thr)
+	{
+		stop_throttle_sound();	
+		ship::set_throttle(thr);	
+		start_throttle_sound();
+	}
+}
+
+void submarine::start_throttle_sound()
+{
+	if (NULL != ui)
+	{
+		switch(get_throttle())
+		{
+			case ship::aheadslow:
+				ui->play_fade_sound_effect(se_sub_screws_slow, this, this, true); 	
+				break;
+			case ship::aheadhalf:
+				ui->play_fade_sound_effect(se_sub_screws_normal, this, this, true); 	
+				break;
+			case ship::aheadfull:
+				ui->play_fade_sound_effect(se_sub_screws_fast, this, this, true); 	
+				break;
+			case ship::aheadflank:
+				ui->play_fade_sound_effect(se_sub_screws_very_fast, this, this, true); 	
+				break;
+			case ship::stop:
+			case ship::reverse:
+			case ship::aheadlisten:
+			case ship::aheadsonar:
+				break;
+		}
+	}
+}
+
+void submarine::stop_throttle_sound()
+{
+	switch(get_throttle())
+	{
+		case ship::aheadslow:
+			ui->stop_fade_sound_effect(se_sub_screws_slow);
+			break;
+		case ship::aheadhalf:
+			ui->stop_fade_sound_effect(se_sub_screws_normal);
+			break;
+		case ship::aheadfull:
+			ui->stop_fade_sound_effect(se_sub_screws_fast);
+			break;
+		case ship::aheadflank:
+			ui->stop_fade_sound_effect(se_sub_screws_very_fast);
+			break;
+		case ship::stop:
+		case ship::reverse:
+		case ship::aheadlisten:
+		case ship::aheadsonar:
+			break;
+	}	
+}
+
+void submarine::set_ui(user_interface *messageDisplay)
+{ 
+	ui = messageDisplay; 
+	// need todo this here because when we load up a ship from xml
+	// we don't have the UI pointer set up so no throttle sound effects
+	start_throttle_sound();
+}

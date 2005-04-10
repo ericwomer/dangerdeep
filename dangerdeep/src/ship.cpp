@@ -370,15 +370,15 @@ void ship::parse_attributes(TiXmlElement* parent)
 			velocity.y = kts2ms(tmp);
 */
 		string thr = XmlAttrib(emotion, "throttle");
-		if (thr == "stop") throttle = stop;
-		else if (thr == "reverse") throttle = reverse;
-		else if (thr == "aheadlisten") throttle = aheadlisten;
-		else if (thr == "aheadsonar") throttle = aheadsonar;
-		else if (thr == "aheadslow") throttle = aheadslow;
-		else if (thr == "aheadhalf") throttle = aheadhalf;
-		else if (thr == "aheadfull") throttle = aheadfull;
-		else if (thr == "aheadflank") throttle = aheadflank;
-		else throttle = atoi(thr.c_str());
+		if (thr == "stop") set_throttle(stop);
+		else if (thr == "reverse") set_throttle(reverse);
+		else if (thr == "aheadlisten") set_throttle(aheadlisten);
+		else if (thr == "aheadsonar") set_throttle(aheadsonar);
+		else if (thr == "aheadslow") set_throttle(aheadslow);
+		else if (thr == "aheadhalf") set_throttle(aheadhalf);
+		else if (thr == "aheadfull") set_throttle(aheadfull);
+		else if (thr == "aheadflank") set_throttle(aheadflank);
+		else set_throttle(atoi(thr.c_str()));
 	}
 	// fixme: parse permanent_turn,head_chg,head_to,rudder  maybe also alive_stat,previous_positions
 	// parse tonnage, fuel level, damage status, fixme

@@ -92,7 +92,7 @@ void submarine_interface::fire_tube(submarine* player, int nr)
 				oss << " " << texts::get(6) << ": " << target->get_description(2);
 			mygame->add_logbook_entry(oss.str());
 			player->launch_torpedo(*mygame, nr, target);
-			play_sound_effect(se_submarine_torpedo_launch);
+			play_sound_effect(se_submarine_torpedo_launch, player, player);
 		} else {
 			string failed_to_fire_msg;
 			
@@ -378,6 +378,11 @@ void submarine_interface::process_input(const SDL_Event& event)
 				sys().add_console("screenshot taken.");
 				break;
 			case SDLK_PAUSE:
+				if (true == pause)
+					pause_all_sound();
+				else
+					resume_all_sound();
+				
 				pause = !pause;
 				if (pause) add_message(texts::get(52));
 				else add_message(texts::get(53));

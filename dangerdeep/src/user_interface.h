@@ -144,8 +144,14 @@ public:
 //	virtual void record_sunk_ship ( const class ship* so );
 	/** This method creates a message about the rudder state. */
 	virtual void add_rudder_message(void);
-	virtual void play_sound_effect(const string &se, double volume = 1.0f) const;
-	virtual void play_sound_effect_distance(const string &se, double distance) const;
+	virtual void play_sound_effect(const string &se, const sea_object* player, 
+								   const sea_object* noise_source, bool loop = false) const;
+	virtual void play_fade_sound_effect(const string &se, const sea_object* player, 
+										const sea_object* noise_source, bool loop = false) const;
+	virtual void stop_sound_effect(const string &se) const;
+	virtual void stop_fade_sound_effect(const string &se) const;	
+	virtual void pause_all_sound() const;
+	virtual void resume_all_sound() const;
 };
 
 #endif

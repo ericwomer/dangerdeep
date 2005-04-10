@@ -28,6 +28,7 @@ public:
 	virtual void display(void) const;
 	virtual float surface_visibility(const vector2& watcher) const;
 	// acceleration is only gravity and already handled by sea_object
+	virtual double damage() { return damage_amount; }
 };
 
 #endif

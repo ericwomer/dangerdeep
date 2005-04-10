@@ -1023,7 +1023,7 @@ void game::spawn_gun_shell(gun_shell* s, const double &calibre)
 		else
 			se = se_large_gun_firing;
 		
-		ui->play_sound_effect_distance(se, player->get_pos().distance(s->get_pos()));
+		ui->play_sound_effect(se, player, s);
 	}
 }
 
@@ -1033,7 +1033,7 @@ void game::spawn_depth_charge(depth_charge* dc)
 	depth_charges.push_back(dc);
 	
 	if (ui) 
-		ui->play_sound_effect_distance(se_depth_charge_firing, player->get_pos().distance(dc->get_pos()));
+		ui->play_sound_effect(se_depth_charge_firing, player, dc);
 }
 
 void game::spawn_convoy(convoy* cv)
@@ -1062,14 +1062,16 @@ void game::dc_explosion(const depth_charge& dc)
 		if (*it == player) {
 			// play detonation sound, volume depends on distance
 			if (ui) 
-				ui->play_sound_effect_distance(se_depth_charge_exploding, player->get_pos().distance(dc.get_pos()));
+				ui->play_sound_effect(se_depth_charge_exploding, player, &dc);
 		}
 	}
 	if (ui) ui->add_message(texts::get(204));	// fixme: only when player is near enough
 }
 
-bool game::gs_impact(const vector3& pos, const double &damage)	// fixme: vector2 would be enough
+bool game::gs_impact(const gun_shell *gs)	// fixme: vector2 would be enough
 {
+	vector3 pos = gs->get_pos();
+	
 	// Create water splash. // FIXME
 	spawn_particle(new gun_shell_water_splash_particle(pos.xy().xy0()));
 //	return false;//fixme testing
@@ -1078,7 +1080,7 @@ bool game::gs_impact(const vector3& pos, const double &damage)	// fixme: vector2
 		// the shell is so fast that it can be collisionfree with *it
 		// delta_time ago and now, but hit *it in between
 		if (is_collision(*it, pos.xy())) {
-			if ((*it)->damage((*it)->get_pos() /*fixme*/,damage))
+			if ((*it)->damage((*it)->get_pos() /*fixme*/, gs->damage()))
 			{
 				ship_sunk(*it);
 			} else {
@@ -1087,7 +1089,7 @@ bool game::gs_impact(const vector3& pos, const double &damage)	// fixme: vector2
 			
 			// play gun shell explosion sound effect
 			if (ui) 
-				ui->play_sound_effect_distance(se_shell_exploding, player->get_pos().distance(pos));
+				ui->play_sound_effect(se_shell_exploding, player, gs);
 			
 			return true;	// only one hit possible
 		}
@@ -1097,11 +1099,11 @@ bool game::gs_impact(const vector3& pos, const double &damage)	// fixme: vector2
 //printf("gun %f %f %f\n",pos.x,pos.y,pos.z);
 		if (is_collision(*it, pos.xy())) {
 //printf("sub damaged!!!\n");		
-			(*it)->damage((*it)->get_pos() /*fixme*/,damage);
+			(*it)->damage((*it)->get_pos() /*fixme*/, gs->damage());
 			
 			// play gun shell explosion sound effect
 			if (ui) 
-				ui->play_sound_effect_distance(se_shell_exploding, player->get_pos().distance(pos));
+				ui->play_sound_effect(se_shell_exploding, player, gs);
 			
 			return true; // only one hit possible
 		}
@@ -1110,21 +1112,21 @@ bool game::gs_impact(const vector3& pos, const double &damage)	// fixme: vector2
 	if (pos.z <= 0)
 	{
 		if (ui) 
-			ui->play_sound_effect_distance(se_shell_splash, player->get_pos().distance(pos));
+			ui->play_sound_effect(se_shell_splash, player, gs);
 	}
 	
 	// No impact.
 	return false;
 }
 
-void game::torp_explode(const vector3& pos)
+void game::torp_explode(const torpedo *t)
 {
 	// each torpedo seems to explode twice, if it's only drawn twice or adds twice the damage is unknown.
 	// fixme!
-	spawn_particle(new torpedo_water_splash_particle(pos.xy().xy0()));
+	spawn_particle(new torpedo_water_splash_particle(t->get_pos().xy().xy0()));
 	//fixme: game should know nothing about ui!
-	if (ui) ui->play_sound_effect_distance (se_torpedo_detonation,
-		player->get_pos ().distance ( pos ) );
+	if (ui) 
+		ui->play_sound_effect(se_torpedo_detonation, player, t);
 }
 
 void game::ship_sunk( const ship* s )
@@ -1170,7 +1172,7 @@ void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
 			ass->get_range (), ass->get_detection_cone () ) );
 		
 		if (ui) 
-			ui->play_sound_effect_distance(se_ping, player->get_pos().distance(d->get_pos()));
+			ui->play_sound_effect(se_ping, player, d);
 
 		// fixme: noise from ships can disturb ASDIC or may generate more contacs.
 		// ocean floor echoes ASDIC etc...
@@ -1256,7 +1258,7 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 			
 			//test: explosion:
 			spawn_particle(new explosion_particle(s->get_pos() + vector3(0, 0, 5)));
-			torp_explode ( t->get_pos () );
+			torp_explode ( t );
 		}
 		return true;
 	}
@@ -1510,6 +1512,8 @@ game::run_state game::exec(void)
 	double measuretime = 5;	// seconds
 
 	stopexec = false;
+	if (ui)
+		ui->resume_all_sound();
 	
 	// draw one initial frame
 	sys().myassert(ui != 0, "game::exec() called for a game without an user_interface");
@@ -1550,6 +1554,9 @@ game::run_state game::exec(void)
 		
 		sys().swap_buffers();
 	}
+	
+	if (ui)
+		ui->pause_all_sound();
 	
 	return my_run_state;	// if player is killed, end game (1), else show menu (0)
 }
@@ -1922,4 +1929,11 @@ sea_object* game::read_sea_object(istream& in) const
 	if (nr > sizes[6] && nr <= sizes[7]) return ith_elem(convoys, nr-sizes[6]-1);
 	sys().myassert(false, string("could not translate number to sea_object pointer"));
 	return 0;
+}
+
+void game::stop(void) 
+{ 
+	stopexec = true; 
+	if (ui)
+		ui->pause_all_sound();
 }

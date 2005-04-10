@@ -113,7 +113,11 @@ void init_global_data(void)
 	soundcache.ref(se_depth_charge_exploding);
 	soundcache.ref(se_ping);
 	soundcache.ref(se_shell_exploding);
-	soundcache.ref(se_shell_splash);				   				   
+	soundcache.ref(se_shell_splash);		
+	soundcache.ref(se_sub_screws_slow);
+	soundcache.ref(se_sub_screws_normal);
+	soundcache.ref(se_sub_screws_fast);
+	soundcache.ref(se_sub_screws_very_fast);	
 	add_loading_screen("sounds loaded");
 
 	titlebackgrimg = new image(get_image_dir() + "titlebackgr.jpg");

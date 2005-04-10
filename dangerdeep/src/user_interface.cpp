@@ -563,34 +563,43 @@ void user_interface::set_display_color(void) const
 		NIGHT_MODE_COLOR ();
 }
 
-void user_interface::play_sound_effect(const string &se, double volume ) const
+void user_interface::play_sound_effect(const string &se, const sea_object* player, 
+									   const sea_object* noise_source, bool loop) const
+{	
+	sound* s = soundcache.find(se);
+	assert(NULL != s);
+	
+	if ( s )
+		s->play(player, noise_source, loop);
+}
+
+void user_interface::play_fade_sound_effect(const string &se, const sea_object* player, 
+											const sea_object* noise_source, bool loop) const
 {
 	sound* s = soundcache.find(se);
 	assert(NULL != s);
 	
 	if ( s )
-		s->play ( volume );
+		s->play_fade(player, noise_source, loop);
 }
 
-
-
-void user_interface::play_sound_effect_distance(const string &se, double distance) const
+void user_interface::stop_sound_effect(const string &se) const
 {
 	sound* s = soundcache.find(se);
 	assert(NULL != s);
-
+	
 	if ( s )
-	{
-		double h = 3000.0f;
-		submarine* sub = dynamic_cast<submarine*> ( mygame->get_player () );
-		if ( sub && sub->is_submerged () )
-			h = 10000.0f;
-
-		s->play ( ( 1.0f - mygame->get_player()->get_noise_factor () ) * exp ( - distance / h ) );
-	}
+		s->stop();
 }
 
-
+void user_interface::stop_fade_sound_effect(const string &se) const
+{
+	sound* s = soundcache.find(se);
+	assert(NULL != s);
+	
+	if ( s )
+		s->fade_out();
+}
 
 void user_interface::set_allowed_popup(void) const
 {
@@ -615,4 +624,26 @@ void user_interface::set_current_display(unsigned curdis) const
 {
 	current_display = curdis;
 	set_allowed_popup();
+}
+
+void user_interface::pause_all_sound() const
+{
+	// bit of a dodgy way to find a sound so we can call a function affecting
+	// all sounds
+	sound* s = soundcache.find(se_sub_screws_slow);
+	assert(NULL != s);
+	
+	if ( s )
+		s->pause_all();
+}
+
+void user_interface::resume_all_sound() const
+{
+	// bit of a dodgy way to find a sound so we can call a function affecting
+	// all sounds
+	sound* s = soundcache.find(se_sub_screws_slow);
+	assert(NULL != s);
+	
+	if ( s )
+		s->resume_all();
 }

@@ -1,3 +1,7 @@
+2005-04-10 Andy Rice
+	* Support for stereo/directional sound
+	* Sub engine noise sound effects
+	
 2005-04-03  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* added popup handling
 	* added control and TDC popup

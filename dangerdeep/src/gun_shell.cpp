@@ -44,7 +44,7 @@ void gun_shell::simulate(game& gm, double delta_time)
 
 	// very crude, fixme. compute intersection of line oldpos->position with objects.
 	if (position.z <= 0) {
-		bool impact = gm.gs_impact(position, damage_amount);
+		bool impact = gm.gs_impact(this);
 		kill();
 	}
 }

@@ -305,8 +305,12 @@ public:
 	virtual void set_trp_searchpattern(unsigned x) { trp_searchpattern = x; }
 	virtual void set_trp_addleadangle(angle x) { trp_addleadangle = x; }
 	virtual void launch_torpedo(class game& gm, int tubenr, sea_object* target); // give tubenr -1 for any loaded tube, or else 0-5
-	virtual void set_ui(user_interface *messageDisplay) { ui = messageDisplay; }
+	virtual void set_ui(user_interface *messageDisplay);
 	virtual bool has_deck_gun() { return !gun_turrets.empty(); }
+	
+	virtual void set_throttle(ship::throttle_status thr);
+	virtual void start_throttle_sound();	
+	virtual void stop_throttle_sound();	
 };
 
 #endif

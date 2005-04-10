@@ -172,7 +172,7 @@ public:
 	virtual void save_to_stream(ostream& out) const;
 	virtual void load_from_stream(istream& in);
 
-	void stop(void) { stopexec = true; }
+	void stop(void);
 
 	void compute_max_view_dist(void);	// fixme - public?
 	void simulate(double delta_t);
@@ -239,8 +239,8 @@ public:
 	// simulation events
 //fixme: send messages about them to ui (remove sys-console printing in torpedo.cpp etc)
 	void dc_explosion(const depth_charge& dc);	// depth charge exploding
-	bool gs_impact(const vector3& pos, const double &damage);	// gun shell impact
-	void torp_explode(const vector3& pos);	// torpedo explosion/impact
+	bool gs_impact(const gun_shell *gs);	// gun shell impact
+	void torp_explode(const torpedo *t);	// torpedo explosion/impact
 	void ship_sunk( const ship* s );	// a ship sinks
 
 	// simulation actions, fixme send something over net for them
