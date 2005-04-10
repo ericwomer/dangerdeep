@@ -1,0 +1,70 @@
+Structure of DftD-model files
+-----------------------------
+
+XML format.
+
+<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<dftd-model>
+
+--> A long list with children: materials, meshes and lights, in this order:
+
+--> Materials:
+
+  <material name="Any name you want" id="unique id">
+
+----> can be listed, if not default is 1,1,1  1,1,1  1,1,1 (can change)
+
+    <ambient color="floatr floatg floatb" />
+    <diffuse color="floatr floatg floatb" />
+    <specular color="floatr floatg floatb" />
+
+----> at most one of each type
+----> give u,v scaling and offset and u,v rotation angle. If not given, default values
+----> are used. (scal=1.0, offset=0.0, angle=0.0). Give angle in degrees.
+
+    <map type="diffuse/normal/specular" filename="foo" uscal="float" vscal="float"
+      uoffset="float" voffset="float" angle="float" />
+
+  </material>
+
+--> Meshes:
+--> Material id is optional, a default material is used when omitted.
+
+  <mesh name="Any name you want" id="unique id" material="material id">
+
+----> childs in this order:
+----> mandatory:
+
+    <vertices nr="(int) nr of vertices">
+       ...endless line of floats, divided by (white)spaces, 3x nr in number.
+    </vertices>
+
+    <indices nr="(int) nr of indices">
+       ...endless line of ints, divided by (white)spaces, 1x nr in number, nr should be
+       multiple of three, because we have triangles here.
+    </indices>
+
+----> mandatory if material id is given:
+
+    <texcoords>
+       ...endless line of floats, divided by (white)spaces, 2x nr of vertices in number.
+    </texcoords>
+
+----> optional:
+
+    <normals>
+       ...endless line of floats, divided by (white)spaces, 3x nr of vertices in number.
+    </normals>
+
+    <transformation>
+       ...sixteen floats, forming a transformation matrix for this mesh.
+       order is 4x float for first row, 4x float for second row...
+    </transformation>
+
+  </mesh>
+
+--> Lights:
+
+  <light name="Any name you want" pos="floatx floaty float z" color="floatr floatg float b" />
+
+</dftd-model>
