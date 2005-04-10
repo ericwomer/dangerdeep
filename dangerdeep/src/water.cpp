@@ -559,7 +559,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	matrix4 inv_modl = modl.inverse();
 
 	// modify modelview matrix so that viewer is at (0,0,h) with h in |R with h = cameraheight
-	vector3 correction = inv_modl.column(3);
+	vector3 correction = inv_modl.column3(3);
 
 	// set gl matrix so that viewer is at 0, 0, 0
 	glPushMatrix();
@@ -603,7 +603,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	// the last column of the inverse modelview matrix is the camera position
 	// the upper left 3x3 matrix is the camera rotation, so the columns hold the view vectors
 	vector3 camerapos = vector3(0, 0, viewpos.z);
-	vector3 cameraforward = -inv_modl.column(2); // camera is facing along negative z-axis
+	vector3 cameraforward = -inv_modl.column3(2); // camera is facing along negative z-axis
 //cout << "camerapos " << camerapos << "\n";
 //cout << "camera forward " << cameraforward << "\n";
 	vector3 projectorpos = camerapos, projectorforward = cameraforward;

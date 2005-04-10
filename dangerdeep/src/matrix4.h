@@ -21,7 +21,7 @@
 #include "oglext/OglExt.h"
 #endif
 
-#include "vector3.h"
+#include "vector4.h"
 
 #include <vector>
 using namespace std;
@@ -239,12 +239,28 @@ public:
 		return vector3t<D>(r[0]/r[3], r[1]/r[3], r[2]/r[3]);
 	}
 
+	vector4t<D> operator* (const vector4t<D>& v) const {
+		D r[4];
+		for (unsigned j = 0; j < 4; ++j) {	// rows of "this"
+			r[j] = values[j*4+0] * v.x + values[j*4+1] * v.y + values[j*4+2] * v.z + values[j*4+3] * v.w;
+		}
+		return vector4t<D>(r[0], r[1], r[2], r[3]);
+	}
+
 	// get n-th row/col, ignores last value
-	vector3t<D> row(unsigned i) const {
+	vector3t<D> row3(unsigned i) const {
 		return vector3t<D>(values[i*4], values[i*4+1], values[i*4+2]);
 	}
-	vector3t<D> column(unsigned i) const {
+	vector3t<D> column3(unsigned i) const {
 		return vector3t<D>(values[i], values[i+4], values[i+2*4]);
+	}
+
+	// get n-th row/col, with last value
+	vector4t<D> row(unsigned i) const {
+		return vector4t<D>(values[i*4], values[i*4+1], values[i*4+2], values[i*4+3]);
+	}
+	vector4t<D> column(unsigned i) const {
+		return vector4t<D>(values[i], values[i+4], values[i+2*4], values[i+3*4]);
 	}
 };
 

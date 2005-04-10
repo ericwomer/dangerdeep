@@ -319,7 +319,7 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 {
 	glDepthMask(GL_FALSE);
 	matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
-	vector3 mvtrans = -mv.inverse().column(3);
+	vector3 mvtrans = -mv.inverse().column3(3);
 
 	vector<particle_dist> pds;
 	pds.reserve(pts.size());

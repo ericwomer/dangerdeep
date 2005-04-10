@@ -1786,7 +1786,7 @@ vector3 game::compute_sun_pos(const vector3& viewpos) const
 		matrix4::rot_y(yearang) *
 		matrix4::trans(-EARTH_SUN_DISTANCE, 0, 0) *
 		matrix4::rot_y(-yearang);
-	return sun2earth.column(3);
+	return sun2earth.column3(3);
 }
 
 
@@ -1808,7 +1808,7 @@ vector3 game::compute_moon_pos(const vector3& viewpos) const
 		matrix4::rot_y(monthang + MOON_POS_ADJUST) *
 		matrix4::trans(MOON_EARTH_DISTANCE, 0, 0);
 
-	return moon2earth.column(3);
+	return moon2earth.column3(3);
 }
 
 

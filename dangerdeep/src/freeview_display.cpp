@@ -114,9 +114,9 @@ void freeview_display::process_input(class game& gm, const SDL_Event& event)
 	set_modelview_matrix(gm);
 	matrix4 viewmatrix = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	glPopMatrix();
-	vector3 sidestep = viewmatrix.row(0);
-	vector3 upward = viewmatrix.row(1);
-	vector3 forward = -viewmatrix.row(2);
+	vector3 sidestep = viewmatrix.row3(0);
+	vector3 upward = viewmatrix.row3(1);
+	vector3 forward = -viewmatrix.row3(2);
 
 	switch (event.type) {
 	case SDL_KEYDOWN:
@@ -268,7 +268,7 @@ void freeview_display::draw_view(game& gm) const
 	// *************** compute and set player pos ****************************************
 	set_modelview_matrix(gm);
 
-	vector3 camerapos = matrix4::get_gl(GL_MODELVIEW_MATRIX).inverse().column(3);
+	vector3 camerapos = matrix4::get_gl(GL_MODELVIEW_MATRIX).inverse().column3(3);
 	vector3 viewpos = player->get_pos() + camerapos;
 
 	// **************** prepare drawing ***************************************************

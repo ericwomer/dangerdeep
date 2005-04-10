@@ -501,21 +501,18 @@ void model::mesh::display(bool usematerial) const
 	//with bump mapping, we need colors.
 	vector<Uint8> colors;
 	if (bumpmapping) {
-		float lighttmp[4];
-		glGetLightfv(GL_LIGHT0, GL_POSITION, lighttmp);
-		vector3f lighttmpv(lighttmp[0], lighttmp[1], lighttmp[2]);
-		cout << lighttmpv << "\n";
-		//fixme: why inverse modelview matrix???
-		//fixme: what about directional light? must get transformed somehow different?!
+		vector4f lightpos_abs;
+		glGetLightfv(GL_LIGHT0, GL_POSITION, &lightpos_abs.x);
 		matrix4f invmodelview = (matrix4f::get_gl(GL_MODELVIEW_MATRIX)).inverse();
-		vector3f lightpos = invmodelview * lighttmpv;
-		cout << lightpos << "\n";
+		vector4f lightpos_rel = invmodelview * lightpos_abs;
+		vector3f lightpos3 = lightpos_rel.to_real();
 		colors.resize(3*vertices.size());
 		for (unsigned i = 0; i < vertices.size(); ++i) {
 			const vector3f& nx = tangentsx[i];
 			const vector3f& nz = normals[i];
 			vector3f ny = nz.cross(nx);
-			vector3f lp = lightpos - vertices[i];
+			vector3f lp = (lightpos_rel.w != 0.0f) ? (lightpos3 - vertices[i]) :
+				lightpos_rel.xyz();
 			vector3f nl = vector3f(nx * lp, ny * lp, nz * lp).normal();
 			const float s = 127.5f;
 			colors[3*i+0] = Uint8(nl.x*s + s);
