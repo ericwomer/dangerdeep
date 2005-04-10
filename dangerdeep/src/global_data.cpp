@@ -70,6 +70,10 @@ unsigned XmlAttribu(class TiXmlElement* elem, const char* attrname)
 {
 	return unsigned(atoi(XmlAttrib(elem, attrname).c_str()));
 }
+float XmlAttribf(class TiXmlElement* elem, const char* attrname)
+{
+	return float(atof(XmlAttrib(elem, attrname).c_str()));
+}
 
 void init_global_data(void)
 {

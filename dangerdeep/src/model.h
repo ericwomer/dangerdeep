@@ -67,14 +67,6 @@ public:
 		void compute_normals(void);
 		bool compute_tangentx(unsigned i0, unsigned i1, unsigned i2);
 
-		mesh(const mesh& m) : name(m.name), vertices(m.vertices), normals(m.normals),
-				      tangentsx(m.tangentsx), texcoords(m.texcoords),
-				      indices(m.indices), transformation(m.transformation),
-				      mymaterial(m.mymaterial), min(m.min), max(m.max) {}
-		mesh& operator= (const mesh& m) { name = m.name; vertices = m.vertices;
-			normals = m.normals; tangentsx = m.tangentsx; texcoords = m.texcoords;
-			indices = m.indices; transformation = m.transformation;
-			mymaterial = m.mymaterial; min = m.min; max = m.max; return *this; }
 		mesh() : transformation(matrix4f::one()), mymaterial(0) {}
 		~mesh() {}
 
@@ -149,6 +141,8 @@ protected:
 	model& operator= (const model& );
 
 	void read_off_file(const std::string& fn);
+
+	void read_dftd_model_file(const std::string& filename);
 
 public:
 	model() : display_list(0), usematerial(true) {}
