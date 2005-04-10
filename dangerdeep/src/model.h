@@ -31,7 +31,7 @@ public:
 			texture* mytexture;
 			map() : uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0.0f), angle(0.0f), mytexture(0) {}
 			~map() { delete mytexture; }
-			void init(int mapping);
+			void init(int mapping, bool makenormalmap = false, float detailh = 1.0f);
 			void write_to_dftd_model_file(TiXmlElement* parent,
 						      const std::string& type) const;
 			// read and construct from dftd model file

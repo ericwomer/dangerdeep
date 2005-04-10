@@ -48,14 +48,17 @@ protected:
 		      bool makenormalmap = false, float detailh = 1.0f);
 
 	// copy data to OpenGL, set parameters
-	void init(const Uint8* data, bool makenormalmap = false, float detailh = 1.0f);
+	void init(const std::vector<Uint8>& data, bool makenormalmap = false,
+		  float detailh = 1.0f);
 
 	// will scale down the image data to half size in each direction (at least w/h=1)
 	// w,h must be > 1
-	static std::vector<Uint8> scale_half(const Uint8* src, unsigned w, unsigned h, unsigned bpp);
+	static std::vector<Uint8> scale_half(const std::vector<Uint8>& src,
+					     unsigned w, unsigned h, unsigned bpp);
 	
 	// give powers of two for w,h, bpp must be 1!
-	static void make_normals(Uint8* dst, const Uint8* src, unsigned w, unsigned h, float detailh);
+	static std::vector<Uint8> make_normals(const std::vector<Uint8>& src,
+					       unsigned w, unsigned h, float detailh);
 
 	// statistics.
 	static unsigned mem_used;
@@ -63,7 +66,8 @@ protected:
 	static unsigned mem_freed;
 
 public:
-	// if "makenormalmap" is true, format must be GL_LUMINANCE.
+	// if "makenormalmap" is true and format is GL_LUMINANCE. a normal map (RGB) is
+	// computed from the texture.
 	// give height of detail (scale factor) for normal mapping, mostly much larger than 1.0
 	texture(const std::string& filename, int mapping_ = GL_NEAREST, int clamp = GL_REPEAT,
 		bool makenormalmap = false, float detailh = 1.0f);
@@ -76,9 +80,9 @@ public:
 
 	// create texture from memory values (use openGl constants for format,etc.
 	// w,h must be powers of two.
-	texture(const Uint8* pixels, unsigned w, unsigned h, int format_, int mapping_,
+	texture(const std::vector<Uint8>& pixels, unsigned w, unsigned h,
+		int format_, int mapping_,
 		int clamp, bool makenormalmap = false, float detailh = 1.0f);
-
 	~texture();
 	
 	int get_format(void) const { return format; }

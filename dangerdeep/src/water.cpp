@@ -162,7 +162,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 
 	foamtex = new texture(get_texture_dir() + "foam.png", GL_LINEAR);//fixme maybe mipmap it
 
-	fresnelcolortexd.resize(FRESNEL_FCT_RES*REFRAC_COLOR_RES);
+	fresnelcolortexd.resize(FRESNEL_FCT_RES*REFRAC_COLOR_RES*4);
 	for (unsigned f = 0; f < FRESNEL_FCT_RES; ++f) {
 		float ff = float(f)/(FRESNEL_FCT_RES-1);
 		//maybe reduce reflections by using 192 or 224 instead of 255 here
@@ -170,7 +170,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		//because it is so rough.
 		Uint8 a = Uint8(255 /*192*/ * exact_fresnel(ff)+0.5f);
 		for (unsigned s = 0; s < REFRAC_COLOR_RES; ++s) {
-			fresnelcolortexd[s*FRESNEL_FCT_RES+f].a = a;
+			fresnelcolortexd[(s*FRESNEL_FCT_RES+f)*4+3] = a;
 		}
 	}
 	
@@ -1121,14 +1121,13 @@ void water::set_refraction_color(float light_brightness)
 		float fs = float(s)/(REFRAC_COLOR_RES-1);
 		color c(wavebottom, wavetop, fs);
 		for (unsigned f = 0; f < FRESNEL_FCT_RES; ++f) {
-			color& tgt = fresnelcolortexd[s*FRESNEL_FCT_RES+f];
+			fresnelcolortexd[(s*FRESNEL_FCT_RES+f)*4+0] = c.r;
+			fresnelcolortexd[(s*FRESNEL_FCT_RES+f)*4+1] = c.g;
+			fresnelcolortexd[(s*FRESNEL_FCT_RES+f)*4+2] = c.b;
 			// update color only, leave fresnel term (alpha) intact
-			tgt.r = c.r;
-			tgt.g = c.g;
-			tgt.b = c.b;
 		}
 	}
-	fresnelcolortex = new texture((&fresnelcolortexd[0].r), FRESNEL_FCT_RES, REFRAC_COLOR_RES, GL_RGBA,
+	fresnelcolortex = new texture(fresnelcolortexd, FRESNEL_FCT_RES, REFRAC_COLOR_RES, GL_RGBA,
 				 GL_LINEAR/*_MIPMAP_LINEAR*/, GL_CLAMP_TO_EDGE);
 }
 

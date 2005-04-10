@@ -56,31 +56,59 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 		sys().myassert(ncol <= 256, "texture: max. 256 colors in palette supported");
 		bool usealpha = (teximage->flags & SDL_SRCCOLORKEY);
 
-		format = usealpha ? GL_RGBA : GL_RGB;
-		bpp = usealpha ? 4 : 3;
-
-		//old color table code, does not work		
-		//glColorTable(GL_TEXTURE_2D, internalformat, 256, GL_RGBA, GL_UNSIGNED_BYTE, &(palette[0]));
-		//internalformat = GL_COLOR_INDEX8_EXT;
-		//externalformat = GL_COLOR_INDEX;
-		data.resize(tw*th*bpp);
-		unsigned char* ptr = &data[0];
-		unsigned char* offset = ((unsigned char*)(teximage->pixels)) + sy*teximage->pitch + sx;
-		for (unsigned y = 0; y < sh; y++) {
-			unsigned char* ptr2 = ptr;
-			for (unsigned x = 0; x < sw; ++x) {
-				Uint8 pixindex = *(offset+x);
-				const SDL_Color& pixcolor = teximage->format->palette->colors[pixindex];
-				*ptr2++ = pixcolor.r;
-				*ptr2++ = pixcolor.g;
-				*ptr2++ = pixcolor.b;
-				if (usealpha)
-					*ptr2++ = (pixindex == (teximage->format->colorkey & 0xff)) ? 0x00 : 0xff;
+		// check for greyscale images (GL_LUMINANCE), fixme: add also LUMINANCE_ALPHA!
+		bool lumi = false;
+		if (ncol == 256 && !usealpha) {
+			unsigned i = 0;
+			for ( ; i < 256; ++i) {
+				if (unsigned(teximage->format->palette->colors[i].r) != i) break;
+				if (unsigned(teximage->format->palette->colors[i].g) != i) break;
+				if (unsigned(teximage->format->palette->colors[i].b) != i) break;
 			}
-			//old color table code, does not work
-			//memcpy(ptr, offset, sw);
-			offset += teximage->pitch;
-			ptr += tw*bpp;
+			if (i == 256) lumi = true;
+		}
+
+		if (lumi) {
+			// grey value images
+			format = GL_LUMINANCE;
+			bpp = 1;
+
+			data.resize(tw*th*bpp);
+			unsigned char* ptr = &data[0];
+			unsigned char* offset = ((unsigned char*)(teximage->pixels)) + sy*teximage->pitch + sx;
+			for (unsigned y = 0; y < sh; y++) {
+				memcpy(ptr, offset, sw/* * bpp */);
+				offset += teximage->pitch;
+				ptr += tw*bpp;
+			}
+		} else {
+			// color images
+			format = usealpha ? GL_RGBA : GL_RGB;
+			bpp = usealpha ? 4 : 3;
+
+			//old color table code, does not work		
+			//glColorTable(GL_TEXTURE_2D, internalformat, 256, GL_RGBA, GL_UNSIGNED_BYTE, &(palette[0]));
+			//internalformat = GL_COLOR_INDEX8_EXT;
+			//externalformat = GL_COLOR_INDEX;
+			data.resize(tw*th*bpp);
+			unsigned char* ptr = &data[0];
+			unsigned char* offset = ((unsigned char*)(teximage->pixels)) + sy*teximage->pitch + sx;
+			for (unsigned y = 0; y < sh; y++) {
+				unsigned char* ptr2 = ptr;
+				for (unsigned x = 0; x < sw; ++x) {
+					Uint8 pixindex = *(offset+x);
+					const SDL_Color& pixcolor = teximage->format->palette->colors[pixindex];
+					*ptr2++ = pixcolor.r;
+					*ptr2++ = pixcolor.g;
+					*ptr2++ = pixcolor.b;
+					if (usealpha)
+						*ptr2++ = (pixindex == (teximage->format->colorkey & 0xff)) ? 0x00 : 0xff;
+				}
+				//old color table code, does not work
+				//memcpy(ptr, offset, sw);
+				offset += teximage->pitch;
+				ptr += tw*bpp;
+			}
 		}
 	} else {
 		bool usealpha = teximage->format->Amask != 0;
@@ -97,15 +125,16 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 	}
 	SDL_UnlockSurface(teximage);
 	
-	init(&data[0], makenormalmap, detailh);
+	init(data, makenormalmap, detailh);
 }
 	
 
 
-void texture::init(const Uint8* data, bool makenormalmap, float detailh)
+void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 {
 	// automatic resizing of textures if they're too large
 	vector<Uint8> data2;
+	const vector<Uint8>* pdata = &data;
 	unsigned ms = get_max_size();
 	if (width > ms || height > ms) {
 		unsigned newwidth = width, newheight = height;
@@ -137,7 +166,7 @@ void texture::init(const Uint8* data, bool makenormalmap, float detailh)
 				}
 			}
 		}
-		data = &data2[0];
+		pdata = &data2;
 		gl_width = newwidth;
 		gl_height = newheight;
 	}
@@ -152,23 +181,28 @@ void texture::init(const Uint8* data, bool makenormalmap, float detailh)
 
 	unsigned add_mem_used = 0;
 
-	if (makenormalmap) {
+	if (makenormalmap && format == GL_LUMINANCE) {
 		// make own mipmap building for normal maps here...
 		// give increasing levels with decreasing w/h down to 1x1
 		// e.g. 64x16 -> 32x8, 16x4, 8x2, 4x1, 2x1, 1x1
 
-		sys().myassert(format == GL_LUMINANCE, string("tried to create a normal map from a non-luminance texture, from ") + texfilename);
-
 		format = GL_RGB;
 
-		vector<Uint8> nmpix(3*gl_width*gl_height);
-		make_normals(&nmpix[0], data, gl_width, gl_height, detailh);
+		vector<Uint8> nmpix = make_normals(*pdata, gl_width, gl_height, detailh);
 		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
 			     GL_UNSIGNED_BYTE, &nmpix[0]);
 
 		add_mem_used = gl_width * gl_height * get_bpp();
 
 		if (do_mipmap) {
+#if 1
+			// fixme: crashes
+			gluBuild2DMipmaps(GL_TEXTURE_2D, format, gl_width, gl_height,
+					  format, GL_UNSIGNED_BYTE, &((*pdata)[0]));
+#else
+			// buggy version. gives white textures. maybe some mipmap levels
+			// are missing so that gl complains by make white textures?
+
 			// fixme: if we let GLU do the mipmap calculation, the result is wrong.
 			// A filtered version of the normals is not the same as a normal map
 			// of the filtered height field!
@@ -177,29 +211,31 @@ void texture::init(const Uint8* data, bool makenormalmap, float detailh)
 			// But filtering down the normals to one pixel could give
 			// RGB=0.5 -> normal of (0,0,0) (rare...)!
 			vector<Uint8> curlvl;
-			const Uint8* gdat = data;
+			const vector<Uint8>* gdat = pdata;
 			for (unsigned level = 1, w = gl_width/2, h = gl_height/2;
 			     w > 0 && h > 0; w /= 2, h /= 2) {
-				curlvl = scale_half(gdat, w, h, 1);
-				gdat = &curlvl[0];
-				vector<Uint8> nmpix(3*w*h);
-				make_normals(&nmpix[0], gdat, w, h, detailh);
+				cout << "level " << level << " w " << w << " h " << h << "\n";
+				curlvl = scale_half(*gdat, w, h, 1);
+				gdat = &curlvl;
+				//fixme: must detailh also get halfed here? yes...
+				vector<Uint8> nmpix = make_normals(*gdat, w, h, detailh);
 				glTexImage2D(GL_TEXTURE_2D, level, GL_RGB, w, h, 0, GL_RGB,
 					     GL_UNSIGNED_BYTE, &nmpix[0]);
 				w /= 2;
 				h /= 2;
 			}
+#endif
 		}
 	} else {
 		// make gl texture
 		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
-			     GL_UNSIGNED_BYTE, data);
+			     GL_UNSIGNED_BYTE, &((*pdata)[0]));
 		add_mem_used = gl_width * gl_height * get_bpp();
 		if (do_mipmap) {
 			// fixme: does this command set the base level, too?
 			// i.e. are the two gl commands redundant?
 			gluBuild2DMipmaps(GL_TEXTURE_2D, format, gl_width, gl_height,
-					  format, GL_UNSIGNED_BYTE, data);
+					  format, GL_UNSIGNED_BYTE, &((*pdata)[0]));
 		}
 	}
 
@@ -221,7 +257,7 @@ void texture::init(const Uint8* data, bool makenormalmap, float detailh)
 
 
 
-vector<Uint8> texture::scale_half(const Uint8* src, unsigned w, unsigned h, unsigned bpp)
+vector<Uint8> texture::scale_half(const vector<Uint8>& src, unsigned w, unsigned h, unsigned bpp)
 {
 	// fixme
 	sys().myassert(w > 1 && (w & (w-1)) == 0, "texture width is no power of two!");
@@ -230,7 +266,7 @@ vector<Uint8> texture::scale_half(const Uint8* src, unsigned w, unsigned h, unsi
 	vector<Uint8> dst(w*h*bpp/4);
 	unsigned ptr = 0;
 	for (unsigned y = 0; y < h; y += 2) {
-		for (unsigned x = 0; x < w; w += 2) {
+		for (unsigned x = 0; x < w; x += 2) {
 			for (unsigned b = 0; b < bpp; ++b) {
 				dst[ptr++] =
 					Uint8((unsigned(src[(y*w+x)*bpp+b]) +
@@ -245,9 +281,11 @@ vector<Uint8> texture::scale_half(const Uint8* src, unsigned w, unsigned h, unsi
 	
 
 
-void texture::make_normals(Uint8* dst, const Uint8* src, unsigned w, unsigned h, float detailh)
+vector<Uint8> texture::make_normals(const vector<Uint8>& src, unsigned w, unsigned h,
+				    float detailh)
 {
-	// dst size must be 3*w*h, src size w*h
+	// src size must be w*h
+	vector<Uint8> dst(3*w*h);
 	float zh = 255.0f/detailh;
 	unsigned ptr = 0;
 	for (unsigned yy = 0; yy < h; ++yy) {
@@ -272,6 +310,7 @@ void texture::make_normals(Uint8* dst, const Uint8* src, unsigned w, unsigned h,
 			ptr += 3;
 		}
 	}
+	return dst;
 }
 
 
@@ -300,7 +339,7 @@ texture::texture(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, u
 
 
 
-texture::texture(const Uint8* pixels, unsigned w, unsigned h, int format_,
+texture::texture(const vector<Uint8>& pixels, unsigned w, unsigned h, int format_,
 		 int mapping_, int clamp, bool makenormalmap, float detailh)
 {
 	mapping = mapping_;

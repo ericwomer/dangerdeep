@@ -362,21 +362,22 @@ pair<model::mesh, model::mesh> model::mesh::split(const vector3f& abc, float d) 
 
 
 
-void model::material::map::init(int mapping)
+void model::material::map::init(int mapping, bool makenormalmap, float detailh)
 {
 	delete mytexture;
 	mytexture = 0;
 	if (filename.length() > 0) {
-		mytexture = new texture(get_texture_dir() + filename, mapping);
+		mytexture = new texture(get_texture_dir() + filename, mapping,
+					makenormalmap, detailh);
 	}
 }
 
 void model::material::init(void)
 {
 	if (tex1) tex1->init(model::mapping);
-	//fixme: bump maps from 3ds are just grey value images or the like,
-	//real bump maps have to be computed after loading!!!
-	if (bump) bump->init(GL_LINEAR_MIPMAP_LINEAR);//fixme: what is best mapping for bump maps?
+	//fixme: what is best mapping for bump maps?
+	// compute normalmap if not given
+	if (bump) bump->init(GL_LINEAR /*_MIPMAP_LINEAR*/, true, 128.0f /*16.0f*/ /*fixme, read from model file*/);
 }
 
 
@@ -389,8 +390,9 @@ void model::material::set_gl_values(void) const
 			glActiveTexture(GL_TEXTURE0);
 			glMatrixMode(GL_TEXTURE);
 			glLoadIdentity();
+			glScalef(1, -1, 1); // y flip texture
 			glTranslatef(bump->uoffset, bump->voffset, 0);
-			glRotatef(bump->angle, 0, 0, 1);
+			glRotatef(-bump->angle, 0, 0, 1);
 			glScalef(bump->uscal, bump->vscal, 1);
 			bump->mytexture->set_gl_texture();
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
@@ -401,11 +403,13 @@ void model::material::set_gl_values(void) const
 			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 			glActiveTexture(GL_TEXTURE1);
 			glEnable(GL_TEXTURE_2D);
-			tex1->mytexture->set_gl_texture();
+			//tex1->mytexture->set_gl_texture();
+			glBindTexture(GL_TEXTURE_2D, 0);
 			glMatrixMode(GL_TEXTURE);
 			glLoadIdentity();
+			glScalef(1, -1, 1); // y flip texture
 			glTranslatef(tex1->uoffset, tex1->voffset, 0);
-			glRotatef(tex1->angle, 0, 0, 1);
+			glRotatef(-tex1->angle, 0, 0, 1);
 			glScalef(tex1->uscal, tex1->vscal, 1);
 			// primary color alpha seems to be ONE...
 			float alphac[4] = { 1,1,1, 0.6f };//make ambient value (=alpha) variable
@@ -499,8 +503,13 @@ void model::mesh::display(bool usematerial) const
 	if (bumpmapping) {
 		float lighttmp[4];
 		glGetLightfv(GL_LIGHT0, GL_POSITION, lighttmp);
+		vector3f lighttmpv(lighttmp[0], lighttmp[1], lighttmp[2]);
+		cout << lighttmpv << "\n";
+		//fixme: why inverse modelview matrix???
+		//fixme: what about directional light? must get transformed somehow different?!
 		matrix4f invmodelview = (matrix4f::get_gl(GL_MODELVIEW_MATRIX)).inverse();
-		vector3f lightpos = invmodelview * vector3f(lighttmp[0], lighttmp[1], lighttmp[2]);
+		vector3f lightpos = invmodelview * lighttmpv;
+		cout << lightpos << "\n";
 		colors.resize(3*vertices.size());
 		for (unsigned i = 0; i < vertices.size(); ++i) {
 			const vector3f& nx = tangentsx[i];

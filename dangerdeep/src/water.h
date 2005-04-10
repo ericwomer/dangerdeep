@@ -52,7 +52,7 @@ protected:
 	texture* foamtex;
 	texture* fresnelcolortex;	// texture for fresnel values and water color
 
-	vector<color> fresnelcolortexd;	// stored for updates of water color
+	vector<Uint8> fresnelcolortexd;	// stored for updates of water color
 
 	float last_light_brightness;	// used to determine when new refraction color tex must get computed
 
