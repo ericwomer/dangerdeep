@@ -28,6 +28,9 @@
 
 string modelpath;
 
+// wether the dftd model file format should contain normals or not
+//#define STORE_NORMALS
+
 int model::mapping = GL_LINEAR_MIPMAP_LINEAR;//GL_NEAREST;
 
 model::model(const string& filename, bool usematerial_, bool makedisplaylist) :
@@ -717,6 +720,7 @@ void model::write_to_dftd_model_file(const std::string& filename) const
 			texcs->LinkEndChild(texct);
 		}
 
+#ifdef STORE_NORMALS
 		// normals.
 		TiXmlElement* nrmls = new TiXmlElement("normals");
 		msh->LinkEndChild(nrmls);
@@ -726,6 +730,7 @@ void model::write_to_dftd_model_file(const std::string& filename) const
 		}
 		TiXmlText* nrmlt = new TiXmlText(ossn.str());
 		nrmls->LinkEndChild(nrmlt);
+#endif
 
 		// transformation.
 		if (true /*it->transformation != matrix4f::one()*/) {
@@ -769,6 +774,19 @@ void model::write_color_to_dftd_model_file(TiXmlElement* parent, const color& c,
 }
 
 
+color model::read_color_from_dftd_model_file(TiXmlElement* parent, const std::string& type)
+{
+	TiXmlElement* ecol = parent->FirstChildElement(type);
+	sys().myassert(ecol != 0, string("no color element for type ")+type+string(" in ")+basename);
+	const char* tmp = ecol->Attribute("color");
+	sys().myassert(tmp != 0, string("no color attribute for type ")+type+string(" in ")+basename);
+	istringstream iss(tmp);
+	float r, g, b;
+	iss >> r >> g >> b;
+	return color(Uint8(r*255), Uint8(g*255), Uint8(b*255));
+}
+
+
 void model::material::map::write_to_dftd_model_file(TiXmlElement* parent,
 						    const std::string& type) const
 {
@@ -786,6 +804,25 @@ void model::material::map::write_to_dftd_model_file(TiXmlElement* parent,
 	mmap->SetAttribute("voffset", ossvo.str());
 	ostringstream ossan; ossan << angle;
 	mmap->SetAttribute("angle", ossan.str());
+}
+
+model::material::map::map(TiXmlElement* parent) : uscal(1.0f), vscal(1.0f),
+						  uoffset(0.0f), voffset(0.0f), angle(0.0f),
+						  mytexture(0)
+{
+	const char* tmp = parent->Attribute("filename");
+	sys().myassert(tmp != 0, "no filename given for materialmap!");
+	filename = tmp;
+	tmp = parent->Attribute("uscal");
+	if (tmp) uscal = atof(tmp);
+	tmp = parent->Attribute("vscal");
+	if (tmp) vscal = atof(tmp);
+	tmp = parent->Attribute("uoffset");
+	if (tmp) uoffset = atof(tmp);
+	tmp = parent->Attribute("voffset");
+	if (tmp) voffset = atof(tmp);
+	tmp = parent->Attribute("angle");
+	if (tmp) angle = atof(tmp);
 }
 
 // -------------------------------- end of dftd model file writing ------------------------------
@@ -1250,7 +1287,24 @@ void model::read_dftd_model_file(const std::string& filename)
 			unsigned id = XmlAttribu(eattr, "id");
 			mat_id_mapping[id] = mat;
 
-			// fixme. children a/d/s, maps.
+			mat->ambient = read_color_from_dftd_model_file(eattr, "ambient");
+			mat->diffuse = read_color_from_dftd_model_file(eattr, "diffuse");
+			mat->specular = read_color_from_dftd_model_file(eattr, "specular");
+
+			for (TiXmlElement* emap = eattr->FirstChildElement("map") ; emap != 0; emap = emap->NextSiblingElement("map")) {
+				string type = XmlAttrib(emap, "type");
+				if (type == "diffuse") {
+					mat->tex1 = new material::map(emap);
+				} else if (type == "normal") {
+					mat->bump = new material::map(emap);
+/*
+				} else if (type == "specular") {
+					mat->specularmap = new material::map(emap);
+*/
+				} else {
+					sys().myassert(false, string("unknown material map type '")+type+string("' in ")+filename);
+				}
+			}
 
 			mat->init();
 			materials.push_back(mat);
@@ -1270,8 +1324,6 @@ void model::read_dftd_model_file(const std::string& filename)
 					// print message or abort
 					sys().myassert(false, string("referenced unknown material id ")+filename);
 				}
-				// testing, fixme
-				msh.mymaterial = 0;
 			}
 			// vertices
 			TiXmlElement* verts = eattr->FirstChildElement("vertices");
@@ -1294,145 +1346,70 @@ void model::read_dftd_model_file(const std::string& filename)
 			TiXmlText* inditext = indis->FirstChild()->ToText();
 			sys().myassert(inditext != 0, string("no index data in ")+filename);
 			istringstream issi(inditext->Value());
-			cout << "val is " << inditext->Value() << "\n";
 			for (unsigned i = 0; i < nrindis; ++i) {
 				unsigned idx;
 				issi >> idx;
 				sys().myassert(idx < nrverts, string("vertex index out of range ")+filename);
 				msh.indices.push_back(idx);
 			}
-
-			// fixme: create tangent vectors etc.
-		} else if (attrtype == "light") {
-			// lights.
-		}
-	}
-
-#if 0
-	TiXmlDocument doc(filename);
-	TiXmlElement* root = new TiXmlElement("dftd-model");
-	doc.LinkEndChild(root);
-	root->SetAttribute("version", "1.0");
-
-	// save materials.
-	unsigned nr = 0;
-	for (vector<material*>::const_iterator it = materials.begin(); it != materials.end(); ++it, ++nr) {
-		TiXmlElement* mat = new TiXmlElement("material");
-		root->LinkEndChild(mat);
-		mat->SetAttribute("name", (*it)->name);
-		mat->SetAttribute("id", nr);
-		const material* m = *it;
-
-		// colors.
-		write_color_to_dftd_model_file(mat, m->ambient, "ambient");
-		write_color_to_dftd_model_file(mat, m->diffuse, "diffuse");
-		write_color_to_dftd_model_file(mat, m->specular, "specular");
-
-		// maps.
-		if (m->tex1) {
-			m->tex1->write_to_dftd_model_file(mat, "diffuse");
-		}
-		if (m->bump) {
-			m->bump->write_to_dftd_model_file(mat, "normal");
-		}
-		/*
-		if (m->specularmap) {
-			m->specularmap->write_to_dftd_model_file(mat, "specular");
-		}
-		*/
-	}
-
-	// save meshes.
-	nr = 0;
-	for (vector<mesh>::const_iterator it = meshes.begin(); it != meshes.end(); ++it, ++nr) {
-		TiXmlElement* msh = new TiXmlElement("mesh");
-		root->LinkEndChild(msh);
-		msh->SetAttribute("name", it->name);
-		msh->SetAttribute("id", nr);
-
-		// material.
-		if (it->mymaterial) {
-			unsigned matid = 0;
-			for ( ; matid < materials.size(); ++matid) {
-				if (materials[matid] == it->mymaterial)
-					break;
-			}
-			msh->SetAttribute("material", matid);
-		}
-
-		// vertices.
-		TiXmlElement* verts = new TiXmlElement("vertices");
-		msh->LinkEndChild(verts);
-		verts->SetAttribute("nr", it->vertices.size());
-		ostringstream ossv;
-		for (vector<vector3f>::const_iterator vit = it->vertices.begin(); vit != it->vertices.end(); ++vit) {
-			ossv << vit->x << " " << vit->y << " " << vit->z << " ";
-		}
-		TiXmlText* vertt = new TiXmlText(ossv.str());
-		verts->LinkEndChild(vertt);
-
-		// indices.
-		TiXmlElement* indis = new TiXmlElement("indices");
-		msh->LinkEndChild(indis);
-		indis->SetAttribute("nr", it->indices.size());
-		ostringstream ossi;
-		for (vector<unsigned>::const_iterator iit = it->indices.begin(); iit != it->indices.end(); ++iit) {
-			ossi << *iit << " ";
-		}
-		TiXmlText* indit = new TiXmlText(ossi.str());
-		indis->LinkEndChild(indit);
-
-		// texcoords.
-		if (it->mymaterial) {
-			TiXmlElement* texcs = new TiXmlElement("texcoords");
-			msh->LinkEndChild(texcs);
-			ostringstream osst;
-			for (vector<vector2f>::const_iterator tit = it->texcoords.begin(); tit != it->texcoords.end(); ++tit) {
-				osst << tit->x << " " << tit->y << " ";
-			}
-			TiXmlText* texct = new TiXmlText(osst.str());
-			texcs->LinkEndChild(texct);
-		}
-
-		// normals.
-		TiXmlElement* nrmls = new TiXmlElement("normals");
-		msh->LinkEndChild(nrmls);
-		ostringstream ossn;
-		for (vector<vector3f>::const_iterator nit = it->normals.begin(); nit != it->normals.end(); ++nit) {
-			ossn << nit->x << " " << nit->y << " " << nit->z << " ";
-		}
-		TiXmlText* nrmlt = new TiXmlText(ossn.str());
-		nrmls->LinkEndChild(nrmlt);
-
-		// transformation.
-		if (true /*it->transformation != matrix4f::one()*/) {
-			TiXmlElement* trans = new TiXmlElement("transformation");
-			msh->LinkEndChild(trans);
-			ostringstream osst;
-			for (unsigned y = 0; y < 4; ++y) {
-				for (unsigned x = 0; x < 4; ++x) {
-					osst << it->transformation.elem(x, y) << " ";
+			// tex coords
+			if (msh.mymaterial) {
+				TiXmlElement* texcs = eattr->FirstChildElement("texcoords");
+				sys().myassert(texcs != 0, string("no texcoords tag in ")+filename);
+				msh.texcoords.reserve(nrverts);
+				TiXmlText* texctext = texcs->FirstChild()->ToText();
+				sys().myassert(texctext != 0, string("no texcoord data in ")+filename);
+				istringstream isst(texctext->Value());
+				for (unsigned i = 0; i < nrverts; ++i) {
+					float x, y;
+					isst >> x >> y;
+					msh.texcoords.push_back(vector2f(x, y));
 				}
 			}
-			TiXmlText* transt = new TiXmlText(osst.str());
-			trans->LinkEndChild(transt);
+#ifdef STORE_NORMALS
+			// normals
+			TiXmlElement* nrmls = eattr->FirstChildElement("normals");
+			if (nrmls != 0) {
+				msh.normals.reserve(nrverts);
+				TiXmlText* nrmltext = nrmls->FirstChild()->ToText();
+				sys().myassert(nrmltext != 0, string("no normal data in ")+filename);
+				istringstream issn(nrmltext->Value());
+				for (unsigned i = 0; i < nrverts; ++i) {
+					float x, y, z;
+					issn >> x >> y >> z;
+					msh.normals.push_back(vector3f(x, y, z));
+				}
+			}
+#endif
+			// transformation	
+			TiXmlElement* trans = eattr->FirstChildElement("transformation");
+			if (trans != 0) {
+				TiXmlText* transtext = trans->FirstChild()->ToText();
+				sys().myassert(transtext != 0, string("no transformation data in ")+filename);
+				istringstream isst(transtext->Value());
+				for (unsigned y = 0; y < 4; ++y) {
+					for (unsigned x = 0; x < 4; ++x) {
+						isst >> msh.transformation.elem(x, y);
+					}
+				}
+			}
+		} else if (attrtype == "light") {
+			// lights.
+			light l;
+			l.name = XmlAttrib(eattr, "name");
+			const char* tmp = eattr->Attribute("pos");
+			sys().myassert(tmp != 0, string("no pos for light given in ")+filename);
+			istringstream issp(tmp);
+			issp >> l.pos.x >> l.pos.y >> l.pos.z;
+			tmp = eattr->Attribute("color");
+			if (tmp) {
+				istringstream issc(tmp);
+				issp >> l.colr >> l.colg >> l.colb;
+			}
+		} else {
+			sys().myassert(false, string("unknown type ")+attrtype+string(" in ")+filename);
 		}
 	}
-
-	// save lights.
-	for (vector<light>::const_iterator it = lights.begin(); it != lights.end(); ++it) {
-		TiXmlElement* lgt = new TiXmlElement("light");
-		root->LinkEndChild(lgt);
-		lgt->SetAttribute("name", it->name);
-		ostringstream lpos; lpos << it->pos.x << " " << it->pos.y << " " << it->pos.z;
-		lgt->SetAttribute("pos", lpos.str());
-		ostringstream lcol; lcol << it->colr << " " << it->colg << " " << it->colb;
-		lgt->SetAttribute("color", lcol.str());
-	}
-
-	// finally save file.
-	doc.SaveFile();
-#endif
 }
 
 // -------------------------------- end of dftd model file reading ------------------------------

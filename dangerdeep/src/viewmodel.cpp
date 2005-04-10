@@ -34,10 +34,15 @@ void view_model(const string& modelfilename)
 
 	mdl->write_to_dftd_model_file("test.xml");
 
+/*
 	// fixme test hack
 	delete mdl;
 	mdl = new model("test.xml", true, false);
 	mdl->write_to_dftd_model_file("test2.xml");
+	delete mdl;
+	mdl = new model("test2.xml", true, false);
+	mdl->write_to_dftd_model_file("test3.xml");
+*/
 
 	while (true) {
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);

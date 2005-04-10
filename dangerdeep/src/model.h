@@ -34,6 +34,8 @@ public:
 			void init(int mapping);
 			void write_to_dftd_model_file(TiXmlElement* parent,
 						      const std::string& type) const;
+			// read and construct from dftd model file
+			map(TiXmlElement* parent);
 		};
 	
 		std::string name;
@@ -83,10 +85,6 @@ public:
 		vector3f pos;
 		float colr, colg, colb;
 		void set_gl(unsigned nr_of_light) const;
-		light(const light& l) : name(l.name), pos(l.pos),
-					colr(l.colr), colg(l.colg), colb(l.colb) {}
-		light& operator= (const light& l) { name = l.name; pos = l.pos;
-			colr = l.colr; colg = l.colg; colb = l.colb; return *this; }
 		light() : colr(1.0f), colg(1.0f), colb(1.0f) {}
 		~light() {}
 	};
@@ -143,6 +141,9 @@ protected:
 	void read_off_file(const std::string& fn);
 
 	void read_dftd_model_file(const std::string& filename);
+	void write_color_to_dftd_model_file(TiXmlElement* parent, const color& c,
+					    const std::string& type) const;
+	color read_color_from_dftd_model_file(TiXmlElement* parent, const std::string& type);
 
 public:
 	model() : display_list(0), usematerial(true) {}
@@ -176,8 +177,6 @@ public:
 
 	// write our own model file format.
 	void write_to_dftd_model_file(const std::string& filename) const;
-	void write_color_to_dftd_model_file(TiXmlElement* parent, const color& c,
-					    const std::string& type) const;
 };	
 
 #endif
