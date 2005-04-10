@@ -281,7 +281,7 @@ void ship::rudder_midships(void)
 
 
 
-void ship::set_throttle(throttle_status thr)
+void ship::set_throttle(int thr)
 {
 	throttle = thr;
 }

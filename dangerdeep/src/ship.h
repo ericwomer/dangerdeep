@@ -206,7 +206,7 @@ public:
 	virtual void rudder_hard_left(void);
 	virtual void rudder_hard_right(void);
 	virtual void rudder_midships(void);
-	virtual void set_throttle(throttle_status thr);
+	virtual void set_throttle(int thr);
 
 	virtual void remember_position(void);
 	virtual list<vector2> get_previous_positions(void) const { return previous_positions; }
