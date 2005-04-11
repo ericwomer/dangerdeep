@@ -161,6 +161,8 @@ void model::mesh::compute_normals(void)
 	if (mymaterial && mymaterial->bump) {
 		tangentsx.clear();
 		tangentsx.resize(vertices.size(), vector3f(0, 0, 1));
+		righthanded.clear();
+		righthanded.resize(vertices.size(), false);
 		vector<bool> vertexok(vertices.size());
 		for (unsigned i = 0; i < indices.size(); i += 3) {
 			unsigned i0 = indices[i+0];
@@ -194,12 +196,31 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 		//just hope and wait seems to work, at least one face adjacent to the vertex
 		//should give sane tangent values.
 		return false;
+
+		//fixme: check with luis' freighter, it seems to have 2271 tangents only but > 3000 verts.
 	} else {
+		vector3f v01 = vertices[i1] - vertices[i0];
+		vector3f v02 = vertices[i2] - vertices[i0];
+		// compute tangentx
 		float a = d_uv1.y/det;
 		float b = -d_uv0.y/det;
-		vector3f rv = (vertices[i1] - vertices[i0]) * a + (vertices[i2] - vertices[i0]) * b;
-		rv = rv - (rv * n) * n;
-		tangentsx[i0] = rv;
+		vector3f rx = v01 * a + v02 * b;
+		tangentsx[i0] = (rx - (rx * n) * n).normal();
+
+//		cout << "tangent * n " << i0 << ", " << tangentsx[i0] * n << "\n";
+
+		// compute tangent y
+		float c = -d_uv1.x/det;
+		float d = d_uv0.x/det;
+		vector3f ry = v01 * c + v02 * d;
+		vector3f tangentsy = (ry - (ry * n) * n).normal();
+		float g = tangentsx[i0].cross(tangentsy) * n;
+		righthanded[i0] = (g > 0);
+		if (g < 0) {
+			cout << "left hand coordinate system!\n";
+		} else {
+			cout << "right hand coordinate system!\n";
+		}
 		return true;
 	}
 }
@@ -251,6 +272,8 @@ pair<model::mesh, model::mesh> model::mesh::split(const vector3f& abc, float d) 
 	part1.normals.reserve(normals.size()/2);
 	part0.tangentsx.reserve(tangentsx.size()/2);
 	part1.tangentsx.reserve(tangentsx.size()/2);
+	part0.righthanded.reserve(righthanded.size()/2);
+	part1.righthanded.reserve(righthanded.size()/2);
 	part0.indices.reserve(indices.size()/2);
 	part1.indices.reserve(indices.size()/2);
 
@@ -265,12 +288,14 @@ pair<model::mesh, model::mesh> model::mesh::split(const vector3f& abc, float d) 
 			if (texcoords.size() > 0) part0.texcoords.push_back(texcoords[i]);
 			if (normals.size() > 0) part0.normals.push_back(normals[i]);
 			if (tangentsx.size() > 0) part0.tangentsx.push_back(tangentsx[i]);
+			if (righthanded.size() > 0) part0.righthanded.push_back(righthanded[i]);
 		} else {
 			ixtrans[i] = part1.vertices.size();
 			part1.vertices.push_back(vertices[i]);
 			if (texcoords.size() > 0) part1.texcoords.push_back(texcoords[i]);
 			if (normals.size() > 0) part1.normals.push_back(normals[i]);
 			if (tangentsx.size() > 0) part1.tangentsx.push_back(tangentsx[i]);
+			if (righthanded.size() > 0) part0.righthanded.push_back(righthanded[i]);
 		}
 	}
 
@@ -334,6 +359,11 @@ pair<model::mesh, model::mesh> model::mesh::split(const vector3f& abc, float d) 
 				part0.tangentsx.push_back(newtanx);
 				part1.tangentsx.push_back(newtanx);
 			}
+			if (righthanded.size() > 0) {
+				//fixme: check if this is correct
+				part0.righthanded.push_back(righthanded[ix[j]]);
+				part1.righthanded.push_back(righthanded[ix[j]]);
+			}
 			++splitptr;
 		}
 		sys().myassert(splitptr == 2, "splitptr != 2 ?!");
@@ -377,7 +407,7 @@ void model::material::init(void)
 	if (tex1) tex1->init(model::mapping);
 	//fixme: what is best mapping for bump maps?
 	// compute normalmap if not given
-	if (bump) bump->init(GL_LINEAR /*_MIPMAP_LINEAR*/, true, 128.0f /*16.0f*/ /*fixme, read from model file*/);
+	if (bump) bump->init(GL_LINEAR /*_MIPMAP_LINEAR*/, true, 255.0f /*16.0f*/ /*fixme, read from model file*/);
 }
 
 
@@ -385,7 +415,8 @@ void model::material::set_gl_values(void) const
 {
 	diffuse.set_gl_color();
 	glActiveTexture(GL_TEXTURE0);
-	if (tex1 && tex1->mytexture) {
+	glDisable(GL_LIGHTING);//fixme: wenn bump map dann kein licht!
+	if (/*false*/tex1 && tex1->mytexture) {
 		if (bump && bump->mytexture) {
 			glActiveTexture(GL_TEXTURE0);
 			glMatrixMode(GL_TEXTURE);
@@ -403,8 +434,10 @@ void model::material::set_gl_values(void) const
 			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 			glActiveTexture(GL_TEXTURE1);
 			glEnable(GL_TEXTURE_2D);
+			//
 			//tex1->mytexture->set_gl_texture();
-			glBindTexture(GL_TEXTURE_2D, 0);
+			glBindTexture(GL_TEXTURE_2D, 0);//fixme
+			//
 			glMatrixMode(GL_TEXTURE);
 			glLoadIdentity();
 			glScalef(1, -1, 1); // y flip texture
@@ -503,17 +536,38 @@ void model::mesh::display(bool usematerial) const
 	if (bumpmapping) {
 		vector4f lightpos_abs;
 		glGetLightfv(GL_LIGHT0, GL_POSITION, &lightpos_abs.x);
+		lightpos_abs = vector4f(200,0,-117,1);
+		//fixme: check directional light
 		matrix4f invmodelview = (matrix4f::get_gl(GL_MODELVIEW_MATRIX)).inverse();
 		vector4f lightpos_rel = invmodelview * lightpos_abs;
+		cout << "lightpos abs " << lightpos_abs << "\n";
+		cout << "lightpos rel " << lightpos_rel << "\n";
 		vector3f lightpos3 = lightpos_rel.to_real();
+		cout << "lightpos3 " << lightpos3 << "," << lightpos_rel.xyz() << "," << ((lightpos_rel.w != 0.0f)) << "\n";
 		colors.resize(3*vertices.size());
 		for (unsigned i = 0; i < vertices.size(); ++i) {
 			const vector3f& nx = tangentsx[i];
 			const vector3f& nz = normals[i];
 			vector3f ny = nz.cross(nx);
+			//fixme: ny length is not always 1, which can only happen when nx and nz are not othogonal
+			//but they should be constructed that way!!!
+			//they are, nz*nx is at most something 1e-5
+			//but maybe this is because of unset tangentsx!!!
+			cout << "\n" << nx.length() << "," << ny.length() << "," << nz.length() << "<-------------\n";
+			if (false/*!righthanded[i]*/) ny = -ny;//fixme
 			vector3f lp = (lightpos_rel.w != 0.0f) ? (lightpos3 - vertices[i]) :
 				lightpos_rel.xyz();
+			//fixme: the projection of the light in the local space doesn't work
+			lp = lp.normal();//testhack fixme remove
 			vector3f nl = vector3f(nx * lp, ny * lp, nz * lp).normal();
+			//fixme: normals seem ok except the discontinuities in the mesh (not continuous
+			//because of u,v mapping issues - talk with Luis)
+
+//			float u = nl.z;
+//			cout << " u is " << u;
+//			if (u < 0.0f) u = 0.0f;
+//			nl.x = nl.y = nl.z = u;
+
 			const float s = 127.5f;
 			colors[3*i+0] = Uint8(nl.x*s + s);
 			colors[3*i+1] = Uint8(nl.y*s + s);
@@ -526,6 +580,10 @@ void model::mesh::display(bool usematerial) const
 	}
 	
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, &indices[0]);
+
+#if 0
+	//fixme: add code to show normals
+#endif
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);

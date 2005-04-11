@@ -59,6 +59,7 @@ public:
 		std::vector<vector3f> normals;
 		std::vector<vector3f> tangentsx;
 		std::vector<vector2f> texcoords;
+		std::vector<bool> righthanded;	// fixme, hack
 		std::vector<unsigned> indices;	// 3 indices per face
 		matrix4f transformation;	// rot., transl., scaling
 		material* mymaterial;
