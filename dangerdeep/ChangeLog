@@ -1,4 +1,8 @@
-2005-04-03  Thorsten Jordan  <thorsten_jordan@gmx.de>
+2005-04-13  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* fixed bump mapping
+	* now ambient is read and used, so we have dynamic ambient light
+
+2005-04-10  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* introduced 4d vector and operations
 	* changed texture class interface
 	* new model file format with reading and writing

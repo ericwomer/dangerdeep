@@ -187,7 +187,8 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 	vector2f d_uv0 = uv1 - uv0;
 	vector2f d_uv1 = uv2 - uv0;
 	float det = d_uv0.x * d_uv1.y - d_uv1.x * d_uv0.y;
-	if (fabsf(det) < 0.0001f) {
+	//fixme: make limit dynamically: e.g. build the medium value of the four, square it, and compute * 0.0001
+	if (fabsf(det) < 1e-6) {
 		//find sane solution for this situation!
 		//if delta_u is zero for d_uv0 and d_uv1, but delta_v is not, we could
 		//compute tangentsy from v and tangentsx with the cross product
@@ -195,6 +196,10 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 		//can be computed via another triangle
 		//just hope and wait seems to work, at least one face adjacent to the vertex
 		//should give sane tangent values.
+
+		//fixme: the y solution helps, but often the texcoords have small deltas so that the det
+		//is e-5 or e-6 but this doesn't mean zero!!!
+		cout << "tangent comp failed for i0 " << i0 << ", uv0 " << d_uv0 << ", uv1 " << d_uv1 << ", det " << det << "\n";
 		return false;
 
 		//fixme: check with luis' freighter, it seems to have 2271 tangents only but > 3000 verts.
@@ -416,7 +421,7 @@ void model::material::set_gl_values(void) const
 	diffuse.set_gl_color();
 	glActiveTexture(GL_TEXTURE0);
 	glDisable(GL_LIGHTING);//fixme: wenn bump map dann kein licht!
-	if (/*false*/tex1 && tex1->mytexture) {
+	if (tex1 && tex1->mytexture) {
 		if (bump && bump->mytexture) {
 			glActiveTexture(GL_TEXTURE0);
 			glMatrixMode(GL_TEXTURE);
@@ -435,8 +440,8 @@ void model::material::set_gl_values(void) const
 			glActiveTexture(GL_TEXTURE1);
 			glEnable(GL_TEXTURE_2D);
 			//
-			//tex1->mytexture->set_gl_texture();
-			glBindTexture(GL_TEXTURE_2D, 0);//fixme
+			tex1->mytexture->set_gl_texture();
+			//glBindTexture(GL_TEXTURE_2D, 0);//fixme
 			//
 			glMatrixMode(GL_TEXTURE);
 			glLoadIdentity();
@@ -445,22 +450,22 @@ void model::material::set_gl_values(void) const
 			glRotatef(-tex1->angle, 0, 0, 1);
 			glScalef(tex1->uscal, tex1->vscal, 1);
 			// primary color alpha seems to be ONE...
-			float alphac[4] = { 1,1,1, 0.6f };//make ambient value (=alpha) variable
+			vector4t<GLfloat> alphac(1, 1, 1, ambient.brightness());
 			// bump map function with ambient:
 			// color * (bump_brightness * (1-ambient) + ambient)
 			// tex1 color is just an replace, we could use it for some effect
 			// like modulating it with environment color (which is free)
 			// e.g. colored ambient light etc.
-			glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, alphac);
+			glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, &alphac.x);
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 			glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE); 
 			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
 			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
 			glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_INTERPOLATE);
-			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PREVIOUS);
-			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 			// we need one here, so we take primary color alpha, which is one.
-			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_PRIMARY_COLOR);
+			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
+			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_PREVIOUS);
 			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
 			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA, GL_CONSTANT);
 			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA, GL_SRC_ALPHA);
@@ -536,8 +541,10 @@ void model::mesh::display(bool usematerial) const
 	if (bumpmapping) {
 		vector4f lightpos_abs;
 		glGetLightfv(GL_LIGHT0, GL_POSITION, &lightpos_abs.x);
-		lightpos_abs = vector4f(200,0,-117,1);
+		lightpos_abs = vector4f(200,0,-117,0);
 		//fixme: check directional light
+		//with directional light we have darker results... are some vectors not
+		//of unit length then?
 		matrix4f invmodelview = (matrix4f::get_gl(GL_MODELVIEW_MATRIX)).inverse();
 		vector4f lightpos_rel = invmodelview * lightpos_abs;
 		cout << "lightpos abs " << lightpos_abs << "\n";
@@ -549,24 +556,17 @@ void model::mesh::display(bool usematerial) const
 			const vector3f& nx = tangentsx[i];
 			const vector3f& nz = normals[i];
 			vector3f ny = nz.cross(nx);
+
 			//fixme: ny length is not always 1, which can only happen when nx and nz are not othogonal
 			//but they should be constructed that way!!!
-			//they are, nz*nx is at most something 1e-5
-			//but maybe this is because of unset tangentsx!!!
-			cout << "\n" << nx.length() << "," << ny.length() << "," << nz.length() << "<-------------\n";
-			if (false/*!righthanded[i]*/) ny = -ny;//fixme
-			vector3f lp = (lightpos_rel.w != 0.0f) ? (lightpos3 - vertices[i]) :
-				lightpos_rel.xyz();
-			//fixme: the projection of the light in the local space doesn't work
-			lp = lp.normal();//testhack fixme remove
-			vector3f nl = vector3f(nx * lp, ny * lp, nz * lp).normal();
-			//fixme: normals seem ok except the discontinuities in the mesh (not continuous
-			//because of u,v mapping issues - talk with Luis)
+			//but maybe this is because of unset tangentsx!!! yes, see above
+			//cout << nx.length() << "," << ny.length() << "," << nz.length() << " vert " << i << " <-------------\n";
 
-//			float u = nl.z;
-//			cout << " u is " << u;
-//			if (u < 0.0f) u = 0.0f;
-//			nl.x = nl.y = nl.z = u;
+			vector3f lp = (lightpos_rel.w != 0.0f) ? (lightpos3 - vertices[i]) : lightpos_rel.xyz();
+			vector3f nl = vector3f(nx * lp, ny * lp, nz * lp).normal();
+
+			// swap light Y direction if in left handed coordinate system
+			if (!righthanded[i]) nl.y = -nl.y;
 
 			const float s = 127.5f;
 			colors[3*i+0] = Uint8(nl.x*s + s);
@@ -582,7 +582,7 @@ void model::mesh::display(bool usematerial) const
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, &indices[0]);
 
 #if 0
-	//fixme: add code to show normals
+	//fixme: add code to show normals as Lines
 #endif
 
 	glDisableClientState(GL_VERTEX_ARRAY);

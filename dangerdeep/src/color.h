@@ -47,6 +47,7 @@ struct color {
 	void store_rgba(float* ptr) const { ptr[0] = float(r)/255; ptr[1] = float(g)/255; ptr[2] = float(b)/255; ptr[3] = float(a)/255; }
 
 	// transform color to grey value (model of human vision, 29.9% to 58.7% to 11.4% RGB)
+	float brightness(void) const { return (r*0.299+g*0.587+b*0.114)/255; }
 	color grey_value(void) const { Uint8 c = (Uint8)(r*0.299+g*0.587+b*0.114); return color(c, c, c, a); }
 	
 	color(istream& in) { r = read_u8(in); g = read_u8(in); b = read_u8(in); a = read_u8(in); }
