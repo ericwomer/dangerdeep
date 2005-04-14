@@ -1,6 +1,198 @@
 Structure of DftD-model files
 -----------------------------
 
+The Dftd Model files are in XML format, they're sometimes called ddxml
+because of this. This file describes their structure and meaning of the
+content. It describes version 1.0. 
+What is missing is grouping / kinematic tree information. The mesh ids
+can be used for this.
+
+
+Each data file starts with the XML header:
+
+<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+
+The root node of the XML file is a of type "dftd-model". I will now
+describe all node types and how they are structured. I'll list all node
+types, their possible children nodes and their attributes.
+
+"triple" means triple of value, separated by (white)spaces.  e.g. triple
+of float is "x y z", a list of float triples is "x1 y1 z1 x2 y2 z2 ..."
+
+
+Node tree
+=========
+(? means optional, * means multiple possible)
+
+dftd-model
+|
++---material * ?
+|      |
+|      +----ambient ?
+|      +----diffuse ?
+|      +----specular ?
+|      +----map ?
+|
++---mesh *
+|     |
+|     +----vertices
+|     +----indices
+|     +----texcoords ?
+|     +----normals ?
+|     +----transformation ?
+|
++---light * ?
+
+
+Node: dftd-model
+================
+Root node of the XML model file.
+
+Attributes:
+(float) version - version of the model file. For information purposes.
+
+Children: material, mesh, light - Children can appear in any order,
+except the following rules: mesh nodes may reference material nodes. A
+material node must occour before a reference (an id value) to it
+occours.  At least one mesh must be defined.
+
+
+Node: material
+==============
+Describes a material.
+
+Attributes:
+(string) name - material name for description.
+(int) id - number for referencing, must be unique for materials.
+
+Children: ambient, diffuse, specular, map - each node is optional, at
+most one of type ambient, diffuse or specular may be defined. At most
+one map of each type may be defined.
+
+
+Node: ambient
+=============
+Describes ambient color.
+
+Attributes:
+(triple of float) color - ambient color.
+
+
+Node: diffuse
+=============
+Describes diffuse color.
+
+Attributes:
+(triple of float) color - diffuse color. Only used when no diffuse map
+given.
+
+
+Node: specular
+==============
+Describes specular color.
+
+Attributes:
+(triple of float) color - specular color.
+
+
+Node: map
+=========
+Describes a map of the material (sub-property)
+
+Attributes:
+(string) type - can be "diffuse", "normal" or "specular"
+(string) filename - any image image containing the map data
+(float) uscal - scaling of u coordinates
+(float) vscal - scaling of v coordinates
+(float) uoffset - offset of u coordinates
+(float) voffset - offset of v coordinates
+(float) angle - rotation angle of u,v coordinates, in ccw direction
+
+
+Node: mesh
+==========
+Describes a mesh of the model.
+
+Attributes:
+(string) name - mesh name for description.
+(int) id - unique id, not used yet
+(int) material - material id to use for this mesh
+
+Children: vertices, indices (both mandatory), texcoords, normals,
+transformation (each optional)
+
+
+Node: vertices
+==============
+Vertex data for mesh. Mandatory.
+
+Attributes:
+(int) nr - number of vertices
+
+Sub-text-node:
+(list of triple of float) data
+
+
+Node: indices
+=============
+Index data for mesh. Mandatory.
+
+Attributes:
+(int) nr - number of indices. Must be multiple of three, because mesh
+data are triangles.
+
+Sub-text-node:
+(list of triple of float) data
+
+
+Node: texcoords
+===============
+Texture coordinate data for mesh. Optional.
+
+Attributes:
+none
+
+Sub-text-node:
+(list of pair of float) data
+
+
+Node: normals
+=============
+Normal data for mesh. Optional.
+
+Attributes:
+none
+
+Sub-text-node:
+(list of triple of float) data
+
+
+Node: transformation
+====================
+Transformation matrix for vertices. Optional.  Sixteen floats in the
+following order: row after row, four float values each.
+
+Attributes:
+none
+
+Sub-text-node:
+(sixteen floats) data
+
+
+Node: light
+===========
+Describes a light. Color is the same for ambient, diffuse and specular.
+
+Attributes:
+(string) name - descriptive name.
+(float triple) pos - light position
+(float triple) color - light color
+
+
+
+old documentation, example
+==========================
+
 XML format.
 
 <?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
@@ -17,6 +209,8 @@ XML format.
 
 ----> can be listed, if not default is 1,1,1  1,1,1  1,1,1 (can change)
 
+diffuse color is used when no diffuse map is given.
+
     <ambient color="floatr floatg floatb" />
     <diffuse color="floatr floatg floatb" />
     <specular color="floatr floatg floatb" />
@@ -24,6 +218,8 @@ XML format.
 ----> at most one of each type
 ----> give u,v scaling and offset and u,v rotation angle. If not given, default values
 ----> are used. (scal=1.0, offset=0.0, angle=0.0). Give angle in degrees.
+
+can there be no maps? yes...
 
     <map type="diffuse/normal/specular" filename="foo" uscal="float" vscal="float"
       uoffset="float" voffset="float" angle="float" />

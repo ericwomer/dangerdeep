@@ -418,11 +418,13 @@ void model::material::init(void)
 
 void model::material::set_gl_values(void) const
 {
-	diffuse.set_gl_color();
 	glActiveTexture(GL_TEXTURE0);
-	glDisable(GL_LIGHTING);//fixme: wenn bump map dann kein licht!
 	if (tex1 && tex1->mytexture) {
 		if (bump && bump->mytexture) {
+			// no opengl lighting in bump map mode.
+			glDisable(GL_LIGHTING);
+			// set primary color alpha to one.
+			glColor4f(1, 1, 1, 1);
 			glActiveTexture(GL_TEXTURE0);
 			glMatrixMode(GL_TEXTURE);
 			glLoadIdentity();
@@ -449,20 +451,28 @@ void model::material::set_gl_values(void) const
 			glTranslatef(tex1->uoffset, tex1->voffset, 0);
 			glRotatef(-tex1->angle, 0, 0, 1);
 			glScalef(tex1->uscal, tex1->vscal, 1);
-			// primary color alpha seems to be ONE...
-			vector4t<GLfloat> alphac(1, 1, 1, ambient.brightness());
+
+			// fixme: set this color from light color
+			vector4t<GLfloat> ldifcol;//, lambcol;
+			glGetLightfv(GL_LIGHT0, GL_DIFFUSE, &ldifcol.x);
+			//fixme: maybe compute mix of diffuse and ambient light, but the color
+			//is mostly the same, only brightness varies.
+			//glGetLightfv(GL_LIGHT0, GL_AMBIENT, &lambcol.x);
+			ldifcol.w = ambient.brightness();
+
 			// bump map function with ambient:
-			// color * (bump_brightness * (1-ambient) + ambient)
-			// tex1 color is just an replace, we could use it for some effect
-			// like modulating it with environment color (which is free)
-			// e.g. colored ambient light etc.
-			glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, &alphac.x);
+			// light_color * color * (bump_brightness * (1-ambient) + ambient)
+			glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, &ldifcol.x);
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-			glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE); 
-			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
+			glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_CONSTANT);
 			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+
 			glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_INTERPOLATE);
 			// we need one here, so we take primary color alpha, which is one.
+			// couldn't we just use GL_ONE as operand?
 			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
 			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_PREVIOUS);
@@ -488,6 +498,7 @@ void model::material::set_gl_values(void) const
 		}
 		glMatrixMode(GL_MODELVIEW);
 	} else {
+		diffuse.set_gl_color();
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glActiveTexture(GL_TEXTURE1);
@@ -585,6 +596,8 @@ void model::mesh::display(bool usematerial) const
 	//fixme: add code to show normals as Lines
 #endif
 
+	// enable lighting in case it was disabled (for bump mapping)
+	glEnable(GL_LIGHTING);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);

@@ -419,7 +419,7 @@ void user_interface::draw_weather_effects(void) const
 	// get projection from frustum to view
 	matrix4 c2w = (matrix4::get_gl(GL_PROJECTION_MATRIX) * matrix4::get_gl(GL_MODELVIEW_MATRIX)).inverse();
 	// draw planes between z-near and z-far with ascending distance and 2d texture with flakes/strains
-	glDisable(GL_LIGHTING);
+	glDisable(GL_LIGHTING);//fixme: it has to be turned on again below!!!!!!!!!!
 	unsigned sf = unsigned(mygame->get_time() * NR_OF_RAIN_FRAMES) % NR_OF_RAIN_FRAMES;
 //	unsigned sf = unsigned(mygame->get_time() * NR_OF_SNOW_FRAMES) % NR_OF_SNOW_FRAMES;
 	raintex[sf]->set_gl_texture();
