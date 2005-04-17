@@ -102,6 +102,26 @@ protected:
 
 	vector3f min, max;
 
+	// class-wide variables: shaders supported and enabled, shader number and init count
+	static unsigned init_count;
+
+	// Booleans for supported OpenGL extensions
+	static bool vertex_program_supported;
+	static bool fragment_program_supported;
+	static bool compiled_vertex_arrays_supported;
+
+	// Config options (only used when supported)
+	static bool use_vertex_programs;
+	static bool use_fragment_programs;
+
+	// Shader programs
+	static GLuint default_vertex_program;
+	static GLuint default_fragment_program;
+
+	// init / deinit
+	static void render_init(void);
+	static void render_deinit(void);
+
 	void compute_bounds(void);
 	void compute_normals(void);
 	
@@ -147,7 +167,7 @@ protected:
 	color read_color_from_dftd_model_file(TiXmlElement* parent, const std::string& type);
 
 public:
-	model() : display_list(0), usematerial(true) {}
+	model();
 
 	static int mapping;	// GL_* mapping constants
 

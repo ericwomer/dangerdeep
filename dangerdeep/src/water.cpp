@@ -125,13 +125,16 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	fragment_program_supported = sys().extension_supported("GL_ARB_fragment_program");
 	compiled_vertex_arrays_supported = sys().extension_supported("GL_EXT_compiled_vertex_array");
 
-	use_vertex_programs = cfg::instance().getb("use_vertex_shaders");
-	use_fragment_programs = cfg::instance().getb("use_pixel_shaders");
+	if (vertex_program_supported)
+		use_vertex_programs = cfg::instance().getb("use_vertex_shaders");
+	if (fragment_program_supported)
+		use_fragment_programs = cfg::instance().getb("use_pixel_shaders");
 
 	// initialize shaders if wanted
-	if (fragment_program_supported && use_fragment_programs) {
-		water_fragment_program = texture::create_shader(GL_FRAGMENT_PROGRAM_ARB,
-								get_shader_dir() + "water_fp.shader");
+	if (use_fragment_programs) {
+		water_fragment_program =
+			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB,
+					       get_shader_dir() + "water_fp.shader");
 	}
 
 	// 2004/04/25 Note! decreasing the size of the reflection map improves performance
@@ -332,7 +335,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 
 water::~water()
 {
-	if (fragment_program_supported && use_fragment_programs) {
+	if (use_fragment_programs) {
 		texture::delete_shader(water_fragment_program);
 	}
 
@@ -349,7 +352,7 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
 
-	if (fragment_program_supported && use_fragment_programs) {
+	if (use_fragment_programs) {
 		// use fragment programs
 
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, water_fragment_program);
@@ -398,7 +401,7 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 	reflection_projmvmat.multiply_gl();
 	glMatrixMode(GL_MODELVIEW);
 
-	if (!(fragment_program_supported && use_fragment_programs)) {
+	if (!use_fragment_programs) {
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
 		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
@@ -454,7 +457,7 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 
 void water::cleanup_textures(void) const
 {
-	if (fragment_program_supported && use_fragment_programs) {
+	if (use_fragment_programs) {
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
 		glDisable(GL_FRAGMENT_PROGRAM_ARB);
 	}
@@ -808,7 +811,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	//(locked) quadstrips, if they're faster than compiled vertex arrays, test it!
 
 	vector<vector3f> uv2;
-	if (fragment_program_supported && use_fragment_programs) {
+	if (use_fragment_programs) {
 		uv2.resize(uv0.size());
 	}
 
@@ -818,7 +821,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 			const vector3f& coord = coords[ptr];
 			const vector3f& N = normals[ptr];
 
-			if (fragment_program_supported && use_fragment_programs) {
+			if (use_fragment_programs) {
 				uv0[ptr] = vector2f(coord.x/8.0f, coord.y/8.0f); // fixme, use noise map texc's
 				//fixme ^, offset is missing
 				vector3f tx = vector3f(1, 0, 0);//fixme hack
@@ -866,7 +869,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv1[0].x);
 	glDisableClientState(GL_NORMAL_ARRAY);
 
-	if (fragment_program_supported && use_fragment_programs) {
+	if (use_fragment_programs) {
 		glClientActiveTexture(GL_TEXTURE2);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv2[0].x);
@@ -897,7 +900,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
-	if (fragment_program_supported && use_fragment_programs) {
+	if (use_fragment_programs) {
 		glClientActiveTexture(GL_TEXTURE2);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}

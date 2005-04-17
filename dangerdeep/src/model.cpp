@@ -19,11 +19,16 @@
 #define isfinite(x) finite(x)
 #endif
 
+#define NO_CFG //fixme hack , replace by scons cfg
+
 #include "system.h"
 #include "global_data.h"
 #include "oglext/OglExt.h"
 #include "matrix4.h"
 #include "tinyxml/tinyxml.h"
+#ifndef NO_CFG
+#include "cfg.h"
+#endif // NO_CFG
 #include <sstream>
 
 string modelpath;
@@ -33,9 +38,69 @@ string modelpath;
 
 int model::mapping = GL_LINEAR_MIPMAP_LINEAR;//GL_NEAREST;
 
+unsigned model::init_count = 0;
+bool model::vertex_program_supported = false;
+bool model::fragment_program_supported = false;
+bool model::compiled_vertex_arrays_supported = false;
+bool model::use_vertex_programs = false;
+bool model::use_fragment_programs = false;
+GLuint model::default_vertex_program = 0;
+GLuint model::default_fragment_program = 0;
+
+
+void model::render_init(void)
+{
+	vertex_program_supported = sys().extension_supported("GL_ARB_vertex_program");
+	fragment_program_supported = sys().extension_supported("GL_ARB_fragment_program");
+	compiled_vertex_arrays_supported = sys().extension_supported("GL_EXT_compiled_vertex_array");
+
+	if (vertex_program_supported) {
+#ifdef NO_CFG
+		use_vertex_programs = true;
+#else
+		use_vertex_programs = cfg::instance().getb("use_vertex_shaders");
+#endif
+	}
+	if (fragment_program_supported) {
+#ifdef NO_CFG
+		use_fragment_programs = true;
+#else
+		use_fragment_programs = cfg::instance().getb("use_pixel_shaders");
+#endif
+	}
+
+	// initialize shaders if wanted
+	if (use_fragment_programs) {
+		default_fragment_program =
+			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB,
+					       get_shader_dir() + "modelrender_fp.shader");
+	}
+}
+
+
+
+void model::render_deinit(void)
+{
+	if (use_fragment_programs) {
+		texture::delete_shader(default_fragment_program);
+	}
+}
+
+
+
+model::model() : display_list(0), usematerial(true)
+{
+	if (init_count == 0) render_init();
+	++init_count;
+}
+
+
 model::model(const string& filename, bool usematerial_, bool makedisplaylist) :
 	display_list(0), usematerial(usematerial_)
 {
+	if (init_count == 0) render_init();
+	++init_count;
+
 	string::size_type st = filename.rfind(".");
 	string extension = (st == string::npos) ? "" : filename.substr(st);
 	for (unsigned e = 0; e < extension.length(); ++e)
@@ -75,12 +140,16 @@ model::model(const string& filename, bool usematerial_, bool makedisplaylist) :
 	}
 }
 
+
 model::~model()
 {
 	glDeleteLists(display_list, 1);
 	for (vector<model::material*>::iterator it = materials.begin(); it != materials.end(); ++it)
 		delete *it;
+	--init_count;
+	if (init_count == 0) render_deinit();
 }
+
 
 void model::compute_bounds(void)
 {
@@ -425,62 +494,83 @@ void model::material::set_gl_values(void) const
 			glDisable(GL_LIGHTING);
 			// set primary color alpha to one.
 			glColor4f(1, 1, 1, 1);
-			glActiveTexture(GL_TEXTURE0);
-			glMatrixMode(GL_TEXTURE);
-			glLoadIdentity();
-			glScalef(1, -1, 1); // y flip texture
-			glTranslatef(bump->uoffset, bump->voffset, 0);
-			glRotatef(-bump->angle, 0, 0, 1);
-			glScalef(bump->uscal, bump->vscal, 1);
-			bump->mytexture->set_gl_texture();
-			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-			glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGBA); 
-			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
-			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-			glActiveTexture(GL_TEXTURE1);
-			glEnable(GL_TEXTURE_2D);
-			//
-			tex1->mytexture->set_gl_texture();
-			//glBindTexture(GL_TEXTURE_2D, 0);//fixme
-			//
-			glMatrixMode(GL_TEXTURE);
-			glLoadIdentity();
-			glScalef(1, -1, 1); // y flip texture
-			glTranslatef(tex1->uoffset, tex1->voffset, 0);
-			glRotatef(-tex1->angle, 0, 0, 1);
-			glScalef(tex1->uscal, tex1->vscal, 1);
 
-			// fixme: set this color from light color
-			vector4t<GLfloat> ldifcol;//, lambcol;
-			glGetLightfv(GL_LIGHT0, GL_DIFFUSE, &ldifcol.x);
-			//fixme: maybe compute mix of diffuse and ambient light, but the color
-			//is mostly the same, only brightness varies.
-			//glGetLightfv(GL_LIGHT0, GL_AMBIENT, &lambcol.x);
-			ldifcol.w = ambient.brightness();
+			if (use_fragment_programs) {
+				// use fragment programs
+				glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_program);
+				glEnable(GL_FRAGMENT_PROGRAM_ARB);
 
-			// bump map function with ambient:
-			// light_color * color * (bump_brightness * (1-ambient) + ambient)
-			glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, &ldifcol.x);
-			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-			glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_CONSTANT);
-			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+				// texture units / coordinates:
+				// tex0: color map / matching texcoords
+				// tex1: normal map / texcoords show vector to light
+				// tex2: specular map / texcoords show vector to viewer
+				glActiveTexture(GL_TEXTURE0);
+				// local parameters:
+				// local 0 : light source color
+				// local 1 : material ambient color (modulated by light color)
+				// local 2 : material specular color (modulated by light color)
+				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 0,
+							     1.0f, 0.9f, 0.9f, 1.0f);//fixme test
+				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 1,
+							     0.1f, 0.1f, 0.1f, 1.0f);//fixme test
+				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 2,
+							     0.8f, 0.8f, 1.0f, 1.0f);//fixme test
+			} else {
+				// standard OpenGL texturing with special tricks
+				glActiveTexture(GL_TEXTURE0);
+				glMatrixMode(GL_TEXTURE);
+				glLoadIdentity();
+				glScalef(1, -1, 1); // y flip texture
+				glTranslatef(bump->uoffset, bump->voffset, 0);
+				glRotatef(-bump->angle, 0, 0, 1);
+				glScalef(bump->uscal, bump->vscal, 1);
+				bump->mytexture->set_gl_texture();
+				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+				glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGBA); 
+				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
+				glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+				glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+				glActiveTexture(GL_TEXTURE1);
+				glEnable(GL_TEXTURE_2D);
+				tex1->mytexture->set_gl_texture();
+				glMatrixMode(GL_TEXTURE);
+				glLoadIdentity();
+				glScalef(1, -1, 1); // y flip texture
+				glTranslatef(tex1->uoffset, tex1->voffset, 0);
+				glRotatef(-tex1->angle, 0, 0, 1);
+				glScalef(tex1->uscal, tex1->vscal, 1);
 
-			glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_INTERPOLATE);
-			// we need one here, so we take primary color alpha, which is one.
-			// couldn't we just use GL_ONE as operand?
-			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
-			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_PREVIOUS);
-			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
-			glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA, GL_CONSTANT);
-			glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA, GL_SRC_ALPHA);
-			glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
+				vector4t<GLfloat> ldifcol;//, lambcol;
+				glGetLightfv(GL_LIGHT0, GL_DIFFUSE, &ldifcol.x);
+				//fixme: maybe compute mix of diffuse and ambient light, but the color
+				//is mostly the same, only brightness varies.
+				//glGetLightfv(GL_LIGHT0, GL_AMBIENT, &lambcol.x);
+				ldifcol.w = ambient.brightness();
+
+				// bump map function with ambient:
+				// light_color * color * (bump_brightness * (1-ambient) + ambient)
+				glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, &ldifcol.x);
+				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+				glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_CONSTANT);
+				glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+				glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+
+				glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_INTERPOLATE);
+				// we need one here, so we take primary color alpha, which is one.
+				// couldn't we just use GL_ONE as operand?
+				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
+				glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_PREVIOUS);
+				glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
+				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA, GL_CONSTANT);
+				glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA, GL_SRC_ALPHA);
+				glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
+			}
 		} else {
+			// just standard lighting, no need for shaders.
 			glColor3f(1, 1, 1);
 			glActiveTexture(GL_TEXTURE0);
 			tex1->mytexture->set_gl_texture();
@@ -596,7 +686,11 @@ void model::mesh::display(bool usematerial) const
 	//fixme: add code to show normals as Lines
 #endif
 
-	// enable lighting in case it was disabled (for bump mapping)
+	// cleanup
+	if (use_fragment_programs) {
+		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
+		glDisable(GL_FRAGMENT_PROGRAM_ARB);
+	}
 	glEnable(GL_LIGHTING);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
