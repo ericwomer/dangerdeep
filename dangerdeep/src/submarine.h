@@ -7,10 +7,12 @@
 #include "ship.h"
 #include "torpedo.h"
 #include "binstream.h"
-#include "user_interface.h"
 #include <vector>
 
+//fixme: this is very ugly. replace this asap.
 #define SUBMARINE_SUBMERGED_DEPTH 2.0f // meters
+
+class game;
 
 class submarine : public ship
 {
@@ -186,9 +188,8 @@ protected:
 
 	virtual void calculate_fuel_factor ( double delta_time );
 	
-	virtual void gun_manning_changed(bool isGunManned);	
+	virtual void gun_manning_changed(game& gm, bool isGunManned);	
 
-	user_interface *ui;
 	unsigned int delayed_dive_to_depth;
 	double delayed_planes_down;
 	
@@ -211,12 +212,12 @@ public:
 	
 	virtual ~submarine() {}
 
-	virtual void load(istream& in, class game& g);
-	virtual void save(ostream& out, const class game& g) const;
+	virtual void load(istream& in, game& g);
+	virtual void save(ostream& out, const game& g) const;
 	
 	virtual void parse_attributes(class TiXmlElement* parent);
 
-	virtual void simulate(class game& gm, double delta_time);
+	virtual void simulate(game& gm, double delta_time);
 	
 	// fill available tubes with common types depending on time period (used for custom missions)
 	virtual void init_fill_torpedo_tubes(const class date& d);
@@ -281,7 +282,7 @@ public:
 	virtual double get_bow_stern_deck_transfer_time(void) const { return torp_transfer_times[4]; }
 	
 	// give tubenr -1 for any loaded tube, or else 0-5
-	virtual bool can_torpedo_be_launched(class game& gm, int tubenr, sea_object* target, 
+	virtual bool can_torpedo_be_launched(game& gm, int tubenr, sea_object* target, 
 										 stored_torpedo::st_status &tube_status) const;
 
 	// damage is added if dc damages sub.
@@ -294,23 +295,22 @@ public:
 	virtual bool set_snorkel_up ( bool snorkel_up );	// fixme get rid of this
 	virtual void snorkel_up ( void ) { set_snorkel_up(true); }
 	virtual void snorkel_down ( void ) { set_snorkel_up(false); }
-	virtual void planes_up(double amount);		// fixme: functions for both dive planes needed?
-	virtual void planes_down(double amount);
+	virtual void planes_up(game& gm, double amount);		// fixme: functions for both dive planes needed?
+	virtual void planes_down(game& gm, double amount);
 	virtual void planes_middle(void);
-	virtual void dive_to_depth(unsigned meters);
+	virtual void dive_to_depth(game& gm, unsigned meters);
 	virtual void transfer_torpedo(unsigned from, unsigned to);
 	virtual void set_trp_primaryrange(unsigned x) { trp_primaryrange = x; }
 	virtual void set_trp_secondaryrange(unsigned x) { trp_secondaryrange = x; }
 	virtual void set_trp_initialturn(unsigned x) { trp_initialturn = x; }
 	virtual void set_trp_searchpattern(unsigned x) { trp_searchpattern = x; }
 	virtual void set_trp_addleadangle(angle x) { trp_addleadangle = x; }
-	virtual void launch_torpedo(class game& gm, int tubenr, sea_object* target); // give tubenr -1 for any loaded tube, or else 0-5
-	virtual void set_ui(user_interface *messageDisplay);
+	virtual void launch_torpedo(game& gm, int tubenr, sea_object* target); // give tubenr -1 for any loaded tube, or else 0-5
 	virtual bool has_deck_gun() { return !gun_turrets.empty(); }
 	
-	virtual void set_throttle(ship::throttle_status thr);
-	virtual void start_throttle_sound();	
-	virtual void stop_throttle_sound();	
+	virtual void set_throttle(game& gm, ship::throttle_status thr);
+	virtual void start_throttle_sound(game& gm);
+	virtual void stop_throttle_sound(game& gm);
 };
 
 #endif

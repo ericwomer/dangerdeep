@@ -119,6 +119,11 @@ protected:
 
 	// give a loaded xml document to this c'tor, it will create an object after the specs
 	sea_object(class TiXmlDocument* specfile, const char* topnodename = "dftd-object");
+
+	// possible addition, fixme: game object exists before and after each sea_object.
+	// so each sea_object could store a ref to game, removing tons of "game& gm" parameters everywhere
+	// without any harm.
+	// game& gm;
 	
 public:
 	virtual ~sea_object();

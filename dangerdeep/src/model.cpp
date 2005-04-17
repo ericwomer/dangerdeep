@@ -33,9 +33,6 @@
 
 string modelpath;
 
-// wether the dftd model file format should contain normals or not
-//#define STORE_NORMALS
-
 int model::mapping = GL_LINEAR_MIPMAP_LINEAR;//GL_NEAREST;
 
 unsigned model::init_count = 0;
@@ -197,28 +194,30 @@ void model::mesh::compute_normals(void)
 	// The corner vertices of an crease edge are also cusp vertices.
 	// Adjacency information needed: face -> face, vertex -> faces
 
-	//fixme: 3ds may have stored some normals already
-	normals.clear();
-	normals.resize(vertices.size());
-	for (unsigned i = 0; i < indices.size(); i += 3) {
-		const vector3f& v0 = vertices[indices[i+0]];
-		const vector3f& v1 = vertices[indices[i+1]];
-		const vector3f& v2 = vertices[indices[i+2]];
-		vector3f ortho = (v1-v0).orthogonal(v2-v0);
-		// avoid degenerated triangles
-		float lf = 1.0/ortho.length();
-		if (isfinite(lf)) {
-			vector3f face_normal = ortho * lf;
-			//normals could be weighted by face area, that gives better results.
-			normals[indices[i+0]] += face_normal;
-			normals[indices[i+1]] += face_normal;
-			normals[indices[i+2]] += face_normal;
+	// do not recompute normals if there are already some
+	if (normals.size() != vertices.size()) {
+		normals.clear();
+		normals.resize(vertices.size());
+		for (unsigned i = 0; i < indices.size(); i += 3) {
+			const vector3f& v0 = vertices[indices[i+0]];
+			const vector3f& v1 = vertices[indices[i+1]];
+			const vector3f& v2 = vertices[indices[i+2]];
+			vector3f ortho = (v1-v0).orthogonal(v2-v0);
+			// avoid degenerated triangles
+			float lf = 1.0/ortho.length();
+			if (isfinite(lf)) {
+				vector3f face_normal = ortho * lf;
+				//normals could be weighted by face area, that gives better results.
+				normals[indices[i+0]] += face_normal;
+				normals[indices[i+1]] += face_normal;
+				normals[indices[i+2]] += face_normal;
+			}
 		}
-	}
-	for (vector<vector3f>::iterator it = normals.begin(); it != normals.end(); ++it) {
-		// this can lead to NAN values in vertex normals.
-		// but only for degenerated vertices, so we don't care.
-		it->normalize();
+		for (vector<vector3f>::iterator it = normals.begin(); it != normals.end(); ++it) {
+			// this can lead to NAN values in vertex normals.
+			// but only for degenerated vertices, so we don't care.
+			it->normalize();
+		}
 	}
 	
 	// if we use bump mapping for this mesh, we need tangent values, too!
@@ -256,8 +255,11 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 	vector2f d_uv0 = uv1 - uv0;
 	vector2f d_uv1 = uv2 - uv0;
 	float det = d_uv0.x * d_uv1.y - d_uv1.x * d_uv0.y;
-	//fixme: make limit dynamically: e.g. build the medium value of the four, square it, and compute * 0.0001
-	if (fabsf(det) < 1e-6) {
+	// dynamic limit for test against "zero"
+	float med = (fabs(d_uv0.x) + fabs(d_uv0.y) + fabs(d_uv1.x) + fabs(d_uv1.y)) * 0.25;
+	float eps = med * med * 0.01;
+	//cout << "test " << d_uv0 << ", " << d_uv1 << ", med " << med << ", eps " << eps << "\n";
+	if (fabsf(det) <= eps) {
 		//find sane solution for this situation!
 		//if delta_u is zero for d_uv0 and d_uv1, but delta_v is not, we could
 		//compute tangentsy from v and tangentsx with the cross product
@@ -266,9 +268,7 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 		//just hope and wait seems to work, at least one face adjacent to the vertex
 		//should give sane tangent values.
 
-		//fixme: the y solution helps, but often the texcoords have small deltas so that the det
-		//is e-5 or e-6 but this doesn't mean zero!!!
-		cout << "tangent comp failed for i0 " << i0 << ", uv0 " << d_uv0 << ", uv1 " << d_uv1 << ", det " << det << "\n";
+		//cout << "tangent comp failed for i0 " << i0 << ", uv0 " << d_uv0 << ", uv1 " << d_uv1 << ", det " << det << "\n";
 		return false;
 
 		//fixme: check with luis' freighter, it seems to have 2271 tangents only but > 3000 verts.
@@ -290,11 +290,6 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 		vector3f tangentsy = (ry - (ry * n) * n).normal();
 		float g = tangentsx[i0].cross(tangentsy) * n;
 		righthanded[i0] = (g > 0);
-		if (g < 0) {
-			cout << "left hand coordinate system!\n";
-		} else {
-			cout << "right hand coordinate system!\n";
-		}
 		return true;
 	}
 }
@@ -643,15 +638,14 @@ void model::mesh::display(bool usematerial) const
 		vector4f lightpos_abs;
 		glGetLightfv(GL_LIGHT0, GL_POSITION, &lightpos_abs.x);
 		lightpos_abs = vector4f(200,0,-117,0);
-		//fixme: check directional light
-		//with directional light we have darker results... are some vectors not
+		//fixme: with directional light we have darker results... are some vectors not
 		//of unit length then?
 		matrix4f invmodelview = (matrix4f::get_gl(GL_MODELVIEW_MATRIX)).inverse();
 		vector4f lightpos_rel = invmodelview * lightpos_abs;
-		cout << "lightpos abs " << lightpos_abs << "\n";
-		cout << "lightpos rel " << lightpos_rel << "\n";
+		//cout << "lightpos abs " << lightpos_abs << "\n";
+		//cout << "lightpos rel " << lightpos_rel << "\n";
 		vector3f lightpos3 = lightpos_rel.to_real();
-		cout << "lightpos3 " << lightpos3 << "," << lightpos_rel.xyz() << "," << ((lightpos_rel.w != 0.0f)) << "\n";
+		//cout << "lightpos3 " << lightpos3 << "," << lightpos_rel.xyz() << "," << ((lightpos_rel.w != 0.0f)) << "\n";
 		colors.resize(3*vertices.size());
 		for (unsigned i = 0; i < vertices.size(); ++i) {
 			const vector3f& nx = tangentsx[i];
@@ -804,7 +798,7 @@ void model::transform(const matrix4f& m)
 
 // -------------------------------- dftd model file writing --------------------------------------
 // write our own model file format.
-void model::write_to_dftd_model_file(const std::string& filename) const
+void model::write_to_dftd_model_file(const std::string& filename, bool store_normals) const
 {
 	TiXmlDocument doc(filename);
 	TiXmlElement* root = new TiXmlElement("dftd-model");
@@ -891,17 +885,17 @@ void model::write_to_dftd_model_file(const std::string& filename) const
 			texcs->LinkEndChild(texct);
 		}
 
-#ifdef STORE_NORMALS
-		// normals.
-		TiXmlElement* nrmls = new TiXmlElement("normals");
-		msh->LinkEndChild(nrmls);
-		ostringstream ossn;
-		for (vector<vector3f>::const_iterator nit = it->normals.begin(); nit != it->normals.end(); ++nit) {
-			ossn << nit->x << " " << nit->y << " " << nit->z << " ";
+		if (store_normals) {
+			// normals.
+			TiXmlElement* nrmls = new TiXmlElement("normals");
+			msh->LinkEndChild(nrmls);
+			ostringstream ossn;
+			for (vector<vector3f>::const_iterator nit = it->normals.begin(); nit != it->normals.end(); ++nit) {
+				ossn << nit->x << " " << nit->y << " " << nit->z << " ";
+			}
+			TiXmlText* nrmlt = new TiXmlText(ossn.str());
+			nrmls->LinkEndChild(nrmlt);
 		}
-		TiXmlText* nrmlt = new TiXmlText(ossn.str());
-		nrmls->LinkEndChild(nrmlt);
-#endif
 
 		// transformation.
 		if (true /*it->transformation != matrix4f::one()*/) {
@@ -1537,7 +1531,7 @@ void model::read_dftd_model_file(const std::string& filename)
 					msh.texcoords.push_back(vector2f(x, y));
 				}
 			}
-#ifdef STORE_NORMALS
+
 			// normals
 			TiXmlElement* nrmls = eattr->FirstChildElement("normals");
 			if (nrmls != 0) {
@@ -1551,7 +1545,7 @@ void model::read_dftd_model_file(const std::string& filename)
 					msh.normals.push_back(vector3f(x, y, z));
 				}
 			}
-#endif
+
 			// transformation	
 			TiXmlElement* trans = eattr->FirstChildElement("transformation");
 			if (trans != 0) {

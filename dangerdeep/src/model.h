@@ -197,7 +197,7 @@ public:
 	void transform(const matrix4f& m);
 
 	// write our own model file format.
-	void write_to_dftd_model_file(const std::string& filename) const;
+	void write_to_dftd_model_file(const std::string& filename, bool store_normals = true) const;
 };	
 
 #endif

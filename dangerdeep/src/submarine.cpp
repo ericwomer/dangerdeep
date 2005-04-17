@@ -11,6 +11,7 @@
 #include "date.h"
 #include "tinyxml/tinyxml.h"
 #include "system.h"
+#include "user_interface.h"
 #include "texts.h"
 
 #include <sstream> //for depthcharge testing
@@ -126,7 +127,7 @@ submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damagea
 
 submarine::submarine(TiXmlDocument* specfile, const char* topnodename) : ship(specfile, topnodename),
 	trp_primaryrange(0), trp_secondaryrange(0), trp_initialturn(0), trp_searchpattern(0),
-	trp_addleadangle(0), ui(NULL), delayed_dive_to_depth(0), delayed_planes_down(0.0)
+	trp_addleadangle(0), delayed_dive_to_depth(0), delayed_planes_down(0.0)
 {
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdsub = hspec.FirstChild(topnodename);
@@ -194,7 +195,7 @@ submarine::submarine() : ship(), dive_speed(0.0f), dive_acceleration(0.0f), max_
 	battery_recharge_value_a ( 0.0f ), battery_recharge_value_t ( 1.0f ),
 	damageable_parts(nr_of_damageable_parts),
 	trp_primaryrange(0), trp_secondaryrange(0), trp_initialturn(0), trp_searchpattern(0),
-	trp_addleadangle(0), ui(NULL), delayed_dive_to_depth(0), delayed_planes_down(0.0)
+	trp_addleadangle(0), delayed_dive_to_depth(0), delayed_planes_down(0.0)
 {
 	// set all common damageable parts to "no damage"
 	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
@@ -718,7 +719,7 @@ float submarine::sonar_visibility ( const vector2& watcher ) const
 
 
 
-void submarine::planes_up(double amount)
+void submarine::planes_up(game& gm, double amount)
 {
 //	dive_acceleration = -1;
 	dive_speed = max_dive_speed;
@@ -727,8 +728,9 @@ void submarine::planes_up(double amount)
 
 
 
-void submarine::planes_down(double amount)
+void submarine::planes_down(game& gm, double amount)
 {
+	user_interface* ui = gm.get_ui();
 	if (false == is_gun_manned())
 	{
 	//	dive_acceleration = 1;
@@ -737,13 +739,11 @@ void submarine::planes_down(double amount)
 	}
 	else
 	{
-		if (NULL != ui)			
-			ui->add_message(texts::get(753));
+		ui->add_message(texts::get(753));
 		delayed_planes_down = amount;
 		delayed_dive_to_depth = 0;
 		toggle_gun_manning();
-		if (NULL != ui)
-			ui->add_message(texts::get(754));
+		ui->add_message(texts::get(754));
 	}
 }
 
@@ -759,8 +759,9 @@ void submarine::planes_middle(void)
 
 
 
-void submarine::dive_to_depth(unsigned meters)
+void submarine::dive_to_depth(game& gm, unsigned meters)
 {
+	user_interface* ui = gm.get_ui();
 	if (false == is_gun_manned())
 	{	
 		dive_to = -int(meters);
@@ -769,13 +770,11 @@ void submarine::dive_to_depth(unsigned meters)
 	}
 	else
 	{	
-		if (NULL != ui)			
-			ui->add_message(texts::get(753));
+		ui->add_message(texts::get(753));
 		delayed_planes_down = 0.0;
 		delayed_dive_to_depth = meters;
 		toggle_gun_manning();
-		if (NULL != ui)			
-			ui->add_message(texts::get(754));
+		ui->add_message(texts::get(754));
 	}
 }
 
@@ -1025,95 +1024,79 @@ void submarine::launch_torpedo(class game& gm, int tubenr, sea_object* target)
 	}
 }
 
-void submarine::gun_manning_changed(bool isGunManned)
-{	
-	if (NULL != ui)
-	{
-		if (true == isGunManned)
-			ui->add_message(texts::get(755));
-		else
-			ui->add_message(texts::get(756));		
-		
-		if (0.0 != delayed_planes_down)
-		{
-			planes_down(delayed_planes_down);
-			delayed_planes_down = 0.0;
-			ui->add_message(texts::get(757));		
-		}
-		else if (0 != delayed_dive_to_depth)
-		{
-			dive_to_depth(delayed_dive_to_depth);
-			delayed_dive_to_depth = 0;
-			ui->add_message(texts::get(757));		
-		}
+void submarine::gun_manning_changed(game& gm, bool isGunManned)
+{
+	user_interface* ui = gm.get_ui();
+	if (true == isGunManned)
+		ui->add_message(texts::get(755));
+	else
+		ui->add_message(texts::get(756));		
+
+	if (0.0 != delayed_planes_down) {
+		planes_down(gm, delayed_planes_down);
+		delayed_planes_down = 0.0;
+		ui->add_message(texts::get(757));		
+	} else if (0 != delayed_dive_to_depth) {
+		dive_to_depth(gm, delayed_dive_to_depth);
+		delayed_dive_to_depth = 0;
+		ui->add_message(texts::get(757));		
 	}
 }
 
-void submarine::set_throttle(ship::throttle_status thr)
+void submarine::set_throttle(game& gm, ship::throttle_status thr)
 {	
 	if (get_throttle() != thr)
 	{
-		stop_throttle_sound();	
+		stop_throttle_sound(gm);
 		ship::set_throttle(thr);	
-		start_throttle_sound();
+		start_throttle_sound(gm);
 	}
 }
 
-void submarine::start_throttle_sound()
+void submarine::start_throttle_sound(game& gm)
 {
-	if (NULL != ui)
-	{
-		switch(get_throttle())
-		{
-			case ship::aheadslow:
-				ui->play_fade_sound_effect(se_sub_screws_slow, this, this, true); 	
-				break;
-			case ship::aheadhalf:
-				ui->play_fade_sound_effect(se_sub_screws_normal, this, this, true); 	
-				break;
-			case ship::aheadfull:
-				ui->play_fade_sound_effect(se_sub_screws_fast, this, this, true); 	
-				break;
-			case ship::aheadflank:
-				ui->play_fade_sound_effect(se_sub_screws_very_fast, this, this, true); 	
-				break;
-			case ship::stop:
-			case ship::reverse:
-			case ship::aheadlisten:
-			case ship::aheadsonar:
-				break;
-		}
+	user_interface* ui = gm.get_ui();
+	switch(get_throttle()) {
+	case ship::aheadslow:
+		ui->play_fade_sound_effect(se_sub_screws_slow, this, this, true); 	
+		break;
+	case ship::aheadhalf:
+		ui->play_fade_sound_effect(se_sub_screws_normal, this, this, true); 	
+		break;
+	case ship::aheadfull:
+		ui->play_fade_sound_effect(se_sub_screws_fast, this, this, true); 	
+		break;
+	case ship::aheadflank:
+		ui->play_fade_sound_effect(se_sub_screws_very_fast, this, this, true); 	
+		break;
+	case ship::stop:
+	case ship::reverse:
+	case ship::aheadlisten:
+	case ship::aheadsonar:
+		break;
 	}
 }
 
-void submarine::stop_throttle_sound()
+void submarine::stop_throttle_sound(game& gm)
 {
-	switch(get_throttle())
-	{
-		case ship::aheadslow:
-			ui->stop_fade_sound_effect(se_sub_screws_slow);
-			break;
-		case ship::aheadhalf:
-			ui->stop_fade_sound_effect(se_sub_screws_normal);
-			break;
-		case ship::aheadfull:
-			ui->stop_fade_sound_effect(se_sub_screws_fast);
-			break;
-		case ship::aheadflank:
-			ui->stop_fade_sound_effect(se_sub_screws_very_fast);
-			break;
-		case ship::stop:
-		case ship::reverse:
-		case ship::aheadlisten:
-		case ship::aheadsonar:
-			break;
+	user_interface* ui = gm.get_ui();
+	switch(get_throttle()) {
+	case ship::aheadslow:
+		ui->stop_fade_sound_effect(se_sub_screws_slow);
+		break;
+	case ship::aheadhalf:
+		ui->stop_fade_sound_effect(se_sub_screws_normal);
+		break;
+	case ship::aheadfull:
+		ui->stop_fade_sound_effect(se_sub_screws_fast);
+		break;
+	case ship::aheadflank:
+		ui->stop_fade_sound_effect(se_sub_screws_very_fast);
+		break;
+	case ship::stop:
+	case ship::reverse:
+	case ship::aheadlisten:
+	case ship::aheadsonar:
+		break;
 	}	
-}
-
-void submarine::set_ui(user_interface *messageDisplay)
-{ 
-	ui = messageDisplay; 
-	// need todo this here because when we load up a ship from xml
-	// we don't have the UI pointer set up so no throttle sound effects
-	start_throttle_sound();
 }
