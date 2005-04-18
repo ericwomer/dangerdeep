@@ -22,8 +22,7 @@ map<double, map<double, double> > ship::dist_angle_relation;
 //fixme: redefine display, call base display
 
 
-// empty c'tor is needed by heirs
-ship::ship() : sea_object(), myai(0), smoke_type(0)
+ship::ship(game& gm_) : sea_object(gm_), myai(0), smoke_type(0)
 {
 	init();
 }
@@ -91,7 +90,7 @@ void ship::fill_dist_angle_relation_map(const double initial_velocity)
 	}
 }
 
-ship::ship(TiXmlDocument* specfile, const char* topnodename) : sea_object(specfile, topnodename)
+ship::ship(game& gm_, TiXmlDocument* specfile, const char* topnodename) : sea_object(gm_, specfile, topnodename)
 {
 	init();	
 	TiXmlHandle hspec(specfile);
@@ -217,7 +216,7 @@ void ship::sink(void)
 
 
 
-void ship::ignite(game& gm)
+void ship::ignite(void)
 {
 	if (myfire) {
 		myfire->kill();
@@ -386,12 +385,12 @@ void ship::parse_attributes(TiXmlElement* parent)
 
 
 
-void ship::load(istream& in, game& g)
+void ship::load(istream& in)
 {
-	sea_object::load(in, g);
+	sea_object::load(in);
 
 	if (read_bool(in))
-		myai = new ai(in, g);
+		myai = new ai(in, gm);
 	
 	tonnage = read_u32(in);
 	stern_damage = damage_status(read_u8(in));
@@ -442,13 +441,13 @@ void ship::load(istream& in, game& g)
 	}	
 }
 
-void ship::save(ostream& out, const game& g) const
+void ship::save(ostream& out) const
 {
-	sea_object::save(out, g);
+	sea_object::save(out);
 
 	write_bool(out, (myai != 0));
 	if (myai)
-		myai->save(out, g);
+		myai->save(out, gm);
 	
 	write_u32(out, tonnage);
 	write_u8(out, stern_damage);
@@ -492,9 +491,9 @@ void ship::save(ostream& out, const game& g) const
 	}
 }
 
-void ship::simulate(game& gm, double delta_time)
+void ship::simulate(double delta_time)
 {
-	sea_object::simulate(gm, delta_time);
+	sea_object::simulate(delta_time);
 	if (is_defunct()) return;
 	if ( myai )
 		myai->act(gm, delta_time);
@@ -779,7 +778,7 @@ void ship::calculate_fuel_factor ( double delta_time )
 	fuel_level -= delta_time * get_fuel_consumption_rate ();
 }
 
-int ship::fire_shell_at(game& gm, const sea_object& s)
+int ship::fire_shell_at(const sea_object& s)
 {
 	int res = GUN_FIRED;
 	gun_turret_itr gun_turret = gun_turrets.begin();
@@ -835,7 +834,7 @@ int ship::fire_shell_at(game& gm, const sea_object& s)
 										// fixme: snap angle values to simulate real cannon accuracy.
 
 										// fixme: adapt direction & elevation to course and speed of target!
-										gm.spawn_gun_shell(new gun_shell(*this, direction, elevation, gun->initial_velocity, gun->shell_damage), 
+										gm.spawn_gun_shell(new gun_shell(gm, *this, direction, elevation, gun->initial_velocity, gun->shell_damage), 
 														   gun->calibre);
 										gun->num_shells_remaining--;
 										gun_barrel->load_time_remaining = GUN_RELOAD_TIME;

@@ -10,25 +10,26 @@
 
 class airplane : public sea_object
 {
-protected:
-	double rollfac, pitchfac;	// rudder state, pitch/roll factor per time.
-
+ private:
 	airplane();
 	airplane& operator=(const airplane& other);
 	airplane(const airplane& other);
 	
-public:
+ protected:
+	double rollfac, pitchfac;	// rudder state, pitch/roll factor per time.
+
+ public:
 	// create empty object from specification xml file
-	airplane(class TiXmlDocument* specfile);
+	airplane(game& gm_, class TiXmlDocument* specfile);
 
-	virtual ~airplane() {};
+	virtual ~airplane();
 
-	void load(istream& in, class game& g);
-	void save(ostream& out, const class game& g) const;
+	void load(istream& in);
+	void save(ostream& out) const;
 
 	virtual void parse_attributes(class TiXmlElement* parent);
 
-	virtual void simulate(class game& gm, double delta_time);
+	virtual void simulate(double delta_time);
 
 	virtual double get_mass(void) const { return 4000.0; }	// 4 tons.
 	virtual double get_engine_thrust(void) const { return 20000.0; }

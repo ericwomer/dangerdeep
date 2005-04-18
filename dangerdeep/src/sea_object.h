@@ -24,7 +24,7 @@ fixme: global todo (2004/06/26):
 -> replace silly head_chg code by real rudder position simulation code
 */
 
-
+class game;
 class sensor;
 
 class sea_object
@@ -71,8 +71,18 @@ public:
 //			p1(a), p2(b), weakness(w), repairtime(t), surfaced(s), repairable(r) {}
 	};
 	
+private:
+	sea_object();
+	sea_object& operator=(const sea_object& other);
+	sea_object(const sea_object& other);
 
 protected:
+	sea_object(game& gm_);
+
+	// game exists before and after live of each sea_object, but calls to game are very common.
+	// so store a ref to game here.	
+	game& gm;
+
 	string specfilename;	// filename for specification .xml file, read from spec file
 
 	string modelname;	// filename for model file (also used for modelcache requests), read from spec file
@@ -103,10 +113,6 @@ protected:
 
 	class ai* myai;
 
-	sea_object();
-
-	sea_object& operator=(const sea_object& other);
-	sea_object(const sea_object& other);
 
 	virtual void set_sensor ( sensor_system ss, sensor* s );
 
@@ -118,17 +124,12 @@ protected:
 	virtual double get_cross_section ( const vector2& d ) const;
 
 	// give a loaded xml document to this c'tor, it will create an object after the specs
-	sea_object(class TiXmlDocument* specfile, const char* topnodename = "dftd-object");
+	sea_object(game& gm_, class TiXmlDocument* specfile, const char* topnodename = "dftd-object");
 
-	// possible addition, fixme: game object exists before and after each sea_object.
-	// so each sea_object could store a ref to game, removing tons of "game& gm" parameters everywhere
-	// without any harm.
-	// game& gm;
-	
 public:
 	virtual ~sea_object();
-	virtual void load(istream& in, class game& g);
-	virtual void save(ostream& out, const class game& g) const;
+	virtual void load(istream& in);
+	virtual void save(ostream& out) const;
 
 	// call with ship/submarine/etc node from mission file
 	virtual void parse_attributes(class TiXmlElement* parent);
@@ -138,7 +139,7 @@ public:
 	virtual string get_specfilename(void) const { return specfilename; }
 	virtual string get_modelname(void) const { return modelname; }
 
-	virtual void simulate(class game& gm, double delta_time);
+	virtual void simulate(double delta_time);
 //	virtual bool is_collision(const sea_object* other);
 //	virtual bool is_collision(const vector2& pos);
 

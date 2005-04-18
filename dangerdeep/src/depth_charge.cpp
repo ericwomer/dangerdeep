@@ -9,7 +9,13 @@
 
 
 
-depth_charge::depth_charge(const sea_object& parent, double expl_depth) : sea_object()
+depth_charge::depth_charge(game& gm_) : sea_object(gm_)
+{
+}
+
+
+
+depth_charge::depth_charge(game& gm_, const sea_object& parent, double expl_depth) : sea_object(gm_)
 {
 	position = parent.get_pos();	// fixme depends on parent! and parent's size, dc's can be thrown, etc.!
 	explosion_depth = expl_depth;
@@ -18,25 +24,31 @@ depth_charge::depth_charge(const sea_object& parent, double expl_depth) : sea_ob
 
 
 
-void depth_charge::load(istream& in, class game& g)
+depth_charge::~depth_charge()
 {
-	sea_object::load(in, g);
+}
+
+
+
+void depth_charge::load(istream& in)
+{
+	sea_object::load(in);
 	explosion_depth = read_double(in);
 }
 
 
 
-void depth_charge::save(ostream& out, const class game& g) const
+void depth_charge::save(ostream& out) const
 {
-	sea_object::save(out, g);
+	sea_object::save(out);
 	write_double(out, explosion_depth);
 }
 
 
 
-void depth_charge::simulate(game& gm, double delta_time)
+void depth_charge::simulate(double delta_time)
 {
-	sea_object::simulate(gm, delta_time);
+	sea_object::simulate(delta_time);
 	if (is_defunct()) return;
 	if (position.z < -explosion_depth) {
 		gm.dc_explosion(*this);

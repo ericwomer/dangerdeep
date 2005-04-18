@@ -14,8 +14,7 @@
 // implemented in a sane way with the new class model (2004/07/15)
 
 
-// empty c'tor needed for loading games
-convoy::convoy() : sea_object(), myai(0)
+convoy::convoy(game& gm_) : sea_object(gm_), myai(0)
 {
 }
 
@@ -27,7 +26,7 @@ convoy::~convoy()
 
 
 
-convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : sea_object(), myai(0)
+convoy::convoy(class game& gm_, convoy::types type_, convoy::esctypes esct_) : sea_object(gm_), myai(0)
 {
 	//myai = new ai(this, ai::convoy);
 
@@ -76,7 +75,7 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 				}
 				TiXmlDocument doc(get_ship_dir() + shiptype + ".xml");
 				doc.LoadFile();
-				ship* s = new ship(&doc);
+				ship* s = new ship(gm, &doc);
 				vector2 pos = vector2(
 					dx*intershipdist + rnd()*60.0-30.0,
 					dy*intershipdist + rnd()*60.0-30.0 );
@@ -112,7 +111,7 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 			string shiptype = (esctp == 0 ? "destroyer_tribal" : "corvette");
 			TiXmlDocument doc(get_ship_dir() + shiptype + ".xml");
 			doc.LoadFile();
-			ship* s = new ship(&doc);
+			ship* s = new ship(gm, &doc);
 			vector2 pos = vector2(
 				dx+nx + rnd()*100.0-50.0,
 				dy+ny + rnd()*100.0-50.0 );
@@ -141,7 +140,7 @@ convoy::convoy(class game& gm, convoy::types type_, convoy::esctypes esct_) : se
 
 
 
-convoy::convoy(class game& gm, TiXmlElement* parent) : sea_object(), myai(0)
+convoy::convoy(class game& gm_, TiXmlElement* parent) : sea_object(gm_), myai(0)
 {
 	sea_object::parse_attributes(parent);
 
@@ -169,7 +168,7 @@ convoy::convoy(class game& gm, TiXmlElement* parent) : sea_object(), myai(0)
 		string shiptype = XmlAttrib(eship, "type");
 		TiXmlDocument doc(get_ship_dir() + shiptype + ".xml");
 		doc.LoadFile();
-		ship* shp = new ship(&doc);
+		ship* shp = new ship(gm, &doc);
 		gm.spawn_ship(shp);
 		shp->parse_attributes(eship);
 		vector2 relpos = shp->position.xy();
@@ -192,30 +191,30 @@ convoy::convoy(class game& gm, TiXmlElement* parent) : sea_object(), myai(0)
 
 
 
-void convoy::load(istream& in, class game& g)
+void convoy::load(istream& in)
 {
-	sea_object::load(in, g);
+	sea_object::load(in);
 
 	if (read_bool(in))
-		myai = new ai(in, g);	
+		myai = new ai(in, gm);
 
 	merchants.clear();
 	for (unsigned s = read_u8(in); s > 0; --s) {
-		ship* sh = g.read_ship(in);
+		ship* sh = gm.read_ship(in);
 		double x = read_double(in);
 		double y = read_double(in);
 		merchants.push_back(make_pair(sh, vector2(x, y)));
 	}
 	warships.clear();
 	for (unsigned s = read_u8(in); s > 0; --s) {
-		ship* sh = g.read_ship(in);
+		ship* sh = gm.read_ship(in);
 		double x = read_double(in);
 		double y = read_double(in);
 		warships.push_back(make_pair(sh, vector2(x, y)));
 	}
 	escorts.clear();
 	for (unsigned s = read_u8(in); s > 0; --s) {
-		ship* sh = g.read_ship(in);
+		ship* sh = gm.read_ship(in);
 		double x = read_double(in);
 		double y = read_double(in);
 		escorts.push_back(make_pair(sh, vector2(x, y)));
@@ -230,29 +229,29 @@ void convoy::load(istream& in, class game& g)
 
 
 
-void convoy::save(ostream& out, const class game& g) const
+void convoy::save(ostream& out) const
 {
-	sea_object::save(out, g);
+	sea_object::save(out);
 
 	write_bool(out, (myai != 0));
 	if (myai)
-		myai->save(out, g);
+		myai->save(out, gm);
 
 	write_u8(out, merchants.size());
 	for (list<pair<ship*, vector2> >::const_iterator it = merchants.begin(); it != merchants.end(); ++it) {
-		g.write(out, it->first);
+		gm.write(out, it->first);
 		write_double(out, it->second.x);
 		write_double(out, it->second.y);
 	}
 	write_u8(out, warships.size());
 	for (list<pair<ship*, vector2> >::const_iterator it = warships.begin(); it != warships.end(); ++it) {
-		g.write(out, it->first);
+		gm.write(out, it->first);
 		write_double(out, it->second.x);
 		write_double(out, it->second.y);
 	}
 	write_u8(out, escorts.size());
 	for (list<pair<ship*, vector2> >::const_iterator it = escorts.begin(); it != escorts.end(); ++it) {
-		g.write(out, it->first);
+		gm.write(out, it->first);
 		write_double(out, it->second.x);
 		write_double(out, it->second.y);
 	}
@@ -272,9 +271,9 @@ unsigned convoy::get_nr_of_ships(void) const
 
 
 
-void convoy::simulate(game& gm, double delta_time)
+void convoy::simulate(double delta_time)
 {
-	sea_object::simulate(gm, delta_time);//remove, replace by position update in ai-class
+	sea_object::simulate(delta_time);//remove, replace by position update in ai-class
 	if (is_defunct()) return;
 
 	// check for ships to be erased

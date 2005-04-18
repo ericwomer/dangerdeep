@@ -192,7 +192,7 @@ void ai::act_escort(game& gm, double delta_time)
 	if (nearest_contact) {	// is there a contact?
 		if (dist <= parent->max_gun_range())
 		{
-			if (GUN_NOT_MANNED == parent->fire_shell_at(gm, *nearest_contact))
+			if (GUN_NOT_MANNED == parent->fire_shell_at(*nearest_contact))
 				parent->toggle_gun_manning();
 		}
 		attack_contact(nearest_contact->get_pos());
@@ -252,7 +252,7 @@ void ai::act_escort(game& gm, double delta_time)
 		}
 
 		if (cd < DC_ATTACK_RADIUS) {
-			gm.spawn_depth_charge(new depth_charge(*parent, -contact.z));
+			gm.spawn_depth_charge(new depth_charge(gm, *parent, -contact.z));
 			// the escort must run with maximum speed until the depth charges
 			// have exploded to avoid suicide. fixme
 			// fixme: just ai hacking/testing.

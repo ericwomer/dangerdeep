@@ -7,8 +7,20 @@
 #include "system.h"
 #include "game.h"
 
-gun_shell::gun_shell(const sea_object& parent, angle direction, angle elevation,
-	double initial_velocity, double damage) : sea_object()
+gun_shell::gun_shell(game& gm_) : sea_object(gm_)
+{
+}
+
+
+
+gun_shell::~gun_shell()
+{
+}
+
+
+
+gun_shell::gun_shell(game& gm_, const sea_object& parent, angle direction, angle elevation,
+	double initial_velocity, double damage) : sea_object(gm_)
 {
 	position = parent.get_pos();	// fixme: calc correct position
 	position.z = 4;
@@ -22,24 +34,24 @@ gun_shell::gun_shell(const sea_object& parent, angle direction, angle elevation,
 	sys().add_console("shell created");
 }
 
-void gun_shell::load(istream& in, class game& g)
+void gun_shell::load(istream& in)
 {
-	sea_object::load(in, g);
+	sea_object::load(in);
 	oldpos = read_vector3(in);
 	damage_amount = read_double(in);
 }
 
-void gun_shell::save(ostream& out, const class game& g) const
+void gun_shell::save(ostream& out) const
 {
-	sea_object::save(out, g);
+	sea_object::save(out);
 	write_vector3(out, oldpos);
 	write_double(out, damage_amount);
 }
 
-void gun_shell::simulate(game& gm, double delta_time)
+void gun_shell::simulate(double delta_time)
 {
 	oldpos = position;
-	sea_object::simulate(gm, delta_time);
+	sea_object::simulate(delta_time);
 	if (is_defunct()) return;
 
 	// very crude, fixme. compute intersection of line oldpos->position with objects.

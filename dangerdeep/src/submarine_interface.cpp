@@ -66,7 +66,7 @@ submarine_interface::submarine_interface(game& gm) :
 	popups[popup_mode_tdc] = new sub_tdc_popup(*this);
 	
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
-	player->start_throttle_sound(gm);
+	player->start_throttle_sound();
 
 	add_loading_screen("submarine interface initialized");
 }
@@ -84,14 +84,14 @@ void submarine_interface::fire_tube(submarine* player, int nr)
 	if (NULL != target && target != player)	{
 		submarine::stored_torpedo::st_status tube_status = submarine::stored_torpedo::st_empty;		
 		
-		if (player->can_torpedo_be_launched(*mygame, nr, target, tube_status)) {
+		if (player->can_torpedo_be_launched(nr, target, tube_status)) {
 			add_message(texts::get(49));
 			ostringstream oss;
 			oss << texts::get(49);
 			if (target)
 				oss << " " << texts::get(6) << ": " << target->get_description(2);
 			mygame->add_logbook_entry(oss.str());
-			player->launch_torpedo(*mygame, nr, target);
+			player->launch_torpedo(nr, target);
 			play_sound_effect(se_submarine_torpedo_launch, player, player);
 		} else {
 			string failed_to_fire_msg;
@@ -193,38 +193,38 @@ void submarine_interface::process_input(const SDL_Event& event)
 			player->rudder_hard_right();
 			add_rudder_message();
 		} else if (mycfg.getkey(KEY_RUDDER_UP).equal(event.key.keysym)) {
-			player->planes_up(*mygame, 1);
+			player->planes_up(1);
 			add_message(texts::get(37));
 		} else if (mycfg.getkey(KEY_RUDDER_HARD_UP).equal(event.key.keysym)) {
-			player->planes_up(*mygame, 2);
+			player->planes_up(2);
 			add_message(texts::get(37));
 		} else if (mycfg.getkey(KEY_RUDDER_DOWN).equal(event.key.keysym)) {			
 			add_message(texts::get(38));
-			player->planes_down(*mygame, 1);
+			player->planes_down(1);
 		} else if (mycfg.getkey(KEY_RUDDER_HARD_DOWN).equal(event.key.keysym)) {			
 			add_message(texts::get(38));
-			player->planes_down(*mygame, 2);
+			player->planes_down(2);
 		} else if (mycfg.getkey(KEY_CENTER_RUDDERS).equal(event.key.keysym)) {
 			player->rudder_midships();
 			player->planes_middle();
 			add_message(texts::get(42));
 		} else if (mycfg.getkey(KEY_THROTTLE_SLOW).equal(event.key.keysym)) {
-			player->set_throttle(*mygame, ship::aheadslow);
+			player->set_throttle(ship::aheadslow);
 			add_message(texts::get(43));
 		} else if (mycfg.getkey(KEY_THROTTLE_HALF).equal(event.key.keysym)) {
-			player->set_throttle(*mygame, ship::aheadhalf);
+			player->set_throttle(ship::aheadhalf);
 			add_message(texts::get(44));
 		} else if (mycfg.getkey(KEY_THROTTLE_FULL).equal(event.key.keysym)) {
-			player->set_throttle(*mygame, ship::aheadfull);
+			player->set_throttle(ship::aheadfull);
 			add_message(texts::get(45));
 		} else if (mycfg.getkey(KEY_THROTTLE_FLANK).equal(event.key.keysym)) {
-			player->set_throttle(*mygame, ship::aheadflank);
+			player->set_throttle(ship::aheadflank);
 			add_message(texts::get(46));
 		} else if (mycfg.getkey(KEY_THROTTLE_STOP).equal(event.key.keysym)) {
-			player->set_throttle(*mygame, ship::stop);
+			player->set_throttle(ship::stop);
 			add_message(texts::get(47));
 		} else if (mycfg.getkey(KEY_THROTTLE_REVERSE).equal(event.key.keysym)) {
-			player->set_throttle(*mygame, ship::reverse);
+			player->set_throttle(ship::reverse);
 			add_message(texts::get(48));
 		} else if (mycfg.getkey(KEY_FIRE_TUBE_1).equal(event.key.keysym)) {
 			fire_tube(player, 0);
@@ -259,10 +259,10 @@ void submarine_interface::process_input(const SDL_Event& event)
 			// is different from normal diving
 			add_message(texts::get(41));
 			mygame->add_logbook_entry(texts::get(41));
-			player->dive_to_depth(*mygame, unsigned(player->get_alarm_depth()));
+			player->dive_to_depth(unsigned(player->get_alarm_depth()));
 		} else if (mycfg.getkey(KEY_GO_TO_SNORKEL_DEPTH).equal(event.key.keysym)) {
 			if (player->has_snorkel () ) {
-				player->dive_to_depth(*mygame, unsigned(player->get_snorkel_depth()));
+				player->dive_to_depth(unsigned(player->get_snorkel_depth()));
 				add_message(texts::get(12));
 				mygame->add_logbook_entry(texts::get(97));
 			}
@@ -297,9 +297,9 @@ void submarine_interface::process_input(const SDL_Event& event)
 		} else if (mycfg.getkey(KEY_GO_TO_PERISCOPE_DEPTH).equal(event.key.keysym)) {
 			add_message(texts::get(40));
 			mygame->add_logbook_entry(texts::get(40));
-			player->dive_to_depth(*mygame, unsigned(player->get_periscope_depth()));
+			player->dive_to_depth(unsigned(player->get_periscope_depth()));
 		} else if (mycfg.getkey(KEY_GO_TO_SURFACE).equal(event.key.keysym)) {
-			player->dive_to_depth(*mygame, 0);
+			player->dive_to_depth(0);
 			add_message(texts::get(39));
 			mygame->add_logbook_entry(texts::get(39));
 		} else if (mycfg.getkey(KEY_FIRE_TORPEDO).equal(event.key.keysym)) {
@@ -329,7 +329,7 @@ void submarine_interface::process_input(const SDL_Event& event)
 				{
 					if (NULL != target && player != target)
 					{						
-						int res = player->fire_shell_at(*mygame, *target);
+						int res = player->fire_shell_at(*target);
 						
 						if (TARGET_OUT_OF_RANGE == res)
 							add_message(texts::get(218));

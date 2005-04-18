@@ -24,6 +24,11 @@ class ship : public sea_object
 	friend class convoy;
 	friend class game;	// for initialization
 
+ private:
+	ship();
+	ship(const ship& other);
+	ship& operator= (const ship& other);
+
 public:
 	// give negative values for fixed speeds, positive values for knots.
 	enum throttle_status { reverse=-7, aheadlisten=-6, aheadsonar=-5, aheadslow=-4,
@@ -69,9 +74,7 @@ protected:
 	virtual vector3 get_acceleration(void) const;		// drag must be already included!
 	virtual double get_turn_acceleration(void) const;	// drag must be already included!
 
-	ship();
-	ship(const ship& other);
-	ship& operator= (const ship& other);
+	ship(game& gm_);
 
 	/**
 		This method calculates the hourly fuel consumption. An
@@ -178,22 +181,22 @@ public:
 	};
 	
 	// create empty object from specification xml file
-	ship(class TiXmlDocument* specfile, const char* topnodename = "dftd-ship");
+	ship(game& gm_, class TiXmlDocument* specfile, const char* topnodename = "dftd-ship");
 	
 	virtual ~ship();
 
-	virtual void load(istream& in, game& g);
-	virtual void save(ostream& out, const game& g) const;
+	virtual void load(istream& in);
+	virtual void save(ostream& out) const;
 
 	virtual void parse_attributes(class TiXmlElement* parent);
 
 	virtual unsigned get_class(void) const { return shipclass; }
 
-	virtual void simulate(game& gm, double delta_time);
+	virtual void simulate(double delta_time);
 
 	virtual void sink(void);
 
-	virtual void ignite(game& gm);
+	virtual void ignite(void);
 	bool is_burning(void) const { return myfire != 0; }
 
 	// command interface
@@ -229,7 +232,7 @@ public:
 	virtual double get_rudder_pos(void) const { return rudder_pos; }
 	virtual int get_rudder_to (void) const { return rudder_to; }
 	virtual double get_noise_factor (void) const;
-	virtual int fire_shell_at(class game& gm, const sea_object& s);
+	virtual int fire_shell_at(const sea_object& s);
 
 	// needed for launching torpedoes
 	pair<angle, double> bearing_and_range_to(const sea_object* other) const;

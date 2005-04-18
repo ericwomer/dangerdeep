@@ -16,7 +16,12 @@ class game;
 
 class submarine : public ship
 {
-public:
+ private:
+	submarine();
+	submarine& operator= (const submarine& other);
+	submarine(const submarine& other);
+
+ public:
 	struct stored_torpedo {
 		enum st_status { st_empty, st_reloading, st_unloading, st_loaded };
 		torpedo::types type;
@@ -164,10 +169,6 @@ protected:
 	unsigned trp_searchpattern;	// selected option 0-1 (turn 180 or 90 deg.) fixme what are historical correct patterns?
 	angle trp_addleadangle;		// additional lead angle for torpedoes
 
-	submarine();
-	submarine& operator= (const submarine& other);
-	submarine(const submarine& other);
-
 	int find_stored_torpedo(bool usebow);	// returns index or -1 if none
 
 	/**
@@ -188,7 +189,7 @@ protected:
 
 	virtual void calculate_fuel_factor ( double delta_time );
 	
-	virtual void gun_manning_changed(game& gm, bool isGunManned);	
+	virtual void gun_manning_changed(bool isGunManned);	
 
 	unsigned int delayed_dive_to_depth;
 	double delayed_planes_down;
@@ -208,16 +209,17 @@ public:
 */
 
 	// create empty object from specification xml file
-	submarine(class TiXmlDocument* specfile, const char* topnodename = "dftd-submarine");
-	
-	virtual ~submarine() {}
+	submarine(game& gm_, class TiXmlDocument* specfile, const char* topnodename = "dftd-submarine");
 
-	virtual void load(istream& in, game& g);
-	virtual void save(ostream& out, const game& g) const;
+	submarine(game& gm_);
+	virtual ~submarine();
+
+	virtual void load(istream& in);
+	virtual void save(ostream& out) const;
 	
 	virtual void parse_attributes(class TiXmlElement* parent);
 
-	virtual void simulate(game& gm, double delta_time);
+	virtual void simulate(double delta_time);
 	
 	// fill available tubes with common types depending on time period (used for custom missions)
 	virtual void init_fill_torpedo_tubes(const class date& d);
@@ -282,8 +284,8 @@ public:
 	virtual double get_bow_stern_deck_transfer_time(void) const { return torp_transfer_times[4]; }
 	
 	// give tubenr -1 for any loaded tube, or else 0-5
-	virtual bool can_torpedo_be_launched(game& gm, int tubenr, sea_object* target, 
-										 stored_torpedo::st_status &tube_status) const;
+	virtual bool can_torpedo_be_launched(int tubenr, sea_object* target, 
+					     stored_torpedo::st_status &tube_status) const;
 
 	// damage is added if dc damages sub.
 	virtual void depth_charge_explosion(const class depth_charge& dc);
@@ -295,22 +297,22 @@ public:
 	virtual bool set_snorkel_up ( bool snorkel_up );	// fixme get rid of this
 	virtual void snorkel_up ( void ) { set_snorkel_up(true); }
 	virtual void snorkel_down ( void ) { set_snorkel_up(false); }
-	virtual void planes_up(game& gm, double amount);		// fixme: functions for both dive planes needed?
-	virtual void planes_down(game& gm, double amount);
+	virtual void planes_up(double amount);		// fixme: functions for both dive planes needed?
+	virtual void planes_down(double amount);
 	virtual void planes_middle(void);
-	virtual void dive_to_depth(game& gm, unsigned meters);
+	virtual void dive_to_depth(unsigned meters);
 	virtual void transfer_torpedo(unsigned from, unsigned to);
 	virtual void set_trp_primaryrange(unsigned x) { trp_primaryrange = x; }
 	virtual void set_trp_secondaryrange(unsigned x) { trp_secondaryrange = x; }
 	virtual void set_trp_initialturn(unsigned x) { trp_initialturn = x; }
 	virtual void set_trp_searchpattern(unsigned x) { trp_searchpattern = x; }
 	virtual void set_trp_addleadangle(angle x) { trp_addleadangle = x; }
-	virtual void launch_torpedo(game& gm, int tubenr, sea_object* target); // give tubenr -1 for any loaded tube, or else 0-5
+	virtual void launch_torpedo(int tubenr, sea_object* target); // give tubenr -1 for any loaded tube, or else 0-5
 	virtual bool has_deck_gun() { return !gun_turrets.empty(); }
 	
-	virtual void set_throttle(game& gm, ship::throttle_status thr);
-	virtual void start_throttle_sound(game& gm);
-	virtual void stop_throttle_sound(game& gm);
+	virtual void set_throttle(ship::throttle_status thr);
+	virtual void start_throttle_sound();
+	virtual void stop_throttle_sound();
 };
 
 #endif

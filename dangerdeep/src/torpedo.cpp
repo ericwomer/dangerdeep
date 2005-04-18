@@ -9,9 +9,14 @@
 #include "sensors.h"
 
 
+torpedo::torpedo(game& gm_) : ship(gm_)
+{
+}
 
-torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, angle headto_,
-	unsigned pr, unsigned sr, unsigned it, unsigned sp) : ship()
+
+
+torpedo::torpedo(game& gm_, sea_object* parent, torpedo::types type_, bool usebowtubes, angle headto_,
+	unsigned pr, unsigned sr, unsigned it, unsigned sp) : ship(gm_)
 {
 	type = type_;
 	primaryrange = (pr <= 16) ? 1600+pr*100 : 1600;
@@ -101,9 +106,13 @@ torpedo::torpedo(sea_object* parent, torpedo::types type_, bool usebowtubes, ang
 	sys().add_console("torpedo created");
 }
 
-void torpedo::load(istream& in, class game& g)
+torpedo::~torpedo()
 {
-	sea_object::load(in, g);
+}
+
+void torpedo::load(istream& in)
+{
+	sea_object::load(in);
 	run_length = read_double(in);
 	max_run_length = read_double(in);
 	type = (torpedo::types)(read_u8(in));
@@ -114,9 +123,9 @@ void torpedo::load(istream& in, class game& g)
 	searchpattern = read_u8(in);
 }
 
-void torpedo::save(ostream& out, const class game& g) const
+void torpedo::save(ostream& out) const
 {
-	sea_object::save(out, g);
+	sea_object::save(out);
 	write_double(out, run_length);
 	write_double(out, max_run_length);
 	write_u8(out, unsigned(type));
@@ -127,11 +136,11 @@ void torpedo::save(ostream& out, const class game& g) const
 	write_u8(out, searchpattern);
 }
 
-void torpedo::simulate(game& gm, double delta_time)
+void torpedo::simulate(double delta_time)
 {
 //	cout << "torpedo " << this << " heading " << heading.value() << " should head to " << head_to.value() << " turn speed " << turn_velocity << "\n";
 
-	ship::simulate(gm, delta_time);
+	ship::simulate(delta_time);
 	if (is_defunct() || is_dead()) return;
 
 	// Torpedo starts to search for a target when the minimum save

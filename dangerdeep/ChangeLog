@@ -1,3 +1,7 @@
+2005-04-18  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* each sea_object has a reference to game, removing tons of
+	  "game& gm" parameters of function calls.
+	
 2005-04-13  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* fixed bump mapping
 	* now ambient is read and used, so we have dynamic ambient light

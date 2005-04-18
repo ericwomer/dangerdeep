@@ -9,13 +9,19 @@
 
 
 
-airplane::airplane(TiXmlDocument* specfile) : sea_object(specfile)
+airplane::airplane(game& gm_, TiXmlDocument* specfile) : sea_object(gm_, specfile)
 {
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdairplane = hspec.FirstChild();	// ignore node name
 	//head_to = heading;
 	rollfac = pitchfac = 0.0;
 	//throttle = aheadfull;
+}
+
+
+
+airplane::~airplane()
+{
 }
 
 
@@ -30,9 +36,9 @@ void airplane::parse_attributes(TiXmlElement* parent)
 
 
 
-void airplane::load(istream& in, class game& g)
+void airplane::load(istream& in)
 {
-	sea_object::load(in, g);
+	sea_object::load(in);
 /*
 	orientation.s = read_double(in);
 	orientation.v.x = read_double(in);
@@ -46,9 +52,9 @@ void airplane::load(istream& in, class game& g)
 	pitchfac = read_double(in);
 }
 
-void airplane::save(ostream& out, const class game& g) const
+void airplane::save(ostream& out) const
 {
-	sea_object::save(out, g);
+	sea_object::save(out);
 /*
 	write_double(out, orientation.s);
 	write_double(out, orientation.v.x);
@@ -64,7 +70,7 @@ void airplane::save(ostream& out, const class game& g) const
 
 
 
-void airplane::simulate(class game& gm, double delta_time)
+void airplane::simulate(double delta_time)
 {
 	quaternion invrot = orientation.conj();
 	vector3 localvelocity = invrot.rotate(velocity);

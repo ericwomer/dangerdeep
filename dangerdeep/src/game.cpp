@@ -170,7 +170,7 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	for (unsigned i = 0; i < nr_of_players; ++i) {
 		TiXmlDocument doc(get_submarine_dir() + subtype + ".xml");
 		doc.LoadFile();
-		submarine* sub = new submarine(&doc);//fixme give time for init
+		submarine* sub = new submarine(*this, &doc);//fixme give time for init
 		sub->init_fill_torpedo_tubes(currentdate);
 		if (i == 0) {
 			psub = sub;
@@ -257,7 +257,7 @@ game::game(TiXmlDocument* doc) : my_run_state(running), time(0), networktype(0),
 			string shiptype = XmlAttrib(eobj, "type");
 			TiXmlDocument doc(get_ship_dir() + shiptype + ".xml");
 			doc.LoadFile();
-			ship* shp = new ship(&doc);
+			ship* shp = new ship(*this, &doc);
 			spawn_ship(shp);
 			shp->parse_attributes(eobj);
 			if (XmlAttrib(eobj, "player") == "true") player = shp;
@@ -265,7 +265,7 @@ game::game(TiXmlDocument* doc) : my_run_state(running), time(0), networktype(0),
 			string submarinetype = XmlAttrib(eobj, "type");
 			TiXmlDocument doc(get_submarine_dir() + submarinetype + ".xml");
 			doc.LoadFile();
-			submarine* sub = new submarine(&doc);
+			submarine* sub = new submarine(*this, &doc);
 			spawn_submarine(sub);
 			sub->parse_attributes(eobj);
 			if (XmlAttrib(eobj, "player") == "true") player = sub;
@@ -273,7 +273,7 @@ game::game(TiXmlDocument* doc) : my_run_state(running), time(0), networktype(0),
 			string airplanetype = XmlAttrib(eobj, "type");
 			TiXmlDocument doc(get_airplane_dir() + airplanetype + ".xml");
 			doc.LoadFile();
-			airplane* apl = new airplane(&doc);
+			airplane* apl = new airplane(*this, &doc);
 			spawn_airplane(apl);
 			apl->parse_attributes(eobj);
 			if (XmlAttrib(eobj, "player") == "true") player = apl;
@@ -374,28 +374,28 @@ void game::save_to_stream(ostream& out) const
 	write_u32(out, particles.size());
 
 	for (list<ship*>::const_iterator ip = ships.begin(); ip != ships.end(); ++ip)
-		(*ip)->save(out, *this);
+		(*ip)->save(out);
 
 	for (list<submarine*>::const_iterator ip = submarines.begin(); ip != submarines.end(); ++ip)
-		(*ip)->save(out, *this);
+		(*ip)->save(out);
 
 	for (list<airplane*>::const_iterator ip = airplanes.begin(); ip != airplanes.end(); ++ip)
-		(*ip)->save(out, *this);
+		(*ip)->save(out);
 
 	for (list<torpedo*>::const_iterator ip = torpedoes.begin(); ip != torpedoes.end(); ++ip)
-		(*ip)->save(out, *this);
+		(*ip)->save(out);
 
 	for (list<depth_charge*>::const_iterator ip = depth_charges.begin(); ip != depth_charges.end(); ++ip)
-		(*ip)->save(out, *this);
+		(*ip)->save(out);
 
 	for (list<gun_shell*>::const_iterator ip = gun_shells.begin(); ip != gun_shells.end(); ++ip)
-		(*ip)->save(out, *this);
+		(*ip)->save(out);
 
 	for (list<convoy*>::const_iterator ip = convoys.begin(); ip != convoys.end(); ++ip)
-		(*ip)->save(out, *this);
+		(*ip)->save(out);
 
 //	for (list<particle*>::const_iterator ip = particles.begin(); ip != particles.end(); ++ip)
-//		(*ip)->save(out, *this);
+//		(*ip)->save(out);
 
 	// my_run_state / stopexec doesn't need to be saved
 	
@@ -451,49 +451,49 @@ void game::load_from_stream(istream& in)
 		string shiptype = read_string(in);
 		TiXmlDocument doc(get_ship_dir() + shiptype + ".xml");
 		doc.LoadFile();
-		ships.push_back(new ship(&doc));
+		ships.push_back(new ship(*this, &doc));
 	}
 	for (unsigned s = read_u32(in); s > 0; --s) {
 		string submarinetype = read_string(in);
 		TiXmlDocument doc(get_submarine_dir() + submarinetype + ".xml");
 		doc.LoadFile();
-		submarines.push_back(new submarine(&doc));
+		submarines.push_back(new submarine(*this, &doc));
 	}
 	for (unsigned s = read_u32(in); s > 0; --s) {
 		string airplanetype = read_string(in);
 		TiXmlDocument doc(get_airplane_dir() + airplanetype + ".xml");
 		doc.LoadFile();
-		airplanes.push_back(new airplane(&doc));
+		airplanes.push_back(new airplane(*this, &doc));
 	}
-	for (unsigned s = read_u32(in); s > 0; --s) torpedoes.push_back(new torpedo());
-	for (unsigned s = read_u32(in); s > 0; --s) depth_charges.push_back(new depth_charge());
-	for (unsigned s = read_u32(in); s > 0; --s) gun_shells.push_back(new gun_shell());
-	for (unsigned s = read_u32(in); s > 0; --s) convoys.push_back(new convoy());
-	//for (unsigned s = read_u32(in); s > 0; --s) particles.push_back(new particle());
+	for (unsigned s = read_u32(in); s > 0; --s) torpedoes.push_back(new torpedo(*this));
+	for (unsigned s = read_u32(in); s > 0; --s) depth_charges.push_back(new depth_charge(*this));
+	for (unsigned s = read_u32(in); s > 0; --s) gun_shells.push_back(new gun_shell(*this));
+	for (unsigned s = read_u32(in); s > 0; --s) convoys.push_back(new convoy(*this));
+	//for (unsigned s = read_u32(in); s > 0; --s) particles.push_back(new particle(*this));
 
 	for (list<ship*>::iterator ip = ships.begin(); ip != ships.end(); ++ip)
-		(*ip)->load(in, *this);
+		(*ip)->load(in);
 
 	for (list<submarine*>::iterator ip = submarines.begin(); ip != submarines.end(); ++ip)
-		(*ip)->load(in, *this);
+		(*ip)->load(in);
 
 	for (list<airplane*>::iterator ip = airplanes.begin(); ip != airplanes.end(); ++ip)
-		(*ip)->load(in, *this);
+		(*ip)->load(in);
 
 	for (list<torpedo*>::iterator ip = torpedoes.begin(); ip != torpedoes.end(); ++ip)
-		(*ip)->load(in, *this);
+		(*ip)->load(in);
 
 	for (list<depth_charge*>::iterator ip = depth_charges.begin(); ip != depth_charges.end(); ++ip)
-		(*ip)->load(in, *this);
+		(*ip)->load(in);
 
 	for (list<gun_shell*>::iterator ip = gun_shells.begin(); ip != gun_shells.end(); ++ip)
-		(*ip)->load(in, *this);
+		(*ip)->load(in);
 
 	for (list<convoy*>::iterator ip = convoys.begin(); ip != convoys.end(); ++ip)
-		(*ip)->load(in, *this);
+		(*ip)->load(in);
 
 //	for (list<particles*>::iterator ip = particles.begin(); ip != particles.end(); ++ip)
-//		(*ip)->load(in, *this);
+//		(*ip)->load(in);
 
 	// my_run_state / stopexec doesn't need to be saved
 	my_run_state = running;
@@ -582,7 +582,7 @@ void game::simulate(double delta_t)
 		double dist = (*it2)->get_pos().distance(player->get_pos());
 		if (dist < nearest_contact) nearest_contact = dist;
 		if (!(*it2)->is_defunct()) {
-			(*it2)->simulate(*this, delta_t);
+			(*it2)->simulate(delta_t);
 			if (record) (*it2)->remember_position();
 		} else {
 			delete (*it2);
@@ -596,7 +596,7 @@ void game::simulate(double delta_t)
 			if (dist < nearest_contact) nearest_contact = dist;
 		}
 		if (!(*it2)->is_defunct()) {
-			(*it2)->simulate(*this, delta_t);
+			(*it2)->simulate(delta_t);
 			if (record) (*it2)->remember_position();
 		} else {
 			delete (*it2);
@@ -608,7 +608,7 @@ void game::simulate(double delta_t)
 		double dist = (*it2)->get_pos().distance(player->get_pos());
 		if (dist < nearest_contact) nearest_contact = dist;
 		if (!(*it2)->is_defunct()) {
-			(*it2)->simulate(*this, delta_t);
+			(*it2)->simulate(delta_t);
 		} else {
 			delete (*it2);
 			airplanes.erase(it2);
@@ -617,7 +617,7 @@ void game::simulate(double delta_t)
 	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ) {
 		list<torpedo*>::iterator it2 = it++;
 		if (!(*it2)->is_defunct()) {
-			(*it2)->simulate(*this, delta_t);
+			(*it2)->simulate(delta_t);
 			if (record) (*it2)->remember_position();
 		} else {
 			delete (*it2);
@@ -627,7 +627,7 @@ void game::simulate(double delta_t)
 	for (list<depth_charge*>::iterator it = depth_charges.begin(); it != depth_charges.end(); ) {
 		list<depth_charge*>::iterator it2 = it++;
 		if (!(*it2)->is_defunct()) {
-			(*it2)->simulate(*this, delta_t);
+			(*it2)->simulate(delta_t);
 		} else {
 			delete (*it2);
 			depth_charges.erase(it2);
@@ -636,7 +636,7 @@ void game::simulate(double delta_t)
 	for (list<gun_shell*>::iterator it = gun_shells.begin(); it != gun_shells.end(); ) {
 		list<gun_shell*>::iterator it2 = it++;
 		if (!(*it2)->is_defunct()) {
-			(*it2)->simulate(*this, delta_t);
+			(*it2)->simulate(delta_t);
 		} else {
 			delete (*it2);
 			gun_shells.erase(it2);
@@ -645,7 +645,7 @@ void game::simulate(double delta_t)
 	for (list<convoy*>::iterator it = convoys.begin(); it != convoys.end(); ) {
 		list<convoy*>::iterator it2 = it++;
 		if (!(*it2)->is_defunct()) {
-			(*it2)->simulate(*this, delta_t);
+			(*it2)->simulate(delta_t);
 		} else {
 			delete (*it2);
 			convoys.erase(it2);
@@ -1084,7 +1084,7 @@ bool game::gs_impact(const gun_shell *gs)	// fixme: vector2 would be enough
 			{
 				ship_sunk(*it);
 			} else {
-				(*it)->ignite(*this);
+				(*it)->ignite();
 			}		
 			
 			// play gun shell explosion sound effect
@@ -1252,7 +1252,7 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 				if (s->damage(t->get_pos(), t->get_hit_points())) {
 					ship_sunk(s);
 				} else {
-					s->ignite(*this);
+					s->ignite();
 				}
 			}
 			

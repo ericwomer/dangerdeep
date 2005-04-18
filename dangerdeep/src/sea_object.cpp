@@ -52,8 +52,8 @@ double sea_object::get_turn_acceleration(void) const
 
 
 
-// some heirs need this empty c'tor
-sea_object::sea_object() :
+sea_object::sea_object(game& gm_) :
+	gm(gm_),
 	turn_velocity(0), heading(0), alive_stat(alive), myai(0)
 {
 	sensors.resize ( last_sensor_system );
@@ -85,8 +85,8 @@ double sea_object::get_cross_section ( const vector2& d ) const
 
 
 
-sea_object::sea_object(TiXmlDocument* specfile, const char* topnodename) :
-	turn_velocity(0), heading(0), alive_stat(alive), myai(0)
+sea_object::sea_object(game& gm_, TiXmlDocument* specfile, const char* topnodename) :
+	gm(gm_), turn_velocity(0), heading(0), alive_stat(alive), myai(0)
 {
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdobj = hspec.FirstChild(topnodename);
@@ -177,7 +177,7 @@ sea_object::~sea_object()
 
 
 
-void sea_object::load(istream& in, class game& g)
+void sea_object::load(istream& in)
 {
 	specfilename = read_string(in);
 	position = read_vector3(in);
@@ -209,7 +209,7 @@ void sea_object::load(istream& in, class game& g)
 
 
 
-void sea_object::save(ostream& out, const class game& g) const
+void sea_object::save(ostream& out) const
 {
 	write_string(out, specfilename);
 	write_vector3(out, position);
@@ -274,7 +274,7 @@ string sea_object::get_description(unsigned detail) const
 
 
 
-void sea_object::simulate(game& gm, double delta_time)
+void sea_object::simulate(double delta_time)
 {
 	// check and change states
         if (is_defunct()) {

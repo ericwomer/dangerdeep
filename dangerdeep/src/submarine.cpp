@@ -125,7 +125,7 @@ submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damagea
 
 
 
-submarine::submarine(TiXmlDocument* specfile, const char* topnodename) : ship(specfile, topnodename),
+submarine::submarine(game& gm_, TiXmlDocument* specfile, const char* topnodename) : ship(gm_, specfile, topnodename),
 	trp_primaryrange(0), trp_secondaryrange(0), trp_initialturn(0), trp_searchpattern(0),
 	trp_addleadangle(0), delayed_dive_to_depth(0), delayed_planes_down(0.0)
 {
@@ -187,7 +187,13 @@ submarine::submarine(TiXmlDocument* specfile, const char* topnodename) : ship(sp
 
 
 
-submarine::submarine() : ship(), dive_speed(0.0f), dive_acceleration(0.0f), max_dive_speed(1.0f),
+submarine::~submarine()
+{
+}
+
+
+
+submarine::submarine(game& gm_) : ship(gm_), dive_speed(0.0f), dive_acceleration(0.0f), max_dive_speed(1.0f),
 	max_depth(150.0f), dive_to(0.0f), permanent_dive(false),
 	scopeup(false), periscope_depth(12.0f), hassnorkel (false), snorkel_depth(10.0f),
 	snorkelup(false),
@@ -248,9 +254,9 @@ void submarine::parse_attributes(class TiXmlElement* parent)
 
 
 
-void submarine::load(istream& in, game& g)
+void submarine::load(istream& in)
 {
-	ship::load(in, g);
+	ship::load(in);
 
 	dive_speed = read_double(in);
 	max_depth = read_double(in);
@@ -283,9 +289,9 @@ void submarine::load(istream& in, game& g)
 
 
 
-void submarine::save(ostream& out, const game& g) const
+void submarine::save(ostream& out) const
 {
-	ship::save(out, g);
+	ship::save(out);
 
 	write_double(out, dive_speed);
 	write_double(out, max_depth);
@@ -351,9 +357,9 @@ int submarine::find_stored_torpedo(bool usebow)
 
 
 
-void submarine::simulate(class game& gm, double delta_time)
+void submarine::simulate(double delta_time)
 {
-	ship::simulate(gm, delta_time);
+	ship::simulate(delta_time);
 
 	// calculate new depth (fixme this is not physically correct)
 	double delta_depth = dive_speed * delta_time;
@@ -719,7 +725,7 @@ float submarine::sonar_visibility ( const vector2& watcher ) const
 
 
 
-void submarine::planes_up(game& gm, double amount)
+void submarine::planes_up(double amount)
 {
 //	dive_acceleration = -1;
 	dive_speed = max_dive_speed;
@@ -728,7 +734,7 @@ void submarine::planes_up(game& gm, double amount)
 
 
 
-void submarine::planes_down(game& gm, double amount)
+void submarine::planes_down(double amount)
 {
 	user_interface* ui = gm.get_ui();
 	if (false == is_gun_manned())
@@ -759,7 +765,7 @@ void submarine::planes_middle(void)
 
 
 
-void submarine::dive_to_depth(game& gm, unsigned meters)
+void submarine::dive_to_depth(unsigned meters)
 {
 	user_interface* ui = gm.get_ui();
 	if (false == is_gun_manned())
@@ -781,8 +787,8 @@ void submarine::dive_to_depth(game& gm, unsigned meters)
 
 
 // mostly the same code as launch_torpedo. cut & paste is ugly, but sometimes unavoidable.
-bool submarine::can_torpedo_be_launched(class game& gm, int tubenr, sea_object* target, 
-										stored_torpedo::st_status &tube_status) const
+bool submarine::can_torpedo_be_launched(int tubenr, sea_object* target, 
+					stored_torpedo::st_status &tube_status) const
 {
 	if (target == 0) return false;	// maybe assert this?
 	if (target == this) return false;  // maybe assert this?
@@ -978,7 +984,7 @@ bool submarine::set_snorkel_up ( bool snorkelup )
 
 
 
-void submarine::launch_torpedo(class game& gm, int tubenr, sea_object* target)
+void submarine::launch_torpedo(int tubenr, sea_object* target)
 {
 	if (target == 0) return;	// maybe assert this?
 	if (target == this) return;
@@ -1016,7 +1022,7 @@ void submarine::launch_torpedo(class game& gm, int tubenr, sea_object* target)
 		torpedoes[tubenr].type, this, target, usebowtubes, trp_addleadangle);
 	if (launchdata.second) {
 		// fixme: primary range seems weird wrong (13mio)!!!! 2004/05/16
-		torpedo* t = new torpedo(this, torpedoes[tubenr].type, usebowtubes, launchdata.first,
+		torpedo* t = new torpedo(gm, this, torpedoes[tubenr].type, usebowtubes, launchdata.first,
 			trp_primaryrange, trp_secondaryrange, trp_initialturn, trp_searchpattern);
 		gm.spawn_torpedo(t);    // fixme add command
 		torpedoes[tubenr].type = torpedo::none;
@@ -1024,7 +1030,7 @@ void submarine::launch_torpedo(class game& gm, int tubenr, sea_object* target)
 	}
 }
 
-void submarine::gun_manning_changed(game& gm, bool isGunManned)
+void submarine::gun_manning_changed(bool isGunManned)
 {
 	user_interface* ui = gm.get_ui();
 	if (true == isGunManned)
@@ -1033,27 +1039,27 @@ void submarine::gun_manning_changed(game& gm, bool isGunManned)
 		ui->add_message(texts::get(756));		
 
 	if (0.0 != delayed_planes_down) {
-		planes_down(gm, delayed_planes_down);
+		planes_down(delayed_planes_down);
 		delayed_planes_down = 0.0;
 		ui->add_message(texts::get(757));		
 	} else if (0 != delayed_dive_to_depth) {
-		dive_to_depth(gm, delayed_dive_to_depth);
+		dive_to_depth(delayed_dive_to_depth);
 		delayed_dive_to_depth = 0;
 		ui->add_message(texts::get(757));		
 	}
 }
 
-void submarine::set_throttle(game& gm, ship::throttle_status thr)
+void submarine::set_throttle(ship::throttle_status thr)
 {	
 	if (get_throttle() != thr)
 	{
-		stop_throttle_sound(gm);
+		stop_throttle_sound();
 		ship::set_throttle(thr);	
-		start_throttle_sound(gm);
+		start_throttle_sound();
 	}
 }
 
-void submarine::start_throttle_sound(game& gm)
+void submarine::start_throttle_sound()
 {
 	user_interface* ui = gm.get_ui();
 	switch(get_throttle()) {
@@ -1077,7 +1083,7 @@ void submarine::start_throttle_sound(game& gm)
 	}
 }
 
-void submarine::stop_throttle_sound(game& gm)
+void submarine::stop_throttle_sound()
 {
 	user_interface* ui = gm.get_ui();
 	switch(get_throttle()) {

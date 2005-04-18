@@ -18,6 +18,11 @@ using namespace std;
 
 class torpedo : public ship
 {
+ private:
+	torpedo();
+	torpedo& operator=(const torpedo& other);
+	torpedo(const torpedo& other);
+
 public:
 	// T1: G7a
 	// T2: G7e with contact fuse
@@ -50,9 +55,6 @@ protected:
 	unsigned initialturn;	// 0/1 left/right
 	unsigned searchpattern;	// 0/1 turn 180 or 90 degrees
 
-	torpedo& operator=(const torpedo& other);
-	torpedo(const torpedo& other);
-
 	// specific damage here:
 	virtual void create_sensor_array ( types t );
 	
@@ -63,15 +65,15 @@ protected:
 	virtual bool causes_spray(void) const { return false; }
 	
 public:
-	torpedo() {};
-	virtual ~torpedo() {};
-	void load(istream& in, class game& g);
-	void save(ostream& out, const class game& g) const;
+	torpedo(game& gm_);
+	virtual ~torpedo();
+	void load(istream& in);
+	void save(ostream& out) const;
 	
 	// additional FAT/LUT values as indices (0-16,0-1,0-1,0-1)
-	torpedo(sea_object* parent, types type_, bool usebowtubes, angle headto_,
+	torpedo(game& gm_, sea_object* parent, types type_, bool usebowtubes, angle headto_,
 		unsigned pr = 0, unsigned sr = 0, unsigned it = 0, unsigned sp = 0);
-	virtual void simulate(class game& gm, double delta_time);
+	virtual void simulate(double delta_time);
 	virtual void display(void) const;
 
 	// compute gyro lead angle and expected run time of torpedo

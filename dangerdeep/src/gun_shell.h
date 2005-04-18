@@ -11,20 +11,22 @@
 
 class gun_shell : public sea_object
 {
-protected:
+ private:
+	gun_shell();
+	gun_shell& operator=(const gun_shell& other);
+	gun_shell(const gun_shell& other);
+ protected:
 	vector3 oldpos;		// position at last iteration (for collision detection)
 	double damage_amount;
 
-	gun_shell& operator=(const gun_shell& other);
-	gun_shell(const gun_shell& other);
-public:
-	gun_shell() {};
-	virtual ~gun_shell() {};
-	void load(istream& in, class game& g);
-	void save(ostream& out, const class game& g) const;
-	gun_shell(const sea_object& parent, angle direction, angle elevation,
+ public:
+	gun_shell(game& gm_);
+	virtual ~gun_shell();
+	void load(istream& in);
+	void save(ostream& out) const;
+	gun_shell(game& gm_, const sea_object& parent, angle direction, angle elevation,
 		double initial_velocity, double damage);
-	virtual void simulate(class game& gm, double delta_time);
+	virtual void simulate(double delta_time);
 	virtual void display(void) const;
 	virtual float surface_visibility(const vector2& watcher) const;
 	// acceleration is only gravity and already handled by sea_object

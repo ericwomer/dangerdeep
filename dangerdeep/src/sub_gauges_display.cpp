@@ -134,22 +134,22 @@ void sub_gauges_display::process_input(class game& gm, const SDL_Event& event)
 		} else if (indicators[depth].is_over(mx, my)) {
 			angle mang = angle(-39/*51-90*/) - indicators[depth].get_angle(mx, my);
 			if (mang.value() < 270) {
-				sub->dive_to_depth(gm, unsigned(mang.value()));
+				sub->dive_to_depth(unsigned(mang.value()));
 			}
 		} else if (indicators[mt].is_over(mx, my)) {
 			unsigned opt = unsigned((indicators[mt].get_angle(mx, my) - angle(210)).value() / 20);
 			if (opt >= 15) opt = 14;
 			switch (opt) {
-			case 0: sub->set_throttle(gm, ship::aheadflank); break;
-			case 1: sub->set_throttle(gm, ship::aheadfull); break;
-			case 2: sub->set_throttle(gm, ship::aheadhalf); break;
-			case 3: sub->set_throttle(gm, ship::aheadslow); break;
-			case 4: sub->set_throttle(gm, ship::aheadlisten); break;
-			case 7: sub->set_throttle(gm, ship::stop); break;
-			case 11: sub->set_throttle(gm, ship::reverse); break;//fixme: various reverse speeds!
-			case 12: sub->set_throttle(gm, ship::reverse); break;
-			case 13: sub->set_throttle(gm, ship::reverse); break;
-			case 14: sub->set_throttle(gm, ship::reverse); break;
+			case 0: sub->set_throttle(ship::aheadflank); break;
+			case 1: sub->set_throttle(ship::aheadfull); break;
+			case 2: sub->set_throttle(ship::aheadhalf); break;
+			case 3: sub->set_throttle(ship::aheadslow); break;
+			case 4: sub->set_throttle(ship::aheadlisten); break;
+			case 7: sub->set_throttle(ship::stop); break;
+			case 11: sub->set_throttle(ship::reverse); break;//fixme: various reverse speeds!
+			case 12: sub->set_throttle(ship::reverse); break;
+			case 13: sub->set_throttle(ship::reverse); break;
+			case 14: sub->set_throttle(ship::reverse); break;
 			case 5: // diesel engines
 			case 6: // attention
 			case 8: // electric engines
