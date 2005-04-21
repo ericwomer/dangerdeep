@@ -14,13 +14,13 @@ using namespace std;
 #endif
 #endif
 
-template <class T, class U>
+template <class T>
 class bsplinet
 {
 protected:
 	unsigned n, m;
 	vector<T> cp;		// control points
-	vector<U> tvec;		// t's for control points
+	vector<double> tvec;		// t's for control points
 	mutable vector<T> deBoor_pts;
 
 	T& deBoor_at(unsigned row, unsigned column) const
@@ -30,7 +30,7 @@ protected:
 	
 	bsplinet();
 
-	unsigned find_l(const U& t) const
+	unsigned find_l(double t) const
 	{
 		// note: for non-uniform bsplines we have to compute l so that
 		// tvec[l] <= t <= tvec[l+1]
@@ -69,7 +69,7 @@ public:
 		tvec.resize(m+n+2);
 		unsigned k = 0;
 		for ( ; k <= n; ++k) tvec[k] = 0;
-		for ( ; k <= m; ++k) tvec[k] = U(k-n)/U(m-n+1);
+		for ( ; k <= m; ++k) tvec[k] = double(k-n)/double(m-n+1);
 		for ( ; k <= m+n+1; ++k) tvec[k] = 1;
 	}
 
@@ -80,7 +80,7 @@ public:
 
 	const vector<T>& control_points(void) const { return cp; }
 	
-	T value(const U& t) const
+	T value(double t) const
 	{
 		assert (0 <= t && t <= 1);
 
@@ -93,7 +93,7 @@ public:
 		// compute new values
 		for (unsigned r = 1; r <= n; ++r) {
 			for (unsigned i = l-n; i <= l-r; ++i) {
-				U tv = (t - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
+				double tv = (t - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
 				assert(isfinite(tv));
 				deBoor_at(r, i+n-l) = deBoor_at(r-1, i+n-l) * (1 - tv)
 					+ deBoor_at(r-1, i+1+n-l) * tv;
@@ -108,13 +108,13 @@ public:
 
 
 // square b-splines, give square vector of control points
-template <class T, class U>
+template <class T>
 class bspline2dt
 {
 protected:
 	unsigned n, m;
 	vector<T> cp;		// control points
-	vector<U> tvec;		// t's for control points
+	vector<double> tvec;		// t's for control points
 	mutable vector<T> deBoor_pts;
 
 	T& deBoor_at(unsigned line, unsigned row, unsigned column) const
@@ -124,7 +124,7 @@ protected:
 	
 	bspline2dt();
 
-	unsigned find_l(const U& t) const
+	unsigned find_l(double t) const
 	{
 		// note: for non-uniform bsplines we have to compute l so that
 		// tvec[l] <= t <= tvec[l+1]
@@ -167,7 +167,7 @@ public:
 		tvec.resize(m+n+2);
 		unsigned k = 0;
 		for ( ; k <= n; ++k) tvec[k] = 0;
-		for ( ; k <= m; ++k) tvec[k] = U(k-n)/U(m-n+1);
+		for ( ; k <= m; ++k) tvec[k] = double(k-n)/double(m-n+1);
 		for ( ; k <= m+n+1; ++k) tvec[k] = 1;
 	}
 
@@ -178,7 +178,7 @@ public:
 
 	const vector<T>& control_points(void) const { return cp; }
 	
-	T value(const U& s, const U& t) const
+	T value(double s, double t) const
 	{
 		assert (0 <= s && s <= 1);
 		assert (0 <= t && t <= 1);
@@ -194,7 +194,7 @@ public:
 		// compute new values
 		for (unsigned r = 1; r <= n; ++r) {
 			for (unsigned i = l-n; i <= l-r; ++i) {
-				U tv = (s - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
+				double tv = (s - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
 				assert(isfinite(tv));
 				for (unsigned j = 0; j <= n; ++j) {
 					deBoor_at(j, r, i+n-l) = deBoor_at(j, r-1, i+n-l) * (1 - tv)
@@ -207,7 +207,7 @@ public:
 			deBoor_at(0, 0, j2) = deBoor_at(j2, n, 0);
 		for (unsigned r = 1; r <= n; ++r) {
 			for (unsigned i = l2-n; i <= l2-r; ++i) {
-				U tv = (t - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
+				double tv = (t - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
 				assert(isfinite(tv));
 				deBoor_at(0, r, i+n-l2) = deBoor_at(0, r-1, i+n-l2) * (1 - tv)
 					+ deBoor_at(0, r-1, i+1+n-l2) * tv;

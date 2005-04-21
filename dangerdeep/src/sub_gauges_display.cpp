@@ -20,7 +20,7 @@ sub_gauges_display::indicator::~indicator()
 	delete mytexnight;
 }
 
-void sub_gauges_display::indicator::display(bool is_day_mode, const double& angle) const
+void sub_gauges_display::indicator::display(bool is_day_mode, double angle) const
 {
 	const texture* tex = mytexday;
 	if (!is_day_mode && mytexnight != 0)

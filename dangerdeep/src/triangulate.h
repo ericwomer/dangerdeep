@@ -18,15 +18,15 @@ struct triangulate
 		++i; if (i == vl.end()) i = vl.begin();
 	}
 
-	static bool is_correct_triangle(const vector2f& a, const vector2f& b, const vector2f& c) {
+	static bool is_correct_triangle(const vector2& a, const vector2& b, const vector2& c) {
 		return (b.x-a.x)*(c.y-a.y) > (b.y-a.y)*(c.x-a.x);
 	}
 	
-	static bool is_inside_triangle(const vector2f& a, const vector2f& b, const vector2f& c, const vector2f& p);
+	static bool is_inside_triangle(const vector2& a, const vector2& b, const vector2& c, const vector2& p);
 
-	static vector<unsigned> compute(const vector<vector2f>& vertices);
+	static vector<unsigned> compute(const vector<vector2>& vertices);
 	
-	static void debug_test(const vector<vector2f>& vertices, const string& outputfile);
+	static void debug_test(const vector<vector2>& vertices, const string& outputfile);
 };
 
 #endif

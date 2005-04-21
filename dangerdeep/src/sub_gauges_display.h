@@ -25,7 +25,7 @@ class sub_gauges_display : public user_display
 		unsigned x, y, w, h;
 		indicator();
 		~indicator();
-		void display(bool is_day_mode, const double& angle) const;
+		void display(bool is_day_mode, double angle) const;
 		// mytexnight can be 0 if daymode image should always be used (e.g. compass)
 		void set(SDL_Surface* sday, SDL_Surface* snight, unsigned x_, unsigned y_, unsigned w_, unsigned h_);
 		bool is_over(int mx, int my) const;

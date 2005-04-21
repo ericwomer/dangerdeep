@@ -16,10 +16,10 @@ while point list contains more than three points
 end
 */
 
-bool triangulate::is_inside_triangle(const vector2f& a, const vector2f& b, const vector2f& c,
-	const vector2f& p)
+bool triangulate::is_inside_triangle(const vector2& a, const vector2& b, const vector2& c,
+	const vector2& p)
 {
-	float s, t;
+	double s, t;
 	bool solved = (p-a).solve(b-a, c-a, s, t);
 	if (!solved) return true;
 	return (s >= 0 && t >= 0 && s <= 1 && t <= 1 && s+t <= 1);
@@ -29,7 +29,7 @@ bool triangulate::is_inside_triangle(const vector2f& a, const vector2f& b, const
 #include <cassert>
 #include <fstream>
 int failcount = 0;
-vector<unsigned> triangulate::compute(const vector<vector2f>& vertices)
+vector<unsigned> triangulate::compute(const vector<vector2>& vertices)
 {
 	vector<unsigned> indices;
 	if (vertices.size() < 3) return indices;	// error!
@@ -61,8 +61,8 @@ if(haengt>2000){
 	ofstream out(oss.str().c_str());
 	unsigned vs = vertices.size();
 	out << "OFF\n" << vs+1 << " " << vs << " 0\n";
-	vector2f median;
-	float dist2median = 0;
+	vector2 median;
+	double dist2median = 0;
 	for (unsigned i = 0; i < vs; ++i) {
 		out << vertices[i].x << " " << vertices[i].y << " 0.0\n";
 		median += vertices[i];
@@ -112,7 +112,7 @@ if(haengt>2000){
 
 
 #include <fstream>
-void triangulate::debug_test(const vector<vector2f>& vertices, const string& outputfile)
+void triangulate::debug_test(const vector<vector2>& vertices, const string& outputfile)
 {
 	cout << "testing in \"" << outputfile << "\"\n";
 	int nverts = int(vertices.size());
@@ -143,11 +143,11 @@ int main(int argc, char** argv)
 {
 	int nverts = 50;
 	if (argc > 1) nverts = atoi(argv[1]);
-	vector<vector2f> verts;
+	vector<vector2> verts;
 	for (unsigned i = 0; i < nverts; ++i) {
-		float f = 2*3.14159f*i/nverts;
-		vector2f d(cos(f), sin(f));
-		float l = 50.0f+30.0f*rand()/RAND_MAX;
+		double f = 2*3.14159f*i/nverts;
+		vector2 d(cos(f), sin(f));
+		double l = 50.0f+30.0f*rand()/RAND_MAX;
 		verts.push_back(d*l);
 	}
 	

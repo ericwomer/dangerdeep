@@ -65,7 +65,7 @@ public:
 		double time;
 		double range;
 		angle ping_angle;
-		ping(const vector2& p, angle d, double t, const double& range,
+		ping(const vector2& p, angle d, double t, double range,
 			const angle& ping_angle_ ) :
 			pos(p), dir(d), time(t), range ( range ), ping_angle ( ping_angle_ )
 			{}
