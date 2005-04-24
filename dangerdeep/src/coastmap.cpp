@@ -23,7 +23,7 @@ using namespace std;
 
 
 
-const unsigned BSPLINE_SMOOTH_FACTOR = 16;	// should be 3...16
+const unsigned BSPLINE_SMOOTH_FACTOR = 0;//16;	// should be 3...16
 
 const int coastmap::dmx[4] = { -1, 0, 0, -1 };
 const int coastmap::dmy[4] = { -1, -1, 0, 0 };
@@ -31,23 +31,22 @@ const int coastmap::dx[4] = { 0, 1, 0, -1 };
 const int coastmap::dy[4] = { -1, 0, 1, 0 };
 
 
-
-/* fixme:
-  maybe reuse already generated data: give old point array to. if new detail is higher than
-  old detail, just generate new points (50% computation time saving on increasing the detail),
-  or drop old points with decreasing detail (100% computation time saving).
+/*
+2005/04/24
+fixme: define what is meant how and check that.
+rules:
+segcls are connected in ccw order.
+vertices are stored in ccw order.
+this means when iterating along the coast, land is left and sea is right.
+lakes are not allowed (when they're completely inside a seg, because the
+triangulation failes there).
 */
+
+
 void coastline::create_points(vector<vector2>& points, float begint, float endt, int detail) const
 {
-	//fixme that happens, but it should not. are there double points anywhere?
-	if (begint == endt) {
-		cout << "Warning: begint == endt" << begint << "\n";
-		points.push_back(curve.value(begint));
-		return;
-	}
-//if(endt<=begint)return;
-if(endt<=begint){cout<<"achtung! begint "<<begint<<" endt "<<endt<<" diff "<<endt-begint<<"\n";}
-assert(endt>begint);//fixme quick hack to avoid bugs caused by other fixme's etc.
+	sys().myassert(begint < endt, "error: begint >= endt (%f %f)", begint, endt);
+
 	// compute number of points to be generated
 	unsigned totalpts = curve.control_points().size();
 	unsigned nrpts = unsigned(round(float(totalpts) * (endt-begint)));
@@ -67,36 +66,18 @@ assert(endt>begint);//fixme quick hack to avoid bugs caused by other fixme's etc
 
 void coastline::draw_as_map(int detail) const
 {
-	vector<vector2> pts;
-	create_points(pts, 0, 1, detail);
-
-	glBegin(GL_LINE_STRIP);
-	for (vector<vector2>::const_iterator it = pts.begin(); it != pts.end(); ++it) {
-		glTexCoord2f(it->x, it->y);
-		glVertex2f(it->x, it->y);
-	}
-	glEnd();
-
-#if 0
-	glColor3f(0,1,0.8);
-	glPointSize(3.0);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glBegin(GL_POINTS);
-	for (vector<vector2>::const_iterator it = pts.begin(); it != pts.end(); ++it) {
-		glVertex2f(it->x, it->y);
-	}
-	glEnd();
-	glColor3f(1,1,1);
-#endif
-#if 0
-	glColor3f(1,0,0.8);
-	glBegin(GL_POINTS);
+	glBegin(GL_LINE_STRIP);
+	int z = 0;
 	for (vector<vector2>::const_iterator it = curve.control_points().begin(); it != curve.control_points().end(); ++it) {
+		float p = float(z % 8 + 1)/8;
+		float p2 = float(z % 4 + 1)/4;
+		glColor3f(0,p,p2);
 		glVertex2f(it->x, it->y);
+		++z;
 	}
 	glEnd();
 	glColor3f(1,1,1);
-#endif
 }
 
 
@@ -143,9 +124,12 @@ void coastline::render(const vector2& p, int detail) const
 // the least distance between two points is around 0.014, fixme test again
 void coastsegment::cacheentry::push_back_point(const vector2& p)
 {
-//	debug code that avoids double points, not needed any longer, fixme: enable again!
-//	if (points.size() == 0 || (points.back().square_distance(p) >= 1.0f))
-		points.push_back(p);
+	if (points.size() > 0) {
+		double d = points.back().square_distance(p);
+		if (d < 1.0f) return;//fixme test hack
+		sys().myassert(d >= 1.0f, "error: points are too close %f    %f %f  %f %f", d, points.back().x, points.back().y, p.x, p.y);
+	}
+	points.push_back(p);
 }
 
 
@@ -290,8 +274,8 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, const vec
 		glVertex2d(roff.x, roff.y+cm.segw_real);
 		glEnd();
 	} else if (type > 1) {
+#if 1
 		generate_point_cache(cm, roff, detail+2);
-	
 		glBegin(GL_TRIANGLES);
 		for (vector<cacheentry>::const_iterator cit = pointcache.begin(); cit != pointcache.end(); ++cit) {
 			for (vector<unsigned>::const_iterator tit = cit->indices.begin(); tit != cit->indices.end(); ++tit) {
@@ -301,8 +285,8 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, const vec
 			}
 		}
 		glEnd();
-		
-#if 0
+#endif		
+#if 1
 		// test
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBegin(GL_LINES);
@@ -416,12 +400,14 @@ float coastsegment::dist_to_corner(int b, const vector2& p, float segw)
 
 
 
+// return position on segment border. 0...1 left, 1...2 bottom, 2...3 right, 3...4 top.
+//fixme: border number goes from top to left in cw order, borderpos in ccw order left to top, ouch.
 float coastsegment::borderpos(int b, const vector2& p, float segw) const
 {
-	if (b == 0) return p.x/segw;
-	else if (b == 1) return 1.0f + p.y/segw;
-	else if (b == 2) return 2.0f + 1.0f - p.x/segw;
-	else return 3.0f + 1.0f - p.y/segw;
+	if (b == 0) return 3.0 + 1.0 - p.x/segw;
+	else if (b == 1) return 2.0f + p.y/segw;
+	else if (b == 2) return 1.0f + p.x/segw;
+	else return 0.0f + 1.0f - p.y/segw;
 }
 
 
@@ -440,7 +426,7 @@ float coastsegment::compute_border_dist(int b0, const vector2& p0, int b1, const
 
 
 
-unsigned coastsegment::get_successor_for_cl(unsigned cln, const vector2& segoff, double segw) const
+int coastsegment::get_successor_for_cl(unsigned cln, const vector2& segoff, double segw) const
 {
 //fixme: this function sometimes returns shit.
 //this seems to be the reason for the triangulation bugs. several coastlines are connected
@@ -465,44 +451,56 @@ fixme: check wether we have to count cw or ccw around the segment border!
 
 	const segcl& scl0 = segcls[cln];
 
-	// handle cyclic segcls's or segcl's that are part of an island
-	if (scl0.endborder < 0) {
-		if(scl0.cyclic)assert(scl0.beginborder<0);
-		else assert(scl0.beginborder>=0);
-		return cln;	// a cylic segcl has itself as successor
+	// handle islands totally contained in one segment
+	if (scl0.cyclic) {
+		sys().myassert(scl0.beginborder < 0, "paranoia4");
+		sys().myassert(scl0.endborder < 0, "paranoia5");
+		return cln;
 	}
 
 /*
-	if (scl0.cyclic) {
-		cout << "scl0 cyclic? " << scl0.beginborder << "," << scl0.endborder << "\n";
-		cout << "scl0 t's " << scl0.begint << "," << scl0.endt << "\n";
-		cout << "scl0 p's " << scl0.beginp << "," << scl0.endp << "\n";
-	}
+	cout << "scl0 " << cln << " mapclnr " << scl0.mapclnr << " begint " << scl0.begint << " endt " << scl0.endt
+	     << " beginp " << (scl0.beginp.x - segoff.x)/segw << "," << (scl0.beginp.y - segoff.y)/segw << " endp " << (scl0.endp.x - segoff.x)/segw << "," << (scl0.endp.y-segoff.y)/segw << " bb " << scl0.beginborder << " eb " <<
+		scl0.endborder << " cyc " << scl0.cyclic << "\n";
+
+	sys().myassert(scl0.beginborder >= 0, "paranoia7");
+	sys().myassert(scl0.endborder >= 0, "paranoia8");
 */
-//	assert(!scl0.cyclic);
+
+	if (scl0.beginborder < 0) sys().myassert(scl0.endborder >= 0, "paranoia8");
+
+	// handle special case when endborder is < 0 (island that is distributed
+	// to more than one segment, and we have first and last segcl of island here)
+	if (scl0.endborder < 0) {
+		sys().myassert(scl0.beginborder >= 0, "paranoia7");
+		for (unsigned i = 0; i < segcls.size(); ++i) {
+			const segcl& scl1 = segcls[i];
+			if (scl0.mapclnr == scl1.mapclnr && scl1.beginborder < 0) {
+				return i;
+			}
+		}
+		sys().myassert(false, "paranoia9");
+	}
 
 	float scl0num = borderpos(scl0.endborder, scl0.endp - segoff, segw);
 
-///crash, weil: es gibt nur *eine* segcl, die hat endborder 2, beginborder -1 !?!?!?!?!
 	float mindist = 4.0f;
-	unsigned next = 0xffffffff;
-//cout << "scl0: " << scl0.endborder << " num " << scl0num << "\n";
+	int next = -1;
 	for (unsigned i = 0; i < segcls.size(); ++i) {
-		// i's successor can be i itself
+		// i's successor can be i itself, when i enters and leaves the seg without any
+		// other cl in between
 		const segcl& scl1 = segcls[i];
-		
-//cout << "scl1: " << scl1.beginborder << "\n";
 		if (scl1.beginborder < 0) continue;	// not compareable
 		float scl1num = borderpos(scl1.beginborder, scl1.beginp - segoff, segw);
-//cout << "scl1: " << scl1.beginborder << " num " << scl1num << "\n";
+		printf("get_succ %i %i   %f %f\n",cln,i,scl0num,scl1num);
 		float numd = myfmod(scl1num - scl0num + 4.0f, 4.0f);
 		if (numd < mindist) {
 			mindist = numd;
-			next = i;
+			next = int(i);
 		}
 	}
 	
-	if (next == 0xffffffff) {
+	if (next == -1) {
 		cout << "# segcls " << segcls.size() << "\n";
 		for (unsigned i = 0; i < segcls.size(); ++i) {
 			cout << "segcl #" << i << " : " << segcls[i].beginborder << "," <<
@@ -514,7 +512,7 @@ fixme: check wether we have to count cw or ccw around the segment border!
 		}
 	}
 
-	assert(next != 0xffffffff);
+	sys().myassert(next != -1, "paranoia6");
 	return next;
 	
 
@@ -605,7 +603,7 @@ Uint8& coastmap::mapf(int cx, int cy)
 	cy = clamp_zero(cy);
 	cx = mapw - 1 - clamp_zero(mapw - 1 - cx);
 	cy = maph - 1 - clamp_zero(maph - 1 - cy);
-	return themap[(maph-1-cy)*mapw+cx];
+	return themap[cy*mapw+cx];
 }
 
 
@@ -728,7 +726,7 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 
 
 
-void coastmap::divide_and_distribute_cl(const coastline& cl, unsigned clnr, int beginb, int endb, const vector<vector2>& points)
+void coastmap::divide_and_distribute_cl(const coastline& cl, unsigned clnr, int beginb, int endb, const vector<vector2>& points, bool clcyclic)
 {
 	coastsegment::segcl scl;
 	scl.mapclnr = clnr;
@@ -740,106 +738,131 @@ void coastmap::divide_and_distribute_cl(const coastline& cl, unsigned clnr, int 
 	vector2 cp0 = cl.curve.value(0);
 	int sx = int((cp0.x - realoffset.x) / segw_real);
 	int sy = int((cp0.y - realoffset.y) / segw_real);
+	sys().myassert(sx < segsx && sy < segsy, "paranoia");
 	int seg = sy*segsx+sx;
 	vector2 segoff(sx * segw_real + realoffset.x, sy * segw_real + realoffset.y);
-
-//cout << "pixelcoord " << ((cp0.x - realoffset.x) / pixelw_real) << "," << ((cp0.y - realoffset.y) / pixelw_real) << "\n";
 
 	scl.begint = 0;
 	scl.beginp = cp0;
 	scl.beginborder = beginb;
 	
+	const double eps = 1e-5;
+	const int segdx[4] = { 0, 1, 0, -1 };
+	const int segdy[4] = { 1, 0, -1, 0 };
+
 	bool sameseg = true;
 	float t0 = 0;
 	vector2 cpoldi = cp0;
-	//this *4 is a hack to avoid lines crossing two or more borders, fixme
-	for (unsigned i = 1; i < points.size()*4; ++i) {
-		float t1 = float(i)/float(points.size()*4);
+	// loop over coastline
+	const int detailfac = 1;
+	for (unsigned i = 1; i < points.size() * detailfac; ++i) {
+		float t1 = float(i)/float(points.size() * detailfac);
+		// destination point and segment
 		vector2 cpi = cl.curve.value(t1);
 		int csx = int((cpi.x - realoffset.x) / segw_real);
 		int csy = int((cpi.y - realoffset.y) / segw_real);
 		int cseg = csy*segsx+csx;
-//	cout << "pixelcoord " << ((cpi.x - realoffset.x) / pixelw_real) << "," << ((cpi.y - realoffset.y) / pixelw_real) << "\n";
-//	cout << "i=" << i << " points.size()=" << points.size() << "\n";
-//	cout << "seg=" << seg << " cseg=" << cseg << "\n";
+		sys().myassert(csx < segsx && csy < segsy, "paranoia2");
+
 		if (seg != cseg) {
-//	cout << "segswitch " << seg << " -> " << cseg << "\n";
 			sameseg = false;
+			vector2 delta = cpi - cpoldi;
 
-			vector2 b = cpoldi;
-			vector2 d = cpi - b;
+			// now go along the line between cpoldi -> cpi through all segments
+			// that the line crosses.
+			// loop over u = 0...1 along the line.
+			printf("sx %i sy %i csx %i csy %i   [[ %i %i ]]\n",sx,sy,csx,csy,csx-sx,csy-sy);
+			int count = 20;
+			while (seg != cseg) {
+				if (--count <= 0) { printf("deadlock!\n"); exit(1); }
+				// segment borders are segoff.x/y and segoff.x/y + segw/segw
+				// find nearest border of segment (find smallest u >= 0 so that line crosses
+				// segment border)
+				// but only in direction of delta
+				int border = -1;
+				double umin = 1e30;
+				// check top
+				if (delta.y > eps) {
+					double u = (segoff.y + segw_real - cpoldi.y)/delta.y;
+					if (u < umin) {
+						border = 0;
+						umin = u;
+					}
+				}
+				// check right
+				if (delta.x > eps) {
+					double u = (segoff.x + segw_real - cpoldi.x)/delta.x;
+					if (u < umin) {
+						border = 1;
+						umin = u;
+					}
+				}
+				// check bottom
+				if (delta.y < -eps) {
+					double u = (segoff.y             - cpoldi.y)/delta.y;
+					if (u < umin) {
+						border = 2;
+						umin = u;
+					}
+				}
+				// check left
+				if (delta.x < -eps) {
+					double u = (segoff.x             - cpoldi.x)/delta.x;
+					if (u < umin) {
+						border = 3;
+						umin = u;
+					}
+				}
 
-			// fixme: assert that b + t*d crosses at most one segment border!
-			// with small islands a bspline curve with high n leads to
-			// lines that cross more than one segment border -> bugs.
-
-			// fixme: this interpolation is very crude.
-			// we should find t by approximation (binear subdivdision)
-			// or proportional subdivision until the segment is small enough
-			// and then use linear interpolation
-
-			// fixme: what is if the next segment is right AND down (line crosses corner)?
+				sys().myassert(border >= 0, "minu internal error paranoia");
 			
-			// find t so that b + t * d is on segment border between seg and cseg
-			float t;
-			int border = -1;
-			if (cseg < seg) {	// border is left or top
-				if (cseg == seg-1) {	// left
-					t = (segoff.x - b.x) / d.x;
-					border = 3;
-				} else {		// top
-					t = (segoff.y - b.y) / d.y;
-					border = 0;
+				vector2 borderp = cpoldi + delta * umin;
+				float ct = t0 + (t1 - t0) * umin;
+
+				printf("border %i, t0 %f t1 %f ct %f u %f  epscheck %f\n",border,t0,t1,ct,umin,ct-scl.begint);
+
+				scl.endt = ct;
+				scl.endp = borderp;
+				scl.endborder = border;
+				if (scl.endt - scl.begint > eps)
+					coastsegments[seg].segcls.push_back(scl);
+				else
+					printf("trying to add too small segcl %f %f %f\n",scl.begint,scl.endt,scl.endt-scl.begint);
+
+/*
+				if (umin + eps > 1.0) {
+					seg = cseg;
+					sx = csx;
+					sy = csy;
+					scl.begint = t1;
+				} else
+*/
+				{
+					// just switch to next segment. Also happens when u < eps
+					sx += segdx[border];
+					sy += segdy[border];
+					seg = sy*segsx+sx;
+					scl.begint = ct;
 				}
-			} else {		// border is right or bottom
-				if (cseg == seg+1) {	// right
-					t = (segoff.x + segw_real - b.x) / d.x;
-					border = 1;
-				} else {		// bottom
-					t = (segoff.y + segw_real - b.y) / d.y;
-					border = 2;
-				}
+
+				segoff = vector2(sx * segw_real + realoffset.x, sy * segw_real + realoffset.y);
+				scl.beginp = borderp;
+				scl.beginborder = (border + 2) % 4;
 			}
-
-			if (t < 0 || t > 1)cout<<"t error, t is "<<t<<" and t-1 " << t-1 << "\n";			
-			if(t<0)t=0;if(t>1)t=1;
-			// t should be between 0 and 1, but this is sometimes wrong! fixme.
-			
-			vector2 borderp = b + d * t;
-			float ct = t0 + (t1 - t0) * t;
-//cout << "t0 " << t0 << " t1 " << t1 << " t " << t << "\n";
-//cout << "b is " << b << " d is " << d << " und b2 ist " << (b + d) << " und borderp " << borderp << "\n";
-			scl.endt = ct;
-			scl.endp = borderp;
-			scl.endborder = border;
-
-			coastsegments[seg].segcls.push_back(scl);
-			sx = csx;
-			sy = csy;
-			seg = cseg;
-			segoff = vector2(sx * segw_real + realoffset.x, sy * segw_real + realoffset.y);
-
-			scl.begint = ct;
-			scl.beginp = borderp;
-			scl.beginborder = (border + 2) % 4;
 		}
 		t0 = t1;
 		cpoldi = cpi;
 	}
 
-	// note that if the last point is in another segment, no additional segcl
-	// is created for this point, but in that case, we don't want an additional
-	// segcl, because it would have length zero -> triangulation fault.
-
 	// store remaining segment
 	scl.endt = 1;
 	scl.endp = cl.curve.value(1);
 	scl.endborder = endb;
-	scl.cyclic = sameseg;	// fixme: not always true. cl's beginning at the map border
-				// and ending there don't need to be cyclic!
-				// real value: scl is cyclic IF sameseg is true AND the parent
-				// of scl (scl.mapclnr) is cylic.
-	coastsegments[seg].segcls.push_back(scl);
+	scl.cyclic = sameseg && clcyclic;
+	if (scl.endt - scl.begint > eps)
+		coastsegments[seg].segcls.push_back(scl);
+	else
+		printf("2trying to add too small segcl %f %f\n",scl.begint,scl.endt);
 }
 
 
@@ -881,8 +904,8 @@ void coastmap::process_coastline(int x, int y)
 	// Maybe limiting n to tmp.size()/2 or tmp.size()/4 would be a solution. test it!
 	if (n > BSPLINE_SMOOTH_FACTOR) n = BSPLINE_SMOOTH_FACTOR;
 	if (n > tmp.size()/4) n = tmp.size()/4;
-	coastline result(n, tmp, beginborder, endborder);
-	divide_and_distribute_cl(result, coastlines.size(), beginborder, endborder, tmp);
+	coastline result(n, tmp);
+	divide_and_distribute_cl(result, coastlines.size(), beginborder, endborder, tmp, cyclic);
 
 	coastlines.push_back(result);
 }
@@ -908,6 +931,32 @@ void coastmap::process_segment(int sx, int sy)
 		for (unsigned i = 0; i < cs.segcls.size(); ++i) {
 			cs.segcls[i].next = cs.get_successor_for_cl(i, segoff, segw_real);
 		}
+
+#if 0
+		// mega-paranois debug test
+		vector<bool> dbg(cs.segcls.size());
+		printf("nr of segcls: %u\n", dbg.size());
+		for (unsigned i = 0; i < cs.segcls.size(); ++i) {
+			if (dbg[i]) continue;
+			printf("loop begin %i\n",i);
+			dbg[i] = true;
+			if (cs.segcls[i].cyclic) continue;
+			unsigned j = i;
+			while (cs.segcls[j].next != i) {
+				unsigned k = cs.segcls[j].next;
+				printf("   %i -> %i\n",j,k);
+//fixme: fehler kommen von segcls, die von einer ecke zu derselben gehen!!!!
+				sys().myassert(dbg[k] == false, "paranoia10");
+				j = k;
+				dbg[j] = true;
+				printf("...%i\n",j);
+			}
+		}
+		unsigned i = 0;
+		for ( ; i < dbg.size(); ++i)
+			if (!dbg[i]) break;
+		sys().myassert(i == dbg.size(), "paranoia11 at %i\n",i);
+#endif
 	}
 }
 
@@ -957,10 +1006,12 @@ coastmap::coastmap(const string& filename)
 	sys().myassert(surf->format->BytesPerPixel == 1 && surf->format->palette != 0 && surf->format->palette->ncolors == 2, string("coastmap: image is no black/white 1bpp paletted image, in ") + filename);
 
 	Uint8* offset = (Uint8*)(surf->pixels);
+	int mapoffy = maph*mapw;
 	for (int yy = 0; yy < int(maph); yy++) {
+		mapoffy -= mapw;
 		for (int xx = 0; xx < int(mapw); ++xx) {
 			Uint8 c = (*offset++);
-			themap[yy*mapw+xx] = c ? 1 : 0;
+			themap[mapoffy+xx] = (c > 0) ? 1 : 0;
 		}
 		offset += surf->pitch - mapw;
 	}
@@ -1057,6 +1108,12 @@ coastmap::coastmap(const string& filename)
 		cities.push_back(make_pair(vector2(x, y), n));
 	}
 */
+
+	// fixme: clear "themap" so save space.
+	// information wether a position on the map is land or sea can be computed from
+	// segment data. This will save 6MB of space at least.
+
+	add_loading_screen("coastmap created");
 }
 
 
@@ -1086,6 +1143,12 @@ void coastmap::draw_as_map(const vector2& droff, double mapzoom, int detail) con
 	}
 //cout<<"draw map   segsx " << segsx << " segsy " << segsy << " x " << x << " y " << y << " w " << w << " h " << h << "\n";
 
+#if 1
+	// testing
+	for (unsigned i = 0; i < coastlines.size(); ++i)
+		coastlines[i].draw_as_map();
+#endif
+
 	atlanticmap->set_gl_texture();
 	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
@@ -1101,12 +1164,6 @@ void coastmap::draw_as_map(const vector2& droff, double mapzoom, int detail) con
 			coastsegments[yy*segsx+xx].draw_as_map(*this, xx, yy, offset, detail);
 		}
 	}
-
-#if 0
-	// testing, fixme remove
-	for (unsigned i = 0; i < coastlines.size(); ++i)
-		coastlines[i].draw_as_map();
-#endif
 
 	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();

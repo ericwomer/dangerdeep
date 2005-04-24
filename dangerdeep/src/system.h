@@ -63,9 +63,8 @@ public:
 	void screen_resize(unsigned w, unsigned h, double nearz, double farz);
 	
 	void clear_console(void);
-	// fixme maybe printf-like (va_start,...) input also.
-	//void con_printf(const char* fmt, ...);
 	void add_console(const string& tx);
+	void add_console(const char* fmt, ...);
 	void draw_console_with(const font* fnt, const texture* background = 0);
 	void write_console(bool fileonly = false) const;
 	void prepare_2d_drawing(void);	// must be called as pair!
@@ -75,6 +74,7 @@ public:
 
 	static inline system& sys(void) { return *instance; };
 	void myassert(bool cond, const string& msg = "");
+	void myassert(bool cond, const char* fmt, ...);
 	
 	void set_screenshot_directory(const string& s) { screenshot_dir = s; }
 	void screenshot(void);

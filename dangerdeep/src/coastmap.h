@@ -21,8 +21,10 @@ struct coastline
 	//earth diameter ~ 40 million meters, float with 24bit has ~ 16 million precision. so we use double.
 	bsplinet<vector2> curve;	// points in map coordinates (meters)
 
-	//fixme: what does bb,eb here? nothing is done with it!!!
-	coastline(int n, const vector<vector2>& p, int bb, int eb) : curve(n, p) {}
+	// create coastline
+	// n  - bspline smooth detail
+	// p  - bspline control points
+	coastline(int n, const vector<vector2>& p) : curve(n, p) {}
 	~coastline() {}
 
 	// create vector of real points, detail can be > 0 (additional detail with bspline
@@ -44,12 +46,12 @@ public:
 	struct segcl
 	{
 		unsigned mapclnr;	// pointer to coastmap::coastlines, global cl number
-		float begint, endt;
+		float begint, endt;	// point on coastline where segment begins and ends, 0...1
 		vector2 beginp, endp;	// = coastlines[mapclnr].curve.value(begint) but storing is faster!
-		int beginborder;// 0-3, top,right,bottom,left of segment, -1 = (part of an) island
-		int endborder;	// dito
-		bool cyclic;	// is segcl cyclic?
-		int next;	// ? fixme
+		int beginborder;	// 0-3, top,right,bottom,left of segment, -1 = (part of an) island
+		int endborder;		// dito
+		bool cyclic;		// is segcl cyclic?
+		int next;		// successor of segcl in segment, needed for triangulation
 	};
 
 	unsigned type;	// 0 - sea, 1 - land, 2 mixed
@@ -78,7 +80,7 @@ public:
 	// p0,p1 must be inside the segment.
 	float compute_border_dist(int b0, const vector2& p0, int b1, const vector2& p1, float segw) const;
 
-	unsigned get_successor_for_cl(unsigned cln, const vector2& segoff, double segw) const;
+	int get_successor_for_cl(unsigned cln, const vector2& segoff, double segw) const;
 
 	coastsegment(/*unsigned topon, const vector<float>& topod*/) : type(0), /*topo(topon, topod),*/ pointcachedetail(0) {}
 	
@@ -93,7 +95,7 @@ class coastmap
 	friend class coastsegment;	// just request some values
 
 	// some attributes used for map reading/processing
-	vector<Uint8> themap;		// pixel data of map file
+	vector<Uint8> themap;		// pixel data of map file, y points up, like in OpenGL
 	static const int dmx[4];	// some helper constants.
 	static const int dmy[4];
 	static const int dx[4];
@@ -120,7 +122,7 @@ class coastmap
 	Uint8& mapf(int cx, int cy);
 	bool find_begin_of_coastline(int& x, int& y);
 	bool find_coastline(int x, int y, vector<vector2i>& points, bool& cyclic, int& beginborder, int& endborder);
-	void divide_and_distribute_cl(const coastline& cl, unsigned clnr, int beginb, int endb, const vector<vector2>& points);
+	void divide_and_distribute_cl(const coastline& cl, unsigned clnr, int beginb, int endb, const vector<vector2>& points, bool clcyclic);
 	void process_coastline(int x, int y);
 	void process_segment(int x, int y);
 

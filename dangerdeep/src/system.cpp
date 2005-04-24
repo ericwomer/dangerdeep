@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <cmath>
+#include <cstdarg>
 using namespace std;
 
 #ifdef WIN32
@@ -21,6 +22,8 @@ using namespace std;
 #include "texture.h"
 
 class system* system::instance = 0;
+
+static char sprintf_tmp[1024];
 
 system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	res_x(res), res_y(res*3/4), nearz(nearz_), farz(farz_), is_fullscreen(fullscreen),
@@ -157,17 +160,14 @@ void system::add_console(const string& tx)
 	console_text.push_back(tx);
 }
 
-/*
-void system::con_printf(const char* fmt, ...)
+void system::add_console(const char* fmt, ...)
 {
-	char tmp[256];	// attention: buffer overflow can result
-	va_list ap;
-	va_start(ap, fmt);
-	vsnprintf(tmp, 255, fmt, ap);
-	va_end(ap);
-	add_console(tmp);
+	va_list args;
+	va_start(args, fmt);
+	vsnprintf(sprintf_tmp, 1024, fmt, args);
+	va_end(args);
+	add_console(string(sprintf_tmp));
 }
-*/
 
 void system::draw_console_with(const font* fnt, const texture* background)
 {
@@ -274,6 +274,15 @@ void system::myassert(bool cond, const string& msg)
 		write_console();
 		exit(0);
 	}
+}
+
+void system::myassert(bool cond, const char* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	vsnprintf(sprintf_tmp, 1024, fmt, args);
+	va_end(args);
+	myassert(cond, string(sprintf_tmp));
 }
 
 void system::swap_buffers(void)

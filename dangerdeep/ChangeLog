@@ -1,3 +1,10 @@
+2005-04-24  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* system.h/cpp
+	  - now supports printf style parameters for myassert and
+	    add_console
+	* coastmap.h/cpp
+	  - improved coastline generation
+
 2005-04-18  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* each sea_object has a reference to game, removing tons of
 	  "game& gm" parameters of function calls.
