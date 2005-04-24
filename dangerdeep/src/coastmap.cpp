@@ -23,7 +23,7 @@ using namespace std;
 
 
 
-const unsigned BSPLINE_SMOOTH_FACTOR = 0;//16;	// should be 3...16
+const unsigned BSPLINE_SMOOTH_FACTOR = 1;//16;	// should be 3...16
 
 // order (0-3):
 // 32
@@ -131,7 +131,7 @@ void coastsegment::cacheentry::push_back_point(const vector2& p)
 {
 	if (points.size() > 0) {
 		double d = points.back().square_distance(p);
-//		if (d < 1.0f) return;//fixme test hack
+		if (d < 1.0f) return;//fixme test hack
 		sys().myassert(d >= 1.0f, "error: points are too close %f    %f %f  %f %f", d, points.back().x, points.back().y, p.x, p.y);
 	}
 	points.push_back(p);
@@ -187,12 +187,13 @@ void coastsegment::generate_point_cache(const class coastmap& cm, const vector2&
 				cl_handled[current] = true;
 				if(next!=i){
 					if(cl_handled[next])break;
+					//fixme: happens with segcls that have length 0 (on corners etc.)
 					//fixme: this failes sometimes. related to island bug???
-					assert(!cl_handled[next]);
+					sys().myassert(!cl_handled[next], "cl already handled?");
 				}
-			if(next==0xffffffff)break;
-			assert(next!=0xffffffff);//fixme: another unexplainable bug.
-			//if(current==next)break;
+				//if(next==0xffffffff)break;
+				sys().myassert(next!=-1, "next unset?");//fixme: another unexplainable bug.
+				//if(current==next)break;
 				// insert corners if needed
 				int ed = cl.endborder, bg = segcls[next].beginborder;
 				if (ed >= 0 && bg >= 0) {
@@ -209,10 +210,12 @@ void coastsegment::generate_point_cache(const class coastmap& cm, const vector2&
 					}
 					for (int j = ed; j < bg; ++j) {
 						int k = j % 4;
-						if (k == 0) ce.push_back_point(roff + vector2(cm.segw_real, 0));
-						else if (k == 1) ce.push_back_point(roff + vector2(cm.segw_real, cm.segw_real));
-						else if (k == 2) ce.push_back_point(roff + vector2(0, cm.segw_real));
-						else ce.push_back_point(roff);
+						// push back destination point of edge (0-3: bl,br,tr,tl)
+						//fixme: many wrong corners are inserted...
+						if (k == 0) ce.push_back_point(roff);
+						else if (k == 1) ce.push_back_point(roff + vector2(cm.segw_real, 0));
+						else if (k == 2) ce.push_back_point(roff + vector2(cm.segw_real, cm.segw_real));
+						else ce.push_back_point(roff + vector2(0, cm.segw_real));
 					}
 				}
 				current = next;
@@ -284,7 +287,7 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, const vec
 		glVertex2d(roff.x, roff.y+cm.segw_real);
 		glEnd();
 	} else if (type > 1) {
-#if 0
+#if 1
 		vector2 segoff(x*cm.segw_real + cm.realoffset.x, y*cm.segw_real + cm.realoffset.y);
 		generate_point_cache(cm, roff, detail+2, segoff);
 		glBegin(GL_TRIANGLES);
