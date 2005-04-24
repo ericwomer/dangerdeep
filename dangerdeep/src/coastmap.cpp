@@ -28,8 +28,8 @@ const unsigned BSPLINE_SMOOTH_FACTOR = 1;//16;	// should be 3...16
 // order (0-3):
 // 32
 // 01
-const int coastmap::dmx[4] = { 0, 1, 1, 0 };
-const int coastmap::dmy[4] = { 0, 0, 1, 1 };
+const int coastmap::dmx[4] = { -1,  0, 0, -1 };
+const int coastmap::dmy[4] = { -1, -1, 0,  0 };
 // order: left, down, right, up
 const int coastmap::dx[4] = { -1,  0, 1, 0 };
 const int coastmap::dy[4] = {  0, -1, 0, 1 };
@@ -206,7 +206,7 @@ void coastsegment::generate_point_cache(const class coastmap& cm, const vector2&
 							bg += 4;
 						}
 					} else if (bg < ed) {
-							bg += 4;
+						bg += 4;
 					}
 					for (int j = ed; j < bg; ++j) {
 						int k = j % 4;
@@ -459,10 +459,17 @@ fixme: check wether we have to count cw or ccw around the segment border!
 
 	// handle islands totally contained in one segment
 	if (scl0.cyclic) {
-		sys().myassert(scl0.beginborder < 0, "paranoia4");
-		sys().myassert(scl0.endborder < 0, "paranoia5");
+		scl0.print();
+		sys().myassert(scl0.beginborder == scl0.endborder, "paranoia3.5");
+//		sys().myassert(scl0.beginborder < 0, "paranoia4");
+//		sys().myassert(scl0.endborder < 0, "paranoia5");
 		return cln;
 	}
+
+	if (scl0.beginborder >= 0 || scl0.endborder >= 0) scl0.print();
+
+	sys().myassert(scl0.beginborder >= 0, "paranoia4.1");
+	sys().myassert(scl0.endborder >= 0, "paranoia5.1");
 
 /*
 	cout << "scl0 " << cln << " mapclnr " << scl0.mapclnr << " begint " << scl0.begint << " endt " << scl0.endt
@@ -623,8 +630,12 @@ Uint8& coastmap::mapf(int cx, int cy)
 
 bool coastmap::find_begin_of_coastline(int& x, int& y)
 {
-	bool cyclic = false;
 	int sx = x, sy = y, j2 = 0;
+	int lastborder_x = -1, lastborder_y = -1;
+	if (x % pixels_per_seg == 0 || y % pixels_per_seg == 0) {
+		lastborder_x = x;
+		lastborder_y = y;
+	}
 	while (true) {
 		// compute next x,y
 		int j = 0;
@@ -664,13 +675,20 @@ bool coastmap::find_begin_of_coastline(int& x, int& y)
 			break;
 		x = nx;
 		y = ny;
+		if (x % pixels_per_seg == 0 || y % pixels_per_seg == 0) {
+			lastborder_x = x;
+			lastborder_y = y;
+		}
 
 		if (sx == x && sy == y) {
-			cyclic = true;
-			break;	// island found
+			if (lastborder_x != -1) {
+				x = lastborder_x;
+				y = lastborder_y;
+			}
+			return true;	// island found
 		}
 	}
-	return cyclic;
+	return false;
 }
 
 
@@ -688,12 +706,10 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 	cyclic = find_begin_of_coastline(x, y);
 
 	beginborder = -1;	
-	if (!cyclic) {
-		if (x == 0) beginborder = 0;
-		else if (y == 0) beginborder = 1;
-		else if (x == int(mapw)-1) beginborder = 2;
-		else if (y == int(maph)-1) beginborder = 3;
-	}
+	if (x % pixels_per_seg == 0) beginborder = 0;
+	else if (y % pixels_per_seg == 0) beginborder = 1;
+	else if (x == int(mapw)-1) beginborder = 2;
+	else if (y == int(maph)-1) beginborder = 3;
 	
 	int sx = x, sy = y, j2 = 0, lastj = -1, turncount = 0;
 	while (true) {
@@ -757,12 +773,10 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 	}
 	
 	endborder = -1;
-	if (!cyclic) {
-		if (x == 0) endborder = 0;
-		else if (y == 0) endborder = 1;
-		else if (x == int(mapw)-1) endborder = 2;
-		else if (y == int(maph)-1) endborder = 3;
-	}
+	if (x % pixels_per_seg == 0) endborder = 0;
+	else if (y % pixels_per_seg == 0) endborder = 1;
+	else if (x == int(mapw)-1) endborder = 2;
+	else if (y == int(maph)-1) endborder = 3;
 
 	return turncount >= 0;
 }
@@ -788,6 +802,8 @@ void coastmap::divide_and_distribute_cl(const coastline& cl, unsigned clnr, int 
 	scl.begint = 0;
 	scl.beginp = cp0;
 	scl.beginborder = beginb;
+
+	if (beginb < 0) sys().myassert(clcyclic, "paranoia11bb");
 	
 	const double eps = 1e-5;
 	const int segdx[4] = { 0, 1, 0, -1 };
@@ -815,7 +831,7 @@ void coastmap::divide_and_distribute_cl(const coastline& cl, unsigned clnr, int 
 			// that the line crosses.
 			// loop over u = 0...1 along the line.
 			printf("sx %i sy %i csx %i csy %i   [[ %i %i ]]\n",sx,sy,csx,csy,csx-sx,csy-sy);
-			int count = 20;
+			int count = 400;
 			while (seg != cseg) {
 				if (--count <= 0) { printf("deadlock!\n"); exit(1); }
 				// segment borders are segoff.x/y and segoff.x/y + segw/segw
@@ -866,11 +882,14 @@ void coastmap::divide_and_distribute_cl(const coastline& cl, unsigned clnr, int 
 
 				scl.endt = ct;
 				scl.endp = borderp;
+				sys().myassert(scl.beginborder >= 0, "paranoia11dd");
 				scl.endborder = border;
-				if (scl.endt - scl.begint > eps)
+				if (scl.endt - scl.begint > 0/*eps, fixme*/)
 					coastsegments[seg].segcls.push_back(scl);
-				else
+				else {
+					scl.print();
 					printf("trying to add too small segcl %f %f %f\n",scl.begint,scl.endt,scl.endt-scl.begint);
+				}
 
 /*
 				if (umin + eps > 1.0) {
@@ -902,6 +921,8 @@ void coastmap::divide_and_distribute_cl(const coastline& cl, unsigned clnr, int 
 	scl.endp = cl.curve.value(1);
 	scl.endborder = endb;
 	scl.cyclic = sameseg && clcyclic;
+	if (scl.beginborder < 0) sys().myassert(scl.cyclic && scl.endborder < 0, "paranoia11ee");
+	if (scl.endborder < 0) sys().myassert(scl.cyclic && scl.beginborder < 0, "paranoia11ff");
 	if (scl.endt - scl.begint > eps)
 		coastsegments[seg].segcls.push_back(scl);
 	else
