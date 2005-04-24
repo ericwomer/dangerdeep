@@ -25,10 +25,14 @@ using namespace std;
 
 const unsigned BSPLINE_SMOOTH_FACTOR = 0;//16;	// should be 3...16
 
-const int coastmap::dmx[4] = { -1, 0, 0, -1 };
-const int coastmap::dmy[4] = { -1, -1, 0, 0 };
-const int coastmap::dx[4] = { 0, 1, 0, -1 };
-const int coastmap::dy[4] = { -1, 0, 1, 0 };
+// order (0-3):
+// 32
+// 01
+const int coastmap::dmx[4] = { 0, 1, 1, 0 };
+const int coastmap::dmy[4] = { 0, 0, 1, 1 };
+// order: left, down, right, up
+const int coastmap::dx[4] = { -1,  0, 1, 0 };
+const int coastmap::dy[4] = {  0, -1, 0, 1 };
 
 
 /*
@@ -37,9 +41,10 @@ fixme: define what is meant how and check that.
 rules:
 segcls are connected in ccw order.
 vertices are stored in ccw order.
-this means when iterating along the coast, land is left and sea is right.
+this means when iterating along the coast, land is left and sea is right (ccw).
 lakes are not allowed (when they're completely inside a seg, because the
 triangulation failes there).
+borders are stored from 0-3 in ccw order: left,bottom,right,top.
 */
 
 
@@ -126,7 +131,7 @@ void coastsegment::cacheentry::push_back_point(const vector2& p)
 {
 	if (points.size() > 0) {
 		double d = points.back().square_distance(p);
-		if (d < 1.0f) return;//fixme test hack
+//		if (d < 1.0f) return;//fixme test hack
 		sys().myassert(d >= 1.0f, "error: points are too close %f    %f %f  %f %f", d, points.back().x, points.back().y, p.x, p.y);
 	}
 	points.push_back(p);
@@ -135,9 +140,10 @@ void coastsegment::cacheentry::push_back_point(const vector2& p)
 
 
 // fixme: 2004/05/29
-// this code has to be reviewed again. remove bugs, check "dist_to_corner" usage etc.
+// this code has to be reviewed again. remove bugs, etc.
 float gmd=1e30;
-void coastsegment::generate_point_cache(const class coastmap& cm, const vector2& roff, int detail) const
+void coastsegment::generate_point_cache(const class coastmap& cm, const vector2& roff, int detail,
+					const vector2& segoff) const
 {
 	if (type > 1) {
 		// cache generated and unchanged?
@@ -191,9 +197,13 @@ void coastsegment::generate_point_cache(const class coastmap& cm, const vector2&
 				int ed = cl.endborder, bg = segcls[next].beginborder;
 				if (ed >= 0 && bg >= 0) {
 					if (ed == bg) {
+						if (borderpos(ed, cl.endp - segoff, cm.segw_real) >
+						    borderpos(bg, segcls[next].beginp, cm.segw_real)) {
+
 						//fixme!!!!!!! segment offset is not subtracted here!!!!!!
-						if (dist_to_corner(ed, cl.endp, cm.segw_real) < dist_to_corner(bg, segcls[next].beginp, cm.segw_real))
+//						if (dist_to_corner(ed, cl.endp, cm.segw_real) < dist_to_corner(bg, segcls[next].beginp, cm.segw_real))
 							bg += 4;
+						}
 					} else if (bg < ed) {
 							bg += 4;
 					}
@@ -274,8 +284,9 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, const vec
 		glVertex2d(roff.x, roff.y+cm.segw_real);
 		glEnd();
 	} else if (type > 1) {
-#if 1
-		generate_point_cache(cm, roff, detail+2);
+#if 0
+		vector2 segoff(x*cm.segw_real + cm.realoffset.x, y*cm.segw_real + cm.realoffset.y);
+		generate_point_cache(cm, roff, detail+2, segoff);
 		glBegin(GL_TRIANGLES);
 		for (vector<cacheentry>::const_iterator cit = pointcache.begin(); cit != pointcache.end(); ++cit) {
 			for (vector<unsigned>::const_iterator tit = cit->indices.begin(); tit != cit->indices.end(); ++tit) {
@@ -388,43 +399,35 @@ void coastsegment::render(const class coastmap& cm, int x, int y, const vector2&
 
 
 
-float coastsegment::dist_to_corner(int b, const vector2& p, float segw)
-{
-	float dist = 1e30;
-	if (b == 0) dist = segw - p.x;
-	else if (b == 1) dist = segw - p.y;
-	else if (b == 2) dist = p.x;
-	else if (b == 3) dist = p.y;
-	return dist;
-}
-
-
-
 // return position on segment border. 0...1 left, 1...2 bottom, 2...3 right, 3...4 top.
 //fixme: border number goes from top to left in cw order, borderpos in ccw order left to top, ouch.
 float coastsegment::borderpos(int b, const vector2& p, float segw) const
 {
-	if (b == 0) return 3.0 + 1.0 - p.x/segw;
-	else if (b == 1) return 2.0f + p.y/segw;
-	else if (b == 2) return 1.0f + p.x/segw;
-	else return 0.0f + 1.0f - p.y/segw;
+	if (b == 0) return 0.0 + 1.0 - p.y/segw;
+	else if (b == 1) return 1.0f + p.x/segw;
+	else if (b == 2) return 2.0f + p.y/segw;
+	else return 3.0f + 1.0f - p.x/segw;
 }
 
 
 
 float coastsegment::compute_border_dist(int b0, const vector2& p0, int b1, const vector2& p1, float segw) const
 {
-	float dist0 = dist_to_corner(b0, p0, segw), dist1 = dist_to_corner(b1, p1, segw);
-	if (b0 == b1 && dist1 > dist0) b1 += 4;
-	else if (b1 < b0) b1 += 4;
-	float fulldist = dist0;
-	for (int i = b0; i < b1; ++i)
-		fulldist += segw;
-	fulldist -= dist1;
-	return fulldist;
+	float bp0 = borderpos(b0, p0, segw);
+	float bp1 = borderpos(b1, p1, segw);
+	if (bp1 < bp0) bp1 += 4.0f;
+	return (bp1 - bp0) * segw;
 }
 
 
+
+void coastsegment::segcl::print() const
+{
+	cout << "segcl:\nmapclnr: " << mapclnr << " begint " << begint << " endt " << endt
+	     << "\nbeginp: " << beginp << " endp: " << endp
+	     << "\nbeginborder: " << beginborder << " endborder " << endborder
+	     << "\ncyclic? " << cyclic << " next: " << next << "\n";
+}
 
 int coastsegment::get_successor_for_cl(unsigned cln, const vector2& segoff, double segw) const
 {
@@ -475,10 +478,17 @@ fixme: check wether we have to count cw or ccw around the segment border!
 		sys().myassert(scl0.beginborder >= 0, "paranoia7");
 		for (unsigned i = 0; i < segcls.size(); ++i) {
 			const segcl& scl1 = segcls[i];
+			if (scl0.mapclnr == scl1.mapclnr) {
+				printf("cln %i i %i\n",cln,i);
+				scl0.print();
+				segcls[i].print();
+			}
 			if (scl0.mapclnr == scl1.mapclnr && scl1.beginborder < 0) {
 				return i;
 			}
 		}
+		//fixme: what is if island begin/end points fall on a segment border or even a corner?
+		return cln;//fixme hack, return self.
 		sys().myassert(false, "paranoia9");
 	}
 
@@ -615,17 +625,32 @@ bool coastmap::find_begin_of_coastline(int& x, int& y)
 	while (true) {
 		// compute next x,y
 		int j = 0;
-		char mv[4];
+		Uint8 mv[4];
 		for (j = 0; j < 4; ++j) {
 			mv[j] = mapf(x+dmx[j], y+dmy[j]) & 0x7f;
 		}
+		// mirrored direction to find_coastline
 		if (mv[0] == 0 && mv[2] == 0 && mv[1] > 0 && mv[3] > 0) {
-			j = (j2 + 1) % 4;
+			// check pattern:
+			// #.
+			// .#
+			// direction: only 0,2 valid. 3->0, 1->2
+			j = (j2 == 3) ? 0 : 2;
 		} else if (mv[0] > 0 && mv[2] > 0 && mv[1] == 0 && mv[3] == 0) {
-			j = (j2 + 1) % 4;
+			// check pattern:
+			// .#
+			// #.
+			// direction: only 1,3 valid. 0->1, 2->3
+			j = (j2 == 0) ? 1 : 3;
 		} else {
+			// check patterns:
+			// #. .# .. .. ## ## .# #. ## .# .. #.
+			// .. .. .# #. #. .# ## ## .. .# ## #.
+			// we need a direction so that right of it is land and left of it sea.
+			// left: take mv 0,3  down: take mv 1,0  right: take mv 2,1  up: take mv 3,2
+			// so take for direction j mv[j],mv[(j+3)%4]. first one must be sea.
 			for (j = 0; j < 4; ++j) {
-				if (mv[j] > 0 && mv[(j+1)%4] == 0) break;
+				if (mv[j] == 0 && mv[(j+3)%4] > 0) break;
 			}
 			assert(j < 4);
 		}
@@ -653,6 +678,7 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 	// run backward at the coastline until we reach the border or round an island.
 	// start there creating the coastline. this avoids coastlines that can never be seen.
 	// In reality: north pole, ice, America to the west, Asia/africa to the east.
+	// generate points in ccw order, that means land is left, sea is right.
 
 	assert((mapf(x, y) & 0x80) == 0);
 	
@@ -660,10 +686,10 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 
 	beginborder = -1;	
 	if (!cyclic) {
-		if (x == 0) beginborder = 3;
-		else if (y == 0) beginborder = 0;
-		else if (x == int(mapw)-1) beginborder = 1;
-		else if (y == int(maph)-1) beginborder = 2;
+		if (x == 0) beginborder = 0;
+		else if (y == 0) beginborder = 1;
+		else if (x == int(mapw)-1) beginborder = 2;
+		else if (y == int(maph)-1) beginborder = 3;
 	}
 	
 	int sx = x, sy = y, j2 = 0, lastj = -1, turncount = 0;
@@ -676,17 +702,31 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 
 		// compute next x,y	
 		int j = 0;
-		char mv[4];
+		Uint8 mv[4];
 		for (j = 0; j < 4; ++j) {
 			mv[j] = mapf(x+dmx[j], y+dmy[j]) & 0x7f;
 		}
 		if (mv[0] == 0 && mv[2] == 0 && mv[1] > 0 && mv[3] > 0) {
-			j = (j2 + 3) % 4;
+			// check pattern:
+			// #.
+			// .#
+			// direction: only 1,3 valid. 2->1, 0->3
+			j = (j2 == 2) ? 1 : 3;
 		} else if (mv[0] > 0 && mv[2] > 0 && mv[1] == 0 && mv[3] == 0) {
-			j = (j2 + 3) % 4;
+			// check pattern:
+			// .#
+			// #.
+			// direction: only 0,2 valid. 1->0, 3->2
+			j = (j2 == 1) ? 0 : 2;
 		} else {
+			// check patterns:
+			// #. .# .. .. ## ## .# #. ## .# .. #.
+			// .. .. .# #. #. .# ## ## .. .# ## #.
+			// we need a direction so that left of it is land and right of it sea.
+			// left: take mv 0,3  down: take mv 1,0  right: take mv 2,1  up: take mv 3,2
+			// so take for direction j mv[j],mv[(j+3)%4]. first one must be land.
 			for (j = 0; j < 4; ++j) {
-				if (mv[j] == 0 && mv[(j+1)%4] > 0) break;
+				if (mv[j] > 0 && mv[(j+3)%4] == 0) break;
 			}
 			assert(j < 4);
 		}
@@ -715,13 +755,13 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 	
 	endborder = -1;
 	if (!cyclic) {
-		if (x == 0) endborder = 3;
-		else if (y == 0) endborder = 0;
-		else if (x == int(mapw)-1) endborder = 1;
-		else if (y == int(maph)-1) endborder = 2;
+		if (x == 0) endborder = 0;
+		else if (y == 0) endborder = 1;
+		else if (x == int(mapw)-1) endborder = 2;
+		else if (y == int(maph)-1) endborder = 3;
 	}
 
-	return turncount <= 0;
+	return turncount >= 0;
 }
 
 
@@ -1030,7 +1070,7 @@ coastmap::coastmap(const string& filename)
 			for (unsigned y2 = 0; y2 < pixels_per_seg; ++y2) {
 				for (unsigned x2 = 0; x2 < pixels_per_seg; ++x2) {
 				// the values don't seem to match the png map?! fixme
-					char m = mapf(xx*pixels_per_seg+x2, yy*pixels_per_seg+y2);
+					Uint8 m = mapf(xx*pixels_per_seg+x2, yy*pixels_per_seg+y2);
 					float h = 30.0f + rnd() * 500.0f;
 					float elev = (m == 0) ? -h : h;
 					d[y2*pixels_per_seg+x2] = elev;
@@ -1046,12 +1086,12 @@ coastmap::coastmap(const string& filename)
 	for (int yy = 0; yy < int(maph); ++yy) {
 		for (int xx = 0; xx < int(mapw); ++xx) {
 			if (mapf(xx, yy) & 0x80) continue;
-			char m0 = mapf(xx+dmx[0], yy+dmy[0]) & 0x7f;
-			char m1 = mapf(xx+dmx[1], yy+dmy[1]) & 0x7f;
-			char m2 = mapf(xx+dmx[2], yy+dmy[2]) & 0x7f;
-			char m3 = mapf(xx+dmx[3], yy+dmy[3]) & 0x7f;
-			char m4 = m0 & m1 & m2 & m3;
-			char m5 = m0 | m1 | m2 | m3;
+			Uint8 m0 = mapf(xx+dmx[0], yy+dmy[0]) & 0x7f;
+			Uint8 m1 = mapf(xx+dmx[1], yy+dmy[1]) & 0x7f;
+			Uint8 m2 = mapf(xx+dmx[2], yy+dmy[2]) & 0x7f;
+			Uint8 m3 = mapf(xx+dmx[3], yy+dmy[3]) & 0x7f;
+			Uint8 m4 = m0 & m1 & m2 & m3;
+			Uint8 m5 = m0 | m1 | m2 | m3;
 			if (m4 == 0 && m5 == 1) {
 				process_coastline(xx, yy);
 			}

@@ -48,10 +48,11 @@ public:
 		unsigned mapclnr;	// pointer to coastmap::coastlines, global cl number
 		float begint, endt;	// point on coastline where segment begins and ends, 0...1
 		vector2 beginp, endp;	// = coastlines[mapclnr].curve.value(begint) but storing is faster!
-		int beginborder;	// 0-3, top,right,bottom,left of segment, -1 = (part of an) island
+		int beginborder;	// 0-3, left,bottom,right,top of segment, -1 = (part of an) island
 		int endborder;		// dito
 		bool cyclic;		// is segcl cyclic?
 		int next;		// successor of segcl in segment, needed for triangulation
+		void print() const;	// for debugging
 	};
 
 	unsigned type;	// 0 - sea, 1 - land, 2 mixed
@@ -70,11 +71,10 @@ public:
 	mutable int pointcachedetail;
 	mutable vector<cacheentry> pointcache;
 	// check if cache needs to be (re)generated, and do that
-	void generate_point_cache(const class coastmap& cm, const vector2& roff, int detail) const;
+	void generate_point_cache(const class coastmap& cm, const vector2& roff, int detail,
+				  const vector2& segoff) const;
 
-	// computes distance to next corner around segment border.
-	// p must be inside the segment, hence 0 <= p.x,p.y < segw
-	static float dist_to_corner(int b, const vector2& p, float segw);
+	// compute position on border [0...4), b is border number, p is point on that border.
 	float borderpos(int b, const vector2& p, float segw) const;
 	// computes the distance on the segment border between two points.
 	// p0,p1 must be inside the segment.
