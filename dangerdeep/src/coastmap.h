@@ -15,44 +15,20 @@ using namespace std;
 
 
 
-struct coastline
-{
-	//float has not enough resolution to store world wide coordinates with meter accuracy.
-	//earth diameter ~ 40 million meters, float with 24bit has ~ 16 million precision. so we use double.
-	bsplinet<vector2> curve;	// points in map coordinates (meters)
-
-	// create coastline
-	// n  - bspline smooth detail
-	// p  - bspline control points
-	coastline(int n, const vector<vector2>& p) : curve(n, p) {}
-	~coastline() {}
-
-	// create vector of real points, detail can be > 0 (additional detail with bspline
-	// interpolation) or even < 0 (reduced detail)
-	// create points between begint and endt with 0<=t<=1
-	// new points are appended on vector "points"
-	void create_points(vector<vector2>& points, float begint, float endt, int detail = 0) const;
-	
-	// just for testing purposes.
-	void draw_as_map(int detail = 0) const;
-};
-
-
-
 class coastsegment
 {
-//	coastsegment();
 public:
+	typedef vector2t<unsigned short> segpos;
+
 	struct segcl
 	{
-		unsigned mapclnr;	// pointer to coastmap::coastlines, global cl number
-		float begint, endt;	// point on coastline where segment begins and ends, 0...1
-		vector2 beginp, endp;	// = coastlines[mapclnr].curve.value(begint) but storing is faster!
-		int beginborder;	// 0-3, left,bottom,right,top of segment, -1 = (part of an) island
-		int endborder;		// dito
-		bool cyclic;		// is segcl cyclic?
-		int next;		// successor of segcl in segment, needed for triangulation
+		vector<segpos> points;	// coordinates of the segcl. relative to segment.
+		int beginpos;		// positions are on border in 0-64k scale: s=65535. (-1 = not on border)
+		int endpos;		// then bottom,right,top,left border of segment are 0s+x, 1s+x, 2s+x, 3s+x
+		int next;		// successor of this cl. is itself for cyclic segcl's.
 		void print() const;	// for debugging
+		segcl() : beginpos(-1), endpos(-1), next(-1) {}
+		void push_back_point(const segpos& sp);	// avoids double points
 	};
 
 	unsigned type;	// 0 - sea, 1 - land, 2 mixed
@@ -71,20 +47,15 @@ public:
 	mutable int pointcachedetail;
 	mutable vector<cacheentry> pointcache;
 	// check if cache needs to be (re)generated, and do that
-	void generate_point_cache(const class coastmap& cm, const vector2& roff, int detail,
-				  const vector2& segoff) const;
+	void generate_point_cache(const class coastmap& cm, int x, int y, int detail) const;
 
-	// compute position on border [0...4), b is border number, p is point on that border.
-	float borderpos(int b, const vector2& p, float segw) const;
-	// computes the distance on the segment border between two points.
-	// p0,p1 must be inside the segment.
-	float compute_border_dist(int b0, const vector2& p0, int b1, const vector2& p1, float segw) const;
+	void compute_successor_for_cl(unsigned cln);
 
-	int get_successor_for_cl(unsigned cln, const vector2& segoff, double segw) const;
+	void push_back_segcl(const segcl& scl);	// avoids segcls with < 2 points.
 
 	coastsegment(/*unsigned topon, const vector<float>& topod*/) : type(0), /*topo(topon, topod),*/ pointcachedetail(0) {}
 	
-	void draw_as_map(const class coastmap& cm, int x, int y, const vector2& roff, int detail = 0) const;
+	void draw_as_map(const class coastmap& cm, int x, int y, int detail = 0) const;
 	void render(const class coastmap& cm, int x, int y, const vector2& p, int detail = 0) const;
 };
 
@@ -109,7 +80,6 @@ class coastmap
 	double segw_real;		// width/height of one segment in reality, in meters
 	vector2 realoffset;		// offset in meters for map (position of pixel pos 0,0)
 	vector<coastsegment> coastsegments;
-	vector<coastline> coastlines;
 
 	list<pair<vector2, string> > cities;	// city positions (real) and names
 	
@@ -120,11 +90,18 @@ class coastmap
 	// very fast integer clamping (no branch needed, only for 32bit signed integers!)
 	Sint32 clamp_zero(Sint32 x) { return x & ~(x >> 31); }
 	Uint8& mapf(int cx, int cy);
+
+	// compute position on border (0...4*(2^16-1)-1) or -1 if not on border
+	// give border number (-1,0...3) and position in segment.
+	int borderpos(const coastsegment::segpos& p) const;
+
 	bool find_begin_of_coastline(int& x, int& y);
-	bool find_coastline(int x, int y, vector<vector2i>& points, bool& cyclic, int& beginborder, int& endborder);
-	void divide_and_distribute_cl(const coastline& cl, unsigned clnr, int beginb, int endb, const vector<vector2>& points, bool clcyclic);
+	bool find_coastline(int x, int y, vector<vector2i>& points, bool& cyclic);
+	void divide_and_distribute_cl(const vector<vector2i>& cl, bool clcyclic);
 	void process_coastline(int x, int y);
 	void process_segment(int x, int y);
+
+	vector2 segcoord_to_real(int segx, int segy, const coastsegment::segpos& sp) const;
 
 public:	
 	// create from xml file
