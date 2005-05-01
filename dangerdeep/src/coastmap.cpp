@@ -22,7 +22,7 @@ using namespace std;
 
 
 
-const unsigned BSPLINE_SMOOTH_FACTOR = 0;//16;	// should be 3...16
+const unsigned BSPLINE_SMOOTH_FACTOR = 3;//16;	// should be 3...16
 const double BSPLINE_DETAIL = 1.0;            // should be 1.0...x
 const unsigned SEGSCALE = 65535;	// 2^16-1 so that per segment coordinates fit in a ushort value.
 
@@ -37,15 +37,12 @@ const int coastmap::dy[4] = {  0, -1, 0, 1 };
 
 
 /*
-2005/04/24
-fixme: define what is meant how and check that.
-rules:
 segcls are connected in ccw order.
 vertices are stored in ccw order.
 this means when iterating along the coast, land is left and sea is right (ccw).
 lakes are not allowed (when they're completely inside a seg, because the
 triangulation failes there).
-borders are stored from 0-3 in ccw order: left,bottom,right,top.
+borders are stored from 0-3 in ccw order: bottom,right,top,left.
 */
 
 
@@ -149,8 +146,6 @@ void coastsegment::cacheentry::push_back_point(const vector2& p)
 
 
 
-// fixme: 2004/05/29
-// this code has to be reviewed again. remove bugs, etc.
 void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, int detail) const
 {
 	if (type > 1) {
@@ -179,6 +174,10 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 				segcls[current].print();
 				//erzeugt, weil endpos falsch ist, border pos. von altem segment
 				//insel hat endpos=-1, obwohl sie segmentgrenze schneidet! startpos aber !=-1
+				//scheint beides jetzt behoben. Triangulierungsfehler kommen daher, daß
+				//Strecken in segcls vorkommen, die komplett auf dem rand liegen.
+				//diese müßten zu DEM segment gehören, das land enthält.
+				//ein solcher übergang müßte dann als segmentwechsel gehandhabt werden
 				//if (cl_handled[current]) break;//test hack fixme
 				sys().myassert(!cl_handled[current], "illegal .next values!");
 				/* NOTE:
@@ -209,7 +208,7 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 				sys().myassert(next!=-1, "next unset?");//fixme: another unexplainable bug.
 				//if(current==next)break;
 				// insert corners if needed
-				if (next != current) {
+				if (!cl.cyclic) {
 					int b0 = cl.endpos, b1 = segcls[next].beginpos;
 					cout << "fill: ed " << b0 << " bg " << b1 << "\n";
 					if (b1 < b0) b1 += 4 * SEGSCALE;
@@ -410,7 +409,8 @@ void coastsegment::segcl::print() const
 	cout << "segcl:\n" << points.size() << " points, beginpos " << beginpos << " beginb "
 	     << " beginb " << ((beginpos == -1) ? -1 : beginpos / SEGSCALE) << " endpos "
 	     << endpos << " endb " << ((endpos == -1) ? -1 : endpos / SEGSCALE) << " next "
-	     << next << " nrpts " << points.size() << " 1st pt " << points.front() << ",back " << points.back() << "\n";
+	     << next << " cyclic? " << cyclic << " nrpts " << points.size() << " 1st pt "
+	     << points.front() << ",back " << points.back() << "\n";
 }
 
 void coastsegment::compute_successor_for_cl(unsigned cln)
@@ -447,10 +447,12 @@ void coastsegment::push_back_segcl(const segcl& scl)
 {
 	if (scl.beginpos < 0) {
 		scl.print();
+		sys().myassert(scl.cyclic, "begin < -1 but not cyclic");
 		sys().myassert(scl.endpos < 0, "begin < -1, but not end");
 	}
 	if (scl.endpos < 0) {
 		scl.print();
+		sys().myassert(scl.cyclic, "end < -1 but not cyclic");
 		sys().myassert(scl.beginpos < 0, "end < -1, but not begin");
 	}
 	if (scl.points.size() >= 2)
@@ -646,6 +648,9 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 		cout << "i is " << i << "/" << cl.size() << " p0 " << p0 << " cli " << cl[i] << " cli-1 "
 		     << cl[i-1] << "\n";
 		sys().myassert(!(cl[i] == p0), "paranoia double bspli");
+		//fixme: add special case here: p0 and cl[i] are on the same border, then the line
+		//p0 to cl[i] should fall in the segment which is on the left (=land) of that line.
+		//this avoids triangulation faults.
 		// check if point is in same segment
 		if (cl[i].x >= segoff.x && cl[i].x <= segend.x &&
 		    cl[i].y >= segoff.y && cl[i].y <= segend.y) {
@@ -670,7 +675,7 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 				// determine border that p0 is on, set endpos accordingly.
 				scl.endpos = borderpos(ps0);
 				sys().myassert(scl.endpos != -1, "borderpos check1");
-				// fixme: avoid segcl's with < 2 points.
+				// avoid segcl's with < 2 points.
 				// just avoid adding double points. segcl's crossing corners then
 				// only have one point and get discarded.
 				coastsegments[segcn].push_back_segcl(scl);
@@ -690,7 +695,6 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 				sys().myassert(scl.beginpos != -1, "borderpos check2");
 				// repeat with same cl[i]
 			} else {
-				//fixme: if we reached the map border, we must not generate a new segcl!
 				// intersection: it depends on the direction of that line.
 				vector2i delta = cl[i] - p0;
 				// border coordinates are segoff.x/y and segend.x/y
@@ -710,29 +714,28 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 					// check top border
 					double t = double(segend.y - p0.y) / delta.y;
 					if (t < mint) { mint = t; border = 2; }
-				} else if (delta.y > 0) {
+				} else if (delta.y < 0) {
 					// check bottom border
-					double t = double(segend.y - p0.y) / delta.y;
+					double t = double(segoff.y - p0.y) / delta.y;
 					if (t < mint) { mint = t; border = 0; }
 				}
 				cout << "mint "<< mint<<" border "<<border <<"\n";
 				cout << "p0: " << p0 << " cli " << cl[i] << " dekta " << delta << "\n";
 				sys().myassert(border != -1, "paranoia mint");
 				vector2i p1 = vector2i(int(round(p0.x + mint * delta.x)), int(round(p0.y + mint * delta.y)));
+				cout << "p1 real " << double(p0.x) + mint * delta.x << "," << double(p0.y) + mint * delta.y << "\n";
 				vector2i rel = p1 - segoff;
 				coastsegment::segpos psi((unsigned short)rel.x, (unsigned short)rel.y);
 				sys().myassert(psi.x == 0 || psi.x == SEGSCALE || psi.y == 0 || psi.y == SEGSCALE, "paranoia border");
-				// fixme: handle the case when psi is on a corner!
-				// we have to switch via a corner to a new segment then. It depends on the
-				// angle of the line p0->p1 which segment to choose.
-				//fixme: cl[i] could be on a border/corner. this must get handled, too.
-				sys().myassert(!(scl.points.back() == psi), "trying to add double point2!");
+				// if cl[i] is on a border/corner this should be handled correctly
+				// by avoiding segcls with < 2 points.
+				// if the segcl comes from seg x and leaves to y, but touches also segs
+				// w and z, we will get segcls with one point in w and z and the right
+				// segcl in y. w/z's segcls will get discarded later. So everything is right
 				scl.push_back_point(psi);
 				scl.endpos = borderpos(psi);
 				sys().myassert(scl.endpos != -1, "borderpos check3");
 				coastsegments[segcn].push_back_segcl(scl);
-				// change border to other segment (0->2, 1->3, 2->0, 3->1)
-				border = (border + 2) % 4;
 				// recompute segment values
 				cout << "segc : " << segc << " segc2 : " << segc << "\n";
 				cout << " p0 : " << p0 << " cli " << cl[i] << "\n";
@@ -744,13 +747,12 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 				segoff = segc * SEGSCALE;			// segment offset
 				segend = segoff + vector2i(SEGSCALE, SEGSCALE); // last coordinates IN segment
 				rel = p1 - segoff;
+				cout << "segoff " << segoff << " rel " << rel << "\n";
 				psi = coastsegment::segpos((unsigned short)rel.x, (unsigned short)rel.y);
 				cout << "psi: " << psi << " segoff " << segoff << " p1 " << p1 << "\n";
 				sys().myassert(psi.x == 0 || psi.x == SEGSCALE || psi.y == 0 || psi.y == SEGSCALE, "paranoia border2");
 				ps0 = psi;
-				p0 = cl[i];
-
-				//fixme: if we reached the map border, we must not generate a new segcl!
+				p0 = p1;
 
 				scl = coastsegment::segcl();
 				scl.push_back_point(ps0);
@@ -766,8 +768,9 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 				 (unsigned short)(cl.back().y - segoff.y));
 	scl.endpos = borderpos(cpb);
 
-	if (clcyclic && sameseg) scl.next = coastsegments[segcn].segcls.size(); // points to itself.
-	cout << "remaining segcl has " << scl.points.size() << " points, cyclic? " << (clcyclic && sameseg) << "\n";
+	scl.cyclic = (clcyclic && sameseg);
+	if (scl.cyclic) scl.next = coastsegments[segcn].segcls.size(); // points to itself.
+	cout << "remaining segcl has " << scl.points.size() << " points, cyclic? " << (scl.cyclic) << "\n";
 	coastsegments[segcn].push_back_segcl(scl);
 }
 
