@@ -72,6 +72,9 @@ class coastmap
 	static const int dmy[4];
 	static const int dx[4];
 	static const int dy[4];
+	static const int runlandleft[16];
+	static const int runlandright[16];
+	static bool patternprocessok[16];
 
 	unsigned pixels_per_seg;	// "n"
 	unsigned mapw, maph;		// map width/height in pixels.
@@ -96,13 +99,15 @@ class coastmap
 	// give border number (-1,0...3) and position in segment.
 	int borderpos(const coastsegment::segpos& p) const;
 
-	bool find_begin_of_coastline(int& x, int& y);
+	// returns -1 for invalid coastline (lake), 0 for normal cl, 1 for islands.
+	int find_begin_of_coastline(int& x, int& y);
 	bool find_coastline(int x, int y, vector<vector2i>& points, bool& cyclic);
 	void divide_and_distribute_cl(const vector<vector2i>& cl, bool clcyclic);
 	void process_coastline(int x, int y);
 	void process_segment(int x, int y);
 
 	vector2 segcoord_to_real(int segx, int segy, const coastsegment::segpos& sp) const;
+	vector2f segcoord_to_texc(int segx, int segy, const coastsegment::segpos& sp) const;
 
 public:	
 	// create from xml file

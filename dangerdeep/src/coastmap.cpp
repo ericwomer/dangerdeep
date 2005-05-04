@@ -22,8 +22,8 @@ using namespace std;
 
 
 
-const unsigned BSPLINE_SMOOTH_FACTOR = 3;//16;	// should be 3...16
-const double BSPLINE_DETAIL = 1.0;            // should be 1.0...x
+const unsigned BSPLINE_SMOOTH_FACTOR = 16;//3;//16;	// should be 3...16
+const double BSPLINE_DETAIL = 4.0;            // should be 1.0...x
 const unsigned SEGSCALE = 65535;	// 2^16-1 so that per segment coordinates fit in a ushort value.
 
 // order (0-3):
@@ -32,8 +32,10 @@ const unsigned SEGSCALE = 65535;	// 2^16-1 so that per segment coordinates fit i
 const int coastmap::dmx[4] = { -1,  0, 0, -1 };
 const int coastmap::dmy[4] = { -1, -1, 0,  0 };
 // order: left, down, right, up
-const int coastmap::dx[4] = { -1,  0, 1, 0 };
-const int coastmap::dy[4] = {  0, -1, 0, 1 };
+const int coastmap::dx[4] = {  0, 1, 0,-1 };
+const int coastmap::dy[4] = { -1, 0, 1, 0 };
+
+bool coastmap::patternprocessok[16] = { 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0 };
 
 
 /*
@@ -43,8 +45,18 @@ this means when iterating along the coast, land is left and sea is right (ccw).
 lakes are not allowed (when they're completely inside a seg, because the
 triangulation failes there).
 borders are stored from 0-3 in ccw order: bottom,right,top,left.
+
+the following patterns are possible when searching coastlines (0,15 illegal)
+
+ 0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15
+..  ..  ..  ..  .#  .#  .#  .#  #.  #.  #.  #.  ##  ##  ##  ##  32
+..  #.  .#  ##  ..  #.  .#  ##  ..  #.  .#  ##  ..  #.  .#  ##  01
+
 */
 
+// -1 illegal,0-3 down,right,up,left:    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+const int coastmap::runlandleft[16]  = {-1, 3, 0, 3, 1,-1, 0, 3, 2, 2,-1, 2, 1, 1, 0,-1};
+const int coastmap::runlandright[16] = {-1, 0, 1, 1, 2,-1, 2, 2, 3, 0,-1, 1, 3, 0, 3,-1};
 
 #if 0
 void coastline::create_points(vector<vector2>& points, float begint, float endt, int detail) const
@@ -179,6 +191,7 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 				//diese müßten zu DEM segment gehören, das land enthält.
 				//ein solcher übergang müßte dann als segmentwechsel gehandhabt werden
 				//if (cl_handled[current]) break;//test hack fixme
+				if (cl_handled[current]) return;//test hack fixme
 				sys().myassert(!cl_handled[current], "illegal .next values!");
 				/* NOTE:
 				   doubles shouldn't occour by design. But they do. So we do
@@ -201,7 +214,7 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 					// avoid double points here... fixme. they're removed later. see below
 					ce.points.push_back(cm.segcoord_to_real(x, y, cl.points[j]));
 				}
-				unsigned next = cl.next;
+				int next = cl.next;
 				cout << "startpos " << cl.beginpos << " endpos: " << cl.endpos << " next " << next << " next startpos: " << segcls[next].beginpos << "\n";
 				//cout << "current="<<current<<" next="<<next<<"\n";
 				cl_handled[current] = true;
@@ -224,7 +237,7 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 						else /*if (k == 3)*/ ce.push_back_point(segoff + vector2(0, cm.segw_real));
 					}
 				}
-				current = next;
+				current = unsigned(next);
 			} while (current != i);
 
 			//			cout << "compute triang for segment " << this << "\n";
@@ -263,16 +276,19 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detail) const
 {
 //cout<<"segment draw " << x << "," << y << " dtl " << detail << " tp " << type << "\n";
+	// fixme, use display lists here
 	if (type == 1) {
 		vector2 roff(x*cm.segw_real + cm.realoffset.x, y*cm.segw_real + cm.realoffset.y);
+		vector2f tc0 = cm.segcoord_to_texc(x, y, segpos(0, 0));
+		vector2f tc1 = cm.segcoord_to_texc(x, y, segpos(SEGSCALE, SEGSCALE));
 		glBegin(GL_QUADS);
-		glTexCoord2d(roff.x, roff.y);
+		glTexCoord2f(tc0.x, tc0.y);
 		glVertex2d(roff.x, roff.y);
-		glTexCoord2d(roff.x+cm.segw_real, roff.y);
+		glTexCoord2f(tc1.x, tc0.y);
 		glVertex2d(roff.x+cm.segw_real, roff.y);
-		glTexCoord2f(roff.x+cm.segw_real, roff.y+cm.segw_real);
+		glTexCoord2f(tc1.x, tc1.y);
 		glVertex2d(roff.x+cm.segw_real, roff.y+cm.segw_real);
-		glTexCoord2f(roff.x, roff.y+cm.segw_real);
+		glTexCoord2f(tc0.x, tc1.y);
 		glVertex2d(roff.x, roff.y+cm.segw_real);
 		glEnd();
 	} else if (type > 1) {
@@ -281,16 +297,19 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detai
 		glBegin(GL_TRIANGLES);
 		for (vector<cacheentry>::const_iterator cit = pointcache.begin(); cit != pointcache.end(); ++cit) {
 			for (vector<unsigned>::const_iterator tit = cit->indices.begin(); tit != cit->indices.end(); ++tit) {
+				vector2f tc;// = cm.segcoord_to_texc(x, y, segpos(0, 0 /*fixme*/));
 				const vector2& v = cit->points[*tit];
-				glTexCoord2f(v.x, v.y);
+				tc.x = (v.x - cm.realoffset.x)/cm.realwidth;
+				tc.y = 1.0 - (v.y - cm.realoffset.y)/cm.realheight;//fixme: performance waste!
+				glTexCoord2f(tc.x, tc.y);
 				glVertex2f(v.x, v.y);
 			}
 		}
 		glEnd();
 #endif		
-#if 1
+#if 0
 		// test
-		glBindTexture(GL_TEXTURE_2D, 0);
+//		glBindTexture(GL_TEXTURE_2D, 0);
 		glBegin(GL_LINES);
 		for (unsigned i = 0; i < segcls.size(); ++i) {
 			vector2 p0 = cm.segcoord_to_real(x, y, segcls[i].points.front());
@@ -407,8 +426,8 @@ void coastsegment::segcl::print() const
 	  << "\ncyclic? " << cyclic << " next: " << next << "\n";
 	*/
 	cout << "segcl:\n" << points.size() << " points, beginpos " << beginpos << " beginb "
-	     << " beginb " << ((beginpos == -1) ? -1 : beginpos / SEGSCALE) << " endpos "
-	     << endpos << " endb " << ((endpos == -1) ? -1 : endpos / SEGSCALE) << " next "
+	     << " beginb " << ((beginpos == -1) ? -1 : beginpos / int(SEGSCALE)) << " endpos "
+	     << endpos << " endb " << ((endpos == -1) ? -1 : endpos / int(SEGSCALE)) << " next "
 	     << next << " cyclic? " << cyclic << " nrpts " << points.size() << " 1st pt "
 	     << points.front() << ",back " << points.back() << "\n";
 }
@@ -476,69 +495,92 @@ Uint8& coastmap::mapf(int cx, int cy)
 
 
 
-bool coastmap::find_begin_of_coastline(int& x, int& y)
+int coastmap::find_begin_of_coastline(int& x, int& y)
 {
-	int sx = x, sy = y, j2 = 0;
+	int sx = x, sy = y;
 	int lastborder_x = -1, lastborder_y = -1;
-	if (x % pixels_per_seg == 0 || y % pixels_per_seg == 0) {
-		lastborder_x = x;
-		lastborder_y = y;
-	}
+	cout <<" find beg of cl " << sx << "," << sy << "\n";
 	// loop until we step on a map border, with land left of it.
+	int olddir = -1, turncount = 0;
 	while (true) {
 		// compute next x,y
-		int j = 0;
-		Uint8 mv[4];
-		for (j = 0; j < 4; ++j) {
-			mv[j] = mapf(x+dmx[j], y+dmy[j]) & 0x7f;
+		int dir = -1;
+
+		Uint8 pattern = 0;
+		for (int j = 0; j < 4; ++j) {
+			pattern |= (mapf(x+dmx[j], y+dmy[j]) & 0x7f) << j;
 		}
-		// mirrored direction to find_coastline
-		if (mv[0] == 0 && mv[2] == 0 && mv[1] > 0 && mv[3] > 0) {
-			// check pattern:
-			// #.
-			// .#
-			// direction: only 0,2 valid. 3->0, 1->2
-			j = (j2 == 3) ? 0 : 2;
-		} else if (mv[0] > 0 && mv[2] > 0 && mv[1] == 0 && mv[3] == 0) {
-			// check pattern:
-			// .#
-			// #.
-			// direction: only 1,3 valid. 0->1, 2->3
-			j = (j2 == 0) ? 1 : 3;
-		} else {
-			// check patterns:
-			// #. .# .. .. ## ## .# #. ## .# .. #.
-			// .. .. .# #. #. .# ## ## .. .# ## #.
-			// we need a direction so that right of it is land and left of it sea.
-			// left: take mv 0,3  down: take mv 1,0  right: take mv 2,1  up: take mv 3,2
-			// so take for direction j mv[j],mv[(j+3)%4]. first one must be sea.
-			for (j = 0; j < 4; ++j) {
-				if (mv[j] == 0 && mv[(j+3)%4] > 0) break;
-			}
-			if (j == 4) { printf("%02x %02x %02x %02x fBc\n",mv[0],mv[1],mv[2],mv[3]); }
-			sys().myassert(j < 4);
-		}
-		j2 = j;
-		int nx = x + dx[j];
-		int ny = y + dy[j];
-		// if we left the border, stop search.
-		if (nx < 0 || ny < 0 || nx > int(mapw) || ny > int(maph))
-			break;
-		x = nx;
-		y = ny;
-		if (x % pixels_per_seg == 0 || y % pixels_per_seg == 0) {
+
+		if (olddir == -1)
+			sys().myassert(pattern != 5 && pattern != 10, "illegal start pattern!");
+
+		if (patternprocessok[pattern] && (x % pixels_per_seg == 0 || y % pixels_per_seg == 0)) {
 			lastborder_x = x;
 			lastborder_y = y;
 		}
+
+		// mirrored direction to find_coastline
+		if (pattern == 10) {
+			// check pattern:
+			// #.
+			// .#
+			// direction: only 1,3 valid. 0->1, 2->3
+			sys().myassert(olddir == 0 || olddir == 2, "olddir illegal 1 (%i)",olddir);
+			dir = olddir + 1;
+		} else if (pattern == 5) {
+			// check pattern:
+			// .#
+			// #.
+			// direction: only 0,2 valid. 3->0, 1->2
+			sys().myassert(olddir == 3 || olddir == 1, "olddir illegal 2 (%i)",olddir);
+			dir = (olddir + 1) % 4;
+		} else {
+			// check other patterns:
+			dir = runlandright[pattern];
+			sys().myassert(dir != -1, "dir illegal 1");
+		}
+
+		// turncount
+		if (olddir != -1) {
+			int t = (dir - olddir + 4) % 4;
+			sys().myassert(t != 2, "no 180 degree turns allowed!");
+			if (t == 3) t = -1;
+			// positive values are ccw turns.
+			turncount += t;
+		}
+		olddir = dir;
+
+		int nx = x + dx[dir];
+		int ny = y + dy[dir];
+		// if we left the border, stop search.
+		if (nx < 0 || ny < 0 || nx > int(mapw) || ny > int(maph)) {
+			sys().myassert(pattern != 5 && pattern != 10, "illegal start pattern!3");
+			break;
+		}
+		x = nx;
+		y = ny;
+		//cout << "x/y now " << x << "," << y << "\n";
 		if (sx == x && sy == y) {
 			if (lastborder_x != -1) {
+			//fixme: das kann dazu führen, daß begin auf x. .x pattern gesetzt wird,
+			//ab da ist startrichtung undefiniert!!!
+			//generell bricht das hier ab, wenn auf einem solchen pattern begonnen wird und ne
+			//ein teil des patterns quasi eine insel ist!
+			//also verbieten, daß findbegcl auf diesem pattern begonnen wird.
+			//wenn wird auf so einem pattern sind, und das als startpos gespeichert wird,
+			//dann sage auch die richtung, in die man loslaufen muß (gegenrichtung der richtung,
+			//mit der findbegcl das pattern erreicht hat!)
+				//jetzt nicht mehr, fixme
 				x = lastborder_x;
 				y = lastborder_y;
 			}
-			return true;	// island found
+			// kann +- 3 sein, wenn knick auf startpunkt
+			//sys().myassert(turncount == 4 || turncount == -4, "island but turn count != +-4? %i", turncount);
+			return (turncount < 0) ? -1 : 1;	// island found
 		}
 	}
-	return false;
+	sys().myassert(turncount >= -3 && turncount <= 3, "loop without island?? %i", turncount);
+	return 0;
 }
 
 
@@ -553,9 +595,12 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 
 	sys().myassert((mapf(x, y) & 0x80) == 0);
 	
-	cyclic = find_begin_of_coastline(x, y);
+	int beginok = find_begin_of_coastline(x, y);
+	if (beginok < 0) return false;
+	cyclic = (beginok > 0);
 
-	int sx = x, sy = y, j2 = 0, lastj = -1, turncount = 0;
+	int sx = x, sy = y;
+	int olddir = -1, turncount = 0;
 	while (true) {
 		// store x,y
 		points.push_back(vector2i(x, y));
@@ -563,49 +608,49 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 		sys().myassert(x>=0&&y>=0&&x<=int(mapw)&&y<=int(maph));//fixme testweise von < auf <= gestellt
 		mapf(x, y) |= 0x80;
 
-		// compute next x,y	
-		int j = 0;
-		Uint8 mv[4];
-		for (j = 0; j < 4; ++j) {
-			mv[j] = mapf(x+dmx[j], y+dmy[j]) & 0x7f;
-		}
-		if (mv[0] == 0 && mv[2] == 0 && mv[1] > 0 && mv[3] > 0) {
-			// check pattern:
-			// #.
-			// .#
-			// direction: only 1,3 valid. 2->1, 0->3
-			j = (j2 == 2) ? 1 : 3;
-		} else if (mv[0] > 0 && mv[2] > 0 && mv[1] == 0 && mv[3] == 0) {
-			// check pattern:
-			// .#
-			// #.
-			// direction: only 0,2 valid. 1->0, 3->2
-			j = (j2 == 1) ? 0 : 2;
-		} else {
-			// check patterns:
-			// #. .# .. .. ## ## .# #. ## .# .. #.
-			// .. .. .# #. #. .# ## ## .. .# ## #.
-			// we need a direction so that left of it is land and right of it sea.
-			// left: take mv 0,3  down: take mv 1,0  right: take mv 2,1  up: take mv 3,2
-			// so take for direction j mv[j],mv[(j+3)%4]. first one must be land.
-			for (j = 0; j < 4; ++j) {
-				if (mv[j] > 0 && mv[(j+3)%4] == 0) break;
-			}
-			if (j == 4) { printf("%02x %02x %02x %02x fc\n",mv[0],mv[1],mv[2],mv[3]); }
-			sys().myassert(j < 4);
-		}
-		j2 = j;
+		// compute next x,y
+		int dir = -1;
 
-		if (lastj != -1) {
-			int jd = (lastj-j+4) % 4;
-			sys().myassert(jd != 2, "no 180 turns allowed!");
-			if (jd == 3) jd = -1;
-			turncount += jd;
+		Uint8 pattern = 0;
+		for (int j = 0; j < 4; ++j) {
+			pattern |= (mapf(x+dmx[j], y+dmy[j]) & 0x7f) << j;
 		}
-		lastj = j;
-		
-		int nx = x + dx[j];
-		int ny = y + dy[j];
+
+		if (olddir == -1)
+			sys().myassert(pattern != 5 && pattern != 10, "illegal start pattern!2");
+
+		if (pattern == 10) {
+			// check pattern:
+			// #.
+			// .#
+			// direction: only 0,2 valid. 1->0, 3->2
+			sys().myassert(olddir == 1 || olddir == 3, "olddir illegal 3 (%i)",olddir);
+			dir = olddir - 1;
+		} else if (pattern == 5) {
+			// check pattern:
+			// .#
+			// #.
+			// direction: only 1,3 valid. 2->1, 0->3
+			sys().myassert(olddir == 2 || olddir == 0, "olddir illegal 4 (%i)",olddir);
+			dir = (olddir + 3) % 4;
+		} else {
+			// check other patterns:
+			dir = runlandleft[pattern];
+			sys().myassert(dir != -1, "dir illegal 2");
+		}
+
+		// turncount
+		if (olddir != -1) {
+			int t = (dir - olddir + 4) % 4;
+			sys().myassert(t != 2, "no 180 degree turns allowed!");
+			if (t == 3) t = -1;
+			// positive values are ccw turns.
+			turncount += t;
+		}
+		olddir = dir;
+
+		int nx = x + dx[dir];
+		int ny = y + dy[dir];
 //		printf("x %i y %i nx %i ny %i\n",x,y,nx,ny);
 //		printf("pattern %02x%02x\npattern %02x%02x\n",mv[3],mv[2],mv[0],mv[1]);
 		if (nx < 0 || ny < 0 || nx > int(mapw) || ny > int(maph)) // border reached
@@ -616,7 +661,8 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 			break;	// island found
 		}
 	}
-	
+
+cout<<"TURNCOUNT is "<<turncount<<"\n";	
 	return (!cyclic) || (turncount <= 0);
 }
 
@@ -644,6 +690,7 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 	bool sameseg = true;
 	// loop over coastline
 	cout << "new distri!\n";
+	cout << "p0: " << p0 << " ps0 " << ps0.x << "," << ps0.y << " beginpos " << scl.beginpos << "\n";
 	for (unsigned i = 1; i < cl.size(); ) {
 		cout << "i is " << i << "/" << cl.size() << " p0 " << p0 << " cli " << cl[i] << " cli-1 "
 		     << cl[i-1] << "\n";
@@ -673,7 +720,11 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 				// p0 is on a segment border. choose new segment
 				// p0 has already been added to the segcl.
 				// determine border that p0 is on, set endpos accordingly.
+				//-----------fixme: choose seg so that land is left of line!
 				scl.endpos = borderpos(ps0);
+				//if (scl.endpos == -1) return;//test hack fixme
+				cout << "cli is " << cl[i] << "\n";
+				cout << "p0: " << p0 << " ps0 " << ps0.x << "," << ps0.y << " endpos " << scl.endpos << " segoff " << segoff << "\n";
 				sys().myassert(scl.endpos != -1, "borderpos check1");
 				// avoid segcl's with < 2 points.
 				// just avoid adding double points. segcl's crossing corners then
@@ -682,8 +733,6 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 				scl = coastsegment::segcl();
 				// compute segcn with seg of cl[i]
 				segc = vector2i(cl[i].x / SEGSCALE, cl[i].y / SEGSCALE);
-				rel = p0 - segoff;
-				ps0 = coastsegment::segpos((unsigned short)rel.x, (unsigned short)rel.y);
 				segc = segc.min(vector2i(segsx-1, segsy-1));		// segment coordinate
 				segcn = segc.y * segsx + segc.x;
 				segoff = segc * SEGSCALE;			// segment offset
@@ -692,6 +741,16 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 				ps0 = coastsegment::segpos((unsigned short)rel.x, (unsigned short)rel.y);
 				scl.push_back_point(ps0);
 				scl.beginpos = borderpos(ps0);
+				//if (scl.beginpos == -1) return;//test hack fixme
+				cout << "p0: " << p0 << " ps0 " << ps0.x << "," << ps0.y << " beginpos " << scl.beginpos << " segoff " << segoff << "\n";
+				//fixme: abbruch hier, weil es eine linie gibt, die auf dem rechten rand beginnt und der zielpunkt
+				//ein GANZES segment weiter links ist (rand 152/153 in x-richtung, cl[i] liegt in 151)
+				//daher macht der cast von rel.x nach unsigned short aus 2*SEGSCALE = 2*(2^16-1) % 2^16 =
+				//2^17-2 % 2^16 = -2 = 65534, und das ist nicht auf dem border!
+				//so lange linien sollten eigentlich gar nicht erlaubt sein. ist das der anfang einer insel???
+				//nein! wird da p0 auf was falsches gesetzt, durch eine berechnung vorher?
+				//eher nein, schon cl[i] und cl[i-1] sind in x-richtung 80000 und in y-r. 60-70.000 entfernt
+				//unglaublich, sowas darf gar net passieren!
 				sys().myassert(scl.beginpos != -1, "borderpos check2");
 				// repeat with same cl[i]
 			} else {
@@ -793,8 +852,10 @@ void coastmap::process_coastline(int x, int y)
 	// create bspline curve
 	vector<vector2> tmp;
 	tmp.reserve(points.size());
-	for (unsigned i = 0; i < points.size(); ++i)
+	for (unsigned i = 0; i < points.size(); ++i) {
 		tmp.push_back(vector2(points[i].x, points[i].y));
+		cout << i << "/" << points.size() << " is " << points[i] << " / " << vector2(points[i].x, points[i].y) << "\n";
+	}
 	points.clear();
 
 //	cout << "points.size()="<<points.size()<<" cyclic?"<<cyclic<<"\n";
@@ -805,6 +866,8 @@ void coastmap::process_coastline(int x, int y)
 		vector2 p0 = tmp[0];
 		vector2 p1 = tmp[1];
 		vector2 p01 = (p0 + p1) * 0.5;
+
+		printf("closing coastline with trick!\n");
 
 		// close coastline.
 		tmp.push_back(tmp.front());
@@ -833,8 +896,32 @@ void coastmap::process_coastline(int x, int y)
 	vector<vector2i> spoints;
 	spoints.reserve(nrpts);
 	double sscal = double(SEGSCALE) / pixels_per_seg;
+	vector2 oldcv;
+	cout << "generating " << nrpts << " pts\n";
 	for (unsigned i = 0; i < nrpts; ++i) {
 		vector2 cv = curve.value(float(i)/(nrpts-1));
+		//offenbar spuckt der bspline-algo längere strecken am anfang/ende der kurve aus, sogar so lange,
+		//daß sie länger als ein segment sind.
+		//die werte sind aber u.u. krass falsch, der letze liegt ganz woanders.
+		//der liegt nicht mal nahe dem endpunkt, der als control-point weiter oben angegeben wird!!!
+		//folglich ist der bspline-algo irgendwie falsch!		
+		//der lineare-interpo.-ersatz-algo macht aber das gleiche. die letzen 3-4 stützpunkte
+		//driften drastisch ab!
+		//das ist weil die cl als cyclic behandelt wird und ein neuer endpunkt eingefügt wird!
+		//sie ist zwar nicht zyklisch, aber find_beg_of_cl behauptet das so!
+		//problem ist ein See. so ca. 399/1529 bzw. real 399/471.
+		//der hat die form:
+		// x.
+		// .x
+		// find beg of cl generiert eine cyclic cl, die aber ein see ist.
+		// find_cl läuft dann ab da los,aber eben nicht um den see, sondern außen!
+		// das sollte nicht passieren. findcl/findbegcl weichen also ab. kacke! fixme!
+		//das problem ist, daß die mitte der geometrischen form auf ner segmentgrenze liegt!
+		//d.h. find_beg fängt innen an, speichert als startpunkt aber außen...
+		//loslaufrichtung bei dieser formation ist unklar! lösung vielleicht: dort GAR NICHT anfangen.
+		//problem tritt auch bei inseln auf.
+		if (i>0 && oldcv.distance(cv) > 16) { cout << "WARNING!!!!!!!!!! "<<i<<"/"<<nrpts<<" oldcv "<<oldcv<<" cv "<<cv<<"\n"; }
+		oldcv = cv;
 		vector2i cvi = vector2i(int(round(cv.x * sscal)), int(round(cv.y * sscal)));
 		// avoid double points here.
 		if (spoints.empty() || !(spoints.back() == cvi))
@@ -875,6 +962,14 @@ vector2 coastmap::segcoord_to_real(int segx, int segy, const coastsegment::segpo
 {
 	vector2 tmp(double(segx) + double(sp.x)/SEGSCALE, double(segy) + double(sp.y)/SEGSCALE);
 	return (tmp * segw_real) + realoffset;
+}
+
+
+
+vector2f coastmap::segcoord_to_texc(int segx, int segy, const coastsegment::segpos& sp) const
+{
+	// float get to its limit when segsx,segsy > 256, bot that doesn't really matter.
+	return vector2f(float(segx * SEGSCALE + sp.x)/(segsx*SEGSCALE), 1.0f - float(segy * SEGSCALE + sp.y)/(segsy*SEGSCALE));
 }
 
 
@@ -942,16 +1037,15 @@ coastmap::coastmap(const string& filename)
 	coastsegments.resize(segsx*segsy);
 
 	// find coastlines
+	// when to start processing: all patterns, except: 0,5,10,15
 	for (int yy = 0; yy < int(maph); ++yy) {
 		for (int xx = 0; xx < int(mapw); ++xx) {
 			if (mapf(xx, yy) & 0x80) continue;
-			Uint8 m0 = mapf(xx+dmx[0], yy+dmy[0]) & 0x7f;
-			Uint8 m1 = mapf(xx+dmx[1], yy+dmy[1]) & 0x7f;
-			Uint8 m2 = mapf(xx+dmx[2], yy+dmy[2]) & 0x7f;
-			Uint8 m3 = mapf(xx+dmx[3], yy+dmy[3]) & 0x7f;
-			Uint8 m4 = m0 & m1 & m2 & m3;
-			Uint8 m5 = m0 | m1 | m2 | m3;
-			if (m4 == 0 && m5 == 1) {
+			Uint8 pattern = 0;
+			for (int j = 0; j < 4; ++j) {
+				pattern |= (mapf(xx+dmx[j], yy+dmy[j]) & 0x7f) << j;
+			}
+			if (patternprocessok[pattern]) {
 				process_coastline(xx, yy);
 			}
 		}
@@ -1022,22 +1116,11 @@ void coastmap::draw_as_map(const vector2& droff, double mapzoom, int detail) con
 //cout<<"draw map   segsx " << segsx << " segsy " << segsy << " x " << x << " y " << y << " w " << w << " h " << h << "\n";
 
 	atlanticmap->set_gl_texture();
-	glMatrixMode(GL_TEXTURE);
-	glPushMatrix();
-	glLoadIdentity();
-	glTranslated(0.0, 1.0, 0.0);
-	glScaled(1.0/realwidth, -1.0/realheight, 1.0);
-	glTranslated(-realoffset.x, -realoffset.y, 0.0);
-	glMatrixMode(GL_MODELVIEW);
 	for (int yy = y; yy < y + h; ++yy) {
 		for (int xx = x; xx < x + w; ++xx) {
 			coastsegments[yy*segsx+xx].draw_as_map(*this, xx, yy, detail);
 		}
 	}
-
-	glMatrixMode(GL_TEXTURE);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
 
 /*
 	// draw cities, fixme move to coastmap

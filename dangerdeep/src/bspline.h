@@ -73,15 +73,15 @@ public:
 		for ( ; k <= m+n+1; ++k) tvec[k] = 1;
 	}
 
-	bsplinet(const bsplinet& o) : n(o.n), m(o.m), cp(o.cp), tvec(o.tvec) { deBoor_pts.resize((n+1)*(n+2)/2); }
-	bsplinet& operator= (const bsplinet& o) { n = o.n; m = o.m; cp = o.cp; tvec = o.tvec; deBoor_pts.resize((n+1)*(n+2)/2); return *this; }
-
-	~bsplinet() {}
-
 	const vector<T>& control_points(void) const { return cp; }
 	
 	T value(double t) const
 	{
+		unsigned bp = unsigned(t*(cp.size()-1));
+		unsigned np = bp+1;if(np==cp.size())np=bp;
+		t = t*(cp.size()-1) - bp;
+		return cp[bp] * (1.0-t) + cp[np] * t;
+
 		assert (0 <= t && t <= 1);
 
 		unsigned l = find_l(t);
@@ -171,11 +171,6 @@ public:
 		for ( ; k <= m+n+1; ++k) tvec[k] = 1;
 	}
 
-	bspline2dt(const bspline2dt& o) : n(o.n), m(o.m), cp(o.cp), tvec(o.tvec) { deBoor_pts.resize((n+1) * (n+1)*(n+2)/2); }
-	bspline2dt& operator= (const bspline2dt& o) { n = o.n; m = o.m; cp = o.cp; tvec = o.tvec; deBoor_pts.resize((n+1) * (n+1)*(n+2)/2); return *this; }
-
-	~bspline2dt() {}
-
 	const vector<T>& control_points(void) const { return cp; }
 	
 	T value(double s, double t) const
@@ -239,7 +234,7 @@ int main(int, char**)
 	for (unsigned y = 0; y < D; ++y)
 		for (unsigned x = 0; x < D; ++x)
 			cps[D*y+x] = 8.0f*rnd()/D;
-	bspline2dt<float, float> bsp(N, cps);
+	bspline2dt<float> bsp(N, cps);
 	ofstream out("bspline.off");
 	out << "OFF\n" << D*R*D*R << " " << (R*D-1)*(R*D-1)*2 << " 0\n";
 	for (unsigned y = 0; y < R*D; ++y) {
