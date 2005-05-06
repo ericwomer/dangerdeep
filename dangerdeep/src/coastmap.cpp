@@ -162,47 +162,51 @@ void coastsegment::segcl::push_back_point(const coastsegment::segpos& sp)
 void coastsegment::segcl::render(const class coastmap& cm, int segx, int segy, const vector2& p,
 				 int detail) const
 {
-	// build a vector of base points, should be cached somehow (same coordinates as cache entries)
-	vector<vector2> bp;
-	bp.reserve(points.size());
-	double sc = cm.segw_real / SEGSCALE;
-	for (unsigned i = 0; i < points.size(); ++i) {
-		vector2 cp(points[i].x, points[i].y);
-		bp.push_back(cp * sc);
+	if (points2.size() == 0) {
+		// build a vector of base points
+		points2.reserve(points.size());
+		double sc = cm.segw_real / SEGSCALE;
+		for (unsigned i = 0; i < points.size(); ++i) {
+			vector2 cp(points[i].x, points[i].y);
+			points2.push_back(cp * sc);
+		}
 	}
 
 	const double coasttop = 150;
 	const double coastbottom = -20;
 	const double coastdepth = 20;
 
-	const vector2& p0 = bp[0];
-	vector2 n = (p0 - bp[1]).orthogonal().normal();
+	const vector2& p0 = points2[0];
+	vector2 n = (p0 - points2[1]).orthogonal().normal();
 	// quad strips are build in that vertex order
 	// 1 3 5 7 ... quads ... 
 	// 2 4 6 8 ...
 	glBegin(GL_QUAD_STRIP);
-	glTexCoord2f(0, 1);
-	glVertex3f(p0.x - n.x * coastdepth, p0.y - n.y * coastdepth, coasttop);
 	glTexCoord2f(0, 0);
+	glVertex3f(p0.x - n.x * coastdepth, p0.y - n.y * coastdepth, coasttop);
+	glTexCoord2f(0, 1);
 	glVertex3f(p0.x - n.x * coastdepth, p0.y - n.y * coastdepth, coastbottom);
 	double t = 0;
 
-	for (unsigned i = 1; i < bp.size(); ++i) {
-		const vector2& p0 = bp[i-1];
-		const vector2& p1 = bp[i];
+	// fixme: computation of normals is crude. for islands they should be smooth over the
+	// begin/end of the cl.
+	for (unsigned i = 1; i < points2.size(); ++i) {
+		const vector2& p0 = points2[i-1];
+		const vector2& p1 = points2[i];
 		vector2 d = p1 - p0;
 		double dl = d.length();
 		t += dl / (coasttop - coastbottom);
 		vector2 n2 = n;
-		if (i + 1 < bp.size())
-			n2 = (bp[i] - bp[i+1]).orthogonal().normal();
+		if (i + 1 < points2.size())
+			n2 = (points2[i] - points2[i+1]).orthogonal().normal();
 		vector2 nnew = (n + n2).normal();
 		n = n2;
+		vector3f n3 = vector3f(n.x, n.y, 1.0f).normal();
 		// fixme: normals for lighting are missing...
-		glNormal3f(n.x, n.y, 0.5f);
-		glTexCoord2f(t, 1);
-		glVertex3f(p1.x - nnew.x * coastdepth, p1.y - nnew.y * coastdepth, coasttop);
+		glNormal3fv(&n3.x);
 		glTexCoord2f(t, 0);
+		glVertex3f(p1.x - nnew.x * coastdepth, p1.y - nnew.y * coastdepth, coasttop);
+		glTexCoord2f(t, 1);
 		glVertex3f(p1.x - nnew.x * coastdepth, p1.y - nnew.y * coastdepth, coastbottom);
 	}
 
@@ -398,6 +402,9 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detai
 // p is viewpos of player relative to segment border (in-segment offset of player)
 void coastsegment::render(const class coastmap& cm, int x, int y, const vector2& p, int detail) const
 {
+	// fixme: do not draw coastlines that can't be seen.
+	// we need visisble surface determination code for this.
+	// fixme 2: use LOD for coastline drawing.
 	for (unsigned i = 0; i < segcls.size(); ++i) {
 		segcls[i].render(cm, x, y, -p, detail);
 	}
@@ -1243,7 +1250,7 @@ void coastmap::render(const vector2& p, double vr, int detail, bool withterraint
 	if (moffy0 < 0) moffy0 = 0;
 	if (moffx1 >= segsx) moffx1 = segsx-1;
 	if (moffy1 >= segsy) moffy1 = segsy-1;
-	printf("drawing %i segs\n",(moffx1-moffx0+1)*(moffy1-moffy0+1));
+//	printf("drawing %i segs\n",(moffx1-moffx0+1)*(moffy1-moffy0+1));
 
 	for (int y = moffy0; y <= moffy1; ++y) {
 		for (int x = moffx0; x <= moffx1; ++x) {
