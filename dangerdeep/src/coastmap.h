@@ -30,7 +30,7 @@ public:
 		void print() const;	// for debugging
 		segcl() : beginpos(-1), endpos(-1), next(-1), cyclic(false) {}
 		void push_back_point(const segpos& sp);	// avoids double points
-		void render(const class coastmap& cm, int segx, int segy, const vector2& offset,
+		void render(const class coastmap& cm, int segx, int segy, const vector2& p,
 			    int detail) const;
 	};
 
@@ -43,7 +43,7 @@ public:
 
 	// cache generated points.
 	struct cacheentry {
-		vector<vector2> points;	// that is a 2d mesh.
+		vector<vector2> points;	// that is a 2d mesh, real world coordinates relative to segm. offset
 		vector<unsigned> indices;
 		void push_back_point(const vector2& p);	// avoids double points.
 	};
@@ -59,6 +59,7 @@ public:
 	coastsegment(/*unsigned topon, const vector<float>& topod*/) : type(0), /*topo(topon, topod),*/ pointcachedetail(0) {}
 	
 	void draw_as_map(const class coastmap& cm, int x, int y, int detail = 0) const;
+	// p is position of viewer relative to segment
 	void render(const class coastmap& cm, int x, int y, const vector2& p, int detail = 0) const;
 };
 
@@ -67,6 +68,7 @@ public:
 class coastmap
 {
 	friend class coastsegment;	// just request some values
+	friend class coastsegment::segcl;	// just request some values
 
 	// some attributes used for map reading/processing
 	vector<Uint8> themap;		// pixel data of map file, y points up, like in OpenGL
@@ -114,15 +116,15 @@ public:
 	static unsigned quadrant(const vector2i& d);
 
 	vector2 segcoord_to_real(int segx, int segy, const coastsegment::segpos& sp) const;
-	vector2f segcoord_to_texc(int segx, int segy, const coastsegment::segpos& sp) const;
+	vector2f segcoord_to_texc(int segx, int segy) const;
 
 	// create from xml file
 	coastmap(const string& filename);
 
 	// fixme: maybe it's better to give top,left and bottom,right corner of sub area to draw
 	void draw_as_map(const vector2& droff, double mapzoom, int detail = 0) const;
-	// here give point and viewrange for rendering?
-	void render(const vector2& p, int detail = 0, bool withterraintop = false) const;
+	// p is real word position of viewer, vr is range of view in meters.
+	void render(const vector2& p, double vr, int detail = 0, bool withterraintop = false) const;
 };
 
 #endif

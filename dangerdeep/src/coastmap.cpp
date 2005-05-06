@@ -158,22 +158,28 @@ void coastsegment::segcl::push_back_point(const coastsegment::segpos& sp)
 
 
 
-void coastsegment::segcl::render(const class coastmap& cm, int segx, int segy, const vector2& offset,
+// p is pos. of viewer relative to segment
+void coastsegment::segcl::render(const class coastmap& cm, int segx, int segy, const vector2& p,
 				 int detail) const
 {
 	// build a vector of base points, should be cached somehow (same coordinates as cache entries)
 	vector<vector2> bp;
 	bp.reserve(points.size());
+	double sc = cm.segw_real / SEGSCALE;
 	for (unsigned i = 0; i < points.size(); ++i) {
-		bp.push_back(offset + cm.segcoord_to_real(segx, segy, points[i]));
+		vector2 cp(points[i].x, points[i].y);
+		bp.push_back(cp * sc);
 	}
 
-	const double coasttop = 50;
+	const double coasttop = 150;
 	const double coastbottom = -20;
 	const double coastdepth = 20;
 
 	const vector2& p0 = bp[0];
 	vector2 n = (p0 - bp[1]).orthogonal().normal();
+	// quad strips are build in that vertex order
+	// 1 3 5 7 ... quads ... 
+	// 2 4 6 8 ...
 	glBegin(GL_QUAD_STRIP);
 	glTexCoord2f(0, 1);
 	glVertex3f(p0.x - n.x * coastdepth, p0.y - n.y * coastdepth, coasttop);
@@ -182,6 +188,7 @@ void coastsegment::segcl::render(const class coastmap& cm, int segx, int segy, c
 	double t = 0;
 
 	for (unsigned i = 1; i < bp.size(); ++i) {
+		const vector2& p0 = bp[i-1];
 		const vector2& p1 = bp[i];
 		vector2 d = p1 - p0;
 		double dl = d.length();
@@ -191,10 +198,12 @@ void coastsegment::segcl::render(const class coastmap& cm, int segx, int segy, c
 			n2 = (bp[i] - bp[i+1]).orthogonal().normal();
 		vector2 nnew = (n + n2).normal();
 		n = n2;
-		glTexCoord2f(t, 0);
-		glVertex3f(p0.x - nnew.x * coastdepth, p0.y - nnew.y * coastdepth, coastbottom);
+		// fixme: normals for lighting are missing...
+		glNormal3f(n.x, n.y, 0.5f);
 		glTexCoord2f(t, 1);
-		glVertex3f(p0.x - nnew.x * coastdepth, p0.y - nnew.y * coastdepth, coasttop);
+		glVertex3f(p1.x - nnew.x * coastdepth, p1.y - nnew.y * coastdepth, coasttop);
+		glTexCoord2f(t, 0);
+		glVertex3f(p1.x - nnew.x * coastdepth, p1.y - nnew.y * coastdepth, coastbottom);
 	}
 
 	glEnd();
@@ -226,8 +235,6 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 		pointcachedetail = detail;
 		pointcache.clear();
 
-		vector2 segoff(x*cm.segw_real + cm.realoffset.x, y*cm.segw_real + cm.realoffset.y);
-
 		unsigned nrcl = segcls.size();
 		vector<bool> cl_handled(nrcl, false);
 		for (unsigned i = 0; i < nrcl; ++i) {
@@ -255,9 +262,10 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 
 				const segcl& cl = segcls[current];
 				ce.points.reserve(ce.points.size() + cl.points.size());
+				double sc = cm.segw_real / SEGSCALE;
 				for (unsigned j = 0; j < cl.points.size(); ++j) {
 					// avoid double points here... fixme. they're removed later. see below
-					ce.points.push_back(cm.segcoord_to_real(x, y, cl.points[j]));
+					ce.points.push_back(vector2(cl.points[j].x, cl.points[j].y) * sc);
 				}
 				int next = cl.next;
 				//cout << "startpos " << cl.beginpos << " endpos: " << cl.endpos << " next " << next << " next startpos: " << segcls[next].beginpos << "\n";
@@ -276,10 +284,10 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 					for (int j = b0; j <= b1; ++j) {
 						int k = j % 4;
 						// push back destination point of edge (0-3: br,tr,tl,bl)
-						if (k == 0) ce.push_back_point(segoff);
-						else if (k == 1) ce.push_back_point(segoff + vector2(cm.segw_real, 0));
-						else if (k == 2) ce.push_back_point(segoff + vector2(cm.segw_real, cm.segw_real));
-						else /*if (k == 3)*/ ce.push_back_point(segoff + vector2(0, cm.segw_real));
+						if (k == 0) ce.push_back_point(vector2());
+						else if (k == 1) ce.push_back_point(vector2(cm.segw_real, 0));
+						else if (k == 2) ce.push_back_point(vector2(cm.segw_real, cm.segw_real));
+						else /*if (k == 3)*/ ce.push_back_point(vector2(0, cm.segw_real));
 					}
 				}
 //				printf("cyclic? %u next %i\n",cl.cyclic,next);
@@ -314,31 +322,34 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detai
 //cout<<"segment draw " << x << "," << y << " dtl " << detail << " tp " << type << "\n";
 	// fixme, use display lists here
 	if (type == 1) {
-		vector2 roff(x*cm.segw_real + cm.realoffset.x, y*cm.segw_real + cm.realoffset.y);
-		vector2f tc0 = cm.segcoord_to_texc(x, y, segpos(0, 0));
-		vector2f tc1 = cm.segcoord_to_texc(x, y, segpos(SEGSCALE, SEGSCALE));
+		vector2f tc0 = cm.segcoord_to_texc(x, y);
+		vector2f tc1 = cm.segcoord_to_texc(x+1, y+1);
 		glBegin(GL_QUADS);
 		glTexCoord2f(tc0.x, tc0.y);
-		glVertex2d(roff.x, roff.y);
+		glVertex2d(0, 0);
 		glTexCoord2f(tc1.x, tc0.y);
-		glVertex2d(roff.x+cm.segw_real, roff.y);
+		glVertex2d(cm.segw_real, 0);
 		glTexCoord2f(tc1.x, tc1.y);
-		glVertex2d(roff.x+cm.segw_real, roff.y+cm.segw_real);
+		glVertex2d(cm.segw_real, cm.segw_real);
 		glTexCoord2f(tc0.x, tc1.y);
-		glVertex2d(roff.x, roff.y+cm.segw_real);
+		glVertex2d(0, cm.segw_real);
 		glEnd();
 	} else if (type > 1) {
 #if 1
+		vector2f tc0 = cm.segcoord_to_texc(x, y);
+		vector2f tc1 = cm.segcoord_to_texc(x+1, y+1);
 		generate_point_cache(cm, x, y, detail);
 		glBegin(GL_TRIANGLES);
 		for (vector<cacheentry>::const_iterator cit = pointcache.begin(); cit != pointcache.end(); ++cit) {
 			for (vector<unsigned>::const_iterator tit = cit->indices.begin(); tit != cit->indices.end(); ++tit) {
-				vector2f tc;// = cm.segcoord_to_texc(x, y, segpos(0, 0 /*fixme*/));
 				const vector2& v = cit->points[*tit];
-				tc.x = (v.x - cm.realoffset.x)/cm.realwidth;
-				tc.y = 1.0 - (v.y - cm.realoffset.y)/cm.realheight;//fixme: performance waste!
-				glTexCoord2f(tc.x, tc.y);
-				glVertex2f(v.x, v.y);
+				float ex = v.x/cm.segw_real;
+				float ey = v.y/cm.segw_real;
+				float ax = 1.0f - ex;
+				float ay = 1.0f - ey;
+				vector2f tc(tc0.x * ax + tc1.x * ex, tc0.y * ay + tc1.y * ey);
+				glTexCoord2fv(&tc.x);
+				glVertex2dv(&v.x);
 			}
 		}
 		glEnd();
@@ -359,14 +370,15 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detai
 		glColor3f(1,1,1);
 #endif
 #if 0
+		double sc = cm.segw_real / SEGSCALE;
 		glColor3f(1,0.5,0.5);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		for (unsigned i = 0; i < segcls.size(); ++i) {
 			const segcl& scl = segcls[i];
 			glBegin(GL_LINE_STRIP);
 			for (unsigned j = 0; j < scl.points.size(); ++j) {
-				vector2 p = cm.segcoord_to_real(x, y, scl.points[j]);
-				glVertex2f(p.x, p.y);
+				vector2 p = vector2(scl.points[j].x, scl.points[j].y) * sc;
+				glVertex2dv(&p.x);
 			}
 			glEnd();
 		}
@@ -1039,10 +1051,10 @@ vector2 coastmap::segcoord_to_real(int segx, int segy, const coastsegment::segpo
 
 
 
-vector2f coastmap::segcoord_to_texc(int segx, int segy, const coastsegment::segpos& sp) const
+vector2f coastmap::segcoord_to_texc(int segx, int segy) const
 {
 	// float get to its limit when segsx,segsy > 256, bot that doesn't really matter.
-	return vector2f(float(segx * SEGSCALE + sp.x)/(segsx*SEGSCALE), 1.0f - float(segy * SEGSCALE + sp.y)/(segsy*SEGSCALE));
+	return vector2f(float(segx)/segsx, 1.0f - float(segy)/segsy);
 }
 
 
@@ -1195,7 +1207,10 @@ void coastmap::draw_as_map(const vector2& droff, double mapzoom, int detail) con
 	atlanticmap->set_gl_texture();
 	for (int yy = y; yy < y + h; ++yy) {
 		for (int xx = x; xx < x + w; ++xx) {
+			glPushMatrix();
+			glTranslated(xx * segw_real + realoffset.x, yy * segw_real + realoffset.y, 0);
 			coastsegments[yy*segsx+xx].draw_as_map(*this, xx, yy, detail);
+			glPopMatrix();
 		}
 	}
 
@@ -1212,21 +1227,31 @@ void coastmap::draw_as_map(const vector2& droff, double mapzoom, int detail) con
 
 
 
-void coastmap::render(const vector2& p, int detail, bool withterraintop) const
+// p is real world coordinate of viewer. modelview matrix is centered around viewer
+void coastmap::render(const vector2& p, double vr, int detail, bool withterraintop) const
 {
-	vector2 pnew = p - realoffset;
+	// compute offset relative to map
+	vector2 p_mapoff = p - realoffset;
 
-	// determine which coast segment can be seen (at most 4)
-	// fixme
-	double rsegw = pixelw_real * pixels_per_seg;
-	int moffx = int(pnew.x/rsegw);
-	int moffy = int(pnew.y/rsegw);
+	// determine which coast segments can be seen (at most 4)
+	int moffx0 = int((p_mapoff.x - vr)/segw_real);
+	int moffy0 = int((p_mapoff.y - vr)/segw_real);
+	int moffx1 = int((p_mapoff.x + vr)/segw_real);
+	int moffy1 = int((p_mapoff.y + vr)/segw_real);
+	if (moffx1 < 0 || moffy1 < 0 || moffx0 >= segsx || moffy0 >= segsy) return;
+	if (moffx0 < 0) moffx0 = 0;
+	if (moffy0 < 0) moffy0 = 0;
+	if (moffx1 >= segsx) moffx1 = segsx-1;
+	if (moffy1 >= segsy) moffy1 = segsy-1;
+	printf("drawing %i segs\n",(moffx1-moffx0+1)*(moffy1-moffy0+1));
 
-	glPushMatrix();
-	glTranslated(-p.x, -p.y, 0.0);
-
-	if (moffx >= 0 && moffy >= 0 && moffx < int(segsx) && moffy < int(segsy))	
-		coastsegments[moffy*segsx+moffx].render(*this, moffx, moffy, pnew - vector2(moffx*rsegw, moffy*rsegw), detail +2);
-
-	glPopMatrix();
+	for (int y = moffy0; y <= moffy1; ++y) {
+		for (int x = moffx0; x <= moffx1; ++x) {
+			vector2 p_segoff = p_mapoff - vector2(x, y) * segw_real;
+			glPushMatrix();
+			glTranslated(-p_segoff.x, -p_segoff.y, 0.0);
+			coastsegments[y*segsx+x].render(*this, x, y, p_segoff, detail +2);
+			glPopMatrix();
+		}
+	}
 }
