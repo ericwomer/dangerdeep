@@ -23,7 +23,7 @@ using namespace std;
 
 
 const unsigned BSPLINE_SMOOTH_FACTOR = 16;//3;//16;	// should be 3...16
-const double BSPLINE_DETAIL = 4.0;            // should be 1.0...x
+const double BSPLINE_DETAIL = 4.0;//1.0;//4.0;            // should be 1.0...x
 const unsigned SEGSCALE = 65535;	// 2^16-1 so that per segment coordinates fit in a ushort value.
 
 // order (0-3):
@@ -57,6 +57,18 @@ the following patterns are possible when searching coastlines (0,15 illegal)
 // -1 illegal,0-3 down,right,up,left:    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
 const int coastmap::runlandleft[16]  = {-1, 3, 0, 3, 1,-1, 0, 3, 2, 2,-1, 2, 1, 1, 0,-1};
 const int coastmap::runlandright[16] = {-1, 0, 1, 1, 2,-1, 2, 2, 3, 0,-1, 1, 3, 0, 3,-1};
+
+
+/*
+fixme: 2005/05/05
+was fehlt noch, was für bugs:
+triangulierung scheitert manchmal, vor allem bei kleinen inseln.
+
+bspline-smoothing at begin/end of island coastline is missing.
+it must be handled so that the begin/end point is still on any border,
+if the island crosses a border.
+*/
+
 
 #if 0
 void coastline::create_points(vector<vector2>& points, float begint, float endt, int detail) const
@@ -139,8 +151,53 @@ void coastline::render(const vector2& p, int detail) const
 
 void coastsegment::segcl::push_back_point(const coastsegment::segpos& sp)
 {
+	// fixme: avoid double points here, maybe assert that
 	if (points.empty() || !(points.back() == sp))
 		points.push_back(sp);
+}
+
+
+
+void coastsegment::segcl::render(const class coastmap& cm, int segx, int segy, const vector2& offset,
+				 int detail) const
+{
+	// build a vector of base points, should be cached somehow (same coordinates as cache entries)
+	vector<vector2> bp;
+	bp.reserve(points.size());
+	for (unsigned i = 0; i < points.size(); ++i) {
+		bp.push_back(offset + cm.segcoord_to_real(segx, segy, points[i]));
+	}
+
+	const double coasttop = 50;
+	const double coastbottom = -20;
+	const double coastdepth = 20;
+
+	const vector2& p0 = bp[0];
+	vector2 n = (p0 - bp[1]).orthogonal().normal();
+	glBegin(GL_QUAD_STRIP);
+	glTexCoord2f(0, 1);
+	glVertex3f(p0.x - n.x * coastdepth, p0.y - n.y * coastdepth, coasttop);
+	glTexCoord2f(0, 0);
+	glVertex3f(p0.x - n.x * coastdepth, p0.y - n.y * coastdepth, coastbottom);
+	double t = 0;
+
+	for (unsigned i = 1; i < bp.size(); ++i) {
+		const vector2& p1 = bp[i];
+		vector2 d = p1 - p0;
+		double dl = d.length();
+		t += dl / (coasttop - coastbottom);
+		vector2 n2 = n;
+		if (i + 1 < bp.size())
+			n2 = (bp[i] - bp[i+1]).orthogonal().normal();
+		vector2 nnew = (n + n2).normal();
+		n = n2;
+		glTexCoord2f(t, 0);
+		glVertex3f(p0.x - nnew.x * coastdepth, p0.y - nnew.y * coastdepth, coastbottom);
+		glTexCoord2f(t, 1);
+		glVertex3f(p0.x - nnew.x * coastdepth, p0.y - nnew.y * coastdepth, coasttop);
+	}
+
+	glEnd();
 }
 
 
@@ -178,36 +235,24 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 
 			cacheentry ce;
 
+			//printf("handle segcl %i!!!\n",i);
+
 			// find area
 			unsigned current = i;
 			do {
-				cout << "segpos: x " << x << " y " << y << "\n";
-				cout << "current is : " << current << "\n";
-				segcls[current].print();
+				//cout << "segpos: x " << x << " y " << y << "\n";
+				//cout << "current is : " << current << "\n";
+			//	segcls[current].print();
 				//erzeugt, weil endpos falsch ist, border pos. von altem segment
 				//insel hat endpos=-1, obwohl sie segmentgrenze schneidet! startpos aber !=-1
 				//scheint beides jetzt behoben. Triangulierungsfehler kommen daher, daß
 				//Strecken in segcls vorkommen, die komplett auf dem rand liegen.
 				//diese müßten zu DEM segment gehören, das land enthält.
 				//ein solcher übergang müßte dann als segmentwechsel gehandhabt werden
-				//if (cl_handled[current]) break;//test hack fixme
-				if (cl_handled[current]) return;//test hack fixme
+				//sollte mit neuem code gehen, inseln haben aber immer noch fehler, fixme
+				if (cl_handled[current]) { printf("ILLEGAL .next values!!! seg x %i y %i!\n",x,y); return;}//test hack fixme
 				sys().myassert(!cl_handled[current], "illegal .next values!");
-				/* NOTE:
-				   doubles shouldn't occour by design. But they do. So we do
-				   an quick, simple and dirty workaround here and just avoid
-				   inserting them. Finally we check if the last point is the
-				   same as the first, in that case we remove it, too.
-				   Reason for double points:
-				   this seem to happen because sometimes endborder/beginborder
-				   is >= 0 even if the corresponding points are not on the border.
-				   so the coast lines are treated as coast, not as part of an
-				   island -> end of first cl is equal to begin of next ->
-				   double points result.
-				   2004/05/28: fixme: is this because we take beginborder/endborder
-				   values from the cl for island? (illegal combination
-				   of island/non-island pair for beginborder/endborder)???
-				*/
+
 				const segcl& cl = segcls[current];
 				ce.points.reserve(ce.points.size() + cl.points.size());
 				for (unsigned j = 0; j < cl.points.size(); ++j) {
@@ -215,19 +260,19 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 					ce.points.push_back(cm.segcoord_to_real(x, y, cl.points[j]));
 				}
 				int next = cl.next;
-				cout << "startpos " << cl.beginpos << " endpos: " << cl.endpos << " next " << next << " next startpos: " << segcls[next].beginpos << "\n";
+				//cout << "startpos " << cl.beginpos << " endpos: " << cl.endpos << " next " << next << " next startpos: " << segcls[next].beginpos << "\n";
 				//cout << "current="<<current<<" next="<<next<<"\n";
 				cl_handled[current] = true;
-				sys().myassert(next!=-1, "next unset?");//fixme: another unexplainable bug.
+				sys().myassert(next!=-1, "next unset?");
 				//if(current==next)break;
 				// insert corners if needed
 				if (!cl.cyclic) {
 					int b0 = cl.endpos, b1 = segcls[next].beginpos;
-					cout << "fill: ed " << b0 << " bg " << b1 << "\n";
+//					cout << "fill: ed " << b0 << " bg " << b1 << "\n";
 					if (b1 < b0) b1 += 4 * SEGSCALE;
 					b0 = (b0 + SEGSCALE - 1) / SEGSCALE;
 					b1 = b1 / SEGSCALE;
-					cout << "fill2: ed " << b0 << " bg " << b1 << "\n";
+//					cout << "fill2: ed " << b0 << " bg " << b1 << "\n";
 					for (int j = b0; j <= b1; ++j) {
 						int k = j % 4;
 						// push back destination point of edge (0-3: br,tr,tl,bl)
@@ -237,23 +282,13 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 						else /*if (k == 3)*/ ce.push_back_point(segoff + vector2(0, cm.segw_real));
 					}
 				}
+//				printf("cyclic? %u next %i\n",cl.cyclic,next);
 				current = unsigned(next);
 			} while (current != i);
 
 			//			cout << "compute triang for segment " << this << "\n";
 			
-			// fixme: 2004/05/30:
-			// the remaining triangulation bugs have two reasons:
-			// 1. double points (hack-fix with this code)
-			// 2. "flat" polygons (degenerated), which can't be triangulated
-			// we have 11 failed triangulations and with double point removal
-			// only 6, all degenerated polygon cases.
-			// this gives a clue to fix the triangulation problems finally...
-			// check which segment fails to triangulate and check the map
-			// image what case it is.
-			// first case: north of iceland: the coastline lies exactly on a
-			// segment border!!!
-			cout << "segment no: " << (this - &cm.coastsegments[0]) << "\n";
+//			cout << "segment no: " << (this - &cm.coastsegments[0]) << "\n";
 			unsigned dbl = 0;
 			for (unsigned i = 0; i + 1 < ce.points.size(); ++i) {
 				unsigned j = i+1;
@@ -265,6 +300,7 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 			}
 			if (dbl > 0) cout << "erased " << dbl << " double points!\n";
 			
+			printf("triangulating seg %i %i\n",x,y);
 			ce.indices = triangulate::compute(ce.points);
 			pointcache.push_back(ce);
 		}
@@ -322,6 +358,20 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detai
 		glEnd();
 		glColor3f(1,1,1);
 #endif
+#if 0
+		glColor3f(1,0.5,0.5);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		for (unsigned i = 0; i < segcls.size(); ++i) {
+			const segcl& scl = segcls[i];
+			glBegin(GL_LINE_STRIP);
+			for (unsigned j = 0; j < scl.points.size(); ++j) {
+				vector2 p = cm.segcoord_to_real(x, y, scl.points[j]);
+				glVertex2f(p.x, p.y);
+			}
+			glEnd();
+		}
+		glColor3f(0,0.5,0.5);
+#endif
 	}
 }
 
@@ -333,8 +383,17 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detai
 //introduces LOD.
 //many more effects...
 #include <sstream>
+// p is viewpos of player relative to segment border (in-segment offset of player)
 void coastsegment::render(const class coastmap& cm, int x, int y, const vector2& p, int detail) const
 {
+	for (unsigned i = 0; i < segcls.size(); ++i) {
+		segcls[i].render(cm, x, y, -p, detail);
+	}
+
+	// how to render: each segcl is given in ccw order, so land is left of cl.
+	// render quad strips along the cl, several lines of quads each.
+	// first, lowest line: beach, then rock/dunes, then green top. etc.
+	// move upper/lower parts of cl along normal.
 #if 0
 	unsigned res = cm.pixels_per_seg;
 	res = (res << detail);
@@ -448,6 +507,10 @@ void coastsegment::compute_successor_for_cl(unsigned cln)
 			// i's successor can be i itself, when i enters and leaves the seg without any
 			// other cl in between
 			const segcl& scl1 = segcls[i];
+
+			// avoid islands, they can't be successors.
+			if (scl1.cyclic) continue;
+
 			int beginpos = scl1.beginpos;
 			if (beginpos < scl0.endpos) beginpos += 4*SEGSCALE;
 			if (beginpos < minbeginpos) {
@@ -495,13 +558,13 @@ Uint8& coastmap::mapf(int cx, int cy)
 
 
 
-int coastmap::find_begin_of_coastline(int& x, int& y)
+bool coastmap::find_begin_of_coastline(int& x, int& y)
 {
 	int sx = x, sy = y;
 	int lastborder_x = -1, lastborder_y = -1;
-	cout <<" find beg of cl " << sx << "," << sy << "\n";
-	// loop until we step on a map border, with land left of it.
-	int olddir = -1, turncount = 0;
+//	cout <<" find beg of cl " << sx << "," << sy << "\n";
+	// loop until we step on a map border, with land left of it, or we detect a circle (island or lake)
+	int olddir = -1;
 	while (true) {
 		// compute next x,y
 		int dir = -1;
@@ -512,7 +575,7 @@ int coastmap::find_begin_of_coastline(int& x, int& y)
 		}
 
 		if (olddir == -1)
-			sys().myassert(pattern != 5 && pattern != 10, "illegal start pattern!");
+			sys().myassert(pattern != 5 && pattern != 10, "illegal start pattern! at %i %i",x,y);
 
 		if (patternprocessok[pattern] && (x % pixels_per_seg == 0 || y % pixels_per_seg == 0)) {
 			lastborder_x = x;
@@ -539,15 +602,6 @@ int coastmap::find_begin_of_coastline(int& x, int& y)
 			dir = runlandright[pattern];
 			sys().myassert(dir != -1, "dir illegal 1");
 		}
-
-		// turncount
-		if (olddir != -1) {
-			int t = (dir - olddir + 4) % 4;
-			sys().myassert(t != 2, "no 180 degree turns allowed!");
-			if (t == 3) t = -1;
-			// positive values are ccw turns.
-			turncount += t;
-		}
 		olddir = dir;
 
 		int nx = x + dx[dir];
@@ -562,25 +616,16 @@ int coastmap::find_begin_of_coastline(int& x, int& y)
 		//cout << "x/y now " << x << "," << y << "\n";
 		if (sx == x && sy == y) {
 			if (lastborder_x != -1) {
-			//fixme: das kann dazu führen, daß begin auf x. .x pattern gesetzt wird,
-			//ab da ist startrichtung undefiniert!!!
-			//generell bricht das hier ab, wenn auf einem solchen pattern begonnen wird und ne
-			//ein teil des patterns quasi eine insel ist!
-			//also verbieten, daß findbegcl auf diesem pattern begonnen wird.
-			//wenn wird auf so einem pattern sind, und das als startpos gespeichert wird,
-			//dann sage auch die richtung, in die man loslaufen muß (gegenrichtung der richtung,
-			//mit der findbegcl das pattern erreicht hat!)
-				//jetzt nicht mehr, fixme
 				x = lastborder_x;
 				y = lastborder_y;
 			}
 			// kann +- 3 sein, wenn knick auf startpunkt
 			//sys().myassert(turncount == 4 || turncount == -4, "island but turn count != +-4? %i", turncount);
-			return (turncount < 0) ? -1 : 1;	// island found
+//			printf("reported island/lake found at %i %i\n",x,y);
+			return true;	// island found
 		}
 	}
-	sys().myassert(turncount >= -3 && turncount <= 3, "loop without island?? %i", turncount);
-	return 0;
+	return false;	// no island/lake, normal cl
 }
 
 
@@ -593,27 +638,25 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 	// In reality: north pole, ice, America to the west, Asia/africa to the east.
 	// generate points in ccw order, that means land is left, sea is right.
 
-	sys().myassert((mapf(x, y) & 0x80) == 0);
+//	sys().myassert((mapf(x, y) & 0x80) == 0);
 	
-	int beginok = find_begin_of_coastline(x, y);
-	if (beginok < 0) return false;
-	cyclic = (beginok > 0);
+	cyclic = find_begin_of_coastline(x, y);
 
 	int sx = x, sy = y;
-	int olddir = -1, turncount = 0;
+	int olddir = -1, turncount = 0, length = 0;
 	while (true) {
 		// store x,y
 		points.push_back(vector2i(x, y));
-
-		sys().myassert(x>=0&&y>=0&&x<=int(mapw)&&y<=int(maph));//fixme testweise von < auf <= gestellt
-		mapf(x, y) |= 0x80;
 
 		// compute next x,y
 		int dir = -1;
 
 		Uint8 pattern = 0;
 		for (int j = 0; j < 4; ++j) {
-			pattern |= (mapf(x+dmx[j], y+dmy[j]) & 0x7f) << j;
+			Uint8& c = mapf(x+dmx[j], y+dmy[j]);
+			pattern |= (c & 0x7f) << j;
+			// mark land as handled
+			c |= ((c & 0x7f) << 7);
 		}
 
 		if (olddir == -1)
@@ -655,6 +698,7 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 //		printf("pattern %02x%02x\npattern %02x%02x\n",mv[3],mv[2],mv[0],mv[1]);
 		if (nx < 0 || ny < 0 || nx > int(mapw) || ny > int(maph)) // border reached
 			break;
+		++length;
 		x = nx;
 		y = ny;
 		if (sx == x && sy == y) {
@@ -662,21 +706,80 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 		}
 	}
 
-cout<<"TURNCOUNT is "<<turncount<<"\n";	
-	return (!cyclic) || (turncount <= 0);
+//	cout<<"TURNCOUNT is "<<turncount<<", length is " << length << "\n";	
+	return (!cyclic) || (turncount > 0);
+}
+
+
+
+vector2i coastmap::compute_segment(const vector2i& p0, const vector2i& p1) const
+{
+	vector2i segnum0(p0.x / SEGSCALE, p0.y / SEGSCALE);
+	vector2i segoff0(p0.x % SEGSCALE, p0.y % SEGSCALE);
+//	cout << "comp seg: " << segnum0 << " off " << segoff0 << "\n";
+	// p0 can be on a corner, on an edge or really inside the segment. handle the three cases
+	if (segoff0.x > 0 && segoff0.y > 0) {
+		// truly inside
+		return segnum0;
+	} else if (segoff0.x == 0 && segoff0.y == 0) {
+		// on a corner
+		// direction to p1 determines segment of p0. Land is left of line p0->p1
+		unsigned q = quadrant(p1 - p0);
+		switch (q) {
+		case 0:
+		case 7:
+			--segnum0.x; // one left
+			break;
+		case 3:
+		case 4:
+			--segnum0.y; // one down
+			break;
+		case 5:
+		case 6:
+			--segnum0.x; // one left and down
+			--segnum0.y;
+			break;
+			// in other cases (1, 2) segment is the same
+		}
+		sys().myassert(segnum0.x < segsx, "segnum0.x out of bounds");
+		sys().myassert(segnum0.y < segsy, "segnum0.y out of bounds");
+		return segnum0;
+	} else {
+		// on an edge, it can be the left or bottom edge
+		unsigned q = quadrant(p1 - p0);
+//		cout << "quadrant: " << q << "\n";
+		if (segoff0.x == 0) {
+			// left edge. segment is left of segnum when p1 has relative angle in ]180...360]
+			// that means q values of 5,6,7,0
+			if (q == 0 || (q >= 5 && q <= 7)) {
+				--segnum0.x;
+			}
+		} else {
+			// bottom edge. segment is below segnum when p1 has relative angle in ]90...270]
+			// that means q values of 3..6
+			if (q >= 3 && q <= 6) {
+				--segnum0.y;
+			}
+		}
+		sys().myassert(segnum0.x < segsx, "segnum0.x out of bounds");
+		sys().myassert(segnum0.y < segsy, "segnum0.y out of bounds");
+		return segnum0;
+	}
 }
 
 
 
 void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcyclic)
 {
+	sys().myassert(cl.size() >= 2, "div and distri with < 2?");
+
 	coastsegment::segcl scl;
 
 	// divide coastline at segment borders
 	// find segment that first point is into
-	vector2i p0(cl[0].x, cl[0].y);
-	vector2i segc(p0.x / SEGSCALE, p0.y / SEGSCALE);
-	segc = segc.min(vector2i(segsx-1, segsy-1));		// segment coordinate
+	vector2i p0 = cl[0];
+	vector2i segc = compute_segment(p0, cl[1]);
+//	cout << "p0 is " << p0 << " p1 is " << cl[1] << " segc: " << segc << "\n";
 	int segcn = segc.y * segsx + segc.x;
 	vector2i segoff = segc * SEGSCALE;			// segment offset
 	vector2i segend = segoff + vector2i(SEGSCALE, SEGSCALE); // last coordinates IN segment
@@ -685,152 +788,109 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 	scl.push_back_point(ps0);
 	scl.beginpos = borderpos(ps0);
 
-	const vector2i segdelta[4] = { vector2i(0,-1), vector2i(1,0), vector2i(0,1), vector2i(-1,0) };
-
 	bool sameseg = true;
 	// loop over coastline
-	cout << "new distri!\n";
-	cout << "p0: " << p0 << " ps0 " << ps0.x << "," << ps0.y << " beginpos " << scl.beginpos << "\n";
+//	cout << "new distri!\n";
+//	cout << "p0: " << p0 << " ps0 " << ps0.x << "," << ps0.y << " beginpos " << scl.beginpos << "\n";
 	for (unsigned i = 1; i < cl.size(); ) {
-		cout << "i is " << i << "/" << cl.size() << " p0 " << p0 << " cli " << cl[i] << " cli-1 "
-		     << cl[i-1] << "\n";
-		sys().myassert(!(cl[i] == p0), "paranoia double bspli");
-		//fixme: add special case here: p0 and cl[i] are on the same border, then the line
-		//p0 to cl[i] should fall in the segment which is on the left (=land) of that line.
-		//this avoids triangulation faults.
-		// check if point is in same segment
-		if (cl[i].x >= segoff.x && cl[i].x <= segend.x &&
-		    cl[i].y >= segoff.y && cl[i].y <= segend.y) {
-			cout << "segc : " << segc << " segc2 : " << segc << "\n";
-			cout << " p0 : " << p0 << " cli " << cl[i] << "\n";
-			vector2i rel = cl[i] - segoff;
-			coastsegment::segpos psi((unsigned short)rel.x, (unsigned short)rel.y);
-			sys().myassert(!(scl.points.back() == psi), "trying to add double point1!");
-			scl.push_back_point(psi);
-			ps0 = psi;
-			p0 = cl[i];
-			++i;
-		} else {
-			// no, not in same segment. so compute intersection of cp0->cpi with segment borders
-			// compute which segment cpi is in.
-			sameseg = false;
-			// two cases: either line from p0->cl[i] cuts segment border (or corners)
-			// or p0 lies on the border (or corner).
-			if ((p0.x % SEGSCALE) == 0 || (p0.y % SEGSCALE) == 0) {
-				// p0 is on a segment border. choose new segment
-				// p0 has already been added to the segcl.
-				// determine border that p0 is on, set endpos accordingly.
-				//-----------fixme: choose seg so that land is left of line!
-				scl.endpos = borderpos(ps0);
-				//if (scl.endpos == -1) return;//test hack fixme
-				cout << "cli is " << cl[i] << "\n";
-				cout << "p0: " << p0 << " ps0 " << ps0.x << "," << ps0.y << " endpos " << scl.endpos << " segoff " << segoff << "\n";
-				sys().myassert(scl.endpos != -1, "borderpos check1");
-				// avoid segcl's with < 2 points.
-				// just avoid adding double points. segcl's crossing corners then
-				// only have one point and get discarded.
-				coastsegments[segcn].push_back_segcl(scl);
-				scl = coastsegment::segcl();
-				// compute segcn with seg of cl[i]
-				segc = vector2i(cl[i].x / SEGSCALE, cl[i].y / SEGSCALE);
-				segc = segc.min(vector2i(segsx-1, segsy-1));		// segment coordinate
-				segcn = segc.y * segsx + segc.x;
-				segoff = segc * SEGSCALE;			// segment offset
-				segend = segoff + vector2i(SEGSCALE, SEGSCALE); // last coordinates IN segment
-				rel = p0 - segoff;
-				ps0 = coastsegment::segpos((unsigned short)rel.x, (unsigned short)rel.y);
-				scl.push_back_point(ps0);
-				scl.beginpos = borderpos(ps0);
-				//if (scl.beginpos == -1) return;//test hack fixme
-				cout << "p0: " << p0 << " ps0 " << ps0.x << "," << ps0.y << " beginpos " << scl.beginpos << " segoff " << segoff << "\n";
-				//fixme: abbruch hier, weil es eine linie gibt, die auf dem rechten rand beginnt und der zielpunkt
-				//ein GANZES segment weiter links ist (rand 152/153 in x-richtung, cl[i] liegt in 151)
-				//daher macht der cast von rel.x nach unsigned short aus 2*SEGSCALE = 2*(2^16-1) % 2^16 =
-				//2^17-2 % 2^16 = -2 = 65534, und das ist nicht auf dem border!
-				//so lange linien sollten eigentlich gar nicht erlaubt sein. ist das der anfang einer insel???
-				//nein! wird da p0 auf was falsches gesetzt, durch eine berechnung vorher?
-				//eher nein, schon cl[i] und cl[i-1] sind in x-richtung 80000 und in y-r. 60-70.000 entfernt
-				//unglaublich, sowas darf gar net passieren!
-				sys().myassert(scl.beginpos != -1, "borderpos check2");
-				// repeat with same cl[i]
+//		cout << "i: " << i << "/" << cl.size() << " p0: " << p0 << " p1: " << cl[i] << "\n";
+		// handle line from p0 to cl[i] = p1.
+		const vector2i& p1 = cl[i];
+		// now p1 can be inside the same segment as p0, on the border of the same segment or
+		// in another segment.
+		vector2i rel = p1 - segoff;
+		if (rel.x >= 0 && rel.y >= 0 && rel.x <= SEGSCALE && rel.y <= SEGSCALE) {
+			// inside the same segment or on border
+			ps0.x = (unsigned short)rel.x;
+			ps0.y = (unsigned short)rel.y;
+			scl.push_back_point(ps0);
+			p0 = p1;
+			if (rel.x > 0 && rel.y > 0 && rel.x < SEGSCALE && rel.y < SEGSCALE) {
+				// really inside the segment, just continue
+				++i;
 			} else {
-				// intersection: it depends on the direction of that line.
-				vector2i delta = cl[i] - p0;
-				// border coordinates are segoff.x/y and segend.x/y
-				double mint = 1e30;
-				// find nearest intersection with border along line
-				int border = -1;
-				if (delta.x > 0) {
-					// check right border
-					double t = double(segend.x - p0.x) / delta.x;
-					if (t < mint) { mint = t; border = 1; }
-				} else if (delta.x < 0) {
-					// check left border
-					double t = double(segoff.x - p0.x) / delta.x;
-					if (t < mint) { mint = t; border = 3; }
-				}
-				if (delta.y > 0) {
-					// check top border
-					double t = double(segend.y - p0.y) / delta.y;
-					if (t < mint) { mint = t; border = 2; }
-				} else if (delta.y < 0) {
-					// check bottom border
-					double t = double(segoff.y - p0.y) / delta.y;
-					if (t < mint) { mint = t; border = 0; }
-				}
-				cout << "mint "<< mint<<" border "<<border <<"\n";
-				cout << "p0: " << p0 << " cli " << cl[i] << " dekta " << delta << "\n";
-				sys().myassert(border != -1, "paranoia mint");
-				vector2i p1 = vector2i(int(round(p0.x + mint * delta.x)), int(round(p0.y + mint * delta.y)));
-				cout << "p1 real " << double(p0.x) + mint * delta.x << "," << double(p0.y) + mint * delta.y << "\n";
-				vector2i rel = p1 - segoff;
-				coastsegment::segpos psi((unsigned short)rel.x, (unsigned short)rel.y);
-				sys().myassert(psi.x == 0 || psi.x == SEGSCALE || psi.y == 0 || psi.y == SEGSCALE, "paranoia border");
-				// if cl[i] is on a border/corner this should be handled correctly
-				// by avoiding segcls with < 2 points.
-				// if the segcl comes from seg x and leaves to y, but touches also segs
-				// w and z, we will get segcls with one point in w and z and the right
-				// segcl in y. w/z's segcls will get discarded later. So everything is right
-				scl.push_back_point(psi);
-				scl.endpos = borderpos(psi);
-				sys().myassert(scl.endpos != -1, "borderpos check3");
+				// on edge or corner.
+				scl.endpos = borderpos(ps0);
+				sys().myassert(scl.endpos != -1, "borderpos check2");
 				coastsegments[segcn].push_back_segcl(scl);
-				// recompute segment values
-				cout << "segc : " << segc << " segc2 : " << segc << "\n";
-				cout << " p0 : " << p0 << " cli " << cl[i] << "\n";
-				segc += segdelta[border];
-				segc = segc.min(vector2i(segsx-1, segsy-1));	// segment coordinate
-				segcn = segc.y * segsx + segc.x;
-				cout << "i " << i << " cl.siz " << cl.size() << "\n";
-				cout << "segc : " << segc << " segc2 : " << segc << "\n";
-				segoff = segc * SEGSCALE;			// segment offset
-				segend = segoff + vector2i(SEGSCALE, SEGSCALE); // last coordinates IN segment
-				rel = p1 - segoff;
-				cout << "segoff " << segoff << " rel " << rel << "\n";
-				psi = coastsegment::segpos((unsigned short)rel.x, (unsigned short)rel.y);
-				cout << "psi: " << psi << " segoff " << segoff << " p1 " << p1 << "\n";
-				sys().myassert(psi.x == 0 || psi.x == SEGSCALE || psi.y == 0 || psi.y == SEGSCALE, "paranoia border2");
-				ps0 = psi;
-				p0 = p1;
+				// now switch to new segment if there are lines left
+				if (i + 1 < cl.size()) {
+					sameseg = false;
+					segc = compute_segment(p1, cl[i+1]);
+					segcn = segc.y * segsx + segc.x;
+					segoff = segc * SEGSCALE;
+					segend = segoff + vector2i(SEGSCALE, SEGSCALE);
+					rel = p1 - segoff;
+					ps0.x = (unsigned short)rel.x;
+					ps0.y = (unsigned short)rel.y;
+					scl = coastsegment::segcl();
+					scl.push_back_point(ps0);
+					scl.beginpos = borderpos(ps0);
+				}
+				++i; // continue from p1 on.
+			}
+		} else {
+			// p1 is in another segment
+			sameseg = false;
 
+			// compute intersection of p0->p1 with segment borders
+			vector2i delta = p1 - p0;
+			// border coordinates are segoff.x/y and segend.x/y
+			double mint = 1e30;
+			// find nearest intersection with border along line
+			int border = -1;
+			if (delta.x > 0) {
+				// check right border
+				double t = double(segend.x - p0.x) / delta.x;
+				if (t < mint) { mint = t; border = 1; }
+			} else if (delta.x < 0) {
+				// check left border
+				double t = double(segoff.x - p0.x) / delta.x;
+				if (t < mint) { mint = t; border = 3; }
+			}
+			if (delta.y > 0) {
+				// check top border
+				double t = double(segend.y - p0.y) / delta.y;
+				if (t < mint) { mint = t; border = 2; }
+			} else if (delta.y < 0) {
+				// check bottom border
+				double t = double(segoff.y - p0.y) / delta.y;
+				if (t < mint) { mint = t; border = 0; }
+			}
+//			cout << "mint "<< mint<<" border "<<border <<"\n";
+//			cout << "p0: " << p0 << " p1 " << p1 << " dekta " << delta << "\n";
+			sys().myassert(border != -1, "paranoia mint");
+			vector2i p2 = vector2i(int(round(p0.x + mint * delta.x)), int(round(p0.y + mint * delta.y)));
+//			cout << "p2 real " << double(p0.x) + mint * delta.x << "," << double(p0.y) + mint * delta.y << "\n";
+			vector2i rel = p2 - segoff;
+			coastsegment::segpos ps2((unsigned short)rel.x, (unsigned short)rel.y);
+			sys().myassert(ps2.x == 0 || ps2.x == SEGSCALE || ps2.y == 0 || ps2.y == SEGSCALE, "paranoia border");
+			// if p1 is on a border/corner this should be handled correctly
+			// by avoiding segcls with < 2 points.
+			// if the segcl comes from seg x and leaves to y, but touches also segs
+			// w and z, we will get segcls with one point in w and z and the right
+			// segcl in y. w/z's segcls will get discarded later. So everything is right
+			scl.push_back_point(ps2);
+			scl.endpos = borderpos(ps2);
+			sys().myassert(scl.endpos != -1, "borderpos check3");
+			coastsegments[segcn].push_back_segcl(scl);
+			// now switch to new segment if there are lines left
+			if (i + 1 < cl.size()) {
+				segc = compute_segment(p2, cl[i+1]);
+				segcn = segc.y * segsx + segc.x;
+				segoff = segc * SEGSCALE;
+				segend = segoff + vector2i(SEGSCALE, SEGSCALE);
+				rel = p2 - segoff;
+				ps0.x = (unsigned short)rel.x;
+				ps0.y = (unsigned short)rel.y;
 				scl = coastsegment::segcl();
 				scl.push_back_point(ps0);
 				scl.beginpos = borderpos(ps0);
-				sys().myassert(scl.beginpos != -1, "borderpos check4");
-				// repeat with same cl[i]
 			}
+			p0 = p2;
+			// do not increase i, but continue with line p2->p1.
 		}
 	}
-			
-	// store remaining segment
-	coastsegment::segpos cpb((unsigned short)(cl.back().x - segoff.x),
-				 (unsigned short)(cl.back().y - segoff.y));
-	scl.endpos = borderpos(cpb);
-
-	scl.cyclic = (clcyclic && sameseg);
-	if (scl.cyclic) scl.next = coastsegments[segcn].segcls.size(); // points to itself.
-	cout << "remaining segcl has " << scl.points.size() << " points, cyclic? " << (scl.cyclic) << "\n";
-	coastsegments[segcn].push_back_segcl(scl);
 }
 
 
@@ -854,7 +914,7 @@ void coastmap::process_coastline(int x, int y)
 	tmp.reserve(points.size());
 	for (unsigned i = 0; i < points.size(); ++i) {
 		tmp.push_back(vector2(points[i].x, points[i].y));
-		cout << i << "/" << points.size() << " is " << points[i] << " / " << vector2(points[i].x, points[i].y) << "\n";
+//		cout << i << "/" << points.size() << " is " << points[i] << " / " << vector2(points[i].x, points[i].y) << "\n";
 	}
 	points.clear();
 
@@ -862,14 +922,18 @@ void coastmap::process_coastline(int x, int y)
 	if (cyclic) {
 		// close polygon and make sure the first and last line are linear dependent
 		//fixme: problematic, cl will not begin on border any longer
+		// solution: compute tangential line at p0, direction is line from p1 to p-1
+		//create new points p0.5 and p-0.5 at half distance.
 		sys().myassert(tmp.size()>2);
 		vector2 p0 = tmp[0];
 		vector2 p1 = tmp[1];
 		vector2 p01 = (p0 + p1) * 0.5;
 
-		printf("closing coastline with trick!\n");
+//		printf("closing coastline with trick!\n");
 
-		// close coastline.
+		// close coastline. A must have or the .next computation seems to fail.
+		// however this could be the reason why triangulation fails for (all?) islands.
+		// the last and first point is then the same, such cases can't be triangulated.
 		tmp.push_back(tmp.front());
 /* fixme.
 		tmp[0] = p01;
@@ -896,32 +960,9 @@ void coastmap::process_coastline(int x, int y)
 	vector<vector2i> spoints;
 	spoints.reserve(nrpts);
 	double sscal = double(SEGSCALE) / pixels_per_seg;
-	vector2 oldcv;
-	cout << "generating " << nrpts << " pts\n";
+//	cout << "generating " << nrpts << " pts\n";
 	for (unsigned i = 0; i < nrpts; ++i) {
 		vector2 cv = curve.value(float(i)/(nrpts-1));
-		//offenbar spuckt der bspline-algo längere strecken am anfang/ende der kurve aus, sogar so lange,
-		//daß sie länger als ein segment sind.
-		//die werte sind aber u.u. krass falsch, der letze liegt ganz woanders.
-		//der liegt nicht mal nahe dem endpunkt, der als control-point weiter oben angegeben wird!!!
-		//folglich ist der bspline-algo irgendwie falsch!		
-		//der lineare-interpo.-ersatz-algo macht aber das gleiche. die letzen 3-4 stützpunkte
-		//driften drastisch ab!
-		//das ist weil die cl als cyclic behandelt wird und ein neuer endpunkt eingefügt wird!
-		//sie ist zwar nicht zyklisch, aber find_beg_of_cl behauptet das so!
-		//problem ist ein See. so ca. 399/1529 bzw. real 399/471.
-		//der hat die form:
-		// x.
-		// .x
-		// find beg of cl generiert eine cyclic cl, die aber ein see ist.
-		// find_cl läuft dann ab da los,aber eben nicht um den see, sondern außen!
-		// das sollte nicht passieren. findcl/findbegcl weichen also ab. kacke! fixme!
-		//das problem ist, daß die mitte der geometrischen form auf ner segmentgrenze liegt!
-		//d.h. find_beg fängt innen an, speichert als startpunkt aber außen...
-		//loslaufrichtung bei dieser formation ist unklar! lösung vielleicht: dort GAR NICHT anfangen.
-		//problem tritt auch bei inseln auf.
-		if (i>0 && oldcv.distance(cv) > 16) { cout << "WARNING!!!!!!!!!! "<<i<<"/"<<nrpts<<" oldcv "<<oldcv<<" cv "<<cv<<"\n"; }
-		oldcv = cv;
 		vector2i cvi = vector2i(int(round(cv.x * sscal)), int(round(cv.y * sscal)));
 		// avoid double points here.
 		if (spoints.empty() || !(spoints.back() == cvi))
@@ -952,6 +993,38 @@ void coastmap::process_segment(int sx, int sy)
 		// compute cl.next info
 		for (unsigned i = 0; i < cs.segcls.size(); ++i) {
 			cs.compute_successor_for_cl(i);
+		}
+	}
+}
+
+
+
+unsigned coastmap::quadrant(const vector2i& d)
+{
+	if (d.x < 0) {
+		if (d.y < 0) {
+			return 5;
+		} else if (d.y > 0) {
+			return 7;
+		} else {
+			return 6;
+		}
+	} else if (d.x > 0) {
+		if (d.y < 0) {
+			return 3;
+		} else if (d.y > 0) {
+			return 1;
+		} else {
+			return 2;
+		}
+	} else {
+		if (d.y < 0) {
+			return 4;
+		} else if (d.y > 0) {
+			return 0;
+		} else {
+			sys().myassert(false, "quadrant called with 0!");
+			return 8;
 		}
 	}
 }
@@ -1042,10 +1115,14 @@ coastmap::coastmap(const string& filename)
 		for (int xx = 0; xx < int(mapw); ++xx) {
 			if (mapf(xx, yy) & 0x80) continue;
 			Uint8 pattern = 0;
+			Uint8 marker = 0;
 			for (int j = 0; j < 4; ++j) {
-				pattern |= (mapf(xx+dmx[j], yy+dmy[j]) & 0x7f) << j;
+				Uint8 c = mapf(xx+dmx[j], yy+dmy[j]);
+				pattern |= (c & 0x7f) << j;
+				marker |= c;
+				
 			}
-			if (patternprocessok[pattern]) {
+			if (patternprocessok[pattern] && ((marker & 0x80) == 0)) {
 				process_coastline(xx, yy);
 			}
 		}

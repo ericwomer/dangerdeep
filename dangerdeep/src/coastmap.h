@@ -30,6 +30,8 @@ public:
 		void print() const;	// for debugging
 		segcl() : beginpos(-1), endpos(-1), next(-1), cyclic(false) {}
 		void push_back_point(const segpos& sp);	// avoids double points
+		void render(const class coastmap& cm, int segx, int segy, const vector2& offset,
+			    int detail) const;
 	};
 
 	unsigned type;	// 0 - sea, 1 - land, 2 mixed
@@ -99,17 +101,21 @@ class coastmap
 	// give border number (-1,0...3) and position in segment.
 	int borderpos(const coastsegment::segpos& p) const;
 
-	// returns -1 for invalid coastline (lake), 0 for normal cl, 1 for islands.
-	int find_begin_of_coastline(int& x, int& y);
+	// returns false for normal cl, true for islands/lakes.
+	bool find_begin_of_coastline(int& x, int& y);
 	bool find_coastline(int x, int y, vector<vector2i>& points, bool& cyclic);
+	vector2i compute_segment(const vector2i& p0, const vector2i& p1) const;
 	void divide_and_distribute_cl(const vector<vector2i>& cl, bool clcyclic);
 	void process_coastline(int x, int y);
 	void process_segment(int x, int y);
 
+public:	
+	// returns quadrant of vector d (0: - 0 degr, 1: - ]0...90[ degr, 2 - 90 degr ... 7: ..360[ degr.)
+	static unsigned quadrant(const vector2i& d);
+
 	vector2 segcoord_to_real(int segx, int segy, const coastsegment::segpos& sp) const;
 	vector2f segcoord_to_texc(int segx, int segy, const coastsegment::segpos& sp) const;
 
-public:	
 	// create from xml file
 	coastmap(const string& filename);
 

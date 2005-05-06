@@ -77,11 +77,12 @@ public:
 	
 	T value(double t) const
 	{
+/* test: linear interpolation
 		unsigned bp = unsigned(t*(cp.size()-1));
 		unsigned np = bp+1;if(np==cp.size())np=bp;
 		t = t*(cp.size()-1) - bp;
 		return cp[bp] * (1.0-t) + cp[np] * t;
-
+*/
 		assert (0 <= t && t <= 1);
 
 		unsigned l = find_l(t);

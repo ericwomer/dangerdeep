@@ -34,6 +34,12 @@ vector<unsigned> triangulate::compute(const vector<vector2>& vertices)
 	vector<unsigned> indices;
 	if (vertices.size() < 3) return indices;	// error!
 	indices.reserve(3*vertices.size());
+	// fixme: use a vector and mark entries as "erased" (-1)
+	// next then steps over erased entries.
+	// count number of valid entries separately.
+	// that is much easier and faster.
+	// fixme 2: use delaunay condition to check triangles. But maybe the triangulation then fails some
+	// times...
 	list<unsigned> vl;
 	for (unsigned l = 0; l < vertices.size(); ++l)
 		vl.push_back(l);
@@ -55,7 +61,7 @@ int haengt=0;	// fixme: hack to avoid lock ups. why do they occour? reasons mayb
 		// check these cases (1,2)
 	while (vl.size() > 3) {
 ++haengt;
-if(haengt>2000){
+if(haengt>8000){
 	cout<<"TRIANGULATE: LOCKUP DETECTED! ("<<polyscreated<<","<<iscorrecttests<<","<<notriangpossible<<")\n";
 	ostringstream oss; oss << "failed_triang_" << failcount++ << ".off";
 	ofstream out(oss.str().c_str());
