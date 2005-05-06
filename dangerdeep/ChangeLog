@@ -1,3 +1,9 @@
+2005-05-06  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* coastmap.cpp/.h
+	  - many test, hacks and fixes to make coastline generation code
+	    work again. Only one bug remains, many old bugs are fixed now.
+	    coastlines could be reenabled for 3d rendering again now.
+
 2005-04-24  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* system.h/cpp
 	  - now supports printf style parameters for myassert and
