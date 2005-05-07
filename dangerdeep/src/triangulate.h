@@ -8,14 +8,17 @@
 #define TRIANGULATE_H
 
 #include "vector2.h"
-#include <list>
 #include <vector>
 using namespace std;
 
 struct triangulate
 {
-	static void next(list<unsigned>& vl, list<unsigned>::iterator& i) {
-		++i; if (i == vl.end()) i = vl.begin();
+	static unsigned next(const vector<unsigned>& vl, unsigned i) {
+		do {
+			++i;
+			if (i == vl.size()) i = 0;
+		} while (vl[i] == unsigned(-1));
+		return i;
 	}
 
 	static bool is_correct_triangle(const vector2& a, const vector2& b, const vector2& c) {

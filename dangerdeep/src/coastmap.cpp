@@ -61,12 +61,13 @@ const int coastmap::runlandright[16] = {-1, 0, 1, 1, 2,-1, 2, 2, 3, 0,-1, 1, 3, 
 
 /*
 fixme: 2005/05/05
-was fehlt noch, was für bugs:
-triangulierung scheitert manchmal, vor allem bei kleinen inseln.
-
-bspline-smoothing at begin/end of island coastline is missing.
-it must be handled so that the begin/end point is still on any border,
-if the island crosses a border.
+remaining bus:
+1) triangulation faults at one island near Greece, in the Aegean. This is because the
+   triangulation algorithm is not perfect.
+   Hmmm... this is the only segment where illegal .next values are reported.
+   Maybe the triangulation is OK, the error is somewhere else!
+   yes, see compute_successor!
+2) many double points are erased. Why are they created? this shouldn't happen...
 */
 
 
@@ -251,8 +252,8 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 			// find area
 			unsigned current = i;
 			do {
-				//cout << "segpos: x " << x << " y " << y << "\n";
-				//cout << "current is : " << current << "\n";
+				cout << "segpos: x " << x << " y " << y << "\n";
+				cout << "current is : " << current << "\n";
 			//	segcls[current].print();
 				//erzeugt, weil endpos falsch ist, border pos. von altem segment
 				//insel hat endpos=-1, obwohl sie segmentgrenze schneidet! startpos aber !=-1
@@ -272,8 +273,8 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 					ce.points.push_back(vector2(cl.points[j].x, cl.points[j].y) * sc);
 				}
 				int next = cl.next;
-				//cout << "startpos " << cl.beginpos << " endpos: " << cl.endpos << " next " << next << " next startpos: " << segcls[next].beginpos << "\n";
-				//cout << "current="<<current<<" next="<<next<<"\n";
+				cout << "startpos " << cl.beginpos << " endpos: " << cl.endpos << " next " << next << " next startpos: " << segcls[next].beginpos << "\n";
+				cout << "current="<<current<<" next="<<next<<"\n";
 				cl_handled[current] = true;
 				sys().myassert(next!=-1, "next unset?");
 				//if(current==next)break;
@@ -311,8 +312,12 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 				}
 			}
 			if (dbl > 0) cout << "erased " << dbl << " double points!\n";
+			// remove last point that coincides with first point for islands.
+			if (ce.points.back().square_distance(ce.points.front()) < 0.1f) {
+				ce.points.pop_back();
+			}
 			
-			printf("triangulating seg %i %i\n",x,y);
+//			printf("triangulating seg %i %i\n",x,y);
 			ce.indices = triangulate::compute(ce.points);
 			pointcache.push_back(ce);
 		}
@@ -343,6 +348,7 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detai
 		vector2f tc0 = cm.segcoord_to_texc(x, y);
 		vector2f tc1 = cm.segcoord_to_texc(x+1, y+1);
 		generate_point_cache(cm, x, y, detail);
+//glColor3f(0,1,1);
 		glBegin(GL_TRIANGLES);
 		for (vector<cacheentry>::const_iterator cit = pointcache.begin(); cit != pointcache.end(); ++cit) {
 			for (vector<unsigned>::const_iterator tit = cit->indices.begin(); tit != cit->indices.end(); ++tit) {
@@ -373,7 +379,8 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detai
 		glEnd();
 		glColor3f(1,1,1);
 #endif
-#if 0
+#if 1
+		// cl lines
 		double sc = cm.segw_real / SEGSCALE;
 		glColor3f(1,0.5,0.5);
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -388,16 +395,47 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detai
 		}
 		glColor3f(0,0.5,0.5);
 #endif
+#if 1
+		// cl points
+		glColor3f(1,1,0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glPointSize(2.0);
+		for (unsigned i = 0; i < segcls.size(); ++i) {
+			const segcl& scl = segcls[i];
+			glBegin(GL_POINTS);
+			for (unsigned j = 0; j < scl.points.size(); ++j) {
+				vector2 p = vector2(scl.points[j].x, scl.points[j].y) * sc;
+				glVertex2dv(&p.x);
+			}
+			glEnd();
+		}
+		glColor3f(0,0.5,0.5);
+#endif
+#if 0
+		// triangle borders
+		glBegin(GL_LINES);
+		glColor3f(1,1,1);
+		for (vector<cacheentry>::const_iterator cit = pointcache.begin(); cit != pointcache.end(); ++cit) {
+			if (cit->indices.size() % 3 != 0) {printf("WARNING! can't draw triangles!\n");continue;}
+			for (vector<unsigned>::const_iterator tit = cit->indices.begin(); tit != cit->indices.end(); ) {
+				const vector2& v0 = cit->points[*tit]; ++tit;
+				const vector2& v1 = cit->points[*tit]; ++tit;
+				const vector2& v2 = cit->points[*tit]; ++tit;
+				glVertex2dv(&v0.x);
+				glVertex2dv(&v1.x);
+				glVertex2dv(&v1.x);
+				glVertex2dv(&v2.x);
+				glVertex2dv(&v2.x);
+				glVertex2dv(&v0.x);
+			}
+		}
+		glEnd();
+#endif		
 	}
 }
 
 
 
-//fixme:
-//cache results.
-//remove unnecessary flat quads in the distance/don't generate them
-//introduces LOD.
-//many more effects...
 #include <sstream>
 // p is viewpos of player relative to segment border (in-segment offset of player)
 void coastsegment::render(const class coastmap& cm, int x, int y, const vector2& p, int detail) const
@@ -531,6 +569,9 @@ void coastsegment::compute_successor_for_cl(unsigned cln)
 			if (scl1.cyclic) continue;
 
 			int beginpos = scl1.beginpos;
+			// note! use <= not < here, to avoid connecting two segcl's that form one cl
+			// which touches the border only (two scl's are generated for this situation)
+			// fixme: but with <= many other segcl's fail...
 			if (beginpos < scl0.endpos) beginpos += 4*SEGSCALE;
 			if (beginpos < minbeginpos) {
 				scl0.next = i;
@@ -916,7 +957,7 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 
 void coastmap::process_coastline(int x, int y)
 {
-	sys().myassert ((mapf(x, y) & 0x80) == 0);
+	sys().myassert ((mapf(x, y) & 0x80) == 0, "map pos already handled!");
 	
 	// find coastline, avoid "lakes", (inverse of islands), because the triangulation will fault there
 	vector<vector2i> points;
@@ -935,31 +976,53 @@ void coastmap::process_coastline(int x, int y)
 		tmp.push_back(vector2(points[i].x, points[i].y));
 //		cout << i << "/" << points.size() << " is " << points[i] << " / " << vector2(points[i].x, points[i].y) << "\n";
 	}
-	points.clear();
 
-//	cout << "points.size()="<<points.size()<<" cyclic?"<<cyclic<<"\n";
+	// now close coastline for islands. Must be done with double coordinates, since we can
+	// have new points between old (integer coordinate) points.
 	if (cyclic) {
 		// close polygon and make sure the first and last line are linear dependent
-		//fixme: problematic, cl will not begin on border any longer
-		// solution: compute tangential line at p0, direction is line from p1 to p-1
-		//create new points p0.5 and p-0.5 at half distance.
-		sys().myassert(tmp.size()>2);
-		vector2 p0 = tmp[0];
-		vector2 p1 = tmp[1];
-		vector2 p01 = (p0 + p1) * 0.5;
-
-//		printf("closing coastline with trick!\n");
-
-		// close coastline. A must have or the .next computation seems to fail.
-		// however this could be the reason why triangulation fails for (all?) islands.
-		// the last and first point is then the same, such cases can't be triangulated.
-		tmp.push_back(tmp.front());
-/* fixme.
-		tmp[0] = p01;
-		tmp.push_back(p0);
-		tmp.push_back(p01);
-*/
+		// this must be done so that the start point still is kept on any border,
+		// if it was on a border.
+		// this can be done that way: take points 0, 1, and n-1 (last) = b,c,a, with a != b
+		// so a,b,c are the points over start/end, closing the coastline loop.
+		// either a,b,c are on the same line, then all is right, or either a,b or b,c are both
+		// on a border. In the latter case introduce a new point between a,b or b,c and use
+		// that as start point.
+		// That way we have three points a,b,c or a,ab',b or b,bc',c that form a line,
+		// the bspline is tangential to that line at begin and end, so the bspline is smooth there.
+		sys().myassert(points.size()>2, "points size < 2?");
+		vector2i a = points.back();
+		vector2i b = points[0];
+		vector2i c = points[1];
+		// check if x,y,z are not on a line, they are when all x or all y coordinates are the same
+		if ((a.x != b.x || b.x != c.x) && (a.y != b.y || b.y != c.y)) {
+			// not on one line, now either a or c are on a border
+//			cout << "a " << a << " b " << b << " c " << c << "\n";
+			if (a.x % pixels_per_seg == 0 || a.y % pixels_per_seg == 0) {
+				// a is on border
+				vector2 a2, b2; a2.assign(a); b2.assign(b);
+				vector2 ab = (a2 + b2) * 0.5;
+				tmp.insert(tmp.begin(), ab); // push_front
+				tmp.push_back(ab);
+//				cout << "a " << a << " b " << b << " c " << c << " ab " << ab << "\n";
+			} else {
+//				sys().myassert(c.x % pixels_per_seg == 0 || c.y % pixels_per_seg == 0, "neither a nor c are on a border?");
+				// c is on border, or this is an island without any border contact.
+				vector2 b2, c2; b2.assign(b); c2.assign(c);
+				vector2 bc = (b2 + c2) * 0.5;
+				b2 = tmp[0];
+				tmp[0] = bc;
+				tmp.push_back(b2);
+				tmp.push_back(bc);
+//				cout << "a " << a << " b " << b << " c " << c << " bc " << bc << "\n";
+			}
+		} else {
+			// on one line. close coastline.
+			tmp.push_back(tmp.front());
+		}
 	}
+	// clean up
+	points.clear();
 
 	unsigned n = tmp.size() - 1;
 	// fixme: a high n on small islands leads to a non-uniform spatial distribution of
@@ -974,7 +1037,7 @@ void coastmap::process_coastline(int x, int y)
 
 	// smooth points will be scaled so that each segment is (2^16)-1 units long.
 	unsigned nrpts = unsigned(tmp.size() * BSPLINE_DETAIL);
-	sys().myassert(nrpts >= 2);
+	sys().myassert(nrpts >= 2, " nrpts < 2?");
 	tmp.clear();
 	vector<vector2i> spoints;
 	spoints.reserve(nrpts);
@@ -983,7 +1046,7 @@ void coastmap::process_coastline(int x, int y)
 	for (unsigned i = 0; i < nrpts; ++i) {
 		vector2 cv = curve.value(float(i)/(nrpts-1));
 		vector2i cvi = vector2i(int(round(cv.x * sscal)), int(round(cv.y * sscal)));
-		// avoid double points here.
+		// avoid double points here., fixme assert them?
 		if (spoints.empty() || !(spoints.back() == cvi))
 			spoints.push_back(cvi);
 	}

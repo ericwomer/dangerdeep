@@ -40,12 +40,14 @@ vector<unsigned> triangulate::compute(const vector<vector2>& vertices)
 	// that is much easier and faster.
 	// fixme 2: use delaunay condition to check triangles. But maybe the triangulation then fails some
 	// times...
-	list<unsigned> vl;
+	vector<unsigned> vl;
+	vl.reserve(vertices.size());
+	unsigned vl_size = vertices.size();
 	for (unsigned l = 0; l < vertices.size(); ++l)
 		vl.push_back(l);
-	list<unsigned>::iterator i0 = vl.begin();
-	list<unsigned>::iterator i1 = i0; next(vl, i1);
-	list<unsigned>::iterator i2 = i1; next(vl, i2);
+	unsigned i0 = 0;
+	unsigned i1 = 1;
+	unsigned i2 = 2;
 // fixme: 2004/02/14, with the new map the lockups reoccour. why?!	
 int iscorrecttests=0;
 int notriangpossible=0;
@@ -59,7 +61,7 @@ int haengt=0;	// fixme: hack to avoid lock ups. why do they occour? reasons mayb
 		// and a triangle d,e,a is formed, the polygon's AREA is triangulated, but
 		// b,c are on line a-d. -> change is_inside test, what about epsilon?! AVOIDED, FIXED
 		// check these cases (1,2)
-	while (vl.size() > 3) {
+	while (vl_size > 3) {
 ++haengt;
 if(haengt>8000){
 	cout<<"TRIANGULATE: LOCKUP DETECTED! ("<<polyscreated<<","<<iscorrecttests<<","<<notriangpossible<<")\n";
@@ -82,37 +84,41 @@ if(haengt>8000){
 		out << "3 " << i << " " << vs << " " << (i+1)%vs << "\n";
 	return indices;
 }
-		if (!is_correct_triangle(vertices[*i0], vertices[*i1], vertices[*i2])) {
+		if (!is_correct_triangle(vertices[i0], vertices[i1], vertices[i2])) {
 ++iscorrecttests;
-			next(vl, i0);
-			next(vl, i1);
-			next(vl, i2);
+			i0 = next(vl, i0);
+			i1 = next(vl, i1);
+			i2 = next(vl, i2);
 			continue;
 		}
-		list<unsigned>::iterator i3 = i2; next(vl, i3);
-		for ( ; i3 != i0; next(vl, i3)) {
-			if (is_inside_triangle(vertices[*i0], vertices[*i1], vertices[*i2], vertices[*i3]))
+		unsigned i3 = next(vl, i2);
+		for ( ; i3 != i0; i3 = next(vl, i3)) {
+			if (is_inside_triangle(vertices[i0], vertices[i1], vertices[i2], vertices[i3]))
 				break;
 		}
 		if (i3 == i0) {
 ++polyscreated;		
-			indices.push_back(*i0);
-			indices.push_back(*i1);
-			indices.push_back(*i2);
-			vl.erase(i1);
+			indices.push_back(i0);
+			indices.push_back(i1);
+			indices.push_back(i2);
+//			cout << "TRI: adding triangle " << i0 << "/" << i1 << "/" << i2 << "\n";
+			vl[i1] = unsigned(-1);
+			--vl_size;
 			i1 = i2;
-			next(vl, i2);
+			i2 = next(vl, i2);
 		} else {
 ++notriangpossible;
-			next(vl, i0);
-			next(vl, i1);
-			next(vl, i2);
+			i0 = next(vl, i0);
+			i1 = next(vl, i1);
+			i2 = next(vl, i2);
 		}
 	}
 	// add remaining triangle
-	indices.push_back(*i0);
-	indices.push_back(*i1);
-	indices.push_back(*i2);
+	//fixme: wird letztes dreieck eingefügt, aber es ist nicht ccw????
+	indices.push_back(i0);
+	indices.push_back(i1);
+	indices.push_back(i2);
+//	cout << "TRI: adding triangle " << i0 << "/" << i1 << "/" << i2 << "\n";
 	return indices;
 }
 
