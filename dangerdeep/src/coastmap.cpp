@@ -938,19 +938,18 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 				++i;
 			} else {
 				// on edge or corner.
-				scl.endpos = borderpos(ps0);
-				sys().myassert(scl.endpos != -1, "borderpos check2");
-
 				// now switch to new segment if there are lines left
 				if (i + 1 < cl.size()) {
 					segc = compute_segment(p1, cl[i+1]);
 					int newsegcn = segc.y * segsx + segc.x;
 // another trial fix.					
-#if 1
+#if 0
 					if (newsegcn != segcn) {
 #else
 					{
 #endif
+						scl.endpos = borderpos(ps0);
+						sys().myassert(scl.endpos != -1, "borderpos check2a");
 						coastsegments[segcn].push_back_segcl(scl);
 						segcn = newsegcn;
 						sameseg = false;
@@ -964,6 +963,8 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 						scl.beginpos = borderpos(ps0);
 					}
 				} else {
+					scl.endpos = borderpos(ps0);
+					sys().myassert(scl.endpos != -1, "borderpos check2b");
 					coastsegments[segcn].push_back_segcl(scl);
 				}
 				++i; // continue from p1 on.
