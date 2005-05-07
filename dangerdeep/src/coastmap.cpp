@@ -62,12 +62,14 @@ const int coastmap::runlandright[16] = {-1, 0, 1, 1, 2,-1, 2, 2, 3, 0,-1, 1, 3, 
 /*
 fixme: 2005/05/05
 remaining bus:
-1) triangulation faults at one island near Greece, in the Aegean. This is because the
-   triangulation algorithm is not perfect.
-   Hmmm... this is the only segment where illegal .next values are reported.
-   Maybe the triangulation is OK, the error is somewhere else!
-   yes, see compute_successor!
+1) triangulation faults at one island near Greece, in the Aegean. This is NOT because the
+   triangulation algorithm is not perfect (it could be better though...)
+   This is the only segment where illegal .next values are reported.
+   Reason is known, see compute_successor!
 2) many double points are erased. Why are they created? this shouldn't happen...
+   Maybe because one coastline is divided into many small 1-line segcls.
+   Yes! with the fix that avoids such divisions, no double points need to get erased.
+   But the fix breaks some islands...
 */
 
 
@@ -252,8 +254,8 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 			// find area
 			unsigned current = i;
 			do {
-				cout << "segpos: x " << x << " y " << y << "\n";
-				cout << "current is : " << current << "\n";
+//				cout << "segpos: x " << x << " y " << y << "\n";
+//				cout << "current is : " << current << "\n";
 			//	segcls[current].print();
 				//erzeugt, weil endpos falsch ist, border pos. von altem segment
 				//insel hat endpos=-1, obwohl sie segmentgrenze schneidet! startpos aber !=-1
@@ -273,8 +275,8 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 					ce.points.push_back(vector2(cl.points[j].x, cl.points[j].y) * sc);
 				}
 				int next = cl.next;
-				cout << "startpos " << cl.beginpos << " endpos: " << cl.endpos << " next " << next << " next startpos: " << segcls[next].beginpos << "\n";
-				cout << "current="<<current<<" next="<<next<<"\n";
+//				cout << "startpos " << cl.beginpos << " endpos: " << cl.endpos << " next " << next << " next startpos: " << segcls[next].beginpos << "\n";
+//				cout << "current="<<current<<" next="<<next<<"\n";
 				cl_handled[current] = true;
 				sys().myassert(next!=-1, "next unset?");
 				//if(current==next)break;
@@ -379,7 +381,7 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detai
 		glEnd();
 		glColor3f(1,1,1);
 #endif
-#if 1
+#if 0
 		// cl lines
 		double sc = cm.segw_real / SEGSCALE;
 		glColor3f(1,0.5,0.5);
@@ -395,7 +397,7 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detai
 		}
 		glColor3f(0,0.5,0.5);
 #endif
-#if 1
+#if 0
 		// cl points
 		glColor3f(1,1,0);
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -572,6 +574,7 @@ void coastsegment::compute_successor_for_cl(unsigned cln)
 			// note! use <= not < here, to avoid connecting two segcl's that form one cl
 			// which touches the border only (two scl's are generated for this situation)
 			// fixme: but with <= many other segcl's fail...
+		//	if(beginpos == scl0.endpos) {cout<<"BEGINPOS " << beginpos << " endpos " << scl0.endpos << " nr " << cln << " i " << i << "\n";}
 			if (beginpos < scl0.endpos) beginpos += 4*SEGSCALE;
 			if (beginpos < minbeginpos) {
 				scl0.next = i;
@@ -848,6 +851,10 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 	scl.push_back_point(ps0);
 	scl.beginpos = borderpos(ps0);
 
+	// fixme: if there is a segcl that has several points on the same border in the same segment
+	// it is divided in many scl's, each containing just one line (two points).
+	// It doesn't hurt, though.
+
 	bool sameseg = true;
 	// loop over coastline
 //	cout << "new distri!\n";
@@ -859,6 +866,9 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 		// now p1 can be inside the same segment as p0, on the border of the same segment or
 		// in another segment.
 		vector2i rel = p1 - segoff;
+/*
+		coastsegment::segpos oldps0 = ps0;
+*/
 		if (rel.x >= 0 && rel.y >= 0 && rel.x <= SEGSCALE && rel.y <= SEGSCALE) {
 			// inside the same segment or on border
 			ps0.x = (unsigned short)rel.x;
@@ -872,6 +882,16 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 				// on edge or corner.
 				scl.endpos = borderpos(ps0);
 				sys().myassert(scl.endpos != -1, "borderpos check2");
+
+/*		a try to fix the situation where many scls are created when they're on the same border
+                (see above). But it doesn't work...
+				int oldendpos = borderpos(oldps0);
+				int off = (oldendpos / SEGSCALE) * SEGSCALE;
+				if (scl.endpos - off >= 0 && scl.endpos - off <= SEGSCALE) {
+					// on same border, do not begin new cl
+					++i;
+				} else {
+*/
 				coastsegments[segcn].push_back_segcl(scl);
 				// now switch to new segment if there are lines left
 				if (i + 1 < cl.size()) {
@@ -888,6 +908,10 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 					scl.beginpos = borderpos(ps0);
 				}
 				++i; // continue from p1 on.
+
+/*
+				}
+*/
 			}
 		} else {
 			// p1 is in another segment
@@ -1073,6 +1097,7 @@ void coastmap::process_segment(int sx, int sy)
 		vector2 segoff = vector2(sx * segw_real + realoffset.x, sy * segw_real + realoffset.y);
 
 		// compute cl.next info
+//printf("comp succ %i %i\n",sx,sy);
 		for (unsigned i = 0; i < cs.segcls.size(); ++i) {
 			cs.compute_successor_for_cl(i);
 		}
