@@ -635,7 +635,7 @@ void coastsegment::compute_successor_for_cl(unsigned cln)
 			// note! use <= not < here, to avoid connecting two segcl's that form one cl
 			// which touches the border only (two scl's are generated for this situation)
 			// fixme: but with <= many other segcl's fail...
-		//	if(beginpos == scl0.endpos) {cout<<"BEGINPOS " << beginpos << " endpos " << scl0.endpos << " nr " << cln << " i " << i << "\n";}
+//			if(beginpos == scl0.endpos) {cout<<"BEGINPOS " << beginpos << " endpos " << scl0.endpos << " nr " << cln << " i " << i << "\n";}
 			if (beginpos < scl0.endpos) beginpos += 4*SEGSCALE;
 			if (beginpos < minbeginpos) {
 				scl0.next = i;
@@ -927,9 +927,6 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 		// now p1 can be inside the same segment as p0, on the border of the same segment or
 		// in another segment.
 		vector2i rel = p1 - segoff;
-/*
-		coastsegment::segpos oldps0 = ps0;
-*/
 		if (rel.x >= 0 && rel.y >= 0 && rel.x <= SEGSCALE && rel.y <= SEGSCALE) {
 			// inside the same segment or on border
 			ps0.x = (unsigned short)rel.x;
@@ -944,25 +941,18 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 				scl.endpos = borderpos(ps0);
 				sys().myassert(scl.endpos != -1, "borderpos check2");
 
-/*		a try to fix the situation where many scls are created when they're on the same border
-                (see above). But it doesn't work...
-				int oldendpos = borderpos(oldps0);
-				int off = (oldendpos / SEGSCALE) * SEGSCALE;
-				if (scl.endpos - off >= 0 && scl.endpos - off <= SEGSCALE) {
-					// on same border, do not begin new cl
-					++i;
-				} else {
-*/
-				coastsegments[segcn].push_back_segcl(scl);
 				// now switch to new segment if there are lines left
 				if (i + 1 < cl.size()) {
 					segc = compute_segment(p1, cl[i+1]);
-					segcn = segc.y * segsx + segc.x;
-/*  another trial fix.
 					int newsegcn = segc.y * segsx + segc.x;
+// another trial fix.					
+#if 1
 					if (newsegcn != segcn) {
+#else
+					{
+#endif
 						coastsegments[segcn].push_back_segcl(scl);
-*/
+						segcn = newsegcn;
 						sameseg = false;
 						segoff = segc * SEGSCALE;
 						segend = segoff + vector2i(SEGSCALE, SEGSCALE);
@@ -972,17 +962,11 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 						scl = coastsegment::segcl();
 						scl.push_back_point(ps0);
 						scl.beginpos = borderpos(ps0);
-/*
 					}
-*/
 				} else {
-//					coastsegments[segcn].push_back_segcl(scl);
+					coastsegments[segcn].push_back_segcl(scl);
 				}
 				++i; // continue from p1 on.
-
-/*
-				}
-*/
 			}
 		} else {
 			// p1 is in another segment
