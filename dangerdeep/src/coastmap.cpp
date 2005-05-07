@@ -23,7 +23,7 @@ using namespace std;
 
 
 const unsigned BSPLINE_SMOOTH_FACTOR = 16;//3;//16;	// should be 3...16
-const double BSPLINE_DETAIL = 4.0;//1.0;//4.0;            // should be 1.0...x
+const double BSPLINE_DETAIL = 8.0;//1.0;//4.0;            // should be 1.0...x
 const unsigned SEGSCALE = 65535;	// 2^16-1 so that per segment coordinates fit in a ushort value.
 
 // order (0-3):
@@ -195,6 +195,8 @@ void coastsegment::segcl::render(const class coastmap& cm, int segx, int segy, c
 	const double beachheight = 10;
 	const double beachbottom = -20;
 
+	double rndh[13] = { 0, 15, -10, 22, 3, -5, 17, -8, 4, 20, -3, 9, -13 };
+
 	// quad strips are build in that vertex order
 	// 1 3 5 7 ... quads ... 
 	// 2 4 6 8 ...
@@ -206,6 +208,8 @@ void coastsegment::segcl::render(const class coastmap& cm, int segx, int segy, c
 		vector3 p1 = points2[i].xyz(beachheight);
 		vector3 p2 = (points2[i] - n * coastdepth).xyz(coastheight);
 		vector3 p3 = (points2[i] - n * coasttopdepth).xyz(coasttopheight);
+		p2.z += rndh[i % 13];
+		p3.z += rndh[i % 13];
 		if (i > 0) {
 			double dl = points2[i].distance(points2[i-1]);
 			t += dl / (2 * coastheight);	// some scaling
@@ -229,6 +233,8 @@ void coastsegment::segcl::render(const class coastmap& cm, int segx, int segy, c
 		vector3 p1 = points2[i].xyz(beachheight);
 		vector3 p2 = (points2[i] - n * coastdepth).xyz(coastheight);
 		vector3 p3 = (points2[i] - n * coasttopdepth).xyz(coasttopheight);
+		p2.z += rndh[i % 13];
+		p3.z += rndh[i % 13];
 		if (i > 0) {
 			double dl = points2[i].distance(points2[i-1]);
 			t += dl / (2 * coastheight);	// some scaling
@@ -252,6 +258,8 @@ void coastsegment::segcl::render(const class coastmap& cm, int segx, int segy, c
 		vector3 p1 = points2[i].xyz(beachheight);
 		vector3 p2 = (points2[i] - n * coastdepth).xyz(coastheight);
 		vector3 p3 = (points2[i] - n * coasttopdepth).xyz(coasttopheight);
+		p2.z += rndh[i % 13];
+		p3.z += rndh[i % 13];
 		if (i > 0) {
 			double dl = points2[i].distance(points2[i-1]);
 			t += dl / (2 * coastheight);	// some scaling
