@@ -173,46 +173,97 @@ void coastsegment::segcl::render(const class coastmap& cm, int segx, int segy, c
 			vector2 cp(points[i].x, points[i].y);
 			points2.push_back(cp * sc);
 		}
+		// fixme: computation of normals is crude. for islands they should be smooth over the
+		// begin/end of the cl.
+		vector<vector2> linenormals(points.size()-1);
+		for (unsigned i = 0; i + 1 < points2.size(); ++i) {
+			linenormals[i] = (points2[i] - points2[i+1]).orthogonal().normal();
+		}
+		normals.reserve(points2.size());
+		normals.push_back(linenormals.front());
+		for (unsigned i = 1; i + 1 < points2.size(); ++i) {
+			normals.push_back((linenormals[i-1] + linenormals[i]).normal());
+		}
+		normals.push_back(linenormals.back());
 	}
 
-	const double coasttop = 150;
-	const double coastbottom = -20;
+	const double beachdepth = 100;
 	const double coastdepth = 20;
+	const double coasttopdepth = 70;
+	const double coastheight = 50;
+	const double coasttopheight = 70;
+	const double beachheight = 10;
+	const double beachbottom = -20;
 
-	const vector2& p0 = points2[0];
-	vector2 n = (p0 - points2[1]).orthogonal().normal();
 	// quad strips are build in that vertex order
 	// 1 3 5 7 ... quads ... 
 	// 2 4 6 8 ...
 	glBegin(GL_QUAD_STRIP);
-	glTexCoord2f(0, 0);
-	glVertex3f(p0.x - n.x * coastdepth, p0.y - n.y * coastdepth, coasttop);
-	glTexCoord2f(0, 1);
-	glVertex3f(p0.x - n.x * coastdepth, p0.y - n.y * coastdepth, coastbottom);
 	double t = 0;
-
-	// fixme: computation of normals is crude. for islands they should be smooth over the
-	// begin/end of the cl.
-	for (unsigned i = 1; i < points2.size(); ++i) {
-		const vector2& p0 = points2[i-1];
-		const vector2& p1 = points2[i];
-		vector2 d = p1 - p0;
-		double dl = d.length();
-		t += dl / (coasttop - coastbottom);
-		vector2 n2 = n;
-		if (i + 1 < points2.size())
-			n2 = (points2[i] - points2[i+1]).orthogonal().normal();
-		vector2 nnew = (n + n2).normal();
-		n = n2;
+	for (unsigned i = 0; i < points2.size(); ++i) {
+		const vector2& n = normals[i];
+		vector3 p0 = (points2[i] + n * beachdepth).xyz(beachbottom);
+		vector3 p1 = points2[i].xyz(beachheight);
+		vector3 p2 = (points2[i] - n * coastdepth).xyz(coastheight);
+		vector3 p3 = (points2[i] - n * coasttopdepth).xyz(coasttopheight);
+		if (i > 0) {
+			double dl = points2[i].distance(points2[i-1]);
+			t += dl / (2 * coastheight);	// some scaling
+		}
 		vector3f n3 = vector3f(n.x, n.y, 1.0f).normal();
-		// fixme: normals for lighting are missing...
+		// fixme: real normals for lighting are missing...
 		glNormal3fv(&n3.x);
-		glTexCoord2f(t, 0);
-		glVertex3f(p1.x - nnew.x * coastdepth, p1.y - nnew.y * coastdepth, coasttop);
-		glTexCoord2f(t, 1);
-		glVertex3f(p1.x - nnew.x * coastdepth, p1.y - nnew.y * coastdepth, coastbottom);
+		glTexCoord2f(t, 0.25f);
+		glVertex3dv(&p2.x);
+		glTexCoord2f(t, 0.75f);
+		glVertex3dv(&p1.x);
 	}
+	glEnd();
 
+	// beach. more a hack
+	glBegin(GL_QUAD_STRIP);
+	t = 0;
+	for (unsigned i = 0; i < points2.size(); ++i) {
+		const vector2& n = normals[i];
+		vector3 p0 = (points2[i] + n * beachdepth).xyz(beachbottom);
+		vector3 p1 = points2[i].xyz(beachheight);
+		vector3 p2 = (points2[i] - n * coastdepth).xyz(coastheight);
+		vector3 p3 = (points2[i] - n * coasttopdepth).xyz(coasttopheight);
+		if (i > 0) {
+			double dl = points2[i].distance(points2[i-1]);
+			t += dl / (2 * coastheight);	// some scaling
+		}
+		vector3f n3 = vector3f(n.x, n.y, 1.0f).normal();
+		// fixme: real normals for lighting are missing...
+		glNormal3fv(&n3.x);
+		glTexCoord2f(t, 0.75f);
+		glVertex3dv(&p1.x);
+		glTexCoord2f(t, 1.0f);
+		glVertex3dv(&p0.x);
+	}
+	glEnd();
+
+	// coast top. more a hack
+	glBegin(GL_QUAD_STRIP);
+	t = 0;
+	for (unsigned i = 0; i < points2.size(); ++i) {
+		const vector2& n = normals[i];
+		vector3 p0 = (points2[i] + n * beachdepth).xyz(beachbottom);
+		vector3 p1 = points2[i].xyz(beachheight);
+		vector3 p2 = (points2[i] - n * coastdepth).xyz(coastheight);
+		vector3 p3 = (points2[i] - n * coasttopdepth).xyz(coasttopheight);
+		if (i > 0) {
+			double dl = points2[i].distance(points2[i-1]);
+			t += dl / (2 * coastheight);	// some scaling
+		}
+		vector3f n3 = vector3f(n.x, n.y, 1.0f).normal();
+		// fixme: real normals for lighting are missing...
+		glNormal3fv(&n3.x);
+		glTexCoord2f(t, 0.0f);
+		glVertex3dv(&p3.x);
+		glTexCoord2f(t, 0.25f);
+		glVertex3dv(&p2.x);
+	}
 	glEnd();
 }
 
@@ -559,6 +610,8 @@ void coastsegment::compute_successor_for_cl(unsigned cln)
 		//sys().myassert(scl0.beginpos >= 0, "paranoia bp1");
 		//sys().myassert(scl0.endpos >= 0, "paranoia ep1");
 
+//		if (scl0.endpos == scl0.beginpos) { scl0.next = cln; return; } // fix test hack fixme
+
 		// now loop over all segcls in the segment, find minimal beginpos that
 		// is greater than scl0.endpos
 		int minbeginpos = 8*SEGSCALE; // +inf
@@ -895,17 +948,27 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 				coastsegments[segcn].push_back_segcl(scl);
 				// now switch to new segment if there are lines left
 				if (i + 1 < cl.size()) {
-					sameseg = false;
 					segc = compute_segment(p1, cl[i+1]);
 					segcn = segc.y * segsx + segc.x;
-					segoff = segc * SEGSCALE;
-					segend = segoff + vector2i(SEGSCALE, SEGSCALE);
-					rel = p1 - segoff;
-					ps0.x = (unsigned short)rel.x;
-					ps0.y = (unsigned short)rel.y;
-					scl = coastsegment::segcl();
-					scl.push_back_point(ps0);
-					scl.beginpos = borderpos(ps0);
+/*  another trial fix.
+					int newsegcn = segc.y * segsx + segc.x;
+					if (newsegcn != segcn) {
+						coastsegments[segcn].push_back_segcl(scl);
+*/
+						sameseg = false;
+						segoff = segc * SEGSCALE;
+						segend = segoff + vector2i(SEGSCALE, SEGSCALE);
+						rel = p1 - segoff;
+						ps0.x = (unsigned short)rel.x;
+						ps0.y = (unsigned short)rel.y;
+						scl = coastsegment::segcl();
+						scl.push_back_point(ps0);
+						scl.beginpos = borderpos(ps0);
+/*
+					}
+*/
+				} else {
+//					coastsegments[segcn].push_back_segcl(scl);
 				}
 				++i; // continue from p1 on.
 

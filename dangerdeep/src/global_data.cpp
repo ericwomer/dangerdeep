@@ -99,7 +99,7 @@ void init_global_data(void)
 	menuframe = new texture(get_texture_dir() + "menuframe.png" );
 	turnswitch = new texture(get_texture_dir() + "turnswitch.png" );
 	turnswitchbackgr = new texture(get_texture_dir() + "turnswitchbackgr.png" );
-	terraintex = new texture(get_texture_dir() + "terrain.png", GL_LINEAR);
+	terraintex = new texture(get_texture_dir() + "terrain.jpg", GL_LINEAR);
 	cloudsbackgr = new texture(get_texture_dir() + "cloudsbackgr.jpg" );
 	atlanticmap = new texture(get_texture_dir() + "atlanticmap.jpg", GL_LINEAR, GL_CLAMP_TO_EDGE);
 	add_loading_screen("textures loaded");

@@ -23,7 +23,8 @@ public:
 	struct segcl
 	{
 		vector<segpos> points;	// coordinates of the segcl. relative to segment.
-		mutable vector<vector2> points2;	// cached, real word per segment coordinates.
+		mutable vector<vector2> points2;	// cached, real world per segment coordinates.
+		mutable vector<vector2> normals;	// cached, coastline normals.
 		int beginpos;		// positions are on border in 0-64k scale: s=65535. (-1 = not on border)
 		int endpos;		// then bottom,right,top,left border of segment are 0s+x, 1s+x, 2s+x, 3s+x
 		int next;		// successor of this cl. is itself for cyclic segcl's.
