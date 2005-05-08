@@ -66,10 +66,14 @@ remaining bus:
    triangulation algorithm is not perfect (it could be better though...)
    This is the only segment where illegal .next values are reported.
    Reason is known, see compute_successor!
+   That happens when a coastline touches a segment border. The coastline then is splitted in
+   two parts, that aren't connected correctly by compute_successor. This is now avoided, segcls
+   are only splitted if two parts are NOT in the same segment.
+   At that island however, the coastline STARTS at the point touching the border.
 2) many double points are erased. Why are they created? this shouldn't happen...
    Maybe because one coastline is divided into many small 1-line segcls.
-   Yes! with the fix that avoids such divisions, no double points need to get erased.
-   But the fix breaks some islands...
+   Yes! with the fix that avoids such divisions, no double points need to get erased, except
+   in one segment SW of iceland (reason not found, situation not analyzed)
 */
 
 
@@ -316,14 +320,6 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 //				cout << "segpos: x " << x << " y " << y << "\n";
 //				cout << "current is : " << current << "\n";
 			//	segcls[current].print();
-				//erzeugt, weil endpos falsch ist, border pos. von altem segment
-				//insel hat endpos=-1, obwohl sie segmentgrenze schneidet! startpos aber !=-1
-				//scheint beides jetzt behoben. Triangulierungsfehler kommen daher, daß
-				//Strecken in segcls vorkommen, die komplett auf dem rand liegen.
-				//diese müßten zu DEM segment gehören, das land enthält.
-				//ein solcher übergang müßte dann als segmentwechsel gehandhabt werden
-				//sollte mit neuem code gehen, inseln haben aber immer noch fehler, fixme
-				if (cl_handled[current]) { printf("ILLEGAL .next values!!! seg x %i y %i!\n",x,y); return;}//test hack fixme
 				sys().myassert(!cl_handled[current], "illegal .next values!");
 
 				const segcl& cl = segcls[current];
@@ -372,7 +368,7 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 					++dbl;
 				}
 			}
-			if (dbl > 0) cout << "erased " << dbl << " double points!\n";
+			if (dbl > 0) cout << "erased " << dbl << " double points!, seg " << x << "," << y << "\n";
 			// remove last point that coincides with first point for islands.
 			if (ce.points.back().square_distance(ce.points.front()) < 0.1f) {
 				ce.points.pop_back();
@@ -618,7 +614,8 @@ void coastsegment::compute_successor_for_cl(unsigned cln)
 		//sys().myassert(scl0.beginpos >= 0, "paranoia bp1");
 		//sys().myassert(scl0.endpos >= 0, "paranoia ep1");
 
-//		if (scl0.endpos == scl0.beginpos) { scl0.next = cln; return; } // fix test hack fixme
+		// when we use <= below this must be enabled. it doesn't help though.
+		//if (scl0.endpos == scl0.beginpos) { scl0.next = cln; return; } // fix test hack fixme
 
 		// now loop over all segcls in the segment, find minimal beginpos that
 		// is greater than scl0.endpos
@@ -635,6 +632,7 @@ void coastsegment::compute_successor_for_cl(unsigned cln)
 			// note! use <= not < here, to avoid connecting two segcl's that form one cl
 			// which touches the border only (two scl's are generated for this situation)
 			// fixme: but with <= many other segcl's fail...
+			// If a cl touches the border from the other side, either < or <= will fail!
 //			if(beginpos == scl0.endpos) {cout<<"BEGINPOS " << beginpos << " endpos " << scl0.endpos << " nr " << cln << " i " << i << "\n";}
 			if (beginpos < scl0.endpos) beginpos += 4*SEGSCALE;
 			if (beginpos < minbeginpos) {
@@ -652,12 +650,12 @@ void coastsegment::compute_successor_for_cl(unsigned cln)
 void coastsegment::push_back_segcl(const segcl& scl)
 {
 	if (scl.beginpos < 0) {
-		scl.print();
+//		scl.print();
 		sys().myassert(scl.cyclic, "begin < -1 but not cyclic");
 		sys().myassert(scl.endpos < 0, "begin < -1, but not end");
 	}
 	if (scl.endpos < 0) {
-		scl.print();
+//		scl.print();
 		sys().myassert(scl.cyclic, "end < -1 but not cyclic");
 		sys().myassert(scl.beginpos < 0, "end < -1, but not begin");
 	}
@@ -897,7 +895,7 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 {
 	sys().myassert(cl.size() >= 2, "div and distri with < 2?");
 
-	coastsegment::segcl scl;
+	coastsegment::segcl scl(global_clnr);
 
 	// divide coastline at segment borders
 	// find segment that first point is into
@@ -911,6 +909,8 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 	coastsegment::segpos ps0((unsigned short)rel.x, (unsigned short)rel.y);
 	scl.push_back_point(ps0);
 	scl.beginpos = borderpos(ps0);
+
+//	cout << "es fängt an bei: " << scl.beginpos << "\n";
 
 	// fixme: if there is a segcl that has several points on the same border in the same segment
 	// it is divided in many scl's, each containing just one line (two points).
@@ -942,12 +942,7 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 				if (i + 1 < cl.size()) {
 					segc = compute_segment(p1, cl[i+1]);
 					int newsegcn = segc.y * segsx + segc.x;
-// another trial fix.					
-#if 0
 					if (newsegcn != segcn) {
-#else
-					{
-#endif
 						scl.endpos = borderpos(ps0);
 						sys().myassert(scl.endpos != -1, "borderpos check2a");
 						coastsegments[segcn].push_back_segcl(scl);
@@ -958,7 +953,7 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 						rel = p1 - segoff;
 						ps0.x = (unsigned short)rel.x;
 						ps0.y = (unsigned short)rel.y;
-						scl = coastsegment::segcl();
+						scl = coastsegment::segcl(global_clnr);
 						scl.push_back_point(ps0);
 						scl.beginpos = borderpos(ps0);
 					}
@@ -1023,13 +1018,23 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 				rel = p2 - segoff;
 				ps0.x = (unsigned short)rel.x;
 				ps0.y = (unsigned short)rel.y;
-				scl = coastsegment::segcl();
+				scl = coastsegment::segcl(global_clnr);
 				scl.push_back_point(ps0);
 				scl.beginpos = borderpos(ps0);
 			}
 			p0 = p2;
 			// do not increase i, but continue with line p2->p1.
 		}
+	}
+
+	// store segcls that are completely in a segment
+	if (sameseg) {
+		sys().myassert(scl.points.size() >= 2, "less than 2 points for island???");
+		scl.endpos = borderpos(ps0);
+		scl.cyclic = clcyclic;
+		if (clcyclic) scl.beginpos = scl.endpos = -1;
+		scl.next = coastsegments[segcn].segcls.size();
+		coastsegments[segcn].push_back_segcl(scl);
 	}
 }
 
@@ -1105,12 +1110,12 @@ void coastmap::process_coastline(int x, int y)
 	points.clear();
 
 	unsigned n = tmp.size() - 1;
-	// fixme: a high n on small islands leads to a non-uniform spatial distribution of
+	// A high n on small islands leads to a non-uniform spatial distribution of
 	// bspline generated points. This looks ugly and is a serious drawback to the
 	// old technique.
-	// Maybe limiting n to tmp.size()/2 or tmp.size()/4 would be a solution. test it!
+	// Limiting n to tmp.size()/2 or tmp.size()/4 would be a solution. tmp.size()/2 looks good.
 	if (n > BSPLINE_SMOOTH_FACTOR) n = BSPLINE_SMOOTH_FACTOR;
-	if (n > tmp.size()/4) n = tmp.size()/4;
+	if (n > tmp.size()/2) n = tmp.size()/2;
 
 	// create smooth version of the coastline.
 	bsplinet<vector2> curve(n, tmp);	// points in map pixel coordinates
@@ -1132,6 +1137,7 @@ void coastmap::process_coastline(int x, int y)
 	}
 
 	divide_and_distribute_cl(spoints, cyclic);
+	++global_clnr;
 }
 
 
@@ -1149,11 +1155,55 @@ void coastmap::process_segment(int sx, int sy)
 		}
 	} else {		// there are coastlines in segment
 		cs.type = 2;
-		
+
+		// try to connect segcls that were made from the same global cl
+		unsigned erased = 0;
+		for (unsigned i = 0; i < cs.segcls.size(); ++i) {
+			coastsegment::segcl& cl0 = cs.segcls[i];
+			if (cl0.global_clnr == -1) continue;
+			if (cl0.cyclic) continue;
+			for (unsigned j = 0; j < cs.segcls.size(); ++j) {
+				if (j == i) continue;
+				coastsegment::segcl& cl1 = cs.segcls[j];
+				if (cl1.cyclic) continue;
+				if (cl0.global_clnr != cl1.global_clnr) continue; // also avoids erased segs.
+				if (cl0.endpos == cl1.beginpos) {
+					sys().myassert(cl0.endpos != -1, "strange paranoia cl0endpos");
+					sys().myassert(cl0.next == -1, "strange paranoia1 next != -1");
+					sys().myassert(cl1.next == -1, "strange paranoia2 next != -1");
+					//connect the segcls.
+					cl0.points.insert(cl0.points.end(), ++cl1.points.begin(), cl1.points.end());
+//					cl0.points += cl1.points;
+					cl0.endpos = cl1.endpos;
+					cl1.global_clnr = -1;	// mark as erased.
+					++erased;
+				}
+			}
+		}
+		// clear erased segcls.
+		if (erased > 0) {
+			unsigned s = cs.segcls.size();
+			vector<coastsegment::segcl> segcls_new;
+			segcls_new.reserve(s - erased);
+			unsigned j = 0;
+			for (unsigned i = 0; i < s; ++i) {
+				coastsegment::segcl& scl = cs.segcls[i];
+				if (scl.global_clnr != -1) {
+					// not erased, keep it.
+					if (scl.next != -1) {
+						sys().myassert(scl.next == i, "next paranoia");
+						scl.next = j;
+					}
+					segcls_new.push_back(scl);
+					++j;
+				}
+			}
+			cs.segcls.swap(segcls_new);
+		}
+
 		vector2 segoff = vector2(sx * segw_real + realoffset.x, sy * segw_real + realoffset.y);
 
 		// compute cl.next info
-//printf("comp succ %i %i\n",sx,sy);
 		for (unsigned i = 0; i < cs.segcls.size(); ++i) {
 			cs.compute_successor_for_cl(i);
 		}
@@ -1213,6 +1263,8 @@ vector2f coastmap::segcoord_to_texc(int segx, int segy) const
 // load from xml description file
 coastmap::coastmap(const string& filename)
 {
+	global_clnr = 0;
+
 	TiXmlDocument doc(filename);
 	doc.LoadFile();
 	TiXmlElement* root = doc.FirstChildElement("dftd-map");

@@ -22,6 +22,7 @@ public:
 
 	struct segcl
 	{
+		int global_clnr;	// created from which global cl? internal use.
 		vector<segpos> points;	// coordinates of the segcl. relative to segment.
 		mutable vector<vector2> points2;	// cached, real world per segment coordinates.
 		mutable vector<vector2> normals;	// cached, coastline normals.
@@ -30,7 +31,7 @@ public:
 		int next;		// successor of this cl. is itself for cyclic segcl's.
 		bool cyclic;		// is segcl cyclic inside this segment (island)?
 		void print() const;	// for debugging
-		segcl() : beginpos(-1), endpos(-1), next(-1), cyclic(false) {}
+		segcl(int glcn = -1) : global_clnr(glcn), beginpos(-1), endpos(-1), next(-1), cyclic(false) {}
 		void push_back_point(const segpos& sp);	// avoids double points
 		void render(const class coastmap& cm, int segx, int segy, const vector2& p,
 			    int detail) const;
@@ -38,7 +39,7 @@ public:
 
 	unsigned type;	// 0 - sea, 1 - land, 2 mixed
 	vector<segcl> segcls;
-	
+
 	// terrain elevation (no matter if land or sea, total elevation in meters)
 	// user for computation of water depth or terrain height (not yet)
 	//bspline2dt<float> topo;
@@ -90,6 +91,8 @@ class coastmap
 	double segw_real;		// width/height of one segment in reality, in meters
 	vector2 realoffset;		// offset in meters for map (position of pixel pos 0,0)
 	vector<coastsegment> coastsegments;
+
+	int global_clnr;		// working counter.
 
 	list<pair<vector2, string> > cities;	// city positions (real) and names
 	

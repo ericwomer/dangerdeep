@@ -1,4 +1,9 @@
 2005-05-07  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* coastmap.cpp/h
+	  - finally fixed ALL map/coastline generation bugs.
+	    now all coastlines are correct!
+
+2005-05-07  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* coastmap.cpp
 	  - fixed all bugs except one unimportant.
 	  - 3d coast rendering works again.
