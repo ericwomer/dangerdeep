@@ -1299,6 +1299,9 @@ int mymain(list<string>& args)
 
 //	mycfg.save("./testconf");
 
+	model::enable_vertex_programs = cfg::instance().getb("use_vertex_shaders");
+	model::enable_fragment_programs = cfg::instance().getb("use_pixel_shaders");
+
 	// set language to default
 	texts::set_language();
 

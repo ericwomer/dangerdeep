@@ -110,7 +110,7 @@ protected:
 	static bool fragment_program_supported;
 	static bool compiled_vertex_arrays_supported;
 
-	// Config options (only used when supported)
+	// Config options (only used when supported and enabled)
 	static bool use_vertex_programs;
 	static bool use_fragment_programs;
 
@@ -169,7 +169,9 @@ protected:
 public:
 	model();
 
-	static int mapping;	// GL_* mapping constants
+	static int mapping;	// GL_* mapping constants (default GL_LINEAR_MIPMAP_LINEAR)
+	static bool enable_vertex_programs;	// en-/disable use of VP (default true)
+	static bool enable_fragment_programs;	// en-/disable use of FP (default true)
 
 	model(const std::string& filename, bool usematerial = true, bool makedisplaylist = true);
 	~model();

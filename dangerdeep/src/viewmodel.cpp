@@ -26,10 +26,20 @@
 class system* mysys;
 int res_x, res_y;
 
-GLfloat lposition[4] = {100,0,100,0};
+GLfloat lposition[4] = {100,0,-5,1};
+
+#define LIGHT_ANG_PER_SEC 30
 
 void view_model(const string& modelfilename)
 {
+	model::enable_vertex_programs = true;
+	model::enable_fragment_programs = true;
+//fixme: details seem to be sometimes in and sometimes out, just the object needs to move in any direction and back, what the heck?!
+//y light direction seems to be wrong!
+//(directional light)
+//fixme2: details seem inside-out. either normal map computation is wrong or display. it seems the display...
+//(directional light)
+
 	model* mdl = new model(get_model_dir() + modelfilename, true, false);
 
 	mdl->write_to_dftd_model_file("test.xml");
@@ -48,16 +58,29 @@ void view_model(const string& modelfilename)
 
 	double sc = (mdl->get_boundbox_size()*0.5).length();
 	vector3 viewangles;
-	vector3 pos(0, 0, -sc);
+	vector3 pos(0, 0, -sc-5);
+
+	unsigned time1 = sys().millisec();
+	double ang = 0;
 
 	while (true) {
+		// rotate light
+		unsigned time2 = sys().millisec();
+		if (time2 > time1) {
+			ang += LIGHT_ANG_PER_SEC*(time2-time1)/1000.0;
+			if (ang > 360) ang -= 360;
+			time1 = time2;
+			lposition[0] = 100*cos(3.14159*ang/180);
+			lposition[1] = 100*sin(3.14159*ang/180);
+		}
+	
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		glColor3f(1, 1, 1);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		glLoadIdentity();
-		glTranslated(pos.x, pos.y, pos.z);
 		glLightfv(GL_LIGHT0, GL_POSITION, lposition);
+		glTranslated(pos.x, pos.y, pos.z);
 
 		glBegin(GL_LINES);
 		glVertex3f(0,0,0);

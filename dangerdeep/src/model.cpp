@@ -19,21 +19,18 @@
 #define isfinite(x) finite(x)
 #endif
 
-#define NO_CFG //fixme hack , replace by scons cfg
-
 #include "system.h"
 #include "global_data.h"
 #include "oglext/OglExt.h"
 #include "matrix4.h"
 #include "tinyxml/tinyxml.h"
-#ifndef NO_CFG
-#include "cfg.h"
-#endif // NO_CFG
 #include <sstream>
 
 string modelpath;
 
 int model::mapping = GL_LINEAR_MIPMAP_LINEAR;//GL_NEAREST;
+bool model::enable_vertex_programs = true;
+bool model::enable_fragment_programs = true;
 
 unsigned model::init_count = 0;
 bool model::vertex_program_supported = false;
@@ -51,20 +48,8 @@ void model::render_init(void)
 	fragment_program_supported = sys().extension_supported("GL_ARB_fragment_program");
 	compiled_vertex_arrays_supported = sys().extension_supported("GL_EXT_compiled_vertex_array");
 
-	if (vertex_program_supported) {
-#ifdef NO_CFG
-		use_vertex_programs = true;
-#else
-		use_vertex_programs = cfg::instance().getb("use_vertex_shaders");
-#endif
-	}
-	if (fragment_program_supported) {
-#ifdef NO_CFG
-		use_fragment_programs = true;
-#else
-		use_fragment_programs = cfg::instance().getb("use_pixel_shaders");
-#endif
-	}
+	use_vertex_programs = vertex_program_supported && enable_vertex_programs;
+	use_fragment_programs = fragment_program_supported && enable_fragment_programs;
 
 	// initialize shaders if wanted
 	if (use_fragment_programs) {
@@ -504,6 +489,7 @@ void model::material::set_gl_values(void) const
 				// local 0 : light source color
 				// local 1 : material ambient color (modulated by light color)
 				// local 2 : material specular color (modulated by light color)
+				// fixme: can be retrieved directly from opengl! no need to store it this way!
 				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 0,
 							     1.0f, 0.9f, 0.9f, 1.0f);//fixme test
 				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 1,
@@ -615,6 +601,7 @@ void model::mesh::display(bool usematerial) const
 	glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0]);	
 	glEnableClientState(GL_NORMAL_ARRAY);
 
+	// without pixel shaders texture coordinates must be set for both texture units and are the same.
 	glClientActiveTexture(GL_TEXTURE0);
 	if (has_texture_u0 && texcoords.size() == vertices.size()) {
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
@@ -624,12 +611,17 @@ void model::mesh::display(bool usematerial) const
 	}
 
 	glClientActiveTexture(GL_TEXTURE1);
-	if (has_texture_u1 && texcoords.size() == vertices.size()) {
-		// maybe offer second texture coords. how are they stored in .3ds files?!
-		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	if (use_fragment_programs) {
+		// 2nd texture unit coordinates store direction to light source, fixme these are already in colors...
+		// 3rd texture unit coordinates store direction to viewer
 	} else {
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		if (has_texture_u1 && texcoords.size() == vertices.size()) {
+			// maybe offer second texture coords. how are they stored in .3ds files?!
+			glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		} else {
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		}
 	}
 
 	//with bump mapping, we need colors.
@@ -637,7 +629,7 @@ void model::mesh::display(bool usematerial) const
 	if (bumpmapping) {
 		vector4f lightpos_abs;
 		glGetLightfv(GL_LIGHT0, GL_POSITION, &lightpos_abs.x);
-		lightpos_abs = vector4f(200,0,-117,0);
+		//lightpos_abs = vector4f(200,0,-117,0);//test hack
 		//fixme: with directional light we have darker results... are some vectors not
 		//of unit length then?
 		matrix4f invmodelview = (matrix4f::get_gl(GL_MODELVIEW_MATRIX)).inverse();
@@ -661,6 +653,7 @@ void model::mesh::display(bool usematerial) const
 			vector3f nl = vector3f(nx * lp, ny * lp, nz * lp).normal();
 
 			// swap light Y direction if in left handed coordinate system
+			//test hack: do it the other way round. seems to be necessary?! maybe texture normals are computed wrongly?!
 			if (!righthanded[i]) nl.y = -nl.y;
 
 			const float s = 127.5f;

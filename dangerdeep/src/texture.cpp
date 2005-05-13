@@ -294,18 +294,13 @@ vector<Uint8> texture::make_normals(const vector<Uint8>& src, unsigned w, unsign
 		for (unsigned xx = 0; xx < w; ++xx) {
 			unsigned x1 = (xx + w - 1) & (w - 1);
 			unsigned x2 = (xx +     1) & (w - 1);
-			float h = src[yy*w+xx];
 			float hr = src[yy*w+x2];
-			float ho = src[y1*w+xx];
+			float hu = src[y1*w+xx];
 			float hl = src[yy*w+x1];
-			float hu = src[y2*w+xx];
-			vector3f nm = (
-				vector3f(h-hr, h-ho, zh).normal() +
-				vector3f(hl-h, h-ho, zh).normal() +
-				vector3f(hl-h, hu-h, zh).normal() +
-				vector3f(h-hr, hu-h, zh).normal() ).normal();
+			float hd = src[y2*w+xx];
+			vector3f nm = vector3f(hl-hr, hd-hu, zh).normal();
 			dst[ptr + 0] = Uint8(nm.x*127 + 128);
-			dst[ptr + 1] = Uint8(-nm.y*127 + 128);
+			dst[ptr + 1] = Uint8(nm.y*127 + 128);
 			dst[ptr + 2] = Uint8(nm.z*127 + 128);
 			ptr += 3;
 		}
