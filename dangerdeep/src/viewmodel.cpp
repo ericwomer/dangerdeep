@@ -34,11 +34,6 @@ void view_model(const string& modelfilename)
 {
 	model::enable_vertex_programs = true;
 	model::enable_fragment_programs = true;
-//fixme: details seem to be sometimes in and sometimes out, just the object needs to move in any direction and back, what the heck?!
-//y light direction seems to be wrong!
-//(directional light)
-//fixme2: details seem inside-out. either normal map computation is wrong or display. it seems the display...
-//(directional light)
 
 	model* mdl = new model(get_model_dir() + modelfilename, true, false);
 
