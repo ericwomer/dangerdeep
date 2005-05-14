@@ -2,7 +2,7 @@
 import os
 import sys
 
-Import('env', 'gfxlibs', 'alllibs', 'libpath', 'installbindir', 'installdatadir', 'datadir', 'datafiles', 'version', 'osspecificsrc')
+Import('env', 'gfxlibs', 'alllibs', 'installbindir', 'installdatadir', 'datadir', 'datafiles', 'version', 'osspecificsrc')
 
 ################## define sources #######################
 dftdsources = Split("""subsim.cpp
@@ -70,14 +70,14 @@ oglextsources = Split("""
 	oglext/RenderingContext.hpp""")
 
 ############# programs, libs, etc.
-env.StaticLibrary(target = 'dftdmedia', source = dftdmediasources, LIBS = gfxlibs, LIBPATH = libpath)
+env.StaticLibrary(target = 'dftdmedia', source = dftdmediasources, LIBS = gfxlibs)
 globaldataobj = env.StaticObject('global_data.cpp', CPPDEFINES = [('DATADIR', '\\"' + datadir + '/\\"'), ('VERSION', '\\"' + version + '\\"')])
-binary = env.Program(target = 'dangerdeep', source = dftdsources + globaldataobj + osspecificsrc, LIBS = alllibs, LIBPATH = libpath)
-tool1 = env.Program('viewmodel', ['viewmodel.cpp', globaldataobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs, LIBPATH = libpath)
-tool2 = env.Program('damagemodel', ['damagemodel.cpp', globaldataobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs, LIBPATH = libpath)
-tool3 = env.Program('crosssection', ['crosssection.cpp', globaldataobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs, LIBPATH = libpath)
-env.StaticLibrary(target = 'oglext', source = oglextsources, LIBPATH = libpath)
-env.StaticLibrary(target = 'tinyxml', source = tinyxmlsources, LIBPATH = libpath)
+binary = env.Program(target = 'dangerdeep', source = dftdsources + globaldataobj + osspecificsrc, LIBS = alllibs)
+tool1 = env.Program('viewmodel', ['viewmodel.cpp', globaldataobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs)
+tool2 = env.Program('damagemodel', ['damagemodel.cpp', globaldataobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs)
+tool3 = env.Program('crosssection', ['crosssection.cpp', globaldataobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs)
+env.StaticLibrary(target = 'oglext', source = oglextsources)
+env.StaticLibrary(target = 'tinyxml', source = tinyxmlsources)
 env.Default(binary)
 env.Default(tool1)
 env.Default(tool2)

@@ -60,6 +60,13 @@ else:
 	env.Append(CCFLAGS = '-Wall -g -O2 `sdl-config --cflags`')
 	datadir = installdatadir
 	build_dir = 'linux'
+	# check for broken libGL, ignore undefined symbols then
+	if (os.system('grep glBindProgram /usr/include/GL/gl*.h > /dev/null') == 0):
+		if (os.system('grep glBindProgram /usr/X11R6/lib/libGL.so > /dev/null') != 0):
+			print 'GL headers declare glBindProgram, but libGL.so has no such symbol! Ignoring all undefined symbols...'
+			# I'm not sure which option will hopefully fix the problem... so i use both...
+			env.Append(LINKFLAGS = '--unresolved-symbols=ignore-all')
+			env.Append(LINKFLAGS = '-Xlinker --unresolved-symbols -Xlinker ignore-all')
 
 ###### optionally change install and data dirs
 if ARGUMENTS.get('datadir', 0):
@@ -126,6 +133,7 @@ Help("""
 
 ################ build
 libpath = libpath + [target_dir]
+env.Append(LIBPATH = libpath)
 
 f = open('files.txt')
 allcvsfilesr = f.readlines()
@@ -136,7 +144,7 @@ for i in allcvsfilesr:
 
 datafiles = all_entries_that_start_with(allcvsfiles, './data')
 
-Export('env', 'gfxlibs', 'alllibs', 'libpath', 'installbindir', 'installdatadir', 'datadir', 'datafiles', 'version', 'osspecificsrc')
+Export('env', 'gfxlibs', 'alllibs', 'installbindir', 'installdatadir', 'datadir', 'datafiles', 'version', 'osspecificsrc')
 
 SConscript(source_base_dir + os.sep + 'SConscript', build_dir = target_dir, duplicate = 0)
 

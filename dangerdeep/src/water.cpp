@@ -294,7 +294,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	png.add_noise_func(perlinnoise_generator::noise_func(6, 1,  32));
 	png.add_noise_func(perlinnoise_generator::noise_func(6, 2,  16));
 	png.add_noise_func(perlinnoise_generator::noise_func(6, 4,   8));
-	water_bumpmap.resize(WAVE_PHASES);
+	water_bumpmap.resize(16/*WAVE_PHASES*/);
 	for (unsigned n = 0; n < water_bumpmap.size(); ++n) {
 		for (unsigned k = 0; k < 6; ++k)
 			png.set_phase(0, float(n)/water_bumpmap.size(), 0);
