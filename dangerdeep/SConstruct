@@ -62,7 +62,17 @@ else:
 	build_dir = 'linux'
 	# check for broken libGL, ignore undefined symbols then
 	if (os.system('grep glBindProgram /usr/include/GL/gl*.h > /dev/null') == 0):
-		if (os.system('grep glBindProgram /usr/X11R6/lib/libGL.so > /dev/null') != 0):
+		gllibdirs = ['/usr/X11R6/lib/', '/usr/lib/', '/usr/local/lib/']
+		gllibdir = ''
+		for i in gllibdirs:
+			if (os.system('test -f '+i+'libGL.so') == 0):
+				gllibdir = i
+				break
+		if (i == ''):
+			print 'ERROR: no libGL.so detected!'
+		else:
+			print 'Found GL library "'+gllibdir+'libGL.so"'
+		if (os.system('grep glBindProgram '+gllibdir+'libGL.so > /dev/null') != 0):
 			print 'GL headers declare glBindProgram, but libGL.so has no such symbol! Ignoring all undefined symbols...'
 			# I'm not sure which option will hopefully fix the problem... so i use both...
 			env.Append(LINKFLAGS = '--unresolved-symbols=ignore-all')
