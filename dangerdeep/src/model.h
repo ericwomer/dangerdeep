@@ -170,10 +170,6 @@ protected:
 					    const std::string& type) const;
 	color read_color_from_dftd_model_file(TiXmlElement* parent, const std::string& type);
 
-	// a normal map for a plain surface (just normals (0,0,1), needed for specular lighting
-	// for materials that have no bump map).
-	static texture* neutral_bump;
-
 public:
 	model();
 
