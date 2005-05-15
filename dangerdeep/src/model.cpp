@@ -39,6 +39,8 @@ bool model::use_shaders = false;
 GLuint model::default_vertex_program = 0;
 GLuint model::default_fragment_program = 0;
 
+texture* model::neutral_bump = 0;
+
 
 void model::render_init()
 {
@@ -57,6 +59,10 @@ void model::render_init()
 			texture::create_shader(GL_VERTEX_PROGRAM_ARB,
 					       get_shader_dir() + "modelrender_vp.shader");
 		sys().add_console("Using OpenGL vertex and fragment programs...");
+
+		vector<Uint8> zero(4*4);
+		neutral_bump = new texture(zero, 4, 4, GL_LUMINANCE, texture::LINEAR, texture::REPEAT,
+					   true, 1.0f);
 	}
 }
 
@@ -67,6 +73,8 @@ void model::render_deinit()
 	if (use_shaders) {
 		texture::delete_shader(default_fragment_program);
 		texture::delete_shader(default_vertex_program);
+		delete neutral_bump;
+		neutral_bump = 0;
 	}
 }
 
@@ -618,6 +626,9 @@ void model::material::set_gl_values() const
 			}
 		} else {
 			// just standard lighting, no need for shaders.
+			// Wrong! Shaders are needed for specular lighting.
+			// So give a texture with a normal of (0,0,1) to unit 1.
+			// (Color 128,128,255).
 			glColor3f(1, 1, 1);
 			glActiveTexture(GL_TEXTURE0);
 			tex1->mytexture->set_gl_texture();
@@ -630,8 +641,14 @@ void model::material::set_gl_values() const
 			glScalef(tex1->uscal, tex1->vscal, 1);
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			if (use_shaders) {
+				// fixme: tangents are also missing.
+				// maybe write a second shader for this case.
+				neutral_bump->set_gl_texture();
+			} else {
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			}
 		}
 		glMatrixMode(GL_MODELVIEW);
 	} else {
@@ -701,7 +718,7 @@ void model::mesh::display(bool use_display_list) const
 			glColorPointer(3, GL_UNSIGNED_BYTE, 0, &colors[0]);
 			glEnableClientState(GL_COLOR_ARRAY);
 		} else {
-			glColor4ub(255, 0, 0, 0);
+			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		}
 	} else {
 		if (has_texture_u1 && texcoords.size() == vertices.size()) {
