@@ -91,8 +91,7 @@ protected:
 	bool compiled_vertex_arrays_supported;
 
 	// Config options (only used when supported)
-	bool use_vertex_programs;
-	bool use_fragment_programs;
+	bool use_shaders;
 
 	// Shader programs
 	GLuint water_vertex_program;
