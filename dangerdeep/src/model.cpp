@@ -56,6 +56,7 @@ void model::render_init()
 		default_vertex_program =
 			texture::create_shader(GL_VERTEX_PROGRAM_ARB,
 					       get_shader_dir() + "modelrender_vp.shader");
+		sys().add_console("Using OpenGL vertex and fragment programs...");
 	}
 }
 
@@ -496,7 +497,12 @@ void model::material::init()
 	//fixme: what is best mapping for bump maps?
 	// compute normalmap if not given
 	//fixme: detailh seems to make no (big?) difference???!
-	if (bump) bump->init(texture::LINEAR /*_MIPMAP_LINEAR*/, true, 255.0f /*16.0f*/ /*fixme, read from model file*/);
+	// fixme: segfaults when enabled. see texture.cpp
+	// fixme: without shaders it seems we need to multiply this with ~16 or even more.
+	// maybe because direction vectors are no longer normalized over faces...
+	// with shaders a value of 1.0 is enough.
+	// fixme: read value from model file...
+	if (bump) bump->init(texture::LINEAR/*_MIPMAP_LINEAR*/, true, 4.0f /*16.0f*/);
 }
 
 
@@ -532,7 +538,7 @@ void model::material::set_gl_values() const
 				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 1,
 							     0.1f, 0.1f, 0.1f, 1.0f);//fixme test
 				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 2,
-							     0.8f, 0.8f, 1.0f, 1.0f);//fixme test
+							     0.8f, 0.8f, 1.0f, 16.0f);//fixme test
 
 				glActiveTexture(GL_TEXTURE1);
 				// texture matrix must be computed with vertex programs!
@@ -543,6 +549,9 @@ void model::material::set_gl_values() const
 				glRotatef(-bump->angle, 0, 0, 1);
 				glScalef(bump->uscal, bump->vscal, 1);
 				bump->mytexture->set_gl_texture();
+
+				//fixme: bind specular map here!
+
 				glActiveTexture(GL_TEXTURE0);
 				glEnable(GL_TEXTURE_2D);
 				tex1->mytexture->set_gl_texture();
