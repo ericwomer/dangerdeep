@@ -31,7 +31,7 @@ public:
 			texture* mytexture;
 			map() : uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0.0f), angle(0.0f), mytexture(0) {}
 			~map() { delete mytexture; }
-			void init(int mapping, bool makenormalmap = false, float detailh = 1.0f);
+			void init(texture::mapping_mode mapping, bool makenormalmap = false, float detailh = 1.0f);
 			void write_to_dftd_model_file(TiXmlElement* parent,
 						      const std::string& type) const;
 			// read and construct from dftd model file
@@ -48,9 +48,9 @@ public:
 		//map* specularmap;
 		
 		material() : tex1(0), bump(0) {}
-		void init(void);
+		void init();
 		~material() { delete tex1; delete bump; }
-		void set_gl_values(void) const;
+		void set_gl_values() const;
 	};
 	
 	struct mesh {
@@ -59,19 +59,26 @@ public:
 		std::vector<vector3f> normals;
 		std::vector<vector3f> tangentsx;
 		std::vector<vector2f> texcoords;
-		std::vector<bool> righthanded;	// fixme, hack
+		// we can have a right handed or a left handed coordinate system for each vertex,
+		// dependent on the direction of the u,v coordinates. We do not store the third
+		// vector per vertex but a flag, which saves space.
+		std::vector<bool> righthanded;
 		std::vector<unsigned> indices;	// 3 indices per face
 		matrix4f transformation;	// rot., transl., scaling
 		material* mymaterial;
 		vector3f min, max;
+		GLuint display_list;		// OpenGL display list for the mesh
 
-		void display(bool usematerial) const;
-		void compute_bounds(void);	
-		void compute_normals(void);
+		void display(bool use_display_list = true) const; // used only when list is available.
+		void compute_bounds();	
+		void compute_normals();
 		bool compute_tangentx(unsigned i0, unsigned i1, unsigned i2);
 
-		mesh() : transformation(matrix4f::one()), mymaterial(0) {}
-		~mesh() {}
+		mesh();
+		~mesh();
+
+		// make display list if possible
+		void compile();
 
 		// transform vertices by matrix
 		void transform(const matrix4f& m);
@@ -79,6 +86,7 @@ public:
 
 		// give plane equation (abc must have length 1)
 		pair<mesh, mesh> split(const vector3f& abc, float d) const;
+
 	};
 
 	struct light {
@@ -95,9 +103,6 @@ protected:
 	std::vector<mesh> meshes;
 	std::vector<light> lights;
 	
-	unsigned display_list;	// OpenGL display list for the model
-	bool usematerial;
-
 	std::string basename;	// base name of the scene/model, computed from filename
 
 	vector3f min, max;
@@ -111,19 +116,18 @@ protected:
 	static bool compiled_vertex_arrays_supported;
 
 	// Config options (only used when supported and enabled)
-	static bool use_vertex_programs;
-	static bool use_fragment_programs;
+	static bool use_shaders;
 
 	// Shader programs
 	static GLuint default_vertex_program;
 	static GLuint default_fragment_program;
 
 	// init / deinit
-	static void render_init(void);
-	static void render_deinit(void);
+	static void render_init();
+	static void render_deinit();
 
-	void compute_bounds(void);
-	void compute_normals(void);
+	void compute_bounds();
+	void compute_normals();
 	
 	std::vector<float> cross_sections;	// array over angles
 	
@@ -134,7 +138,7 @@ protected:
 		unsigned short id;
 		unsigned bytes_read;
 		unsigned length;
-		bool fully_read(void) const { return bytes_read >= length; }
+		bool fully_read() const { return bytes_read >= length; }
 		void skip(istream& in);
 	};
 	void m3ds_load(const std::string& fn);
@@ -169,34 +173,35 @@ protected:
 public:
 	model();
 
-	static int mapping;	// GL_* mapping constants (default GL_LINEAR_MIPMAP_LINEAR)
-	static bool enable_vertex_programs;	// en-/disable use of VP (default true)
-	static bool enable_fragment_programs;	// en-/disable use of FP (default true)
+	static texture::mapping_mode mapping;	// GL_* mapping constants (default GL_LINEAR_MIPMAP_LINEAR)
+	static bool enable_shaders;	// en-/disable use of FP/VP (default true)
 
-	model(const std::string& filename, bool usematerial = true, bool makedisplaylist = true);
+	model(const std::string& filename, bool use_material = true);
 	~model();
-	void display(void) const;
+	void display() const;
 	mesh& get_mesh(unsigned nr);
 	const mesh& get_mesh(unsigned nr) const;
 	material& get_material(unsigned nr);
 	const material& get_material(unsigned nr) const;
 	light& get_light(unsigned nr);
 	const light& get_light(unsigned nr) const;
-	unsigned get_nr_of_meshes(void) const { return meshes.size(); }
-	unsigned get_nr_of_materials(void) const { return materials.size(); }
-	unsigned get_nr_of_lights(void) const { return lights.size(); }
-	vector3f get_min(void) const { return min; }
-	vector3f get_max(void) const { return max; }
-	float get_length(void) const { return (max - min).y; }
-	float get_width(void) const { return (max - min).x; }
-	float get_height(void) const { return (max - min).z; }
-	vector3f get_boundbox_size(void) const { return max-min; }
+	unsigned get_nr_of_meshes() const { return meshes.size(); }
+	unsigned get_nr_of_materials() const { return materials.size(); }
+	unsigned get_nr_of_lights() const { return lights.size(); }
+	vector3f get_min() const { return min; }
+	vector3f get_max() const { return max; }
+	float get_length() const { return (max - min).y; }
+	float get_width() const { return (max - min).x; }
+	float get_height() const { return (max - min).z; }
+	vector3f get_boundbox_size() const { return max-min; }
 	float get_cross_section(float angle) const;	// give angle in degrees.
 	static std::string tolower(const std::string& s);
 	void add_mesh(const mesh& m) { meshes.push_back(m); }//fixme: maybe recompute bounds
 	void add_material(material* m) { materials.push_back(m); }
 	// transform meshes by matrix (attention: scaling destroys normals)
 	void transform(const matrix4f& m);
+	// compile display lists
+	void compile();
 
 	// write our own model file format.
 	void write_to_dftd_model_file(const std::string& filename, bool store_normals = true) const;

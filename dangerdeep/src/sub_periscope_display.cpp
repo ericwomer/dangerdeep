@@ -108,7 +108,7 @@ sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_dis
 		compassbar_width[i] = (i + 1 < nrparts) ? pw : tw - (nrparts-1)*pw;
 		compassbar_tex[i] = new texture(compassbari.get_SDL_Surface(), i*pw, 0,
 						compassbar_width[i], compassbari.get_height(),
-						GL_NEAREST, GL_CLAMP_TO_EDGE);
+						texture::NEAREST, texture::CLAMP_TO_EDGE);
 	}
 
 	pos = vector3(0, 0, 12);//fixme, depends on sub

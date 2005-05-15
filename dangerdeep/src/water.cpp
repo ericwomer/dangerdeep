@@ -154,6 +154,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	reflectiontexsize = vps;
 	// fixme: auto mipmap?
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	// be careful: magfilter must be GL_NEAREST or GL_LINEAR.
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -163,7 +164,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	uv1.resize((xres+1)*(yres+1));
 	normals.resize((xres+1)*(yres+1));
 
-	foamtex = new texture(get_texture_dir() + "foam.png", GL_LINEAR);//fixme maybe mipmap it
+	foamtex = new texture(get_texture_dir() + "foam.png", texture::LINEAR);//fixme maybe mipmap it
 
 	fresnelcolortexd.resize(FRESNEL_FCT_RES*REFRAC_COLOR_RES*4);
 	for (unsigned f = 0; f < FRESNEL_FCT_RES; ++f) {
@@ -316,7 +317,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 			wbtmp[3*i+2] = (wavetilenormals[n][i].z+1.0f)/2.0f*255;
 		}
 		water_bumpmap[n] = new texture(&wbtmp[0], WAVE_RESOLUTION, WAVE_RESOLUTION,
-					    GL_RGB, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+					    GL_RGB, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT);
 #else
 		//fixme: mipmap levels of normal map should be computed
 		//by this class, not glu!
@@ -324,7 +325,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		//of a mipmapped height map!
 		water_bumpmap[n] = texture::make_normal_map(&(pn.noisemap[0]), 256, 256,
 							    WATER_BUMP_DETAIL_HEIGHT,
-							    GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+							    texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT);
 #endif
 	}
 #endif
@@ -1131,7 +1132,7 @@ void water::set_refraction_color(float light_brightness)
 		}
 	}
 	fresnelcolortex = new texture(fresnelcolortexd, FRESNEL_FCT_RES, REFRAC_COLOR_RES, GL_RGBA,
-				 GL_LINEAR/*_MIPMAP_LINEAR*/, GL_CLAMP_TO_EDGE);
+				 texture::LINEAR/*_MIPMAP_LINEAR*/, texture::CLAMP_TO_EDGE);
 }
 
 

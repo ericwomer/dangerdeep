@@ -21,10 +21,46 @@
 #include <sstream>
 using namespace std;
 
-
 unsigned texture::mem_used = 0;
 unsigned texture::mem_alloced = 0;
 unsigned texture::mem_freed = 0;
+
+
+// ------------------------------- GL mode tables -------------------
+static GLuint mapmodes[texture::NR_OF_MAPPING_MODES] = {
+	GL_NEAREST,
+	GL_LINEAR,
+	GL_NEAREST_MIPMAP_NEAREST,
+	GL_NEAREST_MIPMAP_LINEAR,
+	GL_LINEAR_MIPMAP_NEAREST,
+	GL_LINEAR_MIPMAP_LINEAR
+};
+
+static bool do_mipmapping[texture::NR_OF_MAPPING_MODES] = {
+	false,
+	false,
+	true,
+	true,
+	true,
+	true
+};
+
+static GLuint magfilter[texture::NR_OF_MAPPING_MODES] = {
+	GL_NEAREST,
+	GL_LINEAR,
+	GL_NEAREST,
+	GL_NEAREST,
+	GL_LINEAR,
+	GL_LINEAR
+};
+
+static GLuint clampmodes[texture::NR_OF_CLAMPING_MODES] = {
+	GL_REPEAT,
+	GL_CLAMP,
+	GL_CLAMP_TO_EDGE
+};
+// --------------------------------------------------
+
 
 
 void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
@@ -124,7 +160,6 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 		}
 	}
 	SDL_UnlockSurface(teximage);
-	
 	init(data, makenormalmap, detailh);
 }
 	
@@ -132,6 +167,10 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 
 void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 {
+	// error checks.
+	sys().myassert(mapping >= 0 && mapping < NR_OF_MAPPING_MODES, "illegal mapping mode!");
+	sys().myassert(clamping >= 0 && clamping < NR_OF_CLAMPING_MODES, "illegal clamping mode!");
+
 	// automatic resizing of textures if they're too large
 	vector<Uint8> data2;
 	const vector<Uint8>* pdata = &data;
@@ -174,11 +213,6 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 	glGenTextures(1, &opengl_name);
 	glBindTexture(GL_TEXTURE_2D, opengl_name);
 
-	bool do_mipmap = (mapping == GL_NEAREST_MIPMAP_NEAREST
-			  || mapping == GL_NEAREST_MIPMAP_LINEAR
-			  || mapping == GL_LINEAR_MIPMAP_NEAREST
-			  || mapping == GL_LINEAR_MIPMAP_LINEAR );
-
 	unsigned add_mem_used = 0;
 
 	if (makenormalmap && format == GL_LUMINANCE) {
@@ -194,14 +228,15 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 
 		add_mem_used = gl_width * gl_height * get_bpp();
 
-		if (do_mipmap) {
+		if (do_mipmapping[mapping]) {
 #if 1
-			// fixme: crashes
 			gluBuild2DMipmaps(GL_TEXTURE_2D, format, gl_width, gl_height,
 					  format, GL_UNSIGNED_BYTE, &((*pdata)[0]));
+
 #else
 			// buggy version. gives white textures. maybe some mipmap levels
 			// are missing so that gl complains by make white textures?
+			// fixme: test it again after the mapping/clamping bugfix!
 
 			// fixme: if we let GLU do the mipmap calculation, the result is wrong.
 			// A filtered version of the normals is not the same as a normal map
@@ -231,7 +266,7 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
 			     GL_UNSIGNED_BYTE, &((*pdata)[0]));
 		add_mem_used = gl_width * gl_height * get_bpp();
-		if (do_mipmap) {
+		if (do_mipmapping[mapping]) {
 			// fixme: does this command set the base level, too?
 			// i.e. are the two gl commands redundant?
 			gluBuild2DMipmaps(GL_TEXTURE_2D, format, gl_width, gl_height,
@@ -239,7 +274,7 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		}
 	}
 
-	if (do_mipmap)
+	if (do_mipmapping[mapping])
 		add_mem_used = (4*add_mem_used)/3;
 	mem_used += add_mem_used;
 	ostringstream oss; oss << "Allocated " << add_mem_used << " bytes of video memory for texture '" << texfilename << "', total video mem use " << mem_used/1024 << " kb";
@@ -248,10 +283,10 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 	ostringstream oss2; oss2 << "Video mem usage " << mem_alloced << " vs " << mem_freed;
 	sys().add_console(oss2.str());
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapping);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mapping);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamping);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamping);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapmodes[mapping]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magfilter[mapping]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clampmodes[clamping]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
 }
 
 
@@ -310,7 +345,7 @@ vector<Uint8> texture::make_normals(const vector<Uint8>& src, unsigned w, unsign
 
 
 
-texture::texture(const string& filename, int mapping_, int clamp,
+texture::texture(const string& filename, mapping_mode mapping_, clamping_mode clamp,
 		 bool makenormalmap, float detailh)
 {
 	mapping = mapping_;
@@ -325,7 +360,7 @@ texture::texture(const string& filename, int mapping_, int clamp,
 
 
 texture::texture(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-		 int mapping_, int clamp, bool makenormalmap, float detailh)
+		 mapping_mode mapping_, clamping_mode clamp, bool makenormalmap, float detailh)
 {
 	mapping = mapping_;
 	clamping = clamp;
@@ -335,7 +370,7 @@ texture::texture(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, u
 
 
 texture::texture(const vector<Uint8>& pixels, unsigned w, unsigned h, int format_,
-		 int mapping_, int clamp, bool makenormalmap, float detailh)
+		 mapping_mode mapping_, clamping_mode clamp, bool makenormalmap, float detailh)
 {
 	mapping = mapping_;
 	clamping = clamp;
@@ -354,13 +389,8 @@ texture::texture(const vector<Uint8>& pixels, unsigned w, unsigned h, int format
 
 texture::~texture()
 {
-	bool do_mipmap = (mapping == GL_NEAREST_MIPMAP_NEAREST
-			  || mapping == GL_NEAREST_MIPMAP_LINEAR
-			  || mapping == GL_LINEAR_MIPMAP_NEAREST
-			  || mapping == GL_LINEAR_MIPMAP_LINEAR );
-
 	unsigned sub_mem_used = gl_width * gl_height * get_bpp();
-	if (do_mipmap)
+	if (do_mipmapping[mapping])
 		sub_mem_used = (4*sub_mem_used)/3;
 	mem_used -= sub_mem_used;
 	ostringstream oss; oss << "Freed " << sub_mem_used << " bytes of video memory for texture '" << texfilename << "', total video mem use " << mem_used/1024 << " kb";

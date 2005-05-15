@@ -30,9 +30,9 @@ void sub_gauges_display::indicator::display(bool is_day_mode, double angle) cons
 
 void sub_gauges_display::indicator::set(SDL_Surface* sday, SDL_Surface* snight, unsigned x_, unsigned y_, unsigned w_, unsigned h_)
 {
-	mytexday = new texture(sday, x_, y_, w_, h_, GL_LINEAR, GL_CLAMP_TO_EDGE);
+	mytexday = new texture(sday, x_, y_, w_, h_, texture::LINEAR, texture::CLAMP_TO_EDGE);
 	if (snight)
-		mytexnight = new texture(snight, x_, y_, w_, h_, GL_LINEAR, GL_CLAMP_TO_EDGE);
+		mytexnight = new texture(snight, x_, y_, w_, h_, texture::LINEAR, texture::CLAMP_TO_EDGE);
 	x = x_;
 	y = y_;
 	w = w_;

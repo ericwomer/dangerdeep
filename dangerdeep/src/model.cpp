@@ -28,57 +28,57 @@
 
 string modelpath;
 
-int model::mapping = GL_LINEAR_MIPMAP_LINEAR;//GL_NEAREST;
-bool model::enable_vertex_programs = true;
-bool model::enable_fragment_programs = true;
+texture::mapping_mode model::mapping = texture::LINEAR_MIPMAP_LINEAR;//texture::NEAREST;
+bool model::enable_shaders = true;
 
 unsigned model::init_count = 0;
 bool model::vertex_program_supported = false;
 bool model::fragment_program_supported = false;
 bool model::compiled_vertex_arrays_supported = false;
-bool model::use_vertex_programs = false;
-bool model::use_fragment_programs = false;
+bool model::use_shaders = false;
 GLuint model::default_vertex_program = 0;
 GLuint model::default_fragment_program = 0;
 
 
-void model::render_init(void)
+void model::render_init()
 {
 	vertex_program_supported = sys().extension_supported("GL_ARB_vertex_program");
 	fragment_program_supported = sys().extension_supported("GL_ARB_fragment_program");
 	compiled_vertex_arrays_supported = sys().extension_supported("GL_EXT_compiled_vertex_array");
 
-	use_vertex_programs = vertex_program_supported && enable_vertex_programs;
-	use_fragment_programs = fragment_program_supported && enable_fragment_programs;
+	use_shaders = enable_shaders && vertex_program_supported && fragment_program_supported;
 
 	// initialize shaders if wanted
-	if (use_fragment_programs) {
+	if (use_shaders) {
 		default_fragment_program =
 			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB,
 					       get_shader_dir() + "modelrender_fp.shader");
+		default_vertex_program =
+			texture::create_shader(GL_VERTEX_PROGRAM_ARB,
+					       get_shader_dir() + "modelrender_vp.shader");
 	}
 }
 
 
 
-void model::render_deinit(void)
+void model::render_deinit()
 {
-	if (use_fragment_programs) {
+	if (use_shaders) {
 		texture::delete_shader(default_fragment_program);
+		texture::delete_shader(default_vertex_program);
 	}
 }
 
 
 
-model::model() : display_list(0), usematerial(true)
+model::model()
 {
 	if (init_count == 0) render_init();
 	++init_count;
 }
 
 
-model::model(const string& filename, bool usematerial_, bool makedisplaylist) :
-	display_list(0), usematerial(usematerial_)
+model::model(const string& filename, bool use_material)
 {
 	if (init_count == 0) render_init();
 	++init_count;
@@ -105,27 +105,25 @@ model::model(const string& filename, bool usematerial_, bool makedisplaylist) :
 	}
 
 	read_cs_file(filename);	// try to read cross section file
-	
+
+	// clear material info if requested
+	if (!use_material) {
+		for (vector<mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it)
+			it->mymaterial = 0;
+		for (vector<material*>::iterator it = materials.begin(); it != materials.end(); ++it)
+			delete *it;
+		materials.clear();
+	}
+
+
 	compute_bounds();
 	compute_normals();
-
-	if (makedisplaylist) {
-		// fixme: determine automatically if we can make one (bump mapping
-		// without vertex shaders means that we can't compile a list!)
-		// create display list
-		unsigned dl = glGenLists(1);
-		sys().myassert(dl != 0, "no more display list indices available");
-		glNewList(dl, GL_COMPILE);
-		display();
-		glEndList();
-		display_list = dl;
-	}
+	compile();
 }
 
 
 model::~model()
 {
-	glDeleteLists(display_list, 1);
 	for (vector<model::material*>::iterator it = materials.begin(); it != materials.end(); ++it)
 		delete *it;
 	--init_count;
@@ -133,7 +131,7 @@ model::~model()
 }
 
 
-void model::compute_bounds(void)
+void model::compute_bounds()
 {
 	if (meshes.size() == 0) return;
 	meshes[0].compute_bounds();
@@ -147,14 +145,14 @@ void model::compute_bounds(void)
 	}
 }
 
-void model::compute_normals(void)
+void model::compute_normals()
 {
 	for (vector<model::mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
 		it->compute_normals();
 	}
 }
 
-void model::mesh::compute_bounds(void)
+void model::mesh::compute_bounds()
 {
 	if (vertices.size() == 0) return;
 	min = max = vertices[0];
@@ -165,7 +163,7 @@ void model::mesh::compute_bounds(void)
 	}
 }
 
-void model::mesh::compute_normals(void)
+void model::mesh::compute_normals()
 {
 	// auto-detecion of hard edges (creases) would be cool:
 	// if the angle between faces at an edge is above a certain value,
@@ -276,6 +274,41 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 		float g = tangentsx[i0].cross(tangentsy) * n;
 		righthanded[i0] = (g > 0);
 		return true;
+	}
+}
+
+
+
+model::mesh::mesh() : transformation(matrix4f::one()), mymaterial(0), display_list(0)
+{
+}
+
+
+
+model::mesh::~mesh()
+{
+	if (display_list != 0) {
+		glDeleteLists(display_list, 1);
+	}
+}
+
+
+
+void model::mesh::compile()
+{
+	// check if display list can be compiled.
+	if (use_shaders || !(mymaterial && mymaterial->bump)) {
+		if (display_list == 0) {
+			display_list = glGenLists(1);
+			sys().myassert(display_list != 0, "no more display list indices available");
+		}
+		glNewList(display_list, GL_COMPILE);
+		display(false);
+		glEndList();
+	} else {
+		// delete unused list.
+		glDeleteLists(display_list, 1);
+		display_list = 0;
 	}
 }
 
@@ -446,26 +479,28 @@ pair<model::mesh, model::mesh> model::mesh::split(const vector3f& abc, float d) 
 
 
 
-void model::material::map::init(int mapping, bool makenormalmap, float detailh)
+void model::material::map::init(texture::mapping_mode mapping, bool makenormalmap, float detailh)
 {
 	delete mytexture;
 	mytexture = 0;
 	if (filename.length() > 0) {
-		mytexture = new texture(get_texture_dir() + filename, mapping,
+		// fixme: which clamp mode should we use for models? REPEAT doesn't harm normally...
+		mytexture = new texture(get_texture_dir() + filename, mapping, texture::REPEAT,
 					makenormalmap, detailh);
 	}
 }
 
-void model::material::init(void)
+void model::material::init()
 {
 	if (tex1) tex1->init(model::mapping);
 	//fixme: what is best mapping for bump maps?
 	// compute normalmap if not given
-	if (bump) bump->init(GL_LINEAR /*_MIPMAP_LINEAR*/, true, 255.0f /*16.0f*/ /*fixme, read from model file*/);
+	//fixme: detailh seems to make no (big?) difference???!
+	if (bump) bump->init(texture::LINEAR /*_MIPMAP_LINEAR*/, true, 255.0f /*16.0f*/ /*fixme, read from model file*/);
 }
 
 
-void model::material::set_gl_values(void) const
+void model::material::set_gl_values() const
 {
 	glActiveTexture(GL_TEXTURE0);
 	if (tex1 && tex1->mytexture) {
@@ -475,8 +510,10 @@ void model::material::set_gl_values(void) const
 			// set primary color alpha to one.
 			glColor4f(1, 1, 1, 1);
 
-			if (use_fragment_programs) {
-				// use fragment programs
+			if (use_shaders) {
+				glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_program);
+				glEnable(GL_VERTEX_PROGRAM_ARB);
+
 				glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_program);
 				glEnable(GL_FRAGMENT_PROGRAM_ARB);
 
@@ -496,6 +533,26 @@ void model::material::set_gl_values(void) const
 							     0.1f, 0.1f, 0.1f, 1.0f);//fixme test
 				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 2,
 							     0.8f, 0.8f, 1.0f, 1.0f);//fixme test
+
+				glActiveTexture(GL_TEXTURE1);
+				// texture matrix must be computed with vertex programs!
+				glMatrixMode(GL_TEXTURE);
+				glLoadIdentity();
+				glScalef(1, -1, 1); // y flip texture
+				glTranslatef(bump->uoffset, bump->voffset, 0);
+				glRotatef(-bump->angle, 0, 0, 1);
+				glScalef(bump->uscal, bump->vscal, 1);
+				bump->mytexture->set_gl_texture();
+				glActiveTexture(GL_TEXTURE0);
+				glEnable(GL_TEXTURE_2D);
+				tex1->mytexture->set_gl_texture();
+				glMatrixMode(GL_TEXTURE);
+				glLoadIdentity();
+				glScalef(1, -1, 1); // y flip texture
+				glTranslatef(tex1->uoffset, tex1->voffset, 0);
+				glRotatef(-tex1->angle, 0, 0, 1);
+				glScalef(tex1->uscal, tex1->vscal, 1);
+
 			} else {
 				// standard OpenGL texturing with special tricks
 				glActiveTexture(GL_TEXTURE0);
@@ -577,29 +634,38 @@ void model::material::set_gl_values(void) const
 	}
 }
 
-void model::mesh::display(bool usematerial) const
+void model::mesh::display(bool use_display_list) const
 {
+	if (display_list != 0 && use_display_list) {
+		glCallList(display_list);
+		return;
+	}
+
+	// colors may be needed for bump mapping.
+	vector<Uint8> colors;
+
 	bool has_texture_u0 = false, has_texture_u1 = false;
 	bool bumpmapping = false;
-	if (usematerial) {
-		if (mymaterial != 0) {
-			if (mymaterial->tex1 && mymaterial->tex1->mytexture)
-				has_texture_u0 = true;
-			if (mymaterial->bump && mymaterial->bump->mytexture)
-				has_texture_u1 = true;
-			bumpmapping = has_texture_u1;	// maybe more options here...
-			mymaterial->set_gl_values();
-		} else {
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glColor3f(0.5,0.5,0.5);
-		}
+	if (mymaterial != 0) {
+		if (mymaterial->tex1 && mymaterial->tex1->mytexture)
+			has_texture_u0 = true;
+		if (mymaterial->bump && mymaterial->bump->mytexture)
+			has_texture_u1 = true;
+		bumpmapping = has_texture_u1;	// maybe more options here...
+		mymaterial->set_gl_values();
+	} else {
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glColor3f(0.5,0.5,0.5);
 	}
 
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0]);	
-	glEnableClientState(GL_NORMAL_ARRAY);
+	// fixme: with non-fragment-program bump mapping, we don't need normals!
+	if (!bumpmapping || use_shaders) {
+		glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0]);	
+		glEnableClientState(GL_NORMAL_ARRAY);
+	}
 
 	// without pixel shaders texture coordinates must be set for both texture units and are the same.
 	glClientActiveTexture(GL_TEXTURE0);
@@ -611,9 +677,23 @@ void model::mesh::display(bool usematerial) const
 	}
 
 	glClientActiveTexture(GL_TEXTURE1);
-	if (use_fragment_programs) {
-		// 2nd texture unit coordinates store direction to light source, fixme these are already in colors...
-		// 3rd texture unit coordinates store direction to viewer
+	if (use_shaders) {
+		// give tangents as texture coordinates for unit 1.
+		if (has_texture_u0 && tangentsx.size() == vertices.size()) {
+			glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &tangentsx[0]);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		}
+
+		// give righthanded info as colors (or default: always right handed)
+		if (righthanded.size() == vertices.size()) {
+			colors.resize(righthanded.size()*3);
+			for (unsigned i = 0; i < righthanded.size(); ++i)
+				colors[3*i] = (righthanded[i]) ? 255 : 0;
+			glColorPointer(3, GL_UNSIGNED_BYTE, 0, &colors[0]);
+			glEnableClientState(GL_COLOR_ARRAY);
+		} else {
+			glColor4ub(255, 0, 0, 0);
+		}
 	} else {
 		if (has_texture_u1 && texcoords.size() == vertices.size()) {
 			// maybe offer second texture coords. how are they stored in .3ds files?!
@@ -622,51 +702,51 @@ void model::mesh::display(bool usematerial) const
 		} else {
 			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		}
-	}
 
-	//with bump mapping, we need colors.
-	vector<Uint8> colors;
-	if (bumpmapping) {
-		vector4f lightpos_abs;
-		glGetLightfv(GL_LIGHT0, GL_POSITION, &lightpos_abs.x);
-		//lightpos_abs = vector4f(200,0,-117,0);//test hack
-		//fixme: with directional light we have darker results... are some vectors not
-		//of unit length then?
-		matrix4f invmodelview = (matrix4f::get_gl(GL_MODELVIEW_MATRIX)).inverse();
-		vector4f lightpos_rel = invmodelview * lightpos_abs;
-		//cout << "lightpos abs " << lightpos_abs << "\n";
-		//cout << "lightpos rel " << lightpos_rel << "\n";
-		vector3f lightpos3 = lightpos_rel.to_real();
-		//cout << "lightpos3 " << lightpos3 << "," << lightpos_rel.xyz() << "," << ((lightpos_rel.w != 0.0f)) << "\n";
-		colors.resize(3*vertices.size());
-		for (unsigned i = 0; i < vertices.size(); ++i) {
-			const vector3f& nx = tangentsx[i];
-			const vector3f& nz = normals[i];
-			vector3f ny = nz.cross(nx);
+		//with bump mapping, we need colors.
+		if (bumpmapping) {
+			vector4f lightpos_abs;
+			glGetLightfv(GL_LIGHT0, GL_POSITION, &lightpos_abs.x);
+			//lightpos_abs = vector4f(200,0,-117,0);//test hack
+			//fixme: with directional light we have darker results... are some vectors not
+			//of unit length then?
+			matrix4f invmodelview = (matrix4f::get_gl(GL_MODELVIEW_MATRIX)).inverse();
+			vector4f lightpos_rel = invmodelview * lightpos_abs;
+			//cout << "lightpos abs " << lightpos_abs << "\n";
+			//cout << "lightpos rel " << lightpos_rel << "\n";
+			vector3f lightpos3 = lightpos_rel.to_real();
+			//cout << "lightpos3 " << lightpos3 << "," << lightpos_rel.xyz() << "," << ((lightpos_rel.w != 0.0f)) << "\n";
+			colors.resize(3*vertices.size());
+			for (unsigned i = 0; i < vertices.size(); ++i) {
+				const vector3f& nx = tangentsx[i];
+				const vector3f& nz = normals[i];
+				vector3f ny = nz.cross(nx);
 
-			//fixme: ny length is not always 1, which can only happen when nx and nz are not othogonal
-			//but they should be constructed that way!!!
-			//but maybe this is because of unset tangentsx!!! yes, see above
-			//cout << nx.length() << "," << ny.length() << "," << nz.length() << " vert " << i << " <-------------\n";
+				//fixme: ny length is not always 1, which can only happen when nx and nz are not othogonal
+				//but they should be constructed that way!!!
+				//but maybe this is because of unset tangentsx!!! yes, see above
+				//cout << nx.length() << "," << ny.length() << "," << nz.length() << " vert " << i << " <-------------\n";
 
-			vector3f lp = (lightpos_rel.w != 0.0f) ? (lightpos3 - vertices[i]) : lightpos_rel.xyz();
-			vector3f nl = vector3f(nx * lp, ny * lp, nz * lp).normal();
+				vector3f lp = (lightpos_rel.w != 0.0f) ? (lightpos3 - vertices[i]) : lightpos_rel.xyz();
+				vector3f nl = vector3f(nx * lp, ny * lp, nz * lp).normal();
 
-			// swap light Y direction if in left handed coordinate system
-			//test hack: do it the other way round. seems to be necessary?! maybe texture normals are computed wrongly?!
-			if (!righthanded[i]) nl.y = -nl.y;
+				// swap light Y direction if in left handed coordinate system
+				//test hack: do it the other way round. seems to be necessary?! maybe texture normals are computed wrongly?! no, now it is ok. but tex-y-coordinates are reversed... why it works then?!
+				if (!righthanded[i]) nl.y = -nl.y;
 
-			const float s = 127.5f;
-			colors[3*i+0] = Uint8(nl.x*s + s);
-			colors[3*i+1] = Uint8(nl.y*s + s);
-			colors[3*i+2] = Uint8(nl.z*s + s);
+				const float s = 127.5f;
+				colors[3*i+0] = Uint8(nl.x*s + s);
+				colors[3*i+1] = Uint8(nl.y*s + s);
+				colors[3*i+2] = Uint8(nl.z*s + s);
+			}
+			glColorPointer(3, GL_UNSIGNED_BYTE, 0, &colors[0]);
+			glEnableClientState(GL_COLOR_ARRAY);
+		} else {
+			glDisableClientState(GL_COLOR_ARRAY);
 		}
-		glColorPointer(3, GL_UNSIGNED_BYTE, 0, &colors[0]);
-		glEnableClientState(GL_COLOR_ARRAY);
-	} else {
-		glDisableClientState(GL_COLOR_ARRAY);
 	}
-	
+
+	// and finally draw the mesh.
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, &indices[0]);
 
 #if 0
@@ -674,9 +754,11 @@ void model::mesh::display(bool usematerial) const
 #endif
 
 	// cleanup
-	if (use_fragment_programs) {
+	if (use_shaders) {
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
 		glDisable(GL_FRAGMENT_PROGRAM_ARB);
+		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, 0);
+		glDisable(GL_VERTEX_PROGRAM_ARB);
 	}
 	glEnable(GL_LIGHTING);
 	glDisableClientState(GL_VERTEX_ARRAY);
@@ -688,14 +770,10 @@ void model::mesh::display(bool usematerial) const
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void model::display(void) const
+void model::display() const
 {
-	if (display_list) {
-		glCallList(display_list);
-	} else {
-		for (vector<model::mesh>::const_iterator it = meshes.begin(); it != meshes.end(); ++it)
-			it->display(usematerial);
-	}
+	for (vector<model::mesh>::const_iterator it = meshes.begin(); it != meshes.end(); ++it)
+		it->display();
 
 	// reset texture units
 	glActiveTexture(GL_TEXTURE1);
@@ -773,6 +851,8 @@ float model::get_cross_section(float angle) const
 	return cross_sections[id0] * (1.0f - fac) + cross_sections[id1] * fac;
 }
 
+
+
 string model::tolower(const string& s)
 {
 	string s2 = s;
@@ -781,10 +861,21 @@ string model::tolower(const string& s)
 	return s2;
 }
 
+
+
 void model::transform(const matrix4f& m)
 {
 	for (vector<model::mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
 		it->transform(m);
+	}
+}
+
+
+
+void model::compile()
+{
+	for (vector<model::mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
+		it->compile();
 	}
 }
 

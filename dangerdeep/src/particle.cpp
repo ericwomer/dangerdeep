@@ -194,7 +194,8 @@ void particle::init(void)
 				smoketmp[2*(y*64+x)+1] = (r < 64) ? 0 : r - 64;
 			}
 		}
-		tex_smoke[i] = new texture(smoketmp, 64, 64, GL_LUMINANCE_ALPHA, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
+		tex_smoke[i] = new texture(smoketmp, 64, 64, GL_LUMINANCE_ALPHA,
+					   texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP_TO_EDGE);
 	}
 
 	// compute spray texture here
@@ -203,7 +204,8 @@ void particle::init(void)
 			smoketmp[(y*64+x)*2] = 255;
 		}
 	}
-	tex_spray = new texture(smoketmp, 64, 64, GL_LUMINANCE_ALPHA, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
+	tex_spray = new texture(smoketmp, 64, 64, GL_LUMINANCE_ALPHA,
+				texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP_TO_EDGE);
 
 	// compute random fire textures here.
 	tex_fire.resize(NR_OF_FIRE_TEXTURES);
@@ -245,7 +247,8 @@ void particle::init(void)
 		for (unsigned j = 0; j < firetmp.size() - 2 * FIRE_RES; ++j) {
 			firepal[firetmp[j]].store_rgba(&tmp[4*(j + 2*FIRE_RES)]);
 		}
-		tex_fire[i] = new texture(tmp, FIRE_RES, FIRE_RES, GL_RGBA, GL_LINEAR, GL_CLAMP_TO_EDGE);
+		tex_fire[i] = new texture(tmp, FIRE_RES, FIRE_RES, GL_RGBA,
+					  texture::LINEAR, texture::CLAMP_TO_EDGE);
 
 /*
 		vector<Uint8> tmp2(firetmp.size() * 3);
@@ -268,20 +271,20 @@ void particle::init(void)
 	for (unsigned i = 0; i < EXPL_FRAMES; ++i) {
 		char tmp[20];
 		sprintf(tmp, "exbg%04u.png", i+1);
-		explosionbig[i] = new texture(get_texture_dir() + "explosion01/" + tmp, GL_LINEAR, GL_CLAMP_TO_EDGE);
+		explosionbig[i] = new texture(get_texture_dir() + "explosion01/" + tmp, texture::LINEAR, texture::CLAMP_TO_EDGE);
 	}
 	explosionsml.resize(EXPL_FRAMES);
 	for (unsigned i = 0; i < EXPL_FRAMES; ++i) {
 		char tmp[20];
 		sprintf(tmp, "exsm%04u.png", i+1);
-		explosionsml[i] = new texture(get_texture_dir() + "explosion02/" + tmp, GL_LINEAR, GL_CLAMP_TO_EDGE);
+		explosionsml[i] = new texture(get_texture_dir() + "explosion02/" + tmp, texture::LINEAR, texture::CLAMP_TO_EDGE);
 	}
 
 	// read in water splash images (maybe replace later with run time generated images of water particles)
 	watersplashes.resize(3);
-	watersplashes[0] = new texture(get_texture_dir() + "torpedo_expl_water_splash.png" , GL_LINEAR);
-	watersplashes[1] = new texture(get_texture_dir() + "torpedo_expl_water_splash_1.png" , GL_LINEAR);
-	watersplashes[2] = new texture(get_texture_dir() + "torpedo_expl_water_splash_2.png" , GL_LINEAR);
+	watersplashes[0] = new texture(get_texture_dir() + "torpedo_expl_water_splash.png" , texture::LINEAR);
+	watersplashes[1] = new texture(get_texture_dir() + "torpedo_expl_water_splash_1.png" , texture::LINEAR);
+	watersplashes[2] = new texture(get_texture_dir() + "torpedo_expl_water_splash_2.png" , texture::LINEAR);
 }
 
 

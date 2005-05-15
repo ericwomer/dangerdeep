@@ -32,10 +32,9 @@ GLfloat lposition[4] = {100,0,-5,1};
 
 void view_model(const string& modelfilename)
 {
-	model::enable_vertex_programs = true;
-	model::enable_fragment_programs = true;
+	model::enable_shaders = true;
 
-	model* mdl = new model(get_model_dir() + modelfilename, true, false);
+	model* mdl = new model(get_model_dir() + modelfilename);
 
 	mdl->write_to_dftd_model_file("test.xml");
 

@@ -56,7 +56,7 @@ sub_bridge_display::sub_bridge_display(user_interface& ui_) : freeview_display(u
 	aboard = true;
 	withunderwaterweapons = false;
 	drawbridge = true;
-	glasses_tex = new texture(get_texture_dir() + "glasses.png", GL_LINEAR, GL_CLAMP_TO_EDGE);
+	glasses_tex = new texture(get_texture_dir() + "glasses.png", texture::LINEAR, texture::CLAMP_TO_EDGE);
 }
 
 

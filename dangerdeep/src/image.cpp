@@ -93,7 +93,7 @@ void image::cache_entry::generate(const image* obj)
 		for (unsigned x = 0; x < gltx; ++x) {
 			textures.push_back(new texture(obj->img, cw, ch,
 						       widths[x], heights[y],
-						       GL_NEAREST, GL_CLAMP_TO_EDGE));
+						       texture::NEAREST, texture::CLAMP_TO_EDGE));
 			cw += widths[x];
 		}
 		ch += heights[y];

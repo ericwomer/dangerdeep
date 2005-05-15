@@ -77,7 +77,7 @@ float XmlAttribf(class TiXmlElement* elem, const char* attrname)
 
 void init_global_data(void)
 {
-	background = new texture(get_texture_dir() + "background.png", GL_LINEAR);
+	background = new texture(get_texture_dir() + "background.png", texture::LINEAR);
 	conning_tower_typeVII = new model(get_model_dir() + "conning_tower_typeVIIc.3ds");
 	font_arial = new font(get_font_dir() + "font_arial");
 	loading_screen_usable = true;
@@ -91,17 +91,17 @@ void init_global_data(void)
 	depth_charge_mdl = new model(get_model_dir() + "depth_charge.3ds");
 	gun_shell_mdl = new model(get_model_dir() + "gun_shell.3ds");
 	psbackgr = new texture(get_texture_dir() + "psbackgr.png");
-	panelbackgr = new texture(get_texture_dir() + "panelbackgr.png", GL_LINEAR);
+	panelbackgr = new texture(get_texture_dir() + "panelbackgr.png", texture::LINEAR);
 	addleadangle = new texture(get_texture_dir() + "addleadangle.png");
-	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", GL_LINEAR);
+	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", texture::LINEAR);
 	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png" );
 	notepadsheet = new texture(get_texture_dir() + "notepadsheet.png" /*, GL_CLAMP_TO_EDGE*/);
 	menuframe = new texture(get_texture_dir() + "menuframe.png" );
 	turnswitch = new texture(get_texture_dir() + "turnswitch.png" );
 	turnswitchbackgr = new texture(get_texture_dir() + "turnswitchbackgr.png" );
-	terraintex = new texture(get_texture_dir() + "terrain.jpg", GL_LINEAR);
+	terraintex = new texture(get_texture_dir() + "terrain.jpg", texture::LINEAR);
 	cloudsbackgr = new texture(get_texture_dir() + "cloudsbackgr.jpg" );
-	atlanticmap = new texture(get_texture_dir() + "atlanticmap.jpg", GL_LINEAR, GL_CLAMP_TO_EDGE);
+	atlanticmap = new texture(get_texture_dir() + "atlanticmap.jpg", texture::LINEAR, texture::CLAMP_TO_EDGE);
 	add_loading_screen("textures loaded");
 
 	soundcache.ref(se_submarine_torpedo_launch);

@@ -1174,8 +1174,7 @@ int mymain(list<string>& args)
 	mycfg.register_option("sound", true);
 	mycfg.register_option("water_res_x", 128);
 	mycfg.register_option("water_res_y", 128);
-	mycfg.register_option("use_pixel_shaders", false);
-	mycfg.register_option("use_vertex_shaders", false);
+	mycfg.register_option("use_shaders", false);
 	
 	mycfg.register_key(key_names[KEY_ZOOM_MAP].name, SDLK_PLUS, 0, 0, 0);
 	mycfg.register_key(key_names[KEY_UNZOOM_MAP].name, SDLK_MINUS, 0, 0, 0);
@@ -1299,8 +1298,7 @@ int mymain(list<string>& args)
 
 //	mycfg.save("./testconf");
 
-	model::enable_vertex_programs = cfg::instance().getb("use_vertex_shaders");
-	model::enable_fragment_programs = cfg::instance().getb("use_pixel_shaders");
+	model::enable_shaders = cfg::instance().getb("use_shaders");
 
 	// set language to default
 	texts::set_language();

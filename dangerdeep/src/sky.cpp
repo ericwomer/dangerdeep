@@ -37,7 +37,7 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 	clouds(0), suntex(0), moontex(0), clouds_dl(0), skyhemisphere_dl(0)
 {
 	// ******************************* create display list for sky background
-	skyhemisphere = model::ptr(new model(get_model_dir() + "skyhemisphere.3ds", false, false));
+	skyhemisphere = model::ptr(new model(get_model_dir() + "skyhemisphere.3ds", false));
 	const model::mesh& skyhemisphere_mesh = skyhemisphere->get_mesh(0);
 
 	unsigned smv = skyhemisphere_mesh.vertices.size();
@@ -118,7 +118,7 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 	osg << "P6\n256 256\n255\n";
 	osg.write((const char*)(&skycolmap[0]), 256*256*3);
 */
-	skycol = texture::ptr(new texture(skycolmap, 256, 256, GL_RGB, GL_LINEAR, GL_CLAMP_TO_EDGE));
+	skycol = texture::ptr(new texture(skycolmap, 256, 256, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 	skycolmap.clear();
 
 	// ******************************** create maps for sun glow
@@ -137,12 +137,12 @@ sky::sky(double tm) : mytime(tm), skycolorfac(0.0f),
 	osg << "P5\n256 256\n255\n";
 	osg.write((const char*)(&sunglowmap[0]), 256*256);
 */
-	sunglow = texture::ptr(new texture(sunglowmap, 256, 256, GL_LUMINANCE, GL_LINEAR, GL_CLAMP_TO_EDGE));
+	sunglow = texture::ptr(new texture(sunglowmap, 256, 256, GL_LUMINANCE, texture::LINEAR, texture::CLAMP_TO_EDGE));
 	sunglowmap.clear();
 
 	// ********************************** init sun/moon	
-	suntex = texture::ptr(new texture(get_texture_dir() + "thesun.png", GL_LINEAR));
-	moontex = texture::ptr(new texture(get_texture_dir() + "themoon.png", GL_LINEAR));
+	suntex = texture::ptr(new texture(get_texture_dir() + "thesun.png", texture::LINEAR));
+	moontex = texture::ptr(new texture(get_texture_dir() + "themoon.png", texture::LINEAR));
 	
 	// ********************************** init clouds
 	// clouds are generated with Perlin noise.
@@ -389,7 +389,7 @@ void sky::compute_clouds(void)
 		}
 	}
 
-	clouds = texture::ptr(new texture(fullmap, 256, 256, GL_LUMINANCE_ALPHA, GL_LINEAR, GL_CLAMP_TO_EDGE));
+	clouds = texture::ptr(new texture(fullmap, 256, 256, GL_LUMINANCE_ALPHA, texture::LINEAR, texture::CLAMP_TO_EDGE));
 }
 
 

@@ -21,6 +21,12 @@ using namespace std;
 #include "system.h"
 #include "texture.h"
 
+#define THROWERR
+
+#ifdef THROWERR
+#include <exception>
+#endif
+
 class system* system::instance = 0;
 
 static char sprintf_tmp[1024];
@@ -262,6 +268,9 @@ void system::myassert(bool cond, const string& msg)
 {
 	if (this == 0 && !cond) {
 		cerr << msg << "\n";
+#ifdef THROWERR
+		throw std::exception();
+#endif
 		exit(0);
 	}
 	if (!cond) {
@@ -272,6 +281,9 @@ void system::myassert(bool cond, const string& msg)
 			add_console("unknown error");
 		SDL_Quit();
 		write_console();
+#ifdef THROWERR
+		throw std::exception();
+#endif
 		exit(0);
 	}
 }
