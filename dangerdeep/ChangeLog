@@ -1,3 +1,13 @@
+2005-05-15  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* texture.cpp/h and clients
+	  - new mapping/clamping interface for texture class
+	  - fixed texture usage bugs
+	* model.cpp/h and clients
+	  - now vertex and pixel shaders can be used featuring
+	    per pixel ambient, diffuse and specular lighting
+	    with normal maps, for per pixel detail of surfaces.
+	    (many small things still need to be done)
+
 2005-05-07  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* coastmap.cpp/h
 	  - finally fixed ALL map/coastline generation bugs.
