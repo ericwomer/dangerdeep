@@ -120,7 +120,8 @@ void cfg::load(const string& filename)
 		} else {
 			string attrstr = XmlAttrib(eattr, "value");
 			bool found = set_str(eattr->Value(), attrstr);
-			sys().myassert(found, string("cfg: load(), name not registered : ") + eattr->Value());
+			if (!found)
+				sys().add_console(string("WARNING: config option not registered: ") + eattr->Value());
 		}
 	}
 }

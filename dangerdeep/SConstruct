@@ -131,6 +131,38 @@ def all_entries_that_start_with(list, prefix):
 			list2 += [i]
 	return list2
 
+# how this works:
+# read basedir/CVS/Entries
+#  each directory has a D/aaa at the beginning, each file a /bbb
+#  recursivly subdivide into basedir/aaa
+#  add basedir/bbb to return list
+#  returns list of files in cvs
+def findCVS(basedir):
+	f = open(basedir + os.sep + 'CVS' + os.sep + 'Entries')
+	lines = f.readlines()
+	mydirs = []
+	myfiles = []
+	for l in lines:
+		if l.startswith('D/'):
+			l2 = l[2:]
+			i = l2.find('/')
+			if i != -1:
+				l3 = l2[0:i]
+				mydirs += [l3]
+		elif l.startswith('/'):
+			l2 = l[1:]
+			i = l2.find('/')
+			if i != -1:
+				l3 = l2[0:i]
+				myfiles += [basedir + os.sep + l3]
+#	print mydirs
+#	print myfiles
+	for d in mydirs:
+		nextdir = basedir + os.sep + d
+		if os.path.isdir(nextdir):
+			myfiles += findCVS(nextdir)
+	return myfiles
+
 
 ################ show some help when running scons -h
 Help("""
@@ -145,12 +177,7 @@ Help("""
 libpath = libpath + [target_dir]
 env.Append(LIBPATH = libpath)
 
-f = open('files.txt')
-allcvsfilesr = f.readlines()
-# remove return code '\n' from end of line
-allcvsfiles = []
-for i in allcvsfilesr:
-	allcvsfiles += [i[:len(i)-1]]
+allcvsfiles = findCVS('.')
 
 datafiles = all_entries_that_start_with(allcvsfiles, './data')
 
