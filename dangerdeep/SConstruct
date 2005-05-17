@@ -23,6 +23,10 @@ if ARGUMENTS.get('installdatadir', 0):
 	installdatadir = ARGUMENTS.get('installdatadir', 0)
 
 
+################ command line config
+debug = int(ARGUMENTS.get('debug', 0))
+devel = int(ARGUMENTS.get('devel', 0))
+
 ################ set environment
 
 osspecificsrc = []
@@ -57,7 +61,14 @@ else:
 	libpath = ['/usr/X11R6/lib']
 	gllibs = ['GL', 'GLU']
 	sdllibs = ['SDL', 'SDL_image']
-	env.Append(CCFLAGS = '-Wall -g -O2 `sdl-config --cflags`')
+	ccflags = '-Wall `sdl-config --cflags`'
+	if (debug == 1):
+		ccflags += ' -g -O0'
+	elif (debug == -1):
+		ccflags += ' -O3 -mcpu=athlon-xp -march=athlon-xp -mfpmath=sse -mmmx -msse -m3dnow'
+	else:
+		ccflags += ' -O2'
+	env.Append(CCFLAGS = ccflags)
 	datadir = installdatadir
 	build_dir = 'linux'
 	# check for broken libGL, ignore undefined symbols then
@@ -91,32 +102,35 @@ source_base_dir = 'src'
 
 ################ configure
 conf = Configure(env)
-if not conf.CheckCHeader('gl.h'):
-	print 'GL library must be installed!'
-	Exit(1)
-if not conf.CheckCHeader('glu.h'):
-	print 'GLU library must be installed!'
-	Exit(1)
-if not conf.CheckCHeader('SDL.h'):
-	print 'SDL library must be installed!'
-	Exit(1)
-if not conf.CheckCHeader('SDL_image.h'):
-	print 'SDL_image library must be installed!'
-	Exit(1)
-if not conf.CheckCHeader('SDL_net.h'):
-	print 'SDL_net library is needed for network code!'
-	Exit(1)
-if not conf.CheckCHeader('SDL_mixer.h'):
-	print 'SDL_mixer library is needed for sound support!'
-	Exit(1)
-if not conf.CheckCHeader('fftw3.h'):
-	print 'fftw3 library must be installed!'
-	Exit(1)
-if conf.CheckLibWithHeader('fftw3f', 'fftw3.h', 'c'):
-	print 'fftw3 library supports float type. Using it...'
+if (devel == 0):
+	if not conf.CheckCHeader('gl.h'):
+		print 'GL library must be installed!'
+		Exit(1)
+	if not conf.CheckCHeader('glu.h'):
+		print 'GLU library must be installed!'
+		Exit(1)
+	if not conf.CheckCHeader('SDL.h'):
+		print 'SDL library must be installed!'
+		Exit(1)
+	if not conf.CheckCHeader('SDL_image.h'):
+		print 'SDL_image library must be installed!'
+		Exit(1)
+	if not conf.CheckCHeader('SDL_net.h'):
+		print 'SDL_net library is needed for network code!'
+		Exit(1)
+	if not conf.CheckCHeader('SDL_mixer.h'):
+		print 'SDL_mixer library is needed for sound support!'
+		Exit(1)
+	if not conf.CheckCHeader('fftw3.h'):
+		print 'fftw3 library must be installed!'
+		Exit(1)
+	if conf.CheckLibWithHeader('fftw3f', 'fftw3.h', 'c'):
+		print 'fftw3 library supports float type. Using it...'
+		fftwlib = 'fftw3f'
+		conf.env.Append(CPPFLAGS = '-DWITH_FLOAT_FFTW')
+else:
 	fftwlib = 'fftw3f'
-	conf.env.Append(CPPFLAGS = '-DWITH_FLOAT_FFTW')
-
+	conf.env.Append(CPPFLAGS = '-DWITH_FLOAT_FFTW')		# developers always use float...
 env = conf.Finish()
 
 ######################### source file lists
@@ -177,9 +191,11 @@ Help("""
 libpath = libpath + [target_dir]
 env.Append(LIBPATH = libpath)
 
-allcvsfiles = findCVS('.')
-
-datafiles = all_entries_that_start_with(allcvsfiles, './data')
+allcvsfiles = []
+datafiles = []
+if (devel == 0):
+	allcvsfiles = findCVS('.')
+	datafiles = all_entries_that_start_with(allcvsfiles, './data')
 
 Export('env', 'gfxlibs', 'alllibs', 'installbindir', 'installdatadir', 'datadir', 'datafiles', 'version', 'osspecificsrc')
 
