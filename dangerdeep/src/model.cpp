@@ -786,8 +786,9 @@ void model::mesh::display(bool use_display_list) const
 
 void model::display() const
 {
-	for (vector<model::mesh>::const_iterator it = meshes.begin(); it != meshes.end(); ++it)
+	for (vector<model::mesh>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
 		it->display();
+	}
 
 	// reset texture units
 	glActiveTexture(GL_TEXTURE1);

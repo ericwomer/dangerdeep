@@ -19,6 +19,7 @@
 #include <iostream>
 #include <sstream>
 #include "image.h"
+#include "make_mesh.h"
 #define VIEWMODEL
 
 #include "mymain.cpp"
@@ -53,6 +54,21 @@ void view_model(const string& modelfilename)
 	double sc = (mdl->get_boundbox_size()*0.5).length();
 	vector3 viewangles;
 	vector3 pos(0, 0, -sc-5);
+
+	vector<Uint8> pixels(4, 128);
+	vector<Uint8> bumps(4);
+	model::material::map* dmap = new model::material::map();
+	model::material::map* bmap = new model::material::map();
+	dmap->mytexture = new texture(pixels, 2, 2, GL_LUMINANCE, texture::LINEAR, texture::CLAMP_TO_EDGE);
+	bmap->mytexture = new texture(bumps, 2, 2, GL_LUMINANCE, texture::LINEAR, texture::CLAMP_TO_EDGE, true);
+	model::material* mat = new model::material();
+	mat->tex1 = dmap;
+	mat->bump = bmap;
+	mdl->add_material(mat);
+	model::mesh msh = make_mesh::make_cube(3*sc, 3*sc, 3*sc, 1.0f, 1.0f, false);
+	msh.mymaterial = mat;
+	mdl->add_mesh(msh);
+	mdl->compile();
 
 	unsigned time1 = sys().millisec();
 	double ang = 0;
@@ -97,7 +113,7 @@ void view_model(const string& modelfilename)
 		glVertex3f(0,0,1);
 		glColor3f(1,1,1);
 		glEnd();
-		
+
 		mdl->display();
 		list<SDL_Event> events = mysys->poll_event_queue();
 		for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {

@@ -54,6 +54,7 @@ dftdsources = Split("""subsim.cpp
 dftdmediasources = Split("""
 	font.cpp
 	image.cpp
+	make_mesh.cpp
 	model.cpp
 	system.cpp
 	texture.cpp""")
