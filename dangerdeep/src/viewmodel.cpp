@@ -65,7 +65,8 @@ void view_model(const string& modelfilename)
 	mat->tex1 = dmap;
 	mat->bump = bmap;
 	mdl->add_material(mat);
-	model::mesh msh = make_mesh::make_cube(3*sc, 3*sc, 3*sc, 1.0f, 1.0f, false);
+//	model::mesh msh = make_mesh::make_cube(3*sc, 3*sc, 3*sc, 1.0f, 1.0f, false);
+	model::mesh msh = make_mesh::make_sphere(1.5*sc, 3*sc, 16, 16, 1.0f, 1.0f, false);
 	msh.mymaterial = mat;
 	mdl->add_mesh(msh);
 	mdl->compile();
