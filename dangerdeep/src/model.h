@@ -53,7 +53,10 @@ public:
 		void set_gl_values() const;
 	};
 	
-	struct mesh {
+	class mesh {
+		mesh(const mesh& );
+		mesh& operator= (const mesh& );
+	public:
 		std::string name;
 		std::vector<vector3f> vertices;
 		std::vector<vector3f> normals;
@@ -62,7 +65,7 @@ public:
 		// we can have a right handed or a left handed coordinate system for each vertex,
 		// dependent on the direction of the u,v coordinates. We do not store the third
 		// vector per vertex but a flag, which saves space.
-		std::vector<bool> righthanded;
+		std::vector<Uint8> righthanded;	// a vector of bools. takes more space than a bitvector, but faster access.
 		std::vector<unsigned> indices;	// 3 indices per face
 		matrix4f transformation;	// rot., transl., scaling
 		material* mymaterial;
@@ -85,8 +88,7 @@ public:
 		void write_off_file(const std::string& fn) const;
 
 		// give plane equation (abc must have length 1)
-		pair<mesh, mesh> split(const vector3f& abc, float d) const;
-
+		pair<mesh*, mesh*> split(const vector3f& abc, float d) const;
 	};
 
 	struct light {
@@ -100,7 +102,7 @@ public:
 
 protected:	
 	std::vector<material*> materials;
-	std::vector<mesh> meshes;
+	std::vector<mesh*> meshes;
 	std::vector<light> lights;
 	
 	std::string basename;	// base name of the scene/model, computed from filename
@@ -196,7 +198,7 @@ public:
 	vector3f get_boundbox_size() const { return max-min; }
 	float get_cross_section(float angle) const;	// give angle in degrees.
 	static std::string tolower(const std::string& s);
-	void add_mesh(const mesh& m) { meshes.push_back(m); }//fixme: maybe recompute bounds
+	void add_mesh(mesh* m) { meshes.push_back(m); }//fixme: maybe recompute bounds
 	void add_material(material* m) { materials.push_back(m); }
 	// transform meshes by matrix (attention: scaling destroys normals)
 	void transform(const matrix4f& m);

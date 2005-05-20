@@ -109,8 +109,8 @@ model::model(const string& filename, bool use_material)
 
 	// clear material info if requested
 	if (!use_material) {
-		for (vector<mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it)
-			it->mymaterial = 0;
+		for (vector<mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it)
+			(*it)->mymaterial = 0;
 		for (vector<material*>::iterator it = materials.begin(); it != materials.end(); ++it)
 			delete *it;
 		materials.clear();
@@ -125,6 +125,8 @@ model::model(const string& filename, bool use_material)
 
 model::~model()
 {
+	for (vector<model::mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it)
+		delete *it;
 	for (vector<model::material*>::iterator it = materials.begin(); it != materials.end(); ++it)
 		delete *it;
 	--init_count;
@@ -135,21 +137,21 @@ model::~model()
 void model::compute_bounds()
 {
 	if (meshes.size() == 0) return;
-	meshes[0].compute_bounds();
-	min = meshes[0].min;
-	max = meshes[0].max;
+	meshes[0]->compute_bounds();
+	min = meshes[0]->min;
+	max = meshes[0]->max;
 
-	for (vector<model::mesh>::iterator it = ++meshes.begin(); it != meshes.end(); ++it) {
-		it->compute_bounds();
-		min = it->min.min(min);
-		max = it->max.max(max);
+	for (vector<model::mesh*>::iterator it = ++meshes.begin(); it != meshes.end(); ++it) {
+		(*it)->compute_bounds();
+		min = (*it)->min.min(min);
+		max = (*it)->max.max(max);
 	}
 }
 
 void model::compute_normals()
 {
-	for (vector<model::mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
-		it->compute_normals();
+	for (vector<model::mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
+		(*it)->compute_normals();
 	}
 }
 
@@ -345,25 +347,26 @@ void model::mesh::write_off_file(const string& fn) const
 
 
 
-pair<model::mesh, model::mesh> model::mesh::split(const vector3f& abc, float d) const
+pair<model::mesh*, model::mesh*> model::mesh::split(const vector3f& abc, float d) const
 {
-	model::mesh part0, part1;
-	part0.name = name + "_part0";
-	part1.name = name + "_part1";
-	part0.transformation = part1.transformation = transformation;
-	part0.mymaterial = part1.mymaterial = mymaterial;
-	part0.vertices.reserve(vertices.size()/2);
-	part1.vertices.reserve(vertices.size()/2);
-	part0.texcoords.reserve(texcoords.size()/2);
-	part1.texcoords.reserve(texcoords.size()/2);
-	part0.normals.reserve(normals.size()/2);
-	part1.normals.reserve(normals.size()/2);
-	part0.tangentsx.reserve(tangentsx.size()/2);
-	part1.tangentsx.reserve(tangentsx.size()/2);
-	part0.righthanded.reserve(righthanded.size()/2);
-	part1.righthanded.reserve(righthanded.size()/2);
-	part0.indices.reserve(indices.size()/2);
-	part1.indices.reserve(indices.size()/2);
+	model::mesh* part0 = new model::mesh();
+	model::mesh* part1 = new model::mesh();
+	part0->name = name + "_part0";
+	part1->name = name + "_part1";
+	part0->transformation = part1->transformation = transformation;
+	part0->mymaterial = part1->mymaterial = mymaterial;
+	part0->vertices.reserve(vertices.size()/2);
+	part1->vertices.reserve(vertices.size()/2);
+	part0->texcoords.reserve(texcoords.size()/2);
+	part1->texcoords.reserve(texcoords.size()/2);
+	part0->normals.reserve(normals.size()/2);
+	part1->normals.reserve(normals.size()/2);
+	part0->tangentsx.reserve(tangentsx.size()/2);
+	part1->tangentsx.reserve(tangentsx.size()/2);
+	part0->righthanded.reserve(righthanded.size()/2);
+	part1->righthanded.reserve(righthanded.size()/2);
+	part0->indices.reserve(indices.size()/2);
+	part1->indices.reserve(indices.size()/2);
 
 	// determine on which side the vertices are
 	vector<float> dists(vertices.size());
@@ -371,19 +374,19 @@ pair<model::mesh, model::mesh> model::mesh::split(const vector3f& abc, float d) 
 	for (unsigned i = 0; i < vertices.size(); ++i) {
 		dists[i] = vertices[i] * abc + d;
 		if (dists[i] >= 0) {
-			ixtrans[i] = part0.vertices.size();
-			part0.vertices.push_back(vertices[i]);
-			if (texcoords.size() > 0) part0.texcoords.push_back(texcoords[i]);
-			if (normals.size() > 0) part0.normals.push_back(normals[i]);
-			if (tangentsx.size() > 0) part0.tangentsx.push_back(tangentsx[i]);
-			if (righthanded.size() > 0) part0.righthanded.push_back(righthanded[i]);
+			ixtrans[i] = part0->vertices.size();
+			part0->vertices.push_back(vertices[i]);
+			if (texcoords.size() > 0) part0->texcoords.push_back(texcoords[i]);
+			if (normals.size() > 0) part0->normals.push_back(normals[i]);
+			if (tangentsx.size() > 0) part0->tangentsx.push_back(tangentsx[i]);
+			if (righthanded.size() > 0) part0->righthanded.push_back(righthanded[i]);
 		} else {
-			ixtrans[i] = part1.vertices.size();
-			part1.vertices.push_back(vertices[i]);
-			if (texcoords.size() > 0) part1.texcoords.push_back(texcoords[i]);
-			if (normals.size() > 0) part1.normals.push_back(normals[i]);
-			if (tangentsx.size() > 0) part1.tangentsx.push_back(tangentsx[i]);
-			if (righthanded.size() > 0) part0.righthanded.push_back(righthanded[i]);
+			ixtrans[i] = part1->vertices.size();
+			part1->vertices.push_back(vertices[i]);
+			if (texcoords.size() > 0) part1->texcoords.push_back(texcoords[i]);
+			if (normals.size() > 0) part1->normals.push_back(normals[i]);
+			if (tangentsx.size() > 0) part1->tangentsx.push_back(tangentsx[i]);
+			if (righthanded.size() > 0) part0->righthanded.push_back(righthanded[i]);
 		}
 	}
 
@@ -398,21 +401,21 @@ pair<model::mesh, model::mesh> model::mesh::split(const vector3f& abc, float d) 
 
 		// check for faces completly on one side
 		if (ds[0] >= 0 && ds[1] >= 0 && ds[2] >= 0) {
-			part0.indices.push_back(ixtrans[ix[0]]);
-			part0.indices.push_back(ixtrans[ix[1]]);
-			part0.indices.push_back(ixtrans[ix[2]]);
+			part0->indices.push_back(ixtrans[ix[0]]);
+			part0->indices.push_back(ixtrans[ix[1]]);
+			part0->indices.push_back(ixtrans[ix[2]]);
 			continue;
 		}
 		if (ds[0] < 0 && ds[1] < 0 && ds[2] < 0) {
-			part1.indices.push_back(ixtrans[ix[0]]);
-			part1.indices.push_back(ixtrans[ix[1]]);
-			part1.indices.push_back(ixtrans[ix[2]]);
+			part1->indices.push_back(ixtrans[ix[0]]);
+			part1->indices.push_back(ixtrans[ix[1]]);
+			part1->indices.push_back(ixtrans[ix[2]]);
 			continue;
 		}
 
 		// face needs to get splitted
-		unsigned p0v = part0.vertices.size();
-		unsigned p1v = part1.vertices.size();
+		unsigned p0v = part0->vertices.size();
+		unsigned p1v = part1->vertices.size();
 		unsigned splitptr = 0;
 		unsigned newindi0[4];	// at most 4 indices
 		unsigned newindi0ptr = 0;
@@ -430,47 +433,47 @@ pair<model::mesh, model::mesh> model::mesh::split(const vector3f& abc, float d) 
 			newindi1[newindi1ptr++] = p1v+splitptr;
 			float fac = fabs(d0) / (fabs(d0) + fabs(d1));
 			vector3f newv = vertices[ix[j]] * (1 - fac) + vertices[ix[next[j]]] * fac;
-			part0.vertices.push_back(newv);
-			part1.vertices.push_back(newv);
+			part0->vertices.push_back(newv);
+			part1->vertices.push_back(newv);
 			if (texcoords.size() > 0) {
 				vector2f newtexc = texcoords[ix[j]] * (1 - fac) + texcoords[ix[next[j]]] * fac;
-				part0.texcoords.push_back(newtexc);
-				part1.texcoords.push_back(newtexc);
+				part0->texcoords.push_back(newtexc);
+				part1->texcoords.push_back(newtexc);
 			}
 			if (normals.size() > 0) {
 				vector3f newnorm = (normals[ix[j]] * (1 - fac) + normals[ix[next[j]]] * fac).normal();
-				part0.normals.push_back(newnorm);
-				part1.normals.push_back(newnorm);
+				part0->normals.push_back(newnorm);
+				part1->normals.push_back(newnorm);
 			}
 			if (tangentsx.size() > 0) {
 				vector3f newtanx = (tangentsx[ix[j]] * (1 - fac) + tangentsx[ix[next[j]]] * fac).normal();
-				part0.tangentsx.push_back(newtanx);
-				part1.tangentsx.push_back(newtanx);
+				part0->tangentsx.push_back(newtanx);
+				part1->tangentsx.push_back(newtanx);
 			}
 			if (righthanded.size() > 0) {
 				//fixme: check if this is correct
-				part0.righthanded.push_back(righthanded[ix[j]]);
-				part1.righthanded.push_back(righthanded[ix[j]]);
+				part0->righthanded.push_back(righthanded[ix[j]]);
+				part1->righthanded.push_back(righthanded[ix[j]]);
 			}
 			++splitptr;
 		}
 		sys().myassert(splitptr == 2, "splitptr != 2 ?!");
 		// add indices to parts.
-		part0.indices.push_back(newindi0[0]);
-		part0.indices.push_back(newindi0[1]);
-		part0.indices.push_back(newindi0[2]);
+		part0->indices.push_back(newindi0[0]);
+		part0->indices.push_back(newindi0[1]);
+		part0->indices.push_back(newindi0[2]);
 		if (newindi0ptr == 4) {
-			part0.indices.push_back(newindi0[0]);
-			part0.indices.push_back(newindi0[2]);
-			part0.indices.push_back(newindi0[3]);
+			part0->indices.push_back(newindi0[0]);
+			part0->indices.push_back(newindi0[2]);
+			part0->indices.push_back(newindi0[3]);
 		}
-		part1.indices.push_back(newindi1[0]);
-		part1.indices.push_back(newindi1[1]);
-		part1.indices.push_back(newindi1[2]);
+		part1->indices.push_back(newindi1[0]);
+		part1->indices.push_back(newindi1[1]);
+		part1->indices.push_back(newindi1[2]);
 		if (newindi1ptr == 4) {
-			part1.indices.push_back(newindi1[0]);
-			part1.indices.push_back(newindi1[2]);
-			part1.indices.push_back(newindi1[3]);
+			part1->indices.push_back(newindi1[0]);
+			part1->indices.push_back(newindi1[2]);
+			part1->indices.push_back(newindi1[3]);
 		}
 		sys().myassert((newindi0ptr == 3 || newindi1ptr == 3) && (newindi0ptr + newindi1ptr == 7), "newindi ptr corrupt!");
 	}
@@ -786,8 +789,8 @@ void model::mesh::display(bool use_display_list) const
 
 void model::display() const
 {
-	for (vector<model::mesh>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
-		it->display();
+	for (vector<model::mesh*>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
+		(*it)->display();
 	}
 
 	// reset texture units
@@ -807,12 +810,12 @@ void model::display() const
 
 model::mesh& model::get_mesh(unsigned nr)
 {
-	return meshes.at(nr);
+	return *meshes.at(nr);
 }
 
 const model::mesh& model::get_mesh(unsigned nr) const
 {
-	return meshes.at(nr);
+	return *meshes.at(nr);
 }
 
 model::material& model::get_material(unsigned nr)
@@ -880,8 +883,8 @@ string model::tolower(const string& s)
 
 void model::transform(const matrix4f& m)
 {
-	for (vector<model::mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
-		it->transform(m);
+	for (vector<model::mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
+		(*it)->transform(m);
 	}
 }
 
@@ -889,8 +892,8 @@ void model::transform(const matrix4f& m)
 
 void model::compile()
 {
-	for (vector<model::mesh>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
-		it->compile();
+	for (vector<model::mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
+		(*it)->compile();
 	}
 }
 
@@ -934,17 +937,18 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 
 	// save meshes.
 	nr = 0;
-	for (vector<mesh>::const_iterator it = meshes.begin(); it != meshes.end(); ++it, ++nr) {
+	for (vector<mesh*>::const_iterator it = meshes.begin(); it != meshes.end(); ++it, ++nr) {
+		mesh* mp = *it;
 		TiXmlElement* msh = new TiXmlElement("mesh");
 		root->LinkEndChild(msh);
-		msh->SetAttribute("name", it->name);
+		msh->SetAttribute("name", mp->name);
 		msh->SetAttribute("id", nr);
 
 		// material.
-		if (it->mymaterial) {
+		if (mp->mymaterial) {
 			unsigned matid = 0;
 			for ( ; matid < materials.size(); ++matid) {
-				if (materials[matid] == it->mymaterial)
+				if (materials[matid] == mp->mymaterial)
 					break;
 			}
 			msh->SetAttribute("material", matid);
@@ -953,9 +957,9 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 		// vertices.
 		TiXmlElement* verts = new TiXmlElement("vertices");
 		msh->LinkEndChild(verts);
-		verts->SetAttribute("nr", it->vertices.size());
+		verts->SetAttribute("nr", mp->vertices.size());
 		ostringstream ossv;
-		for (vector<vector3f>::const_iterator vit = it->vertices.begin(); vit != it->vertices.end(); ++vit) {
+		for (vector<vector3f>::const_iterator vit = mp->vertices.begin(); vit != mp->vertices.end(); ++vit) {
 			ossv << vit->x << " " << vit->y << " " << vit->z << " ";
 		}
 		TiXmlText* vertt = new TiXmlText(ossv.str());
@@ -964,20 +968,20 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 		// indices.
 		TiXmlElement* indis = new TiXmlElement("indices");
 		msh->LinkEndChild(indis);
-		indis->SetAttribute("nr", it->indices.size());
+		indis->SetAttribute("nr", mp->indices.size());
 		ostringstream ossi;
-		for (vector<unsigned>::const_iterator iit = it->indices.begin(); iit != it->indices.end(); ++iit) {
+		for (vector<unsigned>::const_iterator iit = mp->indices.begin(); iit != mp->indices.end(); ++iit) {
 			ossi << *iit << " ";
 		}
 		TiXmlText* indit = new TiXmlText(ossi.str());
 		indis->LinkEndChild(indit);
 
 		// texcoords.
-		if (it->mymaterial) {
+		if (mp->mymaterial) {
 			TiXmlElement* texcs = new TiXmlElement("texcoords");
 			msh->LinkEndChild(texcs);
 			ostringstream osst;
-			for (vector<vector2f>::const_iterator tit = it->texcoords.begin(); tit != it->texcoords.end(); ++tit) {
+			for (vector<vector2f>::const_iterator tit = mp->texcoords.begin(); tit != mp->texcoords.end(); ++tit) {
 				osst << tit->x << " " << tit->y << " ";
 			}
 			TiXmlText* texct = new TiXmlText(osst.str());
@@ -989,7 +993,7 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 			TiXmlElement* nrmls = new TiXmlElement("normals");
 			msh->LinkEndChild(nrmls);
 			ostringstream ossn;
-			for (vector<vector3f>::const_iterator nit = it->normals.begin(); nit != it->normals.end(); ++nit) {
+			for (vector<vector3f>::const_iterator nit = mp->normals.begin(); nit != mp->normals.end(); ++nit) {
 				ossn << nit->x << " " << nit->y << " " << nit->z << " ";
 			}
 			TiXmlText* nrmlt = new TiXmlText(ossn.str());
@@ -997,13 +1001,13 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 		}
 
 		// transformation.
-		if (true /*it->transformation != matrix4f::one()*/) {
+		if (true /*mp->transformation != matrix4f::one()*/) {
 			TiXmlElement* trans = new TiXmlElement("transformation");
 			msh->LinkEndChild(trans);
 			ostringstream osst;
 			for (unsigned y = 0; y < 4; ++y) {
 				for (unsigned x = 0; x < 4; ++x) {
-					osst << it->transformation.elem(x, y) << " ";
+					osst << mp->transformation.elem(x, y) << " ";
 				}
 			}
 			TiXmlText* transt = new TiXmlText(osst.str());
@@ -1214,21 +1218,22 @@ void model::m3ds_process_object_chunks(istream& in, m3ds_chunk& parent, const st
 
 void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent, const string& objname)
 {
-	meshes.push_back(mesh());
-	meshes.back().name = objname;
+	mesh* msh = new mesh();
+	meshes.push_back(msh);
+	msh->name = objname;
 	while (!parent.fully_read()) {
 		m3ds_chunk ch = m3ds_read_chunk(in);
 //	cout<<"found trimesh chunk"<<(void*)ch.id<<"\n";
 		switch (ch.id) {
 			case M3DS_TRI_VERTEXL:
-				m3ds_read_vertices(in, ch, meshes.back());
+				m3ds_read_vertices(in, ch, *msh);
 				break;
 			case M3DS_TRI_FACEL1:
-				m3ds_read_faces(in, ch, meshes.back());
-				m3ds_process_face_chunks(in, ch, meshes.back());
+				m3ds_read_faces(in, ch, *msh);
+				m3ds_process_face_chunks(in, ch, *msh);
 				break;
 			case M3DS_TRI_MAPPINGCOORDS:
-				m3ds_read_uv_coords(in, ch, meshes.back());
+				m3ds_read_uv_coords(in, ch, *msh);
 				break;
 
 //fixme: this matrix seems to describe the model rotation and translation that IS ALREADY computed for the vertices
@@ -1237,11 +1242,11 @@ void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent, const s
 			case M3DS_TRI_MESHMATRIX:
 				for (int j = 0; j < 4; ++j) {
 					for (int i = 0; i < 3; ++i) {
-						meshes.back().transformation.elem(j,i) = read_float(in);
+						msh->transformation.elem(j,i) = read_float(in);
 					}
 				}
 /*
-				{ mesh& m = meshes.back();
+				{ mesh& m = *msh;
 				for (vector<model::mesh::vertex>::iterator it2 = m.vertices.begin(); it2 != m.vertices.end(); ++it2)
 					it2->pos.x -= 2*m.xformmat[3][0];
 				}
@@ -1496,25 +1501,25 @@ void model::read_off_file(const string& fn)
 	unsigned i;
 	unsigned nr_vertices, nr_faces;
 	fscanf(f, "OFF\n%u %u %u\n", &nr_vertices, &nr_faces, &i);
-	mesh m;
-	m.name = basename;
-	m.vertices.resize(nr_vertices);
-	m.indices.resize(3*nr_faces);
+	mesh* m = new mesh();
+	m->name = basename;
+	m->vertices.resize(nr_vertices);
+	m->indices.resize(3*nr_faces);
 	
 	for (i = 0; i < nr_vertices; i++) {
 		float a, b, c;
 		fscanf(f, "%f %f %f\n", &a, &b, &c);
-		m.vertices[i].x = a;
-		m.vertices[i].y = b;
-		m.vertices[i].z = c;
+		m->vertices[i].x = a;
+		m->vertices[i].y = b;
+		m->vertices[i].z = c;
 	}
 	for (i = 0; i < nr_faces; i++) {
 		unsigned j, v0, v1, v2;
 		fscanf(f, "%u %u %u %u\n", &j, &v0, &v1, &v2);
 		if (j != 3) return;
-		m.indices[i*3] = v0;
-		m.indices[i*3+1] = v1;
-		m.indices[i*3+2] = v2;
+		m->indices[i*3] = v0;
+		m->indices[i*3+1] = v1;
+		m->indices[i*3+2] = v2;
 	}
 	fclose(f);
 	meshes.push_back(m);
@@ -1574,16 +1579,16 @@ void model::read_dftd_model_file(const std::string& filename)
 			materials.push_back(mat);
 		} else if (attrtype == "mesh") {
 			// meshes.
-			meshes.push_back(mesh());
-			mesh& msh = meshes.back();
-			msh.name = XmlAttrib(eattr, "name");
+			mesh* msh = new mesh();
+			meshes.push_back(msh);
+			msh->name = XmlAttrib(eattr, "name");
 			// material
 			string matids = XmlAttrib(eattr, "material");
 			if (matids != "") {
 				unsigned matid = atoi(matids.c_str());
 				map<unsigned, material* >::iterator it = mat_id_mapping.find(matid);
 				if (it != mat_id_mapping.end()) {
-					msh.mymaterial = it->second;
+					msh->mymaterial = it->second;
 				} else {
 					// print message or abort
 					sys().myassert(false, string("referenced unknown material id ")+filename);
@@ -1593,20 +1598,20 @@ void model::read_dftd_model_file(const std::string& filename)
 			TiXmlElement* verts = eattr->FirstChildElement("vertices");
 			sys().myassert(verts != 0, string("no vertices tag in ")+filename);
 			unsigned nrverts = XmlAttribu(verts, "nr");
-			msh.vertices.reserve(nrverts);
+			msh->vertices.reserve(nrverts);
 			TiXmlText* verttext = verts->FirstChild()->ToText();
 			sys().myassert(verttext != 0, string("no vertex data in ")+filename);
 			istringstream issv(verttext->Value());
 			for (unsigned i = 0; i < nrverts; ++i) {
 				float x, y, z;
 				issv >> x >> y >> z;
-				msh.vertices.push_back(vector3f(x, y, z));
+				msh->vertices.push_back(vector3f(x, y, z));
 			}
 			// indices
 			TiXmlElement* indis = eattr->FirstChildElement("indices");
 			sys().myassert(indis != 0, string("no indices tag in ")+filename);
 			unsigned nrindis = XmlAttribu(indis, "nr");
-			msh.indices.reserve(nrindis);
+			msh->indices.reserve(nrindis);
 			TiXmlText* inditext = indis->FirstChild()->ToText();
 			sys().myassert(inditext != 0, string("no index data in ")+filename);
 			istringstream issi(inditext->Value());
@@ -1614,34 +1619,34 @@ void model::read_dftd_model_file(const std::string& filename)
 				unsigned idx;
 				issi >> idx;
 				sys().myassert(idx < nrverts, string("vertex index out of range ")+filename);
-				msh.indices.push_back(idx);
+				msh->indices.push_back(idx);
 			}
 			// tex coords
-			if (msh.mymaterial) {
+			if (msh->mymaterial) {
 				TiXmlElement* texcs = eattr->FirstChildElement("texcoords");
 				sys().myassert(texcs != 0, string("no texcoords tag in ")+filename);
-				msh.texcoords.reserve(nrverts);
+				msh->texcoords.reserve(nrverts);
 				TiXmlText* texctext = texcs->FirstChild()->ToText();
 				sys().myassert(texctext != 0, string("no texcoord data in ")+filename);
 				istringstream isst(texctext->Value());
 				for (unsigned i = 0; i < nrverts; ++i) {
 					float x, y;
 					isst >> x >> y;
-					msh.texcoords.push_back(vector2f(x, y));
+					msh->texcoords.push_back(vector2f(x, y));
 				}
 			}
 
 			// normals
 			TiXmlElement* nrmls = eattr->FirstChildElement("normals");
 			if (nrmls != 0) {
-				msh.normals.reserve(nrverts);
+				msh->normals.reserve(nrverts);
 				TiXmlText* nrmltext = nrmls->FirstChild()->ToText();
 				sys().myassert(nrmltext != 0, string("no normal data in ")+filename);
 				istringstream issn(nrmltext->Value());
 				for (unsigned i = 0; i < nrverts; ++i) {
 					float x, y, z;
 					issn >> x >> y >> z;
-					msh.normals.push_back(vector3f(x, y, z));
+					msh->normals.push_back(vector3f(x, y, z));
 				}
 			}
 
@@ -1653,7 +1658,7 @@ void model::read_dftd_model_file(const std::string& filename)
 				istringstream isst(transtext->Value());
 				for (unsigned y = 0; y < 4; ++y) {
 					for (unsigned x = 0; x < 4; ++x) {
-						isst >> msh.transformation.elem(x, y);
+						isst >> msh->transformation.elem(x, y);
 					}
 				}
 			}

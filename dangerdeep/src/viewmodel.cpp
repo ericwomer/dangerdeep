@@ -55,19 +55,24 @@ void view_model(const string& modelfilename)
 	vector3 viewangles;
 	vector3 pos(0, 0, -sc-5);
 
-	vector<Uint8> pixels(4, 128);
-	vector<Uint8> bumps(4);
+	vector<Uint8> pixels(32*32, 128);
+	for (unsigned i = 0; i < 32*32; ++i) { pixels[i] = (i % 5) * 63; /*(((i/32) + (i % 32)) & 1) * 64 + 64;*/ }
+	for (unsigned y = 0; y < 32; ++y)
+		for (unsigned x = 0; x < 32; ++x)
+			pixels[y*32+x] = (y&1)*128 + (x&1)*64;
+	vector<Uint8> bumps(4*4);
 	model::material::map* dmap = new model::material::map();
 	model::material::map* bmap = new model::material::map();
-	dmap->mytexture = new texture(pixels, 2, 2, GL_LUMINANCE, texture::LINEAR, texture::CLAMP_TO_EDGE);
-	bmap->mytexture = new texture(bumps, 2, 2, GL_LUMINANCE, texture::LINEAR, texture::CLAMP_TO_EDGE, true);
+	dmap->mytexture = new texture(pixels, 8/*32*/, 8/*32*/, GL_LUMINANCE, texture::NEAREST, texture::CLAMP_TO_EDGE);
+	bmap->mytexture = new texture(bumps, 4, 4, GL_LUMINANCE, texture::LINEAR, texture::CLAMP_TO_EDGE, true);
 	model::material* mat = new model::material();
 	mat->tex1 = dmap;
 	mat->bump = bmap;
 	mdl->add_material(mat);
-//	model::mesh msh = make_mesh::make_cube(3*sc, 3*sc, 3*sc, 1.0f, 1.0f, false);
-	model::mesh msh = make_mesh::make_sphere(1.5*sc, 3*sc, 16, 16, 1.0f, 1.0f, false);
-	msh.mymaterial = mat;
+	model::mesh* msh = make_mesh::make_cube(3*sc, 3*sc, 3*sc, 1.0f, 1.0f, false);
+//	model::mesh* msh = make_mesh::make_sphere(1.5*sc, 3*sc, 16, 16, 1.0f, 1.0f, false);
+//	model::mesh* msh = make_mesh::make_cylinder(1.5*sc, 3*sc, 16, 1.0f, 1.0f, true, false);
+	msh->mymaterial = mat;
 	mdl->add_mesh(msh);
 	mdl->compile();
 
@@ -131,9 +136,9 @@ void view_model(const string& modelfilename)
 				case SDLK_KP3: pos.z += 1.0; break;
 				case SDLK_s:
 					{
-						pair<model::mesh, model::mesh> parts = mdl->get_mesh(0).split(vector3f(0,1,0), -1);
-						parts.first.transform(matrix4f::trans(0, 30, 50));
-						parts.second.transform(matrix4f::trans(0, -30, 50));
+						pair<model::mesh*, model::mesh*> parts = mdl->get_mesh(0).split(vector3f(0,1,0), -1);
+						parts.first->transform(matrix4f::trans(0, 30, 50));
+						parts.second->transform(matrix4f::trans(0, -30, 50));
 						mdl->add_mesh(parts.first);
 						mdl->add_mesh(parts.second);
 					}
@@ -176,6 +181,8 @@ void view_model(const string& modelfilename)
 		mysys->unprepare_2d_drawing();
 		mysys->swap_buffers();
 	}
+
+	delete mdl;
 }
 
 
