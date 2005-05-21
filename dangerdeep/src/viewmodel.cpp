@@ -27,7 +27,7 @@
 class system* mysys;
 int res_x, res_y;
 
-GLfloat lposition[4] = {100,0,-5,1};
+vector4t<GLfloat> lposition(0,0,0,1);
 
 #define LIGHT_ANG_PER_SEC 30
 
@@ -53,25 +53,25 @@ void view_model(const string& modelfilename)
 
 	double sc = (mdl->get_boundbox_size()*0.5).length();
 	vector3 viewangles;
-	vector3 pos(0, 0, -sc-5);
+	// place viewer along positive z-axis
+	vector3 pos(0, 0, sc);
+	bool lightmove = true;
 
-	vector<Uint8> pixels(32*32, 128);
-	for (unsigned i = 0; i < 32*32; ++i) { pixels[i] = (i % 5) * 63; /*(((i/32) + (i % 32)) & 1) * 64 + 64;*/ }
-	for (unsigned y = 0; y < 32; ++y)
-		for (unsigned x = 0; x < 32; ++x)
-			pixels[y*32+x] = (y&1)*128 + (x&1)*64;
-	vector<Uint8> bumps(4*4);
+	vector<Uint8> pixels(32*32*3, 64);
+	for (unsigned i = 0; i < 32*32; ++i) { pixels[3*i+2] = (((i/32) + (i % 32)) & 1) * 127 + 128; }
+	vector<Uint8> bumps(32*32);
+	for (unsigned i = 0; i < 32*32; ++i) { bumps[i] = 0; } //(((i/32)%8)<7 && ((i%32)%8)<7)?255:0; }
 	model::material::map* dmap = new model::material::map();
 	model::material::map* bmap = new model::material::map();
-	dmap->mytexture = new texture(pixels, 8/*32*/, 8/*32*/, GL_LUMINANCE, texture::NEAREST, texture::CLAMP_TO_EDGE);
-	bmap->mytexture = new texture(bumps, 4, 4, GL_LUMINANCE, texture::LINEAR, texture::CLAMP_TO_EDGE, true);
+	dmap->mytexture = new texture(pixels, 32, 32, GL_RGB, texture::NEAREST, texture::CLAMP_TO_EDGE);
+	bmap->mytexture = new texture(bumps, 32, 32, GL_LUMINANCE, texture::LINEAR, texture::CLAMP_TO_EDGE, true);
 	model::material* mat = new model::material();
 	mat->tex1 = dmap;
 	mat->bump = bmap;
 	mdl->add_material(mat);
-	model::mesh* msh = make_mesh::make_cube(3*sc, 3*sc, 3*sc, 1.0f, 1.0f, false);
-//	model::mesh* msh = make_mesh::make_sphere(1.5*sc, 3*sc, 16, 16, 1.0f, 1.0f, false);
-//	model::mesh* msh = make_mesh::make_cylinder(1.5*sc, 3*sc, 16, 1.0f, 1.0f, true, false);
+	model::mesh* msh = make_mesh::cube(3*sc, 3*sc, 3*sc, 1.0f, 1.0f, false);
+//	model::mesh* msh = make_mesh::sphere(1.5*sc, 3*sc, 16, 16, 1.0f, 1.0f, false);
+//	model::mesh* msh = make_mesh::cylinder(1.5*sc, 3*sc, 16, 1.0f, 1.0f, true, false);
 	msh->mymaterial = mat;
 	mdl->add_mesh(msh);
 	mdl->compile();
@@ -79,15 +79,21 @@ void view_model(const string& modelfilename)
 	unsigned time1 = sys().millisec();
 	double ang = 0;
 
+//	model::mesh* lightsphere = make_mesh::sphere(5.0f, 5.0f, 4, 4, 1, 1, true, "sun");
+	model::mesh* lightsphere = make_mesh::cube(5.0f, 5.0f, 5.0f, 1, 1, true, "sun");
+	lightsphere->mymaterial = new model::material();
+	lightsphere->mymaterial->diffuse = color(255, 255, 128);
+	lightsphere->compile();
+
 	while (true) {
 		// rotate light
 		unsigned time2 = sys().millisec();
-		if (time2 > time1) {
+		if (lightmove && time2 > time1) {
 			ang += LIGHT_ANG_PER_SEC*(time2-time1)/1000.0;
 			if (ang > 360) ang -= 360;
 			time1 = time2;
-			lposition[0] = 100*cos(3.14159*ang/180);
-			lposition[1] = 100*sin(3.14159*ang/180);
+			lposition.x = 1.4*sc*cos(3.14159*ang/180);
+			lposition.z = 1.4*sc*sin(3.14159*ang/180);
 		}
 	
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -95,17 +101,22 @@ void view_model(const string& modelfilename)
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		glLoadIdentity();
-		glLightfv(GL_LIGHT0, GL_POSITION, lposition);
-		glTranslated(pos.x, pos.y, pos.z);
-
-		glBegin(GL_LINES);
-		glVertex3f(0,0,0);
-		glVertex3fv(lposition);
-		glEnd();
-
+		glTranslated(-pos.x, -pos.y, -pos.z);
 		glRotatef(viewangles.z, 0, 0, 1);
 		glRotatef(viewangles.y, 0, 1, 0);
 		glRotatef(viewangles.x, 1, 0, 0);
+
+		glPushMatrix();
+		glTranslatef(lposition.x, lposition.y, lposition.z);
+		vector4t<GLfloat> null(0,0,0,1);
+		glLightfv(GL_LIGHT0, GL_POSITION, &null.x);
+		lightsphere->display();
+		glPopMatrix();
+
+		glBegin(GL_LINES);
+		glVertex3f(0,0,0);
+		glVertex3fv(&lposition.x);
+		glEnd();
 
 		glBegin(GL_LINES);
 		glColor3f(1,0,0);
@@ -134,6 +145,7 @@ void view_model(const string& modelfilename)
 				case SDLK_KP2: pos.y += 1.0; break;
 				case SDLK_KP1: pos.z -= 1.0; break;
 				case SDLK_KP3: pos.z += 1.0; break;
+				case SDLK_l: lightmove = !lightmove; break;
 				case SDLK_s:
 					{
 						pair<model::mesh*, model::mesh*> parts = mdl->get_mesh(0).split(vector3f(0,1,0), -1);

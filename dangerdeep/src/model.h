@@ -36,6 +36,9 @@ public:
 						      const std::string& type) const;
 			// read and construct from dftd model file
 			map(TiXmlElement* parent);
+
+			// set up opengl texture matrix with map transformation values
+			void setup_glmatrix() const;
 		};
 	
 		std::string name;

@@ -5,96 +5,74 @@
 
 namespace make_mesh {
 
-void make_quadface(model::mesh& m, unsigned a, unsigned b, unsigned c, unsigned d,
-		   unsigned e, float uscal, float vscal,
-		   const vector3f& nm, const vector3f& tg, bool out)
+vector3f vec(int vi)
 {
-	m.texcoords[a] = vector2f(0, 0);
-	m.texcoords[b] = vector2f(uscal, 0);
-	m.texcoords[c] = vector2f(0, vscal);
-	m.texcoords[d] = vector2f(uscal, vscal);
-	// the tangent vector should be kept no matter which side the cube is,
-	// because the texcoords are also the same!
-	// so we assign 'tg' and not: 'out ? tg : -tg';
-	m.tangentsx[a] = m.tangentsx[b] = m.tangentsx[c] = m.tangentsx[d] = tg;
-	m.normals[a] = m.normals[b] = m.normals[c] = m.normals[d] = out ? nm : -nm;
-	if (out) {
-		m.indices[e]=a;
-		m.indices[e+1]=c;
-		m.indices[e+2]=b;
-		m.indices[e+3]=b;
-		m.indices[e+4]=c;
-		m.indices[e+5]=d;
-	} else {
-		m.indices[e]=a;
-		m.indices[e+1]=b;
-		m.indices[e+2]=c;
-		m.indices[e+3]=b;
-		m.indices[e+4]=d;
-		m.indices[e+5]=c;
+	switch (vi) {
+	case -1: return vector3f(-1, 0, 0);
+	case  1: return vector3f( 1, 0, 0);
+	case -2: return vector3f( 0,-1, 0);
+	case  2: return vector3f( 0, 1, 0);
+	case -3: return vector3f( 0, 0,-1);
+	case  3: return vector3f( 0, 0, 1);
+	default: return vector3f();
 	}
 }
 
-model::mesh* make_cube(float w, float l, float h,
-	       float uscal, float vscal, bool out, const string& name,
-	       unsigned facemask)
+void quadface(model::mesh* m, unsigned bv, float uscal, float vscal, bool out, int ni, int ti)
 {
-	unsigned qfaces = 0;
-	for (unsigned i = 0; i < 6; ++i) {
-		if ((facemask >> i) & 1)
-			qfaces += 4;
+	unsigned bi = (bv/4)*6;
+	if (out) {
+		m->indices[bi+0] = bv+0;
+		m->indices[bi+1] = bv+1;
+		m->indices[bi+2] = bv+3;
+		m->indices[bi+3] = bv+3;
+		m->indices[bi+4] = bv+1;
+		m->indices[bi+5] = bv+2;
+	} else {
+		ni = -ni;
+		ti = -ti;
+		m->indices[bi+0] = bv+3;
+		m->indices[bi+1] = bv+2;
+		m->indices[bi+2] = bv+0;
+		m->indices[bi+3] = bv+0;
+		m->indices[bi+4] = bv+2;
+		m->indices[bi+5] = bv+1;
 	}
+	m->texcoords[bv+0] = vector2f(0, 0);
+	m->texcoords[bv+1] = vector2f(0, vscal);
+	m->texcoords[bv+2] = vector2f(uscal, vscal);
+	m->texcoords[bv+3] = vector2f(uscal, 0);
+	m->normals[bv+0] = m->normals[bv+1] = m->normals[bv+2] = m->normals[bv+3] = vec(ni);
+	m->tangentsx[bv+0] = m->tangentsx[bv+1] = m->tangentsx[bv+2] = m->tangentsx[bv+3] = vec(ti);
+}
 
+
+model::mesh* cube(float w, float l, float h,
+		       float uscal, float vscal, bool out, const string& name)
+{
 	model::mesh* m = new model::mesh();
 	m->name = name;
 	m->vertices.resize(6*4);
-	m->indices.resize(2*3*qfaces);
+	m->indices.resize(6*2*3);
 	m->texcoords.resize(6*4);
 	m->normals.resize(6*4);
 	m->tangentsx.resize(6*4);
-	m->vertices[0] = m->vertices[5] = m->vertices[16] = vector3f(-w/2, -l/2,  h/2);
-	m->vertices[1] = m->vertices[8] = m->vertices[18] = vector3f( w/2, -l/2,  h/2);
-	m->vertices[2] = m->vertices[7] = m->vertices[21] = vector3f(-w/2, -l/2, -h/2);
-	m->vertices[3] = m->vertices[10] = m->vertices[23] = vector3f( w/2, -l/2, -h/2);
-	m->vertices[4] = m->vertices[13] = m->vertices[17] = vector3f(-w/2,  l/2,  h/2);
-	m->vertices[9] = m->vertices[12] = m->vertices[19] = vector3f( w/2,  l/2,  h/2);
-	m->vertices[6] = m->vertices[15] = m->vertices[20] = vector3f(-w/2,  l/2, -h/2);
-	m->vertices[11] = m->vertices[14] = m->vertices[22] = vector3f( w/2,  l/2, -h/2);
-	qfaces = 0;
-	if (facemask & 0x04) {
-		make_quadface(*m, 0, 1, 2, 3,  qfaces, uscal, vscal, vector3f(0,-1,0),
-				vector3f(1,0,0), out);
-		qfaces += 6;
+	float w2 = w/2, l2 = l/2, h2 = h/2;
+	int cnr[24] = {  3, 1, 0, 2,  7, 5, 1, 3,  6, 4, 5, 7,  2, 0, 4, 6,  2, 6, 7, 3,  4, 0, 1, 5 };
+	for (unsigned j = 0; j < 24; ++j) {
+		int i = cnr[j];
+		m->vertices[j] = vector3f((i&1) ? w2 : -w2, (i&2) ? l2 : -l2, (i&4) ? h2 : -h2);
 	}
-	if (facemask & 0x01) {
-		make_quadface(*m, 4, 5, 6, 7,  qfaces, uscal, vscal, vector3f(-1,0,0),
-				vector3f(0,-1,0), out);
-		qfaces += 6;
-	}
-	if (facemask & 0x02) {
-		make_quadface(*m, 8, 9, 10, 11,  qfaces, uscal, vscal, vector3f(1,0,0),
-				vector3f(0,1,0), out);
-		qfaces += 6;
-	}
-	if (facemask & 0x08) {
-		make_quadface(*m, 12, 13, 14, 15,  qfaces, uscal, vscal, vector3f(0,1,0),
-				vector3f(-1,0,0), out);
-		qfaces += 6;
-	}
-	if (facemask & 0x20) {
-		make_quadface(*m, 16, 17, 18, 19,  qfaces, uscal, vscal, vector3f(0,0,1),
-				vector3f(0,1,0), out);
-		qfaces += 6;
-	}
-	if (facemask & 0x010) {
-		make_quadface(*m, 20, 21, 22, 23,  qfaces, uscal, vscal, vector3f(0,0,-1),
-				vector3f(0,-1,0), out);
-		qfaces += 6;
-	}
+	quadface(m,  0, uscal,vscal, out, -3, -1);
+	quadface(m,  4, uscal,vscal, out,  1, -3);
+	quadface(m,  8, uscal,vscal, out,  3,  1);
+	quadface(m, 12, uscal,vscal, out, -1,  3);
+	quadface(m, 16, uscal,vscal, out,  2,  1);
+	quadface(m, 20, uscal,vscal, out, -2,  1);
 	return m;
 }
 
-model::mesh* make_sphere(float radius, float height,
+model::mesh* sphere(float radius, float height,
 		 unsigned slices, unsigned stacks,
 		 float uscal, float vscal,
 		 bool out, const string& name)
@@ -160,15 +138,15 @@ model::mesh* make_sphere(float radius, float height,
 	return m;
 }
 
-model::mesh* make_cylinder(float r, float h, unsigned rsegs,
+model::mesh* cylinder(float r, float h, unsigned rsegs,
 		   float uscal, float vscal,
 		   bool cap, bool out,//fixme: out seems to be ignored!
 		   const string& name)
 {
-	return make_cone(r, r, h, rsegs, uscal, vscal, cap, out, name);
+	return cone(r, r, h, rsegs, uscal, vscal, cap, out, name);
 }
 
-model::mesh* make_cone(float r0, float r1, float h, unsigned rsegs,
+model::mesh* cone(float r0, float r1, float h, unsigned rsegs,
 	       float uscal, float vscal,
 	       bool cap, bool out,
 	       const string& name)
@@ -254,7 +232,7 @@ model::mesh* make_cone(float r0, float r1, float h, unsigned rsegs,
 	return m;
 }
 
-model::mesh* make_torus(float outerr, float innerr, unsigned outerrsegs,
+model::mesh* torus(float outerr, float innerr, unsigned outerrsegs,
 		unsigned innerrsegs, float uscal, float vscal, bool out,
 		const string& name)
 {
@@ -299,10 +277,10 @@ model::mesh* make_torus(float outerr, float innerr, unsigned outerrsegs,
 }
 
 /*
-model::mesh make_spiral(float r, float h, float outerr, unsigned rsegs = 16,
+model::mesh spiral(float r, float h, float outerr, unsigned rsegs = 16,
 				     unsigned hsegs = 16, bool out = true, const string& name);
 
-model::mesh make_part_of_torus(float outerr, float innerr,
+model::mesh part_of_torus(float outerr, float innerr,
 					    unsigned outerrseggen = 8,
 					    unsigned outerrsegs = 32,
 					    unsigned innerrsegs = 16,
@@ -310,7 +288,7 @@ model::mesh make_part_of_torus(float outerr, float innerr,
 */
 
 
-model::mesh* make_heightfield(unsigned resx, unsigned resy, const vector<Uint8>& heights,
+model::mesh* heightfield(unsigned resx, unsigned resy, const vector<Uint8>& heights,
 			     float xscal, float yscal, float zscal,
 			     float xnoise, float ynoise, float znoise,
 			     const string& name)

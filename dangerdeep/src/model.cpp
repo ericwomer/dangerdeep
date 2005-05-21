@@ -275,7 +275,7 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 		vector3f ry = v01 * c + v02 * d;
 		vector3f tangentsy = (ry - (ry * n) * n).normal();
 		float g = tangentsx[i0].cross(tangentsy) * n;
-		righthanded[i0] = (g > 0);
+		righthanded[i0] = !(g > 0); // fixme: seems needed???
 		return true;
 	}
 }
@@ -509,6 +509,19 @@ void model::material::init()
 }
 
 
+
+void model::material::map::setup_glmatrix() const
+{
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	glTranslatef(this->uoffset, this->voffset, 0);
+	glRotatef(this->angle, 0, 0, 1);
+	glScalef(this->uscal, this->vscal, 1);
+	glMatrixMode(GL_MODELVIEW);
+}
+
+
+
 void model::material::set_gl_values() const
 {
 	glActiveTexture(GL_TEXTURE0);
@@ -541,16 +554,11 @@ void model::material::set_gl_values() const
 				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 1,
 							     0.1f, 0.1f, 0.1f, 1.0f);//fixme test
 				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 2,
-							     0.8f, 0.8f, 1.0f, 16.0f);//fixme test
+							     1.0f, 1.0f, 0.5f, 1.0f);//fixme test
 
 				glActiveTexture(GL_TEXTURE1);
 				// texture matrix must be computed with vertex programs!
-				glMatrixMode(GL_TEXTURE);
-				glLoadIdentity();
-				glScalef(1, -1, 1); // y flip texture
-				glTranslatef(bump->uoffset, bump->voffset, 0);
-				glRotatef(-bump->angle, 0, 0, 1);
-				glScalef(bump->uscal, bump->vscal, 1);
+				bump->setup_glmatrix();
 				bump->mytexture->set_gl_texture();
 
 				//fixme: bind specular map here!
@@ -558,22 +566,12 @@ void model::material::set_gl_values() const
 				glActiveTexture(GL_TEXTURE0);
 				glEnable(GL_TEXTURE_2D);
 				tex1->mytexture->set_gl_texture();
-				glMatrixMode(GL_TEXTURE);
-				glLoadIdentity();
-				glScalef(1, -1, 1); // y flip texture
-				glTranslatef(tex1->uoffset, tex1->voffset, 0);
-				glRotatef(-tex1->angle, 0, 0, 1);
-				glScalef(tex1->uscal, tex1->vscal, 1);
+				tex1->setup_glmatrix();
 
 			} else {
 				// standard OpenGL texturing with special tricks
 				glActiveTexture(GL_TEXTURE0);
-				glMatrixMode(GL_TEXTURE);
-				glLoadIdentity();
-				glScalef(1, -1, 1); // y flip texture
-				glTranslatef(bump->uoffset, bump->voffset, 0);
-				glRotatef(-bump->angle, 0, 0, 1);
-				glScalef(bump->uscal, bump->vscal, 1);
+				bump->setup_glmatrix();
 				bump->mytexture->set_gl_texture();
 				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 				glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGBA); 
@@ -583,13 +581,8 @@ void model::material::set_gl_values() const
 				glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 				glActiveTexture(GL_TEXTURE1);
 				glEnable(GL_TEXTURE_2D);
+				tex1->setup_glmatrix();
 				tex1->mytexture->set_gl_texture();
-				glMatrixMode(GL_TEXTURE);
-				glLoadIdentity();
-				glScalef(1, -1, 1); // y flip texture
-				glTranslatef(tex1->uoffset, tex1->voffset, 0);
-				glRotatef(-tex1->angle, 0, 0, 1);
-				glScalef(tex1->uscal, tex1->vscal, 1);
 
 				vector4t<GLfloat> ldifcol;//, lambcol;
 				glGetLightfv(GL_LIGHT0, GL_DIFFUSE, &ldifcol.x);
@@ -629,13 +622,8 @@ void model::material::set_gl_values() const
 			glColor3f(1, 1, 1);
 			glActiveTexture(GL_TEXTURE0);
 			tex1->mytexture->set_gl_texture();
-			glMatrixMode(GL_TEXTURE);
-			glLoadIdentity();
-			glScalef(1, -1, 1); // y flip texture
-			glTranslatef(tex1->uoffset, tex1->voffset, 0);
-			glRotatef(-tex1->angle, 0, 0, 1);
+			tex1->setup_glmatrix();
 //			cout << "uv off " << tex1->uoffset << "," << tex1->voffset << " ang " << tex1->angle << " scal " << tex1->uscal << "," << tex1->vscal << "\n";
-			glScalef(tex1->uscal, tex1->vscal, 1);
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, 0);
@@ -1362,7 +1350,7 @@ void model::m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, mod
 				ch.bytes_read += 4;
 				break;
 			case M3DS_MATMAP1OVERV_SCAL:
-				m->vscal = 1.0f/read_float(in);
+				m->vscal = -1.0f/read_float(in);
 				ch.bytes_read += 4;
 				break;
 			case M3DS_MATMAPUOFFSET:
@@ -1374,7 +1362,7 @@ void model::m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, mod
 				ch.bytes_read += 4;
 				break;
 			case M3DS_MATMAPANG:
-				m->angle = read_float(in);
+				m->angle = -read_float(in);
 				ch.bytes_read += 4;
 //			printf("angle %f\n",m->angle);
 				break;
@@ -1383,7 +1371,7 @@ void model::m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, mod
 		ch.skip(in);
 		parent.bytes_read += ch.length;
 	}
-//	cout << "map: angle " << m->angle << " uscal,vscal " << m->uscal << "," << m->vscal << " uoff,voff " << m->uoffset << "," << m->voffset << "\n";
+	//cout << "[3ds] map: angle " << m->angle << " uscal,vscal " << m->uscal << "," << m->vscal << " uoff,voff " << m->uoffset << "," << m->voffset << "\n";
 }
 
 model::m3ds_chunk model::m3ds_read_chunk(istream& in)
@@ -1436,6 +1424,7 @@ void model::m3ds_read_faces(istream& in, m3ds_chunk& ch, model::mesh& m)
 	ch.bytes_read += nr_faces * 4 * 2;
 }
 
+//float umin=1e10,umax=-1e10,vmin=1e10,vmax=-1e10;
 void model::m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, model::mesh& m)
 {
 	unsigned nr_uv_coords = read_u16(in);
@@ -1452,7 +1441,8 @@ void model::m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, model::mesh& m)
 	m.texcoords.reserve(nr_uv_coords);		
 	for (unsigned n = 0; n < nr_uv_coords; ++n) {
 		float u = read_float(in);
-		float v = read_float(in);
+		float v = 1.0f - read_float(in); // for some reason we need to flip 3dstudio's y coords.
+//		if(u<umin)umin=u;if(u>umax)umax=u;if(v<vmin)vmin=v;if(v>vmax)vmax=v;cout<<"u in "<<umin<<","<<umax<<" v in "<<vmin<<","<<vmax<<"\n";
 		m.texcoords.push_back(vector2f(u, v));
 	}
 	ch.bytes_read += nr_uv_coords * 2 * 4;

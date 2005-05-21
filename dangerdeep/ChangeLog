@@ -1,3 +1,7 @@
+2005-05-21  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* model.cpp/h
+	  - fixed shaders. Now specular per-pixel lighting works.
+
 2005-05-18  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* viewmodel.cpp make_mesh.cpp/h model.cpp/h modelrender*.shader
 	  - some shader improvements
