@@ -238,7 +238,7 @@ int mymain(list<string>& args)
 
 	GLfloat lambient[4] = {0.1,0.1,0.1,1};
 	GLfloat ldiffuse[4] = {1,0.9,0.9,1};
-	GLfloat lspecular[4] = {0,0,0,0};
+	GLfloat lspecular[4] = {1,0.9,0.9,1};
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lambient);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, ldiffuse);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, lspecular);

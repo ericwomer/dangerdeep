@@ -524,6 +524,7 @@ void model::material::map::setup_glmatrix() const
 
 void model::material::set_gl_values() const
 {
+#if 0
 	GLfloat coltmp[4];
 	ambient.store_rgba(coltmp);
 	glMaterialfv(GL_FRONT, GL_AMBIENT, coltmp);
@@ -532,6 +533,7 @@ void model::material::set_gl_values() const
 	specular.store_rgba(coltmp);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, coltmp);
 	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+#endif
 
 	glActiveTexture(GL_TEXTURE0);
 	if (colormap.get() && colormap->mytexture.get()) {
@@ -542,6 +544,16 @@ void model::material::set_gl_values() const
 			glColor4f(1, 1, 1, 1);
 
 			if (use_shaders) {
+
+	GLfloat coltmp[4];
+	ambient.store_rgba(coltmp);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, coltmp);
+	diffuse.store_rgba(coltmp);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, coltmp);
+	specular.store_rgba(coltmp);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, coltmp);
+	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+
 				glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_program);
 				glEnable(GL_VERTEX_PROGRAM_ARB);
 
@@ -558,12 +570,14 @@ void model::material::set_gl_values() const
 				// local 1 : material ambient color (modulated by light color)
 				// local 2 : material specular color (modulated by light color)
 				// fixme: can be retrieved directly from opengl! no need to store it this way!
+#if 0
 				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 0,
 							     1.0f, 0.9f, 0.9f, 1.0f);//fixme test
 				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 1,
 							     0.1f, 0.1f, 0.1f, 1.0f);//fixme test
 				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 2,
 							     1.0f, 1.0f, 0.5f, 1.0f);//fixme test
+#endif
 
 				glActiveTexture(GL_TEXTURE1);
 				// texture matrix must be computed with vertex programs!
@@ -628,7 +642,7 @@ void model::material::set_gl_values() const
 			// (Color 128,128,255).
 			// fixme: stupid! we would need tangentsx/y too etc.
 			// better use another shader for this case.
-			glColor3f(1, 1, 1);
+			glColor4f(1, 1, 1, 1);
 			glActiveTexture(GL_TEXTURE0);
 			colormap->mytexture->set_gl_texture();
 			colormap->setup_glmatrix();
