@@ -63,11 +63,11 @@ void view_model(const string& modelfilename)
 	for (unsigned i = 0; i < 32*32; ++i) { bumps[i] = 0; } //(((i/32)%8)<7 && ((i%32)%8)<7)?255:0; }
 	model::material::map* dmap = new model::material::map();
 	model::material::map* bmap = new model::material::map();
-	dmap->mytexture = new texture(pixels, 32, 32, GL_RGB, texture::NEAREST, texture::CLAMP_TO_EDGE);
-	bmap->mytexture = new texture(bumps, 32, 32, GL_LUMINANCE, texture::LINEAR, texture::CLAMP_TO_EDGE, true);
+	dmap->mytexture.reset(new texture(pixels, 32, 32, GL_RGB, texture::NEAREST, texture::CLAMP_TO_EDGE));
+	bmap->mytexture.reset(new texture(bumps, 32, 32, GL_LUMINANCE, texture::LINEAR, texture::CLAMP_TO_EDGE, true));
 	model::material* mat = new model::material();
-	mat->tex1 = dmap;
-	mat->bump = bmap;
+	mat->colormap.reset(dmap);
+	mat->bumpmap.reset(bmap);
 	mdl->add_material(mat);
 	model::mesh* msh = make_mesh::cube(3*sc, 3*sc, 3*sc, 1.0f, 1.0f, false);
 //	model::mesh* msh = make_mesh::sphere(1.5*sc, 3*sc, 16, 16, 1.0f, 1.0f, false);

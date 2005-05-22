@@ -42,8 +42,8 @@ protected:
 
 public:
 
-	static D pi(void) { return D(M_PI); }
-	static D pi_div_180(void) { return D(M_PI/180); }
+	static D pi() { return D(M_PI); }
+	static D pi_div_180() { return D(M_PI/180); }
 
 	matrix4t() : values(size*size, D(0.0)) {}
 
@@ -65,7 +65,7 @@ public:
 		values[12] = e12; values[13] = e13; values[14] = e14; values[15] = e15;
 	}
 
-	static matrix4t<D> one(void) { matrix4t<D> r; for (unsigned i = 0; i < size; ++i) r.values[i+i*size] = D(1.0); return r; }
+	static matrix4t<D> one() { matrix4t<D> r; for (unsigned i = 0; i < size; ++i) r.values[i+i*size] = D(1.0); return r; }
 
 	matrix4t<D> operator- (const matrix4t<D>& other) const { matrix4t<D> r; for (unsigned i = 0; i < size*size; ++i) r.values[i] = values[i] - other.values[i]; return r; }
 
@@ -84,7 +84,7 @@ public:
 		return r;
 	}
 
-	matrix4t<D> operator- (void) const { matrix4t<D> r; for (unsigned i = 0; i < size*size; ++i) r.values[i] = -values[i]; return r; }
+	matrix4t<D> operator- () const { matrix4t<D> r; for (unsigned i = 0; i < size*size; ++i) r.values[i] = -values[i]; return r; }
 
 	// store in C++ order
 	void to_array(D* v) const {
@@ -100,7 +100,7 @@ public:
 	}
 
 	// return pointer to array of elements
-	const D* elemarray(void) const {
+	const D* elemarray() const {
 		return &values[0];
 	}
 
@@ -111,14 +111,14 @@ public:
 	const D& elem_at(unsigned col, unsigned row) const { return values.at(col + row * size); }
 
 	// returns determinate of upper left 3x3 matrix
-	D det3(void) const {
+	D det3() const {
 		// sarrus
 		return	elem(0, 0) * elem(1, 1) * elem(2, 2) - elem(2, 0) * elem(1, 1) * elem(0, 2) +
 			elem(1, 0) * elem(2, 1) * elem(0, 2) - elem(1, 0) * elem(0, 1) * elem(2, 2) +
 			elem(2, 0) * elem(0, 1) * elem(1, 2) - elem(0, 0) * elem(2, 1) * elem(1, 2);
 	}
 
-	void print(void) const {
+	void print() const {
 		for(unsigned y = 0; y < size; y++) {
 			cout << "/ ";
 			for(unsigned x = 0; x < size; x++) {
@@ -144,9 +144,9 @@ public:
 		}
 	}
 
-	matrix4t<D> inverse(void) const;
+	matrix4t<D> inverse() const;
 
-	matrix4t<D> transpose(void) const {
+	matrix4t<D> transpose() const {
 		matrix4t<D> r;
 		for (unsigned i = 0; i < size; ++i)
 			for (unsigned j = 0; j < size; ++j)
@@ -154,43 +154,12 @@ public:
 		return r;
 	}
 
-	void set_gl(GLenum pname) {		// GL_PROJECTION, GL_MODELVIEW, GL_TEXTURE
-		GLdouble m[16];
-		for (unsigned i = 0; i < 4; ++i)
-			for (unsigned j = 0; j < 4; ++j)
-				m[i+j*4] = GLdouble(values[j+i*4]);
-		glMatrixMode(pname);
-		glLoadMatrixd(m);
-		glMatrixMode(GL_MODELVIEW);
-	}
-	
-	void multiply_gl(void) const {
-		GLdouble m[16];
-		for (unsigned i = 0; i < 4; ++i)
-			for (unsigned j = 0; j < 4; ++j)
-				m[i+j*4] = GLdouble(values[j+i*4]);
-		glMultMatrixd(m);
-	}
-
-	static matrix4t<D> get_gl(GLenum pname) {	// GL_PROJECTION_MATRIX, GL_MODELVIEW_MATRIX, GL_TEXTURE_MATRIX
-		GLdouble m[16];
-		glGetDoublev(pname, m);
-		matrix4t<D> r;
-		for (unsigned i = 0; i < 4; ++i)
-			for (unsigned j = 0; j < 4; ++j)
-				r.values[j+i*4] = D(m[i+j*4]);
-		return r;
-	}
-
-	static matrix4t<D> get_glf(GLenum pname) {	// GL_PROJECTION_MATRIX, GL_MODELVIEW_MATRIX, GL_TEXTURE_MATRIX
-		GLfloat m[16];
-		glGetFloatv(pname, m);
-		matrix4t<D> r;
-		for (unsigned i = 0; i < 4; ++i)
-			for (unsigned j = 0; j < 4; ++j)
-				r.values[j+i*4] = D(m[i+j*4]);
-		return r;
-	}
+	void set_gl(GLenum pname);	// GL_PROJECTION, GL_MODELVIEW, GL_TEXTURE
+	void set_glf(GLenum pname);	// GL_PROJECTION, GL_MODELVIEW, GL_TEXTURE
+	void multiply_gl() const;
+	void multiply_glf() const;
+	static matrix4t<D> get_gl(GLenum pname); // GL_PROJECTION_MATRIX, GL_MODELVIEW_MATRIX, GL_TEXTURE_MATRIX
+	static matrix4t<D> get_glf(GLenum pname); // GL_PROJECTION_MATRIX, GL_MODELVIEW_MATRIX, GL_TEXTURE_MATRIX
 	
 	static matrix4t<D> rot_x(const D& degrees) {
 		D a = degrees * pi_div_180();
@@ -225,7 +194,7 @@ public:
 		return matrix4t<D>(x, n, n, n,  n, y, n, n,  n, n, z, n,  n, n, n, w);
 	}
 
-	void clear_rot(void) {
+	void clear_rot() {
 		values[0] = values[5] = values[10] = D(1.0);
 		values[1] = values[2] = values[4] = values[6] = values[8] = values[9] = D(0.0);
 	}
@@ -293,7 +262,7 @@ void matrix4t<D>::columnpivot(vector<unsigned>& p, unsigned offset)
 
 
 template<class D>
-matrix4t<D> matrix4t<D>::inverse(void) const
+matrix4t<D> matrix4t<D>::inverse() const
 {
 	matrix4t<D> r(*this);
 	unsigned i, j, k;
@@ -367,6 +336,66 @@ matrix4t<D> matrix4t<D>::inverse(void) const
 
 	return r;
 }
+
+
+
+template<class D> void matrix4t<D>::set_gl(GLenum pname) {
+	GLdouble m[16];
+	for (unsigned i = 0; i < 4; ++i)
+		for (unsigned j = 0; j < 4; ++j)
+			m[i+j*4] = GLdouble(values[j+i*4]);
+	glMatrixMode(pname);
+	glLoadMatrixd(m);
+	glMatrixMode(GL_MODELVIEW);
+}
+template<class D> void matrix4t<D>::set_glf(GLenum pname) {
+	GLfloat m[16];
+	for (unsigned i = 0; i < 4; ++i)
+		for (unsigned j = 0; j < 4; ++j)
+			m[i+j*4] = GLfloat(values[j+i*4]);
+	glMatrixMode(pname);
+	glLoadMatrixf(m);
+	glMatrixMode(GL_MODELVIEW);
+}
+	
+template<class D> void matrix4t<D>::multiply_gl() const {
+	GLdouble m[16];
+	for (unsigned i = 0; i < 4; ++i)
+		for (unsigned j = 0; j < 4; ++j)
+			m[i+j*4] = GLdouble(values[j+i*4]);
+	glMultMatrixd(m);
+}
+template<class D> void matrix4t<D>::multiply_glf() const {
+	GLfloat m[16];
+	for (unsigned i = 0; i < 4; ++i)
+		for (unsigned j = 0; j < 4; ++j)
+			m[i+j*4] = GLfloat(values[j+i*4]);
+	glMultMatrixf(m);
+}
+
+template<class D> matrix4t<D> matrix4t<D>::get_gl(GLenum pname) {
+	GLdouble m[16];
+	glGetDoublev(pname, m);
+	matrix4t<D> r;
+	for (unsigned i = 0; i < 4; ++i)
+		for (unsigned j = 0; j < 4; ++j)
+			r.values[j+i*4] = D(m[i+j*4]);
+	return r;
+}
+template<class D> matrix4t<D> matrix4t<D>::get_glf(GLenum pname) {
+	GLfloat m[16];
+	glGetFloatv(pname, m);
+	matrix4t<D> r;
+	for (unsigned i = 0; i < 4; ++i)
+		for (unsigned j = 0; j < 4; ++j)
+			r.values[j+i*4] = D(m[i+j*4]);
+	return r;
+}
+
+
+
+
+
 #undef size
 
 typedef matrix4t<double> matrix4;

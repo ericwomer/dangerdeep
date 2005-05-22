@@ -83,6 +83,18 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 
 	unsigned bpp = teximage->format->BytesPerPixel;
 
+/*
+	cout << "texture: " << texfilename
+	     << " palette: " << teximage->format->palette
+	     << " bpp " << unsigned(teximage->format->BitsPerPixel)
+	     << " bytepp " << unsigned(teximage->format->BytesPerPixel)
+	     << " Rmask " << teximage->format->Rmask
+	     << " Gmask " << teximage->format->Gmask
+	     << " Bmask " << teximage->format->Bmask
+	     << " Amask " << teximage->format->Amask
+	     << "\n";
+*/
+
 	vector<Uint8> data;
 	if (teximage->format->palette != 0) {
 		//old color table code, does not work
@@ -215,14 +227,33 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 
 	unsigned add_mem_used = 0;
 
-	if (makenormalmap && format == GL_LUMINANCE) {
+	bool generatenormalmap = makenormalmap && (format == GL_RGB || format == GL_LUMINANCE);
+	// check if we have a RGB map here that has only grey values.
+	if (makenormalmap && format == GL_RGB) {
+		for (unsigned i = 0; i < pdata->size(); i += 3) {
+			Uint8 a = (*pdata)[0];
+			Uint8 b = (*pdata)[1];
+			Uint8 c = (*pdata)[2];
+			if (a != b || b != c) {
+				generatenormalmap = false;
+				break;
+			}
+		}
+		//cout << "found RGB file that has only grey values.\n";
+	}
+
+	if (generatenormalmap) {
 		// make own mipmap building for normal maps here...
 		// give increasing levels with decreasing w/h down to 1x1
 		// e.g. 64x16 -> 32x8, 16x4, 8x2, 4x1, 2x1, 1x1
-
-		format = GL_RGB;
-
-		vector<Uint8> nmpix = make_normals(*pdata, gl_width, gl_height, detailh);
+		unsigned stride = 1, strideoffset = 0;
+		if (format == GL_RGB) {
+			stride = 3;
+			strideoffset = 1;	// take g value, it doesn't matter
+		} else {
+			format = GL_RGB;
+		}
+		vector<Uint8> nmpix = make_normals(*pdata, gl_width, gl_height, detailh, stride, strideoffset);
 		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
 			     GL_UNSIGNED_BYTE, &nmpix[0]);
 
@@ -317,7 +348,7 @@ vector<Uint8> texture::scale_half(const vector<Uint8>& src, unsigned w, unsigned
 
 
 vector<Uint8> texture::make_normals(const vector<Uint8>& src, unsigned w, unsigned h,
-				    float detailh)
+				    float detailh, unsigned stride, unsigned strideoff)
 {
 	// src size must be w*h
 	vector<Uint8> dst(3*w*h);
@@ -329,10 +360,10 @@ vector<Uint8> texture::make_normals(const vector<Uint8>& src, unsigned w, unsign
 		for (unsigned xx = 0; xx < w; ++xx) {
 			unsigned x1 = (xx + w - 1) & (w - 1);
 			unsigned x2 = (xx +     1) & (w - 1);
-			float hr = src[yy*w+x2];
-			float hu = src[y1*w+xx];
-			float hl = src[yy*w+x1];
-			float hd = src[y2*w+xx];
+			float hr = src[(yy*w+x2)*stride+strideoff];
+			float hu = src[(y1*w+xx)*stride+strideoff];
+			float hl = src[(yy*w+x1)*stride+strideoff];
+			float hd = src[(y2*w+xx)*stride+strideoff];
 			vector3f nm = vector3f(hl-hr, hd-hu, zh).normal();
 			dst[ptr + 0] = Uint8(nm.x*127 + 128);
 			dst[ptr + 1] = Uint8(nm.y*127 + 128);
@@ -403,7 +434,7 @@ texture::~texture()
 
 
 
-unsigned texture::get_bpp(void) const
+unsigned texture::get_bpp() const
 {
 	switch (format) {
 		case GL_RGB: return 3;
@@ -417,7 +448,7 @@ unsigned texture::get_bpp(void) const
 	return 4;
 }
 
-void texture::set_gl_texture(void) const
+void texture::set_gl_texture() const
 {
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
 }
@@ -540,7 +571,7 @@ void texture::draw_subimage(int x, int y, int w, int h, unsigned tx, unsigned ty
 	glEnd();
 }
 
-unsigned texture::get_max_size(void)
+unsigned texture::get_max_size()
 {
 	GLint i;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &i);

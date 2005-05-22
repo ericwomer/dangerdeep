@@ -212,7 +212,7 @@ void model::mesh::compute_normals()
 	// from each vertex we find a vector in positive u direction
 	// and project it onto the plane given by the normal -> tangentx
 	// because bump maps use stored texture coordinates (x = positive u!)
-	if (mymaterial && mymaterial->bump) {
+	if (mymaterial && mymaterial->bumpmap.get()) {
 		tangentsx.clear();
 		tangentsx.resize(vertices.size(), vector3f(0, 0, 1));
 		righthanded.clear();
@@ -282,7 +282,7 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 
 
 
-model::mesh::mesh() : transformation(matrix4f::one()), mymaterial(0), display_list(0)
+model::mesh::mesh(const string& nm) : name(nm), transformation(matrix4f::one()), mymaterial(0), display_list(0)
 {
 }
 
@@ -300,7 +300,7 @@ model::mesh::~mesh()
 void model::mesh::compile()
 {
 	// check if display list can be compiled.
-	if (use_shaders || !(mymaterial && mymaterial->bump)) {
+	if (use_shaders || !(mymaterial && mymaterial->bumpmap.get())) {
 		if (display_list == 0) {
 			display_list = glGenLists(1);
 			sys().myassert(display_list != 0, "no more display list indices available");
@@ -485,27 +485,26 @@ pair<model::mesh*, model::mesh*> model::mesh::split(const vector3f& abc, float d
 
 void model::material::map::init(texture::mapping_mode mapping, bool makenormalmap, float detailh)
 {
-	delete mytexture;
-	mytexture = 0;
+	mytexture.reset();
 	if (filename.length() > 0) {
 		// fixme: which clamp mode should we use for models? REPEAT doesn't harm normally...
-		mytexture = new texture(get_texture_dir() + filename, mapping, texture::REPEAT,
-					makenormalmap, detailh);
+		mytexture.reset(new texture(get_texture_dir() + filename, mapping, texture::REPEAT,
+					    makenormalmap, detailh));
 	}
 }
 
 void model::material::init()
 {
-	if (tex1) tex1->init(model::mapping);
+	if (colormap.get()) colormap->init(model::mapping);
 	//fixme: what is best mapping for bump maps?
 	// compute normalmap if not given
-	//fixme: detailh seems to make no (big?) difference???!
 	// fixme: segfaults when enabled. see texture.cpp
 	// fixme: without shaders it seems we need to multiply this with ~16 or even more.
 	// maybe because direction vectors are no longer normalized over faces...
 	// with shaders a value of 1.0 is enough.
 	// fixme: read value from model file...
-	if (bump) bump->init(texture::LINEAR/*_MIPMAP_LINEAR*/, true, 4.0f /*16.0f*/);
+	if (bumpmap.get()) bumpmap->init(texture::LINEAR/*_MIPMAP_LINEAR*/, true, 4.0f /*16.0f*/);
+	if (specularmap.get()) specularmap->init(texture::LINEAR_MIPMAP_LINEAR);
 }
 
 
@@ -525,8 +524,8 @@ void model::material::map::setup_glmatrix() const
 void model::material::set_gl_values() const
 {
 	glActiveTexture(GL_TEXTURE0);
-	if (tex1 && tex1->mytexture) {
-		if (bump && bump->mytexture) {
+	if (colormap.get() && colormap->mytexture.get()) {
+		if (bumpmap.get() && bumpmap->mytexture.get()) {
 			// no opengl lighting in bump map mode.
 			glDisable(GL_LIGHTING);
 			// set primary color alpha to one.
@@ -558,21 +557,21 @@ void model::material::set_gl_values() const
 
 				glActiveTexture(GL_TEXTURE1);
 				// texture matrix must be computed with vertex programs!
-				bump->setup_glmatrix();
-				bump->mytexture->set_gl_texture();
+				bumpmap->setup_glmatrix();
+				bumpmap->mytexture->set_gl_texture();
 
 				//fixme: bind specular map here!
 
 				glActiveTexture(GL_TEXTURE0);
 				glEnable(GL_TEXTURE_2D);
-				tex1->mytexture->set_gl_texture();
-				tex1->setup_glmatrix();
+				colormap->mytexture->set_gl_texture();
+				colormap->setup_glmatrix();
 
 			} else {
 				// standard OpenGL texturing with special tricks
 				glActiveTexture(GL_TEXTURE0);
-				bump->setup_glmatrix();
-				bump->mytexture->set_gl_texture();
+				bumpmap->setup_glmatrix();
+				bumpmap->mytexture->set_gl_texture();
 				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 				glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGBA); 
 				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
@@ -581,8 +580,8 @@ void model::material::set_gl_values() const
 				glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 				glActiveTexture(GL_TEXTURE1);
 				glEnable(GL_TEXTURE_2D);
-				tex1->setup_glmatrix();
-				tex1->mytexture->set_gl_texture();
+				colormap->setup_glmatrix();
+				colormap->mytexture->set_gl_texture();
 
 				vector4t<GLfloat> ldifcol;//, lambcol;
 				glGetLightfv(GL_LIGHT0, GL_DIFFUSE, &ldifcol.x);
@@ -621,9 +620,9 @@ void model::material::set_gl_values() const
 			// better use another shader for this case.
 			glColor3f(1, 1, 1);
 			glActiveTexture(GL_TEXTURE0);
-			tex1->mytexture->set_gl_texture();
-			tex1->setup_glmatrix();
-//			cout << "uv off " << tex1->uoffset << "," << tex1->voffset << " ang " << tex1->angle << " scal " << tex1->uscal << "," << tex1->vscal << "\n";
+			colormap->mytexture->set_gl_texture();
+			colormap->setup_glmatrix();
+//			cout << "uv off " << colormap->uoffset << "," << colormap->voffset << " ang " << colormap->angle << " scal " << colormap->uscal << "," << colormap->vscal << "\n";
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, 0);
@@ -641,8 +640,12 @@ void model::material::set_gl_values() const
 
 void model::mesh::display(bool use_display_list) const
 {
+	glPushMatrix();
+	transformation.multiply_glf();
+
 	if (display_list != 0 && use_display_list) {
 		glCallList(display_list);
+		glPopMatrix();
 		return;
 	}
 
@@ -652,9 +655,9 @@ void model::mesh::display(bool use_display_list) const
 	bool has_texture_u0 = false, has_texture_u1 = false;
 	bool bumpmapping = false;
 	if (mymaterial != 0) {
-		if (mymaterial->tex1 && mymaterial->tex1->mytexture)
+		if (mymaterial->colormap.get() && mymaterial->colormap->mytexture.get())
 			has_texture_u0 = true;
-		if (mymaterial->bump && mymaterial->bump->mytexture)
+		if (mymaterial->bumpmap.get() && mymaterial->bumpmap->mytexture.get())
 			has_texture_u1 = true;
 		bumpmapping = has_texture_u1;	// maybe more options here...
 		mymaterial->set_gl_values();
@@ -773,6 +776,8 @@ void model::mesh::display(bool use_display_list) const
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glPopMatrix();
 }
 
 void model::display() const
@@ -910,17 +915,15 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 		write_color_to_dftd_model_file(mat, m->specular, "specular");
 
 		// maps.
-		if (m->tex1) {
-			m->tex1->write_to_dftd_model_file(mat, "diffuse");
+		if (m->colormap.get()) {
+			m->colormap->write_to_dftd_model_file(mat, "diffuse");
 		}
-		if (m->bump) {
-			m->bump->write_to_dftd_model_file(mat, "normal");
+		if (m->bumpmap.get()) {
+			m->bumpmap->write_to_dftd_model_file(mat, "normal");
 		}
-		/*
-		if (m->specularmap) {
+		if (m->specularmap.get()) {
 			m->specularmap->write_to_dftd_model_file(mat, "specular");
 		}
-		*/
 	}
 
 	// save meshes.
@@ -989,18 +992,16 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 		}
 
 		// transformation.
-		if (true /*mp->transformation != matrix4f::one()*/) {
-			TiXmlElement* trans = new TiXmlElement("transformation");
-			msh->LinkEndChild(trans);
-			ostringstream osst;
-			for (unsigned y = 0; y < 4; ++y) {
-				for (unsigned x = 0; x < 4; ++x) {
-					osst << mp->transformation.elem(x, y) << " ";
-				}
+		TiXmlElement* trans = new TiXmlElement("transformation");
+		msh->LinkEndChild(trans);
+		ostringstream osst;
+		for (unsigned y = 0; y < 4; ++y) {
+			for (unsigned x = 0; x < 4; ++x) {
+				osst << mp->transformation.elem(x, y) << " ";
 			}
-			TiXmlText* transt = new TiXmlText(osst.str());
-			trans->LinkEndChild(transt);
 		}
+		TiXmlText* transt = new TiXmlText(osst.str());
+		trans->LinkEndChild(transt);
 	}
 
 	// save lights.
@@ -1098,7 +1099,7 @@ model::material::map::map(TiXmlElement* parent) : uscal(1.0f), vscal(1.0f),
 #define 			M3DS_MATAMBIENT		0xA010
 #define 			M3DS_MATDIFFUSE		0xA020
 #define 			M3DS_MATSPECULAR	0xA030
-#define 			M3DS_MATTRANSPARENCY	0xA050//not used yet, fixme
+#define 			M3DS_MATTRANSPARENCY	0xA050//not used yet, not needed!
 #define 			M3DS_MATMAPTEX1		0xA200
 #define 				M3DS_MATMAPFILE		0xA300
 #define 				M3DS_MATMAP1OVERU_SCAL	0xA354
@@ -1228,17 +1229,14 @@ void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent, const s
 //but why are some models so much off the origin? (corvette, largefreighter)
 //is there another chunk i missed while reading?
 			case M3DS_TRI_MESHMATRIX:
+				msh->transformation = matrix4f::one();
+				/*
 				for (int j = 0; j < 4; ++j) {
 					for (int i = 0; i < 3; ++i) {
 						msh->transformation.elem(j,i) = read_float(in);
 					}
 				}
-/*
-				{ mesh& m = *msh;
-				for (vector<model::mesh::vertex>::iterator it2 = m.vertices.begin(); it2 != m.vertices.end(); ++it2)
-					it2->pos.x -= 2*m.xformmat[3][0];
-				}
-*/				
+				*/
 				ch.bytes_read += 4 * 3 * 4;
 				break;
 		}
@@ -1312,15 +1310,15 @@ void model::m3ds_process_material_chunks(istream& in, m3ds_chunk& parent)
 				break;
 */
 			case M3DS_MATMAPTEX1:
-				if (!m->tex1) {
-					m->tex1 = new material::map();
-					m3ds_process_materialmap_chunks(in, ch, m->tex1);
+				if (!m->colormap.get()) {
+					m->colormap.reset(new material::map());
+					m3ds_process_materialmap_chunks(in, ch, m->colormap.get());
 				}
 				break;
 			case M3DS_MATMAPBUMP:
-				if (!m->bump) {
-					m->bump = new material::map();
-					m3ds_process_materialmap_chunks(in, ch, m->bump);
+				if (!m->bumpmap.get()) {
+					m->bumpmap.reset(new material::map());
+					m3ds_process_materialmap_chunks(in, ch, m->bumpmap.get());
 				}
 				break;
 //			default: cout << "skipped chunk with id " << (void*)ch.id << "\n";
@@ -1330,7 +1328,7 @@ void model::m3ds_process_material_chunks(istream& in, m3ds_chunk& parent)
 	}
 
 	// 3d studio uses diffuse color just for editor display
-	if (m->tex1)
+	if (m->colormap.get())
 		m->diffuse = color::white();
 
 	m->init();
@@ -1553,13 +1551,11 @@ void model::read_dftd_model_file(const std::string& filename)
 			for (TiXmlElement* emap = eattr->FirstChildElement("map") ; emap != 0; emap = emap->NextSiblingElement("map")) {
 				string type = XmlAttrib(emap, "type");
 				if (type == "diffuse") {
-					mat->tex1 = new material::map(emap);
+					mat->colormap.reset(new material::map(emap));
 				} else if (type == "normal") {
-					mat->bump = new material::map(emap);
-/*
+					mat->bumpmap.reset(new material::map(emap));
 				} else if (type == "specular") {
-					mat->specularmap = new material::map(emap);
-*/
+					mat->specularmap.reset(new material::map(emap));
 				} else {
 					sys().myassert(false, string("unknown material map type '")+type+string("' in ")+filename);
 				}

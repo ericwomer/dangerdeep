@@ -75,7 +75,8 @@ protected:
 	
 	// give powers of two for w,h, bpp must be 1!
 	static std::vector<Uint8> make_normals(const std::vector<Uint8>& src,
-					       unsigned w, unsigned h, float detailh);
+					       unsigned w, unsigned h, float detailh,
+					       unsigned stride = 1, unsigned strideoff = 0);
 
 	// statistics.
 	static unsigned mem_used;
@@ -83,8 +84,8 @@ protected:
 	static unsigned mem_freed;
 
 public:
-	// if "makenormalmap" is true and format is GL_LUMINANCE. a normal map (RGB) is
-	// computed from the texture.
+	// if "makenormalmap" is true and format is GL_LUMINANCE,
+	// a normal map (RGB) is computed from the texture.
 	// give height of detail (scale factor) for normal mapping, mostly much larger than 1.0
 	texture(const std::string& filename, mapping_mode mapping_ = NEAREST, clamping_mode clamp = REPEAT,
 		bool makenormalmap = false, float detailh = 1.0f);
@@ -102,15 +103,15 @@ public:
 		clamping_mode clamp, bool makenormalmap = false, float detailh = 1.0f);
 	~texture();
 	
-	int get_format(void) const { return format; }
-	unsigned get_bpp(void) const;
-	unsigned get_opengl_name(void) const { return opengl_name; };
-	void set_gl_texture(void) const;
-	std::string get_name(void) const { return texfilename; };
-	unsigned get_width(void) const { return width; };
-	unsigned get_height(void) const { return height; };
-	unsigned get_gl_width(void) const { return gl_width; };
-	unsigned get_gl_height(void) const { return gl_height; };
+	int get_format() const { return format; }
+	unsigned get_bpp() const;
+	unsigned get_opengl_name() const { return opengl_name; };
+	void set_gl_texture() const;
+	std::string get_name() const { return texfilename; };
+	unsigned get_width() const { return width; };
+	unsigned get_height() const { return height; };
+	unsigned get_gl_width() const { return gl_width; };
+	unsigned get_gl_height() const { return gl_height; };
 
 	// 2d drawing must be turned on for this functions
 	void draw(int x, int y) const;
@@ -129,7 +130,7 @@ public:
 	void draw_subimage(int x, int y, int w, int h, unsigned tx, unsigned ty,
 		unsigned tw, unsigned th) const;
 
-	static unsigned get_max_size(void);
+	static unsigned get_max_size();
 
 	// shader handling.
 	// give GL_FRAGMENT_PROGRAM_ARB or GL_VERTEX_PROGRAM_ARB as type

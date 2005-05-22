@@ -10,6 +10,7 @@
 #include "color.h"
 #include <vector>
 #include <fstream>
+#include <memory>
 
 class TiXmlElement;
 
@@ -28,15 +29,12 @@ public:
 			std::string filename;	// also in mytexture, fixme
 			float uscal, vscal, uoffset, voffset;
 			float angle;	// uv rotation angle;
-			texture* mytexture;
-			map() : uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0.0f), angle(0.0f), mytexture(0) {}
-			~map() { delete mytexture; }
+			std::auto_ptr<texture> mytexture;
+			map() : uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0.0f), angle(0.0f) {}
 			void init(texture::mapping_mode mapping, bool makenormalmap = false, float detailh = 1.0f);
-			void write_to_dftd_model_file(TiXmlElement* parent,
-						      const std::string& type) const;
+			void write_to_dftd_model_file(TiXmlElement* parent, const std::string& type) const;
 			// read and construct from dftd model file
 			map(TiXmlElement* parent);
-
 			// set up opengl texture matrix with map transformation values
 			void setup_glmatrix() const;
 		};
@@ -45,14 +43,12 @@ public:
 		color ambient;
 		color diffuse;
 		color specular;
-		color transparency;//????
-		map* tex1;
-		map* bump;
-		//map* specularmap;
+		auto_ptr<map> colormap;	// replaces diffuse color if not defined.
+		auto_ptr<map> bumpmap;	// should be of type RGB to work properly.
+		auto_ptr<map> specularmap; // should be of type LUMINANCE to work properly.
 		
-		material() : tex1(0), bump(0) {}
+		material(const std::string& nm = "Unnamed material") : name(nm) {}
 		void init();
-		~material() { delete tex1; delete bump; }
 		void set_gl_values() const;
 	};
 	
@@ -80,7 +76,7 @@ public:
 		void compute_normals();
 		bool compute_tangentx(unsigned i0, unsigned i1, unsigned i2);
 
-		mesh();
+		mesh(const string& nm = "Unnamed mesh");
 		~mesh();
 
 		// make display list if possible
