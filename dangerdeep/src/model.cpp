@@ -524,6 +524,15 @@ void model::material::map::setup_glmatrix() const
 
 void model::material::set_gl_values() const
 {
+	GLfloat coltmp[4];
+	ambient.store_rgba(coltmp);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, coltmp);
+	diffuse.store_rgba(coltmp);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, coltmp);
+	specular.store_rgba(coltmp);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, coltmp);
+	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+
 	glActiveTexture(GL_TEXTURE0);
 	if (colormap.get() && colormap->mytexture.get()) {
 		if (bumpmap.get() && bumpmap->mytexture.get()) {
@@ -914,6 +923,11 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 		write_color_to_dftd_model_file(mat, m->ambient, "ambient");
 		write_color_to_dftd_model_file(mat, m->diffuse, "diffuse");
 		write_color_to_dftd_model_file(mat, m->specular, "specular");
+
+		// shininess
+		TiXmlElement* sh = new TiXmlElement("shininess");
+		sh->SetAttribute("exponent", m->shininess);//fixme: kann anscheinend nur int-attribute... 
+		mat->LinkEndChild(sh);
 
 		// maps.
 		if (m->colormap.get()) {

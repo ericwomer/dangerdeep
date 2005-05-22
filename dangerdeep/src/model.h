@@ -43,11 +43,12 @@ public:
 		color ambient;
 		color diffuse;
 		color specular;
+		float shininess;
 		auto_ptr<map> colormap;	// replaces diffuse color if not defined.
 		auto_ptr<map> bumpmap;	// should be of type RGB to work properly.
 		auto_ptr<map> specularmap; // should be of type LUMINANCE to work properly.
 		
-		material(const std::string& nm = "Unnamed material") : name(nm) {}
+		material(const std::string& nm = "Unnamed material") : name(nm), shininess(50.0f) {}
 		void init();
 		void set_gl_values() const;
 	};
