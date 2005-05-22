@@ -1138,8 +1138,7 @@ void model::m3ds_chunk::skip(istream& in)
 //cout << "skipped id " << id << " (hex " << (void*)id << ") while reading chunk.\n";
 	if (length > bytes_read) {
 		unsigned n = length - bytes_read;
-		vector<char> x(n);
-		in.read(&x[0], n);
+		in.seekg(n, ios::cur);
 	}
 }
 

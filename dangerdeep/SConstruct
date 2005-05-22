@@ -62,8 +62,12 @@ else:
 	gllibs = ['GL', 'GLU']
 	sdllibs = ['SDL', 'SDL_image']
 	ccflags = '-Wall `sdl-config --cflags`'
-	if (debug == 1):
+	if (debug >= 3):
 		ccflags += ' -g -O0'
+	elif (debug == 2):
+		ccflags += ' -g -O1'
+	elif (debug == 1):
+		ccflags += ' -g -O2'
 	elif (debug == -1):
 		ccflags += ' -O3 -mcpu=athlon-xp -march=athlon-xp -mfpmath=sse -mmmx -msse -m3dnow'
 	else:
