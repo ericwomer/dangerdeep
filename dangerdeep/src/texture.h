@@ -62,7 +62,7 @@ protected:
 	clamping_mode clamping; // how GL handles the border (GL_REPEAT, GL_CLAMP, GL_CLAMP_TO_EDGE)
 	
 	void sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-		      bool makenormalmap = false, float detailh = 1.0f);
+		      bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
 
 	// copy data to OpenGL, set parameters
 	void init(const std::vector<Uint8>& data, bool makenormalmap = false,
@@ -75,8 +75,7 @@ protected:
 	
 	// give powers of two for w,h, bpp must be 1!
 	static std::vector<Uint8> make_normals(const std::vector<Uint8>& src,
-					       unsigned w, unsigned h, float detailh,
-					       unsigned stride = 1, unsigned strideoff = 0);
+					       unsigned w, unsigned h, float detailh);
 
 	// statistics.
 	static unsigned mem_used;
@@ -88,13 +87,13 @@ public:
 	// a normal map (RGB) is computed from the texture.
 	// give height of detail (scale factor) for normal mapping, mostly much larger than 1.0
 	texture(const std::string& filename, mapping_mode mapping_ = NEAREST, clamping_mode clamp = REPEAT,
-		bool makenormalmap = false, float detailh = 1.0f);
+		bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
 
 	// create texture from subimage of SDL surface.
 	// sw,sh need not to be powers of two.
 	texture(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
 		mapping_mode mapping_ = NEAREST, clamping_mode clamp = REPEAT,
-		bool makenormalmap = false, float detailh = 1.0f);
+		bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
 
 	// create texture from memory values (use openGl constants for format,etc.
 	// w,h must be powers of two.

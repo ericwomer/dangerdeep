@@ -31,7 +31,7 @@ public:
 			float angle;	// uv rotation angle;
 			std::auto_ptr<texture> mytexture;
 			map() : uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0.0f), angle(0.0f) {}
-			void init(texture::mapping_mode mapping, bool makenormalmap = false, float detailh = 1.0f);
+			void init(texture::mapping_mode mapping, bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
 			void write_to_dftd_model_file(TiXmlElement* parent, const std::string& type) const;
 			// read and construct from dftd model file
 			map(TiXmlElement* parent);

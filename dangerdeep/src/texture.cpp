@@ -64,7 +64,7 @@ static GLuint clampmodes[texture::NR_OF_CLAMPING_MODES] = {
 
 
 void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-		       bool makenormalmap, float detailh)
+		       bool makenormalmap, float detailh, bool rgb2grey)
 {
 	// compute texture width and height
 	unsigned tw = 1, th = 1;
@@ -160,15 +160,44 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 		}
 	} else {
 		bool usealpha = teximage->format->Amask != 0;
-		format = usealpha ? GL_RGBA : GL_RGB;
+		if (rgb2grey) {
+			if (usealpha) {
+				format = GL_LUMINANCE_ALPHA;
+				bpp = 2;
+			} else {
+				format = GL_LUMINANCE;
+				bpp = 1;
+			}
+		} else {
+			if (usealpha) {
+				format = GL_RGBA;
+				bpp = 4;
+			} else {
+				format = GL_RGB;
+				bpp = 3;
+			}
+		}
 		data.resize(tw*th*bpp);
 		unsigned char* ptr = &data[0];
 		unsigned char* offset = ((unsigned char*)(teximage->pixels))
 			+ sy*teximage->pitch + sx*bpp;
-		for (unsigned y = 0; y < sh; y++) {
-			memcpy(ptr, offset, sw*bpp);
-			offset += teximage->pitch;
-			ptr += tw*bpp;
+		if (rgb2grey) {
+			for (unsigned y = 0; y < sh; y++) {
+				for (unsigned x = 0; x < sw; ++x)
+					ptr[x*bpp] = offset[x*(bpp+2)+1]; // take green value, it doesn't matter
+				if (bpp == 2)
+					// with alpha
+					for (unsigned x = 0; x < sw; ++x)
+						ptr[x*2+1] = offset[x*4+3];
+				offset += teximage->pitch;
+				ptr += tw*bpp;
+			}
+		} else {
+			for (unsigned y = 0; y < sh; y++) {
+				memcpy(ptr, offset, sw*bpp);
+				offset += teximage->pitch;
+				ptr += tw*bpp;
+			}
 		}
 	}
 	SDL_UnlockSurface(teximage);
@@ -227,33 +256,12 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 
 	unsigned add_mem_used = 0;
 
-	bool generatenormalmap = makenormalmap && (format == GL_RGB || format == GL_LUMINANCE);
-	// check if we have a RGB map here that has only grey values.
-	if (makenormalmap && format == GL_RGB) {
-		for (unsigned i = 0; i < pdata->size(); i += 3) {
-			Uint8 a = (*pdata)[0];
-			Uint8 b = (*pdata)[1];
-			Uint8 c = (*pdata)[2];
-			if (a != b || b != c) {
-				generatenormalmap = false;
-				break;
-			}
-		}
-		//cout << "found RGB file that has only grey values.\n";
-	}
-
-	if (generatenormalmap) {
+	if (makenormalmap && format == GL_LUMINANCE) {
 		// make own mipmap building for normal maps here...
 		// give increasing levels with decreasing w/h down to 1x1
 		// e.g. 64x16 -> 32x8, 16x4, 8x2, 4x1, 2x1, 1x1
-		unsigned stride = 1, strideoffset = 0;
-		if (format == GL_RGB) {
-			stride = 3;
-			strideoffset = 1;	// take g value, it doesn't matter
-		} else {
-			format = GL_RGB;
-		}
-		vector<Uint8> nmpix = make_normals(*pdata, gl_width, gl_height, detailh, stride, strideoffset);
+		format = GL_RGB;
+		vector<Uint8> nmpix = make_normals(*pdata, gl_width, gl_height, detailh);
 		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
 			     GL_UNSIGNED_BYTE, &nmpix[0]);
 
@@ -348,7 +356,7 @@ vector<Uint8> texture::scale_half(const vector<Uint8>& src, unsigned w, unsigned
 
 
 vector<Uint8> texture::make_normals(const vector<Uint8>& src, unsigned w, unsigned h,
-				    float detailh, unsigned stride, unsigned strideoff)
+				    float detailh)
 {
 	// src size must be w*h
 	vector<Uint8> dst(3*w*h);
@@ -360,10 +368,10 @@ vector<Uint8> texture::make_normals(const vector<Uint8>& src, unsigned w, unsign
 		for (unsigned xx = 0; xx < w; ++xx) {
 			unsigned x1 = (xx + w - 1) & (w - 1);
 			unsigned x2 = (xx +     1) & (w - 1);
-			float hr = src[(yy*w+x2)*stride+strideoff];
-			float hu = src[(y1*w+xx)*stride+strideoff];
-			float hl = src[(yy*w+x1)*stride+strideoff];
-			float hd = src[(y2*w+xx)*stride+strideoff];
+			float hr = src[yy*w+x2];
+			float hu = src[y1*w+xx];
+			float hl = src[yy*w+x1];
+			float hd = src[y2*w+xx];
 			vector3f nm = vector3f(hl-hr, hd-hu, zh).normal();
 			dst[ptr + 0] = Uint8(nm.x*127 + 128);
 			dst[ptr + 1] = Uint8(nm.y*127 + 128);
@@ -377,25 +385,26 @@ vector<Uint8> texture::make_normals(const vector<Uint8>& src, unsigned w, unsign
 
 
 texture::texture(const string& filename, mapping_mode mapping_, clamping_mode clamp,
-		 bool makenormalmap, float detailh)
+		 bool makenormalmap, float detailh, bool rgb2grey)
 {
 	mapping = mapping_;
 	clamping = clamp;
 	texfilename = filename;
 	SDL_Surface* teximage = IMG_Load(filename.c_str());
 	sys().myassert(teximage != 0, string("texture: failed to load ")+filename);
-	sdl_init(teximage, 0, 0, teximage->w, teximage->h, makenormalmap, detailh);
+	sdl_init(teximage, 0, 0, teximage->w, teximage->h, makenormalmap, detailh, rgb2grey);
 	SDL_FreeSurface(teximage);
 }	
 
 
 
 texture::texture(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-		 mapping_mode mapping_, clamping_mode clamp, bool makenormalmap, float detailh)
+		 mapping_mode mapping_, clamping_mode clamp, bool makenormalmap, float detailh,
+		 bool rgb2grey)
 {
 	mapping = mapping_;
 	clamping = clamp;
-	sdl_init(teximage, sx, sy, sw, sh, makenormalmap, detailh);
+	sdl_init(teximage, sx, sy, sw, sh, makenormalmap, detailh, rgb2grey);
 }
 
 
@@ -588,6 +597,13 @@ GLuint texture::create_shader(GLenum type, const string& filename)
 	glBindProgramARB(type, nr);
 	ifstream ifprg(filename.c_str(), ios::in);
 	sys().myassert(!ifprg.fail(), string("failed to open ")+filename);
+	/* fixme: add the following feature:
+	   read shader as list/vector of lines.
+	   add parameter: list<string> as list of defines.
+	   preprocess shader-program C-like with defines,
+	   combine result and give that to opengl.
+	*/
+
 	ifprg.seekg(0, ios::end);
 	unsigned prglen = ifprg.tellg();
 	ifprg.seekg(0, ios::beg);

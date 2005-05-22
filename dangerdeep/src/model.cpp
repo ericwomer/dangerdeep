@@ -483,13 +483,14 @@ pair<model::mesh*, model::mesh*> model::mesh::split(const vector3f& abc, float d
 
 
 
-void model::material::map::init(texture::mapping_mode mapping, bool makenormalmap, float detailh)
+void model::material::map::init(texture::mapping_mode mapping, bool makenormalmap, float detailh,
+				bool rgb2grey)
 {
 	mytexture.reset();
 	if (filename.length() > 0) {
 		// fixme: which clamp mode should we use for models? REPEAT doesn't harm normally...
 		mytexture.reset(new texture(get_texture_dir() + filename, mapping, texture::REPEAT,
-					    makenormalmap, detailh));
+					    makenormalmap, detailh, rgb2grey));
 	}
 }
 
@@ -503,8 +504,8 @@ void model::material::init()
 	// maybe because direction vectors are no longer normalized over faces...
 	// with shaders a value of 1.0 is enough.
 	// fixme: read value from model file...
-	if (bumpmap.get()) bumpmap->init(texture::LINEAR/*_MIPMAP_LINEAR*/, true, 4.0f /*16.0f*/);
-	if (specularmap.get()) specularmap->init(texture::LINEAR_MIPMAP_LINEAR);
+	if (bumpmap.get()) bumpmap->init(texture::LINEAR/*_MIPMAP_LINEAR*/, true, 4.0f /*16.0f*/, true);
+	if (specularmap.get()) specularmap->init(texture::LINEAR_MIPMAP_LINEAR, false, 0.0f, true);
 }
 
 
