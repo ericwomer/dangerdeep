@@ -1317,7 +1317,7 @@ int mymain(list<string>& args)
 	mysys->add_console(string("$ff8000version ") + get_program_version());
 	mysys->add_console("$80ff80*** welcome ***");
 
-	GLfloat lambient[4] = {0.5,0.5,0.5,1};
+	GLfloat lambient[4] = {0.1,0.1,0.1,1};
 	GLfloat ldiffuse[4] = {1,1,1,1};
 	GLfloat lposition[4] = {0,0,1,0};
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lambient);

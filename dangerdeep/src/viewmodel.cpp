@@ -66,10 +66,12 @@ void view_model(const string& modelfilename)
 	dmap->mytexture.reset(new texture(pixels, 32, 32, GL_RGB, texture::NEAREST, texture::CLAMP_TO_EDGE));
 	bmap->mytexture.reset(new texture(bumps, 32, 32, GL_LUMINANCE, texture::LINEAR, texture::CLAMP_TO_EDGE, true));
 	model::material* mat = new model::material();
+	mat->specular = color::white();
 	mat->colormap.reset(dmap);
 	mat->bumpmap.reset(bmap);
 	mdl->add_material(mat);
 	model::mesh* msh = make_mesh::cube(3*sc, 3*sc, 3*sc, 1.0f, 1.0f, false);
+
 //	model::mesh* msh = make_mesh::sphere(1.5*sc, 3*sc, 16, 16, 1.0f, 1.0f, false);
 //	model::mesh* msh = make_mesh::cylinder(1.5*sc, 3*sc, 16, 1.0f, 1.0f, true, false);
 	msh->mymaterial = mat;
@@ -83,6 +85,7 @@ void view_model(const string& modelfilename)
 	model::mesh* lightsphere = make_mesh::cube(5.0f, 5.0f, 5.0f, 1, 1, true, "sun");
 	lightsphere->mymaterial = new model::material();
 	lightsphere->mymaterial->diffuse = color(255, 255, 128);
+	lightsphere->mymaterial->specular = color(255, 255, 128);
 	lightsphere->compile();
 
 	while (true) {
@@ -236,9 +239,9 @@ int mymain(list<string>& args)
 	mysys->add_console("A simple model viewer for DftD-.mdl files");
 	mysys->add_console("copyright and written 2003 by Thorsten Jordan");
 
-	GLfloat lambient[4] = {0.1,0.1,0.1,1};
-	GLfloat ldiffuse[4] = {1,0.9,0.9,1};
-	GLfloat lspecular[4] = {1,0.9,0.9,1};
+	GLfloat lambient[4] = {0.1,0.1,0.09,1};
+	GLfloat ldiffuse[4] = {1,1,0.9,1};
+	GLfloat lspecular[4] = {1,1,0.9,1};
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lambient);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, ldiffuse);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, lspecular);

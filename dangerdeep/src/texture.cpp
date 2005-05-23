@@ -597,18 +597,27 @@ GLuint texture::create_shader(GLenum type, const string& filename)
 	glBindProgramARB(type, nr);
 	ifstream ifprg(filename.c_str(), ios::in);
 	sys().myassert(!ifprg.fail(), string("failed to open ")+filename);
+
+	vector<string> lines;
+	while (!ifprg.eof()) {
+		string s;
+		getline(ifprg, s);
+//		cout << "read '" << s << "'\n";
+		lines.push_back(s);
+	}
+
 	/* fixme: add the following feature:
 	   read shader as list/vector of lines.
 	   add parameter: list<string> as list of defines.
 	   preprocess shader-program C-like with defines,
 	   combine result and give that to opengl.
+	   but problematic with error reports. store result in lines and report errornous line
+	   or retranslate to original line number
 	*/
 
-	ifprg.seekg(0, ios::end);
-	unsigned prglen = ifprg.tellg();
-	ifprg.seekg(0, ios::beg);
-	string prg(prglen, ' ');
-	ifprg.read(&prg[0], prglen);
+	string prg;
+	for (unsigned i = 0; i < lines.size(); ++i)
+		prg += lines[i] + "\n";
 
 	glProgramStringARB(type, GL_PROGRAM_FORMAT_ASCII_ARB,
 			   prg.size(), prg.c_str());

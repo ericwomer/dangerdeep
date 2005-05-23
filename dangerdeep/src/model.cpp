@@ -212,11 +212,11 @@ void model::mesh::compute_normals()
 	// from each vertex we find a vector in positive u direction
 	// and project it onto the plane given by the normal -> tangentx
 	// because bump maps use stored texture coordinates (x = positive u!)
-	if (mymaterial && mymaterial->bumpmap.get()) {
+	if (mymaterial && mymaterial->bumpmap.get() && mymaterial->bumpmap->mytexture.get()) {
 		tangentsx.clear();
 		tangentsx.resize(vertices.size(), vector3f(0, 0, 1));
 		righthanded.clear();
-		righthanded.resize(vertices.size(), false);
+		righthanded.resize(vertices.size(), 0);
 		vector<bool> vertexok(vertices.size());
 		for (unsigned i = 0; i < indices.size(); i += 3) {
 			unsigned i0 = indices[i+0];
@@ -483,6 +483,12 @@ pair<model::mesh*, model::mesh*> model::mesh::split(const vector3f& abc, float d
 
 
 
+model::material::map::map() : uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0.0f), angle(0.0f)
+{
+}
+
+
+
 void model::material::map::init(texture::mapping_mode mapping, bool makenormalmap, float detailh,
 				bool rgb2grey)
 {
@@ -493,6 +499,14 @@ void model::material::map::init(texture::mapping_mode mapping, bool makenormalma
 					    makenormalmap, detailh, rgb2grey));
 	}
 }
+
+
+
+model::material::material(const std::string& nm) : name(nm), shininess(50.0f)
+{
+}
+
+
 
 void model::material::init()
 {
@@ -524,16 +538,11 @@ void model::material::map::setup_glmatrix() const
 
 void model::material::set_gl_values() const
 {
-#if 0
-	GLfloat coltmp[4];
-	ambient.store_rgba(coltmp);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, coltmp);
-	diffuse.store_rgba(coltmp);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, coltmp);
-	specular.store_rgba(coltmp);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, coltmp);
-	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
-#endif
+	glBindProgramARB(GL_VERTEX_PROGRAM_ARB, 0);
+	glDisable(GL_VERTEX_PROGRAM_ARB);
+
+	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
+	glDisable(GL_FRAGMENT_PROGRAM_ARB);
 
 	glActiveTexture(GL_TEXTURE0);
 	if (colormap.get() && colormap->mytexture.get()) {
@@ -545,14 +554,14 @@ void model::material::set_gl_values() const
 
 			if (use_shaders) {
 
-	GLfloat coltmp[4];
-	ambient.store_rgba(coltmp);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, coltmp);
-	diffuse.store_rgba(coltmp);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, coltmp);
-	specular.store_rgba(coltmp);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, coltmp);
-	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+				GLfloat coltmp[4];
+// only when no texmapping is used. already set with glcolor! glColor also sets ambient color because of GL_COLOR_MATERIAL
+//	diffuse.store_rgba(coltmp);
+//	glMaterialfv(GL_FRONT, GL_DIFFUSE, coltmp);
+				specular.store_rgba(coltmp);
+				glMaterialfv(GL_FRONT, GL_SPECULAR, coltmp);
+				glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+
 
 				glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_program);
 				glEnable(GL_VERTEX_PROGRAM_ARB);
@@ -566,16 +575,10 @@ void model::material::set_gl_values() const
 				// tex2: specular map / texcoords show vector to viewer
 				glActiveTexture(GL_TEXTURE0);
 				// local parameters:
-				// local 0 : light source color
-				// local 1 : material ambient color (modulated by light color)
-				// local 2 : material specular color (modulated by light color)
+				// local 0 : material specular color
 				// fixme: can be retrieved directly from opengl! no need to store it this way!
 #if 0
 				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 0,
-							     1.0f, 0.9f, 0.9f, 1.0f);//fixme test
-				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 1,
-							     0.1f, 0.1f, 0.1f, 1.0f);//fixme test
-				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 2,
 							     1.0f, 1.0f, 0.5f, 1.0f);//fixme test
 #endif
 
@@ -607,12 +610,10 @@ void model::material::set_gl_values() const
 				colormap->setup_glmatrix();
 				colormap->mytexture->set_gl_texture();
 
-				vector4t<GLfloat> ldifcol;//, lambcol;
+				vector4t<GLfloat> ldifcol, lambcol;
 				glGetLightfv(GL_LIGHT0, GL_DIFFUSE, &ldifcol.x);
-				//fixme: maybe compute mix of diffuse and ambient light, but the color
-				//is mostly the same, only brightness varies.
-				//glGetLightfv(GL_LIGHT0, GL_AMBIENT, &lambcol.x);
-				ldifcol.w = ambient.brightness();
+				glGetLightfv(GL_LIGHT0, GL_AMBIENT, &lambcol.x);
+				ldifcol.w = lambcol.y;	// use ambient's y/green value as brightness value.
 
 				// bump map function with ambient:
 				// light_color * color * (bump_brightness * (1-ambient) + ambient)
@@ -642,6 +643,8 @@ void model::material::set_gl_values() const
 			// (Color 128,128,255).
 			// fixme: stupid! we would need tangentsx/y too etc.
 			// better use another shader for this case.
+			// we can give a white texture as specular map or use a shader without specmap reading etc.
+			// same for texmap. Only shader with or without bumpmap is much different!
 			glColor4f(1, 1, 1, 1);
 			glActiveTexture(GL_TEXTURE0);
 			colormap->mytexture->set_gl_texture();
@@ -934,7 +937,6 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 		const material* m = *it;
 
 		// colors.
-		write_color_to_dftd_model_file(mat, m->ambient, "ambient");
 		write_color_to_dftd_model_file(mat, m->diffuse, "diffuse");
 		write_color_to_dftd_model_file(mat, m->specular, "specular");
 
@@ -1258,6 +1260,9 @@ void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent, const s
 //is there another chunk i missed while reading?
 			case M3DS_TRI_MESHMATRIX:
 				msh->transformation = matrix4f::one();
+				// read floats and skip them.
+				for (unsigned k = 0; k < 4*3; ++k)
+					read_float(in);
 				/*
 				for (int j = 0; j < 4; ++j) {
 					for (int i = 0; i < 3; ++i) {
@@ -1323,16 +1328,18 @@ void model::m3ds_process_material_chunks(istream& in, m3ds_chunk& parent)
 			case M3DS_MATNAME:
 				m->name = m3ds_read_string(in, ch);
 				break;
+/* unused.
 			case M3DS_MATAMBIENT:
 				m3ds_read_color_chunk(in, ch, m->ambient);
 				break;
+*/
 			case M3DS_MATDIFFUSE:
 				m3ds_read_color_chunk(in, ch, m->diffuse);
 				break;
 			case M3DS_MATSPECULAR:
 				m3ds_read_color_chunk(in, ch, m->specular);
 				break;
-/*
+/* unused.
 			case M3DS_MATTRANSPARENCY:
 				m3ds_read_color_chunk(in, ch, m->transparency);
 				break;
@@ -1572,7 +1579,6 @@ void model::read_dftd_model_file(const std::string& filename)
 			unsigned id = XmlAttribu(eattr, "id");
 			mat_id_mapping[id] = mat;
 
-			mat->ambient = read_color_from_dftd_model_file(eattr, "ambient");
 			mat->diffuse = read_color_from_dftd_model_file(eattr, "diffuse");
 			mat->specular = read_color_from_dftd_model_file(eattr, "specular");
 

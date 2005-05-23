@@ -44,6 +44,7 @@ void quadface(model::mesh* m, unsigned bv, float uscal, float vscal, bool out, i
 	m->texcoords[bv+3] = vector2f(uscal, 0);
 	m->normals[bv+0] = m->normals[bv+1] = m->normals[bv+2] = m->normals[bv+3] = vec(ni);
 	m->tangentsx[bv+0] = m->tangentsx[bv+1] = m->tangentsx[bv+2] = m->tangentsx[bv+3] = vec(ti);
+	m->righthanded[bv+0] = m->righthanded[bv+1] = m->righthanded[bv+2] = m->righthanded[bv+3] = true;
 }
 
 
@@ -57,6 +58,7 @@ model::mesh* cube(float w, float l, float h,
 	m->texcoords.resize(6*4);
 	m->normals.resize(6*4);
 	m->tangentsx.resize(6*4);
+	m->righthanded.resize(6*4);
 	float w2 = w/2, l2 = l/2, h2 = h/2;
 	int cnr[24] = {  3, 1, 0, 2,  7, 5, 1, 3,  6, 4, 5, 7,  2, 0, 4, 6,  2, 6, 7, 3,  4, 0, 1, 5 };
 	for (unsigned j = 0; j < 24; ++j) {
@@ -89,6 +91,7 @@ model::mesh* sphere(float radius, float height,
 	m->normals.resize(nrvert);
 	m->tangentsx.resize(nrvert);
 
+//fixme: righthanded info is missing!!!! maybe the reason for the display bugs
 	unsigned vptr = 2, iptr = 0;
 	m->texcoords[0] = vector2f(0, 0);
 	m->vertices[0] = vector3f(0, -height/2, 0);
