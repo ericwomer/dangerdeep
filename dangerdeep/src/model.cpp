@@ -50,9 +50,12 @@ void model::render_init()
 
 	// initialize shaders if wanted
 	if (use_shaders) {
+		list<string> defines;
+		// fixme: create shaders for use with/without specularmap and/or bumpmap
+		defines.push_back("USE_SPECULARMAP");
 		default_fragment_program =
 			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB,
-					       get_shader_dir() + "modelrender_fp.shader");
+					       get_shader_dir() + "modelrender_fp.shader" , defines);
 		default_vertex_program =
 			texture::create_shader(GL_VERTEX_PROGRAM_ARB,
 					       get_shader_dir() + "modelrender_vp.shader");

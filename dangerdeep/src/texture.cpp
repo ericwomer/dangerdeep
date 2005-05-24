@@ -589,7 +589,7 @@ unsigned texture::get_max_size()
 
 
 
-GLuint texture::create_shader(GLenum type, const string& filename)
+GLuint texture::create_shader(GLenum type, const string& filename, const list<string>& defines)
 {
 	GLuint nr;
 
@@ -598,13 +598,22 @@ GLuint texture::create_shader(GLenum type, const string& filename)
 	ifstream ifprg(filename.c_str(), ios::in);
 	sys().myassert(!ifprg.fail(), string("failed to open ")+filename);
 
+	// read lines.
 	vector<string> lines;
 	while (!ifprg.eof()) {
 		string s;
 		getline(ifprg, s);
-//		cout << "read '" << s << "'\n";
 		lines.push_back(s);
 	}
+
+	// build shader node tree by parsing.
+	unsigned current_line = 0;
+	shader_node_program* snp = new shader_node_program(lines, current_line);
+
+	// compile to destination program
+	vector<string> finalprogram;
+	snp->compile(finalprogram, defines);
+	delete snp;
 
 	/* fixme: add the following feature:
 	   read shader as list/vector of lines.
@@ -612,13 +621,15 @@ GLuint texture::create_shader(GLenum type, const string& filename)
 	   preprocess shader-program C-like with defines,
 	   combine result and give that to opengl.
 	   but problematic with error reports. store result in lines and report errornous line
-	   or retranslate to original line number
+	   or retranslate to original line number, fixme, needs to be done yet
 	*/
 
-	string prg;
-	for (unsigned i = 0; i < lines.size(); ++i)
-		prg += lines[i] + "\n";
+	for (unsigned i = 0; i < finalprogram.size(); ++i)
+		cout << "line " << i << ": '" << finalprogram[i] << "'\n";
 
+	string prg;
+	for (unsigned i = 0; i < finalprogram.size(); ++i)
+		prg += finalprogram[i] + "\n";
 	glProgramStringARB(type, GL_PROGRAM_FORMAT_ASCII_ARB,
 			   prg.size(), prg.c_str());
 
@@ -657,4 +668,98 @@ GLuint texture::create_shader(GLenum type, const string& filename)
 void texture::delete_shader(GLuint nr)
 {
 	glDeleteProgramsARB(1, &nr);
+}
+
+
+
+texture::shader_node::state texture::shader_node::get_state(const vector<string>& lines, unsigned& current_line)
+{
+	if (current_line >= lines.size()) return eof;
+	string ln = lines[current_line].substr(0, 6);
+	if (ln == "#ifdef") return ifdef;
+	if (ln == "#else ") return elsedef;
+	if (ln == "#endif") return endifdef;
+	return code;
+}
+
+void texture::shader_node_code::compile(vector<string>& dstprg, const list<string>& /*defines*/)
+{
+	for (vector<string>::iterator it = lines.begin(); it != lines.end(); ++it)
+		dstprg.push_back(*it);
+}
+
+texture::shader_node_code::shader_node_code(const vector<string>& lines, unsigned& current_line)
+{
+	while (true) {
+		state st = get_state(lines, current_line);
+		if (st == code) {
+			this->lines.push_back(lines[current_line++]);
+		} else {
+			return;
+		}
+	}
+}
+
+texture::shader_node_program::~shader_node_program()
+{
+	for (list<shader_node*>::iterator it = subnodes.begin(); it != subnodes.end(); ++it) delete *it;
+}
+
+void texture::shader_node_program::compile(vector<string>& dstprg, const list<string>& defines)
+{
+	for (list<shader_node*>::iterator it = subnodes.begin(); it != subnodes.end(); ++it)
+		(*it)->compile(dstprg, defines);
+}
+
+texture::shader_node_program::shader_node_program(const vector<string>& lines, unsigned& current_line, bool endonelse, bool endonendif)
+{
+	while (current_line < lines.size()) {
+		subnodes.push_back(new shader_node_code(lines, current_line));
+		switch (shader_node::get_state(lines, current_line)) {
+		case shader_node::eof:
+			return;
+		case shader_node::ifdef:
+			subnodes.push_back(new shader_node_ifelse(lines, current_line));
+			break;
+		case shader_node::elsedef:
+			sys().myassert(endonelse, "parsed #else without #if in shader!");
+			return;
+		case shader_node::endifdef:
+			sys().myassert(endonendif, "parsed #endif without #if in shader!");
+			return;
+		case shader_node::code:
+			sys().myassert(false, "internal error. state is 'code' after end of code parsing");
+		}
+	}
+}
+
+texture::shader_node_ifelse::shader_node_ifelse(const vector<string>& lines, unsigned& current_line) : ifnode(0), elsenode(0)
+{
+	define = lines[current_line].substr(7);
+	++current_line;	// skip #ifdef
+	ifnode = new shader_node_program(lines, current_line, true, true);
+	state st = get_state(lines, current_line);
+	if (st == shader_node::elsedef) {
+		++current_line; // skip #else
+		elsenode = new shader_node_program(lines, current_line, false, true);
+		st = get_state(lines, current_line);
+	}
+	sys().myassert(st == shader_node::endifdef, "found no #endif after #else or #ifdef in shader program");
+	++current_line;	// skip #endif
+}
+
+void texture::shader_node_ifelse::compile(vector<string>& dstprg, const list<string>& defines)
+{
+	bool doif = false;
+	for (list<string>::const_iterator it = defines.begin(); it != defines.end(); ++it) {
+		if (*it == define) {
+			doif = true;
+			break;
+		}
+	}
+	if (doif) {
+		ifnode->compile(dstprg, defines);
+	} else if (elsenode) {
+		elsenode->compile(dstprg, defines);
+	}
 }

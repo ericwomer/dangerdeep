@@ -17,6 +17,7 @@
 #endif
 
 #include <vector>
+#include <list>
 #include <string>
 #include <memory>
 
@@ -134,8 +135,49 @@ public:
 	// shader handling.
 	// give GL_FRAGMENT_PROGRAM_ARB or GL_VERTEX_PROGRAM_ARB as type
 	// fixme: a bit misplaced here!
-	static GLuint create_shader(GLenum type, const std::string& filename);
+	static GLuint create_shader(GLenum type, const std::string& filename,
+				    const std::list<std::string>& defines = std::list<std::string>());
 	static void delete_shader(GLuint nr);
+
+	// subclasses needed for shader parsing and compilation
+	struct shader_node
+	{
+		enum state {
+			eof,
+			ifdef,
+			elsedef,
+			endifdef,
+			code
+		};
+		virtual ~shader_node() {}
+		virtual void compile(std::vector<std::string>& dstprg, const std::list<std::string>& defines) = 0;
+		static state get_state(const std::vector<std::string>& lines, unsigned& current_line);
+	};
+
+	struct shader_node_code : public shader_node
+	{
+		std::vector<std::string> lines;
+		void compile(std::vector<std::string>& dstprg, const std::list<std::string>& defines);
+		shader_node_code(const std::vector<std::string>& lines, unsigned& current_line);
+	};
+
+	struct shader_node_program : public shader_node
+	{
+		std::list<shader_node*> subnodes;
+		~shader_node_program();
+		void compile(std::vector<std::string>& dstprg, const std::list<std::string>& defines);
+		shader_node_program(const std::vector<std::string>& lines, unsigned& current_line, bool endonelse = false, bool endonendif = false);
+	};
+
+	struct shader_node_ifelse : public shader_node
+	{
+		shader_node_program* ifnode;
+		shader_node_program* elsenode;
+		std::string define;
+		shader_node_ifelse(const std::vector<std::string>& lines, unsigned& current_line);
+		~shader_node_ifelse() { delete ifnode; delete elsenode; }
+		void compile(std::vector<std::string>& dstprg, const std::list<std::string>& defines);
+	};
 };
 
 #endif
