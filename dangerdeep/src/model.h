@@ -120,8 +120,14 @@ protected:
 	static bool use_shaders;
 
 	// Shader programs
-	static GLuint default_vertex_program;
-	static GLuint default_fragment_program;
+	static std::vector<GLuint> default_vertex_programs;
+	static std::vector<GLuint> default_fragment_programs;
+
+	enum shader_programs {
+		VFP_COLOR_BUMP_SPECULAR,
+		VFP_COLOR_BUMP,
+		NR_VFP,
+	}; // more variants later.
 
 	// init / deinit
 	static void render_init();

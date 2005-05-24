@@ -36,8 +36,8 @@ bool model::vertex_program_supported = false;
 bool model::fragment_program_supported = false;
 bool model::compiled_vertex_arrays_supported = false;
 bool model::use_shaders = false;
-GLuint model::default_vertex_program = 0;
-GLuint model::default_fragment_program = 0;
+vector<GLuint> model::default_vertex_programs;
+vector<GLuint> model::default_fragment_programs;
 
 
 void model::render_init()
@@ -50,15 +50,19 @@ void model::render_init()
 
 	// initialize shaders if wanted
 	if (use_shaders) {
+		default_fragment_programs.resize(NR_VFP);
+		default_vertex_programs.resize(NR_VFP);
 		list<string> defines;
 		// fixme: create shaders for use with/without specularmap and/or bumpmap
+		default_fragment_programs[VFP_COLOR_BUMP] =
+			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB, get_shader_dir() + "modelrender_fp.shader" , defines);
+		default_vertex_programs[VFP_COLOR_BUMP] =
+			texture::create_shader(GL_VERTEX_PROGRAM_ARB, get_shader_dir() + "modelrender_vp.shader" , defines);
 		defines.push_back("USE_SPECULARMAP");
-		default_fragment_program =
-			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB,
-					       get_shader_dir() + "modelrender_fp.shader" , defines);
-		default_vertex_program =
-			texture::create_shader(GL_VERTEX_PROGRAM_ARB,
-					       get_shader_dir() + "modelrender_vp.shader");
+		default_fragment_programs[VFP_COLOR_BUMP_SPECULAR] =
+			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB, get_shader_dir() + "modelrender_fp.shader" , defines);
+		default_vertex_programs[VFP_COLOR_BUMP_SPECULAR] =
+			texture::create_shader(GL_VERTEX_PROGRAM_ARB, get_shader_dir() + "modelrender_vp.shader" , defines);
 		sys().add_console("Using OpenGL vertex and fragment programs...");
 	}
 }
@@ -68,8 +72,12 @@ void model::render_init()
 void model::render_deinit()
 {
 	if (use_shaders) {
-		texture::delete_shader(default_fragment_program);
-		texture::delete_shader(default_vertex_program);
+		for (unsigned i = 0; i < NR_VFP; ++i) {
+			texture::delete_shader(default_fragment_programs[i]);
+			texture::delete_shader(default_vertex_programs[i]);
+		}
+		default_fragment_programs.clear();
+		default_vertex_programs.clear();
 	}
 }
 
@@ -557,40 +565,33 @@ void model::material::set_gl_values() const
 
 			if (use_shaders) {
 
+				// texture units / coordinates:
+				// tex0: color map / matching texcoords
+				// tex1: normal map / texcoords show vector to light
+				// tex2: specular map / texcoords show vector to viewer, if available
+
 				GLfloat coltmp[4];
-// only when no texmapping is used. already set with glcolor! glColor also sets ambient color because of GL_COLOR_MATERIAL
-//	diffuse.store_rgba(coltmp);
-//	glMaterialfv(GL_FRONT, GL_DIFFUSE, coltmp);
 				specular.store_rgba(coltmp);
 				glMaterialfv(GL_FRONT, GL_SPECULAR, coltmp);
 				glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
+				if (specularmap.get() && specularmap->mytexture.get()) {
+					glActiveTexture(GL_TEXTURE2);
+					glEnable(GL_TEXTURE_2D);
+					specularmap->mytexture->set_gl_texture();
+					glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_programs[VFP_COLOR_BUMP_SPECULAR]);
+					glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_programs[VFP_COLOR_BUMP_SPECULAR]);
+				} else {
+					glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_programs[VFP_COLOR_BUMP]);
+					glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_programs[VFP_COLOR_BUMP]);
+				}
 
-				glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_program);
 				glEnable(GL_VERTEX_PROGRAM_ARB);
-
-				glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_program);
 				glEnable(GL_FRAGMENT_PROGRAM_ARB);
 
-				// texture units / coordinates:
-				// tex0: color map / matching texcoords
-				// tex1: normal map / texcoords show vector to light
-				// tex2: specular map / texcoords show vector to viewer
-				glActiveTexture(GL_TEXTURE0);
-				// local parameters:
-				// local 0 : material specular color
-				// fixme: can be retrieved directly from opengl! no need to store it this way!
-#if 0
-				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 0,
-							     1.0f, 1.0f, 0.5f, 1.0f);//fixme test
-#endif
-
 				glActiveTexture(GL_TEXTURE1);
-				// texture matrix must be computed with vertex programs!
 				bumpmap->setup_glmatrix();
 				bumpmap->mytexture->set_gl_texture();
-
-				//fixme: bind specular map here!
 
 				glActiveTexture(GL_TEXTURE0);
 				glEnable(GL_TEXTURE_2D);
@@ -797,6 +798,9 @@ void model::mesh::display(bool use_display_list) const
 		glDisable(GL_FRAGMENT_PROGRAM_ARB);
 		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, 0);
 		glDisable(GL_VERTEX_PROGRAM_ARB);
+		glActiveTexture(GL_TEXTURE2);
+		glDisable(GL_TEXTURE_2D);
+		glActiveTexture(GL_TEXTURE0);
 	}
 	glEnable(GL_LIGHTING);
 	glDisableClientState(GL_VERTEX_ARRAY);
@@ -945,7 +949,8 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 
 		// shininess
 		TiXmlElement* sh = new TiXmlElement("shininess");
-		sh->SetAttribute("exponent", m->shininess);//fixme: kann anscheinend nur int-attribute... 
+		ostringstream oss; oss << m->shininess;
+		sh->SetAttribute("exponent", oss.str());
 		mat->LinkEndChild(sh);
 
 		// maps.

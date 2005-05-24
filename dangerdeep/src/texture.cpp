@@ -612,20 +612,12 @@ GLuint texture::create_shader(GLenum type, const string& filename, const list<st
 
 	// compile to destination program
 	vector<string> finalprogram;
-	snp->compile(finalprogram, defines);
+	snp->compile(finalprogram, defines, false);
 	delete snp;
 
-	/* fixme: add the following feature:
-	   read shader as list/vector of lines.
-	   add parameter: list<string> as list of defines.
-	   preprocess shader-program C-like with defines,
-	   combine result and give that to opengl.
-	   but problematic with error reports. store result in lines and report errornous line
-	   or retranslate to original line number, fixme, needs to be done yet
-	*/
-
-	for (unsigned i = 0; i < finalprogram.size(); ++i)
-		cout << "line " << i << ": '" << finalprogram[i] << "'\n";
+	// debug output
+//	for (unsigned i = 0; i < finalprogram.size(); ++i)
+//		cout << "line " << i << ": '" << finalprogram[i] << "'\n";
 
 	string prg;
 	for (unsigned i = 0; i < finalprogram.size(); ++i)
@@ -682,10 +674,11 @@ texture::shader_node::state texture::shader_node::get_state(const vector<string>
 	return code;
 }
 
-void texture::shader_node_code::compile(vector<string>& dstprg, const list<string>& /*defines*/)
+void texture::shader_node_code::compile(vector<string>& dstprg, const list<string>& /*defines*/,
+					bool disabled)
 {
 	for (vector<string>::iterator it = lines.begin(); it != lines.end(); ++it)
-		dstprg.push_back(*it);
+		dstprg.push_back(disabled ? string("#") + *it : *it);
 }
 
 texture::shader_node_code::shader_node_code(const vector<string>& lines, unsigned& current_line)
@@ -705,10 +698,11 @@ texture::shader_node_program::~shader_node_program()
 	for (list<shader_node*>::iterator it = subnodes.begin(); it != subnodes.end(); ++it) delete *it;
 }
 
-void texture::shader_node_program::compile(vector<string>& dstprg, const list<string>& defines)
+void texture::shader_node_program::compile(vector<string>& dstprg, const list<string>& defines,
+					   bool disabled)
 {
 	for (list<shader_node*>::iterator it = subnodes.begin(); it != subnodes.end(); ++it)
-		(*it)->compile(dstprg, defines);
+		(*it)->compile(dstprg, defines, disabled);
 }
 
 texture::shader_node_program::shader_node_program(const vector<string>& lines, unsigned& current_line, bool endonelse, bool endonendif)
@@ -748,8 +742,10 @@ texture::shader_node_ifelse::shader_node_ifelse(const vector<string>& lines, uns
 	++current_line;	// skip #endif
 }
 
-void texture::shader_node_ifelse::compile(vector<string>& dstprg, const list<string>& defines)
+void texture::shader_node_ifelse::compile(vector<string>& dstprg, const list<string>& defines,
+					  bool disabled)
 {
+	dstprg.push_back(string("#ifdef ")+define);
 	bool doif = false;
 	for (list<string>::const_iterator it = defines.begin(); it != defines.end(); ++it) {
 		if (*it == define) {
@@ -757,9 +753,10 @@ void texture::shader_node_ifelse::compile(vector<string>& dstprg, const list<str
 			break;
 		}
 	}
-	if (doif) {
-		ifnode->compile(dstprg, defines);
-	} else if (elsenode) {
-		elsenode->compile(dstprg, defines);
+	ifnode->compile(dstprg, defines, disabled || !doif);
+	if (elsenode) {
+		dstprg.push_back(string("#else"));
+		elsenode->compile(dstprg, defines, disabled || doif);
 	}
+	dstprg.push_back(string("#endif"));
 }
