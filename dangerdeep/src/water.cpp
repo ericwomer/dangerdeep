@@ -132,6 +132,9 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		water_fragment_program =
 			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB,
 					       get_shader_dir() + "water_fp.shader");
+		water_vertex_program =
+			texture::create_shader(GL_VERTEX_PROGRAM_ARB,
+					       get_shader_dir() + "water_vp.shader");
 	}
 
 	// 2004/04/25 Note! decreasing the size of the reflection map improves performance
@@ -335,6 +338,7 @@ water::~water()
 {
 	if (use_shaders) {
 		texture::delete_shader(water_fragment_program);
+		texture::delete_shader(water_vertex_program);
 	}
 
 	glDeleteTextures(1, &reflectiontex);
@@ -355,6 +359,8 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, water_fragment_program);
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
+		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, water_vertex_program);
+		glEnable(GL_VERTEX_PROGRAM_ARB);
 
 		// texture units / coordinates:
 		// tex0: noise map (color normals) / matching texcoords
@@ -458,6 +464,8 @@ void water::cleanup_textures(void) const
 	if (use_shaders) {
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
 		glDisable(GL_FRAGMENT_PROGRAM_ARB);
+		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, 0);
+		glDisable(GL_VERTEX_PROGRAM_ARB);
 	}
 	
 	glColor4f(1,1,1,1);
@@ -672,7 +680,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	// zoomscope/glasses view). We don't really need mrange but could generate any quadri-
 	// lateral with x/y values, but it's simpler to use mrange.
 	// If (!) we can generate a tranformation matrix that makes a trapez from a rectangle.
-	// This seams impossible... ?!
+	// This seams impossible... ?! only possible with projections???
 	// improving the efficiency here should give the biggest gain.
 	// drawing half of the triangles gives 33% more performanc, so 25% of performance
 	// is currently wasted!
@@ -798,9 +806,10 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	}
 
 	// make normals normal ;-)
-	//fixme: this could be done on the GPU with vertex shaders.
-	for (unsigned i = 0; i < (xres+1)*(yres+1); ++i)
-		normals[i].normalize();
+	// with shaders, we don't need to normalize the normals, because the shader does it
+	if (!use_shaders)
+		for (unsigned i = 0; i < (xres+1)*(yres+1); ++i)
+			normals[i].normalize();
 
 	// compute remaining data (Fresnel etc.)
 	//fixme: the whole loop could be done on the GPU with vertex shaders.
@@ -810,20 +819,22 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 
 	vector<vector3f> uv2;
 	if (use_shaders) {
-		uv2.resize(uv0.size());
+		// foam:
+		//uv2.resize(uv0.size());
 	}
 
 	// no tex coords must be given to vertex shaders, fresnel texc's are computed from the
 	// position, same for reflection texc. only foam is more difficult
 	// foam is mapped like a great plane, depends on player's viewing angle and position...
 
-	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
-		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
-			// the coordinate is the same as the relative coordinate, because the viewer is at 0,0,0
-			const vector3f& coord = coords[ptr];
-			const vector3f& N = normals[ptr];
-
-			if (use_shaders) {
+	if (use_shaders) {
+		//fixme: uv0/uv1 is not needed here and thus needs not be resized/created.
+#if 0 // nothing to compute!!!! maybe texcoords for foam...
+		for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
+			for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
+				// the coordinate is the same as the relative coordinate, because the viewer is at 0,0,0
+				const vector3f& coord = coords[ptr];
+				const vector3f& N = normals[ptr];
 				uv0[ptr] = vector2f(coord.x/8.0f, coord.y/8.0f); // fixme, use noise map texc's
 				//fixme ^, offset is missing
 				vector3f tx = vector3f(1, 0, 0);//fixme hack
@@ -835,7 +846,38 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 				uv2[ptr] = tangentE;
 				// we have to convert E to the tangent space of this face or
 				// do that per pixel at the fragment program
-			} else {
+				// reflection texture coordinates (should be tweaked per pixel with fp, fixme)
+				// they are broken with fp, reason unknown
+				vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
+				texc.z -= VIRTUAL_PLANE_HEIGHT;
+				uv1[ptr] = texc;
+			}
+		}
+#endif
+		// enable coordinates and normals.
+		glDisableClientState(GL_COLOR_ARRAY);
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
+		glClientActiveTexture(GL_TEXTURE0);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glClientActiveTexture(GL_TEXTURE1);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0].x);
+		/* foam:
+		glClientActiveTexture(GL_TEXTURE2);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv2[0].x);
+		*/
+	} else {
+		// normalize normals.
+		for (unsigned i = 0; i < (xres+1)*(yres+1); ++i)
+			normals[i].normalize();
+		for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
+			for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
+				// the coordinate is the same as the relative coordinate, because the viewer is at 0,0,0
+				const vector3f& coord = coords[ptr];
+				const vector3f& N = normals[ptr];
 				float rel_coord_length = coord.length();
 				vector3f E = -coord * (1.0f/rel_coord_length); // viewer is in (0,0,0)
 				float F = E*N;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
@@ -844,38 +886,30 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 				// slope (N.z) it mostly > 0.8
 				float colorfac = (coord.z + viewpos.z + 3) / 9 + (N.z - 0.8f);
 				uv0[ptr] = vector2f(F, colorfac);	// set fresnel and water color
+				// reflection texture coordinates (should be tweaked per pixel with fp, fixme)
+				// they are broken with fp, reason unknown
+				vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
+				texc.z -= VIRTUAL_PLANE_HEIGHT;
+				uv1[ptr] = texc;
 			}
-
-			// reflection texture coordinates (should be tweaked per pixel with fp, fixme)
-			// they are broken with fp, reason unknown
-			vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
-			texc.z -= VIRTUAL_PLANE_HEIGHT;
-			uv1[ptr] = texc;
 		}
+		// draw elements (fixed index list) with vertex arrays using coords,uv0,normals,uv1
+		glDisableClientState(GL_COLOR_ARRAY);
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
+		glClientActiveTexture(GL_TEXTURE0);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &uv0[0].x);
+		glClientActiveTexture(GL_TEXTURE1);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv1[0].x);
+		glDisableClientState(GL_NORMAL_ARRAY);
 	}
 
 	// set up textures
 	setup_textures(reflection_projmvmat);
 
 	glColor4f(1,1,1,1);
-
-	// draw elements (fixed index list) with vertex arrays using coords,uv0,normals,uv1
-	glDisableClientState(GL_COLOR_ARRAY);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
-	glClientActiveTexture(GL_TEXTURE0);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &uv0[0].x);
-	glClientActiveTexture(GL_TEXTURE1);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv1[0].x);
-	glDisableClientState(GL_NORMAL_ARRAY);
-
-	if (use_shaders) {
-		glClientActiveTexture(GL_TEXTURE2);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv2[0].x);
-	}
 
 //	unsigned t0 = sys().millisec();
 
