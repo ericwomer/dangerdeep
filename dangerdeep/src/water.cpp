@@ -813,6 +813,10 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 		uv2.resize(uv0.size());
 	}
 
+	// no tex coords must be given to vertex shaders, fresnel texc's are computed from the
+	// position, same for reflection texc. only foam is more difficult
+	// foam is mapped like a great plane, depends on player's viewing angle and position...
+
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			// the coordinate is the same as the relative coordinate, because the viewer is at 0,0,0

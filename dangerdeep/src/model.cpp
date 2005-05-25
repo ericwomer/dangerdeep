@@ -286,7 +286,7 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 		vector3f ry = v01 * c + v02 * d;
 		vector3f tangentsy = (ry - (ry * n) * n).normal();
 		float g = tangentsx[i0].cross(tangentsy) * n;
-		righthanded[i0] = !(g > 0); // fixme: seems needed???
+		righthanded[i0] = !(g > 0); // fixme: negation seems needed???
 		return true;
 	}
 }
@@ -528,8 +528,9 @@ void model::material::init()
 	// fixme: without shaders it seems we need to multiply this with ~16 or even more.
 	// maybe because direction vectors are no longer normalized over faces...
 	// with shaders a value of 1.0 is enough.
-	// fixme: read value from model file...
-	if (bumpmap.get()) bumpmap->init(texture::LINEAR/*_MIPMAP_LINEAR*/, true, 4.0f /*16.0f*/, true);
+	// fixme: read value from model file... and multiply with this value...
+	float bumpmapheight = use_shaders ? 4.0f : 16.0f;
+	if (bumpmap.get()) bumpmap->init(texture::LINEAR/*_MIPMAP_LINEAR*/, true, bumpmapheight, true);
 	if (specularmap.get()) specularmap->init(texture::LINEAR_MIPMAP_LINEAR, false, 0.0f, true);
 }
 
@@ -925,6 +926,20 @@ void model::compile()
 }
 
 
+
+void model::light::set_gl(unsigned nr_of_light) const
+{
+	GLfloat tmp[4] = { pos.x, pos.y, pos.z, 1.0f };
+	glLightfv(GL_LIGHT0, GL_POSITION, tmp);
+	tmp[0] = tmp[1] = tmp[2] = ambient;
+	glLightfv(GL_LIGHT0, GL_AMBIENT, tmp);
+	tmp[0] = colr; tmp[1] = colg; tmp[2] = colb;
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, tmp);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, tmp);
+}
+
+
+
 // -------------------------------- dftd model file writing --------------------------------------
 // write our own model file format.
 void model::write_to_dftd_model_file(const std::string& filename, bool store_normals) const
@@ -961,7 +976,7 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 			m->bumpmap->write_to_dftd_model_file(mat, "normal");
 		}
 		if (m->specularmap.get()) {
-			m->specularmap->write_to_dftd_model_file(mat, "specular");
+			m->specularmap->write_to_dftd_model_file(mat, "specular", false);
 		}
 	}
 
@@ -1052,6 +1067,8 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 		lgt->SetAttribute("pos", lpos.str());
 		ostringstream lcol; lcol << it->colr << " " << it->colg << " " << it->colb;
 		lgt->SetAttribute("color", lcol.str());
+		ostringstream lamb; lamb << it->ambient;
+		lgt->SetAttribute("ambient", lamb.str());
 	}
 
 	// finally save file.
@@ -1084,41 +1101,46 @@ color model::read_color_from_dftd_model_file(TiXmlElement* parent, const std::st
 
 
 void model::material::map::write_to_dftd_model_file(TiXmlElement* parent,
-						    const std::string& type) const
+						    const std::string& type, bool withtrans) const
 {
 	TiXmlElement* mmap = new TiXmlElement("map");
 	parent->LinkEndChild(mmap);
 	mmap->SetAttribute("type", type);
 	mmap->SetAttribute("filename", filename);
-	ostringstream ossus; ossus << uscal;
-	mmap->SetAttribute("uscal", ossus.str());
-	ostringstream ossvs; ossvs << vscal;
-	mmap->SetAttribute("vscal", ossvs.str());
-	ostringstream ossuo; ossuo << uoffset;
-	mmap->SetAttribute("uoffset", ossuo.str());
-	ostringstream ossvo; ossvo << voffset;
-	mmap->SetAttribute("voffset", ossvo.str());
-	ostringstream ossan; ossan << angle;
-	mmap->SetAttribute("angle", ossan.str());
+	if (withtrans) {
+		ostringstream ossus; ossus << uscal;
+		mmap->SetAttribute("uscal", ossus.str());
+		ostringstream ossvs; ossvs << vscal;
+		mmap->SetAttribute("vscal", ossvs.str());
+		ostringstream ossuo; ossuo << uoffset;
+		mmap->SetAttribute("uoffset", ossuo.str());
+		ostringstream ossvo; ossvo << voffset;
+		mmap->SetAttribute("voffset", ossvo.str());
+		ostringstream ossan; ossan << angle;
+		mmap->SetAttribute("angle", ossan.str());
+	}
 }
 
-model::material::map::map(TiXmlElement* parent) : uscal(1.0f), vscal(1.0f),
-						  uoffset(0.0f), voffset(0.0f), angle(0.0f),
-						  mytexture(0)
+model::material::map::map(TiXmlElement* parent, bool withtrans)
+	: uscal(1.0f), vscal(1.0f),
+	  uoffset(0.0f), voffset(0.0f), angle(0.0f),
+	  mytexture(0)
 {
 	const char* tmp = parent->Attribute("filename");
 	sys().myassert(tmp != 0, "no filename given for materialmap!");
 	filename = tmp;
-	tmp = parent->Attribute("uscal");
-	if (tmp) uscal = atof(tmp);
-	tmp = parent->Attribute("vscal");
-	if (tmp) vscal = atof(tmp);
-	tmp = parent->Attribute("uoffset");
-	if (tmp) uoffset = atof(tmp);
-	tmp = parent->Attribute("voffset");
-	if (tmp) voffset = atof(tmp);
-	tmp = parent->Attribute("angle");
-	if (tmp) angle = atof(tmp);
+	if (withtrans) {
+		tmp = parent->Attribute("uscal");
+		if (tmp) uscal = atof(tmp);
+		tmp = parent->Attribute("vscal");
+		if (tmp) vscal = atof(tmp);
+		tmp = parent->Attribute("uoffset");
+		if (tmp) uoffset = atof(tmp);
+		tmp = parent->Attribute("voffset");
+		if (tmp) voffset = atof(tmp);
+		tmp = parent->Attribute("angle");
+		if (tmp) angle = atof(tmp);
+	}
 }
 
 // -------------------------------- end of dftd model file writing ------------------------------
@@ -1597,10 +1619,18 @@ void model::read_dftd_model_file(const std::string& filename)
 				} else if (type == "normal") {
 					mat->bumpmap.reset(new material::map(emap));
 				} else if (type == "specular") {
-					mat->specularmap.reset(new material::map(emap));
+					mat->specularmap.reset(new material::map(emap, false));
 				} else {
 					sys().myassert(false, string("unknown material map type '")+type+string("' in ")+filename);
 				}
+			}
+
+			TiXmlElement* eshin = eattr->FirstChildElement("shininess");
+			if (eshin) {
+				const char* shexp = eshin->Attribute("exponent");
+				sys().myassert(shexp != 0, string("shininess defined but no exponent given in ")+filename);
+				istringstream iss(shexp);
+				iss >> mat->shininess;
 			}
 
 			mat->init();
@@ -1702,6 +1732,11 @@ void model::read_dftd_model_file(const std::string& filename)
 			if (tmp) {
 				istringstream issc(tmp);
 				issp >> l.colr >> l.colg >> l.colb;
+			}
+			tmp = eattr->Attribute("ambient");
+			if (tmp) {
+				istringstream issa(tmp);
+				issa >> l.ambient;
 			}
 		} else {
 			sys().myassert(false, string("unknown type ")+attrtype+string(" in ")+filename);

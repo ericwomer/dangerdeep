@@ -32,9 +32,9 @@ public:
 			std::auto_ptr<texture> mytexture;
 			map();
 			void init(texture::mapping_mode mapping, bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
-			void write_to_dftd_model_file(TiXmlElement* parent, const std::string& type) const;
+			void write_to_dftd_model_file(TiXmlElement* parent, const std::string& type, bool withtrans = true) const;
 			// read and construct from dftd model file
-			map(TiXmlElement* parent);
+			map(TiXmlElement* parent, bool withtrans = true);
 			// set up opengl texture matrix with map transformation values
 			void setup_glmatrix() const;
 		};
@@ -94,9 +94,9 @@ public:
 		std::string name;
 		vector3f pos;
 		float colr, colg, colb;
+		float ambient;
 		void set_gl(unsigned nr_of_light) const;
-		light() : colr(1.0f), colg(1.0f), colb(1.0f) {}
-		~light() {}
+		light() : colr(1.0f), colg(1.0f), colb(1.0f), ambient(0.1f) {}
 	};
 
 protected:	
