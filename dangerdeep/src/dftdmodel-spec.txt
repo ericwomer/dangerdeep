@@ -3,7 +3,7 @@ Structure of DftD-model files
 
 The Dftd Model files are in XML format, they're sometimes called ddxml
 because of this. This file describes their structure and meaning of the
-content. It describes version 1.0. 
+content. It describes version 1.1. 
 What is missing is grouping / kinematic tree information. The mesh ids
 can be used for this.
 
@@ -28,9 +28,9 @@ dftd-model
 |
 +---material * ?
 |      |
-|      +----ambient ?
 |      +----diffuse ?
 |      +----specular ?
+|      +----shininess ?
 |      +----map ?
 |
 +---mesh *
@@ -65,17 +65,9 @@ Attributes:
 (string) name - material name for description.
 (int) id - number for referencing, must be unique for materials.
 
-Children: ambient, diffuse, specular, map - each node is optional, at
+Children: diffuse, specular, shininess, map - each node is optional, at
 most one of type ambient, diffuse or specular may be defined. At most
 one map of each type may be defined.
-
-
-Node: ambient
-=============
-Describes ambient color.
-
-Attributes:
-(triple of float) color - ambient color.
 
 
 Node: diffuse
@@ -84,7 +76,7 @@ Describes diffuse color.
 
 Attributes:
 (triple of float) color - diffuse color. Only used when no diffuse map
-given.
+given. Also used as ambient color.
 
 
 Node: specular
@@ -95,18 +87,30 @@ Attributes:
 (triple of float) color - specular color.
 
 
+Node: shininess
+===============
+Describes specular shininess (H.N^shininess),
+Blinn-phong exponent. Half-angle dot normal will
+be powered by this exponent.
+
+Attributes:
+(float) exponent - shininess as exponent.
+
+
 Node: map
 =========
 Describes a map of the material (sub-property)
+The specularmap uses the same transformation as the normal map.
 
 Attributes:
 (string) type - can be "diffuse", "normal" or "specular"
 (string) filename - any image image containing the map data
-(float) uscal - scaling of u coordinates
-(float) vscal - scaling of v coordinates
-(float) uoffset - offset of u coordinates
-(float) voffset - offset of v coordinates
+(float) uscal - scaling of u coordinates (ignored for specular)
+(float) vscal - scaling of v coordinates (ignored for specular)
+(float) uoffset - offset of u coordinates (ignored for specular)
+(float) voffset - offset of v coordinates (ignored for specular)
 (float) angle - rotation angle of u,v coordinates, in ccw direction
+                (ignored for specular)
 
 
 Node: mesh
@@ -187,7 +191,7 @@ Attributes:
 (string) name - descriptive name.
 (float triple) pos - light position
 (float triple) color - light color
-
+(float) ambient - amount of ambient of light (0...1)
 
 
 old documentation, example
@@ -199,7 +203,7 @@ XML format.
 
 --> Version string is used for information purposes.
 
-<dftd-model version="1.0">
+<dftd-model version="1.1">
 
 --> A long list with children: materials, meshes and lights, in this order:
 
@@ -211,9 +215,9 @@ XML format.
 
 diffuse color is used when no diffuse map is given.
 
-    <ambient color="floatr floatg floatb" />
     <diffuse color="floatr floatg floatb" />
     <specular color="floatr floatg floatb" />
+    <shininess exponent="float" />
 
 ----> at most one of each type
 ----> give u,v scaling and offset and u,v rotation angle. If not given, default values
@@ -264,6 +268,16 @@ can there be no maps? yes...
 
 --> Lights:
 
-  <light name="Any name you want" pos="floatx floaty float z" color="floatr floatg float b" />
+  <light name="Any name you want" pos="floatx floaty float z" color="floatr floatg float b"
+           ambient="float-amount" />
 
 </dftd-model>
+
+============================================================================================
+Changes for Version:
+1.1: ambient value per material removed. Ambient color is the same as
+     diffuse color, when the latter is used (only when no texture map is
+     given).
+     Lights have now an ambient value from 0...1. The higher it is the more
+     ambient will be in the scene.
+     Shininess of material can be given now.
