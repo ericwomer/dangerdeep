@@ -4,6 +4,8 @@ import sys
 
 ################ global config values
 version = '0.0.20'
+if ARGUMENTS.get('version', 0):
+	version = ARGUMENTS.get('version', 0)
 
 ################ base paths (needed for Win32 OS)
 sdlbase = 'd:\\sdl-devel\\SDL'
@@ -21,7 +23,6 @@ if ARGUMENTS.get('installbindir', 0):
 	installbindir = ARGUMENTS.get('installbindir', 0)
 if ARGUMENTS.get('installdatadir', 0):
 	installdatadir = ARGUMENTS.get('installdatadir', 0)
-
 
 ################ command line config
 debug = int(ARGUMENTS.get('debug', 0))
@@ -62,16 +63,14 @@ else:
 	gllibs = ['GL', 'GLU']
 	sdllibs = ['SDL', 'SDL_image']
 	ccflags = '-Wall `sdl-config --cflags`'
-	if (debug >= 3):
+	if (debug >= 2):
 		ccflags += ' -g -O0'
-	elif (debug == 2):
-		ccflags += ' -g -O1'
 	elif (debug == 1):
-		ccflags += ' -g -O2'
+		ccflags += ' -g -O1'
 	elif (debug == -1):
-		ccflags += ' -O3 -mcpu=athlon-xp -march=athlon-xp -mfpmath=sse -mmmx -msse -m3dnow'
+		ccflags += ' -g -O3 -mcpu=athlon-xp -march=athlon-xp -mfpmath=sse -mmmx -msse -m3dnow'
 	else:
-		ccflags += ' -O2'
+		ccflags += ' -g -O2' # debug symbols will be stripped by the linker for a debian package
 	env.Append(CCFLAGS = ccflags)
 	datadir = installdatadir
 	build_dir = 'linux'
@@ -142,10 +141,10 @@ gfxlibs = ['oglext'] + gllibs + sdllibs
 alllibs = ['dftdmedia', 'tinyxml'] + gfxlibs + ['SDL_mixer', 'SDL_net', fftwlib]
 
 ################ helper functions
-def all_entries_that_start_with(list, prefix):
+def all_entries_that_start_with_and_not(list, prefix, notprefix):
 	list2 = []
 	for i in list:
-		if i.startswith(prefix):
+		if i.startswith(prefix) and not(i.startswith(notprefix)):
 			list2 += [i]
 	return list2
 
@@ -170,7 +169,7 @@ allcvsfiles = []
 for i in allcvsfilesr:
 	allcvsfiles += [i[:len(i)-1]]
 
-datafiles = all_entries_that_start_with(allcvsfiles, './data')
+datafiles = all_entries_that_start_with_and_not(allcvsfiles, './data', './data/xcf')
 
 Export('env', 'gfxlibs', 'alllibs', 'installbindir', 'installdatadir', 'datadir', 'datafiles', 'version', 'osspecificsrc')
 
@@ -182,16 +181,16 @@ BuildDir(target_dir, source_base_dir, duplicate=0)
 # tar building works only on linux
 if build_dir == 'linux':
 	basetarfilename = 'dangerdeep-' + version
-	os.system('rm -f ' + basetarfilename)
+	os.system('rm -rf ' + basetarfilename)
 	os.system('ln -s . ' + basetarfilename)
 	filestopack = []
 	for i in allcvsfiles:
-		if not(i.endswith('.xcf')):
+		if not(i.endswith('.xcf')) and not(i.startswith('./data/xcf')):
 			if not(i.startswith('.' + os.sep + 'build')):
 				filestopack += [basetarfilename + os.sep + i]
 	env.Append(TARFLAGS = '-zh')
 	env.Append(TARSUFFIX = '.gz')
-	tgz = env.Tar(basetarfilename, filestopack)
+	tgz = env.Tar(basetarfilename + '.tar.gz', filestopack)
 	env.Alias('tarball', tgz)
 
 #also env.Zip is possible...
