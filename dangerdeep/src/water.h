@@ -63,10 +63,9 @@ protected:
 	mutable vector<vector2f> uv0;
 
 	// testing: with fragment programs we need some sub-noise
-	vector<texture*> water_bumpmap;
+	vector<texture*> water_bumpmaps;
 
 #if 0		// old code, kept for reference, especially for foam
-	vector<texture*> water_bumpmaps;
 	// waves are stored in display lists to speed up drawing.
 	// this increases fps > 100% compared to vertex arrays / glDrawElements
 	// the display lists can take MUCH ram!

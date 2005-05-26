@@ -100,7 +100,7 @@
 
 water::water(unsigned xres_, unsigned yres_, double tm) :
 	mytime(tm), xres(xres_), yres(yres_), reflectiontex(0), foamtex(0), fresnelcolortex(0),
-	last_light_brightness(-10000), //water_bumpmap(0),
+	last_light_brightness(-10000),
 	vertex_program_supported(false),
 	fragment_program_supported(false),
 	compiled_vertex_arrays_supported(false),
@@ -287,7 +287,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 
 	}
 
-#if 0
+#if 1
 	perlinnoise_generator png;
 	png.add_noise_func(perlinnoise_generator::noise_func(3, 1, 256));
 	png.add_noise_func(perlinnoise_generator::noise_func(4, 1, 128));
@@ -295,10 +295,10 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	png.add_noise_func(perlinnoise_generator::noise_func(6, 1,  32));
 	png.add_noise_func(perlinnoise_generator::noise_func(6, 2,  16));
 	png.add_noise_func(perlinnoise_generator::noise_func(6, 4,   8));
-	water_bumpmap.resize(16/*WAVE_PHASES*/);
-	for (unsigned n = 0; n < water_bumpmap.size(); ++n) {
+	water_bumpmaps.resize(WAVE_PHASES);
+	for (unsigned n = 0; n < water_bumpmaps.size(); ++n) {
 		for (unsigned k = 0; k < 6; ++k)
-			png.set_phase(0, float(n)/water_bumpmap.size(), 0);
+			png.set_phase(0, float(n)/water_bumpmaps.size(), 0);
 
 //		perlinnoise pn = png.generate_map(8);
 #if 0
@@ -310,14 +310,13 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		osg.write((const char*)(&wbtmp2[0]), 256*256);
 #endif
 #if 1
-		vector<Uint8> wbtmp(WAVE_RESOLUTION*WAVE_RESOLUTION*3);
-		for (unsigned i = 0; i < WAVE_RESOLUTION*WAVE_RESOLUTION; ++i) {
-			wbtmp[3*i+0] = (wavetilenormals[n][i].x+1.0f)/2.0f*255;
-			wbtmp[3*i+1] = (wavetilenormals[n][i].y+1.0f)/2.0f*255;
-			wbtmp[3*i+2] = (wavetilenormals[n][i].z+1.0f)/2.0f*255;
-		}
-		water_bumpmap[n] = new texture(&wbtmp[0], WAVE_RESOLUTION, WAVE_RESOLUTION,
-					    GL_RGB, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT);
+		vector<Uint8> tmph(WAVE_RESOLUTION*WAVE_RESOLUTION);
+		float fac = 255.0f/(maxh-minh);
+		for (unsigned i = 0; i < WAVE_RESOLUTION*WAVE_RESOLUTION; ++i)
+			tmph[i] = Uint8(fac*(wavetileheights[n][i] - minh));
+		water_bumpmaps[n] = new texture(tmph, WAVE_RESOLUTION, WAVE_RESOLUTION,
+						GL_LUMINANCE, texture::LINEAR, texture::REPEAT,
+						true, 4.0f);
 #else
 		//fixme: mipmap levels of normal map should be computed
 		//by this class, not glu!
@@ -344,8 +343,8 @@ water::~water()
 	glDeleteTextures(1, &reflectiontex);
 	delete foamtex;
 	delete fresnelcolortex;
-	for (unsigned n = 0; n < water_bumpmap.size(); ++n)
-		delete water_bumpmap[n];
+	for (unsigned n = 0; n < water_bumpmaps.size(); ++n)
+		delete water_bumpmaps[n];
 }
 
 
@@ -355,8 +354,6 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 	glDisable(GL_LIGHTING);
 
 	if (use_shaders) {
-		// use fragment programs
-
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, water_fragment_program);
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
 		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, water_vertex_program);
@@ -365,14 +362,16 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 		// texture units / coordinates:
 		// tex0: noise map (color normals) / matching texcoords
 		// tex1: reflection map / matching texcoords
-		// tex2: --- / vector to viewer
+		// tex2: foam
+		// tex3: amount of foam
 		glActiveTexture(GL_TEXTURE0);
 		float bt = myfmod(mytime, 10.0) / 10.0f;// seconds, fixme
 		if (bt >= 0.5f) bt = 1.0f - bt;
 		bt *= 2.0f;
-#if 0
-		unsigned wb = unsigned(water_bumpmap.size()*bt);
-		water_bumpmap[wb]->set_gl_texture();
+#if 1
+		unsigned wb = unsigned(water_bumpmaps.size()*bt);
+		if (wb > water_bumpmaps.size()) wb = water_bumpmaps.size();
+		water_bumpmaps[wb]->set_gl_texture();
 #endif
 		// local parameters:
 		// local 0 : upwelling color
@@ -829,6 +828,8 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 
 	if (use_shaders) {
 		//fixme: uv0/uv1 is not needed here and thus needs not be resized/created.
+		//of course it is needed!!!
+		//give noisetexc as texc0 and tangentsx as texc1!!!! fixme compute them
 #if 0 // nothing to compute!!!! maybe texcoords for foam...
 		for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 			for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
