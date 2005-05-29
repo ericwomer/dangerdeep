@@ -98,8 +98,33 @@
 	5) draw water second pass (foam) (maybe some extra color..., fine foam lines texture ?)
 */	
 
+/*
+2005/05/30
+water rendering and shaders.
+it works but there are two major problems:
+1) faces that are nearly perpendicular to the viewer with normal mapping applied can have
+normals that are facing away from the viewer, which leads to larger unichrome surfaces,
+because of the saturation when computing E*N. Taking the absolute value of the E*N helps
+to avoid these surfaces but the result is also not satisfying.
+2) Much worse, either texture coordinate interpolation or texture value interpolation
+is not precise enough, leading to large steps from black to white when drawing specular
+highlight grey gradients. Lookup textures do not help, because POW is not the problem here.
+
+solution: no real one yet.
+
+Only way: do NOT use normal maps, but more faces. Higher face count leads to more CPU
+usage, which can be cut down with shaders, AGP bus load will be similar as without shaders,
+because the GPU can compute many values the CPU would have to compute without shaders.
+
+Seems to be the only way out... use perlin noise for additional detail and use 128x256 or more
+faces.
+AND more important: increase efficiency when drawing faces, at the moment it is about 50%,
+increasing that to 80% or more will improve rendering quality, no matter if shaders are used or
+not.
+*/
+
 water::water(unsigned xres_, unsigned yres_, double tm) :
-	mytime(tm), xres(xres_), yres(yres_), reflectiontex(0), foamtex(0), fresnelcolortex(0),
+	mytime(tm), xres(xres_), yres(yres_), reflectiontex(0),
 	last_light_brightness(-10000),
 	vertex_program_supported(false),
 	fragment_program_supported(false),
@@ -164,7 +189,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	uv1.resize((xres+1)*(yres+1));
 	normals.resize((xres+1)*(yres+1));
 
-	foamtex = new texture(get_texture_dir() + "foam.png", texture::LINEAR);//fixme maybe mipmap it
+	foamtex.reset(new texture(get_texture_dir() + "foam.png", texture::LINEAR));//fixme maybe mipmap it
 
 	fresnelcolortexd.resize(FRESNEL_FCT_RES*REFRAC_COLOR_RES*4);
 	for (unsigned f = 0; f < FRESNEL_FCT_RES; ++f) {
@@ -336,7 +361,23 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	}
 #endif
 
+/* used as test hack
+	for (unsigned i = 0; i < WAVE_PHASES; ++i)
+		for (unsigned j = 0; j < WAVE_RESOLUTION*WAVE_RESOLUTION; ++j)
+			wavetileheights[i][j] = 0;
+*/
+
 	add_loading_screen("water bumpmap data computed");
+
+	// compute specular lookup texture
+#if 0
+	const unsigned waterspecularlookup_res = 512;
+	vector<Uint8> waterspecularlookup_tmp(waterspecularlookup_res);
+	for (unsigned i = 0; i < waterspecularlookup_res; ++i)
+		waterspecularlookup_tmp[i] = Uint8(255*pow((double(i)/(waterspecularlookup_res-1)), 50)+0.5);
+	waterspecularlookup.reset(new texture(waterspecularlookup_tmp, waterspecularlookup_res, 1, GL_LUMINANCE,
+					      texture::LINEAR, texture::CLAMP_TO_EDGE));
+#endif
 }
 
 
@@ -348,8 +389,6 @@ water::~water()
 	}
 
 	glDeleteTextures(1, &reflectiontex);
-	delete foamtex;
-	delete fresnelcolortex;
 	for (unsigned n = 0; n < water_bumpmaps.size(); ++n)
 		delete water_bumpmaps[n];
 }
@@ -365,6 +404,11 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
 		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, water_vertex_program);
 		glEnable(GL_VERTEX_PROGRAM_ARB);
+
+#if 0
+		glActiveTexture(GL_TEXTURE2);
+		waterspecularlookup->set_gl_texture();
+#endif
 
 		// texture units / coordinates:
 		// tex0: noise map (color normals) / matching texcoords
@@ -1199,8 +1243,8 @@ void water::set_refraction_color(float light_brightness)
 			// update color only, leave fresnel term (alpha) intact
 		}
 	}
-	fresnelcolortex = new texture(fresnelcolortexd, FRESNEL_FCT_RES, REFRAC_COLOR_RES, GL_RGBA,
-				 texture::LINEAR/*_MIPMAP_LINEAR*/, texture::CLAMP_TO_EDGE);
+	fresnelcolortex.reset(new texture(fresnelcolortexd, FRESNEL_FCT_RES, REFRAC_COLOR_RES, GL_RGBA,
+					  texture::LINEAR/*_MIPMAP_LINEAR*/, texture::CLAMP_TO_EDGE));
 }
 
 

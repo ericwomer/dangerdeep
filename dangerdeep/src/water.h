@@ -10,12 +10,12 @@
 */
 
 #include <vector>
+#include <memory>
 using namespace std;
 #include "color.h"
 #include "angle.h"
 #include "vector3.h"
-
-class texture;
+#include "texture.h"
 
 class water
 {
@@ -49,8 +49,10 @@ protected:
 	
 	unsigned reflectiontexsize;
 	unsigned reflectiontex;//fixme better handle that with class texture
-	texture* foamtex;
-	texture* fresnelcolortex;	// texture for fresnel values and water color
+	auto_ptr<texture> foamtex;
+	auto_ptr<texture> fresnelcolortex;	// texture for fresnel values and water color
+
+	auto_ptr<texture> waterspecularlookup;	// lookup 1d texture map for water specular term
 
 	vector<Uint8> fresnelcolortexd;	// stored for updates of water color
 
