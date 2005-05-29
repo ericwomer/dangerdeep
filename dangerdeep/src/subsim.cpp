@@ -1174,7 +1174,8 @@ int mymain(list<string>& args)
 	mycfg.register_option("sound", true);
 	mycfg.register_option("water_res_x", 128);
 	mycfg.register_option("water_res_y", 128);
-	mycfg.register_option("use_shaders", false);
+	mycfg.register_option("use_shaders", true);
+	mycfg.register_option("use_shaders_for_water", false);
 	
 	mycfg.register_key(key_names[KEY_ZOOM_MAP].name, SDLK_PLUS, 0, 0, 0);
 	mycfg.register_key(key_names[KEY_UNZOOM_MAP].name, SDLK_MINUS, 0, 0, 0);

@@ -99,7 +99,7 @@ protected:
 	water& operator= (const water& other);
 	water(const water& other);
 
-	void setup_textures(const matrix4& reflection_projmvmat) const;
+	void setup_textures(const matrix4& reflection_projmvmat, const vector2f& transl) const;
 	void cleanup_textures(void) const;
 
 	vector3f compute_coord(int phase, const vector3f& xyzpos, const vector2f& transl) const;

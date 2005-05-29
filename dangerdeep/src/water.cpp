@@ -125,7 +125,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	compiled_vertex_arrays_supported = sys().extension_supported("GL_EXT_compiled_vertex_array");
 
 	use_shaders = vertex_program_supported && fragment_program_supported &&
-		cfg::instance().getb("use_shaders");
+		cfg::instance().getb("use_shaders") && cfg::instance().getb("use_shaders_for_water");
 
 	// initialize shaders if wanted
 	if (use_shaders) {
@@ -287,6 +287,8 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 
 	}
 
+	add_loading_screen("water height data computed");
+
 #if 1
 	perlinnoise_generator png;
 	png.add_noise_func(perlinnoise_generator::noise_func(3, 1, 256));
@@ -300,8 +302,9 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		for (unsigned k = 0; k < 6; ++k)
 			png.set_phase(0, float(n)/water_bumpmaps.size(), 0);
 
-//		perlinnoise pn = png.generate_map(8);
 #if 0
+		perlinnoise pn = png.generate_map(8);
+#if 1
 		vector<Uint8> wbtmp2 = pn.noisemap;
 		ostringstream osgname;
 		osgname << "noisemap" << n << ".pgm";
@@ -309,27 +312,31 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		osg << "P5\n256 256\n255\n";
 		osg.write((const char*)(&wbtmp2[0]), 256*256);
 #endif
-#if 1
+#endif
 		vector<Uint8> tmph(WAVE_RESOLUTION*WAVE_RESOLUTION);
 		float fac = 255.0f/(maxh-minh);
 		for (unsigned i = 0; i < WAVE_RESOLUTION*WAVE_RESOLUTION; ++i)
 			tmph[i] = Uint8(fac*(wavetileheights[n][i] - minh));
 		water_bumpmaps[n] = new texture(tmph, WAVE_RESOLUTION, WAVE_RESOLUTION,
-						GL_LUMINANCE, texture::LINEAR, texture::REPEAT,
-						true, 4.0f);
+						GL_LUMINANCE,
+#if 0
+						texture::LINEAR,
 #else
+						texture::LINEAR_MIPMAP_LINEAR,
+#endif
+						texture::REPEAT,
+						true, 4.0f);
 		//fixme: mipmap levels of normal map should be computed
 		//by this class, not glu!
 		//mipmap scaling of a normal map is not the same as the normal version
 		//of a mipmapped height map!
-		water_bumpmap[n] = texture::make_normal_map(&(pn.noisemap[0]), 256, 256,
-							    WATER_BUMP_DETAIL_HEIGHT,
-							    texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT);
-#endif
+		//really? the mipmapped normalmap values are not of unit length,
+		//but the direction should be kept, and they're normalized anyway.
+		//so mipmapping should do no harm...
 	}
 #endif
 
-	add_loading_screen("water height data computed");
+	add_loading_screen("water bumpmap data computed");
 }
 
 
@@ -348,7 +355,7 @@ water::~water()
 }
 
 
-void water::setup_textures(const matrix4& reflection_projmvmat) const
+void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& transl) const
 {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
@@ -365,6 +372,14 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 		// tex2: foam
 		// tex3: amount of foam
 		glActiveTexture(GL_TEXTURE0);
+
+		// set up texture matrix, so that texture coordinates can be computed from position.
+		glMatrixMode(GL_TEXTURE);
+		glLoadIdentity();
+		glScalef(1.0f/32,1.0f/32,1);	// fixme adjust scale
+		glTranslatef(transl.x, transl.y, 0);
+		glMatrixMode(GL_MODELVIEW);
+
 		float bt = myfmod(mytime, 10.0) / 10.0f;// seconds, fixme
 		if (bt >= 0.5f) bt = 1.0f - bt;
 		bt *= 2.0f;
@@ -373,6 +388,7 @@ void water::setup_textures(const matrix4& reflection_projmvmat) const
 		if (wb > water_bumpmaps.size()) wb = water_bumpmaps.size();
 		water_bumpmaps[wb]->set_gl_texture();
 #endif
+		
 		// local parameters:
 		// local 0 : upwelling color
 		glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 0,
@@ -830,11 +846,18 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 		//fixme: uv0/uv1 is not needed here and thus needs not be resized/created.
 		//of course it is needed!!!
 		//give noisetexc as texc0 and tangentsx as texc1!!!! fixme compute them
-#if 0 // nothing to compute!!!! maybe texcoords for foam...
 		for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
-			for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
+			for (unsigned xx = 0; xx < xres; ++xx, ++ptr) {
 				// the coordinate is the same as the relative coordinate, because the viewer is at 0,0,0
 				const vector3f& coord = coords[ptr];
+				const vector3f& coordnext = coords[ptr+1];
+
+				// approximation of tangentx. u,v coordinates are computed
+				// by position, and thus do not move with wave displacement,
+				// but tangentx does.
+				uv1[ptr] = coordnext - coord;
+
+#if 0
 				const vector3f& N = normals[ptr];
 				uv0[ptr] = vector2f(coord.x/8.0f, coord.y/8.0f); // fixme, use noise map texc's
 				//fixme ^, offset is missing
@@ -852,15 +875,24 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 				vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
 				texc.z -= VIRTUAL_PLANE_HEIGHT;
 				uv1[ptr] = texc;
-			}
-		}
 #endif
+			}
+			// set last tangentx to same value as predecessor
+			uv1[ptr] = uv1[ptr-1];
+			++ptr;
+		}
 		// enable coordinates and normals.
 		glDisableClientState(GL_COLOR_ARRAY);
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
+
+//		glClientActiveTexture(GL_TEXTURE0);
+//		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
 		glClientActiveTexture(GL_TEXTURE0);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv1[0].x);
+
 		glClientActiveTexture(GL_TEXTURE1);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		glEnableClientState(GL_NORMAL_ARRAY);
@@ -908,7 +940,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	}
 
 	// set up textures
-	setup_textures(reflection_projmvmat);
+	setup_textures(reflection_projmvmat, transl);
 
 	glColor4f(1,1,1,1);
 

@@ -44,7 +44,7 @@ public:
 		color specular;	// material specular color, used with and without texture mapping.
 		float shininess; // shininess (Halfangle dot Normal exponent)
 		auto_ptr<map> colormap;	// replaces diffuse color if not defined.
-		auto_ptr<map> bumpmap;	// should be of type RGB to work properly.
+		auto_ptr<map> normalmap;	// should be of type RGB to work properly.
 		auto_ptr<map> specularmap; // should be of type LUMINANCE to work properly.
 		
 		material(const std::string& nm = "Unnamed material");
@@ -124,8 +124,8 @@ protected:
 	static std::vector<GLuint> default_fragment_programs;
 
 	enum shader_programs {
-		VFP_COLOR_BUMP_SPECULAR,
-		VFP_COLOR_BUMP,
+		VFP_COLOR_NORMAL_SPECULAR,
+		VFP_COLOR_NORMAL,
 		NR_VFP,
 	}; // more variants later.
 

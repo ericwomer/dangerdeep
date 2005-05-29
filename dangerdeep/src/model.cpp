@@ -53,15 +53,15 @@ void model::render_init()
 		default_fragment_programs.resize(NR_VFP);
 		default_vertex_programs.resize(NR_VFP);
 		list<string> defines;
-		// fixme: create shaders for use with/without specularmap and/or bumpmap
-		default_fragment_programs[VFP_COLOR_BUMP] =
+		// fixme: create shaders for use with/without specularmap and/or normal map
+		default_fragment_programs[VFP_COLOR_NORMAL] =
 			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB, get_shader_dir() + "modelrender_fp.shader" , defines);
-		default_vertex_programs[VFP_COLOR_BUMP] =
+		default_vertex_programs[VFP_COLOR_NORMAL] =
 			texture::create_shader(GL_VERTEX_PROGRAM_ARB, get_shader_dir() + "modelrender_vp.shader" , defines);
 		defines.push_back("USE_SPECULARMAP");
-		default_fragment_programs[VFP_COLOR_BUMP_SPECULAR] =
+		default_fragment_programs[VFP_COLOR_NORMAL_SPECULAR] =
 			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB, get_shader_dir() + "modelrender_fp.shader" , defines);
-		default_vertex_programs[VFP_COLOR_BUMP_SPECULAR] =
+		default_vertex_programs[VFP_COLOR_NORMAL_SPECULAR] =
 			texture::create_shader(GL_VERTEX_PROGRAM_ARB, get_shader_dir() + "modelrender_vp.shader" , defines);
 		sys().add_console("Using OpenGL vertex and fragment programs...");
 	}
@@ -217,13 +217,13 @@ void model::mesh::compute_normals()
 		}
 	}
 	
-	// if we use bump mapping for this mesh, we need tangent values, too!
+	// if we use normal mapping for this mesh, we need tangent values, too!
 	// tangentsy get computed at runtime from normals and tangentsx
 	// tangentsx are computed that way:
 	// from each vertex we find a vector in positive u direction
 	// and project it onto the plane given by the normal -> tangentx
-	// because bump maps use stored texture coordinates (x = positive u!)
-	if (mymaterial && mymaterial->bumpmap.get() && mymaterial->bumpmap->mytexture.get()) {
+	// because normal maps use stored texture coordinates (x = positive u!)
+	if (mymaterial && mymaterial->normalmap.get() && mymaterial->normalmap->mytexture.get()) {
 		tangentsx.clear();
 		tangentsx.resize(vertices.size(), vector3f(0, 0, 1));
 		righthanded.clear();
@@ -311,7 +311,7 @@ model::mesh::~mesh()
 void model::mesh::compile()
 {
 	// check if display list can be compiled.
-	if (use_shaders || !(mymaterial && mymaterial->bumpmap.get())) {
+	if (use_shaders || !(mymaterial && mymaterial->normalmap.get())) {
 		if (display_list == 0) {
 			display_list = glGenLists(1);
 			sys().myassert(display_list != 0, "no more display list indices available");
@@ -522,15 +522,15 @@ model::material::material(const std::string& nm) : name(nm), shininess(50.0f)
 void model::material::init()
 {
 	if (colormap.get()) colormap->init(model::mapping);
-	//fixme: what is best mapping for bump maps?
+	//fixme: what is best mapping for normal maps?
 	// compute normalmap if not given
 	// fixme: segfaults when enabled. see texture.cpp
 	// fixme: without shaders it seems we need to multiply this with ~16 or even more.
 	// maybe because direction vectors are no longer normalized over faces...
 	// with shaders a value of 1.0 is enough.
 	// fixme: read value from model file... and multiply with this value...
-	float bumpmapheight = use_shaders ? 4.0f : 16.0f;
-	if (bumpmap.get()) bumpmap->init(texture::LINEAR/*_MIPMAP_LINEAR*/, true, bumpmapheight, true);
+	float normalmapheight = use_shaders ? 4.0f : 16.0f;
+	if (normalmap.get()) normalmap->init(texture::LINEAR/*_MIPMAP_LINEAR*/, true, normalmapheight, true);
 	if (specularmap.get()) specularmap->init(texture::LINEAR_MIPMAP_LINEAR, false, 0.0f, true);
 }
 
@@ -558,8 +558,8 @@ void model::material::set_gl_values() const
 
 	glActiveTexture(GL_TEXTURE0);
 	if (colormap.get() && colormap->mytexture.get()) {
-		if (bumpmap.get() && bumpmap->mytexture.get()) {
-			// no opengl lighting in bump map mode.
+		if (normalmap.get() && normalmap->mytexture.get()) {
+			// no opengl lighting in normal map mode.
 			glDisable(GL_LIGHTING);
 			// set primary color alpha to one.
 			glColor4f(1, 1, 1, 1);
@@ -580,19 +580,19 @@ void model::material::set_gl_values() const
 					glActiveTexture(GL_TEXTURE2);
 					glEnable(GL_TEXTURE_2D);
 					specularmap->mytexture->set_gl_texture();
-					glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_programs[VFP_COLOR_BUMP_SPECULAR]);
-					glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_programs[VFP_COLOR_BUMP_SPECULAR]);
+					glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_programs[VFP_COLOR_NORMAL_SPECULAR]);
+					glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_programs[VFP_COLOR_NORMAL_SPECULAR]);
 				} else {
-					glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_programs[VFP_COLOR_BUMP]);
-					glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_programs[VFP_COLOR_BUMP]);
+					glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_programs[VFP_COLOR_NORMAL]);
+					glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_programs[VFP_COLOR_NORMAL]);
 				}
 
 				glEnable(GL_VERTEX_PROGRAM_ARB);
 				glEnable(GL_FRAGMENT_PROGRAM_ARB);
 
 				glActiveTexture(GL_TEXTURE1);
-				bumpmap->setup_glmatrix();
-				bumpmap->mytexture->set_gl_texture();
+				normalmap->setup_glmatrix();
+				normalmap->mytexture->set_gl_texture();
 
 				glActiveTexture(GL_TEXTURE0);
 				glEnable(GL_TEXTURE_2D);
@@ -602,8 +602,8 @@ void model::material::set_gl_values() const
 			} else {
 				// standard OpenGL texturing with special tricks
 				glActiveTexture(GL_TEXTURE0);
-				bumpmap->setup_glmatrix();
-				bumpmap->mytexture->set_gl_texture();
+				normalmap->setup_glmatrix();
+				normalmap->mytexture->set_gl_texture();
 				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 				glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGBA); 
 				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
@@ -620,8 +620,8 @@ void model::material::set_gl_values() const
 				glGetLightfv(GL_LIGHT0, GL_AMBIENT, &lambcol.x);
 				ldifcol.w = lambcol.y;	// use ambient's y/green value as brightness value.
 
-				// bump map function with ambient:
-				// light_color * color * (bump_brightness * (1-ambient) + ambient)
+				// normal map function with ambient:
+				// light_color * color * (normal_brightness * (1-ambient) + ambient)
 				glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, &ldifcol.x);
 				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 				glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
@@ -649,7 +649,7 @@ void model::material::set_gl_values() const
 			// fixme: stupid! we would need tangentsx/y too etc.
 			// better use another shader for this case.
 			// we can give a white texture as specular map or use a shader without specmap reading etc.
-			// same for texmap. Only shader with or without bumpmap is much different!
+			// same for texmap. Only shader with or without normalmap is much different!
 			glColor4f(1, 1, 1, 1);
 			glActiveTexture(GL_TEXTURE0);
 			colormap->mytexture->set_gl_texture();
@@ -681,17 +681,17 @@ void model::mesh::display(bool use_display_list) const
 		return;
 	}
 
-	// colors may be needed for bump mapping.
+	// colors may be needed for normal mapping.
 	vector<Uint8> colors;
 
 	bool has_texture_u0 = false, has_texture_u1 = false;
-	bool bumpmapping = false;
+	bool normalmapping = false;
 	if (mymaterial != 0) {
 		if (mymaterial->colormap.get() && mymaterial->colormap->mytexture.get())
 			has_texture_u0 = true;
-		if (mymaterial->bumpmap.get() && mymaterial->bumpmap->mytexture.get())
+		if (mymaterial->normalmap.get() && mymaterial->normalmap->mytexture.get())
 			has_texture_u1 = true;
-		bumpmapping = has_texture_u1;	// maybe more options here...
+		normalmapping = has_texture_u1;	// maybe more options here...
 		mymaterial->set_gl_values();
 	} else {
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -701,8 +701,8 @@ void model::mesh::display(bool use_display_list) const
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	// fixme: with non-fragment-program bump mapping, we don't need normals!
-	if (!bumpmapping || use_shaders) {
+	// fixme: with non-fragment-program normal mapping, we don't need normals!
+	if (!normalmapping || use_shaders) {
 		glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0]);	
 		glEnableClientState(GL_NORMAL_ARRAY);
 	}
@@ -743,8 +743,8 @@ void model::mesh::display(bool use_display_list) const
 			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		}
 
-		//with bump mapping, we need colors.
-		if (bumpmapping) {
+		//with normal mapping, we need colors.
+		if (normalmapping) {
 			vector4f lightpos_abs;
 			glGetLightfv(GL_LIGHT0, GL_POSITION, &lightpos_abs.x);
 			//lightpos_abs = vector4f(200,0,-117,0);//test hack
@@ -972,8 +972,8 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 		if (m->colormap.get()) {
 			m->colormap->write_to_dftd_model_file(mat, "diffuse");
 		}
-		if (m->bumpmap.get()) {
-			m->bumpmap->write_to_dftd_model_file(mat, "normal");
+		if (m->normalmap.get()) {
+			m->normalmap->write_to_dftd_model_file(mat, "normal");
 		}
 		if (m->specularmap.get()) {
 			m->specularmap->write_to_dftd_model_file(mat, "specular", false);
@@ -1381,9 +1381,9 @@ void model::m3ds_process_material_chunks(istream& in, m3ds_chunk& parent)
 				}
 				break;
 			case M3DS_MATMAPBUMP:
-				if (!m->bumpmap.get()) {
-					m->bumpmap.reset(new material::map());
-					m3ds_process_materialmap_chunks(in, ch, m->bumpmap.get());
+				if (!m->normalmap.get()) {
+					m->normalmap.reset(new material::map());
+					m3ds_process_materialmap_chunks(in, ch, m->normalmap.get());
 				}
 				break;
 //			default: cout << "skipped chunk with id " << (void*)ch.id << "\n";
@@ -1617,7 +1617,7 @@ void model::read_dftd_model_file(const std::string& filename)
 				if (type == "diffuse") {
 					mat->colormap.reset(new material::map(emap));
 				} else if (type == "normal") {
-					mat->bumpmap.reset(new material::map(emap));
+					mat->normalmap.reset(new material::map(emap));
 				} else if (type == "specular") {
 					mat->specularmap.reset(new material::map(emap, false));
 				} else {

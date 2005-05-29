@@ -270,7 +270,7 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		if (do_mipmapping[mapping]) {
 #if 1
 			gluBuild2DMipmaps(GL_TEXTURE_2D, format, gl_width, gl_height,
-					  format, GL_UNSIGNED_BYTE, &((*pdata)[0]));
+					  format, GL_UNSIGNED_BYTE, &nmpix[0]);
 
 #else
 			// buggy version. gives white textures. maybe some mipmap levels

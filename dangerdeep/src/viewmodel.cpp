@@ -68,7 +68,7 @@ void view_model(const string& modelfilename)
 	model::material* mat = new model::material();
 	mat->specular = color::white();
 	mat->colormap.reset(dmap);
-	mat->bumpmap.reset(bmap);
+	mat->normalmap.reset(bmap);
 	mdl->add_material(mat);
 	model::mesh* msh = make_mesh::cube(3*sc, 3*sc, 3*sc, 1.0f, 1.0f, false);
 

@@ -1,3 +1,11 @@
+2005-05-29  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* water.cpp/.h
+	  - water shaders now work more or less
+	* texture.cpp
+	  - bugfix for normal map creation and mipmapping enabled
+	* water_vp.shader water_fp.shader
+	  - water shaders work, but results are not satisfying
+
 2005-05-21  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* model.cpp/h
 	  - fixed shaders. Now specular per-pixel lighting works.
