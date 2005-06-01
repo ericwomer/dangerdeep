@@ -21,7 +21,7 @@
 #include <fstream>
 
 // compute projected grid efficiency, it should be 50-95%
-//#define COMPUTE_EFFICIENCY
+#define COMPUTE_EFFICIENCY
 #define WAVE_SUB_DETAIL		// sub fft detail
 
 // for testing
@@ -607,16 +607,160 @@ vector3f water::compute_coord(int phase, const vector3f& xyzpos, const vector2f&
 }
 
 
+
+static vector<unsigned> convex_hull(const vector<vector2>& pts)
+{
+	// find one point that is on hull, that with smallest x
+	unsigned lastidx = 0;
+	float xmin = pts[0].x;
+	for (unsigned i = 1; i < pts.size(); ++i) {
+		if (pts[i].x < xmin) {
+			xmin = pts[i].x;
+			lastidx = i;
+		}
+	}
+	vector<unsigned> result;
+	result.push_back(lastidx);
+
+	// now find successor until hull is closed
+	while (true) {
+		unsigned nextidx = lastidx;
+		vector2 base = pts[lastidx];
+		// check for all other points if a line to them is on the hull
+		for (unsigned i = 0; i < pts.size(); ++i) {
+			if (i == lastidx) continue;
+			vector2 delta = pts[i] - base;
+			// now check if all other points are left of base+t*delta
+			bool allleft = true;
+			for (unsigned j = 0; j < pts.size(); ++j) {
+				if (j == i || j == lastidx) continue;
+				vector2 pb = pts[j] - base;
+				if (pb.y * delta.x < pb.x * delta.y) {
+					// point is right of line, abort
+					allleft = false;
+					break;
+				}
+			}
+			if (allleft) {
+				nextidx = i;
+				break;
+			}
+		}
+		sys().myassert(nextidx != lastidx, "no successor found for convex hull point");
+
+		if (nextidx == result.front())
+			break;
+		result.push_back(nextidx);
+		lastidx = nextidx;
+	}
+
+	return result;
+}
+
+
+
+vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
+{
+	vector<vector2> trapezoid(4);
+	double trapezoid_area = 1e30;
+	bool trapset = false;
+	// try all hull edges as trapezoid base
+	for (unsigned i = 0; i < hull.size(); ++i) {
+		cout << "trying trapezoid " << i << "\n";
+		vector2 base = hull[i];
+		vector2 delta = hull[(i+1) % hull.size()] - base;
+		double baselength = delta.length();
+		cout << "base " << base << " delta " << delta << " baselength " << baselength << "\n";
+		delta = delta * (1.0/baselength);
+		vector2 deltaorth = delta.orthogonal();
+		// now base + t*delta is base line. compute height of trapez.
+		double height = 0;
+		unsigned idxtop = 0;
+		for (unsigned j = 2; j < hull.size(); ++j) {
+			vector2 pb = hull[(i+j) % hull.size()] - base;
+			double h = pb * deltaorth;
+			sys().myassert(h >= 0, "paranoia chull");
+			if (h > height) {
+				height = h;
+				idxtop = j;
+			}
+		}
+		vector2 deltainvx(delta.x, -delta.y);
+		vector2 deltainvy(delta.y,  delta.x);
+		cout << "height of trapez is " << height << "\n";
+		// now find left+right edge so that area is minimal
+		// try out all hull lines as edges, one of them is the solution (proofed).
+		// compute line through hull line and the crossing with the baseline and topline,
+		// that gives coordinates a,b (on base/top line). the solution line is that with
+		// a+b mimimal. left solution can be lines with delta.y < 0, right: delta.y > 0
+		double maxa = -1e30, maxb = -1e30, mina = 1e30, minb = 1e30;
+		bool maxset = false, minset = false;
+		for (unsigned j = 1; j < hull.size(); ++j) {
+			vector2 p0 = hull[(i+j) % hull.size()] - base;
+			vector2 p1 = hull[(i+j+1) % hull.size()] - base;
+			vector2 df = p1 - p0;
+			p0 = p0.matrixmul(deltainvx, deltainvy);
+			df = df.matrixmul(deltainvx, deltainvy);
+			if (fabs(df.y) < 0.001)	// avoid lines nearly parallel to baseline
+				continue;
+			cout << "p0 : " << p0 << " df: " << df << "\n";
+			//manchmal ist das negativ, also falsch...
+			double a = p0.x - p0.y * df.x / df.y;
+			double b = p0.x + (height - p0.y) * df.x / df.y;
+			cout << "tried line " << j << " a " << a << " b " << b << "\n";
+			if (df.y > 0) {
+				// line is on right border of trapezoid
+				if (a+b < mina+minb) {
+					mina = a;
+					minb = b;
+					minset = true;
+				}
+			} else {
+				// line is on left border of trapezoid
+				if (a+b > maxa+maxb) {
+					maxa = a;
+					maxb = b;
+					maxset = true;
+				}
+			}
+		}
+		sys().myassert(maxset && minset, "ERROR!!!! no min/max found in find trapez");
+		cout << "mina " << mina << " minb " << minb << " maxa " << maxa << " maxb " << maxb << "\n";
+		double a2 = mina - maxa, b2 = minb - maxb;
+		double area = (a2+b2)*height/2;
+		cout << "trapez area: " << area << "\n";
+		if (area < trapezoid_area) {
+			trapezoid_area = area;
+			trapezoid[0] = base + delta * maxa;
+			trapezoid[1] = base + delta * mina;
+			trapezoid[2] = base + delta * minb + deltaorth * height;
+			trapezoid[3] = base + delta * maxb + deltaorth * height;
+			trapset = true;
+		}
+	}
+	cout << "MINIMAL trapez, area " << trapezoid_area << "\n";
+	cout << trapezoid[0] << " | " << trapezoid[1] << " | " << trapezoid[2] << " | " << trapezoid[3] << "\n";
+	sys().myassert(trapset, "no trapez found?!");
+	return trapezoid;
+}
+
+
+
 void water::display(const vector3& viewpos, angle dir, double max_view_dist, const matrix4& reflection_projmvmat) const
 {
 	int phase = int((myfmod(mytime, TIDECYCLE_TIME)/TIDECYCLE_TIME) * WAVE_PHASES);
 	const float VIRTUAL_PLANE_HEIGHT = 25.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok, maybe a bit too much
 
 	// maximum height of waves (half amplitude)
-	double WAVE_HEIGHT = (maxh > fabs(minh)) ? maxh : fabs(minh);
+	const double WAVE_HEIGHT = (maxh > fabs(minh)) ? maxh : fabs(minh);
 
-	// fixme: always add elevation to projector.z?
-	const double ELEVATION = 10.0; // fixme experiment
+	cout << "Wave height is: " << WAVE_HEIGHT << "\n";
+
+	// fixme: theory: keep the projector above some minimum z value, that is higher than WAVE_HEIGHT
+	// that will help keeping some of the detail in the distance and avoids drawing to much near waves.
+	// together with a trapezoidical form of the projection, efficiency should be good...
+	// this value plus WAVE_HEIGHT is the minimum height.
+	const double ELEVATION = 50.0; // fixme experiment, try 1...30
 
 	// fixme: displacements must be used to enlarge projector area or else holes will be visible at the border
 	// of the screen (left and right), especially on glasses mode
@@ -699,7 +843,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	aimpoint2 = camerapos + 10.0 * cameraforward;
 	aimpoint2.z = 0.0;
 	
-	// fade between points depending on angle
+	// fade between points depending on angle (fixme: why is this done?!)
 	double af = fabs(cameraforward.z);
 	projectorforward = (aimpoint * af + aimpoint2 * (1.0-af)) - projectorpos;
 
@@ -731,9 +875,9 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	// compute min-max values and range matrix
 	// fixme: the efficiency is mostly around 50%. We could increase it dramatically if
 	// we don't take a bounding rectangle around the projected points, but some other
-	// shape. Mostly the points form a trapez, and mostly the number of points is six.
+	// shape. Mostly the points form a trapezoid, and mostly the number of points is six.
 	// Best solution: shape with exactly four points and minimum area surrounding all
-	// points (convex hull with four points). Or compute the trapez.
+	// points (convex hull with four points). Or compute the trapezoid.
 	// Compute a shape so that we can transform a rectangle with a 4x4 matrix to the shape.
 	// This gives nearly 100% efficiency, which should improve detail a lot (especially in
 	// zoomscope/glasses view). We don't really need mrange but could generate any quadri-
@@ -744,18 +888,47 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	// drawing half of the triangles gives 33% more performanc, so 25% of performance
 	// is currently wasted!
 	matrix4 rangeprojector2world;
+	vector<vector2> trapezoid;
 	if (proj_points.size() > 0) {
+		// find convex hull of points.
+		//   collect unique points
+		vector<vector2> proj_points_2d;
+		for (unsigned i = 0; i < proj_points.size(); ++i) {
+			bool insert = true;
+			for (unsigned j = 0; j < proj_points_2d.size(); ++j) {
+				if (proj_points[i].xy().square_distance(proj_points_2d[j]) < 0.0001) {
+					insert = false;
+					break;
+				}
+			}
+			if (insert) proj_points_2d.push_back(proj_points[i].xy());
+		}
+		//   compute hull
+		vector<unsigned> idx = convex_hull(proj_points_2d);
+		vector<vector2> chull(idx.size());
+		cout << "convex hull:\n";
+		for (unsigned i = 0; i < idx.size(); ++i) {
+			chull[i] = proj_points_2d[idx[i]];
+			cout << i << ": " << proj_points_2d[idx[i]] << "\n";
+		}
+		for (unsigned i = 0; i < proj_points.size(); ++i)
+			cout << "pp: " << proj_points[i] << "\n";
+		// find smallest trapezoid surrounding the hull (try with all hull lines as base)
+		//   trapezoid area = (a+b)*h/2
+		trapezoid = find_smallest_trapezoid(chull);
+
 		double x_min = proj_points[0].x, x_max = proj_points[0].x, y_min = proj_points[0].y, y_max = proj_points[0].y;
-//cout << "pts0.xy " << x_min << ", " << y_min << "\n";
+cout << "pts0.xy " << x_min << ", " << y_min << "\n";
 		for (vector<vector3>::iterator it = ++proj_points.begin(); it != proj_points.end(); ++it) {
-//cout << "ptsi.xy " << it->x << ", " << it->y << "\n";
+cout << "ptsi.xy " << it->x << ", " << it->y << "\n";
 			if (it->x < x_min) x_min = it->x;
 			if (it->x > x_max) x_max = it->x;
 			if (it->y < y_min) y_min = it->y;
 			if (it->y > y_max) y_max = it->y;
 		}
 		matrix4 mrange(x_max-x_min, 0, 0, x_min, 0, y_max-y_min, 0, y_min, 0, 0, 1, 0, 0, 0, 0, 1);
-//cout << "x_min " << x_min << " x_max " << x_max << " y_min " << y_min << " y_max " << y_max << "\n";
+cout << "x_min " << x_min << " x_max " << x_max << " y_min " << y_min << " y_max " << y_max << "\n";
+ cout << "area with x/y minmax: " << (x_max-x_min)*(y_max-y_min) << "\n";
 		rangeprojector2world = projector2world * mrange;
 	} // else return;
 
@@ -797,6 +970,16 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	// with 50% time save (3ms) fps would go from 51 to 60.
 	// earth curvature could be simulated by darkening the texture in distance (darker = lower!)
 
+	// test hack, fixme, take upsidedown trapez (0,1,2,3 -> 2,3,0,1), hilft aber nix beim projectionsproblem...
+/*
+	vector2 tmp = trapezoid[0];
+	trapezoid[0] = trapezoid[2];
+	trapezoid[2] = tmp;
+	tmp = trapezoid[1];
+	trapezoid[1] = trapezoid[3];
+	trapezoid[3] = tmp;
+*/
+
 #ifdef COMPUTE_EFFICIENCY
 	int vertices = 0, vertices_inside = 0;
 #endif	
@@ -804,10 +987,25 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		double y = double(yy)/yres;
 		// vertices for start and end of two lines are computed and projected
+#if 0
+		// old projection
 		vector3 v1 = rangeprojector2world * vector3(0,y,-1);
 		vector3 v2 = rangeprojector2world * vector3(0,y,+1);
 		vector3 v3 = rangeprojector2world * vector3(1,y,-1);
 		vector3 v4 = rangeprojector2world * vector3(1,y,+1);
+#else
+		// new projection
+		//fixme: richtung des trapezoids sollte mit y-richtung übereinstimmen
+		//also projectorproj. ist so daß bei kleinen y-werten viel detail ist.
+		//wenn trapez aber auf dem kopf steht, dann geht das schief
+		//auch problematisch, wenn trapez rotiert ist...
+		vector2 trapleft  = trapezoid[3] * y + trapezoid[0] * (1.0 - y);
+		vector2 trapright = trapezoid[2] * y + trapezoid[1] * (1.0 - y);
+		vector3 v1 = projector2world *  trapleft.xyz(-1);
+		vector3 v2 = projector2world *  trapleft.xyz(+1);
+		vector3 v3 = projector2world * trapright.xyz(-1);
+		vector3 v4 = projector2world * trapright.xyz(+1);
+#endif
 		// compute intersection with z = 0 plane here
 		// we could compute intersection with earth's sphere here for a curved display
 		// of water to the horizon, fixme
