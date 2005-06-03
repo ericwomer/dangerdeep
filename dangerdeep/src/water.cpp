@@ -259,7 +259,11 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		// choppy factor: formula from "waterengine": 0.5*WX/N = 0.5*wavelength/waveres, here = 1.0
 		// fixme 5.0 default? - it seems that choppy waves don't look right. bug? fixme, with negative values it seems right. check this!
 		// -2.0f also looks nice, -5.0f is too much. -1.0f should be ok
+#if 0
 		wavetiledisplacements[i] = owg.compute_displacements(-2.0f);
+#else
+		wavetiledisplacements[i].resize(wavetileheights[i].size());
+#endif
 
 #if 1	// use finite normals
 		// we need the normals to compute ship rolling
@@ -666,11 +670,11 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 	bool trapset = false;
 	// try all hull edges as trapezoid base
 	for (unsigned i = 0; i < hull.size(); ++i) {
-		cout << "trying trapezoid " << i << "\n";
+//		cout << "trying trapezoid " << i << "\n";
 		vector2 base = hull[i];
 		vector2 delta = hull[(i+1) % hull.size()] - base;
 		double baselength = delta.length();
-		cout << "base " << base << " delta " << delta << " baselength " << baselength << "\n";
+//		cout << "base " << base << " delta " << delta << " baselength " << baselength << "\n";
 		delta = delta * (1.0/baselength);
 		vector2 deltaorth = delta.orthogonal();
 		// now base + t*delta is base line. compute height of trapez.
@@ -687,7 +691,7 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 		}
 		vector2 deltainvx(delta.x, -delta.y);
 		vector2 deltainvy(delta.y,  delta.x);
-		cout << "height of trapez is " << height << "\n";
+//		cout << "height of trapez is " << height << "\n";
 		// now find left+right edge so that area is minimal
 		// try out all hull lines as edges, one of them is the solution (proofed).
 		// compute line through hull line and the crossing with the baseline and topline,
@@ -703,11 +707,11 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 			df = df.matrixmul(deltainvx, deltainvy);
 			if (fabs(df.y) < 0.001)	// avoid lines nearly parallel to baseline
 				continue;
-			cout << "p0 : " << p0 << " df: " << df << "\n";
+//			cout << "p0 : " << p0 << " df: " << df << "\n";
 			//manchmal ist das negativ, also falsch...
 			double a = p0.x - p0.y * df.x / df.y;
 			double b = p0.x + (height - p0.y) * df.x / df.y;
-			cout << "tried line " << j << " a " << a << " b " << b << "\n";
+//			cout << "tried line " << j << " a " << a << " b " << b << "\n";
 			if (df.y > 0) {
 				// line is on right border of trapezoid
 				if (a+b < mina+minb) {
@@ -725,10 +729,10 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 			}
 		}
 		sys().myassert(maxset && minset, "ERROR!!!! no min/max found in find trapez");
-		cout << "mina " << mina << " minb " << minb << " maxa " << maxa << " maxb " << maxb << "\n";
+//		cout << "mina " << mina << " minb " << minb << " maxa " << maxa << " maxb " << maxb << "\n";
 		double a2 = mina - maxa, b2 = minb - maxb;
 		double area = (a2+b2)*height/2;
-		cout << "trapez area: " << area << "\n";
+//		cout << "trapez area: " << area << "\n";
 		if (area < trapezoid_area) {
 			trapezoid_area = area;
 			trapezoid[0] = base + delta * maxa;
@@ -738,8 +742,8 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 			trapset = true;
 		}
 	}
-	cout << "MINIMAL trapez, area " << trapezoid_area << "\n";
-	cout << trapezoid[0] << " | " << trapezoid[1] << " | " << trapezoid[2] << " | " << trapezoid[3] << "\n";
+//	cout << "MINIMAL trapez, area " << trapezoid_area << "\n";
+//	cout << trapezoid[0] << " | " << trapezoid[1] << " | " << trapezoid[2] << " | " << trapezoid[3] << "\n";
 	sys().myassert(trapset, "no trapez found?!");
 	return trapezoid;
 }
@@ -754,7 +758,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	// maximum height of waves (half amplitude)
 	const double WAVE_HEIGHT = (maxh > fabs(minh)) ? maxh : fabs(minh);
 
-	cout << "Wave height is: " << WAVE_HEIGHT << "\n";
+//	cout << "Wave height is: " << WAVE_HEIGHT << "\n";
 
 	// fixme: theory: keep the projector above some minimum z value, that is higher than WAVE_HEIGHT
 	// that will help keeping some of the detail in the distance and avoids drawing to much near waves.
@@ -906,29 +910,29 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 		//   compute hull
 		vector<unsigned> idx = convex_hull(proj_points_2d);
 		vector<vector2> chull(idx.size());
-		cout << "convex hull:\n";
+//		cout << "convex hull:\n";
 		for (unsigned i = 0; i < idx.size(); ++i) {
 			chull[i] = proj_points_2d[idx[i]];
-			cout << i << ": " << proj_points_2d[idx[i]] << "\n";
+//			cout << i << ": " << proj_points_2d[idx[i]] << "\n";
 		}
-		for (unsigned i = 0; i < proj_points.size(); ++i)
-			cout << "pp: " << proj_points[i] << "\n";
+//		for (unsigned i = 0; i < proj_points.size(); ++i)
+//			cout << "pp: " << proj_points[i] << "\n";
 		// find smallest trapezoid surrounding the hull (try with all hull lines as base)
 		//   trapezoid area = (a+b)*h/2
 		trapezoid = find_smallest_trapezoid(chull);
 
 		double x_min = proj_points[0].x, x_max = proj_points[0].x, y_min = proj_points[0].y, y_max = proj_points[0].y;
-cout << "pts0.xy " << x_min << ", " << y_min << "\n";
+//cout << "pts0.xy " << x_min << ", " << y_min << "\n";
 		for (vector<vector3>::iterator it = ++proj_points.begin(); it != proj_points.end(); ++it) {
-cout << "ptsi.xy " << it->x << ", " << it->y << "\n";
+//cout << "ptsi.xy " << it->x << ", " << it->y << "\n";
 			if (it->x < x_min) x_min = it->x;
 			if (it->x > x_max) x_max = it->x;
 			if (it->y < y_min) y_min = it->y;
 			if (it->y > y_max) y_max = it->y;
 		}
 		matrix4 mrange(x_max-x_min, 0, 0, x_min, 0, y_max-y_min, 0, y_min, 0, 0, 1, 0, 0, 0, 0, 1);
-cout << "x_min " << x_min << " x_max " << x_max << " y_min " << y_min << " y_max " << y_max << "\n";
- cout << "area with x/y minmax: " << (x_max-x_min)*(y_max-y_min) << "\n";
+//cout << "x_min " << x_min << " x_max " << x_max << " y_min " << y_min << " y_max " << y_max << "\n";
+// cout << "area with x/y minmax: " << (x_max-x_min)*(y_max-y_min) << "\n";
 		rangeprojector2world = projector2world * mrange;
 	} // else return;
 
@@ -970,16 +974,6 @@ cout << "x_min " << x_min << " x_max " << x_max << " y_min " << y_min << " y_max
 	// with 50% time save (3ms) fps would go from 51 to 60.
 	// earth curvature could be simulated by darkening the texture in distance (darker = lower!)
 
-	// test hack, fixme, take upsidedown trapez (0,1,2,3 -> 2,3,0,1), hilft aber nix beim projectionsproblem...
-/*
-	vector2 tmp = trapezoid[0];
-	trapezoid[0] = trapezoid[2];
-	trapezoid[2] = tmp;
-	tmp = trapezoid[1];
-	trapezoid[1] = trapezoid[3];
-	trapezoid[3] = tmp;
-*/
-
 #ifdef COMPUTE_EFFICIENCY
 	int vertices = 0, vertices_inside = 0;
 #endif	
@@ -995,10 +989,6 @@ cout << "x_min " << x_min << " x_max " << x_max << " y_min " << y_min << " y_max
 		vector3 v4 = rangeprojector2world * vector3(1,y,+1);
 #else
 		// new projection
-		//fixme: richtung des trapezoids sollte mit y-richtung übereinstimmen
-		//also projectorproj. ist so daß bei kleinen y-werten viel detail ist.
-		//wenn trapez aber auf dem kopf steht, dann geht das schief
-		//auch problematisch, wenn trapez rotiert ist...
 		vector2 trapleft  = trapezoid[3] * y + trapezoid[0] * (1.0 - y);
 		vector2 trapright = trapezoid[2] * y + trapezoid[1] * (1.0 - y);
 		vector3 v1 = projector2world *  trapleft.xyz(-1);
