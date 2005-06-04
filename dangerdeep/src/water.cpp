@@ -893,7 +893,11 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	// is currently wasted!
 	matrix4 rangeprojector2world;
 	vector<vector2> trapezoid;
-	if (proj_points.size() > 0) {
+	if (proj_points.size() == 0) {
+		// nothing to draw.
+		glPopMatrix();
+		return;
+	} else {
 		// find convex hull of points.
 		//   collect unique points
 		vector<vector2> proj_points_2d;
