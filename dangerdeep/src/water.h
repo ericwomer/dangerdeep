@@ -36,7 +36,6 @@ protected:
 	// 256*64*64*(6*4)*4/3 = 1M*24*4/3 = 32M
 	vector<vector<vector2f> > wavetiledisplacements;
 	vector<vector<float> > wavetileheights;	//fixme store heights as uint8 (resolution is high enough, 75% space save)
-	vector<vector<vector3f> > wavetilenormals;//fixme not neeeded with dynamic normals (which are always on with projgrid water...)
 
 	vector<unsigned> gridindices;
 	vector<unsigned> gridindices2;//only used for test grid drawing, could be ifdef'ed away
@@ -105,6 +104,7 @@ protected:
 	void cleanup_textures(void) const;
 
 	vector3f compute_coord(int phase, const vector3f& xyzpos, const vector2f& transl) const;
+	vector3f get_wave_normal_at(unsigned wavephase, unsigned x, unsigned y) const;
 
 public:
 	water(unsigned xres_, unsigned yres_, double tm = 0.0);	// give day time in seconds

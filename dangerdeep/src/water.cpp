@@ -140,7 +140,6 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 {
 	wavetiledisplacements.resize(WAVE_PHASES);
 	wavetileheights.resize(WAVE_PHASES);
-	wavetilenormals.resize(WAVE_PHASES);
 
 	glGenTextures(1, &reflectiontex);
 	glBindTexture(GL_TEXTURE_2D, reflectiontex);
@@ -235,6 +234,8 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	}
 #endif
 
+	add_loading_screen("water maps inited");
+
 	/*
 	  Idea:
 	  Computing one Height map with FFT takes roughly 2 ms on a 1800Mhz PC (64x64).
@@ -255,6 +256,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	minh = 1e10;
 	maxh = -1e10;
 	for (unsigned i = 0; i < WAVE_PHASES; ++i) {
+		// this eats also 500ms/1600ms
 		owg.set_time(i*TIDECYCLE_TIME/WAVE_PHASES);
 		wavetileheights[i] = owg.compute_heights();
 		for (vector<float>::const_iterator it = wavetileheights[i].begin(); it != wavetileheights[i].end(); ++it) {
@@ -264,61 +266,12 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		// choppy factor: formula from "waterengine": 0.5*WX/N = 0.5*wavelength/waveres, here = 1.0
 		// fixme 5.0 default? - it seems that choppy waves don't look right. bug? fixme, with negative values it seems right. check this!
 		// -2.0f also looks nice, -5.0f is too much. -1.0f should be ok
-#if 0
+#if 1
+		// this takes ~ 500/1600ms init time.
 		wavetiledisplacements[i] = owg.compute_displacements(-2.0f);
 #else
 		wavetiledisplacements[i].resize(wavetileheights[i].size());
 #endif
-
-#if 1	// use finite normals
-		// we need the normals to compute ship rolling
-		wavetilenormals[i] = owg.compute_finite_normals(wavetileheights[i]);
-		
-#else	// use fft normals
-#if 0		// compare both
-		vector<vector3f> n2 = owg.compute_normals();
-#else
-		wavetilenormals[i] = owg.compute_normals();
-#endif
-#endif
-
-#if 0		// draw finite and fft normals to compare them, just a test
-/*
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, 0);
-*/		
-		glColor3f(1,0,0);
-		glBegin(GL_LINES);
-		fy = 0;
-		for (unsigned y = 0; y < tile_res; ++y) {
-			float fx = 0;
-			for (unsigned x = 0; x < tile_res; ++x) {
-				glVertex3f(fx*WAVE_LENGTH, fy*WAVE_LENGTH, wavetileh[i][y*tile_res+x]);
-				glVertex3f(fx*WAVE_LENGTH+4*wavetilen[i][y*tile_res+x].x, fy*WAVE_LENGTH+4*wavetilen[i][y*tile_res+x].y, wavetileh[i][y*tile_res+x]+4*wavetilen[i][y*tile_res+x].z);
-				fx += add;
-			}
-			fy += add;
-		}
-		glEnd();
-#endif
-#if 0
-		glColor3f(0,1,0);
-		glBegin(GL_LINES);
-		fy = 0;
-		for (unsigned y = 0; y < tile_res; ++y) {
-			float fx = 0;
-			for (unsigned x = 0; x < tile_res; ++x) {
-				glVertex3f(fx*WAVE_LENGTH, fy*WAVE_LENGTH, wavetileh[i][y*tile_res+x]);
-				glVertex3f(fx*WAVE_LENGTH+4*n2[y*tile_res+x].x, fy*WAVE_LENGTH+4*n2[y*tile_res+x].y, wavetileh[i][y*tile_res+x]+4*n2[y*tile_res+x].z);
-				fx += add;
-			}
-			fy += add;
-		}
-		glEnd();
-#endif
-
 	}
 
 	add_loading_screen("water height data computed");
@@ -1342,7 +1295,22 @@ float water::get_height(const vector2& pos) const
 
 
 
-vector3f water::get_normal(const vector2& pos, double f) const
+vector3f water::get_wave_normal_at(unsigned wavephase, unsigned x, unsigned y) const
+{
+	unsigned x1 = (x + WAVE_RESOLUTION - 1) % WAVE_RESOLUTION;
+	unsigned x2 = (x                   + 1) % WAVE_RESOLUTION;
+	unsigned y1 = (y + WAVE_RESOLUTION - 1) % WAVE_RESOLUTION;
+	unsigned y2 = (y                   + 1) % WAVE_RESOLUTION;
+	float hdx = wavetileheights[wavephase][x2+ y *WAVE_RESOLUTION]
+		-   wavetileheights[wavephase][x1+ y *WAVE_RESOLUTION];
+	float hdy = wavetileheights[wavephase][x + y2*WAVE_RESOLUTION]
+		-   wavetileheights[wavephase][x + y1*WAVE_RESOLUTION];
+	return vector3f(-hdx, -hdy, 1).normal();
+}
+
+
+//fixme: the correctness of the result of this function and the one above is not fully tested.
+vector3f water::get_normal(const vector2& pos, double rollfac) const
 {
 	double t = myfrac(mytime/TIDECYCLE_TIME);
 	int wavephase = int(WAVE_PHASES*t);
@@ -1355,15 +1323,17 @@ vector3f water::get_normal(const vector2& pos, double f) const
 	int iy2 = (iy+1)%WAVE_RESOLUTION;
 	float fracx = x - ix;
 	float fracy = y - iy;
-	vector3f a = wavetilenormals[wavephase][ix+iy*WAVE_RESOLUTION];
-	vector3f b = wavetilenormals[wavephase][ix2+iy*WAVE_RESOLUTION];
-	vector3f c = wavetilenormals[wavephase][ix+iy2*WAVE_RESOLUTION];
-	vector3f d = wavetilenormals[wavephase][ix2+iy2*WAVE_RESOLUTION];
+	// compute the four normals at the corner points and interpolate between them according to
+	// fracx/y
+	vector3f a = get_wave_normal_at(wavephase, ix , iy );
+	vector3f b = get_wave_normal_at(wavephase, ix2, iy );
+	vector3f c = get_wave_normal_at(wavephase, ix , iy2);
+	vector3f d = get_wave_normal_at(wavephase, ix2, iy2);
 	vector3f e = a * (1.0f-fracx) + b * fracx;
-	vector3f g = c * (1.0f-fracx) + d * fracx;
-	vector3f h = e * (1.0f-fracy) + g * fracy;
-	h.z *= (1.0f/f);
-	return h.normal();
+	vector3f f = c * (1.0f-fracx) + d * fracx;
+	vector3f g = e * (1.0f-fracy) + f * fracy;
+	g.z *= (1.0f/rollfac);
+	return g.normal();
 }
 
 
