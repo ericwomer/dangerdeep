@@ -856,7 +856,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	aimpoint2 = camerapos + 10.0 * cameraforward;
 	aimpoint2.z = 0.0;
 	
-	// fade between points depending on angle (fixme: why is this done?!)
+	// fade between points depending on angle (fixme: why is this done?! - check the paper)
 	double af = fabs(cameraforward.z);
 	projectorforward = (aimpoint * af + aimpoint2 * (1.0-af)) - projectorpos;
 
@@ -865,7 +865,11 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	
 	// compute rest of the projector matrix from pos and forward vector
 	vector3 pjz = -projectorforward.normal();
-	vector3 pjx = vector3(0,0,1).cross(pjz).normal(); // fixme: what if pjz==up vector (or very near it) then errors occour, they're visible!
+	vector3 pjx = vector3(0, 0, 1).cross(pjz); // fixme: what if pjz==up vector (or very near it) then errors occour, they're visible!, this workaround seems ok. What did Claes in that case?
+	if (pjx.length() < 0.001)
+		pjx = vector3(1, 0 , 0);
+	else
+		pjx = pjx.normal();
 	vector3 pjy = pjz.cross(pjx);
 //cout << "pjx " << pjx << " pjy " << pjy << " pjz " << pjz << "\n";
 //cout << "lengths " << pjx.length() << "," << pjy.length() << "," << pjz.length() << "\n";
@@ -920,6 +924,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 			}
 			if (insert) proj_points_2d.push_back(proj_points[i].xy());
 		}
+
 		//   compute hull
 		vector<unsigned> idx = convex_hull(proj_points_2d);
 		vector<vector2> chull(idx.size());
