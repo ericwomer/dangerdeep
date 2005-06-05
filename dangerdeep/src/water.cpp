@@ -22,7 +22,12 @@
 
 // compute projected grid efficiency, it should be 50-95%
 #define COMPUTE_EFFICIENCY
-#define WAVE_SUB_DETAIL		// sub fft detail
+//fixme: the wave sub detail causes ripples in water height leading to the specular map spots
+//and other visual errors.
+//solution: check bugs, use perlin noise for sub detail, not fft, especially noise with
+//low variation of values, i.e. ripples/waves with roughly the same height not large waves and small
+//waves as with fft.
+//#define WAVE_SUB_DETAIL		// sub fft detail
 
 // for testing
 //#define DRAW_WATER_AS_GRID
@@ -1045,7 +1050,15 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 			const vector3f& p1 = coords[i1];
 			const vector3f& p2 = coords[i2];
 			const vector3f& p3 = coords[i3];
+			//fixme: it seems that the normals are not smooth over the faces...
+			//the surface seems to be facetted, not smooth.
+			// better compute normals from four surrounding faces.
+			//it would not suffice to compute the normals from the height differences,
+			//because the x/y coords do not vary uniformly.
 			vector3f n0 = (p1 - p0).cross(p2 - p0);
+#if 0
+			normals[i0] += n0;
+#else
 			vector3f n1 = (p2 - p0).cross(p3 - p0);
 			normals[i0] += n0;
 			normals[i1] += n0;
@@ -1053,6 +1066,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 			normals[i0] += n1;
 			normals[i2] += n1;
 			normals[i3] += n1;
+#endif
 		}
 	}
 
@@ -1080,55 +1094,12 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 
 	if (use_shaders) {
 		//fixme: uv0/uv1 is not needed here and thus needs not be resized/created.
-		//of course it is needed!!!
-		//give noisetexc as texc0 and tangentsx as texc1!!!! fixme compute them
-		for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
-			for (unsigned xx = 0; xx < xres; ++xx, ++ptr) {
-				// the coordinate is the same as the relative coordinate, because the viewer is at 0,0,0
-				const vector3f& coord = coords[ptr];
-				const vector3f& coordnext = coords[ptr+1];
-
-				// approximation of tangentx. u,v coordinates are computed
-				// by position, and thus do not move with wave displacement,
-				// but tangentx does.
-				uv1[ptr] = coordnext - coord;
-
-#if 0
-				const vector3f& N = normals[ptr];
-				uv0[ptr] = vector2f(coord.x/8.0f, coord.y/8.0f); // fixme, use noise map texc's
-				//fixme ^, offset is missing
-				vector3f tx = vector3f(1, 0, 0);//fixme hack
-				vector3f ty = N.cross(tx);
-				vector3f tz = N;
-				tx = ty.cross(tz);
-				vector3f worldE = -coord;
-				vector3f tangentE = vector3f(tx * worldE, ty * worldE, tz * worldE);
-				uv2[ptr] = tangentE;
-				// we have to convert E to the tangent space of this face or
-				// do that per pixel at the fragment program
-				// reflection texture coordinates (should be tweaked per pixel with fp, fixme)
-				// they are broken with fp, reason unknown
-				vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
-				texc.z -= VIRTUAL_PLANE_HEIGHT;
-				uv1[ptr] = texc;
-#endif
-			}
-			// set last tangentx to same value as predecessor
-			uv1[ptr] = uv1[ptr-1];
-			++ptr;
-		}
-		// enable coordinates and normals.
+		// enable coordinates and normals, but disable texture coordinates.
 		glDisableClientState(GL_COLOR_ARRAY);
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
-
-//		glClientActiveTexture(GL_TEXTURE0);
-//		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
 		glClientActiveTexture(GL_TEXTURE0);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv1[0].x);
-
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		glClientActiveTexture(GL_TEXTURE1);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		glEnableClientState(GL_NORMAL_ARRAY);
