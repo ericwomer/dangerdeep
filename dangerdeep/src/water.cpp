@@ -1073,13 +1073,16 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 #if 0
 			normals[i0] += n0;
 #else
-			vector3f n1 = (p2 - p0).cross(p3 - p0);
+			// fixme: the n1 vector seems to be the reason for the facetted surface normals
+//			vector3f n1 = (p2 - p0).cross(p3 - p0);
 			normals[i0] += n0;
 			normals[i1] += n0;
 			normals[i2] += n0;
+/*
 			normals[i0] += n1;
 			normals[i2] += n1;
 			normals[i3] += n1;
+*/
 #endif
 		}
 	}

@@ -323,6 +323,8 @@ void sea_object::simulate(double delta_time)
 	// orientation. we don't use mass here, so apply rotation to stored velocity/acceleration.
 	quaternion horientation = quaternion::rot(-heading.value(), 0, 0, 1);
 
+	// use compute_force(), compute_torque() here, with inertia tensor etc.
+
 	vector3 acceleration = get_acceleration();
 	vector3 global_acceleration = horientation.rotate(acceleration);
 	global_velocity = horientation.rotate(velocity);
