@@ -27,7 +27,7 @@
 //solution: check bugs, use perlin noise for sub detail, not fft, especially noise with
 //low variation of values, i.e. ripples/waves with roughly the same height not large waves and small
 //waves as with fft.
-//#define WAVE_SUB_DETAIL		// sub fft detail
+#define WAVE_SUB_DETAIL		// sub fft detail
 
 // for testing
 //#define DRAW_WATER_AS_GRID
@@ -325,33 +325,24 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 
 #if 1
 	perlinnoise_generator png;
-	png.add_noise_func(perlinnoise_generator::noise_func(3, 1, 256));
-	png.add_noise_func(perlinnoise_generator::noise_func(4, 1, 128));
-	png.add_noise_func(perlinnoise_generator::noise_func(5, 1,  64));
-	png.add_noise_func(perlinnoise_generator::noise_func(6, 1,  32));
-	png.add_noise_func(perlinnoise_generator::noise_func(6, 2,  16));
-	png.add_noise_func(perlinnoise_generator::noise_func(6, 4,   8));
+	png.add_noise_func(perlinnoise_generator::noise_func(4, 1, 256));
+	png.add_noise_func(perlinnoise_generator::noise_func(4, 2, 128));
+	png.add_noise_func(perlinnoise_generator::noise_func(4, 4,  64));
+	png.add_noise_func(perlinnoise_generator::noise_func(4, 8,  32));
 	water_bumpmaps.resize(WAVE_PHASES);
 	for (unsigned n = 0; n < water_bumpmaps.size(); ++n) {
 		for (unsigned k = 0; k < 6; ++k)
 			png.set_phase(0, float(n)/water_bumpmaps.size(), 0);
-
+		perlinnoise pn = png.generate_map(7);
 #if 0
-		perlinnoise pn = png.generate_map(8);
-#if 1
 		vector<Uint8> wbtmp2 = pn.noisemap;
 		ostringstream osgname;
 		osgname << "noisemap" << n << ".pgm";
 		ofstream osg(osgname.str().c_str());
-		osg << "P5\n256 256\n255\n";
-		osg.write((const char*)(&wbtmp2[0]), 256*256);
+		osg << "P5\n128 128\n255\n";
+		osg.write((const char*)(&wbtmp2[0]), 128*128);
 #endif
-#endif
-		vector<Uint8> tmph(WAVE_RESOLUTION*WAVE_RESOLUTION);
-		float fac = 255.0f/(maxh-minh);
-		for (unsigned i = 0; i < WAVE_RESOLUTION*WAVE_RESOLUTION; ++i)
-			tmph[i] = Uint8(fac*(wavetileheights[n][i] - minh));
-		water_bumpmaps[n] = new texture(tmph, WAVE_RESOLUTION, WAVE_RESOLUTION,
+		water_bumpmaps[n] = new texture(pn.noisemap, 128, 128,
 						GL_LUMINANCE,
 #if 0
 						texture::LINEAR,
@@ -359,7 +350,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 						texture::LINEAR_MIPMAP_LINEAR,
 #endif
 						texture::REPEAT,
-						true, 4.0f);
+						true, 1.0f);
 		//fixme: mipmap levels of normal map should be computed
 		//by this class, not glu!
 		//mipmap scaling of a normal map is not the same as the normal version
@@ -429,7 +420,8 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 		// set up texture matrix, so that texture coordinates can be computed from position.
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
-		glScalef(1.0f/32,1.0f/32,1);	// fixme adjust scale
+		float noisetilescale = 16.0f;//meters
+		glScalef(1.0f/noisetilescale,1.0f/noisetilescale,1);	// fixme adjust scale
 		glTranslatef(transl.x, transl.y, 0);
 		glMatrixMode(GL_MODELVIEW);
 
@@ -601,6 +593,9 @@ vector3f water::compute_coord(int phase, const vector3f& xyzpos, const vector2f&
 	float addh = wavetileheights[phase][ixf+iyf*WAVE_RESOLUTION] * (1.0f/WAVE_RESOLUTION);
 	coord.z += addh;
 */
+	// fixme: gives small ripples doesn't look too good. add a noise with a more uniform
+	// height here, like perlin noise
+
 	// 0 <= x0,y0 < WAVE_RESOLUTION
 	// additional detail is taken from same fft values, but that's not very good (similar
 	// pattern is noticeable), so we make a phase shift (maybe some perlin noise values
@@ -733,7 +728,12 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 				}
 			}
 		}
-		sys().myassert(maxset && minset, "ERROR!!!! no min/max found in find trapez");
+		//fixme: this can happen sometimes!
+		if (!(maxset && minset)) {
+			sys().add_console("WARNING: no min/max found in find_trapez");
+			continue;
+		}
+		//sys().myassert(maxset && minset, "ERROR!!!! no min/max found in find trapez");
 //		cout << "mina " << mina << " minb " << minb << " maxa " << maxa << " maxb " << maxb << "\n";
 		double a2 = mina - maxa, b2 = minb - maxb;
 		double area = (a2+b2)*height/2;
@@ -749,7 +749,11 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 	}
 //	cout << "MINIMAL trapez, area " << trapezoid_area << "\n";
 //	cout << trapezoid[0] << " | " << trapezoid[1] << " | " << trapezoid[2] << " | " << trapezoid[3] << "\n";
-	sys().myassert(trapset, "no trapez found?!");
+	if (!trapset) {
+		sys().add_console("WARNING: no trapezoid found!");
+		trapezoid.clear();
+	}
+	//sys().myassert(trapset, "no trapez found?!");
 	return trapezoid;
 }
 
@@ -929,6 +933,11 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 		// find smallest trapezoid surrounding the hull (try with all hull lines as base)
 		//   trapezoid area = (a+b)*h/2
 		trapezoid = find_smallest_trapezoid(chull);
+		if (trapezoid.empty()) {
+			// sometimes trapez construction fails.
+			glPopMatrix();
+			return;
+		}
 
 		double x_min = proj_points[0].x, x_max = proj_points[0].x, y_min = proj_points[0].y, y_max = proj_points[0].y;
 //cout << "pts0.xy " << x_min << ", " << y_min << "\n";
