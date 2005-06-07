@@ -35,6 +35,8 @@ void view_model(const string& modelfilename)
 {
 	model::enable_shaders = true;
 
+	//fixme ^ make chooseable via command line!
+
 	model* mdl = new model(get_model_dir() + modelfilename);
 
 	mdl->write_to_dftd_model_file("test.xml");

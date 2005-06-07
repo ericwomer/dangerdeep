@@ -516,7 +516,7 @@ vector3f water::compute_coord(int phase, const vector3f& xyzpos, const vector2f&
 		i3 = x1+y1*WAVE_RESOLUTION;
 
 	// z distance (for triliniar filtering) is constant along one projected grid line
-	// so compute it per line.
+	// so compute it per line. BUT ONLY FOR OLD RECTANGLULAR WATER PATCH CODE
 	// if mipmap level is < 0, we may add some extra detail (noise)
 	// this could be fft itself (height scaled) or some perlin noise
 	// take x,y fraction as texture coordinates in perlin map.
@@ -525,6 +525,8 @@ vector3f water::compute_coord(int phase, const vector3f& xyzpos, const vector2f&
 	// fixme: make trilinear
 	// fixme: unite displacements and height in one vector3f for simplicity's sake and performance gain
 	// bilinear interpolation of displacement and height	
+	// fixme: try to tweak height map with displacements, so we need to store only heights...
+	// maybe that isn't possible, maybe it looks good enough, but saves computations and memory
 	vector3f ca(wavetiledisplacements[phase][i0].x, wavetiledisplacements[phase][i0].y, wavetileheights[phase][i0]);
 	vector3f cb(wavetiledisplacements[phase][i1].x, wavetiledisplacements[phase][i1].y, wavetileheights[phase][i1]);
 	vector3f cc(wavetiledisplacements[phase][i2].x, wavetiledisplacements[phase][i2].y, wavetileheights[phase][i2]);
@@ -536,6 +538,11 @@ vector3f water::compute_coord(int phase, const vector3f& xyzpos, const vector2f&
 	vector3f coord = (ca*fac0 + cb*fac1 + cc*fac2 + cd*fac3) + xyzpos;
 
 #ifdef WAVE_SUB_DETAIL
+	// fixme: try to add perlin noise as sub noise, use phase as phase shift, xfrac/yfrac as coordinate
+
+	// the projgrid code from Claes just maps each vertex to one pixel of a perlin noise map, so he has maximum
+	// detail without need to compute filtering. But a that's a very cheap and ugly trick.
+
 	// add some extra detail to near waves.
 	// Every rectangle between four FFT values has
 	// some extra detail. Pattern must be more chaotic to be realistic, a reapeating
@@ -553,6 +560,7 @@ vector3f water::compute_coord(int phase, const vector3f& xyzpos, const vector2f&
 	// additional detail is taken from same fft values, but that's not very good (similar
 	// pattern is noticeable), so we make a phase shift (maybe some perlin noise values
 	// would be better)
+	//this lookup without linear filtering leads to ripples and skinning effect. ugly! fixme
 	int tilefac = 8;//4;
 	int rfac = WAVE_RESOLUTION /tilefac;
 	int ixf = (x0 & (tilefac-1))*rfac + int(rfac * xfrac);
@@ -560,6 +568,7 @@ vector3f water::compute_coord(int phase, const vector3f& xyzpos, const vector2f&
 	float addh = wavetileheights[(phase+WAVE_PHASES/2)%WAVE_PHASES][ixf + iyf * WAVE_RESOLUTION] * (1.0f/rfac);
 	coord.z += addh;
 #endif
+
 	return coord;
 }
 
@@ -615,7 +624,11 @@ static vector<unsigned> convex_hull(const vector<vector2>& pts)
 }
 
 
-
+// it seems efficiency rates below 90% are caused by many near triangles that are not shown...
+// the trapezoid looks optimal even at 60% efficiency, so it must be something else.
+// fixme: try raising the elevator. lower elevator gives less efficiency. 50+ seems ok, with higher values
+// the near water looks awful
+#undef DEBUG_TRAPEZOID
 vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 {
 	vector<vector2> trapezoid(4);
@@ -623,11 +636,15 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 	bool trapset = false;
 	// try all hull edges as trapezoid base
 	for (unsigned i = 0; i < hull.size(); ++i) {
-//		cout << "trying trapezoid " << i << "\n";
+#ifdef DEBUG_TRAPEZOID
+		cout << "trying trapezoid " << i << "\n";
+#endif
 		vector2 base = hull[i];
 		vector2 delta = hull[(i+1) % hull.size()] - base;
 		double baselength = delta.length();
-//		cout << "base " << base << " delta " << delta << " baselength " << baselength << "\n";
+#ifdef DEBUG_TRAPEZOID
+		cout << "base " << base << " delta " << delta << " baselength " << baselength << "\n";
+#endif
 		delta = delta * (1.0/baselength);
 		vector2 deltaorth = delta.orthogonal();
 		// now base + t*delta is base line. compute height of trapez.
@@ -660,11 +677,15 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 			df = df.matrixmul(deltainvx, deltainvy);
 			if (fabs(df.y) < 0.001)	// avoid lines nearly parallel to baseline
 				continue;
-//			cout << "p0 : " << p0 << " df: " << df << "\n";
+#ifdef DEBUG_TRAPEZOID
+			cout << "p0 : " << p0 << " df: " << df << "\n";
+#endif
 			//manchmal ist das negativ, also falsch...
 			double a = p0.x - p0.y * df.x / df.y;
 			double b = p0.x + (height - p0.y) * df.x / df.y;
-//			cout << "tried line " << j << " a " << a << " b " << b << "\n";
+#ifdef DEBUG_TRAPEZOID
+			cout << "tried line " << j << " a " << a << " b " << b << "\n";
+#endif
 			if (df.y > 0) {
 				// line is on right border of trapezoid
 				if (a+b < mina+minb) {
@@ -687,10 +708,14 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 			continue;
 		}
 		//sys().myassert(maxset && minset, "ERROR!!!! no min/max found in find trapez");
-//		cout << "mina " << mina << " minb " << minb << " maxa " << maxa << " maxb " << maxb << "\n";
+#ifdef DEBUG_TRAPEZOID
+		cout << "mina " << mina << " minb " << minb << " maxa " << maxa << " maxb " << maxb << "\n";
+#endif
 		double a2 = mina - maxa, b2 = minb - maxb;
 		double area = (a2+b2)*height/2;
-//		cout << "trapez area: " << area << "\n";
+#ifdef DEBUG_TRAPEZOID
+		cout << "trapez area: " << area << "\n";
+#endif
 		if (area < trapezoid_area) {
 			trapezoid_area = area;
 			trapezoid[0] = base + delta * maxa;
@@ -700,8 +725,10 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 			trapset = true;
 		}
 	}
-//	cout << "MINIMAL trapez, area " << trapezoid_area << "\n";
-//	cout << trapezoid[0] << " | " << trapezoid[1] << " | " << trapezoid[2] << " | " << trapezoid[3] << "\n";
+#ifdef DEBUG_TRAPEZOID
+	cout << "MINIMAL trapez, area " << trapezoid_area << "\n";
+	cout << trapezoid[0] << " | " << trapezoid[1] << " | " << trapezoid[2] << " | " << trapezoid[3] << "\n";
+#endif
 	if (!trapset) {
 		sys().add_console("WARNING: no trapezoid found!");
 		trapezoid.clear();
@@ -726,7 +753,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	// that will help keeping some of the detail in the distance and avoids drawing to much near waves.
 	// together with a trapezoidical form of the projection, efficiency should be good...
 	// this value plus WAVE_HEIGHT is the minimum height.
-	const double ELEVATION = 50.0; // fixme experiment, try 1...30
+	const double ELEVATION = 100.0; // fixme experiment, try 1...30
 
 	// fixme: displacements must be used to enlarge projector area or else holes will be visible at the border
 	// of the screen (left and right), especially on glasses mode
@@ -881,13 +908,19 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 		//   compute hull
 		vector<unsigned> idx = convex_hull(proj_points_2d);
 		vector<vector2> chull(idx.size());
-//		cout << "convex hull:\n";
+#ifdef DEBUG_TRAPEZOID
+		cout << "convex hull:\n";
+#endif
 		for (unsigned i = 0; i < idx.size(); ++i) {
 			chull[i] = proj_points_2d[idx[i]];
-//			cout << i << ": " << proj_points_2d[idx[i]] << "\n";
+#ifdef DEBUG_TRAPEZOID
+			cout << i << ": " << proj_points_2d[idx[i]] << "\n";
+#endif
 		}
-//		for (unsigned i = 0; i < proj_points.size(); ++i)
-//			cout << "pp: " << proj_points[i] << "\n";
+#ifdef DEBUG_TRAPEZOID
+		for (unsigned i = 0; i < proj_points.size(); ++i)
+			cout << "pp: " << proj_points[i] << "\n";
+#endif
 		// find smallest trapezoid surrounding the hull (try with all hull lines as base)
 		//   trapezoid area = (a+b)*h/2
 		trapezoid = find_smallest_trapezoid(chull);
@@ -950,6 +983,8 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	// with 50% time save (3ms) fps would go from 51 to 60.
 	// earth curvature could be simulated by darkening the texture in distance (darker = lower!)
 
+	unsigned tm1 = sys().millisec();
+
 #ifdef COMPUTE_EFFICIENCY
 	int vertices = 0, vertices_inside = 0;
 #endif	
@@ -990,6 +1025,12 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 #endif
 		}
 	}
+
+	unsigned tm2 = sys().millisec();
+	// this takes ~13ms per frame with 128x256. a bit costly
+	//fixme: maybe choose only trapzeoid with baseline parallel zu x-axis? but this doesn't save any computations
+	//wave sub detail should bring more display quality than higher resolution....
+//	cout << "coord computation took " << tm2-tm1 << " ms.\n";
 
 #ifdef COMPUTE_EFFICIENCY
 	cout << "drawn " << vertices << " vertices, " << vertices_inside << " were inside frustum ("
