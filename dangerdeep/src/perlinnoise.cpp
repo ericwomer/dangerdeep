@@ -2,49 +2,33 @@
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "perlinnoise.h"
+#include "system.h"
 #include <math.h>
 
+#include <sstream>
+#include <fstream>
 
-perlinnoise_generator::noise_func::noise_func(unsigned s, unsigned f, unsigned a, float px, float py)
-	: size(s), frequency(f), amplitude(a), phasex(px), phasey(py)
+perlinnoise_generator::noise_func::noise_func(unsigned s, unsigned f, float px, float py)
+	: size(s), frequency(f), phasex(px), phasey(py)
 {
-	unsigned sz = 1<<size;
-	vector<float> tmp(sz*sz);
-	// generate noise function
-	for (unsigned xy = 0; xy < tmp.size(); ++xy) {
-		tmp[xy] = float(rand()) / float(RAND_MAX);
+	data.resize(size*size);
+	unsigned base = rand();
+	for (unsigned i = 0; i < size * size; ++i) {
+		data[i] = Sint8(base >> 24);
+		base = base * (base * 15731 + 789221) + 1376312589;
 	}
-	// smooth and equalize it
-	float vmax = -1e10, vmin = 1e10;
-	vector<float> tmp2(tmp.size());
-	for (unsigned y = 0; y < sz; ++y) {
-		unsigned y1 = (y + sz - 1) & (sz - 1);
-		unsigned y2 = (y + 1) & (sz - 1);
-		for (unsigned x = 0; x < sz; ++x) {
-			unsigned x1 = (x + sz - 1) & (sz - 1);
-			unsigned x2 = (x + 1) & (sz - 1);
-			float sum =
-				(tmp[y1*sz+x1] + tmp[y1*sz+x2] +
-				 tmp[y2*sz+x1] + tmp[y2*sz+x2]) * (1.0f/16) +
-				(tmp[y1*sz+x] + tmp[y*sz+x1] +
-				 tmp[y2*sz+x] + tmp[y*sz+x2]) * (1.0f/8) +
-				tmp[y*sz+x] * (1.0f/4);
-			tmp2[y*sz+x] = sum;
-			if (sum > vmax) vmax = sum;
-			if (sum < vmin) vmin = sum;
-		}
-	}
-	// equalize
-	data.resize(tmp2.size());
-	float vd = 255.0f/(vmax - vmin);
-	for (unsigned xy = 0; xy < tmp2.size(); ++xy) {
-		data[xy] = Uint8((tmp2[xy] - vmin) * vd);
-	}
+#if 0
+	ostringstream osgname;
+        osgname << "noisefct" << s << ".pgm";
+        ofstream osg(osgname.str().c_str());
+        osg << "P5\n"<<s<<" "<<s<<"\n255\n";
+        osg.write((const char*)(&data[0]), s*s);
+#endif
 }
 
 
 
-inline float perlinnoise_generator::noise_func::interpolate(const vector<float>& interpolation_func, float x, float y) const
+inline Sint8 perlinnoise_generator::noise_func::interpolate(const vector<float>& interpolation_func, float x, float y) const
 {
 	// map x,y to coordinates inside function (0 <= x,y < 1)
 	float bx = phasex + x;
@@ -52,10 +36,9 @@ inline float perlinnoise_generator::noise_func::interpolate(const vector<float>&
 	bx -= floorf(bx);
 	by -= floorf(by);
 	// remap to value/subvalue coordinates
-	unsigned sz = 1<<size;
-	unsigned sz1 = sz - 1;
-	bx *= sz * frequency;
-	by *= sz * frequency;
+	bx *= size * frequency;
+	by *= size * frequency;
+	unsigned sz1 = size - 1;
 	unsigned x1 = unsigned(bx) & sz1;
 	unsigned y1 = unsigned(by) & sz1;
 	unsigned x2 = (x1 + 1) & sz1;
@@ -66,16 +49,35 @@ inline float perlinnoise_generator::noise_func::interpolate(const vector<float>&
 	float b2 = interpolation_func[unsigned(interpolation_func.size()*yf)];
 	float a1 = 1.0f - a2;
 	float b1 = 1.0f - b2;
-	return	(data[y1*sz+x1] * a1 * b1 +
-		 data[y1*sz+x2] * a2 * b1 +
-		 data[y2*sz+x1] * a1 * b2 +
-		 data[y2*sz+x2] * a2 * b2) * amplitude;
+	return Sint8(data[y1*size+x1] * a1 * b1 +
+		     data[y1*size+x2] * a2 * b1 +
+		     data[y2*size+x1] * a1 * b2 +
+		     data[y2*size+x2] * a2 * b2);
 }
 
 
 
-perlinnoise_generator::perlinnoise_generator()
+bool is_power2(unsigned x)
 {
+	return (x & (x-1)) == 0;
+}
+
+perlinnoise_generator::perlinnoise_generator(unsigned size, unsigned sizeminfreq, unsigned sizemaxfreq)
+	: resultsize(size)
+{
+	sys().myassert(is_power2(size), "size is not power of two");
+	sys().myassert(is_power2(sizeminfreq), "sizeminfreq is not power of two");
+	sys().myassert(is_power2(sizemaxfreq), "sizemaxfreq is not power of two");
+	sys().myassert(sizeminfreq >= 1 && sizeminfreq <= size && sizeminfreq <= sizemaxfreq, "sizeminfreq out of range");
+	sys().myassert(sizemaxfreq >= 1 && sizemaxfreq <= size, "sizemaxfreq out of range");
+	unsigned nrfunc = 0;
+	for (unsigned j = sizemaxfreq/sizeminfreq; j > 0; j >>= 1)
+		++nrfunc;
+	noise_functions.reserve(nrfunc);
+	for (unsigned i = 0; i < nrfunc; ++i)
+		noise_functions.push_back(noise_func(sizeminfreq<<i, 1 /*<<i*/));
+
+	// create interpolation function
 	const unsigned res = 256;
 	interpolation_func.resize(res);
 	for (unsigned i = 0; i < res; ++i) {
@@ -92,13 +94,6 @@ perlinnoise_generator::perlinnoise_generator()
 
 
 
-void perlinnoise_generator::add_noise_func(const noise_func& nf)
-{
-	noise_functions.push_back(nf);
-}
-
-
-
 void perlinnoise_generator::set_phase(unsigned func, float px, float py)
 {
 	if (func < noise_functions.size()) {
@@ -108,37 +103,30 @@ void perlinnoise_generator::set_phase(unsigned func, float px, float py)
 }
 
 
-
-perlinnoise perlinnoise_generator::generate_map(unsigned s) const
+static inline Sint32 clamp_zero(Sint32 x) { return x & ~(x >> 31); }
+static inline Sint32 clamp_value(Sint32 x, Sint32 val) { return val - clamp_zero(val - x); }
+perlinnoise perlinnoise_generator::generate_map() const
 {
 	perlinnoise result;
-	unsigned size = 1<<s;
-	result.size = size;
-	result.noisemap.resize(size * size);
-	vector<float> tmp(size*size);
-	float dxy = 1.0f/size;
-	float vmin = 1e10, vmax = -1e10;
+	result.size = resultsize;
+	result.noisemap.resize(resultsize * resultsize);
+	float dxy = 1.0f/resultsize;
 	unsigned ptr = 0;
 	float fy = 0;
-	for (unsigned y = 0; y < size; ++y) {
+	for (unsigned y = 0; y < resultsize; ++y) {
 		float fx = 0;
-		for (unsigned x = 0; x < size; ++x) {
-			float sum = 0;
+		for (unsigned x = 0; x < resultsize; ++x) {
+			int sum = 0;
 			for (unsigned i = 0; i < noise_functions.size(); ++i) {
-				sum += noise_functions[i].interpolate(interpolation_func, fx, fy);
+				sum += noise_functions[i].interpolate(interpolation_func, fx, fy) >> i;
 			}
-			if (sum < vmin) vmin = sum;
-			if (sum > vmax) vmax = sum;
-			tmp[ptr++] = sum;
+			// sum is at most around +- 207, so we multiply with 19/32, to get in in +-127 range
+			// to be sure we clamp it also.
+			sum = clamp_value(clamp_zero(((sum * 19) >> 5) + 128), 255);
+			result.noisemap[ptr++] = Uint8(sum);
 			fx += dxy;
 		}
 		fy += dxy;
-	}
-
-	// normalize result
-	float vd = 255.9f/(vmax - vmin);
-	for (unsigned j = 0; j < size*size; ++j) {
-		result.noisemap[j] = Uint8((tmp[j] - vmin) * vd);
 	}
 
 	return result;

@@ -27,7 +27,7 @@
 //solution: check bugs, use perlin noise for sub detail, not fft, especially noise with
 //low variation of values, i.e. ripples/waves with roughly the same height not large waves and small
 //waves as with fft.
-#define WAVE_SUB_DETAIL		// sub fft detail
+//#define WAVE_SUB_DETAIL		// sub fft detail
 
 // for testing
 //#define DRAW_WATER_AS_GRID
@@ -277,16 +277,12 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	add_loading_screen("water height data computed");
 
 #if 1
-	perlinnoise_generator png;
-	png.add_noise_func(perlinnoise_generator::noise_func(4, 1, 256));
-	png.add_noise_func(perlinnoise_generator::noise_func(4, 2, 128));
-	png.add_noise_func(perlinnoise_generator::noise_func(4, 4,  64));
-	png.add_noise_func(perlinnoise_generator::noise_func(4, 8,  32));
+	perlinnoise_generator png(128, 8, 128);
 	water_bumpmaps.resize(WAVE_PHASES);
 	for (unsigned n = 0; n < water_bumpmaps.size(); ++n) {
-		for (unsigned k = 0; k < 6; ++k)
+		for (unsigned k = 0; k < png.get_number_of_levels(); ++k)
 			png.set_phase(0, float(n)/water_bumpmaps.size(), 0);
-		perlinnoise pn = png.generate_map(7);
+		perlinnoise pn = png.generate_map();
 #if 0
 		vector<Uint8> wbtmp2 = pn.noisemap;
 		ostringstream osgname;
@@ -373,7 +369,7 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 		// set up texture matrix, so that texture coordinates can be computed from position.
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
-		float noisetilescale = 16.0f;//meters
+		float noisetilescale = 32.0f;//meters
 		glScalef(1.0f/noisetilescale,1.0f/noisetilescale,1);	// fixme adjust scale
 		glTranslatef(transl.x, transl.y, 0);
 		glMatrixMode(GL_MODELVIEW);

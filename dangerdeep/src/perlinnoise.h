@@ -9,6 +9,7 @@
 #endif
 
 typedef unsigned char Uint8;
+typedef signed char Sint8;
 
 #include <stdlib.h>
 #include <vector>
@@ -30,33 +31,36 @@ public:
 	// quadratic noise
 	struct noise_func
 	{
-		vector<Uint8> data;
+		vector<Sint8> data;
 		unsigned size;		// in powers of two
 		unsigned frequency;	// 1-x
-		unsigned amplitude;	// 0-255
 		float phasex, phasey;
 		// create random noise function
-		noise_func(unsigned s, unsigned f, unsigned a, float px = 0.0f, float py = 0.0f);
+		noise_func(unsigned s, unsigned f, float px = 0.0f, float py = 0.0f);
 		// interpolate noise function value
-		inline float interpolate(const vector<float>& interpolation_func, float x, float y) const;
+		Sint8 interpolate(const vector<float>& interpolation_func, float x, float y) const;
 	};
 
 protected:
 	vector<noise_func> noise_functions;
+	unsigned resultsize;
 
 	vector<float> interpolation_func;
 
 public:
-	perlinnoise_generator();
+	// give size of result (power of two), size of noise function with minimal frequency and maximum frequency
+	// sizeminfreq is usually very small, 2 or 4 at least, at most the same as size, at least 1
+	// sizemaxfreq is usually very high, at most the same as size
+	perlinnoise_generator(unsigned size, unsigned sizeminfreq, unsigned sizemaxfreq);
 
-	// register noise function
-	void add_noise_func(const noise_func& nf);
+	// get number of functions/levels
+	unsigned get_number_of_levels() const { return noise_functions.size(); }
 
-	// set phase of function
-	void set_phase(unsigned func, float px, float py);
+	// set phase of a level
+	void set_phase(unsigned level, float px, float py);
 
-	// generate a composition of the noise functions, give total size (power of two), e.g. 8
-	perlinnoise generate_map(unsigned s) const;
+	// generate a composition of the noise functions
+	perlinnoise generate_map() const;
 };
 
 #endif
