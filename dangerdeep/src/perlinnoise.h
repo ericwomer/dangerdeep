@@ -16,15 +16,7 @@ using std::vector;
 
 
 
-struct perlinnoise
-{
-	vector<Uint8> noisemap;
-	unsigned size;	// width/height, map is quadratic
-};	
-
-
-
-class perlinnoise_generator
+class perlinnoise
 {
 public:
 	// quadratic noise
@@ -56,7 +48,7 @@ public:
 	// give size of result (power of two), size of noise function with minimal frequency and maximum frequency
 	// sizeminfreq is usually very small, 2 or 4 at least, at most the same as size, at least 1
 	// sizemaxfreq is usually very high, at most the same as size
-	perlinnoise_generator(unsigned size, unsigned sizeminfreq, unsigned sizemaxfreq);
+	perlinnoise(unsigned size, unsigned sizeminfreq, unsigned sizemaxfreq);
 
 	// get number of functions/levels
 	unsigned get_number_of_levels() const { return noise_functions.size(); }
@@ -65,7 +57,7 @@ public:
 	void set_phase(unsigned level, float px, float py);
 
 	// generate a composition of the noise functions
-	perlinnoise generate_map() const;
+	vector<Uint8> generate() const;
 };
 
 #endif

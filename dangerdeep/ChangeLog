@@ -1,3 +1,10 @@
+2005-06-09  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* water.* perlinnoise.* fixed.h
+	  - speed up perlinnoise generation with new fixed point data type
+	  - water subdetail computed by perlin noise
+	  - wave tile and sub detail now computed completely on the fly, needing more CPU
+	    power but saving MUCH memory (48MB-192K)!
+
 2005-05-29  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* water.cpp/.h
 	  - water shaders now work more or less

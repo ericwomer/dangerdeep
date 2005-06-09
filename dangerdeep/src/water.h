@@ -16,6 +16,8 @@ using namespace std;
 #include "angle.h"
 #include "vector3.h"
 #include "texture.h"
+#include "ocean_wave_generator.h"
+#include "perlinnoise.h"
 
 class water
 {
@@ -34,8 +36,8 @@ protected:
 	// frame (slower, but more dynamically, and using less memory)
 	// for a 64x64 grid in 256 phases with mipmaps and normals we have
 	// 256*64*64*(6*4)*4/3 = 1M*24*4/3 = 32M
-	vector<vector<vector2f> > wavetiledisplacements;
-	vector<vector<float> > wavetileheights;	//fixme store heights as uint8 (resolution is high enough, 75% space save)
+	vector<vector2f> wavetiledisplacements;
+	vector<float> wavetileheights;	//fixme store heights as uint8 (resolution is high enough, 75% space save)
 
 	vector<unsigned> gridindices;
 	vector<unsigned> gridindices2;//only used for test grid drawing, could be ifdef'ed away
@@ -63,11 +65,14 @@ protected:
 	mutable vector<vector3f> normals;
 	mutable vector<vector2f> uv0;
 
+	// test
+	ocean_wave_generator<float> owg;
+
 	// sub detail
-	vector<vector<Uint8> > waveheight_subdetail;	// same as water bump map data
+	vector<Uint8> waveheight_subdetail;	// same as water bump map data, recomputed periodically
 
 	// testing: with fragment programs we need some sub-noise
-	vector<texture*> water_bumpmaps;
+	auto_ptr<texture> water_bumpmap;
 
 #if 0		// old code, kept for reference, especially for foam
 	// waves are stored in display lists to speed up drawing.
@@ -100,14 +105,24 @@ protected:
 	GLuint water_vertex_program;
 	GLuint water_fragment_program;
 
+	// for subdetail
+	perlinnoise png;
+
+	// times for generation
+	double last_wave_gen_time;
+	double last_subdetail_gen_time;
+
 	water& operator= (const water& other);
 	water(const water& other);
 
 	void setup_textures(const matrix4& reflection_projmvmat, const vector2f& transl) const;
 	void cleanup_textures(void) const;
 
-	vector3f compute_coord(int phase, const vector3f& xyzpos, const vector2f& transl) const;
-	vector3f get_wave_normal_at(unsigned wavephase, unsigned x, unsigned y) const;
+	vector3f compute_coord(const vector3f& xyzpos, const vector2f& transl) const;
+	vector3f get_wave_normal_at(unsigned x, unsigned y) const;
+
+	void generate_wavetile();
+	void generate_subdetail_and_bumpmap();
 
 public:
 	water(unsigned xres_, unsigned yres_, double tm = 0.0);	// give day time in seconds

@@ -10,7 +10,7 @@
 
 const Uint32 one = 0x10000;
 
-perlinnoise_generator::noise_func::noise_func(unsigned s, unsigned f, float px, float py)
+perlinnoise::noise_func::noise_func(unsigned s, unsigned f, float px, float py)
 	: size(s), frequency(f), phasex(fixed32(px)), phasey(fixed32(py))
 {
 	data.resize(size*size);
@@ -30,7 +30,7 @@ perlinnoise_generator::noise_func::noise_func(unsigned s, unsigned f, float px, 
 
 
 
-void perlinnoise_generator::noise_func::set_line_for_interpolation(const vector<fixed32>& interpolation_func, fixed32 y) const
+void perlinnoise::noise_func::set_line_for_interpolation(const vector<fixed32>& interpolation_func, fixed32 y) const
 {
 	fixed32 by = (phasey + y).frac();
 	// remap to value/subvalue coordinates
@@ -45,7 +45,7 @@ void perlinnoise_generator::noise_func::set_line_for_interpolation(const vector<
 }
 
 
-Uint8 perlinnoise_generator::noise_func::interpolate(const vector<fixed32>& interpolation_func, fixed32 x) const
+Uint8 perlinnoise::noise_func::interpolate(const vector<fixed32>& interpolation_func, fixed32 x) const
 {
 	fixed32 bx = (phasex + x).frac();
 	// remap to value/subvalue coordinates
@@ -68,7 +68,7 @@ bool is_power2(unsigned x)
 	return (x & (x-1)) == 0;
 }
 
-perlinnoise_generator::perlinnoise_generator(unsigned size, unsigned sizeminfreq, unsigned sizemaxfreq)
+perlinnoise::perlinnoise(unsigned size, unsigned sizeminfreq, unsigned sizemaxfreq)
 	: resultsize(size)
 {
 	sys().myassert(is_power2(size), "size is not power of two");
@@ -100,7 +100,7 @@ perlinnoise_generator::perlinnoise_generator(unsigned size, unsigned sizeminfreq
 
 
 
-void perlinnoise_generator::set_phase(unsigned func, float px, float py)
+void perlinnoise::set_phase(unsigned func, float px, float py)
 {
 	if (func < noise_functions.size()) {
 		noise_functions[func].phasex = fixed32(px);
@@ -111,11 +111,9 @@ void perlinnoise_generator::set_phase(unsigned func, float px, float py)
 
 static inline Sint32 clamp_zero(Sint32 x) { return x & ~(x >> 31); }
 static inline Sint32 clamp_value(Sint32 x, Sint32 val) { return val - clamp_zero(val - x); }
-perlinnoise perlinnoise_generator::generate_map() const
+vector<Uint8> perlinnoise::generate() const
 {
-	perlinnoise result;
-	result.size = resultsize;
-	result.noisemap.resize(resultsize * resultsize);
+	vector<Uint8> result(resultsize * resultsize);
 	fixed32 dxy = fixed32::one()/resultsize;
 	unsigned ptr = 0;
 	fixed32 fy;
@@ -132,7 +130,7 @@ perlinnoise perlinnoise_generator::generate_map() const
 			// sum is at most around +- 207, so we multiply with 19/32, to get in in +-127 range
 			// to be sure we clamp it also.
 			sum = clamp_value(clamp_zero(((sum * 19) >> 5) + 128), 255);
-			result.noisemap[ptr++] = Uint8(sum);
+			result[ptr++] = Uint8(sum);
 			fx += dxy;
 		}
 		fy += dxy;

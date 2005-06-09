@@ -11,9 +11,11 @@
 #define MAX_CACHE_SIZE 2
 
 
+#ifdef MEMMEASURE
 unsigned image::mem_used = 0;
 unsigned image::mem_alloced = 0;
 unsigned image::mem_freed = 0;
+#endif
 
 
 // cache
@@ -119,6 +121,7 @@ image::image(const string& s) :
 	sys().myassert(img != 0, string("image: failed to load '") + s + string("'"));
 	width = img->w;
 	height = img->h;
+#ifdef MEMMEASURE
 	unsigned add_mem_used = width * height * img->format->BytesPerPixel;
 	mem_used += add_mem_used;
 	mem_alloced += add_mem_used;
@@ -126,12 +129,14 @@ image::image(const string& s) :
 	sys().add_console(oss.str());
 	ostringstream oss2; oss2 << "Image system mem usage " << mem_alloced << " vs " << mem_freed;
 	sys().add_console(oss2.str());
+#endif
 }
 
 
 
 image::~image()
 {
+#ifdef MEMMEASURE
 	unsigned sub_mem_used = width * height * img->format->BytesPerPixel;
 	mem_used -= sub_mem_used;
 	mem_freed += sub_mem_used;
@@ -139,7 +144,7 @@ image::~image()
 	sys().add_console(oss.str());
 	ostringstream oss2; oss2 << "Image system mem usage " << mem_alloced << " vs " << mem_freed;
 	sys().add_console(oss2.str());
-
+#endif
 	for (list<cache_entry>::iterator it = cache.begin(); it != cache.end(); ++it) {
 		if (it->object == this) {
 			cache.erase(it);

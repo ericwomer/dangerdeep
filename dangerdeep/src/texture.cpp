@@ -21,10 +21,13 @@
 #include <sstream>
 using namespace std;
 
+#undef MEMMEASURE
+
+#ifdef MEMMEASURE
 unsigned texture::mem_used = 0;
 unsigned texture::mem_alloced = 0;
 unsigned texture::mem_freed = 0;
-
+#endif
 
 // ------------------------------- GL mode tables -------------------
 static GLuint mapmodes[texture::NR_OF_MAPPING_MODES] = {
@@ -254,7 +257,9 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 	glGenTextures(1, &opengl_name);
 	glBindTexture(GL_TEXTURE_2D, opengl_name);
 
+#ifdef MEMMEASURE
 	unsigned add_mem_used = 0;
+#endif
 
 	if (makenormalmap && format == GL_LUMINANCE) {
 		// make own mipmap building for normal maps here...
@@ -265,7 +270,9 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
 			     GL_UNSIGNED_BYTE, &nmpix[0]);
 
+#ifdef MEMMEASURE
 		add_mem_used = gl_width * gl_height * get_bpp();
+#endif
 
 		if (do_mipmapping[mapping]) {
 #if 1
@@ -304,7 +311,9 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		// make gl texture
 		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
 			     GL_UNSIGNED_BYTE, &((*pdata)[0]));
+#ifdef MEMMEASURE
 		add_mem_used = gl_width * gl_height * get_bpp();
+#endif
 		if (do_mipmapping[mapping]) {
 			// fixme: does this command set the base level, too?
 			// i.e. are the two gl commands redundant?
@@ -313,6 +322,7 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		}
 	}
 
+#ifdef MEMMEASURE
 	if (do_mipmapping[mapping])
 		add_mem_used = (4*add_mem_used)/3;
 	mem_used += add_mem_used;
@@ -321,6 +331,7 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 	mem_alloced += add_mem_used;
 	ostringstream oss2; oss2 << "Video mem usage " << mem_alloced << " vs " << mem_freed;
 	sys().add_console(oss2.str());
+#endif
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapmodes[mapping]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magfilter[mapping]);
@@ -429,6 +440,7 @@ texture::texture(const vector<Uint8>& pixels, unsigned w, unsigned h, int format
 
 texture::~texture()
 {
+#ifdef MEMMEASURE
 	unsigned sub_mem_used = gl_width * gl_height * get_bpp();
 	if (do_mipmapping[mapping])
 		sub_mem_used = (4*sub_mem_used)/3;
@@ -438,6 +450,7 @@ texture::~texture()
 	mem_freed += sub_mem_used;
 	ostringstream oss2; oss2 << "Video mem usage " << mem_alloced << " vs " << mem_freed;
 	sys().add_console(oss2.str());
+#endif
 	glDeleteTextures(1, &opengl_name);
 }
 
