@@ -91,6 +91,7 @@ unsigned particle::interpolate_2d_map(const vector<Uint8>& mp, unsigned res, uns
 	return unsigned(f0 * mp[y1 * res + x1] + f1 * mp[y1 * res + x2] + f2 * mp[y2 * res + x1] + f3 * mp[y2 * res + x2]);
 }
 
+//fixme: replace by perlinnoise generator class!
 vector<Uint8> particle::make_2d_perlin_noise(unsigned wh, unsigned highestlevel)
 {
 	unsigned whlevel = 0;

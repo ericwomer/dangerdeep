@@ -27,7 +27,7 @@
 //solution: check bugs, use perlin noise for sub detail, not fft, especially noise with
 //low variation of values, i.e. ripples/waves with roughly the same height not large waves and small
 //waves as with fft.
-//#define WAVE_SUB_DETAIL		// sub fft detail
+#define WAVE_SUB_DETAIL		// sub fft detail
 
 // for testing
 //#define DRAW_WATER_AS_GRID
@@ -276,22 +276,32 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 
 	add_loading_screen("water height data computed");
 
-#if 1
-	perlinnoise_generator png(128, 8, 128);
-	water_bumpmaps.resize(WAVE_PHASES);
-	for (unsigned n = 0; n < water_bumpmaps.size(); ++n) {
-		for (unsigned k = 0; k < png.get_number_of_levels(); ++k)
-			png.set_phase(0, float(n)/water_bumpmaps.size(), 0);
+#define SUBDETAIL_SIZE 128
+	perlinnoise_generator png(SUBDETAIL_SIZE, 8, SUBDETAIL_SIZE);
+	waveheight_subdetail.resize(WAVE_PHASES);
+	for (unsigned n = 0; n < waveheight_subdetail.size(); ++n) {
+		for (unsigned k = 0; k < png.get_number_of_levels(); ++k) {
+			float ph = sin(3.14159*float(n)/waveheight_subdetail.size());
+			png.set_phase(0, ph, 0);
+		}
 		perlinnoise pn = png.generate_map();
+		waveheight_subdetail[n] = pn.noisemap;
 #if 0
 		vector<Uint8> wbtmp2 = pn.noisemap;
 		ostringstream osgname;
 		osgname << "noisemap" << n << ".pgm";
 		ofstream osg(osgname.str().c_str());
-		osg << "P5\n128 128\n255\n";
-		osg.write((const char*)(&wbtmp2[0]), 128*128);
+		osg << "P5\n" << SUBDETAIL_SIZE << " " << SUBDETAIL_SIZE << "\n255\n";
+		osg.write((const char*)(&wbtmp2[0]), SUBDETAIL_SIZE*SUBDETAIL_SIZE);
 #endif
-		water_bumpmaps[n] = new texture(pn.noisemap, 128, 128,
+	}
+
+	add_loading_screen("water sub height data computed");
+
+#if 1
+	water_bumpmaps.resize(WAVE_PHASES);
+	for (unsigned n = 0; n < water_bumpmaps.size(); ++n) {
+		water_bumpmaps[n] = new texture(waveheight_subdetail[n], SUBDETAIL_SIZE, SUBDETAIL_SIZE,
 						GL_LUMINANCE,
 #if 0
 						texture::LINEAR,
@@ -506,8 +516,8 @@ vector3f water::compute_coord(int phase, const vector3f& xyzpos, const vector2f&
 	unsigned y0 = unsigned(floor(yfrac));
 	unsigned x1 = (x0 + 1) & (WAVE_RESOLUTION-1);
 	unsigned y1 = (y0 + 1) & (WAVE_RESOLUTION-1);
-	xfrac = myfrac(xfrac);
-	yfrac = myfrac(yfrac);
+	float xfrac2 = myfrac(xfrac);
+	float yfrac2 = myfrac(yfrac);
 	unsigned i0 = x0+y0*WAVE_RESOLUTION, i1 = x1+y0*WAVE_RESOLUTION, i2 = x0+y1*WAVE_RESOLUTION,
 		i3 = x1+y1*WAVE_RESOLUTION;
 
@@ -527,14 +537,32 @@ vector3f water::compute_coord(int phase, const vector3f& xyzpos, const vector2f&
 	vector3f cb(wavetiledisplacements[phase][i1].x, wavetiledisplacements[phase][i1].y, wavetileheights[phase][i1]);
 	vector3f cc(wavetiledisplacements[phase][i2].x, wavetiledisplacements[phase][i2].y, wavetileheights[phase][i2]);
 	vector3f cd(wavetiledisplacements[phase][i3].x, wavetiledisplacements[phase][i3].y, wavetileheights[phase][i3]);
-	float fac0 = (1.0f-xfrac)*(1.0f-yfrac);
-	float fac1 = xfrac*(1.0f-yfrac);
-	float fac2 = (1.0f-xfrac)*yfrac;
-	float fac3 = xfrac*yfrac;
+	float fac0 = (1.0f-xfrac2)*(1.0f-yfrac2);
+	float fac1 = xfrac2*(1.0f-yfrac2);
+	float fac2 = (1.0f-xfrac2)*yfrac2;
+	float fac3 = xfrac2*yfrac2;
 	vector3f coord = (ca*fac0 + cb*fac1 + cc*fac2 + cd*fac3) + xyzpos;
 
 #ifdef WAVE_SUB_DETAIL
 	// fixme: try to add perlin noise as sub noise, use phase as phase shift, xfrac/yfrac as coordinate
+#define SUBDETAIL_PER_TILE 4
+	xfrac2 = SUBDETAIL_SIZE * myfrac(xfrac * SUBDETAIL_PER_TILE / WAVE_RESOLUTION);
+	yfrac2 = SUBDETAIL_SIZE * myfrac(yfrac * SUBDETAIL_PER_TILE / WAVE_RESOLUTION);
+	x0 = unsigned(floor(xfrac2));
+	y0 = unsigned(floor(yfrac2));
+	x1 = (x0 + 1) & (SUBDETAIL_SIZE-1);
+	y1 = (y0 + 1) & (SUBDETAIL_SIZE-1);
+	xfrac2 = myfrac(xfrac2);
+	yfrac2 = myfrac(yfrac2);
+	fac0 = (1.0f-xfrac2)*(1.0f-yfrac2);
+	fac1 = xfrac2*(1.0f-yfrac2);
+	fac2 = (1.0f-xfrac2)*yfrac2;
+	fac3 = xfrac2*yfrac2;
+	float h = (int(waveheight_subdetail[phase][y0 * SUBDETAIL_SIZE + x0]) - 128) * fac0;
+	h += (int(waveheight_subdetail[phase][y0 * SUBDETAIL_SIZE + x1]) - 128) * fac1;
+	h += (int(waveheight_subdetail[phase][y1 * SUBDETAIL_SIZE + x0]) - 128) * fac2;
+	h += (int(waveheight_subdetail[phase][y1 * SUBDETAIL_SIZE + x1]) - 128) * fac3;
+	coord.z += h * (1.0f/512);
 
 	// the projgrid code from Claes just maps each vertex to one pixel of a perlin noise map, so he has maximum
 	// detail without need to compute filtering. But a that's a very cheap and ugly trick.
@@ -552,6 +580,7 @@ vector3f water::compute_coord(int phase, const vector3f& xyzpos, const vector2f&
 	// fixme: gives small ripples doesn't look too good. add a noise with a more uniform
 	// height here, like perlin noise
 
+#if 0
 	// 0 <= x0,y0 < WAVE_RESOLUTION
 	// additional detail is taken from same fft values, but that's not very good (similar
 	// pattern is noticeable), so we make a phase shift (maybe some perlin noise values
@@ -563,6 +592,7 @@ vector3f water::compute_coord(int phase, const vector3f& xyzpos, const vector2f&
 	int iyf = (y0 & (tilefac-1))*rfac + int(rfac * yfrac);
 	float addh = wavetileheights[(phase+WAVE_PHASES/2)%WAVE_PHASES][ixf + iyf * WAVE_RESOLUTION] * (1.0f/rfac);
 	coord.z += addh;
+#endif
 #endif
 
 	return coord;

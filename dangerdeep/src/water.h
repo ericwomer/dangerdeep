@@ -63,6 +63,9 @@ protected:
 	mutable vector<vector3f> normals;
 	mutable vector<vector2f> uv0;
 
+	// sub detail
+	vector<vector<Uint8> > waveheight_subdetail;	// same as water bump map data
+
 	// testing: with fragment programs we need some sub-noise
 	vector<texture*> water_bumpmaps;
 

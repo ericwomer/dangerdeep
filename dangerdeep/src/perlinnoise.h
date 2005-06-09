@@ -8,8 +8,7 @@
 #define M_PI 3.1415927
 #endif
 
-typedef unsigned char Uint8;
-typedef signed char Sint8;
+#include "fixed.h"
 
 #include <stdlib.h>
 #include <vector>
@@ -31,21 +30,27 @@ public:
 	// quadratic noise
 	struct noise_func
 	{
-		vector<Sint8> data;
+		vector<Uint8> data;
 		unsigned size;		// in powers of two
 		unsigned frequency;	// 1-x
-		float phasex, phasey;
+		fixed32 phasex;
+		fixed32 phasey;
 		// create random noise function
 		noise_func(unsigned s, unsigned f, float px = 0.0f, float py = 0.0f);
+
 		// interpolate noise function value
-		Sint8 interpolate(const vector<float>& interpolation_func, float x, float y) const;
+		mutable unsigned offsetline1, offsetline2;
+		mutable fixed32 linefac1;
+		mutable fixed32 linefac2;
+		void set_line_for_interpolation(const vector<fixed32>& interpolation_func, fixed32 y) const;
+		Uint8 interpolate(const vector<fixed32>& interpolation_func, fixed32 x) const;
 	};
 
 protected:
 	vector<noise_func> noise_functions;
 	unsigned resultsize;
 
-	vector<float> interpolation_func;
+	vector<fixed32> interpolation_func;
 
 public:
 	// give size of result (power of two), size of noise function with minimal frequency and maximum frequency

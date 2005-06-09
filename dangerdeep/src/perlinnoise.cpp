@@ -8,13 +8,15 @@
 #include <sstream>
 #include <fstream>
 
+const Uint32 one = 0x10000;
+
 perlinnoise_generator::noise_func::noise_func(unsigned s, unsigned f, float px, float py)
-	: size(s), frequency(f), phasex(px), phasey(py)
+	: size(s), frequency(f), phasex(fixed32(px)), phasey(fixed32(py))
 {
 	data.resize(size*size);
 	unsigned base = rand();
 	for (unsigned i = 0; i < size * size; ++i) {
-		data[i] = Sint8(base >> 24);
+		data[i] = Uint8(base >> 24);
 		base = base * (base * 15731 + 789221) + 1376312589;
 	}
 #if 0
@@ -28,31 +30,35 @@ perlinnoise_generator::noise_func::noise_func(unsigned s, unsigned f, float px, 
 
 
 
-inline Sint8 perlinnoise_generator::noise_func::interpolate(const vector<float>& interpolation_func, float x, float y) const
+void perlinnoise_generator::noise_func::set_line_for_interpolation(const vector<fixed32>& interpolation_func, fixed32 y) const
 {
-	// map x,y to coordinates inside function (0 <= x,y < 1)
-	float bx = phasex + x;
-	float by = phasey + y;
-	bx -= floorf(bx);
-	by -= floorf(by);
+	fixed32 by = (phasey + y).frac();
 	// remap to value/subvalue coordinates
-	bx *= size * frequency;
-	by *= size * frequency;
+	by = by * (size * frequency);
 	unsigned sz1 = size - 1;
-	unsigned x1 = unsigned(bx) & sz1;
-	unsigned y1 = unsigned(by) & sz1;
+	offsetline1 = by.intpart() & sz1;
+	offsetline2 = (offsetline1 + 1) & sz1;
+	offsetline1 *= size;
+	offsetline2 *= size;
+	linefac2 = interpolation_func[(by.frac() * interpolation_func.size()).intpart()];
+	linefac1 = fixed32::one() - linefac2;
+}
+
+
+Uint8 perlinnoise_generator::noise_func::interpolate(const vector<fixed32>& interpolation_func, fixed32 x) const
+{
+	fixed32 bx = (phasex + x).frac();
+	// remap to value/subvalue coordinates
+	bx = bx * (size * frequency);
+	unsigned sz1 = size - 1;
+	unsigned x1 = bx.intpart() & sz1;
 	unsigned x2 = (x1 + 1) & sz1;
-	unsigned y2 = (y1 + 1) & sz1;
-	float xf = bx - floorf(bx);
-	float yf = by - floorf(by);
-	float a2 = interpolation_func[unsigned(interpolation_func.size()*xf)];
-	float b2 = interpolation_func[unsigned(interpolation_func.size()*yf)];
-	float a1 = 1.0f - a2;
-	float b1 = 1.0f - b2;
-	return Sint8(data[y1*size+x1] * a1 * b1 +
-		     data[y1*size+x2] * a2 * b1 +
-		     data[y2*size+x1] * a1 * b2 +
-		     data[y2*size+x2] * a2 * b2);
+	fixed32 a2 = interpolation_func[(bx.frac() * interpolation_func.size()).intpart()];
+	fixed32 a1 = fixed32::one() - a2;
+	unsigned v1 = (a1 * unsigned(data[offsetline1+x1]) + a2 * unsigned(data[offsetline1+x2])).intpart();
+	unsigned v2 = (a1 * unsigned(data[offsetline2+x1]) + a2 * unsigned(data[offsetline2+x2])).intpart();
+	unsigned res = (linefac1 * v1 + linefac2 * v2).intpart();
+	return Uint8(res);
 }
 
 
@@ -88,7 +94,7 @@ perlinnoise_generator::perlinnoise_generator(unsigned size, unsigned sizeminfreq
 		interpolation_func[i] = float(i)/res;
 */
 		float f = M_PI * float(i)/res;
-		interpolation_func[i] = (1.0f - cosf(f)) * 0.5f;
+		interpolation_func[i] = fixed32((1.0f - cosf(f)) * 0.5f);
 	}
 }
 
@@ -97,8 +103,8 @@ perlinnoise_generator::perlinnoise_generator(unsigned size, unsigned sizeminfreq
 void perlinnoise_generator::set_phase(unsigned func, float px, float py)
 {
 	if (func < noise_functions.size()) {
-		noise_functions[func].phasex = px;
-		noise_functions[func].phasey = py;
+		noise_functions[func].phasex = fixed32(px);
+		noise_functions[func].phasey = fixed32(py);
 	}
 }
 
@@ -110,15 +116,18 @@ perlinnoise perlinnoise_generator::generate_map() const
 	perlinnoise result;
 	result.size = resultsize;
 	result.noisemap.resize(resultsize * resultsize);
-	float dxy = 1.0f/resultsize;
+	fixed32 dxy = fixed32::one()/resultsize;
 	unsigned ptr = 0;
-	float fy = 0;
+	fixed32 fy;
 	for (unsigned y = 0; y < resultsize; ++y) {
-		float fx = 0;
+		for (unsigned i = 0; i < noise_functions.size(); ++i) {
+			noise_functions[i].set_line_for_interpolation(interpolation_func, fy);
+		}
+		fixed32 fx;
 		for (unsigned x = 0; x < resultsize; ++x) {
 			int sum = 0;
 			for (unsigned i = 0; i < noise_functions.size(); ++i) {
-				sum += noise_functions[i].interpolate(interpolation_func, fx, fy) >> i;
+				sum += (int(noise_functions[i].interpolate(interpolation_func, fx))-128) >> i;
 			}
 			// sum is at most around +- 207, so we multiply with 19/32, to get in in +-127 range
 			// to be sure we clamp it also.
