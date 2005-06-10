@@ -550,11 +550,13 @@ void model::material::map::setup_glmatrix() const
 
 void model::material::set_gl_values() const
 {
-	glBindProgramARB(GL_VERTEX_PROGRAM_ARB, 0);
-	glDisable(GL_VERTEX_PROGRAM_ARB);
+	if (use_shaders) {
+		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, 0);
+		glDisable(GL_VERTEX_PROGRAM_ARB);
 
-	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
-	glDisable(GL_FRAGMENT_PROGRAM_ARB);
+		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
+		glDisable(GL_FRAGMENT_PROGRAM_ARB);
+	}
 
 	glActiveTexture(GL_TEXTURE0);
 	if (colormap.get() && colormap->mytexture.get()) {
