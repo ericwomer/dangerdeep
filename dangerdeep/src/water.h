@@ -117,7 +117,6 @@ protected:
 
 	// times for generation
 	double last_wave_gen_time;
-	double last_wave_ip_gen_time;
 	double last_subdetail_gen_time;
 
 	water& operator= (const water& other);

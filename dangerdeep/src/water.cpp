@@ -152,7 +152,6 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	water_fragment_program(0),
 	png(subdetail_size, 8, subdetail_size),
 	last_wave_gen_time(tm),
-	last_wave_ip_gen_time(tm),
 	last_subdetail_gen_time(tm)
 {
 	glGenTextures(1, &reflectiontex);
@@ -163,6 +162,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	if (ry < vps)
 		for (unsigned i = 1; i < ry; i *= 2) vps = i;
 
+	sys().add_console("water rendering resolution %i x %i", xres, yres);
 	sys().add_console("wave resolution %u (%u)",wave_resolution,wave_resolution_shift);
 	sys().add_console("using subdetail: %s", wave_subdetail ? "yes" : "no");
 	sys().add_console("subdetail size %u (%u)",subdetail_size,subdetail_size_shift);
@@ -501,56 +501,30 @@ vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) co
 //return coord;
 
 	if (wave_subdetail) {
-	// fixme: try to add perlin noise as sub noise, use phase as phase shift, xfrac/yfrac as coordinate
+		// fixme: try to add perlin noise as sub noise, use phase as phase shift, xfrac/yfrac as coordinate
 #define SUBDETAIL_PER_TILE 4
-	xfrac2 = subdetail_size * myfrac(xfrac * SUBDETAIL_PER_TILE / wave_resolution);
-	yfrac2 = subdetail_size * myfrac(yfrac * SUBDETAIL_PER_TILE / wave_resolution);
-	x0 = unsigned(floor(xfrac2));
-	y0 = unsigned(floor(yfrac2));
-	x1 = (x0 + 1) & (subdetail_size-1);
-	y1 = (y0 + 1) & (subdetail_size-1);
-	xfrac2 = myfrac(xfrac2);
-	yfrac2 = myfrac(yfrac2);
-	fac0 = (1.0f-xfrac2)*(1.0f-yfrac2);
-	fac1 = xfrac2*(1.0f-yfrac2);
-	fac2 = (1.0f-xfrac2)*yfrac2;
-	fac3 = xfrac2*yfrac2;
-	FOO
-	float h = (int(waveheight_subdetail[(y0<<subdetail_size_shift) + x0]) - 128) * fac0;
-	h += (int(waveheight_subdetail[(y0<<subdetail_size_shift) + x1]) - 128) * fac1;
-	h += (int(waveheight_subdetail[(y1<<subdetail_size_shift) + x0]) - 128) * fac2;
-	h += (int(waveheight_subdetail[(y1<<subdetail_size_shift) + x1]) - 128) * fac3;
-	coord.z += h * (1.0f/512);
-	FOO
-	// the projgrid code from Claes just maps each vertex to one pixel of a perlin noise map, so he has maximum
-	// detail without need to compute filtering. But a that's a very cheap and ugly trick.
+		xfrac2 = subdetail_size * myfrac(xfrac * SUBDETAIL_PER_TILE / wave_resolution);
+		yfrac2 = subdetail_size * myfrac(yfrac * SUBDETAIL_PER_TILE / wave_resolution);
+		x0 = unsigned(floor(xfrac2));
+		y0 = unsigned(floor(yfrac2));
+		x1 = (x0 + 1) & (subdetail_size-1);
+		y1 = (y0 + 1) & (subdetail_size-1);
+		xfrac2 = myfrac(xfrac2);
+		yfrac2 = myfrac(yfrac2);
+		fac0 = (1.0f-xfrac2)*(1.0f-yfrac2);
+		fac1 = xfrac2*(1.0f-yfrac2);
+		fac2 = (1.0f-xfrac2)*yfrac2;
+		fac3 = xfrac2*yfrac2;
+		FOO
+			float h = (int(waveheight_subdetail[(y0<<subdetail_size_shift) + x0]) - 128) * fac0;
+		h += (int(waveheight_subdetail[(y0<<subdetail_size_shift) + x1]) - 128) * fac1;
+		h += (int(waveheight_subdetail[(y1<<subdetail_size_shift) + x0]) - 128) * fac2;
+		h += (int(waveheight_subdetail[(y1<<subdetail_size_shift) + x1]) - 128) * fac3;
+		coord.z += h * (1.0f/512);
+		FOO
+		// the projgrid code from Claes just maps each vertex to one pixel of a perlin noise map, so he has maximum
+		// detail without need to compute filtering. But a that's a very cheap and ugly trick.
 
-	// add some extra detail to near waves.
-	// Every rectangle between four FFT values has
-	// some extra detail. Pattern must be more chaotic to be realistic, a reapeating
-	// pattern every 2m is not good. so use x0,y0 too.
-/*
-	// old code. matches new code with tilefac = 1
-	int ixf = int(wave_resolution * xfrac), iyf = int(wave_resolution * yfrac);
-	float addh = wavetileheights[ixf+iyf*wave_resolution] * (1.0f/wave_resolution);
-	coord.z += addh;
-*/
-	// fixme: gives small ripples doesn't look too good. add a noise with a more uniform
-	// height here, like perlin noise
-
-#if 0
-	// 0 <= x0,y0 < wave_resolution
-	// additional detail is taken from same fft values, but that's not very good (similar
-	// pattern is noticeable), so we make a phase shift (maybe some perlin noise values
-	// would be better)
-	//this lookup without linear filtering leads to ripples and skinning effect. ugly! fixme
-	int tilefac = 8;//4;
-	int rfac = wave_resolution /tilefac;
-	int ixf = (x0 & (tilefac-1))*rfac + int(rfac * xfrac);
-	int iyf = (y0 & (tilefac-1))*rfac + int(rfac * yfrac);
-	float addh = wavetileheights[(phase+WAVE_PHASES/2)%WAVE_PHASES][ixf + (iyf<<wave_resolution_shift)] * (1.0f/rfac);
-	coord.z += addh;
-#endif
 	} // subdetail
 
 	return coord;
