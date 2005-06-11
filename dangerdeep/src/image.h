@@ -4,15 +4,15 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#include "texture.h"
 #include <vector>
 #include <list>
+#include <string>
+#include <SDL.h>
+
+class texture;
 
 class image
 {
-public:
-	typedef std::auto_ptr<image> ptr;
-
 protected:
 	SDL_Surface* img;
 	std::string name;	// filename

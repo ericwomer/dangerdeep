@@ -20,8 +20,9 @@ using namespace std;
 
 #include "system.h"
 #include "texture.h"
+#include "font.h"
 
-#define THROWERR
+//#define THROWERR
 
 #ifdef THROWERR
 #include <exception>
@@ -134,6 +135,7 @@ system::~system()
 {
 	myassert(instance != 0, "system destruction: system instance doesn't exist");
 	SDL_Quit();
+	write_console();
 	instance = 0;
 }
 
@@ -295,6 +297,27 @@ void system::myassert(bool cond, const char* fmt, ...)
 	vsnprintf(sprintf_tmp, 1024, fmt, args);
 	va_end(args);
 	myassert(cond, string(sprintf_tmp));
+}
+
+void system::error(const string& msg)
+{
+	if (!this) {
+		cerr << "ERROR: " << msg << "\n";
+	} else {
+		add_console(string("ERROR: ") + msg);
+		SDL_Quit();
+		write_console();
+	}
+	exit(0);
+}
+
+void system::error(const char* msg, ...)
+{
+	va_list args;
+	va_start(args, msg);
+	vsnprintf(sprintf_tmp, 1024, msg, args);
+	va_end(args);
+	error(string(sprintf_tmp));
 }
 
 void system::swap_buffers(void)

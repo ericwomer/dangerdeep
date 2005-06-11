@@ -7,6 +7,7 @@
 using namespace std;
 #include "system.h"
 #include "texts.h"
+#include "font.h"
 #include "global_data.h"
 #include "user_display.h"
 #include "user_interface.h"

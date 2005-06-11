@@ -4,13 +4,13 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
+#include <SDL.h>
 #include <queue>
 #include <list>
 #include <set>
 #include <string>
+#include <exception>
 using namespace std;
-#include "font.h"
-#include "texture.h"
 
 #ifdef WIN32
 #ifndef M_PI
@@ -25,6 +25,28 @@ using namespace std;
 #ifdef WIN32
 #define system System
 #endif
+
+// a helpful macro
+#ifdef DEBUG
+#define ASSERT(a,...) {if(!(a)){sys().error(__VA_ARGS__);}}
+#else
+#define ASSERT(a,...)
+#endif
+
+// always throw this exception or a heir of it.
+class error : public std::exception
+{
+ private:
+	error();
+	std::string msg;
+ public:
+	error(const string& s) : msg(s) {}
+	virtual ~error() throw() {}
+	const char* what() const throw() { return msg.c_str(); }
+};
+
+class font;
+class texture;
 
 class system
 {
@@ -75,6 +97,8 @@ public:
 	static inline system& sys(void) { return *instance; };
 	void myassert(bool cond, const string& msg = "");
 	void myassert(bool cond, const char* fmt, ...);
+	void error(const string& msg);
+	void error(const char* msg, ...);
 	
 	void set_screenshot_directory(const string& s) { screenshot_dir = s; }
 	void screenshot(void);

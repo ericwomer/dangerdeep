@@ -14,8 +14,8 @@ class sub_periscope_display : public freeview_display
 	projection_data get_projection_data(class game& gm) const;
 	void post_display(class game& gm) const;
 
-	image::ptr background_normallight;
-	image::ptr background_nightlight;
+	auto_ptr<image> background_normallight;
+	auto_ptr<image> background_nightlight;
 
 	vector<class texture*> compassbar_tex;
 	vector<unsigned> compassbar_width;

@@ -7,17 +7,16 @@
 #include "user_display.h"
 
 #include "texture.h"
+#include "image.h"
 #include "angle.h"
 #include <vector>
 using namespace std;
 
-class image;
-
 class sub_gauges_display : public user_display
 {
 	// pointers to images/textures of the interface
-	image::ptr controlscreen_normallight;
-	image::ptr controlscreen_nightlight;
+	auto_ptr<image> controlscreen_normallight;
+	auto_ptr<image> controlscreen_nightlight;
 
 	struct indicator {
 		texture* mytexday;

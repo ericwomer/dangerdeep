@@ -40,7 +40,8 @@ if sys.platform == 'win32':
 	libpath = [sdlbase + '\\lib', sdlimagebase + '\\lib', sdlnetbase + '\\lib', sdlmixerbase + '\\lib', fftw3base]
 	gllibs = ['opengl32', 'glu32']
 	sdllibs = ['SDL', 'SDL_image']
-	env.Append(CCFLAGS = '-Wall -O2 -D_REENTRANT') # for mingw!
+	env.Append(CPPDEFINES = ['_REENTRANT'])
+	env.Append(CCFLAGS = '-Wall -O2') # for mingw!
 	datadir = './data'
 	build_dir = 'win32'
 elif sys.platform == 'darwin':
@@ -65,10 +66,14 @@ else:
 	ccflags = '-Wall `sdl-config --cflags`'
 	if (debug >= 2):
 		ccflags += ' -g -O0'
+		env.Append(CPPDEFINES = ['DEBUG'])
 	elif (debug == 1):
 		ccflags += ' -g -O1'
+		env.Append(CPPDEFINES = ['DEBUG'])
 	elif (debug == -1):
-		ccflags += ' -g -O3 -mcpu=athlon-xp -march=athlon-xp -mfpmath=sse -mmmx -msse -m3dnow'
+		ccflags += ' -g -O3 -march=athlon-xp -march=athlon-xp -mfpmath=sse -mmmx -msse -m3dnow'
+	elif (debug == -2):	# special g++4.0+ auto vectorization
+		ccflags += ' -g -O3 -march=athlon-xp -march=athlon-xp -mfpmath=sse -mmmx -msse -m3dnow -ftree-vectorize -ftree-vectorizer-verbose=2'
 	else:
 		ccflags += ' -g -O2' # debug symbols will be stripped by the linker for a debian package
 	env.Append(CCFLAGS = ccflags)
@@ -130,10 +135,10 @@ if (devel == 0):
 	if conf.CheckLibWithHeader('fftw3f', 'fftw3.h', 'c'):
 		print 'fftw3 library supports float type. Using it...'
 		fftwlib = 'fftw3f'
-		conf.env.Append(CPPFLAGS = '-DWITH_FLOAT_FFTW')
+		conf.env.Append(CPPDEFINES = ['WITH_FLOAT_FFTW'])
 else:
 	fftwlib = 'fftw3f'
-	conf.env.Append(CPPFLAGS = '-DWITH_FLOAT_FFTW')		# developers always use float...
+	conf.env.Append(CPPDEFINES = ['WITH_FLOAT_FFTW'])	# developers always use float...
 env = conf.Finish()
 
 ######################### source file lists

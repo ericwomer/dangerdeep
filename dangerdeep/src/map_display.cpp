@@ -12,6 +12,8 @@
 #include "submarine.h"
 #include "airplane.h"
 #include "texts.h"
+#include "texture.h"
+#include "font.cpp"
 #include "keys.h"
 #include "cfg.h"
 #include <sstream>

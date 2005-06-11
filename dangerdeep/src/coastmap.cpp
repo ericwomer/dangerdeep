@@ -80,7 +80,7 @@ remaining bus:
 #if 0
 void coastline::create_points(vector<vector2>& points, float begint, float endt, int detail) const
 {
-	sys().myassert(begint < endt, "error: begint >= endt (%f %f)", begint, endt);
+	ASSERT(begint < endt, "error: begint >= endt (%f %f)", begint, endt);
 
 	// compute number of points to be generated
 	unsigned totalpts = curve.control_points().size();
@@ -287,7 +287,7 @@ void coastsegment::cacheentry::push_back_point(const vector2& p)
 	if (points.size() > 0) {
 		double d = points.back().square_distance(p);
 		if (d < 1.0f) return;//fixme test hack
-		sys().myassert(d >= 1.0f, "error: points are too close %f    %f %f  %f %f", d, points.back().x, points.back().y, p.x, p.y);
+		ASSERT(d >= 1.0f, "error: points are too close %f    %f %f  %f %f", d, points.back().x, points.back().y, p.x, p.y);
 	}
 	points.push_back(p);
 }
@@ -320,7 +320,7 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 //				cout << "segpos: x " << x << " y " << y << "\n";
 //				cout << "current is : " << current << "\n";
 			//	segcls[current].print();
-				sys().myassert(!cl_handled[current], "illegal .next values!");
+				ASSERT(!cl_handled[current], "illegal .next values!");
 
 				const segcl& cl = segcls[current];
 				ce.points.reserve(ce.points.size() + cl.points.size());
@@ -333,7 +333,7 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 //				cout << "startpos " << cl.beginpos << " endpos: " << cl.endpos << " next " << next << " next startpos: " << segcls[next].beginpos << "\n";
 //				cout << "current="<<current<<" next="<<next<<"\n";
 				cl_handled[current] = true;
-				sys().myassert(next!=-1, "next unset?");
+				ASSERT(next!=-1, "next unset?");
 				//if(current==next)break;
 				// insert corners if needed
 				if (!cl.cyclic) {
@@ -611,8 +611,8 @@ void coastsegment::compute_successor_for_cl(unsigned cln)
 
 	// only if not already set (already set for islands contained in segments)
 	if (scl0.next == -1) {
-		//sys().myassert(scl0.beginpos >= 0, "paranoia bp1");
-		//sys().myassert(scl0.endpos >= 0, "paranoia ep1");
+		//ASSERT(scl0.beginpos >= 0, "paranoia bp1");
+		//ASSERT(scl0.endpos >= 0, "paranoia ep1");
 
 		// when we use <= below this must be enabled. it doesn't help though.
 		//if (scl0.endpos == scl0.beginpos) { scl0.next = cln; return; } // fix test hack fixme
@@ -641,7 +641,7 @@ void coastsegment::compute_successor_for_cl(unsigned cln)
 			}
 		}
 
-		sys().myassert(scl0.next != -1, "no successor found!");
+		ASSERT(scl0.next != -1, "no successor found!");
 	}
 }
 
@@ -651,13 +651,13 @@ void coastsegment::push_back_segcl(const segcl& scl)
 {
 	if (scl.beginpos < 0) {
 //		scl.print();
-		sys().myassert(scl.cyclic, "begin < -1 but not cyclic");
-		sys().myassert(scl.endpos < 0, "begin < -1, but not end");
+		ASSERT(scl.cyclic, "begin < -1 but not cyclic");
+		ASSERT(scl.endpos < 0, "begin < -1, but not end");
 	}
 	if (scl.endpos < 0) {
 //		scl.print();
-		sys().myassert(scl.cyclic, "end < -1 but not cyclic");
-		sys().myassert(scl.beginpos < 0, "end < -1, but not begin");
+		ASSERT(scl.cyclic, "end < -1 but not cyclic");
+		ASSERT(scl.beginpos < 0, "end < -1, but not begin");
 	}
 	if (scl.points.size() >= 2)
 		segcls.push_back(scl);
@@ -697,7 +697,7 @@ bool coastmap::find_begin_of_coastline(int& x, int& y)
 		}
 
 		if (olddir == -1)
-			sys().myassert(pattern != 5 && pattern != 10, "illegal start pattern! at %i %i",x,y);
+			ASSERT(pattern != 5 && pattern != 10, "illegal start pattern! at %i %i",x,y);
 
 		if (patternprocessok[pattern] && (x % pixels_per_seg == 0 || y % pixels_per_seg == 0)) {
 			lastborder_x = x;
@@ -710,19 +710,19 @@ bool coastmap::find_begin_of_coastline(int& x, int& y)
 			// #.
 			// .#
 			// direction: only 1,3 valid. 0->1, 2->3
-			sys().myassert(olddir == 0 || olddir == 2, "olddir illegal 1 (%i)",olddir);
+			ASSERT(olddir == 0 || olddir == 2, "olddir illegal 1 (%i)",olddir);
 			dir = olddir + 1;
 		} else if (pattern == 5) {
 			// check pattern:
 			// .#
 			// #.
 			// direction: only 0,2 valid. 3->0, 1->2
-			sys().myassert(olddir == 3 || olddir == 1, "olddir illegal 2 (%i)",olddir);
+			ASSERT(olddir == 3 || olddir == 1, "olddir illegal 2 (%i)",olddir);
 			dir = (olddir + 1) % 4;
 		} else {
 			// check other patterns:
 			dir = runlandright[pattern];
-			sys().myassert(dir != -1, "dir illegal 1");
+			ASSERT(dir != -1, "dir illegal 1");
 		}
 		olddir = dir;
 
@@ -730,7 +730,7 @@ bool coastmap::find_begin_of_coastline(int& x, int& y)
 		int ny = y + dy[dir];
 		// if we left the border, stop search.
 		if (nx < 0 || ny < 0 || nx > int(mapw) || ny > int(maph)) {
-			sys().myassert(pattern != 5 && pattern != 10, "illegal start pattern!3");
+			ASSERT(pattern != 5 && pattern != 10, "illegal start pattern!3");
 			break;
 		}
 		x = nx;
@@ -742,7 +742,7 @@ bool coastmap::find_begin_of_coastline(int& x, int& y)
 				y = lastborder_y;
 			}
 			// kann +- 3 sein, wenn knick auf startpunkt
-			//sys().myassert(turncount == 4 || turncount == -4, "island but turn count != +-4? %i", turncount);
+			//ASSERT(turncount == 4 || turncount == -4, "island but turn count != +-4? %i", turncount);
 //			printf("reported island/lake found at %i %i\n",x,y);
 			return true;	// island found
 		}
@@ -760,7 +760,7 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 	// In reality: north pole, ice, America to the west, Asia/africa to the east.
 	// generate points in ccw order, that means land is left, sea is right.
 
-//	sys().myassert((mapf(x, y) & 0x80) == 0);
+//	ASSERT((mapf(x, y) & 0x80) == 0);
 	
 	cyclic = find_begin_of_coastline(x, y);
 
@@ -782,32 +782,32 @@ bool coastmap::find_coastline(int x, int y, vector<vector2i>& points, bool& cycl
 		}
 
 		if (olddir == -1)
-			sys().myassert(pattern != 5 && pattern != 10, "illegal start pattern!2");
+			ASSERT(pattern != 5 && pattern != 10, "illegal start pattern!2");
 
 		if (pattern == 10) {
 			// check pattern:
 			// #.
 			// .#
 			// direction: only 0,2 valid. 1->0, 3->2
-			sys().myassert(olddir == 1 || olddir == 3, "olddir illegal 3 (%i)",olddir);
+			ASSERT(olddir == 1 || olddir == 3, "olddir illegal 3 (%i)",olddir);
 			dir = olddir - 1;
 		} else if (pattern == 5) {
 			// check pattern:
 			// .#
 			// #.
 			// direction: only 1,3 valid. 2->1, 0->3
-			sys().myassert(olddir == 2 || olddir == 0, "olddir illegal 4 (%i)",olddir);
+			ASSERT(olddir == 2 || olddir == 0, "olddir illegal 4 (%i)",olddir);
 			dir = (olddir + 3) % 4;
 		} else {
 			// check other patterns:
 			dir = runlandleft[pattern];
-			sys().myassert(dir != -1, "dir illegal 2");
+			ASSERT(dir != -1, "dir illegal 2");
 		}
 
 		// turncount
 		if (olddir != -1) {
 			int t = (dir - olddir + 4) % 4;
-			sys().myassert(t != 2, "no 180 degree turns allowed!");
+			ASSERT(t != 2, "no 180 degree turns allowed!");
 			if (t == 3) t = -1;
 			// positive values are ccw turns.
 			turncount += t;
@@ -863,8 +863,8 @@ vector2i coastmap::compute_segment(const vector2i& p0, const vector2i& p1) const
 			break;
 			// in other cases (1, 2) segment is the same
 		}
-		sys().myassert(segnum0.x < segsx, "segnum0.x out of bounds");
-		sys().myassert(segnum0.y < segsy, "segnum0.y out of bounds");
+		ASSERT(segnum0.x < segsx, "segnum0.x out of bounds");
+		ASSERT(segnum0.y < segsy, "segnum0.y out of bounds");
 		return segnum0;
 	} else {
 		// on an edge, it can be the left or bottom edge
@@ -883,8 +883,8 @@ vector2i coastmap::compute_segment(const vector2i& p0, const vector2i& p1) const
 				--segnum0.y;
 			}
 		}
-		sys().myassert(segnum0.x < segsx, "segnum0.x out of bounds");
-		sys().myassert(segnum0.y < segsy, "segnum0.y out of bounds");
+		ASSERT(segnum0.x < segsx, "segnum0.x out of bounds");
+		ASSERT(segnum0.y < segsy, "segnum0.y out of bounds");
 		return segnum0;
 	}
 }
@@ -893,7 +893,7 @@ vector2i coastmap::compute_segment(const vector2i& p0, const vector2i& p1) const
 
 void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcyclic)
 {
-	sys().myassert(cl.size() >= 2, "div and distri with < 2?");
+	ASSERT(cl.size() >= 2, "div and distri with < 2?");
 
 	coastsegment::segcl scl(global_clnr);
 
@@ -944,7 +944,7 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 					int newsegcn = segc.y * segsx + segc.x;
 					if (newsegcn != segcn) {
 						scl.endpos = borderpos(ps0);
-						sys().myassert(scl.endpos != -1, "borderpos check2a");
+						ASSERT(scl.endpos != -1, "borderpos check2a");
 						coastsegments[segcn].push_back_segcl(scl);
 						segcn = newsegcn;
 						sameseg = false;
@@ -959,7 +959,7 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 					}
 				} else {
 					scl.endpos = borderpos(ps0);
-					sys().myassert(scl.endpos != -1, "borderpos check2b");
+					ASSERT(scl.endpos != -1, "borderpos check2b");
 					coastsegments[segcn].push_back_segcl(scl);
 				}
 				++i; // continue from p1 on.
@@ -994,12 +994,12 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 			}
 //			cout << "mint "<< mint<<" border "<<border <<"\n";
 //			cout << "p0: " << p0 << " p1 " << p1 << " dekta " << delta << "\n";
-			sys().myassert(border != -1, "paranoia mint");
+			ASSERT(border != -1, "paranoia mint");
 			vector2i p2 = vector2i(int(round(p0.x + mint * delta.x)), int(round(p0.y + mint * delta.y)));
 //			cout << "p2 real " << double(p0.x) + mint * delta.x << "," << double(p0.y) + mint * delta.y << "\n";
 			vector2i rel = p2 - segoff;
 			coastsegment::segpos ps2((unsigned short)rel.x, (unsigned short)rel.y);
-			sys().myassert(ps2.x == 0 || ps2.x == SEGSCALE || ps2.y == 0 || ps2.y == SEGSCALE, "paranoia border");
+			ASSERT(ps2.x == 0 || ps2.x == SEGSCALE || ps2.y == 0 || ps2.y == SEGSCALE, "paranoia border");
 			// if p1 is on a border/corner this should be handled correctly
 			// by avoiding segcls with < 2 points.
 			// if the segcl comes from seg x and leaves to y, but touches also segs
@@ -1007,7 +1007,7 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 			// segcl in y. w/z's segcls will get discarded later. So everything is right
 			scl.push_back_point(ps2);
 			scl.endpos = borderpos(ps2);
-			sys().myassert(scl.endpos != -1, "borderpos check3");
+			ASSERT(scl.endpos != -1, "borderpos check3");
 			coastsegments[segcn].push_back_segcl(scl);
 			// now switch to new segment if there are lines left
 			if (i + 1 < cl.size()) {
@@ -1029,7 +1029,7 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 
 	// store segcls that are completely in a segment
 	if (sameseg) {
-		sys().myassert(scl.points.size() >= 2, "less than 2 points for island???");
+		ASSERT(scl.points.size() >= 2, "less than 2 points for island???");
 		scl.endpos = borderpos(ps0);
 		scl.cyclic = clcyclic;
 		if (clcyclic) scl.beginpos = scl.endpos = -1;
@@ -1042,7 +1042,7 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 
 void coastmap::process_coastline(int x, int y)
 {
-	sys().myassert ((mapf(x, y) & 0x80) == 0, "map pos already handled!");
+	ASSERT ((mapf(x, y) & 0x80) == 0, "map pos already handled!");
 	
 	// find coastline, avoid "lakes", (inverse of islands), because the triangulation will fault there
 	vector<vector2i> points;
@@ -1075,7 +1075,7 @@ void coastmap::process_coastline(int x, int y)
 		// that as start point.
 		// That way we have three points a,b,c or a,ab',b or b,bc',c that form a line,
 		// the bspline is tangential to that line at begin and end, so the bspline is smooth there.
-		sys().myassert(points.size()>2, "points size < 2?");
+		ASSERT(points.size()>2, "points size < 2?");
 		vector2i a = points.back();
 		vector2i b = points[0];
 		vector2i c = points[1];
@@ -1091,7 +1091,7 @@ void coastmap::process_coastline(int x, int y)
 				tmp.push_back(ab);
 //				cout << "a " << a << " b " << b << " c " << c << " ab " << ab << "\n";
 			} else {
-//				sys().myassert(c.x % pixels_per_seg == 0 || c.y % pixels_per_seg == 0, "neither a nor c are on a border?");
+//				ASSERT(c.x % pixels_per_seg == 0 || c.y % pixels_per_seg == 0, "neither a nor c are on a border?");
 				// c is on border, or this is an island without any border contact.
 				vector2 b2, c2; b2.assign(b); c2.assign(c);
 				vector2 bc = (b2 + c2) * 0.5;
@@ -1122,7 +1122,7 @@ void coastmap::process_coastline(int x, int y)
 
 	// smooth points will be scaled so that each segment is (2^16)-1 units long.
 	unsigned nrpts = unsigned(tmp.size() * BSPLINE_DETAIL);
-	sys().myassert(nrpts >= 2, " nrpts < 2?");
+	ASSERT(nrpts >= 2, " nrpts < 2?");
 	tmp.clear();
 	vector<vector2i> spoints;
 	spoints.reserve(nrpts);
@@ -1168,9 +1168,9 @@ void coastmap::process_segment(int sx, int sy)
 				if (cl1.cyclic) continue;
 				if (cl0.global_clnr != cl1.global_clnr) continue; // also avoids erased segs.
 				if (cl0.endpos == cl1.beginpos) {
-					sys().myassert(cl0.endpos != -1, "strange paranoia cl0endpos");
-					sys().myassert(cl0.next == -1, "strange paranoia1 next != -1");
-					sys().myassert(cl1.next == -1, "strange paranoia2 next != -1");
+					ASSERT(cl0.endpos != -1, "strange paranoia cl0endpos");
+					ASSERT(cl0.next == -1, "strange paranoia1 next != -1");
+					ASSERT(cl1.next == -1, "strange paranoia2 next != -1");
 					//connect the segcls.
 					cl0.points.insert(cl0.points.end(), ++cl1.points.begin(), cl1.points.end());
 //					cl0.points += cl1.points;
@@ -1191,7 +1191,7 @@ void coastmap::process_segment(int sx, int sy)
 				if (scl.global_clnr != -1) {
 					// not erased, keep it.
 					if (scl.next != -1) {
-						sys().myassert(scl.next == i, "next paranoia");
+						ASSERT(scl.next == i, "next paranoia");
 						scl.next = j;
 					}
 					segcls_new.push_back(scl);
@@ -1236,7 +1236,7 @@ unsigned coastmap::quadrant(const vector2i& d)
 		} else if (d.y > 0) {
 			return 0;
 		} else {
-			sys().myassert(false, "quadrant called with 0!");
+			ASSERT(false, "quadrant called with 0!");
 			return 8;
 		}
 	}
@@ -1268,14 +1268,14 @@ coastmap::coastmap(const string& filename)
 	TiXmlDocument doc(filename);
 	doc.LoadFile();
 	TiXmlElement* root = doc.FirstChildElement("dftd-map");
-	sys().myassert(root != 0, string("coastmap: no root element found in ") + filename);
+	ASSERT(root != 0, string("coastmap: no root element found in ") + filename);
 	TiXmlElement* etopology = root->FirstChildElement("topology");
-	sys().myassert(etopology != 0, string("coastmap: no topology node found in ") + filename);
+	ASSERT(etopology != 0, string("coastmap: no topology node found in ") + filename);
 	const char* img = etopology->Attribute("image");
-	sys().myassert(img != 0, string("coastmap: no image attribute found in ") + filename);
+	ASSERT(img != 0, string("coastmap: no image attribute found in ") + filename);
 	realwidth = 0;
 	etopology->Attribute("realwidth", &realwidth);
-	sys().myassert(realwidth != 0, string("coastmap: realwidth not given or zero in ") + filename);
+	ASSERT(realwidth != 0, string("coastmap: realwidth not given or zero in ") + filename);
 	etopology->Attribute("realoffsetx", &realoffset.x);
 	etopology->Attribute("realoffsety", &realoffset.y);
 	TiXmlElement* ecities = root->FirstChildElement("cities");
@@ -1288,7 +1288,7 @@ coastmap::coastmap(const string& filename)
 
 	SDL_Surface* surf = IMG_Load((get_map_dir() + img).c_str());
 	add_loading_screen("map image loaded");
-	sys().myassert(surf != 0, string("coastmap: error loading image ") + img + string(" referenced in file ") + filename);
+	ASSERT(surf != 0, string("coastmap: error loading image ") + img + string(" referenced in file ") + filename);
 
 	mapw = surf->w;
 	maph = surf->h;
@@ -1298,12 +1298,12 @@ coastmap::coastmap(const string& filename)
 	segsx = mapw/pixels_per_seg;
 	segsy = maph/pixels_per_seg;
 	segw_real = pixelw_real * pixels_per_seg;
-	sys().myassert((segsx*pixels_per_seg == mapw) && (segsy*pixels_per_seg == maph), string("coastmap: map size must be integer multiple of segment size, in") + filename);
+	ASSERT((segsx*pixels_per_seg == mapw) && (segsy*pixels_per_seg == maph), string("coastmap: map size must be integer multiple of segment size, in") + filename);
 
 	themap.resize(mapw*maph);
 
 	SDL_LockSurface(surf);
-	sys().myassert(surf->format->BytesPerPixel == 1 && surf->format->palette != 0 && surf->format->palette->ncolors == 2, string("coastmap: image is no black/white 1bpp paletted image, in ") + filename);
+	ASSERT(surf->format->BytesPerPixel == 1 && surf->format->palette != 0 && surf->format->palette->ncolors == 2, string("coastmap: image is no black/white 1bpp paletted image, in ") + filename);
 
 	Uint8* offset = (Uint8*)(surf->pixels);
 	int mapoffy = maph*mapw;

@@ -25,6 +25,7 @@ using namespace std;
 #include "font.h"
 #include "texts.h"
 #include "image.h"
+#include "texture.h"
 #include "user_interface.h"
 
 #define NUMBER_OF_LINES		27

@@ -2,6 +2,7 @@
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
 #include "font.h"
+#include "texture.h"
 #include "system.h"
 #include "oglext/OglExt.h"
 #include <SDL.h>
@@ -9,6 +10,11 @@
 #include <sstream>
 #include <fstream>
 using namespace std;
+
+font::character::~character()
+{
+	delete tex;
+}
 
 void font::print_text(int x, int y, const string& text, bool ignore_colors) const
 {
@@ -73,8 +79,11 @@ font::font(const string& basefilename, unsigned char_spacing)
 	metricfile >> base_height;
 	metricfile >> first_char;
 	metricfile >> last_char;
+	printf("%s baseh %u fc %u lc %u\n",basefilename.c_str(),base_height,first_char,last_char);
 	characters.resize(last_char-first_char+1);
 	for (unsigned i = first_char; i <= last_char; ++i) {
+		if (!metricfile.good())
+			throw error(string("error reading font metricfile for ")+basefilename);
 		metricfile >> characters[i-first_char].width;
 		metricfile >> characters[i-first_char].height;
 		metricfile >> characters[i-first_char].left;
@@ -97,11 +106,13 @@ font::font(const string& basefilename, unsigned char_spacing)
 
 	// load image
 	SDL_Surface* fontimage = IMG_Load((basefilename + ".png").c_str());
-	sys().myassert(fontimage != 0, string("font: failed to open ")+basefilename);
+	if (!fontimage)
+		throw error(string("font: failed to open ")+basefilename);
 
 	// process image data, create textures
 	SDL_LockSurface(fontimage);
-	sys().myassert(fontimage->format->BytesPerPixel == 1, string("font: only grayscale images are supported! font ")+basefilename);
+	if (fontimage->format->BytesPerPixel != 1)
+		throw error(string("font: only grayscale images are supported! font ")+basefilename);
 
 	for (unsigned i = 0; i < characters.size(); i++) {
 		character& c = characters[i];

@@ -170,7 +170,7 @@ void ocean_wave_generator<T>::compute_htilde(T time)
 }
 
 template <class T>
-ocean_wave_generator<T>::ocean_wave_generator<T>(
+ocean_wave_generator<T>::ocean_wave_generator(
 		int gridsize,
 		const vector2t<T>& winddir,
 		T windspeed,
@@ -192,7 +192,7 @@ ocean_wave_generator<T>::ocean_wave_generator<T>(
 }
 
 template <class T>
-ocean_wave_generator<T>::ocean_wave_generator<T>(const ocean_wave_generator<T>& owg, int gridsize)
+ocean_wave_generator<T>::ocean_wave_generator(const ocean_wave_generator<T>& owg, int gridsize)
 	: N(gridsize <= owg.N ? gridsize : owg.N), W(owg.W), v(owg.v), a(owg.a), Lm(owg.Lm), w0(owg.w0)
 {
 	h0tilde.resize((N+1)*(N+1));
@@ -310,11 +310,12 @@ void ocean_wave_generator<T>::compute_normals(vector<vector3t<T> >& wavenormals)
 	if (wavenormals.size() != N*N)
 		wavenormals.resize(N*N);
 	T signs[2] = { T(1), T(-1) };
-	typename vector<vector3t<T> >::iterator it = wavenormals.begin();
+	unsigned ptr = 0;
 	for (int y = 0; y < N; ++y) {
 		for (int x = 0; x < N; ++x) {
 			T s = signs[(x + y) & 1];
-			*it++ = vector3t<T>(-fft_out[ptr] * s, -fft_out2[ptr] * s, T(1)).normal();
+			wavenormals[ptr] = vector3t<T>(-fft_out[ptr] * s, -fft_out2[ptr] * s, T(1)).normal();
+			++ptr;
 		}
 	}
 }

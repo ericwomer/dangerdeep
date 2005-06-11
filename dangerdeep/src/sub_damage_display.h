@@ -5,7 +5,7 @@
 #define SUB_DAMAGE_DISPLAY_H
 
 #include "user_display.h"
-
+#include "texture.h"
 #include "vector3.h"
 #include "submarine.h"
 #include <vector>

@@ -9,10 +9,10 @@
 #include <vector>
 #include <string>
 using namespace std;
-#include "texture.h"
 #include "color.h"
 
 
+class texture;
 
 class font
 {
@@ -20,10 +20,10 @@ private:
 	struct character {
 		unsigned width, height;	// real width/height
 		int left;	// offset
-		unsigned top;	// offset
+		int top;	// offset
 		texture* tex;
 		character() : width(0), height(0), left(0), top(0), tex(0) {}
-		~character() { delete tex; }
+		~character();
 	};
 	font() {};
 	font& operator=(const font& other);

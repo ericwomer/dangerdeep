@@ -9,6 +9,7 @@ using namespace std;
 #include "model.h"
 #include "texts.h"
 #include "game.h"
+#include "font.h"
 #include "global_data.h"
 #include "ships_sunk_display.h"
 #include "user_interface.h"

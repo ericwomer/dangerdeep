@@ -4,14 +4,15 @@
 #ifndef SUB_CONTROL_POPUP_H
 #define SUB_CONTROL_POPUP_H
 
+#include <memory>
 #include "user_popup.h"
 #include "image.h"
 
 class sub_control_popup : public user_popup
 {
 protected:
-	image::ptr background_daylight;
-	image::ptr background_nightlight;
+	std::auto_ptr<image> background_daylight;
+	std::auto_ptr<image> background_nightlight;
 
 public:
 	sub_control_popup(class user_interface& ui_);

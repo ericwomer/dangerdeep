@@ -14,8 +14,8 @@ sub_tdc_popup::sub_tdc_popup(user_interface& ui_) : user_popup(ui_)
 {
 	x = 9;
 	y = 151;
-	background_daylight = image::ptr(new image(get_image_dir() + "popup_control_daylight.png"));
-	background_nightlight = image::ptr(new image(get_image_dir() + "popup_control_redlight.png"));
+	background_daylight.reset(new image(get_image_dir() + "popup_control_daylight.png"));
+	background_nightlight.reset(new image(get_image_dir() + "popup_control_redlight.png"));
 }
 
 

@@ -4,14 +4,15 @@
 #ifndef SUB_TDC_POPUP_H
 #define SUB_TDC_POPUP_H
 
+#include <memory>
 #include "user_popup.h"
 #include "image.h"
 
 class sub_tdc_popup : public user_popup
 {
 protected:
-	image::ptr background_daylight;
-	image::ptr background_nightlight;
+	std::auto_ptr<image> background_daylight;
+	std::auto_ptr<image> background_nightlight;
 
 public:
 	sub_tdc_popup(class user_interface& ui_);

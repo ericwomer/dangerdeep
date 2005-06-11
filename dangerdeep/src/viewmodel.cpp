@@ -14,6 +14,7 @@
 #include "system.h"
 #include "vector3.h"
 #include "global_data.h"
+#include "font.h"
 #include "model.h"
 #include "texture.h"
 #include <iostream>

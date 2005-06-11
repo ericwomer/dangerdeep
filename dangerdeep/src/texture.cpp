@@ -13,7 +13,7 @@
 
 #include <SDL.h>
 #include <SDL_image.h>
-
+#include "vector3.h"
 #include "texture.h"
 #include <vector>
 #include <iostream>

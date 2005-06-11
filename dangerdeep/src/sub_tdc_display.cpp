@@ -61,8 +61,8 @@ sub_tdc_display::sub_tdc_display(user_interface& ui_) : user_display(ui_)
 	selected_tube = 0;
 	selected_mode = 0;
 
-	normallight.background = image::ptr(new image(get_image_dir() + "TDC_daylight_base.png"));
-	nightlight.background = image::ptr(new image(get_image_dir() + "TDC_redlight_base.png"));
+	normallight.background.reset(new image(get_image_dir() + "TDC_daylight_base.png"));
+	nightlight.background.reset(new image(get_image_dir() + "TDC_redlight_base.png"));
 
 	//fixme: recheck layer coords for clock,target*,spreadangle,torpspeed for redlight!
 	//fixme: what is with target position external pointer?

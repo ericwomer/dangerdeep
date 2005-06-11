@@ -25,7 +25,7 @@ class sub_tdc_display : public user_display
 
 	class scheme {
 	public:
-		image::ptr background;
+		auto_ptr<image> background;
 		rotat_tex clockbig;
 		rotat_tex clocksml;
 		rotat_tex targetcourse;

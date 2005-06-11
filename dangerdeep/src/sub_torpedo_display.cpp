@@ -5,6 +5,7 @@
 #include "image.h"
 #include "texture.h"
 #include "game.h"
+#include "font.h"
 #include "sub_torpedo_display.h"
 #include "texts.h"
 #include "user_interface.h"

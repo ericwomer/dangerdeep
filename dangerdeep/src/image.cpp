@@ -2,6 +2,7 @@
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
 #include "image.h"
+#include "texture.h"
 #include "system.h"
 #include "oglext/OglExt.h"
 #include <SDL_image.h>
