@@ -25,7 +25,6 @@
 //solution: check bugs, use perlin noise for sub detail, not fft, especially noise with
 //low variation of values, i.e. ripples/waves with roughly the same height not large waves and small
 //waves as with fft.
-#define WAVE_SUB_DETAIL		// sub fft detail
 
 // for testing
 //#define DRAW_WATER_AS_GRID
@@ -33,7 +32,6 @@
 // some more interesting values: phase 256, facesperwave 64+,
 // wavelength 256+,
 #define WAVE_PHASES 256		// no. of phases for wave animation
-#define WAVE_RESOLUTION 128//64	// FFT resolution
 #define WAVE_LENGTH 128.0	// in meters, total length of one wave tile, fixme with heigher values (>= 512) waves look
                                 // MUCH more realistic. especially with longer times and dynamic computation waves could
                                 // become much nicer. noise can be used for the smaller detail in the near then.
@@ -46,10 +44,8 @@
 #define FRESNEL_FCT_RES 256
 #define WATER_BUMP_DETAIL_HEIGHT 4.0
 
-#define SUBDETAIL_SIZE 128
-
-#define WAVE_FPS 25
-#define SUBDETAIL_FPS 15
+#define WAVE_TILE_GEN_TIME 0.04		// 25fps
+#define SUBDETAIL_GEN_TIME 0.066667	// 15fps
 
 /*
 	2004/05/06
@@ -135,18 +131,29 @@ not.
 */
 
 water::water(unsigned xres_, unsigned yres_, double tm) :
-	mytime(tm), xres(xres_), yres(yres_), reflectiontex(0),
+	mytime(tm),
+	xres(xres_),
+	yres(yres_),
+	wavetileheights(3),//3 phases needed
+	wavetiledisplacements(3),//3 phases needed
+	reflectiontex(0),
 	last_light_brightness(-10000),
-	owg(WAVE_RESOLUTION, vector2f(1,1), 20 /*10*/ /*31*/, 2e-6 /* 5e-6 */, WAVE_LENGTH, TIDECYCLE_TIME),
+	wave_resolution(nextgteqpow2(cfg::instance().geti("wave_fft_res"))),
+	wave_resolution_shift(ulog2(wave_resolution)),
+	wave_subdetail(cfg::instance().getb("wave_subdetail")),
+	subdetail_size(cfg::instance().geti("wave_subdetail_size")),
+	subdetail_size_shift(ulog2(subdetail_size)),
+	owg(wave_resolution, vector2f(1,1), 20 /*10*/ /*31*/, 2e-6 /* 5e-6 */, WAVE_LENGTH, TIDECYCLE_TIME),
 	vertex_program_supported(false),
 	fragment_program_supported(false),
 	compiled_vertex_arrays_supported(false),
 	use_shaders(false),
 	water_vertex_program(0),
 	water_fragment_program(0),
-	png(SUBDETAIL_SIZE, 8, SUBDETAIL_SIZE),
-	last_wave_gen_time(-1e10),
-	last_subdetail_gen_time(-1e10)
+	png(subdetail_size, 8, subdetail_size),
+	last_wave_gen_time(tm),
+	last_wave_ip_gen_time(tm),
+	last_subdetail_gen_time(tm)
 {
 	glGenTextures(1, &reflectiontex);
 	glBindTexture(GL_TEXTURE_2D, reflectiontex);
@@ -155,6 +162,10 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	unsigned vps = texture::get_max_size();
 	if (ry < vps)
 		for (unsigned i = 1; i < ry; i *= 2) vps = i;
+
+	sys().add_console("wave resolution %u (%u)",wave_resolution,wave_resolution_shift);
+	sys().add_console("using subdetail: %s", wave_subdetail ? "yes" : "no");
+	sys().add_console("subdetail size %u (%u)",subdetail_size,subdetail_size_shift);
 
 	vertex_program_supported = sys().extension_supported("GL_ARB_vertex_program");
 	fragment_program_supported = sys().extension_supported("GL_ARB_fragment_program");
@@ -442,20 +453,28 @@ void water::cleanup_textures(void) const
 
 
 //function is nearly the same as get_height, it just adds extra detail
+#define FOO {}
+//#define FOO foo();
+extern void foo();
 vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) const
 {
+//	return xyzpos;//fixme
+
+	FOO
 	// generate values with mipmap function (needs viewer pos.)
-	float xfrac = myfrac(float((xyzpos.x + transl.x) / WAVE_LENGTH)) * WAVE_RESOLUTION;
-	float yfrac = myfrac(float((xyzpos.y + transl.y) / WAVE_LENGTH)) * WAVE_RESOLUTION;
+	float xfrac = myfrac(float((xyzpos.x + transl.x) / WAVE_LENGTH)) * wave_resolution;
+	float yfrac = myfrac(float((xyzpos.y + transl.y) / WAVE_LENGTH)) * wave_resolution;
 	unsigned x0 = unsigned(floor(xfrac));
 	unsigned y0 = unsigned(floor(yfrac));
-	unsigned x1 = (x0 + 1) & (WAVE_RESOLUTION-1);
-	unsigned y1 = (y0 + 1) & (WAVE_RESOLUTION-1);
+	unsigned x1 = (x0 + 1) & (wave_resolution-1);
+	unsigned y1 = (y0 + 1) & (wave_resolution-1);
 	float xfrac2 = myfrac(xfrac);
 	float yfrac2 = myfrac(yfrac);
-	unsigned i0 = x0+y0*WAVE_RESOLUTION, i1 = x1+y0*WAVE_RESOLUTION, i2 = x0+y1*WAVE_RESOLUTION,
-		i3 = x1+y1*WAVE_RESOLUTION;
-
+	unsigned i0 = x0 + (y0 << wave_resolution_shift);
+	unsigned i1 = x1 + (y0 << wave_resolution_shift);
+	unsigned i2 = x0 + (y1 << wave_resolution_shift);
+	unsigned i3 = x1 + (y1 << wave_resolution_shift);
+	FOO
 	// z distance (for triliniar filtering) is constant along one projected grid line
 	// so compute it per line. BUT ONLY FOR OLD RECTANGLULAR WATER PATCH CODE
 	// if mipmap level is < 0, we may add some extra detail (noise)
@@ -472,33 +491,37 @@ vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) co
 	vector3f cb(wavetiledisplacements[i1].x, wavetiledisplacements[i1].y, wavetileheights[i1]);
 	vector3f cc(wavetiledisplacements[i2].x, wavetiledisplacements[i2].y, wavetileheights[i2]);
 	vector3f cd(wavetiledisplacements[i3].x, wavetiledisplacements[i3].y, wavetileheights[i3]);
+	FOO
 	float fac0 = (1.0f-xfrac2)*(1.0f-yfrac2);
 	float fac1 = xfrac2*(1.0f-yfrac2);
 	float fac2 = (1.0f-xfrac2)*yfrac2;
 	float fac3 = xfrac2*yfrac2;
 	vector3f coord = (ca*fac0 + cb*fac1 + cc*fac2 + cd*fac3) + xyzpos;
+	FOO
+//return coord;
 
-#ifdef WAVE_SUB_DETAIL
+	if (wave_subdetail) {
 	// fixme: try to add perlin noise as sub noise, use phase as phase shift, xfrac/yfrac as coordinate
 #define SUBDETAIL_PER_TILE 4
-	xfrac2 = SUBDETAIL_SIZE * myfrac(xfrac * SUBDETAIL_PER_TILE / WAVE_RESOLUTION);
-	yfrac2 = SUBDETAIL_SIZE * myfrac(yfrac * SUBDETAIL_PER_TILE / WAVE_RESOLUTION);
+	xfrac2 = subdetail_size * myfrac(xfrac * SUBDETAIL_PER_TILE / wave_resolution);
+	yfrac2 = subdetail_size * myfrac(yfrac * SUBDETAIL_PER_TILE / wave_resolution);
 	x0 = unsigned(floor(xfrac2));
 	y0 = unsigned(floor(yfrac2));
-	x1 = (x0 + 1) & (SUBDETAIL_SIZE-1);
-	y1 = (y0 + 1) & (SUBDETAIL_SIZE-1);
+	x1 = (x0 + 1) & (subdetail_size-1);
+	y1 = (y0 + 1) & (subdetail_size-1);
 	xfrac2 = myfrac(xfrac2);
 	yfrac2 = myfrac(yfrac2);
 	fac0 = (1.0f-xfrac2)*(1.0f-yfrac2);
 	fac1 = xfrac2*(1.0f-yfrac2);
 	fac2 = (1.0f-xfrac2)*yfrac2;
 	fac3 = xfrac2*yfrac2;
-	float h = (int(waveheight_subdetail[y0 * SUBDETAIL_SIZE + x0]) - 128) * fac0;
-	h += (int(waveheight_subdetail[y0 * SUBDETAIL_SIZE + x1]) - 128) * fac1;
-	h += (int(waveheight_subdetail[y1 * SUBDETAIL_SIZE + x0]) - 128) * fac2;
-	h += (int(waveheight_subdetail[y1 * SUBDETAIL_SIZE + x1]) - 128) * fac3;
+	FOO
+	float h = (int(waveheight_subdetail[(y0<<subdetail_size_shift) + x0]) - 128) * fac0;
+	h += (int(waveheight_subdetail[(y0<<subdetail_size_shift) + x1]) - 128) * fac1;
+	h += (int(waveheight_subdetail[(y1<<subdetail_size_shift) + x0]) - 128) * fac2;
+	h += (int(waveheight_subdetail[(y1<<subdetail_size_shift) + x1]) - 128) * fac3;
 	coord.z += h * (1.0f/512);
-
+	FOO
 	// the projgrid code from Claes just maps each vertex to one pixel of a perlin noise map, so he has maximum
 	// detail without need to compute filtering. But a that's a very cheap and ugly trick.
 
@@ -508,27 +531,27 @@ vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) co
 	// pattern every 2m is not good. so use x0,y0 too.
 /*
 	// old code. matches new code with tilefac = 1
-	int ixf = int(WAVE_RESOLUTION * xfrac), iyf = int(WAVE_RESOLUTION * yfrac);
-	float addh = wavetileheights[ixf+iyf*WAVE_RESOLUTION] * (1.0f/WAVE_RESOLUTION);
+	int ixf = int(wave_resolution * xfrac), iyf = int(wave_resolution * yfrac);
+	float addh = wavetileheights[ixf+iyf*wave_resolution] * (1.0f/wave_resolution);
 	coord.z += addh;
 */
 	// fixme: gives small ripples doesn't look too good. add a noise with a more uniform
 	// height here, like perlin noise
 
 #if 0
-	// 0 <= x0,y0 < WAVE_RESOLUTION
+	// 0 <= x0,y0 < wave_resolution
 	// additional detail is taken from same fft values, but that's not very good (similar
 	// pattern is noticeable), so we make a phase shift (maybe some perlin noise values
 	// would be better)
 	//this lookup without linear filtering leads to ripples and skinning effect. ugly! fixme
 	int tilefac = 8;//4;
-	int rfac = WAVE_RESOLUTION /tilefac;
+	int rfac = wave_resolution /tilefac;
 	int ixf = (x0 & (tilefac-1))*rfac + int(rfac * xfrac);
 	int iyf = (y0 & (tilefac-1))*rfac + int(rfac * yfrac);
-	float addh = wavetileheights[(phase+WAVE_PHASES/2)%WAVE_PHASES][ixf + iyf * WAVE_RESOLUTION] * (1.0f/rfac);
+	float addh = wavetileheights[(phase+WAVE_PHASES/2)%WAVE_PHASES][ixf + (iyf<<wave_resolution_shift)] * (1.0f/rfac);
 	coord.z += addh;
 #endif
-#endif
+	} // subdetail
 
 	return coord;
 }
@@ -1271,19 +1294,19 @@ void water::spawn_foam(const vector2& pos)
 
 float water::get_height(const vector2& pos) const
 {
-	float ffac = WAVE_RESOLUTION/WAVE_LENGTH;
+	float ffac = wave_resolution/WAVE_LENGTH;
 	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
 	float y = float(myfmod(pos.y, WAVE_LENGTH)) * ffac;
 	int ix = int(floor(x));
 	int iy = int(floor(y));
-	int ix2 = (ix+1)%WAVE_RESOLUTION;
-	int iy2 = (iy+1)%WAVE_RESOLUTION;
+	int ix2 = (ix+1) & (wave_resolution-1);
+	int iy2 = (iy+1) & (wave_resolution-1);
 	float fracx = x - ix;
 	float fracy = y - iy;
-	float a = wavetileheights[ix+iy*WAVE_RESOLUTION];
-	float b = wavetileheights[ix2+iy*WAVE_RESOLUTION];
-	float c = wavetileheights[ix+iy2*WAVE_RESOLUTION];
-	float d = wavetileheights[ix2+iy2*WAVE_RESOLUTION];
+	float a = wavetileheights[ix +(iy <<wave_resolution_shift)];
+	float b = wavetileheights[ix2+(iy <<wave_resolution_shift)];
+	float c = wavetileheights[ix +(iy2<<wave_resolution_shift)];
+	float d = wavetileheights[ix2+(iy2<<wave_resolution_shift)];
 	float e = a * (1.0f-fracx) + b * fracx;
 	float f = c * (1.0f-fracx) + d * fracx;
 	return (1.0f-fracy) * e + fracy * f;
@@ -1293,14 +1316,14 @@ float water::get_height(const vector2& pos) const
 
 vector3f water::get_wave_normal_at(unsigned x, unsigned y) const
 {
-	unsigned x1 = (x + WAVE_RESOLUTION - 1) % WAVE_RESOLUTION;
-	unsigned x2 = (x                   + 1) % WAVE_RESOLUTION;
-	unsigned y1 = (y + WAVE_RESOLUTION - 1) % WAVE_RESOLUTION;
-	unsigned y2 = (y                   + 1) % WAVE_RESOLUTION;
-	float hdx = wavetileheights[x2+ y *WAVE_RESOLUTION]
-		-   wavetileheights[x1+ y *WAVE_RESOLUTION];
-	float hdy = wavetileheights[x + y2*WAVE_RESOLUTION]
-		-   wavetileheights[x + y1*WAVE_RESOLUTION];
+	unsigned x1 = (x + wave_resolution - 1) & (wave_resolution-1);
+	unsigned x2 = (x                   + 1) & (wave_resolution-1);
+	unsigned y1 = (y + wave_resolution - 1) & (wave_resolution-1);
+	unsigned y2 = (y                   + 1) & (wave_resolution-1);
+	float hdx = wavetileheights[x2+ (y <<wave_resolution_shift)]
+		-   wavetileheights[x1+ (y <<wave_resolution_shift)];
+	float hdy = wavetileheights[x + (y2<<wave_resolution_shift)]
+		-   wavetileheights[x + (y1<<wave_resolution_shift)];
 	return vector3f(-hdx, -hdy, 1).normal();
 }
 
@@ -1308,13 +1331,13 @@ vector3f water::get_wave_normal_at(unsigned x, unsigned y) const
 //fixme: the correctness of the result of this function and the one above is not fully tested.
 vector3f water::get_normal(const vector2& pos, double rollfac) const
 {
-	float ffac = WAVE_RESOLUTION/WAVE_LENGTH;
+	float ffac = wave_resolution/WAVE_LENGTH;
 	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
 	float y = float(myfmod(pos.y, WAVE_LENGTH)) * ffac;
 	int ix = int(floor(x));
 	int iy = int(floor(y));
-	int ix2 = (ix+1)%WAVE_RESOLUTION;
-	int iy2 = (iy+1)%WAVE_RESOLUTION;
+	int ix2 = (ix+1) & (wave_resolution-1);
+	int iy2 = (iy+1) & (wave_resolution-1);
 	float fracx = x - ix;
 	float fracy = y - iy;
 	// compute the four normals at the corner points and interpolate between them according to
@@ -1334,23 +1357,19 @@ vector3f water::get_normal(const vector2& pos, double rollfac) const
 
 void water::generate_wavetile()
 {
-	minh = 1e10;
-	maxh = -1e10;
 //	cout << "time " << mytime << " rest " << myfmod(mytime, TIDECYCLE_TIME) << "\n";
 	owg.set_time(myfmod(mytime, TIDECYCLE_TIME));
-	wavetileheights = owg.compute_heights();
+	owg.compute_heights(wavetileheights);
+	minh = 1e10;
+	maxh = -1e10;
 	for (vector<float>::const_iterator it = wavetileheights.begin(); it != wavetileheights.end(); ++it) {
-		if (*it > maxh) maxh = *it;
-		if (*it < minh) minh = *it;
+		minh = fmin(minh, *it);
+		maxh = fmax(maxh, *it);
 	}
 	// choppy factor: formula from "waterengine": 0.5*WX/N = 0.5*wavelength/waveres, here = 1.0
 	// fixme 5.0 default? - it seems that choppy waves don't look right. bug? fixme, with negative values it seems right. check this!
 	// -2.0f also looks nice, -5.0f is too much. -1.0f should be ok
-#if 1
-	wavetiledisplacements = owg.compute_displacements(-2.0f);
-#else
-	wavetiledisplacements.resize(wavetileheights.size());
-#endif
+	owg.compute_displacements(-2.0f, wavetiledisplacements);
 }
 
 
@@ -1367,11 +1386,11 @@ void water::generate_subdetail_and_bumpmap()
 	ostringstream osgname;
 	osgname << "noisemap" << mytime << ".pgm";
 	ofstream osg(osgname.str().c_str());
-	osg << "P5\n" << SUBDETAIL_SIZE << " " << SUBDETAIL_SIZE << "\n255\n";
-	osg.write((const char*)(&waveheight_subdetail[0]), SUBDETAIL_SIZE*SUBDETAIL_SIZE);
+	osg << "P5\n" << subdetail_size << " " << subdetail_size << "\n255\n";
+	osg.write((const char*)(&waveheight_subdetail[0]), subdetail_size*subdetail_size);
 #endif
 
-	water_bumpmap.reset(new texture(waveheight_subdetail, SUBDETAIL_SIZE, SUBDETAIL_SIZE,
+	water_bumpmap.reset(new texture(waveheight_subdetail, subdetail_size, subdetail_size,
 					GL_LUMINANCE,
 #if 0
 					texture::LINEAR,
@@ -1396,12 +1415,12 @@ void water::set_time(double tm)
 	mytime = tm;
 
 	// water bumpmaps: ~15 times a second
-	if (mytime >= last_subdetail_gen_time + 1.0/SUBDETAIL_FPS) {
+	if (mytime >= last_subdetail_gen_time + SUBDETAIL_GEN_TIME) {
 		generate_subdetail_and_bumpmap();
 		last_subdetail_gen_time = mytime;
 	}
 
-	if (mytime >= last_wave_gen_time + 1.0/WAVE_FPS) {
+	if (mytime >= last_wave_gen_time + WAVE_TILE_GEN_TIME) {
 		generate_wavetile();
 		last_wave_gen_time = mytime;
 	}

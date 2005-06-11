@@ -34,7 +34,7 @@ using namespace std;
 template <class T>
 class ocean_wave_generator
 {
-	int N;	// grid size
+	int N;		// grid size
 	vector2t<T> W;	// wind direction
 	T v;		// wind speed m/s
 	T a;		// wave height scalar
@@ -45,11 +45,11 @@ class ocean_wave_generator
 	
 	ocean_wave_generator& operator= (const ocean_wave_generator& );
 	ocean_wave_generator(const ocean_wave_generator& );
-	static T myrnd(void);
-	static complex<T> gaussrand(void);
+	static T myrnd();
+	static complex<T> gaussrand();
 	T phillips(const vector2t<T>& K) const;
 	complex<T> h0_tilde(const vector2t<T>& K) const;
-	void compute_h0tilde(void);
+	void compute_h0tilde();
 	complex<T> h_tilde(const vector2t<T>& K, int kx, int ky, T time) const;
 	void compute_htilde(T time);
 	
@@ -68,23 +68,23 @@ public:
 	);
 	ocean_wave_generator(const ocean_wave_generator<T>& owg, int gridsize); // make a (smaller) copy, gridsize must be <= owg.gridsize
 	void set_time(T time);	// call this before any compute_*() function
-	vector<T> compute_heights(void) const;
+	void compute_heights(vector<T>& waveheights) const;
 	// use this after height computation to avoid the overhead of fft normals
-	vector<vector3t<T> > compute_finite_normals(const vector<T>& heights) const;
-	vector<vector3t<T> > compute_normals(void) const;
+	void compute_finite_normals(const vector<T>& heights, vector<vector3t<T> >& normals) const;
+	void compute_normals(vector<vector3t<T> >& wavenormals) const;
 	// give negative values to use default factor, positive for displacement scaling
-	vector<vector2t<T> > compute_displacements(const T& scalefac) const;
+	void compute_displacements(const T& scalefac, vector<vector2t<T> >& wavedisplacements) const;
 	~ocean_wave_generator();
 };
 
 template <class T>
-T ocean_wave_generator<T>::myrnd(void)
+T ocean_wave_generator<T>::myrnd()
 {
 	return T(rand())/RAND_MAX;
 }
 
 template <class T>
-complex<T> ocean_wave_generator<T>::gaussrand(void)
+complex<T> ocean_wave_generator<T>::gaussrand()
 {
 	T x1, x2, w;
 	do {
@@ -132,7 +132,7 @@ complex<T> ocean_wave_generator<T>::h0_tilde(const vector2t<T>& K) const
 }
 
 template <class T>
-void ocean_wave_generator<T>::compute_h0tilde(void)
+void ocean_wave_generator<T>::compute_h0tilde()
 {
 	const T pi2 = T(2.0*M_PI);
 	for (int y = 0; y <= N; ++y) {
@@ -230,7 +230,7 @@ void ocean_wave_generator<T>::set_time(T time)
 }
 
 template <class T>
-vector<T> ocean_wave_generator<T>::compute_heights(void) const
+void ocean_wave_generator<T>::compute_heights(vector<T>& waveheights) const
 {
 	// this loop is a bit overhead, we could store htilde already in a fft_complex array
 	// then we must transpose it, fftw has x*(N/2+1)+y, we use y*N+x
@@ -251,20 +251,22 @@ vector<T> ocean_wave_generator<T>::compute_heights(void) const
 	// term: exp(I*pi*(x+y)) that is equal to (-1)^(x+y), so we have to adjust
 	// the sign at every second element in checkerboard form.
 	// we copy the result to the output array in parallel.
-	vector<T> waveheights(N*N);
+	if (waveheights.size() != unsigned(N*N))
+		waveheights.resize(N*N);
 	T signs[2] = { T(1), T(-1) };
 	for (int y = 0; y < N; ++y)
 		for (int x = 0; x < N; ++x)
 			waveheights[y*N+x] = fft_out[y*N+x] * signs[(x + y) & 1];
-	return waveheights;
 }
 
 template <class T>
-vector<vector3t<T> > ocean_wave_generator<T>::compute_finite_normals(const vector<T>& heights) const
+void ocean_wave_generator<T>::compute_finite_normals(const vector<T>& heights,
+						     vector<vector3t<T> >& normals) const
 {
-	vector<vector3t<T> > normals;
-	normals.reserve(N*N);
+	if (normals.size() != N*N)
+		normals.resize(N*N);
 
+	typename vector<vector3t<T> >::iterator it = normals.begin();
 	T sf = Lm/T(N);
 	for (int y = 0; y < N; ++y) {
 		int y1 = (y+N-1)%N;
@@ -281,15 +283,13 @@ vector<vector3t<T> > ocean_wave_generator<T>::compute_finite_normals(const vecto
 			vector3t<T> g((x+1)*sf, (y+1)*sf, heights[y2*N+x2]);
 			vector3t<T> h((x  )*sf, (y+1)*sf, heights[y2*N+x ]);
 			vector3t<T> ortho = (a.cross(b) + b.cross(c) + c.cross(d) + d.cross(e) + e.cross(f) + f.cross(g) + g.cross(h) + h.cross(a));
-			normals.push_back(ortho.normal());
+			*it++ = ortho.normal();
 		}
 	}
-
-	return normals;
 }
 
 template <class T>
-vector<vector3t<T> > ocean_wave_generator<T>::compute_normals(void) const
+void ocean_wave_generator<T>::compute_normals(vector<vector3t<T> >& wavenormals) const
 {
 	const T pi2 = T(2.0)*T(M_PI);
 	for (int y = 0; y <= N/2; ++y) {
@@ -307,20 +307,21 @@ vector<vector3t<T> > ocean_wave_generator<T>::compute_normals(void) const
 	FFT_EXECUTE_PLAN(plan);
 	FFT_EXECUTE_PLAN(plan2);
 	
-	vector<vector3t<T> > wavenormals(N*N);
+	if (wavenormals.size() != N*N)
+		wavenormals.resize(N*N);
 	T signs[2] = { T(1), T(-1) };
+	typename vector<vector3t<T> >::iterator it = wavenormals.begin();
 	for (int y = 0; y < N; ++y) {
 		for (int x = 0; x < N; ++x) {
-			int ptr = y*N+x;
 			T s = signs[(x + y) & 1];
-			wavenormals[ptr] = vector3t<T>(-fft_out[ptr] * s, -fft_out2[ptr] * s, T(1)).normal();
+			*it++ = vector3t<T>(-fft_out[ptr] * s, -fft_out2[ptr] * s, T(1)).normal();
 		}
 	}
-	return wavenormals;
 }
 
 template <class T>
-vector<vector2t<T> > ocean_wave_generator<T>::compute_displacements(const T& scalefac) const
+void ocean_wave_generator<T>::compute_displacements(const T& scalefac,
+						    vector<vector2t<T> >& wavedisplacements) const
 {
 	for (int y = 0; y <= N/2; ++y) {
 		for (int x = 0; x < N; ++x) {
@@ -343,16 +344,17 @@ vector<vector2t<T> > ocean_wave_generator<T>::compute_displacements(const T& sca
 	FFT_EXECUTE_PLAN(plan);
 	FFT_EXECUTE_PLAN(plan2);
 	
-	vector<vector2t<T> > wavedisplacements(N*N);
+	if (wavedisplacements.size() != unsigned(N*N))
+		wavedisplacements.resize(N*N);
 	T signs[2] = { T(1), T(-1) };
+	unsigned ptr = 0;
 	for (int y = 0; y < N; ++y) {
 		for (int x = 0; x < N; ++x) {
-			int ptr = y*N+x;
 			T s = signs[(x + y) & 1];
 			wavedisplacements[ptr] = vector2t<T>(fft_out[ptr], fft_out2[ptr]) * s * scalefac;
+			++ptr;
 		}
 	}
-	return wavedisplacements;
 }
 
 #endif

@@ -36,8 +36,8 @@ protected:
 	// frame (slower, but more dynamically, and using less memory)
 	// for a 64x64 grid in 256 phases with mipmaps and normals we have
 	// 256*64*64*(6*4)*4/3 = 1M*24*4/3 = 32M
-	vector<vector2f> wavetiledisplacements;
 	vector<float> wavetileheights;	//fixme store heights as uint8 (resolution is high enough, 75% space save)
+	vector<vector2f> wavetiledisplacements;
 
 	vector<unsigned> gridindices;
 	vector<unsigned> gridindices2;//only used for test grid drawing, could be ifdef'ed away
@@ -58,6 +58,13 @@ protected:
 	vector<Uint8> fresnelcolortexd;	// stored for updates of water color
 
 	float last_light_brightness;	// used to determine when new refraction color tex must get computed
+
+	const unsigned wave_resolution;	// fft resolution for water tile
+	const unsigned wave_resolution_shift;	// the log2 of wave_resolution
+
+	const bool wave_subdetail;	// use subdetail for height or not
+	const unsigned subdetail_size;	// sub detail resolution
+	const unsigned subdetail_size_shift;	// the log2 of it
 
 	// Arrays used while drawing a tile. To avoid repeated re-alloc, they're here
 	mutable vector<vector3f> coords;
@@ -110,6 +117,7 @@ protected:
 
 	// times for generation
 	double last_wave_gen_time;
+	double last_wave_ip_gen_time;
 	double last_subdetail_gen_time;
 
 	water& operator= (const water& other);
