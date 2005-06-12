@@ -586,7 +586,7 @@ static vector<unsigned> convex_hull(const vector<vector2>& pts)
 // the trapezoid looks optimal even at 60% efficiency, so it must be something else.
 // fixme: try raising the elevator. lower elevator gives less efficiency. 50+ seems ok, with higher values
 // the near water looks awful
-#define DEBUG_TRAPEZOID
+#undef  DEBUG_TRAPEZOID
 vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 {
 	vector<vector2> trapezoid(4);
