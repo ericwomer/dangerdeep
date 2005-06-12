@@ -79,7 +79,6 @@ font::font(const string& basefilename, unsigned char_spacing)
 	metricfile >> base_height;
 	metricfile >> first_char;
 	metricfile >> last_char;
-	printf("%s baseh %u fc %u lc %u\n",basefilename.c_str(),base_height,first_char,last_char);
 	characters.resize(last_char-first_char+1);
 	for (unsigned i = first_char; i <= last_char; ++i) {
 		if (!metricfile.good())

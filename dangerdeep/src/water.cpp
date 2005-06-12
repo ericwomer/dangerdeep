@@ -19,7 +19,7 @@
 #include <fstream>
 
 // compute projected grid efficiency, it should be 50-95%
-#define COMPUTE_EFFICIENCY
+#undef  COMPUTE_EFFICIENCY
 //fixme: the wave sub detail causes ripples in water height leading to the specular map spots
 //and other visual errors.
 //solution: check bugs, use perlin noise for sub detail, not fft, especially noise with
@@ -586,7 +586,7 @@ static vector<unsigned> convex_hull(const vector<vector2>& pts)
 // the trapezoid looks optimal even at 60% efficiency, so it must be something else.
 // fixme: try raising the elevator. lower elevator gives less efficiency. 50+ seems ok, with higher values
 // the near water looks awful
-#undef DEBUG_TRAPEZOID
+#undef  DEBUG_TRAPEZOID
 vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 {
 	vector<vector2> trapezoid(4);
@@ -617,6 +617,22 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 				idxtop = j;
 			}
 		}
+		// compute how much points are on upper line, there must be at least two,
+		// or the trapez degenerates to a triangle!
+		unsigned onupperline = 0;
+		for (unsigned j = 2; j < hull.size(); ++j) {
+			vector2 pb = hull[(i+j) % hull.size()] - base;
+			double h = pb * deltaorth;
+			sys().myassert(h >= 0, "paranoia chull");
+			if (height - h < 0.001 /* EPS */)
+				++onupperline;
+		}
+#ifdef DEBUG_TRAPEZOID
+		cout << "onupperline: [[ " << onupperline << " ]]\n";
+#endif
+		if (onupperline < 2)
+			continue;
+
 		vector2 deltainvx(delta.x, -delta.y);
 		vector2 deltainvy(delta.y,  delta.x);
 //		cout << "height of trapez is " << height << "\n";
@@ -674,13 +690,19 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 #ifdef DEBUG_TRAPEZOID
 		cout << "trapez area: " << area << "\n";
 #endif
-		if (area < trapezoid_area) {
-			trapezoid_area = area;
-			trapezoid[0] = base + delta * maxa;
-			trapezoid[1] = base + delta * mina;
-			trapezoid[2] = base + delta * minb + deltaorth * height;
-			trapezoid[3] = base + delta * maxb + deltaorth * height;
-			trapset = true;
+		// more an hack, only take trapezoids in one direction, do not cound
+		// the same trapzeoid upsidedown to avoid tremor effect. fixme, real reason unknown
+		// when camera is moved around, tremor effect disappears after some time.
+		// maybe still a rounding error?
+		if (area < trapezoid_area + 0.001 /* EPS */) {
+			if (!trapset || delta.x > 0) {
+				trapezoid_area = area;
+				trapezoid[0] = base + delta * maxa;
+				trapezoid[1] = base + delta * mina;
+				trapezoid[2] = base + delta * minb + deltaorth * height;
+				trapezoid[3] = base + delta * maxb + deltaorth * height;
+				trapset = true;
+			}
 		}
 	}
 #ifdef DEBUG_TRAPEZOID
@@ -702,7 +724,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	const float VIRTUAL_PLANE_HEIGHT = 25.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok, maybe a bit too much
 
 	// maximum height of waves (half amplitude)
-	const double WAVE_HEIGHT = (maxh > fabs(minh)) ? maxh : fabs(minh);
+	const double WAVE_HEIGHT = std::max(maxh, fabs(minh));
 
 //	cout << "Wave height is: " << WAVE_HEIGHT << "\n";
 
@@ -710,7 +732,9 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	// that will help keeping some of the detail in the distance and avoids drawing to much near waves.
 	// together with a trapezoidical form of the projection, efficiency should be good...
 	// this value plus WAVE_HEIGHT is the minimum height.
-	const double ELEVATION = 100.0; // fixme experiment, try 1...30
+	// hmm, with elev 30, efficiency goes down to 70%. Trapezoid is optimal,
+	// but maybe too many triangles are lost in the near
+	const double ELEVATION = 40.0; // fixme experiment, try 1...30
 
 	// fixme: displacements must be used to enlarge projector area or else holes will be visible at the border
 	// of the screen (left and right), especially on glasses mode
@@ -793,7 +817,10 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	aimpoint2 = camerapos + 10.0 * cameraforward;
 	aimpoint2.z = 0.0;
 	
-	// fade between points depending on angle (fixme: why is this done?! - check the paper)
+	// fade between points depending on angle
+	// when camera points to the horizon, aimpoint is very far away, we have to shift
+	// to aimpoint2 which is in the near. The resulting detail depends also on the projector
+	// elevation. The higher the elevation the lesser the detail is in the near distance.
 	double af = fabs(cameraforward.z);
 	projectorforward = (aimpoint * af + aimpoint2 * (1.0-af)) - projectorpos;
 
@@ -826,28 +853,17 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 		*it = world2projector * *it;
 	}
 	
-	// compute min-max values and range matrix
-	// fixme: the efficiency is mostly around 50%. We could increase it dramatically if
-	// we don't take a bounding rectangle around the projected points, but some other
-	// shape. Mostly the points form a trapezoid, and mostly the number of points is six.
-	// Best solution: shape with exactly four points and minimum area surrounding all
-	// points (convex hull with four points). Or compute the trapezoid.
-	// Compute a shape so that we can transform a rectangle with a 4x4 matrix to the shape.
-	// This gives nearly 100% efficiency, which should improve detail a lot (especially in
-	// zoomscope/glasses view). We don't really need mrange but could generate any quadri-
-	// lateral with x/y values, but it's simpler to use mrange.
-	// If (!) we can generate a tranformation matrix that makes a trapez from a rectangle.
-	// This seams impossible... ?! only possible with projections???
-	// improving the efficiency here should give the biggest gain.
-	// drawing half of the triangles gives 33% more performanc, so 25% of performance
-	// is currently wasted!
-	matrix4 rangeprojector2world;
+	// To increase efficiency we compute a trapezoid around the projected points.
+	// Mostly they form a trapezoidical shape. This increases the number of vertices
+	// that are drawn inside the frustum dramatically.
 	vector<vector2> trapezoid;
 	if (proj_points.size() == 0) {
 		// nothing to draw.
 		glPopMatrix();
 		return;
 	} else {
+		// scale coordinates to compensate for wave displacement here? fixme
+
 		// find convex hull of points.
 		//   collect unique points
 		vector<vector2> proj_points_2d;
@@ -886,20 +902,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 			glPopMatrix();
 			return;
 		}
-
-		double x_min = proj_points[0].x, x_max = proj_points[0].x, y_min = proj_points[0].y, y_max = proj_points[0].y;
-//cout << "pts0.xy " << x_min << ", " << y_min << "\n";
-		for (vector<vector3>::iterator it = ++proj_points.begin(); it != proj_points.end(); ++it) {
-//cout << "ptsi.xy " << it->x << ", " << it->y << "\n";
-			if (it->x < x_min) x_min = it->x;
-			if (it->x > x_max) x_max = it->x;
-			if (it->y < y_min) y_min = it->y;
-			if (it->y > y_max) y_max = it->y;
-		}
-		matrix4 mrange(x_max-x_min, 0, 0, x_min, 0, y_max-y_min, 0, y_min, 0, 0, 1, 0, 0, 0, 0, 1);
-//cout << "x_min " << x_min << " x_max " << x_max << " y_min " << y_min << " y_max " << y_max << "\n";
-// cout << "area with x/y minmax: " << (x_max-x_min)*(y_max-y_min) << "\n";
-		rangeprojector2world = projector2world * mrange;
 	} // else return;
 
 #if 0
@@ -947,33 +949,44 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		double y = double(yy)/yres;
 		// vertices for start and end of two lines are computed and projected
-#if 0
-		// old projection
-		vector3 v1 = rangeprojector2world * vector3(0,y,-1);
-		vector3 v2 = rangeprojector2world * vector3(0,y,+1);
-		vector3 v3 = rangeprojector2world * vector3(1,y,-1);
-		vector3 v4 = rangeprojector2world * vector3(1,y,+1);
-#else
-		// new projection
 		vector2 trapleft  = trapezoid[3] * y + trapezoid[0] * (1.0 - y);
 		vector2 trapright = trapezoid[2] * y + trapezoid[1] * (1.0 - y);
 		vector3 v1 = projector2world *  trapleft.xyz(-1);
 		vector3 v2 = projector2world *  trapleft.xyz(+1);
 		vector3 v3 = projector2world * trapright.xyz(-1);
 		vector3 v4 = projector2world * trapright.xyz(+1);
-#endif
+
 		// compute intersection with z = 0 plane here
 		// we could compute intersection with earth's sphere here for a curved display
 		// of water to the horizon, fixme
 		double t1 = -v1.z/(v2.z-v1.z), t2 = -v3.z/(v4.z-v3.z);
 		vector2 va = v1.xy() * (1-t1) + v2.xy() * t1;
 		vector2 vb = v3.xy() * (1-t2) + v4.xy() * t2;
+		//fixme: we could move/change vy/vy/vxadd/vyadd here to compensate for displacement
+		//fixme: water display tremors, this depends on the direction of the trapezoid
+		//when its painted from top to bottom or bottom to top (two trapezoids with same
+		//area and shape, but with the upper line of the first being the base line of the
+		//second and vice versa). Rounding problem??? error seems to large for that.
+		vector2 diff = vb - va;
+		double difflen = diff.length();
+		diff = diff * (1.0/difflen);
+		double displ = 5.0;	// meters, max. displacement of waves, fixme compute!
+		vb = va + diff * (difflen + displ);
+		va = va - diff * displ;
+
+		double vx = va.x;
+		double vy = va.y;
+		double vxadd = (vb.x - va.x)/xres;
+		double vyadd = (vb.y - va.y)/xres;
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
-			double x = double(xx)/xres;
-			vector3f v(va.x * (1-x) + vb.x * x, va.y * (1-x) + vb.y * x, -viewpos.z);
+			vector3f v(vx, vy, -viewpos.z);
 			coords[ptr] = compute_coord(v, transl);
+			vx += vxadd;
+			vy += vyadd;
 #ifdef COMPUTE_EFFICIENCY
 			vector3 tmp = world2camera * vector3(coords[ptr].x, coords[ptr].y, coords[ptr].z);
+			// fixme: for a better efficiency analysis we have to store WHERE the vertices
+			// are outside (near/far/left/right)
 			if (fabs(tmp.x) <= 1.0 && fabs(tmp.y) <= 1.0 && fabs(tmp.z) <= 1.0)
 				++vertices_inside;
 			++vertices;

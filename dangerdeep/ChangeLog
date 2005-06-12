@@ -1,3 +1,16 @@
+2005-06-12  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* many files
+	  - lessened build dependencies
+	  - made code compile on gcc 4.0
+	* font.cpp
+	  - fixed "uppercase letters displayed only" bug
+	* water.cpp
+	  - water height and subdetail computed at runtime
+	  - extreme reduction of memory usage
+	  - increased vertex efficiency
+	  - consider displacement of waves when drawing water
+	  - (lots of) bugfixes
+
 2005-06-09  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* water.* perlinnoise.* fixed.h
 	  - speed up perlinnoise generation with new fixed point data type
