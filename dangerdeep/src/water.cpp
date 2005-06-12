@@ -586,7 +586,7 @@ static vector<unsigned> convex_hull(const vector<vector2>& pts)
 // the trapezoid looks optimal even at 60% efficiency, so it must be something else.
 // fixme: try raising the elevator. lower elevator gives less efficiency. 50+ seems ok, with higher values
 // the near water looks awful
-#undef  DEBUG_TRAPEZOID
+#define DEBUG_TRAPEZOID
 vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 {
 	vector<vector2> trapezoid(4);
@@ -624,8 +624,12 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 			vector2 pb = hull[(i+j) % hull.size()] - base;
 			double h = pb * deltaorth;
 			sys().myassert(h >= 0, "paranoia chull");
-			if (height - h < 0.001 /* EPS */)
+#ifdef DEBUG_TRAPEZOID
+			cout << "onupperline eps check " << height - h << "\n";
+#endif
+			if (height - h < h * 0.05 /* EPS */) {
 				++onupperline;
+			}
 		}
 #ifdef DEBUG_TRAPEZOID
 		cout << "onupperline: [[ " << onupperline << " ]]\n";
@@ -694,15 +698,21 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 		// the same trapzeoid upsidedown to avoid tremor effect. fixme, real reason unknown
 		// when camera is moved around, tremor effect disappears after some time.
 		// maybe still a rounding error?
-		if (area < trapezoid_area + 0.001 /* EPS */) {
-			if (!trapset || delta.x > 0) {
-				trapezoid_area = area;
-				trapezoid[0] = base + delta * maxa;
-				trapezoid[1] = base + delta * mina;
-				trapezoid[2] = base + delta * minb + deltaorth * height;
-				trapezoid[3] = base + delta * maxb + deltaorth * height;
-				trapset = true;
+		if (area < trapezoid_area + 0.5 /* EPS */) {
+			unsigned idx[4] = { 0, 1, 2, 3 };
+			if (delta.x < 0) {
+				// trapzeoid is upsidedown, flip it
+				idx[0] = 2;
+				idx[1] = 3;
+				idx[2] = 0;
+				idx[3] = 1;
 			}
+			trapezoid_area = area;
+			trapezoid[idx[0]] = base + delta * maxa;
+			trapezoid[idx[1]] = base + delta * mina;
+			trapezoid[idx[2]] = base + delta * minb + deltaorth * height;
+			trapezoid[idx[3]] = base + delta * maxb + deltaorth * height;
+			trapset = true;
 		}
 	}
 #ifdef DEBUG_TRAPEZOID
