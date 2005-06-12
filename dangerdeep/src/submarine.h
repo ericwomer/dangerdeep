@@ -40,6 +40,8 @@ class submarine : public ship
 	// bilge???
 	// kitchen - kombuese?
 	// balance tank - trimmtank?
+	//fixme: it should not be necessary to store explicit variable names for that
+	//parts. rather store xml files with data about the submarine types.
 	enum damageable_parts_indices {
 		// common parts
 		rudder,
@@ -308,9 +310,11 @@ public:
 	virtual void set_trp_searchpattern(unsigned x) { trp_searchpattern = x; }
 	virtual void set_trp_addleadangle(angle x) { trp_addleadangle = x; }
 	virtual void launch_torpedo(int tubenr, sea_object* target); // give tubenr -1 for any loaded tube, or else 0-5
+	virtual void set_throttle(ship::throttle_status thr);
+	// end of command interface
+
 	virtual bool has_deck_gun() { return !gun_turrets.empty(); }
 	
-	virtual void set_throttle(ship::throttle_status thr);
 	virtual void start_throttle_sound();
 	virtual void stop_throttle_sound();
 };
