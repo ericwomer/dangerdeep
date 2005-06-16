@@ -922,10 +922,18 @@ void menu_single_mission(void)
 	w.run(0, false);
 }
 
+// fixme: read from languages.csv!
+#define NR_OF_LANGUAGES 3
+const char* langcodes[NR_OF_LANGUAGES] = {
+	"en",
+	"de",
+	"it"
+};
+
 void set_selected_language(pair<widget*, unsigned> w_nr)
 {
-	if (w_nr.second < texts::nr_of_languages) {
-		texts::set_language(texts::languages(w_nr.second));
+	if (w_nr.second < NR_OF_LANGUAGES) {
+		texts::set_language(langcodes[w_nr.second]);
 	}
 	w_nr.first->close(0);
 }
@@ -935,11 +943,11 @@ void menu_select_language(void)
 	widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
 	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(26));
 	w.add_child(wm);
-	for (unsigned i = 0; i < texts::nr_of_languages; ++i) {
+	for (unsigned i = 0; i < NR_OF_LANGUAGES; ++i) {
 		widget_button* wb = new widget_func_arg_button<void (*)(pair<widget*, unsigned>),
 			pair<widget*, unsigned> >(&set_selected_language, make_pair(&w, i),
 						  0, 0, 0, 0);
-		wm->add_entry(texts::get(500+i), wb);
+		wm->add_entry(texts::get(i, texts::languages), wb);
 	}
 	wm->add_entry(texts::get(11), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
 	wm->align(0, 0);
@@ -1151,6 +1159,7 @@ bool file_exists(const string& fn)
 
 int mymain(list<string>& args)
 {
+	try {
 	string highscoredirectory =
 #ifdef WIN32
 	"./highscores/";
@@ -1304,9 +1313,6 @@ int mymain(list<string>& args)
 
 	model::enable_shaders = cfg::instance().getb("use_shaders");
 
-	// set language to default
-	texts::set_language();
-
 	// fixme: also allow 1280x1024, set up gl viewport for 4:3 display
 	// with black borders at top/bottom (height 2*32pixels)
 	res_y = res_x*3/4;
@@ -1419,5 +1425,10 @@ int mymain(list<string>& args)
 	deinit_global_data();
 	delete mysys;
 
+	}
+	catch (std::exception& e) {
+		cerr << "Exception caught: " << e.what() << "\n";
+		throw;
+	}
 	return 0;
 }

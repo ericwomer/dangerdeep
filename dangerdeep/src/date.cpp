@@ -125,7 +125,8 @@ bool date::operator> ( const date& d ) const
 
 ostream& operator<< ( ostream& os, const date& d )
 {
-	if ( texts::language == texts::german )
+	// fixme: very similar to texts.cpp! we should call texts::numeric_from_date here!
+	if ( texts::get_language_code() == "de" )
 	{
 		os << d.date_values[d.day]    << "." << d.date_values[d.month] << ".";
 		os << d.date_values[d.year]   << " ";

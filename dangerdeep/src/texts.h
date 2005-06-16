@@ -6,19 +6,24 @@
 
 #include <vector>
 #include <string>
-using namespace std;
 
-class texts {
-	static vector<string> txts;
+class texts
+{
+ public:
+	enum category { common, languages, nr_of_categories };
+ private:
+	std::vector<std::vector<std::string> > strings;
+	void read_category(category ct);
+	std::string language_code;
 
-public:
-	enum languages { english, german, italian, nr_of_languages };
-	static languages language;
+	static const texts& texts::obj();
 
-	static void set_language(languages l = english);
-	static string get_language_code(void);
-	static string get(unsigned no);
-	static string numeric_from_date(const class date& d);
+	texts(const std::string& langcode = "en");
+ public:
+	static void set_language(const std::string& language_code);
+	static std::string get_language_code(void);
+	static std::string get(unsigned no, category ct = common);
+	static std::string numeric_from_date(const class date& d);
 };
 
 #endif

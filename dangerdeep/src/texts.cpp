@@ -5,75 +5,119 @@
 
 #include "parser.h"
 #include "global_data.h"
+#include "system.h"
+#include "tokencodes.h"
 #include "date.h"
 #include <sstream>
+#include <memory>
 using namespace std;
 
 #define TEXTS_DIR "texts/"
 
-texts::languages texts::language = texts::english;
-
-static char* textfilenames[] = {
-	"english",
-	"german",
-	"italian"
+static char* categoryfiles[texts::nr_of_categories] = {
+	"common",
+	"languages",
 };
 
-static char* languagecodes[] = {
-	"en",
-	"de",
-	"it"
-};
+auto_ptr<texts> texts_singleton_handler;
 
-vector<string> texts::txts;
-
-void texts::set_language(languages l)
+const texts& texts::obj()
 {
-	language = l;
-	parser p(get_data_dir() + TEXTS_DIR + textfilenames[l] + ".text");
-	txts.clear();
-	int count = 0;
-	while (!p.is_empty()) {
+	if (!texts_singleton_handler.get())
+		texts_singleton_handler.reset(new texts());
+	return *texts_singleton_handler.get();
+}
+
+texts::texts(const string& langcode) : language_code(langcode)
+{
+	strings.resize(nr_of_categories);
+	for (unsigned i = 0; i < nr_of_categories; ++i)
+		read_category(category(i));
+}
+
+void texts::read_category(category ct)
+{
+	string catfilename = categoryfiles[ct];
+	parser p(get_data_dir() + TEXTS_DIR + catfilename + ".csv");
+	// as first read language codes / count number of languages
+	if (p.is_empty()) throw error("empty texts file: " + catfilename);
+	string s = p.parse_string();
+	if (s != "CODE") throw error("no CODE keyword in texts file: " + catfilename);
+	p.parse(TKN_SEMICOLON);
+	unsigned lcn = 0;
+	vector<string> language_codes;
+	while (true) {
+		string lc = p.parse_string();
+		if (lc == language_code) lcn = language_codes.size();
+		language_codes.push_back(lc);
+		if (p.type() != TKN_SEMICOLON) break;
+		p.consume();
+	}
+/*
+  if (ct == 0) {
+  // read date format string
+}
+*/
+
+	// now read strings
+	vector<string>& txt = strings[ct];
+	while (p.type() == TKN_NUMBER) {
 		int n = p.parse_number();
-		string s = p.parse_string();
-		if (n >= count) {
-			txts.resize(n+1);
-			count = n+1;
+		if (n < 0) throw error("negative text number in file: " + catfilename);
+		if (unsigned(n) >= txt.size())
+			txt.resize(n + 1);
+		for (unsigned i = 0; i < language_codes.size(); ++i) {
+			p.parse(TKN_SEMICOLON);
+			string s;
+			if (p.type() == TKN_NUMBER) {
+				ostringstream oss;
+				oss << p.parse_number();
+				s = oss.str();
+			} else {
+				s = p.parse_string();
+			}
+			if (i == lcn)
+				txt[n] = s;
 		}
-		txts[n] = s;
 	}
 }
 
-string texts::get_language_code(void)
+void texts::set_language(const string& langcode)
 {
-	return languagecodes[language];
+	texts_singleton_handler.reset(new texts(langcode));
 }
 
-string texts::get(unsigned no)
+string texts::get_language_code()
 {
-	if (no < txts.size())
-		return txts[no];
-	return "!INVALID TEXT NUMBER!";
+	return obj().language_code;
+}
+
+string texts::get(unsigned no, category ct)
+{
+	const texts& t = obj();
+	if (ct >= nr_of_categories)
+		throw error("invalid category for texts::get()");
+	const vector<string>& tx = t.strings[ct];
+	if (no >= tx.size())
+		throw error("invalid text nummer for texts::get()");
+	return tx[no];
 }
 
 string texts::numeric_from_date(const date& d)
 {
 	ostringstream oss;
-	switch (language) {
-	case english :	// format mm/dd/yyyy
+	string lc = obj().language_code;
+	if (lc == "en") {
+		// format mm/dd/yyyy
 		oss << d.get_value(date::month) << "/" << d.get_value(date::day) << "/"
 		    << d.get_value(date::year);
-		break;
-	case german:	// format dd.mm.yyyy
+	} else if (lc == "de") {// format dd.mm.yyyy
 		oss << d.get_value(date::day) << "." << d.get_value(date::month) << "."
 		    << d.get_value(date::year);
-		break;
-	case italian:	// format dd.mm.yyyy, fixme Giuseppe, how is the format?
+	} else if (lc == "it") {
+		// format dd.mm.yyyy, fixme Giuseppe, how is the format?
 		oss << d.get_value(date::day) << "." << d.get_value(date::month) << "."
 		    << d.get_value(date::year);
-		break;
-	default:
-		break;
 	}
 	return oss.str();
 }
