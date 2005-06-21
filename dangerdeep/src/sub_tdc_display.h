@@ -13,7 +13,6 @@ class sub_tdc_display : public user_display
 	class rotat_tex {
 	public:
 		rotat_tex();
-		~rotat_tex();
 		texture::ptr tex;
 		int left, top, centerx, centery;
 		void draw(double angle) const;
@@ -43,8 +42,7 @@ class sub_tdc_display : public user_display
 		rotat_tex gyro10;
 		texture::ptr firesolutionquality;
 		rotat_tex torpspeed;
-		scheme();
-		~scheme();
+		scheme() {}
 	protected:
 		scheme(const scheme& );
 		scheme& operator= (const scheme& );
@@ -57,7 +55,6 @@ class sub_tdc_display : public user_display
 
 public:
 	sub_tdc_display(class user_interface& ui_);
-	virtual ~sub_tdc_display();
 
 	//overload for zoom key handling ('y') and TDC input
 	virtual void process_input(class game& gm, const SDL_Event& event);

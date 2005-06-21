@@ -36,17 +36,19 @@ string get_program_version(void)
 // fixme: this could be replaced with an array of pointers using enum-names
 // as indices. This would simplify destruction and possibly construction.
 
+// fixme2: forget enums. use auto_ptr's instead. MUCH easier!
+// normal data should get shrinked as much as possible, only fonts should remain or so.
+
 model	*torpedo_g7, *depth_charge_mdl, *gun_shell_mdl, *conning_tower_typeVII;
 
 texture *background,
 	*psbackgr, *panelbackgr,
-	*addleadangle, *torpleft, *torpempty, *torpreload, *torpunload, *metalbackgr,
-	*torpt1, *torpt2, *torpt3, *torpt3a, *torpt4, *torpt5, *torpt11, *torpt1fat, *torpt3fat, *torpt6lut,
+	*addleadangle, *torpleft, *metalbackgr,
 	*woodbackgr, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
 	*terraintex, *cloudsbackgr, *atlanticmap;
 	
-font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd;
+font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn;
 
 image *titlebackgrimg, *threesubsimg, *damage_screen_background,
 	*sub_damage_scheme_all, *killedimg, *scopewatcherimg,
@@ -86,6 +88,7 @@ void init_global_data(void)
 	font_timesbd = new font(get_font_dir() + "font_timesbd");
 	font_verdana = new font(get_font_dir() + "font_verdana");
 	font_verdanabd = new font(get_font_dir() + "font_verdanabd");
+	font_olympiaworn = new font(get_font_dir() + "font_olympiaworn");
 	add_loading_screen("fonts loaded");
 	torpedo_g7 = new model(get_model_dir() + "torpedo_g7.3ds");
 	depth_charge_mdl = new model(get_model_dir() + "depth_charge.3ds");
@@ -156,20 +159,7 @@ void deinit_global_data(void)
 	delete psbackgr;
 	delete panelbackgr;
 	delete addleadangle;
-	delete torpempty;
-	delete torpreload;
-	delete torpunload;
 	delete metalbackgr;
-	delete torpt1;
-	delete torpt2;
-	delete torpt3;
-	delete torpt3a;
-	delete torpt4;
-	delete torpt5;
-	delete torpt11;
-	delete torpt1fat;
-	delete torpt3fat;
-	delete torpt6lut;
 	delete woodbackgr;
 	delete notepadsheet;
 	delete menuframe;

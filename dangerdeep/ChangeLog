@@ -1,4 +1,9 @@
 2005-06-15  Thorsten Jordan  <thorsten_jordan@gmx.de>
+	* sub_torpedo_display, sub_tdc_display, global_data
+	  - new torpedo management graphics, new font
+	  - removed obsolete data
+
+2005-06-15  Thorsten Jordan  <thorsten_jordan@gmx.de>
 	* subsim.cpp parser.cpp texts.cpp
 	  - store and read text data by categories not by language
 	    now easier tracking of changes and handling of text

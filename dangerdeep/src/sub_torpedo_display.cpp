@@ -24,46 +24,46 @@ void sub_torpedo_display::draw_torpedo(class game& gm, bool usebow,
 		if (st.status == 0) {	// empty
 			torpempty->draw(pos.x, pos.y);
 		} else if (st.status == 1) {	// reloading
-			torptex(st.type)->draw(pos.x, pos.y);
-			torpreload->draw(pos.x, pos.y);
+			torptex(st.type).draw(pos.x, pos.y);
+			torpload->draw(pos.x, pos.y);
 		} else if (st.status == 2) {	// unloading
 			torpempty->draw(pos.x, pos.y);
 			torpunload->draw(pos.x, pos.y);
 		} else {		// loaded
-			torptex(st.type)->draw(pos.x, pos.y);
+			torptex(st.type).draw(pos.x, pos.y);
 		}
 	} else {
 		if (st.status == 0) {	// empty
 			torpempty->draw_hm(pos.x, pos.y);
 		} else if (st.status == 1) {	// reloading
-			torptex(st.type)->draw_hm(pos.x, pos.y);
-			torpreload->draw_hm(pos.x, pos.y);
+			torptex(st.type).draw_hm(pos.x, pos.y);
+			torpload->draw_hm(pos.x, pos.y);
 		} else if (st.status == 2) {	// unloading
 			torpempty->draw_hm(pos.x, pos.y);
 			torpunload->draw_hm(pos.x, pos.y);
 		} else {		// loaded
-			torptex(st.type)->draw_hm(pos.x, pos.y);
+			torptex(st.type).draw_hm(pos.x, pos.y);
 		}
 	}
 }
 
 
 
-texture* sub_torpedo_display::torptex(unsigned type) const
+const texture& sub_torpedo_display::torptex(unsigned type) const
 {
 	switch (type) {
-		case torpedo::T1: return torpt1;
-		case torpedo::T2: return torpt2;
-		case torpedo::T3: return torpt3;
-		case torpedo::T3a: return torpt3a;
-		case torpedo::T4: return torpt4;
-		case torpedo::T5: return torpt5;
-		case torpedo::T11: return torpt11;
-		case torpedo::T1FAT: return torpt1fat;
-		case torpedo::T3FAT: return torpt3fat;
-		case torpedo::T6LUT: return torpt6lut;
+		case torpedo::T1: return *torp1;
+		case torpedo::T2: return *torp2;
+		case torpedo::T3: return *torp3;
+		case torpedo::T3a: return *torp3alut1;//fixme 3a?
+		case torpedo::T4: return *torp4;
+		case torpedo::T5: return *torp5;
+		case torpedo::T11: return *torp5b;
+		case torpedo::T1FAT: return *torp1fat1;
+		case torpedo::T3FAT: return *torp3fat2;
+		case torpedo::T6LUT: return *torp6lut1;
 	}
-	return torpempty;
+	return *torpempty;
 }
 
 
@@ -79,27 +79,27 @@ vector<vector2i> sub_torpedo_display::get_tubecoords(submarine* sub) const
 	pair<unsigned, unsigned> stern_deckreserve_indices = sub->get_stern_deckreserve_indices();
 	unsigned k = bow_tube_indices.second - bow_tube_indices.first;
 	for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i) {
-		tubecoords[i] = vector2i(0, 192+(i-k/2)*16);
+		tubecoords[i] = vector2i(23, 188+(i-k/2)*13);
 	}
 	for (unsigned i = bow_reserve_indices.first; i < bow_reserve_indices.second; ++i) {
 		unsigned j = i - bow_reserve_indices.first;
-		tubecoords[i] = vector2i(192+(j/k)*128, 192+(j%k-k/2)*16);
+		tubecoords[i] = vector2i(161+(j/k)*138, 188+(j%k-k/2)*13);
 	}
 	for (unsigned i = bow_deckreserve_indices.first; i < bow_deckreserve_indices.second; ++i) {
 		unsigned j = i - bow_deckreserve_indices.first;
-		tubecoords[i] = vector2i(192+(j/2)*128, 96+(j%2)*16);
+		tubecoords[i] = vector2i(161+(j/2)*138, 145+(j%2)*13);
 	}
 	for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i) {
 		unsigned j = i - stern_tube_indices.first;
-		tubecoords[i] = vector2i(896, 160+j*16);
+		tubecoords[i] = vector2i(823, 188+j*13);
 	}
 	for (unsigned i = stern_reserve_indices.first; i < stern_reserve_indices.second; ++i) {
 		unsigned j = i - stern_reserve_indices.first;
-		tubecoords[i] = vector2i(704, 160+j*16);
+		tubecoords[i] = vector2i(684, 188+j*13);
 	}
 	for (unsigned i = stern_deckreserve_indices.first; i < stern_deckreserve_indices.second; ++i) {
 		unsigned j = i - stern_deckreserve_indices.first;
-		tubecoords[i] = vector2i(704-(j/2)*128, 96+(j%2)*16);
+		tubecoords[i] = vector2i(684-(j/2)*138, 145+(j%2)*13);
 	}
 	return tubecoords;
 }
@@ -119,6 +119,7 @@ unsigned sub_torpedo_display::get_tube_below_mouse(const vector<vector2i>& tubec
 
 
 
+// obsolete:
 void sub_torpedo_display::check_turnswitch_input(game& gm, int x, int y)
 {
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
@@ -136,6 +137,7 @@ void sub_torpedo_display::check_turnswitch_input(game& gm, int x, int y)
 
 
 
+// obsolete:
 //maybe make common for all displays, so make function of user_display? but currently
 //only needed for this display.
 void sub_torpedo_display::draw_turnswitch(class game& gm, int x, int y,
@@ -162,6 +164,7 @@ void sub_torpedo_display::draw_turnswitch(class game& gm, int x, int y,
 
 
 
+// obsolete:
 unsigned sub_torpedo_display::turnswitch_input(int x, int y, unsigned nrdescr) const
 {
 	if (nrdescr <= 1) return 0;
@@ -180,40 +183,29 @@ unsigned sub_torpedo_display::turnswitch_input(int x, int y, unsigned nrdescr) c
 sub_torpedo_display::sub_torpedo_display(user_interface& ui_) :
 	user_display(ui_), torptranssrc(ILLEGAL_TUBE), mx(0), my(0), mb(0)
 {
-	// reference images here and fill pointers
-	torpempty = texturecache.ref("torpempty.png");
-	torpreload = texturecache.ref("torpreload.png");
-	torpunload = texturecache.ref("torpunload.png");
-	torpt1 = texturecache.ref("torpt1.png");
-	torpt2 = texturecache.ref("torpt2.png");
-	torpt3 = texturecache.ref("torpt3.png");
-	torpt3a = texturecache.ref("torpt3a.png");
-	torpt4 = texturecache.ref("torpt4.png");
-	torpt5 = texturecache.ref("torpt5.png");
-	torpt11 = texturecache.ref("torpt11.png");
-	torpt1fat = texturecache.ref("torpt1fat.png");
-	torpt3fat = texturecache.ref("torpt3fat.png");
-	torpt6lut = texturecache.ref("torpt6lut.png");
-}
-
-
-
-sub_torpedo_display::~sub_torpedo_display()
-{
-	//fixme: this textures were already loaded in global_data, so they exist twice!
-	texturecache.unref("torpempty.png");
-	texturecache.unref("torpreload.png");
-	texturecache.unref("torpunload.png");
-	texturecache.unref("torpt1.png");
-	texturecache.unref("torpt2.png");
-	texturecache.unref("torpt3.png");
-	texturecache.unref("torpt3a.png");
-	texturecache.unref("torpt4.png");
-	texturecache.unref("torpt5.png");
-	texturecache.unref("torpt11.png");
-	texturecache.unref("torpt1fat.png");
-	texturecache.unref("torpt3fat.png");
-	texturecache.unref("torpt6lut.png");
+	// maybe ref (cache!) torpedo images here instead of loading them?
+	torpempty.reset(new texture(get_image_dir() + "torpmanage_emptytube.png"));
+	torpload.reset(new texture(get_image_dir() + "torpmanage_tubeload.png"));
+	torpunload.reset(new texture(get_image_dir() + "torpmanage_tubeunload.png"));
+	torp1fat1.reset(new texture(get_image_dir() + "torpmanage_torp1fat1.png"));
+	torp1lut1.reset(new texture(get_image_dir() + "torpmanage_torp1lut1.png"));
+	torp1lut2.reset(new texture(get_image_dir() + "torpmanage_torp1lut2.png"));
+	torp1.reset(new texture(get_image_dir() + "torpmanage_torp1.png"));
+	torp1practice.reset(new texture(get_image_dir() + "torpmanage_torp1practice.png"));
+	torp2.reset(new texture(get_image_dir() + "torpmanage_torp2.png"));
+	torp3afat2.reset(new texture(get_image_dir() + "torpmanage_torp3afat2.png"));
+	torp3alut1.reset(new texture(get_image_dir() + "torpmanage_torp3alut1.png"));
+	torp3alut2.reset(new texture(get_image_dir() + "torpmanage_torp3alut2.png"));
+	torp3fat2.reset(new texture(get_image_dir() + "torpmanage_torp3fat2.png"));
+	torp3.reset(new texture(get_image_dir() + "torpmanage_torp3.png"));
+	torp4.reset(new texture(get_image_dir() + "torpmanage_torp4.png"));
+	torp5b.reset(new texture(get_image_dir() + "torpmanage_torp5b.png"));
+	torp5.reset(new texture(get_image_dir() + "torpmanage_torp5.png"));
+	torp6lut1.reset(new texture(get_image_dir() + "torpmanage_torp6lut1.png"));
+	submodelVIIc_daylight.reset(new texture(get_image_dir() + "torpmanage_daylight_submodelVIIc.png"));
+	submodelVIIc_redlight.reset(new texture(get_image_dir() + "torpmanage_redlight_submodelVIIc.png"));
+	background_daylight.reset(new image(get_image_dir() + "torpmanage_daylight_background.png"));
+	background_redlight.reset(new image(get_image_dir() + "torpmanage_redlight_background.png"));
 }
 
 
@@ -226,19 +218,17 @@ void sub_torpedo_display::display(class game& gm) const
 	glColor4f(1,1,1,1);
 	// draw background
 	sys().prepare_2d_drawing();
-	background->draw_tiles(0, 0, 1024, 768);
-	glClear(GL_DEPTH_BUFFER_BIT);
 
-	// draw sub model	
-	glPushMatrix();
-	glTranslatef(512, 160, 1);
-	glScalef(1024/80.0, 1024/80.0, 0.001);
-	glRotatef(90, 0, 0, 1);
-	glRotatef(-90, 0, 1, 0);
-	sub->display();
-	glPopMatrix();
-	
-	// draw torpedo programming buttons
+	bool is_day = gm.is_day_mode();
+	if (is_day) {
+		background_daylight->draw(0, 0);
+		submodelVIIc_daylight->draw(69, 37);
+	} else {
+		background_redlight->draw(0, 0);
+		submodelVIIc_redlight->draw(69, 37);
+	}
+
+	// draw torpedo programming buttons, obsolete:
 	draw_turnswitch(gm,   0, 384, 142, 17, sub->get_trp_primaryrange(), 175, 138);
 	draw_turnswitch(gm, 256, 384, 159, 2, sub->get_trp_secondaryrange(), 0, 139);
 	draw_turnswitch(gm, 512, 384, 161, 2, sub->get_trp_initialturn(), 0, 140);
@@ -272,12 +262,12 @@ void sub_torpedo_display::display(class game& gm) const
 	if (torptranssrc != ILLEGAL_TUBE && torpedoes[torptranssrc].status ==
 	    submarine::stored_torpedo::st_loaded) {
 		glColor4f(1,1,1,0.5);
-		torptex(torpedoes[torptranssrc].type)->draw(mx-64, my-8);
+		torptex(torpedoes[torptranssrc].type).draw(mx-124/2, my-12/2);
 		glColor4f(1,1,1,1);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBegin(GL_LINES);
-		glVertex2i(tubecoords[torptranssrc].x+64,
-			tubecoords[torptranssrc].y+8);
+		glVertex2i(tubecoords[torptranssrc].x+124/2,
+			tubecoords[torptranssrc].y+12/2);
 		glVertex2i(mx, my);
 		glEnd();
 	}
@@ -291,7 +281,7 @@ void sub_torpedo_display::display(class game& gm) const
 			    torpedoes[tb].status == submarine::stored_torpedo::st_unloading) {
 				glColor4f(1,1,1,1);
 				notepadsheet->draw(mx, my);
-				font_arial->print(mx+32, my+32, texts::get(211) +
+				font_olympiaworn->print(mx+32, my+32, texts::get(211) +
 						  get_time_string(torpedoes[tb].remaining_time), color(0,0,128));
 			}
 		} else {
@@ -300,8 +290,8 @@ void sub_torpedo_display::display(class game& gm) const
 			    && torpedoes[tb].status == submarine::stored_torpedo::st_loaded) {
 				color::white().set_gl_color();
 				notepadsheet->draw(mx, my);
-				torptex(torpedoes[tb].type)->draw(mx+64, my+36);
-				font_arial->print(mx+16, my+60,
+				torptex(torpedoes[tb].type).draw(mx+64, my+36);
+				font_olympiaworn->print(mx+16, my+60,
 						  texts::get(300+torpedoes[tb].type-1),
 						  color(0,0,128));
 			}
@@ -313,9 +303,7 @@ void sub_torpedo_display::display(class game& gm) const
 	{
 		char a[10];
 		sprintf(a, "%ld", sub->num_shells_remaining());
-		font_arial->print(400, 85,
-						a,
-						color(255,255,255));
+		font_olympiaworn->print(400, 85, a, color(255,255,255));
 	}
 	
 	ui.draw_infopanel();

@@ -22,6 +22,8 @@ class submarine : public ship
 	submarine(const submarine& other);
 
  public:
+ 	//fixme: later we have to add control data for each torpedo (gyro angle, fat/lut setup for each
+ 	//torpedo etc. we could store pointers to class torpedo here instead of "type" to accomplish this)
 	struct stored_torpedo {
 		enum st_status { st_empty, st_reloading, st_unloading, st_loaded };
 		torpedo::types type;

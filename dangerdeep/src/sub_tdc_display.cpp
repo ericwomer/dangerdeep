@@ -20,38 +20,27 @@ static int tubelightny[6] = {618,618,618,618,618,618};
 static int tubeswitchx = 760, tubeswitchy = 492;
 
 
-sub_tdc_display::rotat_tex::rotat_tex() : tex(0), left(0), top(0), centerx(0), centery(0)
+sub_tdc_display::rotat_tex::rotat_tex() : left(0), top(0), centerx(0), centery(0)
 {
 }
 
-sub_tdc_display::rotat_tex::~rotat_tex()
-{
-}
+
 
 void sub_tdc_display::rotat_tex::set(const char* filename, int left_, int top_, int centerx_, int centery_)
 {
-	tex = texture::ptr(new texture(get_image_dir() + filename));
+	tex.reset(new texture(get_image_dir() + filename));
 	left = left_;
 	top = top_;
 	centerx = centerx_;
 	centery = centery_;
 }
 
+
+
 void sub_tdc_display::rotat_tex::draw(double angle) const
 {
 	// fixme: maybe rotate around pixel center (x/y + 0.5)
 	tex->draw_rot(centerx, centery, angle, centerx - left, centery - top);
-}
-
-
-sub_tdc_display::scheme::scheme()
-{
-}
-
-
-
-sub_tdc_display::scheme::~scheme()
-{
 }
 
 
@@ -104,12 +93,6 @@ sub_tdc_display::sub_tdc_display(user_interface& ui_) : user_display(ui_)
 	nightlight.automode[1] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_autoswitchoff.png"));
 	normallight.firesolutionquality = texture::ptr(new texture(get_image_dir() + "TDC_daylight_firesolutionquality.png"));
 	nightlight.firesolutionquality = texture::ptr(new texture(get_image_dir() + "TDC_redlight_firesolutionquality.png"));
-}
-
-
-
-sub_tdc_display::~sub_tdc_display()
-{
 }
 
 
