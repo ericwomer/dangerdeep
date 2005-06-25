@@ -33,8 +33,7 @@ class sub_torpedo_display : public user_display
 	auto_ptr<texture> torp5b;
 	auto_ptr<texture> torp5;
 	auto_ptr<texture> torp6lut1;
-	auto_ptr<texture> submodelVIIc_daylight;
-	auto_ptr<texture> submodelVIIc_redlight;
+	auto_ptr<texture> submodelVIIc;
 	auto_ptr<image> background_daylight;
 	auto_ptr<image> background_redlight;
 

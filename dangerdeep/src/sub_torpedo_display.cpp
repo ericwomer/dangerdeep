@@ -202,10 +202,9 @@ sub_torpedo_display::sub_torpedo_display(user_interface& ui_) :
 	torp5b.reset(new texture(get_image_dir() + "torpmanage_torp5b.png"));
 	torp5.reset(new texture(get_image_dir() + "torpmanage_torp5.png"));
 	torp6lut1.reset(new texture(get_image_dir() + "torpmanage_torp6lut1.png"));
-	submodelVIIc_daylight.reset(new texture(get_image_dir() + "torpmanage_daylight_submodelVIIc.png"));
-	submodelVIIc_redlight.reset(new texture(get_image_dir() + "torpmanage_redlight_submodelVIIc.png"));
-	background_daylight.reset(new image(get_image_dir() + "torpmanage_daylight_background.png"));
-	background_redlight.reset(new image(get_image_dir() + "torpmanage_redlight_background.png"));
+	submodelVIIc.reset(new texture(get_image_dir() + "torpmanage_submodelVIIc.png"));
+	background_daylight.reset(new image(get_image_dir() + "torpmanage_daylight_background.jpg"));
+	background_redlight.reset(new image(get_image_dir() + "torpmanage_redlight_background.jpg"));
 }
 
 
@@ -222,11 +221,12 @@ void sub_torpedo_display::display(class game& gm) const
 	bool is_day = gm.is_day_mode();
 	if (is_day) {
 		background_daylight->draw(0, 0);
-		submodelVIIc_daylight->draw(69, 37);
 	} else {
 		background_redlight->draw(0, 0);
-		submodelVIIc_redlight->draw(69, 37);
 	}
+
+	// draw sub model
+	submodelVIIc->draw(69, 37);
 
 	// draw torpedo programming buttons, obsolete:
 	draw_turnswitch(gm,   0, 384, 142, 17, sub->get_trp_primaryrange(), 175, 138);

@@ -1109,6 +1109,17 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 				float rel_coord_length = coord.length();
 				vector3f E = -coord * (1.0f/rel_coord_length); // viewer is in (0,0,0)
 				float F = E*N;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
+				// make water less reflective in the distance to simulate
+				// the fact that we look not on a flat plane in the distance
+				// but mostly wave sides,
+				// but the water display is similar to such a plane
+				if (rel_coord_length > 1000) {
+					F *= (30000 - rel_coord_length)/29000;
+				}
+				//fixme: far water reflects atmosphere seen from a farer distance
+				//the reflected ray goes right up into the atmosphere (earth
+				//surface is curved!) so reflected color would be rather blue
+				//not the horizon like greyish fog...
 				// value clamping is done by texture unit.
 				// water color depends on height of wave and slope
 				// slope (N.z) it mostly > 0.8
