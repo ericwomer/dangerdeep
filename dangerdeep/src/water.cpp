@@ -1113,8 +1113,11 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 				// the fact that we look not on a flat plane in the distance
 				// but mostly wave sides,
 				// but the water display is similar to such a plane
-				if (rel_coord_length > 1000) {
-					F *= (30000 - rel_coord_length)/29000;
+				if (rel_coord_length > 500) {
+					float tmp = (30000 - rel_coord_length)/29500;
+					tmp = tmp * tmp;
+					// 0.09051=x gives fresnel term 0.5
+					F = F * tmp + 0.09051f * (1 - tmp);
 				}
 				//fixme: far water reflects atmosphere seen from a farer distance
 				//the reflected ray goes right up into the atmosphere (earth
