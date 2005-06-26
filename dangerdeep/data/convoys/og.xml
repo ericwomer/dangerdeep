@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="ISO_8859-1" standalone="no"?>
+<dftd-convoydata>
+<route name="OG">
+<start name="Liverpool" />
+        <waypoint x="-368970" y="5.94006e+06" />
+        <waypoint x="-399690" y="5.94886e+06" />
+        <waypoint x="-464170" y="5.95542e+06" />
+        <waypoint x="-528810" y="5.9599e+06" />
+        <waypoint x="-597610" y="5.95382e+06" />
+        <waypoint x="-596970" y="5.90518e+06" />
+        <waypoint x="-591850" y="5.85014e+06" />
+        <waypoint x="-682730" y="5.75414e+06" />
+        <waypoint x="-1.05265e+06" y="5.66326e+06" />
+        <waypoint x="-1.34961e+06" y="5.54038e+06" />
+        <waypoint x="-1.52369e+06" y="5.1871e+06" />
+        <waypoint x="-1.33937e+06" y="4.56246e+06" />
+        <waypoint x="-1.17553e+06" y="4.14774e+06" />
+        <waypoint x="-1.02577e+06" y="3.98902e+06" />
+        <waypoint x="-774250" y="3.98902e+06" />
+        <waypoint x="-658250" y="3.9871e+06" />
+        <waypoint x="-609610" y="3.99622e+06" />
+        <waypoint x="-608170" y="4.00518e+06" />
+        <waypoint x="-607850" y="4.0103e+06" />
+<target name="Gibraltar" />
+<convoy code="1" depart="09/16/1939" arrive="09/30/1939" ships="15" />
+<convoy code="1F" depart="09/19/1939" arrive="09/29/1939" ships="8" />
+</route>
+</dftd-convoydata>

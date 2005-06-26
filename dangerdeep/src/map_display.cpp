@@ -487,12 +487,10 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 #ifdef CVEDIT
 		if (event.key.keysym.sym == SDLK_w) {
 			cout << "Current cv route:\n\n";
-			cout << "<convoy-route>\n";
 			for (unsigned i = 0; i < cvroute.size(); ++i) {
-				cout << "\t<coord x=\"" << cvroute[i].x << "\" y=\"" << cvroute[i].y
+				cout << "\t<waypoint x=\"" << cvroute[i].x << "\" y=\"" << cvroute[i].y
 				     << "\" />\n";
 			}
-			cout << "</convoy-route>\n\n";
 		}
 #endif
 		break;

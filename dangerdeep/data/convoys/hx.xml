@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ISO_8859-1" standalone="no"?>
+<dftd-convoydata>
+<route name="HX">
+<start name="Liverpool" />
+        <waypoint x="-369330" y="5.93962e+06" />
+        <waypoint x="-475160" y="5.94659e+06" />
+        <waypoint x="-539460" y="5.95781e+06" />
+        <waypoint x="-560650" y="5.9319e+06" />
+        <waypoint x="-680570" y="5.79238e+06" />
+        <waypoint x="-727290" y="5.76998e+06" />
+        <waypoint x="-978170" y="5.66758e+06" />
+        <waypoint x="-2.57561e+06" y="5.34118e+06" />
+        <waypoint x="-4.43673e+06" y="5.13766e+06" />
+        <waypoint x="-6.04441e+06" y="4.91366e+06" />
+        <waypoint x="-6.39513e+06" y="4.86502e+06" />
+        <waypoint x="-6.70361e+06" y="4.81766e+06" />
+        <waypoint x="-6.97049e+06" y="4.85158e+06" />
+        <waypoint x="-7.08889e+06" y="4.88806e+06" />
+        <waypoint x="-7.10169e+06" y="4.93574e+06" />
+<target name="Halifax" />
+<convoy code="1" depart="09/16/1939" arrive="09/30/1939" ships="15" />
+<convoy code="1F" depart="09/19/1939" arrive="09/29/1939" ships="8" />
+</route>
+</dftd-convoydata>
