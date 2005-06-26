@@ -16,6 +16,10 @@
 #include "font.cpp"
 #include "keys.h"
 #include "cfg.h"
+#ifdef CVEDIT
+#include "color.h"
+#include "bspline.h"
+#endif
 #include <sstream>
 using namespace std;
 
@@ -216,6 +220,9 @@ void map_display::draw_square_mark ( class game& gm,
 map_display::map_display(user_interface& ui_) :
 	user_display(ui_), mapzoom(0.1), mx(0), my(0)
 {
+#ifdef CVEDIT
+	cvridx = -1;
+#endif
 }
 
 
@@ -276,6 +283,27 @@ void map_display::display(class game& gm) const
 	ui.get_coastmap().draw_as_map(offset, mapzoom);//, detl); // detail should depend on zoom, fixme
 	glPopMatrix();
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+#ifdef CVEDIT
+	// draw convoy route points and route
+	if (cvroute.size() >= 2) {
+		unsigned n = std::min(unsigned(3), cvroute.size()-1);
+		bsplinet<vector2> bsp(n, cvroute);
+		const unsigned detail = 10000;
+		glColor3f(1,0.6,0.2);
+		glBegin(GL_LINE_STRIP);
+		for (unsigned i = 0; i <= detail; ++i) {
+			double j = double(i)/detail;
+			vector2 p = bsp.value(j);
+			p = (p - offset) * mapzoom;
+			glVertex2d(512 + p.x, 384 - p.y);
+		}
+		glEnd();
+	}
+	for (unsigned i = 0; i < cvroute.size(); ++i) {
+		draw_square_mark(gm, cvroute[i], -offset, color(255, 0, 255));
+	}
+#endif
 
 	// draw city names
 	const list<pair<vector2, string> >& cities = ui.get_coastmap().get_city_list();
@@ -391,6 +419,7 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 	switch (event.type) {
 	case SDL_MOUSEBUTTONDOWN:
 		if (event.button.button == SDL_BUTTON_LEFT) {
+#ifndef CVEDIT
 			// set target. get visible objects and determine which is nearest to
 			// mouse position. set target for player object
 			vector2 mapclick(event.button.x, event.button.y);
@@ -399,8 +428,8 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 			sea_object* target = 0;
 			for (vector<sea_object*>::iterator it = objs.begin(); it != objs.end(); ++it) {
 				if (!(*it)->is_alive()) continue;
-				vector2 p = ((*it)->get_pos().xy() - (player->get_pos().xy()
-								      + mapoffset)) * mapzoom;
+				vector2 p = ((*it)->get_pos().xy() -
+					     (player->get_pos().xy() + mapoffset)) * mapzoom;
 				p.x += 512;
 				p.y = 384 - p.y;
 				double clickd = mapclick.square_distance(p);
@@ -411,7 +440,30 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 			}
 
 			ui.set_target(target);
+#else
+			// move nearest cv point
+			if (cvroute.size() > 0) {
+				vector2 mapclick(event.button.x - 512, 384 - event.button.y);
+				vector2 real = mapclick * (1.0/mapzoom) + mapoffset + player->get_pos().xy();
+				double dist = cvroute.front().distance(real);
+				cvridx = 0;
+				for (unsigned i = 1; i < cvroute.size(); ++i) {
+					double d = cvroute[i].distance(real);
+					if (d < dist) {
+						dist = d;
+						cvridx = i;
+					}
+				}
+			}
+#endif
 		}
+#ifdef CVEDIT
+		if (event.button.button == SDL_BUTTON_RIGHT) {
+			vector2 mapclick(event.button.x - 512, 384 - event.button.y);
+			vector2 real = mapclick * (1.0/mapzoom) + mapoffset + player->get_pos().xy();
+			cvroute.push_back(real);
+		}
+#endif
 		break;
 	case SDL_MOUSEMOTION:
 		mx = event.motion.x;
@@ -420,12 +472,29 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 			mapoffset.x += event.motion.xrel / mapzoom;
 			mapoffset.y += -event.motion.yrel / mapzoom;
 		}
+#ifdef CVEDIT
+		if (event.motion.state & SDL_BUTTON_LMASK && cvridx >= 0) {
+			cvroute[cvridx].x += event.motion.xrel / mapzoom;
+			cvroute[cvridx].y += -event.motion.yrel / mapzoom;
+		}
+#endif
 	case SDL_KEYDOWN:
 		if (cfg::instance().getkey(KEY_ZOOM_MAP).equal(event.key.keysym)) {
 			if (mapzoom < 1) mapzoom *= 2;
 		} else if (cfg::instance().getkey(KEY_UNZOOM_MAP).equal(event.key.keysym)) {
 			if (mapzoom > 1.0/16384) mapzoom /= 2;
 		}
+#ifdef CVEDIT
+		if (event.key.keysym.sym == SDLK_w) {
+			cout << "Current cv route:\n\n";
+			cout << "<convoy-route>\n";
+			for (unsigned i = 0; i < cvroute.size(); ++i) {
+				cout << "\t<coord x=\"" << cvroute[i].x << "\" y=\"" << cvroute[i].y
+				     << "\" />\n";
+			}
+			cout << "</convoy-route>\n\n";
+		}
+#endif
 		break;
 	default:
 		break;

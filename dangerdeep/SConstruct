@@ -27,6 +27,7 @@ if ARGUMENTS.get('installdatadir', 0):
 ################ command line config
 debug = int(ARGUMENTS.get('debug', 0))
 devel = int(ARGUMENTS.get('devel', 0))
+cvedit = int(ARGUMENTS.get('cvedit', 0))
 
 ################ set environment
 
@@ -76,6 +77,8 @@ else:
 		ccflags += ' -g -O3 -march=athlon-xp -march=athlon-xp -mfpmath=sse -mmmx -msse -m3dnow -ftree-vectorize -ftree-vectorizer-verbose=2'
 	else:
 		ccflags += ' -g -O2' # debug symbols will be stripped by the linker for a debian package
+	if (cvedit == 1):
+		env.Append(CPPDEFINES = ['CVEDIT'])
 	env.Append(CCFLAGS = ccflags)
 	datadir = installdatadir
 	build_dir = 'linux'

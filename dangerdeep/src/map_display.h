@@ -30,6 +30,11 @@ protected:
 	void draw_square_mark (game& gm,
 		const vector2& mark_pos, const vector2& offset, const color& c ) const;
 
+#ifdef CVEDIT
+	vector<vector2> cvroute;
+	int cvridx;
+#endif
+
 private:
 	map_display();
 
