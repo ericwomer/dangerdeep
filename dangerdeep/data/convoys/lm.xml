@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="ISO_8859-1" standalone="no"?>
+<dftd-convoydata>
+<route name="LM">
+<start name="Liverpool" />
+        <waypoint x="-368810" y="5.93974e+06" />
+        <waypoint x="-519850" y="5.97206e+06" />
+        <waypoint x="-580010" y="5.99062e+06" />
+        <waypoint x="-588330" y="6.0271e+06" />
+        <waypoint x="-592170" y="6.06166e+06" />
+        <waypoint x="-611370" y="6.09046e+06" />
+        <waypoint x="-676650" y="6.14358e+06" />
+        <waypoint x="-699690" y="6.1615e+06" />
+        <waypoint x="-722090" y="6.16022e+06" />
+        <waypoint x="-747690" y="6.15638e+06" />
+        <waypoint x="-778410" y="6.1711e+06" />
+        <waypoint x="-805930" y="6.19158e+06" />
+        <waypoint x="-874410" y="6.26262e+06" />
+        <waypoint x="-893610" y="6.34582e+06" />
+        <waypoint x="-878250" y="6.44822e+06" />
+        <waypoint x="-810410" y="6.72598e+06" />
+        <waypoint x="-702890" y="6.8591e+06" />
+        <waypoint x="-585130" y="7.03318e+06" />
+        <waypoint x="-27050" y="7.74486e+06" />
+        <waypoint x="1.07887e+06" y="8.15446e+06" />
+        <waypoint x="1.91855e+06" y="8.19542e+06" />
+        <waypoint x="2.73775e+06" y="8.1647e+06" />
+        <waypoint x="3.20879e+06" y="8.09302e+06" />
+        <waypoint x="3.43663e+06" y="8.0111e+06" />
+        <waypoint x="3.63183e+06" y="7.87862e+06" />
+        <waypoint x="3.69071e+06" y="7.80822e+06" />
+        <waypoint x="3.70031e+06" y="7.75574e+06" />
+        <waypoint x="3.68943e+06" y="7.72822e+06" />
+        <waypoint x="3.66511e+06" y="7.72246e+06" />
+<target name="Murmansk" />
+<convoy code="1" depart="09/16/1939" arrive="09/30/1939" ships="15" />
+<convoy code="1F" depart="09/19/1939" arrive="09/29/1939" ships="8" />
+</route>
+</dftd-convoydata>
