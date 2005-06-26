@@ -13,12 +13,14 @@
 #include "ai.h"
 
 
+const double earthperimeter2 = 20015086.795;
+
 
 void sea_object::degrees2meters(bool west, unsigned degx, unsigned minx, bool south,
 	unsigned degy, unsigned miny, double& x, double& y)
 {
-	x = (west ? -1.0 : 1.0)*(double(degx)+double(minx)/60.0)*20000000.0/180.0;
-	y = (south ? -1.0 : 1.0)*(double(degy)+double(miny)/60.0)*20000000.0/180.0;
+	x = (west ? -1.0 : 1.0)*(double(degx)+double(minx)/60.0)*earthperimeter2/180.0;
+	y = (south ? -1.0 : 1.0)*(double(degy)+double(miny)/60.0)*earthperimeter2/180.0;
 }
 
 
@@ -26,12 +28,12 @@ void sea_object::degrees2meters(bool west, unsigned degx, unsigned minx, bool so
 void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, unsigned& minx, bool& south,
 	unsigned& degy, unsigned& miny)
 {
-	double fracdegrx = fabs(x*180.0/20000000.0);
-	double fracdegry = fabs(y*180.0/20000000.0);
-	degx = unsigned(floor(fracdegrx)),
-	degy = unsigned(floor(fracdegry)),
-	minx = unsigned(60.0*myfrac(fracdegrx) + 0.5);
-	miny = unsigned(60.0*myfrac(fracdegry) + 0.5);
+	double fracdegrx = fabs(x*180.0/earthperimeter2);
+	double fracdegry = fabs(y*180.0/earthperimeter2);
+	degx = unsigned(floor(fracdegrx));
+	degy = unsigned(floor(fracdegry));
+	minx = unsigned(60.0 * myfrac(fracdegrx) + 0.5);
+	miny = unsigned(60.0 * myfrac(fracdegry) + 0.5);
 	west = (x < 0.0);
 	south = (y < 0.0);
 }

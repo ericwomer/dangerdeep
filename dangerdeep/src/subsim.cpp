@@ -1384,6 +1384,7 @@ int mymain(list<string>& args)
 
 	// check if there was a mission given at the command line
 	if (cmdmissionfilename.length() > 0) {
+		// fixme: check here that the file exists or tinyxml faults with a embarassing error message
 		TiXmlDocument doc(get_mission_dir() + cmdmissionfilename);
 		doc.LoadFile();
 		run_game(new game(&doc));

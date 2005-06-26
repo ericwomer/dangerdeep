@@ -266,6 +266,7 @@ void map_display::display(class game& gm) const
 		glEnd();
 	}
 
+	// draw map
 	glColor3f(1,1,1);
 	glPushMatrix();
 	glTranslatef(512, 384, 0);
@@ -275,6 +276,15 @@ void map_display::display(class game& gm) const
 	ui.get_coastmap().draw_as_map(offset, mapzoom);//, detl); // detail should depend on zoom, fixme
 	glPopMatrix();
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// draw city names
+	const list<pair<vector2, string> >& cities = ui.get_coastmap().get_city_list();
+	for (list<pair<vector2, string> >::const_iterator it = cities.begin(); it != cities.end(); ++it) {
+		glBindTexture(GL_TEXTURE_2D, 0);
+		draw_square_mark(gm, it->first, -offset, color(255, 0, 0));
+		vector2 pos = (it->first - offset) * mapzoom;
+		font_arial->print(int(512 + pos.x), int(384 - pos.y), it->second);
+	}
 
 	// draw convoy positions	fixme: should be static and fade out after some time
 	glColor3f(1,1,1);

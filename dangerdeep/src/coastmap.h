@@ -126,6 +126,8 @@ public:
 	// create from xml file
 	coastmap(const string& filename);
 
+	const list<pair<vector2, string> >& get_city_list() const { return cities; }
+
 	// fixme: maybe it's better to give top,left and bottom,right corner of sub area to draw
 	void draw_as_map(const vector2& droff, double mapzoom, int detail = 0) const;
 	// p is real word position of viewer, vr is range of view in meters.

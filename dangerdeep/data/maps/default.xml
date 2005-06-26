@@ -2,9 +2,29 @@
 <dftd-map>
   <topology image="default.png" realwidth="15625000" realoffsetx="-11254965" realoffsety="-1083984"/>
   <cities>
-    <city name="Murmansk" posx="+33,16" posy="+68,59"/>
-    <city name="Trondheim" posx="+10,25" posy="+63,24"/>
-    <city name="Freetown" posx="-13,18" posy="+8,27"/>
-    <city name="Dakar" posx="-17,34" posy="+14,40"/>
+    <city name="Murmansk" posx="33/16E" posy="68/59N"/>
+    <city name="Trondheim" posx="10/25E" posy="63/24N"/>
+    <city name="Freetown" posx="13/18W" posy="8/27N"/>
+    <city name="Dakar" posx="17/34W" posy="14/40N"/>
+    <city name="Halifax" posx="63/52W" posy="44/24N"/>
+    <city name="New York" posx="74/7W" posy="40/34N"/>
+    <city name="Gibraltar" posx="5/28W" posy="36/4N"/>
+    <city name="Brest" posx="4/49W" posy="48/15N"/>
+    <city name="Lorient" posx="3/29W" posy="47/35N"/>
+    <city name="St. Nazaire" posx="2/24W" posy="47/4N"/>
+    <city name="La Rochelle" posx="1/32W" posy="46/3N"/>
+    <city name="Portsmouth" posx="1/12W" posy="50/43N"/>
+    <city name="Liverpool" posx="3/19W" posy="53/25N"/>
+    <city name="Scapa Flow" posx="3/8W" posy="58/42N"/>
+    <city name="Bergen" posx="4/46E" posy="60/20N"/>
+    <city name="Gotenhafen" posx="18/26E" posy="54/31N"/>
+    <city name="Kiel" posx="9/53E" posy="54/41N"/>
+    <city name="Wilhelmshaven" posx="7/51E" posy="53/46N"/>
+    <city name="Tromso" posx="19/2E" posy="70/14N"/>
+    <city name="Azores" posx="27/27W" posy="38/38N"/>
+    <city name="Reykjavik" posx="22/11W" posy="64/5N"/>
+    <city name="La Spezia" posx="9/42E" posy="43/59N"/>
+    <city name="Salamis" posx="23/23E" posy="37/45N"/>
+    <city name="Belfast" posx="5/47W" posy="54/45N"/>
   </cities>
 </dftd-map>

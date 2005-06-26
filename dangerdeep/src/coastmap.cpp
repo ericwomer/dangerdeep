@@ -1282,7 +1282,17 @@ coastmap::coastmap(const string& filename)
 	if (ecities) {
 		TiXmlElement* ecity = ecities->FirstChildElement("city");
 		for ( ; ecity != 0; ecity = ecity->NextSiblingElement()) {
-			// parse name, posx, posy  fixme
+			// parse name, posx, posy
+			const char* nm = ecity->Attribute("name");
+			if (!nm) throw error(string("parsed city without a name in ") + filename);
+			string nmc = nm;
+			nm = ecity->Attribute("posx");
+			if (!nm) throw error(string("parsed city without a x position in ") + filename);
+			double x = transform_nautic_posx_to_real(string(nm));
+			nm = ecity->Attribute("posy");
+			if (!nm) throw error(string("parsed city without a y position in ") + filename);
+			double y = transform_nautic_posy_to_real(string(nm));
+			cities.push_back(make_pair(vector2(x, y), nmc));
 		}
 	}
 
@@ -1350,29 +1360,6 @@ coastmap::coastmap(const string& filename)
 		}
 	}
 
-/*
-	// read cities, fixme move to coastmap
-	parser cityfile(get_map_dir() + "cities.txt");
-	while (!cityfile.is_empty()) {
-		bool xneg = cityfile.type() == TKN_MINUS;
-		cityfile.consume();
-		int xd = cityfile.parse_number();
-		cityfile.parse(TKN_COMMA);
-		int xm = cityfile.parse_number();
-		cityfile.parse(TKN_COMMA);
-		bool yneg = cityfile.type() == TKN_MINUS;
-		cityfile.consume();
-		int yd = cityfile.parse_number();
-		cityfile.parse(TKN_COMMA);
-		int ym = cityfile.parse_number();
-		cityfile.parse(TKN_COMMA);
-		string n = cityfile.parse_string();
-		double x, y;
-		sea_object::degrees2meters(xneg, xd, xm, yneg, yd, ym, x, y);
-		cities.push_back(make_pair(vector2(x, y), n));
-	}
-*/
-
 	// fixme: clear "themap" so save space.
 	// information wether a position on the map is land or sea can be computed from
 	// segment data. This will save 6MB of space at least.
@@ -1416,7 +1403,6 @@ void coastmap::draw_as_map(const vector2& droff, double mapzoom, int detail) con
 			glPopMatrix();
 		}
 	}
-
 /*
 	// draw cities, fixme move to coastmap
 	for (list<pair<vector2, string> >::const_iterator it = cities.begin(); it != cities.end(); ++it) {

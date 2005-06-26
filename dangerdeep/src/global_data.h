@@ -102,4 +102,8 @@ inline unsigned ulog2(unsigned x) { unsigned i = 0; for ( ; x > 0; ++i, x >>= 1)
 inline unsigned nextgteqpow2(unsigned x) { unsigned i = 1; for ( ; i < x && i != 0; i <<= 1); return i; }
 inline bool ispow2(unsigned x) { return (x & (x-1)) == 0; }
 
+// give degrees,minutes like this 123/45x with x = N,W,E,S 
+double transform_nautic_posx_to_real(const string& s);
+double transform_nautic_posy_to_real(const string& s);
+
 #endif

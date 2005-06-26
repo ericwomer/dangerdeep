@@ -16,6 +16,11 @@
 #include <SDL_image.h>
 
 
+// computed with an earth radius of 40030.17359km
+const double DEGREE_IN_METERS = 111194.9266388889;
+const double MINUTE_IN_METERS = 1853.248777315;
+
+
 // return global data directory. all other directories depend on this.
 // by defining it only here, we need to recompile only one object file
 string get_data_dir(void)
@@ -238,4 +243,37 @@ string get_time_string(double tm)
 	    << setw(2) << setfill('0') << minutes << ":"
 	    << setw(2) << setfill('0') << seconds;
 	return oss.str();
+}
+
+
+static double transform_nautic_coord_to_real(const string& s, char minus, char plus, int degmax)
+{
+	if (s.length() < 2)
+		throw error(string("nautic coordinate invalid ") + s);
+	char sign = s[s.length() - 1];
+	if (sign != minus && sign != plus)
+		throw error(string("nautic coordinate (direction sign) invalid ") + s);
+	// find separator
+	string::size_type st = s.find("/");
+	if (st == string::npos)
+		throw error(string("no separator in position string ") + s);
+	string degrees = s.substr(0, st);
+	string minutes = s.substr(st + 1, s.length() - st - 2);
+	int deg = atoi(degrees.c_str());
+	if (deg < 0 || deg > degmax)
+		throw error(string("degrees are not in range [0...180/360] in position string ") + s);
+	int mts = atoi(minutes.c_str());
+	if (mts < 0 || mts > 59)
+		throw error(string("minutes are not in [0...59] in position string ") + s);
+	return (sign == minus ? -1 : 1) * ((DEGREE_IN_METERS * deg) + (MINUTE_IN_METERS * mts));
+}
+
+double transform_nautic_posx_to_real(const string& s)
+{
+	return transform_nautic_coord_to_real(s, 'W', 'E', 180);
+}
+
+double transform_nautic_posy_to_real(const string& s)
+{
+	return transform_nautic_coord_to_real(s, 'S', 'N', 90);
 }
