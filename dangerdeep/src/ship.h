@@ -212,7 +212,7 @@ public:
 	virtual void set_throttle(int thr);
 
 	virtual void remember_position();
-	virtual list<vector2> get_previous_positions() const { return previous_positions; }
+	virtual const list<vector2>& get_previous_positions() const { return previous_positions; }
 
 	virtual bool has_smoke() const { return smoke_type != 0; }
 

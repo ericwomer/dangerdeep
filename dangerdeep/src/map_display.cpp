@@ -56,7 +56,7 @@ void map_display::draw_trail(sea_object* so, const vector2& offset) const
 {
 	ship* shp = dynamic_cast<ship*>(so);
 	if (shp) {
-		list<vector2> l = shp->get_previous_positions();
+		const list<vector2>& l = shp->get_previous_positions();
 		glColor4f(1,1,1,1);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBegin(GL_LINE_STRIP);

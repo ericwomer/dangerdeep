@@ -777,6 +777,44 @@ void water::compute_amount_of_foam_texture(const matrix4& reflection_projmvmat,
 	glDisable(GL_DEPTH_TEST);
 
 	// draw trails / wave tops
+	//fixme: man sieht nix, auch ohne face cull. irgendwie stimmt die viewmatrix nicht.
+	//die entspricht noch nicht dem endergebnis. auﬂerdem sind alle positionne hier
+	//absolut, was wohl auch falsch ist (playerpos muﬂ abgezogen werden?) mit water quer checken
+	glDisable(GL_CULL_FACE);
+	// as first trails of all ships
+	for (vector<ship*>::const_iterator it = allships.begin(); it != allships.end(); ++it) {
+		if (*it == 0) continue;//fixme can happen for some strange unknown reason, but must not!!!
+		vector2 spos = (*it)->get_pos().xy();
+		vector2 sdir = (*it)->get_heading().direction();
+		vector2 pdir = sdir.orthogonal();
+		const list<vector2>& prevpos = (*it)->get_previous_positions();
+		float sw = (*it)->get_width();
+		float sl = (*it)->get_length();
+		vector2 p0 = spos + sdir * (sl/2);
+		glColor3f(1, 1, 1);
+		glBegin(GL_QUAD_STRIP);
+		vector2 pl = p0 + pdir * (-1.0f);
+		vector2 pr = p0 + pdir * ( 1.0f);
+		glVertex3d(pl.x, pl.y, 0);
+		glVertex3d(pr.x, pr.y, 0);
+		pl = spos + pdir * (-sw/2);
+		pr = spos + pdir * ( sw/2);
+		glVertex3d(pl.x, pl.y, 0);
+		glVertex3d(pr.x, pr.y, 0);
+		float fadd = -1.0f/prevpos.size();
+		float fcnt = 1.0f + fadd;
+		for (list<vector2>::const_iterator lt = prevpos.begin(); lt != prevpos.end(); ++lt) {
+			// fixme. we need new ortho vector here, depends on prevpos!
+			pl = *lt + pdir * (-sw/2);
+			pr = *lt + pdir * ( sw/2);
+			glColor3f(fcnt, fcnt, fcnt);
+			glVertex3d(pl.x, pl.y, 0);
+			glVertex3d(pr.x, pr.y, 0);
+			fcnt += fadd;
+		}
+		glEnd();
+	}
+	glEnable(GL_CULL_FACE);
 	// ship->get_heading(),
 	// get_pos()
 	// list<vector2> get_previous_positions
@@ -785,11 +823,13 @@ void water::compute_amount_of_foam_texture(const matrix4& reflection_projmvmat,
 	//as first only subs, draw quad strip along the trail
 	//first strip width depends on bow width, then model width, constant with with decaying strength
 	//maybe with a texture of grey/black lines or mix to simulate screw foam/hull foam/randomness etc.
+/*
 	glRasterPos2i(50, 50);
 	vector<Uint8> tmp(8*8);
 	for (int i = 0; i < 8*8; ++i) if (((i/8)+(i%8))&1) tmp[i] = 4*i;
 	glDrawPixels(8, 8, GL_LUMINANCE, GL_UNSIGNED_BYTE, &tmp[0]);
 	glRasterPos2i(0, 0);
+*/
 	
 #if 1
 	vector<Uint8> data(afs*afs);
