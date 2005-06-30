@@ -40,14 +40,14 @@ void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, 
 
 
 
-vector3 sea_object::get_acceleration(void) const
+vector3 sea_object::get_acceleration() const
 {
 	return vector3(0, 0, -GRAVITY);
 }
 
 
 
-double sea_object::get_turn_acceleration(void) const
+double sea_object::get_turn_acceleration() const
 {
 	return 0.0;
 }
@@ -360,28 +360,28 @@ bool sea_object::damage(const vector3& fromwhere, unsigned strength)
 
 
 
-unsigned sea_object::calc_damage(void) const
+unsigned sea_object::calc_damage() const
 {
 	return is_dead() ? 100 : 0;
 }
 
 
 
-void sea_object::set_inactive(void)
+void sea_object::set_inactive()
 {
 	alive_stat = inactive;
 }
 
 
 
-void sea_object::kill(void)
+void sea_object::kill()
 {
 	alive_stat = dead;
 }
 
 
 
-void sea_object::destroy(void)
+void sea_object::destroy()
 {
 	alive_stat = defunct;
 }
@@ -404,7 +404,7 @@ vector2 sea_object::get_engine_noise_source () const
 
 
 
-void sea_object::display(void) const
+void sea_object::display() const
 {
 	model* mdl = modelcache.find(modelname);
 

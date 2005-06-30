@@ -35,7 +35,10 @@ protected:
 	virtual void post_display(class game& gm) const;
 
 	// draw all sea_objects
-	virtual void draw_objects(class game& gm, const vector3& viewpos) const;
+	virtual void draw_objects(class game& gm, const vector3& viewpos,
+				  const vector<ship*>& ships,
+				  const vector<submarine*>& submarines,
+				  const vector<torpedo*>& torpedoes) const;
 
 	// draw the whole view
 	virtual void draw_view(class game& gm) const;

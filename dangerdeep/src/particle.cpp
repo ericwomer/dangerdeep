@@ -319,7 +319,7 @@ void particle::simulate(game& gm, double delta_t)
 
 
 
-void particle::display_all(const list<particle*>& pts, const vector3& viewpos, class game& gm)
+void particle::display_all(const vector<particle*>& pts, const vector3& viewpos, class game& gm)
 {
 	glDepthMask(GL_FALSE);
 	matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
@@ -327,7 +327,7 @@ void particle::display_all(const list<particle*>& pts, const vector3& viewpos, c
 
 	vector<particle_dist> pds;
 	pds.reserve(pts.size());
-	for (list<particle*>::const_iterator it = pts.begin(); it != pts.end(); ++it) {
+	for (vector<particle*>::const_iterator it = pts.begin(); it != pts.end(); ++it) {
 		vector3 pp = (mvtrans + (*it)->get_pos() - viewpos);
 		pds.push_back(particle_dist(*it, pp.square_length(), pp));
 	}

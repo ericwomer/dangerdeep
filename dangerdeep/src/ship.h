@@ -71,8 +71,8 @@ protected:
 
 	unsigned shipclass;	// read from spec file, e.g. warship/merchant/escort/...
 
-	virtual vector3 get_acceleration(void) const;		// drag must be already included!
-	virtual double get_turn_acceleration(void) const;	// drag must be already included!
+	virtual vector3 get_acceleration() const;		// drag must be already included!
+	virtual double get_turn_acceleration() const;	// drag must be already included!
 
 	ship(game& gm_);
 
@@ -98,11 +98,11 @@ protected:
 	class particle* myfire;
 	
 	// common constructor. set attributes to sane values.
-	void init(void);
+	void init();
 
-	virtual bool use_simple_turning_model(void) const { return false; }
+	virtual bool use_simple_turning_model() const { return false; }
 	
-	virtual bool causes_spray(void) const { return true; }
+	virtual bool causes_spray() const { return true; }
 	
 	// some experience values of the crews to fire a grenade with right angle at any
 	// target. This depends on canon type (shot speed, min/max angles etc.) so we need
@@ -190,48 +190,48 @@ public:
 
 	virtual void parse_attributes(class TiXmlElement* parent);
 
-	virtual unsigned get_class(void) const { return shipclass; }
+	virtual unsigned get_class() const { return shipclass; }
 
 	virtual void simulate(double delta_time);
 
-	virtual void sink(void);
+	virtual void sink();
 
-	virtual void ignite(void);
-	bool is_burning(void) const { return myfire != 0; }
+	virtual void ignite();
+	bool is_burning() const { return myfire != 0; }
 
 	// command interface
 	virtual void fire_shell_at(const vector2& pos);
 	virtual void head_to_ang(const angle& a, bool left_or_right);	// true == left
 	virtual void change_rudder(int to);	// give -2..2, fixme not yet used as command
 	//virtual void set_rudder(angle ang);	// move rudder to this angle
-	virtual void rudder_left(void);
-	virtual void rudder_right(void);
-	virtual void rudder_hard_left(void);
-	virtual void rudder_hard_right(void);
-	virtual void rudder_midships(void);
+	virtual void rudder_left();
+	virtual void rudder_right();
+	virtual void rudder_hard_left();
+	virtual void rudder_hard_right();
+	virtual void rudder_midships();
 	virtual void set_throttle(int thr);
 
-	virtual void remember_position(void);
-	virtual list<vector2> get_previous_positions(void) const { return previous_positions; }
+	virtual void remember_position();
+	virtual list<vector2> get_previous_positions() const { return previous_positions; }
 
-	virtual bool has_smoke(void) const { return smoke_type != 0; }
+	virtual bool has_smoke() const { return smoke_type != 0; }
 
 	virtual bool damage(const vector3& fromwhere, unsigned strength);
-	virtual unsigned calc_damage(void) const;	// returns damage in percent (100 means dead)
-	virtual class ai* get_ai(void) { return myai; }
+	virtual unsigned calc_damage() const;	// returns damage in percent (100 means dead)
+	virtual class ai* get_ai() { return myai; }
 	// this depends on ship's tonnage, type, draught and depth (subs/sinking ships)
-	virtual double get_roll_factor(void) const;
-	virtual unsigned get_tonnage(void) const { return tonnage; }
+	virtual double get_roll_factor() const;
+	virtual unsigned get_tonnage() const { return tonnage; }
 	virtual double get_fuel_level () const { return fuel_level; }
-	virtual angle get_head_to(void) const { return head_to_fixed ? head_to : heading; };
-	virtual angle get_turn_rate(void) const { return turn_rate; };
-	virtual double get_max_speed(void) const { return max_speed_forward; };
+	virtual angle get_head_to() const { return head_to_fixed ? head_to : heading; };
+	virtual angle get_turn_rate() const { return turn_rate; };
+	virtual double get_max_speed() const { return max_speed_forward; };
 	virtual throttle_status get_throttle() { return (throttle_status)throttle; }
-	virtual double get_throttle_speed(void) const;
-	virtual double get_throttle_accel(void) const;	// returns acceleration caused by current throttle
-	virtual double get_rudder_pos(void) const { return rudder_pos; }
-	virtual int get_rudder_to (void) const { return rudder_to; }
-	virtual double get_noise_factor (void) const;
+	virtual double get_throttle_speed() const;
+	virtual double get_throttle_accel() const;	// returns acceleration caused by current throttle
+	virtual double get_rudder_pos() const { return rudder_pos; }
+	virtual int get_rudder_to () const { return rudder_to; }
+	virtual double get_noise_factor () const;
 	virtual int fire_shell_at(const sea_object& s);
 
 	// needed for launching torpedoes

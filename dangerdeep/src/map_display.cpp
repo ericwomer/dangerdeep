@@ -104,9 +104,8 @@ void map_display::draw_sound_contact(class game& gm, const sea_object* player,
 	double max_view_dist, const vector2& offset) const
 {
 	// draw sound contacts
-	list<ship*> ships;
-	gm.sonar_ships(ships, player);
-	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
+	vector<ship*> ships = gm.sonar_ships(player);
+	for (vector<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
 		vector2 ldir = (*it)->get_pos().xy() - player->get_pos().xy();
 		ldir = ldir.normal() * 0.666666 * max_view_dist*mapzoom;
 		vector2 pos = (player->get_pos().xy() + offset) * mapzoom;
@@ -124,9 +123,8 @@ void map_display::draw_sound_contact(class game& gm, const sea_object* player,
 		glColor3f(1,1,1);
 	}
 
-	list<submarine*> submarines;
-	gm.sonar_submarines ( submarines, player );
-	for ( list<submarine*>::iterator it = submarines.begin ();
+	vector<submarine*> submarines = gm.sonar_submarines (player );
+	for (vector<submarine*>::iterator it = submarines.begin ();
 		it != submarines.end (); it ++ )
 	{
 		vector2 ldir = (*it)->get_pos().xy() - player->get_pos().xy();
@@ -148,54 +146,48 @@ void map_display::draw_visual_contacts(class game& gm,
     const sea_object* player, const vector2& offset) const
 {
 	// draw vessel trails and symbols (since player is submerged, he is drawn too)
-	list<ship*> ships;
-	gm.visible_ships(ships, player);
-	list<submarine*> submarines;
-	gm.visible_submarines(submarines, player);
-	list<airplane*> airplanes;
-	gm.visible_airplanes(airplanes, player);
-	list<torpedo*> torpedoes;
-	gm.visible_torpedoes(torpedoes, player);
+	vector<ship*> ships = gm.visible_ships(player);
+	vector<submarine*> submarines = gm.visible_submarines(player);
+	vector<airplane*> airplanes = gm.visible_airplanes(player);
+	vector<torpedo*> torpedoes = gm.visible_torpedoes(player);
 
    	// draw trails
-   	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
+   	for (vector<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
    		draw_trail(*it, offset);
-   	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
+   	for (vector<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
    		draw_trail(*it, offset);
-   	for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
+   	for (vector<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
    		draw_trail(*it, offset);
-   	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
+   	for (vector<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
    		draw_trail(*it, offset);
 
    	// draw vessel symbols
-   	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
+   	for (vector<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
    		draw_vessel_symbol(offset, *it, color(192,255,192));
-   	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
+   	for (vector<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
    		draw_vessel_symbol(offset, *it, color(255,255,128));
-   	for (list<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
+   	for (vector<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
    		draw_vessel_symbol(offset, *it, color(0,0,64));
-   	for (list<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
+   	for (vector<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
    		draw_vessel_symbol(offset, *it, color(255,0,0));
 }
 
 void map_display::draw_radar_contacts(class game& gm, 
-									  const sea_object* player, const vector2& offset) const
+				      const sea_object* player, const vector2& offset) const
 {
-	list<ship*> ships;
-	list<submarine*> submarines;
-	gm.radar_ships(ships, player);
-	gm.radar_submarines(submarines, player);
+	vector<ship*> ships = gm.radar_ships(player);
+	vector<submarine*> submarines = gm.radar_submarines(player);
 	
 	// draw trails
-   	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
+   	for (vector<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
    		draw_trail(*it, offset);
-   	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
+   	for (vector<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
    		draw_trail(*it, offset);
 	
 	// draw vessel symbols
-   	for (list<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
+   	for (vector<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
    		draw_vessel_symbol(offset, *it, color(192,255,192));
-   	for (list<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
+   	for (vector<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
    		draw_vessel_symbol(offset, *it, color(255,255,128));
 }
 
@@ -316,9 +308,8 @@ void map_display::display(class game& gm) const
 
 	// draw convoy positions	fixme: should be static and fade out after some time
 	glColor3f(1,1,1);
-	list<vector2> convoy_pos;
-	gm.convoy_positions(convoy_pos);
-	for (list<vector2>::iterator it = convoy_pos.begin(); it != convoy_pos.end(); ++it) {
+	vector<vector2> convoy_pos = gm.convoy_positions();
+	for (vector<vector2>::iterator it = convoy_pos.begin(); it != convoy_pos.end(); ++it) {
 		draw_square_mark ( gm, (*it), -offset, color ( 0, 0, 0 ) );
 	}
 	glColor3f(1,1,1);

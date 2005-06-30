@@ -74,7 +74,7 @@ public:
 	// class game is given so that particles can spawn other particles (fire->smoke)
 	virtual void simulate(game& gm, double delta_t);
 
-	static void display_all(const list<particle*>& pts, const vector3& viewpos, game& gm);
+	static void display_all(const vector<particle*>& pts, const vector3& viewpos, game& gm);
 
 	// return width/height (in meters) of particle (length of quad edge)
 	virtual double get_width(void) const = 0;

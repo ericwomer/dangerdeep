@@ -144,7 +144,10 @@ void freeview_display::process_input(class game& gm, const SDL_Event& event)
 
 
 
-void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
+void freeview_display::draw_objects(game& gm, const vector3& viewpos,
+				    const vector<ship*>& ships,
+				    const vector<submarine*>& submarines,
+				    const vector<torpedo*>& torpedoes) const
 {
 	// simulate horizon: d is distance to object (on perimeter of earth)
 	// z is additional height (negative!), r is earth radius
@@ -155,9 +158,7 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
 
 	glColor3f(1,1,1);
 
-	list<ship*> ships;
-	gm.visible_ships(ships, player);
-	for (list<ship*>::const_iterator it = ships.begin(); it != ships.end(); ++it) {
+	for (vector<ship*>::const_iterator it = ships.begin(); it != ships.end(); ++it) {
 		if (aboard && *it == player) continue;
 		glPushMatrix();
 		// fixme: z translate according to water height here
@@ -171,9 +172,7 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
 		glPopMatrix();
 	}
 
-	list<submarine*> submarines;
-	gm.visible_submarines(submarines, player);
-	for (list<submarine*>::const_iterator it = submarines.begin(); it != submarines.end(); ++it) {
+	for (vector<submarine*>::const_iterator it = submarines.begin(); it != submarines.end(); ++it) {
 		if (aboard && *it == player) continue;
 		glPushMatrix();
 		// fixme: z translate according to water height here
@@ -187,9 +186,8 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
 		glPopMatrix();
 	}
 
-	list<airplane*> airplanes;
-	gm.visible_airplanes(airplanes, player);
-	for (list<airplane*>::const_iterator it = airplanes.begin(); it != airplanes.end(); ++it) {
+	vector<airplane*> airplanes = gm.visible_airplanes(player);
+	for (vector<airplane*>::const_iterator it = airplanes.begin(); it != airplanes.end(); ++it) {
 		if (aboard && *it == player) continue;
 		glPushMatrix();
 		vector3 pos = (*it)->get_pos() - viewpos;
@@ -200,9 +198,7 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
 	}
 
 	if (withunderwaterweapons) {
-		list<torpedo*> torpedoes;
-		gm.visible_torpedoes(torpedoes, player);
-		for (list<torpedo*>::const_iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
+		for (vector<torpedo*>::const_iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
 			glPushMatrix();
 			vector3 pos = (*it)->get_pos() - viewpos;
 			glTranslated(pos.x, pos.y, pos.z);
@@ -210,9 +206,8 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
 			(*it)->display();
 			glPopMatrix();
 		}
-		list<depth_charge*> depth_charges;
-		gm.visible_depth_charges(depth_charges, player);
-		for (list<depth_charge*>::const_iterator it = depth_charges.begin(); it != depth_charges.end(); ++it) {
+		vector<depth_charge*> depth_charges = gm.visible_depth_charges(player);
+		for (vector<depth_charge*>::const_iterator it = depth_charges.begin(); it != depth_charges.end(); ++it) {
 			glPushMatrix();
 			vector3 pos = (*it)->get_pos() - viewpos;
 			glTranslated(pos.x, pos.y, pos.z);
@@ -222,9 +217,8 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
 		}
 	}
 
-	list<gun_shell*> gun_shells;
-	gm.visible_gun_shells(gun_shells, player);
-	for (list<gun_shell*>::const_iterator it = gun_shells.begin(); it != gun_shells.end(); ++it) {
+	vector<gun_shell*> gun_shells = gm.visible_gun_shells(player);
+	for (vector<gun_shell*>::const_iterator it = gun_shells.begin(); it != gun_shells.end(); ++it) {
 		glPushMatrix();
 		vector3 pos = (*it)->get_pos() - viewpos;
 		glTranslated(pos.x, pos.y, pos.z);
@@ -233,8 +227,7 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
 		glPopMatrix();
 	}
 
-	list<particle*> particles;
-	gm.visible_particles(particles, player);
+	vector<particle*> particles = gm.visible_particles(player);
 	particle::display_all(particles, viewpos, gm);
 }
 
@@ -247,10 +240,6 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos) const
 
 void freeview_display::draw_view(game& gm) const
 {
-
-	//fixme: viewpos plus additional player pos leads to wrong water drawing.
-	//just add up both positions, let mv matrix have zero translation.
-
 	double max_view_dist = gm.get_max_view_distance();
 
 	// the modelview matrix is set around the player's object position.
@@ -342,6 +331,23 @@ void freeview_display::draw_view(game& gm) const
 
 	glBindTexture(GL_TEXTURE_2D, ui.get_water().get_reflectiontex());
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, vps, vps, 0);
+	//fixme: ^ glCopyTexSubImage may be faster!
+
+	// compute visble ships/subs, needed for draw_objects and amount of foam computation
+	//fixme: the lookout sensor must give all ships seens around, not cull away ships
+	//out of the frustum, or their foam is lost as well, even it would be visible...
+	vector<ship*> ships = gm.visible_ships(player);
+	vector<submarine*> submarines = gm.visible_submarines(player);
+	vector<torpedo*> torpedoes = gm.visible_torpedoes(player);
+
+	// *************************** compute amount of foam for water display *****************
+
+	// compute foam values for water.
+	// give pointers to all visible ships for foam calculation, that are all ships, subs
+	// and torpedoes. Gun shell impacts/dc explosions will be added later...
+	//fixme: foam generated depends on depth of sub and type of torpedo etc.
+	vector<ship*> allships(ships.size() + submarines.size() + torpedoes.size());
+	ui.get_water().compute_amount_of_foam_texture(/*viewpos, ui.get_absolute_bearing(), max_view_dist, */reflection_projmvmat, allships);
 
 #if 0
 	vector<Uint8> scrn(vps*vps*3);
@@ -416,7 +422,7 @@ void freeview_display::draw_view(game& gm) const
 	// ******************** ships & subs *************************************************
 //	cout << "mv trans pos " << matrix4::get_gl(GL_MODELVIEW_MATRIX).column(3) << "\n";
 	// substract player pos.
-	draw_objects(gm, player->get_pos());
+	draw_objects(gm, player->get_pos(), ships, submarines, torpedoes);
 
 	// ******************** draw the bridge in higher detail
 	if (aboard && drawbridge) {

@@ -165,10 +165,9 @@ void ai::act_escort(game& gm, double delta_time)
 
 	double dist = 1e12;
 	submarine* nearest_contact = 0;
-	list<submarine*> subs;
 	// any subs in visual range to attack?
-	gm.visible_submarines(subs, parent);
-	for (list<submarine*>::iterator it = subs.begin(); it != subs.end(); ++it) {
+	vector<submarine*> subs = gm.visible_submarines(parent);
+	for (vector<submarine*>::iterator it = subs.begin(); it != subs.end(); ++it) {
 		double d = (*it)->get_pos().xy().distance(parent->get_pos().xy());
 		if (d < dist) {
 			dist = d;
@@ -178,9 +177,8 @@ void ai::act_escort(game& gm, double delta_time)
 	
 	if (!nearest_contact) {		
 		// any subs in radar range to attack?
-		subs.clear();
-		gm.radar_submarines(subs, parent);
-		for (list<submarine*>::iterator it = subs.begin(); it != subs.end(); ++it) {
+		subs = gm.radar_submarines(parent);
+		for (vector<submarine*>::iterator it = subs.begin(); it != subs.end(); ++it) {
 			double d = (*it)->get_pos().xy().distance(parent->get_pos().xy());
 			if (d < dist) {
 				dist = d;
@@ -205,8 +203,7 @@ void ai::act_escort(game& gm, double delta_time)
 		// high speeds do not allow for listening or sonar.
 	
 		// listen for subs
-		list<submarine*> hearable_subs;
-		gm.sonar_submarines(hearable_subs, parent);
+		vector<submarine*> hearable_subs = gm.sonar_submarines(parent);
 		if (hearable_subs.size() > 0) {
 			attack_contact(hearable_subs.front()->get_pos());
 		} else {

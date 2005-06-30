@@ -161,11 +161,13 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	unsigned vps = texture::get_max_size();
 	if (ry < vps)
 		for (unsigned i = 1; i < ry; i *= 2) vps = i;
+	// fixme: make ^ that configureable! reflection doesn't need to have that high detail...
 
 	sys().add_console("water rendering resolution %i x %i", xres, yres);
 	sys().add_console("wave resolution %u (%u)",wave_resolution,wave_resolution_shift);
 	sys().add_console("using subdetail: %s", wave_subdetail ? "yes" : "no");
 	sys().add_console("subdetail size %u (%u)",subdetail_size,subdetail_size_shift);
+	sys().add_console("reflection image size %u",vps);
 
 	vertex_program_supported = sys().extension_supported("GL_ARB_vertex_program");
 	fragment_program_supported = sys().extension_supported("GL_ARB_fragment_program");
@@ -211,7 +213,13 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	uv1.resize((xres+1)*(yres+1));
 	normals.resize((xres+1)*(yres+1));
 
-	foamtex.reset(new texture(get_texture_dir() + "foam.png", texture::LINEAR));//fixme maybe mipmap it
+	foamtex.reset(new texture(get_texture_dir() + "foam.png", texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
+
+	vector<Uint8> fatmp(128*128);
+	for (unsigned i = 0; i < 128 * 128; ++i) fatmp[i] = (((i%128)+(i/128))&1)?0:255;//rnd(256);
+	//fixme: amount of foam per 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, vps, vps, 0); etc.
+	foamamounttex.reset(new texture(get_texture_dir() + "foamamounttextest.png", texture::LINEAR, texture::CLAMP_TO_EDGE));
+//	foamamounttex.reset(new texture(fatmp, 128, 128, GL_LUMINANCE, texture::LINEAR, texture::CLAMP_TO_EDGE));
 
 	fresnelcolortexd.resize(FRESNEL_FCT_RES*REFRAC_COLOR_RES*4);
 	for (unsigned f = 0; f < FRESNEL_FCT_RES; ++f) {
@@ -312,6 +320,13 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, water_vertex_program);
 		glEnable(GL_VERTEX_PROGRAM_ARB);
 
+		glActiveTexture(GL_TEXTURE2);
+		foamtex->set_gl_texture();
+
+		glActiveTexture(GL_TEXTURE3);
+		foamamounttex->set_gl_texture();
+
+
 #if 0
 		glActiveTexture(GL_TEXTURE2);
 		waterspecularlookup->set_gl_texture();
@@ -358,6 +373,23 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);
 		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 	}
+
+	/* 2005/06/28:
+	   fixme: with shaders there are some errors, reflections look strange (dark blue
+	   reflection in the near etc. foam experiments showed that the texcoords used
+	   to fetch the reflection texels are wrong when looking to a certain direction.
+	   foam texture coordinates are also wrong then (use a checker pattern for foam
+	   amount to easily see it).
+	   maybe the matrices are wrong? yes reflection_projmvmat is not right, some
+	   matrix changes happen AFTER it is computed so that it doesn't match the current
+	   proj/modl matrices. display() gets the refl_pm parameter, but would not need it. fix that matrix!
+	   it appears only in freeview mode, not in bridge/uzo/glasses mode!
+	*/
+
+	/* 2005/06/28
+	   reflection map can be much smaller than screen res, because ocean water reflects the scene
+	   mostly very fuzzy, details can not be seen... fixme
+	*/
 
 	glActiveTexture(GL_TEXTURE1);
 	glEnable(GL_TEXTURE_2D);
@@ -728,9 +760,63 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 }
 
 
+static unsigned nrfm=0;
+void water::compute_amount_of_foam_texture(const matrix4& reflection_projmvmat,
+					   const vector<ship*>& allships) const
+{
+	if (!use_shaders)
+		return;	// no foam without shaders
+
+	unsigned afs = 128;	// size of amount of foam size, depends on water grid detail, fixme
+	// foam is drawn the the same matrices as water, but with a smaller viewport
+	// set up viewport
+	glViewport(0, 0, afs, afs);
+	// clear it , fixme: must be done earlier, there is already drawn something inside the viewport
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
+
+	// draw trails / wave tops
+	// ship->get_heading(),
+	// get_pos()
+	// list<vector2> get_previous_positions
+	// fixme: needs infos about ships/subs/torps/shells? only accessible in user_interface/freeview_display
+	// ship holds previous positions (list of vector2 that are needed for display)
+	//as first only subs, draw quad strip along the trail
+	//first strip width depends on bow width, then model width, constant with with decaying strength
+	//maybe with a texture of grey/black lines or mix to simulate screw foam/hull foam/randomness etc.
+	glRasterPos2i(50, 50);
+	vector<Uint8> tmp(8*8);
+	for (int i = 0; i < 8*8; ++i) if (((i/8)+(i%8))&1) tmp[i] = 4*i;
+	glDrawPixels(8, 8, GL_LUMINANCE, GL_UNSIGNED_BYTE, &tmp[0]);
+	glRasterPos2i(0, 0);
+	
+#if 1
+	vector<Uint8> data(afs*afs);
+	glReadPixels(0, 0, afs, afs, GL_LUMINANCE, GL_UNSIGNED_BYTE, &data[0]);
+        ostringstream osgname;
+        osgname << "foamamount" << nrfm++ << ".pgm";
+        ofstream osg(osgname.str().c_str());
+        osg << "P5\n"<<afs<<" "<<afs<<"\n255\n";
+        osg.write((const char*)(&data[0]), afs*afs);
+#endif
+
+	// copy viewport data to foam-amount texture
+	foamamounttex->set_gl_texture();
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, afs, afs, 0);
+
+	// clean up
+	glEnable(GL_DEPTH_TEST);
+	glViewport(0, 0, sys().get_res_x(), sys().get_res_y());
+}
+
+
 
 void water::display(const vector3& viewpos, angle dir, double max_view_dist, const matrix4& reflection_projmvmat) const
 {
+	//fixme: we don't need the reflection_projmvmat parameter, we can compute the proj*modl matrix by
+	//asking opengl...
+
 	const float VIRTUAL_PLANE_HEIGHT = 25.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok, maybe a bit too much
 
 	// maximum height of waves (half amplitude)
@@ -1149,7 +1235,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	}
 
 	// set up textures
-	setup_textures(reflection_projmvmat, transl);
+	setup_textures(reflection_projmvmat, transl); //fixme test
 
 	glColor4f(1,1,1,1);
 
@@ -1340,6 +1426,7 @@ vector3f water::get_wave_normal_at(unsigned x, unsigned y) const
 
 
 //fixme: the correctness of the result of this function and the one above is not fully tested.
+//with a realistic buoyancy model we don't need that function any longer!
 vector3f water::get_normal(const vector2& pos, double rollfac) const
 {
 	float ffac = wave_resolution/WAVE_LENGTH;
@@ -1490,226 +1577,3 @@ void water::set_refraction_color(float light_brightness)
 	fresnelcolortex.reset(new texture(fresnelcolortexd, FRESNEL_FCT_RES, REFRAC_COLOR_RES, GL_RGBA,
 					  texture::LINEAR/*_MIPMAP_LINEAR*/, texture::CLAMP_TO_EDGE));
 }
-
-
-
-
-
-
-
-
-// old code
-#if 0
-
-	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, water_bumpmaps[unsigned(framepart*WATER_BUMP_FRAMES)]->get_opengl_name());
-
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGB); 
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-
-	GLfloat scalefac0 = 1.0f/WAVE_LENGTH;
-	GLfloat plane_s0[4] = { scalefac0, 0.0f, 0.0f, 0.0f };
-	GLfloat plane_t0[4] = { 0.0f, scalefac0, 0.0f, 0.0f };
-	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-	glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s0);
-	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-	glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t0);
-	glEnable(GL_TEXTURE_GEN_S);
-	glEnable(GL_TEXTURE_GEN_T);
-
-	glActiveTexture(GL_TEXTURE1);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, foamtex->get_opengl_name());
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PRIMARY_COLOR);//fixme: 2x source1 set?!
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-
-	GLfloat scalefac1 = 32.0f/WAVE_LENGTH;//fixme: what is/was this?
-	GLfloat plane_s1[4] = { scalefac1, 0.0f, 0.0f, 0.0f };
-	GLfloat plane_t1[4] = { 0.0f, scalefac1, 0.0f, 0.0f };
-	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-	glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s1);
-	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-	glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t1);
-	glEnable(GL_TEXTURE_GEN_S);
-	glEnable(GL_TEXTURE_GEN_T);
-
-	glDisable(GL_LIGHTING);
-	glBegin(GL_TRIANGLE_STRIP);
-	if (onlyflatwater) {
-		glVertex3f(c0,c3,0);
-		glVertex3f(c0,c0,0);
-		glVertex3f(c3,c3,0);
-		glVertex3f(c3,c0,0);
-	} else {
-		glVertex3f(c0,c3,0);
-		glVertex3f(c1,c2,wz);
-		glVertex3f(c3,c3,0);
-		glVertex3f(c2,c2,wz);
-		glVertex3f(c3,c0,0);
-		glVertex3f(c2,c1,wz);
-		glVertex3f(c0,c0,0);
-		glVertex3f(c1,c1,wz);
-		glVertex3f(c0,c3,0);
-		glVertex3f(c1,c2,wz);
-	}
-	glEnd();
-
-
-	if (!onlyflatwater) {	
-		// draw waves
-		double timefac = myfmod(mytime, TIDECYCLE_TIME)/TIDECYCLE_TIME;
-
-		// fixme: use LOD (fft with less resolution) for distance waves
-		// until about 10km to the horizon
-
-/*
-		glActiveTexture(GL_TEXTURE1);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, wavefoamtex);
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
-		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-*/
-		//fixme: automatic texture coordinate generation ignores wave displacements (choppy waves)
-		//so foam is mapped wrongly!
-		GLfloat scalefac2 = 1.0f/WAVE_LENGTH; //1.0f/(WAVE_LENGTH*WAVES_PER_AXIS);
-		GLfloat plane_s2[4] = { scalefac2, 0.0f, 0.0f, 0.0f };
-		GLfloat plane_t2[4] = { 0.0f, scalefac2, 0.0f, 0.0f };
-/*
-		glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-		glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s2);
-		glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-		glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t2);
-		glEnable(GL_TEXTURE_GEN_S);
-		glEnable(GL_TEXTURE_GEN_T);
-*/
-		unsigned dl = wavedisplaylists + int(WAVE_PHASES*timefac);
-
-
-		// ************ draw water tiles ****************
-		if (false /* draw_only_tiles_in_viewing_cone */) {
-			// *********** draw water tiles in viewing cone
-
-			// compute the rasterization of the triangle p0,p1,p2
-			// with p0 = viewer's pos., p1,2 = p0 + viewrange * direction(brearing +,- fov/2)
-
-			vector2 p[3];	// vertices for triangle
-			p[0] = vector2(myfmod(viewpos.x, WAVE_LENGTH)/WAVE_LENGTH, myfmod(viewpos.y, WAVE_LENGTH)/WAVE_LENGTH);
-			p[1] = p[0] + (dir+angle(45/*fov/2*/)).direction() * 8 /* view dist */;
-			p[2] = p[0] + (dir-angle(45/*fov/2*/)).direction() * 8 /* view dist */;
-
-		char tmp[21][21];
-		memset(tmp, '.', 21*21);
-		tmp[10][10]='o';
-
-			// rasterize a ccw triangle, coordinate system is right handed (greater y is top)
-			struct edge {
-				double x, dx;
-				int y, height;
-				inline void step(void) { x += dx; --y; --height; }
-				edge(const vector2& ptop, const vector2& pbot) {
-					y = int(floor(ptop.y));
-					height = y - int(floor(pbot.y));
-					dx = (ptop.x - pbot.x)/(pbot.y - ptop.y);
-					x = dx*(ptop.y - y) + ptop.x;
-				}
-			};
-
-			int top = 0, middle = 1, bottom = 2;
-			bool middle_is_left = true;
-			if (p[1].y > p[top].y) top = 1;
-			if (p[2].y > p[top].y) top = 2;
-			middle = (top+1)%3;
-			bottom = (top+2)%3;
-			if (p[middle].y < p[bottom].y) {
-				middle_is_left = false;
-				bottom = (top+1)%3;
-				middle = (top+2)%3;
-			}
-			edge top_bottom(p[top], p[bottom]);
-			edge top_middle(p[top], p[middle]);
-			edge middle_bottom(p[middle], p[bottom]);
-			edge *eleft, *eright;
-			if (middle_is_left) {
-				eleft = &top_middle; eright = &top_bottom;
-			} else {
-				eleft = &top_bottom; eright = &top_middle;
-			}
-			// draw triangle, first upper half, then lower half
-			int h = top_middle.height;
-			int half_rasterized = 0;
-cout << "raster test\np[0]: "<<p[0]<<"\np[1]: "<<p[1]<<"\np[2]: "<<p[2]<<"\ntop "<<top<<" middle "<<middle<<" bottom "<<bottom<<" m_is_l:"<<middle_is_left<<"\n";
-			while (true) {
-				for ( ; h > 0; --h) {
-cout << "eleft: x=" << eleft->x << " y=" << eleft->y << " h=" <<eleft->height << " dx="<<eleft->dx<<"\n";
-cout << "eright: x=" << eright->x << " y=" << eright->y << " h=" <<eright->height << " dx="<<eright->dx<<"\n";
-					//raster a line
-					for (int i = int(floor(eleft->x)); i < int(ceil(eright->x)); ++i) {
-						//draw tile [i,eleft->y]
-						cout<<"raster draw "<<i<<","<<eleft->y<<"\n";
-						tmp[i+10][(eleft->y)+10] = 'x';
-						int x = i + WAVES_PER_AXIS/2;
-						int y = eleft->y + WAVES_PER_AXIS/2;
-						glPushMatrix();
-						glTranslatef((-WAVES_PER_AXIS/2+x)*WAVE_LENGTH, (-WAVES_PER_AXIS/2+y)*WAVE_LENGTH, 0);
-						glCallList(dl);
-						glPopMatrix();
-					}
-					eleft->step();
-					eright->step();
-				}
-				++half_rasterized;
-				if (half_rasterized == 2) break;
-				// change edge pointers
-				if (middle_is_left)
-					eleft = &middle_bottom;
-				else
-					eright = &middle_bottom;
-				h = middle_bottom.height;
-			}
-cout << "raster result\n";
-for(int ry=0;ry<21;++ry){
-for(int rx=0;rx<21;++rx){
-cout<<tmp[rx][20-ry];
-}
-cout<<"\n";
-}
-		} else {	// draw all tiles in visible range
-
-			for (int y = 0; y < WAVES_PER_AXIS; ++y) {
-				plane_t2[3] = float(y)/WAVES_PER_AXIS;
-				glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-				glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t2);
-				for (int x = 0; x < WAVES_PER_AXIS; ++x) {
-					plane_s2[3] = float(x)/WAVES_PER_AXIS;
-					glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-					glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s2);
-					glPushMatrix();
-					glTranslatef((-WAVES_PER_AXIS/2+x)*WAVE_LENGTH, (-WAVES_PER_AXIS/2+y)*WAVE_LENGTH, 0);
-					glCallList(dl);
-					glPopMatrix();
-				}
-			}
-		}
-	}
-
-	glActiveTexture(GL_TEXTURE1);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glDisable(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE0);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-#endif

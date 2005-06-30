@@ -29,7 +29,7 @@ ship::ship(game& gm_) : sea_object(gm_), myai(0), smoke_type(0)
 
 
 
-void ship::init(void)
+void ship::init()
 {
 	// set some default values
 	heading = 0;
@@ -205,7 +205,7 @@ ship::~ship()
 
 
 
-void ship::sink(void)
+void ship::sink()
 {
 	sea_object::set_inactive();
 	if (myfire) {
@@ -216,7 +216,7 @@ void ship::sink(void)
 
 
 
-void ship::ignite(void)
+void ship::ignite()
 {
 	if (myfire) {
 		myfire->kill();
@@ -238,7 +238,7 @@ void ship::change_rudder(int to)
 
 
 
-void ship::rudder_left(void)
+void ship::rudder_left()
 {
 	if (rudder_to > rudderfullleft)
 		--rudder_to;
@@ -247,7 +247,7 @@ void ship::rudder_left(void)
 
 
 
-void ship::rudder_right(void)
+void ship::rudder_right()
 {
 	if (rudder_to < rudderfullright)
 		++rudder_to;
@@ -256,7 +256,7 @@ void ship::rudder_right(void)
 
 
 
-void ship::rudder_hard_left(void)
+void ship::rudder_hard_left()
 {
 	rudder_to = rudderfullleft;
 	head_to_fixed = false;
@@ -264,7 +264,7 @@ void ship::rudder_hard_left(void)
 
 
 
-void ship::rudder_hard_right(void)
+void ship::rudder_hard_right()
 {
 	rudder_to = rudderfullright;
 	head_to_fixed = false;
@@ -272,7 +272,7 @@ void ship::rudder_hard_right(void)
 
 
 
-void ship::rudder_midships(void)
+void ship::rudder_midships()
 {
 	rudder_to = ruddermidships;
 	head_to_fixed = false;
@@ -287,7 +287,7 @@ void ship::set_throttle(int thr)
 
 
 
-void ship::remember_position(void)
+void ship::remember_position()
 {
 	previous_positions.push_front(get_pos().xy());
 	if (previous_positions.size() > MAXPREVPOS)
@@ -296,7 +296,7 @@ void ship::remember_position(void)
 
 
 
-double ship::get_throttle_speed(void) const
+double ship::get_throttle_speed() const
 {
 	double ms = get_max_speed();
 	if (throttle <= 0) {
@@ -320,7 +320,7 @@ double ship::get_throttle_speed(void) const
 
 
 
-double ship::get_throttle_accel(void) const
+double ship::get_throttle_accel() const
 {
 	// Beware: a throttle of 1/3 doesn't mean 1/3 of engine acceleration
 	// This is because drag raises quadratically.
@@ -697,7 +697,7 @@ bool ship::damage(const vector3& fromwhere, unsigned strength)
 
 
 
-unsigned ship::calc_damage(void) const
+unsigned ship::calc_damage() const
 {
 	if (bow_damage == wrecked || midship_damage == wrecked || stern_damage == wrecked)
 		return 100;
@@ -707,14 +707,14 @@ unsigned ship::calc_damage(void) const
 
 
 
-double ship::get_roll_factor(void) const
+double ship::get_roll_factor() const
 {
 	return 400.0 / (get_tonnage() + 6000.0);	// fixme: rather simple yet. should be overloaded by each ship
 }
 
 
 
-double ship::get_noise_factor (void) const
+double ship::get_noise_factor () const
 {
     return get_throttle_speed () / max_speed_forward;
 }
@@ -727,7 +727,7 @@ double ship::get_noise_factor (void) const
 //this is because damping becomes to crude at high time scale
 //fixme: in reality drag is v and v^2 combined... on low speeds v is significant term, on higher speeds
 //it is v^2. It is: v > v^2 for v < 1.
-vector3 ship::get_acceleration(void) const		// drag must be already included!
+vector3 ship::get_acceleration() const		// drag must be already included!
 {
 	// acceleration of ship depends on rudder.
 	// forward acceleration is max_accel_forward * cos(rudder_ang)
@@ -749,7 +749,7 @@ vector3 ship::get_acceleration(void) const		// drag must be already included!
 
 
 
-double ship::get_turn_acceleration(void) const	// drag must be already included!
+double ship::get_turn_acceleration() const	// drag must be already included!
 {
 	// acceleration of ship depends on rudder state and actual forward speed (linear).
 	// angular acceleration (turning) is speed * sin(rudder_ang) * factor

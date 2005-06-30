@@ -101,14 +101,15 @@ public:
 	user_interface* get_ui() { return ui; }
 	
 protected:
-	list<ship*> ships;	// fixme: maybe vectors would be better here (simpler, faster access)
-	list<submarine*> submarines; // reserve space for torps,dcs,gunshells,watersplashes
-	list<airplane*> airplanes; // the rest doesn't change very often, array is small etc.
-	list<torpedo*> torpedoes;
-	list<depth_charge*> depth_charges;
-	list<gun_shell*> gun_shells;
-	list<convoy*> convoys;
-	list<particle*> particles;
+	// maybe replace by containers with automatic pointer storage.
+	vector<ship*> ships;
+	vector<submarine*> submarines;
+	vector<airplane*> airplanes;
+	vector<torpedo*> torpedoes;
+	vector<depth_charge*> depth_charges;
+	vector<gun_shell*> gun_shells;
+	vector<convoy*> convoys;
+	vector<particle*> particles;
 	run_state my_run_state;
 	bool stopexec;	// if this is true, execution stops and the menu is displayed
 	
@@ -201,31 +202,26 @@ public:
 	void set_user_interface(user_interface* ui_) { ui = ui_; }
 
 	// compute visibility data
-	// fixme: gcc3.2+ optimizes return values that are complex data types.
-	// hence change signature to list<xxx*> visible_xxxs(const...);
-	// fixme: these functions should be const...
-	virtual void visible_ships(list<ship*>& result, const sea_object* o);
-	virtual void visible_submarines(list<submarine*>& result, const sea_object* o);
-	virtual void visible_airplanes(list<airplane*>& result, const sea_object* o);
-	virtual void visible_torpedoes(list<torpedo*>& result, const sea_object* o);
-	virtual void visible_depth_charges(list<depth_charge*>& result, const sea_object* o);
-	virtual void visible_gun_shells(list<gun_shell*>& result, const sea_object* o);
-	virtual void visible_particles ( list<particle*>& result, const sea_object* o );
+	virtual vector<ship*> visible_ships(const sea_object* o) const;
+	virtual vector<submarine*> visible_submarines(const sea_object* o) const;
+	virtual vector<airplane*> visible_airplanes(const sea_object* o) const;
+	virtual vector<torpedo*> visible_torpedoes(const sea_object* o) const;
+	virtual vector<depth_charge*> visible_depth_charges(const sea_object* o) const;
+	virtual vector<gun_shell*> visible_gun_shells(const sea_object* o) const;
+	virtual vector<particle*> visible_particles (const sea_object* o ) const;
 	// computes visible ships, submarines (surfaced) and airplanes
-	virtual vector<sea_object*> visible_surface_objects(const sea_object* o);
+	virtual vector<sea_object*> visible_surface_objects(const sea_object* o) const;
 
-	virtual void sonar_ships ( list<ship*>& result, const sea_object* o );
-	virtual void sonar_submarines ( list<submarine*>& result, const sea_object* o );
-	virtual ship* sonar_acoustical_torpedo_target ( const torpedo* o );
+	virtual vector<ship*> sonar_ships (const sea_object* o ) const;
+	virtual vector<submarine*> sonar_submarines (const sea_object* o ) const;
+	virtual ship* sonar_acoustical_torpedo_target ( const torpedo* o ) const;
 	
 	// list<*> radardetected_ships(...);	// later!
-	virtual void radar_submarines(list<submarine*>& result, const sea_object* o);
-	virtual void radar_ships(list<ship*>& result, const sea_object* o);
+	virtual vector<submarine*> radar_submarines(const sea_object* o) const;
+	virtual vector<ship*> radar_ships(const sea_object* o) const;
 
-	void convoy_positions(list<vector2>& result) const;	// fixme
+	vector<vector2> convoy_positions() const;	// fixme
 	
-//	bool can_see(const sea_object* watcher, const submarine* sub) const;	fixme what's that?
-
 	// create new objects
 	void spawn_ship(ship* s);
 	void spawn_submarine(submarine* u);
@@ -243,17 +239,16 @@ public:
 	void torp_explode(const torpedo *t);	// torpedo explosion/impact
 	void ship_sunk( const ship* s );	// a ship sinks
 
-	// simulation actions, fixme send something over net for them
+	// simulation actions, fixme send something over net for them, fixme : maybe vector not list?
 	virtual void ping_ASDIC(list<vector3>& contacts, sea_object* d,
 		const bool& move_sensor, const angle& dir = angle ( 0.0f ) );
 
 	// various functions (fixme: sort, cleanup)
 	void register_job(job* j);	// insert/remove job in job list
 	void unregister_job(job* j);
-	const list<ping>& get_pings(void) const { return pings; };
+	const list<ping>& get_pings(void) const { return pings; };	// fixme: maybe vector not list
 
-	template<class C>
-	ship* check_unit_list ( torpedo* t, list<C>& unit_list );
+	template<class C> ship* check_unit_list ( torpedo* t, vector<C>& unit_list );
 
 	// fixme why is this not const? if it changes game, it must be send over network, and
 	// then it can't be a function!

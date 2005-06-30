@@ -95,8 +95,8 @@ protected:
 
 	vector3 global_velocity;// recomputed every frame by simulate() method
 	
-	virtual vector3 get_acceleration(void) const;		// drag must be already included!
-	virtual double get_turn_acceleration(void) const;	// drag must be already included!
+	virtual vector3 get_acceleration() const;		// drag must be already included!
+	virtual double get_turn_acceleration() const;	// drag must be already included!
 
 	vector3f size3d;		// computed from model, indirect read from spec file, width, length, height
 	
@@ -136,8 +136,8 @@ public:
 
 	// detail: 0 - category, 1 - finer category, >=2 - exact category
 	virtual string get_description(unsigned detail) const;
-	virtual string get_specfilename(void) const { return specfilename; }
-	virtual string get_modelname(void) const { return modelname; }
+	virtual string get_specfilename() const { return specfilename; }
+	virtual string get_modelname() const { return modelname; }
 
 	virtual void simulate(double delta_time);
 //	virtual bool is_collision(const sea_object* other);
@@ -148,29 +148,29 @@ public:
 	// the strength is proportional to damage_status, 0-none, 1-light, 2-medium...
 	virtual bool damage(const vector3& fromwhere, unsigned strength); // returns true if object was destroyed
 
-	virtual unsigned calc_damage(void) const;	// returns damage in percent (100 means dead)
-	virtual void set_inactive(void);
-	virtual void kill(void);
-	virtual void destroy(void);
-	virtual bool is_defunct(void) const { return alive_stat == defunct; };
-	virtual bool is_dead(void) const { return alive_stat == dead; };
-	virtual bool is_inactive(void) const { return alive_stat == inactive; };
-	virtual bool is_alive(void) const { return alive_stat == alive; };
+	virtual unsigned calc_damage() const;	// returns damage in percent (100 means dead)
+	virtual void set_inactive();
+	virtual void kill();
+	virtual void destroy();
+	virtual bool is_defunct() const { return alive_stat == defunct; };
+	virtual bool is_dead() const { return alive_stat == dead; };
+	virtual bool is_inactive() const { return alive_stat == inactive; };
+	virtual bool is_alive() const { return alive_stat == alive; };
 
 	// command interface - no special commands for a generic sea_object
 
-	virtual vector3 get_pos(void) const { return position; };
-	virtual vector3 get_velocity(void) const { return velocity; };
-	virtual double get_speed(void) const { return get_velocity().y; }
-	virtual quaternion get_orientation(void) const { return orientation; };
-	virtual double get_turn_velocity(void) const { return turn_velocity; };
+	virtual vector3 get_pos() const { return position; };
+	virtual vector3 get_velocity() const { return velocity; };
+	virtual double get_speed() const { return get_velocity().y; }
+	virtual quaternion get_orientation() const { return orientation; };
+	virtual double get_turn_velocity() const { return turn_velocity; };
 	virtual double get_depth() const { return -position.z; };
-	virtual float get_width(void) const { return size3d.x; };
-	virtual float get_length(void) const { return size3d.y; };
-	virtual float get_height(void) const { return size3d.z; };
+	virtual float get_width() const { return size3d.x; };
+	virtual float get_length() const { return size3d.y; };
+	virtual float get_height() const { return size3d.z; };
 	virtual float surface_visibility(const vector2& watcher) const;
-	virtual angle get_heading(void) const { return heading; }
-	virtual class ai* get_ai(void) { return myai; }
+	virtual angle get_heading() const { return heading; }
+	virtual class ai* get_ai() { return myai; }
 
 	/**
 		Noise modification for submarines. Submarines are using diesel engines
@@ -180,8 +180,8 @@ public:
 	virtual double get_noise_factor () const { return 0; }
 	virtual vector2 get_engine_noise_source () const;
 
-	virtual void display(void) const;
-	double get_bounding_radius(void) const { return size3d.x+size3d.y; }	// fixme: could be computed more exact
+	virtual void display() const;
+	double get_bounding_radius() const { return size3d.x+size3d.y; }	// fixme: could be computed more exact
 
 	virtual sensor* get_sensor ( sensor_system ss );
 	virtual const sensor* get_sensor ( sensor_system ss ) const;

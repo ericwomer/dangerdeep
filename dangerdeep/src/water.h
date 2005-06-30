@@ -16,6 +16,7 @@ using namespace std;
 #include "angle.h"
 #include "vector3.h"
 #include "texture.h"
+#include "ship.h"
 #include "ocean_wave_generator.h"
 #include "perlinnoise.h"
 
@@ -51,6 +52,7 @@ protected:
 	unsigned reflectiontexsize;
 	unsigned reflectiontex;//fixme better handle that with class texture
 	auto_ptr<texture> foamtex;
+	auto_ptr<texture> foamamounttex;	// testing, fixme
 	auto_ptr<texture> fresnelcolortex;	// texture for fresnel values and water color
 
 	auto_ptr<texture> waterspecularlookup;	// lookup 1d texture map for water specular term
@@ -137,6 +139,10 @@ public:
 	~water();
 	void update_foam(double deltat);		// needed for dynamic foam
 	void spawn_foam(const vector2& pos);		// dito
+
+	void compute_amount_of_foam_texture(const matrix4& reflection_projmvmat,
+					    const vector<ship*>& allships) const;
+
 	// give absolute position of viewer as viewpos, translation in modelview matrix included!
 	void display(const vector3& viewpos, angle dir, double max_view_dist, const matrix4& reflection_projmvmat) const;
 	float get_height(const vector2& pos) const;
