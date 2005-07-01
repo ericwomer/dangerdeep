@@ -47,6 +47,8 @@
 #define WAVE_TILE_GEN_TIME 0.04		// 25fps
 #define SUBDETAIL_GEN_TIME 0.066667	// 15fps
 
+#define FOAMAMOUNTRES 256
+
 /*
 	2004/05/06
 	The foam problem.
@@ -136,7 +138,6 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	yres(yres_),
 	wavetileheights(3),//3 phases needed
 	wavetiledisplacements(3),//3 phases needed
-	reflectiontex(0),
 	last_light_brightness(-10000),
 	wave_resolution(nextgteqpow2(cfg::instance().geti("wave_fft_res"))),
 	wave_resolution_shift(ulog2(wave_resolution)),
@@ -154,14 +155,29 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	last_wave_gen_time(tm),
 	last_subdetail_gen_time(tm)
 {
-	glGenTextures(1, &reflectiontex);
-	glBindTexture(GL_TEXTURE_2D, reflectiontex);
+
+	// 2004/04/25 Note! decreasing the size of the reflection map improves performance
+	// on a gf4mx! (23fps to 28fps with a 128x128 map to a 512x512 map)
+	// Maybe this is because of some bandwidth limit or cache efficiency of the gf4mx.
+	// Reflections don't look very good on ocean waves because they're too high for
+	// the distorsion to work correct. They need real environment mapping, but this lacks
+	// local reflections. Best example: big waves in front of the coast should hide the
+	// coast (view is blocked) but instead mirror it. Maybe this is because we don't clip
+	// the mirror image at z=0 ? No, test showed that it isn't looking right anyway!
+	// In fact, terrain is seen only at rare moments, vessels' reflections can't be seen
+	// very well in rough seas and sun/moon/stars don't give large reflections.
+	// They're used as fake specular mapping for now. Only explosions/fires at night would
+	// be seen as reflections. So why use them at all? they're rather costly!
+	// make them configureable? fixme
+	// fixme: make size configurable in parts of screen resolution
 	unsigned rx = sys().get_res_x();
 	unsigned ry = sys().get_res_y();
 	unsigned vps = texture::get_max_size();
 	if (ry < vps)
 		for (unsigned i = 1; i < ry; i *= 2) vps = i;
 	// fixme: make ^ that configureable! reflection doesn't need to have that high detail...
+	// fixme: auto mipmap?
+	reflectiontex.reset(new texture(vps, vps, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 
 	sys().add_console("water rendering resolution %i x %i", xres, yres);
 	sys().add_console("wave resolution %u (%u)",wave_resolution,wave_resolution_shift);
@@ -186,28 +202,6 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 					       get_shader_dir() + "water_vp.shader");
 	}
 
-	// 2004/04/25 Note! decreasing the size of the reflection map improves performance
-	// on a gf4mx! (23fps to 28fps with a 128x128 map to a 512x512 map)
-	// Maybe this is because of some bandwidth limit or cache efficiency of the gf4mx.
-	// Reflections don't look very good on ocean waves because they're too high for
-	// the distorsion to work correct. They need real environment mapping, but this lacks
-	// local reflections. Best example: big waves in front of the coast should hide the
-	// coast (view is blocked) but instead mirror it. Maybe this is because we don't clip
-	// the mirror image at z=0 ? No, test showed that it isn't looking right anyway!
-	// In fact, terrain is seen only at rare moments, vessels' reflections can't be seen
-	// very well in rough seas and sun/moon/stars don't give large reflections.
-	// They're used as fake specular mapping for now. Only explosions/fires at night would
-	// be seen as reflections. So why use them at all? they're rather costly!
-	// make them configureable? fixme
-	// fixme: make size configurable in parts of screen resolution
-	reflectiontexsize = vps;
-	// fixme: auto mipmap?
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	// be careful: magfilter must be GL_NEAREST or GL_LINEAR.
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
 	coords.resize((xres+1)*(yres+1));
 	uv0.resize((xres+1)*(yres+1));
 	uv1.resize((xres+1)*(yres+1));
@@ -215,11 +209,9 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 
 	foamtex.reset(new texture(get_texture_dir() + "foam.png", texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
 
-	vector<Uint8> fatmp(128*128);
-	for (unsigned i = 0; i < 128 * 128; ++i) fatmp[i] = (((i%128)+(i/128))&1)?0:255;//rnd(256);
-	//fixme: amount of foam per 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, vps, vps, 0); etc.
-	foamamounttex.reset(new texture(get_texture_dir() + "foamamounttextest.png", texture::LINEAR, texture::CLAMP_TO_EDGE));
-//	foamamounttex.reset(new texture(fatmp, 128, 128, GL_LUMINANCE, texture::LINEAR, texture::CLAMP_TO_EDGE));
+	foamamounttex.reset(new texture(FOAMAMOUNTRES, FOAMAMOUNTRES, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
+
+	foamamounttrail.reset(new texture(get_texture_dir() + "foamamounttrail.png", texture::LINEAR, texture::CLAMP_TO_EDGE));//fixme maybe mipmap it
 
 	fresnelcolortexd.resize(FRESNEL_FCT_RES*REFRAC_COLOR_RES*4);
 	for (unsigned f = 0; f < FRESNEL_FCT_RES; ++f) {
@@ -304,8 +296,6 @@ water::~water()
 		texture::delete_shader(water_fragment_program);
 		texture::delete_shader(water_vertex_program);
 	}
-
-	glDeleteTextures(1, &reflectiontex);
 }
 
 
@@ -393,7 +383,7 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 
 	glActiveTexture(GL_TEXTURE1);
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, reflectiontex);
+	reflectiontex->set_gl_texture();
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	// rescale coordinates [-1,1] to [0,1]
@@ -761,13 +751,16 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 
 
 static unsigned nrfm=0;
-void water::compute_amount_of_foam_texture(const matrix4& reflection_projmvmat,
+void water::compute_amount_of_foam_texture(const vector3& viewpos,
+					   const matrix4& reflection_projmvmat,
 					   const vector<ship*>& allships) const
 {
 	if (!use_shaders)
 		return;	// no foam without shaders
 
-	unsigned afs = 128;	// size of amount of foam size, depends on water grid detail, fixme
+//	glPushMatrix();
+
+	unsigned afs = FOAMAMOUNTRES;	// size of amount of foam size, depends on water grid detail, fixme
 	// foam is drawn the the same matrices as water, but with a smaller viewport
 	// set up viewport
 	glViewport(0, 0, afs, afs);
@@ -780,41 +773,70 @@ void water::compute_amount_of_foam_texture(const matrix4& reflection_projmvmat,
 	//fixme: man sieht nix, auch ohne face cull. irgendwie stimmt die viewmatrix nicht.
 	//die entspricht noch nicht dem endergebnis. außerdem sind alle positionne hier
 	//absolut, was wohl auch falsch ist (playerpos muß abgezogen werden?) mit water quer checken
-	glDisable(GL_CULL_FACE);
+	//passiert schon, aber die koordinaten sind immer gleich unabhängig vom drehwinkel.
+	//das erklärt viele fehler.
+	//viewmatrix falsch oder sowas. sogar in freeview
+//	glDisable(GL_CULL_FACE);
 	// as first trails of all ships
+/*
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE0);
+*/
+	foamamounttrail->set_gl_texture();
+//	glBindTexture(GL_TEXTURE_2D, 0);
+//	glDisable(GL_TEXTURE_2D);
+//fixme: farbwerte sind zu dunkel, liegt nicht am blending
+	glDisable(GL_LIGHTING);
 	for (vector<ship*>::const_iterator it = allships.begin(); it != allships.end(); ++it) {
-		if (*it == 0) continue;//fixme can happen for some strange unknown reason, but must not!!!
-		vector2 spos = (*it)->get_pos().xy();
+		vector2 spos = (*it)->get_pos().xy() - viewpos.xy();
 		vector2 sdir = (*it)->get_heading().direction();
 		vector2 pdir = sdir.orthogonal();
 		const list<vector2>& prevpos = (*it)->get_previous_positions();
 		float sw = (*it)->get_width();
 		float sl = (*it)->get_length();
-		vector2 p0 = spos + sdir * (sl/2);
-		glColor3f(1, 1, 1);
+		vector2 p0 = spos + sdir * (sl/4 /*fixme should be 2 but...*/);
+		glColor4f(1, 1, 1, 1);
 		glBegin(GL_QUAD_STRIP);
 		vector2 pl = p0 + pdir * (-1.0f);
 		vector2 pr = p0 + pdir * ( 1.0f);
-		glVertex3d(pl.x, pl.y, 0);
-		glVertex3d(pr.x, pr.y, 0);
+		glTexCoord2f(0, 0);
+		glVertex3d(pl.x, pl.y, -viewpos.z);
+		glTexCoord2f(1, 0);
+		glVertex3d(pr.x, pr.y, -viewpos.z);
 		pl = spos + pdir * (-sw/2);
 		pr = spos + pdir * ( sw/2);
-		glVertex3d(pl.x, pl.y, 0);
-		glVertex3d(pr.x, pr.y, 0);
-		float fadd = -1.0f/prevpos.size();
-		float fcnt = 1.0f + fadd;
+		glTexCoord2f(0, 0);
+		glVertex3d(pl.x, pl.y, -viewpos.z);
+		glTexCoord2f(1, 0);
+		glVertex3d(pr.x, pr.y, -viewpos.z);
+		// use 1.0/x, but test hack, take 3 for using 1/3 of prevpos.
+		float fadd = (prevpos.size() < 2) ? 0.0f : -3.0f/(prevpos.size() - 1);
+		float fcnt = 1.0f;
+		//fixme: the amount of foam decreases too slowly, use less prevpos,
+		//about 1/2 or even 1/4 should be enough
 		for (list<vector2>::const_iterator lt = prevpos.begin(); lt != prevpos.end(); ++lt) {
 			// fixme. we need new ortho vector here, depends on prevpos!
-			pl = *lt + pdir * (-sw/2);
-			pr = *lt + pdir * ( sw/2);
+			p0 = *lt - viewpos.xy();
+			pl = p0 + pdir * (-sw/2);
+			pr = p0 + pdir * ( sw/2);
 			glColor3f(fcnt, fcnt, fcnt);
-			glVertex3d(pl.x, pl.y, 0);
-			glVertex3d(pr.x, pr.y, 0);
+			glTexCoord2f(0, 0);
+			glVertex3d(pl.x, pl.y, -viewpos.z);
+			glTexCoord2f(1, 0);
+			glVertex3d(pr.x, pr.y, -viewpos.z);
 			fcnt += fadd;
+			if (fcnt <= 0) break;
 		}
 		glEnd();
 	}
-	glEnable(GL_CULL_FACE);
+	glEnable(GL_LIGHTING);
+//	glEnable(GL_TEXTURE_2D);
+//	glEnable(GL_CULL_FACE);
 	// ship->get_heading(),
 	// get_pos()
 	// list<vector2> get_previous_positions
@@ -831,14 +853,14 @@ void water::compute_amount_of_foam_texture(const matrix4& reflection_projmvmat,
 	glRasterPos2i(0, 0);
 */
 	
-#if 1
-	vector<Uint8> data(afs*afs);
-	glReadPixels(0, 0, afs, afs, GL_LUMINANCE, GL_UNSIGNED_BYTE, &data[0]);
+#if 0
+	vector<Uint8> data(afs*afs*3);
+	glReadPixels(0, 0, afs, afs, GL_RGB, GL_UNSIGNED_BYTE, &data[0]);
         ostringstream osgname;
-        osgname << "foamamount" << nrfm++ << ".pgm";
+        osgname << "foamamount" << nrfm++ << ".ppm";
         ofstream osg(osgname.str().c_str());
-        osg << "P5\n"<<afs<<" "<<afs<<"\n255\n";
-        osg.write((const char*)(&data[0]), afs*afs);
+        osg << "P6\n"<<afs<<" "<<afs<<"\n255\n";
+        osg.write((const char*)(&data[0]), afs*afs*3);
 #endif
 
 	// copy viewport data to foam-amount texture
@@ -848,6 +870,8 @@ void water::compute_amount_of_foam_texture(const matrix4& reflection_projmvmat,
 	// clean up
 	glEnable(GL_DEPTH_TEST);
 	glViewport(0, 0, sys().get_res_x(), sys().get_res_y());
+
+//	glPopMatrix();
 }
 
 

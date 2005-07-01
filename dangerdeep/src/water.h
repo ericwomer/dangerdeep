@@ -49,10 +49,10 @@ protected:
 	// minimum and maximum heights of water (over all values)
 	float minh, maxh;
 	
-	unsigned reflectiontexsize;
-	unsigned reflectiontex;//fixme better handle that with class texture
+	auto_ptr<texture> reflectiontex;
 	auto_ptr<texture> foamtex;
-	auto_ptr<texture> foamamounttex;	// testing, fixme
+	auto_ptr<texture> foamamounttex;
+	auto_ptr<texture> foamamounttrail;
 	auto_ptr<texture> fresnelcolortex;	// texture for fresnel values and water color
 
 	auto_ptr<texture> waterspecularlookup;	// lookup 1d texture map for water specular term
@@ -140,7 +140,8 @@ public:
 	void update_foam(double deltat);		// needed for dynamic foam
 	void spawn_foam(const vector2& pos);		// dito
 
-	void compute_amount_of_foam_texture(const matrix4& reflection_projmvmat,
+	void compute_amount_of_foam_texture(const vector3& viewpos,
+					    const matrix4& reflection_projmvmat,
 					    const vector<ship*>& allships) const;
 
 	// give absolute position of viewer as viewpos, translation in modelview matrix included!
@@ -148,8 +149,7 @@ public:
 	float get_height(const vector2& pos) const;
 	// give f as multiplier for difference to (0,0,1)
 	vector3f get_normal(const vector2& pos, double f = 1.0) const;
-	unsigned get_reflectiontex(void) const { return reflectiontex; }
-	unsigned get_reflectiontex_size(void) const { return reflectiontexsize; }
+	const texture* get_reflectiontex(void) const { return reflectiontex.get(); }
 	static float exact_fresnel(float x);
 	void set_refraction_color(float light_brightness);
 };

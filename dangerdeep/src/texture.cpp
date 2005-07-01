@@ -426,6 +426,7 @@ texture::texture(const vector<Uint8>& pixels, unsigned w, unsigned h, int format
 	mapping = mapping_;
 	clamping = clamp;
 	
+	// maybe relax that when GL_ARB_Texture_non_power_of_two is available.
 	sys().myassert(w > 0 && (w & (w-1)) == 0, "texture width is no power of two!");
 	sys().myassert(h > 0 && (h & (h-1)) == 0, "texture height is no power of two!");
 
@@ -434,6 +435,33 @@ texture::texture(const vector<Uint8>& pixels, unsigned w, unsigned h, int format
 	format = format_;
 
 	init(pixels, makenormalmap, detailh);
+}
+
+
+
+texture::texture(unsigned w, unsigned h, int format_,
+		 mapping_mode mapping_, clamping_mode clamp)
+{
+	mapping = mapping_;
+	clamping = clamp;
+	
+	sys().myassert(w > 0 && (w & (w-1)) == 0, "texture width is no power of two!");
+	sys().myassert(h > 0 && (h & (h-1)) == 0, "texture height is no power of two!");
+
+	width = gl_width = w;
+	height = gl_height = h;
+	format = format_;
+
+	// error checks.
+	sys().myassert(mapping >= 0 && mapping < NR_OF_MAPPING_MODES, "illegal mapping mode!");
+	sys().myassert(clamping >= 0 && clamping < NR_OF_CLAMPING_MODES, "illegal clamping mode!");
+
+	glGenTextures(1, &opengl_name);
+	glBindTexture(GL_TEXTURE_2D, opengl_name);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapmodes[mapping]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magfilter[mapping]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clampmodes[clamping]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
 }
 
 

@@ -291,8 +291,8 @@ void freeview_display::draw_view(game& gm) const
 	// set up projection matrix (new width/height of course) with a bit larger fov
 	sys().gl_perspective_fovx(pd.fov_x * 1.0, 1.0 /*aspect*/, pd.near_z, pd.far_z);
 	// set up new viewport size s*s with s<=max_texure_size and s<=w,h of old viewport
-	unsigned vps = ui.get_water().get_reflectiontex_size();
-	glViewport(0, 0, vps, vps);
+	const texture* refltex = ui.get_water().get_reflectiontex();
+	glViewport(0, 0, refltex->get_width(), refltex->get_height());
 	// clear depth buffer (not needed for sky drawing, but this color can be seen as mirror
 	// image when looking from below the water surface (scope) fixme: clear color with upwelling color!)
 	glClearColor(0, 1.0f/16, 1.0f/8, 0);
@@ -327,11 +327,16 @@ void freeview_display::draw_view(game& gm) const
 	//   models/smoke
 	//fixme
 	glCullFace(GL_BACK);
-	// copy viewport pixel data to reflection texture
 
-	glBindTexture(GL_TEXTURE_2D, ui.get_water().get_reflectiontex());
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, vps, vps, 0);
+	// copy viewport pixel data to reflection texture
+	refltex->set_gl_texture();
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, refltex->get_width(), refltex->get_height(), 0);
 	//fixme: ^ glCopyTexSubImage may be faster!
+
+	// clean up
+	glPopMatrix();
+
+	// ************************* compute visible surface objects *******************
 
 	// compute visble ships/subs, needed for draw_objects and amount of foam computation
 	//fixme: the lookout sensor must give all ships seens around, not cull away ships
@@ -346,8 +351,16 @@ void freeview_display::draw_view(game& gm) const
 	// give pointers to all visible ships for foam calculation, that are all ships, subs
 	// and torpedoes. Gun shell impacts/dc explosions will be added later...
 	//fixme: foam generated depends on depth of sub and type of torpedo etc.
-	vector<ship*> allships(ships.size() + submarines.size() + torpedoes.size());
-	ui.get_water().compute_amount_of_foam_texture(/*viewpos, ui.get_absolute_bearing(), max_view_dist, */reflection_projmvmat, allships);
+	vector<ship*> allships;
+	allships.reserve(ships.size() + submarines.size() + torpedoes.size());
+	for (vector<ship*>::const_iterator it = ships.begin(); it != ships.end(); ++it)
+		allships.push_back(*it);
+	for (vector<submarine*>::const_iterator it = submarines.begin(); it != submarines.end(); ++it)
+		allships.push_back(*it);
+	for (vector<torpedo*>::const_iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
+		allships.push_back(*it);
+	ui.get_water().compute_amount_of_foam_texture(/*viewpos, ui.get_absolute_bearing(), max_view_dist, */
+						      player->get_pos(), reflection_projmvmat, allships);
 
 #if 0
 	vector<Uint8> scrn(vps*vps*3);
@@ -360,9 +373,6 @@ void freeview_display::draw_view(game& gm) const
 	oss << "P6\n" << vps << " " << vps << "\n255\n";
 	oss.write((const char*)(&scrn[0]), vps*vps*3);
 #endif
-
-	// clean up
-	glPopMatrix();
 
 	// ************************** draw the real scene ********************************
 

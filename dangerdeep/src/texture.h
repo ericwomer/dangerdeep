@@ -101,6 +101,13 @@ public:
 	texture(const std::vector<Uint8>& pixels, unsigned w, unsigned h,
 		int format_, mapping_mode mapping_,
 		clamping_mode clamp, bool makenormalmap = false, float detailh = 1.0f);
+
+	// allocate a GL texture, set some values, but do not fill texel values
+	// w,h are more for information purposes.
+	texture(unsigned w, unsigned h,
+		int format_, mapping_mode mapping_,
+		clamping_mode clamp);
+
 	~texture();
 	
 	int get_format() const { return format; }
