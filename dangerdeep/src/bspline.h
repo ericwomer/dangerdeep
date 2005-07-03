@@ -46,6 +46,7 @@ protected:
 		// algorithm for non-uniform bsplines:
 		// note: if t is equal to tvec[x] then l=x-1
 #else
+		// fixme: we could use a binary search here!
 		unsigned l = n;
 		for ( ; l <= m; ++l) {
 			if (tvec[l] <= t && t <= tvec[l+1])

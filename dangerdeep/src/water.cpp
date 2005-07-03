@@ -16,6 +16,7 @@
 #include "matrix4.h"
 #include "cfg.h"
 #include "system.h"
+#include "bspline.h"
 #include <fstream>
 
 // compute projected grid efficiency, it should be 50-95%
@@ -790,52 +791,58 @@ void water::compute_amount_of_foam_texture(const vector3& viewpos,
 	foamamounttrail->set_gl_texture();
 //	glBindTexture(GL_TEXTURE_2D, 0);
 //	glDisable(GL_TEXTURE_2D);
-//fixme: farbwerte sind zu dunkel, liegt nicht am blending
 	glDisable(GL_LIGHTING);
 	// fixme: texture mapping seems to be wrong.
 	for (vector<ship*>::const_iterator it = allships.begin(); it != allships.end(); ++it) {
 		vector2 spos = (*it)->get_pos().xy() - viewpos.xy();
 		vector2 sdir = (*it)->get_heading().direction();
 		vector2 pdir = sdir.orthogonal();
-		const list<vector2>& prevpos = (*it)->get_previous_positions();
-		float sw = (*it)->get_width();
 		float sl = (*it)->get_length();
-		vector2 p0 = spos + sdir * (sl/2 /*fixme should be 2 but... the whole thing seems to be scaled by factor 2!*/);
+		float sw = (*it)->get_width();
+		const list<vector2>& prevpos = (*it)->get_previous_positions();
+		// vector with points of foam trail
+		vector<vector2> trailp;
+		trailp.reserve(3 + prevpos.size());
+		trailp.push_back(spos + sdir * (sl * 0.5));	// push back points for boat perimeter
+		trailp.push_back(spos);
+		trailp.push_back(spos + sdir * (sl * -0.5));
+
+		// fixme: first point of prevpos has to be discarded when between pos and stern
+		vector<vector2> pp2(prevpos.begin(), prevpos.end());
+		list<vector2>::const_iterator pit = prevpos.begin();
+		//fixme: limit to 1/3 or 1/4 of prevpos, that means skip entries older than 1/3 or 1/4
+		for (unsigned i = 0; i < prevpos.size(); ++i) {
+			trailp.push_back(*pit - viewpos.xy());
+			++pit;
+		}
+
+		// compute bspline points from trailp
+		unsigned n = trailp.size() < 3 ? 2 : 3;	// fixme: n = 2 immer?
+		bsplinet<vector2> bsp(n, trailp);
+
+		// fixme: bspline sollte erst nach heck anfangen, zwischen heck und erster prevpos
+		// ist der abstand nicht gleichm‰ﬂig, die t's des bspline aber schon...
+		vector<vector2> bspr(trailp.size() * 2);
+		double f = 0.0, fadd = 1.0/bspr.size();
+		for (unsigned i = 0; i < bspr.size(); ++i) {
+			bspr[i] = bsp.value(f);
+			f += fadd;
+		}
+
+		//vector2 p0 = spos + sdir * (sl/2 /*fixme should be 2 but... the whole thing seems to be scaled by factor 2!*/);
 		//especially in freeview mode, but the bow caused foam seems also to be too long
 		glColor4f(1, 1, 1, 1);
 		glBegin(GL_QUAD_STRIP);
-		vector2 pl = p0 + pdir * (-1.0f);
-		vector2 pr = p0 + pdir * ( 1.0f);
-		glTexCoord2f(0, 0);
-		glVertex3d(pl.x, pl.y, -viewpos.z);
-		glTexCoord2f(1, 0);
-		glVertex3d(pr.x, pr.y, -viewpos.z);
-		pl = spos + pdir * (-sw/2);
-		pr = spos + pdir * ( sw/2);
-		glTexCoord2f(0, 1);
-		glVertex3d(pl.x, pl.y, -viewpos.z);
-		glTexCoord2f(1, 1);
-		glVertex3d(pr.x, pr.y, -viewpos.z);
-		// use 1.0/x, but test hack, take 3 for using 1/3 of prevpos.
-		float fadd = (prevpos.size() < 2) ? 0.0f : -3.0f/(prevpos.size() - 1);
-		float fcnt = 1.0f;
+		for (unsigned i = 0; i < bspr.size(); ++i) {
+			vector2 pl = bspr[i] + pdir * (-1.0f);
+			vector2 pr = bspr[i] + pdir * ( 1.0f);
+			glTexCoord2f(0, i);
+			glVertex3d(pl.x, pl.y, -viewpos.z);
+			glTexCoord2f(1, i);
+			glVertex3d(pr.x, pr.y, -viewpos.z);
+		}
 		//fixme: the amount of foam decreases too slowly, use less prevpos,
 		//about 1/2 or even 1/4 should be enough
-		float v = 2.0f;
-		for (list<vector2>::const_iterator lt = prevpos.begin(); lt != prevpos.end(); ++lt) {
-			// fixme. we need new ortho vector here, depends on prevpos!
-			p0 = *lt - viewpos.xy();
-			pl = p0 + pdir * (-sw/2);
-			pr = p0 + pdir * ( sw/2);
-			glColor3f(fcnt, fcnt, fcnt);
-			glTexCoord2f(0, v);
-			glVertex3d(pl.x, pl.y, -viewpos.z);
-			glTexCoord2f(1, v);
-			glVertex3d(pr.x, pr.y, -viewpos.z);
-			fcnt += fadd;
-			if (fcnt <= 0) break;
-			v += 1.0f;
-		}
 		glEnd();
 	}
 	glEnable(GL_LIGHTING);
