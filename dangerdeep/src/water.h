@@ -53,6 +53,7 @@ protected:
 	auto_ptr<texture> foamtex;
 	auto_ptr<texture> foamamounttex;
 	auto_ptr<texture> foamamounttrail;
+	auto_ptr<texture> foamperimetertex;
 	auto_ptr<texture> fresnelcolortex;	// texture for fresnel values and water color
 
 	auto_ptr<texture> waterspecularlookup;	// lookup 1d texture map for water specular term
@@ -140,6 +141,7 @@ public:
 	void update_foam(double deltat);		// needed for dynamic foam
 	void spawn_foam(const vector2& pos);		// dito
 
+	void draw_foam_for_ship(const ship* shp, const vector3& viewpos) const;
 	void compute_amount_of_foam_texture(const vector3& viewpos,
 					    const matrix4& reflection_projmvmat,
 					    const vector<ship*>& allships) const;

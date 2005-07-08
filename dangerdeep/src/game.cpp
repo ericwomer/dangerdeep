@@ -43,7 +43,7 @@
 const int SAVEVERSION = 0;
 const int GAMETYPE = 0;//fixme
 
-#define TRAILTIME 5
+#define TRAILTIME 1
 #define ENEMYCONTACTLOST 100000.0	// meters
 
 

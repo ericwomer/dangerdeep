@@ -16,7 +16,6 @@
 #include "matrix4.h"
 #include "cfg.h"
 #include "system.h"
-#include "bspline.h"
 #include <fstream>
 
 // compute projected grid efficiency, it should be 50-95%
@@ -213,6 +212,31 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	foamamounttex.reset(new texture(FOAMAMOUNTRES, FOAMAMOUNTRES, GL_RGB, texture::LINEAR, texture::REPEAT));//CLAMP_TO_EDGE));
 
 	foamamounttrail.reset(new texture(get_texture_dir() + "foamamounttrail.png", texture::LINEAR, texture::CLAMP_TO_EDGE));//fixme maybe mipmap it
+
+	const unsigned perimetertexs = 256;
+	const unsigned perimetertexborder = 32;
+	vector<Uint8> perimetertex(perimetertexs * perimetertexs * 2);
+	unsigned perimetertexptr = 0;
+	for (unsigned y = 0; y < perimetertexs; ++y) {
+		float fy = y - 127.5f;
+		for (unsigned x = 0; x < perimetertexs; ++x) {
+			float fx = x - 127.5f;
+			unsigned d = unsigned(sqrt(fy*fy + fx*fx));
+			Uint8 a = 0;
+			if (d < perimetertexs/2) {
+				if (d >= perimetertexs/2 - perimetertexborder) {
+					a = Uint8(255*(perimetertexs/2 - d)/perimetertexborder);
+				} else {
+					a = 255;
+				}
+			}
+			perimetertex[perimetertexptr + 0] = 255;
+			perimetertex[perimetertexptr + 1] = a;
+			perimetertexptr += 2;
+		}
+	}
+	foamperimetertex.reset(new texture(perimetertex, perimetertexs, perimetertexs,
+					   GL_LUMINANCE_ALPHA, texture::LINEAR, texture::CLAMP_TO_EDGE));
 
 	fresnelcolortexd.resize(FRESNEL_FCT_RES*REFRAC_COLOR_RES*4);
 	for (unsigned f = 0; f < FRESNEL_FCT_RES; ++f) {
@@ -751,6 +775,74 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 }
 
 
+
+void water::draw_foam_for_ship(const ship* shp, const vector3& viewpos) const
+{
+	vector2 spos = shp->get_pos().xy() - viewpos.xy();
+	vector2 sdir = shp->get_heading().direction();
+	vector2 pdir = sdir.orthogonal();
+	float sl = shp->get_length();
+	float sw = shp->get_width();
+
+	const list<vector2>& prevpos = shp->get_previous_positions();
+	// fixme: we need time of most recent prevpos, and time for decay of foam
+
+	// draw foam caused by hull.
+	glColor4f(1, 1, 1, 1);
+	foamperimetertex->set_gl_texture();
+	glBegin(GL_QUADS);
+	glTexCoord2f(0, 0);
+	vector2 pp = spos + sdir * (sl*0.5) + pdir * (sw*-0.5);
+	glVertex3d(pp.x, pp.y, -viewpos.z);
+	glTexCoord2f(0, 1);
+	pp += pdir * sw;
+	glVertex3d(pp.x, pp.y, -viewpos.z);
+	glTexCoord2f(1, 1);
+	pp -= sdir * sl;
+	glVertex3d(pp.x, pp.y, -viewpos.z);
+	glTexCoord2f(1, 0);
+	pp -= pdir * sw;
+	glVertex3d(pp.x, pp.y, -viewpos.z);
+	glEnd();
+
+	// draw foam caused by trail.
+	vector<vector2> trailp;
+	trailp.reserve(10);
+	trailp.push_back(spos);
+
+	for (list<vector2>::const_iterator pit = prevpos.begin(); pit != prevpos.end(); ++pit) {
+		trailp.push_back(*pit - viewpos.xy());
+		if (trailp.size() == trailp.capacity())
+			break;
+	}
+
+	if (trailp.size() >= 2) {
+		// compute normals
+		vector<vector2> trailpnrml(trailp.size());
+		trailpnrml[0] = pdir;
+		for (unsigned i = 1; i + 1 < trailp.size(); ++i)
+			trailpnrml[i] = (trailp[i-1] - trailp[i+1]).orthogonal().normal();
+		trailpnrml[trailpnrml.size()-1] = trailpnrml[trailpnrml.size()-2];
+
+		foamamounttrail->set_gl_texture();
+		// fixme: breite und alpha sollten nach hinten zunehmen, hängt von zeit ab!
+		//und texcoords für amount of foam tex sollten für einzelne trailp konstant bleiben
+		glColor4f(1, 1, 1, 1);
+		glBegin(GL_QUAD_STRIP);
+		for (unsigned i = 0; i < trailp.size(); ++i) {
+			vector2 pl = trailp[i] + trailpnrml[i] * (-sw*0.5);
+			vector2 pr = trailp[i] + trailpnrml[i] * ( sw*0.5);
+			glTexCoord2f(0, i);
+			glVertex3d(pl.x, pl.y, -viewpos.z);
+			glTexCoord2f(1, i);
+			glVertex3d(pr.x, pr.y, -viewpos.z);
+		}
+		glEnd();
+	}
+}
+
+
+
 static unsigned nrfm=0;
 void water::compute_amount_of_foam_texture(const vector3& viewpos,
 					   const matrix4& reflection_projmvmat,
@@ -788,62 +880,12 @@ void water::compute_amount_of_foam_texture(const vector3& viewpos,
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glActiveTexture(GL_TEXTURE0);
 */
-	foamamounttrail->set_gl_texture();
 //	glBindTexture(GL_TEXTURE_2D, 0);
 //	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_LIGHTING);
 	// fixme: texture mapping seems to be wrong.
 	for (vector<ship*>::const_iterator it = allships.begin(); it != allships.end(); ++it) {
-		vector2 spos = (*it)->get_pos().xy() - viewpos.xy();
-		vector2 sdir = (*it)->get_heading().direction();
-		vector2 pdir = sdir.orthogonal();
-		float sl = (*it)->get_length();
-		float sw = (*it)->get_width();
-		const list<vector2>& prevpos = (*it)->get_previous_positions();
-		// vector with points of foam trail
-		vector<vector2> trailp;
-		trailp.reserve(3 + prevpos.size());
-		trailp.push_back(spos + sdir * (sl * 0.5));	// push back points for boat perimeter
-		trailp.push_back(spos);
-		trailp.push_back(spos + sdir * (sl * -0.5));
-
-		// fixme: first point of prevpos has to be discarded when between pos and stern
-		vector<vector2> pp2(prevpos.begin(), prevpos.end());
-		list<vector2>::const_iterator pit = prevpos.begin();
-		//fixme: limit to 1/3 or 1/4 of prevpos, that means skip entries older than 1/3 or 1/4
-		for (unsigned i = 0; i < prevpos.size(); ++i) {
-			trailp.push_back(*pit - viewpos.xy());
-			++pit;
-		}
-
-		// compute bspline points from trailp
-		unsigned n = trailp.size() < 3 ? 2 : 3;	// fixme: n = 2 immer?
-		bsplinet<vector2> bsp(n, trailp);
-
-		// fixme: bspline sollte erst nach heck anfangen, zwischen heck und erster prevpos
-		// ist der abstand nicht gleichmäßig, die t's des bspline aber schon...
-		vector<vector2> bspr(trailp.size() * 2);
-		double f = 0.0, fadd = 1.0/bspr.size();
-		for (unsigned i = 0; i < bspr.size(); ++i) {
-			bspr[i] = bsp.value(f);
-			f += fadd;
-		}
-
-		//vector2 p0 = spos + sdir * (sl/2 /*fixme should be 2 but... the whole thing seems to be scaled by factor 2!*/);
-		//especially in freeview mode, but the bow caused foam seems also to be too long
-		glColor4f(1, 1, 1, 1);
-		glBegin(GL_QUAD_STRIP);
-		for (unsigned i = 0; i < bspr.size(); ++i) {
-			vector2 pl = bspr[i] + pdir * (-1.0f);
-			vector2 pr = bspr[i] + pdir * ( 1.0f);
-			glTexCoord2f(0, i);
-			glVertex3d(pl.x, pl.y, -viewpos.z);
-			glTexCoord2f(1, i);
-			glVertex3d(pr.x, pr.y, -viewpos.z);
-		}
-		//fixme: the amount of foam decreases too slowly, use less prevpos,
-		//about 1/2 or even 1/4 should be enough
-		glEnd();
+		draw_foam_for_ship(*it, viewpos);
 	}
 	glEnable(GL_LIGHTING);
 //	glEnable(GL_TEXTURE_2D);
@@ -864,7 +906,7 @@ void water::compute_amount_of_foam_texture(const vector3& viewpos,
 	glRasterPos2i(0, 0);
 */
 	
-#if 0
+#if 1
 	vector<Uint8> data(afs*afs*3);
 	glReadPixels(0, 0, afs, afs, GL_RGB, GL_UNSIGNED_BYTE, &data[0]);
         ostringstream osgname;
@@ -1310,7 +1352,12 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	}
 
 	// set up textures
-	setup_textures(reflection_projmvmat, transl); //fixme test
+	//fixme: because foam uses the same coords as reflection, reflection coords must not be a bit larger than
+	//the screen, as suggested for reflections.
+	//fixme2: model::split may be used for drawing reflected upper parts of ships, problem is that waterline
+	//varies.
+	//fixme: use the right matrix for reflection texture, must be the same as current mvp mat.
+	setup_textures(/*world2camera*/reflection_projmvmat, transl); //fixme test
 
 	glColor4f(1,1,1,1);
 

@@ -8,7 +8,6 @@
 #include "global_data.h"
 
 #define SINK_SPEED 0.5  // m/sec, fixme move to ship. include in local drag.
-#define MAXPREVPOS 20	//move to ship!
 
 #define NO_AMMO_REMAINING	0	// used by deck gun
 #define TARGET_OUT_OF_RANGE	-1	// used by deck gun

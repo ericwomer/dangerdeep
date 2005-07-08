@@ -18,6 +18,7 @@ map<double, map<double, double> > ship::dist_angle_relation;
 #define MAX_DECLINATION -20.0
 #define ANGLE_GAP 0.1
 #define GUN_RELOAD_TIME 5.0
+#define MAXPREVPOS 60
 
 //fixme: redefine display, call base display
 
