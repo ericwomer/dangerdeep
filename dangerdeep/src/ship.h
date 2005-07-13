@@ -36,6 +36,9 @@ public:
 	enum rudder_status { rudderfullleft=-2, rudderleft, ruddermidships, rudderright,
 		rudderfullright };
 
+	// maximum trail record length
+	static const unsigned TRAIL_LENGTH = 60;
+
 protected:
 	class ai* myai;
 	unsigned tonnage;	// in BRT, created after values from spec file (but maybe with some randomness), must get stored!

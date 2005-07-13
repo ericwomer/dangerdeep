@@ -141,13 +141,12 @@ public:
 	void update_foam(double deltat);		// needed for dynamic foam
 	void spawn_foam(const vector2& pos);		// dito
 
-	void draw_foam_for_ship(const ship* shp, const vector3& viewpos) const;
-	void compute_amount_of_foam_texture(const vector3& viewpos,
-					    const matrix4& reflection_projmvmat,
+	void draw_foam_for_ship(const game& gm, const ship* shp, const vector3& viewpos) const;
+	void compute_amount_of_foam_texture(const game& gm, const vector3& viewpos,
 					    const vector<ship*>& allships) const;
 
-	// give absolute position of viewer as viewpos, translation in modelview matrix included!
-	void display(const vector3& viewpos, angle dir, double max_view_dist, const matrix4& reflection_projmvmat) const;
+	// give absolute position of viewer as viewpos, but modelview matrix without translational component!
+	void display(const vector3& viewpos, angle dir, double max_view_dist) const;
 	float get_height(const vector2& pos) const;
 	// give f as multiplier for difference to (0,0,1)
 	vector3f get_normal(const vector2& pos, double f = 1.0) const;

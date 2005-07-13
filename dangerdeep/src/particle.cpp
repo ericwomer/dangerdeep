@@ -331,6 +331,7 @@ void particle::display_all(const vector<particle*>& pts, const vector3& viewpos,
 		vector3 pp = (mvtrans + (*it)->get_pos() - viewpos);
 		pds.push_back(particle_dist(*it, pp.square_length(), pp));
 	}
+	// this could be a huge performance killer.... fixme
 	sort(pds.begin(), pds.end());
 
 	glDisable(GL_LIGHTING);

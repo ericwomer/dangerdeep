@@ -31,7 +31,7 @@ protected:
 	virtual void pre_display(class game& gm) const;
 //fixme: reflections need special viewport... depends on detail settings. mabye retrieve from ui
 	virtual projection_data get_projection_data(class game& gm) const;
-	virtual void set_modelview_matrix(class game& gm) const;
+	virtual void set_modelview_matrix(class game& gm, const vector3& viewpos) const;
 	virtual void post_display(class game& gm) const;
 
 	// draw all sea_objects
@@ -41,7 +41,7 @@ protected:
 				  const vector<torpedo*>& torpedoes) const;
 
 	// draw the whole view
-	virtual void draw_view(class game& gm) const;
+	virtual void draw_view(class game& gm, const vector3& viewpos) const;
 
 public:
 	freeview_display(class user_interface& ui_);

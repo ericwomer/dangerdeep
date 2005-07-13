@@ -18,7 +18,6 @@ map<double, map<double, double> > ship::dist_angle_relation;
 #define MAX_DECLINATION -20.0
 #define ANGLE_GAP 0.1
 #define GUN_RELOAD_TIME 5.0
-#define MAXPREVPOS 60
 
 //fixme: redefine display, call base display
 
@@ -291,7 +290,7 @@ void ship::set_throttle(int thr)
 void ship::remember_position()
 {
 	previous_positions.push_front(get_pos().xy());
-	if (previous_positions.size() > MAXPREVPOS)
+	if (previous_positions.size() > TRAIL_LENGTH)
 		previous_positions.pop_back();
 }	
 

@@ -16,6 +16,7 @@
 #include "matrix4.h"
 #include "cfg.h"
 #include "system.h"
+#include "game.h"
 #include <fstream>
 
 // compute projected grid efficiency, it should be 50-95%
@@ -500,7 +501,7 @@ void water::cleanup_textures(void) const
 
 
 //function is nearly the same as get_height, it just adds extra detail
-#define FOO {}
+#define FOO {}	// used for optimization checks of assembler output
 //#define FOO foo();
 extern void foo();
 vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) const
@@ -776,7 +777,7 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 
 
 
-void water::draw_foam_for_ship(const ship* shp, const vector3& viewpos) const
+void water::draw_foam_for_ship(const game& gm, const ship* shp, const vector3& viewpos) const
 {
 	vector2 spos = shp->get_pos().xy() - viewpos.xy();
 	vector2 sdir = shp->get_heading().direction();
@@ -786,6 +787,8 @@ void water::draw_foam_for_ship(const ship* shp, const vector3& viewpos) const
 
 	const list<vector2>& prevpos = shp->get_previous_positions();
 	// fixme: we need time of most recent prevpos, and time for decay of foam
+	double oldest_trail_time = (ship::TRAIL_LENGTH + 1) * game::TRAIL_TIME;
+	double trail_time_offset = gm.get_time() - gm.get_last_trail_record_time();
 
 	// draw foam caused by hull.
 	glColor4f(1, 1, 1, 1);
@@ -807,7 +810,7 @@ void water::draw_foam_for_ship(const ship* shp, const vector3& viewpos) const
 
 	// draw foam caused by trail.
 	vector<vector2> trailp;
-	trailp.reserve(10);
+	trailp.reserve(15);
 	trailp.push_back(spos);
 
 	for (list<vector2>::const_iterator pit = prevpos.begin(); pit != prevpos.end(); ++pit) {
@@ -815,6 +818,7 @@ void water::draw_foam_for_ship(const ship* shp, const vector3& viewpos) const
 		if (trailp.size() == trailp.capacity())
 			break;
 	}
+	oldest_trail_time = trailp.capacity() * game::TRAIL_TIME;
 
 	if (trailp.size() >= 2) {
 		// compute normals
@@ -830,8 +834,14 @@ void water::draw_foam_for_ship(const ship* shp, const vector3& viewpos) const
 		glColor4f(1, 1, 1, 1);
 		glBegin(GL_QUAD_STRIP);
 		for (unsigned i = 0; i < trailp.size(); ++i) {
-			vector2 pl = trailp[i] + trailpnrml[i] * (-sw*0.5);
-			vector2 pr = trailp[i] + trailpnrml[i] * ( sw*0.5);
+			double age = (i == 0) ? 0.0 : (trail_time_offset + (i-1) * game::TRAIL_TIME);
+			// fixme: set last trail point foamamt always to zero as test... fixme funzt net
+			float foamamt = (i+1 == trailp.size()) ? 0.0f : (1.0f - age / oldest_trail_time);
+			// fixme: es wird net breiter
+			float foamwdt = (0.5f + age / oldest_trail_time) * sw;
+			vector2 pl = trailp[i] - trailpnrml[i] * foamwdt;
+			vector2 pr = trailp[i] + trailpnrml[i] * foamwdt;
+			glColor4f(1, 1, 1, foamamt);
 			glTexCoord2f(0, i);
 			glVertex3d(pl.x, pl.y, -viewpos.z);
 			glTexCoord2f(1, i);
@@ -844,8 +854,7 @@ void water::draw_foam_for_ship(const ship* shp, const vector3& viewpos) const
 
 
 static unsigned nrfm=0;
-void water::compute_amount_of_foam_texture(const vector3& viewpos,
-					   const matrix4& reflection_projmvmat,
+void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpos,
 					   const vector<ship*>& allships) const
 {
 	if (!use_shaders)
@@ -885,7 +894,7 @@ void water::compute_amount_of_foam_texture(const vector3& viewpos,
 	glDisable(GL_LIGHTING);
 	// fixme: texture mapping seems to be wrong.
 	for (vector<ship*>::const_iterator it = allships.begin(); it != allships.end(); ++it) {
-		draw_foam_for_ship(*it, viewpos);
+		draw_foam_for_ship(gm, *it, viewpos);
 	}
 	glEnable(GL_LIGHTING);
 //	glEnable(GL_TEXTURE_2D);
@@ -906,7 +915,7 @@ void water::compute_amount_of_foam_texture(const vector3& viewpos,
 	glRasterPos2i(0, 0);
 */
 	
-#if 1
+#if 0
 	vector<Uint8> data(afs*afs*3);
 	glReadPixels(0, 0, afs, afs, GL_RGB, GL_UNSIGNED_BYTE, &data[0]);
         ostringstream osgname;
@@ -929,11 +938,8 @@ void water::compute_amount_of_foam_texture(const vector3& viewpos,
 
 
 
-void water::display(const vector3& viewpos, angle dir, double max_view_dist, const matrix4& reflection_projmvmat) const
+void water::display(const vector3& viewpos, angle dir, double max_view_dist) const
 {
-	//fixme: we don't need the reflection_projmvmat parameter, we can compute the proj*modl matrix by
-	//asking opengl...
-
 	const float VIRTUAL_PLANE_HEIGHT = 25.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok, maybe a bit too much
 
 	// maximum height of waves (half amplitude)
@@ -957,18 +963,9 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	matrix4 modl = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	matrix4 inv_modl = modl.inverse();
 
-	// modify modelview matrix so that viewer is at (0,0,h) with h in |R with h = cameraheight
-	vector3 correction = inv_modl.column3(3);
-
-	// set gl matrix so that viewer is at 0, 0, 0
-	glPushMatrix();
-	glTranslated(correction.x, correction.y, correction.z);
-
-	correction.z -= viewpos.z;
-	modl = modl * matrix4::trans(correction);
-	inv_modl = matrix4::trans(-correction) * inv_modl;
-
-	matrix4 world2camera = proj * modl;
+	matrix4 reflection_projmvmat = proj * modl;
+	// the viewer is in 0,0,0, but the world has a coordinate system so that viewer would be at 0,0,viewpos.z
+	matrix4 world2camera = proj * modl * matrix4::trans(0, 0, -viewpos.z);
 	matrix4 camera2world = world2camera.inverse();
 
 	// transform frustum corners of rendering camera to world space
@@ -1072,7 +1069,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	vector<vector2> trapezoid;
 	if (proj_points.size() == 0) {
 		// nothing to draw.
-		glPopMatrix();
 		return;
 	} else {
 		// scale coordinates to compensate for wave displacement here? fixme
@@ -1112,7 +1108,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 		trapezoid = find_smallest_trapezoid(chull);
 		if (trapezoid.empty()) {
 			// sometimes trapez construction fails.
-			glPopMatrix();
 			return;
 		}
 	} // else return;
@@ -1218,7 +1213,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 #endif
 
 	// compute dynamic normals
-	// clear values from last frame
+	// clear values from last frame (fixme: a plain memset(...,0 ) may be faster, or even mmx memset
 	fill(normals.begin(), normals.end(), vector3f());
 
 	// compute normals for all faces, add them to vertex normals
@@ -1259,6 +1254,14 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 */
 #endif
 		}
+	}
+
+	// give -viewpos.z to vertex shader for generation of foam projection coordinates
+	// the plane z = -viewpos.z is the water plane.
+	if (use_shaders) {
+		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, water_vertex_program);
+		glProgramLocalParameter4fARB(GL_VERTEX_PROGRAM_ARB, 0,
+					     viewpos.x, viewpos.y, viewpos.z, 0);
 	}
 
 	// make normals normal ;-)
@@ -1352,12 +1355,9 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	}
 
 	// set up textures
-	//fixme: because foam uses the same coords as reflection, reflection coords must not be a bit larger than
-	//the screen, as suggested for reflections.
-	//fixme2: model::split may be used for drawing reflected upper parts of ships, problem is that waterline
+	//fixme: model::split may be used for drawing reflected upper parts of ships, problem is that waterline
 	//varies.
-	//fixme: use the right matrix for reflection texture, must be the same as current mvp mat.
-	setup_textures(/*world2camera*/reflection_projmvmat, transl); //fixme test
+	setup_textures(reflection_projmvmat/*world2camera*/, transl); //fixme test
 
 	glColor4f(1,1,1,1);
 
@@ -1394,8 +1394,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist, con
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-	glPopMatrix();
 
 	// clean up textures
 	cleanup_textures();

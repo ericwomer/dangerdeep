@@ -49,7 +49,7 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	myassert(err>=0, "SDL Video init failed");
 	const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
 	myassert(videoInfo != 0, "Video info query failed");
-	int videoFlags  = SDL_OPENGLBLIT | SDL_GL_DOUBLEBUFFER | SDL_HWPALETTE;
+	int videoFlags  = SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_HWPALETTE;
 	videoFlags |= (videoInfo->hw_available) ? SDL_HWSURFACE : SDL_SWSURFACE;
 	if (fullscreen)
 		videoFlags |= SDL_FULLSCREEN;

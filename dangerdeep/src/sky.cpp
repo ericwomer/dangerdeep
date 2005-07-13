@@ -482,6 +482,10 @@ void sky::set_time(double tm)
 
 void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, bool isreflection) const
 {
+	// fixme: sky for reflection should be drawn different, because earth is curved!
+	// far reflections of the sky point outwards into the atmosphere and thus are blueish, but the grey haze color
+	// of the horizon!
+
 	//fixme: for reflections this is wrong, so get LIGHT_POS!
 	vector3 sundir = gm.compute_sun_pos(viewpos).normal();
 	color lightcol = gm.compute_light_color(viewpos);
@@ -547,6 +551,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	// size than 30km=zfar.
 	double scal = 0.1;//max_view_dist / 30000.0;	// sky hemisphere is stored as 30km in radius
 	glScaled(scal, scal, scal);
+	glTranslated(0, 0, -10 - viewpos.z);	// move down 10m to compensate for waves moving up/down (avoid gaps because of that)
 
 	// set texture coordinate translation for unit 1 (sunglow), why this isn't in setup_tex?! fixme
 	double suntxr = ((sundir.z > 1.0) ? 0.0 : acos(sundir.z)) / M_PI;

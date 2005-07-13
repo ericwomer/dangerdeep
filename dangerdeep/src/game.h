@@ -99,6 +99,9 @@ public:
 	enum run_state { running, player_killed, mission_complete, contact_lost };
 	
 	user_interface* get_ui() { return ui; }
+
+	// time between records of trail positions
+	static const double TRAIL_TIME = 1.0;
 	
 protected:
 	// maybe replace by containers with automatic pointer storage.
@@ -200,6 +203,8 @@ public:
 	
 	sea_object* get_player(void) const { return player; }
 	void set_user_interface(user_interface* ui_) { ui = ui_; }
+
+	double get_last_trail_record_time() const { return last_trail_time; }
 
 	// compute visibility data
 	virtual vector<ship*> visible_ships(const sea_object* o) const;

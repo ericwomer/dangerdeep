@@ -43,7 +43,6 @@
 const int SAVEVERSION = 0;
 const int GAMETYPE = 0;//fixme
 
-#define TRAILTIME 1
 #define ENEMYCONTACTLOST 100000.0	// meters
 
 
@@ -229,7 +228,7 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	player = psub;
 
 	my_run_state = running;
-	last_trail_time = time - TRAILTIME;
+	last_trail_time = time - TRAIL_TIME;
 }
 
 
@@ -285,7 +284,7 @@ game::game(TiXmlDocument* doc) : my_run_state(running), time(0), networktype(0),
 		}
 	}
 
-	last_trail_time = time - TRAILTIME;
+	last_trail_time = time - TRAIL_TIME;
 	sys().myassert(player != 0, string("No player defined in ") + doc->Value());
 	compute_max_view_dist();
 }	
@@ -569,8 +568,8 @@ void game::simulate(double delta_t)
 	compute_max_view_dist();
 	
 	bool record = false;
-	if (get_time() >= last_trail_time + TRAILTIME) {
-		last_trail_time += TRAILTIME;
+	if (get_time() >= last_trail_time + TRAIL_TIME) {
+		last_trail_time += TRAIL_TIME;
 		record = true;
 	}
 	

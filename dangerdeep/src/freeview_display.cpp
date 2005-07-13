@@ -43,13 +43,12 @@ freeview_display::projection_data freeview_display::get_projection_data(game& gm
 
 
 
-void freeview_display::set_modelview_matrix(game& gm) const
+void freeview_display::set_modelview_matrix(game& gm, const vector3& viewpos) const
 {
 	glLoadIdentity();
 
+	// set up rotation (player's view direction)
 	glRotated(-ui.get_elevation().value(),1,0,0);
-
-	sea_object* pl = gm.get_player();
 
 	// This should be a negative angle, but nautical view dir is clockwise,
 	// OpenGL uses ccw values, so this is a double negation
@@ -57,11 +56,14 @@ void freeview_display::set_modelview_matrix(game& gm) const
 
 	// if we're aboard the player's vessel move the world instead of the ship
 	if (aboard) {
-		double rollfac = (dynamic_cast<ship*>(pl))->get_roll_factor();
+		const sea_object* pl = gm.get_player();
+		double rollfac = (dynamic_cast<const ship*>(pl))->get_roll_factor();
 		ui.rotate_by_pos_and_wave(pl->get_pos(), rollfac, true);
 	}
 
-	glTranslated(-pos.x, -pos.y, -pos.z);
+	// set up modelview matrix as if player is at position (0, 0, 0), so do NOT set a translational part.
+	// This is done to avoid rounding errors caused by large x/y values (modelview matrix seems to store floats,
+	// but coordinates are in real meters, so float is not precise enough).
 }
 
 
@@ -97,7 +99,9 @@ void freeview_display::display(class game& gm) const
 	pre_display(gm);
 
 	// render scene
-	draw_view(gm);
+	vector3 viewpos = gm.get_player()->get_pos() + pos;
+//	cout << "pos is " << pos << " playerpos " << gm.get_player()->get_pos() << " viewpos " << viewpos << " aboard: " << aboard << "\n";
+	draw_view(gm, viewpos);
 
 	// e.g. drawing of infopanel or 2d effects, background mask etc.
 	post_display(gm);
@@ -111,7 +115,7 @@ void freeview_display::process_input(class game& gm, const SDL_Event& event)
 
 	glPushMatrix();
 	glLoadIdentity();
-	set_modelview_matrix(gm);
+	set_modelview_matrix(gm, vector3());	// position doesn't matter, only direction.
 	matrix4 viewmatrix = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	glPopMatrix();
 	vector3 sidestep = viewmatrix.row3(0);
@@ -233,18 +237,13 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 
 
 
-
-
-
-
-
-void freeview_display::draw_view(game& gm) const
+void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 {
 	double max_view_dist = gm.get_max_view_distance();
 
-	// the modelview matrix is set around the player's object position.
-	// i.e. it has an translation part of zero if the viewer is exactly at the player's object position.
-	// this means all objects have to be drawn with an offset of (-player->get_pos())
+	// the modelview matrix is set around the player's viewing position.
+	// i.e. it has an translation part of zero.
+	// this means all objects have to be drawn with an offset of (-viewpos)
 	// this is done because the position's values can be rather large (global coordinates!) which leads
 	// to rounding errors when storing them in the OpenGL matrix. So we have to compute them partly manually
 	// with high(er) precision (double).
@@ -255,10 +254,7 @@ void freeview_display::draw_view(game& gm) const
 	projection_data pd = get_projection_data(gm);
 
 	// *************** compute and set player pos ****************************************
-	set_modelview_matrix(gm);
-
-	vector3 camerapos = matrix4::get_gl(GL_MODELVIEW_MATRIX).inverse().column3(3);
-	vector3 viewpos = player->get_pos() + camerapos;
+	set_modelview_matrix(gm, viewpos);
 
 	// **************** prepare drawing ***************************************************
 
@@ -269,7 +265,7 @@ void freeview_display::draw_view(game& gm) const
 
 	// compute light source position and brightness (must be set AFTER modelview matrix)
 	vector3 sundir = gm.compute_sun_pos(viewpos).normal();
-	GLfloat lposition[4] = { sundir.x, sundir.y, sundir.z, 1.0f };
+	GLfloat lposition[4] = { sundir.x, sundir.y, sundir.z, 0.0f };
 	GLfloat lambient[4] = { 0.05f, 0.05f, 0.05f };
 	GLfloat ldiffuse[4] = {lightcol.r/255.0f, lightcol.g/255.0f, lightcol.b/255.0f, 1.0f };
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lambient);
@@ -278,18 +274,24 @@ void freeview_display::draw_view(game& gm) const
 
 	// ********************* draw mirrored scene
 	
-	matrix4 reflection_projmvmat;	// given later to water::display to set up reflection
-
 	// ************ compute water reflection ******************************************
+	// in theory we have to set up a projection matrix with a slightly larger FOV than the scene projection matrix,
+	// because the mirrored scene can show parts that are not seen in normal view.
+	// However we use the reflection texture coordinates also for foam, which should match the scene projection,
+	// so we do NOT change the projection matrix here.
+	// the (old) code for change is shown here:
+	// --------- old begin ----------
 	// save projection matrix
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+	//glMatrixMode(GL_PROJECTION);
+	//glLoadIdentity();
 	// store the projection matrix
-	sys().gl_perspective_fovx(pd.fov_x * 1.0, 1.0 /*aspect*/, pd.near_z, pd.far_z);
-	reflection_projmvmat = matrix4::get_gl(GL_PROJECTION_MATRIX) * matrix4::get_gl(GL_MODELVIEW_MATRIX);
-	glLoadIdentity();
+	//sys().gl_perspective_fovx(pd.fov_x * 1.0, 1.0 /*aspect*/, pd.near_z, pd.far_z);
+	//reflection_projmvmat = matrix4::get_gl(GL_PROJECTION_MATRIX) * matrix4::get_gl(GL_MODELVIEW_MATRIX);
+	//glLoadIdentity();
 	// set up projection matrix (new width/height of course) with a bit larger fov
-	sys().gl_perspective_fovx(pd.fov_x * 1.0, 1.0 /*aspect*/, pd.near_z, pd.far_z);
+	//sys().gl_perspective_fovx(pd.fov_x * 1.0, 1.0 /*aspect*/, pd.near_z, pd.far_z);
+	// -------- old end ------------
+
 	// set up new viewport size s*s with s<=max_texure_size and s<=w,h of old viewport
 	const texture* refltex = ui.get_water().get_reflectiontex();
 	glViewport(0, 0, refltex->get_width(), refltex->get_height());
@@ -299,42 +301,39 @@ void freeview_display::draw_view(game& gm) const
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// shear one clip plane to match world space z=0 plane
-	//fixme
+	//fixme, use shaders for that, Clip planes are often computes in software and are too slow
 
-	// flip geometry at z=0 plane
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glScalef(1.0f, 1.0f, -1.0f);
+	{
+		matrix_pusher mp(GL_MODELVIEW);
+		// flip geometry at z=0 plane
+		glScalef(1.0f, 1.0f, -1.0f);
+		glCullFace(GL_FRONT);
 
-	// flip light!
-	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
+		// viewpos for drawing mirrored objects should/must be changed
+		// to (vp.x, vp.y, -vp.z) (z coordinate negated).
+		vector3 viewpos_mirror = vector3(viewpos.x, viewpos.y, -viewpos.z);
 
-	// draw all parts of the scene that are (partly) above the water:
-	//   sky
-	glCullFace(GL_FRONT);
+		// flip light!
+		glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 
-	//fixme: viewpos/pos z translation is not computed correctly here... so mirrored image of sky is wrong
-	glPushMatrix();
-	// compensate camera height. should also be done for other objects...fixme
-	glTranslated(0, 0, -2*camerapos.z);
-	ui.get_sky().display(gm, viewpos, max_view_dist, true);
-	glPopMatrix();
+		// draw all parts of the scene that are (partly) above the water:
+		//   sky
+		ui.get_sky().display(gm, viewpos_mirror, max_view_dist, true);
 
-	//   terrain
-	glColor4f(1,1,1,1);//fixme: fog is missing
-	ui.draw_terrain(viewpos, ui.get_absolute_bearing(), max_view_dist);
-	//fixme
-	//   models/smoke
-	//fixme
-	glCullFace(GL_BACK);
+		//   terrain
+		glColor4f(1,1,1,1);//fixme: fog is missing
+		ui.draw_terrain(viewpos_mirror, ui.get_absolute_bearing(), max_view_dist);
+		//fixme
+		//   models/smoke
+		//fixme
+		glCullFace(GL_BACK);
 
-	// copy viewport pixel data to reflection texture
-	refltex->set_gl_texture();
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, refltex->get_width(), refltex->get_height(), 0);
-	//fixme: ^ glCopyTexSubImage may be faster!
+		// copy viewport pixel data to reflection texture
+		refltex->set_gl_texture();
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, refltex->get_width(), refltex->get_height(), 0);
+		//fixme: ^ glCopyTexSubImage may be faster!
 
-	// clean up
-	glPopMatrix();
+	}
 
 	// ************************* compute visible surface objects *******************
 
@@ -359,8 +358,7 @@ void freeview_display::draw_view(game& gm) const
 		allships.push_back(*it);
 	for (vector<torpedo*>::const_iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
 		allships.push_back(*it);
-	ui.get_water().compute_amount_of_foam_texture(/*viewpos, ui.get_absolute_bearing(), max_view_dist, */
-						      player->get_pos(), reflection_projmvmat, allships);
+	ui.get_water().compute_amount_of_foam_texture(gm, viewpos, allships);
 
 #if 0
 	vector<Uint8> scrn(vps*vps*3);
@@ -393,9 +391,8 @@ void freeview_display::draw_view(game& gm) const
 	// this color clear eats ~ 2 frames (52 to 50 on a gf4mx), but is needed for star sky drawing
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	// set light! fixme the models are dark now. maybe we have to use the same modelview matrix that we used when creating the initial pos.?!
+	// set light!
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
-
 
 	// ************ sky ***************************************************************
 	ui.get_sky().display(gm, viewpos, max_view_dist, false);
@@ -412,8 +409,7 @@ void freeview_display::draw_view(game& gm) const
 	// ******* water ***************************************************************
 	//ui.get_water().update_foam(1.0/25.0);  //fixme: deltat needed here
 	//ui.get_water().spawn_foam(vector2(myfmod(gm.get_time(),256.0),0));
-	//fixme: viewpos should be submarine pos, not already viewer trans of mv mat added...
-	ui.get_water().display(viewpos, ui.get_absolute_bearing(), max_view_dist, reflection_projmvmat);
+	ui.get_water().display(viewpos, ui.get_absolute_bearing(), max_view_dist);
 
 	// ******** terrain/land ********************************************************
 //	glDisable(GL_FOG);	//testing with new 2d bspline terrain.
@@ -432,30 +428,18 @@ void freeview_display::draw_view(game& gm) const
 	// ******************** ships & subs *************************************************
 //	cout << "mv trans pos " << matrix4::get_gl(GL_MODELVIEW_MATRIX).column(3) << "\n";
 	// substract player pos.
-	draw_objects(gm, player->get_pos(), ships, submarines, torpedoes);
+	draw_objects(gm, viewpos, ships, submarines, torpedoes);
 
 	// ******************** draw the bridge in higher detail
 	if (aboard && drawbridge) {
-		// after everything was drawn, draw conning tower (new projection matrix needed)
-//		glClear(GL_DEPTH_BUFFER_BIT);
-//		glDisable(GL_DEPTH_TEST);
-//		glMatrixMode(GL_PROJECTION);
-//		glPushMatrix();
-//		glLoadIdentity();
-//		sys().gl_perspective_fovx (90.0, 4.0/3.0 /* fixme may change */, 0.5, 100.0);
-//		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glTranslated(0, 0, 6);
-//		glLoadIdentity();
-//		glRotatef(-elevation.value()-90,1,0,0);
+		// after everything was drawn, draw conning tower
+		vector3 conntowerpos = player->get_pos() - viewpos;
+		matrix_pusher mp(GL_MODELVIEW);
+		// we would have to translate the conning tower, but the current model is centered arount the player's view
+		// already, fixme.
+		//glTranslated(conntowerpos.x, conntowerpos.y, conntowerpos.z);
 		glRotatef(-player->get_heading().value(),0,0,1);
-//fixme handle different! with modelcache!
 		conning_tower_typeVII->display();
-//		glPopMatrix();
-//		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-//		glMatrixMode(GL_MODELVIEW);
-//		glEnable(GL_DEPTH_TEST);
 	}
 
 	glDisable(GL_FOG);	
