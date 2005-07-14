@@ -921,19 +921,21 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 //	cout << "new distri!\n";
 //	cout << "p0: " << p0 << " ps0 " << ps0.x << "," << ps0.y << " beginpos " << scl.beginpos << "\n";
 	for (unsigned i = 1; i < cl.size(); ) {
+		// fixme: with gcc 4.0 a deadlock occours in this loop!
+	
 //		cout << "i: " << i << "/" << cl.size() << " p0: " << p0 << " p1: " << cl[i] << "\n";
 		// handle line from p0 to cl[i] = p1.
 		const vector2i& p1 = cl[i];
 		// now p1 can be inside the same segment as p0, on the border of the same segment or
 		// in another segment.
 		vector2i rel = p1 - segoff;
-		if (rel.x >= 0 && rel.y >= 0 && rel.x <= SEGSCALE && rel.y <= SEGSCALE) {
+		if (rel.x >= 0 && rel.y >= 0 && rel.x <= int(SEGSCALE) && rel.y <= int(SEGSCALE)) {
 			// inside the same segment or on border
 			ps0.x = (unsigned short)rel.x;
 			ps0.y = (unsigned short)rel.y;
 			scl.push_back_point(ps0);
 			p0 = p1;
-			if (rel.x > 0 && rel.y > 0 && rel.x < SEGSCALE && rel.y < SEGSCALE) {
+			if (rel.x > 0 && rel.y > 0 && rel.x < int(SEGSCALE) && rel.y < int(SEGSCALE)) {
 				// really inside the segment, just continue
 				++i;
 			} else {
@@ -1136,6 +1138,7 @@ void coastmap::process_coastline(int x, int y)
 			spoints.push_back(cvi);
 	}
 
+printf("divdistr %i %i\n",x,y);
 	divide_and_distribute_cl(spoints, cyclic);
 	++global_clnr;
 }
@@ -1427,11 +1430,11 @@ void coastmap::render(const vector2& p, double vr, int detail, bool withterraint
 	int moffy0 = int((p_mapoff.y - vr)/segw_real);
 	int moffx1 = int((p_mapoff.x + vr)/segw_real);
 	int moffy1 = int((p_mapoff.y + vr)/segw_real);
-	if (moffx1 < 0 || moffy1 < 0 || moffx0 >= segsx || moffy0 >= segsy) return;
+	if (moffx1 < 0 || moffy1 < 0 || moffx0 >= int(segsx) || moffy0 >= int(segsy)) return;
 	if (moffx0 < 0) moffx0 = 0;
 	if (moffy0 < 0) moffy0 = 0;
-	if (moffx1 >= segsx) moffx1 = segsx-1;
-	if (moffy1 >= segsy) moffy1 = segsy-1;
+	if (moffx1 >= int(segsx)) moffx1 = int(segsx)-1;
+	if (moffy1 >= int(segsy)) moffy1 = int(segsy)-1;
 //	printf("drawing %i segs\n",(moffx1-moffx0+1)*(moffy1-moffy0+1));
 
 	for (int y = moffy0; y <= moffy1; ++y) {

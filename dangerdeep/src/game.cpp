@@ -46,6 +46,9 @@ const int GAMETYPE = 0;//fixme
 #define ENEMYCONTACTLOST 100000.0	// meters
 
 
+const double game::TRAIL_TIME = 1.0;
+
+
 
 game::ping::ping(istream& in)
 {

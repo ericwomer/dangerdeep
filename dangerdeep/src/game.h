@@ -99,10 +99,10 @@ public:
 	enum run_state { running, player_killed, mission_complete, contact_lost };
 	
 	user_interface* get_ui() { return ui; }
-
-	// time between records of trail positions
-	static const double TRAIL_TIME = 1.0;
 	
+	// time between records of trail positions
+	static const double TRAIL_TIME;
+
 protected:
 	// maybe replace by containers with automatic pointer storage.
 	vector<ship*> ships;
