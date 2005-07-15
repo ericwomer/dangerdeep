@@ -922,6 +922,8 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 //	cout << "p0: " << p0 << " ps0 " << ps0.x << "," << ps0.y << " beginpos " << scl.beginpos << "\n";
 	for (unsigned i = 1; i < cl.size(); ) {
 		// fixme: with gcc 4.0 a deadlock occours in this loop!
+		// most probably because p1.x is -1e9 former values around +1e6 that means cl[i].x is weird!
+		// so the bug is not in this loop as cl[i] is only read here!!!
 	
 //		cout << "i: " << i << "/" << cl.size() << " p0: " << p0 << " p1: " << cl[i] << "\n";
 		// handle line from p0 to cl[i] = p1.
@@ -1132,13 +1134,14 @@ void coastmap::process_coastline(int x, int y)
 //	cout << "generating " << nrpts << " pts\n";
 	for (unsigned i = 0; i < nrpts; ++i) {
 		vector2 cv = curve.value(float(i)/(nrpts-1));
+		// fixme: gcc4.0.1 strange values occour, are written here. but also generated here?
+		// either cv values are weird/out of bounds or the transformation here is buggy
 		vector2i cvi = vector2i(int(round(cv.x * sscal)), int(round(cv.y * sscal)));
 		// avoid double points here., fixme assert them?
 		if (spoints.empty() || !(spoints.back() == cvi))
 			spoints.push_back(cvi);
 	}
 
-printf("divdistr %i %i\n",x,y);
 	divide_and_distribute_cl(spoints, cyclic);
 	++global_clnr;
 }
