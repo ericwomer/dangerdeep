@@ -46,8 +46,8 @@ protected:
 
 public:
 	// give size of result (power of two), size of noise function with minimal frequency and maximum frequency
-	// sizeminfreq is usually very small, 2 or 4 at least, at most the same as size, at least 1
-	// sizemaxfreq is usually very high, at most the same as size
+	// sizeminfreq is usually very small, 2 or 4 at least, at most the same as size, at least 2
+	// sizemaxfreq is usually very high, at most the same as size, at least as sizeminfreq
 	perlinnoise(unsigned size, unsigned sizeminfreq, unsigned sizemaxfreq);
 
 	// get number of functions/levels

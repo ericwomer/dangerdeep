@@ -17,6 +17,7 @@
 #include "cfg.h"
 #include "system.h"
 #include "game.h"
+#include "perlinnoise.h"
 #include <fstream>
 
 // compute projected grid efficiency, it should be 50-95%
@@ -49,6 +50,8 @@
 #define SUBDETAIL_GEN_TIME 0.066667	// 15fps
 
 #define FOAMAMOUNTRES 256
+
+const unsigned foamtexsize = 256;
 
 /*
 	2004/05/06
@@ -208,9 +211,26 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	uv1.resize((xres+1)*(yres+1));
 	normals.resize((xres+1)*(yres+1));
 
-	foamtex.reset(new texture(get_texture_dir() + "foam.png", texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
+	perlinnoise pnfoam(foamtexsize, 2, foamtexsize/16);
+	vector<Uint8> foamtexpixels = pnfoam.generate();
 
-	foamamounttex.reset(new texture(FOAMAMOUNTRES, FOAMAMOUNTRES, GL_RGB, texture::LINEAR, texture::REPEAT));//CLAMP_TO_EDGE));
+	for (unsigned z = 0; z < foamtexsize * foamtexsize; ++z) {
+		int a = foamtexpixels[z];
+		a = 16 + a * 240 / 256;
+/*
+		a = (2 * a - 128);
+		if (a < 0) a = 0;
+		if (a >= 256) a = 255;
+*/
+		foamtexpixels[z] = Uint8(a);
+	}
+	ofstream osg("foamtex.pgm");
+	osg << "P5\n"<<foamtexsize<<" "<<foamtexsize<<"\n255\n";
+	osg.write((const char*)(&foamtexpixels[0]), foamtexsize * foamtexsize);
+	foamtex.reset(new texture(foamtexpixels, foamtexsize, foamtexsize, GL_LUMINANCE,
+				  texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
+
+	foamamounttex.reset(new texture(FOAMAMOUNTRES, FOAMAMOUNTRES, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 
 	foamamounttrail.reset(new texture(get_texture_dir() + "foamamounttrail.png", texture::LINEAR, texture::CLAMP_TO_EDGE));//fixme maybe mipmap it
 

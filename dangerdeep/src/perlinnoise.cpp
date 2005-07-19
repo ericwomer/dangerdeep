@@ -8,8 +8,6 @@
 #include <sstream>
 #include <fstream>
 
-const Uint32 one = 0x10000;
-
 perlinnoise::noise_func::noise_func(unsigned s, unsigned f, float px, float py)
 	: size(s), frequency(f), phasex(fixed32(px)), phasey(fixed32(py))
 {
@@ -74,14 +72,19 @@ perlinnoise::perlinnoise(unsigned size, unsigned sizeminfreq, unsigned sizemaxfr
 	sys().myassert(is_power2(size), "size is not power of two");
 	sys().myassert(is_power2(sizeminfreq), "sizeminfreq is not power of two");
 	sys().myassert(is_power2(sizemaxfreq), "sizemaxfreq is not power of two");
-	sys().myassert(sizeminfreq >= 1 && sizeminfreq <= size && sizeminfreq <= sizemaxfreq, "sizeminfreq out of range");
-	sys().myassert(sizemaxfreq >= 1 && sizemaxfreq <= size, "sizemaxfreq out of range");
+	sys().myassert(sizeminfreq >= 2 && sizeminfreq <= size && sizeminfreq <= sizemaxfreq, "sizeminfreq out of range");
+	sys().myassert(sizemaxfreq >= 2 && sizemaxfreq <= size, "sizemaxfreq out of range");
 	unsigned nrfunc = 0;
 	for (unsigned j = sizemaxfreq/sizeminfreq; j > 0; j >>= 1)
 		++nrfunc;
+	// generate functions, most significant first.
 	noise_functions.reserve(nrfunc);
-	for (unsigned i = 0; i < nrfunc; ++i)
-		noise_functions.push_back(noise_func(sizeminfreq<<i, 1 /*<<i*/));
+	for (unsigned i = 0; i < nrfunc; ++i) {
+		// growing size, constant frequency
+		noise_functions.push_back(noise_func(size/(sizemaxfreq>>i), 1));
+		// alternative, always same size, but growing frequency
+//		noise_functions.push_back(noise_func(size/sizemaxfreq, 1<<i));
+	}
 
 	// create interpolation function
 	const unsigned res = 256;

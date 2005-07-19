@@ -61,7 +61,7 @@ const int coastmap::runlandright[16] = {-1, 0, 1, 1, 2,-1, 2, 2, 3, 0,-1, 1, 3, 
 
 /*
 fixme: 2005/05/05
-remaining bus:
+remaining bugs:
 1) triangulation faults at one island near Greece, in the Aegean. This is NOT because the
    triangulation algorithm is not perfect (it could be better though...)
    This is the only segment where illegal .next values are reported.
@@ -924,6 +924,8 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 		// fixme: with gcc 4.0 a deadlock occours in this loop!
 		// most probably because p1.x is -1e9 former values around +1e6 that means cl[i].x is weird!
 		// so the bug is not in this loop as cl[i] is only read here!!!
+		//with gcc4.0.1, scons debug=2 it works, maybe a problem of the optimization. compiler bug???
+		//or unstable numerical computation
 	
 //		cout << "i: " << i << "/" << cl.size() << " p0: " << p0 << " p1: " << cl[i] << "\n";
 		// handle line from p0 to cl[i] = p1.
@@ -1043,7 +1045,6 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 }
 
 
-
 void coastmap::process_coastline(int x, int y)
 {
 	ASSERT ((mapf(x, y) & 0x80) == 0, "map pos already handled!");
@@ -1137,6 +1138,11 @@ void coastmap::process_coastline(int x, int y)
 		// fixme: gcc4.0.1 strange values occour, are written here. but also generated here?
 		// either cv values are weird/out of bounds or the transformation here is buggy
 		vector2i cvi = vector2i(int(round(cv.x * sscal)), int(round(cv.y * sscal)));
+/*
+		cout << "generated point " << i << "/" << nrpts << " -> " << cvi << " cv is " << cv << " sscal " << sscal <<
+			" roundx: " << round(cv.x * sscal) << " roundy " << round(cv.y * sscal) <<
+			" intrx " << int(round(cv.x * sscal)) << " intry " << int(round(cv.y * sscal)) << "\n";
+*/
 		// avoid double points here., fixme assert them?
 		if (spoints.empty() || !(spoints.back() == cvi))
 			spoints.push_back(cvi);
