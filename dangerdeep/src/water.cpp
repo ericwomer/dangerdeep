@@ -853,6 +853,14 @@ void water::draw_foam_for_ship(const game& gm, const ship* shp, const vector3& v
 		//und texcoords für amount of foam tex sollten für einzelne trailp konstant bleiben
 		glColor4f(1, 1, 1, 1);
 		glBegin(GL_QUAD_STRIP);
+		// fixme: breite nimmt zwar mit age zu, aber bei vielen, nahee nebeneinanderliegenden
+		// trailpunkten, kann die breite nicht so weit zunehmen!
+		// generell sollte sie anfangs zunehmen (Kielwasser) und später nicht mehr.
+		//form der schaumspur generell schwierig, das hier ist zu einfach.
+		// vielleicht neben den positionen noch schaumbreite speichern oder sowas.
+		// foamtrail sollte auch am BUG anfangen, ab da verbreiternd, später konstant breit.
+		// theoretisch kann man schaummenge auch speichern und dann entlang des trails über die zeit
+		// verringern. kann man aber auch anhand des alters während des zeichnens machen.
 		for (unsigned i = 0; i < trailp.size(); ++i) {
 			double age = (i == 0) ? 0.0 : (trail_time_offset + (i-1) * game::TRAIL_TIME);
 			// fixme: set last trail point foamamt always to zero as test... fixme funzt net
@@ -892,12 +900,10 @@ void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpo
 	glDisable(GL_DEPTH_TEST);
 
 	// draw trails / wave tops
-	//fixme: man sieht nix, auch ohne face cull. irgendwie stimmt die viewmatrix nicht.
-	//die entspricht noch nicht dem endergebnis. außerdem sind alle positionne hier
-	//absolut, was wohl auch falsch ist (playerpos muß abgezogen werden?) mit water quer checken
-	//passiert schon, aber die koordinaten sind immer gleich unabhängig vom drehwinkel.
-	//das erklärt viele fehler.
-	//viewmatrix falsch oder sowas. sogar in freeview
+
+	//wave tops: draw one quad matching the water surface, texture mapped with a "amount-of-foam-of-wave-tile" texture
+	// generated from wave heights (could be constant in time, just moving around).
+	// indicates foam at high waves.
 //	glDisable(GL_CULL_FACE);
 	// as first trails of all ships
 /*
