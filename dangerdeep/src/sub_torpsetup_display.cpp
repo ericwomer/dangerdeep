@@ -196,6 +196,8 @@ void sub_torpsetup_display::display(class game& gm) const
 	// determine time of day
 	bool is_day = gm.is_day_mode();
 
+	// torpspeed: pos 860,278 size 116x118
+
 #if 0
 	int* tubelightx = (is_day) ? tubelightdx : tubelightnx;
 	int* tubelighty = (is_day) ? tubelightdy : tubelightny;
