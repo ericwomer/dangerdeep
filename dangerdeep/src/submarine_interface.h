@@ -39,6 +39,7 @@ public:
 		display_mode_successes,
 		display_mode_freeview,
 		display_mode_tdc,
+		display_mode_torpsetup,
 		nr_of_displays
 	};
 

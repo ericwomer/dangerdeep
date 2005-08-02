@@ -41,6 +41,7 @@ using namespace std;
 #include "ships_sunk_display.h"
 #include "freeview_display.h"
 #include "sub_tdc_display.h"
+#include "sub_torpsetup_display.h"
 
 #include "sub_control_popup.h"
 #include "sub_tdc_popup.h"
@@ -60,6 +61,7 @@ submarine_interface::submarine_interface(game& gm) :
 	displays[display_mode_successes] = new ships_sunk_display(*this);
 	displays[display_mode_freeview] = new freeview_display(*this);
 	displays[display_mode_tdc] = new sub_tdc_display(*this);
+	displays[display_mode_torpsetup] = new sub_torpsetup_display(*this);
 
 	popups.resize(nr_of_popups);
 	popups[popup_mode_control] = new sub_control_popup(*this);
@@ -366,6 +368,8 @@ void submarine_interface::process_input(const SDL_Event& event)
 			}	
 		} else if (mycfg.getkey(KEY_SHOW_TDC_SCREEN).equal(event.key.keysym)) {
 			set_current_display(display_mode_tdc);
+		} else if (mycfg.getkey(KEY_SHOW_TORPSETUP_SCREEN).equal(event.key.keysym)) {
+			set_current_display(display_mode_torpsetup);
 		} else {
 			// rest of the keys per switch (not user defineable)
 			// quit, screenshot, pause etc.

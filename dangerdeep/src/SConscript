@@ -42,6 +42,7 @@ dftdsources = Split("""subsim.cpp
 	sub_tdc_display.cpp
 	sub_tdc_popup.cpp
 	sub_torpedo_display.cpp
+	sub_torpsetup_display.cpp
 	sub_uzo_display.cpp
 	texts.cpp
 	tokenizer.cpp
