@@ -6,6 +6,8 @@
 
 #include <list>
 #include <SDL.h>
+#include "texture.h"
+#include "global_data.h"
 
 class user_display
 {
@@ -22,6 +24,31 @@ protected:
 	class user_interface& ui;
 
 	user_display(class user_interface& ui_) : ui(ui_) {}
+
+	// commonly used helper classes
+	class rotat_tex {
+	public:
+		rotat_tex() : left(0), top(0), centerx(0), centery(0) {}
+		std::auto_ptr<texture> tex;
+		int left, top, centerx, centery;
+		void draw(double angle) const {
+			// fixme: maybe rotate around pixel center (x/y + 0.5)
+			tex->draw_rot(centerx, centery, angle, centerx - left, centery - top);
+		}
+		void set(texture* tex_, int left_, int top_, int centerx_, int centery_) {
+			tex.reset(tex_);
+			left = left_;
+			top = top_;
+			centerx = centerx_;
+			centery = centery_;
+		}
+		void set(const char* filename, int left_, int top_, int centerx_, int centery_) {
+			set(new texture(get_image_dir() + filename), left_, top_, centerx_, centery_);
+		}
+	protected:
+		rotat_tex(const rotat_tex& );
+		rotat_tex& operator= (const rotat_tex& );
+	};
 
 public:
 	// needed for correct destruction of heirs.

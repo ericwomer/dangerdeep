@@ -20,31 +20,6 @@ static int tubelightny[6] = {618,618,618,618,618,618};
 static int tubeswitchx = 760, tubeswitchy = 492;
 
 
-sub_tdc_display::rotat_tex::rotat_tex() : left(0), top(0), centerx(0), centery(0)
-{
-}
-
-
-
-void sub_tdc_display::rotat_tex::set(const char* filename, int left_, int top_, int centerx_, int centery_)
-{
-	tex.reset(new texture(get_image_dir() + filename));
-	left = left_;
-	top = top_;
-	centerx = centerx_;
-	centery = centery_;
-}
-
-
-
-void sub_tdc_display::rotat_tex::draw(double angle) const
-{
-	// fixme: maybe rotate around pixel center (x/y + 0.5)
-	tex->draw_rot(centerx, centery, angle, centerx - left, centery - top);
-}
-
-
-
 sub_tdc_display::sub_tdc_display(user_interface& ui_) : user_display(ui_)
 {
 	selected_tube = 0;

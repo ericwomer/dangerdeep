@@ -10,47 +10,32 @@
 
 class sub_torpsetup_display : public user_display
 {
-	class rotat_tex {
-	public:
-		rotat_tex();
-		texture::ptr tex;
-		int left, top, centerx, centery;
-		void draw(double angle) const;
-		void set(const char* filename, int left, int top, int centerx, int centery);
-	protected:
-		rotat_tex(const rotat_tex& );
-		rotat_tex& operator= (const rotat_tex& );
-	};
-
 	class scheme {
 	public:
 		auto_ptr<image> background;
-		/*
-		rotat_tex clockbig;
-		rotat_tex clocksml;
-		rotat_tex targetcourse;
-		rotat_tex targetrange;
-		rotat_tex targetspeed;
-		rotat_tex spreadangle;
-		rotat_tex targetpos;
+		rotat_tex rundepthptr;
+		rotat_tex secondaryrangeptr;
+		rotat_tex primaryrangeptr;
+		rotat_tex torpspeeddial;
+		rotat_tex turnangledial;
+		rotat_tex primaryrangedial;
 		// everything that does not rotate could also be an "image"...
 		// but only when this doesn't trash the image cache
-		texture::ptr tubelight[6];
-		texture::ptr tubeswitch[6];
-		texture::ptr firebutton;
-		texture::ptr automode[2];	// on/off
-		rotat_tex gyro360;
-		rotat_tex gyro10;
-		texture::ptr firesolutionquality;
-		rotat_tex torpspeed;
-		*/
+		auto_ptr<texture> torpspeed[3];	// slow/medium/fast
+		auto_ptr<texture> firstturn[2];	// left/right
+		auto_ptr<texture> secondaryrange[2];	// 800/1600m
+		auto_ptr<texture> preheating[2];	// on/off
+		auto_ptr<texture> temperaturescale;
+		rotat_tex primaryrangeknob[6];
+		rotat_tex turnangleknob[6];
+		rotat_tex rundepthknob[6];
 		scheme() {}
 	protected:
 		scheme(const scheme& );
 		scheme& operator= (const scheme& );
 	};
 
-	scheme normallight, nightlight;
+	scheme daylight, redlight;
 
 	/*
 	unsigned selected_tube;	// 0-5

@@ -10,18 +10,6 @@
 
 class sub_tdc_display : public user_display
 {
-	class rotat_tex {
-	public:
-		rotat_tex();
-		texture::ptr tex;
-		int left, top, centerx, centery;
-		void draw(double angle) const;
-		void set(const char* filename, int left, int top, int centerx, int centery);
-	protected:
-		rotat_tex(const rotat_tex& );
-		rotat_tex& operator= (const rotat_tex& );
-	};
-
 	class scheme {
 	public:
 		auto_ptr<image> background;

@@ -3,7 +3,6 @@
 
 #include "system.h"
 #include "image.h"
-#include "texture.h"
 #include "game.h"
 #include "sub_torpsetup_display.h"
 #include "submarine_interface.h"
@@ -21,30 +20,6 @@ static int tubelightny[6] = {618,618,618,618,618,618};
 static int tubeswitchx = 760, tubeswitchy = 492;
 */
 
-sub_torpsetup_display::rotat_tex::rotat_tex() : left(0), top(0), centerx(0), centery(0)
-{
-}
-
-
-
-void sub_torpsetup_display::rotat_tex::set(const char* filename, int left_, int top_, int centerx_, int centery_)
-{
-	tex.reset(new texture(get_image_dir() + filename));
-	left = left_;
-	top = top_;
-	centerx = centerx_;
-	centery = centery_;
-}
-
-
-
-void sub_torpsetup_display::rotat_tex::draw(double angle) const
-{
-	// fixme: maybe rotate around pixel center (x/y + 0.5)
-	tex->draw_rot(centerx, centery, angle, centerx - left, centery - top);
-}
-
-
 
 sub_torpsetup_display::sub_torpsetup_display(user_interface& ui_) : user_display(ui_)
 {
@@ -53,51 +28,56 @@ sub_torpsetup_display::sub_torpsetup_display(user_interface& ui_) : user_display
 	selected_mode = 0;
 	*/
 
-	normallight.background.reset(new image(get_image_dir() + "torpsetup_daylight_background.png"));
-	nightlight.background.reset(new image(get_image_dir() + "torpsetup_redlight_background.png"));
+	daylight.background.reset(new image(get_image_dir() + "torpsetup_daylight_background.png"));
+	redlight.background.reset(new image(get_image_dir() + "torpsetup_redlight_background.png"));
+	daylight.rundepthptr.set("torpsetup_daylight_rundepthptr.png", 609, 66, 638, 169);
+	redlight.rundepthptr.set("torpsetup_redlight_rundepthptr.png", 609, 66, 638, 169);
+	daylight.secondaryrangeptr.set("torpsetup_daylight_secondaryrangeptr.png", 228, 157, 257, 262);
+	redlight.secondaryrangeptr.set("torpsetup_redlight_secondaryrangeptr.png", 228, 157, 257, 262);
+	daylight.primaryrangeptr.set("torpsetup_daylight_primaryrangeptr.png", 241, 90, 260, 263);
+	redlight.primaryrangeptr.set("torpsetup_redlight_primaryrangeptr.png", 241, 90, 260, 263); 
+	daylight.torpspeeddial.set("torpsetup_daylight_torpspeed.png", 541, 77, 636, 172);
+	redlight.torpspeeddial.set("torpsetup_redlight_torpspeed.png", 541, 77, 636, 172); 
+	daylight.turnangledial.set("torpsetup_daylight_turnangle.png", 469, 508, 619, 658);
+	redlight.turnangledial.set("torpsetup_redlight_turnangle.png", 469, 508, 619, 658);
+	daylight.primaryrangedial.set("torpsetup_daylight_primaryrunlength.png", 230, 507, 381, 658);
+	redlight.primaryrangedial.set("torpsetup_redlight_primaryrunlength.png", 230, 507, 381, 658);
+	daylight.torpspeed[0].reset(new texture(get_image_dir() + "torpsetup_daylight_speedslow.png"));
+	redlight.torpspeed[0].reset(new texture(get_image_dir() + "torpsetup_redlight_speedslow.png"));
+	daylight.torpspeed[1].reset(new texture(get_image_dir() + "torpsetup_daylight_speedmedium.png"));
+	redlight.torpspeed[1].reset(new texture(get_image_dir() + "torpsetup_redlight_speedmedium.png"));
+	daylight.torpspeed[2].reset(new texture(get_image_dir() + "torpsetup_daylight_speedhigh.png"));
+	redlight.torpspeed[2].reset(new texture(get_image_dir() + "torpsetup_redlight_speedhigh.png"));
+	daylight.firstturn[0].reset(new texture(get_image_dir() + "torpsetup_daylight_turnleft.png"));
+	redlight.firstturn[0].reset(new texture(get_image_dir() + "torpsetup_redlight_turnleft.png"));
+	daylight.firstturn[1].reset(new texture(get_image_dir() + "torpsetup_daylight_turnright.png"));
+	redlight.firstturn[1].reset(new texture(get_image_dir() + "torpsetup_redlight_turnright.png"));
+	daylight.secondaryrange[0].reset(new texture(get_image_dir() + "torpsetup_daylight_secondaryrange_short.png"));
+	redlight.secondaryrange[0].reset(new texture(get_image_dir() + "torpsetup_redlight_secondaryrange_short.png"));
+	daylight.secondaryrange[1].reset(new texture(get_image_dir() + "torpsetup_daylight_secondaryrange_long.png"));
+	redlight.secondaryrange[1].reset(new texture(get_image_dir() + "torpsetup_redlight_secondaryrange_long.png"));
+	daylight.preheating[0].reset(new texture(get_image_dir() + "torpsetup_daylight_preheatoff.png"));
+	redlight.preheating[0].reset(new texture(get_image_dir() + "torpsetup_daylight_preheatoff.png"));
+	daylight.preheating[1].reset(new texture(get_image_dir() + "torpsetup_daylight_preheaton.png"));
+	redlight.preheating[1].reset(new texture(get_image_dir() + "torpsetup_daylight_preheaton.png"));
+	daylight.temperaturescale.reset(new texture(get_image_dir() + "torpsetup_daylight_tempscale.png"));
+	redlight.temperaturescale.reset(new texture(get_image_dir() + "torpsetup_daylight_tempscale.png"));
 
-	/*
-	//fixme: recheck layer coords for clock,target*,spreadangle,torpspeed for redlight!
-	//fixme: what is with target position external pointer?
-	normallight.clockbig.set("TDC_daylight_clockbigptr.png", 921, 124, 930, 134);
-	nightlight.clockbig.set("TDC_redlight_clockbigptr.png", 922, 125, 930, 134);
-	normallight.clocksml.set("TDC_daylight_clocksmlptr.png", 926, 76, 929, 99);
-	nightlight.clocksml.set("TDC_redlight_clocksmlptr.png", 926, 77, 929, 99);
-	normallight.targetcourse.set("TDC_daylight_targetcourse.png", 567, 365, 585, 451);
-	nightlight.targetcourse.set("TDC_redlight_targetcourse.png", 567, 366, 585, 451);
-	normallight.targetrange.set("TDC_daylight_targetrange.png", 755, 231, 774, 317);
-	nightlight.targetrange.set("TDC_redlight_targetrange.png", 756, 230, 774, 317);
-	normallight.targetspeed.set("TDC_daylight_targetspeed.png", 568, 101, 586, 187);
-	nightlight.targetspeed.set("TDC_redlight_targetspeed.png", 567, 101, 586, 187);
-	normallight.spreadangle.set("TDC_daylight_spreadangle.png", 339, 102, 358, 188);
-	nightlight.spreadangle.set("TDC_redlight_spreadangle.png", 338, 102, 358, 188);
-	normallight.targetpos.set("TDC_daylight_targetposition.png", 102, 109, 128, 188);
-	nightlight.targetpos.set("TDC_redlight_targetposition.png", 103, 109, 128, 188);
-	normallight.gyro360.set("TDC_daylight_gyro360.png", 106, 365, 127, 451);
-	nightlight.gyro360.set("TDC_redlight_gyro360.png", 105, 365, 127, 451);
-	normallight.gyro10.set("TDC_daylight_gyro10.png", 323, 363, 345, 451);
-	nightlight.gyro10.set("TDC_redlight_gyro10.png", 323, 363, 345, 451);
-	normallight.torpspeed.set("TDC_daylight_torpspeed.png", 512, 116, 585, 188);
-	nightlight.torpspeed.set("TDC_redlight_torpspeed.png", 512, 116, 585, 188);
-
+	// read knobs images and cut to separate images
+	image primaryrangeknobs_day(get_image_dir() + "torpsetup_daylight_primaryrangeknobs.png");
+	image primaryrangeknobs_red(get_image_dir() + "torpsetup_redlight_primaryrangeknobs.png");
+	image turnangleknobs_day(get_image_dir() + "torpsetup_daylight_turnangleknobs.png");
+	image turnangleknobs_red(get_image_dir() + "torpsetup_redlight_turnangleknobs.png");
+	image rundepthknobs_day(get_image_dir() + "torpsetup_daylight_rundepthknobs.png");
+	image rundepthknobs_red(get_image_dir() + "torpsetup_redlight_rundepthknobs.png");
 	for (unsigned i = 0; i < 6; ++i) {
-		ostringstream osn;
-		osn << (i+1);
-		normallight.tubelight[i] = texture::ptr(new texture(get_image_dir() + "TDC_daylight_tube" + osn.str() + ".png"));
-		nightlight.tubelight[i] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_tube" + osn.str() + ".png"));
-		normallight.tubeswitch[i] = texture::ptr(new texture(get_image_dir() + "TDC_daylight_switchtube" + osn.str() + ".png"));
-		nightlight.tubeswitch[i] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_switchtube" + osn.str() + ".png"));
+		daylight.primaryrangeknob[i].set(new texture(primaryrangeknobs_day.get_SDL_Surface(), 0, i*192, 192, 192), 277, 571, 373, 667);
+		redlight.primaryrangeknob[i].set(new texture(primaryrangeknobs_red.get_SDL_Surface(), 0, i*192, 192, 192), 277, 571, 373, 667);
+		daylight.turnangleknob[i].set(new texture(turnangleknobs_day.get_SDL_Surface(), 0, i*192, 192, 192), 528, 571, 624, 667);
+		redlight.turnangleknob[i].set(new texture(turnangleknobs_red.get_SDL_Surface(), 0, i*192, 192, 192), 528, 571, 624, 667);
+		daylight.rundepthknob[i].set(new texture(rundepthknobs_day.get_SDL_Surface(), 0, i*192, 192, 192), 819, 17, 915, 113);
+		redlight.rundepthknob[i].set(new texture(rundepthknobs_red.get_SDL_Surface(), 0, i*192, 192, 192), 819, 17, 915, 113);
 	}
-
-	normallight.firebutton = texture::ptr(new texture(get_image_dir() + "TDC_daylight_firebutton.png"));
-	nightlight.firebutton = texture::ptr(new texture(get_image_dir() + "TDC_redlight_firebutton.png"));
-	normallight.automode[0] = texture::ptr(new texture(get_image_dir() + "TDC_daylight_autoswitchon.png"));
-	nightlight.automode[0] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_autoswitchon.png"));
-	normallight.automode[1] = texture::ptr(new texture(get_image_dir() + "TDC_daylight_autoswitchoff.png"));
-	nightlight.automode[1] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_autoswitchoff.png"));
-	normallight.firesolutionquality = texture::ptr(new texture(get_image_dir() + "TDC_daylight_firesolutionquality.png"));
-	nightlight.firesolutionquality = texture::ptr(new texture(get_image_dir() + "TDC_redlight_firesolutionquality.png"));
-	*/
 }
 
 
@@ -109,7 +89,7 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 #if 0
 	int* tubelightx = (is_day) ? tubelightdx : tubelightnx;
 	int* tubelighty = (is_day) ? tubelightdy : tubelightny;
-	const scheme& s = (is_day) ? normallight : nightlight;
+	const scheme& s = (is_day) ? daylight : redlight;
 	int mx, my;
 	switch (event.type) {
 	case SDL_MOUSEBUTTONDOWN:
@@ -182,12 +162,22 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 
 
 
+// transform real angles to knob image index numbers and rotational angles.
+// each image is 7.5deg rotated to its neighbour
+static inline pair<unsigned, double> angle2idxang(double ang)
+{
+	// fixme: maybe use -ang... or -a, test that
+	unsigned idx = unsigned(floor(myfmod(ang/7.5+0.5, 6)));
+	double a = ang - idx * 7.5;
+	return make_pair(idx, a);
+}
+
 void sub_torpsetup_display::display(class game& gm) const
 {
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 
 	// test: clear background, later this is not necessary, fixme
-	glClearColor(0, 0, 0, 0);
+	glClearColor(1, 0, 1, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	sys().prepare_2d_drawing();
@@ -196,77 +186,64 @@ void sub_torpsetup_display::display(class game& gm) const
 	// determine time of day
 	bool is_day = gm.is_day_mode();
 
-	// torpspeed: pos 860,278 size 116x118
-
 #if 0
 	int* tubelightx = (is_day) ? tubelightdx : tubelightnx;
 	int* tubelighty = (is_day) ? tubelightdy : tubelightny;
 #endif
 
-	const scheme& s = (is_day) ? normallight : nightlight;
+	const scheme& s = (is_day) ? daylight : redlight;
 
-#if 0
-	// draw background pointers/dials: firesolutionquality
-	float quality = 0.333f; // per cent, fixme
-	s.firesolutionquality->draw(926, 50+int(288*quality+0.5f));
-#endif
+	// as first draw lowest layer: sliding temperature scale
+	float temperature = 22.5;	// degrees, fixme
+	int tempscalex = 549 - int(15 + 435*temperature/35.0f);
+	s.temperaturescale->draw(tempscalex, 364);
+
+	// as next draw lower layer: dials
+	double torpspeed = 44.0; // knots
+	s.torpspeeddial.draw(-(torpspeed * 330/55.0)); // 55kts = 0deg+x*330deg
+
+	unsigned primaryrangedial = 2500;	// meters
+	s.primaryrangedial.draw(primaryrangedial / -10.0f);	// 1 degree = 10meters
+
+	float firstturnangle = 180;
+	s.turnangledial.draw(firstturnangle * -1.8f); // 18 degrees = 10 turn degrees
 
 	// draw background
 	s.background->draw(0, 0);
 
-#if 0
-	// draw gyro pointers
-	s.gyro360.draw(33/*fixme*/);
-	s.gyro10.draw(33/*fixme*/);
+	// draw objects from upper layer: knobs/switches/pointers
+	unsigned torpspeedidx = 2; // 0-2 slow-fast
+	s.torpspeed[torpspeedidx]->draw(834, 251);
 
-	// clock (torpedo run time), fixme: use real time as test
-	double t = gm.get_time();
-	double hourang = 360.0*myfrac(t / (86400/2));
-	double minuteang = 360*myfrac(t / 3600);
-	s.clocksml.draw(hourang);
-	s.clockbig.draw(minuteang);
+	unsigned firstturnidx = 1; // 0-1 left-right
+	s.firstturn[firstturnidx]->draw(64, 574);
 
-	// torpedo speed (depends on selected tube!), fixme
-	// 512,116, 585,188
+	unsigned secondaryrangeidx = 1; // 0-1 800 or 1600m
+	s.secondaryrange[secondaryrangeidx]->draw(803, 552);
 
-	// target values (influenced by quality!)
-	// get pointer to target and values
-	sea_object* target = ui.get_target();
-	double tgtcourse = 0, tgtpos = 0, tgtrange = 0, tgtspeed = 0;
-	if (target) {
-		vector2 tgtxy = target->get_pos().xy();
-		vector2 plyxy = player->get_pos().xy();
-		vector2 delta = tgtxy - plyxy;
-		tgtcourse = target->get_heading().value();
-		tgtpos = (angle(delta) - player->get_heading()).value();
-		tgtrange = delta.length();
-		tgtspeed = sea_object::ms2kts(target->get_speed());
-	}
-	s.targetcourse.draw(tgtcourse);
-	s.targetpos.draw(tgtpos);
-	if (tgtrange > 11000) tgtrange = 11000; // clamp display
-	s.targetrange.draw(tgtrange * 360 / 12000 + 15);
-	s.targetspeed.draw(15+tgtspeed*30/5);
+	unsigned preheatingidx = 0; // 0-1 off-on
+	s.preheating[preheatingidx]->draw(730, 377);
 
-	// spread angle
-	s.spreadangle.draw(77/*fixme*/);
+	double primaryrangeknobangle = 66;
+	pair<unsigned, double> idxang = angle2idxang(primaryrangeknobangle);
+	s.primaryrangeknob[idxang.first].draw(idxang.second);
 
-	// draw tubes if ready
-	for (unsigned i = 0; i < 6; ++i) {
-		if (player->is_tube_ready(i)) {
-			s.tubelight[i]->draw(tubelightx[i], tubelighty[i]);
-		}
-	}
+	double turnangleknobangle = 33;
+	idxang = angle2idxang(turnangleknobangle);
+	s.turnangleknob[idxang.first].draw(idxang.second);
 
-	// tube turn switch
-	s.tubeswitch[selected_tube]->draw(tubeswitchx, tubeswitchy);
-	if (player->is_tube_ready(selected_tube)) {
-		s.firebutton->draw(885, 354);
-	}
+	double rundepthknobangle = 127;
+	idxang = angle2idxang(rundepthknobangle);
+	s.rundepthknob[idxang.first].draw(idxang.second);
 
-	// automatic fire solution on / off switch
-	s.automode[selected_mode]->draw(713, 93);
-#endif
+	double rundepth = 10.0;	// meters
+	s.rundepthptr.draw(-(rundepth * 300/25.0 + 30)); // 25m = 30deg+x*300deg
+
+	double secondaryrange = 800.0; // meters
+	s.secondaryrangeptr.draw(-(secondaryrange * 320/1600.0 + 20.0)); // 1600m = 20deg+x*320deg
+
+	double primaryrange = 2300.0; // meters
+	s.primaryrangeptr.draw(-(primaryrange * 320/16000.0 + 20.0)); // 16000m = 20deg+x*320deg
 
 	sys().unprepare_2d_drawing();
 }
