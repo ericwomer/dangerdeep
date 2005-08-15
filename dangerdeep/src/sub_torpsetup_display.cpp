@@ -166,10 +166,9 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 // each image is 7.5deg rotated to its neighbour
 static inline pair<unsigned, double> angle2idxang(double ang)
 {
-	// fixme: maybe use -ang... or -a, test that
-	unsigned idx = unsigned(floor(myfmod(ang/7.5+0.5, 6)));
-	double a = ang - idx * 7.5;
-	return make_pair(idx, a);
+	double a = myfmod(ang, 360);
+	unsigned phase = unsigned(floor(a/7.5+0.5));
+	return make_pair(phase % 6, a - phase * 7.5);
 }
 
 void sub_torpsetup_display::display(class game& gm) const
@@ -193,19 +192,22 @@ void sub_torpsetup_display::display(class game& gm) const
 
 	const scheme& s = (is_day) ? daylight : redlight;
 
+	// testing:
+	double ctr = gm.get_time();
+
 	// as first draw lowest layer: sliding temperature scale
-	float temperature = 22.5;	// degrees, fixme
-	int tempscalex = 549 - int(15 + 435*temperature/35.0f);
+	double temperature = myfmod(ctr, 35);//22.5;	// degrees, fixme
+	int tempscalex = 549 - int(36 + 435*temperature/35.0f);
 	s.temperaturescale->draw(tempscalex, 364);
 
 	// as next draw lower layer: dials
-	double torpspeed = 44.0; // knots
+	double torpspeed = myfmod(ctr, 55);//44.0; // knots
 	s.torpspeeddial.draw(-(torpspeed * 330/55.0)); // 55kts = 0deg+x*330deg
 
-	unsigned primaryrangedial = 2500;	// meters
+	unsigned primaryrangedial = myfmod(ctr,32)*100;//2500;	// meters
 	s.primaryrangedial.draw(primaryrangedial / -10.0f);	// 1 degree = 10meters
 
-	float firstturnangle = 180;
+	float firstturnangle = myfmod(ctr,30)*6;//180;
 	s.turnangledial.draw(firstturnangle * -1.8f); // 18 degrees = 10 turn degrees
 
 	// draw background
@@ -224,26 +226,26 @@ void sub_torpsetup_display::display(class game& gm) const
 	unsigned preheatingidx = 0; // 0-1 off-on
 	s.preheating[preheatingidx]->draw(730, 377);
 
-	double primaryrangeknobangle = 66;
+	double primaryrangeknobangle = myfmod(ctr,60)*6;//66;
 	pair<unsigned, double> idxang = angle2idxang(primaryrangeknobangle);
 	s.primaryrangeknob[idxang.first].draw(idxang.second);
 
-	double turnangleknobangle = 33;
+	double turnangleknobangle = myfmod(ctr,30)*12;//33;
 	idxang = angle2idxang(turnangleknobangle);
-	s.turnangleknob[idxang.first].draw(idxang.second);
+	s.turnangleknob[idxang.first].draw(0/*idxang.second*/);
 
-	double rundepthknobangle = 127;
+	double rundepthknobangle = myfmod(ctr,60)*6;//127;
 	idxang = angle2idxang(rundepthknobangle);
-	s.rundepthknob[idxang.first].draw(idxang.second);
+	s.rundepthknob[idxang.first].draw(0/*idxang.second*/);
 
-	double rundepth = 10.0;	// meters
-	s.rundepthptr.draw(-(rundepth * 300/25.0 + 30)); // 25m = 30deg+x*300deg
+	double rundepth = myfmod(ctr,25);//10.0;	// meters
+	s.rundepthptr.draw(rundepth * 300/25.0 + 30); // 25m = 30deg+x*300deg
 
-	double secondaryrange = 800.0; // meters
-	s.secondaryrangeptr.draw(-(secondaryrange * 320/1600.0 + 20.0)); // 1600m = 20deg+x*320deg
+	double secondaryrange = myfmod(ctr,32)*50;//800.0; // meters
+	s.secondaryrangeptr.draw(secondaryrange * 320/1600.0 + 20.0); // 1600m = 20deg+x*320deg
 
-	double primaryrange = 2300.0; // meters
-	s.primaryrangeptr.draw(-(primaryrange * 320/16000.0 + 20.0)); // 16000m = 20deg+x*320deg
+	double primaryrange = myfmod(ctr,32)*500;//2300.0; // meters
+	s.primaryrangeptr.draw(primaryrange * 320/16000.0 + 20.0); // 16000m = 20deg+x*320deg
 
 	sys().unprepare_2d_drawing();
 }
