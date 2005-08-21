@@ -1,3 +1,182 @@
+2005-08-21 13:14  thjordan
+
+	* data/images/: TDC_daylight_base.jpg, TDC_daylight_base.png,
+	  TDC_redlight_base.jpg, TDC_redlight_base.png,
+	  controlscreen_daylight.jpg, controlscreen_daylight.png,
+	  controlscreen_redlight.jpg, periscope_daylight.jpg,
+	  periscope_daylight.png, periscope_daylight_rev.1.1b_final.png,
+	  periscope_redlight.jpg, periscope_redlight.png,
+	  periscope_redlight_rev.1.1b_final.png,
+	  red_controlscreen_rev.0.99_b21_base.png,
+	  torpsetup_daylight_background.jpg,
+	  torpsetup_daylight_background.png,
+	  torpsetup_redlight_background.jpg,
+	  torpsetup_redlight_background.png: functionality to combine
+	  jpg/png to RGBA graphics added, replaced graphic data by matching
+	  data (saving 75-80% space).
+
+2005-08-21 13:03  thjordan
+
+	* src/: error.h, image.cpp, mymain.cpp, parser.cpp,
+	  sub_gauges_display.cpp, sub_periscope_display.cpp,
+	  sub_tdc_display.cpp, sub_torpsetup_display.cpp, system.h,
+	  texts.cpp, texture.cpp, texture.h: functionality to combine
+	  jpg/png to RGBA graphics added, replaced graphic data by matching
+	  data (saving 75-80% space).
+
+2005-08-19 19:39  thjordan
+
+	* files.txt: updated filelist
+
+2005-08-15 21:55  thjordan
+
+	* files.txt, data/images/torpsetup_daylight_tempscale.png,
+	  data/images/torpsetup_redlight_tempscale.png,
+	  src/sub_torpsetup_display.cpp: even more bits of torpedo setup
+	  screen, graphics rotate now
+
+2005-08-14 18:19  thjordan
+
+	* src/: sub_tdc_display.cpp, sub_tdc_display.h,
+	  sub_torpsetup_display.cpp, sub_torpsetup_display.h,
+	  user_display.h: use new graphics for torpedo setup screen
+
+2005-08-14 15:28  thjordan
+
+	* data/images/: torpsetup_daylight_background.png,
+	  torpsetup_daylight_primaryrangeknobs.png,
+	  torpsetup_daylight_primaryrangeptr.png,
+	  torpsetup_daylight_primaryrunlength.png,
+	  torpsetup_daylight_rundepthknobs.png,
+	  torpsetup_daylight_rundepthptr.png,
+	  torpsetup_daylight_secondaryrangeptr.png,
+	  torpsetup_daylight_tempscale.png,
+	  torpsetup_daylight_torpspeed.png,
+	  torpsetup_daylight_turnangle.png,
+	  torpsetup_daylight_turnangleknobs.png,
+	  torpsetup_redlight_background.png,
+	  torpsetup_redlight_primaryrangeknobs.png,
+	  torpsetup_redlight_primaryrangeptr.png,
+	  torpsetup_redlight_primaryrunlength.png,
+	  torpsetup_redlight_rundepthknobs.png,
+	  torpsetup_redlight_rundepthptr.png,
+	  torpsetup_redlight_secondaryrangeptr.png,
+	  torpsetup_redlight_tempscale.png,
+	  torpsetup_redlight_torpspeed.png,
+	  torpsetup_redlight_turnangle.png,
+	  torpsetup_redlight_turnangleknobs.png: integrated more graphics
+	  for torpedo setup screen
+
+2005-08-08 23:14  thjordan
+
+	* data/images/: torpsetup_daylight_preheatoff.png,
+	  torpsetup_daylight_preheaton.png,
+	  torpsetup_daylight_secondaryrange_long.png,
+	  torpsetup_daylight_secondaryrange_short.png,
+	  torpsetup_daylight_turnleft.png,
+	  torpsetup_daylight_turnright.png,
+	  torpsetup_redlight_preheatoff.png,
+	  torpsetup_redlight_preheaton.png,
+	  torpsetup_redlight_secondaryrange_long.png,
+	  torpsetup_redlight_secondaryrange_short.png,
+	  torpsetup_redlight_turnleft.png,
+	  torpsetup_redlight_turnright.png: even more bits of torpedo setup
+	  screen
+
+2005-08-02 23:49  thjordan
+
+	* data/images/torpsetup_daylight_speedhigh.png,
+	  data/images/torpsetup_daylight_speedmedium.png,
+	  data/images/torpsetup_daylight_speedslow.png,
+	  data/images/torpsetup_redlight_speedhigh.png,
+	  data/images/torpsetup_redlight_speedmedium.png,
+	  data/images/torpsetup_redlight_speedslow.png,
+	  src/sub_torpsetup_display.cpp: more bits of torpedo setup screen
+
+2005-08-02 22:26  thjordan
+
+	* files.txt: update file list
+
+2005-08-02 22:25  thjordan
+
+	* data/images/torpsetup_daylight_background.png,
+	  data/images/torpsetup_redlight_background.png,
+	  data/texts/common.csv, src/SConscript, src/keys.cpp, src/keys.h,
+	  src/sub_torpsetup_display.cpp, src/sub_torpsetup_display.h,
+	  src/submarine_interface.cpp, src/submarine_interface.h,
+	  src/subsim.cpp: first bits of torpedo setup screen
+
+2005-07-26 01:13  simsoueu
+
+	* data/xcf/indtsettings_redlight_rev.1.4.xcfbz2: Redlight version
+	  of individual torpedo settings screen. Rev.1.4 (less saturated).
+
+2005-07-25 13:58  simsoueu
+
+	* data/xcf/indtsettings_daylight_rev.1.3.xcfbz2: Individual torpedo
+	  settings screen, daylight, rev.1.3, Redlight will follow. See
+	  layer notes in xcf.
+
+2005-07-20 22:34  thjordan
+
+	* src/water.cpp: added comment
+
+2005-07-20 00:00  thjordan
+
+	* data/shaders/water_fp.shader, data/textures/foam.png,
+	  src/coastmap.cpp, src/perlinnoise.cpp, src/perlinnoise.h,
+	  src/water.cpp: foam now runtime generated
+
+2005-07-15 08:06  thjordan
+
+	* data/: models/submarine_VIIc.3ds, textures/uboatcm2.png: new viic
+	  model
+
+2005-07-15 08:01  thjordan
+
+	* src/coastmap.cpp: gcc4.0.1 begin of debugging
+
+2005-07-14 23:05  thjordan
+
+	* data/textures/foam.png, src/coastmap.cpp, src/game.cpp,
+	  src/game.h, src/keys.cpp: new foam tex, problems when compiling
+	  with gcc4.0.1
+
+2005-07-13 23:12  thjordan
+
+	* data/shaders/water_fp.shader, data/shaders/water_vp.shader,
+	  data/textures/foam.png, src/freeview_display.cpp,
+	  src/freeview_display.h, src/game.cpp, src/game.h, src/matrix4.h,
+	  src/particle.cpp, src/ship.cpp, src/ship.h, src/sky.cpp,
+	  src/system.cpp, src/user_interface.cpp, src/water.cpp,
+	  src/water.h: more work on foam, some effects work now
+
+2005-07-08 18:53  thjordan
+
+	* files.txt, data/textures/foamamounttrail.png, src/game.cpp,
+	  src/map_display.cpp, src/ship.cpp, src/ship.h, src/water.cpp,
+	  src/water.h: small foam code changes
+
+2005-07-03 10:42  thjordan
+
+	* src/: bspline.h, water.cpp: some newer foam code parts
+
+2005-07-02 19:21  thjordan
+
+	* data/textures/foamamounttrail.png, src/water.cpp: better
+	  amount-of-foam texture
+
+2005-07-01 20:20  thjordan
+
+	* data/textures/foamamounttrail.png, src/freeview_display.cpp,
+	  src/texture.cpp, src/texture.h, src/water.cpp, src/water.h: first
+	  bits of foam
+
+2005-07-01 01:12  thjordan
+
+	* ChangeLog, src/map_display.cpp, src/ship.h, src/water.cpp: more
+	  on foam, new changelog created by cvs2cl
+
 2005-07-01 00:42  thjordan
 
 	* data/shaders/water_fp.shader, data/shaders/water_vp.shader,
@@ -29,9 +208,14 @@
 	* data/xcf/highres_torpedos.tar.bz2: Highres masked torpedos, for
 	  overlays in notebook, data, etc...
 
+2005-06-26 16:10  thjordan
+
+	* data/convoys/lm.xml: added simple convoy route editor
+
 2005-06-26 14:49  thjordan
 
-	* src/map_display.cpp: added simple convoy route editor
+	* data/convoys/hx.xml, data/convoys/og.xml, data/convoys/sc.xml,
+	  src/map_display.cpp: added simple convoy route editor
 
 2005-06-26 14:34  thjordan
 
