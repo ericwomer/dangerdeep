@@ -2,7 +2,7 @@
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "parser.h"
-#include "system.h"
+#include "error.h"
 #include <vector>
 #include <sstream>
 #include <algorithm>

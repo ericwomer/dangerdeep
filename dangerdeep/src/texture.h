@@ -21,6 +21,8 @@
 #include <string>
 #include <memory>
 
+#include "error.h"
+
 class texture
 {
 public:
@@ -65,23 +67,34 @@ protected:
 	void sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
 		      bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
 
+	void sdl_rgba_init(SDL_Surface* teximagergb, SDL_Surface* teximagea);
+
 	// copy data to OpenGL, set parameters
 	void init(const std::vector<Uint8>& data, bool makenormalmap = false,
 		  float detailh = 1.0f);
 
 	// will scale down the image data to half size in each direction (at least w/h=1)
 	// w,h must be > 1
-	static std::vector<Uint8> scale_half(const std::vector<Uint8>& src,
-					     unsigned w, unsigned h, unsigned bpp);
+	std::vector<Uint8> scale_half(const std::vector<Uint8>& src,
+				      unsigned w, unsigned h, unsigned bpp) const;
 	
 	// give powers of two for w,h, bpp must be 1!
-	static std::vector<Uint8> make_normals(const std::vector<Uint8>& src,
-					       unsigned w, unsigned h, float detailh);
+	std::vector<Uint8> make_normals(const std::vector<Uint8>& src,
+					unsigned w, unsigned h, float detailh) const;
 
 	// statistics.
 	static unsigned mem_used;
 	static unsigned mem_alloced;
 	static unsigned mem_freed;
+
+	class texerror : public error
+	{
+	public:
+		texerror(const std::string& name, const std::string& s)
+			: error(std::string("texture \"") + name +
+				std::string("\" error: ") + s) {}
+		~texerror() throw() {}
+	};
 
 public:
 	// if "makenormalmap" is true and format is GL_LUMINANCE,
@@ -109,6 +122,10 @@ public:
 		clamping_mode clamp);
 
 	~texture();
+
+	// reads an image file into a surface,
+	// can combine RGB(jpg) and A(png) into one surface
+	static SDL_Surface* read_from_file(const std::string& filename);
 	
 	int get_format() const { return format; }
 	unsigned get_bpp() const;

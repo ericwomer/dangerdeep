@@ -28,8 +28,8 @@ sub_torpsetup_display::sub_torpsetup_display(user_interface& ui_) : user_display
 	selected_mode = 0;
 	*/
 
-	daylight.background.reset(new image(get_image_dir() + "torpsetup_daylight_background.png"));
-	redlight.background.reset(new image(get_image_dir() + "torpsetup_redlight_background.png"));
+	daylight.background.reset(new image(get_image_dir() + "torpsetup_daylight_background.jpg|png"));
+	redlight.background.reset(new image(get_image_dir() + "torpsetup_redlight_background.jpg|png"));
 	daylight.rundepthptr.set("torpsetup_daylight_rundepthptr.png", 609, 66, 638, 169);
 	redlight.rundepthptr.set("torpsetup_redlight_rundepthptr.png", 609, 66, 638, 169);
 	daylight.secondaryrangeptr.set("torpsetup_daylight_secondaryrangeptr.png", 228, 157, 257, 262);

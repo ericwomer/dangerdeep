@@ -9,8 +9,11 @@
 #include <list>
 #include <set>
 #include <string>
-#include <exception>
-using namespace std;
+
+using std::list;
+using std::string;
+using std::queue;
+using std::set;
 
 #ifdef WIN32
 #ifndef M_PI
@@ -32,18 +35,6 @@ using namespace std;
 #else
 #define ASSERT(a,...)
 #endif
-
-// always throw this exception or a heir of it.
-class error : public std::exception
-{
- private:
-	error();
-	std::string msg;
- public:
-	error(const string& s) : msg(s) {}
-	virtual ~error() throw() {}
-	const char* what() const throw() { return msg.c_str(); }
-};
 
 class font;
 class texture;

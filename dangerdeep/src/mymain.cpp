@@ -9,9 +9,26 @@
 
 #include <list>
 #include <string>
+#include <exception>
+#include <iostream>
 using namespace std;
 
 int mymain(list<string>& args);
+
+int call_mymain(list<string>& args)
+{
+	try {
+		return mymain(args);
+	}
+	catch (std::exception& e) {
+		cerr << "Caught exception: " << e.what() << "\n";
+		return -1;
+	}
+	catch (...) {
+		cerr << "Caught unknown exception!\n";
+		return -2;
+	}
+}
 
 #ifdef WIN32
 
@@ -26,7 +43,7 @@ int WinMain(HINSTANCE, HINSTANCE, LPSTR cmdline, int)
 		if (st == string::npos) break;
 		mycmdline = mycmdline.substr(st+1);
 	}
-	return mymain(args);
+	return call_mymain(args);
 }
 
 #else	// UNIX
@@ -38,7 +55,7 @@ int main(int argc, char** argv)
 	while (argc > 1) {
 		args.push_front(string(argv[--argc]));
 	}
-	return mymain(args);
+	return call_mymain(args);
 }
 
 #endif

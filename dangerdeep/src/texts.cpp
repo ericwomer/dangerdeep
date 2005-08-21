@@ -5,7 +5,7 @@
 
 #include "parser.h"
 #include "global_data.h"
-#include "system.h"
+#include "error.h"
 #include "tokencodes.h"
 #include "date.h"
 #include <sstream>

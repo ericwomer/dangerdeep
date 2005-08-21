@@ -78,7 +78,8 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 	gl_width = tw;
 	gl_height = th;
 
-//	not longer necessary because of automatic texture resize in update()	
+//	not longer necessary because of automatic texture resize in update()
+//	(use throw here if enabled again!)
 //	sys().myassert(tw <= get_max_size(), "texture: texture width too big");
 //	sys().myassert(th <= get_max_size(), "texture: texture height too big");
 
@@ -102,9 +103,11 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 	if (teximage->format->palette != 0) {
 		//old color table code, does not work
 		//glEnable(GL_COLOR_TABLE);
-		sys().myassert(bpp == 1, "texture: only 8bit palette files supported");
+		if (bpp != 1)
+			throw texerror(get_name(), "only 8bit palette files supported");
 		int ncol = teximage->format->palette->ncolors;
-		sys().myassert(ncol <= 256, "texture: max. 256 colors in palette supported");
+		if (ncol > 256)
+			throw texerror(get_name(), "max. 256 colors in palette supported");
 		bool usealpha = (teximage->flags & SDL_SRCCOLORKEY);
 
 		// check for greyscale images (GL_LUMINANCE), fixme: add also LUMINANCE_ALPHA!
@@ -212,8 +215,10 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 {
 	// error checks.
-	sys().myassert(mapping >= 0 && mapping < NR_OF_MAPPING_MODES, "illegal mapping mode!");
-	sys().myassert(clamping >= 0 && clamping < NR_OF_CLAMPING_MODES, "illegal clamping mode!");
+	if (mapping < 0 || mapping >= NR_OF_MAPPING_MODES)
+		throw texerror(get_name(), "illegal mapping mode!");
+	if (clamping < 0 || clamping >= NR_OF_CLAMPING_MODES)
+		throw texerror(get_name(), "illegal clamping mode!");
 
 	// automatic resizing of textures if they're too large
 	vector<Uint8> data2;
@@ -342,11 +347,13 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 
 
 
-vector<Uint8> texture::scale_half(const vector<Uint8>& src, unsigned w, unsigned h, unsigned bpp)
+vector<Uint8> texture::scale_half(const vector<Uint8>& src, unsigned w, unsigned h, unsigned bpp) const
 {
 	// fixme
-	sys().myassert(w > 1 && (w & (w-1)) == 0, "texture width is no power of two!");
-	sys().myassert(h > 1 && (h & (h-1)) == 0, "texture height is no power of two!");
+	if (w < 1 || (w & (w-1)) != 0)
+		throw texerror(get_name(), "texture width is no power of two!");
+	if (h < 1 || (h & (h-1)) != 0)
+		throw texerror(get_name(), "texture height is no power of two!");
 
 	vector<Uint8> dst(w*h*bpp/4);
 	unsigned ptr = 0;
@@ -367,7 +374,7 @@ vector<Uint8> texture::scale_half(const vector<Uint8>& src, unsigned w, unsigned
 
 
 vector<Uint8> texture::make_normals(const vector<Uint8>& src, unsigned w, unsigned h,
-				    float detailh)
+				    float detailh) const
 {
 	// src size must be w*h
 	vector<Uint8> dst(3*w*h);
@@ -401,8 +408,8 @@ texture::texture(const string& filename, mapping_mode mapping_, clamping_mode cl
 	mapping = mapping_;
 	clamping = clamp;
 	texfilename = filename;
-	SDL_Surface* teximage = IMG_Load(filename.c_str());
-	sys().myassert(teximage != 0, string("texture: failed to load ")+filename);
+
+	SDL_Surface* teximage = read_from_file(filename);
 	sdl_init(teximage, 0, 0, teximage->w, teximage->h, makenormalmap, detailh, rgb2grey);
 	SDL_FreeSurface(teximage);
 }	
@@ -427,8 +434,10 @@ texture::texture(const vector<Uint8>& pixels, unsigned w, unsigned h, int format
 	clamping = clamp;
 	
 	// maybe relax that when GL_ARB_Texture_non_power_of_two is available.
-	sys().myassert(w > 0 && (w & (w-1)) == 0, "texture width is no power of two!");
-	sys().myassert(h > 0 && (h & (h-1)) == 0, "texture height is no power of two!");
+	if (w < 1 || (w & (w-1)) != 0)
+		throw texerror(get_name(), "texture width is no power of two!");
+	if (h < 1 || (h & (h-1)) != 0)
+		throw texerror(get_name(), "texture height is no power of two!");
 
 	width = gl_width = w;
 	height = gl_height = h;
@@ -445,16 +454,20 @@ texture::texture(unsigned w, unsigned h, int format_,
 	mapping = mapping_;
 	clamping = clamp;
 	
-	sys().myassert(w > 0 && (w & (w-1)) == 0, "texture width is no power of two!");
-	sys().myassert(h > 0 && (h & (h-1)) == 0, "texture height is no power of two!");
+	if (w < 1 || (w & (w-1)) != 0)
+		throw texerror(get_name(), "texture width is no power of two!");
+	if (h < 1 || (h & (h-1)) != 0)
+		throw texerror(get_name(), "texture height is no power of two!");
 
 	width = gl_width = w;
 	height = gl_height = h;
 	format = format_;
 
 	// error checks.
-	sys().myassert(mapping >= 0 && mapping < NR_OF_MAPPING_MODES, "illegal mapping mode!");
-	sys().myassert(clamping >= 0 && clamping < NR_OF_CLAMPING_MODES, "illegal clamping mode!");
+	if (mapping < 0 || mapping >= NR_OF_MAPPING_MODES)
+		throw texerror(get_name(), "illegal mapping mode!");
+	if (clamping < 0 || clamping >= NR_OF_CLAMPING_MODES)
+		throw texerror(get_name(), "illegal clamping mode!");
 
 	glGenTextures(1, &opengl_name);
 	glBindTexture(GL_TEXTURE_2D, opengl_name);
@@ -484,6 +497,114 @@ texture::~texture()
 
 
 
+SDL_Surface* texture::read_from_file(const std::string& filename)
+{
+	// get extension
+	string::size_type st = filename.rfind(".");
+	string extension = filename.substr(st);
+
+	if (extension != ".jpg|png") {
+		// standard texture, just one file
+		SDL_Surface* teximage = IMG_Load(filename.c_str());
+		if (!teximage)
+			throw texerror(filename, string("read_from_file: failed to load "));
+		return teximage;
+	} else {
+		// special texture, using jpg for RGB and png/grey for A.
+		string fnrgb = filename.substr(0, st) + ".jpg";
+		string fna = filename.substr(0, st) + ".png";
+		SDL_Surface* teximagergb = 0;
+		SDL_Surface* teximagea = 0;
+		SDL_Surface* result = 0;
+		try {
+			teximagergb = IMG_Load(fnrgb.c_str());
+			if (!teximagergb)
+				throw texerror(fnrgb, string("read_from_file: failed to load "));
+			teximagea = IMG_Load(fna.c_str());
+			if (!teximagea)
+				throw texerror(fna, string("read_from_file: failed to load "));
+
+			// combine surfaces to one
+			if (teximagergb->w != teximagea->w || teximagergb->h != teximagea->h)
+				throw texerror(filename, "jpg/png load: widths/heights don't match");
+
+			if (teximagergb->format->BytesPerPixel != 3
+			    || (teximagergb->format->Amask != 0))
+				throw texerror(fnrgb, ".jpg: no 3 byte/pixel RGB image!");
+
+			if (teximagea->format->BytesPerPixel != 1
+			    || teximagea->format->palette == 0
+			    || teximagea->format->palette->ncolors != 256
+			    || ((teximagea->flags & SDL_SRCCOLORKEY) != 0))
+				throw texerror(fna, ".png: no 8bit greyscale non-alpha-channel image!");
+
+			Uint32 rmask, gmask, bmask, amask;
+
+			/* SDL interprets each pixel as a 32-bit number, so our masks must depend
+			   on the endianness (byte order) of the machine */
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+			rmask = 0xff000000;
+			gmask = 0x00ff0000;
+			bmask = 0x0000ff00;
+			amask = 0x000000ff;
+#else
+			rmask = 0x000000ff;
+			gmask = 0x0000ff00;
+			bmask = 0x00ff0000;
+			amask = 0xff000000;
+#endif
+
+			result = SDL_CreateRGBSurface(SDL_SWSURFACE,
+						      teximagergb->w,
+						      teximagergb->h,
+						      32, rmask, gmask, bmask, amask);
+			if (!result)
+				throw texerror(filename, string("read_from_file: failed to create result surface"));
+
+			// copy pixel data
+			SDL_LockSurface(teximagergb);
+			SDL_LockSurface(teximagea);
+			SDL_LockSurface(result);
+
+			// fixme: when reading pixels out of sdl surfaces,
+			// we need to take care of the pixel format...
+			unsigned char* ptr = ((unsigned char*)(result->pixels));
+			unsigned char* offsetrgb = ((unsigned char*)(teximagergb->pixels));
+			unsigned char* offseta = ((unsigned char*)(teximagea->pixels));
+			for (unsigned y = 0; y < teximagergb->h; ++y) {
+				for (unsigned x = 0; x < teximagergb->w; ++x) {
+					ptr[4*x  ] = offsetrgb[3*x  ];
+					ptr[4*x+1] = offsetrgb[3*x+1];
+					ptr[4*x+2] = offsetrgb[3*x+2];
+					ptr[4*x+3] = offseta[x];
+				}
+				offsetrgb += teximagergb->pitch;
+				offseta += teximagea->pitch;
+				ptr += result->pitch;
+			}
+
+			SDL_UnlockSurface(teximagergb);
+			SDL_UnlockSurface(teximagea);
+			SDL_UnlockSurface(result);
+		}
+		catch (...) {
+			if (teximagergb)
+				SDL_FreeSurface(teximagergb);
+			if (teximagea)
+				SDL_FreeSurface(teximagea);
+			if (result)
+				SDL_FreeSurface(result);
+			throw;
+		}
+
+		SDL_FreeSurface(teximagergb);
+		SDL_FreeSurface(teximagea);
+		return result;
+	}
+}
+
+
+
 unsigned texture::get_bpp() const
 {
 	switch (format) {
@@ -493,7 +614,7 @@ unsigned texture::get_bpp() const
 		case GL_LUMINANCE_ALPHA: return 2;
 		default:
 			ostringstream oss; oss << "unknown texture format " << format << "\n";
-			sys().myassert(false, oss.str());
+			throw texerror(get_name(), oss.str());
 	}
 	return 4;
 }
@@ -637,7 +758,8 @@ GLuint texture::create_shader(GLenum type, const string& filename, const list<st
 	glGenProgramsARB(1, &nr);
 	glBindProgramARB(type, nr);
 	ifstream ifprg(filename.c_str(), ios::in);
-	sys().myassert(!ifprg.fail(), string("failed to open ")+filename);
+	if (ifprg.fail())
+		throw texerror(filename, string("create_shader: failed to open"));
 
 	// read lines.
 	vector<string> lines;
@@ -680,7 +802,7 @@ GLuint texture::create_shader(GLenum type, const string& filename, const list<st
 		oss << "GL shader program error (program type " << type
 		    << ") at position " << errorpos << " in file "
 		    << filename << ", error string is '" << errstr << "'\n";
-		sys().myassert(false, oss.str());
+		throw texerror(filename, oss.str());
 	}
 
 	GLint undernativelimits;
@@ -690,7 +812,7 @@ GLuint texture::create_shader(GLenum type, const string& filename, const list<st
 		oss << "GL shader program exceeds native limits (program type "
 		    << type << "), filename "
 		    << filename << "\n";
-		sys().myassert(false, oss.str());
+		throw texerror(filename, oss.str());
 	}
 	
 	return nr;
@@ -757,13 +879,15 @@ texture::shader_node_program::shader_node_program(const vector<string>& lines, u
 			subnodes.push_back(new shader_node_ifelse(lines, current_line));
 			break;
 		case shader_node::elsedef:
-			sys().myassert(endonelse, "parsed #else without #if in shader!");
+			if (!endonelse)
+				throw error("create_shader: parsed #else without #if in shader!");
 			return;
 		case shader_node::endifdef:
-			sys().myassert(endonendif, "parsed #endif without #if in shader!");
+			if (!endonendif)
+				throw error("create_shader: parsed #endif without #if in shader!");
 			return;
 		case shader_node::code:
-			sys().myassert(false, "internal error. state is 'code' after end of code parsing");
+			throw error("create_shader: internal error. state is 'code' after end of code parsing");
 		}
 	}
 }
@@ -779,7 +903,8 @@ texture::shader_node_ifelse::shader_node_ifelse(const vector<string>& lines, uns
 		elsenode = new shader_node_program(lines, current_line, false, true);
 		st = get_state(lines, current_line);
 	}
-	sys().myassert(st == shader_node::endifdef, "found no #endif after #else or #ifdef in shader program");
+	if (st != shader_node::endifdef)
+		throw error("create shader: found no #endif after #else or #ifdef in shader program");
 	++current_line;	// skip #endif
 }
 

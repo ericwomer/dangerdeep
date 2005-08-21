@@ -7,7 +7,9 @@
 #include "oglext/OglExt.h"
 #include <SDL_image.h>
 #include <sstream>
+#include <vector>
 
+using std::vector;
 
 #define MAX_CACHE_SIZE 2
 
@@ -64,7 +66,8 @@ image::cache_entry::cache_entry() : object(0), time_stamp(0), gltx(0), glty(0)
 
 void image::cache_entry::generate(const image* obj)
 {
-	sys().myassert(object == 0, "internal image cache error");
+	if (object != 0)
+		throw error("image::cache_entry::generate: internal image cache error");
 
 	object = obj;
 
@@ -118,8 +121,7 @@ image::cache_entry::~cache_entry()
 image::image(const string& s) :
 	img(0), name(s), width(0), height(0)
 {
-	img = IMG_Load(name.c_str());
-	sys().myassert(img != 0, string("image: failed to load '") + s + string("'"));
+	img = texture::read_from_file(name.c_str());
 	width = img->w;
 	height = img->h;
 #ifdef MEMMEASURE
@@ -181,9 +183,11 @@ void image::draw(int x, int y) const
 void image::draw_direct(int x, int y) const
 {
 	// no cache handling
-	sys().myassert(img->format->palette == 0, string("image: can't use paletted images for direct pixel draw (fixme), image '")+name+string("'"));
+	if (img->format->palette != 0)
+		throw error(string("image::draw_direct: can't use paletted images for direct pixel draw (fixme), image: ")+name);
 	unsigned bpp = img->format->BytesPerPixel;
-	sys().myassert(bpp == 3 || bpp == 4, string("image: bpp must be 3 or 4 (RGB or RGBA), image '")+name+string("'"));
+	if (bpp != 3 && bpp != 4)
+		throw error(string("image::draw_direct: bpp must be 3 or 4 (RGB or RGBA), image: ")+name);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glColor4f(1,1,1,1);
