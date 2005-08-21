@@ -13,11 +13,11 @@
 #include <sstream>
 using namespace std;
 
-static int tubelightdx[6] = { 31,150,271,392,518,641};
-static int tubelightdy[6] = {617,610,612,612,617,611};
-static int tubelightnx[6] = { 34,154,276,396,521,647};
-static int tubelightny[6] = {618,618,618,618,618,618};
-static int tubeswitchx = 760, tubeswitchy = 492;
+static const int tubelightdx[6] = { 31,150,271,392,518,641};
+static const int tubelightdy[6] = {617,610,612,612,617,611};
+static const int tubelightnx[6] = { 34,154,276,396,521,647};
+static const int tubelightny[6] = {618,618,618,618,618,618};
+static const int tubeswitchx = 760, tubeswitchy = 492;
 
 
 sub_tdc_display::sub_tdc_display(user_interface& ui_) : user_display(ui_)
@@ -76,8 +76,8 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 {
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 	bool is_day = gm.is_day_mode();
-	int* tubelightx = (is_day) ? tubelightdx : tubelightnx;
-	int* tubelighty = (is_day) ? tubelightdy : tubelightny;
+	const int* tubelightx = (is_day) ? tubelightdx : tubelightnx;
+	const int* tubelighty = (is_day) ? tubelightdy : tubelightny;
 	const scheme& s = (is_day) ? normallight : nightlight;
 	int mx, my;
 	switch (event.type) {
@@ -163,8 +163,8 @@ void sub_tdc_display::display(class game& gm) const
 
 	// determine time of day
 	bool is_day = gm.is_day_mode();
-	int* tubelightx = (is_day) ? tubelightdx : tubelightnx;
-	int* tubelighty = (is_day) ? tubelightdy : tubelightny;
+	const int* tubelightx = (is_day) ? tubelightdx : tubelightnx;
+	const int* tubelighty = (is_day) ? tubelightdy : tubelightny;
 	const scheme& s = (is_day) ? normallight : nightlight;
 
 	// draw background pointers/dials: firesolutionquality

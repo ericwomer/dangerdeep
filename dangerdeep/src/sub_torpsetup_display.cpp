@@ -23,6 +23,8 @@ static int tubeswitchx = 760, tubeswitchy = 492;
 static const double TK_ANGFAC = 360.0/512.0;
 static const unsigned TK_PHASES = 6;
 
+static const int firstturnx = 64, firstturny = 574, secrangex = 803, secrangey = 552;
+
 sub_torpsetup_display::sub_torpsetup_display(user_interface& ui_)
 	: user_display(ui_), turnknobdrag(TK_NONE)
 {
@@ -96,14 +98,23 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 		mx = event.button.x;
 		my = event.button.y;
 		// check if mouse is over turn knobs
+		turnknobdrag = TK_NONE;
 		if (s.primaryrangeknob[0].is_mouse_over(mx, my)) {
 			turnknobdrag = TK_PRIMARYRANGE;
 		} else if (s.turnangleknob[0].is_mouse_over(mx, my)) {
 			turnknobdrag = TK_TURNANGLE;
 		} else if (s.rundepthknob[0].is_mouse_over(mx, my)) {
 			turnknobdrag = TK_RUNDEPTH;
-		} else {
-			turnknobdrag = TK_NONE;
+		} else if (mx >= firstturnx - 32 && my >= firstturny - 32
+			   && mx < firstturnx + int(s.firstturn[0]->get_width() + 32)
+			   && my < firstturny + int(s.firstturn[0]->get_height()) + 32) {
+			unsigned idx = mx < firstturnx + int(s.firstturn[0]->get_width()/2) ? 0 : 1;
+			sub->set_trp_initialturn(idx);
+		} else if (mx >= secrangex - 32 && my >= secrangey - 32
+			   && mx < secrangex + int(s.secondaryrange[0]->get_width()) + 32
+			   && my < secrangey + int(s.secondaryrange[0]->get_height()) + 32) {
+			unsigned idx = mx < secrangex + int(s.secondaryrange[0]->get_width()/2) ? 0 : 1;
+			sub->set_trp_secondaryrange(idx);
 		}
 		break;
 	case SDL_MOUSEMOTION:
@@ -209,18 +220,9 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 
 
 
-// transform real angles to knob image index numbers and rotational angles.
-// each image is 7.5deg rotated to its neighbour
-static inline pair<unsigned, double> angle2idxang(double ang)
-{
-	double a = myfmod(ang, 360);
-	unsigned phase = unsigned(floor(a/7.5+0.5));
-	return make_pair(phase % 6, a - phase * 7.5);
-}
-
 void sub_torpsetup_display::display(class game& gm) const
 {
-	submarine* player = dynamic_cast<submarine*>(gm.get_player());
+	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 
 	// test: clear background, later this is not necessary, fixme
 	glClearColor(1, 0, 1, 0);
@@ -264,11 +266,9 @@ void sub_torpsetup_display::display(class game& gm) const
 	unsigned torpspeedidx = 2; // 0-2 slow-fast
 	s.torpspeed[torpspeedidx]->draw(834, 251);
 
-	unsigned firstturnidx = 1; // 0-1 left-right
-	s.firstturn[firstturnidx]->draw(64, 574);
+	s.firstturn[sub->get_trp_initialturn()]->draw(firstturnx, firstturny);
 
-	unsigned secondaryrangeidx = 1; // 0-1 800 or 1600m
-	s.secondaryrange[secondaryrangeidx]->draw(803, 552);
+	s.secondaryrange[sub->get_trp_secondaryrange()]->draw(secrangex, secrangey);
 
 	unsigned preheatingidx = 0; // 0-1 off-on
 	s.preheating[preheatingidx]->draw(730, 377);
