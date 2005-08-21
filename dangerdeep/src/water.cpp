@@ -28,6 +28,11 @@
 //low variation of values, i.e. ripples/waves with roughly the same height not large waves and small
 //waves as with fft.
 
+// store an amount of foam vector per wave tile.
+// find local maxima of wave heights, the higher the absolute value of this maxima
+// is, the more foam it generates. then add the amount of generated foam to the vector
+// and decrease the vector's values each frame -> should give nice wave foam
+
 // for testing
 //#define DRAW_WATER_AS_GRID
 

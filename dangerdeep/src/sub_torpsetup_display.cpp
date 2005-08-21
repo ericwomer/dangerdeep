@@ -253,10 +253,10 @@ void sub_torpsetup_display::display(class game& gm) const
 	double torpspeed = myfmod(ctr, 55);//44.0; // knots
 	s.torpspeeddial.draw(-(torpspeed * 330/55.0)); // 55kts = 0deg+x*330deg
 
-	unsigned primaryrangedial = myfmod(ctr,32)*100;//2500;	// meters
-	s.primaryrangedial.draw(primaryrangedial / -10.0f);	// 1 degree = 10meters
+	unsigned primaryrangedial = sub->get_trp_primaryrange() * 100;
+	s.primaryrangedial.draw(primaryrangedial / -5.0f);	// 1 degree = 5meters
 
-	float firstturnangle = myfmod(ctr,30)*6;//180;
+	float firstturnangle = (sub->get_trp_searchpattern() == 0) ? 180 : 90;//myfmod(ctr,30)*6;//180;
 	s.turnangledial.draw(firstturnangle * -1.8f); // 18 degrees = 10 turn degrees
 
 	// draw background
