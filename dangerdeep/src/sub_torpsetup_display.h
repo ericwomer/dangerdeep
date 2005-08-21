@@ -35,7 +35,18 @@ class sub_torpsetup_display : public user_display
 		scheme& operator= (const scheme& );
 	};
 
+	enum turnknobtype {
+		TK_NONE = -1,
+		TK_PRIMARYRANGE = 0,
+		TK_TURNANGLE = 1,
+		TK_RUNDEPTH = 2,
+		TK_NR = 3
+	};
+
 	scheme daylight, redlight;
+
+	turnknobtype turnknobdrag;
+	angle turnknobang[TK_NR];
 
 	/*
 	unsigned selected_tube;	// 0-5

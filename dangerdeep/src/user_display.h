@@ -45,6 +45,11 @@ protected:
 		void set(const char* filename, int left_, int top_, int centerx_, int centery_) {
 			set(new texture(get_image_dir() + filename), left_, top_, centerx_, centery_);
 		}
+		bool is_mouse_over(int mx, int my) const {
+			return (mx >= left && my >= top
+				&& mx < left + int(tex->get_width())
+				&& my < top + int(tex->get_height()));
+		}
 	protected:
 		rotat_tex(const rotat_tex& );
 		rotat_tex& operator= (const rotat_tex& );

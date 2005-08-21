@@ -20,8 +20,11 @@ static int tubelightny[6] = {618,618,618,618,618,618};
 static int tubeswitchx = 760, tubeswitchy = 492;
 */
 
+static const double TK_ANGFAC = 360.0/512.0;
+static const unsigned TK_PHASES = 6;
 
-sub_torpsetup_display::sub_torpsetup_display(user_interface& ui_) : user_display(ui_)
+sub_torpsetup_display::sub_torpsetup_display(user_interface& ui_)
+	: user_display(ui_), turnknobdrag(TK_NONE)
 {
 	/*
 	selected_tube = 0;
@@ -70,7 +73,7 @@ sub_torpsetup_display::sub_torpsetup_display(user_interface& ui_) : user_display
 	image turnangleknobs_red(get_image_dir() + "torpsetup_redlight_turnangleknobs.png");
 	image rundepthknobs_day(get_image_dir() + "torpsetup_daylight_rundepthknobs.png");
 	image rundepthknobs_red(get_image_dir() + "torpsetup_redlight_rundepthknobs.png");
-	for (unsigned i = 0; i < 6; ++i) {
+	for (unsigned i = 0; i < TK_PHASES; ++i) {
 		daylight.primaryrangeknob[i].set(new texture(primaryrangeknobs_day.get_SDL_Surface(), 0, i*192, 192, 192), 277, 571, 373, 667);
 		redlight.primaryrangeknob[i].set(new texture(primaryrangeknobs_red.get_SDL_Surface(), 0, i*192, 192, 192), 277, 571, 373, 667);
 		daylight.turnangleknob[i].set(new texture(turnangleknobs_day.get_SDL_Surface(), 0, i*192, 192, 192), 528, 571, 624, 667);
@@ -86,12 +89,56 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 {
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 	bool is_day = gm.is_day_mode();
+	const scheme& s = (is_day) ? daylight : redlight;
+	int mx, my, mb;
+	switch (event.type) {
+	case SDL_MOUSEBUTTONDOWN:
+		mx = event.button.x;
+		my = event.button.y;
+		// check if mouse is over turn knobs
+		if (s.primaryrangeknob[0].is_mouse_over(mx, my)) {
+			turnknobdrag = TK_PRIMARYRANGE;
+		} else if (s.turnangleknob[0].is_mouse_over(mx, my)) {
+			turnknobdrag = TK_TURNANGLE;
+		} else if (s.rundepthknob[0].is_mouse_over(mx, my)) {
+			turnknobdrag = TK_RUNDEPTH;
+		} else {
+			turnknobdrag = TK_NONE;
+		}
+		break;
+	case SDL_MOUSEMOTION:
+		mx = event.motion.xrel;
+		my = event.motion.yrel;
+		mb = event.motion.state;
+		if (event.motion.state & SDL_BUTTON_LMASK) {
+			if (turnknobdrag != TK_NONE) {
+				turnknobang[unsigned(turnknobdrag)%TK_NR]
+					+= angle(mx * TK_ANGFAC);
+			}
+		}
+		break;
+	case SDL_MOUSEBUTTONUP:
+		mx = event.button.x;
+		my = event.button.y;
+		turnknobdrag = TK_NONE;
+	}
+
+
 #if 0
 	int* tubelightx = (is_day) ? tubelightdx : tubelightnx;
 	int* tubelighty = (is_day) ? tubelightdy : tubelightny;
 	const scheme& s = (is_day) ? daylight : redlight;
 	int mx, my;
 	switch (event.type) {
+
+	case SDL_MOUSEMOTION:
+		mx = event.motion.x;
+		my = event.motion.y;
+		mb = event.motion.state;
+
+		// if mouse is over turnswitch and button is down, set switch
+		if (event.motion.state & SDL_BUTTON_LMASK) {
+
 	case SDL_MOUSEBUTTONDOWN:
 		mx = event.button.x;
 		my = event.button.y;
@@ -226,17 +273,11 @@ void sub_torpsetup_display::display(class game& gm) const
 	unsigned preheatingidx = 0; // 0-1 off-on
 	s.preheating[preheatingidx]->draw(730, 377);
 
-	double primaryrangeknobangle = myfmod(ctr,60)*6;//66;
-	pair<unsigned, double> idxang = angle2idxang(primaryrangeknobangle);
-	s.primaryrangeknob[idxang.first].draw(idxang.second);
+	s.primaryrangeknob[unsigned(turnknobang[TK_PRIMARYRANGE].value()/(45.0/TK_PHASES)+0.5)%TK_PHASES].draw(0);
 
-	double turnangleknobangle = myfmod(ctr,30)*12;//33;
-	idxang = angle2idxang(turnangleknobangle);
-	s.turnangleknob[idxang.first].draw(0/*idxang.second*/);
+	s.turnangleknob[unsigned(turnknobang[TK_TURNANGLE].value()/(45.0/TK_PHASES)+0.5)%TK_PHASES].draw(0);
 
-	double rundepthknobangle = myfmod(ctr,60)*6;//127;
-	idxang = angle2idxang(rundepthknobangle);
-	s.rundepthknob[idxang.first].draw(0/*idxang.second*/);
+	s.rundepthknob[unsigned(turnknobang[TK_RUNDEPTH].value()/(45.0/TK_PHASES)+0.5)%TK_PHASES].draw(0);
 
 	double rundepth = myfmod(ctr,25);//10.0;	// meters
 	s.rundepthptr.draw(rundepth * 300/25.0 + 30); // 25m = 30deg+x*300deg
