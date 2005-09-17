@@ -524,16 +524,21 @@ void water::cleanup_textures(void) const
 }
 
 
+//#define USE_SSE
 
 //function is nearly the same as get_height, it just adds extra detail
-#define FOO {}	// used for optimization checks of assembler output
-//#define FOO foo();
-extern void foo();
+// fixme: optimize whole loop with sse, could give MUCH extra speed
+// two ways possible:
+// 1) optimize inner-parallelism (x,y,z) in a sse register => already much faster
+// 2) optimize outer-parallelism (compute 4 coords at once). => more difficult, but fully parallel,
+//      problem: are there enough registers? only 8!
 vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) const
 {
-//	return xyzpos;//fixme
+	// xyzpos varies along a line over x,y. z is constant!
+	// transl is constant!
+	// this means we have as input 2x float (8x for 4 coords)
+	// (laden der displacements, speichern der ergebnisse etc.)
 
-	FOO
 	// generate values with mipmap function (needs viewer pos.)
 	float xfrac = myfrac(float((xyzpos.x + transl.x) / WAVE_LENGTH)) * wave_resolution;
 	float yfrac = myfrac(float((xyzpos.y + transl.y) / WAVE_LENGTH)) * wave_resolution;
@@ -547,7 +552,7 @@ vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) co
 	unsigned i1 = x1 + (y0 << wave_resolution_shift);
 	unsigned i2 = x0 + (y1 << wave_resolution_shift);
 	unsigned i3 = x1 + (y1 << wave_resolution_shift);
-	FOO
+
 	// z distance (for triliniar filtering) is constant along one projected grid line
 	// so compute it per line. BUT ONLY FOR OLD RECTANGLULAR WATER PATCH CODE
 	// if mipmap level is < 0, we may add some extra detail (noise)
@@ -564,14 +569,12 @@ vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) co
 	vector3f cb(wavetiledisplacements[i1].x, wavetiledisplacements[i1].y, wavetileheights[i1]);
 	vector3f cc(wavetiledisplacements[i2].x, wavetiledisplacements[i2].y, wavetileheights[i2]);
 	vector3f cd(wavetiledisplacements[i3].x, wavetiledisplacements[i3].y, wavetileheights[i3]);
-	FOO
+
 	float fac0 = (1.0f-xfrac2)*(1.0f-yfrac2);
 	float fac1 = xfrac2*(1.0f-yfrac2);
 	float fac2 = (1.0f-xfrac2)*yfrac2;
 	float fac3 = xfrac2*yfrac2;
 	vector3f coord = (ca*fac0 + cb*fac1 + cc*fac2 + cd*fac3) + xyzpos;
-	FOO
-//return coord;
 
 	if (wave_subdetail) {
 		// fixme: try to add perlin noise as sub noise, use phase as phase shift, xfrac/yfrac as coordinate
@@ -588,13 +591,13 @@ vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) co
 		fac1 = xfrac2*(1.0f-yfrac2);
 		fac2 = (1.0f-xfrac2)*yfrac2;
 		fac3 = xfrac2*yfrac2;
-		FOO
+
 			float h = (int(waveheight_subdetail[(y0<<subdetail_size_shift) + x0]) - 128) * fac0;
 		h += (int(waveheight_subdetail[(y0<<subdetail_size_shift) + x1]) - 128) * fac1;
 		h += (int(waveheight_subdetail[(y1<<subdetail_size_shift) + x0]) - 128) * fac2;
 		h += (int(waveheight_subdetail[(y1<<subdetail_size_shift) + x1]) - 128) * fac3;
 		coord.z += h * (1.0f/512);
-		FOO
+
 		// the projgrid code from Claes just maps each vertex to one pixel of a perlin noise map, so he has maximum
 		// detail without need to compute filtering. But a that's a very cheap and ugly trick.
 
@@ -767,7 +770,7 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 #ifdef DEBUG_TRAPEZOID
 		cout << "trapez area: " << area << "\n";
 #endif
-		// more an hack, only take trapezoids in one direction, do not cound
+		// more an hack, only take trapezoids in one direction, do not count
 		// the same trapzeoid upsidedown to avoid tremor effect. fixme, real reason unknown
 		// when camera is moved around, tremor effect disappears after some time.
 		// maybe still a rounding error?
@@ -968,6 +971,10 @@ void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpo
 }
 
 
+
+#ifdef USE_SSE
+extern void compute_coord_sse(float* result, const float* translx, const float* transly);
+#endif
 
 void water::display(const vector3& viewpos, angle dir, double max_view_dist) const
 {
@@ -1217,11 +1224,44 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 		double vy = va.y;
 		double vxadd = (vb.x - va.x)/xres;
 		double vyadd = (vb.y - va.y)/xres;
+
+#ifdef USE_SSE
+		float vx_sse[4] __attribute__((aligned(16))) = { vx, vx + vxadd, vx + 2*vxadd, vx + 3*vxadd };
+		float vy_sse[4] __attribute__((aligned(16))) = { vy, vy + vyadd, vy + 2*vyadd, vy + 3*vyadd };
+		float vxadd_sse[4] __attribute__((aligned(16))) = { vxadd, vxadd, vxadd, vxadd };
+		float vyadd_sse[4] __attribute__((aligned(16))) = { vyadd, vyadd, vyadd, vyadd };
+
+		float translx_sse[4] __attribute__((aligned(16))) = { transl.x, transl.x, transl.x, transl.x };
+		float transly_sse[4] __attribute__((aligned(16))) = { transl.y, transl.y, transl.y, transl.y };
+
+		// load vx/vy in xmm0/xmm1
+		asm volatile ("movaps (%0), %%xmm0		\n\t"
+			      "movaps (%1), %%xmm1		\n\t"
+			      : /* output */
+			      : /* input */ "g" (&vx_sse), "g" (&vy_sse)
+			      : /* manipulated */ );
+
+		//fixme: works only if xres+1 is multiple of 4!
+		unsigned xloopc = (xres+1)/4;
+		for (unsigned xx = 0; xx < xloopc; ++xx, ptr += 4) {
+			// now compute coord with sse here
+			compute_coord_sse(&(coords[ptr].x), translx_sse, transly_sse);
+			// increase vx/vy
+			asm volatile ("addps (%0), %%xmm0		\n\t"
+				      "addps (%1), %%xmm1		\n\t"
+				      : /* output */
+				      : /* input */ "g" (&vxadd_sse), "g" (&vyadd_sse)
+				      : /* manipulated */ );
+		}
+#endif
+
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			vector3f v(vx, vy, -viewpos.z);
 			coords[ptr] = compute_coord(v, transl);
 			vx += vxadd;
 			vy += vyadd;
+			// sse-opt: store v, vx, vy in sse registers, holding
+			// coords 0,1,2,3 and 4,5,6,7 in the next loop etc.
 #ifdef COMPUTE_EFFICIENCY
 			vector3 tmp = world2camera * vector3(coords[ptr].x, coords[ptr].y, coords[ptr].z);
 			// fixme: for a better efficiency analysis we have to store WHERE the vertices
@@ -1260,10 +1300,26 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			// scheme: 3 2
 			//         0 1
 			// triangulation: 0,1,2 and 0,2,3 (fixme: check if that matches OpenGL order)
+			//must match face-index order that we provide, not opengl.
+			//growing y gives farer values, so we draw quads in ccw order 0,1,2,3
+			//with verts:
+			// 3 2  <- far
+			// 0 1  <- near
+			// so triangulation is either 0,1,2/0,2,3 or 0,1,3/1,2,3
+			// the order seems not to be defined in the redbook, so it may vary from
+			// card to card... so maybe just use only 0,1,2
 			const vector3f& p0 = coords[i0];
 			const vector3f& p1 = coords[i1];
 			const vector3f& p2 = coords[i2];
 			const vector3f& p3 = coords[i3];
+
+/*
+  __mm128 xmm0 = _mm_load_ss(&(coords[i0].x));
+  __mm128 xmm1 = _mm_load_ss(&(coords[i0].y));
+  // the two upper floats are taken from source operand, two lower from dest.
+  __mm128 xmm1 = _mm_shuffle_ps(xmm0, xmm1, _MM_SHUFFLE(,,,));
+*/
+
 			//fixme: it seems that the normals are not smooth over the faces...
 			//the surface seems to be facetted, not smooth.
 			// better compute normals from four surrounding faces.
@@ -1274,6 +1330,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			normals[i0] += n0;
 #else
 			// fixme: the n1 vector seems to be the reason for the facetted surface normals
+			//reason: see above.
 //			vector3f n1 = (p2 - p0).cross(p3 - p0);
 			normals[i0] += n0;
 			normals[i1] += n0;

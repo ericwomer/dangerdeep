@@ -36,7 +36,7 @@ freeview_display::projection_data freeview_display::get_projection_data(game& gm
 	pd.w = sys().get_res_x();
 	pd.h = sys().get_res_y();
 	pd.fov_x = 70.0;
-	pd.near_z = 1.0;
+	pd.near_z = 0.2;	// fixme: should be 1.0, but new conning tower needs 0.1 or so
 	pd.far_z = gm.get_max_view_distance();
 	return pd;
 }

@@ -65,7 +65,9 @@ else:
 	gllibs = ['GL', 'GLU']
 	sdllibs = ['SDL', 'SDL_image']
 	ccflags = '-Wall `sdl-config --cflags`'
-	if (debug >= 2):
+	if (debug >= 3):
+		ccflags += ' -g -pg -O3'	# profiling
+	elif (debug == 2):
 		ccflags += ' -g -O0'
 		env.Append(CPPDEFINES = ['DEBUG'])
 	elif (debug == 1):

@@ -85,7 +85,8 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 
 	SDL_LockSurface(teximage);
 
-	unsigned bpp = teximage->format->BytesPerPixel;
+	const SDL_PixelFormat& fmt = *(teximage->format);
+	unsigned bpp = fmt.BytesPerPixel;
 
 /*
 	cout << "texture: " << texfilename
@@ -100,12 +101,12 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 */
 
 	vector<Uint8> data;
-	if (teximage->format->palette != 0) {
+	if (fmt.palette != 0) {
 		//old color table code, does not work
 		//glEnable(GL_COLOR_TABLE);
 		if (bpp != 1)
 			throw texerror(get_name(), "only 8bit palette files supported");
-		int ncol = teximage->format->palette->ncolors;
+		int ncol = fmt.palette->ncolors;
 		if (ncol > 256)
 			throw texerror(get_name(), "max. 256 colors in palette supported");
 		bool usealpha = (teximage->flags & SDL_SRCCOLORKEY);
@@ -115,9 +116,9 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 		if (ncol == 256 && !usealpha) {
 			unsigned i = 0;
 			for ( ; i < 256; ++i) {
-				if (unsigned(teximage->format->palette->colors[i].r) != i) break;
-				if (unsigned(teximage->format->palette->colors[i].g) != i) break;
-				if (unsigned(teximage->format->palette->colors[i].b) != i) break;
+				if (unsigned(fmt.palette->colors[i].r) != i) break;
+				if (unsigned(fmt.palette->colors[i].g) != i) break;
+				if (unsigned(fmt.palette->colors[i].b) != i) break;
 			}
 			if (i == 256) lumi = true;
 		}
@@ -151,12 +152,12 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 				unsigned char* ptr2 = ptr;
 				for (unsigned x = 0; x < sw; ++x) {
 					Uint8 pixindex = *(offset+x);
-					const SDL_Color& pixcolor = teximage->format->palette->colors[pixindex];
+					const SDL_Color& pixcolor = fmt.palette->colors[pixindex];
 					*ptr2++ = pixcolor.r;
 					*ptr2++ = pixcolor.g;
 					*ptr2++ = pixcolor.b;
 					if (usealpha)
-						*ptr2++ = (pixindex == (teximage->format->colorkey & 0xff)) ? 0x00 : 0xff;
+						*ptr2++ = (pixindex == (fmt.colorkey & 0xff)) ? 0x00 : 0xff;
 				}
 				//old color table code, does not work
 				//memcpy(ptr, offset, sw);
@@ -165,7 +166,7 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 			}
 		}
 	} else {
-		bool usealpha = teximage->format->Amask != 0;
+		bool usealpha = fmt.Amask != 0;
 		if (rgb2grey) {
 			if (usealpha) {
 				format = GL_LUMINANCE_ALPHA;
@@ -200,6 +201,45 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 			}
 		} else {
 			for (unsigned y = 0; y < sh; y++) {
+#if 0
+				// new code, that uses the RGB-masks of SDL to load/transform
+				// colors.
+				if (bpp == 3) {
+					Uint8* linedst = (Uint8*)ptr;
+					Uint8* linesrc = (Uint8*)offset;
+					for (unsigned x = 0; x < sw; ++x) {
+						// be careful! with bpp=3 this could lead to
+						// an off by one segfault error, if pitch is
+						// not a multiple of four...we just hope the best.
+						// could be done quicker with mmx, but this performance
+						// is not that critical here
+						Uint32 pv = *(Uint32*)linesrc; // fixme: is that right for Big-Endian machines? SDL Docu suggests yes...
+						linedst[0] = Uint8(((pv & fmt.Rmask) >> fmt.Rshift) << fmt.Rloss);
+						linedst[1] = Uint8(((pv & fmt.Gmask) >> fmt.Gshift) << fmt.Gloss);
+						linedst[2] = Uint8(((pv & fmt.Bmask) >> fmt.Bshift) << fmt.Bloss);
+						linesrc += bpp;
+						linedst += bpp;
+					}
+				} else {
+					// bpp = 4 here
+					Uint32* linedst = (Uint32*)ptr;
+					Uint32* linesrc = (Uint32*)offset;
+					for (unsigned x = 0; x < sw; ++x) {
+						Uint32 pv = linesrc[x];
+						Uint32 r = (((pv & fmt.Rmask) >> fmt.Rshift) << fmt.Rloss);
+						Uint32 g = (((pv & fmt.Gmask) >> fmt.Gshift) << fmt.Gloss);
+						Uint32 b = (((pv & fmt.Bmask) >> fmt.Bshift) << fmt.Bloss);
+						Uint32 a = (((pv & fmt.Bmask) >> fmt.Bshift) << fmt.Bloss);
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+						pv = a | (b << 8) | (g << 16) | (r << 24);
+#else
+						pv = r | (g << 8) | (b << 16) | (a << 24);
+#endif
+						linedst[x] = pv;
+					}
+				}
+#endif
+				// old code, that assumes bytes come in R,G,B order:
 				memcpy(ptr, offset, sw*bpp);
 				offset += teximage->pitch;
 				ptr += tw*bpp;
