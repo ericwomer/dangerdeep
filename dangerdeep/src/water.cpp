@@ -36,22 +36,16 @@
 // for testing
 //#define DRAW_WATER_AS_GRID
 
-// some more interesting values: phase 256, facesperwave 64+,
-// wavelength 256+,
-#define WAVE_PHASES 256		// no. of phases for wave animation
-#define WAVE_LENGTH 128.0	// in meters, total length of one wave tile, fixme with heigher values (>= 512) waves look
-                                // MUCH more realistic. especially with longer times and dynamic computation waves could
-                                // become much nicer. noise can be used for the smaller detail in the near then.
-#define TIDECYCLE_TIME 120.0	// seconds
-
+//fixme: obsolete!
 #define FOAM_VANISH_FACTOR 0.1	// 1/second until foam goes from 1 to 0.
+//fixme: obsolete!
 #define FOAM_SPAWN_FACTOR 0.2	// 1/second until full foam reached. maybe should be equal to vanish factor
 
 #define REFRAC_COLOR_RES 32
 #define FRESNEL_FCT_RES 256
 #define WATER_BUMP_DETAIL_HEIGHT 4.0
 
-#define WAVE_TILE_GEN_TIME 0.04		// 25fps
+//fixme: obsolete?
 #define SUBDETAIL_GEN_TIME 0.066667	// 15fps
 
 #define FOAMAMOUNTRES 256
@@ -145,15 +139,23 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	mytime(tm),
 	xres(xres_),
 	yres(yres_),
-	wavetileheights(3),//3 phases needed
-	wavetiledisplacements(3),//3 phases needed
+	wave_phases(cfg::instance().geti("wave_phases")),
+	wavetile_length(cfg::instance().getf("wavetile_length")),
+	wavetile_length_rcp(1.0f/wavetile_length),
+	wave_tidecycle_time(cfg::instance().getf("wave_tidecycle_time")),
 	last_light_brightness(-10000),
 	wave_resolution(nextgteqpow2(cfg::instance().geti("wave_fft_res"))),
 	wave_resolution_shift(ulog2(wave_resolution)),
 	wave_subdetail(cfg::instance().getb("wave_subdetail")),
 	subdetail_size(cfg::instance().geti("wave_subdetail_size")),
 	subdetail_size_shift(ulog2(subdetail_size)),
-	owg(wave_resolution, vector2f(1,1), 20 /*10*/ /*31*/, 2e-6 /* 5e-6 */, WAVE_LENGTH, TIDECYCLE_TIME),
+	wavetile_data(wave_phases),
+	curr_wtp(0),
+	owg(wave_resolution, vector2f(1,1),
+	    20 /*10*/ /*31*/,	// wind speed m/s. fixme make dynamic (weather!)
+	    2e-6 /* 5e-6 */,	// scale factor for heights. depends on all other values. fixme compute at runtime from other values.
+	    wavetile_length,
+	    wave_tidecycle_time),
 	vertex_program_supported(false),
 	fragment_program_supported(false),
 	compiled_vertex_arrays_supported(false),
@@ -161,7 +163,6 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	water_vertex_program(0),
 	water_fragment_program(0),
 	png(subdetail_size, 8, subdetail_size),
-	last_wave_gen_time(tm),
 	last_subdetail_gen_time(tm)
 {
 
@@ -321,7 +322,10 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	  Just blend the fft coefficients between two levels for weather changes, like
 	  with the clouds.
 	*/
-	generate_wavetile();
+	for (unsigned i = 0; i < wave_phases; ++i) {
+		generate_wavetile(wave_tidecycle_time * i / wave_phases, wavetile_data[i]);
+	}
+	curr_wtp = &wavetile_data[0];
 
 	add_loading_screen("water height data computed");
 
@@ -540,8 +544,8 @@ vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) co
 	// (laden der displacements, speichern der ergebnisse etc.)
 
 	// generate values with mipmap function (needs viewer pos.)
-	float xfrac = myfrac(float((xyzpos.x + transl.x) / WAVE_LENGTH)) * wave_resolution;
-	float yfrac = myfrac(float((xyzpos.y + transl.y) / WAVE_LENGTH)) * wave_resolution;
+	float xfrac = myfrac(float((xyzpos.x + transl.x) * wavetile_length_rcp)) * wave_resolution;
+	float yfrac = myfrac(float((xyzpos.y + transl.y) * wavetile_length_rcp)) * wave_resolution;
 	unsigned x0 = unsigned(floor(xfrac));
 	unsigned y0 = unsigned(floor(yfrac));
 	unsigned x1 = (x0 + 1) & (wave_resolution-1);
@@ -565,10 +569,10 @@ vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) co
 	// bilinear interpolation of displacement and height	
 	// fixme: try to tweak height map with displacements, so we need to store only heights...
 	// maybe that isn't possible, maybe it looks good enough, but saves computations and memory
-	vector3f ca(wavetiledisplacements[i0].x, wavetiledisplacements[i0].y, wavetileheights[i0]);
-	vector3f cb(wavetiledisplacements[i1].x, wavetiledisplacements[i1].y, wavetileheights[i1]);
-	vector3f cc(wavetiledisplacements[i2].x, wavetiledisplacements[i2].y, wavetileheights[i2]);
-	vector3f cd(wavetiledisplacements[i3].x, wavetiledisplacements[i3].y, wavetileheights[i3]);
+	vector3f ca = curr_wtp->get_height_and_displacement(i0);
+	vector3f cb = curr_wtp->get_height_and_displacement(i1);
+	vector3f cc = curr_wtp->get_height_and_displacement(i2);
+	vector3f cd = curr_wtp->get_height_and_displacement(i3);
 
 	float fac0 = (1.0f-xfrac2)*(1.0f-yfrac2);
 	float fac1 = xfrac2*(1.0f-yfrac2);
@@ -981,7 +985,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	const float VIRTUAL_PLANE_HEIGHT = 25.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok, maybe a bit too much
 
 	// maximum height of waves (half amplitude)
-	const double WAVE_HEIGHT = std::max(maxh, fabs(minh));
+	const double WAVE_HEIGHT = std::max(curr_wtp->maxh, fabs(curr_wtp->minh));
 
 //	cout << "Wave height is: " << WAVE_HEIGHT << "\n";
 
@@ -1191,7 +1195,8 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 #ifdef COMPUTE_EFFICIENCY
 	int vertices = 0, vertices_inside = 0;
 #endif	
-	vector2f transl(myfmod(viewpos.x, WAVE_LENGTH), myfmod(viewpos.y, WAVE_LENGTH));
+	vector2f transl(myfmod(viewpos.x, double(wavetile_length)),
+			myfmod(viewpos.y, double(wavetile_length)));
 	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 		double y = double(yy)/yres;
 		// vertices for start and end of two lines are computed and projected
@@ -1599,19 +1604,19 @@ void water::spawn_foam(const vector2& pos)
 
 float water::get_height(const vector2& pos) const
 {
-	float ffac = wave_resolution/WAVE_LENGTH;
-	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
-	float y = float(myfmod(pos.y, WAVE_LENGTH)) * ffac;
+	float ffac = wave_resolution * wavetile_length_rcp;
+	float x = float(myfmod(pos.x, double(wavetile_length))) * ffac;
+	float y = float(myfmod(pos.y, double(wavetile_length))) * ffac;
 	int ix = int(floor(x));
 	int iy = int(floor(y));
 	int ix2 = (ix+1) & (wave_resolution-1);
 	int iy2 = (iy+1) & (wave_resolution-1);
 	float fracx = x - ix;
 	float fracy = y - iy;
-	float a = wavetileheights[ix +(iy <<wave_resolution_shift)];
-	float b = wavetileheights[ix2+(iy <<wave_resolution_shift)];
-	float c = wavetileheights[ix +(iy2<<wave_resolution_shift)];
-	float d = wavetileheights[ix2+(iy2<<wave_resolution_shift)];
+	float a = curr_wtp->get_height(ix +(iy <<wave_resolution_shift));
+	float b = curr_wtp->get_height(ix2+(iy <<wave_resolution_shift));
+	float c = curr_wtp->get_height(ix +(iy2<<wave_resolution_shift));
+	float d = curr_wtp->get_height(ix2+(iy2<<wave_resolution_shift));
 	float e = a * (1.0f-fracx) + b * fracx;
 	float f = c * (1.0f-fracx) + d * fracx;
 	return (1.0f-fracy) * e + fracy * f;
@@ -1625,10 +1630,10 @@ vector3f water::get_wave_normal_at(unsigned x, unsigned y) const
 	unsigned x2 = (x                   + 1) & (wave_resolution-1);
 	unsigned y1 = (y + wave_resolution - 1) & (wave_resolution-1);
 	unsigned y2 = (y                   + 1) & (wave_resolution-1);
-	float hdx = wavetileheights[x2+ (y <<wave_resolution_shift)]
-		-   wavetileheights[x1+ (y <<wave_resolution_shift)];
-	float hdy = wavetileheights[x + (y2<<wave_resolution_shift)]
-		-   wavetileheights[x + (y1<<wave_resolution_shift)];
+	float hdx = curr_wtp->get_height(x2+ (y <<wave_resolution_shift))
+		-   curr_wtp->get_height(x1+ (y <<wave_resolution_shift));
+	float hdy = curr_wtp->get_height(x + (y2<<wave_resolution_shift))
+		-   curr_wtp->get_height(x + (y1<<wave_resolution_shift));
 	return vector3f(-hdx, -hdy, 1).normal();
 }
 
@@ -1637,9 +1642,9 @@ vector3f water::get_wave_normal_at(unsigned x, unsigned y) const
 //with a realistic buoyancy model we don't need that function any longer!
 vector3f water::get_normal(const vector2& pos, double rollfac) const
 {
-	float ffac = wave_resolution/WAVE_LENGTH;
-	float x = float(myfmod(pos.x, WAVE_LENGTH)) * ffac;
-	float y = float(myfmod(pos.y, WAVE_LENGTH)) * ffac;
+	float ffac = wave_resolution * wavetile_length_rcp;
+	float x = float(myfmod(pos.x, double(wavetile_length))) * ffac;
+	float y = float(myfmod(pos.y, double(wavetile_length))) * ffac;
 	int ix = int(floor(x));
 	int iy = int(floor(y));
 	int ix2 = (ix+1) & (wave_resolution-1);
@@ -1661,21 +1666,43 @@ vector3f water::get_normal(const vector2& pos, double rollfac) const
 
 
 
-void water::generate_wavetile()
+void water::generate_wavetile(double tiletime, wavetile_phase& wtp)
 {
-//	cout << "time " << mytime << " rest " << myfmod(mytime, TIDECYCLE_TIME) << "\n";
-	owg.set_time(myfmod(mytime, TIDECYCLE_TIME));
-	owg.compute_heights(wavetileheights);
-	minh = 1e10;
-	maxh = -1e10;
-	for (vector<float>::const_iterator it = wavetileheights.begin(); it != wavetileheights.end(); ++it) {
-		minh = fmin(minh, *it);
-		maxh = fmax(maxh, *it);
+	vector<float> heights;
+	owg.set_time(myfmod(tiletime, wave_tidecycle_time));
+	owg.compute_heights(heights);
+	wtp.minh = 1e10;
+	wtp.maxh = -1e10;
+	for (vector<float>::const_iterator it = heights.begin(); it != heights.end(); ++it) {
+		wtp.minh = fmin(wtp.minh, *it);
+		wtp.maxh = fmax(wtp.maxh, *it);
 	}
+	float maxabsh = max(fabs(wtp.minh), fabs(wtp.maxh));
+	if (maxabsh >= 16.0f)
+		throw error("max. wave height can be 16 meters, internal computation error");
+	unsigned hs = heights.size();
+
+//	cout << "absolute height +- of tile " << max(fabs(wtp.minh), fabs(wtp.maxh)) << "\n";
+
 	// choppy factor: formula from "waterengine": 0.5*WX/N = 0.5*wavelength/waveres, here = 1.0
 	// fixme 5.0 default? - it seems that choppy waves don't look right. bug? fixme, with negative values it seems right. check this!
 	// -2.0f also looks nice, -5.0f is too much. -1.0f should be ok
-	owg.compute_displacements(-2.0f, wavetiledisplacements);
+	vector<vector2f> displacements;
+	owg.compute_displacements(-2.0f, displacements);
+
+	// create data vector
+	wtp.data.resize(hs);
+	for (unsigned i = 0; i < hs; ++i) {
+		wtp.set_values(i, heights[i], displacements[i].x, displacements[i].y);
+	}
+/*
+	float maxdispl = 0.0;
+	for (vector<vector2f>::const_iterator it = displacements.begin(); it != displacements.end(); ++it) {
+		maxdispl = max(maxdispl, fabs(it->x));
+		maxdispl = max(maxdispl, fabs(it->y));
+	}
+	cout << "abs max displ " << maxdispl << "\n";
+*/
 }
 
 
@@ -1726,10 +1753,8 @@ void water::set_time(double tm)
 		last_subdetail_gen_time = mytime;
 	}
 
-	if (mytime >= last_wave_gen_time + WAVE_TILE_GEN_TIME) {
-		generate_wavetile();
-		last_wave_gen_time = mytime;
-	}
+	unsigned pn = unsigned(wave_phases * myfrac(tm / wave_tidecycle_time)) % wave_phases;
+	curr_wtp = &wavetile_data[pn];
 }
 
 

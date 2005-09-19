@@ -26,29 +26,14 @@ protected:
 	double mytime;			// store global time in seconds
 	unsigned xres, yres;		// resolution of grid
 
-	// precomputed data. Outer array for phases
-	//projgrid: per vertex: height,displacement,normal
-	//values must be stored in mipmap fashion, linear interpolation of heights/displacements
-	//is ok, interpolation of normals requires one sqrt per vertex. alternatively we could
-	//recompute the normals per vertex (also one sqrt), this needs less memory and more
-	//computations.
-	//mipmap: we need 4/3 of space, 1+4+16+64+256+...n = ~ 4/3 n
-	// another option: don't store fft values but recompute them every
-	// frame (slower, but more dynamically, and using less memory)
-	// for a 64x64 grid in 256 phases with mipmaps and normals we have
-	// 256*64*64*(6*4)*4/3 = 1M*24*4/3 = 32M
-	vector<float> wavetileheights;	//fixme store heights as uint8 (resolution is high enough, 75% space save)
-	vector<vector2f> wavetiledisplacements;
+	const unsigned wave_phases;	// >= 256 is a must
+	const float wavetile_length;	// >= 512m makes wave look MUCH more realistic
+	const float wavetile_length_rcp;// reciprocal of former value
+	const double wave_tidecycle_time;	// depends on fps. with 25fps and 256 phases, use ~10seconds.
 
 	vector<unsigned> gridindices;
 	vector<unsigned> gridindices2;//only used for test grid drawing, could be ifdef'ed away
 
-	//projgrid: mipmaps too
-	vector<vector<float> > wavetilefoam;
-
-	// minimum and maximum heights of water (over all values)
-	float minh, maxh;
-	
 	auto_ptr<texture> reflectiontex;
 	auto_ptr<texture> foamtex;
 	auto_ptr<texture> foamamounttex;
@@ -62,12 +47,55 @@ protected:
 
 	float last_light_brightness;	// used to determine when new refraction color tex must get computed
 
-	const unsigned wave_resolution;	// fft resolution for water tile
+	const unsigned wave_resolution;	// fft resolution for water tile (use 64+, better 128+)
 	const unsigned wave_resolution_shift;	// the log2 of wave_resolution
 
 	const bool wave_subdetail;	// use subdetail for height or not
 	const unsigned subdetail_size;	// sub detail resolution
 	const unsigned subdetail_size_shift;	// the log2 of it
+
+	// about wavetile data:
+	// 32 bit per coordinate, quantified integer storage. 12 bit for height, 10 for x/y displacement.
+	// max. height amplitude ~32meters, so multiply with 32/4096=128, resolution ~8cm, enough.
+	// max. displ. amplitude ~16meters, so multiply with 16/1024=64, resolution ~12cm etc.
+	// fixme: measure quantifier values or make them dynamic (more time/ram needed while generation!)
+	// We can then use 256x256 sized tiles with 256 phases. They take 64mb of ram (2^(3*8)*4=2^18=64m)
+	// currently displacement +- 5m, height +- 3.5m. currently used +-16m for height,+-8m for displ.
+
+	struct wavetile_phase
+	{
+		// store displacements and height in one 32bit-word:
+		// 10bits y, 10bits x, 12bits height.
+		// stored as unsigned values with offset 512/512/2048,
+		// represent -8...+8m or -16...+16m.
+		vector<Uint32> data;
+		float minh, maxh;
+		wavetile_phase() : minh(0), maxh(0) {}
+		float get_height(unsigned idx) const
+		{
+			return (int(data[idx] & 0xfff) - 2048) * (16.0f/2048);
+		}
+		// be careful... when conversion to uint rounds up, result of 2048 can occour...
+		// we mask unused bits out, although it is not really necessary (rather paranoia)
+		vector3f get_height_and_displacement(unsigned idx) const
+		{
+			Uint32 v = data[idx];
+			return vector3f((int((v >> 22) & 0x3ff) - 512) * (8.0f/512),
+					(int((v >> 12) & 0x3ff) - 512) * (8.0f/512),
+					(int(v & 0xfff) - 2048) * (16.0f/2048));
+		}
+		void set_values(unsigned idx, float dx, float dy, float h)
+		{
+			data[idx] =
+				(Uint32(Sint32(h * (2048/16)) + 2048) & 0xfff) |
+				((Uint32(Sint32(dx * (512/8)) + 512) & 0x3ff) << 12) |
+				((Uint32(Sint32(dy * (512/8)) + 512) & 0x3ff) << 22);
+		}
+	};
+
+	// wave tile data
+	vector<wavetile_phase> wavetile_data;
+	const wavetile_phase* curr_wtp;	// pointer to current phase
 
 	// Arrays used while drawing a tile. To avoid repeated re-alloc, they're here
 	mutable vector<vector3f> coords;
@@ -119,7 +147,6 @@ protected:
 	perlinnoise png;
 
 	// times for generation
-	double last_wave_gen_time;
 	double last_subdetail_gen_time;
 
 	water& operator= (const water& other);
@@ -131,7 +158,7 @@ protected:
 	vector3f compute_coord(const vector3f& xyzpos, const vector2f& transl) const;
 	vector3f get_wave_normal_at(unsigned x, unsigned y) const;
 
-	void generate_wavetile();
+	void generate_wavetile(double tiletime, wavetile_phase& wtp);
 	void generate_subdetail_and_bumpmap();
 
 public:
