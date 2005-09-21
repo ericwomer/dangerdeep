@@ -158,6 +158,10 @@ protected:
 	vector3f compute_coord(const vector3f& xyzpos, const vector2f& transl) const;
 	vector3f get_wave_normal_at(unsigned x, unsigned y) const;
 
+#ifdef USE_SSE
+	void compute_coord_1line_sse(const vector2f& v, const vector2f& vadd, const vector2f& transl) const;
+#endif
+
 	void generate_wavetile(double tiletime, wavetile_phase& wtp);
 	void generate_subdetail_and_bumpmap();
 

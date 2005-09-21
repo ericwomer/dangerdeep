@@ -574,6 +574,9 @@ vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) co
 	vector3f cc = curr_wtp->get_height_and_displacement(i2);
 	vector3f cd = curr_wtp->get_height_and_displacement(i3);
 
+	// code uses less registers and less mul than sequential interpolation
+	// (sequential: lerp(a,b)->g, lerp(c,d)->h, lerp(g,h)->result
+	// because the "*" operation in the result line ("coord = ...") stands for _three_ mul's!
 	float fac0 = (1.0f-xfrac2)*(1.0f-yfrac2);
 	float fac1 = xfrac2*(1.0f-yfrac2);
 	float fac2 = (1.0f-xfrac2)*yfrac2;
@@ -1294,6 +1297,8 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 
 	// compute normals for all faces, add them to vertex normals
 	// fixme: angles at vertices are ignored yet
+	// fixme: the way the normals are computed seems wrong.
+	// faces look facetted, not smooth.
 	for (unsigned y = 0; y < yres; ++y) {
 		unsigned y2 = y+1;
 		for (unsigned x = 0; x < xres; ++x) {
@@ -1328,23 +1333,25 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			//fixme: it seems that the normals are not smooth over the faces...
 			//the surface seems to be facetted, not smooth.
 			// better compute normals from four surrounding faces.
+			//fixme2: shader problem?
 			//it would not suffice to compute the normals from the height differences,
 			//because the x/y coords do not vary uniformly.
-			vector3f n0 = (p1 - p0).cross(p2 - p0);
+			vector3f n0 = (p1 - p0).cross(p3 - p0);
 #if 0
 			normals[i0] += n0;
 #else
 			// fixme: the n1 vector seems to be the reason for the facetted surface normals
 			//reason: see above.
-//			vector3f n1 = (p2 - p0).cross(p3 - p0);
+			//but with only n0 it looks even worse...
+			vector3f n1 = (p2 - p1).cross(p3 - p1);
 			normals[i0] += n0;
 			normals[i1] += n0;
 			normals[i2] += n0;
-/*
+
 			normals[i0] += n1;
 			normals[i2] += n1;
 			normals[i3] += n1;
-*/
+
 #endif
 		}
 	}
