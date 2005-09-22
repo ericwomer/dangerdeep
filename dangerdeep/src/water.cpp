@@ -20,6 +20,10 @@
 #include "perlinnoise.h"
 #include <fstream>
 
+#ifdef USE_SSE
+#include "water_sse.h"
+#endif
+
 // compute projected grid efficiency, it should be 50-95%
 #undef  COMPUTE_EFFICIENCY
 //fixme: the wave sub detail causes ripples in water height leading to the specular map spots
@@ -342,6 +346,12 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	waterspecularlookup.reset(new texture(waterspecularlookup_tmp, waterspecularlookup_res, 1, GL_LUMINANCE,
 					      texture::LINEAR, texture::CLAMP_TO_EDGE));
 #endif
+
+#ifdef USE_SSE
+	water_compute_coord_init_sse(wavetile_length_rcp, wave_resolution, wave_resolution_shift);
+	if (sizeof(vector3f) != 12)
+		throw error("Internal SSE error, sizeof vector3f != 12, SSE code won't work!");
+#endif
 }
 
 
@@ -527,8 +537,6 @@ void water::cleanup_textures(void) const
 	glPopAttrib();
 }
 
-
-//#define USE_SSE
 
 //function is nearly the same as get_height, it just adds extra detail
 // fixme: optimize whole loop with sse, could give MUCH extra speed
@@ -979,10 +987,6 @@ void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpo
 
 
 
-#ifdef USE_SSE
-extern void compute_coord_sse(float* result, const float* translx, const float* transly);
-#endif
-
 void water::display(const vector3& viewpos, angle dir, double max_view_dist) const
 {
 	const float VIRTUAL_PLANE_HEIGHT = 25.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok, maybe a bit too much
@@ -1227,47 +1231,20 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 		double displ = 5.0;	// meters, max. displacement of waves, fixme compute!
 		vb = va + diff * (difflen + displ);
 		va = va - diff * displ;
-
-		double vx = va.x;
-		double vy = va.y;
-		double vxadd = (vb.x - va.x)/xres;
-		double vyadd = (vb.y - va.y)/xres;
+		double rcp_xres = 1.0/xres;
+		vector2f v, vadd;
+		v.assign(va);
+		vadd.assign((vb - va) * rcp_xres);
 
 #ifdef USE_SSE
-		float vx_sse[4] __attribute__((aligned(16))) = { vx, vx + vxadd, vx + 2*vxadd, vx + 3*vxadd };
-		float vy_sse[4] __attribute__((aligned(16))) = { vy, vy + vyadd, vy + 2*vyadd, vy + 3*vyadd };
-		float vxadd_sse[4] __attribute__((aligned(16))) = { vxadd, vxadd, vxadd, vxadd };
-		float vyadd_sse[4] __attribute__((aligned(16))) = { vyadd, vyadd, vyadd, vyadd };
-
-		float translx_sse[4] __attribute__((aligned(16))) = { transl.x, transl.x, transl.x, transl.x };
-		float transly_sse[4] __attribute__((aligned(16))) = { transl.y, transl.y, transl.y, transl.y };
-
-		// load vx/vy in xmm0/xmm1
-		asm volatile ("movaps (%0), %%xmm0		\n\t"
-			      "movaps (%1), %%xmm1		\n\t"
-			      : /* output */
-			      : /* input */ "g" (&vx_sse), "g" (&vy_sse)
-			      : /* manipulated */ );
-
-		//fixme: works only if xres+1 is multiple of 4!
-		unsigned xloopc = (xres+1)/4;
-		for (unsigned xx = 0; xx < xloopc; ++xx, ptr += 4) {
-			// now compute coord with sse here
-			compute_coord_sse(&(coords[ptr].x), translx_sse, transly_sse);
-			// increase vx/vy
-			asm volatile ("addps (%0), %%xmm0		\n\t"
-				      "addps (%1), %%xmm1		\n\t"
-				      : /* output */
-				      : /* input */ "g" (&vxadd_sse), "g" (&vyadd_sse)
-				      : /* manipulated */ );
-		}
-#endif
-
+		water_compute_coord_1line_sse(v, vadd, transl, &curr_wtp->data[0],
+					      -viewpos.z, &coords[ptr].x, xres);
+		ptr += xres + 1;
+#else
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
-			vector3f v(vx, vy, -viewpos.z);
-			coords[ptr] = compute_coord(v, transl);
-			vx += vxadd;
-			vy += vyadd;
+			vector3f vtmp(v.x, v.y, -viewpos.z);
+			coords[ptr] = compute_coord(vtmp, transl);
+			v += vadd;
 			// sse-opt: store v, vx, vy in sse registers, holding
 			// coords 0,1,2,3 and 4,5,6,7 in the next loop etc.
 #ifdef COMPUTE_EFFICIENCY
@@ -1279,6 +1256,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			++vertices;
 #endif
 		}
+#endif // USE_SSE
 	}
 
 	// this takes ~13ms per frame with 128x256. a bit costly
