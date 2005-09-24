@@ -72,13 +72,10 @@ user_interface::user_interface(game& gm) :
 	mysky = new sky();
 	unsigned water_res_x = unsigned(cfg::instance().geti("water_res_x"));
 	unsigned water_res_y = unsigned(cfg::instance().geti("water_res_y"));
-//fixme!!! for testing
-/*
 	if (water_res_x < 16) water_res_x = 16;
 	if (water_res_x > 1024) water_res_x = 1024;
 	if (water_res_y < 16) water_res_y = 16;
 	if (water_res_y > 1024) water_res_y = 1024;
-*/
 	mywater = new class water(water_res_x, water_res_y, 0.0);
 	panel = new widget(0, 768-128, 1024, 128, "", 0, panelbackgroundimg);
 	panel_messages = new widget_list(8, 8, 512, 128 - 2*8);
