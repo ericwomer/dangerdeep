@@ -589,7 +589,7 @@ vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) co
 	float fac1 = xfrac2*(1.0f-yfrac2);
 	float fac2 = (1.0f-xfrac2)*yfrac2;
 	float fac3 = xfrac2*yfrac2;
-	vector3f coord = (ca*fac0 + cb*fac1 + cc*fac2 + cd*fac3) + xyzpos;
+	vector3f coord = /*(ca*fac0 + cb*fac1 + cc*fac2 + cd*fac3) +*/ xyzpos; //fixme testing!
 
 	if (wave_subdetail) {
 		// fixme: try to add perlin noise as sub noise, use phase as phase shift, xfrac/yfrac as coordinate
@@ -1236,14 +1236,26 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 		v.assign(va);
 		vadd.assign((vb - va) * rcp_xres);
 
+//		printf("start vx %f vy %f vadd.x %f vadd.y %f\n", v.x, v.y, vadd.x, vadd.y);
+
 #ifdef USE_SSE
+//		vector<vector3f> tmpcoord(xres+1);
 		water_compute_coord_1line_sse(v, vadd, transl, &curr_wtp->data[0],
-					      -viewpos.z, &coords[ptr].x, xres);
+					      -viewpos.z, /*&tmpcoord[0].x*/ &coords[ptr].x, xres);
 		ptr += xres + 1;
 #else
+
+		printf("before c loop vx %f vy %f vadd.x %f vadd.y %f\n", v.x, v.y, vadd.x, vadd.y);
+		//		printf("next line\n");
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			vector3f vtmp(v.x, v.y, -viewpos.z);
 			coords[ptr] = compute_coord(vtmp, transl);
+			if (coords[ptr].x != tmpcoord[xx].x && coords[ptr].y != tmpcoord[ptr].y) {
+				printf("coords differ! xx=%u, (v.x %f v.y %f transl.x %f transl.y %f) sse %f %f %f fpu %f %f %f\n",
+				       xx, v.x, v.y, transl.x, transl.y, tmpcoord[xx].x,tmpcoord[xx].y,tmpcoord[xx].z,
+				       coords[ptr].x,coords[ptr].y,coords[ptr].z);
+			}
+			//			printf("coord xx=%u is %f %f %f\n", xx, coords[ptr].x,coords[ptr].y,coords[ptr].z);
 			v += vadd;
 			// sse-opt: store v, vx, vy in sse registers, holding
 			// coords 0,1,2,3 and 4,5,6,7 in the next loop etc.
@@ -1262,11 +1274,11 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	// this takes ~13ms per frame with 128x256. a bit costly
 	//fixme: maybe choose only trapzeoid with baseline parallel zu x-axis? but this doesn't save any computations
 	//wave sub detail should bring more display quality than higher resolution....
-//	cout << "coord computation took " << tm2-tm1 << " ms.\n";
+	//	cout << "coord computation took " << tm2-tm1 << " ms.\n";
 
 #ifdef COMPUTE_EFFICIENCY
 	cout << "drawn " << vertices << " vertices, " << vertices_inside << " were inside frustum ("
-		<< vertices_inside*100.0f/vertices << " % )\n";
+	     << vertices_inside*100.0f/vertices << " % )\n";
 #endif
 
 	// compute dynamic normals
