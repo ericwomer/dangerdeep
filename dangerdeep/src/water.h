@@ -159,6 +159,7 @@ protected:
 	vector3f get_wave_normal_at(unsigned x, unsigned y) const;
 
 #ifdef USE_SSE
+	bool usex86sse;
 	void compute_coord_1line_sse(const vector2f& v, const vector2f& vadd, const vector2f& transl) const;
 #endif
 

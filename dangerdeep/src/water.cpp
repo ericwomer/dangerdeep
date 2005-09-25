@@ -168,6 +168,9 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	water_fragment_program(0),
 	png(subdetail_size, 8, subdetail_size),
 	last_subdetail_gen_time(tm)
+#ifdef USE_SSE
+	, usex86sse(false)
+#endif
 {
 
 	// 2004/04/25 Note! decreasing the size of the reflection map improves performance
@@ -348,9 +351,17 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 #endif
 
 #ifdef USE_SSE
-	water_compute_coord_init_sse(wavetile_length_rcp, wave_resolution, wave_resolution_shift);
-	if (sizeof(vector3f) != 12)
-		throw error("Internal SSE error, sizeof vector3f != 12, SSE code won't work!");
+	bool sseok = x86_sse_supported();
+	if (sseok) {
+		sys().add_console("x86 SSE is supported by this processor.");
+	}
+	usex86sse = sseok && cfg::instance().getb("usex86sse");
+	if (usex86sse) {
+		sys().add_console("using x86 SSE instructions.");
+		water_compute_coord_init_sse(wavetile_length_rcp, wave_resolution, wave_resolution_shift);
+		if (sizeof(vector3f) != 12)
+			throw error("Internal SSE error, sizeof vector3f != 12, SSE code won't work!");
+	}
 #endif
 }
 
@@ -1238,10 +1249,12 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 
 #ifdef USE_SSE
 //		vector<vector3f> tmpcoord(xres+1);
-		water_compute_coord_1line_sse(v, vadd, transl, &curr_wtp->data[0],
-					      -viewpos.z, &coords[ptr].x, xres);
-		ptr += xres + 1;
-#else
+		if (usex86sse) {
+			water_compute_coord_1line_sse(v, vadd, transl, &curr_wtp->data[0],
+						      -viewpos.z, &coords[ptr].x, xres);
+			ptr += xres + 1;
+		} else {
+#endif // USE_SSE
 		//fixme: testcode entfernen!
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			vector3f vtmp(v.x, v.y, -viewpos.z);
@@ -1276,7 +1289,9 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			}
 		}
 */
-		
+
+#ifdef USE_SSE
+		}	// endif (usex86sse)
 #endif // USE_SSE
 	}
 
