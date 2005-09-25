@@ -759,6 +759,10 @@ void model::mesh::display(bool use_display_list) const
 			vector3f lightpos3 = lightpos_rel.to_real();
 			//cout << "lightpos3 " << lightpos3 << "," << lightpos_rel.xyz() << "," << ((lightpos_rel.w != 0.0f)) << "\n";
 			colors.resize(3*vertices.size());
+			// this loop could be speed up with mmx/sse instructions.
+			// however, with shaders it isn't used anyway and more and more computers
+			// have cards with shaders. at least newer computers that can do sse should
+			// also have shaders, no shaders but sse is rather rare...
 			for (unsigned i = 0; i < vertices.size(); ++i) {
 				const vector3f& nx = tangentsx[i];
 				const vector3f& nz = normals[i];

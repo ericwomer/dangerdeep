@@ -1337,23 +1337,28 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			const vector3f& p2 = coords[i2];
 			const vector3f& p3 = coords[i3];
 
-/*
-  __mm128 xmm0 = _mm_load_ss(&(coords[i0].x));
-  __mm128 xmm1 = _mm_load_ss(&(coords[i0].y));
-  // the two upper floats are taken from source operand, two lower from dest.
-  __mm128 xmm1 = _mm_shuffle_ps(xmm0, xmm1, _MM_SHUFFLE(,,,));
-*/
+			// fixme: optimize this loop with sse!
 
 			//fixme: it seems that the normals are not smooth over the faces...
 			//the surface seems to be facetted, not smooth.
 			// better compute normals from four surrounding faces.
-			//fixme2: shader problem?
+			//fixme2: shader problem? it seems so, because computing really smooth normals
+			//doesn't help.
 			//it would not suffice to compute the normals from the height differences,
 			//because the x/y coords do not vary uniformly.
+			// compute normals for quads in both triangulation orders, leading to a better result
 			vector3f n0 = (p1 - p0).cross(p3 - p0);
+			vector3f n1 = (p2 - p1).cross(p3 - p1);
+			vector3f n2 = (p1 - p0).cross(p2 - p0);
+			vector3f n3 = (p2 - p0).cross(p3 - p0);
+
+			normals[i0] += n0 + n2 + n3;
+			normals[i1] += n0 + n1 + n2;
+			normals[i2] += n1 + n2 + n3;
+			normals[i3] += n0 + n1 + n3;
+
 #if 0
 			normals[i0] += n0;
-#else
 			// fixme: the n1 vector seems to be the reason for the facetted surface normals
 			//reason: see above.
 			//but with only n0 it looks even worse...
