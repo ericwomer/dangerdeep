@@ -591,7 +591,7 @@ vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) co
 	float fac3 = xfrac2*yfrac2;
 	vector3f coord = (ca*fac0 + cb*fac1 + cc*fac2 + cd*fac3) + xyzpos;
 
-	if (false /*wave_subdetail*/) { // fixme: disabled for testing!!!
+	if (wave_subdetail) {
 		// fixme: try to add perlin noise as sub noise, use phase as phase shift, xfrac/yfrac as coordinate
 #define SUBDETAIL_PER_TILE 4
 		xfrac2 = subdetail_size * myfrac(xfrac * SUBDETAIL_PER_TILE / wave_resolution);
