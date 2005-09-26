@@ -155,7 +155,7 @@ protected:
 	void setup_textures(const matrix4& reflection_projmvmat, const vector2f& transl) const;
 	void cleanup_textures(void) const;
 
-	vector3f compute_coord(const vector3f& xyzpos, const vector2f& transl) const;
+	vector3f compute_coord(vector2f& xyfrac) const;
 	vector3f get_wave_normal_at(unsigned x, unsigned y) const;
 
 #ifdef USE_SSE
@@ -170,8 +170,6 @@ public:
 	water(unsigned xres_, unsigned yres_, double tm = 0.0);	// give day time in seconds
 	void set_time(double tm);
 	~water();
-	void update_foam(double deltat);		// needed for dynamic foam
-	void spawn_foam(const vector2& pos);		// dito
 
 	void draw_foam_for_ship(const game& gm, const ship* shp, const vector3& viewpos) const;
 	void compute_amount_of_foam_texture(const game& gm, const vector3& viewpos,

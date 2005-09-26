@@ -40,11 +40,6 @@
 // for testing
 //#define DRAW_WATER_AS_GRID
 
-//fixme: obsolete!
-#define FOAM_VANISH_FACTOR 0.1	// 1/second until foam goes from 1 to 0.
-//fixme: obsolete!
-#define FOAM_SPAWN_FACTOR 0.2	// 1/second until full foam reached. maybe should be equal to vanish factor
-
 #define REFRAC_COLOR_RES 32
 #define FRESNEL_FCT_RES 256
 #define WATER_BUMP_DETAIL_HEIGHT 4.0
@@ -141,7 +136,7 @@ not.
 
 water::water(unsigned xres_, unsigned yres_, double tm) :
 	mytime(tm),
-	xres(xres_),
+	xres((xres_ & ~3) - 1),	// make sure xres+1 is divisible by 4 (needed for sse routines, doesn't hurt in other cases)
 	yres(yres_),
 	wave_phases(cfg::instance().geti("wave_phases")),
 	wavetile_length(cfg::instance().getf("wavetile_length")),
@@ -550,27 +545,18 @@ void water::cleanup_textures(void) const
 
 
 //function is nearly the same as get_height, it just adds extra detail
-// fixme: optimize whole loop with sse, could give MUCH extra speed
-// two ways possible:
-// 1) optimize inner-parallelism (x,y,z) in a sse register => already much faster
-// 2) optimize outer-parallelism (compute 4 coords at once). => more difficult, but fully parallel,
-//      problem: are there enough registers? only 8!
-vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) const
+vector3f water::compute_coord(vector2f& xyfrac) const
 {
-	// xyzpos varies along a line over x,y. z is constant!
-	// transl is constant!
-	// this means we have as input 2x float (8x for 4 coords)
-	// (laden der displacements, speichern der ergebnisse etc.)
-
-	// generate values with mipmap function (needs viewer pos.)
-	float xfrac = myfrac(float((xyzpos.x + transl.x) * wavetile_length_rcp)) * wave_resolution;
-	float yfrac = myfrac(float((xyzpos.y + transl.y) * wavetile_length_rcp)) * wave_resolution;
-	unsigned x0 = unsigned(floor(xfrac));
-	unsigned y0 = unsigned(floor(yfrac));
-	unsigned x1 = (x0 + 1) & (wave_resolution-1);
-	unsigned y1 = (y0 + 1) & (wave_resolution-1);
-	float xfrac2 = myfrac(xfrac);
-	float yfrac2 = myfrac(yfrac);
+	unsigned x1 = unsigned(floor(xyfrac.x));
+	unsigned y1 = unsigned(floor(xyfrac.y));
+	unsigned x0 = x1 & (wave_resolution-1);
+	unsigned y0 = y1 & (wave_resolution-1);
+	xyfrac.x -= (x1 - x0);
+	xyfrac.y -= (y1 - y0);
+	x1 = (x0 + 1) & (wave_resolution-1);
+	y1 = (y0 + 1) & (wave_resolution-1);
+	float xfrac2 = myfrac(xyfrac.x);
+	float yfrac2 = myfrac(xyfrac.y);
 	unsigned i0 = x0 + (y0 << wave_resolution_shift);
 	unsigned i1 = x1 + (y0 << wave_resolution_shift);
 	unsigned i2 = x0 + (y1 << wave_resolution_shift);
@@ -583,11 +569,7 @@ vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) co
 	// take x,y fraction as texture coordinates in perlin map.
 	// linear filtering should be neccessary -> expensive!
 
-	// fixme: make trilinear
-	// fixme: unite displacements and height in one vector3f for simplicity's sake and performance gain
-	// bilinear interpolation of displacement and height	
-	// fixme: try to tweak height map with displacements, so we need to store only heights...
-	// maybe that isn't possible, maybe it looks good enough, but saves computations and memory
+	// fixme: make trilinear or at least try out how it looks (but this would cost much!)
 	vector3f ca = curr_wtp->get_height_and_displacement(i0);
 	vector3f cb = curr_wtp->get_height_and_displacement(i1);
 	vector3f cc = curr_wtp->get_height_and_displacement(i2);
@@ -600,13 +582,13 @@ vector3f water::compute_coord(const vector3f& xyzpos, const vector2f& transl) co
 	float fac1 = xfrac2*(1.0f-yfrac2);
 	float fac2 = (1.0f-xfrac2)*yfrac2;
 	float fac3 = xfrac2*yfrac2;
-	vector3f coord = (ca*fac0 + cb*fac1 + cc*fac2 + cd*fac3) + xyzpos;
+	vector3f coord = (ca*fac0 + cb*fac1 + cc*fac2 + cd*fac3);
 
 	if (wave_subdetail) {
 		// fixme: try to add perlin noise as sub noise, use phase as phase shift, xfrac/yfrac as coordinate
 #define SUBDETAIL_PER_TILE 4
-		xfrac2 = subdetail_size * myfrac(xfrac * SUBDETAIL_PER_TILE / wave_resolution);
-		yfrac2 = subdetail_size * myfrac(yfrac * SUBDETAIL_PER_TILE / wave_resolution);
+		xfrac2 = subdetail_size * myfrac(xyfrac.x * SUBDETAIL_PER_TILE / wave_resolution); //fixme mul rcp faster than div
+		yfrac2 = subdetail_size * myfrac(xyfrac.y * SUBDETAIL_PER_TILE / wave_resolution);
 		x0 = unsigned(floor(xfrac2));
 		y0 = unsigned(floor(yfrac2));
 		x1 = (x0 + 1) & (subdetail_size-1);
@@ -1247,19 +1229,25 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 		v.assign(va);
 		vadd.assign((vb - va) * rcp_xres);
 
+		vector2f vfrac = vector2f(float(myfrac(double(va.x + transl.x) * wavetile_length_rcp) * wave_resolution),
+					  float(myfrac(double(va.y + transl.y) * wavetile_length_rcp) * wave_resolution));
+		vector2f vfracadd =
+			vector2f(float(myfrac((vb.x - va.x) * rcp_xres * wavetile_length_rcp) * wave_resolution),
+				 float(myfrac((vb.y - va.y) * rcp_xres * wavetile_length_rcp) * wave_resolution));
+
 #ifdef USE_SSE
 //		vector<vector3f> tmpcoord(xres+1);
 		if (usex86sse) {
-			water_compute_coord_1line_sse(v, vadd, transl, &curr_wtp->data[0],
+			water_compute_coord_1line_sse(v, vadd, vfrac, vfracadd, &curr_wtp->data[0],
 						      -viewpos.z, &coords[ptr].x, xres);
 			ptr += xres + 1;
 		} else {
 #endif // USE_SSE
 		//fixme: testcode entfernen!
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
-			vector3f vtmp(v.x, v.y, -viewpos.z);
-			coords[ptr] /*tmpcoord[xx]*/ = compute_coord(vtmp, transl);
+			coords[ptr] /*tmpcoord[xx]*/ = compute_coord(vfrac) + vector3f(v.x, v.y, -viewpos.z);
 			v += vadd;
+			vfrac += vfracadd;
 
 #ifdef COMPUTE_EFFICIENCY
 			vector3 tmp = world2camera * vector3(coords[ptr].x, coords[ptr].y, coords[ptr].z);
@@ -1596,35 +1584,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	// we could store coords and normals in gpu memory (~24mb for all 256frames or store it
 	// once per frame) and upload only the color values (1/7 of space).
 
-
-
-
-void water::update_foam(double deltat)
-{
-/*
-	float foamvanish = deltat * FOAM_VANISH_FACTOR;
-	for (unsigned k = 0; k < FACES_PER_AXIS*FACES_PER_AXIS; ++k) {
-		float& foam = wavefoam[k];
-		foam -= foamvanish;
-		if (foam < 0.0f) foam = 0.0f;
-		wavefoamtexdata[k] = Uint8(255*foam);
-	}
-	glBindTexture(GL_TEXTURE_2D, wavefoamtex);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FACES_PER_AXIS, FACES_PER_AXIS, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, &wavefoamtexdata[0]);
-*/	
-}
-
-void water::spawn_foam(const vector2& pos)
-{
-/*
-	// compute texel position from pos here
-	unsigned texel = FACES_PER_AXIS*FACES_PER_AXIS/2+FACES_PER_AXIS/2;
-	float& f = wavefoam[texel];
-	f += 0.1;
-	if (f > 1.0f) f = 1.0f;
-	wavefoamtexdata[texel] = Uint8(255*f);
-*/	
-}
 
 
 
