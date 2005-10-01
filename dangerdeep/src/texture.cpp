@@ -23,6 +23,8 @@ using namespace std;
 
 #undef MEMMEASURE
 
+#undef COMPRESSED_TEXTURES
+
 #ifdef MEMMEASURE
 unsigned texture::mem_used = 0;
 unsigned texture::mem_alloced = 0;
@@ -312,7 +314,11 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		// e.g. 64x16 -> 32x8, 16x4, 8x2, 4x1, 2x1, 1x1
 		format = GL_RGB;
 		vector<Uint8> nmpix = make_normals(*pdata, gl_width, gl_height, detailh);
-		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
+		int internalformat = format;
+#ifdef COMPRESSED_TEXTURES
+		format = GL_COMPRESSED_LUMINANCE_ARB;
+#endif
+		glTexImage2D(GL_TEXTURE_2D, 0, internalformat, gl_width, gl_height, 0, format,
 			     GL_UNSIGNED_BYTE, &nmpix[0]);
 
 #ifdef MEMMEASURE
@@ -345,7 +351,11 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 				gdat = &curlvl;
 				//fixme: must detailh also get halfed here? yes...
 				vector<Uint8> nmpix = make_normals(*gdat, w, h, detailh);
-				glTexImage2D(GL_TEXTURE_2D, level, GL_RGB, w, h, 0, GL_RGB,
+				int internalformat = GL_RGB;
+#ifdef COMPRESSED_TEXTURES
+				internalformat = GL_COMPRESSED_RGB_ARB;
+#endif
+				glTexImage2D(GL_TEXTURE_2D, level, internalformat, w, h, 0, GL_RGB,
 					     GL_UNSIGNED_BYTE, &nmpix[0]);
 				w /= 2;
 				h /= 2;
@@ -354,7 +364,24 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		}
 	} else {
 		// make gl texture
-		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
+		int internalformat = format;
+#ifdef COMPRESSED_TEXTURES
+		switch (format) {
+		case GL_RGB:
+			internalformat = GL_COMPRESSED_RGB_ARB;
+			break;
+		case GL_RGBA:
+			internalformat = GL_COMPRESSED_RGBA_ARB;
+			break;
+		case GL_LUMINANCE:
+			internalformat = GL_COMPRESSED_LUMINANCE_ARB;
+			break;
+		case GL_LUMINANCE_ALPHA:
+			internalformat = GL_COMPRESSED_LUMINANCE_ALPHA_ARB;
+			break;
+		}
+#endif
+		glTexImage2D(GL_TEXTURE_2D, 0, internalformat, gl_width, gl_height, 0, format,
 			     GL_UNSIGNED_BYTE, &((*pdata)[0]));
 #ifdef MEMMEASURE
 		add_mem_used = gl_width * gl_height * get_bpp();

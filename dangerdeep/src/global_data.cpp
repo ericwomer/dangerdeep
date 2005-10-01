@@ -85,7 +85,7 @@ float XmlAttribf(class TiXmlElement* elem, const char* attrname)
 void init_global_data(void)
 {
 	background = new texture(get_texture_dir() + "background.png", texture::LINEAR);
-	conning_tower_typeVII = new model(get_model_dir() + "conning_tower_typeVIIc.3ds");
+	conning_tower_typeVII = new model(get_model_dir() + "conning_tower_typeVIIc.xml");
 	font_arial = new font(get_font_dir() + "font_arial");
 	loading_screen_usable = true;
 	font_arialbd = new font(get_font_dir() + "font_arialbd");

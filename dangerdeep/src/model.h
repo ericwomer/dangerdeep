@@ -177,6 +177,10 @@ protected:
 					    const std::string& type) const;
 	color read_color_from_dftd_model_file(TiXmlElement* parent, const std::string& type);
 
+	// store shared lookup functions for pow function (specular lighting)
+	// fixme: check if exponent is integer or float.
+	// map<double, texture*> powlookup_functions;
+
 public:
 	model();
 
