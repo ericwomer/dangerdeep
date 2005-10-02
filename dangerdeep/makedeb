@@ -16,7 +16,7 @@ for dir in DEBIAN $bindir $datadir/dangerdeep $mandir $docdir; do
 done
 
 # to compile and install it
-scons installbindir=\#/$debroot/$bindir installdatadir=\#/$debroot/$datadir/dangerdeep datadir=/$datadir/dangerdeep version=$version install
+scons installbindir=\#/$debroot/$bindir installdatadir=\#/$debroot/$datadir/dangerdeep datadir=/$datadir/dangerdeep version=$version install usex86sse=1
 
 # remove debug symbols from the binary
 strip -R .comment -x -s $debroot/$bindir/dangerdeep

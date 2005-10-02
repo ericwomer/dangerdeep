@@ -1394,6 +1394,12 @@ ship* game::sonar_acoustical_torpedo_target ( const torpedo* o ) const
 // fixme: a bit misplaced here, especially after ui was moved away from game
 game::run_state game::exec(void)
 {
+	// fixme: add special ui heir: playback
+	// to record videos.
+	// record ship positions or at least commands!
+	// and camera path (bspline) etc.
+	// used for credits background etc.
+
 	unsigned frames = 1;
 	unsigned lasttime = sys().millisec();
 	unsigned lastframes = 1;

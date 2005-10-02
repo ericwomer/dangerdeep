@@ -44,8 +44,7 @@
 #define FRESNEL_FCT_RES 256
 #define WATER_BUMP_DETAIL_HEIGHT 4.0
 
-//fixme: obsolete?
-#define SUBDETAIL_GEN_TIME 0.066667	// 15fps
+#define SUBDETAIL_GEN_TIME (1.0/15.0)	// 15fps
 
 #define FOAMAMOUNTRES 256
 
@@ -161,7 +160,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	use_shaders(false),
 	water_vertex_program(0),
 	water_fragment_program(0),
-	png(subdetail_size, 8, subdetail_size),
+	png(subdetail_size, 2, subdetail_size/8), //fixme ohne /16 sieht's scheiﬂe aus
 	last_subdetail_gen_time(tm)
 #ifdef USE_SSE
 	, usex86sse(false)
@@ -232,12 +231,14 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 */
 		foamtexpixels[z] = Uint8(a);
 	}
+/*
 	ofstream osg("foamtex.pgm");
 	osg << "P5\n"<<foamtexsize<<" "<<foamtexsize<<"\n255\n";
 	osg.write((const char*)(&foamtexpixels[0]), foamtexsize * foamtexsize);
+*/
+
 	foamtex.reset(new texture(foamtexpixels, foamtexsize, foamtexsize, GL_LUMINANCE,
 				  texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
-
 	foamamounttex.reset(new texture(FOAMAMOUNTRES, FOAMAMOUNTRES, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 
 	foamamounttrail.reset(new texture(get_texture_dir() + "foamamounttrail.png", texture::LINEAR, texture::CLAMP_TO_EDGE));//fixme maybe mipmap it
@@ -403,7 +404,7 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 		// set up texture matrix, so that texture coordinates can be computed from position.
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
-		float noisetilescale = 32.0f;//meters
+		float noisetilescale = 32.0f;//meters (128/16=8, 8tex/m).
 		glScalef(1.0f/noisetilescale,1.0f/noisetilescale,1);	// fixme adjust scale
 		glTranslatef(transl.x, transl.y, 0);
 		glMatrixMode(GL_MODELVIEW);
@@ -416,9 +417,9 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 #endif
 		
 		// local parameters:
-		// local 0 : upwelling color
-		glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 0,
-					     18.0f/255, 73.0f/255, 107.0f/255, 1.0);//fixme test
+		// nothing for now, old code:
+//		glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 0,
+//					     18.0f/255, 73.0f/255, 107.0f/255, 1.0);//fixme test
 	} else {
 		// standard code path, no fragment programs
 	
@@ -1439,7 +1440,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 				// value clamping is done by texture unit.
 				// water color depends on height of wave and slope
 				// slope (N.z) it mostly > 0.8
-				float colorfac = (coord.z + viewpos.z + 3) / 9 + (N.z - 0.8f);
+				float colorfac = (coord.z + viewpos.z + 3) * (1.0f/9) + (N.z - 0.8f);
 				uv0[ptr] = vector2f(F, colorfac);	// set fresnel and water color
 				// reflection texture coordinates (should be tweaked per pixel with fp, fixme)
 				// they are broken with fp, reason unknown
@@ -1700,14 +1701,16 @@ void water::generate_subdetail_and_bumpmap()
 		png.set_phase(0, phase, phase);	// fixme: depends on wind direction
 	}
 	waveheight_subdetail = png.generate();
-#if 0
+#if 1
 	ostringstream osgname;
-	osgname << "noisemap" << mytime << ".pgm";
+	osgname << "noisemap" << myfmod(mytime, 86400) << ".pgm";
 	ofstream osg(osgname.str().c_str());
 	osg << "P5\n" << subdetail_size << " " << subdetail_size << "\n255\n";
 	osg.write((const char*)(&waveheight_subdetail[0]), subdetail_size*subdetail_size);
 #endif
 
+	// fixme: gltexsubimage faster than glteximage, a reset/creation of new
+	// texture is not necessary!
 	water_bumpmap.reset(new texture(waveheight_subdetail, subdetail_size, subdetail_size,
 					GL_LUMINANCE,
 #if 0
@@ -1716,7 +1719,7 @@ void water::generate_subdetail_and_bumpmap()
 					texture::LINEAR_MIPMAP_LINEAR,
 #endif
 					texture::REPEAT,
-					true, 1.0f));
+					true, 0.5f));
 			    //fixme: mipmap levels of normal map should be computed
 			    //by this class, not glu!
 			    //mipmap scaling of a normal map is not the same as the normal version
@@ -1782,6 +1785,18 @@ void water::set_refraction_color(float light_brightness)
 
 	color wavetop = color(color(10, 10, 10), color(18, 93, 77), light_brightness);
 	color wavebottom = color(color(10, 10, 20), color(18, 73, 107), light_brightness);
+
+	if (use_shaders) {
+		float wt[3], wb[3];
+		wavetop.store_rgb(wt);
+		wavebottom.store_rgb(wb);
+		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, water_vertex_program);
+		glProgramLocalParameter4fARB(GL_VERTEX_PROGRAM_ARB, 1,
+					     wt[0], wt[1], wt[2], 1.0);
+		glProgramLocalParameter4fARB(GL_VERTEX_PROGRAM_ARB, 2,
+					     wb[0], wb[1], wb[2], 1.0);
+	}
+
 	for (unsigned s = 0; s < REFRAC_COLOR_RES; ++s) {
 		float fs = float(s)/(REFRAC_COLOR_RES-1);
 		color c(wavebottom, wavetop, fs);
