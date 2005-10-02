@@ -1701,7 +1701,7 @@ void water::generate_subdetail_and_bumpmap()
 		png.set_phase(0, phase, phase);	// fixme: depends on wind direction
 	}
 	waveheight_subdetail = png.generate();
-#if 1
+#if 0
 	ostringstream osgname;
 	osgname << "noisemap" << myfmod(mytime, 86400) << ".pgm";
 	ofstream osg(osgname.str().c_str());
