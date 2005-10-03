@@ -179,7 +179,7 @@ void model::mesh::compute_bounds()
 
 void model::mesh::compute_normals()
 {
-	// auto-detecion of hard edges (creases) would be cool:
+	// auto-detection of hard edges (creases) would be cool:
 	// if the angle between faces at an edge is above a certain value,
 	// the corners of the edge are duplicated and each instance gets their
 	// own normals (like a mesh border), the same for vertices (cusps).

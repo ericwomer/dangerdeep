@@ -29,10 +29,12 @@ debug = int(ARGUMENTS.get('debug', 0))
 devel = int(ARGUMENTS.get('devel', 0))
 cvedit = int(ARGUMENTS.get('cvedit', 0))
 usex86sse = int(ARGUMENTS.get('usex86sse', 0))
+useefence = int(ARGUMENTS.get('useefence', 0))
 
 ################ set environment
 
 osspecificsrc = []
+extralibs = []
 
 fftwlib = 'fftw3'
 if sys.platform == 'win32':
@@ -83,6 +85,9 @@ else:
 		ccflags += ' -g -O3 -march=athlon-xp -march=athlon-xp -mfpmath=sse -mmmx -msse -m3dnow -ftree-vectorize -ftree-vectorizer-verbose=2'
 	else:
 		ccflags += ' -g -O2' # debug symbols will be stripped by the linker for a debian package
+	if (useefence >= 0):
+		extralibs += ['efence']
+		print 'Linking to ElectricFence library!'
 	if (cvedit == 1):
 		env.Append(CPPDEFINES = ['CVEDIT'])
 	# check for mmx/sse support
@@ -172,7 +177,7 @@ env = conf.Finish()
 
 ######################### source file lists
 gfxlibs = ['oglext'] + gllibs + sdllibs
-alllibs = ['dftdmedia', 'tinyxml'] + gfxlibs + ['SDL_mixer', 'SDL_net', fftwlib]
+alllibs = ['dftdmedia', 'tinyxml'] + gfxlibs + ['SDL_mixer', 'SDL_net', fftwlib] + extralibs
 
 ################ helper functions
 def all_entries_that_start_with_and_not(list, prefix, notprefix):
@@ -194,7 +199,7 @@ Help("""
 	'debug=x' to build debug level x, levels: 0: normal, 1: debug, 2: more debug,
 		3: profiling, -1: extreme optimizations, -2: even more extreme optim.
 	'usex86sse=x' where x < 0: disable them, 0: autodetect, 1: enable them.
-	
+	'useefence=x' when x > 0 use the Electric Fence library (for debugging)
 	""")
 
 ################ build
