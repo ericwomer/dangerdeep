@@ -282,7 +282,7 @@ void sea_object::simulate(double delta_time)
         if (is_defunct()) {
                 return;
         } else if (is_dead()) {
-                alive_stat = defunct;
+		destroy();
                 return;
         }
 
@@ -369,6 +369,10 @@ unsigned sea_object::calc_damage() const
 
 void sea_object::set_inactive()
 {
+	if (alive_stat == defunct)
+		throw error("illegal alive_stat switch (defunct to inactive)");
+	if (alive_stat == dead)
+		throw error("illegal alive_stat switch (dead to inactive)");
 	alive_stat = inactive;
 }
 
@@ -376,6 +380,8 @@ void sea_object::set_inactive()
 
 void sea_object::kill()
 {
+	if (alive_stat == defunct)
+		throw error("illegal alive_stat switch (defunct to inactive)");
 	alive_stat = dead;
 }
 

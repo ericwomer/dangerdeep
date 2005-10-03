@@ -44,7 +44,7 @@ if sys.platform == 'win32':
 	sdllibs = ['SDL', 'SDL_image']
 	env.Append(CPPDEFINES = ['_REENTRANT'])
 	env.Append(CCFLAGS = '-Wall -O2') # for mingw!
-	if (usex86sse >= 0):
+	if (usex86sse >= 1):
 		env.Append(CPPDEFINES = ['USE_SSE'])
 		print 'Using x86 SSE/MMX optimizations.'
 	datadir = './data'
@@ -85,7 +85,23 @@ else:
 		ccflags += ' -g -O2' # debug symbols will be stripped by the linker for a debian package
 	if (cvedit == 1):
 		env.Append(CPPDEFINES = ['CVEDIT'])
-	if (usex86sse != 0):
+	# check for mmx/sse support
+	cpuinfof = open('/proc/cpuinfo', 'r')
+	cpuinfol = cpuinfof.readlines()
+	mmxsupported = False
+	ssesupported = False
+	for i in cpuinfol:
+		if i.startswith('flags'):
+			m = Split(i)
+			for j in m:
+				if j == 'mmx':
+					mmxsupported = True
+				elif j == 'sse':
+					ssesupported = True
+			break
+	if (usex86sse == 0) and (mmxsupported and ssesupported):
+		usex86sse = 1
+	if usex86sse >= 1:
 		env.Append(CPPDEFINES = ['USE_SSE'])
 		osspecificsrc += ['water_sse.cpp']
 		print 'Using x86 SSE/MMX optimizations.'
@@ -174,7 +190,11 @@ Help("""
 	Type 'scons -c' to clean up.
 	Type 'scons install' to install the game (as root).
 	Type 'scons tarball' to build a tarball of the source (works only with Linux).
-	Type 'scons debug=x' to build debug level x, or use 'scons usex86sse=1' for special optimizations.
+	Extra options (add them to command line, like 'scons extraoption=value'):
+	'debug=x' to build debug level x, levels: 0: normal, 1: debug, 2: more debug,
+		3: profiling, -1: extreme optimizations, -2: even more extreme optim.
+	'usex86sse=x' where x < 0: disable them, 0: autodetect, 1: enable them.
+	
 	""")
 
 ################ build

@@ -31,6 +31,10 @@ class sea_object
 {
 public:
 	// inactive means burning, sinking etc.
+	//fixme: rethink about sensible values.
+	//we need only defunct/alive and handle other states via AI or extra flags.
+	//this should be only used to determine wether an object is removed next
+	//round or not.
 	enum alive_status { defunct, dead, inactive, alive };
 
 	//fixme: should move to damageable_part class ...

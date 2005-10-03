@@ -298,7 +298,7 @@ void convoy::simulate(double delta_time)
 
 	// convoy erased?
 	if (merchants.size() + warships.size() + escorts.size() == 0)
-		alive_stat = defunct;
+		destroy();
 }
 
 
