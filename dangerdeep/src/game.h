@@ -40,6 +40,7 @@ class convoy;
 #include "vector3.h"
 #include "color.h"
 #include "logbook.h"
+#include "ptrvector.h"
 
 // network messages
 #define MSG_length	16
@@ -105,14 +106,14 @@ public:
 
 protected:
 	// maybe replace by containers with automatic pointer storage.
-	vector<ship*> ships;
-	vector<submarine*> submarines;
-	vector<airplane*> airplanes;
-	vector<torpedo*> torpedoes;
-	vector<depth_charge*> depth_charges;
-	vector<gun_shell*> gun_shells;
-	vector<convoy*> convoys;
-	vector<particle*> particles;
+	ptrvector<ship> ships;
+	ptrvector<submarine> submarines;
+	ptrvector<airplane> airplanes;
+	ptrvector<torpedo> torpedoes;
+	ptrvector<depth_charge> depth_charges;
+	ptrvector<gun_shell> gun_shells;
+	ptrvector<convoy> convoys;
+	ptrvector<particle> particles;
 	run_state my_run_state;
 	bool stopexec;	// if this is true, execution stops and the menu is displayed
 	
@@ -151,7 +152,7 @@ protected:
 	game();	
 	game& operator= (const game& other);
 	game(const game& other);
-	
+
 	unsigned listsizes(unsigned n) const;	// counts # of list elemens over n lists above
 
 public:
@@ -253,7 +254,7 @@ public:
 	void unregister_job(job* j);
 	const list<ping>& get_pings(void) const { return pings; };	// fixme: maybe vector not list
 
-	template<class C> ship* check_unit_list ( torpedo* t, vector<C>& unit_list );
+	template<class C> ship* check_unit_list ( torpedo* t, ptrvector<C>& unit_list );
 
 	// fixme why is this not const? if it changes game, it must be send over network, and
 	// then it can't be a function!
