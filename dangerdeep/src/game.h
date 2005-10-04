@@ -113,7 +113,7 @@ protected:
 	ptrvector<depth_charge> depth_charges;
 	ptrvector<gun_shell> gun_shells;
 	ptrvector<convoy> convoys;
-	ptrvector<particle> particles;
+	dynptrvector<particle> particles;
 	run_state my_run_state;
 	bool stopexec;	// if this is true, execution stops and the menu is displayed
 	

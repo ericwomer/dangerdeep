@@ -48,7 +48,7 @@ const int GAMETYPE = 0;//fixme
 
 const double game::TRAIL_TIME = 1.0;
 
-const unsigned MAX_NR_PARTICLES = 4096;
+const unsigned MAX_NR_PARTICLES = 8192;
 
 /***************************************************************************
 
@@ -61,7 +61,7 @@ class save_helper {
 	ostream& out;
 public:
 	save_helper(ostream& o) : out(o) {}
-	void operator()(T* ptr) { ptr->save(out); }
+	void operator()(const T* ptr) { ptr->save(out); }
 };
 
 template <class T>
@@ -216,7 +216,7 @@ void game::sink_record::save(ostream& out) const
 
 
 game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
-	unsigned timeperiod, unsigned nr_of_players)
+	unsigned timeperiod, unsigned nr_of_players) : particles(MAX_NR_PARTICLES)
 {
 /****************************************************************
 	custom mission generation:
@@ -247,8 +247,6 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	networktype = 0;
 	servercon = 0;
 	ui = 0;
-
-	particles.resize(MAX_NR_PARTICLES);
 
 	// fixme: show some info like in Silent Service II? sun/moon pos,time,visibility?
 
@@ -359,7 +357,9 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 
 
 
-game::game(TiXmlDocument* doc) : my_run_state(running), time(0), networktype(0), servercon(0), player(0), ui(0)
+game::game(TiXmlDocument* doc)
+	: my_run_state(running), time(0), networktype(0), player(0), servercon(0),
+	  particles(MAX_NR_PARTICLES), ui(0)
 {
 	TiXmlHandle hdoc(doc);
 	TiXmlHandle hdftdmission = hdoc.FirstChild("dftd-mission");
@@ -374,8 +374,6 @@ game::game(TiXmlDocument* doc) : my_run_state(running), time(0), networktype(0),
 	time = date(year, month, day, hour, minute, second).get_time();
 	TiXmlElement* eobjects = hdftdmission.FirstChildElement("objects").Element();
 	sys().myassert(eobjects != 0, string("objects node missing in ")+doc->Value());
-
-	particles.resize(MAX_NR_PARTICLES);
 
 	// now read and interprete childs of eobject
 	for (TiXmlElement* eobj = eobjects->FirstChildElement(); eobj != 0; eobj = eobj->NextSiblingElement()) {
@@ -435,13 +433,11 @@ cout<<"saving game...\n";
 	save_to_stream(out);
 }
 
-game::game(const string& savefilename)
+game::game(const string& savefilename) : particles(MAX_NR_PARTICLES)
 {
 	networktype = 0;
 	servercon = 0;	//fixme maybe move to load_from_stream? to allow loading network games?
 	ui = 0;
-
-	particles.resize(MAX_NR_PARTICLES);
 
 cout<<"loading game...\n";
 	ifstream in(savefilename.c_str(), ios::in|ios::binary);
@@ -451,14 +447,12 @@ cout<<"loading game...\n";
 	load_from_stream(in);
 }
 
-game::game(istream& in)
+game::game(istream& in) : particles(MAX_NR_PARTICLES)
 {
 	networktype = 0;
 	servercon = 0;	//fixme maybe move to load_from_stream? to allow loading network games?
 	ui = 0;
 	load_from_stream(in);
-
-	particles.resize(MAX_NR_PARTICLES);
 }
 
 string game::read_description_of_savegame(const string& filename)
@@ -742,7 +736,6 @@ void game::add_logbook_entry(const string& s)
 
 template <class T> inline vector<T*> visible_obj(const game* gm, const ptrvector<T>& v, const sea_object* o)
 {
-	//fixme: this is called for every particle. VERY costly!!!
 	vector<T*> result;
 	const sensor* s = o->get_sensor(o->lookout_system);
 	if (!s) return result;
@@ -796,7 +789,22 @@ vector<gun_shell*> game::visible_gun_shells(const sea_object* o) const
 
 vector<particle*> game::visible_particles(const sea_object* o ) const
 {
-	return visible_obj<particle>(this, particles, o);
+	//fixme: this is called for every particle. VERY costly!!!
+	vector<particle*> result;
+	if (!o) {
+		printf("warning, calling visible particles with NULL ptr\n");
+		return result;
+	}
+	const sensor* s = o->get_sensor(o->lookout_system);
+	if (!s) return result;
+	const lookout_sensor* ls = dynamic_cast<const lookout_sensor*>(s);
+	if (!ls) return result;
+	result.reserve(particles.size());
+	for (unsigned i = 0; i < particles.size(); ++i) {
+		if (ls->is_detected(this, o, particles[i]))
+			result.push_back(particles[i]);
+	}
+	return result;
 }
 
 vector<ship*> game::sonar_ships (const sea_object* o ) const
@@ -964,12 +972,11 @@ void game::spawn_convoy(convoy* cv)
 
 void game::spawn_particle(particle* pt)
 {
-	int idx = particles.find_empty_index();
-	if (idx < 0) {
+	if (particles.size() == particles.capacity()) {
 		// no space left, discard particle
 		delete pt;
 	} else {
-		particles[idx] = pt;
+		particles.push_back(pt);
 	}
 }
 
