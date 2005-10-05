@@ -484,14 +484,14 @@ void game::save_to_stream(ostream& out) const
 	write_u32(out, convoys.size());
 	write_u32(out, particles.size());
 
-	ships.for_each(save_helper<ship>(out));
-	submarines.for_each(save_helper<submarine>(out));
-	airplanes.for_each(save_helper<airplane>(out));
-	torpedoes.for_each(save_helper<torpedo>(out));
-	depth_charges.for_each(save_helper<depth_charge>(out));
-	gun_shells.for_each(save_helper<gun_shell>(out));
-	convoys.for_each(save_helper<convoy>(out));
-//	particles.for_each(save_helper<particle>(out));
+	ships.for_each_const(save_helper<ship>(out));
+	submarines.for_each_const(save_helper<submarine>(out));
+	airplanes.for_each_const(save_helper<airplane>(out));
+	torpedoes.for_each_const(save_helper<torpedo>(out));
+	depth_charges.for_each_const(save_helper<depth_charge>(out));
+	gun_shells.for_each_const(save_helper<gun_shell>(out));
+	convoys.for_each_const(save_helper<convoy>(out));
+//	particles.for_each_const(save_helper<particle>(out));
 
 	// my_run_state / stopexec doesn't need to be saved
 	
@@ -658,6 +658,8 @@ void game::simulate(double delta_t)
 	//fixme 2003/07/11: time compression trashes trail recording.
 
 	double nearest_contact = 1e10;
+
+	// erasing empty entries is handled in each for_each function
 	ships.for_each(simulate_helper1r<ship>(player, nearest_contact, delta_t, record));
 	submarines.for_each(simulate_helper1r<submarine>(player, nearest_contact, delta_t, record));
 	airplanes.for_each(simulate_helper1<airplane>(player, nearest_contact, delta_t));
@@ -666,15 +668,6 @@ void game::simulate(double delta_t)
 	gun_shells.for_each(simulate_helper2<gun_shell>(delta_t));
 	convoys.for_each(simulate_helper2<convoy>(delta_t));
 	particles.for_each(simulate_helper2p<particle>(delta_t, *this));
-	// erase empty entries
-	ships.pack();
-	submarines.pack();
-	airplanes.pack();
-	torpedoes.pack();
-	depth_charges.pack();
-	gun_shells.pack();
-	convoys.pack();
-	//particles.pack();	// not necessary, special usage!
 
 
 	time += delta_t;
@@ -754,22 +747,26 @@ template <class T> inline vector<T*> visible_obj(const game* gm, const ptrvector
 
 vector<ship*> game::visible_ships(const sea_object* o) const
 {
+	if (!o) throw error("visible_xyz function called with NULL object");
 	return visible_obj<ship>(this, ships, o);
 }
 
 vector<submarine*> game::visible_submarines(const sea_object* o) const
 {
+	if (!o) throw error("visible_xyz function called with NULL object");
 	return visible_obj<submarine>(this, submarines, o);
 }
 
 vector<airplane*> game::visible_airplanes(const sea_object* o) const
 {
+	if (!o) throw error("visible_xyz function called with NULL object");
 	return visible_obj<airplane>(this, airplanes, o);
 }
 
 vector<torpedo*> game::visible_torpedoes(const sea_object* o) const
 {
 //testing: draw all torpedoes
+	if (!o) throw error("visible_xyz function called with NULL object");
 	vector<torpedo*> result(torpedoes.size());
 	for (unsigned k = 0; k < torpedoes.size(); ++k)
 		result[k] = torpedoes[k];
@@ -779,28 +776,29 @@ vector<torpedo*> game::visible_torpedoes(const sea_object* o) const
 
 vector<depth_charge*> game::visible_depth_charges(const sea_object* o) const
 {
+	if (!o) throw error("visible_xyz function called with NULL object");
 	return visible_obj<depth_charge>(this, depth_charges, o);
 }
 
 vector<gun_shell*> game::visible_gun_shells(const sea_object* o) const
 {
+	if (!o) throw error("visible_xyz function called with NULL object");
 	return visible_obj<gun_shell>(this, gun_shells, o);
 }
 
 vector<particle*> game::visible_particles(const sea_object* o ) const
 {
+	if (!o) throw error("visible_xyz function called with NULL object");
 	//fixme: this is called for every particle. VERY costly!!!
 	vector<particle*> result;
-	if (!o) {
-		printf("warning, calling visible particles with NULL ptr\n");
-		return result;
-	}
 	const sensor* s = o->get_sensor(o->lookout_system);
 	if (!s) return result;
 	const lookout_sensor* ls = dynamic_cast<const lookout_sensor*>(s);
 	if (!ls) return result;
 	result.reserve(particles.size());
 	for (unsigned i = 0; i < particles.size(); ++i) {
+		if (particles[i] == 0)
+			throw error("particles[i] is 0!");
 		if (ls->is_detected(this, o, particles[i]))
 			result.push_back(particles[i]);
 	}

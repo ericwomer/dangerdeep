@@ -1159,7 +1159,6 @@ bool file_exists(const string& fn)
 
 int mymain(list<string>& args)
 {
-	try {
 	string highscoredirectory =
 #ifdef WIN32
 	"./highscores/";
@@ -1431,10 +1430,5 @@ int mymain(list<string>& args)
 	deinit_global_data();
 	delete mysys;
 
-	}
-	catch (std::exception& e) {
-		cerr << "Exception caught: " << e.what() << "\n";
-		throw;
-	}
 	return 0;
 }

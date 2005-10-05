@@ -19,6 +19,16 @@ class ptrvector
 		}
 	}
 
+	void pack_priv(unsigned emptyentries) {
+		unsigned filled = data.size() - emptyentries;
+		if (filled == data.size()) return;
+		std::vector<T*> data2(filled);
+		for (unsigned i = 0, j = 0; i < data.size(); ++i)
+			if (data[i])
+				data2[j++] = data[i];
+		data.swap(data2);
+	}
+
  private:
 	ptrvector(const ptrvector& );
 	ptrvector& operator= (const ptrvector& );
@@ -45,29 +55,32 @@ class ptrvector
 
 	template <typename U>
 	void for_each(U func) {
+		unsigned emptyentries = 0;
 		for (unsigned i = 0; i < data.size(); ++i) {
-			func(data[i]);
+			if (data[i])
+				func(data[i]);
+			else
+				++emptyentries;
 		}
+		if (emptyentries > 0)
+			pack_priv(emptyentries);
 	}
 	template <typename U>
-	void for_each(U func) const {
+	void for_each_const(U func) const {
 		for (unsigned i = 0; i < data.size(); ++i) {
-			func(data[i]);
+			if (data[i])
+				func(data[i]);
 		}
 	}
 
 	void pack() {
-		unsigned filled = 0;
+		unsigned emptyentries = 0;
 		for (unsigned i = 0; i < data.size(); ++i)
-			if (data[i])
-				++filled;
-		if (filled == data.size()) return;
-		std::vector<T*> data2(filled);
-		for (unsigned i = 0, j = 0; i < data.size(); ++i)
-			if (data[i])
-				data2[j++] = data[i];
-		data.swap(data2);
+			if (data[i] == 0)
+				++emptyentries;
+		pack_priv(emptyentries);
 	}
+
 	T*& operator[](unsigned n) { return data[n]; }
 	T* const& operator[](unsigned n) const { return data[n]; }
 	T*& at(unsigned n) { return data.at(n); }
@@ -110,19 +123,25 @@ class dynptrvector
 		if (idx >= fill)
 			throw std::out_of_range("dynptrvector erase out of range");
 		delete data[idx];
-		data[idx] = data[fill - 1];
-		data[fill - 1] = 0;
 		--fill;
+		data[idx] = data[fill];
+		data[fill] = 0;
 	}
 
 	template <typename U>
 	void for_each(U func) {
 		for (unsigned i = 0; i < fill; ++i) {
 			func(data[i]);
+			if (data[i] == 0) {	// erased in func!
+				--fill;
+				data[i] = data[fill];
+				data[fill] = 0;
+				--i;	// handle that entry in next loop!
+			}
 		}
 	}
 	template <typename U>
-	void for_each(U func) const {
+	void for_each_const(U func) const {
 		for (unsigned i = 0; i < fill; ++i) {
 			func(data[i]);
 		}
