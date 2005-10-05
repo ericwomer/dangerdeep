@@ -14,11 +14,6 @@
 #include <vector>
 using namespace std;
 
-// c++ idea: use auto_ptr's whereever possible
-// to store a vector of pointers, write a ptrvector<T> container, like a
-// vector storing T* ptrs.
-// operations: iterator, at, [], begin, end, push_back, size
-
 // use forward declarations to avoid unneccessary compile dependencies
 class ship;
 class submarine;
@@ -40,7 +35,7 @@ class convoy;
 #include "vector3.h"
 #include "color.h"
 #include "logbook.h"
-#include "ptrvector.h"
+#include "ptrset.h"
 
 // network messages
 #define MSG_length	16
@@ -106,14 +101,14 @@ public:
 
 protected:
 	// maybe replace by containers with automatic pointer storage.
-	ptrvector<ship> ships;
-	ptrvector<submarine> submarines;
-	ptrvector<airplane> airplanes;
-	ptrvector<torpedo> torpedoes;
-	ptrvector<depth_charge> depth_charges;
-	ptrvector<gun_shell> gun_shells;
-	ptrvector<convoy> convoys;
-	dynptrvector<particle> particles;
+	ptrset<ship> ships;
+	ptrset<submarine> submarines;
+	ptrset<airplane> airplanes;
+	ptrset<torpedo> torpedoes;
+	ptrset<depth_charge> depth_charges;
+	ptrset<gun_shell> gun_shells;
+	ptrset<convoy> convoys;
+	ptrset<particle> particles;
 	run_state my_run_state;
 	bool stopexec;	// if this is true, execution stops and the menu is displayed
 	
@@ -254,7 +249,7 @@ public:
 	void unregister_job(job* j);
 	const list<ping>& get_pings(void) const { return pings; };	// fixme: maybe vector not list
 
-	template<class C> ship* check_unit_list ( torpedo* t, ptrvector<C>& unit_list );
+	template<class C> ship* check_units ( torpedo* t, const ptrset<C>& units );
 
 	// fixme why is this not const? if it changes game, it must be send over network, and
 	// then it can't be a function!

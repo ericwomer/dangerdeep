@@ -220,6 +220,7 @@ void ship::ignite()
 {
 	if (myfire) {
 		myfire->kill();
+		myfire = 0;
 	}
 	myfire = new fire_particle(get_pos());
 	gm.spawn_particle(myfire);

@@ -48,8 +48,6 @@ const int GAMETYPE = 0;//fixme
 
 const double game::TRAIL_TIME = 1.0;
 
-const unsigned MAX_NR_PARTICLES = 8192;
-
 /***************************************************************************
 
    local function object classes
@@ -216,7 +214,7 @@ void game::sink_record::save(ostream& out) const
 
 
 game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
-	unsigned timeperiod, unsigned nr_of_players) : particles(MAX_NR_PARTICLES)
+	unsigned timeperiod, unsigned nr_of_players)
 {
 /****************************************************************
 	custom mission generation:
@@ -359,7 +357,7 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 
 game::game(TiXmlDocument* doc)
 	: my_run_state(running), time(0), networktype(0), player(0), servercon(0),
-	  particles(MAX_NR_PARTICLES), ui(0)
+	  ui(0)
 {
 	TiXmlHandle hdoc(doc);
 	TiXmlHandle hdftdmission = hdoc.FirstChild("dftd-mission");
@@ -433,7 +431,7 @@ cout<<"saving game...\n";
 	save_to_stream(out);
 }
 
-game::game(const string& savefilename) : particles(MAX_NR_PARTICLES)
+game::game(const string& savefilename)
 {
 	networktype = 0;
 	servercon = 0;	//fixme maybe move to load_from_stream? to allow loading network games?
@@ -447,7 +445,7 @@ cout<<"loading game...\n";
 	load_from_stream(in);
 }
 
-game::game(istream& in) : particles(MAX_NR_PARTICLES)
+game::game(istream& in)
 {
 	networktype = 0;
 	servercon = 0;	//fixme maybe move to load_from_stream? to allow loading network games?
@@ -484,14 +482,14 @@ void game::save_to_stream(ostream& out) const
 	write_u32(out, convoys.size());
 	write_u32(out, particles.size());
 
-	ships.for_each_const(save_helper<ship>(out));
-	submarines.for_each_const(save_helper<submarine>(out));
-	airplanes.for_each_const(save_helper<airplane>(out));
-	torpedoes.for_each_const(save_helper<torpedo>(out));
-	depth_charges.for_each_const(save_helper<depth_charge>(out));
-	gun_shells.for_each_const(save_helper<gun_shell>(out));
-	convoys.for_each_const(save_helper<convoy>(out));
-//	particles.for_each_const(save_helper<particle>(out));
+	ships.for_each(save_helper<ship>(out));
+	submarines.for_each(save_helper<submarine>(out));
+	airplanes.for_each(save_helper<airplane>(out));
+	torpedoes.for_each(save_helper<torpedo>(out));
+	depth_charges.for_each(save_helper<depth_charge>(out));
+	gun_shells.for_each(save_helper<gun_shell>(out));
+	convoys.for_each(save_helper<convoy>(out));
+//	particles.for_each(save_helper<particle>(out));
 
 	// my_run_state / stopexec doesn't need to be saved
 	
@@ -660,15 +658,14 @@ void game::simulate(double delta_t)
 	double nearest_contact = 1e10;
 
 	// erasing empty entries is handled in each for_each function
-	ships.for_each(simulate_helper1r<ship>(player, nearest_contact, delta_t, record));
-	submarines.for_each(simulate_helper1r<submarine>(player, nearest_contact, delta_t, record));
-	airplanes.for_each(simulate_helper1<airplane>(player, nearest_contact, delta_t));
-	torpedoes.for_each(simulate_helper2r<torpedo>(delta_t, record));
-	depth_charges.for_each(simulate_helper2<depth_charge>(delta_t));
-	gun_shells.for_each(simulate_helper2<gun_shell>(delta_t));
-	convoys.for_each(simulate_helper2<convoy>(delta_t));
-	particles.for_each(simulate_helper2p<particle>(delta_t, *this));
-
+	ships.for_each_with_erase(simulate_helper1r<ship>(player, nearest_contact, delta_t, record));
+	submarines.for_each_with_erase(simulate_helper1r<submarine>(player, nearest_contact, delta_t, record));
+	airplanes.for_each_with_erase(simulate_helper1<airplane>(player, nearest_contact, delta_t));
+	torpedoes.for_each_with_erase(simulate_helper2r<torpedo>(delta_t, record));
+	depth_charges.for_each_with_erase(simulate_helper2<depth_charge>(delta_t));
+	gun_shells.for_each_with_erase(simulate_helper2<gun_shell>(delta_t));
+	convoys.for_each_with_erase(simulate_helper2<convoy>(delta_t));
+	particles.for_each_with_erase(simulate_helper2p<particle>(delta_t, *this));
 
 	time += delta_t;
 	
@@ -727,7 +724,7 @@ void game::add_logbook_entry(const string& s)
 	
 ******************************************************************************************/
 
-template <class T> inline vector<T*> visible_obj(const game* gm, const ptrvector<T>& v, const sea_object* o)
+template <class T> inline vector<T*> visible_obj(const game* gm, const ptrset<T>& v, const sea_object* o)
 {
 	vector<T*> result;
 	const sensor* s = o->get_sensor(o->lookout_system);
@@ -970,12 +967,8 @@ void game::spawn_convoy(convoy* cv)
 
 void game::spawn_particle(particle* pt)
 {
-	if (particles.size() == particles.capacity()) {
-		// no space left, discard particle
-		delete pt;
-	} else {
-		particles.push_back(pt);
-	}
+	// fixme, maybe limit size of particles
+	particles.push_back(pt);
 }
 
 
@@ -1148,11 +1141,11 @@ void game::unregister_job(job* j)
 }
 
 template<class C>
-ship* game::check_unit_list ( torpedo* t, ptrvector<C>& unit_list )
+ship* game::check_units ( torpedo* t, const ptrset<C>& units )
 {
-	for (unsigned k = 0; k < unit_list.size(); ++k) {
-		if ( is_collision ( t, unit_list[k] ) )
-			return unit_list[k];
+	for (unsigned k = 0; k < units.size(); ++k) {
+		if ( is_collision ( t, units[k] ) )
+			return units[k];
 	}
 
 	return 0;
@@ -1165,10 +1158,10 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 		return true;
 	}
 
-	ship* s = check_unit_list ( t, ships );
+	ship* s = check_units ( t, ships );
 
 	if ( !s )
-		s = check_unit_list ( t, submarines );
+		s = check_units ( t, submarines );
 
 	if ( s ) {
 		if (runlengthfailure) {
@@ -1485,7 +1478,7 @@ bool game::is_day_mode () const
 }
 
 template <class T>
-void write_ptr2u16(ostream& out, const T* p, const ptrvector<T>& lst, unsigned offset, const string& ptrtype)
+void write_ptr2u16(ostream& out, const T* p, const ptrset<T>& lst, unsigned offset, const string& ptrtype)
 {
 	if (!p) {
 //cout<<"write #late "<<0<<"\n";
@@ -1503,7 +1496,7 @@ void write_ptr2u16(ostream& out, const T* p, const ptrvector<T>& lst, unsigned o
 }
 
 template <class T>
-T* read_u162ptr(istream& in, const ptrvector<T>& vec, unsigned n0, unsigned n1, const string& ptrtype)
+T* read_u162ptr(istream& in, const ptrset<T>& vec, unsigned n0, unsigned n1, const string& ptrtype)
 {
 	unsigned nr = read_u16(in);
 //cout <<"read #late "<<nr<<"\n";

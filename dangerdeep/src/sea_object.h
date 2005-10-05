@@ -31,10 +31,12 @@ class sea_object
 {
 public:
 	// inactive means burning, sinking etc.
-	//fixme: rethink about sensible values.
-	//we need only defunct/alive and handle other states via AI or extra flags.
-	//this should be only used to determine wether an object is removed next
-	//round or not.
+	// the two states are used for object handling.
+	// when an object should be removed from the game, it is set to dead-state by kill()
+	// the simulate function checks for that case and sets an object to defunct by destroy() if its dead
+	// defunct objects are removed from storage (deleted).
+	// this technique guarantees that dead objects exists at least one round, so other objects can clear
+	// their pointers to this object avoiding a segfault.
 	enum alive_status { defunct, dead, inactive, alive };
 
 	//fixme: should move to damageable_part class ...
