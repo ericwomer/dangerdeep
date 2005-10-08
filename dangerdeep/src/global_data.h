@@ -62,7 +62,7 @@ extern class model *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl, *conning_towe
 extern class texture *background,
         *psbackgr, *panelbackgr,
 	*addleadangle, *metalbackgr,
-	*woodbackgr, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
+	*woodbackgr, *notepadsheet, *menuframe,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
 	*terraintex, *cloudsbackgr, *atlanticmap;
 extern class font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn;
@@ -89,6 +89,7 @@ inline double myfmod(double a, double b) { return a-floor(a/b)*b; }//fmod is dif
 inline double myfrac(double a) { return a-floor(a); }
 inline float mysgn(float a) { return (a < 0) ? -1.0f : ((a > 0) ? 1.0f : 0.0f); }
 inline double mysgn(double a) { return (a < 0) ? -1.0 : ((a > 0) ? 1.0 : 0.0); }
+template<class T> inline T myclamp(const T& v, const T& minv, const T& maxv) { return (v < minv) ? minv : ((v > maxv) ? maxv : v); }
 template<class C> inline void add_saturated(C& sum, const C& add, const C& max) { sum += add; if (sum > max) sum = max; }
 // return a random value in [0, 1(
 inline double rnd(void) { return double(rand())/RAND_MAX; }

@@ -119,67 +119,6 @@ unsigned sub_torpedo_display::get_tube_below_mouse(const vector<vector2i>& tubec
 
 
 
-// obsolete:
-void sub_torpedo_display::check_turnswitch_input(game& gm, int x, int y)
-{
-	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
-	if (y >= 384 && y < 640) {
-		if (x < 256)
-			sub->set_trp_primaryrange(turnswitch_input(x, y-384, 17));
-		else if (x < 512)
-			sub->set_trp_secondaryrange(turnswitch_input(x-256, y-384, 2));
-		else if (x < 768)
-			sub->set_trp_initialturn(turnswitch_input(x-512, y-384, 2));
-		else
-			sub->set_trp_searchpattern(turnswitch_input(x-768, y-384, 2));
-	}
-}
-
-
-
-// obsolete:
-//maybe make common for all displays, so make function of user_display? but currently
-//only needed for this display.
-void sub_torpedo_display::draw_turnswitch(class game& gm, int x, int y,
-	unsigned firstdescr, unsigned nrdescr, unsigned selected, unsigned extradescr, unsigned title) const
-{
-	double full_turn = (nrdescr <= 2) ? 90 : 270;
-	double begin_turn = (nrdescr <= 2) ? -45 : -135;
-	turnswitchbackgr->draw(x, y);
-	double degreesperpos = (nrdescr > 1) ? full_turn/(nrdescr-1) : 0;
-	glColor4f(1,1,1,1);
-	for (unsigned i = 0; i < nrdescr; ++i) {
-		vector2 d = angle(begin_turn+degreesperpos*i).direction();
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glBegin(GL_LINES);
-		glVertex2f(x+128+d.x*36,y+128-d.y*36);
-		glVertex2f(x+128+d.x*80,y+128-d.y*80);
-		glEnd();
-		font_arial->print_c(x+int(d.x*96)+128, y-int(d.y*96)+128, texts::get(firstdescr+i));
-	}
-	font_arial->print_c(x+128, y+196, texts::get(extradescr));
-	turnswitch->draw_rot(x+128, y+128, begin_turn+degreesperpos*selected);
-	font_arial->print_c(x+128, y+228, texts::get(title));
-}
-
-
-
-// obsolete:
-unsigned sub_torpedo_display::turnswitch_input(int x, int y, unsigned nrdescr) const
-{
-	if (nrdescr <= 1) return 0;
-	angle a(vector2(x-128, 128-y));
-	double full_turn = (nrdescr <= 2) ? 90 : 270;
-	double begin_turn = (nrdescr <= 2) ? -45 : -135;
-	double degreesperpos = full_turn/(nrdescr-1);
-	double ang = a.value_pm180() - begin_turn;
-	if (ang < 0) ang = 0;
-	if (ang > full_turn) ang = full_turn;
-	return unsigned(round(ang/degreesperpos));
-}
-
-
-
 sub_torpedo_display::sub_torpedo_display(user_interface& ui_) :
 	user_display(ui_), torptranssrc(ILLEGAL_TUBE), mx(0), my(0), mb(0)
 {
@@ -227,12 +166,6 @@ void sub_torpedo_display::display(class game& gm) const
 
 	// draw sub model
 	submodelVIIc->draw(69, 37);
-
-	// draw torpedo programming buttons, obsolete:
-	draw_turnswitch(gm,   0, 384, 142, 17, sub->get_trp_primaryrange(), 175, 138);
-	draw_turnswitch(gm, 256, 384, 159, 2, sub->get_trp_secondaryrange(), 0, 139);
-	draw_turnswitch(gm, 512, 384, 161, 2, sub->get_trp_initialturn(), 0, 140);
-	draw_turnswitch(gm, 768, 384, 163, 2, sub->get_trp_searchpattern(), 176, 141);
 
 	// tube handling. compute coordinates for display and mouse use	
 	const vector<submarine::stored_torpedo>& torpedoes = sub->get_torpedoes();
@@ -327,8 +260,6 @@ void sub_torpedo_display::process_input(class game& gm, const SDL_Event& event)
 					torptranssrc = ILLEGAL_TUBE;
 				}
 			}
-			// if mouse is over turnswitch, set it
-			check_turnswitch_input(gm, event.button.x, event.button.y);
 			mb |= SDL_BUTTON_LMASK;
 		}
 		break;
@@ -351,10 +282,6 @@ void sub_torpedo_display::process_input(class game& gm, const SDL_Event& event)
 		my = event.motion.y;
 		mb = event.motion.state;
 
-		// if mouse is over turnswitch and button is down, set switch
-		if (event.motion.state & SDL_BUTTON_LMASK) {
-			check_turnswitch_input(gm, mx, my);
-		}
 		break;
 	default:
 		break;

@@ -47,17 +47,6 @@ class sub_torpedo_display : public user_display
 
 	unsigned get_tube_below_mouse(const vector<vector2i>& tubecoords) const;
 
-	// obsolete from here on:
-	void check_turnswitch_input(class game& gm, int x, int y);
-
-	// draws turnable switch. parameters: pos, first index and number of descriptions,
-	// selected description, extra description text number and title text nr.
-	// could be replaced by lighted 3d switch!
-	void draw_turnswitch(game& gm, int x, int y, unsigned firstdescr, unsigned nrdescr,
-			     unsigned selected, unsigned extradescr, unsigned title) const;
-	// Matching input function, give pos 0-255,0-255.
-	unsigned turnswitch_input(int x, int y, unsigned nrdescr) const;
-
 public:
 	sub_torpedo_display(class user_interface& ui_);
 

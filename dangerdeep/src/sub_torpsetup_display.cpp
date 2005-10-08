@@ -26,7 +26,7 @@ static const unsigned TK_PHASES = 6;
 static const int firstturnx = 64, firstturny = 574, secrangex = 803, secrangey = 552;
 
 sub_torpsetup_display::sub_torpsetup_display(user_interface& ui_)
-	: user_display(ui_), turnknobdrag(TK_NONE)
+	: user_display(ui_), turnknobdrag(TK_NONE), turnknobang(TK_NR)
 {
 	/*
 	selected_tube = 0;
@@ -123,8 +123,28 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 		mb = event.motion.state;
 		if (event.motion.state & SDL_BUTTON_LMASK) {
 			if (turnknobdrag != TK_NONE) {
-				turnknobang[unsigned(turnknobdrag)%TK_NR]
-					+= angle(mx * TK_ANGFAC);
+				float& ang = turnknobang[unsigned(turnknobdrag)];
+				ang += mx * TK_ANGFAC;
+				switch (turnknobdrag) {
+				case TK_PRIMARYRANGE:
+					// 0-360 degrees match to 0-16
+					ang = myclamp(ang, 0.0f, 359.0f);
+					sub->set_trp_primaryrange(unsigned(ang*17/360));
+					break;
+				case TK_TURNANGLE:
+					// 0-360 degrees match to 0-180 degrees angle
+					// fixme: currently only 0/1 used!
+					//ang = myclamp(ang, 0.0f, 360.0f);
+					//sub->set_trp_turnangle(ang*180/360);
+					ang = myclamp(ang, 0.0f, 179.0f);
+					sub->set_trp_searchpattern(unsigned(ang*2/180));
+					break;
+				case TK_RUNDEPTH:
+					// 0-360 degrees match to 0-25m
+					ang = myclamp(ang, 0.0f, 360.0f);
+					//sub->set_trp_rundepth(ang*25/360);
+					break;
+				}
 			}
 		}
 		break;
@@ -146,9 +166,6 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 		mx = event.motion.x;
 		my = event.motion.y;
 		mb = event.motion.state;
-
-		// if mouse is over turnswitch and button is down, set switch
-		if (event.motion.state & SDL_BUTTON_LMASK) {
 
 	case SDL_MOUSEBUTTONDOWN:
 		mx = event.button.x;
@@ -273,11 +290,11 @@ void sub_torpsetup_display::display(class game& gm) const
 	unsigned preheatingidx = 0; // 0-1 off-on
 	s.preheating[preheatingidx]->draw(730, 377);
 
-	s.primaryrangeknob[unsigned(turnknobang[TK_PRIMARYRANGE].value()/(45.0/TK_PHASES)+0.5)%TK_PHASES].draw(0);
+	s.primaryrangeknob[unsigned(myfmod(turnknobang[TK_PRIMARYRANGE], 360.0f)/(45.0/TK_PHASES)+0.5)%TK_PHASES].draw(0);
 
-	s.turnangleknob[unsigned(turnknobang[TK_TURNANGLE].value()/(45.0/TK_PHASES)+0.5)%TK_PHASES].draw(0);
+	s.turnangleknob[unsigned(myfmod(turnknobang[TK_TURNANGLE], 360.0f)/(45.0/TK_PHASES)+0.5)%TK_PHASES].draw(0);
 
-	s.rundepthknob[unsigned(turnknobang[TK_RUNDEPTH].value()/(45.0/TK_PHASES)+0.5)%TK_PHASES].draw(0);
+	s.rundepthknob[unsigned(myfmod(turnknobang[TK_RUNDEPTH], 360.0f)/(45.0/TK_PHASES)+0.5)%TK_PHASES].draw(0);
 
 	double rundepth = myfmod(ctr,25);//10.0;	// meters
 	s.rundepthptr.draw(rundepth * 300/25.0 + 30); // 25m = 30deg+x*300deg

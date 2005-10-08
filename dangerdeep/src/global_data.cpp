@@ -49,7 +49,7 @@ model	*torpedo_g7, *depth_charge_mdl, *gun_shell_mdl, *conning_tower_typeVII;
 texture *background,
 	*psbackgr, *panelbackgr,
 	*addleadangle, *torpleft, *metalbackgr,
-	*woodbackgr, *notepadsheet, *menuframe, *turnswitch, *turnswitchbackgr,
+	*woodbackgr, *notepadsheet, *menuframe,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
 	*terraintex, *cloudsbackgr, *atlanticmap;
 	
@@ -105,8 +105,6 @@ void init_global_data(void)
 	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png" );
 	notepadsheet = new texture(get_texture_dir() + "notepadsheet.png" /*, GL_CLAMP_TO_EDGE*/);
 	menuframe = new texture(get_texture_dir() + "menuframe.png" );
-	turnswitch = new texture(get_texture_dir() + "turnswitch.png" );
-	turnswitchbackgr = new texture(get_texture_dir() + "turnswitchbackgr.png" );
 	terraintex = new texture(get_texture_dir() + "terrain.jpg", texture::LINEAR);
 	cloudsbackgr = new texture(get_texture_dir() + "cloudsbackgr.jpg" );
 	atlanticmap = new texture(get_texture_dir() + "atlanticmap.jpg", texture::LINEAR, texture::CLAMP_TO_EDGE);
@@ -168,8 +166,6 @@ void deinit_global_data(void)
 	delete woodbackgr;
 	delete notepadsheet;
 	delete menuframe;
-	delete turnswitch;
-	delete turnswitchbackgr;
 	delete terraintex;
 	delete cloudsbackgr;
 	delete atlanticmap;

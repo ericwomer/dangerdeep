@@ -46,7 +46,7 @@ class sub_torpsetup_display : public user_display
 	scheme daylight, redlight;
 
 	turnknobtype turnknobdrag;
-	angle turnknobang[TK_NR];
+	std::vector<float> turnknobang;
 
 	/*
 	unsigned selected_tube;	// 0-5
