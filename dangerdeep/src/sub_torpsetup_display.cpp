@@ -62,11 +62,11 @@ sub_torpsetup_display::sub_torpsetup_display(user_interface& ui_)
 	daylight.secondaryrange[1].reset(new texture(get_image_dir() + "torpsetup_daylight_secondaryrange_long.png"));
 	redlight.secondaryrange[1].reset(new texture(get_image_dir() + "torpsetup_redlight_secondaryrange_long.png"));
 	daylight.preheating[0].reset(new texture(get_image_dir() + "torpsetup_daylight_preheatoff.png"));
-	redlight.preheating[0].reset(new texture(get_image_dir() + "torpsetup_daylight_preheatoff.png"));
+	redlight.preheating[0].reset(new texture(get_image_dir() + "torpsetup_redlight_preheatoff.png"));
 	daylight.preheating[1].reset(new texture(get_image_dir() + "torpsetup_daylight_preheaton.png"));
-	redlight.preheating[1].reset(new texture(get_image_dir() + "torpsetup_daylight_preheaton.png"));
+	redlight.preheating[1].reset(new texture(get_image_dir() + "torpsetup_redlight_preheaton.png"));
 	daylight.temperaturescale.reset(new texture(get_image_dir() + "torpsetup_daylight_tempscale.png"));
-	redlight.temperaturescale.reset(new texture(get_image_dir() + "torpsetup_daylight_tempscale.png"));
+	redlight.temperaturescale.reset(new texture(get_image_dir() + "torpsetup_redlight_tempscale.png"));
 
 	// read knobs images and cut to separate images
 	image primaryrangeknobs_day(get_image_dir() + "torpsetup_daylight_primaryrangeknobs.png");
