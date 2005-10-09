@@ -172,6 +172,8 @@ protected:
 	unsigned trp_initialturn;	// selected option 0-1 (left or right)
 	unsigned trp_searchpattern;	// selected option 0-1 (turn 180 or 90 deg.) fixme what are historical correct patterns?
 	angle trp_addleadangle;		// additional lead angle for torpedoes
+	bool trp_preheating;		// preheating on?
+	unsigned trp_torpspeed;		// torpspeed (0-2 slow-fast)
 
 	int find_stored_torpedo(bool usebow);	// returns index or -1 if none
 
@@ -228,64 +230,66 @@ public:
 	// fill available tubes with common types depending on time period (used for custom missions)
 	virtual void init_fill_torpedo_tubes(const class date& d);
 
-	const vector<stored_torpedo>& get_torpedoes(void) const { return torpedoes; }
+	const vector<stored_torpedo>& get_torpedoes() const { return torpedoes; }
 
 	// give number from 0-5 (bow tubes first)
 	bool is_tube_ready(unsigned nr) const;
 
 	// get number of tubes / stored reserve torpedoes
-	virtual unsigned get_nr_of_bow_tubes(void) const { return number_of_tubes_at[0]; }
-	virtual unsigned get_nr_of_stern_tubes(void) const { return number_of_tubes_at[1]; }
-	virtual unsigned get_nr_of_bow_reserve(void) const { return number_of_tubes_at[2]; }
-	virtual unsigned get_nr_of_stern_reserve(void) const { return number_of_tubes_at[3]; }
-	virtual unsigned get_nr_of_bow_deckreserve(void) const { return number_of_tubes_at[4]; }
-	virtual unsigned get_nr_of_stern_deckreserve(void) const { return number_of_tubes_at[5]; }
+	virtual unsigned get_nr_of_bow_tubes() const { return number_of_tubes_at[0]; }
+	virtual unsigned get_nr_of_stern_tubes() const { return number_of_tubes_at[1]; }
+	virtual unsigned get_nr_of_bow_reserve() const { return number_of_tubes_at[2]; }
+	virtual unsigned get_nr_of_stern_reserve() const { return number_of_tubes_at[3]; }
+	virtual unsigned get_nr_of_bow_deckreserve() const { return number_of_tubes_at[4]; }
+	virtual unsigned get_nr_of_stern_deckreserve() const { return number_of_tubes_at[5]; }
 
 	// get first index of storage and first index after it (computed with functions above)
-	pair<unsigned, unsigned> get_bow_tube_indices(void) const;
-	pair<unsigned, unsigned> get_stern_tube_indices(void) const;
-	pair<unsigned, unsigned> get_bow_reserve_indices(void) const;
-	pair<unsigned, unsigned> get_stern_reserve_indices(void) const;
-	pair<unsigned, unsigned> get_bow_deckreserve_indices(void) const;
-	pair<unsigned, unsigned> get_stern_deckreserve_indices(void) const;
+	pair<unsigned, unsigned> get_bow_tube_indices() const;
+	pair<unsigned, unsigned> get_stern_tube_indices() const;
+	pair<unsigned, unsigned> get_bow_reserve_indices() const;
+	pair<unsigned, unsigned> get_stern_reserve_indices() const;
+	pair<unsigned, unsigned> get_bow_deckreserve_indices() const;
+	pair<unsigned, unsigned> get_stern_deckreserve_indices() const;
 	unsigned get_location_by_tubenr(unsigned tn) const; // returns 1-6 as location number, 0 if not supported
 
 	// The simulation of acceleration when switching between electro and diesel
 	// engines is done via engine simulation. So the boat "brakes" until
 	// it reaches its submerged speed. This is not correct, because speed decreases
 	// too fast, but it should be satisfying for now. fixme
-	virtual double get_max_speed(void) const;
+	virtual double get_max_speed() const;
 
 	// compute probabilty that sub can be seen (determined by depth, speed,
 	// state: periscope state, snorkeling etc., shape)
 	virtual float surface_visibility(const vector2& watcher) const;
 	virtual float sonar_visibility ( const vector2& watcher ) const;
 	virtual double get_noise_factor () const;
-	virtual unsigned get_trp_primaryrange(void) const { return trp_primaryrange; }
-	virtual unsigned get_trp_secondaryrange(void) const { return trp_secondaryrange; }
-	virtual unsigned get_trp_initialturn(void) const { return trp_initialturn; }
-	virtual unsigned get_trp_searchpattern(void) const { return trp_searchpattern; }
-	virtual angle get_trp_addleadangle(void) const { return trp_addleadangle; }
+	virtual unsigned get_trp_primaryrange() const { return trp_primaryrange; }
+	virtual unsigned get_trp_secondaryrange() const { return trp_secondaryrange; }
+	virtual unsigned get_trp_initialturn() const { return trp_initialturn; }
+	virtual unsigned get_trp_searchpattern() const { return trp_searchpattern; }
+	virtual angle get_trp_addleadangle() const { return trp_addleadangle; }
+	virtual bool get_trp_preheating() const { return trp_preheating; }
+	virtual unsigned get_trp_torpspeed() const { return trp_torpspeed; }
 
-	virtual bool is_scope_up(void) const { return ( scopeup == true ); }
+	virtual bool is_scope_up() const { return ( scopeup == true ); }
 	virtual double get_periscope_depth() const { return periscope_depth; }
 	virtual bool is_submerged () const { return get_depth() > SUBMARINE_SUBMERGED_DEPTH; }
 	virtual double get_max_depth () const { return max_depth; }
-	virtual bool is_electric_engine (void) const { return (electric_engine == true); }
+	virtual bool is_electric_engine () const { return (electric_engine == true); }
 	virtual bool is_snorkel_up () const { return ( snorkelup == true ); }
 	virtual bool has_snorkel () const { return ( hassnorkel == true ); }
 	virtual double get_snorkel_depth () const { return snorkel_depth; }
 	virtual double get_alarm_depth () const { return alarm_depth; }
 	virtual double get_battery_level () const { return battery_level; }
-	virtual const vector<damageable_part>& get_damage_status(void) const { return damageable_parts; }
+	virtual const vector<damageable_part>& get_damage_status() const { return damageable_parts; }
 
 	// get/compute torpedo transfer time and helper functions (uses functions below to compute)
 	virtual double get_torp_transfer_time(unsigned from, unsigned to) const;
-	virtual double get_bow_reload_time(void) const { return torp_transfer_times[0]; }
-	virtual double get_stern_reload_time(void) const { return torp_transfer_times[1]; }
-	virtual double get_bow_deck_reload_time(void) const { return torp_transfer_times[2]; }
-	virtual double get_stern_deck_reload_time(void) const { return torp_transfer_times[3]; }
-	virtual double get_bow_stern_deck_transfer_time(void) const { return torp_transfer_times[4]; }
+	virtual double get_bow_reload_time() const { return torp_transfer_times[0]; }
+	virtual double get_stern_reload_time() const { return torp_transfer_times[1]; }
+	virtual double get_bow_deck_reload_time() const { return torp_transfer_times[2]; }
+	virtual double get_stern_deck_reload_time() const { return torp_transfer_times[3]; }
+	virtual double get_bow_stern_deck_transfer_time() const { return torp_transfer_times[4]; }
 	
 	// give tubenr -1 for any loaded tube, or else 0-5
 	virtual bool can_torpedo_be_launched(int tubenr, sea_object* target, 
@@ -295,22 +299,25 @@ public:
 	virtual void depth_charge_explosion(const class depth_charge& dc);
     
 	// command interface for subs
-	virtual void scope_up(void) { scopeup = true; };	// fixme, do we need these?
-	virtual void scope_down(void) { scopeup = false; };
+	virtual void scope_up() { scopeup = true; };	// fixme, do we need these?
+	virtual void scope_down() { scopeup = false; };
 	virtual void scope_to(double amount) {};	// set scope to "amount" (0-1) of full height, fixme
 	virtual bool set_snorkel_up ( bool snorkel_up );	// fixme get rid of this
-	virtual void snorkel_up ( void ) { set_snorkel_up(true); }
-	virtual void snorkel_down ( void ) { set_snorkel_up(false); }
+	virtual void snorkel_up() { set_snorkel_up(true); }
+	virtual void snorkel_down() { set_snorkel_up(false); }
 	virtual void planes_up(double amount);		// fixme: functions for both dive planes needed?
 	virtual void planes_down(double amount);
-	virtual void planes_middle(void);
+	virtual void planes_middle();
 	virtual void dive_to_depth(unsigned meters);
 	virtual void transfer_torpedo(unsigned from, unsigned to);
+	// fixme: extend these functions with a tube number! 2005/10/09
 	virtual void set_trp_primaryrange(unsigned x) { trp_primaryrange = x; }
 	virtual void set_trp_secondaryrange(unsigned x) { trp_secondaryrange = x; }
 	virtual void set_trp_initialturn(unsigned x) { trp_initialturn = x; }
-	virtual void set_trp_searchpattern(unsigned x) { trp_searchpattern = x; }
+	virtual void set_trp_searchpattern(unsigned x) { trp_searchpattern = x; }//fixme: rename to turnangle
 	virtual void set_trp_addleadangle(angle x) { trp_addleadangle = x; }
+	virtual void set_trp_preheating(bool onoff) { trp_preheating = onoff; }	// true=on
+	virtual void set_trp_torpspeed(unsigned x) { trp_torpspeed = x; }	// 0-2 slow-fast
 	virtual void launch_torpedo(int tubenr, sea_object* target); // give tubenr -1 for any loaded tube, or else 0-5
 	virtual void set_throttle(ship::throttle_status thr);
 	// end of command interface

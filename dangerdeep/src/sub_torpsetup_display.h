@@ -29,6 +29,13 @@ class sub_torpsetup_display : public user_display
 		rotat_tex primaryrangeknob[6];
 		rotat_tex turnangleknob[6];
 		rotat_tex rundepthknob[6];
+		bool is_over(const auto_ptr<texture>& tex, const vector2i& pos,
+			     int mx, int my, int border = 32) const {
+			return (mx >= pos.x - border)
+				&& (my >= pos.y - border)
+				&& (mx < pos.x + tex->get_width() + border)
+				&& (my < pos.y + tex->get_height() + border);
+		}
 		scheme() {}
 	protected:
 		scheme(const scheme& );

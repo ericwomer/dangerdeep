@@ -125,9 +125,17 @@ submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damagea
 
 
 
-submarine::submarine(game& gm_, TiXmlDocument* specfile, const char* topnodename) : ship(gm_, specfile, topnodename),
-	trp_primaryrange(0), trp_secondaryrange(0), trp_initialturn(0), trp_searchpattern(0),
-	trp_addleadangle(0), delayed_dive_to_depth(0), delayed_planes_down(0.0)
+submarine::submarine(game& gm_, TiXmlDocument* specfile, const char* topnodename)
+	: ship(gm_, specfile, topnodename),
+	  trp_primaryrange(0),
+	  trp_secondaryrange(0),
+	  trp_initialturn(0),
+	  trp_searchpattern(0),
+	  trp_addleadangle(0),	
+	  trp_preheating(false),
+	  trp_torpspeed(0),
+	  delayed_dive_to_depth(0),
+	  delayed_planes_down(0.0)
 {
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdsub = hspec.FirstChild(topnodename);
@@ -193,15 +201,37 @@ submarine::~submarine()
 
 
 
-submarine::submarine(game& gm_) : ship(gm_), dive_speed(0.0f), dive_acceleration(0.0f), max_dive_speed(1.0f),
-	max_depth(150.0f), dive_to(0.0f), permanent_dive(false),
-	scopeup(false), periscope_depth(12.0f), hassnorkel (false), snorkel_depth(10.0f),
+// fixme: move value setup to common init function?
+// no, rather not! every value should be storeable in xml.
+// but what about not stored values? should be default ones, so rather make common init!
+submarine::submarine(game& gm_) :
+	ship(gm_),
+	dive_speed(0.0f),
+	dive_acceleration(0.0f),
+	max_dive_speed(1.0f),
+	max_depth(150.0f),
+	dive_to(0.0f),
+	permanent_dive(false),
+	scopeup(false),
+	periscope_depth(12.0f),
+	hassnorkel (false),
+	snorkel_depth(10.0f),
 	snorkelup(false),
-	battery_level ( 1.0f ), battery_value_a ( 0.0f ), battery_value_t ( 1.0f ),
-	battery_recharge_value_a ( 0.0f ), battery_recharge_value_t ( 1.0f ),
+	battery_level ( 1.0f ),
+	battery_value_a ( 0.0f ),
+	battery_value_t ( 1.0f ),
+	battery_recharge_value_a ( 0.0f ),
+	battery_recharge_value_t ( 1.0f ),
 	damageable_parts(nr_of_damageable_parts),
-	trp_primaryrange(0), trp_secondaryrange(0), trp_initialturn(0), trp_searchpattern(0),
-	trp_addleadangle(0), delayed_dive_to_depth(0), delayed_planes_down(0.0)
+	trp_primaryrange(0),
+	trp_secondaryrange(0),
+	trp_initialturn(0),
+	trp_searchpattern(0),
+	trp_addleadangle(0),
+	trp_preheating(false),
+	trp_torpspeed(0),
+	delayed_dive_to_depth(0),
+	delayed_planes_down(0.0)
 {
 	// set all common damageable parts to "no damage"
 	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
@@ -282,6 +312,7 @@ void submarine::load(istream& in)
 	trp_initialturn = read_u8(in);
 	trp_searchpattern = read_u8(in);
 	trp_addleadangle = read_double(in);
+	// fixme: add preheating, torpspeed
 	
 	delayed_dive_to_depth = read_u32(in);
 	delayed_planes_down = read_double(in);
