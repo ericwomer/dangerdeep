@@ -45,8 +45,8 @@ sub_torpsetup_display::sub_torpsetup_display(user_interface& ui_)
 	redlight.torpspeeddial.set("torpsetup_redlight_torpspeed.png", 541, 77, 636, 172); 
 	daylight.turnangledial.set("torpsetup_daylight_turnangle.png", 469, 508, 619, 658);
 	redlight.turnangledial.set("torpsetup_redlight_turnangle.png", 469, 508, 619, 658);
-	daylight.primaryrangedial.set("torpsetup_daylight_primaryrunlength.png", 230, 507, 381, 658);
-	redlight.primaryrangedial.set("torpsetup_redlight_primaryrunlength.png", 230, 507, 381, 658);
+	daylight.primaryrangedial.set("torpsetup_daylight_primaryrunlength.png", 231, 508, 381, 658);
+	redlight.primaryrangedial.set("torpsetup_redlight_primaryrunlength.png", 231, 508, 381, 658);
 	daylight.torpspeed[0].reset(new texture(get_image_dir() + "torpsetup_daylight_speedslow.png"));
 	redlight.torpspeed[0].reset(new texture(get_image_dir() + "torpsetup_redlight_speedslow.png"));
 	daylight.torpspeed[1].reset(new texture(get_image_dir() + "torpsetup_daylight_speedmedium.png"));
