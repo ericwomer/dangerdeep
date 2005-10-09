@@ -1595,6 +1595,24 @@ void model::read_off_file(const string& fn)
 
 // -------------------------------- dftd model file reading -------------------------------------
 
+static string next_part_of_string(const string& s, unsigned& fromwhere)
+{
+	unsigned st = s.find(" ", fromwhere);
+	if (st == string::npos) {
+		string tmp = s.substr(fromwhere);
+		fromwhere = st;
+		return tmp;
+	} else {
+		string tmp = s.substr(fromwhere, st - fromwhere);
+		fromwhere = st + 1;
+		if (fromwhere == s.length())
+			fromwhere = string::npos;
+		return tmp;
+	}
+}
+
+
+
 void model::read_dftd_model_file(const std::string& filename)
 {
 	TiXmlDocument doc(filename);
@@ -1665,10 +1683,19 @@ void model::read_dftd_model_file(const std::string& filename)
 			msh->vertices.reserve(nrverts);
 			TiXmlText* verttext = verts->FirstChild()->ToText();
 			sys().myassert(verttext != 0, string("no vertex data in ")+filename);
-			istringstream issv(verttext->Value());
+			const char* valstr = verttext->Value();
+			if (!valstr)
+				throw error("reading vertices: xml tag text is empty");
+			string values(valstr);
+			unsigned valuepos = 0;
 			for (unsigned i = 0; i < nrverts; ++i) {
 				float x, y, z;
-				issv >> x >> y >> z;
+				string value = next_part_of_string(values, valuepos);
+				x = atof(value.c_str());
+				value = next_part_of_string(values, valuepos);
+				y = atof(value.c_str());
+				value = next_part_of_string(values, valuepos);
+				z = atof(value.c_str());
 				msh->vertices.push_back(vector3f(x, y, z));
 			}
 			// indices
@@ -1692,10 +1719,17 @@ void model::read_dftd_model_file(const std::string& filename)
 				msh->texcoords.reserve(nrverts);
 				TiXmlText* texctext = texcs->FirstChild()->ToText();
 				sys().myassert(texctext != 0, string("no texcoord data in ")+filename);
-				istringstream isst(texctext->Value());
+				const char* valstr = texctext->Value();
+				if (!valstr)
+					throw error("reading texcoords: xml tag text is empty");
+				string values(valstr);
+				unsigned valuepos = 0;
 				for (unsigned i = 0; i < nrverts; ++i) {
 					float x, y;
-					isst >> x >> y;
+					string value = next_part_of_string(values, valuepos);
+					x = atof(value.c_str());
+					value = next_part_of_string(values, valuepos);
+					y = atof(value.c_str());
 					msh->texcoords.push_back(vector2f(x, y));
 				}
 			}
@@ -1706,10 +1740,19 @@ void model::read_dftd_model_file(const std::string& filename)
 				msh->normals.reserve(nrverts);
 				TiXmlText* nrmltext = nrmls->FirstChild()->ToText();
 				sys().myassert(nrmltext != 0, string("no normal data in ")+filename);
-				istringstream issn(nrmltext->Value());
+				const char* valstr = nrmltext->Value();
+				if (!valstr)
+					throw error("reading normals: xml tag text is empty");
+				string values(valstr);
+				unsigned valuepos = 0;
 				for (unsigned i = 0; i < nrverts; ++i) {
 					float x, y, z;
-					issn >> x >> y >> z;
+					string value = next_part_of_string(values, valuepos);
+					x = atof(value.c_str());
+					value = next_part_of_string(values, valuepos);
+					y = atof(value.c_str());
+					value = next_part_of_string(values, valuepos);
+					z = atof(value.c_str());
 					msh->normals.push_back(vector3f(x, y, z));
 				}
 			}
