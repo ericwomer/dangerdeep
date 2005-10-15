@@ -51,9 +51,15 @@ protected:
 	// add flags for FAT/LUT here? maybe make .xml files more generic
 	// e.g. one file for T1 with flags FAT/LUT/influence-impact fuse etc.
 	
-	unsigned primaryrange, secondaryrange;	// meters
-	unsigned initialturn;	// 0/1 left/right
-	unsigned searchpattern;	// 0/1 turn 180 or 90 degrees
+	// configured by the player
+	unsigned primaryrange;	// 1600...3200
+	unsigned secondaryrange;// 800/1600
+	unsigned initialturn;	// 0-1 (left or right, for FAT/LUT)
+	unsigned turnangle;	// (0...180 degrees, for LUT, FAT has 180)
+	unsigned torpspeed;	// torpspeed (0-2 slow-fast, only for G7a torps)
+	double rundepth;	// depth the torpedo should run at
+
+	double temperature;	// only useful for electric torpedoes
 
 	// specific damage here:
 	virtual void create_sensor_array ( types t );
@@ -72,7 +78,7 @@ public:
 	
 	// additional FAT/LUT values as indices (0-16,0-1,0-1,0-1)
 	torpedo(game& gm_, sea_object* parent, types type_, bool usebowtubes, angle headto_,
-		unsigned pr = 0, unsigned sr = 0, unsigned it = 0, unsigned sp = 0);
+		const class tubesetup& stp);
 	virtual void simulate(double delta_time);
 	virtual void display(void) const;
 

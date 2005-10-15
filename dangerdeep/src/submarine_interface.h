@@ -49,12 +49,15 @@ public:
 		nr_of_popups
 	};
 
-private:
+ private:
 	submarine_interface();
 	submarine_interface& operator= (const submarine_interface& other);
 	submarine_interface(const submarine_interface& other);
 
-public:
+ protected:
+	unsigned selected_tube;
+
+ public:
 	submarine_interface(class game& gm);
 	virtual ~submarine_interface();
 
@@ -62,6 +65,8 @@ public:
 
 	virtual void display(void) const;
 	virtual void process_input(const SDL_Event& events);
+	virtual unsigned get_selected_tube() const { return selected_tube; }
+	virtual void select_tube(unsigned nr) { selected_tube = nr; }
 };
 
 #endif

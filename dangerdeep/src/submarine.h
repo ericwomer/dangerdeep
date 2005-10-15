@@ -14,6 +14,22 @@
 
 class game;
 
+// this class must be global so that we can give a reference to the torpedo constructor
+// we can't give a "class submarine::tubesetup&" there.
+struct tubesetup
+{
+	unsigned primaryrange;	// selected option 0-16 (1600 to 3200m, for FAT/LUT)
+	unsigned secondaryrange;// selected option 0-1 (800 or 1600m, for FAT/LUT)
+	unsigned initialturn;	// selected option 0-1 (left or right, for FAT/LUT)
+	unsigned turnangle;	// initial turn angle (0...180 degrees, for LUT, FAT has 180)
+	angle addleadangle;	// additional lead angle for torpedoes
+	bool preheating;	// preheating on? only used for torps in a tube
+	unsigned torpspeed;	// torpspeed (0-2 slow-fast, only for G7a torps)
+	double rundepth;
+	tubesetup() : primaryrange(0), secondaryrange(0), initialturn(0), turnangle(180),
+		      preheating(false), torpspeed(0), rundepth(3.0) {}
+};
+
 class submarine : public ship
 {
  private:
@@ -22,6 +38,7 @@ class submarine : public ship
 	submarine(const submarine& other);
 
  public:
+
  	//fixme: later we have to add control data for each torpedo (gyro angle, fat/lut setup for each
  	//torpedo etc. we could store pointers to class torpedo here instead of "type" to accomplish this)
 	struct stored_torpedo {
@@ -32,13 +49,14 @@ class submarine : public ship
 		double remaining_time;	// remaining time until work is finished
 		stored_torpedo() : type(torpedo::none), status(st_empty), associated(0), remaining_time(0) {}
 		stored_torpedo(torpedo::types t) : type(t), status(st_loaded), associated(0), remaining_time(0) {}
+		// fixme: adapt save code, move it to c++ file
 		stored_torpedo(istream& in) { type = (torpedo::types)(read_u8(in)); status = st_status(read_u8(in)); associated = read_u8(in); remaining_time = read_double(in); }
 		void save(ostream& out) const { write_u8(out, unsigned(type)); write_u8(out, status); write_u8(out, associated); write_double(out, remaining_time); }
 	};
 
 	// submarine parts and their damages
 	// fixme: replace german names by correct translations
-	// lenzpumpe (water pump???)
+	// lenzpumpe (water pump???) drain pump / drainage pump
 	// bilge???
 	// kitchen - kombuese?
 	// balance tank - trimmtank?
@@ -144,6 +162,7 @@ protected:
 	// stored torpedoes (including tubes)
 	// special functions calculate indices for bow/stern tubes etc., see below
 	vector<stored_torpedo> torpedoes;
+	vector<tubesetup> tubesettings;
 	unsigned number_of_tubes_at[6];	// read from spec file
 	unsigned torp_transfer_times[5];// read from spec file
 
@@ -166,14 +185,7 @@ protected:
     
 	vector<damageable_part> damageable_parts;	// read from data/spec file, fixme do that!
 
-	// FAT torpedo programming data
-	unsigned trp_primaryrange;	// selected option 0-16 (1600 to 3200m)
-	unsigned trp_secondaryrange;	// selected option 0-1 (800 or 1600m)
-	unsigned trp_initialturn;	// selected option 0-1 (left or right)
-	unsigned trp_searchpattern;	// selected option 0-1 (turn 180 or 90 deg.) fixme what are historical correct patterns?
-	angle trp_addleadangle;		// additional lead angle for torpedoes
-	bool trp_preheating;		// preheating on?
-	unsigned trp_torpspeed;		// torpspeed (0-2 slow-fast)
+	// fixme: add: double temperature;	// overall temperature in submarine. used for torpedo preheating computation
 
 	int find_stored_torpedo(bool usebow);	// returns index or -1 if none
 
@@ -263,14 +275,7 @@ public:
 	virtual float surface_visibility(const vector2& watcher) const;
 	virtual float sonar_visibility ( const vector2& watcher ) const;
 	virtual double get_noise_factor () const;
-	virtual unsigned get_trp_primaryrange() const { return trp_primaryrange; }
-	virtual unsigned get_trp_secondaryrange() const { return trp_secondaryrange; }
-	virtual unsigned get_trp_initialturn() const { return trp_initialturn; }
-	virtual unsigned get_trp_searchpattern() const { return trp_searchpattern; }
-	virtual angle get_trp_addleadangle() const { return trp_addleadangle; }
-	virtual bool get_trp_preheating() const { return trp_preheating; }
-	virtual unsigned get_trp_torpspeed() const { return trp_torpspeed; }
-
+	virtual const tubesetup& get_tube_setup(unsigned tubenr) const { return tubesettings[tubenr]; }
 	virtual bool is_scope_up() const { return ( scopeup == true ); }
 	virtual double get_periscope_depth() const { return periscope_depth; }
 	virtual bool is_submerged () const { return get_depth() > SUBMARINE_SUBMERGED_DEPTH; }
@@ -310,14 +315,10 @@ public:
 	virtual void planes_middle();
 	virtual void dive_to_depth(unsigned meters);
 	virtual void transfer_torpedo(unsigned from, unsigned to);
-	// fixme: extend these functions with a tube number! 2005/10/09
-	virtual void set_trp_primaryrange(unsigned x) { trp_primaryrange = x; }
-	virtual void set_trp_secondaryrange(unsigned x) { trp_secondaryrange = x; }
-	virtual void set_trp_initialturn(unsigned x) { trp_initialturn = x; }
-	virtual void set_trp_searchpattern(unsigned x) { trp_searchpattern = x; }//fixme: rename to turnangle
-	virtual void set_trp_addleadangle(angle x) { trp_addleadangle = x; }
-	virtual void set_trp_preheating(bool onoff) { trp_preheating = onoff; }	// true=on
-	virtual void set_trp_torpspeed(unsigned x) { trp_torpspeed = x; }	// 0-2 slow-fast
+
+	// set up tube/torp values by accessing this structure
+	virtual tubesetup& tube_setup(unsigned tubenr) { return tubesettings[tubenr]; }
+
 	virtual void launch_torpedo(int tubenr, sea_object* target); // give tubenr -1 for any loaded tube, or else 0-5
 	virtual void set_throttle(ship::throttle_status thr);
 	// end of command interface

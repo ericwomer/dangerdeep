@@ -47,7 +47,7 @@ using namespace std;
 #include "sub_tdc_popup.h"
 
 submarine_interface::submarine_interface(game& gm) : 
-    	user_interface(gm)
+    	user_interface(gm), selected_tube(0)
 {
 	displays.resize(nr_of_displays);
 	displays[display_mode_gauges] = new sub_gauges_display(*this);

@@ -22,7 +22,6 @@ static const int tubeswitchx = 760, tubeswitchy = 492;
 
 sub_tdc_display::sub_tdc_display(user_interface& ui_) : user_display(ui_)
 {
-	selected_tube = 0;
 	selected_mode = 0;
 
 	normallight.background.reset(new image(get_image_dir() + "TDC_daylight_base.jpg|png"));
@@ -98,7 +97,7 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 			// fixme: better make angle switch?
 			unsigned tn = (6 * (mx - tubeswitchx)) / s.tubeswitch[0]->get_width();
 			if (tn < sub->get_nr_of_bow_tubes() + sub->get_nr_of_stern_tubes())
-				selected_tube = tn;
+				dynamic_cast<submarine_interface&>(ui).select_tube(tn);
 		}
 
 /*
@@ -218,6 +217,7 @@ void sub_tdc_display::display(class game& gm) const
 	}
 
 	// tube turn switch
+	unsigned selected_tube = dynamic_cast<const submarine_interface&>(ui).get_selected_tube();
 	s.tubeswitch[selected_tube]->draw(tubeswitchx, tubeswitchy);
 	if (player->is_tube_ready(selected_tube)) {
 		s.firebutton->draw(885, 354);
@@ -281,8 +281,7 @@ void submarine_interface::display_tdc(game& gm)
 	addleadangle->draw(768, 512, 256, 256);
 
 	// Draw lead angle value.
-	double la = player->get_trp_addleadangle().value();
-
+	double la = player->get_trp_setup().addleadangle.value();
 	if ( la > 180.0f )
 		la -= 360.0f;
 

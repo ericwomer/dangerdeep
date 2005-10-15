@@ -7,6 +7,8 @@
 #include "system.h"
 #include "game.h"
 #include "sensors.h"
+#include "submarine.h"
+
 
 
 torpedo::torpedo(game& gm_) : ship(gm_)
@@ -16,13 +18,16 @@ torpedo::torpedo(game& gm_) : ship(gm_)
 
 
 torpedo::torpedo(game& gm_, sea_object* parent, torpedo::types type_, bool usebowtubes, angle headto_,
-	unsigned pr, unsigned sr, unsigned it, unsigned sp) : ship(gm_)
+		 const tubesetup& stp) : ship(gm_), temperature(20.0 /* fixme*/ )
 {
 	type = type_;
-	primaryrange = (pr <= 16) ? 1600+pr*100 : 1600;
-	secondaryrange = (sr & 1) ? 1600 : 800;
-	initialturn = it;
-	searchpattern = sp;
+	primaryrange = (stp.primaryrange <= 16) ? 1600+stp.primaryrange*100 : 1600;
+	secondaryrange = (stp.secondaryrange & 1) ? 1600 : 800;
+	initialturn = stp.initialturn;
+	turnangle = stp.turnangle;
+	torpspeed = stp.torpspeed;
+	rundepth = stp.rundepth;
+
 	position = parent->get_pos();
 	heading = parent->get_heading();
 	if (!usebowtubes) heading += angle(180);
@@ -120,7 +125,7 @@ void torpedo::load(istream& in)
 	primaryrange = read_u16(in);
 	secondaryrange = read_u16(in);
 	initialturn = read_u8(in);
-	searchpattern = read_u8(in);
+	turnangle = read_u8(in);
 }
 
 void torpedo::save(ostream& out) const
@@ -133,7 +138,7 @@ void torpedo::save(ostream& out) const
 	write_u16(out, primaryrange);
 	write_u16(out, secondaryrange);
 	write_u8(out, initialturn);
-	write_u8(out, searchpattern);
+	write_u8(out, turnangle);
 }
 
 void torpedo::simulate(double delta_time)
@@ -166,8 +171,7 @@ void torpedo::simulate(double delta_time)
 
 	//fixme: t5 seems not to work any more
 	if (type == T1FAT || type == T3FAT || type == T6LUT) { // FAT and LUT
-		angle turnang(180);
-		if (type == T6LUT && searchpattern == 1) turnang = (initialturn == 0) ? angle(-90) : angle(90);
+		angle turnang(initialturn == 0 ? -double(turnangle) : double(turnangle));
 		if (old_run_length < primaryrange && run_length >= primaryrange) {
 			head_to_ang(get_heading()+turnang, initialturn == 0);
 		} else if (old_run_length >= primaryrange) {
@@ -175,7 +179,6 @@ void torpedo::simulate(double delta_time)
 			while (primaryrange + phase*secondaryrange < old_run_length) ++phase;
 			double tmp = primaryrange + phase*secondaryrange;
 			if (old_run_length < tmp && run_length >= tmp) {
-				if (type == T6LUT && searchpattern == 1) phase = 0;	// always turn in same direction
 				bool turnsleft = ((initialturn + phase) & 1) == 0;
 				head_to_ang(get_heading() + turnang, turnsleft);
 			}

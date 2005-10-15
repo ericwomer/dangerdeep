@@ -219,6 +219,7 @@ void submarine_interface::display_periscope(game& gm)
 	addleadangle->draw(768, 512, 256, 256);
 
 	// Draw lead angle value.
+	//interface changed, code is obsolete anyway
 	double la = player->get_trp_addleadangle().value();
 
 	if ( la > 180.0f )
@@ -284,7 +285,7 @@ void submarine_interface::display_periscope(game& gm)
 			else if ( lav > 10.0f )
 				lav = 10.0f;
 
-			player->set_trp_addleadangle(lav);
+			player->trp_setup(dynamic_cast<submarine_interface*>(ui)->get_selected_tube()).addleadangle = lav;
 		}
 	}
 

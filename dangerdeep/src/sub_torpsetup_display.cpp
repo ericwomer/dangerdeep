@@ -94,6 +94,7 @@ sub_torpsetup_display::sub_torpsetup_display(user_interface& ui_)
 void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event)
 {
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
+	tubesetup& tbsetup = sub->tube_setup(dynamic_cast<submarine_interface&>(ui).get_selected_tube());
 	bool is_day = gm.is_day_mode();
 	const scheme& s = (is_day) ? daylight : redlight;
 	int mx, my, mb;
@@ -111,17 +112,17 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 			turnknobdrag = TK_RUNDEPTH;
 		} else if (s.is_over(s.firstturn[0], firstturn_pos, mx, my)) {
 			unsigned idx = (mx < firstturn_pos.x + int(s.firstturn[0]->get_width()/2)) ? 0 : 1;
-			sub->set_trp_initialturn(idx);
+			tbsetup.initialturn = idx;
 		} else if (s.is_over(s.secondaryrange[0], secrange_pos, mx, my)) {
 			unsigned idx = (mx < secrange_pos.x + int(s.secondaryrange[0]->get_width()/2)) ? 0 : 1;
-			sub->set_trp_secondaryrange(idx);
+			tbsetup.secondaryrange = idx;
 		} else if (s.is_over(s.preheating[0], preheat_pos, mx, my)) {
 			bool preheat = (my < preheat_pos.y + int(s.preheating[0]->get_height()/2)) ? true : false;
-			sub->set_trp_preheating(preheat);
+			tbsetup.preheating = preheat;
 		} else if (s.is_over(s.torpspeed[0], torpspeed_pos, mx, my)) {
 			int i = (my - torpspeed_pos.y) * 3 / s.torpspeed[0]->get_height();
 			unsigned idx = 2 - unsigned(myclamp(i, int(0), int(2)));
-			sub->set_trp_torpspeed(idx);
+			tbsetup.torpspeed = idx;
 		}
 		break;
 	case SDL_MOUSEMOTION:
@@ -136,20 +137,21 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 				case TK_PRIMARYRANGE:
 					// 0-360 degrees match to 0-16
 					ang = myclamp(ang, 0.0f, 359.0f);
-					sub->set_trp_primaryrange(unsigned(ang*17/360));
+					tbsetup.primaryrange = unsigned(ang*17/360);
 					break;
 				case TK_TURNANGLE:
 					// 0-360 degrees match to 0-180 degrees angle
 					// fixme: currently only 0/1 used!
 					//ang = myclamp(ang, 0.0f, 360.0f);
-					//sub->set_trp_turnangle(ang*180/360);
+					//tbsetup.turnangle = ang*180/360;
 					ang = myclamp(ang, 0.0f, 179.0f);
-					sub->set_trp_searchpattern(unsigned(ang*2/180));
+					// fixme: allow only 90/180 for FAT, any angle for LUT, nothing for other types
+					tbsetup.turnangle = unsigned(ang*2/180)*90+90;
 					break;
 				case TK_RUNDEPTH:
 					// 0-360 degrees match to 0-25m
 					ang = myclamp(ang, 0.0f, 360.0f);
-					//sub->set_trp_rundepth(ang*25/360);
+					tbsetup.rundepth = ang*25/360;
 					break;
 				default:	// can never happen
 					break;
@@ -275,24 +277,27 @@ void sub_torpsetup_display::display(class game& gm) const
 	double torpspeed = myfmod(ctr, 55);//44.0; // knots
 	s.torpspeeddial.draw(-(torpspeed * 330/55.0)); // 55kts = 0deg+x*330deg
 
-	unsigned primaryrangedial = sub->get_trp_primaryrange() * 100;
+	// get tube settings
+	const tubesetup& tbsetup = sub->get_tube_setup(dynamic_cast<const submarine_interface&>(ui).get_selected_tube());
+
+	unsigned primaryrangedial = tbsetup.primaryrange * 100;
 	s.primaryrangedial.draw(primaryrangedial / -5.0f);	// 1 degree = 5meters
 
-	float firstturnangle = (sub->get_trp_searchpattern() == 0) ? 180 : 90;//myfmod(ctr,30)*6;//180;
+	float firstturnangle = tbsetup.turnangle;
 	s.turnangledial.draw(firstturnangle * -1.8f); // 18 degrees = 10 turn degrees
 
 	// draw background
 	s.background->draw(0, 0);
 
 	// draw objects from upper layer: knobs/switches/pointers
-	unsigned torpspeedidx = sub->get_trp_torpspeed();
+	unsigned torpspeedidx = tbsetup.torpspeed;
 	s.torpspeed[torpspeedidx]->draw(torpspeed_pos.x, torpspeed_pos.y);
 
-	s.firstturn[sub->get_trp_initialturn()]->draw(firstturn_pos.x, firstturn_pos.y);
+	s.firstturn[tbsetup.initialturn]->draw(firstturn_pos.x, firstturn_pos.y);
 
-	s.secondaryrange[sub->get_trp_secondaryrange()]->draw(secrange_pos.x, secrange_pos.y);
+	s.secondaryrange[tbsetup.secondaryrange]->draw(secrange_pos.x, secrange_pos.y);
 
-	unsigned preheatingidx = sub->get_trp_preheating() ? 1 : 0;
+	unsigned preheatingidx = tbsetup.preheating ? 1 : 0;
 	s.preheating[preheatingidx]->draw(preheat_pos.x, preheat_pos.y);
 
 	s.primaryrangeknob[unsigned(myfmod(turnknobang[TK_PRIMARYRANGE], 360.0f)/(45.0/TK_PHASES)+0.5)%TK_PHASES].draw(0);

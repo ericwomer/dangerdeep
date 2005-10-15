@@ -127,13 +127,6 @@ submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damagea
 
 submarine::submarine(game& gm_, TiXmlDocument* specfile, const char* topnodename)
 	: ship(gm_, specfile, topnodename),
-	  trp_primaryrange(0),
-	  trp_secondaryrange(0),
-	  trp_initialturn(0),
-	  trp_searchpattern(0),
-	  trp_addleadangle(0),	
-	  trp_preheating(false),
-	  trp_torpspeed(0),
 	  delayed_dive_to_depth(0),
 	  delayed_planes_down(0.0)
 {
@@ -171,6 +164,7 @@ submarine::submarine(game& gm_, TiXmlDocument* specfile, const char* topnodename
 	unsigned nrtrp = 0;
 	for (unsigned i = 0; i < 6; ++i) nrtrp += number_of_tubes_at[i];
 	torpedoes.resize(nrtrp);
+	tubesettings.resize(number_of_tubes_at[0] + number_of_tubes_at[1]);
 	TiXmlElement* etransfertimes = htorpedoes.FirstChildElement("transfertimes").Element();
 	sys().myassert(etransfertimes != 0, string("transfertimes node missing in ")+specfilename);
 	torp_transfer_times[0] = XmlAttribu(etransfertimes, "bow");
@@ -223,19 +217,14 @@ submarine::submarine(game& gm_) :
 	battery_recharge_value_a ( 0.0f ),
 	battery_recharge_value_t ( 1.0f ),
 	damageable_parts(nr_of_damageable_parts),
-	trp_primaryrange(0),
-	trp_secondaryrange(0),
-	trp_initialturn(0),
-	trp_searchpattern(0),
-	trp_addleadangle(0),
-	trp_preheating(false),
-	trp_torpspeed(0),
 	delayed_dive_to_depth(0),
 	delayed_planes_down(0.0)
 {
 	// set all common damageable parts to "no damage"
 	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
 		damageable_parts[i] = damageable_part(0, 0);
+	// will be adjusted later
+	tubesettings.resize(6);
 }
 
 
@@ -307,13 +296,6 @@ void submarine::load(istream& in)
 	for (unsigned s = read_u8(in); s > 0; --s)
 		damageable_parts.push_back(damageable_part(in));
 		
-	trp_primaryrange = read_u8(in);
-	trp_secondaryrange = read_u8(in);
-	trp_initialturn = read_u8(in);
-	trp_searchpattern = read_u8(in);
-	trp_addleadangle = read_double(in);
-	// fixme: add preheating, torpspeed
-	
 	delayed_dive_to_depth = read_u32(in);
 	delayed_planes_down = read_double(in);
 }
@@ -344,12 +326,6 @@ void submarine::save(ostream& out) const
 	for (vector<damageable_part>::const_iterator it = damageable_parts.begin(); it != damageable_parts.end(); ++it) {
 		it->save(out);
 	}
-	
-	write_u8(out, trp_primaryrange);
-	write_u8(out, trp_secondaryrange);
-	write_u8(out, trp_initialturn);
-	write_u8(out, trp_searchpattern);
-	write_double(out, trp_addleadangle.value());
 	
 	write_u32(out, delayed_dive_to_depth);
 	write_double(out, delayed_planes_down);
@@ -829,7 +805,7 @@ bool submarine::can_torpedo_be_launched(int tubenr, sea_object* target,
 	// if tubenr is < 0, choose a tube
 	if (tubenr < 0) {	// check if target is behind
 		angle a = angle(target->get_pos().xy() - get_pos().xy())
-			- get_heading() + trp_addleadangle;
+			- get_heading(); // + trp_addleadangle; // angle setting is per tube!
 		usebowtubes = (a.ui_abs_value180() <= 90.0);
 		// search for a filled tube
 		pair<unsigned, unsigned> idx = usebowtubes ? get_bow_tube_indices() : get_stern_tube_indices();
@@ -862,7 +838,8 @@ bool submarine::can_torpedo_be_launched(int tubenr, sea_object* target,
 
 	// check if torpedo can be fired with that tube, if yes, then fire it
 	pair<angle, bool> launchdata = torpedo::compute_launch_data(
-		torpedoes[tubenr].type, this, target, usebowtubes, trp_addleadangle);	
+		torpedoes[tubenr].type, this, target, usebowtubes,
+		tubesettings[tubenr].addleadangle);	
 	
 	tube_status = torpedoes[tubenr].status;
 	return launchdata.second;
@@ -1025,7 +1002,7 @@ void submarine::launch_torpedo(int tubenr, sea_object* target)
 	// if tubenr is < 0, choose a tube
 	if (tubenr < 0) {	// check if target is behind
 		angle a = angle(target->get_pos().xy() - get_pos().xy())
-			- get_heading() + trp_addleadangle;
+			- get_heading(); // + trp_addleadangle;
 		usebowtubes = (a.ui_abs_value180() <= 90.0);
 		// search for a filled tube
 		pair<unsigned, unsigned> idx = usebowtubes ? get_bow_tube_indices() : get_stern_tube_indices();
@@ -1050,11 +1027,12 @@ void submarine::launch_torpedo(int tubenr, sea_object* target)
 
 	// check if torpedo can be fired with that tube, if yes, then fire it
 	pair<angle, bool> launchdata = torpedo::compute_launch_data(
-		torpedoes[tubenr].type, this, target, usebowtubes, trp_addleadangle);
+		torpedoes[tubenr].type, this, target, usebowtubes,
+		tubesettings[tubenr].addleadangle);
 	if (launchdata.second) {
 		// fixme: primary range seems weird wrong (13mio)!!!! 2004/05/16
 		torpedo* t = new torpedo(gm, this, torpedoes[tubenr].type, usebowtubes, launchdata.first,
-			trp_primaryrange, trp_secondaryrange, trp_initialturn, trp_searchpattern);
+					 tubesettings[tubenr]);
 		gm.spawn_torpedo(t);    // fixme add command
 		torpedoes[tubenr].type = torpedo::none;
 		torpedoes[tubenr].status = stored_torpedo::st_empty;

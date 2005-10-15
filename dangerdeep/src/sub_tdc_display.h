@@ -38,7 +38,6 @@ class sub_tdc_display : public user_display
 
 	scheme normallight, nightlight;
 
-	unsigned selected_tube;	// 0-5
 	unsigned selected_mode;	// 0-1 (automatic on / off)
 
 public:

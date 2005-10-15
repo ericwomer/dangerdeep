@@ -42,7 +42,17 @@ dftd-model
 |     +----transformation ?
 |
 +---light * ?
-
+|
++---objecttree
+    |
+    +----object *
+    |    |
+    |    +----object *
+    |    ...
+    |
+    +----object*
+    |    ...
+    ...
 
 Node: dftd-model
 ================
@@ -119,7 +129,7 @@ Describes a mesh of the model.
 
 Attributes:
 (string) name - mesh name for description.
-(int) id - unique id, not used yet
+(int) id - unique id, used as reference from the object tree.
 (int) material - material id to use for this mesh
 
 Children: vertices, indices (both mandatory), texcoords, normals,
@@ -192,6 +202,52 @@ Attributes:
 (float triple) pos - light position
 (float triple) color - light color
 (float) ambient - amount of ambient of light (0...1)
+
+
+Node: objecttree
+================
+There must be at most one node of this type in the file.
+If there is a node of this type in the file it describes how the
+meshes are rendered. If there is no node of this type, all objects
+are rendered as independent objects. This node has to be defined after
+all mesh nodes.
+Possible subnodes: object
+
+
+Node: object
+============
+Represents an object. Each object can store a transformation in relation
+to its parent. The transformation is defined with subnodes.
+There shall be at most one subnode of type translation or rotation each.
+The child is rendered by firstly applying the translation, then the rotation.
+
+Attributes:
+(int) id - an unique number, used for referencing the object from the outside
+(int) mesh - an id referencing a mesh, that has the 3d data to be rendered
+             for that object. This number is one of the id's given as attribute
+             of a mesh node defined in the ddxml file.
+
+Possible subnodes: object, transformation, rotation
+
+
+Node: transformation
+====================
+Stores a transformation.
+
+Attributes:
+(float triple) vector - x,y,z coordinates of transformation
+
+
+Node: rotation
+==============
+Stores an arbitrary rotation, with minimum and maximum angle.
+
+Attributes:
+(float triple) axis - axis of rotation
+(float) angle - default angle of rotation
+(float) minangle - minimum angle of rotation
+(float) maxangle - maximum angle of rotation
+
 
 
 old documentation, example
@@ -281,3 +337,5 @@ Changes for Version:
      Lights have now an ambient value from 0...1. The higher it is the more
      ambient will be in the scene.
      Shininess of material can be given now.
+
+1.2: added node objecttree
