@@ -3,7 +3,7 @@ import os
 import sys
 
 ################ global config values
-version = '0.0.20'
+version = '0.1.0'
 if ARGUMENTS.get('version', 0):
 	version = ARGUMENTS.get('version', 0)
 
