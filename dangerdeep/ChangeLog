@@ -1,3 +1,388 @@
+2005-10-16 13:17  thjordan
+
+	* SConstruct, debian/DEBIAN/control: prepared for v0.1.0 release
+
+2005-10-16 13:10  thjordan
+
+	* files.txt: update
+
+2005-10-16 13:08  thjordan
+
+	* src/water.cpp: removed silly check that lead to failures in
+	  trapezoid computation
+
+2005-10-16 12:12  thjordan
+
+	* src/: freeview_display.cpp, sea_object.cpp, torpedo.h,
+	  user_interface.cpp, user_interface.h: new simulation of rolling /
+	  ship's orientation for display
+
+2005-10-15 23:36  thjordan
+
+	* files.txt: update
+
+2005-10-15 23:35  thjordan
+
+	* data/: textures/tribal_bump.png, textures/tribal_color.jpg,
+	  textures/tribal_color.png, textures/tribal_specular.jpg,
+	  textures/tribal_specular.png, models/destroyer_tribal.xml:
+	  compressed textures
+
+2005-10-15 22:51  thjordan
+
+	* files.txt: update
+
+2005-10-15 22:27  thjordan
+
+	* data/textures/: tribal.png, tribal_bump.png, tribal_color.png,
+	  tribal_specular.png: added new tribal class destroyer
+
+2005-10-15 22:23  thjordan
+
+	* data/: models/destroyer_tribal.xml, models/destroyer_tribal.3ds,
+	  ships/destroyer_tribal.xml: added new tribal class destroyer
+
+2005-10-15 21:19  thjordan
+
+	* src/: dftdmodel-spec.txt, sub_periscope_display.cpp,
+	  sub_tdc_display.cpp, sub_tdc_display.h,
+	  sub_torpsetup_display.cpp, submarine.cpp, submarine.h,
+	  submarine_interface.cpp, submarine_interface.h, torpedo.cpp,
+	  torpedo.h: torpedo settings are now stored per tube. LUT
+	  simulation uses the angle now
+
+2005-10-12 18:23  simsoueu
+
+	* data/xcf/tribal_specular.png.bz2: Revision 1.1 of tribal
+	  destroyer specular map.
+
+2005-10-12 18:21  simsoueu
+
+	* data/xcf/tribal_color_camouflages.tar.bz2: Tribal destroyer
+	  retouched camouflage for royal navy, and another color map, for
+	  canadian navy (north atlantic escorts).
+
+2005-10-12 18:18  simsoueu
+
+	* data/xcf/torpedo_tags_new.tar.bz2: Torpedo data xml files -
+	  proposal for torpedo data tags for simulation use.
+
+2005-10-12 04:04  simsoueu
+
+	* data/xcf/new_tribal_destroyer.tar.bz2: New tribal destroyer, in
+	  ddxml format, textures (diffuse, color, specular), and xml
+	  description for ship class (smoke origin changed) - rev.1.0.
+
+2005-10-10 22:27  thjordan
+
+	* data/images/: torpsetup_daylight_tempscale.png,
+	  torpsetup_daylight_torpspeed.png,
+	  torpsetup_redlight_tempscale.png,
+	  torpsetup_redlight_torpspeed.png: made graphics brighter
+
+2005-10-09 17:24  thjordan
+
+	* src/model.cpp: fixed bug reading floats from xml
+
+2005-10-09 16:57  simsoueu
+
+	* data/xcf/shots.tar.bz2: test.
+
+2005-10-09 16:56  simsoueu
+
+	* data/xcf/indtsettings_redlight_torpspeed_rev1.6.xcfbz2: Fixed
+	  brightness for torpedo speed dial rev.1.6 - night time version.
+
+2005-10-09 16:55  simsoueu
+
+	* data/xcf/indtsettings_daylight_torpspeed_rev1.6.xcfbz2: Fixed
+	  brightness from torpedo speed dial, rev.1.6. - daylight version.
+
+2005-10-09 15:37  thjordan
+
+	* src/: sub_torpsetup_display.cpp, sub_torpsetup_display.h,
+	  submarine.cpp, submarine.h: preheating and torpspeed knobs are
+	  switchable
+
+2005-10-09 15:34  thjordan
+
+	* data/xcf/forluis.tar.bz2: for luis
+
+2005-10-09 10:49  thjordan
+
+	* data/images/torpsetup_daylight_primaryrunlength.png,
+	  data/images/torpsetup_daylight_turnangle.png,
+	  data/images/torpsetup_redlight_primaryrunlength.png,
+	  data/images/torpsetup_redlight_turnangle.png,
+	  src/sub_torpsetup_display.cpp: new turning dials for torpedo
+	  setup screen
+
+2005-10-08 19:43  thjordan
+
+	* data/models/small_tanker.3ds: reverted to revision 1.1
+
+2005-10-08 18:39  simsoueu
+
+	* data/xcf/moonoverlay_test.xcfbz2: moon overlay modes test,
+	  reference for opengl blend mode (replace GL_SRC_ALPHA
+	  GL_ONE_MINUS_SRC_ALPHA)
+
+2005-10-08 18:34  simsoueu
+
+	* data/xcf/indtsettings_fixeddials_red_rev1.5.xcfbz2: fixed dials
+	  color range for individual torp settings - night time version,
+	  revision 1.5
+
+2005-10-08 18:31  simsoueu
+
+	* data/xcf/indtsettings_dials_rev1.5.xcfbz2: fixed color range for
+	  individual torp settings dials, rev.1.5 - daylight version
+
+2005-10-08 17:13  thjordan
+
+	* src/sub_torpsetup_display.cpp: loaded wrong file for preheat
+	  button
+
+2005-10-08 13:42  thjordan
+
+	* data/textures/turnswitch.png, data/textures/turnswitchbackgr.png,
+	  src/global_data.cpp, src/global_data.h,
+	  src/sub_torpedo_display.cpp, src/sub_torpedo_display.h,
+	  src/sub_torpsetup_display.cpp, src/sub_torpsetup_display.h,
+	  files.txt: removed old torpedo setup, using now new setup screen
+	  with new knobs etc.
+
+2005-10-07 21:30  thjordan
+
+	* files.txt: removed obsolete files
+
+2005-10-07 21:27  thjordan
+
+	* data/:
+	  images/red_controlscreen_rev.0.99_b21_FuseLightsMasked.png,
+	  textures/compass1.png, textures/ctwr7.jpg, textures/metal.png,
+	  textures/mt_indicator.png, textures/sub7.png,
+	  textures/uboatcm2.png, textures/ufinal2.png: removed obsolete
+	  files
+
+2005-10-07 21:01  thjordan
+
+	* data/models/gear.3ds: removed obsolete files
+
+2005-10-07 20:50  thjordan
+
+	* data/models/: conning_tower_typeVIIc.3ds, submarine_VIIc.3ds:
+	  removed obsolete files
+
+2005-10-05 23:31  thjordan
+
+	* data/: textures/cam1940b.jpg, textures/cam1940c.jpg,
+	  textures/cam1940s.jpg, textures/medrei_b.jpg,
+	  textures/medrei_f.jpg, textures/medrei_r.jpg,
+	  ships/freighter_medium.xml, models/medium_freighter.xml: update
+	  to current versions from xcf
+
+2005-10-05 19:40  thjordan
+
+	* src/: game.cpp, game.h, ptrset.h, ptrvector.h, sea_object.h,
+	  ship.cpp: fixed segfault and memory management finally
+
+2005-10-05 09:21  thjordan
+
+	* src/: game.cpp, ptrvector.h, subsim.cpp: bugfixes in ptrvector
+	  and handling, some segfaults still remain
+
+2005-10-05 00:29  thjordan
+
+	* src/: game.cpp, game.h, ptrvector.h: much better particle storage
+	  data type, some other segfault bugs remain
+
+2005-10-05 00:03  simsoueu
+
+	* data/xcf/medium_freighter_rev2.tar.bz2: Rev2.0 medium freighter.
+	  New textures, less bump, more controlled specularity, model scale
+	  is now correct, smoke origin tweaked to match chimney, in xml
+	  description file. Baked color texture now lighter.
+
+2005-10-04 22:22  thjordan
+
+	* src/: game.cpp, game.h, particle.h, ptrvector.h: bugfix with
+	  memory management fix maximum number of particles
+
+2005-10-03 21:00  thjordan
+
+	* SConstruct: bugfix
+
+2005-10-03 20:53  thjordan
+
+	* SConstruct, data/shaders/modelrender_fp.shader,
+	  data/shaders/modelrender_vp.shader, src/model.cpp: added
+	  debugging comments, added efence support in scontruct
+
+2005-10-03 17:59  thjordan
+
+	* data/shaders/modelrender_fp.shader: new ambient computation
+
+2005-10-03 17:14  thjordan
+
+	* SConstruct, data/models/conning_tower_typeVIIc.xml,
+	  data/models/uboat_VIIc.xml, data/textures/bridge_b.jpg,
+	  src/convoy.cpp, src/sea_object.cpp, src/sea_object.h: new
+	  graphics, minor fixes
+
+2005-10-02 19:43  simsoueu
+
+	* data/xcf/new_shader_models_textures.tar.bz2: new models, bridge
+	  UV problem fixed, shader test, using diffuse instead of ambient
+	  scaling in stage 3.1, new diffuse, specular, bump textures.
+
+2005-10-02 17:38  thjordan
+
+	* src/water.cpp: removed debug output
+
+2005-10-02 17:37  thjordan
+
+	* files.txt, makedeb, data/shaders/water_fp.shader,
+	  data/shaders/water_vp.shader, src/game.cpp, src/water.cpp: fixed
+	  water upwelling color in shader
+
+2005-10-01 16:06  thjordan
+
+	* data/models/conning_tower_typeVIIc.xml,
+	  data/models/uboat_VIIc.xml, data/shaders/modelrender_fp.shader,
+	  data/submarines/submarine_VIIc.xml, data/textures/bridge_b.jpg,
+	  data/textures/bridge_c.jpg, data/textures/bridge_s.jpg,
+	  src/freeview_display.cpp, src/global_data.cpp, src/model.h,
+	  src/texture.cpp: new bridge and conning tower
+
+2005-09-30 18:47  simsoueu
+
+	* data/xcf/ddxml_bridge_and_uboat.tar.bz2: new bridge+uboat model
+	  in ddxml format+textures+changed files (xml+global_data.cpp).
+
+2005-09-26 21:06  thjordan
+
+	* src/: water.cpp, water.h, water_sse.cpp, water_sse.h: simplified
+	  calculation leading to more performance in C++ and SSE version,
+	  optimized rounding in SSE version
+
+2005-09-25 12:12  thjordan
+
+	* src/: model.cpp, water.cpp: better, but slower normal
+	  computation. doesnt decrease total fps though
+
+2005-09-25 11:45  thjordan
+
+	* src/: subsim.cpp, water.cpp, water.h, water_sse.cpp, water_sse.h:
+	  made x86 sse switchable by config file, sse detected per cpuid
+
+2005-09-25 11:09  thjordan
+
+	* src/water.cpp: removed debug code
+
+2005-09-25 10:49  thjordan
+
+	* src/water_sse.cpp: removed debug code that causes segfaults
+
+2005-09-25 10:46  thjordan
+
+	* src/water_sse.cpp: made some rounding tests, but kept code
+
+2005-09-24 19:49  thjordan
+
+	* src/water_sse.cpp: added comment
+
+2005-09-24 19:18  thjordan
+
+	* src/: water.cpp, water_sse.cpp: sse code seems to work now
+
+2005-09-24 13:34  thjordan
+
+	* src/user_interface.cpp: accidentally committed test code, now
+	  reverting that
+
+2005-09-24 13:27  thjordan
+
+	* src/: freeview_display.cpp, user_interface.cpp, water.cpp,
+	  water_sse.cpp: sse code now nearly works
+
+2005-09-23 21:17  thjordan
+
+	* SConstruct, src/water_sse.h: now compileable with sse on x86
+
+2005-09-22 12:05  thjordan
+
+	* src/: water.cpp, water_sse.cpp: some bugfixes, but still bugs
+
+2005-09-21 22:13  thjordan
+
+	* src/: freeview_display.cpp, water.cpp, water.h, water_sse.cpp:
+	  initial sse compute_coord version, not complete
+
+2005-09-19 20:15  thjordan
+
+	* src/: subsim.cpp, water.cpp, water.h: water height values
+	  precomputed and stored (again), this time as packed integers,
+	  saving 2/3 of memory. Most wave shape values are now
+	  configureable.
+
+2005-09-17 20:51  thjordan
+
+	* SConstruct, data/textures/ctwr7.jpg, src/freeview_display.cpp,
+	  src/texture.cpp, src/water.cpp: added experimental sse code
+	  (disabled), fixed z-near for new conning tower, new conning tower
+	  model, new texture loading code, that handles SDL's rgb-mask
+	  values (disabled, because its slower and the old memcpy-code
+	  works with jpg and png images)
+
+2005-09-17 12:23  thjordan
+
+	* data/: models/conning_tower_typeVIIc.3ds, textures/ct7c.png,
+	  textures/ctwr7.jpg: new conning tower model
+
+2005-09-16 09:37  simsoueu
+
+	* data/xcf/bridge_test.tar.bz2: 1st test of new bridge model +
+	  texture map.
+
+2005-08-21 19:30  thjordan
+
+	* src/: sub_torpsetup_display.cpp, water.cpp: display primary range
+	  and turn angle
+
+2005-08-21 17:55  thjordan
+
+	* src/: sub_tdc_display.cpp, sub_torpsetup_display.cpp: can input
+	  firstturn and secrange now
+
+2005-08-21 17:31  thjordan
+
+	* debian/DEBIAN/control, src/sub_control_popup.cpp,
+	  src/sub_tdc_popup.cpp, src/sub_torpsetup_display.cpp,
+	  src/sub_torpsetup_display.h, src/user_display.h: turnknobs turn
+	  now
+
+2005-08-21 15:15  thjordan
+
+	* data/images/: popup_TDC_daylight.jpg, popup_TDC_daylight.png,
+	  popup_TDC_redlight.jpg, popup_TDC_redlight.png,
+	  popup_control_daylight.jpg, popup_control_daylight.png,
+	  popup_control_redlight.jpg, popup_control_redlight.png:
+	  functionality to combine jpg/png to RGBA graphics added, replaced
+	  graphic data by matching data (saving 75-80% space).
+
+2005-08-21 14:45  thjordan
+
+	* src/sub_periscope_display.cpp: fix: load new grahics
+
+2005-08-21 13:32  thjordan
+
+	* data/textures/: terrain.jpg: made binary
+
+2005-08-21 13:21  thjordan
+
+	* ChangeLog, files.txt: update
+
 2005-08-21 13:14  thjordan
 
 	* data/images/: TDC_daylight_base.jpg, TDC_daylight_base.png,
