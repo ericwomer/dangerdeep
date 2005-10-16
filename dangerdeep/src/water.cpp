@@ -719,8 +719,14 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 #ifdef DEBUG_TRAPEZOID
 		cout << "onupperline: [[ " << onupperline << " ]]\n";
 #endif
+
+		// fixme: this can lead to false results...
+		// leaving it out is much better than using it.
+		// for what purpose was this test made??
+/*
 		if (onupperline < 2)
 			continue;
+*/
 
 		vector2 deltainvx(delta.x, -delta.y);
 		vector2 deltainvy(delta.y,  delta.x);
