@@ -374,9 +374,47 @@ void user_interface::process_input(list<SDL_Event>& events)
    Waves are disturbing sight but are ignored here.
 */	   
 
-void user_interface::rotate_by_pos_and_wave(const vector3& pos,
-	double rollfac, bool inverse) const
+void user_interface::rotate_by_pos_and_wave(const vector3& pos, angle heading,
+					    float length, float width,
+					    double rollfac, bool inverse) const
 {
+/*
+give heading here. give length of object and width
+compute pos + n*heading.dir, with n in [-length, 0, length] or similar
+and also +- width/2 for sideward rotation.
+angle between xy-plane and vector between +- length/2 and +- width/2 defines
+orientation (multiplied by 0.8 to simulate inertia etc.)
+height of center is added as addition translation (* 0.8 or so).
+
+Later the water height data should move to class game, we should
+use real buoyancy simulation code etc.
+Then this code would get obsolete.
+*/
+	vector2 dir = heading.direction();
+	float hbow = mywater->get_height(pos.xy() + dir * (length * 0.5));
+	float hstern = mywater->get_height(pos.xy() + dir * (length * -0.5));
+	vector2 ortdir = dir.orthogonal();
+	float hleft = mywater->get_height(pos.xy() + ortdir * (width * -0.5));
+	float hright = mywater->get_height(pos.xy() + ortdir * (width * 0.5));
+	float hcenter = mywater->get_height(pos.xy());
+	vector2 vsterntobow(hbow - hstern, length);
+	vector2 vlefttoright(hright - hleft, width);
+	double xang = asin(vsterntobow.x / vsterntobow.length()) * 180 / M_PI;
+//	printf("xang is %f, rollfac %f hbow %f hcenter %f hstern %f\n",xang,rollfac,hbow,hcenter,hstern);
+	double yang = asin(vlefttoright.x / vlefttoright.length()) * 180 / M_PI;
+
+	if (inverse) {
+		glRotatef(-yang * rollfac * 4, 0, 1, 0);
+		glRotatef(-xang * rollfac * 20, 1, 0, 0);
+//		glTranslatef(0, 0, -hcenter * 20 * rollfac);
+	} else {
+		// add height as extra translation
+		glTranslatef(0, 0, hcenter * 20 * rollfac);
+		glRotatef(xang * rollfac * 20, 1, 0, 0);
+		glRotatef(yang * rollfac * 4, 0, 1, 0);
+	}
+#if 0
+	// old code, kept as reference. remove when using real force/torque computation
 	vector3f rz = mywater->get_normal(pos.xy(), rollfac);
 	vector3f rx = vector3f(1, 0, -rz.x).normal();
 	vector3f ry = vector3f(0, 1, -rz.y).normal();
@@ -395,6 +433,7 @@ void user_interface::rotate_by_pos_and_wave(const vector3& pos,
 			0,    0,    0,    1 };
 		glMultMatrixf(&mat[0]);
 	}
+#endif
 }
 
 void user_interface::draw_terrain(const vector3& viewpos, angle dir,

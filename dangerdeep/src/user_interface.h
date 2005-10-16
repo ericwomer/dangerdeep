@@ -125,8 +125,9 @@ public:
 
 	// this rotates the modelview matrix to match the water surface normal
 	// rollfac (0...1) determines how much the ship is influenced by wave movement
-	virtual void rotate_by_pos_and_wave(const vector3& pos,
-		double rollfac = 0.05, bool inverse = false) const;
+	virtual void rotate_by_pos_and_wave(const vector3& pos, angle heading,
+					    float length, float width,
+					    double rollfac = 0.05, bool inverse = false) const;
 
 	virtual sea_object* get_target(void) const { return target; }
 	virtual void set_target(sea_object* tgt) { target = tgt; }

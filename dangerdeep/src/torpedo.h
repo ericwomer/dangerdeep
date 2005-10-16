@@ -46,8 +46,6 @@ protected:
 	types type;
 	bool influencefuse;	// determined by type
 	
-	// bool preheated;	// or percentage of preheation, full = true
-	
 	// add flags for FAT/LUT here? maybe make .xml files more generic
 	// e.g. one file for T1 with flags FAT/LUT/influence-impact fuse etc.
 	

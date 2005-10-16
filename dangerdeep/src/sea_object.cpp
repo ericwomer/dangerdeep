@@ -47,6 +47,55 @@ vector3 sea_object::get_acceleration() const
 
 
 
+/*
+  fixme: later switch to model that uses force and torque.
+  we need an inertia tensor for that model.
+
+  compute torque of sub/ship to simulate moving in the waves:
+
+  compute force at bow/stern/mid/left side/right side or some other important points.
+  like where the trim tanks of subs are.
+
+  the torque is computed as
+
+  M = (r1 - r0) x F1, where F1 is the force acting at point r1, where r0 is center of gravity
+  do r1-r0 is the vector from the object's center to the point where F1 is acting.
+  M is a vector definining axis of rotation (direction of M) and strength of rotation (length of M).
+  To compute total torque, sum all M over i: M_total = Sum_i (r_i - r0) x F_i
+
+  To compute translational forces, just sum up all forces F: F_total = Sum_i F_i.
+
+  Problem: orientation is stored as quaternion, not as three angles.
+  torque changes angular velocity over time, and that changes orientation over time.
+  The axes of torque or angular velocity don't need to be identical!
+  That is the problem.
+  Given torque, angular velocity and orientation as quaternions q_t, q_v and q_r we have
+  q_v' = q_v * (q_t * delta_t)
+  q_r' = q_r * (q_v * delta_t)
+  But computing q * z, where q is a quaternion for rotation (unit quaternion) and z is a number
+  is not that easy. q represents a rotation around an axis x and and angle w.
+  q * z would then be the rotation around the same axis, but with angle w*z.
+  A rotation quaternion for axis x and angle w is given as:
+  (cos(w/2), sin(w/2)*x)
+  Thus q*z would be
+  (cos(w*z/2), sin(w*z/2)*)
+  how to compute that from q? we would need an acos function call, which is very costly...
+  One could also see cos(w/2),sin(w/2) as complex number. It has an absolute value of 1.
+  So multiplying the angle with n would be the same as taking the n'th power of that number.
+  But this computation would also be very costly - it is the same problem as we have here.
+  Alternativly: Represent angular velocity and torque around three fix axes.
+  Store axis and angle for each part, like x/y/z-axis and the three angles.
+  Changing angular velocity by torque is easy then, orientation could still be stored as quaternion.
+
+  Computing orientation forced by the waves:
+  Compute buoyancy on points around the ship. Draught gives weight of displaced water,
+  the difference of the ships weight (or the weight of that part for which the buoyancy
+  is computed) gives a force, that is applied to the ship.
+  Force = mass * acceleration. Acceleration is g, mass is difference between displaced water
+  and the ship's part (is that correct for computation of buoyancy?).
+  
+*/
+
 double sea_object::get_turn_acceleration() const
 {
 	return 0.0;

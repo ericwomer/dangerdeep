@@ -58,7 +58,8 @@ void freeview_display::set_modelview_matrix(game& gm, const vector3& viewpos) co
 	if (aboard) {
 		const sea_object* pl = gm.get_player();
 		double rollfac = (dynamic_cast<const ship*>(pl))->get_roll_factor();
-		ui.rotate_by_pos_and_wave(pl->get_pos(), rollfac, true);
+		ui.rotate_by_pos_and_wave(pl->get_pos(), pl->get_heading(),
+					  pl->get_length(), pl->get_width(), rollfac, true);
 	}
 
 	// set up modelview matrix as if player is at position (0, 0, 0), so do NOT set a translational part.
@@ -170,7 +171,9 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 //		pos.z += EARTH_RADIUS * (sin(M_PI/2 - pos.xy().length()/EARTH_RADIUS) - 1.0);
 		glTranslated(pos.x, pos.y, pos.z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
-		ui.rotate_by_pos_and_wave((*it)->get_pos(), (*it)->get_roll_factor());
+		ui.rotate_by_pos_and_wave((*it)->get_pos(), (*it)->get_heading(),
+					  (*it)->get_length(), (*it)->get_width(),
+					  (*it)->get_roll_factor());
 		(*it)->display();
 
 		glPopMatrix();
@@ -184,7 +187,9 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 		glTranslated(pos.x, pos.y, pos.z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 		if ((*it)->get_pos().z > -15) {
-			ui.rotate_by_pos_and_wave((*it)->get_pos(), (*it)->get_roll_factor());
+			ui.rotate_by_pos_and_wave((*it)->get_pos(), (*it)->get_heading(),
+						  (*it)->get_length(), (*it)->get_width(),
+						  (*it)->get_roll_factor());
 		}
 		(*it)->display();
 		glPopMatrix();
