@@ -48,6 +48,7 @@ if sys.platform == 'win32':
 	env.Append(CCFLAGS = '-Wall -O2') # for mingw!
 	if (usex86sse >= 1):
 		env.Append(CPPDEFINES = ['USE_SSE'])
+		osspecificsrc += ['water_sse.cpp']
 		print 'Using x86 SSE/MMX optimizations.'
 	datadir = './data'
 	build_dir = 'win32'

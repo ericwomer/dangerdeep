@@ -1,17 +1,18 @@
 #!/bin/bash
-VERSION=0.0.19 # fixme get from SConstruct
+VERSION=0.1.0 # fixme get from SConstruct
 TMP=.tmp
 BASEDIR=dangerdeep-$VERSION
 rm -rf $TMP
 mkdir $TMP
 mkdir $TMP/$BASEDIR
-cp dangerdeep-$VERSION.tar.gz $TMP/$BASEDIR
-cd $TMP/$BASEDIR
+cp dangerdeep-$VERSION.tar.gz $TMP
+cd $TMP
 tar zxf dangerdeep-$VERSION.tar.gz
 rm dangerdeep-$VERSION.tar.gz
-cd ../..
+cd ..
 cp build/win32/dangerdeep.exe $TMP/$BASEDIR
 cp dlls/*.dll $TMP/$BASEDIR
+for i in INSTALL LICENSE README CREDITS ChangeLog; do cp $i $TMP/$BASEDIR ; done
 mkdir $TMP/$BASEDIR/config
 echo "Win32 cfg dir" > $TMP/$BASEDIR/config/x
 mkdir $TMP/$BASEDIR/save
