@@ -32,6 +32,13 @@ vector4t<GLfloat> lposition(0,0,0,1);
 
 #define LIGHT_ANG_PER_SEC 30
 
+
+int scalelength(int i)
+{
+	return (i % 50 == 0) ? 5 : ((i % 10 == 0) ? 4 : ((i % 5 == 0) ? 2 : 1));
+}
+
+
 void view_model(const string& modelfilename)
 {
 	model::enable_shaders = true;
@@ -59,6 +66,7 @@ void view_model(const string& modelfilename)
 	// place viewer along positive z-axis
 	vector3 pos(0, 0, sc);
 	bool lightmove = true;
+	bool coordinatesystem = false;
 
 	vector<Uint8> pixels(32*32*3, 64);
 	for (unsigned i = 0; i < 32*32; ++i) { pixels[3*i+2] = (((i/32) + (i % 32)) & 1) * 127 + 128; }
@@ -137,7 +145,74 @@ void view_model(const string& modelfilename)
 		glColor3f(1,1,1);
 		glEnd();
 
+		if (coordinatesystem) {
+			glDisable(GL_LIGHTING);
+			glBegin(GL_LINES);
+			glColor4f(1,0,0,1);
+			vector3f min = mdl->get_min();
+			vector3f max = mdl->get_max();
+			float h = max.z;
+			float w = max.x;
+			glVertex3f(-30, 0, h);
+			glVertex3f(30, 0, h);
+			glVertex3f(-30, 0, -h);
+			glVertex3f(30, 0, -h);
+			for (int i = 0; i <= 30; ++i) {
+				int l = scalelength(i);
+				glVertex3f(i, 0, h);
+				glVertex3f(i, 0, h+l);
+				glVertex3f(-i, 0, h);
+				glVertex3f(-i, 0, h+l);
+				glVertex3f(i, 0, -h);
+				glVertex3f(i, 0, -h+l);
+				glVertex3f(-i, 0, -h);
+				glVertex3f(-i, 0, -h+l);
+			}
+			glColor4f(0,1,0,1);
+			glVertex3f(0, -150, h);
+			glVertex3f(0, 150, h);
+			glVertex3f(0, -150, -h);
+			glVertex3f(0, 150, -h);
+			for (int i = 0; i <= 150; ++i) {
+				int l = scalelength(i);
+				glVertex3f(0, i, h);
+				glVertex3f(0, i, h+l);
+				glVertex3f(0, -i, h);
+				glVertex3f(0, -i, h+l);
+				glVertex3f(0, i, -h);
+				glVertex3f(0, i, -h+l);
+				glVertex3f(0, -i, -h);
+				glVertex3f(0, -i, -h+l);
+			}
+			glColor4f(1,1,0,1);
+			glVertex3f(w, 0, 30);
+			glVertex3f(w, 0, -30);
+			glVertex3f(-w, 0, 30);
+			glVertex3f(-w, 0, -30);
+			for (int i = 0; i <= 30; ++i) {
+				int l = scalelength(i);
+				glVertex3f(w, 0, i);
+				glVertex3f(w+l, 0, i);
+				glVertex3f(w, 0, -i);
+				glVertex3f(w+l, 0, -i);
+				glVertex3f(-w, 0, i);
+				glVertex3f(-w+l, 0, i);
+				glVertex3f(-w, 0, -i);
+				glVertex3f(-w+l, 0, -i);
+			}
+			glEnd();
+			glColor4f(1,1,1,0.5);
+			glEnable(GL_LIGHTING);
+		}
+
+		matrix4 mvp = matrix4::get_gl(GL_PROJECTION_MATRIX) * matrix4::get_gl(GL_MODELVIEW_MATRIX);
 		mdl->display();
+
+		// draw scales if requested
+		if (coordinatesystem) {
+			glColor4f(1,1,1,1);
+		}
+
 		list<SDL_Event> events = mysys->poll_event_queue();
 		for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
 			SDL_Event& event = *it;
@@ -161,6 +236,7 @@ void view_model(const string& modelfilename)
 						mdl->add_mesh(parts.second);
 					}
 					break;
+				case SDLK_c: coordinatesystem = !coordinatesystem; break;
 				default: break;
 				}
 			} else if (event.type == SDL_MOUSEMOTION) {
@@ -196,6 +272,47 @@ void view_model(const string& modelfilename)
 			"\n";
 			
 		font_arial->print(0, 0, os.str());
+
+		// print scale descriptions
+		if (coordinatesystem) {
+			matrix4 xf = matrix4::trans(res_x/2, res_y/2, 0) * matrix4::diagonal(res_x/2, -res_y/2, 1) * mvp;
+			vector3f min = mdl->get_min();
+			vector3f max = mdl->get_max();
+			float h = max.z;
+			float w = max.x;
+			
+			glColor4f(1,0,0,1);
+			for (int i = 0; i <= 30; i += 5) {
+				vector3 a(i, 0, h), b(i, 0, -h);
+				vector2 c = (xf * a).xy();
+				vector2 d = (xf * b).xy();
+				char tmp[20];
+				sprintf(tmp, "%i", i);
+				font_arial->print(c.x, c.y, tmp);
+				font_arial->print(d.x, d.y, tmp);
+			}
+			glColor4f(0,1,0,1);
+			for (int i = 0; i <= 150; i += 5) {
+				vector3 a(0, i, h), b(0, i, -h);
+				vector2 c = (xf * a).xy();
+				vector2 d = (xf * b).xy();
+				char tmp[20];
+				sprintf(tmp, "%i", i);
+				font_arial->print(c.x, c.y, tmp);
+				font_arial->print(d.x, d.y, tmp);
+			}
+			glColor4f(1,1,0,1);
+			for (int i = 0; i <= 30; i += 5) {
+				vector3 a(w, 0, i), b(-w, 0, i);
+				vector2 c = (xf * a).xy();
+				vector2 d = (xf * b).xy();
+				char tmp[20];
+				sprintf(tmp, "%i", i);
+				font_arial->print(c.x, c.y, tmp);
+				font_arial->print(d.x, d.y, tmp);
+			}
+		}
+
 		mysys->unprepare_2d_drawing();
 		mysys->swap_buffers();
 	}
