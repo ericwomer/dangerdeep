@@ -18,6 +18,8 @@ static const int tubelightdy[6] = {617,610,612,612,617,611};
 static const int tubelightnx[6] = { 34,154,276,396,521,647};
 static const int tubelightny[6] = {618,618,618,618,618,618};
 static const int tubeswitchx = 760, tubeswitchy = 492;
+static const int firebuttonx = 885, firebuttony = 354;
+
 
 
 sub_tdc_display::sub_tdc_display(user_interface& ui_) : user_display(ui_)
@@ -79,25 +81,35 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 	const int* tubelighty = (is_day) ? tubelightdy : tubelightny;
 	const scheme& s = (is_day) ? normallight : nightlight;
 	int mx, my;
+	submarine_interface& si = dynamic_cast<submarine_interface&>(ui);
+
 	switch (event.type) {
 	case SDL_MOUSEBUTTONDOWN:
 		mx = event.button.x;
 		my = event.button.y;
 		// check if mouse is over tube indicators
-		for (unsigned i = 0; i < 6; ++i) {
+		unsigned nrtubes = sub->get_nr_of_bow_tubes() + sub->get_nr_of_stern_tubes();
+		for (unsigned i = 0; i < nrtubes; ++i) {
 			if (mx >= tubelightx[i] && my >= tubelighty[i] &&
 			    mx < tubelightx[i] + int(s.tubelight[i]->get_width()) &&
 			    my < tubelighty[i] + int(s.tubelight[i]->get_height())) {
-				dynamic_cast<submarine_interface&>(ui).fire_tube(sub, i);
+				si.select_tube(i);
 			}
 		}
+		// tube selector turnknob
 		if (mx >= tubeswitchx && my >= tubeswitchy &&
 		    mx < tubeswitchx + int(s.tubeswitch[0]->get_width()) &&
 		    my < tubeswitchy + int(s.tubeswitch[0]->get_height())) {
 			// fixme: better make angle switch?
 			unsigned tn = (6 * (mx - tubeswitchx)) / s.tubeswitch[0]->get_width();
-			if (tn < sub->get_nr_of_bow_tubes() + sub->get_nr_of_stern_tubes())
-				dynamic_cast<submarine_interface&>(ui).select_tube(tn);
+			if (tn < nrtubes)
+				si.select_tube(tn);
+		}
+		// fire button
+		if (mx >= firebuttonx && my >= firebuttony &&
+		    mx < firebuttonx + int(s.firebutton->get_width()) &&
+		    my < firebuttony + int(s.firebutton->get_height())) {
+			si.fire_tube(sub, si.get_selected_tube());
 		}
 
 /*
@@ -220,7 +232,7 @@ void sub_tdc_display::display(class game& gm) const
 	unsigned selected_tube = dynamic_cast<const submarine_interface&>(ui).get_selected_tube();
 	s.tubeswitch[selected_tube]->draw(tubeswitchx, tubeswitchy);
 	if (player->is_tube_ready(selected_tube)) {
-		s.firebutton->draw(885, 354);
+		s.firebutton->draw(firebuttonx, firebuttony);
 	}
 
 	// automatic fire solution on / off switch
