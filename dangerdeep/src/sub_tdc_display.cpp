@@ -85,44 +85,45 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 
 	switch (event.type) {
 	case SDL_MOUSEBUTTONDOWN:
-		mx = event.button.x;
-		my = event.button.y;
-		// check if mouse is over tube indicators
-		unsigned nrtubes = sub->get_nr_of_bow_tubes() + sub->get_nr_of_stern_tubes();
-		for (unsigned i = 0; i < nrtubes; ++i) {
-			if (mx >= tubelightx[i] && my >= tubelighty[i] &&
-			    mx < tubelightx[i] + int(s.tubelight[i]->get_width()) &&
-			    my < tubelighty[i] + int(s.tubelight[i]->get_height())) {
-				si.select_tube(i);
+		{
+			mx = event.button.x;
+			my = event.button.y;
+			// check if mouse is over tube indicators
+			unsigned nrtubes = sub->get_nr_of_bow_tubes() + sub->get_nr_of_stern_tubes();
+			for (unsigned i = 0; i < nrtubes; ++i) {
+				if (mx >= tubelightx[i] && my >= tubelighty[i] &&
+				    mx < tubelightx[i] + int(s.tubelight[i]->get_width()) &&
+				    my < tubelighty[i] + int(s.tubelight[i]->get_height())) {
+					si.select_tube(i);
+				}
 			}
-		}
-		// tube selector turnknob
-		if (mx >= tubeswitchx && my >= tubeswitchy &&
-		    mx < tubeswitchx + int(s.tubeswitch[0]->get_width()) &&
-		    my < tubeswitchy + int(s.tubeswitch[0]->get_height())) {
-			// fixme: better make angle switch?
-			unsigned tn = (6 * (mx - tubeswitchx)) / s.tubeswitch[0]->get_width();
-			if (tn < nrtubes)
-				si.select_tube(tn);
-		}
-		// fire button
-		if (mx >= firebuttonx && my >= firebuttony &&
-		    mx < firebuttonx + int(s.firebutton->get_width()) &&
-		    my < firebuttony + int(s.firebutton->get_height())) {
-			si.fire_tube(sub, si.get_selected_tube());
-		}
+			// tube selector turnknob
+			if (mx >= tubeswitchx && my >= tubeswitchy &&
+			    mx < tubeswitchx + int(s.tubeswitch[0]->get_width()) &&
+			    my < tubeswitchy + int(s.tubeswitch[0]->get_height())) {
+				// fixme: better make angle switch?
+				unsigned tn = (6 * (mx - tubeswitchx)) / s.tubeswitch[0]->get_width();
+				if (tn < nrtubes)
+					si.select_tube(tn);
+			}
+			// fire button
+			if (mx >= firebuttonx && my >= firebuttony &&
+			    mx < firebuttonx + int(s.firebutton->get_width()) &&
+			    my < firebuttony + int(s.firebutton->get_height())) {
+				si.fire_tube(sub, si.get_selected_tube());
+			}
 
-/*
-		//if mouse is over control c, compute angle a, set matching command, fixme
-		if (indicators[compass].is_over(mx, my)) {
+			/*
+			//if mouse is over control c, compute angle a, set matching command, fixme
+			if (indicators[compass].is_over(mx, my)) {
 			angle mang = angle(180)-indicators[compass].get_angle(mx, my);
 			sub->head_to_ang(mang, mang.is_cw_nearer(sub->get_heading()));
-		} else if (indicators[depth].is_over(mx, my)) {
+			} else if (indicators[depth].is_over(mx, my)) {
 			angle mang = angle(-39) - indicators[depth].get_angle(mx, my);
 			if (mang.value() < 270) {
-				sub->dive_to_depth(unsigned(mang.value()));
+			sub->dive_to_depth(unsigned(mang.value()));
 			}
-		} else if (indicators[mt].is_over(mx, my)) {
+			} else if (indicators[mt].is_over(mx, my)) {
 			unsigned opt = (indicators[mt].get_angle(mx, my) - angle(210)).value() / 20;
 			if (opt >= 15) opt = 14;
 			switch (opt) {
@@ -141,11 +142,12 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 			case 8: // electric engines
 			case 9: // surface
 			case 10:// dive
-				break;
+			break;
 			}
+			}
+			*/
+			break;
 		}
-*/
-		break;
 	default:
 		break;
 	}
