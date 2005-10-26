@@ -306,7 +306,7 @@ void sub_torpsetup_display::display(class game& gm) const
 
 	s.rundepthknob[unsigned(myfmod(turnknobang[TK_RUNDEPTH], 360.0f)/(45.0/TK_PHASES)+0.5)%TK_PHASES].draw(0);
 
-	double rundepth = myfmod(ctr,25);//10.0;	// meters
+	double rundepth = tbsetup.rundepth;	// meters
 	s.rundepthptr.draw(rundepth * 300/25.0 + 30); // 25m = 30deg+x*300deg
 
 	double secondaryrange = myfmod(ctr,32)*50;//800.0; // meters

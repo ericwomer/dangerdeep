@@ -211,6 +211,10 @@ protected:
 
 	unsigned int delayed_dive_to_depth;
 	double delayed_planes_down;
+
+	// in-hull temperature, depends on weather/latitude etc.
+	// torpedo-temperature is set from this value for stored torpedoes (not in tubes)
+	//double temperature;//maybe store for each torpedo and not here...
 	
 public:
 	// there were more types, I, X (mine layer), XIV (milk cow), VIIf, (and VIId)
