@@ -115,14 +115,15 @@ void tdc::set_target_distance(double ms)
 void tdc::set_bearing(angle br)
 {
 	bearing = br;
-	// Angle on the Bow is now invalid
+	// Angle on the Bow is now invalid, because bearing has changed.
+	// The tracker can correct it though.
 }
 
 
 
 void tdc::compute_aob(angle br)
 {
-	angle reverse_bearing = angle(180) - br;
+	angle reverse_bearing = angle(180) + br;
 	if (target_course.is_cw_nearer(reverse_bearing)) {
 		angleonthebow = reverse_bearing - target_course;
 		target_bow_is_left = false;
@@ -172,5 +173,10 @@ void tdc::set_additional_leadangle(angle ala)
 
 angle tdc::get_target_course() const
 {
-	return angle(180) - angleonthebow - bearing_dial;
+	angle reverse_bearing = angle(180) + bearing_dial;
+	if (target_bow_is_left) {
+		return reverse_bearing + angleonthebow;
+	} else {
+		return reverse_bearing - angleonthebow;
+	}
 }

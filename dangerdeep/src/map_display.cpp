@@ -527,6 +527,7 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 				}
 			}
 
+			player->set_target(target);
 			ui.set_target(target);
 #else
 			// move nearest cv point

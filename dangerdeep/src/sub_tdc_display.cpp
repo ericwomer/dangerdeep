@@ -184,11 +184,15 @@ void sub_tdc_display::display(class game& gm) const
 	float quality = 0.333f; // per cent, fixme, request from sub! depends on crew
 	s.firesolutionquality->draw(926, 50+int(288*quality+0.5f));
 
-	// draw background
-	s.background->draw(0, 0);
-
 	// get TDC data for display
 	const tdc& TDC = player->get_tdc();
+
+	// draw torpedo speed dial (15deg = 0, 5knots = 30deg)
+	// torpedo speed (depends on selected tube!), but TDC is already set accordingly
+	s.torpspeed.draw(sea_object::ms2kts(TDC.get_torpedo_speed()) * 330/55 + 15);
+
+	// draw background
+	s.background->draw(0, 0);
 
 	// draw gyro pointers
 	angle leadangle = TDC.get_lead_angle();
@@ -202,25 +206,14 @@ void sub_tdc_display::display(class game& gm) const
 	s.clocksml.draw(hourang);
 	s.clockbig.draw(minuteang);
 
-	// torpedo speed (depends on selected tube!), fixme
-	// 512,116, 585,188
-
 	// target values (influenced by quality!)
 	// get pointer to target and values, fixme!!! replace by requests of tdc and not selected target!!!
-	sea_object* target = ui.get_target();
-	double tgtcourse = 0, tgtpos = 0, tgtrange = 0, tgtspeed = 0;
-	if (target) {
-		vector2 tgtxy = target->get_pos().xy();
-		vector2 plyxy = player->get_pos().xy();
-		vector2 delta = tgtxy - plyxy;
-		tgtcourse = TDC.get_target_course().value();
-		tgtpos = (angle(delta) - player->get_heading()).value();
-		tgtrange = delta.length();
-		tgtspeed = sea_object::ms2kts(target->get_speed());
-	}
+	double tgtcourse = TDC.get_target_course().value();
+	double tgtbearing = (TDC.get_bearing() - player->get_heading()).value();
+	double tgtrange = std::min(TDC.get_target_distance(), 11000.0);	// clamp displayed value
+	double tgtspeed = sea_object::ms2kts(TDC.get_target_speed());
 	s.targetcourse.draw(tgtcourse);
-	s.targetpos.draw(tgtpos);
-	if (tgtrange > 11000) tgtrange = 11000; // clamp display
+	s.targetpos.draw(tgtbearing);
 	s.targetrange.draw(tgtrange * 360 / 12000 + 15);
 	s.targetspeed.draw(15+tgtspeed*30/5);
 

@@ -328,7 +328,7 @@ string sea_object::get_description(unsigned detail) const
 void sea_object::simulate(double delta_time)
 {
 	// check target. heirs should check for "out of range" condition too
-	if (target && !target->is_active())
+	if (target && !target->is_alive())
 		target = 0;
 
 	// check and change states

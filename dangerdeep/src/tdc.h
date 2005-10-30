@@ -33,7 +33,7 @@ protected:
 	double torpedo_runlength;	// meters
 
 	// data about the sub
-	angle bearing;			// initially set by crew, updated by tracker
+	angle bearing;			// initially set by crew, updated by tracker, absolute angle
 	angle bearing_dial;		// dial angle, the dial follows the real value with only 2.5deg/sec
 	angle heading;			// heading of sub, update this to make the bearing tracker work
 	angle additional_leadangle;	// set by the crew, compensation for turning or for spread fire
@@ -66,7 +66,11 @@ public:
 	bool solution_valid() const { return valid_solution; }
 	angle get_lead_angle() const { return lead_angle; }
 	angle get_bearing() const { return bearing_dial; }
+	angle get_angle_on_the_bow() const { return angleonthebow; }
 	angle get_target_course() const;	// computed from current Angle on the Bow
+	double get_target_distance() const { return target_distance; }
+	double get_target_speed() const { return target_speed; }
+	double get_torpedo_speed() const { return torpedo_speed; }
 	double get_torpedo_runtime() const { return torpedo_runtime; }
 	angle get_additional_leadangle() const { return additional_leadangle; }
 };

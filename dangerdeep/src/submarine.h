@@ -245,7 +245,9 @@ public:
 	virtual void parse_attributes(class TiXmlElement* parent);
 
 	virtual void simulate(double delta_time);
-	
+
+	void set_target(sea_object* s);
+
 	// fill available tubes with common types depending on time period (used for custom missions)
 	virtual void init_fill_torpedo_tubes(const class date& d);
 
