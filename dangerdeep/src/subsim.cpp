@@ -36,6 +36,7 @@
 #include "cfg.h"
 #include "tinyxml/tinyxml.h"
 #include "keys.h"
+#include "music.h"
 
 #include "mymain.cpp"
 
@@ -45,6 +46,8 @@ int res_x, res_y;
 highscorelist hsl_mission, hsl_career;
 #define HSL_MISSION_NAME "mission.hsc"
 #define HSL_CAREER_NAME "career.hsc"
+
+auto_ptr<music> mmusic;
 
 // a dirty hack
 void menu_notimplemented(void)
@@ -253,6 +256,12 @@ void show_halloffame(const highscorelist& hsl)
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 	hsl.show(&w);
 	w.run(0, false);
+	if( mmusic->status()==music::paused && mmusic->_current()==0 )
+	  mmusic->resume();
+	else if( mmusic->status()!=music::playing || mmusic->_current()!=0 ){
+	  mmusic->_fade_out(500);
+	  mmusic->_play(0);
+	}
 }
 void show_halloffame_mission(void) { show_halloffame(hsl_mission); }
 void show_halloffame_career(void) { show_halloffame(hsl_career); }
@@ -404,6 +413,7 @@ void show_credits(void)
 //
 void run_game(game* gm)
 {
+        mmusic->fade_out();
 	widget::theme* gametheme =
 		new widget::theme("widgetelements_game.png", "widgeticons_game.png",
 		font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64));
@@ -421,6 +431,12 @@ void run_game(game* gm)
 //			if (state == game::mission_complete)
 
 			if (state == game::player_killed) {
+			  if( mmusic->status()==music::paused && mmusic->_current()==1 )
+			    mmusic->resume();
+			  else if( mmusic->status()!=music::playing || mmusic->_current()!=1 ){
+			    mmusic->_fade_out(500);
+			    mmusic->_play(1);
+			  }
 				widget w(0, 0, 1024, 768, "", 0, killedimg);
 				widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(103));
 				w.add_child(wm);
@@ -437,6 +453,10 @@ void run_game(game* gm)
 			//if (q == 1)
 				break;
 		} else {
+		        if( mmusic->status()==music::paused && mmusic->_current()==1 )
+			  mmusic->resume();
+			else if( mmusic->status()!=music::playing || mmusic->current()!=1)
+			  mmusic->_play(1);
 			loadsavequit_dialogue dlg(gm);
 			int q = dlg.run(0, false);
 			// replace game and ui if new game was loaded
@@ -452,8 +472,18 @@ void run_game(game* gm)
 				ui = user_interface::create(*gm);
 			}
 			//replace ui after loading!!!!
-			if (q == 1)
-				break;
+			if (q == 1){
+			  if( mmusic->status()==music::paused && mmusic->_current()==1 ){
+			    mmusic->resume();
+			  } else if( mmusic->status()!=music::playing || mmusic->_current()!=1 ){
+			    mmusic->_fade_out(500);
+			    mmusic->_play(1);
+			  }
+			  break;
+			}
+			if( q == 0 ){
+			  mmusic->_fade_out(1000);
+			}
 		}
 		//SDL_ShowCursor(SDL_DISABLE);
 	}
@@ -1344,9 +1374,15 @@ int mymain(list<string>& args)
 	
 	reset_loading_screen();
 	init_global_data();
+
+	if( sound::use_sound ){
+	  mmusic = auto_ptr<music>( new music(get_sound_dir()) );
+	  add_loading_screen("Music list loaded");
+	  mmusic->_play(0);
+	}
 	
 	widget::set_theme(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
-		font_times, color(255, 204, 0), color(255, 64, 64), color(64,64,32)));
+		font_olympiaworn, color(182, 146, 137), color(222, 208, 195), color(92, 72 ,68)));
 
 	mysys->draw_console_with(font_arial, background);
 
@@ -1417,6 +1453,9 @@ int mymain(list<string>& args)
 				menu_select_language();
 		} while (retval != 0);
 	}
+
+	mmusic->fade_out(2000);
+	mmusic.reset();
 
 	// deinit sound
 	sound::deinit();
