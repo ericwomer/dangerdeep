@@ -43,7 +43,7 @@ protected:
 	bool bearing_is_relative;	// bearing means angle relative to course or absolute? (default = true)
 
 	// fixme: keep this, common data else: panel, sky, water, coastmap
-	sea_object* target;
+	sea_object* target; // fixme: stored in player now, so remove this
 
 	// which display is active
 	mutable unsigned current_display;

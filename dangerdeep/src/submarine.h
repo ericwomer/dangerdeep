@@ -7,6 +7,7 @@
 #include "ship.h"
 #include "torpedo.h"
 #include "binstream.h"
+#include "tdc.h"
 #include <vector>
 
 //fixme: this is very ugly. replace this asap.
@@ -22,7 +23,7 @@ struct tubesetup
 	unsigned secondaryrange;// selected option 0-1 (800 or 1600m, for FAT/LUT)
 	unsigned initialturn;	// selected option 0-1 (left or right, for FAT/LUT)
 	unsigned turnangle;	// initial turn angle (0...180 degrees, for LUT, FAT has 180)
-	angle addleadangle;	// additional lead angle for torpedoes
+	angle addleadangle;	// additional lead angle for torpedoes, fixme: replace by lead angle reported from TDC
 	bool preheating;	// preheating on? only used for torps in a tube
 	unsigned torpspeed;	// torpspeed (0-2 slow-fast, only for G7a torps)
 	double rundepth;
@@ -215,6 +216,8 @@ protected:
 	// in-hull temperature, depends on weather/latitude etc.
 	// torpedo-temperature is set from this value for stored torpedoes (not in tubes)
 	//double temperature;//maybe store for each torpedo and not here...
+
+	tdc TDC;
 	
 public:
 	// there were more types, I, X (mine layer), XIV (milk cow), VIIf, (and VIId)
@@ -331,6 +334,9 @@ public:
 	
 	virtual void start_throttle_sound();
 	virtual void stop_throttle_sound();
+
+	virtual tdc& get_tdc() { return TDC; }
+	virtual const tdc& get_tdc() const { return TDC; }
 };
 
 #endif

@@ -241,6 +241,11 @@ void submarine_interface::process_input(const SDL_Event& event)
 		} else if (mycfg.getkey(KEY_FIRE_TUBE_6).equal(event.key.keysym)) {
 			fire_tube(player, 5);
 		} else if (mycfg.getkey(KEY_SELECT_TARGET).equal(event.key.keysym)) {
+			sea_object* tgt = mygame->contact_in_direction(player, get_absolute_bearing());
+			player->set_target(tgt);
+			// set initial tdc values
+			//player->setup_tdc(tgt);
+
 			target = mygame->contact_in_direction(player, get_absolute_bearing());
 			if (target) {
 				add_message(texts::get(50));

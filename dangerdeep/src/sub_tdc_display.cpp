@@ -181,19 +181,23 @@ void sub_tdc_display::display(class game& gm) const
 	const scheme& s = (is_day) ? normallight : nightlight;
 
 	// draw background pointers/dials: firesolutionquality
-	float quality = 0.333f; // per cent, fixme
+	float quality = 0.333f; // per cent, fixme, request from sub! depends on crew
 	s.firesolutionquality->draw(926, 50+int(288*quality+0.5f));
 
 	// draw background
 	s.background->draw(0, 0);
 
-	// draw gyro pointers
-	s.gyro360.draw(33/*fixme*/);
-	s.gyro10.draw(33/*fixme*/);
+	// get TDC data for display
+	const tdc& TDC = player->get_tdc();
 
-	// clock (torpedo run time), fixme: use real time as test
-	double t = gm.get_time();
-	double hourang = 360.0*myfrac(t / (86400/2));
+	// draw gyro pointers
+	angle leadangle = TDC.get_lead_angle();
+	s.gyro360.draw(leadangle.value());
+	s.gyro10.draw(myfmod(leadangle.value(), 10.0) * 360.0);
+
+	// clock (torpedo run time)
+	double t = TDC.get_torpedo_runtime();
+	double hourang = 360.0*myfrac(t / (86400/2)); // fixme: maybe use as seconds indicator
 	double minuteang = 360*myfrac(t / 3600);
 	s.clocksml.draw(hourang);
 	s.clockbig.draw(minuteang);
@@ -202,14 +206,14 @@ void sub_tdc_display::display(class game& gm) const
 	// 512,116, 585,188
 
 	// target values (influenced by quality!)
-	// get pointer to target and values
+	// get pointer to target and values, fixme!!! replace by requests of tdc and not selected target!!!
 	sea_object* target = ui.get_target();
 	double tgtcourse = 0, tgtpos = 0, tgtrange = 0, tgtspeed = 0;
 	if (target) {
 		vector2 tgtxy = target->get_pos().xy();
 		vector2 plyxy = player->get_pos().xy();
 		vector2 delta = tgtxy - plyxy;
-		tgtcourse = target->get_heading().value();
+		tgtcourse = TDC.get_target_course().value();
 		tgtpos = (angle(delta) - player->get_heading()).value();
 		tgtrange = delta.length();
 		tgtspeed = sea_object::ms2kts(target->get_speed());
@@ -221,7 +225,7 @@ void sub_tdc_display::display(class game& gm) const
 	s.targetspeed.draw(15+tgtspeed*30/5);
 
 	// spread angle
-	s.spreadangle.draw(77/*fixme*/);
+	s.spreadangle.draw(TDC.get_additional_leadangle().value());
 
 	// draw tubes if ready
 	for (unsigned i = 0; i < 6; ++i) {
@@ -233,7 +237,7 @@ void sub_tdc_display::display(class game& gm) const
 	// tube turn switch
 	unsigned selected_tube = dynamic_cast<const submarine_interface&>(ui).get_selected_tube();
 	s.tubeswitch[selected_tube]->draw(tubeswitchx, tubeswitchy);
-	if (player->is_tube_ready(selected_tube)) {
+	if (player->is_tube_ready(selected_tube) && TDC.solution_valid()) {
 		s.firebutton->draw(firebuttonx, firebuttony);
 	}
 

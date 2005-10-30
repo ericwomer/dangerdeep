@@ -415,6 +415,9 @@ void submarine::simulate(double delta_time)
 		
 	if (-position.z > max_depth)
 		kill();
+
+	// simulate the TDC
+	TDC.simulate(delta_time);
 		
 	// torpedo transfer
 	for (unsigned i = 0; i < torpedoes.size(); ++i) {

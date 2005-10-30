@@ -105,7 +105,7 @@ double sea_object::get_turn_acceleration() const
 
 sea_object::sea_object(game& gm_) :
 	gm(gm_),
-	turn_velocity(0), heading(0), alive_stat(alive), myai(0)
+	turn_velocity(0), heading(0), alive_stat(alive), myai(0), target(0)
 {
 	sensors.resize ( last_sensor_system );
 }
@@ -137,7 +137,7 @@ double sea_object::get_cross_section ( const vector2& d ) const
 
 
 sea_object::sea_object(game& gm_, TiXmlDocument* specfile, const char* topnodename) :
-	gm(gm_), turn_velocity(0), heading(0), alive_stat(alive), myai(0)
+	gm(gm_), turn_velocity(0), heading(0), alive_stat(alive), myai(0), target(0)
 {
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdobj = hspec.FirstChild(topnodename);
@@ -327,6 +327,10 @@ string sea_object::get_description(unsigned detail) const
 
 void sea_object::simulate(double delta_time)
 {
+	// check target. heirs should check for "out of range" condition too
+	if (target && !target->is_active())
+		target = 0;
+
 	// check and change states
         if (is_defunct()) {
                 return;

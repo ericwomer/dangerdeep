@@ -119,6 +119,10 @@ protected:
 
 	class ai* myai;
 
+	// pointer to target or similar object.
+	// used by airplanes/ships/submarines to store a reference to their target
+	// automatically set to NULL by simulate() if target is inactive.
+	sea_object* target;
 
 	virtual void set_sensor ( sensor_system ss, sensor* s );
 
@@ -154,6 +158,8 @@ public:
 	// the strength is proportional to damage_status, 0-none, 1-light, 2-medium...
 	virtual bool damage(const vector3& fromwhere, unsigned strength); // returns true if object was destroyed
 
+	virtual void set_target(sea_object* s) { if (s && s->is_alive()) target = s; }
+
 	virtual unsigned calc_damage() const;	// returns damage in percent (100 means dead)
 	virtual void set_inactive();
 	virtual void kill();
@@ -177,6 +183,7 @@ public:
 	virtual float surface_visibility(const vector2& watcher) const;
 	virtual angle get_heading() const { return heading; }
 	virtual class ai* get_ai() { return myai; }
+	virtual const sea_object* get_target() const { return target; }
 
 	/**
 		Noise modification for submarines. Submarines are using diesel engines
