@@ -37,6 +37,7 @@ class music
  public:
 
   enum{ stopped, playing, paused };
+  enum{ normal=0, loop=-1 };
 
   static bool use_music;
 
@@ -51,7 +52,7 @@ class music
   void load_musiclist(const string& filename);  // will be used if we desire loading files dynamically
   void unload_musiclist();
 
-  void _play(int music);
+  void _play(int music,int mode=loop);
   void stop();
   void pause();
   void resume();
@@ -73,8 +74,9 @@ class music
   void set_fade_time(int timeout){ fade_time = timeout; }
   void shuffle_mode(bool onoff) { shuffle = onoff; }
 
+  void set_playlist(vector<int>& plist);
   void load_playlist(const string& filename);
-  void unload_playlist();
+  void clear_playlist();
   int playlist_size(){ return playlist.size(); }
 };
 

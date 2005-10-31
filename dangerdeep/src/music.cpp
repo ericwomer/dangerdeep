@@ -35,7 +35,7 @@ void music::load_musiclist()
    const char* files[] = { "ImInTheMood.ogg" , "Betty_Roche-Trouble_Trouble.ogg" };
    int numfiles = 2;
 
-   for( int i=0; i<numfiles; i++ ){
+   for( int i=0; i<numfiles; ++i ){
      load( dir + string(files[i]) );
    }
 }
@@ -50,10 +50,10 @@ void music::unload_musiclist()
   }
   
   vector<Mix_Music *>::iterator it;
-  for( it=musiclist.end(); it!=musiclist.end(); it-- ){
+  for( it=musiclist.begin(); it!=musiclist.end(); ++it ){
     Mix_FreeMusic( *it );
-    musiclist.pop_back();
-  }  
+  }
+  musiclist.clear();
 }
 
 music::music() : ml_item(0), pl_item(0), fade_time(2000), pl_mode(false), shuffle(false), dir("")
@@ -90,7 +90,7 @@ int music::next_in_list()
   }
 }
 
-void music::_play(int music)
+void music::_play(int music,int mode)
 {
   if( musiclist.size()<1 ) return;
 
@@ -98,7 +98,7 @@ void music::_play(int music)
 
   if( !use_music || !musiclist[which] ) return;
 
-  if( Mix_PlayMusic( musiclist[which], 0 )==-1 ){
+  if( Mix_PlayMusic( musiclist[which], mode )==-1 ){
     ostringstream oss;
     oss << "Unable to play Music file: " << Mix_GetError();
     sys().add_console(oss.str());
