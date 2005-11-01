@@ -12,13 +12,20 @@ class sub_uzo_display : public freeview_display
 	projection_data get_projection_data(class game& gm) const;
 	void post_display(class game& gm) const;
 
-	class texture* uzotex;
+	texture::ptr uzotex;
+	texture::ptr daycompass;
+	texture::ptr nightcompass;
+
+	int comp_size;
+	int xi;
+	int yi;
+	int dx;
 
 	bool zoomed;	// use 1,5x (false) or 6x (true) zoom
 
 public:
 	sub_uzo_display(class user_interface& ui_);
-	virtual ~sub_uzo_display();
+	virtual ~sub_uzo_display(){};
 
 	//overload for zoom key handling ('y')
 	virtual void process_input(class game& gm, const SDL_Event& event);

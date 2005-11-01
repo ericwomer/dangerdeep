@@ -24,9 +24,9 @@ freeview_display::projection_data sub_uzo_display::get_projection_data(class gam
 {
 	projection_data pd;
 	pd.x = 0;
-	pd.y = sys().get_res_y() - sys().get_res_x()/2;
+       	pd.y = 0;
 	pd.w = sys().get_res_x();
-	pd.h = sys().get_res_x()/2;
+	pd.h = sys().get_res_y();
 	// with normal fov of 70 degrees, this is 1.5 / 6.0 magnification
 	pd.fov_x = zoomed ? 13.31 : 50.05;	//fixme: historic values?
 	pd.near_z = 1.0;
@@ -39,12 +39,27 @@ freeview_display::projection_data sub_uzo_display::get_projection_data(class gam
 void sub_uzo_display::post_display(game& gm) const
 {
 	sys().prepare_2d_drawing();
-	uzotex->draw(0, 0, 512, 512);
-	uzotex->draw_hm(512, 0, 512, 512);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glColor3ub(0, 0, 0);
-	sys().draw_rectangle(0, 512, 1024, 256);
-	ui.draw_infopanel();
+	
+	bool is_day = gm.is_day_mode();
+
+	texture* compass = (is_day)? daycompass.get() : nightcompass.get();
+
+	int tex_w = compass->get_width();
+	int tex_h = compass->get_height();
+
+	int bearing = int(tex_w*ui.get_relative_bearing().value()/360);
+
+	if( bearing>dx && bearing<tex_w-dx){
+	  compass->draw_subimage(xi, yi, comp_size, tex_h, bearing-dx, 0, comp_size, tex_h);
+	} else {
+	  int dx1=0,dx2=0;
+	  if( bearing<dx ){ dx1=dx-bearing; dx2=dx+bearing; } else if( bearing>tex_w-dx ){ dx1=dx+(tex_w-bearing); dx2=comp_size-dx; }
+	  compass->draw_subimage(xi, yi, dx1, tex_h, tex_w-(dx1), 0, dx1, tex_h);
+	  compass->draw_subimage(xi+dx1, yi, dx2, tex_h, 0, 0, dx2, tex_h );
+	}
+	
+	uzotex->draw(0, 0, 1024, 768);
+
 	sys().unprepare_2d_drawing();
 }
 
@@ -52,19 +67,19 @@ void sub_uzo_display::post_display(game& gm) const
 
 sub_uzo_display::sub_uzo_display(user_interface& ui_) : freeview_display(ui_), zoomed(false)
 {
-	uzotex = new texture(get_texture_dir() + "uzo.png");
+	uzotex.reset(new texture(get_texture_dir() + "uzo.png"));
+	daycompass.reset(new texture(get_texture_dir() + "uzo_compass_daylight.png"));
+	nightcompass.reset(new texture(get_texture_dir() + "uzo_compass_redlight.png"));
+	
+	comp_size = int(daycompass->get_width()/3.6);
+	dx = int(comp_size*0.5);
+	xi = int(sys().get_res_x()*0.5)-dx;
+	yi = sys().get_res_y() - 55;
 
 	pos = vector3(0, 0, 6);//fixme, depends on sub
 	aboard = true;
 	withunderwaterweapons = false;
 	drawbridge = false;
-}
-
-
-
-sub_uzo_display::~sub_uzo_display()
-{
-	delete uzotex;
 }
 
 
