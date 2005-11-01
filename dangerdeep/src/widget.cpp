@@ -814,9 +814,9 @@ void widget_list::draw(void) const
 	list<string>::const_iterator it = ith(listpos);
 	int fw = globaltheme->frame_size();
 	unsigned maxp = get_nr_of_visible_entries();
-	color tcol = is_enabled() ? globaltheme->textcol : globaltheme->textdisabledcol;
 	bool scrollbarvisible = (entries.size() > maxp);
 	for (unsigned lp = 0; it != entries.end() && lp < maxp; ++it, ++lp) {
+        	color tcol = !is_enabled() ? globaltheme->textdisabledcol : (selected==lp)? globaltheme->textselectcol : globaltheme->textcol;
 		if (selected == int(lp + listpos)) {
 			int width = size.x-2*fw;
 			if (scrollbarvisible)
