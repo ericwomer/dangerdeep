@@ -253,6 +253,7 @@ void loadsavequit_dialogue::update_list(void)
 void show_halloffame(const highscorelist& hsl)
 {
 	widget w(0, 0, 1024, 768, texts::get(197), 0, kruppdocksimg);
+	w.add_child(new widget(40, 50, 944, 640, string("")));
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 	hsl.show(&w);
 	w.run(0, false);
@@ -281,6 +282,7 @@ void check_for_highscore(const game* gm)
 	unsigned points = totaltons /* compute points from tons etc here fixme */;
 
 	widget w(0, 0, 1024, 768, texts::get(197), 0, kruppdocksimg);
+	w.add_child(new widget(40, 50, 944, 640, string("")));
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 	unsigned pos = hsl.get_listpos_for(points);
 	if (hsl.is_good_enough(points)) {
