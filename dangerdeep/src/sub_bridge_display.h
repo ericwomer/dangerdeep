@@ -12,13 +12,13 @@ class sub_bridge_display : public freeview_display
 	projection_data get_projection_data(class game& gm) const;
 	void post_display(class game& gm) const;
 
-	class texture* glasses_tex;
+	texture::ptr glasses_tex;
 
 	bool glasses_in_use;
 
 public:
 	sub_bridge_display(class user_interface& ui_);
-	virtual ~sub_bridge_display();
+	virtual ~sub_bridge_display(){};
 
 	//overload for glasses key handling ('y')
 	virtual void process_input(class game& gm, const SDL_Event& event);
