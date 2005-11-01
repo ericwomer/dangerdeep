@@ -73,8 +73,8 @@ sub_uzo_display::sub_uzo_display(user_interface& ui_) : freeview_display(ui_), z
 	
 	comp_size = int(daycompass->get_width()/3.6);
 	dx = int(comp_size*0.5);
-	xi = int(sys().get_res_x()*0.5)-dx;
-	yi = sys().get_res_y() - 55;
+	xi = 512-dx;
+	yi=705;
 
 	pos = vector3(0, 0, 6);//fixme, depends on sub
 	aboard = true;
