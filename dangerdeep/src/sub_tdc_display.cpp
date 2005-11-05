@@ -197,7 +197,7 @@ void sub_tdc_display::display(class game& gm) const
 	// draw gyro pointers
 	angle leadangle = TDC.get_lead_angle();
 	s.gyro360.draw(leadangle.value());
-	s.gyro10.draw(myfmod(leadangle.value(), 10.0) * 360.0);
+	s.gyro10.draw(myfmod(leadangle.value(), 10.0) * 36.0);
 
 	// clock (torpedo run time)
 	double t = TDC.get_torpedo_runtime();
