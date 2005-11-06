@@ -105,6 +105,8 @@ protected:
 	virtual double get_turn_acceleration() const;	// drag must be already included!
 
 	vector3f size3d;		// computed from model, indirect read from spec file, width, length, height
+
+	// double mass;	// total weight
 	
 	// an object is alive until it is killed or inactive.
 	// killed (dead) objects exists at least one simulation step. All other objects must remove their
@@ -115,6 +117,7 @@ protected:
 	// Sensor systems, created after data in spec file
 	vector<sensor*> sensors;
 	
+	// fixme: this is per model/type only. it is a waste to store it for every object
 	string descr_near, descr_medium, descr_far;	// read from spec file
 
 	class ai* myai;
