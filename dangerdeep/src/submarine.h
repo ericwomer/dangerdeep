@@ -150,7 +150,17 @@ class submarine : public ship
 		damageable_part(istream& in) { status = read_double(in); repairtime = read_double(in); }
 		void save(ostream& out) const { write_double(out, status); write_double(out, repairtime); }
 	};
-		
+
+	enum front_rudder_status{
+		rudder_down_30 = -3,
+		rudder_down_20,
+		rudder_down_10,
+		rudder_center,
+		rudder_up_10,
+		rudder_up_20,
+		rudder_up_30
+	};
+
 protected:
 	double dive_speed;
 	double dive_acceleration;	// read from spec file
@@ -208,7 +218,7 @@ protected:
 
 	virtual void calculate_fuel_factor ( double delta_time );
 	
-	virtual void gun_manning_changed(bool isGunManned);	
+	virtual void gun_manning_changed(bool isGunManned);
 
 	unsigned int delayed_dive_to_depth;
 	double delayed_planes_down;
@@ -218,6 +228,11 @@ protected:
 	//double temperature;//maybe store for each torpedo and not here...
 
 	tdc TDC;
+
+	int bow_to;
+	int stern_to;
+	double bow_rudder;
+	double stern_rudder;
 	
 public:
 	// there were more types, I, X (mine layer), XIV (milk cow), VIIf, (and VIId)
@@ -339,6 +354,11 @@ public:
 
 	virtual tdc& get_tdc() { return TDC; }
 	virtual const tdc& get_tdc() const { return TDC; }
+
+	virtual double get_bow_rudder() const { return bow_rudder; }
+	virtual double get_stern_rudder() const { return bow_rudder; } // stern is the same so far
+	virtual void bow_pos(int state){ bow_to = state; permanent_dive = true; }
+	virtual void stern_pos(int state){ bow_to = state; permanent_dive = true; } // stern is the same so far
 };
 
 #endif

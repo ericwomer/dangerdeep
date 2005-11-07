@@ -93,12 +93,12 @@ void sub_gauges_display::display(class game& gm) const
 	indicators[battery].display(is_day, 0);
 	indicators[compressor].display(is_day, 0);
 	indicators[diesel].display(is_day, 0);
-	indicators[bow_depth_rudder].display(is_day, 0);
-	indicators[stern_depth_rudder].display(is_day, 0);
+	indicators[bow_depth_rudder].display(is_day, player->get_bow_rudder());
+	indicators[stern_depth_rudder].display(is_day, player->get_stern_rudder());
 	indicators[depth].display(is_day, player->get_depth()*1.0-51.0);
 	indicators[knots].display(is_day, fabs(player->get_speed())*22.33512-133.6);
 	indicators[main_rudder].display(is_day, player->get_rudder_pos()*3.5125);
-	indicators[mt].display(is_day, 0);
+	indicators[mt].display(is_day, player->get_throttle_angle());
 
 /*	// kept as text reference for tooltips/popups.
 	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
@@ -136,8 +136,21 @@ void sub_gauges_display::process_input(class game& gm, const SDL_Event& event)
 			if (mang.value() < 270) {
 				sub->dive_to_depth(unsigned(mang.value()));
 			}
+		} else if( indicators[bow_depth_rudder].is_over(mx,my)){
+			angle mang( indicators[bow_depth_rudder].get_angle(mx,my)-angle(90) );
+			double click_pos = 180 - mang.value();
+			int status = int(round(click_pos*0.03333));
+			if( status>=submarine::rudder_down_30 && status<=submarine::rudder_up_30)
+				sub->bow_pos(status);
+		} else if( indicators[stern_depth_rudder].is_over(mx,my)){
+			angle mang( indicators[stern_depth_rudder].get_angle(mx,my) -angle(90) );
+			double click_pos = mang.value();
+			if( click_pos>105 ) click_pos = -(360-click_pos);
+			int status = int(round(click_pos*0.033333));
+			if( status>=submarine::rudder_down_30 && status<=submarine::rudder_up_30 )
+				sub->bow_pos(-status);
 		} else if (indicators[mt].is_over(mx, my)) {
-			unsigned opt = unsigned((indicators[mt].get_angle(mx, my) - angle(210)).value() / 20);
+			unsigned opt = unsigned( ((indicators[mt].get_angle(mx, my) - angle(210)).value()) * 0.05 );
 			if (opt >= 15) opt = 14;
 			switch (opt) {
 			case 0: sub->set_throttle(ship::aheadflank); break;

@@ -126,9 +126,11 @@ submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damagea
 
 
 submarine::submarine(game& gm_, TiXmlDocument* specfile, const char* topnodename)
-	: ship(gm_, specfile, topnodename),
+	: ship(gm_,specfile, topnodename),
 	  delayed_dive_to_depth(0),
-	  delayed_planes_down(0.0)
+	  delayed_planes_down(0.0),
+	  bow_to(rudder_center),	  
+	  bow_rudder(0.0)
 {
 	TiXmlHandle hspec(specfile);
 	TiXmlHandle hdftdsub = hspec.FirstChild(topnodename);
@@ -218,7 +220,9 @@ submarine::submarine(game& gm_) :
 	battery_recharge_value_t ( 1.0f ),
 	damageable_parts(nr_of_damageable_parts),
 	delayed_dive_to_depth(0),
-	delayed_planes_down(0.0)
+	delayed_planes_down(0.0),
+	bow_to(rudder_center),
+	bow_rudder(0.0)
 {
 	// set all common damageable parts to "no damage"
 	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
@@ -366,10 +370,32 @@ int submarine::find_stored_torpedo(bool usebow)
 
 void submarine::simulate(double delta_time)
 {
+	// get goal state for the front rudder (back rudder is negative front_rudder for now
+	double d_rudder_to = static_cast<double>(bow_to)*30;
+	if( bow_rudder > d_rudder_to )
+		--bow_rudder;
+	else if( bow_rudder < d_rudder_to )
+		++bow_rudder;
+
 	ship::simulate(delta_time);
 
-	// calculate new depth (fixme this is not physically correct)
-	double delta_depth = dive_speed * delta_time;
+	vector3 sub_velocity = get_velocity();
+
+	// acceleration constant (acceleration should not be constant here though)
+	dive_acceleration = 1.0;
+
+	vector3 dive_accel(0,0,dive_acceleration*sub_velocity.y);
+	dive_accel += sub_velocity;
+
+	// front rudder comes as -90 : 90
+	dive_speed = dive_accel.z *   sin( (bow_rudder*0.3333)*M_PI*0.005555 ) ;
+	dive_speed *= delta_time;
+
+	//if( get_throttle()<=reverse ) dive_speed = -dive_speed;
+
+
+	// still use the same variable to prevent breaking the code
+	double delta_depth = dive_speed;
 
 	// Activate or deactivate electric engines.
 	if ((position.z > -SUBMARINE_SUBMERGED_DEPTH) &&
@@ -393,6 +419,8 @@ void submarine::simulate(double delta_time)
 			if (0 <= fac && fac <= 1) {
 				position.z = dive_to;
 				planes_middle();
+				bow_to = rudder_center;
+				permanent_dive=true;
 			} else {
 				position.z += delta_depth;
 			}
@@ -401,6 +429,7 @@ void submarine::simulate(double delta_time)
 	if (position.z > 0) {
 		position.z = 0;
 		dive_speed = 0;
+		bow_to = rudder_center;
 	}
 
 	// fixme: the faster the sub goes, the faster it can dive.
@@ -761,8 +790,13 @@ float submarine::sonar_visibility ( const vector2& watcher ) const
 
 void submarine::planes_up(double amount)
 {
+	int rud_amount = int(amount);
+	bow_to += (rud_amount>2)? 2 : (rud_amount<0)? 0 : rud_amount;
+	if( bow_to > rudder_up_30 )
+		bow_to = rudder_up_30;
+
 //	dive_acceleration = -1;
-	dive_speed = max_dive_speed;
+//	dive_speed = max_dive_speed;
 	permanent_dive = true;
 }
 
@@ -773,8 +807,13 @@ void submarine::planes_down(double amount)
 	user_interface* ui = gm.get_ui();
 	if (false == is_gun_manned())
 	{
+		int rud_amount = int(amount);
+		bow_to -= (rud_amount<0)? 0 : (rud_amount>2)? 2 : rud_amount;
+		if( bow_to < rudder_down_30 )
+			bow_to = rudder_down_30;
+
 	//	dive_acceleration = 1;
-		dive_speed = -max_dive_speed;
+	//	dive_speed = -max_dive_speed;
 		permanent_dive = true;
 	}
 	else
@@ -806,7 +845,8 @@ void submarine::dive_to_depth(unsigned meters)
 	{	
 		dive_to = -int(meters);
 		permanent_dive = false;
-		dive_speed = (dive_to < position.z) ? -max_dive_speed : max_dive_speed;
+		bow_to = ( dive_to < position.z )? rudder_down_30 : rudder_up_30;
+		//		dive_speed = (dive_to < position.z) ? -max_dive_speed : max_dive_speed;
 	}
 	else
 	{	

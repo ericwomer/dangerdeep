@@ -30,7 +30,7 @@ class ship : public sea_object
 
 public:
 	// give negative values for fixed speeds, positive values for knots.
-	enum throttle_status { reverse=-7, aheadlisten=-6, aheadsonar=-5, aheadslow=-4,
+	enum throttle_status { reversefull=-9, reversehalf=-8, reverse=-7, aheadlisten=-6, aheadsonar=-5, aheadslow=-4,
 		aheadhalf=-3, aheadfull=-2, aheadflank=-1, stop=0  };
 
 	enum rudder_status { rudderfullleft=-2, rudderleft, ruddermidships, rudderright,
@@ -44,6 +44,7 @@ protected:
 	unsigned tonnage;	// in BRT, created after values from spec file (but maybe with some randomness), must get stored!
 
 	int throttle;		// if < 0: throttle_state, if > 0: knots
+	double throttle_angle;        // Alex: added to show the throttle_animation while switching speeds
 	//double max_acceleration;	// read from spec file
 
 	double rudder_pos;	// in degrees, do not use class angle here, we need explicit positive and negative values.
@@ -231,6 +232,7 @@ public:
 	virtual throttle_status get_throttle() { return (throttle_status)throttle; }
 	virtual double get_throttle_speed() const;
 	virtual double get_throttle_accel() const;	// returns acceleration caused by current throttle
+	virtual double get_throttle_angle();        // Alex: added to provide throttle animation while switching speeds
 	virtual double get_rudder_pos() const { return rudder_pos; }
 	virtual int get_rudder_to () const { return rudder_to; }
 	virtual double get_noise_factor () const;
