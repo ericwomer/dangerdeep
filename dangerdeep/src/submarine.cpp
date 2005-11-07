@@ -790,8 +790,7 @@ float submarine::sonar_visibility ( const vector2& watcher ) const
 
 void submarine::planes_up(double amount)
 {
-	int rud_amount = int(amount);
-	bow_to += (rud_amount>2)? 2 : (rud_amount<0)? 0 : rud_amount;
+	bow_to += int(amount);
 	if( bow_to > rudder_up_30 )
 		bow_to = rudder_up_30;
 
@@ -807,8 +806,7 @@ void submarine::planes_down(double amount)
 	user_interface* ui = gm.get_ui();
 	if (false == is_gun_manned())
 	{
-		int rud_amount = int(amount);
-		bow_to -= (rud_amount<0)? 0 : (rud_amount>2)? 2 : rud_amount;
+		bow_to -= int(amount);
 		if( bow_to < rudder_down_30 )
 			bow_to = rudder_down_30;
 

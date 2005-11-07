@@ -34,7 +34,6 @@ void ship::init()
 	// set some default values
 	heading = 0;
 	throttle = 0;
-	throttle_angle = 0;
 	head_to_fixed = false;
 	rudder_pos = 0;
 	rudder_to = 0;
@@ -336,28 +335,6 @@ double ship::get_throttle_accel() const
 	// fixme: reverse throttle doesn't work. obvious why...
 	double speed_fac = get_throttle_speed() / max_speed_forward;
 	return max_accel_forward * (speed_fac * speed_fac);
-}
-
-double ship::get_throttle_angle()
-{
-	double throttle_goal;
-
-	switch(throttle_status(throttle)){
-	case reverse: throttle_goal = -80; break;
-	case aheadslow: throttle_goal = 80; break;
-	case aheadhalf: throttle_goal = 100; break;
-	case aheadfull: throttle_goal = 120; break;
-	case aheadflank: throttle_goal = 140; break;
-	case stop:
-	default: throttle_goal = 0;
-	}
-
-	if( throttle_angle < throttle_goal )
-		++throttle_angle;
-	else if( throttle_angle > throttle_goal )
-		--throttle_angle;
-
-	return throttle_angle;
 }
 
 

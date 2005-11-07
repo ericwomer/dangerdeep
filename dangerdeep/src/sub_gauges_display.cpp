@@ -49,7 +49,7 @@ angle sub_gauges_display::indicator::get_angle(int mx, int my) const
 	return angle(vector2(mx - int(x + w/2), my - int(y + h/2)));
 }
 
-sub_gauges_display::sub_gauges_display(user_interface& ui_) : user_display(ui_)
+sub_gauges_display::sub_gauges_display(user_interface& ui_) : user_display(ui_), throttle_angle(0)
 {
 	controlscreen_normallight.reset(new image(get_image_dir() + "controlscreen_daylight.jpg"));
 	controlscreen_nightlight.reset(new image(get_image_dir() + "controlscreen_redlight.jpg"));
@@ -98,7 +98,8 @@ void sub_gauges_display::display(class game& gm) const
 	indicators[depth].display(is_day, player->get_depth()*1.0-51.0);
 	indicators[knots].display(is_day, fabs(player->get_speed())*22.33512-133.6);
 	indicators[main_rudder].display(is_day, player->get_rudder_pos()*3.5125);
-	indicators[mt].display(is_day, player->get_throttle_angle());
+	compute_throttle_angle(player->get_throttle());
+	indicators[mt].display(is_day, throttle_angle);
 
 /*	// kept as text reference for tooltips/popups.
 	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
@@ -175,4 +176,28 @@ void sub_gauges_display::process_input(class game& gm, const SDL_Event& event)
 	default:
 		break;
 	}
+}
+
+
+
+int sub_gauges_display::compute_throttle_angle(int throttle_pos) const
+{
+	int throttle_goal;
+
+	switch(submarine::throttle_status(throttle_pos)){
+	case submarine::reverse: throttle_goal = -80; break;
+	case submarine::aheadslow: throttle_goal = 80; break;
+	case submarine::aheadhalf: throttle_goal = 100; break;
+	case submarine::aheadfull: throttle_goal = 120; break;
+	case submarine::aheadflank: throttle_goal = 140; break;
+	case submarine::stop:
+	default: throttle_goal = 0;
+	}
+
+	if( throttle_angle < throttle_goal )
+		++throttle_angle;
+	else if( throttle_angle > throttle_goal )
+		--throttle_angle;
+
+	return throttle_angle;
 }
