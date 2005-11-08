@@ -333,6 +333,8 @@ void sea_object::simulate(double delta_time)
 
 	// check and change states
         if (is_defunct()) {
+		// fixme: maybe throw a dead_object exception here and catch them in game::simulate for each object
+		// that way we have to check for defunct()/dead() only here, and not also in every heir of sea_object
                 return;
         } else if (is_dead()) {
 		destroy();

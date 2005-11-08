@@ -1788,9 +1788,13 @@ void water::set_refraction_color(float light_brightness)
 	// fixme: color depends also on weather. bad weather -> light is less bright
 	// so this will be computed implicitly. Environment can also change water color
 	// (light blue in tropic waters), water depth also important etc.
-
-	color wavetop = color(color(10, 10, 10), color(18, 93, 77), light_brightness);
-	color wavebottom = color(color(10, 10, 20), color(18, 73, 107), light_brightness);
+	// this depends on sky color...
+	// good weather
+//	color wavetop = color(color(10, 10, 10), color(18, 93, 77), light_brightness);
+//	color wavebottom = color(color(10, 10, 20), color(18, 73, 107), light_brightness);
+	// rather bad weather
+	color wavetop = color(color(10, 10, 10), color(65, 89, 68), light_brightness);
+	color wavebottom = color(color(10, 10, 20), color(63, 86, 101), light_brightness);
 
 	if (use_shaders) {
 		float wt[3], wb[3];
