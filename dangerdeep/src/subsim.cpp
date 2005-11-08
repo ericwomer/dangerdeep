@@ -1377,11 +1377,14 @@ int mymain(list<string>& args)
 	reset_loading_screen();
 	init_global_data();
 
-	if( sound::use_sound ){
-	  mmusic = auto_ptr<music>( new music(get_sound_dir()) );
-	  add_loading_screen("Music list loaded");
-	  mmusic->_play(0);
-	}
+	if( sound::use_sound )
+		music::use_music = true;
+	else
+		music::use_music = false;
+
+	mmusic = auto_ptr<music>( new music(get_sound_dir()) );
+	add_loading_screen("Music list loaded");
+	mmusic->_play(0);
 	
 	widget::set_theme(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
 		font_olympiaworn, color(182, 146, 137), color(222, 208, 195), color(92, 72 ,68)));
