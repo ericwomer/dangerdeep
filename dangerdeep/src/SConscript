@@ -52,7 +52,8 @@ dftdsources = Split("""subsim.cpp
 	triangulate.cpp
 	user_interface.cpp
 	water.cpp
-	widget.cpp""")
+	widget.cpp
+	xml.cpp""")
 
 dftdmediasources = Split("""
 	font.cpp

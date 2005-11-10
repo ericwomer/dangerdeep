@@ -7,6 +7,7 @@
 #include "global_data.h"
 #include "system.h"
 #include <sstream>
+#include "xml.h"
 using namespace std;
 
 
@@ -88,6 +89,11 @@ bool cfg::set_str(const string& name, const string& value)
 
 void cfg::load(const string& filename)
 {
+	// test hack
+	xml_doc doc2(filename);
+	doc2.load();
+	xml_elem root2 = doc2.child("dftd-cfg");
+
 	TiXmlDocument doc(filename);
 	doc.LoadFile();
 	TiXmlElement* root = doc.FirstChildElement("dftd-cfg");
