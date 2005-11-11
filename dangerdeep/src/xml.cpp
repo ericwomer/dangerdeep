@@ -2,52 +2,14 @@
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "xml.h"
-
-
-xml_doc::xml_doc(std::string fn)
-	: doc(fn), filename(fn)
-{
-}
-
-
-
-void xml_doc::load()
-{
-	doc.LoadFile();
-}
-
-
-
-void xml_doc::save()
-{
-	doc.SaveFile();
-}
-
-
-
-xml_elem xml_doc::child(const std::string& name)
-{
-	TiXmlElement* e = doc.FirstChildElement(name);
-	if (!e) throw xml_elem_error(name, filename);
-	return xml_elem(e, filename);
-}
-
-
-
-xml_elem xml_doc::add_child(const std::string& name)
-{
-	TiXmlElement* e = new TiXmlElement(name);
-	doc.LinkEndChild(e);
-	return xml_elem(e, filename);
-}
-
+#include "tinyxml/tinyxml.h"
 
 
 xml_elem xml_elem::child(const std::string& name)
 {
 	TiXmlElement* e = elem->FirstChildElement(name);
-	if (!e) throw xml_elem_error(name, xmlfilename);
-	return xml_elem(e, xmlfilename);
+	if (!e) throw xml_elem_error(name, doc_name());
+	return xml_elem(e);
 }
 
 
@@ -56,7 +18,17 @@ xml_elem xml_elem::add_child(const std::string& name)
 {
 	TiXmlElement* e = new TiXmlElement(name);
 	elem->LinkEndChild(e);
-	return xml_elem(e, xmlfilename);
+	return xml_elem(e);
+}
+
+
+
+std::string xml_elem::doc_name() const
+{
+	TiXmlDocument* doc = elem->GetDocument();
+	// extra-Paranoia... should never happen
+	if (!doc) throw xml_error(std::string("can't get document name for node ") + elem->Value(), "???");
+	return doc->Value();
 }
 
 
@@ -125,6 +97,13 @@ void xml_elem::set_attr(const std::string& name, float f)
 
 
 
+std::string xml_elem::get_name() const
+{
+	return elem->Value();
+}
+
+
+
 xml_elem::iterator xml_elem::iterate(const std::string& childname) const
 {
 	return iterator(*this, elem->FirstChildElement(childname), true);
@@ -141,17 +120,65 @@ xml_elem::iterator xml_elem::iterate() const
 
 xml_elem xml_elem::iterator::elem() const
 {
-	if (!e) throw xml_error("elem() on empty iterator", parent.xmlfilename);
-	return xml_elem(e, parent.xmlfilename);
+	if (!e) throw xml_error("elem() on empty iterator", parent.doc_name());
+	return xml_elem(e);
 }
 
 
 
 void xml_elem::iterator::next()
 {
-	if (!e) throw xml_error("next() on empty iterator", parent.xmlfilename);
+	if (!e) throw xml_error("next() on empty iterator", parent.doc_name());
 	if (samename)
 		e = e->NextSiblingElement(e->Value());
 	else
 		e = e->NextSiblingElement();
+}
+
+
+
+xml_doc::xml_doc(std::string fn)
+	: doc(new TiXmlDocument(fn))
+{
+}
+
+
+
+void xml_doc::load()
+{
+	if (!doc->LoadFile())
+		throw xml_error("can't load", doc->Value());
+}
+
+
+
+void xml_doc::save()
+{
+	if (!doc->SaveFile())
+		throw xml_error("can't save", doc->Value());
+}
+
+
+
+xml_elem xml_doc::child(const std::string& name)
+{
+	TiXmlElement* e = doc->FirstChildElement(name);
+	if (!e) throw xml_elem_error(name, doc->Value());
+	return xml_elem(e);
+}
+
+
+
+xml_elem xml_doc::add_child(const std::string& name)
+{
+	TiXmlElement* e = new TiXmlElement(name);
+	doc->LinkEndChild(e);
+	return xml_elem(e);
+}
+
+
+
+std::string xml_doc::get_filename() const
+{
+	return doc->Value();
 }

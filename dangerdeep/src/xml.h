@@ -6,7 +6,10 @@
 
 #include <string>
 #include "error.h"
-#include "tinyxml/tinyxml.h"
+
+class TiXmlElement;
+class TiXmlDocument;
+
 
 
 class xml_error : public error
@@ -33,8 +36,9 @@ class xml_elem
 	xml_elem();
  protected:
 	TiXmlElement* elem;
-	const std::string& xmlfilename;	// used for error reporting
-	xml_elem(TiXmlElement* e, const std::string& xfn) : elem(e), xmlfilename(xfn) {}
+	xml_elem(TiXmlElement* e) : elem(e) {}
+
+	std::string doc_name() const;
 
 	friend class xml_doc;
 	friend class iterator;
@@ -49,6 +53,7 @@ class xml_elem
 	void set_attr(const std::string& name, unsigned u);
 	void set_attr(const std::string& name, int i);
 	void set_attr(const std::string& name, float f);
+	std::string get_name() const;
 
 	class iterator {
 	private:
@@ -56,7 +61,7 @@ class xml_elem
 	protected:
 		const xml_elem& parent;
 		TiXmlElement* e;
-		bool samename;
+		bool samename;	// iterate over any children or only over children with same name
 		iterator(const xml_elem& parent_, TiXmlElement* elem_ = 0, bool samename_ = true)
 			: parent(parent_), e(elem_), samename(samename_) {}
 
@@ -82,15 +87,14 @@ class xml_doc
 	xml_doc(const xml_doc& );
 	xml_doc& operator= (const xml_doc& );
  protected:
-	TiXmlDocument doc;
-	std::string filename;
+	TiXmlDocument* doc;
  public:
 	xml_doc(std::string fn);
 	void load();
 	void save();
 	xml_elem child(const std::string& name);
 	xml_elem add_child(const std::string& name);
-	std::string get_filename() const { return filename; }
+	std::string get_filename() const;
 };
 
 #endif // XML_H

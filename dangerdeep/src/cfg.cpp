@@ -89,10 +89,13 @@ bool cfg::set_str(const string& name, const string& value)
 
 void cfg::load(const string& filename)
 {
-	// test hack
+	// test hack - later all xml code should be changed, so that it uses xml.h only
+	// and not tinyxml
+	/*
 	xml_doc doc2(filename);
 	doc2.load();
 	xml_elem root2 = doc2.child("dftd-cfg");
+	*/
 
 	TiXmlDocument doc(filename);
 	doc.LoadFile();
