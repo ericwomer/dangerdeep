@@ -133,7 +133,7 @@ increasing that to 80% or more will improve rendering quality, no matter if shad
 not.
 */
 
-static float totalmin = 0, totalmax = 0;
+//static float totalmin = 0, totalmax = 0;
 water::water(unsigned xres_, unsigned yres_, double tm) :
 	mytime(tm),
 	xres((xres_ & ~3) - 1),	// make sure xres+1 is divisible by 4 (needed for sse routines, doesn't hurt in other cases)
@@ -332,7 +332,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	}
 	curr_wtp = &wavetile_data[0];
 
-	cout << "total minh " << totalmin << " maxh " << totalmax << "\n";
+//	cout << "total minh " << totalmin << " maxh " << totalmax << "\n";
 
 	add_loading_screen("water height data computed");
 
@@ -1673,9 +1673,9 @@ void water::generate_wavetile(double tiletime, wavetile_phase& wtp)
 		wtp.minh = fmin(wtp.minh, *it);
 		wtp.maxh = fmax(wtp.maxh, *it);
 	}
-	totalmin = std::min(wtp.minh, totalmin);
-	totalmax = std::max(wtp.maxh, totalmax);
-#if 1
+//	totalmin = std::min(wtp.minh, totalmin);
+//	totalmax = std::max(wtp.maxh, totalmax);
+#if 0
 	char fn[32]; sprintf(fn, "waveh%f.pgm", tiletime);
 	ofstream osg(fn);
 	osg << "P5\n";
@@ -1686,8 +1686,8 @@ void water::generate_wavetile(double tiletime, wavetile_phase& wtp)
 	}
 #endif
 	float maxabsh = max(fabs(wtp.minh), fabs(wtp.maxh));
-//	if (maxabsh >= 16.0f)
-//		throw error("max. wave height can be 16 meters, internal computation error");
+	if (maxabsh >= 16.0f)
+		throw error("max. wave height can be 16 meters, internal computation error");
 
 	unsigned hs = heights.size();
 
