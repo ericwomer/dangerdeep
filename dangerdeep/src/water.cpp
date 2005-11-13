@@ -133,6 +133,7 @@ increasing that to 80% or more will improve rendering quality, no matter if shad
 not.
 */
 
+static float totalmin = 0, totalmax = 0;
 water::water(unsigned xres_, unsigned yres_, double tm) :
 	mytime(tm),
 	xres((xres_ & ~3) - 1),	// make sure xres+1 is divisible by 4 (needed for sse routines, doesn't hurt in other cases)
@@ -149,9 +150,10 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	subdetail_size_shift(ulog2(subdetail_size)),
 	wavetile_data(wave_phases),
 	curr_wtp(0),
-	owg(wave_resolution, vector2f(1,1),
-	    20 /*10*/ /*31*/,	// wind speed m/s. fixme make dynamic (weather!)
-	    2e-6 /* 5e-6 */,	// scale factor for heights. depends on all other values. fixme compute at runtime from other values.
+	owg(wave_resolution,
+	    vector2f(1,1), // wind direction
+	    12 /*10*/ /*31*/,	// wind speed m/s. fixme make dynamic (weather!)
+	    2e-6 /* 2e-6 */,	// scale factor for heights. depends on all other values. fixme compute at runtime from other values.
 	    wavetile_length,
 	    wave_tidecycle_time),
 	vertex_program_supported(false),
@@ -329,6 +331,8 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		generate_wavetile(wave_tidecycle_time * i / wave_phases, wavetile_data[i]);
 	}
 	curr_wtp = &wavetile_data[0];
+
+	cout << "total minh " << totalmin << " maxh " << totalmax << "\n";
 
 	add_loading_screen("water height data computed");
 
@@ -1669,9 +1673,22 @@ void water::generate_wavetile(double tiletime, wavetile_phase& wtp)
 		wtp.minh = fmin(wtp.minh, *it);
 		wtp.maxh = fmax(wtp.maxh, *it);
 	}
+	totalmin = std::min(wtp.minh, totalmin);
+	totalmax = std::max(wtp.maxh, totalmax);
+#if 1
+	char fn[32]; sprintf(fn, "waveh%f.pgm", tiletime);
+	ofstream osg(fn);
+	osg << "P5\n";
+	osg <<wave_resolution<<" "<<wave_resolution<<"\n255\n";
+	for (vector<float>::const_iterator it = heights.begin(); it != heights.end(); ++it) {
+		Uint8 h = Uint8((*it - wtp.minh)*255.9/(wtp.maxh - wtp.minh));
+		osg.write((const char*)&h, 1);
+	}
+#endif
 	float maxabsh = max(fabs(wtp.minh), fabs(wtp.maxh));
-	if (maxabsh >= 16.0f)
-		throw error("max. wave height can be 16 meters, internal computation error");
+//	if (maxabsh >= 16.0f)
+//		throw error("max. wave height can be 16 meters, internal computation error");
+
 	unsigned hs = heights.size();
 
 //	cout << "absolute height +- of tile " << max(fabs(wtp.minh), fabs(wtp.maxh)) << "\n";

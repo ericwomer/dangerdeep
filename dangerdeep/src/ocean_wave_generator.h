@@ -113,7 +113,7 @@ T ocean_wave_generator<T>::phillips(const vector2t<T>& K) const
 	T eterm = exp(-g2 / (k2 * v4)) / k4;
 	T dampfac = T(1.0/100);
 	T l2 = v4/g2 * dampfac*dampfac;	// damping of very small waves
-	T result = a * eterm * KdotWhat * exp(-k2*l2);
+	T result = a * eterm * KdotWhat * exp(-k2*l2);	// only here the term "a" (wave height scalar) is used
 	if (KdotW < T(0))	// filter out waves moving against the wind
 		result *= T(0.25);
 	return result;
