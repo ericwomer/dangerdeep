@@ -41,7 +41,6 @@ class xml_elem
 	std::string doc_name() const;
 
 	friend class xml_doc;
-	friend class iterator;
  public:
 	std::string attr(const std::string& name = "value") const;
 	int attri(const std::string& name = "value") const;
@@ -71,6 +70,7 @@ class xml_elem
 		void next();
 		bool end() const { return e == 0; }
 	};
+	friend class iterator;
 
 	// iterate this way: for (iterator it = e.iterate("name"); !it.end(); it.next()) { ... }
 	iterator iterate(const std::string& childname) const;
