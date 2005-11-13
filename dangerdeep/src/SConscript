@@ -88,6 +88,9 @@ env.Default(tool1)
 env.Default(tool2)
 env.Default(tool3)
 
+test1 = env.Program('oceantest', ['oceantest.cpp'])
+env.Default(test1)
+
 ############ this allows to run "scons install" to install the binary
 install = env.Alias('install', env.Install(installbindir, binary))
 env.Depends(install, binary)

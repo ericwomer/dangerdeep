@@ -48,6 +48,8 @@
 
 #define FOAMAMOUNTRES 256
 
+#undef  MEASURE_WAVE_HEIGHTS
+
 const unsigned foamtexsize = 256;
 
 /*
@@ -133,7 +135,10 @@ increasing that to 80% or more will improve rendering quality, no matter if shad
 not.
 */
 
-//static float totalmin = 0, totalmax = 0;
+#ifdef MEASURE_WAVE_HEIGHTS
+static float totalmin = 0, totalmax = 0;
+#endif
+
 water::water(unsigned xres_, unsigned yres_, double tm) :
 	mytime(tm),
 	xres((xres_ & ~3) - 1),	// make sure xres+1 is divisible by 4 (needed for sse routines, doesn't hurt in other cases)
@@ -153,7 +158,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	owg(wave_resolution,
 	    vector2f(1,1), // wind direction
 	    12 /*10*/ /*31*/,	// wind speed m/s. fixme make dynamic (weather!)
-	    2e-6 /* 2e-6 */,	// scale factor for heights. depends on all other values. fixme compute at runtime from other values.
+	    wave_resolution * (6e-9) /* roughly 2e-6 for 128 */,	// scale factor for heights. depends on wave resolution, maybe also on tidecycle time
 	    wavetile_length,
 	    wave_tidecycle_time),
 	vertex_program_supported(false),
@@ -332,7 +337,9 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	}
 	curr_wtp = &wavetile_data[0];
 
-//	cout << "total minh " << totalmin << " maxh " << totalmax << "\n";
+#ifdef MEASURE_WAVE_HEIGHTS
+	cout << "total minh " << totalmin << " maxh " << totalmax << "\n";
+#endif
 
 	add_loading_screen("water height data computed");
 
@@ -1673,8 +1680,10 @@ void water::generate_wavetile(double tiletime, wavetile_phase& wtp)
 		wtp.minh = fmin(wtp.minh, *it);
 		wtp.maxh = fmax(wtp.maxh, *it);
 	}
-//	totalmin = std::min(wtp.minh, totalmin);
-//	totalmax = std::max(wtp.maxh, totalmax);
+#ifdef MEASURE_WAVE_HEIGHTS
+	totalmin = std::min(wtp.minh, totalmin);
+	totalmax = std::max(wtp.maxh, totalmax);
+#endif
 #if 0
 	char fn[32]; sprintf(fn, "waveh%f.pgm", tiletime);
 	ofstream osg(fn);

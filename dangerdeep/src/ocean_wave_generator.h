@@ -135,6 +135,7 @@ template <class T>
 void ocean_wave_generator<T>::compute_h0tilde()
 {
 	const T pi2 = T(2.0*M_PI);
+	// lower parts of arrays (x,y towards zero) hold higher frequencies.
 	for (int y = 0; y <= N; ++y) {
 		for (int x = 0; x <= N; ++x) {
 			vector2t<T> K(pi2*(x-N/2)/Lm, pi2*(y-N/2)/Lm);
