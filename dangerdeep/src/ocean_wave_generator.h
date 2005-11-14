@@ -66,7 +66,8 @@ public:
 		T tilesize = T(100.0),
 		T cycletime = T(10.0)
 	);
-	ocean_wave_generator(const ocean_wave_generator<T>& owg, int gridsize); // make a (smaller) copy, gridsize must be <= owg.gridsize
+	ocean_wave_generator(const ocean_wave_generator<T>& owg, int gridsize,
+			     int clearlowfreq = 0); // make a (smaller) copy, gridsize must be <= owg.gridsize
 	void set_time(T time);	// call this before any compute_*() function
 	void compute_heights(vector<T>& waveheights) const;
 	// use this after height computation to avoid the overhead of fft normals
@@ -135,11 +136,14 @@ template <class T>
 void ocean_wave_generator<T>::compute_h0tilde()
 {
 	const T pi2 = T(2.0*M_PI);
-	// lower parts of arrays (x,y towards zero) hold higher frequencies.
-	for (int y = 0; y <= N; ++y) {
-		for (int x = 0; x <= N; ++x) {
-			vector2t<T> K(pi2*(x-N/2)/Lm, pi2*(y-N/2)/Lm);
-			h0tilde[y*(N+1)+x] = h0_tilde(K);
+	// outer parts of arrays (x2,y2 away from zero) hold higher frequencies.
+	// the significant frequencies are very close to zero, anything above
+	// +-N/4 or so is only very high frequency
+	for (int y = 0, y2 = -N/2; y <= N; ++y, ++y2) {
+		T Ky = pi2*y2/Lm;
+		for (int x = 0, x2 = -N/2; x <= N; ++x, ++x2) {
+			T Kx = pi2*x2/Lm;
+			h0tilde[y*(N+1)+x] = h0_tilde(vector2t<T>(Kx, Ky));
 		}
 	}
 }
@@ -193,7 +197,8 @@ ocean_wave_generator<T>::ocean_wave_generator(
 }
 
 template <class T>
-ocean_wave_generator<T>::ocean_wave_generator(const ocean_wave_generator<T>& owg, int gridsize)
+ocean_wave_generator<T>::ocean_wave_generator(const ocean_wave_generator<T>& owg, int gridsize,
+					      int clearlowfreq)
 	: N(gridsize <= owg.N ? gridsize : owg.N), W(owg.W), v(owg.v), a(owg.a), Lm(owg.Lm), w0(owg.w0)
 {
 	h0tilde.resize((N+1)*(N+1));
@@ -202,6 +207,14 @@ ocean_wave_generator<T>::ocean_wave_generator(const ocean_wave_generator<T>& owg
 	for (int y = 0; y <= N; ++y) {
 		for (int x = 0; x <= N; ++x) {
 			h0tilde[y*(N+1)+x] = owg.h0tilde[(y+offset)*(owg.N+1)+(x+offset)];
+		}
+	}
+	// clear lower frequencies if requested
+	clearlowfreq = std::min(clearlowfreq, N/2+1);
+	clearlowfreq = std::max(clearlowfreq, 0);
+	for (int y = N/2+1-clearlowfreq; y <= N/2-1+clearlowfreq; ++y) {
+		for (int x = N/2+1-clearlowfreq; x <= N/2-1+clearlowfreq; ++x) {
+			h0tilde[y*(N+1)+x] = 0;
 		}
 	}
 	htilde.resize(N*(N/2+1));
