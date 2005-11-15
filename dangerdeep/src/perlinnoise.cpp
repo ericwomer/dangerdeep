@@ -72,7 +72,7 @@ perlinnoise::perlinnoise(unsigned size, unsigned sizeminfreq, unsigned sizemaxfr
 	sys().myassert(is_power2(size), "size is not power of two");
 	sys().myassert(is_power2(sizeminfreq), "sizeminfreq is not power of two");
 	sys().myassert(is_power2(sizemaxfreq), "sizemaxfreq is not power of two");
-	sys().myassert(sizeminfreq >= 2 && sizeminfreq <= size && sizeminfreq <= sizemaxfreq, "sizeminfreq out of range");
+	sys().myassert(sizeminfreq >= 1 && sizeminfreq <= size && sizeminfreq <= sizemaxfreq, "sizeminfreq out of range");
 	sys().myassert(sizemaxfreq >= 2 && sizemaxfreq <= size, "sizemaxfreq out of range");
 	unsigned nrfunc = 0;
 	for (unsigned j = sizemaxfreq/sizeminfreq; j > 0; j >>= 1)

@@ -167,7 +167,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	use_shaders(false),
 	water_vertex_program(0),
 	water_fragment_program(0),
-	png(subdetail_size, 2, subdetail_size/8), //fixme ohne /16 sieht's scheiﬂe aus
+	png(subdetail_size, 1, subdetail_size/16), //fixme ohne /16 sieht's scheiﬂe aus, war /8
 	last_subdetail_gen_time(tm)
 #ifdef USE_SSE
 	, usex86sse(false)
@@ -416,6 +416,9 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 		float noisetilescale = 32.0f;//meters (128/16=8, 8tex/m).
+		// fixme 32m wide noise is a good compromise, that would be a noise
+		// sample every 12.5cm. But it works only if the noise map
+		// has high frequencies in it... this noise map has to few details
 		glScalef(1.0f/noisetilescale,1.0f/noisetilescale,1);	// fixme adjust scale
 		glTranslatef(transl.x, transl.y, 0);
 		glMatrixMode(GL_MODELVIEW);
@@ -431,6 +434,7 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 		// nothing for now, old code:
 //		glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 0,
 //					     18.0f/255, 73.0f/255, 107.0f/255, 1.0);//fixme test
+
 	} else {
 		// standard code path, no fragment programs
 	
@@ -1751,7 +1755,7 @@ void water::generate_subdetail_and_bumpmap()
 					texture::LINEAR_MIPMAP_LINEAR,
 #endif
 					texture::REPEAT,
-					true, 0.5f));
+					true, 0.5f));//fixme 4.0f would better, detail is hardly visible else...
 			    //fixme: mipmap levels of normal map should be computed
 			    //by this class, not glu!
 			    //mipmap scaling of a normal map is not the same as the normal version
