@@ -12,12 +12,12 @@ const char* credits[] = {
 "$80ffc0Graphics",
 "$ffffffLuis Barrancos",
 "Markus Petermann",
-"Christian Kola√ü",
+"Christian Kolaﬂ",
 "Thorsten Jordan",
 "", "", "", "", "",
 "$80ffc0Models",
 "$ffffffLuis Barrancos",
-"Christian Kola√ü",
+"Christian Kolaﬂ",
 "Thorsten Jordan",
 "", "", "", "", "",
 "$80ffc0Operating system adaption",
@@ -36,7 +36,7 @@ const char* credits[] = {
 "$ffffffRick McDaniel",
 "Markus Petermann",
 "Viktor Radnai",
-"Christian Kola√ü",
+"Christian Kolaﬂ",
 "Nico Sakschewski",
 "Martin Butterweck",
 "Bernhard Kaindl",
@@ -58,6 +58,6 @@ const char* credits[] = {
 "Alexandre Paes",
 "...",
 "...and all i may have forgotten here (write me!)",
-"(no bockwursts were harmed in the making of this game)."
+"(no bockwursts were harmed in the making of this game).",
 0
 };
