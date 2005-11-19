@@ -158,7 +158,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	owg(wave_resolution,
 	    vector2f(1,1), // wind direction
 	    12 /*10*/ /*31*/,	// wind speed m/s. fixme make dynamic (weather!)
-	    wave_resolution * (3e-9) /* roughly 2e-6 for 128 */,	// scale factor for heights. depends on wave resolution, maybe also on tidecycle time
+	    wave_resolution * (1e-8) /* roughly 2e-6 for 128 */,	// scale factor for heights. depends on wave resolution, maybe also on tidecycle time
 	    wavetile_length,
 	    wave_tidecycle_time),
 	vertex_program_supported(false),
@@ -173,6 +173,8 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	, usex86sse(false)
 #endif
 {
+	if (xres < 15 || yres < 15 || xres > 400 || yres > 800)
+		throw error("water: xres/yres out of range!");
 
 	// 2004/04/25 Note! decreasing the size of the reflection map improves performance
 	// on a gf4mx! (23fps to 28fps with a 128x128 map to a 512x512 map)
@@ -1715,7 +1717,7 @@ void water::generate_wavetile(double tiletime, wavetile_phase& wtp)
 	// create data vector
 	wtp.data.resize(hs);
 	for (unsigned i = 0; i < hs; ++i) {
-		wtp.set_values(i, heights[i], displacements[i].x, displacements[i].y);
+		wtp.set_values(i, displacements[i].x, displacements[i].y, heights[i]);
 	}
 /*
 	float maxdispl = 0.0;
@@ -1737,6 +1739,7 @@ void water::generate_subdetail_and_bumpmap()
 		png.set_phase(0, phase, phase);	// fixme: depends on wind direction
 	}
 	waveheight_subdetail = png.generate();
+//	waveheight_subdetail = png.generate_sqr();
 #if 0
 	ostringstream osgname;
 	osgname << "noisemap" << myfmod(mytime, 86400) << ".pgm";

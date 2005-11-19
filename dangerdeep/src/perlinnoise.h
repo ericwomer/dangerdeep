@@ -36,6 +36,7 @@ public:
 		mutable fixed32 linefac2;
 		void set_line_for_interpolation(const vector<fixed32>& interpolation_func, fixed32 y) const;
 		Uint8 interpolate(const vector<fixed32>& interpolation_func, fixed32 x) const;
+		Uint8 interpolate_sqr(fixed32 x, fixed32 y) const;
 	};
 
 protected:
@@ -58,6 +59,9 @@ public:
 
 	// generate a composition of the noise functions
 	vector<Uint8> generate() const;
+
+	// generate a composition of the noise functions with x^2 interpolation
+	vector<Uint8> generate_sqr() const;
 };
 
 #endif
