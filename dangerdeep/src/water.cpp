@@ -314,6 +314,21 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 			gridindices.push_back(x +y2*(xres+1));
 		}
 	}
+/* triangles, doesn't help against facettes
+	gridindices.reserve(xres*yres*6);
+	for (unsigned y = 0; y < yres; ++y) {
+		unsigned y2 = y+1;
+		for (unsigned x = 0; x < xres; ++x) {
+			unsigned x2 = x+1;
+			gridindices.push_back(x +y *(xres+1));
+			gridindices.push_back(x2+y *(xres+1));
+			gridindices.push_back(x2+y2*(xres+1));
+			gridindices.push_back(x +y *(xres+1));
+			gridindices.push_back(x2+y2*(xres+1));
+			gridindices.push_back(x +y2*(xres+1));
+		}
+	}
+*/
 #endif
 
 	add_loading_screen("water maps inited");
@@ -1325,14 +1340,26 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	// fixme: angles at vertices are ignored yet
 	// fixme: the way the normals are computed seems wrong.
 	// faces look facetted, not smooth.
+	// This could explain the unrealistic look of the bump maps.
+	// The facetted appearance happens also without shaders, so THIS code must be the problem.
+	// i have checked it several times and tried other normal computation methods,
+	// the facettes remain, so the error must be somewhere else.
+	// Maybe the normals are interpolated differently for quads? maybe we should try triangles?
+	// fixme: when looking down on the water, so the water fills the full screen, facettes are
+	// more visible. THIS IS THE SOLUTION TO THE PROBLEM:
+	// In that case we have more visible triangles, the drawn grid is much denser
+	// this means we have many triangles per fft sample point. Heights are interpolated linearily,
+	// this means the drawn surface IS FACETTED. No wonder the triangulation algorithm
+	// shows such normals. We would have to compute not only heights/displacements, but normals
+	// also (real fft normals would be best, per tile normals are also ok, especially if they
+	// take the displacements into account), and interpolate the normals also smoothly.
 	for (unsigned y = 0; y < yres; ++y) {
-		unsigned y2 = y+1;
 		for (unsigned x = 0; x < xres; ++x) {
-			unsigned x2 = x+1;
-			unsigned i0 = x +y *(xres+1);
-			unsigned i1 = x2+y *(xres+1);
-			unsigned i2 = x2+y2*(xres+1);
-			unsigned i3 = x +y2*(xres+1);
+			unsigned i0 = x   +  y    *(xres+1);
+			unsigned i1 = x+1 +  y    *(xres+1);
+			unsigned i2 = x+1 + (y+1) *(xres+1);
+			unsigned i3 = x   + (y+1) *(xres+1);
+
 			// scheme: 3 2
 			//         0 1
 			// triangulation: 0,1,2 and 0,2,3 (fixme: check if that matches OpenGL order)
@@ -1355,7 +1382,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			//the surface seems to be facetted, not smooth.
 			// better compute normals from four surrounding faces.
 			//fixme2: shader problem? it seems so, because computing really smooth normals
-			//doesn't help.
+			//doesn't help. DEFINITLY NOT A SHADER PROBLEM, CAN BE SEEN ALSO WITHOUT SHADERS!
 			//it would not suffice to compute the normals from the height differences,
 			//because the x/y coords do not vary uniformly.
 			// compute normals for quads in both triangulation orders, leading to a better result
@@ -1368,7 +1395,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 			normals[i1] += n0 + n1 + n2;
 			normals[i2] += n1 + n2 + n3;
 			normals[i3] += n0 + n1 + n3;
-
 #if 0
 			normals[i0] += n0;
 			// fixme: the n1 vector seems to be the reason for the facetted surface normals
@@ -1435,9 +1461,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 		glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv2[0].x);
 		*/
 	} else {
-		// normalize normals.
-		for (unsigned i = 0; i < (xres+1)*(yres+1); ++i)
-			normals[i].normalize();
 		for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 			for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 				// the coordinate is the same as the relative coordinate, because the viewer is at 0,0,0
@@ -1501,6 +1524,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
 #else
 	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
+//	glDrawElements(GL_TRIANGLES, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
 #endif
 
 	if (compiled_vertex_arrays_supported)
