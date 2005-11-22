@@ -955,11 +955,12 @@ void menu_single_mission(void)
 }
 
 // fixme: read from languages.csv!
-#define NR_OF_LANGUAGES 3
+#define NR_OF_LANGUAGES 4
 const char* langcodes[NR_OF_LANGUAGES] = {
 	"en",
 	"de",
-	"it"
+	"it",
+	"es"
 };
 
 void set_selected_language(pair<widget*, unsigned> w_nr)
