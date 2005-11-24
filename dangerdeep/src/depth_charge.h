@@ -24,11 +24,12 @@ protected:
 	double explosion_depth;
 
 public:
-	depth_charge(game& gm_);
-	virtual ~depth_charge();
-	void load(istream& in);
-	void save(ostream& out) const;
-	depth_charge(game& gm_, const sea_object& parent, double expl_depth);
+	depth_charge(game& gm_);	// for loading
+	depth_charge(game& gm_, double expl_depth, const vector3& pos);	// for creation
+
+	virtual void load(const xml_elem& parent);
+	virtual void save(xml_elem& parent) const;
+
 	virtual void simulate(double delta_time);
 	virtual void display(void) const;
 	virtual vector3 get_acceleration(void) const;

@@ -5,11 +5,19 @@
 #include "tinyxml/tinyxml.h"
 
 
-xml_elem xml_elem::child(const std::string& name)
+xml_elem xml_elem::child(const std::string& name) const
 {
 	TiXmlElement* e = elem->FirstChildElement(name);
 	if (!e) throw xml_elem_error(name, doc_name());
 	return xml_elem(e);
+}
+
+
+
+bool xml_elem::has_child(const std::string& name) const
+{
+	TiXmlElement* e = elem->FirstChildElement(name);
+	return e != 0;
 }
 
 
@@ -58,41 +66,86 @@ unsigned xml_elem::attru(const std::string& name) const
 
 
 
-float xml_elem::attrf(const std::string& name) const
+double xml_elem::attrf(const std::string& name) const
 {
 	const char* tmp = elem->Attribute(name);
 	if (tmp) return atof(tmp);
-	return 0.0f;
+	return 0.0;
 }
 
 
 
-void xml_elem::set_attr(const std::string& name, const std::string& val)
+vector3 xml_elem::attrv3() const
+{
+	return vector3(attrf("x"), attrf("y"), attrf("z"));
+}
+
+
+
+quaternion xml_elem::attrq() const
+{
+	return quaternion(attrf("s"), attrv3());
+}
+
+
+
+angle xml_elem::attra() const
+{
+	return angle(attrf("angle"));
+}
+
+
+
+void xml_elem::set_attr(const std::string& val, const std::string& name)
 {
 	elem->SetAttribute(name, val);
 }
 
 
 
-void xml_elem::set_attr(const std::string& name, unsigned u)
+void xml_elem::set_attr(unsigned u, const std::string& name)
 {
-	set_attr(name, int(u));
+	set_attr(int(u), name);
 }
 
 
 
-void xml_elem::set_attr(const std::string& name, int i)
+void xml_elem::set_attr(int i, const std::string& name)
 {
 	elem->SetAttribute(name, i);
 }
 
 
 
-void xml_elem::set_attr(const std::string& name, float f)
+void xml_elem::set_attr(double f, const std::string& name)
 {
-	char tmp[32];
+	char tmp[64];
 	sprintf(tmp, "%f", f);
 	set_attr(name, tmp);
+}
+
+
+
+void xml_elem::set_attr(const vector3& v)
+{
+	set_attr(v.x, "x");
+	set_attr(v.y, "y");
+	set_attr(v.z, "z");
+}
+
+
+
+void xml_elem::set_attr(const quaternion& q)
+{
+	set_attr(q.s, "s");
+	set_attr(q.v);
+}
+
+
+
+void xml_elem::set_attr(angle a)
+{
+	set_attr(a.value(), "angle");
 }
 
 
@@ -100,6 +153,16 @@ void xml_elem::set_attr(const std::string& name, float f)
 std::string xml_elem::get_name() const
 {
 	return elem->Value();
+}
+
+
+
+std::string xml_elem::child_text() const
+{
+	TiXmlNode* ntext = elem->FirstChild();
+	if (!ntext)
+		throw xml_error(std::string("child of ") + get_name() + std::string(" is no text node"), doc_name());
+	return ntext->Value();
 }
 
 

@@ -7,46 +7,46 @@
 #include "system.h"
 #include "game.h"
 
-gun_shell::gun_shell(game& gm_) : sea_object(gm_)
+gun_shell::gun_shell(game& gm_)
+	: sea_object(gm_, "gun_shell.3ds"), damage_amount(0)
 {
+	// for loading
 }
 
 
 
-gun_shell::~gun_shell()
+gun_shell::gun_shell(game& gm_, const vector3& pos, angle direction, angle elevation,
+	double initial_velocity, double damage)
+	: sea_object(gm_, "gun_shell.3ds")
 {
-}
-
-
-
-gun_shell::gun_shell(game& gm_, const sea_object& parent, angle direction, angle elevation,
-	double initial_velocity, double damage) : sea_object(gm_)
-{
-	position = parent.get_pos();	// fixme: calc correct position
-	position.z = 4;
+	position = pos;
 	oldpos = position;
 	damage_amount = damage;
 	vector2 d = direction.direction() * elevation.cos() * initial_velocity;
 	velocity = vector3(d.x, d.y, elevation.sin() * initial_velocity);
-	//fixme: should be done in sea_object!
-	size3d = vector3f(gun_shell_mdl->get_width(), gun_shell_mdl->get_length(), gun_shell_mdl->get_height());
 
 	sys().add_console("shell created");
 }
 
-void gun_shell::load(istream& in)
+
+
+void gun_shell::load(const xml_elem& parent)
 {
-	sea_object::load(in);
-	oldpos = read_vector3(in);
-	damage_amount = read_double(in);
+	sea_object::load(parent);
+	oldpos = parent.child("oldpos").attrv3();
+	damage_amount = parent.child("damage_amount").attrf();
 }
 
-void gun_shell::save(ostream& out) const
+
+
+void gun_shell::save(xml_elem& parent) const
 {
-	sea_object::save(out);
-	write_vector3(out, oldpos);
-	write_double(out, damage_amount);
+	sea_object::save(parent);
+	parent.add_child("oldpos").set_attr(oldpos);
+	parent.add_child("damage_amount").set_attr(damage_amount);
 }
+
+
 
 void gun_shell::simulate(double delta_time)
 {

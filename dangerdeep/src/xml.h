@@ -6,6 +6,9 @@
 
 #include <string>
 #include "error.h"
+#include "vector3.h"
+#include "quaternion.h"
+#include "angle.h"
 
 class TiXmlElement;
 class TiXmlDocument;
@@ -45,14 +48,22 @@ class xml_elem
 	std::string attr(const std::string& name = "value") const;
 	int attri(const std::string& name = "value") const;
 	unsigned attru(const std::string& name = "value") const;
-	float attrf(const std::string& name = "value") const;
-	xml_elem child(const std::string& name);
+	double attrf(const std::string& name = "value") const;
+	vector3 attrv3() const;
+	quaternion attrq() const;
+	angle attra() const;
+	xml_elem child(const std::string& name) const;
+	bool has_child(const std::string& name) const;
 	xml_elem add_child(const std::string& name);
-	void set_attr(const std::string& name, const std::string& val);
-	void set_attr(const std::string& name, unsigned u);
-	void set_attr(const std::string& name, int i);
-	void set_attr(const std::string& name, float f);
+	void set_attr(const std::string& val, const std::string& name = "value");
+	void set_attr(unsigned u, const std::string& name = "value");
+	void set_attr(int i, const std::string& name = "value");
+	void set_attr(double f, const std::string& name = "value");
+	void set_attr(const vector3& v);
+	void set_attr(const quaternion& q);
+	void set_attr(angle a);
 	std::string get_name() const;
+	std::string child_text() const;	// returns value of text child, throws error if there is none
 
 	class iterator {
 	private:

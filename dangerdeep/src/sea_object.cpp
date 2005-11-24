@@ -11,6 +11,7 @@
 #include "system.h"
 #include "texts.h"
 #include "ai.h"
+#include "game.h"
 
 
 const double earthperimeter2 = 20015086.795;
@@ -103,15 +104,6 @@ double sea_object::get_turn_acceleration() const
 
 
 
-sea_object::sea_object(game& gm_) :
-	gm(gm_),
-	turn_velocity(0), heading(0), alive_stat(alive), myai(0), target(0)
-{
-	sensors.resize ( last_sensor_system );
-}
-
-
-
 void sea_object::set_sensor ( sensor_system ss, sensor* s )
 {
 	if ( ss >= 0 && ss < last_sensor_system ){
@@ -136,59 +128,51 @@ double sea_object::get_cross_section ( const vector2& d ) const
 
 
 
-sea_object::sea_object(game& gm_, TiXmlDocument* specfile, const char* topnodename) :
-	gm(gm_), turn_velocity(0), heading(0), alive_stat(alive), myai(0), target(0)
+sea_object::sea_object(game& gm_, const string& modelname_)
+	: gm(gm_), modelname(modelname_), turn_velocity(0),
+	  alive_stat(alive), myai(0), target(0),
 {
-	TiXmlHandle hspec(specfile);
-	TiXmlHandle hdftdobj = hspec.FirstChild(topnodename);
-	TiXmlElement* eclassification = hdftdobj.FirstChildElement("classification").Element();
-	sys().myassert(eclassification != 0, string("sea_object: classification node missing in ")+specfile->Value());
-	specfilename = XmlAttrib(eclassification, "identifier");
-	modelname = XmlAttrib(eclassification, "modelname");
 	model* mdl = modelcache.ref(modelname);
 	size3d = vector3f(mdl->get_width(), mdl->get_length(), mdl->get_height());
-	//country = XmlAttrib(eclassification, "country");
-	TiXmlHandle hdescription = hdftdobj.FirstChild("description");
-	TiXmlElement* edescr = hdescription.FirstChild("far").Element();
-	for ( ; edescr != 0; edescr = edescr->NextSiblingElement("far")) {
-		if (XmlAttrib(edescr, "lang") == texts::get_language_code()) {
-			TiXmlNode* ntext = edescr->FirstChild();
-			sys().myassert(ntext != 0, string("sea_object: far description text child node missing in ")+specfilename);
-			descr_near = ntext->Value();
-			break;
+}
+
+
+
+sea_object::sea_object(game& gm_, const xml_elem& parent)
+	: gm(gm_), turn_velocity(0), alive_stat(alive), myai(0), target(0)
+{
+	xml_elem cl = parent.child("classification");
+	specfilename = cl.attr("identifier");
+	modelname = cl.attr("modelname");
+	model* mdl = modelcache.ref(modelname);
+	size3d = vector3f(mdl->get_width(), mdl->get_length(), mdl->get_height());
+	//country = cl.attr("country");
+	xml_elem ds = parent.child("description");
+	for (xml_elem::iterator it = ds.iterate("far"); !it.end(); it.next()) {
+		if (it.elem().attr("lang") == texts::get_language_code()) {
+			descr_far = it.elem().child_text();
 		}
 	}
-	edescr = hdescription.FirstChild("medium").Element();
-	for ( ; edescr != 0; edescr = edescr->NextSiblingElement("medium")) {
-		if (XmlAttrib(edescr, "lang") == texts::get_language_code()) {
-			TiXmlNode* ntext = edescr->FirstChild();
-			sys().myassert(ntext != 0, string("sea_object: medium description text child node missing in ")+specfilename);
-			descr_near = ntext->Value();
-			break;
+	for (xml_elem::iterator it = ds.iterate("medium"); !it.end(); it.next()) {
+		if (it.elem().attr("lang") == texts::get_language_code()) {
+			descr_medium = it.elem().child_text();
 		}
 	}
-	edescr = hdescription.FirstChild("near").Element();
-	for ( ; edescr != 0; edescr = edescr->NextSiblingElement("near")) {
-		if (XmlAttrib(edescr, "lang") == texts::get_language_code()) {
-			TiXmlNode* ntext = edescr->FirstChild();
-			sys().myassert(ntext != 0, string("sea_object: near description text child node missing in ")+specfilename);
-			descr_near = ntext->Value();
-			break;
+	for (xml_elem::iterator it = ds.iterate("near"); !it.end(); it.next()) {
+		if (it.elem().attr("lang") == texts::get_language_code()) {
+			descr_near = it.elem().child_text();
 		}
 	}
-	TiXmlHandle hsensors = hdftdobj.FirstChild("sensors");
+	xml_elem sn = parent.child("sensors");
 	sensors.resize ( last_sensor_system );
-	TiXmlElement* esensor = hsensors.FirstChild("sensor").Element();
-	for ( ; esensor != 0; esensor = esensor->NextSiblingElement("sensor")) {
-		string typestr = XmlAttrib(esensor, "type");
+	for (xml_elem::iterator it = sn.iterate("sensor"); !it.end(); it.next()) {
+		string typestr = it.elem().attr("type");
 		if (typestr == "lookout") set_sensor(lookout_system, new lookout_sensor());
 		else if (typestr == "passivesonar") set_sensor(passive_sonar_system, new passive_sonar_sensor());
 		else if (typestr == "activesonar") set_sensor(active_sonar_system, new active_sonar_sensor());
-		else if (typestr == "radar") 
-		{
+		else if (typestr == "radar") {
 			radar_sensor::radar_type type = radar_sensor::radar_type_default;
-			string radar_model = XmlAttrib(esensor, "model");
-
+			string radar_model = it.elem().attr("model");
 			if ("British Type 271" == radar_model)
 				type = radar_sensor::radar_british_type_271;
 			else if ("British Type 272" == radar_model)
@@ -208,12 +192,14 @@ sea_object::sea_object(game& gm_, TiXmlDocument* specfile, const char* topnodena
 			else if ("German FuMO 391" == radar_model)
 				type  = radar_sensor::radar_german_fumo_391;
 			else
-				assert(false);
+				throw error("invalid radar type name");
 					
 			set_sensor(radar_system, new radar_sensor(type));
 		}
 		// ignore unknown sensors.
 	}
+
+	// ai is filled in by heirs.
 }
 
 
@@ -228,70 +214,50 @@ sea_object::~sea_object()
 
 
 
-void sea_object::load(istream& in)
+void sea_object::load(const xml_elem& parent)
 {
-	specfilename = read_string(in);
-	position = read_vector3(in);
-	velocity = read_vector3(in);
-	orientation = read_quaternion(in);
-	turn_velocity = read_double(in);
-	heading = angle(read_double(in));
-	
-/*	
-	heading = angle(read_double(in));
-	speed = read_double(in);
-	throttle = read_i8(in);
-	permanent_turn = read_bool(in);
-	head_chg = read_double(in);
-	rudder = read_i8(in);
-	head_to = angle(read_double(in));
-*/
-	alive_stat = alive_status(read_u8(in));
-
-/*
-	previous_positions.clear();
-	for (unsigned s = read_u8(in); s > 0; --s) {
-		double x = read_double(in);
-		double y = read_double(in);
-		previous_positions.push_back(vector2(x, y));
+	xml_elem se = parent.child("sea_object");//fixme: extra-node??
+	string specfilename2 = se.attr("specfilename");	// checks
+	if (specfilename != specfilename2)
+		throw error("stored specfilename does not match");
+	xml_elem st = se.child("state");
+	position = st.child("position").attrv3();
+	velocity = st.child("velocity").attrv3();
+	orientation = st.child("orientation").attrq();
+	turn_velocity = st.child("turn_velocity").attrf();
+	heading = st.child("heading").attra();
+	// load ai
+	if (myai) {
+		myai->load(se.child("AI"));
 	}
-*/
+	// load target
+	target = gm.load_ptr(se.child("target").attru());
 }
 
 
 
-void sea_object::save(ostream& out) const
+void sea_object::save(xml_elem& parent) const
 {
-	write_string(out, specfilename);
-	write_vector3(out, position);
-	write_vector3(out, velocity);
-	write_quaternion(out, orientation);
-	write_double(out, turn_velocity);
-	write_double(out, heading.value());
-	
-/*
-	write_double(out, position.z);
-	write_double(out, heading.value());
-	write_double(out, speed);
-	write_i8(out, throttle);
-	write_bool(out, permanent_turn);
-	write_double(out, head_chg);
-	write_i8(out, rudder);
-	write_double(out, head_to.value());
-*/	
-	write_u8(out, alive_stat);
-
-/*
-	write_u8(out, previous_positions.size());
-	for (list<vector2>::const_iterator it = previous_positions.begin(); it != previous_positions.end(); ++it) {
-		write_double(out, it->x);
-		write_double(out, it->y);
+	xml_elem se = parent.add_child("sea_object");//fixme: extra-node??
+	se.set_attr(specfilename, "specfilename");	// only used as reference
+	xml_elem st = se.add_child("state");
+	st.add_child("position").set_attr(position);
+	st.add_child("velocity").set_attr(velocity);
+	st.add_child("orientation").set_attr(orientation);
+	st.add_child("turn_velocity").set_attr(turn_velocity);
+	st.add_child("heading").set_attr(heading);
+	se.add_child("alive_stat").set_attr(unsigned(alive_stat));
+	// save ai
+	if (myai) {
+		myai->save(se.child("AI"));
 	}
-*/
+	// save target
+	se.add_child("target").set_attr(gm.save_ptr(target));
 }
 
 
 
+// function should be obsolete!
 void sea_object::parse_attributes(TiXmlElement* parent)
 {
 	TiXmlHandle hdftdobj(parent);

@@ -20,12 +20,13 @@ class gun_shell : public sea_object
 	double damage_amount;
 
  public:
-	gun_shell(game& gm_);
-	virtual ~gun_shell();
-	void load(istream& in);
-	void save(ostream& out) const;
-	gun_shell(game& gm_, const sea_object& parent, angle direction, angle elevation,
-		double initial_velocity, double damage);
+	gun_shell(game& gm_);	// for loading
+	gun_shell(game& gm_, const vector3& pos, angle direction, angle elevation,
+		double initial_velocity, double damage);	// for creation
+
+	virtual void load(const xml_elem& parent);
+	virtual void save(xml_elem& parent) const;
+
 	virtual void simulate(double delta_time);
 	virtual void display(void) const;
 	virtual float surface_visibility(const vector2& watcher) const;

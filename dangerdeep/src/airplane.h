@@ -20,13 +20,12 @@ class airplane : public sea_object
 
  public:
 	// create empty object from specification xml file
-	airplane(game& gm_, class TiXmlDocument* specfile);
+	airplane(game& gm_, const xml_elem& parent);
 
-	virtual ~airplane();
+	virtual void load(const xml_elem& parent);
+	virtual void save(xml_elem& parent) const;
 
-	void load(istream& in);
-	void save(ostream& out) const;
-
+	//obsolete fixme
 	virtual void parse_attributes(class TiXmlElement* parent);
 
 	virtual void simulate(double delta_time);

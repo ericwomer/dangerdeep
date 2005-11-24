@@ -565,6 +565,10 @@ void game::load_from_stream(istream& in)
 	for (unsigned s = read_u32(in); s > 0; --s) convoys.push_back(new convoy(*this));
 	//for (unsigned s = read_u32(in); s > 0; --s) particles.push_back(new particle(*this));
 
+	// fixme: maybe also possible with templates...
+	// template <class T> ptrset<U>::for_each(void (*U::func)(T arg)) { for(){ ptr->func(arg); } }
+	// ships.for_each<istream&>(ship::load, in);
+	// is done in a similar way with widgets!
 	ships.for_each(load_helper<ship>(in));
 	submarines.for_each(load_helper<submarine>(in));
 	airplanes.for_each(load_helper<airplane>(in));
@@ -1520,7 +1524,7 @@ unsigned game::listsizes(unsigned n) const
 		case 2: s += submarines.size();
 		case 1: s += ships.size();
 		case 0: s += 0; break;
-		default: sys().myassert(false, "game::listsizes  n too high");
+		default: throw error("game::listsizes  n too high");
 	}
 	return s;
 }

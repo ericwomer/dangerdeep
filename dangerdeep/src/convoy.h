@@ -17,8 +17,6 @@ class convoy : public sea_object
  protected:
 	friend class game; // for initialization	
 
-	class ai* myai;
-
 	list<pair<ship*, vector2> > merchants, warships, escorts;
 	list<vector2> waypoints;
 

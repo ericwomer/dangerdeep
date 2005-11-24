@@ -9,39 +9,36 @@
 
 
 
-depth_charge::depth_charge(game& gm_) : sea_object(gm_)
+depth_charge::depth_charge(game& gm_)
+	: sea_object(gm_, "depth_charge.3ds"), explosion_depth(0)
 {
+	// for loading
 }
 
 
 
-depth_charge::depth_charge(game& gm_, const sea_object& parent, double expl_depth) : sea_object(gm_)
+depth_charge::depth_charge(game& gm_, double expl_depth, const vector3& pos)
+	: sea_object(gm_, "depth_charge.3ds"), explosion_depth(expl_depth)
 {
-	position = parent.get_pos();	// fixme depends on parent! and parent's size, dc's can be thrown, etc.!
-	explosion_depth = expl_depth;
+	// fixme depends on parent! and parent's size, dc's can be thrown, etc.!
+	position = pos;
 	system::sys().add_console("depth charge created");
 }
 
 
 
-depth_charge::~depth_charge()
+void depth_charge::load(const xml_elem& parent)
 {
+	sea_object::load(parent);
+	explosion_depth = parent.child("explosion_depth").attr();
 }
 
 
 
-void depth_charge::load(istream& in)
+void depth_charge::save(xml_elem& parent) const
 {
-	sea_object::load(in);
-	explosion_depth = read_double(in);
-}
-
-
-
-void depth_charge::save(ostream& out) const
-{
-	sea_object::save(out);
-	write_double(out, explosion_depth);
+	sea_object::save(parent);
+	parent.add_child("explosion_depth").set_attr(explosion_depth);
 }
 
 

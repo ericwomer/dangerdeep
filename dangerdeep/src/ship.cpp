@@ -835,7 +835,8 @@ int ship::fire_shell_at(const sea_object& s)
 										// fixme: snap angle values to simulate real cannon accuracy.
 
 										// fixme: adapt direction & elevation to course and speed of target!
-										gm.spawn_gun_shell(new gun_shell(gm, *this, direction, elevation, gun->initial_velocity, gun->shell_damage), 
+										// fixme: get_pos() is to crude!
+										gm.spawn_gun_shell(new gun_shell(gm, get_pos(), direction, elevation, gun->initial_velocity, gun->shell_damage), 
 														   gun->calibre);
 										gun->num_shells_remaining--;
 										gun_barrel->load_time_remaining = GUN_RELOAD_TIME;

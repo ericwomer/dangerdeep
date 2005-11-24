@@ -42,17 +42,24 @@ class submarine : public ship
 
  	//fixme: later we have to add control data for each torpedo (gyro angle, fat/lut setup for each
  	//torpedo etc. we could store pointers to class torpedo here instead of "type" to accomplish this)
+ 	//fixme: do that now, with new torp code
 	struct stored_torpedo {
 		enum st_status { st_empty, st_reloading, st_unloading, st_loaded };
-		torpedo::types type;
+		// be very careful with that... destructor of submarine needs to clear the objects
+		torpedo* torp;
+		//torpedo::types type;
 		st_status status;	// 0 empty 1 reloading 2 unloading 3 loaded
 		unsigned associated;	// reloading from/unloading to
 		double remaining_time;	// remaining time until work is finished
-		stored_torpedo() : type(torpedo::none), status(st_empty), associated(0), remaining_time(0) {}
-		stored_torpedo(torpedo::types t) : type(t), status(st_loaded), associated(0), remaining_time(0) {}
+		stored_torpedo() : torp(0), status(st_empty), associated(0), remaining_time(0) {}
+		stored_torpedo(torpedo* t) : torp(t), status(st_loaded), associated(0), remaining_time(0) {}
+		void load(const xml_elem& parent);
+		void save(xml_elem& parent) const;
+/*
 		// fixme: adapt save code, move it to c++ file
 		stored_torpedo(istream& in) { type = (torpedo::types)(read_u8(in)); status = st_status(read_u8(in)); associated = read_u8(in); remaining_time = read_double(in); }
 		void save(ostream& out) const { write_u8(out, unsigned(type)); write_u8(out, status); write_u8(out, associated); write_double(out, remaining_time); }
+*/
 	};
 
 	// submarine parts and their damages

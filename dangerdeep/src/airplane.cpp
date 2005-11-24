@@ -9,23 +9,14 @@
 
 
 
-airplane::airplane(game& gm_, TiXmlDocument* specfile) : sea_object(gm_, specfile)
-{
-	TiXmlHandle hspec(specfile);
-	TiXmlHandle hdftdairplane = hspec.FirstChild();	// ignore node name
-	//head_to = heading;
-	rollfac = pitchfac = 0.0;
-	//throttle = aheadfull;
-}
-
-
-
-airplane::~airplane()
+airplane::airplane(game& gm_, const xml_elem& parent)
+	: sea_object(gm, parent), rollfac(0), pitchfac(0)
 {
 }
 
 
 
+// obsolete!!!!
 void airplane::parse_attributes(TiXmlElement* parent)
 {
 	sea_object::parse_attributes(parent);
@@ -36,36 +27,22 @@ void airplane::parse_attributes(TiXmlElement* parent)
 
 
 
-void airplane::load(istream& in)
+void airplane::load(const xml_elem& parent)
 {
-	sea_object::load(in);
-/*
-	orientation.s = read_double(in);
-	orientation.v.x = read_double(in);
-	orientation.v.y = read_double(in);
-	orientation.v.z = read_double(in);
-	velocity.x = read_double(in);
-	velocity.y = read_double(in);
-	velocity.z = read_double(in);
-*/
-	rollfac = read_double(in);
-	pitchfac = read_double(in);
+	sea_object::load(parent);
+	xml_elem ma = parent.child("air_motion");
+	rollfac = ma.attrf("rollfac");
+	pitchfac = ma.attrf("pitchfac");
 }
 
-void airplane::save(ostream& out) const
+
+
+void airplane::save(xml_elem& parent) const
 {
-	sea_object::save(out);
-/*
-	write_double(out, orientation.s);
-	write_double(out, orientation.v.x);
-	write_double(out, orientation.v.y);
-	write_double(out, orientation.v.z);
-	write_double(out, velocity.x);
-	write_double(out, velocity.y);
-	write_double(out, velocity.z);
-*/
-	write_double(out, rollfac);
-	write_double(out, pitchfac);
+	sea_object::save(parent);
+	xml_elem ma = parent.add_child("air_motion");
+	ma.set_attr(rollfac, "rollfac");
+	ma.set_attr(pitchfac, "pitchfac");
 }
 
 

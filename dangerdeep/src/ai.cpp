@@ -249,7 +249,8 @@ void ai::act_escort(game& gm, double delta_time)
 		}
 
 		if (cd < DC_ATTACK_RADIUS) {
-			gm.spawn_depth_charge(new depth_charge(gm, *parent, -contact.z));
+			// fixme: get real pos for dc throwing...
+			gm.spawn_depth_charge(new depth_charge(gm, -contact.z, parent->get_pos()));
 			// the escort must run with maximum speed until the depth charges
 			// have exploded to avoid suicide. fixme
 			// fixme: just ai hacking/testing.

@@ -14,7 +14,8 @@
 // implemented in a sane way with the new class model (2004/07/15)
 
 
-convoy::convoy(game& gm_) : sea_object(gm_), myai(0)
+convoy::convoy(game& gm_)
+	: sea_object(gm_, ""), myai(0)
 {
 }
 
@@ -191,74 +192,77 @@ convoy::convoy(class game& gm_, TiXmlElement* parent) : sea_object(gm_), myai(0)
 
 
 
-void convoy::load(istream& in)
+void convoy::load(const xml_elem& parent)
 {
-	sea_object::load(in);
-
-	if (read_bool(in))
-		myai = new ai(in, gm);
-
+	sea_object::load(parent);
+	xml_elem mc = parent.child("merchants");
 	merchants.clear();
-	for (unsigned s = read_u8(in); s > 0; --s) {
-		ship* sh = gm.read_ship(in);
-		double x = read_double(in);
-		double y = read_double(in);
-		merchants.push_back(make_pair(sh, vector2(x, y)));
+	merchants.reserve(mc.attru("nr"));
+	for (xml_elem::iterator it = mc.iterate("merchant"); !it.end(); it.next()) {
+		merchants.push_back(make_pair(gm.load_ship_ptr(it.elem().attru("ref")),
+					      vector2(it.elem().attrf("posx"),
+						      it.elem().attrf("posy"))));
 	}
+	xml_elem ws = parent.child("warships");
 	warships.clear();
-	for (unsigned s = read_u8(in); s > 0; --s) {
-		ship* sh = gm.read_ship(in);
-		double x = read_double(in);
-		double y = read_double(in);
-		warships.push_back(make_pair(sh, vector2(x, y)));
+	warships.reserve(ws.attru("nr"));
+	for (xml_elem::iterator it = ws.iterate("warship"); !it.end(); it.next()) {
+		warships.push_back(make_pair(gm.load_ship_ptr(it.elem().attru("ref")),
+					      vector2(it.elem().attrf("posx"),
+						      it.elem().attrf("posy"))));
 	}
+	xml_elem es = parent.child("escorts");
 	escorts.clear();
-	for (unsigned s = read_u8(in); s > 0; --s) {
-		ship* sh = gm.read_ship(in);
-		double x = read_double(in);
-		double y = read_double(in);
-		escorts.push_back(make_pair(sh, vector2(x, y)));
+	escorts.reserve(es.attru("nr"));
+	for (xml_elem::iterator it = es.iterate("escort"); !it.end(); it.next()) {
+		escorts.push_back(make_pair(gm.load_ship_ptr(it.elem().attru("ref")),
+					      vector2(it.elem().attrf("posx"),
+						      it.elem().attrf("posy"))));
 	}
+	xml_elem wp = parent.child("waypoints");
 	waypoints.clear();
-	for (unsigned s = read_u16(in); s > 0; --s) {
-		double x = read_double(in);
-		double y = read_double(in);
-		waypoints.push_back(vector2(x, y));
+	waypoints.reserve(wp.attru("nr"));
+	for (xml_elem::iterator it = wp.iterate("waypoint"); !it.end(); it.next()) {
+		waypoints.push_back(vector2(it.elem().attrf("x"),
+					    it.elem().attrf("y")));
 	}
 }
 
 
 
-void convoy::save(ostream& out) const
+void convoy::save(xml_elem& parent) const
 {
-	sea_object::save(out);
-
-	write_bool(out, (myai != 0));
-	if (myai)
-		myai->save(out, gm);
-
-	write_u8(out, merchants.size());
+	sea_object::save(parent);
+	xml_elem mc = parent.add_child("merchants");
+	mc.set_attr(merchants.size(), "nr");
 	for (list<pair<ship*, vector2> >::const_iterator it = merchants.begin(); it != merchants.end(); ++it) {
-		gm.write(out, it->first);
-		write_double(out, it->second.x);
-		write_double(out, it->second.y);
+		xml_elem mc2 = mc.add_child("merchant");
+		mc2.set_attr(gm.save_ptr(it->first), "ref");
+		mc2.set_attr(it->second.x, "posx");
+		mc2.set_attr(it->second.x, "posy");
 	}
-	write_u8(out, warships.size());
+	xml_elem ws = parent.add_child("warships");
+	ws.set_attr(warships.size(), "nr");
 	for (list<pair<ship*, vector2> >::const_iterator it = warships.begin(); it != warships.end(); ++it) {
-		gm.write(out, it->first);
-		write_double(out, it->second.x);
-		write_double(out, it->second.y);
+		xml_elem ws2 = mc.add_child("warship");
+		ws2.set_attr(gm.save_ptr(it->first), "ref");
+		ws2.set_attr(it->second.x, "x");
+		ws2.set_attr(it->second.y, "y");
 	}
-	write_u8(out, escorts.size());
+	xml_elem es = parent.add_child("escorts");
+	es.set_attr(escorts.size(), "nr");
 	for (list<pair<ship*, vector2> >::const_iterator it = escorts.begin(); it != escorts.end(); ++it) {
-		gm.write(out, it->first);
-		write_double(out, it->second.x);
-		write_double(out, it->second.y);
+		xml_elem es2 = mc.add_child("escort");
+		es2.set_attr(gm.save_ptr(it->first), "ref");
+		es2.set_attr(it->second.x, "x");
+		es2.set_attr(it->second.y, "y");
 	}
-	write_u16(out, waypoints.size());
+	xml_elem wp = parent.add_child("waypoints");
+	wp.set_attr(waypoints.size(), "nr");
 	for (list<vector2>::const_iterator it = waypoints.begin(); it != waypoints.end(); ++it) {
-		write_double(out, it->x);
-		write_double(out, it->y);
+		xml_elem wp2 = mc.add_child("pos");
+		wp2.set_attr(it->x, "x");
+		wp2.set_attr(it->y, "y");
 	}
 }
 

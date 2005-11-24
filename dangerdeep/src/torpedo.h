@@ -5,82 +5,133 @@
 #define TORPEDO_H
 
 #include "ship.h"
-#include <map>
-using namespace std;
 
-#define G7A_HITPOINTS 4	// maximum
-#define TORPEDO_SAFE_DISTANCE 250.0f // minimum distance
-#define TORPEDO_ACTIVATION_DISTANCE 400.0f // minimum distance for t4/t5/t11
+/*
+description and info is per language and class-wide.
+read from xml and store somewhere.
+for a normal torpedo:
+parse xml and give time/fusetypes/type
+a function will create a torpedo object from it
 
-// fixme: maybe make heirs of this class for each torpedo type. would be much nicer code.
-// unnecessary work. instead maybe use same code as for ships/subs with XML.
-// torpedo should heir from ship, as it has the same rudders/code as a ship.
+per torpedo data:
+double weight	(may differ, but is this important? maybe for buoyancy sim)
+double diameter (21" on all german torpedoes)
+double length   (same for all torps)
+double untertrieb (percent of weight?)
+double warhead_weight
+int warhead_explosive	(varois types, hardcoded)
+double arming_distance
+ptrlist<fuse>
+-> per fuse: int type
+=> list<type>
+double range_normal    (compute from battery values? no, store also)
+double speed_normal
+double range_preheated
+double speed_preheated
+double accel, turnrate (sea-object)
+bool has_fat, has_fatII?
+bool has_lut, has_lut2?
+list<sensor> or list<sensor-type> or just sensor*
+double hp
+int powertype (battery type?)
+date availability
+
+double dud_probability... (for each fuse and for what?) depends on fuse, do not store in xml
+
+implement classes per fuse:
+double fail propab, depends on time period
+double behaviour on impact etc.
+
+causes of failure:
+TZ: disturbed by magnetic influence of the Norway Fjords
+G7e: depth keeping equipment failed, so torpedo ran 6 feet to deep (2m), problem with impact pistols
+     detected 01/30/1942, official 09/02/1942. the longer the boat is submerged the more probable
+     is the failure. 1940 (norwegian campain) there were 30-35% torpedo malfunctions
+Pi: angle of impact? unsure
+*/
 
 class torpedo : public ship
 {
+ public:
+	struct fuse {
+		enum models { Pi1, Pi2, Pi3, Pi4a, Pi4b, Pi4c, Pi6, TZ3, TZ5, TZ6 };
+		enum types { IMPACT, INFLUENCE, INERTIAL };
+		models model;
+		types type;
+		float failure_probability;	// in [0...1]
+		// this function computes if the fuse ignites or fails, call it once
+		bool handle_impact(angle impactangle) const;
+	};
+
+	enum warhead_types { Ka, Kb, Kc, Kd, Ke, Kf };
+
+	enum steering_devices { STRAIGHT, FaT, LuTI, LuTII };
+
+	enum propulsion_types { STEAM, ELECTRIC, WALTER };
+
  private:
 	torpedo();
 	torpedo& operator=(const torpedo& other);
 	torpedo(const torpedo& other);
 
-public:
-	// T1: G7a
-	// T2: G7e with contact fuse
-	// T3: G7e with influence fuse
-	// T3a: range improved (150%) T3, available mid 1942
-	// T4: G7e acoustic (Falke/Falcon) 7500m at 20kts. Used in march 1943
-	// T5: G7e acoustic (Zaunkoenig/Gnat) 24kts
-	// T11: like T5, less affected by "foxer" noise-making decoy
-	// FAT: available for T1 or T3s
-	// LUT: available for T3s (named T6 ?)
-	// fixme: how widely was influence fuse used? there were severly
-	// malfunctions, even later in the war. Influence fuse is not simulated yet
-	// so T2 == T3
-	// what happens if an influence fuse torpedo hits a ship hull?
-	// does that ignite the fuse because of the magnetism or did they have an additional
-	// contact fuse?? fixme
-	enum types { none, T1, T2, T3, T3a, T4, T5, T11, T1FAT, T3FAT, T6LUT, reloading=0xffffffff };
+ protected:
+	//std::string name;//use sea_object's specfilename
 
-protected:
-	double run_length, max_run_length;	// this could be done with fuel simulation...
-	types type;
-	bool influencefuse;	// determined by type
-	
-	// add flags for FAT/LUT here? maybe make .xml files more generic
-	// e.g. one file for T1 with flags FAT/LUT/influence-impact fuse etc.
-	
-	// configured by the player
-	unsigned primaryrange;	// 1600...3200
-	unsigned secondaryrange;// 800/1600
-	unsigned initialturn;	// 0-1 (left or right, for FAT/LUT)
-	unsigned turnangle;	// (0...180 degrees, for LUT, FAT has 180)
-	unsigned torpspeed;	// torpspeed (0-2 slow-fast, only for G7a torps)
-	double rundepth;	// depth the torpedo should run at
+	// -------- computed at creation of object ------------------
+	double mass;		// in kg
+	double untertrieb;	// negative buoyancy
+	double warhead_weight;	// in kg
+	warhead_types warhead_type;
+	double arming_distance;	// meters
+	std::list<fuse> fuses;
+	double range_normal;
+	double speed_normal;
+	double range_preheated;
+	double speed_preheated;
+	steering_devices steering_device;
+	double hp;		// horse power of engine
+	propulsion_types propulsion_type;
+	double sensor_activation_distance;	// meters. unused if torp has no sensors.
 
-	double temperature;	// only useful for electric torpedoes
+	// ------------- configured by the player ------------------
+	unsigned primaryrange;	// 1600...3200, [SAVE]
+	unsigned secondaryrange;// 800/1600, [SAVE]
+	bool initialturn_left;	// initital turn is left (true) or right (false), [SAVE]
+	angle turnangle;	// (0...180 degrees, for LUT, FAT has 180), [SAVE]
+	unsigned torpspeed;	// torpspeed (0-2 slow-fast, only for G7a torps), [SAVE]
+	double rundepth;	// depth the torpedo should run at, [SAVE]
+
+	// ------------ changes over time by simulation
+	double temperature;	// only useful for electric torpedoes, [SAVE]
+	double probability_of_rundepth_failure;	// basically high before mid 1942, [SAVE]
+	double run_length;	// how long the torpedo has run, [SAVE]
+
 
 	// specific damage here:
-	virtual void create_sensor_array ( types t );
+//	virtual void create_sensor_array ( types t );
 	
-	static double get_speed_by_type(types t);
+	bool use_simple_turning_model() const { return true; }
+	
+	virtual bool causes_spray() const { return false; }//causes wake, only true for steam torpedoes and maybe for Walter engine
 
-	bool use_simple_turning_model(void) const { return true; }
-	
-	virtual bool causes_spray(void) const { return false; }
-	
 public:
-	torpedo(game& gm_);
-	virtual ~torpedo();
-	void load(istream& in);
-	void save(ostream& out) const;
-	
-	// additional FAT/LUT values as indices (0-16,0-1,0-1,0-1)
-	torpedo(game& gm_, sea_object* parent, types type_, bool usebowtubes, angle headto_,
-		const class tubesetup& stp);
-	virtual void simulate(double delta_time);
-	virtual void display(void) const;
+	// create from spec file, select values by date. date is taken from game.
+	torpedo(game& gm, std::string specfilename);
 
+	// load/save object
+	void load(const xml_elem& parent);
+	void save(xml_elem& parent) const;
+
+	// additional FAT/LUT values as indices (0-16,0-1,0-1,0-180,0-2,0-25) fixme
+	void set_steering_values(unsigned primrg, unsigned secrg, bool initurnleft, angle turnang,
+				 unsigned tspeedsel, double rdepth);
+	
+	virtual void simulate(double delta_time);
+	virtual void display() const;//remove later, use modelfilename stored in spec xml file!
+
+#if 0 // obsolete!!!!!!!!!!
 	// compute gyro lead angle and expected run time of torpedo
+	// obsolete, done by TDC now
 	static pair<angle, bool> lead_angle(types torptype, double target_speed,
 		angle angle_on_the_bow);
 	static double expected_run_time(types torptype, angle lead_angle,
@@ -91,9 +142,12 @@ public:
 	// but target computing would be done in a different way.
 	// fixme: this function assumes that torpedoes are launched from bow or stern
 	// what is not always right for ships.
+	// obsolete should be computed by TDC sim
 	static pair<angle, bool> compute_launch_data(types torptype, const ship* parent,
 		const sea_object* target, bool usebowtubes, const angle& manual_lead_angle);
+#endif
 
+	// depends on warhead, will change with newer damage simulation
 	virtual unsigned get_hit_points () const;
 };
 

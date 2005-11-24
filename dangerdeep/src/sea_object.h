@@ -12,6 +12,7 @@ using namespace std;
 #include "vector3.h"
 #include "angle.h"
 #include "quaternion.h"
+#include "xml.h"
 
 /*
 fixme: global todo (2004/06/26):
@@ -83,21 +84,21 @@ private:
 	sea_object(const sea_object& other);
 
 protected:
-	sea_object(game& gm_);
-
 	// game exists before and after live of each sea_object, but calls to game are very common.
 	// so store a ref to game here.	
 	game& gm;
 
-	string specfilename;	// filename for specification .xml file, read from spec file
+	string specfilename;	// filename for specification .xml file, set in constructor
 
 	string modelname;	// filename for model file (also used for modelcache requests), read from spec file
 
-	vector3 position;	// global position
-	vector3 velocity;	// local velocity
-	quaternion orientation;	// global orientation
-	double turn_velocity;	// angular velocity around global z-axis
-	angle heading;		// global z-orientation is stored additionally
+	//string_or_country_code country;	// read from spec file, maybe save for capture missions...
+
+	vector3 position;	// global position, [SAVE]
+	vector3 velocity;	// local velocity, [SAVE]
+	quaternion orientation;	// global orientation, [SAVE]
+	double turn_velocity;	// angular velocity around global z-axis, [SAVE]
+	angle heading;		// global z-orientation is stored additionally, [SAVE]
 
 	vector3 global_velocity;// recomputed every frame by simulate() method
 	
@@ -106,13 +107,13 @@ protected:
 
 	vector3f size3d;		// computed from model, indirect read from spec file, width, length, height
 
-	// double mass;	// total weight
+	// double mass;	// total weight, later read from spec file
 	
 	// an object is alive until it is killed or inactive.
 	// killed (dead) objects exists at least one simulation step. All other objects must remove their
 	// pointers to an object, if it is dead.
 	// The next step it is set to disfunctional status (defunct) and removed the next step.
-	alive_status alive_stat;
+	alive_status alive_stat;	// [SAVE]
 
 	// Sensor systems, created after data in spec file
 	vector<sensor*> sensors;
@@ -120,12 +121,12 @@ protected:
 	// fixme: this is per model/type only. it is a waste to store it for every object
 	string descr_near, descr_medium, descr_far;	// read from spec file
 
-	class ai* myai;
+	class ai* myai;		// created from spec file, but data needs to be saved, [SAVE]
 
 	// pointer to target or similar object.
 	// used by airplanes/ships/submarines to store a reference to their target
 	// automatically set to NULL by simulate() if target is inactive.
-	sea_object* target;
+	sea_object* target;	// [SAVE]
 
 	virtual void set_sensor ( sensor_system ss, sensor* s );
 
@@ -136,15 +137,19 @@ protected:
 	*/
 	virtual double get_cross_section ( const vector2& d ) const;
 
-	// give a loaded xml document to this c'tor, it will create an object after the specs
-	sea_object(game& gm_, class TiXmlDocument* specfile, const char* topnodename = "dftd-object");
+	// construct sea_object without spec file (for simple objects like DCs, shells, convoys)
+	sea_object(game& gm_, const string& modelname_);
+
+	// construct a sea_object. called by heirs
+	sea_object(game& gm_, const xml_elem& parent);
 
 public:
 	virtual ~sea_object();
-	virtual void load(istream& in);
-	virtual void save(ostream& out) const;
 
-	// call with ship/submarine/etc node from mission file
+	virtual void load(const xml_elem& parent);
+	virtual void save(xml_elem& parent) const;
+
+	// call with ship/submarine/etc node from mission file, fixme: obsolete!
 	virtual void parse_attributes(class TiXmlElement* parent);
 
 	// detail: 0 - category, 1 - finer category, >=2 - exact category
