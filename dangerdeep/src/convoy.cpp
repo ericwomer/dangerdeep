@@ -7,7 +7,6 @@
 #include "binstream.h"
 #include "ai.h"
 #include "system.h"
-#include "tinyxml/tinyxml.h"
 
 
 // fixme: the whole file is covered with outcommented lines that have to be
@@ -34,9 +33,10 @@ convoy::convoy(class game& gm_, convoy::types type_, convoy::esctypes esct_) : s
 	waypoints.push_back(vector2(0, 0));
 	for (int wp = 0; wp < 4; ++wp)
 		waypoints.push_back(vector2(rnd()*300000-150000,rnd()*300000-150000));
-//	heading = angle(*(++waypoints.begin()) - *(waypoints.begin()));
-	vector2 coursevec = vector2(1,0);//heading.direction();//fixme
-	
+	angle heading = angle(*(++waypoints.begin()) - *(waypoints.begin()));
+	vector2 coursevec = heading.direction();
+	//position = vector2(0, 0);
+
 	double intershipdist = 1000.0;	// distance between ships. it is 1000m sidewards and 600m forward... fixme
 	double convoyescortdist = 3000.0; // distance of escorts to convoy
 	double interescortdist = 1500.0;	// distance between escorts, seems a bit low...
@@ -47,7 +47,7 @@ convoy::convoy(class game& gm_, convoy::types type_, convoy::esctypes esct_) : s
 		
 		// speed? could be a slow or fast convoy (~4 or ~8 kts).
 		int throttle = 4 + rnd(2)*4;
-		velocity.y = kts2ms(throttle);
+		velocity = heading.direction() * kts2ms(throttle);
 	
 		// compute size and structure of convoy
 		unsigned nrships = (2<<cvsize)*10+rnd(10)-5;
@@ -141,6 +141,8 @@ convoy::convoy(class game& gm_, convoy::types type_, convoy::esctypes esct_) : s
 
 
 
+convoy::convoy(class game& gm_, const xml_elem& parent)
+	: sea_object(gm_, "")
 convoy::convoy(class game& gm_, TiXmlElement* parent) : sea_object(gm_), myai(0)
 {
 	sea_object::parse_attributes(parent);

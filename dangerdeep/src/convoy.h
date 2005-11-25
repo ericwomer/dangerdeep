@@ -20,6 +20,14 @@ class convoy : public sea_object
 	list<pair<ship*, vector2> > merchants, warships, escorts;
 	list<vector2> waypoints;
 
+	class ai* myai;		// fixme: maybe one ship should act for the convoy,
+	                        // the ship with the convoy commander.
+	                        // when it is sunk, convoy is desorganized etc.
+
+	class game& gm;
+
+	// position, alive_stat?, velocity
+
 	convoy(class game& gm_);
 	double remaining_time;	// time to next thought/situation analysis, fixme move to ai!
 

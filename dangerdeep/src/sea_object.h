@@ -150,6 +150,7 @@ public:
 	virtual void save(xml_elem& parent) const;
 
 	// call with ship/submarine/etc node from mission file, fixme: obsolete!
+	// only for mission file loading, use load() now!
 	virtual void parse_attributes(class TiXmlElement* parent);
 
 	// detail: 0 - category, 1 - finer category, >=2 - exact category
