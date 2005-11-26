@@ -18,16 +18,48 @@ tdc::tdc()
 
 
 
-void tdc::load(std::istream& in)
+void tdc::load(const xml_elem& parent)
 {
-	// fixme
+	xml_elem t = parent.child("TDC");
+	bearing_tracking = t.attrb("bearing_tracking");
+	angleonthebow_tracking = t.attrb("angleonthebow_tracking");
+	target_speed = t.attrf("target_speed");
+	target_distance = t.attrf("target_distance");
+	target_course = angle(t.attrf("target_course"));
+	target_bow_is_left = t.attrb("target_bow_is_left");
+	angleonthebow = angle(t.attrf("angleonthebow"));
+	torpedo_speed = t.attrf("torpedo_speed");
+	torpedo_runlength = t.attrf("torpedo_runlength");
+	bearing = angle(t.attrf("bearing"));
+	bearing_dial = angle(t.attrf("bearing_dial"));
+	heading = angle(t.attrf("heading"));
+	additional_leadangle = angle(t.attrf("additional_leadangle"));
+	lead_angle = angle(t.attrf("lead_angle"));
+	torpedo_runtime = t.attrf("torpedo_runtime");
+	valid_solution = t.attrb("valid_solution");
 }
 
 
 
-void tdc::save(std::ostream& out) const
+void tdc::save(xml_elem& parent) const
 {
-	// fixme
+	xml_elem t = parent.add_child("TDC");
+	t.set_attr(bearing_tracking, "bearing_tracking");
+	t.set_attr(angleonthebow_tracking, "angleonthebow_tracking");
+	t.set_attr(target_speed, "target_speed");
+	t.set_attr(target_distance, "target_distance");
+	t.set_attr(target_course.value(), "target_course");
+	t.set_attr(target_bow_is_left, "target_bow_is_left");
+	t.set_attr(angleonthebow.value(), "angleonthebow");
+	t.set_attr(torpedo_speed, "torpedo_speed");
+	t.set_attr(torpedo_runlength, "torpedo_runlength");
+	t.set_attr(bearing.value(), "bearing");
+	t.set_attr(bearing_dial.value(), "bearing_dial");
+	t.set_attr(heading.value(), "heading");
+	t.set_attr(additional_leadangle.value(), "additional_leadangle");
+	t.set_attr(lead_angle.value(), "lead_angle");
+	t.set_attr(torpedo_runtime, "torpedo_runtime");
+	t.set_attr(valid_solution, "valid_solution");
 }
 
 

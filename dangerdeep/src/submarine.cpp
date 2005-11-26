@@ -270,7 +270,7 @@ void submarine::load(const xml_elem& parent)
 		//damageable_parts.push_back(damageable_part(it.elem()));
 	}
 
-	//TDC.load(parent);
+	TDC.load(parent);
 }
 
 
@@ -313,7 +313,7 @@ void submarine::save(xml_elem& parent) const
 		//it->save(out);
 	}
 
-	//TDC.save(parent);
+	TDC.save(parent);
 }
 
 

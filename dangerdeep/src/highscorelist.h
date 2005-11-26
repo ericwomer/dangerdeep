@@ -35,8 +35,6 @@ public:
 	highscorelist(unsigned maxentries = 10);
 	~highscorelist() {}
 	highscorelist(const string& filename);	// read from file
-	highscorelist(const highscorelist& h);
-	highscorelist& operator= (const highscorelist& h);
 	void save(const string& filename) const;
 	unsigned get_listpos_for(unsigned points) const; // returns place in list or entries.size() if not in list
 	bool is_good_enough(unsigned points) const; // check if score is good enough for an entry

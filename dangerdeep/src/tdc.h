@@ -4,9 +4,7 @@
 #ifndef TDC_H
 #define TDC_H
 
-#include "vector3.h"
-#include "angle.h"
-#include <iostream>
+#include "xml.h"
 
 class tdc
 {
@@ -47,8 +45,8 @@ protected:
 
 public:
 	tdc();
-	void load(std::istream& in);
-	void save(std::ostream& out) const;
+	void load(const xml_elem& parent);
+	void save(xml_elem& parent) const;
 
 	void simulate(double delta_time);
 

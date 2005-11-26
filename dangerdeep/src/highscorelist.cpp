@@ -39,17 +39,6 @@ highscorelist::highscorelist(const string& filename)
 		entries[i] = entry(in);
 }
 
-highscorelist::highscorelist(const highscorelist& h)
-{
-	entries = h.entries;
-}
-
-highscorelist& highscorelist::operator= (const highscorelist& h)
-{
-	entries = h.entries;
-	return *this;
-}
-
 void highscorelist::save(const string& filename) const
 {
 	ofstream out(filename.c_str(), ios::out|ios::binary);
