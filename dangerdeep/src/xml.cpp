@@ -3,6 +3,7 @@
 
 #include "xml.h"
 #include "tinyxml/tinyxml.h"
+#include <stdio.h>
 
 
 xml_elem xml_elem::child(const std::string& name) const
@@ -230,8 +231,13 @@ void xml_elem::iterator::next()
 
 
 xml_doc::xml_doc(std::string fn)
-	: doc(new TiXmlDocument(fn))
+	: doc(0)
 {
+	FILE* f = fopen(fn.c_str(), "rt");
+	if (!f)
+		throw xml_error("file does not exist", fn);
+	fclose(f);
+	doc = new TiXmlDocument(fn);
 }
 
 

@@ -86,7 +86,8 @@ void submarine_interface::fire_tube(submarine* player, int nr)
 	if (NULL != target && target != player)	{
 		submarine::stored_torpedo::st_status tube_status = submarine::stored_torpedo::st_empty;		
 		
-		if (player->can_torpedo_be_launched(nr, target, tube_status)) {
+		// fixme: ask TDC!
+		if (true /*player->can_torpedo_be_launched(nr, target, tube_status)*/) {
 			add_message(texts::get(49));
 			ostringstream oss;
 			oss << texts::get(49);

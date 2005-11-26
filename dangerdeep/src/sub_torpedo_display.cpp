@@ -24,46 +24,49 @@ void sub_torpedo_display::draw_torpedo(class game& gm, bool usebow,
 		if (st.status == 0) {	// empty
 			torpempty->draw(pos.x, pos.y);
 		} else if (st.status == 1) {	// reloading
-			torptex(st.type).draw(pos.x, pos.y);
+			torptex(st.torp->get_specfilename()).draw(pos.x, pos.y);
 			torpload->draw(pos.x, pos.y);
 		} else if (st.status == 2) {	// unloading
 			torpempty->draw(pos.x, pos.y);
 			torpunload->draw(pos.x, pos.y);
 		} else {		// loaded
-			torptex(st.type).draw(pos.x, pos.y);
+			torptex(st.torp->get_specfilename()).draw(pos.x, pos.y);
 		}
 	} else {
 		if (st.status == 0) {	// empty
 			torpempty->draw_hm(pos.x, pos.y);
 		} else if (st.status == 1) {	// reloading
-			torptex(st.type).draw_hm(pos.x, pos.y);
+			torptex(st.torp->get_specfilename()).draw_hm(pos.x, pos.y);
 			torpload->draw_hm(pos.x, pos.y);
 		} else if (st.status == 2) {	// unloading
 			torpempty->draw_hm(pos.x, pos.y);
 			torpunload->draw_hm(pos.x, pos.y);
 		} else {		// loaded
-			torptex(st.type).draw_hm(pos.x, pos.y);
+			torptex(st.torp->get_specfilename()).draw_hm(pos.x, pos.y);
 		}
 	}
 }
 
 
 
-const texture& sub_torpedo_display::torptex(unsigned type) const
+const texture& sub_torpedo_display::torptex(const string& torpname) const
 {
-	switch (type) {
-		case torpedo::T1: return *torp1;
-		case torpedo::T2: return *torp2;
-		case torpedo::T3: return *torp3;
-		case torpedo::T3a: return *torp3alut1;//fixme 3a?
-		case torpedo::T4: return *torp4;
-		case torpedo::T5: return *torp5;
-		case torpedo::T11: return *torp5b;
-		case torpedo::T1FAT: return *torp1fat1;
-		case torpedo::T3FAT: return *torp3fat2;
-		case torpedo::T6LUT: return *torp6lut1;
-	}
-	return *torpempty;
+	if (torpname == "TI") return *torp1;
+	if (torpname == "TI_FaTI") return *torp1fat1;
+	if (torpname == "TI_LuTI") return *torp1lut1;
+	if (torpname == "TI_LuTII") return *torp1lut2;
+	if (torpname == "TII") return *torp2;
+	if (torpname == "TIII") return *torp3;
+	if (torpname == "TIII_FaTII") return *torp3fat2;
+	if (torpname == "TIIIa_FaTII") return *torp3afat2;
+	if (torpname == "TIIIa_LuTI") return *torp3alut1;
+	if (torpname == "TIIIa_LuTII") return *torp3alut2;
+	if (torpname == "TIV") return *torp4;
+	if (torpname == "TV") return *torp5;
+	if (torpname == "TVb") return *torp5b;
+	if (torpname == "TVI_LuTI") return *torp6lut1;
+	if (torpname == "TXI") return *torp1practice;
+	throw error(string("illegal torpedo type ") + torpname);
 }
 
 
@@ -195,7 +198,7 @@ void sub_torpedo_display::display(class game& gm) const
 	if (torptranssrc != ILLEGAL_TUBE && torpedoes[torptranssrc].status ==
 	    submarine::stored_torpedo::st_loaded) {
 		glColor4f(1,1,1,0.5);
-		torptex(torpedoes[torptranssrc].type).draw(mx-124/2, my-12/2);
+		torptex(torpedoes[torptranssrc].torp->get_specfilename()).draw(mx-124/2, my-12/2);
 		glColor4f(1,1,1,1);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBegin(GL_LINES);
@@ -219,14 +222,14 @@ void sub_torpedo_display::display(class game& gm) const
 			}
 		} else {
 			// display type info
-			if (torpedoes[tb].type != torpedo::none
+			if (torpedoes[tb].torp != 0
 			    && torpedoes[tb].status == submarine::stored_torpedo::st_loaded) {
 				color::white().set_gl_color();
 				notepadsheet->draw(mx, my);
-				torptex(torpedoes[tb].type).draw(mx+64, my+36);
+				torptex(torpedoes[tb].torp->get_specfilename()).draw(mx+64, my+36);
 				font_olympiaworn->print(mx+16, my+60,
-						  texts::get(300+torpedoes[tb].type-1),
-						  color(0,0,128));
+							torpedoes[tb].torp->get_specfilename(),//texts::get(300+torpedoes[tb].torp->get_specfilename()-1),//fixme: show more info!
+							color(0,0,128));
 			}
 		}
 	}

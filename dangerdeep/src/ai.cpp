@@ -43,6 +43,12 @@ ai::ai(ship* parent_, types type_) : type(type_), state(followpath),
 
 
 
+ai::~ai()
+{
+}
+
+
+
 void ai::load(game& gm, const xml_elem& parentnode)
 {
 	type = types(parentnode.attru("type"));

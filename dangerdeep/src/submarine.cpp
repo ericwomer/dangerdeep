@@ -125,6 +125,54 @@ submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damagea
 
 
 
+submarine::stored_torpedo::stored_torpedo()
+	: torp(0), status(st_empty), associated(0), remaining_time(0)
+{
+}
+
+
+
+submarine::stored_torpedo::stored_torpedo(game& gm, const std::string& type)
+	: torp(0), status(st_loaded), associated(0), remaining_time(0)
+{
+	xml_doc doc(get_torpedo_dir() + type + ".xml");
+	doc.load();
+	torp = new torpedo(gm, doc.first_child());
+}
+
+
+
+void submarine::stored_torpedo::load(game& gm, const xml_elem& parent)
+{
+	status = st_status(parent.attru("status"));
+	associated = parent.attru("associated");
+	remaining_time = parent.attrf("remaining_time");
+	if (parent.has_child("torpedo")) {
+		xml_elem tp = parent.child("torpedo");
+		xml_doc doc(get_torpedo_dir() + tp.attr("type") + ".xml");
+		doc.load();
+		delete torp;
+		torp = 0;
+		torp = new torpedo(gm, doc.first_child());
+	}
+}
+
+
+
+void submarine::stored_torpedo::save(xml_elem& parent) const
+{
+	parent.set_attr(unsigned(status), "status");
+	parent.set_attr(associated, "associated");
+	parent.set_attr(remaining_time, "remaining_time");
+	if (torp) {
+		xml_elem tp = parent.add_child("torpedo");
+		tp.set_attr(torp->get_specfilename(), "type");
+		torp->save(tp);
+	}
+}
+
+
+
 submarine::submarine(game& gm_, const xml_elem& parent)
 	: ship(gm_, parent),
 	  dive_speed(0),
@@ -400,7 +448,7 @@ void submarine::simulate(double delta_time)
 //					torpedoes[st.associated].status = stored_torpedo::st_empty;	// empty
 				} else {		// unloading
 					st.status = stored_torpedo::st_empty;	// empty
-					st.torp.reset();
+					st.torp = 0;
 //					torpedoes[st.associated].status = stored_torpedo::st_loaded;	// loaded
 					// fixme: message: torpedo reloaded
 				}
@@ -458,64 +506,68 @@ void submarine::init_fill_torpedo_tubes(const date& d)
 
 	// standard1, special1 2/3, standard2, special2 1/3, 1/2 standard, 1/2 special
 	// hence random 0-5, 0,1:std1, 2:std2, 3,4:spc1, 5:spc2
-	torpedo::types standard1, standard2, special1, special2, stern;
+	string standard1, standard2, special1, special2, stern, deck;
 	if (d < date(1942, 6, 1)) {
-		standard1 = torpedo::T1;
-		standard2 = special1 = special2 = stern = torpedo::T3;
+		standard1 = "TI";
+		standard2 = special1 = special2 = stern = "TIII";
+		deck = "TI";
 	} else if (d < date(1943, 8, 1)) {
-		standard1 = stern = torpedo::T3a;
-		standard2 = torpedo::T1;
-		special1 = special2 = torpedo::T3FAT;
+		standard1 = stern = "TIII";
+		standard2 = "TI";
+		special1 = special2 = "TIIIa_FaTII";
+		deck = "TI_FaTI";
 	} else if (d < date(1945, 4, 1)) {
-		standard1 = torpedo::T3a;
-		standard2 = torpedo::T3FAT;
-		special1 = torpedo::T6LUT;
-		special2 = torpedo::T5;
-		stern = torpedo::T5;
+		standard1 = "TIII";
+		standard2 = "TIIIa_FaTII";
+		special1 = "TIIIa_LuTI";
+		special2 = "TV";
+		stern = "TV";
+		deck = "TI_LuTI";
 	} else {
-		standard1 = torpedo::T3a;
-		standard2 = torpedo::T3FAT;
-		special1 = torpedo::T6LUT;
-		special2 = torpedo::T11;
-		stern = torpedo::T11;
+		standard1 = "TIII";
+		standard2 = "TIIIa_FaTII";
+		special1 = "TVI_LuTI";
+		special2 = "TXI";
+		stern = "TXI";
+		deck = "TI_LuTII";
 	}
 	
 	pair<unsigned, unsigned> idx;
 	idx = get_bow_tube_indices();
 	for (unsigned i = idx.first; i < idx.second; ++i) {
 		unsigned r = rnd(6);
-		if (r <= 1) torpedoes[i] = standard1;
-		else if (r <= 2) torpedoes[i] = standard2;
-		else if (r <= 4) torpedoes[i] = special1;
-		else torpedoes[i] = special2;
+		if (r <= 1) torpedoes[i] = stored_torpedo(gm, standard1);
+		else if (r <= 2) torpedoes[i] = stored_torpedo(gm, standard2);
+		else if (r <= 4) torpedoes[i] = stored_torpedo(gm, special1);
+		else torpedoes[i] = stored_torpedo(gm, special2);
 	}
 	idx = get_stern_tube_indices();
 	for (unsigned i = idx.first; i < idx.second; ++i) {
-		torpedoes[i] = stern;
+		torpedoes[i] = stored_torpedo(gm, stern);
 	}
 	idx = get_bow_reserve_indices();
 	for (unsigned i = idx.first; i < idx.second; ++i) {
 		unsigned r = rnd(6);
-		if (r <= 1) torpedoes[i] = standard1;
-		else if (r <= 2) torpedoes[i] = standard2;
-		else if (r <= 4) torpedoes[i] = special1;
-		else torpedoes[i] = special2;
+		if (r <= 1) torpedoes[i] = stored_torpedo(gm, standard1);
+		else if (r <= 2) torpedoes[i] = stored_torpedo(gm, standard2);
+		else if (r <= 4) torpedoes[i] = stored_torpedo(gm, special1);
+		else torpedoes[i] = stored_torpedo(gm, special2);
 	}
 	idx = get_stern_reserve_indices();
 	for (unsigned i = idx.first; i < idx.second; ++i) {
 		unsigned r = rnd(2);
-		if (r < 1) torpedoes[i] = stern;
-		else torpedoes[i] = special2;
+		if (r < 1) torpedoes[i] = stored_torpedo(gm, stern);
+		else torpedoes[i] = stored_torpedo(gm, special2);
 	}
 	idx = get_bow_deckreserve_indices();
 	for (unsigned i = idx.first; i < idx.second; ++i) {
 		// later in the war no torpedoes were stored at deck, fixme
-		torpedoes[i] = stored_torpedo(torpedo::T1);
+		torpedoes[i] = stored_torpedo(gm, deck);
 	}
 	idx = get_stern_deckreserve_indices();
 	for (unsigned i = idx.first; i < idx.second; ++i) {
 		// later in the war no torpedoes were stored at deck, fixme
-		torpedoes[i] = stored_torpedo(torpedo::T1);
+		torpedoes[i] = stored_torpedo(gm, deck);
 	}
 }
 
@@ -792,6 +844,7 @@ void submarine::dive_to_depth(unsigned meters)
 
 
 
+#if 0
 // mostly the same code as launch_torpedo. cut & paste is ugly, but sometimes unavoidable.
 bool submarine::can_torpedo_be_launched(int tubenr, sea_object* target, 
 					stored_torpedo::st_status &tube_status) const
@@ -843,6 +896,7 @@ bool submarine::can_torpedo_be_launched(int tubenr, sea_object* target,
 	tube_status = torpedoes[tubenr].status;
 	return launchdata.second;
 }
+#endif
 
 
 
@@ -1025,15 +1079,21 @@ void submarine::launch_torpedo(int tubenr, sea_object* target)
 	}
 
 	// check if torpedo can be fired with that tube, if yes, then fire it
+	// fixme: TDC should compute and set data for torpedoes!!!
+/* fixme
 	pair<angle, bool> launchdata = torpedo::compute_launch_data(
 		torpedoes[tubenr].type, this, target, usebowtubes,
 		tubesettings[tubenr].addleadangle);
-	if (launchdata.second) {
+*/
+	if (true /*launchdata.second   fixme*/) {
 		// fixme: primary range seems weird wrong (13mio)!!!! 2004/05/16
+		gm.spawn_torpedo(torpedoes[tubenr].torp);
+/*
 		torpedo* t = new torpedo(gm, this, torpedoes[tubenr].type, usebowtubes, launchdata.first,
 					 tubesettings[tubenr]);
 		gm.spawn_torpedo(t);    // fixme add command
-		torpedoes[tubenr].type = torpedo::none;
+*/
+		torpedoes[tubenr].torp = 0;
 		torpedoes[tubenr].status = stored_torpedo::st_empty;
 	}
 }

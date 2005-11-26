@@ -12,31 +12,14 @@ using std::string;
 
 
 
-void torpedo::init(const xml_elem& parent)
+torpedo::torpedo(game& gm, const xml_elem& parent)
+	: ship(gm, parent)
 {
-}
-
-
-
-torpedo::torpedo(game& gm, std::string specfilename, date dt)
-	: ship(gm)	// maybe call also ship loading c'tor...
-//fixme: torpedoes have no pointer and could be loaded via direct c'tor
-//but torp heir from ship and sea_object and THAT has pointers...
-//so one c'tor for reading spec file
-//and one load(xml_elem)
-//fixme...
-{
-	xml_doc doc(get_torpedo_dir() + specfilename + ".xml");
-	doc.load();
-	xml_elem hdftdtorp = doc.child(topnodename);
-	xml_elem eclass = hdftdtorp.child("classification");
-	// country = eclass.attr("country");
-	// modelname = eclass.attr("modelname");
-	mass = hdftdtorp.child("weight").attr();
-	untertrieb = hdftdtorp.child("untertrieb").attrf();
-	xml_elem ewarhead = hdftdtorp.child("warhead");
+	mass = parent.child("weight").attrf();
+	untertrieb = parent.child("untertrieb").attrf();
+	xml_elem ewarhead = parent.child("warhead");
 	warhead_weight = ewarhead.attrf("weight");
-	string warhead_charge = ewarhead.attr("charge");
+	string charge = ewarhead.attr("charge");
 	if (charge == "Ka") {
 		warhead_type = Ka;
 	} else if (charge == "Kb") {
@@ -50,40 +33,27 @@ torpedo::torpedo(game& gm, std::string specfilename, date dt)
 	} else if (charge == "Kf") {
 		warhead_type = Kf;
 	} else {
-		throw xml_error(string("unknown charge type ")+charge, doc.get_filename());
+		throw error(string("unknown charge type ")+charge);
 	}
-	xml_elem earming = hdftdtorp.charge("arming");
-	xml_elem efuse = hdftdtorp.charge("fuse");
-	xml_elem emotion = hdftdtorp.charge("motion");
-	xml_elem epower = hdftdtorp.charge("power");
-	xml_elem eavailability = hdftdtorp.charge("availability");
+	xml_elem earming = parent.child("arming");
+	xml_elem efuse = parent.child("fuse");
+	xml_elem emotion = parent.child("motion");
+	xml_elem epower = parent.child("power");
+	xml_elem eavailability = parent.child("availability");
+
+	// fixme: finish loading code!
 
 	for (xml_elem::iterator it = earming.iterate("period"); !it.end(); it.next()) {
 		xml_elem eperiod = it.elem();
 		eperiod.attru("from");
 		eperiod.attru("until");
-		runlength = eperiod.attru("runlength");
+		run_length = eperiod.attru("runlength");
 	}
-
-
-	double arming_distance;	// meters
-	std::list<fuse> fuses;
-	double range_normal;
-	double speed_normal;
-	double range_preheated;	// reading with some parsing
-	double speed_preheated;
-	steering_devices steering_device;	// string with switch
-	double hp;		// horse power of engine
-	propulsion_types propulsion_type;	// string with switch
 }
 
 	
-torpedo::torpedo(game& gm_) : ship(gm_)
-{
-}
-
-
-
+#if 0 // fixme: to fire a torp, let the TDC set the values while torpedo is in tube (stored!)
+//and then spawn it in game, so that torp::simulate() is called...
 torpedo::torpedo(game& gm_, sea_object* parent, torpedo::types type_, bool usebowtubes, angle headto_,
 		 const tubesetup& stp) : ship(gm_), temperature(20.0 /* fixme*/ )
 {
@@ -177,83 +147,34 @@ torpedo::torpedo(game& gm_, sea_object* parent, torpedo::types type_, bool usebo
 
 	sys().add_console("torpedo created");
 }
+#endif
 
-torpedo::~torpedo()
+
+void torpedo::load(const xml_elem& parent)
 {
-}
-
-void torpedo::load(istream& in)
-{
-	sea_object::load(in);
-	run_length = read_double(in);
-	max_run_length = read_double(in);
-	type = (torpedo::types)(read_u8(in));
-	influencefuse = read_bool(in);
-	primaryrange = read_u16(in);
-	secondaryrange = read_u16(in);
-	initialturn = read_u8(in);
-	turnangle = read_u8(in);
-}
-
-void torpedo::save(ostream& out) const
-{
-	sea_object::save(out);
-	write_double(out, run_length);
-	write_double(out, max_run_length);
-	write_u8(out, unsigned(type));
-	write_bool(out, influencefuse);
-	write_u16(out, primaryrange);
-	write_u16(out, secondaryrange);
-	write_u8(out, initialturn);
-	write_u8(out, turnangle);
-}
-
-void torpedo::load(istream& in)
-{
-	sea_object::load(in);
-	run_length = read_double(in);
-	max_run_length = read_double(in);
-	type = (torpedo::types)(read_u8(in));
-	influencefuse = read_bool(in);
-	primaryrange = read_u16(in);
-	secondaryrange = read_u16(in);
-	initialturn = read_u8(in);
-	turnangle = read_u8(in);
-
+	sea_object::load(parent);
 	xml_elem stg = parent.child("settings");
-	primaryrange = stg.child("primaryrange").attru();
-	secondaryrange = stg.child("secondaryrange").attru();
-	initialturn = stg.child("initialturn").attru();
-	turnangle = stg.child("turnangle").attru();
-	torpspeed = stg.child("torpspeed").attru();
-	rundepth = stg.child("rundepth").attru();
+	primaryrange = stg.attru("primaryrange");
+	secondaryrange = stg.attru("secondaryrange");
+	initialturn_left = stg.attrb("initialturn_left");
+	turnangle = angle(stg.attrf("turnangle"));
+	torpspeed = stg.attru("torpspeed");
+	rundepth = stg.attrf("rundepth");
 	temperature = parent.child("temperature").attrf();
-}
-
-void torpedo::save(ostream& out) const
-{
-	sea_object::save(out);
-	write_double(out, run_length);
-	write_double(out, max_run_length);
-	write_u8(out, unsigned(type));
-	write_bool(out, influencefuse);
-	write_u16(out, primaryrange);
-	write_u16(out, secondaryrange);
-	write_u8(out, initialturn);
-	write_u8(out, turnangle);
+	probability_of_rundepth_failure = parent.child("probability_of_rundepth_failure").attrf();
+	run_length = parent.child("run_length").attrf();
 }
 
 
 
-
-void torpedo::save(xml_elem& parent)
+void torpedo::save(xml_elem& parent) const
 {
 	sea_object::save(parent);
 	xml_elem stg = parent.add_child("settings");
 	stg.set_attr(primaryrange, "primaryrange");
 	stg.set_attr(secondaryrange, "secondaryrange");
-	stg.set_attr(unsigned(initialturn_left), "initialturn_left");
-	stg.set_attr(turnangle, "turnangle");
+	stg.set_attr(initialturn_left, "initialturn_left");
+	stg.set_attr(turnangle.value(), "turnangle");
 	stg.set_attr(torpspeed, "torpspeed");
 	stg.set_attr(rundepth, "rundepth");
 	parent.add_child("temperature").set_attr(temperature);
@@ -286,7 +207,7 @@ void torpedo::simulate(double delta_time)
 
 	double old_run_length = run_length;
 	run_length += get_speed() * delta_time;
-	if (run_length > max_run_length) {
+	if (run_length > get_range()) {
 		// later: simulate slow sinking to the ground...
 		destroy();
 		return;
@@ -332,11 +253,7 @@ void torpedo::simulate(double delta_time)
 	}
 }
 
-void torpedo::display(void) const
-{
-	// fixme: read from xml spec file.
-	torpedo_g7->display();
-}
+
 
 #if 0 // obsolete!!!!!!!!!!!!!!!!!!!!!!!!
 pair<angle, bool> torpedo::lead_angle(torpedo::types torptype, double target_speed, angle angle_on_the_bow)
@@ -378,6 +295,7 @@ pair<angle, bool> torpedo::compute_launch_data(torpedo::types torptype, const sh
 }
 #endif
 
+#if 0
 //fixme beim laden mitbenutzen
 void torpedo::create_sensor_array ( types t )
 {
@@ -397,8 +315,23 @@ void torpedo::create_sensor_array ( types t )
 			break;
 	}
 }
+#endif
 
 unsigned torpedo::get_hit_points () const	// awful, useless, replace, fixme
 {
-	return G7A_HITPOINTS;
+	return 100;//G7A_HITPOINTS;//fixme
+}
+
+
+
+double torpedo::get_range() const
+{
+	double s = 0;
+	if (temperature > 15) {
+		if (temperature > 30)
+			s = 1;
+		else
+			s = (temperature - 15)/15;
+	}
+	return range_normal * (1-s) + range_preheated * s;
 }

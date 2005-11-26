@@ -40,24 +40,18 @@ class submarine : public ship
  public:
 
  	//fixme: later we have to add control data for each torpedo (gyro angle, fat/lut setup for each
- 	//torpedo etc. we could store pointers to class torpedo here instead of "type" to accomplish this)
- 	//fixme: do that now, with new torp code
+ 	//torpedo etc. we store pointers to class torpedo here instead of "type" to accomplish this)
 	struct stored_torpedo {
 		enum st_status { st_empty, st_reloading, st_unloading, st_loaded };
-		std::auto_ptr<torpedo> torp;
-		//torpedo::types type;
+		// be careful with that...
+		torpedo* torp;
 		st_status status;	// 0 empty 1 reloading 2 unloading 3 loaded
 		unsigned associated;	// reloading from/unloading to
 		double remaining_time;	// remaining time until work is finished
-		stored_torpedo() : status(st_empty), associated(0), remaining_time(0) {}
-		stored_torpedo(torpedo* t) : torp(t), status(st_loaded), associated(0), remaining_time(0) {}
-		void load(const xml_elem& parent);
+		stored_torpedo();
+		stored_torpedo(game& gm, const std::string& type);
+		void load(game& gm, const xml_elem& parent);
 		void save(xml_elem& parent) const;
-/*
-		// fixme: adapt save code, move it to c++ file
-		stored_torpedo(istream& in) { type = (torpedo::types)(read_u8(in)); status = st_status(read_u8(in)); associated = read_u8(in); remaining_time = read_double(in); }
-		void save(ostream& out) const { write_u8(out, unsigned(type)); write_u8(out, status); write_u8(out, associated); write_double(out, remaining_time); }
-*/
 	};
 
 	// submarine parts and their damages
@@ -186,8 +180,8 @@ protected:
 
 	// stored torpedoes (including tubes)
 	// special functions calculate indices for bow/stern tubes etc., see below
-	vector<stored_torpedo> torpedoes;
-	vector<tubesetup> tubesettings;
+	std::vector<stored_torpedo> torpedoes;
+	std::vector<tubesetup> tubesettings;
 	unsigned number_of_tubes_at[6];	// read from spec file
 	unsigned torp_transfer_times[5];// read from spec file
 
@@ -208,7 +202,7 @@ protected:
 	double battery_recharge_value_t;// read from spec file
 	unsigned battery_capacity;	// read from spec file
     
-	vector<damageable_part> damageable_parts;	// read from data/spec file, fixme do that!
+	std::vector<damageable_part> damageable_parts;	// read from data/spec file, fixme do that!
 
 	// fixme: add: double temperature;	// overall temperature in submarine. used for torpedo preheating computation
 
@@ -258,8 +252,6 @@ public:
 	// create empty object from specification xml file
 	submarine(game& gm_, const xml_elem& parent);
 
-	virtual ~submarine();
-
 	virtual void load(const xml_elem& parent);
 	virtual void save(xml_elem& parent) const;
 	
@@ -270,7 +262,7 @@ public:
 	// fill available tubes with common types depending on time period (used for custom missions)
 	virtual void init_fill_torpedo_tubes(const class date& d);
 
-	const vector<stored_torpedo>& get_torpedoes() const { return torpedoes; }
+	const std::vector<stored_torpedo>& get_torpedoes() const { return torpedoes; }
 
 	// give number from 0-5 (bow tubes first)
 	bool is_tube_ready(unsigned nr) const;
@@ -314,7 +306,7 @@ public:
 	virtual double get_snorkel_depth () const { return snorkel_depth; }
 	virtual double get_alarm_depth () const { return alarm_depth; }
 	virtual double get_battery_level () const { return battery_level; }
-	virtual const vector<damageable_part>& get_damage_status() const { return damageable_parts; }
+	virtual const std::vector<damageable_part>& get_damage_status() const { return damageable_parts; }
 
 	// get/compute torpedo transfer time and helper functions (uses functions below to compute)
 	virtual double get_torp_transfer_time(unsigned from, unsigned to) const;
@@ -324,9 +316,11 @@ public:
 	virtual double get_stern_deck_reload_time() const { return torp_transfer_times[3]; }
 	virtual double get_bow_stern_deck_transfer_time() const { return torp_transfer_times[4]; }
 	
+#if 0 // obsolete
 	// give tubenr -1 for any loaded tube, or else 0-5
 	virtual bool can_torpedo_be_launched(int tubenr, sea_object* target, 
 					     stored_torpedo::st_status &tube_status) const;
+#endif
 
 	// damage is added if dc damages sub.
 	virtual void depth_charge_explosion(const class depth_charge& dc);

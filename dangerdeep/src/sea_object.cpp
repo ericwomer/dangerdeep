@@ -238,7 +238,7 @@ void sea_object::load(const xml_elem& parent)
 
 void sea_object::save(xml_elem& parent) const
 {
-	// specfilename is requested and stored by game
+	// specfilename is requested and stored by game or callers of this function
 	xml_elem st = parent.add_child("state");
 	st.add_child("position").set_attr(position);
 	st.add_child("velocity").set_attr(velocity);

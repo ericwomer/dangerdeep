@@ -114,22 +114,20 @@ class torpedo : public ship
 	virtual bool causes_spray() const { return false; }//causes wake, only true for steam torpedoes and maybe for Walter engine
 
 public:
+	// create empty object from specification xml file
 	// create from spec file, select values by date. date is taken from game. fixme: avoid random values here!
 	// fixme: avoid that a game startet at date x but played until date y takes torpedo settings
 	// from date y instead of x for loading! use a special game::get_equipment_date() function for that...
 	torpedo(game& gm_, const xml_elem& parent);
-	torpedo(game& gm, std::string specfilename);
 
-	// load/save object
-	void load(const xml_elem& parent);
-	void save(xml_elem& parent) const;
+	virtual void load(const xml_elem& parent);
+	virtual void save(xml_elem& parent) const;
 
 	// additional FAT/LUT values as indices (0-16,0-1,0-1,0-180,0-2,0-25) fixme
 	void set_steering_values(unsigned primrg, unsigned secrg, bool initurnleft, angle turnang,
 				 unsigned tspeedsel, double rdepth);
 	
 	virtual void simulate(double delta_time);
-	virtual void display() const;//remove later, use modelfilename stored in spec xml file!
 
 #if 0 // obsolete!!!!!!!!!!
 	// compute gyro lead angle and expected run time of torpedo
@@ -151,6 +149,8 @@ public:
 
 	// depends on warhead, will change with newer damage simulation
 	virtual unsigned get_hit_points () const;
+
+	virtual double get_range() const;
 };
 
 #endif

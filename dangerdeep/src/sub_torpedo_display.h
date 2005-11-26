@@ -33,6 +33,7 @@ class sub_torpedo_display : public user_display
 	auto_ptr<texture> torp5b;
 	auto_ptr<texture> torp5;
 	auto_ptr<texture> torp6lut1;
+//	auto_ptr<texture> torp11;
 	auto_ptr<texture> submodelVIIc;
 	auto_ptr<image> background_daylight;
 	auto_ptr<image> background_redlight;
@@ -41,7 +42,7 @@ class sub_torpedo_display : public user_display
 
 	int mx, my, mb;
 
-	const texture& torptex(unsigned type) const;
+	const texture& torptex(const std::string& torpname) const;
 
 	vector<vector2i> get_tubecoords(class submarine* sub) const;
 
