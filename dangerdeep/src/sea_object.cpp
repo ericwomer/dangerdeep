@@ -130,7 +130,7 @@ double sea_object::get_cross_section ( const vector2& d ) const
 
 sea_object::sea_object(game& gm_, const string& modelname_)
 	: gm(gm_), modelname(modelname_), turn_velocity(0),
-	  alive_stat(alive), myai(0), target(0),
+	  alive_stat(alive), myai(0), target(0)
 {
 	model* mdl = modelcache.ref(modelname);
 	size3d = vector3f(mdl->get_width(), mdl->get_length(), mdl->get_height());

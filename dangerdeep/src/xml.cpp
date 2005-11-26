@@ -223,6 +223,15 @@ void xml_doc::save()
 
 
 
+xml_elem xml_doc::first_child()
+{
+	TiXmlElement* e = doc->FirstChildElement();
+	if (!e) throw xml_elem_error("<first-child>", doc->Value());
+	return xml_elem(e);
+}
+
+
+
 xml_elem xml_doc::child(const std::string& name)
 {
 	TiXmlElement* e = doc->FirstChildElement(name);

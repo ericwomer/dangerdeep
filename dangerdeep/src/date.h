@@ -2,7 +2,8 @@
 // subsim (C)+(W) Markus Petermann. SEE LICENSE
 
 #include <iostream>
-using namespace std;
+
+#include "xml.h"
 
 #ifndef DATE_H
 #define DATE_H
@@ -18,14 +19,11 @@ private:
 	unsigned date_values[last_date_type];
 	unsigned linear_time;	// in seconds from 1.1.1939
 
-	/**
-		Copy the content of object d to the actual object.
-		@param d date object which attributes are going to be copied.
-	*/
-	void copy ( const date& d );
-	
 	unsigned length_of_year(unsigned year) const;
 	unsigned length_of_month(unsigned year, unsigned month) const;
+
+	void set_from_linear();
+	void set_linear();
 
 public:
 	/**
@@ -42,31 +40,23 @@ public:
 	// construct from linear time
 	date (unsigned lt = 0);
 
-	/**
-		Copy constructor.
-		@param d date object which attributes are going to be copied.
-	*/
-	date ( const date& d );
-	virtual ~date() {}
-
-	virtual unsigned get_value ( date_type dt ) const { return date_values[dt]; }
-	virtual void set_value ( date_type dt, unsigned val ) { date_values[dt] = val; }
+	unsigned get_value ( date_type dt ) const { return date_values[dt]; }
+	void set_value ( date_type dt, unsigned val ) { date_values[dt] = val; }
 	
-	virtual unsigned get_time(void) const { return linear_time; }
+	unsigned get_time(void) const { return linear_time; }
 
-	virtual date& operator= ( const date& d );
-	virtual bool operator< ( const date& d ) const;
-	virtual bool operator<= ( const date& d ) const;
-	virtual bool operator== ( const date& d ) const;
-	virtual bool operator>= ( const date& d ) const;
-	virtual bool operator> ( const date& d ) const;
+	bool operator< ( const date& d ) const;
+	bool operator<= ( const date& d ) const;
+	bool operator== ( const date& d ) const;
+	bool operator>= ( const date& d ) const;
+	bool operator> ( const date& d ) const;
 
-	friend ostream& operator<< ( ostream& os, const date& d );
+	friend std::ostream& operator<< ( std::ostream& os, const date& d );
 	
-	virtual void load(istream& in);
-	virtual void save(ostream& out) const;
+	void load(const xml_elem& parent);
+	void save(xml_elem& parent) const;
 };
 
-ostream& operator<< ( ostream& os, const date& d );
+std::ostream& operator<< ( std::ostream& os, const date& d );
 
 #endif /* DATE_H */

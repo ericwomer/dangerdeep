@@ -520,6 +520,7 @@ void submarine::set_target(sea_object* s)
 
 void submarine::init_fill_torpedo_tubes(const date& d)
 {
+	// get date from game, fixme
 	// we ignore T2, T1FAT, T4 here, fixme
 
 	// standard1, special1 2/3, standard2, special2 1/3, 1/2 standard, 1/2 special

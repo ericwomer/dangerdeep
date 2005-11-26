@@ -30,7 +30,7 @@ depth_charge::depth_charge(game& gm_, double expl_depth, const vector3& pos)
 void depth_charge::load(const xml_elem& parent)
 {
 	sea_object::load(parent);
-	explosion_depth = parent.child("explosion_depth").attr();
+	explosion_depth = parent.child("explosion_depth").attrf();
 }
 
 

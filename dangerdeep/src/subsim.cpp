@@ -475,16 +475,16 @@ void run_game(game* gm)
 			}
 			//replace ui after loading!!!!
 			if (q == 1){
-			  if( mmusic->status()==music::paused && mmusic->_current()==1 ){
-			    mmusic->resume();
-			  } else if( mmusic->status()!=music::playing || mmusic->_current()!=1 ){
-			    mmusic->_fade_out(500);
-			    mmusic->_play(1);
-			  }
-			  break;
+				if( mmusic->status()==music::paused && mmusic->_current()==1 ){
+					mmusic->resume();
+				} else if( mmusic->status()!=music::playing || mmusic->_current()!=1 ){
+					mmusic->_fade_out(500);
+					mmusic->_play(1);
+				}
+				break;
 			}
 			if( q == 0 ){
-			  mmusic->_fade_out(1000);
+				mmusic->_fade_out(1000);
 			}
 		}
 		//SDL_ShowCursor(SDL_DISABLE);
@@ -640,9 +640,17 @@ void choose_historical_mission(void)
 	wm->adjust_buttons(944);
 	int result = w.run(0, false);
 	if (result == 2) {	// start game
-		TiXmlDocument doc(get_mission_dir() + missions[wmission->get_selected()]);
-		doc.LoadFile();
-		run_game(new game(&doc));
+		game* gm = 0;
+		try {
+			gm = new game(get_mission_dir() + missions[wmission->get_selected()]);
+		}
+		catch (error& e) {
+			sys().add_console(string("error loading game: ") + e.what());
+			delete gm;
+			// fixme: show dialogue!
+			return;
+		}
+		run_game(gm);
 	}
 }
 
@@ -788,7 +796,7 @@ void create_network_game(Uint16 server_port)
 
 	// send all players the INIT message and the game state
 	ostringstream oss;
-	gm->save_to_stream(oss);
+	//gm->save_to_stream(oss);//fixme: now xml
 	string gamestatemsg = string(MSG_gamestate) + oss.str();
 	send_msg_to_all(serv, clients, MSG_initgame);
 	send_msg_to_all(serv, clients, gamestatemsg);
@@ -856,7 +864,17 @@ void join_network_game(const string& servername, Uint16 server_port, network_con
 	}
 
 	istringstream iss(gamestate);
-	game* gm = new game(iss);
+	game* gm = 0;
+	try {
+		//fixme
+//		gm = new game(iss);
+	}
+	catch (error& e) {
+		sys().add_console(string("error loading game: ") + e.what());
+		// fixme: show dialogue!
+		delete gm;
+		return;
+	}
 
 	bool ok = send_and_wait(client, MSG_ready, MSG_start, 60000);	// 1 minute timeout
 
@@ -1431,9 +1449,19 @@ int mymain(list<string>& args)
 	// check if there was a mission given at the command line
 	if (cmdmissionfilename.length() > 0) {
 		// fixme: check here that the file exists or tinyxml faults with a embarassing error message
-		TiXmlDocument doc(get_mission_dir() + cmdmissionfilename);
-		doc.LoadFile();
-		run_game(new game(&doc));
+		game* gm = 0;
+		bool ok = true;
+		try {
+			gm = new game(get_mission_dir() + cmdmissionfilename);
+		}
+		catch (error& e) {
+			sys().add_console(string("error loading mission: ")+ e.what());
+			// fixme: show dialogue!
+			delete gm;
+			ok = false;
+		}
+		if (ok)
+			run_game(gm);
 	} else {
 		int retval = 1;
 		widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);

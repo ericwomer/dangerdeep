@@ -103,6 +103,7 @@ class xml_doc
 	xml_doc(std::string fn);
 	void load();
 	void save();
+	xml_elem first_child();
 	xml_elem child(const std::string& name);
 	xml_elem add_child(const std::string& name);
 	std::string get_filename() const;

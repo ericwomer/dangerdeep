@@ -38,12 +38,15 @@
 #include "network.h"
 #include "matrix4.h"
 #include "quaternion.h"
-#include "tinyxml/tinyxml.h"
 
-const int SAVEVERSION = 0;
-const int GAMETYPE = 0;//fixme
+using std::list;
+using std::vector;
+using std::string;
 
-#define ENEMYCONTACTLOST 100000.0	// meters
+const unsigned SAVEVERSION = 1;
+const unsigned GAMETYPE = 0;//fixme, 0-mission , 1-patrol etc.
+
+#define ENEMYCONTACTLOST 50000.0	// meters
 
 
 const double game::TRAIL_TIME = 1.0;
@@ -54,22 +57,7 @@ const double game::TRAIL_TIME = 1.0;
 
 ***************************************************************************/
 
-template <class T>
-class save_helper {
-	ostream& out;
-public:
-	save_helper(ostream& o) : out(o) {}
-	void operator()(const T* ptr) { ptr->save(out); }
-};
-
-template <class T>
-class load_helper {
-	istream& in;
-public:
-	load_helper(istream& i) : in(i) {}
-	void operator()(T* ptr) { ptr->load(in); }
-};
-
+//fixme: replace this ugly crap
 template <class T>
 class simulate_helper1 {
 	sea_object* player;
@@ -169,46 +157,46 @@ public:
 
 
 
-game::ping::ping(istream& in)
+game::ping::ping(const xml_elem& parent)
 {
-	pos.x = read_double(in);
-	pos.y = read_double(in);
-	dir = angle(read_double(in));
-	time = read_double(in);
-	range = read_double(in);
-	ping_angle = angle(read_double(in));
+	pos.x = parent.attrf("posx");
+	pos.y = parent.attrf("posy");
+	dir = angle(parent.attrf("dir"));
+	time = parent.attrf("time");
+	range = parent.attrf("range");
+	ping_angle = angle(parent.attrf("ping_angle"));
 }
 
 
 
-void game::ping::save(ostream& out) const
+void game::ping::save(xml_elem& parent) const
 {
-	write_double(out, pos.x);
-	write_double(out, pos.y);
-	write_double(out, dir.value());
-	write_double(out, time);
-	write_double(out, range);
-	write_double(out, ping_angle.value());
+	parent.set_attr(pos.x, "posx");
+	parent.set_attr(pos.y, "posy");
+	parent.set_attr(dir.value(), "dir");
+	parent.set_attr(time, "time");
+	parent.set_attr(range, "range");
+	parent.set_attr(ping_angle.value(), "ping_angle");
 }
 
 
 
-game::sink_record::sink_record(istream& in)
+game::sink_record::sink_record(const xml_elem& parent)
 {
-	dat.load(in);
-	descr = read_string(in);
-	mdlname = read_string(in);
-	tons = read_u32(in);
+	dat.load(parent);
+	descr = parent.attr("descr");
+	mdlname = parent.attr("mdlname");
+	tons = parent.attru("tons");
 }
 
 
 
-void game::sink_record::save(ostream& out) const
+void game::sink_record::save(xml_elem& parent) const
 {
-	dat.save(out);
-	write_string(out, descr);
-	write_string(out, mdlname);
-	write_u32(out, tons);
+	dat.save(parent);
+	parent.set_attr(descr, "descr");
+	parent.set_attr(mdlname, "mdlname");
+	parent.set_attr(tons, "tons");
 }
 
 
@@ -276,6 +264,7 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	
 	date currentdate((unsigned)time);
 
+	// fixme: creation of convoy should be placed rather here than in convoy, so it is centralized!!!
 	convoy* cv = new convoy(*this, (convoy::types)(cvsize), (convoy::esctypes)(cvesc));
 	for (list<pair<ship*, vector2> >::iterator it = cv->merchants.begin(); it != cv->merchants.end(); ++it)
 		spawn_ship(it->first);
@@ -289,9 +278,9 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	vector<angle> subangles;
 	submarine* psub = 0;
 	for (unsigned i = 0; i < nr_of_players; ++i) {
-		TiXmlDocument doc(get_submarine_dir() + subtype + ".xml");
-		doc.LoadFile();
-		submarine* sub = new submarine(*this, &doc);//fixme give time for init
+		xml_doc doc(get_submarine_dir() + subtype + ".xml");
+		doc.load();
+		submarine* sub = new submarine(*this, doc.first_child());
 		sub->init_fill_torpedo_tubes(currentdate);
 		if (i == 0) {
 			psub = sub;
@@ -355,63 +344,153 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 
 
 
-game::game(TiXmlDocument* doc)
-	: my_run_state(running), time(0), networktype(0), player(0), servercon(0),
-	  ui(0)
+// --------------------------------------------------------------------------------
+//                        LOAD GAME (SAVEGAME OR MISSION)
+// --------------------------------------------------------------------------------
+game::game(const string& filename)
+	: my_run_state(running), stopexec(false), player(0), ui(0),
+	  time(0), last_trail_time(0), max_view_dist(0), networktype(0), servercon(0)
 {
-	TiXmlHandle hdoc(doc);
-	TiXmlHandle hdftdmission = hdoc.FirstChild("dftd-mission");
-	TiXmlElement* etime = hdftdmission.FirstChildElement("time").Element();
-	sys().myassert(etime != 0, string("time node missing in ")+doc->Value());
-	unsigned year = XmlAttribu(etime, "year");
-	unsigned month = XmlAttribu(etime, "month");
-	unsigned day = XmlAttribu(etime, "day");
-	unsigned hour = XmlAttribu(etime, "hour");
-	unsigned minute = XmlAttribu(etime, "minute");
-	unsigned second = XmlAttribu(etime, "second");
-	time = date(year, month, day, hour, minute, second).get_time();
-	TiXmlElement* eobjects = hdftdmission.FirstChildElement("objects").Element();
-	sys().myassert(eobjects != 0, string("objects node missing in ")+doc->Value());
+	xml_doc doc(filename);
+	doc.load();
+	// could be savegame or mission, maybe check...
+	// has_child("dftd-savegame") or has_child("dftd-mission");
+	xml_elem sg = doc.first_child();
+	// fixme: check for savegames.
+//	unsigned v = sg.attr(version);
+//	if (v != SAVEVERSION)
+//		throw error("invalid game version");
 
-	// now read and interprete childs of eobject
-	for (TiXmlElement* eobj = eobjects->FirstChildElement(); eobj != 0; eobj = eobj->NextSiblingElement()) {
-		string objname = eobj->Value();
-		if (objname == "ship") {
-			string shiptype = XmlAttrib(eobj, "type");
-			TiXmlDocument doc(get_ship_dir() + shiptype + ".xml");
-			doc.LoadFile();
-			ship* shp = new ship(*this, &doc);
-			spawn_ship(shp);
-			shp->parse_attributes(eobj);
-			if (XmlAttrib(eobj, "player") == "true") player = shp;
-		} else if (objname == "submarine") {
-			string submarinetype = XmlAttrib(eobj, "type");
-			TiXmlDocument doc(get_submarine_dir() + submarinetype + ".xml");
-			doc.LoadFile();
-			submarine* sub = new submarine(*this, &doc);
-			spawn_submarine(sub);
-			sub->parse_attributes(eobj);
-			if (XmlAttrib(eobj, "player") == "true") player = sub;
-		} else if (objname == "airplane") {
-			string airplanetype = XmlAttrib(eobj, "type");
-			TiXmlDocument doc(get_airplane_dir() + airplanetype + ".xml");
-			doc.LoadFile();
-			airplane* apl = new airplane(*this, &doc);
-			spawn_airplane(apl);
-			apl->parse_attributes(eobj);
-			if (XmlAttrib(eobj, "player") == "true") player = apl;
-		} else if (objname == "convoy") {
-			convoy* cvy = new convoy(*this, eobj);
-			spawn_convoy(cvy);
-		} else {
-			sys().myassert(false, string("unknown object name '") + objname + string("' found in ") + doc->Value());
-		}
+	// create empty objects so references can be filled.
+	xml_elem sh = sg.child("ships");
+	for (xml_elem::iterator it = sh.iterate("ship"); !it.end(); it.next()) {
+		xml_doc spec(get_ship_dir() + it.elem().attr("type") + ".xml");
+		spec.load();
+		ships.push_back(new ship(*this, spec.first_child()));
 	}
 
-	last_trail_time = time - TRAIL_TIME;
-	sys().myassert(player != 0, string("No player defined in ") + doc->Value());
-	compute_max_view_dist();
-}	
+	xml_elem su = sg.child("submarines");
+	for (xml_elem::iterator it = su.iterate("submarine"); !it.end(); it.next()) {
+		xml_doc spec(get_submarine_dir() + it.elem().attr("type") + ".xml");
+		spec.load();
+		submarines.push_back(new submarine(*this, spec.first_child()));
+	}
+
+	xml_elem ap = sg.child("airplanes");
+	for (xml_elem::iterator it = ap.iterate("airplane"); !it.end(); it.next()) {
+		xml_doc spec(get_airplane_dir() + it.elem().attr("type") + ".xml");
+		spec.load();
+		airplanes.push_back(new airplane(*this, spec.first_child()));
+	}
+
+	xml_elem tp = sg.child("torpedoes");
+	for (xml_elem::iterator it = tp.iterate("torpedo"); !it.end(); it.next()) {
+		xml_doc spec(get_torpedo_dir() + it.elem().attr("type") + ".xml");
+		spec.load();
+		torpedoes.push_back(new torpedo(*this, spec.first_child()));
+	}
+
+	xml_elem dc = sg.child("depth_charges");
+	for (xml_elem::iterator it = dc.iterate("depth_charge"); !it.end(); it.next()) {
+		//xml_doc spec(get_depth_charge_dir() + it.elem().attr("type") + ".xml");
+		//spec.load();
+		depth_charges.push_back(new depth_charge(*this/*, spec.first_child()*/));
+	}
+
+	xml_elem gs = sg.child("gun_shells");
+	for (xml_elem::iterator it = gs.iterate("gun_shell"); !it.end(); it.next()) {
+		//xml_doc spec(get_gun_shell_dir() + it.elem().attr("type") + ".xml");
+		//spec.load();
+		gun_shells.push_back(new gun_shell(*this/*, spec.first_child()*/));
+	}
+
+	xml_elem cv = sg.child("convoys");
+	for (xml_elem::iterator it = cv.iterate("convoy"); !it.end(); it.next()) {
+		//xml_doc spec(get_convoy_dir() + it.elem().attr("type") + ".xml");
+		//spec.load();
+		convoys.push_back(new convoy(*this/*, spec.first_child()*/));
+	}
+
+#if 0
+	xml_elem pt = sg.child("particles");
+	for (xml_elem::iterator it = pt.iterate("particle"); !it.end(); it.next()) {
+		//xml_doc spec(get_particle_dir() + it.elem().attr("type") + ".xml");
+		//spec.load();
+		particles.push_back(new particle(*this/*, spec.first_child()*/));
+	}
+#endif
+
+	// now all objects exist and must get loaded
+	unsigned k = 0;
+	for (xml_elem::iterator it = sh.iterate("ship"); !it.end(); it.next(), ++k) {
+		ships[k]->load(it.elem());
+	}
+
+	k = 0;
+	for (xml_elem::iterator it = sh.iterate("submarine"); !it.end(); it.next(), ++k) {
+		submarines[k]->load(it.elem());
+	}
+
+	k = 0;
+	for (xml_elem::iterator it = sh.iterate("airplane"); !it.end(); it.next(), ++k) {
+		airplanes[k]->load(it.elem());
+	}
+
+	k = 0;
+	for (xml_elem::iterator it = sh.iterate("torpedo"); !it.end(); it.next(), ++k) {
+		torpedoes[k]->load(it.elem());
+	}
+
+	k = 0;
+	for (xml_elem::iterator it = sh.iterate("depth_charge"); !it.end(); it.next(), ++k) {
+		depth_charges[k]->load(it.elem());
+	}
+
+	k = 0;
+	for (xml_elem::iterator it = sh.iterate("gun_shell"); !it.end(); it.next(), ++k) {
+		gun_shells[k]->load(it.elem());
+	}
+
+	k = 0;
+	for (xml_elem::iterator it = sh.iterate("convoy"); !it.end(); it.next(), ++k) {
+		convoys[k]->load(it.elem());
+	}
+
+#if 0
+	k = 0;
+	for (xml_elem::iterator it = sh.iterate("particle"); !it.end(); it.next(), ++k) {
+		particles[k]->load(it.elem());
+	}
+#endif
+
+	// create jobs fixme - at the moment the job interface is not used.
+	// use it for regularly updating weather/sky/waves etc. etc.
+
+	// load player
+	xml_elem pl = sg.child("player");
+	player = load_ptr(pl.attru("ref"));
+	// fixme: maybe check if type matches!
+
+	// ui is created from client of game!
+
+	xml_elem sks = sg.child("sunken_ships");
+	for (xml_elem::iterator it = sks.iterate("sink_record"); !it.end(); it.next()) {
+		sunken_ships.push_back(sink_record(it.elem()));
+	}
+
+	//fixme save and load logbook
+
+	xml_elem gst = sg.child("state");
+	time = gst.attrf("time");
+	last_trail_time = gst.attrf("last_trail_time");
+	max_view_dist = gst.attrf("max_view_dist");
+	
+	xml_elem pgs = sg.child("pings");
+	for (xml_elem::iterator it = pgs.iterate("ping"); !it.end(); it.next()) {
+		pings.push_back(ping(it.elem()));
+	}
+}
+
 
 
 
@@ -421,200 +500,154 @@ game::~game()
 		delete it->second;
 }
 
+
+
+// --------------------------------------------------------------------------------
+//                        SAVE GAME
+// --------------------------------------------------------------------------------
+
 void game::save(const string& savefilename, const string& description) const
 {
-cout<<"saving game...\n";
-	ofstream out(savefilename.c_str(), ios::out|ios::binary);
-	write_string(out, "DANGER FROM THE DEEP game save file");
-	write_string(out, description);
-	
-	save_to_stream(out);
-}
+	xml_doc doc(savefilename);
+	xml_elem sg = doc.add_child("dftd-savegame");
+	sg.set_attr(description, "description");
+	sg.set_attr(SAVEVERSION, "version");
+	sg.set_attr(GAMETYPE, "type");
 
-game::game(const string& savefilename)
-{
-	networktype = 0;
-	servercon = 0;	//fixme maybe move to load_from_stream? to allow loading network games?
-	ui = 0;
+	xml_elem sh = sg.add_child("ships");
+	sh.set_attr(ships.size(), "nr");
+	for (unsigned k = 0; k < ships.size(); ++k) {
+		xml_elem e = sh.add_child("ship");
+		e.set_attr(ships[k]->get_specfilename(), "type");
+		ships[k]->save(e);
+	}
 
-cout<<"loading game...\n";
-	ifstream in(savefilename.c_str(), ios::in|ios::binary);
-	read_string(in);
-	string description = read_string(in);
-	
-	load_from_stream(in);
-}
+	xml_elem su = sg.add_child("submarines");
+	su.set_attr(submarines.size(), "nr");
+	for (unsigned k = 0; k < submarines.size(); ++k) {
+		xml_elem e = su.add_child("submarine");
+		e.set_attr(submarines[k]->get_specfilename(), "type");
+		submarines[k]->save(e);
+	}
 
-game::game(istream& in)
-{
-	networktype = 0;
-	servercon = 0;	//fixme maybe move to load_from_stream? to allow loading network games?
-	ui = 0;
-	load_from_stream(in);
-}
+	xml_elem ap = sg.add_child("airplanes");
+	ap.set_attr(airplanes.size(), "nr");
+	for (unsigned k = 0; k < airplanes.size(); ++k) {
+		xml_elem e = ap.add_child("airplane");
+		e.set_attr(airplanes[k]->get_specfilename(), "type");
+		airplanes[k]->save(e);
+	}
 
-string game::read_description_of_savegame(const string& filename)
-{
-	ifstream in(filename.c_str(), ios::in|ios::binary);
-	read_string(in);
-	string desc = read_string(in);
-	int versionnr = read_i32(in);
-	if (versionnr != SAVEVERSION) sys().myassert(false, "invalid save game version");
-	return desc;
-}
+	xml_elem tp = sg.add_child("torpedoes");
+	tp.set_attr(torpedoes.size(), "nr");
+	for (unsigned k = 0; k < torpedoes.size(); ++k) {
+		xml_elem e = tp.add_child("torpedo");
+		e.set_attr(torpedoes[k]->get_specfilename(), "type");
+		torpedoes[k]->save(e);
+	}
 
-void game::save_to_stream(ostream& out) const
-{
-	write_i32(out, SAVEVERSION);
+	xml_elem dc = sg.add_child("depth_charges");
+	dc.set_attr(depth_charges.size(), "nr");
+	for (unsigned k = 0; k < depth_charges.size(); ++k) {
+		xml_elem e = dc.add_child("depth_charge");
+		//e.set_attr(depth_charges[k]->get_specfilename(), "type");//no specfilename for DCs
+		depth_charges[k]->save(e);
+	}
 
-	write_i32(out, GAMETYPE);
+	xml_elem gs = sg.add_child("gun_shells");
+	gs.set_attr(gun_shells.size(), "nr");
+	for (unsigned k = 0; k < gun_shells.size(); ++k) {
+		xml_elem e = gs.add_child("gun_shell");
+		//e.set_attr(gun_shells[k]->get_specfilename(), "type");//no specfilename for shells
+		gun_shells[k]->save(e);
+	}
 
-	write_u32(out, ships.size());
-	for (unsigned k = 0; k < ships.size(); ++k)
-		write_string(out, ships[k]->get_specfilename());
-	write_u32(out, submarines.size());
-	for (unsigned k = 0; k < submarines.size(); ++k)
-		write_string(out, submarines[k]->get_specfilename());
-	write_u32(out, airplanes.size());
-	write_u32(out, torpedoes.size());
-	write_u32(out, depth_charges.size());
-	write_u32(out, gun_shells.size());
-	write_u32(out, convoys.size());
-	write_u32(out, particles.size());
+	xml_elem cv = sg.add_child("convoys");
+	cv.set_attr(convoys.size(), "nr");
+	for (unsigned k = 0; k < convoys.size(); ++k) {
+		xml_elem e = cv.add_child("convoy");
+		//e.set_attr(convoys[k]->get_specfilename(), "type");//no specfilename for convoys
+		convoys[k]->save(e);
+	}
 
-	ships.for_each(save_helper<ship>(out));
-	submarines.for_each(save_helper<submarine>(out));
-	airplanes.for_each(save_helper<airplane>(out));
-	torpedoes.for_each(save_helper<torpedo>(out));
-	depth_charges.for_each(save_helper<depth_charge>(out));
-	gun_shells.for_each(save_helper<gun_shell>(out));
-	convoys.for_each(save_helper<convoy>(out));
-//	particles.for_each(save_helper<particle>(out));
+#if 0	// fixme later!!!
+	xml_elem pt = sg.add_child("particles");
+	pt.set_attr(particles.size(), "nr");
+	for (unsigned k = 0; k < particles.size(); ++k) {
+		xml_elem e = pt.add_child("particle");
+		//e.set_attr(particles[k]->get_specfilename(), "type");//no specfilename for particles
+		particles[k]->save(e);
+	}
+#endif
 
 	// my_run_state / stopexec doesn't need to be saved
 	
 	// jobs are generated by dftd itself
 
+	// save player
 	submarine* tmpsub = dynamic_cast<submarine*>(player);
-	if (tmpsub) {	
-		write_i32(out, 1);      // player is submarine
-		write(out, tmpsub);
+	string pltype;
+	if (tmpsub) {
+		pltype = "submarine";
 	} else {
 		ship* tmpship = dynamic_cast<ship*>(player);
 		if (tmpship) {
-			write_i32(out, 0);	// player is ship
-			write(out, tmpship);
+			pltype = "ship";
 		} else {
 			airplane* tmpairpl = dynamic_cast<airplane*>(player);
 			if (tmpairpl) {
-				write_i32(out, 2);
-				write(out, tmpairpl);
+				pltype = "airplane";
 			} else {
-				sys().myassert(false, "internal error: player is no sub, ship or airplane");
+				throw error("internal error: player is no sub, ship or airplane");
 			}
 		}
 	}
+	xml_elem pl = sg.add_child("player");
+	pl.set_attr(save_ptr(player), "ref");
+	pl.set_attr(pltype, "type");
 	
 	// user interface is generated according to player object by dftd
 
-	write_u8(out, sunken_ships.size());
+	xml_elem sks = sg.add_child("sunken_ships");
+	sks.set_attr(sunken_ships.size(), "nr");
 	for (list<sink_record>::const_iterator it = sunken_ships.begin(); it != sunken_ships.end(); ++it) {
-		it->save(out);
+		it->save(sks);
 	}
 
 	//fixme save and load logbook
 
-	write_double(out, time);
-	write_double(out, last_trail_time);
+	xml_elem gst = sg.add_child("state");
+	gst.set_attr(time, "time");
+	gst.set_attr(last_trail_time, "last_trail_time");
+	gst.set_attr(max_view_dist, "max_view_dist");
 	
-	write_double(out, max_view_dist);
-	
-	write_u8(out, pings.size());
+	xml_elem pgs = sg.add_child("pings");
+	pgs.set_attr(pings.size(), "nr");
 	for (list<ping>::const_iterator it = pings.begin(); it != pings.end(); ++it) {
-		it->save(out);
+		it->save(pgs);
 	}
+
+	// finally save file
+	doc.save();
 }
 
-void game::load_from_stream(istream& in)
+
+
+string game::read_description_of_savegame(const string& filename)
 {
-	int versionnr = read_i32(in);
-	if (versionnr != SAVEVERSION) sys().myassert(false, "invalid save game version");
-	int gametype = read_i32(in);
-
-	for (unsigned s = read_u32(in); s > 0; --s) {
-		string shiptype = read_string(in);
-		TiXmlDocument doc(get_ship_dir() + shiptype + ".xml");
-		doc.LoadFile();
-		ships.push_back(new ship(*this, &doc));
-	}
-	for (unsigned s = read_u32(in); s > 0; --s) {
-		string submarinetype = read_string(in);
-		TiXmlDocument doc(get_submarine_dir() + submarinetype + ".xml");
-		doc.LoadFile();
-		submarines.push_back(new submarine(*this, &doc));
-	}
-	for (unsigned s = read_u32(in); s > 0; --s) {
-		string airplanetype = read_string(in);
-		TiXmlDocument doc(get_airplane_dir() + airplanetype + ".xml");
-		doc.LoadFile();
-		airplanes.push_back(new airplane(*this, &doc));
-	}
-	for (unsigned s = read_u32(in); s > 0; --s) torpedoes.push_back(new torpedo(*this));
-	for (unsigned s = read_u32(in); s > 0; --s) depth_charges.push_back(new depth_charge(*this));
-	for (unsigned s = read_u32(in); s > 0; --s) gun_shells.push_back(new gun_shell(*this));
-	for (unsigned s = read_u32(in); s > 0; --s) convoys.push_back(new convoy(*this));
-	//for (unsigned s = read_u32(in); s > 0; --s) particles.push_back(new particle(*this));
-
-	// fixme: maybe also possible with templates...
-	// template <class T> ptrset<U>::for_each(void (*U::func)(T arg)) { for(){ ptr->func(arg); } }
-	// ships.for_each<istream&>(ship::load, in);
-	// is done in a similar way with widgets!
-	ships.for_each(load_helper<ship>(in));
-	submarines.for_each(load_helper<submarine>(in));
-	airplanes.for_each(load_helper<airplane>(in));
-	torpedoes.for_each(load_helper<torpedo>(in));
-	depth_charges.for_each(load_helper<depth_charge>(in));
-	gun_shells.for_each(load_helper<gun_shell>(in));
-	convoys.for_each(load_helper<convoy>(in));
-//	particles.for_each(load_helper<particle>(in));
-
-	// my_run_state / stopexec doesn't need to be saved
-	my_run_state = running;
-	stopexec = false;
-	
-	// jobs are generated by dftd itself
-	//fixme
-
-	int playertype = read_i32(in);
-	if (playertype == 0) {
-		ship* s = read_ship(in);
-		player = s;
-	} else if (playertype == 1) {
-		submarine* s = read_submarine(in);
-		player = s;
-	} else if (playertype == 2) {
-		airplane* a = read_airplane(in);
-		player = a;
-	} else {
-		sys().myassert(false, "savegame error: player is no sub or ship");
-	}
-	
-	// user interface is generated according to player object by dftd
-	//fixme
-
-	sunken_ships.clear();
-	for (unsigned s = read_u8(in); s > 0; --s)
-		sunken_ships.push_back(sink_record(in));
-
-	time = read_double(in);
-	last_trail_time = read_double(in);
-	
-	max_view_dist = read_double(in);
-	
-	pings.clear();
-	for (unsigned s = read_u8(in); s > 0; --s)
-		pings.push_back(ping(in));
+	xml_doc doc(filename);
+	doc.load();
+	xml_elem sg = doc.child("dftd-savegame");
+	unsigned v = sg.attr("version");
+	if (v != SAVEVERSION)
+		return "<ERROR> Invalid version";
+	string d = sg.attr("description");
+	if (d.length() == 0)
+		return "<ERROR> Empty description";
+	return d;
 }
+
+
 
 void game::compute_max_view_dist(void)
 {

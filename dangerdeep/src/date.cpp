@@ -6,11 +6,7 @@
 #include "texts.h"
 #include "binstream.h"
 
-void date::copy ( const date& d )
-{
-	memcpy ( &date_values, &d.date_values, sizeof date_values );
-	linear_time = d.linear_time;
-}
+using std::ostream;
 
 unsigned date::length_of_year(unsigned year) const
 {
@@ -49,19 +45,12 @@ date::date ( unsigned year_, unsigned month_, unsigned day_, unsigned hour_,
 	date_values[second] = second_;
 	
 	// compute linear time
-	// compute number of days from 1.1.1939 first
-	unsigned d = 0;
-	for (unsigned y = 1939; y < year_; ++y)
-		d += length_of_year(y);
-	for (unsigned m = January; m < month_; ++m)
-		d += length_of_month(year_, m);
-	d += day_ - 1;
-	linear_time = d * 86400 + hour_ * 3600 + minute_ * 60 + second_;
+	set_linear();
 }
 
-date::date (unsigned lt)
+void date::set_from_linear()
 {
-	linear_time = lt;
+	unsigned lt = linear_time;
 	date_values[second] = lt % 60;
 	lt = lt / 60;
 	date_values[minute] = lt % 60;
@@ -85,17 +74,24 @@ date::date (unsigned lt)
 	date_values[day] = 1 + lt;
 }
 
-date::date ( const date& d )
+void date::set_linear()
 {
-	copy ( d );
+	linear_time = 0;
+	for (unsigned i = 1939; i < date_values[year]; ++i)
+		linear_time += length_of_year(i);
+	for (unsigned i = 1; i < date_values[month]; ++i)
+		linear_time += length_of_month(date_values[year], i);
+	linear_time += date_values[day] - 1;
+	linear_time *= 86400;
+	linear_time += date_values[hour] * 3600;
+	linear_time += date_values[minute] * 60;
+	linear_time += date_values[second];
 }
 
-date& date::operator= ( const date& d )
+date::date (unsigned lt)
+	: linear_time(lt)
 {
-	if ( this != &d )
-		copy ( d );
-
-	return *this;
+	set_from_linear();
 }
 
 bool date::operator< ( const date& d ) const
@@ -146,18 +142,41 @@ ostream& operator<< ( ostream& os, const date& d )
 	return os;
 }
 
-void date::load(istream& in)
+void date::load(const xml_elem& parent)
 {
-	date_values[0] = read_u16(in);
-	for (unsigned i = 1; i < last_date_type; ++i)
-		date_values[i] = read_u8(in);
-	linear_time = read_u32(in);
+	xml_elem d = parent.child("date");
+	string dy = d.attr("day");
+	string tm = d.attr("time");
+	date_values[year] = 0;
+	date_values[month] = 0;
+	date_values[day] = 0;
+	date_values[hour] = 0;
+	date_values[minute] = 0;
+	date_values[second] = 0;
+	sscanf(dy.c_str(), "%u/%u/%u", &date_values[year], &date_values[month], &date_values[day]);
+	sscanf(tm.c_str(), "%u:%u:%u", &date_values[hour], &date_values[minute], &date_values[second]);
+	// some plausibility checks
+	if (date_values[year] < 1939 || date_values[year] > 1945)
+		throw error("date year out of valid range");
+	if (date_values[month] < 1 || date_values[month] > 12)
+		throw error("date month out of valid range");
+	if (date_values[day] < 1 || date_values[day] > 31)
+		throw error("date day out of valid range");
+	if (date_values[hour] > 23)
+		throw error("date hour out of valid range");
+	if (date_values[minute] > 59)
+		throw error("date minute out of valid range");
+	if (date_values[second] > 59)
+		throw error("date second out of valid range");
+	set_linear();
 }
 
-void date::save(ostream& out) const
+void date::save(xml_elem& parent) const
 {
-	write_u16(out, date_values[0]);
-	for (unsigned i = 1; i < last_date_type; ++i)
-		write_u8(out, date_values[i]);
-	write_u32(out, linear_time);
+	xml_elem d = parent.add_child("date");
+	char tmp[32];
+	sprintf(tmp, "%4u/%2u/%2u", date_values[year], date_values[month], date_values[day]);
+	d.set_attr(string(tmp), "day");
+	sprintf(tmp, "%2u:%2u:%2u", date_values[hour], date_values[minute], date_values[second]);
+	d.set_attr(string(tmp), "time");
 }
