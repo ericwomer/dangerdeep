@@ -4,10 +4,14 @@
 #ifndef CONVOY_H
 #define CONVOY_H
 
-#include "ship.h"
 #include "global_data.h"
+#include "ai.h"
+#include "vector2.h"
+#include <new>
+#include <list>
+class ship;
 
-class convoy : public sea_object
+class convoy
 {
  private:
 	convoy();
@@ -17,33 +21,37 @@ class convoy : public sea_object
  protected:
 	friend class game; // for initialization	
 
-	list<pair<ship*, vector2> > merchants, warships, escorts;
-	list<vector2> waypoints;
+	std::list<std::pair<ship*, vector2> > merchants, warships, escorts;
+	std::list<vector2> waypoints;
 
-	class ai* myai;		// fixme: maybe one ship should act for the convoy,
+	std::auto_ptr<ai> myai;	// fixme: maybe one ship should act for the convoy,
 	                        // the ship with the convoy commander.
 	                        // when it is sunk, convoy is desorganized etc.
 
 	class game& gm;
-
-	// position, alive_stat?, velocity
-
-	convoy(class game& gm_);
 	double remaining_time;	// time to next thought/situation analysis, fixme move to ai!
+	vector2 position;
+	vector2 velocity;
+	// alive_stat?
+
+	// create empty convoy for loading
+	convoy(class game& gm_);
 
  public:
 	enum types { small, medium, large, battleship, supportgroup, carrier };
 	enum esctypes { etnone, etsmall, etmedium, etlarge };	// escort size
 
 	convoy(class game& gm, types type_, esctypes esct_);	// create custom convoy
-	convoy(class game& gm, class TiXmlElement* parent);	// create convoy from mission xml file
-	virtual ~convoy();
-	void load(istream& in);
-	void save(ostream& out) const;
+	virtual ~convoy() {}
+
+	void load(const xml_elem& parent);
+	void save(xml_elem& parent) const;
 	
 	unsigned get_nr_of_ships(void) const;
 
-	virtual class ai* get_ai(void) { return myai; }
+	vector2 get_pos() const { return position; }
+
+	virtual class ai* get_ai(void) { return myai.get(); }
 	virtual void simulate(double delta_time);
 	virtual void display(void) const {}
 	virtual void add_contact(const vector3& pos);

@@ -74,14 +74,14 @@ Only partly, only older, simpler model.
 */
 
 
-#include "vector3.h"
+#include "xml.h"
 #include "global_data.h"
-#include "angle.h"
-#include "sea_object.h"
-#include "ship.h"
 #include <list>
-#include <map>
-using namespace std;
+
+class ship;
+class sea_object;
+class convoy;
+class game;
 
 class ai
 {
@@ -106,18 +106,19 @@ protected:
 	angle main_course;	// which angle to steer, ship zig-zags around it.
 	
 	bool cyclewaypoints;
-	list<vector2> waypoints;	
+	std::list<vector2> waypoints;	
 	
 	ai();
 	ai(const ai& other);
 	ai& operator= (const ai& other);
 
 public:
-	ai::ai(ship* parent_, types type_);
+	ai(ship* parent_, types type_);
 	virtual ~ai();
 
-	ai(istream& in, class game& g);	// attention: all sea_objects must exist BEFORE this is called!
-	void save(ostream& out, const class game& g) const;
+	// attention: all sea_objects must exist BEFORE this is called!
+	void load(game& gm_, const xml_elem& parent);
+	void save(game& gm, xml_elem& parent) const;
 
 	void clear_waypoints(void) { waypoints.clear(); };
 	void add_waypoint(const vector2& wp) { waypoints.push_back(wp); };

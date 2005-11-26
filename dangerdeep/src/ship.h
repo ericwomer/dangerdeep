@@ -40,7 +40,6 @@ public:
 	static const unsigned TRAIL_LENGTH = 60;
 
 protected:
-	class ai* myai;
 	unsigned tonnage;	// in BRT, created after values from spec file (but maybe with some randomness), must get stored!
 
 	int throttle;		// if < 0: throttle_state, if > 0: knots
@@ -76,8 +75,6 @@ protected:
 	virtual vector3 get_acceleration() const;		// drag must be already included!
 	virtual double get_turn_acceleration() const;	// drag must be already included!
 
-	ship(game& gm_);
-
 	/**
 		This method calculates the hourly fuel consumption. An
 		exponential is used as a model basing on some fuel consumption values.
@@ -93,15 +90,12 @@ protected:
 	*/
 	virtual void calculate_fuel_factor ( double delta_time );
 
-	unsigned smoke_type;	// 0 - none, 1-x particle type
-	vector3 smokerelpos;	// read from spec file
+	// smoke, list of smoke generators. Give type and relative position for each generator
+	std::list<std::pair<unsigned, vector3> > smoke;
 
 	// pointer to fire particle (0 means ship is not burning)
 	class particle* myfire;
 	
-	// common constructor. set attributes to sane values.
-	void init();
-
 	virtual bool use_simple_turning_model() const { return false; }
 	
 	virtual bool causes_spray() const { return true; }
@@ -183,14 +177,11 @@ public:
 	};
 	
 	// create empty object from specification xml file
-	ship(game& gm_, class TiXmlDocument* specfile, const char* topnodename = "dftd-ship");
+	// construct a sea_object. called by heirs
+	ship(game& gm_, const xml_elem& parent);
 	
-	virtual ~ship();
-
-	virtual void load(istream& in);
-	virtual void save(ostream& out) const;
-
-	virtual void parse_attributes(class TiXmlElement* parent);
+	virtual void load(const xml_elem& parent);
+	virtual void save(xml_elem& parent) const;
 
 	virtual unsigned get_class() const { return shipclass; }
 
@@ -216,11 +207,10 @@ public:
 	virtual void remember_position();
 	virtual const list<vector2>& get_previous_positions() const { return previous_positions; }
 
-	virtual bool has_smoke() const { return smoke_type != 0; }
+	virtual bool has_smoke() const { return !smoke.empty(); }
 
 	virtual bool damage(const vector3& fromwhere, unsigned strength);
 	virtual unsigned calc_damage() const;	// returns damage in percent (100 means dead)
-	virtual class ai* get_ai() { return myai; }
 	// this depends on ship's tonnage, type, draught and depth (subs/sinking ships)
 	virtual double get_roll_factor() const;
 	virtual unsigned get_tonnage() const { return tonnage; }

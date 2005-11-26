@@ -4,15 +4,15 @@
 #ifndef SEA_OBJECT_H
 #define SEA_OBJECT_H
 
-#include <list>
 #include <string>
 #include <vector>
-using namespace std;
+#include <new>
 
 #include "vector3.h"
 #include "angle.h"
 #include "quaternion.h"
 #include "xml.h"
+#include "ai.h"
 
 /*
 fixme: global todo (2004/06/26):
@@ -61,7 +61,7 @@ public:
 		
 	// each sea_object has some damageable parts.
 	struct damageable_part {
-		string id;		// id of part
+		std::string id;		// id of part
 		vector3f p1, p2;	// corners of bounding box around part, p1 < p2
 					// coordinates in absolute values (meters)
 		float strength;		// weakness to shock waves (1.0 = normal, 0.1 very weak), damage factor
@@ -88,9 +88,9 @@ protected:
 	// so store a ref to game here.	
 	game& gm;
 
-	string specfilename;	// filename for specification .xml file, set in constructor
+	std::string specfilename;	// filename for specification .xml file, set in constructor
 
-	string modelname;	// filename for model file (also used for modelcache requests), read from spec file
+	std::string modelname;	// filename for model file (also used for modelcache requests), read from spec file
 
 	//string_or_country_code country;	// read from spec file, maybe save for capture missions...
 
@@ -116,12 +116,12 @@ protected:
 	alive_status alive_stat;	// [SAVE]
 
 	// Sensor systems, created after data in spec file
-	vector<sensor*> sensors;
+	std::vector<sensor*> sensors;
 	
 	// fixme: this is per model/type only. it is a waste to store it for every object
-	string descr_near, descr_medium, descr_far;	// read from spec file
+	std::string descr_near, descr_medium, descr_far;	// read from spec file
 
-	class ai* myai;		// created from spec file, but data needs to be saved, [SAVE]
+	std::auto_ptr<ai> myai;	// created from spec file, but data needs to be saved, [SAVE]
 
 	// pointer to target or similar object.
 	// used by airplanes/ships/submarines to store a reference to their target
@@ -138,7 +138,7 @@ protected:
 	virtual double get_cross_section ( const vector2& d ) const;
 
 	// construct sea_object without spec file (for simple objects like DCs, shells, convoys)
-	sea_object(game& gm_, const string& modelname_);
+	sea_object(game& gm_, const std::string& modelname_);
 
 	// construct a sea_object. called by heirs
 	sea_object(game& gm_, const xml_elem& parent);
@@ -149,14 +149,10 @@ public:
 	virtual void load(const xml_elem& parent);
 	virtual void save(xml_elem& parent) const;
 
-	// call with ship/submarine/etc node from mission file, fixme: obsolete!
-	// only for mission file loading, use load() now!
-	virtual void parse_attributes(class TiXmlElement* parent);
-
 	// detail: 0 - category, 1 - finer category, >=2 - exact category
-	virtual string get_description(unsigned detail) const;
-	virtual string get_specfilename() const { return specfilename; }
-	virtual string get_modelname() const { return modelname; }
+	virtual std::string get_description(unsigned detail) const;
+	virtual std::string get_specfilename() const { return specfilename; }
+	virtual std::string get_modelname() const { return modelname; }
 
 	virtual void simulate(double delta_time);
 //	virtual bool is_collision(const sea_object* other);
@@ -191,7 +187,7 @@ public:
 	virtual float get_height() const { return size3d.z; };
 	virtual float surface_visibility(const vector2& watcher) const;
 	virtual angle get_heading() const { return heading; }
-	virtual class ai* get_ai() { return myai; }
+	virtual class ai* get_ai() { return myai.get(); }
 	virtual const sea_object* get_target() const { return target; }
 
 	/**

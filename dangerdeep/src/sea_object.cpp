@@ -130,7 +130,7 @@ double sea_object::get_cross_section ( const vector2& d ) const
 
 sea_object::sea_object(game& gm_, const string& modelname_)
 	: gm(gm_), modelname(modelname_), turn_velocity(0),
-	  alive_stat(alive), myai(0), target(0)
+	  alive_stat(alive), target(0)
 {
 	model* mdl = modelcache.ref(modelname);
 	size3d = vector3f(mdl->get_width(), mdl->get_length(), mdl->get_height());
@@ -139,7 +139,7 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 
 
 sea_object::sea_object(game& gm_, const xml_elem& parent)
-	: gm(gm_), turn_velocity(0), alive_stat(alive), myai(0), target(0)
+	: gm(gm_), turn_velocity(0), alive_stat(alive), target(0)
 {
 	xml_elem cl = parent.child("classification");
 	specfilename = cl.attr("identifier");
@@ -207,7 +207,6 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 sea_object::~sea_object()
 {
 	modelcache.unref(modelname);
-	delete myai;
 	for (unsigned i = 0; i < sensors.size(); i++)
 		delete sensors[i];
 }
@@ -216,68 +215,44 @@ sea_object::~sea_object()
 
 void sea_object::load(const xml_elem& parent)
 {
-	xml_elem se = parent.child("sea_object");//fixme: extra-node??
-	string specfilename2 = se.attr("specfilename");	// checks
+	string specfilename2 = parent.attr("type");	// checks
+	// this checks if the filename of the specfile matches the internal id string...
 	if (specfilename != specfilename2)
-		throw error("stored specfilename does not match");
-	xml_elem st = se.child("state");
+		throw error(string("stored specfilename does not match, type=") + specfilename2
+			    + string(", but read ") + specfilename + string(" from spec file"));
+	xml_elem st = parent.child("state");
 	position = st.child("position").attrv3();
 	velocity = st.child("velocity").attrv3();
 	orientation = st.child("orientation").attrq();
 	turn_velocity = st.child("turn_velocity").attrf();
 	heading = st.child("heading").attra();
 	// load ai
-	if (myai) {
-		myai->load(se.child("AI"));
+	if (myai.get()) {
+		myai->load(gm, parent.child("AI"));
 	}
 	// load target
-	target = gm.load_ptr(se.child("target").attru());
+	target = gm.load_ptr(parent.child("target").attru());
 }
 
 
 
 void sea_object::save(xml_elem& parent) const
 {
-	xml_elem se = parent.add_child("sea_object");//fixme: extra-node??
-	se.set_attr(specfilename, "specfilename");	// only used as reference
-	xml_elem st = se.add_child("state");
+	// specfilename is requested and stored by game
+	xml_elem st = parent.add_child("state");
 	st.add_child("position").set_attr(position);
 	st.add_child("velocity").set_attr(velocity);
 	st.add_child("orientation").set_attr(orientation);
 	st.add_child("turn_velocity").set_attr(turn_velocity);
 	st.add_child("heading").set_attr(heading);
-	se.add_child("alive_stat").set_attr(unsigned(alive_stat));
+	parent.add_child("alive_stat").set_attr(unsigned(alive_stat));
 	// save ai
-	if (myai) {
-		myai->save(se.child("AI"));
+	if (myai.get()) {
+		xml_elem ae = parent.child("AI");
+		myai->save(gm, ae);
 	}
 	// save target
-	se.add_child("target").set_attr(gm.save_ptr(target));
-}
-
-
-
-// function should be obsolete!
-void sea_object::parse_attributes(TiXmlElement* parent)
-{
-	TiXmlHandle hdftdobj(parent);
-	TiXmlElement* eposition = hdftdobj.FirstChildElement("position").Element();
-	if (eposition) {
-		vector3 p;
-		eposition->Attribute("x", &p.x);
-		eposition->Attribute("y", &p.y);
-		eposition->Attribute("z", &p.z);
-		position = p;
-	}
-	TiXmlElement* emotion = hdftdobj.FirstChildElement("motion").Element();
-	if (emotion) {
-		double tmp = 0;
-		if (emotion->Attribute("heading", &tmp))
-			heading = angle(tmp);
-		tmp = 0;
-		if (emotion->Attribute("speed", &tmp))
-			velocity.y = kts2ms(tmp);
-	}
+	parent.add_child("target").set_attr(gm.save_ptr(target));
 }
 
 

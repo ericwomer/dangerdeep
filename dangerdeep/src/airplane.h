@@ -25,9 +25,6 @@ class airplane : public sea_object
 	virtual void load(const xml_elem& parent);
 	virtual void save(xml_elem& parent) const;
 
-	//obsolete fixme
-	virtual void parse_attributes(class TiXmlElement* parent);
-
 	virtual void simulate(double delta_time);
 
 	virtual double get_mass(void) const { return 4000.0; }	// 4 tons.

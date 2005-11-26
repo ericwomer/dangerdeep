@@ -4,7 +4,6 @@
 #include <iomanip>
 #include "date.h"
 #include "texts.h"
-#include "binstream.h"
 
 using std::ostream;
 

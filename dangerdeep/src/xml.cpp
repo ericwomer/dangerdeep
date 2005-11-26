@@ -82,6 +82,13 @@ vector3 xml_elem::attrv3() const
 
 
 
+vector2 xml_elem::attrv2() const
+{
+	return vector2(attrf("x"), attrf("y"));
+}
+
+
+
 quaternion xml_elem::attrq() const
 {
 	return quaternion(attrf("s"), attrv3());
@@ -92,6 +99,13 @@ quaternion xml_elem::attrq() const
 angle xml_elem::attra() const
 {
 	return angle(attrf("angle"));
+}
+
+
+
+bool xml_elem::attrb(const std::string& name) const
+{
+	return attru(name);
 }
 
 
@@ -135,6 +149,14 @@ void xml_elem::set_attr(const vector3& v)
 
 
 
+void xml_elem::set_attr(const vector2& v)
+{
+	set_attr(v.x, "x");
+	set_attr(v.y, "y");
+}
+
+
+
 void xml_elem::set_attr(const quaternion& q)
 {
 	set_attr(q.s, "s");
@@ -146,6 +168,13 @@ void xml_elem::set_attr(const quaternion& q)
 void xml_elem::set_attr(angle a)
 {
 	set_attr(a.value(), "angle");
+}
+
+
+
+void xml_elem::set_attr(bool b, const std::string& name)
+{
+	set_attr(unsigned(b), name);
 }
 
 

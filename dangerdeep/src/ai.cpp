@@ -41,46 +41,55 @@ ai::ai(ship* parent_, types type_) : type(type_), state(followpath),
 {	
 }
 
-ai::ai(istream& in, class game& g)
+
+
+void ai::load(game& gm, const xml_elem& parentnode)
 {
-	type = types(read_u8(in));
-	state = states(read_u8(in));
-	zigzagstate = read_u32(in);
-	attackrun = read_bool(in);
-	evasive_manouver = read_bool(in);
-	rem_manouver_time = read_double(in);
-	parent = g.read_ship(in);
-	followme = g.read_sea_object(in);
-	myconvoy = g.read_convoy(in);
-	has_contact = read_bool(in);
-	contact.x = read_double(in);
-	contact.y = read_double(in);
-	contact.z = read_double(in);
-	remaining_time = read_double(in);
-	main_course = angle(read_double(in));
+	type = types(parentnode.attru("type"));
+	state = states(parentnode.attru("state"));
+	zigzagstate = parentnode.attru("zigzagstate");
+	attackrun = parentnode.attrb("attackrun");
+	evasive_manouver = parentnode.attrb("evasive_manouver");
+	rem_manouver_time = parentnode.attrf("rem_manouver_time");
+	parent = gm.load_ship_ptr(parentnode.attru("parent"));
+	followme = gm.load_ptr(parentnode.attru("followme"));
+	myconvoy = gm.load_convoy_ptr(parentnode.attru("myconvoy"));
+	if (parentnode.has_child("contact")) {
+		contact = parentnode.child("contact").attrv3();
+	}
+	remaining_time = parentnode.attrf("remaining_time");
+	main_course = parentnode.child("main_course").attra();
+	xml_elem wp = parentnode.child("waypoints");
+	waypoints.clear();
+	for (xml_elem::iterator it = wp.iterate("waypoint"); !it.end(); it.next()) {
+		waypoints.push_back(it.elem().attrv2());
+	}
+	cyclewaypoints = wp.attrb("cyclewaypoints");
 }
 
-ai::~ai()
-{
-}
 
-void ai::save(ostream& out, const class game& g) const
+
+void ai::save(game& gm, xml_elem& parentnode) const
 {
-	write_u8(out, Uint8(type));
-	write_u8(out, Uint8(state));
-	write_u32(out, zigzagstate);
-	write_bool(out, attackrun);
-	write_bool(out, evasive_manouver);
-	write_double(out, rem_manouver_time);
-	g.write(out, parent);
-	g.write(out, followme);
-	g.write(out, myconvoy);
-	write_bool(out, has_contact);
-	write_double(out, contact.x);
-	write_double(out, contact.y);
-	write_double(out, contact.z);
-	write_double(out, remaining_time);
-	write_double(out, main_course.value());
+	parentnode.set_attr(unsigned(type), "type");
+	parentnode.set_attr(unsigned(state), "state");
+	parentnode.set_attr(zigzagstate, "zigzagstate");
+	parentnode.set_attr(attackrun, "attackrun");
+	parentnode.set_attr(evasive_manouver, "evasive_manouver");
+	parentnode.set_attr(rem_manouver_time, "rem_manouver_time");
+	parentnode.set_attr(gm.save_ptr(parent), "parent");
+	parentnode.set_attr(gm.save_ptr(followme), "followme");
+	parentnode.set_attr(gm.save_ptr(myconvoy), "myconvoy");
+	if (has_contact) {
+		parentnode.add_child("contact").set_attr(contact);
+	}
+	parentnode.set_attr(remaining_time, "remaining_time");
+	parentnode.add_child("main_course").set_attr(main_course);
+	xml_elem wp = parentnode.add_child("waypoints");
+	for (list<vector2>::const_iterator it = waypoints.begin(); it != waypoints.end(); ++it) {
+		wp.add_child("waypoint").set_attr(*it);
+	}
+	wp.set_attr(cyclewaypoints, "cyclewaypoints");
 }
 
 

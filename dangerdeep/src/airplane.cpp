@@ -16,17 +16,6 @@ airplane::airplane(game& gm_, const xml_elem& parent)
 
 
 
-// obsolete!!!!
-void airplane::parse_attributes(TiXmlElement* parent)
-{
-	sea_object::parse_attributes(parent);
-	
-	// parse data, fixme: orientation,velocity,rollfac,pitchfac
-	
-}
-
-
-
 void airplane::load(const xml_elem& parent)
 {
 	sea_object::load(parent);

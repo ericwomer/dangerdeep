@@ -38,6 +38,7 @@ inline string get_model_dir(void) { return get_data_dir() + "models/"; }
 inline string get_ship_dir(void) { return get_data_dir() + "ships/"; }
 inline string get_submarine_dir(void) { return get_data_dir() + "submarines/"; }
 inline string get_airplane_dir(void) { return get_data_dir() + "airplanes/"; }
+inline string get_torpedo_dir(void) { return get_data_dir() + "torpedoes/"; }
 inline string get_sound_dir(void) { return get_data_dir() + "sounds/"; }
 inline string get_image_dir(void) { return get_data_dir() + "images/"; }
 inline string get_mission_dir(void) { return get_data_dir() + "missions/"; }

@@ -638,7 +638,7 @@ string game::read_description_of_savegame(const string& filename)
 	xml_doc doc(filename);
 	doc.load();
 	xml_elem sg = doc.child("dftd-savegame");
-	unsigned v = sg.attr("version");
+	unsigned v = sg.attru("version");
 	if (v != SAVEVERSION)
 		return "<ERROR> Invalid version";
 	string d = sg.attr("description");
@@ -701,7 +701,8 @@ void game::simulate(double delta_t)
 	torpedoes.for_each_with_erase(simulate_helper2r<torpedo>(delta_t, record));
 	depth_charges.for_each_with_erase(simulate_helper2<depth_charge>(delta_t));
 	gun_shells.for_each_with_erase(simulate_helper2<gun_shell>(delta_t));
-	convoys.for_each_with_erase(simulate_helper2<convoy>(delta_t));
+	for (unsigned i = 0; i < convoys.size(); ++i)
+		convoys[i]->simulate(delta_t);	// fixme: handle erasing of empty convoys!
 	particles.for_each_with_erase(simulate_helper2p<particle>(delta_t, *this));
 
 	time += delta_t;
@@ -938,7 +939,7 @@ vector<vector2> game::convoy_positions() const
 	vector<vector2> result;
 	result.reserve(convoys.size());
 	for (unsigned k = 0; k < convoys.size(); ++k) {
-		result.push_back(convoys[k]->get_pos().xy());
+		result.push_back(convoys[k]->get_pos());
 	}
 	return result;
 }
@@ -1514,36 +1515,7 @@ bool game::is_day_mode () const
 	return (br > 0.3); // fixme: a bit crude. brightness has 0.2 ambient...
 }
 
-template <class T>
-void write_ptr2u16(ostream& out, const T* p, const ptrset<T>& lst, unsigned offset, const string& ptrtype)
-{
-	if (!p) {
-//cout<<"write #late "<<0<<"\n";
-		write_u16(out, 0);
-		return;
-	}
-	for (unsigned k = 0; k < lst.size(); ++k) {
-		if (lst[k] == p) {
-//cout<<"write #late "<<i + offset<<"\n";
-			write_u16(out, k + 1 + offset);
-			return;
-		}
-	}
-	sys().myassert(false, string("could not translate ") + ptrtype + " pointer to number");
-}
 
-template <class T>
-T* read_u162ptr(istream& in, const ptrset<T>& vec, unsigned n0, unsigned n1, const string& ptrtype)
-{
-	unsigned nr = read_u16(in);
-//cout <<"read #late "<<nr<<"\n";
-	if (nr == 0) return 0;
-	if (nr > n0 && nr <= n1) {
-		return vec[nr-n0-1];
-	}
-	sys().myassert(false, string("could not translate number to ") + ptrtype + " pointer");
-	return 0;
-}
 
 unsigned game::listsizes(unsigned n) const
 {
@@ -1749,123 +1721,82 @@ vector3 game::compute_moon_pos(const vector3& viewpos) const
 
 
 
-void game::write(ostream& out, const ship* s) const
+sea_object* game::load_ptr(unsigned nr) const
 {
-	write_ptr2u16(out, s, ships, listsizes(0), "ship");
+	if (nr < submarines.size()) {
+		return submarines[nr];
+	} else if (nr < submarines.size() + ships.size()) {
+		return ships[nr - submarines.size()];
+	} else if (nr < submarines.size() + ships.size() + airplanes.size()) {
+		return airplanes[nr - submarines.size() - ships.size()];
+	} else {
+		throw error("could not translate nr to submarine, ship or airplane ptr");
+	}
 }
 
-void game::write(ostream& out, const submarine* s) const
+
+
+ship* game::load_ship_ptr(unsigned nr) const
 {
-	write_ptr2u16(out, s, submarines, listsizes(1), "submarine");
+	if (nr >= submarines.size() && nr < submarines.size() + ships.size()) {
+		return ships[nr - submarines.size()];
+	}
+	throw error("could not translate nr to ship ptr");
 }
 
-void game::write(ostream& out, const airplane* a) const
+
+
+convoy* game::load_convoy_ptr(unsigned nr) const
 {
-	write_ptr2u16(out, a, airplanes, listsizes(2), "airplane");
+	if (nr >= convoys.size())
+		throw error("could not translate nr to convoy ptr");
+	return convoys[nr];
 }
 
-void game::write(ostream& out, const torpedo* t) const
+
+
+unsigned game::save_ptr(const sea_object* s) const
 {
-	write_ptr2u16(out, t, torpedoes, listsizes(3), "torpedo");
+	// we can save only airplanes, ships, submarines. Because other sea_objects can't be referenced!
+	const submarine* su = dynamic_cast<const submarine*>(s);
+	if (su) {
+		for (unsigned k = 0; k < submarines.size(); ++k) {
+			if (submarines[k] == su)
+				return k;
+		}
+		throw error("could not translate ptr to submarine nr");
+	}
+	const ship* sh = dynamic_cast<const ship*>(s);
+	if (sh) {
+		for (unsigned k = 0; k < ships.size(); ++k) {
+			if (ships[k] == sh)
+				return submarines.size() + k;
+		}
+		throw error("could not translate ptr to ship nr");
+	}
+	const airplane* ap = dynamic_cast<const airplane*>(s);
+	if (ap) {
+		for (unsigned k = 0; k < airplanes.size(); ++k) {
+			if (airplanes[k] == ap)
+				return submarines.size() + ships.size() + k;
+		}
+		throw error("could not translate ptr to airplane nr");
+	}
+	throw error("could not translate ptr to submarine, ship or airplane");
 }
 
-void game::write(ostream& out, const depth_charge* d) const
+
+
+unsigned game::save_ptr(const convoy* c) const
 {
-	write_ptr2u16(out, d, depth_charges, listsizes(4), "depth_charge");
+	for (unsigned k = 0; k < convoys.size(); ++k) {
+		if (convoys[k] == c)
+			return k;
+	}
+	throw error("could not translate convoy ptr to nr");
 }
 
-void game::write(ostream& out, const gun_shell* q) const
-{
-	write_ptr2u16(out, q, gun_shells, listsizes(5), "gun_shell");
-}
 
-void game::write(ostream& out, const convoy* c) const
-{
-	write_ptr2u16(out, c, convoys, listsizes(6), "convoy");
-}
-
-void game::write(ostream& out, const particle* p) const
-{
-	//fixme
-}
-
-void game::write(ostream& out, const sea_object* s) const
-{
-	if (s == 0) { write_u16(out, 0); return; }
-	// note! we have to test submarine first, because each submarine is also a ship, but
-	// the write() functions expect the same class type, not a heir!
-	// calling write(ostream&, ship* s) with submarine type s will fail!
-	const submarine* su = dynamic_cast<const submarine*>(s); if (su) { write(out, su); return; }
-	const ship* sh = dynamic_cast<const ship*>(s); if (sh) { write(out, sh); return; }
-	const airplane* ap = dynamic_cast<const airplane*>(s); if (ap) { write(out, ap); return; }
-	const torpedo* tp = dynamic_cast<const torpedo*>(s); if (tp) { write(out, tp); return; }
-	const depth_charge* dc = dynamic_cast<const depth_charge*>(s); if (dc) { write(out, dc); return; }
-	const gun_shell* gs = dynamic_cast<const gun_shell*>(s); if (gs) { write(out, gs); return; }
-	const convoy* cv = dynamic_cast<const convoy*>(s); if (cv) { write(out, cv); return; }
-	sys().myassert(false, "internal error: ptr is not 0 and no heir of sea_object");
-}
-
-ship* game::read_ship(istream& in) const
-{
-	return read_u162ptr(in, ships, listsizes(0), listsizes(1), "ship");
-}
-
-submarine* game::read_submarine(istream& in) const
-{
-	return read_u162ptr(in, submarines, listsizes(1), listsizes(2), "submarine");
-}
-
-airplane* game::read_airplane(istream& in) const
-{
-	return read_u162ptr(in, airplanes, listsizes(2), listsizes(3), "airplane");
-}
-
-torpedo* game::read_torpedo(istream& in) const
-{
-	return read_u162ptr(in, torpedoes, listsizes(3), listsizes(4), "torpedo");
-}
-
-depth_charge* game::read_depth_charge(istream& in) const
-{
-	return read_u162ptr(in, depth_charges, listsizes(4), listsizes(5), "depth_charge");
-}
-
-gun_shell* game::read_gun_shell(istream& in) const
-{
-	return read_u162ptr(in, gun_shells, listsizes(5), listsizes(6), "gun_shell");
-}
-
-convoy* game::read_convoy(istream& in) const
-{
-	return read_u162ptr(in, convoys, listsizes(6), listsizes(7), "convoy");
-}
-
-particle* game::read_particle(istream& in) const
-{
-	return 0;//fixme
-}
-
-sea_object* game::read_sea_object(istream& in) const
-{
-	unsigned nr = read_u16(in);
-//cout << "xlate nr "<<nr<<"\n";
-	if (nr == 0) return 0;
-	unsigned sizes[9];
-	for (unsigned typen = 0; typen <= 8; ++typen)
-{
-//cout<<"typen "<<typen<<" sizes "<<listsizes(typen)<<"\n";	
-		sizes[typen] = listsizes(typen);
-}
-	if (nr > sizes[0] && nr <= sizes[1]) return ships[nr-sizes[0]-1];
-	if (nr > sizes[1] && nr <= sizes[2]) return submarines[nr-sizes[1]-1];
-	if (nr > sizes[2] && nr <= sizes[3]) return airplanes[nr-sizes[2]-1];
-	if (nr > sizes[3] && nr <= sizes[4]) return torpedoes[nr-sizes[3]-1];
-	if (nr > sizes[4] && nr <= sizes[5]) return depth_charges[nr-sizes[4]-1];
-	if (nr > sizes[5] && nr <= sizes[6]) return gun_shells[nr-sizes[5]-1];
-	if (nr > sizes[6] && nr <= sizes[7]) return convoys[nr-sizes[6]-1];
-	sys().myassert(false, string("could not translate number to sea_object pointer"));
-	return 0;
-}
 
 void game::stop(void) 
 { 

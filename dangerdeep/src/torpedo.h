@@ -75,7 +75,6 @@ class torpedo : public ship
 	torpedo(const torpedo& other);
 
  protected:
-	//std::string name;//use sea_object's specfilename
 
 	// -------- computed at creation of object ------------------
 	double mass;		// in kg
@@ -115,7 +114,10 @@ class torpedo : public ship
 	virtual bool causes_spray() const { return false; }//causes wake, only true for steam torpedoes and maybe for Walter engine
 
 public:
-	// create from spec file, select values by date. date is taken from game.
+	// create from spec file, select values by date. date is taken from game. fixme: avoid random values here!
+	// fixme: avoid that a game startet at date x but played until date y takes torpedo settings
+	// from date y instead of x for loading! use a special game::get_equipment_date() function for that...
+	torpedo(game& gm_, const xml_elem& parent);
 	torpedo(game& gm, std::string specfilename);
 
 	// load/save object

@@ -6,7 +6,6 @@
 
 #include "ship.h"
 #include "torpedo.h"
-#include "binstream.h"
 #include "tdc.h"
 #include <vector>
 
@@ -45,13 +44,12 @@ class submarine : public ship
  	//fixme: do that now, with new torp code
 	struct stored_torpedo {
 		enum st_status { st_empty, st_reloading, st_unloading, st_loaded };
-		// be very careful with that... destructor of submarine needs to clear the objects
-		torpedo* torp;
+		std::auto_ptr<torpedo> torp;
 		//torpedo::types type;
 		st_status status;	// 0 empty 1 reloading 2 unloading 3 loaded
 		unsigned associated;	// reloading from/unloading to
 		double remaining_time;	// remaining time until work is finished
-		stored_torpedo() : torp(0), status(st_empty), associated(0), remaining_time(0) {}
+		stored_torpedo() : status(st_empty), associated(0), remaining_time(0) {}
 		stored_torpedo(torpedo* t) : torp(t), status(st_loaded), associated(0), remaining_time(0) {}
 		void load(const xml_elem& parent);
 		void save(xml_elem& parent) const;
@@ -154,8 +152,9 @@ class submarine : public ship
 		double status;		// damage in percent, negative means part is not existent.
 		double repairtime;
 		damageable_part(double st = -1, double rt = 0) : status(st), repairtime(rt) {}
-		damageable_part(istream& in) { status = read_double(in); repairtime = read_double(in); }
-		void save(ostream& out) const { write_double(out, status); write_double(out, repairtime); }
+		//fixme: save to xml!
+		//damageable_part(istream& in) { status = read_double(in); repairtime = read_double(in); }
+		//void save(ostream& out) const { write_double(out, status); write_double(out, repairtime); }
 	};
 
 	enum front_rudder_status{
@@ -175,6 +174,14 @@ protected:
 	double max_depth;		// created with some randomness after spec file, must get stored!
 	double dive_to;
 	bool permanent_dive;
+
+	unsigned int delayed_dive_to_depth;
+	double delayed_planes_down;
+	int bow_to;
+	int stern_to;
+	double bow_rudder;
+	double stern_rudder;
+
 	double max_submerged_speed;	// read from spec file
 
 	// stored torpedoes (including tubes)
@@ -227,8 +234,6 @@ protected:
 	
 	virtual void gun_manning_changed(bool isGunManned);
 
-	unsigned int delayed_dive_to_depth;
-	double delayed_planes_down;
 
 	// in-hull temperature, depends on weather/latitude etc.
 	// torpedo-temperature is set from this value for stored torpedoes (not in tubes)
@@ -236,11 +241,6 @@ protected:
 
 	tdc TDC;
 
-	int bow_to;
-	int stern_to;
-	double bow_rudder;
-	double stern_rudder;
-	
 public:
 	// there were more types, I, X (mine layer), XIV (milk cow), VIIf, (and VIId)
 	// and some experimental types. (VIIc42, XVIIa/b)
@@ -256,16 +256,13 @@ public:
 */
 
 	// create empty object from specification xml file
-	submarine(game& gm_, class TiXmlDocument* specfile, const char* topnodename = "dftd-submarine");
+	submarine(game& gm_, const xml_elem& parent);
 
-	submarine(game& gm_);
 	virtual ~submarine();
 
-	virtual void load(istream& in);
-	virtual void save(ostream& out) const;
+	virtual void load(const xml_elem& parent);
+	virtual void save(xml_elem& parent) const;
 	
-	virtual void parse_attributes(class TiXmlElement* parent);
-
 	virtual void simulate(double delta_time);
 
 	void set_target(sea_object* s);

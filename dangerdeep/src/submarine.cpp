@@ -125,214 +125,147 @@ submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damagea
 
 
 
-submarine::submarine(game& gm_, TiXmlDocument* specfile, const char* topnodename)
-	: ship(gm_,specfile, topnodename),
+submarine::submarine(game& gm_, const xml_elem& parent)
+	: ship(gm_, parent),
+	  dive_speed(0),
+	  max_depth(0),
+	  dive_to(0),
+	  permanent_dive(false),
 	  delayed_dive_to_depth(0),
-	  delayed_planes_down(0.0),
-	  bow_to(rudder_center),	  
-	  bow_rudder(0.0)
+	  delayed_planes_down(0),
+	  bow_to(0),
+	  stern_to(0),
+	  bow_rudder(0),
+	  stern_rudder(0),
+	  scopeup(false),
+	  electric_engine(false),
+	  snorkelup(false),
+	  battery_level(0)
 {
-	TiXmlHandle hspec(specfile);
-	TiXmlHandle hdftdsub = hspec.FirstChild(topnodename);
-	TiXmlElement* emotion = hdftdsub.FirstChildElement("motion").Element();
-	TiXmlElement* esubmerged = emotion->FirstChildElement("submerged");
-	sys().myassert(esubmerged != 0, string("submerged node missing in ")+specfilename);
-	double tmp = 0;
-	esubmerged->Attribute("maxspeed", &tmp);
-	max_submerged_speed = kts2ms(tmp);
-	dive_acceleration = 0.0;	// not used yet
-	max_dive_speed = 1.0;		// yet a crude approximation
-	double safedepth = 0, maxdepth = 0;
-	esubmerged->Attribute("safedepth", &safedepth);
-	esubmerged->Attribute("maxdepth", &maxdepth);
+	xml_elem sm = parent.child("motion").child("submerged");
+	max_submerged_speed = sm.attrf("maxspeed");
+	double safedepth = sm.attrf("safedepth");
+	double maxdepth = sm.attrf("maxdepth");
 	max_depth = safedepth + rnd() * (maxdepth - safedepth);
-	TiXmlElement* edepths = hdftdsub.FirstChildElement("depths").Element();
-	sys().myassert(edepths != 0, string("depths node missing in ")+specfilename);
-	periscope_depth = 12;
-	snorkel_depth = 0;
-	alarm_depth = 150;
-	edepths->Attribute("scope", &periscope_depth);
-	edepths->Attribute("snorkel", &snorkel_depth);
-	edepths->Attribute("alarm", &alarm_depth);
-	TiXmlHandle htorpedoes = hdftdsub.FirstChildElement("torpedoes");
-	TiXmlElement* etubes = htorpedoes.FirstChildElement("tubes").Element();
-	sys().myassert(etubes != 0, string("tubes node missing in ")+specfilename);
-	number_of_tubes_at[0] = XmlAttribu(etubes, "bow");
-	number_of_tubes_at[1] = XmlAttribu(etubes, "stern");
-	number_of_tubes_at[2] = XmlAttribu(etubes, "bowreserve");
-	number_of_tubes_at[3] = XmlAttribu(etubes, "sternreserve");
-	number_of_tubes_at[4] = XmlAttribu(etubes, "bowdeckreserve");
-	number_of_tubes_at[5] = XmlAttribu(etubes, "sterndeckreserve");
+	xml_elem dp = parent.child("depths");
+	periscope_depth = dp.attrf("scope");
+	snorkel_depth = dp.attrf("snorkel");
+	alarm_depth = dp.attrf("alarm");
+	xml_elem tp = parent.child("torpedoes");
+	xml_elem tb = tp.child("tubes");
+	number_of_tubes_at[0] = tb.attru("bow");
+	number_of_tubes_at[1] = tb.attru("stern");
+	number_of_tubes_at[2] = tb.attru("bowreserve");
+	number_of_tubes_at[3] = tb.attru("sternreserve");
+	number_of_tubes_at[4] = tb.attru("bowdeckreserve");
+	number_of_tubes_at[5] = tb.attru("sterndeckreserve");
 	unsigned nrtrp = 0;
 	for (unsigned i = 0; i < 6; ++i) nrtrp += number_of_tubes_at[i];
 	torpedoes.resize(nrtrp);
 	tubesettings.resize(number_of_tubes_at[0] + number_of_tubes_at[1]);
-	TiXmlElement* etransfertimes = htorpedoes.FirstChildElement("transfertimes").Element();
-	sys().myassert(etransfertimes != 0, string("transfertimes node missing in ")+specfilename);
-	torp_transfer_times[0] = XmlAttribu(etransfertimes, "bow");
-	torp_transfer_times[1] = XmlAttribu(etransfertimes, "stern");
-	torp_transfer_times[2] = XmlAttribu(etransfertimes, "bowdeck");
-	torp_transfer_times[3] = XmlAttribu(etransfertimes, "sterndeck");
-	torp_transfer_times[4] = XmlAttribu(etransfertimes, "bowsterndeck");
-	TiXmlElement* ebattery = hdftdsub.FirstChildElement("battery").Element();
-	sys().myassert(ebattery != 0, string("battery node missing in ")+specfilename);
-	battery_capacity = XmlAttribu(ebattery, "capacity");
-	ebattery->Attribute("consumption_a", &battery_value_a);
-	ebattery->Attribute("consumption_t", &battery_value_t);
-	ebattery->Attribute("recharge_a", &battery_recharge_value_a);
-	ebattery->Attribute("recharge_t", &battery_recharge_value_t);
+	xml_elem tf = tp.child("transfertimes");
+	torp_transfer_times[0] = tf.attru("bow");
+	torp_transfer_times[1] = tf.attru("stern");
+	torp_transfer_times[2] = tf.attru("bowdeck");
+	torp_transfer_times[3] = tf.attru("sterndeck");
+	torp_transfer_times[4] = tf.attru("bowsterndeck");
+	xml_elem bt = parent.child("battery");
+	battery_capacity = bt.attru("capacity");
+	battery_value_a = bt.attrf("consumption_a");
+	battery_value_t = bt.attrf("consumption_t");
+	battery_recharge_value_a = bt.attrf("recharge_a");
+	battery_recharge_value_t = bt.attrf("recharge_t");
 
 	// set all common damageable parts to "no damage", fixme move to ship?, replace by damage editor data reading
-	damageable_parts.resize(nr_of_damageable_parts);
-	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
-		damageable_parts[i] = damageable_part(0, 0);
+	//damageable_parts.resize(nr_of_damageable_parts);
+	//for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
+	//damageable_parts[i] = damageable_part(0, 0);
 }
 
 
 
-
-submarine::~submarine()
+void submarine::load(const xml_elem& parent)
 {
-}
+	ship::load(parent);
+	xml_elem dv = parent.child("diving");
+	dive_speed = dv.attrf("dive_speed");
+	max_depth = dv.attrf("max_depth");
+	dive_to = dv.attrf("dive_to");
+	permanent_dive = dv.attrb("permanent_dive");
+	delayed_dive_to_depth = dv.attru("delayed_dive_to_depth");
+	delayed_planes_down = dv.attrf("delayed_planes_down");
+	bow_to = dv.attri("bow_to");
+	stern_to = dv.attri("stern_to");
+	bow_rudder = dv.attrf("bow_rudder");
+	stern_rudder = dv.attrf("stern_rudder");
 
-
-
-// fixme: move value setup to common init function?
-// no, rather not! every value should be storeable in xml.
-// but what about not stored values? should be default ones, so rather make common init!
-submarine::submarine(game& gm_) :
-	ship(gm_),
-	dive_speed(0.0f),
-	dive_acceleration(0.0f),
-	max_dive_speed(1.0f),
-	max_depth(150.0f),
-	dive_to(0.0f),
-	permanent_dive(false),
-	scopeup(false),
-	periscope_depth(12.0f),
-	hassnorkel (false),
-	snorkel_depth(10.0f),
-	snorkelup(false),
-	battery_level ( 1.0f ),
-	battery_value_a ( 0.0f ),
-	battery_value_t ( 1.0f ),
-	battery_recharge_value_a ( 0.0f ),
-	battery_recharge_value_t ( 1.0f ),
-	damageable_parts(nr_of_damageable_parts),
-	delayed_dive_to_depth(0),
-	delayed_planes_down(0.0),
-	bow_to(rudder_center),
-	bow_rudder(0.0)
-{
-	// set all common damageable parts to "no damage"
-	for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
-		damageable_parts[i] = damageable_part(0, 0);
-	// will be adjusted later
-	tubesettings.resize(6);
-}
-
-
-
-void submarine::parse_attributes(class TiXmlElement* parent)
-{
-	ship::parse_attributes(parent);
-	
-	// parse dive_speed,dive_to,permanent_dive,max_depth,battery level,snorkelup,electricengine fixme
-
-	TiXmlHandle hdftdsub(parent);
-	TiXmlElement* escope = hdftdsub.FirstChildElement("scope").Element();
-	if (escope) {
-		string stat = XmlAttrib(escope, "up");
-		if (stat == "up") scopeup = true;
-		else scopeup = false;
-	}
-	TiXmlElement* etorpedoes = hdftdsub.FirstChildElement("torpedoes").Element();
-	if (etorpedoes) {
-		TiXmlElement* etorpedo = etorpedoes->FirstChildElement("torpedo");
-		for (unsigned tubenr = 0; etorpedo != 0; etorpedo = etorpedo->NextSiblingElement("torpedo"), ++tubenr) {
-			unsigned tubenr = XmlAttribu(etorpedo, "tube");
-			if (tubenr >= torpedoes.size())
-				continue;	// ignore it, maybe send a message to user
-			string trptype = XmlAttrib(etorpedo, "type");
-			if (trptype == "T1") torpedoes[tubenr] = stored_torpedo(torpedo::T1);
-			else if (trptype == "T2") torpedoes[tubenr] = stored_torpedo(torpedo::T2);
-			else if (trptype == "T3") torpedoes[tubenr] = stored_torpedo(torpedo::T3);
-			else if (trptype == "T3a") torpedoes[tubenr] = stored_torpedo(torpedo::T3a);
-			else if (trptype == "T4") torpedoes[tubenr] = stored_torpedo(torpedo::T4);
-			else if (trptype == "T5") torpedoes[tubenr] = stored_torpedo(torpedo::T5);
-			else if (trptype == "T11") torpedoes[tubenr] = stored_torpedo(torpedo::T11);
-			else if (trptype == "T1FAT") torpedoes[tubenr] = stored_torpedo(torpedo::T1FAT);
-			else if (trptype == "T3FAT") torpedoes[tubenr] = stored_torpedo(torpedo::T3FAT);
-			else if (trptype == "T6LUT") torpedoes[tubenr] = stored_torpedo(torpedo::T6LUT);
-			else torpedoes[tubenr] = stored_torpedo(torpedo::none);
-		}
-	}
-
-	// Activate electric engine if submerged.
-	if (is_submerged())
-	{
-		electric_engine = true;
-	}
-}
-
-
-
-void submarine::load(istream& in)
-{
-	ship::load(in);
-
-	dive_speed = read_double(in);
-	max_depth = read_double(in);
-	dive_to = read_double(in);
-	permanent_dive = read_bool(in);
-
+	xml_elem tp = parent.child("stored_torpedoes");
 	torpedoes.clear();
-	for (unsigned s = read_u8(in); s > 0; --s)
-		torpedoes.push_back(stored_torpedo(in));
+	torpedoes.reserve(tp.attru("nr"));
+	for (xml_elem::iterator it = tp.iterate("torpedo"); !it.end(); it.next()) {
+		//torpedoes.push_back(stored_torpedo(it.elem()));
+	}
 
-	scopeup = read_bool(in);
-	electric_engine = read_bool(in);
-	hassnorkel = read_bool(in);
-	snorkelup = read_bool(in);
-	battery_level = read_double(in);
+	//vector<tubesetup> tubesettings; //fixme load
+
+	xml_elem sst = parent.child("sub_state");
+	scopeup = sst.attru("scopeup");
+	electric_engine = sst.attru("electric_engine");
+	snorkelup = sst.attru("snorkelup");
+	battery_level = sst.attrf("battery_level");
     
+	// fixme: later move to ship, or even sea_object!
+	xml_elem dm = parent.child("damageable_parts");
 	damageable_parts.clear();
-	for (unsigned s = read_u8(in); s > 0; --s)
-		damageable_parts.push_back(damageable_part(in));
-		
-	delayed_dive_to_depth = read_u32(in);
-	delayed_planes_down = read_double(in);
+	damageable_parts.reserve(dm.attru("nr"));
+	for (xml_elem::iterator it = tp.iterate("part"); !it.end(); it.next()) {
+		//damageable_parts.push_back(damageable_part(it.elem()));
+	}
+
+	//TDC.load(parent);
 }
 
 
 
-void submarine::save(ostream& out) const
+void submarine::save(xml_elem& parent) const
 {
-	ship::save(out);
+	ship::save(parent);
+	xml_elem dv = parent.add_child("diving");
+	dv.set_attr(dive_speed, "dive_speed");
+	dv.set_attr(max_depth, "max_depth");
+	dv.set_attr(dive_to, "dive_to");
+	dv.set_attr(permanent_dive, "permanent_dive");
+	dv.set_attr(delayed_dive_to_depth, "delayed_dive_to_depth");
+	dv.set_attr(delayed_planes_down, "delayed_planes_down");
+	dv.set_attr(bow_to, "bow_to");
+	dv.set_attr(stern_to, "stern_to");
+	dv.set_attr(bow_rudder, "bow_rudder");
+	dv.set_attr(stern_rudder, "stern_rudder");
 
-	write_double(out, dive_speed);
-	write_double(out, max_depth);
-	write_double(out, dive_to);
-	write_bool(out, permanent_dive);
-
-	write_u8(out, torpedoes.size());
+	xml_elem tp = parent.add_child("stored_torpedoes");
+	tp.set_attr(torpedoes.size(), "nr");
 	for (vector<stored_torpedo>::const_iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
-		it->save(out);
+		//save a torpedo node for each entry
+		//it->save(tp);
 	}
 
-	write_bool(out, scopeup);
-	write_bool(out, electric_engine);
-	write_bool(out, hassnorkel);
-	write_bool(out, snorkelup);
-	write_double(out, battery_level);
+	//vector<tubesetup> tubesettings;
+
+	xml_elem sst = parent.add_child("sub_state");
+	sst.set_attr(scopeup, "scopeup");
+	sst.set_attr(electric_engine, "electric_engine");
+	sst.set_attr(snorkelup, "snorkelup");
+	sst.set_attr(battery_level, "battery_level");
     
-	write_u8(out, damageable_parts.size());
+	// fixme: later move to ship, or even sea_object!
+	xml_elem dm = parent.add_child("damageable_parts");
+	dm.set_attr(damageable_parts.size(), "nr");
 	for (vector<damageable_part>::const_iterator it = damageable_parts.begin(); it != damageable_parts.end(); ++it) {
-		it->save(out);
+		//save a part node for each entry
+		//it->save(out);
 	}
-	
-	write_u32(out, delayed_dive_to_depth);
-	write_double(out, delayed_planes_down);
+
+	//TDC.save(parent);
 }
 
 
@@ -341,7 +274,7 @@ void submarine::transfer_torpedo(unsigned from, unsigned to)
 {
 	if (torpedoes[from].status == stored_torpedo::st_loaded &&
 			torpedoes[to].status == stored_torpedo::st_empty) {
-		torpedoes[to].type = torpedoes[from].type;
+		torpedoes[to].torp = torpedoes[from].torp;
 		torpedoes[from].status = stored_torpedo::st_unloading;
 		torpedoes[to].status = stored_torpedo::st_reloading;
 		torpedoes[from].associated = to;
@@ -467,7 +400,7 @@ void submarine::simulate(double delta_time)
 //					torpedoes[st.associated].status = stored_torpedo::st_empty;	// empty
 				} else {		// unloading
 					st.status = stored_torpedo::st_empty;	// empty
-					st.type = torpedo::none;
+					st.torp.reset();
 //					torpedoes[st.associated].status = stored_torpedo::st_loaded;	// loaded
 					// fixme: message: torpedo reloaded
 				}

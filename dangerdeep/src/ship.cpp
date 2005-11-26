@@ -22,34 +22,6 @@ map<double, map<double, double> > ship::dist_angle_relation;
 //fixme: redefine display, call base display
 
 
-ship::ship(game& gm_) : sea_object(gm_), myai(0), smoke_type(0)
-{
-	init();
-}
-
-
-
-void ship::init()
-{
-	// set some default values
-	heading = 0;
-	throttle = 0;
-	head_to_fixed = false;
-	rudder_pos = 0;
-	rudder_to = 0;
-	max_rudder_angle = 40;
-	max_rudder_turn_speed = 10;
-	max_angular_velocity = 2;
-	turn_rate = 1;
-	max_accel_forward = 1;
-	max_speed_forward = 10;
-	max_speed_reverse = 0;
-	myfire = 0;		
-	gun_manning_is_changing = false;
-	gun_turrets.clear();
-	maximum_gun_range = 0.0;
-}
-
 void ship::fill_dist_angle_relation_map(const double initial_velocity)
 {
 	if (dist_angle_relation.find(initial_velocity) == dist_angle_relation.end())
@@ -90,102 +62,72 @@ void ship::fill_dist_angle_relation_map(const double initial_velocity)
 	}
 }
 
-ship::ship(game& gm_, TiXmlDocument* specfile, const char* topnodename) : sea_object(gm_, specfile, topnodename)
+
+
+ship::ship(game& gm_, const xml_elem& parent)
+	: sea_object(gm_, parent),
+	  throttle(0),
+	  rudder_pos(0),
+	  rudder_to(0),
+	  max_rudder_angle(40),
+	  max_rudder_turn_speed(10),
+	  max_angular_velocity(2),
+	  head_to_fixed(false),
+	  max_accel_forward(1),
+	  max_speed_forward(10),
+	  max_speed_reverse(0),
+	  fuel_level(0),
+	  myfire(0),		
+	  gun_manning_is_changing(false),
+	  maximum_gun_range(0.0)
 {
-	init();	
-	TiXmlHandle hspec(specfile);
-	TiXmlHandle hdftdship = hspec.FirstChild(topnodename);
-	TiXmlElement* eclassification = hdftdship.FirstChildElement("classification").Element();
-	sys().myassert(eclassification != 0, string("ship: classification node missing in ")+specfilename);
-	string typestr = XmlAttrib(eclassification, "type");
+	xml_elem eclassification = parent.child("classification");
+	string typestr = eclassification.attr("type");
 	if (typestr == "warship") shipclass = WARSHIP;
 	else if (typestr == "escort") shipclass = ESCORT;
 	else if (typestr == "merchant") shipclass = MERCHANT;
 	else if (typestr == "submarine") shipclass = SUBMARINE;
-	else sys().myassert(false, string("illegal ship type in ") + specfilename);
-	TiXmlElement* etonnage = hdftdship.FirstChildElement("tonnage").Element();
-	sys().myassert(etonnage != 0, string("tonnage node missing in ")+specfilename);
-	unsigned minton = XmlAttribu(etonnage, "min");
-	unsigned maxton = XmlAttribu(etonnage, "max");
+	else throw error(string("illegal ship type in ") + specfilename);
+	xml_elem etonnage = parent.child("tonnage");
+	unsigned minton = etonnage.attru("min");
+	unsigned maxton = etonnage.attru("max");
 	tonnage = minton + rnd(maxton - minton + 1);
-	TiXmlElement* emotion = hdftdship.FirstChildElement("motion").Element();
-	sys().myassert(emotion != 0, string("motion node missing in ")+specfilename);
-	double tmp = 0;
-	if (emotion->Attribute("maxspeed", &tmp))
-		max_speed_forward = kts2ms(tmp);
-	tmp = 0;
-	if (emotion->Attribute("maxrevspeed", &tmp))
-		max_speed_reverse = kts2ms(tmp);
-	emotion->Attribute("acceleration", &max_accel_forward);
-	tmp = 0;
-	if (emotion->Attribute("turnrate", &tmp))
-		turn_rate = tmp;
-	TiXmlElement* esmoke = hdftdship.FirstChildElement("smoke").Element();
-	smoke_type = 0;
-	if (esmoke) {
-		int smtype = 0;
-		esmoke->Attribute("type", &smtype);
-		if (smtype > 0) {
-			TiXmlElement* esmpos = esmoke->FirstChildElement("position");
-			sys().myassert(esmpos != 0, string("no smoke position given in ")+specfilename);
-			esmpos->Attribute("x", &smokerelpos.x);
-			esmpos->Attribute("y", &smokerelpos.y);
-			esmpos->Attribute("z", &smokerelpos.z);
-			smoke_type = smtype;
-		}
+	xml_elem emotion = parent.child("motion");
+	max_speed_forward = kts2ms(emotion.attrf("maxspeed"));
+	max_speed_reverse = kts2ms(emotion.attrf("maxrevspeed"));
+	max_accel_forward = emotion.attrf("acceleration");
+	turn_rate = emotion.attrf("turnrate");
+	for (xml_elem::iterator it = parent.iterate("smoke"); !it.end(); it.next()) {
+		smoke.push_back(make_pair(it.elem().attru("type"), it.elem().attrv3()));
 	}
-	TiXmlElement* eai = hdftdship.FirstChildElement("ai").Element();
-	sys().myassert(eai != 0, string("ai node missing in ")+specfilename);
-	string aitype = XmlAttrib(eai, "type");
-	if (aitype == "dumb") myai = new ai(this, ai::dumb);
-	else if (aitype == "escort") myai = new ai(this, ai::escort);
-	else if (aitype == "none") myai = 0;
-	else sys().myassert(false, string("illegal AI type in ") + specfilename);
-	TiXmlElement* efuel = hdftdship.FirstChildElement("fuel").Element();
-	sys().myassert(efuel != 0, string("fuel node missing in ")+specfilename);
-	fuel_capacity = XmlAttribu(efuel, "capacity");
-	efuel->Attribute("consumption_a", &fuel_value_a);
-	efuel->Attribute("consumption_t", &fuel_value_t);
-		
-	TiXmlElement* turrets = hdftdship.FirstChildElement("gun_turrets").Element();
-	if (NULL != turrets)
-	{
-		TiXmlElement* turret = NULL;
+	xml_elem eai = parent.child("ai");
+	string aitype = eai.attr("type");
+	if (aitype == "dumb") myai.reset(new ai(this, ai::dumb));
+	else if (aitype == "escort") myai.reset(new ai(this, ai::escort));
+	else if (aitype == "none") myai.reset();
+	else throw error(string("illegal AI type in ") + specfilename);
+	xml_elem efuel = parent.child("fuel");
+	fuel_capacity = efuel.attru("capacity");
+	fuel_value_a = efuel.attrf("consumption_a");
+	fuel_value_t = efuel.attrf("consumption_t");
 
-		while(turret = (TiXmlElement*)turrets->IterateChildren(turret))
-		{
-			struct gun_turret new_turret;
-			int num_barrels = 0;
-			
-			if (NULL == turret->Attribute("barrels", &num_barrels))
-				assert(false);
-			if (NULL == turret->Attribute("shell_capacity", &new_turret.shell_capacity))
-				assert(false);
+	if (parent.has_child("gun_turrets")) {
+		xml_elem eturrets = parent.child("gun_turrets");
+		for (xml_elem::iterator it = eturrets.iterate("turret"); !it.end(); it.next()) {
+			unsigned num_barrels = it.elem().attru("barrels");
+			gun_turret new_turret;
+			new_turret.shell_capacity = it.elem().attru("shell_capacity");
 			new_turret.num_shells_remaining = new_turret.shell_capacity;
-			if (NULL == turret->Attribute("initial_velocity", &new_turret.initial_velocity))
-				assert(false);
-			if (NULL == turret->Attribute("max_declination", &new_turret.max_declination))
-				assert(false);
-			if (NULL == turret->Attribute("max_inclination", &new_turret.max_inclination))
-				assert(false);
-			if (NULL == turret->Attribute("time_to_man", &new_turret.time_to_man))
-				assert(false);
-			if (NULL == turret->Attribute("time_to_man", &new_turret.time_to_unman))
-				assert(false);
-			if (NULL == turret->Attribute("shell_damage", &new_turret.shell_damage))
-				assert(false);
-			if (NULL == turret->Attribute("exclusion_radius_start", &new_turret.start_of_exclusion_radius))
-				assert(false);
-			if (NULL == turret->Attribute("exclusion_radius_end", &new_turret.end_of_exclusion_radius))
-				assert(false);
-			if (NULL == turret->Attribute("calibre", &new_turret.calibre))
-				assert(false);						
-			
-			for (int x = 0; x < num_barrels; x++)
-			{
-				struct gun_barrel new_barrel;												
-				new_turret.gun_barrels.push_back(new_barrel);
-			}
+			new_turret.initial_velocity = it.elem().attrf("initial_velocity");
+			new_turret.max_declination = it.elem().attri("max_declination");
+			new_turret.max_inclination = it.elem().attri("max_inclination");
+			new_turret.time_to_man = it.elem().attrf("time_to_man");
+			new_turret.time_to_man = it.elem().attrf("time_to_unman");
+			new_turret.shell_damage = it.elem().attrf("shell_damage");
+			new_turret.start_of_exclusion_radius = it.elem().attri("exclusion_radius_start");
+			new_turret.end_of_exclusion_radius = it.elem().attri("exclusion_radius_end");
+			new_turret.calibre = it.elem().attrf("calibre");
+			new_turret.gun_barrels.resize(num_barrels);
 			
 			// setup angles map for this initial velocity
 			fill_dist_angle_relation_map(new_turret.initial_velocity);
@@ -194,13 +136,6 @@ ship::ship(game& gm_, TiXmlDocument* specfile, const char* topnodename) : sea_ob
 			gun_turrets.push_back(new_turret);		
 		}
 	}		
-}
-
-
-
-ship::~ship()
-{
-	delete myai;
 }
 
 
@@ -354,54 +289,34 @@ angle ship::estimate_angle_on_the_bow(angle target_bearing, angle target_heading
 
 
 
-void ship::parse_attributes(TiXmlElement* parent)
+void ship::load(const xml_elem& parent)
 {
-	sea_object::parse_attributes(parent);
-	
-	TiXmlElement* emotion = TiXmlHandle(parent).FirstChildElement("motion").Element();
-	if (emotion) {
-		// heading / speed are already parsed in class sea_object
-/*
-		double tmp = 0;
-		if (emotion->Attribute("heading", &tmp))
-			heading = angle(tmp);
-		tmp = 0;
-		if (emotion->Attribute("speed", &tmp))
-			velocity.y = kts2ms(tmp);
-*/
-		string thr = XmlAttrib(emotion, "throttle");
-		if (thr == "stop") set_throttle(stop);
-		else if (thr == "reverse") set_throttle(reverse);
-		else if (thr == "aheadlisten") set_throttle(aheadlisten);
-		else if (thr == "aheadsonar") set_throttle(aheadsonar);
-		else if (thr == "aheadslow") set_throttle(aheadslow);
-		else if (thr == "aheadhalf") set_throttle(aheadhalf);
-		else if (thr == "aheadfull") set_throttle(aheadfull);
-		else if (thr == "aheadflank") set_throttle(aheadflank);
-		else set_throttle(atoi(thr.c_str()));
-	}
-	// fixme: parse permanent_turn,head_chg,head_to,rudder  maybe also alive_stat,previous_positions
-	// parse tonnage, fuel level, damage status, fixme
-}
+	sea_object::load(parent);
+	tonnage = parent.child("tonnage").attru();
+	xml_elem st = parent.child("steering");
+	throttle = throttle_status(st.attri("throttle"));
+	rudder_pos = st.attrf("rudder_pos");
+	rudder_to = st.attri("rudder_to");
+	head_to_fixed = st.attrb("head_to_fixed");
+	head_to = angle(st.attrf("head_to"));
+	xml_elem dm = parent.child("damage");
+	bow_damage = damage_status(dm.attru("bow"));
+	midship_damage = damage_status(dm.attru("midship"));
+	stern_damage = damage_status(dm.attru("stern"));
+	fuel_level = parent.child("fuel_level").attrf();
 
+	// fixme load that
+	//list<vector2> previous_positions;
+	//class particle* myfire;
 
+	//fixme: load per gun data
+	//bool gun_manning_is_changing;
 
-void ship::load(istream& in)
-{
-	sea_object::load(in);
-
-	if (read_bool(in))
-		myai = new ai(in, gm);
-	
-	tonnage = read_u32(in);
-	stern_damage = damage_status(read_u8(in));
-	midship_damage = damage_status(read_u8(in));
-	bow_damage = damage_status(read_u8(in));
-	fuel_level = read_double(in);
-	
+#if 0	
 	// gun turrets
 	unsigned long num_turrets = read_u32(in);
-		
+
+	gun_turrets.clear();
 	for (unsigned long x = 0; x < num_turrets; x++)
 	{
 		struct gun_turret turret;
@@ -440,22 +355,35 @@ void ship::load(istream& in)
 		
 		gun_turrets.push_back(turret);
 	}	
+#endif
 }
 
-void ship::save(ostream& out) const
-{
-	sea_object::save(out);
 
-	write_bool(out, (myai != 0));
-	if (myai)
-		myai->save(out, gm);
-	
-	write_u32(out, tonnage);
-	write_u8(out, stern_damage);
-	write_u8(out, midship_damage);
-	write_u8(out, bow_damage);
-	write_double(out, fuel_level);
-	
+
+void ship::save(xml_elem& parent) const
+{
+	sea_object::save(parent);
+	parent.add_child("tonnage").set_attr(tonnage);
+	xml_elem st = parent.add_child("steering");
+	st.set_attr(int(throttle), "throttle");
+	st.set_attr(rudder_pos, "rudder_pos");
+	st.set_attr(rudder_to, "rudder_to");
+	st.set_attr(head_to_fixed, "head_to_fixed");
+	st.set_attr(head_to.value(), "head_to");
+	xml_elem dm = parent.add_child("damage");
+	dm.set_attr(unsigned(bow_damage), "bow");
+	dm.set_attr(unsigned(midship_damage), "midship");
+	dm.set_attr(unsigned(stern_damage), "stern");
+	parent.add_child("fuel_level").set_attr(fuel_level);
+
+	// fixme save that
+	//list<vector2> previous_positions;
+	//class particle* myfire;
+
+	//fixme: save per gun data
+	//bool gun_manning_is_changing;
+
+#if 0 // old code: check which values are VARIABLE and save only them!
 	// gun turrets
 	write_u32(out, gun_turrets.size());
 	
@@ -490,13 +418,16 @@ void ship::save(ostream& out) const
 								  
 		turret++;
 	}
+#endif
 }
+
+
 
 void ship::simulate(double delta_time)
 {
 	sea_object::simulate(delta_time);
 	if (is_defunct()) return;
-	if ( myai )
+	if ( myai.get() )
 		myai->act(gm, delta_time);
 
 	// calculate sinking
@@ -533,21 +464,23 @@ void ship::simulate(double delta_time)
 	}
 	
 	// smoke particle generation logic
-	if (is_alive() && smoke_type > 0) {//replace by has_particle
-		double produce_time = 1e10;
-		switch (smoke_type) {
-		case 1: produce_time = smoke_particle::get_produce_time(); break;
-		case 2: produce_time = smoke_particle_escort::get_produce_time(); break;
-		}
-		double t = myfmod(gm.get_time(), produce_time);
-		if (t + delta_time >= produce_time) {
-			particle* p = 0;
-			vector3 ppos = position + smokerelpos;//fixme: maybe add some random offset
-			switch (smoke_type) {
-			case 1: p = new smoke_particle(ppos); break;
-			case 2: p = new smoke_particle_escort(ppos); break;
+	if (is_alive()) {
+		for (list<pair<unsigned, vector3> >::iterator it = smoke.begin(); it != smoke.end(); ++it) {
+			double produce_time = 1e10;
+			switch (it->first) {
+			case 1: produce_time = smoke_particle::get_produce_time(); break;
+			case 2: produce_time = smoke_particle_escort::get_produce_time(); break;
 			}
-			gm.spawn_particle(p);
+			double t = myfmod(gm.get_time(), produce_time);
+			if (t + delta_time >= produce_time) {
+				particle* p = 0;
+				vector3 ppos = position + it->second;//fixme: maybe add some random offset
+				switch (it->first) {
+				case 1: p = new smoke_particle(ppos); break;
+				case 2: p = new smoke_particle_escort(ppos); break;
+				}
+				gm.spawn_particle(p);
+			}
 		}
 	}
 

@@ -50,8 +50,10 @@ class xml_elem
 	unsigned attru(const std::string& name = "value") const;
 	double attrf(const std::string& name = "value") const;
 	vector3 attrv3() const;
+	vector2 attrv2() const;
 	quaternion attrq() const;
 	angle attra() const;
+	bool attrb(const std::string& name = "value") const;
 	xml_elem child(const std::string& name) const;
 	bool has_child(const std::string& name) const;
 	xml_elem add_child(const std::string& name);
@@ -60,8 +62,10 @@ class xml_elem
 	void set_attr(int i, const std::string& name = "value");
 	void set_attr(double f, const std::string& name = "value");
 	void set_attr(const vector3& v);
+	void set_attr(const vector2& v);
 	void set_attr(const quaternion& q);
 	void set_attr(angle a);
+	void set_attr(bool b, const std::string& name = "value");
 	std::string get_name() const;
 	std::string child_text() const;	// returns value of text child, throws error if there is none
 

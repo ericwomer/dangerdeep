@@ -268,28 +268,9 @@ public:
 	// Translate pointers to numbers and vice versa. Used for load/save
 	sea_object* load_ptr(unsigned nr) const;
 	ship* load_ship_ptr(unsigned nr) const;
+	convoy* load_convoy_ptr(unsigned nr) const;
 	unsigned save_ptr(const sea_object* s) const;
-
-
-	void write(ostream& out, const ship* s) const;
-	void write(ostream& out, const submarine* s) const;
-	void write(ostream& out, const airplane* s) const;
-	void write(ostream& out, const torpedo* s) const;
-	void write(ostream& out, const depth_charge* s) const;
-	void write(ostream& out, const gun_shell* s) const;
-	void write(ostream& out, const convoy* s) const;
-	void write(ostream& out, const sea_object* s) const;
-	ship* read_ship(istream& in) const;
-	submarine* read_submarine(istream& in) const;
-	airplane* read_airplane(istream& in) const;
-	torpedo* read_torpedo(istream& in) const;
-	depth_charge* read_depth_charge(istream& in) const;
-	gun_shell* read_gun_shell(istream& in) const;
-	convoy* read_convoy(istream& in) const;
-	sea_object* read_sea_object(istream& in) const;
-	// particles don't heir from sea_object and are special
-	void write(ostream& out, const particle* p) const;
-	particle* read_particle(istream& in) const;
+	unsigned save_ptr(const convoy* c) const;
 };
 
 #endif
