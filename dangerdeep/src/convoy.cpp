@@ -182,21 +182,21 @@ void convoy::save(xml_elem& parent) const
 	xml_elem ws = parent.add_child("warships");
 	ws.set_attr(warships.size(), "nr");
 	for (list<pair<ship*, vector2> >::const_iterator it = warships.begin(); it != warships.end(); ++it) {
-		xml_elem ws2 = mc.add_child("warship");
+		xml_elem ws2 = ws.add_child("warship");
 		ws2.set_attr(gm.save_ptr(it->first), "ref");
 		ws2.set_attr(it->second);
 	}
 	xml_elem es = parent.add_child("escorts");
 	es.set_attr(escorts.size(), "nr");
 	for (list<pair<ship*, vector2> >::const_iterator it = escorts.begin(); it != escorts.end(); ++it) {
-		xml_elem es2 = mc.add_child("escort");
+		xml_elem es2 = es.add_child("escort");
 		es2.set_attr(gm.save_ptr(it->first), "ref");
 		es2.set_attr(it->second);
 	}
 	xml_elem wp = parent.add_child("waypoints");
 	wp.set_attr(waypoints.size(), "nr");
 	for (list<vector2>::const_iterator it = waypoints.begin(); it != waypoints.end(); ++it) {
-		mc.add_child("pos").set_attr(*it);
+		wp.add_child("pos").set_attr(*it);
 	}
 }
 
