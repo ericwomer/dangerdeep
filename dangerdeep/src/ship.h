@@ -43,7 +43,6 @@ protected:
 	unsigned tonnage;	// in BRT, created after values from spec file (but maybe with some randomness), must get stored!
 
 	int throttle;		// if < 0: throttle_state, if > 0: knots
-	//double max_acceleration;	// read from spec file
 
 	double rudder_pos;	// in degrees, do not use class angle here, we need explicit positive and negative values.
 	int rudder_to;		// symbolic pos (full left, left, mid, right, full right), fixme: should be angle too...
@@ -55,9 +54,9 @@ protected:
 	
 	double turn_rate;	// in angle/time (at max. speed/throttle), read from spec file
 
-	double max_accel_forward;	// stored. can get computed from engine_torque, screw diameter and ship's mass.
-	double max_speed_forward;	// stored.
-	double max_speed_reverse;	// stored.
+	double max_accel_forward;	// read from spec file. can get computed from engine_torque, screw diameter and ship's mass.
+	double max_speed_forward;	// read from spec file.
+	double max_speed_reverse;	// read from spec file.
 
 	// fixme: replace by finer model: -> damage editor!
 	damage_status stern_damage, midship_damage, bow_damage;
