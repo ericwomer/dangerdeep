@@ -16,6 +16,7 @@ class game;
 
 // this class must be global so that we can give a reference to the torpedo constructor
 // we can't give a "class submarine::tubesetup&" there.
+//fixme: store in each torpedo's values in stored_torpedoes
 struct tubesetup
 {
 	unsigned primaryrange;	// selected option 0-16 (1600 to 3200m, for FAT/LUT)
@@ -26,6 +27,7 @@ struct tubesetup
 	bool preheating;	// preheating on? only used for torps in a tube
 	unsigned torpspeed;	// torpspeed (0-2 slow-fast, only for G7a torps)
 	double rundepth;
+	//obsolete...
 	tubesetup() : primaryrange(0), secondaryrange(0), initialturn(0), turnangle(180),
 		      preheating(false), torpspeed(0), rundepth(3.0) {}
 };
@@ -181,6 +183,7 @@ protected:
 	// stored torpedoes (including tubes)
 	// special functions calculate indices for bow/stern tubes etc., see below
 	std::vector<stored_torpedo> torpedoes;
+	//obsolete...
 	std::vector<tubesetup> tubesettings;
 	unsigned number_of_tubes_at[6];	// read from spec file
 	unsigned torp_transfer_times[5];// read from spec file
@@ -295,6 +298,7 @@ public:
 	virtual float surface_visibility(const vector2& watcher) const;
 	virtual float sonar_visibility ( const vector2& watcher ) const;
 	virtual double get_noise_factor () const;
+	//obsolete...
 	virtual const tubesetup& get_tube_setup(unsigned tubenr) const { return tubesettings[tubenr]; }
 	virtual bool is_scope_up() const { return ( scopeup == true ); }
 	virtual double get_periscope_depth() const { return periscope_depth; }
@@ -339,6 +343,7 @@ public:
 	virtual void transfer_torpedo(unsigned from, unsigned to);
 
 	// set up tube/torp values by accessing this structure
+	//obsolete...
 	virtual tubesetup& tube_setup(unsigned tubenr) { return tubesettings[tubenr]; }
 
 	virtual void launch_torpedo(int tubenr, sea_object* target); // give tubenr -1 for any loaded tube, or else 0-5

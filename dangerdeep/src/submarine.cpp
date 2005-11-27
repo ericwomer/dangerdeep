@@ -254,8 +254,6 @@ void submarine::load(const xml_elem& parent)
 		//torpedoes.push_back(stored_torpedo(it.elem()));
 	}
 
-	//vector<tubesetup> tubesettings; //fixme load
-
 	xml_elem sst = parent.child("sub_state");
 	scopeup = sst.attru("scopeup");
 	electric_engine = sst.attru("electric_engine");
@@ -296,8 +294,6 @@ void submarine::save(xml_elem& parent) const
 		//save a torpedo node for each entry
 		//it->save(tp);
 	}
-
-	//vector<tubesetup> tubesettings;
 
 	xml_elem sst = parent.add_child("sub_state");
 	sst.set_attr(scopeup, "scopeup");

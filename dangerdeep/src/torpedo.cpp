@@ -14,6 +14,7 @@ using std::string;
 
 torpedo::torpedo(game& gm, const xml_elem& parent)
 	: ship(gm, parent)
+//fixme: set sensible default values for settings here etc.
 {
 	mass = parent.child("weight").attrf();
 	untertrieb = parent.child("untertrieb").attrf();
