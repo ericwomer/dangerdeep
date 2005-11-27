@@ -34,7 +34,9 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	} else if (charge == "Kf") {
 		warhead_type = Kf;
 	} else {
-		throw error(string("unknown charge type ")+charge);
+		// fixme: charges are atm numbers, should be replaced later...
+		warhead_type = Ka;
+		//throw error(string("unknown charge type ")+charge);
 	}
 	xml_elem earming = parent.child("arming");
 	xml_elem efuse = parent.child("fuse");

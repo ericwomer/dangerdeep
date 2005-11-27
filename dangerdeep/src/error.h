@@ -14,7 +14,7 @@ class error : public std::exception
 	error();
 	std::string msg;
  public:
-	error(const std::string& s) : msg(s) {}
+	error(const std::string& s);
 	virtual ~error() throw() {}
 	const char* what() const throw() { return msg.c_str(); }
 };

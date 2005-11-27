@@ -56,6 +56,7 @@ dftdsources = Split("""subsim.cpp
 	xml.cpp""")
 
 dftdmediasources = Split("""
+	error.cpp
 	font.cpp
 	image.cpp
 	make_mesh.cpp

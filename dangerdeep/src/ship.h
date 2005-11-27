@@ -173,7 +173,8 @@ public:
 		WARSHIP,
 		ESCORT,
 		MERCHANT,
-		SUBMARINE
+		SUBMARINE,
+		TORPEDO
 	};
 	
 	// create empty object from specification xml file

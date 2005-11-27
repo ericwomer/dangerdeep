@@ -1723,12 +1723,14 @@ vector3 game::compute_moon_pos(const vector3& viewpos) const
 
 sea_object* game::load_ptr(unsigned nr) const
 {
-	if (nr < submarines.size()) {
-		return submarines[nr];
-	} else if (nr < submarines.size() + ships.size()) {
-		return ships[nr - submarines.size()];
-	} else if (nr < submarines.size() + ships.size() + airplanes.size()) {
-		return airplanes[nr - submarines.size() - ships.size()];
+	if (nr == 0)
+		return 0;
+	if (nr <= submarines.size()) {
+		return submarines[nr-1];
+	} else if (nr <= submarines.size() + ships.size()) {
+		return ships[nr-1 - submarines.size()];
+	} else if (nr <= submarines.size() + ships.size() + airplanes.size()) {
+		return airplanes[nr-1 - submarines.size() - ships.size()];
 	} else {
 		throw error("could not translate nr to submarine, ship or airplane ptr");
 	}
@@ -1738,8 +1740,8 @@ sea_object* game::load_ptr(unsigned nr) const
 
 ship* game::load_ship_ptr(unsigned nr) const
 {
-	if (nr >= submarines.size() && nr < submarines.size() + ships.size()) {
-		return ships[nr - submarines.size()];
+	if (nr > submarines.size() && nr <= submarines.size() + ships.size()) {
+		return ships[nr-1 - submarines.size()];
 	}
 	throw error("could not translate nr to ship ptr");
 }
@@ -1748,21 +1750,25 @@ ship* game::load_ship_ptr(unsigned nr) const
 
 convoy* game::load_convoy_ptr(unsigned nr) const
 {
-	if (nr >= convoys.size())
+	if (nr == 0)
+		return 0;
+	if (nr > convoys.size())
 		throw error("could not translate nr to convoy ptr");
-	return convoys[nr];
+	return convoys[nr-1];
 }
 
 
 
 unsigned game::save_ptr(const sea_object* s) const
 {
+	if (!s)
+		return 0;
 	// we can save only airplanes, ships, submarines. Because other sea_objects can't be referenced!
 	const submarine* su = dynamic_cast<const submarine*>(s);
 	if (su) {
 		for (unsigned k = 0; k < submarines.size(); ++k) {
 			if (submarines[k] == su)
-				return k;
+				return k+1;
 		}
 		throw error("could not translate ptr to submarine nr");
 	}
@@ -1770,7 +1776,7 @@ unsigned game::save_ptr(const sea_object* s) const
 	if (sh) {
 		for (unsigned k = 0; k < ships.size(); ++k) {
 			if (ships[k] == sh)
-				return submarines.size() + k;
+				return submarines.size() + k+1;
 		}
 		throw error("could not translate ptr to ship nr");
 	}
@@ -1778,7 +1784,7 @@ unsigned game::save_ptr(const sea_object* s) const
 	if (ap) {
 		for (unsigned k = 0; k < airplanes.size(); ++k) {
 			if (airplanes[k] == ap)
-				return submarines.size() + ships.size() + k;
+				return submarines.size() + ships.size() + k+1;
 		}
 		throw error("could not translate ptr to airplane nr");
 	}
@@ -1789,9 +1795,11 @@ unsigned game::save_ptr(const sea_object* s) const
 
 unsigned game::save_ptr(const convoy* c) const
 {
+	if (!c)
+		return 0;
 	for (unsigned k = 0; k < convoys.size(); ++k) {
 		if (convoys[k] == c)
-			return k;
+			return k+1;
 	}
 	throw error("could not translate convoy ptr to nr");
 }

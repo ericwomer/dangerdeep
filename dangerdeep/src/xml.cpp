@@ -134,9 +134,12 @@ void xml_elem::set_attr(int i, const std::string& name)
 
 void xml_elem::set_attr(double f, const std::string& name)
 {
+	// note! DO NOT USE std::ostringstream HERE!
+	// its format is different to sprintf(), it has less precision!
+	// we could change ostringstream's format, but for what? this is easier...
 	char tmp[64];
-	sprintf(tmp, "%f", f);
-	set_attr(name, tmp);
+	snprintf(tmp, 64, "%f", f);
+	set_attr(string(tmp), name);
 }
 
 
@@ -231,13 +234,8 @@ void xml_elem::iterator::next()
 
 
 xml_doc::xml_doc(std::string fn)
-	: doc(0)
+	: doc(new TiXmlDocument(fn))
 {
-	FILE* f = fopen(fn.c_str(), "rt");
-	if (!f)
-		throw xml_error("file does not exist", fn);
-	fclose(f);
-	doc = new TiXmlDocument(fn);
 }
 
 

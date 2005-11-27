@@ -248,7 +248,7 @@ void sea_object::save(xml_elem& parent) const
 	parent.add_child("alive_stat").set_attr(unsigned(alive_stat));
 	// save ai
 	if (myai.get()) {
-		xml_elem ae = parent.child("AI");
+		xml_elem ae = parent.add_child("AI");
 		myai->save(gm, ae);
 	}
 	// save target

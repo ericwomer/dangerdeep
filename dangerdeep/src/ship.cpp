@@ -87,29 +87,46 @@ ship::ship(game& gm_, const xml_elem& parent)
 	else if (typestr == "escort") shipclass = ESCORT;
 	else if (typestr == "merchant") shipclass = MERCHANT;
 	else if (typestr == "submarine") shipclass = SUBMARINE;
+	else if (typestr == "torpedo") shipclass = TORPEDO;
 	else throw error(string("illegal ship type in ") + specfilename);
-	xml_elem etonnage = parent.child("tonnage");
-	unsigned minton = etonnage.attru("min");
-	unsigned maxton = etonnage.attru("max");
-	tonnage = minton + rnd(maxton - minton + 1);
+
+	if (shipclass == TORPEDO) {
+		tonnage = 0;
+	} else {
+		xml_elem etonnage = parent.child("tonnage");
+		unsigned minton = etonnage.attru("min");
+		unsigned maxton = etonnage.attru("max");
+		tonnage = minton + rnd(maxton - minton + 1);
+	}
 	xml_elem emotion = parent.child("motion");
-	max_speed_forward = kts2ms(emotion.attrf("maxspeed"));
-	max_speed_reverse = kts2ms(emotion.attrf("maxrevspeed"));
+	if (shipclass == TORPEDO) {
+		// fixme: not stored yet, but it should be...
+		max_speed_forward = 0;
+		max_speed_reverse = 0;
+	} else {
+		max_speed_forward = kts2ms(emotion.attrf("maxspeed"));
+		max_speed_reverse = kts2ms(emotion.attrf("maxrevspeed"));
+	}
 	max_accel_forward = emotion.attrf("acceleration");
 	turn_rate = emotion.attrf("turnrate");
 	for (xml_elem::iterator it = parent.iterate("smoke"); !it.end(); it.next()) {
 		smoke.push_back(make_pair(it.elem().attru("type"), it.elem().attrv3()));
 	}
-	xml_elem eai = parent.child("ai");
-	string aitype = eai.attr("type");
-	if (aitype == "dumb") myai.reset(new ai(this, ai::dumb));
-	else if (aitype == "escort") myai.reset(new ai(this, ai::escort));
-	else if (aitype == "none") myai.reset();
-	else throw error(string("illegal AI type in ") + specfilename);
-	xml_elem efuel = parent.child("fuel");
-	fuel_capacity = efuel.attru("capacity");
-	fuel_value_a = efuel.attrf("consumption_a");
-	fuel_value_t = efuel.attrf("consumption_t");
+
+	if (parent.has_child("ai")) {
+		xml_elem eai = parent.child("ai");
+		string aitype = eai.attr("type");
+		if (aitype == "dumb") myai.reset(new ai(this, ai::dumb));
+		else if (aitype == "escort") myai.reset(new ai(this, ai::escort));
+		else if (aitype == "none") myai.reset();
+		else throw error(string("illegal AI type in ") + specfilename);
+	}
+	if (parent.has_child("fuel")) {
+		xml_elem efuel = parent.child("fuel");
+		fuel_capacity = efuel.attru("capacity");
+		fuel_value_a = efuel.attrf("consumption_a");
+		fuel_value_t = efuel.attrf("consumption_t");
+	}
 
 	if (parent.has_child("gun_turrets")) {
 		xml_elem eturrets = parent.child("gun_turrets");
