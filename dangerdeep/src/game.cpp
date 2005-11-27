@@ -362,6 +362,7 @@ game::game(const string& filename)
 //		throw error("invalid game version");
 
 	// create empty objects so references can be filled.
+	// there must be ships in a mission...
 	xml_elem sh = sg.child("ships");
 	for (xml_elem::iterator it = sh.iterate("ship"); !it.end(); it.next()) {
 		xml_doc spec(get_ship_dir() + it.elem().attr("type") + ".xml");
@@ -369,6 +370,7 @@ game::game(const string& filename)
 		ships.push_back(new ship(*this, spec.first_child()));
 	}
 
+	// there must be submarines in a mission...
 	xml_elem su = sg.child("submarines");
 	for (xml_elem::iterator it = su.iterate("submarine"); !it.end(); it.next()) {
 		xml_doc spec(get_submarine_dir() + it.elem().attr("type") + ".xml");
@@ -376,47 +378,59 @@ game::game(const string& filename)
 		submarines.push_back(new submarine(*this, spec.first_child()));
 	}
 
-	xml_elem ap = sg.child("airplanes");
-	for (xml_elem::iterator it = ap.iterate("airplane"); !it.end(); it.next()) {
-		xml_doc spec(get_airplane_dir() + it.elem().attr("type") + ".xml");
-		spec.load();
-		airplanes.push_back(new airplane(*this, spec.first_child()));
+	if (sg.has_child("airplanes")) {
+		xml_elem ap = sg.child("airplanes");
+		for (xml_elem::iterator it = ap.iterate("airplane"); !it.end(); it.next()) {
+			xml_doc spec(get_airplane_dir() + it.elem().attr("type") + ".xml");
+			spec.load();
+			airplanes.push_back(new airplane(*this, spec.first_child()));
+		}
 	}
 
-	xml_elem tp = sg.child("torpedoes");
-	for (xml_elem::iterator it = tp.iterate("torpedo"); !it.end(); it.next()) {
-		xml_doc spec(get_torpedo_dir() + it.elem().attr("type") + ".xml");
-		spec.load();
-		torpedoes.push_back(new torpedo(*this, spec.first_child()));
+	if (sg.has_child("torpedoes")) {
+		xml_elem tp = sg.child("torpedoes");
+		for (xml_elem::iterator it = tp.iterate("torpedo"); !it.end(); it.next()) {
+			xml_doc spec(get_torpedo_dir() + it.elem().attr("type") + ".xml");
+			spec.load();
+			torpedoes.push_back(new torpedo(*this, spec.first_child()));
+		}
 	}
 
-	xml_elem dc = sg.child("depth_charges");
-	for (xml_elem::iterator it = dc.iterate("depth_charge"); !it.end(); it.next()) {
-		//xml_doc spec(get_depth_charge_dir() + it.elem().attr("type") + ".xml");
-		//spec.load();
-		depth_charges.push_back(new depth_charge(*this/*, spec.first_child()*/));
+	if (sg.has_child("depth_charges")) {
+		xml_elem dc = sg.child("depth_charges");
+		for (xml_elem::iterator it = dc.iterate("depth_charge"); !it.end(); it.next()) {
+			//xml_doc spec(get_depth_charge_dir() + it.elem().attr("type") + ".xml");
+			//spec.load();
+			depth_charges.push_back(new depth_charge(*this/*, spec.first_child()*/));
+		}
 	}
 
-	xml_elem gs = sg.child("gun_shells");
-	for (xml_elem::iterator it = gs.iterate("gun_shell"); !it.end(); it.next()) {
-		//xml_doc spec(get_gun_shell_dir() + it.elem().attr("type") + ".xml");
-		//spec.load();
-		gun_shells.push_back(new gun_shell(*this/*, spec.first_child()*/));
+	if (sg.has_child("gun_shells")) {
+		xml_elem gs = sg.child("gun_shells");
+		for (xml_elem::iterator it = gs.iterate("gun_shell"); !it.end(); it.next()) {
+			//xml_doc spec(get_gun_shell_dir() + it.elem().attr("type") + ".xml");
+			//spec.load();
+			gun_shells.push_back(new gun_shell(*this/*, spec.first_child()*/));
+		}
 	}
 
-	xml_elem cv = sg.child("convoys");
-	for (xml_elem::iterator it = cv.iterate("convoy"); !it.end(); it.next()) {
-		//xml_doc spec(get_convoy_dir() + it.elem().attr("type") + ".xml");
-		//spec.load();
-		convoys.push_back(new convoy(*this/*, spec.first_child()*/));
+	if (sg.has_child("convoys")) {
+		xml_elem cv = sg.child("convoys");
+		for (xml_elem::iterator it = cv.iterate("convoy"); !it.end(); it.next()) {
+			//xml_doc spec(get_convoy_dir() + it.elem().attr("type") + ".xml");
+			//spec.load();
+			convoys.push_back(new convoy(*this/*, spec.first_child()*/));
+		}
 	}
 
 #if 0
-	xml_elem pt = sg.child("particles");
-	for (xml_elem::iterator it = pt.iterate("particle"); !it.end(); it.next()) {
-		//xml_doc spec(get_particle_dir() + it.elem().attr("type") + ".xml");
-		//spec.load();
-		particles.push_back(new particle(*this/*, spec.first_child()*/));
+	if (sg.has_child("particles")) {
+		xml_elem pt = sg.child("particles");
+		for (xml_elem::iterator it = pt.iterate("particle"); !it.end(); it.next()) {
+			//xml_doc spec(get_particle_dir() + it.elem().attr("type") + ".xml");
+			//spec.load();
+			particles.push_back(new particle(*this/*, spec.first_child()*/));
+		}
 	}
 #endif
 
@@ -427,39 +441,51 @@ game::game(const string& filename)
 	}
 
 	k = 0;
-	for (xml_elem::iterator it = sh.iterate("submarine"); !it.end(); it.next(), ++k) {
+	for (xml_elem::iterator it = su.iterate("submarine"); !it.end(); it.next(), ++k) {
 		submarines[k]->load(it.elem());
 	}
 
-	k = 0;
-	for (xml_elem::iterator it = sh.iterate("airplane"); !it.end(); it.next(), ++k) {
-		airplanes[k]->load(it.elem());
+	if (airplanes.size() > 0) {
+		k = 0;
+		for (xml_elem::iterator it = sh.child("airplanes").iterate("airplane"); !it.end(); it.next(), ++k) {
+			airplanes[k]->load(it.elem());
+		}
 	}
 
-	k = 0;
-	for (xml_elem::iterator it = sh.iterate("torpedo"); !it.end(); it.next(), ++k) {
-		torpedoes[k]->load(it.elem());
+	if (torpedoes.size() > 0) {
+		k = 0;
+		for (xml_elem::iterator it = sh.child("torpedoes").iterate("torpedo"); !it.end(); it.next(), ++k) {
+			torpedoes[k]->load(it.elem());
+		}
 	}
 
-	k = 0;
-	for (xml_elem::iterator it = sh.iterate("depth_charge"); !it.end(); it.next(), ++k) {
-		depth_charges[k]->load(it.elem());
+	if (depth_charges.size() > 0) {
+		k = 0;
+		for (xml_elem::iterator it = sh.child("depth_charges").iterate("depth_charge"); !it.end(); it.next(), ++k) {
+			depth_charges[k]->load(it.elem());
+		}
 	}
 
-	k = 0;
-	for (xml_elem::iterator it = sh.iterate("gun_shell"); !it.end(); it.next(), ++k) {
-		gun_shells[k]->load(it.elem());
+	if (gun_shells.size() > 0) {
+		k = 0;
+		for (xml_elem::iterator it = sh.child("gun_shells").iterate("gun_shell"); !it.end(); it.next(), ++k) {
+			gun_shells[k]->load(it.elem());
+		}
 	}
 
-	k = 0;
-	for (xml_elem::iterator it = sh.iterate("convoy"); !it.end(); it.next(), ++k) {
-		convoys[k]->load(it.elem());
+	if (convoys.size() > 0) {
+		k = 0;
+		for (xml_elem::iterator it = sh.child("convoys").iterate("convoy"); !it.end(); it.next(), ++k) {
+			convoys[k]->load(it.elem());
+		}
 	}
 
 #if 0
-	k = 0;
-	for (xml_elem::iterator it = sh.iterate("particle"); !it.end(); it.next(), ++k) {
-		particles[k]->load(it.elem());
+	if (particles.size() > 0) {
+		k = 0;
+		for (xml_elem::iterator it = sh.child("particles").iterate("particle"); !it.end(); it.next(), ++k) {
+			particles[k]->load(it.elem());
+		}
 	}
 #endif
 
