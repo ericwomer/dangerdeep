@@ -43,30 +43,26 @@ class ptrset
 		data[fill++] = ptr;
 	}
 
-	// this function must not be called while iterating a ptrset manually!
-	// use for_each to be safe!
-	// note that func *may* iterate over the ptrset though!
-	template <typename U>
-	void for_each_with_erase(U func) {
+	void compact() {
+		unsigned j = 0;
 		for (unsigned i = 0; i < fill; ++i) {
-			func(data[i]);
-			if (data[i] == 0) {	// erased in func!
-				--fill;
-				data[i] = data[fill];
-				data[fill] = 0;
-				--i;	// handle that entry in next loop!
+			if (data[i]) {
+				T* tmp = data[i];
+				data[i] = 0;
+				data[j] = tmp;
+				++j;
 			}
 		}
+		fill = j;
 		// check if space can be compressed
 		if (fill < data.size() / 2 && data.size() >= 2 * minsize) {
 			data.resize(data.size()/2);
 		}
 	}
-	template <typename U>
-	void for_each(U func) const {
-		for (unsigned i = 0; i < fill; ++i) {
-			func(data[i]);
-		}
+
+	void reset(unsigned n) {
+		delete data[n];
+		data[n] = 0;
 	}
 
 	T* const& operator[](unsigned n) const { return data[n]; }

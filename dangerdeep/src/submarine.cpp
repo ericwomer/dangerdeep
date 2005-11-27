@@ -232,6 +232,14 @@ submarine::submarine(game& gm_, const xml_elem& parent)
 
 
 
+submarine::~submarine()
+{
+	for (vector<stored_torpedo>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
+		delete it->torp;
+}
+
+
+
 void submarine::load(const xml_elem& parent)
 {
 	ship::load(parent);

@@ -51,108 +51,6 @@ const unsigned GAMETYPE = 0;//fixme, 0-mission , 1-patrol etc.
 
 const double game::TRAIL_TIME = 1.0;
 
-/***************************************************************************
-
-   local function object classes
-
-***************************************************************************/
-
-//fixme: replace this ugly crap
-template <class T>
-class simulate_helper1 {
-	sea_object* player;
-	double& nearest_contact;
-	double delta_t;
-public:
-	simulate_helper1(sea_object* p, double& nc, double dt)
-		: player(p), nearest_contact(nc), delta_t(dt) {}
-	void operator()(T*& ptr) {
-		if (ptr == player) {
-			double dist = ptr->get_pos().distance(player->get_pos());
-			if (dist < nearest_contact) nearest_contact = dist;
-		}
-		if (!ptr->is_defunct()) {
-			ptr->simulate(delta_t);
-		} else {
-			delete ptr;
-			ptr = 0;
-		}
-	}
-};
-
-template <class T>
-class simulate_helper1r {
-	sea_object* player;
-	double& nearest_contact;
-	double delta_t;
-	bool record;
-public:
-	simulate_helper1r(sea_object* p, double& nc, double dt, bool r)
-		: player(p), nearest_contact(nc), delta_t(dt), record(r) {}
-	void operator()(T*& ptr) {
-		if (ptr == player) {
-			double dist = ptr->get_pos().distance(player->get_pos());
-			if (dist < nearest_contact) nearest_contact = dist;
-		}
-		if (!ptr->is_defunct()) {
-			ptr->simulate(delta_t);
-			if (record) ptr->remember_position();
-		} else {
-			delete ptr;
-			ptr = 0;
-		}
-	}
-};
-
-template <class T>
-class simulate_helper2 {
-	double delta_t;
-public:
-	simulate_helper2(double dt) : delta_t(dt) {}
-	void operator()(T*& ptr) {
-		if (!ptr->is_defunct()) {
-			ptr->simulate(delta_t);
-		} else {
-			delete ptr;
-			ptr = 0;
-		}
-	}
-};
-
-template <class T>
-class simulate_helper2p {
-	double delta_t;
-	class game& gm;
-public:
-	simulate_helper2p(double dt, class game& g) : delta_t(dt), gm(g) {}
-	void operator()(T*& ptr) {
-		if (ptr == 0) return;
-		if (!ptr->is_defunct()) {
-			ptr->simulate(gm, delta_t);
-		} else {
-			delete ptr;
-			ptr = 0;
-		}
-	}
-};
-
-template <class T>
-class simulate_helper2r {
-	double delta_t;
-	bool record;
-public:
-	simulate_helper2r(double dt, bool r) : delta_t(dt), record(r) {}
-	void operator()(T*& ptr) {
-		if (!ptr->is_defunct()) {
-			ptr->simulate(delta_t);
-			if (record) ptr->remember_position();
-		} else {
-			delete ptr;
-			ptr = 0;
-		}
-	}
-};
-
 /***************************************************************************/
 
 
@@ -720,19 +618,108 @@ void game::simulate(double delta_t)
 
 	double nearest_contact = 1e10;
 
-	// erasing empty entries is handled in each for_each function
-	ships.for_each_with_erase(simulate_helper1r<ship>(player, nearest_contact, delta_t, record));
-	submarines.for_each_with_erase(simulate_helper1r<submarine>(player, nearest_contact, delta_t, record));
-	airplanes.for_each_with_erase(simulate_helper1<airplane>(player, nearest_contact, delta_t));
-	torpedoes.for_each_with_erase(simulate_helper2r<torpedo>(delta_t, record));
-	depth_charges.for_each_with_erase(simulate_helper2<depth_charge>(delta_t));
-	gun_shells.for_each_with_erase(simulate_helper2<gun_shell>(delta_t));
-	for (unsigned i = 0; i < convoys.size(); ++i)
+	// simulation for each object
+	// ------------------------------ ships ------------------------------
+	for (unsigned i = 0; i < ships.size(); ++i) {
+		if (!ships[i]) continue;
+		if (ships[i] != player) {
+			double dist = ships[i]->get_pos().distance(player->get_pos());
+			if (dist < nearest_contact) nearest_contact = dist;
+		}
+		if (ships[i]->is_defunct()) {
+			ships.reset(i);
+		} else {
+			ships[i]->simulate(delta_t);
+			if (record) ships[i]->remember_position();
+		}
+	}
+	ships.compact();
+
+	// ------------------------------ submarines ------------------------------
+	for (unsigned i = 0; i < submarines.size(); ++i) {
+		if (!submarines[i]) continue;
+		if (submarines[i] != player) {
+			double dist = submarines[i]->get_pos().distance(player->get_pos());
+			if (dist < nearest_contact) nearest_contact = dist;
+		}
+		if (submarines[i]->is_defunct()) {
+			submarines.reset(i);
+		} else {
+			submarines[i]->simulate(delta_t);
+			if (record) submarines[i]->remember_position();
+		}
+	}
+	submarines.compact();
+
+	// ------------------------------ airplanes ------------------------------
+	for (unsigned i = 0; i < airplanes.size(); ++i) {
+		if (!airplanes[i]) continue;
+		if (airplanes[i] != player) {
+			double dist = airplanes[i]->get_pos().distance(player->get_pos());
+			if (dist < nearest_contact) nearest_contact = dist;
+		}
+		if (airplanes[i]->is_defunct()) {
+			airplanes.reset(i);
+		} else {
+			airplanes[i]->simulate(delta_t);
+		}
+	}
+	airplanes.compact();
+
+	// ------------------------------ torpedoes ------------------------------
+	for (unsigned i = 0; i < torpedoes.size(); ++i) {
+		if (!torpedoes[i]) continue;
+		if (torpedoes[i]->is_defunct()) {
+			torpedoes.reset(i);
+		} else {
+			torpedoes[i]->simulate(delta_t);
+			if (record) torpedoes[i]->remember_position();
+		}
+	}
+	torpedoes.compact();
+
+	// ------------------------------ depth_charges ------------------------------
+	for (unsigned i = 0; i < depth_charges.size(); ++i) {
+		if (!depth_charges[i]) continue;
+		if (depth_charges[i]->is_defunct()) {
+			depth_charges.reset(i);
+		} else {
+			depth_charges[i]->simulate(delta_t);
+		}
+	}
+	depth_charges.compact();
+
+	// ------------------------------ gun_shells ------------------------------
+	for (unsigned i = 0; i < gun_shells.size(); ++i) {
+		if (!gun_shells[i]) continue;
+		if (gun_shells[i]->is_defunct()) {
+			gun_shells.reset(i);
+		} else {
+			gun_shells[i]->simulate(delta_t);
+		}
+	}
+	gun_shells.compact();
+
+	// ------------------------------ convoys ------------------------------
+	for (unsigned i = 0; i < convoys.size(); ++i) {
+		if (!convoys[i]) continue;
 		convoys[i]->simulate(delta_t);	// fixme: handle erasing of empty convoys!
-	particles.for_each_with_erase(simulate_helper2p<particle>(delta_t, *this));
+	}
+	convoys.compact();
+
+	// ------------------------------ particles ------------------------------
+	for (unsigned i = 0; i < particles.size(); ++i) {
+		if (!particles[i]) continue;
+		if (particles[i]->is_defunct()) {
+			particles.reset(i);
+		} else {
+			particles[i]->simulate(*this, delta_t);
+		}
+	}
+	particles.compact();
 
 	time += delta_t;
-	
+
 	// remove old pings
 	for (list<ping>::iterator it = pings.begin(); it != pings.end(); ) {
 		list<ping>::iterator it2 = it++;

@@ -255,6 +255,8 @@ public:
 	// create empty object from specification xml file
 	submarine(game& gm_, const xml_elem& parent);
 
+	~submarine();
+
 	virtual void load(const xml_elem& parent);
 	virtual void save(xml_elem& parent) const;
 	
