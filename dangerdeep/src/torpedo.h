@@ -112,7 +112,10 @@ class torpedo : public ship
 //	virtual void create_sensor_array ( types t );
 	
 	bool use_simple_turning_model() const { return true; }
-	
+
+	// torpedoes have constant speed... for now
+	virtual vector3 get_acceleration() const { return vector3(); }
+
 	virtual bool causes_spray() const { return false; }//causes wake, only true for steam torpedoes and maybe for Walter engine
 
 public:
@@ -130,6 +133,9 @@ public:
 				 unsigned tspeedsel, double rdepth);
 	
 	virtual void simulate(double delta_time);
+
+	// sets speed to initial speed, sets position
+	virtual void launch(const vector3& launchpos, angle parenthdg);
 
 #if 0 // obsolete!!!!!!!!!!
 	// compute gyro lead angle and expected run time of torpedo
@@ -153,6 +159,7 @@ public:
 	virtual unsigned get_hit_points () const;
 
 	virtual double get_range() const;
+	virtual double get_speed() const;
 };
 
 #endif

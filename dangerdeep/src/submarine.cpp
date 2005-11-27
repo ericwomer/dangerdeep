@@ -262,8 +262,10 @@ void submarine::load(const xml_elem& parent)
 	xml_elem tp = parent.child("stored_torpedoes");
 	torpedoes.clear();
 	torpedoes.reserve(tp.attru("nr"));
-	for (xml_elem::iterator it = tp.iterate("torpedo"); !it.end(); it.next()) {
-		//torpedoes.push_back(stored_torpedo(it.elem()));
+	for (xml_elem::iterator it = tp.iterate("stored_torpedo"); !it.end(); it.next()) {
+		stored_torpedo stp;
+		stp.load(gm, it.elem());
+		torpedoes.push_back(stp);
 	}
 
 	xml_elem sst = parent.child("sub_state");
@@ -303,8 +305,9 @@ void submarine::save(xml_elem& parent) const
 	xml_elem tp = parent.add_child("stored_torpedoes");
 	tp.set_attr(torpedoes.size(), "nr");
 	for (vector<stored_torpedo>::const_iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
-		//save a torpedo node for each entry
-		//it->save(tp);
+		//save a stored_torpedo node for each entry
+		xml_elem stp = tp.add_child("stored_torpedo");
+		it->save(stp);
 	}
 
 	xml_elem sst = parent.add_child("sub_state");
@@ -1115,6 +1118,10 @@ void submarine::launch_torpedo(int tubenr, sea_object* target)
 */
 	if (true /*launchdata.second   fixme*/) {
 		// just hand the torpedo object over to class game. tube is empty after that...
+		// fixme: set torpedo's position and speed!!!
+		angle fireangle = usebowtubes ? heading : -heading;
+		vector3 torppos = position + (fireangle.direction() * (get_length()/2 + 5 /*5m extra*/)).xy0();
+		torpedoes[tubenr].torp->launch(torppos, fireangle);
 		gm.spawn_torpedo(torpedoes[tubenr].torp);
 		torpedoes[tubenr].torp = 0;
 		torpedoes[tubenr].status = stored_torpedo::st_empty;

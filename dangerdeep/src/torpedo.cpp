@@ -211,8 +211,12 @@ void torpedo::set_steering_values(unsigned primrg, unsigned secrg,
 
 void torpedo::simulate(double delta_time)
 {
-//	cout << "torpedo " << this << " heading " << heading.value() << " should head to " << head_to.value() << " turn speed " << turn_velocity << "\n";
-
+/*
+	cout << "torpedo  " << this << " heading " << heading.value() << " should head to " << head_to.value() << " turn speed " << turn_velocity << "\n";
+	cout << " position " << position << " orientation " << orientation << " run_length " << run_length << "\n";
+	cout << " velo " << velocity << " turnvelo " << turn_velocity << " global vel " << global_velocity << "\n";
+	cout << " acceleration " << acceleration << " delta t "<< delta_time << "\n";
+*/
 	ship::simulate(delta_time);
 	if (is_defunct() || is_dead()) return;
 
@@ -262,6 +266,18 @@ void torpedo::simulate(double delta_time)
 		if (gm.check_torpedo_hit(this, runlengthfailure, failure))
 			destroy();
 	}
+}
+
+
+
+void torpedo::launch(const vector3& launchpos, angle parenthdg)
+{
+	position = launchpos;
+	//fixme: +90 degree here? mathematical angles != nautical angles...
+	orientation = quaternion::rot(-parenthdg.value(), 0, 0, 1);
+	heading = parenthdg;
+	velocity = (heading.direction() * get_speed()).xy0();
+	run_length = 0;
 }
 
 
@@ -337,6 +353,7 @@ unsigned torpedo::get_hit_points () const	// awful, useless, replace, fixme
 
 double torpedo::get_range() const
 {
+	// fixme: TI independent on temperature, but depends on torpspeed selector!
 	double s = 0;
 	if (temperature > 15) {
 		if (temperature > 30)
@@ -345,4 +362,19 @@ double torpedo::get_range() const
 			s = (temperature - 15)/15;
 	}
 	return range_normal * (1-s) + range_preheated * s;
+}
+
+
+
+double torpedo::get_speed() const
+{
+	// fixme: TI independent on temperature, but depends on torpspeed selector!
+	double s = 0;
+	if (temperature > 15) {
+		if (temperature > 30)
+			s = 1;
+		else
+			s = (temperature - 15)/15;
+	}
+	return speed_normal * (1-s) + speed_preheated * s;
 }
