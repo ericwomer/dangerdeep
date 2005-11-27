@@ -10,6 +10,7 @@
 #include "user_interface.h"
 #include "ship.h"
 #include "submarine.h"
+#include "torpedo.h"
 #include "airplane.h"
 #include "texts.h"
 #include "texture.h"

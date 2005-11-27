@@ -8,6 +8,7 @@
 #include "font.h"
 #include "sub_torpedo_display.h"
 #include "texts.h"
+#include "torpedo.h"
 #include "user_interface.h"
 #include <sstream>
 #include <iomanip>

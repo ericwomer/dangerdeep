@@ -1,12 +1,13 @@
 // submarines
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
+#include "submarine.h"
 #include "model.h"
 #include "game.h"
 #include "tokencodes.h"
 #include "sensors.h"
 #include "date.h"
-#include "submarine.h"
+#include "torpedo.h"
 #include "depth_charge.h"
 #include "date.h"
 #include "tinyxml/tinyxml.h"
@@ -126,14 +127,14 @@ submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damagea
 
 
 submarine::stored_torpedo::stored_torpedo()
-	: torp(0), status(st_empty), associated(0), remaining_time(0)
+	: torp(0), status(st_empty), associated(0), remaining_time(0), preheating(false)
 {
 }
 
 
 
 submarine::stored_torpedo::stored_torpedo(game& gm, const std::string& type)
-	: torp(0), status(st_loaded), associated(0), remaining_time(0)
+	: torp(0), status(st_loaded), associated(0), remaining_time(0), preheating(false)
 {
 	xml_doc doc(get_torpedo_dir() + type + ".xml");
 	doc.load();
@@ -147,6 +148,8 @@ void submarine::stored_torpedo::load(game& gm, const xml_elem& parent)
 	status = st_status(parent.attru("status"));
 	associated = parent.attru("associated");
 	remaining_time = parent.attrf("remaining_time");
+	addleadangle = angle(parent.attrf("addleadangle"));
+	preheating = parent.attrb("preheating");
 	if (parent.has_child("torpedo")) {
 		xml_elem tp = parent.child("torpedo");
 		xml_doc doc(get_torpedo_dir() + tp.attr("type") + ".xml");
@@ -164,6 +167,8 @@ void submarine::stored_torpedo::save(xml_elem& parent) const
 	parent.set_attr(unsigned(status), "status");
 	parent.set_attr(associated, "associated");
 	parent.set_attr(remaining_time, "remaining_time");
+	parent.set_attr(addleadangle.value(), "addleadangle");
+	parent.set_attr(preheating, "preheating");
 	if (torp) {
 		xml_elem tp = parent.add_child("torpedo");
 		tp.set_attr(torp->get_specfilename(), "type");
@@ -210,7 +215,6 @@ submarine::submarine(game& gm_, const xml_elem& parent)
 	unsigned nrtrp = 0;
 	for (unsigned i = 0; i < 6; ++i) nrtrp += number_of_tubes_at[i];
 	torpedoes.resize(nrtrp);
-	tubesettings.resize(number_of_tubes_at[0] + number_of_tubes_at[1]);
 	xml_elem tf = tp.child("transfertimes");
 	torp_transfer_times[0] = tf.attru("bow");
 	torp_transfer_times[1] = tf.attru("stern");
@@ -932,6 +936,26 @@ double submarine::get_noise_factor () const
 
 
 
+submarine::stored_torpedo& submarine::get_torp_in_tube(unsigned tubenr)
+{
+	if (tubenr < number_of_tubes_at[0] + number_of_tubes_at[1]) {
+		return torpedoes[tubenr];
+	}
+	throw error("illegal tube nr for get_torp_in_tube");
+}
+
+
+
+const submarine::stored_torpedo& submarine::get_torp_in_tube(unsigned tubenr) const
+{
+	if (tubenr < number_of_tubes_at[0] + number_of_tubes_at[1]) {
+		return torpedoes[tubenr];
+	}
+	throw error("illegal tube nr for get_torp_in_tube");
+}
+
+
+
 void submarine::depth_charge_explosion(const class depth_charge& dc)
 {
 	// fixme: this should'nt be linear but exponential, e^(-fac*depth) or so...
@@ -1090,17 +1114,14 @@ void submarine::launch_torpedo(int tubenr, sea_object* target)
 		tubesettings[tubenr].addleadangle);
 */
 	if (true /*launchdata.second   fixme*/) {
-		// fixme: primary range seems weird wrong (13mio)!!!! 2004/05/16
+		// just hand the torpedo object over to class game. tube is empty after that...
 		gm.spawn_torpedo(torpedoes[tubenr].torp);
-/*
-		torpedo* t = new torpedo(gm, this, torpedoes[tubenr].type, usebowtubes, launchdata.first,
-					 tubesettings[tubenr]);
-		gm.spawn_torpedo(t);    // fixme add command
-*/
 		torpedoes[tubenr].torp = 0;
 		torpedoes[tubenr].status = stored_torpedo::st_empty;
 	}
 }
+
+
 
 void submarine::gun_manning_changed(bool isGunManned)
 {
@@ -1121,6 +1142,8 @@ void submarine::gun_manning_changed(bool isGunManned)
 	}
 }
 
+
+
 void submarine::set_throttle(ship::throttle_status thr)
 {	
 	if (get_throttle() != thr)
@@ -1130,6 +1153,8 @@ void submarine::set_throttle(ship::throttle_status thr)
 		start_throttle_sound();
 	}
 }
+
+
 
 void submarine::start_throttle_sound()
 {
@@ -1154,6 +1179,8 @@ void submarine::start_throttle_sound()
 		break;
 	}
 }
+
+
 
 void submarine::stop_throttle_sound()
 {

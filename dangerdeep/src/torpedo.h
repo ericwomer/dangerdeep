@@ -76,6 +76,8 @@ class torpedo : public ship
 
  protected:
 
+	friend class sub_torpsetup_display;	// to set up values... maybe add get/set functions for them
+
 	// -------- computed at creation of object ------------------
 	double mass;		// in kg
 	double untertrieb;	// negative buoyancy

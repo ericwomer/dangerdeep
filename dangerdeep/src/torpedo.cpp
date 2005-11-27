@@ -13,8 +13,16 @@ using std::string;
 
 
 torpedo::torpedo(game& gm, const xml_elem& parent)
-	: ship(gm, parent)
-//fixme: set sensible default values for settings here etc.
+	: ship(gm, parent),
+	  primaryrange(1600),
+	  secondaryrange(800),
+	  initialturn_left(true),
+	  turnangle(180),
+	  torpspeed(0),	// 0-2 slow-fast, only for G7a torps
+	  rundepth(3),
+	  temperature(15),	// degrees C
+	  probability_of_rundepth_failure(0.2),	// basically high before mid 1942, fixme
+	  run_length(0)
 {
 	mass = parent.child("weight").attrf();
 	untertrieb = parent.child("untertrieb").attrf();
