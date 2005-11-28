@@ -41,8 +41,6 @@ class xml_elem
 	TiXmlElement* elem;
 	xml_elem(TiXmlElement* e) : elem(e) {}
 
-	std::string doc_name() const;
-
 	friend class xml_doc;
  public:
 	std::string attr(const std::string& name = "value") const;
@@ -68,6 +66,9 @@ class xml_elem
 	void set_attr(bool b, const std::string& name = "value");
 	std::string get_name() const;
 	std::string child_text() const;	// returns value of text child, throws error if there is none
+
+	// get name of document
+	std::string doc_name() const;
 
 	class iterator {
 	private:

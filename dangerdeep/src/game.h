@@ -129,6 +129,8 @@ protected:
 	
 	double time;	// global time (in seconds since 1.1.1939, 0:0 hrs) (universal time!) [SAVE]
 	double last_trail_time;	// for position trail recording	[SAVE]
+
+	date equipment_date;	// date that equipment was created. used for torpedo loading
 	
 	enum weathers { sunny, clouded, raining, storm };//fixme
 	double max_view_dist;	// maximum visibility according to weather conditions, fixme recomputed or save?
@@ -172,6 +174,7 @@ public:
 	const logbook& get_players_logbook() const { return players_logbook; }
 	void add_logbook_entry(const std::string& s);
 	double get_time() const { return time; };
+	date get_equipment_date() const { return equipment_date; }
 	double get_max_view_distance() const { return max_view_dist; }
 	/**
 		This method is needed to verify for day and night mode for the

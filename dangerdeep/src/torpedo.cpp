@@ -12,6 +12,77 @@ using std::string;
 
 
 
+torpedo::fuse::fuse(const xml_elem& parent, date equipdate)
+{
+	string modelstr = parent.attr("type");
+	if (modelstr == "Pi1") model = Pi1;
+	else if (modelstr == "Pi2") model = Pi2;
+	else if (modelstr == "Pi3") model = Pi3;
+	else if (modelstr == "Pi4a") model = Pi4a;
+	else if (modelstr == "Pi4b") model = Pi4b;
+	else if (modelstr == "Pi4c") model = Pi4c;
+	else if (modelstr == "Pi6") model = Pi6;
+	else if (modelstr == "TZ3") model = TZ3;
+	else if (modelstr == "TZ5") model = TZ5;
+	else if (modelstr == "TZ6") model = TZ6;
+	else throw xml_error(string("illegal fuse model given: ") + modelstr, parent.doc_name());
+	// fixme: check here if that is correct!!! Pi4 intertial?
+	switch (model) {
+	case Pi1:
+		failure_probability = 0.3f;	// fixme depends on date!
+		type = IMPACT;
+		break;
+	case Pi2:
+		failure_probability = 0.2f;	// fixme depends on date!
+		type = IMPACT;
+		break;
+	case Pi3:
+		failure_probability = 0.1f;	// fixme depends on date!
+		type = IMPACT;
+		break;
+	case Pi4a:
+		failure_probability = 0.1f;	// fixme depends on date!
+		type = IMPACT;
+		break;
+	case Pi4b:
+		failure_probability = 0.1f;	// fixme depends on date!
+		type = IMPACT;
+		break;
+	case Pi4c:
+		failure_probability = 0.1f;	// fixme depends on date!
+		type = IMPACT;
+		break;
+	case Pi6:
+		failure_probability = 0.02f;	// fixme depends on date!
+		type = INERTIAL;
+		break;
+	case TZ3:
+		failure_probability = 0.5f;	// fixme depends on date!
+		type = INFLUENCE;
+		break;
+	case TZ5:
+		failure_probability = 0.2f;	// fixme depends on date!
+		type = INFLUENCE;
+		break;
+	case TZ6:
+		failure_probability = 0.1f;	// fixme depends on date!
+		type = INFLUENCE;
+		break;
+	}
+}
+
+
+
+bool torpedo::fuse::handle_impact(angle impactangle) const
+{
+	// compute failure depending on angle, type and probability
+	if (rnd() < failure_probability)
+		return false;
+	return true;
+}
+
+
+
 torpedo::torpedo(game& gm, const xml_elem& parent)
 	: ship(gm, parent),
 	  primaryrange(1600),
@@ -24,6 +95,12 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	  probability_of_rundepth_failure(0.2),	// basically high before mid 1942, fixme
 	  run_length(0)
 {
+	date dt = gm.get_equipment_date();
+	// ------------ availability, check this first
+	xml_elem eavailability = parent.child("availability");
+	date availdt = date(eavailability.attr("date"));
+	if (dt < availdt) throw xml_error("torpedo type not available at this date!", parent.doc_name());
+
 	mass = parent.child("weight").attrf();
 	untertrieb = parent.child("untertrieb").attrf();
 	xml_elem ewarhead = parent.child("warhead");
@@ -44,22 +121,58 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	} else {
 		// fixme: charges are atm numbers, should be replaced later...
 		warhead_type = Ka;
-		//throw error(string("unknown charge type ")+charge);
+		//throw xml_error(string("unknown charge type ")+charge, parent.doc_name());
 	}
+	// ------------- arming
 	xml_elem earming = parent.child("arming");
-	xml_elem efuse = parent.child("fuse");
-	xml_elem emotion = parent.child("motion");
-	xml_elem epower = parent.child("power");
-	xml_elem eavailability = parent.child("availability");
-
-	// fixme: finish loading code!
-
+	arming_distance = -1;
 	for (xml_elem::iterator it = earming.iterate("period"); !it.end(); it.next()) {
-		xml_elem eperiod = it.elem();
-		eperiod.attru("from");
-		eperiod.attru("until");
-		run_length = eperiod.attru("runlength");
+		date from = it.elem().attr("from");
+		date until = it.elem().attr("until");
+		if (from <= dt && dt <= until) {
+			arming_distance = it.elem().attrf("runlength");
+			break;
+		}
 	}
+	if (arming_distance < 0)
+		throw xml_error("no period subtags of arming that match current equipment date!", parent.doc_name());
+	// ---------- fuse(s)
+	xml_elem efuse = parent.child("fuse");
+	for (xml_elem::iterator it = efuse.iterate("period"); !it.end(); it.next()) {
+		date from = it.elem().attr("from");
+		date until = it.elem().attr("until");
+		if (from <= dt && dt <= until) {
+			fuses.push_back(fuse(it.elem(), dt));
+		}
+	}
+	if (fuses.empty())
+		throw xml_error("no period subtags of fuse that match current equipment date!", parent.doc_name());
+	// ----------- motion / steering device
+	xml_elem emotion = parent.child("motion");
+	unsigned hasfat = emotion.attru("FAT");
+	unsigned haslut = emotion.attru("LUT");
+	if (hasfat > 0) {
+		if (haslut > 0) throw xml_error("steering device must be EITHER LuT OR FaT!", parent.doc_name());
+		steering_device = FaT;
+	} else if (haslut > 0) {
+		steering_device = (haslut == 1) ? LuTI : LuTII;
+	} else {
+		steering_device = STRAIGHT;
+	}
+	// ------------ sensors, fixme
+	// ------------ ranges
+	xml_elem eranges = parent.child("ranges");
+	for (xml_elem::iterator it = eranges.iterate("range"); !it.end(); it.next()) {
+		if (it.elem().attrb("preheated")) {
+			range_preheated = it.elem().attrf("distance");
+			speed_preheated = kts2ms(it.elem().attrf("speed"));
+		} else {
+			range_normal = it.elem().attrf("distance");
+			speed_normal = kts2ms(it.elem().attrf("speed"));
+		}
+	}
+	// ------------ power, fixme - not needed yet
+	xml_elem epower = parent.child("power");
 }
 
 	
@@ -273,10 +386,10 @@ void torpedo::simulate(double delta_time)
 void torpedo::launch(const vector3& launchpos, angle parenthdg)
 {
 	position = launchpos;
-	//fixme: +90 degree here? mathematical angles != nautical angles...
 	orientation = quaternion::rot(-parenthdg.value(), 0, 0, 1);
 	heading = parenthdg;
-	velocity = (heading.direction() * get_speed()).xy0();
+	max_speed_forward = get_speed();
+	velocity = (heading.direction() * max_speed_forward).xy0();
 	run_length = 0;
 }
 

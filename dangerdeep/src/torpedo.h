@@ -53,7 +53,9 @@ Pi: angle of impact? unsure
 class torpedo : public ship
 {
  public:
-	struct fuse {
+	class fuse {
+		fuse();
+	public:
 		enum models { Pi1, Pi2, Pi3, Pi4a, Pi4b, Pi4c, Pi6, TZ3, TZ5, TZ6 };
 		enum types { IMPACT, INFLUENCE, INERTIAL };
 		models model;
@@ -61,6 +63,7 @@ class torpedo : public ship
 		float failure_probability;	// in [0...1]
 		// this function computes if the fuse ignites or fails, call it once
 		bool handle_impact(angle impactangle) const;
+		fuse(const xml_elem& parent, date equipdate);
 	};
 
 	enum warhead_types { Ka, Kb, Kc, Kd, Ke, Kf };

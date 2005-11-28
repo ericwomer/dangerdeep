@@ -161,6 +161,7 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	}
 	
 	date currentdate((unsigned)time);
+	equipment_date = currentdate;	// fixme: another crude guess or hack
 
 	// fixme: creation of convoy should be placed rather here than in convoy, so it is centralized!!!
 	convoy* cv = new convoy(*this, (convoy::types)(cvsize), (convoy::esctypes)(cvesc));
@@ -407,6 +408,7 @@ game::game(const string& filename)
 	xml_elem gst = sg.child("state");
 	time = gst.attrf("time");
 	last_trail_time = gst.attrf("last_trail_time");
+	equipment_date.load(gst.child("equipment_date"));
 	max_view_dist = gst.attrf("max_view_dist");
 	
 	xml_elem pgs = sg.child("pings");
@@ -543,6 +545,8 @@ void game::save(const string& savefilename, const string& description) const
 	xml_elem gst = sg.add_child("state");
 	gst.set_attr(time, "time");
 	gst.set_attr(last_trail_time, "last_trail_time");
+	xml_elem equ = gst.add_child("equipment_date");
+	equipment_date.save(equ);
 	gst.set_attr(max_view_dist, "max_view_dist");
 	
 	xml_elem pgs = sg.add_child("pings");

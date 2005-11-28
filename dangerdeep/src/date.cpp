@@ -93,6 +93,27 @@ date::date (unsigned lt)
 	set_from_linear();
 }
 
+
+
+date::date (const std::string& datestr)
+{
+	unsigned moff = datestr.find("/");
+	if (moff == string::npos)
+		throw error("error in parsing date string, missed / for months");
+	date_values[year] = atoi(datestr.substr(0, moff).c_str());
+	string rest = datestr.substr(moff+1);
+	unsigned doff = rest.find("/");
+	if (doff == string::npos)
+		throw error("error in parsing date string, missed / for days");
+	date_values[month] = atoi(rest.substr(0, doff).c_str());
+	date_values[day] = atoi(rest.substr(doff+1).c_str());
+	date_values[hour] = 0;
+	date_values[minute] = 0;
+	date_values[second] = 0;
+	set_linear();
+}
+
+
 bool date::operator< ( const date& d ) const
 {
 	return unsigned(linear_time/86400) < unsigned(d.linear_time/86400);
