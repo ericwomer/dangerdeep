@@ -1110,18 +1110,16 @@ void submarine::launch_torpedo(int tubenr, sea_object* target)
 	}
 
 	// check if torpedo can be fired with that tube, if yes, then fire it
-	// fixme: TDC should compute and set data for torpedoes!!!
-/* fixme
-	pair<angle, bool> launchdata = torpedo::compute_launch_data(
-		torpedoes[tubenr].type, this, target, usebowtubes,
-		tubesettings[tubenr].addleadangle);
-*/
-	if (true /*launchdata.second   fixme*/) {
+	cout << "sol valid? " << TDC.solution_valid() << "\n";
+	//fixme
+	if (true/*TDC.solution_valid()*/) {
+		angle fired_at_angle = usebowtubes ? heading : -heading;
+		angle torp_head_to = TDC.get_lead_angle() + TDC.get_additional_leadangle();
+		cout << "firead at " << fired_at_angle.value() << "," << torp_head_to.value() << "," << torp_head_to.is_cw_nearer(fired_at_angle) << "\n";
+		torpedoes[tubenr].torp->head_to_ang(torp_head_to, torp_head_to.is_cw_nearer(fired_at_angle));
 		// just hand the torpedo object over to class game. tube is empty after that...
-		// fixme: set torpedo's position and speed!!!
-		angle fireangle = usebowtubes ? heading : -heading;
-		vector3 torppos = position + (fireangle.direction() * (get_length()/2 + 5 /*5m extra*/)).xy0();
-		torpedoes[tubenr].torp->launch(torppos, fireangle);
+		vector3 torppos = position + (fired_at_angle.direction() * (get_length()/2 + 5 /*5m extra*/)).xy0();
+		torpedoes[tubenr].torp->launch(torppos, fired_at_angle);
 		gm.spawn_torpedo(torpedoes[tubenr].torp);
 		torpedoes[tubenr].torp = 0;
 		torpedoes[tubenr].status = stored_torpedo::st_empty;
