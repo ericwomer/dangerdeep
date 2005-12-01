@@ -109,6 +109,11 @@ ship::ship(game& gm_, const xml_elem& parent)
 	}
 	max_accel_forward = emotion.attrf("acceleration");
 	turn_rate = emotion.attrf("turnrate");
+	// compute max_angular_velocity from turn_rate:
+	// turn_rate = angles/m_forward at max. speed.
+	// so max_angular_veloctiy = angles/time * m/s
+	max_angular_velocity = turn_rate * max_speed_forward;
+
 	for (xml_elem::iterator it = parent.iterate("smoke"); !it.end(); it.next()) {
 		smoke.push_back(make_pair(it.elem().attru("type"), it.elem().attrv3()));
 	}
@@ -514,6 +519,8 @@ void ship::simulate(double delta_time)
 		double angledist = fabs((heading - head_to).value_pm180());
 
 		if (use_simple_turning_model()) {
+			// rudder left means rudder_pos < 0, so turn_velocity is < 0 and
+			// thus is clockwise (mathematical angle!).
 			turn_velocity = rudder_pos * max_angular_velocity / max_rudder_angle;
 			if (angledist < 0.1) {
 				rudder_pos = 0;
@@ -715,7 +722,9 @@ double ship::get_turn_acceleration() const	// drag must be already included!
 	double accel_factor = 1.0;	// given by turn rate, influenced by rudder area...
 	double max_turn_accel = accel_factor * max_speed_forward * sin(max_rudder_angle * M_PI / 180.0);
 	double drag_factor = (tv2) * max_turn_accel / (max_angular_velocity*max_angular_velocity);
-	double acceleration = accel_factor * speed * sin(rudder_pos * M_PI / 180.0);
+	// negate rudder_pos here, because turning is mathematical, so rudder left means
+	// rudder_pos < 0 and this means ccw turning and this means turn velocity > 0!
+	double acceleration = accel_factor * speed * sin(-rudder_pos * M_PI / 180.0);
 	if (turn_velocity > 0) drag_factor = -drag_factor;
 //cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << " turn_velo " << turn_velocity << " heading " << heading.value() << " tv2 " << tv2 << "\n";
 //cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << " max_turn_accel " << max_turn_accel << "\n";

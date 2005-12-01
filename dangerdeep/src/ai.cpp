@@ -339,6 +339,7 @@ bool ai::set_course_to_pos(game& gm, const vector2& pos)
 	// if a is < 0 then target lies behind our pos.
 	// if b is < 0 then target is left, else right of our pos.
 	double r1 = (b == 0) ? 1e10 : (a*a + b*b)/fabs(2*b);
+	// fixme: a*a + b*b = |d|^2 * |hd|^2 = 1 * 1 = 1 !
 	double r2 = 1.0/parent->get_turn_rate().rad();
 	if (a <= 0) {	// target is behind us
 		if (b < 0) {	// target is left

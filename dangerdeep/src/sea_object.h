@@ -96,14 +96,23 @@ protected:
 
 	vector3 position;	// global position, [SAVE]
 	vector3 velocity;	// local velocity, [SAVE]
+	// maybe: vector3 impulse;
 	quaternion orientation;	// global orientation, [SAVE]
-	double turn_velocity;	// angular velocity around global z-axis, [SAVE]
+	double turn_velocity;	// angular velocity around global z-axis (mathematical CCW), [SAVE]
+	// later:
+	// quaternion turn_impulse; or turn_velocity;
 	angle heading;		// global z-orientation is stored additionally, [SAVE]
+	// maybe (re)compute heading by orientation: let (0,1,0) rotate by orientation,
+	// project to xy-plane, normalize and measure angle.
+	// maybe compute and store vector2 heading_dir also, to save computations.
 
 	vector3 global_velocity;// recomputed every frame by simulate() method
 	
-	virtual vector3 get_acceleration() const;		// drag must be already included!
+	virtual vector3 get_acceleration() const;	// drag must be already included!
 	virtual double get_turn_acceleration() const;	// drag must be already included!
+	// later:
+	// virtual vector3 get_force() const;		// vector of force
+	// virtual quaternion get_torque() const;	// angle/axis of torque
 
 	vector3f size3d;		// computed from model, indirect read from spec file, width, length, height
 

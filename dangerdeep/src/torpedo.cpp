@@ -173,6 +173,13 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	}
 	// ------------ power, fixme - not needed yet
 	xml_elem epower = parent.child("power");
+
+	// ------------ set ship turning values, fixme: read from files, more a hack...
+	max_rudder_angle = 40;
+	max_rudder_turn_speed = 200;//20;	// with smaller values torpedo course oscillates. damping too high?! steering to crude?! fixme
+	// set turn rate here. With 0.6 a torpedo takes roughly 10 seconds to turn 90 degrees.
+	// With that value the torpedo turn radius is ~98m. Maybe a bit too much.
+	turn_rate = 0.6;
 }
 
 	
@@ -198,7 +205,7 @@ torpedo::torpedo(game& gm_, sea_object* parent, torpedo::types type_, bool usebo
 	head_to_ang(headto_, !heading.is_cw_nearer(headto_));
 	// fixme: simulate variable speeds of T1?
 	// fixme: simulate effect of magnetic influence fuse (much greater damage)
-	turn_rate = 1.0f;	// most submarine simulations seem to ignore this
+	turn_rate = 0.6f;	// most submarine simulations seem to ignore this
 			// launching a torpedo will cause it to run in target direction
 			// immidiately instead of turning there from the sub's heading
 			// fixme historic values??
@@ -389,7 +396,9 @@ void torpedo::launch(const vector3& launchpos, angle parenthdg)
 	orientation = quaternion::rot(-parenthdg.value(), 0, 0, 1);
 	heading = parenthdg;
 	max_speed_forward = get_speed();
-	velocity = (heading.direction() * max_speed_forward).xy0();
+	max_angular_velocity = max_speed_forward * turn_rate;
+	// velocity is local, object moves only forward.
+	velocity = vector3(0, max_speed_forward, 0);
 	run_length = 0;
 }
 

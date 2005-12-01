@@ -1113,7 +1113,7 @@ void submarine::launch_torpedo(int tubenr, sea_object* target)
 	cout << "sol valid? " << TDC.solution_valid() << "\n";
 	//fixme
 	if (true/*TDC.solution_valid()*/) {
-		angle fired_at_angle = usebowtubes ? heading : -heading;
+		angle fired_at_angle = usebowtubes ? heading : heading + angle(180);
 		angle torp_head_to = TDC.get_lead_angle() + TDC.get_additional_leadangle();
 		cout << "firead at " << fired_at_angle.value() << "," << torp_head_to.value() << "," << torp_head_to.is_cw_nearer(fired_at_angle) << "\n";
 		torpedoes[tubenr].torp->head_to_ang(torp_head_to, torp_head_to.is_cw_nearer(fired_at_angle));

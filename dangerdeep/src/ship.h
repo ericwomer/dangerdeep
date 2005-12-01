@@ -53,6 +53,7 @@ protected:
 	angle head_to;
 	
 	double turn_rate;	// in angle/time (at max. speed/throttle), read from spec file
+	// fixme: value seems to be angle/meter, meaning angle change per m forward motion...
 
 	double max_accel_forward;	// read from spec file. can get computed from engine_torque, screw diameter and ship's mass.
 	double max_speed_forward;	// read from spec file.

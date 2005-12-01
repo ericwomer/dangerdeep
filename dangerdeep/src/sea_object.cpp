@@ -301,6 +301,10 @@ void sea_object::simulate(double delta_time)
 	// hence: accel = dragfactor * v^2, this means force is proportional to square
 	// of speed -> fuel comsumption depends ~quadratically on speed.
 	// To throttle to a given speed, apply max_accel until we have it then apply accel.
+	// In reality engine throttle could translate directly to acceleration, this means
+	// with 1/2 throttle we just use constant acceleration of 1/2*max_accel.
+	// This leads to a maximum speed determined by drag, but time until that
+	// speed is reached is much longer compared to using max_accel.
 
 	// drag: drag force is -b * v (low speeds), -b * v^2 (high speeds)
 	// b is proportional to cross section area of body.
@@ -311,6 +315,8 @@ void sea_object::simulate(double delta_time)
 	// a can be 0<=a<=max_accel. three phases (in time) speed grows until max_speed,
 	// constant max speed, speed shrinks to zero (sometimes only phases 1 and 3 needed).
 	// determine phase, in phase 1 and 2 give max. acceleration, in phase 3 give zero.
+	// or even give -max_accel is phase 3 (turn rudder to opposite with full throttle
+	// to stop motion fastly)
 
 	// Screw force splits in forward force and sideward force (dependend on rudder position)
 	// so compute side drag from turn_rate
@@ -319,6 +325,7 @@ void sea_object::simulate(double delta_time)
 	// we store velocity/acceleration, not momentum/force/torque
 	// in reality applied force is transformed by inertia tensor, which is rotated according to
 	// orientation. we don't use mass here, so apply rotation to stored velocity/acceleration.
+	//fixme: use orientation here and compute heading from it, not vice versa!
 	quaternion horientation = quaternion::rot(-heading.value(), 0, 0, 1);
 
 	// use compute_force(), compute_torque() here, with inertia tensor etc.
@@ -328,22 +335,30 @@ void sea_object::simulate(double delta_time)
 	global_velocity = horientation.rotate(velocity);
 	double t2_2 = 0.5 * delta_time * delta_time;
 
-//cout << "object " << this << " simulate.\npos: " << position << "\nvelo: " << velocity << "\naccel: " << acceleration << "\n";
+	//debugging
+	//cout << "object " << this << " simulate.\npos: " << position << "\nvelo: " << velocity << "\naccel: " << acceleration << "\n";
+	//cout << "global velo " << global_velocity << " global acc " << global_acceleration << "\n";
 
 	position += global_velocity * delta_time + global_acceleration * t2_2;
 	velocity += acceleration * delta_time;
 
-//	cout << "NEWpos: " << position << "\nNEWvelo: " << velocity << "\n";
-//	cout << "(delta t = " << delta_time << ")\n";
+	//debugging
+	//cout << "NEWpos: " << position << "\nNEWvelo: " << velocity << "\n";
+	//cout << "(delta t = " << delta_time << ")\n";
 	
 	double turnaccel = get_turn_acceleration();
 	double add_turn_angle = turn_velocity * delta_time + turnaccel * t2_2;
 	orientation = quaternion::rot(add_turn_angle, 0, 0, 1) * orientation;
-	heading += angle(add_turn_angle);
+	// turning is handled in mathematical order (growing angles are ccw).
+	heading += angle(-add_turn_angle);
 	turn_velocity += turnaccel * delta_time;
 
-//cout << "object " << this << " orientat: " << orientation << " rot_velo: " << turn_velocity << " turn_accel " << turnaccel << "\n";
+	vector2 abo_dir = orientation.rotate(0, 1, 0).xy();
+	angle hdg_by_orient = angle(abo_dir);
 
+	//debugging
+	//cout << "object " << this << " orientat: " << orientation << " hdg " << heading.value() << " abo_dir " << abo_dir << " hdb2o " << hdg_by_orient.value() << "\n";
+	//cout << "object " << this << " orientat: " << orientation << " rot_velo: " << turn_velocity << " turn_accel " << turnaccel << "\n";
 }
 
 
