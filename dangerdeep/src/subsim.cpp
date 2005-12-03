@@ -1306,6 +1306,8 @@ int mymain(list<string>& args)
 	//mycfg.register_option("ocean_res_y", 128);
 	//mycfg.register_option("", );
 
+	// randomize
+	srand(time(0));
 
 	// make sure the default values are stored if there is no config file,
 	// and make sure all registered values are stored in it

@@ -97,7 +97,6 @@ int music::next_in_list()
 	if( shuffle ){
 		int r;
 		do{
-			srand((rand()%rand()));
 			r = rand()%playlist.size();
 		} while( r == pl_item );
 		return r;
