@@ -1118,7 +1118,7 @@ void submarine::launch_torpedo(int tubenr, sea_object* target)
 	if (true/*TDC.solution_valid()*/) {
 		angle fired_at_angle = usebowtubes ? heading : heading + angle(180);
 		angle torp_head_to = TDC.get_lead_angle() + TDC.get_additional_leadangle();
-		//cout << "firead at " << fired_at_angle.value() << "," << torp_head_to.value() << "," << torp_head_to.is_cw_nearer(fired_at_angle) << "\n";
+		//cout << "fired at " << fired_at_angle.value() << ", head to " << torp_head_to.value() << ", is cw nearer " << torp_head_to.is_cw_nearer(fired_at_angle) << "\n";
 		torpedoes[tubenr].torp->head_to_ang(torp_head_to, torp_head_to.is_cw_nearer(fired_at_angle));
 		// just hand the torpedo object over to class game. tube is empty after that...
 		vector3 torppos = position + (fired_at_angle.direction() * (get_length()/2 + 5 /*5m extra*/)).xy0();

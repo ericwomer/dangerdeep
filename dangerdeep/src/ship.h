@@ -33,8 +33,8 @@ public:
 	enum throttle_status { reversefull=-9, reversehalf=-8, reverse=-7, aheadlisten=-6, aheadsonar=-5, aheadslow=-4,
 		aheadhalf=-3, aheadfull=-2, aheadflank=-1, stop=0  };
 
-	enum rudder_status { rudderfullleft=-2, rudderleft, ruddermidships, rudderright,
-		rudderfullright };
+	enum rudder_status { rudderfullleft=-2, rudderleft=-1, ruddermidships=0, rudderright=1,
+		rudderfullright=2 };
 
 	// maximum trail record length
 	static const unsigned TRAIL_LENGTH = 60;
@@ -44,8 +44,13 @@ protected:
 
 	int throttle;		// if < 0: throttle_state, if > 0: knots
 
-	double rudder_pos;	// in degrees, do not use class angle here, we need explicit positive and negative values.
-	int rudder_to;		// symbolic pos (full left, left, mid, right, full right), fixme: should be angle too...
+	// in degrees, do not use class angle here, we need explicit positive and negative values.
+	// negative means rudder is left, so ship heads left.
+	double rudder_pos;
+	// symbolic pos (full left, left, mid, right, full right), fixme: should be angle too...
+	// or better part of full angle.
+	int rudder_to;
+
 	double max_rudder_angle;// maximum turn, e.g. 30 degr.
 	double max_rudder_turn_speed;
 	double max_angular_velocity;	// depends on turn rate.

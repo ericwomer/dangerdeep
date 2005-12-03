@@ -519,9 +519,9 @@ void ship::simulate(double delta_time)
 		double angledist = fabs((heading - head_to).value_pm180());
 
 		if (use_simple_turning_model()) {
-			// rudder left means rudder_pos < 0, so turn_velocity is < 0 and
-			// thus is clockwise (mathematical angle!).
-			turn_velocity = rudder_pos * max_angular_velocity / max_rudder_angle;
+			// rudder left means rudder_pos < 0, so turn_velocity is > 0 and
+			// thus is counter-clockwise (mathematical angle!).
+			turn_velocity = -rudder_pos * max_angular_velocity / max_rudder_angle;
 			if (angledist < 0.1) {
 				rudder_pos = 0;
 				rudder_to = ruddermidships;
@@ -629,9 +629,11 @@ void ship::fire_shell_at(const vector2& pos)
 void ship::head_to_ang(const angle& a, bool left_or_right)	// true == left
 {
 	head_to = a;
+	//cout << "head to ang: " << a.value() << " left? " << left_or_right << "\n";
 	//fixme: very crude... or use rudderleft/rudderright here (not full rudder?)
 	//not crude with steering logic somewhere else... in simulate
 	rudder_to = (left_or_right) ? rudderfullleft : rudderfullright;
+	//cout << "rudder_to=" << rudder_to << "\n";
 	head_to_fixed = true;
 }
 

@@ -328,6 +328,9 @@ void sea_object::simulate(double delta_time)
 	//fixme: use orientation here and compute heading from it, not vice versa!
 	quaternion horientation = quaternion::rot(-heading.value(), 0, 0, 1);
 
+//	cout << "hdg=" << heading.value() << " hori=" << horientation <<
+//		" orang=" << angle(horientation.rotate(0,1,0).xy()).value() << "\n";
+
 	// use compute_force(), compute_torque() here, with inertia tensor etc.
 
 	vector3 acceleration = get_acceleration();
@@ -336,15 +339,15 @@ void sea_object::simulate(double delta_time)
 	double t2_2 = 0.5 * delta_time * delta_time;
 
 	//debugging
-	//cout << "object " << this << " simulate.\npos: " << position << "\nvelo: " << velocity << "\naccel: " << acceleration << "\n";
-	//cout << "global velo " << global_velocity << " global acc " << global_acceleration << "\n";
+//	cout << "object " << this << " simulate.\npos: " << position << "\nvelo: " << velocity << "\naccel: " << acceleration << "\n";
+//	cout << "global velo " << global_velocity << " global acc " << global_acceleration << "\n";
 
 	position += global_velocity * delta_time + global_acceleration * t2_2;
 	velocity += acceleration * delta_time;
 
 	//debugging
-	//cout << "NEWpos: " << position << "\nNEWvelo: " << velocity << "\n";
-	//cout << "(delta t = " << delta_time << ")\n";
+//	cout << "NEWpos: " << position << "\nNEWvelo: " << velocity << "\n";
+//	cout << "(delta t = " << delta_time << ")\n";
 	
 	double turnaccel = get_turn_acceleration();
 	double add_turn_angle = turn_velocity * delta_time + turnaccel * t2_2;

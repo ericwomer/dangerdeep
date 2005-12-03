@@ -30,6 +30,8 @@ using namespace std;
 
 void map_display::draw_vessel_symbol(const vector2& offset, sea_object* so, color c) const
 {
+//	cout << "draw " << so << " hdg " << so->get_heading().value() << " ort " << so->get_orientation() << " orang " <<
+//		angle(so->get_orientation().rotate(0,1,0).xy()).value() << "\n";
 	vector2 d = so->get_heading().direction();
 	float w = so->get_width()*mapzoom/2, l = so->get_length()*mapzoom/2;
 	vector2 p = (so->get_pos().xy() + offset) * mapzoom;

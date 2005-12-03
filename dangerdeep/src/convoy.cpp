@@ -43,6 +43,7 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 		// speed? could be a slow or fast convoy (~4 or ~8 kts).
 		int throttle = 4 + rnd(2)*4;
 		velocity = heading.direction() * sea_object::kts2ms(throttle);
+		vector3 local_velocity = vector3(0, sea_object::kts2ms(throttle), 0);
 	
 		// compute size and structure of convoy
 		unsigned nrships = (2<<cvsize)*10+rnd(10)-5;
@@ -79,7 +80,7 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 				s->position.x = waypoints.begin()->x + pos.x;
 				s->position.y = waypoints.begin()->y + pos.y;
 				s->heading = s->head_to = heading;
-				s->velocity = velocity.xy0();
+				s->velocity = local_velocity;
 				s->throttle = throttle;
 				merchants.push_back(make_pair(s, pos));
 				++shps;
@@ -115,7 +116,7 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 			s->position.x = waypoints.begin()->x + pos.x;
 			s->position.y = waypoints.begin()->y + pos.y;
 			s->heading = s->head_to = heading;
-			s->velocity = velocity.xy0();
+			s->velocity = local_velocity;
 			s->throttle = throttle;
 			escorts.push_back(make_pair(s, pos));
 		}
@@ -238,6 +239,7 @@ void convoy::simulate(double delta_time)
 
 	// convoy erased?
 	if (merchants.size() + warships.size() + escorts.size() == 0) {
+		//fixme
 		//destroy();
 	}
 }

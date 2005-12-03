@@ -31,7 +31,7 @@ class convoy
 	class game& gm;
 	double remaining_time;	// time to next thought/situation analysis, fixme move to ai!
 	vector2 position;
-	vector2 velocity;
+	vector2 velocity;	// GLOBAL velocity
 	// alive_stat?
 
 	// create empty convoy for loading
