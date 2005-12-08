@@ -37,6 +37,7 @@
 #include "tinyxml/tinyxml.h"
 #include "keys.h"
 #include "music.h"
+#include "faulthandler.h"
 
 #include "mymain.cpp"
 
@@ -1210,6 +1211,9 @@ bool file_exists(const string& fn)
 
 int mymain(list<string>& args)
 {
+	// report critical errors (on Unix/Posix systems)
+	install_segfault_handler();
+
 	string highscoredirectory =
 #ifdef WIN32
 	"./highscores/";

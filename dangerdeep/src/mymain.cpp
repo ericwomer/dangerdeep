@@ -7,6 +7,7 @@
 // MacOSX: ? fixed with objective C code ?
 //
 
+#include "faulthandler.h"
 #include <list>
 #include <string>
 #include <exception>
@@ -22,10 +23,12 @@ int call_mymain(list<string>& args)
 	}
 	catch (std::exception& e) {
 		cerr << "Caught exception: " << e.what() << "\n";
+		print_stack_trace();
 		return -1;
 	}
 	catch (...) {
 		cerr << "Caught unknown exception!\n";
+		print_stack_trace();
 		return -2;
 	}
 }
