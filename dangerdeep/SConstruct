@@ -112,6 +112,7 @@ else:
 		osspecificsrc += ['water_sse.cpp']
 		print 'Using x86 SSE/MMX optimizations.'
 	env.Append(CCFLAGS = ccflags)
+	env.Append(LINKFLAGS = '-Xlinker --export-dynamic')
 	datadir = installdatadir
 	build_dir = 'linux'
 	# check for broken libGL, ignore undefined symbols then
