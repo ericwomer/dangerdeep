@@ -225,17 +225,18 @@ void sub_tdc_display::display(class game& gm) const
 		// this means angle of spread when firing multiple torpedoes... this has to be (re)defined
 		// the captain could fake additional lead angle by manipulating bearing etc.
 		// this should be done to compensate ship turning or zig-zagging
-		s.spread_ang_ptr.draw(TDC.get_additional_leadangle().value() * 180.0/20);
-		s.spread_ang_mkr.draw(15.0/*TDC.get_additional_leadangle().value()*/ * 180.0/20);	//fixme
+		s.spread_ang_ptr.draw(TDC.get_additional_leadangle().value()/20 * 180.0 - 90);
+		s.spread_ang_mkr.draw(15.0/*TDC.get_additional_leadangle().value()*/ /20 * 180.0 - 90);	//fixme
 
 		// fire solution quality
 		double quality = 0.333; // per cent, fixme, request from sub! depends on crew
-		s.firesolution->draw(80 + int(177*quality + 0.5), 418);
+		s.firesolution->draw(268 - int(187*quality + 0.5), 418);
 	
 		// parallax angle (fixme: why should the user set an angle? extra-correction here? is like
 		// additional lead angle...)
-		s.parallax_ptr.draw(15);//fixme
-		s.parallax_mkr.draw(-15);//fixme
+		// 6 pointer degrees for 1 real degree, marker - 90
+		s.parallax_ptr.draw(15 * 6);//fixme
+		s.parallax_mkr.draw(-15 * 6 - 90);//fixme
 
 		// torpedo run time
 		double t = TDC.get_torpedo_runtime();
@@ -246,7 +247,7 @@ void sub_tdc_display::display(class game& gm) const
 		s.target_pos.draw((TDC.get_bearing() - player->get_heading()).value());
 		
 		// target speed
-		s.target_speed.draw(15 + sea_object::ms2kts(TDC.get_target_speed()) * 30/5);
+		s.target_speed.draw(15 + sea_object::ms2kts(TDC.get_target_speed()) * 330.0/55);
 
 	} else {
 		const scheme_screen2& s = (is_day) ? daylight_scr2 : redlight_scr2;
