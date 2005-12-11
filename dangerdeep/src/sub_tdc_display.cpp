@@ -281,8 +281,14 @@ void sub_tdc_display::display(class game& gm) const
 		s.target_course_360.draw(tgtcourse);
 		s.target_course_10.draw(myfmod(tgtcourse, 10.0) * 36.0);
 
-		double tgtrange = std::min(TDC.get_target_distance(), 11000.0);	// clamp displayed value
-		s.target_range_ptr.draw(tgtrange * 360 / 12000 + 15);
+		// target range
+		double tgtrange = TDC.get_target_distance();
+		// clamp displayed value
+		if (tgtrange < 300) tgtrange = 300;
+		if (tgtrange > 11000) tgtrange = 11000;
+		// compute non-linear dial value
+		tgtrange = sqrt(12.61855670103 * tgtrange - 3685.567010309);
+		s.target_range_ptr.draw(tgtrange);
 		//fixme: get tgt range marker also... or store it in this screen class?
 		//hmm no the TDC needs to now user input, so store it there...
 
