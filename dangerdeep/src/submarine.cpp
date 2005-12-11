@@ -333,7 +333,10 @@ void submarine::transfer_torpedo(unsigned from, unsigned to)
 {
 	if (torpedoes[from].status == stored_torpedo::st_loaded &&
 			torpedoes[to].status == stored_torpedo::st_empty) {
+		if (torpedoes[to].torp != 0)
+			throw error("destination tube not empty, internal error");
 		torpedoes[to].torp = torpedoes[from].torp;
+		torpedoes[from].torp = 0;
 		torpedoes[from].status = stored_torpedo::st_unloading;
 		torpedoes[to].status = stored_torpedo::st_reloading;
 		torpedoes[from].associated = to;
@@ -455,7 +458,6 @@ void submarine::simulate(double delta_time)
 			if (st.remaining_time <= 0) {
 				if (st.status == stored_torpedo::st_reloading) {	// reloading
 					st.status = stored_torpedo::st_loaded;	// loading
-//					torpedoes[st.associated].type = torpedo::none;
 //					torpedoes[st.associated].status = stored_torpedo::st_empty;	// empty
 				} else {		// unloading
 					st.status = stored_torpedo::st_empty;	// empty
@@ -855,62 +857,6 @@ void submarine::dive_to_depth(unsigned meters)
 
 
 
-#if 0
-// mostly the same code as launch_torpedo. cut & paste is ugly, but sometimes unavoidable.
-bool submarine::can_torpedo_be_launched(int tubenr, sea_object* target, 
-					stored_torpedo::st_status &tube_status) const
-{
-	if (target == 0) return false;	// maybe assert this?
-	if (target == this) return false;  // maybe assert this?
-	
-	bool usebowtubes = false;
-
-	// if tubenr is < 0, choose a tube
-	if (tubenr < 0) {	// check if target is behind
-		angle a = angle(target->get_pos().xy() - get_pos().xy())
-			- get_heading(); // + trp_addleadangle; // angle setting is per tube!
-		usebowtubes = (a.ui_abs_value180() <= 90.0);
-		// search for a filled tube
-		pair<unsigned, unsigned> idx = usebowtubes ? get_bow_tube_indices() : get_stern_tube_indices();
-		for (unsigned i = idx.first; i < idx.second; ++i) {
-			if (torpedoes[i].status == stored_torpedo::st_loaded) {
-				tubenr = int(i);
-				break;
-			}
-		}
-		if (tubenr < 0) {
-			tube_status = stored_torpedo::st_empty;
-			return false;	// no torpedo found
-		}
-	} else {	// check if tube nr is bow or stern
-		unsigned tn = unsigned(tubenr);
-		pair<unsigned, unsigned> idx = get_bow_tube_indices();
-		if (tn >= idx.first && tn < idx.second) {
-			usebowtubes = true;
-		} else {
-			idx = get_stern_tube_indices();
-			if (tn < idx.first || tn >= idx.second)
-				return false;	// illegal tube nr.
-		}
-		
-		if (torpedoes[tubenr].status != stored_torpedo::st_loaded) {
-			tube_status = torpedoes[tubenr].status;
-			return false;
-		}
-	}
-
-	// check if torpedo can be fired with that tube, if yes, then fire it
-	pair<angle, bool> launchdata = torpedo::compute_launch_data(
-		torpedoes[tubenr].type, this, target, usebowtubes,
-		tubesettings[tubenr].addleadangle);	
-	
-	tube_status = torpedoes[tubenr].status;
-	return launchdata.second;
-}
-#endif
-
-
-
 double submarine::get_noise_factor () const
 {
 	double noisefac = 1.0f;
@@ -1115,7 +1061,7 @@ void submarine::launch_torpedo(int tubenr, sea_object* target)
 
 	//cout << "sol valid? " << TDC.solution_valid() << "\n";
 	//fixme
-	if (true/*TDC.solution_valid()*/) {
+	if (TDC.solution_valid()) {
 		angle fired_at_angle = usebowtubes ? heading : heading + angle(180);
 		angle torp_head_to = TDC.get_lead_angle() + TDC.get_additional_leadangle();
 		//cout << "fired at " << fired_at_angle.value() << ", head to " << torp_head_to.value() << ", is cw nearer " << torp_head_to.is_cw_nearer(fired_at_angle) << "\n";

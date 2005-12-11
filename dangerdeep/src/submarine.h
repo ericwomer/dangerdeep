@@ -305,12 +305,6 @@ public:
 	virtual double get_stern_deck_reload_time() const { return torp_transfer_times[3]; }
 	virtual double get_bow_stern_deck_transfer_time() const { return torp_transfer_times[4]; }
 	
-#if 0 // obsolete
-	// give tubenr -1 for any loaded tube, or else 0-5
-	virtual bool can_torpedo_be_launched(int tubenr, sea_object* target, 
-					     stored_torpedo::st_status &tube_status) const;
-#endif
-
 	// damage is added if dc damages sub.
 	virtual void depth_charge_explosion(const class depth_charge& dc);
     

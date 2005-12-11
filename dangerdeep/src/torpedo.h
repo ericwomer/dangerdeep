@@ -140,24 +140,6 @@ public:
 	// sets speed to initial speed, sets position
 	virtual void launch(const vector3& launchpos, angle parenthdg);
 
-#if 0 // obsolete!!!!!!!!!!
-	// compute gyro lead angle and expected run time of torpedo
-	// obsolete, done by TDC now
-	static pair<angle, bool> lead_angle(types torptype, double target_speed,
-		angle angle_on_the_bow);
-	static double expected_run_time(types torptype, angle lead_angle,
-	        angle angle_on_the_bow, double target_range);
-
-	// can torpedo gyroscope be adjusted to this target?
-	// note that parent is a ship, no sea_object. airplanes can also launch torpedoes
-	// but target computing would be done in a different way.
-	// fixme: this function assumes that torpedoes are launched from bow or stern
-	// what is not always right for ships.
-	// obsolete should be computed by TDC sim
-	static pair<angle, bool> compute_launch_data(types torptype, const ship* parent,
-		const sea_object* target, bool usebowtubes, const angle& manual_lead_angle);
-#endif
-
 	// depends on warhead, will change with newer damage simulation
 	virtual unsigned get_hit_points () const;
 

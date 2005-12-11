@@ -404,45 +404,6 @@ void torpedo::launch(const vector3& launchpos, angle parenthdg)
 
 
 
-#if 0 // obsolete!!!!!!!!!!!!!!!!!!!!!!!!
-pair<angle, bool> torpedo::lead_angle(torpedo::types torptype, double target_speed, angle angle_on_the_bow)
-{
-	double sla = target_speed*angle_on_the_bow.sin()/get_speed_by_type(torptype);
-	if (fabs(sla) >= 1.0) return make_pair(angle(), false);
-	return make_pair(angle::from_rad(asin(sla)), true);
-}
-
-double torpedo::expected_run_time(torpedo::types torptype, angle lead_angle,
-	angle angle_on_the_bow, double target_range)
-{
-	angle ang = angle(180) - angle_on_the_bow - lead_angle;
-	return (angle_on_the_bow.sin() * target_range) / (get_speed_by_type(torptype) * ang.sin());
-}
-
-pair<angle, bool> torpedo::compute_launch_data(torpedo::types torptype, const ship* parent,
-	const sea_object* target, bool usebowtubes, const angle& manual_lead_angle)
-{
-	pair<angle, double> br = parent->bearing_and_range_to(target);
-	angle ab = parent->estimate_angle_on_the_bow(br.first, target->get_heading());
-	pair<angle, bool> la = lead_angle(torptype, target->get_speed(), ab);
-	if (la.second) {
-		angle gyro_angle = br.first - parent->get_heading() + la.first +
-			manual_lead_angle;
-		angle headto = parent->get_heading() + gyro_angle;
-		double fga = fabs(gyro_angle.value_pm180());
-		if (usebowtubes) {
-			if (fga <= 90) {
-				return make_pair(headto, true);
-			}
-		} else {	// stern tubes
-			if (fga >= 90) {
-				return make_pair(headto, true);
-			}
-		}
-	}
-	return make_pair(0, false);
-}
-#endif
 
 #if 0
 //fixme beim laden mitbenutzen

@@ -10,34 +10,53 @@
 
 class sub_tdc_display : public user_display
 {
-	class scheme {
+	class scheme_screen1 {
 	public:
-		auto_ptr<image> background;
-		rotat_tex clockbig;
-		rotat_tex clocksml;
-		rotat_tex targetcourse;
-		rotat_tex targetrange;
-		rotat_tex targetspeed;
-		rotat_tex spreadangle;
-		rotat_tex targetpos;
-		// everything that does not rotate could also be an "image"...
-		// but only when this doesn't trash the image cache
-		texture::ptr tubelight[6];
-		texture::ptr tubeswitch[6];
-		texture::ptr firebutton;
-		texture::ptr automode[2];	// on/off
-		rotat_tex gyro360;
-		rotat_tex gyro10;
-		texture::ptr firesolutionquality;
-		rotat_tex torpspeed;
-		scheme() {}
+		std::auto_ptr<image> background;
+		rotat_tex aob_ptr;
+		rotat_tex aob_inner;
+		rotat_tex spread_ang_ptr;
+		rotat_tex spread_ang_mkr;
+		std::auto_ptr<texture> firesolution;
+		rotat_tex parallax_ptr;
+		rotat_tex parallax_mkr;
+		rotat_tex torptime_min;
+		rotat_tex torptime_sec;
+		rotat_tex torp_speed;
+		rotat_tex target_pos;
+		rotat_tex target_speed;
+		scheme_screen1() {}
 	protected:
-		scheme(const scheme& );
-		scheme& operator= (const scheme& );
+		scheme_screen1(const scheme_screen1& );
+		scheme_screen1& operator= (const scheme_screen1& );
 	};
 
-	scheme normallight, nightlight;
+	class scheme_screen2 {
+	public:
+		std::auto_ptr<image> background;
+		texture::ptr tubelight[6];
+		texture::ptr firebutton;
+		texture::ptr automode[2];	// on/off
+		rotat_tex gyro_360;
+		rotat_tex gyro_10;
+		rotat_tex brightness;	// fixme: do we need that?
+		rotat_tex target_course_360;
+		rotat_tex target_course_10;
+		// fixme add marker for course here (2x)
+		rotat_tex target_range_ptr;
+		rotat_tex target_range_mkr;
+		scheme_screen2() {}
+	protected:
+		scheme_screen2(const scheme_screen2& );
+		scheme_screen2& operator= (const scheme_screen2& );
+	};
 
+	bool show_screen1;	// true = 1, false = 2
+
+	scheme_screen1 daylight_scr1, redlight_scr1;
+	scheme_screen2 daylight_scr2, redlight_scr2;
+
+	// automatic: means user puts in values or crew - fixme to be defined...
 	unsigned selected_mode;	// 0-1 (automatic on / off)
 
 public:

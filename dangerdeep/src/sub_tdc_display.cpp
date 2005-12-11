@@ -13,62 +13,81 @@
 #include <sstream>
 using namespace std;
 
-static const int tubelightdx[6] = { 31,150,271,392,518,641};
-static const int tubelightdy[6] = {617,610,612,612,617,611};
-static const int tubelightnx[6] = { 34,154,276,396,521,647};
-static const int tubelightny[6] = {618,618,618,618,618,618};
-static const int tubeswitchx = 760, tubeswitchy = 492;
-static const int firebuttonx = 885, firebuttony = 354;
+static const vector2i tubelight[6] = {
+	vector2i( 81, 605),
+	vector2i(203, 605),
+	vector2i(324, 605),
+	vector2i(446, 605),
+	vector2i(569, 605),
+	vector2i(693, 605)
+};
+
+static const vector2i firebutton(68, 92);
+
+static const vector2i automode(900, 285);
 
 
 
-sub_tdc_display::sub_tdc_display(user_interface& ui_) : user_display(ui_)
+sub_tdc_display::sub_tdc_display(user_interface& ui_)
+	: user_display(ui_), show_screen1(true), selected_mode(0)
 {
-	selected_mode = 0;
+	daylight_scr1.background.reset(new image(get_image_dir() + "TDCScreen1_Daylight_Base_image.jpg|png"));
+	redlight_scr1.background.reset(new image(get_image_dir() + "TDCScreen1_Redlight_Base_image.jpg|png"));
+	daylight_scr2.background.reset(new image(get_image_dir() + "TDCScreen2_Daylight_base_image.jpg"));
+	redlight_scr2.background.reset(new image(get_image_dir() + "TDCScreen2_Redlight_base_image.jpg"));
 
-	normallight.background.reset(new image(get_image_dir() + "TDC_daylight_base.jpg|png"));
-	nightlight.background.reset(new image(get_image_dir() + "TDC_redlight_base.jpg|png"));
-
-	//fixme: recheck layer coords for clock,target*,spreadangle,torpspeed for redlight!
-	//fixme: what is with target position external pointer?
-	normallight.clockbig.set("TDC_daylight_clockbigptr.png", 921, 124, 930, 134);
-	nightlight.clockbig.set("TDC_redlight_clockbigptr.png", 922, 125, 930, 134);
-	normallight.clocksml.set("TDC_daylight_clocksmlptr.png", 926, 76, 929, 99);
-	nightlight.clocksml.set("TDC_redlight_clocksmlptr.png", 926, 77, 929, 99);
-	normallight.targetcourse.set("TDC_daylight_targetcourse.png", 567, 365, 585, 451);
-	nightlight.targetcourse.set("TDC_redlight_targetcourse.png", 567, 366, 585, 451);
-	normallight.targetrange.set("TDC_daylight_targetrange.png", 755, 231, 774, 317);
-	nightlight.targetrange.set("TDC_redlight_targetrange.png", 756, 230, 774, 317);
-	normallight.targetspeed.set("TDC_daylight_targetspeed.png", 568, 101, 586, 187);
-	nightlight.targetspeed.set("TDC_redlight_targetspeed.png", 567, 101, 586, 187);
-	normallight.spreadangle.set("TDC_daylight_spreadangle.png", 339, 102, 358, 188);
-	nightlight.spreadangle.set("TDC_redlight_spreadangle.png", 338, 102, 358, 188);
-	normallight.targetpos.set("TDC_daylight_targetposition.png", 102, 109, 128, 188);
-	nightlight.targetpos.set("TDC_redlight_targetposition.png", 103, 109, 128, 188);
-	normallight.gyro360.set("TDC_daylight_gyro360.png", 106, 365, 127, 451);
-	nightlight.gyro360.set("TDC_redlight_gyro360.png", 105, 365, 127, 451);
-	normallight.gyro10.set("TDC_daylight_gyro10.png", 323, 363, 345, 451);
-	nightlight.gyro10.set("TDC_redlight_gyro10.png", 323, 363, 345, 451);
-	normallight.torpspeed.set("TDC_daylight_torpspeed.png", 512, 116, 585, 188);
-	nightlight.torpspeed.set("TDC_redlight_torpspeed.png", 512, 116, 585, 188);
+	daylight_scr1.aob_ptr.set("TDCScreen1_Daylight_Lagenwinkel_pointer_rotating.png", 484, 426, 512, 551);
+	redlight_scr1.aob_ptr.set("TDCScreen1_Redlight_Lagenwinkel_pointer_rotating.png", 484, 426, 512, 551);
+	daylight_scr1.aob_inner.set("TDCScreen1_Daylight_AngleOnBow_innerdial_rotating.png", 417, 456, 512, 550);
+	redlight_scr1.aob_inner.set("TDCScreen1_Redlight_AngleOnBow_innerdial_rotating.png", 417, 456, 512, 550);
+	daylight_scr1.spread_ang_ptr.set("TDCScreen1_Daylight_Facherwinkel_pointer_rotating.png", 799, 502, 846, 527);
+	redlight_scr1.spread_ang_ptr.set("TDCScreen1_Redlight_Facherwinkel_pointer_rotating.png", 799, 502, 846, 527);
+	daylight_scr1.spread_ang_mkr.set("TDCScreen1_Daylight_Facherwinkel_usermarker_rotating.png", 950, 512, 846, 527);
+	redlight_scr1.spread_ang_mkr.set("TDCScreen1_Redlight_Facherwinkel_usermarker_rotating.png", 950, 512, 846, 527);
+	daylight_scr1.firesolution.reset(new texture(get_image_dir() + "TDCScreen1_Daylight_firesolution_slidingscale_pointer.png"));
+	redlight_scr1.firesolution.reset(new texture(get_image_dir() + "TDCScreen1_Redlight_firesolution_slidingscale_pointer.png"));
+	daylight_scr1.parallax_ptr.set("TDCScreen1_Daylight_parallaxwinkel_pointer_rotating.png", 820, 104, 846, 201);
+	redlight_scr1.parallax_ptr.set("TDCScreen1_Redlight_parallaxwinkel_pointer_rotating.png", 820, 104, 846, 201);
+	daylight_scr1.parallax_mkr.set("TDCScreen1_Daylight_parallaxwinkel_usermarker_rotating.png", 952, 186, 846, 201);
+	redlight_scr1.parallax_mkr.set("TDCScreen1_Redlight_parallaxwinkel_usermarker_rotating.png", 952, 186, 846, 201);
+	daylight_scr1.torptime_min.set("TDCScreen1_Daylight_TorpedoLaufzeit_pointer_minutes_rotating.png", 175, 484, 195, 563);
+	redlight_scr1.torptime_min.set("TDCScreen1_Redlight_TorpedoLaufzeit_pointer_minutes_rotating.png", 175, 484, 195, 563);
+	daylight_scr1.torptime_sec.set("TDCScreen1_Daylight_TorpedoLaufzeit_pointer_seconds_rotating.png", 170, 465, 195, 563);
+	redlight_scr1.torptime_sec.set("TDCScreen1_Redlight_TorpedoLaufzeit_pointer_seconds_rotating.png", 170, 465, 195, 563);
+	daylight_scr1.torp_speed.set("TDCScreen1_Daylight_TorpGeschwindigkeit_innerdial_rotating.png", 406, 83, 512, 187);
+	redlight_scr1.torp_speed.set("TDCScreen1_Redlight_TorpGeschwindigkeit_innerdial_rotating.png", 406, 83, 512, 187);
+	daylight_scr1.target_pos.set("TDCScreen1_Daylight_Zielposition_pointer_rotating.png", 158, 86, 183, 183);
+	redlight_scr1.target_pos.set("TDCScreen1_Redlight_Zielposition_pointer_rotating.png", 158, 86, 183, 183);
+	daylight_scr1.target_speed.set("TDCScreen1_Daylight_ZielTorpGeschwindigkeit_pointer_rotating.png", 484, 62, 511, 187);
+	redlight_scr1.target_speed.set("TDCScreen1_Redlight_ZielTorpGeschwindigkeit_pointer_rotating.png", 484, 62, 511, 187);
 
 	for (unsigned i = 0; i < 6; ++i) {
 		ostringstream osn;
 		osn << (i+1);
-		normallight.tubelight[i] = texture::ptr(new texture(get_image_dir() + "TDC_daylight_tube" + osn.str() + ".png"));
-		nightlight.tubelight[i] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_tube" + osn.str() + ".png"));
-		normallight.tubeswitch[i] = texture::ptr(new texture(get_image_dir() + "TDC_daylight_switchtube" + osn.str() + ".png"));
-		nightlight.tubeswitch[i] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_switchtube" + osn.str() + ".png"));
+		daylight_scr2.tubelight[i].reset(new texture(get_image_dir() + "TDCScreen2_Daylight_tube" + osn.str() + "_on.png"));
+		redlight_scr2.tubelight[i].reset(new texture(get_image_dir() + "TDCScreen2_Redlight_tube" + osn.str() + "_on.png"));
 	}
 
-	normallight.firebutton = texture::ptr(new texture(get_image_dir() + "TDC_daylight_firebutton.png"));
-	nightlight.firebutton = texture::ptr(new texture(get_image_dir() + "TDC_redlight_firebutton.png"));
-	normallight.automode[0] = texture::ptr(new texture(get_image_dir() + "TDC_daylight_autoswitchon.png"));
-	nightlight.automode[0] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_autoswitchon.png"));
-	normallight.automode[1] = texture::ptr(new texture(get_image_dir() + "TDC_daylight_autoswitchoff.png"));
-	nightlight.automode[1] = texture::ptr(new texture(get_image_dir() + "TDC_redlight_autoswitchoff.png"));
-	normallight.firesolutionquality = texture::ptr(new texture(get_image_dir() + "TDC_daylight_firesolutionquality.png"));
-	nightlight.firesolutionquality = texture::ptr(new texture(get_image_dir() + "TDC_redlight_firesolutionquality.png"));
+	daylight_scr2.firebutton.reset(new texture(get_image_dir() + "TDCScreen2_Daylight_FireButton_ON.png"));
+	redlight_scr2.firebutton.reset(new texture(get_image_dir() + "TDCScreen2_Redlight_FireButton_ON.png"));
+	daylight_scr2.automode[0].reset(new texture(get_image_dir() + "TDCScreen2_Daylight_AutoManualKnob_automode.png"));
+	redlight_scr2.automode[0].reset(new texture(get_image_dir() + "TDCScreen2_Redlight_AutoManualKnob_automode.png"));
+	daylight_scr2.automode[1].reset(new texture(get_image_dir() + "TDCScreen2_Daylight_AutoManualKnob_manualmode.png"));
+	redlight_scr2.automode[1].reset(new texture(get_image_dir() + "TDCScreen2_Redlight_AutoManualKnob_manualmode.png"));
+	daylight_scr2.gyro_360.set("TDCScreen2_Daylight_HGyro_pointer_main_rotating.png", 383, 406, 431, 455);
+	redlight_scr2.gyro_360.set("TDCScreen2_Redlight_HGyro_pointer_main_rotating.png", 383, 406, 431, 455);
+	daylight_scr2.gyro_10.set("TDCScreen2_Daylight_HGyro_pointer_refinement_rotating.png", 188, 378, 212, 455);
+	redlight_scr2.gyro_10.set("TDCScreen2_Redlight_HGyro_pointer_refinement_rotating.png", 188, 378, 212, 455);
+	daylight_scr2.brightness.set("TDCScreen2_Daylight_Brightness_dial_pointer_rotating.png", 897, 478, 911, 526);
+	redlight_scr2.brightness.set("TDCScreen2_Redlight_Brightness_dial_pointer_rotating.png", 897, 478, 911, 526);
+	daylight_scr2.target_course_360.set("TDCScreen2_Daylight_VGyro_pointer_main_rotating.png", 695, 373, 721, 453);
+	redlight_scr2.target_course_360.set("TDCScreen2_Redlight_VGyro_pointer_main_rotating.png", 695, 373, 721, 453);
+	daylight_scr2.target_course_10.set("TDCScreen2_Daylight_VGyro_pointer_refinement_rotating.png", 696, 152, 721, 233);
+	redlight_scr2.target_course_10.set("TDCScreen2_Redlight_VGyro_pointer_refinement_rotating.png", 696, 152, 721, 233);
+	daylight_scr2.target_range_ptr.set("TDCScreen2_Daylight_Zielentfernung_pointer_rotating.png", 317, 98, 341, 194);
+	redlight_scr2.target_range_ptr.set("TDCScreen2_Redlight_Zielentfernung_pointer_rotating.png", 317, 98, 341, 194);
+	daylight_scr2.target_range_mkr.set("TDCScreen2_Daylight_Zielentfernung_user_marker_rotating.png", 325, 295, 341, 194);
+	redlight_scr2.target_range_mkr.set("TDCScreen2_Redlight_Zielentfernung_user_marker_rotating.png", 325, 295, 341, 194);
 }
 
 
@@ -77,12 +96,16 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 {
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 	bool is_day = gm.is_day_mode();
-	const int* tubelightx = (is_day) ? tubelightdx : tubelightnx;
-	const int* tubelighty = (is_day) ? tubelightdy : tubelightny;
-	const scheme& s = (is_day) ? normallight : nightlight;
 	int mx, my;
 	submarine_interface& si = dynamic_cast<submarine_interface&>(ui);
 
+	if (show_screen1) {
+		const scheme_screen1& s = (is_day) ? daylight_scr1 : redlight_scr1;
+	} else {
+		const scheme_screen2& s = (is_day) ? daylight_scr2 : redlight_scr2;
+	}
+
+#if 0
 	switch (event.type) {
 	case SDL_MOUSEBUTTONDOWN:
 		{
@@ -151,6 +174,7 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 	default:
 		break;
 	}
+#endif
 
 /*
 	switch (event.type) {
@@ -159,6 +183,12 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 	default: break;
 	}
 */
+
+	if (event.type == SDL_KEYDOWN) {
+		if (cfg::instance().getkey(KEY_TOGGLE_POPUP).equal(event.key.keysym)) {
+			show_screen1 = !show_screen1;
+		}
+	}
 }
 
 
@@ -167,75 +197,97 @@ void sub_tdc_display::display(class game& gm) const
 {
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 
-	// test: clear background, later this is not necessary, fixme
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT);
-
 	sys().prepare_2d_drawing();
 	glColor3f(1,1,1);
 
 	// determine time of day
 	bool is_day = gm.is_day_mode();
-	const int* tubelightx = (is_day) ? tubelightdx : tubelightnx;
-	const int* tubelighty = (is_day) ? tubelightdy : tubelightny;
-	const scheme& s = (is_day) ? normallight : nightlight;
 
-	// draw background pointers/dials: firesolutionquality
-	float quality = 0.333f; // per cent, fixme, request from sub! depends on crew
-	s.firesolutionquality->draw(926, 50+int(288*quality+0.5f));
-
-	// get TDC data for display
 	const tdc& TDC = player->get_tdc();
 
-	// draw torpedo speed dial (15deg = 0, 5knots = 30deg)
-	// torpedo speed (depends on selected tube!), but TDC is already set accordingly
-	s.torpspeed.draw(sea_object::ms2kts(TDC.get_torpedo_speed()) * 330/55 + 15);
+	if (show_screen1) {
+		const scheme_screen1& s = (is_day) ? daylight_scr1 : redlight_scr1;
 
-	// draw background
-	s.background->draw(0, 0);
+		// draw torpedo speed dial (15deg = 0, 5knots = 30deg)
+		// torpedo speed (depends on selected tube!), but TDC is already set accordingly
+		s.torp_speed.draw(sea_object::ms2kts(TDC.get_torpedo_speed()) * 330.0/55 + 15);
 
-	// draw gyro pointers
-	angle leadangle = TDC.get_lead_angle();
-	s.gyro360.draw(leadangle.value());
-	s.gyro10.draw(myfmod(leadangle.value(), 10.0) * 36.0);
+		// angle on the bow finer value, note use real fmod here...
+		s.aob_inner.draw(fmod(TDC.get_angle_on_the_bow().value_pm180(), 10.0) * -36.0);
 
-	// clock (torpedo run time)
-	double t = TDC.get_torpedo_runtime();
-	double hourang = 360.0*myfrac(t / (86400/2)); // fixme: maybe use as seconds indicator
-	double minuteang = 360*myfrac(t / 3600);
-	s.clocksml.draw(hourang);
-	s.clockbig.draw(minuteang);
+		// background
+		s.background->draw(0, 0);
 
-	// target values (influenced by quality!)
-	// get pointer to target and values, fixme!!! replace by requests of tdc and not selected target!!!
-	double tgtcourse = TDC.get_target_course().value();
-	double tgtbearing = (TDC.get_bearing() - player->get_heading()).value();
-	double tgtrange = std::min(TDC.get_target_distance(), 11000.0);	// clamp displayed value
-	double tgtspeed = sea_object::ms2kts(TDC.get_target_speed());
-	s.targetcourse.draw(tgtcourse);
-	s.targetpos.draw(tgtbearing);
-	s.targetrange.draw(tgtrange * 360 / 12000 + 15);
-	s.targetspeed.draw(15+tgtspeed*30/5);
+		// angle on the bow coarse value
+		s.aob_ptr.draw(TDC.get_angle_on_the_bow().value_pm180());
 
-	// spread angle
-	s.spreadangle.draw(TDC.get_additional_leadangle().value());
+		// spread angle, fixme: add. lead angle is not right...
+		// this means angle of spread when firing multiple torpedoes... this has to be (re)defined
+		// the captain could fake additional lead angle by manipulating bearing etc.
+		// this should be done to compensate ship turning or zig-zagging
+		s.spread_ang_ptr.draw(TDC.get_additional_leadangle().value() * 180.0/20);
+		s.spread_ang_mkr.draw(15.0/*TDC.get_additional_leadangle().value()*/ * 180.0/20);	//fixme
 
-	// draw tubes if ready
-	for (unsigned i = 0; i < 6; ++i) {
-		if (player->is_tube_ready(i)) {
-			s.tubelight[i]->draw(tubelightx[i], tubelighty[i]);
+		// fire solution quality
+		double quality = 0.333; // per cent, fixme, request from sub! depends on crew
+		s.firesolution->draw(80 + int(177*quality + 0.5), 418);
+	
+		// parallax angle (fixme: why should the user set an angle? extra-correction here? is like
+		// additional lead angle...)
+		s.parallax_ptr.draw(15);//fixme
+		s.parallax_mkr.draw(-15);//fixme
+
+		// torpedo run time
+		double t = TDC.get_torpedo_runtime();
+		s.torptime_sec.draw(myfmod(t, 60) * 6);
+		s.torptime_min.draw(myfmod(t, 3600) * 0.1);
+
+		// target bearing (influenced by quality!)
+		s.target_pos.draw((TDC.get_bearing() - player->get_heading()).value());
+		
+		// target speed
+		s.target_speed.draw(15 + sea_object::ms2kts(TDC.get_target_speed()) * 30/5);
+
+	} else {
+		const scheme_screen2& s = (is_day) ? daylight_scr2 : redlight_scr2;
+
+		// background
+		s.background->draw(0, 0);
+
+		// draw tubes if ready
+		for (unsigned i = 0; i < 6; ++i) {
+			if (player->is_tube_ready(i)) {
+				s.tubelight[i]->draw(tubelight[i].x, tubelight[i].y);
+			}
 		}
-	}
 
-	// tube turn switch
-	unsigned selected_tube = dynamic_cast<const submarine_interface&>(ui).get_selected_tube();
-	s.tubeswitch[selected_tube]->draw(tubeswitchx, tubeswitchy);
-	if (player->is_tube_ready(selected_tube) && TDC.solution_valid()) {
-		s.firebutton->draw(firebuttonx, firebuttony);
-	}
+		// fire button
+		unsigned selected_tube = dynamic_cast<const submarine_interface&>(ui).get_selected_tube();
+		if (player->is_tube_ready(selected_tube) && TDC.solution_valid()) {
+			s.firebutton->draw(firebutton.x, firebutton.y);
+		}
 
-	// automatic fire solution on / off switch
-	s.automode[selected_mode]->draw(713, 93);
+		// automatic fire solution on / off switch
+		s.automode[selected_mode]->draw(automode.x, automode.y);
+
+		// draw gyro pointers
+		angle leadangle = TDC.get_lead_angle();
+		s.gyro_360.draw(leadangle.value());
+		s.gyro_10.draw(myfmod(leadangle.value(), 10.0) * 36.0);
+
+		// target values (influenced by quality!)
+		double tgtcourse = TDC.get_target_course().value();
+		s.target_course_360.draw(tgtcourse);
+		s.target_course_10.draw(myfmod(tgtcourse, 10.0) * 36.0);
+
+		double tgtrange = std::min(TDC.get_target_distance(), 11000.0);	// clamp displayed value
+		s.target_range_ptr.draw(tgtrange * 360 / 12000 + 15);
+		//fixme: get tgt range marker also... or store it in this screen class?
+		//hmm no the TDC needs to now user input, so store it there...
+
+		// fixme: show some sensible value
+		s.brightness.draw(45);
+	}
 
 	sys().unprepare_2d_drawing();
 }

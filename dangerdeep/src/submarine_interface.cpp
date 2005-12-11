@@ -87,6 +87,8 @@ void submarine_interface::fire_tube(submarine* player, int nr)
 		submarine::stored_torpedo::st_status tube_status = submarine::stored_torpedo::st_empty;		
 		
 		// fixme: ask TDC!
+		// depends on direction of target and wether we have bow/stern tube and wether the
+		// tube is not empty!
 		if (true /*player->can_torpedo_be_launched(nr, target, tube_status)*/) {
 			add_message(texts::get(49));
 			ostringstream oss;
