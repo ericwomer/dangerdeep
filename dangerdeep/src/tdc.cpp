@@ -12,6 +12,7 @@ tdc::tdc()
 	  torpedo_speed(0),
 	  torpedo_runlength(0),
 	  torpedo_runtime(0),
+	  compute_stern_tube(false),
 	  valid_solution(false)
 {
 }
@@ -36,6 +37,7 @@ void tdc::load(const xml_elem& parent)
 	additional_leadangle = angle(t.attrf("additional_leadangle"));
 	lead_angle = angle(t.attrf("lead_angle"));
 	torpedo_runtime = t.attrf("torpedo_runtime");
+	compute_stern_tube = t.attrb("compute_stern_tube");
 	valid_solution = t.attrb("valid_solution");
 }
 
@@ -59,6 +61,7 @@ void tdc::save(xml_elem& parent) const
 	t.set_attr(additional_leadangle.value(), "additional_leadangle");
 	t.set_attr(lead_angle.value(), "lead_angle");
 	t.set_attr(torpedo_runtime, "torpedo_runtime");
+	t.set_attr(compute_stern_tube, "compute_stern_tube");
 	t.set_attr(valid_solution, "valid_solution");
 }
 
@@ -115,16 +118,24 @@ void tdc::simulate(double delta_t)
 		// 95m for radius of turn (a smaller relative lead angle would mean a smaller
 		// radius... was this handled in reality??)
 		double c = 37 + 9.5 + 95;
+		// fixme: if we fire a stern tube, use heading+180 in this formula
+		// check that this is right...
 		angle gamma = lead_angle - heading;
+		if (compute_stern_tube)
+			gamma += angle(180);
 		double bowdist = sqrt(trd*trd + c*c - 2*trd*c*gamma.cos());
 		parallaxangle = angle::from_rad(asin(gamma.sin() * c / bowdist));
-/*
-		cout << "tgt dist " << target_distance << " trd " << trd << " c " << c << " bowdist " << bowdist
-		     << " parang " << parallaxangle.value_pm180() << " sinrell" << sinrelleadangle
-		     << " relll " << relative_lead_angle.value_pm180()
-		     << " relll2 " << parallax_corrected_lead_angle.value_pm180()
-		     << " tau " << tau.value() << "\n";
-*/
+#if 0
+		cout << "tgtdist=" << target_distance
+		     << " trprunl=" << trd
+		     << " c=" << c
+		     << " gamma=" << gamma.value_pm180()
+		     << " trprunlc=" << bowdist
+		     << " parang=" << parallaxangle.value_pm180()
+		     << " stern=" << compute_stern_tube
+		     << " bowleft=" << target_bow_is_left
+		     << "\n";
+#endif
 	}
 }
 

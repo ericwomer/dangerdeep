@@ -40,6 +40,7 @@ protected:
 	// results / internal data
 	angle lead_angle;		// fire solution, absolute angle, not relative to course
 	double torpedo_runtime;		// time that the torpedo runs before impact
+	bool compute_stern_tube;	// computation is done for stern tube
 	bool valid_solution;		// only true when fire solution is valid
 
 	void compute_aob(angle br);	// compute and set AoB from target course and bearing br
@@ -60,6 +61,7 @@ public:
 	void set_target_course(angle tc);	// sets (initial) angle on the bow
 	void set_heading(angle hd);
 	void update_heading(angle hd);
+	void compute_for_stern_tube(bool stern) { compute_stern_tube = stern; }
 	void set_additional_leadangle(angle ala);
 
 	bool solution_valid() const { return valid_solution; }
