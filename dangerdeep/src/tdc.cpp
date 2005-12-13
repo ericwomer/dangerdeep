@@ -117,9 +117,7 @@ void tdc::simulate(double delta_t)
 		double c = 37 + 9.5 + 95;
 		angle gamma = lead_angle - heading;
 		double bowdist = sqrt(trd*trd + c*c - 2*trd*c*gamma.cos());
-		angle tau = angle::from_rad(asin(gamma.sin() * c / bowdist));
-		angle parallax_corrected_lead_angle = heading + gamma + tau;
-		parallaxangle = parallax_corrected_lead_angle - lead_angle;
+		parallaxangle = angle::from_rad(asin(gamma.sin() * c / bowdist));
 /*
 		cout << "tgt dist " << target_distance << " trd " << trd << " c " << c << " bowdist " << bowdist
 		     << " parang " << parallaxangle.value_pm180() << " sinrell" << sinrelleadangle
