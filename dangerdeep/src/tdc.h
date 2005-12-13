@@ -35,6 +35,7 @@ protected:
 	angle bearing_dial;		// dial angle, the dial follows the real value with only 2.5deg/sec
 	angle heading;			// heading of sub, update this to make the bearing tracker work
 	angle additional_leadangle;	// set by the crew, compensation for turning or for spread fire
+	angle parallaxangle;		// additional angle to compensate sub length and torpedo turning
 
 	// results / internal data
 	angle lead_angle;		// fire solution, absolute angle, not relative to course
@@ -71,6 +72,7 @@ public:
 	double get_torpedo_speed() const { return torpedo_speed; }
 	double get_torpedo_runtime() const { return torpedo_runtime; }
 	angle get_additional_leadangle() const { return additional_leadangle; }
+	angle get_parallax_angle() const { return parallaxangle; }
 };
 
 #endif

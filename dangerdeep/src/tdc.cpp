@@ -90,7 +90,11 @@ void tdc::simulate(double delta_t)
 	// technology wouldn't have done that either)
 	valid_solution = false;
 	if (fabs(sinrelleadangle) <= 1.0) {
-		angle relative_lead_angle = asin(sinrelleadangle);
+		// angle is relative to absolute bearing
+		// note! should the angle be > 90 degrees, result is wrong,
+		// because asin gives -90...90 degrees. This could happen only when
+		// target is super fast or very near.
+		angle relative_lead_angle = angle::from_rad(asin(sinrelleadangle));
 		if (target_bow_is_left) {
 			lead_angle = bearing_dial - relative_lead_angle + additional_leadangle;
 		} else {
@@ -103,6 +107,26 @@ void tdc::simulate(double delta_t)
 		if (torpedo_speed * torpedo_runtime <= torpedo_runlength) {
 			valid_solution = true;
 		}
+		// compute parallax angle (additional angle to lead angle)
+		// compute distance from bow (fixme: also from stern!) to impact
+		double trd = torpedo_speed * torpedo_runtime;
+		// distance center of boat to bow, crude guess
+		// 37m center -> bow, 9.5m of straight running of torpedo
+		// 95m for radius of turn (a smaller relative lead angle would mean a smaller
+		// radius... was this handled in reality??)
+		double c = 37 + 9.5 + 95;
+		angle gamma = lead_angle - heading;
+		double bowdist = sqrt(trd*trd + c*c - 2*trd*c*gamma.cos());
+		angle tau = angle::from_rad(asin(gamma.sin() * c / bowdist));
+		angle parallax_corrected_lead_angle = heading + gamma + tau;
+		parallaxangle = parallax_corrected_lead_angle - lead_angle;
+/*
+		cout << "tgt dist " << target_distance << " trd " << trd << " c " << c << " bowdist " << bowdist
+		     << " parang " << parallaxangle.value_pm180() << " sinrell" << sinrelleadangle
+		     << " relll " << relative_lead_angle.value_pm180()
+		     << " relll2 " << parallax_corrected_lead_angle.value_pm180()
+		     << " tau " << tau.value() << "\n";
+*/
 	}
 }
 

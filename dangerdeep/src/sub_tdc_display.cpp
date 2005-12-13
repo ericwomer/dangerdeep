@@ -235,7 +235,7 @@ void sub_tdc_display::display(class game& gm) const
 		// parallax angle (fixme: why should the user set an angle? extra-correction here? is like
 		// additional lead angle...)
 		// 6 pointer degrees for 1 real degree, marker - 90
-		s.parallax_ptr.draw(15 * 6);//fixme
+		s.parallax_ptr.draw(TDC.get_parallax_angle().value_pm180() * 6);//fixme: clamp
 		s.parallax_mkr.draw(-15 * 6 - 90);//fixme
 
 		// torpedo run time
