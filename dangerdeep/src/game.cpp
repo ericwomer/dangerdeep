@@ -544,6 +544,8 @@ void game::save(const string& savefilename, const string& description) const
 
 	xml_elem gst = sg.add_child("state");
 	gst.set_attr(time, "time");
+	// save current date as reference for human readers.
+	date(unsigned(time)).save(gst);
 	gst.set_attr(last_trail_time, "last_trail_time");
 	xml_elem equ = gst.add_child("equipment_date");
 	equipment_date.save(equ);

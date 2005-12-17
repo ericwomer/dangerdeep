@@ -13,20 +13,14 @@
 #include <sstream>
 using namespace std;
 
-static const vector2i tubelight[6] = {
-	vector2i( 81, 605),
-	vector2i(203, 605),
-	vector2i(324, 605),
-	vector2i(446, 605),
-	vector2i(569, 605),
-	vector2i(693, 605)
+static const int tubelightcoordx[6] = {
+	 81,
+	203,
+	324,
+	446,
+	569,
+	693,
 };
-
-static const vector2i firebutton(68, 92);
-
-static const vector2i automode(900, 285);
-
-
 
 sub_tdc_display::sub_tdc_display(user_interface& ui_)
 	: user_display(ui_), show_screen1(true), selected_mode(0)
@@ -64,16 +58,16 @@ sub_tdc_display::sub_tdc_display(user_interface& ui_)
 	for (unsigned i = 0; i < 6; ++i) {
 		ostringstream osn;
 		osn << (i+1);
-		daylight_scr2.tubelight[i].reset(new texture(get_image_dir() + "TDCScreen2_Daylight_tube" + osn.str() + "_on.png"));
-		redlight_scr2.tubelight[i].reset(new texture(get_image_dir() + "TDCScreen2_Redlight_tube" + osn.str() + "_on.png"));
+		daylight_scr2.tubelight[i].set("TDCScreen2_Daylight_tube" + osn.str() + "_on.png", tubelightcoordx[i], 605);
+		redlight_scr2.tubelight[i].set("TDCScreen2_Redlight_tube" + osn.str() + "_on.png", tubelightcoordx[i], 605);
 	}
 
-	daylight_scr2.firebutton.reset(new texture(get_image_dir() + "TDCScreen2_Daylight_FireButton_ON.png"));
-	redlight_scr2.firebutton.reset(new texture(get_image_dir() + "TDCScreen2_Redlight_FireButton_ON.png"));
-	daylight_scr2.automode[0].reset(new texture(get_image_dir() + "TDCScreen2_Daylight_AutoManualKnob_automode.png"));
-	redlight_scr2.automode[0].reset(new texture(get_image_dir() + "TDCScreen2_Redlight_AutoManualKnob_automode.png"));
-	daylight_scr2.automode[1].reset(new texture(get_image_dir() + "TDCScreen2_Daylight_AutoManualKnob_manualmode.png"));
-	redlight_scr2.automode[1].reset(new texture(get_image_dir() + "TDCScreen2_Redlight_AutoManualKnob_manualmode.png"));
+	daylight_scr2.firebutton.set("TDCScreen2_Daylight_FireButton_ON.png", 68, 92);
+	redlight_scr2.firebutton.set("TDCScreen2_Redlight_FireButton_ON.png", 68, 92);
+	daylight_scr2.automode[0].set("TDCScreen2_Daylight_AutoManualKnob_automode.png", 900, 285);
+	redlight_scr2.automode[0].set("TDCScreen2_Redlight_AutoManualKnob_automode.png", 900, 285);
+	daylight_scr2.automode[1].set("TDCScreen2_Daylight_AutoManualKnob_manualmode.png", 900, 285);
+	redlight_scr2.automode[1].set("TDCScreen2_Redlight_AutoManualKnob_manualmode.png", 900, 285);
 	daylight_scr2.gyro_360.set("TDCScreen2_Daylight_HGyro_pointer_main_rotating.png", 383, 406, 431, 455);
 	redlight_scr2.gyro_360.set("TDCScreen2_Redlight_HGyro_pointer_main_rotating.png", 383, 406, 431, 455);
 	daylight_scr2.gyro_10.set("TDCScreen2_Daylight_HGyro_pointer_refinement_rotating.png", 188, 378, 212, 455);
@@ -103,78 +97,29 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 		const scheme_screen1& s = (is_day) ? daylight_scr1 : redlight_scr1;
 	} else {
 		const scheme_screen2& s = (is_day) ? daylight_scr2 : redlight_scr2;
-	}
 
-#if 0
-	switch (event.type) {
-	case SDL_MOUSEBUTTONDOWN:
-		{
-			mx = event.button.x;
-			my = event.button.y;
-			// check if mouse is over tube indicators
-			unsigned nrtubes = sub->get_nr_of_bow_tubes() + sub->get_nr_of_stern_tubes();
-			for (unsigned i = 0; i < nrtubes; ++i) {
-				if (mx >= tubelightx[i] && my >= tubelighty[i] &&
-				    mx < tubelightx[i] + int(s.tubelight[i]->get_width()) &&
-				    my < tubelighty[i] + int(s.tubelight[i]->get_height())) {
-					si.select_tube(i);
+		switch (event.type) {
+		case SDL_MOUSEBUTTONDOWN:
+			{
+				mx = event.button.x;
+				my = event.button.y;
+				// check if mouse is over tube indicators
+				unsigned nrtubes = sub->get_nr_of_bow_tubes() + sub->get_nr_of_stern_tubes();
+				for (unsigned i = 0; i < nrtubes; ++i) {
+					if (s.tubelight[i].is_mouse_over(mx, my)) {
+						si.select_tube(i);
+					}
+				}
+				// fire button
+				if (s.firebutton.is_mouse_over(mx, my)) {
+					si.fire_tube(sub, si.get_selected_tube());
 				}
 			}
-			// tube selector turnknob
-			if (mx >= tubeswitchx && my >= tubeswitchy &&
-			    mx < tubeswitchx + int(s.tubeswitch[0]->get_width()) &&
-			    my < tubeswitchy + int(s.tubeswitch[0]->get_height())) {
-				// fixme: better make angle switch?
-				unsigned tn = (6 * (mx - tubeswitchx)) / s.tubeswitch[0]->get_width();
-				if (tn < nrtubes)
-					si.select_tube(tn);
-			}
-			// fire button
-			if (mx >= firebuttonx && my >= firebuttony &&
-			    mx < firebuttonx + int(s.firebutton->get_width()) &&
-			    my < firebuttony + int(s.firebutton->get_height())) {
-				si.fire_tube(sub, si.get_selected_tube());
-			}
-
-			/*
-			//if mouse is over control c, compute angle a, set matching command, fixme
-			if (indicators[compass].is_over(mx, my)) {
-			angle mang = angle(180)-indicators[compass].get_angle(mx, my);
-			sub->head_to_ang(mang, mang.is_cw_nearer(sub->get_heading()));
-			} else if (indicators[depth].is_over(mx, my)) {
-			angle mang = angle(-39) - indicators[depth].get_angle(mx, my);
-			if (mang.value() < 270) {
-			sub->dive_to_depth(unsigned(mang.value()));
-			}
-			} else if (indicators[mt].is_over(mx, my)) {
-			unsigned opt = (indicators[mt].get_angle(mx, my) - angle(210)).value() / 20;
-			if (opt >= 15) opt = 14;
-			switch (opt) {
-			case 0: sub->set_throttle(ship::aheadflank); break;
-			case 1: sub->set_throttle(ship::aheadfull); break;
-			case 2: sub->set_throttle(ship::aheadhalf); break;
-			case 3: sub->set_throttle(ship::aheadslow); break;
-			case 4: sub->set_throttle(ship::aheadlisten); break;
-			case 7: sub->set_throttle(ship::stop); break;
-			case 11: sub->set_throttle(ship::reverse); break;//fixme: various reverse speeds!
-			case 12: sub->set_throttle(ship::reverse); break;
-			case 13: sub->set_throttle(ship::reverse); break;
-			case 14: sub->set_throttle(ship::reverse); break;
-			case 5: // diesel engines
-			case 6: // attention
-			case 8: // electric engines
-			case 9: // surface
-			case 10:// dive
 			break;
-			}
-			}
-			*/
+		default:
 			break;
 		}
-	default:
-		break;
 	}
-#endif
 
 /*
 	switch (event.type) {
@@ -258,18 +203,18 @@ void sub_tdc_display::display(class game& gm) const
 		// draw tubes if ready
 		for (unsigned i = 0; i < 6; ++i) {
 			if (player->is_tube_ready(i)) {
-				s.tubelight[i]->draw(tubelight[i].x, tubelight[i].y);
+				s.tubelight[i].draw();
 			}
 		}
 
 		// fire button
 		unsigned selected_tube = dynamic_cast<const submarine_interface&>(ui).get_selected_tube();
 		if (player->is_tube_ready(selected_tube) && TDC.solution_valid()) {
-			s.firebutton->draw(firebutton.x, firebutton.y);
+			s.firebutton.draw();
 		}
 
 		// automatic fire solution on / off switch
-		s.automode[selected_mode]->draw(automode.x, automode.y);
+		s.automode[selected_mode].draw();
 
 		// draw gyro pointers
 		angle leadangle = TDC.get_lead_angle();

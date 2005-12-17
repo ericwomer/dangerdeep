@@ -42,7 +42,7 @@ protected:
 			centerx = centerx_;
 			centery = centery_;
 		}
-		void set(const char* filename, int left_, int top_, int centerx_, int centery_) {
+		void set(const std::string& filename, int left_, int top_, int centerx_, int centery_) {
 			set(new texture(get_image_dir() + filename), left_, top_, centerx_, centery_);
 		}
 		bool is_mouse_over(int mx, int my) const {
@@ -53,6 +53,32 @@ protected:
 	protected:
 		rotat_tex(const rotat_tex& );
 		rotat_tex& operator= (const rotat_tex& );
+	};
+
+	class fix_tex {
+	public:
+		fix_tex() : left(0), top(0) {}
+		std::auto_ptr<texture> tex;
+		int left, top;
+		void draw() const {
+			tex->draw(left, top);
+		}
+		void set(texture* tex_, int left_, int top_) {
+			tex.reset(tex_);
+			left = left_;
+			top = top_;
+		}
+		void set(const std::string& filename, int left_, int top_) {
+			set(new texture(get_image_dir() + filename), left_, top_);
+		}
+		bool is_mouse_over(int mx, int my) const {
+			return (mx >= left && my >= top
+				&& mx < left + int(tex->get_width())
+				&& my < top + int(tex->get_height()));
+		}
+	protected:
+		fix_tex(const fix_tex& );
+		fix_tex& operator= (const fix_tex& );
 	};
 
 public:

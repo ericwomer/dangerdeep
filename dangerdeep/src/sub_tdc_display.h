@@ -34,9 +34,10 @@ class sub_tdc_display : public user_display
 	class scheme_screen2 {
 	public:
 		std::auto_ptr<image> background;
-		texture::ptr tubelight[6];
-		texture::ptr firebutton;
-		texture::ptr automode[2];	// on/off
+		// fixme: replace texture::ptr by fix_tex in all display classes where it makes sense
+		fix_tex tubelight[6];
+		fix_tex firebutton;
+		fix_tex automode[2];	// on/off
 		rotat_tex gyro_360;
 		rotat_tex gyro_10;
 		rotat_tex brightness;	// fixme: do we need that?
