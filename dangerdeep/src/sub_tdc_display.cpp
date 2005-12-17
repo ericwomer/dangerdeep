@@ -23,7 +23,7 @@ static const int tubelightcoordx[6] = {
 };
 
 sub_tdc_display::sub_tdc_display(user_interface& ui_)
-	: user_display(ui_), show_screen1(true), selected_mode(0)
+	: user_display(ui_), show_screen1(true)
 {
 	daylight_scr1.background.reset(new image(get_image_dir() + "TDCScreen1_Daylight_Base_image.jpg|png"));
 	redlight_scr1.background.reset(new image(get_image_dir() + "TDCScreen1_Redlight_Base_image.jpg|png"));
@@ -114,6 +114,7 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 					if (usera > 25) usera = 25;
 					TDC.set_additional_parallaxangle(usera);
 				}
+
 			}
 			break;
 		case SDL_MOUSEMOTION:
@@ -153,9 +154,15 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 						si.select_tube(i);
 					}
 				}
+
 				// fire button
 				if (s.firebutton.is_mouse_over(mx, my)) {
 					si.fire_tube(sub, si.get_selected_tube());
+				}
+
+				// auto mode
+				else if (s.automode[0].is_mouse_over(mx, my)) {
+					TDC.set_auto_mode(!TDC.auto_mode_enabled());
 				}
 			}
 			break;
@@ -261,7 +268,7 @@ void sub_tdc_display::display(class game& gm) const
 		}
 
 		// automatic fire solution on / off switch
-		s.automode[selected_mode].draw();
+		s.automode[TDC.auto_mode_enabled() ? 0 : 1].draw();
 
 		// draw gyro pointers
 		angle leadangle = TDC.get_lead_angle();

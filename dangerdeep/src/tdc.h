@@ -18,6 +18,7 @@ protected:
 	// tracker switches
 	bool bearing_tracking;		// enable bearing tracker
 	bool angleonthebow_tracking;	// enable AoB tracker
+	bool auto_mode;			// is true when TDC is in automatic mode, this means the crew feds the TDC, otherwise the user.
 
 	// data about the target
 	double target_speed;		// m/s
@@ -63,6 +64,7 @@ public:
 	void update_heading(angle hd);
 	void compute_for_stern_tube(bool stern) { compute_stern_tube = stern; }
 	void set_additional_parallaxangle(angle ala);
+	void set_auto_mode(bool enabled) { auto_mode = enabled; }
 
 	bool solution_valid() const { return valid_solution; }
 	angle get_lead_angle() const { return lead_angle; }
@@ -75,6 +77,7 @@ public:
 	double get_torpedo_runtime() const { return torpedo_runtime; }
 	angle get_additional_parallaxangle() const { return additional_parallaxangle; }
 	angle get_parallax_angle() const { return parallaxangle + additional_parallaxangle; }
+	bool auto_mode_enabled() const { return auto_mode; }
 };
 
 #endif

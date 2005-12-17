@@ -446,7 +446,9 @@ void submarine::simulate(double delta_time)
 	if (target) {
 		// fixme: limit update of bearing to each 5-30 secs or so,
 		// quality depends on duration of observance and quality of crew!
-		TDC.set_bearing(angle(target->get_pos().xy() - get_pos().xy()));
+		if (TDC.auto_mode_enabled()) {
+			TDC.set_bearing(angle(target->get_pos().xy() - get_pos().xy()));
+		}
 	}
 		
 	// torpedo transfer
@@ -502,10 +504,13 @@ void submarine::set_target(sea_object* s)
 	TDC.set_torpedo_data(kts2ms(30), 7500);	// fixme!!!!
 	// the values below should be modified by quality of guessed target data
 	// well trained crews guess better and/or faster
-	TDC.set_target_speed(target->get_speed());
-	TDC.set_target_distance(target->get_pos().xy().distance(get_pos().xy()));
-	TDC.set_bearing(angle(target->get_pos().xy() - get_pos().xy()));
-	TDC.set_target_course(target->get_heading());
+	if (TDC.auto_mode_enabled()) {
+		TDC.set_target_speed(target->get_speed());
+		TDC.set_target_distance(target->get_pos().xy().distance(get_pos().xy()));
+		TDC.set_bearing(angle(target->get_pos().xy() - get_pos().xy()));
+		TDC.set_target_course(target->get_heading());
+	}
+	// this value is always fetched automatically to the TDC
 	TDC.set_heading(get_heading());
 }
 

@@ -6,6 +6,7 @@
 tdc::tdc()
 	: bearing_tracking(true),
 	  angleonthebow_tracking(true),
+	  auto_mode(true),
 	  target_speed(0),
 	  target_distance(0),
 	  target_bow_is_left(true),
@@ -24,6 +25,7 @@ void tdc::load(const xml_elem& parent)
 	xml_elem t = parent.child("TDC");
 	bearing_tracking = t.attrb("bearing_tracking");
 	angleonthebow_tracking = t.attrb("angleonthebow_tracking");
+	auto_mode = t.attrb("auto_mode");
 	target_speed = t.attrf("target_speed");
 	target_distance = t.attrf("target_distance");
 	target_course = angle(t.attrf("target_course"));
@@ -49,6 +51,7 @@ void tdc::save(xml_elem& parent) const
 	xml_elem t = parent.add_child("TDC");
 	t.set_attr(bearing_tracking, "bearing_tracking");
 	t.set_attr(angleonthebow_tracking, "angleonthebow_tracking");
+	t.set_attr(auto_mode, "auto_mode");
 	t.set_attr(target_speed, "target_speed");
 	t.set_attr(target_distance, "target_distance");
 	t.set_attr(target_course.value(), "target_course");
