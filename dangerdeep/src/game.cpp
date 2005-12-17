@@ -260,6 +260,15 @@ game::game(const string& filename)
 //	if (v != SAVEVERSION)
 //		throw error("invalid game version");
 
+
+	// load state first, because time is stored there and we need time/date for checks
+	// while loading the rest.
+	xml_elem gst = sg.child("state");
+	time = gst.attrf("time");
+	last_trail_time = gst.attrf("last_trail_time");
+	equipment_date.load(gst.child("equipment_date"));
+	max_view_dist = gst.attrf("max_view_dist");
+
 	// create empty objects so references can be filled.
 	// there must be ships in a mission...
 	xml_elem sh = sg.child("ships");
@@ -346,35 +355,35 @@ game::game(const string& filename)
 
 	if (airplanes.size() > 0) {
 		k = 0;
-		for (xml_elem::iterator it = sh.child("airplanes").iterate("airplane"); !it.end(); it.next(), ++k) {
+		for (xml_elem::iterator it = sg.child("airplanes").iterate("airplane"); !it.end(); it.next(), ++k) {
 			airplanes[k]->load(it.elem());
 		}
 	}
 
 	if (torpedoes.size() > 0) {
 		k = 0;
-		for (xml_elem::iterator it = sh.child("torpedoes").iterate("torpedo"); !it.end(); it.next(), ++k) {
+		for (xml_elem::iterator it = sg.child("torpedoes").iterate("torpedo"); !it.end(); it.next(), ++k) {
 			torpedoes[k]->load(it.elem());
 		}
 	}
 
 	if (depth_charges.size() > 0) {
 		k = 0;
-		for (xml_elem::iterator it = sh.child("depth_charges").iterate("depth_charge"); !it.end(); it.next(), ++k) {
+		for (xml_elem::iterator it = sg.child("depth_charges").iterate("depth_charge"); !it.end(); it.next(), ++k) {
 			depth_charges[k]->load(it.elem());
 		}
 	}
 
 	if (gun_shells.size() > 0) {
 		k = 0;
-		for (xml_elem::iterator it = sh.child("gun_shells").iterate("gun_shell"); !it.end(); it.next(), ++k) {
+		for (xml_elem::iterator it = sg.child("gun_shells").iterate("gun_shell"); !it.end(); it.next(), ++k) {
 			gun_shells[k]->load(it.elem());
 		}
 	}
 
 	if (convoys.size() > 0) {
 		k = 0;
-		for (xml_elem::iterator it = sh.child("convoys").iterate("convoy"); !it.end(); it.next(), ++k) {
+		for (xml_elem::iterator it = sg.child("convoys").iterate("convoy"); !it.end(); it.next(), ++k) {
 			convoys[k]->load(it.elem());
 		}
 	}
@@ -382,7 +391,7 @@ game::game(const string& filename)
 #if 0
 	if (particles.size() > 0) {
 		k = 0;
-		for (xml_elem::iterator it = sh.child("particles").iterate("particle"); !it.end(); it.next(), ++k) {
+		for (xml_elem::iterator it = sg.child("particles").iterate("particle"); !it.end(); it.next(), ++k) {
 			particles[k]->load(it.elem());
 		}
 	}
@@ -405,12 +414,6 @@ game::game(const string& filename)
 
 	//fixme save and load logbook
 
-	xml_elem gst = sg.child("state");
-	time = gst.attrf("time");
-	last_trail_time = gst.attrf("last_trail_time");
-	equipment_date.load(gst.child("equipment_date"));
-	max_view_dist = gst.attrf("max_view_dist");
-	
 	xml_elem pgs = sg.child("pings");
 	for (xml_elem::iterator it = pgs.iterate("ping"); !it.end(); it.next()) {
 		pings.push_back(ping(it.elem()));
