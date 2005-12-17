@@ -34,7 +34,8 @@ void tdc::load(const xml_elem& parent)
 	bearing = angle(t.attrf("bearing"));
 	bearing_dial = angle(t.attrf("bearing_dial"));
 	heading = angle(t.attrf("heading"));
-	additional_leadangle = angle(t.attrf("additional_leadangle"));
+	parallaxangle = angle(t.attrf("parallaxangle"));
+	additional_parallaxangle = angle(t.attrf("additional_parallaxangle"));
 	lead_angle = angle(t.attrf("lead_angle"));
 	torpedo_runtime = t.attrf("torpedo_runtime");
 	compute_stern_tube = t.attrb("compute_stern_tube");
@@ -58,7 +59,8 @@ void tdc::save(xml_elem& parent) const
 	t.set_attr(bearing.value(), "bearing");
 	t.set_attr(bearing_dial.value(), "bearing_dial");
 	t.set_attr(heading.value(), "heading");
-	t.set_attr(additional_leadangle.value(), "additional_leadangle");
+	t.set_attr(parallaxangle.value(), "parallaxangle");
+	t.set_attr(additional_parallaxangle.value(), "additional_parallaxangle");
 	t.set_attr(lead_angle.value(), "lead_angle");
 	t.set_attr(torpedo_runtime, "torpedo_runtime");
 	t.set_attr(compute_stern_tube, "compute_stern_tube");
@@ -99,9 +101,9 @@ void tdc::simulate(double delta_t)
 		// target is super fast or very near.
 		angle relative_lead_angle = angle::from_rad(asin(sinrelleadangle));
 		if (target_bow_is_left) {
-			lead_angle = bearing_dial - relative_lead_angle + additional_leadangle;
+			lead_angle = bearing_dial - relative_lead_angle;
 		} else {
-			lead_angle = bearing_dial + relative_lead_angle + additional_leadangle;
+			lead_angle = bearing_dial + relative_lead_angle;
 		}
 		// compute run time from target distance
 		angle aob_on_hit = angle(180) - angleonthebow - relative_lead_angle;
@@ -229,9 +231,9 @@ void tdc::update_heading(angle hd)
 
 
 
-void tdc::set_additional_leadangle(angle ala)
+void tdc::set_additional_parallaxangle(angle ala)
 {
-	additional_leadangle = ala;
+	additional_parallaxangle = ala;
 }
 
 

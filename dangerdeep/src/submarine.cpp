@@ -507,7 +507,6 @@ void submarine::set_target(sea_object* s)
 	TDC.set_bearing(angle(target->get_pos().xy() - get_pos().xy()));
 	TDC.set_target_course(target->get_heading());
 	TDC.set_heading(get_heading());
-	//TDC.set_additional_leadangle();
 }
 
 
@@ -1063,8 +1062,7 @@ void submarine::launch_torpedo(int tubenr, sea_object* target)
 	//fixme
 	if (TDC.solution_valid()) {
 		angle fired_at_angle = usebowtubes ? heading : heading + angle(180);
-		angle torp_head_to = TDC.get_lead_angle() + TDC.get_additional_leadangle()
-			+ TDC.get_parallax_angle();
+		angle torp_head_to = TDC.get_lead_angle() + TDC.get_parallax_angle();
 		//cout << "fired at " << fired_at_angle.value() << ", head to " << torp_head_to.value() << ", is cw nearer " << torp_head_to.is_cw_nearer(fired_at_angle) << "\n";
 		torpedoes[tubenr].torp->head_to_ang(torp_head_to, torp_head_to.is_cw_nearer(fired_at_angle));
 		// just hand the torpedo object over to class game. tube is empty after that...

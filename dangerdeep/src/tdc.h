@@ -34,8 +34,8 @@ protected:
 	angle bearing;			// initially set by crew, updated by tracker, absolute angle
 	angle bearing_dial;		// dial angle, the dial follows the real value with only 2.5deg/sec
 	angle heading;			// heading of sub, update this to make the bearing tracker work
-	angle additional_leadangle;	// set by the crew, compensation for turning or for spread fire
 	angle parallaxangle;		// additional angle to compensate sub length and torpedo turning
+	angle additional_parallaxangle;	// extra angle, is added to tdc computed parallax angle.
 
 	// results / internal data
 	angle lead_angle;		// fire solution, absolute angle, not relative to course
@@ -62,7 +62,7 @@ public:
 	void set_heading(angle hd);
 	void update_heading(angle hd);
 	void compute_for_stern_tube(bool stern) { compute_stern_tube = stern; }
-	void set_additional_leadangle(angle ala);
+	void set_additional_parallaxangle(angle ala);
 
 	bool solution_valid() const { return valid_solution; }
 	angle get_lead_angle() const { return lead_angle; }
@@ -73,8 +73,8 @@ public:
 	double get_target_speed() const { return target_speed; }
 	double get_torpedo_speed() const { return torpedo_speed; }
 	double get_torpedo_runtime() const { return torpedo_runtime; }
-	angle get_additional_leadangle() const { return additional_leadangle; }
-	angle get_parallax_angle() const { return parallaxangle; }
+	angle get_additional_parallaxangle() const { return additional_parallaxangle; }
+	angle get_parallax_angle() const { return parallaxangle + additional_parallaxangle; }
 };
 
 #endif
