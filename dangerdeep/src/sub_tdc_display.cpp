@@ -116,6 +116,24 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 				}
 			}
 			break;
+		case SDL_MOUSEMOTION:
+			if (event.motion.state & SDL_BUTTON_LMASK) {
+				mx = event.button.x;
+				my = event.button.y;
+				// check if mouse is over parallax display, fixme: same code as above, group it!
+				int parasz = s.parallax_ptr.centery - s.parallax_ptr.top + 20;
+				if (mx >= s.parallax_ptr.centerx - parasz
+				    && mx <= s.parallax_ptr.centerx + parasz
+				    && my >= s.parallax_ptr.centery - parasz
+				    && my <= s.parallax_ptr.centery + parasz) {
+					angle userang(vector2(mx - s.parallax_ptr.centerx, -my + s.parallax_ptr.centery));
+					double usera = userang.value_pm180() / 6;
+					if (usera < -25) usera = -25;
+					if (usera > 25) usera = 25;
+					TDC.set_additional_parallaxangle(usera);
+				}
+			}
+			break;
 		default:
 			break;
 		}
