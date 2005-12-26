@@ -58,11 +58,18 @@ void model::render_init()
 			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB, get_shader_dir() + "modelrender_fp.shader" , defines);
 		default_vertex_programs[VFP_COLOR_NORMAL] =
 			texture::create_shader(GL_VERTEX_PROGRAM_ARB, get_shader_dir() + "modelrender_vp.shader" , defines);
+		// with specular
 		defines.push_back("USE_SPECULARMAP");
 		default_fragment_programs[VFP_COLOR_NORMAL_SPECULAR] =
 			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB, get_shader_dir() + "modelrender_fp.shader" , defines);
 		default_vertex_programs[VFP_COLOR_NORMAL_SPECULAR] =
 			texture::create_shader(GL_VERTEX_PROGRAM_ARB, get_shader_dir() + "modelrender_vp.shader" , defines);
+		// for mirror clip
+		defines.clear();
+		default_fragment_programs[VFP_MIRROR_CLIP] =
+			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB, get_shader_dir() + "modelrender_mirrorclip_fp.shader" , defines);
+		default_vertex_programs[VFP_MIRROR_CLIP] =
+			texture::create_shader(GL_VERTEX_PROGRAM_ARB, get_shader_dir() + "modelrender_mirrorclip_vp.shader" , defines);
 		sys().add_console("Using OpenGL vertex and fragment programs...");
 	}
 }
@@ -159,12 +166,16 @@ void model::compute_bounds()
 	}
 }
 
+
+
 void model::compute_normals()
 {
 	for (vector<model::mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
 		(*it)->compute_normals();
 	}
 }
+
+
 
 void model::mesh::compute_bounds()
 {
@@ -176,6 +187,8 @@ void model::mesh::compute_bounds()
 		max = it2->max(max);
 	}
 }
+
+
 
 void model::mesh::compute_normals()
 {
@@ -242,6 +255,8 @@ void model::mesh::compute_normals()
 		}
 	}
 }
+
+
 
 bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 {
@@ -672,9 +687,37 @@ void model::material::set_gl_values() const
 	}
 }
 
+
+
+void model::material::set_gl_values_mirror_clip() const
+{
+	if (!use_shaders) return;
+
+	glActiveTexture(GL_TEXTURE0);
+	glEnable(GL_VERTEX_PROGRAM_ARB);
+	glEnable(GL_FRAGMENT_PROGRAM_ARB);
+	glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_programs[VFP_MIRROR_CLIP]);
+	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_programs[VFP_MIRROR_CLIP]);
+	if (colormap.get() && colormap->mytexture.get()) {
+		// plain texture mapping with diffuse lighting only, but with shaders
+		glColor4f(1, 1, 1, 1);
+		glActiveTexture(GL_TEXTURE0);
+		colormap->mytexture->set_gl_texture();
+		colormap->setup_glmatrix();
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	}
+	glMatrixMode(GL_MODELVIEW);
+}
+
+
+
 void model::mesh::display(bool use_display_list) const
 {
 	glPushMatrix();
+	//fixme: with mirror clip this must not be multiplied to transformation matrix
 	transformation.multiply_glf();
 
 	if (display_list != 0 && use_display_list) {
@@ -821,6 +864,90 @@ void model::mesh::display(bool use_display_list) const
 	glPopMatrix();
 }
 
+
+
+void model::mesh::display_mirror_clip() const
+{
+	if (!use_shaders) return;
+
+	// this should display the mesh with an additional world space z=0 clip plane.
+	// the model needs no fancy effects like specular lighting or bump mapping.
+	// so plain diffuse texture mapping is enough. We just need texture
+	// coordinates and per vertex normals. This can be displayed with
+	// plain OpenGL. But we need shaders for clipping.
+	// set simple shaders here, no matter which material we have...
+
+	/*
+	if (display_list != 0 && use_display_list) {
+		glCallList(display_list);
+		//glPopMatrix();
+		return;
+	}
+	*/
+
+	bool has_texture_u0 = false;
+	if (mymaterial != 0) {
+		if (mymaterial->colormap.get() && mymaterial->colormap->mytexture.get())
+			has_texture_u0 = true;
+		// fixme: check for mirror
+		mymaterial->set_gl_values_mirror_clip();
+	} else {
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glColor3f(0.5,0.5,0.5);
+		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_programs[VFP_MIRROR_CLIP]);
+		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_programs[VFP_MIRROR_CLIP]);
+	}
+
+	// multiply extra transformation to texture[1] matrix
+	glActiveTexture(GL_TEXTURE1);
+	glMatrixMode(GL_TEXTURE);
+	transformation.multiply_glf();
+	glMatrixMode(GL_MODELVIEW);
+	glActiveTexture(GL_TEXTURE0);
+
+	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
+	glEnableClientState(GL_VERTEX_ARRAY);
+
+	// basic lighting, we need normals
+	glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0]);	
+	glEnableClientState(GL_NORMAL_ARRAY);
+
+	// without pixel shaders texture coordinates must be set for both texture units and are the same.
+	glClientActiveTexture(GL_TEXTURE0);
+	if (has_texture_u0 && texcoords.size() == vertices.size()) {
+		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	} else {
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	}
+
+	// and finally draw the mesh.
+	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, &indices[0]);
+
+	// cleanup
+	if (use_shaders) {
+		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
+		glDisable(GL_FRAGMENT_PROGRAM_ARB);
+		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, 0);
+		glDisable(GL_VERTEX_PROGRAM_ARB);
+		glActiveTexture(GL_TEXTURE2);
+		glDisable(GL_TEXTURE_2D);
+		glActiveTexture(GL_TEXTURE0);
+	}
+	glEnable(GL_LIGHTING);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex1
+	glClientActiveTexture(GL_TEXTURE0);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	//glPopMatrix();
+}
+
+
+
 void model::display() const
 {
 	for (vector<model::mesh*>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
@@ -841,6 +968,31 @@ void model::display() const
 	glColor4f(1,1,1,1);
 	glMatrixMode(GL_MODELVIEW);
 }
+
+
+
+void model::display_mirror_clip() const
+{
+	for (vector<model::mesh*>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
+		(*it)->display_mirror_clip();
+	}
+
+	// reset texture units
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	glColor4f(1,1,1,1);
+	glMatrixMode(GL_MODELVIEW);
+}
+
+
 
 model::mesh& model::get_mesh(unsigned nr)
 {

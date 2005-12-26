@@ -50,6 +50,7 @@ public:
 		material(const std::string& nm = "Unnamed material");
 		void init();
 		void set_gl_values() const;
+		void set_gl_values_mirror_clip() const;
 	};
 	
 	class mesh {
@@ -72,6 +73,7 @@ public:
 		GLuint display_list;		// OpenGL display list for the mesh
 
 		void display(bool use_display_list = true) const; // used only when list is available.
+		void display_mirror_clip() const;
 		void compute_bounds();	
 		void compute_normals();
 		bool compute_tangentx(unsigned i0, unsigned i1, unsigned i2);
@@ -126,6 +128,7 @@ protected:
 	enum shader_programs {
 		VFP_COLOR_NORMAL_SPECULAR,
 		VFP_COLOR_NORMAL,
+		VFP_MIRROR_CLIP,
 		NR_VFP,
 	}; // more variants later.
 
@@ -190,6 +193,10 @@ public:
 	model(const std::string& filename, bool use_material = true);
 	~model();
 	void display() const;
+	// display model but clip away coords with z < 0 in world space.
+	// set up modelview matrix with world->eye transformation before calling this function
+	// and give additional object->world transformation as matrix of texture unit #1 (2nd. unit).
+	void display_mirror_clip() const;
 	mesh& get_mesh(unsigned nr);
 	const mesh& get_mesh(unsigned nr) const;
 	material& get_material(unsigned nr);

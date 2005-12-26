@@ -38,7 +38,7 @@ protected:
 	virtual void draw_objects(class game& gm, const vector3& viewpos,
 				  const vector<ship*>& ships,
 				  const vector<submarine*>& submarines,
-				  const vector<torpedo*>& torpedoes) const;
+				  const vector<torpedo*>& torpedoes, bool mirrorclip = false) const;
 
 	// draw the whole view
 	virtual void draw_view(class game& gm, const vector3& viewpos) const;

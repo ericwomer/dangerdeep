@@ -208,6 +208,7 @@ public:
 	virtual vector2 get_engine_noise_source () const;
 
 	virtual void display() const;
+	virtual void display_mirror_clip() const;
 	double get_bounding_radius() const { return size3d.x+size3d.y; }	// fixme: could be computed more exact
 
 	virtual sensor* get_sensor ( sensor_system ss );

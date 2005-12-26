@@ -152,7 +152,7 @@ void freeview_display::process_input(class game& gm, const SDL_Event& event)
 void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 				    const vector<ship*>& ships,
 				    const vector<submarine*>& submarines,
-				    const vector<torpedo*>& torpedoes) const
+				    const vector<torpedo*>& torpedoes, bool mirrorclip) const
 {
 	// simulate horizon: d is distance to object (on perimeter of earth)
 	// z is additional height (negative!), r is earth radius
@@ -167,32 +167,63 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 		if (aboard && *it == player) continue;
 		glPushMatrix();
 		// fixme: z translate according to water height here
-		vector3 pos = (*it)->get_pos() - viewpos;
-//		pos.z += EARTH_RADIUS * (sin(M_PI/2 - pos.xy().length()/EARTH_RADIUS) - 1.0);
-		glTranslated(pos.x, pos.y, pos.z);
+		if (mirrorclip) {
+			vector3 pos = (*it)->get_pos();
+			glTranslated(pos.x - viewpos.x, pos.y - viewpos.y, -viewpos.z);
+			glActiveTexture(GL_TEXTURE1);
+			glMatrixMode(GL_TEXTURE);
+			glLoadIdentity();
+			glTranslated(0, 0, pos.z);
+		} else {
+			vector3 pos = (*it)->get_pos() - viewpos;
+			//pos.z += EARTH_RADIUS * (sin(M_PI/2 - pos.xy().length()/EARTH_RADIUS) - 1.0);
+			glTranslated(pos.x, pos.y, pos.z);
+		}
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 		ui.rotate_by_pos_and_wave((*it)->get_pos(), (*it)->get_heading(),
 					  (*it)->get_length(), (*it)->get_width(),
 					  (*it)->get_roll_factor());
-		(*it)->display();
-
-		glPopMatrix();
+		if (mirrorclip) {
+			glActiveTexture(GL_TEXTURE0);
+			glMatrixMode(GL_MODELVIEW);
+			(*it)->display_mirror_clip();
+			glPopMatrix();
+		} else {
+			(*it)->display();
+			glPopMatrix();
+		}
 	}
 
 	for (vector<submarine*>::const_iterator it = submarines.begin(); it != submarines.end(); ++it) {
 		if (aboard && *it == player) continue;
 		glPushMatrix();
 		// fixme: z translate according to water height here
-		vector3 pos = (*it)->get_pos() - viewpos;
-		glTranslated(pos.x, pos.y, pos.z);
+		if (mirrorclip) {
+			vector3 pos = (*it)->get_pos();
+			glTranslated(pos.x - viewpos.x, pos.y - viewpos.y, -viewpos.z);
+			glActiveTexture(GL_TEXTURE1);
+			glMatrixMode(GL_TEXTURE);
+			glLoadIdentity();
+			glTranslated(0, 0, pos.z);
+		} else {
+			vector3 pos = (*it)->get_pos() - viewpos;
+			glTranslated(pos.x, pos.y, pos.z);
+		}
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 		if ((*it)->get_pos().z > -15) {
 			ui.rotate_by_pos_and_wave((*it)->get_pos(), (*it)->get_heading(),
 						  (*it)->get_length(), (*it)->get_width(),
 						  (*it)->get_roll_factor());
 		}
-		(*it)->display();
-		glPopMatrix();
+		if (mirrorclip) {
+			glActiveTexture(GL_TEXTURE0);
+			glMatrixMode(GL_MODELVIEW);
+			(*it)->display_mirror_clip();
+			glPopMatrix();
+		} else {
+			(*it)->display();
+			glPopMatrix();
+		}
 	}
 
 	vector<airplane*> airplanes = gm.visible_airplanes(player);
@@ -277,6 +308,15 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, ldiffuse);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, ldiffuse);
 
+	// ************************* compute visible surface objects *******************
+
+	// compute visble ships/subs, needed for draw_objects and amount of foam computation
+	//fixme: the lookout sensor must give all ships seens around, not cull away ships
+	//out of the frustum, or their foam is lost as well, even it would be visible...
+	vector<ship*> ships = gm.visible_ships(player);
+	vector<submarine*> submarines = gm.visible_submarines(player);
+	vector<torpedo*> torpedoes = gm.visible_torpedoes(player);
+
 	// ********************* draw mirrored scene
 	
 	// ************ compute water reflection ******************************************
@@ -306,7 +346,13 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// shear one clip plane to match world space z=0 plane
-	//fixme, use shaders for that, Clip planes are often computes in software and are too slow
+	//fixme, use shaders for that, Clip planes are often computed in software and are too slow
+	//the question is how they interfere with shaders?
+	//yes they are damn slow.
+	//give height of object (pos.z) to shader, it then clips at -z.
+	//no, instead compute plane to clip to and clip in shader.
+	//either clip to arbitrary plane (z=0 water plane in world space is not z=0 in eye space)
+	//or transform object space to world space, then clip at z=0 and then transform to eye space.
 
 	{
 		matrix_pusher mp(GL_MODELVIEW);
@@ -330,6 +376,30 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		ui.draw_terrain(viewpos_mirror, ui.get_absolute_bearing(), max_view_dist);
 		//fixme
 		//   models/smoke
+		// test hack. limit mirror effect only to near objects?
+		// the drawn water is nearly a flat plane in the distance so mirroring
+		// would be perfect which is highly unrealistic.
+		// so remove entries that are too far away. Torpedoes can't be seen
+		// so they don't need to get rendered.
+		vector<ship*> ships_mirror;
+		vector<submarine*> submarines_mirror;
+		vector<torpedo*> torpedoes_mirror; // empty
+		ships_mirror.reserve(ships.size());
+		submarines_mirror.reserve(submarines.size());
+		const double MIRROR_DIST = 1000.0;	// 1km or so...
+		for (vector<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
+			if ((*it)->get_pos().xy().square_distance(viewpos.xy()) < MIRROR_DIST*MIRROR_DIST) {
+				ships_mirror.push_back(*it);
+			}
+		}
+		for (vector<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
+			if ((*it)->get_pos().xy().square_distance(viewpos.xy()) < MIRROR_DIST*MIRROR_DIST) {
+				submarines_mirror.push_back(*it);
+			}
+		}
+		draw_objects(gm, viewpos_mirror, ships_mirror, submarines_mirror, torpedoes_mirror,
+			     true /* mirror */);
+
 		//fixme
 		glCullFace(GL_BACK);
 
@@ -339,15 +409,6 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		//fixme: ^ glCopyTexSubImage may be faster!
 
 	}
-
-	// ************************* compute visible surface objects *******************
-
-	// compute visble ships/subs, needed for draw_objects and amount of foam computation
-	//fixme: the lookout sensor must give all ships seens around, not cull away ships
-	//out of the frustum, or their foam is lost as well, even it would be visible...
-	vector<ship*> ships = gm.visible_ships(player);
-	vector<submarine*> submarines = gm.visible_submarines(player);
-	vector<torpedo*> torpedoes = gm.visible_torpedoes(player);
 
 	// *************************** compute amount of foam for water display *****************
 
@@ -432,6 +493,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 
 	// ******************** ships & subs *************************************************
 //	cout << "mv trans pos " << matrix4::get_gl(GL_MODELVIEW_MATRIX).column(3) << "\n";
+
 	// substract player pos.
 	draw_objects(gm, viewpos, ships, submarines, torpedoes);
 

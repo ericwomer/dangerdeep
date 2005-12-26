@@ -434,6 +434,16 @@ void sea_object::display() const
 
 
 
+void sea_object::display_mirror_clip() const
+{
+	model* mdl = modelcache.find(modelname);
+
+	if ( mdl )
+		mdl->display_mirror_clip();
+}
+
+
+
 sensor* sea_object::get_sensor ( sensor_system ss )
 {
 	if ( ss >= 0 && ss < last_sensor_system )

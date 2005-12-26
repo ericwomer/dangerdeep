@@ -207,6 +207,8 @@ void view_model(const string& modelfilename)
 
 		matrix4 mvp = matrix4::get_gl(GL_PROJECTION_MATRIX) * matrix4::get_gl(GL_MODELVIEW_MATRIX);
 		mdl->display();
+		// test
+		//mdl->display_mirror_clip();
 
 		// draw scales if requested
 		if (coordinatesystem) {
