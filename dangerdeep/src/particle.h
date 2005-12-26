@@ -11,7 +11,7 @@ using namespace std;
 class game;
 class texture;
 
-// particles: smoke, water splahes, fire, explosions, spray caused by ship's bow
+// particles: smoke, water splashes, fire, explosions, spray caused by ship's bow
 // fire particles can produce smoke particles!
 
 typedef unsigned char Uint8;
