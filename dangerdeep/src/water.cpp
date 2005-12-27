@@ -1862,6 +1862,8 @@ void water::set_refraction_color(float light_brightness)
 					     wt[0], wt[1], wt[2], 1.0);
 		glProgramLocalParameter4fARB(GL_VERTEX_PROGRAM_ARB, 2,
 					     wb[0], wb[1], wb[2], 1.0);
+		glProgramLocalParameter4fARB(GL_VERTEX_PROGRAM_ARB, 3,
+					     wt[0]-wb[0], wt[1]-wb[1], wt[2]-wb[2], 1.0);
 	}
 
 	for (unsigned s = 0; s < REFRAC_COLOR_RES; ++s) {
