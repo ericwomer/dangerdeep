@@ -92,11 +92,15 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	screen_resize(res_x, res_y, nearz, farz);
 
 	// check for some OpenGL Extensions
-	string vendor = (char*)glGetString(GL_VENDOR);
-	string renderer = (char*)glGetString(GL_RENDERER);
-	string version = (char*)glGetString(GL_VERSION);
-	string extensions = (char*)glGetString(GL_EXTENSIONS);
-	if (extensions.length() > 0) {
+	const char* vendorc = (const char*)glGetString(GL_VENDOR);
+	const char* rendererc = (const char*)glGetString(GL_RENDERER);
+	const char* versionc = (const char*)glGetString(GL_VERSION);
+	const char* extensionsc = (const char*)glGetString(GL_EXTENSIONS);
+	string vendor = vendorc ? vendorc : "???";
+	string renderer = rendererc ? rendererc : "???";
+	string version = versionc ? versionc : "???";
+	string extensions = extensionsc ? extensionsc : "???";
+	if (extensionsc) {
 		unsigned spos = 0;
 		while (spos < extensions.length()) {
 			unsigned pos = extensions.find(" ", spos);
