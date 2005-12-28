@@ -109,6 +109,10 @@ void view_model(const string& modelfilename)
 			lposition.x = 1.4*sc*cos(3.14159*ang/180);
 			lposition.z = 1.4*sc*sin(3.14159*ang/180);
 		}
+
+		// test: rotate object 1+2
+		mdl->set_object_angle(1, ang);
+		mdl->set_object_angle(2, ang);
 	
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		glColor3f(1, 1, 1);

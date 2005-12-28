@@ -40,6 +40,54 @@ vector<GLuint> model::default_vertex_programs;
 vector<GLuint> model::default_fragment_programs;
 
 
+bool model::object::set_angle(float ang)
+{
+	if (ang < rotat_angle_min) return false;
+	if (ang > rotat_angle_max) return false;
+	rotat_angle = ang;
+	return true;
+}
+
+
+
+model::object* model::object::find(unsigned id_)
+{
+	if (id == id_) return this;
+	for (vector<object>::iterator it = children.begin(); it != children.end(); ++it) {
+		object* obj = it->find(id_);
+		if (obj) return obj;
+	}
+	return 0;
+}
+
+
+
+model::object* model::object::find(const std::string& name_)
+{
+	if (name == name_) return this;
+	for (vector<object>::iterator it = children.begin(); it != children.end(); ++it) {
+		object* obj = it->find(name_);
+		if (obj) return obj;
+	}
+	return 0;
+}
+
+
+
+void model::object::display() const
+{
+	glPushMatrix();
+	glTranslated(translation.x, translation.y, translation.z);
+	glRotated(rotat_angle, rotat_axis.x, rotat_axis.y, rotat_axis.z);
+	if (mymesh) mymesh->display();
+	for (vector<object>::const_iterator it = children.begin(); it != children.end(); ++it) {
+		it->display();
+	}
+	glPopMatrix();
+}
+
+
+
 void model::render_init()
 {
 	vertex_program_supported = sys().extension_supported("GL_ARB_vertex_program");
@@ -98,6 +146,7 @@ model::model()
 
 
 model::model(const string& filename, bool use_material)
+	: scene(0xffffffff, "<scene>", 0)
 {
 	if (init_count == 0) render_init();
 	++init_count;
@@ -159,6 +208,7 @@ model::~model()
 
 void model::compute_bounds()
 {
+	//fixme: with the relations and the objecttree this is not right...
 	if (meshes.size() == 0) return;
 	meshes[0]->compute_bounds();
 	min = meshes[0]->min;
@@ -724,7 +774,6 @@ void model::material::set_gl_values_mirror_clip() const
 void model::mesh::display(bool use_display_list) const
 {
 	glPushMatrix();
-	//fixme: with mirror clip this must not be multiplied to transformation matrix
 	transformation.multiply_glf();
 
 	if (display_list != 0 && use_display_list) {
@@ -957,8 +1006,13 @@ void model::mesh::display_mirror_clip() const
 
 void model::display() const
 {
-	for (vector<model::mesh*>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
-		(*it)->display();
+	// default scene: no objects, just draw all meshes.
+	if (scene.children.size() == 0) {
+		for (vector<model::mesh*>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
+			(*it)->display();
+		}
+	} else {
+		scene.display();
 	}
 
 	// reset texture units
@@ -980,6 +1034,7 @@ void model::display() const
 
 void model::display_mirror_clip() const
 {
+	// fixme: add object tree drawing here!
 	for (vector<model::mesh*>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
 		(*it)->display_mirror_clip();
 	}
@@ -1753,11 +1808,13 @@ void model::read_dftd_model_file(const std::string& filename)
 	doc.load();
 	xml_elem root = doc.child("dftd-model");
 	float version = root.attrf("version");
-	if (version > 1.2)//fixme with relations 1.2
+	//fixme: float is a bad idea for a version string, because of accuracy
+	if (version > 1.21)//fixme with relations 1.2
 		throw xml_error("model file format version unknown ", root.doc_name());
 
 	// read elements.
 	map<unsigned, material* > mat_id_mapping;
+	unsigned nr_of_objecttrees = 0;
 	for (xml_elem::iterator it = root.iterate(); !it.end(); it.next()) {
 		xml_elem e = it.elem();
 		string etype = e.get_name();
@@ -1899,10 +1956,72 @@ void model::read_dftd_model_file(const std::string& filename)
 			if (e.has_attr("ambient")) {
 				l.ambient = e.attrf("ambient");
 			}
+		} else if (etype == "objecttree") {
+			++nr_of_objecttrees;
+			if (nr_of_objecttrees > 1)
+				throw xml_error("more than one object tree defined!", e.doc_name());
 		} else {
 			throw xml_error(string("unknown tag type ") + etype, e.doc_name());
 		}
 	}
+
+	// check if we have an objecttree and read it
+	if (root.has_child("objecttree")) {
+		read_objects(root.child("objecttree"), scene);
+	} else {
+		// create default objects for all objects in the scene
+		//fixme: this would have to be done for 3ds and off reading too
+		//and we would have to add new objects when new meshes are pushed back?! no necessarily...
+	}
+}
+
+
+
+void model::read_objects(const xml_elem& parent, object& parentobj)
+{
+	for (xml_elem::iterator it = parent.iterate("object"); !it.end(); it.next()) {
+		xml_elem e = it.elem();
+		mesh* msh = 0;
+		if (e.has_attr("mesh")) {
+			unsigned meshid = e.attru("mesh");
+			if (meshid >= meshes.size())
+				throw xml_error("illegal mesh id in object node", e.doc_name());
+			msh = meshes[meshid];
+		}
+		object obj(e.attru("id"), e.attr("name"), msh);
+		if (e.has_child("translation")) {
+			string vec = e.child("translation").attr("vector");
+			istringstream iss(vec);
+			iss >> obj.translation.x >> obj.translation.y >> obj.translation.z;
+		}
+		if (e.has_child("rotation")) {
+			xml_elem r = e.child("rotation");
+			string axis = r.attr("axis");
+			istringstream iss(axis);
+			iss >> obj.rotat_axis.x >> obj.rotat_axis.y >> obj.rotat_axis.z;
+			obj.rotat_angle = r.attrf("angle");
+			obj.rotat_angle_min = r.attrf("minangle");
+			obj.rotat_angle_max = r.attrf("maxangle");
+		}
+		read_objects(e, obj);
+		parentobj.children.push_back(obj);
+	}
 }
 
 // -------------------------------- end of dftd model file reading ------------------------------
+
+bool model::set_object_angle(unsigned objid, double ang)
+{
+	object* obj = scene.find(objid);
+	if (!obj) return false;
+	return obj->set_angle(ang);
+}
+
+
+
+bool model::set_object_angle(const std::string& objname, double ang)
+{
+	object* obj = scene.find(objname);
+	if (!obj) return false;
+	return obj->set_angle(ang);
+}

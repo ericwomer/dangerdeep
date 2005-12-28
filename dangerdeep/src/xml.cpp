@@ -268,16 +268,18 @@ xml_doc::xml_doc(std::string fn)
 
 void xml_doc::load()
 {
-	if (!doc->LoadFile())
-		throw xml_error("can't load", doc->Value());
+	if (!doc->LoadFile()) {
+		throw xml_error(string("can't load: ") + doc->ErrorDesc(), doc->Value());
+	}
 }
 
 
 
 void xml_doc::save()
 {
-	if (!doc->SaveFile())
-		throw xml_error("can't save", doc->Value());
+	if (!doc->SaveFile()) {
+		throw xml_error(string("can't save: ") + doc->ErrorDesc(), doc->Value());
+	}
 }
 
 

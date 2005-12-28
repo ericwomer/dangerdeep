@@ -102,9 +102,31 @@ public:
 	};
 
 protected:	
+	// a 3d object, references meshes
+	struct object {
+		unsigned id;
+		std::string name;
+		const mesh* mymesh;
+		vector3f translation;
+		vector3f rotat_axis;
+		float rotat_angle;	// in degrees
+		float rotat_angle_min;	// in degrees
+		float rotat_angle_max;	// in degrees
+		std::vector<object> children;
+		object(unsigned id_ = 0, const std::string& nm = "???", const mesh* m = 0)
+			: id(id_), name(nm), mymesh(m), rotat_angle(0), rotat_angle_min(0),
+			  rotat_angle_max(0) { rotat_axis.z = 1; }
+		bool set_angle(float ang);
+		object* find(unsigned id);
+		object* find(const std::string& name);
+		void display() const;
+	};
+
 	std::vector<material*> materials;
 	std::vector<mesh*> meshes;
 	std::vector<light> lights;
+
+	object scene;
 	
 	std::string basename;	// base name of the scene/model, computed from filename
 
@@ -184,6 +206,8 @@ protected:
 	// fixme: check if exponent is integer or float.
 	// map<double, texture*> powlookup_functions;
 
+	void read_objects(const xml_elem& parent, object& parentobj);
+
 public:
 	model();
 
@@ -223,6 +247,10 @@ public:
 
 	// write our own model file format.
 	void write_to_dftd_model_file(const std::string& filename, bool store_normals = true) const;
+
+	// manipulate object angle(s), returns false on error (wrong id or angle out of bounds)
+	bool set_object_angle(unsigned objid, double ang);
+	bool set_object_angle(const std::string& objname, double ang);
 };	
 
 #endif

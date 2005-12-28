@@ -224,16 +224,19 @@ Attributes:
 (int) mesh - an id referencing a mesh, that has the 3d data to be rendered
              for that object. This number is one of the id's given as attribute
              of a mesh node defined in the ddxml file.
+	     It is allowed to give no such attribute. In that case there is no mesh
+	     drawn for the object, but the object can have children...
+(string) name - an unique name, can also be used to reference the object
 
-Possible subnodes: object, transformation, rotation
+Possible subnodes: object, translation, rotation
 
 
-Node: transformation
-====================
-Stores a transformation.
+Node: translation
+=================
+Stores a translation.
 
 Attributes:
-(float triple) vector - x,y,z coordinates of transformation
+(float triple) vector - x,y,z coordinates of translation
 
 
 Node: rotation
