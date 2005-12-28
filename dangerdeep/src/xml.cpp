@@ -42,6 +42,13 @@ std::string xml_elem::doc_name() const
 
 
 
+bool xml_elem::has_attr(const std::string& name) const
+{
+	return elem->Attribute(name) != 0;
+}
+
+
+
 std::string xml_elem::attr(const std::string& name) const
 {
 	const char* tmp = elem->Attribute(name);
@@ -138,7 +145,19 @@ void xml_elem::set_attr(double f, const std::string& name)
 	// its format is different to sprintf(), it has less precision!
 	// we could change ostringstream's format, but for what? this is easier...
 	char tmp[64];
-	snprintf(tmp, 64, "%f", f);
+	int l = snprintf(tmp, 64, "%f", f);
+	// strip unneeded zeros at end.
+	for (int i = l-1; i >= 0; --i) {
+		if (tmp[i] == '0') {
+			tmp[i] = 0;
+		} else {
+			// strip dot at end, if it remains
+			if (tmp[i] == '.') {
+				tmp[i] = 0;
+			}
+			break;
+		}
+	}
 	set_attr(string(tmp), name);
 }
 
@@ -186,6 +205,13 @@ void xml_elem::set_attr(bool b, const std::string& name)
 std::string xml_elem::get_name() const
 {
 	return elem->Value();
+}
+
+
+
+void xml_elem::add_child_text(const std::string& txt)
+{
+	elem->LinkEndChild(new TiXmlText(txt));
 }
 
 

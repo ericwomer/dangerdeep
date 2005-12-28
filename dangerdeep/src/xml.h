@@ -43,6 +43,7 @@ class xml_elem
 
 	friend class xml_doc;
  public:
+	bool has_attr(const std::string& name = "value") const;
 	std::string attr(const std::string& name = "value") const;
 	int attri(const std::string& name = "value") const;
 	unsigned attru(const std::string& name = "value") const;
@@ -65,6 +66,7 @@ class xml_elem
 	void set_attr(angle a);
 	void set_attr(bool b, const std::string& name = "value");
 	std::string get_name() const;
+	void add_child_text(const std::string& txt); // add text child
 	std::string child_text() const;	// returns value of text child, throws error if there is none
 
 	// get name of document

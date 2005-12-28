@@ -12,7 +12,7 @@
 #include <fstream>
 #include <memory>
 
-class TiXmlElement;
+class xml_elem;
 
 class model {
 public:
@@ -32,9 +32,9 @@ public:
 			std::auto_ptr<texture> mytexture;
 			map();
 			void init(texture::mapping_mode mapping, bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
-			void write_to_dftd_model_file(TiXmlElement* parent, const std::string& type, bool withtrans = true) const;
+			void write_to_dftd_model_file(xml_elem& parent, const std::string& type, bool withtrans = true) const;
 			// read and construct from dftd model file
-			map(TiXmlElement* parent, bool withtrans = true);
+			map(const xml_elem& parent, bool withtrans = true);
 			// set up opengl texture matrix with map transformation values
 			void setup_glmatrix() const;
 		};
@@ -176,9 +176,9 @@ protected:
 	void read_off_file(const std::string& fn);
 
 	void read_dftd_model_file(const std::string& filename);
-	void write_color_to_dftd_model_file(TiXmlElement* parent, const color& c,
+	void write_color_to_dftd_model_file(xml_elem& parent, const color& c,
 					    const std::string& type) const;
-	color read_color_from_dftd_model_file(TiXmlElement* parent, const std::string& type);
+	color read_color_from_dftd_model_file(const xml_elem& parent, const std::string& type);
 
 	// store shared lookup functions for pow function (specular lighting)
 	// fixme: check if exponent is integer or float.

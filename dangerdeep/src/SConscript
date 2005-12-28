@@ -52,8 +52,7 @@ dftdsources = Split("""subsim.cpp
 	triangulate.cpp
 	user_interface.cpp
 	water.cpp
-	widget.cpp
-	xml.cpp""")
+	widget.cpp""")
 
 dftdmediasources = Split("""
 	error.cpp
@@ -62,7 +61,8 @@ dftdmediasources = Split("""
 	make_mesh.cpp
 	model.cpp
 	system.cpp
-	texture.cpp""")
+	texture.cpp
+	xml.cpp""")
 
 tinyxmlsources = Split("""
 	tinyxml/tinystr.cpp

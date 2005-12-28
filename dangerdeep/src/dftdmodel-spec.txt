@@ -3,9 +3,7 @@ Structure of DftD-model files
 
 The Dftd Model files are in XML format, they're sometimes called ddxml
 because of this. This file describes their structure and meaning of the
-content. It describes version 1.1. 
-What is missing is grouping / kinematic tree information. The mesh ids
-can be used for this.
+content. It describes version 1.2. 
 
 
 Each data file starts with the XML header:
