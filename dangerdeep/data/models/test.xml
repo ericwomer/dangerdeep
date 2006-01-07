@@ -6,19 +6,19 @@
         <transformation>1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 </transformation>
     </mesh>
 <objecttree>
-<object id="0" name="iceberg1" mesh="0">
-<object id="1" name="iceberg2" mesh="0">
-<translation vector="0 0 20"/>
-<rotation axis="0 0 1" angle="0" minangle="0" maxangle="180"/>
-</object>
-<object id="2" name="iceberg4">
-<translation vector="0 0 0"/>
-<rotation axis="0 0 1" angle="0" minangle="0" maxangle="360"/>
-<object id="3" name="iceberg3" mesh="0">
-<translation vector="20 0 0"/>
-<rotation axis="0 0 1" angle="0" minangle="0" maxangle="0"/>
-</object>
-</object>
-</object>
+	<object id="0" name="iceberg1" mesh="0">
+		<object id="1" name="iceberg2" mesh="0">
+			<translation vector="0 0 20"/>
+			<rotation axis="0 0 1" angle="0" minangle="0" maxangle="180"/>
+		</object>
+		<object id="2" name="iceberg4">
+			<translation vector="0 0 0"/>
+			<rotation axis="0 0 1" angle="0" minangle="0" maxangle="360"/>
+			<object id="3" name="iceberg3" mesh="0">
+				<translation vector="20 0 0"/>
+				<rotation axis="0 0 1" angle="0" minangle="0" maxangle="0"/>
+			</object>
+		</object>
+	</object>
 </objecttree>
 </dftd-model>
