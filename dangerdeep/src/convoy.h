@@ -30,6 +30,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <list>
 class ship;
 
+///\brief Grouping of ships and other objects with central control.
+/** This class stores and manages groups of ships and other objects forming a convoy.
+    Ships are listed as escorts, merchants or warships.
+    Convoy control is handled via special AI.
+*/
 class convoy
 {
  private:

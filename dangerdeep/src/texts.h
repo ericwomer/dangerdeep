@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 #include <string>
 
+///\brief Stores text objects for various languages. Used for internationalization.
 class texts
 {
  public:

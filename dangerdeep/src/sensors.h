@@ -37,7 +37,7 @@ class lookout_sensor;
 class sea_object;
 class particle;
 
-/** Base class for all sensor types. */
+///\brief Base class for all sensor types.
 class sensor
 {
 public:
@@ -131,7 +131,7 @@ public:
 		const sea_object* t ) const = 0;
 };
 
-/** Class for lookout. */
+///\brief Class for lookout.
 class lookout_sensor : public sensor
 {
 public:
@@ -151,6 +151,7 @@ public:
 	virtual bool is_detected ( const game* gm, const sea_object* d, const particle* p ) const;
 };
 
+///\brief Class for passive sonar based sensors.
 class passive_sonar_sensor : public sensor
 {
 public:
@@ -182,7 +183,7 @@ public:
 	virtual bool is_detected ( double& sound_level, const game* gm, const sea_object* d, const sea_object* t ) const;
 };
 
-/** Base class for all active sensors. */
+///\brief Base class for active sensors.
 class active_sensor : public sensor
 {
 protected:
@@ -208,6 +209,7 @@ public:
 	virtual bool is_detected ( const game* gm, const sea_object* d, const sea_object* t ) const = 0;
 };
 
+///\brief Class for radar based sensors.
 class radar_sensor : public active_sensor
 {
 public:
@@ -232,6 +234,7 @@ public:
 	virtual bool is_detected ( const game* gm, const sea_object* d, const sea_object* t ) const;
 };
 
+///\brief Class for active sonar based sensors.
 class active_sonar_sensor : public active_sensor
 {
 public:

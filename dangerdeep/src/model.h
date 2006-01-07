@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 class xml_elem;
 
+///\brief Handles a 3D model, it's animation and OpenGL based rendering and display.
 class model {
 public:
 	typedef std::auto_ptr<model> ptr;

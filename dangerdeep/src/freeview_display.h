@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "angle.h"
 #include "vector3.h"
 
+///\brief User display implementation for free 3D view of the game world.
 class freeview_display : public user_display
 {
 public:

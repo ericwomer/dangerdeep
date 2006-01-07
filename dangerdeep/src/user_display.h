@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texture.h"
 #include "global_data.h"
 
+///\brief Base class for a single screen of the ingame user interface.
 class user_display
 {
 private:

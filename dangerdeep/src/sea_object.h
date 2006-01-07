@@ -47,7 +47,7 @@ fixme: global todo (2004/06/26):
 class game;
 class sensor;
 
-/** Base class for all physical objects in the game world. Simulates dynamics with position, velocity, acceleration etc. */
+///\brief Base class for all physical objects in the game world. Simulates dynamics with position, velocity, acceleration etc.
 class sea_object
 {
 public:

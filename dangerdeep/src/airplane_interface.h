@@ -31,6 +31,9 @@ using namespace std;
 #include "user_interface.h"
 #include "color.h"
 
+///\brief User interface implementation for control of airplanes.
+/** This class handles all the input and output to and from the player and the game if the user
+    plays a pilot of an airplane. */
 class airplane_interface : public user_interface
 {
 protected:

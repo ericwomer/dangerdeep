@@ -33,7 +33,7 @@ class TiXmlElement;
 class TiXmlDocument;
 
 
-/** General exception for an error while using the XML interface */
+///\brief General exception for an error while using the XML interface
 class xml_error : public error
 {
  public:
@@ -43,7 +43,7 @@ class xml_error : public error
 
 
 
-/** XML element specific exception */
+///\brief XML element specific exception
 class xml_elem_error : public xml_error
 {
  public:
@@ -53,7 +53,7 @@ class xml_elem_error : public xml_error
 
 
 
-/** A XML element representation with interface for handling of elements like adding or requesting children or data */
+///\brief A XML element representation with interface for handling of elements like adding or requesting children or data.
 class xml_elem
 {
  private:
@@ -119,7 +119,7 @@ class xml_elem
 
 
 
-/** A XML document representation with interface for handling of documents */
+///\brief A XML document representation with interface for handling of documents.
 class xml_doc
 {
  private:

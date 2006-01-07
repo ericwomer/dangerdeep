@@ -33,13 +33,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 inline double round(double d) { return floor(d + 0.5); }
 #endif
 
-// note that mathematical angles go counter clockwise and nautical angles
-// clockwise. conversion from/to mathematical angles ignores this because
-// it is used for conversion of angle differences.
-// so an a.rad() does not compute the corresponding mathematical angle
-// for an nautical angle a but transform 0...360 degrees to 0...2pi instead.
 
-/** This class represents clockwise angles. It is used for rotations or nautical angles */
+///\brief This class represents clockwise angles. It is used for rotations or nautical angles
+/** note that mathematical angles go counter clockwise and nautical angles
+    clockwise. conversion from/to mathematical angles ignores this because
+    it is used for conversion of angle differences.
+    so an a.rad() does not compute the corresponding mathematical angle
+    for an nautical angle a but transform 0...360 degrees to 0...2pi instead. */
 class angle
 {
 	protected:

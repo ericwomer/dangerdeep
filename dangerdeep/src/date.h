@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef DATE_H
 #define DATE_H
 
+///\brief Date representation, either as linear time or as year, month, day etc.
 class date
 {
 public:

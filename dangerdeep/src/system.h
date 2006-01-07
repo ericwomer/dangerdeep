@@ -58,6 +58,7 @@ using std::set;
 class font;
 class texture;
 
+///\brief This class groups system related functions like graphic output or user input.
 class system
 {
 public:

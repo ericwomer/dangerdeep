@@ -35,6 +35,7 @@ using namespace std;
 #include "model.h"
 class game;
 
+///\brief Rendering of sky and atmospheric effects.
 class sky
 {
 protected:

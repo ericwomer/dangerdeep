@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define DAMAGE_DC_RADIUS_200M 320
 
 ///\brief Represents a depth charge with simulation of it.
+/** At the moment there are no specialisations for various types of depth charges */
 class depth_charge : public sea_object
 {
  private:

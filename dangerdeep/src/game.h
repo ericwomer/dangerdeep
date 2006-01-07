@@ -70,8 +70,8 @@ class convoy;
 #define MSG_command	"DFTD-command:   "
 
 
-
-class game	// our "world" with physics etc.
+///\brief Central object of the game world with physics simulation etc.
+class game
 {
 public:
 	struct ping {

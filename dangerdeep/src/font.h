@@ -33,6 +33,7 @@ using namespace std;
 
 class texture;
 
+///\brief Represents a character font set for OpenGL rendering.
 class font
 {
 private:

@@ -50,6 +50,7 @@ using namespace std;
 
 #define GRAVITY 9.806
 
+///\brief A generator class for ocean wave height data using a statistical model and the FFT.
 template <class T>
 class ocean_wave_generator
 {

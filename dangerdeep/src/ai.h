@@ -102,6 +102,8 @@ class sea_object;
 class convoy;
 class game;
 
+///\brief This class implements artificial intelligence for various objects.
+///\todo split this class in heir classes for specific objects or AI types.
 class ai
 {
 public:

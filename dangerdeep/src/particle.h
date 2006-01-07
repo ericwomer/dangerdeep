@@ -35,6 +35,7 @@ class texture;
 
 typedef unsigned char Uint8;
 
+///\brief Simulates and displays particles that are rendered as billboard images.
 class particle
 {
 protected:

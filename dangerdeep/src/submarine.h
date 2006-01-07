@@ -33,8 +33,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class game;
 class torpedo;
 
-/** Represents a submarine with all attributes like torpedo storage and handling, depth rudder control etc.
-    Submarine attributes are defined via specification XML file. */
+///\brief Represents a submarine with all attributes like torpedo storage and handling, depth rudder control etc.
+/** Submarine attributes are defined via specification XML file.
+ */
 class submarine : public ship
 {
  private:

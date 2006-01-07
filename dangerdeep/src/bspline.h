@@ -33,6 +33,7 @@ using namespace std;
 #endif
 #endif
 
+///\brief Represents a B-Spline interpolation object.
 template <class T>
 class bsplinet
 {

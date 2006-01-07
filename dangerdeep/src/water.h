@@ -39,6 +39,7 @@ using namespace std;
 #include "ocean_wave_generator.h"
 #include "perlinnoise.h"
 
+///\brief Rendering of ocean water surfaces.
 class water
 {
 protected:

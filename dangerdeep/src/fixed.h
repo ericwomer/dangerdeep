@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <SDL_types.h>
 
+///\brief Implementation of a fixed point number.
 class fixed32
 {
 	static const Sint32 ONE = 0x10000;

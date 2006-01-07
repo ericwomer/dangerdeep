@@ -35,7 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 template <class D2> class vector3t;
 
-/** Template class for a mathematical vector with two coefficients. */
+///\brief Template class for a mathematical vector with two coefficients.
 template <class D>
 class vector2t
 {

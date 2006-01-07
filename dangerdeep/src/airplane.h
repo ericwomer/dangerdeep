@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "global_data.h"
 #include "quaternion.h"
 
-/** Represents an airplane with simulation of it. */
+///\brief Represents an airplane with simulation of it.
 ///\todo improve the interface
 ///\todo finish a working implementation
 ///\todo add airplanes to the simulation

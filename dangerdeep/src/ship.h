@@ -37,7 +37,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 class game;
 
-/** Base class for all ships and ship-like objects: ships, submarines, torpedoes. Handles steering and rudder simulation,
+///\brief Base class for all ships and ship-like objects: ships, submarines, torpedoes.
+/** Handles steering and rudder simulation,
     damage control and other things.
     Ship attributes are defined via specification XML file. */
 class ship : public sea_object

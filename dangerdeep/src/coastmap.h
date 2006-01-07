@@ -34,6 +34,7 @@ using namespace std;
 
 
 
+///\brief Handles a segment of the map represented by class coastmap.
 class coastsegment
 {
 public:
@@ -87,6 +88,7 @@ public:
 
 
 
+///\brief Handles a 2D map of coastlines or terrain with 3D rendering.
 class coastmap
 {
 	friend class coastsegment;	// just request some values

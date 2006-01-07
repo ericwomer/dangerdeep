@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 using namespace std;
 
+///\brief Handles a list of high scores (hall of fame).
 class highscorelist
 {
 	friend void check_for_highscore(const class game* );

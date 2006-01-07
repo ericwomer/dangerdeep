@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 using namespace std;
 
+///\brief Triangulation algorithm for planar meshes.
 struct triangulate
 {
 	static unsigned next(const vector<unsigned>& vl, unsigned i) {
