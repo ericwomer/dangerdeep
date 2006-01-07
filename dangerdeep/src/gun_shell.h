@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define AIR_RESISTANCE 0.05	// factor of velocity that gets subtracted
 				// from it to slow the shell down
 
+/** Represents a gun shell with simulation of it. */
 class gun_shell : public sea_object
 {
  private:

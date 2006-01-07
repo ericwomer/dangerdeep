@@ -29,9 +29,12 @@ using namespace std;
 
 #include <SDL.h>
 
+/** This class stores and manages the global game configuration. */
+///\todo replace tinyxml code and include with own xml class.
 class cfg
 {
 public:
+	/** Documentation is build of keys. Each key has a name and an value. */
 	struct key
 	{
 		string action;

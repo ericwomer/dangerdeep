@@ -39,6 +39,7 @@ inline double round(double d) { return floor(d + 0.5); }
 // so an a.rad() does not compute the corresponding mathematical angle
 // for an nautical angle a but transform 0...360 degrees to 0...2pi instead.
 
+/** This class represents clockwise angles. It is used for rotations or nautical angles */
 class angle
 {
 	protected:

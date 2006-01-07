@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define DAMAGE_DC_RADIUS_SURFACE 480	// meters, fixme realistic values?
 #define DAMAGE_DC_RADIUS_200M 320
 
+/** Represents a depth charge with simulation of it. */
 class depth_charge : public sea_object
 {
  private:

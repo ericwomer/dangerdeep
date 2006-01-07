@@ -38,6 +38,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 // attention: angles given as parameters or returned angles are in degrees!
 
+/** This class represents quaternions. They're used for fast computation of rotations */
 template<class D>
 class quaterniont
 {

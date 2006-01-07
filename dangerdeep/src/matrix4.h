@@ -49,6 +49,7 @@ using namespace std;
 #define M_PI 3.1415926536
 #endif
 
+/** This class represents a 4x4 matrix. */
 template<class D>
 class matrix4t
 {

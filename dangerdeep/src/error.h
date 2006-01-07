@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 #include <exception>
 
-// always throw this exception or a heir of it.
+/** Base exception class for any runtime error. Always throw objects of this class or heirs of the class. */
 class error : public std::exception
 {
  private:
