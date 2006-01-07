@@ -2030,7 +2030,7 @@ void model::read_objects(const xml_elem& parent, object& parentobj)
 			iss >> obj.translation.x >> obj.translation.y >> obj.translation.z;
 			if (t.has_attr("constraint")) {
 				string c = t.attr("constraint");
-				istringstream iss2;
+				istringstream iss2(c);
 				string tmp;
 				iss2 >> tmp >> obj.trans_val_min >> obj.trans_val_max;
 				if (tmp == "x")
@@ -2093,20 +2093,20 @@ vector2f model::get_object_angle_constraints(const std::string& objname)
 
 
 
-bool model::set_object_translation(unsigned objid, double ang)
+bool model::set_object_translation(unsigned objid, double value)
 {
 	object* obj = scene.find(objid);
 	if (!obj) return false;
-	return obj->set_translation(ang);
+	return obj->set_translation(value);
 }
 
 
 
-bool model::set_object_translation(const std::string& objname, double ang)
+bool model::set_object_translation(const std::string& objname, double value)
 {
 	object* obj = scene.find(objname);
 	if (!obj) return false;
-	return obj->set_translation(ang);
+	return obj->set_translation(value);
 }
 
 

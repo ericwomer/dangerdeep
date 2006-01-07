@@ -132,6 +132,7 @@ void view_model(const string& modelfilename)
 		// test: rotate object 1+2
 		mdl->set_object_angle(1, ang);
 		mdl->set_object_angle(2, ang);
+		mdl->set_object_translation(4, ang*50/360);
 	
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		glColor3f(1, 1, 1);
