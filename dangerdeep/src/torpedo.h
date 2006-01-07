@@ -69,6 +69,8 @@ G7e: depth keeping equipment failed, so torpedo ran 6 feet to deep (2m), problem
 Pi: angle of impact? unsure
 */
 
+/** Represents a torpedo with simulation of it. Different types of prupulsion or warheads are possible.
+    Torpedo attributes are defined via specification XML file. */
 class torpedo : public ship
 {
  public:
