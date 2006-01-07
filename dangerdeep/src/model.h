@@ -128,6 +128,9 @@ protected:
 		std::string name;
 		const mesh* mymesh;
 		vector3f translation;
+		int translation_constraint_axis;	// can be 0/1/2 for x/y/z
+		float trans_val_min;	// minimum value for translation along axis
+		float trans_val_max;	// maximum value for translation along axis
 		vector3f rotat_axis;
 		float rotat_angle;	// in degrees
 		float rotat_angle_min;	// in degrees
@@ -137,6 +140,7 @@ protected:
 			: id(id_), name(nm), mymesh(m), rotat_angle(0), rotat_angle_min(0),
 			  rotat_angle_max(0) { rotat_axis.z = 1; }
 		bool set_angle(float ang);
+		bool set_translation(float value);
 		object* find(unsigned id);
 		object* find(const std::string& name);
 		void display() const;
@@ -271,6 +275,16 @@ public:
 	// manipulate object angle(s), returns false on error (wrong id or angle out of bounds)
 	bool set_object_angle(unsigned objid, double ang);
 	bool set_object_angle(const std::string& objname, double ang);
+	// get min/max angles of an object. returns 0/0 if object does not exist
+	vector2f get_object_angle_constraints(unsigned objid);
+	vector2f get_object_angle_constraints(const std::string& objname);
+
+	// manipulate object translation, returns false on error (wrong id or value out of bounds)
+	bool set_object_translation(unsigned objid, double value);
+	bool set_object_translation(const std::string& objname, double value);
+	// get min/max translation values of an object. returns 0/0 if object does not exist
+	vector2f get_object_translation_constraints(unsigned objid);
+	vector2f get_object_translation_constraints(const std::string& objname);
 };	
 
 #endif

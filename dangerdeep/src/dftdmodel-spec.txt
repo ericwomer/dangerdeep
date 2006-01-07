@@ -237,6 +237,7 @@ Stores a translation.
 
 Attributes:
 (float triple) vector - x,y,z coordinates of translation
+(string/float double) constraint - "a min max" min/max value for movement along axis a
 
 
 Node: rotation

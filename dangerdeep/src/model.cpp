@@ -69,6 +69,21 @@ bool model::object::set_angle(float ang)
 
 
 
+bool model::object::set_translation(float value)
+{
+	if (value < trans_val_min) return false;
+	if (value > trans_val_max) return false;
+	if (translation_constraint_axis == 0)
+		translation.x = value;
+	else if (translation_constraint_axis == 1)
+		translation.y = value;
+	else
+		translation.z = value;
+	return true;
+}
+
+
+
 model::object* model::object::find(unsigned id_)
 {
 	if (id == id_) return this;
@@ -2009,9 +2024,22 @@ void model::read_objects(const xml_elem& parent, object& parentobj)
 		}
 		object obj(e.attru("id"), e.attr("name"), msh);
 		if (e.has_child("translation")) {
-			string vec = e.child("translation").attr("vector");
+			xml_elem t = e.child("translation");
+			string vec = t.attr("vector");
 			istringstream iss(vec);
 			iss >> obj.translation.x >> obj.translation.y >> obj.translation.z;
+			if (t.has_attr("constraint")) {
+				string c = t.attr("constraint");
+				istringstream iss2;
+				string tmp;
+				iss2 >> tmp >> obj.trans_val_min >> obj.trans_val_max;
+				if (tmp == "x")
+					obj.translation_constraint_axis = 0;
+				else if (tmp == "y")
+					obj.translation_constraint_axis = 1;
+				else
+					obj.translation_constraint_axis = 2;
+			}
 		}
 		if (e.has_child("rotation")) {
 			xml_elem r = e.child("rotation");
@@ -2043,4 +2071,58 @@ bool model::set_object_angle(const std::string& objname, double ang)
 	object* obj = scene.find(objname);
 	if (!obj) return false;
 	return obj->set_angle(ang);
+}
+
+
+
+vector2f model::get_object_angle_constraints(unsigned objid)
+{
+	object* obj = scene.find(objid);
+	if (!obj) return vector2f();
+	return vector2f(obj->rotat_angle_min, obj->rotat_angle_max);
+}
+
+
+
+vector2f model::get_object_angle_constraints(const std::string& objname)
+{
+	object* obj = scene.find(objname);
+	if (!obj) return vector2f();
+	return vector2f(obj->rotat_angle_min, obj->rotat_angle_max);
+}
+
+
+
+bool model::set_object_translation(unsigned objid, double ang)
+{
+	object* obj = scene.find(objid);
+	if (!obj) return false;
+	return obj->set_translation(ang);
+}
+
+
+
+bool model::set_object_translation(const std::string& objname, double ang)
+{
+	object* obj = scene.find(objname);
+	if (!obj) return false;
+	return obj->set_translation(ang);
+}
+
+
+
+vector2f model::get_object_translation_constraints(unsigned objid)
+{
+	object* obj = scene.find(objid);
+	if (!obj) return vector2f();
+	return vector2f(obj->trans_val_min, obj->trans_val_max);
+}
+
+
+
+vector2f model::get_object_translation_constraints(const std::string& objname)
+{
+	object* obj = scene.find(objname);
+	if (!obj) return vector2f();
+	return vector2f(obj->trans_val_min, obj->trans_val_max);
 }
