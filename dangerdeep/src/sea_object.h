@@ -137,14 +137,15 @@ protected:
 	vector3f size3d;		// computed from model, indirect read from spec file, width, length, height
 
 	// double mass;	// total weight, later read from spec file
-	
-	// an object is alive until it is killed or inactive.
-	// killed (dead) objects exists at least one simulation step. All other objects must remove their
-	// pointers to an object, if it is dead.
-	// The next step it is set to disfunctional status (defunct) and removed the next step.
+
+	/// Activity state of an object.	
+	/// an object is alive until it is killed or inactive.
+	/// killed (dead) objects exists at least one simulation step. All other objects must remove their
+	/// pointers to an object, if it is dead.
+	/// The next step it is set to disfunctional status (defunct) and removed the next step.
 	alive_status alive_stat;	// [SAVE]
 
-	// Sensor systems, created after data in spec file
+	/// Sensor systems, created after data in spec file
 	std::vector<sensor*> sensors;
 	
 	// fixme: this is per model/type only. it is a waste to store it for every object
@@ -152,9 +153,9 @@ protected:
 
 	std::auto_ptr<ai> myai;	// created from spec file, but data needs to be saved, [SAVE]
 
-	// pointer to target or similar object.
-	// used by airplanes/ships/submarines to store a reference to their target
-	// automatically set to NULL by simulate() if target is inactive.
+	/// pointer to target or similar object.
+	/// used by airplanes/ships/submarines to store a reference to their target.
+	/// automatically set to NULL by simulate() if target is inactive.
 	sea_object* target;	// [SAVE]
 
 	virtual void set_sensor ( sensor_system ss, sensor* s );
