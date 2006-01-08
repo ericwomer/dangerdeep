@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "filehelper.h"
 #include <vector>
+using namespace std;
 
 #ifdef WIN32
 directory open_dir(const string& filename)

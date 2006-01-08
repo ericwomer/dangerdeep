@@ -31,6 +31,10 @@ using namespace std;
 #include "user_interface.h"
 #include "color.h"
 
+///\brief User interface implementation for control of ships.
+/** This class handles all the input and output to and from the player and the game if the user
+    plays a captain of a ship. */
+///\ingroup interfaces
 class ship_interface : public user_interface
 {
 protected:

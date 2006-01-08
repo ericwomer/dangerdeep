@@ -41,6 +41,10 @@ using namespace std;
 // if yes then let the popup handle them, and pass unhandled keys to the main screen.
 // popup-concept could also be declared in user_interface
 
+///\brief User interface implementation for control of submarines.
+/** This class handles all the input and output to and from the player and the game if the user
+    plays a commander of a submarine. */
+///\ingroup interfaces
 class submarine_interface : public user_interface
 {
 public:

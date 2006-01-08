@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "filehelper.h"
 #include "system.h"
 #include "texture.h"
+#include "model.h"
 #include <set>
 
 widget::theme* widget::globaltheme = 0;
@@ -555,10 +556,6 @@ widget_scrollbar::widget_scrollbar(int x, int y, int w, int h, widget* parent_)
 {
 }
 
-widget_scrollbar::~widget_scrollbar()
-{
-}
-
 void widget_scrollbar::set_nr_of_positions(unsigned s)
 {
 	scrollbarmaxpos = s;
@@ -1013,4 +1010,93 @@ void widget_fileselector::listclick(void)
 	} else {
 		current_filename->set_text(current_dir->get_selected_entry());
 	}
+}
+
+
+
+widget_3dview::widget_3dview(int x, int y, int w, int h, auto_ptr<model> mdl_, color bgcol, widget* parent_)
+	: widget(x, y, w, h, "", parent_), mdl(mdl_), backgrcol(bgcol),
+	  z_angle(90), x_angle(0)
+{
+	if (mdl.get()) {
+		distance = mdl->get_boundbox_size().length() / 1.2;
+	} else {
+		distance = 100;
+	}
+}
+
+
+
+void widget_3dview::set_model(std::auto_ptr<model> mdl_)
+{
+	mdl = mdl_;
+	if (mdl.get()) {
+		distance = mdl->get_boundbox_size().length() / 1.2;
+	} else {
+		distance = 100;
+	}
+}
+
+
+
+void widget_3dview::on_wheel(int wd)
+{
+	if (wd == 1) {
+		distance += 1;
+	} else if (wd == 2) {
+		distance -= 1;
+	}
+}
+
+
+
+void widget_3dview::on_drag(int mx, int my, int rx, int ry, int mb)
+{
+	if (mb & 1) {
+		z_angle += rx * 0.5;
+		x_angle += ry * 0.5;
+	}
+}
+
+
+
+void widget_3dview::draw() const
+{
+	if (!mdl.get()) return;
+
+	vector3f bb = mdl->get_boundbox_size();
+	float bbl = bb.length();
+	float zfar = distance + bbl * 0.5;
+
+	sys().unprepare_2d_drawing();
+	glFlush();
+	glViewport(pos.x, pos.y, size.x, size.y);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	sys().gl_perspective_fovx(70.0/*fovx*/, float(size.x)/size.y, 1.0f, zfar);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	float clr[4];
+	backgrcol.store_rgba(clr);
+	glClearColor(clr[0], clr[1], clr[2], clr[3]);
+	glClear(GL_DEPTH_BUFFER_BIT);//fixme: color bit?
+	glDisable(GL_LIGHTING);	// fixme: why?
+	glTranslatef(0, 0, -distance);
+	glRotatef(-80, 1, 0, 0);
+	glRotatef(z_angle, 0, 0, 1);
+	glRotatef(x_angle, 1, 0, 0);
+	glColor4f(0, 0, 0, 1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBegin(GL_LINES);
+	glVertex3f(-bb.x*0.5, 0.0, -bb.z*0.5);
+	glVertex3f( bb.x*0.5, 0.0, -bb.z*0.5);
+	glVertex3f( 0.0,-bb.y*0.5, -bb.z*0.5);
+	glVertex3f( 0.0, bb.y*0.5, -bb.z*0.5);
+	glEnd();
+	glColor3f(1, 1, 1);
+	mdl->display();
+	glEnable(GL_LIGHTING);
+
+	sys().prepare_2d_drawing();
 }

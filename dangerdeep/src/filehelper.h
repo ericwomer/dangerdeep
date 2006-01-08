@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define FILEHELPER_H
 
 #include <string>
-using namespace std;
 
 // directory reading/writing encapsulated for compatibility
 
@@ -49,11 +48,24 @@ struct directory {
 
 // file helper interface
 
-directory open_dir(const string& filename);	// returns an invalid directory, if filename doesn't exist
-string read_dir(directory& d);	// returns empty string if directory is fully read.
+///\brief Open directory and return a handle for it.
+///Returns an invalid directory if filename doesn't exist
+directory open_dir(const std::string& filename);
+
+///\brief Read next filename from directory.
+///Returns an empty string if directory is fully read.
+std::string read_dir(directory& d);
+
+///\brief Close directory handle.
 void close_dir(directory d);
-bool make_dir(const string& dirname);	// returns true on success
-string get_current_directory(void);	// return absolute path
-bool is_directory(const string& filename);	// test if file is directory
+
+///\brief Make new directory. Returns true on success.
+bool make_dir(const std::string& dirname);
+
+///\brief Returns absolute path of current working directory.
+std::string get_current_directory();
+
+///\brief Test if the given file is a directory.
+bool is_directory(const std::string& filename);
 
 #endif

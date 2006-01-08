@@ -37,6 +37,9 @@ using namespace std;
 
 class game;
 
+///\defgroup interfaces In-game user interfaces
+///\brief Base class for a user interface for playing the game.
+///\ingroup interfaces
 class user_interface
 {
 	user_interface();

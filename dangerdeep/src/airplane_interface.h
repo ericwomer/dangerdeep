@@ -34,6 +34,7 @@ using namespace std;
 ///\brief User interface implementation for control of airplanes.
 /** This class handles all the input and output to and from the player and the game if the user
     plays a pilot of an airplane. */
+///\ingroup interfaces
 class airplane_interface : public user_interface
 {
 protected:

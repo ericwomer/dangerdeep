@@ -30,6 +30,7 @@ using namespace std;
 #include "color.h"
 #include "image.h"
 #include "font.h"
+#include "model.h"
 #include "vector2.h"
 
 // fixme: add image-widget
@@ -85,8 +86,8 @@ public:
 		class texture *backg, *skbackg, *frame[8], *frameinv[8], *icons[4];
 		const font* myfont;
 		color textcol, textselectcol, textdisabledcol;
-		int frame_size(void) const;
-		int icon_size(void) const;
+		int frame_size() const;
+		int icon_size() const;
 		theme(const char* elements_filename, const char* icons_filename, const font* fnt,
 			color tc, color tsc, color tdc);
 		~theme();
@@ -101,34 +102,34 @@ protected:
 
 public:	
 	static void set_theme(theme* t);
-	static theme* get_theme(void) { return globaltheme; }
+	static theme* get_theme() { return globaltheme; }
 	static theme* replace_theme(theme* t);
 	widget(int x, int y, int w, int h, const string& text_, widget* parent_ = 0, const image* backgr = 0);
 	virtual ~widget();
 	virtual void add_child(widget* w);
 	virtual void remove_child(widget* w);
-	virtual void remove_children(void);
+	virtual void remove_children();
 	virtual bool is_mouse_over(int mx, int my) const;
-	virtual void draw(void) const;
+	virtual void draw() const;
 	virtual bool compute_focus(int mx, int my);
 	virtual bool compute_mouseover(int mx, int my);
-	virtual vector2i get_pos(void) const { return pos; }
+	virtual vector2i get_pos() const { return pos; }
 	virtual void set_pos(const vector2i& p) { move_pos(p - pos); }
 	virtual void move_pos(const vector2i& p);
 	virtual void align(int h, int v);	// give <0,0,>0 for left,center,right
-	virtual vector2i get_size(void) const { return size; }
+	virtual vector2i get_size() const { return size; }
 	virtual void set_size(const vector2i& s) { size = s; }
-	virtual widget* get_parent(void) const { return parent; }
+	virtual widget* get_parent() const { return parent; }
 	virtual void set_parent(widget* w) { parent = w; }
-	virtual string get_text(void) const { return text; }
+	virtual string get_text() const { return text; }
 	virtual void set_text(const string& s) { text = s; }
-	virtual const image* get_background(void) const { return background; }
+	virtual const image* get_background() const { return background; }
 	virtual void set_background(const image* b) { background = b; }
 	virtual void set_return_value(int rv) { retval = rv; }
-	virtual bool is_enabled(void) const;
-	virtual void enable(void);
-	virtual void disable(void);
-	virtual void redraw(void);
+	virtual bool is_enabled() const;
+	virtual void enable();
+	virtual void disable();
+	virtual void redraw();
 
 	// called for every key in queue
 	virtual void on_char(const SDL_keysym& ks);
@@ -137,7 +138,7 @@ public:
 	// called on mouse wheel action, mb is 1 for up, 2 for down
 	virtual void on_wheel(int wd);
 	// called on mouse button up
-	virtual void on_release(void) {}
+	virtual void on_release() {}
 	// called on mouse move while button is down
 	virtual void on_drag(int mx, int my, int rx, int ry, int mb) {}
 
@@ -173,8 +174,7 @@ protected:
 public:
 	widget_text(int x, int y, int w, int h, const string& text_, widget* parent_ = 0, bool sunken_ = false)
 		: widget(x, y, w, h, text_, parent_), sunken(sunken_) {}
-	~widget_text() {}
-	void draw(void) const;
+	void draw() const;
 };
 
 class widget_checkbox : public widget
@@ -188,11 +188,10 @@ protected:
 public:
 	widget_checkbox(int x, int y, int w, int h, const string& text_, widget* parent_ = 0)
 		: widget(x, y, w, h, text_, parent_) {}
-	~widget_checkbox() {}
-	void draw(void) const;
+	void draw() const;
 	void on_click(int mx, int my, int mb);
-	bool is_checked(void) const { return checked; }
-	virtual void on_change(void) {}
+	bool is_checked() const { return checked; }
+	virtual void on_change() {}
 };
 
 class widget_button : public widget
@@ -206,12 +205,11 @@ protected:
 public:
 	widget_button(int x, int y, int w, int h, const string& text_,
 		widget* parent_ = 0, const image* backgr = 0) : widget(x, y, w, h, text_, parent_, backgr), pressed(false) {}
-	~widget_button() {}
-	void draw(void) const;
+	void draw() const;
 	void on_click(int mx, int my, int mb);
-	void on_release(void);
-	bool is_pressed(void) const { return pressed; }
-	virtual void on_change(void) {}
+	void on_release();
+	bool is_pressed() const { return pressed; }
+	virtual void on_change() {}
 };
 
 template<class Obj, class Func>
@@ -223,8 +221,7 @@ public:
 	widget_caller_button(Obj* obj_, Func func_, int x = 0, int y = 0, int w = 0, int h = 0,
 		const string& text = "", widget* parent = 0)
 		: widget_button(x, y, w, h, text, parent), obj(obj_), func(func_) {}
-	~widget_caller_button() {}
-	void on_release(void) { widget_button::on_release(); (obj->*func)(); }
+	void on_release() { widget_button::on_release(); (obj->*func)(); }
 };
 
 template<class Obj, class Func, class Arg>
@@ -237,8 +234,7 @@ public:
 	widget_caller_arg_button(Obj* obj_, Func func_, Arg arg_, int x = 0, int y = 0, int w = 0, int h = 0,
 		const string& text = "", widget* parent = 0)
 		: widget_button(x, y, w, h, text, parent), obj(obj_), func(func_), arg(arg_) {}
-	~widget_caller_arg_button() {}
-	void on_release(void) { widget_button::on_release(); (obj->*func)(arg); }
+	void on_release() { widget_button::on_release(); (obj->*func)(arg); }
 };
 
 template<class Func>
@@ -249,8 +245,7 @@ public:
 	widget_func_button(Func func_, int x = 0, int y = 0, int w = 0, int h = 0,
 		const string& text = "", widget* parent = 0)
 		: widget_button(x, y, w, h, text, parent), func(func_) {}
-	~widget_func_button() {}
-	void on_release(void) { widget_button::on_release(); func(); }
+	void on_release() { widget_button::on_release(); func(); }
 };
 
 template<class Func, class Arg>
@@ -262,8 +257,7 @@ public:
 	widget_func_arg_button(Func func_, Arg arg_, int x = 0, int y = 0, int w = 0, int h = 0,
 		const string& text = "", widget* parent = 0)
 		: widget_button(x, y, w, h, text, parent), func(func_), arg(arg_) {}
-	~widget_func_arg_button() {}
-	void on_release(void) { widget_button::on_release(); func(arg); }
+	void on_release() { widget_button::on_release(); func(arg); }
 };
 
 template<class Obj>
@@ -275,8 +269,7 @@ public:
 	widget_set_button(Obj& obj_, const Obj& val, int x = 0, int y = 0, int w = 0, int h = 0,
 		const string& text = "", widget* parent = 0)
 		: widget_button(x, y, w, h, text, parent), obj(obj_), value(val) {}
-	~widget_set_button() {}
-	void on_release(void) { widget_button::on_release(); obj = value; }
+	void on_release() { widget_button::on_release(); obj = value; }
 };
 
 class widget_menu : public widget
@@ -298,9 +291,8 @@ public:
 	void set_entry_spacing(int spc) { entryspacing = spc; }
 	void adjust_buttons(unsigned totalsize);	// width or height
 	widget_button* add_entry(const string& s, widget_button* wb = 0); // wb's text is always set to s
-	int get_selected(void) const;
-	~widget_menu() {};
-	void draw(void) const;
+	int get_selected() const;
+	void draw() const;
 };
 
 class widget_scrollbar : public widget
@@ -310,24 +302,23 @@ protected:
 	unsigned scrollbarpos;		// current position
 	unsigned scrollbarmaxpos;	// maximum number of positions
 
-	unsigned get_max_scrollbarsize(void) const;	// total height of bar in pixels
-	unsigned get_scrollbarsize(void) const;	// height of slider bar in pixels
-	void compute_scrollbarpixelpos(void);	// recompute value from pos values
+	unsigned get_max_scrollbarsize() const;	// total height of bar in pixels
+	unsigned get_scrollbarsize() const;	// height of slider bar in pixels
+	void compute_scrollbarpixelpos();	// recompute value from pos values
 
 	widget_scrollbar();
 	widget_scrollbar(const widget_scrollbar& );
 	widget_scrollbar& operator= (const widget_scrollbar& );
 public:
 	widget_scrollbar(int x, int y, int w, int h, widget* parent_ = 0);
-	~widget_scrollbar();
 	void set_nr_of_positions(unsigned s);
-	unsigned get_current_position(void) const;
+	unsigned get_current_position() const;
 	void set_current_position(unsigned p);
-	void draw(void) const;
+	void draw() const;
 	void on_click(int mx, int my, int mb);
 	void on_drag(int mx, int my, int rx, int ry, int mb);
 	void on_wheel(int wd);
-	virtual void on_scroll(void) {}
+	virtual void on_scroll() {}
 };
 
 class widget_list : public widget
@@ -347,25 +338,24 @@ protected:
 	widget_list& operator= (const widget_list& );
 public:
 	widget_list(int x, int y, int w, int h, widget* parent_ = 0);
-	~widget_list() {};
 	void delete_entry(unsigned n);
 	void insert_entry(unsigned n, const string& s);
 	void append_entry(const string& s);
 	void set_entry(unsigned n, const string& s);
-	void sort_entries(void);
-	void make_entries_unique(void);
+	void sort_entries();
+	void make_entries_unique();
 	string get_entry(unsigned n) const;
-	unsigned get_listsize(void) const;
-	int get_selected(void) const;
+	unsigned get_listsize() const;
+	int get_selected() const;
 	void set_selected(unsigned n);
-	string get_selected_entry(void) const;
-	unsigned get_nr_of_visible_entries(void) const;
-	void clear(void);
-	void draw(void) const;
+	string get_selected_entry() const;
+	unsigned get_nr_of_visible_entries() const;
+	void clear();
+	void draw() const;
 	void on_click(int mx, int my, int mb);
 	void on_drag(int mx, int my, int rx, int ry, int mb);
 	void on_wheel(int wd);
-	virtual void on_sel_change(void) {}
+	virtual void on_sel_change() {}
 	void set_column_width(int cw);
 };
 
@@ -380,12 +370,11 @@ protected:
 public:
 	widget_edit(int x, int y, int w, int h, const string& text_, widget* parent_ = 0)
 		: widget(x, y, w, h, text_, parent_), cursorpos(0) {}
-	~widget_edit() {}
 	void set_text(const string& s) { widget::set_text(s); cursorpos = s.length(); }
-	void draw(void) const;
+	void draw() const;
 	void on_char(const SDL_keysym& ks);
-	virtual void on_enter(void) {}	// run on pressed ENTER-key
-	virtual void on_change(void) {}
+	virtual void on_enter() {}	// run on pressed ENTER-key
+	virtual void on_change() {}
 };
 
 class widget_fileselector : public widget
@@ -395,7 +384,7 @@ protected:
 	widget_edit* current_filename;
 	widget_text* current_path;
 
-	void read_current_dir(void);
+	void read_current_dir();
 	unsigned nr_dirs, nr_files;
 	
 	struct filelist : public widget_list
@@ -413,9 +402,31 @@ protected:
 	widget_fileselector& operator= (const widget_fileselector& );
 public:
 	widget_fileselector(int x, int y, int w, int h, const string& text_, widget* parent_ = 0);
-	~widget_fileselector() {}
-	string get_filename(void) const { return current_path->get_text() + current_filename->get_text(); }
-	void listclick(void);
+	string get_filename() const { return current_path->get_text() + current_filename->get_text(); }
+	void listclick();
+};
+
+class widget_3dview : public widget
+{
+protected:
+	std::auto_ptr<model> mdl;
+	color backgrcol;
+	double z_angle;
+	double x_angle;
+	double distance;
+
+	void on_wheel(int wd);
+	void on_drag(int mx, int my, int rx, int ry, int mb);
+
+	widget_3dview();
+	widget_3dview(const widget_3dview& );
+	widget_3dview& operator= (const widget_3dview& );
+public:
+	widget_3dview(int x, int y, int w, int h, std::auto_ptr<model> mdl, color bgcol, widget* parent_ = 0);
+	void draw() const;
+	void set_model(std::auto_ptr<model> mdl_);
+	// widget will handle orientation itself. also user input for changing that...
+	// void set_orientation() / set_translation() <- later.
 };
 
 #endif

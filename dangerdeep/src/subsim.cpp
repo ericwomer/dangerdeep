@@ -70,7 +70,7 @@ highscorelist hsl_mission, hsl_career;
 auto_ptr<music> mmusic;
 
 // a dirty hack
-void menu_notimplemented(void)
+void menu_notimplemented()
 {
 	widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
 	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(110));
@@ -129,16 +129,16 @@ class loadsavequit_dialogue : public widget
 	bool gamesaved;
 	map<string, string> savegames;
 	string gamefilename_to_load;
-	void load(void);
-	void save(void);
-	void erase(void);
-	void quit(void);
-	void cancel(void) { close(0); }	// return 0 for cancel/return, 1 for quit (if saving is enabled), 2 for loaded
-	void update_list(void);
+	void load();
+	void save();
+	void erase();
+	void quit();
+	void cancel() { close(0); }	// return 0 for cancel/return, 1 for quit (if saving is enabled), 2 for loaded
+	void update_list();
 
 public:	
-	string get_gamefilename_to_load(void) const { return gamefilename_to_load; }
-	widget_edit* get_gamename(void) const { return gamename; }
+	string get_gamefilename_to_load() const { return gamefilename_to_load; }
+	widget_edit* get_gamename() const { return gamename; }
 	loadsavequit_dialogue(const game* g);	// give 0 to disable saving
 	~loadsavequit_dialogue() {};
 };
@@ -150,17 +150,17 @@ loadsavequit_dialogue::loadsavequit_dialogue(const game *g) : widget(0, 0, 1024,
 	add_child(gamename);
 	widget_menu* wm = new widget_menu(40, 700, 180, 40, "", true);
 	add_child(wm);
-	btnload = wm->add_entry(texts::get(118), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::load));
+	btnload = wm->add_entry(texts::get(118), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)()>(this, &loadsavequit_dialogue::load));
 	if (mygame)
-		btnsave = wm->add_entry(texts::get(119), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::save));
-	btndel = wm->add_entry(texts::get(179), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::erase));
+		btnsave = wm->add_entry(texts::get(119), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)()>(this, &loadsavequit_dialogue::save));
+	btndel = wm->add_entry(texts::get(179), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)()>(this, &loadsavequit_dialogue::erase));
 	if (mygame)
-		btnquit = wm->add_entry(texts::get(120), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::quit));
-	btncancel = wm->add_entry(texts::get(mygame ? 121 : 20), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)(void)>(this, &loadsavequit_dialogue::cancel));
+		btnquit = wm->add_entry(texts::get(120), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)()>(this, &loadsavequit_dialogue::quit));
+	btncancel = wm->add_entry(texts::get(mygame ? 121 : 20), new widget_caller_button<loadsavequit_dialogue, void (loadsavequit_dialogue::*)()>(this, &loadsavequit_dialogue::cancel));
 	wm->adjust_buttons(944);
 	struct lsqlist : public widget_list
 	{
-		void on_sel_change(void) {
+		void on_sel_change() {
 			dynamic_cast<loadsavequit_dialogue*>(parent)->get_gamename()->set_text(get_selected_entry());
 		}
 		lsqlist(int x, int y, int w, int h) : widget_list(x, y, w, h) {}
@@ -174,7 +174,7 @@ loadsavequit_dialogue::loadsavequit_dialogue(const game *g) : widget(0, 0, 1024,
 	gamename->set_text(gamelist->get_selected_entry());
 }
 
-void loadsavequit_dialogue::load(void)
+void loadsavequit_dialogue::load()
 {
 	gamefilename_to_load = get_savegame_name_for(gamename->get_text(), savegames);
 	//fixme: ask: replace this game?
@@ -184,7 +184,7 @@ void loadsavequit_dialogue::load(void)
 	close(2);	// load and close
 }
 
-void loadsavequit_dialogue::save(void)
+void loadsavequit_dialogue::save()
 {
 	string fn = get_savegame_name_for(gamename->get_text(), savegames);
 	FILE* f = fopen(fn.c_str(), "rb");
@@ -203,7 +203,7 @@ void loadsavequit_dialogue::save(void)
 	update_list();
 }
 
-void loadsavequit_dialogue::erase(void)
+void loadsavequit_dialogue::erase()
 {
 	widget* w = create_dialogue_ok_cancel(texts::get(182), texts::get(188) + gamename->get_text() + texts::get(189));
 	int ok = w->run();
@@ -219,7 +219,7 @@ void loadsavequit_dialogue::erase(void)
 	}
 }
 
-void loadsavequit_dialogue::quit(void)
+void loadsavequit_dialogue::quit()
 {
 	if (!gamesaved) {
 		widget* w = create_dialogue_ok_cancel(texts::get(182), texts::get(190));
@@ -230,7 +230,7 @@ void loadsavequit_dialogue::quit(void)
 	}
 }
 
-void loadsavequit_dialogue::update_list(void)
+void loadsavequit_dialogue::update_list()
 {
 	savegames.clear();
 
@@ -284,8 +284,8 @@ void show_halloffame(const highscorelist& hsl)
 	  mmusic->_play(0);
 	}
 }
-void show_halloffame_mission(void) { show_halloffame(hsl_mission); }
-void show_halloffame_career(void) { show_halloffame(hsl_career); }
+void show_halloffame_mission() { show_halloffame(hsl_mission); }
+void show_halloffame_career() { show_halloffame(hsl_career); }
 
 
 //
@@ -356,7 +356,7 @@ void show_results_for_game(const game* gm)
 // show the credits
 //
 #include "credits.h"
-void show_credits(void)
+void show_credits()
 {
 	glClearColor(0.1,0.25,0.4,0);
 
@@ -521,7 +521,7 @@ void run_game(game* gm)
 //
 // create a custom convoy mission
 //
-void create_convoy_mission(void)
+void create_convoy_mission()
 {
 	widget w(0, 0, 1024, 768, texts::get(9), 0, scopewatcherimg);
 	w.add_child(new widget_text(40, 60, 0, 0, texts::get(16)));
@@ -587,7 +587,7 @@ void create_convoy_mission(void)
 //
 // choose a historical mission
 //
-void choose_historical_mission(void)
+void choose_historical_mission()
 {
 	vector<string> missions;
 	
@@ -612,7 +612,7 @@ void choose_historical_mission(void)
 	{
 		const vector<string>& descrs;
 		widget_text* wdescr;
-		void on_sel_change(void) {
+		void on_sel_change() {
 			int sel = get_selected();
 			if (sel >= 0 && sel < int(descrs.size()))
 				wdescr->set_text(descrs[sel]);
@@ -678,7 +678,7 @@ void choose_historical_mission(void)
 //
 // choose a saved game
 //
-void choose_saved_game(void)
+void choose_saved_game()
 {
 	loadsavequit_dialogue dlg(0);
 	int q = dlg.run(0, false);
@@ -904,7 +904,7 @@ void join_network_game(const string& servername, Uint16 server_port, network_con
 		delete gm;
 }
 
-void play_network_game(void)
+void play_network_game()
 {
 	IPaddress computer_ip;
 	Uint16 server_port = 0xdf7d;
@@ -931,7 +931,7 @@ void play_network_game(void)
 	struct wserver_list : public widget_list
 	{
 		widget_edit * wip, * wpt;
-		void on_sel_change(void) {
+		void on_sel_change() {
 			string s = get_selected_entry();
 			wip->set_text(s.substr(0, s.find(":")));
 			wpt->set_text(s.substr(s.find(":")+1));
@@ -978,15 +978,15 @@ void play_network_game(void)
 
 
 // old menus are used from here on
-void menu_single_mission(void)
+void menu_single_mission()
 {
 	widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
 	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(21));
 	w.add_child(wm);
-	wm->add_entry(texts::get(8), new widget_func_button<void (*)(void)>(&menu_notimplemented, 0, 0, 0, 0));
-	wm->add_entry(texts::get(9), new widget_func_button<void (*)(void)>(&create_convoy_mission, 0, 0, 0, 0));
-	wm->add_entry(texts::get(10), new widget_func_button<void (*)(void)>(&choose_historical_mission, 0, 0, 0, 0));
-	wm->add_entry(texts::get(118), new widget_func_button<void (*)(void)>(&choose_saved_game, 0, 0, 0, 0));
+	wm->add_entry(texts::get(8), new widget_func_button<void (*)()>(&menu_notimplemented, 0, 0, 0, 0));
+	wm->add_entry(texts::get(9), new widget_func_button<void (*)()>(&create_convoy_mission, 0, 0, 0, 0));
+	wm->add_entry(texts::get(10), new widget_func_button<void (*)()>(&choose_historical_mission, 0, 0, 0, 0));
+	wm->add_entry(texts::get(118), new widget_func_button<void (*)()>(&choose_saved_game, 0, 0, 0, 0));
 	wm->add_entry(texts::get(11), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
 	wm->align(0, 0);
 	w.run(0, false);
@@ -1009,7 +1009,7 @@ void set_selected_language(pair<widget*, unsigned> w_nr)
 	w_nr.first->close(0);
 }
 
-void menu_select_language(void)
+void menu_select_language()
 {
 	widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
 	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(26));
@@ -1035,7 +1035,7 @@ void menu_select_language(void)
 // - invert mouse in view
 // - set keys
 //
-void menu_resolution(void)
+void menu_resolution()
 {
 /*
 	menu m(106, titlebackgrimg);
@@ -1088,7 +1088,7 @@ void configure_key(widget_list* wkeys)
 
 
 
-void menu_configure_keys(void)
+void menu_configure_keys()
 {
 	widget w(0, 0, 1024, 768, texts::get(214), 0, titlebackgrimg);
 	widget_list* wkeys = new widget_list(40, 50, 944, 640);
@@ -1110,13 +1110,13 @@ void menu_configure_keys(void)
 
 
 
-void menu_options(void)
+void menu_options()
 {
 	widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
 	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(29));
 	w.add_child(wm);
-	wm->add_entry(texts::get(214), new widget_func_button<void (*)(void)>(&menu_configure_keys, 0, 0, 0, 0));
-	//wm->add_entry(texts::get(106), new widget_func_button<void (*)(void)>(&menu_resolution, 0, 0, 0, 0));
+	wm->add_entry(texts::get(214), new widget_func_button<void (*)()>(&menu_configure_keys, 0, 0, 0, 0));
+	//wm->add_entry(texts::get(106), new widget_func_button<void (*)()>(&menu_resolution, 0, 0, 0, 0));
 	wm->add_entry(texts::get(11), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
 	wm->align(0, 0);
 	w.run(0, false);
@@ -1124,99 +1124,76 @@ void menu_options(void)
 
 
 // vessel preview
-const char* shipnames[14] = {
-"battleship_malaya",
-"carrier_bogue",
-"corvette",
-"destroyer_tribal",
-"freighter_large",
-"freighter_medium",
-"merchant_large",
-"merchant_medium",
-"merchant_small",
-"tanker_small",
-"troopship_medium",
-"submarine_VIIc",
-"submarine_IXc40",
-"submarine_XXI",
-};
-int current_ship = 0;
-double ship_zangle = 0;
-double ship_xangle = 0;
-ship* shp = 0;
-void draw_ship(void)
+class vessel_view
 {
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glDisable(GL_LIGHTING);
-	glLoadIdentity();
-	glTranslatef(0, 0, -2.5);
-	glRotatef(-80, 1, 0, 0);
-	glRotatef(ship_zangle, 0, 0, 1);
-	glRotatef(ship_xangle, 1, 0, 0);
-	double sc = 3.0/(modelcache.find(shp->get_modelname())->get_boundbox_size().length());
-	glScalef(sc, sc, sc);
-	glColor4f(0, 0, 0, 1);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBegin(GL_LINES);
-	glVertex3f(-10.0, 0.0, -10.0);
-	glVertex3f( 10.0, 0.0, -10.0);
-	glVertex3f( 0.0,-50.0, -10.0);
-	glVertex3f( 0.0, 50.0, -10.0);
-	glEnd();
-	glColor3f(1, 1, 1);
-	shp->display();
-	mysys->prepare_2d_drawing();
-	font_times->print_hc(512, 128, shp->get_description(2), color::white(), true);
-	mysys->unprepare_2d_drawing();
-	glEnable(GL_LIGHTING);
-}
-
-void menu_show_vessels(void)
-{
-/*
-	menu m(24, threesubsimg, true);
-	m.add_item(111, 0);
-	m.add_item(112, 0);
-	m.add_item(113, 0);
-	m.add_item(114, 0);
-	m.add_item(115, 0);
-	m.add_item(116, 0);
-	m.add_item(117, 0);
-	TiXmlDocument doc(get_ship_dir() + shipnames[current_ship] + ".xml");
-	doc.LoadFile();
-	shp = new ship(&doc);
-	while (true) {
-		unsigned sel = m.run(draw_ship);
-		if (sel == 6) break;
-		int lastship = current_ship;
-#define ROTANG 5
-		switch (sel) {
-			case 0: ship_zangle -= ROTANG; break;
-			case 1: ship_zangle += ROTANG; break;
-			case 2: ship_xangle -= ROTANG; break;
-			case 3: ship_xangle += ROTANG; break;
-			case 4: ++current_ship; break;
-			case 5: --current_ship; break;
-		}
-#undef ROTANG		
-		if (current_ship != lastship) {
-			if (current_ship < 0) current_ship = 13;
-			if (current_ship > 13) current_ship = 0;
-			delete shp;
-			lastship = current_ship;
-			if (current_ship < 11) {
-				TiXmlDocument doc(get_ship_dir() + shipnames[current_ship] + ".xml");
-				doc.LoadFile();
-				shp = new ship(&doc);
-			} else {
-				TiXmlDocument doc(get_submarine_dir() + shipnames[current_ship] + ".xml");
-				doc.LoadFile();
-				shp = new submarine(&doc);
-			}
- 		}
+	list<string> shipnames;
+	list<string>::iterator current;
+	// note! this is not destructed by this class...
+	widget_3dview* w3d;
+	auto_ptr<model> load_model() {
+		xml_doc doc(*current);
+		doc.load();
+		string mdlname = doc.first_child().child("classification").attr("modelname");
+		return auto_ptr<model>(new model(get_model_dir() + mdlname));
 	}
-	delete shp;
-*/
+public:
+	vessel_view()
+		: current(shipnames.end()), w3d(0)
+	{
+		color bgcol(50, 50, 150);
+		string tmp;
+		directory d = open_dir(get_ship_dir());
+		do {
+			tmp = read_dir(d);
+			if (tmp.length() > 4) {
+				string suffix = tmp.substr(tmp.length()-4);
+				if (suffix == ".xml") {
+					shipnames.push_back(get_ship_dir() + tmp);
+				}
+			}
+		} while (tmp.length() > 0);
+		d = open_dir(get_submarine_dir());
+		do {
+			tmp = read_dir(d);
+			if (tmp.length() > 4) {
+				string suffix = tmp.substr(tmp.length()-4);
+				if (suffix == ".xml") {
+					shipnames.push_back(get_submarine_dir() + tmp);
+				}
+			}
+		} while (tmp.length() > 0);
+		current = shipnames.begin();
+		w3d = new widget_3dview(20, 0, 1024-2*20, 700-32-16, load_model(), bgcol);
+	}
+	widget_3dview* get_w3d() { return w3d; }
+	void next() {
+		++current;
+		if (current == shipnames.end())
+			current = shipnames.begin();
+		w3d->set_model(load_model());
+	} 
+	void previous() {
+		if (current == shipnames.begin())
+			current = shipnames.end();
+		--current;
+		w3d->set_model(load_model());
+	}
+};
+
+void menu_show_vessels()
+{
+	widget w(0, 0, 1024, 768, texts::get(24), 0, threesubsimg);
+	widget_menu* wm = new widget_menu(0, 700, 140, 32, ""/*texts::get(110)*/, true);
+	w.add_child(wm);
+	vessel_view vw;
+	w.add_child(vw.get_w3d());
+
+	wm->add_entry(texts::get(115), new widget_caller_button<vessel_view, void (vessel_view::*)()>(&vw, &vessel_view::next));
+	wm->add_entry(texts::get(116), new widget_caller_button<vessel_view, void (vessel_view::*)()>(&vw, &vessel_view::previous));
+	wm->add_entry(texts::get(117), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0));
+	wm->adjust_buttons(984);
+
+	w.run(0, false);
 }
 
 
@@ -1496,14 +1473,14 @@ int mymain(list<string>& args)
 			widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(104));
 			wm->set_entry_spacing(8);
 			w.add_child(wm);
-			wm->add_entry(texts::get(21), new widget_func_button<void (*)(void)>(&menu_single_mission, 0, 0, 0, 0));
-			wm->add_entry(texts::get(22), new widget_func_button<void (*)(void)>(&play_network_game, 0, 0, 0, 0));
-			wm->add_entry(texts::get(23), new widget_func_button<void (*)(void)>(&menu_notimplemented /* career menu */, 0, 0, 0, 0));
-			wm->add_entry(texts::get(24), new widget_func_button<void (*)(void)>(&menu_notimplemented /*menu_show_vessels*/, 0, 0, 0, 0));
-			wm->add_entry(texts::get(25), new widget_func_button<void (*)(void)>(&show_halloffame_mission, 0, 0, 0, 0));
-			wm->add_entry(texts::get(213), new widget_func_button<void (*)(void)>(&show_credits, 0, 0, 0, 0));
+			wm->add_entry(texts::get(21), new widget_func_button<void (*)()>(&menu_single_mission, 0, 0, 0, 0));
+			wm->add_entry(texts::get(22), new widget_func_button<void (*)()>(&play_network_game, 0, 0, 0, 0));
+			wm->add_entry(texts::get(23), new widget_func_button<void (*)()>(&menu_notimplemented /* career menu */, 0, 0, 0, 0));
+			wm->add_entry(texts::get(24), new widget_func_button<void (*)()>(&menu_show_vessels, 0, 0, 0, 0));
+			wm->add_entry(texts::get(25), new widget_func_button<void (*)()>(&show_halloffame_mission, 0, 0, 0, 0));
+			wm->add_entry(texts::get(213), new widget_func_button<void (*)()>(&show_credits, 0, 0, 0, 0));
 			wm->add_entry(texts::get(26), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 0, 0, 0, 0));
-			wm->add_entry(texts::get(29), new widget_func_button<void (*)(void)>(&menu_options, 0, 0, 0, 0));
+			wm->add_entry(texts::get(29), new widget_func_button<void (*)()>(&menu_options, 0, 0, 0, 0));
 
 			wm->add_entry(texts::get(30), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
 			wm->align(0, 0);

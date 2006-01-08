@@ -31,6 +31,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 using namespace std;
 
+///\brief Class for display and input of submarine's main gauges.
+///\ingroup displays
 class sub_gauges_display : public user_display
 {
 	// pointers to images/textures of the interface
