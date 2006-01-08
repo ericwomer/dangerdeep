@@ -413,7 +413,7 @@ protected:
 	color backgrcol;
 	double z_angle;
 	double x_angle;
-	double distance;
+	vector3f translation;	// translation.z is neg. distance to viewer
 
 	void on_wheel(int wd);
 	void on_drag(int mx, int my, int rx, int ry, int mb);

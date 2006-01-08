@@ -1018,10 +1018,9 @@ widget_3dview::widget_3dview(int x, int y, int w, int h, auto_ptr<model> mdl_, c
 	: widget(x, y, w, h, "", parent_), mdl(mdl_), backgrcol(bgcol),
 	  z_angle(90), x_angle(0)
 {
+	translation.z = 100;
 	if (mdl.get()) {
-		distance = mdl->get_boundbox_size().length() / 1.2;
-	} else {
-		distance = 100;
+		translation.z = mdl->get_boundbox_size().length() / 1.2;
 	}
 }
 
@@ -1031,9 +1030,9 @@ void widget_3dview::set_model(std::auto_ptr<model> mdl_)
 {
 	mdl = mdl_;
 	if (mdl.get()) {
-		distance = mdl->get_boundbox_size().length() / 1.2;
+		translation.z = mdl->get_boundbox_size().length() / 1.2;
 	} else {
-		distance = 100;
+		translation.z = 100;
 	}
 }
 
@@ -1042,9 +1041,9 @@ void widget_3dview::set_model(std::auto_ptr<model> mdl_)
 void widget_3dview::on_wheel(int wd)
 {
 	if (wd == 1) {
-		distance += 1;
+		translation.z += 2;
 	} else if (wd == 2) {
-		distance -= 1;
+		translation.z -= 2;
 	}
 }
 
@@ -1052,9 +1051,13 @@ void widget_3dview::on_wheel(int wd)
 
 void widget_3dview::on_drag(int mx, int my, int rx, int ry, int mb)
 {
-	if (mb & 1) {
+	if (mb & SDL_BUTTON_LMASK) {
 		z_angle += rx * 0.5;
 		x_angle += ry * 0.5;
+	}
+	if (mb & SDL_BUTTON_RMASK) {
+		translation.x += rx * 0.1;
+		translation.y += ry * 0.1;
 	}
 }
 
@@ -1066,11 +1069,20 @@ void widget_3dview::draw() const
 
 	vector3f bb = mdl->get_boundbox_size();
 	float bbl = bb.length();
-	float zfar = distance + bbl * 0.5;
+	float zfar = translation.z + bbl * 0.5;
 
 	sys().unprepare_2d_drawing();
 	glFlush();
-	glViewport(pos.x, pos.y, size.x, size.y);
+	unsigned rx = sys().get_res_x();
+	unsigned ry = sys().get_res_y();
+	unsigned rx2 = sys().get_res_x_2d();
+	unsigned ry2 = sys().get_res_y_2d();
+	unsigned vpx = pos.x*rx/rx2;
+	unsigned vpy = (ry2 - pos.y - size.y)*ry/ry2;
+	unsigned vpw = size.x*rx/rx2;
+	unsigned vph = size.y*ry/ry2;
+	glViewport(vpx, vpy, vpw, vph);
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	sys().gl_perspective_fovx(70.0/*fovx*/, float(size.x)/size.y, 1.0f, zfar);
@@ -1080,9 +1092,10 @@ void widget_3dview::draw() const
 	float clr[4];
 	backgrcol.store_rgba(clr);
 	glClearColor(clr[0], clr[1], clr[2], clr[3]);
-	glClear(GL_DEPTH_BUFFER_BIT);//fixme: color bit?
+	glClear(GL_DEPTH_BUFFER_BIT /* | GL_COLOR_BUFFER_BIT*/);
 	glDisable(GL_LIGHTING);	// fixme: why?
-	glTranslatef(0, 0, -distance);
+
+	glTranslatef(-translation.x, -translation.y, -translation.z);
 	glRotatef(-80, 1, 0, 0);
 	glRotatef(z_angle, 0, 0, 1);
 	glRotatef(x_angle, 1, 0, 0);
