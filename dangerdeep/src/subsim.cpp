@@ -1174,12 +1174,14 @@ public:
 		if (current == shipnames.end())
 			current = shipnames.begin();
 		w3d->set_model(load_model());
+		w3d->redraw();
 	} 
 	void previous() {
 		if (current == shipnames.begin())
 			current = shipnames.end();
 		--current;
 		w3d->set_model(load_model());
+		w3d->redraw();
 	}
 };
 

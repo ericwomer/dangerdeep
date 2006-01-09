@@ -159,7 +159,7 @@ void widget::align(int h, int v)
 		(v < 0) ? 0 : ((v > 0) ? (sz.y-size.y) : ((sz.y-size.y)/2)) ));
 }
 
-void widget::draw(void) const
+void widget::draw() const
 {
 	redrawme = false;
 	vector2i p = get_pos();
@@ -204,7 +204,7 @@ bool widget::compute_mouseover(int mx, int my)
 	return false;
 }
 
-bool widget::is_enabled(void) const
+bool widget::is_enabled() const
 {
 	bool e = enabled;
 	if (parent)
@@ -212,17 +212,17 @@ bool widget::is_enabled(void) const
 	return e;
 }
 
-void widget::enable(void)
+void widget::enable()
 {
 	enabled = true;
 }
 
-void widget::disable(void)
+void widget::disable()
 {
 	enabled = false;
 }
 
-void widget::redraw(void)
+void widget::redraw()
 {
 	redrawme = true;
 	if (parent) parent->redraw();
@@ -450,7 +450,7 @@ widget_button* widget_menu::add_entry(const string& s, widget_button* wb)
 	return wb;
 }
 
-int widget_menu::get_selected(void) const
+int widget_menu::get_selected() const
 {
 	int sel = 0;
 	for (list<widget*>::const_iterator it = children.begin(); it != children.end(); ++it, ++sel)
@@ -459,7 +459,7 @@ int widget_menu::get_selected(void) const
 	return -1;
 }
 
-void widget_menu::draw(void) const
+void widget_menu::draw() const
 {
 	vector2i p = get_pos();
 	// draw tile bar if there is text
@@ -518,7 +518,7 @@ void widget_menu::adjust_buttons(unsigned totalsize)
 	}
 }
 
-void widget_text::draw(void) const
+void widget_text::draw() const
 {
 	vector2i p = get_pos();
 	if (sunken) {
@@ -530,7 +530,7 @@ void widget_text::draw(void) const
 	}
 }
 
-void widget_button::draw(void) const
+void widget_button::draw() const
 {
 	vector2i p = get_pos();
 	bool mover = is_enabled() && mouseover == this;
@@ -545,7 +545,7 @@ void widget_button::on_click(int mx, int my, int mb)
 	on_change();
 }
 
-void widget_button::on_release(void)
+void widget_button::on_release()
 {
 	pressed = false;
 	on_change();
@@ -566,7 +566,7 @@ void widget_scrollbar::set_nr_of_positions(unsigned s)
 	compute_scrollbarpixelpos();
 }
 
-unsigned widget_scrollbar::get_current_position(void) const
+unsigned widget_scrollbar::get_current_position() const
 {
 	return scrollbarpos;
 }
@@ -579,12 +579,12 @@ void widget_scrollbar::set_current_position(unsigned p)
 	}
 }
 
-unsigned widget_scrollbar::get_max_scrollbarsize(void) const
+unsigned widget_scrollbar::get_max_scrollbarsize() const
 {
 	return size.y-globaltheme->icons[0]->get_height()-globaltheme->icons[1]->get_height()-4*globaltheme->frame_size();
 }
 
-unsigned widget_scrollbar::get_scrollbarsize(void) const
+unsigned widget_scrollbar::get_scrollbarsize() const
 {
 	unsigned msbs = get_max_scrollbarsize();
 	if (scrollbarmaxpos == 0)
@@ -593,13 +593,13 @@ unsigned widget_scrollbar::get_scrollbarsize(void) const
 		return msbs/2 + msbs/(1+scrollbarmaxpos);
 }
 
-void widget_scrollbar::compute_scrollbarpixelpos(void)
+void widget_scrollbar::compute_scrollbarpixelpos()
 {
 	if (scrollbarmaxpos <= 1) scrollbarpixelpos = 0;
 	else scrollbarpixelpos = (get_max_scrollbarsize() - get_scrollbarsize()) * scrollbarpos/(scrollbarmaxpos-1);
 }
 
-void widget_scrollbar::draw(void) const
+void widget_scrollbar::draw() const
 {
 	vector2i p = get_pos();
 	int fw = globaltheme->frame_size();
@@ -681,7 +681,7 @@ widget_list::widget_list(int x, int y, int w, int h, widget* parent_)
 	struct wls : public widget_scrollbar
 	{
 		unsigned& p;
-		void on_scroll(void) { p = get_current_position(); }
+		void on_scroll() { p = get_current_position(); }
 		wls(unsigned& p_, int x, int y, int w, int h, widget* parent) : widget_scrollbar(x,y,w,h,parent), p(p_) {}
 		~wls() {};
 	};
@@ -756,13 +756,13 @@ void widget_list::set_entry(unsigned n, const string& s)
 		if (n == 0) *i = s;
 }
 
-void widget_list::sort_entries(void)
+void widget_list::sort_entries()
 {
 	entries.sort();
 	on_sel_change();
 }
 
-void widget_list::make_entries_unique(void)
+void widget_list::make_entries_unique()
 {
 	unique(entries.begin(), entries.end());
 	unsigned es = entries.size();
@@ -780,12 +780,12 @@ string widget_list::get_entry(unsigned n) const
 	return "";
 }
 
-unsigned widget_list::get_listsize(void) const
+unsigned widget_list::get_listsize() const
 {
 	return entries.size();
 }
 
-int widget_list::get_selected(void) const
+int widget_list::get_selected() const
 {
 	return selected;
 }
@@ -803,19 +803,19 @@ void widget_list::set_selected(unsigned n)
 	}
 }
 
-string widget_list::get_selected_entry(void) const
+string widget_list::get_selected_entry() const
 {
 	if (selected >= 0)
 		return get_entry(selected);
 	return "";
 }
 
-unsigned widget_list::get_nr_of_visible_entries(void) const
+unsigned widget_list::get_nr_of_visible_entries() const
 {
 	return (size.y - 2*globaltheme->frame_size()) / globaltheme->myfont->get_height();
 }
 
-void widget_list::clear(void)
+void widget_list::clear()
 {
 	listpos = 0;
 	selected = -1;
@@ -823,7 +823,7 @@ void widget_list::clear(void)
 	on_sel_change();
 }
 
-void widget_list::draw(void) const
+void widget_list::draw() const
 {
 	vector2i p = get_pos();
 	draw_area(p.x, p.y, size.x, size.y, false);
@@ -893,7 +893,7 @@ void widget_list::set_column_width(int cw)
 	columnwidth = cw;
 }
 
-void widget_edit::draw(void) const
+void widget_edit::draw() const
 {
 	vector2i p = get_pos();
 	draw_area(p.x, p.y, size.x, size.y, false);
@@ -961,7 +961,7 @@ widget_fileselector::widget_fileselector(int x, int y, int w, int h, const strin
 	read_current_dir();
 }
 
-void widget_fileselector::read_current_dir(void)
+void widget_fileselector::read_current_dir()
 {
 	current_dir->clear();
 	directory dir = open_dir(current_path->get_text());
@@ -987,7 +987,7 @@ void widget_fileselector::read_current_dir(void)
 		current_dir->append_entry(*it);
 }
 
-void widget_fileselector::listclick(void)
+void widget_fileselector::listclick()
 {
 	int n = current_dir->get_selected();
 	if (n < 0 || unsigned(n) > nr_dirs + nr_files) return;
