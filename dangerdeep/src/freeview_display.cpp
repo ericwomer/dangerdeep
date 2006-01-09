@@ -446,6 +446,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	ui.get_water().compute_amount_of_foam_texture(gm, viewpos, allships);
 
 #if 0
+	unsigned vps=512;
 	vector<Uint8> scrn(vps*vps*3);
 	//unsigned t0 = SDL_GetTicks();
 	glReadPixels(0, 0, vps, vps, GL_RGB, GL_UNSIGNED_BYTE, &scrn[0]);

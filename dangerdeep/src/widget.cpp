@@ -1016,7 +1016,7 @@ void widget_fileselector::listclick(void)
 
 widget_3dview::widget_3dview(int x, int y, int w, int h, auto_ptr<model> mdl_, color bgcol, widget* parent_)
 	: widget(x, y, w, h, "", parent_), mdl(mdl_), backgrcol(bgcol),
-	  z_angle(90), x_angle(0)
+	  z_angle(90), x_angle(0), lightdir(0, 0, 1, 0), lightcol(color::white())
 {
 	translation.z = 100;
 	if (mdl.get()) {
@@ -1093,7 +1093,14 @@ void widget_3dview::draw() const
 	backgrcol.store_rgba(clr);
 	glClearColor(clr[0], clr[1], clr[2], clr[3]);
 	glClear(GL_DEPTH_BUFFER_BIT /* | GL_COLOR_BUFFER_BIT*/);
-	glDisable(GL_LIGHTING);	// fixme: why?
+	glEnable(GL_LIGHTING);
+	glLightfv(GL_LIGHT0, GL_POSITION, &lightdir.x);
+	GLfloat diffcolor[4];
+	lightcol.store_rgba(diffcolor);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffcolor);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, diffcolor);
+	GLfloat ambcolor[4] = { 0.1f, 0.1f, 0.1f, 1 };
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambcolor);
 
 	glTranslatef(-translation.x, -translation.y, -translation.z);
 	glRotatef(-80, 1, 0, 0);

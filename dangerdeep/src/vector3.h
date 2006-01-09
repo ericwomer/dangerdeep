@@ -31,6 +31,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "vector2.h"
 
+template <class D2> class vector4t;
+
 ///\brief Template class for a mathematical vector with three coefficients.
 template<class D>
 class vector3t
@@ -65,6 +67,8 @@ class vector3t
 	vector3t<D> coeff_mul(const vector3t<D>& other) const { return vector3t(x * other.x, y * other.y, z * other.z); }
 	vector2t<D> xy(void) const { return vector2t<D>(x, y); };
 	vector2t<D> yz(void) const { return vector2t<D>(y, z); };
+	vector4t<D> xyz0(void) const { return vector4t<D>(x, y, z, 0); }
+	vector4t<D> xyzw(const D& w) const { return vector4t<D>(x, y, z, w); }
 	template<class D2> friend std::ostream& operator<< ( std::ostream& os, const vector3t<D2>& v );
 	template<class E> void assign(const vector3t<E>& other) { x = D(other.x); y = D(other.y); z = D(other.z); }
 };

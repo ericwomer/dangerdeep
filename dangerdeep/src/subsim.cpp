@@ -1164,6 +1164,9 @@ public:
 		} while (tmp.length() > 0);
 		current = shipnames.begin();
 		w3d = new widget_3dview(20, 0, 1024-2*20, 700-32-16, load_model(), bgcol);
+		vector3f lightdir = vector3f(angle(143).cos(), angle(143).sin(), angle(49.5).tan()).normal(); 
+		w3d->set_light_dir(vector4f(lightdir.x, lightdir.y, lightdir.z, 0));
+		w3d->set_light_color(color(233, 221, 171));
 	}
 	widget_3dview* get_w3d() { return w3d; }
 	void next() {

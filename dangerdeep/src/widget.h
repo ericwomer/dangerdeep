@@ -414,6 +414,8 @@ protected:
 	double z_angle;
 	double x_angle;
 	vector3f translation;	// translation.z is neg. distance to viewer
+	vector4f lightdir;
+	color lightcol;
 
 	void on_wheel(int wd);
 	void on_drag(int mx, int my, int rx, int ry, int mb);
@@ -427,6 +429,8 @@ public:
 	void set_model(std::auto_ptr<model> mdl_);
 	// widget will handle orientation itself. also user input for changing that...
 	// void set_orientation() / set_translation() <- later.
+	void set_light_dir(const vector4f& ld) { lightdir = ld; }
+	void set_light_color(color lc) { lightcol = lc; }
 };
 
 #endif

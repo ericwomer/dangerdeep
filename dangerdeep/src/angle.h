@@ -67,6 +67,7 @@ class angle
 	double diff(const angle& other) const { double d = clamped(other.val - val); if (d > 180.0) d = 360.0 - d; return d; };
 	double sin() const { return ::sin(rad()); };
 	double cos() const { return ::cos(rad()); };
+	double tan() const { return ::tan(rad()); };
 	vector2 direction() const { double r = rad(); return vector2(::sin(r), ::cos(r)); };
 	bool operator == ( const angle& b ) const { return value() == b.value(); }
 	bool operator != ( const angle& b ) const { return value() != b.value(); }
