@@ -1335,7 +1335,11 @@ coastmap::coastmap(const string& filename)
 	maph = surf->h;
 	pixelw_real = realwidth/mapw;
 	realheight = maph*realwidth/mapw;
-	pixels_per_seg = 1 << unsigned(ceil(log2(60000/pixelw_real)));
+	// compute integer number of pixels per segment
+	unsigned pixperseqnonpower2 = unsigned(ceil(60000/pixelw_real));
+	// find next power of 2 that is larger or equal than computed nonpower2 pixel width
+	for (pixels_per_seg = 1; pixels_per_seg < pixperseqnonpower2; pixels_per_seg <<= 1);
+	
 	segsx = mapw/pixels_per_seg;
 	segsy = maph/pixels_per_seg;
 	segw_real = pixelw_real * pixels_per_seg;
