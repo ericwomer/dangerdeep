@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "game.h"
 #include "texture.h"
 #include "oglext/OglExt.h"
+#include <algorithm>
 
 #include "global_data.h" //for smoke texture, fixme
 
@@ -351,7 +352,7 @@ void particle::display_all(const vector<particle*>& pts, const vector3& viewpos,
 		pds.push_back(particle_dist(*it, pp.square_length(), pp));
 	}
 	// this could be a huge performance killer.... fixme
-	sort(pds.begin(), pds.end());
+	std::sort(pds.begin(), pds.end());
 
 	glDisable(GL_LIGHTING);
 	//glNormal3f(0, 0, 1);

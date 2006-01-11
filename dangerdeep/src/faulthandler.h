@@ -123,6 +123,13 @@ void install_segfault_handler()
 }
 #else	// WIN32
 
+#include <stdio.h>
+
+inline void print_stack_trace()
+{
+	printf("Stack backtracing not supported on Win32 systems.\n");
+}
+
 void install_segfault_handler()
 {
 	printf("SIGSEGV catching not supported on Win32 systems.\n");
