@@ -113,7 +113,7 @@ user_interface::user_interface(game& gm) :
 	panel_valuetexts[5] = new widget_text(528+160+100, 8+24+5, 0, 0, "00:00:00");
 	for (unsigned i = 0; i < 6; ++i)
 		panel->add_child(panel_valuetexts[i]);
-	panel->add_child(new widget_caller_button<game, void (game::*)(void)>(mygame, &game::stop, 1024-128-8, 128-40, 128, 32, texts::get(177)));
+	panel->add_child(new widget_caller_button<game, void (game::*)()>(mygame, &game::stop, 1024-128-8, 128-40, 128, 32, texts::get(177)));
 	add_loading_screen("user interface initialized");
 
 	// create weather effects textures
@@ -249,7 +249,7 @@ user_interface::~user_interface ()
 
 
 
-angle user_interface::get_relative_bearing(void) const
+angle user_interface::get_relative_bearing() const
 {
 	if (bearing_is_relative)
 		return bearing;
@@ -258,7 +258,7 @@ angle user_interface::get_relative_bearing(void) const
 
 
 
-angle user_interface::get_absolute_bearing(void) const
+angle user_interface::get_absolute_bearing() const
 {
 	if (bearing_is_relative)
 		return mygame->get_player()->get_heading() + bearing;
@@ -267,7 +267,7 @@ angle user_interface::get_absolute_bearing(void) const
 
 
 
-angle user_interface::get_elevation(void) const
+angle user_interface::get_elevation() const
 {
 	return elevation;
 }
@@ -288,7 +288,7 @@ void user_interface::add_elevation(angle a)
 
 
 
-void user_interface::display(void) const
+void user_interface::display() const
 {
 	// fixme: brightness needs sun_pos, so compute_sun_pos() is called multiple times per frame
 	// but is very costly. we could cache it.
@@ -468,7 +468,7 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 
 
 
-void user_interface::draw_weather_effects(void) const
+void user_interface::draw_weather_effects() const
 {
 #if 0
 	// draw layers of snow flakes or rain drops (test)
@@ -504,7 +504,7 @@ void user_interface::draw_weather_effects(void) const
 
 
 
-bool user_interface::time_scale_up(void)
+bool user_interface::time_scale_up()
 {
 	if (time_scale < 4096) {
 		time_scale *= 2;
@@ -513,7 +513,7 @@ bool user_interface::time_scale_up(void)
 	return false;
 }
 
-bool user_interface::time_scale_down(void)
+bool user_interface::time_scale_down()
 {
 	if (time_scale > 1) {
 		time_scale /= 2;
@@ -522,7 +522,7 @@ bool user_interface::time_scale_down(void)
 	return false;
 }
 
-void user_interface::draw_infopanel(void) const
+void user_interface::draw_infopanel() const
 {
 	if (panel_visible) {
 		ostringstream os0;
@@ -566,7 +566,7 @@ void user_interface::add_message(const string& s)
 
 
 
-void user_interface::add_rudder_message(void)
+void user_interface::add_rudder_message()
 {
 	// this whole function should be replaced...seems ugly
 	ship* s = dynamic_cast<ship*>(mygame->get_player());
@@ -611,7 +611,7 @@ void user_interface::set_display_color ( color_mode mode ) const
 	}
 }
 
-void user_interface::set_display_color(void) const
+void user_interface::set_display_color() const
 {
 	if ( mygame->is_day_mode () )
 		DAY_MODE_COLOR ();
@@ -657,7 +657,7 @@ void user_interface::stop_fade_sound_effect(const string &se) const
 		s->fade_out();
 }
 
-void user_interface::set_allowed_popup(void) const
+void user_interface::set_allowed_popup() const
 {
 	// 0 is always valid (no popup)
 	if (current_popup == 0) return;
@@ -679,7 +679,13 @@ void user_interface::set_allowed_popup(void) const
 void user_interface::set_current_display(unsigned curdis) const
 {
 	current_display = curdis;
-	set_allowed_popup();
+	// check if current popup is still allowed. if not, clear popup
+	if (current_popup > 0) {
+		unsigned mask = displays[current_display]->get_popup_allow_mask();
+		mask >>= (current_popup-1);
+		if ((mask & 1) == 0)
+			current_popup = 0;
+	}
 }
 
 void user_interface::pause_all_sound() const
