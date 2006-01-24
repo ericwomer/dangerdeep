@@ -48,6 +48,8 @@ public:
 
 	//overload for zoom key handling ('y')
 	virtual void process_input(class game& gm, const SDL_Event& event);
+
+	virtual unsigned get_popup_allow_mask() const;
 };
 
 #endif

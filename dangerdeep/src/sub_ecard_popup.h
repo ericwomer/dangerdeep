@@ -17,42 +17,29 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-// user display: submarine's periscope
+// Submarine recognition card (Erkennungskarte or e-card) popup.
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
-#ifndef SUB_PERISCOPE_DISPLAY_H
-#define SUB_PERISCOPE_DISPLAY_H
+#ifndef SUB_ECARD_POPUP_H
+#define SUB_ECARD_POPUP_H
 
-#include "freeview_display.h"
+#include <memory>
+#include "user_popup.h"
 #include "image.h"
-#include <vector>
 
-class sub_periscope_display : public freeview_display
+class sub_ecard_popup : public user_popup
 {
-	void pre_display(class game& gm) const;
-	projection_data get_projection_data(class game& gm) const;
-	void post_display(class game& gm) const;
-
-	auto_ptr<image> background_normallight;
-	auto_ptr<image> background_nightlight;
-
-	vector<class texture*> compassbar_tex;
-	vector<unsigned> compassbar_width;
-
-	texture::ptr clock_hours_pointer;
-	texture::ptr clock_minutes_pointer;
-	
-	bool zoomed;	// use 1,5x (false) or 6x zoom (true)
+protected:
+	std::auto_ptr<image> background_daylight;
+	std::auto_ptr<image> background_nightlight;
 
 public:
-	sub_periscope_display(class user_interface& ui_);
-	virtual ~sub_periscope_display();
+	sub_ecard_popup(class user_interface& ui_);
+	virtual ~sub_ecard_popup();
 
-	//overload for zoom key handling ('y') and TDC input
-	virtual void process_input(class game& gm, const SDL_Event& event);
 	virtual void display(class game& gm) const;
 
-	virtual unsigned get_popup_allow_mask() const;
+	virtual bool process_input(class game& gm, const SDL_Event& event);
 };
 
-#endif
+#endif /* SUB_ECARD_POPUP_H */

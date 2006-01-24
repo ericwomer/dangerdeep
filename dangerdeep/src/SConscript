@@ -37,6 +37,7 @@ dftdsources = Split("""subsim.cpp
 	submarine_interface.cpp
 	sub_bridge_display.cpp
 	sub_control_popup.cpp
+	sub_ecard_popup.cpp
 	sub_damage_display.cpp
 	sub_gauges_display.cpp
 	sub_periscope_display.cpp

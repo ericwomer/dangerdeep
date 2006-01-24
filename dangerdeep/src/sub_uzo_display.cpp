@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "game.h"
 #include "submarine.h"
 #include "sub_uzo_display.h"
-#include "user_interface.h"
+#include "submarine_interface.h"
 #include "keys.h"
 #include "cfg.h"
 
@@ -127,4 +127,12 @@ void sub_uzo_display::process_input(class game& gm, const SDL_Event& event)
 	default: break;
 	}
 	freeview_display::process_input(gm, event);
+}
+
+
+
+unsigned sub_uzo_display::get_popup_allow_mask() const
+{
+	return
+		(1 << submarine_interface::popup_mode_ecard);
 }

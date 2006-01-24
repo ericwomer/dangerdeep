@@ -179,11 +179,12 @@ void sub_periscope_display::display(class game& gm) const
 
 
 
-unsigned sub_periscope_display::get_popup_allow_mask(void) const
+unsigned sub_periscope_display::get_popup_allow_mask() const
 {
 	return
 		(1 << submarine_interface::popup_mode_control) |
-		(1 << submarine_interface::popup_mode_tdc);
+		(1 << submarine_interface::popup_mode_tdc) |
+		(1 << submarine_interface::popup_mode_ecard);
 }
 
 

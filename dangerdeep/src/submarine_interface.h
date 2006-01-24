@@ -69,6 +69,7 @@ public:
 	enum {
 		popup_mode_control,
 		popup_mode_tdc,
+		popup_mode_ecard,
 		nr_of_popups
 	};
 
@@ -86,7 +87,7 @@ public:
 
 	void fire_tube(submarine* player, int nr);
 
-	virtual void display(void) const;
+	virtual void display() const;
 	virtual void process_input(const SDL_Event& events);
 	virtual unsigned get_selected_tube() const { return selected_tube; }
 	virtual void select_tube(unsigned nr) { selected_tube = nr; }

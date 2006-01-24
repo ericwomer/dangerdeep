@@ -26,36 +26,35 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 #include <map>
 #include <iostream>
-using namespace std;
 
 ///\brief Handles and caches instances of globally used objects.
 template <class T>
 class objcachet
 {
-	map<string, pair<unsigned, T*> > cache;
-	string basedir;
+	std::map<std::string, std::pair<unsigned, T*> > cache;
+	std::string basedir;
 	objcachet<T>();
 	objcachet<T>& operator= (const objcachet<T>& );
 	objcachet<T>(const objcachet<T>& );
 
 public:
-	objcachet<T>(const string& basedir_) : basedir(basedir_) {}
+	objcachet<T>(const std::string& basedir_) : basedir(basedir_) {}
 	~objcachet<T>() {
-		for (typename map<string, pair<unsigned, T*> >::iterator it = cache.begin(); it != cache.end(); ++it)
+		for (typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.begin(); it != cache.end(); ++it)
 			delete it->second.second;
 	}
 
-	T* find(const string& objname) {
+	T* find(const std::string& objname) {
 		if (objname.length() == 0) return (T*)0;
-		typename map<string, pair<unsigned, T*> >::iterator it = cache.find(objname);
+		typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it == cache.end())
 			return 0;
 		return it->second.second;
 	}
 
-	T* ref(const string& objname) {
+	T* ref(const std::string& objname) {
 		if (objname.length() == 0) return (T*)0;
-		typename map<string, pair<unsigned, T*> >::iterator it = cache.find(objname);
+		typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it == cache.end()) {
 			it = cache.insert(make_pair(objname, make_pair(1, new T(basedir + objname)))).first;
 		} else {
@@ -64,9 +63,9 @@ public:
 		return it->second.second;
 	}
 
-	bool ref(const string& objname, T* obj) {
+	bool ref(const std::string& objname, T* obj) {
 		if (objname.length() == 0) return false;	// no valid name
-		typename map<string, pair<unsigned, T*> >::iterator it = cache.find(objname);
+		typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it == cache.end()) {
 			it = cache.insert(make_pair(objname, make_pair(1, obj))).first;
 		} else {
@@ -75,9 +74,9 @@ public:
 		return true;
 	}
 
-	void unref(const string& objname) {
+	void unref(const std::string& objname) {
 		if (objname.length() == 0) return;
-		typename map<string, pair<unsigned, T*> >::iterator it = cache.find(objname);
+		typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it != cache.end()) {
 			--(it->second.first);
 			if (it->second.first == 0) {
@@ -88,7 +87,7 @@ public:
 	}
 	
 	void unref(T* obj) {
-		for (typename map<string, pair<unsigned, T*> >::iterator it = cache.begin(); it != cache.end(); ++it) {
+		for (typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.begin(); it != cache.end(); ++it) {
 			if (it->second.second == obj) {
 				--(it->second.first);
 				if (it->second.first == 0) {
@@ -102,7 +101,7 @@ public:
 	
 	void print(void) const {
 		cout << "objcache: " << cache.size() << " entries.\n";
-		for (typename map<string, pair<unsigned, T*> >::const_iterator it = cache.begin(); it != cache.end(); ++it)
+		for (typename std::map<std::string, std::pair<unsigned, T*> >::const_iterator it = cache.begin(); it != cache.end(); ++it)
 			cout << "key=\"" << it->first << "\" ref=" << it->second.first << " addr=" << it->second.second << "\n";
 	}
 };

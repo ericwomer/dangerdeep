@@ -64,6 +64,7 @@ using namespace std;
 
 #include "sub_control_popup.h"
 #include "sub_tdc_popup.h"
+#include "sub_ecard_popup.h"
 
 submarine_interface::submarine_interface(game& gm) : 
     	user_interface(gm), selected_tube(0)
@@ -85,6 +86,7 @@ submarine_interface::submarine_interface(game& gm) :
 	popups.resize(nr_of_popups);
 	popups[popup_mode_control] = new sub_control_popup(*this);
 	popups[popup_mode_tdc] = new sub_tdc_popup(*this);
+	popups[popup_mode_ecard] = new sub_ecard_popup(*this);
 	
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 	player->start_throttle_sound();
