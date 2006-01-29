@@ -329,7 +329,9 @@ void user_interface::process_input(const SDL_Event& event)
 
 	// fixme: only when panel is visible!
 	// the problem is also, that the events would be used twice in that case...
-	//panel->process_input(event);
+	if (/*panel_visible && */ event.type == SDL_MOUSEBUTTONDOWN && event.button.y >= panel->get_pos().y) {
+//		panel->process_input(event);
+	}
 }
 
 
