@@ -99,23 +99,21 @@ user_interface::user_interface(game& gm) :
 	if (water_res_y < 16) water_res_y = 16;
 	if (water_res_y > 1024) water_res_y = 1024;
 	mywater = new class water(water_res_x, water_res_y, 0.0);
-	panel = new widget(0, 768-32, 1024-128, 32, "", 0, panelbackgroundimg);
+	panel = new widget(0, 768-32, 1024, 32, "", 0, 0);
+	widget* panel2 = new widget(0, 0, 1024-128, 32, "", 0, 0);
+	panel->set_background(panelbackgroundimg);
+	panel->add_child(panel2);
 	// ca. 1024-128-2*8 for 6 texts => 146 pix. for each text
-	unsigned tm = 146, to = 100;
-	panel->add_child(new widget_text(8 + 0*tm, 4, 0, 0, texts::get(1)));
-	panel->add_child(new widget_text(8 + 1*tm, 4, 0, 0, texts::get(4)));
-	panel->add_child(new widget_text(8 + 2*tm, 4, 0, 0, texts::get(5)));
-	panel->add_child(new widget_text(8 + 3*tm, 4, 0, 0, texts::get(2)));
-	panel->add_child(new widget_text(8 + 4*tm, 4, 0, 0, texts::get(98)));
-	panel->add_child(new widget_text(8 + 5*tm, 4, 0, 0, texts::get(61)));
-	panel_valuetexts[0] = new widget_text(8 + 0*tm + to, 4, 0, 0, "000");
-	panel_valuetexts[1] = new widget_text(8 + 1*tm + to, 4, 0, 0, "000");
-	panel_valuetexts[2] = new widget_text(8 + 2*tm + to, 4, 0, 0, "000");
-	panel_valuetexts[3] = new widget_text(8 + 3*tm + to, 4, 0, 0, "000");
-	panel_valuetexts[4] = new widget_text(8 + 4*tm + to, 4, 0, 0, "000");
-	panel_valuetexts[5] = new widget_text(8 + 5*tm + to, 4, 0, 0, "00:00:00");
-	for (unsigned i = 0; i < 6; ++i)
-		panel->add_child(panel_valuetexts[i]);
+	int paneltextnrs[6] = { 1, 4, 5, 2, 98, 61 };
+	const char* paneltexts[6] = { "000", "000", "000", "000", "000", "00:00:00" };
+	for (int i = 0; i < 6; ++i) {
+		int off = 8 + i*(1024-128-2*8)/6;
+		string tx = texts::get(paneltextnrs[i]);
+		vector2i sz = font_arial->get_size(tx);
+		panel2->add_child(new widget_text(off, 4, 0, 0, tx));
+		panel_valuetexts[i] = new widget_text(off + 8 + sz.x, 4, 0, 0, paneltexts[i]);
+		panel2->add_child(panel_valuetexts[i]);
+	}
 	panel->add_child(new widget_caller_button<game, void (game::*)()>(mygame, &game::stop, 1024-128, 0, 128, 32, texts::get(177)));
 	add_loading_screen("user interface initialized");
 

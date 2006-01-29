@@ -70,14 +70,14 @@ texture *background,
 	*addleadangle, *torpleft, *metalbackgr,
 	*woodbackgr, *notepadsheet, *menuframe,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
-	*terraintex, *cloudsbackgr, *atlanticmap;
+	*terraintex, *cloudsbackgr, *atlanticmap, *panelbackgroundimg;
 	
 font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn;
 
 image *titlebackgrimg, *threesubsimg, *damage_screen_background,
 	*sub_damage_scheme_all, *killedimg, *scopewatcherimg,
 	*depthchargeimg, *sunkendestroyerimg, *kruppdocksimg, *rescuedestroyerimg, *sunderlandimg,
-	*swordfishimg, *hedgehogimg, *panelbackgroundimg;
+	*swordfishimg, *hedgehogimg;
 
 bool loading_screen_usable = false;
 
@@ -119,6 +119,7 @@ void init_global_data(void)
 	gun_shell_mdl = new model(get_model_dir() + "gun_shell.3ds");
 	psbackgr = new texture(get_texture_dir() + "psbackgr.png");
 	panelbackgr = new texture(get_texture_dir() + "panelbackgr.png", texture::LINEAR);
+	panelbackgroundimg = new texture(get_image_dir() + "panelbackground.jpg");
 	addleadangle = new texture(get_texture_dir() + "addleadangle.png");
 	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", texture::LINEAR);
 	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png" );
@@ -162,7 +163,6 @@ void init_global_data(void)
 	sunderlandimg = new image(get_image_dir() + "sunderland.jpg");
 	swordfishimg = new image(get_image_dir() + "swordfish.jpg");
 	hedgehogimg = new image(get_image_dir() + "hedgehog.jpg");
-	panelbackgroundimg = new image(get_image_dir() + "panelbackground.jpg");
 }
 
 void deinit_global_data(void)

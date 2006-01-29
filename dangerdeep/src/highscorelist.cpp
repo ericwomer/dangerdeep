@@ -96,7 +96,7 @@ void highscorelist::show(class widget* parent) const
 {
 	const font* fnt = widget::get_theme()->myfont;
 	unsigned lh = fnt->get_height();
-	unsigned scw = fnt->get_size("0000000").first;
+	unsigned scw = fnt->get_size("0000000").x;
 	unsigned y = 2*lh;
 	parent->add_child(new widget_text(scw/2, y, 0, 0, texts::get(202)));
 	parent->add_child(new widget_text(2*scw, y, 0, 0, texts::get(203)));

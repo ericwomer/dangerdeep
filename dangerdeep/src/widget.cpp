@@ -100,7 +100,8 @@ widget::theme* widget::replace_theme(widget::theme* t)
 }
 
 widget::widget(int x, int y, int w, int h, const string& text_, widget* parent_, const image* backgr)
-	: pos(x, y), size(w, h), text(text_), parent(parent_), background(backgr), enabled(true), retval(-1), closeme(false)
+	: pos(x, y), size(w, h), text(text_), parent(parent_), background(backgr),
+	  background_tex(0), enabled(true), retval(-1), closeme(false)
 {
 }
 
@@ -320,6 +321,8 @@ void widget::draw_area(int x, int y, int w, int h, bool out) const
 		int bw = int(background->get_width());
 		int bh = int(background->get_height());
 		background->draw(x + (w-bw)/2, y + (h-bh)/2);
+	} else if (background_tex) {
+		background_tex->draw_tiles(x, y, w, h);
 	}
 	draw_frame(x, y, w, h, out);
 }
@@ -483,7 +486,7 @@ void widget_menu::adjust_buttons(unsigned totalsize)
 		int nrbut = int(children.size());
 		int longest = 0;
 		for (list<widget*>::const_iterator it = children.begin(); it != children.end(); ++it) {
-			int w = int(globaltheme->myfont->get_size((*it)->get_text()).first);
+			int w = int(globaltheme->myfont->get_size((*it)->get_text()).x);
 			textw += w;
 			if (w > longest) longest = w;
 		}
@@ -506,7 +509,7 @@ void widget_menu::adjust_buttons(unsigned totalsize)
 				int spc = spaceleft / nrbut;
 				int runpos = 0;
 				for (list<widget*>::const_iterator it = children.begin(); it != children.end(); ++it) {
-					int mytextw = int(globaltheme->myfont->get_size((*it)->get_text()).first);
+					int mytextw = int(globaltheme->myfont->get_size((*it)->get_text()).x);
 					(*it)->set_pos(pos + vector2i(runpos, 0));
 					(*it)->set_size(vector2i(mytextw+2*fw+spc, entryh));
 					runpos += mytextw+2*fw+spc + entryspacing;
@@ -899,18 +902,18 @@ void widget_edit::draw() const
 	draw_area(p.x, p.y, size.x, size.y, false);
 	int fw = globaltheme->frame_size();
 	globaltheme->myfont->print_vc(p.x+fw, p.y+size.y/2, text, is_enabled() ? globaltheme->textcol : globaltheme->textdisabledcol, true);
-	pair<unsigned, unsigned> sz = globaltheme->myfont->get_size(text.substr(0, cursorpos));
+	vector2i sz = globaltheme->myfont->get_size(text.substr(0, cursorpos));
 	glBindTexture(GL_TEXTURE_2D, 0);
 	globaltheme->textcol.set_gl_color();
 	if (this == (const widget*)focussed)
-		sys().draw_rectangle(p.x+fw+sz.first, p.y+size.y/4, fw/2, size.y/2);
+		sys().draw_rectangle(p.x+fw+sz.x, p.y+size.y/4, fw/2, size.y/2);
 }
 
 void widget_edit::on_char(const SDL_keysym& ks)
 {
 	int c = ks.sym;
 	unsigned l = text.length();
-	unsigned textw = globaltheme->myfont->get_size(text).first;
+	unsigned textw = globaltheme->myfont->get_size(text).x;
 	if (c == SDLK_LEFT && cursorpos > 0) {
 		--cursorpos;
 	} else if (c == SDLK_RIGHT && cursorpos < l) {
@@ -925,7 +928,7 @@ void widget_edit::on_char(const SDL_keysym& ks)
 		c = ks.unicode & 0xff;
 		char tx[2] = { c, 0 };
 		string stx(tx);
-		unsigned stxw = globaltheme->myfont->get_size(stx).first;
+		unsigned stxw = globaltheme->myfont->get_size(stx).x;
 		if (int(textw + stxw + 8) < size.x) {
 			if (cursorpos < l) {
 				text.insert(cursorpos, stx);

@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <vector>
 #include <string>
-using namespace std;
+#include "vector2.h"
 #include "color.h"
 
 
@@ -48,7 +48,7 @@ private:
 	font() {};
 	font& operator=(const font& other);
 	font(const font& other);
-	vector<character> characters;
+	std::vector<character> characters;
 
 	unsigned first_char, last_char;	// codes
 	unsigned base_height, height;	// base height and real height
@@ -57,18 +57,18 @@ private:
 
 	static unsigned next_p2(unsigned i) { unsigned p = 1; while (p < i) p <<= 1; return p; }
 	
-	void print_text(int x, int y, const string& text, bool ignore_colors = false) const;
+	void print_text(int x, int y, const std::string& text, bool ignore_colors = false) const;
 		
 public:
-	font(const string& basefilename, unsigned char_spacing = 1);
+	font(const std::string& basefilename, unsigned char_spacing = 1);
 	~font();
-	void print(int x, int y, const string& text, color col = color(255,255,255), bool with_shadow = false) const;
-	void print_hc(int x, int y, const string& text, color col = color(255,255,255), bool with_shadow = false) const;
-	void print_vc(int x, int y, const string& text, color col = color(255,255,255), bool with_shadow = false) const;
-	void print_c(int x, int y, const string& text, color col = color(255,255,255), bool with_shadow = false) const;
+	void print(int x, int y, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
+	void print_hc(int x, int y, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
+	void print_vc(int x, int y, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
+	void print_c(int x, int y, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
 	// print text with wrap around, use lineheight 0 for automatic line height
-	void print_wrapped(int x, int y, unsigned w, unsigned lineheight, const string& text, color col = color(255,255,255), bool with_shadow = false) const;
-	pair<unsigned, unsigned> get_size(const string& text) const;
+	void print_wrapped(int x, int y, unsigned w, unsigned lineheight, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
+	vector2i get_size(const std::string& text) const;
 	unsigned get_char_width(unsigned char c) const;
 	unsigned get_height(void) const { return height; };
 };

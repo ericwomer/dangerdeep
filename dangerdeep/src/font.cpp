@@ -28,7 +28,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <SDL_image.h>
 #include <sstream>
 #include <fstream>
-using namespace std;
+using std::vector;
+using std::string;
+
 
 font::character::~character()
 {
@@ -173,18 +175,18 @@ void font::print(int x, int y, const string& text, color col, bool with_shadow) 
 
 void font::print_hc(int x, int y, const string& text, color col, bool with_shadow) const
 {
-	print(x-get_size(text).first/2, y, text, col, with_shadow);
+	print(x-get_size(text).x/2, y, text, col, with_shadow);
 }
 	
 void font::print_vc(int x, int y, const string& text, color col, bool with_shadow) const
 {
-	print(x, y-get_size(text).second/2, text, col, with_shadow);
+	print(x, y-get_size(text).y/2, text, col, with_shadow);
 }
 
 void font::print_c(int x, int y, const string& text, color col, bool with_shadow) const
 {
-	pair<unsigned, unsigned> wh = get_size(text);
-	print(x-wh.first/2, y-wh.second/2, text, col, with_shadow);
+	vector2i wh = get_size(text);
+	print(x-wh.x/2, y-wh.y/2, text, col, with_shadow);
 }
 
 void font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, const string& text, color col, bool with_shadow) const
@@ -230,7 +232,7 @@ void font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, const st
 			print(x, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
 			y += (lineheight == 0) ? get_height() : lineheight;
 		} else {
-			unsigned tw = get_size(text.substr(oldtextptr, textptr - oldtextptr)).first;
+			unsigned tw = get_size(text.substr(oldtextptr, textptr - oldtextptr)).x;
 			if (currwidth + tw >= w) {
 				y += (lineheight == 0) ? get_height() : lineheight;
 				currwidth = 0;
@@ -243,7 +245,7 @@ void font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, const st
 	}
 }
 
-pair<unsigned, unsigned> font::get_size(const string& text) const
+vector2i font::get_size(const string& text) const
 {
 	unsigned x = 0, y = height;
 	unsigned xmax = 0;
@@ -278,7 +280,7 @@ pair<unsigned, unsigned> font::get_size(const string& text) const
 		if (x > xmax) xmax = x;
 	}
 	if (x == 0) y -= height;
-	return make_pair(xmax, y);
+	return vector2i(xmax, y);
 }
 
 unsigned font::get_char_width(unsigned char c) const

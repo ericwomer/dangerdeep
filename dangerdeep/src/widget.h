@@ -64,7 +64,8 @@ protected:
 	vector2i pos, size;
 	string text;
 	widget* parent;
-	const image* background;
+	const image* background; // if this is != 0, the image is rendered in the background, centered
+	const texture* background_tex; // drawn as tiles if != 0 and no image defined
 	bool enabled;
 	list<widget*> children;
 	int retval;
@@ -124,7 +125,9 @@ public:
 	virtual string get_text() const { return text; }
 	virtual void set_text(const string& s) { text = s; }
 	virtual const image* get_background() const { return background; }
-	virtual void set_background(const image* b) { background = b; }
+	virtual const texture* get_background_tex() const { return background_tex; }
+	virtual void set_background(const image* b) { background = b; background_tex = 0; }
+	virtual void set_background(const texture* t) { background_tex = t; background = 0; }
 	virtual void set_return_value(int rv) { retval = rv; }
 	virtual bool is_enabled() const;
 	virtual void enable();
