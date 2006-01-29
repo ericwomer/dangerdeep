@@ -39,6 +39,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "model.h"
 #include "texture.h"
 #include "game.h"
+#include "game_editor.h"
 #include "ship.h"
 #include "global_data.h"
 #include "texts.h"
@@ -518,6 +519,64 @@ void run_game(game* gm)
 }
 
 
+
+//
+// start and run a game editor, handle load/save (game menu), delete game
+//
+void run_game_editor(game* gm)
+{
+        mmusic->fade_out();
+	widget::theme* gametheme =
+		new widget::theme("widgetelements_game.png", "widgeticons_game.png",
+		font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64));
+	reset_loading_screen();
+	user_interface* ui = user_interface::create(*gm);
+	while (true) {
+		widget::theme* tmp = widget::replace_theme(gametheme);
+		gm->set_user_interface(ui);
+		game::run_state state = gm->exec();
+		widget::replace_theme(tmp);
+
+		if( mmusic->status()==music::paused && mmusic->_current()==1 )
+			mmusic->resume();
+		else if( mmusic->status()!=music::playing || mmusic->current()!=1)
+			mmusic->_play(1);
+		loadsavequit_dialogue dlg(gm);
+		int q = dlg.run(0, false);
+		// replace game and ui if new game was loaded
+		if (q == 2) {
+			// fixme: ui doesn't need to get replaced, just give pointer to new
+			// game to old ui, clear ui values and messages, finished...
+			// this safes time to recompute map/water/sky etc.
+			// as long as class game holds a pointer to ui this is more difficult or
+			// won't work.
+			delete gm;
+			delete ui;
+			gm = new game_editor(dlg.get_gamefilename_to_load());
+			ui = user_interface::create(*gm);
+		}
+		//replace ui after loading!!!!
+		if (q == 1){
+			if( mmusic->status()==music::paused && mmusic->_current()==1 ){
+				mmusic->resume();
+			} else if( mmusic->status()!=music::playing || mmusic->_current()!=1 ){
+				mmusic->_fade_out(500);
+				mmusic->_play(1);
+			}
+			break;
+		}
+		if( q == 0 ){
+			mmusic->_fade_out(1000);
+		}
+	}
+	delete gametheme;
+	gm->set_user_interface(0);
+	delete ui;
+	delete gm;
+}
+
+
+
 //
 // create a custom convoy mission
 //
@@ -974,10 +1033,6 @@ void play_network_game()
 
 
 
-
-
-
-// old menus are used from here on
 void menu_single_mission()
 {
 	widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
@@ -991,6 +1046,43 @@ void menu_single_mission()
 	wm->align(0, 0);
 	w.run(0, false);
 }
+
+
+
+void menu_mission_editor()
+{
+	widget w(0, 0, 1024, 768, texts::get(222), 0, scopewatcherimg);
+	w.add_child(new widget_text(40, 60, 944, 0, texts::get(223)));
+
+/*
+	w.add_child(new widget_text(40, 60, 0, 0, texts::get(16)));
+	widget_list* wsubtype = new widget_list(40, 90, 200, 200);
+	w.add_child(wsubtype);
+	wsubtype->append_entry(texts::get(17));
+	wsubtype->append_entry(texts::get(174));
+	wsubtype->append_entry(texts::get(18));
+*/
+
+	widget_menu* wm = new widget_menu(40, 700, 0, 40, "", true);
+	w.add_child(wm);
+	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 540, 700, 400, 40));
+	wm->add_entry(texts::get(222), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 70, 700, 400, 40));
+	wm->adjust_buttons(944);
+	int result = w.run(0, false);
+	if (result == 2) {	// start editor
+/*
+		string st;
+		switch (wsubtype->get_selected()) {
+			case 0: st = "submarine_VIIc"; break;
+			case 1: st = "submarine_IXc40"; break;
+			case 2: st = "submarine_XXI"; break;
+		}
+*/
+		run_game_editor(new game_editor(/*st*/));
+	}
+}
+
+
 
 // fixme: read from languages.csv!
 #define NR_OF_LANGUAGES 4
@@ -1479,8 +1571,9 @@ int mymain(list<string>& args)
 			wm->set_entry_spacing(8);
 			w.add_child(wm);
 			wm->add_entry(texts::get(21), new widget_func_button<void (*)()>(&menu_single_mission, 0, 0, 0, 0));
-			wm->add_entry(texts::get(22), new widget_func_button<void (*)()>(&play_network_game, 0, 0, 0, 0));
-			wm->add_entry(texts::get(23), new widget_func_button<void (*)()>(&menu_notimplemented /* career menu */, 0, 0, 0, 0));
+			//wm->add_entry(texts::get(22), new widget_func_button<void (*)()>(&play_network_game, 0, 0, 0, 0));
+			//wm->add_entry(texts::get(23), new widget_func_button<void (*)()>(&menu_notimplemented /* career menu */, 0, 0, 0, 0));
+			wm->add_entry(texts::get(222), new widget_func_button<void (*)()>(&menu_mission_editor, 0, 0, 0, 0));
 			wm->add_entry(texts::get(24), new widget_func_button<void (*)()>(&menu_show_vessels, 0, 0, 0, 0));
 			wm->add_entry(texts::get(25), new widget_func_button<void (*)()>(&show_halloffame_mission, 0, 0, 0, 0));
 			wm->add_entry(texts::get(213), new widget_func_button<void (*)()>(&show_credits, 0, 0, 0, 0));

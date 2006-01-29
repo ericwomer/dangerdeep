@@ -187,7 +187,7 @@ public:
 	void stop();
 
 	void compute_max_view_dist();	// fixme - public?
-	void simulate(double delta_t);
+	virtual void simulate(double delta_t);
 
 	const std::list<sink_record>& get_sunken_ships() const { return sunken_ships; };
 	const logbook& get_players_logbook() const { return players_logbook; }
@@ -279,8 +279,11 @@ public:
 	double water_depth(const vector2& pos) const;
 	
 	// main game loop
-	run_state exec();
-	
+	virtual run_state exec();
+
+	// is editor?
+	virtual bool is_editor() const { return false; }
+
 	// sun/moon and light color/brightness
 	double compute_light_brightness(const vector3& viewpos) const;	// depends on sun/moon
 	color compute_light_color(const vector3& viewpos) const;	// depends on sun/moon

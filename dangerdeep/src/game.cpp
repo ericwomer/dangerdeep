@@ -118,6 +118,13 @@ void game::sink_record::save(xml_elem& parent) const
 
 
 
+game::game()
+{
+	// empty, so that heirs can construct a game object. Needed for editor
+}
+
+
+
 game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
 	unsigned timeperiod, unsigned nr_of_players)
 {
@@ -601,7 +608,7 @@ string game::read_description_of_savegame(const string& filename)
 
 
 
-void game::compute_max_view_dist(void)
+void game::compute_max_view_dist()
 {
 	// a bit unprecise here, since the viewpos is not always the same as the playerpos
 	max_view_dist = 5000.0 + compute_light_brightness(player->get_pos()) * 25000;
@@ -1485,7 +1492,7 @@ ship* game::sonar_acoustical_torpedo_target ( const torpedo* o ) const
 
 // main play loop
 // fixme: a bit misplaced here, especially after ui was moved away from game
-game::run_state game::exec(void)
+game::run_state game::exec()
 {
 	// fixme: add special ui heir: playback
 	// to record videos.
@@ -1576,7 +1583,7 @@ unsigned game::listsizes(unsigned n) const
 }
 
 /*
-void game::receive_commands(void)
+void game::receive_commands()
 {
 	// only used for multiplayer games!
 	if (networktype > 0) {
@@ -1847,7 +1854,7 @@ unsigned game::save_ptr(const convoy* c) const
 
 
 
-void game::stop(void) 
+void game::stop() 
 { 
 	stopexec = true; 
 	if (ui)
