@@ -68,6 +68,7 @@ const unsigned GAMETYPE = 0;//fixme, 0-mission , 1-patrol etc.
 /***************************************************************************/
 
 game_editor::game_editor()
+	: time_sim_enabled(false), time_sim_paused(false)
 {
 	networktype = 0;
 	servercon = 0;
@@ -104,7 +105,7 @@ game_editor::game_editor()
 //                        LOAD GAME (SAVEGAME OR MISSION)
 // --------------------------------------------------------------------------------
 game_editor::game_editor(const string& filename)
-	: game(filename)
+	: game(filename), time_sim_enabled(false), time_sim_paused(false)
 {
 	// nothing special for now
 }
@@ -125,10 +126,134 @@ void game_editor::simulate(double delta_t)
 	// fixme: time should be freezeable, editor should be able to set time to any
 	// value between 1939/9/1 and 1945/5/8
 
-	game::simulate(delta_t);
+	// copied from game
+	// check if jobs are to be run
+	for (list<pair<double, job*> >::iterator it = jobs.begin(); it != jobs.end(); ++it) {
+		it->first += delta_t;
+		if (it->first >= it->second->get_period()) {
+			it->first -= it->second->get_period();
+			it->second->run();
+		}
+	}
 
-	// reset run state, so that game doesn't end because there is only the player sub or so
-	my_run_state = running;
+	compute_max_view_dist();
+	
+	bool record = false;
+
+	double nearest_contact = 1e10;
+
+	// fixme: the AI should ignore the player inside the editor...
+	// or the game starts and the destroyers start to hunt the player.
+	// But this would be realistic on the other hand...
+
+	// pings / trails are not simulated
+
+	// copied from game
+	// simulation for each object
+	// ------------------------------ ships ------------------------------
+	for (unsigned i = 0; i < ships.size(); ++i) {
+		if (!ships[i]) continue;
+		if (ships[i] != player) {
+			double dist = ships[i]->get_pos().distance(player->get_pos());
+			if (dist < nearest_contact) nearest_contact = dist;
+		}
+		if (ships[i]->is_defunct()) {
+			ships.reset(i);
+		} else {
+			ships[i]->simulate(delta_t);
+			if (record) ships[i]->remember_position();
+		}
+	}
+	ships.compact();
+
+	// ------------------------------ submarines ------------------------------
+	for (unsigned i = 0; i < submarines.size(); ++i) {
+		if (!submarines[i]) continue;
+		if (submarines[i] != player) {
+			double dist = submarines[i]->get_pos().distance(player->get_pos());
+			if (dist < nearest_contact) nearest_contact = dist;
+		}
+		if (submarines[i]->is_defunct()) {
+			submarines.reset(i);
+		} else {
+			submarines[i]->simulate(delta_t);
+			if (record) submarines[i]->remember_position();
+		}
+	}
+	submarines.compact();
+
+	// ------------------------------ airplanes ------------------------------
+	for (unsigned i = 0; i < airplanes.size(); ++i) {
+		if (!airplanes[i]) continue;
+		if (airplanes[i] != player) {
+			double dist = airplanes[i]->get_pos().distance(player->get_pos());
+			if (dist < nearest_contact) nearest_contact = dist;
+		}
+		if (airplanes[i]->is_defunct()) {
+			airplanes.reset(i);
+		} else {
+			airplanes[i]->simulate(delta_t);
+		}
+	}
+	airplanes.compact();
+
+	// ------------------------------ torpedoes ------------------------------
+	for (unsigned i = 0; i < torpedoes.size(); ++i) {
+		if (!torpedoes[i]) continue;
+		if (torpedoes[i]->is_defunct()) {
+			torpedoes.reset(i);
+		} else {
+			torpedoes[i]->simulate(delta_t);
+			if (record) torpedoes[i]->remember_position();
+		}
+	}
+	torpedoes.compact();
+
+	// ------------------------------ depth_charges ------------------------------
+	for (unsigned i = 0; i < depth_charges.size(); ++i) {
+		if (!depth_charges[i]) continue;
+		if (depth_charges[i]->is_defunct()) {
+			depth_charges.reset(i);
+		} else {
+			depth_charges[i]->simulate(delta_t);
+		}
+	}
+	depth_charges.compact();
+
+	// ------------------------------ gun_shells ------------------------------
+	for (unsigned i = 0; i < gun_shells.size(); ++i) {
+		if (!gun_shells[i]) continue;
+		if (gun_shells[i]->is_defunct()) {
+			gun_shells.reset(i);
+		} else {
+			gun_shells[i]->simulate(delta_t);
+		}
+	}
+	gun_shells.compact();
+
+	// ------------------------------ convoys ------------------------------
+	for (unsigned i = 0; i < convoys.size(); ++i) {
+		if (!convoys[i]) continue;
+		convoys[i]->simulate(delta_t);	// fixme: handle erasing of empty convoys!
+	}
+	convoys.compact();
+
+	// ------------------------------ particles ------------------------------
+	for (unsigned i = 0; i < particles.size(); ++i) {
+		if (!particles[i]) continue;
+		if (particles[i]->is_defunct()) {
+			particles.reset(i);
+		} else {
+			particles[i]->simulate(*this, delta_t);
+		}
+	}
+	particles.compact();
+
+	// clear pings if there are some
+	pings.clear();
+
+	if (time_sim_enabled && !time_sim_paused)
+		time += delta_t;
 }
 
 

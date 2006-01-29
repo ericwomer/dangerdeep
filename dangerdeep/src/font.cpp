@@ -164,7 +164,7 @@ font::~font()
 void font::print(int x, int y, const string& text, color col, bool with_shadow) const
 {
 	if (with_shadow) {
-		glColor3f(0,0,0);
+		glColor4ub(0,0,0,col.a);
 		print_text(x+2, y+2, text, true);
 	}
 	col.set_gl_color();

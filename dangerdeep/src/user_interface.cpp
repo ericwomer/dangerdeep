@@ -55,6 +55,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "keys.h"
 using namespace std;
 
+const double message_vanish_time = 10;
+const double message_fadeout_time = 2;
+
 #define MAX_PANEL_SIZE 256
 
 
@@ -96,24 +99,24 @@ user_interface::user_interface(game& gm) :
 	if (water_res_y < 16) water_res_y = 16;
 	if (water_res_y > 1024) water_res_y = 1024;
 	mywater = new class water(water_res_x, water_res_y, 0.0);
-	panel = new widget(0, 768-128, 1024, 128, "", 0, panelbackgroundimg);
-	panel_messages = new widget_list(8, 8, 512, 128 - 2*8);
-	panel->add_child(panel_messages);
-	panel->add_child(new widget_text(528, 8, 0, 0, texts::get(1)));
-	panel->add_child(new widget_text(528, 8+24+5, 0, 0, texts::get(4)));
-	panel->add_child(new widget_text(528, 8+48+10, 0, 0, texts::get(5)));
-	panel->add_child(new widget_text(528, 8+72+15, 0, 0, texts::get(2)));
-	panel->add_child(new widget_text(528+160, 8, 0, 0, texts::get(98)));
-	panel->add_child(new widget_text(528+160, 8+24+5, 0, 0, texts::get(61)));
-	panel_valuetexts[0] = new widget_text(528+100, 8, 0, 0, "000");
-	panel_valuetexts[1] = new widget_text(528+100, 8+24+5, 0, 0, "000");
-	panel_valuetexts[2] = new widget_text(528+100, 8+48+10, 0, 0, "000");
-	panel_valuetexts[3] = new widget_text(528+100, 8+72+15, 0, 0, "000");
-	panel_valuetexts[4] = new widget_text(528+160+100, 8, 0, 0, "000");
-	panel_valuetexts[5] = new widget_text(528+160+100, 8+24+5, 0, 0, "00:00:00");
+	panel = new widget(0, 768-32, 1024-128, 32, "", 0, panelbackgroundimg);
+	// ca. 1024-128-2*8 for 6 texts => 146 pix. for each text
+	unsigned tm = 146, to = 100;
+	panel->add_child(new widget_text(8 + 0*tm, 4, 0, 0, texts::get(1)));
+	panel->add_child(new widget_text(8 + 1*tm, 4, 0, 0, texts::get(4)));
+	panel->add_child(new widget_text(8 + 2*tm, 4, 0, 0, texts::get(5)));
+	panel->add_child(new widget_text(8 + 3*tm, 4, 0, 0, texts::get(2)));
+	panel->add_child(new widget_text(8 + 4*tm, 4, 0, 0, texts::get(98)));
+	panel->add_child(new widget_text(8 + 5*tm, 4, 0, 0, texts::get(61)));
+	panel_valuetexts[0] = new widget_text(8 + 0*tm + to, 4, 0, 0, "000");
+	panel_valuetexts[1] = new widget_text(8 + 1*tm + to, 4, 0, 0, "000");
+	panel_valuetexts[2] = new widget_text(8 + 2*tm + to, 4, 0, 0, "000");
+	panel_valuetexts[3] = new widget_text(8 + 3*tm + to, 4, 0, 0, "000");
+	panel_valuetexts[4] = new widget_text(8 + 4*tm + to, 4, 0, 0, "000");
+	panel_valuetexts[5] = new widget_text(8 + 5*tm + to, 4, 0, 0, "00:00:00");
 	for (unsigned i = 0; i < 6; ++i)
 		panel->add_child(panel_valuetexts[i]);
-	panel->add_child(new widget_caller_button<game, void (game::*)()>(mygame, &game::stop, 1024-128-8, 128-40, 128, 32, texts::get(177)));
+	panel->add_child(new widget_caller_button<game, void (game::*)()>(mygame, &game::stop, 1024-128, 0, 128, 32, texts::get(177)));
 	add_loading_screen("user interface initialized");
 
 	// create weather effects textures
@@ -325,6 +328,10 @@ void user_interface::process_input(const SDL_Event& event)
 	}
 
 	displays[current_display]->process_input(*mygame, event);
+
+	// fixme: only when panel is visible!
+	// the problem is also, that the events would be used twice in that case...
+	//panel->process_input(event);
 }
 
 
@@ -335,6 +342,7 @@ void user_interface::process_input(list<SDL_Event>& events)
 	// when a ui is informed about events, like a ship sinks, then target should be
 	// compared against the sinking ship there.
 	// fixme: check also when target gets out of sight
+	// the ui could show a message then "lost contact to ..."
 	if (target && !target->is_alive()) target = 0;
 
 	if (current_popup > 0)
@@ -548,20 +556,39 @@ void user_interface::draw_infopanel() const
 		// the new process_input function eats SDL_Events which we don't have here
 //		panel->process_input(true);
 	}
+
+	// draw messages: fixme later move to separate function ?
+	double vanish_time = mygame->get_time() - message_vanish_time;
+	int y = panel->get_pos().y - font_arial->get_height();
+	for (std::list<std::pair<double, std::string> >::const_reverse_iterator it = messages.rbegin();
+	     it != messages.rend(); ++it) {
+		if (it->first < vanish_time)
+			break;
+		double alpha = std::min(1.0, (it->first - vanish_time)/message_fadeout_time);
+		font_arial->print(0, y, it->second, color(255,255,255,Uint8(255*alpha)), true);
+		y -= font_arial->get_height();
+	}
+	glColor4f(1,1,1,1);
 }
 
 
 
 void user_interface::add_message(const string& s)
 {
-	panel_messages->append_entry(s);
-	if (panel_messages->get_listsize() > panel_messages->get_nr_of_visible_entries())
-		panel_messages->delete_entry(0);
-/*
-	panel_texts.push_back(s);
-	if (panel_texts.size() > 1+MAX_PANEL_SIZE/font_arial->get_height())
-		panel_texts.pop_front();
-*/
+	// add message
+	messages.push_back(std::make_pair(mygame->get_time(), s));
+
+	// remove old messages
+	while (messages.size() > 6)
+		messages.pop_front();
+	double vanish_time = mygame->get_time() - message_vanish_time;
+	for (std::list<std::pair<double, std::string> >::iterator it = messages.begin(); it != messages.end(); ) {
+		if (it->first < vanish_time) {
+			it = messages.erase(it);
+		} else {
+			++it;
+		}
+	}
 }
 
 
