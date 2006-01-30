@@ -42,6 +42,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "global_data.h"
 #include "oglext/OglExt.h"
 #include "matrix4.h"
+#include "binstream.h"
 #include "xml.h"
 #include <sstream>
 
