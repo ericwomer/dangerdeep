@@ -34,7 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "oglext/OglExt.h"
 #endif
 
-#include "binstream.h"
+//#include "binstream.h"
 
 #include <iostream>
 using namespace std;
@@ -70,8 +70,8 @@ struct color {
 	float brightness(void) const { return (r*0.299+g*0.587+b*0.114)/255; }
 	color grey_value(void) const { Uint8 c = (Uint8)(r*0.299+g*0.587+b*0.114); return color(c, c, c, a); }
 	
-	color(istream& in) { r = read_u8(in); g = read_u8(in); b = read_u8(in); a = read_u8(in); }
-	void save(ostream& out) const { write_u8(out, r); write_u8(out, g); write_u8(out, b); write_u8(out, a); }
+	//color(istream& in) { r = read_u8(in); g = read_u8(in); b = read_u8(in); a = read_u8(in); }
+	//void save(ostream& out) const { write_u8(out, r); write_u8(out, g); write_u8(out, b); write_u8(out, a); }
 	
 	// some useful standard colors
 	static color black(void) { return color(0,0,0); }
