@@ -41,19 +41,19 @@ using namespace std;
 // C(++) guarantees that short has at least 16 bits, long has at least 32,
 // and int has some bit number between short and long.
 
-inline void write_i8(ostream& out, signed char i)
+inline void write_i8(ostream& out, Sint8 i)
 {
-	Sint8 ii = i;	// no LE/BE swap needed.
-	out.write((char*)&ii, 1);
+	// no LE/BE swap needed.
+	out.write((char*)&i, 1);
 }
 
-inline void write_i16(ostream& out, short i)
+inline void write_i16(ostream& out, Sint16 i)
 {
 	Uint16 ii = SDL_SwapLE16((Uint16)i);
 	out.write((char*)&ii, 2);
 }
 
-inline void write_i32(ostream& out, int i)
+inline void write_i32(ostream& out, Sint32 i)
 {
 	Uint32 ii = SDL_SwapLE32((Uint32)i);
 	out.write((char*)&ii, 4);
@@ -65,77 +65,77 @@ inline void write_i64(ostream& out, Sint64 i)
 	out.write((char*)&ii, 8);
 }
 
-inline void write_u8(ostream& out, unsigned char i)
+inline void write_u8(ostream& out, Uint8 i)
 {
-	Uint8 ii = i;	// no LE/BE swap needed.
-	out.write((char*)&ii, 1);
+	// no LE/BE swap needed.
+	out.write((char*)&i, 1);
 }
 
-inline void write_u16(ostream& out, unsigned short i)
+inline void write_u16(ostream& out, Uint16 i)
 {
-	Uint16 ii = SDL_SwapLE16((Uint16)i);
+	Uint16 ii = SDL_SwapLE16(i);
 	out.write((char*)&ii, 2);
 }
 
-inline void write_u32(ostream& out, unsigned int i)
+inline void write_u32(ostream& out, Uint32 i)
 {
-	Uint32 ii = SDL_SwapLE32((Uint32)i);
+	Uint32 ii = SDL_SwapLE32(i);
 	out.write((char*)&ii, 4);
 }
 
 inline void write_u64(ostream& out, Uint64 i)
 {
-	Uint64 ii = SDL_SwapLE64((Uint64)i);
+	Uint64 ii = SDL_SwapLE64(i);
 	out.write((char*)&ii, 8);
 }
 
-inline signed char read_i8(istream& in)
+inline Sint8 read_i8(istream& in)
 {
 	Sint8 i;	// no LE/BE swap needed.
 	in.read((char*)&i, 1);
 	return i;
 }
 
-inline short read_i16(istream& in)
+inline Sint16 read_i16(istream& in)
 {
 	Uint16 i;
 	in.read((char*)&i, 2);
-	return short(SDL_SwapLE16(i));
+	return Sint16(SDL_SwapLE16(i));
 }
 
-inline int read_i32(istream& in)
+inline Sint32 read_i32(istream& in)
 {
-	Sint32 i;
+	Uint32 i;
 	in.read((char*)&i, 4);
-	return int(SDL_SwapLE32(i));
+	return Sint32(SDL_SwapLE32(i));
 }
 
 inline Sint64 read_i64(istream& in)
 {
-	Sint64 i;
+	Uint64 i;
 	in.read((char*)&i, 8);
 	return Sint64(SDL_SwapLE64(i));
 }
 
-inline unsigned char read_u8(istream& in)
+inline Uint8 read_u8(istream& in)
 {
 	Uint8 i;	// no LE/BE swap needed.
 	in.read((char*)&i, 1);
 	return i;
 }
 
-inline unsigned short read_u16(istream& in)
+inline Uint16 read_u16(istream& in)
 {
 	Uint16 i;
 	in.read((char*)&i, 2);
-	return (unsigned short)(SDL_SwapLE16(i));
+	return Uint16(SDL_SwapLE16(i));
 }
 
-inline unsigned int read_u32(istream& in)
+inline Uint32 read_u32(istream& in)
 {
 	Uint32 i;
 	in.read((char*)&i, 4);
-	return (unsigned int)(SDL_SwapLE32(i));
+	return Uint32(SDL_SwapLE32(i));
 }
 
 inline Uint64 read_u64(istream& in)
