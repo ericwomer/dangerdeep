@@ -180,7 +180,6 @@ inline void write_float(ostream& out, float f)
 
 inline float read_float(istream& in)
 {
-	foo();
 	float_u32_shared s;
 	s.u = read_u32(in);
 	return s.f;
