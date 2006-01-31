@@ -36,6 +36,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "font.cpp"
 #include "keys.h"
 #include "cfg.h"
+#include "widget.h"
 #ifdef CVEDIT
 #include "color.h"
 #include "bspline.h"
@@ -329,8 +330,18 @@ void map_display::draw_square_mark ( class game& gm,
 
 
 map_display::map_display(user_interface& ui_) :
-	user_display(ui_), mapzoom(0.1), mx(0), my(0)
+	user_display(ui_), mapzoom(0.1), mx(0), my(0), edit_panel(0)
 {
+	edit_panel = new widget(0, 768-32*2, 1024, 32, "", 0, 0);
+	edit_panel->set_background(panelbackgroundimg);
+	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_add_obj, 0, 0, 128, 32, texts::get(224)));
+	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_del_obj, 128, 0, 128, 32, texts::get(225)));
+	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_change_motion, 256, 0, 128, 32, texts::get(226)));
+	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_copy_obj, 384, 0, 128, 32, texts::get(227)));
+	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_make_convoy, 512, 0, 128, 32, texts::get(228)));
+// 	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_, 640, 0, 128, 32, texts::get(177)));
+// 	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_, 768, 0, 128, 32, texts::get(177)));
+
 #ifdef CVEDIT
 	cvridx = -1;
 #endif
@@ -338,8 +349,39 @@ map_display::map_display(user_interface& ui_) :
 
 
 
+void map_display::edit_add_obj()
+{
+}
+
+
+
+void map_display::edit_del_obj()
+{
+}
+
+
+
+void map_display::edit_change_motion()
+{
+}
+
+
+
+void map_display::edit_copy_obj()
+{
+}
+
+
+
+void map_display::edit_make_convoy()
+{
+}
+
+
+
 map_display::~map_display()
 {
+	delete edit_panel;
 }
 
 
@@ -516,6 +558,9 @@ void map_display::display(class game& gm) const
 			<< degrx << "/" << minutx << (west ? "W" : "E");
 	font_arial->print(0, 0, rwcoordss.str(), color::white(), true);
 
+	if (gm.is_editor())
+		edit_panel->draw();
+
 	ui.draw_infopanel();
 	sys().unprepare_2d_drawing();
 
@@ -525,6 +570,10 @@ void map_display::display(class game& gm) const
 
 void map_display::process_input(class game& gm, const SDL_Event& event)
 {
+	// handle mouse events for edit panel if that exists.
+	if (gm.is_editor() && edit_panel->check_for_mouse_event(event))
+		return;
+
 	sea_object* player = gm.get_player();
 	switch (event.type) {
 	case SDL_MOUSEBUTTONDOWN:

@@ -49,10 +49,19 @@ protected:
 	void draw_square_mark (game& gm,
 		const vector2& mark_pos, const vector2& offset, const color& c ) const;
 
+	// only used in editor mode
+	class widget* edit_panel;
 #ifdef CVEDIT
 	vector<vector2> cvroute;
 	int cvridx;
 #endif
+
+	// editor methods
+	void edit_add_obj();
+	void edit_del_obj();
+	void edit_change_motion();
+	void edit_copy_obj();
+	void edit_make_convoy();
 
 private:
 	map_display();

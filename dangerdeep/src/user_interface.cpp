@@ -313,6 +313,11 @@ void user_interface::set_time(double tm)
 
 void user_interface::process_input(const SDL_Event& event)
 {
+	if (panel_visible) {
+ 		if (panel->check_for_mouse_event(event))
+ 			return;
+	}
+
 	if (event.type == SDL_KEYDOWN) {
 		if (cfg::instance().getkey(KEY_TOGGLE_RELATIVE_BEARING).equal(event.key.keysym)) {
 			bearing_is_relative = !bearing_is_relative;
@@ -326,12 +331,6 @@ void user_interface::process_input(const SDL_Event& event)
 	}
 
 	displays[current_display]->process_input(*mygame, event);
-
-	// fixme: only when panel is visible!
-	// the problem is also, that the events would be used twice in that case...
-	if (/*panel_visible && */ event.type == SDL_MOUSEBUTTONDOWN && event.button.y >= panel->get_pos().y) {
-//		panel->process_input(event);
-	}
 }
 
 
@@ -552,9 +551,6 @@ void user_interface::draw_infopanel() const
 		panel_valuetexts[5]->set_text(get_time_string(mygame->get_time()));
 
 		panel->draw();
-		// let aside the fact that we should divide DRAWING and INPUT HANDLING
-		// the new process_input function eats SDL_Events which we don't have here
-//		panel->process_input(true);
 	}
 
 	// draw messages: fixme later move to separate function ?

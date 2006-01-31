@@ -150,6 +150,10 @@ public:
 	// just calls the previous function repeatedly
 	virtual void process_input(const list<SDL_Event>& events);
 
+	// check if event is mouse event and is over widget. In that case process_input()
+	// is called and true is returned
+	virtual bool check_for_mouse_event(const SDL_Event& event);
+
 	// run() always returns 1    - fixme: make own widget classes for them?
 	static widget* create_dialogue_ok(widget* parent_, const string& title, const string& text = "");
 	widget* create_dialogue_ok(const string& title, const string& text = "") { return create_dialogue_ok(this, title, text); }

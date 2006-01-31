@@ -302,6 +302,22 @@ void widget::process_input(const list<SDL_Event>& events)
 	}
 }
 
+bool widget::check_for_mouse_event(const SDL_Event& event)
+{
+	if (event.type == SDL_MOUSEMOTION && is_mouse_over(event.motion.x, event.motion.y)) {
+		process_input(event);
+		return true;
+	}
+	if (event.type == SDL_MOUSEBUTTONDOWN && is_mouse_over(event.button.x, event.button.y)) {
+		process_input(event);
+		return true;
+	}
+	if (event.type == SDL_MOUSEBUTTONUP && is_mouse_over(event.button.x, event.button.y)) {
+		process_input(event);
+		return true;
+	}
+	return false;
+}
 
 
 void widget::draw_rect(int x, int y, int w, int h, bool out)
