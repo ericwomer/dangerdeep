@@ -28,7 +28,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <iostream>
 #include <string>
 #include "quaternion.h"
-using namespace std;
 
 // Data is stored in little endian mode.
 // On big endian machines the data is converted for reading and writing.
@@ -40,6 +39,23 @@ using namespace std;
 // The only system dependent assumption is that sizeof(int) >= 4 (32 bits).
 // C(++) guarantees that short has at least 16 bits, long has at least 32,
 // and int has some bit number between short and long.
+
+// these unions are a way to handle C99 strict aliasing rules.
+// float f = *(float*)&u;   is a bad idea with C99, instructions
+// can be reordered that shouldn't because u is hidden.
+union float_u32_shared
+{
+	float f;
+	Uint32 u;
+};
+
+union double_u64_shared
+{
+	double d;
+	Uint64 u;
+};
+
+
 
 inline void write_i8(ostream& out, Sint8 i)
 {
@@ -157,43 +173,50 @@ inline bool read_bool(istream& in)
 
 inline void write_float(ostream& out, float f)
 {
-	write_u32(out, *(Uint32*)(&f));
+	float_u32_shared s;
+	s.f = f;
+	write_u32(out, s.u);
 }
 
 inline float read_float(istream& in)
 {
-	Uint32 u = read_u32(in);
-	return *(float*)(&u);
+	foo();
+	float_u32_shared s;
+	s.u = read_u32(in);
+	return s.f;
 }
 
 inline void write_double(ostream& out, double d)
 {
-	write_u64(out, *(Uint64*)(&d));
+	double_u64_shared s;
+	s.d = d;
+	write_u64(out, s.u);
 }
 
 inline double read_double(istream& in)
 {
-	Uint64 u = read_u64(in);
-	return *(double*)(&u);
+	double_u64_shared s;
+	s.u = read_u64(in);
+	return s.d;
 }
 
-inline void write_string(ostream& out, const string& s)
+inline void write_string(ostream& out, const std::string& s)
 {
 	unsigned l = s.size();
 	write_u32(out, l);
 	if (l > 0)
-		out.write((char*)&s[0], l);
+		out.write(s.c_str(), l);
 }
 
-inline string read_string(istream& in)
+inline std::string read_string(istream& in)
 {
 	unsigned l = read_u32(in);
 	if (l > 0) {
-		string s(l, 'x');
+		std::string s(l, 'x');
 		in.read(&s[0], l);
 		return s;
 	} else {
-		return string();
+		return std::string();
 	}
 }
 
