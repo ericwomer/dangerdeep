@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "user_display.h"
 #include "vector2.h"
 #include "color.h"
+#include "widget.h"
 class game;
 class sea_object;
 
@@ -50,7 +51,9 @@ protected:
 		const vector2& mark_pos, const vector2& offset, const color& c ) const;
 
 	// only used in editor mode
-	class widget* edit_panel;
+	std::auto_ptr<widget> edit_panel;
+	std::auto_ptr<widget> edit_panel_fg;
+	widget_list* edit_shiplist;
 #ifdef CVEDIT
 	vector<vector2> cvroute;
 	int cvridx;
@@ -62,13 +65,13 @@ protected:
 	void edit_change_motion();
 	void edit_copy_obj();
 	void edit_make_convoy();
+	void edit_time();
 
 private:
 	map_display();
 
 public:
 	map_display(class user_interface& ui_);
-	virtual ~map_display();
 
 	virtual void display(class game& gm) const;
 	virtual void process_input(class game& gm, const SDL_Event& event);

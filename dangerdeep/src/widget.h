@@ -129,6 +129,8 @@ public:
 	virtual void set_background(const image* b) { background = b; background_tex = 0; }
 	virtual void set_background(const texture* t) { background_tex = t; background = 0; }
 	virtual void set_return_value(int rv) { retval = rv; }
+	virtual bool get_return_value() const { return retval; }
+	virtual bool was_closed() const { return closeme; }
 	virtual bool is_enabled() const;
 	virtual void enable();
 	virtual void disable();

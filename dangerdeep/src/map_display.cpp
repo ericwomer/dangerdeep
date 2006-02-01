@@ -36,7 +36,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "font.cpp"
 #include "keys.h"
 #include "cfg.h"
-#include "widget.h"
+#include "xml.h"
+#include "filehelper.h"
 #ifdef CVEDIT
 #include "color.h"
 #include "bspline.h"
@@ -330,16 +331,16 @@ void map_display::draw_square_mark ( class game& gm,
 
 
 map_display::map_display(user_interface& ui_) :
-	user_display(ui_), mapzoom(0.1), mx(0), my(0), edit_panel(0)
+	user_display(ui_), mapzoom(0.1), mx(0), my(0), edit_shiplist(0)
 {
-	edit_panel = new widget(0, 768-32*2, 1024, 32, "", 0, 0);
+	edit_panel.reset(new widget(0, 768-32*2, 1024, 32, "", 0, 0));
 	edit_panel->set_background(panelbackgroundimg);
 	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_add_obj, 0, 0, 128, 32, texts::get(224)));
 	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_del_obj, 128, 0, 128, 32, texts::get(225)));
 	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_change_motion, 256, 0, 128, 32, texts::get(226)));
 	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_copy_obj, 384, 0, 128, 32, texts::get(227)));
 	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_make_convoy, 512, 0, 128, 32, texts::get(228)));
-// 	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_, 640, 0, 128, 32, texts::get(177)));
+ 	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_time, 640, 0, 128, 32, texts::get(229)));
 // 	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_, 768, 0, 128, 32, texts::get(177)));
 
 #ifdef CVEDIT
@@ -351,37 +352,61 @@ map_display::map_display(user_interface& ui_) :
 
 void map_display::edit_add_obj()
 {
+	widget* w = new widget(0, 0, 1024, 768-2*32, texts::get(224));
+	w->set_background(panelbackgroundimg);
+	widget_list* wl = new widget_list(20, 32, 1024-2*20, 768-2*32-2*32-8);
+	w->add_child(wl);
+	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, 1,  20, 768-3*32-8, 512-20, 32, texts::get(224)));
+	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, 0, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
+	string tmp;
+	directory d = open_dir(get_ship_dir());
+	do {
+		tmp = read_dir(d);
+		if (tmp.length() > 4) {
+			string suffix = tmp.substr(tmp.length()-4);
+			if (suffix == ".xml") {
+				wl->append_entry(tmp.substr(0, tmp.length()-4));
+			}
+		}
+	} while (tmp.length() > 0);
+	edit_panel->disable();
+	edit_panel_fg.reset(w);
+	edit_shiplist = wl;
 }
 
 
 
 void map_display::edit_del_obj()
 {
+	// just delete all selected objects, if they are no subs
 }
 
 
 
 void map_display::edit_change_motion()
 {
+	// open widget with text edits: course, speed, throttle
 }
 
 
 
 void map_display::edit_copy_obj()
 {
+	// just duplicate the objects with some position offset (1km to x/y)
 }
 
 
 
 void map_display::edit_make_convoy()
 {
+	// make convoy from currently selected objects, but without sub
 }
 
 
 
-map_display::~map_display()
+void map_display::edit_time()
 {
-	delete edit_panel;
+	// open widget with text edits: date/time
 }
 
 
@@ -558,8 +583,11 @@ void map_display::display(class game& gm) const
 			<< degrx << "/" << minutx << (west ? "W" : "E");
 	font_arial->print(0, 0, rwcoordss.str(), color::white(), true);
 
-	if (gm.is_editor())
+	if (gm.is_editor()) {
 		edit_panel->draw();
+		if (edit_panel_fg.get())
+			edit_panel_fg->draw();
+	}
 
 	ui.draw_infopanel();
 	sys().unprepare_2d_drawing();
@@ -573,6 +601,25 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 	// handle mouse events for edit panel if that exists.
 	if (gm.is_editor() && edit_panel->check_for_mouse_event(event))
 		return;
+	if (gm.is_editor() && edit_panel_fg.get() && edit_panel_fg->check_for_mouse_event(event)) {
+		if (edit_panel_fg->was_closed()) {
+			if (edit_panel_fg->get_return_value() == 1) {
+				// add ship
+				string shipname = get_ship_dir() + edit_shiplist->get_selected_entry() + ".xml";
+				xml_doc spec(shipname);
+				spec.load();
+				auto_ptr<ship> shp(new ship(gm, spec.first_child()));
+				// set pos and other values etc.
+				vector2 pos = gm.get_player()->get_pos().xy() + mapoffset;
+				shp->manipulate_position(pos.xy0());
+				gm.spawn_ship(shp.release());
+			}
+			edit_panel->enable();
+			edit_panel_fg.reset();
+			edit_shiplist = 0;
+		}
+		return;
+	}
 
 	sea_object* player = gm.get_player();
 	switch (event.type) {

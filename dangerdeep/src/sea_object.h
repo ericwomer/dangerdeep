@@ -220,6 +220,11 @@ public:
 	virtual class ai* get_ai() { return myai.get(); }
 	virtual const sea_object* get_target() const { return target; }
 
+	/* NOTE! the following function(s) are only for the editor!
+	   Nobody should manipulate objects like this except the editor.
+	*/
+	virtual void manipulate_position(const vector3& newpos) { position = newpos; }
+
 	/**
 		Noise modification for submarines. Submarines are using diesel engines
 		that are fare less audible than the turbine engines of other ships.
