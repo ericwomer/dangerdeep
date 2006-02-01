@@ -47,6 +47,10 @@ using namespace std;
 
 #define MAPGRIDSIZE 1000	// meters
 
+enum edit_panel_fg_result {
+	EPFG_CANCEL,
+	EPFG_SHIPADDED,
+};
 
 
 void map_display::draw_vessel_symbol(const vector2& offset, sea_object* so, color c) const
@@ -331,17 +335,19 @@ void map_display::draw_square_mark ( class game& gm,
 
 
 map_display::map_display(user_interface& ui_) :
-	user_display(ui_), mapzoom(0.1), mx(0), my(0), edit_shiplist(0)
+	user_display(ui_), mapzoom(0.1), mx(0), my(0), edit_shiplist(0),
+	mx_down(-1), my_down(-1), shift_key_pressed(0), ctrl_key_pressed(0)
 {
 	edit_panel.reset(new widget(0, 768-32*2, 1024, 32, "", 0, 0));
 	edit_panel->set_background(panelbackgroundimg);
-	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_add_obj, 0, 0, 128, 32, texts::get(224)));
-	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_del_obj, 128, 0, 128, 32, texts::get(225)));
-	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_change_motion, 256, 0, 128, 32, texts::get(226)));
-	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_copy_obj, 384, 0, 128, 32, texts::get(227)));
-	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_make_convoy, 512, 0, 128, 32, texts::get(228)));
- 	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_time, 640, 0, 128, 32, texts::get(229)));
-// 	edit_panel->add_child(new widget_caller_button<map_display, void (map_display::*)()>(this, &map_display::edit_, 768, 0, 128, 32, texts::get(177)));
+	game& gm = ui_.get_game();
+	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_add_obj, gm, 0, 0, 128, 32, texts::get(224)));
+	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_del_obj, gm, 128, 0, 128, 32, texts::get(225)));
+	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_change_motion, gm, 256, 0, 128, 32, texts::get(226)));
+	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_copy_obj, gm, 384, 0, 128, 32, texts::get(227)));
+	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_make_convoy, gm, 512, 0, 128, 32, texts::get(228)));
+ 	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_time, gm, 640, 0, 128, 32, texts::get(229)));
+ 	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_help, gm, 768, 0, 128, 32, texts::get(230)));
 
 #ifdef CVEDIT
 	cvridx = -1;
@@ -350,14 +356,14 @@ map_display::map_display(user_interface& ui_) :
 
 
 
-void map_display::edit_add_obj()
+void map_display::edit_add_obj(game& gm)
 {
 	widget* w = new widget(0, 0, 1024, 768-2*32, texts::get(224));
 	w->set_background(panelbackgroundimg);
 	widget_list* wl = new widget_list(20, 32, 1024-2*20, 768-2*32-2*32-8);
 	w->add_child(wl);
-	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, 1,  20, 768-3*32-8, 512-20, 32, texts::get(224)));
-	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, 0, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
+	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_SHIPADDED,  20, 768-3*32-8, 512-20, 32, texts::get(224)));
+	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
 	string tmp;
 	directory d = open_dir(get_ship_dir());
 	do {
@@ -376,37 +382,77 @@ void map_display::edit_add_obj()
 
 
 
-void map_display::edit_del_obj()
+void map_display::edit_del_obj(game& gm)
 {
 	// just delete all selected objects, if they are no subs
+	for (std::list<sea_object*>::iterator it = selection.begin();
+	     it != selection.end(); ++it) {
+		if (*it != gm.get_player()) {
+			(*it)->kill();
+		}
+	}
+	selection.clear();
 }
 
 
 
-void map_display::edit_change_motion()
+void map_display::edit_change_motion(game& gm)
 {
 	// open widget with text edits: course, speed, throttle
 }
 
 
 
-void map_display::edit_copy_obj()
+void map_display::edit_copy_obj(game& gm)
 {
 	// just duplicate the objects with some position offset (1km to x/y)
+	std::list<sea_object*> new_selection;
+	vector3 offset(500, 300, 0);
+	for (std::list<sea_object*>::iterator it = selection.begin(); it != selection.end(); ++it) {
+		ship* s = dynamic_cast<ship*>(*it);
+		submarine* su = dynamic_cast<submarine*>(*it);
+		if (s && su == 0) {
+			string shipname = get_ship_dir() + s->get_specfilename() + ".xml";
+			xml_doc spec(shipname);
+			spec.load();
+			ship* s2 = new ship(gm, spec.first_child());
+			// set pos and other values etc.
+			vector3 pos = s->get_pos() + offset;
+			s2->manipulate_position(pos);
+			gm.spawn_ship(s2);
+			new_selection.push_back(s2);
+		}
+	}
+	selection = new_selection;
 }
 
 
 
-void map_display::edit_make_convoy()
+void map_display::edit_make_convoy(game& gm)
 {
 	// make convoy from currently selected objects, but without sub
 }
 
 
 
-void map_display::edit_time()
+void map_display::edit_time(game& gm)
 {
 	// open widget with text edits: date/time
+}
+
+
+
+void map_display::edit_help(game& /*gm*/)
+{
+	// open widget with text edits: date/time
+	widget* w = new widget(0, 0, 1024, 768-2*32, texts::get(230));
+	w->set_background(panelbackgroundimg);
+	widget* wt = new widget_text(20, 32, 1024-2*20, 768-2*32-2*32-8, texts::get(231), 0, true);
+	w->add_child(wt);
+	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_CANCEL, 20, 768-3*32-8, 1024-20, 32, texts::get(105)));
+	edit_panel->disable();
+	edit_panel_fg.reset(w);
+	edit_shiplist = 0;
 }
 
 
@@ -583,10 +629,35 @@ void map_display::display(class game& gm) const
 			<< degrx << "/" << minutx << (west ? "W" : "E");
 	font_arial->print(0, 0, rwcoordss.str(), color::white(), true);
 
+	// editor specials ------------------------------------------------------------
 	if (gm.is_editor()) {
 		edit_panel->draw();
-		if (edit_panel_fg.get())
+		if (edit_panel_fg.get()) {
 			edit_panel_fg->draw();
+		} else {
+			// selection rectangle
+			if (mx_down >= 0 && my_down >= 0) {
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glColor4f(1,1,0,1);
+				int x1 = std::min(mx_down, mx_curr);
+				int y1 = std::min(my_down, my_curr);
+				int x2 = std::max(mx_down, mx_curr);
+				int y2 = std::max(my_down, my_curr);
+				glBegin(GL_LINE_LOOP);
+				glVertex2i(x1, y1);
+				glVertex2i(x1, y2);
+				glVertex2i(x2, y2);
+				glVertex2i(x2, y1);
+				glEnd();
+				glColor3f(1,1,1);
+			}
+			// selected objects
+			for (std::list<sea_object*>::const_iterator it = selection.begin();
+			     it != selection.end(); ++it) {
+				draw_square_mark(gm, (*it)->get_pos().xy(), -offset,
+						 color(255,0,64));
+			}
+		}
 	}
 
 	ui.draw_infopanel();
@@ -598,30 +669,137 @@ void map_display::display(class game& gm) const
 
 void map_display::process_input(class game& gm, const SDL_Event& event)
 {
-	// handle mouse events for edit panel if that exists.
-	if (gm.is_editor() && edit_panel->check_for_mouse_event(event))
-		return;
-	if (gm.is_editor() && edit_panel_fg.get() && edit_panel_fg->check_for_mouse_event(event)) {
-		if (edit_panel_fg->was_closed()) {
-			if (edit_panel_fg->get_return_value() == 1) {
-				// add ship
-				string shipname = get_ship_dir() + edit_shiplist->get_selected_entry() + ".xml";
-				xml_doc spec(shipname);
-				spec.load();
-				auto_ptr<ship> shp(new ship(gm, spec.first_child()));
-				// set pos and other values etc.
-				vector2 pos = gm.get_player()->get_pos().xy() + mapoffset;
-				shp->manipulate_position(pos.xy0());
-				gm.spawn_ship(shp.release());
+	sea_object* player = gm.get_player();
+
+	if (gm.is_editor()) {
+		// handle mouse events for edit panel if that exists.
+		if (edit_panel->check_for_mouse_event(event))
+			return;
+		// check if foreground window is open and event should go to it
+		if (edit_panel_fg.get() && edit_panel_fg->check_for_mouse_event(event)) {
+			if (edit_panel_fg->was_closed()) {
+				if (edit_panel_fg->get_return_value() == EPFG_SHIPADDED) {
+					// add ship
+					string shipname = get_ship_dir() + edit_shiplist->get_selected_entry() + ".xml";
+					xml_doc spec(shipname);
+					spec.load();
+					auto_ptr<ship> shp(new ship(gm, spec.first_child()));
+					// set pos and other values etc.
+					vector2 pos = gm.get_player()->get_pos().xy() + mapoffset;
+					shp->manipulate_position(pos.xy0());
+					gm.spawn_ship(shp.release());
+				}
+				edit_panel->enable();
+				edit_panel_fg.reset();
+				edit_shiplist = 0;
 			}
-			edit_panel->enable();
-			edit_panel_fg.reset();
-			edit_shiplist = 0;
+			return;
 		}
-		return;
+		// no panel visible. handle extra edit modes
+		if (event.type == SDL_KEYDOWN) {
+			if (event.key.keysym.sym == SDLK_LSHIFT) {
+				shift_key_pressed |= 1;
+				return;
+			} else if (event.key.keysym.sym == SDLK_RSHIFT) {
+				shift_key_pressed |= 2;
+				return;
+			} else if (event.key.keysym.sym == SDLK_LCTRL) {
+				ctrl_key_pressed |= 1;
+				return;
+			} else if (event.key.keysym.sym == SDLK_RCTRL) {
+				ctrl_key_pressed |= 2;
+				return;
+			}
+		} else if (event.type == SDL_KEYUP) {
+			if (event.key.keysym.sym == SDLK_LSHIFT) {
+				shift_key_pressed &= ~1;
+				return;
+			} else if (event.key.keysym.sym == SDLK_RSHIFT) {
+				shift_key_pressed &= ~2;
+				return;
+			} else if (event.key.keysym.sym == SDLK_LCTRL) {
+				ctrl_key_pressed &= ~1;
+				return;
+			} else if (event.key.keysym.sym == SDLK_RCTRL) {
+				ctrl_key_pressed &= ~2;
+				return;
+			}
+		} else if (event.type == SDL_MOUSEBUTTONDOWN) {
+			if (event.button.button == SDL_BUTTON_LEFT) {
+				mx_down = event.button.x;
+				my_down = event.button.y;
+				return;
+			}
+		} else if (event.type == SDL_MOUSEBUTTONUP) {
+			if (event.button.button == SDL_BUTTON_LEFT) {
+				mx_curr = event.button.x;
+				my_curr = event.button.y;
+				if (mx_curr != mx_down || my_curr != my_down) {
+					//fixme: shift/ctrl handling
+					// group select
+					selection.clear();
+					int x1 = std::min(mx_down, mx_curr);
+					int y1 = std::min(my_down, my_curr);
+					int x2 = std::max(mx_down, mx_curr);
+					int y2 = std::max(my_down, my_curr);
+					// fixme: later all objects!
+					vector<sea_object*> objs = gm.visible_surface_objects(player);
+					for (vector<sea_object*>::iterator it = objs.begin(); it != objs.end(); ++it) {
+						vector2 p = ((*it)->get_pos().xy() -
+							     (player->get_pos().xy() + mapoffset)) * mapzoom;
+						p.x += 512;
+						p.y = 384 - p.y;
+						if (p.x >= x1 && p.x <= x2 &&
+						    p.y >= y1 && p.y <= y2) {
+							selection.push_back(*it);
+						}
+					}
+				} else {
+					//fixme: shift/ctrl handling
+					// select nearest
+					selection.clear();
+					vector2 mapclick(event.button.x, event.button.y);
+					// fixme: later all objects!
+					vector<sea_object*> objs = gm.visible_surface_objects(player);
+					double mapclickdist = 1e30;
+					sea_object* target = 0;
+					for (vector<sea_object*>::iterator it = objs.begin(); it != objs.end(); ++it) {
+						vector2 p = ((*it)->get_pos().xy() -
+							     (player->get_pos().xy() + mapoffset)) * mapzoom;
+						p.x += 512;
+						p.y = 384 - p.y;
+						double clickd = mapclick.square_distance(p);
+						if (clickd < mapclickdist) {
+							target = *it;
+							mapclickdist = clickd;
+						}
+					}
+					selection.push_back(target);
+				}
+				mx_down = -1;
+				my_down = -1;
+				return;
+			}
+		} else if (event.type == SDL_MOUSEMOTION) {
+			mx_curr = event.motion.x;
+			my_curr = event.motion.y;
+			if (event.motion.state & SDL_BUTTON_RMASK) {
+				// move selected objects!
+				vector2 drag(event.motion.xrel / mapzoom,
+					     -event.motion.yrel / mapzoom);
+				for (std::list<sea_object*>::const_iterator it = selection.begin();
+				     it != selection.end(); ++it) {
+					vector3 p = (*it)->get_pos();
+					p.x += drag.x;
+					p.y += drag.y;
+					(*it)->manipulate_position(p);
+				}
+				return;
+			}
+		}
 	}
 
-	sea_object* player = gm.get_player();
+	// non-editor events.
 	switch (event.type) {
 	case SDL_MOUSEBUTTONDOWN:
 		if (event.button.button == SDL_BUTTON_LEFT) {

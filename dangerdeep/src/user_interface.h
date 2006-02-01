@@ -177,6 +177,10 @@ public:
 	virtual void stop_fade_sound_effect(const string &se) const;	
 	virtual void pause_all_sound() const;
 	virtual void resume_all_sound() const;
+
+	// get current game of user_interface
+	virtual game& get_game() { return *mygame; }
+	virtual const game& get_game() const { return *mygame; }
 };
 
 #endif

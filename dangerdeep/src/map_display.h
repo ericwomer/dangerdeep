@@ -45,8 +45,8 @@ protected:
 		double max_view_dist, const vector2& offset) const;
 	void draw_visual_contacts(game& gm,
 		const sea_object* player, const vector2& offset) const;
-	void draw_radar_contacts(class game& gm, 
-							 const sea_object* player, const vector2& offset) const;
+	void draw_radar_contacts(game& gm, 
+				 const sea_object* player, const vector2& offset) const;
 	void draw_square_mark (game& gm,
 		const vector2& mark_pos, const vector2& offset, const color& c ) const;
 
@@ -54,18 +54,24 @@ protected:
 	std::auto_ptr<widget> edit_panel;
 	std::auto_ptr<widget> edit_panel_fg;
 	widget_list* edit_shiplist;
+	int mx_down, my_down;	// position of mouse when button was pressed
+	int mx_curr, my_curr;	// current position of mouse
+	std::list<sea_object*> selection;
+	unsigned shift_key_pressed;
+	unsigned ctrl_key_pressed;
 #ifdef CVEDIT
 	vector<vector2> cvroute;
 	int cvridx;
 #endif
 
 	// editor methods
-	void edit_add_obj();
-	void edit_del_obj();
-	void edit_change_motion();
-	void edit_copy_obj();
-	void edit_make_convoy();
-	void edit_time();
+	void edit_add_obj(game& gm);
+	void edit_del_obj(game& gm);
+	void edit_change_motion(game& gm);
+	void edit_copy_obj(game& gm);
+	void edit_make_convoy(game& gm);
+	void edit_time(game& gm);
+	void edit_help(game& gm);
 
 private:
 	map_display();
@@ -73,8 +79,8 @@ private:
 public:
 	map_display(class user_interface& ui_);
 
-	virtual void display(class game& gm) const;
-	virtual void process_input(class game& gm, const SDL_Event& event);
+	virtual void display(game& gm) const;
+	virtual void process_input(game& gm, const SDL_Event& event);
 };
 
 #endif

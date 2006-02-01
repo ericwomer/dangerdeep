@@ -1425,6 +1425,7 @@ int mymain(list<string>& args)
 	res_x = 1024;
 	bool fullscreen = true;
 	string cmdmissionfilename;
+	bool runeditor = false;
 
 	// parse commandline
 	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
@@ -1433,6 +1434,7 @@ int mymain(list<string>& args)
 			<< "--res n\t\tuse resolution n horizontal,\n\t\tn is 512,640,800,1024 (recommended) or 1280\n"
 			<< "--nofullscreen\tdon't use fullscreen\n"
 			<< "--debug\t\tdebug mode: no fullscreen, resolution 800\n"
+			<< "--editor\trun mission editor directly\n"
 			<< "--mission fn\trun mission from file fn (just the filename in the mission directory)\n"
 			<< "--nosound\tdon't use sound\n";
 			return 0;
@@ -1447,6 +1449,8 @@ int mymain(list<string>& args)
 				cmdmissionfilename = *it2;
 				++it;
 			}
+		} else if (*it == "--editor") {
+			runeditor = true;
 		} else if (*it == "--nosound") {
 			sound::use_sound = false;
 		} else if (*it == "--res") {
@@ -1545,8 +1549,10 @@ int mymain(list<string>& args)
 	hsl_career = highscorelist(highscoredirectory + HSL_CAREER_NAME);
 
 
-	// check if there was a mission given at the command line
-	if (cmdmissionfilename.length() > 0) {
+	// check if there was a mission given at the command line, or editor more etc.
+	if (runeditor) {
+		run_game_editor(new game_editor(/*st*/));
+	} else if (cmdmissionfilename.length() > 0) {
 		// fixme: check here that the file exists or tinyxml faults with a embarassing error message
 		game* gm = 0;
 		bool ok = true;
