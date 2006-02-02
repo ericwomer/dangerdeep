@@ -385,7 +385,7 @@ void map_display::edit_add_obj(game& gm)
 void map_display::edit_del_obj(game& gm)
 {
 	// just delete all selected objects, if they are no subs
-	for (std::list<sea_object*>::iterator it = selection.begin();
+	for (std::set<sea_object*>::iterator it = selection.begin();
 	     it != selection.end(); ++it) {
 		if (*it != gm.get_player()) {
 			(*it)->kill();
@@ -406,9 +406,9 @@ void map_display::edit_change_motion(game& gm)
 void map_display::edit_copy_obj(game& gm)
 {
 	// just duplicate the objects with some position offset (1km to x/y)
-	std::list<sea_object*> new_selection;
+	std::set<sea_object*> new_selection;
 	vector3 offset(500, 300, 0);
-	for (std::list<sea_object*>::iterator it = selection.begin(); it != selection.end(); ++it) {
+	for (std::set<sea_object*>::iterator it = selection.begin(); it != selection.end(); ++it) {
 		ship* s = dynamic_cast<ship*>(*it);
 		submarine* su = dynamic_cast<submarine*>(*it);
 		if (s && su == 0) {
@@ -420,7 +420,7 @@ void map_display::edit_copy_obj(game& gm)
 			vector3 pos = s->get_pos() + offset;
 			s2->manipulate_position(pos);
 			gm.spawn_ship(s2);
-			new_selection.push_back(s2);
+			new_selection.insert(s2);
 		}
 	}
 	selection = new_selection;
@@ -631,7 +631,6 @@ void map_display::display(class game& gm) const
 
 	// editor specials ------------------------------------------------------------
 	if (gm.is_editor()) {
-		edit_panel->draw();
 		if (edit_panel_fg.get()) {
 			edit_panel_fg->draw();
 		} else {
@@ -652,12 +651,13 @@ void map_display::display(class game& gm) const
 				glColor3f(1,1,1);
 			}
 			// selected objects
-			for (std::list<sea_object*>::const_iterator it = selection.begin();
+			for (std::set<sea_object*>::const_iterator it = selection.begin();
 			     it != selection.end(); ++it) {
 				draw_square_mark(gm, (*it)->get_pos().xy(), -offset,
 						 color(255,0,64));
 			}
 		}
+		edit_panel->draw();
 	}
 
 	ui.draw_infopanel();
@@ -734,16 +734,19 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 			if (event.button.button == SDL_BUTTON_LEFT) {
 				mx_curr = event.button.x;
 				my_curr = event.button.y;
+				// check for shift / ctrl
+				unsigned mode = 0;	// replace selection
+				if (shift_key_pressed) mode = 1; // subtract
+				if (ctrl_key_pressed) mode = 2; // add.
 				if (mx_curr != mx_down || my_curr != my_down) {
-					//fixme: shift/ctrl handling
 					// group select
-					selection.clear();
 					int x1 = std::min(mx_down, mx_curr);
 					int y1 = std::min(my_down, my_curr);
 					int x2 = std::max(mx_down, mx_curr);
 					int y2 = std::max(my_down, my_curr);
-					// fixme: later all objects!
+					// fixme: later all objects
 					vector<sea_object*> objs = gm.visible_surface_objects(player);
+					if (mode == 0) selection.clear();
 					for (vector<sea_object*>::iterator it = objs.begin(); it != objs.end(); ++it) {
 						vector2 p = ((*it)->get_pos().xy() -
 							     (player->get_pos().xy() + mapoffset)) * mapzoom;
@@ -751,18 +754,20 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 						p.y = 384 - p.y;
 						if (p.x >= x1 && p.x <= x2 &&
 						    p.y >= y1 && p.y <= y2) {
-							selection.push_back(*it);
+							if (mode == 1)
+								selection.erase(*it);
+							else
+								selection.insert(*it);
 						}
 					}
 				} else {
-					//fixme: shift/ctrl handling
 					// select nearest
-					selection.clear();
 					vector2 mapclick(event.button.x, event.button.y);
 					// fixme: later all objects!
 					vector<sea_object*> objs = gm.visible_surface_objects(player);
 					double mapclickdist = 1e30;
 					sea_object* target = 0;
+					if (mode == 0) selection.clear();
 					for (vector<sea_object*>::iterator it = objs.begin(); it != objs.end(); ++it) {
 						vector2 p = ((*it)->get_pos().xy() -
 							     (player->get_pos().xy() + mapoffset)) * mapzoom;
@@ -774,7 +779,10 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 							mapclickdist = clickd;
 						}
 					}
-					selection.push_back(target);
+					if (mode == 1)
+						selection.erase(target);
+					else
+						selection.insert(target);
 				}
 				mx_down = -1;
 				my_down = -1;
@@ -787,7 +795,7 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 				// move selected objects!
 				vector2 drag(event.motion.xrel / mapzoom,
 					     -event.motion.yrel / mapzoom);
-				for (std::list<sea_object*>::const_iterator it = selection.begin();
+				for (std::set<sea_object*>::const_iterator it = selection.begin();
 				     it != selection.end(); ++it) {
 					vector3 p = (*it)->get_pos();
 					p.x += drag.x;

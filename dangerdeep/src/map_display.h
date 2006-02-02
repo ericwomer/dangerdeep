@@ -56,7 +56,7 @@ protected:
 	widget_list* edit_shiplist;
 	int mx_down, my_down;	// position of mouse when button was pressed
 	int mx_curr, my_curr;	// current position of mouse
-	std::list<sea_object*> selection;
+	std::set<sea_object*> selection;
 	unsigned shift_key_pressed;
 	unsigned ctrl_key_pressed;
 #ifdef CVEDIT
