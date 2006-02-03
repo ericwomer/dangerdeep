@@ -1139,3 +1139,48 @@ void widget_3dview::draw() const
 
 	sys().prepare_2d_drawing();
 }
+
+
+
+widget_slider::widget_slider(int x, int y, int w, int h, const string& text_,
+			     unsigned minv, unsigned maxv, unsigned currv,
+			     widget* parent_)
+	: widget(x, y, w, h, text_, parent_), minvalue(minv), maxvalue(maxv), currvalue(currv)
+{
+}
+
+
+
+void widget_slider::draw() const
+{
+	// draw sunken area that just has the sunken border height*2, so you see only borders.
+	// draw the slider as raised area with height of 8*border or so.
+	// draw vertical lines below the slider each n values, so that we have at least 32pix
+	// between each value or 16 or so.
+	// draw descriptions (min...maxval) every n pixels/positions, so that there is at
+	// least n pixel space between each description
+}
+
+
+
+void widget_slider::on_char(const SDL_keysym& ks)
+{
+	// move with cursor, a bit useless, implement later
+	on_change();
+}
+
+
+
+void widget_slider::on_click(int mx, int my, int mb)
+{
+	// set slider...
+	on_change();
+}
+
+
+
+void widget_slider::on_drag(int mx, int my, int rx, int ry, int mb)
+{
+	// move slider...
+	on_change();
+}

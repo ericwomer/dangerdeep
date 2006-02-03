@@ -404,7 +404,7 @@ void map_display::edit_change_motion(game& gm)
 	w->set_background(panelbackgroundimg);
 	// fixme: a slider widget would be nice here...
 	w->add_child(new widget_text(20, 64, 140, 32, texts::get(1)));
-	w->add_child(new widget_text(20, 64, 140, 32, texts::get(4)));
+	w->add_child(new widget_text(20, 96, 140, 32, texts::get(4)));
 	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_CHANGEMOTION,  20, 768-3*32-8, 512-20, 32, texts::get(226)));
 	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
 	edit_panel->disable();

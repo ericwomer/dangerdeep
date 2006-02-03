@@ -442,4 +442,28 @@ public:
 	void set_light_color(color lc) { lightcol = lc; }
 };
 
+class widget_slider : public widget
+{
+protected:
+	unsigned minvalue;
+	unsigned maxvalue;
+	unsigned currvalue;
+
+	widget_slider();
+	widget_slider(const widget_slider& );
+	widget_slider& operator= (const widget_slider& );
+public:
+	widget_slider(int x, int y, int w, int h, const string& text_,
+		      unsigned minv = 0, unsigned maxv = 255, unsigned currv = 128,
+		      widget* parent_ = 0);
+	void draw() const;
+	void on_char(const SDL_keysym& ks);
+	void on_click(int mx, int my, int mb);
+	void on_drag(int mx, int my, int rx, int ry, int mb);
+	virtual void on_change() {}
+	virtual unsigned get_min_value() const { return minvalue; }
+	virtual unsigned get_curr_value() const { return currvalue; }
+	virtual unsigned get_max_value() const { return maxvalue; }
+};
+
 #endif
