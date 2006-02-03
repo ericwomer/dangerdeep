@@ -50,6 +50,7 @@ using namespace std;
 enum edit_panel_fg_result {
 	EPFG_CANCEL,
 	EPFG_SHIPADDED,
+	EPFG_CHANGEMOTION
 };
 
 
@@ -399,6 +400,15 @@ void map_display::edit_del_obj(game& gm)
 void map_display::edit_change_motion(game& gm)
 {
 	// open widget with text edits: course, speed, throttle
+	widget* w = new widget(0, 0, 1024, 768-2*32, texts::get(226));
+	w->set_background(panelbackgroundimg);
+	// fixme: a slider widget would be nice here...
+	w->add_child(new widget_text(20, 64, 140, 32, texts::get(1)));
+	w->add_child(new widget_text(20, 64, 140, 32, texts::get(4)));
+	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_CHANGEMOTION,  20, 768-3*32-8, 512-20, 32, texts::get(226)));
+	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
+	edit_panel->disable();
+	edit_panel_fg.reset(w);
 }
 
 
@@ -452,7 +462,6 @@ void map_display::edit_help(game& /*gm*/)
 	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_CANCEL, 20, 768-3*32-8, 1024-20, 32, texts::get(105)));
 	edit_panel->disable();
 	edit_panel_fg.reset(w);
-	edit_shiplist = 0;
 }
 
 
