@@ -340,7 +340,7 @@ map_display::map_display(user_interface& ui_) :
 	mx_down(-1), my_down(-1), shift_key_pressed(0), ctrl_key_pressed(0)
 {
 	edit_panel.reset(new widget(0, 768-32*2, 1024, 32, "", 0, 0));
-	edit_panel->set_background(panelbackgroundimg);
+	edit_panel->set_background(panelbackground);
 	game& gm = ui_.get_game();
 	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_add_obj, gm, 0, 0, 128, 32, texts::get(224)));
 	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_del_obj, gm, 128, 0, 128, 32, texts::get(225)));
@@ -360,7 +360,7 @@ map_display::map_display(user_interface& ui_) :
 void map_display::edit_add_obj(game& gm)
 {
 	widget* w = new widget(0, 0, 1024, 768-2*32, texts::get(224));
-	w->set_background(panelbackgroundimg);
+	w->set_background(panelbackground);
 	widget_list* wl = new widget_list(20, 32, 1024-2*20, 768-2*32-2*32-8);
 	w->add_child(wl);
 	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_SHIPADDED,  20, 768-3*32-8, 512-20, 32, texts::get(224)));
@@ -401,12 +401,17 @@ void map_display::edit_change_motion(game& gm)
 {
 	// open widget with text edits: course, speed, throttle
 	widget* w = new widget(0, 0, 1024, 768-2*32, texts::get(226));
-	w->set_background(panelbackgroundimg);
+	w->set_background(panelbackground);
 	// fixme: a slider widget would be nice here...
 	w->add_child(new widget_text(20, 64, 140, 32, texts::get(1)));
 	w->add_child(new widget_text(20, 96, 140, 32, texts::get(4)));
 	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_CHANGEMOTION,  20, 768-3*32-8, 512-20, 32, texts::get(226)));
 	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
+
+	w->add_child(new widget_slider(20, 128, 1024-40, 32, "Group speed", 0, 20, 10, 1));
+	w->add_child(new widget_slider(20, 200, 1024-40, 32, "Group speed", -20, 20, 0, 4));
+	w->add_child(new widget_slider(20, 300, 1024-40, 32, "Group speed", 0, 2000, 50, 200));
+
 	edit_panel->disable();
 	edit_panel_fg.reset(w);
 }
@@ -456,7 +461,7 @@ void map_display::edit_help(game& /*gm*/)
 {
 	// open widget with text edits: date/time
 	widget* w = new widget(0, 0, 1024, 768-2*32, texts::get(230));
-	w->set_background(panelbackgroundimg);
+	w->set_background(panelbackground);
 	widget* wt = new widget_text(20, 32, 1024-2*20, 768-2*32-2*32-8, texts::get(231), 0, true);
 	w->add_child(wt);
 	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_CANCEL, 20, 768-3*32-8, 1024-20, 32, texts::get(105)));

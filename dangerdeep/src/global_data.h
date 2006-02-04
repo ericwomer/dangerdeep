@@ -79,12 +79,10 @@ extern objcachet<class sound> soundcache;
 // global models, textures, fonts
 //fixme: get rid of this, instead use caches, maybe even for fonts.
 extern class model *torpedo_g7, *depth_charge_mdl, *gun_shell_mdl, *conning_tower_typeVII;
-extern class texture *background,
-        *psbackgr, *panelbackgr,
-	*addleadangle, *metalbackgr,
+extern class texture *addleadangle, *metalbackgr,
 	*woodbackgr, *notepadsheet, *menuframe,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
-	*terraintex, *cloudsbackgr, *atlanticmap, *panelbackgroundimg;
+	*terraintex, *cloudsbackgr, *atlanticmap, *panelbackground;
 extern class font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn;
 
 extern class image *titlebackgrimg, *threesubsimg, *damage_screen_background,

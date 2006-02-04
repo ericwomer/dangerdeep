@@ -101,7 +101,7 @@ user_interface::user_interface(game& gm) :
 	mywater = new class water(water_res_x, water_res_y, 0.0);
 	panel = new widget(0, 768-32, 1024, 32, "", 0, 0);
 	widget* panel2 = new widget(0, 0, 1024-128, 32, "", 0, 0);
-	panel->set_background(panelbackgroundimg);
+	panel->set_background(panelbackground);
 	panel->add_child(panel2);
 	// ca. 1024-128-2*8 for 6 texts => 146 pix. for each text
 	int paneltextnrs[6] = { 1, 4, 5, 2, 98, 61 };

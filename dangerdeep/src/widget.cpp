@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texture.h"
 #include "model.h"
 #include <set>
+#include <sstream>
 
 widget::theme* widget::globaltheme = 0;
 widget* widget::focussed = 0;
@@ -329,6 +330,15 @@ void widget::draw_rect(int x, int y, int w, int h, bool out)
 		globaltheme->skbackg->draw(x, y, w, h);
 }
 
+void widget::draw_line(int x1, int y1, int x2, int y2)
+{
+	globaltheme->textcol.set_gl_color();
+	glBegin(GL_LINES);
+	glVertex2i(x1, y1);
+	glVertex2i(x2, y2);
+	glEnd();
+}
+
 void widget::draw_area(int x, int y, int w, int h, bool out) const
 {
 	int fw = globaltheme->frame_size();
@@ -340,6 +350,14 @@ void widget::draw_area(int x, int y, int w, int h, bool out) const
 	} else if (background_tex) {
 		background_tex->draw_tiles(x, y, w, h);
 	}
+	draw_frame(x, y, w, h, out);
+}
+
+void widget::draw_area_bg(int x, int y, int w, int h, bool out, const texture* backg) const
+{
+	int fw = globaltheme->frame_size();
+	draw_rect(x+fw, y+fw, w-2*fw, h-2*fw, out);
+	backg->draw_tiles(x, y, w, h);
 	draw_frame(x, y, w, h, out);
 }
 
@@ -1143,10 +1161,16 @@ void widget_3dview::draw() const
 
 
 widget_slider::widget_slider(int x, int y, int w, int h, const string& text_,
-			     unsigned minv, unsigned maxv, unsigned currv,
+			     int minv, int maxv, int currv, int descrstep_,
 			     widget* parent_)
-	: widget(x, y, w, h, text_, parent_), minvalue(minv), maxvalue(maxv), currvalue(currv)
+	: widget(x, y, w, h, text_, parent_),
+	  minvalue(minv), maxvalue(maxv), currvalue(currv), descrstep(descrstep_)
 {
+	size.x = std::max(size.x, int(4));
+	size.y = std::max(size.y, int(4));
+	maxvalue = std::max(minvalue + 1, maxvalue);
+	currvalue = std::max(currvalue, minvalue);
+	currvalue = std::min(currvalue, maxvalue);
 }
 
 
@@ -1159,14 +1183,57 @@ void widget_slider::draw() const
 	// between each value or 16 or so.
 	// draw descriptions (min...maxval) every n pixels/positions, so that there is at
 	// least n pixel space between each description
+	
+	// draw description if there is one
+	color tcol = is_enabled() ? globaltheme->textcol : globaltheme->textdisabledcol;
+	unsigned desch = 0;
+	if (text.length() > 0) {
+		globaltheme->myfont->print(pos.x, pos.y, text, tcol, true);
+		desch = globaltheme->myfont->get_size(text).y;
+	}
+
+	// draw slider bar
+	unsigned barh = size.y/4;
+	unsigned sliderw = size.y/2;
+	draw_area(pos.x, pos.y + desch + (size.y-barh)/2, size.x, barh, false);
+
+	// draw marker texts and lines.
+	unsigned texth = globaltheme->myfont->get_height();
+	// draw other descriptions
+	for (int i = minvalue; i < maxvalue; i += descrstep) {
+		ostringstream oss;
+		oss << i;
+		string vals = oss.str();
+		unsigned offset = size.x * (i - minvalue)/(maxvalue - minvalue);
+		globaltheme->myfont->print(pos.x + offset, pos.y + desch + size.y, vals, tcol, true);
+		draw_line(pos.x + offset, pos.y + desch + 3*barh, pos.x + offset, pos.y + desch + size.y);
+	}
+	// draw max value
+	ostringstream oss;
+	oss << maxvalue;
+	string vals = oss.str();
+	unsigned valw = globaltheme->myfont->get_size(vals).x;
+	globaltheme->myfont->print(pos.x + size.x - valw, pos.y + desch + size.y, vals, tcol, true);
+	draw_line(pos.x + size.x, pos.y + desch + 3*barh, pos.x + size.x, pos.y + desch + size.y);
+
+	// draw slider knob
+	unsigned offset = (size.x-sliderw)*(currvalue - minvalue)/(maxvalue - minvalue);
+	draw_area_bg(pos.x + offset, pos.y + desch, sliderw, size.y, true, globaltheme->backg);
 }
 
 
 
 void widget_slider::on_char(const SDL_keysym& ks)
 {
-	// move with cursor, a bit useless, implement later
-	on_change();
+	// move with cursor
+	int c = ks.sym;
+	if (c == SDLK_LEFT && currvalue > minvalue) {
+		--currvalue;
+		on_change();
+	} else if (c == SDLK_RIGHT && currvalue < maxvalue) {
+		++currvalue;
+		on_change();
+	}
 }
 
 

@@ -77,7 +77,9 @@ protected:
 	widget& operator= (const widget& );
 	static void draw_frame(int x, int y, int w, int h, bool out);
 	static void draw_rect(int x, int y, int w, int h, bool out);
+	static void draw_line(int x1, int y1, int x2, int y2);
 	void draw_area(int x, int y, int w, int h, bool out) const;
+	void draw_area_bg(int x, int y, int w, int h, bool out, const texture* backg) const;
 public:
 	class theme {
 		theme();
@@ -445,25 +447,27 @@ public:
 class widget_slider : public widget
 {
 protected:
-	unsigned minvalue;
-	unsigned maxvalue;
-	unsigned currvalue;
+	int minvalue;
+	int maxvalue;
+	int currvalue;
+	int descrstep;
 
 	widget_slider();
 	widget_slider(const widget_slider& );
 	widget_slider& operator= (const widget_slider& );
 public:
+	// h is height of slider button, not that of full widget.
 	widget_slider(int x, int y, int w, int h, const string& text_,
-		      unsigned minv = 0, unsigned maxv = 255, unsigned currv = 128,
+		      int minv = 0, int maxv = 255, int currv = 128, int descrstep = 16,
 		      widget* parent_ = 0);
 	void draw() const;
 	void on_char(const SDL_keysym& ks);
 	void on_click(int mx, int my, int mb);
 	void on_drag(int mx, int my, int rx, int ry, int mb);
 	virtual void on_change() {}
-	virtual unsigned get_min_value() const { return minvalue; }
-	virtual unsigned get_curr_value() const { return currvalue; }
-	virtual unsigned get_max_value() const { return maxvalue; }
+	virtual int get_min_value() const { return minvalue; }
+	virtual int get_curr_value() const { return currvalue; }
+	virtual int get_max_value() const { return maxvalue; }
 };
 
 #endif

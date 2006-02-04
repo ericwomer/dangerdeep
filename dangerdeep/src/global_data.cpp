@@ -65,12 +65,10 @@ string get_program_version(void)
 
 model	*torpedo_g7, *depth_charge_mdl, *gun_shell_mdl, *conning_tower_typeVII;
 
-texture *background,
-	*psbackgr, *panelbackgr,
-	*addleadangle, *torpleft, *metalbackgr,
+texture *addleadangle, *torpleft, *metalbackgr,
 	*woodbackgr, *notepadsheet, *menuframe,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
-	*terraintex, *cloudsbackgr, *atlanticmap, *panelbackgroundimg;
+	*terraintex, *cloudsbackgr, *atlanticmap, *panelbackground;
 	
 font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn;
 
@@ -103,7 +101,6 @@ float XmlAttribf(class TiXmlElement* elem, const char* attrname)
 
 void init_global_data(void)
 {
-	background = new texture(get_texture_dir() + "background.png", texture::LINEAR);
 	conning_tower_typeVII = new model(get_model_dir() + "conning_tower_typeVIIc.xml");
 	font_arial = new font(get_font_dir() + "font_arial");
 	loading_screen_usable = true;
@@ -117,9 +114,7 @@ void init_global_data(void)
 	torpedo_g7 = new model(get_model_dir() + "torpedo_g7.3ds");
 	depth_charge_mdl = new model(get_model_dir() + "depth_charge.3ds");
 	gun_shell_mdl = new model(get_model_dir() + "gun_shell.3ds");
-	psbackgr = new texture(get_texture_dir() + "psbackgr.png");
-	panelbackgr = new texture(get_texture_dir() + "panelbackgr.png", texture::LINEAR);
-	panelbackgroundimg = new texture(get_image_dir() + "panelbackground.jpg");
+	panelbackground = new texture(get_image_dir() + "metalbackground.jpg");
 	addleadangle = new texture(get_texture_dir() + "addleadangle.png");
 	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", texture::LINEAR);
 	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png" );
@@ -167,7 +162,6 @@ void init_global_data(void)
 
 void deinit_global_data(void)
 {
-	delete background;
 	delete conning_tower_typeVII;
 	delete font_arial;
 	delete font_arialbd;
@@ -178,8 +172,6 @@ void deinit_global_data(void)
 	delete torpedo_g7;
 	delete depth_charge_mdl;
 	delete gun_shell_mdl;
-	delete psbackgr;
-	delete panelbackgr;
 	delete addleadangle;
 	delete metalbackgr;
 	delete woodbackgr;
@@ -202,7 +194,7 @@ void deinit_global_data(void)
 	delete sunderlandimg;
 	delete swordfishimg;
 	delete hedgehogimg;
-	delete panelbackgroundimg;
+	delete panelbackground;
 }
 
 // display loading progress

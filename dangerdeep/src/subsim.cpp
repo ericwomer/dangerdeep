@@ -1511,7 +1511,7 @@ int mymain(list<string>& args)
 	widget::set_theme(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
 		font_olympiaworn, color(182, 146, 137), color(222, 208, 195), color(92, 72 ,68)));
 
-	mysys->draw_console_with(font_arial, background);
+	mysys->draw_console_with(font_arial, panelbackground);
 
 
 	// try to make directories (again)
