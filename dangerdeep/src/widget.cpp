@@ -273,7 +273,13 @@ void widget::process_input(const SDL_Event& event)
 	case SDL_MOUSEBUTTONDOWN:
 		if (event.button.button == SDL_BUTTON_LEFT) {
 			compute_focus(event.button.x, event.button.y);
-			if (focussed) focussed->on_click(event.button.x, event.button.y, 1);
+			if (focussed) focussed->on_click(event.button.x, event.button.y, SDL_BUTTON_LMASK);
+		} else if (event.button.button == SDL_BUTTON_RIGHT) {
+			compute_focus(event.button.x, event.button.y);
+			if (focussed) focussed->on_click(event.button.x, event.button.y, SDL_BUTTON_RMASK);
+		} else if (event.button.button == SDL_BUTTON_MIDDLE) {
+			compute_focus(event.button.x, event.button.y);
+			if (focussed) focussed->on_click(event.button.x, event.button.y, SDL_BUTTON_MMASK);
 		} else if (event.button.button == SDL_BUTTON_WHEELUP) {
 			if (focussed) focussed->on_wheel(1);
 		} else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
@@ -332,6 +338,7 @@ void widget::draw_rect(int x, int y, int w, int h, bool out)
 
 void widget::draw_line(int x1, int y1, int x2, int y2)
 {
+	glBindTexture(GL_TEXTURE_2D, 0);
 	globaltheme->textcol.set_gl_color();
 	glBegin(GL_LINES);
 	glVertex2i(x1, y1);
@@ -353,11 +360,17 @@ void widget::draw_area(int x, int y, int w, int h, bool out) const
 	draw_frame(x, y, w, h, out);
 }
 
-void widget::draw_area_bg(int x, int y, int w, int h, bool out, const texture* backg) const
+void widget::draw_area_col(int x, int y, int w, int h, bool out, color c) const
 {
 	int fw = globaltheme->frame_size();
-	draw_rect(x+fw, y+fw, w-2*fw, h-2*fw, out);
-	backg->draw_tiles(x, y, w, h);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	c.set_gl_color();
+	glBegin(GL_QUADS);
+	glVertex2i(x, y);
+	glVertex2i(x, y+h);
+	glVertex2i(x+w, y+h);
+	glVertex2i(x+w, y);
+	glEnd();
 	draw_frame(x, y, w, h, out);
 }
 
@@ -917,6 +930,7 @@ void widget_list::on_click(int mx, int my, int mb)
 
 void widget_list::on_drag(int mx, int my, int rx, int ry, int mb)
 {
+	// fixme: this is not correct, translate mb here!
 	on_click(mx, my, mb);
 }
 
@@ -1171,6 +1185,7 @@ widget_slider::widget_slider(int x, int y, int w, int h, const string& text_,
 	maxvalue = std::max(minvalue + 1, maxvalue);
 	currvalue = std::max(currvalue, minvalue);
 	currvalue = std::min(currvalue, maxvalue);
+	descrstep = std::max(int(1), descrstep);
 }
 
 
@@ -1186,39 +1201,39 @@ void widget_slider::draw() const
 	
 	// draw description if there is one
 	color tcol = is_enabled() ? globaltheme->textcol : globaltheme->textdisabledcol;
-	unsigned desch = 0;
+	unsigned h2 = globaltheme->myfont->get_height();
+	unsigned h0 = 0;
 	if (text.length() > 0) {
 		globaltheme->myfont->print(pos.x, pos.y, text, tcol, true);
-		desch = globaltheme->myfont->get_size(text).y;
+		h0 = globaltheme->myfont->get_size(text).y;
 	}
 
 	// draw slider bar
-	unsigned barh = size.y/4;
-	unsigned sliderw = size.y/2;
-	draw_area(pos.x, pos.y + desch + (size.y-barh)/2, size.x, barh, false);
+	unsigned h1 = size.y - h0 - h2;
+	unsigned barh = globaltheme->frame[0]->get_height() * 2;
+	unsigned sliderw = h2;
+	unsigned baroff = h1/2 - barh;
+	draw_area(pos.x, pos.y + h0 + baroff, size.x, barh, false);
 
 	// draw marker texts and lines.
-	unsigned texth = globaltheme->myfont->get_height();
-	// draw other descriptions
-	for (int i = minvalue; i < maxvalue; i += descrstep) {
+	for (int i = minvalue; i <= maxvalue; i += descrstep) {
 		ostringstream oss;
 		oss << i;
 		string vals = oss.str();
-		unsigned offset = size.x * (i - minvalue)/(maxvalue - minvalue);
-		globaltheme->myfont->print(pos.x + offset, pos.y + desch + size.y, vals, tcol, true);
-		draw_line(pos.x + offset, pos.y + desch + 3*barh, pos.x + offset, pos.y + desch + size.y);
+		unsigned offset = (size.x - sliderw) * (i - minvalue)/(maxvalue - minvalue);
+		int valw = globaltheme->myfont->get_size(vals).x;
+		globaltheme->myfont->print(pos.x + sliderw/2 + offset - valw/2, pos.y + h0 + h1, vals, tcol, true);
+		draw_line(pos.x + sliderw/2 + offset, pos.y + h0 + baroff + barh, pos.x + sliderw/2 + offset, pos.y + h0 + h1);
+		// last descriptions should be aligned right and printed, so maybe skip second last one.
+		if (i < maxvalue && i + descrstep > maxvalue) {
+			i = maxvalue - descrstep;
+		}
 	}
-	// draw max value
-	ostringstream oss;
-	oss << maxvalue;
-	string vals = oss.str();
-	unsigned valw = globaltheme->myfont->get_size(vals).x;
-	globaltheme->myfont->print(pos.x + size.x - valw, pos.y + desch + size.y, vals, tcol, true);
-	draw_line(pos.x + size.x, pos.y + desch + 3*barh, pos.x + size.x, pos.y + desch + size.y);
 
 	// draw slider knob
 	unsigned offset = (size.x-sliderw)*(currvalue - minvalue)/(maxvalue - minvalue);
-	draw_area_bg(pos.x + offset, pos.y + desch, sliderw, size.y, true, globaltheme->backg);
+	draw_area_col(pos.x + offset, pos.y + h0, sliderw, h1 - barh, true, globaltheme->textdisabledcol);
+	draw_line(pos.x + sliderw/2 + offset, pos.y + h0 + barh/2, pos.x + sliderw/2 + offset, pos.y + h0 + h1 - barh*3/2);
 }
 
 
@@ -1241,7 +1256,11 @@ void widget_slider::on_char(const SDL_keysym& ks)
 void widget_slider::on_click(int mx, int my, int mb)
 {
 	// set slider...
-	on_change();
+	if (mb & SDL_BUTTON_LMASK) {
+		int sliderpos = std::min(std::max(pos.x, mx), pos.x + size.x) - pos.x;
+		currvalue = sliderpos * (maxvalue - minvalue) / size.x + minvalue;
+		on_change();
+	}
 }
 
 
@@ -1249,5 +1268,9 @@ void widget_slider::on_click(int mx, int my, int mb)
 void widget_slider::on_drag(int mx, int my, int rx, int ry, int mb)
 {
 	// move slider...
-	on_change();
+	if (mb & SDL_BUTTON_LMASK) {
+		int sliderpos = std::min(std::max(pos.x, mx), pos.x + size.x) - pos.x;
+		currvalue = sliderpos * (maxvalue - minvalue) / size.x + minvalue;
+		on_change();
+	}
 }

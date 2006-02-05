@@ -79,7 +79,7 @@ protected:
 	static void draw_rect(int x, int y, int w, int h, bool out);
 	static void draw_line(int x1, int y1, int x2, int y2);
 	void draw_area(int x, int y, int w, int h, bool out) const;
-	void draw_area_bg(int x, int y, int w, int h, bool out, const texture* backg) const;
+	void draw_area_col(int x, int y, int w, int h, bool out, color c) const;
 public:
 	class theme {
 		theme();
@@ -140,13 +140,13 @@ public:
 
 	// called for every key in queue
 	virtual void on_char(const SDL_keysym& ks);
-	// called on mouse button down
+	// called on mouse button down (mb is one of SDL_BUTTON_LMASK, ...RMASK, ...MMASK)
 	virtual void on_click(int mx, int my, int mb) {}
 	// called on mouse wheel action, mb is 1 for up, 2 for down
 	virtual void on_wheel(int wd);
 	// called on mouse button up
 	virtual void on_release() {}
-	// called on mouse move while button is down
+	// called on mouse move while button is down (mb is one of SDL_BUTTON_LMASK, ...RMASK, ...MMASK)
 	virtual void on_drag(int mx, int my, int rx, int ry, int mb) {}
 
 	// determine type of input, fetch it to on_* functions
@@ -456,7 +456,7 @@ protected:
 	widget_slider(const widget_slider& );
 	widget_slider& operator= (const widget_slider& );
 public:
-	// h is height of slider button, not that of full widget.
+	/// Note: height is for full widget, so give enough space for descriptions + text + slider bar
 	widget_slider(int x, int y, int w, int h, const string& text_,
 		      int minv = 0, int maxv = 255, int currv = 128, int descrstep = 16,
 		      widget* parent_ = 0);

@@ -399,18 +399,30 @@ void map_display::edit_del_obj(game& gm)
 
 void map_display::edit_change_motion(game& gm)
 {
+	if (selection.size() == 0) return;
+
+	// compute max speed.
+	int minspeed = 0, maxspeed = 0;
+	for (std::set<sea_object*>::const_iterator it = selection.begin(); it != selection.end(); ++it) {
+		const ship* s = dynamic_cast<const ship*>(*it);
+		if (s) {
+			int sp = int(sea_object::ms2kts(s->get_max_speed()) + 0.5);
+			maxspeed = std::max(maxspeed, sp);
+		}
+	}
+
 	// open widget with text edits: course, speed, throttle
 	widget* w = new widget(0, 0, 1024, 768-2*32, texts::get(226));
 	w->set_background(panelbackground);
-	// fixme: a slider widget would be nice here...
-	w->add_child(new widget_text(20, 64, 140, 32, texts::get(1)));
-	w->add_child(new widget_text(20, 96, 140, 32, texts::get(4)));
+	// heading slider
+	w->add_child(new widget_slider(20, 128, 1024-40, 80, texts::get(1), 0, 360, 0, 15));
+	// speed slider
+	w->add_child(new widget_slider(20, 220, 1024-40, 80, texts::get(4), minspeed, maxspeed, 0, 1));
+	// throttle slider
+	w->add_child(new widget_slider(20, 330, 1024-40, 80, texts::get(232), minspeed, maxspeed, 0, 1));
+
 	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_CHANGEMOTION,  20, 768-3*32-8, 512-20, 32, texts::get(226)));
 	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
-
-	w->add_child(new widget_slider(20, 128, 1024-40, 32, "Group speed", 0, 20, 10, 1));
-	w->add_child(new widget_slider(20, 200, 1024-40, 32, "Group speed", -20, 20, 0, 4));
-	w->add_child(new widget_slider(20, 300, 1024-40, 32, "Group speed", 0, 2000, 50, 200));
 
 	edit_panel->disable();
 	edit_panel_fg.reset(w);
@@ -692,7 +704,8 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 		// check if foreground window is open and event should go to it
 		if (edit_panel_fg.get() && edit_panel_fg->check_for_mouse_event(event)) {
 			if (edit_panel_fg->was_closed()) {
-				if (edit_panel_fg->get_return_value() == EPFG_SHIPADDED) {
+				int retval = edit_panel_fg->get_return_value();
+				if (retval == EPFG_SHIPADDED) {
 					// add ship
 					string shipname = get_ship_dir() + edit_shiplist->get_selected_entry() + ".xml";
 					xml_doc spec(shipname);
@@ -702,6 +715,17 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 					vector2 pos = gm.get_player()->get_pos().xy() + mapoffset;
 					shp->manipulate_position(pos.xy0());
 					gm.spawn_ship(shp.release());
+				} else if (retval == EPFG_CHANGEMOTION) {
+					for (std::set<sea_object*>::iterator it = selection.begin(); it != selection.end(); ++it) {
+						ship* s = dynamic_cast<ship*>(*it);
+						if (s) {
+							/*
+							s->set_throttle();
+							s->manipulate_heading();
+							s->manipulate_speed();
+							*/
+						}
+					}
 				}
 				edit_panel->enable();
 				edit_panel_fg.reset();

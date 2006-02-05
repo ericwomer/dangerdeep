@@ -126,6 +126,9 @@ void game_editor::simulate(double delta_t)
 	// fixme: time should be freezeable, editor should be able to set time to any
 	// value between 1939/9/1 and 1945/5/8
 
+	if (!time_sim_enabled || time_sim_paused)
+		delta_t = 0;
+
 	// copied from game
 	// check if jobs are to be run
 	for (list<pair<double, job*> >::iterator it = jobs.begin(); it != jobs.end(); ++it) {
@@ -252,8 +255,7 @@ void game_editor::simulate(double delta_t)
 	// clear pings if there are some
 	pings.clear();
 
-	if (time_sim_enabled && !time_sim_paused)
-		time += delta_t;
+	time += delta_t;
 }
 
 
