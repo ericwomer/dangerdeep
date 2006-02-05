@@ -223,7 +223,9 @@ public:
 	/* NOTE! the following function(s) are only for the editor!
 	   Nobody should manipulate objects like this except the editor.
 	*/
-	virtual void manipulate_position(const vector3& newpos) { position = newpos; }
+	virtual void manipulate_position(const vector3& newpos);
+	virtual void manipulate_speed(double localforwardspeed);
+	virtual void manipulate_heading(angle hdg);
 
 	/**
 		Noise modification for submarines. Submarines are using diesel engines

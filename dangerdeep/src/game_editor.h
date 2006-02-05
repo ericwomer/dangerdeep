@@ -33,12 +33,6 @@ protected:
 	game_editor& operator= (const game_editor& other);
 	game_editor(const game_editor& other);
 
-	/// is time simulation enabled in the editor? can be disabled for editing
-	bool time_sim_enabled;
-
-	/// this value controls if time simulation is paused or not (used when menues are open)
-	bool time_sim_paused;
-
 public:
 	/// create new editor instance. subtype can be changed later.
 	game_editor(/*const std::string& subtype*/);

@@ -511,6 +511,20 @@ void user_interface::draw_weather_effects() const
 
 
 
+void user_interface::pause_game(bool pauseon)
+{
+	pause = pauseon;
+	if (pause) {
+		add_message(texts::get(52));
+		pause_all_sound();
+	} else {
+		add_message(texts::get(53));
+		resume_all_sound();
+	}
+}
+
+
+
 bool user_interface::time_scale_up()
 {
 	if (time_scale < 4096) {

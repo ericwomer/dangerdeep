@@ -131,7 +131,7 @@ public:
 	virtual void set_background(const image* b) { background = b; background_tex = 0; }
 	virtual void set_background(const texture* t) { background_tex = t; background = 0; }
 	virtual void set_return_value(int rv) { retval = rv; }
-	virtual bool get_return_value() const { return retval; }
+	virtual int get_return_value() const { return retval; }
 	virtual bool was_closed() const { return closeme; }
 	virtual bool is_enabled() const;
 	virtual void enable();
@@ -170,6 +170,7 @@ public:
 	// if do_stacking is false only this widget is drawn, but none of its parents
 	virtual int run(unsigned timeout = 0, bool do_stacking = true);
 	virtual void close(int val);	// close this widget (stops run() on next turn, returns val)
+	virtual void open();	// "open" this widget (reverts what close() did)
 	
 	static list<widget*> widgets;	// stack of dialogues, topmost is back
 };
@@ -458,12 +459,13 @@ protected:
 public:
 	/// Note: height is for full widget, so give enough space for descriptions + text + slider bar
 	widget_slider(int x, int y, int w, int h, const string& text_,
-		      int minv = 0, int maxv = 255, int currv = 128, int descrstep = 16,
+		      int minv, int maxv, int currv, int descrstep,
 		      widget* parent_ = 0);
 	void draw() const;
 	void on_char(const SDL_keysym& ks);
 	void on_click(int mx, int my, int mb);
 	void on_drag(int mx, int my, int rx, int ry, int mb);
+	virtual void set_values(int minv, int maxv, int currv, int descrstep);
 	virtual void on_change() {}
 	virtual int get_min_value() const { return minvalue; }
 	virtual int get_curr_value() const { return currvalue; }

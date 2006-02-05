@@ -410,14 +410,7 @@ void submarine_interface::process_input(const SDL_Event& event)
 				sys().add_console("screenshot taken.");
 				break;
 			case SDLK_PAUSE:
-				if (true == pause)
-					pause_all_sound();
-				else
-					resume_all_sound();
-				
-				pause = !pause;
-				if (pause) add_message(texts::get(52));
-				else add_message(texts::get(53));
+				pause_game(!pause);
 				break;
 			default:
 				// let display handle the key

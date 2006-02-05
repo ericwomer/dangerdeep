@@ -434,6 +434,28 @@ float sea_object::surface_visibility(const vector2& watcher) const
 
 
 
+void sea_object::manipulate_position(const vector3& newpos)
+{
+	position = newpos;
+}
+
+
+
+void sea_object::manipulate_speed(double localforwardspeed)
+{
+	velocity.y = localforwardspeed;
+}
+
+
+
+void sea_object::manipulate_heading(angle hdg)
+{
+	orientation = quaternion::rot(-hdg.value(), 0, 0, 1);
+	heading = hdg;
+}
+
+
+
 //fixme: should move to ship or maybe return pos. airplanes have engines, but not
 //dc's/shells.
 vector2 sea_object::get_engine_noise_source () const

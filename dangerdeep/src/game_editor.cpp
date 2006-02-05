@@ -68,7 +68,6 @@ const unsigned GAMETYPE = 0;//fixme, 0-mission , 1-patrol etc.
 /***************************************************************************/
 
 game_editor::game_editor()
-	: time_sim_enabled(false), time_sim_paused(false)
 {
 	networktype = 0;
 	servercon = 0;
@@ -105,7 +104,7 @@ game_editor::game_editor()
 //                        LOAD GAME (SAVEGAME OR MISSION)
 // --------------------------------------------------------------------------------
 game_editor::game_editor(const string& filename)
-	: game(filename), time_sim_enabled(false), time_sim_paused(false)
+	: game(filename)
 {
 	// nothing special for now
 }
@@ -125,10 +124,6 @@ void game_editor::simulate(double delta_t)
 {
 	// fixme: time should be freezeable, editor should be able to set time to any
 	// value between 1939/9/1 and 1945/5/8
-
-	//fixme: use pause functionality for time freeze!
-	if (!time_sim_enabled || time_sim_paused)
-		delta_t = 0;
 
 	// copied from game
 	// check if jobs are to be run

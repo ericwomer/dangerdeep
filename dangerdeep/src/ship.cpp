@@ -928,3 +928,12 @@ void ship::calc_max_gun_range(double initial_velocity)
 	
 	maximum_gun_range = (max_range > maximum_gun_range) ? max_range : maximum_gun_range;
 }
+
+
+
+void ship::manipulate_heading(angle hdg)
+{
+	sea_object::manipulate_heading(hdg);
+	head_to = hdg;
+	head_to_fixed = true;
+}

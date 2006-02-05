@@ -362,7 +362,6 @@ void widget::draw_area(int x, int y, int w, int h, bool out) const
 
 void widget::draw_area_col(int x, int y, int w, int h, bool out, color c) const
 {
-	int fw = globaltheme->frame_size();
 	glBindTexture(GL_TEXTURE_2D, 0);
 	c.set_gl_color();
 	glBegin(GL_QUADS);
@@ -452,6 +451,12 @@ void widget::close(int val)
 {
 	retval = val;
 	closeme = true;
+}
+
+void widget::open()
+{
+	retval = -1;
+	closeme = false;
 }
 
 widget_menu::widget_menu(int x, int y, int w, int h, const string& text_, bool horizontal_,
@@ -1182,10 +1187,7 @@ widget_slider::widget_slider(int x, int y, int w, int h, const string& text_,
 {
 	size.x = std::max(size.x, int(4));
 	size.y = std::max(size.y, int(4));
-	maxvalue = std::max(minvalue + 1, maxvalue);
-	currvalue = std::max(currvalue, minvalue);
-	currvalue = std::min(currvalue, maxvalue);
-	descrstep = std::max(int(1), descrstep);
+	set_values(minv, maxv, currv, descrstep_);
 }
 
 
@@ -1273,4 +1275,15 @@ void widget_slider::on_drag(int mx, int my, int rx, int ry, int mb)
 		currvalue = (sliderpos * (maxvalue - minvalue) + size.x/2) / size.x + minvalue;
 		on_change();
 	}
+}
+
+
+
+void widget_slider::set_values(int minv, int maxv, int currv, int descrstep_)
+{
+	minvalue = minv;
+	maxvalue = std::max(minvalue + 1, maxv);
+	currvalue = std::max(currv, minvalue);
+	currvalue = std::min(currvalue, maxvalue);
+	descrstep = std::max(int(1), descrstep_);
 }

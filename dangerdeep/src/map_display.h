@@ -52,8 +52,16 @@ protected:
 
 	// only used in editor mode
 	std::auto_ptr<widget> edit_panel;
-	std::auto_ptr<widget> edit_panel_fg;
+	std::auto_ptr<widget> edit_panel_add;
+	std::auto_ptr<widget> edit_panel_chgmot;
+	std::auto_ptr<widget> edit_panel_time;
+	std::auto_ptr<widget> edit_panel_descr;
+	std::auto_ptr<widget> edit_panel_help;
+	widget* edit_panel_fg;
 	widget_list* edit_shiplist;
+	widget_slider* edit_heading;
+	widget_slider* edit_speed;
+	widget_slider* edit_throttle;
 	int mx_down, my_down;	// position of mouse when button was pressed
 	int mx_curr, my_curr;	// current position of mouse
 	std::set<sea_object*> selection;

@@ -531,6 +531,8 @@ void run_game_editor(game* gm)
 		font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64));
 	reset_loading_screen();
 	user_interface* ui = user_interface::create(*gm);
+	// game is initially paused.
+	ui->pause_game(true);
 	while (true) {
 		widget::theme* tmp = widget::replace_theme(gametheme);
 		gm->set_user_interface(ui);

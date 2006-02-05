@@ -265,6 +265,11 @@ public:
 	virtual void gun_manning_changed(bool isGunManned);	
 	virtual long num_shells_remaining();
 	virtual double max_gun_range() { return maximum_gun_range; };
+
+	/* NOTE! the following function(s) are only for the editor!
+	   Nobody should manipulate objects like this except the editor.
+	*/
+	virtual void manipulate_heading(angle hdg);
 };
 
 #endif

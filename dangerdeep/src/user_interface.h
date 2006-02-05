@@ -98,7 +98,7 @@ protected:
 	user_interface(const user_interface& other);
 	user_interface(game& gm);
 
-//	inline virtual sea_object* get_player(void) const { return player_object; }
+//	inline virtual sea_object* get_player() const { return player_object; }
 
 	// color funtions. ?????fixme
 	virtual void set_display_color( color_mode mode ) const;
@@ -109,7 +109,7 @@ protected:
 
 	// adjusts "current_popup" if not set to allowed popup
 	// must be const because it can be called by display(), only mutable members are changed.
-	void set_allowed_popup(void) const;
+	void set_allowed_popup() const;
 
 	// set "current_display" only via this function, so that checks can be performed autom.
 	// must be const because it can be called by display(), only mutable members are changed.
@@ -119,7 +119,7 @@ public:
 	virtual ~user_interface();
 
 	// display (const) and input handling
-	virtual void display(void) const;
+	virtual void display() const;
 
 	// set global time for display (needed for water/sky animation)
 	void set_time(double tm);
@@ -131,21 +131,21 @@ public:
 	// create ui matching to player type (requested from game)
 	static user_interface* create(game& gm);
 
-	const sky& get_sky(void) const { return *mysky; }
-	const water& get_water(void) const { return *mywater; }
-	const coastmap& get_coastmap(void) const { return mycoastmap; }
+	const sky& get_sky() const { return *mysky; }
+	const water& get_water() const { return *mywater; }
+	const coastmap& get_coastmap() const { return mycoastmap; }
 
 	// helper functions
 
-	virtual angle get_relative_bearing(void) const;
-	virtual angle get_absolute_bearing(void) const;
-	virtual angle get_elevation(void) const;
+	virtual angle get_relative_bearing() const;
+	virtual angle get_absolute_bearing() const;
+	virtual angle get_elevation() const;
 	// add angles to change bearing/elevation
 	virtual void add_bearing(angle a);
 	virtual void add_elevation(angle a);
 
 	// 2d drawing must be on for this
-	void draw_infopanel(void) const;
+	void draw_infopanel() const;
 
 	// this rotates the modelview matrix to match the water surface normal
 	// rollfac (0...1) determines how much the ship is influenced by wave movement
@@ -153,22 +153,23 @@ public:
 					    float length, float width,
 					    double rollfac = 0.05, bool inverse = false) const;
 
-	virtual sea_object* get_target(void) const { return target; }
+	virtual sea_object* get_target() const { return target; }
 	virtual void set_target(sea_object* tgt) { target = tgt; }
 
 	// 3d drawing functions
 	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist) const;
 
-	virtual void draw_weather_effects(void) const;
+	virtual void draw_weather_effects() const;
 
-	virtual bool paused(void) const { return pause; }
-	virtual unsigned time_scaling(void) const { return time_scale; }
+	virtual void pause_game(bool pauseon);
+	virtual bool paused() const { return pause; }
+	virtual unsigned time_scaling() const { return time_scale; }
 	virtual void add_message(const string& s);
-	virtual bool time_scale_up(void);	// returns true on success
-	virtual bool time_scale_down(void);
+	virtual bool time_scale_up();	// returns true on success
+	virtual bool time_scale_down();
 //	virtual void record_sunk_ship ( const class ship* so );
 	/** This method creates a message about the rudder state. */
-	virtual void add_rudder_message(void);
+	virtual void add_rudder_message();
 	virtual void play_sound_effect(const string &se, const sea_object* player, 
 								   const sea_object* noise_source, bool loop = false) const;
 	virtual void play_fade_sound_effect(const string &se, const sea_object* player, 

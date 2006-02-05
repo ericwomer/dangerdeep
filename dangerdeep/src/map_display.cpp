@@ -48,9 +48,9 @@ using namespace std;
 #define MAPGRIDSIZE 1000	// meters
 
 enum edit_panel_fg_result {
-	EPFG_CANCEL,
-	EPFG_SHIPADDED,
-	EPFG_CHANGEMOTION
+	EPFG_CANCEL = 0,
+	EPFG_SHIPADDED = 1,
+	EPFG_CHANGEMOTION = 2
 };
 
 
@@ -336,12 +336,19 @@ void map_display::draw_square_mark ( class game& gm,
 
 
 map_display::map_display(user_interface& ui_) :
-	user_display(ui_), mapzoom(0.1), mx(0), my(0), edit_shiplist(0),
+	user_display(ui_), mapzoom(0.1), mx(0), my(0),
+	edit_panel_fg(0),
+	edit_shiplist(0),
+	edit_heading(0),
+	edit_speed(0),
+	edit_throttle(0),
 	mx_down(-1), my_down(-1), shift_key_pressed(0), ctrl_key_pressed(0)
 {
+	game& gm = ui_.get_game();
+
+	// create editor main panel
 	edit_panel.reset(new widget(0, 768-32*2, 1024, 32, "", 0, 0));
 	edit_panel->set_background(panelbackground);
-	game& gm = ui_.get_game();
 	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_add_obj, gm, 0, 0, 128, 32, texts::get(224)));
 	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_del_obj, gm, 128, 0, 128, 32, texts::get(225)));
 	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_change_motion, gm, 256, 0, 128, 32, texts::get(226)));
@@ -350,6 +357,45 @@ map_display::map_display(user_interface& ui_) :
  	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_time, gm, 640, 0, 128, 32, texts::get(229)));
  	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_description, gm, 768, 0, 128, 32, texts::get(233)));
  	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_help, gm, 896, 0, 128, 32, texts::get(230)));
+
+	// create "add ship" window
+	edit_panel_add.reset(new widget(0, 0, 1024, 768-2*32, texts::get(224)));
+	edit_panel_add->set_background(panelbackground);
+	edit_shiplist = new widget_list(20, 32, 1024-2*20, 768-2*32-2*32-8);
+	edit_panel_add->add_child(edit_shiplist);
+	edit_panel_add->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_add.get(), &widget::close, EPFG_SHIPADDED,  20, 768-3*32-8, 512-20, 32, texts::get(224)));
+	edit_panel_add->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_add.get(), &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
+	string tmp;
+	directory d = open_dir(get_ship_dir());
+	do {
+		tmp = read_dir(d);
+		if (tmp.length() > 4) {
+			string suffix = tmp.substr(tmp.length()-4);
+			if (suffix == ".xml") {
+				edit_shiplist->append_entry(tmp.substr(0, tmp.length()-4));
+			}
+		}
+	} while (tmp.length() > 0);
+
+	// create "motion edit" window
+	// open widget with text edits: course, speed, throttle
+	edit_panel_chgmot.reset(new widget(0, 0, 1024, 768-2*32, texts::get(226)));
+	edit_panel_chgmot->set_background(panelbackground);
+	edit_heading = new widget_slider(20, 128, 1024-40, 80, texts::get(1), 0, 360, 0, 15);
+	edit_panel_chgmot->add_child(edit_heading);
+	edit_speed = new widget_slider(20, 220, 1024-40, 80, texts::get(4), 0/*minspeed*/, 34/*maxspeed*/, 0, 1);
+	edit_panel_chgmot->add_child(edit_speed);
+	edit_throttle = new widget_slider(20, 330, 1024-40, 80, texts::get(232), 0/*minspeed*/, 34/*maxspeed*/, 0, 1);
+	edit_panel_chgmot->add_child(edit_throttle);
+	edit_panel_chgmot->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_chgmot.get(), &widget::close, EPFG_CHANGEMOTION,  20, 768-3*32-8, 512-20, 32, texts::get(226)));
+	edit_panel_chgmot->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_chgmot.get(), &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
+
+	// create help window
+	edit_panel_help.reset(new widget(0, 0, 1024, 768-2*32, texts::get(230)));
+	edit_panel_help->set_background(panelbackground);
+	edit_panel_help->add_child(new widget_text(20, 32, 1024-2*20, 768-2*32-2*32-8, texts::get(231), 0, true));
+	edit_panel_help->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_help.get(), &widget::close, EPFG_CANCEL, 20, 768-3*32-8, 1024-20, 32, texts::get(105)));
+
 
 #ifdef CVEDIT
 	cvridx = -1;
@@ -360,26 +406,9 @@ map_display::map_display(user_interface& ui_) :
 
 void map_display::edit_add_obj(game& gm)
 {
-	widget* w = new widget(0, 0, 1024, 768-2*32, texts::get(224));
-	w->set_background(panelbackground);
-	widget_list* wl = new widget_list(20, 32, 1024-2*20, 768-2*32-2*32-8);
-	w->add_child(wl);
-	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_SHIPADDED,  20, 768-3*32-8, 512-20, 32, texts::get(224)));
-	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
-	string tmp;
-	directory d = open_dir(get_ship_dir());
-	do {
-		tmp = read_dir(d);
-		if (tmp.length() > 4) {
-			string suffix = tmp.substr(tmp.length()-4);
-			if (suffix == ".xml") {
-				wl->append_entry(tmp.substr(0, tmp.length()-4));
-			}
-		}
-	} while (tmp.length() > 0);
+	edit_panel_add->open();
 	edit_panel->disable();
-	edit_panel_fg.reset(w);
-	edit_shiplist = wl;
+	edit_panel_fg = edit_panel_add.get();
 }
 
 
@@ -412,21 +441,11 @@ void map_display::edit_change_motion(game& gm)
 		}
 	}
 
-	// open widget with text edits: course, speed, throttle
-	widget* w = new widget(0, 0, 1024, 768-2*32, texts::get(226));
-	w->set_background(panelbackground);
-	// heading slider
-	w->add_child(new widget_slider(20, 128, 1024-40, 80, texts::get(1), 0, 360, 0, 15));
-	// speed slider
-	w->add_child(new widget_slider(20, 220, 1024-40, 80, texts::get(4), minspeed, maxspeed, 0, 1));
-	// throttle slider
-	w->add_child(new widget_slider(20, 330, 1024-40, 80, texts::get(232), minspeed, maxspeed, 0, 1));
-
-	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_CHANGEMOTION,  20, 768-3*32-8, 512-20, 32, texts::get(226)));
-	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
-
+	edit_panel_chgmot->open();
+	edit_speed->set_values(minspeed, maxspeed, 0, 1);
+	edit_throttle->set_values(minspeed, maxspeed, 0, 1);
 	edit_panel->disable();
-	edit_panel_fg.reset(w);
+	edit_panel_fg = edit_panel_chgmot.get();
 }
 
 
@@ -479,14 +498,9 @@ void map_display::edit_description(game& gm)
 
 void map_display::edit_help(game& /*gm*/)
 {
-	// open widget with text edits: date/time
-	widget* w = new widget(0, 0, 1024, 768-2*32, texts::get(230));
-	w->set_background(panelbackground);
-	widget* wt = new widget_text(20, 32, 1024-2*20, 768-2*32-2*32-8, texts::get(231), 0, true);
-	w->add_child(wt);
-	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, EPFG_CANCEL, 20, 768-3*32-8, 1024-20, 32, texts::get(105)));
+	edit_panel_help->open();
 	edit_panel->disable();
-	edit_panel_fg.reset(w);
+	edit_panel_fg = edit_panel_help.get();
 }
 
 
@@ -665,7 +679,7 @@ void map_display::display(class game& gm) const
 
 	// editor specials ------------------------------------------------------------
 	if (gm.is_editor()) {
-		if (edit_panel_fg.get()) {
+		if (edit_panel_fg) {
 			edit_panel_fg->draw();
 		} else {
 			// selection rectangle
@@ -710,7 +724,9 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 		if (edit_panel->check_for_mouse_event(event))
 			return;
 		// check if foreground window is open and event should go to it
-		if (edit_panel_fg.get() && edit_panel_fg->check_for_mouse_event(event)) {
+		if (edit_panel_fg != 0 && edit_panel_fg->check_for_mouse_event(event)) {
+			// we could compare edit_panel_fg to the pointers of the various panels
+			// here instead of using a global enum for all possible return values...
 			if (edit_panel_fg->was_closed()) {
 				int retval = edit_panel_fg->get_return_value();
 				if (retval == EPFG_SHIPADDED) {
@@ -727,17 +743,14 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 					for (std::set<sea_object*>::iterator it = selection.begin(); it != selection.end(); ++it) {
 						ship* s = dynamic_cast<ship*>(*it);
 						if (s) {
-							/*
-							s->set_throttle();
-							s->manipulate_heading();
-							s->manipulate_speed();
-							*/
+							s->set_throttle(edit_throttle->get_curr_value());
+							s->manipulate_heading(angle(edit_heading->get_curr_value()));
+							s->manipulate_speed(edit_speed->get_curr_value());
 						}
 					}
 				}
 				edit_panel->enable();
-				edit_panel_fg.reset();
-				edit_shiplist = 0;
+				edit_panel_fg = 0;
 			}
 			return;
 		}
