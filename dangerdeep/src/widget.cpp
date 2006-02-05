@@ -1258,7 +1258,7 @@ void widget_slider::on_click(int mx, int my, int mb)
 	// set slider...
 	if (mb & SDL_BUTTON_LMASK) {
 		int sliderpos = std::min(std::max(pos.x, mx), pos.x + size.x) - pos.x;
-		currvalue = sliderpos * (maxvalue - minvalue) / size.x + minvalue;
+		currvalue = (sliderpos * (maxvalue - minvalue) + size.x/2) / size.x + minvalue;
 		on_change();
 	}
 }
@@ -1270,7 +1270,7 @@ void widget_slider::on_drag(int mx, int my, int rx, int ry, int mb)
 	// move slider...
 	if (mb & SDL_BUTTON_LMASK) {
 		int sliderpos = std::min(std::max(pos.x, mx), pos.x + size.x) - pos.x;
-		currvalue = sliderpos * (maxvalue - minvalue) / size.x + minvalue;
+		currvalue = (sliderpos * (maxvalue - minvalue) + size.x/2) + minvalue;
 		on_change();
 	}
 }
