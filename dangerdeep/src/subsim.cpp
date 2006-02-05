@@ -685,27 +685,37 @@ void choose_historical_mission()
 	widget_list* wmission = new msnlist(40, 60, 1024-80, 300, descrs, wdescr);
 	w.add_child(wmission);
 	w.add_child(wdescr);
+	// Note:
+	// Missions have the same format like savegames, except that the head xml node
+	// has an additional child node <description> with multi-lingual descriptions of the mission.
 	for (unsigned i = 0; i < nr_missions; ++i) {
-		TiXmlDocument doc(get_mission_dir() + missions[i]);
-		doc.LoadFile();
-		TiXmlHandle hdoc(&doc);
-		TiXmlHandle hdftdmission = hdoc.FirstChild("dftd-mission");
-		TiXmlHandle hdescription = hdftdmission.FirstChild("description");
-		TiXmlElement* eshort = hdescription.FirstChild("short").Element();
-		for ( ; eshort != 0; eshort = eshort->NextSiblingElement("short")) {
-			if (XmlAttrib(eshort, "lang") == texts::get_language_code()) {
-				TiXmlNode* ntext = eshort->FirstChild();
-				sys().myassert(ntext != 0, string("short description text child node missing in ")+doc.Value());
-				wmission->append_entry(ntext->Value());
+		xml_doc doc(get_mission_dir() + missions[i]);
+		doc.load();
+		xml_elem edftdmission = doc.child("dftd-mission");
+		xml_elem edescription = edftdmission.child("description");
+		for (xml_elem::iterator it = edescription.iterate("short"); !it.end(); it.next()) {
+			if (it.elem().attr("lang") == texts::get_language_code()) {
+				string desc;
+				try {
+					desc = it.elem().child_text();
+				}
+				catch (xml_error& e) {
+					desc = "NO DESCRIPTION???";
+				}
+				wmission->append_entry(desc);
 				break;
 			}
 		}
-		TiXmlElement* elong = hdescription.FirstChild("long").Element();
-		for ( ; elong != 0; elong = elong->NextSiblingElement("long")) {
-			if (XmlAttrib(elong, "lang") == texts::get_language_code()) {
-				TiXmlNode* ntext = elong->FirstChild();
-				sys().myassert(ntext != 0, string("long description text child node missing in ")+doc.Value());
-				descrs.push_back(ntext->Value());
+		for (xml_elem::iterator it = edescription.iterate("long"); !it.end(); it.next()) {
+			if (it.elem().attr("lang") == texts::get_language_code()) {
+				string desc;
+				try {
+					desc = it.elem().child_text();
+				}
+				catch (xml_error& e) {
+					desc = "NO DESCRIPTION???";
+				}
+				descrs.push_back(desc);
 				break;
 			}
 		}

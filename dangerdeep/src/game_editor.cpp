@@ -126,6 +126,7 @@ void game_editor::simulate(double delta_t)
 	// fixme: time should be freezeable, editor should be able to set time to any
 	// value between 1939/9/1 and 1945/5/8
 
+	//fixme: use pause functionality for time freeze!
 	if (!time_sim_enabled || time_sim_paused)
 		delta_t = 0;
 

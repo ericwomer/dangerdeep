@@ -348,7 +348,8 @@ map_display::map_display(user_interface& ui_) :
 	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_copy_obj, gm, 384, 0, 128, 32, texts::get(227)));
 	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_make_convoy, gm, 512, 0, 128, 32, texts::get(228)));
  	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_time, gm, 640, 0, 128, 32, texts::get(229)));
- 	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_help, gm, 768, 0, 128, 32, texts::get(230)));
+ 	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_description, gm, 768, 0, 128, 32, texts::get(233)));
+ 	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_help, gm, 896, 0, 128, 32, texts::get(230)));
 
 #ifdef CVEDIT
 	cvridx = -1;
@@ -465,6 +466,13 @@ void map_display::edit_make_convoy(game& gm)
 void map_display::edit_time(game& gm)
 {
 	// open widget with text edits: date/time
+}
+
+
+
+void map_display::edit_description(game& gm)
+{
+	// game must store mission description/briefing to make this function work... fixme
 }
 
 

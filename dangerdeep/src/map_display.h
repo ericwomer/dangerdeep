@@ -71,6 +71,7 @@ protected:
 	void edit_copy_obj(game& gm);
 	void edit_make_convoy(game& gm);
 	void edit_time(game& gm);
+	void edit_description(game& gm);
 	void edit_help(game& gm);
 
 private:
