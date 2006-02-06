@@ -57,6 +57,10 @@ protected:
 	std::auto_ptr<widget> edit_panel_time;
 	std::auto_ptr<widget> edit_panel_descr;
 	std::auto_ptr<widget> edit_panel_help;
+	widget* edit_btn_del;
+	widget* edit_btn_chgmot;
+	widget* edit_btn_copy;
+	widget* edit_btn_makecv;
 	widget* edit_panel_fg;
 	widget_list* edit_shiplist;
 	widget_slider* edit_heading;
@@ -81,6 +85,9 @@ protected:
 	void edit_time(game& gm);
 	void edit_description(game& gm);
 	void edit_help(game& gm);
+
+	// check if we have a selection and enables/disables buttons
+	void check_edit_sel();
 
 private:
 	map_display();

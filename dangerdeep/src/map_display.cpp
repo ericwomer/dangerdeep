@@ -337,6 +337,10 @@ void map_display::draw_square_mark ( class game& gm,
 
 map_display::map_display(user_interface& ui_) :
 	user_display(ui_), mapzoom(0.1), mx(0), my(0),
+	edit_btn_del(0),
+	edit_btn_chgmot(0),
+	edit_btn_copy(0),
+	edit_btn_makecv(0),
 	edit_panel_fg(0),
 	edit_shiplist(0),
 	edit_heading(0),
@@ -347,19 +351,23 @@ map_display::map_display(user_interface& ui_) :
 	game& gm = ui_.get_game();
 
 	// create editor main panel
-	edit_panel.reset(new widget(0, 768-32*2, 1024, 32, "", 0, 0));
+	edit_panel.reset(new widget(0, 0, 1024, 32, "", 0, 0));
 	edit_panel->set_background(panelbackground);
 	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_add_obj, gm, 0, 0, 128, 32, texts::get(224)));
-	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_del_obj, gm, 128, 0, 128, 32, texts::get(225)));
-	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_change_motion, gm, 256, 0, 128, 32, texts::get(226)));
-	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_copy_obj, gm, 384, 0, 128, 32, texts::get(227)));
-	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_make_convoy, gm, 512, 0, 128, 32, texts::get(228)));
+	edit_btn_del = new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_del_obj, gm, 128, 0, 128, 32, texts::get(225));
+	edit_panel->add_child(edit_btn_del);
+	edit_btn_chgmot = new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_change_motion, gm, 256, 0, 128, 32, texts::get(226));
+	edit_panel->add_child(edit_btn_chgmot);
+	edit_btn_copy = new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_copy_obj, gm, 384, 0, 128, 32, texts::get(227));
+	edit_panel->add_child(edit_btn_copy);
+	edit_btn_makecv = new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_make_convoy, gm, 512, 0, 128, 32, texts::get(228));
+	edit_panel->add_child(edit_btn_makecv);
  	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_time, gm, 640, 0, 128, 32, texts::get(229)));
  	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_description, gm, 768, 0, 128, 32, texts::get(233)));
  	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_help, gm, 896, 0, 128, 32, texts::get(230)));
 
 	// create "add ship" window
-	edit_panel_add.reset(new widget(0, 0, 1024, 768-2*32, texts::get(224)));
+	edit_panel_add.reset(new widget(0, 32, 1024, 768-2*32, texts::get(224)));
 	edit_panel_add->set_background(panelbackground);
 	edit_shiplist = new widget_list(20, 32, 1024-2*20, 768-2*32-2*32-8);
 	edit_panel_add->add_child(edit_shiplist);
@@ -379,7 +387,7 @@ map_display::map_display(user_interface& ui_) :
 
 	// create "motion edit" window
 	// open widget with text edits: course, speed, throttle
-	edit_panel_chgmot.reset(new widget(0, 0, 1024, 768-2*32, texts::get(226)));
+	edit_panel_chgmot.reset(new widget(0, 32, 1024, 768-2*32, texts::get(226)));
 	edit_panel_chgmot->set_background(panelbackground);
 	edit_heading = new widget_slider(20, 128, 1024-40, 80, texts::get(1), 0, 360, 0, 15);
 	edit_panel_chgmot->add_child(edit_heading);
@@ -391,11 +399,12 @@ map_display::map_display(user_interface& ui_) :
 	edit_panel_chgmot->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_chgmot.get(), &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
 
 	// create help window
-	edit_panel_help.reset(new widget(0, 0, 1024, 768-2*32, texts::get(230)));
+	edit_panel_help.reset(new widget(0, 32, 1024, 768-2*32, texts::get(230)));
 	edit_panel_help->set_background(panelbackground);
 	edit_panel_help->add_child(new widget_text(20, 32, 1024-2*20, 768-2*32-2*32-8, texts::get(231), 0, true));
 	edit_panel_help->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_help.get(), &widget::close, EPFG_CANCEL, 20, 768-3*32-8, 1024-20, 32, texts::get(105)));
 
+	check_edit_sel();
 
 #ifdef CVEDIT
 	cvridx = -1;
@@ -423,6 +432,7 @@ void map_display::edit_del_obj(game& gm)
 		}
 	}
 	selection.clear();
+	check_edit_sel();
 }
 
 
@@ -471,6 +481,7 @@ void map_display::edit_copy_obj(game& gm)
 		}
 	}
 	selection = new_selection;
+	check_edit_sel();
 }
 
 
@@ -501,6 +512,23 @@ void map_display::edit_help(game& /*gm*/)
 	edit_panel_help->open();
 	edit_panel->disable();
 	edit_panel_fg = edit_panel_help.get();
+}
+
+
+
+void map_display::check_edit_sel()
+{
+	if (selection.empty()) {
+		edit_btn_del->disable();
+		edit_btn_chgmot->disable();
+		edit_btn_copy->disable();
+		edit_btn_makecv->disable();
+	} else {
+		edit_btn_del->enable();
+		edit_btn_chgmot->enable();
+		edit_btn_copy->enable();
+		edit_btn_makecv->enable();
+	}
 }
 
 
@@ -819,6 +847,7 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 								selection.insert(*it);
 						}
 					}
+					check_edit_sel();
 				} else {
 					// select nearest
 					vector2 mapclick(event.button.x, event.button.y);
@@ -842,6 +871,7 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 						selection.erase(target);
 					else
 						selection.insert(target);
+					check_edit_sel();
 				}
 				mx_down = -1;
 				my_down = -1;
