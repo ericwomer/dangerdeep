@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "image.h"
 #include "texture.h"
 #include "game.h"
+#include "game_editor.h"
 #include "coastmap.h"
 #include "map_display.h"
 #include "user_interface.h"
@@ -50,7 +51,8 @@ using namespace std;
 enum edit_panel_fg_result {
 	EPFG_CANCEL = 0,
 	EPFG_SHIPADDED = 1,
-	EPFG_CHANGEMOTION = 2
+	EPFG_CHANGEMOTION = 2,
+	EPFG_CHANGETIME = 3
 };
 
 
@@ -346,6 +348,12 @@ map_display::map_display(user_interface& ui_) :
 	edit_heading(0),
 	edit_speed(0),
 	edit_throttle(0),
+ 	edit_timeyear(0),
+ 	edit_timemonth(0),
+ 	edit_timeday(0),
+ 	edit_timehour(0),
+ 	edit_timeminute(0),
+ 	edit_timesecond(0),
 	mx_down(-1), my_down(-1), shift_key_pressed(0), ctrl_key_pressed(0)
 {
 	game& gm = ui_.get_game();
@@ -403,6 +411,24 @@ map_display::map_display(user_interface& ui_) :
 	edit_panel_help->set_background(panelbackground);
 	edit_panel_help->add_child(new widget_text(20, 32, 1024-2*20, 768-2*32-2*32-8, texts::get(231), 0, true));
 	edit_panel_help->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_help.get(), &widget::close, EPFG_CANCEL, 20, 768-3*32-8, 1024-20, 32, texts::get(105)));
+
+	// create edit time window
+	edit_panel_time.reset(new widget(0, 32, 1024, 768-2*32, texts::get(229)));
+	edit_panel_time->set_background(panelbackground);
+	edit_panel_time->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_time.get(), &widget::close, EPFG_CHANGETIME,  20, 768-3*32-8, 512-20, 32, texts::get(229)));
+	edit_panel_time->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_time.get(), &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
+ 	edit_timeyear = new widget_slider(20, 128, 1024-40, 80, texts::get(234), 1939, 1945, 0, 1);
+	edit_panel_time->add_child(edit_timeyear);
+ 	edit_timemonth = new widget_slider(20, 208, 1024-40, 80, texts::get(235), 1, 12, 0, 1);
+	edit_panel_time->add_child(edit_timemonth);
+ 	edit_timeday = new widget_slider(20, 288, 1024-40, 80, texts::get(236), 1, 31, 0, 1);
+	edit_panel_time->add_child(edit_timeday);
+ 	edit_timehour = new widget_slider(20, 368, 1024-40, 80, texts::get(237), 0, 23, 0, 1);
+	edit_panel_time->add_child(edit_timehour);
+ 	edit_timeminute = new widget_slider(20, 448, 1024-40, 80, texts::get(238), 0, 59, 0, 5);
+	edit_panel_time->add_child(edit_timeminute);
+ 	edit_timesecond = new widget_slider(20, 528, 1024-40, 80, texts::get(239), 0, 59, 0, 5);
+	edit_panel_time->add_child(edit_timesecond);
 
 	check_edit_sel();
 
@@ -464,7 +490,7 @@ void map_display::edit_copy_obj(game& gm)
 {
 	// just duplicate the objects with some position offset (1km to x/y)
 	std::set<sea_object*> new_selection;
-	vector3 offset(500, 300, 0);
+	vector3 offset(300, 100, 0);
 	for (std::set<sea_object*>::iterator it = selection.begin(); it != selection.end(); ++it) {
 		ship* s = dynamic_cast<ship*>(*it);
 		submarine* su = dynamic_cast<submarine*>(*it);
@@ -476,6 +502,9 @@ void map_display::edit_copy_obj(game& gm)
 			// set pos and other values etc.
 			vector3 pos = s->get_pos() + offset;
 			s2->manipulate_position(pos);
+			s2->manipulate_speed(s->get_speed());
+			s2->manipulate_heading(s->get_heading());
+			s2->set_throttle(int(s->get_throttle()));
 			gm.spawn_ship(s2);
 			new_selection.insert(s2);
 		}
@@ -489,6 +518,7 @@ void map_display::edit_copy_obj(game& gm)
 void map_display::edit_make_convoy(game& gm)
 {
 	// make convoy from currently selected objects, but without sub
+	// fixme: maybe better open convoy menu: make cv, edit cv route, list cvs / select cv
 }
 
 
@@ -496,6 +526,10 @@ void map_display::edit_make_convoy(game& gm)
 void map_display::edit_time(game& gm)
 {
 	// open widget with text edits: date/time
+	// enter date and time of day
+	edit_panel_time->open();
+	edit_panel->disable();
+	edit_panel_fg = edit_panel_time.get();
 }
 
 
@@ -503,6 +537,9 @@ void map_display::edit_time(game& gm)
 void map_display::edit_description(game& gm)
 {
 	// game must store mission description/briefing to make this function work... fixme
+	// only store short description here? or take save file name in save dialogue
+	// as description? we have no multiline-edit-widget. so we can't really let the user
+	// enter long descriptions here.
 }
 
 
@@ -776,6 +813,19 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 							s->manipulate_speed(edit_speed->get_curr_value());
 						}
 					}
+				} else if (retval == EPFG_CHANGETIME) {
+					date d(edit_timeyear->get_curr_value(),
+					       edit_timemonth->get_curr_value(),
+					       edit_timeday->get_curr_value(),
+					       edit_timehour->get_curr_value(),
+					       edit_timeminute->get_curr_value(),
+					       edit_timesecond->get_curr_value());
+					double time = d.get_time();
+					game_editor& ge = dynamic_cast<game_editor&>(gm);
+					ge.manipulate_time(time);
+					// construct new date to correct possible wrong date values
+					// like 30th february or so...
+					ge.manipulate_equipment_date(date(d.get_time()));
 				}
 				edit_panel->enable();
 				edit_panel_fg = 0;

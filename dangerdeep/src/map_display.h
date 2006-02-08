@@ -51,6 +51,8 @@ protected:
 		const vector2& mark_pos, const vector2& offset, const color& c ) const;
 
 	// only used in editor mode
+	//fixme: this should be part of the user interface, so that the editor panel
+	//is available also in other screens...
 	std::auto_ptr<widget> edit_panel;
 	std::auto_ptr<widget> edit_panel_add;
 	std::auto_ptr<widget> edit_panel_chgmot;
@@ -66,6 +68,12 @@ protected:
 	widget_slider* edit_heading;
 	widget_slider* edit_speed;
 	widget_slider* edit_throttle;
+ 	widget_slider* edit_timeyear;
+ 	widget_slider* edit_timemonth;
+ 	widget_slider* edit_timeday;
+ 	widget_slider* edit_timehour;
+ 	widget_slider* edit_timeminute;
+ 	widget_slider* edit_timesecond;
 	int mx_down, my_down;	// position of mouse when button was pressed
 	int mx_curr, my_curr;	// current position of mouse
 	std::set<sea_object*> selection;

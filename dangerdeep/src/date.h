@@ -39,13 +39,13 @@ private:
 	unsigned date_values[last_date_type];
 	unsigned linear_time;	// in seconds from 1.1.1939
 
-	unsigned length_of_year(unsigned year) const;
-	unsigned length_of_month(unsigned year, unsigned month) const;
-
 	void set_from_linear();
 	void set_linear();
 
 public:
+	static unsigned length_of_year(unsigned year);
+	static unsigned length_of_month(unsigned year, unsigned month);
+
 	/**
 		Constructor.
 		@param year year value.

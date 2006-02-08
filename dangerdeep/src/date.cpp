@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using std::ostream;
 
-unsigned date::length_of_year(unsigned year) const
+unsigned date::length_of_year(unsigned year)
 {
 	if (year % 4 == 0) {
 		if (year % 100 == 0) {
@@ -42,7 +42,7 @@ unsigned date::length_of_year(unsigned year) const
 	return 365;
 }
 
-unsigned date::length_of_month(unsigned year, unsigned month) const
+unsigned date::length_of_month(unsigned year, unsigned month)
 {
 	if (month == January || month == March || month == May || month == July || month == August
 			|| month == October || month == December)

@@ -256,6 +256,20 @@ void game_editor::simulate(double delta_t)
 
 
 
+void game_editor::manipulate_time(double tm)
+{
+	time = tm;
+}
+
+
+
+void game_editor::manipulate_equipment_date(date equipdate)
+{
+	equipment_date = equipdate;
+}
+
+
+
 // main play loop
 // fixme: a bit misplaced here, especially after ui was moved away from game
 game::run_state game_editor::exec()

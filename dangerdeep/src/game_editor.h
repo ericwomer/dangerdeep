@@ -45,6 +45,10 @@ public:
 	// is editor?
 	virtual bool is_editor() const { return true; }
 
+	// manipulator functions
+	virtual void manipulate_time(double tm);
+	virtual void manipulate_equipment_date(date equipdate);
+
 	// main game loop
 	run_state exec();
 };
