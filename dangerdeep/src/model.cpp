@@ -276,6 +276,10 @@ void model::mesh::compute_bounds()
 		min = it2->min(min);
 		max = it2->max(max);
 	}
+	
+	//fixme: we have to modify min/max according to the transformation matrix! at least the translation...
+	min += transformation.column3(3);
+	max += transformation.column3(3);
 }
 
 
