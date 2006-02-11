@@ -405,6 +405,8 @@ map_display::map_display(user_interface& ui_) :
 	edit_panel_chgmot->add_child(edit_throttle);
 	edit_panel_chgmot->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_chgmot.get(), &widget::close, EPFG_CHANGEMOTION,  20, 768-3*32-8, 512-20, 32, texts::get(226)));
 	edit_panel_chgmot->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_chgmot.get(), &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
+	// also edit: target, country, damage status, fuel amount
+
 
 	// create help window
 	edit_panel_help.reset(new widget(0, 32, 1024, 768-2*32, texts::get(230)));

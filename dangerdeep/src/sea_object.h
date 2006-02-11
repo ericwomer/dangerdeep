@@ -112,6 +112,7 @@ protected:
 
 	std::string modelname;	// filename for model file (also used for modelcache requests), read from spec file
 
+	//we also need an invulnerable-flag (for the editor)
 	//string_or_country_code country;	// read from spec file, maybe save for capture missions...
 
 	vector3 position;	// global position, [SAVE]
