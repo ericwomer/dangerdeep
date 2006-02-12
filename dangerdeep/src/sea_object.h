@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "quaternion.h"
 #include "xml.h"
 #include "ai.h"
+#include "countrycodes.h"
 
 /*
 fixme: global todo (2004/06/26):
@@ -112,9 +113,6 @@ protected:
 
 	std::string modelname;	// filename for model file (also used for modelcache requests), read from spec file
 
-	//we also need an invulnerable-flag (for the editor)
-	//string_or_country_code country;	// read from spec file, maybe save for capture missions...
-
 	vector3 position;	// global position, [SAVE]
 	vector3 velocity;	// local velocity, [SAVE]
 	// maybe: vector3 impulse;
@@ -158,6 +156,18 @@ protected:
 	/// used by airplanes/ships/submarines to store a reference to their target.
 	/// automatically set to NULL by simulate() if target is inactive.
 	sea_object* target;	// [SAVE]
+
+	/// flag to toggle invulnerability. Note that this is only set or used for the editor
+	/// or debugging purposes!
+	bool invulnerable;
+
+	/// Country code of object. Used for records or for AI to determine enemies. Or for camouflage
+	/// schemes.
+	countrycode country;
+
+	/// Party (Axis/Allies/Neutral). Normally determined from country code. But countries changed
+	/// party (Italy 1943, France 1940).
+	partycode party;
 
 	virtual void set_sensor ( sensor_system ss, sensor* s );
 
@@ -220,6 +230,9 @@ public:
 	virtual angle get_heading() const { return heading; }
 	virtual class ai* get_ai() { return myai.get(); }
 	virtual const sea_object* get_target() const { return target; }
+	bool is_invulnerable() const { return invulnerable; }
+	countrycode get_country() const { return country; }
+	partycode get_party() const { return party; }
 
 	/* NOTE! the following function(s) are only for the editor!
 	   Nobody should manipulate objects like this except the editor.
@@ -227,6 +240,7 @@ public:
 	virtual void manipulate_position(const vector3& newpos);
 	virtual void manipulate_speed(double localforwardspeed);
 	virtual void manipulate_heading(angle hdg);
+	virtual void manipulate_invulnerability(bool invul) { invulnerable = invul; }
 
 	/**
 		Noise modification for submarines. Submarines are using diesel engines

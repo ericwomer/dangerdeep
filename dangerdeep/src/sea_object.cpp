@@ -149,7 +149,8 @@ double sea_object::get_cross_section ( const vector2& d ) const
 
 sea_object::sea_object(game& gm_, const string& modelname_)
 	: gm(gm_), modelname(modelname_), turn_velocity(0),
-	  alive_stat(alive), target(0)
+	  alive_stat(alive), target(0),
+	  invulnerable(false), country(UNKNOWNCOUNTRY), party(UNKNOWNPARTY)
 {
 	model* mdl = modelcache.ref(modelname);
 	size3d = vector3f(mdl->get_width(), mdl->get_length(), mdl->get_height());
@@ -158,14 +159,23 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 
 
 sea_object::sea_object(game& gm_, const xml_elem& parent)
-	: gm(gm_), turn_velocity(0), alive_stat(alive), target(0)
+	: gm(gm_), turn_velocity(0), alive_stat(alive), target(0),
+	  invulnerable(false), country(UNKNOWNCOUNTRY), party(UNKNOWNPARTY)
 {
 	xml_elem cl = parent.child("classification");
 	specfilename = cl.attr("identifier");
 	modelname = cl.attr("modelname");
 	model* mdl = modelcache.ref(modelname);
 	size3d = vector3f(mdl->get_width(), mdl->get_length(), mdl->get_height());
-	//country = cl.attr("country");
+	string countrystr = cl.attr("country");
+	country = UNKNOWNCOUNTRY;
+	party = UNKNOWNPARTY;
+	for (unsigned i = 0; i < NR_OF_COUNTRIES; ++i) {
+		if (countrystr == countrycodes[i]) {
+			country = countrycode(i);
+			party = party_of_country(country, gm.get_date());
+		}
+	}
 	xml_elem ds = parent.child("description");
 	for (xml_elem::iterator it = ds.iterate("far"); !it.end(); it.next()) {
 		if (it.elem().attr("lang") == texts::get_language_code()) {

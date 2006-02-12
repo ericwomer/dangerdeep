@@ -506,6 +506,7 @@ void map_display::edit_copy_obj(game& gm)
 			s2->manipulate_position(pos);
 			s2->manipulate_speed(s->get_speed());
 			s2->manipulate_heading(s->get_heading());
+			s2->manipulate_invulnerability(true);
 			s2->set_throttle(int(s->get_throttle()));
 			gm.spawn_ship(s2);
 			new_selection.insert(s2);
@@ -805,6 +806,7 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 					// set pos and other values etc.
 					vector2 pos = gm.get_player()->get_pos().xy() + mapoffset;
 					shp->manipulate_position(pos.xy0());
+					shp->manipulate_invulnerability(true);
 					gm.spawn_ship(shp.release());
 				} else if (retval == EPFG_CHANGEMOTION) {
 					for (std::set<sea_object*>::iterator it = selection.begin(); it != selection.end(); ++it) {

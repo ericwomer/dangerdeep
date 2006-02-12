@@ -193,6 +193,7 @@ public:
 	const logbook& get_players_logbook() const { return players_logbook; }
 	void add_logbook_entry(const std::string& s);
 	double get_time() const { return time; };
+	date get_date() const { return date(unsigned(time)); };
 	date get_equipment_date() const { return equipment_date; }
 	double get_max_view_distance() const { return max_view_dist; }
 	/**

@@ -84,6 +84,7 @@ game_editor::game_editor()
 		doc.load();
 		submarine* sub = new submarine(*this, doc.first_child());
 		sub->init_fill_torpedo_tubes(date(1939, 9, 1) /*currentdate*/);
+		sub->manipulate_invulnerability(true);
 		if (i == 0) {
 			psub = sub;
 			player = psub;

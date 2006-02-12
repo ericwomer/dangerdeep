@@ -660,6 +660,9 @@ void ship::head_to_ang(const angle& a, bool left_or_right)	// true == left
 
 bool ship::damage(const vector3& fromwhere, unsigned strength)
 {
+	if (invulnerable)
+		return false;
+
 	damage_status& where = midship_damage;//fixme
 	int dmg = int(where) + strength;
 	if (dmg > wrecked) where = wrecked; else where = damage_status(dmg);
