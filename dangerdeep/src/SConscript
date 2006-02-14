@@ -68,7 +68,6 @@ dftdmediasources = Split("""
 	xml.cpp""")
 
 tinyxmlsources = Split("""
-	tinyxml/tinystr.cpp
 	tinyxml/tinyxml.cpp
 	tinyxml/tinyxmlerror.cpp
 	tinyxml/tinyxmlparser.cpp""")
