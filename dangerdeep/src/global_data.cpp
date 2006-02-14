@@ -101,7 +101,6 @@ float XmlAttribf(class TiXmlElement* elem, const char* attrname)
 
 void init_global_data(void)
 {
-	conning_tower_typeVII = new model(get_model_dir() + "conning_tower_typeVIIc.xml");
 	font_arial = new font(get_font_dir() + "font_arial");
 	loading_screen_usable = true;
 	font_arialbd = new font(get_font_dir() + "font_arialbd");
@@ -111,9 +110,11 @@ void init_global_data(void)
 	font_verdanabd = new font(get_font_dir() + "font_verdanabd");
 	font_olympiaworn = new font(get_font_dir() + "font_olympiaworn");
 	add_loading_screen("fonts loaded");
+	conning_tower_typeVII = new model(get_model_dir() + "conning_tower_typeVIIc.xml");
 	torpedo_g7 = new model(get_model_dir() + "torpedo_g7.3ds");
 	depth_charge_mdl = new model(get_model_dir() + "depth_charge.3ds");
 	gun_shell_mdl = new model(get_model_dir() + "gun_shell.3ds");
+	add_loading_screen("models loaded");
 	panelbackground = new texture(get_image_dir() + "metalbackground.jpg");
 	addleadangle = new texture(get_texture_dir() + "addleadangle.png");
 	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", texture::LINEAR);
