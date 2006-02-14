@@ -94,9 +94,6 @@ env.Default(tool3)
 test1 = env.Program('oceantest', ['oceantest.cpp'])
 env.Default(test1)
 
-portal = env.Program('portal', ['portal.cpp', globaldataobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs)
-env.Default(portal) 
-
 ############ this allows to run "scons install" to install the binary
 install = env.Alias('install', env.Install(installbindir, binary))
 env.Depends(install, binary)
