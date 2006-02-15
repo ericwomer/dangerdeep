@@ -1,0 +1,1649 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<dftd-mission description="cvmission" version="1" type="0">
+  <ships nr="70">
+    <ship type="merchant_small">
+      <state>
+        <position x="-3787403.305305" y="5284217.780681" z="0"/>
+        <velocity x="0" y="3.26864" z="0"/>
+        <orientation s="0.841537" x="0" y="0" z="-0.540199"/>
+        <turn_velocity value="0.326913"/>
+        <heading angle="65.394382"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="15" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="2" followme="0" myconvoy="0" remaining_time="6.889">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="2186"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="45"/>
+      <damage bow="28" midship="8" stern="28"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_small">
+      <state>
+        <position x="-3787999.738223" y="5284555.573951" z="0"/>
+        <velocity x="0" y="3.252804" z="0"/>
+        <orientation s="0.962234" x="0" y="0" z="-0.272225"/>
+        <turn_velocity value="-0.236869"/>
+        <heading angle="31.593396"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="14" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="3" followme="0" myconvoy="0" remaining_time="0.572">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="2126"/>
+      <steering throttle="7" rudder_pos="29.48" rudder_to="2" head_to_fixed="1" head_to="45"/>
+      <damage bow="25" midship="0" stern="25"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_large">
+      <state>
+        <position x="-3788999.761421" y="5284110.443806" z="0"/>
+        <velocity x="0" y="3.240485" z="0"/>
+        <orientation s="0.961809" x="0" y="0" z="-0.27372"/>
+        <turn_velocity value="-0.106757"/>
+        <heading angle="31.771526"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="14" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="4" followme="0" myconvoy="0" remaining_time="2.137">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="4249"/>
+      <steering throttle="7" rudder_pos="13.79" rudder_to="2" head_to_fixed="1" head_to="45"/>
+      <damage bow="-1" midship="-1" stern="-1"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="freighter_large">
+      <state>
+        <position x="-3787655.242754" y="5284239.480484" z="0"/>
+        <velocity x="0" y="3.431212" z="0"/>
+        <orientation s="0.968178" x="0" y="0" z="-0.250263"/>
+        <turn_velocity value="0.13121"/>
+        <heading angle="28.986124"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="14" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="5" followme="0" myconvoy="0" remaining_time="4.789">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="7109"/>
+      <steering throttle="7" rudder_pos="-12.68" rudder_to="2" head_to_fixed="1" head_to="45"/>
+      <damage bow="5" midship="39" stern="5"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_medium">
+      <state>
+        <position x="-3787798.488225" y="5284388.698954" z="0"/>
+        <velocity x="0" y="3.252804" z="0"/>
+        <orientation s="0.962234" x="0" y="0" z="-0.272225"/>
+        <turn_velocity value="-0.236869"/>
+        <heading angle="31.593396"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="14" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="6" followme="0" myconvoy="0" remaining_time="0.572">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="3709"/>
+      <steering throttle="7" rudder_pos="29.48" rudder_to="2" head_to_fixed="1" head_to="45"/>
+      <damage bow="1735287148" midship="544044393" stern="1684368700"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="freighter_medium">
+      <state>
+        <position x="-3787869.200113" y="5284020.53973" z="0"/>
+        <velocity x="0" y="3.362776" z="0"/>
+        <orientation s="0.967219" x="0" y="0" z="-0.253942"/>
+        <turn_velocity value="-0.133527"/>
+        <heading angle="29.421843"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="14" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="7" followme="0" myconvoy="0" remaining_time="1.885">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="5733"/>
+      <steering throttle="7" rudder_pos="16.35" rudder_to="2" head_to_fixed="1" head_to="45"/>
+      <damage bow="1634476141" midship="1969841253" stern="1832656928"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="troopship_medium">
+      <state>
+        <position x="-3788521.644794" y="5284248.114726" z="0"/>
+        <velocity x="0" y="4.697316" z="0"/>
+        <orientation s="0.878563" x="0" y="0" z="-0.477626"/>
+        <turn_velocity value="0.469863"/>
+        <heading angle="57.060973"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="15" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="8" followme="0" myconvoy="0" remaining_time="5.949">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="11022"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="45"/>
+      <damage bow="1634476141" midship="1969841253" stern="1832656928"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="tanker_small">
+      <state>
+        <position x="-3788245.453322" y="5283707.302339" z="0"/>
+        <velocity x="0" y="3.321059" z="0"/>
+        <orientation s="0.84755" x="0" y="0" z="-0.530716"/>
+        <turn_velocity value="0.332164"/>
+        <heading angle="64.107622"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="15" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="9" followme="0" myconvoy="0" remaining_time="4.213">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="4029"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="45"/>
+      <damage bow="1042443877" midship="574449518" stern="1634476141"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="tanker_medium">
+      <state>
+        <position x="-3788551.193546" y="5283974.921263" z="0"/>
+        <velocity x="0" y="0" z="0"/>
+        <orientation s="1" x="0" y="0" z="0"/>
+        <turn_velocity value="0"/>
+        <heading angle="0"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="15" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="10" followme="0" myconvoy="0" remaining_time="7.436">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="5919"/>
+      <steering throttle="0" rudder_pos="35.99" rudder_to="2" head_to_fixed="1" head_to="45"/>
+      <damage bow="757932095" midship="1734437990" stern="543716201"/>
+      <fuel_level value="0"/>
+    </ship>
+    <ship type="tanker_medium">
+      <state>
+        <position x="-3788566.193546" y="5283983.671263" z="0"/>
+        <velocity x="0" y="0" z="0"/>
+        <orientation s="1" x="0" y="0" z="0"/>
+        <turn_velocity value="0"/>
+        <heading angle="0"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="14" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="11" followme="0" myconvoy="0" remaining_time="5.993">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="6035"/>
+      <steering throttle="0" rudder_pos="-24.78" rudder_to="2" head_to_fixed="1" head_to="45"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="0"/>
+    </ship>
+    <ship type="merchant_small">
+      <state>
+        <position x="-3788122.144314" y="5284026.224674" z="0"/>
+        <velocity x="0" y="3.189087" z="0"/>
+        <orientation s="0.952546" x="0" y="0" z="-0.304395"/>
+        <turn_velocity value="0.318924"/>
+        <heading angle="35.443494"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="12" followme="0" myconvoy="0" remaining_time="3.137">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="2563"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="574449518" midship="1634476141" stern="1969841253"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_medium">
+      <state>
+        <position x="-3788358.220344" y="5284356.944612" z="0"/>
+        <velocity x="0" y="3.189482" z="0"/>
+        <orientation s="0.949603" x="0" y="0" z="-0.313454"/>
+        <turn_velocity value="0.318964"/>
+        <heading angle="36.535019"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="13" followme="0" myconvoy="0" remaining_time="5.342">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="3368"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="-1067219736" midship="1228832768" stern="1087935814"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="freighter_large">
+      <state>
+        <position x="-3788566.089932" y="5284002.926743" z="0"/>
+        <velocity x="0" y="3.401429" z="0"/>
+        <orientation s="0.956652" x="0" y="0" z="-0.291234"/>
+        <turn_velocity value="0.340203"/>
+        <heading angle="33.86367"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="14" followme="0" myconvoy="0" remaining_time="3.532">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="7268"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="-25195266" midship="2139946624" stern="-2097250430"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="freighter_medium">
+      <state>
+        <position x="-3788551.208769" y="5284225.437008" z="0"/>
+        <velocity x="0" y="3.304128" z="0"/>
+        <orientation s="0.955083" x="0" y="0" z="-0.296338"/>
+        <turn_velocity value="0.330456"/>
+        <heading angle="34.475557"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="15" followme="0" myconvoy="0" remaining_time="1.484">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="5639"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="7899646" midship="7766526" stern="8356094"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="troopship_medium">
+      <state>
+        <position x="-3787906.445954" y="5284371.100675" z="0"/>
+        <velocity x="0" y="4.66598" z="0"/>
+        <orientation s="0.96757" x="0" y="0" z="-0.252604"/>
+        <turn_velocity value="0.466727"/>
+        <heading angle="29.263289"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="16" followme="0" myconvoy="0" remaining_time="2.893">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="11614"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="8354814" midship="8356094" stern="8486654"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="tanker_small">
+      <state>
+        <position x="-3788294.976474" y="5284139.54894" z="0"/>
+        <velocity x="0" y="3.23669" z="0"/>
+        <orientation s="0.948241" x="0" y="0" z="-0.317551"/>
+        <turn_velocity value="0.323698"/>
+        <heading angle="37.029789"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="17" followme="0" myconvoy="0" remaining_time="2.688">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="3615"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="8225534" midship="8487934" stern="8291582"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_large">
+      <state>
+        <position x="-3788159.472196" y="5284334.293294" z="0"/>
+        <velocity x="0" y="3.190313" z="0"/>
+        <orientation s="0.944245" x="0" y="0" z="-0.329243"/>
+        <turn_velocity value="0.319047"/>
+        <heading angle="38.445639"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="18" followme="0" myconvoy="0" remaining_time="1.785">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="4139"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="-25459458" midship="-2105016698" stern="-1996586108"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_small">
+      <state>
+        <position x="-3785253.103824" y="5285149.273458" z="0"/>
+        <velocity x="0" y="3.190762" z="0"/>
+        <orientation s="0.94171" x="0" y="0" z="-0.336426"/>
+        <turn_velocity value="0.319092"/>
+        <heading angle="39.318562"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="19" followme="0" myconvoy="0" remaining_time="3.877">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="2323"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="574449518" midship="1634476141" stern="1969841253"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_small">
+      <state>
+        <position x="-3785279.943591" y="5284779.921252" z="0"/>
+        <velocity x="0" y="0" z="0"/>
+        <orientation s="0.748956" x="0" y="0" z="-0.66262"/>
+        <turn_velocity value="0"/>
+        <heading angle="83"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="20" followme="0" myconvoy="0" remaining_time="0.109">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="2895"/>
+      <steering throttle="0" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="2054487679" midship="1996388737" stern="-25523970"/>
+      <fuel_level value="0"/>
+    </ship>
+    <ship type="merchant_medium">
+      <state>
+        <position x="-3785052.338951" y="5284983.107992" z="0"/>
+        <velocity x="0" y="3.190702" z="0"/>
+        <orientation s="0.942034" x="0" y="0" z="-0.335518"/>
+        <turn_velocity value="0.319086"/>
+        <heading angle="39.2081"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="21" followme="0" myconvoy="0" remaining_time="3.472">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="3558"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="-25261570" midship="2089287293" stern="2080273793"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_small">
+      <state>
+        <position x="-3785412.558015" y="5284672.4586" z="0"/>
+        <velocity x="0" y="3.189873" z="0"/>
+        <orientation s="0.946964" x="0" y="0" z="-0.321341"/>
+        <turn_velocity value="0.319003"/>
+        <heading angle="37.488092"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="22" followme="0" myconvoy="0" remaining_time="7.292">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="2795"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="-2089025921" midship="2113828218" stern="-25723138"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_medium">
+      <state>
+        <position x="-3785644.550165" y="5284997.106069" z="0"/>
+        <velocity x="0" y="3.190894" z="0"/>
+        <orientation s="0.941001" x="0" y="0" z="-0.338405"/>
+        <turn_velocity value="0.319106"/>
+        <heading angle="39.559442"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="23" followme="0" myconvoy="0" remaining_time="4.213">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="3795"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="-2072117623" midship="2097057666" stern="-24542210"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="freighter_large">
+      <state>
+        <position x="-3785885.013877" y="5284692.621425" z="0"/>
+        <velocity x="0" y="3.413464" z="0"/>
+        <orientation s="0.964056" x="0" y="0" z="-0.265699"/>
+        <turn_velocity value="0.341409"/>
+        <heading angle="30.816972"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="24" followme="0" myconvoy="0" remaining_time="3.185">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="7343"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="-2130803835" midship="-24999426" stern="2123038333"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_large">
+      <state>
+        <position x="-3785469.83674" y="5285009.264322" z="0"/>
+        <velocity x="0" y="3.189352" z="0"/>
+        <orientation s="0.95054" x="0" y="0" z="-0.310602"/>
+        <turn_velocity value="0.318951"/>
+        <heading angle="36.191069"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="25" followme="0" myconvoy="0" remaining_time="4.676">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="4400"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="8358142" midship="8293886" stern="8684798"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="freighter_medium">
+      <state>
+        <position x="-3785848.26199" y="5284881.241343" z="0"/>
+        <velocity x="0" y="3.30469" z="0"/>
+        <orientation s="0.9535" x="0" y="0" z="-0.301392"/>
+        <turn_velocity value="0.330512"/>
+        <heading angle="35.082471"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="26" followme="0" myconvoy="0" remaining_time="2.688">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="5419"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="8097022" midship="8424446" stern="8424446"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="troopship_medium">
+      <state>
+        <position x="-3785215.199091" y="5285044.191457" z="0"/>
+        <velocity x="0" y="4.663516" z="0"/>
+        <orientation s="0.970601" x="0" y="0" z="-0.240696"/>
+        <turn_velocity value="0.46648"/>
+        <heading angle="27.855203"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="27" followme="0" myconvoy="0" remaining_time="0.061">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="11764"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="8553214" midship="8487422" stern="8225790"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="tanker_small">
+      <state>
+        <position x="-3785594.363496" y="5284798.66059" z="0"/>
+        <velocity x="0" y="3.23679" z="0"/>
+        <orientation s="0.947871" x="0" y="0" z="-0.318653"/>
+        <turn_velocity value="0.323708"/>
+        <heading angle="37.163027"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="28" followme="0" myconvoy="0" remaining_time="2.909">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="4280"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="8225278" midship="8357118" stern="8422654"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="freighter_large">
+      <state>
+        <position x="-3784933.713757" y="5284865.067413" z="0"/>
+        <velocity x="0" y="3.409289" z="0"/>
+        <orientation s="0.96187" x="0" y="0" z="-0.273508"/>
+        <turn_velocity value="0.340991"/>
+        <heading angle="31.746218"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="29" followme="0" myconvoy="0" remaining_time="5.785">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="7167"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="8293886" midship="8292606" stern="8225534"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="freighter_medium">
+      <state>
+        <position x="-3785124.05182" y="5284611.44806" z="0"/>
+        <velocity x="0" y="3.305561" z="0"/>
+        <orientation s="0.951147" x="0" y="0" z="-0.308738"/>
+        <turn_velocity value="0.330599"/>
+        <heading angle="35.966433"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="30" followme="0" myconvoy="0" remaining_time="4.448">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="5615"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="8422398" midship="8552190" stern="8091646"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="troopship_medium">
+      <state>
+        <position x="-3785950.956503" y="5285143.547147" z="0"/>
+        <velocity x="0" y="4.665833" z="0"/>
+        <orientation s="0.96781" x="0" y="0" z="-0.251683"/>
+        <turn_velocity value="0.466712"/>
+        <heading angle="29.154271"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="31" followme="0" myconvoy="0" remaining_time="2.652">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="11669"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="8746238" midship="8616702" stern="8289022"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="tanker_small">
+      <state>
+        <position x="-3785630.172629" y="5284500.943592" z="0"/>
+        <velocity x="0" y="3.236269" z="0"/>
+        <orientation s="0.949838" x="0" y="0" z="-0.312741"/>
+        <turn_velocity value="0.323655"/>
+        <heading angle="36.44899"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="32" followme="0" myconvoy="0" remaining_time="1.484">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="3694"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="8747774" midship="8355326" stern="8355326"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_large">
+      <state>
+        <position x="-3786266.308006" y="5284723.083599" z="0"/>
+        <velocity x="0" y="3.189873" z="0"/>
+        <orientation s="0.946964" x="0" y="0" z="-0.321341"/>
+        <turn_velocity value="0.319003"/>
+        <heading angle="37.488092"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="33" followme="0" myconvoy="0" remaining_time="7.292">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="4310"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="8290302" midship="8093438" stern="7832318"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_small">
+      <state>
+        <position x="-3791688.693491" y="5284988.67125" z="0"/>
+        <velocity x="0" y="0" z="0"/>
+        <orientation s="0.748956" x="0" y="0" z="-0.66262"/>
+        <turn_velocity value="0"/>
+        <heading angle="83"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="34" followme="0" myconvoy="0" remaining_time="6.093">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="2980"/>
+      <steering throttle="0" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="574449518" midship="1634476141" stern="1969841253"/>
+      <fuel_level value="0"/>
+    </ship>
+    <ship type="merchant_small">
+      <state>
+        <position x="-3791219.943498" y="5284839.921253" z="0"/>
+        <velocity x="0" y="0" z="0"/>
+        <orientation s="0.748956" x="0" y="0" z="-0.66262"/>
+        <turn_velocity value="0"/>
+        <heading angle="83"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="35" followme="0" myconvoy="0" remaining_time="5.416">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="2172"/>
+      <steering throttle="0" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="-1938096504" midship="2130610048" stern="-25133826"/>
+      <fuel_level value="0"/>
+    </ship>
+    <ship type="merchant_medium">
+      <state>
+        <position x="-3790999.388083" y="5285053.364312" z="0"/>
+        <velocity x="0" y="3.189937" z="0"/>
+        <orientation s="0.946552" x="0" y="0" z="-0.322552"/>
+        <turn_velocity value="0.319009"/>
+        <heading angle="37.634639"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="36" followme="0" myconvoy="0" remaining_time="0.089">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="3530"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="-2130805115" midship="-25131522" stern="2089090688"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_small">
+      <state>
+        <position x="-3791839.943484" y="5284499.921259" z="0"/>
+        <velocity x="0" y="0" z="0"/>
+        <orientation s="0.748956" x="0" y="0" z="-0.66262"/>
+        <turn_velocity value="0"/>
+        <heading angle="83"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="37" followme="0" myconvoy="0" remaining_time="4.213">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="2261"/>
+      <steering throttle="0" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="-2138935728" midship="1634630778" stern="-2021560455"/>
+      <fuel_level value="0"/>
+    </ship>
+    <ship type="merchant_medium">
+      <state>
+        <position x="-3792081.19348" y="5284838.046255" z="0"/>
+        <velocity x="0" y="0" z="0"/>
+        <orientation s="0.748956" x="0" y="0" z="-0.66262"/>
+        <turn_velocity value="0"/>
+        <heading angle="83"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="38" followme="0" myconvoy="0" remaining_time="7.081">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="3623"/>
+      <steering throttle="0" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="0"/>
+    </ship>
+    <ship type="freighter_large">
+      <state>
+        <position x="-3791815.956053" y="5284738.209166" z="0"/>
+        <velocity x="0" y="3.407375" z="0"/>
+        <orientation s="0.960835" x="0" y="0" z="-0.27712"/>
+        <turn_velocity value="0.340799"/>
+        <heading angle="32.176749"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="39" followme="0" myconvoy="0" remaining_time="6.905">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="7144"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_large">
+      <state>
+        <position x="-3791397.161238" y="5285050.924796" z="0"/>
+        <velocity x="0" y="3.190574" z="0"/>
+        <orientation s="0.942744" x="0" y="0" z="-0.333518"/>
+        <turn_velocity value="0.319073"/>
+        <heading angle="38.964939"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="40" followme="0" myconvoy="0" remaining_time="2.893">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="4201"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="255" midship="255" stern="14"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="freighter_medium">
+      <state>
+        <position x="-3791784.238634" y="5284935.467615" z="0"/>
+        <velocity x="0" y="3.305521" z="0"/>
+        <orientation s="0.951254" x="0" y="0" z="-0.308409"/>
+        <turn_velocity value="0.330595"/>
+        <heading angle="35.92675"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="41" followme="0" myconvoy="0" remaining_time="4.356">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="5418"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="1793" stern="458980"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="troopship_medium">
+      <state>
+        <position x="-3791167.343182" y="5285121.843239" z="0"/>
+        <velocity x="0" y="4.660252" z="0"/>
+        <orientation s="0.974437" x="0" y="0" z="-0.224661"/>
+        <turn_velocity value="0.466153"/>
+        <heading angle="25.965842"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="42" followme="0" myconvoy="0" remaining_time="3.877">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="11859"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="tanker_small">
+      <state>
+        <position x="-3791537.672532" y="5284863.44359" z="0"/>
+        <velocity x="0" y="3.236269" z="0"/>
+        <orientation s="0.949838" x="0" y="0" z="-0.312741"/>
+        <turn_velocity value="0.323655"/>
+        <heading angle="36.44899"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="43" followme="0" myconvoy="0" remaining_time="1.484">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="3623"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="freighter_large">
+      <state>
+        <position x="-3790856.201707" y="5284897.985393" z="0"/>
+        <velocity x="0" y="3.399187" z="0"/>
+        <orientation s="0.954298" x="0" y="0" z="-0.298857"/>
+        <turn_velocity value="0.339978"/>
+        <heading angle="34.777883"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="44" followme="0" myconvoy="0" remaining_time="5.58">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="7386"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="freighter_medium">
+      <state>
+        <position x="-3791086.008063" y="5284703.172518" z="0"/>
+        <velocity x="0" y="3.306937" z="0"/>
+        <orientation s="0.962109" x="0" y="0" z="-0.272664"/>
+        <turn_velocity value="0.330737"/>
+        <heading angle="31.645703"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="45" followme="0" myconvoy="0" remaining_time="3.264">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="5640"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="troopship_medium">
+      <state>
+        <position x="-3791903.9657" y="5285222.781103" z="0"/>
+        <velocity x="0" y="4.662119" z="0"/>
+        <orientation s="0.972248" x="0" y="0" z="-0.233953"/>
+        <turn_velocity value="0.46634"/>
+        <heading angle="27.059885"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="46" followme="0" myconvoy="0" remaining_time="5.993">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="11615"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="tanker_small">
+      <state>
+        <position x="-3791570.172536" y="5284560.943593" z="0"/>
+        <velocity x="0" y="3.236269" z="0"/>
+        <orientation s="0.949838" x="0" y="0" z="-0.312741"/>
+        <turn_velocity value="0.323655"/>
+        <heading angle="36.44899"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="47" followme="0" myconvoy="0" remaining_time="1.484">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="3583"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_large">
+      <state>
+        <position x="-3792195.0018" y="5284766.601023" z="0"/>
+        <velocity x="0" y="3.191164" z="0"/>
+        <orientation s="0.939598" x="0" y="0" z="-0.342281"/>
+        <turn_velocity value="0.319133"/>
+        <heading angle="40.031769"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="48" followme="0" myconvoy="0" remaining_time="5.268">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="4071"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_small">
+      <state>
+        <position x="-3787876.23437" y="5286333.84386" z="0"/>
+        <velocity x="0" y="3.190394" z="0"/>
+        <orientation s="0.94377" x="0" y="0" z="-0.330603"/>
+        <turn_velocity value="0.319055"/>
+        <heading angle="38.610763"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="49" followme="0" myconvoy="0" remaining_time="2.137">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="2027"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="574449518" midship="1634476141" stern="1969841253"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_small">
+      <state>
+        <position x="-3787402.5104" y="5286177.823375" z="0"/>
+        <velocity x="0" y="3.190996" z="0"/>
+        <orientation s="0.940463" x="0" y="0" z="-0.339895"/>
+        <turn_velocity value="0.319116"/>
+        <heading angle="39.740925"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="50" followme="0" myconvoy="0" remaining_time="4.644">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="2386"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_medium">
+      <state>
+        <position x="-3787668.914322" y="5286158.089478" z="0"/>
+        <velocity x="0" y="3.191142" z="0"/>
+        <orientation s="0.93971" x="0" y="0" z="-0.341972"/>
+        <turn_velocity value="0.31913"/>
+        <heading angle="39.994133"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="51" followme="0" myconvoy="0" remaining_time="5.268">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="3388"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_small">
+      <state>
+        <position x="-3788023.044658" y="5285838.606712" z="0"/>
+        <velocity x="0" y="3.190926" z="0"/>
+        <orientation s="0.940827" x="0" y="0" z="-0.338886"/>
+        <turn_velocity value="0.319109"/>
+        <heading angle="39.618062"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="52" followme="0" myconvoy="0" remaining_time="4.356">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="2695"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_medium">
+      <state>
+        <position x="-3788273.807963" y="5286190.583581" z="0"/>
+        <velocity x="0" y="3.189873" z="0"/>
+        <orientation s="0.946964" x="0" y="0" z="-0.321341"/>
+        <turn_velocity value="0.319003"/>
+        <heading angle="37.488092"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="53" followme="0" myconvoy="0" remaining_time="7.292">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="3631"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="freighter_large">
+      <state>
+        <position x="-3788488.728634" y="5285846.97778" z="0"/>
+        <velocity x="0" y="3.402879" z="0"/>
+        <orientation s="0.957843" x="0" y="0" z="-0.287293"/>
+        <turn_velocity value="0.340348"/>
+        <heading angle="33.391933"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="54" followme="0" myconvoy="0" remaining_time="2.416">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="7498"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_large">
+      <state>
+        <position x="-3788078.734362" y="5286173.218865" z="0"/>
+        <velocity x="0" y="3.190394" z="0"/>
+        <orientation s="0.94377" x="0" y="0" z="-0.330603"/>
+        <turn_velocity value="0.319055"/>
+        <heading angle="38.610763"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="55" followme="0" myconvoy="0" remaining_time="2.137">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="4185"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="freighter_medium">
+      <state>
+        <position x="-3788468.340772" y="5286061.353933" z="0"/>
+        <velocity x="0" y="3.304675" z="0"/>
+        <orientation s="0.953543" x="0" y="0" z="-0.301256"/>
+        <turn_velocity value="0.33051"/>
+        <heading angle="35.066111"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="56" followme="0" myconvoy="0" remaining_time="2.652">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="5681"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="troopship_medium">
+      <state>
+        <position x="-3787820.294657" y="5286201.783738" z="0"/>
+        <velocity x="0" y="4.667897" z="0"/>
+        <orientation s="0.965236" x="0" y="0" z="-0.261381"/>
+        <turn_velocity value="0.466918"/>
+        <heading angle="30.304065"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="57" followme="0" myconvoy="0" remaining_time="4.981">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="11420"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="tanker_small">
+      <state>
+        <position x="-3788213.68547" y="5285977.676877" z="0"/>
+        <velocity x="0" y="3.236902" z="0"/>
+        <orientation s="0.947459" x="0" y="0" z="-0.319876"/>
+        <turn_velocity value="0.323719"/>
+        <heading angle="37.310905"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="58" followme="0" myconvoy="0" remaining_time="3.217">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="3695"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="freighter_large">
+      <state>
+        <position x="-3787552.978948" y="5286043.899734" z="0"/>
+        <velocity x="0" y="3.408759" z="0"/>
+        <orientation s="0.961601" x="0" y="0" z="-0.274452"/>
+        <turn_velocity value="0.340938"/>
+        <heading angle="31.858695"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="59" followme="0" myconvoy="0" remaining_time="6.061">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="7285"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="freighter_medium">
+      <state>
+        <position x="-3787741.869809" y="5285788.292974" z="0"/>
+        <velocity x="0" y="3.306047" z="0"/>
+        <orientation s="0.949883" x="0" y="0" z="-0.312606"/>
+        <turn_velocity value="0.330648"/>
+        <heading angle="36.432729"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="60" followme="0" myconvoy="0" remaining_time="5.342">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="5515"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="troopship_medium">
+      <state>
+        <position x="-3788567.709753" y="5286318.710226" z="0"/>
+        <velocity x="0" y="4.666927" z="0"/>
+        <orientation s="0.966561" x="0" y="0" z="-0.256436"/>
+        <turn_velocity value="0.466821"/>
+        <heading angle="29.717438"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="12" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="61" followme="0" myconvoy="0" remaining_time="3.877">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="11419"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="tanker_small">
+      <state>
+        <position x="-3788259.060969" y="5285693.639542" z="0"/>
+        <velocity x="0" y="3.235075" z="0"/>
+        <orientation s="0.954783" x="0" y="0" z="-0.297302"/>
+        <turn_velocity value="0.323536"/>
+        <heading angle="34.591287"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="62" followme="0" myconvoy="0" remaining_time="5.342">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="4426"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="merchant_large">
+      <state>
+        <position x="-3788894.43905" y="5285914.772895" z="0"/>
+        <velocity x="0" y="3.189192" z="0"/>
+        <orientation s="0.951734" x="0" y="0" z="-0.306923"/>
+        <turn_velocity value="0.318935"/>
+        <heading angle="35.74774"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="0" state="1" zigzagstate="13" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="63" followme="0" myconvoy="0" remaining_time="3.877">
+        <main_course angle="0"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="3893"/>
+      <steering throttle="7" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="315"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="-5105.95268"/>
+    </ship>
+    <ship type="corvette">
+      <state>
+        <position x="-3791316.644317" y="5283552.869049" z="0"/>
+        <velocity x="0" y="8.231111" z="0"/>
+        <orientation s="0.748956" x="0" y="0" z="-0.66262"/>
+        <turn_velocity value="-0"/>
+        <heading angle="83"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="1" state="3" zigzagstate="0" attackrun="1" evasive_manouver="1" rem_manouver_time="inf" parent="64" followme="0" myconvoy="0" remaining_time="5.897">
+        <contact x="-3788646.193545" y="5282996.171278" z="0"/>
+        <main_course angle="180"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="860"/>
+      <steering throttle="-1" rudder_pos="0" rudder_to="0" head_to_fixed="0" head_to="83"/>
+      <damage bow="1866677794" midship="1852121661" stern="1735287148"/>
+      <fuel_level value="-664742.676118"/>
+    </ship>
+    <ship type="destroyer_tribal">
+      <state>
+        <position x="-3787328.773216" y="5283057.851518" z="0"/>
+        <velocity x="0" y="17.491108" z="0"/>
+        <orientation s="0.748956" x="0" y="0" z="-0.66262"/>
+        <turn_velocity value="-0"/>
+        <heading angle="83"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="1" state="3" zigzagstate="0" attackrun="1" evasive_manouver="1" rem_manouver_time="inf" parent="65" followme="0" myconvoy="0" remaining_time="0.236">
+        <contact x="-3788646.193545" y="5282996.171278" z="0"/>
+        <main_course angle="180"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="1500"/>
+      <steering throttle="-1" rudder_pos="0" rudder_to="0" head_to_fixed="0" head_to="83"/>
+      <damage bow="1684368700" midship="538976288" stern="171864673"/>
+      <fuel_level value="-6692458825.516141"/>
+    </ship>
+    <ship type="destroyer_tribal">
+      <state>
+        <position x="-3785597.609706" y="5283780.18802" z="0"/>
+        <velocity x="0" y="15.680497" z="0"/>
+        <orientation s="-0.301565" x="0" y="0" z="-0.953446"/>
+        <turn_velocity value="2.484483"/>
+        <heading angle="215.103294"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="1" state="3" zigzagstate="0" attackrun="1" evasive_manouver="0" rem_manouver_time="0" parent="66" followme="0" myconvoy="0" remaining_time="2.893">
+        <contact x="-3785906.193586" y="5278636.171342" z="0"/>
+        <main_course angle="263"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="1500"/>
+      <steering throttle="-1" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="183.9182"/>
+      <damage bow="1949992359" midship="-1051924694" stern="-1213523816"/>
+      <fuel_level value="-5249349412.089127"/>
+    </ship>
+    <ship type="corvette">
+      <state>
+        <position x="-3785563.123581" y="5286269.730561" z="0"/>
+        <velocity x="0" y="7.204195" z="0"/>
+        <orientation s="-0.629293" x="0" y="0" z="-0.777168"/>
+        <turn_velocity value="-1.3861"/>
+        <heading angle="257.996025"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="1" state="3" zigzagstate="0" attackrun="1" evasive_manouver="1" rem_manouver_time="90" parent="67" followme="0" myconvoy="0" remaining_time="7.133">
+        <contact x="-3788646.193545" y="5282996.171278" z="0"/>
+        <main_course angle="35.873842"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="860"/>
+      <steering throttle="-1" rudder_pos="40" rudder_to="2" head_to_fixed="1" head_to="35.873842"/>
+      <damage bow="1866677794" midship="1852121661" stern="1735287148"/>
+      <fuel_level value="-499370.57476"/>
+    </ship>
+    <ship type="destroyer_tribal">
+      <state>
+        <position x="-3791824.747316" y="5285063.275382" z="0"/>
+        <velocity x="0" y="15.247491" z="0"/>
+        <orientation s="-0.225889" x="0" y="0" z="-0.974153"/>
+        <turn_velocity value="-2.449568"/>
+        <heading angle="206.110361"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="1" state="3" zigzagstate="0" attackrun="1" evasive_manouver="1" rem_manouver_time="100" parent="68" followme="0" myconvoy="0" remaining_time="7.452">
+        <contact x="-3788646.193545" y="5282996.171278" z="0"/>
+        <main_course angle="265.903308"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="1500"/>
+      <steering throttle="-1" rudder_pos="40" rudder_to="2" head_to_fixed="1" head_to="265.903308"/>
+      <damage bow="-1213523816" midship="287497800" stern="465"/>
+      <fuel_level value="-4948017543.040833"/>
+    </ship>
+    <ship type="corvette">
+      <state>
+        <position x="-3788684.419567" y="5286697.918957" z="0"/>
+        <velocity x="0" y="8.230696" z="0"/>
+        <orientation s="0.75459" x="0" y="0" z="-0.656197"/>
+        <turn_velocity value="0"/>
+        <heading angle="82.02091"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="1" state="3" zigzagstate="0" attackrun="1" evasive_manouver="1" rem_manouver_time="40" parent="69" followme="0" myconvoy="0" remaining_time="1.853">
+        <contact x="-3788226.193552" y="5281876.171294" z="0"/>
+        <main_course angle="323.179078"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="860"/>
+      <steering throttle="-1" rudder_pos="0" rudder_to="0" head_to_fixed="0" head_to="82"/>
+      <damage bow="1866677794" midship="1852121661" stern="1735287148"/>
+      <fuel_level value="-463704.488122"/>
+    </ship>
+    <ship type="corvette">
+      <state>
+        <position x="-3790197.120864" y="5286026.80628" z="0"/>
+        <velocity x="0" y="8.230716" z="0"/>
+        <orientation s="0.754592" x="0" y="0" z="-0.656195"/>
+        <turn_velocity value="0"/>
+        <heading angle="82.020614"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="1" state="3" zigzagstate="0" attackrun="1" evasive_manouver="1" rem_manouver_time="30" parent="70" followme="0" myconvoy="0" remaining_time="7.464">
+        <contact x="-3788646.193545" y="5282996.171278" z="0"/>
+        <main_course angle="323.143861"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="860"/>
+      <steering throttle="-1" rudder_pos="0" rudder_to="0" head_to_fixed="0" head_to="82"/>
+      <damage bow="282932304" midship="283086672" stern="283107752"/>
+      <fuel_level value="-470726.65085"/>
+    </ship>
+    <ship type="destroyer_tribal">
+      <state>
+        <position x="-3786826.572418" y="5287452.395291" z="0"/>
+        <velocity x="0" y="15.206349" z="0"/>
+        <orientation s="0.955841" x="0" y="0" z="0.293883"/>
+        <turn_velocity value="2.446225"/>
+        <heading angle="325.818868"/>
+      </state>
+      <alive_stat value="3"/>
+      <AI type="1" state="3" zigzagstate="0" attackrun="1" evasive_manouver="1" rem_manouver_time="130" parent="71" followme="0" myconvoy="0" remaining_time="4.933">
+        <contact x="-3783586.193621" y="5274876.171398" z="0"/>
+        <main_course angle="250.957273"/>
+        <waypoints cyclewaypoints="0"/>
+      </AI>
+      <target value="0"/>
+      <tonnage value="1500"/>
+      <steering throttle="-1" rudder_pos="-40" rudder_to="-2" head_to_fixed="1" head_to="250.957273"/>
+      <damage bow="-25396482" midship="2055143033" stern="-2097251959"/>
+      <fuel_level value="-4752076954.75848"/>
+    </ship>
+  </ships>
+  <submarines nr="1">
+    <submarine type="submarine_VIIc">
+      <state>
+        <position x="-3764306.193908" y="5264796.171549" z="0"/>
+        <velocity x="0" y="0" z="0"/>
+        <orientation s="1" x="0" y="0" z="0"/>
+        <turn_velocity value="0"/>
+        <heading angle="0"/>
+      </state>
+      <alive_stat value="3"/>
+      <target value="0"/>
+      <tonnage value="800"/>
+      <steering throttle="0" rudder_pos="0" rudder_to="0" head_to_fixed="0" head_to="0"/>
+      <damage bow="0" midship="0" stern="0"/>
+      <fuel_level value="0"/>
+      <diving dive_speed="0" max_depth="228.3937" dive_to="0" permanent_dive="0" delayed_dive_to_depth="0" delayed_planes_down="0" bow_to="0" stern_to="0" bow_rudder="0" stern_rudder="0"/>
+      <stored_torpedoes nr="14">
+        <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+          <torpedo type="TIII">
+            <state>
+              <position x="0" y="0" z="0"/>
+              <velocity x="0" y="0" z="0"/>
+              <orientation s="1" x="0" y="0" z="0"/>
+              <turn_velocity value="0"/>
+              <heading angle="0"/>
+            </state>
+            <alive_stat value="3"/>
+            <target value="0"/>
+            <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3"/>
+            <temperature value="15"/>
+            <probability_of_rundepth_failure value="0.2"/>
+            <run_length value="0"/>
+          </torpedo>
+        </stored_torpedo>
+        <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+          <torpedo type="TI">
+            <state>
+              <position x="0" y="0" z="0"/>
+              <velocity x="0" y="0" z="0"/>
+              <orientation s="1" x="0" y="0" z="0"/>
+              <turn_velocity value="0"/>
+              <heading angle="0"/>
+            </state>
+            <alive_stat value="3"/>
+            <target value="0"/>
+            <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3"/>
+            <temperature value="15"/>
+            <probability_of_rundepth_failure value="0.2"/>
+            <run_length value="0"/>
+          </torpedo>
+        </stored_torpedo>
+        <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+          <torpedo type="TIII">
+            <state>
+              <position x="0" y="0" z="0"/>
+              <velocity x="0" y="0" z="0"/>
+              <orientation s="1" x="0" y="0" z="0"/>
+              <turn_velocity value="0"/>
+              <heading angle="0"/>
+            </state>
+            <alive_stat value="3"/>
+            <target value="0"/>
+            <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3"/>
+            <temperature value="15"/>
+            <probability_of_rundepth_failure value="0.2"/>
+            <run_length value="0"/>
+          </torpedo>
+        </stored_torpedo>
+        <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+          <torpedo type="TIII">
+            <state>
+              <position x="0" y="0" z="0"/>
+              <velocity x="0" y="0" z="0"/>
+              <orientation s="1" x="0" y="0" z="0"/>
+              <turn_velocity value="0"/>
+              <heading angle="0"/>
+            </state>
+            <alive_stat value="3"/>
+            <target value="0"/>
+            <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3"/>
+            <temperature value="15"/>
+            <probability_of_rundepth_failure value="0.2"/>
+            <run_length value="0"/>
+          </torpedo>
+        </stored_torpedo>
+        <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+          <torpedo type="TIII">
+            <state>
+              <position x="0" y="0" z="0"/>
+              <velocity x="0" y="0" z="0"/>
+              <orientation s="1" x="0" y="0" z="0"/>
+              <turn_velocity value="0"/>
+              <heading angle="0"/>
+            </state>
+            <alive_stat value="3"/>
+            <target value="0"/>
+            <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3"/>
+            <temperature value="15"/>
+            <probability_of_rundepth_failure value="0.2"/>
+            <run_length value="0"/>
+          </torpedo>
+        </stored_torpedo>
+        <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+          <torpedo type="TI">
+            <state>
+              <position x="0" y="0" z="0"/>
+              <velocity x="0" y="0" z="0"/>
+              <orientation s="1" x="0" y="0" z="0"/>
+              <turn_velocity value="0"/>
+              <heading angle="0"/>
+            </state>
+            <alive_stat value="3"/>
+            <target value="0"/>
+            <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3"/>
+            <temperature value="15"/>
+            <probability_of_rundepth_failure value="0.2"/>
+            <run_length value="0"/>
+          </torpedo>
+        </stored_torpedo>
+        <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+          <torpedo type="TIII">
+            <state>
+              <position x="0" y="0" z="0"/>
+              <velocity x="0" y="0" z="0"/>
+              <orientation s="1" x="0" y="0" z="0"/>
+              <turn_velocity value="0"/>
+              <heading angle="0"/>
+            </state>
+            <alive_stat value="3"/>
+            <target value="0"/>
+            <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3"/>
+            <temperature value="15"/>
+            <probability_of_rundepth_failure value="0.2"/>
+            <run_length value="0"/>
+          </torpedo>
+        </stored_torpedo>
+        <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+          <torpedo type="TI">
+            <state>
+              <position x="0" y="0" z="0"/>
+              <velocity x="0" y="0" z="0"/>
+              <orientation s="1" x="0" y="0" z="0"/>
+              <turn_velocity value="0"/>
+              <heading angle="0"/>
+            </state>
+            <alive_stat value="3"/>
+            <target value="0"/>
+            <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3"/>
+            <temperature value="15"/>
+            <probability_of_rundepth_failure value="0.2"/>
+            <run_length value="0"/>
+          </torpedo>
+        </stored_torpedo>
+        <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+          <torpedo type="TI">
+            <state>
+              <position x="0" y="0" z="0"/>
+              <velocity x="0" y="0" z="0"/>
+              <orientation s="1" x="0" y="0" z="0"/>
+              <turn_velocity value="0"/>
+              <heading angle="0"/>
+            </state>
+            <alive_stat value="3"/>
+            <target value="0"/>
+            <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3"/>
+            <temperature value="15"/>
+            <probability_of_rundepth_failure value="0.2"/>
+            <run_length value="0"/>
+          </torpedo>
+        </stored_torpedo>
+        <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+          <torpedo type="TIII">
+            <state>
+              <position x="0" y="0" z="0"/>
+              <velocity x="0" y="0" z="0"/>
+              <orientation s="1" x="0" y="0" z="0"/>
+              <turn_velocity value="0"/>
+              <heading angle="0"/>
+            </state>
+            <alive_stat value="3"/>
+            <target value="0"/>
+            <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3"/>
+            <temperature value="15"/>
+            <probability_of_rundepth_failure value="0.2"/>
+            <run_length value="0"/>
+          </torpedo>
+        </stored_torpedo>
+        <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+          <torpedo type="TI">
+            <state>
+              <position x="0" y="0" z="0"/>
+              <velocity x="0" y="0" z="0"/>
+              <orientation s="1" x="0" y="0" z="0"/>
+              <turn_velocity value="0"/>
+              <heading angle="0"/>
+            </state>
+            <alive_stat value="3"/>
+            <target value="0"/>
+            <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3"/>
+            <temperature value="15"/>
+            <probability_of_rundepth_failure value="0.2"/>
+            <run_length value="0"/>
+          </torpedo>
+        </stored_torpedo>
+        <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+          <torpedo type="TIII">
+            <state>
+              <position x="0" y="0" z="0"/>
+              <velocity x="0" y="0" z="0"/>
+              <orientation s="1" x="0" y="0" z="0"/>
+              <turn_velocity value="0"/>
+              <heading angle="0"/>
+            </state>
+            <alive_stat value="3"/>
+            <target value="0"/>
+            <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3"/>
+            <temperature value="15"/>
+            <probability_of_rundepth_failure value="0.2"/>
+            <run_length value="0"/>
+          </torpedo>
+        </stored_torpedo>
+        <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+          <torpedo type="TI">
+            <state>
+              <position x="0" y="0" z="0"/>
+              <velocity x="0" y="0" z="0"/>
+              <orientation s="1" x="0" y="0" z="0"/>
+              <turn_velocity value="0"/>
+              <heading angle="0"/>
+            </state>
+            <alive_stat value="3"/>
+            <target value="0"/>
+            <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3"/>
+            <temperature value="15"/>
+            <probability_of_rundepth_failure value="0.2"/>
+            <run_length value="0"/>
+          </torpedo>
+        </stored_torpedo>
+        <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+          <torpedo type="TI">
+            <state>
+              <position x="0" y="0" z="0"/>
+              <velocity x="0" y="0" z="0"/>
+              <orientation s="1" x="0" y="0" z="0"/>
+              <turn_velocity value="0"/>
+              <heading angle="0"/>
+            </state>
+            <alive_stat value="3"/>
+            <target value="0"/>
+            <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3"/>
+            <temperature value="15"/>
+            <probability_of_rundepth_failure value="0.2"/>
+            <run_length value="0"/>
+          </torpedo>
+        </stored_torpedo>
+      </stored_torpedoes>
+      <sub_state scopeup="0" electric_engine="0" snorkelup="0" battery_level="0"/>
+      <damageable_parts nr="0"/>
+      <TDC bearing_tracking="1" angleonthebow_tracking="1" auto_mode="1" target_speed="0" target_distance="0" target_course="0" target_bow_is_left="0" angleonthebow="180" torpedo_speed="0" torpedo_runlength="0" bearing="0" bearing_dial="0" heading="0" parallaxangle="0" additional_parallaxangle="0" lead_angle="0" torpedo_runtime="0" compute_stern_tube="0" valid_solution="0"/>
+    </submarine>
+  </submarines>
+  <airplanes nr="0"/>
+  <torpedoes nr="0"/>
+  <depth_charges nr="0"/>
+  <gun_shells nr="2">
+    <gun_shell>
+      <state>
+        <position x="-3785872.418288" y="5278944.676959" z="97.00848"/>
+        <velocity x="-27.826599" y="-254.169838" z="-91.355588"/>
+        <orientation s="1" x="0" y="0" z="0"/>
+        <turn_velocity value="0"/>
+        <heading angle="0"/>
+      </state>
+      <alive_stat value="3"/>
+      <target value="0"/>
+      <oldpos x="-3785871.861756" y="5278949.760355" z="98.833631"/>
+      <damage_amount value="0"/>
+    </gun_shell>
+    <gun_shell>
+      <state>
+        <position x="-3785872.418288" y="5278944.676959" z="97.00848"/>
+        <velocity x="-27.826599" y="-254.169838" z="-91.355588"/>
+        <orientation s="1" x="0" y="0" z="0"/>
+        <turn_velocity value="0"/>
+        <heading angle="0"/>
+      </state>
+      <alive_stat value="3"/>
+      <target value="0"/>
+      <oldpos x="-3785871.861756" y="5278949.760355" z="98.833631"/>
+      <damage_amount value="0"/>
+    </gun_shell>
+  </gun_shells>
+  <convoys nr="0"/>
+  <player ref="1" type="submarine"/>
+  <sunken_ships nr="0"/>
+  <state time="50513052.148033" last_trail_time="21038399" max_view_dist="30000">
+    <date day="1940/ 8/ 7" time="15:24:12"/>
+    <equipment_date>
+      <date day="1940/ 8/ 7" time="15:20:13"/>
+    </equipment_date>
+  </state>
+  <pings nr="0"/>
+  <description>
+    <long lang="en">You are approaching a large convoy that was reported from other submarines. Expect heavy protection. You are the only sub operating on this convoy.</long>
+    <short lang="en">Convoy battle with large convoy vs. single submarine.</short>
+  </description>
+</dftd-mission>
