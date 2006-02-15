@@ -35,6 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texts.h"
 #include "texture.h"
 #include "font.cpp"
+#include "convoy.h"
 #include "keys.h"
 #include "cfg.h"
 #include "xml.h"
@@ -49,10 +50,14 @@ using namespace std;
 #define MAPGRIDSIZE 1000	// meters
 
 enum edit_panel_fg_result {
-	EPFG_CANCEL = 0,
-	EPFG_SHIPADDED = 1,
-	EPFG_CHANGEMOTION = 2,
-	EPFG_CHANGETIME = 3
+	EPFG_CANCEL,
+	EPFG_SHIPADDED,
+	EPFG_CHANGEMOTION,
+	EPFG_CHANGETIME,
+	EPFG_ADDSELTOCV,
+	EPFG_MAKENEWCV,
+	EPFG_DELETECV,
+	EPFG_EDITROUTECV
 };
 
 
@@ -342,7 +347,7 @@ map_display::map_display(user_interface& ui_) :
 	edit_btn_del(0),
 	edit_btn_chgmot(0),
 	edit_btn_copy(0),
-	edit_btn_makecv(0),
+	edit_btn_cvmenu(0),
 	edit_panel_fg(0),
 	edit_shiplist(0),
 	edit_heading(0),
@@ -354,85 +359,110 @@ map_display::map_display(user_interface& ui_) :
  	edit_timehour(0),
  	edit_timeminute(0),
  	edit_timesecond(0),
+	edit_cvname(0),
+	edit_cvspeed(0),
+	edit_cvlist(0),
 	mx_down(-1), my_down(-1), shift_key_pressed(0), ctrl_key_pressed(0)
 {
 	game& gm = ui_.get_game();
 
-	// create editor main panel
-	edit_panel.reset(new widget(0, 0, 1024, 32, "", 0, 0));
-	edit_panel->set_background(panelbackground);
-	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_add_obj, gm, 0, 0, 128, 32, texts::get(224)));
-	edit_btn_del = new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_del_obj, gm, 128, 0, 128, 32, texts::get(225));
-	edit_panel->add_child(edit_btn_del);
-	edit_btn_chgmot = new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_change_motion, gm, 256, 0, 128, 32, texts::get(226));
-	edit_panel->add_child(edit_btn_chgmot);
-	edit_btn_copy = new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_copy_obj, gm, 384, 0, 128, 32, texts::get(227));
-	edit_panel->add_child(edit_btn_copy);
-	edit_btn_makecv = new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_make_convoy, gm, 512, 0, 128, 32, texts::get(228));
-	edit_panel->add_child(edit_btn_makecv);
- 	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_time, gm, 640, 0, 128, 32, texts::get(229)));
- 	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_description, gm, 768, 0, 128, 32, texts::get(233)));
- 	edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game&), game&>(this, &map_display::edit_help, gm, 896, 0, 128, 32, texts::get(230)));
+	game_editor* ge = dynamic_cast<game_editor*>(&gm);
+	if (ge) {
+		game_editor& gme = *ge;
 
-	// create "add ship" window
-	edit_panel_add.reset(new widget(0, 32, 1024, 768-2*32, texts::get(224)));
-	edit_panel_add->set_background(panelbackground);
-	edit_shiplist = new widget_list(20, 32, 1024-2*20, 768-2*32-2*32-8);
-	edit_panel_add->add_child(edit_shiplist);
-	edit_panel_add->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_add.get(), &widget::close, EPFG_SHIPADDED,  20, 768-3*32-8, 512-20, 32, texts::get(224)));
-	edit_panel_add->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_add.get(), &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
-	string tmp;
-	directory d = open_dir(get_ship_dir());
-	do {
-		tmp = read_dir(d);
-		if (tmp.length() > 4) {
-			string suffix = tmp.substr(tmp.length()-4);
-			if (suffix == ".xml") {
-				edit_shiplist->append_entry(tmp.substr(0, tmp.length()-4));
+		// create editor main panel
+		edit_panel.reset(new widget(0, 0, 1024, 32, "", 0, 0));
+		edit_panel->set_background(panelbackground);
+		edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game_editor&), game_editor&>(this, &map_display::edit_add_obj, gme, 0, 0, 128, 32, texts::get(224)));
+		edit_btn_del = new widget_caller_arg_button<map_display, void (map_display::*)(game_editor&), game_editor&>(this, &map_display::edit_del_obj, gme, 128, 0, 128, 32, texts::get(225));
+		edit_panel->add_child(edit_btn_del);
+		edit_btn_chgmot = new widget_caller_arg_button<map_display, void (map_display::*)(game_editor&), game_editor&>(this, &map_display::edit_change_motion, gme, 256, 0, 128, 32, texts::get(226));
+		edit_panel->add_child(edit_btn_chgmot);
+		edit_btn_copy = new widget_caller_arg_button<map_display, void (map_display::*)(game_editor&), game_editor&>(this, &map_display::edit_copy_obj, gme, 384, 0, 128, 32, texts::get(227));
+		edit_panel->add_child(edit_btn_copy);
+		edit_btn_cvmenu = new widget_caller_arg_button<map_display, void (map_display::*)(game_editor&), game_editor&>(this, &map_display::edit_convoy_menu, gme, 512, 0, 128, 32, texts::get(228));
+		edit_panel->add_child(edit_btn_cvmenu);
+		edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game_editor&), game_editor&>(this, &map_display::edit_time, gme, 640, 0, 128, 32, texts::get(229)));
+		edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game_editor&), game_editor&>(this, &map_display::edit_description, gme, 768, 0, 128, 32, texts::get(233)));
+		edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game_editor&), game_editor&>(this, &map_display::edit_help, gme, 896, 0, 128, 32, texts::get(230)));
+
+		// create "add ship" window
+		edit_panel_add.reset(new widget(0, 32, 1024, 768-2*32, texts::get(224)));
+		edit_panel_add->set_background(panelbackground);
+		edit_shiplist = new widget_list(20, 32, 1024-2*20, 768-2*32-2*32-8);
+		edit_panel_add->add_child(edit_shiplist);
+		edit_panel_add->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_add.get(), &widget::close, EPFG_SHIPADDED,  20, 768-3*32-8, 512-20, 32, texts::get(224)));
+		edit_panel_add->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_add.get(), &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
+		string tmp;
+		directory d = open_dir(get_ship_dir());
+		do {
+			tmp = read_dir(d);
+			if (tmp.length() > 4) {
+				string suffix = tmp.substr(tmp.length()-4);
+				if (suffix == ".xml") {
+					edit_shiplist->append_entry(tmp.substr(0, tmp.length()-4));
+				}
 			}
-		}
-	} while (tmp.length() > 0);
+		} while (tmp.length() > 0);
 
-	// create "motion edit" window
-	// open widget with text edits: course, speed, throttle
-	edit_panel_chgmot.reset(new widget(0, 32, 1024, 768-2*32, texts::get(226)));
-	edit_panel_chgmot->set_background(panelbackground);
-	edit_heading = new widget_slider(20, 128, 1024-40, 80, texts::get(1), 0, 360, 0, 15);
-	edit_panel_chgmot->add_child(edit_heading);
-	edit_speed = new widget_slider(20, 220, 1024-40, 80, texts::get(4), 0/*minspeed*/, 34/*maxspeed*/, 0, 1);
-	edit_panel_chgmot->add_child(edit_speed);
-	edit_throttle = new widget_slider(20, 330, 1024-40, 80, texts::get(232), 0/*minspeed*/, 34/*maxspeed*/, 0, 1);
-	edit_panel_chgmot->add_child(edit_throttle);
-	edit_panel_chgmot->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_chgmot.get(), &widget::close, EPFG_CHANGEMOTION,  20, 768-3*32-8, 512-20, 32, texts::get(226)));
-	edit_panel_chgmot->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_chgmot.get(), &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
-	// also edit: target, country, damage status, fuel amount
+		// create "motion edit" window
+		// open widget with text edits: course, speed, throttle
+		edit_panel_chgmot.reset(new widget(0, 32, 1024, 768-2*32, texts::get(226)));
+		edit_panel_chgmot->set_background(panelbackground);
+		edit_heading = new widget_slider(20, 128, 1024-40, 80, texts::get(1), 0, 360, 0, 15);
+		edit_panel_chgmot->add_child(edit_heading);
+		edit_speed = new widget_slider(20, 220, 1024-40, 80, texts::get(4), 0/*minspeed*/, 34/*maxspeed*/, 0, 1);
+		edit_panel_chgmot->add_child(edit_speed);
+		edit_throttle = new widget_slider(20, 330, 1024-40, 80, texts::get(232), 0/*minspeed*/, 34/*maxspeed*/, 0, 1);
+		edit_panel_chgmot->add_child(edit_throttle);
+		edit_panel_chgmot->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_chgmot.get(), &widget::close, EPFG_CHANGEMOTION,  20, 768-3*32-8, 512-20, 32, texts::get(226)));
+		edit_panel_chgmot->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_chgmot.get(), &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
+		// also edit: target, country, damage status, fuel amount
 
 
-	// create help window
-	edit_panel_help.reset(new widget(0, 32, 1024, 768-2*32, texts::get(230)));
-	edit_panel_help->set_background(panelbackground);
-	edit_panel_help->add_child(new widget_text(20, 32, 1024-2*20, 768-2*32-2*32-8, texts::get(231), 0, true));
-	edit_panel_help->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_help.get(), &widget::close, EPFG_CANCEL, 20, 768-3*32-8, 1024-20, 32, texts::get(105)));
+		// create help window
+		edit_panel_help.reset(new widget(0, 32, 1024, 768-2*32, texts::get(230)));
+		edit_panel_help->set_background(panelbackground);
+		edit_panel_help->add_child(new widget_text(20, 32, 1024-2*20, 768-2*32-2*32-8, texts::get(231), 0, true));
+		edit_panel_help->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_help.get(), &widget::close, EPFG_CANCEL, 20, 768-3*32-8, 1024-20, 32, texts::get(105)));
 
-	// create edit time window
-	edit_panel_time.reset(new widget(0, 32, 1024, 768-2*32, texts::get(229)));
-	edit_panel_time->set_background(panelbackground);
-	edit_panel_time->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_time.get(), &widget::close, EPFG_CHANGETIME,  20, 768-3*32-8, 512-20, 32, texts::get(229)));
-	edit_panel_time->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_time.get(), &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
- 	edit_timeyear = new widget_slider(20, 128, 1024-40, 80, texts::get(234), 1939, 1945, 0, 1);
-	edit_panel_time->add_child(edit_timeyear);
- 	edit_timemonth = new widget_slider(20, 208, 1024-40, 80, texts::get(235), 1, 12, 0, 1);
-	edit_panel_time->add_child(edit_timemonth);
- 	edit_timeday = new widget_slider(20, 288, 1024-40, 80, texts::get(236), 1, 31, 0, 1);
-	edit_panel_time->add_child(edit_timeday);
- 	edit_timehour = new widget_slider(20, 368, 1024-40, 80, texts::get(237), 0, 23, 0, 1);
-	edit_panel_time->add_child(edit_timehour);
- 	edit_timeminute = new widget_slider(20, 448, 1024-40, 80, texts::get(238), 0, 59, 0, 5);
-	edit_panel_time->add_child(edit_timeminute);
- 	edit_timesecond = new widget_slider(20, 528, 1024-40, 80, texts::get(239), 0, 59, 0, 5);
-	edit_panel_time->add_child(edit_timesecond);
+		// create edit time window
+		edit_panel_time.reset(new widget(0, 32, 1024, 768-2*32, texts::get(229)));
+		edit_panel_time->set_background(panelbackground);
+		edit_panel_time->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_time.get(), &widget::close, EPFG_CHANGETIME,  20, 768-3*32-8, 512-20, 32, texts::get(229)));
+		edit_panel_time->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_time.get(), &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
+		edit_timeyear = new widget_slider(20, 128, 1024-40, 80, texts::get(234), 1939, 1945, 0, 1);
+		edit_panel_time->add_child(edit_timeyear);
+		edit_timemonth = new widget_slider(20, 208, 1024-40, 80, texts::get(235), 1, 12, 0, 1);
+		edit_panel_time->add_child(edit_timemonth);
+		edit_timeday = new widget_slider(20, 288, 1024-40, 80, texts::get(236), 1, 31, 0, 1);
+		edit_panel_time->add_child(edit_timeday);
+		edit_timehour = new widget_slider(20, 368, 1024-40, 80, texts::get(237), 0, 23, 0, 1);
+		edit_panel_time->add_child(edit_timehour);
+		edit_timeminute = new widget_slider(20, 448, 1024-40, 80, texts::get(238), 0, 59, 0, 5);
+		edit_panel_time->add_child(edit_timeminute);
+		edit_timesecond = new widget_slider(20, 528, 1024-40, 80, texts::get(239), 0, 59, 0, 5);
+		edit_panel_time->add_child(edit_timesecond);
 
-	check_edit_sel();
+		// create convoy menu
+		edit_panel_convoy.reset(new widget(0, 32, 1024, 768-2*32, texts::get(228)));
+		edit_panel_convoy->set_background(panelbackground);
+		edit_panel_convoy->add_child(new widget_text(20, 32, 256, 32, texts::get(244)));
+		edit_cvname = new widget_edit(256+20, 32, 1024-256-2*20, 32, "-not usable yet, fixme-");
+		edit_panel_convoy->add_child(edit_cvname);
+		edit_cvspeed = new widget_slider(20, 64, 1024-40, 80, texts::get(245), 0/*minspeed*/, 34/*maxspeed*/, 0, 1);
+		edit_panel_convoy->add_child(edit_cvspeed);
+		edit_cvlist = new widget_list(20, 144, 1024-2*20, 768-144-3*32-8);
+		edit_panel_convoy->add_child(edit_cvlist);
+		edit_panel_convoy->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_convoy.get(), &widget::close, EPFG_ADDSELTOCV,  20+0*(1024-40)/5, 768-3*32-8, (1024-40)/5, 32, texts::get(240)));
+		edit_panel_convoy->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_convoy.get(), &widget::close, EPFG_MAKENEWCV,   20+1*(1024-40)/5, 768-3*32-8, (1024-40)/5, 32, texts::get(241)));
+		edit_panel_convoy->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_convoy.get(), &widget::close, EPFG_DELETECV,    20+2*(1024-40)/5, 768-3*32-8, (1024-40)/5, 32, texts::get(242)));
+		edit_panel_convoy->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_convoy.get(), &widget::close, EPFG_EDITROUTECV, 20+3*(1024-40)/5, 768-3*32-8, (1024-40)/5, 32, texts::get(243)));
+		edit_panel_convoy->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_convoy.get(), &widget::close, EPFG_CANCEL,      20+4*(1024-40)/5, 768-3*32-8, (1024-40)/5, 32, texts::get(117)));
+		//fixme: en/disable some buttons depending on wether we have a selection or not
+
+		check_edit_sel();
+	}
 
 #ifdef CVEDIT
 	cvridx = -1;
@@ -441,7 +471,7 @@ map_display::map_display(user_interface& ui_) :
 
 
 
-void map_display::edit_add_obj(game& gm)
+void map_display::edit_add_obj(game_editor& gm)
 {
 	edit_panel_add->open();
 	edit_panel->disable();
@@ -450,7 +480,7 @@ void map_display::edit_add_obj(game& gm)
 
 
 
-void map_display::edit_del_obj(game& gm)
+void map_display::edit_del_obj(game_editor& gm)
 {
 	// just delete all selected objects, if they are no subs
 	for (std::set<sea_object*>::iterator it = selection.begin();
@@ -465,7 +495,7 @@ void map_display::edit_del_obj(game& gm)
 
 
 
-void map_display::edit_change_motion(game& gm)
+void map_display::edit_change_motion(game_editor& gm)
 {
 	if (selection.size() == 0) return;
 
@@ -488,7 +518,7 @@ void map_display::edit_change_motion(game& gm)
 
 
 
-void map_display::edit_copy_obj(game& gm)
+void map_display::edit_copy_obj(game_editor& gm)
 {
 	// just duplicate the objects with some position offset (1km to x/y)
 	std::set<sea_object*> new_selection;
@@ -518,15 +548,33 @@ void map_display::edit_copy_obj(game& gm)
 
 
 
-void map_display::edit_make_convoy(game& gm)
+void map_display::edit_convoy_menu(game_editor& gm)
 {
+	edit_panel_convoy->open();
+	edit_panel->disable();
+	edit_panel_fg = edit_panel_convoy.get();
 	// make convoy from currently selected objects, but without sub
-	// fixme: maybe better open convoy menu: make cv, edit cv route, list cvs / select cv
+	if (selection.empty()) {
+		// fixme: disable
+	} else {
+		// fixme: enable
+	}
+	// fill list of convoy names
+	edit_cvlist->clear();
+	const ptrset<convoy>& convoys = gm.get_convoy_list();
+	for (unsigned i = 0; i < convoys.size(); ++i) {
+		string nm = convoys[i]->get_name();
+		if (nm.length() == 0)
+			nm = "???";
+		edit_cvlist->append_entry(nm);
+	}
+	// fill in current cv name and speed
+	//...
 }
 
 
 
-void map_display::edit_time(game& gm)
+void map_display::edit_time(game_editor& gm)
 {
 	// open widget with text edits: date/time
 	// enter date and time of day
@@ -537,7 +585,7 @@ void map_display::edit_time(game& gm)
 
 
 
-void map_display::edit_description(game& gm)
+void map_display::edit_description(game_editor& gm)
 {
 	// game must store mission description/briefing to make this function work... fixme
 	// only store short description here? or take save file name in save dialogue
@@ -547,7 +595,7 @@ void map_display::edit_description(game& gm)
 
 
 
-void map_display::edit_help(game& /*gm*/)
+void map_display::edit_help(game_editor& /*gm*/)
 {
 	edit_panel_help->open();
 	edit_panel->disable();
@@ -562,12 +610,10 @@ void map_display::check_edit_sel()
 		edit_btn_del->disable();
 		edit_btn_chgmot->disable();
 		edit_btn_copy->disable();
-		edit_btn_makecv->disable();
 	} else {
 		edit_btn_del->enable();
 		edit_btn_chgmot->enable();
 		edit_btn_copy->enable();
-		edit_btn_makecv->enable();
 	}
 }
 
@@ -792,7 +838,8 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 		if (edit_panel->check_for_mouse_event(event))
 			return;
 		// check if foreground window is open and event should go to it
-		if (edit_panel_fg != 0 && edit_panel_fg->check_for_mouse_event(event)) {
+		if (edit_panel_fg != 0/* && edit_panel_fg->check_for_mouse_event(event)*/) {
+			edit_panel_fg->process_input(event);
 			// we could compare edit_panel_fg to the pointers of the various panels
 			// here instead of using a global enum for all possible return values...
 			if (edit_panel_fg->was_closed()) {
@@ -830,6 +877,21 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 					// construct new date to correct possible wrong date values
 					// like 30th february or so...
 					ge.manipulate_equipment_date(date(d.get_time()));
+				} else if (retval == EPFG_ADDSELTOCV) {
+					// compute center of ships
+					// create convoy object
+					// add all ships to convoy with relative positions
+					// add convoy to class game
+					for (std::set<sea_object*>::iterator it = selection.begin(); it != selection.end(); ++it) {
+						ship* s = dynamic_cast<ship*>(*it);
+						/*
+						if (s) {
+							s->set_throttle(edit_throttle->get_curr_value());
+							s->manipulate_heading(angle(edit_heading->get_curr_value()));
+							s->manipulate_speed(edit_speed->get_curr_value());
+						}
+						*/
+					}
 				}
 				edit_panel->enable();
 				edit_panel_fg = 0;

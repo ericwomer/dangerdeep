@@ -168,6 +168,9 @@ void submarine_interface::process_input(const SDL_Event& event)
 	}
 	*/
 
+	// fixme: if editor needs key input (CV name or mission description etc.)
+	// we need to fetch the event to some widgets, and not use it here!
+
 	// check for common keys
 	if (event.type == SDL_KEYDOWN) {
 		const cfg& mycfg = cfg::instance();

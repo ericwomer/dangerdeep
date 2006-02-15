@@ -142,6 +142,9 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 			
 		return;
 	}
+
+	// fixme
+	name = "SC-122";
 	
 	// fixme
 	switch (type_) {
@@ -158,6 +161,7 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 
 void convoy::load(const xml_elem& parent)
 {
+	name = parent.attr("name");
 	position = parent.child("position").attrv2();
 	velocity = parent.child("velocity").attrv2();
 	xml_elem mc = parent.child("merchants");
@@ -190,6 +194,7 @@ void convoy::load(const xml_elem& parent)
 
 void convoy::save(xml_elem& parent) const
 {
+	parent.set_attr(name, "name");
 	parent.add_child("position").set_attr(position);
 	parent.add_child("velocity").set_attr(velocity);
 	xml_elem mc = parent.add_child("merchants");

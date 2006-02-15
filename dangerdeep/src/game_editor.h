@@ -42,6 +42,8 @@ public:
 
 	void simulate(double delta_t);
 
+	const ptrset<convoy>& get_convoy_list() const { return convoys; }
+
 	// is editor?
 	virtual bool is_editor() const { return true; }
 

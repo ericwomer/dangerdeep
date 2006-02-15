@@ -57,6 +57,7 @@ class convoy
 	vector2 position;
 	vector2 velocity;	// GLOBAL velocity
 	// alive_stat?
+	std::string name;
 
 	// create empty convoy for loading
 	convoy(class game& gm_);
@@ -74,6 +75,7 @@ class convoy
 	unsigned get_nr_of_ships(void) const;
 
 	vector2 get_pos() const { return position; }
+	std::string get_name() const { return name; }
 
 	virtual class ai* get_ai(void) { return myai.get(); }
 	virtual void simulate(double delta_time);

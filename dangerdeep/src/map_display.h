@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "color.h"
 #include "widget.h"
 class game;
+class game_editor;
 class sea_object;
 
 class map_display : public user_display
@@ -59,10 +60,11 @@ protected:
 	std::auto_ptr<widget> edit_panel_time;
 	std::auto_ptr<widget> edit_panel_descr;
 	std::auto_ptr<widget> edit_panel_help;
+	std::auto_ptr<widget> edit_panel_convoy;
 	widget* edit_btn_del;
 	widget* edit_btn_chgmot;
 	widget* edit_btn_copy;
-	widget* edit_btn_makecv;
+	widget* edit_btn_cvmenu;
 	widget* edit_panel_fg;
 	widget_list* edit_shiplist;
 	widget_slider* edit_heading;
@@ -74,6 +76,9 @@ protected:
  	widget_slider* edit_timehour;
  	widget_slider* edit_timeminute;
  	widget_slider* edit_timesecond;
+	widget_edit* edit_cvname;
+	widget_slider* edit_cvspeed;
+	widget_list* edit_cvlist;
 	int mx_down, my_down;	// position of mouse when button was pressed
 	int mx_curr, my_curr;	// current position of mouse
 	std::set<sea_object*> selection;
@@ -85,14 +90,14 @@ protected:
 #endif
 
 	// editor methods
-	void edit_add_obj(game& gm);
-	void edit_del_obj(game& gm);
-	void edit_change_motion(game& gm);
-	void edit_copy_obj(game& gm);
-	void edit_make_convoy(game& gm);
-	void edit_time(game& gm);
-	void edit_description(game& gm);
-	void edit_help(game& gm);
+	void edit_add_obj(game_editor& gm);
+	void edit_del_obj(game_editor& gm);
+	void edit_change_motion(game_editor& gm);
+	void edit_copy_obj(game_editor& gm);
+	void edit_convoy_menu(game_editor& gm);
+	void edit_time(game_editor& gm);
+	void edit_description(game_editor& gm);
+	void edit_help(game_editor& gm);
 
 	// check if we have a selection and enables/disables buttons
 	void check_edit_sel();
