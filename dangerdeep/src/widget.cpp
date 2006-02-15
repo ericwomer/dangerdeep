@@ -185,6 +185,8 @@ void widget::draw() const
 bool widget::compute_focus(int mx, int my)
 {
 	focussed = 0;
+	// if the widget is disabled, it can't get the focus and neither one of its children.
+	if (!is_enabled()) return false;
 	if (is_mouse_over(mx, my)) {
 		for (list<widget*>::const_iterator it = children.begin(); it != children.end(); ++it)
 			if ((*it)->compute_focus(mx, my)) return true;
