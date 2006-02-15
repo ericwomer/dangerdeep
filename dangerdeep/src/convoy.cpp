@@ -78,9 +78,10 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 				//fixme!!! replace by parsing ship dir for available types or hardcode them!!!
 				string shiptype = "merchant_medium";
 				if (d < 0.2) {
-					unsigned r = rnd(2);
+					unsigned r = rnd(4);
 					if (r == 0) shiptype = "troopship_medium";
 					if (r == 1) shiptype = "tanker_small";
+					if (r >= 2 && r <= 3) shiptype = "tanker_medium";
 				} else {
 					unsigned r = rnd(5);
 					if (r == 0) shiptype = "merchant_large";
