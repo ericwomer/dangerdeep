@@ -40,7 +40,7 @@ convoy::convoy(game& gm_)
 
 
 convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
-	:gm(gm_), remaining_time(0)
+	: gm(gm_), remaining_time(0)
 {
 	//myai = new ai(this, ai::convoy);
 
@@ -154,6 +154,34 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 		case battleship: break;
 		case supportgroup: break;
 		case carrier: break;
+	}
+}
+
+
+
+convoy::convoy(class game& gm_, const vector2& pos, const std::string& name_)
+	: gm(gm_), position(pos), name(name_)
+{
+}
+
+
+
+bool convoy::add_ship(ship* shp)
+{
+	vector2 spos = shp->get_pos().xy() - position;
+	switch (shp->get_class()) {
+	case ship::WARSHIP:
+		warships.push_back(make_pair(shp, spos));
+		return true;
+	case ship::ESCORT:
+		escorts.push_back(make_pair(shp, spos));
+		return true;
+	case ship::MERCHANT:
+		merchants.push_back(make_pair(shp, spos));
+		return true;
+	default:
+		// can't add this to convoy
+		return false;
 	}
 }
 

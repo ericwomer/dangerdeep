@@ -69,6 +69,12 @@ class convoy
 	convoy(class game& gm, types type_, esctypes esct_);	// create custom convoy
 	virtual ~convoy() {}
 
+	/// create empty convoy (only used in the editor!)
+	convoy(class game& gm, const vector2& pos, const std::string& name);
+
+	/// add ship to convoy. returns false if this is impossible (wrong type of ship)
+	bool add_ship(ship* shp);
+
 	void load(const xml_elem& parent);
 	void save(xml_elem& parent) const;
 	

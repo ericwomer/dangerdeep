@@ -324,6 +324,8 @@ void map_display::draw_radar_contacts(class game& gm,
    		draw_vessel_symbol(offset, *it, color(255,255,128));
 }
 
+
+
 void map_display::draw_square_mark ( class game& gm,
 	const vector2& mark_pos, const vector2& offset, const color& c ) const
 {
@@ -337,6 +339,30 @@ void map_display::draw_square_mark ( class game& gm,
 	glVertex2i ( 512+4+x,384-4-y );
 	glVertex2i ( 512+4+x,384+4-y );
 	glVertex2i ( 512-4+x,384+4-y );
+	glEnd ();
+}
+
+
+
+void map_display::draw_square_mark_special ( class game& gm,
+	const vector2& mark_pos, const vector2& offset, const color& c ) const
+{
+	c.set_gl_color ();
+	glBindTexture(GL_TEXTURE_2D, 0);
+	vector2 p = ( mark_pos + offset ) * mapzoom;
+	int x = int ( round ( p.x ) );
+	int y = int ( round ( p.y ) );
+	glBegin ( GL_LINE_LOOP );
+	glVertex2i ( 512-8+x,384-8-y );
+	glVertex2i ( 512+8+x,384-8-y );
+	glVertex2i ( 512+8+x,384+8-y );
+	glVertex2i ( 512-8+x,384+8-y );
+	glEnd ();
+	glBegin ( GL_LINE_LOOP );
+	glVertex2i ( 512-8+x,384  -y );
+	glVertex2i ( 512  +x,384-8-y );
+	glVertex2i ( 512+8+x,384  -y );
+	glVertex2i ( 512  +x,384+8-y );
 	glEnd ();
 }
 
@@ -704,7 +730,7 @@ void map_display::display(class game& gm) const
 	glColor3f(1,1,1);
 	vector<vector2> convoy_pos = gm.convoy_positions();
 	for (vector<vector2>::iterator it = convoy_pos.begin(); it != convoy_pos.end(); ++it) {
-		draw_square_mark ( gm, (*it), -offset, color ( 0, 0, 0 ) );
+		draw_square_mark_special ( gm, (*it), -offset, color ( 0, 0, 0 ) );
 	}
 	glColor3f(1,1,1);
 
@@ -879,18 +905,30 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 					ge.manipulate_equipment_date(date(d.get_time()));
 				} else if (retval == EPFG_ADDSELTOCV) {
 					// compute center of ships
-					// create convoy object
-					// add all ships to convoy with relative positions
-					// add convoy to class game
+					vector2 center;
+					unsigned nrsh = 0;
 					for (std::set<sea_object*>::iterator it = selection.begin(); it != selection.end(); ++it) {
 						ship* s = dynamic_cast<ship*>(*it);
-						/*
 						if (s) {
-							s->set_throttle(edit_throttle->get_curr_value());
-							s->manipulate_heading(angle(edit_heading->get_curr_value()));
-							s->manipulate_speed(edit_speed->get_curr_value());
+							center += s->get_pos().xy();
+							++nrsh;
 						}
-						*/
+					}
+					center = center * (1.0/nrsh);	
+					// create convoy object
+					auto_ptr<convoy> cv(new convoy(gm, center, edit_cvname->get_text()));
+					// add all ships to convoy with relative positions
+					nrsh = 0;
+					for (std::set<sea_object*>::iterator it = selection.begin(); it != selection.end(); ++it) {
+						ship* s = dynamic_cast<ship*>(*it);
+						if (s) {
+							if (cv->add_ship(s))
+								++nrsh;
+						}
+					}
+					// add convoy to class game, if it has ships
+					if (nrsh > 0) {
+						gm.spawn_convoy(cv.release());
 					}
 				}
 				edit_panel->enable();

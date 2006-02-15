@@ -44,20 +44,20 @@ class vector2t
 
 	vector2t() : x(0), y(0) {};
 	vector2t(const D &x_, const D &y_) : x(x_), y(y_) {};
-	vector2t<D> normal(void) const { D len = D(1.0)/length(); return vector2t(x * len, y * len); };
-	void normalize(void) { D len = D(1.0)/length(); x *= len; y *= len; };
-	vector2t<D> orthogonal(void) const { return vector2t(-y, x); };
+	vector2t<D> normal() const { D len = D(1.0)/length(); return vector2t(x * len, y * len); };
+	void normalize() { D len = D(1.0)/length(); x *= len; y *= len; };
+	vector2t<D> orthogonal() const { return vector2t(-y, x); };
 	vector2t<D> operator* (const D &scalar) const { return vector2t(x * scalar, y * scalar); };
 	vector2t<D> operator+ (const vector2t<D>& other) const { return vector2t(x + other.x, y + other.y); };
 	vector2t<D> operator- (const vector2t<D>& other) const { return vector2t(x - other.x, y - other.y); };
-	vector2t<D> operator- (void) const { return vector2t(-x, -y); };
+	vector2t<D> operator- () const { return vector2t(-x, -y); };
 	vector2t<D>& operator+= (const vector2t<D>& other) { x += other.x; y += other.y; return *this; };
 	vector2t<D>& operator-= (const vector2t<D>& other) { x -= other.x; y -= other.y; return *this; };
 	vector2t<D> min(const vector2t<D>& other) const { return vector2t(x < other.x ? x : other.x, y < other.y ? y : other.y); };
 	vector2t<D> max(const vector2t<D>& other) const { return vector2t(x > other.x ? x : other.x, y > other.y ? y : other.y); };
 	bool operator== (const vector2t<D>& other) const { return x == other.x && y == other.y; };
-	D square_length(void) const { return x * x + y * y; };
-	D length(void) const { return D(sqrt(square_length())); };
+	D square_length() const { return x * x + y * y; };
+	D length() const { return D(sqrt(square_length())); };
 	D square_distance(const vector2t<D>& other) const { vector2t<D> n = *this - other; return n.square_length(); };
 	D distance(const vector2t<D>& other) const { vector2t<D> n = *this - other; return n.length(); };
 	D operator* (const vector2t<D>& other) const { return x * other.x + y * other.y; };
@@ -65,7 +65,7 @@ class vector2t
 	// multiplies 2x2 matrix (given in columns c0-c1) with *this.
 	vector2t<D> matrixmul(const vector2t<D>& c0, const vector2t<D>& c1) const;
 	vector2t<D> coeff_mul(const vector2t<D>& other) const { return vector2t(x * other.x, y * other.y); }
-	vector3t<D> xy0(void) const { return vector3t<D>(x, y, 0); }
+	vector3t<D> xy0() const { return vector3t<D>(x, y, 0); }
 	vector3t<D> xyz(const D& z) const { return vector3t<D>(x, y, z); }
 	template<class D2> friend std::ostream& operator<< ( std::ostream& os, const vector2t<D2>& v );
 	template<class E> void assign(const vector2t<E>& other) { x = D(other.x); y = D(other.y); }

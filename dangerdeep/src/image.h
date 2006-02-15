@@ -80,9 +80,9 @@ public:
 	// draw image by directly copying pixels to the frame buffer
 	void draw_direct(int x, int y) const;
 	// returns 0 if image is stored in texture
-	SDL_Surface* get_SDL_Surface(void) const { return img; }
-	unsigned get_width(void) const { return width; };
-	unsigned get_height(void) const { return height; };
+	SDL_Surface* get_SDL_Surface() const { return img; }
+	unsigned get_width() const { return width; };
+	unsigned get_height() const { return height; };
 };
 
 #endif
