@@ -335,9 +335,11 @@ class sector
 public:
 	//model geometry;
 	vector3 basepos;
+	unsigned walls;
 	std::vector<portal> portals;
 	mutable bool displayed;
 	void display(const frustum& f) const;
+	bool check_movement(const vector3& currpos, const vector3& nextpos, sector*& nextseg) const;
 };
 
 
@@ -346,12 +348,40 @@ void sector::display(const frustum& f) const
 {
 	if (!displayed) {
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glColor3f(0.7, 0.7, 0.7);
+		glColor3f(0.4, 0.2, 0.2);
 		glBegin(GL_QUADS);
 		glVertex3f(basepos.x, basepos.y, basepos.z);
 		glVertex3f(basepos.x+1, basepos.y, basepos.z);
 		glVertex3f(basepos.x+1, basepos.y+1, basepos.z);
 		glVertex3f(basepos.x, basepos.y+1, basepos.z);
+		if (walls & 1) {
+			glColor3f(0.8, 0.8, 0.8);
+			glVertex3f(basepos.x, basepos.y+1, basepos.z);
+			glVertex3f(basepos.x+1, basepos.y+1, basepos.z);
+			glVertex3f(basepos.x+1, basepos.y+1, basepos.z+1);
+			glVertex3f(basepos.x, basepos.y+1, basepos.z+1);
+		}
+		if (walls & 2) {
+			glColor3f(0.6, 0.8, 0.6);
+			glVertex3f(basepos.x+1, basepos.y, basepos.z);
+			glVertex3f(basepos.x, basepos.y, basepos.z);
+			glVertex3f(basepos.x, basepos.y, basepos.z+1);
+			glVertex3f(basepos.x+1, basepos.y, basepos.z+1);
+		}
+		if (walls & 4) {
+			glColor3f(0.8, 0.6, 0.6);
+			glVertex3f(basepos.x, basepos.y, basepos.z);
+			glVertex3f(basepos.x, basepos.y+1, basepos.z);
+			glVertex3f(basepos.x, basepos.y+1, basepos.z+1);
+			glVertex3f(basepos.x, basepos.y, basepos.z+1);
+		}
+		if (walls & 8) {
+			glColor3f(0.4, 0.4, 0.4);
+			glVertex3f(basepos.x+1, basepos.y+1, basepos.z);
+			glVertex3f(basepos.x+1, basepos.y, basepos.z);
+			glVertex3f(basepos.x+1, basepos.y, basepos.z+1);
+			glVertex3f(basepos.x+1, basepos.y+1, basepos.z+1);
+		}
 		glEnd();
 		displayed = true;
 	}
@@ -371,6 +401,29 @@ void sector::display(const frustum& f) const
 			}
 		}
 	}
+}
+
+
+
+bool sector::check_movement(const vector3& currpos, const vector3& nextpos, sector*& nextseg) const
+{
+	// we assume that nextpos is inside this sector.
+	if (nextpos.x >= basepos.x && nextpos.x < basepos.x + 1
+	    && nextpos.y >= basepos.y && nextpos.y < basepos.y + 1) {
+		nextseg = 0;
+		return true;
+	}
+	// check for crossed portal.
+	for (unsigned i = 0; i < portals.size(); ++i) {
+		plane pl = portals[i].shape.get_plane();
+		if (pl.is_left(currpos) && ! pl.is_left(nextpos)) {
+			// we crossed the plane of that portal, switch sector.
+			nextseg = portals[i].adj_sector;
+			return false;
+		}
+	}
+	nextseg = 0;
+	return false;
 }
 
 
@@ -420,6 +473,7 @@ void run()
 				// create sector
 				sector& s = sectors[y*9+x];
 				s.basepos = vector3(x, y, 0);
+				s.walls = 0x00;
 				polygon pup   (s.basepos+vector3(0,1,0), s.basepos+vector3(1,1,0), s.basepos+vector3(1,1,1), s.basepos+vector3(0,1,1));
 				polygon pleft (s.basepos+vector3(0,0,0), s.basepos+vector3(0,1,0), s.basepos+vector3(0,1,1), s.basepos+vector3(0,0,1));
 				polygon pright(s.basepos+vector3(1,1,0), s.basepos+vector3(1,0,0), s.basepos+vector3(1,0,1), s.basepos+vector3(1,1,1));
@@ -427,17 +481,25 @@ void run()
 				// look for adjacent sectors, create portals to them
 				if (level[ya-1][x] != 'x')
 					s.portals.push_back(portal(pup, &sectors[(y+1)*9+x]));
+				else
+					s.walls |= 1;
 				if (level[ya+1][x] != 'x')
 					s.portals.push_back(portal(pdown, &sectors[(y-1)*9+x]));
+				else
+					s.walls |= 2;
 				if (level[ya][x-1] != 'x')
 					s.portals.push_back(portal(pleft, &sectors[y*9+x-1]));
+				else
+					s.walls |= 4;
 				if (level[ya][x+1] != 'x')
 					s.portals.push_back(portal(pright, &sectors[y*9+x+1]));
+				else
+					s.walls |= 8;
 			}
 		}
 	}
 
-	unsigned currsector = 1*9+1;
+	sector* currsector = &sectors[1*9+1];
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -456,15 +518,6 @@ void run()
 	while (true) {
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		glBindTexture(GL_TEXTURE_2D, 0);
-
-		// compute currsector
-		int secx = int(pos_usr.x);
-		int secy = int(pos_usr.y);
-		if (secx < 0) secx = 0;
-		if (secx > 8) secx = 8;
-		if (secy < 0) secy = 0;
-		if (secy > 8) secy = 8;
-		currsector = 9*secy+secx;
 
 		// only allow turning as test
 		viewangles_usr.x = 90;
@@ -532,11 +585,13 @@ void run()
 		// render sectors.
 		for (unsigned i = 0; i < sectors.size(); ++i)
 			sectors[i].displayed = false;
-		sectors[currsector].display(viewfrustum);
+		currsector->display(viewfrustum);
 
+		bool movedcam = movecamera;
 		vector3& pos = (movecamera) ? pos_cam : pos_usr;
 		vector3& viewangles = (movecamera) ? viewangles_cam : viewangles_usr;
-		const double movesc = 0.5;
+		vector3 oldpos = pos;
+		const double movesc = 0.25;
 		list<SDL_Event> events = mysys->poll_event_queue();
 		for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
 			SDL_Event& event = *it;
@@ -569,6 +624,19 @@ void run()
 					pos.z -= movesc;
 				} else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
 					pos.z += movesc;
+				}
+			}
+		}
+		if (!movedcam) {
+			sector* seg = 0;
+			bool movementok = currsector->check_movement(oldpos, pos, seg);
+			if (!movementok) {
+				if (seg) {
+					// switch sector
+					currsector = seg;
+				} else {
+					// avoid movement
+					pos_usr = oldpos;
 				}
 			}
 		}
