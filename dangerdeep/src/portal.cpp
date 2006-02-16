@@ -50,16 +50,20 @@ int res_x, res_y;
 
 void run();
 
-const char* level[9] = {
-	"xxxxxxxxx",
-	"x x     x",
-	"x x xxx x",
-	"x   x x x",
-	"xxx x   x",
-	"x x x x x",
-	"x       x",
-	"x   x x x",
-	"xxxxxxxxx"
+const char* level[13] = {
+	"xxxxxxxxxxxxx",
+	"x x     x   x",
+	"x x xxx x x x",
+	"x   x x x x x",
+	"xxx x   x x x",
+	"x x x x x x x",
+	"x         x x",
+	"x   x x xxx x",
+	"xxxxx x x   x",
+	"x     x x xxx",
+	"x  x  xxx   x",
+	"x           x",
+	"xxxxxxxxxxxxx"
 };
 
 int mymain(list<string>& args)
@@ -465,13 +469,14 @@ void run()
 	   avoid rerender. clear all tags before rendering.
 	*/
 
-	vector<sector> sectors(9*9);
-	for (int y = 0; y < 9; ++y) {
-		int ya = 8-y;
-		for (int x = 0; x < 9; ++x) {
+#define LVLSZ 13
+	vector<sector> sectors(LVLSZ*LVLSZ);
+	for (int y = 0; y < LVLSZ; ++y) {
+		int ya = LVLSZ-1-y;
+		for (int x = 0; x < LVLSZ; ++x) {
 			if (level[ya][x] != 'x') {
 				// create sector
-				sector& s = sectors[y*9+x];
+				sector& s = sectors[y*LVLSZ+x];
 				s.basepos = vector3(x, y, 0);
 				s.walls = 0x00;
 				polygon pup   (s.basepos+vector3(0,1,0), s.basepos+vector3(1,1,0), s.basepos+vector3(1,1,1), s.basepos+vector3(0,1,1));
@@ -480,26 +485,26 @@ void run()
 				polygon pdown (s.basepos+vector3(1,0,0), s.basepos+vector3(0,0,0), s.basepos+vector3(0,0,1), s.basepos+vector3(1,0,1));
 				// look for adjacent sectors, create portals to them
 				if (level[ya-1][x] != 'x')
-					s.portals.push_back(portal(pup, &sectors[(y+1)*9+x]));
+					s.portals.push_back(portal(pup, &sectors[(y+1)*LVLSZ+x]));
 				else
 					s.walls |= 1;
 				if (level[ya+1][x] != 'x')
-					s.portals.push_back(portal(pdown, &sectors[(y-1)*9+x]));
+					s.portals.push_back(portal(pdown, &sectors[(y-1)*LVLSZ+x]));
 				else
 					s.walls |= 2;
 				if (level[ya][x-1] != 'x')
-					s.portals.push_back(portal(pleft, &sectors[y*9+x-1]));
+					s.portals.push_back(portal(pleft, &sectors[y*LVLSZ+x-1]));
 				else
 					s.walls |= 4;
 				if (level[ya][x+1] != 'x')
-					s.portals.push_back(portal(pright, &sectors[y*9+x+1]));
+					s.portals.push_back(portal(pright, &sectors[y*LVLSZ+x+1]));
 				else
 					s.walls |= 8;
 			}
 		}
 	}
 
-	sector* currsector = &sectors[1*9+1];
+	sector* currsector = &sectors[1*LVLSZ+1];
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
