@@ -234,8 +234,10 @@ public:
 	countrycode get_country() const { return country; }
 	partycode get_party() const { return party; }
 
-	/* NOTE! the following function(s) are only for the editor!
-	   Nobody should manipulate objects like this except the editor.
+	/* NOTE! the following function(s) are only to set up games!
+	   They are used only in the editor or by class convoy while creating
+	   custom convoy missions.
+	   Do not call them from any other place!
 	*/
 	virtual void manipulate_position(const vector3& newpos);
 	virtual void manipulate_speed(double localforwardspeed);

@@ -43,8 +43,6 @@ class convoy
 	convoy& operator= (const convoy& other);
 
  protected:
-	friend class game; // for initialization	
-
 	std::list<std::pair<ship*, vector2> > merchants, warships, escorts;
 	std::list<vector2> waypoints;
 
@@ -55,22 +53,25 @@ class convoy
 	class game& gm;
 	double remaining_time;	// time to next thought/situation analysis, fixme move to ai!
 	vector2 position;
-	vector2 velocity;	// GLOBAL velocity
+	double velocity;	// local (forward) velocity.
 	// alive_stat?
 	std::string name;
 
-	// create empty convoy for loading
-	convoy(class game& gm_);
 
  public:
 	enum types { small, medium, large, battleship, supportgroup, carrier };
 	enum esctypes { etnone, etsmall, etmedium, etlarge };	// escort size
 
-	convoy(class game& gm, types type_, esctypes esct_);	// create custom convoy
-	virtual ~convoy() {}
+	/// create empty convoy for loading (used by class game)
+	convoy(class game& gm_);
+
+	/// create custom convoy
+	convoy(class game& gm, types type_, esctypes esct_);
 
 	/// create empty convoy (only used in the editor!)
 	convoy(class game& gm, const vector2& pos, const std::string& name);
+
+	virtual ~convoy() {}
 
 	/// add ship to convoy. returns false if this is impossible (wrong type of ship)
 	bool add_ship(ship* shp);
@@ -78,14 +79,16 @@ class convoy
 	void load(const xml_elem& parent);
 	void save(xml_elem& parent) const;
 	
-	unsigned get_nr_of_ships(void) const;
+	unsigned get_nr_of_ships() const;
 
 	vector2 get_pos() const { return position; }
 	std::string get_name() const { return name; }
 
-	virtual class ai* get_ai(void) { return myai.get(); }
+	virtual class ai* get_ai() { return myai.get(); }
+
 	virtual void simulate(double delta_time);
-	virtual void display(void) const {}
+
+	// used for AI and control of convoy. Add known enemy contact.
 	virtual void add_contact(const vector3& pos);
 };
 

@@ -189,14 +189,10 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	date currentdate((unsigned)time);
 	equipment_date = currentdate;	// fixme: another crude guess or hack
 
-	// fixme: creation of convoy should be placed rather here than in convoy, so it is centralized!!!
+	// Convoy-constructor creates all the objects and spawns them in this game object.
+	// fixme: creation of convoys should be rather moved to this class, so object creation
+	// and logic is centralized.
 	convoy* cv = new convoy(*this, (convoy::types)(cvsize), (convoy::esctypes)(cvesc));
-	for (list<pair<ship*, vector2> >::iterator it = cv->merchants.begin(); it != cv->merchants.end(); ++it)
-		spawn_ship(it->first);
-	for (list<pair<ship*, vector2> >::iterator it = cv->warships.begin(); it != cv->warships.end(); ++it)
-		spawn_ship(it->first);
-	for (list<pair<ship*, vector2> >::iterator it = cv->escorts.begin(); it != cv->escorts.end(); ++it)
-		spawn_ship(it->first);
 	spawn_convoy(cv);
 
 	lookout_sensor tmpsensor;
@@ -240,7 +236,7 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 		double maxt = 0;
 		for (unsigned k = 0; k < ships.size(); ++k) {
 			double maxt1 = 0, maxt2 = get_max_view_distance()/2, maxt3 = get_max_view_distance();
-			sub->position = (maxt2 * tmpa.direction()).xy0();
+			sub->manipulate_position((maxt2 * tmpa.direction()).xy0());
 			// find maximum distance t along line (0,0)+t*tmpa.dir() for this ship
 			while (maxt3 - maxt1 > 50.0) {
 				if (tmpsensor.is_detected(this, sub, ships[k])) {
@@ -249,15 +245,16 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 					maxt3 = maxt2;
 				}
 				maxt2 = (maxt1 + maxt3)/2;
-				sub->position = (maxt2 * tmpa.direction()).xy0();
+				sub->manipulate_position((maxt2 * tmpa.direction()).xy0());
 			}
 			if (maxt2 > maxt) maxt = maxt2;
 		}
-		sub->position = (maxt * tmpa.direction()).xy0();
-		sub->position.z = (timeofday == 2) ? 0 : -12; // fixme maybe always surfaced, except late in war
+		vector3 subpos = (maxt * tmpa.direction()).xy0();
+		subpos.z = (timeofday == 2) ? 0 : -12; // fixme maybe always surfaced, except late in war
+		sub->manipulate_position(subpos);
 		// heading should be facing to the convoy (+-90deg), as it is unrealistic
 		// to detect a convoy while moving away from it
-		sub->heading = sub->head_to = angle(rnd()*180.0 + 90.0) + tmpa;
+		sub->manipulate_heading(angle(rnd()*180.0 + 90.0) + tmpa);
 	
 		spawn_submarine(sub);
 	}

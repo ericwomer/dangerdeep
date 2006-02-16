@@ -43,15 +43,12 @@ class game;
     Ship attributes are defined via specification XML file. */
 class ship : public sea_object
 {
-	friend class convoy;
-	friend class game;	// for initialization
-
  private:
 	ship();
 	ship(const ship& other);
 	ship& operator= (const ship& other);
 
-public:
+ public:
 	// give negative values for fixed speeds, positive values for knots.
 	enum throttle_status { reversefull=-9, reversehalf=-8, reverse=-7, aheadlisten=-6, aheadsonar=-5, aheadslow=-4,
 		aheadhalf=-3, aheadfull=-2, aheadflank=-1, stop=0  };
@@ -62,7 +59,7 @@ public:
 	// maximum trail record length
 	static const unsigned TRAIL_LENGTH = 60;
 
-protected:
+ protected:
 	unsigned tonnage;	// in BRT, created after values from spec file (but maybe with some randomness), must get stored!
 
 	int throttle;		// if < 0: throttle_state, if > 0: knots
@@ -266,8 +263,9 @@ public:
 	virtual long num_shells_remaining();
 	virtual double max_gun_range() { return maximum_gun_range; };
 
-	/* NOTE! the following function(s) are only for the editor!
-	   Nobody should manipulate objects like this except the editor.
+	/* NOTE! the following function(s) are only for the editor or for
+	   custom convoy generation (called from class convoy).
+	   Nobody else should manipulate objects like this.
 	*/
 	virtual void manipulate_heading(angle hdg);
 };

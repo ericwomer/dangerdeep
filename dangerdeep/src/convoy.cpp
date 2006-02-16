@@ -54,15 +54,15 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 	double intershipdist = 1000.0;	// distance between ships. it is 1000m sidewards and 600m forward... fixme
 	double convoyescortdist = 3000.0; // distance of escorts to convoy
 	double interescortdist = 1500.0;	// distance between escorts, seems a bit low...
-	
+
 	// merchant convoy?
 	if (type_ == small || type_ == medium || type_ == large) {
+		name = "Custom"; // fixme...
 		unsigned cvsize = unsigned(type_);
 		
 		// speed? could be a slow or fast convoy (~4 or ~8 kts).
 		int throttle = 4 + rnd(2)*4;
-		velocity = heading.direction() * sea_object::kts2ms(throttle);
-		vector3 local_velocity = vector3(0, sea_object::kts2ms(throttle), 0);
+		velocity = sea_object::kts2ms(throttle);
 	
 		// compute size and structure of convoy
 		unsigned nrships = (2<<cvsize)*10+rnd(10)-5;
@@ -76,6 +76,8 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 				int dx = int(i)-sqrtnrships/2;
 				float d = 4*float(dx*dx+dy*dy)/nrships;
 				//fixme!!! replace by parsing ship dir for available types or hardcode them!!!
+				//each ship in data/ships stores its type.
+				//but probability can not be stored...
 				string shiptype = "merchant_medium";
 				if (d < 0.2) {
 					unsigned r = rnd(4);
@@ -97,11 +99,10 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 					dx*intershipdist + rnd()*60.0-30.0,
 					dy*intershipdist + rnd()*60.0-30.0 );
 				pos = pos.matrixmul(coursevec, coursevec.orthogonal());
-				s->position.x = waypoints.begin()->x + pos.x;
-				s->position.y = waypoints.begin()->y + pos.y;
-				s->heading = s->head_to = heading;
-				s->velocity = local_velocity;
-				s->throttle = throttle;
+				s->manipulate_position((waypoints.front() + pos).xy0());
+				s->manipulate_heading(heading);
+				s->manipulate_speed(velocity);
+				s->set_throttle(throttle);
 				merchants.push_back(make_pair(s, pos));
 				++shps;
 			}
@@ -133,14 +134,24 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 				dx+nx + rnd()*100.0-50.0,
 				dy+ny + rnd()*100.0-50.0 );
 			pos = pos.matrixmul(coursevec, coursevec.orthogonal());
-			s->position.x = waypoints.begin()->x + pos.x;
-			s->position.y = waypoints.begin()->y + pos.y;
-			s->heading = s->head_to = heading;
-			s->velocity = local_velocity;
-			s->throttle = throttle;
+			s->manipulate_position((waypoints.front() + pos).xy0());
+			s->manipulate_heading(heading);
+			s->manipulate_speed(velocity);
+			s->set_throttle(throttle);
 			escorts.push_back(make_pair(s, pos));
 		}
 			
+		// spawn the objects in class game after creating them
+		for (list<pair<ship*, vector2> >::iterator it = merchants.begin(); it != merchants.end(); ++it) {
+			gm.spawn_ship(it->first);
+		}
+		for (list<pair<ship*, vector2> >::iterator it = warships.begin(); it != warships.end(); ++it) {
+			gm.spawn_ship(it->first);
+		}
+		for (list<pair<ship*, vector2> >::iterator it = escorts.begin(); it != escorts.end(); ++it) {
+			gm.spawn_ship(it->first);
+		}
+
 		return;
 	}
 
@@ -156,6 +167,7 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 		case supportgroup: break;
 		case carrier: break;
 	}
+
 }
 
 
@@ -192,7 +204,7 @@ void convoy::load(const xml_elem& parent)
 {
 	name = parent.attr("name");
 	position = parent.child("position").attrv2();
-	velocity = parent.child("velocity").attrv2();
+	velocity = parent.child("velocity").attrf();
 	xml_elem mc = parent.child("merchants");
 	merchants.clear();
 	//merchants.reserve(mc.attru("nr"));
@@ -265,10 +277,24 @@ unsigned convoy::get_nr_of_ships(void) const
 
 void convoy::simulate(double delta_time)
 {
-	//fixme: add better moving simulation!
-	position += velocity * delta_time;
-
 	//if (is_defunct()) return;
+
+	//fixme: only control target every n seconds or so.
+	// compute global velocity. as first direction to destination.
+	// aim to next waypoint if that isn't already reached.
+	vector2 dir;
+	while (!waypoints.empty()) {
+		if (position.square_distance(waypoints.front()) < 10.0) {	// 3.3m are exact enough
+			waypoints.pop_front();
+		} else {
+			dir = (waypoints.front() - position).normal();
+		}
+	}
+	// note that convoy stops after last waypoints was reached because dir is zero in that case
+	vector2 global_velocity = dir * velocity;
+
+	// add better moving simulation? but it should be exact enough for convoys.
+	position += global_velocity * delta_time;
 
 	// check for ships to be erased
 	for (list<pair<ship*, vector2> >::iterator it = merchants.begin(); it != merchants.end(); ) {
@@ -286,6 +312,12 @@ void convoy::simulate(double delta_time)
 		if (it2->first->is_defunct())
 			escorts.erase(it2);
 	}
+
+	//fixme: set target course for ships here, but only every n seconds.
+	//note that this must not override the ship's current steering, because it could
+	//do an evasive manouver etc.
+	//An better alternative would be if ships could request their target position
+	//at the convoy and do that every n seconds. The AI of a ship could do so.
 
 //	if ( myai )//fixme: my is ai sometimes != 0 although it is disabled?!
 //		myai->act(gm, delta_time);
