@@ -239,28 +239,28 @@ void convoy::save(xml_elem& parent) const
 	parent.add_child("position").set_attr(position);
 	parent.add_child("velocity").set_attr(velocity);
 	xml_elem mc = parent.add_child("merchants");
-	mc.set_attr(merchants.size(), "nr");
+	mc.set_attr(unsigned(merchants.size()), "nr");
 	for (list<pair<ship*, vector2> >::const_iterator it = merchants.begin(); it != merchants.end(); ++it) {
 		xml_elem mc2 = mc.add_child("merchant");
 		mc2.set_attr(gm.save_ptr(it->first), "ref");
 		mc2.set_attr(it->second);
 	}
 	xml_elem ws = parent.add_child("warships");
-	ws.set_attr(warships.size(), "nr");
+	ws.set_attr(unsigned(warships.size()), "nr");
 	for (list<pair<ship*, vector2> >::const_iterator it = warships.begin(); it != warships.end(); ++it) {
 		xml_elem ws2 = ws.add_child("warship");
 		ws2.set_attr(gm.save_ptr(it->first), "ref");
 		ws2.set_attr(it->second);
 	}
 	xml_elem es = parent.add_child("escorts");
-	es.set_attr(escorts.size(), "nr");
+	es.set_attr(unsigned(escorts.size()), "nr");
 	for (list<pair<ship*, vector2> >::const_iterator it = escorts.begin(); it != escorts.end(); ++it) {
 		xml_elem es2 = es.add_child("escort");
 		es2.set_attr(gm.save_ptr(it->first), "ref");
 		es2.set_attr(it->second);
 	}
 	xml_elem wp = parent.add_child("waypoints");
-	wp.set_attr(waypoints.size(), "nr");
+	wp.set_attr(unsigned(waypoints.size()), "nr");
 	for (list<vector2>::const_iterator it = waypoints.begin(); it != waypoints.end(); ++it) {
 		wp.add_child("pos").set_attr(*it);
 	}

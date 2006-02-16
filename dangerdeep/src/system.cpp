@@ -122,7 +122,7 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	if (extensionsc) {
 		unsigned spos = 0;
 		while (spos < extensions.length()) {
-			unsigned pos = extensions.find(" ", spos);
+			string::size_type pos = extensions.find(" ", spos);
 			if (pos == string::npos) {
 				supported_extensions.insert(extensions.substr(spos));
 				spos = extensions.length();

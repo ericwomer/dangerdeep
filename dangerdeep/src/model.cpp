@@ -1255,7 +1255,7 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 
 		// vertices.
 		xml_elem verts = msh.add_child("vertices");
-		verts.set_attr(mp->vertices.size(), "nr");
+		verts.set_attr(unsigned(mp->vertices.size()), "nr");
 		ostringstream ossv;
 		for (vector<vector3f>::const_iterator vit = mp->vertices.begin(); vit != mp->vertices.end(); ++vit) {
 			ossv << vit->x << " " << vit->y << " " << vit->z << " ";
@@ -1264,7 +1264,7 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 
 		// indices.
 		xml_elem indis = msh.add_child("indices");
-		indis.set_attr(mp->indices.size(), "nr");
+		indis.set_attr(unsigned(mp->indices.size()), "nr");
 		ostringstream ossi;
 		for (vector<unsigned>::const_iterator iit = mp->indices.begin(); iit != mp->indices.end(); ++iit) {
 			ossi << *iit << " ";
@@ -1823,9 +1823,9 @@ void model::read_off_file(const string& fn)
 
 // -------------------------------- dftd model file reading -------------------------------------
 
-static string next_part_of_string(const string& s, unsigned& fromwhere)
+static string next_part_of_string(const string& s, string::size_type& fromwhere)
 {
-	unsigned st = s.find(" ", fromwhere);
+	string::size_type st = s.find(" ", fromwhere);
 	if (st == string::npos) {
 		string tmp = s.substr(fromwhere);
 		fromwhere = st;
@@ -1910,7 +1910,7 @@ void model::read_dftd_model_file(const std::string& filename)
 			unsigned nrverts = verts.attru("nr");
 			string values = verts.child_text();
 			msh->vertices.reserve(nrverts);
-			unsigned valuepos = 0;
+			string::size_type valuepos = 0;
 			for (unsigned i = 0; i < nrverts; ++i) {
 				float x, y, z;
 				// no stream here because of NaN strings that would break the stream
@@ -1940,7 +1940,7 @@ void model::read_dftd_model_file(const std::string& filename)
 				xml_elem texcs = e.child("texcoords");
 				msh->texcoords.reserve(nrverts);
 				values = texcs.child_text();
-				unsigned valuepos = 0;
+				string::size_type valuepos = 0;
 				for (unsigned i = 0; i < nrverts; ++i) {
 					float x, y;
 					// no stream here because of NaN strings that would break the stream
@@ -1956,7 +1956,7 @@ void model::read_dftd_model_file(const std::string& filename)
 			if (e.has_child("normals")) {
 				msh->normals.reserve(nrverts);
 				values = e.child("normals").child_text();
-				unsigned valuepos = 0;
+				string::size_type valuepos = 0;
 				for (unsigned i = 0; i < nrverts; ++i) {
 					float x, y, z;
 					// no stream here because of NaN strings that would break the stream

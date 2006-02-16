@@ -322,7 +322,7 @@ void submarine::save(xml_elem& parent) const
 	dv.set_attr(stern_rudder, "stern_rudder");
 
 	xml_elem tp = parent.add_child("stored_torpedoes");
-	tp.set_attr(torpedoes.size(), "nr");
+	tp.set_attr(unsigned(torpedoes.size()), "nr");
 	for (vector<stored_torpedo>::const_iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
 		//save a stored_torpedo node for each entry
 		xml_elem stp = tp.add_child("stored_torpedo");
@@ -337,7 +337,7 @@ void submarine::save(xml_elem& parent) const
     
 	// fixme: later move to ship, or even sea_object!
 	xml_elem dm = parent.add_child("damageable_parts");
-	dm.set_attr(damageable_parts.size(), "nr");
+	dm.set_attr(unsigned(damageable_parts.size()), "nr");
 	for (vector<damageable_part>::const_iterator it = damageable_parts.begin(); it != damageable_parts.end(); ++it) {
 		//save a part node for each entry
 		//it->save(out);

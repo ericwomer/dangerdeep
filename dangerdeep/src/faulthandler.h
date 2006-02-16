@@ -55,8 +55,8 @@ inline void print_stack_trace()
 	for (int i = 0; i < size; ++i) {
 		std::string addr;
 		std::string s(strings[i]);
-		unsigned p1 = s.rfind('[');
-		unsigned p2 = s.rfind(']');
+		std::string::size_type p1 = s.rfind('[');
+		std::string::size_type p2 = s.rfind(']');
 		if ((p1 != std::string::npos) && (p2 != std::string::npos)) {
 			addr = s.substr(p1 + 1, p2 - p1 - 1);
 			addrs += addr + " ";

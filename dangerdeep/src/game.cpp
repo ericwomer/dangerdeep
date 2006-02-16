@@ -561,7 +561,7 @@ void game::save(const string& savefilename, const string& description) const
 	// user interface is generated according to player object by dftd
 
 	xml_elem sks = sg.add_child("sunken_ships");
-	sks.set_attr(sunken_ships.size(), "nr");
+	sks.set_attr(unsigned(sunken_ships.size()), "nr");
 	for (list<sink_record>::const_iterator it = sunken_ships.begin(); it != sunken_ships.end(); ++it) {
 		it->save(sks);
 	}
@@ -578,7 +578,7 @@ void game::save(const string& savefilename, const string& description) const
 	gst.set_attr(max_view_dist, "max_view_dist");
 	
 	xml_elem pgs = sg.add_child("pings");
-	pgs.set_attr(pings.size(), "nr");
+	pgs.set_attr(unsigned(pings.size()), "nr");
 	for (list<ping>::const_iterator it = pings.begin(); it != pings.end(); ++it) {
 		it->save(pgs);
 	}

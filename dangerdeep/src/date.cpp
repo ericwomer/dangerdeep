@@ -116,12 +116,12 @@ date::date (unsigned lt)
 
 date::date (const std::string& datestr)
 {
-	unsigned moff = datestr.find("/");
+	string::size_type moff = datestr.find("/");
 	if (moff == string::npos)
 		throw error("error in parsing date string, missed / for months");
 	date_values[year] = atoi(datestr.substr(0, moff).c_str());
 	string rest = datestr.substr(moff+1);
-	unsigned doff = rest.find("/");
+	string::size_type doff = rest.find("/");
 	if (doff == string::npos)
 		throw error("error in parsing date string, missed / for days");
 	date_values[month] = atoi(rest.substr(0, doff).c_str());
