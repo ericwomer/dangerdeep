@@ -288,6 +288,7 @@ void convoy::simulate(double delta_time)
 			waypoints.pop_front();
 		} else {
 			dir = (waypoints.front() - position).normal();
+			break;
 		}
 	}
 	// note that convoy stops after last waypoints was reached because dir is zero in that case
