@@ -197,6 +197,13 @@ int mymain(list<string>& args)
 }
 
 
+
+
+const double EPSILON = 0.001;
+const double EPSILON2 = EPSILON * EPSILON;
+
+
+
 template<class D>
 class plane_t
 {
@@ -216,7 +223,16 @@ public:
 	bool is_left(const vector3t<D>& a) const {
 		return (N * a >= -d);
 	}
-	/// compute intersection point of line a->b, returns true if intersection is valid
+	/// determine if point is left of/right of/in plane (>0,<0,==0)
+	int test_side(const vector3t<D>& a) const {
+		D r = N * a + d;
+		return (r > EPSILON) ? 1 : ((r < -EPSILON) ? -1 : 0);
+	}
+	/// determine distance of point to plane
+	D distance(const vector3t<D>& a) const {
+		return N * a + d;
+	}
+	/// compute intersection point of line a->b, assumes that a->b intersects the plane
 	vector3t<D> intersection(const vector3t<D>& a, const vector3t<D>& b) const {
 		D divi = N * (b - a);
 		// if abs(divi) is near zero then a,b are both on the plane
@@ -232,15 +248,19 @@ public:
 		result = intersection(a, b);
 		return true;
 	}
+	/// compute intersection point of line a->b, returns true if intersection is valid
+	bool test_intersection_no_touch(const vector3t<D>& a, const vector3t<D>& b, vector3t<D>& result) const {
+		int a_left = test_side(a), b_left = test_side(b);
+		// both are left or not left? no intersection
+		if (a_left * b_left >= 0)
+			return false;
+		result = intersection(a, b);
+		return true;
+	}
 };
 
 typedef plane_t<double> plane;
 typedef plane_t<float> planef;
-
-
-
-// const double EPSILON = 0.01;
-// const double EPSILON2 = 0.001;
 
 
 
@@ -280,47 +300,49 @@ public:
 		// do not clip empty polygons.
 		if (empty()) return polygon_t();
 		// test for each point if it is left of the plane.
-		// do not use bitvector here, too slow.
-		std::vector<unsigned> pleft(points.size());
-		unsigned prightleft_ctr[2] = { 0, 0 };	// count #points on right and left side.
+		std::vector<int> pside(points.size());
+		unsigned pside_ctr[3] = { 0, 0, 0 };	// count #points on right/plane/left side.
 		for (unsigned i = 0; i < points.size(); ++i) {
-			unsigned pli = plan.is_left(points[i]);
-			pleft[i] = pli;
-			++prightleft_ctr[pli ? 1 : 0];
+			int pli = plan.test_side(points[i]);
+			pside[i] = pli;
+			++pside_ctr[pli + 1];
 		}
 		// we can have at most two clip points.
 		// this means all points are splitted in at most two sets (left / right).
 		// if all points are left, return *this, if all are right, return an empty polygon.
-		if (prightleft_ctr[0] == 0)
+		if (pside_ctr[0] == 0)
 			return *this;	// no points are right.
-		if (prightleft_ctr[1] == 0)
+		if (pside_ctr[2] == 0)
 			return polygon_t();	// no points are left.
 		// now we have the case that this polygon really intersects the plane (or touches it...)
-		// we assume that no point touches the plane, but is really left or right (depends
-		// on rounding precision...)
-		// this means the result has #left + 2 points.
-		polygon_t result(prightleft_ctr[1] + 2);
+		// This means there must be at least one point left of the plane and one point right
+		// of the plane, both points are NOT ON THE PLANE, BUT REALLY OUTSIDE.
+		// this means the result has at most #left + #onplane + 2 points.
+		polygon_t result(pside_ctr[1] + pside_ctr[2] + 2);
 		// copy all points that are left of the plane to the result
 		// insert the two intersection points.
+		// consider points on the plane to be "left" of it.
 		for (unsigned i = 0; i < points.size(); ++i) {
 			unsigned j = (i+1) % points.size();
-			if (pleft[i]) {
-				if (pleft[j]) {
-					// both points are left, just copy this point
+			if (pside[i] >= 0) {
+				if (pside[j] >= 0) {
+					// both points are left or on plane, just copy this point
 					result.points.push_back(points[i]);
 				} else {
 					// next point is right, insert this point and intersection point
 					result.points.push_back(points[i]);
-					vector3t<D> interp = plan.intersection(points[i], points[j]);
-					//if (interp.square_distance(points[i]) > EPSILON2)
-					result.points.push_back(interp);
+					if (pside[i] > 0) {
+						vector3t<D> interp = plan.intersection(points[i], points[j]);
+						result.points.push_back(interp);
+					}
 				}
 			} else {
-				if (pleft[j]) {
+				if (pside[j] > 0) {
 					// next point is left, insert intersection point
 					vector3t<D> interp = plan.intersection(points[i], points[j]);
-					//if (interp.square_distance(points[j]) > EPSILON2)
 					result.points.push_back(interp);
+				} else if (pside[j] == 0) {
+					// next point is on the plane, do nothing.
 				} else {
 					// both points are right, do nothing
 				}
@@ -370,7 +392,8 @@ public:
 	polygon viewwindow;	// planes are constructed matching to this
 	vector3 viewpos;
 	vector3 viewdir;
-	frustum(polygon poly, const vector3& viewp, const vector3& viewd);
+	double znear;
+	frustum(polygon poly, const vector3& viewp, const vector3& viewd, double znear);
 	polygon clip(polygon p) const;
 	void draw() const;
 	void print() const;
@@ -378,8 +401,8 @@ public:
 
 
 
-frustum::frustum(polygon poly, const vector3& viewp, const vector3& viewd)
-	: viewwindow(poly), viewpos(viewp), viewdir(viewd)
+frustum::frustum(polygon poly, const vector3& viewp, const vector3& viewd, double znear_)
+	: viewwindow(poly), viewpos(viewp), viewdir(viewd), znear(znear_)
 {
 	planes.reserve(poly.points.size());
 	for (unsigned i = 0; i < poly.points.size(); ++i) {
@@ -429,13 +452,13 @@ public:
 	unsigned walls;
 	std::vector<portal> portals;
 	mutable bool displayed;
-	void display(const frustum& f) const;
+	void display(const frustum& f, bool allowrenderonportal = true) const;
 	bool check_movement(const vector3& currpos, const vector3& nextpos, sector*& nextseg) const;
 };
 
 
 
-void sector::display(const frustum& f) const
+void sector::display(const frustum& f, bool allowrenderonportal) const
 {
 	if (!displayed) {
 		glColor3f(1,1,1);
@@ -524,31 +547,24 @@ void sector::display(const frustum& f) const
 		const portal& p = portals[i];
 		// avoid portals facing away.
 		// this means viewpos must be on the inner side of the portal plane.
-//fixme: bug, manchmal wird ein sector hinter einem portal net gezeichnet.
-//aber nur durch drehen geht das an/aus. liegt also nicht an viewpos.
-//muß also mit dem clip zu tun haben!
-//ja, manchmal ist newfpoly empty, obwohl das nicht sein soll
-//das frustum-poly hat zwei identische punkte hintereinander!!!
-//was dann? dann ist eine plane = (0,0,0,0), das müßte dann immer innen sein...
-//durch rundungsfehler aber vielleicht auch andersherum. doppelte punkte vermeiden!!!
-		if (p.shape.get_plane().is_left(f.viewpos)) {
+		// fixme: if we are too close to a portal this is a problem and leads to bugs.
+		// compare distance to portal and znear.
+		// if we're beyond the portal, ignore it.
+		plane portal_plane = p.shape.get_plane();
+		double dist_to_portal = portal_plane.distance(f.viewpos);
+		//cout << "viewpos dist: " << portal_plane.distance(f.viewpos) << "\n";
+		if (fabs(dist_to_portal) < f.znear) {
+			// we're to close to the portal.
+			// render both adjacent sectors with frustum f.
+			// we already rendered this sector, so render other sector
+			if (allowrenderonportal) {
+				p.adj_sector->display(f, false);
+			}
+		} else if (portal_plane.is_left(f.viewpos)) {
 			polygon newfpoly = f.clip(p.shape);
 			if (!newfpoly.empty()) {
-// 				printf("+++++++++++++ match and recurse\n");
-// 				f.print();
-// 				p.shape.print();
-// 				newfpoly.print();
-//  				glColor3f(1,1,0.5);
-//  				newfpoly.draw();
-				frustum fnew(newfpoly, f.viewpos, f.viewdir);
+				frustum fnew(newfpoly, f.viewpos, f.viewdir, f.znear);
 				p.adj_sector->display(fnew);
-			} else {
-// 				printf("------------- no match\n");
-// 				f.print();
-// 				p.shape.print();
-// 				newfpoly.print();
-// 				glColor3f(1,0,0);
-// 				p.shape.draw();
 			}
 		}
 	}
@@ -558,23 +574,22 @@ void sector::display(const frustum& f) const
 
 bool sector::check_movement(const vector3& currpos, const vector3& nextpos, sector*& nextseg) const
 {
-	// we assume that nextpos is inside this sector.
-	if (nextpos.x >= basepos.x && nextpos.x < basepos.x + 1
-	    && nextpos.y >= basepos.y && nextpos.y < basepos.y + 1
-	    && nextpos.z >= basepos.z && nextpos.z < basepos.z + 1) {
-		nextseg = 0;
-		return true;
-	}
+	// we assume that curros is inside this sector.
 	// check for crossed portal.
 	for (unsigned i = 0; i < portals.size(); ++i) {
 		plane pl = portals[i].shape.get_plane();
-		if (pl.is_left(currpos) && ! pl.is_left(nextpos)) {
+		if (pl.test_side(nextpos) < 0) {
 			// we crossed the plane of that portal, switch sector.
 			nextseg = portals[i].adj_sector;
 			return false;
 		}
 	}
 	nextseg = 0;
+	if (nextpos.x >= basepos.x - EPSILON && nextpos.x < basepos.x + 1 + EPSILON
+	    && nextpos.y >= basepos.y - EPSILON && nextpos.y < basepos.y + 1 + EPSILON
+	    && nextpos.z >= basepos.z - EPSILON && nextpos.z < basepos.z + 1 + EPSILON) {
+		return true;
+	}
 	return false;
 }
 
@@ -878,7 +893,6 @@ void run()
 	vector3 pos(1.5, 1.5, 0.3);
 
 	while (true) {
-		cout << "redraw!\n";
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -903,7 +917,7 @@ void run()
 		vector3 wtrn = invmvp * vector3(+1,+1,-1);
 		vector3 vd = invmvr * vector3(0,0,-1);
 		polygon viewwindow(wbln, wbrn, wtrn, wtln);
-		frustum viewfrustum(viewwindow, pos, vd);
+		frustum viewfrustum(viewwindow, pos, vd, 0.1 /* fixme: read from matrix! */);
 
 		// render sectors.
 		for (unsigned i = 0; i < sectors.size(); ++i)
