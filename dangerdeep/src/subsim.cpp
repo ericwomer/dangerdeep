@@ -58,6 +58,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "keys.h"
 #include "music.h"
 #include "faulthandler.h"
+#include "datadirs.h"
 
 #include "mymain.cpp"
 

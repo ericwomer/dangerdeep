@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define AIRPLANE_H
 
 #include "sea_object.h"
-#include "global_data.h"
+//#include "global_data.h"
 #include "quaternion.h"
 
 ///\brief Represents an airplane with simulation of it.

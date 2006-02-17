@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 using namespace std;
 #include "submarine.h"
-#include "global_data.h"
+//#include "datadirs.h"
 #include "user_interface.h"
 #include "color.h"
 

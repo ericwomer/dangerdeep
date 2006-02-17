@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "convoy.h"
 #include "sea_object.h"
 #include "depth_charge.h"
+#include "global_data.h"
 #include "submarine.h"
 
 

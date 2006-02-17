@@ -32,7 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "system.h"
 #include "vector3.h"
-#include "global_data.h"
+#include "datadirs.h"
 #include "font.h"
 #include "model.h"
 #include "texture.h"
@@ -46,6 +46,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 class system* mysys;
 int res_x, res_y;
+font* font_arial = 0;
 
 vector4t<GLfloat> lposition(0,0,0,1);
 

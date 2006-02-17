@@ -50,21 +50,77 @@ int res_x, res_y;
 
 void run();
 
-const char* level[13] = {
-	"xxxxxxxxxxxxx",
-	"x x     x   x",
-	"x x xxx x x x",
-	"x   x x x x x",
-	"xxx x   x x x",
-	"x x x x x x x",
-	"x         x x",
-	"x   x x xxx x",
-	"xxxxx x x   x",
-	"x     x x xxx",
-	"x  x  xxx   x",
-	"x           x",
-	"xxxxxxxxxxxxx"
+
+texture* metalbackgr;
+texture* woodbackgr;
+texture* terraintex;
+
+extern string get_data_dir();
+
+string get_texture_dir()
+{
+	return get_data_dir() + "textures/";
+}
+
+
+#define LVL_X 13
+#define LVL_Y 13
+#define LVL_Z 3
+const char* level[3][13] = {
+	{
+		"xxxxxxxxxxxxx",
+		"x x     x   x",
+		"x x xxx x x x",
+		"x   x x x x x",
+		"xxx x   x x x",
+		"x x x x x x x",
+		"x         x x",
+		"x   x x xxx x",
+		"xxxxx x x   x",
+		"x     x x xxx",
+		"x  x  xxx   x",
+		"x           x",
+		"xxxxxxxxxxxxx"
+	},
+	{
+		"xxxxxxxxxxxxx",
+		"x xxxxxxxxxxx",
+		"xxxxxxxxxxxxx",
+		"xxxxxxxxxxx x",
+		"xxxxxxxxxxxxx",
+		"xxx xxxxxxxxx",
+		"xxxxxxxxxxxxx",
+		"xxxxxxxxxxxxx",
+		"xxxxxxxxxxxxx",
+		"xxx xxxx xxxx",
+		"xxxxxxxxxxxxx",
+		"xxxxxxxxxxx x",
+		"xxxxxxxxxxxxx"
+	},
+	{
+		"xxxxxxxxxxxxx",
+		"x       x   x",
+		"xxxxxxx x x x",
+		"x     x x x x",
+		"x xxx x x   x",
+		"x   x   x x x",
+		"xxx xxxxx   x",
+		"x   x x   x x",
+		"x xxx x x   x",
+		"x x   x x x x",
+		"x xxx xxx x x",
+		"x           x",
+		"xxxxxxxxxxxxx"
+	},
 };
+unsigned level_at(int x, int y, int z)
+{
+	if (x < 0 || x >= LVL_X) return 1;
+	if (y < 0 || y >= LVL_Y) return 1;
+	if (z < 0 || z >= LVL_Z) return 1;
+	return level[z][LVL_Y-1-y][x] == 'x' ? 1 : 0;
+}
+
 
 int mymain(list<string>& args)
 {
@@ -351,42 +407,83 @@ public:
 void sector::display(const frustum& f) const
 {
 	if (!displayed) {
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glColor3f(0.4, 0.2, 0.2);
-		glBegin(GL_QUADS);
-		glVertex3f(basepos.x, basepos.y, basepos.z);
-		glVertex3f(basepos.x+1, basepos.y, basepos.z);
-		glVertex3f(basepos.x+1, basepos.y+1, basepos.z);
-		glVertex3f(basepos.x, basepos.y+1, basepos.z);
+		glColor3f(1,1,1);
+		terraintex->set_gl_texture();
 		if (walls & 1) {
-			glColor3f(0.8, 0.8, 0.8);
+			glBegin(GL_QUADS);
+			glTexCoord2f(0,1);
 			glVertex3f(basepos.x, basepos.y+1, basepos.z);
+			glTexCoord2f(1,1);
 			glVertex3f(basepos.x+1, basepos.y+1, basepos.z);
+			glTexCoord2f(1,0);
 			glVertex3f(basepos.x+1, basepos.y+1, basepos.z+1);
+			glTexCoord2f(0,0);
 			glVertex3f(basepos.x, basepos.y+1, basepos.z+1);
+			glEnd();
 		}
 		if (walls & 2) {
-			glColor3f(0.6, 0.8, 0.6);
+			glBegin(GL_QUADS);
+			glTexCoord2f(0,1);
 			glVertex3f(basepos.x+1, basepos.y, basepos.z);
+			glTexCoord2f(1,1);
 			glVertex3f(basepos.x, basepos.y, basepos.z);
+			glTexCoord2f(1,0);
 			glVertex3f(basepos.x, basepos.y, basepos.z+1);
+			glTexCoord2f(0,0);
 			glVertex3f(basepos.x+1, basepos.y, basepos.z+1);
+			glEnd();
 		}
 		if (walls & 4) {
-			glColor3f(0.8, 0.6, 0.6);
+			glBegin(GL_QUADS);
+			glTexCoord2f(0,1);
 			glVertex3f(basepos.x, basepos.y, basepos.z);
+			glTexCoord2f(1,1);
 			glVertex3f(basepos.x, basepos.y+1, basepos.z);
+			glTexCoord2f(1,0);
 			glVertex3f(basepos.x, basepos.y+1, basepos.z+1);
+			glTexCoord2f(0,0);
 			glVertex3f(basepos.x, basepos.y, basepos.z+1);
+			glEnd();
 		}
 		if (walls & 8) {
-			glColor3f(0.4, 0.4, 0.4);
+			glBegin(GL_QUADS);
+			glTexCoord2f(0,1);
 			glVertex3f(basepos.x+1, basepos.y+1, basepos.z);
+			glTexCoord2f(1,1);
 			glVertex3f(basepos.x+1, basepos.y, basepos.z);
+			glTexCoord2f(1,0);
 			glVertex3f(basepos.x+1, basepos.y, basepos.z+1);
+			glTexCoord2f(0,0);
 			glVertex3f(basepos.x+1, basepos.y+1, basepos.z+1);
+			glEnd();
 		}
-		glEnd();
+		if (walls & 16) {
+			metalbackgr->set_gl_texture();
+			glBegin(GL_QUADS);
+			glTexCoord2f(0,1);
+			glVertex3f(basepos.x, basepos.y, basepos.z);
+			glTexCoord2f(1,1);
+			glVertex3f(basepos.x+1, basepos.y, basepos.z);
+			glTexCoord2f(1,0);
+			glVertex3f(basepos.x+1, basepos.y+1, basepos.z);
+			glTexCoord2f(0,0);
+			glVertex3f(basepos.x, basepos.y+1, basepos.z);
+			glEnd();
+		}
+		if (walls & 32) {
+			woodbackgr->set_gl_texture();
+			glBegin(GL_QUADS);
+			glTexCoord2f(0,1);
+			glVertex3f(basepos.x+1, basepos.y, basepos.z+1);
+			glTexCoord2f(1,1);
+			glVertex3f(basepos.x, basepos.y, basepos.z+1);
+			glTexCoord2f(1,0);
+			glVertex3f(basepos.x, basepos.y+1, basepos.z+1);
+			glTexCoord2f(0,0);
+			glVertex3f(basepos.x+1, basepos.y+1, basepos.z+1);
+			glEnd();
+		}
+		glBindTexture(GL_TEXTURE_2D, 0);
 		displayed = true;
 	}
 
@@ -398,8 +495,8 @@ void sector::display(const frustum& f) const
 		if (p.shape.get_plane().is_left(f.viewpos)) {
 			polygon newfpoly = f.clip(p.shape);
 			if (!newfpoly.empty()) {
-				glColor3f(0.5,0.5,1);
-				newfpoly.draw();
+// 				glColor3f(0.5,0.5,1);
+// 				newfpoly.draw();
 				frustum fnew(newfpoly, f.viewpos, f.viewdir);
 				p.adj_sector->display(fnew);
 			}
@@ -413,7 +510,8 @@ bool sector::check_movement(const vector3& currpos, const vector3& nextpos, sect
 {
 	// we assume that nextpos is inside this sector.
 	if (nextpos.x >= basepos.x && nextpos.x < basepos.x + 1
-	    && nextpos.y >= basepos.y && nextpos.y < basepos.y + 1) {
+	    && nextpos.y >= basepos.y && nextpos.y < basepos.y + 1
+	    && nextpos.z >= basepos.z && nextpos.z < basepos.z + 1) {
 		nextseg = 0;
 		return true;
 	}
@@ -440,6 +538,7 @@ void line(const vector3& a, const vector3& b)
 
 
 
+#if 0
 void run()
 {
 	// plane parallel to z=0 plane, but 2 units in z-direction.
@@ -596,7 +695,7 @@ void run()
 		vector3& pos = (movecamera) ? pos_cam : pos_usr;
 		vector3& viewangles = (movecamera) ? viewangles_cam : viewangles_usr;
 		vector3 oldpos = pos;
-		const double movesc = 0.25;
+		const double movesc = 0.1;
 		list<SDL_Event> events = mysys->poll_event_queue();
 		for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
 			SDL_Event& event = *it;
@@ -647,4 +746,175 @@ void run()
 		}
 		mysys->swap_buffers();
 	}
+}
+#endif
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void run()
+{
+	/* 3d portal rendering:
+	   define frustum as list of planes (4 at begin, depends on FOV etc, maybe get plane
+	   equations from projection matrix etc.
+	   clip portal against frustum by clipping the portal polygon against all frustum planes
+	   sequentially.
+	   Avoid portals that are facing away.
+	   Resulting polygon is either empty or valid.
+	   Construct new frustum by making planes from points of polygon and camera position.
+	   Continue...
+	   mark each sector as rendered when you render it (could be visible through > 1 portals).
+	   avoid rerender. clear all tags before rendering.
+	*/
+
+	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", texture::LINEAR);
+	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png", texture::LINEAR);
+	terraintex = new texture(get_texture_dir() + "terrain.jpg", texture::LINEAR);
+
+	vector<sector> sectors(LVL_X * LVL_Y * LVL_Z);
+	for (int z = 0; z < LVL_Z; ++z) {
+		for (int y = 0; y < LVL_Y; ++y) {
+			for (int x = 0; x < LVL_X; ++x) {
+				if (level_at(x, y, z) == 0) {
+					// create sector
+					sector& s = sectors[x+LVL_X*(y+LVL_Y*z)];
+					s.basepos = vector3(x, y, z);
+					s.walls = 0x00;
+					polygon pup   (s.basepos+vector3(0,1,0), s.basepos+vector3(1,1,0), s.basepos+vector3(1,1,1), s.basepos+vector3(0,1,1));
+					polygon pleft (s.basepos+vector3(0,0,0), s.basepos+vector3(0,1,0), s.basepos+vector3(0,1,1), s.basepos+vector3(0,0,1));
+					polygon pright(s.basepos+vector3(1,1,0), s.basepos+vector3(1,0,0), s.basepos+vector3(1,0,1), s.basepos+vector3(1,1,1));
+					polygon pdown (s.basepos+vector3(1,0,0), s.basepos+vector3(0,0,0), s.basepos+vector3(0,0,1), s.basepos+vector3(1,0,1));
+					polygon ptop  (s.basepos+vector3(1,0,1), s.basepos+vector3(0,0,1), s.basepos+vector3(0,1,1), s.basepos+vector3(1,1,1));
+					polygon pbott (s.basepos+vector3(0,0,0), s.basepos+vector3(1,0,0), s.basepos+vector3(1,1,0), s.basepos+vector3(0,1,0));
+					// look for adjacent sectors, create portals to them
+					if (level_at(x, y+1, z) == 0)
+						s.portals.push_back(portal(pup, &sectors[x+LVL_X*(y+1+LVL_Y*z)]));
+					else
+						s.walls |= 1;
+					if (level_at(x, y-1, z) == 0)
+						s.portals.push_back(portal(pdown, &sectors[x+LVL_X*(y-1+LVL_Y*z)]));
+					else
+						s.walls |= 2;
+					if (level_at(x-1, y, z) == 0)
+						s.portals.push_back(portal(pleft, &sectors[x-1+LVL_X*(y+LVL_Y*z)]));
+					else
+						s.walls |= 4;
+					if (level_at(x+1, y, z) == 0)
+						s.portals.push_back(portal(pright, &sectors[x+1+LVL_X*(y+LVL_Y*z)]));
+					else
+						s.walls |= 8;
+					if (level_at(x, y, z-1) == 0)
+						s.portals.push_back(portal(pbott, &sectors[x+LVL_X*(y+LVL_Y*(z-1))]));
+					else
+						s.walls |= 16;
+					if (level_at(x, y, z+1) == 0)
+						s.portals.push_back(portal(ptop, &sectors[x+LVL_X*(y+LVL_Y*(z+1))]));
+					else
+						s.walls |= 32;
+				}
+			}
+		}
+	}
+
+	sector* currsector = &sectors[1+LVL_X*(1+LVL_Y*0)];
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	sys().gl_perspective_fovx(70, 4.0/3.0, 0.1, 1000);
+	glMatrixMode(GL_MODELVIEW);
+
+	glDisable(GL_LIGHTING);
+
+	vector3 viewangles(0, 0, 0);
+	vector3 pos(1.5, 1.5, 0.3);
+
+	while (true) {
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// compute mvp etc. for user
+		glLoadIdentity();
+		// make camera look to pos. y-axis.
+		glRotatef(-90, 1, 0, 0);
+		glRotatef(-viewangles.y, 0, 1, 0);
+		glRotatef(-viewangles.x, 1, 0, 0);
+		glRotatef(-viewangles.z, 0, 0, 1);
+		matrix4 mvr = matrix4::get_gl(GL_MODELVIEW_MATRIX);
+		glTranslated(-pos.x, -pos.y, -pos.z);
+		matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
+		matrix4 prj = matrix4::get_gl(GL_PROJECTION_MATRIX);
+		matrix4 mvp = prj * mv;
+		matrix4 invmv = mv.inverse();
+		matrix4 invmvr = mvr.inverse();
+		matrix4 invmvp = mvp.inverse();
+		vector3 wbln = invmvp * vector3(-1,-1,-1);
+		vector3 wbrn = invmvp * vector3(+1,-1,-1);
+		vector3 wtln = invmvp * vector3(-1,+1,-1);
+		vector3 wtrn = invmvp * vector3(+1,+1,-1);
+		vector3 vd = invmvr * vector3(0,0,-1);
+		polygon viewwindow(wbln, wbrn, wtrn, wtln);
+		frustum viewfrustum(viewwindow, pos, vd);
+
+		// render sectors.
+		for (unsigned i = 0; i < sectors.size(); ++i)
+			sectors[i].displayed = false;
+		currsector->display(viewfrustum);
+
+		vector3 oldpos = pos;
+		const double movesc = 0.25;
+		list<SDL_Event> events = mysys->poll_event_queue();
+		vector3 forward = -invmvr.column3(2) * movesc;
+		vector3 upward = invmvr.column3(1) * movesc;
+		vector3 sideward = invmvr.column3(0) * movesc;
+		for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
+			SDL_Event& event = *it;
+			if (event.type == SDL_KEYDOWN) {
+				switch (event.key.keysym.sym) {
+				case SDLK_ESCAPE:
+					return;
+				case SDLK_KP4: pos -= sideward; break;
+				case SDLK_KP6: pos += sideward; break;
+				case SDLK_KP8: pos += upward; break;
+				case SDLK_KP2: pos -= upward; break;
+				case SDLK_KP1: pos += forward; break;
+				case SDLK_KP3: pos -= forward; break;
+				default: break;
+				}
+			} else if (event.type == SDL_MOUSEMOTION) {
+				if (event.motion.state & SDL_BUTTON_LMASK) {
+					viewangles.z -= event.motion.xrel * 0.5;
+					viewangles.x -= event.motion.yrel * 0.5;
+				} else if (event.motion.state & SDL_BUTTON_RMASK) {
+					viewangles.y += event.motion.xrel * 0.5;
+// 				} else if (event.motion.state & SDL_BUTTON_MMASK) {
+// 					pos.x += event.motion.xrel * 0.05;
+// 					pos.y += event.motion.yrel * 0.05;
+				}
+			} else if (event.type == SDL_MOUSEBUTTONDOWN) {
+// 				if (event.button.button == SDL_BUTTON_WHEELUP) {
+// 					pos.z -= movesc;
+// 				} else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
+// 					pos.z += movesc;
+// 				}
+			}
+		}
+
+		// check for sector switch by movement
+		sector* seg = 0;
+		bool movementok = currsector->check_movement(oldpos, pos, seg);
+		if (!movementok) {
+			if (seg) {
+				// switch sector
+				currsector = seg;
+			} else {
+				// avoid movement
+				pos = oldpos;
+			}
+		}
+
+		mysys->swap_buffers();
+	}
+
+	delete metalbackgr;
+	delete woodbackgr;
+	delete terraintex;
 }

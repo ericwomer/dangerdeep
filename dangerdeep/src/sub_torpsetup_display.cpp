@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "keys.h"
 #include "vector2.h"
 #include "cfg.h"
+#include "global_data.h"
 #include <sstream>
 using namespace std;
 

@@ -26,6 +26,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ai.h"
 #include "system.h"
 #include "ship.h"
+#include "datadirs.h"
+#include "global_data.h"
 
 
 // fixme: the whole file is covered with outcommented lines that have to be

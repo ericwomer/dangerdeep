@@ -35,6 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "global_data.h"
 #include "game.h"
 #include "matrix4.h"
+#include "datadirs.h"
 
 const double CLOUD_ANIMATION_CYCLE_TIME = 3600.0;
 

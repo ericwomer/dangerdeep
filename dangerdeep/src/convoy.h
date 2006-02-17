@@ -23,7 +23,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef CONVOY_H
 #define CONVOY_H
 
-#include "global_data.h"
 #include "ai.h"
 #include "vector2.h"
 #include <new>

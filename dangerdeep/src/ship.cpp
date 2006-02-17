@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "particle.h"
 #include "tinyxml/tinyxml.h"
 #include "gun_shell.h"
+#include "global_data.h"
 
 map<double, map<double, double> > ship::dist_angle_relation;
 #define MAX_INCLINATION 45.0

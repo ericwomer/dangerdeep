@@ -40,6 +40,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "cfg.h"
 #include "xml.h"
 #include "filehelper.h"
+#include "global_data.h"
 #ifdef CVEDIT
 #include "color.h"
 #include "bspline.h"

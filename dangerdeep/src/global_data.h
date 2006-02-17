@@ -49,20 +49,7 @@ using namespace std;
 #define se_sub_screws_fast			"screws_fast.ogg"
 #define se_sub_screws_very_fast		"screws_veryfast.ogg"
 
-string get_data_dir(void);
-string get_program_version(void);
-inline string get_texture_dir(void) { return get_data_dir() + "textures/"; }
-inline string get_font_dir(void) { return get_data_dir() + "fonts/"; }
-inline string get_model_dir(void) { return get_data_dir() + "models/"; }
-inline string get_ship_dir(void) { return get_data_dir() + "ships/"; }
-inline string get_submarine_dir(void) { return get_data_dir() + "submarines/"; }
-inline string get_airplane_dir(void) { return get_data_dir() + "airplanes/"; }
-inline string get_torpedo_dir(void) { return get_data_dir() + "torpedoes/"; }
-inline string get_sound_dir(void) { return get_data_dir() + "sounds/"; }
-inline string get_image_dir(void) { return get_data_dir() + "images/"; }
-inline string get_mission_dir(void) { return get_data_dir() + "missions/"; }
-inline string get_map_dir(void) { return get_data_dir() + "maps/"; }
-inline string get_shader_dir(void) { return get_data_dir() + "shaders/"; }
+string get_program_version();
 
 string XmlAttrib(class TiXmlElement* elem, const char* attrname);
 unsigned XmlAttribu(class TiXmlElement* elem, const char* attrname);

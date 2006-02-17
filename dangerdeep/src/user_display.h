@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <list>
 #include <SDL.h>
 #include "texture.h"
-#include "global_data.h"
+#include "datadirs.h"
 
 ///\defgroup displays In-game user interface screens
 ///\brief Base class for a single screen of the ingame user interface.

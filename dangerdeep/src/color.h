@@ -34,10 +34,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "oglext/OglExt.h"
 #endif
 
-//#include "binstream.h"
+#include <SDL_types.h>
 
-#include <iostream>
-using namespace std;
+//#include <iostream>
 
 ///\brief Color representation with some basic transformations and OpenGL usage.
 struct color {

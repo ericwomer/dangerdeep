@@ -26,9 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <list>
 #include <vector>
 #include <map>
-using namespace std;
 #include "sea_object.h"
-#include "global_data.h"
 #include "color.h"
 #include "coastmap.h"
 

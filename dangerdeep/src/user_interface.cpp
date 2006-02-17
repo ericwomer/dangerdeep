@@ -53,6 +53,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "matrix4.h"
 #include "cfg.h"
 #include "keys.h"
+#include "global_data.h"
 using namespace std;
 
 const double message_vanish_time = 10;

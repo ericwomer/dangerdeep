@@ -94,7 +94,6 @@ Only partly, only older, simpler model.
 
 
 #include "xml.h"
-#include "global_data.h"
 #include <list>
 
 class ship;

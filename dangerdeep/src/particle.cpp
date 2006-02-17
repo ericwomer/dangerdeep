@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <algorithm>
 
 #include "global_data.h" //for smoke texture, fixme
+#include "datadirs.h"
 
 unsigned particle::init_count = 0;
 vector<texture*> particle::tex_smoke;

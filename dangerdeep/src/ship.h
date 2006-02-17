@@ -23,8 +23,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef SHIP_H
 #define SHIP_H
 
+#include <map>
 #include "sea_object.h"
-#include "global_data.h"
 
 #define SINK_SPEED 0.5  // m/sec, fixme move to ship. include in local drag.
 
@@ -128,7 +128,7 @@ class ship : public sea_object
 	// some experience values of the crews to fire a grenade with right angle at any
 	// target. This depends on canon type (shot speed, min/max angles etc.) so we need
 	// several ai classes later.
-	static map<double, map<double, double> > dist_angle_relation;
+	static std::map<double, std::map<double, double> > dist_angle_relation;
 	static void fill_dist_angle_relation_map(const double initial_velocity);
 	
 	// deck gun

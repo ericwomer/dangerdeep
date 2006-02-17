@@ -32,21 +32,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "oglext/OglExt.h"
 #include "tinyxml/tinyxml.h"
 #include "system.h"
+#include "datadirs.h"
 #include <SDL_image.h>
 
 
 // computed with an earth radius of 40030.17359km
 const double DEGREE_IN_METERS = 111194.9266388889;
 const double MINUTE_IN_METERS = 1853.248777315;
-
-
-// return global data directory. all other directories depend on this.
-// by defining it only here, we need to recompile only one object file
-string get_data_dir(void)
-{
-	return string(DATADIR);
-}
-
 
 
 // same with version string

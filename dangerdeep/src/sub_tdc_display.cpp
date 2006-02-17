@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "submarine.h"
 #include "keys.h"
 #include "cfg.h"
+#include "global_data.h"
 #include <sstream>
 using namespace std;
 

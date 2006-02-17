@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector2.h"
 #include "particle.h"
 #include "angle.h"
+#include "global_data.h"
 
 // Class sensor
 sensor::sensor ( double range, double detection_cone ) :
