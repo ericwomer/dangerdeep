@@ -550,6 +550,9 @@ void sector::display(const frustum& f, bool allowrenderonportal) const
 		// fixme: if we are too close to a portal this is a problem and leads to bugs.
 		// compare distance to portal and znear.
 		// if we're beyond the portal, ignore it.
+		// the problem still appears when we have four sectors with portals between each other, so they form one room.
+		// if we step exactly on the corner between the four sectors (or maybe the problem exists already with three),
+		// sometimes nothing is drawn...
 		plane portal_plane = p.shape.get_plane();
 		double dist_to_portal = portal_plane.distance(f.viewpos);
 		//cout << "viewpos dist: " << portal_plane.distance(f.viewpos) << "\n";
@@ -893,7 +896,14 @@ void run()
 	vector3 viewangles(0, 0, 0);
 	vector3 pos(1.5, 1.5, 0.3);
 
+	double tm0 = sys().millisec();
+	int mv_forward = 0, mv_upward = 0, mv_sideward = 0;
+
 	while (true) {
+		double tm1 = sys().millisec();
+		double delta_t = tm1 - tm0;
+		tm0 = tm1;
+
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -901,8 +911,8 @@ void run()
 		glLoadIdentity();
 		// make camera look to pos. y-axis.
 		glRotatef(-90, 1, 0, 0);
-		glRotatef(-viewangles.y, 0, 1, 0);
 		glRotatef(-viewangles.x, 1, 0, 0);
+		glRotatef(-viewangles.y, 0, 1, 0);
 		glRotatef(-viewangles.z, 0, 0, 1);
 		matrix4 mvr = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 		glTranslated(-pos.x, -pos.y, -pos.z);
@@ -937,12 +947,22 @@ void run()
 				switch (event.key.keysym.sym) {
 				case SDLK_ESCAPE:
 					return;
-				case SDLK_KP4: pos -= sideward; break;
-				case SDLK_KP6: pos += sideward; break;
-				case SDLK_KP8: pos += upward; break;
-				case SDLK_KP2: pos -= upward; break;
-				case SDLK_KP1: pos += forward; break;
-				case SDLK_KP3: pos -= forward; break;
+				case SDLK_KP4: mv_sideward = -1; break;
+				case SDLK_KP6: mv_sideward = 1; break;
+				case SDLK_KP8: mv_upward = 1; break;
+				case SDLK_KP2: mv_upward = -1; break;
+				case SDLK_KP1: mv_forward = 1; break;
+				case SDLK_KP3: mv_forward = -1; break;
+				default: break;
+				}
+			} else if (event.type == SDL_KEYUP) {
+				switch (event.key.keysym.sym) {
+				case SDLK_KP4: mv_sideward = 0; break;
+				case SDLK_KP6: mv_sideward = 0; break;
+				case SDLK_KP8: mv_upward = 0; break;
+				case SDLK_KP2: mv_upward = 0; break;
+				case SDLK_KP1: mv_forward = 0; break;
+				case SDLK_KP3: mv_forward = 0; break;
 				default: break;
 				}
 			} else if (event.type == SDL_MOUSEMOTION) {
@@ -963,6 +983,10 @@ void run()
 // 				}
 			}
 		}
+		const double move_speed = 0.003;
+		pos += forward * mv_forward * delta_t * move_speed
+			+ sideward * mv_sideward * delta_t * move_speed
+			+ upward * mv_upward * delta_t * move_speed;
 
 		// check for sector switch by movement
 		sector* seg = 0;
