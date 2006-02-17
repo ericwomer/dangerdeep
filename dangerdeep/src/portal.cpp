@@ -584,10 +584,11 @@ bool sector::check_movement(const vector3& currpos, const vector3& nextpos, sect
 			return false;
 		}
 	}
+	const double DIST2WALL = -EPSILON;//0.1;
 	nextseg = 0;
-	if (nextpos.x >= basepos.x - EPSILON && nextpos.x < basepos.x + 1 + EPSILON
-	    && nextpos.y >= basepos.y - EPSILON && nextpos.y < basepos.y + 1 + EPSILON
-	    && nextpos.z >= basepos.z - EPSILON && nextpos.z < basepos.z + 1 + EPSILON) {
+	if (nextpos.x >= basepos.x + DIST2WALL && nextpos.x < basepos.x + 1 - DIST2WALL
+	    && nextpos.y >= basepos.y + DIST2WALL && nextpos.y < basepos.y + 1 - DIST2WALL
+	    && nextpos.z >= basepos.z + DIST2WALL && nextpos.z < basepos.z + 1 - DIST2WALL) {
 		return true;
 	}
 	return false;
