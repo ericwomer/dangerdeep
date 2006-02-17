@@ -239,6 +239,11 @@ typedef plane_t<float> planef;
 
 
 
+// const double EPSILON = 0.01;
+// const double EPSILON2 = 0.001;
+
+
+
 template<class D>
 class polygon_t
 {
@@ -306,15 +311,26 @@ public:
 				} else {
 					// next point is right, insert this point and intersection point
 					result.points.push_back(points[i]);
-					result.points.push_back(plan.intersection(points[i], points[j]));
+					vector3t<D> interp = plan.intersection(points[i], points[j]);
+					//if (interp.square_distance(points[i]) > EPSILON2)
+					result.points.push_back(interp);
 				}
 			} else {
 				if (pleft[j]) {
 					// next point is left, insert intersection point
-					result.points.push_back(plan.intersection(points[i], points[j]));
+					vector3t<D> interp = plan.intersection(points[i], points[j]);
+					//if (interp.square_distance(points[j]) > EPSILON2)
+					result.points.push_back(interp);
 				} else {
 					// both points are right, do nothing
 				}
+			}
+		}
+		//fixme: avoid double points!
+		for (unsigned i = 0; i < result.points.size(); ++i) {
+			unsigned j = (i+1) % result.points.size();
+			if (result.points[i].distance(result.points[j]) < 0.001) {
+				cout << "Warning: double points? " << result.points[i] << " | " << result.points[j] << "\n";
 			}
 		}
 		return result;
@@ -351,16 +367,19 @@ class frustum
 	frustum();
 public:
 	std::vector<plane> planes;
+	polygon viewwindow;	// planes are constructed matching to this
 	vector3 viewpos;
 	vector3 viewdir;
 	frustum(polygon poly, const vector3& viewp, const vector3& viewd);
 	polygon clip(polygon p) const;
+	void draw() const;
+	void print() const;
 };
 
 
 
 frustum::frustum(polygon poly, const vector3& viewp, const vector3& viewd)
-	: viewpos(viewp), viewdir(viewd)
+	: viewwindow(poly), viewpos(viewp), viewdir(viewd)
 {
 	planes.reserve(poly.points.size());
 	for (unsigned i = 0; i < poly.points.size(); ++i) {
@@ -375,6 +394,18 @@ polygon frustum::clip(polygon p) const
 	for (unsigned i = 0; i < planes.size(); ++i)
 		result = result.clip(planes[i]);
 	return result;
+}
+
+void frustum::draw() const
+{
+	glColor3f(0,1,0);
+	viewwindow.draw();
+}
+
+void frustum::print() const
+{
+	cout << "Frustum: viewpos " << viewpos << " viewdir " << viewdir << "\n";
+	viewwindow.print();
 }
 
 
@@ -488,17 +519,36 @@ void sector::display(const frustum& f) const
 	}
 
 	// check for other portals
+//	f.draw();
 	for (unsigned i = 0; i < portals.size(); ++i) {
 		const portal& p = portals[i];
 		// avoid portals facing away.
 		// this means viewpos must be on the inner side of the portal plane.
+//fixme: bug, manchmal wird ein sector hinter einem portal net gezeichnet.
+//aber nur durch drehen geht das an/aus. liegt also nicht an viewpos.
+//muß also mit dem clip zu tun haben!
+//ja, manchmal ist newfpoly empty, obwohl das nicht sein soll
+//das frustum-poly hat zwei identische punkte hintereinander!!!
+//was dann? dann ist eine plane = (0,0,0,0), das müßte dann immer innen sein...
+//durch rundungsfehler aber vielleicht auch andersherum. doppelte punkte vermeiden!!!
 		if (p.shape.get_plane().is_left(f.viewpos)) {
 			polygon newfpoly = f.clip(p.shape);
 			if (!newfpoly.empty()) {
-// 				glColor3f(0.5,0.5,1);
-// 				newfpoly.draw();
+// 				printf("+++++++++++++ match and recurse\n");
+// 				f.print();
+// 				p.shape.print();
+// 				newfpoly.print();
+//  				glColor3f(1,1,0.5);
+//  				newfpoly.draw();
 				frustum fnew(newfpoly, f.viewpos, f.viewdir);
 				p.adj_sector->display(fnew);
+			} else {
+// 				printf("------------- no match\n");
+// 				f.print();
+// 				p.shape.print();
+// 				newfpoly.print();
+// 				glColor3f(1,0,0);
+// 				p.shape.draw();
 			}
 		}
 	}
@@ -828,6 +878,7 @@ void run()
 	vector3 pos(1.5, 1.5, 0.3);
 
 	while (true) {
+		cout << "redraw!\n";
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
