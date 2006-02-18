@@ -341,13 +341,15 @@ public:
 				}
 			}
 		}
-		//fixme: avoid double points!
+		// avoid double points! we do that now... so the check is obsolete.
+		/*
 		for (unsigned i = 0; i < result.points.size(); ++i) {
 			unsigned j = (i+1) % result.points.size();
 			if (result.points[i].distance(result.points[j]) < 0.001) {
 				cout << "Warning: double points? " << result.points[i] << " | " << result.points[j] << "\n";
 			}
 		}
+		*/
 		return result;
 	}
 	/// print polygon
@@ -585,7 +587,10 @@ bool sector::check_movement(const vector3& currpos, const vector3& nextpos, sect
 			return false;
 		}
 	}
-	const double DIST2WALL = 0.1;
+	// the value needs to be greater than the largest distance between the viewer's position and one of the
+	// corner points of the near rectangle of the viewing frustum. assume sqrt(3*znear^2) or so...
+	// znear=0.1 -> dist2wall = 0.173...
+	const double DIST2WALL = 0.175;
 	nextseg = 0;
 	if (nextpos.x < basepos.x + DIST2WALL && (walls & 4)) return false;
 	if (nextpos.x > basepos.x + 1 - DIST2WALL && (walls & 8)) return false;
