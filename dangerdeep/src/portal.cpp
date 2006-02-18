@@ -42,6 +42,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <sstream>
 #include "image.h"
 #include "faulthandler.h"
+#include "datadirs.h"
 
 #include "mymain.cpp"
 
@@ -54,14 +55,6 @@ void run();
 texture* metalbackgr;
 texture* woodbackgr;
 texture* terraintex;
-
-extern string get_data_dir();
-
-string get_texture_dir()
-{
-	return get_data_dir() + "textures/";
-}
-
 
 #define LVL_X 13
 #define LVL_Y 13
@@ -452,14 +445,17 @@ public:
 	unsigned walls;
 	std::vector<portal> portals;
 	mutable bool displayed;
-	void display(const frustum& f, bool allowrenderonportal = true) const;
+	mutable bool visited;	// needed during rendering.
+	sector() : walls(0), displayed(false), visited(false) {}
+	void display(const frustum& f) const;
 	bool check_movement(const vector3& currpos, const vector3& nextpos, sector*& nextseg) const;
 };
 
 
 
-void sector::display(const frustum& f, bool allowrenderonportal) const
+void sector::display(const frustum& f) const
 {
+	visited = true;
 	if (!displayed) {
 		glColor3f(1,1,1);
 		terraintex->set_gl_texture();
@@ -553,15 +549,16 @@ void sector::display(const frustum& f, bool allowrenderonportal) const
 		// the problem still appears when we have four sectors with portals between each other, so they form one room.
 		// if we step exactly on the corner between the four sectors (or maybe the problem exists already with three),
 		// sometimes nothing is drawn...
+		// if we're too close to a portal, render both sectors, but avoid re-visit (or infinite loops will result).
 		plane portal_plane = p.shape.get_plane();
 		double dist_to_portal = portal_plane.distance(f.viewpos);
 		//cout << "viewpos dist: " << portal_plane.distance(f.viewpos) << "\n";
 		if (fabs(dist_to_portal) < f.znear) {
 			// we're to close to the portal.
-			// render both adjacent sectors with frustum f.
+			// render both adjacent sectors with frustum f, but only if they haven't been visited.
 			// we already rendered this sector, so render other sector
-			if (allowrenderonportal) {
-				p.adj_sector->display(f, false);
+			if (!p.adj_sector->visited) {
+				p.adj_sector->display(f);
 			}
 		} else if (portal_plane.is_left(f.viewpos)) {
 			polygon newfpoly = f.clip(p.shape);
@@ -571,6 +568,7 @@ void sector::display(const frustum& f, bool allowrenderonportal) const
 			}
 		}
 	}
+	visited = false;
 }
 
 
@@ -581,20 +579,21 @@ bool sector::check_movement(const vector3& currpos, const vector3& nextpos, sect
 	// check for crossed portal.
 	for (unsigned i = 0; i < portals.size(); ++i) {
 		plane pl = portals[i].shape.get_plane();
-		if (pl.test_side(nextpos) < 0) {
+		if (pl.test_side(nextpos) <= 0) {
 			// we crossed the plane of that portal, switch sector.
 			nextseg = portals[i].adj_sector;
 			return false;
 		}
 	}
-	const double DIST2WALL = -EPSILON;//0.1;
+	const double DIST2WALL = 0.1;
 	nextseg = 0;
-	if (nextpos.x >= basepos.x + DIST2WALL && nextpos.x < basepos.x + 1 - DIST2WALL
-	    && nextpos.y >= basepos.y + DIST2WALL && nextpos.y < basepos.y + 1 - DIST2WALL
-	    && nextpos.z >= basepos.z + DIST2WALL && nextpos.z < basepos.z + 1 - DIST2WALL) {
-		return true;
-	}
-	return false;
+	if (nextpos.x < basepos.x + DIST2WALL && (walls & 4)) return false;
+	if (nextpos.x > basepos.x + 1 - DIST2WALL && (walls & 8)) return false;
+	if (nextpos.y < basepos.y + DIST2WALL && (walls & 2)) return false;
+	if (nextpos.y > basepos.y + 1 - DIST2WALL && (walls & 1)) return false;
+	if (nextpos.z < basepos.z + DIST2WALL && (walls & 16)) return false;
+	if (nextpos.z > basepos.z + 1 - DIST2WALL && (walls & 32)) return false;
+	return true;
 }
 
 
@@ -607,220 +606,6 @@ void line(const vector3& a, const vector3& b)
 
 
 
-#if 0
-void run()
-{
-	// plane parallel to z=0 plane, but 2 units in z-direction.
-// 	plane pl(0, 0, 1, -2);
-// 	plane pl2(0, 0, -1, 3);
-// 	polygon p0(vector3(0,0,0), vector3(-4,0,4), vector3(4,0,4));
-// 	polygon p1(vector3(0,0,0), vector3(-4,0,-4), vector3(4,0,-4));
-// 	polygon p2(vector3(0,0,8), vector3(-4,0,4), vector3(4,0,4));
-// 	polygon pc0 = p0.clip(pl);
-// 	polygon pc1 = p1.clip(pl);
-// 	polygon pc2 = p2.clip(pl);
-// 	pc0.print();
-// 	pc1.print();
-// 	pc2.print();
-// 	p0.clip(pl).clip(pl2).print();
-
-	/* 3d portal rendering:
-	   define frustum as list of planes (4 at begin, depends on FOV etc, maybe get plane
-	   equations from projection matrix etc.
-	   clip portal against frustum by clipping the portal polygon against all frustum planes
-	   sequentially.
-	   Avoid portals that are facing away.
-	   Resulting polygon is either empty or valid.
-	   Construct new frustum by making planes from points of polygon and camera position.
-	   Continue...
-	   mark each sector as rendered when you render it (could be visible through > 1 portals).
-	   avoid rerender. clear all tags before rendering.
-	*/
-
-#define LVLSZ 13
-	vector<sector> sectors(LVLSZ*LVLSZ);
-	for (int y = 0; y < LVLSZ; ++y) {
-		int ya = LVLSZ-1-y;
-		for (int x = 0; x < LVLSZ; ++x) {
-			if (level[ya][x] != 'x') {
-				// create sector
-				sector& s = sectors[y*LVLSZ+x];
-				s.basepos = vector3(x, y, 0);
-				s.walls = 0x00;
-				polygon pup   (s.basepos+vector3(0,1,0), s.basepos+vector3(1,1,0), s.basepos+vector3(1,1,1), s.basepos+vector3(0,1,1));
-				polygon pleft (s.basepos+vector3(0,0,0), s.basepos+vector3(0,1,0), s.basepos+vector3(0,1,1), s.basepos+vector3(0,0,1));
-				polygon pright(s.basepos+vector3(1,1,0), s.basepos+vector3(1,0,0), s.basepos+vector3(1,0,1), s.basepos+vector3(1,1,1));
-				polygon pdown (s.basepos+vector3(1,0,0), s.basepos+vector3(0,0,0), s.basepos+vector3(0,0,1), s.basepos+vector3(1,0,1));
-				// look for adjacent sectors, create portals to them
-				if (level[ya-1][x] != 'x')
-					s.portals.push_back(portal(pup, &sectors[(y+1)*LVLSZ+x]));
-				else
-					s.walls |= 1;
-				if (level[ya+1][x] != 'x')
-					s.portals.push_back(portal(pdown, &sectors[(y-1)*LVLSZ+x]));
-				else
-					s.walls |= 2;
-				if (level[ya][x-1] != 'x')
-					s.portals.push_back(portal(pleft, &sectors[y*LVLSZ+x-1]));
-				else
-					s.walls |= 4;
-				if (level[ya][x+1] != 'x')
-					s.portals.push_back(portal(pright, &sectors[y*LVLSZ+x+1]));
-				else
-					s.walls |= 8;
-			}
-		}
-	}
-
-	sector* currsector = &sectors[1*LVLSZ+1];
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	sys().gl_perspective_fovx(70, 4.0/3.0, 0.1, 1000);
-	glMatrixMode(GL_MODELVIEW);
-
-	glDisable(GL_LIGHTING);
-
-	vector3 viewangles_cam;
-	vector3 pos_cam(0, 0, 2);
-	vector3 viewangles_usr(90, 0, 0);
-	vector3 pos_usr(1.5, 1.5, 0.3);
-
-	bool movecamera = true;
-
-	while (true) {
-		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		// only allow turning as test
-		viewangles_usr.x = 90;
-		viewangles_usr.z = 0;
-
-		// compute mvp etc. for user
-		glLoadIdentity();
-		glRotatef(viewangles_usr.z, 0, 0, 1);
-		glRotatef(viewangles_usr.y, 0, 1, 0);
-		glRotatef(viewangles_usr.x, 1, 0, 0);
-		matrix4 mvr = matrix4::get_gl(GL_MODELVIEW_MATRIX);
-		glTranslated(-pos_usr.x, -pos_usr.y, -pos_usr.z);
-		matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
-		matrix4 prj = matrix4::get_gl(GL_PROJECTION_MATRIX);
-		matrix4 mvp = prj * mv;
-		matrix4 invmv = mv.inverse();
-		matrix4 invmvr = mvr.inverse();
-		matrix4 invmvp = mvp.inverse();
-		vector3 wbln = invmvp * vector3(-1,-1,-1);
-		vector3 wbrn = invmvp * vector3(+1,-1,-1);
-		vector3 wtln = invmvp * vector3(-1,+1,-1);
-		vector3 wtrn = invmvp * vector3(+1,+1,-1);
-		vector3 vd = invmvr * vector3(0,0,-1);
-		polygon viewwindow(wbln, wbrn, wtrn, wtln);
-		frustum viewfrustum(viewwindow, pos_usr, vd);
-
-		// set real values for camera
-		glLoadIdentity();
-		glTranslated(-pos_cam.x, -pos_cam.y, -pos_cam.z);
-		glRotatef(viewangles_cam.z, 0, 0, 1);
-		glRotatef(viewangles_cam.y, 0, 1, 0);
-		glRotatef(viewangles_cam.x, 1, 0, 0);
-
-		// coordinate system
-		glBegin(GL_LINES);
-		glColor3f(1,0,0);
-		glVertex3f(0,0,0);
-		glVertex3f(1,0,0);
-		glColor3f(1,1,0);
-		glVertex3f(0,0,0);
-		glVertex3f(0,1,0);
-		glColor3f(0,1,0);
-		glVertex3f(0,0,0);
-		glVertex3f(0,0,1);
-		glColor3f(1,1,1);
-		glEnd();
-		glColor3f(1, 1, 1);
-
-		// show user pos and frustum
-		glBegin(GL_LINES);
-		glColor3f(1,0.2,0.2);
-		line(pos_usr, wbln);
-		line(pos_usr, wbrn);
-		line(pos_usr, wtln);
-		line(pos_usr, wtrn);
-		glColor3f(1,0.6,0.6);
-		line(wbln, wbrn);
-		line(wbrn, wtrn);
-		line(wtrn, wtln);
-		line(wtln, wbln);
-		glColor3f(1,1,0.5);
-		line(pos_usr, pos_usr + vd);
-		glEnd();
-
-		// render sectors.
-		for (unsigned i = 0; i < sectors.size(); ++i)
-			sectors[i].displayed = false;
-		currsector->display(viewfrustum);
-
-		bool movedcam = movecamera;
-		vector3& pos = (movecamera) ? pos_cam : pos_usr;
-		vector3& viewangles = (movecamera) ? viewangles_cam : viewangles_usr;
-		vector3 oldpos = pos;
-		const double movesc = 0.1;
-		list<SDL_Event> events = mysys->poll_event_queue();
-		for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
-			SDL_Event& event = *it;
-			if (event.type == SDL_KEYDOWN) {
-				switch (event.key.keysym.sym) {
-				case SDLK_ESCAPE:
-					return;
-				case SDLK_KP4: pos.x -= movesc; break;
-				case SDLK_KP6: pos.x += movesc; break;
-				case SDLK_KP8: pos.y -= movesc; break;
-				case SDLK_KP2: pos.y += movesc; break;
-				case SDLK_KP1: pos.z -= movesc; break;
-				case SDLK_KP3: pos.z += movesc; break;
-				case SDLK_SPACE: movecamera = !movecamera; break;
-				default: break;
-				}
-			} else if (event.type == SDL_MOUSEMOTION) {
-				if (event.motion.state & SDL_BUTTON_LMASK) {
-					viewangles.y += event.motion.xrel * 0.5;
-					viewangles.x += event.motion.yrel * 0.5;
-				} else if (event.motion.state & SDL_BUTTON_RMASK) {
-					viewangles.z += event.motion.xrel * 0.5;
-					viewangles.x += event.motion.yrel * 0.5;
-				} else if (event.motion.state & SDL_BUTTON_MMASK) {
-					pos.x += event.motion.xrel * 0.05;
-					pos.y += event.motion.yrel * 0.05;
-				}
-			} else if (event.type == SDL_MOUSEBUTTONDOWN) {
-				if (event.button.button == SDL_BUTTON_WHEELUP) {
-					pos.z -= movesc;
-				} else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
-					pos.z += movesc;
-				}
-			}
-		}
-		if (!movedcam) {
-			sector* seg = 0;
-			bool movementok = currsector->check_movement(oldpos, pos, seg);
-			if (!movementok) {
-				if (seg) {
-					// switch sector
-					currsector = seg;
-				} else {
-					// avoid movement
-					pos_usr = oldpos;
-				}
-			}
-		}
-		mysys->swap_buffers();
-	}
-}
-#endif
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void run()
 {
 	/* 3d portal rendering:
@@ -836,9 +621,9 @@ void run()
 	   avoid rerender. clear all tags before rendering.
 	*/
 
-	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", texture::LINEAR);
-	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png", texture::LINEAR);
-	terraintex = new texture(get_texture_dir() + "terrain.jpg", texture::LINEAR);
+	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", texture::LINEAR_MIPMAP_LINEAR);
+	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png", texture::LINEAR_MIPMAP_LINEAR);
+	terraintex = new texture(get_texture_dir() + "terrain.jpg", texture::LINEAR_MIPMAP_LINEAR);
 
 	vector<sector> sectors(LVL_X * LVL_Y * LVL_Z);
 	for (int z = 0; z < LVL_Z; ++z) {
