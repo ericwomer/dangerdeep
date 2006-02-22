@@ -275,7 +275,7 @@ void sub_torpedo_display::display(class game& gm) const
 			// fixme: implement scrolling here!
 			if (torp_desc_line > torpdesctext->nr_of_lines())
 				torp_desc_line = torpdesctext->nr_of_lines();
-			font_olympiaworn->print_wrapped(100, 550, 570, 0, torpdesctext->str(torp_desc_line, 10), color(0,0,128));
+			font_olympiaworn->print_wrapped(100, 550, 570, 0, torpdesctext->str(torp_desc_line, 10), color(0,0,32));
 		}
 
 		if (mb & SDL_BUTTON_LMASK) {
