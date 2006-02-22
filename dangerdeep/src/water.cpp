@@ -50,7 +50,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //and other visual errors.
 //solution: check bugs, use perlin noise for sub detail, not fft, especially noise with
 //low variation of values, i.e. ripples/waves with roughly the same height not large waves and small
-//waves as with fft.
+//waves as with fft. Analyze higher FFT frequencies from ocean wave model (with test program)
+//and fake their shape with perlin noise or similar algorithms. The higher frequency images
+//look different to the overall FFT appearance or the perlin noise...
+
 
 // store an amount of foam vector per wave tile.
 // find local maxima of wave heights, the higher the absolute value of this maxima

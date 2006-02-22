@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "submarine.h"
 #include "vector2.h"
 #include "texture.h"
+#include "objcache.h"
 
 class sub_torpedo_display : public user_display
 {
@@ -57,9 +58,24 @@ class sub_torpedo_display : public user_display
 	auto_ptr<image> background_daylight;
 	auto_ptr<image> background_redlight;
 
+	class desc_text
+	{
+		std::vector<std::string> txtlines;
+		desc_text();
+	public:
+		desc_text(const std::string& filename);
+		// give startline and number of lines to fetch (nr=0: all).
+		std::string str(unsigned startline = 0, unsigned nrlines = 0) const;
+		unsigned nr_of_lines() const { return txtlines.size(); }
+	};
+
+	mutable objcachet<desc_text> desc_texts;
+
 	void draw_torpedo(class game& gm, bool usebow, const vector2i& pos, const submarine::stored_torpedo& st) const;
 
 	int mx, my, mb;
+
+	mutable unsigned torp_desc_line;
 
 	const texture& torptex(const std::string& torpname) const;
 

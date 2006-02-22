@@ -31,10 +31,39 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "user_interface.h"
 #include "global_data.h"
 #include <sstream>
+#include <fstream>
 #include <iomanip>
 using namespace std;
 
 #define ILLEGAL_TUBE 0xffffffff
+
+
+
+sub_torpedo_display::desc_text::desc_text(const std::string& filename)
+{
+	ifstream ifs(filename.c_str(), ios::in);
+	if (ifs.fail())
+		throw error(string("couldn't open ") + filename);
+
+	// read lines.
+	while (!ifs.eof()) {
+		string s;
+		getline(ifs, s);
+		txtlines.push_back(s);
+	}
+}
+
+
+
+string sub_torpedo_display::desc_text::str(unsigned startline, unsigned nrlines) const
+{
+	startline = std::min(startline, txtlines.size());
+	unsigned endline = std::min(startline + nrlines, txtlines.size());
+	string result;
+	for (unsigned i = startline; i < endline; ++i)
+		result += txtlines[i] + "\n";
+	return result;
+}
 
 
 
@@ -144,7 +173,8 @@ unsigned sub_torpedo_display::get_tube_below_mouse(const vector<vector2i>& tubec
 
 
 sub_torpedo_display::sub_torpedo_display(user_interface& ui_) :
-	user_display(ui_), torptranssrc(ILLEGAL_TUBE), mx(0), my(0), mb(0)
+	user_display(ui_), torptranssrc(ILLEGAL_TUBE), desc_texts(get_torpedo_dir()),
+	mx(0), my(0), mb(0), torp_desc_line(0)
 {
 	// maybe ref (cache!) torpedo images here instead of loading them?
 	torpempty.reset(new texture(get_image_dir() + "torpmanage_emptytube.png"));
@@ -232,6 +262,22 @@ void sub_torpedo_display::display(class game& gm) const
 	// draw information about torpedo in tube if needed
 	unsigned tb = get_tube_below_mouse(tubecoords);
 	if (tb != ILLEGAL_TUBE) {
+		// display type info.
+		if (torpedoes[tb].torp != 0 && torpedoes[tb].status == submarine::stored_torpedo::st_loaded) {
+			desc_text* torpdesctext = 0;
+			try {
+				torpdesctext = desc_texts.ref(torpedoes[tb].torp->get_specfilename() + "_" + texts::get_language_code() + ".txt");
+			}
+			catch (error& e) {
+				// try again with english text if other text(s) don't exist.
+				torpdesctext = desc_texts.ref(torpedoes[tb].torp->get_specfilename() + "_en.txt");
+			}
+			// fixme: implement scrolling here!
+			if (torp_desc_line > torpdesctext->nr_of_lines())
+				torp_desc_line = torpdesctext->nr_of_lines();
+			font_olympiaworn->print_wrapped(100, 550, 570, 0, torpdesctext->str(torp_desc_line, 10), color(0,0,128));
+		}
+
 		if (mb & SDL_BUTTON_LMASK) {
 			// display remaining time if possible
 			if (torpedoes[tb].status == submarine::stored_torpedo::st_reloading ||
@@ -240,17 +286,6 @@ void sub_torpedo_display::display(class game& gm) const
 				notepadsheet->draw(mx, my);
 				font_olympiaworn->print(mx+32, my+32, texts::get(211) +
 						  get_time_string(torpedoes[tb].remaining_time), color(0,0,128));
-			}
-		} else {
-			// display type info
-			if (torpedoes[tb].torp != 0
-			    && torpedoes[tb].status == submarine::stored_torpedo::st_loaded) {
-				color::white().set_gl_color();
-				notepadsheet->draw(mx, my);
-				torptex(torpedoes[tb].torp->get_specfilename()).draw(mx+64, my+36);
-				font_olympiaworn->print(mx+16, my+60,
-							torpedoes[tb].torp->get_specfilename(),//texts::get(300+torpedoes[tb].torp->get_specfilename()-1),//fixme: show more info!
-							color(0,0,128));
 			}
 		}
 	}
@@ -273,6 +308,10 @@ void sub_torpedo_display::process_input(class game& gm, const SDL_Event& event)
 {
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 	const vector<submarine::stored_torpedo>& torpedoes = sub->get_torpedoes();
+
+	//fixme:
+	// increase/decrease torp_desc_line when clicking on desc text area or using mouse wheel
+
 	switch (event.type) {
 	case SDL_MOUSEBUTTONDOWN:
 		// check if there is a tube below the mouse and set torptranssrc
@@ -285,6 +324,10 @@ void sub_torpedo_display::process_input(class game& gm, const SDL_Event& event)
 				}
 			}
 			mb |= SDL_BUTTON_LMASK;
+		} else if (event.button.button == SDL_BUTTON_WHEELUP) {
+			if (torp_desc_line > 0) --torp_desc_line;
+		} else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
+			++torp_desc_line;
 		}
 		break;
 	case SDL_MOUSEBUTTONUP:

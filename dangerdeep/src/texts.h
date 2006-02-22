@@ -41,7 +41,7 @@ class texts
 	texts(const std::string& langcode = "en");
  public:
 	static void set_language(const std::string& language_code);
-	static std::string get_language_code(void);
+	static std::string get_language_code();
 	static std::string get(unsigned no, category ct = common);
 	static std::string numeric_from_date(const class date& d);
 };
