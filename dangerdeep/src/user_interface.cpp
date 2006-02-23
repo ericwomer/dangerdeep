@@ -468,9 +468,10 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 {
 #if 1	// terrain pulls fps down from 45 to 33...
 	terraintex->set_gl_texture();
-	matrix_pusher mp(GL_MODELVIEW);
+	glPushMatrix();
 	glTranslated(0, 0, -viewpos.z);
 	mycoastmap.render(viewpos.xy(), max_view_dist);
+	glPopMatrix();
 #endif
 }
 

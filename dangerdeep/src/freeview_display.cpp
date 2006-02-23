@@ -374,7 +374,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	//or transform object space to world space, then clip at z=0 and then transform to eye space.
 
 	{
-		matrix_pusher mp(GL_MODELVIEW);
+		glPushMatrix();
 		// flip geometry at z=0 plane
 		glScalef(1.0f, 1.0f, -1.0f);
 		glCullFace(GL_FRONT);
@@ -427,7 +427,21 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, refltex->get_width(), refltex->get_height(), 0);
 		//fixme: ^ glCopyTexSubImage may be faster!
 
+		glPopMatrix();
 	}
+
+#if 0
+	unsigned vps=512;
+	vector<Uint8> scrn(vps*vps*3);
+	//unsigned t0 = SDL_GetTicks();
+	glReadPixels(0, 0, vps, vps, GL_RGB, GL_UNSIGNED_BYTE, &scrn[0]);
+	//unsigned t1 = SDL_GetTicks();
+	//cout << "time for " << vps << " size tex: " << t1-t0 << "\n"; // 14-20 ms each, ~1-2ms for a 128pixel texture
+	scrn[0] = 255;//test to see where is up
+	ofstream oss("mirror.ppm");
+	oss << "P6\n" << vps << " " << vps << "\n255\n";
+	oss.write((const char*)(&scrn[0]), vps*vps*3);
+#endif
 
 	// *************************** compute amount of foam for water display *****************
 
@@ -521,12 +535,13 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	if (aboard && drawbridge) {
 		// after everything was drawn, draw conning tower
 		vector3 conntowerpos = player->get_pos() - viewpos;
-		matrix_pusher mp(GL_MODELVIEW);
+		glPushMatrix();
 		// we would have to translate the conning tower, but the current model is centered arount the player's view
 		// already, fixme.
 		//glTranslated(conntowerpos.x, conntowerpos.y, conntowerpos.z);
 		glRotatef(-player->get_heading().value(),0,0,1);
 		conning_tower_typeVII->display();
+		glPopMatrix();
 	}
 
 	glDisable(GL_FOG);	

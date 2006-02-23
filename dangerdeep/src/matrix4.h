@@ -415,17 +415,6 @@ template<class D> matrix4t<D> matrix4t<D>::get_glf(GLenum pname) {
 
 
 
-class matrix_pusher
-{
-	// possible values for mode: GL_MODELVIEW, GL_PROJECTION, GL_TEXTURE
-	GLenum mode;
- public:
-	matrix_pusher(GLenum mode_ = GL_MODELVIEW) : mode(mode_) { glMatrixMode(mode); glPushMatrix(); }
-	~matrix_pusher() { glMatrixMode(mode); glPopMatrix(); }
-};
-
-
-
 #undef size
 
 typedef matrix4t<double> matrix4;
