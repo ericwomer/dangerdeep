@@ -29,10 +29,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 #include <vector>
-using namespace std;
 #include "color.h"
 #include "vector3.h"
 #include "model.h"
+
+#include "daysky.h"
+
 class game;
 
 ///\brief Rendering of sky and atmospheric effects.
@@ -40,13 +42,7 @@ class sky
 {
 protected:
 	double mytime;					// store global time in seconds
-	
-	mutable	// test
-	float skycolorfac;				// 0.0 sunny, 1.0 stormy
-						//fixme: maybe rather use it for sunrise/fall colors
-	
-	model::ptr skyhemisphere;
-	texture::ptr skycol;
+
 	texture::ptr sunglow;
 	texture::ptr clouds;
 	texture::ptr suntex;
@@ -62,12 +58,9 @@ protected:
 	// the stars (positions in world space, constant, and their luminance)
 	vector<vector3f> stars_pos;
 	vector<Uint8> stars_lumin;
-	
+
 	sky& operator= (const sky& other);
 	sky(const sky& other);
-
-	void setup_textures(void) const;
-	void cleanup_textures(void) const;
 
 	// generate new clouds, fac (0-1) gives animation phase. animation is cyclic.
 	void advance_cloud_animation(double fac);	// 0-1
@@ -77,8 +70,21 @@ protected:
 		const vector<Uint8>& nmap);
 	void smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map1);
 
+	vector<vector3f> m_skyverts;
+	vector<vector2f> m_skyangles;
+	mutable vector<colorf> m_skycolors;	// fixme: mutable is ugly hack
+	mutable float m_sun_azimuth, m_sun_elevation;	// fixme: mutable is ugly hack
+	float m_turbidity;
+	mutable bool m_needsrebuild;	// fixme: mutable is ugly hack
+
+	void build_dome(const unsigned int sectors_x, const unsigned int sectors_y);
+	void rebuild_colors(const float alpha) const;
+
 public:
-	sky(double tm = 0.0);				// give day time in seconds
+	sky(const double tm = 0.0,
+	    const unsigned int sectors_x = 100,
+	    const unsigned int sectors_y = 25);
+	//fixme: this should recompute sky color! not display...
 	void set_time(double tm);
 	~sky();
 	void display(const game& gm, const vector3& viewpos, double max_view_dist, bool isreflection) const;

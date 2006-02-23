@@ -13,6 +13,7 @@ dftdsources = Split("""subsim.cpp
 	convoy.cpp
 	countrycodes.cpp
 	date.cpp
+	daysky.cpp
 	depth_charge.cpp
 	filehelper.cpp
 	freeview_display.cpp

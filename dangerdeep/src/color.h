@@ -87,4 +87,33 @@ struct color {
 	static color white() { return color(255,255,255); }
 };
 
+///\brief Color representation with some basic transformations and OpenGL usage. Float values!
+struct colorf {
+	float r, g, b, a;
+	colorf(float r_ = 0, float g_ = 0, float b_ = 0, float a_ = 1.0f) : r(r_), g(g_), b(b_), a(a_) {};
+	void set_gl_color() const { glColor4f(r, g, b, a); }
+	void set_gl_color(float alpha) const { glColor4f(r, g, b, alpha); }
+	colorf(const colorf& c1, const colorf& c2, float scal) {
+		r = (c1.r*(1-scal) + c2.r*scal);
+		g = (c1.g*(1-scal) + c2.g*scal);
+		b = (c1.b*(1-scal) + c2.b*scal);
+		a = (c1.a*(1-scal) + c2.a*scal);
+	}
+
+	colorf operator* (const colorf& c) const {
+		return colorf(r*c.r, g*c.g, b*c.b, a*c.a);
+	}
+	
+	void store_rgb(Uint8* ptr) const { ptr[0] = Uint8(r*255); ptr[1] = Uint8(g*255); ptr[2] = Uint8(b*255); }
+	void store_rgba(Uint8* ptr) const { ptr[0] = Uint8(r*255); ptr[1] = Uint8(g*255); ptr[2] = Uint8(b*255); ptr[3] = Uint8(a*255); }
+	void store_rgb(float* ptr) const { ptr[0] = r; ptr[1] = g; ptr[2] = b; }
+	void store_rgba(float* ptr) const { ptr[0] = r; ptr[1] = g; ptr[2] = b; ptr[3] = a; }
+
+	// transform color to grey value (model of human vision, 29.9% to 58.7% to 11.4% RGB)
+	float brightness() const { return (r*0.299+g*0.587+b*0.114); }
+	colorf grey_value() const { float c = (r*0.299+g*0.587+b*0.114); return colorf(c, c, c, a); }
+
+	color to_uint8() const { return color(Uint8(r*255), Uint8(g*255), Uint8(b*255), Uint8(a*255)); };
+};
+
 #endif
