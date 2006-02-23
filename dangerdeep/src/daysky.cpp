@@ -113,7 +113,7 @@ void daysky::set_sun_position( const float azimuth, const float elevation )
 }
 
 
-#include "colorconv.h"
+
 // Calculate color
 colorf daysky::get_color( float theta, float phi ) const
 {
