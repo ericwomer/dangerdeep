@@ -25,6 +25,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 using namespace std;
 typedef unsigned char Uint8;
 
+#ifndef fmin
+#define fmin(x,y) (x<y) ? x : y
+#endif
+#ifndef fmax
+#define fmax(x,y) (x>y) ? x : y
+#endif
+
+
 int main(int argc, char** argv)
 {
 	const unsigned resbig = 1024;

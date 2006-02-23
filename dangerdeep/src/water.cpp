@@ -40,6 +40,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "datadirs.h"
 #include <fstream>
 
+#ifndef fmin
+#define fmin(x,y) (x<y) ? x : y
+#endif
+#ifndef fmax
+#define fmax(x,y) (x>y) ? x : y
+#endif
+
 #ifdef USE_SSE
 #include "water_sse.h"
 #endif

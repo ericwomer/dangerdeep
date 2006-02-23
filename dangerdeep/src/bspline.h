@@ -33,6 +33,12 @@ using namespace std;
 #endif
 #endif
 
+#ifdef WIN32
+#ifndef isfinite
+#define isfinite(x) _finite(x)
+#endif
+#endif
+
 ///\brief Represents a B-Spline interpolation object.
 template <class T>
 class bsplinet

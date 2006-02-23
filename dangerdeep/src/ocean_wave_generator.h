@@ -50,6 +50,12 @@ using namespace std;
 
 #define GRAVITY 9.806
 
+#ifdef WIN32
+#ifndef M_PI
+#define M_PI 3.1415926535897932	// should be in math.h, but not for Windows. *sigh*
+#endif
+#endif
+
 ///\brief A generator class for ocean wave height data using a statistical model and the FFT.
 template <class T>
 class ocean_wave_generator

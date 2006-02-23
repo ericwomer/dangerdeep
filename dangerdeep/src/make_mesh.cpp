@@ -22,6 +22,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "make_mesh.h"
 
+#ifndef isfinite
+#include <float.h>
+#define isfinite(a) _finite(a)
+#endif
+
 namespace make_mesh {
 
 vector3f vec(int vi)
