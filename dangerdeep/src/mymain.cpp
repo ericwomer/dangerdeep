@@ -33,6 +33,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <iostream>
 using namespace std;
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 int mymain(list<string>& args);
 
 int call_mymain(list<string>& args)

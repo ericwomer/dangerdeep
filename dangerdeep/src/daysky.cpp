@@ -20,7 +20,9 @@
 #include "daysky.h"
 #include "vector3.h"
 
-//#define _USE_MATH_DEFINES
+#ifdef WIN32
+#define _USE_MATH_DEFINES
+#endif
 #include <cmath>
 
 // Distribution coefficients for the luminance(Y) distribution function
