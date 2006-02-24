@@ -70,15 +70,15 @@ protected:
 		const vector<Uint8>& nmap);
 	void smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map1);
 
-	vector<vector3f> m_skyverts;
-	vector<vector2f> m_skyangles;
-	mutable vector<colorf> m_skycolors;	// fixme: mutable is ugly hack
-	mutable float m_sun_azimuth, m_sun_elevation;	// fixme: mutable is ugly hack
-	float m_turbidity;
-	mutable bool m_needsrebuild;	// fixme: mutable is ugly hack
+	vector<vector3f> skyverts;
+	vector<vector2f> skyangles;
+	mutable vector<colorf> skycolors;
+	mutable vector3 sundir, moondir;
+	mutable float sun_azimuth, sun_elevation;
+	mutable float moon_azimuth, moon_elevation;
+	float turbidity;
 
 	void build_dome(const unsigned int sectors_x, const unsigned int sectors_y);
-	void rebuild_colors(const float alpha) const;
 
 public:
 	sky(const double tm = 0.0,
@@ -87,6 +87,10 @@ public:
 	//fixme: this should recompute sky color! not display...
 	void set_time(double tm);
 	~sky();
+
+	// call this whenever time or viewpos has changed, it will modify the mutable variables.
+	void rebuild_colors(const game& gm, const vector3& viewpos) const;
+
 	void display(const game& gm, const vector3& viewpos, double max_view_dist, bool isreflection) const;
 	color get_horizon_color(const game& gm, const vector3& viewpos) const;
 };

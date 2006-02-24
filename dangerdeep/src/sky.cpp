@@ -53,10 +53,11 @@ const double CLOUD_ANIMATION_CYCLE_TIME = 3600.0;
 
 sky::sky(const double tm, const unsigned int sectors_x, const unsigned int sectors_y)
 	: mytime(tm), sunglow(0), clouds(0),
-	suntex(0), moontex(0), clouds_dl(0), skyhemisphere_dl(0),
-	m_sun_azimuth(10.0f), m_sun_elevation(10.0f), m_turbidity(2.0f), m_needsrebuild(true)
+	  suntex(0), moontex(0), clouds_dl(0), skyhemisphere_dl(0),
+	  sun_azimuth(10.0f), sun_elevation(10.0f),
+	  moon_azimuth(10.0f), moon_elevation(10.0f),
+	  turbidity(2.0f)
 {
-
 	// ******************************** create stars
 	const unsigned nr_of_stars = 2000;
 	stars_pos.reserve(nr_of_stars);
@@ -181,7 +182,7 @@ sky::sky(const double tm, const unsigned int sectors_x, const unsigned int secto
 sky::~sky()
 {
 	glDeleteLists(clouds_dl, 1);
-	glDeleteLists(skyhemisphere_dl, 1);
+	//glDeleteLists(skyhemisphere_dl, 1);
 }
 
 
@@ -341,12 +342,6 @@ void sky::set_time(double tm)
 
 
 
-/*
-* REBUILD_EPSILON_* values define threshold that needs to be exceeded to
-* rebuild a sky colors.
-*/
-#define REBUILD_EPSILON_AZIMUTH		8.73E-3		//	0.5 deg
-#define REBUILD_EPSILON_ELEVATION		8.73E-3		//	0.5 deg
 void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, bool isreflection) const
 {
 	// FIXME sky for reflection should be drawn different, because earth is curved!
@@ -355,34 +350,13 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 
 	// FIXME for reflections this is wrong, so get LIGHT_POS!
 
-	vector3 sundir = gm.compute_sun_pos(viewpos).normal();
-	float sun_azimuth = atan2(sundir.y, sundir.x);
-	float sun_elevation = asin(sundir.z);
-	float sky_alpha = (sundir.z < -0.25) ? 0.0f : ((sundir.z < 0.0) ? 4*(sundir.z+0.25) : 1.0f);
-
-	vector3 moondir = gm.compute_moon_pos(viewpos).normal();
-	float moon_azimuth = atan2(moondir.y, moondir.x);
-	float moon_elevation = asin(moondir.z);
-	float moon_alpha = 0.5 + (0.5-sky_alpha/2);
-
-	// fixme: this works only if time update comes in small steps...
-	if( fabs( m_sun_azimuth-sun_azimuth )>REBUILD_EPSILON_AZIMUTH ||
-		fabs( m_sun_elevation-sun_elevation )>REBUILD_EPSILON_ELEVATION )
-	{
-		m_sun_azimuth = sun_azimuth;
-		m_sun_elevation = sun_elevation;
-		m_needsrebuild = true;
-	}
-
-	if (m_needsrebuild)
-		rebuild_colors(sky_alpha);
-
 	glDisable(GL_LIGHTING);
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 
 	// the brighter the sun, the deeper is the sky color
-	//float sky_alpha = (sundir.z < -0.25) ? 0.0f : ((sundir.z < 0.25) ? 2*(sundir.z+0.20) : 1.0f);
+	float sky_alpha = (sundir.z < -0.25) ? 0.0f : ((sundir.z < 0.25) ? 2*(sundir.z+0.20) : 1.0f);
+	float moon_alpha = 0.5 + (0.5-sky_alpha/2);
 
 	// if stars are drawn after the sky, they can appear in front of the sun glow, which is wrong.
 	// sky should be blended into the stars, not vice versa, but then we would have to clear
@@ -410,17 +384,18 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 		glPopMatrix();
 	}
 
-	glPushMatrix();
+	glPushMatrix(); // sky scale
 	float scale = 10;
 	glScaled(scale, scale, scale);
 	glTranslated(0, 0, -0.005);	// FIXME move down 10m? to compensate for waves moving up/down (avoid gaps because of that)
 
-	//	render sky
+	// render sky
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer(4, GL_FLOAT, 0, &(m_skycolors[0]));
+	glColorPointer(4, GL_FLOAT, 0, &(skycolors[0]));
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, &(m_skyverts[0]));
-	glDrawArrays(GL_QUAD_STRIP, 0, m_skyverts.size());
+	glVertexPointer(3, GL_FLOAT, 0, &(skyverts[0]));
+	glDrawArrays(GL_QUAD_STRIP, 0, skyverts.size());
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 
@@ -428,70 +403,74 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 	glColor4f(1, 1, 1, 1);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, &(m_skyverts[0]));
-	glDrawArrays(GL_QUAD_STRIP, 0, m_skyverts.size());
+	glVertexPointer(3, GL_FLOAT, 0, &(skyverts[0]));
+	glDrawArrays(GL_QUAD_STRIP, 0, skyverts.size());
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glPolygonMode( GL_FRONT, GL_FILL );
 #endif
 
-	glPopMatrix();
+	glPopMatrix(); // sky scale
 
-	//	FIXME render sun
-	glPushMatrix();
-	glRotatef(angle::from_rad(sun_azimuth).value(), 0, 0, -1);
-	glRotatef(angle::from_rad(sun_elevation).value(), 0, -1, 0);
-	glEnable(GL_TEXTURE_2D);
+	// restore blend function
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, sunglow->get_opengl_name());
-
-	glColor4f(1, 1, 1, 1);
-	glBegin(GL_QUADS);
-		glMultiTexCoord2f(GL_TEXTURE0, 0, 0);
-		glVertex3f(10, -1, 1);
-		glMultiTexCoord2f(GL_TEXTURE0, 1, 0);
-		glVertex3f(10, 1, 1);
-		glMultiTexCoord2f(GL_TEXTURE0, 1, 1);
-		glVertex3f(10, 1, -1);
-		glMultiTexCoord2f(GL_TEXTURE0, 0, 1);
-		glVertex3f(10, -1, -1);
-	glEnd();
-	glPopMatrix();
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-
-	//	render moon
-	glPushMatrix();
-	glRotatef(angle::from_rad(moon_azimuth).value(), 0, 0, -1);
-	glRotatef(angle::from_rad(moon_elevation).value(), 0, -1, 0);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, moontex->get_opengl_name());
-	glColor4f(1, 1, 1, moon_alpha);
-	glBegin(GL_QUADS);
-		glTexCoord2f(0, 0);
-		glVertex3f(20, -1, 1);
-		glTexCoord2f(1, 0);
-		glVertex3f(20, 1, 1);
-		glTexCoord2f(1, 1);
-		glVertex3f(20, 1, -1);
-		glTexCoord2f(0, 1);
-		glVertex3f(20, -1, -1);
-	glEnd();
-	glPopMatrix();
-
+	// set gl light position.
 	if (sundir.z > 0.0) {
 		vector3 sunpos = sundir * max_view_dist;
 		GLfloat lightpos[4] = { sunpos.x, sunpos.y, sunpos.z, 0.0f };
 		glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
-	}
-	else
-	{
+	} else {
+		// fixme: what is when moon is also below horizon?!
 		vector3 moonpos = moondir * max_view_dist;
 		GLfloat lightpos[4] = { moonpos.x, moonpos.y, moonpos.z, 0.0f };
 		glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
 	}
+
+	// ******** the sun and the moon *****************************************************
+	// draw sun, fixme draw flares/halo
+	vector3 sunpos = sundir * (0.96 * max_view_dist);
+	double suns = max_view_dist/10; // 100;		// make sun ~13x13 pixels
+	glColor4f(1,1,1,1);
+	//glColor4f(1,1,1,0.25);
+	sunglow /*suntex*/->set_gl_texture();
+	glPushMatrix();
+	glTranslated(sunpos.x, sunpos.y, sunpos.z);
+	matrix4 tmpmat = matrix4::get_gl(GL_MODELVIEW_MATRIX);
+	tmpmat.clear_rot();
+	tmpmat.set_gl(GL_MODELVIEW);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0,0);
+	glVertex3f(-suns, -suns, 0);
+	glTexCoord2f(1,0);
+	glVertex3f( suns, -suns, 0);
+	glTexCoord2f(1,1);
+	glVertex3f( suns,  suns, 0);
+	glTexCoord2f(0,1);
+	glVertex3f(-suns,  suns, 0);
+	glEnd();
+	glPopMatrix();
+
+	// draw moon
+	vector3 moonpos = moondir * (0.95 * max_view_dist);
+	double moons = max_view_dist/120;	// make moon ~10x10 pixel
+	glColor4f(1,1,1,1);
+	moontex->set_gl_texture();
+	glPushMatrix();
+	glTranslated(moonpos.x, moonpos.y, moonpos.z);
+	tmpmat = matrix4::get_gl(GL_MODELVIEW_MATRIX);
+	tmpmat.clear_rot();
+	tmpmat.set_gl(GL_MODELVIEW);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0,0);
+	glVertex3f(-moons, -moons, 0);
+	glTexCoord2f(1,0);
+	glVertex3f( moons, -moons, 0);
+	glTexCoord2f(1,1);
+	glVertex3f( moons,  moons, 0);
+	glTexCoord2f(0,1);
+	glVertex3f(-moons,  moons, 0);
+	glEnd();
+	glPopMatrix();
 
 	// ******** clouds ********************************************************************
 	color lightcol = gm.compute_light_color(viewpos);
@@ -511,33 +490,20 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glScalef(3000, 3000, 333);	// bottom of cloud layer has altitude of 3km., fixme varies with weather
 	clouds->set_gl_texture();
 	glCallList(clouds_dl);
+	glPopMatrix();
+
 	glDepthMask(GL_TRUE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
-	color::white().set_gl_color();
-	glPopMatrix();
 }
 
 
 
 color sky::get_horizon_color(const game& gm, const vector3& viewpos) const
 {
-	vector3 sundir = gm.compute_sun_pos(viewpos).normal();
-	float sun_azimuth = atan2(sundir.y, sundir.x);
-	float sun_elevation = asin(sundir.z);
-	float sky_alpha = (sundir.z < -0.25) ? 0.0f : ((sundir.z < 0.0) ? 4*(sundir.z+0.25) : 1.0f);
-
-	bool recalc = false;
-	if( fabs( m_sun_azimuth-sun_azimuth )>REBUILD_EPSILON_AZIMUTH ||
-		fabs( m_sun_elevation-sun_elevation )>REBUILD_EPSILON_ELEVATION )
-			recalc = true;
-
-	if(recalc || m_needsrebuild) {
-		daysky skycol(sun_azimuth, sun_elevation, m_turbidity);
-		return skycol.get_color(0, 0.001).to_uint8();
-	} else {
-		return m_skycolors[0].to_uint8();
-	}
+	// but why is reading of _first_ color done here? this depends on view direction?!
+	// fixme !!!
+	return skycolors[0].to_uint8();
 }
 
 
@@ -548,9 +514,9 @@ void sky::build_dome(const unsigned int sectors_x, const unsigned int sectors_y)
 	float phi1,phi2,theta;
 	float x,y,z;
 
-	m_skyverts.reserve(sectors_x*sectors_y);
-	m_skyangles.reserve(sectors_x*sectors_y);
-	m_skycolors.reserve(sectors_x*sectors_y);
+	skyverts.reserve(sectors_x*sectors_y);
+	skyangles.reserve(sectors_x*sectors_y);
+	skycolors.reserve(sectors_x*sectors_y);
 
 	colorf defaultColor(0,0,0,0);
 
@@ -571,44 +537,66 @@ void sky::build_dome(const unsigned int sectors_x, const unsigned int sectors_y)
 			y = radius * sin(theta) * cos(phi1);
 			z = radius * sin(phi1);
 
-			m_skyangles.push_back( vector2f( (1-theta/(M_PI*2))*2*M_PI, phi1 ) );
-			m_skyverts.push_back( vector3f(x,y,z) );
-			m_skycolors.push_back(defaultColor);
+			skyangles.push_back( vector2f( (1-theta/(M_PI*2))*2*M_PI, phi1 ) );
+			skyverts.push_back( vector3f(x,y,z) );
+			skycolors.push_back(defaultColor);
 
 			// upper point of the quad strip
 			x = radius * cos(theta) * cos(phi2);
 			y = radius * sin(theta) * cos(phi2);
 			z = radius * sin(phi2);
 
-			m_skyangles.push_back( vector2f( (1-theta/(M_PI*2))*2*M_PI, phi2 ) );
-			m_skyverts.push_back( vector3f(x,y,z) );
-			m_skycolors.push_back(defaultColor);
+			skyangles.push_back( vector2f( (1-theta/(M_PI*2))*2*M_PI, phi2 ) );
+			skyverts.push_back( vector3f(x,y,z) );
+			skycolors.push_back(defaultColor);
 		}
 	}
 }
 
 
 
-void sky::rebuild_colors(const float alpha) const
+/*
+* REBUILD_EPSILON_* values define threshold that needs to be exceeded to
+* rebuild a sky colors.
+*/
+#define REBUILD_EPSILON_AZIMUTH		8.73E-3		//	0.5 deg
+#define REBUILD_EPSILON_ELEVATION		8.73E-3		//	0.5 deg
+void sky::rebuild_colors(const game& gm, const vector3& viewpos) const
 {
-	if (!m_needsrebuild) return;
+	// compute position of sun and moon
+	//fixme: compute_sun_pos works relativly to the viewer!!!
+	// but for sky simulation we need "global" azimuth/elevation?!
+	vector3 sundir2 = gm.compute_sun_pos(viewpos).normal();
+	float sun_azimuth2 = atan2(sundir2.y, sundir2.x);
+	float sun_elevation2 = asin(sundir2.z);
+	float sky_alpha = (sundir2.z < -0.25) ? 0.0f : ((sundir2.z < 0.0) ? 4*(sundir2.z+0.25) : 1.0f);
 
-	// fixme: recreating that everytime is a bit wastefully...
-	daysky skycol(m_sun_azimuth, m_sun_elevation, m_turbidity);
+	moondir = gm.compute_moon_pos(viewpos).normal();
+	moon_azimuth = atan2(moondir.y, moondir.x);
+	moon_elevation = asin(moondir.z);
+//	moon_alpha = 0.5 + (0.5-sky_alpha/2);
 
-	std::vector<vector2f>::const_iterator skyangle = m_skyangles.begin();
-	std::vector<colorf>::iterator skycolors = m_skycolors.begin();
-	while(skyangle != m_skyangles.end()) {
+	if (fabs(sun_azimuth-sun_azimuth2) > REBUILD_EPSILON_AZIMUTH ||
+	    fabs(sun_elevation-sun_elevation2) > REBUILD_EPSILON_ELEVATION) {
+		sundir = sundir2;
+		sun_azimuth = sun_azimuth2;
+		sun_elevation = sun_elevation2;
+
+		// rebuild colors
+		daysky skycol(sun_azimuth, sun_elevation, turbidity);
+
+		std::vector<vector2f>::const_iterator skyangle = skyangles.begin();
+		std::vector<colorf>::iterator skycolor = skycolors.begin();
+		while (skyangle != skyangles.end()) {
 #if 0	//	debug (angles mapped on hemisphere)
-		*skycolors = colorf( skyangle->x/(M_PI*2), skyangle->y/(M_PI/2.0f), 0, alpha );
+			*skycolor = colorf( skyangle->x/(M_PI*2), skyangle->y/(M_PI/2.0f), 0, sky_alpha );
 #else
-		colorf c = skycol.get_color(skyangle->x, skyangle->y);
-		c.a = alpha;
-		*skycolors = c;
+			colorf c = skycol.get_color(skyangle->x, skyangle->y);
+			c.a = sky_alpha;
+			*skycolor = c;
 #endif
 
-		skycolors++; skyangle++;
+			skycolor++; skyangle++;
+		}
 	}
-
-	m_needsrebuild = false;
 }

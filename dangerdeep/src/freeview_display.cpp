@@ -314,6 +314,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	// **************** prepare drawing ***************************************************
 
 	GLfloat horizon_color[4];
+	ui.get_sky().rebuild_colors(gm, viewpos);
 	ui.get_sky().get_horizon_color(gm, viewpos).store_rgba(horizon_color);
 
 	color lightcol = gm.compute_light_color(viewpos);
