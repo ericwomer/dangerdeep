@@ -583,7 +583,7 @@ void sky::rebuild_colors(const game& gm, const vector3& viewpos) const
 		sun_elevation = sun_elevation2;
 
 		// rebuild colors
-		daysky skycol(sun_azimuth, sun_elevation, turbidity);
+		daysky skycol(-sun_azimuth, sun_elevation, turbidity);
 
 		std::vector<vector2f>::const_iterator skyangle = skyangles.begin();
 		std::vector<colorf>::iterator skycolor = skycolors.begin();

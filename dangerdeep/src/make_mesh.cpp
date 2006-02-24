@@ -22,10 +22,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "make_mesh.h"
 
+#ifdef WIN32
 #ifndef isfinite
 #include <float.h>
 #define isfinite(a) _finite(a)
 #endif
+#endif
+
+#include <cmath>
 
 namespace make_mesh {
 
