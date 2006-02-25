@@ -520,6 +520,12 @@ void sky::build_dome(const unsigned int sectors_x, const unsigned int sectors_y)
 
 	colorf defaultColor(0,0,0,0);
 
+	// TJ: fixme: using quads with shared vertices between segments could be more efficient.
+	// we would have only half the number of vertices and thus only half the colors to recompute
+	// as sky colors.
+	// some gamedev.net discussion proposed using more segments near the horizon as color
+	// variation is greater near the horizon.
+
 	// this will define the sphere in height
 	for(int i=0; i<sectors_y; i++){
 

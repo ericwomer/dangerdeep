@@ -174,7 +174,13 @@ colorf daysky::get_color( float theta, float phi ) const
 	//      i don't get proper luminance values otherwise...
 	//skycolor.Y /= 15.0f;
 	// TJ: maybe explains the dark daysky color?
-	skycolor_xyY.z = 1 - exp(-(1.0/25.0) * skycolor_xyY.z);
+	// TJ: yes it does. but less scaling leeds to a color variation to green.
+	// maybe linear scaling of one component is not right here, colors are not linearily independent in
+	// that model - but they should be. Y is lumincance and xy are chromacity values...
+	// we should check the gamedev.net discussions about that topic, there were some guys having the same problem.
+	skycolor_xyY.z = 1 - exp(-(1.0/10.0 /*25.0*/) * skycolor_xyY.z);
+	// clamp it here.
+	if (skycolor_xyY.z > 1.0) skycolor_xyY.z = 1.0;
 
 	vector3f skycolor_XYZ;
 	skycolor_XYZ.x = skycolor_xyY.x * skycolor_xyY.z / skycolor_xyY.y;
