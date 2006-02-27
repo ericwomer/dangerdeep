@@ -34,7 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "airplane.h"
 #include "texts.h"
 #include "texture.h"
-#include "font.cpp"
+#include "font.h"
 #include "convoy.h"
 #include "keys.h"
 #include "cfg.h"

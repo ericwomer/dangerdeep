@@ -452,7 +452,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 
 	// draw moon
 	vector3 moonpos = moondir * (0.95 * max_view_dist);
-	double moons = max_view_dist/120;	// make moon ~10x10 pixel
+	double moons = max_view_dist/17;	// make moon ~10x10 pixel
 	glColor4f(1,1,1,1);
 	moontex->set_gl_texture();
 	glPushMatrix();
