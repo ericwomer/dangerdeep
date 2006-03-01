@@ -93,7 +93,7 @@ env.Default(tool1)
 env.Default(tool2)
 env.Default(tool3)
 
-test1 = env.Program('oceantest', ['oceantest.cpp'])
+test1 = env.Program('oceantest', ['oceantest.cpp'], LIBS = alllibs)
 env.Default(test1)
 
 portal = env.Program('portal', ['portal.cpp', datadirsobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs)
