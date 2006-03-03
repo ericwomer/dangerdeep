@@ -62,7 +62,7 @@ texture *addleadangle, *torpleft, *metalbackgr,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
 	*terraintex, *cloudsbackgr, *atlanticmap, *panelbackground;
 	
-font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn;
+font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn, *font_damagedtypewriter;
 
 image *titlebackgrimg, *threesubsimg, *damage_screen_background,
 	*sub_damage_scheme_all, *killedimg, *scopewatcherimg,
@@ -101,6 +101,7 @@ void init_global_data(void)
 	font_verdana = new font(get_font_dir() + "font_verdana");
 	font_verdanabd = new font(get_font_dir() + "font_verdanabd");
 	font_olympiaworn = new font(get_font_dir() + "font_olympiaworn");
+	font_damagedtypewriter = new font(get_font_dir() + "font_damagedtypewriter");
 	add_loading_screen("fonts loaded");
 	conning_tower_typeVII = new model(get_model_dir() + "conning_tower_typeVIIc.xml");
 	torpedo_g7 = new model(get_model_dir() + "torpedo_g7.3ds");
