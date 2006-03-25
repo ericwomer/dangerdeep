@@ -64,6 +64,59 @@ elif sys.platform == 'darwin':
 	datadir = installdatadir
 	build_dir = 'macosx'
 	osspecificsrc = Split("""Mac/SDLMain.m""")
+elif (sys.platform == 'freebsd5') or (sys.platform == 'freebsd6') or (sys.platform == 'freebsd7'):
+	print "Compiling for FreeBSD Environment"
+	env = Environment(ENV = os.environ)
+	LOCALBASE = os.environ['LOCALBASE']
+	X11BASE = os.environ['X11BASE']
+	SDL_CONFIG = os.environ['SDL_CONFIG']
+	env.Replace(CC = os.environ['CC'])
+	env.Replace(CXX = os.environ['CXX'])
+	env.Append(CPPPATH = [LOCALBASE + '/include', LOCALBASE + '/include/SDL11', X11BASE + '/include', X11BASE + '/include/GL'])
+	libpath = [LOCALBASE + '/lib', X11BASE + '/lib'] 
+	gllibs = ['GL', 'GLU']
+	sdllibs = ['SDL_image']
+	cpuinfof = os.popen('sysctl -n hw.instruction_sse')
+	cpuinfol = cpuinfof.readlines()
+	mmxsupported = False
+	ssesupported = False
+        for i in cpuinfol:
+		if i == '1\n':
+			mmxsupported = True
+			ssesupported = True
+		if (usex86sse == 0) and (mmxsupported and ssesupported):
+                	usex86sse = 1
+	        if usex86sse >= 1:
+        	        env.Append(CPPDEFINES = ['USE_SSE'])
+	                osspecificsrc += ['water_sse.cpp']
+	                print 'Using x86 SSE/MMX optimizations.'
+
+        env.Replace(CCFLAGS = os.environ['CFLAGS'])
+	if (debug == 1):
+		env.Append(CCFLAGS = '-g')
+		env.Append(CPPDEFINES = ['DEBUG'])
+        env.Replace(CXXFLAGS = os.environ['CXXFLAGS'] + ' `' + SDL_CONFIG + ' --cflags`')
+        env.Append(LINKFLAGS = '`' + SDL_CONFIG + ' --libs`')
+        datadir = installdatadir
+        build_dir = 'freebsd'
+	
+        if (os.system('grep glBindProgram ' + X11BASE + '/include/GL/gl*.h > /dev/null') == 0):
+                gllibdirs = [X11BASE + '/lib/', '/usr/lib/', LOCALBASE + '/lib/']
+                gllibdir = ''
+                for i in gllibdirs:
+                        if (os.system('test -f '+i+'libGL.so') == 0):
+                                gllibdir = i
+                                break
+                if (i == ''):
+                        print 'ERROR: no libGL.so detected!'
+                else:
+			print 'Found GL library "'+gllibdir+'libGL.so"'
+                if (os.system('grep glBindProgram '+gllibdir+'libGL.so > /dev/null') != 0):
+                        print 'GL headers declare glBindProgram, but libGL.so has no such symbol! Ignoring all undefined symbols...'
+                        # I'm not sure which option will hopefully fix the problem... so i use both...
+                        env.Append(LINKFLAGS = '--unresolved-symbols=ignore-all')
+                        env.Append(LINKFLAGS = '-Xlinker --unresolved-symbols -Xlinker ignore-all')
+
 else:
 	print "Compiling for Unix/Posix/Linux Environment"
 	env = Environment(ENV = os.environ)
@@ -112,7 +165,6 @@ else:
 		osspecificsrc += ['water_sse.cpp']
 		print 'Using x86 SSE/MMX optimizations.'
 	env.Append(CCFLAGS = ccflags)
-	env.Append(LINKFLAGS = '-Xlinker --export-dynamic')
 	datadir = installdatadir
 	build_dir = 'linux'
 	# check for broken libGL, ignore undefined symbols then
@@ -225,7 +277,7 @@ BuildDir(target_dir, source_base_dir, duplicate=0)
 
 ############### option so that "scons tarball" builds a tarball of source and data
 # tar building works only on linux
-if build_dir == 'linux':
+if ( build_dir == 'linux' ) or ( build_dir == 'freebsd' ):
 	basetarfilename = 'dangerdeep-' + version
 	os.system('rm -rf ' + basetarfilename)
 	os.system('ln -s . ' + basetarfilename)
