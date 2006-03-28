@@ -65,6 +65,7 @@ Especially backside escorts could come for support. Do not send more
 than 3-4 escorts to a sub (enough for hunting).
 When detected multiple subs, distribute escorts to them, 1-2 for each
 submarine.
+NOTE: implement historical convoy tactics here! see those BBC website etc.
 Leave an escort screen around the convoy if possible. It depends on
 the time of war, if subs are rather attacked or the convoy is rather
 protected. Escorts that watch and ping around the convoy can't really

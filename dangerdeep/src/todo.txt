@@ -1,0 +1,26 @@
+THIS FILE IS FOR SOME SHORT NOTES FROM DEVELOPERS...
+
+Next changes:
+-------------
+
+SIMULATE THE PASSIVE SONAR (HEARING EQUIPMENT)
+- KGB/GHG/BG machines
+- do not call sonar_ships() for each frame that is drawn on the screen,
+  but call at once per second or less and store or cache the results.
+  Do this for all similar actions. No need to redetect ships 30 or more
+  times per second. Once per second is enough. This will lessen CPU usage
+  dramatically and we can use more complex algorithms to simulate sensors
+  etc., because we can use more costly algos if they're called more seldom.
+  Store data in game or per object?
+  The data is stored for the player, but there may be multiple players and
+  the AI controlled objects may call such functions as well.
+  So store the results per object. We do not need to save them to a savegame.
+  Cacheable functions: game::visible_*, game::sonar_*, game::radar_*
+
+
+DAMAGE SIMULATION
+- with example data
+
+ACCURATE PHYSICS
+- buoyancy simulation
+- trim
