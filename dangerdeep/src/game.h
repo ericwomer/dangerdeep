@@ -226,14 +226,29 @@ public:
 	virtual std::vector<particle*> visible_particles (const sea_object* o ) const;
 	// computes visible ships, submarines (surfaced) and airplanes
 	virtual std::vector<sea_object*> visible_surface_objects(const sea_object* o) const;
+	// computes ships, subs (surfaced), airplanes, torpedoes. But not fast moving objects
+	// like shells/DCs, because they need to be detected more often, and this function
+	// is called once per second normally.
+	virtual std::vector<sea_object*> visible_sea_objects(const sea_object* o) const;
 
-	virtual std::vector<ship*> sonar_ships (const sea_object* o ) const;
-	virtual std::vector<submarine*> sonar_submarines (const sea_object* o ) const;
-	virtual ship* sonar_acoustical_torpedo_target ( const torpedo* o ) const;
+	// fixme: maybe we should distuingish between passivly and activly detected objects...
+	virtual std::vector<ship*> sonar_ships(const sea_object* o) const;
+	virtual std::vector<submarine*> sonar_submarines(const sea_object* o) const;
+	virtual std::vector<sea_object*> sonar_sea_objects(const sea_object* o) const;
+	virtual ship* sonar_acoustical_torpedo_target(const torpedo* o) const;
 	
 	// std::list<*> radardetected_ships(...);	// later!
 	virtual std::vector<submarine*> radar_submarines(const sea_object* o) const;
 	virtual std::vector<ship*> radar_ships(const sea_object* o) const;
+	//virtual std::vector<airplane*> radar_airplanes(const sea_object* o) const;
+	virtual std::vector<sea_object*> radar_sea_objects(const sea_object* o) const;
+
+	// append objects to vector
+	template<class T>
+	static void append_vec(std::vector<sea_object*>& vec, const std::vector<T*>& vec2) {
+		for (unsigned i = 0; i < vec2.size(); ++i)
+			vec.push_back(vec2[i]);
+	}
 
 	std::vector<vector2> convoy_positions() const;	// fixme
 	

@@ -169,6 +169,15 @@ protected:
 	/// party (Italy 1943, France 1940).
 	partycode party;
 
+	/// Detection time counter (counts down). When it reaches zero, detection of other objects is triggered.
+	double redetect_time;
+	/// list of visible objects, recreated regularly
+	std::vector<sea_object*> visible_objects;
+	/// list of radar detected objects, recreated regularly
+	std::vector<sea_object*> radar_objects;
+	/// list of heared/sonar detected objects, recreated regularly
+	std::vector<sea_object*> sonar_objects;
+
 	virtual void set_sensor ( sensor_system ss, sensor* s );
 
 	/**
@@ -258,6 +267,16 @@ public:
 
 	virtual sensor* get_sensor ( sensor_system ss );
 	virtual const sensor* get_sensor ( sensor_system ss ) const;
+
+	virtual const std::vector<sea_object*>& get_visible_objects() const { return visible_objects; }
+	virtual const std::vector<sea_object*>& get_radar_objects() const { return radar_objects; }
+	virtual const std::vector<sea_object*>& get_sonar_objects() const { return sonar_objects; }
+
+	// check for a vector of pointers if the objects are still alive
+	// and remove entries of dead objects (do not delete the objects itself!)
+	// and compress the vector afterwars.
+	static void compress(std::vector<sea_object*>& vec);
+	static void compress(std::list<sea_object*>& lst);
 };
 
 #endif

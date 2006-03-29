@@ -949,6 +949,19 @@ vector<submarine*> game::sonar_submarines (const sea_object* o ) const
 	return result;
 }
 
+vector<sea_object*> game::sonar_sea_objects(const sea_object* o) const
+{
+	vector<ship*> sships = sonar_ships(o);
+	vector<submarine*> ssubmarines = sonar_submarines(o);
+	vector<sea_object*> result;
+	result.reserve(sships.size() + ssubmarines.size());
+	for (vector<ship*>::iterator is = sships.begin(); is != sships.end(); ++is)
+		result.push_back(*is);
+	for (vector<submarine*>::iterator iu = ssubmarines.begin(); iu != ssubmarines.end(); ++iu)
+		result.push_back(*iu);
+	return result;
+}
+
 vector<submarine*> game::radar_submarines(const sea_object* o) const
 {
 	vector<submarine*> result;
@@ -976,6 +989,17 @@ vector<ship*> game::radar_ships(const sea_object* o) const
 		if ( ls->is_detected ( this, o, ships[k] ) )
 			result.push_back (ships[k]);
 	}
+	return result;
+}
+
+vector<sea_object*> game::radar_sea_objects(const sea_object* o) const
+{
+	vector<ship*> rships = radar_ships(o);
+	vector<submarine*> rsubmarines = radar_submarines(o);
+	vector<sea_object*> result;
+	result.reserve(rships.size() + rsubmarines.size());
+	append_vec(result, rships);
+	append_vec(result, rsubmarines);
 	return result;
 }
 
@@ -1431,24 +1455,36 @@ vector<sea_object*> game::visible_surface_objects(const sea_object* o) const
 	vector<ship*> vships = visible_ships(o);
 	vector<submarine*> vsubmarines = visible_submarines(o);
 	vector<airplane*> vairplanes = visible_airplanes(o);
-	
+
+	// fixme: adding RADAR-detected ships to a VISIBLE-objects function is a bit weird...
+	// this leads to wrong results if radar detected objects are handled differently,
+	// like different display on map, or drawing (not visible!), or for AI!
 	vector<ship*> rships = radar_ships(o);
 	vector<submarine*> rsubmarines = radar_submarines(o);
 	
 	vector<sea_object*> result;
 	result.reserve(vships.size() + vsubmarines.size() + vairplanes.size() +
 		       rships.size() + rsubmarines.size());
-	for (vector<ship*>::iterator is = vships.begin(); is != vships.end(); ++is)
-		result.push_back(*is);
-	for (vector<submarine*>::iterator iu = vsubmarines.begin(); iu != vsubmarines.end(); ++iu)
-		result.push_back(*iu);
-	for (vector<airplane*>::iterator ia = vairplanes.begin(); ia != vairplanes.end(); ++ia)
-		result.push_back(*ia);
-	for (vector<ship*>::iterator is = rships.begin(); is != rships.end(); ++is)
-		result.push_back(*is);
-	for (vector<submarine*>::iterator iu = rsubmarines.begin(); iu != rsubmarines.end(); ++iu)
-		result.push_back(*iu);
-	
+	append_vec(result, vships);
+	append_vec(result, vsubmarines);
+	append_vec(result, vairplanes);
+	append_vec(result, rships);
+	append_vec(result, rsubmarines);
+	return result;
+}
+
+vector<sea_object*> game::visible_sea_objects(const sea_object* o) const
+{
+	vector<ship*> vships = visible_ships(o);
+	vector<submarine*> vsubmarines = visible_submarines(o);
+	vector<airplane*> vairplanes = visible_airplanes(o);
+	vector<torpedo*> vtorpedoes = visible_torpedoes(o);
+	vector<sea_object*> result;
+	result.reserve(vships.size() + vsubmarines.size() + vairplanes.size() + vtorpedoes.size());
+	append_vec(result, vships);
+	append_vec(result, vsubmarines);
+	append_vec(result, vairplanes);
+	append_vec(result, vtorpedoes);
 	return result;
 }
 

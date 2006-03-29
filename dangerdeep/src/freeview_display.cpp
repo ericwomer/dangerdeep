@@ -169,9 +169,8 @@ void freeview_display::process_input(class game& gm, const SDL_Event& event)
 
 
 void freeview_display::draw_objects(game& gm, const vector3& viewpos,
-				    const vector<ship*>& ships,
-				    const vector<submarine*>& submarines,
-				    const vector<torpedo*>& torpedoes, bool mirrorclip) const
+				    const vector<sea_object*>& objects,
+				    bool mirrorclip) const
 {
 	// simulate horizon: d is distance to object (on perimeter of earth)
 	// z is additional height (negative!), r is earth radius
@@ -182,11 +181,15 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 
 	glColor3f(1,1,1);
 
-	for (vector<ship*>::const_iterator it = ships.begin(); it != ships.end(); ++it) {
+	for (vector<sea_object*>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
+		bool istorp = (dynamic_cast<const torpedo*>(*it) != 0);
+		if (istorp && !withunderwaterweapons)
+			continue;
+
 		if (aboard && *it == player) continue;
 		glPushMatrix();
-		// fixme: z translate according to water height here
-		if (mirrorclip) {
+		// fixme: z translate according to water height here, only for ships
+		if (mirrorclip && !istorp) {
 			vector3 pos = (*it)->get_pos();
 			glTranslated(pos.x - viewpos.x, pos.y - viewpos.y, -viewpos.z);
 			glActiveTexture(GL_TEXTURE1);
@@ -199,10 +202,17 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 			glTranslated(pos.x, pos.y, pos.z);
 		}
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
-		ui.rotate_by_pos_and_wave((*it)->get_pos(), (*it)->get_heading(),
-					  (*it)->get_length(), (*it)->get_width(),
-					  (*it)->get_roll_factor());
-		if (mirrorclip) {
+		const ship* shp = dynamic_cast<const ship*>(*it);
+		if (shp && !istorp) {
+			// torpedos are not affected by tide.
+			if (shp->get_pos().z > -15) {
+				// submerged subs and sinking ships are not affected by tide
+				ui.rotate_by_pos_and_wave(shp->get_pos(), shp->get_heading(),
+							  shp->get_length(), shp->get_width(),
+							  shp->get_roll_factor());
+			}
+		}
+		if (mirrorclip && !istorp) {
 			glActiveTexture(GL_TEXTURE0);
 			glMatrixMode(GL_MODELVIEW);
 			(*it)->display_mirror_clip();
@@ -211,60 +221,9 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 			(*it)->display();
 			glPopMatrix();
 		}
-	}
-
-	for (vector<submarine*>::const_iterator it = submarines.begin(); it != submarines.end(); ++it) {
-		if (aboard && *it == player) continue;
-		glPushMatrix();
-		// fixme: z translate according to water height here
-		if (mirrorclip) {
-			vector3 pos = (*it)->get_pos();
-			glTranslated(pos.x - viewpos.x, pos.y - viewpos.y, -viewpos.z);
-			glActiveTexture(GL_TEXTURE1);
-			glMatrixMode(GL_TEXTURE);
-			glLoadIdentity();
-			glTranslated(0, 0, pos.z);
-		} else {
-			vector3 pos = (*it)->get_pos() - viewpos;
-			glTranslated(pos.x, pos.y, pos.z);
-		}
-		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
-		if ((*it)->get_pos().z > -15) {
-			ui.rotate_by_pos_and_wave((*it)->get_pos(), (*it)->get_heading(),
-						  (*it)->get_length(), (*it)->get_width(),
-						  (*it)->get_roll_factor());
-		}
-		if (mirrorclip) {
-			glActiveTexture(GL_TEXTURE0);
-			glMatrixMode(GL_MODELVIEW);
-			(*it)->display_mirror_clip();
-			glPopMatrix();
-		} else {
-			(*it)->display();
-			glPopMatrix();
-		}
-	}
-
-	vector<airplane*> airplanes = gm.visible_airplanes(player);
-	for (vector<airplane*>::const_iterator it = airplanes.begin(); it != airplanes.end(); ++it) {
-		if (aboard && *it == player) continue;
-		glPushMatrix();
-		vector3 pos = (*it)->get_pos() - viewpos;
-		glTranslated(pos.x, pos.y, pos.z);
-		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);	// simulate pitch, roll etc.
-		(*it)->display();
-		glPopMatrix();
 	}
 
 	if (withunderwaterweapons) {
-		for (vector<torpedo*>::const_iterator it = torpedoes.begin(); it != torpedoes.end(); ++it) {
-			glPushMatrix();
-			vector3 pos = (*it)->get_pos() - viewpos;
-			glTranslated(pos.x, pos.y, pos.z);
-			glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
-			(*it)->display();
-			glPopMatrix();
-		}
 		vector<depth_charge*> depth_charges = gm.visible_depth_charges(player);
 		for (vector<depth_charge*>::const_iterator it = depth_charges.begin(); it != depth_charges.end(); ++it) {
 			glPushMatrix();
@@ -331,11 +290,9 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	// ************************* compute visible surface objects *******************
 
 	// compute visble ships/subs, needed for draw_objects and amount of foam computation
+	const vector<sea_object*>& objects = player->get_visible_objects();
 	//fixme: the lookout sensor must give all ships seens around, not cull away ships
 	//out of the frustum, or their foam is lost as well, even it would be visible...
-	vector<ship*> ships = gm.visible_ships(player);
-	vector<submarine*> submarines = gm.visible_submarines(player);
-	vector<torpedo*> torpedoes = gm.visible_torpedoes(player);
 
 	// ********************* draw mirrored scene
 	
@@ -401,24 +358,15 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		// would be perfect which is highly unrealistic.
 		// so remove entries that are too far away. Torpedoes can't be seen
 		// so they don't need to get rendered.
-		vector<ship*> ships_mirror;
-		vector<submarine*> submarines_mirror;
-		vector<torpedo*> torpedoes_mirror; // empty
-		ships_mirror.reserve(ships.size());
-		submarines_mirror.reserve(submarines.size());
+		vector<sea_object*> objects_mirror;
+		objects_mirror.reserve(objects.size());
 		const double MIRROR_DIST = 1000.0;	// 1km or so...
-		for (vector<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
+		for (vector<sea_object*>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
 			if ((*it)->get_pos().xy().square_distance(viewpos.xy()) < MIRROR_DIST*MIRROR_DIST) {
-				ships_mirror.push_back(*it);
+				objects_mirror.push_back(*it);
 			}
 		}
-		for (vector<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it) {
-			if ((*it)->get_pos().xy().square_distance(viewpos.xy()) < MIRROR_DIST*MIRROR_DIST) {
-				submarines_mirror.push_back(*it);
-			}
-		}
-		draw_objects(gm, viewpos_mirror, ships_mirror, submarines_mirror, torpedoes_mirror,
-			     true /* mirror */);
+		draw_objects(gm, viewpos_mirror, objects_mirror, true /* mirror */);
 
 		//fixme
 		glCullFace(GL_BACK);
@@ -451,13 +399,12 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	// and torpedoes. Gun shell impacts/dc explosions will be added later...
 	//fixme: foam generated depends on depth of sub and type of torpedo etc.
 	vector<ship*> allships;
-	allships.reserve(ships.size() + submarines.size() + torpedoes.size());
-	for (vector<ship*>::const_iterator it = ships.begin(); it != ships.end(); ++it)
-		allships.push_back(*it);
-	for (vector<submarine*>::const_iterator it = submarines.begin(); it != submarines.end(); ++it)
-		allships.push_back(*it);
-	for (vector<torpedo*>::const_iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
-		allships.push_back(*it);
+	allships.reserve(objects.size());
+	for (vector<sea_object*>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
+		ship* s = dynamic_cast<ship*>(*it);
+		if (s)
+			allships.push_back(s);
+	}
 	ui.get_water().compute_amount_of_foam_texture(gm, viewpos, allships);
 
 #if 0
@@ -530,7 +477,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 //	cout << "mv trans pos " << matrix4::get_gl(GL_MODELVIEW_MATRIX).column(3) << "\n";
 
 	// substract player pos.
-	draw_objects(gm, viewpos, ships, submarines, torpedoes);
+	draw_objects(gm, viewpos, objects);
 
 	// ******************** draw the bridge in higher detail
 	if (aboard && drawbridge) {

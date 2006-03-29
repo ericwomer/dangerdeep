@@ -150,7 +150,8 @@ double sea_object::get_cross_section ( const vector2& d ) const
 sea_object::sea_object(game& gm_, const string& modelname_)
 	: gm(gm_), modelname(modelname_), turn_velocity(0),
 	  alive_stat(alive), target(0),
-	  invulnerable(false), country(UNKNOWNCOUNTRY), party(UNKNOWNPARTY)
+	  invulnerable(false), country(UNKNOWNCOUNTRY), party(UNKNOWNPARTY),
+	  redetect_time(0)
 {
 	model* mdl = modelcache.ref(modelname);
 	size3d = vector3f(mdl->get_width(), mdl->get_length(), mdl->get_height());
@@ -160,7 +161,8 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 
 sea_object::sea_object(game& gm_, const xml_elem& parent)
 	: gm(gm_), turn_velocity(0), alive_stat(alive), target(0),
-	  invulnerable(false), country(UNKNOWNCOUNTRY), party(UNKNOWNPARTY)
+	  invulnerable(false), country(UNKNOWNCOUNTRY), party(UNKNOWNPARTY),
+	  redetect_time(0)
 {
 	xml_elem cl = parent.child("classification");
 	specfilename = cl.attr("identifier");
@@ -300,6 +302,21 @@ void sea_object::simulate(double delta_time)
 	// check target. heirs should check for "out of range" condition too
 	if (target && !target->is_alive())
 		target = 0;
+
+	// check if list of detected objects needs to be compressed.
+	compress(visible_objects);
+	compress(radar_objects);
+	compress(sonar_objects);
+
+	// check for redection jobs and eventually (re)create list of detected objects
+	redetect_time -= delta_time;
+	if (redetect_time <= 0) {
+		//fixme: maybe we should add torpedoes here as well! this simplifies map_display/freeview_display code
+		visible_objects = gm.visible_sea_objects(this);
+		radar_objects = gm.radar_sea_objects(this);
+		sonar_objects = gm.sonar_sea_objects(this);
+		redetect_time = 1.0;	// fixme: maybe make it variable, depending on the object type.
+	}
 
 	// check and change states
         if (is_defunct()) {
@@ -511,4 +528,38 @@ const sensor* sea_object::get_sensor ( sensor_system ss ) const
 		return sensors[ss];
 
 	return 0;
+}
+
+
+
+void sea_object::compress(std::vector<sea_object*>& vec)
+{
+	unsigned newsize = 0;
+	for (unsigned i = 0; i < vec.size(); ++i) {
+		if (vec[i]->is_alive()) {
+			++newsize;
+		} else {
+			vec[i] = 0;
+		}
+	}
+	for (unsigned i = 0, j = 0; i < vec.size(); ++i) {
+		if (vec[i] != 0) {
+			vec[j] = vec[i];
+			++j;
+		}
+	}
+	vec.resize(newsize);
+}
+
+
+
+void sea_object::compress(std::list<sea_object*>& lst)
+{
+	for (std::list<sea_object*>::iterator it = lst.begin(); it != lst.end(); ) {
+		if ((*it)->is_alive()) {
+			++it;
+		} else {
+			it = lst.erase(it);
+		}
+	}
 }

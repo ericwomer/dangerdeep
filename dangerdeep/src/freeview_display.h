@@ -56,9 +56,8 @@ protected:
 
 	// draw all sea_objects
 	virtual void draw_objects(class game& gm, const vector3& viewpos,
-				  const vector<ship*>& ships,
-				  const vector<submarine*>& submarines,
-				  const vector<torpedo*>& torpedoes, bool mirrorclip = false) const;
+				  const vector<sea_object*>& objects,
+				  bool mirrorclip = false) const;
 
 	// draw the whole view
 	virtual void draw_view(class game& gm, const vector3& viewpos) const;

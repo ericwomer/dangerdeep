@@ -237,40 +237,28 @@ void map_display::draw_pings(class game& gm, const vector2& offset) const
 void map_display::draw_sound_contact(class game& gm, const sea_object* player,
 	double max_view_dist, const vector2& offset) const
 {
-	// draw sound contacts
-	vector<ship*> ships = gm.sonar_ships(player);
-	for (vector<ship*>::iterator it = ships.begin(); it != ships.end(); ++it) {
-		vector2 ldir = (*it)->get_pos().xy() - player->get_pos().xy();
-		ldir = ldir.normal() * 0.666666 * max_view_dist*mapzoom;
-		vector2 pos = (player->get_pos().xy() + offset) * mapzoom;
-		if ((*it)->get_class() == ship::MERCHANT)
-			glColor3f(0,0,0);
-		else if ((*it)->get_class() == ship::WARSHIP)
-			glColor3f(0,0.5,0);
-		else if ((*it)->get_class() == ship::ESCORT)
-			glColor3f(1,0,0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glBegin(GL_LINES);
-		glVertex2f(512+pos.x, 384-pos.y);
-		glVertex2f(512+pos.x+ldir.x, 384-pos.y-ldir.y);
-		glEnd();
-		glColor3f(1,1,1);
-	}
-
-	vector<submarine*> submarines = gm.sonar_submarines (player );
-	for (vector<submarine*>::iterator it = submarines.begin ();
-		it != submarines.end (); it ++ )
-	{
-		vector2 ldir = (*it)->get_pos().xy() - player->get_pos().xy();
-		ldir = ldir.normal() * 0.666666 * max_view_dist*mapzoom;
-		// Submarines are drawn in blue.
-		glColor3f(0,0,1);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glBegin(GL_LINES);
-		glVertex2f(512,384);
-		glVertex2f(512+ldir.x, 384-ldir.y);
-		glEnd();
-		glColor3f(1,1,1);
+	const vector<sea_object*>& obj = player->get_sonar_objects();
+	for (vector<sea_object*>::const_iterator it = obj.begin(); it != obj.end(); ++it) {
+		const ship* shp = dynamic_cast<const ship*>(*it);
+		if (shp) {
+			vector2 ldir = shp->get_pos().xy() - player->get_pos().xy();
+			ldir = ldir.normal() * 0.666666 * max_view_dist*mapzoom;
+			vector2 pos = (player->get_pos().xy() + offset) * mapzoom;
+			if (shp->get_class() == ship::MERCHANT)
+				glColor3f(0,0,0);
+			else if (shp->get_class() == ship::WARSHIP)
+				glColor3f(0,0.5,0);
+			else if (shp->get_class() == ship::ESCORT)
+				glColor3f(1,0,0);
+			else if (shp->get_class() == ship::SUBMARINE)
+				glColor3f(1,0,0);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glBegin(GL_LINES);
+			glVertex2f(512+pos.x, 384-pos.y);
+			glVertex2f(512+pos.x+ldir.x, 384-pos.y-ldir.y);
+			glEnd();
+			glColor3f(1,1,1);
+		}
 	}
 }
 
@@ -280,49 +268,39 @@ void map_display::draw_visual_contacts(class game& gm,
     const sea_object* player, const vector2& offset) const
 {
 	// draw vessel trails and symbols (since player is submerged, he is drawn too)
-	vector<ship*> ships = gm.visible_ships(player);
-	vector<submarine*> submarines = gm.visible_submarines(player);
-	vector<airplane*> airplanes = gm.visible_airplanes(player);
-	vector<torpedo*> torpedoes = gm.visible_torpedoes(player);
+	const vector<sea_object*>& objs = player->get_visible_objects();
 
    	// draw trails
-   	for (vector<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
-   		draw_trail(*it, offset);
-   	for (vector<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
-   		draw_trail(*it, offset);
-   	for (vector<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
-   		draw_trail(*it, offset);
-   	for (vector<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
+   	for (vector<sea_object*>::const_iterator it = objs.begin(); it != objs.end(); ++it)
    		draw_trail(*it, offset);
 
    	// draw vessel symbols
-   	for (vector<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
-   		draw_vessel_symbol(offset, *it, color(192,255,192));
-   	for (vector<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
-   		draw_vessel_symbol(offset, *it, color(255,255,128));
-   	for (vector<airplane*>::iterator it = airplanes.begin(); it != airplanes.end(); ++it)
-   		draw_vessel_symbol(offset, *it, color(0,0,64));
-   	for (vector<torpedo*>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
-   		draw_vessel_symbol(offset, *it, color(255,0,0));
+   	for (vector<sea_object*>::const_iterator it = objs.begin(); it != objs.end(); ++it) {
+		color c;
+		if (dynamic_cast<const submarine*>(*it)) c = color(255,255,128);
+		else if (dynamic_cast<const torpedo*>(*it)) c = color(255,0,0);
+		else if (dynamic_cast<const ship*>(*it)) c = color(192,255,192);
+		else if (dynamic_cast<const airplane*>(*it)) c = color(0,0,64);
+   		draw_vessel_symbol(offset, *it, c);
+	}
 }
 
 void map_display::draw_radar_contacts(class game& gm, 
 				      const sea_object* player, const vector2& offset) const
 {
-	vector<ship*> ships = gm.radar_ships(player);
-	vector<submarine*> submarines = gm.radar_submarines(player);
-	
-	// draw trails
-   	for (vector<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
+	const vector<sea_object*>& objs = player->get_radar_objects();
+
+   	// draw trails
+   	for (vector<sea_object*>::const_iterator it = objs.begin(); it != objs.end(); ++it)
    		draw_trail(*it, offset);
-   	for (vector<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
-   		draw_trail(*it, offset);
-	
-	// draw vessel symbols
-   	for (vector<ship*>::iterator it = ships.begin(); it != ships.end(); ++it)
-   		draw_vessel_symbol(offset, *it, color(192,255,192));
-   	for (vector<submarine*>::iterator it = submarines.begin(); it != submarines.end(); ++it)
-   		draw_vessel_symbol(offset, *it, color(255,255,128));
+
+   	// draw vessel symbols
+   	for (vector<sea_object*>::const_iterator it = objs.begin(); it != objs.end(); ++it) {
+		color c;
+		if (dynamic_cast<const submarine*>(*it)) c = color(255,255,128);
+		else if (dynamic_cast<const ship*>(*it)) c = color(192,255,192);
+   		draw_vessel_symbol(offset, *it, c);
+	}
 }
 
 
