@@ -311,7 +311,14 @@ void sea_object::simulate(double delta_time)
 	// check for redection jobs and eventually (re)create list of detected objects
 	redetect_time -= delta_time;
 	if (redetect_time <= 0) {
-		//fixme: maybe we should add torpedoes here as well! this simplifies map_display/freeview_display code
+		//fixme: doing this for every object leads to N^2 sensor tests per second.
+		//until now this was done for the player only leading to N*fps tests per second, which is
+		//more for a small number of objects, but less than for greater N (> 30).
+		//this can be a problem, but even with 120 ships we have 14400 sensor checks per second only
+		//and this is not much. On the other hand we need to check for each ship if it can see
+		//other ships to make the AI work correctly (like collision avoidance).
+		//We can decrease the needed cpu usage easily by increasing the redection cycles to 5 seconds
+		//or so, which is still realistic.
 		visible_objects = gm.visible_sea_objects(this);
 		radar_objects = gm.radar_sea_objects(this);
 		sonar_objects = gm.sonar_sea_objects(this);
