@@ -27,3 +27,7 @@ DAMAGE SIMULATION
 ACCURATE PHYSICS
 - buoyancy simulation
 - trim
+
+CVS
+- check that binary files have binary flag
+  models/ sounds/ !
