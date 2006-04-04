@@ -238,9 +238,9 @@ void ai::act_escort(game& gm, double delta_time)
 		// high speeds do not allow for listening or sonar.
 	
 		// listen for subs
-		vector<submarine*> hearable_subs = gm.sonar_submarines(parent);
+		vector<sonar_contact> hearable_subs = gm.sonar_submarines(parent);
 		if (hearable_subs.size() > 0) {
-			attack_contact(hearable_subs.front()->get_pos());
+			attack_contact(hearable_subs.front().pos.xy0());
 		} else {
 			// ping around to find something
 			list<vector3> contacts;

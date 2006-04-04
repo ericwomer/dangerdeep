@@ -55,6 +55,7 @@ class convoy;
 #include "logbook.h"
 #include "ptrset.h"
 #include "xml.h"
+#include "misc_types.h"
 
 // network messages
 #define MSG_length	16
@@ -232,9 +233,12 @@ public:
 	virtual std::vector<sea_object*> visible_sea_objects(const sea_object* o) const;
 
 	// fixme: maybe we should distuingish between passivly and activly detected objects...
-	virtual std::vector<ship*> sonar_ships(const sea_object* o) const;
-	virtual std::vector<submarine*> sonar_submarines(const sea_object* o) const;
-	virtual std::vector<sea_object*> sonar_sea_objects(const sea_object* o) const;
+	// passivly detected objects should store their noise source as position and not their
+	// geometric center position!
+	virtual std::vector<sonar_contact> sonar_ships(const sea_object* o) const;
+	virtual std::vector<sonar_contact> sonar_submarines(const sea_object* o) const;
+	virtual std::vector<sonar_contact> sonar_sea_objects(const sea_object* o) const;
+	// fixme: return sonar_contact here (when the noise_pos fix is done...)
 	virtual ship* sonar_acoustical_torpedo_target(const torpedo* o) const;
 	
 	// std::list<*> radardetected_ships(...);	// later!

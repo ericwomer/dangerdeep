@@ -95,7 +95,7 @@ class ship : public sea_object
 
 	list<vector2> previous_positions;
 
-	unsigned shipclass;	// read from spec file, e.g. warship/merchant/escort/...
+	shipclass myclass;	// read from spec file, e.g. warship/merchant/escort/...
 
 	virtual vector3 get_acceleration() const;		// drag must be already included!
 	virtual double get_turn_acceleration() const;	// drag must be already included!
@@ -194,14 +194,6 @@ class ship : public sea_object
 	void calc_max_gun_range(double initial_velocity);
 
 public:
-	enum shipclasses {
-		WARSHIP,
-		ESCORT,
-		MERCHANT,
-		SUBMARINE,
-		TORPEDO
-	};
-	
 	// create empty object from specification xml file
 	// construct a sea_object. called by heirs
 	ship(game& gm_, const xml_elem& parent);
@@ -209,7 +201,7 @@ public:
 	virtual void load(const xml_elem& parent);
 	virtual void save(xml_elem& parent) const;
 
-	virtual unsigned get_class() const { return shipclass; }
+	virtual shipclass get_class() const { return myclass; }
 
 	virtual void simulate(double delta_time);
 

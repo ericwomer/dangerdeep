@@ -976,7 +976,7 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 		// all parts within this circle are affected to damage relative to their distance to the
 		// circles center.
 	
-		for (unsigned i = 0; i < nr_of_damageable_parts; ++i) {
+		for (unsigned i = 0; i < damageable_parts.size() /*nr_of_damageable_parts*/; ++i) {
 			if (damageable_parts[i].status < 0) continue;	// avoid non existent parts.
 
 			vector3f tmp = (damage_schemes[i].p1 + damage_schemes[i].p2) * 0.5;

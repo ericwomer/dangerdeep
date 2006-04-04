@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "xml.h"
 #include "ai.h"
 #include "countrycodes.h"
+#include "misc_types.h"
 
 /*
 fixme: global todo (2004/06/26):
@@ -98,7 +99,7 @@ public:
 //		damage_data_scheme(const vector3f& a, const vector3f& b, float w, unsigned t, bool s = false, bool r = true) :
 //			p1(a), p2(b), weakness(w), repairtime(t), surfaced(s), repairable(r) {}
 	};
-	
+
 private:
 	sea_object();
 	sea_object& operator=(const sea_object& other);
@@ -173,10 +174,10 @@ protected:
 	double redetect_time;
 	/// list of visible objects, recreated regularly
 	std::vector<sea_object*> visible_objects;
-	/// list of radar detected objects, recreated regularly
+	/// list of radar detected objects, recreated regularly  , fixme: use some contact type here as well
 	std::vector<sea_object*> radar_objects;
 	/// list of heared/sonar detected objects, recreated regularly
-	std::vector<sea_object*> sonar_objects;
+	std::vector<sonar_contact> sonar_objects;
 
 	virtual void set_sensor ( sensor_system ss, sensor* s );
 
@@ -270,7 +271,7 @@ public:
 
 	virtual const std::vector<sea_object*>& get_visible_objects() const { return visible_objects; }
 	virtual const std::vector<sea_object*>& get_radar_objects() const { return radar_objects; }
-	virtual const std::vector<sea_object*>& get_sonar_objects() const { return sonar_objects; }
+	virtual const std::vector<sonar_contact>& get_sonar_objects() const { return sonar_objects; }
 
 	// check for a vector of pointers if the objects are still alive
 	// and remove entries of dead objects (do not delete the objects itself!)

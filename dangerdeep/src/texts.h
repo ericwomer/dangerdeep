@@ -36,7 +36,7 @@ class texts
 	void read_category(category ct);
 	std::string language_code;
 
-	static const texts& texts::obj();
+	static const texts& obj();
 
 	texts(const std::string& langcode = "en");
  public:

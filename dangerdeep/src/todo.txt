@@ -16,6 +16,9 @@ SIMULATE THE PASSIVE SONAR (HEARING EQUIPMENT)
   the AI controlled objects may call such functions as well.
   So store the results per object. We do not need to save them to a savegame.
   Cacheable functions: game::visible_*, game::sonar_*, game::radar_*
+	DONE, NEXT: do not store pointers per sonar contact (and even radar
+	contact?) but only type of signal and direction!
+	after that implement sensor classes for kdb/ghg/bg
 
 
 DAMAGE SIMULATION

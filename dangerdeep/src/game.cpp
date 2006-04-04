@@ -885,9 +885,9 @@ vector<particle*> game::visible_particles(const sea_object* o ) const
 	return result;
 }
 
-vector<ship*> game::sonar_ships (const sea_object* o ) const
+vector<sonar_contact> game::sonar_ships (const sea_object* o ) const
 {
-	vector<ship*> result;
+	vector<sonar_contact> result;
 	const sensor* s = o->get_sensor ( o->passive_sonar_system );
 	if (!s) return result;
 	const passive_sonar_sensor* pss = dynamic_cast<const passive_sonar_sensor*> ( s );
@@ -924,14 +924,14 @@ vector<ship*> game::sonar_ships (const sea_object* o ) const
 			break;
 
 		if ( pss->is_detected ( this, o, sh ) )
-			result.push_back ( sh );
+			result.push_back(sonar_contact(sh->get_pos().xy(), sh->get_class()));
 	}
 	return result;
 }
 
-vector<submarine*> game::sonar_submarines (const sea_object* o ) const
+vector<sonar_contact> game::sonar_submarines (const sea_object* o ) const
 {
-	vector<submarine*> result;
+	vector<sonar_contact> result;
 	const sensor* s = o->get_sensor ( o->passive_sonar_system );
 	if (!s) return result;
 	const passive_sonar_sensor* pss = dynamic_cast<const passive_sonar_sensor*> ( s );
@@ -944,22 +944,19 @@ vector<submarine*> game::sonar_submarines (const sea_object* o ) const
 			continue;
 
 		if ( pss->is_detected ( this, o, submarines[k] ) )
-			result.push_back (submarines[k]);
+			result.push_back(sonar_contact(submarines[k]->get_pos().xy(), submarines[k]->get_class()));
 	}
 	return result;
 }
 
-vector<sea_object*> game::sonar_sea_objects(const sea_object* o) const
+vector<sonar_contact> game::sonar_sea_objects(const sea_object* o) const
 {
-	vector<ship*> sships = sonar_ships(o);
-	vector<submarine*> ssubmarines = sonar_submarines(o);
-	vector<sea_object*> result;
-	result.reserve(sships.size() + ssubmarines.size());
-	for (vector<ship*>::iterator is = sships.begin(); is != sships.end(); ++is)
-		result.push_back(*is);
-	for (vector<submarine*>::iterator iu = ssubmarines.begin(); iu != ssubmarines.end(); ++iu)
-		result.push_back(*iu);
-	return result;
+	vector<sonar_contact> sships = sonar_ships(o);
+	vector<sonar_contact> ssubmarines = sonar_submarines(o);
+	sships.reserve(sships.size() + ssubmarines.size());
+	for (unsigned i = 0; i < ssubmarines.size(); ++i)
+		sships.push_back(ssubmarines[i]);
+	return sships;
 }
 
 vector<submarine*> game::radar_submarines(const sea_object* o) const

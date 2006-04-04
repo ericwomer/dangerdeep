@@ -237,29 +237,36 @@ void map_display::draw_pings(class game& gm, const vector2& offset) const
 void map_display::draw_sound_contact(class game& gm, const sea_object* player,
 	double max_view_dist, const vector2& offset) const
 {
-	const vector<sea_object*>& obj = player->get_sonar_objects();
-	for (vector<sea_object*>::const_iterator it = obj.begin(); it != obj.end(); ++it) {
-		const ship* shp = dynamic_cast<const ship*>(*it);
-		if (shp) {
-			vector2 ldir = shp->get_pos().xy() - player->get_pos().xy();
-			ldir = ldir.normal() * 0.666666 * max_view_dist*mapzoom;
-			vector2 pos = (player->get_pos().xy() + offset) * mapzoom;
-			if (shp->get_class() == ship::MERCHANT)
-				glColor3f(0,0,0);
-			else if (shp->get_class() == ship::WARSHIP)
-				glColor3f(0,0.5,0);
-			else if (shp->get_class() == ship::ESCORT)
-				glColor3f(1,0,0);
-			else if (shp->get_class() == ship::SUBMARINE)
-				glColor3f(1,0,0);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glBegin(GL_LINES);
-			glVertex2f(512+pos.x, 384-pos.y);
-			glVertex2f(512+pos.x+ldir.x, 384-pos.y-ldir.y);
-			glEnd();
-			glColor3f(1,1,1);
+	const vector<sonar_contact>& obj = player->get_sonar_objects();
+	for (vector<sonar_contact>::const_iterator it = obj.begin(); it != obj.end(); ++it) {
+		vector2 ldir = it->pos - player->get_pos().xy();
+		ldir = ldir.normal() * 0.666666 * max_view_dist*mapzoom;
+		vector2 pos = (player->get_pos().xy() + offset) * mapzoom;
+		switch (it->type) {
+		case MERCHANT:
+			glColor3f(0,0,0);
+			break;
+		case WARSHIP:
+			glColor3f(0,0.5,0);
+			break;
+		case ESCORT:
+			glColor3f(1,0,0);
+			break;
+		case SUBMARINE:
+			glColor3f(1,0,0.5);
+			break;
+		default:
+			// unknown object, not used yet
+			glColor3f(0,0.5,0.5);
+			break;
 		}
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBegin(GL_LINES);
+		glVertex2f(512+pos.x, 384-pos.y);
+		glVertex2f(512+pos.x+ldir.x, 384-pos.y-ldir.y);
+		glEnd();
 	}
+	glColor3f(1,1,1);
 }
 
 

@@ -57,8 +57,8 @@ sub_torpedo_display::desc_text::desc_text(const std::string& filename)
 
 string sub_torpedo_display::desc_text::str(unsigned startline, unsigned nrlines) const
 {
-	startline = std::min(startline, txtlines.size());
-	unsigned endline = std::min(startline + nrlines, txtlines.size());
+	startline = std::min(startline, unsigned(txtlines.size()));
+	unsigned endline = std::min(startline + nrlines, unsigned(txtlines.size()));
 	string result;
 	for (unsigned i = startline; i < endline; ++i)
 		result += txtlines[i] + "\n";

@@ -103,14 +103,14 @@ ship::ship(game& gm_, const xml_elem& parent)
 {
 	xml_elem eclassification = parent.child("classification");
 	string typestr = eclassification.attr("type");
-	if (typestr == "warship") shipclass = WARSHIP;
-	else if (typestr == "escort") shipclass = ESCORT;
-	else if (typestr == "merchant") shipclass = MERCHANT;
-	else if (typestr == "submarine") shipclass = SUBMARINE;
-	else if (typestr == "torpedo") shipclass = TORPEDO;
+	if (typestr == "warship") myclass = WARSHIP;
+	else if (typestr == "escort") myclass = ESCORT;
+	else if (typestr == "merchant") myclass = MERCHANT;
+	else if (typestr == "submarine") myclass = SUBMARINE;
+	else if (typestr == "torpedo") myclass = TORPEDO;
 	else throw error(string("illegal ship type in ") + specfilename);
 
-	if (shipclass == TORPEDO) {
+	if (myclass == TORPEDO) {
 		tonnage = 0;
 	} else {
 		xml_elem etonnage = parent.child("tonnage");
@@ -119,7 +119,7 @@ ship::ship(game& gm_, const xml_elem& parent)
 		tonnage = minton + rnd(maxton - minton + 1);
 	}
 	xml_elem emotion = parent.child("motion");
-	if (shipclass == TORPEDO) {
+	if (myclass == TORPEDO) {
 		// fixme: not stored yet, but it should be...
 		max_speed_forward = 0;
 		max_speed_reverse = 0;

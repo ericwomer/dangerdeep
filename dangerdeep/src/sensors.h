@@ -155,8 +155,12 @@ public:
 class passive_sonar_sensor : public sensor
 {
 public:
-	enum passive_sonar_type { passive_sonar_type_default,	/* fixme: tt_t4 is missing here */
-		passive_sonar_type_tt_t5, passive_sonar_type_tt_t11 };
+	// fixme: make heirs for special types here.
+	enum passive_sonar_type {
+		passive_sonar_type_default,	/* fixme: tt_t4 is missing here */
+		passive_sonar_type_tt_t5,
+		passive_sonar_type_tt_t11 };
+	// fixme: add kdb, ghg, bg sonars.
 
 private:
 	void init ( passive_sonar_type type );

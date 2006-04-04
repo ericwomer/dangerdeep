@@ -185,13 +185,13 @@ bool convoy::add_ship(ship* shp)
 {
 	vector2 spos = shp->get_pos().xy() - position;
 	switch (shp->get_class()) {
-	case ship::WARSHIP:
+	case WARSHIP:
 		warships.push_back(make_pair(shp, spos));
 		return true;
-	case ship::ESCORT:
+	case ESCORT:
 		escorts.push_back(make_pair(shp, spos));
 		return true;
-	case ship::MERCHANT:
+	case MERCHANT:
 		merchants.push_back(make_pair(shp, spos));
 		return true;
 	default:

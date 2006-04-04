@@ -149,7 +149,9 @@ double sea_object::get_cross_section ( const vector2& d ) const
 
 sea_object::sea_object(game& gm_, const string& modelname_)
 	: gm(gm_), modelname(modelname_), turn_velocity(0),
-	  alive_stat(alive), target(0),
+	  alive_stat(alive),
+	  sensors(last_sensor_system),
+	  target(0),
 	  invulnerable(false), country(UNKNOWNCOUNTRY), party(UNKNOWNPARTY),
 	  redetect_time(0)
 {
@@ -160,7 +162,9 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 
 
 sea_object::sea_object(game& gm_, const xml_elem& parent)
-	: gm(gm_), turn_velocity(0), alive_stat(alive), target(0),
+	: gm(gm_), turn_velocity(0), alive_stat(alive),
+	  sensors(last_sensor_system),
+	  target(0),
 	  invulnerable(false), country(UNKNOWNCOUNTRY), party(UNKNOWNPARTY),
 	  redetect_time(0)
 {
@@ -195,7 +199,6 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 		}
 	}
 	xml_elem sn = parent.child("sensors");
-	sensors.resize ( last_sensor_system );
 	for (xml_elem::iterator it = sn.iterate("sensor"); !it.end(); it.next()) {
 		string typestr = it.elem().attr("type");
 		if (typestr == "lookout") set_sensor(lookout_system, new lookout_sensor());
@@ -306,7 +309,6 @@ void sea_object::simulate(double delta_time)
 	// check if list of detected objects needs to be compressed.
 	compress(visible_objects);
 	compress(radar_objects);
-	compress(sonar_objects);
 
 	// check for redection jobs and eventually (re)create list of detected objects
 	redetect_time -= delta_time;
