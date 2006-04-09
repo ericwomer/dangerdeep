@@ -56,7 +56,7 @@ sky::sky(const double tm, const unsigned int sectors_x, const unsigned int secto
 	  suntex(0), moontex(0), clouds_dl(0), skyhemisphere_dl(0),
 	  sun_azimuth(10.0f), sun_elevation(10.0f),
 	  moon_azimuth(10.0f), moon_elevation(10.0f),
-	  turbidity(2.0f)
+	  turbidity(5.0f)//was 2.0, fixme
 {
 	// ******************************** create stars
 	const unsigned nr_of_stars = 2000;

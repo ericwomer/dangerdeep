@@ -187,7 +187,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	curr_wtp(0),
 	owg(wave_resolution,
 	    vector2f(1,1), // wind direction
-	    12 /*10*/ /*31*/,	// wind speed m/s. fixme make dynamic (weather!)
+	    12 /*12*/ /*10*/ /*31*/,	// wind speed m/s. fixme make dynamic (weather!)
 	    wave_resolution * (1e-8) /* roughly 2e-6 for 128 */,	// scale factor for heights. depends on wave resolution, maybe also on tidecycle time
 	    wavetile_length,
 	    wave_tidecycle_time),
