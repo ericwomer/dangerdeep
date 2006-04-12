@@ -412,7 +412,11 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	usex86sse = sseok && cfg::instance().getb("usex86sse");
 	if (usex86sse) {
 		sys().add_console("using x86 SSE instructions.");
+#ifdef USE_SSE_INTRINSICS
+		water_compute_coord_init_sse_i(wavetile_length_rcp, wave_resolution, wave_resolution_shift);
+#else
 		water_compute_coord_init_sse(wavetile_length_rcp, wave_resolution, wave_resolution_shift);
+#endif
 		if (sizeof(vector3f) != 12)
 			throw error("Internal SSE error, sizeof vector3f != 12, SSE code won't work!");
 	}
@@ -1048,7 +1052,6 @@ void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpo
 }
 
 
-
 void water::display(const vector3& viewpos, angle dir, double max_view_dist) const
 {
 	const float VIRTUAL_PLANE_HEIGHT = 25.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok, maybe a bit too much
@@ -1305,14 +1308,17 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 				 float(myfrac((vb.y - va.y) * rcp_xres * wavetile_length_rcp) * wave_resolution));
 
 #ifdef USE_SSE
-//		vector<vector3f> tmpcoord(xres+1);
 		if (usex86sse) {
+#ifdef USE_SSE_INTRINSICS
+			water_compute_coord_1line_sse_i(v, vadd, vfrac, vfracadd, &curr_wtp->data[0],
+						      -viewpos.z, &coords[ptr].x, xres);
+#else
 			water_compute_coord_1line_sse(v, vadd, vfrac, vfracadd, &curr_wtp->data[0],
 						      -viewpos.z, &coords[ptr].x, xres);
+#endif
 			ptr += xres + 1;
 		} else {
 #endif // USE_SSE
-		//fixme: testcode entfernen!
 		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 			coords[ptr] /*tmpcoord[xx]*/ = compute_coord(vfrac) + vector3f(v.x, v.y, -viewpos.z);
 			v += vadd;
