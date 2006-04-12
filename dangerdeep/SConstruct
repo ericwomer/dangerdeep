@@ -47,9 +47,14 @@ if sys.platform == 'win32':
 	env.Append(CPPDEFINES = ['_REENTRANT'])
 	env.Append(CCFLAGS = '-Wall -O2') # for mingw!
 	if (usex86sse >= 1):
-		env.Append(CPPDEFINES = ['USE_SSE'])
 		osspecificsrc += ['water_sse.cpp']
-		print 'Using x86 SSE/MMX optimizations.'
+		env.Append(CPPDEFINES = ['USE_SSE'])
+		if (usex86sse >= 2):
+			env.Append(CPPDEFINES = ['USE_SSE_INTRINSICS'])
+			env.Append(CCFLAGS = '-msse')
+			print 'Using x86 SSE/MMX optimizations with GCC intrinsics.'
+		else:
+			print 'Using x86 SSE/MMX optimizations.'
 	datadir = './data'
 	build_dir = 'win32'
 elif sys.platform == 'darwin':
@@ -107,7 +112,7 @@ elif (sys.platform == 'freebsd5') or (sys.platform == 'freebsd6') or (sys.platfo
                         if (os.system('test -f '+i+'libGL.so') == 0):
                                 gllibdir = i
                                 break
-                if (i == ''):
+                if (gllibdir == ''):
                         print 'ERROR: no libGL.so detected!'
                 else:
 			print 'Found GL library "'+gllibdir+'libGL.so"'
@@ -163,7 +168,16 @@ else:
 	if usex86sse >= 1:
 		env.Append(CPPDEFINES = ['USE_SSE'])
 		osspecificsrc += ['water_sse.cpp']
-		print 'Using x86 SSE/MMX optimizations.'
+		if (usex86sse >= 3):
+			env.Append(CPPDEFINES = ['USE_SSE_INTRINSICS', 'USE_SSE_ALWAYS'])
+			env.Append(CCFLAGS = '-msse')
+			print 'Using x86 SSE/MMX optimizations with GCC intrinsics ALWAYS WITHOUT DETECTION!'
+		elif (usex86sse >= 2):
+			env.Append(CPPDEFINES = ['USE_SSE_INTRINSICS'])
+			env.Append(CCFLAGS = '-msse')
+			print 'Using x86 SSE/MMX optimizations with GCC intrinsics.'
+		else:
+			print 'Using x86 SSE/MMX optimizations.'
 	env.Append(CCFLAGS = ccflags)
 	datadir = installdatadir
 	build_dir = 'linux'
@@ -175,7 +189,7 @@ else:
 			if (os.system('test -f '+i+'libGL.so') == 0):
 				gllibdir = i
 				break
-		if (i == ''):
+		if (gllibdir == ''):
 			print 'ERROR: no libGL.so detected!'
 		else:
 			print 'Found GL library "'+gllibdir+'libGL.so"'
@@ -252,7 +266,7 @@ Help("""
 	Extra options (add them to command line, like 'scons extraoption=value'):
 	'debug=x' to build debug level x, levels: 0: normal, 1: debug, 2: more debug,
 		3: profiling, -1: extreme optimizations, -2: even more extreme optim.
-	'usex86sse=x' where x < 0: disable them, 0: autodetect, 1: enable them.
+	'usex86sse=x' where x < 0: disable them, 0: autodetect, 1: enable them, 2: enable and use intrinsics.
 	'useefence=x' when x > 0 use the Electric Fence library (for debugging)
 	""")
 
