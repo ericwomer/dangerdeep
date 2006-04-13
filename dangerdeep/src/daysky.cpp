@@ -178,7 +178,7 @@ colorf daysky::get_color( float theta, float phi ) const
 	// maybe linear scaling of one component is not right here, colors are not linearily independent in
 	// that model - but they should be. Y is lumincance and xy are chromacity values...
 	// we should check the gamedev.net discussions about that topic, there were some guys having the same problem.
-	skycolor_xyY.z = 1 - exp(-(1.0/ /*10.0*/ 25.0) * skycolor_xyY.z);
+	skycolor_xyY.z = 1 - exp(-(1.0/ 10.0 /* 25.0 */) * skycolor_xyY.z);
 	// clamp it here.
 	if (skycolor_xyY.z > 1.0) skycolor_xyY.z = 1.0;
 
