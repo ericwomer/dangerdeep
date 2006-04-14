@@ -12,7 +12,7 @@ rm dangerdeep-$VERSION.tar.gz
 cd ..
 cp build/win32/dangerdeep.exe $TMP/$BASEDIR
 cp dlls/*.dll $TMP/$BASEDIR
-for i in INSTALL LICENSE README CREDITS ChangeLog; do cp $i $TMP/$BASEDIR ; done
+for i in INSTALL ARTWORK_LICENSE LICENSE README CREDITS ChangeLog; do cp $i $TMP/$BASEDIR ; done
 mkdir $TMP/$BASEDIR/config
 echo "Win32 cfg dir" > $TMP/$BASEDIR/config/x
 mkdir $TMP/$BASEDIR/save
