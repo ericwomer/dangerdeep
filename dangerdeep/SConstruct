@@ -157,12 +157,10 @@ else:
 	for i in cpuinfol:
 		if i.startswith('flags'):
 			m = Split(i)
-			for j in m:
-				if j == 'mmx':
-					mmxsupported = True
-				elif j == 'sse':
-					ssesupported = True
-			break
+			if 'mmx' in m:
+				mmxsupported = True
+			if 'sse' in m:
+				ssesupported = True
 	if (usex86sse == 0) and (mmxsupported and ssesupported):
 		usex86sse = 1
 	if usex86sse >= 1:
@@ -279,7 +277,7 @@ allcvsfilesr = f.readlines()
 # remove return code '\n' from end of line
 allcvsfiles = []
 for i in allcvsfilesr:
-	allcvsfiles += [i[:len(i)-1]]
+	allcvsfiles += [i[:-1]]
 
 datafiles = all_entries_that_start_with_and_not(allcvsfiles, './data', './data/xcf')
 
