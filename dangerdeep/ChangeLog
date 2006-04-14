@@ -1,3 +1,1549 @@
+2006-04-14 12:06  thjordan
+
+	* src/water_sse.cpp: little more optimization for sse intrinsic
+	  code
+
+2006-04-14 12:05  thjordan
+
+	* files.txt: update
+
+2006-04-14 11:56  thjordan
+
+	* data/xcf/: 9FUKOLYM.ttf,
+	  ControlPopup_periscope_daylight_rev.1.1.xcf,
+	  ControlPopup_periscope_redlight_rev.1.1.xcf,
+	  NewTDC_screen1_daylight_rev1.1.xcfbz2,
+	  NewTDC_screen1_redlight_rev.1.1.xcfbz2,
+	  NewTDC_screen1_redlight_rev.1.2.xcfbz2,
+	  NewTDC_screen2_daylight_rev.1.2.xcfbz2,
+	  NewTDC_screen2_daylight_rev.1.3.xcfbz2,
+	  NewTDC_screen2_redlight_rev.1.3.xcfbz2,
+	  TDC_daylight_rev.1.3c_maskedcomps.xcf,
+	  TDC_daylight_rev.1.4b_maskedcomps.xcf,
+	  TDC_popup_daylight_rev.1.4b.xcf, TDC_popup_redlight_rev.1.2a.xcf,
+	  TDC_redlight_rev.1.3_maskedcomps.xcf,
+	  TDC_redlight_rev.1.4a_maskedcomps.xcf, Tmanage_README,
+	  bg_daylight_rev.1.2.xcfbz2, bridge_test.tar.bz2,
+	  bump_and_specular_maps4med_freighter.tar.bz2,
+	  ddxml_bridge_and_uboat.tar.bz2, ecard_daylight_rev.1.2.png,
+	  ecard_redlight_rev.1.2.png, forluis.tar.bz2,
+	  highres_torpedos.tar.bz2, indtsettings_daylight_rev.1.3.xcfbz2,
+	  indtsettings_daylight_torpspeed_rev1.6.xcfbz2,
+	  indtsettings_dials_rev1.5.xcfbz2,
+	  indtsettings_fixeddials_red_rev1.5.xcfbz2,
+	  indtsettings_redlight_rev.1.4.xcfbz2,
+	  indtsettings_redlight_torpspeed_rev1.6.xcfbz2,
+	  kdb_daylight_rev.1.3.xcfbz2, kdb_redlight_rev.1.3.xcfbz2,
+	  medium_freighter_rev2.tar.bz2, moonoverlay_test.xcfbz2,
+	  new_medium_freighter.tar.bz2, new_shader_models_textures.tar.bz2,
+	  new_tribal_destroyer.tar.bz2,
+	  periscope_daylight_rev.1.0_maskedfinal_and_clock.xcf,
+	  periscope_daylight_rev.1.2a_maskedcomps.xcf,
+	  periscope_redlight_rev.1.2a_maskedcomps.xcf, shots.tar.bz2,
+	  tmanage_daylight_rev.1.6c.xcf.bz2,
+	  tmanage_redlight_rev.1.6c.xcf.bz2, torpedo_tags_new.tar.bz2,
+	  tribal_color_camouflages.tar.bz2, tribal_specular.png.bz2,
+	  typeVII_north_atlantic_1941.tar.bz2, typeVIIc.tar.bz2,
+	  uboat_type7_northatlantic_1940_u552.png,
+	  uboat_type7_northsea_u161.png: REMOVED DEVELOPMENT DATA
+
+2006-04-14 11:50  thjordan
+
+	* SConstruct: simplifications
+
+2006-04-13 19:06  thjordan
+
+	* src/daysky.cpp: made sky a bit brighter
+
+2006-04-12 21:51  thjordan
+
+	* files.txt: update
+
+2006-04-12 20:37  thjordan
+
+	* src/water_sse.cpp: added some more comments about optimization.
+
+2006-04-12 20:24  thjordan
+
+	* src/: water.cpp, water_sse.cpp, water_sse.h: new intrinsic based
+	  sse code operational.
+
+2006-04-12 20:18  thjordan
+
+	* SConstruct: bugfixes; added flags to enable sse intrinsics
+
+2006-04-11 00:00  thjordan
+
+	* src/water_sse.cpp: first finished version with sse intrinsics.
+	  Not tested for correctness yet
+
+2006-04-10 18:04  thjordan
+
+	* files.txt: update
+
+2006-04-10 18:03  thjordan
+
+	* src/misc_types.h: added common include file for various types and
+	  enums
+
+2006-04-09 23:48  thjordan
+
+	* src/: daysky.cpp, sky.cpp, water.cpp, water_sse.cpp: new
+	  intrinsic code, first bits
+
+2006-04-04 23:42  thjordan
+
+	* src/todo.txt: added note
+
+2006-04-04 23:39  thjordan
+
+	* data/fonts/: font_damagedtypewriter.pgm,
+	  font_damagedtypewriter.png: changed file type to binary
+
+2006-04-04 23:32  thjordan
+
+	* src/: ai.cpp, convoy.cpp, game.cpp, game.h, map_display.cpp,
+	  sea_object.cpp, sea_object.h, sensors.h, ship.cpp, ship.h,
+	  sub_torpedo_display.cpp, submarine.cpp, texts.h, todo.txt:
+	  changed sensor information usage for sonar objects, compile fixes
+	  for gcc 4.1
+
+2006-03-29 23:40  thjordan
+
+	* src/sea_object.cpp: added/changed an important comment
+
+2006-03-29 23:36  thjordan
+
+	* src/: freeview_display.cpp, freeview_display.h, game.cpp, game.h,
+	  map_display.cpp, sea_object.cpp, sea_object.h: do not call
+	  visible_* per frame, but call it once per second and per object
+	  and store the results. display uses the results. added some more
+	  functions to manage lists of objects
+
+2006-03-28 22:17  thjordan
+
+	* src/: ai.h, todo.txt: added todo.txt file, added comment
+
+2006-03-25 10:42  thjordan
+
+	* SConstruct: added FreeBSD port
+
+2006-03-14 18:48  simsoueu
+
+	* data/xcf/bg_daylight_rev.1.2.xcfbz2: Balkongerat layered file,
+	  with guides, as reference for isolated layers and coords file.
+	  Daylight version, masked, internal rev.1.2.
+
+2006-03-03 22:42  simsoueu
+
+	* src/: global_data.cpp, global_data.h, sub_torpedo_display.cpp:
+	  Files edited for new font, global_data.h and .cpp,
+	  sub_torpedo_display.cpp, colors changed as well.
+
+2006-03-03 22:41  simsoueu
+
+	* data/fonts/: font_damagedtypewriter.metric,
+	  font_damagedtypewriter.pgm, font_damagedtypewriter.png: New font
+	  files, with proper glyphs, and dimensions for f6 screen, with
+	  metrics file.
+
+2006-03-02 00:00  thjordan
+
+	* src/SConscript: added alllibs to link arguments of oceantest for
+	  fftw lib
+
+2006-02-28 00:05  bombardier
+
+	* src/: map_display.cpp, sky.cpp: Fixed moon size.  Changed
+	  #include "font.cpp" to #include "font.h" inside map_display.cpp.
+
+2006-02-25 10:40  thjordan
+
+	* src/: daysky.cpp, sky.cpp: made daysky a bit brighter
+
+2006-02-24 22:14  thjordan
+
+	* src/: make_mesh.cpp, sky.cpp: bugfix: nautical angle !=
+	  mathematical angle
+
+2006-02-24 21:57  thjordan
+
+	* src/: freeview_display.cpp, sky.cpp, sky.h: bugfixes
+
+2006-02-23 23:41  thjordan
+
+	* src/: freeview_display.cpp, matrix4.h, user_interface.cpp:
+	  removed the matrix_pusher crap
+
+2006-02-23 23:07  bombardier
+
+	* src/: bspline.h, make_mesh.cpp, mymain.cpp,
+	  ocean_wave_generator.h, oceantest.cpp, water.cpp: Fixed some
+	  missing MSVC stuff. It finally compiles without errors.
+
+2006-02-23 23:01  thjordan
+
+	* data/textures/sunglow.png: added files needed for sky rendering
+
+2006-02-23 22:16  bombardier
+
+	* src/: daysky.cpp, mymain.cpp, subsim.cpp: Fixed some MSVC include
+	  directives.
+
+2006-02-23 22:03  thjordan
+
+	* src/daysky.cpp: removed accidentally left line
+
+2006-02-23 21:17  thjordan
+
+	* src/: SConscript, color.h, daysky.cpp, daysky.h, sky.cpp, sky.h:
+	  new sky color generation code from Alexandre and Matija
+
+2006-02-22 23:55  thjordan
+
+	* src/sub_torpedo_display.cpp: made font color darker
+
+2006-02-22 23:31  thjordan
+
+	* data/torpedoes/TIV_en.txt, src/sub_torpedo_display.cpp,
+	  src/sub_torpedo_display.h, src/texts.h, src/water.cpp: display
+	  per torpedo info, multilingual
+
+2006-02-18 18:23  thjordan
+
+	* src/portal.cpp: improved collision detection, removed obsolete
+	  test
+
+2006-02-18 11:26  thjordan
+
+	* src/portal.cpp: fixed rendering bug, improved collision handling.
+
+2006-02-17 23:58  thjordan
+
+	* src/portal.cpp: nicer movement with portals
+
+2006-02-17 19:09  thjordan
+
+	* src/portal.cpp: bugfixes
+
+2006-02-17 17:46  thjordan
+
+	* src/: crosssection.cpp, portal.cpp: fixed two critical bugs with
+	  portals
+
+2006-02-17 15:52  thjordan
+
+	* files.txt: file list update
+
+2006-02-17 13:31  thjordan
+
+	* src/portal.cpp: some more 3d portal tests
+
+2006-02-17 12:10  thjordan
+
+	* src/: SConscript, ai.cpp, ai.h, airplane.cpp, airplane.h,
+	  coastmap.cpp, color.h, convoy.cpp, convoy.h, crosssection.cpp,
+	  damagemodel.cpp, datadirs.cpp, datadirs.h, font.cpp,
+	  global_data.cpp, global_data.h, map_display.cpp, model.cpp,
+	  particle.cpp, portal.cpp, sensors.cpp, ship.cpp, ship.h, sky.cpp,
+	  sub_control_popup.cpp, sub_ecard_popup.cpp,
+	  sub_periscope_display.cpp, sub_tdc_display.cpp,
+	  sub_tdc_popup.cpp, sub_torpedo_display.cpp,
+	  sub_torpsetup_display.cpp, submarine.cpp,
+	  submarine_interface.cpp, submarine_interface.h, subsim.cpp,
+	  texts.cpp, user_display.h, user_interface.cpp, user_interface.h,
+	  viewmodel.cpp, water.cpp, widget.cpp: moved data directory
+	  definition to new file to lessen dependencies; improved portal
+	  rendering now with 3d level
+
+2006-02-16 22:56  thjordan
+
+	* src/portal.cpp: bigger level
+
+2006-02-16 22:44  thjordan
+
+	* src/portal.cpp: improved rendering and movement
+
+2006-02-16 19:09  thjordan
+
+	* src/: SConscript, portal.cpp: added experimental portal engine
+
+2006-02-16 16:21  thjordan
+
+	* src/: convoy.cpp, date.cpp, faulthandler.h, game.cpp, model.cpp,
+	  submarine.cpp, system.cpp: compile bugfixes for x86-64 platform
+
+2006-02-16 11:27  thjordan
+
+	* src/convoy.cpp: bugfix: avoid endless loop
+
+2006-02-16 11:24  thjordan
+
+	* src/: convoy.cpp, convoy.h, game.cpp, sea_object.h, ship.h:
+	  convoy simulation improved (now convoys move again)
+
+2006-02-15 21:46  thjordan
+
+	* src/: convoy.cpp, crosssection.cpp: improved cross section tool;
+	  add Kennebac tanker to convoy creation
+
+2006-02-15 21:45  thjordan
+
+	* data/models/medium_tanker.cs: added missing file
+
+2006-02-15 21:08  thjordan
+
+	* data/missions/: aegeanconvoy.xml, attackbogue.xml,
+	  battleships.xml, convoybattle.xml, duell.xml: removed not longer
+	  working old missions; added new mission
+
+2006-02-15 18:28  thjordan
+
+	* src/: convoy.cpp, convoy.h, image.h, map_display.cpp,
+	  map_display.h, vector2.h, vector3.h, vector4.h: more on editor:
+	  other convoy symbol; one can add convoys now; replaced (void) by
+	  () in c++ code
+
+2006-02-15 14:44  thjordan
+
+	* src/: convoy.cpp, convoy.h, game_editor.h, map_display.cpp,
+	  map_display.h, submarine_interface.cpp: new editor parts (convoy
+	  menu)
+
+2006-02-15 14:43  thjordan
+
+	* data/texts/common.csv: new editor texts
+
+2006-02-15 13:25  thjordan
+
+	* src/widget.cpp: fixed focus bug
+
+2006-02-14 21:04  thjordan
+
+	* src/SConscript: removed accidentally added test scons file
+
+2006-02-14 21:02  thjordan
+
+	* src/: SConscript, global_data.cpp: reordered startup messages
+
+2006-02-14 10:26  thjordan
+
+	* src/: tinyxml/tinystr.cpp, tinyxml/tinystr.h,
+	  tinyxml/tinyxml.cpp, tinyxml/tinyxml.h, tinyxml/tinyxmlerror.cpp,
+	  tinyxml/tinyxmlparser.cpp, SConscript: replaced tinyxml files
+	  with newer version (2.4.3)
+
+2006-02-12 12:42  thjordan
+
+	* src/countrycodes.h: simple bugfix
+
+2006-02-12 12:37  thjordan
+
+	* data/airplanes/noname.xml, data/ships/battleship_malaya.xml,
+	  data/ships/carrier_bogue.xml, data/ships/corvette.xml,
+	  data/ships/destroyer_oclass.xml, data/ships/destroyer_tribal.xml,
+	  data/ships/freighter_large.xml, data/ships/freighter_medium.xml,
+	  data/ships/merchant_large.xml, data/ships/merchant_medium.xml,
+	  data/ships/merchant_small.xml, data/ships/tanker_medium.xml,
+	  data/ships/tanker_small.xml, data/ships/troopship_medium.xml,
+	  data/submarines/submarine_IXc40.xml,
+	  data/submarines/submarine_VIIc.xml,
+	  data/submarines/submarine_XXI.xml, data/torpedoes/Fido.xml,
+	  data/torpedoes/TI.xml, data/torpedoes/TII.xml,
+	  data/torpedoes/TIII.xml, data/torpedoes/TIII_FaTII.xml,
+	  data/torpedoes/TIIIa_FaTII.xml, data/torpedoes/TIIIa_LuTI.xml,
+	  data/torpedoes/TIIIa_LuTII.xml, data/torpedoes/TIV.xml,
+	  data/torpedoes/TI_FaTI.xml, data/torpedoes/TI_LuTI.xml,
+	  data/torpedoes/TI_LuTII.xml, data/torpedoes/TV.xml,
+	  data/torpedoes/TVI_LuTI.xml, data/torpedoes/TVb.xml,
+	  data/torpedoes/TXI.xml, src/SConscript, src/countrycodes.cpp,
+	  src/countrycodes.h, src/game.h, src/game_editor.cpp,
+	  src/map_display.cpp, src/sea_object.cpp, src/sea_object.h,
+	  src/ship.cpp: added country-code and party management; store
+	  country and party per object; invulnerability flag for each
+	  object (only for editor/debugging); set country codes in
+	  description xml files.
+
+2006-02-11 12:01  thjordan
+
+	* src/model.cpp: correct bounding box computation
+
+2006-02-11 11:44  thjordan
+
+	* data/models/destroyer_tribal.xml: centered tribal destroyer
+
+2006-02-11 11:17  thjordan
+
+	* src/: map_display.cpp, sea_object.h: added some comments
+
+2006-02-08 02:20  thjordan
+
+	* data/texts/common.csv, src/date.cpp, src/date.h,
+	  src/game_editor.cpp, src/game_editor.h, src/map_display.cpp,
+	  src/map_display.h: clone attributes speed,heading,throttle in
+	  editor when cloning objects; new time menu with time settings;
+	  get month length or year length now global functions
+
+2006-02-06 23:35  thjordan
+
+	* src/: map_display.cpp, map_display.h: disable buttons if their
+	  functions are not available; placed editor panel at screen's top
+
+2006-02-05 17:51  thjordan
+
+	* data/missions/aegeanconvoy.xml, data/missions/airplanetest.mis,
+	  data/missions/attackbogue.mis, data/missions/battleships.mis,
+	  data/missions/largeconvoy.mis, data/missions/testconvoy.mis,
+	  data/missions/testconvoy2.mis, data/missions/testship.mis,
+	  data/missions/twoconvoys.mis, src/game_editor.cpp,
+	  src/game_editor.h, src/map_display.cpp, src/map_display.h,
+	  src/sea_object.cpp, src/sea_object.h, src/ship.cpp, src/ship.h,
+	  src/submarine_interface.cpp, src/subsim.cpp,
+	  src/user_interface.cpp, src/user_interface.h, src/widget.cpp,
+	  src/widget.h: removed obsolete old missions; rewritten one
+	  example mission; editor can set heading, speed and throttle now
+
+2006-02-05 15:04  thjordan
+
+	* data/texts/common.csv, src/game_editor.cpp, src/map_display.cpp,
+	  src/map_display.h, src/subsim.cpp: mission file loading with new
+	  xml functions; added some comments; more on mission editor
+
+2006-02-05 12:16  thjordan
+
+	* src/widget.cpp: bugfix for bugfix, stupid typo
+
+2006-02-05 12:14  thjordan
+
+	* src/widget.cpp: slider widget input bugfix
+
+2006-02-05 12:10  thjordan
+
+	* data/texts/common.csv, src/game_editor.cpp, src/map_display.cpp,
+	  src/widget.cpp, src/widget.h: new slider widget ready, some more
+	  bits about the editor.
+
+2006-02-04 15:56  thjordan
+
+	* data/images/metalbackground.jpg, data/images/panelbackground.jpg,
+	  data/textures/background.png, data/textures/psbackgr.png,
+	  src/color.h, src/global_data.cpp, src/global_data.h,
+	  src/map_display.cpp, src/subsim.cpp, src/user_interface.cpp,
+	  src/widget.cpp, src/widget.h: new slider widget; removed obsolete
+	  graphics
+
+2006-02-03 21:47  thjordan
+
+	* src/dftdmodel-spec.txt: explained translation constraints a bit
+	  more
+
+2006-02-03 09:11  thjordan
+
+	* src/: map_display.cpp, widget.cpp, widget.h: new widget basics
+
+2006-02-03 08:31  thjordan
+
+	* src/map_display.cpp: a bit more editor works
+
+2006-02-02 08:54  thjordan
+
+	* src/: map_display.cpp, map_display.h: implemented SHIFT/CTRL
+	  input in editor
+
+2006-02-01 23:51  thjordan
+
+	* data/texts/common.csv, src/map_display.cpp, src/map_display.h,
+	  src/subsim.cpp, src/user_interface.h: more on mission editor:
+	  deleting, selecting, moving works now; new editor help
+
+2006-02-01 05:28  thjordan
+
+	* data/texts/common.csv, src/map_display.cpp, src/map_display.h,
+	  src/sea_object.h, src/widget.h: more on mission editor: adding
+	  ships works now
+
+2006-01-31 22:20  thjordan
+
+	* data/texts/common.csv, src/map_display.cpp, src/map_display.h,
+	  src/user_interface.cpp, src/widget.cpp, src/widget.h: new panel
+	  handling, new editor panel
+
+2006-01-31 08:27  thjordan
+
+	* src/binstream.h: fixed reading and writing of double/float with
+	  C99 compatible method. APPENDIX: removed debug call
+
+2006-01-31 08:26  thjordan
+
+	* src/binstream.h: fixed reading and writing of double/float with
+	  C99 compatible method.
+
+2006-01-30 23:52  thjordan
+
+	* src/binstream.h: cleanup
+
+2006-01-30 23:52  thjordan
+
+	* src/color.h: removed unused binstream related code
+
+2006-01-30 23:52  thjordan
+
+	* src/model.cpp: include binstream directly for 3ds reading
+
+2006-01-29 21:51  simsoueu
+
+	* data/xcf/: kdb_daylight_rev.1.3.xcfbz2,
+	  kdb_redlight_rev.1.3.xcfbz2: KDB hydrophone gimp comp, layered,
+	  masked, +isolated layers+alpha, with coordinates file, daylight &
+	  redlight versions, rev.1.3.
+
+2006-01-29 19:44  thjordan
+
+	* data/texts/common.csv: new texts for editor
+
+2006-01-29 17:01  thjordan
+
+	* src/user_interface.cpp: no real change
+
+2006-01-29 16:36  thjordan
+
+	* src/: font.cpp, font.h, global_data.cpp, global_data.h,
+	  highscorelist.cpp, user_interface.cpp, widget.cpp, widget.h: new
+	  panel, now it works
+
+2006-01-29 14:24  thjordan
+
+	* src/: font.cpp, game_editor.cpp, game_editor.h,
+	  user_interface.cpp, user_interface.h: new panel and message style
+
+2006-01-29 11:31  thjordan
+
+	* src/: SConscript, game.cpp, game.h, game_editor.cpp,
+	  game_editor.h, subsim.cpp: added first bits of game editor;
+	  removed unused main menu entries
+
+2006-01-24 23:33  thjordan
+
+	* src/user_interface.cpp: switch to none popup when switching
+	  screen and current popup is not allowed on new screen
+
+2006-01-24 23:05  thjordan
+
+	* data/images/recognition_card_popup_daylight.jpg,
+	  data/images/recognition_card_popup_daylight.png,
+	  data/images/recognition_card_popup_redlight.jpg,
+	  data/images/recognition_card_popup_redlight.png, src/SConscript,
+	  src/objcache.h, src/sub_ecard_popup.cpp, src/sub_ecard_popup.h,
+	  src/sub_periscope_display.cpp, src/sub_periscope_display.h,
+	  src/sub_uzo_display.cpp, src/sub_uzo_display.h,
+	  src/submarine_interface.cpp, src/submarine_interface.h,
+	  src/user_display.h: implemented the Erkennungskarte (ecard,
+	  recognition card) popup
+
+2006-01-21 13:48  simsoueu
+
+	* data/xcf/ecard_redlight_rev.1.2.png: Rangefinder card, popup, tab
+	  cyclable, daylight version, rev.1.2, with alpha, for periscope
+	  and UZO screen.
+
+2006-01-21 13:43  simsoueu
+
+	* data/xcf/ecard_daylight_rev.1.2.png: Rangefinder card for
+	  periscope and UZO screen, popup, tab cyclable, daylight, rev.1.2,
+	  with alpha.
+
+2006-01-11 22:26  thjordan
+
+	* src/: faulthandler.h, particle.cpp: bugfixes to allow compilation
+	  with MSVC2005
+
+2006-01-10 08:47  thjordan
+
+	* src/coastmap.cpp: changed line to make it work with VC++2005
+
+2006-01-09 21:47  thjordan
+
+	* src/: subsim.cpp, widget.cpp: bugfix in vessel preview, redraws
+	  now on model change
+
+2006-01-09 21:44  thjordan
+
+	* data/shaders/modelrender_mirrorclip_fp.shader: quick bugfix for
+	  gf6600 cards
+
+2006-01-09 21:05  thjordan
+
+	* src/: angle.h, freeview_display.cpp, subsim.cpp, vector3.h,
+	  widget.cpp, widget.h: vessel preview with light source
+
+2006-01-09 00:15  simsoueu
+
+	* data/images/threesubs.jpg: New modelsview background screen.
+	  Light source for 3d models display has to be tweaked to match
+	  background light source.
+
+2006-01-08 18:10  thjordan
+
+	* src/: system.h, widget.cpp, widget.h: some bugfixes for vessel
+	  view
+
+2006-01-08 17:22  thjordan
+
+	* files.txt: updated filelist
+
+2006-01-08 16:07  thjordan
+
+	* src/: airplane_interface.h, filehelper.cpp, filehelper.h,
+	  ship_interface.h, sub_gauges_display.h, submarine_interface.h,
+	  subsim.cpp, user_display.h, user_interface.h, widget.cpp,
+	  widget.h: new 3dview widget and vessel preview enabled again
+
+2006-01-07 22:13  thjordan
+
+	* data/models/test.xml: test translations
+
+2006-01-07 22:13  thjordan
+
+	* src/: model.cpp, viewmodel.cpp: bugfix
+
+2006-01-07 21:37  thjordan
+
+	* src/: dftdmodel-spec.txt, model.cpp, model.h: translation for
+	  model-objects can be read now
+
+2006-01-07 20:52  thjordan
+
+	* data/models/test.xml: fixed indentation
+
+2006-01-07 18:23  thjordan
+
+	* src/: ai.h, airplane.h, airplane_interface.h, angle.h, bspline.h,
+	  cfg.h, coastmap.h, color.h, convoy.h, date.h, depth_charge.h,
+	  error.h, fixed.h, font.h, freeview_display.h, game.h,
+	  gun_shell.h, highscorelist.h, image.h, logbook.h, matrix4.h,
+	  model.h, music.h, objcache.h, ocean_wave_generator.h, particle.h,
+	  perlinnoise.h, quaternion.h, sea_object.h, sensors.h, ship.h,
+	  sky.h, sound.h, submarine.h, system.h, tdc.h, texts.h, texture.h,
+	  torpedo.h, triangulate.h, user_display.h, vector2.h, vector3.h,
+	  vector4.h, water.h, water_sse.h, xml.h: added even more doxygen
+	  comments
+
+2006-01-07 17:39  thjordan
+
+	* src/: depth_charge.h, sea_object.h: added some more doxygen
+	  comments
+
+2006-01-07 17:26  thjordan
+
+	* src/: Doxyfile, airplane.h, angle.h, cfg.h, depth_charge.h,
+	  error.h, gun_shell.h, matrix4.h, quaternion.h, xml.h: added some
+	  doxygen comments
+
+2006-01-07 14:58  thjordan
+
+	* src/: Doxyfile, sea_object.h, ship.h, submarine.h, torpedo.h,
+	  vector2.h: added some doxygen descriptions
+
+2006-01-07 14:41  thjordan
+
+	* src/: ai.cpp, ai.h, airplane.cpp, airplane.h,
+	  airplane_interface.cpp, airplane_interface.h, angle.h,
+	  binstream.h, bspline.h, cfg.cpp, cfg.h, coastmap.cpp, coastmap.h,
+	  color.h, convoy.cpp, convoy.h, credits.h, crosssection.cpp,
+	  damagemodel.cpp, date.cpp, date.h, depth_charge.cpp,
+	  depth_charge.h, error.cpp, error.h, faulthandler.h,
+	  filehelper.cpp, filehelper.h, fixed.h, font.cpp, font.h,
+	  freeview_display.cpp, freeview_display.h, game.cpp, game.h,
+	  gldebug.h, global_data.cpp, global_data.h, gun_shell.cpp,
+	  gun_shell.h, highscorelist.cpp, highscorelist.h, image.cpp,
+	  image.h, keys.cpp, keys.h, logbook.cpp, logbook.h,
+	  logbook_display.cpp, logbook_display.h, make_mesh.cpp,
+	  make_mesh.h, map_display.cpp, map_display.h, matrix4.h,
+	  model.cpp, model.h, music.cpp, music.h, mymain.cpp, network.cpp,
+	  network.h, objcache.h, ocean_wave_generator.h, oceantest.cpp,
+	  parser.cpp, parser.h, particle.cpp, particle.h, perlinnoise.cpp,
+	  perlinnoise.h, ptrset.h, quaternion.h, sea_object.cpp,
+	  sea_object.h, sensors.cpp, sensors.h, ship.cpp, ship.h,
+	  ship_interface.cpp, ship_interface.h, ships_sunk_display.cpp,
+	  ships_sunk_display.h, sky.cpp, sky.h, sound.cpp, sound.h,
+	  sub_bridge_display.cpp, sub_bridge_display.h,
+	  sub_control_popup.cpp, sub_control_popup.h,
+	  sub_damage_display.cpp, sub_damage_display.h,
+	  sub_gauges_display.cpp, sub_gauges_display.h,
+	  sub_periscope_display.cpp, sub_periscope_display.h,
+	  sub_tdc_display.cpp, sub_tdc_display.h, sub_tdc_popup.cpp,
+	  sub_tdc_popup.h, sub_torpedo_display.cpp, sub_torpedo_display.h,
+	  sub_torpsetup_display.cpp, sub_torpsetup_display.h,
+	  sub_uzo_display.cpp, sub_uzo_display.h, submarine.cpp,
+	  submarine.h, submarine_interface.cpp, submarine_interface.h,
+	  subsim.cpp, system.cpp, system.h, tdc.cpp, tdc.h, texts.cpp,
+	  texts.h, texture.cpp, texture.h, token.h, tokencodes.h,
+	  tokenizer.cpp, tokenizer.h, torpedo.cpp, torpedo.h,
+	  triangulate.cpp, triangulate.h, user_display.h,
+	  user_interface.cpp, user_interface.h, user_popup.h, vector2.h,
+	  vector3.h, vector4.h, viewmodel.cpp, water.cpp, water.h,
+	  water_sse.cpp, water_sse.h, widget.cpp, widget.h, xml.cpp, xml.h:
+	  added GPL copyright header
+
+2005-12-28 14:29  thjordan
+
+	* data/models/test.xml, src/dftdmodel-spec.txt, src/model.cpp,
+	  src/model.h, src/viewmodel.cpp, src/xml.cpp: implemented
+	  relationship reading for dftd xml model file format. first
+	  release with basic features, no writing of the data yet
+
+2005-12-28 12:29  thjordan
+
+	* data/models/conning_tower_typeVIIc.xml: added missing tag
+
+2005-12-28 12:11  thjordan
+
+	* src/: SConscript, dftdmodel-spec.txt, model.cpp, model.h,
+	  xml.cpp, xml.h: preparations for relationship reading in model
+	  class: use new xml functions in class model anywhere; more error
+	  checks; new xml functions
+
+2005-12-28 12:01  thjordan
+
+	* src/system.cpp: bugfix to make it work with new nvidia driver and
+	  opengl 2.0
+
+2005-12-27 11:28  thjordan
+
+	* data/shaders/modelrender_mirrorclip_fp.shader,
+	  data/shaders/modelrender_mirrorclip_vp.shader,
+	  data/shaders/modelrender_vp.shader, data/shaders/water_fp.shader,
+	  data/shaders/water_vp.shader, src/water.cpp: bugfixes in the
+	  mirror shader, optimizations of the shaders
+
+2005-12-26 16:40  thjordan
+
+	* data/shaders/modelrender_mirrorclip_vp.shader: added comment
+
+2005-12-26 16:31  thjordan
+
+	* data/shaders/water_vp.shader, src/particle.h: lowered mirror
+	  distorsion scale
+
+2005-12-26 15:49  thjordan
+
+	* data/shaders/water_vp.shader: mirror distorsion added to shader
+
+2005-12-26 15:30  thjordan
+
+	* data/shaders/modelrender_mirrorclip_fp.shader,
+	  data/shaders/modelrender_mirrorclip_vp.shader,
+	  src/faulthandler.h, src/freeview_display.cpp,
+	  src/freeview_display.h, src/matrix4.h, src/model.cpp,
+	  src/model.h, src/sea_object.cpp, src/sea_object.h,
+	  src/viewmodel.cpp: draw mirror images of objects as a test
+
+2005-12-17 18:19  thjordan
+
+	* src/: sub_tdc_display.cpp, submarine.cpp, tdc.cpp, tdc.h: can
+	  switch tdc auto mode now
+
+2005-12-17 13:22  thjordan
+
+	* src/sub_tdc_display.cpp: parallax angle input also with mouse
+	  drag
+
+2005-12-17 12:42  thjordan
+
+	* src/: sub_tdc_display.cpp, submarine.cpp, tdc.cpp, tdc.h: tdc
+	  save bugfixes; user can change parallax angle
+
+2005-12-17 12:13  thjordan
+
+	* src/game.cpp: bugfix for loading of savegames
+
+2005-12-17 11:55  thjordan
+
+	* src/: game.cpp, sub_tdc_display.cpp, sub_tdc_display.h,
+	  user_display.h: fire button and tube selection works again
+
+2005-12-13 22:08  thjordan
+
+	* src/: tdc.cpp, tdc.h: parallax angle computation now also
+	  possible for stern tube launched torpedoes
+
+2005-12-13 19:19  thjordan
+
+	* src/: submarine.cpp, tdc.cpp: simplified parallax angle
+	  computation; use parallax angle for torpedo launching, not just
+	  only display it
+
+2005-12-13 09:11  thjordan
+
+	* src/: sub_tdc_display.cpp, tdc.cpp, tdc.h: implemented parallax
+	  angle computation for bow shots
+
+2005-12-12 00:06  thjordan
+
+	* src/sub_tdc_display.cpp: range dial turns after new formula
+
+2005-12-11 22:57  thjordan
+
+	* src/sub_tdc_display.cpp: adll new TDC dials are drawn right,
+	  except the range dial
+
+2005-12-11 20:31  thjordan
+
+	* files.txt, src/sub_tdc_display.cpp, src/sub_tdc_display.h,
+	  src/submarine.cpp, src/submarine.h, src/submarine_interface.cpp,
+	  src/torpedo.cpp, src/torpedo.h: new TDC screen with new dials
+
+2005-12-11 18:29  thjordan
+
+	* data/images/: TDCScreen1_Daylight_Base_image.png,
+	  TDCScreen1_Daylight_Facherwinkel_pointer_rotating.png,
+	  TDCScreen1_Daylight_Facherwinkel_pointer_rotation.png,
+	  TDCScreen1_Daylight_TorpedoLaufzeit_pointer_minutes.png,
+	  TDCScreen1_Daylight_TorpedoLaufzeit_pointer_minutes_rotating.png,
+	  TDCScreen1_Redlight_Base_image.png,
+	  TDC_daylight_autoswitchoff.png, TDC_daylight_autoswitchon.png,
+	  TDC_daylight_base.jpg, TDC_daylight_base.png,
+	  TDC_daylight_clockbigptr.png, TDC_daylight_clocksmlptr.png,
+	  TDC_daylight_firebutton.png,
+	  TDC_daylight_firesolutionquality.png, TDC_daylight_gyro10.png,
+	  TDC_daylight_gyro360.png, TDC_daylight_spreadangle.png,
+	  TDC_daylight_switchtube1.png, TDC_daylight_switchtube2.png,
+	  TDC_daylight_switchtube3.png, TDC_daylight_switchtube4.png,
+	  TDC_daylight_switchtube5.png, TDC_daylight_switchtube6.png,
+	  TDC_daylight_targetcourse.png, TDC_daylight_targetposition.png,
+	  TDC_daylight_targetrange.png, TDC_daylight_targetspeed.png,
+	  TDC_daylight_torpspeed.png, TDC_daylight_tube1.png,
+	  TDC_daylight_tube2.png, TDC_daylight_tube3.png,
+	  TDC_daylight_tube4.png, TDC_daylight_tube5.png,
+	  TDC_daylight_tube6.png, TDC_redlight_autoswitchoff.png,
+	  TDC_redlight_autoswitchon.png, TDC_redlight_base.jpg,
+	  TDC_redlight_base.png, TDC_redlight_clockbigptr.png,
+	  TDC_redlight_clocksmlptr.png, TDC_redlight_firebutton.png,
+	  TDC_redlight_firesolutionquality.png, TDC_redlight_gyro10.png,
+	  TDC_redlight_gyro360.png, TDC_redlight_spreadangle.png,
+	  TDC_redlight_switchtube1.png, TDC_redlight_switchtube2.png,
+	  TDC_redlight_switchtube3.png, TDC_redlight_switchtube4.png,
+	  TDC_redlight_switchtube5.png, TDC_redlight_switchtube6.png,
+	  TDC_redlight_targetcourse.png, TDC_redlight_targetposition.png,
+	  TDC_redlight_targetrange.png, TDC_redlight_targetspeed.png,
+	  TDC_redlight_torpspeed.png, TDC_redlight_tube1.png,
+	  TDC_redlight_tube2.png, TDC_redlight_tube3.png,
+	  TDC_redlight_tube4.png, TDC_redlight_tube5.png,
+	  TDC_redlight_tube6.png: removed old graphics, renamed some new
+	  files
+
+2005-12-11 16:50  thjordan
+
+	* data/images/: TDCScreen2_Daylight_base_image.png,
+	  TDCScreen2_Redlight_base_image.png: removed accidentally added
+	  images
+
+2005-12-11 16:33  thjordan
+
+	* data/images/:
+	  TDCScreen1_Daylight_AngleOnBow_innerdial_rotating.png,
+	  TDCScreen1_Daylight_Base_image.jpg,
+	  TDCScreen1_Daylight_Base_image.png,
+	  TDCScreen1_Daylight_Facherwinkel_pointer_rotation.png,
+	  TDCScreen1_Daylight_Facherwinkel_usermarker_rotating.png,
+	  TDCScreen1_Daylight_Lagenwinkel_pointer_rotating.png,
+	  TDCScreen1_Daylight_TorpGeschwindigkeit_innerdial_rotating.png,
+	  TDCScreen1_Daylight_TorpedoLaufzeit_pointer_minutes.png,
+	  TDCScreen1_Daylight_TorpedoLaufzeit_pointer_seconds_rotating.png,
+	  TDCScreen1_Daylight_ZielTorpGeschwindigkeit_pointer_rotating.png,
+	  TDCScreen1_Daylight_Zielposition_pointer_rotating.png,
+	  TDCScreen1_Daylight_firesolution_slidingscale_pointer.png,
+	  TDCScreen1_Daylight_parallaxwinkel_pointer_rotating.png,
+	  TDCScreen1_Daylight_parallaxwinkel_usermarker_rotating.png,
+	  TDCScreen1_Redlight_AngleOnBow_innerdial_rotating.png,
+	  TDCScreen1_Redlight_Base_image.jpg,
+	  TDCScreen1_Redlight_Base_image.png,
+	  TDCScreen1_Redlight_Facherwinkel_pointer_rotating.png,
+	  TDCScreen1_Redlight_Facherwinkel_usermarker_rotating.png,
+	  TDCScreen1_Redlight_Lagenwinkel_pointer_rotating.png,
+	  TDCScreen1_Redlight_TorpGeschwindigkeit_innerdial_rotating.png,
+	  TDCScreen1_Redlight_TorpedoLaufzeit_pointer_minutes_rotating.png,
+	  TDCScreen1_Redlight_TorpedoLaufzeit_pointer_seconds_rotating.png,
+	  TDCScreen1_Redlight_ZielTorpGeschwindigkeit_pointer_rotating.png,
+	  TDCScreen1_Redlight_Zielposition_pointer_rotating.png,
+	  TDCScreen1_Redlight_firesolution_slidingscale_pointer.png,
+	  TDCScreen1_Redlight_parallaxwinkel_pointer_rotating.png,
+	  TDCScreen1_Redlight_parallaxwinkel_usermarker_rotating.png,
+	  TDCScreen2_Daylight_AutoManualKnob_automode.png,
+	  TDCScreen2_Daylight_AutoManualKnob_manualmode.png,
+	  TDCScreen2_Daylight_Brightness_dial_pointer_rotating.png,
+	  TDCScreen2_Daylight_FireButton_ON.png,
+	  TDCScreen2_Daylight_HGyro_pointer_main_rotating.png,
+	  TDCScreen2_Daylight_HGyro_pointer_refinement_rotating.png,
+	  TDCScreen2_Daylight_VGyro_main_user_marker_rotating.png,
+	  TDCScreen2_Daylight_VGyro_pointer_main_rotating.png,
+	  TDCScreen2_Daylight_VGyro_pointer_refinement_rotating.png,
+	  TDCScreen2_Daylight_VGyro_refinement_user_marker_rotating.png,
+	  TDCScreen2_Daylight_Zielentfernung_pointer_rotating.png,
+	  TDCScreen2_Daylight_Zielentfernung_user_marker_rotating.png,
+	  TDCScreen2_Daylight_base_image.jpg,
+	  TDCScreen2_Daylight_base_image.png,
+	  TDCScreen2_Daylight_tube1_on.png,
+	  TDCScreen2_Daylight_tube2_on.png,
+	  TDCScreen2_Daylight_tube3_on.png,
+	  TDCScreen2_Daylight_tube4_on.png,
+	  TDCScreen2_Daylight_tube5_on.png,
+	  TDCScreen2_Daylight_tube6_on.png,
+	  TDCScreen2_Redlight_AutoManualKnob_automode.png,
+	  TDCScreen2_Redlight_AutoManualKnob_manualmode.png,
+	  TDCScreen2_Redlight_Brightness_dial_pointer_rotating.png,
+	  TDCScreen2_Redlight_FireButton_ON.png,
+	  TDCScreen2_Redlight_HGyro_pointer_main_rotating.png,
+	  TDCScreen2_Redlight_HGyro_pointer_refinement_rotating.png,
+	  TDCScreen2_Redlight_VGyro_main_user_marker_rotating.png,
+	  TDCScreen2_Redlight_VGyro_pointer_main_rotating.png,
+	  TDCScreen2_Redlight_VGyro_pointer_refinement_rotating.png,
+	  TDCScreen2_Redlight_VGyro_refinement_user_marker_rotating.png,
+	  TDCScreen2_Redlight_Zielentfernung_pointer_rotating.png,
+	  TDCScreen2_Redlight_Zielentfernung_user_marker_rotating.png,
+	  TDCScreen2_Redlight_base_image.jpg,
+	  TDCScreen2_Redlight_base_image.png,
+	  TDCScreen2_Redlight_tube1_on.png,
+	  TDCScreen2_Redlight_tube2_on.png,
+	  TDCScreen2_Redlight_tube3_on.png,
+	  TDCScreen2_Redlight_tube4_on.png,
+	  TDCScreen2_Redlight_tube5_on.png,
+	  TDCScreen2_Redlight_tube6_on.png: added new graphics
+
+2005-12-10 12:10  thjordan
+
+	* SConstruct, src/faulthandler.h: faulthandler improved, added
+	  needed linker option
+
+2005-12-08 22:50  thjordan
+
+	* src/: faulthandler.h, mymain.cpp, subsim.cpp: added code that
+	  prints stack trace on SIGSEGV or globally uncaught exceptions
+
+2005-12-03 17:25  thjordan
+
+	* data/missions/duell.xml, src/missioneditor-readme.txt: mission
+	  editor readme added
+
+2005-12-03 12:11  thjordan
+
+	* src/: music.cpp, subsim.cpp: fixed randomization
+
+2005-12-03 12:07  thjordan
+
+	* src/: convoy.cpp, convoy.h, map_display.cpp, sea_object.cpp,
+	  ship.cpp, ship.h, submarine.cpp: fixed torpedo heading and ship
+	  heading in convoys
+
+2005-12-01 23:42  thjordan
+
+	* src/submarine.cpp: segfault bugfix
+
+2005-12-01 23:25  thjordan
+
+	* src/: ai.cpp, quaternion.h, sea_object.cpp, sea_object.h,
+	  ship.cpp, ship.h, submarine.cpp, torpedo.cpp: torpedo firing and
+	  steering fixes, still not perfect
+
+2005-11-29 09:15  thjordan
+
+	* src/submarine.cpp: some more fixes on torpedo firing
+
+2005-11-29 00:13  thjordan
+
+	* src/: date.cpp, date.h, game.cpp, game.h, torpedo.cpp, torpedo.h,
+	  xml.h: implemented more parts of torpedo spec parsing, torpedoes
+	  can be fired again (but run in wrong direction...)
+
+2005-11-28 23:41  thjordan
+
+	* data/torpedoes/: TI.xml, TII.xml, TIII.xml, TIII_FaTII.xml,
+	  TIIIa_FaTII.xml, TIIIa_LuTI.xml, TIIIa_LuTII.xml, TIV.xml,
+	  TI_FaTI.xml, TI_LuTI.xml, TI_LuTII.xml, TV.xml, TVI_LuTI.xml,
+	  TVb.xml, TXI.xml: changed date format in availability tag for all
+	  torpedoes
+
+2005-11-27 19:22  thjordan
+
+	* src/ship.h: cleanup
+
+2005-11-27 18:33  thjordan
+
+	* src/: submarine.cpp, torpedo.cpp, torpedo.h: torpedo simulation
+	  bugfixes (partly)
+
+2005-11-27 17:50  thjordan
+
+	* src/: map_display.cpp, sub_torpedo_display.cpp,
+	  sub_torpsetup_display.cpp, submarine.cpp, submarine.h,
+	  torpedo.cpp, torpedo.h: torpedo launch bugfixes
+
+2005-11-27 15:56  thjordan
+
+	* src/: game.cpp, ptrset.h, submarine.cpp, submarine.h: simplified
+	  ptrset handling, bugfixes
+
+2005-11-27 12:48  thjordan
+
+	* src/game.cpp: more xml reading/writing bugfixes
+
+2005-11-27 12:33  thjordan
+
+	* src/convoy.cpp: more xml reading/writing bugfixes
+
+2005-11-27 12:30  thjordan
+
+	* src/: SConscript, error.cpp, error.h, game.cpp, sea_object.cpp,
+	  ship.cpp, ship.h, torpedo.cpp, xml.cpp: xml reading/writing
+	  bugfixes
+
+2005-11-27 11:27  thjordan
+
+	* data/torpedoes/: Fido.xml, TI.xml, TII.xml, TIII.xml,
+	  TIII_FaTII.xml, TIIIa_FaTII.xml, TIIIa_LuTI.xml, TIIIa_LuTII.xml,
+	  TIV.xml, TI_FaTI.xml, TI_LuTI.xml, TI_LuTII.xml, TV.xml,
+	  TVI_LuTI.xml, TVb.xml, TXI.xml: added "type" attribute because
+	  all ships have it
+
+2005-11-27 11:03  thjordan
+
+	* data/torpedoes/: TI.xml, TII.xml, TIII.xml, TIII_FaTII.xml,
+	  TIIIa_FaTII.xml, TIIIa_LuTI.xml, TIIIa_LuTII.xml, TIV.xml,
+	  TI_FaTI.xml, TI_LuTI.xml, TI_LuTII.xml, TV.xml, TVI_LuTI.xml,
+	  TVb.xml, TXI.xml: updated identifier tags, reloaded/resaved files
+	  with mlv to fix tinyxml loading problems
+
+2005-11-27 01:04  thjordan
+
+	* src/: submarine.cpp, submarine.h, torpedo.cpp: tdc can be
+	  loaded/saved, more fixes, part 2
+
+2005-11-27 01:02  simsoueu
+
+	* data/torpedoes/: Fido.txt, TIII_FaTII_de.txt, TIII_FaTII_en.txt,
+	  TIII_de.txt, TIII_en.txt, TIIIa_FaTII_de.txt, TIIIa_FaTII_en.txt,
+	  TIIIa_LuTII_de.txt, TIIIa_LuTII_en.txt, TIIIa_LuTI_de.txt,
+	  TIIIa_LuTI_en.txt, TII_de.txt, TII_en.txt, TIV_de.txt,
+	  TIV_en.txt, TI_FaTI_de.txt, TI_FaTI_en.txt, TI_LuTII_de.txt,
+	  TI_LuTII_en.txt, TI_LuTI_de.txt, TI_LuTI_en.txt, TVI_LuTI_de.txt,
+	  TVI_LuTI_en.txt, TV_de.txt, TV_en.txt, TVb_de.txt, TVb_en.txt,
+	  TXI_de.txt, TXI_en.txt: torpedo data files description text.
+
+2005-11-27 01:01  simsoueu
+
+	* data/torpedoes/TI_de.txt: text file for torpedo data
+
+2005-11-27 01:00  simsoueu
+
+	* data/torpedoes/: TI.xml, TII.xml, TIII.xml, TIII_FaTII.xml,
+	  TIIIa_FaTII.xml, TIIIa_LuTI.xml, TIIIa_LuTII.xml, TIV.xml,
+	  TI_FaTI.xml, TI_LuTI.xml, TI_LuTII.xml, TI_en.txt, TV.xml,
+	  TVI_LuTI.xml, TVb.xml, TXI.xml: updated torpedo data files.
+
+2005-11-27 00:48  thjordan
+
+	* src/: highscorelist.cpp, highscorelist.h, submarine.cpp, tdc.cpp,
+	  tdc.h, water_sse.cpp: tdc can be loaded/saved, more fixes
+
+2005-11-27 00:07  thjordan
+
+	* src/: ai.cpp, sea_object.cpp, sub_torpedo_display.cpp,
+	  sub_torpedo_display.h, submarine.cpp, submarine.h,
+	  submarine_interface.cpp, torpedo.cpp, torpedo.h, xml.cpp: code
+	  compiles again, but many fixes remain; torpedo data file loading,
+	  torpedo firing, loading and saving of some parts (logbook...)
+
+2005-11-26 19:16  thjordan
+
+	* src/: ai.cpp, ai.h, airplane.cpp, airplane.h, convoy.cpp,
+	  convoy.h, date.cpp, game.cpp, game.h, global_data.h,
+	  sea_object.cpp, sea_object.h, ship.cpp, ship.h, submarine.cpp,
+	  submarine.h, torpedo.h, xml.cpp, xml.h: more changes on the path
+	  to xml savegames. some bugfixes and simplifications, part 4
+
+2005-11-26 18:53  simsoueu
+
+	* data/: ships/carrier_bogue.xml, ships/corvette.xml,
+	  ships/destroyer_oclass.xml, ships/destroyer_tribal.xml,
+	  ships/freighter_large.xml, ships/freighter_medium.xml,
+	  ships/merchant_large.xml, ships/merchant_medium.xml,
+	  ships/merchant_small.xml, ships/tanker_medium.xml,
+	  ships/tanker_small.xml, ships/troopship_medium.xml,
+	  submarines/submarine_IXc40.xml, submarines/submarine_VIIc.xml,
+	  submarines/submarine_XXI.xml: updated smoke tags on data xmls.
+
+2005-11-26 18:19  thjordan
+
+	* data/ships/battleship_malaya.xml: new smoke format
+
+2005-11-26 12:36  thjordan
+
+	* src/: date.cpp, date.h, depth_charge.cpp, game.cpp, game.h,
+	  sea_object.cpp, submarine.cpp, subsim.cpp, xml.cpp, xml.h: more
+	  changes on the path to xml savegames. some bugfixes and
+	  simplifications
+
+2005-11-25 08:49  thjordan
+
+	* src/: convoy.cpp, convoy.h, sea_object.h: changed load/save
+	  format from binary to xml, changed object construction, changed
+	  torpedo loading.  WORK IN PROGRESS! CODE WILL NOT COMPILE part 2
+
+2005-11-25 00:08  thjordan
+
+	* src/: ai.cpp, airplane.cpp, airplane.h, convoy.cpp, convoy.h,
+	  depth_charge.cpp, depth_charge.h, game.cpp, game.h,
+	  gun_shell.cpp, gun_shell.h, sea_object.cpp, sea_object.h,
+	  ship.cpp, submarine.h, torpedo.cpp, torpedo.fixme.cpp,
+	  torpedo.fixme.h, torpedo.h, xml.cpp, xml.h: changed load/save
+	  format from binary to xml, changed object construction, changed
+	  torpedo loading.  WORK IN PROGRESS! CODE WILL NOT COMPILE
+
+2005-11-23 23:08  thjordan
+
+	* src/angle.h: changed (void) to ()
+
+2005-11-22 08:54  thjordan
+
+	* data/texts/common.csv, data/texts/languages.csv, src/subsim.cpp:
+	  spanish language added, translations in mission files still
+	  missing, also bug in reading mission files with missing language
+	  tags exists
+
+2005-11-21 05:15  simsoueu
+
+	* data/xcf/NewTDC_screen2_daylight_rev.1.3.xcfbz2: Earlier revision
+	  when flattened, had a 1px halo in some areas around tubes lights.
+	  Fixed in this revision, by opaque alpha+slight painting around
+	  tube areas.
+
+2005-11-21 05:10  simsoueu
+
+	* data/images/hedgehog.jpg: Hedgehog image element used in
+	  composition had unknown copyright status. Replaced it by public
+	  domain image from usnavy online library.
+
+2005-11-21 05:08  simsoueu
+
+	* data/images/scopewatcher.jpg: Scope watcher element used in
+	  composition had unknown copyright status. Replaced it by a public
+	  domain image, from usnavy online library.
+
+2005-11-20 11:47  thjordan
+
+	* src/water.cpp: added some test and comments
+
+2005-11-19 20:45  thjordan
+
+	* src/: perlinnoise.cpp, perlinnoise.h, water.cpp: added some
+	  tests, wave displacement bugfix
+
+2005-11-18 18:00  simsoueu
+
+	* data/xcf/NewTDC_screen2_redlight_rev.1.3.xcfbz2: New TDC, 2nd
+	  screen, redlight version, rev.1.3, earlier revisions weren't
+	  commited, overall consistency with remaining screens.
+
+2005-11-18 17:57  simsoueu
+
+	* data/xcf/NewTDC_screen2_daylight_rev.1.2.xcfbz2: New TDC, 2nd
+	  screen, daylight version, rev.1.2, tweaked for overall
+	  consistency, earlier revisions weren't commited.
+
+2005-11-18 17:52  simsoueu
+
+	* data/xcf/NewTDC_screen1_redlight_rev.1.2.xcfbz2: New revision of
+	  redlight version of TDC screen1, tweaked to be consistent with
+	  screen2.
+
+2005-11-16 20:26  thjordan
+
+	* files.txt: compile fix
+
+2005-11-16 20:21  thjordan
+
+	* files.txt, src/credits.h: compile fix
+
+2005-11-15 23:16  thjordan
+
+	* data/shaders/water_fp.shader, src/perlinnoise.cpp, src/water.cpp:
+	  some more water tests
+
+2005-11-15 01:16  simsoueu
+
+	* src/credits.h: updated credits
+
+2005-11-15 01:13  simsoueu
+
+	* CREDITS: updated credits file.
+
+2005-11-14 21:27  thjordan
+
+	* data/shaders/water_fp.shader: added comment about fog, part2
+
+2005-11-14 21:22  thjordan
+
+	* data/shaders/water_fp.shader: added comment about fog
+
+2005-11-14 21:10  thjordan
+
+	* src/water.cpp: height scale change
+
+2005-11-14 21:03  thjordan
+
+	* src/: ocean_wave_generator.h, oceantest.cpp: further tests
+
+2005-11-13 20:07  thjordan
+
+	* src/: SConscript, ocean_wave_generator.h, oceantest.cpp,
+	  subsim.cpp, water.cpp: added ocean generator test
+
+2005-11-13 16:00  thjordan
+
+	* src/water.cpp: removed debug code
+
+2005-11-13 15:59  thjordan
+
+	* src/: ocean_wave_generator.h, water.cpp: some tests
+
+2005-11-13 14:34  thjordan
+
+	* src/xml.h: compile bugfix for gcc3.4
+
+2005-11-12 19:03  thjordan
+
+	* files.txt: update
+
+2005-11-11 08:43  thjordan
+
+	* src/: cfg.cpp, torpedo.fixme.cpp, xml.cpp, xml.h: made xml code
+	  easier, added functions, moved tinyxml use from header to cpp, so
+	  more decoupling of dependencies
+
+2005-11-11 00:53  thjordan
+
+	* src/: SConscript, cfg.cpp, torpedo.fixme.cpp, xml.cpp, xml.h: new
+	  xml interface code, now usage of xml is much easier
+
+2005-11-10 19:54  simsoueu
+
+	* data/xcf/NewTDC_screen1_redlight_rev.1.1.xcfbz2: New TDC, screen1
+	  (tab cycle), redlight version, rev.1.1, with alignement grid.
+
+2005-11-10 19:52  simsoueu
+
+	* data/xcf/NewTDC_screen1_daylight_rev1.1.xcfbz2: New TDC,
+	  screen1(tab cycle), daylight version, rev.1.1, with alignement
+	  grids.
+
+2005-11-09 09:01  thjordan
+
+	* files.txt: added missing files
+
+2005-11-08 08:38  thjordan
+
+	* src/: sea_object.cpp, water.cpp: tried less saturated color for
+	  water
+
+2005-11-08 04:04  apaes
+
+	* src/: music.cpp, subsim.cpp: fixed bug that crashed the game when
+	  entering pause if no music was being used
+
+2005-11-08 00:16  apaes
+
+	* src/: ship.cpp, ship.h, sub_gauges_display.cpp,
+	  sub_gauges_display.h, submarine.cpp: Throttle functions moved to
+	  sub_gauges_display
+
+2005-11-07 18:20  apaes
+
+	* src/: ship.cpp, ship.h, sub_gauges_display.cpp, submarine.cpp,
+	  submarine.h: Added throttle, front/back rudder dials animations
+	  in control screen. Depth planes behavior when in switching from
+	  ahead to reverse needs fixing.
+
+2005-11-06 18:05  thjordan
+
+	* src/: sea_object.h, torpedo.fixme.cpp, torpedo.fixme.h: checked
+	  in wip files
+
+2005-11-06 11:38  thjordan
+
+	* data/torpedoes/: Fido.xml, TI.xml, TII.xml, TIII.xml,
+	  TIII_FaTII.xml, TIIIa_FaTII.xml, TIIIa_LuTI.xml, TIIIa_LuTII.xml,
+	  TIV.xml, TI_FaTI.xml, TI_LuTI.xml, TI_LuTII.xml, TV.xml,
+	  TVI_LuTI.xml, TVb.xml, TXI.xml, fido.xml,
+	  new_torpedo_data_files_xml.tar.bz2, t1.xml, t11.xml, t1fat.xml,
+	  t1lut.xml, t2.xml, t3.xml, t3a.xml, t3afat.xml, t3alut.xml,
+	  t3fat.xml, t4.xml, t5.xml, t6lut.xml: replaced torpedo files by
+	  newer ones
+
+2005-11-05 23:00  thjordan
+
+	* data/models/uboat_VIIc.cs: added missing file
+
+2005-11-05 20:09  thjordan
+
+	* src/sub_tdc_display.cpp: bugfix
+
+2005-11-04 22:21  simsoueu
+
+	* ARTWORK_LICENSE: Artwork license. Artwork use is restricted to
+	  Danger From The Deep.
+
+2005-11-02 03:04  simsoueu
+
+	* data/sounds/sonarping_mono_id1.ogg: Sonar ping sound, xml tag
+	  id=1, for us destroyers, 22050Hz, 16bits, mono.
+
+2005-11-02 03:04  simsoueu
+
+	* data/sounds/ping.ogg: New sonar ping sound, xml tag id=0, for uk
+	  destroyers, 22050Hz, 16bits, mono.
+
+2005-11-02 03:02  simsoueu
+
+	* data/sounds/liquidblast.ogg: New torpedo firing sound, 22050Hz,
+	  16bits, stereo, ogg, 0.5., rev.1.1.
+
+2005-11-01 22:37  apaes
+
+	* src/sub_uzo_display.cpp: fixed graphical issue in UZO screen
+
+2005-11-01 19:03  apaes
+
+	* src/subsim.cpp: fixed small readability issue in some ui screens
+
+2005-11-01 07:06  simsoueu
+
+	* data/textures/uzo.png: New uzo screen, with stepped grid.
+
+2005-11-01 05:48  simsoueu
+
+	* data/images/sunderland.jpg: New sunderland image.
+
+2005-11-01 05:19  apaes
+
+	* data/textures/uzo.png: Fixed UZO screen base, with mask, rev.1.1
+
+2005-11-01 04:41  apaes
+
+	* data/textures/uzo_compass_redlight.png: UZO sliding compass bar,
+	  redlight version, rev.1.0
+
+2005-11-01 04:39  apaes
+
+	* data/textures/uzo_compass_daylight.png: UZO sliding compass bar,
+	  daylight version, rev.1.0
+
+2005-11-01 04:34  apaes
+
+	* src/: sub_uzo_display.cpp, sub_uzo_display.h: New Uzo screen
+
+2005-11-01 04:32  apaes
+
+	* data/textures/uzo.png: UZO screen base, with mask, rev.1.0
+
+2005-11-01 02:26  simsoueu
+
+	* data/images/: hedgehog.jpg, swordfish.jpg: New swordfish
+	  screen/message.
+
+2005-11-01 01:41  apaes
+
+	* data/textures/glasses.png, src/sub_bridge_display.cpp,
+	  src/sub_bridge_display.h: New binoculars img and screen
+
+2005-11-01 01:39  apaes
+
+	* src/widget.cpp: Minor ui selection list tweak
+
+2005-10-31 19:42  thjordan
+
+	* files.txt: update
+
+2005-10-31 13:59  apaes
+
+	* src/: music.h, music.cpp: Main menu music now repeats
+
+2005-10-31 00:42  apaes
+
+	* src/: SConscript, music.h, subsim.cpp, music.cpp: Added main menu
+	  music feature
+
+2005-10-31 00:22  apaes
+
+	* data/sounds/Betty_Roche-Trouble_Trouble.ogg: Added main menu's
+	  music file Betty_Roche-Trouble_Trouble.ogg
+
+2005-10-31 00:18  apaes
+
+	* data/sounds/ImInTheMood.ogg: Added main menu's music file
+	  ImInTheMood.ogg
+
+2005-10-30 22:32  simsoueu
+
+	* LICENSE_README: IMPORTANT notes regarding one CreativeCommons
+	  audio track, one public domain, and public domain images used in
+	  some 2D main GUI screens.
+
+2005-10-30 22:31  simsoueu
+
+	* data/LICENSE_README: IMPORTANT notes regarding one
+	  CreativeCommons track, one public domain, and public domain
+	  images, used in some 2D artwork.
+
+2005-10-30 22:30  simsoueu
+
+	* data/VeraLynn_-_ImInTheMood_-_LICENSE.htm: CreativeCommons
+	  license for VeraLynn_-_ImInTheMood track, from archive.org, in
+	  .htm format.
+
+2005-10-30 22:29  simsoueu
+
+	* data/VeraLynn_-_ImInTheMood_-_LICENSE.txt: CreativeCommons
+	  License for audio track VeryLynn_-_ImInTheMood, from archive.org.
+	  Complete license information.
+
+2005-10-30 22:28  simsoueu
+
+	* data/Archive_TERMS.htm: Archive.org Terms for OpenSouce Audio
+	  files.
+
+2005-10-30 22:28  simsoueu
+
+	* data/Archive_FAQ.htm: Archive.org FAQ/Terms for OpenSource Audio
+	  files usage.
+
+2005-10-30 22:26  simsoueu
+
+	* data/WW2Incolor_Policy.htm: WW2InColor policy for public domain
+	  images used.
+
+2005-10-30 22:26  simsoueu
+
+	* data/NavalHistoricCenterPolicy.htm: Policy for NHC images used in
+	  new introduction GUI.
+
+2005-10-30 19:49  simsoueu
+
+	* data/images/killed.jpg: New killed image.
+
+2005-10-30 19:39  thjordan
+
+	* src/: map_display.cpp, sea_object.cpp, sub_tdc_display.cpp,
+	  submarine.cpp, submarine.h, submarine_interface.cpp, tdc.cpp,
+	  tdc.h: TDC values are set after crew reporting from submarine,
+	  for now in a simple way
+
+2005-10-30 18:25  simsoueu
+
+	* data/textures/widgetelements_menu.png: New widget elements image.
+
+2005-10-30 18:24  simsoueu
+
+	* data/images/scopewatcher.jpg: Scope watcher new image.
+
+2005-10-30 18:22  simsoueu
+
+	* data/images/depthcharge.jpg: New depth charge image.
+
+2005-10-30 18:21  simsoueu
+
+	* data/images/sunken_destroyer.jpg: New sunken destroyer image.
+
+2005-10-30 18:20  simsoueu
+
+	* data/images/krupp_docks.jpg: New krupps dock image.
+
+2005-10-30 18:19  simsoueu
+
+	* data/images/titlebackgr.jpg: New title.image.
+
+2005-10-30 14:47  thjordan
+
+	* src/: SConscript, sea_object.cpp, sea_object.h,
+	  sub_tdc_display.cpp, submarine.cpp, submarine.h,
+	  submarine_interface.cpp, tdc.cpp, tdc.h, user_interface.h: new
+	  tdc class; target is stored in sea_object, so every object
+	  manages at most one target with automatic check for is_alive
+	  condition
+
+2005-10-26 22:58  thjordan
+
+	* src/: sub_torpsetup_display.cpp, submarine.h: show run depth,
+	  added comment
+
+2005-10-26 19:24  simsoueu
+
+	* data/torpedoes/new_torpedo_data_files_xml.tar.bz2: New torpedo
+	  data files. Notes included, as well as mock tags for possible
+	  problems/solutions. Extra torpedo types, reflecting torpedos
+	  available in torp.management screen.
+
+2005-10-26 19:22  simsoueu
+
+	* data/textures/mtanker_camo2.png: 1941/1942 camouflage for
+	  Kennebak class medium tanker. Alternative diffuse map (to be
+	  specified in ship data xml, not ddxml model). Rev.1.0.
+
+2005-10-25 19:31  thjordan
+
+	* debian/DEBIAN/control, src/sub_tdc_display.cpp: added braces for
+	  compatibility
+
+2005-10-23 19:13  thjordan
+
+	* src/viewmodel.cpp: viewmodel with scale printing
+
+2005-10-23 18:24  simsoueu
+
+	* data/textures/mtanker_c2.png: Medium tanker color map, 1k res,
+	  lossless, for kennebak class medium tanker ddxml model. Rev.1.0.
+
+2005-10-23 18:22  simsoueu
+
+	* data/textures/mtanker_spec.png: Medium tanker specular map. 1k
+	  res, lossless, for kennebak class ddxml model, rev.1.0.
+
+2005-10-23 18:21  simsoueu
+
+	* data/textures/mtanker_bump.png: Medium tanker bump map, 1k res,
+	  lossless. For kennebak class medium tanker model. rev.1.0.
+
+2005-10-23 18:20  simsoueu
+
+	* data/models/medium_tanker.xml: Medium tanker ddxml model,
+	  kennebak class. XML in ships, was description file for model,
+	  smoke non-aligned. Comments in side description xml under ships.
+
+2005-10-23 18:18  simsoueu
+
+	* data/ships/tanker_medium.xml: Medium tanker ddxml model -
+	  kennebak class, us, rev.1.0.
+
+2005-10-23 10:23  thjordan
+
+	* src/sub_tdc_display.cpp: tubes are selected by tube lights and
+	  fired by the big red button now
+
+2005-10-17 21:07  thjordan
+
+	* SConstruct, files.txt, makewinpack: changes for win32 release
+
+2005-10-17 21:06  thjordan
+
+	* data/torpedoes/t1.xml: added some comments
+
+2005-10-17 20:52  thjordan
+
+	* src/subsim.cpp: changes for win32 release
+
+2005-10-16 17:42  thjordan
+
+	* ChangeLog: updated changelog
+
 2005-10-16 13:17  thjordan
 
 	* SConstruct, debian/DEBIAN/control: prepared for v0.1.0 release
@@ -2358,64 +3904,6 @@
 	* src/: map_display.cpp, sea_object.cpp, sea_object.h, ship.cpp,
 	  user_interface.cpp: fix that ships don't disapper after they're
 	  hit
-
-2004-12-07 17:54  thjordan
-
-	* dangerdeep-api/: ActiveSensor.html, ActiveSonarSensor.html,
-	  LookoutSensor.html, PassiveSonarSensor.html, RadarSensor.html,
-	  Sensor.html, SensorFactory.html, ai.html, ai_h.html,
-	  airplane.html, airplane_h.html, all-globals.html, angle.html,
-	  angle_h.html, color.html, color_h.html, convoy.html,
-	  convoy_h.html, depth__charge_h.html, depth_charge.html,
-	  font.html, font__character.html, font_h.html,
-	  full-list-ActiveSensor.html, full-list-ActiveSonarSensor.html,
-	  full-list-LookoutSensor.html, full-list-PassiveSonarSensor.html,
-	  full-list-RadarSensor.html, full-list-Sensor.html,
-	  full-list-SensorFactory.html, full-list-ai.html,
-	  full-list-airplane.html, full-list-angle.html,
-	  full-list-color.html, full-list-convoy.html,
-	  full-list-depth_charge.html, full-list-font.html,
-	  full-list-font__character.html, full-list-game.html,
-	  full-list-game__ping.html, full-list-gun_shell.html,
-	  full-list-menu.html, full-list-menu__item.html,
-	  full-list-model.html, full-list-model__face.html,
-	  full-list-model__vertex.html, full-list-parser.html,
-	  full-list-sea_object.html, full-list-ship.html,
-	  full-list-ship_battleshipmalaya.html,
-	  full-list-ship_carrierbogue.html,
-	  full-list-ship_destroyertribal.html,
-	  full-list-ship_interface.html,
-	  full-list-ship_mediummerchant.html,
-	  full-list-ship_mediumtroopship.html, full-list-submarine.html,
-	  full-list-submarine_VIIc.html, full-list-submarine_XXI.html,
-	  full-list-submarine__stored_torpedo.html,
-	  full-list-submarine_interface.html, full-list-system.html,
-	  full-list-texture.html, full-list-token.html,
-	  full-list-tokenizer.html, full-list-torpedo.html,
-	  full-list-user_interface.html, full-list-vector2.html,
-	  full-list-vector3.html, game.html, game__ping.html, game_h.html,
-	  global__data_h.html, gun__shell_h.html, gun_shell.html,
-	  header-list.html, hier.html, index-long.html, index.html,
-	  menu.html, menu__item.html, menu_h.html, model.html,
-	  model__face.html, model__vertex.html, model_h.html, parser.html,
-	  parser_h.html, sea__object_h.html, sea_object.html,
-	  sensors_h.html, ship.html, ship__battleshipmalaya_h.html,
-	  ship__carrierbogue_h.html, ship__destroyertribal_h.html,
-	  ship__interface_h.html, ship__mediummerchant_h.html,
-	  ship__mediumtroopship_h.html, ship_battleshipmalaya.html,
-	  ship_carrierbogue.html, ship_destroyertribal.html, ship_h.html,
-	  ship_interface.html, ship_mediummerchant.html,
-	  ship_mediumtroopship.html, submarine.html, submarine_VIIc.html,
-	  submarine_XXI.html, submarine__VIIc_h.html,
-	  submarine__XXI_h.html, submarine__interface_h.html,
-	  submarine__stored_torpedo.html, submarine_h.html,
-	  submarine_interface.html, system.html, system_h.html,
-	  texts_h.html, texture.html, texture_h.html, token.html,
-	  token_h.html, tokencodes_h.html, tokenizer.html,
-	  tokenizer_h.html, torpedo.html, torpedo_h.html,
-	  user__interface_h.html, user_interface.html, vector2.html,
-	  vector2_h.html, vector3.html, vector3_h.html: removed obsolete
-	  files
 
 2004-12-07 17:52  thjordan
 
@@ -7644,64 +9132,6 @@
 2003-04-05 16:42  mpetermann
 
 	* game.cpp, src/game.cpp: [no log message]
-
-2003-04-04 21:55  mpetermann
-
-	* dangerdeep-api/: ActiveSensor.html, ActiveSonarSensor.html,
-	  LookoutSensor.html, PassiveSonarSensor.html, RadarSensor.html,
-	  Sensor.html, SensorFactory.html, ai.html, ai_h.html,
-	  airplane.html, airplane_h.html, all-globals.html, angle.html,
-	  angle_h.html, color.html, color_h.html, convoy.html,
-	  convoy_h.html, depth__charge_h.html, depth_charge.html,
-	  font.html, font__character.html, font_h.html,
-	  full-list-ActiveSensor.html, full-list-ActiveSonarSensor.html,
-	  full-list-LookoutSensor.html, full-list-PassiveSonarSensor.html,
-	  full-list-RadarSensor.html, full-list-Sensor.html,
-	  full-list-SensorFactory.html, full-list-ai.html,
-	  full-list-airplane.html, full-list-angle.html,
-	  full-list-color.html, full-list-convoy.html,
-	  full-list-depth_charge.html, full-list-font.html,
-	  full-list-font__character.html, full-list-game.html,
-	  full-list-game__ping.html, full-list-gun_shell.html,
-	  full-list-menu.html, full-list-menu__item.html,
-	  full-list-model.html, full-list-model__face.html,
-	  full-list-model__vertex.html, full-list-parser.html,
-	  full-list-sea_object.html, full-list-ship.html,
-	  full-list-ship_battleshipmalaya.html,
-	  full-list-ship_carrierbogue.html,
-	  full-list-ship_destroyertribal.html,
-	  full-list-ship_interface.html,
-	  full-list-ship_mediummerchant.html,
-	  full-list-ship_mediumtroopship.html, full-list-submarine.html,
-	  full-list-submarine_VIIc.html, full-list-submarine_XXI.html,
-	  full-list-submarine__stored_torpedo.html,
-	  full-list-submarine_interface.html, full-list-system.html,
-	  full-list-texture.html, full-list-token.html,
-	  full-list-tokenizer.html, full-list-torpedo.html,
-	  full-list-user_interface.html, full-list-vector2.html,
-	  full-list-vector3.html, game.html, game__ping.html, game_h.html,
-	  global__data_h.html, gun__shell_h.html, gun_shell.html,
-	  header-list.html, hier.html, index-long.html, index.html,
-	  menu.html, menu__item.html, menu_h.html, model.html,
-	  model__face.html, model__vertex.html, model_h.html, parser.html,
-	  parser_h.html, sea__object_h.html, sea_object.html,
-	  sensors_h.html, ship.html, ship__battleshipmalaya_h.html,
-	  ship__carrierbogue_h.html, ship__destroyertribal_h.html,
-	  ship__interface_h.html, ship__mediummerchant_h.html,
-	  ship__mediumtroopship_h.html, ship_battleshipmalaya.html,
-	  ship_carrierbogue.html, ship_destroyertribal.html, ship_h.html,
-	  ship_interface.html, ship_mediummerchant.html,
-	  ship_mediumtroopship.html, submarine.html, submarine_VIIc.html,
-	  submarine_XXI.html, submarine__VIIc_h.html,
-	  submarine__XXI_h.html, submarine__interface_h.html,
-	  submarine__stored_torpedo.html, submarine_h.html,
-	  submarine_interface.html, system.html, system_h.html,
-	  texts_h.html, texture.html, texture_h.html, token.html,
-	  token_h.html, tokencodes_h.html, tokenizer.html,
-	  tokenizer_h.html, torpedo.html, torpedo_h.html,
-	  user__interface_h.html, user_interface.html, vector2.html,
-	  vector2_h.html, vector3.html, vector3_h.html: Initial version of
-	  API documentation.
 
 2003-04-04 20:54  mpetermann
 
