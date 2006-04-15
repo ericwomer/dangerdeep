@@ -28,6 +28,27 @@ ACCURATE PHYSICS
 - buoyancy simulation
 - trim
 
+IDEAS ABOUT WATER
+- render foam not in a two-step process like it is now, but render
+  (animated) foam texture on top of water. Give amount of foam per vertex,
+  the amount is computed by the CPU. For each trail or object causing foam
+  determine which vertices are "inside" the trail and compute the amount of
+  foam to generate for each vertex. This needs intersection code for
+  face-face or point-face cases. But it is rather simple and can go fast.
+  To weak wave heights (e.g. for explosions or objects interacting with the
+  water, we would have to touch each generated vertex anyway).
+  This removes the 512x512 texture rendering of the first step of foam and
+  removes the ugly effects where you can see foam as filtered pixels in the
+  distance.
+  And we can generate foam for wave tops. In theory foam is generated on
+  each wave top when the wave breaks, this means on local maxima of the
+  height. So compute the differential of the heights, all values near to
+  zero are local maxima (or minima). Simpler algorithms are possible, as
+  proposed by nvidia: determine by height of wave, only heighest waves
+  generate foam, this means waves above a critical height. Only crests
+  should reach this height, not smooth round waves, so it should be
+  realistic.
+
 CVS
 - check that binary files have binary flag
   models/ sounds/ !
