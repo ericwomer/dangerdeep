@@ -81,6 +81,7 @@ elif (sys.platform == 'freebsd5') or (sys.platform == 'freebsd6') or (sys.platfo
 	libpath = [LOCALBASE + '/lib', X11BASE + '/lib'] 
 	gllibs = ['GL', 'GLU']
 	sdllibs = ['SDL_image']
+	extralibs = ['execinfo']
 	cpuinfof = os.popen('sysctl -n hw.instruction_sse')
 	cpuinfol = cpuinfof.readlines()
 	mmxsupported = False
