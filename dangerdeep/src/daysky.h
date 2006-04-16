@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define DAYSKY_H
 
 #include "color.h"
+#include "tone_reproductor.h"
 
 class daysky {
  public:
@@ -35,7 +36,6 @@ class daysky {
 	void set_sun_position( const float azimuth, const float elevation );
 	//! Get color.
 	colorf get_color( float theta, float phi ) const;
-
 
  private:
 	struct alphabet {
@@ -55,6 +55,8 @@ class daysky {
 	float m_sun_phi, m_sun_phi2, m_sun_phi3;
 	float m_chroma_xZC, m_chroma_yZC;
 	alphabet m_luminance, m_x, m_y;
+
+	mutable tone_reproductor tonerepro;
 };  //DaySky
 
 // class DaySky is used to create the colormap used for sky in dd
