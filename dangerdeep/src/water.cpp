@@ -276,8 +276,9 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	osg.write((const char*)(&foamtexpixels[0]), foamtexsize * foamtexsize);
 */
 
-	foamtex.reset(new texture(foamtexpixels, foamtexsize, foamtexsize, GL_LUMINANCE,
-				  texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
+// 	foamtex.reset(new texture(foamtexpixels, foamtexsize, foamtexsize, GL_LUMINANCE,
+// 				  texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
+	foamtex.reset(new texture(get_texture_dir() + "foam.png", texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
 	foamamounttex.reset(new texture(FOAMAMOUNTRES, FOAMAMOUNTRES, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 
 	foamamounttrail.reset(new texture(get_texture_dir() + "foamamounttrail.png", texture::LINEAR, texture::CLAMP_TO_EDGE));//fixme maybe mipmap it
