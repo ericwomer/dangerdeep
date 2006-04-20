@@ -17,25 +17,24 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-// user display: submarine's ghg (Gruppenhorchgerät) hearing device
+// user display: submarine's kdb hearing device
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
-#ifndef SUB_GHG_DISPLAY_H
-#define SUB_GHG_DISPLAY_H
+#ifndef SUB_KDB_DISPLAY_H
+#define SUB_KDB_DISPLAY_H
 
 #include "user_display.h"
 #include "image.h"
 #include <vector>
 
-class sub_ghg_display : public user_display
+class sub_kdb_display : public user_display
 {
 	class scheme {
 	public:
 		std::auto_ptr<image> background;
 		rotat_tex direction_ptr;
-		rotat_tex direction_knob;
-		rotat_tex volume_dial;
-		fix_tex volume_knob;
+		fix_tex turn_wheel[6];
+		fix_tex volume_knob[6];
 		scheme() {}
 	protected:
 		scheme(const scheme& );
@@ -55,7 +54,7 @@ class sub_ghg_display : public user_display
 	std::vector<float> turnknobang;
 
 public:
-	sub_ghg_display(class user_interface& ui_);
+	sub_kdb_display(class user_interface& ui_);
 
 	virtual void process_input(class game& gm, const SDL_Event& event);
 	virtual void display(class game& gm) const;

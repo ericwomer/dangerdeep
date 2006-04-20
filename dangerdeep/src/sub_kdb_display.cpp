@@ -17,10 +17,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-// user display: submarine's ghg (Gruppenhorchgerät) hearing device
+// user display: submarine's kdb hearing device
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
-#include "sub_ghg_display.h"
+#include "sub_kdb_display.h"
 #include "system.h"
 #include "image.h"
 #include "texture.h"
@@ -34,26 +34,29 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 using namespace std;
 
 static const double TK_ANGFAC = 360.0/512.0;
+static const unsigned TK_PHASES = 6;
 
-sub_ghg_display::sub_ghg_display(user_interface& ui_)
+sub_kdb_display::sub_kdb_display(user_interface& ui_)
 	: user_display(ui_), turnknobdrag(TK_NONE), turnknobang(TK_NR)
 {
-	daylight.background.reset(new image(get_image_dir() + "GHG_daylight_background.jpg|png"));
-	redlight.background.reset(new image(get_image_dir() + "GHG_redlight_background.jpg|png"));
+	daylight.background.reset(new image(get_image_dir() + "KDB_daylight_background.jpg"));
+	redlight.background.reset(new image(get_image_dir() + "KDB_redlight_background.jpg"));
+	daylight.direction_ptr.set("KDB_daylight_pointer.png", 323, 122, 377, 373);
+	redlight.direction_ptr.set("KDB_redlight_pointer.png", 323, 122, 377, 373);
 
-	daylight.direction_ptr.set("GHG_daylight_pointer.png", 242, 89, 376, 372);
-	redlight.direction_ptr.set("GHG_redlight_pointer.png", 242, 89, 376, 372);
-	daylight.direction_knob.set("GHG_daylight_knob.png", 306, 516, 373, 583);
-	redlight.direction_knob.set("GHG_redlight_knob.png", 306, 516, 373, 583);
-	daylight.volume_dial.set("GHG_daylight_volume_dial.png", 711, 470, 849, 605);
-	redlight.volume_dial.set("GHG_redlight_volume_dial.png", 711, 470, 849, 605);
-	daylight.volume_knob.set("GHG_daylight_volumeknob.png", 783, 550);
-	redlight.volume_knob.set("GHG_redlight_volumeknob.png", 783, 550);
+	for (unsigned i = 0; i < TK_PHASES; ++i) {
+	  ostringstream osn;
+	  osn << (i+1) ;
+	  daylight.turn_wheel[i].set("KDB_daylight_gauge" + osn.str() + ".png", 166, 682);
+	  redlight.turn_wheel[i].set("KDB_redlight_gauge" + osn.str() + ".png", 166, 682);
+	  daylight.volume_knob[i].set("KDB_daylight_knob" + osn.str() + ".png", 683, 667);
+	  redlight.volume_knob[i].set("KDB_redlight_knob" + osn.str() + ".png", 683, 667);
+	}
 }
 
 
 
-void sub_ghg_display::process_input(class game& gm, const SDL_Event& event)
+void sub_kdb_display::process_input(class game& gm, const SDL_Event& event)
 {
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 	bool is_day = gm.is_day_mode();
@@ -68,10 +71,10 @@ void sub_ghg_display::process_input(class game& gm, const SDL_Event& event)
 		my = event.button.y;
 		// check if mouse is over turn knobs
 		turnknobdrag = TK_NONE;
-		if (s.direction_knob.is_mouse_over(mx, my, 64)) {
+		if (s.volume_knob[0].is_mouse_over(mx, my)) {
+		  turnknobdrag = TK_VOLUME;
+		} else if (s.turn_wheel[0].is_mouse_over(mx, my, 128)) {
 			turnknobdrag = TK_DIRECTION;
-		} else if (s.volume_knob.is_mouse_over(mx, my)) {
-			turnknobdrag = TK_VOLUME;
 		}
 		break;
 	case SDL_MOUSEMOTION:
@@ -84,13 +87,13 @@ void sub_ghg_display::process_input(class game& gm, const SDL_Event& event)
 				ang += mx * TK_ANGFAC;
 				switch (turnknobdrag) {
 				case TK_DIRECTION:
-					// 0-360*4 degrees match to 0-360
-					ang = myclamp(ang, -320.0f, 320.0f);
-					//sub->set_ghg_direction(ang*0.5); // fixme: set angle of player
+					// bring to 0...360 degree value
+					ang = myfmod(ang, 720.0f);
+					//sub->set_kdb_direction(ang); // fixme: set angle of player
 					break;
 				case TK_VOLUME:
-					// 0-288 degrees match to 5-85 degrees angle
-					ang = myclamp(ang, 0.0f, 252.0f);
+					// 0-360 degrees possible
+					ang = myclamp(ang, 0.0f, 360.0f);
 					break;
 				default:	// can never happen
 					break;
@@ -110,7 +113,7 @@ void sub_ghg_display::process_input(class game& gm, const SDL_Event& event)
 
 
 
-void sub_ghg_display::display(class game& gm) const
+void sub_kdb_display::display(class game& gm) const
 {
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 
@@ -124,11 +127,10 @@ void sub_ghg_display::display(class game& gm) const
 
 	const scheme& s = (is_day) ? daylight : redlight;
 
-	s.volume_dial.draw(-turnknobang[TK_VOLUME]-18.0f);
 	s.background->draw(0, 0);
-	s.volume_knob.draw();
-	s.direction_ptr.draw(turnknobang[TK_DIRECTION]*0.5 /* fixme: get angle from player*/);
-	s.direction_knob.draw(turnknobang[TK_DIRECTION]);
+	s.volume_knob[unsigned(myfmod(-turnknobang[TK_VOLUME]*0.5f, 90.0f)) * TK_PHASES / 90].draw();
+	s.turn_wheel[unsigned(myfmod(-turnknobang[TK_DIRECTION] * 2.0f, 90.0f)) * TK_PHASES / 90].draw();
+	s.direction_ptr.draw(turnknobang[TK_DIRECTION] * 0.5f /* fixme: get angle from player*/);
 
 	ui.draw_infopanel();
 
