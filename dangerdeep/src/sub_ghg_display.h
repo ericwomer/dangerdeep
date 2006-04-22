@@ -54,7 +54,7 @@ class sub_ghg_display : public user_display
 	turnknobtype turnknobdrag;
 	std::vector<float> turnknobang;
 
-public:
+ public:
 	sub_ghg_display(class user_interface& ui_);
 
 	virtual void process_input(class game& gm, const SDL_Event& event);

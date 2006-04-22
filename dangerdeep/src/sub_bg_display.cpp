@@ -17,10 +17,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-// user display: submarine's kdb hearing device
+// user display: submarine's bg hearing device
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
-#include "sub_kdb_display.h"
+#include "sub_bg_display.h"
 #include "system.h"
 #include "image.h"
 #include "texture.h"
@@ -36,27 +36,25 @@ using namespace std;
 static const double TK_ANGFAC = 360.0/512.0;
 static const unsigned TK_PHASES = 6;
 
-sub_kdb_display::sub_kdb_display(user_interface& ui_)
+sub_bg_display::sub_bg_display(user_interface& ui_)
 	: user_display(ui_), turnknobdrag(TK_NONE), turnknobang(TK_NR)
 {
-	daylight.background.reset(new image(get_image_dir() + "KDB_daylight_background.jpg"));
-	redlight.background.reset(new image(get_image_dir() + "KDB_redlight_background.jpg"));
-	daylight.direction_ptr.set("KDB_daylight_pointer.png", 323, 122, 377, 373);
-	redlight.direction_ptr.set("KDB_redlight_pointer.png", 323, 122, 377, 373);
+	daylight.background.reset(new image(get_image_dir() + "BG_daylight_background.jpg"));
+	redlight.background.reset(new image(get_image_dir() + "BG_redlight_background.jpg"));
+	daylight.direction_ptr.set("BG_daylight_pointer.png", 341, 153, 373, 346);
+	redlight.direction_ptr.set("BG_redlight_pointer.png", 341, 153, 373, 346);
 
 	for (unsigned i = 0; i < TK_PHASES; ++i) {
 		ostringstream osn;
 		osn << (i+1) ;
-		daylight.turn_wheel[i].set("KDB_daylight_gauge" + osn.str() + ".png", 166, 682);
-		redlight.turn_wheel[i].set("KDB_redlight_gauge" + osn.str() + ".png", 166, 682);
-		daylight.volume_knob[i].set("KDB_daylight_knob" + osn.str() + ".png", 683, 667);
-		redlight.volume_knob[i].set("KDB_redlight_knob" + osn.str() + ".png", 683, 667);
+		daylight.turn_wheel[i].set("BG_daylight_knob_pos" + osn.str() + ".png", 110, 641);
+		redlight.turn_wheel[i].set("BG_redlight_knob_pos" + osn.str() + ".png", 110, 641);
 	}
 }
 
 
 
-void sub_kdb_display::process_input(class game& gm, const SDL_Event& event)
+void sub_bg_display::process_input(class game& gm, const SDL_Event& event)
 {
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 	bool is_day = gm.is_day_mode();
@@ -71,9 +69,7 @@ void sub_kdb_display::process_input(class game& gm, const SDL_Event& event)
 		my = event.button.y;
 		// check if mouse is over turn knobs
 		turnknobdrag = TK_NONE;
-		if (s.volume_knob[0].is_mouse_over(mx, my)) {
-			turnknobdrag = TK_VOLUME;
-		} else if (s.turn_wheel[0].is_mouse_over(mx, my, 128)) {
+		if (s.turn_wheel[0].is_mouse_over(mx, my, 128)) {
 			turnknobdrag = TK_DIRECTION;
 		}
 		break;
@@ -89,11 +85,7 @@ void sub_kdb_display::process_input(class game& gm, const SDL_Event& event)
 				case TK_DIRECTION:
 					// bring to 0...360 degree value
 					ang = myfmod(ang, 720.0f);
-					//sub->set_kdb_direction(ang); // fixme: set angle of player
-					break;
-				case TK_VOLUME:
-					// 0-360 degrees possible
-					ang = myclamp(ang, 0.0f, 360.0f);
+					//sub->set_bg_direction(ang); // fixme: set angle of player
 					break;
 				default:	// can never happen
 					break;
@@ -113,7 +105,7 @@ void sub_kdb_display::process_input(class game& gm, const SDL_Event& event)
 
 
 
-void sub_kdb_display::display(class game& gm) const
+void sub_bg_display::display(class game& gm) const
 {
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 
@@ -128,7 +120,6 @@ void sub_kdb_display::display(class game& gm) const
 	const scheme& s = (is_day) ? daylight : redlight;
 
 	s.background->draw(0, 0);
-	s.volume_knob[unsigned(myfmod(-turnknobang[TK_VOLUME]*0.5f, 90.0f)) * TK_PHASES / 90].draw();
 	s.turn_wheel[unsigned(myfmod(-turnknobang[TK_DIRECTION] * 2.0f, 90.0f)) * TK_PHASES / 90].draw();
 	s.direction_ptr.draw(turnknobang[TK_DIRECTION] * 0.5f /* fixme: get angle from player*/);
 

@@ -62,8 +62,9 @@ using namespace std;
 #include "freeview_display.h"
 #include "sub_tdc_display.h"
 #include "sub_torpsetup_display.h"
-#include "sub_ghg_display.h"
 #include "sub_kdb_display.h"
+#include "sub_ghg_display.h"
+#include "sub_bg_display.h"
 
 #include "sub_control_popup.h"
 #include "sub_tdc_popup.h"
@@ -79,7 +80,7 @@ submarine_interface::submarine_interface(game& gm) :
 	displays[display_mode_bridge] = new sub_bridge_display(*this);
 	displays[display_mode_map] = new map_display(*this);
 	displays[display_mode_torpedoroom] = new sub_torpedo_display(*this);
-	displays[display_mode_damagestatus] = new sub_damage_display(*this);
+	displays[display_mode_damagestatus] = new sub_bg_display(*this); //sub_damage_display(*this);//fixme
 	displays[display_mode_logbook] = new sub_kdb_display(*this); //logbook_display(*this);//fixme
 	displays[display_mode_successes] = new sub_ghg_display(*this); //ships_sunk_display(*this);//fixme
 	displays[display_mode_freeview] = new freeview_display(*this);

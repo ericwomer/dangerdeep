@@ -38,6 +38,7 @@ dftdsources = Split("""subsim.cpp
 	sound.cpp
 	submarine.cpp
 	submarine_interface.cpp
+	sub_bg_display.cpp
 	sub_bridge_display.cpp
 	sub_control_popup.cpp
 	sub_ecard_popup.cpp

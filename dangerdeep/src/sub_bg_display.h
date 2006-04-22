@@ -17,24 +17,23 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-// user display: submarine's kdb hearing device
+// user display: submarine's bg hearing device
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
-#ifndef SUB_KDB_DISPLAY_H
-#define SUB_KDB_DISPLAY_H
+#ifndef SUB_BG_DISPLAY_H
+#define SUB_BG_DISPLAY_H
 
 #include "user_display.h"
 #include "image.h"
 #include <vector>
 
-class sub_kdb_display : public user_display
+				 class sub_bg_display : public user_display
 {
 	class scheme {
 	public:
 		std::auto_ptr<image> background;
 		rotat_tex direction_ptr;
 		fix_tex turn_wheel[6];
-		fix_tex volume_knob[6];
 		scheme() {}
 	protected:
 		scheme(const scheme& );
@@ -44,8 +43,7 @@ class sub_kdb_display : public user_display
 	enum turnknobtype {
 		TK_NONE = -1,
 		TK_DIRECTION = 0,
-		TK_VOLUME = 1,
-		TK_NR = 2
+		TK_NR = 1
 	};
 
 	scheme daylight, redlight;
@@ -54,7 +52,7 @@ class sub_kdb_display : public user_display
 	std::vector<float> turnknobang;
 
  public:
-	sub_kdb_display(class user_interface& ui_);
+	sub_bg_display(class user_interface& ui_);
 
 	virtual void process_input(class game& gm, const SDL_Event& event);
 	virtual void display(class game& gm) const;
