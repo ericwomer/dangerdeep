@@ -159,7 +159,7 @@ class submarine : public ship
 		//void save(ostream& out) const { write_double(out, status); write_double(out, repairtime); }
 	};
 
-	enum front_rudder_status{
+	enum front_rudder_status {
 		rudder_down_30 = -3,
 		rudder_down_20,
 		rudder_down_10,
@@ -167,6 +167,12 @@ class submarine : public ship
 		rudder_up_10,
 		rudder_up_20,
 		rudder_up_30
+	};
+
+	enum hearing_device_type {
+		hearing_device_KDB,
+		hearing_device_GHG,
+		hearing_device_BG
 	};
 
 protected:
@@ -208,6 +214,9 @@ protected:
 	double battery_recharge_value_a;// read from spec file
 	double battery_recharge_value_t;// read from spec file
 	unsigned battery_capacity;	// read from spec file
+
+	// the hearing device type
+	hearing_device_type hearing_device;	// read from spec file and time, should be saved later
     
 	std::vector<damageable_part> damageable_parts;	// read from data/spec file, fixme do that!
 
@@ -359,6 +368,8 @@ public:
 	virtual double get_stern_rudder() const { return bow_rudder; } // stern is the same so far
 	virtual void bow_pos(int state){ bow_to = state; permanent_dive = true; }
 	virtual void stern_pos(int state){ bow_to = state; permanent_dive = true; } // stern is the same so far
+
+	virtual hearing_device_type get_hearing_device_type() const { return hearing_device; }
 };
 
 #endif

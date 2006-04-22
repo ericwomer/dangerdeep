@@ -252,6 +252,15 @@ submarine::submarine(game& gm_, const xml_elem& parent)
 	//damageable_parts.resize(nr_of_damageable_parts);
 	//for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
 	//damageable_parts[i] = damageable_part(0, 0);
+
+	// set hearing device
+	date dt = gm.get_date();
+	if (dt < date(1941, 6, 1))
+		hearing_device = hearing_device_KDB;
+	else if (dt < date(1944, 11, 1))
+		hearing_device = hearing_device_GHG;
+	else
+		hearing_device = hearing_device_BG;
 }
 
 
@@ -512,6 +521,15 @@ void submarine::simulate(double delta_time)
 			}
 		}
 	}
+
+	// hack for test of hearing devices, change by date
+	date dt = gm.get_date();
+	if (dt < date(1941, 6, 1))
+		hearing_device = hearing_device_KDB;
+	else if (dt < date(1944, 11, 1))
+		hearing_device = hearing_device_GHG;
+	else
+		hearing_device = hearing_device_BG;
 }
 
 
