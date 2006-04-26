@@ -1,0 +1,113 @@
+SONAR   - physical facts, implementation theories and notes
+===========================================================
+
+To correctly simulate underwater acoustics or at least to approximate
+its simulation we need to take care of some physical facts.
+
+
+Noise sources
+-------------
+
+There are many sources of noise in the ocean. Beside the disturbances of
+the ocean surface by the wind and sudden events like exploding depth
+charges etc. the most important source are the vessels cruising around
+the sea.  This means the ships and submarines of the game.
+
+Each noise source has a (characteristic) spectrum of frequencies it
+emits. We can visualize such a spectrum by a 2d graph, that has the
+frequency as the horizontal scale and the corresponding amplitude as the
+vertical scale.
+
+^ Amplitude (dB)    xxx                                     
+|                  x | x                                                         
+|                  x | x           gaussian curve or similar
+|                 x  |  x                                                        
+|               xx   |   xx                                                      
+|             xx     |     xx                                                    
+--------------------------------------------> frequency (Hz)
+                     |
+          peak frequncy or typical frequency
+
+The spectrum shape depends on type of the engine and the throttle of it
+and of course of many other things. To simplify simulation we state that
+the spectrum is shaped similar like a gaussion curve around a typical
+frequency. This frequency is shifted by the throttle of the engine. Thus
+each vessel type or engine type has one characteristic frequency.
+
+Of course each noise source emits a characteristic composition of
+frequencies, that can be identified by the human ear or brain as a
+specific noise. E.g. warship steam turbines sound different than a
+submarine's piston engine. For the simulation of detection of the
+signal's source we can simplify this fact.
+
+The passive sonar devices or hearing devices used by german submarines
+worked with underwater microphones that were sensible for a specific
+frequency (GHG around 900Hz). Direction of sound sources was detected by
+turning the device's internal apparatus so that the sound signal reaches
+its maximum amplitude. The accuracy of this measurement depends on the
+frequency of the signal: the higher the frequency, the more accurate is
+the angular resolution of direction measurement.
+
+This leads us to the conclusion that for simulating detection via GHG
+and other devices we need to take care only of the typical frequency of
+the source. This determines the range of the signal and the accuracy of
+direction finding, combined with a correction factor that reduces
+strength of the signal depending on distance and deviation against
+optimal microphone listening frequency.
+
+
+Physics of sound
+----------------
+
+Sound propagates as waves underwater, its speed depending on many
+factors, like temperature (the most important), pressure, salination and
+other values of the water (amount of algae etc.).
+
+Computing the noise level at any point in the ocean we can use the ray
+tracing model to simulate sound propagating from an arbitrary
+source. Sound waves propagate in water, are reflected and refracted on
+borders between layers in the water and so on. If the sound ray
+intersects a the border between two layers with different speed of
+sound, the ray is reflected and refracted according to Snell's law. Also
+other vessels can reflect sound waves etc. This simulation can be
+extended to a great complexity.
+
+The speed change is not so important in horizontal (x/y) direction, but
+in vertical (z) direction as the water forms mostly horizontally
+oriented layers. Temperature is the most important factor. We need to
+simulate reflection and/or refraction at border of those layers, at
+least for active sonars like ASDIC.
+
+Hiding the submarine "below" a thermal layer was and is an important
+tactical aspect of submarine warfare.
+
+Sound strength is decreased with growing distance when the sound spreads
+in the water. Lower frequencies are transmitted over a longer range.
+
+
+Hearing device specials
+-----------------------
+
+The number of microphones and the number of strip lines (membranes) in
+the device determine the resolution of direction finding, as well as the
+frequency and strength of the signal.
+
+To correctly detect the signal and to distinguish between left/right and
+front/aft signals, groups of the microphones could be disabled.
+
+To allow reliable detection a submarine needs to dive below 20m to avoid
+the disturbing noises of the ocean surface.
+
+The operator of a device can detect any number of signals (as long as
+the resolution allows it). But to keep track of more than one signal he
+needs to switch permanently between two signals and redetect them. This
+is a difficult and time consuming process. Thus the simulation should
+limit the number of signals he could keep track of to, say,
+max. five. Of course he could mix up two signals that are to close to
+each other and start tracking a wrong signal. And the update of the
+actual position of each signal is delayed by the detection process for
+the other signals. E.g. if the operator needs 5 seconds to localize one
+signal and keeps track of three, he can update the position of each
+signal only every 15 seconds. This is an important aspect of
+simulation. Too many noise sources will disturb the correct localization
+as well.
