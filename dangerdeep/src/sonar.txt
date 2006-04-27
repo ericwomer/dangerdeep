@@ -32,7 +32,9 @@ The spectrum shape depends on type of the engine and the throttle of it
 and of course of many other things. To simplify simulation we state that
 the spectrum is shaped similar like a gaussion curve around a typical
 frequency. This frequency is shifted by the throttle of the engine. Thus
-each vessel type or engine type has one characteristic frequency.
+each vessel type or engine type has one characteristic frequency. Of
+course the strength of the signal is also increased with higher
+throttle.
 
 Of course each noise source emits a characteristic composition of
 frequencies, that can be identified by the human ear or brain as a
@@ -54,6 +56,25 @@ the source. This determines the range of the signal and the accuracy of
 direction finding, combined with a correction factor that reduces
 strength of the signal depending on distance and deviation against
 optimal microphone listening frequency.
+
+Another idea is to transform the typical frequency spectrum to a
+discrete form. Partition the whole frequency spectrum in a fix number of
+frequency bands, like low, medium and high frequencies or a few more
+categories. Then compute the strength of the sound for each band for any
+sound source. The distribution of the strengths over the bands give the
+typical noise signature.
+
+It can be helpful to simulate the sound strengths in a logarithmic base,
+as sound strengths can vary greatly. The unit is already logarithmic (dB
+= deci-Bel, tenth of a Bel, wich is the logarithm of basis 10 of the
+strength). So sound strength in dB is 10 * log_10 ( Strength ). We can
+name the strength also intensity (I).
+
+A low number of frequency bands (around four or five) should be enough
+for simulation. Low band would be below 500Hz or so, Medium-low around
+the typical hydrophone listening frequency of 900Hz, Medium 1khz to 3kHz
+and High from 3kHz and above. Sounds with higher frequencies than 7kHz
+are very rare and should fall off too fast to be detected.
 
 
 Physics of sound
@@ -84,6 +105,20 @@ tactical aspect of submarine warfare.
 Sound strength is decreased with growing distance when the sound spreads
 in the water. Lower frequencies are transmitted over a longer range.
 
+This is named propagation and absorption. Strength of the sound is
+distributed over the area the sound is spread. Because the area grows
+quadratically with the distance, the strength falls off with the square
+of the distance. Absorption depends on frequency of the sound, higher
+frequencies are absorpted with an much higher rate. Using the
+logarithmic model for sound strengths the squares etc. can be written as
+multiplications or divisions, which gives simple formulas.
+
+We add the background noise strength (ambient noise) as well as all the
+noise sources to the strength of one signal, subtract the
+signal-to-noise-ratio level of the receiver (signals weaker than a
+certain level are cut off) and do this for each frequency band. This
+gives the frequency spectrum that is received at the sub's sonar.
+
 
 Hearing device specials
 -----------------------
@@ -111,3 +146,10 @@ signal and keeps track of three, he can update the position of each
 signal only every 15 seconds. This is an important aspect of
 simulation. Too many noise sources will disturb the correct localization
 as well.
+
+Sound simulation
+----------------
+
+Some more aspects need to be taken into account. There is always some
+background noise in the sea, so we have to take care of the "signal to
+noise ratio" of each signal.
