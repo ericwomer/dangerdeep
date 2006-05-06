@@ -28,6 +28,25 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #define MIN_VISIBLE_DISTANCE 0.01f
 
+
+enum shipclass
+{
+	NONE,
+	WARSHIP,
+	ESCORT,
+	MERCHANT,
+	SUBMARINE,
+	TORPEDO
+};
+
+struct sonar_contact
+{
+	vector2 pos;
+	shipclass type;
+	sonar_contact(const vector2& p, shipclass t) : pos(p), type(t) {}
+};
+
+
 class active_sensor;
 class radar_sensor;
 class passive_sonar_sensor;
@@ -36,6 +55,8 @@ class hfdf_sensor;
 class lookout_sensor;
 class sea_object;
 class particle;
+class game;
+class sea_object;
 
 ///\brief Base class for all sensor types.
 class sensor
@@ -126,6 +147,17 @@ public:
 		@param gm game object. Some parameters are stored here.
 		@param d detecting unit
 		@param t target unit
+
+		fixme: this is bad for some sensor types. Sonar detects only contacts, and could map
+		several objects to one contact, so this relation "a detects b" is not possible for sonar.
+		This function is mostly (or only?) called in a loop over all objects.
+		So it could do the loop itself and return a list of objects or contacts, this would
+		make the problem less worse.
+		A general problem remains: sonar reports only contacts, not directly usable pointer to
+		objects. Some subs need to aim after sonar contacts (XXI), so would need a pointer here,
+		but this can be solved in a different way. So it would be ok for sonar to return just
+		contacts, not pointers. But this would lead to a non-uniform interface for sensors.
+		To be fixed...
 	*/
 	virtual bool is_detected ( const game* gm, const sea_object* d,
 		const sea_object* t ) const = 0;

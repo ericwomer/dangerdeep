@@ -55,7 +55,7 @@ class convoy;
 #include "logbook.h"
 #include "ptrset.h"
 #include "xml.h"
-#include "misc_types.h"
+#include "sensors.h"
 
 // network messages
 #define MSG_length	16
