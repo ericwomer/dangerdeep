@@ -47,6 +47,59 @@ struct sonar_contact
 };
 
 
+
+///\brief This class groups all data for an underwater noise source
+struct sonar_noise_signature
+{
+	static const unsigned NR_OF_SONAR_FREQUENCY_BANDS = 4;
+
+	// transformation from dB to linear noise needs a base.
+	// base^dB_val = real noise, dB = 10 * log10(real) -> dB/10 = log10(real)
+	// -> 10^(dB/10) = real -> (10^0.1)^dB = real,  10^0.1 = dB_base
+	// so dB_base^dB = real
+	static const double dB_base = 1.25892541179;
+
+	// limits of frequency bands in Hertz
+	static const double frequency_band_lower_limit[NR_OF_SONAR_FREQUENCY_BANDS];
+	static const double frequency_band_upper_limit[NR_OF_SONAR_FREQUENCY_BANDS];
+
+	// background ("ambient") noise strength for each frequency band, in dB
+	static const double background_noise[NR_OF_SONAR_FREQUENCY_BANDS];
+	// factor for sea state dependant noise, values here are for max. wave heights, in dB
+	static const double seastate_factor[NR_OF_SONAR_FREQUENCY_BANDS];
+	// factor for noise absorption of sea water, in dB
+	static const double noise_absorption[NR_OF_SONAR_FREQUENCY_BANDS];
+	// factor for wave interference in shallow water ( < 250m, 125m in Mediterr.), in dB
+	//static double wave_interference[NR_OF_SONAR_FREQUENCY_BANDS] = { 10, 8, 4, 2 };
+
+	// additional extra noise constant for cavitation, when running at full/flank speed, in dB
+	static const double cavitation_noise = 2;
+
+	struct band_noise_data
+	{
+		double basic_noise_level;	// in dB    try some values, maybe 10
+		double speed_factor;		// in dB    0.541 per m/s   (in theory per throttle, not speed...)
+	};
+
+	band_noise_data band_data[NR_OF_SONAR_FREQUENCY_BANDS];
+
+	///\brief returns background noise (ambient noise) of environment, in dB
+	/** @param	band		noise band number
+	    @param	seastate	roughness of sea (1.0 = highest storm, 0.2=normal)
+	*/
+	static double compute_ambient_noise_strength(unsigned band, double seastate = 0.2);
+
+	///\brief returns total noise of source (background + artificial noise), in dB
+	/** @param	band		noise band number
+	    @param	distance	distance to source in meters
+	    @param	speed		speed of source in m/s
+	    @param	cavitation	wether target causes caviation
+	    @param	seastate	roughness of sea (1.0 = highest storm, 0.2=normal)
+	*/
+	double compute_signal_strength(unsigned band, double distance, double speed,
+				       bool caviation = false) const;
+};
+
 class active_sensor;
 class radar_sensor;
 class passive_sonar_sensor;

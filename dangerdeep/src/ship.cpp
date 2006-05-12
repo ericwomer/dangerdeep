@@ -177,7 +177,17 @@ ship::ship(game& gm_, const xml_elem& parent)
 			
 			gun_turrets.push_back(new_turret);		
 		}
-	}		
+	}
+
+	// set some sensible values for sonar noise (testing)
+	noise_signature.band_data[0].basic_noise_level = 100; // maybe get from fft analysis of real noise!
+	noise_signature.band_data[1].basic_noise_level = 130;
+	noise_signature.band_data[2].basic_noise_level = 80;
+	noise_signature.band_data[3].basic_noise_level = 40;
+	noise_signature.band_data[0].speed_factor = 1.0;	// 1 dB per m/s
+	noise_signature.band_data[1].speed_factor = 1.0;	// 1 dB per m/s
+	noise_signature.band_data[2].speed_factor = 1.0;	// 1 dB per m/s
+	noise_signature.band_data[3].speed_factor = 1.0;	// 1 dB per m/s
 }
 
 
@@ -312,6 +322,13 @@ double ship::get_throttle_accel() const
 	// fixme: reverse throttle doesn't work. obvious why...
 	double speed_fac = get_throttle_speed() / max_speed_forward;
 	return max_accel_forward * (speed_fac * speed_fac);
+}
+
+
+
+bool ship::screw_cavitation() const
+{
+	return get_throttle_speed() >= 0.75 * get_max_speed();
 }
 
 

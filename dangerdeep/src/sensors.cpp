@@ -422,3 +422,54 @@ bool active_sonar_sensor::is_detected ( const game* gm, const sea_object* d,
    => noise of ships must be stored in distributed frequencies or we need a online bandpass filter
       to weaken higher frequencies
 */
+
+const double sonar_noise_signature::frequency_band_lower_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 0, 1000, 3000, 6000 };
+const double sonar_noise_signature::frequency_band_upper_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 1000, 3000, 6000, 7000 };
+const double sonar_noise_signature::background_noise[NR_OF_SONAR_FREQUENCY_BANDS] = { 8, 10, 5, 2 };
+const double sonar_noise_signature::seastate_factor[NR_OF_SONAR_FREQUENCY_BANDS] = { 60, 50, 40, 30 };
+const double sonar_noise_signature::noise_absorption[NR_OF_SONAR_FREQUENCY_BANDS] = { 0.01, 0.02, 0.1, 0.15 };
+
+double sonar_noise_signature::compute_ambient_noise_strength(unsigned band, double seastate)
+{
+	if (band >= NR_OF_SONAR_FREQUENCY_BANDS)
+		throw error("illegal frequency band number");
+
+	return background_noise[band] + seastate_factor[band] * seastate;
+}
+
+
+
+double sonar_noise_signature::compute_signal_strength(unsigned band, double distance, double speed,
+						      bool caviation) const
+{
+	if (band >= NR_OF_SONAR_FREQUENCY_BANDS)
+		throw error("illegal frequency band number");
+
+	// noise source caused noise
+	double L_base = band_data[band].basic_noise_level + band_data[band].speed_factor * speed;
+	if (caviation)
+		L_base += cavitation_noise;
+	// compute propagation reduction
+	// Sound intensity I = p^2 / (c * ro) with:
+	// p = Pressure (N/m^2 = Pa)
+	// c = speed of sound, 1465 m/s in sea water
+	// ro = specific gravity of water (1000kg/m^3)
+	// Intensity with propagation decreases with square of range, so:
+	// I_prop = I / R^2     and   L = 10 * log_10 (I / I_0), here  L = 10 * log_10 (I)
+	// so  L_prop = 10 * log_10 (I / R^2) = 10 * log_10 (I) - 10 * log_10 (R^2)
+	//            = L - 20 * log_10 (R)
+	if (distance < 1) distance = 1;
+	double L_prop = -20 * log10(distance);
+	// compute absorption
+	double L_absorb = -noise_absorption[band] * distance;
+	// sum up noise source noise
+	double L_source = L_base + L_prop + L_absorb;
+	// avoid extreme values (would give NaN otherwise, when converting to real values and back)
+	if (L_source < -100)
+		L_source = -100;
+
+//  	printf("L_base=%f L_prop=%f L_abs=%f L_src=%f\n",
+//  	       L_base, L_prop, L_absorb, L_source);
+
+	return L_source;
+}

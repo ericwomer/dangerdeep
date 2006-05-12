@@ -93,6 +93,9 @@ class ship : public sea_object
 	double fuel_value_t;	// read from spec file
 	unsigned fuel_capacity;	// read from spec file
 
+	// sonar / underwater sound specific constants, read from spec file
+	sonar_noise_signature noise_signature;
+
 	list<vector2> previous_positions;
 
 	shipclass myclass;	// read from spec file, e.g. warship/merchant/escort/...
@@ -239,6 +242,7 @@ public:
 	virtual throttle_status get_throttle() { return (throttle_status)throttle; }
 	virtual double get_throttle_speed() const;
 	virtual double get_throttle_accel() const;	// returns acceleration caused by current throttle
+	virtual bool screw_cavitation() const;	// returns true if screw causes cavitation
 	virtual double get_rudder_pos() const { return rudder_pos; }
 	virtual int get_rudder_to () const { return rudder_to; }
 	virtual double get_noise_factor () const;
@@ -254,6 +258,9 @@ public:
 	virtual void gun_manning_changed(bool isGunManned);	
 	virtual long num_shells_remaining();
 	virtual double max_gun_range() { return maximum_gun_range; };
+
+	// sonar
+	virtual const sonar_noise_signature& get_noise_signature() const { return noise_signature; }
 
 	/* NOTE! the following function(s) are only for the editor or for
 	   custom convoy generation (called from class convoy).

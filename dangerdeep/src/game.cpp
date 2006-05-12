@@ -1012,6 +1012,61 @@ vector<vector2> game::convoy_positions() const
 
 
 
+vector<double> game::sonar_listen_ships(const ship* listener, angle listening_direction) const
+{
+	// collect all ships for sound strength measurement
+	vector<const ship*> tmpships;
+	tmpships.reserve(ships.size() + submarines.size() /* + torpedoes.size() */ - 1);
+	for (unsigned i = 0; i < ships.size(); ++i)
+		if (ships[i] != listener)
+			tmpships.push_back(ships[i]);
+	for (unsigned i = 0; i < submarines.size(); ++i)
+		if (dynamic_cast<const ship*>(submarines[i]) != listener)
+			tmpships.push_back(submarines[i]);
+	// fixme: add torpedoes here as well... later...
+
+	// compute noise strengths for all ships for all frequency bands, real strengths, not dB!
+	vector<double> noise_strenghts(sonar_noise_signature::NR_OF_SONAR_FREQUENCY_BANDS);
+	// add background noise
+	for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
+		noise_strenghts[b] =
+			pow(sonar_noise_signature::dB_base,
+			    sonar_noise_signature::
+			    compute_ambient_noise_strength(b, 0.2 /* sea state, fixme make dynamic later */));
+	}
+	// add noise of vessels
+	vector2 lp = listener->get_pos().xy();
+	for (unsigned i = 0; i < tmpships.size(); ++i) {
+		const ship* s = tmpships[i];
+		vector2 relpos = s->get_pos().xy() - lp;
+		double distance = relpos.length();
+		double speed = s->get_speed();	// s->get_throttle_speed();
+		bool cavit = s->screw_cavitation();
+		// compute cos(relative_angle), but clamp at zero
+		double cos_rel_ang = std::max((angle(relpos) - listening_direction).cos(), 0.0);
+		// compute strengths for all bands
+		for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
+			// get total noise strength of noise source in dB
+			double nstr = s->get_noise_signature().
+				compute_signal_strength(b, distance, speed, cavit);
+			// strength depends on angle
+			double nstr_ang = pow(sonar_noise_signature::dB_base, nstr) * cos_rel_ang;
+			noise_strenghts[b] += nstr_ang;
+		}
+	}
+	// now compute back to dB
+	for (unsigned b = 0; b < sonar_noise_signature::NR_OF_SONAR_FREQUENCY_BANDS; ++b) {
+		noise_strenghts[b] = 10*log10(noise_strenghts[b]);
+	}
+	// fixme: depending on listener angle, use only port or starboard phones to listen to signals!
+	//        (which set to use must be given as parameter)
+	// fixme: add sensitivity of receiver
+	// fixme: discretize strengths!!!
+	return noise_strenghts;
+}
+
+
+
 //
 // create new objects
 //

@@ -247,6 +247,13 @@ public:
 	//virtual std::vector<airplane*> radar_airplanes(const sea_object* o) const;
 	virtual std::vector<sea_object*> radar_sea_objects(const sea_object* o) const;
 
+	///\brief compute sound strengths caused by all ships
+	/** @param	listener		object that listens via passive sonar
+	    @passive	listening_direction	direction for listening
+	    @return	vector of frequency bands with strengths in dB
+	*/    
+	vector<double> sonar_listen_ships(const ship* listener, angle listening_direction) const;
+
 	// append objects to vector
 	template<class T>
 	static void append_vec(std::vector<sea_object*>& vec, const std::vector<T*>& vec2) {
