@@ -411,16 +411,22 @@ bool active_sonar_sensor::is_detected ( const game* gm, const sea_object* d,
    for all noise sources within a sensible range (20 seamiles or so)
    compute signal strength for four frequency bands (0-1kHz,1-3kHz,3-6kHz,6-7kHz).
    compute direction of signal.
-   compute sonar signal sensitivity.
+   compute sonar signal sensitivity (depends on sonar type - specific sensitivity - and of
+     speed of receiver. Higher speeds decrease sensitivity, much more effect than speed of
+     targets for target noise strength).
    depending on angle of ghg apparaturs reduce signal strength of all signals
    (cos(angle) between direction and ghg angle = normal vector from ghg angle).
    handle background noise of own sub/ship
    compute and add background noise (ambient noise)
    subtract own noise + sensitivity, rest is signal strength
    make signal strengths discrete, depending on frequency, lower freqs -> larger steps
+     discrete steps not in dB but depending on angle! lower freq -> bigger steps
    sum of strenghts is resulting noise strength, feed to user's headphones or to sonar operator simulator
+   weighting of various frequency strengths depends on human perception and width of freq. bands
+     1-3 kHz *0.9, 0-1 kHz *1, 3-6 kHz *0.7 6-7 kHz *0.5, total strength is weighted sum div. weight sum of used bands.
    => noise of ships must be stored in distributed frequencies or we need a online bandpass filter
       to weaken higher frequencies
+   blind spots of GHG etc need to be simulated, BG is blind to aft, GHG to front/aft, KDB to ?
 */
 
 const double sonar_noise_signature::frequency_band_lower_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 0, 1000, 3000, 6000 };

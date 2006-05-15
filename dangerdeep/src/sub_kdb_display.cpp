@@ -133,10 +133,46 @@ void sub_kdb_display::display(class game& gm) const
 	s.direction_ptr.draw(turnknobang[TK_DIRECTION] * 0.5f /* fixme: get angle from player*/);
 
 	// test hack: test signal strengths
-	angle sonar_ang = angle(turnknobang[TK_DIRECTION]*0.5) + player->get_heading();
+	angle app_ang = angle(turnknobang[TK_DIRECTION]*0.5);
+	angle sonar_ang = app_ang + player->get_heading();
 	vector<double> noise_strengths = gm.sonar_listen_ships(player, sonar_ang);
 	printf("noise strengths, global ang=%f, L=%f M=%f H=%f U=%f\n",
 	       sonar_ang.value(), noise_strengths[0], noise_strengths[1], noise_strengths[2], noise_strengths[3]);
+
+	// fixme: add test here
+	// Simulate sonar man.
+	// From current apparatus angle turn some degrees left or right, until the operator
+	// can tell wether the signal gets stronger or weaker.
+	// If it gets weaker, choose the other direction as initial direction.
+	// Then turn the apparatus by larger steps (10-30 degrees), as long as signal gets
+	// stronger. If it gets weaker, try again from strongest direction with half the
+	// distance, but with opposite direction. If that direction gives weaker signal on
+	// second try, reverse direction (same as global search, but with less step length).
+	// If we found two angles where the signal gets weaker in between, try from the strongest
+	// and reverse direction with 1° steps iterativly.
+	// Example: strongest signal at 33°, initial angle at 50°, initial direction right/
+	// clockwise. Operator turns at 60° and hears that signal is weaker, so he uses
+	// 50° as initial angle and left/counter-clockwise as initial direction.
+	// He turns left 10° to 40°, signal gets stronger.
+	// He turns left 10° to 30°, signal gets stronger.
+	// He turns left 10° to 20°, signal gets weaker. So he changes direction, back at 30°. Stepping down to 5°.
+	// He turns right 5° to 35°, signal gets stronger.
+	// He turns right 5° to 40°, signal gets weaker. So he changes direction, back at 35°. Stepping down to 1°.
+	// He turns left 1° to 34°, signal gets stronger.
+	// He turns left 1° to 33°, signal gets stronger.
+	// He turns left 1° to 32°, signal gets weaker. So he turns back to strongest signal and stops. -> 33°
+	// Example2: strongest signal at 29°, initial angle at 50°, initial direction right/
+	// clockwise. Operator turns at 60° and hears that signal is weaker, so he uses
+	// 50° as initial angle and left/counter-clockwise as initial direction.
+	// He turns left 10° to 40°, signal gets stronger.
+	// He turns left 10° to 30°, signal gets stronger.
+	// He turns left 10° to 20°, signal gets weaker. So he changes direction, back at 30°. Stepping down to 5°.
+	// He turns right 5° to 35°, signal gets weaker. So initial direction wrong, turn left.
+	// He turns left 5° to 25°, signal gets weaker. So he changes direction, back at 30°. Stepping down to 1°.
+	// He turns right 1° to 31°, signal gets weaker. So initial direction wrong, turn left.
+	// He turns left 1° to 29°, signal gets stronger.
+	// He turns left 1° to 28°, signal gets weaker. So he turns back to strongest signal and stops. -> 29°
+	// We could simulate four steps. 30°, 10°, 5°, 1°.
 
 	ui.draw_infopanel();
 
