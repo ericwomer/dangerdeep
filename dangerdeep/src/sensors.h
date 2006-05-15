@@ -63,6 +63,9 @@ struct sonar_noise_signature
 	static const double frequency_band_lower_limit[NR_OF_SONAR_FREQUENCY_BANDS];
 	static const double frequency_band_upper_limit[NR_OF_SONAR_FREQUENCY_BANDS];
 
+	// mix factors for total strength
+	static const double frequency_band_strength_factor[NR_OF_SONAR_FREQUENCY_BANDS];
+
 	// background ("ambient") noise strength for each frequency band, in dB
 	static const double background_noise[NR_OF_SONAR_FREQUENCY_BANDS];
 	// factor for sea state dependant noise, values here are for max. wave heights, in dB
@@ -98,6 +101,11 @@ struct sonar_noise_signature
 	*/
 	double compute_signal_strength(unsigned band, double distance, double speed,
 				       bool caviation = false) const;
+
+	///\brief compute medium total strength of noise from all frequency bands
+	/** @param	strengths	strengths for each frequency band (in dB)
+	 */
+	static double compute_total_noise_strength(const std::vector<double>& strengths);
 };
 
 class active_sensor;

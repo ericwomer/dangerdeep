@@ -113,7 +113,43 @@ void sub_kdb_display::process_input(class game& gm, const SDL_Event& event)
 
 
 
-void sub_kdb_display::display(class game& gm) const
+// part of sonar operator simulation
+pair<angle, double> find_peak_noise(angle startangle, double step, double maxstep, game& gm)
+{
+	submarine* player = dynamic_cast<submarine*>(gm.get_player());
+	angle ang_peak = startangle;
+	double peak_val = sonar_noise_signature::compute_total_noise_strength(gm.sonar_listen_ships(player, player->get_heading() + startangle));
+	startangle += step;
+	bool direction_found = false;
+	double ang_scan_step = step;
+	for (double ang_scanned = 0; ang_scanned < maxstep; ang_scanned += ang_scan_step) {
+		double tstr = sonar_noise_signature::compute_total_noise_strength(gm.sonar_listen_ships(player, player->get_heading() + startangle));
+		if (tstr >= peak_val) {
+			// getting closer to peak
+			ang_peak = startangle;
+			peak_val = tstr;
+			direction_found = true;
+		} else if (direction_found) {
+			// missed peak, back
+			startangle -= step;
+			break;
+		} else {
+			// wrong direction on first try, find new peak.
+			peak_val = tstr;
+			ang_scanned -= ang_scan_step;
+			step = -step;
+			direction_found = true;
+		}
+		startangle += step;
+	}
+
+	return make_pair(ang_peak, peak_val);
+}
+
+
+
+
+void sub_kdb_display::display(game& gm) const
 {
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 
@@ -136,8 +172,16 @@ void sub_kdb_display::display(class game& gm) const
 	angle app_ang = angle(turnknobang[TK_DIRECTION]*0.5);
 	angle sonar_ang = app_ang + player->get_heading();
 	vector<double> noise_strengths = gm.sonar_listen_ships(player, sonar_ang);
-	printf("noise strengths, global ang=%f, L=%f M=%f H=%f U=%f\n",
-	       sonar_ang.value(), noise_strengths[0], noise_strengths[1], noise_strengths[2], noise_strengths[3]);
+	double total_strength = sonar_noise_signature::compute_total_noise_strength(noise_strengths);
+	printf("noise strengths, global ang=%f, L=%f M=%f H=%f U=%f TTL=%f\n",
+	       sonar_ang.value(), noise_strengths[0], noise_strengths[1], noise_strengths[2], noise_strengths[3],
+	       total_strength);
+
+	// find peak value.
+	pair<angle, double> pkc = find_peak_noise(angle(0), 3.0, 360.0, gm);
+	printf("peak found (%f) somewhere near %f\n", pkc.second, pkc.first.value());
+	pkc = find_peak_noise(pkc.first, 1.0, 6.0, gm);
+	printf("peak found (%f) closer, somewhere near %f\n", pkc.second, pkc.first.value());
 
 	// fixme: add test here
 	// Simulate sonar man.
@@ -173,6 +217,10 @@ void sub_kdb_display::display(class game& gm) const
 	// He turns left 1° to 29°, signal gets stronger.
 	// He turns left 1° to 28°, signal gets weaker. So he turns back to strongest signal and stops. -> 29°
 	// We could simulate four steps. 30°, 10°, 5°, 1°.
+	// fixme 2:
+	// but user would turn sonar in rather small steps (1° ?)
+	// so simulation is simpler: turn apparatus in 1-3° steps and recognize peak, localize
+	// peak afterwards in smaller steps (1°).
 
 	ui.draw_infopanel();
 

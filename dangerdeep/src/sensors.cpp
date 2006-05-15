@@ -433,7 +433,7 @@ const double sonar_noise_signature::frequency_band_lower_limit[NR_OF_SONAR_FREQU
 const double sonar_noise_signature::frequency_band_upper_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 1000, 3000, 6000, 7000 };
 const double sonar_noise_signature::background_noise[NR_OF_SONAR_FREQUENCY_BANDS] = { 8, 10, 5, 2 };
 const double sonar_noise_signature::seastate_factor[NR_OF_SONAR_FREQUENCY_BANDS] = { 60, 50, 40, 30 };
-const double sonar_noise_signature::noise_absorption[NR_OF_SONAR_FREQUENCY_BANDS] = { 0.01, 0.02, 0.1, 0.15 };
+const double sonar_noise_signature::noise_absorption[NR_OF_SONAR_FREQUENCY_BANDS] = { 0.008, 0.01, 0.02, 0.03 };
 
 double sonar_noise_signature::compute_ambient_noise_strength(unsigned band, double seastate)
 {
@@ -478,4 +478,19 @@ double sonar_noise_signature::compute_signal_strength(unsigned band, double dist
 //  	       L_base, L_prop, L_absorb, L_source);
 
 	return L_source;
+}
+
+
+
+const double sonar_noise_signature::frequency_band_strength_factor[NR_OF_SONAR_FREQUENCY_BANDS] = { 0.8, 1.0, 0.6, 0.4 };
+
+double sonar_noise_signature::compute_total_noise_strength(const std::vector<double>& strengths)
+{
+	if (strengths.size() != NR_OF_SONAR_FREQUENCY_BANDS)
+		throw error("illegal number of frequency bands");
+	double sum = 0;
+	for (unsigned i = 0; i < NR_OF_SONAR_FREQUENCY_BANDS; ++i) {
+		sum += frequency_band_strength_factor[i] * pow(dB_base, strengths[i]);
+	}
+	return 10*log10(sum);
 }

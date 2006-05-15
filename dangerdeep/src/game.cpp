@@ -1044,6 +1044,8 @@ vector<double> game::sonar_listen_ships(const ship* listener, angle listening_di
 		bool cavit = s->screw_cavitation();
 		// compute cos(relative_angle), but clamp at zero
 		double cos_rel_ang = std::max((angle(relpos) - listening_direction).cos(), 0.0);
+		// take cos_rel_ang^3 to let signals fall off sharper depending on angle. kind of hack
+		cos_rel_ang = cos_rel_ang*cos_rel_ang*cos_rel_ang;
 		// compute strengths for all bands
 		for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
 			// get total noise strength of noise source in dB
