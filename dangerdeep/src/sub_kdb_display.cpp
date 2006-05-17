@@ -114,6 +114,9 @@ void sub_kdb_display::process_input(class game& gm, const SDL_Event& event)
 
 
 // part of sonar operator simulation
+// fixme: if noise source has same signal for angles a1...a2, return roughly (a1+a2)/2 as result
+// fixme2: if there is no signal, report that somehow, do not report false, random peak
+// fixme3: we can't find ONE global peek, but one for each side now...
 pair<angle, double> find_peak_noise(angle startangle, double step, double maxstep, game& gm)
 {
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
@@ -176,6 +179,8 @@ void sub_kdb_display::display(game& gm) const
 	printf("noise strengths, global ang=%f, L=%f M=%f H=%f U=%f TTL=%f\n",
 	       sonar_ang.value(), noise_strengths[0], noise_strengths[1], noise_strengths[2], noise_strengths[3],
 	       total_strength);
+	shipclass cls = sonar_noise_signature::determine_shipclass_by_signal(noise_strengths);
+	printf("ship class is %i\n", cls);
 
 	// find peak value.
 	pair<angle, double> pkc = find_peak_noise(angle(0), 3.0, 360.0, gm);

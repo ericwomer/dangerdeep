@@ -31,12 +31,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 enum shipclass
 {
-	NONE,
-	WARSHIP,
+	NONE = -1,
+	WARSHIP = 0,
 	ESCORT,
 	MERCHANT,
 	SUBMARINE,
-	TORPEDO
+	TORPEDO,
+	NR_OF_SHIP_CLASSES
 };
 
 struct sonar_contact
@@ -63,6 +64,8 @@ struct sonar_noise_signature
 	static const double frequency_band_lower_limit[NR_OF_SONAR_FREQUENCY_BANDS];
 	static const double frequency_band_upper_limit[NR_OF_SONAR_FREQUENCY_BANDS];
 
+	static const double typical_noise_signature[NR_OF_SHIP_CLASSES][NR_OF_SONAR_FREQUENCY_BANDS];
+
 	// mix factors for total strength
 	static const double frequency_band_strength_factor[NR_OF_SONAR_FREQUENCY_BANDS];
 
@@ -74,6 +77,9 @@ struct sonar_noise_signature
 	static const double noise_absorption[NR_OF_SONAR_FREQUENCY_BANDS];
 	// factor for wave interference in shallow water ( < 250m, 125m in Mediterr.), in dB
 	//static double wave_interference[NR_OF_SONAR_FREQUENCY_BANDS] = { 10, 8, 4, 2 };
+	// factor for strength quantization depending on frequency of signal (quantizes
+	// the angle related factor). This depends on the falloff function, beware!
+	static const double quantization_factors[NR_OF_SONAR_FREQUENCY_BANDS];
 
 	// additional extra noise constant for cavitation, when running at full/flank speed, in dB
 	static const double cavitation_noise = 2;
@@ -106,6 +112,11 @@ struct sonar_noise_signature
 	/** @param	strengths	strengths for each frequency band (in dB)
 	 */
 	static double compute_total_noise_strength(const std::vector<double>& strengths);
+
+	///\brief compute shipclass of signal (can be none)
+	/** @param	strengths	strengths for each frequency band (in dB)
+	 */
+	static shipclass determine_shipclass_by_signal(const std::vector<double>& strengths);
 };
 
 class active_sensor;

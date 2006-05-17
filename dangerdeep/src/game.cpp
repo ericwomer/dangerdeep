@@ -1012,7 +1012,8 @@ vector<vector2> game::convoy_positions() const
 
 
 
-vector<double> game::sonar_listen_ships(const ship* listener, angle listening_direction) const
+vector<double> game::sonar_listen_ships(const ship* listener,
+					angle rel_listening_dir) const
 {
 	// collect all ships for sound strength measurement
 	vector<const ship*> tmpships;
@@ -1034,6 +1035,22 @@ vector<double> game::sonar_listen_ships(const ship* listener, angle listening_di
 			    sonar_noise_signature::
 			    compute_ambient_noise_strength(b, 0.2 /* sea state, fixme make dynamic later */));
 	}
+
+	angle hdg = listener->get_heading();
+	bool listen_to_starboard = (rel_listening_dir.value_pm180() >= 0);
+
+	// detection formula:
+	// compute noise of target = L_t
+	// compute ambient noise = L_a
+	// compute sensor background noise (noise from own vessel, receiver) = L_r
+	// store sensor sensitivity = S
+	// The signal is detected when L_t - (L_a + L_r) > S
+	// which is equivalent to L_t > S + L_a + L_r
+	// This means loud background noise (e.g. rough seas) or high noise from own
+	// vessel shadows target noise. We need to quantize the received noise somehow
+	// or we could always find loudest source if background and own noise is constant,
+	// because target noise would be the only varying factor.
+
 	// add noise of vessels
 	vector2 lp = listener->get_pos().xy();
 	for (unsigned i = 0; i < tmpships.size(); ++i) {
@@ -1042,18 +1059,41 @@ vector<double> game::sonar_listen_ships(const ship* listener, angle listening_di
 		double distance = relpos.length();
 		double speed = s->get_speed();	// s->get_throttle_speed();
 		bool cavit = s->screw_cavitation();
-		// compute cos(relative_angle), but clamp at zero
-		double cos_rel_ang = std::max((angle(relpos) - listening_direction).cos(), 0.0);
-		// take cos_rel_ang^3 to let signals fall off sharper depending on angle. kind of hack
-		cos_rel_ang = cos_rel_ang*cos_rel_ang*cos_rel_ang;
-		// compute strengths for all bands
-		for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
-			// get total noise strength of noise source in dB
-			double nstr = s->get_noise_signature().
-				compute_signal_strength(b, distance, speed, cavit);
-			// strength depends on angle
-			double nstr_ang = pow(sonar_noise_signature::dB_base, nstr) * cos_rel_ang;
-			noise_strenghts[b] += nstr_ang;
+		angle direction_to_noise(relpos);
+		angle rel_dir_to_noise = direction_to_noise - hdg;
+		bool noise_is_starboard = (rel_dir_to_noise.value_pm180() >= 0);
+		// check if noise is on active side of phones
+		if (listen_to_starboard == noise_is_starboard) {
+			// compute cos(relative_angle), but clamp at zero
+			// thus noise from angles > 90° are not taken into account
+			double cos_rel_ang = std::max((rel_dir_to_noise - rel_listening_dir).cos(), 0.0);
+			// take cos_rel_ang^3 to let signals fall off sharper depending on angle. kind of hack...
+			cos_rel_ang = cos_rel_ang*cos_rel_ang*cos_rel_ang;
+
+			// Note:
+			// discretize value here depending on frequency (lower frequency = less accuracy)
+			// frequency bands have various precisions: L 8° M 4° H 1.5° U < 1°
+			// this means the falloff function must have the same values for n degrees
+			// around the noise source.
+			// the falloff has a value domain of -+ 90°, the central part is thus
+			// -+ n°/2 wide, so take 1-falloff(1-(-+n°/2)) as quantization factor.
+			// for falloff=x^3 this gives x1=4/90,x2=2/90,x3=1.5/90,x4=0.8/90
+			// L: 0.1275  M: 0.0652  H: 0.0492  U: 0.0264
+			// Note 2: using floor() leads to a weakening of signals because of
+			// quantization, but this is a general scaling that can be compensated
+			// by choosing appropriate factors for other aspects of noise.
+
+			// compute strengths for all bands
+			for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
+				double ang_fac = floor(cos_rel_ang / sonar_noise_signature::quantization_factors[b])
+					* sonar_noise_signature::quantization_factors[b];
+				// get total noise strength of noise source in dB
+				double nstr = s->get_noise_signature().
+					compute_signal_strength(b, distance, speed, cavit);
+				// strength depends on angle
+				double nstr_ang = pow(sonar_noise_signature::dB_base, nstr) * ang_fac;
+				noise_strenghts[b] += nstr_ang;
+			}
 		}
 	}
 	// now compute back to dB
@@ -1061,9 +1101,15 @@ vector<double> game::sonar_listen_ships(const ship* listener, angle listening_di
 		noise_strenghts[b] = 10*log10(noise_strenghts[b]);
 	}
 	// fixme: depending on listener angle, use only port or starboard phones to listen to signals!
-	//        (which set to use must be given as parameter)
-	// fixme: add sensitivity of receiver
-	// fixme: discretize strengths!!!
+	//        (which set to use must be given as parameter) <OK>
+	// fixme: add sensitivity of receiver (see harpoon docs...)
+	// fixme: add noise produced by receiver/own ship
+	// fixme: discretize strengths!!! (by angle and frequency!) <OK, MAYBE A BIT CRUDE>
+	// fixme: identify type of noise (by sonarman). compute similarity to known
+	//        noise signatures (minimum sim of squares of distances between measured
+	//        values and known reference values). this should be done in another function...
+	//        To do this store a list of typical noise signatures per ship
+	//        category - that is also needed for creating the noise signals.
 	return noise_strenghts;
 }
 

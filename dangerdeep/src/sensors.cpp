@@ -434,6 +434,15 @@ const double sonar_noise_signature::frequency_band_upper_limit[NR_OF_SONAR_FREQU
 const double sonar_noise_signature::background_noise[NR_OF_SONAR_FREQUENCY_BANDS] = { 8, 10, 5, 2 };
 const double sonar_noise_signature::seastate_factor[NR_OF_SONAR_FREQUENCY_BANDS] = { 60, 50, 40, 30 };
 const double sonar_noise_signature::noise_absorption[NR_OF_SONAR_FREQUENCY_BANDS] = { 0.008, 0.01, 0.02, 0.03 };
+const double sonar_noise_signature::quantization_factors[NR_OF_SONAR_FREQUENCY_BANDS] = { 0.1275, 0.0652, 0.0492, 0.0264 };
+
+const double sonar_noise_signature::typical_noise_signature[NR_OF_SHIP_CLASSES][NR_OF_SONAR_FREQUENCY_BANDS] = {
+	{ 200, 150, 60, 20 },	// warship, very strong, rather low frequencies
+	{ 120, 100, 80, 60 },	// escort, strong, many high frequencies too
+	{ 100, 130, 80, 40 },	// merchant, medium signal, various frequencies
+	{ 80, 80, 60, 60 },	// submarine, weak-medium, low+high frequencies
+	{ 30, 40, 30, 30 }	// torpedo, weak, many high frequencies
+};
 
 double sonar_noise_signature::compute_ambient_noise_strength(unsigned band, double seastate)
 {
@@ -493,4 +502,43 @@ double sonar_noise_signature::compute_total_noise_strength(const std::vector<dou
 		sum += frequency_band_strength_factor[i] * pow(dB_base, strengths[i]);
 	}
 	return 10*log10(sum);
+}
+
+
+
+shipclass sonar_noise_signature::determine_shipclass_by_signal(const std::vector<double>& strengths)
+{
+	// normalize noise by highest value of all frequencies.
+	// do the same for noise signatures of ship classes to compare them better
+	double strength_normalizer = strengths[0];
+	for (unsigned i = 1; i < sonar_noise_signature::NR_OF_SONAR_FREQUENCY_BANDS; ++i) {
+		strength_normalizer = std::max(strength_normalizer, strengths[i]);
+	}
+
+	shipclass myclass = NONE;
+	double minerror = 1e30;
+	for (unsigned k = 0; k < NR_OF_SHIP_CLASSES; ++k) {
+		const double* typical_signature = sonar_noise_signature::typical_noise_signature[k];
+		double class_strength_normalizer = typical_signature[0];
+		for (unsigned i = 1; i < sonar_noise_signature::NR_OF_SONAR_FREQUENCY_BANDS; ++i) {
+			class_strength_normalizer = std::max(class_strength_normalizer, typical_signature[i]);
+		}
+
+		double error = 0;
+		//printf("trying ship class %u\n", k);
+		for (unsigned i = 0; i < sonar_noise_signature::NR_OF_SONAR_FREQUENCY_BANDS; ++i) {
+			double diff = strengths[i]/strength_normalizer
+				- typical_signature[i]/class_strength_normalizer;
+			//printf("diff %u = %f\n", i, diff);
+			error += diff * diff;
+		}
+		//printf("total error %f\n", error);
+		
+		if (error < minerror) {
+			minerror = error;
+			myclass = shipclass(k);
+		}
+	}
+	// fixme: if error is above a certain level, type can't be determined, set to none...
+	return myclass;
 }
