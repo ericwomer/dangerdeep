@@ -5,7 +5,7 @@ The developer of this software is Thorsten Jordan <thorsten_jordan@gmx.de>.
 It was put together by Viktor Radnai <efti@gotiao.com> using source
 from the Danger from the Deep CVS repository:
 
-  :pserver:anonymous@cvs.sourceforge.net:/cvsroot/dangerdeep 
+  :pserver:anonymous@dangerdeep.cvs.sourceforge.net:/cvsroot/dangerdeep 
   Release tag: dangerdeep_0_0_19 
  
 Changes:
