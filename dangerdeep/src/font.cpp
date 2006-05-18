@@ -32,6 +32,9 @@ using std::vector;
 using std::string;
 using std::ifstream;
 
+// we use UTF-8 as default input character set...
+#define USE_UTF8
+
 
 font::character::~character()
 {
@@ -46,6 +49,34 @@ void font::print_text(int x, int y, const string& text, bool ignore_colors) cons
 	int xs = x;
 	for (unsigned ti = 0; ti < text.length(); ++ti) {
 		unsigned char c = text[ti];
+		// Unicode (UTF-8) decoder:
+		// In UTF-8 all characters from 0x00-0x7F are encoded as one byte.
+		// Characters from 0x80-0x7FF are encoded as two bytes:
+		// 0xC0 | (upper 5 bits of c), 0x80 | (lower 6 bits of c)
+		// This is sufficient to encode 11bits of characters.
+		// We only use the lower 256 characters of Unicode, which map to
+		// Iso-8859-1.
+		// We could either copy the character value directly from the source
+		// or translate it from UTF-8.
+#ifdef USE_UTF8
+		if (c & 0x80) {
+			if ((c & 0xE0) == 0xC0) {
+				// UTF-8 2 byte extension
+				// fetch next byte
+				if (ti + 1 < text.length()) {
+					unsigned char c2 = text[ti + 1];
+					// combine bytes to 8bit character
+					c = ((c & 0x1F) << 6) | (c2 & 0x3F);
+				} else {
+					// invalid UTF-8 extension at end of string...
+					break;
+				}
+			} else {
+				// invalid character, skip
+				continue;
+			}
+		} // else: normal character, do nothing
+#endif
 		if (c == ' ') {	// space
 			x += blank_width;
 		} else if (c == '\n') {	// return
