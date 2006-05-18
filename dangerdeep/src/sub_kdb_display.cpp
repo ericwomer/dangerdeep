@@ -117,6 +117,28 @@ void sub_kdb_display::process_input(class game& gm, const SDL_Event& event)
 // fixme: if noise source has same signal for angles a1...a2, return roughly (a1+a2)/2 as result
 // fixme2: if there is no signal, report that somehow, do not report false, random peak
 // fixme3: we can't find ONE global peek, but one for each side now...
+/* 
+   the sonarman should report all signals he hears around the compass.
+   But the simulation or action takes time, so he can't report all signals at once.
+   He takes his time to search the whole compass around, say, 1 minute.
+   While doing that he listens for signals, and if he detects one, he tries to localize it
+   as good as he can, then reports the signal (angle, strength (?) = distance, type)
+   "Escort detected in 30° (off bow), weak signal" -> far away destroyer etc
+   Problems: when a signal is very close (a hunting escort), you don't want the sonarman
+   to listen/detect signals all around the clock, but to track that signal. When should
+   he start tracking one specific signal? when to stop that? should the captain ask
+   for tracking of a signal? But while tracking one signal, the sonar man should not
+   forget or ignore the other side of the sub, maybe there is a destroyer closing, too.
+
+   Summary:
+   The sonar man scans around the compass for signals. If he detects a signal, he tries to
+   locate it as exactly as he can. He then notes down the signal to the notebook. Older
+   signal reports there that are nearby the current angle are discarded.
+   When the sonarman detects a loud (and thus close) signal of an escort, he starts tracking
+   that signal. Other notebook entries are then kept. When the tracked signal gets less loud
+   and thus drives away, he starts sweeping again.
+*/
+
 pair<angle, double> find_peak_noise(angle startangle, double step, double maxstep, game& gm)
 {
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());

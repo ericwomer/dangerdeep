@@ -1050,6 +1050,19 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 	// vessel shadows target noise. We need to quantize the received noise somehow
 	// or we could always find loudest source if background and own noise is constant,
 	// because target noise would be the only varying factor.
+	// The current way of detecting sounds is thus not realistic, as the highest
+	// noise signal is always detected, no matter how big the difference to the back-
+	// ground signals is...
+	// By using the formulas above, noise strengths are multiplied (logarithmic scale!)
+	// instead of copied. Maybe this models shadowing better...
+	// weak signal of 1 dB and strong signal of 50 dB.
+	// Adding them and computing dB of addition gives 50.000055 dB, total shadowed.
+	// Adding them in dB scale gives 51 dB, which is not right.
+	// What about subtraction? 50 dB - 1 dB = 49 dB, in real scale 49.99995 dB, nearly 50.
+	// So adding dB values is bad, as weaker signals get accounted much stronger
+	// than they are.
+	// Solution maybe: quantize the target's noise, so weaker signals have the same
+	// quantum as the background noise and vanish.
 
 	// add noise of vessels
 	vector2 lp = listener->get_pos().xy();
@@ -1096,20 +1109,26 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 			}
 		}
 	}
-	// now compute back to dB
+	// now compute back to dB, quantize to integer dB values, to
+	// simulate shadowing of weak signals by background noise
 	for (unsigned b = 0; b < sonar_noise_signature::NR_OF_SONAR_FREQUENCY_BANDS; ++b) {
-		noise_strenghts[b] = 10*log10(noise_strenghts[b]);
+		noise_strenghts[b] = floor(10*log10(noise_strenghts[b]));
 	}
 	// fixme: depending on listener angle, use only port or starboard phones to listen to signals!
 	//        (which set to use must be given as parameter) <OK>
-	// fixme: add sensitivity of receiver (see harpoon docs...)
-	// fixme: add noise produced by receiver/own ship
+	// fixme: add sensitivity of receiver (see harpoon docs...)  TO BE DONE NEXT
+	// fixme: add noise produced by receiver/own ship            TO BE DONE NEXT
 	// fixme: discretize strengths!!! (by angle and frequency!) <OK, MAYBE A BIT CRUDE>
+	//        this could be done also by quantizing the strength (in dB) of the signal,
+	//        or both. To be tested...
 	// fixme: identify type of noise (by sonarman). compute similarity to known
 	//        noise signatures (minimum sim of squares of distances between measured
 	//        values and known reference values). this should be done in another function...
 	//        To do this store a list of typical noise signatures per ship
 	//        category - that is also needed for creating the noise signals.
+	//        <OK> BUT: this doesnt work well. To determine the signal type by distribution
+	//        to just four frequency bands is not realistic. Signals are distuingished
+	//        by their frequency mixture., CHANGE THIS LATER
 	return noise_strenghts;
 }
 
