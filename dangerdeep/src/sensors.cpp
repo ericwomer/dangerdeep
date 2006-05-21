@@ -427,6 +427,12 @@ bool active_sonar_sensor::is_detected ( const game* gm, const sea_object* d,
    => noise of ships must be stored in distributed frequencies or we need a online bandpass filter
       to weaken higher frequencies
    blind spots of GHG etc need to be simulated, BG is blind to aft, GHG to front/aft, KDB to ?
+   
+   New idea, 21st may 2006:
+   A membrane is sensitive to sound in an half-arc area, but where is stated, that each hydrophone of the GHG
+   listens to the full 180° range? If each hydrophone listens to a limited range of 30° or similar, localization
+   of sounds is much easier! we don't need that "faked" sharper fall-off function (cos^3(x) instead cos(x)),
+   and other things would be much simpler...
 */
 
 const double sonar_noise_signature::frequency_band_lower_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 0, 1000, 3000, 6000 };
