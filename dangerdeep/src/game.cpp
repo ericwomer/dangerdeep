@@ -1080,8 +1080,11 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 			// compute cos(relative_angle), but clamp at zero
 			// thus noise from angles > 90° are not taken into account
 			double cos_rel_ang = std::max((rel_dir_to_noise - rel_listening_dir).cos(), 0.0);
-			// take cos_rel_ang^3 to let signals fall off sharper depending on angle. kind of hack...
-			cos_rel_ang = cos_rel_ang*cos_rel_ang*cos_rel_ang;
+			// take cos_rel_ang^5 to let signals fall off sharper depending on angle.
+			// fall-off is caused by strip line array of GHG.
+			// how the fall-off function would be in reality is unknown, cos(x)^5
+			// seems reasonable.
+			double signalstrength = cos_rel_ang*cos_rel_ang*cos_rel_ang*cos_rel_ang*cos_rel_ang;
 
 			// Note:
 			// discretize value here depending on frequency (lower frequency = less accuracy)
@@ -1098,7 +1101,7 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 
 			// compute strengths for all bands
 			for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
-				double ang_fac = floor(cos_rel_ang / sonar_noise_signature::quantization_factors[b])
+				double ang_fac = floor(signalstrength / sonar_noise_signature::quantization_factors[b])
 					* sonar_noise_signature::quantization_factors[b];
 				// get total noise strength of noise source in dB
 				double nstr = s->get_noise_signature().

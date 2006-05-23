@@ -433,6 +433,67 @@ bool active_sonar_sensor::is_detected ( const game* gm, const sea_object* d,
    listens to the full 180Â° range? If each hydrophone listens to a limited range of 30Â° or similar, localization
    of sounds is much easier! we don't need that "faked" sharper fall-off function (cos^3(x) instead cos(x)),
    and other things would be much simpler...
+   140° listen area of each side, 12 phones with ghg, listening center of each phone 24+12*n degrees,
+   n=0,...11 with cut-off at 20° and 160°. This gives an overlapping of each angle by two phones.
+   THIS GIVES NEW PROBLEMS AND IS NOT CORRECT.
+
+   HOW THE GHG WORKS:
+   Sound signals arrive at the hydrophones on different points of time.
+   Thus, a signal function depends on time: s(t).
+   The signal is the same for all hydrophones, but with varying time:
+   s_i(t_i) = s_j(t_j) for i,j in 0,...11 for 12 hydrophones, and t_n = t_0 + n * delta_t
+   delta_t can be computed, it is the the time a signal needs to travel in water to
+   cover the distance between the two hydrophones. If the electrical delay caused by the
+   strip lines of the strip line array inside the GHG match delta_t, then all signals
+   are overlayed with the same time factor:
+   strip line output = sum over i of s_i(t_i ) = sum over i of s_i(t_0 + i * delta_t)
+   We know that a sum of signals gives the signal with maximum amplitude when there is
+   no phase shift between them, e.g. sum_i=0..3 sin(x+i*m) for any small m is maximal
+   when m is zero. The larger the absolute value of m is the weaker the signal gets.
+   Thus, the strip line output is maximized, when the delay of each signal in water
+   equals the electrical delay.
+   (Note that the formulas above match a situation where a wave comes from the bow and the
+   strip line array's membranes are perpendicular to the sound wave, thus the GHG points
+   also to the bow. But it even works when the hydrophones are arranged in a line from
+   bow to aft and the sound wave comes directly from starboard direction - in that case the
+   sound hits all hydrophones at the same time, all signals go to one strip line and thus
+   the output is maximized. When the strip line array is turned away then the hydrophone
+   outputs are distributed over multiple lines, causing delay and phase shift of the summands
+   of the signal, thus leading to a weaker total output.)
+   Proof: the hydrophones are arranged in an array with roughly 2.2m length. To travel
+   that distance the sound takes 1.5ms. The strip line array has 100 strips with 17µs
+   delay between each strip given a total maximum delay of 1.7ms. This fits.
+   When the strip line array is not facing the signal perpendicular, the electrical delay
+   and the sound delay in water differs, leading to a phase shift of signals in any direction,
+   weakening the total signal output. This is modelled by the fall-off function that is a
+   function of the angle between the GHG apparatus angle and the incoming signal's angle.
+   We only need to compute an historically accurate fall-off function.
+   When the signal hits the GHG at angle difference 0, the fall-off function has value 1.
+   When the relative angle is greater than 90° its value is zero, for simplicities sake.
+   At 45° the total electrical delay is only 1/sqrt(2) of its optimum length, leading to
+   phase shift. We have 12 hydrophones with 20cm distance between each of them.
+   Total delay would be 100 lines with 17µs between them, at 45° only 70.7 lines.
+   Thus total delay would be 1.7ms vs. 1.2ms. So we add twelve signals with a shift
+   of 0.5ms * i/11 each for i=0,...11. Take a 1kHz signal, wavelength in water is
+   1.465m, thus it takes 136.5µs to travel 20cm in water. 136.5µs/17µs = 8, the signal
+   delay in water matches the electrical delay of 8 strips.
+   So total signal is sum over i=0...11 signal(t_0 + i * delta_t - i * strip_delay * nr_strips)
+   where strip_deley is 17µs and nr_strips is 8.
+   With 45° we have 5.657 as nr_strips. If we use sin(x) as signal where the period length
+   is 1ms (1kHz!), we have sum over i=0...11 sin((i * 0.1365 - i * 0.017 * 5.657) * 2*Pi)
+   as output. This is sum i=0...11 sin(2*Pi*i*(0.1365-0.017*5.657))
+   This gives a signal strength of 8 vs 12, or 2/3, thus
+   falloff(0°)  = 1
+   falloff(45°) = 0.67
+   falloff(90°) = 0
+   and for 60° the strength is 2.5 vs. 12, thus
+   falloff(60°) = 0.21
+   and for 30° the strength is 11/12, thus
+   falloff(30°) = 0.92
+   This fall-off function is not sharp enough. Well, the values are only rough guesses,
+   cos^3(x) or even cos^5(x) should work much better.
+   Using cos(x)^5, half of the signal strength is left at +- 30°, hence
+   falloff(30°) = 0.5
 */
 
 const double sonar_noise_signature::frequency_band_lower_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 0, 1000, 3000, 6000 };
