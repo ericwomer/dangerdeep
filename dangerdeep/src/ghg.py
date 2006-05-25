@@ -48,6 +48,7 @@ app_angle_rad = app_angle * pi / 180.0
 # time t is in seconds
 # signal(t) = sin(t * time_scale_fac)
 # x = 0 at t = 0, x = 2*pi at t = 1/noise_freq
+# so a period has length (in meters) of 1/noise_freq
 time_scale_fac = 2*pi * noise_freq
 
 # now output of phone i is signal(t_0 + i * delta_t)
@@ -91,6 +92,11 @@ print 'delta_t=' + str(delta_t) + ' delta_t_signal=' + str(delta_t_signal)
 #       = cos(x) * sum_j=0...n-1 a_j * cos(p_j)  -  sin(x) * sum_j=0...n-1 a_j * sin(p_j)
 # thus f'(x) = 0 when  tan(x) = (sum_j=0...n-1 a_j * cos(p_j)) / (sum_j=0...n-1 a_j * sin(p_j))
 # thus f'(x) = 0 when  x = atan((sum_j=0...n-1 a_j * cos(p_j)) / (sum_j=0...n-1 a_j * sin(p_j)))
+# if you look at the gnuplot output is seems that f(x) = c * sin(x + d), so period length
+# is kept! f(x) has its maximum obviosly when sin(x+d) = +- 1, so max. is c.
+# We can compute c with f(x) and d, but we know neither c nor d.
+# the resulting function f(x) has symmetric extrema, so |f(x_1)| = |(f_x2)| for any extremum at x_1,x_2
+# so take |f(x)| with x is solution of the equation above as max. amplitude value.
 sum_cos = 0.0
 sum_sin = 0.0
 
@@ -116,8 +122,8 @@ for i in range(0, nr_hydrophones):
   print 'delay_i=' + str(delay_i) + ' signaldelay=' + str(signaldelay)
   plotoutput += str(strength_factor) + '*sin(x'
   plotfac = time_scale_fac * signaldelay
-  sum_cos += strength_factor * cos(signaldelay)
-  sum_sin += strength_factor * sin(signaldelay)
+  sum_cos += strength_factor * cos(plotfac)
+  sum_sin += strength_factor * sin(plotfac)
   if (plotfac < 0.0):
     plotoutput += str(plotfac)
   else:
@@ -125,12 +131,13 @@ for i in range(0, nr_hydrophones):
   plotoutput += ')+'
   # measuring max. signal peak
   for x in range(0, samples):
-    sinfac = float(x)*2*pi/samples + plotfac
+    sinfac = float(x)*(2*pi)/samples + plotfac  # x*time_scale_fac/noise_freq = x*(2*pi)
     signal[x] += strength_factor * sin(sinfac)
 
-plotoutput = 'plot [x=0:7] ' + str(max_strength) + '*sin(x),' + plotoutput
+plotoutput = 'plot [x=0:' + str(2*pi) + '] ' + str(max_strength) + '*sin(x),' + plotoutput
 sum_quot = sum_cos / sum_sin
 x_extr = atan(sum_quot)
+print 'x_extr_smpl=' + str(samples*x_extr/(2*pi))
 print 'sum_cos=' + str(sum_cos) + ' sum_sin=' + str(sum_sin) + ' quot=' + str(sum_quot) + ' x_extr=' + str(x_extr)
 while (x_extr < 0):
   x_extr += 2*pi
@@ -148,12 +155,16 @@ print 'signal[x_extr]=' + str(signal[int(x_extr * samples / (2*pi))])
 #signals closer to bow/stern, less hydrophones record the noise and thus the total output gets weaker.
 maxv = 0.0
 minv = 0.0
+maxvx = 0
+minvx = 0
 for x in range(0, samples):
   if signal[x] < minv:
     minv = signal[x]
+    minvx = x
   if signal[x] > maxv:
     maxv = signal[x]
-print 'minv=' + str(minv) + ', maxv=' + str(maxv)
+    maxvx = x
+print 'minv=' + str(minv) + ', maxv=' + str(maxv) + ', minv at ' + str(minvx) + ', maxv at ' + str(maxvx)
 print 'percentage of full signal: min=' + str(minv/max_strength) + ', max=' + str(maxv/max_strength)
 
 plotoutput = plotoutput[:-1]
