@@ -41,7 +41,7 @@ signal_angle = 90.0
 noise_freq = 1000
 # signal comes from 0° --------------
 # here give ghg apparatus angle
-app_angle = 60.0
+app_angle = 50.0
 app_angle_rad = app_angle * pi / 180.0
 # factor for input of signal function sin(x)
 # a full period is done noise_freq times per second
@@ -66,6 +66,34 @@ signal = [0.0] * samples
 max_strength = 0.0
 
 plotoutput = ''
+delta_t_signal = cos(signal_angle * pi / 180.0) * delta_t
+print 'delta_t=' + str(delta_t) + ' delta_t_signal=' + str(delta_t_signal)
+
+# if delta of phase shift would be constant (it is not because of the int() in computing the strip line number),
+# then we can sum up the signals with simpler formulas:
+# it is r*cos(phi)+r*i*sin(phi) = r*e^(i*phi)
+# and thus
+# f(x) = sum_j=0...n-1 a_j * sin(x + p_j)  where a_j, p_j are amplitude and phase shift values for each signal
+# we find the maximum by differentiating f(x) and solving f'(x) = 0
+# with p_j = p_0 + delta_p we have:
+# f(x) = Im(sum_j=0...n-1 a_j * e^(i*(x+p_0+j*delta_p)))
+# extracting the constant factors and by defining c_j := a_j * e^(i*j*delta_p) we get:
+# f(x) = Im(e^(i*(x+p_0)) * sum_j=0...n-1 c_j)   and the last part is a constant! we define it as "d", thus
+# f(x) = cos(x+p_0) * Im(d) + sin(x+p_0) * Re(d)
+# f'(x) = -sin(x+p_0) * Im(d) + cos(x+p_0) * Re(d)
+# f'(x) = 0 <=> Re(d)/Im(d) = tan(x+p_0) <= arctan(Re(d)/Im(d)) - p_0 = x
+# so solve x, get f(x) and you have the maximum factor.
+# remember, d := sum_j=0...n-1 a_j * e^(i*j*delta_p)
+# BUT, IT CAN BE DONE SIMPLER, WITHOUT COMPLEX NUMBERS:
+# f(x) = sum_j=0...n-1 a_j * sin(x + p_j)  thus f'(x):
+# f'(x) = sum_j=0...n-1 a_j * cos(x + p_j)  = 0 if what? transform f'(x), with sin/cos theorems
+# f'(x) = sum_j=0...n-1 a_j * cos(x) * cos(p_j) - a_j * sin(x) * sin(p_j)
+#       = cos(x) * sum_j=0...n-1 a_j * cos(p_j)  -  sin(x) * sum_j=0...n-1 a_j * sin(p_j)
+# thus f'(x) = 0 when  tan(x) = (sum_j=0...n-1 a_j * cos(p_j)) / (sum_j=0...n-1 a_j * sin(p_j))
+# thus f'(x) = 0 when  x = atan((sum_j=0...n-1 a_j * cos(p_j)) / (sum_j=0...n-1 a_j * sin(p_j)))
+sum_cos = 0.0
+sum_sin = 0.0
+
 for i in range(0, nr_hydrophones):
   fov_center = hydrophone_fov_center_first + i * hydrophone_fov_center_delta
   rel_angle = signal_angle - fov_center
@@ -82,13 +110,14 @@ for i in range(0, nr_hydrophones):
   y_line = int(y + nr_strips/2)
   print 'i=' + str(i) + ' y=' + str(y) + ' y_line=' + str(y_line)
   delay_i = strip_delay * y_line
-  delta_t_signal = cos(signal_angle * pi / 180.0) * delta_t
-  print 'delta_t=' + str(delta_t) + ' delta_t_signal=' + str(delta_t_signal) + ' *i=' + str(i*delta_t_signal)
+  print 'delta_t_signal*i=' + str(i*delta_t_signal)
   # fixme : signal delay is i * delta_t ONLY when signal comes from 0° !!!
   signaldelay = delay_i + i * delta_t_signal
   print 'delay_i=' + str(delay_i) + ' signaldelay=' + str(signaldelay)
   plotoutput += str(strength_factor) + '*sin(x'
   plotfac = time_scale_fac * signaldelay
+  sum_cos += strength_factor * cos(signaldelay)
+  sum_sin += strength_factor * sin(signaldelay)
   if (plotfac < 0.0):
     plotoutput += str(plotfac)
   else:
@@ -100,7 +129,14 @@ for i in range(0, nr_hydrophones):
     signal[x] += strength_factor * sin(sinfac)
 
 plotoutput = 'plot [x=0:7] ' + str(max_strength) + '*sin(x),' + plotoutput
-
+sum_quot = sum_cos / sum_sin
+x_extr = atan(sum_quot)
+print 'sum_cos=' + str(sum_cos) + ' sum_sin=' + str(sum_sin) + ' quot=' + str(sum_quot) + ' x_extr=' + str(x_extr)
+while (x_extr < 0):
+  x_extr += 2*pi
+while (x_extr >= 2*pi):
+  x_extr -= 2*pi
+print 'signal[x_extr]=' + str(signal[int(x_extr * samples / (2*pi))])
 # now measure max/min value
 #gnuplot output seems dependant on absolute value of signal angle... strange, fixme
 #the closer the signal angle gets to 90° the sharper the fall-off of the signal is.
