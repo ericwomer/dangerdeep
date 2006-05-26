@@ -54,6 +54,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "convoy.h"
 #include "particle.h"
 #include "sensors.h"
+#include "sonar.h"
 #include "network.h"
 #include "matrix4.h"
 #include "quaternion.h"
@@ -1026,13 +1027,15 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 			tmpships.push_back(submarines[i]);
 	// fixme: add torpedoes here as well... later...
 
+	// fixme: the lower part of this class is sonar dependent and should go to a sonar class...
+
 	// compute noise strengths for all ships for all frequency bands, real strengths, not dB!
-	vector<double> noise_strenghts(sonar_noise_signature::NR_OF_SONAR_FREQUENCY_BANDS);
+	vector<double> noise_strenghts(noise_signature::NR_OF_SONAR_FREQUENCY_BANDS);
 	// add background noise
 	for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
 		noise_strenghts[b] =
-			pow(sonar_noise_signature::dB_base,
-			    sonar_noise_signature::
+			pow(noise_signature::dB_base,
+			    noise_signature::
 			    compute_ambient_noise_strength(b, 0.2 /* sea state, fixme make dynamic later */));
 	}
 
@@ -1077,44 +1080,25 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 		bool noise_is_starboard = (rel_dir_to_noise.value_pm180() >= 0);
 		// check if noise is on active side of phones
 		if (listen_to_starboard == noise_is_starboard) {
-			// compute cos(relative_angle), but clamp at zero
-			// thus noise from angles > 90° are not taken into account
-			double cos_rel_ang = std::max((rel_dir_to_noise - rel_listening_dir).cos(), 0.0);
-			// take cos_rel_ang^5 to let signals fall off sharper depending on angle.
-			// fall-off is caused by strip line array of GHG.
-			// how the fall-off function would be in reality is unknown, cos(x)^5
-			// seems reasonable.
-			double signalstrength = cos_rel_ang*cos_rel_ang*cos_rel_ang*cos_rel_ang*cos_rel_ang;
-
-			// Note:
-			// discretize value here depending on frequency (lower frequency = less accuracy)
-			// frequency bands have various precisions: L 8° M 4° H 1.5° U < 1°
-			// this means the falloff function must have the same values for n degrees
-			// around the noise source.
-			// the falloff has a value domain of -+ 90°, the central part is thus
-			// -+ n°/2 wide, so take 1-falloff(1-(-+n°/2)) as quantization factor.
-			// for falloff=x^3 this gives x1=4/90,x2=2/90,x3=1.5/90,x4=0.8/90
-			// L: 0.1275  M: 0.0652  H: 0.0492  U: 0.0264
-			// Note 2: using floor() leads to a weakening of signals because of
-			// quantization, but this is a general scaling that can be compensated
-			// by choosing appropriate factors for other aspects of noise.
-
 			// compute strengths for all bands
 			for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
-				double ang_fac = floor(signalstrength / sonar_noise_signature::quantization_factors[b])
-					* sonar_noise_signature::quantization_factors[b];
+				double signalstrength = compute_signal_strength_GHG(rel_dir_to_noise,
+										    noise_signature::typical_frequency[b],
+										    rel_listening_dir);
+				double ang_fac = floor(signalstrength / noise_signature::quantization_factors[b])
+					* noise_signature::quantization_factors[b];
 				// get total noise strength of noise source in dB
 				double nstr = s->get_noise_signature().
 					compute_signal_strength(b, distance, speed, cavit);
 				// strength depends on angle
-				double nstr_ang = pow(sonar_noise_signature::dB_base, nstr) * ang_fac;
+				double nstr_ang = pow(noise_signature::dB_base, nstr) * ang_fac;
 				noise_strenghts[b] += nstr_ang;
 			}
 		}
 	}
 	// now compute back to dB, quantize to integer dB values, to
 	// simulate shadowing of weak signals by background noise
-	for (unsigned b = 0; b < sonar_noise_signature::NR_OF_SONAR_FREQUENCY_BANDS; ++b) {
+	for (unsigned b = 0; b < noise_signature::NR_OF_SONAR_FREQUENCY_BANDS; ++b) {
 		noise_strenghts[b] = floor(10*log10(noise_strenghts[b]));
 	}
 	// fixme: depending on listener angle, use only port or starboard phones to listen to signals!

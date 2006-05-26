@@ -143,12 +143,12 @@ pair<angle, double> find_peak_noise(angle startangle, double step, double maxste
 {
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 	angle ang_peak = startangle;
-	double peak_val = sonar_noise_signature::compute_total_noise_strength(gm.sonar_listen_ships(player, player->get_heading() + startangle));
+	double peak_val = noise_signature::compute_total_noise_strength(gm.sonar_listen_ships(player, startangle));
 	startangle += step;
 	bool direction_found = false;
 	double ang_scan_step = step;
 	for (double ang_scanned = 0; ang_scanned < maxstep; ang_scanned += ang_scan_step) {
-		double tstr = sonar_noise_signature::compute_total_noise_strength(gm.sonar_listen_ships(player, player->get_heading() + startangle));
+		double tstr = noise_signature::compute_total_noise_strength(gm.sonar_listen_ships(player, startangle));
 		if (tstr >= peak_val) {
 			// getting closer to peak
 			ang_peak = startangle;
@@ -193,15 +193,18 @@ void sub_kdb_display::display(game& gm) const
 	s.turn_wheel[unsigned(myfmod(-turnknobang[TK_DIRECTION] * 2.0f, 90.0f)) * TK_PHASES / 90].draw();
 	s.direction_ptr.draw(turnknobang[TK_DIRECTION] * 0.5f /* fixme: get angle from player*/);
 
+	// fixme: some/most of this code should be moved to sonar.cpp
+
 	// test hack: test signal strengths
 	angle app_ang = angle(turnknobang[TK_DIRECTION]*0.5);
-	angle sonar_ang = app_ang + player->get_heading();
-	vector<double> noise_strengths = gm.sonar_listen_ships(player, sonar_ang);
-	double total_strength = sonar_noise_signature::compute_total_noise_strength(noise_strengths);
-	printf("noise strengths, global ang=%f, L=%f M=%f H=%f U=%f TTL=%f\n",
-	       sonar_ang.value(), noise_strengths[0], noise_strengths[1], noise_strengths[2], noise_strengths[3],
+	vector<double> noise_strengths = gm.sonar_listen_ships(player, app_ang);
+	double total_strength = noise_signature::compute_total_noise_strength(noise_strengths);
+	// fixme: when turning around the compass the signal strength seems to jump
+	// rapidly sometimes (M-freq., 23 <-> 30 dB). Strange!!!
+	printf("noise strengths, rel ang=%f, L=%f M=%f H=%f U=%f TTL=%f\n",
+	       app_ang.value(), noise_strengths[0], noise_strengths[1], noise_strengths[2], noise_strengths[3],
 	       total_strength);
-	shipclass cls = sonar_noise_signature::determine_shipclass_by_signal(noise_strengths);
+	shipclass cls = noise_signature::determine_shipclass_by_signal(noise_strengths);
 	printf("ship class is %i\n", cls);
 
 	// find peak value.

@@ -94,7 +94,7 @@ class ship : public sea_object
 	unsigned fuel_capacity;	// read from spec file
 
 	// sonar / underwater sound specific constants, read from spec file
-	sonar_noise_signature noise_signature;
+	noise_signature noise_sign;
 
 	list<vector2> previous_positions;
 
@@ -260,7 +260,7 @@ public:
 	virtual double max_gun_range() { return maximum_gun_range; };
 
 	// sonar
-	virtual const sonar_noise_signature& get_noise_signature() const { return noise_signature; }
+	virtual const noise_signature& get_noise_signature() const { return noise_sign; }
 
 	/* NOTE! the following function(s) are only for the editor or for
 	   custom convoy generation (called from class convoy).

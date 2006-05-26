@@ -10,7 +10,7 @@ speedwater = 1465.0
 nr_hydrophones = 12
 # distance between hydrophone membrane centers, roughly 20cm
 distance_hydro = 0.2
-# electrical delay, 17µs
+# electrical delay, 17Âµs
 strip_delay = 0.000017
 # fov of a hydrophone
 hydrophone_fov = 180.0
@@ -36,12 +36,12 @@ height_of_all_contacts = distance_contact * (nr_hydrophones - 1)
 
 # -------------- variables from here on -------
 # signal direction (angle)
-signal_angle = 90.0
+signal_angle = 70.0
 # frequency of wave to measure, in Hz
-noise_freq = 1000
+noise_freq = 2500
 # signal comes from 0° --------------
 # here give ghg apparatus angle
-app_angle = 50.0
+app_angle = 90.0
 app_angle_rad = app_angle * pi / 180.0
 # factor for input of signal function sin(x)
 # a full period is done noise_freq times per second
@@ -117,13 +117,19 @@ for i in range(0, nr_hydrophones):
   print 'i=' + str(i) + ' y=' + str(y) + ' y_line=' + str(y_line)
   delay_i = strip_delay * y_line
   print 'delta_t_signal*i=' + str(i*delta_t_signal)
-  # fixme : signal delay is i * delta_t ONLY when signal comes from 0° !!!
+  # signal delay is in seconds (time)
   signaldelay = delay_i + i * delta_t_signal
   print 'delay_i=' + str(delay_i) + ' signaldelay=' + str(signaldelay)
   plotoutput += str(strength_factor) + '*sin(x'
+  # we scale signal_delay to the length of one period. If we have 2kHz each period is 0.5ms long,
+  # thus we scale time by 2000, a shift of e.g. 0.1ms would then be scaled to 0.2*2*Pi, which is
+  # 20% of full "circle" (=2pi) which is the same quotient as 0.1/0.5ms, and this is correct.
   plotfac = time_scale_fac * signaldelay
   sum_cos += strength_factor * cos(plotfac)
   sum_sin += strength_factor * sin(plotfac)
+  # note! the plot shows only one period of the sine function, but we have as many periods
+  # as we have as value for frequency... however that doesnt change the amplitude, so its of
+  # no matter...
   if (plotfac < 0.0):
     plotoutput += str(plotfac)
   else:

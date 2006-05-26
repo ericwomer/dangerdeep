@@ -180,11 +180,11 @@ ship::ship(game& gm_, const xml_elem& parent)
 	}
 
 	// set some sensible values for sonar noise (testing)
-	for (unsigned i = 0; i < sonar_noise_signature::NR_OF_SONAR_FREQUENCY_BANDS; ++i) {
-		noise_signature.band_data[i].basic_noise_level
-			= sonar_noise_signature::typical_noise_signature[unsigned(myclass)][i];
+	for (unsigned i = 0; i < noise_signature::NR_OF_SONAR_FREQUENCY_BANDS; ++i) {
+		noise_sign.band_data[i].basic_noise_level
+			= noise_signature::typical_noise_signature[unsigned(myclass)][i];
 		// 1 dB per m/s, maybe non-linear (higher speed = more high frequencies?)
-		noise_signature.band_data[i].speed_factor = 1.0;
+		noise_sign.band_data[i].speed_factor = 1.0;
 	}
 }
 
