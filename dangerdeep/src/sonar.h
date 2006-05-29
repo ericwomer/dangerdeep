@@ -123,4 +123,30 @@ struct noise_signature
 // move to a GHG class later, fixme
 double compute_signal_strength_GHG(angle signal_angle, double frequency, angle apparatus_angle);
 
+class sonar_operator_simulation
+{
+ protected:
+	enum states {
+		find_growing_signal,
+		find_upper_limit,
+		find_lower_limit,
+		track_signal
+	};
+	states state;
+	angle current_angle;
+	angle turn_speed;
+	double current_signal_strength;
+	angle lower_limit, upper_limit;
+//	std::vector<sonar_contact> contacts;	// store angle, strength and type?
+
+	static const double turn_speed_fast = 6.0;	// degrees per second.
+	static const double turn_speed_slow = 2.0;	// degrees per second.
+
+ public:
+	sonar_operator_simulation();
+	virtual ~sonar_operator_simulation() {}
+	virtual void simulate(class game& gm, double delta_t);
+//	const std::vector<> get_contacts() const { return contacts; }
+};
+
 #endif /* SONAR_H */

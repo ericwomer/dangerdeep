@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "user_display.h"
 #include "image.h"
 #include <vector>
+#include "sonar.h" // fixme: only for testing!
 
 class sub_kdb_display : public user_display
 {
@@ -52,6 +53,8 @@ class sub_kdb_display : public user_display
 
 	turnknobtype turnknobdrag;
 	std::vector<float> turnknobang;
+
+	mutable sonar_operator_simulation sonarman; // fixme: testing!
 
  public:
 	sub_kdb_display(class user_interface& ui_);

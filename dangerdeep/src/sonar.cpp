@@ -23,9 +23,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //#include "sea_object.h"
 //#include "submarine.h"
 #include "sonar.h"
-//#include "game.h"
+#include "game.h"
 #include "angle.h"
 #include "error.h"
+#include "submarine.h"
 
 /* passive sonar, GHG etc */
 /* how its done:
@@ -302,4 +303,97 @@ double compute_signal_strength_GHG(angle signal_angle, double frequency, angle a
 	//printf("result: signstr %f perc %f\n", signalstrength, signalstrength/max_strength);
 	// now compute percentage of max. strength
 	return signalstrength / max_strength;
+}
+
+
+
+sonar_operator_simulation::sonar_operator_simulation()
+	: state(find_growing_signal),
+	  turn_speed(turn_speed_fast),
+	  current_signal_strength(-1)
+{
+}
+
+
+
+/* how the sonar operator works:
+   He turns the apparatus at constant speed around the compass, with 2 or 3 degrees per
+   simulation step, total speed of 6 degrees per second or so.
+   When he detects a transition from growing strength to falling strengh of the signal,
+   he turns the apparatus in opposite direction with slower speed (0.5-1 degree per
+   simulation step) and detects the angle where the signal reaches its maximum
+   (upper limit), turns back until signal gets weaker (lower limit), then
+   reports the mid between the lower and upper limit as contact, turns the apparatus
+   back to upper limit and starts over.
+   If a signal is very strong and thus close, he switches to tracking mode.
+   In tracking mode he turns the apparatus around +- 30 degrees around the strongest signal
+   and redects its position with the mentioned algorithm until the signal gets weaker.
+   Or he turns the apparatus away from current peak angle until signal gets weaker, then back.
+   Always searching for the limit of the signal, following a direction only if signal
+   gets stronger along the direction. Direction is constantly changed between clockwise
+   and counter-clockwise in that case.
+   fixme - when does the operator choose the frequency band switch? This must depend
+   on how far/strong a signal is...
+   So we have several states (circular mostly)
+   1) Just turning and listening to strengths -> detect signal with growing strength
+                                                 when new strength > old strength, then to 2)
+   2) Following signal increase -> detect weakening of signal, then to 3)
+   3) Detect upper limit by finer turning in opposite direction, when new signal is <= current
+      signal. Equal -> 4), less -> 5)
+   4) Detect lower limit of signal by finer turning, until new signal is weaker than current,
+                                                     then 5)
+   5) report mid of lower and upper as new contact, turn current angle to upper with normal speed
+                                                    then back to 1)
+   5) is same as one...
+*/
+void sonar_operator_simulation::simulate(game& gm, double delta_t)
+{
+	submarine* player = dynamic_cast<submarine*>(gm.get_player());
+	// check to get sensible values for first run
+	if (current_signal_strength < 0)
+		current_signal_strength =
+			floor(noise_signature::compute_total_noise_strength(gm.sonar_listen_ships(player, current_angle)));
+
+	printf("sonar man sim, angle=%f str=%f stat=%i\n", current_angle.value(), current_signal_strength, state);
+
+	angle next_angle = current_angle + turn_speed * delta_t;
+	// fixme: floor is used as quantization hack...
+	double nstr = floor(noise_signature::compute_total_noise_strength(gm.sonar_listen_ships(player, next_angle)));
+
+	switch (state) {
+	case find_growing_signal:
+		if (nstr > current_signal_strength) {
+			state = find_upper_limit;
+		}
+		break;
+	case find_upper_limit:
+		if (nstr < current_signal_strength) {
+			upper_limit = next_angle;
+			turn_speed = -2.0;//turn_speed_slow;//fixme? must be public?
+			state = find_lower_limit;
+		}
+		break;
+	case find_lower_limit:
+		if (nstr > current_signal_strength) {
+			upper_limit = next_angle;
+		} else if (nstr < current_signal_strength) {
+			lower_limit = current_angle;
+			// replace signals in the vicinity...
+			angle center = lower_limit + angle((upper_limit - lower_limit)).value() * 0.5;
+			//report_signal(center, current_signal_strength);
+			printf("sonar man sim, Peak of signal found at angle %f, strength %f\n",
+			       center.value(), current_signal_strength);
+			next_angle = current_angle;
+			nstr = current_signal_strength;
+			turn_speed = turn_speed_fast;
+			state = find_growing_signal;
+		}
+		break;
+	case track_signal:
+		// fixme
+		break;
+	}
+
+	current_angle = next_angle;
+	current_signal_strength = nstr;
 }

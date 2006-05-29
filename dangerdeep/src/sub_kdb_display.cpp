@@ -213,6 +213,9 @@ void sub_kdb_display::display(game& gm) const
 	pkc = find_peak_noise(pkc.first, 1.0, 6.0, gm);
 	printf("peak found (%f) closer, somewhere near %f\n", pkc.second, pkc.first.value());
 
+	// simulate sonarman
+	sonarman.simulate(gm, 0.016666);	// 60fps, fixme ugly hack
+
 	// fixme: add test here
 	// Simulate sonar man.
 	// From current apparatus angle turn some degrees left or right, until the operator
