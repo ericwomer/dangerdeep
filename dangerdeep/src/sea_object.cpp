@@ -60,6 +60,9 @@ void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, 
 
 
 
+// fixme: change the function signature so that current state is given
+// (position/velocity) and point of time to get acceleration for, at least
+// as offset to current time! to have non-constant acceleration over time
 vector3 sea_object::get_acceleration() const
 {
 	return vector3(0, 0, -GRAVITY);
@@ -397,6 +400,14 @@ void sea_object::simulate(double delta_time)
 //	cout << "object " << this << " simulate.\npos: " << position << "\nvelo: " << velocity << "\naccel: " << acceleration << "\n";
 //	cout << "global velo " << global_velocity << " global acc " << global_acceleration << "\n";
 
+	// Note that this formulas match the Runge-Kutta-4 algorithm when acceleration
+	// is constant over time, or at least over the integration step.
+	// The computation is similar to an Euler algorithm, we just add the 0.5*a*t^2 part
+	// The advantages of RK4 would only be used if we compute acceleration (or force)
+	// dependant on time: acceleration(t+dt).
+	// This *can* happen with linearily changing acceleration, like throttle increase/
+	// decrease and turning of rudder. RK4 could help a lot here, because we don't need
+	// that small simulation steps to compute the integration as with Euler...
 	position += global_velocity * delta_time + global_acceleration * t2_2;
 	velocity += acceleration * delta_time;
 
