@@ -778,6 +778,30 @@ void map_display::display(class game& gm) const
 		}
 	}
 
+#if 1
+	// test: draw sonar signals as circles with varying radii
+	vector<vector<double> > signal_strengths;
+	const unsigned signal_res = 360;
+	signal_strengths.resize(signal_res);
+	for (unsigned i = 0; i < signal_res; ++i) {
+		signal_strengths[i] = gm.sonar_listen_ships(sub_player, angle(360.0*i/signal_res));
+	}
+	// render the strengths as circles with various colors
+	glBindTexture(GL_TEXTURE_2D, 0);
+	for (unsigned j = 0; j < noise_signature::NR_OF_SONAR_FREQUENCY_BANDS; ++j) {
+		float f = 1.0f - float(j)/noise_signature::NR_OF_SONAR_FREQUENCY_BANDS;
+		glColor3f(f,f,f*0.5f);
+		glBegin(GL_LINE_LOOP);
+		for (unsigned i = 0; i < signal_res; ++i) {
+			angle a = angle(360.0*i/signal_res) + sub_player->get_heading();
+			double r = signal_strengths[i][j] * 15;
+			vector2 p = (sub_player->get_pos().xy() - offset + a.direction() * r) * mapzoom;
+			glVertex2f(512+p.x, 384-p.y);
+		}
+		glEnd ();
+	}
+#endif
+
 	// draw notepad sheet giving target distance, speed and course
 	if (target) {
 		int nx = 768, ny = 512;
