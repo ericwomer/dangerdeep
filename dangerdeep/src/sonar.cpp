@@ -38,27 +38,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
      targets for target noise strength).
    depending on angle of ghg apparaturs reduce signal strength of all signals
    (cos(angle) between direction and ghg angle = normal vector from ghg angle).
+   (NOTE: do this ^ with new reduction function!)
    handle background noise of own sub/ship
    compute and add background noise (ambient noise)
    subtract own noise + sensitivity, rest is signal strength
-   make signal strengths discrete, depending on frequency, lower freqs -> larger steps
-     discrete steps not in dB but depending on angle! lower freq -> bigger steps
+   make signal strengths discrete, depending on frequency, lower freqs -> larger steps !NO!
+     discrete steps not in dB but depending on angle! lower freq -> bigger steps !NO!
+   discretize ALL signals only to dB, independent of frequency!!!
    sum of strenghts is resulting noise strength, feed to user's headphones or to sonar operator simulator
    weighting of various frequency strengths depends on human perception and width of freq. bands
      1-3 kHz *0.9, 0-1 kHz *1, 3-6 kHz *0.7 6-7 kHz *0.5, total strength is weighted sum div. weight sum of used bands.
    => noise of ships must be stored in distributed frequencies or we need a online bandpass filter
       to weaken higher frequencies
    blind spots of GHG etc need to be simulated, BG is blind to aft, GHG to front/aft, KDB to ?
+   NOTE: compute that with strength reduction formula!
    
-   New idea, 21st may 2006:
-   A membrane is sensitive to sound in an half-arc area, but where is stated, that each hydrophone of the GHG
-   listens to the full 180Â° range? If each hydrophone listens to a limited range of 30Â° or similar, localization
-   of sounds is much easier! we don't need that "faked" sharper fall-off function (cos^3(x) instead cos(x)),
-   and other things would be much simpler...
-   140° listen area of each side, 12 phones with ghg, listening center of each phone 24+12*n degrees,
-   n=0,...11 with cut-off at 20° and 160°. This gives an overlapping of each angle by two phones.
-   THIS GIVES NEW PROBLEMS AND IS NOT CORRECT.
-
    HOW THE GHG WORKS:
    Sound signals arrive at the hydrophones on different points of time.
    Thus, a signal function depends on time: s(t).
@@ -88,34 +82,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    When the strip line array is not facing the signal perpendicular, the electrical delay
    and the sound delay in water differs, leading to a phase shift of signals in any direction,
    weakening the total signal output. This is modelled by the fall-off function that is a
-   function of the angle between the GHG apparatus angle and the incoming signal's angle.
-   We only need to compute an historically accurate fall-off function.
-   When the signal hits the GHG at angle difference 0, the fall-off function has value 1.
-   When the relative angle is greater than 90° its value is zero, for simplicities sake.
-   At 45° the total electrical delay is only 1/sqrt(2) of its optimum length, leading to
-   phase shift. We have 12 hydrophones with 20cm distance between each of them.
-   Total delay would be 100 lines with 17µs between them, at 45° only 70.7 lines.
-   Thus total delay would be 1.7ms vs. 1.2ms. So we add twelve signals with a shift
-   of 0.5ms * i/11 each for i=0,...11. Take a 1kHz signal, wavelength in water is
-   1.465m, thus it takes 136.5µs to travel 20cm in water. 136.5µs/17µs = 8, the signal
-   delay in water matches the electrical delay of 8 strips.
-   So total signal is sum over i=0...11 signal(t_0 + i * delta_t - i * strip_delay * nr_strips)
-   where strip_deley is 17µs and nr_strips is 8.
-   With 45° we have 5.657 as nr_strips. If we use sin(x) as signal where the period length
-   is 1ms (1kHz!), we have sum over i=0...11 sin((i * 0.1365 - i * 0.017 * 5.657) * 2*Pi)
-   as output. This is sum i=0...11 sin(2*Pi*i*(0.1365-0.017*5.657))
-   This gives a signal strength of 8 vs 12, or 2/3, thus
-   falloff(0°)  = 1
-   falloff(45°) = 0.67
-   falloff(90°) = 0
-   and for 60° the strength is 2.5 vs. 12, thus
-   falloff(60°) = 0.21
-   and for 30° the strength is 11/12, thus
-   falloff(30°) = 0.92
-   This fall-off function is not sharp enough. Well, the values are only rough guesses,
-   cos^3(x) or even cos^5(x) should work much better.
-   Using cos(x)^5, half of the signal strength is left at +- 30°, hence
-   falloff(30°) = 0.5
+   function of the angle between the GHG apparatus angle and the incoming signal's angle and
+   also of the frequency of the signal.
+   We only need to compute an historically accurate fall-off function. This is done by
+   simulating the phase shifts and thus a real GHG as close as possible.
+   (at the moment the function compute_signal_strength_GHG() does this).
 */
 
 const double noise_signature::frequency_band_lower_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 0, 1000, 3000, 6000 };

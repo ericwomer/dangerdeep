@@ -137,6 +137,15 @@ void sub_kdb_display::process_input(class game& gm, const SDL_Event& event)
    When the sonarman detects a loud (and thus close) signal of an escort, he starts tracking
    that signal. Other notebook entries are then kept. When the tracked signal gets less loud
    and thus drives away, he starts sweeping again.
+
+   The sonarman localizes a signal by detecting at which angle a signal reaches a maximum strength
+   and at which angle this strength goes down. The center of both angles must be the direction
+   of the noise source.
+
+   So the simulation has a state (track / scan), an angle that is currently used for tracking/scanning
+   and a list of reported signals. Last time of simulation is also stored.
+   The simulation is run for delta_t seconds. If last_time + delta_t > simulation_step then run next
+   step.
 */
 
 pair<angle, double> find_peak_noise(angle startangle, double step, double maxstep, game& gm)
