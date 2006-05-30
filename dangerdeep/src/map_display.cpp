@@ -800,6 +800,7 @@ void map_display::display(class game& gm) const
 		}
 		glEnd ();
 	}
+	glColor3f(1,1,1);
 #endif
 
 	// draw notepad sheet giving target distance, speed and course
