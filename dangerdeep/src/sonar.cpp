@@ -94,7 +94,12 @@ const double noise_signature::frequency_band_lower_limit[NR_OF_SONAR_FREQUENCY_B
 const double noise_signature::frequency_band_upper_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 1000, 3000, 6000, 7000 };
 const double noise_signature::background_noise[NR_OF_SONAR_FREQUENCY_BANDS] = { 8, 10, 5, 2 };
 const double noise_signature::seastate_factor[NR_OF_SONAR_FREQUENCY_BANDS] = { 60, 50, 40, 30 };
-const double noise_signature::noise_absorption[NR_OF_SONAR_FREQUENCY_BANDS] = { 0.008, 0.01, 0.02, 0.03 };
+const double noise_signature::noise_absorption[NR_OF_SONAR_FREQUENCY_BANDS] = { 0.00562, 0.03372, 0.10116, 0.1686 };
+
+// if we want to make 900Hz sound detectable at 10sm, what would noise_absorption have to be?
+// take a merchant with 8 knots, basic noise is 100dB + 1dB/ m/s = 104.1 dB
+// propagation loss is -20*log10(distance) = -85.4 dB
+// absorption = 10*log(db^104.1 - db^85.4) / 10sm = 104.04 dB / 18520m = 0.00562
 
 const double noise_signature::typical_noise_signature[NR_OF_SHIP_CLASSES][NR_OF_SONAR_FREQUENCY_BANDS] = {
 	{ 200, 150, 60, 20 },	// warship, very strong, rather low frequencies
@@ -111,13 +116,13 @@ double noise_signature::compute_ambient_noise_strength(unsigned band, double sea
 	if (band >= NR_OF_SONAR_FREQUENCY_BANDS)
 		throw error("illegal frequency band number");
 
-	return background_noise[band] + seastate_factor[band] * seastate;
+	return pow(dB_base, background_noise[band] + seastate_factor[band] * seastate);
 }
 
 
 
 double noise_signature::compute_signal_strength(unsigned band, double distance, double speed,
-						      bool caviation) const
+						bool caviation) const
 {
 	if (band >= NR_OF_SONAR_FREQUENCY_BANDS)
 		throw error("illegal frequency band number");
@@ -141,6 +146,7 @@ double noise_signature::compute_signal_strength(unsigned band, double distance, 
 	double L_absorb = -noise_absorption[band] * distance;
 	// sum up noise source noise
 	double L_source = L_base + L_prop + L_absorb;
+	//fixme: is absorption a factor (add in dB scale) or a reducer? rather a factor...
 	// avoid extreme values (would give NaN otherwise, when converting to real values and back)
 	if (L_source < -100)
 		L_source = -100;
@@ -148,7 +154,7 @@ double noise_signature::compute_signal_strength(unsigned band, double distance, 
 //  	printf("L_base=%f L_prop=%f L_abs=%f L_src=%f\n",
 //  	       L_base, L_prop, L_absorb, L_source);
 
-	return L_source;
+	return dB_to_absolute(L_source);
 }
 
 
@@ -161,15 +167,17 @@ double noise_signature::compute_total_noise_strength(const std::vector<double>& 
 		throw error("illegal number of frequency bands");
 	double sum = 0;
 	for (unsigned i = 0; i < NR_OF_SONAR_FREQUENCY_BANDS; ++i) {
-		sum += frequency_band_strength_factor[i] * pow(dB_base, strengths[i]);
+		sum += frequency_band_strength_factor[i] * strengths[i];
 	}
-	return 10*log10(sum);
+	return sum;
 }
 
 
 
 shipclass noise_signature::determine_shipclass_by_signal(const std::vector<double>& strengths)
 {
+	// fixme: transform strengths back to dB!
+
 	// normalize noise by highest value of all frequencies.
 	// do the same for noise signatures of ship classes to compare them better
 	double strength_normalizer = strengths[0];
@@ -227,18 +235,7 @@ double compute_signal_strength_GHG(angle signal_angle, double frequency, angle a
 	static const double height_of_all_contacts = distance_contact * (nr_hydrophones - 1);
 
 	//printf("comp sign str signang=%f freq=%f appang=%f\n", signal_angle.value(), frequency, apparatus_angle.value());
-
-	// if apparatus_angle > 180 we're listening to port side, swap signs of angles in that case
-	if (apparatus_angle.value_pm180() < 0) {
-		apparatus_angle = -apparatus_angle;
-		signal_angle = -signal_angle;
-		// if signal comes from opposite site, strength is zero
-		if (signal_angle.value_pm180() < 0) {
-			//printf("signal from other side?! strange\n");
-			return 0.0;
-		}
-		//printf("comp sign str NOW signang=%f freq=%f appang=%f\n", signal_angle.value(), frequency, apparatus_angle.value());
-	}
+	bool app_on_port = (apparatus_angle.value() >= 180.0);
 
 	double time_scale_fac = 2*M_PI*frequency;
 	double delta_t_signal = signal_angle.cos() * delta_t;
@@ -251,10 +248,11 @@ double compute_signal_strength_GHG(angle signal_angle, double frequency, angle a
 		// where strip lines and y-coordinates of contacts on them
 		// go from "stern" to "bow", that is bottom to top.
 		angle fov_center = hydrophone_fov_center_first + hydrophone_fov_center_delta * double(i);
+		if (app_on_port) fov_center = -fov_center;
 		angle rel_angle = signal_angle - fov_center;
 		amplitude[i] = rel_angle.cos();
-		if (fabs(rel_angle.value_pm180()) > hydrophone_fov.value()*0.5)
-			amplitude[i] = 0;
+ 		if (fabs(rel_angle.value_pm180()) > hydrophone_fov.value()*0.5)
+ 			amplitude[i] = 0;
 		max_strength += amplitude[i];
 		double y = (height_of_all_contacts*0.5 - distance_contact*i) * apparatus_angle.cos();
 		int y_line = int(floor(y + nr_of_strips/2));
@@ -277,17 +275,7 @@ double compute_signal_strength_GHG(angle signal_angle, double frequency, angle a
 
 	// Note2: a signal seems to cause a second signal with 90∞ offset... sidelobe?!
 
-	//fixme: das hier liefert extrema, aber auch max.? ja!
-	// x_extr f‰llt kontinuierlich, das ist ok, aber die funktion die herauskommt
-	// hat auch einen nach links gehenden phase-shift.
-	// manchmal scheint der schneller als das Fallen von x_extr oder so.
-	// zuordnung der kontakte zu strip-line zu ungenau?!
-	// wenn man da nicht auf int klappt, dann gibt es weniger zacken, aber es
-	// gibt sie immer noch!!
-	// auﬂerdem scheint es 90∞ vom signal dasselbe signal nochmal zu geben!!! sidelobe?
-	// momentan alle hydrophone in einer linie, leichter kreis evtl auch sinnvoll?
 	//printf("max_strength=%f sum_cos=%f sum_sin=%f, x_extr=%f\n",max_strength,sum_cos,sum_sin,x_extr);
-
 	//std::ostringstream oss; oss << "plot [x=" << -0.5*M_PI << ":" << 0.5*M_PI << "] ";
 	// now the signal has an extreme value for x = x_extr, compute signal strength
 	double signalstrength = 0.0;

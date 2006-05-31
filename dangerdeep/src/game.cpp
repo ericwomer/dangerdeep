@@ -1027,7 +1027,7 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 			tmpships.push_back(submarines[i]);
 	// fixme: add torpedoes here as well... later...
 
-#if 1
+#if 0
 	// fixme, test, only detect one ship
 	tmpships.resize(1);
 #endif
@@ -1035,15 +1035,13 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 	// fixme: the lower part of this class is sonar dependent and should go to a sonar class...
 
 	// compute noise strengths for all ships for all frequency bands, real strengths, not dB!
-	// use some small number as base strength to avoid the log10 to run amok later.
-	vector<double> noise_strenghts(noise_signature::NR_OF_SONAR_FREQUENCY_BANDS, 1 /*0.0001*/);
-#if 0 // fixme test
+	vector<double> noise_strenghts(noise_signature::NR_OF_SONAR_FREQUENCY_BANDS);
+#if 1
 	// add background noise
 	for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
 		noise_strenghts[b] =
-			pow(noise_signature::dB_base,
-			    noise_signature::
-			    compute_ambient_noise_strength(b, 0.2 /* sea state, fixme make dynamic later */));
+			noise_signature::compute_ambient_noise_strength(b,
+				0.2 /* sea state, fixme make dynamic later */);
 	}
 #endif
 
@@ -1097,7 +1095,7 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 				double nstr = s->get_noise_signature().
 					compute_signal_strength(b, distance, speed, cavit);
 				// strength depends on angle
-				double nstr_ang = pow(noise_signature::dB_base, nstr) * signalstrength;
+				double nstr_ang = nstr * signalstrength;
 				noise_strenghts[b] += nstr_ang;
 			}
 		}
@@ -1105,7 +1103,7 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 	// now compute back to dB, quantize to integer dB values, to
 	// simulate shadowing of weak signals by background noise
 	for (unsigned b = 0; b < noise_signature::NR_OF_SONAR_FREQUENCY_BANDS; ++b) {
-		noise_strenghts[b] = floor(10*log10(noise_strenghts[b]));
+		noise_strenghts[b] = floor(noise_signature::absolute_to_dB(noise_strenghts[b]));
 	}
 	// fixme: depending on listener angle, use only port or starboard phones to listen to signals!
 	//        (which set to use must be given as parameter) <OK>

@@ -89,14 +89,22 @@ struct noise_signature
 
 	band_noise_data band_data[NR_OF_SONAR_FREQUENCY_BANDS];
 
-	///\brief returns background noise (ambient noise) of environment, in dB
+	static double dB_to_absolute(double dB) {
+		return (dB < 0) ? 0.0 : pow(dB_base, dB);
+	}
+
+	static double absolute_to_dB(double a) {
+		return (a < 1.0) ? 0.0 : 10.0*log10(a);
+	}
+
+	///\brief returns background noise (ambient noise) of environment, flat, not in dB
 	/** @param	band		noise band number
 	    @param	seastate	roughness of sea (1.0 = highest storm, 0.2=normal)
 	*/
 	// fixme: seastate is stored in class game... flow of information is unclear
 	static double compute_ambient_noise_strength(unsigned band, double seastate = 0.2);
 
-	///\brief returns total noise of source (background + artificial noise), in dB
+	///\brief returns total noise of source (background + artificial noise), flat, not in dB
 	/** @param	band		noise band number
 	    @param	distance	distance to source in meters
 	    @param	speed		speed of source in m/s
@@ -106,7 +114,7 @@ struct noise_signature
 	double compute_signal_strength(unsigned band, double distance, double speed,
 				       bool caviation = false) const;
 
-	///\brief compute medium total strength of noise from all frequency bands
+	///\brief compute medium total strength of noise from all frequency bands, flat, not in dB
 	/** @param	strengths	strengths for each frequency band (in dB)
 	 */
 	static double compute_total_noise_strength(const std::vector<double>& strengths);
