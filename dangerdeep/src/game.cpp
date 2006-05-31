@@ -1027,10 +1027,17 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 			tmpships.push_back(submarines[i]);
 	// fixme: add torpedoes here as well... later...
 
+#if 1
+	// fixme, test, only detect one ship
+	tmpships.resize(1);
+#endif
+
 	// fixme: the lower part of this class is sonar dependent and should go to a sonar class...
 
 	// compute noise strengths for all ships for all frequency bands, real strengths, not dB!
-	vector<double> noise_strenghts(noise_signature::NR_OF_SONAR_FREQUENCY_BANDS);
+	// use some small number as base strength to avoid the log10 to run amok later.
+	vector<double> noise_strenghts(noise_signature::NR_OF_SONAR_FREQUENCY_BANDS, 0.0001);
+#if 0 // fixme test
 	// add background noise
 	for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
 		noise_strenghts[b] =
@@ -1038,6 +1045,7 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 			    noise_signature::
 			    compute_ambient_noise_strength(b, 0.2 /* sea state, fixme make dynamic later */));
 	}
+#endif
 
 	angle hdg = listener->get_heading();
 	bool listen_to_starboard = (rel_listening_dir.value_pm180() >= 0);
@@ -1085,13 +1093,11 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 				double signalstrength = compute_signal_strength_GHG(rel_dir_to_noise,
 										    noise_signature::typical_frequency[b],
 										    rel_listening_dir);
-				double ang_fac = floor(signalstrength / noise_signature::quantization_factors[b])
-					* noise_signature::quantization_factors[b];
 				// get total noise strength of noise source in dB
 				double nstr = s->get_noise_signature().
 					compute_signal_strength(b, distance, speed, cavit);
 				// strength depends on angle
-				double nstr_ang = pow(noise_signature::dB_base, nstr) * ang_fac;
+				double nstr_ang = pow(noise_signature::dB_base, nstr) * signalstrength;
 				noise_strenghts[b] += nstr_ang;
 			}
 		}

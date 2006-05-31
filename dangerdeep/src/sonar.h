@@ -75,9 +75,6 @@ struct noise_signature
 	static const double noise_absorption[NR_OF_SONAR_FREQUENCY_BANDS];
 	// factor for wave interference in shallow water ( < 250m, 125m in Mediterr.), in dB
 	//static double wave_interference[NR_OF_SONAR_FREQUENCY_BANDS] = { 10, 8, 4, 2 };
-	// factor for strength quantization depending on frequency of signal (quantizes
-	// the angle related factor). This depends on the falloff function, beware!
-	static const double quantization_factors[NR_OF_SONAR_FREQUENCY_BANDS];
 	// typical frequencies for angle related strength factor
 	static const double typical_frequency[NR_OF_SONAR_FREQUENCY_BANDS];
 

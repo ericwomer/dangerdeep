@@ -94,7 +94,6 @@ const double noise_signature::frequency_band_upper_limit[NR_OF_SONAR_FREQUENCY_B
 const double noise_signature::background_noise[NR_OF_SONAR_FREQUENCY_BANDS] = { 8, 10, 5, 2 };
 const double noise_signature::seastate_factor[NR_OF_SONAR_FREQUENCY_BANDS] = { 60, 50, 40, 30 };
 const double noise_signature::noise_absorption[NR_OF_SONAR_FREQUENCY_BANDS] = { 0.008, 0.01, 0.02, 0.03 };
-const double noise_signature::quantization_factors[NR_OF_SONAR_FREQUENCY_BANDS] = { 0.1275, 0.0652, 0.0492, 0.0264 };
 
 const double noise_signature::typical_noise_signature[NR_OF_SHIP_CLASSES][NR_OF_SONAR_FREQUENCY_BANDS] = {
 	{ 200, 150, 60, 20 },	// warship, very strong, rather low frequencies
