@@ -88,6 +88,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    We only need to compute an historically accurate fall-off function. This is done by
    simulating the phase shifts and thus a real GHG as close as possible.
    (at the moment the function compute_signal_strength_GHG() does this).
+
+   fixme: handle noise strengths a bit different! do not cut off at 0 dB!
+   0 dB = Intensity 1, but sensor sensitivity can be much smaller, up to
+   -18 dB = 0.015 N/m² and thus even much weaker signals are detected...
+   I_0 = 10^-6 Pa/m²
+   Propagation: loss off 100dB on 10000m, or factor 10^-10
 */
 
 const double noise_signature::frequency_band_lower_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 0, 1000, 3000, 6000 };
