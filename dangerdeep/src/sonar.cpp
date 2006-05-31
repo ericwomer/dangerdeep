@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "angle.h"
 #include "error.h"
 #include "submarine.h"
+//#include <sstream> // for testing, fixme
 
 /* passive sonar, GHG etc */
 /* how its done:
@@ -246,6 +247,9 @@ double compute_signal_strength_GHG(angle signal_angle, double frequency, angle a
 	double phase_shift[nr_hydrophones];
 	double max_strength = 0.0;
 	for (unsigned i = 0; i < nr_hydrophones; ++i) {
+		// hydrophones are numbered from bow to stern,
+		// where strip lines and y-coordinates of contacts on them
+		// go from "stern" to "bow", that is bottom to top.
 		angle fov_center = hydrophone_fov_center_first + hydrophone_fov_center_delta * double(i);
 		angle rel_angle = signal_angle - fov_center;
 		amplitude[i] = rel_angle.cos();
@@ -253,24 +257,49 @@ double compute_signal_strength_GHG(angle signal_angle, double frequency, angle a
 			amplitude[i] = 0;
 		max_strength += amplitude[i];
 		double y = (height_of_all_contacts*0.5 - distance_contact*i) * apparatus_angle.cos();
-		int y_line = int(y + nr_of_strips/2);
+		int y_line = int(floor(y + nr_of_strips/2));
 		double delay_i = strip_delay * y_line;
+		// note that delay_i is the full delay to the output to the headphones.
+		// if the first strip line with a contact has number N and not 0,
+		// all signals are shifted by N * strip_delay. This doesn't change
+		// the computation result though. In fact it is like the GHG worked.
 		phase_shift[i] = (delay_i + delta_t_signal * i) * time_scale_fac;
 		sum_cos += amplitude[i] * cos(phase_shift[i]);
 		sum_sin += amplitude[i] * sin(phase_shift[i]);
 		//printf("i=%u ampl=%f phs=%f\n",i,amplitude[i],phase_shift[i]);
 	}
 	double x_extr = atan(sum_cos / sum_sin);
+	// Note: the output of this function seems to contain a bit jitter,
+	// the computed strength oscillates a bit around the exact value.
+	// This effect seems to be amplified by the snapping to integer strip line
+	// numbers, but can be seen also with infinite small strips. A rounding error?
+	// a result of the sidelobe phenomenon?!
+
+	// Note2: a signal seems to cause a second signal with 90° offset... sidelobe?!
+
+	//fixme: das hier liefert extrema, aber auch max.? ja!
+	// x_extr fällt kontinuierlich, das ist ok, aber die funktion die herauskommt
+	// hat auch einen nach links gehenden phase-shift.
+	// manchmal scheint der schneller als das Fallen von x_extr oder so.
+	// zuordnung der kontakte zu strip-line zu ungenau?!
+	// wenn man da nicht auf int klappt, dann gibt es weniger zacken, aber es
+	// gibt sie immer noch!!
+	// außerdem scheint es 90° vom signal dasselbe signal nochmal zu geben!!! sidelobe?
+	// momentan alle hydrophone in einer linie, leichter kreis evtl auch sinnvoll?
 	//printf("max_strength=%f sum_cos=%f sum_sin=%f, x_extr=%f\n",max_strength,sum_cos,sum_sin,x_extr);
 
+	//std::ostringstream oss; oss << "plot [x=" << -0.5*M_PI << ":" << 0.5*M_PI << "] ";
 	// now the signal has an extreme value for x = x_extr, compute signal strength
 	double signalstrength = 0.0;
 	for (unsigned i = 0; i < nr_hydrophones; ++i) {
 		signalstrength += amplitude[i] * sin(x_extr + phase_shift[i]);
+		//oss << amplitude[i] << "*sin(x+" << phase_shift[i] << ")+";
 	}
+	//oss << "0\n";
+	//printf(oss.str().c_str());
 	signalstrength = fabs(signalstrength);
 
-	//printf("result: signstr %f perc %f\n", signalstrength, signalstrength/max_strength);
+	//printf("result: signstr=%f perc=%f appang=%f\n", signalstrength, signalstrength/max_strength, apparatus_angle.value());
 	// now compute percentage of max. strength
 	return signalstrength / max_strength;
 }

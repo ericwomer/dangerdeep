@@ -784,7 +784,9 @@ void map_display::display(class game& gm) const
 	const unsigned signal_res = 360;
 	signal_strengths.resize(signal_res);
 	for (unsigned i = 0; i < signal_res; ++i) {
-		signal_strengths[i] = gm.sonar_listen_ships(sub_player, angle(360.0*i/signal_res));
+		angle a(360.0*i/signal_res);
+		printf("angle listen=%f\n", a.value());
+		signal_strengths[i] = gm.sonar_listen_ships(sub_player, a);
 	}
 	// render the strengths as circles with various colors
 	glBindTexture(GL_TEXTURE_2D, 0);

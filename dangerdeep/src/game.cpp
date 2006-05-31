@@ -1036,7 +1036,7 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 
 	// compute noise strengths for all ships for all frequency bands, real strengths, not dB!
 	// use some small number as base strength to avoid the log10 to run amok later.
-	vector<double> noise_strenghts(noise_signature::NR_OF_SONAR_FREQUENCY_BANDS, 0.0001);
+	vector<double> noise_strenghts(noise_signature::NR_OF_SONAR_FREQUENCY_BANDS, 1 /*0.0001*/);
 #if 0 // fixme test
 	// add background noise
 	for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
