@@ -3,6 +3,7 @@
 # gnuplot command line
 from math import *
 import os
+import sys
 # -------------- constants -------------------
 # speed of sound in water
 speedwater = 1465.0
@@ -22,13 +23,13 @@ hydrophone_fov_center_delta = 12.0
 # t_0 + i * delta_t
 delta_t = distance_hydro / speedwater
 print 'delta_t = ' + str(delta_t)
-# nr of strip lines
-# line 0 is at bottom! so it has delay 0, line 99 has max. delay (99*17µs)
+# nr of strip lines, use an odd number here!!! note, the number depends on strip_delay indirectly!!!
+# line 0 is at bottom! so it has delay 0, line 98 has max. delay (98*17µs)
 # this means the signals arriving first, at the highest line, are delayed by the
 # highest value.
 # the total y-coordinate range of the strips goes from -nr_strips/2 to +nr_strips/2,
 # because the strip line array is turned around its center.
-nr_strips = 100
+nr_strips = 99
 # distance between two hydrophone output contacts on strip line array, in lines
 distance_contact = delta_t / strip_delay
 print 'distance between contacts on line array = ' + str(distance_contact)
@@ -36,12 +37,14 @@ height_of_all_contacts = distance_contact * (nr_hydrophones - 1)
 
 # -------------- variables from here on -------
 # signal direction (angle)
-signal_angle = 70.0
+signal_angle = 45.0
 # frequency of wave to measure, in Hz
-noise_freq = 2500
+noise_freq = 6000
 # signal comes from 0° --------------
 # here give ghg apparatus angle
-app_angle = 90.0
+app_angle = 150.0
+if len(sys.argv) > 1:
+  app_angle = int(sys.argv[1])
 app_angle_rad = app_angle * pi / 180.0
 # factor for input of signal function sin(x)
 # a full period is done noise_freq times per second
@@ -113,8 +116,8 @@ for i in range(0, nr_hydrophones):
   # at 0° y_0 is height_of_all_contacts/2, delta_y is -distance_contact
   # n° this is height_of_all_contacts*cos(n), delta_y is -distance_contact*cos(n)
   y = (float(height_of_all_contacts)/2 - distance_contact*i) * cos(app_angle_rad)
-  y_line = int(y + nr_strips/2)
-  print 'i=' + str(i) + ' y=' + str(y) + ' y_line=' + str(y_line)
+  y_line = int(floor(y + nr_strips*0.5))
+  print 'i=' + str(i) + ' y=' + str(y) + ' y_line=' + str(y_line) + ' y+nr2=' + str(y + nr_strips*0.5)
   delay_i = strip_delay * y_line
   print 'delta_t_signal*i=' + str(i*delta_t_signal)
   # signal delay is in seconds (time)
@@ -125,6 +128,8 @@ for i in range(0, nr_hydrophones):
   # thus we scale time by 2000, a shift of e.g. 0.1ms would then be scaled to 0.2*2*Pi, which is
   # 20% of full "circle" (=2pi) which is the same quotient as 0.1/0.5ms, and this is correct.
   plotfac = time_scale_fac * signaldelay
+  print 'delay_i='+str(delay_i)+' delta_t_signal='+str(delta_t_signal)+' i='+str(i)+' tsf='+str(time_scale_fac)+' sum='+str(signaldelay)
+  print 'hydronr=' + str(i) + ' ampl=' + str(strength_factor) + ' phas=' + str(plotfac)
   sum_cos += strength_factor * cos(plotfac)
   sum_sin += strength_factor * sin(plotfac)
   # note! the plot shows only one period of the sine function, but we have as many periods
@@ -173,12 +178,14 @@ for x in range(0, samples):
 print 'minv=' + str(minv) + ', maxv=' + str(maxv) + ', minv at ' + str(minvx) + ', maxv at ' + str(maxvx)
 print 'percentage of full signal: min=' + str(minv/max_strength) + ', max=' + str(maxv/max_strength)
 
-plotoutput = plotoutput[:-1]
-f = open('gnuplotcmd.txt', 'wb')
-f.writelines([plotoutput, ''])
-f.close()
-print plotoutput
-os.system('gnuplot gnuplotcmd.txt -')
+# only if no cmd line given...
+if len(sys.argv) == 1:
+  plotoutput = plotoutput[:-1]
+  f = open('gnuplotcmd.txt', 'wb')
+  f.writelines([plotoutput, ''])
+  f.close()
+  print plotoutput
+  os.system('gnuplot gnuplotcmd.txt -')
 
 # summary: the fall-off is not very sharp with 1kHz, but gets much sharper at
 # higher frequencies.
