@@ -100,7 +100,16 @@ const double noise_signature::frequency_band_lower_limit[NR_OF_SONAR_FREQUENCY_B
 const double noise_signature::frequency_band_upper_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 1000, 3000, 6000, 7000 };
 const double noise_signature::background_noise[NR_OF_SONAR_FREQUENCY_BANDS] = { 8, 10, 5, 2 };
 const double noise_signature::seastate_factor[NR_OF_SONAR_FREQUENCY_BANDS] = { 60, 50, 40, 30 };
-const double noise_signature::noise_absorption[NR_OF_SONAR_FREQUENCY_BANDS] = { 0.00562, 0.03372, 0.10116, 0.1686 };
+// noise absorption: dB per m, Harpoon3 uses 1/6, 1, 3 for L/M/H for range of 1sm
+// so divide these by 1852
+// from another source: the formula is (2.1*10^-10 * (T-38)^2 + 1.3*10^-7) * f^2  (dB/m)
+// whereas T is water temperature in centigrade and f is frequency in kHz, thus
+// take f = real_f * 10^-3, and f^2 = real_f^2 * 10^-6 and so
+// (2.1 * 10^-16 * (T-38)^2 + 1.3*10^-13)
+// if we assume 10.38° for water in open ocean this gives (2.1 * 10^-16 * 10^6 + 1.3*10^-13) = (2.1*10^-10 + 1.3*10^-13)
+// = 2101.3 * 10^-13, thus absorption in dB/m is 2101.3 * 10^-13 * real_f^2
+// this gives for 100Hz: 2.1013e-6, 500Hz: 5.25325e-5, 2kHz: 8.4052e-4, 7kHz: 0.01029637 
+const double noise_signature::noise_absorption[NR_OF_SONAR_FREQUENCY_BANDS] = { 1.0/(6*1852), 1.0/1852, 3.0/1852, 5.0/1852 };
 
 // if we want to make 900Hz sound detectable at 10sm, what would noise_absorption have to be?
 // take a merchant with 8 knots, basic noise is 100dB + 1dB/ m/s = 104.1 dB
