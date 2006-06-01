@@ -315,7 +315,8 @@ double compute_signal_strength_GHG(angle signal_angle, double frequency, angle a
 
 	//printf("result: signstr=%f perc=%f appang=%f\n", signalstrength, signalstrength/max_strength, apparatus_angle.value());
 	// now compute percentage of max. strength
-	return signalstrength / max_strength;
+	//fixme: try this: don't divide here!!! doesn't help much, but a bit though, seems to lessen jitter...
+	return signalstrength; //  / max_strength;
 }
 
 
