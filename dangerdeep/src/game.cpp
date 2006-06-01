@@ -1073,6 +1073,8 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 	// Solution maybe: quantize the target's noise, so weaker signals have the same
 	// quantum as the background noise and vanish.
 
+	// fixme: ghost images appear with higher frequencies!!! seems to be a ghg "feature"
+
 	// add noise of vessels
 	vector2 lp = listener->get_pos().xy();
 	for (unsigned i = 0; i < tmpships.size(); ++i) {
@@ -1102,7 +1104,7 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 	}
 	// now compute back to dB, quantize to integer dB values, to
 	// simulate shadowing of weak signals by background noise
-	for (unsigned b = 0; b < noise_signature::NR_OF_SONAR_FREQUENCY_BANDS; ++b) {
+	for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
 		noise_strenghts[b] = floor(noise_signature::absolute_to_dB(noise_strenghts[b]));
 	}
 	// fixme: depending on listener angle, use only port or starboard phones to listen to signals!

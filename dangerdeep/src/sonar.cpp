@@ -97,7 +97,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 const double noise_signature::frequency_band_lower_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 0, 1000, 3000, 6000 };
-const double noise_signature::frequency_band_upper_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 1000, 3000, 6000, 7000 };
+const double noise_signature::frequency_band_upper_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 1000, 3000, 5555, 7000 };
 const double noise_signature::background_noise[NR_OF_SONAR_FREQUENCY_BANDS] = { 8, 10, 5, 2 };
 const double noise_signature::seastate_factor[NR_OF_SONAR_FREQUENCY_BANDS] = { 60, 50, 40, 30 };
 // noise absorption: dB per m, Harpoon3 uses 1/6, 1, 3 for L/M/H for range of 1sm
@@ -243,7 +243,15 @@ double compute_signal_strength_GHG(angle signal_angle, double frequency, angle a
 	static const double distance_hydro = 0.2;		// m
 	static const angle hydrophone_fov_center_first = 24.0;	// degrees
 	static const angle hydrophone_fov_center_delta = 12.0;	// degrees
-	static const unsigned nr_of_strips = 100;
+	static const unsigned nr_of_strips = 99;	// use an odd number here!
+
+	/* note! the constants depend on each other.
+	   total delay is strip_delay * nr_of_strips = 1.683ms
+	   the hydrophones must be arranged on a line NOT LONGER than the range
+	   the sound travels in that time. So 1465m/s * 1.683ms = 2.465595m.
+	   This number must be greater than (nr_hydrophones-1) * distance_hydro,
+	   which it is here (0.2m * (12-1) = 2.2m)
+	*/
 
 	static const double delta_t = distance_hydro / speed_of_sound_in_water;
 	static const double distance_contact = delta_t / strip_delay;
@@ -270,12 +278,15 @@ double compute_signal_strength_GHG(angle signal_angle, double frequency, angle a
  			amplitude[i] = 0;
 		max_strength += amplitude[i];
 		double y = (height_of_all_contacts*0.5 - distance_contact*i) * apparatus_angle.cos();
-		int y_line = int(floor(y + nr_of_strips/2));
+		int y_line = int(floor(y + nr_of_strips*0.5));
+		//printf("y=%f yp=%f ryp=%f y_line=%i\n", y, y + nr_of_strips*0.5, floor(y + nr_of_strips*0.5), y_line);
 		double delay_i = strip_delay * y_line;
 		// note that delay_i is the full delay to the output to the headphones.
 		// if the first strip line with a contact has number N and not 0,
 		// all signals are shifted by N * strip_delay. This doesn't change
 		// the computation result though. In fact it is like the GHG worked.
+		//printf("delay_i=%f delta_t_signal=%f i=%u tsf=%f sum=%f\n",
+		//       delay_i, delta_t_signal, i, time_scale_fac, (delay_i + delta_t_signal * i));
 		phase_shift[i] = (delay_i + delta_t_signal * i) * time_scale_fac;
 		sum_cos += amplitude[i] * cos(phase_shift[i]);
 		sum_sin += amplitude[i] * sin(phase_shift[i]);

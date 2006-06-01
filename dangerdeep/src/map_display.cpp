@@ -803,6 +803,11 @@ void map_display::display(class game& gm) const
 		glEnd ();
 	}
 	glColor3f(1,1,1);
+// 	for (int i = 0; i <= 179; ++i) {
+// 		printf("test[%i]=%f\n",
+// 		       i,
+// 		       compute_signal_strength_GHG(angle(45.0), 6000, angle(double(i))));
+// 	}
 #endif
 
 	// draw notepad sheet giving target distance, speed and course
