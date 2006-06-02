@@ -238,7 +238,7 @@ double compute_signal_strength_GHG(angle signal_angle, double frequency, angle a
 
 	// GHG constants
 	static const double strip_delay = 0.000017;		// 17µs
-	static const angle hydrophone_fov = 180.0;		// degrees
+	static const angle hydrophone_fov = 180.0; // 180.0;		// degrees
 	static const unsigned nr_hydrophones = 12;
 	static const double distance_hydro = 0.2;		// m
 	static const angle hydrophone_fov_center_first = 24.0;	// degrees
@@ -297,9 +297,16 @@ double compute_signal_strength_GHG(angle signal_angle, double frequency, angle a
 	// the computed strength oscillates a bit around the exact value.
 	// This effect seems to be amplified by the snapping to integer strip line
 	// numbers, but can be seen also with infinite small strips. A rounding error?
-	// a result of the sidelobe phenomenon?!
+	// a result of the sidelobe phenomenon?! ghg phenomenon, disappears with smaller strip lines.
 
 	// Note2: a signal seems to cause a second signal with 90° offset... sidelobe?!
+	// ghsot signal. appears only with higher frequencies, ghg phenomenon.
+	// maybe the arrangement of the hydrophones, their fov and listening direction is
+	// not fully correct, causing or amplifying these phenomenons, fixme!
+	// each hydrophone must listen to a certain direction, if all listen to 90°
+	// then the output is unusable, showing peaks in direction of each hydrophone.
+	// If each hydrophone has a fov < 180° the output is also much worse, causing
+	// many ghost signals and so on. The same is true for fov > 180°.
 
 	//printf("max_strength=%f sum_cos=%f sum_sin=%f, x_extr=%f\n",max_strength,sum_cos,sum_sin,x_extr);
 	//std::ostringstream oss; oss << "plot [x=" << -0.5*M_PI << ":" << 0.5*M_PI << "] ";

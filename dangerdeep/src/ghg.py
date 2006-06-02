@@ -39,7 +39,7 @@ height_of_all_contacts = distance_contact * (nr_hydrophones - 1)
 # signal direction (angle)
 signal_angle = 45.0
 # frequency of wave to measure, in Hz
-noise_freq = 6000
+noise_freq = 1000
 # signal comes from 0° --------------
 # here give ghg apparatus angle
 app_angle = 150.0

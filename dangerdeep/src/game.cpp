@@ -1027,7 +1027,7 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 			tmpships.push_back(submarines[i]);
 	// fixme: add torpedoes here as well... later...
 
-#if 0
+#if 1
 	// fixme, test, only detect one ship
 	tmpships.resize(1);
 #endif
