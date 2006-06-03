@@ -1104,8 +1104,10 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 	}
 	// now compute back to dB, quantize to integer dB values, to
 	// simulate shadowing of weak signals by background noise
+	// no! fixme! handle receiver sensitivity here, so do not clamp to 1dB values but to receiver sensitivity in dB (e.g.
+	// -10 dB), subtract receiver sensitivity, floar, add it back again.
 	for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
-		noise_strenghts[b] = floor(noise_signature::absolute_to_dB(noise_strenghts[b]));
+		noise_strenghts[b] = /*floor(*/noise_signature::absolute_to_dB(noise_strenghts[b])/*)*/;
 	}
 	// fixme: depending on listener angle, use only port or starboard phones to listen to signals!
 	//        (which set to use must be given as parameter) <OK>

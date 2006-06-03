@@ -239,10 +239,10 @@ double compute_signal_strength_GHG(angle signal_angle, double frequency, angle a
 	// GHG constants
 	static const double strip_delay = 0.000017;		// 17µs
 	static const angle hydrophone_fov = 180.0; // 180.0;		// degrees
-	static const unsigned nr_hydrophones = 12;
+	static const unsigned nr_hydrophones = 24; // 12;
 	static const double distance_hydro = 0.2;		// m
-	static const angle hydrophone_fov_center_first = 24.0;	// degrees
-	static const angle hydrophone_fov_center_delta = 12.0;	// degrees
+	static const angle hydrophone_fov_center_first = 21.0; // 24.0;	// degrees
+	static const angle hydrophone_fov_center_delta = 6.0; // 12.0;	// degrees
 	static const unsigned nr_of_strips = 99;	// use an odd number here!
 
 	/* note! the constants depend on each other.

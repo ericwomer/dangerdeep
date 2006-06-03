@@ -8,7 +8,7 @@ import sys
 # speed of sound in water
 speedwater = 1465.0
 # nr of hydrophones per side, phones are numbered from bow to aft 0...nr-1
-nr_hydrophones = 12
+nr_hydrophones = 24
 # distance between hydrophone membrane centers, roughly 20cm
 distance_hydro = 0.2
 # electrical delay, 17µs
@@ -16,8 +16,8 @@ strip_delay = 0.000017
 # fov of a hydrophone
 hydrophone_fov = 180.0
 # center of fov for first hydrophone and delta
-hydrophone_fov_center_first = 24.0
-hydrophone_fov_center_delta = 12.0
+hydrophone_fov_center_first = 21.0
+hydrophone_fov_center_delta = 6.0
 
 # now a signal of hydrophone i is shifted by
 # t_0 + i * delta_t
@@ -70,7 +70,9 @@ signal = [0.0] * samples
 max_strength = 0.0
 
 plotoutput = ''
-delta_t_signal = cos(signal_angle * pi / 180.0) * delta_t
+# value of t_0 doesn't matter for output.
+t_0 = 0.0
+delta_t_signal = cos(signal_angle * pi / 180.0) * delta_t + t_0
 print 'delta_t=' + str(delta_t) + ' delta_t_signal=' + str(delta_t_signal)
 
 # if delta of phase shift would be constant (it is not because of the int() in computing the strip line number),
