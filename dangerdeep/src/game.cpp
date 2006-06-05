@@ -1027,7 +1027,7 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 			tmpships.push_back(submarines[i]);
 	// fixme: add torpedoes here as well... later...
 
-#if 1
+#if 0
 	// fixme, test, only detect one ship
 	tmpships.resize(1);
 #endif
@@ -1093,6 +1093,7 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 				double signalstrength = compute_signal_strength_GHG(rel_dir_to_noise,
 										    noise_signature::typical_frequency[b],
 										    rel_listening_dir);
+				//printf("signalstrength is = %f\n", signalstrength);
 				// get total noise strength of noise source in dB
 				double nstr = s->get_noise_signature().
 					compute_signal_strength(b, distance, speed, cavit);

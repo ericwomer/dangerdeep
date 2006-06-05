@@ -233,6 +233,12 @@ shipclass noise_signature::determine_shipclass_by_signal(const std::vector<doubl
 // translated from python script, refine later
 double compute_signal_strength_GHG(angle signal_angle, double frequency, angle apparatus_angle)
 {
+#if 1
+	double cosang = std::max(0.0, (signal_angle - apparatus_angle).cos());
+//	printf("siga=%f appa=%f diff=%f cos=%f\n",signal_angle.value(), apparatus_angle.value(), (signal_angle -apparatus_angle).value(), cosang);
+	// use 280 as exponent for 7kHz, so f * 0.04 = exponent.
+	return pow(cosang, frequency * 0.04);
+#else
 	// global constants
 	static const double speed_of_sound_in_water = 1465.0;	// m/s
 
@@ -324,6 +330,7 @@ double compute_signal_strength_GHG(angle signal_angle, double frequency, angle a
 	// now compute percentage of max. strength
 	//fixme: try this: don't divide here!!! doesn't help much, but a bit though, seems to lessen jitter...
 	return signalstrength; //  / max_strength;
+#endif
 }
 
 
