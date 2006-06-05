@@ -40,6 +40,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <sstream>
 #include "image.h"
 #include "make_mesh.h"
+#include "xml.h"
 #define VIEWMODEL
 
 #include "mymain.cpp"
@@ -59,7 +60,7 @@ int scalelength(int i)
 }
 
 
-void view_model(const string& modelfilename)
+void view_model(const string& modelfilename, const string& datafilename)
 {
 	model::enable_shaders = true;
 
@@ -70,6 +71,33 @@ void view_model(const string& modelfilename)
 	mdl->write_to_dftd_model_file("test.xml");
 
 	mdl->get_mesh(0).write_off_file("test.off");
+
+        // rendering mode
+
+        int wireframe = 0;
+
+        // Smoke variables
+
+        bool smoke = false;
+        int smoke_type = 0;
+        vector3 smoke_pos;
+        bool smoke_display = false;
+
+        // Read xml file if supplied
+        
+        if (!datafilename.empty()) {
+
+                        xml_doc dataxml(get_ship_dir() + datafilename);
+                        dataxml.load();
+                        xml_elem root = dataxml.child("dftd-ship").child("smoke");
+                        smoke_type = root.attri("type");
+                        float smokex = root.attrf("x");
+                        float smokey = root.attrf("y");
+                        float smokez = root.attrf("z");
+
+                        smoke_pos = vector3(smokex, smokey, smokez);
+                        smoke = true;
+        }
 
 /*
 	// fixme test hack
@@ -106,7 +134,8 @@ void view_model(const string& modelfilename)
 //	model::mesh* msh = make_mesh::sphere(1.5*sc, 3*sc, 16, 16, 1.0f, 1.0f, false);
 //	model::mesh* msh = make_mesh::cylinder(1.5*sc, 3*sc, 16, 1.0f, 1.0f, true, false);
 	msh->mymaterial = mat;
-	mdl->add_mesh(msh);
+	//mdl->add_mesh(msh);
+        msh->compile();
 	mdl->compile();
 
 	unsigned time1 = sys().millisec();
@@ -120,6 +149,9 @@ void view_model(const string& modelfilename)
 	lightsphere->compile();
 
 	while (true) {
+
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                
 		// rotate light
 		unsigned time2 = sys().millisec();
 		if (lightmove && time2 > time1) {
@@ -230,10 +262,37 @@ void view_model(const string& modelfilename)
 			glEnable(GL_LIGHTING);
 		}
 
+                msh->display();
+
+                if (wireframe==1) {
+                        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                }
+
 		matrix4 mvp = matrix4::get_gl(GL_PROJECTION_MATRIX) * matrix4::get_gl(GL_MODELVIEW_MATRIX);
 		mdl->display();
 		// test
 		//mdl->display_mirror_clip();
+
+                // display smoke origin
+                if (smoke && smoke_display) {
+                        glDisable(GL_LIGHTING);
+                        glDisable(GL_DEPTH_TEST);
+                        glBegin(GL_LINES);
+                        glColor3f(1,0,0);
+                        glVertex3f(smoke_pos.x-1, smoke_pos.y, smoke_pos.z);
+                        glVertex3f(smoke_pos.x+1, smoke_pos.y, smoke_pos.z);
+                        glVertex3f(smoke_pos.x, smoke_pos.y-1, smoke_pos.z);
+                        glVertex3f(smoke_pos.x, smoke_pos.y+1, smoke_pos.z);
+                        glVertex3f(smoke_pos.x, smoke_pos.y, smoke_pos.z-1);
+                        glVertex3f(smoke_pos.x, smoke_pos.y, smoke_pos.z+1);
+                        glEnd();
+                        glEnable(GL_DEPTH_TEST);
+                        glEnable(GL_LIGHTING);
+                }
+
+
+
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		// draw scales if requested
 		if (coordinatesystem) {
@@ -264,6 +323,8 @@ void view_model(const string& modelfilename)
 					}
 					break;
 				case SDLK_c: coordinatesystem = !coordinatesystem; break;
+                                case SDLK_p: smoke_display = !smoke_display; break;
+                                case SDLK_w: if (++wireframe>1) wireframe = 0; break;
 				default: break;
 				}
 			} else if (event.type == SDL_MOUSEMOTION) {
@@ -292,12 +353,21 @@ void view_model(const string& modelfilename)
 			<< "Press any key to exit.\n"
 			<< "Press left mouse button and move mouse to rotate x/y.\n"
 			<< "Press right mouse button and move mouse to rotate z.\n"
+                        << "Press 'p' to toggle smoke origin.\n"
+                        << "Press 'w' to toggle wireframe mode.\n"
 			<< "Rotation " << viewangles.x << ", " << viewangles.y << ", " << viewangles.z <<
 			"\nTranslation " << pos.x << ", " << pos.y << ", " << pos.z <<
 			"\nmin " << minp.x << ", " << minp.y << ", " << minp.z <<
 			"\nmax " << maxp.x << ", " << maxp.y << ", " << maxp.z <<
 			"\n";
-			
+		
+                if (smoke) {	
+                        os << "Smoke: " << ((smoke_display)? "On" : "Off") << "\n";
+                        os << "Smoke origin " << smoke_pos.x << ", " << smoke_pos.y << ", " << smoke_pos.z << "\n";
+                } else {
+                        os << "Smoke: Off (no data xml provided).\n";
+                }
+                        
 		font_arial->print(0, 0, os.str());
 
 		// print scale descriptions
@@ -344,6 +414,7 @@ void view_model(const string& modelfilename)
 		mysys->swap_buffers();
 	}
 
+        delete msh;
 	delete mdl;
 }
 
@@ -356,6 +427,7 @@ int mymain(list<string>& args)
 	bool fullscreen = true;
 
 	string modelfilename;
+        string datafilename;
 	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
 		if (*it == "--help") {
 			cout << "DftD viewmodel, usage:\n--help\t\tshow this\n"
@@ -373,6 +445,9 @@ int mymain(list<string>& args)
 					res_x = r;
 				++it;
 			}
+                } else if (*it == "--dataxml") {
+                        ++it;
+                        datafilename = it==args.end()? "" : it->c_str();
 		} else {
 			modelfilename = *it;
 		}
@@ -399,7 +474,7 @@ int mymain(list<string>& args)
 	font_arial = new font(get_font_dir() + "font_arial");
 	mysys->draw_console_with(font_arial, 0);
 	
-	view_model(modelfilename);	
+	view_model(modelfilename,datafilename);	
 
 	mysys->write_console(true);
 	delete font_arial;
