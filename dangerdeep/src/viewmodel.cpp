@@ -149,9 +149,6 @@ void view_model(const string& modelfilename, const string& datafilename)
 	lightsphere->compile();
 
 	while (true) {
-
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                
 		// rotate light
 		unsigned time2 = sys().millisec();
 		if (lightmove && time2 > time1) {
@@ -264,7 +261,7 @@ void view_model(const string& modelfilename, const string& datafilename)
 
                 msh->display();
 
-                if (wireframe==1) {
+                if (wireframe == 1) {
                         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
                 }
 
@@ -290,9 +287,9 @@ void view_model(const string& modelfilename, const string& datafilename)
                         glEnable(GL_LIGHTING);
                 }
 
-
-
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                if (wireframe == 1) {
+                        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                }
 
 		// draw scales if requested
 		if (coordinatesystem) {
@@ -446,8 +443,9 @@ int mymain(list<string>& args)
 				++it;
 			}
                 } else if (*it == "--dataxml") {
-                        ++it;
-                        datafilename = it==args.end()? "" : it->c_str();
+                        if (++it != args.end()) {
+                                datafilename = it->c_str();
+                        } else --it;
 		} else {
 			modelfilename = *it;
 		}
