@@ -20,6 +20,10 @@
 
 #include "tone_reproductor.h"
 
+#ifndef pow10
+#define pow10(x) pow(10.0, x)
+#endif
+
 // Set some values to prevent bugs in case of bad use
 tone_reproductor::tone_reproductor() : Lda(50.f), Lwa(40000.f), MaxdL(100.f), gamma(2.3f)
 {
