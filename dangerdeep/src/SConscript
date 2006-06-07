@@ -1,4 +1,4 @@
-# import these variables from the parent build script 
+# import these variables from the parent build script
 import os
 import sys
 
@@ -35,6 +35,7 @@ dftdsources = Split("""subsim.cpp
 	ship.cpp
 	ships_sunk_display.cpp
 	sky.cpp
+	moon.cpp
 	sonar.cpp
 	sound.cpp
 	submarine.cpp
@@ -102,7 +103,7 @@ test1 = env.Program('oceantest', ['oceantest.cpp'], LIBS = alllibs)
 env.Default(test1)
 
 portal = env.Program('portal', ['portal.cpp', datadirsobj, 'sound.cpp'] + osspecificsrc, LIBS = alllibs)
-env.Default(portal) 
+env.Default(portal)
 
 ############ this allows to run "scons install" to install the binary
 install = env.Alias('install', env.Install(installbindir, binary))

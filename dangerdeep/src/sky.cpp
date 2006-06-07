@@ -30,6 +30,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <SDL.h>
 
 #include "sky.h"
+#include "daysky.h"
+#include "moon.h"
 #include "model.h"
 #include "texture.h"
 #include "datadirs.h"
@@ -53,7 +55,7 @@ const double CLOUD_ANIMATION_CYCLE_TIME = 3600.0;
 
 sky::sky(const double tm, const unsigned int sectors_x, const unsigned int sectors_y)
 	: mytime(tm), sunglow(0), clouds(0),
-	  suntex(0), moontex(0), clouds_dl(0), skyhemisphere_dl(0),
+	  suntex(0), clouds_dl(0), skyhemisphere_dl(0),
 	  sun_azimuth(10.0f), sun_elevation(10.0f),
 	  moon_azimuth(10.0f), moon_elevation(10.0f),
 	  turbidity(5.0f)//was 2.0, fixme
@@ -80,7 +82,6 @@ sky::sky(const double tm, const unsigned int sectors_x, const unsigned int secto
 	// ********************************** init sun/moon
 	sunglow = texture::ptr(new texture(get_texture_dir() + "sunglow.png", texture::LINEAR));
 	suntex = texture::ptr(new texture(get_texture_dir() + "thesun.png", texture::LINEAR));
-	moontex = texture::ptr(new texture(get_texture_dir() + "themoon.png", texture::LINEAR));
 
 	// ********************************** init clouds
 	// clouds are generated with Perlin noise.
@@ -333,6 +334,8 @@ void sky::smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map1)
 void sky::set_time(double tm)
 {
 	mytime = tm;
+	moon_map.update_moon_texture(tm);	//	FIXME update only before moon rise?
+
 	tm = myfmod(tm, 86400.0);
 	double cf = myfrac(tm/CLOUD_ANIMATION_CYCLE_TIME) - cloud_animphase;
 	if (fabs(cf) < (1.0/(3600.0*256.0))) cf = 0.0;
@@ -454,7 +457,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	vector3 moonpos = moondir * (0.95 * max_view_dist);
 	double moons = max_view_dist/17;	// make moon ~10x10 pixel
 	glColor4f(1,1,1,1);
-	moontex->set_gl_texture();
+	moon_map.get_texture()->set_gl_texture();
 	glPushMatrix();
 	glTranslated(moonpos.x, moonpos.y, moonpos.z);
 	tmpmat = matrix4::get_gl(GL_MODELVIEW_MATRIX);

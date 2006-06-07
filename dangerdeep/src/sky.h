@@ -32,10 +32,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "color.h"
 #include "vector3.h"
 #include "model.h"
-
-#include "daysky.h"
+#include "moon.h"
 
 class game;
+
 
 ///\brief Rendering of sky and atmospheric effects.
 class sky
@@ -46,7 +46,6 @@ protected:
 	texture::ptr sunglow;
 	texture::ptr clouds;
 	texture::ptr suntex;
-	texture::ptr moontex;
 	double cloud_animphase;				// 0-1 phase of interpolation
 	vector<vector<Uint8> > noisemaps_0, noisemaps_1;// interpolate to animate clouds
 	unsigned clouds_dl;				// display list for clouds
@@ -70,6 +69,7 @@ protected:
 		const vector<Uint8>& nmap);
 	void smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map1);
 
+	moon moon_map;
 	vector<vector3f> skyverts;
 	vector<vector2f> skyangles;
 	mutable vector<colorf> skycolors;
