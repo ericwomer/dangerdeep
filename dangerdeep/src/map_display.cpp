@@ -1117,7 +1117,14 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 			cvroute.push_back(real);
 		}
 #endif
-		break;
+
+                if (event.button.button == SDL_BUTTON_WHEELUP) {
+                        if (mapzoom < 1) mapzoom *=2;
+                } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
+                        if (mapzoom > 1.0/16384) mapzoom /= 2;
+                }
+
+	        break;
 	case SDL_MOUSEMOTION:
 		mx = event.motion.x;
 		my = event.motion.y;

@@ -154,6 +154,14 @@ void sub_periscope_display::process_input(class game& gm, const SDL_Event& event
 		if (cfg::instance().getkey(KEY_TOGGLE_ZOOM_OF_VIEW).equal(event.key.keysym)) {
 			zoomed = !zoomed;
 		} 
+                break;
+        case SDL_MOUSEBUTTONDOWN:
+                if (event.button.button == SDL_BUTTON_WHEELUP) {
+                        zoomed = true;
+                } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
+                        zoomed = false;
+                }
+                break;
 	default: break;
 	}
 	freeview_display::process_input(gm, event);

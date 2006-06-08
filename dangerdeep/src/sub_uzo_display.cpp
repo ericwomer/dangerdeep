@@ -124,6 +124,14 @@ void sub_uzo_display::process_input(class game& gm, const SDL_Event& event)
 			default: break;
 			}
 		}
+                break;
+        case SDL_MOUSEBUTTONDOWN:
+                if (event.button.button == SDL_BUTTON_WHEELUP) {
+                        zoomed = true;
+                } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
+                        zoomed = false;
+                }
+                break;
 	default: break;
 	}
 	freeview_display::process_input(gm, event);
