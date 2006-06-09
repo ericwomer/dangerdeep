@@ -76,8 +76,8 @@ class torpedo : public ship
 {
  public:
 	class fuse {
-		fuse();
 	public:
+		fuse();
 		enum models { Pi1, Pi2, Pi3, Pi4a, Pi4b, Pi4c, Pi6, TZ3, TZ5, TZ6 };
 		enum types { IMPACT, INFLUENCE, INERTIAL };
 		models model;
