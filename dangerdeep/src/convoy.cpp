@@ -87,7 +87,7 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 					if (r == 1) shiptype = "tanker_small";
 					if (r >= 2 && r <= 3) shiptype = "tanker_medium";
 				} else {
-					unsigned r = rnd(10);
+					unsigned r = rnd(11);
 					if (r == 0) shiptype = "merchant_large";
 					if (r == 1) shiptype = "merchant_medium";
 					if (r == 2) shiptype = "merchant_small";
@@ -98,6 +98,7 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
                     if (r == 7) shiptype = "libertyship_1943_data";
                     if (r == 8) shiptype = "fortship_can1941_data";
                     if (r == 9) shiptype = "fortship_can1943_data";
+					if (r == 10) shiptype = "fortship_nolisciv_data";
 				}
 				xml_doc doc(get_ship_dir() + shiptype + ".xml");
 				doc.load();
