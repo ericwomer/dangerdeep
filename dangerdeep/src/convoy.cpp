@@ -82,10 +82,11 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 				//but probability can not be stored...
 				string shiptype = "merchant_medium";
 				if (d < 0.2) {
-					unsigned r = rnd(4);
+					unsigned r = rnd(5);
 					if (r == 0) shiptype = "troopship_medium";
 					if (r == 1) shiptype = "tanker_small";
 					if (r >= 2 && r <= 3) shiptype = "tanker_medium";
+					if (r == 4) shiptype = "northsands_camship_data";
 				} else {
 					unsigned r = rnd(11);
 					if (r == 0) shiptype = "merchant_large";
