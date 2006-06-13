@@ -1,5 +1,7 @@
-\documentclass{report}
+\documentclass[a4paper,12pt]{report}
 \usepackage{gensymb}
+%% \usepackage{babel}
+\usepackage[latin1]{inputenc}
 \begin{document}
 
 \tableofcontents
@@ -12,7 +14,7 @@ The facts and formulas presented here are the results of a long research
 over the internet and the conclusions of many implementation tests. We
 took some information from the documentation of the ``Harpoon 3'' sonar
 model and from a document describing the most common German listening
-device of World War 2, the ``GHG'' (Gruppenhorchgeraet).
+device of World War 2, the ``GHG'' (Gruppenhorchgerät).
 
 There are many sources of noise in the ocean. Beside the disturbances of
 the ocean surface by the wind, background noise by animals and
@@ -243,7 +245,7 @@ by a factor, so the example values are way too high itself. The noise
 strength of a target depends rather on its basic noise strength than on
 its speed, which is unrealistic. We should use basic noise levels for
 every frequency band and use more bands (four, 0\ldots 1kHz, 1\ldots
-3kHz, 3\ldots 6kHz, 6\ldots 7kHz).  Background noise should be decreases
+3kHz, 3\ldots 6kHz, 6\ldots 7kHz).  Background noise should be decreased
 before summing it up or even while calculating it, not after summing of
 all background noise sources.
 
