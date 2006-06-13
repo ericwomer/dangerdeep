@@ -141,7 +141,7 @@ model_load_dialog::load_menu()
         w.set_theme(theme.get());
 
         title = new widget_text(10, 10, 800, 80, "Danger from the Deep Viewmodel OpenGL Frontend.\nCopyright (C) 2003-2006 Thorsten Jordan.");
-        w.add_child(models_lbl);
+        w.add_child(title);
 
         models_lbl = new widget_text(300, 100, 424, 30, "Available Models:", 0, 1);
         w.add_child(models_lbl);
