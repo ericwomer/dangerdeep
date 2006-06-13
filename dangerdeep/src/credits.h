@@ -44,6 +44,7 @@ const char* credits[] = {
 "Andrew Rice (MacOSX)",
 "", "", "", "", "",
 "$80ffc0Web site administrator",
+"$ffffffAlexandre Paes",
 "$ffffffViktor Radnai",
 "", "", "", "", "",
 "$80ffc0Packaging",
