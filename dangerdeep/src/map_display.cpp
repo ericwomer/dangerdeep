@@ -1119,9 +1119,9 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 #endif
 
                 if (event.button.button == SDL_BUTTON_WHEELUP) {
-                        if (mapzoom < 1) mapzoom *=2;
+                        if (mapzoom < 1) mapzoom *=1.25;
                 } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
-                        if (mapzoom > 1.0/16384) mapzoom /= 2;
+                        if (mapzoom > 1.0/16384) mapzoom /= 1.25;
                 }
 
 	        break;
