@@ -12,9 +12,9 @@
 
 The facts and formulas presented here are the results of a long research
 over the internet and the conclusions of many implementation tests. We
-took some information from the documentation of the ``Harpoon 3'' sonar
+took some information from the documentation of the "Harpoon 3" sonar
 model and from a document describing the most common German listening
-device of World War 2, the ``GHG'' (Gruppenhorchgerät).
+device of World War 2, the "GHG" (Gruppenhorchgerät).
 
 There are many sources of noise in the ocean. Beside the disturbances of
 the ocean surface by the wind, background noise by animals and
@@ -41,7 +41,7 @@ oriented layers. Temperature is the most important factor. We need to
 simulate reflection and/or refraction at border of those layers, at
 least for active sonars like ASDIC.
 
-Hiding the submarine ``below'' a thermal layer was and is an important
+Hiding the submarine "below" a thermal layer was and is an important
 tactical aspect of submarine warfare.
 
 Sound strength is decreased with growing distance when the sound spreads
@@ -151,7 +151,7 @@ values, leading to a non-monotonous rise or fall of total signal output
 when the device was turned. This even lead to serious jitter in the
 output signal strength.
 
-The second problem were ``ghost'' signals appearing at higher
+The second problem were "ghost" signals appearing at higher
 frequencies. At higher frequencies several periods of the signal are
 received by the hydrophones and fed to the strip lines. So the discrete
 phase shift compensation becomes more and more problematic. Output
@@ -186,11 +186,11 @@ kHz$ and less than $1\degree$ for frequencies above $6 kHz$. So the constant
 $k$ must be choosen that for $\beta ^+_- \gamma$ degrees the output of
 $strength$ is at least $1 dB$ higher than the value for any other angle.
 
-\section{What can we learn from ``Harpoon 3''}
+\section{What can we learn from "Harpoon 3"}
 
 \subsection{Formulas}
 
-``Harpoon 3'' uses the following formulas (note: $\phi(x) := 10^\frac{x}{10}
+"Harpoon 3" uses the following formulas (note: $\phi(x) := 10^\frac{x}{10}
 = (10^{0.1})^x = 1.258925412^x$, so the function $\phi$ transforms
 deziBel values to linear sound intensity values):
 
@@ -213,7 +213,7 @@ miles).
 
 \subsection{Constants}
 
-Here are some values and constants use by ``Harpoon 3'' as an example
+Here are some values and constants use by "Harpoon 3" as an example
 (all values in deziBels):
 
 \begin{tabular}[t]{|p{50ex}|c|c|c|} \hline
@@ -228,16 +228,16 @@ background noise reduction factor $m_b$  & 3.4 & 2.9 & 3.7 \\ \hline
 dispersion factor (per nautical mile) $m_d$ & 1/6 & 1 & 3 \\ \hline
 \end{tabular}
 
-Note that sea state level of 3 means ``small waves'' and 8 means ``high
-seas'', we thus can assume that sea state level is in range 0\ldots 10.
+Note that sea state level of 3 means "small waves" and 8 means "high
+seas", we thus can assume that sea state level is in range 0\ldots 10.
 The base values per vessel ($L_{r_0}$ for receiver etc.) do vary. There
-is no reason given for the use of the ``background noise reduction
-factor'', but note that it is multiplied in the deziBel value range, so
+is no reason given for the use of the "background noise reduction
+factor", but note that it is multiplied in the deziBel value range, so
 it is an exponent in absolute sound strength space.
 
 \subsection{Conclusion}
 
-``Harpoon 3'' makes some crude simplifications. To make computing of sound
+"Harpoon 3" makes some crude simplifications. To make computing of sound
 strengths easier, all frequencies are distributed to three frequency
 bands (Low, medium and high frequencies, LF/MF/HF). Computations are
 done in a simple version in deziBel space. Background noise is decreased
@@ -278,18 +278,21 @@ as well.
 \subsection{Kristallbasisdrehgerät (KDB)}
 
 Freely turnable, no all-around detection...
+Some special effects not yet described here...
+(fixme)
 
 \subsection{Gruppenhorchgerät (GHG)}
 
 Blind spots...
-
 Select group of hydrophones...
+(fixme)
 
 \subsection{Balkongerät (BG)}
 
 Blind spot at stern...
+(fixme)
 
-\section{How sound is simulated in ``Danger from the Deep''}
+\section{How sound is simulated in "Danger from the Deep"}
 
 Compute target noise for a target: $L_t = L_{t_f} + m_{v_t} * v_t + G_c$
 where $L_{t_f}$ is the basic noise level for a specific target and a
@@ -305,13 +308,25 @@ constant over all vessels for a given frequency band (depends only on
 weather etc.), and $L_r$ depends on the receiver's vessel.
 
 Now divide by sensor sensitivity and round to integer dB values:
-$I_{total} = I_{targets} - I_{backgr}$. The value should be cut off
-(clamped) at one, thus if it is less than one, set it to one. The
-resulting value is fed to the sonarman simulator:
+$I_{total} = I_{targets} + I_{backgr}$. The value should be cut off
+(clamped) at some small value $\theta > 0$, thus if it is less than
+$\theta$, set it to $\theta$. This gives a minimum deziBel value of
+$\phi^{-1}(\theta)$ that may be less than zero. The resulting value is
+fed to the sonarman simulator:
 
-$$L_{result} = \lfloor \phi^{-1}(\max(1, \frac{I_{targets} - I_{backgr}}{\phi(G_{s_p})})) 
+$$L_{result} = \lfloor \phi^{-1}(\max(\theta, \frac{I_{targets} + I_{backgr}}{\phi(G_{s_p})})) 
 \rfloor$$
 
+Note that we do not \emph{subtract} background noise intensity from
+target noise intensity, as the formulas of "Harpoon" would suggest. This
+could lead to negative intensity values and is also not physically
+correct. Instead by adding both intensities and transforming them to the
+deziBel range, high background noise intensities will "shadow" target
+noise signals and thus is what we want to accomplish.
+
+To compute the total sound intensity of all frequency bands we sum them
+up multiplied by a band specific constant: $I_{total} = \sum_{i=1}^{nr\
+of\ frequency\ bands} I_{band_i} * m_{band_i}$.
 
 
 
