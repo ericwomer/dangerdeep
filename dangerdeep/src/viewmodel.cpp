@@ -30,28 +30,186 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <glu.h>
 #include <SDL.h>
 
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include "system.h"
 #include "vector3.h"
 #include "datadirs.h"
 #include "font.h"
 #include "model.h"
 #include "texture.h"
-#include <iostream>
-#include <sstream>
 #include "image.h"
 #include "make_mesh.h"
 #include "xml.h"
+#include "filehelper.h"
+#include "widget.h"
 #define VIEWMODEL
 
 #include "mymain.cpp"
 
+using std::vector;
+
 class system* mysys;
 int res_x, res_y;
 font* font_arial = 0;
+font *font_olympiaworn = 0;
 
 vector4t<GLfloat> lposition(0,0,0,1);
 
 #define LIGHT_ANG_PER_SEC 30
+
+// Forward declaration
+void view_model(const string& modelfilename, const string& datafilename);
+
+class model_load_dialog
+{
+public:
+        model_load_dialog();
+        virtual ~model_load_dialog() {}
+
+        void get_model_list(const string& path);
+        const list<string>& get_models();
+
+        void load_menu();
+        void load_model(widget_list *list);
+
+private:
+        struct model_entry
+        {
+                string name;
+                string dir;
+        };
+
+        auto_ptr<widget::theme> theme;
+        auto_ptr<image> bg;
+        vector<model_entry> files;
+        
+        int selected_model;
+
+        void message(const string& msg);
+};
+
+
+
+model_load_dialog::model_load_dialog() : 
+        theme(0),
+        bg(0)
+{
+        theme.reset( new widget::theme("widgetelements_menu.png", "widgeticons_menu.png", font_olympiaworn, color(182, 146, 137), color(222, 208, 195), color(92, 72, 68)) );
+        
+        bg.reset( new image(get_image_dir() + "threesubs.jpg"));
+}
+
+
+
+void
+model_load_dialog::get_model_list(const string& path)
+{
+        if (path.empty()) { return; }
+
+        directory d;
+        string f; 
+        
+        d = open_dir(path);
+
+        do {
+                f = read_dir(d);
+                
+                bool is_xml = (f.size()>3 && f.substr(f.size()-3) == "xml");
+
+                if ( !f.empty() && !is_directory(f) && is_xml) {
+                        model_entry new_model = { f, path };
+                        files.push_back(new_model);
+                }
+        } while (!f.empty());
+}
+
+
+
+void
+model_load_dialog::load_menu()
+{
+        widget_menu *wm;
+        widget_text *title;
+        widget_text *models_lbl;
+        widget_list *models_list;
+        
+        widget w(0, 0, 1024, 768, "", 0, bg.get());
+        w.set_theme(theme.get());
+
+        title = new widget_text(10, 10, 800, 80, "Danger from the Deep Viewmodel OpenGL Frontend.\nCopyright (C) 2003-2006 Thorsten Jordan.");
+        w.add_child(models_lbl);
+
+        models_lbl = new widget_text(300, 100, 424, 30, "Available Models:", 0, 1);
+        w.add_child(models_lbl);
+
+        models_list = new widget_list(300, 150, 424, 438, NULL);
+        
+        vector<model_entry>::iterator it = files.begin();
+        for (; it != files.end(); ++it) {
+                models_list->append_entry(it->name);
+        }
+
+        w.add_child(models_list);
+
+        wm = new widget_menu(87, 650, 400, 40, "", true);
+
+        wm->set_entry_spacing(50);
+
+        wm->add_entry("Load", new widget_caller_arg_button<model_load_dialog, void (model_load_dialog::*)(widget_list*), widget_list*>(this, &model_load_dialog::load_model, models_list));
+
+        wm->add_entry("Quit", new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
+
+        w.add_child(wm);
+
+        w.run(0,false);
+}
+
+
+
+void
+model_load_dialog::load_model(widget_list* models)
+{
+        selected_model = models->get_selected();
+
+        model_entry entry = files[selected_model];
+
+        string data_filename = entry.dir + entry.name;
+        string model_filename;
+
+        try {
+                xml_doc dataxml(data_filename);
+                dataxml.load();
+                xml_elem root = dataxml.first_child().child("classification");
+                model_filename = root.attr("modelname");
+
+                view_model(model_filename, data_filename);
+
+        } catch (...) {
+                message("Unable to read one of the files:\n\n"+data_filename+"\n"+model_filename);
+        }
+}
+
+
+
+void
+model_load_dialog::message(const string& msg)
+{
+        widget w(0,0,1024,768,"", 0, bg.get());
+
+        widget_text *msgtext = new widget_text(0, 0, 0, 0, msg, 0, 1);
+        w.add_child(msgtext);
+
+        widget_menu *wm = new widget_menu(112,120,200,40,"",true);
+        wm->add_entry("OK",new widget_caller_arg_button<widget, void(widget::*)(int),int>(&w, &widget::close, 0, 0, 0, 0, 0));
+        w.add_child(wm);
+        
+        w.run(0,false);
+}
+
 
 
 int scalelength(int i)
@@ -82,22 +240,25 @@ void view_model(const string& modelfilename, const string& datafilename)
         int smoke_type = 0;
         vector3 smoke_pos;
         bool smoke_display = false;
-
+        
         // Read xml file if supplied
         
-        if (!datafilename.empty()) {
+        try {
+                xml_doc dataxml(datafilename);
+                dataxml.load();
+                xml_elem smoke_elem = dataxml.first_child().child("smoke");
+                smoke_type = smoke_elem.attri("type");
+                float smokex = smoke_elem.attrf("x");
+                float smokey = smoke_elem.attrf("y");
+                float smokez = smoke_elem.attrf("z");
 
-                        xml_doc dataxml(get_ship_dir() + datafilename);
-                        dataxml.load();
-                        xml_elem root = dataxml.child("dftd-ship").child("smoke");
-                        smoke_type = root.attri("type");
-                        float smokex = root.attrf("x");
-                        float smokey = root.attrf("y");
-                        float smokez = root.attrf("z");
+                smoke_pos = vector3(smokex, smokey, smokez);
+                smoke = true;
 
-                        smoke_pos = vector3(smokex, smokey, smokez);
-                        smoke = true;
+        } catch (...) {
+                smoke = false;
         }
+
 
 /*
 	// fixme test hack
@@ -312,11 +473,27 @@ void view_model(const string& modelfilename, const string& datafilename)
 				case SDLK_l: lightmove = !lightmove; break;
 				case SDLK_s:
 					{
-						pair<model::mesh*, model::mesh*> parts = mdl->get_mesh(0).split(vector3f(0,1,0), -1);
-						parts.first->transform(matrix4f::trans(0, 30, 50));
-						parts.second->transform(matrix4f::trans(0, -30, 50));
-						mdl->add_mesh(parts.first);
-						mdl->add_mesh(parts.second);
+                                                // Allow user to save smoke position
+                                                if (smoke && (SDL_GetModState() & (KMOD_LCTRL | KMOD_RCTRL))) {
+                                                        try {
+                                                                xml_doc dataxml(datafilename);
+                                                                dataxml.load();
+                                                                xml_elem smoke_elem = dataxml.first_child().child("smoke");
+                                                        
+                                                                smoke_elem.set_attr(smoke_pos.x, "x");
+                                                                smoke_elem.set_attr(smoke_pos.y, "y");
+                                                                smoke_elem.set_attr(smoke_pos.z, "z");
+
+                                                                dataxml.save();
+                                                        } catch (...) { std::cout << "unable to save smoke origin" << "\n"; }
+                                                        
+                                                } else {
+                                                        pair<model::mesh*, model::mesh*> parts = mdl->get_mesh(0).split(vector3f(0,1,0), -1);
+                                                        parts.first->transform(matrix4f::trans(0, 30, 50));
+                                                        parts.second->transform(matrix4f::trans(0, -30, 50));
+                                                        mdl->add_mesh(parts.first);
+                                                        mdl->add_mesh(parts.second);
+                                                }
 					}
 					break;
 				case SDLK_c: coordinatesystem = !coordinatesystem; break;
@@ -336,11 +513,38 @@ void view_model(const string& modelfilename, const string& datafilename)
 					pos.y += event.motion.yrel * 0.5;
 				}
 			} else if (event.type == SDL_MOUSEBUTTONDOWN) {
+                                // Check if x,,y,z are pressed and if so mouse wheel moves smoke position by delta.
+                                // delta is either 1.0 if a shift key is pressed or 0.1 otherwise.
+                                Uint8 *keys = SDL_GetKeyState(NULL);
+                                float delta = (SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT))? 1.000 : 0.100; 
+
 				if (event.button.button == SDL_BUTTON_WHEELUP) {
-					pos.z -= 2;
+                                        if (keys[SDLK_x]) {
+                                                smoke_pos.x += delta;
+                                        } else if (keys[SDLK_y]) {
+                                                smoke_pos.y += delta;
+                                        } else if (keys[SDLK_z]) {
+                                                smoke_pos.z += delta;
+                                        } else {
+                                                pos.z -= 2;
+                                        }
 				} else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
-					pos.z += 2;
+                                        if (keys[SDLK_x]) {
+                                                smoke_pos.x -= delta;
+                                        } else if (keys[SDLK_y]) {
+                                                smoke_pos.y -= delta;
+                                        } else if (keys[SDLK_z]) {
+                                                smoke_pos.z -= delta;
+                                        } else {
+                                                pos.z += 2;
+                                        }
 				}
+                                if (smoke_pos.x < 0.00001 && smoke_pos.x > -0.00001)
+                                        smoke_pos.x = 0;
+                                if (smoke_pos.y < 0.00001 && smoke_pos.y > -0.00001)
+                                        smoke_pos.y = 0;
+                                if (smoke_pos.z < 0.00001 && smoke_pos.z > -0.00001)
+                                        smoke_pos.z = 0;
 			}
 		}
 		mysys->prepare_2d_drawing();
@@ -362,7 +566,7 @@ void view_model(const string& modelfilename, const string& datafilename)
                         os << "Smoke: " << ((smoke_display)? "On" : "Off") << "\n";
                         os << "Smoke origin " << smoke_pos.x << ", " << smoke_pos.y << ", " << smoke_pos.z << "\n";
                 } else {
-                        os << "Smoke: Off (no data xml provided).\n";
+                        os << "Smoke: Off (no info found).\n";
                 }
                         
 		font_arial->print(0, 0, os.str());
@@ -417,11 +621,25 @@ void view_model(const string& modelfilename, const string& datafilename)
 
 
 
+void run_gui()
+{
+        model_load_dialog ml;
+
+        ml.get_model_list(get_ship_dir());
+        ml.get_model_list(get_submarine_dir());
+        ml.get_model_list(get_airplane_dir());
+
+        ml.load_menu();
+}
+
+
+
 int mymain(list<string>& args)
 {
 	// command line argument parsing
 	res_x = 1024;
 	bool fullscreen = true;
+        bool use_gui = false;
 
 	string modelfilename;
         string datafilename;
@@ -446,6 +664,8 @@ int mymain(list<string>& args)
                         if (++it != args.end()) {
                                 datafilename = it->c_str();
                         } else --it;
+                } else if (*it == "--gui") {
+                        use_gui = true;
 		} else {
 			modelfilename = *it;
 		}
@@ -470,12 +690,20 @@ int mymain(list<string>& args)
 	glEnable(GL_NORMALIZE);
 
 	font_arial = new font(get_font_dir() + "font_arial");
+        font_olympiaworn = new font(get_font_dir() + "font_olympiaworn");
+        
 	mysys->draw_console_with(font_arial, 0);
-	
-	view_model(modelfilename,datafilename);	
+
+        if (use_gui) {
+                run_gui();
+        } else {
+		view_model(modelfilename,datafilename);	
+        }
 
 	mysys->write_console(true);
+
 	delete font_arial;
+        delete font_olympiaworn;
 	delete mysys;
 
 	return 0;
