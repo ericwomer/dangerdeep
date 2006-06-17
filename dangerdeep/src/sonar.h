@@ -62,6 +62,8 @@ struct noise_signature
 	static const double frequency_band_lower_limit[NR_OF_SONAR_FREQUENCY_BANDS];
 	static const double frequency_band_upper_limit[NR_OF_SONAR_FREQUENCY_BANDS];
 
+	// noise signatures for ship classes. later stored per ship class,
+	// and read from the spec file. so this is only a temporary statement.
 	static const double typical_noise_signature[NR_OF_SHIP_CLASSES][NR_OF_SONAR_FREQUENCY_BANDS];
 
 	// mix factors for total strength

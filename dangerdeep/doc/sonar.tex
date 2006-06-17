@@ -96,8 +96,19 @@ While sound travels through water, the molecules of water absorb sound
 energy. The higher the frequency of the sound, the greater the
 absorption effect. The absorption coefficient $m_f$ depends mostly on
 temperature of the water and frequency of the sound wave. The formula is
-$(2.1*10^{-10} * (T-38)^2 + 1.3*10^{-7}) * f^2$ (unit: $dB/m$), where
-$T$ is temperature in centigrade. We thus get: $I_{absorb} =
+$(2.1*10^{-10} * (T-38)^2 + 1.3*10^{-7}) * f^2 = g(T) * f^2$ (unit:
+$dB/m$), where $T$ is temperature in centigrade and $f$ is frequency in
+kHz\footnote{Since we simulate frequency bands, we can compute the
+  medium constant for a band by integrating that formula over f and
+  computing the integral from lower to upper frequency limit. $\int g(T)
+  * f^2 df = \frac{1}{3} g(T) * f^3$ thus $\int _a^b g(T) * f^2 df =
+  \frac{g(T)}{3} ( b^3 - a^3 )$ and for the medium $m_f(T) = \frac{g(T)
+    (b^3-a^3)}{3(b - a)}$. If we assume 10° for T we get $g(T) =
+  0.000194473$ which gives for 500Hz $m_f = 0.000048618$ and for 1kHz
+  $m_f = 0.000194473$. If we use the integral and choose as band 20Hz to
+  1kHz we get $m_f = 0.000066147$. For the other bands we get $m_f =
+  0.000842717$ for 1kHz-3kHz, $m_f = 0.004083938$ for 3kHz-6kHz and $m_f
+  = 0.002744233$ for 6kHz-7kHz.}. We thus get: $I_{absorb} =
 \frac{I_0}{m_f * R}$.
 
 This gives in total: $I = \frac{I_0}{m_f * R^3}$. Thus high frequency
@@ -328,6 +339,9 @@ To compute the total sound intensity of all frequency bands we sum them
 up multiplied by a band specific constant: $I_{total} = \sum_{i=1}^{nr\
 of\ frequency\ bands} I_{band_i} * m_{band_i}$.
 
+
+%% missing: wave interference in shallow water factor
+%% missing: convergence zones
 
 
 % /* passive sonar, GHG etc */

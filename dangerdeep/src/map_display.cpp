@@ -801,6 +801,19 @@ void map_display::display(class game& gm) const
 		}
 		glEnd ();
 	}
+	// draw total signal strength
+	glColor3f(1.0,0.5,0.5);
+	glBegin(GL_LINE_LOOP);
+	for (unsigned i = 0; i < signal_res; ++i) {
+		angle a = angle(360.0*i/signal_res) + sub_player->get_heading();
+		vector<double> str = signal_strengths[i];
+		for (unsigned j = 0; j < str.size(); ++j)
+			str[j] = noise_signature::dB_to_absolute(str[j]);
+		double r = noise_signature::absolute_to_dB(noise_signature::compute_total_noise_strength(str)) * 15;
+		vector2 p = (sub_player->get_pos().xy() - offset + a.direction() * r) * mapzoom;
+		glVertex2f(512+p.x, 384-p.y);
+	}
+	glEnd ();
 	glColor3f(1,1,1);
 //	for (int i = 0; i <= 179; ++i) {
 //		printf("test[%i]=%f\n",

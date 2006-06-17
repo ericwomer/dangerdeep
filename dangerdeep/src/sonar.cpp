@@ -96,8 +96,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Propagation: loss off 100dB on 10000m, or factor 10^-10
 */
 
-const double noise_signature::frequency_band_lower_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 0, 1000, 3000, 6000 };
-const double noise_signature::frequency_band_upper_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 1000, 3000, 5555, 7000 };
+const double noise_signature::frequency_band_lower_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 20, 1000, 3000, 6000 };
+const double noise_signature::frequency_band_upper_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 1000, 3000, 6000, 7000 };
 const double noise_signature::background_noise[NR_OF_SONAR_FREQUENCY_BANDS] = { 8, 10, 5, 2 };
 const double noise_signature::seastate_factor[NR_OF_SONAR_FREQUENCY_BANDS] = { 60, 50, 40, 30 };
 // noise absorption: dB per m, Harpoon3 uses 1/6, 1, 3 for L/M/H for range of 1sm
@@ -109,7 +109,9 @@ const double noise_signature::seastate_factor[NR_OF_SONAR_FREQUENCY_BANDS] = { 6
 // if we assume 10.38° for water in open ocean this gives (2.1 * 10^-16 * 10^6 + 1.3*10^-13) = (2.1*10^-10 + 1.3*10^-13)
 // = 2101.3 * 10^-13, thus absorption in dB/m is 2101.3 * 10^-13 * real_f^2
 // this gives for 100Hz: 2.1013e-6, 500Hz: 5.25325e-5, 2kHz: 8.4052e-4, 7kHz: 0.01029637 
-const double noise_signature::noise_absorption[NR_OF_SONAR_FREQUENCY_BANDS] = { 1.0/(6*1852), 1.0/1852, 3.0/1852, 5.0/1852 };
+// fixme: compute with formula, maybe build medium over frequency range!
+// these values here are hand-computed for 10° temperature with medium values.
+const double noise_signature::noise_absorption[NR_OF_SONAR_FREQUENCY_BANDS] = { 0.000066147, 0.000842717, 0.004083938, 0.002744233 };
 
 // if we want to make 900Hz sound detectable at 10sm, what would noise_absorption have to be?
 // take a merchant with 8 knots, basic noise is 100dB + 1dB/ m/s = 104.1 dB
@@ -118,13 +120,13 @@ const double noise_signature::noise_absorption[NR_OF_SONAR_FREQUENCY_BANDS] = { 
 
 const double noise_signature::typical_noise_signature[NR_OF_SHIP_CLASSES][NR_OF_SONAR_FREQUENCY_BANDS] = {
 	{ 200, 150, 60, 20 },	// warship, very strong, rather low frequencies
-	{ 120, 100, 80, 60 },	// escort, strong, many high frequencies too
-	{ 100, 130, 80, 40 },	// merchant, medium signal, various frequencies
+	{ 100, 120, 80, 60 },	// escort, strong, many high frequencies too
+	{ 120, 100, 80, 40 },	// merchant, medium signal, various frequencies
 	{ 80, 80, 60, 60 },	// submarine, weak-medium, low+high frequencies
-	{ 30, 40, 30, 30 }	// torpedo, weak, many high frequencies
+	{ 30, 40, 50, 60 }	// torpedo, weak, many high frequencies
 };
 
-const double noise_signature::typical_frequency[NR_OF_SONAR_FREQUENCY_BANDS] = { 900, 2500, 5000, 6500 };
+const double noise_signature::typical_frequency[NR_OF_SONAR_FREQUENCY_BANDS] = { 900, 2500, 5000, 6800 };
 
 double noise_signature::compute_ambient_noise_strength(unsigned band, double seastate)
 {
@@ -161,7 +163,6 @@ double noise_signature::compute_signal_strength(unsigned band, double distance, 
 	double L_absorb = -noise_absorption[band] * distance;
 	// sum up noise source noise
 	double L_source = L_base + L_prop + L_absorb;
-	//fixme: is absorption a factor (add in dB scale) or a reducer? rather a factor...
 	// avoid extreme values (would give NaN otherwise, when converting to real values and back)
 	if (L_source < -100)
 		L_source = -100;
@@ -174,7 +175,7 @@ double noise_signature::compute_signal_strength(unsigned band, double distance, 
 
 
 
-const double noise_signature::frequency_band_strength_factor[NR_OF_SONAR_FREQUENCY_BANDS] = { 0.8, 1.0, 0.6, 0.4 };
+const double noise_signature::frequency_band_strength_factor[NR_OF_SONAR_FREQUENCY_BANDS] = { 1.0, 0.9, 0.8, 0.7 };
 
 double noise_signature::compute_total_noise_strength(const std::vector<double>& strengths)
 {

@@ -1032,7 +1032,7 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 	tmpships.resize(1);
 #endif
 
-	// fixme: the lower part of this class is sonar dependent and should go to a sonar class...
+	// fixme: the lower part of this function is sonar dependent and should go to a sonar class...
 
 	// compute noise strengths for all ships for all frequency bands, real strengths, not dB!
 	vector<double> noise_strenghts(noise_signature::NR_OF_SONAR_FREQUENCY_BANDS);
@@ -1105,10 +1105,13 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 	}
 	// now compute back to dB, quantize to integer dB values, to
 	// simulate shadowing of weak signals by background noise
-	// no! fixme! handle receiver sensitivity here, so do not clamp to 1dB values but to receiver sensitivity in dB (e.g.
-	// -10 dB), subtract receiver sensitivity, floar, add it back again.
+	// divide by receiver sensitivity before doing so, to avoid cutting off weak signals.
+	const double GHG_receiver_sensitivity_dB = -3;	// weakest signal strength to be detectable
 	for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
-		noise_strenghts[b] = /*floor(*/noise_signature::absolute_to_dB(noise_strenghts[b])/*)*/;
+		double ndb = noise_signature::absolute_to_dB(noise_strenghts[b])
+			- GHG_receiver_sensitivity_dB;
+		ndb = floor(std::max(ndb, 0.0));
+		noise_strenghts[b] = ndb + GHG_receiver_sensitivity_dB;
 	}
 	// fixme: depending on listener angle, use only port or starboard phones to listen to signals!
 	//        (which set to use must be given as parameter) <OK>
