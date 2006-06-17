@@ -456,4 +456,62 @@ of\ frequency\ bands} I_{band_i} * m_{band_i}$.
 % 	//        to just four frequency bands is not realistic. Signals are distuingished
 % 	//        by their frequency mixture., CHANGE THIS LATER
 
+\section{Simulation of the sonar operator}
+
+The sonar operator (sonarman) has two modes of operation. Either he
+listens all around the compass to detect any signal or he tracks a
+specific signal.
+
+\subsection{Scan mode}
+
+This is the common mode. The sonarman turns his device around the clock
+(e.g. in clockwise order) while he listens to any signals received by
+the hydrophones. When he recognizes a growing signal strength he
+continues turning until the signal gets weaker again. He then remembers
+the angle where the signal got weaker and turns back his device, to find
+the angle where the signal reached its maximum strength. Because he is
+turning the device in the opposite direction now, he is again listening
+for the moment that the signal gets weaker. When he found it he has the
+second angle, computes the medium value of both angles and reports the
+contact. He could turn the device to the computed center of the signal
+and try to determine the type of signal (given by distribution of
+frequencies). After that he continues in normal direction and listens to
+the next signal.
+
+With that algorithm he finds every peak signal around the clock, but
+this takes times. Approximately one to two minutes for all 360 degrees.
+This is to slow to track a strong signal, like an attacking escort.
+Tracking such signals is of course more important than an all-around
+scan. So the operator switches to track mode when he detects a signal
+that is stronger than some certain limit. Of course if there is an even
+stronger signal not yet detected, this one is missed, but that is
+realistic.
+
+The operator keeps a list of contacts that is permanently updated while
+he turns his device over and over. Newer reports make older ones
+obsolete that are within a certain angular neighbourhood (e.g. 3
+degrees). But this can be done simpler. Every contact at angle $n$ gets
+obsolete when the device turns over that angle \emph{again}, thus new
+reports are replacing old ones automatically.
+
+\subsection{Track mode}
+
+The operator knows the angle (and type) of the signal when he starts the
+track mode. He turns his device permanently some degrees left and right
+until he finds the angle where the signal is strongest. He constantly
+updates the contact report, but keeps all other (and thus older) reports
+in his list. When the signal gets too week, he switches back to scan
+mode.
+
+The operator could also check the type of the signal. If type changes
+then he could switch back to scan mode or could widen its scan area
+around the last angle until he found the strong signal again.
+
+To make more precise records he would have to turn the device left and
+right to find the limits of the signal and compute its center, as the
+signal may be evenly strong over a greater angular range. Thus the track
+mode is like scan mode, but with the device constantly turning between
+the two angles where the signal falls off. The range between these two
+angles is the range with the peak value.
+
 \end{document}
