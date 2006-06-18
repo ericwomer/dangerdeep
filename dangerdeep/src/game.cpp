@@ -1043,6 +1043,8 @@ pair<double, noise> game::sonar_listen_ships(const ship* listener,
 
 	// next, add noise from receiver vessel
 	// if we do that, weaker noises are wiped out...
+	// fixme: GHG/BG have blind spots at aft, so the receiver caused noise is reduced much more.
+	// we should handle receiver vessel as additional noise source with distance 50, direction 180° relative!
 	n += listener->get_noise_signature().compute_signal_strength(50 /* distance */,
 								     listener->get_speed(),
 								     false /*cavitation=off for listener*/);
