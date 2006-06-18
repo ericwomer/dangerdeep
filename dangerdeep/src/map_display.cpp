@@ -780,7 +780,7 @@ void map_display::display(class game& gm) const
 
 #if 1
 	// test: draw sonar signals as circles with varying radii
-	vector<vector<double> > signal_strengths;
+	vector<pair<double, noise> > signal_strengths;
 	const unsigned signal_res = 360;
 	signal_strengths.resize(signal_res);
 	for (unsigned i = 0; i < signal_res; ++i) {
@@ -789,13 +789,13 @@ void map_display::display(class game& gm) const
 	}
 	// render the strengths as circles with various colors
 	glBindTexture(GL_TEXTURE_2D, 0);
-	for (unsigned j = 0; j < noise_signature::NR_OF_SONAR_FREQUENCY_BANDS; ++j) {
-		float f = 1.0f - float(j)/noise_signature::NR_OF_SONAR_FREQUENCY_BANDS;
+	for (unsigned j = 0; j < noise::NR_OF_FREQUENCY_BANDS; ++j) {
+		float f = 1.0f - float(j)/noise::NR_OF_FREQUENCY_BANDS;
 		glColor3f(f,f,f*0.5f);
 		glBegin(GL_LINE_LOOP);
 		for (unsigned i = 0; i < signal_res; ++i) {
 			angle a = angle(360.0*i/signal_res) + sub_player->get_heading();
-			double r = signal_strengths[i][j] * 15;
+			double r = signal_strengths[i].second.frequencies[j] * 15;
 			vector2 p = (sub_player->get_pos().xy() - offset + a.direction() * r) * mapzoom;
 			glVertex2f(512+p.x, 384-p.y);
 		}
@@ -806,10 +806,7 @@ void map_display::display(class game& gm) const
 	glBegin(GL_LINE_LOOP);
 	for (unsigned i = 0; i < signal_res; ++i) {
 		angle a = angle(360.0*i/signal_res) + sub_player->get_heading();
-		vector<double> str = signal_strengths[i];
-		for (unsigned j = 0; j < str.size(); ++j)
-			str[j] = noise_signature::dB_to_absolute(str[j]);
-		double r = noise_signature::absolute_to_dB(noise_signature::compute_total_noise_strength(str)) * 15;
+		double r = signal_strengths[i].first * 15;
 		vector2 p = (sub_player->get_pos().xy() - offset + a.direction() * r) * mapzoom;
 		glVertex2f(512+p.x, 384-p.y);
 	}

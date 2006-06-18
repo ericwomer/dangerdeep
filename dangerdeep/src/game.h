@@ -251,9 +251,9 @@ public:
 	///\brief compute sound strengths caused by all ships
 	/** @param	listener		object that listens via passive sonar
 	    @passive	listening_direction	direction for listening
-	    @return	vector of frequency bands with strengths in dB
+	    @return	absolute freq. strength in dB and noise struct of received noise frequencies (in dB)
 	*/    
-	vector<double> sonar_listen_ships(const ship* listener, angle listening_direction) const;
+	std::pair<double, noise> sonar_listen_ships(const ship* listener, angle listening_direction) const;
 
 	// append objects to vector
 	template<class T>

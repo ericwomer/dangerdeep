@@ -1013,7 +1013,7 @@ vector<vector2> game::convoy_positions() const
 
 
 
-vector<double> game::sonar_listen_ships(const ship* listener,
+pair<double, noise> game::sonar_listen_ships(const ship* listener,
 					angle rel_listening_dir) const
 {
 	// collect all ships for sound strength measurement
@@ -1035,14 +1035,10 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 	// fixme: the lower part of this function is sonar dependent and should go to a sonar class...
 
 	// compute noise strengths for all ships for all frequency bands, real strengths, not dB!
-	vector<double> noise_strenghts(noise_signature::NR_OF_SONAR_FREQUENCY_BANDS);
+	noise n;
 #if 1
-	// add background noise
-	for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
-		noise_strenghts[b] =
-			noise_signature::compute_ambient_noise_strength(b,
-				0.2 /* sea state, fixme make dynamic later */);
-	}
+	// as first, add background noise
+	n += noise::compute_ambient_noise_strength(0.2 /* sea state, fixme make dynamic later */);
 #endif
 
 	angle hdg = listener->get_heading();
@@ -1088,31 +1084,26 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 		bool noise_is_starboard = (rel_dir_to_noise.value_pm180() >= 0);
 		// check if noise is on active side of phones
 		if (listen_to_starboard == noise_is_starboard) {
+			noise nsig = s->get_noise_signature().compute_signal_strength(distance, speed, cavit);
 			// compute strengths for all bands
-			for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
+			for (unsigned b = 0; b < noise::NR_OF_FREQUENCY_BANDS; ++b) {
 				double signalstrength = compute_signal_strength_GHG(rel_dir_to_noise,
-										    noise_signature::typical_frequency[b],
+										    noise::typical_frequency[b],
 										    rel_listening_dir);
 				//printf("signalstrength is = %f\n", signalstrength);
-				// get total noise strength of noise source in dB
-				double nstr = s->get_noise_signature().
-					compute_signal_strength(b, distance, speed, cavit);
-				// strength depends on angle
-				double nstr_ang = nstr * signalstrength;
-				noise_strenghts[b] += nstr_ang;
+				nsig.frequencies[b] *= signalstrength;
 			}
+			n += nsig;
 		}
 	}
 	// now compute back to dB, quantize to integer dB values, to
 	// simulate shadowing of weak signals by background noise
 	// divide by receiver sensitivity before doing so, to avoid cutting off weak signals.
 	const double GHG_receiver_sensitivity_dB = -3;	// weakest signal strength to be detectable
-	for (unsigned b = 0; b < noise_strenghts.size(); ++b) {
-		double ndb = noise_signature::absolute_to_dB(noise_strenghts[b])
-			- GHG_receiver_sensitivity_dB;
-		ndb = floor(std::max(ndb, 0.0));
-		noise_strenghts[b] = ndb + GHG_receiver_sensitivity_dB;
-	}
+	double abs_strength =
+		floor(std::max(n.compute_total_noise_strength_dB() - GHG_receiver_sensitivity_dB, 0.0))
+		+ GHG_receiver_sensitivity_dB;
+
 	// fixme: depending on listener angle, use only port or starboard phones to listen to signals!
 	//        (which set to use must be given as parameter) <OK>
 	// fixme: add sensitivity of receiver (see harpoon docs...)  TO BE DONE NEXT
@@ -1128,7 +1119,7 @@ vector<double> game::sonar_listen_ships(const ship* listener,
 	//        <OK> BUT: this doesnt work well. To determine the signal type by distribution
 	//        to just four frequency bands is not realistic. Signals are distuingished
 	//        by their frequency mixture., CHANGE THIS LATER
-	return noise_strenghts;
+	return make_pair(abs_strength, n.to_dB());
 }
 
 

@@ -96,10 +96,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Propagation: loss off 100dB on 10000m, or factor 10^-10
 */
 
-const double noise_signature::frequency_band_lower_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 20, 1000, 3000, 6000 };
-const double noise_signature::frequency_band_upper_limit[NR_OF_SONAR_FREQUENCY_BANDS] = { 1000, 3000, 6000, 7000 };
-const double noise_signature::background_noise[NR_OF_SONAR_FREQUENCY_BANDS] = { 8, 10, 5, 2 };
-const double noise_signature::seastate_factor[NR_OF_SONAR_FREQUENCY_BANDS] = { 60, 50, 40, 30 };
+const double noise::frequency_band_lower_limit[NR_OF_FREQUENCY_BANDS] = { 20, 1000, 3000, 6000 };
+const double noise::frequency_band_upper_limit[NR_OF_FREQUENCY_BANDS] = { 1000, 3000, 6000, 7000 };
+const double noise::background_noise[NR_OF_FREQUENCY_BANDS] = { 8, 10, 5, 2 };
+const double noise::seastate_factor[NR_OF_FREQUENCY_BANDS] = { 60, 50, 40, 30 };
 // noise absorption: dB per m, Harpoon3 uses 1/6, 1, 3 for L/M/H for range of 1sm
 // so divide these by 1852
 // from another source: the formula is (2.1*10^-10 * (T-38)^2 + 1.3*10^-7) * f^2  (dB/m)
@@ -111,14 +111,14 @@ const double noise_signature::seastate_factor[NR_OF_SONAR_FREQUENCY_BANDS] = { 6
 // this gives for 100Hz: 2.1013e-6, 500Hz: 5.25325e-5, 2kHz: 8.4052e-4, 7kHz: 0.01029637 
 // fixme: compute with formula, maybe build medium over frequency range!
 // these values here are hand-computed for 10° temperature with medium values.
-const double noise_signature::noise_absorption[NR_OF_SONAR_FREQUENCY_BANDS] = { 0.000066147, 0.000842717, 0.004083938, 0.002744233 };
+const double noise::noise_absorption[NR_OF_FREQUENCY_BANDS] = { 0.000066147, 0.000842717, 0.004083938, 0.002744233 };
 
 // if we want to make 900Hz sound detectable at 10sm, what would noise_absorption have to be?
 // take a merchant with 8 knots, basic noise is 100dB + 1dB/ m/s = 104.1 dB
 // propagation loss is -20*log10(distance) = -85.4 dB
 // absorption = 10*log(db^104.1 - db^85.4) / 10sm = 104.04 dB / 18520m = 0.00562
 
-const double noise_signature::typical_noise_signature[NR_OF_SHIP_CLASSES][NR_OF_SONAR_FREQUENCY_BANDS] = {
+const double noise_signature::typical_noise_signature[NR_OF_SHIP_CLASSES][noise::NR_OF_FREQUENCY_BANDS] = {
 	{ 200, 150, 60, 20 },	// warship, very strong, rather low frequencies
 	{ 100, 120, 80, 60 },	// escort, strong, many high frequencies too
 	{ 120, 100, 80, 40 },	// merchant, medium signal, various frequencies
@@ -126,64 +126,63 @@ const double noise_signature::typical_noise_signature[NR_OF_SHIP_CLASSES][NR_OF_
 	{ 30, 40, 50, 60 }	// torpedo, weak, many high frequencies
 };
 
-const double noise_signature::typical_frequency[NR_OF_SONAR_FREQUENCY_BANDS] = { 900, 2500, 5000, 6800 };
+const double noise::typical_frequency[NR_OF_FREQUENCY_BANDS] = { 900, 2500, 5000, 6800 };
 
-double noise_signature::compute_ambient_noise_strength(unsigned band, double seastate)
+noise noise::compute_ambient_noise_strength(double seastate)
 {
-	if (band >= NR_OF_SONAR_FREQUENCY_BANDS)
-		throw error("illegal frequency band number");
-
-	return pow(dB_base, background_noise[band] + seastate_factor[band] * seastate);
+	noise result;
+	for (unsigned band = 0; band < NR_OF_FREQUENCY_BANDS; ++band) {
+		result.frequencies[band] = 
+			pow(dB_base, background_noise[band] + seastate_factor[band] * seastate);
+	}
+	return result;
 }
 
 
 
-double noise_signature::compute_signal_strength(unsigned band, double distance, double speed,
-						bool caviation) const
+noise noise_signature::compute_signal_strength(double distance, double speed, bool caviation) const
 {
-	if (band >= NR_OF_SONAR_FREQUENCY_BANDS)
-		throw error("illegal frequency band number");
+	noise result;
+	for (unsigned band = 0; band < noise::NR_OF_FREQUENCY_BANDS; ++band) {
+		// noise source caused noise
+		double L_base = band_data[band].basic_noise_level + band_data[band].speed_factor * speed;
+		if (caviation)
+			L_base += noise::cavitation_noise;
+		// compute propagation reduction
+		// Sound intensity I = p^2 / (c * ro) with:
+		// p = Pressure (N/m^2 = Pa)
+		// c = speed of sound, 1465 m/s in sea water
+		// ro = specific gravity of water (1000kg/m^3)
+		// Intensity with propagation decreases with square of range, so:
+		// I_prop = I / R^2     and   L = 10 * log_10 (I / I_0), here  L = 10 * log_10 (I)
+		// so  L_prop = 10 * log_10 (I / R^2) = 10 * log_10 (I) - 10 * log_10 (R^2)
+		//            = L - 20 * log_10 (R)
+		if (distance < 1) distance = 1;
+		double L_prop = -20 * log10(distance);
+		// compute absorption
+		double L_absorb = -noise::noise_absorption[band] * distance;
+		// sum up noise source noise
+		double L_source = L_base + L_prop + L_absorb;
+		// avoid extreme values (would give NaN otherwise, when converting to real values and back)
+		if (L_source < -100)
+			L_source = -100;
 
-	// noise source caused noise
-	double L_base = band_data[band].basic_noise_level + band_data[band].speed_factor * speed;
-	if (caviation)
-		L_base += cavitation_noise;
-	// compute propagation reduction
-	// Sound intensity I = p^2 / (c * ro) with:
-	// p = Pressure (N/m^2 = Pa)
-	// c = speed of sound, 1465 m/s in sea water
-	// ro = specific gravity of water (1000kg/m^3)
-	// Intensity with propagation decreases with square of range, so:
-	// I_prop = I / R^2     and   L = 10 * log_10 (I / I_0), here  L = 10 * log_10 (I)
-	// so  L_prop = 10 * log_10 (I / R^2) = 10 * log_10 (I) - 10 * log_10 (R^2)
-	//            = L - 20 * log_10 (R)
-	if (distance < 1) distance = 1;
-	double L_prop = -20 * log10(distance);
-	// compute absorption
-	double L_absorb = -noise_absorption[band] * distance;
-	// sum up noise source noise
-	double L_source = L_base + L_prop + L_absorb;
-	// avoid extreme values (would give NaN otherwise, when converting to real values and back)
-	if (L_source < -100)
-		L_source = -100;
-
-//  	printf("L_base=%f L_prop=%f L_abs=%f L_src=%f\n",
-//  	       L_base, L_prop, L_absorb, L_source);
-
-	return dB_to_absolute(L_source);
+		//  	printf("L_base=%f L_prop=%f L_abs=%f L_src=%f\n",
+		//  	       L_base, L_prop, L_absorb, L_source);
+		result.frequencies[band] = noise::dB_to_absolute(L_source);
+	}
+	return result;
 }
 
 
 
-const double noise_signature::frequency_band_strength_factor[NR_OF_SONAR_FREQUENCY_BANDS] = { 1.0, 0.9, 0.8, 0.7 };
+const double noise::frequency_band_strength_factor[NR_OF_FREQUENCY_BANDS] = { 1.0, 0.9, 0.8, 0.7 };
 
-double noise_signature::compute_total_noise_strength(const std::vector<double>& strengths)
+double noise::compute_total_noise_strength() const
 {
-	if (strengths.size() != NR_OF_SONAR_FREQUENCY_BANDS)
-		throw error("illegal number of frequency bands");
 	double sum = 0;
-	for (unsigned i = 0; i < NR_OF_SONAR_FREQUENCY_BANDS; ++i) {
-		sum += frequency_band_strength_factor[i] * strengths[i];
+	for (unsigned band = 0; band < NR_OF_FREQUENCY_BANDS; ++band) {
+		sum += frequency_band_strength_factor[band] * frequencies[band];
 	}
 	return sum;
 }
@@ -197,7 +196,7 @@ shipclass noise_signature::determine_shipclass_by_signal(const std::vector<doubl
 	// normalize noise by highest value of all frequencies.
 	// do the same for noise signatures of ship classes to compare them better
 	double strength_normalizer = strengths[0];
-	for (unsigned i = 1; i < noise_signature::NR_OF_SONAR_FREQUENCY_BANDS; ++i) {
+	for (unsigned i = 1; i < noise::NR_OF_FREQUENCY_BANDS; ++i) {
 		strength_normalizer = std::max(strength_normalizer, strengths[i]);
 	}
 
@@ -206,13 +205,13 @@ shipclass noise_signature::determine_shipclass_by_signal(const std::vector<doubl
 	for (unsigned k = 0; k < NR_OF_SHIP_CLASSES; ++k) {
 		const double* typical_signature = noise_signature::typical_noise_signature[k];
 		double class_strength_normalizer = typical_signature[0];
-		for (unsigned i = 1; i < noise_signature::NR_OF_SONAR_FREQUENCY_BANDS; ++i) {
+		for (unsigned i = 1; i < noise::NR_OF_FREQUENCY_BANDS; ++i) {
 			class_strength_normalizer = std::max(class_strength_normalizer, typical_signature[i]);
 		}
 
 		double error = 0;
 		//printf("trying ship class %u\n", k);
-		for (unsigned i = 0; i < noise_signature::NR_OF_SONAR_FREQUENCY_BANDS; ++i) {
+		for (unsigned i = 0; i < noise::NR_OF_FREQUENCY_BANDS; ++i) {
 			double diff = strengths[i]/strength_normalizer
 				- typical_signature[i]/class_strength_normalizer;
 			//printf("diff %u = %f\n", i, diff);
@@ -380,14 +379,14 @@ void sonar_operator_simulation::simulate(game& gm, double delta_t)
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 	// check to get sensible values for first run
 	if (current_signal_strength < 0)
-		current_signal_strength =
-			floor(noise_signature::compute_total_noise_strength(gm.sonar_listen_ships(player, current_angle)));
+		current_signal_strength = gm.sonar_listen_ships(player, current_angle).first;
+
+	// fixme: use integer dB values for simulation? we round to dB anyway!
 
 	printf("sonar man sim, angle=%f str=%f stat=%i\n", current_angle.value(), current_signal_strength, state);
 
 	angle next_angle = current_angle + turn_speed * delta_t;
-	// fixme: floor is used as quantization hack...
-	double nstr = floor(noise_signature::compute_total_noise_strength(gm.sonar_listen_ships(player, next_angle)));
+	double nstr = gm.sonar_listen_ships(player, next_angle).first;
 
 	switch (state) {
 	case find_growing_signal:

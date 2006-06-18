@@ -152,12 +152,12 @@ pair<angle, double> find_peak_noise(angle startangle, double step, double maxste
 {
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 	angle ang_peak = startangle;
-	double peak_val = noise_signature::compute_total_noise_strength(gm.sonar_listen_ships(player, startangle));
+	double peak_val = gm.sonar_listen_ships(player, startangle).first;
 	startangle += step;
 	bool direction_found = false;
 	double ang_scan_step = step;
 	for (double ang_scanned = 0; ang_scanned < maxstep; ang_scanned += ang_scan_step) {
-		double tstr = noise_signature::compute_total_noise_strength(gm.sonar_listen_ships(player, startangle));
+		double tstr = gm.sonar_listen_ships(player, startangle).first;
 		if (tstr >= peak_val) {
 			// getting closer to peak
 			ang_peak = startangle;
@@ -206,15 +206,12 @@ void sub_kdb_display::display(game& gm) const
 
 	// test hack: test signal strengths
 	angle app_ang = angle(turnknobang[TK_DIRECTION]*0.5);
-	vector<double> noise_strengths = gm.sonar_listen_ships(player, app_ang);
-	double total_strength = noise_signature::compute_total_noise_strength(noise_strengths);
-	// fixme: when turning around the compass the signal strength seems to jump
-	// rapidly sometimes (M-freq., 23 <-> 30 dB). Strange!!!
+	pair<double, noise> nstr = gm.sonar_listen_ships(player, app_ang);
 	printf("noise strengths, rel ang=%f, L=%f M=%f H=%f U=%f TTL=%f\n",
-	       app_ang.value(), noise_strengths[0], noise_strengths[1], noise_strengths[2], noise_strengths[3],
-	       total_strength);
-	shipclass cls = noise_signature::determine_shipclass_by_signal(noise_strengths);
-	printf("ship class is %i\n", cls);
+	       app_ang.value(), nstr.second.frequencies[0], nstr.second.frequencies[1], nstr.second.frequencies[2], nstr.second.frequencies[3],
+	       nstr.first);
+	//shipclass cls = noise_signature::determine_shipclass_by_signal(noise_strengths);
+	//printf("ship class is %i\n", cls);
 
 	// find peak value.
 	pair<angle, double> pkc = find_peak_noise(angle(0), 3.0, 360.0, gm);
