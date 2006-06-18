@@ -1041,6 +1041,12 @@ pair<double, noise> game::sonar_listen_ships(const ship* listener,
 	n += noise::compute_ambient_noise_strength(0.2 /* sea state, fixme make dynamic later */);
 #endif
 
+	// next, add noise from receiver vessel
+	// if we do that, weaker noises are wiped out...
+	n += listener->get_noise_signature().compute_signal_strength(50 /* distance */,
+								     listener->get_speed(),
+								     false /*cavitation=off for listener*/);
+
 	angle hdg = listener->get_heading();
 	bool listen_to_starboard = (rel_listening_dir.value_pm180() >= 0);
 

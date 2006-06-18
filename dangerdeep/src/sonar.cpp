@@ -122,8 +122,8 @@ const double noise_signature::typical_noise_signature[NR_OF_SHIP_CLASSES][noise:
 	{ 200, 150, 60, 20 },	// warship, very strong, rather low frequencies
 	{ 100, 120, 80, 60 },	// escort, strong, many high frequencies too
 	{ 120, 100, 80, 40 },	// merchant, medium signal, various frequencies
-	{ 80, 80, 60, 60 },	// submarine, weak-medium, low+high frequencies
-	{ 30, 40, 50, 60 }	// torpedo, weak, many high frequencies
+	{ 50, 50, 40, 30 },	// submarine, weak-medium, low+high frequencies
+	{ 10, 40, 80, 70 }	// torpedo, weak, many high frequencies
 };
 
 const double noise::typical_frequency[NR_OF_FREQUENCY_BANDS] = { 900, 2500, 5000, 6800 };
@@ -397,15 +397,13 @@ void sonar_operator_simulation::simulate(game& gm, double delta_t)
 	case find_upper_limit:
 		if (nstr < current_signal_strength) {
 			upper_limit = next_angle;
-			turn_speed = -2.0;//turn_speed_slow;//fixme? must be public?
+			turn_speed = -turn_speed_slow;
 			state = find_lower_limit;
 		}
 		break;
 	case find_lower_limit:
-		if (nstr > current_signal_strength) {
-			upper_limit = next_angle;
-		} else if (nstr < current_signal_strength) {
-			lower_limit = current_angle;
+		if (nstr < current_signal_strength) {
+			lower_limit = next_angle;
 			// replace signals in the vicinity...
 			angle center = lower_limit + angle((upper_limit - lower_limit)).value() * 0.5;
 			//report_signal(center, current_signal_strength);
