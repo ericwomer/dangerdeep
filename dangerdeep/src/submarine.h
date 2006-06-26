@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "ship.h"
 #include "tdc.h"
+#include "sonar.h"
 #include <vector>
 
 //fixme: this is very ugly. replace this asap.
@@ -250,6 +251,9 @@ protected:
 	//double temperature;//maybe store for each torpedo and not here...
 
 	tdc TDC;
+
+	// sonar man. its contents must get saved... fixme
+	sonar_operator sonarman;
 
 public:
 	// there were more types, I, X (mine layer), XIV (milk cow), VIIf, (and VIId)

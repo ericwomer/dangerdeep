@@ -54,8 +54,6 @@ class sub_kdb_display : public user_display
 	turnknobtype turnknobdrag;
 	std::vector<float> turnknobang;
 
-	mutable sonar_operator_simulation sonarman; // fixme: testing!
-
  public:
 	sub_kdb_display(class user_interface& ui_);
 

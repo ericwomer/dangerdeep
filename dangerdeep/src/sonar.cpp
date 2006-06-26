@@ -335,7 +335,7 @@ double compute_signal_strength_GHG(angle signal_angle, double frequency, angle a
 
 
 
-sonar_operator_simulation::sonar_operator_simulation()
+sonar_operator::sonar_operator()
 	: state(find_growing_signal),
 	  turn_speed(turn_speed_fast),
 	  current_signal_strength(-1)
@@ -374,7 +374,7 @@ sonar_operator_simulation::sonar_operator_simulation()
                                                     then back to 1)
    5) is same as one...
 */
-void sonar_operator_simulation::simulate(game& gm, double delta_t)
+void sonar_operator::simulate(game& gm, double delta_t)
 {
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 	// check to get sensible values for first run

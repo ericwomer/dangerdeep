@@ -220,7 +220,7 @@ void sub_kdb_display::display(game& gm) const
 	printf("peak found (%f) closer, somewhere near %f\n", pkc.second, pkc.first.value());
 
 	// simulate sonarman
-	sonarman.simulate(gm, 0.016666);	// 60fps, fixme ugly hack
+	//sonarman.simulate(gm, 0.016666);	// 60fps, fixme ugly hack
 
 	// fixme: add test here
 	// Simulate sonar man.

@@ -194,13 +194,13 @@ struct noise_signature
 // move to a GHG class later, fixme
 double compute_signal_strength_GHG(angle signal_angle, double frequency, angle apparatus_angle);
 
-class sonar_operator_simulation
+class sonar_operator
 {
  protected:
 	enum states {
 		find_growing_signal,
 		find_upper_limit,
-		find_lower_limit,
+		find_lower_limit,//fixme: find growing / track, no limit finding, except when using filters
 		track_signal
 	};
 	states state;
@@ -209,13 +209,16 @@ class sonar_operator_simulation
 	double current_signal_strength;
 	angle lower_limit, upper_limit;
 //	std::vector<sonar_contact> contacts;	// store angle, strength and type?
+	bool active;	// disabled, when user does the work
 
 	static const double turn_speed_fast = 6.0;	// degrees per second.
 	static const double turn_speed_slow = 2.0;	// degrees per second.
 
  public:
-	sonar_operator_simulation();
-	virtual ~sonar_operator_simulation() {}
+	sonar_operator();
+	virtual ~sonar_operator() {}
+	// only make a simulation step each n seconds, n ca. 0.1 or so, simulate
+	// human reaction on events.
 	virtual void simulate(class game& gm, double delta_t);
 //	const std::vector<> get_contacts() const { return contacts; }
 };

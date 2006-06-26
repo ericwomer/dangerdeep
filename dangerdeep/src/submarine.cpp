@@ -312,6 +312,7 @@ void submarine::load(const xml_elem& parent)
 	}
 
 	TDC.load(parent);
+	//sonarman.load(parent);//fixme
 }
 
 
@@ -354,6 +355,7 @@ void submarine::save(xml_elem& parent) const
 	}
 
 	TDC.save(parent);
+	//sonarman.save(parent);//fixme
 }
 
 
@@ -521,6 +523,9 @@ void submarine::simulate(double delta_time)
 			}
 		}
 	}
+
+	// simulate the sonar man
+	sonarman.simulate(gm, delta_time);
 
 	// hack for test of hearing devices, change by date
 	date dt = gm.get_date();
