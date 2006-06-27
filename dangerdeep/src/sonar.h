@@ -23,18 +23,19 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector3.h"
 #include "angle.h"
 #include <vector>
+#include <map>
 
 #ifndef SONAR_H
 #define SONAR_H
 
 enum shipclass
 {
-	NONE = -1,
-	WARSHIP = 0,
-	ESCORT,
-	MERCHANT,
-	SUBMARINE,
-	TORPEDO,
+	NONE      = -1,
+	WARSHIP   =  0,
+	ESCORT    =  1,
+	MERCHANT  =  2,
+	SUBMARINE =  3,
+	TORPEDO   =  4,
 	NR_OF_SHIP_CLASSES
 };
 
@@ -157,6 +158,9 @@ struct noise
 
 	///\brief compute medium total strength of noise from all frequency bands, in dB
 	double compute_total_noise_strength_dB() const { return absolute_to_dB(compute_total_noise_strength()); }
+
+	///\brief compute shipclass of signal (can be none), values must be in dB!
+	shipclass determine_shipclass() const;
 };
 
 
@@ -184,11 +188,6 @@ struct noise_signature
 	*/
 	noise compute_signal_strength(double distance, double speed,
 				      bool caviation = false) const;
-
-	///\brief compute shipclass of signal (can be none)
-	/** @param	strengths	strengths for each frequency band (in dB)
-	 */
-	static shipclass determine_shipclass_by_signal(const std::vector<double>& strengths);
 };
 
 // move to a GHG class later, fixme
@@ -196,23 +195,39 @@ double compute_signal_strength_GHG(angle signal_angle, double frequency, angle a
 
 class sonar_operator
 {
+ public:
+	// defined here because global sonar_contact already exists, but has a different
+	// form (should be replaced later?) weird...
+	struct contact
+	{
+		double strength_dB;
+		shipclass type;
+		contact(double s = 1e-10, shipclass t = NONE) : strength_dB(s), type(t) {}
+	};
+
  protected:
 	enum states {
+		initial,
 		find_growing_signal,
-		find_upper_limit,
-		find_lower_limit,//fixme: find growing / track, no limit finding, except when using filters
+		find_max_peak_coarse,
+		find_max_peak_fine,
 		track_signal
 	};
 	states state;
 	angle current_angle;
-	angle turn_speed;
 	double current_signal_strength;
-	angle lower_limit, upper_limit;
-//	std::vector<sonar_contact> contacts;	// store angle, strength and type?
+	// store angle and contact, per contact strength (dB) and ship type
+	// angle is relative to the sub.
+	std::map<double, contact> contacts;
 	bool active;	// disabled, when user does the work
 
 	static const double turn_speed_fast = 6.0;	// degrees per second.
 	static const double turn_speed_slow = 2.0;	// degrees per second.
+	static const double simulation_step = 0.1;	// in seconds
+
+	double last_simulation_step_time;
+
+	void advance_angle_and_erase_old_contacts(double addang);
 
  public:
 	sonar_operator();
@@ -220,7 +235,7 @@ class sonar_operator
 	// only make a simulation step each n seconds, n ca. 0.1 or so, simulate
 	// human reaction on events.
 	virtual void simulate(class game& gm, double delta_t);
-//	const std::vector<> get_contacts() const { return contacts; }
+	const std::map<double, contact>& get_contacts() const { return contacts; }
 };
 
 #endif /* SONAR_H */

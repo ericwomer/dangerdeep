@@ -189,15 +189,13 @@ double noise::compute_total_noise_strength() const
 
 
 
-shipclass noise_signature::determine_shipclass_by_signal(const std::vector<double>& strengths)
+shipclass noise::determine_shipclass() const
 {
-	// fixme: transform strengths back to dB!
-
 	// normalize noise by highest value of all frequencies.
 	// do the same for noise signatures of ship classes to compare them better
-	double strength_normalizer = strengths[0];
-	for (unsigned i = 1; i < noise::NR_OF_FREQUENCY_BANDS; ++i) {
-		strength_normalizer = std::max(strength_normalizer, strengths[i]);
+	double strength_normalizer = frequencies[0];
+	for (unsigned i = 1; i < NR_OF_FREQUENCY_BANDS; ++i) {
+		strength_normalizer = std::max(strength_normalizer, frequencies[i]);
 	}
 
 	shipclass myclass = NONE;
@@ -205,14 +203,14 @@ shipclass noise_signature::determine_shipclass_by_signal(const std::vector<doubl
 	for (unsigned k = 0; k < NR_OF_SHIP_CLASSES; ++k) {
 		const double* typical_signature = noise_signature::typical_noise_signature[k];
 		double class_strength_normalizer = typical_signature[0];
-		for (unsigned i = 1; i < noise::NR_OF_FREQUENCY_BANDS; ++i) {
+		for (unsigned i = 1; i < NR_OF_FREQUENCY_BANDS; ++i) {
 			class_strength_normalizer = std::max(class_strength_normalizer, typical_signature[i]);
 		}
 
 		double error = 0;
 		//printf("trying ship class %u\n", k);
-		for (unsigned i = 0; i < noise::NR_OF_FREQUENCY_BANDS; ++i) {
-			double diff = strengths[i]/strength_normalizer
+		for (unsigned i = 0; i < NR_OF_FREQUENCY_BANDS; ++i) {
+			double diff = frequencies[i]/strength_normalizer
 				- typical_signature[i]/class_strength_normalizer;
 			//printf("diff %u = %f\n", i, diff);
 			error += diff * diff;
@@ -336,9 +334,9 @@ double compute_signal_strength_GHG(angle signal_angle, double frequency, angle a
 
 
 sonar_operator::sonar_operator()
-	: state(find_growing_signal),
-	  turn_speed(turn_speed_fast),
-	  current_signal_strength(-1)
+	: state(initial),
+	  current_signal_strength(-1),
+	  last_simulation_step_time(0)
 {
 }
 
@@ -376,50 +374,95 @@ sonar_operator::sonar_operator()
 */
 void sonar_operator::simulate(game& gm, double delta_t)
 {
+	last_simulation_step_time += delta_t;
+	if (last_simulation_step_time < simulation_step)
+		return;
+
+	printf("sonarman sim, time=%f\n", last_simulation_step_time);
+
+	last_simulation_step_time -= simulation_step;
+
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
-	// check to get sensible values for first run
-	if (current_signal_strength < 0)
-		current_signal_strength = gm.sonar_listen_ships(player, current_angle).first;
+	pair<double, noise> signal = gm.sonar_listen_ships(player, current_angle);
 
 	// fixme: use integer dB values for simulation? we round to dB anyway!
-
 	printf("sonar man sim, angle=%f str=%f stat=%i\n", current_angle.value(), current_signal_strength, state);
 
-	angle next_angle = current_angle + turn_speed * delta_t;
-	double nstr = gm.sonar_listen_ships(player, next_angle).first;
-
 	switch (state) {
+	case initial:
+		current_signal_strength = signal.first;
+		state = find_growing_signal;
+		break;
 	case find_growing_signal:
-		if (nstr > current_signal_strength) {
-			state = find_upper_limit;
+		if (signal.first > current_signal_strength) {
+			state = find_max_peak_coarse;
+		} else {
+			advance_angle_and_erase_old_contacts(turn_speed_fast * simulation_step);
 		}
+		current_signal_strength = signal.first;
 		break;
-	case find_upper_limit:
-		if (nstr < current_signal_strength) {
-			upper_limit = next_angle;
-			turn_speed = -turn_speed_slow;
-			state = find_lower_limit;
+	case find_max_peak_coarse:
+		if (signal.first < current_signal_strength) {
+			// we found the upper limit or just passed it
+			state = find_max_peak_fine;
+			current_angle += -turn_speed_slow * simulation_step;
+		} else {
+			advance_angle_and_erase_old_contacts(turn_speed_fast * simulation_step);
 		}
+		current_signal_strength = signal.first;
 		break;
-	case find_lower_limit:
-		if (nstr < current_signal_strength) {
-			lower_limit = next_angle;
-			// replace signals in the vicinity...
-			angle center = lower_limit + angle((upper_limit - lower_limit)).value() * 0.5;
-			//report_signal(center, current_signal_strength);
-			printf("sonar man sim, Peak of signal found at angle %f, strength %f\n",
-			       center.value(), current_signal_strength);
-			next_angle = current_angle;
-			nstr = current_signal_strength;
-			turn_speed = turn_speed_fast;
+	case find_max_peak_fine:
+		if (signal.first > current_signal_strength) {
+			// we finally found an angle where signal is stronger.
+			// detect signal type and maybe switch to tracking mode here
+			// (if signal is very strong)
+			// note that we should use the frequency bandpass filter here
+			// to localize the signal even better  (fixme 2x)
+			shipclass sc = signal.second.determine_shipclass();
+			printf("sonar man sim, Peak of signal found at angle %f, strength %f, class %i\n",
+			       current_angle.value(), signal.first, sc);
+			contacts[current_angle.value()] = contact(signal.first, sc);
+			printf("all contacts now:\n");
+			for (std::map<double, contact>::iterator it = contacts.begin(); it != contacts.end(); ++it)
+				printf("angle %f class %i strength %f\n", it->first, it->second.type, it->second.strength_dB);
 			state = find_growing_signal;
+			// advance angle after finding. this also done so that the new
+			// contact is not erased directly after reporting it...
+			current_angle += turn_speed_fast * simulation_step;
+		} else {
+			current_angle += -turn_speed_slow * simulation_step;
 		}
+		current_signal_strength = signal.first;
 		break;
 	case track_signal:
 		// fixme
 		break;
 	}
+}
 
+
+
+void sonar_operator::advance_angle_and_erase_old_contacts(double addang)
+{
+	double curr_angle = current_angle.value();
+	double next_angle = curr_angle + addang;
+	// now erase all keys between current_angle and next_angle
+	// handle 360->0 degree wrap, fixme
+	std::map<double, contact>::iterator beg = contacts.lower_bound(curr_angle);
+	std::map<double, contact>::iterator end = contacts.upper_bound(next_angle);
+	printf("check delete %f->%f\n", curr_angle, next_angle);
+	for (std::map<double, contact>::iterator it = beg; it != end; ++it)
+		printf("making contact at angle %f obsolete\n", it->first);
+	contacts.erase(beg, end);
+	if (next_angle >= 360.0) {
+		curr_angle -= 360.0;
+		next_angle -= 360.0;
+		beg = contacts.lower_bound(curr_angle);
+		end = contacts.upper_bound(next_angle);
+		printf("check delete %f->%f\n", curr_angle, next_angle);
+		for (std::map<double, contact>::iterator it = beg; it != end; ++it)
+			printf("making contact at angle %f obsolete\n", it->first);
+		contacts.erase(beg, end);
+	}
 	current_angle = next_angle;
-	current_signal_strength = nstr;
 }

@@ -271,6 +271,48 @@ void map_display::draw_sound_contact(class game& gm, const sea_object* player,
 
 
 
+void map_display::draw_sound_contact(game& gm, const submarine* player,
+				     const vector2& offset) const
+{
+	const std::map<double, sonar_operator::contact>& contacts = player->get_sonarman().get_contacts();
+	for (std::map<double, sonar_operator::contact>::const_iterator it = contacts.begin();
+	     it != contacts.end(); ++it) {
+		// basic length 2km plus 10m per dB, max. 200dB or similar
+		double lng = 2000 + it->second.strength_dB * 10;
+		vector2 ldir = (angle(it->first) + player->get_heading()).direction()
+			* lng * mapzoom;
+		vector2 pos = (player->get_pos().xy() + offset) * mapzoom;
+		switch (it->second.type) {
+		case MERCHANT:
+			glColor3f(0,0,0);
+			break;
+		case WARSHIP:
+			glColor3f(0,0.5,0);
+			break;
+		case ESCORT:
+			glColor3f(1,0,0);
+			break;
+		case SUBMARINE:
+			glColor3f(1,0,0.5);
+			break;
+		case NONE:
+		default:
+			// unknown object, not used yet
+			glColor3f(0,0.5,0.5);
+			//glColor3f(0.75,0.75,0.2);
+			break;
+		}
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBegin(GL_LINES);
+		glVertex2f(512+pos.x, 384-pos.y);
+		glVertex2f(512+pos.x+ldir.x, 384-pos.y-ldir.y);
+		glEnd();
+	}
+	glColor3f(1,1,1);
+}
+
+
+
 void map_display::draw_visual_contacts(class game& gm,
     const sea_object* player, const vector2& offset) const
 {
@@ -741,7 +783,8 @@ void map_display::display(class game& gm) const
 		draw_pings(gm, -offset);
 
 		// draw sound contacts
-		draw_sound_contact(gm, sub_player, max_view_dist, -offset);
+		//draw_sound_contact(gm, sub_player, max_view_dist, -offset);	// old contacts
+		draw_sound_contact(gm, sub_player, -offset);
 
 		// draw player trails and player
 		draw_trail(player, -offset);

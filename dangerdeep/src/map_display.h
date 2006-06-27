@@ -44,6 +44,8 @@ protected:
 	void draw_pings(game& gm, const vector2& offset) const;
 	void draw_sound_contact(game& gm, const sea_object* player,
 		double max_view_dist, const vector2& offset) const;
+	void draw_sound_contact(game& gm, const submarine* player,
+				const vector2& offset) const;
 	void draw_visual_contacts(game& gm, const sea_object* player, const vector2& offset) const;
 	void draw_radar_contacts(game& gm, const sea_object* player, const vector2& offset) const;
 	void draw_square_mark(game& gm, const vector2& mark_pos, const vector2& offset, const color& c ) const;

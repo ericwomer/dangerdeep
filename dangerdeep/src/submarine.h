@@ -367,6 +367,8 @@ public:
 
 	virtual tdc& get_tdc() { return TDC; }
 	virtual const tdc& get_tdc() const { return TDC; }
+	//virtual sonar_operator& get_sonarman() { return sonarman; } // not needed. dangerous, sonarman could get manipulated.
+	virtual const sonar_operator& get_sonarman() const { return sonarman; }
 
 	virtual double get_bow_rudder() const { return bow_rudder; }
 	virtual double get_stern_rudder() const { return bow_rudder; } // stern is the same so far
