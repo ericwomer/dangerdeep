@@ -404,7 +404,7 @@ void sonar_operator::simulate(game& gm, double delta_t, angle sub_heading)
 		if (signal.first < current_signal_strength) {
 			// we found the upper limit or just passed it
 			state = find_max_peak_fine;
-			current_angle += -turn_speed_slow * simulation_step;
+			current_angle -= angle(turn_speed_slow * simulation_step);
 		} else {
 			advance_angle_and_erase_old_contacts(turn_speed_fast * simulation_step, sub_heading);
 		}
@@ -427,9 +427,9 @@ void sonar_operator::simulate(game& gm, double delta_t, angle sub_heading)
 			state = find_growing_signal;
 			// advance angle after finding. this also done so that the new
 			// contact is not erased directly after reporting it...
-			current_angle += turn_speed_fast * simulation_step;
+			current_angle += angle(turn_speed_fast * simulation_step);
 		} else {
-			current_angle += -turn_speed_slow * simulation_step;
+			current_angle -= angle(turn_speed_slow * simulation_step);
 		}
 		current_signal_strength = signal.first;
 		break;
