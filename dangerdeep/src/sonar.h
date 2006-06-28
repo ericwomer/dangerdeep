@@ -217,7 +217,8 @@ class sonar_operator
 	angle current_angle;
 	double current_signal_strength;
 	// store angle and contact, per contact strength (dB) and ship type
-	// angle is relative to the sub.
+	// angle is absolute nautical angle, to make contacts invariant of sub's heading.
+	// fixme: good idea, but a contact is reported many times then while the sub turns, fixme!
 	std::map<double, contact> contacts;
 	bool active;	// disabled, when user does the work
 
@@ -227,15 +228,17 @@ class sonar_operator
 
 	double last_simulation_step_time;
 
-	void advance_angle_and_erase_old_contacts(double addang);
+	void advance_angle_and_erase_old_contacts(double addang, angle sub_heading);
 
  public:
 	sonar_operator();
 	virtual ~sonar_operator() {}
 	// only make a simulation step each n seconds, n ca. 0.1 or so, simulate
 	// human reaction on events.
-	virtual void simulate(class game& gm, double delta_t);
+	virtual void simulate(class game& gm, double delta_t, angle sub_heading);
 	const std::map<double, contact>& get_contacts() const { return contacts; }
+	void load(const class xml_elem& parent);
+	void save(class xml_elem& parent) const;
 };
 
 #endif /* SONAR_H */

@@ -372,21 +372,20 @@ sonar_operator::sonar_operator()
                                                     then back to 1)
    5) is same as one...
 */
-void sonar_operator::simulate(game& gm, double delta_t)
+void sonar_operator::simulate(game& gm, double delta_t, angle sub_heading)
 {
 	last_simulation_step_time += delta_t;
 	if (last_simulation_step_time < simulation_step)
 		return;
 
-	printf("sonarman sim, time=%f\n", last_simulation_step_time);
-
+//	printf("sonarman sim, time=%f\n", last_simulation_step_time);
 	last_simulation_step_time -= simulation_step;
 
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 	pair<double, noise> signal = gm.sonar_listen_ships(player, current_angle);
 
 	// fixme: use integer dB values for simulation? we round to dB anyway!
-	printf("sonar man sim, angle=%f str=%f stat=%i\n", current_angle.value(), current_signal_strength, state);
+//	printf("sonar man sim, angle=%f str=%f stat=%i\n", current_angle.value(), current_signal_strength, state);
 
 	switch (state) {
 	case initial:
@@ -397,7 +396,7 @@ void sonar_operator::simulate(game& gm, double delta_t)
 		if (signal.first > current_signal_strength) {
 			state = find_max_peak_coarse;
 		} else {
-			advance_angle_and_erase_old_contacts(turn_speed_fast * simulation_step);
+			advance_angle_and_erase_old_contacts(turn_speed_fast * simulation_step, sub_heading);
 		}
 		current_signal_strength = signal.first;
 		break;
@@ -407,7 +406,7 @@ void sonar_operator::simulate(game& gm, double delta_t)
 			state = find_max_peak_fine;
 			current_angle += -turn_speed_slow * simulation_step;
 		} else {
-			advance_angle_and_erase_old_contacts(turn_speed_fast * simulation_step);
+			advance_angle_and_erase_old_contacts(turn_speed_fast * simulation_step, sub_heading);
 		}
 		current_signal_strength = signal.first;
 		break;
@@ -419,12 +418,12 @@ void sonar_operator::simulate(game& gm, double delta_t)
 			// note that we should use the frequency bandpass filter here
 			// to localize the signal even better  (fixme 2x)
 			shipclass sc = signal.second.determine_shipclass();
-			printf("sonar man sim, Peak of signal found at angle %f, strength %f, class %i\n",
-			       current_angle.value(), signal.first, sc);
-			contacts[current_angle.value()] = contact(signal.first, sc);
-			printf("all contacts now:\n");
-			for (std::map<double, contact>::iterator it = contacts.begin(); it != contacts.end(); ++it)
-				printf("angle %f class %i strength %f\n", it->first, it->second.type, it->second.strength_dB);
+// 			printf("sonar man sim, Peak of signal found at angle %f, strength %f, class %i\n",
+// 			       current_angle.value(), signal.first, sc);
+			contacts[(current_angle + sub_heading).value()] = contact(signal.first, sc);
+// 			printf("all contacts now:\n");
+// 			for (std::map<double, contact>::iterator it = contacts.begin(); it != contacts.end(); ++it)
+// 				printf("angle %f class %i strength %f\n", it->first, it->second.type, it->second.strength_dB);
 			state = find_growing_signal;
 			// advance angle after finding. this also done so that the new
 			// contact is not erased directly after reporting it...
@@ -442,27 +441,52 @@ void sonar_operator::simulate(game& gm, double delta_t)
 
 
 
-void sonar_operator::advance_angle_and_erase_old_contacts(double addang)
+void sonar_operator::advance_angle_and_erase_old_contacts(double addang, angle sub_heading)
 {
-	double curr_angle = current_angle.value();
+	double curr_angle = (current_angle + sub_heading).value();
 	double next_angle = curr_angle + addang;
 	// now erase all keys between current_angle and next_angle
 	// handle 360->0 degree wrap, fixme
 	std::map<double, contact>::iterator beg = contacts.lower_bound(curr_angle);
 	std::map<double, contact>::iterator end = contacts.upper_bound(next_angle);
-	printf("check delete %f->%f\n", curr_angle, next_angle);
-	for (std::map<double, contact>::iterator it = beg; it != end; ++it)
-		printf("making contact at angle %f obsolete\n", it->first);
+// 	printf("check delete %f->%f\n", curr_angle, next_angle);
+// 	for (std::map<double, contact>::iterator it = beg; it != end; ++it)
+// 		printf("making contact at angle %f obsolete\n", it->first);
 	contacts.erase(beg, end);
 	if (next_angle >= 360.0) {
 		curr_angle -= 360.0;
 		next_angle -= 360.0;
 		beg = contacts.lower_bound(curr_angle);
 		end = contacts.upper_bound(next_angle);
-		printf("check delete %f->%f\n", curr_angle, next_angle);
-		for (std::map<double, contact>::iterator it = beg; it != end; ++it)
-			printf("making contact at angle %f obsolete\n", it->first);
+// 		printf("check delete %f->%f\n", curr_angle, next_angle);
+// 		for (std::map<double, contact>::iterator it = beg; it != end; ++it)
+// 			printf("making contact at angle %f obsolete\n", it->first);
 		contacts.erase(beg, end);
 	}
 	current_angle = next_angle;
+}
+
+
+
+void sonar_operator::load(const xml_elem& parent)
+{
+}
+
+
+
+void sonar_operator::save(xml_elem& parent) const
+{
+	xml_elem so = parent.add_child("sonar_operator");
+
+// 	states state;
+// 	angle current_angle;
+// 	double current_signal_strength;
+// 	std::map<double, contact> contacts;
+// 	bool active;
+// 	double last_simulation_step_time;
+
+// 	dv.set_attr(dive_speed, "dive_speed");
+// 	dv.set_attr(max_depth, "max_depth");
+// 	dv.set_attr(dive_to, "dive_to");
+// 	dv.set_attr(permanent_dive, "permanent_dive");
 }

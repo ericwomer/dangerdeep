@@ -279,7 +279,7 @@ void map_display::draw_sound_contact(game& gm, const submarine* player,
 	     it != contacts.end(); ++it) {
 		// basic length 2km plus 10m per dB, max. 200dB or similar
 		double lng = 2000 + it->second.strength_dB * 10;
-		vector2 ldir = (angle(it->first) + player->get_heading()).direction()
+		vector2 ldir = angle(it->first).direction()
 			* lng * mapzoom;
 		vector2 pos = (player->get_pos().xy() + offset) * mapzoom;
 		switch (it->second.type) {
