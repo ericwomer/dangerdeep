@@ -525,7 +525,7 @@ void submarine::simulate(double delta_time)
 	}
 
 	// simulate the sonar man
-	sonarman.simulate(gm, delta_time, heading);
+	sonarman.simulate(gm, delta_time);
 
 	// hack for test of hearing devices, change by date
 	date dt = gm.get_date();
