@@ -66,10 +66,13 @@ sonar_operator::sonar_operator()
 void sonar_operator::simulate(game& gm, double delta_t)
 {
 	last_simulation_step_time += delta_t;
+// 	printf("delta_t=%f last_simulation_step_time=%f simulation_step=%f\n",
+// 	       delta_t, last_simulation_step_time, simulation_step);
 	if (last_simulation_step_time < simulation_step)
 		return;
 
-//	printf("sonarman sim, time=%f\n", last_simulation_step_time);
+// 	printf("sonarman sim, time=%f\n", last_simulation_step_time);
+	//fixme: time scale is not taken into account here!!!
 	last_simulation_step_time -= simulation_step;
 
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
@@ -78,7 +81,14 @@ void sonar_operator::simulate(game& gm, double delta_t)
 	pair<double, noise> signal = gm.sonar_listen_ships(player, current_angle);
 
 	// fixme: use integer dB values for simulation? we round to dB anyway!
-//	printf("sonar man sim, angle=%f str=%f stat=%i\n", current_angle.value(), current_signal_strength, state);
+	printf("sonar man sim, angle=%f str=%f stat=%i\n", current_angle.value(), current_signal_strength, state);
+
+	// fixme: problem is that with turning of the sub the sonar man stays in mode 3 (fine scanning)
+	// and turns the device for many degrees w/o leaving that mode.
+	// he seems to miss the peak and continues in the wrong direction for ever...
+	// solution: stay in turn back mode only for at max n degrees, where n is the max angular speed
+	// in normal scan mode (6° when 6°/second), then turn clockwise again with fine speed until peak
+	// is reached etc. continue until peak is found ccw/cw etc. stop after x tries.
 
 	switch (state) {
 	case initial:
@@ -122,9 +132,9 @@ void sonar_operator::simulate(game& gm, double delta_t)
 			state = find_growing_signal;
 			// advance angle after finding. this also done so that the new
 			// contact is not erased directly after reporting it...
-			current_angle += angle(turn_speed_fast * simulation_step - sub_turn_velocity);
+			current_angle += angle( turn_speed_fast * simulation_step - sub_turn_velocity);
 		} else {
-			current_angle -= angle(turn_speed_slow * simulation_step - sub_turn_velocity);
+			current_angle += angle(-turn_speed_slow * simulation_step - sub_turn_velocity);
 		}
 		current_signal_strength = signal.first;
 		break;
@@ -140,6 +150,7 @@ void sonar_operator::advance_angle_and_erase_old_contacts(double addang, angle s
 {
 	double curr_angle = (current_angle + sub_heading).value();
 	double next_angle = curr_angle + addang;
+	printf("try next angle %f->%f\n", curr_angle, next_angle);
 	// now erase all keys between current_angle and next_angle
 	if (next_angle > curr_angle) {
 		std::map<double, contact>::iterator beg = contacts.lower_bound(curr_angle);
@@ -179,6 +190,7 @@ void sonar_operator::add_contact(angle absang, const contact& ct)
 		contacts.erase(contacts.lower_bound(ab), contacts.upper_bound(360.0));
 		contacts.erase(contacts.lower_bound(0.0), contacts.upper_bound(ae));
 	}
+	printf("add contact at %f\n", absang.value());
 	contacts[absang.value()] = ct;
 }
 
