@@ -1,0 +1,308 @@
+<dftd-mission>
+  <description>
+    <short lang="en">TRAINING: A single ship</short>
+    <short lang="de">ÃœBUNG: Nur ein Schiff</short>
+    <short lang="it">TRAINING: A single ship</short>
+    <long lang="en">You have detected a small unprotected merchant convoy in the Aegean
+sea. Be quick because some escorts may be nearby.</long>
+    <long lang="de">Sie haben einen kleinen, unbewachten Konvoi im ägäischen
+Meer entdeckt. Beeilen Sie sich, denn Eskorten könnten in der Nähe sein.</long>
+    <long lang="it">Small convoy in the Aegean sea</long>
+  </description>
+    <ships nr="1">
+        <ship type="merchant_small">
+            <state>
+                <position x="2784520.132888" y="4137243.585002" z="0" />
+                <velocity x="0" y="2.80203" z="0" />
+                <orientation s="0.71789" x="0" y="0" z="-0.696157" />
+                <turn_velocity value="0.153506" />
+                <heading angle="88.238905" />
+            </state>
+            <alive_stat value="3" />
+            <AI type="0" state="1" zigzagstate="10" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="2" followme="0" myconvoy="0" remaining_time="4.716">
+                <main_course angle="0" />
+                <waypoints cyclewaypoints="0" />
+            </AI>
+            <target value="0" />
+            <tonnage value="2511" />
+            <steering throttle="3" rudder_pos="-19.04" rudder_to="2" head_to_fixed="1" head_to="90" />
+            <damage bow="288" midship="169805448" stern="-1213695848" />
+            <fuel_level value="-166.060078" />
+        </ship>
+    </ships>
+    <submarines nr="1">
+        <submarine type="submarine_VIIc">
+            <state>
+                <position x="2785176.208498" y="4134483.688391" z="0" />
+                <velocity x="0" y="0" z="0" />
+                <orientation s="1" x="0" y="0" z="0" />
+                <turn_velocity value="0" />
+                <heading angle="0" />
+            </state>
+            <alive_stat value="3" />
+            <target value="0" />
+            <tonnage value="800" />
+            <steering throttle="0" rudder_pos="0" rudder_to="0" head_to_fixed="0" head_to="0" />
+            <damage bow="537542258" midship="1634086716" stern="1953460034" />
+            <fuel_level value="0" />
+            <diving dive_speed="0" max_depth="237.801499" dive_to="0" permanent_dive="0" delayed_dive_to_depth="0" delayed_planes_down="0" bow_to="0" stern_to="0" bow_rudder="0" stern_rudder="0" />
+            <stored_torpedoes nr="14">
+                <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+                    <torpedo type="TI">
+                        <state>
+                            <position x="0" y="0" z="0" />
+                            <velocity x="0" y="0" z="0" />
+                            <orientation s="1" x="0" y="0" z="0" />
+                            <turn_velocity value="0" />
+                            <heading angle="0" />
+                        </state>
+                        <alive_stat value="3" />
+                        <target value="0" />
+                        <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3" />
+                        <temperature value="15" />
+                        <probability_of_rundepth_failure value="0.2" />
+                        <run_length value="0" />
+                    </torpedo>
+                </stored_torpedo>
+                <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+                    <torpedo type="TIII">
+                        <state>
+                            <position x="0" y="0" z="0" />
+                            <velocity x="0" y="0" z="0" />
+                            <orientation s="1" x="0" y="0" z="0" />
+                            <turn_velocity value="0" />
+                            <heading angle="0" />
+                        </state>
+                        <alive_stat value="3" />
+                        <target value="0" />
+                        <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3" />
+                        <temperature value="15" />
+                        <probability_of_rundepth_failure value="0.2" />
+                        <run_length value="0" />
+                    </torpedo>
+                </stored_torpedo>
+                <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+                    <torpedo type="TI">
+                        <state>
+                            <position x="0" y="0" z="0" />
+                            <velocity x="0" y="0" z="0" />
+                            <orientation s="1" x="0" y="0" z="0" />
+                            <turn_velocity value="0" />
+                            <heading angle="0" />
+                        </state>
+                        <alive_stat value="3" />
+                        <target value="0" />
+                        <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3" />
+                        <temperature value="15" />
+                        <probability_of_rundepth_failure value="0.2" />
+                        <run_length value="0" />
+                    </torpedo>
+                </stored_torpedo>
+                <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+                    <torpedo type="TI">
+                        <state>
+                            <position x="0" y="0" z="0" />
+                            <velocity x="0" y="0" z="0" />
+                            <orientation s="1" x="0" y="0" z="0" />
+                            <turn_velocity value="0" />
+                            <heading angle="0" />
+                        </state>
+                        <alive_stat value="3" />
+                        <target value="0" />
+                        <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3" />
+                        <temperature value="15" />
+                        <probability_of_rundepth_failure value="0.2" />
+                        <run_length value="0" />
+                    </torpedo>
+                </stored_torpedo>
+                <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+                    <torpedo type="TIII">
+                        <state>
+                            <position x="0" y="0" z="0" />
+                            <velocity x="0" y="0" z="0" />
+                            <orientation s="1" x="0" y="0" z="0" />
+                            <turn_velocity value="0" />
+                            <heading angle="0" />
+                        </state>
+                        <alive_stat value="3" />
+                        <target value="0" />
+                        <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3" />
+                        <temperature value="15" />
+                        <probability_of_rundepth_failure value="0.2" />
+                        <run_length value="0" />
+                    </torpedo>
+                </stored_torpedo>
+                <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+                    <torpedo type="TIII">
+                        <state>
+                            <position x="0" y="0" z="0" />
+                            <velocity x="0" y="0" z="0" />
+                            <orientation s="1" x="0" y="0" z="0" />
+                            <turn_velocity value="0" />
+                            <heading angle="0" />
+                        </state>
+                        <alive_stat value="3" />
+                        <target value="0" />
+                        <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3" />
+                        <temperature value="15" />
+                        <probability_of_rundepth_failure value="0.2" />
+                        <run_length value="0" />
+                    </torpedo>
+                </stored_torpedo>
+                <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+                    <torpedo type="TIII">
+                        <state>
+                            <position x="0" y="0" z="0" />
+                            <velocity x="0" y="0" z="0" />
+                            <orientation s="1" x="0" y="0" z="0" />
+                            <turn_velocity value="0" />
+                            <heading angle="0" />
+                        </state>
+                        <alive_stat value="3" />
+                        <target value="0" />
+                        <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3" />
+                        <temperature value="15" />
+                        <probability_of_rundepth_failure value="0.2" />
+                        <run_length value="0" />
+                    </torpedo>
+                </stored_torpedo>
+                <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+                    <torpedo type="TIII">
+                        <state>
+                            <position x="0" y="0" z="0" />
+                            <velocity x="0" y="0" z="0" />
+                            <orientation s="1" x="0" y="0" z="0" />
+                            <turn_velocity value="0" />
+                            <heading angle="0" />
+                        </state>
+                        <alive_stat value="3" />
+                        <target value="0" />
+                        <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3" />
+                        <temperature value="15" />
+                        <probability_of_rundepth_failure value="0.2" />
+                        <run_length value="0" />
+                    </torpedo>
+                </stored_torpedo>
+                <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+                    <torpedo type="TIII">
+                        <state>
+                            <position x="0" y="0" z="0" />
+                            <velocity x="0" y="0" z="0" />
+                            <orientation s="1" x="0" y="0" z="0" />
+                            <turn_velocity value="0" />
+                            <heading angle="0" />
+                        </state>
+                        <alive_stat value="3" />
+                        <target value="0" />
+                        <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3" />
+                        <temperature value="15" />
+                        <probability_of_rundepth_failure value="0.2" />
+                        <run_length value="0" />
+                    </torpedo>
+                </stored_torpedo>
+                <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+                    <torpedo type="TI">
+                        <state>
+                            <position x="0" y="0" z="0" />
+                            <velocity x="0" y="0" z="0" />
+                            <orientation s="1" x="0" y="0" z="0" />
+                            <turn_velocity value="0" />
+                            <heading angle="0" />
+                        </state>
+                        <alive_stat value="3" />
+                        <target value="0" />
+                        <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3" />
+                        <temperature value="15" />
+                        <probability_of_rundepth_failure value="0.2" />
+                        <run_length value="0" />
+                    </torpedo>
+                </stored_torpedo>
+                <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+                    <torpedo type="TI">
+                        <state>
+                            <position x="0" y="0" z="0" />
+                            <velocity x="0" y="0" z="0" />
+                            <orientation s="1" x="0" y="0" z="0" />
+                            <turn_velocity value="0" />
+                            <heading angle="0" />
+                        </state>
+                        <alive_stat value="3" />
+                        <target value="0" />
+                        <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3" />
+                        <temperature value="15" />
+                        <probability_of_rundepth_failure value="0.2" />
+                        <run_length value="0" />
+                    </torpedo>
+                </stored_torpedo>
+                <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+                    <torpedo type="TIII">
+                        <state>
+                            <position x="0" y="0" z="0" />
+                            <velocity x="0" y="0" z="0" />
+                            <orientation s="1" x="0" y="0" z="0" />
+                            <turn_velocity value="0" />
+                            <heading angle="0" />
+                        </state>
+                        <alive_stat value="3" />
+                        <target value="0" />
+                        <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3" />
+                        <temperature value="15" />
+                        <probability_of_rundepth_failure value="0.2" />
+                        <run_length value="0" />
+                    </torpedo>
+                </stored_torpedo>
+                <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+                    <torpedo type="TI">
+                        <state>
+                            <position x="0" y="0" z="0" />
+                            <velocity x="0" y="0" z="0" />
+                            <orientation s="1" x="0" y="0" z="0" />
+                            <turn_velocity value="0" />
+                            <heading angle="0" />
+                        </state>
+                        <alive_stat value="3" />
+                        <target value="0" />
+                        <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3" />
+                        <temperature value="15" />
+                        <probability_of_rundepth_failure value="0.2" />
+                        <run_length value="0" />
+                    </torpedo>
+                </stored_torpedo>
+                <stored_torpedo status="3" associated="0" remaining_time="0" addleadangle="0" preheating="0">
+                    <torpedo type="TI">
+                        <state>
+                            <position x="0" y="0" z="0" />
+                            <velocity x="0" y="0" z="0" />
+                            <orientation s="1" x="0" y="0" z="0" />
+                            <turn_velocity value="0" />
+                            <heading angle="0" />
+                        </state>
+                        <alive_stat value="3" />
+                        <target value="0" />
+                        <settings primaryrange="1600" secondaryrange="800" initialturn_left="1" turnangle="180" torpspeed="0" rundepth="3" />
+                        <temperature value="15" />
+                        <probability_of_rundepth_failure value="0.2" />
+                        <run_length value="0" />
+                    </torpedo>
+                </stored_torpedo>
+            </stored_torpedoes>
+            <sub_state scopeup="0" electric_engine="0" snorkelup="0" battery_level="0" />
+            <damageable_parts nr="0" />
+            <TDC bearing_tracking="1" angleonthebow_tracking="1" auto_mode="1" target_speed="0" target_distance="0" target_course="0" target_bow_is_left="0" angleonthebow="180" torpedo_speed="0" torpedo_runlength="0" bearing="0" bearing_dial="0" heading="0" parallaxangle="0" additional_parallaxangle="0" lead_angle="0" torpedo_runtime="0" compute_stern_tube="0" valid_solution="0" />
+        </submarine>
+    </submarines>
+    <airplanes nr="0" />
+    <torpedoes nr="0" />
+    <depth_charges nr="0" />
+    <gun_shells nr="0" />
+    <convoys nr="0" />
+    <player ref="1" type="submarine" />
+    <sunken_ships nr="0" />
+    <state time="10172000" last_trail_time="10172000" max_view_dist="10000">
+        <date day="1939/ 1/ 1" time=" 0: 0:11" />
+        <equipment_date>
+            <date day="1942/ 4/ 1" time=" 0: 0: 0" />
+        </equipment_date>
+    </state>
+    <pings nr="0" />
+</dftd-mission>
