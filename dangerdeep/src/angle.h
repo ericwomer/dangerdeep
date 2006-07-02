@@ -59,6 +59,7 @@ class angle
 	angle operator-(const angle& other) const { return angle(val - other.val); };
 	angle operator-() const { return angle(-val); };
 	angle operator*(double t) const { return angle(val * t); };
+	/// returns true if the turn from "this" to "a" is shorter when done clockwise
 	bool is_cw_nearer(const angle& a) const { return clamped(a.val - val) <= 180.0; };
 	static angle from_rad(double d) { return angle(d*180.0/M_PI); };
 	static angle from_math(double d) { return angle((M_PI/2-d)*180.0/M_PI); };

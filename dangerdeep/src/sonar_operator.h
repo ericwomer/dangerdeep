@@ -61,6 +61,10 @@ class sonar_operator
 
 	double last_simulation_step_time;
 
+	angle find_peak_lower_limit, find_peak_upper_limit;
+	unsigned find_peak_try;
+
+	bool keeps_in_find_peak_limit(angle add);
 	void advance_angle_and_erase_old_contacts(double addang, angle sub_heading);
 	void add_contact(angle absang, const contact& ct);
 

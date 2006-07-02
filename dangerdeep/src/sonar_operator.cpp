@@ -107,6 +107,9 @@ void sonar_operator::simulate(game& gm, double delta_t)
 	case find_max_peak_coarse:
 		if (signal.first < current_signal_strength) {
 			// we found the upper limit or just passed it
+			find_peak_upper_limit = current_angle;
+			find_peak_lower_limit = current_angle - angle(turn_speed_fast);
+			find_peak_try = 0;
 			state = find_max_peak_fine;
 			current_angle -= angle(turn_speed_slow * simulation_step);
 		} else {
@@ -134,7 +137,25 @@ void sonar_operator::simulate(game& gm, double delta_t)
 			// contact is not erased directly after reporting it...
 			current_angle += angle( turn_speed_fast * simulation_step - sub_turn_velocity);
 		} else {
-			current_angle += angle(-turn_speed_slow * simulation_step - sub_turn_velocity);
+			angle add = angle(-turn_speed_slow * simulation_step - sub_turn_velocity);
+			if (find_peak_try & 1)
+				add = -add;
+			if (keeps_in_find_peak_limit(add)) {
+				// continue turning in that direction
+				current_angle += add;
+			} else {
+				// out of valid area for searching peak, try opposite direction
+				++find_peak_try;
+				printf("reached border, try another directio, currang=%f, fpt=%u", current_angle.value(), find_peak_try);
+				if (find_peak_try > 1) {
+					// tried once ccw and once cw, abort
+					printf("couldn't find fine peak angle, report current angle as contact\n");
+					shipclass sc = signal.second.determine_shipclass();
+					add_contact(current_angle + sub_heading, contact(signal.first, sc));
+					state = find_growing_signal;
+					current_angle += angle( turn_speed_fast * simulation_step - sub_turn_velocity);
+				}
+			}
 		}
 		current_signal_strength = signal.first;
 		break;
@@ -142,6 +163,22 @@ void sonar_operator::simulate(game& gm, double delta_t)
 		// fixme
 		break;
 	}
+}
+
+
+
+bool sonar_operator::keeps_in_find_peak_limit(angle add)
+{
+	// current_angle must be within find_peak_lower_limit, find_peak_upper_limit
+	// check if current_angle + add is also within limit, if not return false,
+	// if it is, add it
+	angle new_ang = current_angle + add;
+	if (find_peak_lower_limit.is_cw_nearer(new_ang) &&
+	    new_ang.is_cw_nearer(find_peak_upper_limit)) {
+		current_angle = new_ang;
+		return true;
+	}
+	return false;
 }
 
 
