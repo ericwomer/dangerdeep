@@ -22,9 +22,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef BSPLINE_H
 #define BSPLINE_H
 
-#include <cassert>
+#include <stdexcept>
 #include <vector>
-using namespace std;
 
 #if (defined(__APPLE__) && defined(__GNUC__)) || defined(__MACOSX__)
 #include <complex.h>
@@ -39,68 +38,51 @@ using namespace std;
 #endif
 #endif
 
-///\brief Represents a B-Spline interpolation object.
+
+///\brief Represents a non-uniform-B-spline interpolation object
 template <class T>
-class bsplinet
+class non_uniform_bsplinet
 {
-protected:
+ protected:
 	unsigned n, m;
-	vector<T> cp;		// control points
-	vector<double> tvec;		// t's for control points
-	mutable vector<T> deBoor_pts;
+	std::vector<T> cp;		// control points
+	std::vector<double> tvec;		// t's for control points
+	mutable std::vector<T> deBoor_pts;
 
 	T& deBoor_at(unsigned row, unsigned column) const
 	{
 		return deBoor_pts[(n+1-row)*(n-row)/2 + column];
 	}
 	
-	bsplinet();
-
-	unsigned find_l(double t) const
+	virtual unsigned find_l(double t) const
 	{
-		// note: for non-uniform bsplines we have to compute l so that
-		// tvec[l] <= t <= tvec[l+1]
-		// because we have uniform bsplines here, we don't need to search!
-		// note: the results of both algorithms differ when t == tvec[x] for any x.
-		// it shouldn't cause trouble though, because the bspline value is the same then.
-
-#if 1
-		unsigned l = n + unsigned(floor(t * (m+1-n)));
-		if (l > m) l = m;
-		return l;
-		
 		// algorithm for non-uniform bsplines:
 		// note: if t is equal to tvec[x] then l=x-1
-#else
-		// fixme: we could use a binary search here!
+		// fixme: we could use a binary search here! but it would help only for large tvecs
+		// store cp/tvec as map?
 		unsigned l = n;
 		for ( ; l <= m; ++l) {
 			if (tvec[l] <= t && t <= tvec[l+1])
 				break;
 		}
 		return l;
-#endif
 	}
 
-public:
-	bsplinet(unsigned n_, const vector<T>& d) : n(n_), m(d.size()-1), cp(d)
+	non_uniform_bsplinet();	// no empty construction
+
+ public:
+	non_uniform_bsplinet(unsigned n_, const std::vector<T>& d, const std::vector<double>& tvec_)
+		: n(n_), m(d.size()-1), cp(d), tvec(tvec_)
 	{
-		assert (n < d.size() );
-		assert (d.size() >= 2);
-		
+		if (n >= d.size()) throw std::runtime_error("bspline: n too large");
+		if (d.size() < 2) throw std::runtime_error("bspline: d has too few elements");
+		if (tvec_.size() != m+n+2) throw std::runtime_error("bspline: tvec has illegal size");
 		deBoor_pts.resize((n+1)*(n+2)/2);
-
-		// prepare t-vector
-		// note: this algorithm works also for non-uniform bsplines
-		// (let the user give a t vector)
-		tvec.resize(m+n+2);
-		unsigned k = 0;
-		for ( ; k <= n; ++k) tvec[k] = 0;
-		for ( ; k <= m; ++k) tvec[k] = double(k-n)/double(m-n+1);
-		for ( ; k <= m+n+1; ++k) tvec[k] = 1;
 	}
 
-	const vector<T>& control_points(void) const { return cp; }
+	virtual ~non_uniform_bsplinet() {}
+
+	const std::vector<T>& control_points() const { return cp; }
 	
 	T value(double t) const
 	{
@@ -110,7 +92,7 @@ public:
 		t = t*(cp.size()-1) - bp;
 		return cp[bp] * (1.0-t) + cp[np] * t;
 */
-		assert (0 <= t && t <= 1);
+		if (t < 0.0 || t > 1.0) throw std::runtime_error("bspline: invalid t");
 
 		unsigned l = find_l(t);
 	
@@ -122,7 +104,7 @@ public:
 		for (unsigned r = 1; r <= n; ++r) {
 			for (unsigned i = l-n; i <= l-r; ++i) {
 				double tv = (t - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
-				assert(isfinite(tv));
+				if (!isfinite(tv)) throw std::runtime_error("bspline: invalid number generated");
 				deBoor_at(r, i+n-l) = deBoor_at(r-1, i+n-l) * (1 - tv)
 					+ deBoor_at(r-1, i+1+n-l) * tv;
 			}
@@ -130,7 +112,40 @@ public:
 
 		return deBoor_at(n, 0);
 	}
+};
 
+
+
+///\brief Represents a B-Spline interpolation object.
+template <class T>
+class bsplinet : public non_uniform_bsplinet<T>
+{
+protected:
+	unsigned find_l(double t) const
+	{
+		// note: for non-uniform bsplines we have to compute l so that
+		// tvec[l] <= t <= tvec[l+1]
+		// because we have uniform bsplines here, we don't need to search!
+		// note: the results of both algorithms differ when t == tvec[x] for any x.
+		// it shouldn't cause trouble though, because the bspline value is the same then.
+		//note: the this->xyz dereferencing is needed to make the code compile.
+		unsigned l = this->n + unsigned(floor(t * (this->m+1-this->n)));
+		if (l > this->m) l = this->m;
+		return l;
+	}
+
+public:
+	bsplinet(unsigned n_, const std::vector<T>& d)
+		: non_uniform_bsplinet<T>(n_, d, std::vector<double>(d.size()+n_+1 /* = m+n+2 */ ))
+	{
+		// prepare t-vector
+		// note: this algorithm works also for non-uniform bsplines
+		// (let the user give a t vector)
+		unsigned k = 0;
+		for ( ; k <= this->n; ++k) this->tvec[k] = 0;
+		for ( ; k <= this->m; ++k) this->tvec[k] = double(k-this->n)/double(this->m-this->n+1);
+		for ( ; k <= this->m+this->n+1; ++k) this->tvec[k] = 1;
+	}
 };
 
 
@@ -141,9 +156,9 @@ class bspline2dt
 {
 protected:
 	unsigned n, m;
-	vector<T> cp;		// control points
-	vector<double> tvec;		// t's for control points
-	mutable vector<T> deBoor_pts;
+	std::vector<T> cp;		// control points
+	std::vector<double> tvec;		// t's for control points
+	mutable std::vector<T> deBoor_pts;
 
 	T& deBoor_at(unsigned line, unsigned row, unsigned column) const
 	{
@@ -179,12 +194,12 @@ protected:
 
 public:
 	// give square vector of control points, in C++ order, line after line
-	bspline2dt(unsigned n_, const vector<T>& d) : n(n_), cp(d)
+	bspline2dt(unsigned n_, const std::vector<T>& d) : n(n_), cp(d)
 	{
 		unsigned ds = unsigned(sqrt(double(d.size())));
-		assert(ds*ds == d.size());
-		assert(n < ds);
-		assert(ds >= 2);
+		if (ds*ds != d.size()) throw std::runtime_error("bspline2d: d not quadratic");
+		if (n >= ds) throw std::runtime_error("bspline2d: n too large");
+		if (ds < 2) throw std::runtime_error("bspline2d: d has too few elements");
 		m = ds-1;
 
 		deBoor_pts.resize((n+1) * (n+1)*(n+2)/2);
@@ -199,12 +214,12 @@ public:
 		for ( ; k <= m+n+1; ++k) tvec[k] = 1;
 	}
 
-	const vector<T>& control_points(void) const { return cp; }
+	const std::vector<T>& control_points() const { return cp; }
 	
 	T value(double s, double t) const
 	{
-		assert (0 <= s && s <= 1);
-		assert (0 <= t && t <= 1);
+		if (s < 0.0 || s > 1.0) throw std::runtime_error("bspline2d: invalid s");
+		if (t < 0.0 || t > 1.0) throw std::runtime_error("bspline2d: invalid t");
 
 		unsigned l = find_l(s);
 		unsigned l2 = find_l(t);
@@ -218,7 +233,7 @@ public:
 		for (unsigned r = 1; r <= n; ++r) {
 			for (unsigned i = l-n; i <= l-r; ++i) {
 				double tv = (s - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
-				assert(isfinite(tv));
+				if (!isfinite(tv)) throw std::runtime_error("bspline2d: invalid number generated");
 				for (unsigned j = 0; j <= n; ++j) {
 					deBoor_at(j, r, i+n-l) = deBoor_at(j, r-1, i+n-l) * (1 - tv)
 						+ deBoor_at(j, r-1, i+1+n-l) * tv;
@@ -231,7 +246,7 @@ public:
 		for (unsigned r = 1; r <= n; ++r) {
 			for (unsigned i = l2-n; i <= l2-r; ++i) {
 				double tv = (t - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
-				assert(isfinite(tv));
+				if (!isfinite(tv)) throw std::runtime_error("bspline2d: invalid number generated");
 				deBoor_at(0, r, i+n-l2) = deBoor_at(0, r-1, i+n-l2) * (1 - tv)
 					+ deBoor_at(0, r-1, i+1+n-l2) * tv;
 			}
@@ -250,7 +265,7 @@ public:
 #include <fstream>
 using namespace std;
 
-double rnd(void) { return double(rand())/RAND_MAX; }
+double rnd() { return double(rand())/RAND_MAX; }
 
 const unsigned N = 4;
 const unsigned D = 33;
@@ -258,7 +273,7 @@ const unsigned R = 4;
 int main(int, char**)
 {
 	srand(3746867);
-	vector<float> cps(D*D);
+	std::vector<float> cps(D*D);
 	for (unsigned y = 0; y < D; ++y)
 		for (unsigned x = 0; x < D; ++x)
 			cps[D*y+x] = 8.0f*rnd()/D;

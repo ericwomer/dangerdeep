@@ -662,38 +662,38 @@ void user_interface::play_sound_effect(const string &se, const sea_object* playe
 									   const sea_object* noise_source, bool loop) const
 {	
 	sound* s = soundcache.find(se);
-	assert(NULL != s);
-	
 	if ( s )
 		s->play(player, noise_source, loop);
+	else
+		throw error(std::string("soundcache: can't find effect ") + se);
 }
 
 void user_interface::play_fade_sound_effect(const string &se, const sea_object* player, 
-											const sea_object* noise_source, bool loop) const
+					    const sea_object* noise_source, bool loop) const
 {
 	sound* s = soundcache.find(se);
-	assert(NULL != s);
-	
 	if ( s )
 		s->play_fade(player, noise_source, loop);
+	else
+		throw error(std::string("soundcache: can't find effect ") + se);
 }
 
 void user_interface::stop_sound_effect(const string &se) const
 {
 	sound* s = soundcache.find(se);
-	assert(NULL != s);
-	
 	if ( s )
 		s->stop();
+	else
+		throw error(std::string("soundcache: can't find effect ") + se);
 }
 
 void user_interface::stop_fade_sound_effect(const string &se) const
 {
 	sound* s = soundcache.find(se);
-	assert(NULL != s);
-	
 	if ( s )
 		s->fade_out();
+	else
+		throw error(std::string("soundcache: can't find effect ") + se);
 }
 
 void user_interface::set_allowed_popup() const
@@ -732,10 +732,10 @@ void user_interface::pause_all_sound() const
 	// bit of a dodgy way to find a sound so we can call a function affecting
 	// all sounds
 	sound* s = soundcache.find(se_sub_screws_slow);
-	assert(NULL != s);
-	
 	if ( s )
 		s->pause_all();
+	else
+		throw error(std::string("soundcache: can't find effect"));
 }
 
 void user_interface::resume_all_sound() const
@@ -743,8 +743,8 @@ void user_interface::resume_all_sound() const
 	// bit of a dodgy way to find a sound so we can call a function affecting
 	// all sounds
 	sound* s = soundcache.find(se_sub_screws_slow);
-	assert(NULL != s);
-	
 	if ( s )
 		s->resume_all();
+	else
+		throw error(std::string("soundcache: can't find effect"));
 }
