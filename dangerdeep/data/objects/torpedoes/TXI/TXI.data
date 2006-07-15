@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="ISO_8859-1" standalone="no"?>
+<dftd-torpedo>
+  <classification identifier="TXI" modelname="torpedo_g7.3ds" type="torpedo" country="DE"/>
+  <description>
+    <desc lang="en">Torpedo TXI G7es ZaukonigII</desc>
+    <desc lang="de">Torpedo TXI G7es ZaukonigII</desc>
+    <info lang="en">TVb G7es ZaukonigII</info>
+<!-- <info lang="en" lfile="TXI_en.txt"/> -->
+    <info lang="de">german text here</info>
+<!-- <info lang="de" lfile="TXI_de.txt"/> -->
+  </description>
+  <weight value="1495"/>
+<!-- in Kg -->
+  <size diameter="0.5334" lenght="7.163"/>
+<!-- all in metric system -->
+  <untertrieb value="11"/>
+<!-- in percent, negative boyancy -->
+<!-- data files mention 11% untertrieb -->
+  <warhead weight="274" charge="0"/>
+<!-- weight in Kg and type of explosive, the SW18, 36, 39, 39a mixes-->
+<!-- charge types, normal, early war, hexanite = 60% trinitrotoluene + 40% hexanitrodyphenilamine, then later on, SW18 = 50% TNT, 24% HND, 15% Aluminium, SW36 = 67% THT, 8% HND, 25% aluminium, SW39 = 45% TNT, 5% HND, 30% amonium nitrate + 20% aluminium, and SW39a = 50% TNT, 10% HND, 5% amonium nitrate, 35% aluminium - so, charge="0" > hexanite (60% TNT+40% HND), charge=1=SW18, charge=2=SW36, charge=3=SW39, charge=4=SW39a -->
+<!-- NOTE: type XI, from 1945/4/1, only with Pi4c+TZ5 pistols -->
+  <arming>
+    <period runlenght="150" from="1945/4/1" until="1945/12/31"/>
+  </arming>
+  <fuse>
+    <period type="Pi4c" from="1945/4/1" until="1945/12/31"/>
+<!-- we need to specify the TZ5 magnetic too, since it was coupled to Pi4c, for
+now, the mock tag:
+		 <period type="Pi4c+TZ5" from="1945/4/1" until="1945/12/31"/>
+-->
+  </fuse>
+  <ranges>
+    <range distance="5700" speed="24" preheated="1"/>
+    <range distance="3500" speed="20" preheated="0"/>
+  </ranges>
+  <motion acceleration="1.0" turnrate="1.0"/>
+<!-- For electric torpedos, the speed is fixed, but affected by preheating, so this would be id = 5. A mockup would look like:
+
+  <motion id="5" acceleration="0.85" turnrate="1.0" from="1945/5/1" until="1945/12/31" />
+
+( id=5 for electric torpedos only, and we could add an id=6 or 7 or 8 if TIV and TV, and TXI characteristics require it as well. Therefore, their (TIV, TV, etc..) data files, would have id="5", 6, 7, or whatever, defining their characteristics. -->
+  <sensors>
+    <sensor type="passivesonar_t11" activation="400"/>
+<!-- activate after x meters run lenght -->
+<!-- note, sonar activation distance, is independent of torpedo
+arming distance, 150m with Pi4c, 400m woth Pi4b (Pi4c+TZ5 coupled).
+One way to solve the magnetic pistol issue, would be to add the TZ5 as sensor
+characteristic here, not sure if it would work, since it's not a real sensor, it
+s a pistol. Magnetic pistols were TZ3, TZ5, TZ6. -->
+<!-- sensor info here-->
+  </sensors>
+  <power type="electric" hp="55"/>
+<!-- hp value just guessed -->
+<!-- data files mention 55hp, value here was 100hp -->
+<!-- 
+So, the id's are exactly the same as referenced earlier in the motion data mockup, and the power tag mockups would be:
+
+  <power type="electric" id="5" hp="55" from="1945/4/1" until="1945/12/31" />
+
+-->
+  <availability date="1945/4/1"/>
+<!-- so, no actual combat use made -->
+<!-- max rudder turn angle? -->
+<!-- default run depth? or run depth range? this seems fixed, 1 to 25 anyway, so i wouldn't bother with this. What changed was later with type XXI, the capability to launch torpedos from much lower depths, up to 50m, but the torpedo run was still made between 1 to 25m. About the boyance (untertrieb), probably i wouldn't bother doing this as well -->
+<!-- note: do we add characteristics for LuT runs? primary/secondary -->
+</dftd-torpedo>

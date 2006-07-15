@@ -1,0 +1,18 @@
+TVb G7es ZaukonigII
+
+Gerate-Nr:	46
+Diameter:	534,6mm
+Weight:		1495Kg
+Lenght:		7163mm
+Charge:		Ke1, 274Kg (Hexanite)
+Pistol:		Pi4c+TZ5
+Arming:		150m
+Range/Speed:	5700m/24Kn at 1350U/min, preheated at 30'C
+		3500m/20Kn at 1110U/min not preheated.
+Power:		Siemens GL231/55 E-Motor, 55hp, 1x 13T210 batteries
+		54V/570A	49KW at 1350U/min (preheated at 30'C)
+		48V/510A	41KW at 1110U/min (not preheated)
+
+This was an improved version of the TV ZaukonigI torpedo. The TV was meant to be used against convoy escorts, by homing in on the cavitation noise of around 24.5KHz which was equivalent to the propellers of an escort travelling at 10Kn to 18Kn. Its limitation was that the acoustic sensor reacted only to noise from a specific frequency, and as soon as the target increased or decreased speed, cavitation noise frequency changed and the acoustic sensor couldn't home in the target. On top of this, the allies developed a device called "Foxer". This device was pulled behind the ships, and simulated the acoustic waves of a ship's propeller screw, diverting the TV ZaukonigI. However, the "Foxer" device, had its problems, since some time was needed to deploy the device in the water, and the noise it made, would attrack other uboats in the vicinity, that might have missed the convoy in the first place, if it weren't for the "Foxer" device. Still, to bypass this problem, the TIX acoustic sensor was developed, specifically to ignore the noise from "Foxer" devices. The range was also sacrificed, in favour of an higher run speed, 5700m at 24Kn, and 3500m at 20Kn, respectively preheated, and non-preheated. Standard orders were to dive imediatly to a depth of 60 meters after launch, if the launch was made from a bow tube. If the launch was made from a stern tube, complete uboat silence was required. These torpedoes had to be serviced every 3 to 5 days, in order to maintain their reliability.
+
+Note: this torpedo was never used in battle conditions, altough late test results were promising.

@@ -1,0 +1,30 @@
+TI FaTI G7a
+
+Gerate-Nr:	12
+Diameter:	533,4mm
+Weight:		1538Kg
+Lenght:		7163mm
+Charge:		Ka280, or Kc280 warheads, 280Kg (Hexanite)
+Pistol:		Pi1 G7 AZ, or TZ3 with Pi3
+Arming:		250m (pre-1943)
+		150m (post-1943)
+Range/Speed:	6000m/44Kn (pre-1941)
+		7500m/40Kn (pre-1941)
+		12500/30Kn (pre-1941)
+		6000m/44Kn (post-1941)
+		8000m/40Kn (post-1941)
+		14000m/30Kn (post-1941)
+Power:		Decahydronaphthalene (Decalin) Wet-Heater, 4 cylinders
+		108hp at 940U/min (pre-1941)
+		241hp at 1270U/min (pre-1941)
+		300hp at 1500U/min (pre-1941)
+		255hp at 1280U/min (post-1941)
+		350hp at 1470U/min (post-1941)
+FaTI version of TI torpedo (FaT stands for Flachenabsuchenden Torpedo, or Federapparattorpedo). After a primary run of between 1600m to 3200m, if nothing was hit, it would turn 90 or 180 degrees to the left or to the right, and make secondary runs of either 800m or 1600m, until either a target was hit, or power was exausted. On the firing of a FaT torpedo, other uboats in the vicinity had to be warned, otherwise they would risk being hit by friendly FaT torpedos. Standard procedure was to dive to a depth of 50 meters. It was found that using 44Knots speed, overloads the engine, and therefore it wasn't recommended using the maximum speed shortest range torpedo configuration. The early models had a range of about 20% less than the standard values being specified of 6000m/44Kn, 8000m/40Kn, 14000/30Kn, being in fact of 7500m/40 Kn, and 12500/30Kn. Power output also changes, from 108hp/940U/min, 241hp/1270U/min, 300hp/1500U/min, to 255hp/1280U/min, and 350hp/1470U/min.
+The warhead being used is a Ka280, or Kc280 warhead, with 280Kg of Hexanite. Explosive charge was usually 60% trinotrotoluene + 40% hexanitrodyphenylamine, in various mixes:
+	SW18:	50% TNT, 24% HND, 15% Aluminium.
+	SW36:	67% TNT, 8% HND, 25% Aluminium.
+	SW39:	45% TNT, 5% HND, 30% Amonium nitrate, 20% Aluminium.
+	SW39a:	50% TNT, 10% HND, 5% Amonium nitrate, 35% Aluminium
+		
+Note: torpedo wake is much more visible at 40Kn, since the air consuption rises from 13.65atu at 30Kn, to 24.3atu at 40Kn.

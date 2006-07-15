@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<dftd-torpedo>
+	<classification identifier="fido" modelname="torpedo_g7.3ds" type="torpedo" country="US" />
+	<description>
+		<desc lang="en">Torpedo Mk.24 Fido</desc>
+		<desc lang="de">Torpedo Typ 24 Fido</desc>
+		<info lang="en">TOrpedo Mk.24 FIDO.</info>
+		</description>
+		<weight value="1538"/><!-- in Kg -->
+		<size diameter="0.5334" lenght="7.163"/><!-- all in metric system -->
+		<untertrieb value="21"/><!-- in percent, negative boyancy -->
+		<warhead weight="280" charge="0"/>
+		<arming>
+		 <period runlenght="250" from="1939/01/01" until="1945/12/31"/>
+		</arming>
+		
+		<fuse>
+		 <period type="concatct" from="1939/1/1" until="1945/12/31"/>
+		</fuse>
+		
+		<ranges>
+		 <range distance="5000" speed="12" preheated="1" />
+		 <range distance="4000" speed="10" preheated="0" />
+		</ranges>
+		
+		<motion acceleration="1.0" turnrate="1.0"/>
+		
+		<sensors>
+		 <sensor type="passivesonar_fido"/>
+			<!-- sensor info here-->
+		</sensors>
+		
+		<power type="electric" hp="100"/><!-- hp value just guessed -->
+
+		<availability year="1943" month="3" day="1"/>
+		<!-- max rudder turn angle? -->
+
+</dftd-torpedo>
+
+	
+  

@@ -1,0 +1,18 @@
+TVb G7es ZaukonigI
+
+Gerate-Nr:	45
+Diameter:	534,6mm
+Weight:		1495
+Lenght:		7163mm
+Charge:		Ke1, 274Kg (Hexanite)
+Pistol:		Pi4c+TZ5
+Arming:		150m
+Range/Speed:	8000m/21.5Kn at 1210U/min, preheated at 30'C
+		6000m/18.5Kn at 985U/min not preheated.
+Power:		Siemens GL231/55 E-Motor, 40hp, 1x 17T210 batteries
+		54V/570A	49KW at 1210U/min (preheated at 30'C)
+		48V/510A	41KW at 985U/min (not preheated)
+
+This was an improved version of the TV ZaukonigI torpedo, with an higher range, at the expenses of some speed. In order to get the extra range, batteries were changed, from a single 13T210, to a single 17T210, coupled with two boosters, to increase battery output. This reflected in a increased range, from 5750m at 24.5Kn at 1350U/min, preheated at 30'C, to 8000m/21.5Kn at 1210U/min, preheated. Non-preheated values changed from 3750m/20Kn at 1175U/min, to 6000m/18.5Kn at 985U/min.
+ This torpedo was meant to be used against convoy escorts. Designed to home in on the cavitation noise of around 24.5KHz which was equivalent to the propellers of an escort travelling at 10Kn to 18Kn. The first successful combat use was made in September 1943.
+ The TV ZaukonigI also introduced the TZ5 magnetic pistol, which was basically a metal detector with two coils, and solved much of the problems of early magnetic pistols. An improved TZ6 pistol could be fitted to any G series torpedoes (53.3cm diameter), but was only approved for use as the war ended. Most torpedoes used whisker-type impact pistols, but these could not be used on homing torpedoes. Therefore, these types of torpedoes used an inertial pistol in the rear of the warhead, and the TV ZaukonigI, could use both a magnetic and an inertial impact pistol. The acoustic homing device would only lock to the loudest noise after a run of 400m from its launch, with a Pi4b pistol, and 150m from its launch, with a Pi4c pistol, to avoid locking on the launching uboat. In such cases, standard orders were to dive imediatly to a depth of 60 meters, after launch, if the launch was made from a bow tube. If the launch was made from a stern tube, complete uboat silence was required. Note however, that in a TV Zaukonig, coupled with a Pi4b inertial pistol, in the back of the homing device+warhead, the torpedo arms at 400m, and the sensor device arms at 400m as well. However, by coupling the Pi4c inertial pistol, and the TZ5 magnetic pistol, the torpedo arms after 150m, altough the homing device still arms at 400m, but now the torpedo had the advantage of being able to detonate by sensing a target magnetic field, therefore torpedo would be set to have a run at a greater depth, in order to detonate below the target, and break it's keel. This version however, only used the Pi4c inertial pistol, coupled with the TZ5 magnetic pistol. This unit used a 40hp Siemens GL231/55 electric motor, that drive two contra-rotating propellers. The above range and speed of 8000 at 21.5Kn could be reached only if the batteries were preheated to 30'C, however, this torpedo used only one 17T210 battery, coupled with two small boosters to increase output, which reflected in a range of 8000m at 21.5Kn when preheated, and 6000m/18.5Kn when not preheated. These torpedoes had to be serviced every 3 to 5 days, in order to maintain their reliability. Note: this torpedo was the Uboat version of the TVa torpedo, used in E-boats.

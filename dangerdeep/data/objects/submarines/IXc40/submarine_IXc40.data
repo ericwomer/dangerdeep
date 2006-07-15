@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<dftd-submarine>
+  <classification identifier="submarine_IXc40" modelname="submarine_IXc40.3ds" type="submarine" country="DE"/>
+  <description>
+    <far lang="en">Submarine</far>
+    <far lang="de">U-Boot</far>
+    <medium lang="en">Diesel submarine</medium>
+    <medium lang="de">Diesel-U-Boot</medium>
+    <near lang="en">Submarine type IXc40</near>
+    <near lang="de">U-Boot Typ IXc40</near>
+  </description>
+  <motion maxspeed="19.0" maxrevspeed="5" acceleration="0.55" turnrate="0.18">
+    <submerged maxspeed="7.3" safedepth="225" maxdepth="235"/>
+  </motion>
+  <tonnage min="1545" max="1545"/>
+  <smoke type="0" x="0" y="0" z="0"/>
+  <sensors>
+    <sensor type="lookout"/>
+    <sensor type="passivesonar"/>
+    <sensor type="radar" model="German FuMO 30"/>
+  </sensors>
+  <ai type="none"/>
+  <depths scope="12" snorkel="10" alarm="150"/>
+  <torpedoes>
+    <tubes bow="4" stern="2" bowreserve="6" sternreserve="2" bowdeckreserve="4" sterndeckreserve="4"/>
+    <transfertimes bow="900" stern="900" bowdeck="10800" sterndeck="10800" bowsterndeck="1800"/>
+  </torpedoes>
+  <battery capacity="100" consumption_a="1.3129e-6" consumption_t="0.77071" recharge_a="1" recharge_t="1"/>
+  <fuel capacity="1200" consumption_a="5.3766e-8" consumption_t="2.62382"/>
+  <gun_turrets>
+  	<turret barrels="1" shell_capacity="110" initial_velocity="240.0" max_inclination="30" max_declination="0" time_to_man="20" time_to_unman="20" shell_damage="0.2" calibre="110.0" exclusion_radius_start="160" exclusion_radius_end="200"/>
+  </gun_turrets>
+</dftd-submarine>

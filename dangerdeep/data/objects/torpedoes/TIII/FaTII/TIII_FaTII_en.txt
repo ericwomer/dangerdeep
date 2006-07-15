@@ -1,0 +1,17 @@
+TIII FaTII G7e
+
+Gerate-Nr:	20
+Diameter:	534,6mm
+Weight:		1620Kg
+Lenght:		7163mm
+Charge:		Ka280, 280Kg (Hexanite)
+Pistol:		Pi2 G7H
+Arming:		250m
+Range/Speed:	5000m/30Kn at 1700U/min, preheated at 30'C
+		3000m/28Kn not preheated.
+Power:		Siemens GL231/75 E-Motor, 100hp, 2x 13T210 batteries
+		91V/950A	72KW at 1755U/min (preheated at 30'C)
+		83V/885A	60KW at 1590U/min (not preheated)
+
+FaT stands for Flachenabsuchenden Torpedo, or for Federapparattorpedo. After a primary run of between 1600m to 3200m, if nothing was hit, it would turn 90 or 180 degrees to the left or to the right, and make secondary runs of either 800m or 1600m, until either a target was hit, or batteries were exausted. On the firing of a FaT torpedo, other uboats in the vicinity, had to be warned, otherwise, they would risk being hit by friendly FaT torpedoes, being the standard procedure, to dive to a depth of 50 meters.
+This unit used a 100hp Siemens GL231/75 electric motor, that drive two contra-rotating propellers. The above range and speed of 5000m/30Kn could be reached only if the batteries were preheated to 30'C. These torpedoes had to be serviced every 3 to 5 days, in order to maintain their reliability. Not preheated ranges are of 3000m/28Kn. This torpedo used the Pi2 G7H influence pistol.
