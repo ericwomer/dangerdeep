@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
 <dftd-torpedo>
-	<classification identifier="fido" modelname="torpedo_g7.3ds" type="torpedo" country="US" />
+	<classification identifier="Fido" modelname="torpedo_g7.3ds" type="torpedo" country="US" />
 	<description>
 		<desc lang="en">Torpedo Mk.24 Fido</desc>
 		<desc lang="de">Torpedo Typ 24 Fido</desc>

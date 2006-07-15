@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
 <dftd-airplane>
-  <classification identifier="He115" modelname="heinkel115b1_model.xml" country="DE"/>
+  <classification identifier="heinkel115b1" modelname="heinkel115b1_model.xml" country="DE"/>
   <description>
     <far lang="en">Airplane</far>
     <far lang="de">Flugzeug</far>
