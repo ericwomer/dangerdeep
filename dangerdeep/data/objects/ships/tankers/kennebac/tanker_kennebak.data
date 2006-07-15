@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<dftd-ship>
+  <classification identifier="tanker_kennebak" modelname="medium_tanker.xml" type="merchant" country="GB"/>
+  <!-- country="greatbritain" - kennebak is us, not en, but could have been 
+	used under english flag? -->
+  <!-- mock tags for info and recognition manual files, as well as camouflage schemes:
+	<scheme id="0" file="camouflage1.png" country="us" />
+	<scheme id="1" file="camouflage2.png" country="en" />
+	<scheme id="2" file="camouflage3.png" country="ca" />
+	<scheme id="3" file="camouflage4.png" country="fr" />
+	<scheme id="4" file="camouflage5.png" country="it" />
+	<scheme id="5" file="camouflage6.png" country="de" />
+	<scheme id="6" file="camouflage7.png" country="ne" />
+	(being us = us, en = england, ca = canada, fr = france, it = italy
+	de = germany, ne = neutral nations. use country codes according to
+	available camouflages, specific for ship types, obviously you won't
+	have canadian bismarck, etc... ;))
+	<manual front="frontimage.png" side="sideimage.png" />
+	(ship silhouette renderings for recognition manual, front+side)
+	<info lang="en">detailed text here />
+	<info lang="de">detailed text here />
+-->
+  <description>
+    <far lang="en">Steam ship</far>
+    <far lang="de">Dampfer</far>
+    <medium lang="en">Oil Tanker</medium>
+    <medium lang="de">Oltanker</medium>
+    <near lang="en">Medium Oil Tanker ship</near>
+    <near lang="de">Mittleres Oltanker</near>
+  </description>
+  <motion maxspeed="9" maxrevspeed="0" acceleration="0.1" turnrate="0.1"/>
+  <tonnage min="5900" max="6200"/>
+  <smoke type="1" x="0" y="-59.2" z="24.4"/>
+  <sensors>
+    <sensor type="lookout"/>
+  </sensors>
+  <ai type="dumb"/>
+  <fuel capacity="1200" consumption_a="1" consumption_t="1"/>
+</dftd-ship>
