@@ -1420,6 +1420,9 @@ int mymain(list<string>& args)
 	// randomize
 	srand(time(0));
 
+	// read data files
+	data_file();
+
 	// make sure the default values are stored if there is no config file,
 	// and make sure all registered values are stored in it
 	FILE* fconfig = fopen((configdirectory + "config").c_str(), "rt");

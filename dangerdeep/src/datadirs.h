@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define DIRECTORIES_H
 
 #include <string>
+#include <map>
+#include <list>
 
 std::string get_data_dir();
 inline std::string get_texture_dir() { return get_data_dir() + "textures/"; }
@@ -38,5 +40,29 @@ inline std::string get_image_dir() { return get_data_dir() + "images/"; }
 inline std::string get_mission_dir() { return get_data_dir() + "missions/"; }
 inline std::string get_map_dir() { return get_data_dir() + "maps/"; }
 inline std::string get_shader_dir() { return get_data_dir() + "shaders/"; }
+
+class data_file_handler
+{
+ private:
+	data_file_handler();
+	void parse_for_data_files(std::string dir, std::list<std::string>& idlist);
+
+	static data_file_handler* my_instance;
+	std::map<std::string, std::string> data_files;
+	std::list<std::string> airplane_ids;
+	std::list<std::string> ship_ids;
+	std::list<std::string> submarine_ids;
+	std::list<std::string> torpedo_ids;
+ public:
+	static const data_file_handler& instance();
+	const std::string& get_path(const std::string& objectid) const;
+	std::string get_filename(const std::string& objectid) const;
+	const std::list<std::string>& get_airplane_list() const { return airplane_ids; }
+	const std::list<std::string>& get_ship_list() const { return ship_ids; }
+	const std::list<std::string>& get_submarine_list() const { return submarine_ids; }
+	const std::list<std::string>& get_torpedo_list() const { return torpedo_ids; }
+};
+
+inline const data_file_handler& data_file() { return data_file_handler::instance(); }
 
 #endif

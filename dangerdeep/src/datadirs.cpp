@@ -21,8 +21,71 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "datadirs.h"
+#include "error.h"
+#include "filehelper.h"
 
 std::string get_data_dir()
 {
 	return std::string(DATADIR);
+}
+
+
+
+data_file_handler::data_file_handler()
+{
+	// scan data dir for all .data files
+	std::string dir = get_data_dir() + "objects/";
+	parse_for_data_files(dir + "airplanes/", airplane_ids);
+	parse_for_data_files(dir + "ships/", ship_ids);
+	parse_for_data_files(dir + "submarines/", submarine_ids);
+	parse_for_data_files(dir + "torpedoes/", torpedo_ids);
+}
+
+
+
+static const std::string data_file_ext = ".data";
+void data_file_handler::parse_for_data_files(std::string dir, std::list<std::string>& idlist)
+{
+	directory d = open_dir(dir);
+	for (std::string f = read_dir(d); !f.empty(); f = read_dir(d)) {
+		if (is_directory(dir + f)) {
+			parse_for_data_files(dir + f + "/", idlist);
+		} else if (f.length() > data_file_ext.length() && f.substr(f.length() - data_file_ext.length()) == data_file_ext) {
+			std::string id = f.substr(0, f.length() - data_file_ext.length());
+			printf("found for id=%s a filepath=%s\n", id.c_str(), dir.c_str());
+			data_files[id] = dir;
+			idlist.push_back(id);
+		}
+	}
+	close_dir(d);
+}
+
+
+
+data_file_handler* data_file_handler::my_instance = 0;
+
+
+
+const data_file_handler& data_file_handler::instance()
+{
+	if (!my_instance)
+		my_instance = new data_file_handler();
+	return *my_instance;
+}
+
+
+
+const std::string& data_file_handler::get_path(const std::string& objectid) const
+{
+	std::map<std::string, std::string>::const_iterator it = data_files.find(objectid);
+	if (it == data_files.end())
+		throw error(std::string("can't find path for object ") + objectid);
+	return it->second;
+}
+
+
+
+std::string data_file_handler::get_filename(const std::string& objectid) const
+{
+	return get_path(objectid) + objectid + data_file_ext;
 }
