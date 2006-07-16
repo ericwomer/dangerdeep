@@ -48,8 +48,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <map>
 using std::map;
 
-string modelpath;
-
 texture::mapping_mode model::mapping = texture::LINEAR_MIPMAP_LINEAR;//texture::NEAREST;
 bool model::enable_shaders = true;
 
@@ -193,28 +191,35 @@ model::model(const string& filename, bool use_material)
 	for (unsigned e = 0; e < extension.length(); ++e)
 		extension[e] = ::tolower(extension[e]);
 	st = filename.rfind(PATH_SEPARATOR);
-	string path = (st == string::npos) ? "" : filename.substr(0, st+1);
-	modelpath = path;
-	basename = filename.substr(path.length(),
-				   filename.length()-path.length()-extension.length());
+	basepath = (st == string::npos) ? "" : filename.substr(0, st+1);
+	basename = filename.substr(basepath.length(),
+				   filename.length()-basepath.length()-extension.length());
+	printf("filename=%s basename=%s\n", filename.c_str(), basename.c_str());
 
-	FILE* ftest = fopen(filename.c_str(), "rb");
-	if (!ftest)
-		throw error(string("could not open model file ") + filename);
+	string filename2 = filename;
+	FILE* ftest = fopen(filename2.c_str(), "rb");
+	if (!ftest) {
+		// try to load model from model dir
+		filename2 = get_model_dir() + filename.substr(basepath.length());
+		ftest = fopen(filename2.c_str(), "rb");
+		if (!ftest) {
+			throw error(string("could not open model file ") + filename2);
+		}
+	}
 	fclose(ftest);
 
 	// determine loader by extension here.
 	if (extension == ".3ds") {
-		m3ds_load(filename);
+		m3ds_load(filename2);
 	} else if (extension == ".off") {
-		read_off_file(filename);
-	} else if (extension == ".xml") {
-		read_dftd_model_file(filename);
+		read_off_file(filename2);
+	} else if (extension == ".xml" || extension == ".ddxml") {
+		read_dftd_model_file(filename2);
 	} else {
-		throw error(string("model: unknown extension or file format: ") + filename);
+		throw error(string("model: unknown extension or file format: ") + filename2);
 	}
 
-	read_cs_file(filename);	// try to read cross section file
+	read_cs_file(filename2);	// try to read cross section file
 
 	// clear material info if requested
 	if (!use_material) {
@@ -613,14 +618,21 @@ model::material::map::map() : uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0
 
 
 
-void model::material::map::init(texture::mapping_mode mapping, bool makenormalmap, float detailh,
+void model::material::map::init(const string& basepath, texture::mapping_mode mapping, bool makenormalmap, float detailh,
 				bool rgb2grey)
 {
 	mytexture.reset();
 	if (filename.length() > 0) {
 		// fixme: which clamp mode should we use for models? REPEAT doesn't harm normally...
-		mytexture.reset(new texture(get_texture_dir() + filename, mapping, texture::REPEAT,
-					    makenormalmap, detailh, rgb2grey));
+		// try path where model is first, then global texture dir
+		try {
+			mytexture.reset(new texture(basepath + filename, mapping, texture::REPEAT,
+						    makenormalmap, detailh, rgb2grey));
+		}
+		catch (texture::texerror& e) {
+			mytexture.reset(new texture(get_texture_dir() + filename, mapping, texture::REPEAT,
+						    makenormalmap, detailh, rgb2grey));
+		}
 	}
 }
 
@@ -632,9 +644,9 @@ model::material::material(const std::string& nm) : name(nm), shininess(50.0f)
 
 
 
-void model::material::init()
+void model::material::init(const string& basepath)
 {
-	if (colormap.get()) colormap->init(model::mapping);
+	if (colormap.get()) colormap->init(basepath, model::mapping);
 	//fixme: what is best mapping for normal maps?
 	// compute normalmap if not given
 	// fixme: segfaults when enabled. see texture.cpp
@@ -643,8 +655,8 @@ void model::material::init()
 	// with shaders a value of 1.0 is enough.
 	// fixme: read value from model file... and multiply with this value...
 	float normalmapheight = use_shaders ? 4.0f : 16.0f;
-	if (normalmap.get()) normalmap->init(texture::LINEAR/*_MIPMAP_LINEAR*/, true, normalmapheight, true);
-	if (specularmap.get()) specularmap->init(texture::LINEAR_MIPMAP_LINEAR, false, 0.0f, true);
+	if (normalmap.get()) normalmap->init(basepath, texture::LINEAR/*_MIPMAP_LINEAR*/, true, normalmapheight, true);
+	if (specularmap.get()) specularmap->init(basepath, texture::LINEAR_MIPMAP_LINEAR, false, 0.0f, true);
 }
 
 
@@ -1632,7 +1644,7 @@ void model::m3ds_process_material_chunks(istream& in, m3ds_chunk& parent)
 	if (m->colormap.get())
 		m->diffuse = color::white();
 
-	m->init();
+	m->init(basepath);
 	materials.push_back(m);
 }
 
@@ -1890,7 +1902,7 @@ void model::read_dftd_model_file(const std::string& filename)
 				mat->shininess = eshin.attrf("exponent");
 			}
 
-			mat->init();
+			mat->init(basepath);
 			materials.push_back(mat);
 		} else if (etype == "mesh") {
 			// meshes.

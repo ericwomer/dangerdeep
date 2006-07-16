@@ -70,7 +70,7 @@ public:
         model_load_dialog();
         virtual ~model_load_dialog() {}
 
-        void get_model_list(const string& path);
+        void get_model_list(const list<string>& namelist);
         const list<string>& get_models();
 
         void load_menu();
@@ -106,25 +106,12 @@ model_load_dialog::model_load_dialog() :
 
 
 void
-model_load_dialog::get_model_list(const string& path)
+model_load_dialog::get_model_list(const list<string>& namelist)
 {
-        if (path.empty()) { return; }
-
-        directory d;
-        string f; 
-        
-        d = open_dir(path);
-
-        do {
-                f = read_dir(d);
-                
-                bool is_xml = (f.size()>3 && f.substr(f.size()-3) == "xml");
-
-                if ( !f.empty() && !is_directory(f) && is_xml) {
-                        model_entry new_model = { f, path };
-                        files.push_back(new_model);
-                }
-        } while (!f.empty());
+	for (list<string>::const_iterator it = namelist.begin(); it != namelist.end(); ++it) {
+		model_entry new_model = { *it, data_file().get_path(*it) };
+		files.push_back(new_model);
+	}
 }
 
 
@@ -626,9 +613,9 @@ void run_gui()
         model_load_dialog ml;
 
 	// fixme: use data_file() 's lists here, no parsing of directories
-        ml.get_model_list(get_ship_dir());
-        ml.get_model_list(get_submarine_dir());
-        ml.get_model_list(get_airplane_dir());
+        ml.get_model_list(data_file().get_ship_list());
+        ml.get_model_list(data_file().get_submarine_list());
+        ml.get_model_list(data_file().get_airplane_list());
 
         ml.load_menu();
 }

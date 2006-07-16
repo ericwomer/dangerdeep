@@ -24,9 +24,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "error.h"
 #include "filehelper.h"
 
-std::string get_data_dir()
+
+
+const std::string& get_data_dir()
 {
-	return std::string(DATADIR);
+	static std::string datadir(DATADIR);
+	// note! do not store global string variable because of uncertain static initialization order.
+	return datadir;
 }
 
 
@@ -34,7 +38,7 @@ std::string get_data_dir()
 data_file_handler::data_file_handler()
 {
 	// scan data dir for all .data files
-	std::string dir = get_data_dir() + "objects/";
+	std::string dir = "objects/";
 	parse_for_data_files(dir + "airplanes/", airplane_ids);
 	parse_for_data_files(dir + "ships/", ship_ids);
 	parse_for_data_files(dir + "submarines/", submarine_ids);
@@ -46,15 +50,16 @@ data_file_handler::data_file_handler()
 static const std::string data_file_ext = ".data";
 void data_file_handler::parse_for_data_files(std::string dir, std::list<std::string>& idlist)
 {
-	directory d = open_dir(dir);
+	directory d = open_dir(get_data_dir() + dir);
 	for (std::string f = read_dir(d); !f.empty(); f = read_dir(d)) {
 		if (f[0] == '.' || f == "CVS") {
 			// avoid . and .. entries, as well as hidden files, and CVS directories as well
 			continue;
-		} else if (is_directory(dir + f)) {
+		} else if (is_directory(get_data_dir() + dir + f)) {
 			parse_for_data_files(dir + f + "/", idlist);
 		} else if (f.length() > data_file_ext.length() && f.substr(f.length() - data_file_ext.length()) == data_file_ext) {
 			std::string id = f.substr(0, f.length() - data_file_ext.length());
+// 			sys().add_console(string("found file ") + dir + string(" for id ") + id);
 			data_files[id] = dir;
 			idlist.push_back(id);
 		}
@@ -77,7 +82,7 @@ const data_file_handler& data_file_handler::instance()
 
 
 
-const std::string& data_file_handler::get_path(const std::string& objectid) const
+const std::string& data_file_handler::get_rel_path(const std::string& objectid) const
 {
 	std::map<std::string, std::string>::const_iterator it = data_files.find(objectid);
 	if (it == data_files.end())
@@ -87,7 +92,21 @@ const std::string& data_file_handler::get_path(const std::string& objectid) cons
 
 
 
+std::string data_file_handler::get_path(const std::string& objectid) const
+{
+	return get_data_dir() + get_rel_path(objectid);
+}
+
+
+
+std::string data_file_handler::get_rel_filename(const std::string& objectid) const
+{
+	return get_rel_path(objectid) + objectid + data_file_ext;
+}
+
+
+
 std::string data_file_handler::get_filename(const std::string& objectid) const
 {
-	return get_path(objectid) + objectid + data_file_ext;
+	return get_data_dir() + get_rel_filename(objectid);
 }

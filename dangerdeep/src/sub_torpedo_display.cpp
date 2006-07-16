@@ -173,7 +173,7 @@ unsigned sub_torpedo_display::get_tube_below_mouse(const vector<vector2i>& tubec
 
 
 sub_torpedo_display::sub_torpedo_display(user_interface& ui_) :
-	user_display(ui_), torptranssrc(ILLEGAL_TUBE), desc_texts(get_torpedo_dir()),//fixme: get rid of torpedo_dir here!
+	user_display(ui_), torptranssrc(ILLEGAL_TUBE), desc_texts(get_data_dir()),
 	mx(0), my(0), mb(0), torp_desc_line(0)
 {
 	// maybe ref (cache!) torpedo images here instead of loading them?
@@ -265,12 +265,14 @@ void sub_torpedo_display::display(class game& gm) const
 		// display type info.
 		if (torpedoes[tb].torp != 0 && torpedoes[tb].status == submarine::stored_torpedo::st_loaded) {
 			desc_text* torpdesctext = 0;
+			string sfn = torpedoes[tb].torp->get_specfilename();
 			try {
-				torpdesctext = desc_texts.ref(torpedoes[tb].torp->get_specfilename() + "_" + texts::get_language_code() + ".txt");
+				torpdesctext = desc_texts.ref(data_file().get_rel_path(sfn) + sfn + "_"
+							      + texts::get_language_code() + ".txt");
 			}
 			catch (error& e) {
 				// try again with english text if other text(s) don't exist.
-				torpdesctext = desc_texts.ref(torpedoes[tb].torp->get_specfilename() + "_en.txt");
+				torpdesctext = desc_texts.ref(data_file().get_rel_path(sfn) + sfn + "_en.txt");
 			}
 			// fixme: implement scrolling here!
 			if (torp_desc_line > torpdesctext->nr_of_lines())

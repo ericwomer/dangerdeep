@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
 <dftd-ship>
-  <classification identifier="tanker_kennebak" modelname="medium_tanker.xml" type="merchant" country="GB"/>
+  <classification identifier="tanker_kennebak" modelname="tanker_kennebak.ddxml" type="merchant" country="GB"/>
   <!-- country="greatbritain" - kennebak is us, not en, but could have been 
 	used under english flag? -->
   <!-- mock tags for info and recognition manual files, as well as camouflage schemes:

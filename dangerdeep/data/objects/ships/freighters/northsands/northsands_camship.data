@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
 <dftd-ship>
-  <classification identifier="northsands_camship" modelname="northsands_camship_model.xml" type="merchant" country="GB"/>
+  <classification identifier="northsands_camship" modelname="northsands_camship.ddxml" type="merchant" country="GB"/>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>

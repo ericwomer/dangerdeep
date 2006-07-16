@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
 <dftd-ship>
-  <classification identifier="fortship1943" modelname="fortship_can1943_model.xml" type="merchant" country="US"/>
+  <classification identifier="fortship1943" modelname="fortship1943.ddxml" type="merchant" country="US"/>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>

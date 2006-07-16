@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
 <dftd-ship>
-  <classification identifier="destroyer_tribal" modelname="destroyer_tribal.xml" type="escort" country="GB"/>
+  <classification identifier="destroyer_tribal" modelname="destroyer_tribal.ddxml" type="escort" country="GB"/>
   <description>
     <far lang="en">Convoy escort</far>
     <far lang="de">Geleitschiff</far>

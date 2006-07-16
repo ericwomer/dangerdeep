@@ -107,6 +107,7 @@ protected:
 	static unsigned mem_alloced;
 	static unsigned mem_freed;
 
+public:
 	class texerror : public error
 	{
 	public:
@@ -116,7 +117,6 @@ protected:
 		~texerror() throw() {}
 	};
 
-public:
 	// if "makenormalmap" is true and format is GL_LUMINANCE,
 	// a normal map (RGB) is computed from the texture.
 	// give height of detail (scale factor) for normal mapping, mostly much larger than 1.0

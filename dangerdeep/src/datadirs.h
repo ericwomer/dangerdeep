@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <map>
 #include <list>
 
-std::string get_data_dir();
+const std::string& get_data_dir();
 inline std::string get_texture_dir() { return get_data_dir() + "textures/"; }
 inline std::string get_font_dir() { return get_data_dir() + "fonts/"; }
 inline std::string get_model_dir() { return get_data_dir() + "models/"; }
@@ -36,12 +36,6 @@ inline std::string get_image_dir() { return get_data_dir() + "images/"; }
 inline std::string get_mission_dir() { return get_data_dir() + "missions/"; }
 inline std::string get_map_dir() { return get_data_dir() + "maps/"; }
 inline std::string get_shader_dir() { return get_data_dir() + "shaders/"; }
-
-//deprecated!!! fixme, remove them asap
-inline std::string get_ship_dir() { return get_data_dir() + "ships/"; }
-inline std::string get_submarine_dir() { return get_data_dir() + "submarines/"; }
-inline std::string get_airplane_dir() { return get_data_dir() + "airplanes/"; }
-inline std::string get_torpedo_dir() { return get_data_dir() + "torpedoes/"; }
 
 class data_file_handler
 {
@@ -57,7 +51,13 @@ class data_file_handler
 	std::list<std::string> torpedo_ids;
  public:
 	static const data_file_handler& instance();
-	const std::string& get_path(const std::string& objectid) const;
+	/// returns path to specfile for id "objectid", path is relative to data_dir
+	const std::string& get_rel_path(const std::string& objectid) const;
+	/// returns path to specfile for id "objectid", path is absolute
+	std::string get_path(const std::string& objectid) const;
+	/// returns path + filename to specfile for id "objectid", path is relative to data_dir
+	std::string get_rel_filename(const std::string& objectid) const;
+	/// returns path + filename to specfile for id "objectid", path is absolute
 	std::string get_filename(const std::string& objectid) const;
 	const std::list<std::string>& get_airplane_list() const { return airplane_ids; }
 	const std::list<std::string>& get_ship_list() const { return ship_ids; }

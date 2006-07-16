@@ -51,7 +51,8 @@ public:
 			float angle;	// uv rotation angle;
 			std::auto_ptr<texture> mytexture;
 			map();
-			void init(texture::mapping_mode mapping, bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
+			void init(const string& basepath, texture::mapping_mode mapping, bool makenormalmap = false,
+				  float detailh = 1.0f, bool rgb2grey = false);
 			void write_to_dftd_model_file(xml_elem& parent, const std::string& type, bool withtrans = true) const;
 			// read and construct from dftd model file
 			map(const xml_elem& parent, bool withtrans = true);
@@ -68,7 +69,7 @@ public:
 		auto_ptr<map> specularmap; // should be of type LUMINANCE to work properly.
 		
 		material(const std::string& nm = "Unnamed material");
-		void init();
+		void init(const string& basepath);
 		void set_gl_values() const;
 		void set_gl_values_mirror_clip() const;
 	};
@@ -153,6 +154,7 @@ protected:
 	object scene;
 	
 	std::string basename;	// base name of the scene/model, computed from filename
+	std::string basepath;	// base path name of the scene/model, computed from filename
 
 	vector3f min, max;
 

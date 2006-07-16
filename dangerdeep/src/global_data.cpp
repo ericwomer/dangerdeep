@@ -71,7 +71,7 @@ image *titlebackgrimg, *threesubsimg, *damage_screen_background,
 
 bool loading_screen_usable = false;
 
-objcachet<class model> modelcache(get_model_dir());
+objcachet<class model> modelcache(get_data_dir());
 objcachet<class image> imagecache(get_image_dir());
 objcachet<class texture> texturecache(get_texture_dir());
 objcachet<class sound> soundcache(get_sound_dir());

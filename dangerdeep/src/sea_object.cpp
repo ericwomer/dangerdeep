@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texts.h"
 #include "ai.h"
 #include "game.h"
+#include "datadirs.h"
 
 
 const double earthperimeter2 = 20015086.795;
@@ -137,7 +138,7 @@ void sea_object::set_sensor ( sensor_system ss, sensor* s )
 
 double sea_object::get_cross_section ( const vector2& d ) const
 {
-	model* mdl = modelcache.find(modelname);
+	model* mdl = modelcache.find(data_file().get_rel_path(specfilename) + modelname);
 	if (mdl) {
 		vector2 r = get_pos().xy() - d;
 		angle diff = angle(r) - get_heading();
@@ -158,7 +159,7 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 	  invulnerable(false), country(UNKNOWNCOUNTRY), party(UNKNOWNPARTY),
 	  redetect_time(0)
 {
-	model* mdl = modelcache.ref(modelname);
+	model* mdl = modelcache.ref(data_file().get_rel_path(specfilename) + modelname);
 	size3d = vector3f(mdl->get_width(), mdl->get_length(), mdl->get_height());
 }
 
@@ -174,7 +175,7 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 	xml_elem cl = parent.child("classification");
 	specfilename = cl.attr("identifier");
 	modelname = cl.attr("modelname");
-	model* mdl = modelcache.ref(modelname);
+	model* mdl = modelcache.ref(data_file().get_rel_path(specfilename) + modelname);
 	size3d = vector3f(mdl->get_width(), mdl->get_length(), mdl->get_height());
 	string countrystr = cl.attr("country");
 	country = UNKNOWNCOUNTRY;
@@ -243,7 +244,7 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 
 sea_object::~sea_object()
 {
-	modelcache.unref(modelname);
+	modelcache.unref(data_file().get_rel_path(specfilename) + modelname);
 	for (unsigned i = 0; i < sensors.size(); i++)
 		delete sensors[i];
 }
@@ -514,7 +515,7 @@ vector2 sea_object::get_engine_noise_source () const
 
 void sea_object::display() const
 {
-	model* mdl = modelcache.find(modelname);
+	model* mdl = modelcache.find(data_file().get_rel_path(specfilename) + modelname);
 
 	if ( mdl )
 		mdl->display ();
@@ -524,7 +525,7 @@ void sea_object::display() const
 
 void sea_object::display_mirror_clip() const
 {
-	model* mdl = modelcache.find(modelname);
+	model* mdl = modelcache.find(data_file().get_rel_path(specfilename) + modelname);
 
 	if ( mdl )
 		mdl->display_mirror_clip();

@@ -1237,38 +1237,21 @@ class vessel_view
 	// note! this is not destructed by this class...
 	widget_3dview* w3d;
 	auto_ptr<model> load_model() {
-		xml_doc doc(*current);
+		xml_doc doc(data_file().get_filename(*current));
 		doc.load();
 		string mdlname = doc.first_child().child("classification").attr("modelname");
-		return auto_ptr<model>(new model(get_model_dir() + mdlname));
+		return auto_ptr<model>(new model(data_file().get_path(*current) + mdlname));
 	}
 public:
 	vessel_view()
 		: current(shipnames.end()), w3d(0)
 	{
 		color bgcol(50, 50, 150);
-		string tmp;
-		// fixme: just read data_file().ship/sub lists here and store paths of them
-		directory d = open_dir(get_ship_dir());
-		do {
-			tmp = read_dir(d);
-			if (tmp.length() > 4) {
-				string suffix = tmp.substr(tmp.length()-4);
-				if (suffix == ".xml") {
-					shipnames.push_back(get_ship_dir() + tmp);
-				}
-			}
-		} while (tmp.length() > 0);
-		d = open_dir(get_submarine_dir());
-		do {
-			tmp = read_dir(d);
-			if (tmp.length() > 4) {
-				string suffix = tmp.substr(tmp.length()-4);
-				if (suffix == ".xml") {
-					shipnames.push_back(get_submarine_dir() + tmp);
-				}
-			}
-		} while (tmp.length() > 0);
+		shipnames = data_file().get_ship_list();
+		list<string> tmp = data_file().get_submarine_list();
+		shipnames.splice(shipnames.end(), tmp);
+		tmp = data_file().get_airplane_list();
+		shipnames.splice(shipnames.end(), tmp);
 		current = shipnames.begin();
 		w3d = new widget_3dview(20, 0, 1024-2*20, 700-32-16, load_model(), bgcol);
 		vector3f lightdir = vector3f(angle(143).cos(), angle(143).sin(), angle(49.5).tan()).normal(); 
