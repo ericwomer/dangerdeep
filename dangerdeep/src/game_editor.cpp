@@ -80,7 +80,7 @@ game_editor::game_editor()
 
 	submarine* psub = 0;
 	for (unsigned i = 0; i < 1/*nr_of_players*/; ++i) {
-		xml_doc doc(get_submarine_dir() + subtype + ".xml");
+		xml_doc doc(data_file().get_filename(subtype));
 		doc.load();
 		submarine* sub = new submarine(*this, doc.first_child());
 		sub->init_fill_torpedo_tubes(date(1939, 9, 1) /*currentdate*/);

@@ -173,7 +173,7 @@ unsigned sub_torpedo_display::get_tube_below_mouse(const vector<vector2i>& tubec
 
 
 sub_torpedo_display::sub_torpedo_display(user_interface& ui_) :
-	user_display(ui_), torptranssrc(ILLEGAL_TUBE), desc_texts(get_torpedo_dir()),
+	user_display(ui_), torptranssrc(ILLEGAL_TUBE), desc_texts(get_torpedo_dir()),//fixme: get rid of torpedo_dir here!
 	mx(0), my(0), mb(0), torp_desc_line(0)
 {
 	// maybe ref (cache!) torpedo images here instead of loading them?

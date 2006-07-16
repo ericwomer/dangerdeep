@@ -1248,6 +1248,7 @@ public:
 	{
 		color bgcol(50, 50, 150);
 		string tmp;
+		// fixme: just read data_file().ship/sub lists here and store paths of them
 		directory d = open_dir(get_ship_dir());
 		do {
 			tmp = read_dir(d);

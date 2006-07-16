@@ -101,7 +101,7 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
                     if (r == 9) shiptype = "fortship_can1943_data";
 					if (r == 10) shiptype = "fortship_nolisciv_data";
 				}
-				xml_doc doc(get_ship_dir() + shiptype + ".xml");
+				xml_doc doc(data_file().get_filename(shiptype));
 				doc.load();
 				ship* s = new ship(gm, doc.first_child());
 				vector2 pos = vector2(
@@ -136,7 +136,7 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 			ny *= (int(nrescs/4)-1)*interescortdist-int(i/4)*interescortdist;
 			unsigned esctp = rnd(2);
 			string shiptype = (esctp == 0 ? "destroyer_tribal" : "corvette");
-			xml_doc doc(get_ship_dir() + shiptype + ".xml");
+			xml_doc doc(data_file().get_filename(shiptype));
 			doc.load();
 			ship* s = new ship(gm, doc.first_child());
 			vector2 pos = vector2(

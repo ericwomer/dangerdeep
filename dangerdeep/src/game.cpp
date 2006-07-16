@@ -200,7 +200,7 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	vector<angle> subangles;
 	submarine* psub = 0;
 	for (unsigned i = 0; i < nr_of_players; ++i) {
-		xml_doc doc(get_submarine_dir() + subtype + ".xml");
+		xml_doc doc(data_file().get_filename(subtype));
 		doc.load();
 		submarine* sub = new submarine(*this, doc.first_child());
 		sub->init_fill_torpedo_tubes(currentdate);
@@ -297,7 +297,7 @@ game::game(const string& filename)
 	// there must be ships in a mission...
 	xml_elem sh = sg.child("ships");
 	for (xml_elem::iterator it = sh.iterate("ship"); !it.end(); it.next()) {
-		xml_doc spec(get_ship_dir() + it.elem().attr("type") + ".xml");
+		xml_doc spec(data_file().get_filename(it.elem().attr("type")));
 		spec.load();
 		ships.push_back(new ship(*this, spec.first_child()));
 	}
@@ -305,7 +305,7 @@ game::game(const string& filename)
 	// there must be submarines in a mission...
 	xml_elem su = sg.child("submarines");
 	for (xml_elem::iterator it = su.iterate("submarine"); !it.end(); it.next()) {
-		xml_doc spec(get_submarine_dir() + it.elem().attr("type") + ".xml");
+		xml_doc spec(data_file().get_filename(it.elem().attr("type")));
 		spec.load();
 		submarines.push_back(new submarine(*this, spec.first_child()));
 	}
@@ -313,7 +313,7 @@ game::game(const string& filename)
 	if (sg.has_child("airplanes")) {
 		xml_elem ap = sg.child("airplanes");
 		for (xml_elem::iterator it = ap.iterate("airplane"); !it.end(); it.next()) {
-			xml_doc spec(get_airplane_dir() + it.elem().attr("type") + ".xml");
+			xml_doc spec(data_file().get_filename(it.elem().attr("type")));
 			spec.load();
 			airplanes.push_back(new airplane(*this, spec.first_child()));
 		}
@@ -322,7 +322,7 @@ game::game(const string& filename)
 	if (sg.has_child("torpedoes")) {
 		xml_elem tp = sg.child("torpedoes");
 		for (xml_elem::iterator it = tp.iterate("torpedo"); !it.end(); it.next()) {
-			xml_doc spec(get_torpedo_dir() + it.elem().attr("type") + ".xml");
+			xml_doc spec(data_file().get_filename(it.elem().attr("type")));
 			spec.load();
 			torpedoes.push_back(new torpedo(*this, spec.first_child()));
 		}

@@ -625,6 +625,7 @@ void run_gui()
 {
         model_load_dialog ml;
 
+	// fixme: use data_file() 's lists here, no parsing of directories
         ml.get_model_list(get_ship_dir());
         ml.get_model_list(get_submarine_dir());
         ml.get_model_list(get_airplane_dir());

@@ -447,17 +447,9 @@ map_display::map_display(user_interface& ui_) :
 		edit_panel_add->add_child(edit_shiplist);
 		edit_panel_add->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_add.get(), &widget::close, EPFG_SHIPADDED,  20, 768-3*32-8, 512-20, 32, texts::get(224)));
 		edit_panel_add->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_add.get(), &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
-		string tmp;
-		directory d = open_dir(get_ship_dir());
-		do {
-			tmp = read_dir(d);
-			if (tmp.length() > 4) {
-				string suffix = tmp.substr(tmp.length()-4);
-				if (suffix == ".xml") {
-					edit_shiplist->append_entry(tmp.substr(0, tmp.length()-4));
-				}
-			}
-		} while (tmp.length() > 0);
+		for (list<string>::const_iterator it = data_file().get_ship_list().begin(); it != data_file().get_ship_list().end(); ++it) {
+			edit_shiplist->append_entry(*it);
+		}
 
 		// create "motion edit" window
 		// open widget with text edits: course, speed, throttle
@@ -581,8 +573,7 @@ void map_display::edit_copy_obj(game_editor& gm)
 		ship* s = dynamic_cast<ship*>(*it);
 		submarine* su = dynamic_cast<submarine*>(*it);
 		if (s && su == 0) {
-			string shipname = get_ship_dir() + s->get_specfilename() + ".xml";
-			xml_doc spec(shipname);
+			xml_doc spec(data_file().get_filename(s->get_specfilename()));
 			spec.load();
 			ship* s2 = new ship(gm, spec.first_child());
 			// set pos and other values etc.
@@ -942,8 +933,7 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 				int retval = edit_panel_fg->get_return_value();
 				if (retval == EPFG_SHIPADDED) {
 					// add ship
-					string shipname = get_ship_dir() + edit_shiplist->get_selected_entry() + ".xml";
-					xml_doc spec(shipname);
+					xml_doc spec(data_file().get_filename(edit_shiplist->get_selected_entry()));
 					spec.load();
 					auto_ptr<ship> shp(new ship(gm, spec.first_child()));
 					// set pos and other values etc.

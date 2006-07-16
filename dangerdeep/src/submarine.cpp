@@ -156,7 +156,7 @@ submarine::stored_torpedo::stored_torpedo()
 submarine::stored_torpedo::stored_torpedo(game& gm, const std::string& type)
 	: torp(0), status(st_loaded), associated(0), remaining_time(0), preheating(false)
 {
-	xml_doc doc(get_torpedo_dir() + type + ".xml");
+	xml_doc doc(data_file().get_filename(type));
 	doc.load();
 	torp = new torpedo(gm, doc.first_child());
 }
@@ -172,7 +172,7 @@ void submarine::stored_torpedo::load(game& gm, const xml_elem& parent)
 	preheating = parent.attrb("preheating");
 	if (parent.has_child("torpedo")) {
 		xml_elem tp = parent.child("torpedo");
-		xml_doc doc(get_torpedo_dir() + tp.attr("type") + ".xml");
+		xml_doc doc(data_file().get_filename(tp.attr("type")));
 		doc.load();
 		delete torp;
 		torp = 0;
