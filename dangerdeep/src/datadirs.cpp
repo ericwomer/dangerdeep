@@ -48,11 +48,13 @@ void data_file_handler::parse_for_data_files(std::string dir, std::list<std::str
 {
 	directory d = open_dir(dir);
 	for (std::string f = read_dir(d); !f.empty(); f = read_dir(d)) {
-		if (is_directory(dir + f)) {
+		if (f[0] == '.' || f == "CVS") {
+			// avoid . and .. entries, as well as hidden files, and CVS directories as well
+			continue;
+		} else if (is_directory(dir + f)) {
 			parse_for_data_files(dir + f + "/", idlist);
 		} else if (f.length() > data_file_ext.length() && f.substr(f.length() - data_file_ext.length()) == data_file_ext) {
 			std::string id = f.substr(0, f.length() - data_file_ext.length());
-			printf("found for id=%s a filepath=%s\n", id.c_str(), dir.c_str());
 			data_files[id] = dir;
 			idlist.push_back(id);
 		}
