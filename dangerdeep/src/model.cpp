@@ -194,7 +194,6 @@ model::model(const string& filename, bool use_material)
 	basepath = (st == string::npos) ? "" : filename.substr(0, st+1);
 	basename = filename.substr(basepath.length(),
 				   filename.length()-basepath.length()-extension.length());
-	printf("filename=%s basename=%s\n", filename.c_str(), basename.c_str());
 
 	string filename2 = filename;
 	FILE* ftest = fopen(filename2.c_str(), "rb");
