@@ -4,10 +4,13 @@
   <description>
     <far lang="en">Airplane</far>
     <far lang="de">Flugzeug</far>
+    <far lang="it">Aeroplano</far>
     <medium lang="en">Seaplane</medium>
     <medium lang="de">Seeflugzeug</medium>
+    <medium lang="it">Aeroplano imbarcato</medium>
     <near lang="en">Heinkel He115B-1</near>
     <near lang="de">Heinkel He115B-1</near>
+    <near lang="it">Heinkel He115B-1</near>
   </description>
   <motion maxspeed="365" maxrevspeed="0" acceleration="1.0" turnrate="1.0"/>
   <sensors>

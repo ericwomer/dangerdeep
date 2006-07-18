@@ -4,10 +4,13 @@
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>
+    <far lang="it">Nave a vapore</far>
     <medium lang="en">Merchant ship</medium>
     <medium lang="de">Handelsschiff</medium>
+    <medium lang="it">Mercantile</medium>
     <near lang="en">Fort ship (North Sands class merchant)</near>
-    <near lang="de">Fort Handelsschiff (North sands sschiff)</near>
+    <near lang="de">Fort Handelsschiff (North-Sands-Klasse)</near>
+    <near lang="it">Mercantile Fort (Mercantile di classe North sands)</near>
   </description>
   <motion maxspeed="1" maxrevspeed="0" acceleration="0.1" turnrate="0.1"/>
   <tonnage min="7132" max="10000"/>

@@ -4,10 +4,13 @@
   <description>
     <far lang="en">Convoy escort</far>
     <far lang="de">Geleitschiff</far>
+    <far lang="it">Nave di scorta</far>
     <medium lang="en">Destroyer</medium>
     <medium lang="de">Zerstörer</medium>
+    <medium lang="it">Cacciatorpediniere</medium>
     <near lang="en">Destroyer O class</near>
     <near lang="de">Zerstörer O-Klasse</near>
+    <near lang="it">Cacciatorpediniere di Classe O</near>
   </description>
   <motion maxspeed="36" maxrevspeed="0" acceleration="1.0" turnrate="0.15"/>
   <tonnage min="1540" max="1540"/>

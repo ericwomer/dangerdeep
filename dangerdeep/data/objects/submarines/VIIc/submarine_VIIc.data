@@ -4,10 +4,13 @@
   <description>
     <far lang="en">Submarine</far>
     <far lang="de">U-Boot</far>
+    <far lang="it">Sommergibile</far>
     <medium lang="en">Diesel submarine</medium>
     <medium lang="de">Diesel-U-Boot</medium>
+    <medium lang="it">Sommergibile diesel</medium>
     <near lang="en">Submarine type VIIc</near>
     <near lang="de">U-Boot Typ VIIc</near>
+    <near lang="it">Sommergibile Tipo VIIc</near>
   </description>
   <motion maxspeed="17.7" maxrevspeed="5" acceleration="0.6" turnrate="0.2">
     <submerged maxspeed="7.6" safedepth="220" maxdepth="240"/>

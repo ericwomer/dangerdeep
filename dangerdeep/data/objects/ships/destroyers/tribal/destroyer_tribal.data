@@ -4,10 +4,13 @@
   <description>
     <far lang="en">Convoy escort</far>
     <far lang="de">Geleitschiff</far>
+    <far lang="it">Nave di scorta</far>
     <medium lang="en">Destroyer</medium>
     <medium lang="de">Zerstörer</medium>
+    <medium lang="it">Cacciatorpediniere</medium>
     <near lang="en">Destroyer Tribal class</near>
     <near lang="de">Zerstörer Tribal-Klasse</near>
+    <near lang="it">Cacciatorpediniere di classe Tribal</near>
   </description>
   <motion maxspeed="34" maxrevspeed="0" acceleration="1.0" turnrate="0.15"/>
   <tonnage min="1500" max="3000"/>
