@@ -57,14 +57,34 @@ int main(int argc, char** argv)
 	  Which frequencies are stored? 1/1,1/2,1/3,...1/128 ???
 	*/
 
-	ocean_wave_generator<float> owg3(resbig,	// wave resolution
+	ocean_wave_generator<float> owg1(resbig,	// wave resolution
 					 vector2f(1,1),	// wind dir
 					 12,	// wind speed m/s
 					 1e-8,	// scale factor "A"
 					 256,	// wave tile length
 					 10);	// tide cycle time in seconds
 	srand(1234);
-	ocean_wave_generator<float> owg1(owg3, resbig, 32);
+	// if we delete the higher 256 frequencies, it doesn't seem to make
+	// any difference (with a 1024 original resolution)
+	// if we delete the higher 384 frequencies only very tiny differences
+	// occur, that can be seen only when comparing the two images in gimp
+	// with max. contrast.
+	// 512 is way too much removed, 480 too less, 500 too much. 490 too less.
+	// 496-498 seems to match the upscaled 128->1024-version, but shows some
+	// rectangular artefacts. A bit ugly...
+	// with 498 there is 498/512 frequencies removed in each direction,
+	// so only upper 14 frequencies remain. No wonder the picture shows
+	// rectangular structures. The question is if we compute a 1024 with top
+	// removed 16 and low removed rest and combine that, would it look like
+	// the original?
+	ocean_wave_generator<float> owg3(owg1, resbig, -498);
+
+	srand(1234);
+
+	ocean_wave_generator<float> owg4(owg1, resbig, 512-498);
+
+	srand(1234);
+
 /*
 	ocean_wave_generator<float> owg2(ressml,	// wave resolution
 					 vector2f(1,1),	// wind dir
@@ -79,12 +99,22 @@ int main(int argc, char** argv)
 	owg1.set_time(0);
 	srand(1234);
 	owg2.set_time(0);
+	srand(1234);
+	owg3.set_time(0);
+	srand(1234);
+	owg4.set_time(0);
 	vector<float> heights1;
 	vector<float> heights2;
+	vector<float> heights5;
+	vector<float> heights6;
 	cout << "gen 1...\n";
 	owg1.compute_heights(heights1);
 	cout << "gen 2...\n";
 	owg2.compute_heights(heights2);
+	cout << "gen 3...\n";
+	owg3.compute_heights(heights5);
+	cout << "gen 4...\n";
+	owg4.compute_heights(heights6);
 
 	// compute an interpolated version of the lower one
 	vector<float> heights3 = heights1;
@@ -111,6 +141,14 @@ int main(int argc, char** argv)
 	for (unsigned i = 0; i < heights3.size(); ++i) {
 		heights4[i] = heights1[i] - heights3[i];
 	}
+
+	// add 5+6 -> 7
+	vector<float> heights7 = heights5;
+	for (unsigned i = 0; i < heights7.size(); ++i)
+		// we seem to need some scaling here, but in theory we shouldn't.
+		// so the way we create the maps and add them doesnt seem to be the same
+		// as creating it in one step with one FFT.
+		heights7[i] += heights6[i] * 0.5;
 
 	float minh = 1e10;
 	float maxh = -1e10;
@@ -170,6 +208,51 @@ int main(int argc, char** argv)
 	for (vector<float>::const_iterator it = heights4.begin(); it != heights4.end(); ++it) {
 		Uint8 h = Uint8((*it - minh)*255.9/(maxh - minh));
 		osg4.write((const char*)&h, 1);
+	}
+
+	minh = 1e10;
+	maxh = -1e10;
+	for (vector<float>::const_iterator it = heights5.begin(); it != heights5.end(); ++it) {
+		minh = fmin(minh, *it);
+		maxh = fmax(maxh, *it);
+	}
+	cout << "5: minh " << minh << " maxh " << maxh << "\n";
+	ofstream osg5("waveh5.pgm");
+	osg5 << "P5\n";
+	osg5 << resbig <<" "<< resbig <<"\n255\n";
+	for (vector<float>::const_iterator it = heights5.begin(); it != heights5.end(); ++it) {
+		Uint8 h = Uint8((*it - minh)*255.9/(maxh - minh));
+		osg5.write((const char*)&h, 1);
+	}
+
+	minh = 1e10;
+	maxh = -1e10;
+	for (vector<float>::const_iterator it = heights6.begin(); it != heights6.end(); ++it) {
+		minh = fmin(minh, *it);
+		maxh = fmax(maxh, *it);
+	}
+	cout << "6: minh " << minh << " maxh " << maxh << "\n";
+	ofstream osg6("waveh6.pgm");
+	osg6 << "P5\n";
+	osg6 << resbig <<" "<< resbig <<"\n255\n";
+	for (vector<float>::const_iterator it = heights6.begin(); it != heights6.end(); ++it) {
+		Uint8 h = Uint8((*it - minh)*255.9/(maxh - minh));
+		osg6.write((const char*)&h, 1);
+	}
+
+	minh = 1e10;
+	maxh = -1e10;
+	for (vector<float>::const_iterator it = heights7.begin(); it != heights7.end(); ++it) {
+		minh = fmin(minh, *it);
+		maxh = fmax(maxh, *it);
+	}
+	cout << "7: minh " << minh << " maxh " << maxh << "\n";
+	ofstream osg7("waveh7.pgm");
+	osg7 << "P5\n";
+	osg7 << resbig <<" "<< resbig <<"\n255\n";
+	for (vector<float>::const_iterator it = heights7.begin(); it != heights7.end(); ++it) {
+		Uint8 h = Uint8((*it - minh)*255.9/(maxh - minh));
+		osg7.write((const char*)&h, 1);
 	}
 
 	return 0;

@@ -92,8 +92,10 @@ public:
 		T tilesize = T(100.0),
 		T cycletime = T(10.0)
 	);
+	// make a (smaller) copy, gridsize must be <= owg.gridsize,
+	// clearlowfreq optionally clears lower frequencies, if it is < 0, it clears higher frequencies.
 	ocean_wave_generator(const ocean_wave_generator<T>& owg, int gridsize,
-			     int clearlowfreq = 0); // make a (smaller) copy, gridsize must be <= owg.gridsize
+			     int clearlowfreq = 0);
 	void set_time(T time);	// call this before any compute_*() function
 	void compute_heights(vector<T>& waveheights) const;
 	// use this after height computation to avoid the overhead of fft normals
@@ -235,12 +237,30 @@ ocean_wave_generator<T>::ocean_wave_generator(const ocean_wave_generator<T>& owg
 			h0tilde[y*(N+1)+x] = owg.h0tilde[(y+offset)*(owg.N+1)+(x+offset)];
 		}
 	}
+	bool clearhigh = false;
+	if (clearlowfreq < 0) {
+		clearhigh = true;
+		clearlowfreq = -clearlowfreq;
+	}
 	// clear lower frequencies if requested
 	clearlowfreq = std::min(clearlowfreq, N/2+1);
-	clearlowfreq = std::max(clearlowfreq, 0);
-	for (int y = N/2+1-clearlowfreq; y <= N/2-1+clearlowfreq; ++y) {
-		for (int x = N/2+1-clearlowfreq; x <= N/2-1+clearlowfreq; ++x) {
-			h0tilde[y*(N+1)+x] = 0;
+	//clearlowfreq = std::max(clearlowfreq, 0);
+	if (clearhigh) {
+		// clear high frequencies
+		for (int y = 0; y < clearlowfreq; ++y) {
+			for (int x = 0; x < clearlowfreq; ++x) {
+				h0tilde[y*(N+1)+x] = 0;
+				h0tilde[y*(N+1)+(N-x)] = 0;
+				h0tilde[(N-y)*(N+1)+x] = 0;
+				h0tilde[(N-y)*(N+1)+(N-x)] = 0;
+			}
+		}
+	} else {
+		// clear low frequencies
+		for (int y = N/2+1-clearlowfreq; y <= N/2-1+clearlowfreq; ++y) {
+			for (int x = N/2+1-clearlowfreq; x <= N/2-1+clearlowfreq; ++x) {
+				h0tilde[y*(N+1)+x] = 0;
+			}
 		}
 	}
 	htilde.resize(N*(N/2+1));
