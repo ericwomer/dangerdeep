@@ -140,11 +140,11 @@ else:
 		ccflags += ' -g -O1'
 		env.Append(CPPDEFINES = ['DEBUG'])
 	elif (debug == -1):
-		ccflags += ' -g -O3 -march=athlon-xp -march=athlon-xp -mfpmath=sse -mmmx -msse -m3dnow'
+		ccflags += ' -g -O3 -march=athlon-xp -mfpmath=sse -mmmx -msse -m3dnow'
 	elif (debug == -2):	# special g++4.0+ auto vectorization
-		ccflags += ' -g -O3 -march=athlon-xp -march=athlon-xp -mfpmath=sse -mmmx -msse -m3dnow -ftree-vectorize -ftree-vectorizer-verbose=2'
+		ccflags += ' -g -O3 -march=athlon-xp -mfpmath=sse -mmmx -msse -m3dnow -ftree-vectorize -ftree-vectorizer-verbose=2'
 	elif (debug == -3):	# special g++4.0+ auto vectorization
-		ccflags += ' -g -O3 -march=athlon64 -march=athlon64 -mfpmath=sse -mmmx -msse -msse2 -m3dnow -ftree-vectorize -ftree-vectorizer-verbose=2'
+		ccflags += ' -g -O3 -march=athlon64 -mfpmath=sse -mmmx -msse -msse2 -m3dnow -ftree-vectorize -ftree-vectorizer-verbose=2'
 	else:
 		ccflags += ' -g -O2' # debug symbols will be stripped by the linker for a debian package
 	if (useefence >= 1):
