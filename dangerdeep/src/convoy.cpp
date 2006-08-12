@@ -85,8 +85,8 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 					unsigned r = rnd(5);
 					if (r == 0) shiptype = "troopship_medium";
 					if (r == 1) shiptype = "tanker_small";
-					if (r >= 2 && r <= 3) shiptype = "tanker_medium";
-					if (r == 4) shiptype = "northsands_camship_data";
+					if (r >= 2 && r <= 3) shiptype = "tanker_kennebak";
+					if (r == 4) shiptype = "northsands_camship";
 				} else {
 					unsigned r = rnd(11);
 					if (r == 0) shiptype = "merchant_large";
@@ -94,12 +94,12 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 					if (r == 2) shiptype = "merchant_small";
 					if (r == 3) shiptype = "freighter_large";
 					if (r == 4) shiptype = "freighter_medium";
-                    if (r == 5) shiptype = "libertyship_1941_data";
-                    if (r == 6) shiptype = "libertyship_1942_data";
-                    if (r == 7) shiptype = "libertyship_1943_data";
-                    if (r == 8) shiptype = "fortship_can1941_data";
-                    if (r == 9) shiptype = "fortship_can1943_data";
-					if (r == 10) shiptype = "fortship_nolisciv_data";
+					if (r == 5) shiptype = "libertyship1941";
+					if (r == 6) shiptype = "libertyship1942";
+					if (r == 7) shiptype = "libertyship1943";
+					if (r == 8) shiptype = "fortship1941";
+					if (r == 9) shiptype = "fortship1943";
+					if (r == 10) shiptype = "fortshipciv";
 				}
 				xml_doc doc(data_file().get_filename(shiptype));
 				doc.load();
