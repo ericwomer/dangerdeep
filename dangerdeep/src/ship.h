@@ -50,8 +50,9 @@ class ship : public sea_object
 
  public:
 	// give negative values for fixed speeds, positive values for knots.
-	enum throttle_status { reversefull=-9, reversehalf=-8, reverse=-7, aheadlisten=-6, aheadsonar=-5, aheadslow=-4,
-		aheadhalf=-3, aheadfull=-2, aheadflank=-1, stop=0  };
+	enum throttle_status { reversefull=-9, reversehalf=-8, reverse=-7 /* reverse slow */,
+			       aheadlisten=-6, aheadsonar=-5, aheadslow=-4,
+			       aheadhalf=-3, aheadfull=-2, aheadflank=-1, stop=0  };
 
 	enum rudder_status { rudderfullleft=-2, rudderleft=-1, ruddermidships=0, rudderright=1,
 		rudderfullright=2 };

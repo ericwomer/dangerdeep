@@ -287,14 +287,16 @@ double ship::get_throttle_speed() const
 	double ms = get_max_speed();
 	if (throttle <= 0) {
 		switch (throttle) {
-			case reverse: return -ms*0.25f;     // 1/4
-			case stop: return 0;
-			case aheadlisten: return ms*0.25f;  // 1/4
-			case aheadsonar: return ms*0.25f;   // 1/4
-			case aheadslow: return ms*0.33333f; // 1/3
-			case aheadhalf: return ms*0.5f;     // 1/2
-			case aheadfull: return ms*0.75f;    // 3/4
-			case aheadflank: return ms;
+		case reversefull: return -ms*0.5f; // 1/5 back slower than forward 
+		case reversehalf: return -ms*0.33333f; // 1/3
+		case reverse: return -ms*0.25f;     // 1/4
+		case stop: return 0;
+		case aheadlisten: return ms*0.25f;  // 1/4
+		case aheadsonar: return ms*0.25f;   // 1/4
+		case aheadslow: return ms*0.33333f; // 1/3
+		case aheadhalf: return ms*0.5f;     // 1/2
+		case aheadfull: return ms*0.75f;    // 3/4
+		case aheadflank: return ms;
 		}
 	} else {
 		double sp = kts2ms(throttle);

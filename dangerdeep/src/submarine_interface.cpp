@@ -254,6 +254,9 @@ void submarine_interface::process_input(const SDL_Event& event)
 			player->rudder_midships();
 			player->planes_middle();
 			add_message(texts::get(42));
+		} else if (mycfg.getkey(KEY_THROTTLE_LISTEN).equal(event.key.keysym)) {
+			player->set_throttle(ship::aheadlisten);
+			add_message(texts::get(767));
 		} else if (mycfg.getkey(KEY_THROTTLE_SLOW).equal(event.key.keysym)) {
 			player->set_throttle(ship::aheadslow);
 			add_message(texts::get(43));
@@ -272,6 +275,12 @@ void submarine_interface::process_input(const SDL_Event& event)
 		} else if (mycfg.getkey(KEY_THROTTLE_REVERSE).equal(event.key.keysym)) {
 			player->set_throttle(ship::reverse);
 			add_message(texts::get(48));
+		} else if (mycfg.getkey(KEY_THROTTLE_REVERSEHALF).equal(event.key.keysym)) {
+			player->set_throttle(ship::reversehalf);
+			add_message(texts::get(768));
+		} else if (mycfg.getkey(KEY_THROTTLE_REVERSEFULL).equal(event.key.keysym)) {
+			player->set_throttle(ship::reversefull);
+			add_message(texts::get(769));
 		} else if (mycfg.getkey(KEY_FIRE_TUBE_1).equal(event.key.keysym)) {
 			fire_tube(player, 0);
 		} else if (mycfg.getkey(KEY_FIRE_TUBE_2).equal(event.key.keysym)) {

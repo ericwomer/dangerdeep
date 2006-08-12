@@ -53,8 +53,10 @@ class sub_gauges_display : public user_display
 	};
 
 	vector<indicator> indicators;
-
-	enum { compass, battery, compressor, diesel, bow_depth_rudder, stern_depth_rudder,
+// old control screen, now for type II, new one is for type VII, follows
+//	enum { compass, battery, compressor, diesel, bow_depth_rudder, stern_depth_rudder,
+//	       depth, knots, main_rudder, mt, nr_of_indicators };
+	enum { compass, bow_depth_rudder, stern_depth_rudder,
 	       depth, knots, main_rudder, mt, nr_of_indicators };
 
 	mutable int throttle_angle;        // mutable because it will be changed in display()

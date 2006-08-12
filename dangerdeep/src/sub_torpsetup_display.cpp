@@ -239,8 +239,8 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 			case 4: sub->set_throttle(ship::aheadlisten); break;
 			case 7: sub->set_throttle(ship::stop); break;
 			case 11: sub->set_throttle(ship::reverse); break;//fixme: various reverse speeds!
-			case 12: sub->set_throttle(ship::reverse); break;
-			case 13: sub->set_throttle(ship::reverse); break;
+			case 12: sub->set_throttle(ship::reversehalf); break;
+			case 13: sub->set_throttle(ship::reversefull); break;
 			case 14: sub->set_throttle(ship::reverse); break;
 			case 5: // diesel engines
 			case 6: // attention

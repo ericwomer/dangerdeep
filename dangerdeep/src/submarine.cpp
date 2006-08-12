@@ -1161,6 +1161,12 @@ void submarine::start_throttle_sound()
 {
 	user_interface* ui = gm.get_ui();
 	switch(get_throttle()) {
+	case ship::aheadlisten:
+		ui->play_fade_sound_effect(se_sub_screws_slow, this, this, true); 	
+		break;
+	case ship::aheadsonar:
+		ui->play_fade_sound_effect(se_sub_screws_slow, this, this, true); 	
+		break;
 	case ship::aheadslow:
 		ui->play_fade_sound_effect(se_sub_screws_slow, this, this, true); 	
 		break;
@@ -1174,9 +1180,15 @@ void submarine::start_throttle_sound()
 		ui->play_fade_sound_effect(se_sub_screws_very_fast, this, this, true); 	
 		break;
 	case ship::stop:
+		break;
 	case ship::reverse:
-	case ship::aheadlisten:
-	case ship::aheadsonar:
+		ui->play_fade_sound_effect(se_sub_screws_slow, this, this, true); 	
+		break;
+	case ship::reversehalf:
+		ui->play_fade_sound_effect(se_sub_screws_normal, this, this, true); 	
+		break;
+	case ship::reversefull:
+		ui->play_fade_sound_effect(se_sub_screws_fast, this, this, true); 	
 		break;
 	}
 }
@@ -1187,6 +1199,12 @@ void submarine::stop_throttle_sound()
 {
 	user_interface* ui = gm.get_ui();
 	switch(get_throttle()) {
+	case ship::aheadlisten:
+		ui->stop_fade_sound_effect(se_sub_screws_slow);
+		break;
+	case ship::aheadsonar:
+		ui->stop_fade_sound_effect(se_sub_screws_slow);
+		break;
 	case ship::aheadslow:
 		ui->stop_fade_sound_effect(se_sub_screws_slow);
 		break;
@@ -1200,9 +1218,15 @@ void submarine::stop_throttle_sound()
 		ui->stop_fade_sound_effect(se_sub_screws_very_fast);
 		break;
 	case ship::stop:
+		break;
 	case ship::reverse:
-	case ship::aheadlisten:
-	case ship::aheadsonar:
+		ui->stop_fade_sound_effect(se_sub_screws_slow);
+		break;
+	case ship::reversehalf:
+		ui->stop_fade_sound_effect(se_sub_screws_normal);
+		break;
+	case ship::reversefull:
+		ui->stop_fade_sound_effect(se_sub_screws_fast);
 		break;
 	}	
 }

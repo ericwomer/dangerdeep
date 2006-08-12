@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "tokencodes.h"
 token tokens[] = {
+// the list here is unused.....! the parser is used only for reading the .csv files for text. fixme
 	token(TKN_SLPARAN, "{"),
 	token(TKN_SRPARAN, "}"),
 	token(TKN_TRUE, "true"),
@@ -51,6 +52,8 @@ token tokens[] = {
 	token(TKN_THROTTLE, "throttle"),
 	token(TKN_STOP, "stop"),
 	token(TKN_REVERSE, "reverse"),
+	token(TKN_REVERSEHALF, "reversehalf"),
+	token(TKN_REVERSEFULL, "reversefull"),
 	token(TKN_AHEADLISTEN, "listen"),
 	token(TKN_AHEADSONAR, "sonar"),
 	token(TKN_AHEADSLOW, "slow"),
