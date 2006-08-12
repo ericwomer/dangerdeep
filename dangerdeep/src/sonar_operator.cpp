@@ -133,7 +133,7 @@ void sonar_operator::simulate(game& gm, double delta_t)
 			// contact is not erased directly after reporting it...
 			current_angle += angle((turn_speed_fast - sub_turn_velocity) * simulation_step);
 		} else {
-			angle add = angle(((find_peak_try & 1 ? turn_speed_slow : -turn_speed_slow)
+			angle add = angle(( ((find_peak_try & 1) ? 1 : -1) * turn_speed_slow
 					   - sub_turn_velocity) * simulation_step);
 			if (keeps_in_find_peak_limit(add)) {
 				// continue turning in that direction
