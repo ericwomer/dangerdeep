@@ -84,7 +84,7 @@ directory open_dir(const string& filename)
 	directory d;
 	d.dir = opendir(filename.c_str());
 	if (!d.dir) {
-		throw error("Error opening folder; '" + filename + "'" );
+		throw error("Error opening directory '" + filename + "'" );
 	}
 	return d;
 }
