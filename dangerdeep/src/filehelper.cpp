@@ -83,8 +83,12 @@ directory open_dir(const string& filename)
 {
 	directory d;
 	d.dir = opendir(filename.c_str());
+	if (!d.dir) {
+		throw error("Error opening folder; '" + filename + "'" );
+	}
 	return d;
 }
+
 string read_dir(directory& d)
 {
 	struct dirent* dir_entry = readdir(d.dir);

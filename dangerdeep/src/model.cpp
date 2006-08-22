@@ -828,6 +828,8 @@ void model::mesh::display(bool use_display_list) const
 	glPushMatrix();
 	transformation.multiply_glf();
 
+	// with skins, we can't use display lists right here...
+
 	if (display_list != 0 && use_display_list) {
 		glCallList(display_list);
 		glPopMatrix();
@@ -1357,6 +1359,7 @@ void model::material::map::write_to_dftd_model_file(xml_elem& parent,
 						    const std::string& type, bool withtrans) const
 {
 	xml_elem mmap = parent.add_child("map");
+	// write here possible skin children, fixme
 	mmap.set_attr(type, "type");
 	mmap.set_attr(filename, "filename");
 	if (withtrans) {
@@ -1882,6 +1885,7 @@ void model::read_dftd_model_file(const std::string& filename)
 
 			for (xml_elem::iterator it2 = e.iterate("map"); !it2.end(); it2.next()) {
 				xml_elem emap = it2.elem();
+				// check here for possible children of type "skin", fixme
 				string type = emap.attr("type");
 				if (type == "diffuse") {
 					mat->colormap.reset(new material::map(emap));

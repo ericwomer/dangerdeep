@@ -50,6 +50,11 @@ public:
 			float uscal, vscal, uoffset, voffset;
 			float angle;	// uv rotation angle;
 			std::auto_ptr<texture> mytexture;
+			//fixme: add list of additional skins if available.	
+			//indexed by region,country,time period. per entry one texture.
+			//mytexture is then default.
+			//fixme: change that mytexture is created on first use, as for each
+			//skin entry, but not earlier to avoid wasting space.
 			map();
 			void init(const string& basepath, texture::mapping_mode mapping, bool makenormalmap = false,
 				  float detailh = 1.0f, bool rgb2grey = false);
@@ -287,6 +292,9 @@ public:
 	// get min/max translation values of an object. returns 0/0 if object does not exist
 	vector2f get_object_translation_constraints(unsigned objid);
 	vector2f get_object_translation_constraints(const std::string& objname);
+
+	// fixme: add a register_attribute() function here (and unregister)
+	// to make all maps load their textures with these attributes.
 };	
 
 #endif
