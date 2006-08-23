@@ -1,0 +1,42 @@
+Region Codes:
+
+WA		- Western Approaches
+NA		- North Atlantic
+CA		- Central Atlantic
+SA		- South Atlantic
+MS		- Mediterranean Sea
+CS		- Caribbean Sea
+IO		- Indic Ocean
+NP		- North Pacific
+CP		- Central Pacific
+SP		- South Pacific (not visible in the map)
+GM		- Gulf of Mexico
+ES		- Aegean Sea
+BB		- Bay of Biscay
+CH 		- Channel Area
+NS		- North Sea
+BS		- Baltic Sea
+BL		- Black Sea
+UC		- US East Coast
+SC		- South American Coast
+AS		- Arctic Sea (not visible in the map)
+NW		- Norwegian Sea
+BA		- Barents Sea
+CE		- Canada East Coast
+
+
+Navy Codes:
+
+RN		- Royal Navy
+KG		- Kriegsmarine
+UN 		- US Navy
+FN		- French Navy
+RU		- Russian Navy
+IN		- Italian Navy
+JN		- Japanese Navy
+CN		- Canadian Navy
+AN		- Australian Navy
+NZ		- New Zealand Navy
+NE		- Neutral Countries Navies
+CV		- Civilian vessels (civilian freighters, cruise liners, etc...)
+
