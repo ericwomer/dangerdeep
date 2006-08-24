@@ -1272,7 +1272,11 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 		xml_elem verts = msh.add_child("vertices");
 		verts.set_attr(unsigned(mp->vertices.size()), "nr");
 		ostringstream ossv;
+		//unsigned nrcrd = 0;
 		for (vector<vector3f>::const_iterator vit = mp->vertices.begin(); vit != mp->vertices.end(); ++vit) {
+			// add return after each 8th coordinate - doesn't work with tinyxml this way!
+			//if (nrcrd++ % 8 == 0)
+			//ossv << "\n";
 			ossv << vit->x << " " << vit->y << " " << vit->z << " ";
 		}
 		verts.add_child_text(ossv.str());
@@ -1281,7 +1285,11 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 		xml_elem indis = msh.add_child("indices");
 		indis.set_attr(unsigned(mp->indices.size()), "nr");
 		ostringstream ossi;
+		//unsigned nrind = 0;
 		for (vector<unsigned>::const_iterator iit = mp->indices.begin(); iit != mp->indices.end(); ++iit) {
+			// add return after each 32th index - doesn't work with tinyxml this way!
+			//if (nrind++ % 32 == 0)
+			//ossi << "\n";
 			ossi << *iit << " ";
 		}
 		indis.add_child_text(ossi.str());
@@ -1290,7 +1298,12 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 		if (mp->mymaterial) {
 			xml_elem texcs = msh.add_child("texcoords");
 			ostringstream osst;
-			for (vector<vector2f>::const_iterator tit = mp->texcoords.begin(); tit != mp->texcoords.end(); ++tit) {
+			//unsigned nrcrd = 0;
+			for (vector<vector2f>::const_iterator tit = mp->texcoords.begin();
+			     tit != mp->texcoords.end(); ++tit) {
+				// add return after each 8th coordinate - doesn't work with tinyxml this way!
+				//if (nrcrd++ % 8 == 0)
+				//osst << "\n";
 				osst << tit->x << " " << tit->y << " ";
 			}
 			texcs.add_child_text(osst.str());
@@ -1300,7 +1313,11 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 			// normals.
 			xml_elem nrmls = msh.add_child("normals");
 			ostringstream ossn;
+			//unsigned nrcrd = 0;
 			for (vector<vector3f>::const_iterator nit = mp->normals.begin(); nit != mp->normals.end(); ++nit) {
+				// add return after each 8th coordinate - doesn't work with tinyxml this way!
+				//if (nrcrd++ % 8 == 0)
+				//ossn << "\n";
 				ossn << nit->x << " " << nit->y << " " << nit->z << " ";
 			}
 			nrmls.add_child_text(ossn.str());
@@ -1369,6 +1386,14 @@ void model::material::map::write_to_dftd_model_file(xml_elem& parent,
 		mmap.set_attr(voffset, "voffset");
 		mmap.set_attr(angle, "angle");
 	}
+	/* fixme:
+	  if (has_skins...) {
+	  xml_elem skin = mmap.add_child("skin");
+	  skin.set_attr(regionstring, "regioncode");
+	  skin.set_attr(countrystring, "countrycode");
+	  skin.set_attr(datefrom, "datefrom");
+	  skin.set_attr(dateuntil, "dateuntil");
+	*/
 }
 
 model::material::map::map(const xml_elem& parent, bool withtrans)
@@ -1391,6 +1416,7 @@ model::material::map::map(const xml_elem& parent, bool withtrans)
 		if (parent.has_attr("angle"))
 			angle = parent.attrf("angle");
 	}
+	// if parent.has_child(skin)... fixme
 }
 
 // -------------------------------- end of dftd model file writing ------------------------------

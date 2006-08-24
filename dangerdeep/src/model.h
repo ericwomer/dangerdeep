@@ -23,6 +23,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef MODEL_H
 #define MODEL_H
 
+#define MODEL_HAS_SKIN_SUPPORT
+
 #include "vector3.h"
 #include "matrix4.h"
 #include "texture.h"
@@ -30,6 +32,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 #include <fstream>
 #include <memory>
+#ifdef MODEL_HAS_SKIN_SUPPORT
+#include "date.h"
+#include <set>
+#endif
 
 class xml_elem;
 
@@ -49,12 +55,21 @@ public:
 			std::string filename;	// also in mytexture, fixme
 			float uscal, vscal, uoffset, voffset;
 			float angle;	// uv rotation angle;
-			std::auto_ptr<texture> mytexture;
+			std::auto_ptr<texture> mytexture;	// default "skin"
 			//fixme: add list of additional skins if available.	
 			//indexed by region,country,time period. per entry one texture.
 			//mytexture is then default.
 			//fixme: change that mytexture is created on first use, as for each
 			//skin entry, but not earlier to avoid wasting space.
+#ifdef MODEL_HAS_SKIN_SUPPORT
+			struct skin {
+				texture* mytexture;
+				std::set<std::string> regions;
+				std::set<std::string> countries;
+				date periodstart, periodend;
+			};
+			list<skin> skins;
+#endif
 			map();
 			void init(const string& basepath, texture::mapping_mode mapping, bool makenormalmap = false,
 				  float detailh = 1.0f, bool rgb2grey = false);
