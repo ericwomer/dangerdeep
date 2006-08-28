@@ -617,19 +617,28 @@ model::material::map::map() : uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0
 
 
 
+#ifdef MODEL_HAS_SKIN_SUPPORT
+model::material::map::~map()
+{
+	for (list<skin>::iterator it = skins.begin(); it != skins.end(); ++it)
+		delete it->mytexture;
+}
+#endif
+
+
+
 void model::material::map::init(const string& basepath, texture::mapping_mode mapping, bool makenormalmap, float detailh,
 				bool rgb2grey)
 {
 	mytexture.reset();
 	if (filename.length() > 0) {
-		// fixme: which clamp mode should we use for models? REPEAT doesn't harm normally...
 		// try path where model is first, then global texture dir
 		try {
-			mytexture.reset(new texture(basepath + filename, mapping, texture::REPEAT,
+			mytexture.reset(new texture(basepath + filename, mapping, texture::CLAMP_TO_EDGE,
 						    makenormalmap, detailh, rgb2grey));
 		}
 		catch (texture::texerror& e) {
-			mytexture.reset(new texture(get_texture_dir() + filename, mapping, texture::REPEAT,
+			mytexture.reset(new texture(get_texture_dir() + filename, mapping, texture::CLAMP_TO_EDGE,
 						    makenormalmap, detailh, rgb2grey));
 		}
 	}
@@ -1386,15 +1395,32 @@ void model::material::map::write_to_dftd_model_file(xml_elem& parent,
 		mmap.set_attr(voffset, "voffset");
 		mmap.set_attr(angle, "angle");
 	}
-	/* fixme:
-	  if (has_skins...) {
-	  xml_elem skin = mmap.add_child("skin");
-	  skin.set_attr(regionstring, "regioncode");
-	  skin.set_attr(countrystring, "countrycode");
-	  skin.set_attr(datefrom, "datefrom");
-	  skin.set_attr(dateuntil, "dateuntil");
-	*/
 }
+
+#ifdef MODEL_HAS_SKIN_SUPPORT
+static void parse_codes(set<string>& codes, /*vector<string> available_codes, */ const string& codelist)
+{
+	if (codelist == "*") {
+		// all, fixme
+	} else {
+		string::size_type off = 0;
+		while (true) {
+			string::size_type comma = codelist.find(",", off);
+			if (comma == string::npos) {
+				codes.insert(codelist.substr(off));
+				break;
+			} else {
+				codes.insert(codelist.substr(off, comma - off));
+				off = comma + 1;
+			}
+		}
+	}
+// 	cout << "code table parsed from:\n" << codelist << "\n";
+// 	for (set<string>::iterator it = codes.begin(); it != codes.end(); ++it)
+// 		cout << *it << ",";
+// 	cout << "---\n";
+}
+#endif
 
 model::material::map::map(const xml_elem& parent, bool withtrans)
 	: uscal(1.0f), vscal(1.0f),
@@ -1416,7 +1442,34 @@ model::material::map::map(const xml_elem& parent, bool withtrans)
 		if (parent.has_attr("angle"))
 			angle = parent.attrf("angle");
 	}
-	// if parent.has_child(skin)... fixme
+#ifdef MODEL_HAS_SKIN_SUPPORT
+	if (parent.has_child("skin")) {
+		// redundant with for loop, but maybe we need special
+		// handling for skins later
+		for (xml_elem::iterator it = parent.iterate("skin"); !it.end(); it.next()) {
+			skin s;
+			if (it.elem().has_attr("regions")) {
+				// parse list of codes, fill regioncode set...
+				parse_codes(s.regions, /*region_codes, */ it.elem().attr("regions"));
+			}
+			if (it.elem().has_attr("countries")) {
+				// parse list of codes, fill countrycode set...
+				parse_codes(s.countries, /*region_codes, */ it.elem().attr("countries"));
+			}
+// 			if (it.elem().has_attr("from")) {
+// 				s.from = it.elem().attr("from");
+// 			}
+// 			if (it.elem().has_attr("until")) {
+// 				s.until = it.elem().attr("until");
+// 			}
+			s.filename = it.elem().attr("filename");
+			// load textures in init() function.
+// 			new texture(basepath + filename, mapping, texture::CLAMP_TO_EDGE,
+// 				    makenormalmap, detailh, rgb2grey));
+			skins.push_back(s);
+		}
+	}
+#endif
 }
 
 // -------------------------------- end of dftd model file writing ------------------------------

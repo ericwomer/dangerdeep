@@ -64,11 +64,19 @@ public:
 #ifdef MODEL_HAS_SKIN_SUPPORT
 			struct skin {
 				texture* mytexture;
+				std::string filename;
+				// rather use bitmasks or lists/sets of strings.
+				Uint32 regions_mask;
+				Uint32 countries_mask;
 				std::set<std::string> regions;
 				std::set<std::string> countries;
-				date periodstart, periodend;
+				//fixme: using date means class date has to go to the lib
+				// of gfx code, and with it texts, parser, tokenizer etc.
+				//date from, until;
+				skin() : mytexture(0), regions_mask(0), countries_mask(0) {}
 			};
 			list<skin> skins;
+			~map();
 #endif
 			map();
 			void init(const string& basepath, texture::mapping_mode mapping, bool makenormalmap = false,
