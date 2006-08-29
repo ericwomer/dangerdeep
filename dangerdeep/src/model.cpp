@@ -336,7 +336,7 @@ void model::mesh::compute_normals()
 	// from each vertex we find a vector in positive u direction
 	// and project it onto the plane given by the normal -> tangentx
 	// because normal maps use stored texture coordinates (x = positive u!)
-	if (mymaterial && mymaterial->normalmap.get() && mymaterial->normalmap->mytexture.get()) {
+	if (mymaterial && mymaterial->normalmap.get() && mymaterial->normalmap->has_texture()) {
 		tangentsx.clear();
 		tangentsx.resize(vertices.size(), vector3f(0, 0, 1));
 		righthanded.clear();
@@ -617,13 +617,11 @@ model::material::map::map() : uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0
 
 
 
-#ifdef MODEL_HAS_SKIN_SUPPORT
 model::material::map::~map()
 {
-	for (list<skin>::iterator it = skins.begin(); it != skins.end(); ++it)
-		delete it->mytexture;
+	for (std::map<string, skin>::iterator it = skins.begin(); it != skins.end(); ++it)
+		delete it->second.mytexture;
 }
-#endif
 
 
 
@@ -631,6 +629,7 @@ void model::material::map::init(const string& basepath, texture::mapping_mode ma
 				bool rgb2grey)
 {
 	mytexture.reset();
+	has_tex = false;
 	if (filename.length() > 0) {
 		// try path where model is first, then global texture dir
 		try {
@@ -641,6 +640,17 @@ void model::material::map::init(const string& basepath, texture::mapping_mode ma
 			mytexture.reset(new texture(get_texture_dir() + filename, mapping, texture::CLAMP_TO_EDGE,
 						    makenormalmap, detailh, rgb2grey));
 		}
+		has_tex = true;
+	}
+
+	// init skin maps here, fixme.
+	// only init the needed map, don't waste video memory, fixme
+	for (std::map<string, skin>::iterator it = skins.begin(); it != skins.end(); ++it) {
+		delete it->second.mytexture;	// paranoia
+		it->second.mytexture = 0;	// paranoia
+		it->second.mytexture =
+			new texture(basepath + filename, mapping, texture::CLAMP_TO_EDGE,
+				    makenormalmap, detailh, rgb2grey);
 	}
 }
 
@@ -681,6 +691,24 @@ void model::material::map::setup_glmatrix() const
 
 
 
+const texture* model::material::map::get_texmap(const std::string& layout) const
+{
+	std::map<string, skin>::const_iterator it = skins.find(layout);
+	if (it == skins.end())
+		return mytexture.get();
+	return it->second.mytexture;
+}
+
+
+
+void model::material::map::set_texture(texture* t)
+{
+	mytexture.reset(t);
+	has_tex = (t != 0);
+}
+
+
+
 void model::material::set_gl_values() const
 {
 	if (use_shaders) {
@@ -692,8 +720,10 @@ void model::material::set_gl_values() const
 	}
 
 	glActiveTexture(GL_TEXTURE0);
-	if (colormap.get() && colormap->mytexture.get()) {
-		if (normalmap.get() && normalmap->mytexture.get()) {
+	//fixme: checks like mytexture.get() != are bad for skins.
+	//rather add variable "bool has_texture"
+	if (colormap.get() && colormap->has_texture()) {
+		if (normalmap.get() && normalmap->has_texture()) {
 			// no opengl lighting in normal map mode.
 			glDisable(GL_LIGHTING);
 			// set primary color alpha to one.
@@ -711,10 +741,10 @@ void model::material::set_gl_values() const
 				glMaterialfv(GL_FRONT, GL_SPECULAR, coltmp);
 				glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
-				if (specularmap.get() && specularmap->mytexture.get()) {
+				if (specularmap.get() && specularmap->has_texture()) {
 					glActiveTexture(GL_TEXTURE2);
 					glEnable(GL_TEXTURE_2D);
-					specularmap->mytexture->set_gl_texture();
+					specularmap->set_gl_texture();
 					glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_programs[VFP_COLOR_NORMAL_SPECULAR]);
 					glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_programs[VFP_COLOR_NORMAL_SPECULAR]);
 				} else {
@@ -727,18 +757,19 @@ void model::material::set_gl_values() const
 
 				glActiveTexture(GL_TEXTURE1);
 				normalmap->setup_glmatrix();
-				normalmap->mytexture->set_gl_texture();
+				normalmap->set_gl_texture();
 
 				glActiveTexture(GL_TEXTURE0);
 				glEnable(GL_TEXTURE_2D);
-				colormap->mytexture->set_gl_texture();
+				// fixme: handle skins/layout here
+				colormap->set_gl_texture();
 				colormap->setup_glmatrix();
 
 			} else {
 				// standard OpenGL texturing with special tricks
 				glActiveTexture(GL_TEXTURE0);
 				normalmap->setup_glmatrix();
-				normalmap->mytexture->set_gl_texture();
+				normalmap->set_gl_texture();
 				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 				glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGBA); 
 				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
@@ -748,7 +779,7 @@ void model::material::set_gl_values() const
 				glActiveTexture(GL_TEXTURE1);
 				glEnable(GL_TEXTURE_2D);
 				colormap->setup_glmatrix();
-				colormap->mytexture->set_gl_texture();
+				colormap->set_gl_texture();
 
 				vector4t<GLfloat> ldifcol, lambcol;
 				glGetLightfv(GL_LIGHT0, GL_DIFFUSE, &ldifcol.x);
@@ -787,7 +818,8 @@ void model::material::set_gl_values() const
 			// same for texmap. Only shader with or without normalmap is much different!
 			glColor4f(1, 1, 1, 1);
 			glActiveTexture(GL_TEXTURE0);
-			colormap->mytexture->set_gl_texture();
+			//fixme: handle skins/layout here
+			colormap->set_gl_texture();
 			colormap->setup_glmatrix();
 //			cout << "uv off " << colormap->uoffset << "," << colormap->voffset << " ang " << colormap->angle << " scal " << colormap->uscal << "," << colormap->vscal << "\n";
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -816,11 +848,11 @@ void model::material::set_gl_values_mirror_clip() const
 	glEnable(GL_FRAGMENT_PROGRAM_ARB);
 	glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_programs[VFP_MIRROR_CLIP]);
 	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_programs[VFP_MIRROR_CLIP]);
-	if (colormap.get() && colormap->mytexture.get()) {
+	if (colormap.get() && colormap->has_texture()) {
 		// plain texture mapping with diffuse lighting only, but with shaders
 		glColor4f(1, 1, 1, 1);
 		glActiveTexture(GL_TEXTURE0);
-		colormap->mytexture->set_gl_texture();
+		colormap->set_gl_texture();
 		colormap->setup_glmatrix();
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		glActiveTexture(GL_TEXTURE1);
@@ -851,9 +883,9 @@ void model::mesh::display(bool use_display_list) const
 	bool has_texture_u0 = false, has_texture_u1 = false;
 	bool normalmapping = false;
 	if (mymaterial != 0) {
-		if (mymaterial->colormap.get() && mymaterial->colormap->mytexture.get())
+		if (mymaterial->colormap.get() && mymaterial->colormap->has_texture())
 			has_texture_u0 = true;
-		if (mymaterial->normalmap.get() && mymaterial->normalmap->mytexture.get())
+		if (mymaterial->normalmap.get() && mymaterial->normalmap->has_texture())
 			has_texture_u1 = true;
 		normalmapping = has_texture_u1;	// maybe more options here...
 		mymaterial->set_gl_values();
@@ -1006,7 +1038,7 @@ void model::mesh::display_mirror_clip() const
 
 	bool has_texture_u0 = false;
 	if (mymaterial != 0) {
-		if (mymaterial->colormap.get() && mymaterial->colormap->mytexture.get())
+		if (mymaterial->colormap.get() && mymaterial->colormap->has_texture())
 			has_texture_u0 = true;
 		// fixme: check for mirror
 		mymaterial->set_gl_values_mirror_clip();
@@ -1395,32 +1427,15 @@ void model::material::map::write_to_dftd_model_file(xml_elem& parent,
 		mmap.set_attr(voffset, "voffset");
 		mmap.set_attr(angle, "angle");
 	}
+	// skins
+	for (std::map<string, skin>::const_iterator it = skins.begin(); it != skins.end(); ++it) {
+		xml_elem s = mmap.add_child("skin");
+		s.set_attr(it->second.filename, "filename");
+		s.set_attr(it->first, "layout");
+	}
 }
 
-#ifdef MODEL_HAS_SKIN_SUPPORT
-static void parse_codes(set<string>& codes, /*vector<string> available_codes, */ const string& codelist)
-{
-	if (codelist == "*") {
-		// all, fixme
-	} else {
-		string::size_type off = 0;
-		while (true) {
-			string::size_type comma = codelist.find(",", off);
-			if (comma == string::npos) {
-				codes.insert(codelist.substr(off));
-				break;
-			} else {
-				codes.insert(codelist.substr(off, comma - off));
-				off = comma + 1;
-			}
-		}
-	}
-// 	cout << "code table parsed from:\n" << codelist << "\n";
-// 	for (set<string>::iterator it = codes.begin(); it != codes.end(); ++it)
-// 		cout << *it << ",";
-// 	cout << "---\n";
-}
-#endif
+
 
 model::material::map::map(const xml_elem& parent, bool withtrans)
 	: uscal(1.0f), vscal(1.0f),
@@ -1442,34 +1457,20 @@ model::material::map::map(const xml_elem& parent, bool withtrans)
 		if (parent.has_attr("angle"))
 			angle = parent.attrf("angle");
 	}
-#ifdef MODEL_HAS_SKIN_SUPPORT
-	if (parent.has_child("skin")) {
-		// redundant with for loop, but maybe we need special
-		// handling for skins later
-		for (xml_elem::iterator it = parent.iterate("skin"); !it.end(); it.next()) {
-			skin s;
-			if (it.elem().has_attr("regions")) {
-				// parse list of codes, fill regioncode set...
-				parse_codes(s.regions, /*region_codes, */ it.elem().attr("regions"));
-			}
-			if (it.elem().has_attr("countries")) {
-				// parse list of codes, fill countrycode set...
-				parse_codes(s.countries, /*region_codes, */ it.elem().attr("countries"));
-			}
-// 			if (it.elem().has_attr("from")) {
-// 				s.from = it.elem().attr("from");
-// 			}
-// 			if (it.elem().has_attr("until")) {
-// 				s.until = it.elem().attr("until");
-// 			}
-			s.filename = it.elem().attr("filename");
-			// load textures in init() function.
-// 			new texture(basepath + filename, mapping, texture::CLAMP_TO_EDGE,
-// 				    makenormalmap, detailh, rgb2grey));
-			skins.push_back(s);
-		}
+
+	// skins
+	for (xml_elem::iterator it = parent.iterate("skin"); !it.end(); it.next()) {
+		string layoutname = it.elem().attr("layout");
+		pair<std::map<string, skin>::iterator, bool> insok =
+			skins.insert(make_pair(layoutname, skin()));
+		if (!insok.second)
+			throw xml_error("layout names not unique", it.elem().doc_name());
+		skin& s = insok.first->second;
+		s.filename = it.elem().attr("filename");
+		// load textures in init() function.
+// 		new texture(basepath + filename, mapping, texture::CLAMP_TO_EDGE,
+// 			    makenormalmap, detailh, rgb2grey));
 	}
-#endif
 }
 
 // -------------------------------- end of dftd model file writing ------------------------------

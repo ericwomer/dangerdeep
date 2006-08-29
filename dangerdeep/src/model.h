@@ -23,8 +23,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef MODEL_H
 #define MODEL_H
 
-#define MODEL_HAS_SKIN_SUPPORT
-
 #include "vector3.h"
 #include "matrix4.h"
 #include "texture.h"
@@ -32,10 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 #include <fstream>
 #include <memory>
-#ifdef MODEL_HAS_SKIN_SUPPORT
-#include "date.h"
-#include <set>
-#endif
+#include <map>
 
 class xml_elem;
 
@@ -55,30 +50,24 @@ public:
 			std::string filename;	// also in mytexture, fixme
 			float uscal, vscal, uoffset, voffset;
 			float angle;	// uv rotation angle;
+
+		protected:
+			bool has_tex;	// true when filename was given
 			std::auto_ptr<texture> mytexture;	// default "skin"
-			//fixme: add list of additional skins if available.	
-			//indexed by region,country,time period. per entry one texture.
-			//mytexture is then default.
+
 			//fixme: change that mytexture is created on first use, as for each
 			//skin entry, but not earlier to avoid wasting space.
-#ifdef MODEL_HAS_SKIN_SUPPORT
 			struct skin {
 				texture* mytexture;
 				std::string filename;
-				// rather use bitmasks or lists/sets of strings.
-				Uint32 regions_mask;
-				Uint32 countries_mask;
-				std::set<std::string> regions;
-				std::set<std::string> countries;
-				//fixme: using date means class date has to go to the lib
-				// of gfx code, and with it texts, parser, tokenizer etc.
-				//date from, until;
-				skin() : mytexture(0), regions_mask(0), countries_mask(0) {}
+				skin() : mytexture(0) {}
 			};
-			list<skin> skins;
-			~map();
-#endif
+			// layout-name to skin mapping
+			std::map<std::string, skin> skins;
+		public:
 			map();
+			~map();
+			bool has_texture() const { return has_tex; }
 			void init(const string& basepath, texture::mapping_mode mapping, bool makenormalmap = false,
 				  float detailh = 1.0f, bool rgb2grey = false);
 			void write_to_dftd_model_file(xml_elem& parent, const std::string& type, bool withtrans = true) const;
@@ -86,6 +75,12 @@ public:
 			map(const xml_elem& parent, bool withtrans = true);
 			// set up opengl texture matrix with map transformation values
 			void setup_glmatrix() const;
+
+			const texture* get_texmap(const std::string& layout) const;
+			void set_gl_texture(const std::string& layout = "" /*fixme,give argument later*/) const {
+				get_texmap(layout)->set_gl_texture();
+			}
+			void set_texture(texture* t);
 		};
 	
 		std::string name;
