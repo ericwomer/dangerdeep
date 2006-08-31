@@ -245,6 +245,7 @@
 243;"Edit CV route";"Edit CV route";"Cambia la rotta del CV";"Edit CV route"
 244;"Name of convoy";"Name of convoy";"Nome del convoglio";"Name of convoy"
 245;"Convoy speed";"Convoy speed";"Velocità del convoglio";"Convoy speed"
+246;"Switch painting";"Andere Bemalung";"Switch painting";"Switch painting"
 300;"Type:\tT I\nRange:\t14.000m\nSpeed:\t30 kts\nruns straight\nG7a steam torpedo\ncontact fuse";"Typ:\tT I\nReichw.:\t14.000m\nGeschw.:\t30 kt\nläuft geradeaus\nG7a Dampftorpedo\nAufschlagzünder";"Tipo:\tT I\nPortata:\t14.000m\nVelocità:\t30 nodi\nNon guidato\nG7a siluro a vapore\nspoletta ad urto";"Tipo:\tT I\nAlcance:\t14.000m\nVelocidad:\t30 nudos\nTorpedo G7a\nde vapor no guiado\nespoleta de contacto"
 301;"Type:\tT II\nRange:\t5.000m\nSpeed:\t30 kts\nruns straight\nG7e electric torpedo\ncontact fuse";"Typ:\tT II\nReichw.:\t5.000m\nGeschw.:\t30 kt\nläuft geradeaus\nG7e elektrischer Torpedo\nAufschlagzünder";"Tipo:\tT II\nPortata:\t5.000m\nVelocità:\t30 nodi\nNon guidato\nG7e siluro elettrico\nspoletta ad urto";"Tipo:\tT II\nAlcance:\t5.000m\nVelocidad:\t30 nudos\nTorpedo G7e\neléctrico no guiado\nespoleta de contacto"
 302;"Type:\tT III\nRange:\t5.000m\nSpeed:\t30 kts\nruns straight\nG7e electric torpedo\ninfluence fuse";"Typ:\tT III\nReichw.:\t5.000m\nGeschw.:\t30 kt\nläuft geradeaus\nG7e elektrischer Torpedo\nMagnetzünder";"Tipo:\tT III\nPortata:\t5.000m\nVelocità:\t30 nodi\nNon guidato\nG7e siluro elettrico\nspoletta di prossimità";"Tipo:\tT III\nAlcance:\t5.000m\nVelocidad:\t30 nudos\nTorpedo G7e\neléctrico no guiado\nespoleta de proximidad"

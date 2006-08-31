@@ -439,6 +439,7 @@ public:
 	widget_3dview(int x, int y, int w, int h, std::auto_ptr<model> mdl, color bgcol, widget* parent_ = 0);
 	void draw() const;
 	void set_model(std::auto_ptr<model> mdl_);
+	model* get_model() { return mdl.get(); }
 	// widget will handle orientation itself. also user input for changing that...
 	// void set_orientation() / set_translation() <- later.
 	void set_light_dir(const vector4f& ld) { lightdir = ld; }

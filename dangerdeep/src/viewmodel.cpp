@@ -64,6 +64,8 @@ vector4t<GLfloat> lposition(0,0,0,1);
 // Forward declaration
 void view_model(const string& modelfilename, const string& datafilename);
 
+string model_layout;
+
 class model_load_dialog
 {
 public:
@@ -212,6 +214,8 @@ void view_model(const string& modelfilename, const string& datafilename)
 	//fixme ^ make chooseable via command line!
 
 	model* mdl = new model(/*get_model_dir() + */ modelfilename);
+	mdl->register_layout(model_layout);
+	mdl->set_layout(model_layout);
 
 	mdl->write_to_dftd_model_file("test.xml");
 
@@ -631,12 +635,14 @@ int mymain(list<string>& args)
 
 	string modelfilename;
         string datafilename;
+	model_layout = model::default_layout;
 	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
 		if (*it == "--help") {
 			cout << "DftD viewmodel, usage:\n--help\t\tshow this\n"
-			<< "--res n\t\tuse resolution n horizontal,\n\t\tn is 512,640,800,1024 (recommended) or 1280\n"
-			<< "--nofullscreen\tdon't use fullscreen\n"
-			<< "MODELFILENAME\n";
+			     << "--res n\t\tuse resolution n horizontal,\n\t\tn is 512,640,800,1024 (recommended) or 1280\n"
+			     << "--nofullscreen\tdon't use fullscreen\n"
+			     << "--layout layoutname\tuse layout with specific name for skins\n"
+			     << "MODELFILENAME\n";
 			return 0;
 		} else if (*it == "--nofullscreen") {
 			fullscreen = false;
@@ -651,6 +657,10 @@ int mymain(list<string>& args)
                 } else if (*it == "--dataxml") {
                         if (++it != args.end()) {
                                 datafilename = it->c_str();
+                        } else --it;
+                } else if (*it == "--layout") {
+                        if (++it != args.end()) {
+                                model_layout = it->c_str();
                         } else --it;
                 } else if (*it == "--gui") {
                         use_gui = true;
@@ -685,7 +695,7 @@ int mymain(list<string>& args)
         if (use_gui) {
                 run_gui();
         } else {
-		view_model(modelfilename,datafilename);	
+		view_model(modelfilename,datafilename);
         }
 
 	mysys->write_console(true);

@@ -104,9 +104,17 @@ void init_global_data(void)
 	font_damagedtypewriter = new font(get_font_dir() + "font_damagedtypewriter");
 	add_loading_screen("fonts loaded");
 	conning_tower_typeVII = new model(get_model_dir() + "conning_tower_typeVIIc.xml");
+	conning_tower_typeVII->register_layout();
+	conning_tower_typeVII->set_layout();
 	torpedo_g7 = new model(get_model_dir() + "torpedo_g7.3ds");
+	torpedo_g7->register_layout();
+	torpedo_g7->set_layout();
 	depth_charge_mdl = new model(get_model_dir() + "depth_charge.3ds");
+	depth_charge_mdl->register_layout();
+	depth_charge_mdl->set_layout();
 	gun_shell_mdl = new model(get_model_dir() + "gun_shell.3ds");
+	gun_shell_mdl->register_layout();
+	gun_shell_mdl->set_layout();
 	add_loading_screen("models loaded");
 	panelbackground = new texture(get_image_dir() + "metalbackground.jpg");
 	addleadangle = new texture(get_texture_dir() + "addleadangle.png");

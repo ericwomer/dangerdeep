@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <fstream>
 #include <memory>
 #include <map>
+#include <set>
 
 class xml_elem;
 
@@ -52,35 +53,42 @@ public:
 			float angle;	// uv rotation angle;
 
 		protected:
-			bool has_tex;	// true when filename was given
-			std::auto_ptr<texture> mytexture;	// default "skin"
+			bool has_tex;	// true when texture is set by layout
+			texture* tex;	// set by set_layout
 
-			//fixme: change that mytexture is created on first use, as for each
-			//skin entry, but not earlier to avoid wasting space.
+			//maybe unite list of skins and default-texture, both
+			//have texture ptr, filename and ref_count.
+			std::auto_ptr<texture> mytexture;	// default "skin"
+			unsigned ref_count;
+
 			struct skin {
 				texture* mytexture;
+				unsigned ref_count;
 				std::string filename;
-				skin() : mytexture(0) {}
+				skin() : mytexture(0), ref_count(0) {}
 			};
+
 			// layout-name to skin mapping
 			std::map<std::string, skin> skins;
 		public:
 			map();
 			~map();
 			bool has_texture() const { return has_tex; }
-			void init(const string& basepath, texture::mapping_mode mapping, bool makenormalmap = false,
-				  float detailh = 1.0f, bool rgb2grey = false);
 			void write_to_dftd_model_file(xml_elem& parent, const std::string& type, bool withtrans = true) const;
 			// read and construct from dftd model file
 			map(const xml_elem& parent, bool withtrans = true);
 			// set up opengl texture matrix with map transformation values
 			void setup_glmatrix() const;
-
-			const texture* get_texmap(const std::string& layout) const;
-			void set_gl_texture(const std::string& layout = "" /*fixme,give argument later*/) const {
-				get_texmap(layout)->set_gl_texture();
-			}
+			void set_gl_texture() const;
 			void set_texture(texture* t);
+			void register_layout(const std::string& name, const string& basepath,
+					     texture::mapping_mode mapping,
+					     bool makenormalmap = false,
+					     float detailh = 1.0f,
+					     bool rgb2grey = false);
+			void unregister_layout(const std::string& name);
+			void set_layout(const std::string& layout);
+			void get_all_layout_names(std::set<std::string>& result) const;
 		};
 	
 		std::string name;
@@ -92,9 +100,12 @@ public:
 		auto_ptr<map> specularmap; // should be of type LUMINANCE to work properly.
 		
 		material(const std::string& nm = "Unnamed material");
-		void init(const string& basepath);
 		void set_gl_values() const;
 		void set_gl_values_mirror_clip() const;
+		void register_layout(const std::string& name, const std::string& basepath);
+		void unregister_layout(const std::string& name);
+		void set_layout(const std::string& layout);
+		void get_all_layout_names(std::set<std::string>& result) const;
 	};
 	
 	class mesh {
@@ -109,6 +120,8 @@ public:
 		// we can have a right handed or a left handed coordinate system for each vertex,
 		// dependent on the direction of the u,v coordinates. We do not store the third
 		// vector per vertex but a flag, which saves space.
+		// fixme: research if we can have a right-handed system always. This would
+		// save fetching the colors to the vertex shader and thus spare memory bandwidth.
 		std::vector<Uint8> righthanded;	// a vector of bools. takes more space than a bitvector, but faster access.
 		std::vector<unsigned> indices;	// 3 indices per face
 		matrix4f transformation;	// rot., transl., scaling
@@ -265,6 +278,8 @@ public:
 
 	model(const std::string& filename, bool use_material = true);
 	~model();
+	static const std::string default_layout;
+	void set_layout(const std::string& layout = default_layout);
 	void display() const;
 	// display model but clip away coords with z < 0 in world space.
 	// set up modelview matrix with world->eye transformation before calling this function
@@ -313,6 +328,11 @@ public:
 
 	// fixme: add a register_attribute() function here (and unregister)
 	// to make all maps load their textures with these attributes.
+	void register_layout(const std::string& name = default_layout);
+	void unregister_layout(const std::string& name = default_layout);
+
+	// collect all possible layout names from all materials/maps and insert them in "result"
+	void get_all_layout_names(std::set<std::string>& result) const;
 };	
 
 #endif

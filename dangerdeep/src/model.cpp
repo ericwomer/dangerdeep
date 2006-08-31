@@ -59,6 +59,8 @@ bool model::use_shaders = false;
 vector<GLuint> model::default_vertex_programs;
 vector<GLuint> model::default_fragment_programs;
 
+const std::string model::default_layout = "*default*";
+
 
 bool model::object::set_angle(float ang)
 {
@@ -232,6 +234,11 @@ model::model(const string& filename, bool use_material)
 
 	compute_bounds();
 	compute_normals();
+
+	//fixme: hacks
+// 	register_layout();
+// 	set_layout();
+
 	compile();
 }
 
@@ -408,7 +415,8 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 
 
 
-model::mesh::mesh(const string& nm) : name(nm), transformation(matrix4f::one()), mymaterial(0), display_list(0)
+model::mesh::mesh(const string& nm)
+	: name(nm), transformation(matrix4f::one()), mymaterial(0), display_list(0)
 {
 }
 
@@ -611,7 +619,9 @@ pair<model::mesh*, model::mesh*> model::mesh::split(const vector3f& abc, float d
 
 
 
-model::material::map::map() : uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0.0f), angle(0.0f)
+model::material::map::map()
+	: uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0.0f), angle(0.0f),
+	  has_tex(false), tex(0), ref_count(0)
 {
 }
 
@@ -625,56 +635,87 @@ model::material::map::~map()
 
 
 
-void model::material::map::init(const string& basepath, texture::mapping_mode mapping, bool makenormalmap, float detailh,
-				bool rgb2grey)
+void model::material::map::register_layout(const std::string& name,
+					   const string& basepath,
+					   texture::mapping_mode mapping,
+					   bool makenormalmap,
+					   float detailh,
+					   bool rgb2grey)
 {
-	mytexture.reset();
-	has_tex = false;
-	if (filename.length() > 0) {
-		// try path where model is first, then global texture dir
-		try {
-			mytexture.reset(new texture(basepath + filename, mapping, texture::CLAMP_TO_EDGE,
-						    makenormalmap, detailh, rgb2grey));
+	std::map<string, skin>::iterator it = skins.find(name);
+	if (it != skins.end()) {
+		// skin texture
+		if (it->second.ref_count == 0) {
+			// load texture. Skins are expected in the same path as the model
+			// itself.
+			it->second.mytexture = new texture(basepath + it->second.filename, mapping, texture::CLAMP_TO_EDGE,
+							   makenormalmap, detailh, rgb2grey);
 		}
-		catch (texture::texerror& e) {
-			mytexture.reset(new texture(get_texture_dir() + filename, mapping, texture::CLAMP_TO_EDGE,
-						    makenormalmap, detailh, rgb2grey));
+		++(it->second.ref_count);
+	} else {
+		if (ref_count == 0) {
+			// load texture
+			try {
+				mytexture.reset(new texture(basepath + filename, mapping, texture::CLAMP_TO_EDGE,
+							    makenormalmap, detailh, rgb2grey));
+			}
+			catch (texture::texerror& e) {
+				mytexture.reset(new texture(get_texture_dir() + filename, mapping, texture::CLAMP_TO_EDGE,
+							    makenormalmap, detailh, rgb2grey));
+			}
 		}
-		has_tex = true;
+		++ref_count;
 	}
+}
 
-	// init skin maps here, fixme.
-	// only init the needed map, don't waste video memory, fixme
-	for (std::map<string, skin>::iterator it = skins.begin(); it != skins.end(); ++it) {
-		delete it->second.mytexture;	// paranoia
-		it->second.mytexture = 0;	// paranoia
-		it->second.mytexture =
-			new texture(basepath + filename, mapping, texture::CLAMP_TO_EDGE,
-				    makenormalmap, detailh, rgb2grey);
+
+
+void model::material::map::unregister_layout(const std::string& name)
+{
+	std::map<string, skin>::iterator it = skins.find(name);
+	if (it != skins.end()) {
+		if (it->second.ref_count == 0)
+			throw error("unregistered texture, but skin ref_count already zero");
+		--(it->second.ref_count);
+		if (it->second.ref_count == 0) {
+			delete it->second.mytexture;
+			it->second.mytexture = 0;
+		}
+	} else {
+		if (ref_count == 0)
+			throw error("unregistered texture, but ref_count already zero");
+		--ref_count;
+		if (ref_count == 0) {
+			mytexture.reset();
+		}
 	}
+}
+
+
+
+void model::material::map::set_layout(const std::string& layout)
+{
+	std::map<string, skin>::const_iterator it = skins.find(layout);
+	if (it != skins.end()) {
+		tex = it->second.mytexture;
+	} else {
+		tex = mytexture.get();
+	}
+	has_tex = (tex != 0);
+}
+
+
+
+void model::material::map::get_all_layout_names(std::set<std::string>& result) const
+{
+	for (std::map<string, skin>::const_iterator it = skins.begin(); it != skins.end(); ++it)
+		result.insert(it->first);
 }
 
 
 
 model::material::material(const std::string& nm) : name(nm), shininess(50.0f)
 {
-}
-
-
-
-void model::material::init(const string& basepath)
-{
-	if (colormap.get()) colormap->init(basepath, model::mapping);
-	//fixme: what is best mapping for normal maps?
-	// compute normalmap if not given
-	// fixme: segfaults when enabled. see texture.cpp
-	// fixme: without shaders it seems we need to multiply this with ~16 or even more.
-	// maybe because direction vectors are no longer normalized over faces...
-	// with shaders a value of 1.0 is enough.
-	// fixme: read value from model file... and multiply with this value...
-	float normalmapheight = use_shaders ? 4.0f : 16.0f;
-	if (normalmap.get()) normalmap->init(basepath, texture::LINEAR/*_MIPMAP_LINEAR*/, true, normalmapheight, true);
-	if (specularmap.get()) specularmap->init(basepath, texture::LINEAR_MIPMAP_LINEAR, false, 0.0f, true);
 }
 
 
@@ -691,12 +732,12 @@ void model::material::map::setup_glmatrix() const
 
 
 
-const texture* model::material::map::get_texmap(const std::string& layout) const
+void model::material::map::set_gl_texture() const
 {
-	std::map<string, skin>::const_iterator it = skins.find(layout);
-	if (it == skins.end())
-		return mytexture.get();
-	return it->second.mytexture;
+	if (tex)
+		tex->set_gl_texture();
+	else
+		throw error("set_gl_texture with empty texture");
 }
 
 
@@ -705,6 +746,7 @@ void model::material::map::set_texture(texture* t)
 {
 	mytexture.reset(t);
 	has_tex = (t != 0);
+	tex = t;
 }
 
 
@@ -720,8 +762,6 @@ void model::material::set_gl_values() const
 	}
 
 	glActiveTexture(GL_TEXTURE0);
-	//fixme: checks like mytexture.get() != are bad for skins.
-	//rather add variable "bool has_texture"
 	if (colormap.get() && colormap->has_texture()) {
 		if (normalmap.get() && normalmap->has_texture()) {
 			// no opengl lighting in normal map mode.
@@ -864,13 +904,68 @@ void model::material::set_gl_values_mirror_clip() const
 
 
 
+void model::material::register_layout(const std::string& name, const std::string& basepath)
+{
+	if (colormap.get())
+		colormap->register_layout(name, basepath, model::mapping);
+	//fixme: what is best mapping for normal maps?
+	// compute normalmap if not given
+	// fixme: segfaults when enabled. see texture.cpp
+	// fixme: without shaders it seems we need to multiply this with ~16 or even more.
+	// maybe because direction vectors are no longer normalized over faces...
+	// with shaders a value of 1.0 is enough.
+	// fixme: read value from model file... and multiply with this value...
+	float normalmapheight = use_shaders ? 4.0f : 16.0f;
+	if (normalmap.get())
+		normalmap->register_layout(name, basepath, texture::LINEAR/*_MIPMAP_LINEAR*/, true, normalmapheight, true);
+	if (specularmap.get())
+		specularmap->register_layout(name, basepath, texture::LINEAR_MIPMAP_LINEAR, false, 0.0f, true);
+}
+
+
+
+void model::material::unregister_layout(const std::string& name)
+{
+	if (colormap.get())
+		colormap->unregister_layout(name);
+	if (normalmap.get())
+		normalmap->unregister_layout(name);
+	if (specularmap.get())
+		specularmap->unregister_layout(name);
+}
+
+
+
+void model::material::set_layout(const std::string& layout)
+{
+	if (colormap.get())
+		colormap->set_layout(layout);
+	if (normalmap.get())
+		normalmap->set_layout(layout);
+	if (specularmap.get())
+		specularmap->set_layout(layout);
+}
+
+
+
+void model::material::get_all_layout_names(std::set<std::string>& result) const
+{
+	if (colormap.get())
+		colormap->get_all_layout_names(result);
+	if (normalmap.get())
+		normalmap->get_all_layout_names(result);
+	if (specularmap.get())
+		specularmap->get_all_layout_names(result);
+}
+
+
+
 void model::mesh::display(bool use_display_list) const
 {
 	glPushMatrix();
 	transformation.multiply_glf();
 
 	// with skins, we can't use display lists right here...
-
 	if (display_list != 0 && use_display_list) {
 		glCallList(display_list);
 		glPopMatrix();
@@ -893,6 +988,8 @@ void model::mesh::display(bool use_display_list) const
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glColor3f(0.5,0.5,0.5);
 	}
+
+	//fixme: compile display lists only AFTER setting material
 
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -1028,6 +1125,12 @@ void model::mesh::display_mirror_clip() const
 	// plain OpenGL. But we need shaders for clipping.
 	// set simple shaders here, no matter which material we have...
 
+	//fixme: if we separate geometry fetching from setting up the textures/material,
+	//we can give the same display list as for normal drawing.
+	//it contains vertices,normals,texcoords and per-vertex-colors.
+	//the colors are not needed, but it doesn't hurt to sent them also,
+	//if we use special shaders that do not use the colors.
+
 	/*
 	if (display_list != 0 && use_display_list) {
 		glCallList(display_list);
@@ -1095,6 +1198,14 @@ void model::mesh::display_mirror_clip() const
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	//glPopMatrix();
+}
+
+
+
+void model::set_layout(const std::string& layout)
+{
+	for (vector<material*>::iterator it = materials.begin(); it != materials.end(); ++it)
+		(*it)->set_layout(layout);
 }
 
 
@@ -1440,7 +1551,7 @@ void model::material::map::write_to_dftd_model_file(xml_elem& parent,
 model::material::map::map(const xml_elem& parent, bool withtrans)
 	: uscal(1.0f), vscal(1.0f),
 	  uoffset(0.0f), voffset(0.0f), angle(0.0f),
-	  mytexture(0)
+	  has_tex(false), tex(0), ref_count(0)
 {
 	if (!parent.has_attr("filename"))
 		throw xml_error("no filename given for materialmap!", parent.doc_name());
@@ -1726,7 +1837,6 @@ void model::m3ds_process_material_chunks(istream& in, m3ds_chunk& parent)
 	if (m->colormap.get())
 		m->diffuse = color::white();
 
-	m->init(basepath);
 	materials.push_back(m);
 }
 
@@ -1985,7 +2095,6 @@ void model::read_dftd_model_file(const std::string& filename)
 				mat->shininess = eshin.attrf("exponent");
 			}
 
-			mat->init(basepath);
 			materials.push_back(mat);
 		} else if (etype == "mesh") {
 			// meshes.
@@ -2227,4 +2336,29 @@ vector2f model::get_object_translation_constraints(const std::string& objname)
 	object* obj = scene.find(objname);
 	if (!obj) return vector2f();
 	return vector2f(obj->trans_val_min, obj->trans_val_max);
+}
+
+
+
+void model::register_layout(const std::string& name)
+{
+	for (vector<material*>::iterator it = materials.begin(); it != materials.end(); ++it)
+		(*it)->register_layout(name, basepath);
+}
+
+
+
+void model::unregister_layout(const std::string& name)
+{
+	for (vector<material*>::iterator it = materials.begin(); it != materials.end(); ++it)
+		(*it)->unregister_layout(name);
+}
+
+
+
+void model::get_all_layout_names(std::set<std::string>& result) const
+{
+	for (vector<material*>::const_iterator it = materials.begin(); it != materials.end(); ++it)
+		(*it)->get_all_layout_names(result);
+	result.insert(default_layout);
 }

@@ -1234,13 +1234,23 @@ class vessel_view
 {
 	list<string> shipnames;
 	list<string>::iterator current;
+	set<string> modellayouts;
+	set<string>::iterator currentlayout;
 	// note! this is not destructed by this class...
 	widget_3dview* w3d;
 	auto_ptr<model> load_model() {
 		xml_doc doc(data_file().get_filename(*current));
 		doc.load();
 		string mdlname = doc.first_child().child("classification").attr("modelname");
-		return auto_ptr<model>(new model(data_file().get_path(*current) + mdlname));
+		auto_ptr<model> mdl(new model(data_file().get_path(*current) + mdlname));
+		// register and set default layout.
+		mdl->register_layout();
+		mdl->set_layout();
+		mdl->compile();//fixme:test
+		modellayouts.clear();
+		mdl->get_all_layout_names(modellayouts);
+		currentlayout = modellayouts.begin();
+		return mdl;
 	}
 public:
 	vessel_view()
@@ -1273,6 +1283,16 @@ public:
 		w3d->set_model(load_model());
 		w3d->redraw();
 	}
+	void switchlayout() {
+		++currentlayout;
+		if (currentlayout == modellayouts.end())
+			currentlayout = modellayouts.begin();
+		// registering the same layout multiple times does not hurt, no problem
+		w3d->get_model()->register_layout(*currentlayout);
+		w3d->get_model()->set_layout(*currentlayout);
+		// fixme: dirty hack for now
+		w3d->get_model()->compile();
+	}
 };
 
 void menu_show_vessels()
@@ -1285,6 +1305,8 @@ void menu_show_vessels()
 
 	wm->add_entry(texts::get(115), new widget_caller_button<vessel_view, void (vessel_view::*)()>(&vw, &vessel_view::next));
 	wm->add_entry(texts::get(116), new widget_caller_button<vessel_view, void (vessel_view::*)()>(&vw, &vessel_view::previous));
+	// fixme: disable butten when there is only one layout
+	wm->add_entry(texts::get(246), new widget_caller_button<vessel_view, void (vessel_view::*)()>(&vw, &vessel_view::switchlayout));
 	wm->add_entry(texts::get(117), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0));
 	wm->adjust_buttons(984);
 

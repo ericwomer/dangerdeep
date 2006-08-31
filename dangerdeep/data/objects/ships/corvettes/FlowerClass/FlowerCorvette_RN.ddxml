@@ -4,8 +4,8 @@
         <specular color="1 1 1" />
         <shininess exponent="50" />
         <map type="diffuse" filename="FlowerCorvette_RN_1942_WA_color.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" >
-		<skin filename="flowercorvette_rnavy_camo2.jpg" regions="NA" countries="RN" from="1939/1/1" until="1945/12/31"/>
-		<skin filename="flowercorvette_rnavy_camo3.jpg" regions="MS" countries="*" from="1939/1/1" until="1945/12/31"/>
+		<skin filename="flowercorvette_rnavy_camo2.jpg" layout="north_atlantic_royal_navy"/>
+		<skin filename="flowercorvette_rnavy_camo3.jpg" layout="mediteranean_sea_all_navies"/>
 	</map>
 	<map type="normal" filename="FlowerCorvette_RN_1942_WA_bump.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" />
 	<map type="specular" filename="FlowerCorvette_RN_1942_WA_spec.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" />

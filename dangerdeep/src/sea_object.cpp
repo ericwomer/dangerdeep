@@ -160,6 +160,9 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 	  redetect_time(0)
 {
 	model* mdl = modelcache.ref(data_file().get_rel_path(specfilename) + modelname);
+	// fixme: quick hack, register/save correct layout here
+	mdl->register_layout();
+	mdl->set_layout();
 	size3d = vector3f(mdl->get_width(), mdl->get_length(), mdl->get_height());
 }
 
@@ -176,6 +179,9 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 	specfilename = cl.attr("identifier");
 	modelname = cl.attr("modelname");
 	model* mdl = modelcache.ref(data_file().get_rel_path(specfilename) + modelname);
+	// fixme: quick hack, register/save correct layout here
+	mdl->register_layout();
+	mdl->set_layout();
 	size3d = vector3f(mdl->get_width(), mdl->get_length(), mdl->get_height());
 	string countrystr = cl.attr("country");
 	country = UNKNOWNCOUNTRY;
@@ -244,6 +250,9 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 
 sea_object::~sea_object()
 {
+	model* mdl = modelcache.find(data_file().get_rel_path(specfilename) + modelname);
+	// fixme: quick hack, register/save correct layout here
+	mdl->unregister_layout();
 	modelcache.unref(data_file().get_rel_path(specfilename) + modelname);
 	for (unsigned i = 0; i < sensors.size(); i++)
 		delete sensors[i];
