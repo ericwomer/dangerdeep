@@ -61,7 +61,6 @@ vector<GLuint> model::default_fragment_programs;
 
 const std::string model::default_layout = "*default*";
 
-
 bool model::object::set_angle(float ang)
 {
 	if (ang < rotat_angle_min) return false;
@@ -231,14 +230,20 @@ model::model(const string& filename, bool use_material)
 		materials.clear();
 	}
 
-
+	// fixme: das hier funzt net mehr, da compute_normals abfragt, ob texture da, aber material::init wird ja net mehr gemacht
+	// vorher entsprach einem has_texture der abfrage ob mytexture != 0, was es genau dann war, wenn filename.length > 0 war,
+	// weil es wurde immer material::init aufgerufen, was die texture geladen hat, wenn filename != "" war, sonst exception.
+	// also has_texture ist filename.length() != 0
 	compute_bounds();
 	compute_normals();
-
 	//fixme: hacks
 // 	register_layout();
 // 	set_layout();
 
+	//fixme: das ruft display auf, und das set_gl_values und das glBindTexture,
+	//daher Probleme.
+	//binden von Texturen aus display-List auslagern, dazu
+	//display-Funktion zweiteilen, nur 2. Teil in Liste
 	compile();
 }
 
@@ -389,8 +394,6 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 
 		//cout << "tangent comp failed for i0 " << i0 << ", uv0 " << d_uv0 << ", uv1 " << d_uv1 << ", det " << det << "\n";
 		return false;
-
-		//fixme: check with luis' freighter, it seems to have 2271 tangents only but > 3000 verts.
 	} else {
 		vector3f v01 = vertices[i1] - vertices[i0];
 		vector3f v02 = vertices[i2] - vertices[i0];
@@ -408,6 +411,15 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 		vector3f ry = v01 * c + v02 * d;
 		vector3f tangentsy = (ry - (ry * n) * n).normal();
 		float g = tangentsx[i0].cross(tangentsy) * n;
+		// fixme: untersuche, wie righthanded-info in den shadern gebraucht wird. kann man denn stattdessen nicht einfach
+		// die normale umdrehen? nö, dann geht der Rest nicht mehr. Wie viele lefthanded-Koordinaten gibt es denn so?
+		// was sagt Luis dazu?
+		// das wird sich aber wohl nicht vermeiden lassen?
+		// tangenty wird nicht übertragen, aber wenn man tangentx umdreht, geht das auch?!
+		// righthanded aber erst versuchen zu entfernen, wenn der rest geht!!!
+		// der mix aus zwei Koordinatensystemen kann eigentlich nicht gut gehen.
+		// wird aber vermutlich gebraucht um nur eine Seitenansicht für beide Rumpfseiten zu nehmen, aber das macht
+		// Luis ja gar nicht...
 		righthanded[i0] = !(g > 0); // fixme: negation seems needed???
 		return true;
 	}
@@ -737,7 +749,9 @@ void model::material::map::set_gl_texture() const
 	if (tex)
 		tex->set_gl_texture();
 	else
-		throw error("set_gl_texture with empty texture");
+//fixme
+//		throw error("set_gl_texture with empty texture");
+		do { } while (0);
 }
 
 
@@ -973,11 +987,21 @@ void model::mesh::display(bool use_display_list) const
 	}
 
 	// colors may be needed for normal mapping.
+	//fixme: immer wieder allokieren ist auch blöd, daher zentral speichern?
+	//wird für right-handed info gebraucht, wenn shader an sind.
+	//würde es sinn machen, die right-handed info als 3. texcoord zu übertragen?
+	//macht 4 bytes copy (float) statt 3. und nimmt 4x so viel speicher weg.
+	//das ist aber irrelevant. dafür aber keine extra-farbinfos nötig.
+	//dann wiederum speicherung der texcoords anders, ist blöd.
+	//kann man aber als struct aus vector2f und float machen o.ä., ist halt unschön
+	//das bringt es nicht, die verwaltung ist komplexer als der gewinn.
 	vector<Uint8> colors;
 
 	bool has_texture_u0 = false, has_texture_u1 = false;
 	bool normalmapping = false;
 	if (mymaterial != 0) {
+		//fixme: has_texture braucht nur basis-Textur abzufragen! wenn es keine default-Textur gibt, dann darf es
+		//auch keine skins geben.
 		if (mymaterial->colormap.get() && mymaterial->colormap->has_texture())
 			has_texture_u0 = true;
 		if (mymaterial->normalmap.get() && mymaterial->normalmap->has_texture())
@@ -1005,12 +1029,16 @@ void model::mesh::display(bool use_display_list) const
 	if (has_texture_u0 && texcoords.size() == vertices.size()) {
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		//fixme: welche Befehle kommen in eine display list? glClientActiveTexture? glEnableClientState?
 	} else {
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 
 	glClientActiveTexture(GL_TEXTURE1);
 	if (use_shaders) {
+		//
+		// Using vertex and fragment programs.
+		//
 		// give tangents as texture coordinates for unit 1.
 		if (has_texture_u0 && tangentsx.size() == vertices.size()) {
 			glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &tangentsx[0]);
@@ -1028,6 +1056,9 @@ void model::mesh::display(bool use_display_list) const
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		}
 	} else {
+		//
+		// No shaders, basic old OpenGL 1.4 techniques.
+		//
 		if (has_texture_u1 && texcoords.size() == vertices.size()) {
 			// maybe offer second texture coords. how are they stored in .3ds files?!
 			glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);

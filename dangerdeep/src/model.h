@@ -73,7 +73,7 @@ public:
 		public:
 			map();
 			~map();
-			bool has_texture() const { return has_tex; }
+			bool has_texture() const { return filename.length() != 0; } // return has_tex; }
 			void write_to_dftd_model_file(xml_elem& parent, const std::string& type, bool withtrans = true) const;
 			// read and construct from dftd model file
 			map(const xml_elem& parent, bool withtrans = true);
