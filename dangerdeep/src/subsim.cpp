@@ -1246,7 +1246,6 @@ class vessel_view
 		// register and set default layout.
 		mdl->register_layout();
 		mdl->set_layout();
-		mdl->compile();//fixme:test
 		modellayouts.clear();
 		mdl->get_all_layout_names(modellayouts);
 		currentlayout = modellayouts.begin();
@@ -1290,8 +1289,6 @@ public:
 		// registering the same layout multiple times does not hurt, no problem
 		w3d->get_model()->register_layout(*currentlayout);
 		w3d->get_model()->set_layout(*currentlayout);
-		// fixme: dirty hack for now
-		w3d->get_model()->compile();
 	}
 };
 

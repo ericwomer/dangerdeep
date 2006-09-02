@@ -230,20 +230,8 @@ model::model(const string& filename, bool use_material)
 		materials.clear();
 	}
 
-	// fixme: das hier funzt net mehr, da compute_normals abfragt, ob texture da, aber material::init wird ja net mehr gemacht
-	// vorher entsprach einem has_texture der abfrage ob mytexture != 0, was es genau dann war, wenn filename.length > 0 war,
-	// weil es wurde immer material::init aufgerufen, was die texture geladen hat, wenn filename != "" war, sonst exception.
-	// also has_texture ist filename.length() != 0
 	compute_bounds();
 	compute_normals();
-	//fixme: hacks
-// 	register_layout();
-// 	set_layout();
-
-	//fixme: das ruft display auf, und das set_gl_values und das glBindTexture,
-	//daher Probleme.
-	//binden von Texturen aus display-List auslagern, dazu
-	//display-Funktion zweiteilen, nur 2. Teil in Liste
 	compile();
 }
 
@@ -348,7 +336,7 @@ void model::mesh::compute_normals()
 	// from each vertex we find a vector in positive u direction
 	// and project it onto the plane given by the normal -> tangentx
 	// because normal maps use stored texture coordinates (x = positive u!)
-	if (mymaterial && mymaterial->normalmap.get() && mymaterial->normalmap->has_texture()) {
+	if (mymaterial && mymaterial->normalmap.get()) {
 		tangentsx.clear();
 		tangentsx.resize(vertices.size(), vector3f(0, 0, 1));
 		righthanded.clear();
@@ -453,9 +441,9 @@ void model::mesh::compile()
 				throw error("no more display list indices available");
 		}
 		glNewList(display_list, GL_COMPILE);
-		display(false);
+		send_geometry_to_gl();
 		glEndList();
-	} else {
+	} else if (display_list != 0) {
 		// delete unused list.
 		glDeleteLists(display_list, 1);
 		display_list = 0;
@@ -633,7 +621,7 @@ pair<model::mesh*, model::mesh*> model::mesh::split(const vector3f& abc, float d
 
 model::material::map::map()
 	: uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0.0f), angle(0.0f),
-	  has_tex(false), tex(0), ref_count(0)
+	  tex(0), ref_count(0)
 {
 }
 
@@ -713,7 +701,6 @@ void model::material::map::set_layout(const std::string& layout)
 	} else {
 		tex = mytexture.get();
 	}
-	has_tex = (tex != 0);
 }
 
 
@@ -749,9 +736,7 @@ void model::material::map::set_gl_texture() const
 	if (tex)
 		tex->set_gl_texture();
 	else
-//fixme
-//		throw error("set_gl_texture with empty texture");
-		do { } while (0);
+		throw error("set_gl_texture with empty texture");
 }
 
 
@@ -759,7 +744,6 @@ void model::material::map::set_gl_texture() const
 void model::material::map::set_texture(texture* t)
 {
 	mytexture.reset(t);
-	has_tex = (t != 0);
 	tex = t;
 }
 
@@ -776,8 +760,8 @@ void model::material::set_gl_values() const
 	}
 
 	glActiveTexture(GL_TEXTURE0);
-	if (colormap.get() && colormap->has_texture()) {
-		if (normalmap.get() && normalmap->has_texture()) {
+	if (colormap.get()) {
+		if (normalmap.get()) {
 			// no opengl lighting in normal map mode.
 			glDisable(GL_LIGHTING);
 			// set primary color alpha to one.
@@ -795,7 +779,7 @@ void model::material::set_gl_values() const
 				glMaterialfv(GL_FRONT, GL_SPECULAR, coltmp);
 				glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
-				if (specularmap.get() && specularmap->has_texture()) {
+				if (specularmap.get()) {
 					glActiveTexture(GL_TEXTURE2);
 					glEnable(GL_TEXTURE_2D);
 					specularmap->set_gl_texture();
@@ -902,7 +886,7 @@ void model::material::set_gl_values_mirror_clip() const
 	glEnable(GL_FRAGMENT_PROGRAM_ARB);
 	glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_programs[VFP_MIRROR_CLIP]);
 	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_programs[VFP_MIRROR_CLIP]);
-	if (colormap.get() && colormap->has_texture()) {
+	if (colormap.get()) {
 		// plain texture mapping with diffuse lighting only, but with shaders
 		glColor4f(1, 1, 1, 1);
 		glActiveTexture(GL_TEXTURE0);
@@ -974,51 +958,59 @@ void model::material::get_all_layout_names(std::set<std::string>& result) const
 
 
 
-void model::mesh::display(bool use_display_list) const
+void model::mesh::display() const
 {
-	glPushMatrix();
-	transformation.multiply_glf();
-
-	// with skins, we can't use display lists right here...
-	if (display_list != 0 && use_display_list) {
-		glCallList(display_list);
-		glPopMatrix();
-		return;
-	}
-
-	// colors may be needed for normal mapping.
-	//fixme: immer wieder allokieren ist auch blöd, daher zentral speichern?
-	//wird für right-handed info gebraucht, wenn shader an sind.
-	//würde es sinn machen, die right-handed info als 3. texcoord zu übertragen?
-	//macht 4 bytes copy (float) statt 3. und nimmt 4x so viel speicher weg.
-	//das ist aber irrelevant. dafür aber keine extra-farbinfos nötig.
-	//dann wiederum speicherung der texcoords anders, ist blöd.
-	//kann man aber als struct aus vector2f und float machen o.ä., ist halt unschön
-	//das bringt es nicht, die verwaltung ist komplexer als der gewinn.
-	vector<Uint8> colors;
-
-	bool has_texture_u0 = false, has_texture_u1 = false;
-	bool normalmapping = false;
+	// set up material
 	if (mymaterial != 0) {
-		//fixme: has_texture braucht nur basis-Textur abzufragen! wenn es keine default-Textur gibt, dann darf es
-		//auch keine skins geben.
-		if (mymaterial->colormap.get() && mymaterial->colormap->has_texture())
-			has_texture_u0 = true;
-		if (mymaterial->normalmap.get() && mymaterial->normalmap->has_texture())
-			has_texture_u1 = true;
-		normalmapping = has_texture_u1;	// maybe more options here...
 		mymaterial->set_gl_values();
 	} else {
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glColor3f(0.5,0.5,0.5);
 	}
 
-	//fixme: compile display lists only AFTER setting material
+	// send geometry
+	if (display_list != 0) {
+		glCallList(display_list);
+	} else {
+		send_geometry_to_gl();
+	}
 
+	// clean up for material
+	glEnable(GL_LIGHTING);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+
+
+void model::mesh::send_geometry_to_gl() const
+{
+	// local transformation matrix.
+	glPushMatrix();
+	transformation.multiply_glf();
+
+	// colors may be needed for normal mapping, as right-handed info.
+	vector<Uint8> colors;
+
+	bool has_texture_u0 = false, has_texture_u1 = false;
+	bool normalmapping = false;
+	if (mymaterial != 0) {
+		//fixme: has_texture als teil des filenamens ist doch blöd.
+		//wieso sollte eine map keine textur haben?!
+		//das ist doch müll!!!
+		//überprüfe evor dem render eher ob alle maps initialisiert sind!
+		//also ob layout gesetzt ist!
+		if (mymaterial->colormap.get())
+			has_texture_u0 = true;
+		if (mymaterial->normalmap.get())
+			has_texture_u1 = true;
+		normalmapping = has_texture_u1;	// maybe more options here...
+	}
+
+	// set up vertex data.
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	// fixme: with non-fragment-program normal mapping, we don't need normals!
+	// set up normals (only used with shaders or for plain rendering without normal maps).
 	if (!normalmapping || use_shaders) {
 		glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0]);	
 		glEnableClientState(GL_NORMAL_ARRAY);
@@ -1029,7 +1021,6 @@ void model::mesh::display(bool use_display_list) const
 	if (has_texture_u0 && texcoords.size() == vertices.size()) {
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		//fixme: welche Befehle kommen in eine display list? glClientActiveTexture? glEnableClientState?
 	} else {
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
@@ -1117,9 +1108,7 @@ void model::mesh::display(bool use_display_list) const
 	// and finally draw the mesh.
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, &indices[0]);
 
-#if 0
-	//fixme: add code to show normals as Lines
-#endif
+	// maybe: add code to show normals as Lines
 
 	// cleanup
 	if (use_shaders) {
@@ -1131,14 +1120,12 @@ void model::mesh::display(bool use_display_list) const
 		glDisable(GL_TEXTURE_2D);
 		glActiveTexture(GL_TEXTURE0);
 	}
-	glEnable(GL_LIGHTING);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex1
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glPopMatrix();
 }
@@ -1170,9 +1157,12 @@ void model::mesh::display_mirror_clip() const
 	}
 	*/
 
+	// fixme: recheck this function what needs to change for new skin support,
+	// function should be very similar to display()
+
 	bool has_texture_u0 = false;
 	if (mymaterial != 0) {
-		if (mymaterial->colormap.get() && mymaterial->colormap->has_texture())
+		if (mymaterial->colormap.get())
 			has_texture_u0 = true;
 		// fixme: check for mirror
 		mymaterial->set_gl_values_mirror_clip();
@@ -1235,14 +1225,20 @@ void model::mesh::display_mirror_clip() const
 
 void model::set_layout(const std::string& layout)
 {
+	if (current_layout == layout)
+		return;
 	for (vector<material*>::iterator it = materials.begin(); it != materials.end(); ++it)
 		(*it)->set_layout(layout);
+	current_layout = layout;
 }
 
 
 
 void model::display() const
 {
+	if (current_layout.length() == 0)
+		throw error("trying to render model, but no layout was set yet");
+
 	// default scene: no objects, just draw all meshes.
 	if (scene.children.size() == 0) {
 		for (vector<model::mesh*>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
@@ -1582,7 +1578,7 @@ void model::material::map::write_to_dftd_model_file(xml_elem& parent,
 model::material::map::map(const xml_elem& parent, bool withtrans)
 	: uscal(1.0f), vscal(1.0f),
 	  uoffset(0.0f), voffset(0.0f), angle(0.0f),
-	  has_tex(false), tex(0), ref_count(0)
+	  tex(0), ref_count(0)
 {
 	if (!parent.has_attr("filename"))
 		throw xml_error("no filename given for materialmap!", parent.doc_name());

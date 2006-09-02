@@ -48,17 +48,16 @@ public:
 			map(const map& );
 			map& operator= (const map& );
 		public:
-			std::string filename;	// also in mytexture, fixme
+			std::string filename;	// also in mytexture, a bit redundant
 			float uscal, vscal, uoffset, voffset;
 			float angle;	// uv rotation angle;
 
 		protected:
-			bool has_tex;	// true when texture is set by layout
 			texture* tex;	// set by set_layout
 
 			//maybe unite list of skins and default-texture, both
 			//have texture ptr, filename and ref_count.
-			std::auto_ptr<texture> mytexture;	// default "skin"
+			std::auto_ptr<texture> mytexture;	// default "skin", MUST BE SET!
 			unsigned ref_count;
 
 			struct skin {
@@ -73,7 +72,6 @@ public:
 		public:
 			map();
 			~map();
-			bool has_texture() const { return filename.length() != 0; } // return has_tex; }
 			void write_to_dftd_model_file(xml_elem& parent, const std::string& type, bool withtrans = true) const;
 			// read and construct from dftd model file
 			map(const xml_elem& parent, bool withtrans = true);
@@ -129,7 +127,7 @@ public:
 		vector3f min, max;
 		GLuint display_list;		// OpenGL display list for the mesh
 
-		void display(bool use_display_list = true) const; // used only when list is available.
+		void display() const;
 		void display_mirror_clip() const;
 		void compute_bounds();	
 		void compute_normals();
@@ -140,6 +138,9 @@ public:
 
 		// make display list if possible
 		void compile();
+
+		// send data to opengl (for display list compiling or rendering)
+		void send_geometry_to_gl() const;
 
 		// transform vertices by matrix
 		void transform(const matrix4f& m);
@@ -193,6 +194,8 @@ protected:
 	std::string basepath;	// base path name of the scene/model, computed from filename
 
 	vector3f min, max;
+
+	std::string current_layout;
 
 	// class-wide variables: shaders supported and enabled, shader number and init count
 	static unsigned init_count;
@@ -326,8 +329,6 @@ public:
 	vector2f get_object_translation_constraints(unsigned objid);
 	vector2f get_object_translation_constraints(const std::string& objname);
 
-	// fixme: add a register_attribute() function here (and unregister)
-	// to make all maps load their textures with these attributes.
 	void register_layout(const std::string& name = default_layout);
 	void unregister_layout(const std::string& name = default_layout);
 
