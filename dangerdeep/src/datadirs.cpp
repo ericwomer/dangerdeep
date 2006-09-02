@@ -25,7 +25,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "filehelper.h"
 
 
-
 const std::string& get_data_dir()
 {
 	static std::string datadir(DATADIR);
@@ -59,7 +58,7 @@ void data_file_handler::parse_for_data_files(std::string dir, std::list<std::str
 			parse_for_data_files(dir + f + "/", idlist);
 		} else if (f.length() > data_file_ext.length() && f.substr(f.length() - data_file_ext.length()) == data_file_ext) {
 			std::string id = f.substr(0, f.length() - data_file_ext.length());
-// 			sys().add_console(string("found file ") + dir + string(" for id ") + id);
+// 			sys().add_console(std::string("found file ") + dir + std::string(" for id ") + id);
 			data_files[id] = dir;
 			idlist.push_back(id);
 		}
