@@ -799,7 +799,6 @@ void model::material::set_gl_values() const
 
 				glActiveTexture(GL_TEXTURE0);
 				glEnable(GL_TEXTURE_2D);
-				// fixme: handle skins/layout here
 				colormap->set_gl_texture();
 				colormap->setup_glmatrix();
 
@@ -856,7 +855,6 @@ void model::material::set_gl_values() const
 			// same for texmap. Only shader with or without normalmap is much different!
 			glColor4f(1, 1, 1, 1);
 			glActiveTexture(GL_TEXTURE0);
-			//fixme: handle skins/layout here
 			colormap->set_gl_texture();
 			colormap->setup_glmatrix();
 //			cout << "uv off " << colormap->uoffset << "," << colormap->voffset << " ang " << colormap->angle << " scal " << colormap->uscal << "," << colormap->vscal << "\n";
@@ -994,11 +992,6 @@ void model::mesh::send_geometry_to_gl() const
 	bool has_texture_u0 = false, has_texture_u1 = false;
 	bool normalmapping = false;
 	if (mymaterial != 0) {
-		//fixme: has_texture als teil des filenamens ist doch blöd.
-		//wieso sollte eine map keine textur haben?!
-		//das ist doch müll!!!
-		//überprüfe evor dem render eher ob alle maps initialisiert sind!
-		//also ob layout gesetzt ist!
 		if (mymaterial->colormap.get())
 			has_texture_u0 = true;
 		if (mymaterial->normalmap.get())
