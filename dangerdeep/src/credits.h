@@ -42,6 +42,7 @@ const char* credits[] = {
 "$80ffc0Operating system adaption",
 "$ffffffNico Sakschewski (Win32)",
 "Andrew Rice (MacOSX)",
+"Jose Alonso Cardenas Marquez (acm) (FreeBSD)",
 "", "", "", "", "",
 "$80ffc0Web site administrator",
 "$ffffffAlexandre Paes",
