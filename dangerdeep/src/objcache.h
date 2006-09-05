@@ -100,9 +100,9 @@ public:
 	}
 	
 	void print(void) const {
-		cout << "objcache: " << cache.size() << " entries.\n";
+		std::cout << "objcache: " << cache.size() << " entries.\n";
 		for (typename std::map<std::string, std::pair<unsigned, T*> >::const_iterator it = cache.begin(); it != cache.end(); ++it)
-			cout << "key=\"" << it->first << "\" ref=" << it->second.first << " addr=" << it->second.second << "\n";
+			std::cout << "key=\"" << it->first << "\" ref=" << it->second.first << " addr=" << it->second.second << "\n";
 	}
 };
 

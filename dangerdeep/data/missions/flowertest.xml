@@ -17,7 +17,7 @@
                 <heading angle="7.269384" />
             </state>
             <alive_stat value="3" />
-            <skin region="" country="1" date="1939/ 1/ 1" />
+            <skin region="NA" country="GB" date="1939/ 1/ 1" />
             <AI type="1" state="3" zigzagstate="0" attackrun="1" evasive_manouver="1" rem_manouver_time="inf" parent="2" followme="0" myconvoy="0" remaining_time="4.8">
                 <contact x="0" y="0" z="0" />
                 <main_course angle="180" />
@@ -38,7 +38,7 @@
                 <heading angle="356.407462" />
             </state>
             <alive_stat value="3" />
-            <skin region="" country="1" date="1939/ 1/ 1" />
+            <skin region="MS" country="CD" date="1939/ 1/ 1" />
             <AI type="1" state="3" zigzagstate="0" attackrun="1" evasive_manouver="1" rem_manouver_time="190" parent="3" followme="0" myconvoy="0" remaining_time="2.548">
                 <contact x="0" y="0" z="0" />
                 <main_course angle="180.015652" />
@@ -59,7 +59,7 @@
                 <heading angle="0.015652" />
             </state>
             <alive_stat value="3" />
-            <skin region="" country="1" date="1939/ 1/ 1" />
+            <skin region="NA" country="US" date="1939/ 1/ 1" />
             <AI type="1" state="1" zigzagstate="1" attackrun="0" evasive_manouver="0" rem_manouver_time="0" parent="4" followme="0" myconvoy="0" remaining_time="0.984663">
                 <main_course angle="0" />
                 <waypoints cyclewaypoints="0" />

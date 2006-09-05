@@ -210,6 +210,13 @@ void date::load(const xml_elem& parent)
 	set_linear();
 }
 
+std::string date::to_str() const
+{
+	char tmp[32];
+	sprintf(tmp, "%4u/%2u/%2u", date_values[year], date_values[month], date_values[day]);
+	return std::string(tmp);
+}
+
 void date::save(xml_elem& parent) const
 {
 	xml_elem d = parent.add_child("date");

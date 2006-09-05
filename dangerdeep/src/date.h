@@ -63,6 +63,9 @@ public:
 	// construct from string of form yyyy/mm/dd
 	date (const std::string& datestr);
 
+	// save as date string yyyy/mm/dd, does not save time of day
+	std::string to_str() const;
+
 	unsigned get_value ( date_type dt ) const { return date_values[dt]; }
 	void set_value ( date_type dt, unsigned val ) { date_values[dt] = val; }
 	

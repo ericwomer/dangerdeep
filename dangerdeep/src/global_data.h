@@ -30,9 +30,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <SDL.h>
 #include <string>
+#include <list>
 #include <cmath>
-using namespace std;
-#include "date.h"
 
 #define se_submarine_torpedo_launch "liquidblast.ogg"
 #define se_torpedo_detonation		"shell explosion.ogg"
@@ -111,5 +110,7 @@ inline bool ispow2(unsigned x) { return (x & (x-1)) == 0; }
 // give degrees,minutes like this 123/45x with x = N,W,E,S 
 double transform_nautic_posx_to_real(const string& s);
 double transform_nautic_posy_to_real(const string& s);
+
+std::list<std::string> string_split(const std::string& src, char splitter = ',');
 
 #endif

@@ -286,3 +286,20 @@ double transform_nautic_posy_to_real(const string& s)
 {
 	return transform_nautic_coord_to_real(s, 'S', 'N', 90);
 }
+
+std::list<std::string> string_split(const std::string& src, char splitter)
+{
+	std::list<std::string> result;
+	std::string::size_type where = 0, st = 0;
+	do {
+		st = src.find(splitter, where);
+		if (st == std::string::npos) {
+			// rest of string
+			result.push_back(src.substr(where));
+		} else {
+			result.push_back(src.substr(where, st - where));
+			where = st + 1;
+		}
+	} while (st != std::string::npos);
+	return result;
+}

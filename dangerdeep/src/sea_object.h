@@ -111,9 +111,29 @@ protected:
 	// so store a ref to game here.	
 	game& gm;
 
-	std::string specfilename;	// filename for specification .xml file, set in constructor
+	// filename for specification .xml file, set in constructor
+	std::string specfilename;
 
-	std::string modelname;	// filename for model file (also used for modelcache requests), read from spec file
+	// filename for model file (also used for modelcache requests), read from spec file
+	std::string modelname;
+
+	// model variants (layout / skin), read from spec file
+	struct skin_variant {
+		std::string name;
+		std::list<std::string> regions;
+		std::list<std::string> countries;
+		date from, until;
+	};
+	std::list<skin_variant> skin_variants;
+
+	// skin selection data of this object [SAVE]
+	std::string skin_regioncode;
+	countrycode skin_country;
+	date skin_date;
+	std::string skin_name;	// name of skin, computed from values above
+
+	// computes name of skin variant name according to data above.
+	std::string compute_skin_name() const;
 
 	vector3 position;	// global position, [SAVE]
 	vector3 velocity;	// local velocity, [SAVE]
@@ -189,7 +209,8 @@ protected:
 	*/
 	virtual double get_cross_section ( const vector2& d ) const;
 
-	// construct sea_object without spec file (for simple objects like DCs, shells, convoys)
+	// construct sea_object without spec file (for simple objects like DCs, shells, ...)
+	// these models have no skin support, because there is no spec file.
 	sea_object(game& gm_, const std::string& modelname_);
 
 	// construct a sea_object. called by heirs

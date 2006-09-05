@@ -151,8 +151,48 @@ double sea_object::get_cross_section ( const vector2& d ) const
 
 
 
+string sea_object::compute_skin_name() const
+{
+	for (list<skin_variant>::const_iterator it = skin_variants.begin();
+	     it != skin_variants.end(); ++it) {
+		// check date
+		if (skin_date < it->from || skin_date > it->until)
+			continue;
+		// iterate over regioncodes
+		bool match = false;
+		for (list<string>::const_iterator it2 = it->regions.begin();
+		     it2 != it->regions.end(); ++it2) {
+			if (skin_regioncode == *it2) {
+				match = true;
+				break;
+			}
+		}
+		if (!match)
+			continue;
+		// iterate over countrycodes
+		match = false;
+		for (list<string>::const_iterator it2 = it->countries.begin();
+		     it2 != it->countries.end(); ++it2) {
+			if (*it2 == countrycodes[skin_country]) {
+				match = true;
+				break;
+			}
+		}
+		if (!match)
+			continue;
+		// we found a match!
+		return it->name;
+	}
+	return model::default_layout;
+}
+
+
+
 sea_object::sea_object(game& gm_, const string& modelname_)
-	: gm(gm_), modelname(modelname_), turn_velocity(0),
+	: gm(gm_),
+	  modelname(modelname_),
+	  skin_country(UNKNOWNCOUNTRY),
+	  turn_velocity(0),
 	  alive_stat(alive),
 	  sensors(last_sensor_system),
 	  target(0),
@@ -160,16 +200,21 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 	  redetect_time(0)
 {
 	model* mdl = modelcache.ref(data_file().get_rel_path(specfilename) + modelname);
-	// fixme: quick hack, register/save correct layout here
-	mdl->register_layout();
-	mdl->set_layout();
+	// this constructor is used only for simple models that have no skin support,
+	// so register default layout.
+	skin_name = model::default_layout;
+	mdl->register_layout(skin_name);
+// 	cout << "registered layout " << skin_name << "\n";
 	size3d = vector3f(mdl->get_width(), mdl->get_length(), mdl->get_height());
 }
 
 
 
 sea_object::sea_object(game& gm_, const xml_elem& parent)
-	: gm(gm_), turn_velocity(0), alive_stat(alive),
+	: gm(gm_),
+	  skin_country(UNKNOWNCOUNTRY),
+	  turn_velocity(0),
+	  alive_stat(alive),
 	  sensors(last_sensor_system),
 	  target(0),
 	  invulnerable(false), country(UNKNOWNCOUNTRY), party(UNKNOWNPARTY),
@@ -178,10 +223,36 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 	xml_elem cl = parent.child("classification");
 	specfilename = cl.attr("identifier");
 	modelname = cl.attr("modelname");
+
+	// read skin data
+	for (xml_elem::iterator it = cl.iterate("skin"); !it.end(); it.next()) {
+		skin_variant sv;
+		sv.name = it.elem().attr("name");
+		if (it.elem().has_attr("regions")) {
+			// empty list means all/any...
+			sv.regions = string_split(it.elem().attr("regions"));
+		}
+		if (it.elem().has_attr("countries")) {
+			// empty list means all/any...
+			sv.countries = string_split(it.elem().attr("countries"));
+		}
+		if (it.elem().has_attr("from")) {
+			sv.from = date(it.elem().attr("from"));
+		} else {
+			sv.from = date(1939, 1, 1);
+		}
+		if (it.elem().has_attr("until")) {
+			sv.until = date(it.elem().attr("until"));
+		} else {
+			sv.until = date(1945, 12, 31);
+		}
+		skin_variants.push_back(sv);
+// 		cout << "read skin variant: " << sv.name << " ctr=" << sv.countries
+// 		     << " rgn=" << sv.regions << " from=" << sv.from << " until=" << sv.until
+// 		     << "\n";
+	}
+
 	model* mdl = modelcache.ref(data_file().get_rel_path(specfilename) + modelname);
-	// fixme: quick hack, register/save correct layout here
-	mdl->register_layout();
-	mdl->set_layout();
 	size3d = vector3f(mdl->get_width(), mdl->get_length(), mdl->get_height());
 	string countrystr = cl.attr("country");
 	country = UNKNOWNCOUNTRY;
@@ -251,8 +322,8 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 sea_object::~sea_object()
 {
 	model* mdl = modelcache.find(data_file().get_rel_path(specfilename) + modelname);
-	// fixme: quick hack, register/save correct layout here
-	mdl->unregister_layout();
+// 	cout << "unregistered layout " << skin_name << "\n";
+	mdl->unregister_layout(skin_name);
 	modelcache.unref(data_file().get_rel_path(specfilename) + modelname);
 	for (unsigned i = 0; i < sensors.size(); i++)
 		delete sensors[i];
@@ -273,6 +344,33 @@ void sea_object::load(const xml_elem& parent)
 	orientation = st.child("orientation").attrq();
 	turn_velocity = st.child("turn_velocity").attrf();
 	heading = st.child("heading").attra();
+	// read skin info
+	if (parent.has_attr("skin")) {
+		// read attributes
+		xml_elem sk = parent.child("skin");
+		skin_regioncode = sk.attr("region");
+		std::string sc = sk.attr("country");
+		skin_country = UNKNOWNCOUNTRY;
+		for (int i = UNKNOWNCOUNTRY; i < NR_OF_COUNTRIES; ++i) {
+			if (sc == std::string(countrycodes[i])) {
+				skin_country = countrycode(i);
+				break;
+			}
+		}
+		skin_date = date(sk.attr("date"));
+	} else {
+		// set default skin values
+		skin_regioncode = "NA";	// north atlantic
+		skin_country = UNKNOWNCOUNTRY;
+		skin_date = date(1941, 1, 1);
+	}
+	skin_name = compute_skin_name();
+	// register new skin name. Note! if skin_name was already set and registered,
+	// the old one is not unregistered. But we don't use sea_object in that way.
+	// So everything is ok.
+	model* mdl = modelcache.find(data_file().get_rel_path(specfilename) + modelname);
+	mdl->register_layout(skin_name);
+// 	cout << "registered layout " << skin_name << "\n";
 	// load ai
 	if (myai.get()) {
 		myai->load(gm, parent.child("AI"));
@@ -293,6 +391,11 @@ void sea_object::save(xml_elem& parent) const
 	st.add_child("turn_velocity").set_attr(turn_velocity);
 	st.add_child("heading").set_attr(heading);
 	parent.add_child("alive_stat").set_attr(unsigned(alive_stat));
+	// write skin info
+	xml_elem sk = parent.add_child("skin");
+	sk.set_attr(skin_regioncode, "region");
+	sk.set_attr(countrycodes[skin_country], "country");
+	sk.set_attr(skin_date.to_str(), "date");
 	// save ai
 	if (myai.get()) {
 		xml_elem ae = parent.add_child("AI");
@@ -525,9 +628,10 @@ vector2 sea_object::get_engine_noise_source () const
 void sea_object::display() const
 {
 	model* mdl = modelcache.find(data_file().get_rel_path(specfilename) + modelname);
-
-	if ( mdl )
-		mdl->display ();
+	if ( mdl ) {
+		mdl->set_layout(skin_name);
+		mdl->display();
+	}
 }
 
 
@@ -535,9 +639,10 @@ void sea_object::display() const
 void sea_object::display_mirror_clip() const
 {
 	model* mdl = modelcache.find(data_file().get_rel_path(specfilename) + modelname);
-
-	if ( mdl )
+	if ( mdl ) {
+		mdl->set_layout(skin_name);
 		mdl->display_mirror_clip();
+	}
 }
 
 
