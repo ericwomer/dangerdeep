@@ -203,6 +203,7 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 		xml_doc doc(data_file().get_filename(subtype));
 		doc.load();
 		submarine* sub = new submarine(*this, doc.first_child());
+		sub->set_skin_layout(model::default_layout);
 		sub->init_fill_torpedo_tubes(currentdate);
 		if (i == 0) {
 			psub = sub;

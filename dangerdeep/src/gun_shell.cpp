@@ -80,7 +80,7 @@ void gun_shell::simulate(double delta_time)
 	}
 }
 
-void gun_shell::display(void) const
+void gun_shell::display() const
 {
 	// direction of shell is equal to normalized velocity vector.
 	// so compute a rotation matrix from velocity and multiply it
@@ -95,7 +95,7 @@ void gun_shell::display(void) const
 			0, 0, 0, 1 };
 	glPushMatrix();
 	glMultMatrixf(m);
-	gun_shell_mdl->display();
+	sea_object::display();
 	glPopMatrix();
 }
 

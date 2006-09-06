@@ -74,7 +74,7 @@ void depth_charge::simulate(double delta_time)
 
 
 
-vector3 depth_charge::get_acceleration(void) const
+vector3 depth_charge::get_acceleration() const
 {
 	if (position.z > 0) {	// DC's can be thrown, so they can be above water.
 		return vector3(0, 0, -GRAVITY);
@@ -82,11 +82,4 @@ vector3 depth_charge::get_acceleration(void) const
 		double vm = velocity.z/DEPTH_CHARGE_SINK_SPEED;
 		return vector3(0, 0, -GRAVITY + GRAVITY*vm*vm);
 	}
-}
-
-
-
-void depth_charge::display(void) const
-{
-	depth_charge_mdl->display();	// fixme: replace by modelcache
 }

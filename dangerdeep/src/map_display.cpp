@@ -576,6 +576,7 @@ void map_display::edit_copy_obj(game_editor& gm)
 			xml_doc spec(data_file().get_filename(s->get_specfilename()));
 			spec.load();
 			ship* s2 = new ship(gm, spec.first_child());
+			s2->set_skin_layout(model::default_layout);
 			// set pos and other values etc.
 			vector3 pos = s->get_pos() + offset;
 			s2->manipulate_position(pos);
@@ -936,6 +937,7 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 					xml_doc spec(data_file().get_filename(edit_shiplist->get_selected_entry()));
 					spec.load();
 					auto_ptr<ship> shp(new ship(gm, spec.first_child()));
+					shp->set_skin_layout(model::default_layout);
 					// set pos and other values etc.
 					vector2 pos = gm.get_player()->get_pos().xy() + mapoffset;
 					shp->manipulate_position(pos.xy0());

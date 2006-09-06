@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ship.h"
 #include "datadirs.h"
 #include "global_data.h"
+#include "model.h"
 
 
 // fixme: the whole file is covered with outcommented lines that have to be
@@ -104,6 +105,7 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 				xml_doc doc(data_file().get_filename(shiptype));
 				doc.load();
 				ship* s = new ship(gm, doc.first_child());
+				s->set_skin_layout(model::default_layout);
 				vector2 pos = vector2(
 					dx*intershipdist + rnd()*60.0-30.0,
 					dy*intershipdist + rnd()*60.0-30.0 );
@@ -139,6 +141,7 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 			xml_doc doc(data_file().get_filename(shiptype));
 			doc.load();
 			ship* s = new ship(gm, doc.first_child());
+			s->set_skin_layout(model::default_layout);
 			vector2 pos = vector2(
 				dx+nx + rnd()*100.0-50.0,
 				dy+ny + rnd()*100.0-50.0 );

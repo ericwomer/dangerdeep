@@ -138,11 +138,10 @@ void sea_object::set_sensor ( sensor_system ss, sensor* s )
 
 double sea_object::get_cross_section ( const vector2& d ) const
 {
-	model* mdl = modelcache.find(data_file().get_rel_path(specfilename) + modelname);
-	if (mdl) {
+	if (mymodel) {
 		vector2 r = get_pos().xy() - d;
 		angle diff = angle(r) - get_heading();
-		return mdl->get_cross_section(diff.value());
+		return mymodel->get_cross_section(diff.value());
 	}
 	return 0.0;
 
@@ -197,9 +196,25 @@ string sea_object::compute_skin_name() const
 
 
 
+void sea_object::set_skin_layout(const std::string& layout)
+{
+//	cout << "set skin layout = '" << layout << "'\n";
+	if (layout != skin_name) {
+		if (mymodel) {
+			if (skin_name.length() > 0)
+				mymodel->unregister_layout(skin_name);
+			mymodel->register_layout(layout);
+		}
+		skin_name = layout;
+	}
+}
+
+
+
 sea_object::sea_object(game& gm_, const string& modelname_)
 	: gm(gm_),
 	  modelname(modelname_),
+	  mymodel(0),
 	  skin_country(UNKNOWNCOUNTRY),
 	  turn_velocity(0),
 	  alive_stat(alive),
@@ -208,19 +223,21 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 	  invulnerable(false), country(UNKNOWNCOUNTRY), party(UNKNOWNPARTY),
 	  redetect_time(0)
 {
-	model* mdl = modelcache.ref(data_file().get_rel_path(specfilename) + modelname);
+	// no specfile, so specfilename is empty, do not call get_rel_path with empty string!
+	mymodel = modelcache.ref(/*data_file().get_rel_path(specfilename) + */ modelname);
 	// this constructor is used only for simple models that have no skin support,
 	// so register default layout.
 	skin_name = model::default_layout;
-	mdl->register_layout(skin_name);
+	mymodel->register_layout(skin_name);
 //  	cout << "base c'tor: registered layout " << skin_name << "\n";
-	size3d = vector3f(mdl->get_width(), mdl->get_length(), mdl->get_height());
+	size3d = vector3f(mymodel->get_width(), mymodel->get_length(), mymodel->get_height());
 }
 
 
 
 sea_object::sea_object(game& gm_, const xml_elem& parent)
 	: gm(gm_),
+	  mymodel(0),
 	  skin_country(UNKNOWNCOUNTRY),
 	  turn_velocity(0),
 	  alive_stat(alive),
@@ -261,8 +278,8 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 // 		     << "\n";
 	}
 
-	model* mdl = modelcache.ref(data_file().get_rel_path(specfilename) + modelname);
-	size3d = vector3f(mdl->get_width(), mdl->get_length(), mdl->get_height());
+	mymodel = modelcache.ref(data_file().get_rel_path(specfilename) + modelname);
+	size3d = vector3f(mymodel->get_width(), mymodel->get_length(), mymodel->get_height());
 	string countrystr = cl.attr("country");
 	country = UNKNOWNCOUNTRY;
 	party = UNKNOWNPARTY;
@@ -330,10 +347,10 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 
 sea_object::~sea_object()
 {
-	model* mdl = modelcache.find(data_file().get_rel_path(specfilename) + modelname);
 // 	cout << "d'tor: unregistered layout " << skin_name << "\n";
-	mdl->unregister_layout(skin_name);
-	modelcache.unref(data_file().get_rel_path(specfilename) + modelname);
+	if (skin_name.length() > 0)
+		mymodel->unregister_layout(skin_name);
+	modelcache.unref(mymodel);
 	for (unsigned i = 0; i < sensors.size(); i++)
 		delete sensors[i];
 }
@@ -378,8 +395,7 @@ void sea_object::load(const xml_elem& parent)
 	// register new skin name. Note! if skin_name was already set and registered,
 	// the old one is not unregistered. But we don't use sea_object in that way.
 	// So everything is ok.
-	model* mdl = modelcache.find(data_file().get_rel_path(specfilename) + modelname);
-	mdl->register_layout(skin_name);
+	mymodel->register_layout(skin_name);
 //  	cout << "load: registered layout " << skin_name << "\n";
 	// load ai
 	if (myai.get()) {
@@ -637,10 +653,10 @@ vector2 sea_object::get_engine_noise_source () const
 
 void sea_object::display() const
 {
-	model* mdl = modelcache.find(data_file().get_rel_path(specfilename) + modelname);
-	if ( mdl ) {
-		mdl->set_layout(skin_name);
-		mdl->display();
+	if (mymodel) {
+//		cout << "render with skin layout = " << skin_name << "\n";
+		mymodel->set_layout(skin_name);
+		mymodel->display();
 	}
 }
 
@@ -648,10 +664,10 @@ void sea_object::display() const
 
 void sea_object::display_mirror_clip() const
 {
-	model* mdl = modelcache.find(data_file().get_rel_path(specfilename) + modelname);
-	if ( mdl ) {
-		mdl->set_layout(skin_name);
-		mdl->display_mirror_clip();
+	if (mymodel) {
+//		cout << "renderMC with skin layout = " << skin_name << "\n";
+		mymodel->set_layout(skin_name);
+		mymodel->display_mirror_clip();
 	}
 }
 

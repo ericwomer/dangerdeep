@@ -184,6 +184,9 @@ protected:
 		void display() const;
 	};
 
+	// store that for debugging purposes.
+	std::string filename;
+
 	std::vector<material*> materials;
 	std::vector<mesh*> meshes;
 	std::vector<light> lights;

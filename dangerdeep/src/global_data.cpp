@@ -55,7 +55,7 @@ string get_program_version(void)
 // fixme2: forget enums. use auto_ptr's instead. MUCH easier!
 // normal data should get shrinked as much as possible, only fonts should remain or so.
 
-model	*torpedo_g7, *depth_charge_mdl, *gun_shell_mdl, *conning_tower_typeVII;
+model *conning_tower_typeVII;
 
 texture *addleadangle, *torpleft, *metalbackgr,
 	*woodbackgr, *notepadsheet, *menuframe,
@@ -106,15 +106,6 @@ void init_global_data(void)
 	conning_tower_typeVII = new model(get_model_dir() + "conning_tower_typeVIIc.xml");
 	conning_tower_typeVII->register_layout();
 	conning_tower_typeVII->set_layout();
-	torpedo_g7 = new model(get_model_dir() + "torpedo_g7.3ds");
-	torpedo_g7->register_layout();
-	torpedo_g7->set_layout();
-	depth_charge_mdl = new model(get_model_dir() + "depth_charge.3ds");
-	depth_charge_mdl->register_layout();
-	depth_charge_mdl->set_layout();
-	gun_shell_mdl = new model(get_model_dir() + "gun_shell.3ds");
-	gun_shell_mdl->register_layout();
-	gun_shell_mdl->set_layout();
 	add_loading_screen("models loaded");
 	panelbackground = new texture(get_image_dir() + "metalbackground.jpg");
 	addleadangle = new texture(get_texture_dir() + "addleadangle.png");
@@ -171,9 +162,6 @@ void deinit_global_data(void)
 	delete font_timesbd;
 	delete font_verdana;
 	delete font_verdanabd;
-	delete torpedo_g7;
-	delete depth_charge_mdl;
-	delete gun_shell_mdl;
 	delete addleadangle;
 	delete metalbackgr;
 	delete woodbackgr;

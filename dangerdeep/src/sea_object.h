@@ -116,6 +116,7 @@ protected:
 
 	// filename for model file (also used for modelcache requests), read from spec file
 	std::string modelname;
+	class model* mymodel;	// pointer to model object, store as quick lookup
 
 	// model variants (layout / skin), read from spec file
 	struct skin_variant {
@@ -287,6 +288,7 @@ public:
 	virtual void display() const;
 	virtual void display_mirror_clip() const;
 	double get_bounding_radius() const { return size3d.x+size3d.y; }	// fixme: could be computed more exact
+	virtual void set_skin_layout(const std::string& layout);
 
 	virtual sensor* get_sensor ( sensor_system ss );
 	virtual const sensor* get_sensor ( sensor_system ss ) const;

@@ -52,8 +52,7 @@ public:
 	virtual void save(xml_elem& parent) const;
 
 	virtual void simulate(double delta_time);
-	virtual void display(void) const;
-	virtual vector3 get_acceleration(void) const;
+	virtual vector3 get_acceleration() const;
 };
 
 #endif

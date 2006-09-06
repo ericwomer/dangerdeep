@@ -181,8 +181,9 @@ model::model()
 }
 
 
-model::model(const string& filename, bool use_material)
-	: scene(0xffffffff, "<scene>", 0)
+model::model(const string& filename_, bool use_material)
+	: filename(filename_),
+	  scene(0xffffffff, "<scene>", 0)
 {
 	if (init_count == 0) render_init();
 	++init_count;
@@ -1218,6 +1219,7 @@ void model::mesh::display_mirror_clip() const
 
 void model::set_layout(const std::string& layout)
 {
+//	cout << "set layout '" << layout << "' for model '" << filename << "'\n";
 	if (current_layout == layout)
 		return;
 	for (vector<material*>::iterator it = materials.begin(); it != materials.end(); ++it)
@@ -1229,8 +1231,9 @@ void model::set_layout(const std::string& layout)
 
 void model::display() const
 {
-	if (current_layout.length() == 0)
-		throw error("trying to render model, but no layout was set yet");
+	if (current_layout.length() == 0) {
+		throw error(filename + ": trying to render model, but no layout was set yet");
+	}
 
 	// default scene: no objects, just draw all meshes.
 	if (scene.children.size() == 0) {
@@ -2000,7 +2003,7 @@ void model::m3ds_read_material(istream& in, m3ds_chunk& ch, model::mesh& m)
 			return;
 		}
 	}
-	throw error("object has unknown material");
+	throw error(filename + ": object has unknown material");
 }		   
 
 // -------------------------------- end of 3ds loading functions -----------------------------------
@@ -2362,6 +2365,10 @@ vector2f model::get_object_translation_constraints(const std::string& objname)
 
 void model::register_layout(const std::string& name)
 {
+//	cout << "register layout '" << name << "' for model '" << filename << "'\n";
+	if (name.length() == 0) {
+		throw error(filename + ": trying to register empty layout!");
+	}
 	for (vector<material*>::iterator it = materials.begin(); it != materials.end(); ++it)
 		(*it)->register_layout(name, basepath);
 }
@@ -2370,6 +2377,9 @@ void model::register_layout(const std::string& name)
 
 void model::unregister_layout(const std::string& name)
 {
+	if (name.length() == 0) {
+		throw error(filename + ": trying to unregister empty layout!");
+	}
 	for (vector<material*>::iterator it = materials.begin(); it != materials.end(); ++it)
 		(*it)->unregister_layout(name);
 }

@@ -83,6 +83,7 @@ game_editor::game_editor()
 		xml_doc doc(data_file().get_filename(subtype));
 		doc.load();
 		submarine* sub = new submarine(*this, doc.first_child());
+		sub->set_skin_layout(model::default_layout);
 		sub->init_fill_torpedo_tubes(date(1939, 9, 1) /*currentdate*/);
 		sub->manipulate_invulnerability(true);
 		if (i == 0) {
