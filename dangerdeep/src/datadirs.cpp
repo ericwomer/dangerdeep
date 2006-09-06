@@ -86,9 +86,10 @@ const std::string& data_file_handler::get_rel_path(const std::string& objectid) 
 	static std::string emptystr;
 	std::map<std::string, std::string>::const_iterator it = data_files.find(objectid);
 	if (it == data_files.end()) {
-		throw error(std::string("can't find path for object '") + objectid + std::string("'"));
+		//for simple models without spec file this will happen, so avoid it for now
+		//throw error(std::string("can't find path for object '") + objectid + std::string("'"));
 		//test:
-		//return emptystr;
+		return emptystr;
 	}
 	return it->second;
 }

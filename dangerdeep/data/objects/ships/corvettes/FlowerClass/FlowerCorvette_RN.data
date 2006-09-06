@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
 <dftd-ship>
   <classification identifier="FlowerCorvette_RN" modelname="FlowerCorvette_RN.ddxml" type="escort" country="GB" >
-    <skin name="north_atlantic_royal_navy" regions="NA" countries="GB" from="1/1/1939" until="12/31/1945" />
-    <skin name="mediteranean_sea_all_navies" regions="MS" from="1/1/1939" until="12/31/1945" />
+    <skin name="north_atlantic_royal_navy" regions="NA" countries="GB" from="1939/1/1" until="1945/12/31" />
+    <skin name="mediteranean_sea_all_navies" regions="MS" from="1939/1/1" until="1945/12/31" />
   </classification>
   <description>
     <far lang="en">Convoy escort</far>

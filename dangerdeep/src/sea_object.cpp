@@ -156,30 +156,39 @@ string sea_object::compute_skin_name() const
 	for (list<skin_variant>::const_iterator it = skin_variants.begin();
 	     it != skin_variants.end(); ++it) {
 		// check date
-		if (skin_date < it->from || skin_date > it->until)
+		if (skin_date < it->from || skin_date > it->until) {
 			continue;
+		}
 		// iterate over regioncodes
-		bool match = false;
-		for (list<string>::const_iterator it2 = it->regions.begin();
-		     it2 != it->regions.end(); ++it2) {
-			if (skin_regioncode == *it2) {
-				match = true;
-				break;
+		if (it->regions.size() > 0) {
+			// if any regions are given (otherwise all match)
+			bool match = false;
+			for (list<string>::const_iterator it2 = it->regions.begin();
+			     it2 != it->regions.end(); ++it2) {
+				if (skin_regioncode == *it2) {
+					match = true;
+					break;
+				}
+			}
+			if (!match) {
+				continue;
 			}
 		}
-		if (!match)
-			continue;
 		// iterate over countrycodes
-		match = false;
-		for (list<string>::const_iterator it2 = it->countries.begin();
-		     it2 != it->countries.end(); ++it2) {
-			if (*it2 == countrycodes[skin_country]) {
-				match = true;
-				break;
+		if (it->countries.size() > 0) {
+			// if any countries are given (otherwise all match)
+			bool match = false;
+			for (list<string>::const_iterator it2 = it->countries.begin();
+			     it2 != it->countries.end(); ++it2) {
+				if (*it2 == string(countrycodes[skin_country])) {
+					match = true;
+					break;
+				}
+			}
+			if (!match) {
+				continue;
 			}
 		}
-		if (!match)
-			continue;
 		// we found a match!
 		return it->name;
 	}
@@ -204,7 +213,7 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 	// so register default layout.
 	skin_name = model::default_layout;
 	mdl->register_layout(skin_name);
-// 	cout << "registered layout " << skin_name << "\n";
+//  	cout << "base c'tor: registered layout " << skin_name << "\n";
 	size3d = vector3f(mdl->get_width(), mdl->get_length(), mdl->get_height());
 }
 
@@ -322,7 +331,7 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 sea_object::~sea_object()
 {
 	model* mdl = modelcache.find(data_file().get_rel_path(specfilename) + modelname);
-// 	cout << "unregistered layout " << skin_name << "\n";
+// 	cout << "d'tor: unregistered layout " << skin_name << "\n";
 	mdl->unregister_layout(skin_name);
 	modelcache.unref(data_file().get_rel_path(specfilename) + modelname);
 	for (unsigned i = 0; i < sensors.size(); i++)
@@ -345,14 +354,15 @@ void sea_object::load(const xml_elem& parent)
 	turn_velocity = st.child("turn_velocity").attrf();
 	heading = st.child("heading").attra();
 	// read skin info
-	if (parent.has_attr("skin")) {
+	if (parent.has_child("skin")) {
 		// read attributes
 		xml_elem sk = parent.child("skin");
 		skin_regioncode = sk.attr("region");
 		std::string sc = sk.attr("country");
 		skin_country = UNKNOWNCOUNTRY;
 		for (int i = UNKNOWNCOUNTRY; i < NR_OF_COUNTRIES; ++i) {
-			if (sc == std::string(countrycodes[i])) {
+//			cout << "load cmp ctr '" << sc << "' '" << string(countrycodes[i]) << "'\n";
+			if (sc == string(countrycodes[i])) {
 				skin_country = countrycode(i);
 				break;
 			}
@@ -370,7 +380,7 @@ void sea_object::load(const xml_elem& parent)
 	// So everything is ok.
 	model* mdl = modelcache.find(data_file().get_rel_path(specfilename) + modelname);
 	mdl->register_layout(skin_name);
-// 	cout << "registered layout " << skin_name << "\n";
+//  	cout << "load: registered layout " << skin_name << "\n";
 	// load ai
 	if (myai.get()) {
 		myai->load(gm, parent.child("AI"));
