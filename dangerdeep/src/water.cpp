@@ -1035,7 +1035,7 @@ void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpo
 	vector<Uint8> data(afs*afs*3);
 	glReadPixels(0, 0, afs, afs, GL_RGB, GL_UNSIGNED_BYTE, &data[0]);
         ostringstream osgname;
-        osgname << "foamamount" << nrfm++ << ".ppm";
+        osgname << "foamamount" << setw(2) << setfill('0') << nrfm++ << ".ppm";
         ofstream osg(osgname.str().c_str());
         osg << "P6\n"<<afs<<" "<<afs<<"\n255\n";
         osg.write((const char*)(&data[0]), afs*afs*3);
@@ -1553,6 +1553,18 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	glColor4f(1,1,1,1);
 
 //	unsigned t0 = sys().millisec();
+
+	// fixme: try using vertex buffer objects, may bring extra performance.
+	// some data is static (indices only) but is copied to the card each frame.
+	// GL_ARB_vertex_buffer_object will help here. Use 64k vertices at most to
+	// be in safe range (bug with Geforce4MX cards). We don't have more vertices
+	// at all, so it's no real limit. Use GL_UNSIGNED_SHORT as index format to
+	// save video memory. This can be done whenever less than 64k indices are
+	// used. The display list compiler should check that automatically and use
+	// only 16bit per index.
+	// bandwidth saved: 100*200 faces a 4 indices per frame, 2 bytes per index
+	// (optimized) gives 160000 bytes per frame, with 30fps ca. 4.57mb/sec.
+	// Not very much though...
 
 	// lock Arrays for extra performance.
 	if (compiled_vertex_arrays_supported)

@@ -1099,8 +1099,19 @@ void model::mesh::send_geometry_to_gl() const
 		}
 	}
 
+	// lock Arrays for extra performance. Rather use vertex buffer objects on newer cards...
+	// display lists are a bit faster than VBOs for static data, but only there of course.
+	// using multiple glLockArrays per frame is not recommended...
+	// test result: compiled vertex arrays bring NO performance gain when using display
+	// lists. So don't use them.
+// 	if (compiled_vertex_arrays_supported)
+// 		glLockArraysEXT(0, indices.size());
+
 	// and finally draw the mesh.
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, &indices[0]);
+
+// 	if (compiled_vertex_arrays_supported)
+// 		glUnlockArraysEXT();
 
 	// maybe: add code to show normals as Lines
 
