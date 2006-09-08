@@ -337,6 +337,8 @@ public:
 
 	// collect all possible layout names from all materials/maps and insert them in "result"
 	void get_all_layout_names(std::set<std::string>& result) const;
+
+	std::string get_filename() const { return filename; }
 };	
 
 #endif

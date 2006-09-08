@@ -178,6 +178,8 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	date availdt = date(eavailability.attr("date"));
 	if (dt < availdt) throw xml_error("torpedo type not available at this date!", parent.doc_name());
 
+	set_skin_layout(model::default_layout);
+
 	mass = parent.child("weight").attrf();
 	untertrieb = parent.child("untertrieb").attrf();
 	xml_elem ewarhead = parent.child("warhead");
