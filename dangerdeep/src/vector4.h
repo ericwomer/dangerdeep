@@ -55,6 +55,7 @@ class vector4t
 	D square_distance(const vector4t<D>& other) const { vector4t<D> n = *this - other; return n.square_length(); }
 	D distance(const vector4t<D>& other) const { vector4t<D> n = *this - other; return n.length(); }
 	D operator* (const vector4t<D>& other) const { return x * other.x + y * other.y + z * other.z + w * other.w; }
+	vector2t<D> xy() const { return vector2t<D>(x, y); }
 	vector3t<D> xyz() const { return vector3t<D>(x, y, z); }
 	vector3t<D> to_real() const { return (w == 0) ? vector3t<D>() : vector3t<D>(x/w, y/w, z/w); }
 	template<class D2> friend std::ostream& operator<< ( std::ostream& os, const vector4t<D2>& v );

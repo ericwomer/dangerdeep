@@ -273,18 +273,17 @@ void ship::set_throttle(int thr)
 
 
 
-void ship::remember_position()
+void ship::remember_position(double t)
 {
-	// fixme: store position as 4 values? x,y,time,speed
+	// store 4 values: x,y position, time, speed.
 	// with these we can build the foam trail much better
 	// time for decay, and speed for width. width is shipwidth + speedfactor * speed,
 	// where factor grows over time in the first seconds, then is constant, like 1-e^-x
-	// do NOT remember position if it is closer than 5m to the last position?
+	// do NOT remember position if it is closer than 5m to the last position.
 	// problem is that for non-moving objects all positions are identical.
-	// but it doesn't fix the bug too
 	vector2 p = get_pos().xy();
-	if (previous_positions.empty() || previous_positions.front().square_distance(p) >= 25.0) {
-		previous_positions.push_front(p);
+	if (previous_positions.empty() || previous_positions.front().xy().square_distance(p) >= 25.0) {
+		previous_positions.push_front(vector4(p.x, p.y, t, get_speed()));
 		if (previous_positions.size() > TRAIL_LENGTH)
 			previous_positions.pop_back();
 	}
@@ -375,7 +374,7 @@ void ship::load(const xml_elem& parent)
 	fuel_level = parent.child("fuel_level").attrf();
 
 	// fixme load that
-	//list<vector2> previous_positions;
+	//list<vector4> previous_positions;
 	//class particle* myfire;
 
 	//fixme: load per gun data
@@ -446,7 +445,7 @@ void ship::save(xml_elem& parent) const
 	parent.add_child("fuel_level").set_attr(fuel_level);
 
 	// fixme save that
-	//list<vector2> previous_positions;
+	//list<vector4> previous_positions;
 	//class particle* myfire;
 
 	//fixme: save per gun data

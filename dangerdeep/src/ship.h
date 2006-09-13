@@ -97,7 +97,7 @@ class ship : public sea_object
 	// sonar / underwater sound specific constants, read from spec file
 	noise_signature noise_sign;
 
-	list<vector2> previous_positions;
+	list<vector4> previous_positions;
 
 	shipclass myclass;	// read from spec file, e.g. warship/merchant/escort/...
 
@@ -226,8 +226,8 @@ public:
 	virtual void rudder_midships();
 	virtual void set_throttle(int thr);
 
-	virtual void remember_position();
-	virtual const list<vector2>& get_previous_positions() const { return previous_positions; }
+	virtual void remember_position(double t);
+	virtual const list<vector4>& get_previous_positions() const { return previous_positions; }
 
 	virtual bool has_smoke() const { return !smoke.empty(); }
 

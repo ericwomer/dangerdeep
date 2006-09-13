@@ -281,7 +281,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	foamtex.reset(new texture(get_texture_dir() + "foam.png", texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
 	foamamounttex.reset(new texture(FOAMAMOUNTRES, FOAMAMOUNTRES, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 
-	foamamounttrail.reset(new texture(get_texture_dir() + "foamamounttrail.png", texture::LINEAR, texture::CLAMP_TO_EDGE));//fixme maybe mipmap it
+	foamamounttrail.reset(new texture(get_texture_dir() + "foamamounttrail.png", texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
 
 	const unsigned perimetertexs = 256;
 	const unsigned perimetertexborder = 32;
@@ -889,38 +889,13 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 
 void water::draw_foam_for_ship(const game& gm, const ship* shp, const vector3& viewpos) const
 {
-	// the bug with flickering lines to infinity is caused by this function
-	// no coordinate is +-Inf or NaN, so either the texcoords are broken
-	// or something else is wrong. maybe values too large, not +inf but near it.
-	// the whole function is buggy and needs to be improved.
-	// idea: store previous positions as triples: x,y,time
-	// then one can determine amount of foam per position easily with a decay value
-	// the bug with the strange lines is invariant over time, but depends on position
-	// of the viewer. very odd!
-	// reason: the pl/pr xy values are near 3.6e+7 or so. only the first 1-2 points seem valid
-	// nr of prev pos. after mission start is very high, 30 or so, seems to raise quickly.
-	// the positions seem to be very close to each other, some of them maybe wrong values.
-	// this explains the bug.
-
 	vector2 spos = shp->get_pos().xy() - viewpos.xy();
 	vector2 sdir = shp->get_heading().direction();
 	vector2 pdir = sdir.orthogonal();
 	float sl = shp->get_length();
 	float sw = shp->get_width();
 
-	const list<vector2>& prevpos = shp->get_previous_positions();
-
-	// fixme: we need time of most recent prevpos, and time for decay of foam
-	double oldest_trail_time = (ship::TRAIL_LENGTH + 1) * game::TRAIL_TIME;
-	double trail_time_offset = gm.get_time() - gm.get_last_trail_record_time();
-	// reason for the bug: last_trail_time and game time differ by large amount.
-	// possible reason for that: when ships are added in the editor and AFTER THAT
-	// the game time is changed, then only this time, but not last trail time
-	// is modified and so this bug occours.
-//	cout << "tto=" << trail_time_offset << " tm0=" << gm.get_time() << " gm1=" << gm.get_last_trail_record_time() << "\n";
-
 	// draw foam caused by hull.
-	// fixme: is not responsible for the bug
 	glColor4f(1, 1, 1, 1);
 	foamperimetertex->set_gl_texture();
 	glBegin(GL_QUADS);
@@ -938,64 +913,86 @@ void water::draw_foam_for_ship(const game& gm, const ship* shp, const vector3& v
 	glVertex3d(pp.x, pp.y, -viewpos.z);
 	glEnd();
 
+	double tm = gm.get_time();
+
 	// draw foam caused by trail.
-	vector<vector2> trailp;
-	trailp.reserve(15);
-	trailp.push_back(spos);
+	const list<vector4>& prevpos = shp->get_previous_positions();
+	// can render strip of quads only when more than one position is stored.
+	if (prevpos.empty())
+		return;
 
-//	cout << "prevposis\n";
-	for (list<vector2>::const_iterator pit = prevpos.begin(); pit != prevpos.end(); ++pit) {
-		vector2 newp = *pit - viewpos.xy();
-//		cout << "pit= " << *pit << ", newp= " << newp << "\n";
-		// avoid degenerated points/trails, fixme doesn't help with drawing bug
-		if (trailp.back().square_distance(newp) > 1.0) {
-			trailp.push_back(newp);
-			if (trailp.size() == trailp.capacity())
-				break;
+	foamamounttrail->set_gl_texture();
+	glBegin(GL_QUAD_STRIP);
+
+	// first position is current position and thus special.
+	//fixme: foam trail should start at bow, not center... we can implement that,
+	//but foam width needs to be fixed, or foam width "jumps"
+#if 0
+	vector2 foamstart = shp->get_pos().xy() + sdir * (sl*0.5);	// shp->get_pos().xy()
+	double foamwidth = 0;
+#else
+	vector2 foamstart = shp->get_pos().xy();
+	double foamwidth = sw*0.5;
+#endif
+	vector2 nrml = (foamstart - prevpos.begin()->xy()).orthogonal().normal();
+	vector2 pl = foamstart - viewpos.xy() - nrml * foamwidth;
+	vector2 pr = foamstart - viewpos.xy() + nrml * foamwidth;
+	glColor4f(1, 1, 1, 1.0);
+	double yc = myfmod(tm * 0.1, 3600);
+	glTexCoord2f(0, yc);
+	glVertex3d(pl.x, pl.y, -viewpos.z);
+	glTexCoord2f(1, yc);
+	glVertex3d(pr.x, pr.y, -viewpos.z);
+
+	// iterate over stored positions, compute normal for trail for each position and width
+	list<vector4>::const_iterator pit = prevpos.begin();
+	list<vector4>::const_iterator pit2 = prevpos.end();
+	//double dist = 0;
+// 	cout << "new trail\n";
+// 	int ctr=0;
+	while (pit != prevpos.end()) {
+		vector2 p = pit->xy();
+		// amount of foam (density) depends on time (age). foam vanishs after 30seconds
+		double age = tm - pit->z;
+		double foamamount = fmax(0.0, 1.0 - age * (1.0/30));
+		// width of foam trail depends on speed and time.
+		// "young" foam is growing to max. width, max. width is determined by speed
+		// width is speed in m/s * 2, gives ca. 34m wide foam on each side with 34kts.
+		double maxwidth = pit->w * 2.0;
+		double foamwidth = sw*0.5 + (1.0 - 1.0/(age * 0.25 + 1.0)) * maxwidth;
+// 		cout << "[" << ctr++ << "] age=" << age << " amt=" << foamamount << " maxw=" << maxwidth
+// 		     << " fw=" << foamwidth << "\n";
+		++pit;	// now pit points to next point
+		if (pit2 == prevpos.end()) {
+			// handle first point
+			nrml = (foamstart - pit->xy()).orthogonal().normal();
+			pit2 = prevpos.begin();
+		} else if (pit == prevpos.end()) {
+			// handle last point. just use previous normal.
+			// amount is always zero on last point, to blend smoothly
+			foamamount = 0;
+		} else {
+			// now pit points to next point, pit2 to previous point
+			nrml = (pit2->xy() - pit->xy()).orthogonal().normal();
+			//dist += pit2->xy().distance(p);
+			++pit2;
 		}
+		// move p to viewer space
+		p -= viewpos.xy();
+		vector2 pl = p - nrml * foamwidth;
+		vector2 pr = p + nrml * foamwidth;
+		glColor4f(1, 1, 1, foamamount);
+		//y-coord depends on total length somehow, rather on distance between two points.
+		//but it should be fix for any position on the foam, or the edge of the foam
+		//will "jump", an ugly effect - we use a workaround here to use time as fake
+		//distance and take mod 3600 to keep fix y coords.
+		double yc = myfmod((tm - age) * 0.1, 3600);
+		glTexCoord2f(0, yc); // dist * 0.02);	// v=1 for 50m distance
+		glVertex3d(pl.x, pl.y, -viewpos.z);
+		glTexCoord2f(1, yc); // dist * 0.02);
+		glVertex3d(pr.x, pr.y, -viewpos.z);
 	}
-	oldest_trail_time = trailp.capacity() * game::TRAIL_TIME;
-
-	if (trailp.size() >= 2) {
-		// compute normals
-		vector<vector2> trailpnrml(trailp.size());
-		trailpnrml[0] = pdir;
-		for (unsigned i = 1; i + 1 < trailp.size(); ++i)
-			trailpnrml[i] = (trailp[i-1] - trailp[i+1]).orthogonal().normal();
-		trailpnrml[trailpnrml.size()-1] = trailpnrml[trailpnrml.size()-2];
-
-		foamamounttrail->set_gl_texture();
-		// fixme: breite und alpha sollten nach hinten zunehmen, hängt von zeit ab!
-		//und texcoords für amount of foam tex sollten für einzelne trailp konstant bleiben
-		glColor4f(1, 1, 1, 1);
-		glBegin(GL_QUAD_STRIP);
-		// fixme: breite nimmt zwar mit age zu, aber bei vielen, nahee nebeneinanderliegenden
-		// trailpunkten, kann die breite nicht so weit zunehmen!
-		// generell sollte sie anfangs zunehmen (Kielwasser) und später nicht mehr.
-		//form der schaumspur generell schwierig, das hier ist zu einfach.
-		// vielleicht neben den positionen noch schaumbreite speichern oder sowas.
-		// foamtrail sollte auch am BUG anfangen, ab da verbreiternd, später konstant breit.
-		// theoretisch kann man schaummenge auch speichern und dann entlang des trails über die zeit
-		// verringern. kann man aber auch anhand des alters während des zeichnens machen.
-//		cout << "trail\n";
-		for (unsigned i = 0; i < trailp.size(); ++i) {
-			double age = (i == 0) ? 0.0 : (trail_time_offset + (i-1) * game::TRAIL_TIME);
-			// fixme: set last trail point foamamt always to zero as test... fixme funzt net
-			float foamamt = (i+1 == trailp.size()) ? 0.0f : (1.0f - age / oldest_trail_time);
-			// fixme: es wird net breiter, this is the bug, foamwdt is too high
-			float foamwdt = (0.5f + age / oldest_trail_time) * sw;
-//			cout << "age " << age << " oldest_trail_time " << oldest_trail_time << " sw " << sw << "\n";
-			vector2 pl = trailp[i] - trailpnrml[i] * foamwdt;
-			vector2 pr = trailp[i] + trailpnrml[i] * foamwdt;
-//			cout << "male " << i << " pl " << pl << " pr " << pr << " nrml " << trailpnrml[i] << " fw " << foamwdt << "\n";
-			glColor4f(1, 1, 1, foamamt);
-			glTexCoord2f(0, i);
-			glVertex3d(pl.x, pl.y, -viewpos.z);
-			glTexCoord2f(1, i);
-			glVertex3d(pr.x, pr.y, -viewpos.z);
-		}
-		glEnd();
-	}
+	glEnd();
 }
 
 

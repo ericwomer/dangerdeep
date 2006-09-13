@@ -644,7 +644,7 @@ void game::simulate(double delta_t)
 	
 	bool record = false;
 	if (get_time() >= last_trail_time + TRAIL_TIME) {
-		last_trail_time += TRAIL_TIME;
+		last_trail_time = get_time();
 		record = true;
 	}
 	
@@ -664,7 +664,7 @@ void game::simulate(double delta_t)
 			ships.reset(i);
 		} else {
 			ships[i]->simulate(delta_t);
-			if (record) ships[i]->remember_position();
+			if (record) ships[i]->remember_position(get_time());
 		}
 	}
 	ships.compact();
@@ -680,7 +680,7 @@ void game::simulate(double delta_t)
 			submarines.reset(i);
 		} else {
 			submarines[i]->simulate(delta_t);
-			if (record) submarines[i]->remember_position();
+			if (record) submarines[i]->remember_position(get_time());
 		}
 	}
 	submarines.compact();
@@ -707,7 +707,7 @@ void game::simulate(double delta_t)
 			torpedoes.reset(i);
 		} else {
 			torpedoes[i]->simulate(delta_t);
-			if (record) torpedoes[i]->remember_position();
+			if (record) torpedoes[i]->remember_position(get_time());
 		}
 	}
 	torpedoes.compact();
