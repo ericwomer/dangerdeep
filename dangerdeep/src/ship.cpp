@@ -275,9 +275,19 @@ void ship::set_throttle(int thr)
 
 void ship::remember_position()
 {
-	previous_positions.push_front(get_pos().xy());
-	if (previous_positions.size() > TRAIL_LENGTH)
-		previous_positions.pop_back();
+	// fixme: store position as 4 values? x,y,time,speed
+	// with these we can build the foam trail much better
+	// time for decay, and speed for width. width is shipwidth + speedfactor * speed,
+	// where factor grows over time in the first seconds, then is constant, like 1-e^-x
+	// do NOT remember position if it is closer than 5m to the last position?
+	// problem is that for non-moving objects all positions are identical.
+	// but it doesn't fix the bug too
+	vector2 p = get_pos().xy();
+	if (previous_positions.empty() || previous_positions.front().square_distance(p) >= 25.0) {
+		previous_positions.push_front(p);
+		if (previous_positions.size() > TRAIL_LENGTH)
+			previous_positions.pop_back();
+	}
 }	
 
 

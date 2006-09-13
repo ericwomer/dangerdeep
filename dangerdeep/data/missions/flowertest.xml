@@ -355,7 +355,7 @@
     <convoys nr="0" />
     <player ref="1" type="submarine" />
     <sunken_ships nr="0" />
-    <state time="74521801.008" last_trail_time="21038399" max_view_dist="30000">
+    <state time="74521801.008" last_trail_time="74521800.008" max_view_dist="30000">
         <date day="1941/ 5/12" time="12:30: 1" />
         <equipment_date>
             <date day="1941/ 5/12" time="12:30: 0" />
