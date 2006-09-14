@@ -1,34 +1,18 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
 <dftd-ship>
-  <classification identifier="tanker_kennebak" modelname="tanker_kennebak.ddxml" type="merchant" country="GB"/>
-  <!-- country="greatbritain" - kennebak is us, not en, but could have been 
-	used under english flag? -->
-  <!-- mock tags for info and recognition manual files, as well as camouflage schemes:
-	<scheme id="0" file="camouflage1.png" country="us" />
-	<scheme id="1" file="camouflage2.png" country="en" />
-	<scheme id="2" file="camouflage3.png" country="ca" />
-	<scheme id="3" file="camouflage4.png" country="fr" />
-	<scheme id="4" file="camouflage5.png" country="it" />
-	<scheme id="5" file="camouflage6.png" country="de" />
-	<scheme id="6" file="camouflage7.png" country="ne" />
-	(being us = us, en = england, ca = canada, fr = france, it = italy
-	de = germany, ne = neutral nations. use country codes according to
-	available camouflages, specific for ship types, obviously you won't
-	have canadian bismarck, etc... ;))
-	<manual front="frontimage.png" side="sideimage.png" />
-	(ship silhouette renderings for recognition manual, front+side)
-	<info lang="en">detailed text here />
-	<info lang="de">detailed text here />
--->
+  <classification identifier="tanker_kennebak" modelname="tanker_kennebak.ddxml" type="merchant" country="US" >
+    <skin name="north_atlantic_usnavy" regions="NA" countries="US" from="1939/1/1" until="1945/12/31" />
+    <skin name="north_atlantic_civilian" regions="NA" countries="US" from="1939/1/1" until="1945/12/31" />
+  </classification>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>
     <far lang="it">Nave a vapore</far>
-    <medium lang="en">Oil Tanker</medium>
+    <medium lang="en">Oil tanker</medium>
     <medium lang="de">Oltanker</medium>
     <medium lang="it">Petroliera</medium>
     <near lang="en">Medium Oil Tanker ship</near>
-    <near lang="de">Mittlerer Öltanker</near>
+    <near lang="de">Mittlerer Oltanker</near>
     <near lang="it">Petroliera di medio tonnellaggio</near>
   </description>
   <motion maxspeed="9" maxrevspeed="0" acceleration="0.1" turnrate="0.1"/>
