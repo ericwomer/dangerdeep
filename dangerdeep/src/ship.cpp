@@ -282,8 +282,8 @@ void ship::remember_position(double t)
 	// do NOT remember position if it is closer than 5m to the last position.
 	// problem is that for non-moving objects all positions are identical.
 	vector2 p = get_pos().xy();
-	if (previous_positions.empty() || previous_positions.front().xy().square_distance(p) >= 25.0) {
-		previous_positions.push_front(vector4(p.x, p.y, t, get_speed()));
+	if (previous_positions.empty() || previous_positions.front().pos.square_distance(p) >= 25.0) {
+		previous_positions.push_front(prev_pos(p, get_heading().direction(), t, get_speed()));
 		if (previous_positions.size() > TRAIL_LENGTH)
 			previous_positions.pop_back();
 	}
@@ -374,7 +374,7 @@ void ship::load(const xml_elem& parent)
 	fuel_level = parent.child("fuel_level").attrf();
 
 	// fixme load that
-	//list<vector4> previous_positions;
+	//list<prev_pos> previous_positions;
 	//class particle* myfire;
 
 	//fixme: load per gun data
@@ -445,7 +445,7 @@ void ship::save(xml_elem& parent) const
 	parent.add_child("fuel_level").set_attr(fuel_level);
 
 	// fixme save that
-	//list<vector4> previous_positions;
+	//list<prev_pos> previous_positions;
 	//class particle* myfire;
 
 	//fixme: save per gun data

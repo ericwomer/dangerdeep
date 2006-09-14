@@ -889,6 +889,10 @@ vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
 
 void water::draw_foam_for_ship(const game& gm, const ship* shp, const vector3& viewpos) const
 {
+	/* fixme: for each prev pos store also heading (as direction vector)
+	   then hdg.ortho = normal!
+	   and we can compute the prevpos of the bow!
+	*/
 	vector2 spos = shp->get_pos().xy() - viewpos.xy();
 	vector2 sdir = shp->get_heading().direction();
 	vector2 pdir = sdir.orthogonal();
@@ -916,27 +920,18 @@ void water::draw_foam_for_ship(const game& gm, const ship* shp, const vector3& v
 	double tm = gm.get_time();
 
 	// draw foam caused by trail.
-	const list<vector4>& prevpos = shp->get_previous_positions();
+	const list<ship::prev_pos>& prevposn = shp->get_previous_positions();
 	// can render strip of quads only when more than one position is stored.
-	if (prevpos.empty())
+	if (prevposn.empty())
 		return;
 
 	foamamounttrail->set_gl_texture();
 	glBegin(GL_QUAD_STRIP);
 
 	// first position is current position and thus special.
-	//fixme: foam trail should start at bow, not center... we can implement that,
-	//but foam width needs to be fixed, or foam width "jumps"
-#if 0
-	vector2 foamstart = shp->get_pos().xy() + sdir * (sl*0.5);	// shp->get_pos().xy()
-	double foamwidth = 0;
-#else
-	vector2 foamstart = shp->get_pos().xy();
-	double foamwidth = sw*0.5;
-#endif
-	vector2 nrml = (foamstart - prevpos.begin()->xy()).orthogonal().normal();
-	vector2 pl = foamstart - viewpos.xy() - nrml * foamwidth;
-	vector2 pr = foamstart - viewpos.xy() + nrml * foamwidth;
+	vector2 foamstart = shp->get_pos().xy() + sdir * (sl*0.5);
+	vector2 pl = foamstart - viewpos.xy();
+	vector2 pr = foamstart - viewpos.xy();
 	glColor4f(1, 1, 1, 1.0);
 	double yc = myfmod(tm * 0.1, 3600);
 	glTexCoord2f(0, yc);
@@ -945,40 +940,29 @@ void water::draw_foam_for_ship(const game& gm, const ship* shp, const vector3& v
 	glVertex3d(pr.x, pr.y, -viewpos.z);
 
 	// iterate over stored positions, compute normal for trail for each position and width
-	list<vector4>::const_iterator pit = prevpos.begin();
-	list<vector4>::const_iterator pit2 = prevpos.end();
+	list<ship::prev_pos>::const_iterator pit = prevposn.begin();
 	//double dist = 0;
 // 	cout << "new trail\n";
 // 	int ctr=0;
-	while (pit != prevpos.end()) {
-		vector2 p = pit->xy();
+	while (pit != prevposn.end()) {
+		vector2 p = pit->pos + (pit->dir * (sl*0.5)) - viewpos.xy();
+		vector2 nrml = pit->dir.orthogonal();
 		// amount of foam (density) depends on time (age). foam vanishs after 30seconds
-		double age = tm - pit->z;
+		double age = tm - pit->time;
 		double foamamount = fmax(0.0, 1.0 - age * (1.0/30));
 		// width of foam trail depends on speed and time.
 		// "young" foam is growing to max. width, max. width is determined by speed
 		// width is speed in m/s * 2, gives ca. 34m wide foam on each side with 34kts.
-		double maxwidth = pit->w * 2.0;
-		double foamwidth = sw*0.5 + (1.0 - 1.0/(age * 0.25 + 1.0)) * maxwidth;
+		double maxwidth = pit->speed * 2.0;
+		double foamwidth = (1.0 - 1.0/(age * 0.25 + 1.0)) * maxwidth;
 // 		cout << "[" << ctr++ << "] age=" << age << " amt=" << foamamount << " maxw=" << maxwidth
 // 		     << " fw=" << foamwidth << "\n";
 		++pit;	// now pit points to next point
-		if (pit2 == prevpos.end()) {
-			// handle first point
-			nrml = (foamstart - pit->xy()).orthogonal().normal();
-			pit2 = prevpos.begin();
-		} else if (pit == prevpos.end()) {
-			// handle last point. just use previous normal.
+		if (pit == prevposn.end()) {
 			// amount is always zero on last point, to blend smoothly
 			foamamount = 0;
-		} else {
-			// now pit points to next point, pit2 to previous point
-			nrml = (pit2->xy() - pit->xy()).orthogonal().normal();
-			//dist += pit2->xy().distance(p);
-			++pit2;
 		}
 		// move p to viewer space
-		p -= viewpos.xy();
 		vector2 pl = p - nrml * foamwidth;
 		vector2 pr = p + nrml * foamwidth;
 		glColor4f(1, 1, 1, foamamount);

@@ -60,6 +60,17 @@ class ship : public sea_object
 	// maximum trail record length
 	static const unsigned TRAIL_LENGTH = 60;
 
+	// all data for a previous position
+	struct prev_pos {
+		vector2 pos;	// (center) pos of ship
+		vector2 dir;	// direction (heading) of ship
+		double time;	// absolute time when position was recorded
+		double speed;	// speed of ship when position was recorded
+		prev_pos(const vector2& p, const vector2& d, double t, double s)
+			: pos(p), dir(d), time(t), speed(s) {}
+		// add xml load/save functions here, fixme
+	};
+
  protected:
 	unsigned tonnage;	// in BRT, created after values from spec file (but maybe with some randomness), must get stored!
 
@@ -97,7 +108,7 @@ class ship : public sea_object
 	// sonar / underwater sound specific constants, read from spec file
 	noise_signature noise_sign;
 
-	list<vector4> previous_positions;
+	list<prev_pos> previous_positions;
 
 	shipclass myclass;	// read from spec file, e.g. warship/merchant/escort/...
 
@@ -227,7 +238,7 @@ public:
 	virtual void set_throttle(int thr);
 
 	virtual void remember_position(double t);
-	virtual const list<vector4>& get_previous_positions() const { return previous_positions; }
+	virtual const list<prev_pos>& get_previous_positions() const { return previous_positions; }
 
 	virtual bool has_smoke() const { return !smoke.empty(); }
 

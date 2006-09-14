@@ -95,16 +95,16 @@ void map_display::draw_trail(sea_object* so, const vector2& offset) const
 	// we draw trails in both functions.
 	ship* shp = dynamic_cast<ship*>(so);
 	if (shp) {
-		const list<vector4>& l = shp->get_previous_positions();
+		const list<ship::prev_pos>& l = shp->get_previous_positions();
 		glColor4f(1,1,1,1);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBegin(GL_LINE_STRIP);
 		vector2 p = (shp->get_pos().xy() + offset)*mapzoom;
 		glVertex2f(512+p.x, 384-p.y);
 		float la = 1.0/float(l.size()), lc = 0;
-		for (list<vector4>::const_iterator it = l.begin(); it != l.end(); ++it) {
+		for (list<ship::prev_pos>::const_iterator it = l.begin(); it != l.end(); ++it) {
 			glColor4f(1,1,1,1-lc);
-			vector2 p = (it->xy() + offset)*mapzoom;
+			vector2 p = (it->pos + offset)*mapzoom;
 			glVertex2f(512+p.x, 384-p.y);
 			lc += la;
 		}
@@ -121,7 +121,7 @@ void map_display::draw_trail(sea_object* so, const vector2& offset) const
 	float sl = shp->get_length();
 	float sw = shp->get_width();
 
-	const list<vector4>& prevpos = shp->get_previous_positions();
+	const list<ship::prev_pos>& prevpos = shp->get_previous_positions();
 	// fixme: we need time of most recent prevpos, and time for decay of foam
 
 	//vector<vector2> trailp = compute_foam_trail(shp, viewpos);
@@ -138,7 +138,7 @@ void map_display::draw_trail(sea_object* so, const vector2& offset) const
 //	trailp.push_back(spos + sdir * (sl * -0.5));
 
 	// first point of prevpos has to be discarded when between pos and stern
-	list<vector4>::const_iterator pit = prevpos.begin();
+	list<ship::prev_pos>::const_iterator pit = prevpos.begin();
 #if 0
 	while (pit != prevpos.end()) {
 		if (sdir * ((*pit /* - viewpos.xy()*/) - spos) >= sl * -0.5) {
@@ -151,7 +151,7 @@ void map_display::draw_trail(sea_object* so, const vector2& offset) const
 
 	//fixme: limit to 1/3 or 1/4 of prevpos, that means skip entries older than 1/3 or 1/4
 	for ( ; pit != prevpos.end(); ++pit /*unsigned i = 0; i < prevpos.size(); ++i*/) {
-		trailp.push_back(pit->xy() /* - viewpos.xy()*/);
+		trailp.push_back(pit->pos /* - viewpos.xy()*/);
 		if (trailp.size() > 15) break;
 	}
 
