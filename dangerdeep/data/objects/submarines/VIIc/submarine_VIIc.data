@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
 <dftd-submarine>
-  <classification identifier="submarine_VIIc" modelname="uboat_VIIc.ddxml" type="submarine" country="DE"/>
+  <classification identifier="submarine_VIIc" modelname="uboat_VIIc.ddxml" type="submarine" country="DE">
+    <skin name="1939variant2" regions="NA" countries="DE" from="1939/7/1" until="1939/12/31" />
+    <skin name="1940variant1" regions="NA" countries="DE" from="1940/1/1" until="1940/6/30" />
+	<skin name="1940variant2" regions="NA" countries="DE" from="1940/7/1" until="1940/12/31" />
+    <skin name="atlantic1" regions="NA" countries="DE" from="1941/1/1" until="1941/12/31" />
+    <skin name="atlantic1u552" regions="NA" countries="DE" from="1941/1/1" until="1941/12/31" />
+    <skin name="atlantic2" regions="NA" countries="DE" from="1942/1/1" until="1942/12/31" />
+    <skin name="atlantic3" regions="NA" countries="DE" from="1943/1/1" until="1943/12/31" />
+    <skin name="atlantic4" regions="NA" countries="DE" from="1944/1/1" until="1945/12/31" />
+    <skin name="mediterranean" regions="MS" countries="DE" from="1939/1/1" until="1945/12/31" />
+    <skin name="northsea" regions="NS" countries="DE" from="1939/1/1" until="1945/12/31" />
+  </classification>
   <description>
     <far lang="en">Submarine</far>
     <far lang="de">U-Boot</far>
@@ -34,3 +45,4 @@
   	<turret barrels="1" shell_capacity="220" initial_velocity="200.0" max_inclination="30" max_declination="0" time_to_man="20" time_to_unman="20" shell_damage="0.2" calibre="88.0" exclusion_radius_start="160" exclusion_radius_end="200"/>
   </gun_turrets>
 </dftd-submarine>
+
