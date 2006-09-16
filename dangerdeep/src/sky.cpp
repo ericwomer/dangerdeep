@@ -454,6 +454,10 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glPopMatrix();
 
 	// draw moon
+	
+	// alter blend function so that the moon renders ok in daylight
+	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+
 	vector3 moonpos = moondir * (0.95 * max_view_dist);
 	double moons = max_view_dist/17;	// make moon ~10x10 pixel
 	glColor4f(1,1,1,1);
@@ -474,6 +478,9 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glVertex3f(-moons,  moons, 0);
 	glEnd();
 	glPopMatrix();
+
+	// restore blend function
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// ******** clouds ********************************************************************
 	color lightcol = gm.compute_light_color(viewpos);
