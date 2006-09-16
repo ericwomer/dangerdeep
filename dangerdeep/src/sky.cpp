@@ -61,7 +61,7 @@ sky::sky(const double tm, const unsigned int sectors_x, const unsigned int secto
 	  turbidity(5.0f)//was 2.0, fixme
 {
 	// ******************************** create stars
-	const unsigned nr_of_stars = 2000;
+	const unsigned nr_of_stars = 500;
 	stars_pos.reserve(nr_of_stars);
 	stars_lumin.reserve(nr_of_stars*4);
 	for (unsigned i = 0; i < nr_of_stars; ++i) {
