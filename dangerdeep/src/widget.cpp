@@ -958,7 +958,6 @@ void widget_edit::draw() const
 	draw_area(p.x, p.y, size.x, size.y, false);
 	int fw = globaltheme->frame_size();
 	globaltheme->myfont->print_vc(p.x+fw, p.y+size.y/2, text, is_enabled() ? globaltheme->textcol : globaltheme->textdisabledcol, true);
-	// fixme: gives wrong result with multibyte characters.
 	vector2i sz = globaltheme->myfont->get_size(text.substr(0, cursorpos));
 	glBindTexture(GL_TEXTURE_2D, 0);
 	globaltheme->textcol.set_gl_color();
