@@ -86,7 +86,7 @@ moon::moon()
 		phases.push_back(phase);
 	}
 
-	moon_texture = texture::ptr(new texture(get_texture_dir()+moon_texture_files[0], texture::LINEAR));
+	moon_texture = texture::ptr(new texture(get_texture_dir()+moon_texture_files[0], texture::LINEAR, texture::CLAMP_TO_EDGE));
 }
 
 
@@ -99,7 +99,7 @@ void moon::update_moon_texture(const double time)
 	unsigned texture_id = get_texture_id(phase1, phase2, time);
 
 	if(last_texture_id != texture_id) {
-		moon_texture.reset( new texture(get_texture_dir()+moon_texture_files[texture_id], texture::LINEAR) );
+		moon_texture.reset( new texture(get_texture_dir()+moon_texture_files[texture_id], texture::LINEAR, texture::CLAMP_TO_EDGE) );
 		last_texture_id = texture_id;
 	}
 }
