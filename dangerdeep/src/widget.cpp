@@ -958,6 +958,7 @@ void widget_edit::draw() const
 	draw_area(p.x, p.y, size.x, size.y, false);
 	int fw = globaltheme->frame_size();
 	globaltheme->myfont->print_vc(p.x+fw, p.y+size.y/2, text, is_enabled() ? globaltheme->textcol : globaltheme->textdisabledcol, true);
+	// fixme: gives wrong result with multibyte characters.
 	vector2i sz = globaltheme->myfont->get_size(text.substr(0, cursorpos));
 	glBindTexture(GL_TEXTURE_2D, 0);
 	globaltheme->textcol.set_gl_color();
@@ -965,15 +966,64 @@ void widget_edit::draw() const
 		sys().draw_rectangle(p.x+fw+sz.x, p.y+size.y/4, fw/2, size.y/2);
 }
 
+
+
+unsigned widget_edit::cursor_left() const
+{
+	unsigned cp = cursorpos;
+	if (cp > 0) {
+		// move one left
+		--cp;
+		// if on multibyte character, but not first, and we can move left, move further
+		while (cp > 0 && is_byte_of_multibyte_char(text[cp]) && !is_first_byte_of_multibyte_char(text[cp]))
+			--cp;
+	}
+	return cp;
+}
+
+
+
+unsigned widget_edit::cursor_right() const
+{
+	const unsigned l = text.size();
+	unsigned cp = cursorpos;
+	if (cp < l) {
+		// check if we are on multibyte char
+		if (is_byte_of_multibyte_char(text[cp])) {
+			++cp;
+			while (cp < l) {
+				if (is_byte_of_multibyte_char(text[cp])) {
+					if (is_first_byte_of_multibyte_char(text[cp])) {
+						break;
+					}
+				} else {
+					break;
+				}
+				++cp;
+			}
+		} else {
+			++cp;
+		}
+	}
+	return cp;
+}
+
+
+
 void widget_edit::on_char(const SDL_keysym& ks)
 {
 	int c = ks.sym;
 	unsigned l = text.length();
 	unsigned textw = globaltheme->myfont->get_size(text).x;
+//	printf("get char? %i unicode %i\n", c, ks.unicode);
+	// How to detect multibyte characters:
+	// All parts of a multibyte (UTF8 coded) character have their highest bit set (0x80).
+	// The first byte of the multibyte characters has its second highest bit set (0x40).
+	// So multibyte charactes are sequences 0xC0 | x, 0x80 | x, ...
 	if (c == SDLK_LEFT && cursorpos > 0) {
-		--cursorpos;
+		cursorpos = cursor_left();
 	} else if (c == SDLK_RIGHT && cursorpos < l) {
-		++cursorpos;
+		cursorpos = cursor_right();
 	} else if (c == SDLK_HOME) {
 		cursorpos = 0;
 	} else if (c == SDLK_END) {
@@ -982,7 +1032,14 @@ void widget_edit::on_char(const SDL_keysym& ks)
 		on_enter();
 	} else if (c >= 32 && c <= 255 && c != 127) {
 		c = ks.unicode & 0xff;
-		char tx[2] = { c, 0 };
+		// if c > 127, build unicode (UTF8) string.
+		char tx[4] = { c, 0, 0, 0 };
+		unsigned txlen = 1;
+		if (c > 0x7f) {
+			tx[0] = ((c >> 6) & 0x03) | 0xc0;
+			tx[1] = (c & 0x3f) | 0x80;
+			txlen = 2;
+		}
 		string stx(tx);
 		unsigned stxw = globaltheme->myfont->get_size(stx).x;
 		if (int(textw + stxw + 8) < size.x) {
@@ -991,15 +1048,18 @@ void widget_edit::on_char(const SDL_keysym& ks)
 			} else {
 				text += stx;
 			}
-			++cursorpos;
+			// fixme: cursorpos is displayed wrongly with multibyte characters...
+			cursorpos += txlen;
 			on_change();
 		}
 	} else if (c == SDLK_DELETE && cursorpos < l) {
-		text.erase(cursorpos, 1);
+		unsigned clen = cursor_right() - cursorpos;
+		text.erase(cursorpos, clen);
 		on_change();
 	} else if (c == SDLK_BACKSPACE && cursorpos > 0) {
-		text = text.erase(cursorpos-1, 1);
-		--cursorpos;
+		unsigned clpos = cursor_left();
+		text = text.erase(clpos, cursorpos - clpos);
+		cursorpos = clpos;
 		on_change();
 	}
 }

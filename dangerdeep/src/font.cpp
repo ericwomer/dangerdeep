@@ -283,6 +283,25 @@ vector2i font::get_size(const string& text) const
 	unsigned xmax = 0;
 	for (unsigned ti = 0; ti < text.length(); ++ti) {
 		unsigned char c = text[ti];
+#ifdef USE_UTF8
+		if (c & 0x80) {
+			if ((c & 0xE0) == 0xC0) {
+				// UTF-8 2 byte extension
+				// fetch next byte
+				if (ti + 1 < text.length()) {
+					unsigned char c2 = text[ti + 1];
+					// combine bytes to 8bit character
+					c = ((c & 0x1F) << 6) | (c2 & 0x3F);
+				} else {
+					// invalid UTF-8 extension at end of string...
+					break;
+				}
+			} else {
+				// invalid character, skip
+				continue;
+			}
+		} // else: normal character, do nothing
+#endif
 		if (c == ' ') {	// space
 			x += blank_width;
 		} else if (c == '\n') {	// return
@@ -315,6 +334,7 @@ vector2i font::get_size(const string& text) const
 	return vector2i(xmax, y);
 }
 
+// fixme: with extended UTF8 support, characters may be wider than 8bit (later)
 unsigned font::get_char_width(unsigned char c) const
 {
 	if (c == ' ') {
