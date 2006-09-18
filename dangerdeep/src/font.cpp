@@ -32,8 +32,6 @@ using std::vector;
 using std::string;
 using std::ifstream;
 
-// we use UTF-8 as default input character set...
-#define USE_UTF8
 
 
 font::character::~character()
@@ -47,36 +45,13 @@ void font::print_text(int x, int y, const string& text, bool ignore_colors) cons
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glActiveTexture(GL_TEXTURE0);
 	int xs = x;
-	for (unsigned ti = 0; ti < text.length(); ++ti) {
-		unsigned char c = text[ti];
-		// Unicode (UTF-8) decoder:
-		// In UTF-8 all characters from 0x00-0x7F are encoded as one byte.
-		// Characters from 0x80-0x7FF are encoded as two bytes:
-		// 0xC0 | (upper 5 bits of c), 0x80 | (lower 6 bits of c)
-		// This is sufficient to encode 11bits of characters.
-		// We only use the lower 256 characters of Unicode, which map to
-		// Iso-8859-1.
-		// We could either copy the character value directly from the source
-		// or translate it from UTF-8.
-#ifdef USE_UTF8
-		if (c & 0x80) {
-			if ((c & 0xE0) == 0xC0) {
-				// UTF-8 2 byte extension
-				// fetch next byte
-				if (ti + 1 < text.length()) {
-					unsigned char c2 = text[ti + 1];
-					// combine bytes to 8bit character
-					c = ((c & 0x1F) << 6) | (c2 & 0x3F);
-				} else {
-					// invalid UTF-8 extension at end of string...
-					break;
-				}
-			} else {
-				// invalid character, skip
-				continue;
-			}
-		} // else: normal character, do nothing
-#endif
+	for (unsigned ti = 0; ti < text.length(); ti = character_right(text, ti)) {
+		// read next unicode character
+		unsigned c = read_character(text, ti);
+		// if it is broken or illegal, skip it
+		if (c == invalid_utf8_char) {
+			continue;
+		}
 		if (c == ' ') {	// space
 			x += blank_width;
 		} else if (c == '\n') {	// return
@@ -190,10 +165,7 @@ font::font(const string& basefilename, unsigned char_spacing)
 	SDL_FreeSurface(fontimage);
 }
 
-font::~font()
-{
-	// character textures are deleted by character destructor itself!
-}
+
 
 void font::print(int x, int y, const string& text, color col, bool with_shadow) const
 {
@@ -248,13 +220,14 @@ void font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, const st
 		unsigned charw = 0;
 		bool breaktext = false;
 		while ((text[textptr] != '\n' && text[textptr] != ' ' && text[textptr] != '\t') && textptr < textlen) {
-			charw += get_char_width(text[textptr]);
+			unsigned c = read_character(text, textptr);
+			charw += get_char_width(c);
 			if (currwidth == 0 && charw >= w) {	// word is longer than line
 				breaktext = true;
 				break;
 			}
 			charw += spacing;
-			++textptr;
+			textptr = character_right(text, textptr);
 		}
 		if (textlen > 0 && textptr == 0) {	// space is not enough to wrap first word. so disable wrapping
 			w = 0xffffffff;
@@ -281,27 +254,13 @@ vector2i font::get_size(const string& text) const
 {
 	unsigned x = 0, y = height;
 	unsigned xmax = 0;
-	for (unsigned ti = 0; ti < text.length(); ++ti) {
-		unsigned char c = text[ti];
-#ifdef USE_UTF8
-		if (c & 0x80) {
-			if ((c & 0xE0) == 0xC0) {
-				// UTF-8 2 byte extension
-				// fetch next byte
-				if (ti + 1 < text.length()) {
-					unsigned char c2 = text[ti + 1];
-					// combine bytes to 8bit character
-					c = ((c & 0x1F) << 6) | (c2 & 0x3F);
-				} else {
-					// invalid UTF-8 extension at end of string...
-					break;
-				}
-			} else {
-				// invalid character, skip
-				continue;
-			}
-		} // else: normal character, do nothing
-#endif
+	for (unsigned ti = 0; ti < text.length(); ti = character_right(text, ti)) {
+		// read next unicode character
+		unsigned c = read_character(text, ti);
+		// if it is broken or illegal, skip it
+		if (c == invalid_utf8_char) {
+			continue;
+		}
 		if (c == ' ') {	// space
 			x += blank_width;
 		} else if (c == '\n') {	// return
@@ -334,14 +293,94 @@ vector2i font::get_size(const string& text) const
 	return vector2i(xmax, y);
 }
 
-// fixme: with extended UTF8 support, characters may be wider than 8bit (later)
-unsigned font::get_char_width(unsigned char c) const
+
+
+unsigned font::get_char_width(unsigned c) const
 {
 	if (c == ' ') {
 		return blank_width;
-	} else if (unsigned(c) >= first_char && unsigned(c) <= last_char) {
+	} else if (c >= first_char && c <= last_char) {
 		return characters[unsigned(c) - first_char].width;
 	} else {
 		return 0;
 	}
+}
+
+
+
+unsigned font::character_left(const std::string& text, unsigned cp)
+{
+	if (cp > 0) {
+		// move one left
+		--cp;
+		// if on multibyte character, but not first, and we can move left, move further
+		while (cp > 0 && is_byte_of_multibyte_char(text[cp]) && !is_first_byte_of_multibyte_char(text[cp]))
+			--cp;
+	}
+	return cp;
+}
+
+
+
+unsigned font::character_right(const std::string& text, unsigned cp)
+{
+	const unsigned l = text.size();
+	if (cp < l) {
+		// check if we are on multibyte char
+		if (is_byte_of_multibyte_char(text[cp])) {
+			++cp;
+			while (cp < l) {
+				if (is_byte_of_multibyte_char(text[cp])) {
+					if (is_first_byte_of_multibyte_char(text[cp])) {
+						break;
+					}
+				} else {
+					break;
+				}
+				++cp;
+			}
+		} else {
+			++cp;
+		}
+	}
+	return cp;
+}
+
+
+
+unsigned font::read_character(const std::string& text, unsigned cp)
+{
+	// Unicode (UTF-8) decoder:
+	// In UTF-8 all characters from 0x00-0x7F are encoded as one byte.
+	// Characters from 0x80-0x7FF are encoded as two bytes:
+	// 0xC0 | (upper 5 bits of c), 0x80 | (lower 6 bits of c)
+	// This is sufficient to encode 11bits of characters.
+	// Characters from 0x0800-0xffff are encoded as three bytes:
+	// 0xE0 | (upper 4 bits of c), 0x80 | (middle 6 bits of c), 0x80 | (lower 6 bits of c)
+	// Characters from 0x010000-0x10FFFF are encoded as four bytes:
+	// 0xF0 | (upper 3 bits), (0x80 | (further 6 bits)) * 3
+	// We only use the lower 256 characters of Unicode, which map to
+	// ISO-8859-1.
+	// We could either copy the character value directly from the source
+	// or translate it from UTF-8.
+	unsigned char c = text[cp];
+	if (c & 0x80) {
+		if ((c & 0xE0) == 0xC0) {
+			// UTF-8 2 byte extension
+			// fetch next byte
+			if (cp + 1 < text.length()) {
+				unsigned char c2 = text[cp + 1];
+				// combine bytes to 8bit character
+				return (unsigned(c & 0x1F) << 6) | (c2 & 0x3F);
+			} else {
+				// invalid UTF-8 extension at end of string...
+				return invalid_utf8_char;
+			}
+		// fixme: later extend to three byte UTF-8 characters here...
+		} else {
+			// invalid character, skip
+			return invalid_utf8_char;
+		}
+	} // else: normal character
+	return c;
 }

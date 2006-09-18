@@ -969,42 +969,14 @@ void widget_edit::draw() const
 
 unsigned widget_edit::cursor_left() const
 {
-	unsigned cp = cursorpos;
-	if (cp > 0) {
-		// move one left
-		--cp;
-		// if on multibyte character, but not first, and we can move left, move further
-		while (cp > 0 && is_byte_of_multibyte_char(text[cp]) && !is_first_byte_of_multibyte_char(text[cp]))
-			--cp;
-	}
-	return cp;
+	return font::character_left(text, cursorpos);
 }
 
 
 
 unsigned widget_edit::cursor_right() const
 {
-	const unsigned l = text.size();
-	unsigned cp = cursorpos;
-	if (cp < l) {
-		// check if we are on multibyte char
-		if (is_byte_of_multibyte_char(text[cp])) {
-			++cp;
-			while (cp < l) {
-				if (is_byte_of_multibyte_char(text[cp])) {
-					if (is_first_byte_of_multibyte_char(text[cp])) {
-						break;
-					}
-				} else {
-					break;
-				}
-				++cp;
-			}
-		} else {
-			++cp;
-		}
-	}
-	return cp;
+	return font::character_right(text, cursorpos);
 }
 
 

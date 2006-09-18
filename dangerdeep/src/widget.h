@@ -378,8 +378,6 @@ protected:
 	// move cursor. will handle multibyte strings correctly. Returns new position after movement.
 	unsigned cursor_left() const;
 	unsigned cursor_right() const;
-	bool is_byte_of_multibyte_char(char c) const { return (c & 0x80); }
-	bool is_first_byte_of_multibyte_char(char c) const { return (c & 0xE0) == 0xC0; }
 
 	widget_edit();
 	widget_edit(const widget_edit& );

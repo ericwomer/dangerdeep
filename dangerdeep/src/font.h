@@ -61,7 +61,6 @@ private:
 		
 public:
 	font(const std::string& basefilename, unsigned char_spacing = 1);
-	~font();
 	void print(int x, int y, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
 	void print_hc(int x, int y, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
 	void print_vc(int x, int y, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
@@ -69,8 +68,20 @@ public:
 	// print text with wrap around, use lineheight 0 for automatic line height
 	void print_wrapped(int x, int y, unsigned w, unsigned lineheight, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
 	vector2i get_size(const std::string& text) const;
-	unsigned get_char_width(unsigned char c) const;
-	unsigned get_height(void) const { return height; };
+	unsigned get_char_width(unsigned c) const;
+	unsigned get_height() const { return height; };
+
+	// common functions for working with UTF-8 strings
+	static unsigned character_left(const std::string& text, unsigned cp);
+	static unsigned character_right(const std::string& text, unsigned cp);
+	static bool is_byte_of_multibyte_char(char c) { return (c & 0x80); }
+	static bool is_first_byte_of_twobyte_char(char c) { return (c & 0xE0) == 0xC0; }
+	static bool is_first_byte_of_threebyte_char(char c) { return (c & 0xF0) == 0xE0; }
+	static bool is_first_byte_of_fourbyte_char(char c) { return (c & 0xF8) == 0xF0; }
+	// common rule for all multibyte characters, but could give false positives - only on broken string (non UTF8)
+	static bool is_first_byte_of_multibyte_char(char c) { return (c & 0xC0) == 0xC0; }
+	static unsigned read_character(const std::string& text, unsigned cp);
+	static const unsigned invalid_utf8_char = 0xffffffff;
 };
 
 #endif
