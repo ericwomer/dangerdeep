@@ -38,13 +38,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 /*
 fixme: global todo (2004/06/26):
--> move much code from sea_object to ship.
--> maybe remove silly reference counting.
+-> move much code from sea_object to ship. -> PARTLY DONE
+-> maybe remove silly reference counting. -> DONE?
 -> split AI in several children
--> maybe introduce C++ exceptions.
--> fix load/save for sea_object and heirs
--> fix simulate/acceleration code for all sea_objects and heirs.
--> replace silly head_chg code by real rudder position simulation code
+-> maybe introduce C++ exceptions. -> PARTLY DONE
+-> fix load/save for sea_object and heirs -> MOSTLY DONE
+-> fix simulate/acceleration code for all sea_objects and heirs. -> DONE
+-> replace silly head_chg code by real rudder position simulation code -> PARTLY DONE
 */
 
 class game;

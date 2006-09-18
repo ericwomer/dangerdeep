@@ -52,3 +52,7 @@ IDEAS ABOUT WATER
 CVS
 - check that binary files have binary flag
   models/ sounds/ !
+
+- use vertex buffer objects to render water
+- use GL_USHORT for indices, saving 50% memory and possibly bandwidth.
+- VBOs should have 64k vertices max for compatibility reasons (GF4MX)
