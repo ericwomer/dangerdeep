@@ -1532,7 +1532,10 @@ int mymain(list<string>& args)
 	mmusic->_play(0);
 	
 	widget::set_theme(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
-		font_olympiaworn, color(182, 146, 137), color(222, 208, 195), color(92, 72 ,68)));
+					    font_olympiaworn,
+					    color(182, 146, 137),
+					    color(240, 217, 127) /*color(222, 208, 195)*/,
+					    color(92, 72 ,68)));
 
 	mysys->draw_console_with(font_arial, panelbackground);
 
