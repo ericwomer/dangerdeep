@@ -313,9 +313,15 @@ unsigned font::character_left(const std::string& text, unsigned cp)
 	if (cp > 0) {
 		// move one left
 		--cp;
-		// if on multibyte character, but not first, and we can move left, move further
-		while (cp > 0 && is_byte_of_multibyte_char(text[cp]) && !is_first_byte_of_multibyte_char(text[cp]))
-			--cp;
+		// check if we are on multibyte char
+		if (is_byte_of_multibyte_char(text[cp])) {
+			if (cp >= 2 && is_first_byte_of_threebyte_char(text[cp-2])) {
+				cp -= 2;
+			} else if (cp >= 1 && is_first_byte_of_twobyte_char(text[cp-1])) {
+				--cp;
+			}
+			// else: 4-byte char or illegal char, skip
+		}
 	}
 	return cp;
 }
@@ -328,15 +334,18 @@ unsigned font::character_right(const std::string& text, unsigned cp)
 	if (cp < l) {
 		// check if we are on multibyte char
 		if (is_byte_of_multibyte_char(text[cp])) {
-			++cp;
-			while (cp < l) {
-				if (is_byte_of_multibyte_char(text[cp])) {
-					if (is_first_byte_of_multibyte_char(text[cp])) {
-						break;
-					}
-				} else {
-					break;
-				}
+			if (is_first_byte_of_twobyte_char(text[cp])) {
+				if (cp + 1 < l)
+					cp += 2;
+				else
+					cp = l;
+			} else if (is_first_byte_of_threebyte_char(text[cp])) {
+				if (cp + 2 < l)
+					cp += 3;
+				else
+					cp = l;
+			} else {
+				// four-byte char or other invalid char, skip
 				++cp;
 			}
 		} else {
@@ -364,23 +373,45 @@ unsigned font::read_character(const std::string& text, unsigned cp)
 	// We could either copy the character value directly from the source
 	// or translate it from UTF-8.
 	unsigned char c = text[cp];
-	if (c & 0x80) {
-		if ((c & 0xE0) == 0xC0) {
-			// UTF-8 2 byte extension
-			// fetch next byte
+	if (is_byte_of_multibyte_char(c)) {
+		// highest bit is set, so we have utf-8 multibyte character
+		if (is_first_byte_of_twobyte_char(c)) {
 			if (cp + 1 < text.length()) {
-				unsigned char c2 = text[cp + 1];
+				unsigned c2 = text[cp + 1];
 				// combine bytes to 8bit character
 				return (unsigned(c & 0x1F) << 6) | (c2 & 0x3F);
-			} else {
-				// invalid UTF-8 extension at end of string...
-				return invalid_utf8_char;
 			}
-		// fixme: later extend to three byte UTF-8 characters here...
-		} else {
-			// invalid character, skip
-			return invalid_utf8_char;
+		} else if (is_first_byte_of_threebyte_char(c)) {
+			if (cp + 2 < text.length()) {
+				unsigned c2 = text[cp + 1];
+				unsigned c3 = text[cp + 2];
+				// combine bytes to 8bit character
+				return (unsigned(c & 0x0F) << 12) | ((c2 & 0x3F) << 6)
+					| (c3 & 0x3F);
+			}
 		}
+		// fourbyte or invalid utf-8 character
+		return invalid_utf8_char;
 	} // else: normal character
 	return c;
+}
+
+
+
+std::string font::to_utf8(Uint16 unicode)
+{
+	// input can have at max. 16bits, so range 0x0000-0xffff
+	// that matches utf-8 1-byte characters until utf-8 3-byte characters.
+	char tmp[4] = { 0, 0, 0, 0 };
+	if (unicode <= 0x7F) {
+		tmp[0] = unicode;
+	} else if (unicode <= 0x7FF) {
+		tmp[0] = 0xC0 | (unicode >> 6);
+		tmp[1] = 0x80 | (unicode & 0x3F);
+	} else {
+		tmp[0] = 0xE0 | (unicode >> 12);
+		tmp[1] = 0x80 | ((unicode >> 6) & 0x3F);
+		tmp[2] = 0x80 | (unicode & 0x3F);
+	}
+	return std::string(tmp);
 }

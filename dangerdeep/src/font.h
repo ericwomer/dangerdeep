@@ -74,13 +74,12 @@ public:
 	// common functions for working with UTF-8 strings
 	static unsigned character_left(const std::string& text, unsigned cp);
 	static unsigned character_right(const std::string& text, unsigned cp);
-	static bool is_byte_of_multibyte_char(char c) { return (c & 0x80); }
-	static bool is_first_byte_of_twobyte_char(char c) { return (c & 0xE0) == 0xC0; }
-	static bool is_first_byte_of_threebyte_char(char c) { return (c & 0xF0) == 0xE0; }
-	static bool is_first_byte_of_fourbyte_char(char c) { return (c & 0xF8) == 0xF0; }
-	// common rule for all multibyte characters, but could give false positives - only on broken string (non UTF8)
-	static bool is_first_byte_of_multibyte_char(char c) { return (c & 0xC0) == 0xC0; }
+	static bool is_byte_of_multibyte_char(unsigned char c) { return (c & 0x80); }
+	static bool is_first_byte_of_twobyte_char(unsigned char c) { return (c & 0xE0) == 0xC0; }
+	static bool is_first_byte_of_threebyte_char(unsigned char c) { return (c & 0xF0) == 0xE0; }
+	static bool is_first_byte_of_fourbyte_char(unsigned char c) { return (c & 0xF8) == 0xF0; }
 	static unsigned read_character(const std::string& text, unsigned cp);
+	static std::string to_utf8(Uint16 unicode);
 	static const unsigned invalid_utf8_char = 0xffffffff;
 };
 

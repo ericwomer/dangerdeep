@@ -1002,16 +1002,7 @@ void widget_edit::on_char(const SDL_keysym& ks)
 	} else if (c == SDLK_RETURN) {
 		on_enter();
 	} else if (c >= 32 && c <= 255 && c != 127) {
-		c = ks.unicode & 0xff;
-		// if c > 127, build unicode (UTF8) string.
-		char tx[4] = { c, 0, 0, 0 };
-		unsigned txlen = 1;
-		if (c > 0x7f) {
-			tx[0] = ((c >> 6) & 0x03) | 0xc0;
-			tx[1] = (c & 0x3f) | 0x80;
-			txlen = 2;
-		}
-		string stx(tx);
+		string stx = font::to_utf8(ks.unicode);
 		unsigned stxw = globaltheme->myfont->get_size(stx).x;
 		if (int(textw + stxw + 8) < size.x) {
 			if (cursorpos < l) {
@@ -1019,8 +1010,7 @@ void widget_edit::on_char(const SDL_keysym& ks)
 			} else {
 				text += stx;
 			}
-			// fixme: cursorpos is displayed wrongly with multibyte characters...
-			cursorpos += txlen;
+			cursorpos += stx.length();
 			on_change();
 		}
 	} else if (c == SDLK_DELETE && cursorpos < l) {
