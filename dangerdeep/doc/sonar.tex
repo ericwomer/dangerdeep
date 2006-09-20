@@ -22,6 +22,10 @@ geological activities and sudden events like exploding depth charges
 etc. the most important source are the vessels cruising around the sea.
 This means the ships and submarines of the game.
 
+% explain/handle: convergence zones (sound reflecting of water surface or sea floor
+% several times, make sounds travel longer)
+% explain sound synthesis for simulation
+
 Sound propagates as waves underwater, its speed depending on many
 factors, like temperature (the most important), pressure, salination and
 other values of the water (amount of algae etc.).
@@ -305,6 +309,8 @@ Blind spot at stern...
 
 \section{How sound is simulated in "Danger from the Deep"}
 
+\subsection{Physics}
+
 Compute target noise for a target: $L_t = L_{t_f} + m_{v_t} * v_t + G_c$
 where $L_{t_f}$ is the basic noise level for a specific target and a
 given frequency band. Compute the noise for all targets and all
@@ -338,6 +344,42 @@ noise signals and thus is what we want to accomplish.
 To compute the total sound intensity of all frequency bands we sum them
 up multiplied by a band specific constant: $I_{total} = \sum_{i=1}^{nr\
 of\ frequency\ bands} I_{band_i} * m_{band_i}$.
+
+\subsection{The general idea}
+
+While simulating general noise strengths around the submarine, we have
+to present the noise to the user. This means we have to generate a
+final, hearable sound fetched to the sound driver, that is computed by
+the data of the physical simulation and a pool of predefined, recorded
+samples, like screws of various ship types.
+
+The problem is that the distance of the signal sources and the
+characteristics of the listening devices change the form of the sound.
+The farer away a noise source is, the weaker it gets - but high
+frequencies fall off much faster. This means that we would have to use
+some sort of equalizer on the pre-recorded sound samples to make them
+sound realistic when presented to the user's headphones or speakers.
+
+To implement that we would need some sort of Fourier transformation, to
+transform the pre-recorded sample to frequency space, where we can cut
+higher frequencies and then transform it back. Even with fast Fourier
+transforms this can be done in realtime but would eat insane amounts of
+CPU time.
+
+A much better approach would be to precompute the various frequencies of
+a recorded sample offline, that means split the sample to many different
+samples, each with its own part of the frequency spectrum. Like:
+$$ Record = \sum_{i=1}^n f_i(x)$$
+where $x$ is time and $n$ is the number of frequency bands. The
+$+$-Operator used here is a sample mixing function, which can be a real
+addition or some function provided by the sound card. If the number of
+frequency bands is not too high, today's sound cards can mix them in
+hardware. We would need to generate the $f_i$ samples offline, that
+means not in realtime - this can be done with the FFT as mentioned
+above. To mix a realistic sound we compute:
+$$ Play = \sum_{i=1}^n f_i(x) * s_i$$
+where $s_i$ is a frequency dependent scalar.
+
 
 % fixme: add noise from own receiver!!!
 
@@ -477,7 +519,7 @@ This is the common mode. The sonarman turns his device around the clock
 the hydrophones. When he recognizes a growing signal strength he
 continues turning until the signal gets weaker again. He then remembers
 the angle where the signal got weaker and turns back his device, to find
-the angle where the signal reached its maximum strength. Because he is
+the angle where the signal reaches its maximum strength. Because he is
 turning the device in the opposite direction now, he is again listening
 for the moment that the signal gets weaker. When he found it he has the
 second angle, computes the medium value of both angles and reports the
@@ -487,7 +529,7 @@ frequencies). After that he continues in normal direction and listens to
 the next signal.
 
 With that algorithm he finds every peak signal around the clock, but
-this takes times. Approximately one to two minutes for all 360 degrees.
+this takes time. Approximately one to two minutes for all 360 degrees.
 This is to slow to track a strong signal, like an attacking escort.
 Tracking such signals is of course more important than an all-around
 scan. So the operator switches to track mode when he detects a signal
@@ -521,5 +563,10 @@ signal may be evenly strong over a greater angular range. Thus the track
 mode is like scan mode, but with the device constantly turning between
 the two angles where the signal falls off. The range between these two
 angles is the range with the peak value.
+
+As a variation the captain (the player) could determine which signal
+should get tracked by the operator, or when the operator should switch
+back to scan mode. The user interface and interaction here may be
+complex but will give a very realistic simulation.
 
 \end{document}
