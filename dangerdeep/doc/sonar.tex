@@ -380,6 +380,39 @@ above. To mix a realistic sound we compute:
 $$ Play = \sum_{i=1}^n f_i(x) * s_i$$
 where $s_i$ is a frequency dependent scalar.
 
+The question is here, how many discrete frequency bands should be
+simulated. The result gets more realistic, the more bands are used. We
+have to simulate physics of sound for each band though, but that is not
+too costly. The biggest problem is how many sound samples can be mixed
+in realtime later. A number of 8 to 16 should be doable here.
+
+Related to that problem is the issue of detecting the type of the noise
+source. A specific source can be determined by the distribution of
+frequencies around the whole spectrum. For the detection to be
+definitive, we need to simulate enough discrete frequency bands, by far
+more than four. Especially many more bands in the low frequency range
+are needed. The distance to the sound source then changes the signature
+of the noise, as higher frequencies decay faster. And most important for
+the simulation is the effect that various signal sources will overlap
+and form a new frequency distribution in the user's earphones. That
+makes deistinguishing the signals more difficult as well as determining
+the type of the strongest signal. This is an important aspect of
+simulation, e.g. in a noise environment the operator could misinterpret
+a signal type and detect an escort as harmless civil ship.
+
+Is is unclear how many discrete bands would have to be simulated for an
+almost exact simulation here, and how their distribution over the whole
+spectrum would have to be. It is also unclear how an algorithm that
+determines the type of signal should work. It could sum up the squares
+of the differences between the amplitudes of each frequency band of the
+listened signal and a known reference signal. However that ignores the
+faster decay of higher frequencies with increasing range. The most
+realistic form could be some kind of neural network here that is trained
+for all known sources. Input would be the amplitude of each frequency
+band, output would be the type of signal. The total strength of the
+signal is represented in medium amplitude of all bands, so the net can
+be trained to take the distance into account too.
+
 
 % fixme: add noise from own receiver!!!
 
