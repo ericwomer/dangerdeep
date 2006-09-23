@@ -41,9 +41,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif
 
 #include "vector4.h"
-
 #include <vector>
-using namespace std;
+#include <iostream>
 
 #ifndef M_PI
 #define M_PI 3.1415926536
@@ -56,9 +55,9 @@ class matrix4t
 protected:
 #define size 4
 	//static const unsigned size;	// routines are generic, so use constant here
-	vector<D> values;
+	std::vector<D> values;
 
-        void columnpivot(vector<unsigned>& p, unsigned offset);
+        void columnpivot(std::vector<unsigned>& p, unsigned offset);
 
 public:
 
@@ -141,11 +140,11 @@ public:
 
 	void print() const {
 		for(unsigned y = 0; y < size; y++) {
-			cout << "/ ";
+			std::cout << "/ ";
 			for(unsigned x = 0; x < size; x++) {
-				cout << "\t" << values[y*size+x];
+				std::cout << "\t" << values[y*size+x];
 			}
-			cout << "\t/\n";
+			std::cout << "\t/\n";
 		}
 	}
 
@@ -257,7 +256,7 @@ public:
 
 
 template<class D>
-void matrix4t<D>::columnpivot(vector<unsigned>& p, unsigned offset)
+void matrix4t<D>::columnpivot(std::vector<unsigned>& p, unsigned offset)
 {
 	// find largest entry
         D max = values[offset * size + offset];
@@ -289,7 +288,7 @@ matrix4t<D> matrix4t<D>::inverse() const
 	unsigned i, j, k;
 
 	// prepare row swap
-	vector<unsigned> p(size);
+	std::vector<unsigned> p(size);
 	for (i = 0; i < size; i++)
 		p[i] = i;
 
@@ -347,7 +346,7 @@ matrix4t<D> matrix4t<D>::inverse() const
 	}
 
 	// column swap
-	vector<D> h(size);
+	std::vector<D> h(size);
 	for (i = 0; i < size; i++) {
 		for (j = 0; j < size; j++)
                         h[j] = r.values[i*size+j];

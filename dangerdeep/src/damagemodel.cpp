@@ -49,6 +49,8 @@ font* font_arial = 0;
 
 #define SCALE_FACTOR 0.35f
 
+using namespace std;
+
 static void draw_model(model* mdl)
 {
 	double sc = 1.0/(SCALE_FACTOR*mdl->get_boundbox_size()).length();

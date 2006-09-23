@@ -585,7 +585,7 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 
 
 
-void water::cleanup_textures(void) const
+void water::cleanup_textures() const
 {
 	if (use_shaders) {
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);

@@ -185,7 +185,7 @@ vector<Uint8> particle::compute_fire_frame(unsigned wh, const vector<Uint8>& old
 #include <fstream>
 #include <sstream>
 
-void particle::init(void)
+void particle::init()
 {
 	if (++init_count != 1) return;
 
@@ -311,7 +311,7 @@ void particle::init(void)
 
 
 
-void particle::deinit(void)
+void particle::deinit()
 {
 	if (--init_count != 0) return;
 	for (unsigned i = 0; i < tex_smoke.size(); ++i)
@@ -412,14 +412,14 @@ smoke_particle::smoke_particle(const vector3& pos) : particle(pos), texnr(rand()
 
 
 
-vector3 smoke_particle::get_acceleration(void) const
+vector3 smoke_particle::get_acceleration() const
 {
 	return vector3(0, 0, -3.0/get_life_time());
 }
 
 
 
-double smoke_particle::get_width(void) const
+double smoke_particle::get_width() const
 {
 	// min/max size in meters
 	return 2.0 * life + 50.0 * (1.0 - life);
@@ -427,7 +427,7 @@ double smoke_particle::get_width(void) const
 
 
 
-double smoke_particle::get_height(void) const
+double smoke_particle::get_height() const
 {
 	double h = get_width();
 	if (life > 0.9)
@@ -445,14 +445,14 @@ void smoke_particle::set_texture(class game& gm) const
 
 
 
-double smoke_particle::get_life_time(void) const
+double smoke_particle::get_life_time() const
 {
 	return 30.0; // seconds
 }
 
 
 
-double smoke_particle::get_produce_time(void)
+double smoke_particle::get_produce_time()
 {
 	return 0.6; // seconds
 }
@@ -465,21 +465,21 @@ smoke_particle_escort::smoke_particle_escort(const vector3& pos) : smoke_particl
 
 
 
-double smoke_particle_escort::get_width(void) const
+double smoke_particle_escort::get_width() const
 {
 	return 2.0 * life + 25.0 * (1.0 - life);
 }
 
 
 
-double smoke_particle_escort::get_life_time(void) const
+double smoke_particle_escort::get_life_time() const
 {
 	return 15.0; // seconds
 }
 
 
 
-double smoke_particle_escort::get_produce_time(void)
+double smoke_particle_escort::get_produce_time()
 {
 	return 0.3; // seconds
 }
@@ -495,14 +495,14 @@ explosion_particle::explosion_particle(const vector3& pos) : particle(pos)
 
 
 
-double explosion_particle::get_width(void) const
+double explosion_particle::get_width() const
 {
 	return 20.0; //fixme: depends on type
 }
 
 
 
-double explosion_particle::get_height(void) const
+double explosion_particle::get_height() const
 {
 	return 20.0; //fixme: depends on type
 }
@@ -520,7 +520,7 @@ void explosion_particle::set_texture(class game& gm) const
 
 
 
-double explosion_particle::get_life_time(void) const
+double explosion_particle::get_life_time() const
 {
 	return 2.0; // seconds
 }
@@ -550,14 +550,14 @@ void fire_particle::simulate(game& gm, double delta_t)
 
 
 
-double fire_particle::get_width(void) const
+double fire_particle::get_width() const
 {
 	return 20.0; //fixme: depends on type
 }
 
 
 
-double fire_particle::get_height(void) const
+double fire_particle::get_height() const
 {
 	return 20.0; //fixme: depends on type
 }
@@ -573,7 +573,7 @@ void fire_particle::set_texture(class game& gm) const
 
 
 
-double fire_particle::get_life_time(void) const
+double fire_particle::get_life_time() const
 {
 	return 4.0; // seconds
 }
@@ -588,14 +588,14 @@ spray_particle::spray_particle(const vector3& pos, const vector3& velo) : partic
 
 
 
-double spray_particle::get_width(void) const
+double spray_particle::get_width() const
 {
 	return (1.0 - life) * 6.0 + 2.0;
 }
 
 
 
-double spray_particle::get_height(void) const
+double spray_particle::get_height() const
 {
 	return get_width();
 }
@@ -610,7 +610,7 @@ void spray_particle::set_texture(class game& gm) const
 
 
 
-double spray_particle::get_life_time(void) const
+double spray_particle::get_life_time() const
 {
 	return 4.0; // seconds
 }
@@ -625,14 +625,14 @@ torpedo_water_splash_particle::torpedo_water_splash_particle(const vector3& pos)
 
 
 
-double torpedo_water_splash_particle::get_width(void) const
+double torpedo_water_splash_particle::get_width() const
 {
 	return 40.0;
 }
 
 
 
-double torpedo_water_splash_particle::get_height(void) const
+double torpedo_water_splash_particle::get_height() const
 {
 	const double trd = 1.0/3.0;
 	// 1/3 rise, 2/3 decline
@@ -650,7 +650,7 @@ void torpedo_water_splash_particle::set_texture(game& gm) const
 
 
 
-double torpedo_water_splash_particle::get_life_time(void) const
+double torpedo_water_splash_particle::get_life_time() const
 {
 	return 3.0;
 }
@@ -663,14 +663,14 @@ gun_shell_water_splash_particle::gun_shell_water_splash_particle(const vector3& 
 
 
 
-double gun_shell_water_splash_particle::get_width(void) const
+double gun_shell_water_splash_particle::get_width() const
 {
 	return 10.0;
 }
 
 
 
-double gun_shell_water_splash_particle::get_height(void) const
+double gun_shell_water_splash_particle::get_height() const
 {
 	const double trd = 1.0/3.0;
 	// 1/3 rise, 2/3 decline
@@ -688,7 +688,7 @@ void gun_shell_water_splash_particle::set_texture(game& gm) const
 
 
 
-double gun_shell_water_splash_particle::get_life_time(void) const
+double gun_shell_water_splash_particle::get_life_time() const
 {
 	return 3.0;
 }
@@ -701,14 +701,14 @@ depth_charge_water_splash_particle::depth_charge_water_splash_particle(const vec
 
 
 
-double depth_charge_water_splash_particle::get_width(void) const
+double depth_charge_water_splash_particle::get_width() const
 {
 	return 40.0;
 }
 
 
 
-double depth_charge_water_splash_particle::get_height(void) const
+double depth_charge_water_splash_particle::get_height() const
 {
 	const double trd = 1.0/3.0;
 	// 1/3 rise, 2/3 decline
@@ -726,7 +726,7 @@ void depth_charge_water_splash_particle::set_texture(game& gm) const
 
 
 
-double depth_charge_water_splash_particle::get_life_time(void) const
+double depth_charge_water_splash_particle::get_life_time() const
 {
 	return 3.0;
 }

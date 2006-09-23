@@ -69,7 +69,7 @@ public:
 	unsigned get_value ( date_type dt ) const { return date_values[dt]; }
 	void set_value ( date_type dt, unsigned val ) { date_values[dt] = val; }
 	
-	unsigned get_time(void) const { return linear_time; }
+	unsigned get_time() const { return linear_time; }
 
 	bool operator< ( const date& d ) const;
 	bool operator<= ( const date& d ) const;

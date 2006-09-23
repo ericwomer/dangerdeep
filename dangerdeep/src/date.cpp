@@ -18,13 +18,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 // date
-// subsim (C)+(W) Markus Petermann. SEE LICENSE
+// subsim (C)+(W) Markus Petermann and Thorsten Jordan. SEE LICENSE
 
 #include <iomanip>
 #include "date.h"
 #include "texts.h"
 
-using std::ostream;
+using namespace std;
 
 unsigned date::length_of_year(unsigned year)
 {

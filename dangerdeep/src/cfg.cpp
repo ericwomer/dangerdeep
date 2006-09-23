@@ -35,7 +35,7 @@ cfg* cfg::myinst = 0;
 
 
 	
-string cfg::key::get_name(void) const
+string cfg::key::get_name() const
 {
 	string result = SDL_GetKeyName(SDLKey(keysym));
 	if (shift) result = string("Shift + ") + result;
@@ -62,7 +62,7 @@ cfg::cfg()
 
 
 
-cfg& cfg::instance(void)
+cfg& cfg::instance()
 {
 	if (!myinst) myinst = new cfg();
 	return *myinst;

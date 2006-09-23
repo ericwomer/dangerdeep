@@ -470,7 +470,7 @@ bool submarine_interface::object_visible(sea_object* so,
 }
 */
 	
-void submarine_interface::display(void) const
+void submarine_interface::display() const
 {
 	submarine* player = dynamic_cast<submarine*>(mygame->get_player());
 	if ((current_display == display_mode_uzo || current_display == display_mode_bridge) &&

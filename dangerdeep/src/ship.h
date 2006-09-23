@@ -108,7 +108,7 @@ class ship : public sea_object
 	// sonar / underwater sound specific constants, read from spec file
 	noise_signature noise_sign;
 
-	list<prev_pos> previous_positions;
+	std::list<prev_pos> previous_positions;
 
 	shipclass myclass;	// read from spec file, e.g. warship/merchant/escort/...
 
@@ -177,7 +177,7 @@ class ship : public sea_object
 		int end_of_exclusion_radius;
 		double calibre;
 		
-		list<struct gun_barrel> gun_barrels;
+		std::list<struct gun_barrel> gun_barrels;
 		
 		gun_turret()
 		{
@@ -197,11 +197,11 @@ class ship : public sea_object
 		}
 	};
 	bool gun_manning_is_changing;
-	list<struct gun_turret> gun_turrets;
-	typedef list<struct gun_turret>::iterator gun_turret_itr;
-	typedef list<struct gun_turret>::const_iterator const_gun_turret_itr;
-	typedef list<struct gun_barrel>::iterator gun_barrel_itr;
-	typedef list<struct gun_barrel>::const_iterator const_gun_barrel_itr;	
+	std::list<struct gun_turret> gun_turrets;
+	typedef std::list<struct gun_turret>::iterator gun_turret_itr;
+	typedef std::list<struct gun_turret>::const_iterator const_gun_turret_itr;
+	typedef std::list<struct gun_barrel>::iterator gun_barrel_itr;
+	typedef std::list<struct gun_barrel>::const_iterator const_gun_barrel_itr;	
 	double maximum_gun_range;
 	
 	bool is_target_in_blindspot(const struct gun_turret *gun, angle bearingToTarget);
@@ -238,7 +238,7 @@ public:
 	virtual void set_throttle(int thr);
 
 	virtual void remember_position(double t);
-	virtual const list<prev_pos>& get_previous_positions() const { return previous_positions; }
+	virtual const std::list<prev_pos>& get_previous_positions() const { return previous_positions; }
 
 	virtual bool has_smoke() const { return !smoke.empty(); }
 
@@ -261,7 +261,7 @@ public:
 	virtual int fire_shell_at(const sea_object& s);
 
 	// needed for launching torpedoes
-	pair<angle, double> bearing_and_range_to(const sea_object* other) const;
+	std::pair<angle, double> bearing_and_range_to(const sea_object* other) const;
 	angle estimate_angle_on_the_bow(angle target_bearing, angle target_heading) const;
 	
 	// gun

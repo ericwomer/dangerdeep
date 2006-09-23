@@ -22,6 +22,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "triangulate.h"
 
+using namespace std;
+
 /*
 how it works:
 polygon (point list) are points p_0....p_n-1

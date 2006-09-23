@@ -166,42 +166,42 @@ cout << "air friction    " << airfriction << "\n";
 
 
 // this all should be replaced by rudder states, fixme
-void airplane::roll_left(void)
+void airplane::roll_left()
 {
 	rollfac = -1;
 }
 
 
 
-void airplane::roll_right(void)
+void airplane::roll_right()
 {
 	rollfac = 1;
 }
 
 
 
-void airplane::roll_zero(void)
+void airplane::roll_zero()
 {
 	rollfac = 0;
 }
 
 
 
-void airplane::pitch_down(void)
+void airplane::pitch_down()
 {
 	pitchfac = -1;
 }
 
 
 
-void airplane::pitch_up(void)
+void airplane::pitch_up()
 {
 	pitchfac = 1;
 }
 
 
 
-void airplane::pitch_zero(void)
+void airplane::pitch_zero()
 {
 	pitchfac = 0;
 }

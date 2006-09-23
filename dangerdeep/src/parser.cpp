@@ -135,7 +135,7 @@ void parser::parse(int type)
 	tkn->read_next();
 }
 
-string parser::parse_string(void)
+string parser::parse_string()
 {
 	if (tkn->get_current().type != TKN_STRING)
 		error("expected string");
@@ -154,7 +154,7 @@ string parser::parse_string(void)
 	return tmp;
 }
 
-int parser::parse_number(void)
+int parser::parse_number()
 {
 	bool negative = false;
 	if (tkn->get_current().type == TKN_MINUS) {
@@ -170,7 +170,7 @@ int parser::parse_number(void)
 	return (negative) ? -n : n;
 }
 
-string parser::parse_id(void)
+string parser::parse_id()
 {
 	if (tkn->get_current().type != TKN_ID) {
 		error("expected identifier");
@@ -192,7 +192,7 @@ string parser::parse_id(void)
 	return tkn->get_previous().text;
 }
 
-bool parser::parse_bool(void)
+bool parser::parse_bool()
 {
 	bool v = false;
 	switch(tkn->get_current().type) {
@@ -209,7 +209,7 @@ bool parser::parse_bool(void)
 	return v;
 }			
 
-void parser::consume(void)
+void parser::consume()
 {
 	if (tkn->is_empty())
 		error("consume() called, but no more tokens left");

@@ -280,7 +280,7 @@ void convoy::save(xml_elem& parent) const
 
 
 
-unsigned convoy::get_nr_of_ships(void) const
+unsigned convoy::get_nr_of_ships() const
 {
 	return merchants.size() + warships.size() + escorts.size();
 }

@@ -141,7 +141,7 @@ public:
 	void load(game& gm_, const xml_elem& parent);
 	void save(game& gm, xml_elem& parent) const;
 
-	void clear_waypoints(void) { waypoints.clear(); };
+	void clear_waypoints() { waypoints.clear(); };
 	void add_waypoint(const vector2& wp) { waypoints.push_back(wp); };
 	void set_convoy(class convoy* cv) { myconvoy = cv; }
 

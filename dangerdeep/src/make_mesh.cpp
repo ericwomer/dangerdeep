@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
 #include "make_mesh.h"
+#include <cmath>
 
 #ifdef WIN32
 #ifndef isfinite
@@ -28,6 +29,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define isfinite(a) _finite(a)
 #endif
 #endif
+
+using namespace std;
 
 #include <cmath>
 
@@ -76,8 +79,7 @@ void quadface(model::mesh* m, unsigned bv, float uscal, float vscal, bool out, i
 }
 
 
-model::mesh* cube(float w, float l, float h,
-		       float uscal, float vscal, bool out, const string& name)
+model::mesh* cube(float w, float l, float h, float uscal, float vscal, bool out, const string& name)
 {
 	model::mesh* m = new model::mesh();
 	m->name = name;
@@ -363,7 +365,7 @@ model::mesh* heightfield(unsigned resx, unsigned resy, const vector<Uint8>& heig
 			const vector3f& v3 = m->vertices[m->indices[ib+5]];
 			vector3f ortho = (v1-v0).orthogonal(v2-v0);
 			float lf = 1.0/ortho.length();
-			if (isfinite(lf)) {
+			if (std::isfinite(lf)) {
 				vector3f face_normal = ortho * lf;
 				m->normals[m->indices[ib]] += face_normal;
 				m->normals[m->indices[ib+1]] += face_normal;
@@ -371,7 +373,7 @@ model::mesh* heightfield(unsigned resx, unsigned resy, const vector<Uint8>& heig
 			}
 			ortho = (v1-v2).orthogonal(v3-v2);
 			lf = 1.0/ortho.length();
-			if (isfinite(lf)) {
+			if (std::isfinite(lf)) {
 				vector3f face_normal = ortho * lf;
 				m->normals[m->indices[ib+3]] += face_normal;
 				m->normals[m->indices[ib+4]] += face_normal;

@@ -48,9 +48,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define se_sub_screws_fast			"screws_fast.ogg"
 #define se_sub_screws_very_fast		"screws_veryfast.ogg"
 
-string get_program_version();
+std::string get_program_version();
 
-string XmlAttrib(class TiXmlElement* elem, const char* attrname);
+std::string XmlAttrib(class TiXmlElement* elem, const char* attrname);
 unsigned XmlAttribu(class TiXmlElement* elem, const char* attrname);
 float XmlAttribf(class TiXmlElement* elem, const char* attrname);
 
@@ -76,15 +76,15 @@ extern class image *titlebackgrimg, *threesubsimg, *damage_screen_background,
 	*depthchargeimg, *sunkendestroyerimg, *kruppdocksimg, *rescuedestroyerimg, *sunderlandimg,
 	*swordfishimg, *hedgehogimg;
 
-void init_global_data(void);
-void deinit_global_data(void);
+void init_global_data();
+void deinit_global_data();
 
 // display loading progress
-void reset_loading_screen(void);
-void add_loading_screen(const string& msg);
+void reset_loading_screen();
+void add_loading_screen(const std::string& msg);
 
 // transform time in seconds to 24h time of clock string (takes remainder of 86400 seconds first = 1 day)
-string get_time_string(double tm);
+std::string get_time_string(double tm);
 
 // handle modulo calculation for negative values the way I need it
 inline float myfmod(float a, float b) { return a-floorf(a/b)*b; }//fmod is different for negative a/b
@@ -96,7 +96,7 @@ inline double mysgn(double a) { return (a < 0) ? -1.0 : ((a > 0) ? 1.0 : 0.0); }
 template<class T> inline T myclamp(const T& v, const T& minv, const T& maxv) { return (v < minv) ? minv : ((v > maxv) ? maxv : v); }
 template<class C> inline void add_saturated(C& sum, const C& add, const C& max) { sum += add; if (sum > max) sum = max; }
 // return a random value in [0, 1(
-inline double rnd(void) { return double(rand())/RAND_MAX; }
+inline double rnd() { return double(rand())/RAND_MAX; }
 inline unsigned rnd(unsigned b) { return unsigned(b*rnd()); }
 
 // fast clamping
@@ -108,8 +108,8 @@ inline unsigned nextgteqpow2(unsigned x) { unsigned i = 1; for ( ; i < x && i !=
 inline bool ispow2(unsigned x) { return (x & (x-1)) == 0; }
 
 // give degrees,minutes like this 123/45x with x = N,W,E,S 
-double transform_nautic_posx_to_real(const string& s);
-double transform_nautic_posy_to_real(const string& s);
+double transform_nautic_posx_to_real(const std::string& s);
+double transform_nautic_posy_to_real(const std::string& s);
 
 std::list<std::string> string_split(const std::string& src, char splitter = ',');
 

@@ -54,7 +54,7 @@ public:
 	network_connection(const string& servername, Uint16 server_port);
 	void bind(IPaddress ip);
 	void bind(const string& servername, Uint16 server_port);
-	void unbind(void);
+	void unbind();
 	~network_connection();
 	static string ip2string(IPaddress ip);
 };

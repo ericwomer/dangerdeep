@@ -41,6 +41,7 @@ map<double, map<double, double> > ship::dist_angle_relation;
 
 //fixme: redefine display, call base display
 
+using namespace std;
 
 void ship::fill_dist_angle_relation_map(const double initial_velocity)
 {

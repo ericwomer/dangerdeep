@@ -115,7 +115,7 @@ void network_connection::bind(const string& servername, Uint16 server_port)
 	bind(ip);
 }
 
-void network_connection::unbind(void)
+void network_connection::unbind()
 {
 	SDLNet_UDP_Unbind(sock, CHANNEL);
 }

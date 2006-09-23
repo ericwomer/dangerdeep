@@ -24,8 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "vector3.h"
 #include <vector>
-#include <list>
-using namespace std;
 
 class game;
 class texture;
@@ -47,10 +45,10 @@ protected:
 	particle& operator= (const particle& other);
 
 	// returns wether particle is shown parallel to z-axis (true), or 3d billboarding always (false)
-	virtual bool is_z_up(void) const { return true; }
+	virtual bool is_z_up() const { return true; }
 	
 	// returns wether image should be drawn above pos or centered around pos
-	virtual bool tex_centered(void) const { return true; }
+	virtual bool tex_centered() const { return true; }
 
 	// helper struct for depth sorting
 	struct particle_dist {
@@ -63,67 +61,67 @@ protected:
 
 	// particle textures (generated and stored once)
 	static unsigned init_count;
-	static vector<texture*> tex_smoke;
+	static std::vector<texture*> tex_smoke;
 	static texture* tex_spray;
-	static vector<texture*> tex_fire;
-	static vector<texture*> explosionbig;
-	static vector<texture*> explosionsml;
-	static vector<texture*> watersplashes;
+	static std::vector<texture*> tex_fire;
+	static std::vector<texture*> explosionbig;
+	static std::vector<texture*> explosionsml;
+	static std::vector<texture*> watersplashes;
 
 	// wh must be power of two (returns a square). 1 <= 2^low <= 2^high <= wh
-	static vector<float> interpolate_func;
-	static vector<Uint8> make_2d_smoothed_noise_map(unsigned wh);
-	static unsigned interpolate_2d_map(const vector<Uint8>& mp, unsigned res, unsigned x, unsigned y, unsigned res2);
+	static std::vector<float> interpolate_func;
+	static std::vector<Uint8> make_2d_smoothed_noise_map(unsigned wh);
+	static unsigned interpolate_2d_map(const std::vector<Uint8>& mp, unsigned res, unsigned x, unsigned y, unsigned res2);
 
 	// 1 <= highest_level <= log2(wh)
-	static vector<Uint8> make_2d_perlin_noise(unsigned wh, unsigned highestlevel);
-	static vector<Uint8> compute_fire_frame(unsigned wh, const vector<Uint8>& oldframe);
+	static std::vector<Uint8> make_2d_perlin_noise(unsigned wh, unsigned highestlevel);
+	static std::vector<Uint8> compute_fire_frame(unsigned wh, const std::vector<Uint8>& oldframe);
 
-	virtual vector3 get_acceleration(void) const { return vector3(); }
+	virtual vector3 get_acceleration() const { return vector3(); }
 
 public:
 	particle(const vector3& pos, const vector3& velo = vector3()) : position(pos), velocity(velo), life(1.0) {}
 	virtual ~particle() {}
 
-	static void init(void);
-	static void deinit(void);
+	static void init();
+	static void deinit();
 
-	virtual vector3 get_pos(void) const { return position; }
+	virtual vector3 get_pos() const { return position; }
 	virtual void set_pos(const vector3& pos) { position = pos; }
 
 	// class game is given so that particles can spawn other particles (fire->smoke)
 	virtual void simulate(game& gm, double delta_t);
 
-	static void display_all(const vector<particle*>& pts, const vector3& viewpos, game& gm);
+	static void display_all(const std::vector<particle*>& pts, const vector3& viewpos, game& gm);
 
 	// return width/height (in meters) of particle (length of quad edge)
-	virtual double get_width(void) const = 0;
-	virtual double get_height(void) const = 0;
+	virtual double get_width() const = 0;
+	virtual double get_height() const = 0;
 
-	virtual void kill(void) { life = 0.0; }
-	virtual bool is_defunct(void) const { return life <= 0.0; }
+	virtual void kill() { life = 0.0; }
+	virtual bool is_defunct() const { return life <= 0.0; }
 	
 	// set opengl texture by particle type or e.g. game time etc.
 	virtual void set_texture(game& gm) const = 0;
 
-	virtual double get_life_time(void) const = 0;
+	virtual double get_life_time() const = 0;
 };
 
 
 
 class smoke_particle : public particle
 {
-	bool is_z_up(void) const { return false; }
+	bool is_z_up() const { return false; }
 	unsigned texnr;
-	vector3 get_acceleration(void) const;
+	vector3 get_acceleration() const;
 public:
 	smoke_particle(const vector3& pos);//set velocity by wind, fixme
 	~smoke_particle() {}
-	double get_width(void) const;
-	double get_height(void) const;
+	double get_width() const;
+	double get_height() const;
 	void set_texture(game& gm) const;
-	double get_life_time(void) const;
-	static double get_produce_time(void);
+	double get_life_time() const;
+	static double get_produce_time();
 };
 
 
@@ -133,9 +131,9 @@ class smoke_particle_escort : public smoke_particle
 public:
 	smoke_particle_escort(const vector3& pos);//set velocity by wind, fixme
 	~smoke_particle_escort() {}
-	double get_width(void) const;
-	double get_life_time(void) const;
-	static double get_produce_time(void);
+	double get_width() const;
+	double get_life_time() const;
+	static double get_produce_time();
 };
 
 
@@ -146,10 +144,10 @@ class explosion_particle : public particle
 public:
 	explosion_particle(const vector3& pos);
 	~explosion_particle() {}
-	double get_width(void) const;
-	double get_height(void) const;
+	double get_width() const;
+	double get_height() const;
 	void set_texture(game& gm) const;
-	double get_life_time(void) const;
+	double get_life_time() const;
 };
 
 
@@ -161,10 +159,10 @@ public:
 	fire_particle(const vector3& pos);
 	~fire_particle() {}
 	void simulate(game& gm, double delta_t);
-	double get_width(void) const;
-	double get_height(void) const;
+	double get_width() const;
+	double get_height() const;
 	void set_texture(game& gm) const;
-	double get_life_time(void) const;
+	double get_life_time() const;
 };
 
 
@@ -174,52 +172,52 @@ class spray_particle : public particle
 public:
 	spray_particle(const vector3& pos, const vector3& velo);
 	~spray_particle() {}
-	double get_width(void) const;
-	double get_height(void) const;
+	double get_width() const;
+	double get_height() const;
 	void set_texture(game& gm) const;
-	double get_life_time(void) const;
+	double get_life_time() const;
 };
 
 
 
 class torpedo_water_splash_particle : public particle
 {
-	virtual bool tex_centered(void) const { return false; }
+	virtual bool tex_centered() const { return false; }
 public:
 	torpedo_water_splash_particle(const vector3& pos);
 	~torpedo_water_splash_particle() {}
-	double get_width(void) const;
-	double get_height(void) const;
+	double get_width() const;
+	double get_height() const;
 	void set_texture(game& gm) const;
-	double get_life_time(void) const;
+	double get_life_time() const;
 };
 
 
 
 class gun_shell_water_splash_particle : public particle
 {
-	virtual bool tex_centered(void) const { return false; }
+	virtual bool tex_centered() const { return false; }
 public:
 	gun_shell_water_splash_particle(const vector3& pos);
 	~gun_shell_water_splash_particle() {}
-	double get_width(void) const;
-	double get_height(void) const;
+	double get_width() const;
+	double get_height() const;
 	void set_texture(game& gm) const;
-	double get_life_time(void) const;
+	double get_life_time() const;
 };
 
 
 
 class depth_charge_water_splash_particle : public particle
 {
-	virtual bool tex_centered(void) const { return false; }
+	virtual bool tex_centered() const { return false; }
 public:
 	depth_charge_water_splash_particle(const vector3& pos);
 	~depth_charge_water_splash_particle() {}
-	double get_width(void) const;
-	double get_height(void) const;
+	double get_width() const;
+	double get_height() const;
 	void set_texture(game& gm) const;
-	double get_life_time(void) const;
+	double get_life_time() const;
 };
 
 #endif

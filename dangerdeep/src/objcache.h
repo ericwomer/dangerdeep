@@ -28,6 +28,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <iostream>
 
 ///\brief Handles and caches instances of globally used objects.
+//fixme: to make it useable as *cache* we need to delay destruction. when an object reaches refcount zero, do not
+//delete it immediatly. Check periodically or when the next object is deleted, so at least 1-2 objects can be hold
+//with refcount zero, like a delete-queue. This avoids permanent reload when e.g. user switches between two menes
+//and both use images of the image-cache.
 template <class T>
 class objcachet
 {
@@ -56,7 +60,7 @@ public:
 		if (objname.length() == 0) return (T*)0;
 		typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it == cache.end()) {
-			it = cache.insert(make_pair(objname, make_pair(1, new T(basedir + objname)))).first;
+			it = cache.insert(std::make_pair(objname, std::make_pair(1, new T(basedir + objname)))).first;
 		} else {
 			++(it->second.first);
 		}
@@ -67,7 +71,7 @@ public:
 		if (objname.length() == 0) return false;	// no valid name
 		typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it == cache.end()) {
-			it = cache.insert(make_pair(objname, make_pair(1, obj))).first;
+			it = cache.insert(std::make_pair(objname, std::make_pair(1, obj))).first;
 		} else {
 			return false;	// already exists
 		}
@@ -78,6 +82,10 @@ public:
 		if (objname.length() == 0) return;
 		typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it != cache.end()) {
+			if (it->second.first == 0) {
+				// error, unref'd too much...
+				return;
+			}
 			--(it->second.first);
 			if (it->second.first == 0) {
 				delete it->second.second;
@@ -89,6 +97,10 @@ public:
 	void unref(T* obj) {
 		for (typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.begin(); it != cache.end(); ++it) {
 			if (it->second.second == obj) {
+				if (it->second.first == 0) {
+					// error, unref'd too much...
+					return;
+				}
 				--(it->second.first);
 				if (it->second.first == 0) {
 					delete it->second.second;
@@ -99,7 +111,7 @@ public:
 		}
 	}
 	
-	void print(void) const {
+	void print() const {
 		std::cout << "objcache: " << cache.size() << " entries.\n";
 		for (typename std::map<std::string, std::pair<unsigned, T*> >::const_iterator it = cache.begin(); it != cache.end(); ++it)
 			std::cout << "key=\"" << it->first << "\" ref=" << it->second.first << " addr=" << it->second.second << "\n";

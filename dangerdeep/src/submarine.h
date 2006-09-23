@@ -299,12 +299,12 @@ public:
 	virtual unsigned get_nr_of_stern_deckreserve() const { return number_of_tubes_at[5]; }
 
 	// get first index of storage and first index after it (computed with functions above)
-	pair<unsigned, unsigned> get_bow_tube_indices() const;
-	pair<unsigned, unsigned> get_stern_tube_indices() const;
-	pair<unsigned, unsigned> get_bow_reserve_indices() const;
-	pair<unsigned, unsigned> get_stern_reserve_indices() const;
-	pair<unsigned, unsigned> get_bow_deckreserve_indices() const;
-	pair<unsigned, unsigned> get_stern_deckreserve_indices() const;
+	std::pair<unsigned, unsigned> get_bow_tube_indices() const;
+	std::pair<unsigned, unsigned> get_stern_tube_indices() const;
+	std::pair<unsigned, unsigned> get_bow_reserve_indices() const;
+	std::pair<unsigned, unsigned> get_stern_reserve_indices() const;
+	std::pair<unsigned, unsigned> get_bow_deckreserve_indices() const;
+	std::pair<unsigned, unsigned> get_stern_deckreserve_indices() const;
 	unsigned get_location_by_tubenr(unsigned tn) const; // returns 1-6 as location number, 0 if not supported
 
 	// The simulation of acceleration when switching between electro and diesel

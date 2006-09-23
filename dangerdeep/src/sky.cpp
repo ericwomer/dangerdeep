@@ -204,7 +204,7 @@ void sky::advance_cloud_animation(double fac)
 
 
 
-void sky::compute_clouds(void)
+void sky::compute_clouds()
 {
 	unsigned mapsize = 8 - cloud_levels;
 	unsigned mapsize2 = (2<<mapsize);
@@ -257,7 +257,7 @@ void sky::compute_clouds(void)
 
 
 
-vector<vector<Uint8> > sky::compute_noisemaps(void)
+vector<vector<Uint8> > sky::compute_noisemaps()
 {
 	unsigned mapsize = 8 - cloud_levels;
 	unsigned mapsize2 = (2<<mapsize);

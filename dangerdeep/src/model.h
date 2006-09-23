@@ -79,7 +79,7 @@ public:
 			void setup_glmatrix() const;
 			void set_gl_texture() const;
 			void set_texture(texture* t);
-			void register_layout(const std::string& name, const string& basepath,
+			void register_layout(const std::string& name, const std::string& basepath,
 					     texture::mapping_mode mapping,
 					     bool makenormalmap = false,
 					     float detailh = 1.0f,
@@ -93,9 +93,9 @@ public:
 		color diffuse;	// only used when colormap is 0.
 		color specular;	// material specular color, used with and without texture mapping.
 		float shininess; // shininess (Halfangle dot Normal exponent)
-		auto_ptr<map> colormap;	// replaces diffuse color if not defined.
-		auto_ptr<map> normalmap;	// should be of type RGB to work properly.
-		auto_ptr<map> specularmap; // should be of type LUMINANCE to work properly.
+		std::auto_ptr<map> colormap;	// replaces diffuse color if not defined.
+		std::auto_ptr<map> normalmap;	// should be of type RGB to work properly.
+		std::auto_ptr<map> specularmap; // should be of type LUMINANCE to work properly.
 		
 		material(const std::string& nm = "Unnamed material");
 		void set_gl_values() const;
@@ -133,7 +133,7 @@ public:
 		void compute_normals();
 		bool compute_tangentx(unsigned i0, unsigned i1, unsigned i2);
 
-		mesh(const string& nm = "Unnamed mesh");
+		mesh(const std::string& nm = "Unnamed mesh");
 		~mesh();
 
 		// make display list if possible
@@ -147,7 +147,7 @@ public:
 		void write_off_file(const std::string& fn) const;
 
 		// give plane equation (abc must have length 1)
-		pair<mesh*, mesh*> split(const vector3f& abc, float d) const;
+		std::pair<mesh*, mesh*> split(const vector3f& abc, float d) const;
 	};
 
 	struct light {
@@ -239,25 +239,25 @@ protected:
 		unsigned bytes_read;
 		unsigned length;
 		bool fully_read() const { return bytes_read >= length; }
-		void skip(istream& in);
+		void skip(std::istream& in);
 	};
 	void m3ds_load(const std::string& fn);
-	std::string m3ds_read_string(istream& in, m3ds_chunk& ch);
-	m3ds_chunk m3ds_read_chunk(istream& in);
-	std::string m3ds_read_string_from_rest_of_chunk(istream& in, m3ds_chunk& ch);
-	void m3ds_process_toplevel_chunks(istream& in, m3ds_chunk& parent);
-	void m3ds_process_model_chunks(istream& in, m3ds_chunk& parent);
-	void m3ds_process_object_chunks(istream& in, m3ds_chunk& parent, const std::string& objname);
-	void m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent, const std::string& objname);
-	void m3ds_process_light_chunks(istream& in, m3ds_chunk& parent, const std::string& objname);
-	void m3ds_process_face_chunks(istream& in, m3ds_chunk& parent, mesh& m);
-	void m3ds_process_material_chunks(istream& in, m3ds_chunk& parent);
-	void m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, material::map* m);
-	void m3ds_read_color_chunk(istream& in, m3ds_chunk& ch, color& col);
-	void m3ds_read_faces(istream& in, m3ds_chunk& ch, mesh& m);
-	void m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, mesh& m);
-	void m3ds_read_vertices(istream& in, m3ds_chunk& ch, mesh& m);
-	void m3ds_read_material(istream& in, m3ds_chunk& ch, mesh& m);
+	std::string m3ds_read_string(std::istream& in, m3ds_chunk& ch);
+	m3ds_chunk m3ds_read_chunk(std::istream& in);
+	std::string m3ds_read_string_from_rest_of_chunk(std::istream& in, m3ds_chunk& ch);
+	void m3ds_process_toplevel_chunks(std::istream& in, m3ds_chunk& parent);
+	void m3ds_process_model_chunks(std::istream& in, m3ds_chunk& parent);
+	void m3ds_process_object_chunks(std::istream& in, m3ds_chunk& parent, const std::string& objname);
+	void m3ds_process_trimesh_chunks(std::istream& in, m3ds_chunk& parent, const std::string& objname);
+	void m3ds_process_light_chunks(std::istream& in, m3ds_chunk& parent, const std::string& objname);
+	void m3ds_process_face_chunks(std::istream& in, m3ds_chunk& parent, mesh& m);
+	void m3ds_process_material_chunks(std::istream& in, m3ds_chunk& parent);
+	void m3ds_process_materialmap_chunks(std::istream& in, m3ds_chunk& parent, material::map* m);
+	void m3ds_read_color_chunk(std::istream& in, m3ds_chunk& ch, color& col);
+	void m3ds_read_faces(std::istream& in, m3ds_chunk& ch, mesh& m);
+	void m3ds_read_uv_coords(std::istream& in, m3ds_chunk& ch, mesh& m);
+	void m3ds_read_vertices(std::istream& in, m3ds_chunk& ch, mesh& m);
+	void m3ds_read_material(std::istream& in, m3ds_chunk& ch, mesh& m);
 	// ------------ end of 3ds loading functions ------------------
 	
 	model(const model& );

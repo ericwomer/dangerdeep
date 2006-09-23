@@ -35,6 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "datadirs.h"
 #include <SDL_image.h>
 
+using namespace std;
 
 // computed with an earth radius of 40030.17359km
 const double DEGREE_IN_METERS = 111194.9266388889;
@@ -42,7 +43,7 @@ const double MINUTE_IN_METERS = 1853.248777315;
 
 
 // same with version string
-string get_program_version(void)
+string get_program_version()
 {
 	return string(VERSION);
 }
@@ -76,6 +77,7 @@ objcachet<class image> imagecache(get_image_dir());
 objcachet<class texture> texturecache(get_texture_dir());
 objcachet<class sound> soundcache(get_sound_dir());
 
+// later: remove that crap when tinyxml is not used directly any longer
 string XmlAttrib(class TiXmlElement* elem, const char* attrname)
 {
 	const char* tmp = elem->Attribute(attrname);
@@ -91,8 +93,9 @@ float XmlAttribf(class TiXmlElement* elem, const char* attrname)
 	return float(atof(XmlAttrib(elem, attrname).c_str()));
 }
 
-void init_global_data(void)
+void init_global_data()
 {
+	// later: store fonts in static variable (vector) of class font...
 	font_arial = new font(get_font_dir() + "font_arial");
 	loading_screen_usable = true;
 	font_arialbd = new font(get_font_dir() + "font_arialbd");
@@ -103,10 +106,12 @@ void init_global_data(void)
 	font_olympiaworn = new font(get_font_dir() + "font_olympiaworn");
 	font_damagedtypewriter = new font(get_font_dir() + "font_damagedtypewriter");
 	add_loading_screen("fonts loaded");
+	// later: store per model
 	conning_tower_typeVII = new model(get_model_dir() + "conning_tower_typeVIIc.xml");
 	conning_tower_typeVII->register_layout();
 	conning_tower_typeVII->set_layout();
 	add_loading_screen("models loaded");
+	// later: they should get loaded by environmental classes (sky/water/user_interface)
 	panelbackground = new texture(get_image_dir() + "metalbackground.jpg");
 	addleadangle = new texture(get_texture_dir() + "addleadangle.png");
 	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", texture::LINEAR);
@@ -118,6 +123,7 @@ void init_global_data(void)
 	atlanticmap = new texture(get_texture_dir() + "atlanticmap.jpg", texture::LINEAR, texture::CLAMP_TO_EDGE);
 	add_loading_screen("textures loaded");
 
+	// later: this makes the use of the cache senseless. load on demand, and only ingame
 	soundcache.ref(se_submarine_torpedo_launch);
 	soundcache.ref(se_torpedo_detonation);
 	soundcache.ref(se_small_gun_firing);
@@ -134,6 +140,7 @@ void init_global_data(void)
 	soundcache.ref(se_sub_screws_very_fast);	
 	add_loading_screen("sounds loaded");
 
+	// later: load only when needed, wasts memory and time
 	titlebackgrimg = new image(get_image_dir() + "titlebackgr.jpg");
 
 	threesubsimg = new image(get_image_dir() + "threesubs.jpg");
@@ -151,9 +158,10 @@ void init_global_data(void)
 	sunderlandimg = new image(get_image_dir() + "sunderland.jpg");
 	swordfishimg = new image(get_image_dir() + "swordfish.jpg");
 	hedgehogimg = new image(get_image_dir() + "hedgehog.jpg");
+	add_loading_screen("background images loaded");
 }
 
-void deinit_global_data(void)
+void deinit_global_data()
 {
 	delete conning_tower_typeVII;
 	delete font_arial;
@@ -190,7 +198,7 @@ void deinit_global_data(void)
 // display loading progress
 list<string> loading_screen_messages;
 unsigned starttime;
-void display_loading_screen(void)
+void display_loading_screen()
 {
 	if (!loading_screen_usable) return;
 	glClearColor(0, 0, 0, 0);
@@ -208,7 +216,7 @@ void display_loading_screen(void)
 	sys().swap_buffers();
 }
 
-void reset_loading_screen(void)
+void reset_loading_screen()
 {
 	loading_screen_messages.clear();
 	loading_screen_messages.push_back("Loading...");

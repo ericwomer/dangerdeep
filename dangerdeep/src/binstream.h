@@ -57,149 +57,149 @@ union double_u64_shared
 
 
 
-inline void write_i8(ostream& out, Sint8 i)
+inline void write_i8(std::ostream& out, Sint8 i)
 {
 	// no LE/BE swap needed.
 	out.write((char*)&i, 1);
 }
 
-inline void write_i16(ostream& out, Sint16 i)
+inline void write_i16(std::ostream& out, Sint16 i)
 {
 	Uint16 ii = SDL_SwapLE16((Uint16)i);
 	out.write((char*)&ii, 2);
 }
 
-inline void write_i32(ostream& out, Sint32 i)
+inline void write_i32(std::ostream& out, Sint32 i)
 {
 	Uint32 ii = SDL_SwapLE32((Uint32)i);
 	out.write((char*)&ii, 4);
 }
 
-inline void write_i64(ostream& out, Sint64 i)
+inline void write_i64(std::ostream& out, Sint64 i)
 {
 	Uint64 ii = SDL_SwapLE64((Uint64)i);
 	out.write((char*)&ii, 8);
 }
 
-inline void write_u8(ostream& out, Uint8 i)
+inline void write_u8(std::ostream& out, Uint8 i)
 {
 	// no LE/BE swap needed.
 	out.write((char*)&i, 1);
 }
 
-inline void write_u16(ostream& out, Uint16 i)
+inline void write_u16(std::ostream& out, Uint16 i)
 {
 	Uint16 ii = SDL_SwapLE16(i);
 	out.write((char*)&ii, 2);
 }
 
-inline void write_u32(ostream& out, Uint32 i)
+inline void write_u32(std::ostream& out, Uint32 i)
 {
 	Uint32 ii = SDL_SwapLE32(i);
 	out.write((char*)&ii, 4);
 }
 
-inline void write_u64(ostream& out, Uint64 i)
+inline void write_u64(std::ostream& out, Uint64 i)
 {
 	Uint64 ii = SDL_SwapLE64(i);
 	out.write((char*)&ii, 8);
 }
 
-inline Sint8 read_i8(istream& in)
+inline Sint8 read_i8(std::istream& in)
 {
 	Sint8 i;	// no LE/BE swap needed.
 	in.read((char*)&i, 1);
 	return i;
 }
 
-inline Sint16 read_i16(istream& in)
+inline Sint16 read_i16(std::istream& in)
 {
 	Uint16 i;
 	in.read((char*)&i, 2);
 	return Sint16(SDL_SwapLE16(i));
 }
 
-inline Sint32 read_i32(istream& in)
+inline Sint32 read_i32(std::istream& in)
 {
 	Uint32 i;
 	in.read((char*)&i, 4);
 	return Sint32(SDL_SwapLE32(i));
 }
 
-inline Sint64 read_i64(istream& in)
+inline Sint64 read_i64(std::istream& in)
 {
 	Uint64 i;
 	in.read((char*)&i, 8);
 	return Sint64(SDL_SwapLE64(i));
 }
 
-inline Uint8 read_u8(istream& in)
+inline Uint8 read_u8(std::istream& in)
 {
 	Uint8 i;	// no LE/BE swap needed.
 	in.read((char*)&i, 1);
 	return i;
 }
 
-inline Uint16 read_u16(istream& in)
+inline Uint16 read_u16(std::istream& in)
 {
 	Uint16 i;
 	in.read((char*)&i, 2);
 	return Uint16(SDL_SwapLE16(i));
 }
 
-inline Uint32 read_u32(istream& in)
+inline Uint32 read_u32(std::istream& in)
 {
 	Uint32 i;
 	in.read((char*)&i, 4);
 	return Uint32(SDL_SwapLE32(i));
 }
 
-inline Uint64 read_u64(istream& in)
+inline Uint64 read_u64(std::istream& in)
 {
 	Uint64 i;
 	in.read((char*)&i, 8);
 	return Uint64(SDL_SwapLE64(i));
 }
 
-inline void write_bool(ostream& out, bool b)
+inline void write_bool(std::ostream& out, bool b)
 {
 	write_u8(out, b ? 1 : 0);
 }
 
-inline bool read_bool(istream& in)
+inline bool read_bool(std::istream& in)
 {
 	return (read_u8(in) != 0);
 }
 
-inline void write_float(ostream& out, float f)
+inline void write_float(std::ostream& out, float f)
 {
 	float_u32_shared s;
 	s.f = f;
 	write_u32(out, s.u);
 }
 
-inline float read_float(istream& in)
+inline float read_float(std::istream& in)
 {
 	float_u32_shared s;
 	s.u = read_u32(in);
 	return s.f;
 }
 
-inline void write_double(ostream& out, double d)
+inline void write_double(std::ostream& out, double d)
 {
 	double_u64_shared s;
 	s.d = d;
 	write_u64(out, s.u);
 }
 
-inline double read_double(istream& in)
+inline double read_double(std::istream& in)
 {
 	double_u64_shared s;
 	s.u = read_u64(in);
 	return s.d;
 }
 
-inline void write_string(ostream& out, const std::string& s)
+inline void write_string(std::ostream& out, const std::string& s)
 {
 	unsigned l = s.size();
 	write_u32(out, l);
@@ -207,7 +207,7 @@ inline void write_string(ostream& out, const std::string& s)
 		out.write(s.c_str(), l);
 }
 
-inline std::string read_string(istream& in)
+inline std::string read_string(std::istream& in)
 {
 	unsigned l = read_u32(in);
 	if (l > 0) {
@@ -219,7 +219,7 @@ inline std::string read_string(istream& in)
 	}
 }
 
-inline vector2 read_vector2(istream& in)
+inline vector2 read_vector2(std::istream& in)
 {
 	vector2 v;
 	v.x = read_double(in);
@@ -227,13 +227,13 @@ inline vector2 read_vector2(istream& in)
 	return v;
 }
 
-inline void write_vector2(ostream& out, const vector2& v)
+inline void write_vector2(std::ostream& out, const vector2& v)
 {
 	write_double(out, v.x);
 	write_double(out, v.y);
 }
 
-inline vector3 read_vector3(istream& in)
+inline vector3 read_vector3(std::istream& in)
 {
 	vector3 v;
 	v.x = read_double(in);
@@ -242,20 +242,20 @@ inline vector3 read_vector3(istream& in)
 	return v;
 }
 
-inline void write_vector3(ostream& out, const vector3& v)
+inline void write_vector3(std::ostream& out, const vector3& v)
 {
 	write_double(out, v.x);
 	write_double(out, v.y);
 	write_double(out, v.z);
 }
 
-inline quaternion read_quaternion(istream& in)
+inline quaternion read_quaternion(std::istream& in)
 {
 	double s = read_double(in);
 	return quaternion(s, read_vector3(in));
 }
 
-inline void write_quaternion(ostream& out, const quaternion& q)
+inline void write_quaternion(std::ostream& out, const quaternion& q)
 {
 	write_double(out, q.s);
 	write_vector3(out, q.v);

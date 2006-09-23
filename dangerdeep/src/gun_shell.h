@@ -48,7 +48,7 @@ class gun_shell : public sea_object
 	virtual void save(xml_elem& parent) const;
 
 	virtual void simulate(double delta_time);
-	virtual void display(void) const;
+	virtual void display() const;
 	virtual float surface_visibility(const vector2& watcher) const;
 	// acceleration is only gravity and already handled by sea_object
 	virtual double damage() const { return damage_amount; }

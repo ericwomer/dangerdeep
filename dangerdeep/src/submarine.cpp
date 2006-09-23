@@ -647,7 +647,7 @@ bool submarine::is_tube_ready(unsigned nr) const
 
 
 
-pair<unsigned, unsigned> submarine::get_bow_tube_indices(void) const
+pair<unsigned, unsigned> submarine::get_bow_tube_indices() const
 {
 	unsigned off = 0;
 	return make_pair(off, off+get_nr_of_bow_tubes());
@@ -655,7 +655,7 @@ pair<unsigned, unsigned> submarine::get_bow_tube_indices(void) const
 
 
 
-pair<unsigned, unsigned> submarine::get_stern_tube_indices(void) const
+pair<unsigned, unsigned> submarine::get_stern_tube_indices() const
 {
 	unsigned off = get_nr_of_bow_tubes();
 	return make_pair(off, off+get_nr_of_stern_tubes());
@@ -663,7 +663,7 @@ pair<unsigned, unsigned> submarine::get_stern_tube_indices(void) const
 
 
 
-pair<unsigned, unsigned> submarine::get_bow_reserve_indices(void) const
+pair<unsigned, unsigned> submarine::get_bow_reserve_indices() const
 {
 	unsigned off = get_nr_of_bow_tubes()+get_nr_of_stern_tubes();
 	return make_pair(off, off+get_nr_of_bow_reserve());
@@ -671,7 +671,7 @@ pair<unsigned, unsigned> submarine::get_bow_reserve_indices(void) const
 
 
 
-pair<unsigned, unsigned> submarine::get_stern_reserve_indices(void) const
+pair<unsigned, unsigned> submarine::get_stern_reserve_indices() const
 {
 	unsigned off = get_nr_of_bow_tubes()+get_nr_of_stern_tubes()+get_nr_of_bow_reserve();
 	return make_pair(off, off+get_nr_of_stern_reserve());
@@ -679,7 +679,7 @@ pair<unsigned, unsigned> submarine::get_stern_reserve_indices(void) const
 
 
 
-pair<unsigned, unsigned> submarine::get_bow_deckreserve_indices(void) const
+pair<unsigned, unsigned> submarine::get_bow_deckreserve_indices() const
 {
 	unsigned off = get_nr_of_bow_tubes()+get_nr_of_stern_tubes()+get_nr_of_bow_reserve()+get_nr_of_stern_reserve();
 	return make_pair(off, off+get_nr_of_bow_deckreserve());
@@ -687,7 +687,7 @@ pair<unsigned, unsigned> submarine::get_bow_deckreserve_indices(void) const
 
 
 
-pair<unsigned, unsigned> submarine::get_stern_deckreserve_indices(void) const
+pair<unsigned, unsigned> submarine::get_stern_deckreserve_indices() const
 {
 	unsigned off = get_nr_of_bow_tubes()+get_nr_of_stern_tubes()+get_nr_of_bow_reserve()+get_nr_of_stern_reserve()+get_nr_of_bow_deckreserve();
 	return make_pair(off, off+get_nr_of_stern_deckreserve());
@@ -739,7 +739,7 @@ double submarine::get_torp_transfer_time(unsigned from, unsigned to) const
 
 
 
-double submarine::get_max_speed(void) const
+double submarine::get_max_speed() const
 {
 	double ms;
 
@@ -872,7 +872,7 @@ void submarine::planes_down(double amount)
 
 
 
-void submarine::planes_middle(void)
+void submarine::planes_middle()
 {
 //	dive_acceleration = 0;
 	dive_speed = 0;

@@ -33,6 +33,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <set>
 #include <sstream>
 
+using namespace std;
+
 widget::theme* widget::globaltheme = 0;
 widget* widget::focussed = 0;
 widget* widget::mouseover = 0;
@@ -42,12 +44,12 @@ int widget::oldmb = 0;
 
 list<widget*> widget::widgets;
 
-int widget::theme::frame_size(void) const
+int widget::theme::frame_size() const
 {
 	return frame[0]->get_height();
 }
 
-int widget::theme::icon_size(void) const
+int widget::theme::icon_size() const
 {
 	return icons[0]->get_height();
 }
@@ -109,6 +111,8 @@ widget::widget(int x, int y, int w, int h, const string& text_, widget* parent_,
 
 widget::~widget()
 {
+// 	if (backgr)
+// 		imagecache.unref(backgr);
 	for (list<widget*>::iterator it = children.begin(); it != children.end(); ++it)
 		delete *it;
 	if (this == focussed) focussed = parent;
@@ -133,7 +137,7 @@ void widget::remove_child(widget* w)
 	delete w;
 }
 
-void widget::remove_children(void)
+void widget::remove_children()
 {
 	for (list<widget*>::iterator it = children.begin(); it != children.end(); ++it) {
 		delete *it;

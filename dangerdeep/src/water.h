@@ -30,7 +30,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <vector>
 #include <memory>
-using namespace std;
 #include "color.h"
 #include "angle.h"
 #include "vector3.h"
@@ -51,19 +50,19 @@ protected:
 	const float wavetile_length_rcp;// reciprocal of former value
 	const double wave_tidecycle_time;	// depends on fps. with 25fps and 256 phases, use ~10seconds.
 
-	vector<unsigned> gridindices;
-	vector<unsigned> gridindices2;//only used for test grid drawing, could be ifdef'ed away
+	std::vector<unsigned> gridindices;
+	std::vector<unsigned> gridindices2;//only used for test grid drawing, could be ifdef'ed away
 
-	auto_ptr<texture> reflectiontex;
-	auto_ptr<texture> foamtex;
-	auto_ptr<texture> foamamounttex;
-	auto_ptr<texture> foamamounttrail;
-	auto_ptr<texture> foamperimetertex;
-	auto_ptr<texture> fresnelcolortex;	// texture for fresnel values and water color
+	std::auto_ptr<texture> reflectiontex;
+	std::auto_ptr<texture> foamtex;
+	std::auto_ptr<texture> foamamounttex;
+	std::auto_ptr<texture> foamamounttrail;
+	std::auto_ptr<texture> foamperimetertex;
+	std::auto_ptr<texture> fresnelcolortex;	// texture for fresnel values and water color
 
-	auto_ptr<texture> waterspecularlookup;	// lookup 1d texture map for water specular term
+	std::auto_ptr<texture> waterspecularlookup;	// lookup 1d texture map for water specular term
 
-	vector<Uint8> fresnelcolortexd;	// stored for updates of water color
+	std::vector<Uint8> fresnelcolortexd;	// stored for updates of water color
 
 	float last_light_brightness;	// used to determine when new refraction color tex must get computed
 
@@ -88,7 +87,7 @@ protected:
 		// 10bits y, 10bits x, 12bits height.
 		// stored as unsigned values with offset 512/512/2048,
 		// represent -8...+8m or -16...+16m.
-		vector<Uint32> data;
+		std::vector<Uint32> data;
 		float minh, maxh;
 		wavetile_phase() : minh(0), maxh(0) {}
 		float get_height(unsigned idx) const
@@ -114,32 +113,32 @@ protected:
 	};
 
 	// wave tile data
-	vector<wavetile_phase> wavetile_data;
+	std::vector<wavetile_phase> wavetile_data;
 	const wavetile_phase* curr_wtp;	// pointer to current phase
 
 	// Arrays used while drawing a tile. To avoid repeated re-alloc, they're here
-	mutable vector<vector3f> coords;
-	mutable vector<vector3f> uv1;
-	mutable vector<vector3f> normals;
-	mutable vector<vector2f> uv0;
+	mutable std::vector<vector3f> coords;
+	mutable std::vector<vector3f> uv1;
+	mutable std::vector<vector3f> normals;
+	mutable std::vector<vector2f> uv0;
 
 	// test
 	ocean_wave_generator<float> owg;
 
 	// sub detail
-	vector<Uint8> waveheight_subdetail;	// same as water bump map data, recomputed periodically
+	std::vector<Uint8> waveheight_subdetail;	// same as water bump map data, recomputed periodically
 
 	// testing: with fragment programs we need some sub-noise
-	auto_ptr<texture> water_bumpmap;
+	std::auto_ptr<texture> water_bumpmap;
 
 #if 0		// old code, kept for reference, especially for foam
 	// waves are stored in display lists to speed up drawing.
 	// this increases fps > 100% compared to vertex arrays / glDrawElements
 	// the display lists can take MUCH ram!
 	unsigned wavedisplaylists;		// # of first display list
-	vector<vector<float> > wavetileh;	// wave tile heights (generated)
-	vector<vector<vector3f> > wavetilen;	// wave tile normals (generated)
-	vector<float> wavefoam;			// 2d array with foam values (0-1), maybe use fixed point integer here
+	std::vector<std::vector<float> > wavetileh;	// wave tile heights (generated)
+	std::vector<std::vector<vector3f> > wavetilen;	// wave tile normals (generated)
+	std::vector<float> wavefoam;			// 2d array with foam values (0-1), maybe use fixed point integer here
 	// display lists are const, but we need dynamic data for foam. So we store foam in a texture and update this
 	// texture each frame or each 1/10th second. The texture has a texel for each wave vertex and each tile,
 	// thus it is #tiles*#vertices_per_tile wide and high. We use an color table indexed texture, so
@@ -147,7 +146,7 @@ protected:
 	// each frame (like with vertex arrays).
 	// alternative foam generation: clear texture every frame (or 1/10th second), draw lines from ship trails
 	// into the texture (if they're inside) and use this texture
-	vector<Uint8> wavefoamtexdata;
+	std::vector<Uint8> wavefoamtexdata;
 	unsigned wavefoamtex;
 #endif
 
@@ -173,7 +172,7 @@ protected:
 	water(const water& other);
 
 	void setup_textures(const matrix4& reflection_projmvmat, const vector2f& transl) const;
-	void cleanup_textures(void) const;
+	void cleanup_textures() const;
 
 	vector3f compute_coord(vector2f& xyfrac) const;
 	vector3f get_wave_normal_at(unsigned x, unsigned y) const;
@@ -193,14 +192,14 @@ public:
 
 	void draw_foam_for_ship(const game& gm, const ship* shp, const vector3& viewpos) const;
 	void compute_amount_of_foam_texture(const game& gm, const vector3& viewpos,
-					    const vector<ship*>& allships) const;
+					    const std::vector<ship*>& allships) const;
 
 	// give absolute position of viewer as viewpos, but modelview matrix without translational component!
 	void display(const vector3& viewpos, angle dir, double max_view_dist) const;
 	float get_height(const vector2& pos) const;
 	// give f as multiplier for difference to (0,0,1)
 	vector3f get_normal(const vector2& pos, double f = 1.0) const;
-	const texture* get_reflectiontex(void) const { return reflectiontex.get(); }
+	const texture* get_reflectiontex() const { return reflectiontex.get(); }
 	static float exact_fresnel(float x);
 	void set_refraction_color(float light_brightness);
 };

@@ -47,7 +47,7 @@ public:
 		key(const key& k) : action(k.action), keysym(k.keysym), ctrl(k.ctrl), alt(k.alt), shift(k.shift) {}
 		key& operator= (const key& k) { action = k.action; keysym = k.keysym; ctrl = k.ctrl; alt = k.alt;
 			shift = k.shift; return *this; }
-		string get_name(void) const; // uses SDLK_GetKeyName
+		string get_name() const; // uses SDLK_GetKeyName
 		bool equal(const SDL_keysym& ks) const;
 	};
 private:
@@ -69,7 +69,7 @@ private:
 	bool set_str(const string& name, const string& value);
 
 public:
-	static cfg& instance(void);
+	static cfg& instance();
 	~cfg();
 	
 	// load the values from a config file. Note! register() calls must be happen

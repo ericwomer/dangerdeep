@@ -51,22 +51,22 @@ class airplane : public sea_object
 
 	virtual void simulate(double delta_time);
 
-	virtual double get_mass(void) const { return 4000.0; }	// 4 tons.
-	virtual double get_engine_thrust(void) const { return 20000.0; }
-	virtual double get_drag_factor(void) const { return 0.00005184; }
-	virtual double get_antislide_factor(void) const { return 0.0025; }
-	virtual double get_antilift_factor(void) const { return 0.04; }
-	virtual double get_lift_factor(void) const { return 0.75; }
-	virtual double get_roll_deg_per_sec(void) const { return 90.0; }
-	virtual double get_pitch_deg_per_sec(void) const { return 45.0; }
+	virtual double get_mass() const { return 4000.0; }	// 4 tons.
+	virtual double get_engine_thrust() const { return 20000.0; }
+	virtual double get_drag_factor() const { return 0.00005184; }
+	virtual double get_antislide_factor() const { return 0.0025; }
+	virtual double get_antilift_factor() const { return 0.04; }
+	virtual double get_lift_factor() const { return 0.75; }
+	virtual double get_roll_deg_per_sec() const { return 90.0; }
+	virtual double get_pitch_deg_per_sec() const { return 45.0; }
 
 	// command interface for airplanes
-	virtual void roll_left(void);
-	virtual void roll_right(void);
-	virtual void roll_zero(void);
-	virtual void pitch_down(void);
-	virtual void pitch_up(void);
-	virtual void pitch_zero(void);
+	virtual void roll_left();
+	virtual void roll_right();
+	virtual void roll_zero();
+	virtual void pitch_down();
+	virtual void pitch_up();
+	virtual void pitch_zero();
 };
 
 #endif

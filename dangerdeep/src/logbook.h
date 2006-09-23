@@ -38,9 +38,9 @@ public:
 	virtual ~logbook () {}
 	virtual void add_entry(const string& entry);
 	virtual list<string>::const_iterator get_entry(unsigned i) const;
-	virtual list<string>::const_iterator begin(void) const { return entries.begin(); }
-	virtual list<string>::const_iterator end(void) const { return entries.end(); }
-	virtual unsigned size(void) const { return entries.size(); }
+	virtual list<string>::const_iterator begin() const { return entries.begin(); }
+	virtual list<string>::const_iterator end() const { return entries.end(); }
+	virtual unsigned size() const { return entries.size(); }
 };
 
 #endif

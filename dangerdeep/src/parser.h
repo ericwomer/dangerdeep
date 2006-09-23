@@ -43,20 +43,20 @@ class parser
 	public:	
 	void error(const string& s);
 	void parse(int type);
-	string parse_string(void);
-	int parse_number(void);
-	string parse_id(void);
-	bool parse_bool(void);
+	string parse_string();
+	int parse_number();
+	string parse_id();
+	bool parse_bool();
 #ifdef USETHISOTHER
 	void register_this(const string& s) { thisid = s; };
 	void register_other(const string& s) { otherid = s; };
-	string get_this(void) const { return thisid; }
-	string get_other(void) const { return otherid; }
+	string get_this() const { return thisid; }
+	string get_other() const { return otherid; }
 #endif	
-	int type(void) const { return tkn->get_current().type; };
-	string text(void) const { return tkn->get_current().text; };	
-	bool is_empty(void) const { return tkn->is_empty(); };
-	void consume(void);
+	int type() const { return tkn->get_current().type; };
+	string text() const { return tkn->get_current().text; };	
+	bool is_empty() const { return tkn->is_empty(); };
+	void consume();
 		
 	parser(const string& filename_);
 	~parser();

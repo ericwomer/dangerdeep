@@ -46,7 +46,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "xml.h"
 #include <sstream>
 #include <map>
-using std::map;
+
+using namespace std;
 
 texture::mapping_mode model::mapping = texture::LINEAR_MIPMAP_LINEAR;//texture::NEAREST;
 bool model::enable_shaders = true;

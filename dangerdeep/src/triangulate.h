@@ -28,12 +28,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "vector2.h"
 #include <vector>
-using namespace std;
 
 ///\brief Triangulation algorithm for planar meshes.
 struct triangulate
 {
-	static unsigned next(const vector<unsigned>& vl, unsigned i) {
+	static unsigned next(const std::vector<unsigned>& vl, unsigned i) {
 		do {
 			++i;
 			if (i == vl.size()) i = 0;
@@ -47,9 +46,9 @@ struct triangulate
 	
 	static bool is_inside_triangle(const vector2& a, const vector2& b, const vector2& c, const vector2& p);
 
-	static vector<unsigned> compute(const vector<vector2>& vertices);
+	static std::vector<unsigned> compute(const std::vector<vector2>& vertices);
 	
-	static void debug_test(const vector<vector2>& vertices, const string& outputfile);
+	static void debug_test(const std::vector<vector2>& vertices, const std::string& outputfile);
 };
 
 #endif

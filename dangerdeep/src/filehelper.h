@@ -34,14 +34,14 @@ struct directory {
 	HANDLE dir;
 	WIN32_FIND_DATA Win32_FileFind_Temporary;	// needed because findfirst does
 	bool temporary_used;				// open and first read together
-	bool is_valid(void) const { return dir != 0; }
+	bool is_valid() const { return dir != 0; }
 };
 #define PATHSEPARATOR "\\"
 #else
 #include <dirent.h>
 struct directory {
 	DIR* dir;
-	bool is_valid(void) const { return dir != 0; }
+	bool is_valid() const { return dir != 0; }
 };
 #define PATHSEPARATOR "/"
 #endif

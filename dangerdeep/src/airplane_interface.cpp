@@ -48,7 +48,7 @@ using namespace std;
 airplane_interface::airplane_interface(airplane* player_plane, game& gm) : 
     	user_interface( player_plane, gm )
 {
-//	btn_menu = new widget_caller_button<game, void (game::*)(void)>(&gm, &game::stop, 1024-128-8, 128-40, 128, 32, texts::get(177));
+//	btn_menu = new widget_caller_button<game, void (game::*)()>(&gm, &game::stop, 1024-128-8, 128-40, 128, 32, texts::get(177));
 //	panel->add_child(btn_menu);
 }
 

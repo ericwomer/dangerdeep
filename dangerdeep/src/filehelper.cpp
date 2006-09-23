@@ -54,7 +54,7 @@ bool make_dir(const string& dirname)
 {
 	return (CreateDirectory(dirname.c_str(), NULL) == TRUE);
 }
-string get_current_directory(void)
+string get_current_directory()
 {
 	unsigned sz = 256;
 	vector<char> s(sz);
@@ -107,7 +107,7 @@ bool make_dir(const string& dirname)
 	int err = mkdir(dirname.c_str(), 0755);
 	return (err != -1);
 }
-string get_current_directory(void)
+string get_current_directory()
 {
 	unsigned sz = 256;
 	vector<char> s(sz);

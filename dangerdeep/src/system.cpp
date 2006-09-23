@@ -176,7 +176,7 @@ void system::screen_resize(unsigned w, unsigned h, double nearz, double farz)
 	glLoadIdentity();
 }
 
-void system::clear_console(void)
+void system::clear_console()
 {
 	console_text.clear();
 	add_console("$ffffffLog restart.");
@@ -206,7 +206,7 @@ void system::draw_console_with(const font* fnt, const texture* background)
 	console_background = background;
 }
 
-void system::draw_console(void)
+void system::draw_console()
 {
 	prepare_2d_drawing();
 	if (console_background) {
@@ -284,7 +284,7 @@ void system::unprepare_2d_drawing()
 	draw_2d = false;
 }
 
-unsigned long system::millisec(void)
+unsigned long system::millisec()
 {
 	return SDL_GetTicks() - time_passed_while_sleeping;
 }
@@ -343,7 +343,7 @@ void system::error(const char* msg, ...)
 	error(string(sprintf_tmp));
 }
 
-void system::swap_buffers(void)
+void system::swap_buffers()
 {
 	if (show_console) {
 		draw_console();
@@ -365,7 +365,7 @@ void system::swap_buffers(void)
 //new poll event queue API, we need no more keyqueue, get_key or getch...
 //this model is too simple, we need to translate at least the mouse coordinates, see below.
 /*
-list<SDL_Event> system::poll_event_queue(void)
+list<SDL_Event> system::poll_event_queue()
 {
 	list<SDL_Event> result;
 	SDL_Event event;
@@ -397,7 +397,7 @@ list<SDL_Event> system::poll_event_queue(void)
 
 //intermediate solution: just return list AND handle events, the app client can choose then
 //what he wants (if he handles events by himself, he have to flush the key queue each frame)
-list<SDL_Event> system::poll_event_queue(void)
+list<SDL_Event> system::poll_event_queue()
 {
 	list<SDL_Event> events;
 
@@ -540,7 +540,7 @@ void system::get_mouse_position(int &x, int &y)
 	y = mouse_y * int(res_y_2d) / int(res_y);
 }
 
-SDL_keysym system::get_key(void)
+SDL_keysym system::get_key()
 {
 	SDL_keysym ks;
 	if (keyqueue.empty()) {
@@ -555,7 +555,7 @@ SDL_keysym system::get_key(void)
 	return ks;
 }
 
-bool system::is_key_in_queue(void) const
+bool system::is_key_in_queue() const
 {
 	return !keyqueue.empty();
 }
@@ -565,13 +565,13 @@ bool system::is_key_down(int code) const
 	return (SDL_GetKeyState(0)[code] != 0);
 }
 
-void system::flush_key_queue(void)
+void system::flush_key_queue()
 {
 	while (!keyqueue.empty())
 		keyqueue.pop();
 }
 
-SDL_keysym system::getch(void)
+SDL_keysym system::getch()
 {
 	do {
 		poll_event_queue();	// to avoid the app to run dead
@@ -579,7 +579,7 @@ SDL_keysym system::getch(void)
 	return get_key();
 }
 
-void system::screenshot(void)
+void system::screenshot()
 {
 	Uint32 rmask, gmask, bmask;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
