@@ -30,7 +30,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 #include <list>
 #include <SDL.h>
-using namespace std;
 
 
 
@@ -43,9 +42,9 @@ public:
 	struct segcl
 	{
 		int global_clnr;	// created from which global cl? internal use.
-		vector<segpos> points;	// coordinates of the segcl. relative to segment.
-		mutable vector<vector2> points2;	// cached, real world per segment coordinates.
-		mutable vector<vector2> normals;	// cached, coastline normals.
+		std::vector<segpos> points;	// coordinates of the segcl. relative to segment.
+		mutable std::vector<vector2> points2;	// cached, real world per segment coordinates.
+		mutable std::vector<vector2> normals;	// cached, coastline normals.
 		int beginpos;		// positions are on border in 0-64k scale: s=65535. (-1 = not on border)
 		int endpos;		// then bottom,right,top,left border of segment are 0s+x, 1s+x, 2s+x, 3s+x
 		int next;		// successor of this cl. is itself for cyclic segcl's.
@@ -58,7 +57,7 @@ public:
 	};
 
 	unsigned type;	// 0 - sea, 1 - land, 2 mixed
-	vector<segcl> segcls;
+	std::vector<segcl> segcls;
 
 	// terrain elevation (no matter if land or sea, total elevation in meters)
 	// user for computation of water depth or terrain height (not yet)
@@ -66,12 +65,12 @@ public:
 
 	// cache generated points.
 	struct cacheentry {
-		vector<vector2> points;	// that is a 2d mesh, real world coordinates relative to segm. offset
-		vector<unsigned> indices;
+		std::vector<vector2> points;	// that is a 2d mesh, real world coordinates relative to segm. offset
+		std::vector<unsigned> indices;
 		void push_back_point(const vector2& p);	// avoids double points.
 	};
 	mutable int pointcachedetail;
-	mutable vector<cacheentry> pointcache;
+	mutable std::vector<cacheentry> pointcache;
 	// check if cache needs to be (re)generated, and do that
 	void generate_point_cache(const class coastmap& cm, int x, int y, int detail) const;
 
@@ -79,7 +78,7 @@ public:
 
 	void push_back_segcl(const segcl& scl);	// avoids segcls with < 2 points.
 
-	coastsegment(/*unsigned topon, const vector<float>& topod*/) : type(0), /*topo(topon, topod),*/ pointcachedetail(0) {}
+	coastsegment(/*unsigned topon, const std::vector<float>& topod*/) : type(0), /*topo(topon, topod),*/ pointcachedetail(0) {}
 	
 	void draw_as_map(const class coastmap& cm, int x, int y, int detail = 0) const;
 	// p is position of viewer relative to segment
@@ -95,7 +94,7 @@ class coastmap
 	friend class coastsegment::segcl;	// just request some values
 
 	// some attributes used for map reading/processing
-	vector<Uint8> themap;		// pixel data of map file, y points up, like in OpenGL
+	std::vector<Uint8> themap;		// pixel data of map file, y points up, like in OpenGL
 	static const int dmx[4];	// some helper constants.
 	static const int dmy[4];
 	static const int dx[4];
@@ -111,11 +110,11 @@ class coastmap
 	double pixelw_real;		// width/height of one pixel in reality, in meters
 	double segw_real;		// width/height of one segment in reality, in meters
 	vector2 realoffset;		// offset in meters for map (position of pixel pos 0,0)
-	vector<coastsegment> coastsegments;
+	std::vector<coastsegment> coastsegments;
 
 	int global_clnr;		// working counter.
 
-	list<pair<vector2, string> > cities;	// city positions (real) and names
+	std::list<std::pair<vector2, std::string> > cities;	// city positions (real) and names
 	
 	coastmap();
 	coastmap(const coastmap& );
@@ -131,9 +130,9 @@ class coastmap
 
 	// returns false for normal cl, true for islands/lakes.
 	bool find_begin_of_coastline(int& x, int& y);
-	bool find_coastline(int x, int y, vector<vector2i>& points, bool& cyclic);
+	bool find_coastline(int x, int y, std::vector<vector2i>& points, bool& cyclic);
 	vector2i compute_segment(const vector2i& p0, const vector2i& p1) const;
-	void divide_and_distribute_cl(const vector<vector2i>& cl, bool clcyclic);
+	void divide_and_distribute_cl(const std::vector<vector2i>& cl, bool clcyclic);
 	void process_coastline(int x, int y);
 	void process_segment(int x, int y);
 
@@ -145,9 +144,9 @@ public:
 	vector2f segcoord_to_texc(int segx, int segy) const;
 
 	// create from xml file
-	coastmap(const string& filename);
+	coastmap(const std::string& filename);
 
-	const list<pair<vector2, string> >& get_city_list() const { return cities; }
+	const std::list<std::pair<vector2, std::string> >& get_city_list() const { return cities; }
 
 	// fixme: maybe it's better to give top,left and bottom,right corner of sub area to draw
 	void draw_as_map(const vector2& droff, double mapzoom, int detail = 0) const;

@@ -56,7 +56,7 @@ protected:
 
 	// draw all sea_objects
 	virtual void draw_objects(class game& gm, const vector3& viewpos,
-				  const vector<sea_object*>& objects,
+				  const std::vector<sea_object*>& objects,
 				  bool mirrorclip = false) const;
 
 	// draw the whole view

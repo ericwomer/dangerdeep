@@ -46,7 +46,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "bspline.h"
 #endif
 #include <sstream>
-using namespace std;
+
+using std::pair;
+using std::make_pair;
+using std::vector;
+using std::list;
+using std::string;
+using std::ostringstream;
+using std::auto_ptr;
 
 #define MAPGRIDSIZE 1000	// meters
 

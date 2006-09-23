@@ -71,13 +71,13 @@ protected:
 	mutable unsigned current_display;
 
 	// fixme replace the above with: THE ONE AND ONLY DATA UI SHOULD HAVE
-	vector<user_display*> displays;
+	std::vector<user_display*> displays;
 
 	// which popup is shown (0 = none)
 	mutable unsigned current_popup;
 
 	// possible popups
-	vector<user_popup*> popups;
+	std::vector<user_popup*> popups;
 
 	// environmental data
 	class sky* mysky;		// the one and only sky
@@ -85,8 +85,8 @@ protected:
 	coastmap mycoastmap;	// this may get moved to game.h, yet it is used for display only, that's why it is here
 
 	// weather graphics
-	vector<texture*> raintex;	// images (animation) of rain drops
-	vector<texture*> snowtex;	// images (animation) of snow flakes
+	std::vector<texture*> raintex;	// images (animation) of rain drops
+	std::vector<texture*> snowtex;	// images (animation) of snow flakes
 
 	// free view mode
 //	float freeviewsideang, freeviewupang;	// global spectators viewing angles
@@ -124,7 +124,7 @@ public:
 
 	// process common events (common keys, mouse input to panel)
 	virtual void process_input(const SDL_Event& event);
-	virtual void process_input(list<SDL_Event>& events);
+	virtual void process_input(std::list<SDL_Event>& events);
 
 	// create ui matching to player type (requested from game)
 	static user_interface* create(game& gm);
@@ -162,18 +162,18 @@ public:
 	virtual void pause_game(bool pauseon);
 	virtual bool paused() const { return pause; }
 	virtual unsigned time_scaling() const { return time_scale; }
-	virtual void add_message(const string& s);
+	virtual void add_message(const std::string& s);
 	virtual bool time_scale_up();	// returns true on success
 	virtual bool time_scale_down();
 //	virtual void record_sunk_ship ( const class ship* so );
 	/** This method creates a message about the rudder state. */
 	virtual void add_rudder_message();
-	virtual void play_sound_effect(const string &se, const sea_object* player, 
+	virtual void play_sound_effect(const std::string &se, const sea_object* player, 
 								   const sea_object* noise_source, bool loop = false) const;
-	virtual void play_fade_sound_effect(const string &se, const sea_object* player, 
+	virtual void play_fade_sound_effect(const std::string &se, const sea_object* player, 
 										const sea_object* noise_source, bool loop = false) const;
-	virtual void stop_sound_effect(const string &se) const;
-	virtual void stop_fade_sound_effect(const string &se) const;	
+	virtual void stop_sound_effect(const std::string &se) const;
+	virtual void stop_fade_sound_effect(const std::string &se) const;	
 	virtual void pause_all_sound() const;
 	virtual void resume_all_sound() const;
 

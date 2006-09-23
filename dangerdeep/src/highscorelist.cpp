@@ -26,6 +26,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texts.h"
 #include <sstream>
 #include <fstream>
+using std::string;
+using std::ostream;
+using std::ofstream;
+using std::ostringstream;
+using std::istream;
+using std::ifstream;
+using std::ios;
 
 highscorelist::entry::entry(istream& in)
 {

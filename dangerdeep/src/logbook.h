@@ -25,21 +25,20 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <string>
 #include <list>
-using namespace std;
 
 ///\brief Simulates a log book.
 class logbook
 {
 protected:
-	list<string> entries;
+	std::list<std::string> entries;
 
 public:
 	logbook() {}
 	virtual ~logbook () {}
-	virtual void add_entry(const string& entry);
-	virtual list<string>::const_iterator get_entry(unsigned i) const;
-	virtual list<string>::const_iterator begin() const { return entries.begin(); }
-	virtual list<string>::const_iterator end() const { return entries.end(); }
+	virtual void add_entry(const std::string& entry);
+	virtual std::list<std::string>::const_iterator get_entry(unsigned i) const;
+	virtual std::list<std::string>::const_iterator begin() const { return entries.begin(); }
+	virtual std::list<std::string>::const_iterator end() const { return entries.end(); }
 	virtual unsigned size() const { return entries.size(); }
 };
 

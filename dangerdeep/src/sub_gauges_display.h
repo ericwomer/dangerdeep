@@ -29,15 +29,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "image.h"
 #include "angle.h"
 #include <vector>
-using namespace std;
 
 ///\brief Class for display and input of submarine's main gauges.
 ///\ingroup displays
 class sub_gauges_display : public user_display
 {
 	// pointers to images/textures of the interface
-	auto_ptr<image> controlscreen_normallight;
-	auto_ptr<image> controlscreen_nightlight;
+	std::auto_ptr<image> controlscreen_normallight;
+	std::auto_ptr<image> controlscreen_nightlight;
 
 	struct indicator {
 		texture* mytexday;
@@ -52,7 +51,7 @@ class sub_gauges_display : public user_display
 		angle get_angle(int mx, int my) const;
 	};
 
-	vector<indicator> indicators;
+	std::vector<indicator> indicators;
 // old control screen, now for type II, new one is for type VII, follows
 //	enum { compass, battery, compressor, diesel, bow_depth_rudder, stern_depth_rudder,
 //	       depth, knots, main_rudder, mt, nr_of_indicators };

@@ -24,7 +24,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "date.h"
 #include "texts.h"
 
-using namespace std;
+using std::string;
+using std::ostream;
+using std::setw;
+using std::setfill;
 
 unsigned date::length_of_year(unsigned year)
 {

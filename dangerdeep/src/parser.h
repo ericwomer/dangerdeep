@@ -28,37 +28,35 @@ class parser;
 //#define USETHISOTHER	// define for replacement of this/other with another id
 
 #include <string>
-using namespace std;
-
 #include "tokenizer.h"
 
 class parser
 {
 	tokenizer* tkn;
-	string filename;
+	std::string filename;
 #ifdef USETHISOTHER	
-	string thisid, otherid;
+	std::string thisid, otherid;
 #endif	
 
 	public:	
-	void error(const string& s);
+	void error(const std::string& s);
 	void parse(int type);
-	string parse_string();
+	std::string parse_string();
 	int parse_number();
-	string parse_id();
+	std::string parse_id();
 	bool parse_bool();
 #ifdef USETHISOTHER
-	void register_this(const string& s) { thisid = s; };
-	void register_other(const string& s) { otherid = s; };
-	string get_this() const { return thisid; }
-	string get_other() const { return otherid; }
+	void register_this(const std::string& s) { thisid = s; };
+	void register_other(const std::string& s) { otherid = s; };
+	std::string get_this() const { return thisid; }
+	std::string get_other() const { return otherid; }
 #endif	
 	int type() const { return tkn->get_current().type; };
-	string text() const { return tkn->get_current().text; };	
+	std::string text() const { return tkn->get_current().text; };	
 	bool is_empty() const { return tkn->is_empty(); };
 	void consume();
 		
-	parser(const string& filename_);
+	parser(const std::string& filename_);
 	~parser();
 };
 

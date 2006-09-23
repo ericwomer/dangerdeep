@@ -33,6 +33,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gun_shell.h"
 #include "global_data.h"
 
+using std::vector;
+using std::list;
+using std::string;
+using std::map;
+using std::pair;
+using std::make_pair;
+
 map<double, map<double, double> > ship::dist_angle_relation;
 #define MAX_INCLINATION 45.0
 #define MAX_DECLINATION -20.0
@@ -40,8 +47,6 @@ map<double, map<double, double> > ship::dist_angle_relation;
 #define GUN_RELOAD_TIME 5.0
 
 //fixme: redefine display, call base display
-
-using namespace std;
 
 void ship::fill_dist_angle_relation_map(const double initial_velocity)
 {

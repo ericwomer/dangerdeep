@@ -27,7 +27,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "SDL_net.h"
 #include <vector>
 #include <string>
-using namespace std;
 
 class network_connection
 {
@@ -41,22 +40,22 @@ protected:
 	network_connection& operator= (const network_connection& );
 	
 public:
-	void send_packet(const vector<Uint8>& data);
-	vector<Uint8> receive_packet(IPaddress* ip = 0);
-	void send_message(const string& msg);
-	string receive_message(IPaddress* ip = 0);
+	void send_packet(const std::vector<Uint8>& data);
+	std::vector<Uint8> receive_packet(IPaddress* ip = 0);
+	void send_message(const std::string& msg);
+	std::string receive_message(IPaddress* ip = 0);
 	
 	// create a connection on a local port (0 means any free port)
 	network_connection(Uint16 local_port = 0);
 	// create a connection and connect to a server
 	network_connection(IPaddress serverip);
 	// create a connection and connect to a server
-	network_connection(const string& servername, Uint16 server_port);
+	network_connection(const std::string& servername, Uint16 server_port);
 	void bind(IPaddress ip);
-	void bind(const string& servername, Uint16 server_port);
+	void bind(const std::string& servername, Uint16 server_port);
 	void unbind();
 	~network_connection();
-	static string ip2string(IPaddress ip);
+	static std::string ip2string(IPaddress ip);
 };
 
 inline bool operator== (const IPaddress& a, const IPaddress& b)

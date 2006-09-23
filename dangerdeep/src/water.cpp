@@ -1068,7 +1068,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	const float VIRTUAL_PLANE_HEIGHT = 25.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok, maybe a bit too much
 
 	// maximum height of waves (half amplitude)
-	const double WAVE_HEIGHT = std::max(curr_wtp->maxh, fabs(curr_wtp->minh));
+	const double WAVE_HEIGHT = std::max(double(curr_wtp->maxh), fabs(curr_wtp->minh));
 
 //	cout << "Wave height is: " << WAVE_HEIGHT << "\n";
 
@@ -1783,7 +1783,7 @@ void water::generate_wavetile(double tiletime, wavetile_phase& wtp)
 		osg.write((const char*)&h, 1);
 	}
 #endif
-	float maxabsh = max(fabs(wtp.minh), fabs(wtp.maxh));
+	float maxabsh = std::max(fabs(wtp.minh), fabs(wtp.maxh));
 	if (maxabsh >= 16.0f)
 		throw error("max. wave height can be 16 meters, internal computation error");
 

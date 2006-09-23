@@ -33,8 +33,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <map>
 #include <set>
 #include <list>
-using namespace std;
-//#include "date.h"
+using std::map;
+using std::list;
+using std::set;
 #include "user_display.h"
 #include "airplane_interface.h"
 #include "system.h"

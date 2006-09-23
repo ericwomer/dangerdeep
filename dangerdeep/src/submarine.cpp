@@ -37,6 +37,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <sstream> //for depthcharge testing
 
+using std::vector;
+using std::pair;
+using std::make_pair;
+using std::ostringstream;
+
 // fixme: this was hard work. most values are a rather rough approximation.
 // if we want a real accurate simulation, these values have to be (re)checked.
 // also they have to fit with "rect" values in sub_damage_display.cpp.

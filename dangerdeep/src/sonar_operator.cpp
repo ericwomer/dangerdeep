@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "submarine.h"
 #include "game.h"
 
+using std::pair;
+
 sonar_operator::sonar_operator()
 	: state(initial),
 	  current_signal_strength(-1),

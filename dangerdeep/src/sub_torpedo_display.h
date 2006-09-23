@@ -35,28 +35,28 @@ class sub_torpedo_display : public user_display
 	unsigned torptranssrc;
 
 	// textures for drawing the screen
-	auto_ptr<texture> torpempty;
-	auto_ptr<texture> torpload;
-	auto_ptr<texture> torpunload;
-	auto_ptr<texture> torp1fat1;
-	auto_ptr<texture> torp1lut1;
-	auto_ptr<texture> torp1lut2;
-	auto_ptr<texture> torp1;
-	auto_ptr<texture> torp1practice;
-	auto_ptr<texture> torp2;
-	auto_ptr<texture> torp3afat2;
-	auto_ptr<texture> torp3alut1;
-	auto_ptr<texture> torp3alut2;
-	auto_ptr<texture> torp3fat2;
-	auto_ptr<texture> torp3;
-	auto_ptr<texture> torp4;
-	auto_ptr<texture> torp5b;
-	auto_ptr<texture> torp5;
-	auto_ptr<texture> torp6lut1;
-//	auto_ptr<texture> torp11;
-	auto_ptr<texture> submodelVIIc;
-	auto_ptr<image> background_daylight;
-	auto_ptr<image> background_redlight;
+	std::auto_ptr<texture> torpempty;
+	std::auto_ptr<texture> torpload;
+	std::auto_ptr<texture> torpunload;
+	std::auto_ptr<texture> torp1fat1;
+	std::auto_ptr<texture> torp1lut1;
+	std::auto_ptr<texture> torp1lut2;
+	std::auto_ptr<texture> torp1;
+	std::auto_ptr<texture> torp1practice;
+	std::auto_ptr<texture> torp2;
+	std::auto_ptr<texture> torp3afat2;
+	std::auto_ptr<texture> torp3alut1;
+	std::auto_ptr<texture> torp3alut2;
+	std::auto_ptr<texture> torp3fat2;
+	std::auto_ptr<texture> torp3;
+	std::auto_ptr<texture> torp4;
+	std::auto_ptr<texture> torp5b;
+	std::auto_ptr<texture> torp5;
+	std::auto_ptr<texture> torp6lut1;
+//	std::auto_ptr<texture> torp11;
+	std::auto_ptr<texture> submodelVIIc;
+	std::auto_ptr<image> background_daylight;
+	std::auto_ptr<image> background_redlight;
 
 	class desc_text
 	{
@@ -79,9 +79,9 @@ class sub_torpedo_display : public user_display
 
 	const texture& torptex(const std::string& torpname) const;
 
-	vector<vector2i> get_tubecoords(class submarine* sub) const;
+	std::vector<vector2i> get_tubecoords(class submarine* sub) const;
 
-	unsigned get_tube_below_mouse(const vector<vector2i>& tubecoords) const;
+	unsigned get_tube_below_mouse(const std::vector<vector2i>& tubecoords) const;
 
 public:
 	sub_torpedo_display(class user_interface& ui_);

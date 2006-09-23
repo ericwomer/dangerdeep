@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "tinyxml/tinyxml.h"
 #include <stdio.h>
 
-using namespace std;
+using std::string;
 
 xml_elem xml_elem::child(const std::string& name) const
 {

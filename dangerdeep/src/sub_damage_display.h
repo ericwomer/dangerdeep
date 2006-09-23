@@ -27,8 +27,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texture.h"
 #include "vector3.h"
 #include "submarine.h"
-#include <vector>
-using namespace std;
 
 class sub_damage_display : public user_display
 {

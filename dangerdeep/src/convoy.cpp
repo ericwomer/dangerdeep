@@ -29,6 +29,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "datadirs.h"
 #include "global_data.h"
 #include "model.h"
+using std::vector;
+using std::list;
+using std::string;
+using std::pair;
+using std::make_pair;
 
 
 // fixme: the whole file is covered with outcommented lines that have to be

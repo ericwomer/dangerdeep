@@ -32,8 +32,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "datadirs.h"
 #include <set>
 #include <sstream>
-
-using namespace std;
+using std::vector;
+using std::list;
+using std::string;
+using std::set;
+using std::auto_ptr;
+using std::ostringstream;
 
 widget::theme* widget::globaltheme = 0;
 widget* widget::focussed = 0;

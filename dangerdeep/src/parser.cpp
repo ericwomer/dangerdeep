@@ -27,6 +27,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <algorithm>
 #include <iostream>
 
+using std::string;
+using std::ostringstream;
+using std::stringstream;
+using std::vector;
+
 #include "tokencodes.h"
 token tokens[] = {
 // the list here is unused.....! the parser is used only for reading the .csv files for text. fixme

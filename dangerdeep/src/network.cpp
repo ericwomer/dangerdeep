@@ -24,6 +24,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "system.h"
 #include <cstring>
 #include <sstream>
+using std::vector;
+using std::string;
+using std::ostringstream;
 
 #define PACKETSIZE 65535
 #define CHANNEL 0

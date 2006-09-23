@@ -39,6 +39,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "game.h"
 #include "matrix4.h"
 
+using std::vector;
+
 
 const double CLOUD_ANIMATION_CYCLE_TIME = 3600.0;
 

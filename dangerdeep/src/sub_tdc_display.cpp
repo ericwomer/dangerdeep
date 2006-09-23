@@ -31,7 +31,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "cfg.h"
 #include "global_data.h"
 #include <sstream>
-using namespace std;
+
+using std::vector;
+using std::list;
+using std::string;
+using std::ostringstream;
 
 static const int tubelightcoordx[6] = {
 	 81,

@@ -57,7 +57,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "network.h"
 #include "matrix4.h"
 #include "quaternion.h"
-
+using std::pair;
+using std::make_pair;
 using std::list;
 using std::vector;
 using std::string;

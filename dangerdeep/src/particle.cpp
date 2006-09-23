@@ -28,6 +28,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "global_data.h" //for smoke texture, fixme
 #include "datadirs.h"
 
+using std::vector;
+using std::string;
+
 unsigned particle::init_count = 0;
 vector<texture*> particle::tex_smoke;
 texture* particle::tex_spray = 0;

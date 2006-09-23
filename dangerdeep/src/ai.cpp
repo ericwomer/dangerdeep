@@ -28,7 +28,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "depth_charge.h"
 #include "global_data.h"
 #include "submarine.h"
-
+using std::vector;
+using std::list;
+using std::string;
 
 // fixme: we have bspline code ready. convoys should follow their routes along a bspline
 // curve for realistic results.

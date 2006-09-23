@@ -31,7 +31,7 @@ class sub_torpsetup_display : public user_display
 {
 	class scheme {
 	public:
-		auto_ptr<image> background;
+		std::auto_ptr<image> background;
 		rotat_tex rundepthptr;
 		rotat_tex secondaryrangeptr;
 		rotat_tex primaryrangeptr;
@@ -40,15 +40,15 @@ class sub_torpsetup_display : public user_display
 		rotat_tex primaryrangedial;
 		// everything that does not rotate could also be an "image"...
 		// but only when this doesn't trash the image cache
-		auto_ptr<texture> torpspeed[3];	// slow/medium/fast
-		auto_ptr<texture> firstturn[2];	// left/right
-		auto_ptr<texture> secondaryrange[2];	// 800/1600m
-		auto_ptr<texture> preheating[2];	// on/off
-		auto_ptr<texture> temperaturescale;
+		std::auto_ptr<texture> torpspeed[3];	// slow/medium/fast
+		std::auto_ptr<texture> firstturn[2];	// left/right
+		std::auto_ptr<texture> secondaryrange[2];	// 800/1600m
+		std::auto_ptr<texture> preheating[2];	// on/off
+		std::auto_ptr<texture> temperaturescale;
 		rotat_tex primaryrangeknob[6];
 		rotat_tex turnangleknob[6];
 		rotat_tex rundepthknob[6];
-		bool is_over(const auto_ptr<texture>& tex, const vector2i& pos,
+		bool is_over(const std::auto_ptr<texture>& tex, const vector2i& pos,
 			     int mx, int my, int border = 32) const {
 			return (mx >= pos.x - border)
 				&& (my >= pos.y - border)
