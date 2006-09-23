@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<dftd-ship>
+  <classification identifier="flowercorvette_hrcn" modelname="flowercorvette_hrcn.ddxml" type="escort" country="GB,CD" />
+  <description>
+    <far lang="en">Convoy escort</far>
+    <far lang="de">Geleitschiff</far>
+    <far lang="it">Nave di scorta</far>
+    <medium lang="en">Corvette</medium>
+    <medium lang="de">Korvette</medium>
+    <medium lang="it">Corvette</medium>
+    <near lang="en">Flower class corvette</near>
+    <near lang="de">Korvette Flower-Klasse</near>
+    <near lang="it">Corvette di classe Flower</near>
+  </description>
+  <motion maxspeed="16" maxrevspeed="0" acceleration="1.0" turnrate="0.2"/>
+  <tonnage min="950" max="990"/>
+  <smoke type="2" x="0" y="1.8" z="10.8"/>
+  <sensors>
+    <sensor type="lookout"/>
+    <sensor type="passivesonar"/>
+    <sensor type="activesonar"/>
+    <sensor type="radar" model="British Type 271"/>
+  </sensors>
+  <ai type="escort"/>
+  <fuel capacity="1200" consumption_a="1" consumption_t="1"/>
+  <gun_turrets>
+    <turret barrels="1" shell_capacity="500" initial_velocity="275.0" max_inclination="40" max_declination="0" time_to_man="20" time_to_unman="20" shell_damage="5" calibre="100.00" exclusion_radius_start="135" exclusion_radius_end="225"/>
+    </gun_turrets>
+</dftd-ship>
