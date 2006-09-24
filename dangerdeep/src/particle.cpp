@@ -307,9 +307,9 @@ void particle::init()
 
 	// read in water splash images (maybe replace later with run time generated images of water particles)
 	watersplashes.resize(3);
-	watersplashes[0] = new texture(get_texture_dir() + "torpedo_expl_water_splash.png" , texture::LINEAR);
-	watersplashes[1] = new texture(get_texture_dir() + "torpedo_expl_water_splash_1.png" , texture::LINEAR);
-	watersplashes[2] = new texture(get_texture_dir() + "torpedo_expl_water_splash_2.png" , texture::LINEAR);
+	watersplashes[0] = new texture(get_texture_dir() + "splash.png" , texture::LINEAR);
+	watersplashes[1] = new texture(get_texture_dir() + "splash.png" , texture::LINEAR);
+	watersplashes[2] = new texture(get_texture_dir() + "splash.png" , texture::LINEAR);
 }
 
 
