@@ -2,6 +2,8 @@
 <dftd-ship>
   <classification identifier="flowercorvette_hcn" modelname="flowercorvette_hcn.ddxml" type="escort" country="GB" >
     <skin name="northatlanticwa_rncn" regions="NA,WA" countries="GB,CD" from="1941/6/1" until="1945/12/31" />
+    <skin name="northatlanticwa_rn" regions="NA,WA,NW,NS,CH" countries="GB" from="1943/1/1" until="1945/12/31" />
+    <skin name="northatlanticwa_bay" regions="NA,WA,BB,NW,NS,CH" countries="GB" from="1941/1/1" until="1945/12/31" />
   </classification>
   <description>
     <far lang="en">Convoy escort</far>
