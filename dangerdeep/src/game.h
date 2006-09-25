@@ -219,6 +219,10 @@ public:
 	double get_last_trail_record_time() const { return last_trail_time; }
 
 	// compute visibility data
+	//fixme: remove the single functions, they're always called together
+	//by visible_sea/visible_surface objects
+	//they all map to the same function.
+	//if certain objects should not be reported, unmask them with extra-parameter.
 	virtual std::vector<ship*> visible_ships(const sea_object* o) const;
 	virtual std::vector<submarine*> visible_submarines(const sea_object* o) const;
 	virtual std::vector<airplane*> visible_airplanes(const sea_object* o) const;

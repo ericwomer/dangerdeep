@@ -223,6 +223,36 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 		}
 	}
 
+#if 1
+	// fixme: test render watersplash here
+	glDisable(GL_LIGHTING);
+	texturecache.ref("splashring.png")->set_gl_texture();
+	glBegin(GL_QUAD_STRIP);
+	vector3 spos = vector3(0, 0, 0) - viewpos;
+	double falltime = 8.0;	// 2*v0/g
+	double tt = myfmod(gm.get_time(), falltime);
+	double v0 = 40.0; // m/s
+	double sh = -GRAVITY*0.5*tt*tt + v0*tt;
+	double r0 = 10;
+	double r1 = 10 + tt*tt*0.1;
+	r0 = r1;
+	glColor4f(1,1,1,1.0-0.5*(tt/falltime)*(tt/falltime));
+	// fixme: alpha-wert mit der Zeit runterdrehen?
+	// fixme: wenn alpha, dann nach allen anderen sea-objects rendern, oder
+	// alle sea_objects mit alpha sortieren...
+	for (unsigned i = 0; i <= 16; ++i) {
+		double a = -2*M_PI*i/16;
+		double sa = sin(a);
+		double ca = cos(a);
+		glTexCoord2f(i * 2.0 / 16, 1);
+		glVertex3f(spos.x + r0 * ca, spos.y + r0 * sa, spos.z);
+		glTexCoord2f(i * 2.0 / 16, 0);
+		glVertex3f(spos.x + r1 * ca, spos.y + r1 * sa, spos.z + sh);
+	}
+	glEnd();
+	glEnable(GL_LIGHTING);
+#endif
+
 	if (withunderwaterweapons) {
 		vector<depth_charge*> depth_charges = gm.visible_depth_charges(player);
 		for (vector<depth_charge*>::const_iterator it = depth_charges.begin(); it != depth_charges.end(); ++it) {
