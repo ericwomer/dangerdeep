@@ -15,7 +15,6 @@ dftdsources = Split("""subsim.cpp
 	date.cpp
 	daysky.cpp
 	depth_charge.cpp
-	filehelper.cpp
 	freeview_display.cpp
 	game.cpp
 	game_editor.cpp
@@ -38,7 +37,6 @@ dftdsources = Split("""subsim.cpp
 	moon.cpp
 	sonar.cpp
 	sonar_operator.cpp
-	sound.cpp
 	submarine.cpp
 	submarine_interface.cpp
 	sub_bg_display.cpp
@@ -62,8 +60,7 @@ dftdsources = Split("""subsim.cpp
 	torpedo.cpp
 	triangulate.cpp
 	user_interface.cpp
-	water.cpp
-	widget.cpp""")
+	water.cpp""")
 
 dftdmediasources = Split("""
 	error.cpp
@@ -86,18 +83,22 @@ oglextsources = Split("""
 	oglext/RenderingContext.hpp""")
 
 viewmodelsources = Split("""
-        filehelper.cpp
-        widget.cpp
         viewmodel.cpp""")
+
+# build objects for each member of osspecificsrc
+osspecificsrc_obj = [env.Object(source = x) for x in osspecificsrc]
 
 ############# programs, libs, etc.
 env.StaticLibrary(target = 'dftdmedia', source = dftdmediasources, LIBS = gfxlibs)
+sound_obj = env.Object(source = 'sound.cpp')
+filehelper_obj = env.Object(source = 'filehelper.cpp')
+widget_obj = env.Object(source = 'widget.cpp')
 datadirsobj = env.StaticObject('datadirs.cpp', CPPDEFINES = [('DATADIR', '\\"' + datadir + '/\\"')])
 globaldataobj = env.StaticObject('global_data.cpp', CPPDEFINES = [('VERSION', '\\"' + version + '\\"')])
-binary = env.Program(target = 'dangerdeep', source = dftdsources + datadirsobj + globaldataobj + osspecificsrc, LIBS = alllibs)
-tool1 = env.Program('viewmodel', viewmodelsources + datadirsobj + osspecificsrc, LIBS = alllibs)
-tool2 = env.Program('damagemodel', ['damagemodel.cpp', datadirsobj, 'sound.cpp', 'filehelper.cpp'] + osspecificsrc, LIBS = alllibs)
-tool3 = env.Program('crosssection', ['crosssection.cpp', datadirsobj, 'sound.cpp', 'filehelper.cpp'] + osspecificsrc, LIBS = alllibs)
+binary = env.Program(target = 'dangerdeep', source = dftdsources + sound_obj + filehelper_obj + widget_obj + datadirsobj + globaldataobj + osspecificsrc_obj, LIBS = alllibs)
+tool1 = env.Program('viewmodel', viewmodelsources + datadirsobj + filehelper_obj + widget_obj + osspecificsrc_obj, LIBS = alllibs)
+tool2 = env.Program('damagemodel', ['damagemodel.cpp', datadirsobj, sound_obj, filehelper_obj] + osspecificsrc_obj, LIBS = alllibs)
+tool3 = env.Program('crosssection', ['crosssection.cpp', datadirsobj, sound_obj, filehelper_obj] + osspecificsrc_obj, LIBS = alllibs)
 env.StaticLibrary(target = 'oglext', source = oglextsources)
 env.StaticLibrary(target = 'tinyxml', source = tinyxmlsources)
 env.Default(binary)
@@ -108,7 +109,7 @@ env.Default(tool3)
 test1 = env.Program('oceantest', ['oceantest.cpp'], LIBS = alllibs)
 env.Default(test1)
 
-portal = env.Program('portal', ['portal.cpp', datadirsobj, 'sound.cpp', 'filehelper.cpp'] + osspecificsrc, LIBS = alllibs)
+portal = env.Program('portal', ['portal.cpp', datadirsobj, sound_obj, filehelper_obj] + osspecificsrc_obj, LIBS = alllibs)
 env.Default(portal)
 
 ############ this allows to run "scons install" to install the binary
