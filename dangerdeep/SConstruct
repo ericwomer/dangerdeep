@@ -276,11 +276,8 @@ libpath = libpath + [target_dir]
 env.Append(LIBPATH = libpath)
 
 f = open('files.txt')
-allcvsfilesr = f.readlines()
 # remove return code '\n' from end of line
-allcvsfiles = []
-for i in allcvsfilesr:
-	allcvsfiles += [i[:-1]]
+allcvsfiles = [x[:-1] for x in f.readlines()]
 
 datafiles = all_entries_that_start_with_and_not(allcvsfiles, './data', './data/xcf')
 
