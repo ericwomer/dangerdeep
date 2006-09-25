@@ -3,7 +3,10 @@
         <diffuse color="1 1 1" />
         <specular color="1 1 1" />
         <shininess exponent="50" />
-        <map type="diffuse" filename="flowercorvette_hrcn_color.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" />
+        <map type="diffuse" filename="flowercorvette_hrcn_color.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" >
+		<skin filename="flowercorvette_hrcn_camo1.jpg" layout="mediterranean_royalnavy"/>
+		<skin filename="flowercorvette_hrcn_camo2.jpg" layout="canada_eastcoast_hmcs"/>
+	</map>
 	<map type="normal" filename="flowercorvette_hrcn_bump.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" />
 	<map type="specular" filename="flowercorvette_hrcn_spec.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" />
     </material>
