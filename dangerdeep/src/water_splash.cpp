@@ -46,24 +46,22 @@ void water_splash::render_cylinder(double radius_bottom, double radius_top, doub
 
 
 
-void water_splash::compute_values(double risetime, double riseheight)
+double water_splash::compute_height(double t) const
 {
-	double falltime = sqrt(riseheight * 2.0 / GRAVITY);
-	lifetime = risetime + falltime;
+	if (t < risetime) {
+		double x = (risetime - t)/risetime;
+		return riseheight * (1.0 - x*x);
+	} else {
+		double x = (t - risetime)/falltime;
+		return riseheight * (1.0 - x*x);
+	}
 }
 
 
 
 water_splash::water_splash(const vector3& pos, double tm)
 {
-	std::vector<double> p;
-	p.push_back(0);		// 0s:	0m
-	p.push_back(20);	// 0.5s:20m
-	p.push_back(18.75);	// 1.0s:18.75
-	p.push_back(15.0);	// 1.5s:15
-	p.push_back(8.75);	// 2.0s:8.75
-	p.push_back(0.0);	// 2.5s:0
-	bheight.reset(new bspline(3, p));
+	std::vector<double> p(6);
 	p[0] = 5.0;
 	p[1] = 5.0;
 	p[2] = 6.0;
@@ -87,7 +85,10 @@ water_splash::water_splash(const vector3& pos, double tm)
 	balpha.reset(new bspline(3, p));
 
 	starttime = tm;
-	compute_values(0.4, 25.0);	// reach 25m in 0.4secs.
+	risetime = 0.4;
+	riseheight = 25.0;
+	falltime = sqrt(riseheight * 2.0 / GRAVITY);
+	lifetime = risetime + falltime;
 }
 
 
@@ -108,14 +109,14 @@ void water_splash::display(double tm) const
 		double rt = bradius_top->value(t) * 0.8;
 		double rb = bradius_bottom->value(t) * 0.8;
 		double a = balpha->value(t);
-		render_cylinder(rb, rt, bheight->value(t) * 1.2, a);
+		render_cylinder(rb, rt, compute_height(tm - starttime - 0.5) * 1.2, a);
 	}
 	if (tm - starttime <= lifetime) {
 		double t = (tm - starttime)/lifetime;
 		double rt = bradius_top->value(t);
 		double rb = bradius_bottom->value(t);
 		double a = balpha->value(t);
-		render_cylinder(rb, rt, bheight->value(t), a);
+		render_cylinder(rb, rt, compute_height(tm - starttime), a);
 	}
 	glEnable(GL_LIGHTING);
 }

@@ -29,9 +29,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class water_splash /* : public sea_object */
 {
 //	vector3 pos;
-	double lifetime;
 	double starttime;
-	std::auto_ptr<bspline> bheight;
+	double risetime;
+	double riseheight;
+	double falltime;
+	double lifetime;
 	std::auto_ptr<bspline> bradius_top;
 	std::auto_ptr<bspline> bradius_bottom;
 	std::auto_ptr<bspline> balpha;
@@ -39,7 +41,7 @@ class water_splash /* : public sea_object */
 	static void render_cylinder(double radius_bottom, double radius_top, double height,
 				    double alpha, double u_scal = 2.0, unsigned nr_segs = 16);
 
-	void compute_values(double risetime, double riseheight);
+	double compute_height(double t) const;
 
  public:
 	water_splash(const vector3& pos, double tm);
