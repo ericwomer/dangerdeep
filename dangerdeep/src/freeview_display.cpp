@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "torpedo.h"
 #include "depth_charge.h"
 #include "gun_shell.h"
+#include "water_splash.h"
 #include "particle.h"
 #include "sky.h"
 #include "water.h"
@@ -224,33 +225,15 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 	}
 
 #if 1
-	// fixme: test render watersplash here
-	glDisable(GL_LIGHTING);
-	texturecache.ref("splashring.png")->set_gl_texture();
-	glBegin(GL_QUAD_STRIP);
-	vector3 spos = vector3(0, 0, 0) - viewpos;
-	double falltime = 8.0;	// 2*v0/g
-	double tt = myfmod(gm.get_time(), falltime);
-	double v0 = 40.0; // m/s
-	double sh = -GRAVITY*0.5*tt*tt + v0*tt;
-	double r0 = 10;
-	double r1 = 10 + tt*tt*0.1;
-	r0 = r1;
-	glColor4f(1,1,1,1.0-0.5*(tt/falltime)*(tt/falltime));
+	double tt = myfmod(gm.get_time(), 10.0);
+	water_splash wsp(vector3(), gm.get_time() - tt);
+	glPushMatrix();
+	glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
 	// fixme: alpha-wert mit der Zeit runterdrehen?
 	// fixme: wenn alpha, dann nach allen anderen sea-objects rendern, oder
 	// alle sea_objects mit alpha sortieren...
-	for (unsigned i = 0; i <= 16; ++i) {
-		double a = -2*M_PI*i/16;
-		double sa = sin(a);
-		double ca = cos(a);
-		glTexCoord2f(i * 2.0 / 16, 1);
-		glVertex3f(spos.x + r0 * ca, spos.y + r0 * sa, spos.z);
-		glTexCoord2f(i * 2.0 / 16, 0);
-		glVertex3f(spos.x + r1 * ca, spos.y + r1 * sa, spos.z + sh);
-	}
-	glEnd();
-	glEnable(GL_LIGHTING);
+	wsp.display(gm.get_time());
+	glPopMatrix();
 #endif
 
 	if (withunderwaterweapons) {

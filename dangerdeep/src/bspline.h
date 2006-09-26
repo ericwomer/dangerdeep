@@ -258,44 +258,6 @@ public:
 
 };
 
-
-
-// some test code for the 2d bsplines! save as extra file to test it.
-#if 0
-#include "bspline.h"
-#include <fstream>
-using namespace std;
-
-double rnd() { return double(rand())/RAND_MAX; }
-
-const unsigned N = 4;
-const unsigned D = 33;
-const unsigned R = 4;
-int main(int, char**)
-{
-	srand(3746867);
-	std::vector<float> cps(D*D);
-	for (unsigned y = 0; y < D; ++y)
-		for (unsigned x = 0; x < D; ++x)
-			cps[D*y+x] = 8.0f*rnd()/D;
-	bspline2dt<float> bsp(N, cps);
-	ofstream out("bspline.off");
-	out << "OFF\n" << D*R*D*R << " " << (R*D-1)*(R*D-1)*2 << " 0\n";
-	for (unsigned y = 0; y < R*D; ++y) {
-		float fy = float(y)/(R*D-1);
-		for (unsigned x = 0; x < R*D; ++x) {
-			float fx = float(x)/(R*D-1);
-			out << fx << " " << fy << " " << bsp.value(fx, fy) << "\n";
-		}
-	}
-	for (unsigned y = 0; y < R*D-1; ++y) {
-		for (unsigned x = 0; x < R*D-1; ++x) {
-			out << "3 " << y*(R*D)+x << " " << y*(R*D)+x+1 << " " << (y+1)*(R*D)+x << "\n";
-			out << "3 " << y*(R*D)+x+1 << " " << (y+1)*(R*D)+x+1 << " " << (y+1)*(R*D)+x << "\n";
-		}
-	}
-	return 0;
-}
-#endif // test code
+typedef bsplinet<double> bspline;
 
 #endif

@@ -60,7 +60,8 @@ dftdsources = Split("""subsim.cpp
 	torpedo.cpp
 	triangulate.cpp
 	user_interface.cpp
-	water.cpp""")
+	water.cpp
+	water_splash.cpp""")
 
 dftdmediasources = Split("""
 	error.cpp
@@ -107,7 +108,9 @@ env.Default(tool2)
 env.Default(tool3)
 
 test1 = env.Program('oceantest', ['oceantest.cpp'], LIBS = alllibs)
+test2 = env.Program('bsplinetest', ['bspline_test.cpp'])
 env.Default(test1)
+env.Default(test2)
 
 portal = env.Program('portal', ['portal.cpp', datadirsobj, sound_obj, filehelper_obj] + osspecificsrc_obj, LIBS = alllibs)
 env.Default(portal)
