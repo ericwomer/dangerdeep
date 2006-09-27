@@ -130,7 +130,8 @@ else:
 	libpath = ['/usr/X11R6/lib']
 	gllibs = ['GL', 'GLU']
 	sdllibs = ['SDL', 'SDL_image']
-	ccflags = '-Wall `sdl-config --cflags`'
+	ccflags = '-Wall `sdl-config --cflags` `pkg-config x11 --cflags`'
+	env.Append(LINKFLAGS = '`pkg-config x11 --libs-only-L`')
 	if (debug >= 3):
 		ccflags += ' -g -pg -O3'	# profiling
 	elif (debug == 2):
