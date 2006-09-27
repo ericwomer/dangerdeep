@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "water_splash.h"
 #include "global_data.h"
 #include "texture.h"
+#include "game.h"
 
 void water_splash::render_cylinder(double radius_bottom, double radius_top, double height,
 				   double alpha, double u_scal, unsigned nr_segs)
@@ -36,7 +37,8 @@ void water_splash::render_cylinder(double radius_bottom, double radius_top, doub
 		double ca = cos(a);
 		glColor4f(1,1,1,0.5+0.5*alpha);
 		glTexCoord2f(i * us, 1);
-		glVertex3f(radius_bottom * ca, radius_bottom * sa, -5.0); // compensate tide!
+		// compensate tide! so set z_lower to -1.5
+		glVertex3f(radius_bottom * ca, radius_bottom * sa, -1.5);
 		glColor4f(1, 1, 1, alpha);
 		glTexCoord2f(i * us, 0);
 		glVertex3f(radius_top * ca, radius_top * sa, height);
@@ -59,8 +61,10 @@ double water_splash::compute_height(double t) const
 
 
 
-water_splash::water_splash(const vector3& pos, double tm)
+water_splash::water_splash(game& gm_, const vector3& pos)
+	: sea_object(gm_, "gun_shell.3ds" /* hack */)
 {
+	position = pos;
 	std::vector<double> p(6);
 	p[0] = 5.0;
 	p[1] = 5.0;
@@ -84,39 +88,61 @@ water_splash::water_splash(const vector3& pos, double tm)
 	p[5] = 0.0;
 	balpha.reset(new bspline(3, p));
 
-	starttime = tm;
 	risetime = 0.4;
 	riseheight = 25.0;
 	falltime = sqrt(riseheight * 2.0 / GRAVITY);
 	lifetime = risetime + falltime;
+	resttime = lifetime;
 }
 
 
 
-void water_splash::display(double tm) const
+void water_splash::simulate(double delta_time)
 {
-	if (tm - starttime > lifetime + 0.5)
-		return;
+	sea_object::simulate(delta_time);
+	if (is_defunct()) return;
 
+	resttime -= delta_time;
+	if (resttime <= -0.5)
+		kill();
+}
+
+
+
+void water_splash::display() const
+{
+	// fixme: crude hack
 	texturecache.ref("splashring.png")->set_gl_texture();
 
 	glDisable(GL_LIGHTING);
 	//glTranslate
 	//render two cylinders...
 	//alpha 0% at end, increase radius on fade, widen more
-	if (tm - starttime >= 0.5) {
-		double t = (tm - starttime - 0.5)/lifetime;
-		double rt = bradius_top->value(t) * 0.8;
-		double rb = bradius_bottom->value(t) * 0.8;
-		double a = balpha->value(t);
-		render_cylinder(rb, rt, compute_height(tm - starttime - 0.5) * 1.2, a);
+	try {
+		if (lifetime - resttime > 0.5) {
+			double t = (lifetime - resttime - 0.5)/lifetime;
+			double rt = bradius_top->value(t) * 0.8;
+			double rb = bradius_bottom->value(t) * 0.8;
+			double a = balpha->value(t);
+			render_cylinder(rb, rt, compute_height(lifetime - resttime - 0.5) * 1.2, a);
+		}
+		if (resttime > 0) {
+			double t = (lifetime - resttime)/lifetime;
+			double rt = bradius_top->value(t);
+			double rb = bradius_bottom->value(t);
+			double a = balpha->value(t);
+			render_cylinder(rb, rt, compute_height(lifetime - resttime), a);
+		}
 	}
-	if (tm - starttime <= lifetime) {
-		double t = (tm - starttime)/lifetime;
-		double rt = bradius_top->value(t);
-		double rb = bradius_bottom->value(t);
-		double a = balpha->value(t);
-		render_cylinder(rb, rt, compute_height(tm - starttime), a);
+	catch (std::exception& e) {
+		// do nothing.
 	}
 	glEnable(GL_LIGHTING);
+}
+
+
+
+void water_splash::display_mirror_clip() const
+{
+	display();
 }

@@ -43,6 +43,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "torpedo.h"
 #include "depth_charge.h"
 #include "gun_shell.h"
+#include "water_splash.h"
 #include "model.h"
 #include "global_data.h"
 #include "user_interface.h"
@@ -358,6 +359,8 @@ game::game(const string& filename)
 		}
 	}
 
+	// fixme: handle water splashes too.
+
 #if 0
 	if (sg.has_child("particles")) {
 		xml_elem pt = sg.child("particles");
@@ -414,6 +417,8 @@ game::game(const string& filename)
 			convoys[k]->load(it.elem());
 		}
 	}
+
+	// fixme: handle water splashes too
 
 #if 0
 	if (particles.size() > 0) {
@@ -736,6 +741,17 @@ void game::simulate(double delta_t)
 	}
 	gun_shells.compact();
 
+	// ------------------------------ water_splashes ------------------------------
+	for (unsigned i = 0; i < water_splashes.size(); ++i) {
+		if (!water_splashes[i]) continue;
+		if (water_splashes[i]->is_defunct()) {
+			water_splashes.reset(i);
+		} else {
+			water_splashes[i]->simulate(delta_t);
+		}
+	}
+	water_splashes.compact();
+
 	// ------------------------------ convoys ------------------------------
 	for (unsigned i = 0; i < convoys.size(); ++i) {
 		if (!convoys[i]) continue;
@@ -868,6 +884,17 @@ vector<gun_shell*> game::visible_gun_shells(const sea_object* o) const
 {
 	if (!o) throw error("visible_xyz function called with NULL object");
 	return visible_obj<gun_shell>(this, gun_shells, o);
+}
+
+vector<water_splash*> game::visible_water_splashes(const sea_object* o) const
+{
+	if (!o) throw error("visible_xyz function called with NULL object");
+//testing: draw all 
+	vector<water_splash*> result(water_splashes.size());
+	for (unsigned k = 0; k < water_splashes.size(); ++k)
+		result[k] = water_splashes[k];
+	return result;
+//	return visible_obj<water_splash>(this, water_splashes, o);
 }
 
 vector<particle*> game::visible_particles(const sea_object* o ) const
@@ -1178,6 +1205,16 @@ void game::spawn_gun_shell(gun_shell* s, const double &calibre)
 	}
 }
 
+void game::spawn_water_splash(water_splash* s)
+{
+	water_splashes.push_back(s);
+	
+	if (ui) {
+		// play splash sound here...
+		//ui->play_sound_effect(se, player, s);
+	}
+}
+
 void game::spawn_depth_charge(depth_charge* dc)
 {
 	if (ui) ui->add_message(texts::get(205));	// fixme: only if player is near enough
@@ -1203,7 +1240,7 @@ void game::spawn_particle(particle* pt)
 void game::dc_explosion(const depth_charge& dc)
 {
 	// Create water splash.
-	spawn_particle(new depth_charge_water_splash_particle(dc.get_pos().xy().xy0()));
+	spawn_water_splash(new /*depth_charge_*/water_splash(*this, dc.get_pos().xy().xy0()));
 
 	// are subs affected?
 	// fixme: ships can be damaged by DCs also...
@@ -1225,7 +1262,8 @@ bool game::gs_impact(const gun_shell *gs)	// fixme: vector2 would be enough
 	vector3 pos = gs->get_pos();
 	
 	// Create water splash. // FIXME
-	spawn_particle(new gun_shell_water_splash_particle(pos.xy().xy0()));
+	spawn_water_splash(new /*gun_shell_*/water_splash(*this, pos.xy().xy0()));
+
 //	return false;//fixme testing
 	for (unsigned k = 0; k < ships.size(); ++k) {
 		// fixme: we need a special collision detection, because
@@ -1275,7 +1313,7 @@ void game::torp_explode(const torpedo *t)
 {
 	// each torpedo seems to explode twice, if it's only drawn twice or adds twice the damage is unknown.
 	// fixme!
-	spawn_particle(new torpedo_water_splash_particle(t->get_pos().xy().xy0()));
+	spawn_water_splash(new /*torpedo_*/water_splash(*this, t->get_pos().xy().xy0()));
 	//fixme: game should know nothing about ui!
 	if (ui) 
 		ui->play_sound_effect(se_torpedo_detonation, player, t);
@@ -1717,23 +1755,6 @@ bool game::is_day_mode () const
 }
 
 
-
-unsigned game::listsizes(unsigned n) const
-{
-	unsigned s = 0;
-	switch (n) {
-		case 7: s += convoys.size();
-		case 6: s += gun_shells.size();
-		case 5: s += depth_charges.size();
-		case 4: s += torpedoes.size();
-		case 3: s += airplanes.size();
-		case 2: s += submarines.size();
-		case 1: s += ships.size();
-		case 0: s += 0; break;
-		default: throw error("game::listsizes  n too high");
-	}
-	return s;
-}
 
 /*
 void game::receive_commands()

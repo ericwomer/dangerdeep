@@ -44,6 +44,7 @@ class global_data;
 class sea_object;
 class network_connection;
 class user_interface;
+class water_splash;
 class particle;
 class convoy;
 
@@ -125,6 +126,7 @@ protected:
 	ptrset<torpedo> torpedoes;
 	ptrset<depth_charge> depth_charges;
 	ptrset<gun_shell> gun_shells;
+	ptrset<water_splash> water_splashes;
 	ptrset<convoy> convoys;
 	ptrset<particle> particles;
 	// end [SAVE]
@@ -168,8 +170,6 @@ protected:
 	game();	
 	game& operator= (const game& other);
 	game(const game& other);
-
-	unsigned listsizes(unsigned n) const;	// counts # of list elemens over n lists above
 
 public:
 	// create new custom mission
@@ -229,6 +229,7 @@ public:
 	virtual std::vector<torpedo*> visible_torpedoes(const sea_object* o) const;
 	virtual std::vector<depth_charge*> visible_depth_charges(const sea_object* o) const;
 	virtual std::vector<gun_shell*> visible_gun_shells(const sea_object* o) const;
+	virtual std::vector<water_splash*> visible_water_splashes(const sea_object* o) const;
 	virtual std::vector<particle*> visible_particles (const sea_object* o ) const;
 	// computes visible ships, submarines (surfaced) and airplanes
 	virtual std::vector<sea_object*> visible_surface_objects(const sea_object* o) const;
@@ -275,6 +276,7 @@ public:
 	void spawn_torpedo(torpedo* t);
 	void spawn_gun_shell(gun_shell* s, const double &calibre);
 	void spawn_depth_charge(depth_charge* dc);
+	void spawn_water_splash(water_splash* ws);
 	void spawn_convoy(convoy* cv);
 	void spawn_particle(particle* pt);
 

@@ -22,14 +22,19 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef WATER_SPLASH_H
 #define WATER_SPLASH_H
 
-#include "vector3.h"
+#include "sea_object.h"
 #include "bspline.h"
 #include <vector>
 
-class water_splash /* : public sea_object */
+class water_splash : public sea_object
 {
-//	vector3 pos;
-	double starttime;
+ private:
+	water_splash();
+	water_splash& operator=(const water_splash& other);
+	water_splash(const water_splash& other);
+
+ protected:
+	double resttime;
 	double risetime;
 	double riseheight;
 	double falltime;
@@ -44,8 +49,11 @@ class water_splash /* : public sea_object */
 	double compute_height(double t) const;
 
  public:
-	water_splash(const vector3& pos, double tm);
-	void display(double tm) const;
+	water_splash(game& gm, const vector3& pos);
+	void simulate(double delta_time);
+	void display() const;
+	void display_mirror_clip() const;
+	vector3 get_acceleration() const { return vector3(); } // no acceleration
 };
 
 #endif

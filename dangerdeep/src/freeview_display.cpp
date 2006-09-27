@@ -224,7 +224,7 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 		}
 	}
 
-#if 1
+#if 0
 	double tt = myfmod(gm.get_time(), 10.0);
 	water_splash wsp(vector3(), gm.get_time() - tt);
 	glPushMatrix();
@@ -254,6 +254,17 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 		vector3 pos = (*it)->get_pos() - viewpos;
 		glTranslated(pos.x, pos.y, pos.z);
 		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
+		(*it)->display();
+		glPopMatrix();
+	}
+
+	// render all visible splashes. must alpha sort them, fixme
+	vector<water_splash*> water_splashes = gm.visible_water_splashes(player);
+	for (vector<water_splash*>::const_iterator it = water_splashes.begin(); it != water_splashes.end(); ++it) {
+		glPushMatrix();
+		vector3 pos = (*it)->get_pos() - viewpos;
+		glTranslated(pos.x, pos.y, pos.z);
+		// rotational invariant.
 		(*it)->display();
 		glPopMatrix();
 	}
