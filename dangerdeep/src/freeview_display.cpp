@@ -39,7 +39,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "global_data.h"
 #include "model.h"
 #include <fstream>
-
+#include <algorithm>
 
 
 void freeview_display::pre_display(game& gm) const
@@ -169,6 +169,16 @@ void freeview_display::process_input(class game& gm, const SDL_Event& event)
 
 
 
+struct alpha_cmp : public std::binary_function<water_splash*, water_splash*, bool> {
+	vector2 playerpos;
+	bool operator()(water_splash* a, water_splash* b) {
+		return	a->get_pos().xy().square_distance(playerpos) >
+			b->get_pos().xy().square_distance(playerpos);
+	}
+};
+
+
+
 void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 				    const vector<sea_object*>& objects,
 				    bool mirrorclip) const
@@ -260,6 +270,10 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 
 	// render all visible splashes. must alpha sort them, fixme
 	vector<water_splash*> water_splashes = gm.visible_water_splashes(player);
+	alpha_cmp ac;
+	ac.playerpos = player->get_pos().xy();
+	std::sort(water_splashes.begin(), water_splashes.end(), ac);
+	// sort that array by square of distance to player, with std::sort and compare function
 	for (vector<water_splash*>::const_iterator it = water_splashes.begin(); it != water_splashes.end(); ++it) {
 		glPushMatrix();
 		vector3 pos = (*it)->get_pos() - viewpos;
