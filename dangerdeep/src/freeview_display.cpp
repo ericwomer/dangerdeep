@@ -268,7 +268,11 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 		glPopMatrix();
 	}
 
-	// render all visible splashes. must alpha sort them, fixme
+	vector<particle*> particles = gm.visible_particles(player);
+	particle::display_all(particles, viewpos, gm);
+	
+	glDepthMask(GL_FALSE);
+	// render all visible splashes. must alpha sort them, and not write to z-buffer.
 	vector<water_splash*> water_splashes = gm.visible_water_splashes(player);
 	alpha_cmp ac;
 	ac.playerpos = player->get_pos().xy();
@@ -282,9 +286,7 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 		(*it)->display();
 		glPopMatrix();
 	}
-
-	vector<particle*> particles = gm.visible_particles(player);
-	particle::display_all(particles, viewpos, gm);
+	glDepthMask(GL_TRUE);
 }
 
 
