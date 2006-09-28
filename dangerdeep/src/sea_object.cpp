@@ -697,7 +697,7 @@ void sea_object::compress(std::vector<sea_object*>& vec)
 {
 	unsigned newsize = 0;
 	for (unsigned i = 0; i < vec.size(); ++i) {
-		if (vec[i]->is_alive()) {
+		if (vec[i]->is_alive() || vec[i]->is_inactive()) {
 			++newsize;
 		} else {
 			vec[i] = 0;
