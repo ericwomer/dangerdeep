@@ -35,10 +35,9 @@ class water_splash : public sea_object
 
  protected:
 	double resttime;
+	double lifetime;
 	double risetime;
 	double riseheight;
-	double falltime;
-	double lifetime;
 	std::auto_ptr<bspline> bradius_top;
 	std::auto_ptr<bspline> bradius_bottom;
 	std::auto_ptr<bspline> balpha;
@@ -49,11 +48,38 @@ class water_splash : public sea_object
 	double compute_height(double t) const;
 
  public:
-	water_splash(game& gm, const vector3& pos);
+	water_splash(game& gm, const vector3& pos, double risetime = 0.4, double riseheight = 25.0);
 	void simulate(double delta_time);
 	void display() const;
 	void display_mirror_clip() const;
 	vector3 get_acceleration() const { return vector3(); } // no acceleration
+};
+
+
+
+class torpedo_water_splash : public water_splash
+{
+ public:
+	torpedo_water_splash(game& gm, const vector3& pos)
+		: water_splash(gm, pos, 0.25, 12.5) {}
+};
+
+
+
+class depth_charge_water_splash : public water_splash
+{
+ public:
+	depth_charge_water_splash(game& gm, const vector3& pos)
+		: water_splash(gm, pos, 0.5, 25.0) {}
+};
+
+
+
+class gun_shell_water_splash : public water_splash
+{
+ public:
+	gun_shell_water_splash(game& gm, const vector3& pos)
+		: water_splash(gm, pos, 0.1, 6.0) {}
 };
 
 #endif

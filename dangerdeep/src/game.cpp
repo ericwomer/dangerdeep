@@ -1240,7 +1240,7 @@ void game::spawn_particle(particle* pt)
 void game::dc_explosion(const depth_charge& dc)
 {
 	// Create water splash.
-	spawn_water_splash(new /*depth_charge_*/water_splash(*this, dc.get_pos().xy().xy0()));
+	spawn_water_splash(new depth_charge_water_splash(*this, dc.get_pos().xy().xy0()));
 
 	// are subs affected?
 	// fixme: ships can be damaged by DCs also...
@@ -1262,7 +1262,7 @@ bool game::gs_impact(const gun_shell *gs)	// fixme: vector2 would be enough
 	vector3 pos = gs->get_pos();
 	
 	// Create water splash. // FIXME
-	spawn_water_splash(new /*gun_shell_*/water_splash(*this, pos.xy().xy0()));
+	spawn_water_splash(new gun_shell_water_splash(*this, pos.xy().xy0()));
 
 //	return false;//fixme testing
 	for (unsigned k = 0; k < ships.size(); ++k) {
@@ -1313,7 +1313,7 @@ void game::torp_explode(const torpedo *t)
 {
 	// each torpedo seems to explode twice, if it's only drawn twice or adds twice the damage is unknown.
 	// fixme!
-	spawn_water_splash(new /*torpedo_*/water_splash(*this, t->get_pos().xy().xy0()));
+	spawn_water_splash(new torpedo_water_splash(*this, t->get_pos().xy().xy0()));
 	//fixme: game should know nothing about ui!
 	if (ui) 
 		ui->play_sound_effect(se_torpedo_detonation, player, t);

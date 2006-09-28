@@ -17,6 +17,7 @@ int main(int, char**)
 	// t_a = 0.5s. -> t_total = 2.5s.
 	// t>=t_a then s = s_0 - g*0.5*(t-t_a)^2 = 20m - 5*(t-0.5)^2
 
+#if 0
 	vector<double> p;
 	p.push_back(0);		// 0s:	0m
 	p.push_back(20);	// 0.5s:20m
@@ -25,7 +26,36 @@ int main(int, char**)
 	p.push_back(8.75);	// 2.0s:8.75
 	p.push_back(0.0);	// 2.5s:0
 	bspline bsp(3, p);
-	for (double t = 0; t <= 1.0; t += 0.1) {
+#else
+	double risetime = 0.08, riseheight = 4.0;
+	double falltime = sqrt(riseheight * 2.0 / 9.806);
+	double lifetime = risetime + falltime;
+	std::vector<double> h, t;
+	// initially height 0.
+	h.push_back(0);
+	t.push_back(0);
+	t.push_back(0);
+	t.push_back(0);
+	h.push_back(0);
+	t.push_back(0);
+	// half rise time, half rise height
+	h.push_back(riseheight*0.5);
+	t.push_back(risetime*0.5/lifetime);
+	// full rise
+	h.push_back(riseheight*0.5);
+	t.push_back(risetime/lifetime);
+	// compute some points for fall
+	for (double tm = risetime; tm <= lifetime - risetime; tm += risetime) {
+		h.push_back(riseheight - tm*tm * 9.806 * 0.5);
+		t.push_back(tm + risetime);
+	}
+	h.push_back(0);
+	t.push_back(1);
+	t.push_back(1);
+	t.push_back(1);
+	non_uniform_bspline bsp(3, h, t);
+#endif
+	for (double t = 0; t <= 1.0; t += 0.02) {
 		double v = bsp.value(t);
 		printf("[%f] = %f\n", t, v);
 	}

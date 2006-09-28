@@ -50,49 +50,48 @@ void water_splash::render_cylinder(double radius_bottom, double radius_top, doub
 
 double water_splash::compute_height(double t) const
 {
-	if (t < risetime) {
-		double x = (risetime - t)/risetime;
-		return riseheight * (1.0 - x*x);
+	if (t <= risetime) {
+		double q = t/risetime - 1.0;
+		return riseheight * (1.0 - q*q);
 	} else {
-		double x = (t - risetime)/falltime;
-		return riseheight * (1.0 - x*x);
+		double q = t - risetime;
+		return riseheight - GRAVITY * 0.5 * q*q;
 	}
 }
 
 
 
-water_splash::water_splash(game& gm_, const vector3& pos)
-	: sea_object(gm_, "gun_shell.3ds" /* hack */)
+water_splash::water_splash(game& gm_, const vector3& pos, double risetime_, double riseheight_)
+	: sea_object(gm_, "gun_shell.3ds" /* hack */),
+	  risetime(risetime_), riseheight(riseheight_)
 {
-	position = pos;
-	std::vector<double> p(6);
-	p[0] = 5.0;
-	p[1] = 5.0;
-	p[2] = 6.0;
-	p[3] = 7.0;
-	p[4] = 8.0;
-	p[5] = 9.0;
-	bradius_top.reset(new bspline(3, p));
-	p[0] = 5.0;
-	p[1] = 5.0;
-	p[2] = 5.2;
-	p[3] = 5.4;
-	p[4] = 5.6;
-	p[5] = 5.8;
-	bradius_bottom.reset(new bspline(3, p));
-	p[0] = 1.0;
-	p[1] = 1.0;
-	p[2] = 0.75;
-	p[3] = 0.5;
-	p[4] = 0.25;
-	p[5] = 0.0;
-	balpha.reset(new bspline(3, p));
-
-	risetime = 0.4;
-	riseheight = 25.0;
-	falltime = sqrt(riseheight * 2.0 / GRAVITY);
+	double falltime = sqrt(riseheight * 2.0 / GRAVITY);
 	lifetime = risetime + falltime;
 	resttime = lifetime;
+	position = pos;
+	std::vector<double> p(6);
+	double fac = riseheight / 25.0;
+	p[0] = fac * 5.0;
+	p[1] = fac * 5.0;
+	p[2] = fac * 6.0;
+	p[3] = fac * 7.0;
+	p[4] = fac * 8.0;
+	p[5] = fac * 9.0;
+	bradius_top.reset(new bspline(3, p));
+	p[0] = fac * 5.0;
+	p[1] = fac * 5.0;
+	p[2] = fac * 5.2;
+	p[3] = fac * 5.4;
+	p[4] = fac * 5.6;
+	p[5] = fac * 5.8;
+	bradius_bottom.reset(new bspline(3, p));
+	p[0] = fac * 1.0;
+	p[1] = fac * 1.0;
+	p[2] = fac * 0.75;
+	p[3] = fac * 0.5;
+	p[4] = fac * 0.25;
+	p[5] = fac * 0.0;
+	balpha.reset(new bspline(3, p));
 }
 
 
@@ -111,8 +110,7 @@ void water_splash::simulate(double delta_time)
 
 void water_splash::display() const
 {
-	// fixme: crude hack
-	texturecache.ref("splashring.png")->set_gl_texture();
+	texturecache.find("splashring.png")->set_gl_texture();
 
 	glDisable(GL_LIGHTING);
 	//glTranslate

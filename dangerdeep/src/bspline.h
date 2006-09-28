@@ -259,5 +259,6 @@ public:
 };
 
 typedef bsplinet<double> bspline;
+typedef non_uniform_bsplinet<double> non_uniform_bspline;
 
 #endif
