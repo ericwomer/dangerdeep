@@ -217,6 +217,10 @@ protected:
 	// construct a sea_object. called by heirs
 	sea_object(game& gm_, const xml_elem& parent);
 
+	// wether objects of that class should call visible_sea_objects to detect other
+	// objects. redefine if needed.
+	virtual bool detect_other_sea_objects() const { return false; }
+
 public:
 	virtual ~sea_object();
 

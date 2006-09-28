@@ -64,7 +64,6 @@ void depth_charge::save(xml_elem& parent) const
 
 void depth_charge::simulate(double delta_time)
 {
-	redetect_time = 1.0;
 	sea_object::simulate(delta_time);
 	if (is_defunct()) return;
 	if (position.z < -explosion_depth) {

@@ -42,6 +42,8 @@ class airplane : public sea_object
  protected:
 	double rollfac, pitchfac;	// rudder state, pitch/roll factor per time.
 
+	bool detect_other_sea_objects() const { return true; }
+
  public:
 	// create empty object from specification xml file
 	airplane(game& gm_, const xml_elem& parent);

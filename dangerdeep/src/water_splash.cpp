@@ -98,7 +98,6 @@ water_splash::water_splash(game& gm_, const vector3& pos, double risetime_, doub
 
 void water_splash::simulate(double delta_time)
 {
-	redetect_time = 1.0;
 	sea_object::simulate(delta_time);
 	if (is_defunct()) return;
 

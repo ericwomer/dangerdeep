@@ -143,6 +143,8 @@ class torpedo : public ship
 
 	virtual bool causes_spray() const { return false; }//causes wake, only true for steam torpedoes and maybe for Walter engine
 
+	bool detect_other_sea_objects() const { return false; }
+
 public:
 	// create empty object from specification xml file
 	// create from spec file, select values by date. date is taken from game. fixme: avoid random values here!

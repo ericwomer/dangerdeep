@@ -208,6 +208,8 @@ class ship : public sea_object
 	bool calculate_gun_angle(const double distance, angle &elevation, const double initial_velocity);
 	void calc_max_gun_range(double initial_velocity);
 
+	bool detect_other_sea_objects() const { return true; }
+
 public:
 	// create empty object from specification xml file
 	// construct a sea_object. called by heirs
