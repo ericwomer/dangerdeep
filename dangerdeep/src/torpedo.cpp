@@ -437,6 +437,7 @@ void torpedo::simulate(double delta_time)
 	cout << " velo " << velocity << " turnvelo " << turn_velocity << " global vel " << global_velocity << "\n";
 	cout << " acceleration " << acceleration << " delta t "<< delta_time << "\n";
 */
+	redetect_time = 1.0;
 	ship::simulate(delta_time);
 	if (is_defunct() || is_dead()) return;
 

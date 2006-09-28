@@ -69,6 +69,7 @@ void gun_shell::save(xml_elem& parent) const
 
 void gun_shell::simulate(double delta_time)
 {
+	redetect_time = 1.0;
 	oldpos = position;
 	sea_object::simulate(delta_time);
 	if (is_defunct()) return;
