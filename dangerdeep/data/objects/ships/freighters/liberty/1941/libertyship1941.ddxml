@@ -3,7 +3,10 @@
         <diffuse color="1 1 1" />
         <specular color="1 1 1" />
         <shininess exponent="65" />
-        <map type="diffuse" filename="lship_1941_diffuse.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" />
+        <map type="diffuse" filename="lship_1941_diffuse.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" >
+		<skin filename="lship_1941_camo2.jpg" layout="earlywar1"/>
+		<skin filename="lship_1941_camo3.jpg" layout="earlywar2"/>
+	</map>
 	<map type="normal" filename="lship_1941_bump.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" />
 	<map type="specular" filename="lship_1941_spec.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" />
     </material>
