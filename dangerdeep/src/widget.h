@@ -53,7 +53,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // elements:
 // 2 for background/sunken background
 // 2*8 for borders (clockwise, starting top left), normal and inverse border
-// square length is determined by height of image, so width has to be (2+2*8)*h = 18*h
+// 2 for scrollbar background / scrollbar foreground
+// square length is determined by height of image, so width has to be (2+2*8+2)*h = 20*h
 // icons:
 // arrow up, arrow down, unchecked box, checked box
 
@@ -77,22 +78,27 @@ protected:
 	static void draw_frame(int x, int y, int w, int h, bool out);
 	static void draw_rect(int x, int y, int w, int h, bool out);
 	static void draw_line(int x1, int y1, int x2, int y2);
-	void draw_area(int x, int y, int w, int h, bool out) const;
-	void draw_area_col(int x, int y, int w, int h, bool out, color c) const;
+	virtual void draw_area(int x, int y, int w, int h, bool out) const;
+	virtual void draw_area_col(int x, int y, int w, int h, bool out, color c) const;
 public:
 	class theme {
 		theme();
 		theme(const theme& );
 		theme& operator= (const theme& );
 	public:
-		class texture *backg, *skbackg, *frame[8], *frameinv[8], *icons[4];
+		std::auto_ptr<texture> backg;
+		std::auto_ptr<texture> skbackg;
+		std::auto_ptr<texture> frame[8];
+		std::auto_ptr<texture> frameinv[8];
+		std::auto_ptr<texture> icons[4];
+		std::auto_ptr<texture> sbarbackg;
+		std::auto_ptr<texture> sbarsurf;
 		const font* myfont;
 		color textcol, textselectcol, textdisabledcol;
 		int frame_size() const;
 		int icon_size() const;
 		theme(const char* elements_filename, const char* icons_filename, const font* fnt,
 			color tc, color tsc, color tdc);
-		~theme();
 	};
 
 protected:
@@ -316,6 +322,8 @@ protected:
 	unsigned get_max_scrollbarsize() const;	// total height of bar in pixels
 	unsigned get_scrollbarsize() const;	// height of slider bar in pixels
 	void compute_scrollbarpixelpos();	// recompute value from pos values
+
+	void draw_area(int x, int y, int w, int h, bool out) const;
 
 	widget_scrollbar();
 	widget_scrollbar(const widget_scrollbar& );

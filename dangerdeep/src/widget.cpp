@@ -66,32 +66,21 @@ widget::theme::theme(const char* elements_filename, const char* icons_filename, 
 	tmp = IMG_Load((get_texture_dir() + elements_filename).c_str());
 	sys().myassert(tmp != 0, string("Unable to load widget theme elements file: ") + get_texture_dir() + elements_filename);
 	fw = tmp->h;
-	backg = new texture(tmp, 0, 0, fw, fw);
-	skbackg = new texture(tmp, fw, 0, fw, fw);
+	backg.reset(new texture(tmp, 0, 0, fw, fw));
+	skbackg.reset(new texture(tmp, fw, 0, fw, fw));
 	for (int i = 0; i < 8; ++i)
-		frame[i] = new texture(tmp, (i+2)*fw, 0, fw, fw);
+		frame[i].reset(new texture(tmp, (i+2)*fw, 0, fw, fw));
 	for (int i = 0; i < 8; ++i)
-		frameinv[i] = new texture(tmp, (i+10)*fw, 0, fw, fw);
+		frameinv[i].reset(new texture(tmp, (i+10)*fw, 0, fw, fw));
+	sbarbackg.reset(new texture(tmp, (2+2*8)*fw, 0, fw, fw));
+	sbarsurf.reset(new texture(tmp, (2+2*8+1)*fw, 0, fw, fw));
 	SDL_FreeSurface(tmp);
 	tmp = IMG_Load((get_texture_dir() + icons_filename).c_str());
 	sys().myassert(tmp != 0, "Unable to load widget theme icons file");
 	fw = tmp->h;
 	for (int i = 0; i < 4; ++i)
-		icons[i] = new texture(tmp, i*fw, 0, fw, fw);
+		icons[i].reset(new texture(tmp, i*fw, 0, fw, fw));
 	SDL_FreeSurface(tmp);
-}
-
-widget::theme::~theme()
-{
-	delete backg;
-	delete skbackg;
-	for (int i = 0; i < 8; ++i) {
-		delete frame[i];
-		delete frameinv[i];
-	}
-	for (int i = 0; i < 4; ++i) {
-		delete icons[i];
-	}
 }
 
 void widget::set_theme(widget::theme* t)
@@ -256,7 +245,7 @@ void widget::on_wheel(int wd)
 void widget::draw_frame(int x, int y, int w, int h, bool out)
 {
 	glColor4f(1,1,1,1);
-	texture** frelem = (out ? globaltheme->frame : globaltheme->frameinv);
+	std::auto_ptr<texture>* frelem = (out ? globaltheme->frame : globaltheme->frameinv);
 	int fw = globaltheme->frame_size();
 	frelem[0]->draw(x, y);
 	frelem[1]->draw(x+fw, y, w-2*fw, fw);
@@ -338,6 +327,7 @@ bool widget::check_for_mouse_event(const SDL_Event& event)
 }
 
 
+
 void widget::draw_rect(int x, int y, int w, int h, bool out)
 {
 	glColor4f(1,1,1,1);
@@ -346,6 +336,8 @@ void widget::draw_rect(int x, int y, int w, int h, bool out)
 	else
 		globaltheme->skbackg->draw(x, y, w, h);
 }
+
+
 
 void widget::draw_line(int x1, int y1, int x2, int y2)
 {
@@ -356,6 +348,8 @@ void widget::draw_line(int x1, int y1, int x2, int y2)
 	glVertex2i(x2, y2);
 	glEnd();
 }
+
+
 
 void widget::draw_area(int x, int y, int w, int h, bool out) const
 {
@@ -665,6 +659,33 @@ void widget_scrollbar::compute_scrollbarpixelpos()
 	else scrollbarpixelpos = (get_max_scrollbarsize() - get_scrollbarsize()) * scrollbarpos/(scrollbarmaxpos-1);
 }
 
+
+
+void widget_scrollbar::draw_area(int x, int y, int w, int h, bool out) const
+{
+	int fw = globaltheme->frame_size();
+	/* this is:  draw_rect_scrollbar(x+fw, y+fw, w-2*fw, h-2*fw, out); */
+	glColor4f(1,1,1,1);
+	if (out)
+		globaltheme->sbarsurf->draw(x, y, w, h);
+	else
+		globaltheme->sbarbackg->draw(x, y, w, h);
+
+	/* scrollbar has no background ...
+	if (background) {
+		int bw = int(background->get_width());
+		int bh = int(background->get_height());
+		background->draw(x + (w-bw)/2, y + (h-bh)/2);
+	} else if (background_tex) {
+		background_tex->draw_tiles(x, y, w, h);
+	}
+	*/
+
+	draw_frame(x, y, w, h, out);
+}
+
+
+
 void widget_scrollbar::draw() const
 {
 	vector2i p = get_pos();
@@ -904,7 +925,7 @@ void widget_list::draw() const
 			if (scrollbarvisible)
 				width -= 3*fw+globaltheme->icons[0]->get_width();
 			color::white().set_gl_color();
-			globaltheme->backg->draw(p.x+fw, p.y + fw + lp*globaltheme->myfont->get_height(), width, globaltheme->myfont->get_height());
+			globaltheme->backg.get()->draw(p.x+fw, p.y + fw + lp*globaltheme->myfont->get_height(), width, globaltheme->myfont->get_height());
 		}
 		// optionally split string into columns
 		if (columnwidth < 0) {
