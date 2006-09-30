@@ -1289,6 +1289,7 @@ public:
 		// registering the same layout multiple times does not hurt, no problem
 		w3d->get_model()->register_layout(*currentlayout);
 		w3d->get_model()->set_layout(*currentlayout);
+		w3d->redraw();
 	}
 };
 
