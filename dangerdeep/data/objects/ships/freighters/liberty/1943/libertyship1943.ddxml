@@ -5,6 +5,7 @@
         <shininess exponent="65" />
         <map type="diffuse" filename="lship_1943_diffuse.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" >
 		<skin filename="lship_1943_camo2.jpg" layout="battered" />
+		<skin filename="lship_1943_camo3.jpg" layout="northern" />
 	</map>
 	<map type="normal" filename="lship_1943_bump.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" />
 	<map type="specular" filename="lship_1943_spec.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" >
