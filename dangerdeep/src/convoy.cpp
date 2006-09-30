@@ -47,6 +47,71 @@ convoy::convoy(game& gm_)
 
 
 
+struct ship_probability
+{
+	float prob;
+	const char* name;
+};
+
+
+
+ship_probability escortships[] = {
+	{ 0.1, "destroyer_oclass" },
+	{ 0.4, "destroyer_tribal" },
+	{ 0.5, "corvette" },
+	{ 0.5, "flowercorvette_hcn" },
+	{ 0.5, "flowercorvette_hrcn" },
+	{ 0.5, "FlowerCorvette_RN" },
+	{ 0.0, 0 }
+};
+
+
+
+ship_probability civilships[] = {
+	{ 0.1, "merchant_medium" },
+	{ 0.1, "troopship_medium" },
+	{ 0.1, "tanker_small" },
+	{ 0.1, "tanker_kennebak" },
+	{ 0.1, "northsands_camship" },
+	{ 0.1, "merchant_large" },
+	{ 0.1, "merchant_medium" },
+	{ 0.1, "merchant_small" },
+	{ 0.1, "freighter_large" },
+	{ 0.1, "freighter_medium" },
+	{ 0.1, "libertyship1941" },
+	{ 0.1, "libertyship1942" },
+	{ 0.1, "libertyship1943" },
+	{ 0.1, "fortship1941" },
+	{ 0.1, "fortship1943" },
+	{ 0.1, "fortshipciv" },
+	{ 0.0, 0 }
+};
+
+
+
+string get_random_ship(ship_probability* p)
+{
+	// count how many ships we have, sum of probabilities
+	double psum = 0;
+	unsigned k = 0;
+	for ( ; p[k].name != 0; ++k)
+		psum += p[k].prob;
+	//printf("psum %f k %u\n", psum, k);
+	// now compute one random ship
+	double r = rnd() * psum;
+	for (unsigned i = 0; i < k; ++i) {
+		r -= p[i].prob;
+		if (r < 0) {
+			// found it!
+			//printf("chosen %u %s\n", i, p[i].name);
+			return string(p[i].name);
+		}
+	}
+	// weird error, off limits, return first
+	return string(p[0].name);
+}
+
+
 convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 	: gm(gm_), remaining_time(0)
 {
@@ -86,27 +151,7 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 				//fixme!!! replace by parsing ship dir for available types or hardcode them!!!
 				//each ship in data/ships stores its type.
 				//but probability can not be stored...
-				string shiptype = "merchant_medium";
-				if (d < 0.2) {
-					unsigned r = rnd(5);
-					if (r == 0) shiptype = "troopship_medium";
-					if (r == 1) shiptype = "tanker_small";
-					if (r >= 2 && r <= 3) shiptype = "tanker_kennebak";
-					if (r == 4) shiptype = "northsands_camship";
-				} else {
-					unsigned r = rnd(11);
-					if (r == 0) shiptype = "merchant_large";
-					if (r == 1) shiptype = "merchant_medium";
-					if (r == 2) shiptype = "merchant_small";
-					if (r == 3) shiptype = "freighter_large";
-					if (r == 4) shiptype = "freighter_medium";
-					if (r == 5) shiptype = "libertyship1941";
-					if (r == 6) shiptype = "libertyship1942";
-					if (r == 7) shiptype = "libertyship1943";
-					if (r == 8) shiptype = "fortship1941";
-					if (r == 9) shiptype = "fortship1943";
-					if (r == 10) shiptype = "fortshipciv";
-				}
+				string shiptype = get_random_ship(civilships);
 				xml_doc doc(data_file().get_filename(shiptype));
 				doc.load();
 				ship* s = new ship(gm, doc.first_child());
@@ -141,8 +186,7 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 			dy *= sqrtnrships/2 * intershipdist + convoyescortdist;
 			nx *= (int(nrescs/4)-1)*interescortdist-int(i/4)*interescortdist;
 			ny *= (int(nrescs/4)-1)*interescortdist-int(i/4)*interescortdist;
-			unsigned esctp = rnd(2);
-			string shiptype = (esctp == 0 ? "destroyer_tribal" : "corvette");
+			string shiptype = get_random_ship(escortships);
 			xml_doc doc(data_file().get_filename(shiptype));
 			doc.load();
 			ship* s = new ship(gm, doc.first_child());
