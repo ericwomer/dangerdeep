@@ -447,8 +447,20 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	allships.reserve(objects.size());
 	for (vector<sea_object*>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
 		ship* s = dynamic_cast<ship*>(*it);
-		if (s)
-			allships.push_back(s);
+		if (s) {
+			torpedo* t = dynamic_cast<torpedo*>(s);
+			if (!t) {
+				// do NOT store torpedoes here, because they have no foam trail,
+				// they travel under water.
+				// the bubble trail of G7a torpedoes is another story though.
+				// But this routine will render wide trails dependant on speed,
+				// which is only correct for surface ships.
+				// fixme: for submerged subs we must not draw the trail, too.
+				// fixme2: even more complicated, periscopes/snorkels cause
+				// much less foam too...
+				allships.push_back(s);
+			}
+		}
 	}
 	ui.get_water().compute_amount_of_foam_texture(gm, viewpos, allships);
 
