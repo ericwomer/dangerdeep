@@ -981,7 +981,7 @@ void water::draw_foam_for_ship(const game& gm, const ship* shp, const vector3& v
 
 
 
-static unsigned nrfm=0;
+//static unsigned nrfm=0;
 void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpos,
 					   const vector<ship*>& allships) const
 {
