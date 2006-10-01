@@ -294,8 +294,10 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 
 
 void freeview_display::draw_view(game& gm, const vector3& viewpos) const
-{
+{	
 	double max_view_dist = gm.get_max_view_distance();
+
+
 
 	// the modelview matrix is set around the player's viewing position.
 	// i.e. it has an translation part of zero.
@@ -436,6 +438,16 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	oss << "P6\n" << vps << " " << vps << "\n255\n";
 	oss.write((const char*)(&scrn[0]), vps*vps*3);
 #endif
+	// ********* set fog for scene ****************************************************
+	glFogi(GL_FOG_MODE, GL_LINEAR );
+	glFogfv(GL_FOG_COLOR, horizon_color);
+	glFogf(GL_FOG_DENSITY, 1.0);	// not used in linear mode
+	glHint(GL_FOG_HINT, GL_NICEST /*GL_FASTEST*/ /*GL_DONT_CARE*/);
+	glFogf(GL_FOG_START, max_view_dist*0.75);	// ships disappear earlier :-(
+	glFogf(GL_FOG_END, max_view_dist);
+
+
+	glEnable(GL_FOG);
 
 	// *************************** compute amount of foam for water display *****************
 
@@ -502,14 +514,6 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	// ************ sky ***************************************************************
 	ui.get_sky().display(gm, viewpos, max_view_dist, false);
 
-	// ********* set fog for scene ****************************************************
-	glFogi(GL_FOG_MODE, GL_LINEAR );
-	glFogfv(GL_FOG_COLOR, horizon_color);
-	glFogf(GL_FOG_DENSITY, 1.0);	// not used in linear mode
-	glHint(GL_FOG_HINT, GL_NICEST /*GL_FASTEST*/ /*GL_DONT_CARE*/);
-	glFogf(GL_FOG_START, max_view_dist*0.75);	// ships disappear earlier :-(
-	glFogf(GL_FOG_END, max_view_dist);
-	glEnable(GL_FOG);	
 
 	// ******* water ***************************************************************
 	//ui.get_water().update_foam(1.0/25.0);  //fixme: deltat needed here

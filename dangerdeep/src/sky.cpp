@@ -433,6 +433,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 
 	// ******** the sun and the moon *****************************************************
 	// draw sun, fixme draw flares/halo
+	glDisable(GL_FOG); // no fog on the sun thankyou...
 	vector3 sunpos = sundir * (0.96 * max_view_dist);
 	double suns = max_view_dist/10; // 100;		// make sun ~13x13 pixels
 	glColor4f(1,1,1,1);
@@ -455,6 +456,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glEnd();
 	glPopMatrix();
 
+	
 	// draw moon
 	
 	// alter blend function so that the moon renders ok in daylight
@@ -483,6 +485,8 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 
 	// restore blend function
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_FOG); // restore the fog
+
 
 	// ******** clouds ********************************************************************
 	color lightcol = gm.compute_light_color(viewpos);
