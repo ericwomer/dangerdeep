@@ -108,6 +108,25 @@ submarine_interface::submarine_interface(game& gm) :
 	
 	player->start_throttle_sound();
 
+	widget_menu* screen_selector_menu = new widget_menu(0, 0, 256, 32, "Select station");
+	screen_selector->set_size(vector2i(256, 32*(1+13+1)));
+	screen_selector->add_child(screen_selector_menu);
+	screen_selector_menu->set_entry_spacing(0);
+	screen_selector_menu->add_entry("Gauges");
+	screen_selector_menu->add_entry("Periscope");
+	screen_selector_menu->add_entry("UZO");
+	screen_selector_menu->add_entry("Bridge");
+	screen_selector_menu->add_entry("Map chart");
+	screen_selector_menu->add_entry("Torpedoes");
+	screen_selector_menu->add_entry("Damage control");
+	screen_selector_menu->add_entry("Logbook / Sonar");
+	screen_selector_menu->add_entry("Successes");
+	screen_selector_menu->add_entry("Free 3d view");
+	screen_selector_menu->add_entry("TDC 1");
+	screen_selector_menu->add_entry("TDC 2");
+	screen_selector_menu->add_entry("Torpedo settings");
+	screen_selector_menu->add_entry("close menu");
+
 	add_loading_screen("submarine interface initialized");
 }
 
@@ -187,6 +206,14 @@ void submarine_interface::process_input(const SDL_Event& event)
 
 	// fixme: if editor needs key input (CV name or mission description etc.)
 	// we need to fetch the event to some widgets, and not use it here!
+
+	// switch screen selector on/off
+	if (event.type == SDL_MOUSEBUTTONDOWN) {
+		if (event.button.button == SDL_BUTTON_RIGHT) {
+			screen_selector_visible = !screen_selector_visible;
+			return;
+		}
+	}
 
 	// check for common keys
 	if (event.type == SDL_KEYDOWN) {

@@ -143,8 +143,8 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 			break;
 		case SDL_MOUSEMOTION:
 			if (event.motion.state & SDL_BUTTON_LMASK) {
-				mx = event.button.x;
-				my = event.button.y;
+				mx = event.motion.x;
+				my = event.motion.y;
 				// check if mouse is over parallax display, fixme: same code as above, group it!
 				int parasz = s.parallax_ptr.centery - s.parallax_ptr.top + 20;
 				if (mx >= s.parallax_ptr.centerx - parasz

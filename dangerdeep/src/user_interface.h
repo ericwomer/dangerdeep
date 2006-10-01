@@ -55,6 +55,8 @@ protected:
 	bool panel_visible;
 	class widget* panel;
 	class widget_text* panel_valuetexts[6];
+	class widget* screen_selector;
+	bool screen_selector_visible;
 
 	/// holds the last n messages. They're displayed above the panel and fading out over time.
 	std::list<std::pair<double, std::string> > messages;

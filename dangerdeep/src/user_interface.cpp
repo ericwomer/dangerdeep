@@ -81,6 +81,7 @@ user_interface::user_interface(game& gm) :
 	pause(false),
 	time_scale(1),
 	panel_visible(true),
+	screen_selector_visible(false),
 	bearing(0),
 	elevation(90),
 	bearing_is_relative(true),
@@ -117,6 +118,10 @@ user_interface::user_interface(game& gm) :
 	}
 	panel->add_child(new widget_caller_button<game, void (game::*)()>(mygame, &game::stop, 1024-128, 0, 128, 32, texts::get(177)));
 	add_loading_screen("user interface initialized");
+
+	// create screen selector widget
+	screen_selector = new widget(0, 0, 256, 32, "", 0, 0);
+	screen_selector->set_background(panelbackground);
 
 	// create weather effects textures
 
@@ -238,6 +243,8 @@ user_interface::~user_interface ()
 
 	delete panel;
 
+	delete screen_selector;
+
 	delete mysky;
 	delete mywater;
 
@@ -300,6 +307,14 @@ void user_interface::display() const
 	// popups
 	if (current_popup > 0)
 		popups[current_popup-1]->display(*mygame);
+
+	// draw screen selector if visible
+	if (screen_selector_visible) {
+		sys().prepare_2d_drawing();
+		glColor3f(1,1,1);
+		screen_selector->draw();
+		sys().unprepare_2d_drawing();
+	}
 }
 
 
@@ -317,6 +332,26 @@ void user_interface::process_input(const SDL_Event& event)
 	if (panel_visible) {
  		if (panel->check_for_mouse_event(event))
  			return;
+	}
+
+	if (screen_selector_visible) {
+		if (screen_selector->check_for_mouse_event(event)) {
+			// drag for the menu
+			if (event.type == SDL_MOUSEMOTION
+			    && event.motion.state & SDL_BUTTON_LMASK) {
+				// drag menu with left mouse button
+				vector2i p = screen_selector->get_pos();
+				vector2i s = screen_selector->get_size();
+				p.x += event.motion.xrel;
+				p.y += event.motion.yrel;
+				if (p.x < 0) p.x = 0;
+				if (p.y < 0) p.y = 0;
+				if (p.x + s.x > sys().get_res_x_2d()) p.x = sys().get_res_x_2d() - s.x;
+				if (p.y + s.y > sys().get_res_y_2d()) p.y = sys().get_res_y_2d() - s.y;
+				screen_selector->set_pos(p);
+			}
+			return;
+		}
 	}
 
 	if (event.type == SDL_KEYDOWN) {
@@ -344,6 +379,9 @@ void user_interface::process_input(list<SDL_Event>& events)
 	// fixme: check also when target gets out of sight
 	// the ui could show a message then "lost contact to ..."
 	if (target && !target->is_alive()) target = 0;
+
+	// if screen selector menu is open and mouse is over that window, handle mouse events there.
+	
 
 	if (current_popup > 0)
 		popups[current_popup-1]->process_input(*mygame, events);
