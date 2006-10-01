@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="no"?>
 <dftd-torpedo>
-  <classification identifier="TVb" modelname="torpedo_g7.3ds" type="torpedo" country="DE"/>
+  <classification identifier="TVb" modelname="g7e_torpedo.ddxml" type="torpedo" country="DE"/>
 <!-- note, we should add a identifier="t5b" -->
   <description>
     <desc lang="en">Torpedo TVb G7es ZaukonigI</desc>

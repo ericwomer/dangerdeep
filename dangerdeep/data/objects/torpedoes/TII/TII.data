@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="no"?>
 <dftd-torpedo>
-  <classification identifier="TII" modelname="torpedo_g7.3ds" type="torpedo" country="DE"/>
+  <classification identifier="TII" modelname="g7e_torpedo.ddxml" type="torpedo" country="DE"/>
   <description>
     <desc lang="en">Torpedo TII G7e Eto</desc>
     <desc lang="de">Torpedo TI G7e Eto</desc>

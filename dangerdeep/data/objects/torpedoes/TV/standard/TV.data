@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="no"?>
 <dftd-torpedo>
-  <classification identifier="TV" modelname="torpedo_g7.3ds" type="torpedo" country="DE"/>
+  <classification identifier="TV" modelname="g7e_torpedo.ddxml" type="torpedo" country="DE"/>
   <description>
     <desc lang="en">Torpedo TV G7es ZaukonigI</desc>
     <desc lang="de">Torpedo TV G7es ZaukonigI</desc>

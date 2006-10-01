@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="no"?>
 <dftd-torpedo>
-  <classification identifier="TIIIa_LuTII" modelname="torpedo_g7.3ds" type="torpedo" country="DE"/>
+  <classification identifier="TIIIa_LuTII" modelname="g7e_torpedo.ddxml" type="torpedo" country="DE"/>
 <!-- identifier="t3alut2" ? -->
   <description>
     <desc lang="en">Torpedo TIIIa LuTII G7e</desc>
