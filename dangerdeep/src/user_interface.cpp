@@ -337,18 +337,25 @@ void user_interface::process_input(const SDL_Event& event)
 	if (screen_selector_visible) {
 		if (screen_selector->check_for_mouse_event(event)) {
 			// drag for the menu
-			if (event.type == SDL_MOUSEMOTION
-			    && event.motion.state & SDL_BUTTON_RMASK) {
-				// drag menu with left mouse button
+			if (event.type == SDL_MOUSEMOTION) {
 				vector2i p = screen_selector->get_pos();
 				vector2i s = screen_selector->get_size();
-				p.x += event.motion.xrel;
-				p.y += event.motion.yrel;
-				if (p.x < 0) p.x = 0;
-				if (p.y < 0) p.y = 0;
-				if (p.x + s.x > sys().get_res_x_2d()) p.x = sys().get_res_x_2d() - s.x;
-				if (p.y + s.y > sys().get_res_y_2d()) p.y = sys().get_res_y_2d() - s.y;
-				screen_selector->set_pos(p);
+				// drag menu with left mouse button when on title or right mouse button else
+				if (event.motion.state & SDL_BUTTON_RMASK
+				    || (event.motion.state & SDL_BUTTON_LMASK
+					&& event.motion.x >= p.x
+					&& event.motion.y >= p.y
+					&& event.motion.x < p.x + s.x
+					&& event.motion.y < p.y + 32)) {
+
+					p.x += event.motion.xrel;
+					p.y += event.motion.yrel;
+					if (p.x < 0) p.x = 0;
+					if (p.y < 0) p.y = 0;
+					if (p.x + s.x > sys().get_res_x_2d()) p.x = sys().get_res_x_2d() - s.x;
+					if (p.y + s.y > sys().get_res_y_2d()) p.y = sys().get_res_y_2d() - s.y;
+					screen_selector->set_pos(p);
+				}
 			}
 			return;
 		}
