@@ -132,6 +132,8 @@ submarine_interface::submarine_interface(game& gm) :
 	screen_selector_menu->add_entry(texts::get(259), new wcbsubi(this, &submarine_interface::goto_torpedosettings));
 	screen_selector_menu->add_entry(texts::get(260), new widget_set_button<bool>(screen_selector_visible, false));
 
+	// note! we could add a second menu with the most common actions here...
+
 	add_loading_screen("submarine interface initialized");
 }
 
