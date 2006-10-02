@@ -108,7 +108,12 @@ submarine_interface::submarine_interface(game& gm) :
 	
 	player->start_throttle_sound();
 
-	widget_menu* screen_selector_menu = new widget_menu(0, 0, 256, 32, texts::get(247));
+	// note: we could change the width of the menu dynamically, according to longest text of the
+	// buttons.
+// 	int maxs = 0;
+// 	for (unsigned i = 247; i <= 260; ++i)
+// 		maxs = std::max(widget::get_theme()->myfont->get_size(texts::get(i)).x, maxs);
+	widget_menu* screen_selector_menu = new widget_menu(0, 0, /*maxs + 16*/ 256, 32, texts::get(247));
 	screen_selector->set_size(vector2i(256, 32*(1+12+1)));
 	screen_selector->add_child(screen_selector_menu);
 	screen_selector_menu->set_entry_spacing(0);
