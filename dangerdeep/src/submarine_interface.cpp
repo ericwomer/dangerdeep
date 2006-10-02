@@ -108,24 +108,24 @@ submarine_interface::submarine_interface(game& gm) :
 	
 	player->start_throttle_sound();
 
-	widget_menu* screen_selector_menu = new widget_menu(0, 0, 256, 32, "Select station");
-	screen_selector->set_size(vector2i(256, 32*(1+13+1)));
+	widget_menu* screen_selector_menu = new widget_menu(0, 0, 256, 32, texts::get(247));
+	screen_selector->set_size(vector2i(256, 32*(1+12+1)));
 	screen_selector->add_child(screen_selector_menu);
 	screen_selector_menu->set_entry_spacing(0);
-	screen_selector_menu->add_entry("Gauges");
-	screen_selector_menu->add_entry("Periscope");
-	screen_selector_menu->add_entry("UZO");
-	screen_selector_menu->add_entry("Bridge");
-	screen_selector_menu->add_entry("Map chart");
-	screen_selector_menu->add_entry("Torpedoes");
-	screen_selector_menu->add_entry("Damage control");
-	screen_selector_menu->add_entry("Logbook / Sonar");
-	screen_selector_menu->add_entry("Successes");
-	screen_selector_menu->add_entry("Free 3d view");
-	screen_selector_menu->add_entry("TDC 1");
-	screen_selector_menu->add_entry("TDC 2");
-	screen_selector_menu->add_entry("Torpedo settings");
-	screen_selector_menu->add_entry("close menu");
+	typedef widget_caller_button<submarine_interface, void (submarine_interface::*)()> wcbsubi;
+	screen_selector_menu->add_entry(texts::get(248), new wcbsubi(this, &submarine_interface::goto_gauges));
+	screen_selector_menu->add_entry(texts::get(249), new wcbsubi(this, &submarine_interface::goto_periscope));
+	screen_selector_menu->add_entry(texts::get(250), new wcbsubi(this, &submarine_interface::goto_UZO));
+	screen_selector_menu->add_entry(texts::get(251), new wcbsubi(this, &submarine_interface::goto_bridge));
+	screen_selector_menu->add_entry(texts::get(252), new wcbsubi(this, &submarine_interface::goto_map));
+	screen_selector_menu->add_entry(texts::get(253), new wcbsubi(this, &submarine_interface::goto_torpedomanagement));
+	screen_selector_menu->add_entry(texts::get(254), new wcbsubi(this, &submarine_interface::goto_damagecontrol));
+	screen_selector_menu->add_entry(texts::get(255), new wcbsubi(this, &submarine_interface::goto_logbook));
+	screen_selector_menu->add_entry(texts::get(256), new wcbsubi(this, &submarine_interface::goto_successes));
+	screen_selector_menu->add_entry(texts::get(257), new wcbsubi(this, &submarine_interface::goto_freeview));
+	screen_selector_menu->add_entry(texts::get(258), new wcbsubi(this, &submarine_interface::goto_TDC));
+	screen_selector_menu->add_entry(texts::get(259), new wcbsubi(this, &submarine_interface::goto_torpedosettings));
+	screen_selector_menu->add_entry(texts::get(260), new widget_set_button<bool>(screen_selector_visible, false));
 
 	add_loading_screen("submarine interface initialized");
 }
@@ -207,11 +207,13 @@ void submarine_interface::process_input(const SDL_Event& event)
 	// fixme: if editor needs key input (CV name or mission description etc.)
 	// we need to fetch the event to some widgets, and not use it here!
 
-	// switch screen selector on/off
+	// switch screen selector on if it is not visible
 	if (event.type == SDL_MOUSEBUTTONDOWN) {
 		if (event.button.button == SDL_BUTTON_RIGHT) {
-			screen_selector_visible = !screen_selector_visible;
-			return;
+			if (!screen_selector_visible) {
+				screen_selector_visible = true;
+				return;
+			}
 		}
 	}
 
@@ -220,39 +222,25 @@ void submarine_interface::process_input(const SDL_Event& event)
 		const cfg& mycfg = cfg::instance();
 
 		if (mycfg.getkey(KEY_SHOW_GAUGES_SCREEN).equal(event.key.keysym)) {
-			set_current_display(display_mode_gauges);
+			goto_gauges();
 		} else if (mycfg.getkey(KEY_SHOW_PERISCOPE_SCREEN).equal(event.key.keysym)) {
-			if (player->get_depth() > player->get_periscope_depth()) {
-				add_message(texts::get(28));
-				// will later be replaced when scope can be raised in smaller steps...
-				// no. height of scope and en/disabling are not the same.
-			} else {
-				set_current_display(display_mode_periscope);
-			}
+			goto_periscope();
 		} else if (mycfg.getkey(KEY_SHOW_UZO_SCREEN).equal(event.key.keysym)) {
-			if (player->is_submerged()) {
-				add_message(texts::get(27));
-			} else {
-				set_current_display(display_mode_uzo);
-			}
+			goto_UZO();
 		} else if (mycfg.getkey(KEY_SHOW_BRIDGE_SCREEN).equal(event.key.keysym)) {
-			if (player->is_submerged()) {
-				add_message(texts::get(27));
-			} else {
-				set_current_display(display_mode_bridge);
-			}
+			goto_bridge();
 		} else if (mycfg.getkey(KEY_SHOW_MAP_SCREEN).equal(event.key.keysym)) {
-			set_current_display(display_mode_map);
+			goto_map();
 		} else if (mycfg.getkey(KEY_SHOW_TORPEDO_SCREEN).equal(event.key.keysym)) {
-			set_current_display(display_mode_torpedoroom);
+			goto_torpedomanagement();
 		} else if (mycfg.getkey(KEY_SHOW_DAMAGE_CONTROL_SCREEN).equal(event.key.keysym)) {
-			set_current_display(display_mode_damagestatus);
+			goto_damagecontrol();
 		} else if (mycfg.getkey(KEY_SHOW_LOGBOOK_SCREEN).equal(event.key.keysym)) {
-			set_current_display(display_mode_logbook);
+			goto_logbook();
 		} else if (mycfg.getkey(KEY_SHOW_SUCCESS_RECORDS_SCREEN).equal(event.key.keysym)) {
-			set_current_display(display_mode_successes);
+			goto_successes();
 		} else if (mycfg.getkey(KEY_SHOW_FREEVIEW_SCREEN).equal(event.key.keysym)) {
-			set_current_display(display_mode_freeview);
+			goto_freeview();
 		} else if (mycfg.getkey(KEY_RUDDER_LEFT).equal(event.key.keysym)) {
 			player->rudder_left();
 			add_rudder_message();
@@ -451,9 +439,9 @@ void submarine_interface::process_input(const SDL_Event& event)
 					add_message(texts::get(27));
 			}	
 		} else if (mycfg.getkey(KEY_SHOW_TDC_SCREEN).equal(event.key.keysym)) {
-			set_current_display(display_mode_tdc);
+			goto_TDC();
 		} else if (mycfg.getkey(KEY_SHOW_TORPSETUP_SCREEN).equal(event.key.keysym)) {
-			set_current_display(display_mode_torpsetup);
+			goto_torpedosettings();
 		} else {
 			// rest of the keys per switch (not user defineable)
 			// quit, screenshot, pause etc.
@@ -480,6 +468,112 @@ void submarine_interface::process_input(const SDL_Event& event)
 	}
 
 }
+
+
+
+void submarine_interface::goto_gauges()
+{
+	set_current_display(display_mode_gauges);
+}
+
+
+
+void submarine_interface::goto_periscope()
+{
+	submarine* player = dynamic_cast<submarine*>(mygame->get_player());
+	if (player->get_depth() > player->get_periscope_depth()) {
+		add_message(texts::get(28));
+		// will later be replaced when scope can be raised in smaller steps...
+		// no. height of scope and en/disabling are not the same.
+	} else {
+		set_current_display(display_mode_periscope);
+	}
+}
+
+
+
+void submarine_interface::goto_UZO()
+{
+	submarine* player = dynamic_cast<submarine*>(mygame->get_player());
+	if (player->is_submerged()) {
+		add_message(texts::get(27));
+	} else {
+		set_current_display(display_mode_uzo);
+	}
+}
+
+
+
+void submarine_interface::goto_bridge()
+{
+	submarine* player = dynamic_cast<submarine*>(mygame->get_player());
+	if (player->is_submerged()) {
+		add_message(texts::get(27));
+	} else {
+		set_current_display(display_mode_bridge);
+	}
+}
+
+
+
+void submarine_interface::goto_map()
+{
+	set_current_display(display_mode_map);
+}
+
+
+
+void submarine_interface::goto_torpedomanagement()
+{
+	set_current_display(display_mode_torpedoroom);
+}
+
+
+
+void submarine_interface::goto_damagecontrol()
+{
+	set_current_display(display_mode_damagestatus);
+}
+
+
+
+void submarine_interface::goto_logbook()
+{
+	set_current_display(display_mode_logbook);
+}
+
+
+
+void submarine_interface::goto_successes()
+{
+	set_current_display(display_mode_successes);
+}
+
+
+
+void submarine_interface::goto_freeview()
+{
+	set_current_display(display_mode_freeview);
+}
+
+
+
+void submarine_interface::goto_TDC()
+{
+	set_current_display(display_mode_tdc);
+}
+
+
+
+void submarine_interface::goto_torpedosettings()
+{
+	set_current_display(display_mode_torpsetup);
+}
+
+
+
+
+
 
 /*
 bool submarine_interface::object_visible(sea_object* so,

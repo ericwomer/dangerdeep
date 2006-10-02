@@ -80,6 +80,19 @@ public:
  protected:
 	unsigned selected_tube;
 
+	void goto_gauges();
+	void goto_periscope();
+	void goto_UZO();
+	void goto_bridge();
+	void goto_map();
+	void goto_torpedomanagement();
+	void goto_damagecontrol();
+	void goto_logbook();
+	void goto_successes();
+	void goto_freeview();
+	void goto_TDC();
+	void goto_torpedosettings();
+
  public:
 	submarine_interface(class game& gm);
 	virtual ~submarine_interface();

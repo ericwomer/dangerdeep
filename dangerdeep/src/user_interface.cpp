@@ -338,7 +338,7 @@ void user_interface::process_input(const SDL_Event& event)
 		if (screen_selector->check_for_mouse_event(event)) {
 			// drag for the menu
 			if (event.type == SDL_MOUSEMOTION
-			    && event.motion.state & SDL_BUTTON_LMASK) {
+			    && event.motion.state & SDL_BUTTON_RMASK) {
 				// drag menu with left mouse button
 				vector2i p = screen_selector->get_pos();
 				vector2i s = screen_selector->get_size();
