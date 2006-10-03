@@ -27,7 +27,7 @@ const char* credits[] = {
 "Viktor Radnai",
 "Andrew Rice",
 "Alexandre Paes",
-"Matt",
+"Matt Lawrence",
 "", "", "", "", "",
 "$80ffc0Graphics",
 "$ffffffLuis Barrancos",

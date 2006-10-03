@@ -84,6 +84,9 @@ public:
 	SDL_Surface* get_SDL_Surface() const { return img; }
 	unsigned get_width() const { return width; };
 	unsigned get_height() const { return height; };
+
+	// call only before leaving the program.
+	static void clear_cache() { cache.clear(); }
 };
 
 #endif

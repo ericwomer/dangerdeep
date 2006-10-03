@@ -195,6 +195,11 @@ void deinit_global_data()
 	delete swordfishimg;
 	delete hedgehogimg;
 	delete panelbackground;
+
+	modelcache.clear();
+	texturecache.clear();
+	imagecache.clear();
+	soundcache.clear();
 }
 
 // display loading progress

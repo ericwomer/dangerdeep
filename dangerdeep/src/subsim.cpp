@@ -1620,6 +1620,7 @@ int mymain(list<string>& args)
 	hsl_career.save(highscoredirectory + HSL_CAREER_NAME);
 	mycfg.save(configdirectory + "config");
 
+	image::clear_cache();
 	deinit_global_data();
 	delete mysys;
 

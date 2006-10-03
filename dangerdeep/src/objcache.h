@@ -44,8 +44,14 @@ class objcachet
 public:
 	objcachet<T>(const std::string& basedir_) : basedir(basedir_) {}
 	~objcachet<T>() {
+		clear();
+	}
+
+	// call to deinit cache
+	void clear() {
 		for (typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.begin(); it != cache.end(); ++it)
 			delete it->second.second;
+		cache.clear();
 	}
 
 	T* find(const std::string& objname) {
