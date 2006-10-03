@@ -76,7 +76,7 @@ inline float perez_function( const float A, const float B, const float C,
 // Constructor
 daysky::daysky()
 {
-	set_turbidity(2.0f);
+    set_turbidity(2.0f);
 	set_sun_position(0.0f, 0.0f);
 }
 
@@ -117,7 +117,7 @@ void daysky::set_sun_position( const float azimuth, const float elevation )
 
 
 // Calculate color
-colorf daysky::get_color( float theta, float phi ) const
+colorf daysky::get_color( float theta, float phi, const float elevation ) const
 {
 	phi = M_PI_2-phi;
 
@@ -178,7 +178,17 @@ colorf daysky::get_color( float theta, float phi ) const
 	tonerepro.xyY_to_RGB(colors);
 	//printf("colors RGB: %f %f %f\n", colors[0], colors[1], colors[2]);
 	//fixme: colors are way too dark
-	float scalefac = 150;
+	
+    // scale is default 100, but this eliminates sky gradient at sunset/sunrise, it is however
+    // good looking at noon, etc.. scale 150 is ok at sunrise/sunset, but too bright at noon.
+    // we need to vary scalefactor from 150 sunrise towards 100 noon, and back to 150 at sunset.
+    
+    float scalefac;
+    if ( elevation >= 0 ) {
+        scalefac = 100 - ( 20 * ( cos(elevation*2) * log(elevation)));
+    }
+    else scalefac = 150;
+    
 	return colorf(colors[0] * scalefac, colors[1] * scalefac, colors[2] * scalefac);
 }
 

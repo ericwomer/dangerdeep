@@ -35,7 +35,7 @@ class daysky {
 	//! Set sun position.
 	void set_sun_position( const float azimuth, const float elevation );
 	//! Get color.
-	colorf get_color( float theta, float phi ) const;
+	colorf get_color( float theta, float phi, const float elevation ) const;
 
  private:
 	struct alphabet {

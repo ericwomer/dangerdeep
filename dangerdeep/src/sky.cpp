@@ -435,7 +435,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	// draw sun, fixme draw flares/halo
 	glDisable(GL_FOG); // no fog on the sun thankyou...
 	vector3 sunpos = sundir * (0.96 * max_view_dist);
-	double suns = max_view_dist/10; // 100;		// make sun ~13x13 pixels
+	double suns = max_view_dist/20; // was 10, 17x17px, needs to be smaller
 	glColor4f(1,1,1,1);
 	//glColor4f(1,1,1,0.25);
 	sunglow /*suntex*/->set_gl_texture();
@@ -463,7 +463,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
 
 	vector3 moonpos = moondir * (0.95 * max_view_dist);
-	double moons = max_view_dist/17;	// make moon ~10x10 pixel
+	double moons = max_view_dist/30;	// make moon smaller (17 = 10x10px)
 	glColor4f(1,1,1,1);
 	moon_map.get_texture()->set_gl_texture();
 	glPushMatrix();
@@ -606,6 +606,7 @@ void sky::rebuild_colors(const game& gm, const vector3& viewpos) const
 
 		// rebuild colors
 		daysky skycol(-sun_azimuth, sun_elevation, turbidity);
+//        daysky skycol(-moon_azimuth, moon_elevation, turbidity);
 
 		std::vector<vector2f>::const_iterator skyangle = skyangles.begin();
 		std::vector<colorf>::iterator skycolor = skycolors.begin();
@@ -613,7 +614,7 @@ void sky::rebuild_colors(const game& gm, const vector3& viewpos) const
 #if 0	//	debug (angles mapped on hemisphere)
 			*skycolor = colorf( skyangle->x/(M_PI*2), skyangle->y/(M_PI/2.0f), 0, sky_alpha );
 #else
-			colorf c = skycol.get_color(skyangle->x, skyangle->y);
+			colorf c = skycol.get_color(skyangle->x, skyangle->y, sun_elevation);
 			c.a = sky_alpha;
 			*skycolor = c;
 #endif
