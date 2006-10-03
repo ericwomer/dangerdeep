@@ -127,9 +127,11 @@ class xml_doc
 	xml_doc(const xml_doc& );
 	xml_doc& operator= (const xml_doc& );
  protected:
-	TiXmlDocument* doc;
+	// can't use auto_ptr here because TiXmlDocument is not yet defined.
+	class TiXmlDocument* doc;
  public:
 	xml_doc(std::string fn);
+	~xml_doc();
 	void load();
 	void save();
 	xml_elem first_child();

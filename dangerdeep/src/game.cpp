@@ -600,6 +600,7 @@ void game::save(const string& savefilename, const string& description) const
 
 string game::read_description_of_savegame(const string& filename)
 {
+	// causes 90mb mem leak fixme
 	xml_doc doc(filename);
 	doc.load();
 	xml_elem sg = doc.child("dftd-savegame");

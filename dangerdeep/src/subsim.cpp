@@ -233,6 +233,8 @@ void loadsavequit_dialogue::quit()
 	}
 }
 
+
+
 void loadsavequit_dialogue::update_list()
 {
 	savegames.clear();

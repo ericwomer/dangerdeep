@@ -286,6 +286,13 @@ xml_doc::xml_doc(std::string fn)
 
 
 
+xml_doc::~xml_doc()
+{
+	delete doc;
+}
+
+
+
 void xml_doc::load()
 {
 	if (!doc->LoadFile()) {
