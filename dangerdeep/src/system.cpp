@@ -56,7 +56,8 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	show_console(false), console_font(0), console_background(0),
 	draw_2d(false), keyqueue(), mouse_xrel(0), mouse_yrel(0), mouse_x(res/2),
 	mouse_y(res*3/8), mouse_b(0), time_passed_while_sleeping(0), sleep_time(0),
-	is_sleeping(false), maxfps(0), last_swap_time(0), screenshot_nr(0)
+	is_sleeping(false), maxfps(0), last_swap_time(0), screenshot_nr(0),
+	periodical_func(0), periodical_arg(0)
 {
 	myassert(res==640||res==800||res==1024||res==1280||res==512, "illegal resolution requested");
 	myassert(!instance, "system construction: system instance already exists");
@@ -399,6 +400,9 @@ list<SDL_Event> system::poll_event_queue()
 //what he wants (if he handles events by himself, he have to flush the key queue each frame)
 list<SDL_Event> system::poll_event_queue()
 {
+	if (periodical_func)
+		periodical_func(periodical_arg);
+
 	list<SDL_Event> events;
 
 	SDL_Event event;
@@ -527,12 +531,14 @@ list<SDL_Event> system::poll_event_queue()
 	return events;
 }
 
+/* obsolete
 void system::get_mouse_motion(int &x, int &y)
 {
 	x = mouse_xrel * int(res_x_2d) / int(res_x);
 	y = mouse_yrel * int(res_y_2d) / int(res_y);
 	mouse_xrel = mouse_yrel = 0;
 }
+*/
 
 void system::get_mouse_position(int &x, int &y)
 {
@@ -555,22 +561,27 @@ SDL_keysym system::get_key()
 	return ks;
 }
 
+/* obsolete
 bool system::is_key_in_queue() const
 {
 	return !keyqueue.empty();
 }
+*/
 	
 bool system::is_key_down(int code) const
 {
 	return (SDL_GetKeyState(0)[code] != 0);
 }
 
+/* obsolete
 void system::flush_key_queue()
 {
 	while (!keyqueue.empty())
 		keyqueue.pop();
 }
+*/
 
+/* obsolete
 SDL_keysym system::getch()
 {
 	do {
@@ -578,6 +589,7 @@ SDL_keysym system::getch()
 	} while (keyqueue.empty());
 	return get_key();
 }
+*/
 
 void system::screenshot()
 {

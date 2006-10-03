@@ -28,77 +28,69 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _MUSIC_H_
 #define _MUSIC_H_
 
-#include "sound.h"
-
+#include <string>
 #include <vector>
-
-using std::vector;
-using std::string;
+#include <SDL_mixer.h>
 
 ///\brief Handles music and background songs.
 class music
 {
- protected:
-
-  int ml_item;
-  int pl_item;
-  int fade_time;
-  bool pl_mode;
-  bool shuffle;
-  string dir;
-
-  vector<Mix_Music *> musiclist;
-
-  vector<int> playlist; // not implemented yet
-
-  void load_list();
-  int next_in_list();
-
  public:
+	///> which mode to use when playing tracks from a play list
+	enum playback_mode {
+		PBM_LOOP_LIST,
+		PBM_LOOP_TRACK,
+		PBM_SHUFFLE_TRACK
+	};
 
-  enum{ stopped, playing, paused };
-  enum{ normal=0, loop=-1 };
+	///> create music handler
+	music();
 
-  static bool use_music;
+	///> destroy music handler
+	~music();
 
-  music();
-  music(const string& dir);
-  ~music();
+	///> append entry to play list
+	void append_track(const std::string& filename);
 
-  void deinit();  // used for waiting for a fade_out before killing the
+	///> set playback mode
+	void set_playback_mode(playback_mode pbm);
 
-  void load(const string& filename);
-  void load_musiclist();
-  void load_musiclist(const string& filename);  // will be used if we desire loading files dynamically
-  void unload_musiclist();
+	///> start playing music, optionally fade it in
+	void play(unsigned fadein = 0);
 
-  void _play(int music,int mode=loop);
-  void stop();
-  void pause();
-  void resume();
-  void next();
+	///> stop playing music, optionally fade it out
+	void stop(unsigned fadeout = 0);
 
-  void fade_in(int item,int timeout=0);   // _fade_in() + pl_mode updates
-  void _fade_in(int music,int timeout=0);
-  void fade_out(int timeout=0);
-  void _fade_out(int timeout=0);
-  void _fade_to(int music, int timeout=0);
-  void fade_to(int item,int timeou=0);     // _fade_to() + pl_mode update
+	///> pause music play
+	void pause();
 
-  void fade_next(int timeout=0);
+	///> resume music play
+	void resume();
 
-  int _current() { return ml_item; }
-  int current() { return ((pl_mode)? pl_item : -1); }
-  int status();
+	///> switch playback to track
+	void play_track(unsigned nr, unsigned fadeouttime = 0, unsigned fadeintime = 0);
 
-  void set_fade_time(int timeout){ fade_time = timeout; }
-  void shuffle_mode(bool onoff) { shuffle = onoff; }
+	///> check play state, will advance to next track if music finished, call that every frame
+	void check_playback();
 
-  void set_playlist(vector<int>& plist);
-  void load_playlist(const string& filename);
-  void clear_playlist();
-  int playlist_size(){ return playlist.size(); }
+	///> set to false if you don't want music.
+	static bool use_music;
+
+ protected:
+	unsigned current_track;
+	bool track_at_end;
+	playback_mode pbm;
+	bool stopped;
+	std::vector<std::string> playlist;
+	// we can't use the ptrvector here, since Mix_Music ptrs must be freed with special function.
+	std::vector<Mix_Music*> musiclist;
+	static music* instance;
+
+	void halt();
+	void play_next_track(unsigned fadetime);
+	void start_play_track(unsigned nr, unsigned fadeintime = 0);
+	static void track_finished();
+	static void check_playback_caller(void* musicptr);
 };
 
 #endif /* __MUSIC_H_ */
-

@@ -20,141 +20,106 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "system.h"
 #include "music.h"
-
+#include "datadirs.h"
+#include "global_data.h"
+#include "error.h"
 #include <sstream>
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <SDL.h>
+#include <SDL_mixer.h>
 
 using namespace std;
 
+
 bool music::use_music = true;
+music* music::instance = 0;
 
 
-
-void music::load( const string& filename )
+music::music()
+	: current_track(0),
+	  track_at_end(false),
+	  pbm(PBM_LOOP_LIST),
+	  stopped(true)
 {
-	if( use_music ){
-
-		Mix_Music *tmp = Mix_LoadMUS( filename.c_str() );
-		if( !tmp ){
-			ostringstream oss;
-			oss << "Unable to load Music file: " << Mix_GetError();
-			sys().add_console(oss.str());
-			return;
-		}
-		musiclist.push_back(tmp);
+	if (instance) {
+		throw error("only one instance of class music at a time valid");
 	}
-}
-
-
-
-void music::load_playlist(const string& filename)
-{
-}
-
-
-
-void music::load_musiclist()
-{
-	const char* files[] = { "ImInTheMood.ogg" , "Betty_Roche-Trouble_Trouble.ogg" };
-	int numfiles = 2;
-
-	for( int i=0; i<numfiles; ++i ){
-		load( dir + string(files[i]) );
-	}
-}
-
-
-
-void music::unload_musiclist()
-{
-	if( Mix_PlayingMusic() ){
-		if( Mix_PausedMusic() )
-			Mix_HaltMusic();
-		else
-			do{}while(Mix_FadingMusic());
-	}
-  
-	vector<Mix_Music *>::iterator it;
-	for( it=musiclist.begin(); it!=musiclist.end(); ++it ){
-		Mix_FreeMusic( *it );
-	}
-	musiclist.clear();
-}
-
-
-
-music::music() : ml_item(0), pl_item(0), fade_time(2000), pl_mode(false), shuffle(false), dir("")
-{
-	musiclist.reserve(20);  // allow up to 20 different tunes loaded to prevent resizing
-	playlist.reserve(20);   // allow up to 20 different tunes in the playlist
-	load_musiclist();
-}
-
-
-
-music::music(const string& _dir) : ml_item(0), pl_item(0), fade_time(2000), pl_mode(false), shuffle(false), dir(_dir)
-{
-	musiclist.reserve(14);
-	load_musiclist();
+	instance = this;
+	Mix_HookMusicFinished(track_finished);
+	sys().set_periodical_function(check_playback_caller, this);
 }
 
 
 
 music::~music()
 {
-	unload_musiclist();
+	sys().set_periodical_function(0, 0);
+	halt();
+  
+	for (vector<Mix_Music*>::iterator it = musiclist.begin(); it != musiclist.end(); ++it) {
+		Mix_FreeMusic(*it);
+	}
+
+	instance = 0;
 }
 
 
 
-int music::next_in_list()
+void music::append_track(const std::string& filename)
 {
-	if( playlist.size()==1 ) return 0;
-
-	if( shuffle ){
-		int r;
-		do{
-			r = rand()%playlist.size();
-		} while( r == pl_item );
-		return r;
-	} else {
-		return ((pl_item+1)> playlist.size())? 0 : (pl_item+1);
+	if (use_music) {
+		Mix_Music *tmp = Mix_LoadMUS((get_sound_dir() + filename).c_str());
+		if (!tmp) {
+			ostringstream oss;
+			oss << "Unable to load Music file: " << Mix_GetError();
+			sys().add_console(oss.str());
+			return;
+		}
+		playlist.push_back(filename);
+		musiclist.push_back(tmp);
 	}
 }
 
 
 
-void music::_play(int music,int mode)
+void music::set_playback_mode(playback_mode pbm_)
 {
-	if( musiclist.size()<1 || !use_music ) return;
-
-	int which = ( music<0 || music>musiclist.size() ) ? 0 : music;
-
-	if( !use_music || !musiclist[which] ) return;
-
-	if( Mix_PlayMusic( musiclist[which], mode )==-1 ){
-		ostringstream oss;
-		oss << "Unable to play Music file: " << Mix_GetError();
-		sys().add_console(oss.str());
-	} else ml_item = which;
-	pl_mode = false;
+	pbm = pbm_;
 }
 
 
 
-void music::stop()
+void music::play(unsigned fadein)
 {
-	if(Mix_PausedMusic()) Mix_ResumeMusic();
-	Mix_HaltMusic();
+	if (!Mix_PlayingMusic()) {
+		stopped = false;
+		start_play_track(current_track, fadein);
+	}
+}
+
+
+
+void music::stop(unsigned fadeout)
+{
+	if (Mix_PausedMusic())
+		Mix_ResumeMusic();
+	if (Mix_PlayingMusic()) {
+		stopped = true;
+		if (fadeout > 0)
+			Mix_FadeOutMusic(int(fadeout));
+		else
+			Mix_HaltMusic();
+	}
 }
 
 
 
 void music::pause()
 {
-	if( Mix_PlayingMusic() && !Mix_PausedMusic() ) Mix_PauseMusic();
+	if (Mix_PlayingMusic() && !Mix_PausedMusic())
+		Mix_PauseMusic();
 }
 
 
@@ -166,100 +131,82 @@ void music::resume()
 
 
 
-int music::status()
+void music::play_track(unsigned nr, unsigned fadeouttime, unsigned fadeintime)
 {
-	if( !Mix_PlayingMusic() )
-		return stopped;
-	else
-		return Mix_PausedMusic() ? paused : playing;
+	stop(fadeouttime);
+	start_play_track(nr, fadeintime);
 }
 
 
 
-void music::_fade_in(int music, int timeout)
+void music::check_playback()
 {
-	if( !use_music ) return;
-	
-	int which = ( music<0 || music>=musiclist.size() )? 0 : music ;
-
-	Mix_FadeInMusic( musiclist[which], 0, (timeout==0)? fade_time : timeout );
-	ml_item = which;
-	pl_mode = false;
+	if (track_at_end && !stopped) {
+		play_next_track(0);
+		track_at_end = false;
+	}
 }
 
 
 
-void music::fade_in(int music, int timeout)
+void music::halt()
 {
-	if( !use_music ) return;
-
-	int which = ( music<0 || playlist.size() )? 0 : music;
-
-	Mix_FadeInMusic( musiclist[playlist[which]], 0, (timeout==0)? fade_time : timeout );
-	ml_item = playlist[which];
-	pl_item = which;
-	pl_mode = true;
-}
-
-
-
-void music::_fade_out(int timeout)
-{
-	fade_out(timeout);
-}
-
-
-
-void music::fade_out(int timeout)
-{
-	if( Mix_PlayingMusic() ){
-		do{}while(Mix_FadingMusic());
-		if( Mix_PausedMusic() )
+	if (Mix_PlayingMusic()) {
+		stopped = true;
+		if (Mix_PausedMusic()) {
 			Mix_HaltMusic();
-		else {
-			Mix_FadeOutMusic( (timeout==0)? fade_time : timeout );
+		} else {
+			while (Mix_FadingMusic()) {
+				SDL_Delay(50);
+			}
 		}
 	}
 }
 
 
 
-void music::_fade_to(int music, int timeout)
+void music::play_next_track(unsigned fadetime)
 {
-	if( Mix_PlayingMusic() ){
-		do{}while(Mix_FadingMusic());
-		if( !Mix_PausedMusic() )
-			fade_out( timeout );
-		else Mix_HaltMusic();
+	switch (pbm) {
+	case PBM_LOOP_LIST:
+		++current_track;
+		if (current_track >= playlist.size())
+			current_track = 0;
+		break;
+	case PBM_LOOP_TRACK:
+		break;
+	case PBM_SHUFFLE_TRACK:
+		current_track = rnd(playlist.size());
+		break;
 	}
-	_fade_in( music, timeout );
+	start_play_track(current_track, fadetime);
 }
 
 
 
-void music::fade_to(int music, int timeout)
+void music::start_play_track(unsigned nr, unsigned fadeintime)
 {
-	if( Mix_PlayingMusic() ){
-		do{}while(Mix_FadingMusic());
-		if( !Mix_PausedMusic() )
-			fade_out( timeout );
-		else Mix_HaltMusic();
-	}
-	fade_in( music, timeout );
-}
-
-
-
-void music::fade_next(int timeout)
-{
-	int music = next_in_list();
- 
-	if( Mix_PlayingMusic() ){
-		do{}while(Mix_FadingMusic());
-		if( Mix_PausedMusic() )
-			Mix_HaltMusic();
+	if (nr < playlist.size()) {
+		current_track = nr;
+		if (fadeintime > 0)
+			Mix_FadeInMusic(musiclist[current_track], 1, fadeintime);
 		else
-			fade_out( timeout );
+			Mix_PlayMusic(musiclist[current_track], 1);
 	}
-	_fade_in( playlist[music], timeout );
+}
+
+
+
+void music::track_finished()
+{
+	if (!instance)
+		return;	// should never happen
+	instance->track_at_end = true;
+}
+
+
+
+void music::check_playback_caller(void* musicptr)
+{
+	((music*)musicptr)->check_playback();
 }

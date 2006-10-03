@@ -170,6 +170,8 @@ void deinit_global_data()
 	delete font_timesbd;
 	delete font_verdana;
 	delete font_verdanabd;
+	delete font_olympiaworn;
+	delete font_damagedtypewriter;
 	delete addleadangle;
 	delete metalbackgr;
 	delete woodbackgr;

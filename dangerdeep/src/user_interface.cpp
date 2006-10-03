@@ -88,20 +88,18 @@ user_interface::user_interface(game& gm) :
 	target(0),
 	current_display(0),
 	current_popup(0),
-	mysky(0),
-	mywater(0),
 	mycoastmap(get_map_dir() + "default.xml")
 {
 	add_loading_screen("coast map initialized");
-	mysky = new sky();
+	mysky.reset(new sky());
 	unsigned water_res_x = unsigned(cfg::instance().geti("water_res_x"));
 	unsigned water_res_y = unsigned(cfg::instance().geti("water_res_y"));
 	if (water_res_x < 16) water_res_x = 16;
 	if (water_res_x > 1024) water_res_x = 1024;
 	if (water_res_y < 16) water_res_y = 16;
 	if (water_res_y > 1024) water_res_y = 1024;
-	mywater = new class water(water_res_x, water_res_y, 0.0);
-	panel = new widget(0, 768-32, 1024, 32, "", 0, 0);
+	mywater.reset(new class water(water_res_x, water_res_y, 0.0));
+	panel.reset(new widget(0, 768-32, 1024, 32, "", 0, 0));
 	widget* panel2 = new widget(0, 0, 1024-128, 32, "", 0, 0);
 	panel->set_background(panelbackground);
 	panel->add_child(panel2);
@@ -120,7 +118,7 @@ user_interface::user_interface(game& gm) :
 	add_loading_screen("user interface initialized");
 
 	// create screen selector widget
-	screen_selector = new widget(0, 0, 256, 32, "", 0, 0);
+	screen_selector.reset(new widget(0, 0, 256, 32, "", 0, 0));
 	screen_selector->set_background(panelbackground);
 
 	// create weather effects textures
@@ -131,7 +129,7 @@ user_interface::user_interface(game& gm) :
 #define NR_OF_RAIN_DROPS 800
 #define RAIN_TEX_W 256
 #define RAIN_TEX_H 256
-	raintex.resize(NR_OF_RAIN_FRAMES);
+	raintex.reserve(NR_OF_RAIN_FRAMES);
 	vector<Uint8> raintmptex(RAIN_TEX_W * RAIN_TEX_H * 2);
 
 	for (unsigned j = 0; j < NR_OF_RAIN_FRAMES; ++j) {
@@ -151,7 +149,7 @@ user_interface::user_interface(game& gm) :
 			raintmptex[(RAIN_TEX_W*pos.y + pos.x) * 2 + 0] = c;
 			raintmptex[(RAIN_TEX_W*pos.y + pos.x) * 2 + 1] = 255;
 		}
-		raintex[j] = new texture(&raintmptex[0], RAIN_TEX_W, RAIN_TEX_H, GL_LUMINANCE_ALPHA, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, false);
+		raintex.push_back(new texture(&raintmptex[0], RAIN_TEX_W, RAIN_TEX_H, GL_LUMINANCE_ALPHA, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, false));
 	}
 #endif
 	// snow
@@ -160,7 +158,7 @@ user_interface::user_interface(game& gm) :
 #define NR_OF_SNOW_FLAKES 2000
 #define SNOW_TEX_W 256
 #define SNOW_TEX_H 256
-	snowtex.resize(NR_OF_SNOW_FRAMES);
+	snowtex.reserve(NR_OF_SNOW_FRAMES);
 	vector<Uint8> snowtmptex(SNOW_TEX_W * SNOW_TEX_H * 2, 255);
 	vector<vector2i> snowflakepos(NR_OF_SNOW_FLAKES);
 	vector<int> snowxrand(NR_OF_SNOW_FRAMES);
@@ -217,7 +215,7 @@ user_interface::user_interface(game& gm) :
 		osg << "P5\n"<<SNOW_TEX_W<<" "<<SNOW_TEX_H<<"\n255\n";
 		osg.write((const char*)(&snowtmptex[0]), SNOW_TEX_W * SNOW_TEX_H);
 */
-		snowtex[i] = new texture(&snowtmptex[0], SNOW_TEX_W, SNOW_TEX_H, GL_LUMINANCE_ALPHA, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, false);
+		snowtex.push_back(texture(&snowtmptex[0], SNOW_TEX_W, SNOW_TEX_H, GL_LUMINANCE_ALPHA, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, false));
 	}
 #endif
 
@@ -237,22 +235,6 @@ user_interface* user_interface::create(game& gm)
 
 user_interface::~user_interface ()
 {
-	for (vector<user_display*>::iterator it = displays.begin(); it != displays.end(); ++it) {
-		delete *it;
-	}
-
-	delete panel;
-
-	delete screen_selector;
-
-	delete mysky;
-	delete mywater;
-
-	for (unsigned i = 0; i < raintex.size(); ++i)
-		delete raintex[i];
-	for (unsigned i = 0; i < snowtex.size(); ++i)
-		delete snowtex[i];
-
 	particle::deinit();
 }
 

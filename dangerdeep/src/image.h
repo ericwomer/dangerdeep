@@ -44,6 +44,7 @@ protected:
 		const image* object;		// for comparison
 		unsigned time_stamp;	// for cache handling
 		unsigned gltx, glty;	// no. of textures in x and y direction
+		// we can't use the ptrvector here, since cache_entry objects can be copied.
 		std::vector<texture*> textures;
 		void generate(const image* obj);
 		cache_entry();

@@ -152,6 +152,7 @@ image::image(const string& s) :
 	ostringstream oss2; oss2 << "Image system mem usage " << mem_alloced << " vs " << mem_freed;
 	sys().add_console(oss2.str());
 #endif
+//	printf("%u allocimage %p %s\n", sys().millisec(), this, s.c_str());
 }
 
 
@@ -176,6 +177,7 @@ image::~image()
 
 	if (img)
 		SDL_FreeSurface(img);
+//	printf("%u freeimage %p\n", sys().millisec(), this);
 }
 
 

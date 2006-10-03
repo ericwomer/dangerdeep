@@ -498,6 +498,7 @@ texture::texture(const string& filename, mapping_mode mapping_, clamping_mode cl
 	SDL_Surface* teximage = read_from_file(filename);
 	sdl_init(teximage, 0, 0, teximage->w, teximage->h, makenormalmap, detailh, rgb2grey);
 	SDL_FreeSurface(teximage);
+//	printf("%u alloctex1 %p %s\n", sys().millisec(), this, filename.c_str());
 }	
 
 
@@ -509,6 +510,7 @@ texture::texture(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, u
 	mapping = mapping_;
 	clamping = clamp;
 	sdl_init(teximage, sx, sy, sw, sh, makenormalmap, detailh, rgb2grey);
+//	printf("%u alloctex2 %p SDLsurf %u %u %u %u\n", sys().millisec(), this, sx, sy, sw, sh);
 }
 
 
@@ -530,6 +532,7 @@ texture::texture(const vector<Uint8>& pixels, unsigned w, unsigned h, int format
 	format = format_;
 
 	init(pixels, makenormalmap, detailh);
+//	printf("%u alloctex3 %p Pixels %u %u\n", sys().millisec(), this, w, h);
 }
 
 
@@ -561,6 +564,7 @@ texture::texture(unsigned w, unsigned h, int format_,
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magfilter[mapping]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clampmodes[clamping]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
+//	printf("%u alloctex4 %p EMPTY %u %u\n", sys().millisec(), this, w, h);
 }
 
 
@@ -579,6 +583,7 @@ texture::~texture()
 	sys().add_console(oss2.str());
 #endif
 	glDeleteTextures(1, &opengl_name);
+//	printf("%u freetex %p\n", sys().millisec(), this);
 }
 
 

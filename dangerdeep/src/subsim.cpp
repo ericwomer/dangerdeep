@@ -280,12 +280,7 @@ void show_halloffame(const highscorelist& hsl)
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 	hsl.show(&w);
 	w.run(0, false);
-	if( mmusic->status()==music::paused && mmusic->_current()==0 )
-	  mmusic->resume();
-	else if( mmusic->status()!=music::playing || mmusic->_current()!=0 ){
-	  mmusic->_fade_out(500);
-	  mmusic->_play(0);
-	}
+	mmusic->play_track(0, 500);
 }
 void show_halloffame_mission() { show_halloffame(hsl_mission); }
 void show_halloffame_career() { show_halloffame(hsl_career); }
@@ -438,7 +433,6 @@ void show_credits()
 //
 void run_game(game* gm)
 {
-        mmusic->fade_out();
 	widget::theme* gametheme =
 		new widget::theme("widgetelements_game.png", "widgeticons_game.png",
 		font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64));
@@ -456,12 +450,7 @@ void run_game(game* gm)
 //			if (state == game::mission_complete)
 
 			if (state == game::player_killed) {
-			  if( mmusic->status()==music::paused && mmusic->_current()==1 )
-			    mmusic->resume();
-			  else if( mmusic->status()!=music::playing || mmusic->_current()!=1 ){
-			    mmusic->_fade_out(500);
-			    mmusic->_play(1);
-			  }
+				mmusic->play_track(1, 500);
 				widget w(0, 0, 1024, 768, "", 0, killedimg);
 				widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(103));
 				w.add_child(wm);
@@ -478,10 +467,7 @@ void run_game(game* gm)
 			//if (q == 1)
 				break;
 		} else {
-		        if( mmusic->status()==music::paused && mmusic->_current()==1 )
-			  mmusic->resume();
-			else if( mmusic->status()!=music::playing || mmusic->current()!=1)
-			  mmusic->_play(1);
+			mmusic->play_track(1, 500);
 			loadsavequit_dialogue dlg(gm);
 			int q = dlg.run(0, false);
 			// replace game and ui if new game was loaded
@@ -498,16 +484,11 @@ void run_game(game* gm)
 			}
 			//replace ui after loading!!!!
 			if (q == 1){
-				if( mmusic->status()==music::paused && mmusic->_current()==1 ){
-					mmusic->resume();
-				} else if( mmusic->status()!=music::playing || mmusic->_current()!=1 ){
-					mmusic->_fade_out(500);
-					mmusic->_play(1);
-				}
+				mmusic->play_track(1, 500);
 				break;
 			}
 			if( q == 0 ){
-				mmusic->_fade_out(1000);
+				//mmusic->_fade_out(1000);
 			}
 		}
 		//SDL_ShowCursor(SDL_DISABLE);
@@ -527,7 +508,6 @@ void run_game(game* gm)
 //
 void run_game_editor(game* gm)
 {
-        mmusic->fade_out();
 	widget::theme* gametheme =
 		new widget::theme("widgetelements_game.png", "widgeticons_game.png",
 		font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64));
@@ -541,10 +521,7 @@ void run_game_editor(game* gm)
 		game::run_state state = gm->exec();
 		widget::replace_theme(tmp);
 
-		if( mmusic->status()==music::paused && mmusic->_current()==1 )
-			mmusic->resume();
-		else if( mmusic->status()!=music::playing || mmusic->current()!=1)
-			mmusic->_play(1);
+		mmusic->play_track(1, 500);
 		loadsavequit_dialogue dlg(gm);
 		int q = dlg.run(0, false);
 		// replace game and ui if new game was loaded
@@ -561,16 +538,11 @@ void run_game_editor(game* gm)
 		}
 		//replace ui after loading!!!!
 		if (q == 1){
-			if( mmusic->status()==music::paused && mmusic->_current()==1 ){
-				mmusic->resume();
-			} else if( mmusic->status()!=music::playing || mmusic->_current()!=1 ){
-				mmusic->_fade_out(500);
-				mmusic->_play(1);
-			}
+			mmusic->play_track(1, 500);
 			break;
 		}
 		if( q == 0 ){
-			mmusic->_fade_out(1000);
+			//mmusic->_fade_out(1000);
 		}
 	}
 	delete gametheme;
@@ -1528,9 +1500,22 @@ int mymain(list<string>& args)
 	else
 		music::use_music = false;
 
-	mmusic = auto_ptr<music>( new music(get_sound_dir()) );
+	mmusic = auto_ptr<music>(new music());
+/* test:
+	mmusic->append_track("ping.ogg");
+	mmusic->append_track("liquidblast.ogg");
+	mmusic->append_track("shell explosion.ogg");
+*/
+	mmusic->append_track("ImInTheMood.ogg");
+	mmusic->append_track("Betty_Roche-Trouble_Trouble.ogg");
+	mmusic->append_track("theme.ogg");
+	mmusic->append_track("Auf_Feindfahrt_fast.ogg");
+	mmusic->append_track("outside_underwater.ogg");
+	mmusic->append_track("Auf_Feindfahrt_environmental.ogg");
+	mmusic->append_track("Auf_Feindfahrt.ogg");
 	add_loading_screen("Music list loaded");
-	mmusic->_play(0);
+	//mmusic->set_playback_mode(music::PBM_SHUFFLE_TRACK);
+	mmusic->play();
 	
 	widget::set_theme(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
 					    font_olympiaworn,
@@ -1621,7 +1606,7 @@ int mymain(list<string>& args)
 		} while (retval != 0);
 	}
 
-	mmusic->fade_out(2000);
+	mmusic->stop(1000);
 	mmusic.reset();
 
 	// deinit sound

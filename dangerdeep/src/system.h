@@ -79,18 +79,24 @@ public:
 	// We have to translate the events and handle screen res, mouse pos/movement
 	//must be correct also for subpixel cases! big fixme!
 
+	///> set a function that is called whenever poll_event_queue is called
+	void set_periodical_function(void (*periodical)(void* arg), void* arg) {
+		periodical_func = periodical;
+		periodical_arg = arg;
+	}
+
 //these functions are useless with new poll event queue
-	void get_mouse_motion(int &x, int &y);
+//	void get_mouse_motion(int &x, int &y);
 	void get_mouse_position(int &x, int &y);
 	// get mouse button state as mask of button_type
 	int get_mouse_buttons() const { return mouse_b; }
 	// get SDL code of next key (0 if no key in queue)
 	SDL_keysym get_key();
-	bool is_key_in_queue() const;
+//	bool is_key_in_queue() const;
 	bool is_key_down(int code) const;
-	void flush_key_queue();
+//	void flush_key_queue();
 	// wait for keypress
-	SDL_keysym getch();
+//	SDL_keysym getch();
 ///-------
 
 	void screen_resize(unsigned w, unsigned h, double nearz, double farz);
@@ -171,6 +177,9 @@ private:
 	
 	int screenshot_nr;
 	string screenshot_dir;
+
+	void (*periodical_func)(void* arg);
+	void* periodical_arg;
 };
 
 // to make user's code even shorter

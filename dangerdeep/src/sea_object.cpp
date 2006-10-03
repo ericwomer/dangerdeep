@@ -130,7 +130,7 @@ double sea_object::get_turn_acceleration() const
 void sea_object::set_sensor ( sensor_system ss, sensor* s )
 {
 	if ( ss >= 0 && ss < last_sensor_system ){
-		sensors[ss] = s;
+		sensors.reset(size_t(ss), s);
 	}
 }
 
@@ -351,8 +351,6 @@ sea_object::~sea_object()
 	if (skin_name.length() > 0)
 		mymodel->unregister_layout(skin_name);
 	modelcache.unref(mymodel);
-	for (unsigned i = 0; i < sensors.size(); i++)
-		delete sensors[i];
 }
 
 

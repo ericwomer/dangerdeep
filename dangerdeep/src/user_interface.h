@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "sea_object.h"
 #include "color.h"
 #include "coastmap.h"
-
+#include "ptrvector.h"
 #include "user_display.h"
 #include "user_popup.h"
 
@@ -53,9 +53,9 @@ protected:
 	// command panel, to submarine_interface!
 	// display texts above panel, fading out, no widget! fixme
 	bool panel_visible;
-	class widget* panel;
+	std::auto_ptr<class widget> panel;
 	class widget_text* panel_valuetexts[6];
-	class widget* screen_selector;
+	std::auto_ptr<class widget> screen_selector;
 	bool screen_selector_visible;
 
 	/// holds the last n messages. They're displayed above the panel and fading out over time.
@@ -73,22 +73,22 @@ protected:
 	mutable unsigned current_display;
 
 	// fixme replace the above with: THE ONE AND ONLY DATA UI SHOULD HAVE
-	std::vector<user_display*> displays;
+	ptrvector<user_display> displays;
 
 	// which popup is shown (0 = none)
 	mutable unsigned current_popup;
 
 	// possible popups
-	std::vector<user_popup*> popups;
+	ptrvector<user_popup> popups;
 
 	// environmental data
-	class sky* mysky;		// the one and only sky
-	class water* mywater;		// the ocean water
+	std::auto_ptr<class sky> mysky;	// the one and only sky
+	std::auto_ptr<class water> mywater;	// the ocean water
 	coastmap mycoastmap;	// this may get moved to game.h, yet it is used for display only, that's why it is here
 
 	// weather graphics
-	std::vector<texture*> raintex;	// images (animation) of rain drops
-	std::vector<texture*> snowtex;	// images (animation) of snow flakes
+	ptrvector<class texture> raintex;	// images (animation) of rain drops
+	ptrvector<class texture> snowtex;	// images (animation) of snow flakes
 
 	// free view mode
 //	float freeviewsideang, freeviewupang;	// global spectators viewing angles
@@ -131,8 +131,8 @@ public:
 	// create ui matching to player type (requested from game)
 	static user_interface* create(game& gm);
 
-	const sky& get_sky() const { return *mysky; }
-	const water& get_water() const { return *mywater; }
+	const sky& get_sky() const { return *(mysky.get()); }
+	const water& get_water() const { return *(mywater.get()); }
 	const coastmap& get_coastmap() const { return mycoastmap; }
 
 	// helper functions

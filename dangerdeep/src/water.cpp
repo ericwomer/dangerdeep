@@ -1833,6 +1833,7 @@ void water::generate_subdetail_and_bumpmap()
 
 	// fixme: gltexsubimage faster than glteximage, a reset/creation of new
 	// texture is not necessary!
+	//fixme: es werden regelmäßig neue texturen angelegt, das könnte das hier sein!
 	water_bumpmap.reset(new texture(waveheight_subdetail, subdetail_size, subdetail_size,
 					GL_LUMINANCE,
 #if 0

@@ -76,35 +76,35 @@ submarine_interface::submarine_interface(game& gm) :
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 
 	displays.resize(nr_of_displays);
-	displays[display_mode_gauges] = new sub_gauges_display(*this);
-	displays[display_mode_periscope] = new sub_periscope_display(*this);
-	displays[display_mode_uzo] = new sub_uzo_display(*this);
-	displays[display_mode_bridge] = new sub_bridge_display(*this);
-	displays[display_mode_map] = new map_display(*this);
-	displays[display_mode_torpedoroom] = new sub_torpedo_display(*this);
-	displays[display_mode_damagestatus] = new sub_damage_display(*this);
-	displays[display_mode_logbook] = new logbook_display(*this);
-	//displays[display_mode_successes] = new ships_sunk_display(*this);
+	displays.reset(display_mode_gauges, new sub_gauges_display(*this));
+	displays.reset(display_mode_periscope, new sub_periscope_display(*this));
+	displays.reset(display_mode_uzo, new sub_uzo_display(*this));
+	displays.reset(display_mode_bridge, new sub_bridge_display(*this));
+	displays.reset(display_mode_map, new map_display(*this));
+	displays.reset(display_mode_torpedoroom, new sub_torpedo_display(*this));
+	displays.reset(display_mode_damagestatus, new sub_damage_display(*this));
+	displays.reset(display_mode_logbook, new logbook_display(*this));
+	//displays.reset(display_mode_successes, new ships_sunk_display(*this));
 	switch (player->get_hearing_device_type()) {
 	case submarine::hearing_device_KDB:
-		displays[display_mode_successes] = new sub_kdb_display(*this);
+		displays.reset(display_mode_successes, new sub_kdb_display(*this));
 		break;
 	default:
 	case submarine::hearing_device_GHG:
-		displays[display_mode_successes] = new sub_ghg_display(*this);
+		displays.reset(display_mode_successes, new sub_ghg_display(*this));
 		break;
 	case submarine::hearing_device_BG:
-		displays[display_mode_successes] = new sub_bg_display(*this);
+		displays.reset(display_mode_successes, new sub_bg_display(*this));
 		break;
 	}
-	displays[display_mode_freeview] = new freeview_display(*this);
-	displays[display_mode_tdc] = new sub_tdc_display(*this);
-	displays[display_mode_torpsetup] = new sub_torpsetup_display(*this);
+	displays.reset(display_mode_freeview, new freeview_display(*this));
+	displays.reset(display_mode_tdc, new sub_tdc_display(*this));
+	displays.reset(display_mode_torpsetup, new sub_torpsetup_display(*this));
 
 	popups.resize(nr_of_popups);
-	popups[popup_mode_control] = new sub_control_popup(*this);
-	popups[popup_mode_tdc] = new sub_tdc_popup(*this);
-	popups[popup_mode_ecard] = new sub_ecard_popup(*this);
+	popups.reset(popup_mode_control, new sub_control_popup(*this));
+	popups.reset(popup_mode_tdc, new sub_tdc_popup(*this));
+	popups.reset(popup_mode_ecard, new sub_ecard_popup(*this));
 	
 	player->start_throttle_sound();
 

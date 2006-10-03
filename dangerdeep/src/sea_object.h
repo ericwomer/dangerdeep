@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define SEA_OBJECT_H
 
 #include <string>
-#include <vector>
+#include "ptrvector.h"
 #include <new>
 
 #include "vector3.h"
@@ -168,7 +168,7 @@ protected:
 	alive_status alive_stat;	// [SAVE]
 
 	/// Sensor systems, created after data in spec file
-	std::vector<sensor*> sensors;
+	ptrvector<sensor> sensors;
 	
 	// fixme: this is per model/type only. it is a waste to store it for every object
 	std::string descr_near, descr_medium, descr_far;	// read from spec file
