@@ -61,7 +61,7 @@ class torpedo_water_splash : public water_splash
 {
  public:
 	torpedo_water_splash(game& gm, const vector3& pos)
-		: water_splash(gm, pos, 0.25, 12.5) {}
+		: water_splash(gm, pos, 0.4, 20.0) {}
 };
 
 
@@ -70,7 +70,7 @@ class depth_charge_water_splash : public water_splash
 {
  public:
 	depth_charge_water_splash(game& gm, const vector3& pos)
-		: water_splash(gm, pos, 0.5, 25.0) {}
+		: water_splash(gm, pos, 0.6, 30.0) {}
 };
 
 
@@ -79,7 +79,7 @@ class gun_shell_water_splash : public water_splash
 {
  public:
 	gun_shell_water_splash(game& gm, const vector3& pos)
-		: water_splash(gm, pos, 0.1, 6.0) {}
+		: water_splash(gm, pos, 0.25, 12.5) {}
 };
 
 #endif

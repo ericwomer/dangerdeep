@@ -351,11 +351,26 @@ void particle::display_all(const vector<particle*>& pts, const vector3& viewpos,
 
 	vector<particle_dist> pds;
 	pds.reserve(pts.size());
+	// Note! we need to compute pp to sort the particles, so this can't go to vertex shaders.
+	// but this computation is not costly.
 	for (vector<particle*>::const_iterator it = pts.begin(); it != pts.end(); ++it) {
 		vector3 pp = (mvtrans + (*it)->get_pos() - viewpos);
 		pds.push_back(particle_dist(*it, pp.square_length(), pp));
 	}
 	// this could be a huge performance killer.... fixme
+	// how to solve this problem: particles are rendered in groups most of the time,
+	// e.g. smoke in streams. Sort only this groups, then sort inside the group.
+	// Use insertion or selection sort and KEEP OLD SORTING INFORMATION.
+	// The order doesn't change from frame to frame much, so insertion or selection sort
+	// give nearly O(n) performance.
+	// Only problem is when groups overlap, like crossing smoke streams, this can give
+	// ugly, nasty effects.
+	// Maybe just keeping the order gives enough performance boost. Two problems here:
+	// 1) we don't know what std::sort() does, so implement own sorting algo.
+	// 2) the set of particles grows/shrinks dynamically, so the sorting algorithm
+	//    must be able to handle that.
+	// fixme: measure this function to see if it is worth to get optimized.
+	// it uses less than 2ms even for medium sized convoys (10-20 ships in sight)
 	std::sort(pds.begin(), pds.end());
 
 	glDisable(GL_LIGHTING);
@@ -365,14 +380,17 @@ void particle::display_all(const vector<particle*>& pts, const vector3& viewpos,
 	for (vector<particle_dist>::iterator it = pds.begin(); it != pds.end(); ++it) {
 		const particle& part = *(it->pt);
 		const vector3& z = -it->projpos;
+		// fixme: these computations should be deferred to the vertex shaders.
 		vector3 y = vector3(0, 0, 1);
 		vector3 x = y.cross(z).normal();
+		// check if we have true billboarding vs. z-aligned billboarding.
 		if (!part.is_z_up())//fixme
 			y = z.cross(x).normal();
 		double w2 = part.get_width()/2;
 		double h = part.get_height();
 		double hb, ht;
 		if (part.tex_centered()) {
+			// always true except for splashes, which are obsolete.
 			ht = h * 0.5;
 			hb = -ht;
 		} else {

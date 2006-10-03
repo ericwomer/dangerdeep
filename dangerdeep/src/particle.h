@@ -142,6 +142,7 @@ class explosion_particle : public particle
 {
 	unsigned extype;	// which texture
 public:
+	// is_z_up could be false for this kind of particle
 	explosion_particle(const vector3& pos);
 	~explosion_particle() {}
 	double get_width() const;
@@ -156,6 +157,7 @@ class fire_particle : public particle
 {
 //	unsigned firetype;	// which texture
 public:
+	// only particle where is_z_up should be true.
 	fire_particle(const vector3& pos);
 	~fire_particle() {}
 	void simulate(game& gm, double delta_t);
@@ -170,6 +172,7 @@ public:
 class spray_particle : public particle
 {
 public:
+	// is_z_up could be false for this kind of particle
 	spray_particle(const vector3& pos, const vector3& velo);
 	~spray_particle() {}
 	double get_width() const;
@@ -180,6 +183,7 @@ public:
 
 
 
+// obsolete from here...
 class torpedo_water_splash_particle : public particle
 {
 	virtual bool tex_centered() const { return false; }

@@ -44,6 +44,35 @@ void water_splash::render_cylinder(double radius_bottom, double radius_top, doub
 		glVertex3f(radius_top * ca, radius_top * sa, height);
 	}
 	glEnd();
+
+
+/* test code: render billboard sprite in the center of the cylinder - doesn't work
+	matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
+	vector3 mvtrans = -mv.inverse().column3(3);
+
+	const vector3& z = mvtrans;
+	vector3 y = vector3(0, 0, 1);
+	vector3 x = y.cross(z).normal();
+	double w2 = radius_bottom/2;
+	double h = height;
+	double hb = -h*0.5, ht = h*0.5;
+	vector3 pp;
+	vector3 coord;
+	glBegin(GL_QUADS);
+	coord = pp + x * -w2 + y * ht;
+	glTexCoord2f(0, 0);
+	glVertex3dv(&coord.x);
+	coord = pp + x * -w2 + y * hb;
+	glTexCoord2f(0, 1);
+	glVertex3dv(&coord.x);
+	coord = pp + x * w2 + y * hb;
+	glTexCoord2f(1, 1);
+	glVertex3dv(&coord.x);
+	coord = pp + x * w2 + y * ht;
+	glTexCoord2f(1, 0);
+	glVertex3dv(&coord.x);
+	glEnd();
+*/
 }
 
 
