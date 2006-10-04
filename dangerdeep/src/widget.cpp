@@ -38,6 +38,7 @@ using std::string;
 using std::set;
 using std::auto_ptr;
 using std::ostringstream;
+using std::cout;
 
 widget::theme* widget::globaltheme = 0;
 widget* widget::focussed = 0;
@@ -115,8 +116,78 @@ widget::~widget()
 void widget::add_child(widget* w)
 {
 	w->set_parent(this);
-	w->move_pos(pos);
 	children.push_back(w);
+	w->move_pos(pos);
+}
+
+
+
+void widget::add_child_near_last_child(widget *w, int distance, unsigned direction)
+{
+	if (distance < 0)
+		distance = globaltheme->frame_size() * -distance;
+	if (children.empty()) {
+		// place near top of window, handle title bar
+		vector2i cpos = vector2i(distance, distance) + get_pos();
+		if (text.length() > 0) {
+			cpos.y += globaltheme->frame_size() * 2
+				+ globaltheme->myfont->get_height();
+		}
+		w->move_pos(cpos);
+		w->set_parent(this);
+		children.push_back(w);
+		return;
+	}
+	const widget* lc = children.back();
+	vector2i lcp = lc->get_pos();
+	switch (direction) {
+	case 0:	// above
+		lcp.y -= distance + w->get_size().y;
+		break;
+	case 1:	// right
+		lcp.x += distance + lc->get_size().x;
+		break;
+	case 2:	// below
+	default:
+		lcp.y += distance + lc->get_size().y;
+		break;
+	case 3:	// left
+		lcp.x -= distance + w->get_size().x;
+		break;
+	}
+	w->move_pos(lcp);
+	w->set_parent(this);
+	children.push_back(w);
+}
+
+
+
+void widget::clip_to_children_area()
+{
+	// no children? nothing to clip.
+	if (children.empty())
+		return;
+	list<widget*>::const_iterator it = children.begin();
+	vector2i pmin = (*it)->get_pos();
+	vector2i pmax = (*it)->get_pos() + (*it)->get_size();
+	for (++it; it != children.end(); ++it) {
+		pmin = pmin.min((*it)->get_pos());
+		pmax = pmax.max((*it)->get_pos() + (*it)->get_size());
+	}
+	// now add border size.
+	int bs = globaltheme->frame_size() * 2;
+	pmin.x -= bs;
+	pmin.y -= bs;
+	pmax.x += bs;
+	pmax.y += bs;
+	// now handle possible title bar
+	if (text.length() > 0) {
+		pmin.y -= globaltheme->frame_size() * 2
+			+ globaltheme->myfont->get_height();
+	}
+	// change size
+	pos = pmin;	// do not call set_pos/move_pos, as that moves children as well.
+	set_size(pmax - pmin);
 }
 
 void widget::remove_child(widget* w)

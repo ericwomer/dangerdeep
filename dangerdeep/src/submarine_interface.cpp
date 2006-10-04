@@ -114,8 +114,7 @@ submarine_interface::submarine_interface(game& gm) :
 // 	for (unsigned i = 247; i <= 260; ++i)
 // 		maxs = std::max(widget::get_theme()->myfont->get_size(texts::get(i)).x, maxs);
 	widget_menu* screen_selector_menu = new widget_menu(0, 0, /*maxs + 16*/ 256, 32, texts::get(247));
-	screen_selector->set_size(vector2i(256, 32*(1+12+1)));
-	screen_selector->add_child(screen_selector_menu);
+	screen_selector->add_child_near_last_child(screen_selector_menu);
 	screen_selector_menu->set_entry_spacing(0);
 	typedef widget_caller_button<submarine_interface, void (submarine_interface::*)()> wcbsubi;
 	screen_selector_menu->add_entry(texts::get(248), new wcbsubi(this, &submarine_interface::goto_gauges));
@@ -131,6 +130,8 @@ submarine_interface::submarine_interface(game& gm) :
 	screen_selector_menu->add_entry(texts::get(258), new wcbsubi(this, &submarine_interface::goto_TDC));
 	screen_selector_menu->add_entry(texts::get(259), new wcbsubi(this, &submarine_interface::goto_torpedosettings));
 	screen_selector_menu->add_entry(texts::get(260), new widget_set_button<bool>(screen_selector_visible, false));
+	screen_selector->clip_to_children_area();
+	screen_selector->set_pos(vector2i(0, 0));
 
 	// note! we could add a second menu with the most common actions here...
 

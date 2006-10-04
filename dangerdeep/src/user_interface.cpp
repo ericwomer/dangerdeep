@@ -54,6 +54,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "cfg.h"
 #include "keys.h"
 #include "global_data.h"
+#include "music.h"
 using namespace std;
 
 const double message_vanish_time = 10;
@@ -82,6 +83,7 @@ user_interface::user_interface(game& gm) :
 	time_scale(1),
 	panel_visible(true),
 	screen_selector_visible(false),
+	playlist_visible(false),
 	bearing(0),
 	elevation(90),
 	bearing_is_relative(true),
@@ -120,6 +122,22 @@ user_interface::user_interface(game& gm) :
 	// create screen selector widget
 	screen_selector.reset(new widget(0, 0, 256, 32, "", 0, 0));
 	screen_selector->set_background(panelbackground);
+
+	// create playlist widget
+	music_playlist.reset(new widget(0, 0, 384, 512, "Music playlist", 0, 0));
+	music_playlist->set_background(panelbackground);
+	widget_list* playlist = new widget_list(0, 0, 384, 512);
+	music_playlist->add_child_near_last_child(playlist);
+	music& m = music::inst();
+	for (vector<string>::const_iterator it = m.get_playlist().begin();
+	     it != m.get_playlist().end(); ++it) {
+		playlist->append_entry(*it);
+	}
+	// fixme: use checkbox here...
+	music_playlist->add_child_near_last_child(new widget_button(0, 0, 384, 32, "Mute music"));
+	music_playlist->add_child_near_last_child(new widget_button(0, 0, 384, 32, "Close window"));
+	music_playlist->clip_to_children_area();
+	music_playlist->set_pos(vector2i(600, 0));
 
 	// create weather effects textures
 
@@ -295,6 +313,14 @@ void user_interface::display() const
 		sys().prepare_2d_drawing();
 		glColor3f(1,1,1);
 		screen_selector->draw();
+		sys().unprepare_2d_drawing();
+	}
+
+	// draw music playlist if visible
+	if (playlist_visible) {
+		sys().prepare_2d_drawing();
+		glColor3f(1,1,1);
+		music_playlist->draw();
 		sys().unprepare_2d_drawing();
 	}
 }

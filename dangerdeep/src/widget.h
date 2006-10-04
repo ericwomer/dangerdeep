@@ -115,6 +115,12 @@ public:
 	widget(int x, int y, int w, int h, const string& text_, widget* parent_ = 0, const image* backgr = 0);
 	virtual ~widget();
 	virtual void add_child(widget* w);
+	/** same as add_child, but place new child near last child.
+	    Give distance to last child and direction 0-3 (above, right, below, left)
+	    A distance < 0 means use theme border width * -distance (default children distance) */
+	virtual void add_child_near_last_child(widget *w, int distance = -2, unsigned direction = 2);
+	///> recompute size so that window embraces all children exactly.
+	virtual void clip_to_children_area();
 	virtual void remove_child(widget* w);
 	virtual void remove_children();
 	virtual bool is_mouse_over(int mx, int my) const;

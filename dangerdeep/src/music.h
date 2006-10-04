@@ -76,6 +76,18 @@ class music
 	///> set to false if you don't want music.
 	static bool use_music;
 
+	///> get list of all tracks
+	const std::vector<std::string>& get_playlist() const { return playlist; }
+
+	///> get current track number
+	unsigned get_current_track() const { return current_track; }
+
+	///> is music playing?
+	bool is_playing() const;
+
+	///> get the only instance of class music
+	static music& inst() { return *instance; }
+
  protected:
 	unsigned current_track;
 	bool track_at_end;

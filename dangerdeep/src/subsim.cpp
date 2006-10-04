@@ -439,7 +439,10 @@ void run_game(game* gm)
 		new widget::theme("widgetelements_game.png", "widgeticons_game.png",
 		font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64));
 	reset_loading_screen();
+	// embrace user interface generation with right theme set!
+	widget::theme* tmp = widget::replace_theme(gametheme);
 	user_interface* ui = user_interface::create(*gm);
+	widget::replace_theme(tmp);
 	while (true) {
 		widget::theme* tmp = widget::replace_theme(gametheme);
 		gm->set_user_interface(ui);
@@ -482,7 +485,10 @@ void run_game(game* gm)
 				delete gm;
 				delete ui;
 				gm = new game(dlg.get_gamefilename_to_load());
+				// embrace user interface generation with right theme set!
+				widget::theme* tmp = widget::replace_theme(gametheme);
 				ui = user_interface::create(*gm);
+				widget::replace_theme(tmp);
 			}
 			//replace ui after loading!!!!
 			if (q == 1){
@@ -514,7 +520,10 @@ void run_game_editor(game* gm)
 		new widget::theme("widgetelements_game.png", "widgeticons_game.png",
 		font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64));
 	reset_loading_screen();
+	// embrace user interface generation with right theme set!
+	widget::theme* tmp = widget::replace_theme(gametheme);
 	user_interface* ui = user_interface::create(*gm);
+	widget::replace_theme(tmp);
 	// game is initially paused.
 	ui->pause_game(true);
 	while (true) {
@@ -536,7 +545,10 @@ void run_game_editor(game* gm)
 			delete gm;
 			delete ui;
 			gm = new game_editor(dlg.get_gamefilename_to_load());
+			// embrace user interface generation with right theme set!
+			widget::theme* tmp = widget::replace_theme(gametheme);
 			ui = user_interface::create(*gm);
+			widget::replace_theme(tmp);
 		}
 		//replace ui after loading!!!!
 		if (q == 1){

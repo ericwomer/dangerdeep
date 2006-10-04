@@ -131,6 +131,13 @@ void music::resume()
 
 
 
+bool music::is_playing() const
+{
+	return Mix_PlayingMusic() && !Mix_PausedMusic();
+}
+
+
+
 void music::play_track(unsigned nr, unsigned fadeouttime, unsigned fadeintime)
 {
 	stop(fadeouttime);
@@ -188,10 +195,15 @@ void music::start_play_track(unsigned nr, unsigned fadeintime)
 {
 	if (nr < playlist.size()) {
 		current_track = nr;
-		if (fadeintime > 0)
-			Mix_FadeInMusic(musiclist[current_track], 1, fadeintime);
-		else
-			Mix_PlayMusic(musiclist[current_track], 1);
+		int err = -1;
+		if (fadeintime > 0) {
+			err = Mix_FadeInMusic(musiclist[current_track], 1, fadeintime);
+		} else {
+			err = Mix_PlayMusic(musiclist[current_track], 1);
+		}
+		if (err < 0) {
+			// music failed playing...
+		}
 	}
 }
 

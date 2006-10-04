@@ -58,6 +58,10 @@ protected:
 	std::auto_ptr<class widget> screen_selector;
 	bool screen_selector_visible;
 
+	// music playlist
+	std::auto_ptr<class widget> music_playlist;
+	bool playlist_visible;
+
 	/// holds the last n messages. They're displayed above the panel and fading out over time.
 	std::list<std::pair<double, std::string> > messages;
 
