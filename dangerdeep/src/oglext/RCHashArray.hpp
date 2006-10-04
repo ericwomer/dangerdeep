@@ -1,5 +1,5 @@
-// RCHashArray.hpp                                           Copyright (C) 2004 Thomas Jansen (jansen@caesar.de)
-//                                                                     (C) 2004 research center caesar
+// RCHashArray.hpp                                           Copyright (C) 2006 Thomas Jansen (jansen@caesar.de)
+//                                                                     (C) 2006 research center caesar
 //
 // This file is part of OglExt, a free OpenGL extension library.
 //

@@ -1,5 +1,5 @@
-// RenderingContext.cpp                                      Copyright (C) 2004 Thomas Jansen (jansen@caesar.de)
-//                                                                     (C) 2004 research center caesar
+// RenderingContext.cpp                                      Copyright (C) 2006 Thomas Jansen (jansen@caesar.de)
+//                                                                     (C) 2006 research center caesar
 //
 // This file is part of OglExt, a free OpenGL extension library.
 //
@@ -16,7 +16,7 @@
 //
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //
-// This file was automatically generated on June 15, 2004, 11:47 am
+// This file was automatically generated on January 10, 2006, 6:46 pm
 
 #include	"RenderingContext.hpp"
 #include	"Macros.h"
@@ -24,9 +24,6 @@
 
 #include	<stdio.h>
 
-// this line was added by Thorsten Jordan to make the code compile on Unix/Linux systems.
-// taken from glx.h
-extern void (*glXGetProcAddressARB(const GLubyte *procName))( void );
 
 // =============================================================================================================
 // ===                                C L A S S   A D M I N I S T R A T I O N                                ===
@@ -45,51 +42,35 @@ CRenderingContext::CRenderingContext()
 	InitVersionString();
 	InitExtensionString();
 
-	// 3: init opengl version...
+	// 3: init version...
 
 	INIT_GLVERSION(                              1, 2, 0,                    InitVersion12);
 	INIT_GLVERSION(                              1, 3, 0,                    InitVersion13);
 	INIT_GLVERSION(                              1, 4, 0,                    InitVersion14);
 	INIT_GLVERSION(                              1, 5, 0,                    InitVersion15);
+	INIT_GLVERSION(                              2, 0, 0,                    InitVersion20);
 
-	// 4: init opengl extension...
+	// 4: init extension...
 
-	INIT_EXTENSION(                "GL_3DFX_multisample",              Init3dfxMultisample);
 	INIT_EXTENSION(                    "GL_3DFX_tbuffer",                  Init3dfxTbuffer);
-	INIT_EXTENSION(   "GL_3DFX_texture_compression_FXT1",   Init3dfxTextureCompressionFXT1);
-	INIT_EXTENSION(            "GL_APPLE_client_storage",           InitAppleClientStorage);
 	INIT_EXTENSION(             "GL_APPLE_element_array",            InitAppleElementArray);
 	INIT_EXTENSION(                     "GL_APPLE_fence",                   InitAppleFence);
-	INIT_EXTENSION(           "GL_APPLE_specular_vector",          InitAppleSpecularVector);
-	INIT_EXTENSION(            "GL_APPLE_transform_hint",           InitAppleTransformHint);
 	INIT_EXTENSION(       "GL_APPLE_vertex_array_object",       InitAppleVertexArrayObject);
 	INIT_EXTENSION(        "GL_APPLE_vertex_array_range",        InitAppleVertexArrayRange);
-	INIT_EXTENSION(                 "GL_APPLE_ycbcr_422",                InitAppleYcbcr422);
-	INIT_EXTENSION(               "GL_ARB_depth_texture",              InitArbDepthTexture);
-	INIT_EXTENSION(            "GL_ARB_fragment_program",           InitArbFragmentProgram);
+	INIT_EXTENSION(          "GL_ARB_color_buffer_float",          InitArbColorBufferFloat);
+	INIT_EXTENSION(                "GL_ARB_draw_buffers",               InitArbDrawBuffers);
 	INIT_EXTENSION(              "GL_ARB_matrix_palette",             InitArbMatrixPalette);
 	INIT_EXTENSION(                 "GL_ARB_multisample",               InitArbMultisample);
 	INIT_EXTENSION(                "GL_ARB_multitexture",              InitArbMultitexture);
 	INIT_EXTENSION(             "GL_ARB_occlusion_query",            InitArbOcclusionQuery);
 	INIT_EXTENSION(            "GL_ARB_point_parameters",           InitArbPointParameters);
-	INIT_EXTENSION(                "GL_ARB_point_sprite",               InitArbPointSprite);
 	INIT_EXTENSION(              "GL_ARB_shader_objects",             InitArbShaderObjects);
-	INIT_EXTENSION(        "GL_ARB_shading_language_100",        InitArbShadingLanguage100);
-	INIT_EXTENSION(                      "GL_ARB_shadow",                    InitArbShadow);
-	INIT_EXTENSION(              "GL_ARB_shadow_ambient",             InitArbShadowAmbient);
-	INIT_EXTENSION(        "GL_ARB_texture_border_clamp",        InitArbTextureBorderClamp);
 	INIT_EXTENSION(         "GL_ARB_texture_compression",        InitArbTextureCompression);
-	INIT_EXTENSION(            "GL_ARB_texture_cube_map",            InitArbTextureCubeMap);
-	INIT_EXTENSION(             "GL_ARB_texture_env_add",             InitArbTextureEnvAdd);
-	INIT_EXTENSION(         "GL_ARB_texture_env_combine",         InitArbTextureEnvCombine);
-	INIT_EXTENSION(        "GL_ARB_texture_env_crossbar",        InitArbTextureEnvCrossbar);
-	INIT_EXTENSION(            "GL_ARB_texture_env_dot3",            InitArbTextureEnvDot3);
-	INIT_EXTENSION(       "GL_ARB_texture_mirror_repeat",       InitArbTextureMirrorRepeat);
-	INIT_EXTENSION(    "GL_ARB_texture_non_power_of_two",      InitArbTextureNonPowerOfTwo);
 	INIT_EXTENSION(            "GL_ARB_transpose_matrix",           InitArbTransposeMatrix);
 	INIT_EXTENSION(                "GL_ARB_vertex_blend",               InitArbVertexBlend);
 	INIT_EXTENSION(        "GL_ARB_vertex_buffer_object",        InitArbVertexBufferObject);
 	INIT_EXTENSION(              "GL_ARB_vertex_program",             InitArbVertexProgram);
+	INIT_EXTENSION(               "GL_ARB_vertex_shader",              InitArbVertexShader);
 	INIT_EXTENSION(                  "GL_ARB_window_pos",                 InitArbWindowPos);
 	INIT_EXTENSION(                "GL_ATI_draw_buffers",               InitAtiDrawBuffers);
 	INIT_EXTENSION(               "GL_ATI_element_array",              InitAtiElementArray);
@@ -98,24 +79,13 @@ CRenderingContext::CRenderingContext()
 	INIT_EXTENSION(           "GL_ATI_map_object_buffer",           InitAtiMapObjectBuffer);
 	INIT_EXTENSION(                "GL_ATI_pn_triangles",               InitAtiPnTriangles);
 	INIT_EXTENSION(            "GL_ATI_separate_stencil",           InitAtiSeparateStencil);
-	INIT_EXTENSION(        "GL_ATI_texture_env_combine3",        InitAtiTextureEnvCombine3);
-	INIT_EXTENSION(               "GL_ATI_texture_float",              InitAtiTextureFloat);
-	INIT_EXTENSION(         "GL_ATI_texture_mirror_once",         InitAtiTextureMirrorOnce);
-	INIT_EXTENSION(        "GL_ATI_text_fragment_shader",        InitAtiTextFragmentShader);
 	INIT_EXTENSION(         "GL_ATI_vertex_array_object",         InitAtiVertexArrayObject);
 	INIT_EXTENSION(  "GL_ATI_vertex_attrib_array_object",   InitAtiVertexAttribArrayObject);
 	INIT_EXTENSION(              "GL_ATI_vertex_streams",             InitAtiVertexStreams);
-	INIT_EXTENSION(                  "GL_EXT_422_pixels",                 InitExt422Pixels);
-	INIT_EXTENSION(                        "GL_EXT_abgr",                      InitExtAbgr);
-	INIT_EXTENSION(                        "GL_EXT_bgra",                      InitExtBgra);
 	INIT_EXTENSION(                 "GL_EXT_blend_color",                InitExtBlendColor);
+	INIT_EXTENSION(     "GL_EXT_blend_equation_separate",     InitExtBlendEquationSeparate);
 	INIT_EXTENSION(         "GL_EXT_blend_func_separate",         InitExtBlendFuncSeparate);
-	INIT_EXTENSION(              "GL_EXT_blend_logic_op",              InitExtBlendLogicOp);
 	INIT_EXTENSION(                "GL_EXT_blend_minmax",               InitExtBlendMinmax);
-	INIT_EXTENSION(              "GL_EXT_blend_subtract",             InitExtBlendSubtract);
-	INIT_EXTENSION(            "GL_EXT_clip_volume_hint",            InitExtClipVolumeHint);
-	INIT_EXTENSION(                       "GL_EXT_cmyka",                     InitExtCmyka);
-	INIT_EXTENSION(                "GL_EXT_color_matrix",               InitExtColorMatrix);
 	INIT_EXTENSION(              "GL_EXT_color_subtable",             InitExtColorSubtable);
 	INIT_EXTENSION(       "GL_EXT_compiled_vertex_array",       InitExtCompiledVertexArray);
 	INIT_EXTENSION(                 "GL_EXT_convolution",               InitExtConvolution);
@@ -125,165 +95,77 @@ CRenderingContext::CRenderingContext()
 	INIT_EXTENSION(           "GL_EXT_depth_bounds_test",           InitExtDepthBoundsTest);
 	INIT_EXTENSION(         "GL_EXT_draw_range_elements",         InitExtDrawRangeElements);
 	INIT_EXTENSION(                   "GL_EXT_fog_coord",                  InitExtFogCoord);
-	INIT_EXTENSION(           "GL_EXT_fragment_lighting",          InitExtFragmentLighting);
+	INIT_EXTENSION(          "GL_EXT_framebuffer_object",         InitExtFramebufferObject);
 	INIT_EXTENSION(                   "GL_EXT_histogram",                 InitExtHistogram);
-	INIT_EXTENSION(         "GL_EXT_index_array_formats",         InitExtIndexArrayFormats);
 	INIT_EXTENSION(                  "GL_EXT_index_func",                 InitExtIndexFunc);
 	INIT_EXTENSION(              "GL_EXT_index_material",             InitExtIndexMaterial);
-	INIT_EXTENSION(               "GL_EXT_index_texture",              InitExtIndexTexture);
 	INIT_EXTENSION(               "GL_EXT_light_texture",              InitExtLightTexture);
-	INIT_EXTENSION(              "GL_EXT_misc_attribute",             InitExtMiscAttribute);
-	INIT_EXTENSION(                 "GL_EXT_multisample",               InitExtMultisample);
-	INIT_EXTENSION(                "GL_EXT_multitexture",              InitExtMultitexture);
 	INIT_EXTENSION(           "GL_EXT_multi_draw_arrays",           InitExtMultiDrawArrays);
-	INIT_EXTENSION(               "GL_EXT_packed_pixels",              InitExtPackedPixels);
+	INIT_EXTENSION(                 "GL_EXT_multisample",               InitExtMultisample);
 	INIT_EXTENSION(            "GL_EXT_paletted_texture",           InitExtPalettedTexture);
 	INIT_EXTENSION(             "GL_EXT_pixel_transform",            InitExtPixelTransform);
-	INIT_EXTENSION( "GL_EXT_pixel_transform_color_table",  InitExtPixelTransformColorTable);
 	INIT_EXTENSION(            "GL_EXT_point_parameters",           InitExtPointParameters);
 	INIT_EXTENSION(              "GL_EXT_polygon_offset",             InitExtPolygonOffset);
-	INIT_EXTENSION(              "GL_EXT_rescale_normal",             InitExtRescaleNormal);
 	INIT_EXTENSION(             "GL_EXT_secondary_color",            InitExtSecondaryColor);
-	INIT_EXTENSION(     "GL_EXT_separate_specular_color",     InitExtSeparateSpecularColor);
-	INIT_EXTENSION(                "GL_EXT_shadow_funcs",               InitExtShadowFuncs);
-	INIT_EXTENSION(      "GL_EXT_shared_texture_palette",      InitExtSharedTexturePalette);
 	INIT_EXTENSION(            "GL_EXT_stencil_two_side",            InitExtStencilTwoSide);
-	INIT_EXTENSION(                "GL_EXT_stencil_wrap",               InitExtStencilWrap);
 	INIT_EXTENSION(                  "GL_EXT_subtexture",                InitExtSubtexture);
-	INIT_EXTENSION(                     "GL_EXT_texture",                   InitExtTexture);
-	INIT_EXTENSION(                   "GL_EXT_texture3D",                 InitExtTexture3D);
-	INIT_EXTENSION(    "GL_EXT_texture_compression_s3tc",    InitExtTextureCompressionS3tc);
-	INIT_EXTENSION(             "GL_EXT_texture_env_add",             InitExtTextureEnvAdd);
-	INIT_EXTENSION(         "GL_EXT_texture_env_combine",         InitExtTextureEnvCombine);
-	INIT_EXTENSION(            "GL_EXT_texture_env_dot3",            InitExtTextureEnvDot3);
-	INIT_EXTENSION(  "GL_EXT_texture_filter_anisotropic",  InitExtTextureFilterAnisotropic);
-	INIT_EXTENSION(            "GL_EXT_texture_lod_bias",            InitExtTextureLodBias);
-	INIT_EXTENSION(        "GL_EXT_texture_mirror_clamp",        InitExtTextureMirrorClamp);
+	INIT_EXTENSION(                   "GL_EXT_texture3D",                 InitExtTexture3d);
 	INIT_EXTENSION(              "GL_EXT_texture_object",             InitExtTextureObject);
 	INIT_EXTENSION(      "GL_EXT_texture_perturb_normal",      InitExtTexturePerturbNormal);
 	INIT_EXTENSION(                "GL_EXT_vertex_array",               InitExtVertexArray);
 	INIT_EXTENSION(               "GL_EXT_vertex_shader",              InitExtVertexShader);
 	INIT_EXTENSION(            "GL_EXT_vertex_weighting",           InitExtVertexWeighting);
-	INIT_EXTENSION(     "GL_HP_convolution_border_modes",     InitHpConvolutionBorderModes);
+	INIT_EXTENSION(           "GL_GREMEDY_string_marker",          InitGremedyStringMarker);
 	INIT_EXTENSION(              "GL_HP_image_transform",             InitHpImageTransform);
-	INIT_EXTENSION(               "GL_HP_occlusion_test",              InitHpOcclusionTest);
-	INIT_EXTENSION(             "GL_HP_texture_lighting",            InitHpTextureLighting);
-	INIT_EXTENSION(                 "GL_IBM_cull_vertex",                InitIbmCullVertex);
 	INIT_EXTENSION(       "GL_IBM_multimode_draw_arrays",       InitIbmMultimodeDrawArrays);
-	INIT_EXTENSION(              "GL_IBM_rasterpos_clip",             InitIbmRasterposClip);
-	INIT_EXTENSION(                 "GL_IBM_static_data",                InitIbmStaticData);
-	INIT_EXTENSION(     "GL_IBM_texture_mirrored_repeat",     InitIbmTextureMirroredRepeat);
 	INIT_EXTENSION(          "GL_IBM_vertex_array_lists",          InitIbmVertexArrayLists);
 	INIT_EXTENSION(        "GL_INGR_blend_func_separate",        InitIngrBlendFuncSeparate);
-	INIT_EXTENSION(                "GL_INGR_color_clamp",               InitIngrColorClamp);
-	INIT_EXTENSION(             "GL_INGR_interlace_read",            InitIngrInterlaceRead);
 	INIT_EXTENSION(           "GL_INTEL_parallel_arrays",          InitIntelParallelArrays);
 	INIT_EXTENSION(             "GL_MESA_resize_buffers",            InitMesaResizeBuffers);
 	INIT_EXTENSION(                 "GL_MESA_window_pos",                InitMesaWindowPos);
-	INIT_EXTENSION(                 "GL_NV_blend_square",                InitNvBlendSquare);
-	INIT_EXTENSION(          "GL_NV_copy_depth_to_color",           InitNvCopyDepthToColor);
-	INIT_EXTENSION(                  "GL_NV_depth_clamp",                 InitNvDepthClamp);
+	INIT_EXTENSION(                "GL_NV_element_array",               InitNvElementArray);
 	INIT_EXTENSION(                   "GL_NV_evaluators",                 InitNvEvaluators);
 	INIT_EXTENSION(                        "GL_NV_fence",                      InitNvFence);
-	INIT_EXTENSION(                 "GL_NV_float_buffer",                InitNvFloatBuffer);
-	INIT_EXTENSION(                 "GL_NV_fog_distance",                InitNvFogDistance);
 	INIT_EXTENSION(             "GL_NV_fragment_program",            InitNvFragmentProgram);
 	INIT_EXTENSION(                   "GL_NV_half_float",                  InitNvHalfFloat);
-	INIT_EXTENSION(           "GL_NV_light_max_exponent",           InitNvLightMaxExponent);
-	INIT_EXTENSION(      "GL_NV_multisample_filter_hint",      InitNvMultisampleFilterHint);
 	INIT_EXTENSION(              "GL_NV_occlusion_query",             InitNvOcclusionQuery);
-	INIT_EXTENSION(         "GL_NV_packed_depth_stencil",         InitNvPackedDepthStencil);
 	INIT_EXTENSION(             "GL_NV_pixel_data_range",             InitNvPixelDataRange);
 	INIT_EXTENSION(                 "GL_NV_point_sprite",                InitNvPointSprite);
 	INIT_EXTENSION(            "GL_NV_primitive_restart",           InitNvPrimitiveRestart);
 	INIT_EXTENSION(           "GL_NV_register_combiners",          InitNvRegisterCombiners);
 	INIT_EXTENSION(          "GL_NV_register_combiners2",         InitNvRegisterCombiners2);
-	INIT_EXTENSION(                "GL_NV_texgen_emboss",               InitNvTexgenEmboss);
-	INIT_EXTENSION(            "GL_NV_texgen_reflection",           InitNvTexgenReflection);
-	INIT_EXTENSION(      "GL_NV_texture_compression_vtc",      InitNvTextureCompressionVtc);
-	INIT_EXTENSION(         "GL_NV_texture_env_combine4",         InitNvTextureEnvCombine4);
-	INIT_EXTENSION(        "GL_NV_texture_expand_normal",        InitNvTextureExpandNormal);
-	INIT_EXTENSION(            "GL_NV_texture_rectangle",           InitNvTextureRectangle);
-	INIT_EXTENSION(               "GL_NV_texture_shader",              InitNvTextureShader);
-	INIT_EXTENSION(              "GL_NV_texture_shader2",             InitNvTextureShader2);
-	INIT_EXTENSION(              "GL_NV_texture_shader3",             InitNvTextureShader3);
+	INIT_EXTENSION(             "GL_NV_stencil_two_side",             InitNvStencilTwoSide);
 	INIT_EXTENSION(           "GL_NV_vertex_array_range",           InitNvVertexArrayRange);
-	INIT_EXTENSION(          "GL_NV_vertex_array_range2",          InitNvVertexArrayRange2);
 	INIT_EXTENSION(               "GL_NV_vertex_program",              InitNvVertexProgram);
-	INIT_EXTENSION(            "GL_NV_vertex_program1_1",            InitNvVertexProgram11);
-	INIT_EXTENSION(              "GL_NV_vertex_program2",             InitNvVertexProgram2);
-	INIT_EXTENSION(                   "GL_OML_interlace",                 InitOmlInterlace);
-	INIT_EXTENSION(                    "GL_OML_resample",                  InitOmlResample);
-	INIT_EXTENSION(                   "GL_OML_subsample",                 InitOmlSubsample);
+	INIT_EXTENSION(          "GL_NVX_conditional_render",         InitNvxConditionalRender);
 	INIT_EXTENSION(                  "GL_PGI_misc_hints",                 InitPgiMiscHints);
-	INIT_EXTENSION(                "GL_PGI_vertex_hints",               InitPgiVertexHints);
-	INIT_EXTENSION(         "GL_REND_screen_coordinates",        InitRendScreenCoordinates);
-	INIT_EXTENSION(                         "GL_S3_s3tc",                       InitS3S3tc);
-	INIT_EXTENSION(             "GL_SGIS_detail_texture",            InitSgiSDetailTexture);
-	INIT_EXTENSION(               "GL_SGIS_fog_function",              InitSgiSFogFunction);
-	INIT_EXTENSION(            "GL_SGIS_generate_mipmap",           InitSgiSGenerateMipmap);
-	INIT_EXTENSION(                "GL_SGIS_multisample",              InitSgiSMultisample);
-	INIT_EXTENSION(               "GL_SGIS_multitexture",             InitSgisMultitexture);
-	INIT_EXTENSION(              "GL_SGIS_pixel_texture",             InitSgiSPixelTexture);
-	INIT_EXTENSION(          "GL_SGIS_point_line_texgen",          InitSgiSPointLineTexgen);
-	INIT_EXTENSION(           "GL_SGIS_point_parameters",          InitSgiSPointParameters);
-	INIT_EXTENSION(            "GL_SGIS_sharpen_texture",           InitSgiSSharpenTexture);
-	INIT_EXTENSION(                  "GL_SGIS_texture4D",                InitSgiSTexture4D);
-	INIT_EXTENSION(       "GL_SGIS_texture_border_clamp",       InitSgiSTextureBorderClamp);
-	INIT_EXTENSION(         "GL_SGIS_texture_color_mask",         InitSgiSTextureColorMask);
-	INIT_EXTENSION(         "GL_SGIS_texture_edge_clamp",         InitSgiSTextureEdgeClamp);
-	INIT_EXTENSION(            "GL_SGIS_texture_filter4",           InitSgiSTextureFilter4);
-	INIT_EXTENSION(                "GL_SGIS_texture_lod",               InitSgiSTextureLod);
+	INIT_EXTENSION(                 "GL_SGI_color_table",                InitSgiColorTable);
+	INIT_EXTENSION(             "GL_SGIS_detail_texture",            InitSgisDetailTexture);
+	INIT_EXTENSION(               "GL_SGIS_fog_function",              InitSgisFogFunction);
+	INIT_EXTENSION(                "GL_SGIS_multisample",              InitSgisMultisample);
+	INIT_EXTENSION(              "GL_SGIS_pixel_texture",             InitSgisPixelTexture);
+	INIT_EXTENSION(           "GL_SGIS_point_parameters",          InitSgisPointParameters);
+	INIT_EXTENSION(            "GL_SGIS_sharpen_texture",           InitSgisSharpenTexture);
+	INIT_EXTENSION(                  "GL_SGIS_texture4D",                InitSgisTexture4d);
+	INIT_EXTENSION(         "GL_SGIS_texture_color_mask",         InitSgisTextureColorMask);
+	INIT_EXTENSION(            "GL_SGIS_texture_filter4",           InitSgisTextureFilter4);
 	INIT_EXTENSION(                      "GL_SGIX_async",                    InitSgixAsync);
-	INIT_EXTENSION(            "GL_SGIX_async_histogram",           InitSgixAsyncHistogram);
-	INIT_EXTENSION(                "GL_SGIX_async_pixel",               InitSgixAsyncPixel);
-	INIT_EXTENSION(         "GL_SGIX_blend_alpha_minmax",         InitSgixBlendAlphaMinmax);
-	INIT_EXTENSION(      "GL_SGIX_calligraphic_fragment",     InitSgixCalligraphicFragment);
-	INIT_EXTENSION(                    "GL_SGIX_clipmap",                  InitSgixClipmap);
-	INIT_EXTENSION(       "GL_SGIX_convolution_accuracy",      InitSgixConvolutionAccuracy);
-	INIT_EXTENSION(      "GL_SGIX_depth_pass_instrument",      InitSgixDepthPassInstrument);
-	INIT_EXTENSION(              "GL_SGIX_depth_texture",             InitSgixDepthTexture);
 	INIT_EXTENSION(               "GL_SGIX_flush_raster",              InitSgixFlushRaster);
-	INIT_EXTENSION(                 "GL_SGIX_fog_offset",                InitSgixFogOffset);
-	INIT_EXTENSION(                  "GL_SGIX_fog_scale",                 InitSgixFogScale);
 	INIT_EXTENSION(          "GL_SGIX_fragment_lighting",         InitSgixFragmentLighting);
 	INIT_EXTENSION(                  "GL_SGIX_framezoom",                InitSgixFramezoom);
 	INIT_EXTENSION(            "GL_SGIX_igloo_interface",           InitSgixIglooInterface);
 	INIT_EXTENSION(                "GL_SGIX_instruments",              InitSgixInstruments);
-	INIT_EXTENSION(                  "GL_SGIX_interlace",                InitSgixInterlace);
-	INIT_EXTENSION(             "GL_SGIX_ir_instrument1",            InitSgixIrInstrument1);
 	INIT_EXTENSION(              "GL_SGIX_list_priority",             InitSgixListPriority);
 	INIT_EXTENSION(              "GL_SGIX_pixel_texture",             InitSgixPixelTexture);
-	INIT_EXTENSION(                "GL_SGIX_pixel_tiles",               InitSgixPixelTiles);
 	INIT_EXTENSION(             "GL_SGIX_polynomial_ffd",            InitSgixPolynomialFfd);
 	INIT_EXTENSION(            "GL_SGIX_reference_plane",           InitSgixReferencePlane);
-	INIT_EXTENSION(                   "GL_SGIX_resample",                 InitSgixResample);
-	INIT_EXTENSION(             "GL_SGIX_scalebias_hint",            InitSgixScalebiasHint);
-	INIT_EXTENSION(                     "GL_SGIX_shadow",                   InitSgixShadow);
-	INIT_EXTENSION(             "GL_SGIX_shadow_ambient",            InitSgixShadowAmbient);
 	INIT_EXTENSION(                     "GL_SGIX_sprite",                   InitSgixSprite);
-	INIT_EXTENSION(                  "GL_SGIX_subsample",                InitSgixSubsample);
 	INIT_EXTENSION(          "GL_SGIX_tag_sample_buffer",          InitSgixTagSampleBuffer);
-	INIT_EXTENSION(            "GL_SGIX_texture_add_env",            InitSgixTextureAddEnv);
-	INIT_EXTENSION(   "GL_SGIX_texture_coordinate_clamp",   InitSgixTextureCoordinateClamp);
-	INIT_EXTENSION(           "GL_SGIX_texture_lod_bias",           InitSgixTextureLodBias);
-	INIT_EXTENSION(       "GL_SGIX_texture_multi_buffer",       InitSgixTextureMultiBuffer);
-	INIT_EXTENSION(         "GL_SGIX_texture_scale_bias",         InitSgixTextureScaleBias);
-	INIT_EXTENSION(             "GL_SGIX_texture_select",            InitSgixTextureSelect);
-	INIT_EXTENSION(             "GL_SGIX_vertex_preclip",            InitSgixVertexPreclip);
-	INIT_EXTENSION(                      "GL_SGIX_ycrcb",                    InitSgixYcrcb);
-	INIT_EXTENSION(                     "GL_SGIX_ycrcba",                   InitSgixYcrcba);
-	INIT_EXTENSION(            "GL_SGIX_ycrcb_subsample",           InitSgixYcrcbSubsample);
-	INIT_EXTENSION(                "GL_SGI_color_matrix",               InitSgiColorMatrix);
-	INIT_EXTENSION(                 "GL_SGI_color_table",                InitSgiColorTable);
-	INIT_EXTENSION(         "GL_SGI_texture_color_table",         InitSgiTextureColorTable);
-	INIT_EXTENSION(              "GL_SUNX_constant_data",             InitSunxConstantData);
-	INIT_EXTENSION(    "GL_SUN_convolution_border_modes",    InitSunConvolutionBorderModes);
 	INIT_EXTENSION(                "GL_SUN_global_alpha",               InitSunGlobalAlpha);
 	INIT_EXTENSION(                  "GL_SUN_mesh_array",                 InitSunMeshArray);
-	INIT_EXTENSION(                 "GL_SUN_slice_accum",                InitSunSliceAccum);
 	INIT_EXTENSION(               "GL_SUN_triangle_list",              InitSunTriangleList);
-	INIT_EXTENSION(                      "GL_SUN_vertex",                    InitSunvertex);
+	INIT_EXTENSION(                      "GL_SUN_vertex",                    InitSunVertex);
+	INIT_EXTENSION(              "GL_SUNX_constant_data",             InitSunxConstantData);
 }
 
 
@@ -316,8 +198,7 @@ void * CRenderingContext::GetProcAddress(char const * szFunction)
 
 			// W.3: determine the address...
 
-           // This conversion was modified by Thorsten Jordan to make the code compileable with mingw
-			void * pProcAddress = (void*)(::wglGetProcAddress(szNewFunction));
+			void * pProcAddress = ::wglGetProcAddress(szNewFunction);
 
 			delete [] szNewFunction;
 
@@ -387,7 +268,15 @@ void * CRenderingContext::GetProcAddress(char const * szFunction)
 
 			// U.3: determine the address...
 
-			void * pProcAddress = (void *) ::glXGetProcAddressARB((GLubyte const *) szNewFunction);
+			#ifndef	GLX_GLXEXT_LEGACY			
+
+				void * pProcAddress = (void *) ::glXGetProcAddress((GLubyte const *) szNewFunction);
+
+			#else
+			
+				void * pProcAddress = (void *) ::glXGetProcAddressARB((GLubyte const *) szNewFunction);	
+			
+			#endif
 
 			delete [] szNewFunction;
 
@@ -399,12 +288,12 @@ void * CRenderingContext::GetProcAddress(char const * szFunction)
 
 
 /* ========================================================================================================== */
-/* ===                                    O P E N G L   V E R S I O N                                     === */
+/* ===                                           V E R S I O N                                            === */
 /* ========================================================================================================== */
 
 // ---[ GL_VERSION_1_2 ]----------------------------------------------------------------------------------------
 
-//!	Init GL_VERSION_1_2.
+//!	Initialize GL_VERSION_1_2.
 
 bool CRenderingContext::InitVersion12()
 {
@@ -463,7 +352,7 @@ bool CRenderingContext::InitVersion12()
 
 // ---[ GL_VERSION_1_3 ]----------------------------------------------------------------------------------------
 
-//!	Init GL_VERSION_1_3.
+//!	Initialize GL_VERSION_1_3.
 
 bool CRenderingContext::InitVersion13()
 {
@@ -530,7 +419,7 @@ bool CRenderingContext::InitVersion13()
 
 // ---[ GL_VERSION_1_4 ]----------------------------------------------------------------------------------------
 
-//!	Init GL_VERSION_1_4.
+//!	Initialize GL_VERSION_1_4.
 
 bool CRenderingContext::InitVersion14()
 {
@@ -596,7 +485,7 @@ bool CRenderingContext::InitVersion14()
 
 // ---[ GL_VERSION_1_5 ]----------------------------------------------------------------------------------------
 
-//!	Init GL_VERSION_1_5.
+//!	Initialize GL_VERSION_1_5.
 
 bool CRenderingContext::InitVersion15()
 {
@@ -634,24 +523,113 @@ bool CRenderingContext::InitVersion15()
 }
 
 
-/* ========================================================================================================== */
-/* ===                                  O P E N G L   E X T E N S I O N                                   === */
-/* ========================================================================================================== */
+// ---[ GL_VERSION_2_0 ]----------------------------------------------------------------------------------------
 
-// ---[ GL_3DFX_multisample ]-----------------------------------------------------------------------------------
+//!	Initialize GL_VERSION_2_0.
 
-//!	Init GL_3DFX_multisample.
-
-bool CRenderingContext::Init3dfxMultisample()
+bool CRenderingContext::InitVersion20()
 {
 	bool bReturn = true;
 
 	// 1: get all function pointers...
 
-	#ifdef GL_3DFX_multisample_OGLEXT
+	#ifdef GL_VERSION_2_0_OGLEXT
 
+		GET_PROC_ADDRESS(AttachShader);
+		GET_PROC_ADDRESS(BindAttribLocation);
+		GET_PROC_ADDRESS(BlendEquationSeparate);
+		GET_PROC_ADDRESS(CompileShader);
+		GET_PROC_ADDRESS(CreateProgram);
+		GET_PROC_ADDRESS(CreateShader);
+		GET_PROC_ADDRESS(DeleteProgram);
+		GET_PROC_ADDRESS(DeleteShader);
+		GET_PROC_ADDRESS(DetachShader);
+		GET_PROC_ADDRESS(DisableVertexAttribArray);
+		GET_PROC_ADDRESS(DrawBuffers);
+		GET_PROC_ADDRESS(EnableVertexAttribArray);
+		GET_PROC_ADDRESS(GetActiveAttrib);
+		GET_PROC_ADDRESS(GetActiveUniform);
+		GET_PROC_ADDRESS(GetAttachedShaders);
+		GET_PROC_ADDRESS(GetAttribLocation);
+		GET_PROC_ADDRESS(GetProgramInfoLog);
+		GET_PROC_ADDRESS(GetProgramiv);
+		GET_PROC_ADDRESS(GetShaderInfoLog);
+		GET_PROC_ADDRESS(GetShaderiv);
+		GET_PROC_ADDRESS(GetShaderSource);
+		GET_PROC_ADDRESS(GetUniformfv);
+		GET_PROC_ADDRESS(GetUniformiv);
+		GET_PROC_ADDRESS(GetUniformLocation);
+		GET_PROC_ADDRESS(GetVertexAttribdv);
+		GET_PROC_ADDRESS(GetVertexAttribfv);
+		GET_PROC_ADDRESS(GetVertexAttribiv);
+		GET_PROC_ADDRESS(GetVertexAttribPointerv);
+		GET_PROC_ADDRESS(IsProgram);
+		GET_PROC_ADDRESS(IsShader);
+		GET_PROC_ADDRESS(LinkProgram);
+		GET_PROC_ADDRESS(ShaderSource);
+		GET_PROC_ADDRESS(StencilFuncSeparate);
+		GET_PROC_ADDRESS(StencilMaskSeparate);
+		GET_PROC_ADDRESS(StencilOpSeparate);
+		GET_PROC_ADDRESS(Uniform1f);
+		GET_PROC_ADDRESS(Uniform1fv);
+		GET_PROC_ADDRESS(Uniform1i);
+		GET_PROC_ADDRESS(Uniform1iv);
+		GET_PROC_ADDRESS(Uniform2f);
+		GET_PROC_ADDRESS(Uniform2fv);
+		GET_PROC_ADDRESS(Uniform2i);
+		GET_PROC_ADDRESS(Uniform2iv);
+		GET_PROC_ADDRESS(Uniform3f);
+		GET_PROC_ADDRESS(Uniform3fv);
+		GET_PROC_ADDRESS(Uniform3i);
+		GET_PROC_ADDRESS(Uniform3iv);
+		GET_PROC_ADDRESS(Uniform4f);
+		GET_PROC_ADDRESS(Uniform4fv);
+		GET_PROC_ADDRESS(Uniform4i);
+		GET_PROC_ADDRESS(Uniform4iv);
+		GET_PROC_ADDRESS(UniformMatrix2fv);
+		GET_PROC_ADDRESS(UniformMatrix3fv);
+		GET_PROC_ADDRESS(UniformMatrix4fv);
+		GET_PROC_ADDRESS(UseProgram);
+		GET_PROC_ADDRESS(ValidateProgram);
+		GET_PROC_ADDRESS(VertexAttrib1d);
+		GET_PROC_ADDRESS(VertexAttrib1dv);
+		GET_PROC_ADDRESS(VertexAttrib1f);
+		GET_PROC_ADDRESS(VertexAttrib1fv);
+		GET_PROC_ADDRESS(VertexAttrib1s);
+		GET_PROC_ADDRESS(VertexAttrib1sv);
+		GET_PROC_ADDRESS(VertexAttrib2d);
+		GET_PROC_ADDRESS(VertexAttrib2dv);
+		GET_PROC_ADDRESS(VertexAttrib2f);
+		GET_PROC_ADDRESS(VertexAttrib2fv);
+		GET_PROC_ADDRESS(VertexAttrib2s);
+		GET_PROC_ADDRESS(VertexAttrib2sv);
+		GET_PROC_ADDRESS(VertexAttrib3d);
+		GET_PROC_ADDRESS(VertexAttrib3dv);
+		GET_PROC_ADDRESS(VertexAttrib3f);
+		GET_PROC_ADDRESS(VertexAttrib3fv);
+		GET_PROC_ADDRESS(VertexAttrib3s);
+		GET_PROC_ADDRESS(VertexAttrib3sv);
+		GET_PROC_ADDRESS(VertexAttrib4bv);
+		GET_PROC_ADDRESS(VertexAttrib4d);
+		GET_PROC_ADDRESS(VertexAttrib4dv);
+		GET_PROC_ADDRESS(VertexAttrib4f);
+		GET_PROC_ADDRESS(VertexAttrib4fv);
+		GET_PROC_ADDRESS(VertexAttrib4iv);
+		GET_PROC_ADDRESS(VertexAttrib4Nbv);
+		GET_PROC_ADDRESS(VertexAttrib4Niv);
+		GET_PROC_ADDRESS(VertexAttrib4Nsv);
+		GET_PROC_ADDRESS(VertexAttrib4Nub);
+		GET_PROC_ADDRESS(VertexAttrib4Nubv);
+		GET_PROC_ADDRESS(VertexAttrib4Nuiv);
+		GET_PROC_ADDRESS(VertexAttrib4Nusv);
+		GET_PROC_ADDRESS(VertexAttrib4s);
+		GET_PROC_ADDRESS(VertexAttrib4sv);
+		GET_PROC_ADDRESS(VertexAttrib4ubv);
+		GET_PROC_ADDRESS(VertexAttrib4uiv);
+		GET_PROC_ADDRESS(VertexAttrib4usv);
+		GET_PROC_ADDRESS(VertexAttribPointer);
 
-	#endif // GL_3DFX_multisample_OGLEXT
+	#endif // GL_VERSION_2_0_OGLEXT
 
 	// 2: return 'true' if everything went fine...
 
@@ -659,9 +637,13 @@ bool CRenderingContext::Init3dfxMultisample()
 }
 
 
+/* ========================================================================================================== */
+/* ===                                         E X T E N S I O N                                          === */
+/* ========================================================================================================== */
+
 // ---[ GL_3DFX_tbuffer ]---------------------------------------------------------------------------------------
 
-//!	Init GL_3DFX_tbuffer.
+//!	Initialize GL_3DFX_tbuffer.
 
 bool CRenderingContext::Init3dfxTbuffer()
 {
@@ -681,51 +663,9 @@ bool CRenderingContext::Init3dfxTbuffer()
 }
 
 
-// ---[ GL_3DFX_texture_compression_FXT1 ]----------------------------------------------------------------------
-
-//!	Init GL_3DFX_texture_compression_FXT1.
-
-bool CRenderingContext::Init3dfxTextureCompressionFXT1()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_3DFX_texture_compression_FXT1_OGLEXT
-
-
-	#endif // GL_3DFX_texture_compression_FXT1_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_APPLE_client_storage ]-------------------------------------------------------------------------------
-
-//!	Init GL_APPLE_client_storage.
-
-bool CRenderingContext::InitAppleClientStorage()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_APPLE_client_storage_OGLEXT
-
-
-	#endif // GL_APPLE_client_storage_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_APPLE_element_array ]--------------------------------------------------------------------------------
 
-//!	Init GL_APPLE_element_array.
+//!	Initialize GL_APPLE_element_array.
 
 bool CRenderingContext::InitAppleElementArray()
 {
@@ -751,7 +691,7 @@ bool CRenderingContext::InitAppleElementArray()
 
 // ---[ GL_APPLE_fence ]----------------------------------------------------------------------------------------
 
-//!	Init GL_APPLE_fence.
+//!	Initialize GL_APPLE_fence.
 
 bool CRenderingContext::InitAppleFence()
 {
@@ -778,51 +718,9 @@ bool CRenderingContext::InitAppleFence()
 }
 
 
-// ---[ GL_APPLE_specular_vector ]------------------------------------------------------------------------------
-
-//!	Init GL_APPLE_specular_vector.
-
-bool CRenderingContext::InitAppleSpecularVector()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_APPLE_specular_vector_OGLEXT
-
-
-	#endif // GL_APPLE_specular_vector_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_APPLE_transform_hint ]-------------------------------------------------------------------------------
-
-//!	Init GL_APPLE_transform_hint.
-
-bool CRenderingContext::InitAppleTransformHint()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_APPLE_transform_hint_OGLEXT
-
-
-	#endif // GL_APPLE_transform_hint_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_APPLE_vertex_array_object ]--------------------------------------------------------------------------
 
-//!	Init GL_APPLE_vertex_array_object.
+//!	Initialize GL_APPLE_vertex_array_object.
 
 bool CRenderingContext::InitAppleVertexArrayObject()
 {
@@ -847,7 +745,7 @@ bool CRenderingContext::InitAppleVertexArrayObject()
 
 // ---[ GL_APPLE_vertex_array_range ]---------------------------------------------------------------------------
 
-//!	Init GL_APPLE_vertex_array_range.
+//!	Initialize GL_APPLE_vertex_array_range.
 
 bool CRenderingContext::InitAppleVertexArrayRange()
 {
@@ -869,20 +767,21 @@ bool CRenderingContext::InitAppleVertexArrayRange()
 }
 
 
-// ---[ GL_APPLE_ycbcr_422 ]------------------------------------------------------------------------------------
+// ---[ GL_ARB_color_buffer_float ]-----------------------------------------------------------------------------
 
-//!	Init GL_APPLE_ycbcr_422.
+//!	Initialize GL_ARB_color_buffer_float.
 
-bool CRenderingContext::InitAppleYcbcr422()
+bool CRenderingContext::InitArbColorBufferFloat()
 {
 	bool bReturn = true;
 
 	// 1: get all function pointers...
 
-	#ifdef GL_APPLE_ycbcr_422_OGLEXT
+	#ifdef GL_ARB_color_buffer_float_OGLEXT
 
+		GET_PROC_ADDRESS(ClampColorARB);
 
-	#endif // GL_APPLE_ycbcr_422_OGLEXT
+	#endif // GL_ARB_color_buffer_float_OGLEXT
 
 	// 2: return 'true' if everything went fine...
 
@@ -890,41 +789,21 @@ bool CRenderingContext::InitAppleYcbcr422()
 }
 
 
-// ---[ GL_ARB_depth_texture ]----------------------------------------------------------------------------------
+// ---[ GL_ARB_draw_buffers ]-----------------------------------------------------------------------------------
 
-//!	Init GL_ARB_depth_texture.
+//!	Initialize GL_ARB_draw_buffers.
 
-bool CRenderingContext::InitArbDepthTexture()
+bool CRenderingContext::InitArbDrawBuffers()
 {
 	bool bReturn = true;
 
 	// 1: get all function pointers...
 
-	#ifdef GL_ARB_depth_texture_OGLEXT
+	#ifdef GL_ARB_draw_buffers_OGLEXT
 
+		GET_PROC_ADDRESS(DrawBuffersARB);
 
-	#endif // GL_ARB_depth_texture_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_ARB_fragment_program ]-------------------------------------------------------------------------------
-
-//!	Init GL_ARB_fragment_program.
-
-bool CRenderingContext::InitArbFragmentProgram()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ARB_fragment_program_OGLEXT
-
-
-	#endif // GL_ARB_fragment_program_OGLEXT
+	#endif // GL_ARB_draw_buffers_OGLEXT
 
 	// 2: return 'true' if everything went fine...
 
@@ -934,7 +813,7 @@ bool CRenderingContext::InitArbFragmentProgram()
 
 // ---[ GL_ARB_matrix_palette ]---------------------------------------------------------------------------------
 
-//!	Init GL_ARB_matrix_palette.
+//!	Initialize GL_ARB_matrix_palette.
 
 bool CRenderingContext::InitArbMatrixPalette()
 {
@@ -960,7 +839,7 @@ bool CRenderingContext::InitArbMatrixPalette()
 
 // ---[ GL_ARB_multisample ]------------------------------------------------------------------------------------
 
-//!	Init GL_ARB_multisample.
+//!	Initialize GL_ARB_multisample.
 
 bool CRenderingContext::InitArbMultisample()
 {
@@ -982,7 +861,7 @@ bool CRenderingContext::InitArbMultisample()
 
 // ---[ GL_ARB_multitexture ]-----------------------------------------------------------------------------------
 
-//!	Init GL_ARB_multitexture.
+//!	Initialize GL_ARB_multitexture.
 
 bool CRenderingContext::InitArbMultitexture()
 {
@@ -1037,7 +916,7 @@ bool CRenderingContext::InitArbMultitexture()
 
 // ---[ GL_ARB_occlusion_query ]--------------------------------------------------------------------------------
 
-//!	Init GL_ARB_occlusion_query.
+//!	Initialize GL_ARB_occlusion_query.
 
 bool CRenderingContext::InitArbOcclusionQuery()
 {
@@ -1066,7 +945,7 @@ bool CRenderingContext::InitArbOcclusionQuery()
 
 // ---[ GL_ARB_point_parameters ]-------------------------------------------------------------------------------
 
-//!	Init GL_ARB_point_parameters.
+//!	Initialize GL_ARB_point_parameters.
 
 bool CRenderingContext::InitArbPointParameters()
 {
@@ -1087,30 +966,9 @@ bool CRenderingContext::InitArbPointParameters()
 }
 
 
-// ---[ GL_ARB_point_sprite ]-----------------------------------------------------------------------------------
-
-//!	Init GL_ARB_point_sprite.
-
-bool CRenderingContext::InitArbPointSprite()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ARB_point_sprite_OGLEXT
-
-
-	#endif // GL_ARB_point_sprite_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_ARB_shader_objects ]---------------------------------------------------------------------------------
 
-//!	Init GL_ARB_shader_objects.
+//!	Initialize GL_ARB_shader_objects.
 
 bool CRenderingContext::InitArbShaderObjects()
 {
@@ -1168,93 +1026,9 @@ bool CRenderingContext::InitArbShaderObjects()
 }
 
 
-// ---[ GL_ARB_shading_language_100 ]---------------------------------------------------------------------------
-
-//!	Init GL_ARB_shading_language_100.
-
-bool CRenderingContext::InitArbShadingLanguage100()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ARB_shading_language_100_OGLEXT
-
-
-	#endif // GL_ARB_shading_language_100_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_ARB_shadow ]-----------------------------------------------------------------------------------------
-
-//!	Init GL_ARB_shadow.
-
-bool CRenderingContext::InitArbShadow()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ARB_shadow_OGLEXT
-
-
-	#endif // GL_ARB_shadow_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_ARB_shadow_ambient ]---------------------------------------------------------------------------------
-
-//!	Init GL_ARB_shadow_ambient.
-
-bool CRenderingContext::InitArbShadowAmbient()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ARB_shadow_ambient_OGLEXT
-
-
-	#endif // GL_ARB_shadow_ambient_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_ARB_texture_border_clamp ]---------------------------------------------------------------------------
-
-//!	Init GL_ARB_texture_border_clamp.
-
-bool CRenderingContext::InitArbTextureBorderClamp()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ARB_texture_border_clamp_OGLEXT
-
-
-	#endif // GL_ARB_texture_border_clamp_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_ARB_texture_compression ]----------------------------------------------------------------------------
 
-//!	Init GL_ARB_texture_compression.
+//!	Initialize GL_ARB_texture_compression.
 
 bool CRenderingContext::InitArbTextureCompression()
 {
@@ -1280,156 +1054,9 @@ bool CRenderingContext::InitArbTextureCompression()
 }
 
 
-// ---[ GL_ARB_texture_cube_map ]-------------------------------------------------------------------------------
-
-//!	Init GL_ARB_texture_cube_map.
-
-bool CRenderingContext::InitArbTextureCubeMap()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ARB_texture_cube_map_OGLEXT
-
-
-	#endif // GL_ARB_texture_cube_map_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_ARB_texture_env_add ]--------------------------------------------------------------------------------
-
-//!	Init GL_ARB_texture_env_add.
-
-bool CRenderingContext::InitArbTextureEnvAdd()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ARB_texture_env_add_OGLEXT
-
-
-	#endif // GL_ARB_texture_env_add_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_ARB_texture_env_combine ]----------------------------------------------------------------------------
-
-//!	Init GL_ARB_texture_env_combine.
-
-bool CRenderingContext::InitArbTextureEnvCombine()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ARB_texture_env_combine_OGLEXT
-
-
-	#endif // GL_ARB_texture_env_combine_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_ARB_texture_env_crossbar ]---------------------------------------------------------------------------
-
-//!	Init GL_ARB_texture_env_crossbar.
-
-bool CRenderingContext::InitArbTextureEnvCrossbar()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ARB_texture_env_crossbar_OGLEXT
-
-
-	#endif // GL_ARB_texture_env_crossbar_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_ARB_texture_env_dot3 ]-------------------------------------------------------------------------------
-
-//!	Init GL_ARB_texture_env_dot3.
-
-bool CRenderingContext::InitArbTextureEnvDot3()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ARB_texture_env_dot3_OGLEXT
-
-
-	#endif // GL_ARB_texture_env_dot3_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_ARB_texture_mirror_repeat ]--------------------------------------------------------------------------
-
-//!	Init GL_ARB_texture_mirror_repeat.
-
-bool CRenderingContext::InitArbTextureMirrorRepeat()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ARB_texture_mirror_repeat_OGLEXT
-
-
-	#endif // GL_ARB_texture_mirror_repeat_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_ARB_texture_non_power_of_two ]-----------------------------------------------------------------------
-
-//!	Init GL_ARB_texture_non_power_of_two.
-
-bool CRenderingContext::InitArbTextureNonPowerOfTwo()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ARB_texture_non_power_of_two_OGLEXT
-
-
-	#endif // GL_ARB_texture_non_power_of_two_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_ARB_transpose_matrix ]-------------------------------------------------------------------------------
 
-//!	Init GL_ARB_transpose_matrix.
+//!	Initialize GL_ARB_transpose_matrix.
 
 bool CRenderingContext::InitArbTransposeMatrix()
 {
@@ -1454,7 +1081,7 @@ bool CRenderingContext::InitArbTransposeMatrix()
 
 // ---[ GL_ARB_vertex_blend ]-----------------------------------------------------------------------------------
 
-//!	Init GL_ARB_vertex_blend.
+//!	Initialize GL_ARB_vertex_blend.
 
 bool CRenderingContext::InitArbVertexBlend()
 {
@@ -1485,7 +1112,7 @@ bool CRenderingContext::InitArbVertexBlend()
 
 // ---[ GL_ARB_vertex_buffer_object ]---------------------------------------------------------------------------
 
-//!	Init GL_ARB_vertex_buffer_object.
+//!	Initialize GL_ARB_vertex_buffer_object.
 
 bool CRenderingContext::InitArbVertexBufferObject()
 {
@@ -1517,7 +1144,7 @@ bool CRenderingContext::InitArbVertexBufferObject()
 
 // ---[ GL_ARB_vertex_program ]---------------------------------------------------------------------------------
 
-//!	Init GL_ARB_vertex_program.
+//!	Initialize GL_ARB_vertex_program.
 
 bool CRenderingContext::InitArbVertexProgram()
 {
@@ -1598,9 +1225,33 @@ bool CRenderingContext::InitArbVertexProgram()
 }
 
 
+// ---[ GL_ARB_vertex_shader ]----------------------------------------------------------------------------------
+
+//!	Initialize GL_ARB_vertex_shader.
+
+bool CRenderingContext::InitArbVertexShader()
+{
+	bool bReturn = true;
+
+	// 1: get all function pointers...
+
+	#ifdef GL_ARB_vertex_shader_OGLEXT
+
+		GET_PROC_ADDRESS(BindAttribLocationARB);
+		GET_PROC_ADDRESS(GetActiveAttribARB);
+		GET_PROC_ADDRESS(GetAttribLocationARB);
+
+	#endif // GL_ARB_vertex_shader_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
+}
+
+
 // ---[ GL_ARB_window_pos ]-------------------------------------------------------------------------------------
 
-//!	Init GL_ARB_window_pos.
+//!	Initialize GL_ARB_window_pos.
 
 bool CRenderingContext::InitArbWindowPos()
 {
@@ -1637,7 +1288,7 @@ bool CRenderingContext::InitArbWindowPos()
 
 // ---[ GL_ATI_draw_buffers ]-----------------------------------------------------------------------------------
 
-//!	Init GL_ATI_draw_buffers.
+//!	Initialize GL_ATI_draw_buffers.
 
 bool CRenderingContext::InitAtiDrawBuffers()
 {
@@ -1659,7 +1310,7 @@ bool CRenderingContext::InitAtiDrawBuffers()
 
 // ---[ GL_ATI_element_array ]----------------------------------------------------------------------------------
 
-//!	Init GL_ATI_element_array.
+//!	Initialize GL_ATI_element_array.
 
 bool CRenderingContext::InitAtiElementArray()
 {
@@ -1683,7 +1334,7 @@ bool CRenderingContext::InitAtiElementArray()
 
 // ---[ GL_ATI_envmap_bumpmap ]---------------------------------------------------------------------------------
 
-//!	Init GL_ATI_envmap_bumpmap.
+//!	Initialize GL_ATI_envmap_bumpmap.
 
 bool CRenderingContext::InitAtiEnvmapBumpmap()
 {
@@ -1708,7 +1359,7 @@ bool CRenderingContext::InitAtiEnvmapBumpmap()
 
 // ---[ GL_ATI_fragment_shader ]--------------------------------------------------------------------------------
 
-//!	Init GL_ATI_fragment_shader.
+//!	Initialize GL_ATI_fragment_shader.
 
 bool CRenderingContext::InitAtiFragmentShader()
 {
@@ -1743,7 +1394,7 @@ bool CRenderingContext::InitAtiFragmentShader()
 
 // ---[ GL_ATI_map_object_buffer ]------------------------------------------------------------------------------
 
-//!	Init GL_ATI_map_object_buffer.
+//!	Initialize GL_ATI_map_object_buffer.
 
 bool CRenderingContext::InitAtiMapObjectBuffer()
 {
@@ -1766,7 +1417,7 @@ bool CRenderingContext::InitAtiMapObjectBuffer()
 
 // ---[ GL_ATI_pn_triangles ]-----------------------------------------------------------------------------------
 
-//!	Init GL_ATI_pn_triangles.
+//!	Initialize GL_ATI_pn_triangles.
 
 bool CRenderingContext::InitAtiPnTriangles()
 {
@@ -1789,7 +1440,7 @@ bool CRenderingContext::InitAtiPnTriangles()
 
 // ---[ GL_ATI_separate_stencil ]-------------------------------------------------------------------------------
 
-//!	Init GL_ATI_separate_stencil.
+//!	Initialize GL_ATI_separate_stencil.
 
 bool CRenderingContext::InitAtiSeparateStencil()
 {
@@ -1810,93 +1461,9 @@ bool CRenderingContext::InitAtiSeparateStencil()
 }
 
 
-// ---[ GL_ATI_texture_env_combine3 ]---------------------------------------------------------------------------
-
-//!	Init GL_ATI_texture_env_combine3.
-
-bool CRenderingContext::InitAtiTextureEnvCombine3()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ATI_texture_env_combine3_OGLEXT
-
-
-	#endif // GL_ATI_texture_env_combine3_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_ATI_texture_float ]----------------------------------------------------------------------------------
-
-//!	Init GL_ATI_texture_float.
-
-bool CRenderingContext::InitAtiTextureFloat()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ATI_texture_float_OGLEXT
-
-
-	#endif // GL_ATI_texture_float_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_ATI_texture_mirror_once ]----------------------------------------------------------------------------
-
-//!	Init GL_ATI_texture_mirror_once.
-
-bool CRenderingContext::InitAtiTextureMirrorOnce()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ATI_texture_mirror_once_OGLEXT
-
-
-	#endif // GL_ATI_texture_mirror_once_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_ATI_text_fragment_shader ]---------------------------------------------------------------------------
-
-//!	Init GL_ATI_text_fragment_shader.
-
-bool CRenderingContext::InitAtiTextFragmentShader()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_ATI_text_fragment_shader_OGLEXT
-
-
-	#endif // GL_ATI_text_fragment_shader_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_ATI_vertex_array_object ]----------------------------------------------------------------------------
 
-//!	Init GL_ATI_vertex_array_object.
+//!	Initialize GL_ATI_vertex_array_object.
 
 bool CRenderingContext::InitAtiVertexArrayObject()
 {
@@ -1929,7 +1496,7 @@ bool CRenderingContext::InitAtiVertexArrayObject()
 
 // ---[ GL_ATI_vertex_attrib_array_object ]---------------------------------------------------------------------
 
-//!	Init GL_ATI_vertex_attrib_array_object.
+//!	Initialize GL_ATI_vertex_attrib_array_object.
 
 bool CRenderingContext::InitAtiVertexAttribArrayObject()
 {
@@ -1953,7 +1520,7 @@ bool CRenderingContext::InitAtiVertexAttribArrayObject()
 
 // ---[ GL_ATI_vertex_streams ]---------------------------------------------------------------------------------
 
-//!	Init GL_ATI_vertex_streams.
+//!	Initialize GL_ATI_vertex_streams.
 
 bool CRenderingContext::InitAtiVertexStreams()
 {
@@ -2017,72 +1584,9 @@ bool CRenderingContext::InitAtiVertexStreams()
 }
 
 
-// ---[ GL_EXT_422_pixels ]-------------------------------------------------------------------------------------
-
-//!	Init GL_EXT_422_pixels.
-
-bool CRenderingContext::InitExt422Pixels()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_422_pixels_OGLEXT
-
-
-	#endif // GL_EXT_422_pixels_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_EXT_abgr ]-------------------------------------------------------------------------------------------
-
-//!	Init GL_EXT_abgr.
-
-bool CRenderingContext::InitExtAbgr()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_abgr_OGLEXT
-
-
-	#endif // GL_EXT_abgr_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_EXT_bgra ]-------------------------------------------------------------------------------------------
-
-//!	Init GL_EXT_bgra.
-
-bool CRenderingContext::InitExtBgra()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_bgra_OGLEXT
-
-
-	#endif // GL_EXT_bgra_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_EXT_blend_color ]------------------------------------------------------------------------------------
 
-//!	Init GL_EXT_blend_color.
+//!	Initialize GL_EXT_blend_color.
 
 bool CRenderingContext::InitExtBlendColor()
 {
@@ -2102,9 +1606,31 @@ bool CRenderingContext::InitExtBlendColor()
 }
 
 
+// ---[ GL_EXT_blend_equation_separate ]------------------------------------------------------------------------
+
+//!	Initialize GL_EXT_blend_equation_separate.
+
+bool CRenderingContext::InitExtBlendEquationSeparate()
+{
+	bool bReturn = true;
+
+	// 1: get all function pointers...
+
+	#ifdef GL_EXT_blend_equation_separate_OGLEXT
+
+		GET_PROC_ADDRESS(BlendEquationSeparateEXT);
+
+	#endif // GL_EXT_blend_equation_separate_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
+}
+
+
 // ---[ GL_EXT_blend_func_separate ]----------------------------------------------------------------------------
 
-//!	Init GL_EXT_blend_func_separate.
+//!	Initialize GL_EXT_blend_func_separate.
 
 bool CRenderingContext::InitExtBlendFuncSeparate()
 {
@@ -2124,30 +1650,9 @@ bool CRenderingContext::InitExtBlendFuncSeparate()
 }
 
 
-// ---[ GL_EXT_blend_logic_op ]---------------------------------------------------------------------------------
-
-//!	Init GL_EXT_blend_logic_op.
-
-bool CRenderingContext::InitExtBlendLogicOp()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_blend_logic_op_OGLEXT
-
-
-	#endif // GL_EXT_blend_logic_op_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_EXT_blend_minmax ]-----------------------------------------------------------------------------------
 
-//!	Init GL_EXT_blend_minmax.
+//!	Initialize GL_EXT_blend_minmax.
 
 bool CRenderingContext::InitExtBlendMinmax()
 {
@@ -2167,93 +1672,9 @@ bool CRenderingContext::InitExtBlendMinmax()
 }
 
 
-// ---[ GL_EXT_blend_subtract ]---------------------------------------------------------------------------------
-
-//!	Init GL_EXT_blend_subtract.
-
-bool CRenderingContext::InitExtBlendSubtract()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_blend_subtract_OGLEXT
-
-
-	#endif // GL_EXT_blend_subtract_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_EXT_clip_volume_hint ]-------------------------------------------------------------------------------
-
-//!	Init GL_EXT_clip_volume_hint.
-
-bool CRenderingContext::InitExtClipVolumeHint()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_clip_volume_hint_OGLEXT
-
-
-	#endif // GL_EXT_clip_volume_hint_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_EXT_cmyka ]------------------------------------------------------------------------------------------
-
-//!	Init GL_EXT_cmyka.
-
-bool CRenderingContext::InitExtCmyka()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_cmyka_OGLEXT
-
-
-	#endif // GL_EXT_cmyka_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_EXT_color_matrix ]-----------------------------------------------------------------------------------
-
-//!	Init GL_EXT_color_matrix.
-
-bool CRenderingContext::InitExtColorMatrix()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_color_matrix_OGLEXT
-
-
-	#endif // GL_EXT_color_matrix_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_EXT_color_subtable ]---------------------------------------------------------------------------------
 
-//!	Init GL_EXT_color_subtable.
+//!	Initialize GL_EXT_color_subtable.
 
 bool CRenderingContext::InitExtColorSubtable()
 {
@@ -2276,7 +1697,7 @@ bool CRenderingContext::InitExtColorSubtable()
 
 // ---[ GL_EXT_compiled_vertex_array ]--------------------------------------------------------------------------
 
-//!	Init GL_EXT_compiled_vertex_array.
+//!	Initialize GL_EXT_compiled_vertex_array.
 
 bool CRenderingContext::InitExtCompiledVertexArray()
 {
@@ -2299,7 +1720,7 @@ bool CRenderingContext::InitExtCompiledVertexArray()
 
 // ---[ GL_EXT_convolution ]------------------------------------------------------------------------------------
 
-//!	Init GL_EXT_convolution.
+//!	Initialize GL_EXT_convolution.
 
 bool CRenderingContext::InitExtConvolution()
 {
@@ -2333,7 +1754,7 @@ bool CRenderingContext::InitExtConvolution()
 
 // ---[ GL_EXT_coordinate_frame ]-------------------------------------------------------------------------------
 
-//!	Init GL_EXT_coordinate_frame.
+//!	Initialize GL_EXT_coordinate_frame.
 
 bool CRenderingContext::InitExtCoordinateFrame()
 {
@@ -2376,7 +1797,7 @@ bool CRenderingContext::InitExtCoordinateFrame()
 
 // ---[ GL_EXT_copy_texture ]-----------------------------------------------------------------------------------
 
-//!	Init GL_EXT_copy_texture.
+//!	Initialize GL_EXT_copy_texture.
 
 bool CRenderingContext::InitExtCopyTexture()
 {
@@ -2402,7 +1823,7 @@ bool CRenderingContext::InitExtCopyTexture()
 
 // ---[ GL_EXT_cull_vertex ]------------------------------------------------------------------------------------
 
-//!	Init GL_EXT_cull_vertex.
+//!	Initialize GL_EXT_cull_vertex.
 
 bool CRenderingContext::InitExtCullVertex()
 {
@@ -2425,7 +1846,7 @@ bool CRenderingContext::InitExtCullVertex()
 
 // ---[ GL_EXT_depth_bounds_test ]------------------------------------------------------------------------------
 
-//!	Init GL_EXT_depth_bounds_test.
+//!	Initialize GL_EXT_depth_bounds_test.
 
 bool CRenderingContext::InitExtDepthBoundsTest()
 {
@@ -2435,6 +1856,7 @@ bool CRenderingContext::InitExtDepthBoundsTest()
 
 	#ifdef GL_EXT_depth_bounds_test_OGLEXT
 
+		GET_PROC_ADDRESS(DepthBoundsEXT);
 
 	#endif // GL_EXT_depth_bounds_test_OGLEXT
 
@@ -2446,7 +1868,7 @@ bool CRenderingContext::InitExtDepthBoundsTest()
 
 // ---[ GL_EXT_draw_range_elements ]----------------------------------------------------------------------------
 
-//!	Init GL_EXT_draw_range_elements.
+//!	Initialize GL_EXT_draw_range_elements.
 
 bool CRenderingContext::InitExtDrawRangeElements()
 {
@@ -2468,7 +1890,7 @@ bool CRenderingContext::InitExtDrawRangeElements()
 
 // ---[ GL_EXT_fog_coord ]--------------------------------------------------------------------------------------
 
-//!	Init GL_EXT_fog_coord.
+//!	Initialize GL_EXT_fog_coord.
 
 bool CRenderingContext::InitExtFogCoord()
 {
@@ -2492,20 +1914,37 @@ bool CRenderingContext::InitExtFogCoord()
 }
 
 
-// ---[ GL_EXT_fragment_lighting ]------------------------------------------------------------------------------
+// ---[ GL_EXT_framebuffer_object ]-----------------------------------------------------------------------------
 
-//!	Init GL_EXT_fragment_lighting.
+//!	Initialize GL_EXT_framebuffer_object.
 
-bool CRenderingContext::InitExtFragmentLighting()
+bool CRenderingContext::InitExtFramebufferObject()
 {
 	bool bReturn = true;
 
 	// 1: get all function pointers...
 
-	#ifdef GL_EXT_fragment_lighting_OGLEXT
+	#ifdef GL_EXT_framebuffer_object_OGLEXT
 
+		GET_PROC_ADDRESS(BindFramebufferEXT);
+		GET_PROC_ADDRESS(BindRenderbufferEXT);
+		GET_PROC_ADDRESS(CheckFramebufferStatusEXT);
+		GET_PROC_ADDRESS(DeleteFramebuffersEXT);
+		GET_PROC_ADDRESS(DeleteRenderbuffersEXT);
+		GET_PROC_ADDRESS(FramebufferRenderbufferEXT);
+		GET_PROC_ADDRESS(FramebufferTexture1DEXT);
+		GET_PROC_ADDRESS(FramebufferTexture2DEXT);
+		GET_PROC_ADDRESS(FramebufferTexture3DEXT);
+		GET_PROC_ADDRESS(GenerateMipmapEXT);
+		GET_PROC_ADDRESS(GenFramebuffersEXT);
+		GET_PROC_ADDRESS(GenRenderbuffersEXT);
+		GET_PROC_ADDRESS(GetFramebufferAttachmentParameterivEXT);
+		GET_PROC_ADDRESS(GetRenderbufferParameterivEXT);
+		GET_PROC_ADDRESS(IsFramebufferEXT);
+		GET_PROC_ADDRESS(IsRenderbufferEXT);
+		GET_PROC_ADDRESS(RenderbufferStorageEXT);
 
-	#endif // GL_EXT_fragment_lighting_OGLEXT
+	#endif // GL_EXT_framebuffer_object_OGLEXT
 
 	// 2: return 'true' if everything went fine...
 
@@ -2515,7 +1954,7 @@ bool CRenderingContext::InitExtFragmentLighting()
 
 // ---[ GL_EXT_histogram ]--------------------------------------------------------------------------------------
 
-//!	Init GL_EXT_histogram.
+//!	Initialize GL_EXT_histogram.
 
 bool CRenderingContext::InitExtHistogram()
 {
@@ -2544,30 +1983,9 @@ bool CRenderingContext::InitExtHistogram()
 }
 
 
-// ---[ GL_EXT_index_array_formats ]----------------------------------------------------------------------------
-
-//!	Init GL_EXT_index_array_formats.
-
-bool CRenderingContext::InitExtIndexArrayFormats()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_index_array_formats_OGLEXT
-
-
-	#endif // GL_EXT_index_array_formats_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_EXT_index_func ]-------------------------------------------------------------------------------------
 
-//!	Init GL_EXT_index_func.
+//!	Initialize GL_EXT_index_func.
 
 bool CRenderingContext::InitExtIndexFunc()
 {
@@ -2589,7 +2007,7 @@ bool CRenderingContext::InitExtIndexFunc()
 
 // ---[ GL_EXT_index_material ]---------------------------------------------------------------------------------
 
-//!	Init GL_EXT_index_material.
+//!	Initialize GL_EXT_index_material.
 
 bool CRenderingContext::InitExtIndexMaterial()
 {
@@ -2609,30 +2027,9 @@ bool CRenderingContext::InitExtIndexMaterial()
 }
 
 
-// ---[ GL_EXT_index_texture ]----------------------------------------------------------------------------------
-
-//!	Init GL_EXT_index_texture.
-
-bool CRenderingContext::InitExtIndexTexture()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_index_texture_OGLEXT
-
-
-	#endif // GL_EXT_index_texture_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_EXT_light_texture ]----------------------------------------------------------------------------------
 
-//!	Init GL_EXT_light_texture.
+//!	Initialize GL_EXT_light_texture.
 
 bool CRenderingContext::InitExtLightTexture()
 {
@@ -2654,110 +2051,9 @@ bool CRenderingContext::InitExtLightTexture()
 }
 
 
-// ---[ GL_EXT_misc_attribute ]---------------------------------------------------------------------------------
-
-//!	Init GL_EXT_misc_attribute.
-
-bool CRenderingContext::InitExtMiscAttribute()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_misc_attribute_OGLEXT
-
-
-	#endif // GL_EXT_misc_attribute_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_EXT_multisample ]------------------------------------------------------------------------------------
-
-//!	Init GL_EXT_multisample.
-
-bool CRenderingContext::InitExtMultisample()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_multisample_OGLEXT
-
-		GET_PROC_ADDRESS(SampleMaskEXT);
-		GET_PROC_ADDRESS(SamplePatternEXT);
-
-	#endif // GL_EXT_multisample_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_EXT_multitexture ]-----------------------------------------------------------------------------------
-
-//!	Init GL_EXT_multitexture.
-
-bool CRenderingContext::InitExtMultitexture()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_multitexture_OGLEXT
-
-		GET_PROC_ADDRESS(InterleavedTextureCoordSetsEXT);
-		GET_PROC_ADDRESS(MultiTexCoord1dEXT);
-		GET_PROC_ADDRESS(MultiTexCoord1dvEXT);
-		GET_PROC_ADDRESS(MultiTexCoord1fEXT);
-		GET_PROC_ADDRESS(MultiTexCoord1fvEXT);
-		GET_PROC_ADDRESS(MultiTexCoord1iEXT);
-		GET_PROC_ADDRESS(MultiTexCoord1ivEXT);
-		GET_PROC_ADDRESS(MultiTexCoord1sEXT);
-		GET_PROC_ADDRESS(MultiTexCoord1svEXT);
-		GET_PROC_ADDRESS(MultiTexCoord2dEXT);
-		GET_PROC_ADDRESS(MultiTexCoord2dvEXT);
-		GET_PROC_ADDRESS(MultiTexCoord2fEXT);
-		GET_PROC_ADDRESS(MultiTexCoord2fvEXT);
-		GET_PROC_ADDRESS(MultiTexCoord2iEXT);
-		GET_PROC_ADDRESS(MultiTexCoord2ivEXT);
-		GET_PROC_ADDRESS(MultiTexCoord2sEXT);
-		GET_PROC_ADDRESS(MultiTexCoord2svEXT);
-		GET_PROC_ADDRESS(MultiTexCoord3dEXT);
-		GET_PROC_ADDRESS(MultiTexCoord3dvEXT);
-		GET_PROC_ADDRESS(MultiTexCoord3fEXT);
-		GET_PROC_ADDRESS(MultiTexCoord3fvEXT);
-		GET_PROC_ADDRESS(MultiTexCoord3iEXT);
-		GET_PROC_ADDRESS(MultiTexCoord3ivEXT);
-		GET_PROC_ADDRESS(MultiTexCoord3sEXT);
-		GET_PROC_ADDRESS(MultiTexCoord3svEXT);
-		GET_PROC_ADDRESS(MultiTexCoord4dEXT);
-		GET_PROC_ADDRESS(MultiTexCoord4dvEXT);
-		GET_PROC_ADDRESS(MultiTexCoord4fEXT);
-		GET_PROC_ADDRESS(MultiTexCoord4fvEXT);
-		GET_PROC_ADDRESS(MultiTexCoord4iEXT);
-		GET_PROC_ADDRESS(MultiTexCoord4ivEXT);
-		GET_PROC_ADDRESS(MultiTexCoord4sEXT);
-		GET_PROC_ADDRESS(MultiTexCoord4svEXT);
-		GET_PROC_ADDRESS(SelectTextureCoordSetEXT);
-		GET_PROC_ADDRESS(SelectTextureEXT);
-		GET_PROC_ADDRESS(SelectTextureTransformEXT);
-
-	#endif // GL_EXT_multitexture_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_EXT_multi_draw_arrays ]------------------------------------------------------------------------------
 
-//!	Init GL_EXT_multi_draw_arrays.
+//!	Initialize GL_EXT_multi_draw_arrays.
 
 bool CRenderingContext::InitExtMultiDrawArrays()
 {
@@ -2778,20 +2074,22 @@ bool CRenderingContext::InitExtMultiDrawArrays()
 }
 
 
-// ---[ GL_EXT_packed_pixels ]----------------------------------------------------------------------------------
+// ---[ GL_EXT_multisample ]------------------------------------------------------------------------------------
 
-//!	Init GL_EXT_packed_pixels.
+//!	Initialize GL_EXT_multisample.
 
-bool CRenderingContext::InitExtPackedPixels()
+bool CRenderingContext::InitExtMultisample()
 {
 	bool bReturn = true;
 
 	// 1: get all function pointers...
 
-	#ifdef GL_EXT_packed_pixels_OGLEXT
+	#ifdef GL_EXT_multisample_OGLEXT
 
+		GET_PROC_ADDRESS(SampleMaskEXT);
+		GET_PROC_ADDRESS(SamplePatternEXT);
 
-	#endif // GL_EXT_packed_pixels_OGLEXT
+	#endif // GL_EXT_multisample_OGLEXT
 
 	// 2: return 'true' if everything went fine...
 
@@ -2801,7 +2099,7 @@ bool CRenderingContext::InitExtPackedPixels()
 
 // ---[ GL_EXT_paletted_texture ]-------------------------------------------------------------------------------
 
-//!	Init GL_EXT_paletted_texture.
+//!	Initialize GL_EXT_paletted_texture.
 
 bool CRenderingContext::InitExtPalettedTexture()
 {
@@ -2811,6 +2109,7 @@ bool CRenderingContext::InitExtPalettedTexture()
 
 	#ifdef GL_EXT_paletted_texture_OGLEXT
 
+		GET_PROC_ADDRESS(ColorSubTableEXT);
 		GET_PROC_ADDRESS(ColorTableEXT);
 		GET_PROC_ADDRESS(GetColorTableEXT);
 		GET_PROC_ADDRESS(GetColorTableParameterfvEXT);
@@ -2826,7 +2125,7 @@ bool CRenderingContext::InitExtPalettedTexture()
 
 // ---[ GL_EXT_pixel_transform ]--------------------------------------------------------------------------------
 
-//!	Init GL_EXT_pixel_transform.
+//!	Initialize GL_EXT_pixel_transform.
 
 bool CRenderingContext::InitExtPixelTransform()
 {
@@ -2849,30 +2148,9 @@ bool CRenderingContext::InitExtPixelTransform()
 }
 
 
-// ---[ GL_EXT_pixel_transform_color_table ]--------------------------------------------------------------------
-
-//!	Init GL_EXT_pixel_transform_color_table.
-
-bool CRenderingContext::InitExtPixelTransformColorTable()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_pixel_transform_color_table_OGLEXT
-
-
-	#endif // GL_EXT_pixel_transform_color_table_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_EXT_point_parameters ]-------------------------------------------------------------------------------
 
-//!	Init GL_EXT_point_parameters.
+//!	Initialize GL_EXT_point_parameters.
 
 bool CRenderingContext::InitExtPointParameters()
 {
@@ -2895,7 +2173,7 @@ bool CRenderingContext::InitExtPointParameters()
 
 // ---[ GL_EXT_polygon_offset ]---------------------------------------------------------------------------------
 
-//!	Init GL_EXT_polygon_offset.
+//!	Initialize GL_EXT_polygon_offset.
 
 bool CRenderingContext::InitExtPolygonOffset()
 {
@@ -2915,30 +2193,9 @@ bool CRenderingContext::InitExtPolygonOffset()
 }
 
 
-// ---[ GL_EXT_rescale_normal ]---------------------------------------------------------------------------------
-
-//!	Init GL_EXT_rescale_normal.
-
-bool CRenderingContext::InitExtRescaleNormal()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_rescale_normal_OGLEXT
-
-
-	#endif // GL_EXT_rescale_normal_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_EXT_secondary_color ]--------------------------------------------------------------------------------
 
-//!	Init GL_EXT_secondary_color.
+//!	Initialize GL_EXT_secondary_color.
 
 bool CRenderingContext::InitExtSecondaryColor()
 {
@@ -2974,72 +2231,9 @@ bool CRenderingContext::InitExtSecondaryColor()
 }
 
 
-// ---[ GL_EXT_separate_specular_color ]------------------------------------------------------------------------
-
-//!	Init GL_EXT_separate_specular_color.
-
-bool CRenderingContext::InitExtSeparateSpecularColor()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_separate_specular_color_OGLEXT
-
-
-	#endif // GL_EXT_separate_specular_color_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_EXT_shadow_funcs ]-----------------------------------------------------------------------------------
-
-//!	Init GL_EXT_shadow_funcs.
-
-bool CRenderingContext::InitExtShadowFuncs()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_shadow_funcs_OGLEXT
-
-
-	#endif // GL_EXT_shadow_funcs_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_EXT_shared_texture_palette ]-------------------------------------------------------------------------
-
-//!	Init GL_EXT_shared_texture_palette.
-
-bool CRenderingContext::InitExtSharedTexturePalette()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_shared_texture_palette_OGLEXT
-
-
-	#endif // GL_EXT_shared_texture_palette_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_EXT_stencil_two_side ]-------------------------------------------------------------------------------
 
-//!	Init GL_EXT_stencil_two_side.
+//!	Initialize GL_EXT_stencil_two_side.
 
 bool CRenderingContext::InitExtStencilTwoSide()
 {
@@ -3059,30 +2253,9 @@ bool CRenderingContext::InitExtStencilTwoSide()
 }
 
 
-// ---[ GL_EXT_stencil_wrap ]-----------------------------------------------------------------------------------
-
-//!	Init GL_EXT_stencil_wrap.
-
-bool CRenderingContext::InitExtStencilWrap()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_stencil_wrap_OGLEXT
-
-
-	#endif // GL_EXT_stencil_wrap_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_EXT_subtexture ]-------------------------------------------------------------------------------------
 
-//!	Init GL_EXT_subtexture.
+//!	Initialize GL_EXT_subtexture.
 
 bool CRenderingContext::InitExtSubtexture()
 {
@@ -3103,32 +2276,11 @@ bool CRenderingContext::InitExtSubtexture()
 }
 
 
-// ---[ GL_EXT_texture ]----------------------------------------------------------------------------------------
-
-//!	Init GL_EXT_texture.
-
-bool CRenderingContext::InitExtTexture()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_texture_OGLEXT
-
-
-	#endif // GL_EXT_texture_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_EXT_texture3D ]--------------------------------------------------------------------------------------
 
-//!	Init GL_EXT_texture3D.
+//!	Initialize GL_EXT_texture3D.
 
-bool CRenderingContext::InitExtTexture3D()
+bool CRenderingContext::InitExtTexture3d()
 {
 	bool bReturn = true;
 
@@ -3147,156 +2299,9 @@ bool CRenderingContext::InitExtTexture3D()
 }
 
 
-// ---[ GL_EXT_texture_compression_s3tc ]-----------------------------------------------------------------------
-
-//!	Init GL_EXT_texture_compression_s3tc.
-
-bool CRenderingContext::InitExtTextureCompressionS3tc()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_texture_compression_s3tc_OGLEXT
-
-
-	#endif // GL_EXT_texture_compression_s3tc_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_EXT_texture_env_add ]--------------------------------------------------------------------------------
-
-//!	Init GL_EXT_texture_env_add.
-
-bool CRenderingContext::InitExtTextureEnvAdd()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_texture_env_add_OGLEXT
-
-
-	#endif // GL_EXT_texture_env_add_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_EXT_texture_env_combine ]----------------------------------------------------------------------------
-
-//!	Init GL_EXT_texture_env_combine.
-
-bool CRenderingContext::InitExtTextureEnvCombine()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_texture_env_combine_OGLEXT
-
-
-	#endif // GL_EXT_texture_env_combine_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_EXT_texture_env_dot3 ]-------------------------------------------------------------------------------
-
-//!	Init GL_EXT_texture_env_dot3.
-
-bool CRenderingContext::InitExtTextureEnvDot3()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_texture_env_dot3_OGLEXT
-
-
-	#endif // GL_EXT_texture_env_dot3_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_EXT_texture_filter_anisotropic ]---------------------------------------------------------------------
-
-//!	Init GL_EXT_texture_filter_anisotropic.
-
-bool CRenderingContext::InitExtTextureFilterAnisotropic()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_texture_filter_anisotropic_OGLEXT
-
-
-	#endif // GL_EXT_texture_filter_anisotropic_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_EXT_texture_lod_bias ]-------------------------------------------------------------------------------
-
-//!	Init GL_EXT_texture_lod_bias.
-
-bool CRenderingContext::InitExtTextureLodBias()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_texture_lod_bias_OGLEXT
-
-
-	#endif // GL_EXT_texture_lod_bias_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_EXT_texture_mirror_clamp ]---------------------------------------------------------------------------
-
-//!	Init GL_EXT_texture_mirror_clamp.
-
-bool CRenderingContext::InitExtTextureMirrorClamp()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_EXT_texture_mirror_clamp_OGLEXT
-
-
-	#endif // GL_EXT_texture_mirror_clamp_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_EXT_texture_object ]---------------------------------------------------------------------------------
 
-//!	Init GL_EXT_texture_object.
+//!	Initialize GL_EXT_texture_object.
 
 bool CRenderingContext::InitExtTextureObject()
 {
@@ -3323,7 +2328,7 @@ bool CRenderingContext::InitExtTextureObject()
 
 // ---[ GL_EXT_texture_perturb_normal ]-------------------------------------------------------------------------
 
-//!	Init GL_EXT_texture_perturb_normal.
+//!	Initialize GL_EXT_texture_perturb_normal.
 
 bool CRenderingContext::InitExtTexturePerturbNormal()
 {
@@ -3345,7 +2350,7 @@ bool CRenderingContext::InitExtTexturePerturbNormal()
 
 // ---[ GL_EXT_vertex_array ]-----------------------------------------------------------------------------------
 
-//!	Init GL_EXT_vertex_array.
+//!	Initialize GL_EXT_vertex_array.
 
 bool CRenderingContext::InitExtVertexArray()
 {
@@ -3375,7 +2380,7 @@ bool CRenderingContext::InitExtVertexArray()
 
 // ---[ GL_EXT_vertex_shader ]----------------------------------------------------------------------------------
 
-//!	Init GL_EXT_vertex_shader.
+//!	Initialize GL_EXT_vertex_shader.
 
 bool CRenderingContext::InitExtVertexShader()
 {
@@ -3438,7 +2443,7 @@ bool CRenderingContext::InitExtVertexShader()
 
 // ---[ GL_EXT_vertex_weighting ]-------------------------------------------------------------------------------
 
-//!	Init GL_EXT_vertex_weighting.
+//!	Initialize GL_EXT_vertex_weighting.
 
 bool CRenderingContext::InitExtVertexWeighting()
 {
@@ -3460,20 +2465,21 @@ bool CRenderingContext::InitExtVertexWeighting()
 }
 
 
-// ---[ GL_HP_convolution_border_modes ]------------------------------------------------------------------------
+// ---[ GL_GREMEDY_string_marker ]------------------------------------------------------------------------------
 
-//!	Init GL_HP_convolution_border_modes.
+//!	Initialize GL_GREMEDY_string_marker.
 
-bool CRenderingContext::InitHpConvolutionBorderModes()
+bool CRenderingContext::InitGremedyStringMarker()
 {
 	bool bReturn = true;
 
 	// 1: get all function pointers...
 
-	#ifdef GL_HP_convolution_border_modes_OGLEXT
+	#ifdef GL_GREMEDY_string_marker_OGLEXT
 
+		GET_PROC_ADDRESS(StringMarkerGREMEDY);
 
-	#endif // GL_HP_convolution_border_modes_OGLEXT
+	#endif // GL_GREMEDY_string_marker_OGLEXT
 
 	// 2: return 'true' if everything went fine...
 
@@ -3483,7 +2489,7 @@ bool CRenderingContext::InitHpConvolutionBorderModes()
 
 // ---[ GL_HP_image_transform ]---------------------------------------------------------------------------------
 
-//!	Init GL_HP_image_transform.
+//!	Initialize GL_HP_image_transform.
 
 bool CRenderingContext::InitHpImageTransform()
 {
@@ -3508,72 +2514,9 @@ bool CRenderingContext::InitHpImageTransform()
 }
 
 
-// ---[ GL_HP_occlusion_test ]----------------------------------------------------------------------------------
-
-//!	Init GL_HP_occlusion_test.
-
-bool CRenderingContext::InitHpOcclusionTest()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_HP_occlusion_test_OGLEXT
-
-
-	#endif // GL_HP_occlusion_test_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_HP_texture_lighting ]--------------------------------------------------------------------------------
-
-//!	Init GL_HP_texture_lighting.
-
-bool CRenderingContext::InitHpTextureLighting()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_HP_texture_lighting_OGLEXT
-
-
-	#endif // GL_HP_texture_lighting_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_IBM_cull_vertex ]------------------------------------------------------------------------------------
-
-//!	Init GL_IBM_cull_vertex.
-
-bool CRenderingContext::InitIbmCullVertex()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_IBM_cull_vertex_OGLEXT
-
-
-	#endif // GL_IBM_cull_vertex_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_IBM_multimode_draw_arrays ]--------------------------------------------------------------------------
 
-//!	Init GL_IBM_multimode_draw_arrays.
+//!	Initialize GL_IBM_multimode_draw_arrays.
 
 bool CRenderingContext::InitIbmMultimodeDrawArrays()
 {
@@ -3594,72 +2537,9 @@ bool CRenderingContext::InitIbmMultimodeDrawArrays()
 }
 
 
-// ---[ GL_IBM_rasterpos_clip ]---------------------------------------------------------------------------------
-
-//!	Init GL_IBM_rasterpos_clip.
-
-bool CRenderingContext::InitIbmRasterposClip()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_IBM_rasterpos_clip_OGLEXT
-
-
-	#endif // GL_IBM_rasterpos_clip_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_IBM_static_data ]------------------------------------------------------------------------------------
-
-//!	Init GL_IBM_static_data.
-
-bool CRenderingContext::InitIbmStaticData()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_IBM_static_data_OGLEXT
-
-
-	#endif // GL_IBM_static_data_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_IBM_texture_mirrored_repeat ]------------------------------------------------------------------------
-
-//!	Init GL_IBM_texture_mirrored_repeat.
-
-bool CRenderingContext::InitIbmTextureMirroredRepeat()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_IBM_texture_mirrored_repeat_OGLEXT
-
-
-	#endif // GL_IBM_texture_mirrored_repeat_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_IBM_vertex_array_lists ]-----------------------------------------------------------------------------
 
-//!	Init GL_IBM_vertex_array_lists.
+//!	Initialize GL_IBM_vertex_array_lists.
 
 bool CRenderingContext::InitIbmVertexArrayLists()
 {
@@ -3688,7 +2568,7 @@ bool CRenderingContext::InitIbmVertexArrayLists()
 
 // ---[ GL_INGR_blend_func_separate ]---------------------------------------------------------------------------
 
-//!	Init GL_INGR_blend_func_separate.
+//!	Initialize GL_INGR_blend_func_separate.
 
 bool CRenderingContext::InitIngrBlendFuncSeparate()
 {
@@ -3708,51 +2588,9 @@ bool CRenderingContext::InitIngrBlendFuncSeparate()
 }
 
 
-// ---[ GL_INGR_color_clamp ]-----------------------------------------------------------------------------------
-
-//!	Init GL_INGR_color_clamp.
-
-bool CRenderingContext::InitIngrColorClamp()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_INGR_color_clamp_OGLEXT
-
-
-	#endif // GL_INGR_color_clamp_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_INGR_interlace_read ]--------------------------------------------------------------------------------
-
-//!	Init GL_INGR_interlace_read.
-
-bool CRenderingContext::InitIngrInterlaceRead()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_INGR_interlace_read_OGLEXT
-
-
-	#endif // GL_INGR_interlace_read_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_INTEL_parallel_arrays ]------------------------------------------------------------------------------
 
-//!	Init GL_INTEL_parallel_arrays.
+//!	Initialize GL_INTEL_parallel_arrays.
 
 bool CRenderingContext::InitIntelParallelArrays()
 {
@@ -3777,7 +2615,7 @@ bool CRenderingContext::InitIntelParallelArrays()
 
 // ---[ GL_MESA_resize_buffers ]--------------------------------------------------------------------------------
 
-//!	Init GL_MESA_resize_buffers.
+//!	Initialize GL_MESA_resize_buffers.
 
 bool CRenderingContext::InitMesaResizeBuffers()
 {
@@ -3799,7 +2637,7 @@ bool CRenderingContext::InitMesaResizeBuffers()
 
 // ---[ GL_MESA_window_pos ]------------------------------------------------------------------------------------
 
-//!	Init GL_MESA_window_pos.
+//!	Initialize GL_MESA_window_pos.
 
 bool CRenderingContext::InitMesaWindowPos()
 {
@@ -3842,62 +2680,25 @@ bool CRenderingContext::InitMesaWindowPos()
 }
 
 
-// ---[ GL_NV_blend_square ]------------------------------------------------------------------------------------
+// ---[ GL_NV_element_array ]-----------------------------------------------------------------------------------
 
-//!	Init GL_NV_blend_square.
+//!	Initialize GL_NV_element_array.
 
-bool CRenderingContext::InitNvBlendSquare()
+bool CRenderingContext::InitNvElementArray()
 {
 	bool bReturn = true;
 
 	// 1: get all function pointers...
 
-	#ifdef GL_NV_blend_square_OGLEXT
+	#ifdef GL_NV_element_array_OGLEXT
 
+		GET_PROC_ADDRESS(DrawElementArrayNV);
+		GET_PROC_ADDRESS(DrawRangeElementArrayNV);
+		GET_PROC_ADDRESS(ElementPointerNV);
+		GET_PROC_ADDRESS(MultiDrawElementArrayNV);
+		GET_PROC_ADDRESS(MultiDrawRangeElementArrayNV);
 
-	#endif // GL_NV_blend_square_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_NV_copy_depth_to_color ]-----------------------------------------------------------------------------
-
-//!	Init GL_NV_copy_depth_to_color.
-
-bool CRenderingContext::InitNvCopyDepthToColor()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_copy_depth_to_color_OGLEXT
-
-
-	#endif // GL_NV_copy_depth_to_color_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_NV_depth_clamp ]-------------------------------------------------------------------------------------
-
-//!	Init GL_NV_depth_clamp.
-
-bool CRenderingContext::InitNvDepthClamp()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_depth_clamp_OGLEXT
-
-
-	#endif // GL_NV_depth_clamp_OGLEXT
+	#endif // GL_NV_element_array_OGLEXT
 
 	// 2: return 'true' if everything went fine...
 
@@ -3907,7 +2708,7 @@ bool CRenderingContext::InitNvDepthClamp()
 
 // ---[ GL_NV_evaluators ]--------------------------------------------------------------------------------------
 
-//!	Init GL_NV_evaluators.
+//!	Initialize GL_NV_evaluators.
 
 bool CRenderingContext::InitNvEvaluators()
 {
@@ -3937,7 +2738,7 @@ bool CRenderingContext::InitNvEvaluators()
 
 // ---[ GL_NV_fence ]-------------------------------------------------------------------------------------------
 
-//!	Init GL_NV_fence.
+//!	Initialize GL_NV_fence.
 
 bool CRenderingContext::InitNvFence()
 {
@@ -3963,51 +2764,9 @@ bool CRenderingContext::InitNvFence()
 }
 
 
-// ---[ GL_NV_float_buffer ]------------------------------------------------------------------------------------
-
-//!	Init GL_NV_float_buffer.
-
-bool CRenderingContext::InitNvFloatBuffer()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_float_buffer_OGLEXT
-
-
-	#endif // GL_NV_float_buffer_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_NV_fog_distance ]------------------------------------------------------------------------------------
-
-//!	Init GL_NV_fog_distance.
-
-bool CRenderingContext::InitNvFogDistance()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_fog_distance_OGLEXT
-
-
-	#endif // GL_NV_fog_distance_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_NV_fragment_program ]--------------------------------------------------------------------------------
 
-//!	Init GL_NV_fragment_program.
+//!	Initialize GL_NV_fragment_program.
 
 bool CRenderingContext::InitNvFragmentProgram()
 {
@@ -4034,7 +2793,7 @@ bool CRenderingContext::InitNvFragmentProgram()
 
 // ---[ GL_NV_half_float ]--------------------------------------------------------------------------------------
 
-//!	Init GL_NV_half_float.
+//!	Initialize GL_NV_half_float.
 
 bool CRenderingContext::InitNvHalfFloat()
 {
@@ -4099,51 +2858,9 @@ bool CRenderingContext::InitNvHalfFloat()
 }
 
 
-// ---[ GL_NV_light_max_exponent ]------------------------------------------------------------------------------
-
-//!	Init GL_NV_light_max_exponent.
-
-bool CRenderingContext::InitNvLightMaxExponent()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_light_max_exponent_OGLEXT
-
-
-	#endif // GL_NV_light_max_exponent_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_NV_multisample_filter_hint ]-------------------------------------------------------------------------
-
-//!	Init GL_NV_multisample_filter_hint.
-
-bool CRenderingContext::InitNvMultisampleFilterHint()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_multisample_filter_hint_OGLEXT
-
-
-	#endif // GL_NV_multisample_filter_hint_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_NV_occlusion_query ]---------------------------------------------------------------------------------
 
-//!	Init GL_NV_occlusion_query.
+//!	Initialize GL_NV_occlusion_query.
 
 bool CRenderingContext::InitNvOcclusionQuery()
 {
@@ -4169,30 +2886,9 @@ bool CRenderingContext::InitNvOcclusionQuery()
 }
 
 
-// ---[ GL_NV_packed_depth_stencil ]----------------------------------------------------------------------------
-
-//!	Init GL_NV_packed_depth_stencil.
-
-bool CRenderingContext::InitNvPackedDepthStencil()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_packed_depth_stencil_OGLEXT
-
-
-	#endif // GL_NV_packed_depth_stencil_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_NV_pixel_data_range ]--------------------------------------------------------------------------------
 
-//!	Init GL_NV_pixel_data_range.
+//!	Initialize GL_NV_pixel_data_range.
 
 bool CRenderingContext::InitNvPixelDataRange()
 {
@@ -4215,7 +2911,7 @@ bool CRenderingContext::InitNvPixelDataRange()
 
 // ---[ GL_NV_point_sprite ]------------------------------------------------------------------------------------
 
-//!	Init GL_NV_point_sprite.
+//!	Initialize GL_NV_point_sprite.
 
 bool CRenderingContext::InitNvPointSprite()
 {
@@ -4238,7 +2934,7 @@ bool CRenderingContext::InitNvPointSprite()
 
 // ---[ GL_NV_primitive_restart ]-------------------------------------------------------------------------------
 
-//!	Init GL_NV_primitive_restart.
+//!	Initialize GL_NV_primitive_restart.
 
 bool CRenderingContext::InitNvPrimitiveRestart()
 {
@@ -4261,7 +2957,7 @@ bool CRenderingContext::InitNvPrimitiveRestart()
 
 // ---[ GL_NV_register_combiners ]------------------------------------------------------------------------------
 
-//!	Init GL_NV_register_combiners.
+//!	Initialize GL_NV_register_combiners.
 
 bool CRenderingContext::InitNvRegisterCombiners()
 {
@@ -4295,7 +2991,7 @@ bool CRenderingContext::InitNvRegisterCombiners()
 
 // ---[ GL_NV_register_combiners2 ]-----------------------------------------------------------------------------
 
-//!	Init GL_NV_register_combiners2.
+//!	Initialize GL_NV_register_combiners2.
 
 bool CRenderingContext::InitNvRegisterCombiners2()
 {
@@ -4316,188 +3012,21 @@ bool CRenderingContext::InitNvRegisterCombiners2()
 }
 
 
-// ---[ GL_NV_texgen_emboss ]-----------------------------------------------------------------------------------
+// ---[ GL_NV_stencil_two_side ]--------------------------------------------------------------------------------
 
-//!	Init GL_NV_texgen_emboss.
+//!	Initialize GL_NV_stencil_two_side.
 
-bool CRenderingContext::InitNvTexgenEmboss()
+bool CRenderingContext::InitNvStencilTwoSide()
 {
 	bool bReturn = true;
 
 	// 1: get all function pointers...
 
-	#ifdef GL_NV_texgen_emboss_OGLEXT
+	#ifdef GL_NV_stencil_two_side_OGLEXT
 
+		GET_PROC_ADDRESS(ActiveStencilFaceNV);
 
-	#endif // GL_NV_texgen_emboss_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_NV_texgen_reflection ]-------------------------------------------------------------------------------
-
-//!	Init GL_NV_texgen_reflection.
-
-bool CRenderingContext::InitNvTexgenReflection()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_texgen_reflection_OGLEXT
-
-
-	#endif // GL_NV_texgen_reflection_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_NV_texture_compression_vtc ]-------------------------------------------------------------------------
-
-//!	Init GL_NV_texture_compression_vtc.
-
-bool CRenderingContext::InitNvTextureCompressionVtc()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_texture_compression_vtc_OGLEXT
-
-
-	#endif // GL_NV_texture_compression_vtc_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_NV_texture_env_combine4 ]----------------------------------------------------------------------------
-
-//!	Init GL_NV_texture_env_combine4.
-
-bool CRenderingContext::InitNvTextureEnvCombine4()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_texture_env_combine4_OGLEXT
-
-
-	#endif // GL_NV_texture_env_combine4_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_NV_texture_expand_normal ]---------------------------------------------------------------------------
-
-//!	Init GL_NV_texture_expand_normal.
-
-bool CRenderingContext::InitNvTextureExpandNormal()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_texture_expand_normal_OGLEXT
-
-
-	#endif // GL_NV_texture_expand_normal_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_NV_texture_rectangle ]-------------------------------------------------------------------------------
-
-//!	Init GL_NV_texture_rectangle.
-
-bool CRenderingContext::InitNvTextureRectangle()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_texture_rectangle_OGLEXT
-
-
-	#endif // GL_NV_texture_rectangle_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_NV_texture_shader ]----------------------------------------------------------------------------------
-
-//!	Init GL_NV_texture_shader.
-
-bool CRenderingContext::InitNvTextureShader()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_texture_shader_OGLEXT
-
-
-	#endif // GL_NV_texture_shader_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_NV_texture_shader2 ]---------------------------------------------------------------------------------
-
-//!	Init GL_NV_texture_shader2.
-
-bool CRenderingContext::InitNvTextureShader2()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_texture_shader2_OGLEXT
-
-
-	#endif // GL_NV_texture_shader2_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_NV_texture_shader3 ]---------------------------------------------------------------------------------
-
-//!	Init GL_NV_texture_shader3.
-
-bool CRenderingContext::InitNvTextureShader3()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_texture_shader3_OGLEXT
-
-
-	#endif // GL_NV_texture_shader3_OGLEXT
+	#endif // GL_NV_stencil_two_side_OGLEXT
 
 	// 2: return 'true' if everything went fine...
 
@@ -4507,7 +3036,7 @@ bool CRenderingContext::InitNvTextureShader3()
 
 // ---[ GL_NV_vertex_array_range ]------------------------------------------------------------------------------
 
-//!	Init GL_NV_vertex_array_range.
+//!	Initialize GL_NV_vertex_array_range.
 
 bool CRenderingContext::InitNvVertexArrayRange()
 {
@@ -4528,30 +3057,9 @@ bool CRenderingContext::InitNvVertexArrayRange()
 }
 
 
-// ---[ GL_NV_vertex_array_range2 ]-----------------------------------------------------------------------------
-
-//!	Init GL_NV_vertex_array_range2.
-
-bool CRenderingContext::InitNvVertexArrayRange2()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_vertex_array_range2_OGLEXT
-
-
-	#endif // GL_NV_vertex_array_range2_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_NV_vertex_program ]----------------------------------------------------------------------------------
 
-//!	Init GL_NV_vertex_program.
+//!	Initialize GL_NV_vertex_program.
 
 bool CRenderingContext::InitNvVertexProgram()
 {
@@ -4634,104 +3142,22 @@ bool CRenderingContext::InitNvVertexProgram()
 }
 
 
-// ---[ GL_NV_vertex_program1_1 ]-------------------------------------------------------------------------------
+// ---[ GL_NVX_conditional_render ]-----------------------------------------------------------------------------
 
-//!	Init GL_NV_vertex_program1_1.
+//!	Initialize GL_NVX_conditional_render.
 
-bool CRenderingContext::InitNvVertexProgram11()
+bool CRenderingContext::InitNvxConditionalRender()
 {
 	bool bReturn = true;
 
 	// 1: get all function pointers...
 
-	#ifdef GL_NV_vertex_program1_1_OGLEXT
+	#ifdef GL_NVX_conditional_render_OGLEXT
 
+		GET_PROC_ADDRESS(BeginConditionalRenderNVX);
+		GET_PROC_ADDRESS(EndConditionalRenderNVX);
 
-	#endif // GL_NV_vertex_program1_1_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_NV_vertex_program2 ]---------------------------------------------------------------------------------
-
-//!	Init GL_NV_vertex_program2.
-
-bool CRenderingContext::InitNvVertexProgram2()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_NV_vertex_program2_OGLEXT
-
-
-	#endif // GL_NV_vertex_program2_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_OML_interlace ]--------------------------------------------------------------------------------------
-
-//!	Init GL_OML_interlace.
-
-bool CRenderingContext::InitOmlInterlace()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_OML_interlace_OGLEXT
-
-
-	#endif // GL_OML_interlace_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_OML_resample ]---------------------------------------------------------------------------------------
-
-//!	Init GL_OML_resample.
-
-bool CRenderingContext::InitOmlResample()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_OML_resample_OGLEXT
-
-
-	#endif // GL_OML_resample_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_OML_subsample ]--------------------------------------------------------------------------------------
-
-//!	Init GL_OML_subsample.
-
-bool CRenderingContext::InitOmlSubsample()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_OML_subsample_OGLEXT
-
-
-	#endif // GL_OML_subsample_OGLEXT
+	#endif // GL_NVX_conditional_render_OGLEXT
 
 	// 2: return 'true' if everything went fine...
 
@@ -4741,7 +3167,7 @@ bool CRenderingContext::InitOmlSubsample()
 
 // ---[ GL_PGI_misc_hints ]-------------------------------------------------------------------------------------
 
-//!	Init GL_PGI_misc_hints.
+//!	Initialize GL_PGI_misc_hints.
 
 bool CRenderingContext::InitPgiMiscHints()
 {
@@ -4761,62 +3187,27 @@ bool CRenderingContext::InitPgiMiscHints()
 }
 
 
-// ---[ GL_PGI_vertex_hints ]-----------------------------------------------------------------------------------
+// ---[ GL_SGI_color_table ]------------------------------------------------------------------------------------
 
-//!	Init GL_PGI_vertex_hints.
+//!	Initialize GL_SGI_color_table.
 
-bool CRenderingContext::InitPgiVertexHints()
+bool CRenderingContext::InitSgiColorTable()
 {
 	bool bReturn = true;
 
 	// 1: get all function pointers...
 
-	#ifdef GL_PGI_vertex_hints_OGLEXT
+	#ifdef GL_SGI_color_table_OGLEXT
 
+		GET_PROC_ADDRESS(ColorTableParameterfvSGI);
+		GET_PROC_ADDRESS(ColorTableParameterivSGI);
+		GET_PROC_ADDRESS(ColorTableSGI);
+		GET_PROC_ADDRESS(CopyColorTableSGI);
+		GET_PROC_ADDRESS(GetColorTableParameterfvSGI);
+		GET_PROC_ADDRESS(GetColorTableParameterivSGI);
+		GET_PROC_ADDRESS(GetColorTableSGI);
 
-	#endif // GL_PGI_vertex_hints_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_REND_screen_coordinates ]----------------------------------------------------------------------------
-
-//!	Init GL_REND_screen_coordinates.
-
-bool CRenderingContext::InitRendScreenCoordinates()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_REND_screen_coordinates_OGLEXT
-
-
-	#endif // GL_REND_screen_coordinates_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_S3_s3tc ]--------------------------------------------------------------------------------------------
-
-//!	Init GL_S3_s3tc.
-
-bool CRenderingContext::InitS3S3tc()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_S3_s3tc_OGLEXT
-
-
-	#endif // GL_S3_s3tc_OGLEXT
+	#endif // GL_SGI_color_table_OGLEXT
 
 	// 2: return 'true' if everything went fine...
 
@@ -4826,9 +3217,9 @@ bool CRenderingContext::InitS3S3tc()
 
 // ---[ GL_SGIS_detail_texture ]--------------------------------------------------------------------------------
 
-//!	Init GL_SGIS_detail_texture.
+//!	Initialize GL_SGIS_detail_texture.
 
-bool CRenderingContext::InitSgiSDetailTexture()
+bool CRenderingContext::InitSgisDetailTexture()
 {
 	bool bReturn = true;
 
@@ -4849,9 +3240,9 @@ bool CRenderingContext::InitSgiSDetailTexture()
 
 // ---[ GL_SGIS_fog_function ]----------------------------------------------------------------------------------
 
-//!	Init GL_SGIS_fog_function.
+//!	Initialize GL_SGIS_fog_function.
 
-bool CRenderingContext::InitSgiSFogFunction()
+bool CRenderingContext::InitSgisFogFunction()
 {
 	bool bReturn = true;
 
@@ -4870,32 +3261,11 @@ bool CRenderingContext::InitSgiSFogFunction()
 }
 
 
-// ---[ GL_SGIS_generate_mipmap ]-------------------------------------------------------------------------------
-
-//!	Init GL_SGIS_generate_mipmap.
-
-bool CRenderingContext::InitSgiSGenerateMipmap()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIS_generate_mipmap_OGLEXT
-
-
-	#endif // GL_SGIS_generate_mipmap_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_SGIS_multisample ]-----------------------------------------------------------------------------------
 
-//!	Init GL_SGIS_multisample.
+//!	Initialize GL_SGIS_multisample.
 
-bool CRenderingContext::InitSgiSMultisample()
+bool CRenderingContext::InitSgisMultisample()
 {
 	bool bReturn = true;
 
@@ -4914,68 +3284,11 @@ bool CRenderingContext::InitSgiSMultisample()
 }
 
 
-// ---[ GL_SGIS_multitexture ]----------------------------------------------------------------------------------
-
-//!	Init GL_SGIS_multitexture.
-
-bool CRenderingContext::InitSgisMultitexture()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIS_multitexture_OGLEXT
-
-		GET_PROC_ADDRESS(InterleavedTextureCoordSetsSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord1dSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord1dvSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord1fSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord1fvSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord1iSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord1ivSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord1sSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord1svSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord2dSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord2dvSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord2fSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord2fvSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord2iSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord2ivSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord2sSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord2svSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord3dSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord3dvSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord3fSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord3fvSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord3iSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord3ivSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord3sSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord3svSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord4dSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord4dvSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord4fSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord4fvSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord4iSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord4ivSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord4sSGIS);
-		GET_PROC_ADDRESS(MultiTexCoord4svSGIS);
-		GET_PROC_ADDRESS(SelectTextureCoordSetSGIS);
-		GET_PROC_ADDRESS(SelectTextureSGIS);
-		GET_PROC_ADDRESS(SelectTextureTransformSGIS);
-
-	#endif // GL_SGIS_multitexture_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_SGIS_pixel_texture ]---------------------------------------------------------------------------------
 
-//!	Init GL_SGIS_pixel_texture.
+//!	Initialize GL_SGIS_pixel_texture.
 
-bool CRenderingContext::InitSgiSPixelTexture()
+bool CRenderingContext::InitSgisPixelTexture()
 {
 	bool bReturn = true;
 
@@ -4998,32 +3311,11 @@ bool CRenderingContext::InitSgiSPixelTexture()
 }
 
 
-// ---[ GL_SGIS_point_line_texgen ]-----------------------------------------------------------------------------
-
-//!	Init GL_SGIS_point_line_texgen.
-
-bool CRenderingContext::InitSgiSPointLineTexgen()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIS_point_line_texgen_OGLEXT
-
-
-	#endif // GL_SGIS_point_line_texgen_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_SGIS_point_parameters ]------------------------------------------------------------------------------
 
-//!	Init GL_SGIS_point_parameters.
+//!	Initialize GL_SGIS_point_parameters.
 
-bool CRenderingContext::InitSgiSPointParameters()
+bool CRenderingContext::InitSgisPointParameters()
 {
 	bool bReturn = true;
 
@@ -5044,9 +3336,9 @@ bool CRenderingContext::InitSgiSPointParameters()
 
 // ---[ GL_SGIS_sharpen_texture ]-------------------------------------------------------------------------------
 
-//!	Init GL_SGIS_sharpen_texture.
+//!	Initialize GL_SGIS_sharpen_texture.
 
-bool CRenderingContext::InitSgiSSharpenTexture()
+bool CRenderingContext::InitSgisSharpenTexture()
 {
 	bool bReturn = true;
 
@@ -5067,9 +3359,9 @@ bool CRenderingContext::InitSgiSSharpenTexture()
 
 // ---[ GL_SGIS_texture4D ]-------------------------------------------------------------------------------------
 
-//!	Init GL_SGIS_texture4D.
+//!	Initialize GL_SGIS_texture4D.
 
-bool CRenderingContext::InitSgiSTexture4D()
+bool CRenderingContext::InitSgisTexture4d()
 {
 	bool bReturn = true;
 
@@ -5088,32 +3380,11 @@ bool CRenderingContext::InitSgiSTexture4D()
 }
 
 
-// ---[ GL_SGIS_texture_border_clamp ]--------------------------------------------------------------------------
-
-//!	Init GL_SGIS_texture_border_clamp.
-
-bool CRenderingContext::InitSgiSTextureBorderClamp()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIS_texture_border_clamp_OGLEXT
-
-
-	#endif // GL_SGIS_texture_border_clamp_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_SGIS_texture_color_mask ]----------------------------------------------------------------------------
 
-//!	Init GL_SGIS_texture_color_mask.
+//!	Initialize GL_SGIS_texture_color_mask.
 
-bool CRenderingContext::InitSgiSTextureColorMask()
+bool CRenderingContext::InitSgisTextureColorMask()
 {
 	bool bReturn = true;
 
@@ -5131,32 +3402,11 @@ bool CRenderingContext::InitSgiSTextureColorMask()
 }
 
 
-// ---[ GL_SGIS_texture_edge_clamp ]----------------------------------------------------------------------------
-
-//!	Init GL_SGIS_texture_edge_clamp.
-
-bool CRenderingContext::InitSgiSTextureEdgeClamp()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIS_texture_edge_clamp_OGLEXT
-
-
-	#endif // GL_SGIS_texture_edge_clamp_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_SGIS_texture_filter4 ]-------------------------------------------------------------------------------
 
-//!	Init GL_SGIS_texture_filter4.
+//!	Initialize GL_SGIS_texture_filter4.
 
-bool CRenderingContext::InitSgiSTextureFilter4()
+bool CRenderingContext::InitSgisTextureFilter4()
 {
 	bool bReturn = true;
 
@@ -5175,30 +3425,9 @@ bool CRenderingContext::InitSgiSTextureFilter4()
 }
 
 
-// ---[ GL_SGIS_texture_lod ]-----------------------------------------------------------------------------------
-
-//!	Init GL_SGIS_texture_lod.
-
-bool CRenderingContext::InitSgiSTextureLod()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIS_texture_lod_OGLEXT
-
-
-	#endif // GL_SGIS_texture_lod_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_SGIX_async ]-----------------------------------------------------------------------------------------
 
-//!	Init GL_SGIX_async.
+//!	Initialize GL_SGIX_async.
 
 bool CRenderingContext::InitSgixAsync()
 {
@@ -5223,177 +3452,9 @@ bool CRenderingContext::InitSgixAsync()
 }
 
 
-// ---[ GL_SGIX_async_histogram ]-------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_async_histogram.
-
-bool CRenderingContext::InitSgixAsyncHistogram()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_async_histogram_OGLEXT
-
-
-	#endif // GL_SGIX_async_histogram_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_async_pixel ]-----------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_async_pixel.
-
-bool CRenderingContext::InitSgixAsyncPixel()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_async_pixel_OGLEXT
-
-
-	#endif // GL_SGIX_async_pixel_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_blend_alpha_minmax ]----------------------------------------------------------------------------
-
-//!	Init GL_SGIX_blend_alpha_minmax.
-
-bool CRenderingContext::InitSgixBlendAlphaMinmax()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_blend_alpha_minmax_OGLEXT
-
-
-	#endif // GL_SGIX_blend_alpha_minmax_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_calligraphic_fragment ]-------------------------------------------------------------------------
-
-//!	Init GL_SGIX_calligraphic_fragment.
-
-bool CRenderingContext::InitSgixCalligraphicFragment()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_calligraphic_fragment_OGLEXT
-
-
-	#endif // GL_SGIX_calligraphic_fragment_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_clipmap ]---------------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_clipmap.
-
-bool CRenderingContext::InitSgixClipmap()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_clipmap_OGLEXT
-
-
-	#endif // GL_SGIX_clipmap_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_convolution_accuracy ]--------------------------------------------------------------------------
-
-//!	Init GL_SGIX_convolution_accuracy.
-
-bool CRenderingContext::InitSgixConvolutionAccuracy()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_convolution_accuracy_OGLEXT
-
-
-	#endif // GL_SGIX_convolution_accuracy_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_depth_pass_instrument ]-------------------------------------------------------------------------
-
-//!	Init GL_SGIX_depth_pass_instrument.
-
-bool CRenderingContext::InitSgixDepthPassInstrument()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_depth_pass_instrument_OGLEXT
-
-
-	#endif // GL_SGIX_depth_pass_instrument_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_depth_texture ]---------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_depth_texture.
-
-bool CRenderingContext::InitSgixDepthTexture()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_depth_texture_OGLEXT
-
-
-	#endif // GL_SGIX_depth_texture_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_SGIX_flush_raster ]----------------------------------------------------------------------------------
 
-//!	Init GL_SGIX_flush_raster.
+//!	Initialize GL_SGIX_flush_raster.
 
 bool CRenderingContext::InitSgixFlushRaster()
 {
@@ -5413,51 +3474,9 @@ bool CRenderingContext::InitSgixFlushRaster()
 }
 
 
-// ---[ GL_SGIX_fog_offset ]------------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_fog_offset.
-
-bool CRenderingContext::InitSgixFogOffset()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_fog_offset_OGLEXT
-
-
-	#endif // GL_SGIX_fog_offset_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_fog_scale ]-------------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_fog_scale.
-
-bool CRenderingContext::InitSgixFogScale()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_fog_scale_OGLEXT
-
-
-	#endif // GL_SGIX_fog_scale_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_SGIX_fragment_lighting ]-----------------------------------------------------------------------------
 
-//!	Init GL_SGIX_fragment_lighting.
+//!	Initialize GL_SGIX_fragment_lighting.
 
 bool CRenderingContext::InitSgixFragmentLighting()
 {
@@ -5496,7 +3515,7 @@ bool CRenderingContext::InitSgixFragmentLighting()
 
 // ---[ GL_SGIX_framezoom ]-------------------------------------------------------------------------------------
 
-//!	Init GL_SGIX_framezoom.
+//!	Initialize GL_SGIX_framezoom.
 
 bool CRenderingContext::InitSgixFramezoom()
 {
@@ -5518,7 +3537,7 @@ bool CRenderingContext::InitSgixFramezoom()
 
 // ---[ GL_SGIX_igloo_interface ]-------------------------------------------------------------------------------
 
-//!	Init GL_SGIX_igloo_interface.
+//!	Initialize GL_SGIX_igloo_interface.
 
 bool CRenderingContext::InitSgixIglooInterface()
 {
@@ -5540,7 +3559,7 @@ bool CRenderingContext::InitSgixIglooInterface()
 
 // ---[ GL_SGIX_instruments ]-----------------------------------------------------------------------------------
 
-//!	Init GL_SGIX_instruments.
+//!	Initialize GL_SGIX_instruments.
 
 bool CRenderingContext::InitSgixInstruments()
 {
@@ -5565,51 +3584,9 @@ bool CRenderingContext::InitSgixInstruments()
 }
 
 
-// ---[ GL_SGIX_interlace ]-------------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_interlace.
-
-bool CRenderingContext::InitSgixInterlace()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_interlace_OGLEXT
-
-
-	#endif // GL_SGIX_interlace_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_ir_instrument1 ]--------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_ir_instrument1.
-
-bool CRenderingContext::InitSgixIrInstrument1()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_ir_instrument1_OGLEXT
-
-
-	#endif // GL_SGIX_ir_instrument1_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_SGIX_list_priority ]---------------------------------------------------------------------------------
 
-//!	Init GL_SGIX_list_priority.
+//!	Initialize GL_SGIX_list_priority.
 
 bool CRenderingContext::InitSgixListPriority()
 {
@@ -5636,7 +3613,7 @@ bool CRenderingContext::InitSgixListPriority()
 
 // ---[ GL_SGIX_pixel_texture ]---------------------------------------------------------------------------------
 
-//!	Init GL_SGIX_pixel_texture.
+//!	Initialize GL_SGIX_pixel_texture.
 
 bool CRenderingContext::InitSgixPixelTexture()
 {
@@ -5656,30 +3633,9 @@ bool CRenderingContext::InitSgixPixelTexture()
 }
 
 
-// ---[ GL_SGIX_pixel_tiles ]-----------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_pixel_tiles.
-
-bool CRenderingContext::InitSgixPixelTiles()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_pixel_tiles_OGLEXT
-
-
-	#endif // GL_SGIX_pixel_tiles_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_SGIX_polynomial_ffd ]--------------------------------------------------------------------------------
 
-//!	Init GL_SGIX_polynomial_ffd.
+//!	Initialize GL_SGIX_polynomial_ffd.
 
 bool CRenderingContext::InitSgixPolynomialFfd()
 {
@@ -5704,7 +3660,7 @@ bool CRenderingContext::InitSgixPolynomialFfd()
 
 // ---[ GL_SGIX_reference_plane ]-------------------------------------------------------------------------------
 
-//!	Init GL_SGIX_reference_plane.
+//!	Initialize GL_SGIX_reference_plane.
 
 bool CRenderingContext::InitSgixReferencePlane()
 {
@@ -5724,93 +3680,9 @@ bool CRenderingContext::InitSgixReferencePlane()
 }
 
 
-// ---[ GL_SGIX_resample ]--------------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_resample.
-
-bool CRenderingContext::InitSgixResample()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_resample_OGLEXT
-
-
-	#endif // GL_SGIX_resample_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_scalebias_hint ]--------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_scalebias_hint.
-
-bool CRenderingContext::InitSgixScalebiasHint()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_scalebias_hint_OGLEXT
-
-
-	#endif // GL_SGIX_scalebias_hint_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_shadow ]----------------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_shadow.
-
-bool CRenderingContext::InitSgixShadow()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_shadow_OGLEXT
-
-
-	#endif // GL_SGIX_shadow_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_shadow_ambient ]--------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_shadow_ambient.
-
-bool CRenderingContext::InitSgixShadowAmbient()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_shadow_ambient_OGLEXT
-
-
-	#endif // GL_SGIX_shadow_ambient_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_SGIX_sprite ]----------------------------------------------------------------------------------------
 
-//!	Init GL_SGIX_sprite.
+//!	Initialize GL_SGIX_sprite.
 
 bool CRenderingContext::InitSgixSprite()
 {
@@ -5833,30 +3705,9 @@ bool CRenderingContext::InitSgixSprite()
 }
 
 
-// ---[ GL_SGIX_subsample ]-------------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_subsample.
-
-bool CRenderingContext::InitSgixSubsample()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_subsample_OGLEXT
-
-
-	#endif // GL_SGIX_subsample_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_SGIX_tag_sample_buffer ]-----------------------------------------------------------------------------
 
-//!	Init GL_SGIX_tag_sample_buffer.
+//!	Initialize GL_SGIX_tag_sample_buffer.
 
 bool CRenderingContext::InitSgixTagSampleBuffer()
 {
@@ -5876,332 +3727,9 @@ bool CRenderingContext::InitSgixTagSampleBuffer()
 }
 
 
-// ---[ GL_SGIX_texture_add_env ]-------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_texture_add_env.
-
-bool CRenderingContext::InitSgixTextureAddEnv()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_texture_add_env_OGLEXT
-
-
-	#endif // GL_SGIX_texture_add_env_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_texture_coordinate_clamp ]----------------------------------------------------------------------
-
-//!	Init GL_SGIX_texture_coordinate_clamp.
-
-bool CRenderingContext::InitSgixTextureCoordinateClamp()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_texture_coordinate_clamp_OGLEXT
-
-
-	#endif // GL_SGIX_texture_coordinate_clamp_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_texture_lod_bias ]------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_texture_lod_bias.
-
-bool CRenderingContext::InitSgixTextureLodBias()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_texture_lod_bias_OGLEXT
-
-
-	#endif // GL_SGIX_texture_lod_bias_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_texture_multi_buffer ]--------------------------------------------------------------------------
-
-//!	Init GL_SGIX_texture_multi_buffer.
-
-bool CRenderingContext::InitSgixTextureMultiBuffer()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_texture_multi_buffer_OGLEXT
-
-
-	#endif // GL_SGIX_texture_multi_buffer_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_texture_scale_bias ]----------------------------------------------------------------------------
-
-//!	Init GL_SGIX_texture_scale_bias.
-
-bool CRenderingContext::InitSgixTextureScaleBias()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_texture_scale_bias_OGLEXT
-
-
-	#endif // GL_SGIX_texture_scale_bias_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_texture_select ]--------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_texture_select.
-
-bool CRenderingContext::InitSgixTextureSelect()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_texture_select_OGLEXT
-
-
-	#endif // GL_SGIX_texture_select_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_vertex_preclip ]--------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_vertex_preclip.
-
-bool CRenderingContext::InitSgixVertexPreclip()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_vertex_preclip_OGLEXT
-
-
-	#endif // GL_SGIX_vertex_preclip_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_ycrcb ]-----------------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_ycrcb.
-
-bool CRenderingContext::InitSgixYcrcb()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_ycrcb_OGLEXT
-
-
-	#endif // GL_SGIX_ycrcb_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_ycrcba ]----------------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_ycrcba.
-
-bool CRenderingContext::InitSgixYcrcba()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_ycrcba_OGLEXT
-
-
-	#endif // GL_SGIX_ycrcba_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGIX_ycrcb_subsample ]-------------------------------------------------------------------------------
-
-//!	Init GL_SGIX_ycrcb_subsample.
-
-bool CRenderingContext::InitSgixYcrcbSubsample()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGIX_ycrcb_subsample_OGLEXT
-
-
-	#endif // GL_SGIX_ycrcb_subsample_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGI_color_matrix ]-----------------------------------------------------------------------------------
-
-//!	Init GL_SGI_color_matrix.
-
-bool CRenderingContext::InitSgiColorMatrix()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGI_color_matrix_OGLEXT
-
-
-	#endif // GL_SGI_color_matrix_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGI_color_table ]------------------------------------------------------------------------------------
-
-//!	Init GL_SGI_color_table.
-
-bool CRenderingContext::InitSgiColorTable()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGI_color_table_OGLEXT
-
-		GET_PROC_ADDRESS(ColorTableParameterfvSGI);
-		GET_PROC_ADDRESS(ColorTableParameterivSGI);
-		GET_PROC_ADDRESS(ColorTableSGI);
-		GET_PROC_ADDRESS(CopyColorTableSGI);
-		GET_PROC_ADDRESS(GetColorTableParameterfvSGI);
-		GET_PROC_ADDRESS(GetColorTableParameterivSGI);
-		GET_PROC_ADDRESS(GetColorTableSGI);
-
-	#endif // GL_SGI_color_table_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SGI_texture_color_table ]----------------------------------------------------------------------------
-
-//!	Init GL_SGI_texture_color_table.
-
-bool CRenderingContext::InitSgiTextureColorTable()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SGI_texture_color_table_OGLEXT
-
-
-	#endif // GL_SGI_texture_color_table_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SUNX_constant_data ]---------------------------------------------------------------------------------
-
-//!	Init GL_SUNX_constant_data.
-
-bool CRenderingContext::InitSunxConstantData()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SUNX_constant_data_OGLEXT
-
-		GET_PROC_ADDRESS(FinishTextureSUNX);
-
-	#endif // GL_SUNX_constant_data_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
-// ---[ GL_SUN_convolution_border_modes ]-----------------------------------------------------------------------
-
-//!	Init GL_SUN_convolution_border_modes.
-
-bool CRenderingContext::InitSunConvolutionBorderModes()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SUN_convolution_border_modes_OGLEXT
-
-
-	#endif // GL_SUN_convolution_border_modes_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_SUN_global_alpha ]-----------------------------------------------------------------------------------
 
-//!	Init GL_SUN_global_alpha.
+//!	Initialize GL_SUN_global_alpha.
 
 bool CRenderingContext::InitSunGlobalAlpha()
 {
@@ -6230,7 +3758,7 @@ bool CRenderingContext::InitSunGlobalAlpha()
 
 // ---[ GL_SUN_mesh_array ]-------------------------------------------------------------------------------------
 
-//!	Init GL_SUN_mesh_array.
+//!	Initialize GL_SUN_mesh_array.
 
 bool CRenderingContext::InitSunMeshArray()
 {
@@ -6250,30 +3778,9 @@ bool CRenderingContext::InitSunMeshArray()
 }
 
 
-// ---[ GL_SUN_slice_accum ]------------------------------------------------------------------------------------
-
-//!	Init GL_SUN_slice_accum.
-
-bool CRenderingContext::InitSunSliceAccum()
-{
-	bool bReturn = true;
-
-	// 1: get all function pointers...
-
-	#ifdef GL_SUN_slice_accum_OGLEXT
-
-
-	#endif // GL_SUN_slice_accum_OGLEXT
-
-	// 2: return 'true' if everything went fine...
-
-	return bReturn;
-}
-
-
 // ---[ GL_SUN_triangle_list ]----------------------------------------------------------------------------------
 
-//!	Init GL_SUN_triangle_list.
+//!	Initialize GL_SUN_triangle_list.
 
 bool CRenderingContext::InitSunTriangleList()
 {
@@ -6301,9 +3808,9 @@ bool CRenderingContext::InitSunTriangleList()
 
 // ---[ GL_SUN_vertex ]-----------------------------------------------------------------------------------------
 
-//!	Init GL_SUN_vertex.
+//!	Initialize GL_SUN_vertex.
 
-bool CRenderingContext::InitSunvertex()
+bool CRenderingContext::InitSunVertex()
 {
 	bool bReturn = true;
 
@@ -6353,6 +3860,28 @@ bool CRenderingContext::InitSunvertex()
 		GET_PROC_ADDRESS(TexCoord4fVertex4fvSUN);
 
 	#endif // GL_SUN_vertex_OGLEXT
+
+	// 2: return 'true' if everything went fine...
+
+	return bReturn;
+}
+
+
+// ---[ GL_SUNX_constant_data ]---------------------------------------------------------------------------------
+
+//!	Initialize GL_SUNX_constant_data.
+
+bool CRenderingContext::InitSunxConstantData()
+{
+	bool bReturn = true;
+
+	// 1: get all function pointers...
+
+	#ifdef GL_SUNX_constant_data_OGLEXT
+
+		GET_PROC_ADDRESS(FinishTextureSUNX);
+
+	#endif // GL_SUNX_constant_data_OGLEXT
 
 	// 2: return 'true' if everything went fine...
 

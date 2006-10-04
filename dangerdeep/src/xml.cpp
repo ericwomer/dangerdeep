@@ -71,8 +71,8 @@ bool xml_elem::has_attr(const std::string& name) const
 
 std::string xml_elem::attr(const std::string& name) const
 {
-	const char* tmp = elem->Attribute(name);
-	if (tmp) return std::string(tmp);
+	const std::string* tmp = elem->Attribute(name);
+	if (tmp) return *tmp;
 	return std::string();
 }
 
@@ -80,8 +80,8 @@ std::string xml_elem::attr(const std::string& name) const
 
 int xml_elem::attri(const std::string& name) const
 {
-	const char* tmp = elem->Attribute(name);
-	if (tmp) return atoi(tmp);
+	const std::string* tmp = elem->Attribute(name);
+	if (tmp) return atoi(tmp->c_str());
 	return 0;
 }
 
@@ -96,8 +96,8 @@ unsigned xml_elem::attru(const std::string& name) const
 
 double xml_elem::attrf(const std::string& name) const
 {
-	const char* tmp = elem->Attribute(name);
-	if (tmp) return atof(tmp);
+	const std::string* tmp = elem->Attribute(name);
+	if (tmp) return atof(tmp->c_str());
 	return 0.0;
 }
 

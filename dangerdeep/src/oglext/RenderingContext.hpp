@@ -1,5 +1,5 @@
-// RenderingContext.hpp                                      Copyright (C) 2004 Thomas Jansen (jansen@caesar.de)
-//                                                                     (C) 2004 research center caesar
+// RenderingContext.hpp                                      Copyright (C) 2006 Thomas Jansen (jansen@caesar.de)
+//                                                                     (C) 2006 research center caesar
 //
 // This file is part of OglExt, a free OpenGL extension library.
 //
@@ -16,7 +16,7 @@
 //
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //
-// This file was automatically generated on June 15, 2004, 11:47 am
+// This file was automatically generated on January 10, 2006, 6:46 pm
 
 #ifndef	_OGL_RENDERINGCONTEXT_HPP_
 #define	_OGL_RENDERINGCONTEXT_HPP_
@@ -77,43 +77,27 @@ protected:
 	bool								InitVersion13();                             //                     GL_VERSION_1_3
 	bool								InitVersion14();                             //                     GL_VERSION_1_4
 	bool								InitVersion15();                             //                     GL_VERSION_1_5
+	bool								InitVersion20();                             //                     GL_VERSION_2_0
 
-	bool								Init3dfxMultisample();                       //                GL_3DFX_multisample
 	bool								Init3dfxTbuffer();                           //                    GL_3DFX_tbuffer
-	bool								Init3dfxTextureCompressionFXT1();            //   GL_3DFX_texture_compression_FXT1
-	bool								InitAppleClientStorage();                    //            GL_APPLE_client_storage
 	bool								InitAppleElementArray();                     //             GL_APPLE_element_array
 	bool								InitAppleFence();                            //                     GL_APPLE_fence
-	bool								InitAppleSpecularVector();                   //           GL_APPLE_specular_vector
-	bool								InitAppleTransformHint();                    //            GL_APPLE_transform_hint
 	bool								InitAppleVertexArrayObject();                //       GL_APPLE_vertex_array_object
 	bool								InitAppleVertexArrayRange();                 //        GL_APPLE_vertex_array_range
-	bool								InitAppleYcbcr422();                         //                 GL_APPLE_ycbcr_422
-	bool								InitArbDepthTexture();                       //               GL_ARB_depth_texture
-	bool								InitArbFragmentProgram();                    //            GL_ARB_fragment_program
+	bool								InitArbColorBufferFloat();                   //          GL_ARB_color_buffer_float
+	bool								InitArbDrawBuffers();                        //                GL_ARB_draw_buffers
 	bool								InitArbMatrixPalette();                      //              GL_ARB_matrix_palette
 	bool								InitArbMultisample();                        //                 GL_ARB_multisample
 	bool								InitArbMultitexture();                       //                GL_ARB_multitexture
 	bool								InitArbOcclusionQuery();                     //             GL_ARB_occlusion_query
 	bool								InitArbPointParameters();                    //            GL_ARB_point_parameters
-	bool								InitArbPointSprite();                        //                GL_ARB_point_sprite
 	bool								InitArbShaderObjects();                      //              GL_ARB_shader_objects
-	bool								InitArbShadingLanguage100();                 //        GL_ARB_shading_language_100
-	bool								InitArbShadow();                             //                      GL_ARB_shadow
-	bool								InitArbShadowAmbient();                      //              GL_ARB_shadow_ambient
-	bool								InitArbTextureBorderClamp();                 //        GL_ARB_texture_border_clamp
 	bool								InitArbTextureCompression();                 //         GL_ARB_texture_compression
-	bool								InitArbTextureCubeMap();                     //            GL_ARB_texture_cube_map
-	bool								InitArbTextureEnvAdd();                      //             GL_ARB_texture_env_add
-	bool								InitArbTextureEnvCombine();                  //         GL_ARB_texture_env_combine
-	bool								InitArbTextureEnvCrossbar();                 //        GL_ARB_texture_env_crossbar
-	bool								InitArbTextureEnvDot3();                     //            GL_ARB_texture_env_dot3
-	bool								InitArbTextureMirrorRepeat();                //       GL_ARB_texture_mirror_repeat
-	bool								InitArbTextureNonPowerOfTwo();               //    GL_ARB_texture_non_power_of_two
 	bool								InitArbTransposeMatrix();                    //            GL_ARB_transpose_matrix
 	bool								InitArbVertexBlend();                        //                GL_ARB_vertex_blend
 	bool								InitArbVertexBufferObject();                 //        GL_ARB_vertex_buffer_object
 	bool								InitArbVertexProgram();                      //              GL_ARB_vertex_program
+	bool								InitArbVertexShader();                       //               GL_ARB_vertex_shader
 	bool								InitArbWindowPos();                          //                  GL_ARB_window_pos
 	bool								InitAtiDrawBuffers();                        //                GL_ATI_draw_buffers
 	bool								InitAtiElementArray();                       //               GL_ATI_element_array
@@ -122,24 +106,13 @@ protected:
 	bool								InitAtiMapObjectBuffer();                    //           GL_ATI_map_object_buffer
 	bool								InitAtiPnTriangles();                        //                GL_ATI_pn_triangles
 	bool								InitAtiSeparateStencil();                    //            GL_ATI_separate_stencil
-	bool								InitAtiTextureEnvCombine3();                 //        GL_ATI_texture_env_combine3
-	bool								InitAtiTextureFloat();                       //               GL_ATI_texture_float
-	bool								InitAtiTextureMirrorOnce();                  //         GL_ATI_texture_mirror_once
-	bool								InitAtiTextFragmentShader();                 //        GL_ATI_text_fragment_shader
 	bool								InitAtiVertexArrayObject();                  //         GL_ATI_vertex_array_object
 	bool								InitAtiVertexAttribArrayObject();            //  GL_ATI_vertex_attrib_array_object
 	bool								InitAtiVertexStreams();                      //              GL_ATI_vertex_streams
-	bool								InitExt422Pixels();                          //                  GL_EXT_422_pixels
-	bool								InitExtAbgr();                               //                        GL_EXT_abgr
-	bool								InitExtBgra();                               //                        GL_EXT_bgra
 	bool								InitExtBlendColor();                         //                 GL_EXT_blend_color
+	bool								InitExtBlendEquationSeparate();              //     GL_EXT_blend_equation_separate
 	bool								InitExtBlendFuncSeparate();                  //         GL_EXT_blend_func_separate
-	bool								InitExtBlendLogicOp();                       //              GL_EXT_blend_logic_op
 	bool								InitExtBlendMinmax();                        //                GL_EXT_blend_minmax
-	bool								InitExtBlendSubtract();                      //              GL_EXT_blend_subtract
-	bool								InitExtClipVolumeHint();                     //            GL_EXT_clip_volume_hint
-	bool								InitExtCmyka();                              //                       GL_EXT_cmyka
-	bool								InitExtColorMatrix();                        //                GL_EXT_color_matrix
 	bool								InitExtColorSubtable();                      //              GL_EXT_color_subtable
 	bool								InitExtCompiledVertexArray();                //       GL_EXT_compiled_vertex_array
 	bool								InitExtConvolution();                        //                 GL_EXT_convolution
@@ -149,165 +122,77 @@ protected:
 	bool								InitExtDepthBoundsTest();                    //           GL_EXT_depth_bounds_test
 	bool								InitExtDrawRangeElements();                  //         GL_EXT_draw_range_elements
 	bool								InitExtFogCoord();                           //                   GL_EXT_fog_coord
-	bool								InitExtFragmentLighting();                   //           GL_EXT_fragment_lighting
+	bool								InitExtFramebufferObject();                  //          GL_EXT_framebuffer_object
 	bool								InitExtHistogram();                          //                   GL_EXT_histogram
-	bool								InitExtIndexArrayFormats();                  //         GL_EXT_index_array_formats
 	bool								InitExtIndexFunc();                          //                  GL_EXT_index_func
 	bool								InitExtIndexMaterial();                      //              GL_EXT_index_material
-	bool								InitExtIndexTexture();                       //               GL_EXT_index_texture
 	bool								InitExtLightTexture();                       //               GL_EXT_light_texture
-	bool								InitExtMiscAttribute();                      //              GL_EXT_misc_attribute
-	bool								InitExtMultisample();                        //                 GL_EXT_multisample
-	bool								InitExtMultitexture();                       //                GL_EXT_multitexture
 	bool								InitExtMultiDrawArrays();                    //           GL_EXT_multi_draw_arrays
-	bool								InitExtPackedPixels();                       //               GL_EXT_packed_pixels
+	bool								InitExtMultisample();                        //                 GL_EXT_multisample
 	bool								InitExtPalettedTexture();                    //            GL_EXT_paletted_texture
 	bool								InitExtPixelTransform();                     //             GL_EXT_pixel_transform
-	bool								InitExtPixelTransformColorTable();           // GL_EXT_pixel_transform_color_table
 	bool								InitExtPointParameters();                    //            GL_EXT_point_parameters
 	bool								InitExtPolygonOffset();                      //              GL_EXT_polygon_offset
-	bool								InitExtRescaleNormal();                      //              GL_EXT_rescale_normal
 	bool								InitExtSecondaryColor();                     //             GL_EXT_secondary_color
-	bool								InitExtSeparateSpecularColor();              //     GL_EXT_separate_specular_color
-	bool								InitExtShadowFuncs();                        //                GL_EXT_shadow_funcs
-	bool								InitExtSharedTexturePalette();               //      GL_EXT_shared_texture_palette
 	bool								InitExtStencilTwoSide();                     //            GL_EXT_stencil_two_side
-	bool								InitExtStencilWrap();                        //                GL_EXT_stencil_wrap
 	bool								InitExtSubtexture();                         //                  GL_EXT_subtexture
-	bool								InitExtTexture();                            //                     GL_EXT_texture
-	bool								InitExtTexture3D();                          //                   GL_EXT_texture3D
-	bool								InitExtTextureCompressionS3tc();             //    GL_EXT_texture_compression_s3tc
-	bool								InitExtTextureEnvAdd();                      //             GL_EXT_texture_env_add
-	bool								InitExtTextureEnvCombine();                  //         GL_EXT_texture_env_combine
-	bool								InitExtTextureEnvDot3();                     //            GL_EXT_texture_env_dot3
-	bool								InitExtTextureFilterAnisotropic();           //  GL_EXT_texture_filter_anisotropic
-	bool								InitExtTextureLodBias();                     //            GL_EXT_texture_lod_bias
-	bool								InitExtTextureMirrorClamp();                 //        GL_EXT_texture_mirror_clamp
+	bool								InitExtTexture3d();                          //                   GL_EXT_texture3D
 	bool								InitExtTextureObject();                      //              GL_EXT_texture_object
 	bool								InitExtTexturePerturbNormal();               //      GL_EXT_texture_perturb_normal
 	bool								InitExtVertexArray();                        //                GL_EXT_vertex_array
 	bool								InitExtVertexShader();                       //               GL_EXT_vertex_shader
 	bool								InitExtVertexWeighting();                    //            GL_EXT_vertex_weighting
-	bool								InitHpConvolutionBorderModes();              //     GL_HP_convolution_border_modes
+	bool								InitGremedyStringMarker();                   //           GL_GREMEDY_string_marker
 	bool								InitHpImageTransform();                      //              GL_HP_image_transform
-	bool								InitHpOcclusionTest();                       //               GL_HP_occlusion_test
-	bool								InitHpTextureLighting();                     //             GL_HP_texture_lighting
-	bool								InitIbmCullVertex();                         //                 GL_IBM_cull_vertex
 	bool								InitIbmMultimodeDrawArrays();                //       GL_IBM_multimode_draw_arrays
-	bool								InitIbmRasterposClip();                      //              GL_IBM_rasterpos_clip
-	bool								InitIbmStaticData();                         //                 GL_IBM_static_data
-	bool								InitIbmTextureMirroredRepeat();              //     GL_IBM_texture_mirrored_repeat
 	bool								InitIbmVertexArrayLists();                   //          GL_IBM_vertex_array_lists
 	bool								InitIngrBlendFuncSeparate();                 //        GL_INGR_blend_func_separate
-	bool								InitIngrColorClamp();                        //                GL_INGR_color_clamp
-	bool								InitIngrInterlaceRead();                     //             GL_INGR_interlace_read
 	bool								InitIntelParallelArrays();                   //           GL_INTEL_parallel_arrays
 	bool								InitMesaResizeBuffers();                     //             GL_MESA_resize_buffers
 	bool								InitMesaWindowPos();                         //                 GL_MESA_window_pos
-	bool								InitNvBlendSquare();                         //                 GL_NV_blend_square
-	bool								InitNvCopyDepthToColor();                    //          GL_NV_copy_depth_to_color
-	bool								InitNvDepthClamp();                          //                  GL_NV_depth_clamp
+	bool								InitNvElementArray();                        //                GL_NV_element_array
 	bool								InitNvEvaluators();                          //                   GL_NV_evaluators
 	bool								InitNvFence();                               //                        GL_NV_fence
-	bool								InitNvFloatBuffer();                         //                 GL_NV_float_buffer
-	bool								InitNvFogDistance();                         //                 GL_NV_fog_distance
 	bool								InitNvFragmentProgram();                     //             GL_NV_fragment_program
 	bool								InitNvHalfFloat();                           //                   GL_NV_half_float
-	bool								InitNvLightMaxExponent();                    //           GL_NV_light_max_exponent
-	bool								InitNvMultisampleFilterHint();               //      GL_NV_multisample_filter_hint
 	bool								InitNvOcclusionQuery();                      //              GL_NV_occlusion_query
-	bool								InitNvPackedDepthStencil();                  //         GL_NV_packed_depth_stencil
 	bool								InitNvPixelDataRange();                      //             GL_NV_pixel_data_range
 	bool								InitNvPointSprite();                         //                 GL_NV_point_sprite
 	bool								InitNvPrimitiveRestart();                    //            GL_NV_primitive_restart
 	bool								InitNvRegisterCombiners();                   //           GL_NV_register_combiners
 	bool								InitNvRegisterCombiners2();                  //          GL_NV_register_combiners2
-	bool								InitNvTexgenEmboss();                        //                GL_NV_texgen_emboss
-	bool								InitNvTexgenReflection();                    //            GL_NV_texgen_reflection
-	bool								InitNvTextureCompressionVtc();               //      GL_NV_texture_compression_vtc
-	bool								InitNvTextureEnvCombine4();                  //         GL_NV_texture_env_combine4
-	bool								InitNvTextureExpandNormal();                 //        GL_NV_texture_expand_normal
-	bool								InitNvTextureRectangle();                    //            GL_NV_texture_rectangle
-	bool								InitNvTextureShader();                       //               GL_NV_texture_shader
-	bool								InitNvTextureShader2();                      //              GL_NV_texture_shader2
-	bool								InitNvTextureShader3();                      //              GL_NV_texture_shader3
+	bool								InitNvStencilTwoSide();                      //             GL_NV_stencil_two_side
 	bool								InitNvVertexArrayRange();                    //           GL_NV_vertex_array_range
-	bool								InitNvVertexArrayRange2();                   //          GL_NV_vertex_array_range2
 	bool								InitNvVertexProgram();                       //               GL_NV_vertex_program
-	bool								InitNvVertexProgram11();                     //            GL_NV_vertex_program1_1
-	bool								InitNvVertexProgram2();                      //              GL_NV_vertex_program2
-	bool								InitOmlInterlace();                          //                   GL_OML_interlace
-	bool								InitOmlResample();                           //                    GL_OML_resample
-	bool								InitOmlSubsample();                          //                   GL_OML_subsample
+	bool								InitNvxConditionalRender();                  //          GL_NVX_conditional_render
 	bool								InitPgiMiscHints();                          //                  GL_PGI_misc_hints
-	bool								InitPgiVertexHints();                        //                GL_PGI_vertex_hints
-	bool								InitRendScreenCoordinates();                 //         GL_REND_screen_coordinates
-	bool								InitS3S3tc();                                //                         GL_S3_s3tc
-	bool								InitSgiSDetailTexture();                     //             GL_SGIS_detail_texture
-	bool								InitSgiSFogFunction();                       //               GL_SGIS_fog_function
-	bool								InitSgiSGenerateMipmap();                    //            GL_SGIS_generate_mipmap
-	bool								InitSgiSMultisample();                       //                GL_SGIS_multisample
-	bool								InitSgisMultitexture();                      //               GL_SGIS_multitexture
-	bool								InitSgiSPixelTexture();                      //              GL_SGIS_pixel_texture
-	bool								InitSgiSPointLineTexgen();                   //          GL_SGIS_point_line_texgen
-	bool								InitSgiSPointParameters();                   //           GL_SGIS_point_parameters
-	bool								InitSgiSSharpenTexture();                    //            GL_SGIS_sharpen_texture
-	bool								InitSgiSTexture4D();                         //                  GL_SGIS_texture4D
-	bool								InitSgiSTextureBorderClamp();                //       GL_SGIS_texture_border_clamp
-	bool								InitSgiSTextureColorMask();                  //         GL_SGIS_texture_color_mask
-	bool								InitSgiSTextureEdgeClamp();                  //         GL_SGIS_texture_edge_clamp
-	bool								InitSgiSTextureFilter4();                    //            GL_SGIS_texture_filter4
-	bool								InitSgiSTextureLod();                        //                GL_SGIS_texture_lod
+	bool								InitSgiColorTable();                         //                 GL_SGI_color_table
+	bool								InitSgisDetailTexture();                     //             GL_SGIS_detail_texture
+	bool								InitSgisFogFunction();                       //               GL_SGIS_fog_function
+	bool								InitSgisMultisample();                       //                GL_SGIS_multisample
+	bool								InitSgisPixelTexture();                      //              GL_SGIS_pixel_texture
+	bool								InitSgisPointParameters();                   //           GL_SGIS_point_parameters
+	bool								InitSgisSharpenTexture();                    //            GL_SGIS_sharpen_texture
+	bool								InitSgisTexture4d();                         //                  GL_SGIS_texture4D
+	bool								InitSgisTextureColorMask();                  //         GL_SGIS_texture_color_mask
+	bool								InitSgisTextureFilter4();                    //            GL_SGIS_texture_filter4
 	bool								InitSgixAsync();                             //                      GL_SGIX_async
-	bool								InitSgixAsyncHistogram();                    //            GL_SGIX_async_histogram
-	bool								InitSgixAsyncPixel();                        //                GL_SGIX_async_pixel
-	bool								InitSgixBlendAlphaMinmax();                  //         GL_SGIX_blend_alpha_minmax
-	bool								InitSgixCalligraphicFragment();              //      GL_SGIX_calligraphic_fragment
-	bool								InitSgixClipmap();                           //                    GL_SGIX_clipmap
-	bool								InitSgixConvolutionAccuracy();               //       GL_SGIX_convolution_accuracy
-	bool								InitSgixDepthPassInstrument();               //      GL_SGIX_depth_pass_instrument
-	bool								InitSgixDepthTexture();                      //              GL_SGIX_depth_texture
 	bool								InitSgixFlushRaster();                       //               GL_SGIX_flush_raster
-	bool								InitSgixFogOffset();                         //                 GL_SGIX_fog_offset
-	bool								InitSgixFogScale();                          //                  GL_SGIX_fog_scale
 	bool								InitSgixFragmentLighting();                  //          GL_SGIX_fragment_lighting
 	bool								InitSgixFramezoom();                         //                  GL_SGIX_framezoom
 	bool								InitSgixIglooInterface();                    //            GL_SGIX_igloo_interface
 	bool								InitSgixInstruments();                       //                GL_SGIX_instruments
-	bool								InitSgixInterlace();                         //                  GL_SGIX_interlace
-	bool								InitSgixIrInstrument1();                     //             GL_SGIX_ir_instrument1
 	bool								InitSgixListPriority();                      //              GL_SGIX_list_priority
 	bool								InitSgixPixelTexture();                      //              GL_SGIX_pixel_texture
-	bool								InitSgixPixelTiles();                        //                GL_SGIX_pixel_tiles
 	bool								InitSgixPolynomialFfd();                     //             GL_SGIX_polynomial_ffd
 	bool								InitSgixReferencePlane();                    //            GL_SGIX_reference_plane
-	bool								InitSgixResample();                          //                   GL_SGIX_resample
-	bool								InitSgixScalebiasHint();                     //             GL_SGIX_scalebias_hint
-	bool								InitSgixShadow();                            //                     GL_SGIX_shadow
-	bool								InitSgixShadowAmbient();                     //             GL_SGIX_shadow_ambient
 	bool								InitSgixSprite();                            //                     GL_SGIX_sprite
-	bool								InitSgixSubsample();                         //                  GL_SGIX_subsample
 	bool								InitSgixTagSampleBuffer();                   //          GL_SGIX_tag_sample_buffer
-	bool								InitSgixTextureAddEnv();                     //            GL_SGIX_texture_add_env
-	bool								InitSgixTextureCoordinateClamp();            //   GL_SGIX_texture_coordinate_clamp
-	bool								InitSgixTextureLodBias();                    //           GL_SGIX_texture_lod_bias
-	bool								InitSgixTextureMultiBuffer();                //       GL_SGIX_texture_multi_buffer
-	bool								InitSgixTextureScaleBias();                  //         GL_SGIX_texture_scale_bias
-	bool								InitSgixTextureSelect();                     //             GL_SGIX_texture_select
-	bool								InitSgixVertexPreclip();                     //             GL_SGIX_vertex_preclip
-	bool								InitSgixYcrcb();                             //                      GL_SGIX_ycrcb
-	bool								InitSgixYcrcba();                            //                     GL_SGIX_ycrcba
-	bool								InitSgixYcrcbSubsample();                    //            GL_SGIX_ycrcb_subsample
-	bool								InitSgiColorMatrix();                        //                GL_SGI_color_matrix
-	bool								InitSgiColorTable();                         //                 GL_SGI_color_table
-	bool								InitSgiTextureColorTable();                  //         GL_SGI_texture_color_table
-	bool								InitSunxConstantData();                      //              GL_SUNX_constant_data
-	bool								InitSunConvolutionBorderModes();             //    GL_SUN_convolution_border_modes
 	bool								InitSunGlobalAlpha();                        //                GL_SUN_global_alpha
 	bool								InitSunMeshArray();                          //                  GL_SUN_mesh_array
-	bool								InitSunSliceAccum();                         //                 GL_SUN_slice_accum
 	bool								InitSunTriangleList();                       //               GL_SUN_triangle_list
-	bool								InitSunvertex();                             //                      GL_SUN_vertex
+	bool								InitSunVertex();                             //                      GL_SUN_vertex
+	bool								InitSunxConstantData();                      //              GL_SUNX_constant_data
 
 	// - -[ variables ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -491,7 +376,7 @@ public:
 		GLvoid            (APIENTRY * m_pGetBufferParameteriv) (GLenum, GLenum, GLint *);
 		GLvoid            (APIENTRY * m_pGetBufferPointerv) (GLenum, GLenum, GLvoid * *);
 		GLvoid            (APIENTRY * m_pGetBufferSubData) (GLenum, GLintptr, GLsizeiptr, GLvoid *);
-		GLvoid            (APIENTRY * m_pGetQueryiv) (GLenum, GLenum, GLint);
+		GLvoid            (APIENTRY * m_pGetQueryiv) (GLenum, GLenum, GLint *);
 		GLvoid            (APIENTRY * m_pGetQueryObjectiv) (GLuint, GLenum, GLint *);
 		GLvoid            (APIENTRY * m_pGetQueryObjectuiv) (GLuint, GLenum, GLuint *);
 		GLboolean         (APIENTRY * m_pIsBuffer) (GLuint);
@@ -500,6 +385,106 @@ public:
 		GLboolean         (APIENTRY * m_pUnmapBuffer) (GLenum);
 
 	#endif // GL_VERSION_1_5_OGLEXT
+
+	// - -[ gl_version_2_0 ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	#ifdef GL_VERSION_2_0_OGLEXT
+
+		GLvoid            (APIENTRY * m_pAttachShader) (GLuint, GLuint);
+		GLvoid            (APIENTRY * m_pBindAttribLocation) (GLuint, GLuint, GLchar const *);
+		GLvoid            (APIENTRY * m_pBlendEquationSeparate) (GLenum, GLenum);
+		GLvoid            (APIENTRY * m_pCompileShader) (GLuint);
+		GLuint            (APIENTRY * m_pCreateProgram) ();
+		GLuint            (APIENTRY * m_pCreateShader) (GLenum);
+		GLvoid            (APIENTRY * m_pDeleteProgram) (GLuint);
+		GLvoid            (APIENTRY * m_pDeleteShader) (GLuint);
+		GLvoid            (APIENTRY * m_pDetachShader) (GLuint, GLuint);
+		GLvoid            (APIENTRY * m_pDisableVertexAttribArray) (GLuint);
+		GLvoid            (APIENTRY * m_pDrawBuffers) (GLsizei, GLenum const *);
+		GLvoid            (APIENTRY * m_pEnableVertexAttribArray) (GLuint);
+		GLvoid            (APIENTRY * m_pGetActiveAttrib) (GLuint, GLuint, GLsizei, GLsizei *, GLint *, GLenum *, GLchar *);
+		GLvoid            (APIENTRY * m_pGetActiveUniform) (GLuint, GLuint, GLsizei, GLsizei *, GLint *, GLenum *, GLchar *);
+		GLvoid            (APIENTRY * m_pGetAttachedShaders) (GLuint, GLsizei, GLsizei *, GLuint *);
+		GLint             (APIENTRY * m_pGetAttribLocation) (GLuint, GLchar const *);
+		GLvoid            (APIENTRY * m_pGetProgramInfoLog) (GLuint, GLsizei, GLsizei *, GLchar *);
+		GLvoid            (APIENTRY * m_pGetProgramiv) (GLuint, GLenum, GLint *);
+		GLvoid            (APIENTRY * m_pGetShaderInfoLog) (GLuint, GLsizei, GLsizei *, GLchar *);
+		GLvoid            (APIENTRY * m_pGetShaderiv) (GLuint, GLenum, GLint *);
+		GLvoid            (APIENTRY * m_pGetShaderSource) (GLuint, GLsizei, GLsizei *, GLchar *);
+		GLvoid            (APIENTRY * m_pGetUniformfv) (GLuint, GLint, GLfloat *);
+		GLvoid            (APIENTRY * m_pGetUniformiv) (GLuint, GLint, GLint *);
+		GLint             (APIENTRY * m_pGetUniformLocation) (GLuint, GLchar const *);
+		GLvoid            (APIENTRY * m_pGetVertexAttribdv) (GLuint, GLenum, GLdouble *);
+		GLvoid            (APIENTRY * m_pGetVertexAttribfv) (GLuint, GLenum, GLfloat *);
+		GLvoid            (APIENTRY * m_pGetVertexAttribiv) (GLuint, GLenum, GLint *);
+		GLvoid            (APIENTRY * m_pGetVertexAttribPointerv) (GLuint, GLenum, GLvoid * *);
+		GLboolean         (APIENTRY * m_pIsProgram) (GLuint);
+		GLboolean         (APIENTRY * m_pIsShader) (GLuint);
+		GLvoid            (APIENTRY * m_pLinkProgram) (GLuint);
+		GLvoid            (APIENTRY * m_pShaderSource) (GLuint, GLsizei, GLchar const * *, GLint const *);
+		GLvoid            (APIENTRY * m_pStencilFuncSeparate) (GLenum, GLenum, GLint, GLuint);
+		GLvoid            (APIENTRY * m_pStencilMaskSeparate) (GLenum, GLuint);
+		GLvoid            (APIENTRY * m_pStencilOpSeparate) (GLenum, GLenum, GLenum, GLenum);
+		GLvoid            (APIENTRY * m_pUniform1f) (GLint, GLfloat);
+		GLvoid            (APIENTRY * m_pUniform1fv) (GLint, GLsizei, GLfloat const *);
+		GLvoid            (APIENTRY * m_pUniform1i) (GLint, GLint);
+		GLvoid            (APIENTRY * m_pUniform1iv) (GLint, GLsizei, GLint const *);
+		GLvoid            (APIENTRY * m_pUniform2f) (GLint, GLfloat, GLfloat);
+		GLvoid            (APIENTRY * m_pUniform2fv) (GLint, GLsizei, GLfloat const *);
+		GLvoid            (APIENTRY * m_pUniform2i) (GLint, GLint, GLint);
+		GLvoid            (APIENTRY * m_pUniform2iv) (GLint, GLsizei, GLint const *);
+		GLvoid            (APIENTRY * m_pUniform3f) (GLint, GLfloat, GLfloat, GLfloat);
+		GLvoid            (APIENTRY * m_pUniform3fv) (GLint, GLsizei, GLfloat const *);
+		GLvoid            (APIENTRY * m_pUniform3i) (GLint, GLint, GLint, GLint);
+		GLvoid            (APIENTRY * m_pUniform3iv) (GLint, GLsizei, GLint const *);
+		GLvoid            (APIENTRY * m_pUniform4f) (GLint, GLfloat, GLfloat, GLfloat, GLfloat);
+		GLvoid            (APIENTRY * m_pUniform4fv) (GLint, GLsizei, GLfloat const *);
+		GLvoid            (APIENTRY * m_pUniform4i) (GLint, GLint, GLint, GLint, GLint);
+		GLvoid            (APIENTRY * m_pUniform4iv) (GLint, GLsizei, GLint const *);
+		GLvoid            (APIENTRY * m_pUniformMatrix2fv) (GLint, GLsizei, GLboolean, GLfloat const *);
+		GLvoid            (APIENTRY * m_pUniformMatrix3fv) (GLint, GLsizei, GLboolean, GLfloat const *);
+		GLvoid            (APIENTRY * m_pUniformMatrix4fv) (GLint, GLsizei, GLboolean, GLfloat const *);
+		GLvoid            (APIENTRY * m_pUseProgram) (GLuint);
+		GLvoid            (APIENTRY * m_pValidateProgram) (GLuint);
+		GLvoid            (APIENTRY * m_pVertexAttrib1d) (GLuint, GLdouble);
+		GLvoid            (APIENTRY * m_pVertexAttrib1dv) (GLuint, GLdouble const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib1f) (GLuint, GLfloat);
+		GLvoid            (APIENTRY * m_pVertexAttrib1fv) (GLuint, GLfloat const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib1s) (GLuint, GLshort);
+		GLvoid            (APIENTRY * m_pVertexAttrib1sv) (GLuint, GLshort const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib2d) (GLuint, GLdouble, GLdouble);
+		GLvoid            (APIENTRY * m_pVertexAttrib2dv) (GLuint, GLdouble const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib2f) (GLuint, GLfloat, GLfloat);
+		GLvoid            (APIENTRY * m_pVertexAttrib2fv) (GLuint, GLfloat const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib2s) (GLuint, GLshort, GLshort);
+		GLvoid            (APIENTRY * m_pVertexAttrib2sv) (GLuint, GLshort const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib3d) (GLuint, GLdouble, GLdouble, GLdouble);
+		GLvoid            (APIENTRY * m_pVertexAttrib3dv) (GLuint, GLdouble const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib3f) (GLuint, GLfloat, GLfloat, GLfloat);
+		GLvoid            (APIENTRY * m_pVertexAttrib3fv) (GLuint, GLfloat const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib3s) (GLuint, GLshort, GLshort, GLshort);
+		GLvoid            (APIENTRY * m_pVertexAttrib3sv) (GLuint, GLshort const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib4bv) (GLuint, GLbyte const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib4d) (GLuint, GLdouble, GLdouble, GLdouble, GLdouble);
+		GLvoid            (APIENTRY * m_pVertexAttrib4dv) (GLuint, GLdouble const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib4f) (GLuint, GLfloat, GLfloat, GLfloat, GLfloat);
+		GLvoid            (APIENTRY * m_pVertexAttrib4fv) (GLuint, GLfloat const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib4iv) (GLuint, GLint const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib4Nbv) (GLuint, GLbyte const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib4Niv) (GLuint, GLint const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib4Nsv) (GLuint, GLshort const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib4Nub) (GLuint, GLubyte, GLubyte, GLubyte, GLubyte);
+		GLvoid            (APIENTRY * m_pVertexAttrib4Nubv) (GLuint, GLubyte const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib4Nuiv) (GLuint, GLuint const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib4Nusv) (GLuint, GLushort const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib4s) (GLuint, GLshort, GLshort, GLshort, GLshort);
+		GLvoid            (APIENTRY * m_pVertexAttrib4sv) (GLuint, GLshort const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib4ubv) (GLuint, GLubyte const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib4uiv) (GLuint, GLuint const *);
+		GLvoid            (APIENTRY * m_pVertexAttrib4usv) (GLuint, GLushort const *);
+		GLvoid            (APIENTRY * m_pVertexAttribPointer) (GLuint, GLint, GLenum, GLboolean, GLsizei, GLvoid const *);
+
+	#endif // GL_VERSION_2_0_OGLEXT
 
 	// - -[ gl_3dfx_tbuffer ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -556,6 +541,22 @@ public:
 		GLvoid            (APIENTRY * m_pVertexArrayRangeAPPLE) (GLsizei, GLvoid *);
 
 	#endif // GL_APPLE_vertex_array_range_OGLEXT
+
+	// - -[ gl_arb_color_buffer_float ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	#ifdef GL_ARB_color_buffer_float_OGLEXT
+
+		GLvoid            (APIENTRY * m_pClampColorARB) (GLenum, GLenum);
+
+	#endif // GL_ARB_color_buffer_float_OGLEXT
+
+	// - -[ gl_arb_draw_buffers ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	#ifdef GL_ARB_draw_buffers_OGLEXT
+
+		GLvoid            (APIENTRY * m_pDrawBuffersARB) (GLsizei, GLenum const *);
+
+	#endif // GL_ARB_draw_buffers_OGLEXT
 
 	// - -[ gl_arb_matrix_palette ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -661,28 +662,28 @@ public:
 		GLvoid            (APIENTRY * m_pGetShaderSourceARB) (GLhandleARB, GLsizei, GLsizei *, GLcharARB *);
 		GLvoid            (APIENTRY * m_pGetUniformfvARB) (GLhandleARB, GLint, GLfloat *);
 		GLvoid            (APIENTRY * m_pGetUniformivARB) (GLhandleARB, GLint, GLint *);
-		GLint             (APIENTRY * m_pGetUniformLocationARB) (GLhandleARB, GLcharARB const);
+		GLint             (APIENTRY * m_pGetUniformLocationARB) (GLhandleARB, GLcharARB const *);
 		GLvoid            (APIENTRY * m_pLinkProgramARB) (GLhandleARB);
-		GLvoid            (APIENTRY * m_pShaderSourceARB) (GLhandleARB, GLsizei, GLcharARB const, GLint const *);
+		GLvoid            (APIENTRY * m_pShaderSourceARB) (GLhandleARB, GLsizei, GLcharARB const * *, GLint const *);
 		GLvoid            (APIENTRY * m_pUniform1fARB) (GLint, GLfloat);
-		GLvoid            (APIENTRY * m_pUniform1fvARB) (GLint, GLsizei, GLfloat *);
+		GLvoid            (APIENTRY * m_pUniform1fvARB) (GLint, GLsizei, GLfloat const *);
 		GLvoid            (APIENTRY * m_pUniform1iARB) (GLint, GLint);
-		GLvoid            (APIENTRY * m_pUniform1ivARB) (GLint, GLsizei, GLint *);
+		GLvoid            (APIENTRY * m_pUniform1ivARB) (GLint, GLsizei, GLint const *);
 		GLvoid            (APIENTRY * m_pUniform2fARB) (GLint, GLfloat, GLfloat);
-		GLvoid            (APIENTRY * m_pUniform2fvARB) (GLint, GLsizei, GLfloat *);
+		GLvoid            (APIENTRY * m_pUniform2fvARB) (GLint, GLsizei, GLfloat const *);
 		GLvoid            (APIENTRY * m_pUniform2iARB) (GLint, GLint, GLint);
-		GLvoid            (APIENTRY * m_pUniform2ivARB) (GLint, GLsizei, GLint *);
+		GLvoid            (APIENTRY * m_pUniform2ivARB) (GLint, GLsizei, GLint const *);
 		GLvoid            (APIENTRY * m_pUniform3fARB) (GLint, GLfloat, GLfloat, GLfloat);
-		GLvoid            (APIENTRY * m_pUniform3fvARB) (GLint, GLsizei, GLfloat *);
+		GLvoid            (APIENTRY * m_pUniform3fvARB) (GLint, GLsizei, GLfloat const *);
 		GLvoid            (APIENTRY * m_pUniform3iARB) (GLint, GLint, GLint, GLint);
-		GLvoid            (APIENTRY * m_pUniform3ivARB) (GLint, GLsizei, GLint *);
+		GLvoid            (APIENTRY * m_pUniform3ivARB) (GLint, GLsizei, GLint const *);
 		GLvoid            (APIENTRY * m_pUniform4fARB) (GLint, GLfloat, GLfloat, GLfloat, GLfloat);
-		GLvoid            (APIENTRY * m_pUniform4fvARB) (GLint, GLsizei, GLfloat *);
+		GLvoid            (APIENTRY * m_pUniform4fvARB) (GLint, GLsizei, GLfloat const *);
 		GLvoid            (APIENTRY * m_pUniform4iARB) (GLint, GLint, GLint, GLint, GLint);
-		GLvoid            (APIENTRY * m_pUniform4ivARB) (GLint, GLsizei, GLint *);
-		GLvoid            (APIENTRY * m_pUniformMatrix2fvARB) (GLint, GLsizei, GLboolean, GLfloat *);
-		GLvoid            (APIENTRY * m_pUniformMatrix3fvARB) (GLint, GLsizei, GLboolean, GLfloat *);
-		GLvoid            (APIENTRY * m_pUniformMatrix4fvARB) (GLint, GLsizei, GLboolean, GLfloat *);
+		GLvoid            (APIENTRY * m_pUniform4ivARB) (GLint, GLsizei, GLint const *);
+		GLvoid            (APIENTRY * m_pUniformMatrix2fvARB) (GLint, GLsizei, GLboolean, GLfloat const *);
+		GLvoid            (APIENTRY * m_pUniformMatrix3fvARB) (GLint, GLsizei, GLboolean, GLfloat const *);
+		GLvoid            (APIENTRY * m_pUniformMatrix4fvARB) (GLint, GLsizei, GLboolean, GLfloat const *);
 		GLvoid            (APIENTRY * m_pUseProgramObjectARB) (GLhandleARB);
 		GLvoid            (APIENTRY * m_pValidateProgramARB) (GLhandleARB);
 
@@ -816,6 +817,16 @@ public:
 		GLvoid            (APIENTRY * m_pVertexAttribPointerARB) (GLuint, GLint, GLenum, GLboolean, GLsizei, GLvoid const *);
 
 	#endif // GL_ARB_vertex_program_OGLEXT
+
+	// - -[ gl_arb_vertex_shader ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	#ifdef GL_ARB_vertex_shader_OGLEXT
+
+		GLvoid            (APIENTRY * m_pBindAttribLocationARB) (GLhandleARB, GLuint, GLcharARB const *);
+		GLvoid            (APIENTRY * m_pGetActiveAttribARB) (GLhandleARB, GLuint, GLsizei, GLsizei *, GLint *, GLenum *, GLcharARB *);
+		GLint             (APIENTRY * m_pGetAttribLocationARB) (GLhandleARB, GLcharARB const *);
+
+	#endif // GL_ARB_vertex_shader_OGLEXT
 
 	// - -[ gl_arb_window_pos ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1006,6 +1017,14 @@ public:
 
 	#endif // GL_EXT_blend_color_OGLEXT
 
+	// - -[ gl_ext_blend_equation_separate ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	#ifdef GL_EXT_blend_equation_separate_OGLEXT
+
+		GLvoid            (APIENTRY * m_pBlendEquationSeparateEXT) (GLenum, GLenum);
+
+	#endif // GL_EXT_blend_equation_separate_OGLEXT
+
 	// - -[ gl_ext_blend_func_separate ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	#ifdef GL_EXT_blend_func_separate_OGLEXT
@@ -1110,6 +1129,14 @@ public:
 
 	#endif // GL_EXT_cull_vertex_OGLEXT
 
+	// - -[ gl_ext_depth_bounds_test ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	#ifdef GL_EXT_depth_bounds_test_OGLEXT
+
+		GLvoid            (APIENTRY * m_pDepthBoundsEXT) (GLclampd, GLclampd);
+
+	#endif // GL_EXT_depth_bounds_test_OGLEXT
+
 	// - -[ gl_ext_draw_range_elements ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	#ifdef GL_EXT_draw_range_elements_OGLEXT
@@ -1129,6 +1156,30 @@ public:
 		GLvoid            (APIENTRY * m_pFogCoordPointerEXT) (GLenum, GLsizei, GLvoid const *);
 
 	#endif // GL_EXT_fog_coord_OGLEXT
+
+	// - -[ gl_ext_framebuffer_object ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	#ifdef GL_EXT_framebuffer_object_OGLEXT
+
+		GLvoid            (APIENTRY * m_pBindFramebufferEXT) (GLenum, GLuint);
+		GLvoid            (APIENTRY * m_pBindRenderbufferEXT) (GLenum, GLuint);
+		GLenum            (APIENTRY * m_pCheckFramebufferStatusEXT) (GLenum);
+		GLvoid            (APIENTRY * m_pDeleteFramebuffersEXT) (GLsizei, GLuint const *);
+		GLvoid            (APIENTRY * m_pDeleteRenderbuffersEXT) (GLsizei, GLuint const *);
+		GLvoid            (APIENTRY * m_pFramebufferRenderbufferEXT) (GLenum, GLenum, GLenum, GLuint);
+		GLvoid            (APIENTRY * m_pFramebufferTexture1DEXT) (GLenum, GLenum, GLenum, GLuint, GLint);
+		GLvoid            (APIENTRY * m_pFramebufferTexture2DEXT) (GLenum, GLenum, GLenum, GLuint, GLint);
+		GLvoid            (APIENTRY * m_pFramebufferTexture3DEXT) (GLenum, GLenum, GLenum, GLuint, GLint, GLint);
+		GLvoid            (APIENTRY * m_pGenerateMipmapEXT) (GLenum);
+		GLvoid            (APIENTRY * m_pGenFramebuffersEXT) (GLsizei, GLuint *);
+		GLvoid            (APIENTRY * m_pGenRenderbuffersEXT) (GLsizei, GLuint *);
+		GLvoid            (APIENTRY * m_pGetFramebufferAttachmentParameterivEXT) (GLenum, GLenum, GLenum, GLint *);
+		GLvoid            (APIENTRY * m_pGetRenderbufferParameterivEXT) (GLenum, GLenum, GLint *);
+		GLboolean         (APIENTRY * m_pIsFramebufferEXT) (GLuint);
+		GLboolean         (APIENTRY * m_pIsRenderbufferEXT) (GLuint);
+		GLvoid            (APIENTRY * m_pRenderbufferStorageEXT) (GLenum, GLenum, GLsizei, GLsizei);
+
+	#endif // GL_EXT_framebuffer_object_OGLEXT
 
 	// - -[ gl_ext_histogram ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1173,58 +1224,6 @@ public:
 
 	#endif // GL_EXT_light_texture_OGLEXT
 
-	// - -[ gl_ext_multisample ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	#ifdef GL_EXT_multisample_OGLEXT
-
-		GLvoid            (APIENTRY * m_pSampleMaskEXT) (GLclampf, GLboolean);
-		GLvoid            (APIENTRY * m_pSamplePatternEXT) (GLenum);
-
-	#endif // GL_EXT_multisample_OGLEXT
-
-	// - -[ gl_ext_multitexture ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	#ifdef GL_EXT_multitexture_OGLEXT
-
-		GLvoid            (APIENTRY * m_pInterleavedTextureCoordSetsEXT) (GLint);
-		GLvoid            (APIENTRY * m_pMultiTexCoord1dEXT) (GLenum, GLdouble);
-		GLvoid            (APIENTRY * m_pMultiTexCoord1dvEXT) (GLenum, GLdouble const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord1fEXT) (GLenum, GLfloat);
-		GLvoid            (APIENTRY * m_pMultiTexCoord1fvEXT) (GLenum, GLfloat const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord1iEXT) (GLenum, GLint);
-		GLvoid            (APIENTRY * m_pMultiTexCoord1ivEXT) (GLenum, GLint const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord1sEXT) (GLenum, GLshort);
-		GLvoid            (APIENTRY * m_pMultiTexCoord1svEXT) (GLenum, GLshort const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord2dEXT) (GLenum, GLdouble, GLdouble);
-		GLvoid            (APIENTRY * m_pMultiTexCoord2dvEXT) (GLenum, GLdouble const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord2fEXT) (GLenum, GLfloat, GLfloat);
-		GLvoid            (APIENTRY * m_pMultiTexCoord2fvEXT) (GLenum, GLfloat const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord2iEXT) (GLenum, GLint, GLint);
-		GLvoid            (APIENTRY * m_pMultiTexCoord2ivEXT) (GLenum, GLint const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord2sEXT) (GLenum, GLshort, GLshort);
-		GLvoid            (APIENTRY * m_pMultiTexCoord2svEXT) (GLenum, GLshort const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord3dEXT) (GLenum, GLdouble, GLdouble, GLdouble);
-		GLvoid            (APIENTRY * m_pMultiTexCoord3dvEXT) (GLenum, GLdouble const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord3fEXT) (GLenum, GLfloat, GLfloat, GLfloat);
-		GLvoid            (APIENTRY * m_pMultiTexCoord3fvEXT) (GLenum, GLfloat const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord3iEXT) (GLenum, GLint, GLint, GLint);
-		GLvoid            (APIENTRY * m_pMultiTexCoord3ivEXT) (GLenum, GLint const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord3sEXT) (GLenum, GLshort, GLshort, GLshort);
-		GLvoid            (APIENTRY * m_pMultiTexCoord3svEXT) (GLenum, GLshort const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord4dEXT) (GLenum, GLdouble, GLdouble, GLdouble, GLdouble);
-		GLvoid            (APIENTRY * m_pMultiTexCoord4dvEXT) (GLenum, GLdouble const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord4fEXT) (GLenum, GLfloat, GLfloat, GLfloat, GLfloat);
-		GLvoid            (APIENTRY * m_pMultiTexCoord4fvEXT) (GLenum, GLfloat const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord4iEXT) (GLenum, GLint, GLint, GLint, GLint);
-		GLvoid            (APIENTRY * m_pMultiTexCoord4ivEXT) (GLenum, GLint const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord4sEXT) (GLenum, GLshort, GLshort, GLshort, GLshort);
-		GLvoid            (APIENTRY * m_pMultiTexCoord4svEXT) (GLenum, GLshort const *);
-		GLvoid            (APIENTRY * m_pSelectTextureCoordSetEXT) (GLenum);
-		GLvoid            (APIENTRY * m_pSelectTextureEXT) (GLenum);
-		GLvoid            (APIENTRY * m_pSelectTextureTransformEXT) (GLenum);
-
-	#endif // GL_EXT_multitexture_OGLEXT
-
 	// - -[ gl_ext_multi_draw_arrays ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	#ifdef GL_EXT_multi_draw_arrays_OGLEXT
@@ -1234,10 +1233,20 @@ public:
 
 	#endif // GL_EXT_multi_draw_arrays_OGLEXT
 
+	// - -[ gl_ext_multisample ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	#ifdef GL_EXT_multisample_OGLEXT
+
+		GLvoid            (APIENTRY * m_pSampleMaskEXT) (GLclampf, GLboolean);
+		GLvoid            (APIENTRY * m_pSamplePatternEXT) (GLenum);
+
+	#endif // GL_EXT_multisample_OGLEXT
+
 	// - -[ gl_ext_paletted_texture ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	#ifdef GL_EXT_paletted_texture_OGLEXT
 
+		GLvoid            (APIENTRY * m_pColorSubTableEXT) (GLenum, GLsizei, GLsizei, GLenum, GLenum, GLvoid const *);
 		GLvoid            (APIENTRY * m_pColorTableEXT) (GLenum, GLenum, GLsizei, GLenum, GLenum, GLvoid const *);
 		GLvoid            (APIENTRY * m_pGetColorTableEXT) (GLenum, GLenum, GLenum, GLvoid *);
 		GLvoid            (APIENTRY * m_pGetColorTableParameterfvEXT) (GLenum, GLenum, GLfloat *);
@@ -1351,7 +1360,7 @@ public:
 		GLvoid            (APIENTRY * m_pArrayElementEXT) (GLint);
 		GLvoid            (APIENTRY * m_pColorPointerEXT) (GLint, GLenum, GLsizei, GLsizei, GLvoid const *);
 		GLvoid            (APIENTRY * m_pDrawArraysEXT) (GLenum, GLint, GLsizei);
-		GLvoid            (APIENTRY * m_pEdgeFlagPointerEXT) (GLsizei, GLsizei, GLboolean const);
+		GLvoid            (APIENTRY * m_pEdgeFlagPointerEXT) (GLsizei, GLsizei, GLboolean const *);
 		GLvoid            (APIENTRY * m_pGetPointervEXT) (GLenum, GLvoid * *);
 		GLvoid            (APIENTRY * m_pIndexPointerEXT) (GLenum, GLsizei, GLsizei, GLvoid const *);
 		GLvoid            (APIENTRY * m_pNormalPointerEXT) (GLenum, GLsizei, GLsizei, GLvoid const *);
@@ -1419,6 +1428,14 @@ public:
 
 	#endif // GL_EXT_vertex_weighting_OGLEXT
 
+	// - -[ gl_gremedy_string_marker ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	#ifdef GL_GREMEDY_string_marker_OGLEXT
+
+		GLvoid            (APIENTRY * m_pStringMarkerGREMEDY) (GLsizei, GLvoid const *);
+
+	#endif // GL_GREMEDY_string_marker_OGLEXT
+
 	// - -[ gl_hp_image_transform ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	#ifdef GL_HP_image_transform_OGLEXT
@@ -1436,8 +1453,8 @@ public:
 
 	#ifdef GL_IBM_multimode_draw_arrays_OGLEXT
 
-		GLvoid            (APIENTRY * m_pMultiModeDrawArraysIBM) (GLenum, GLint const *, GLsizei const *, GLsizei, GLint);
-		GLvoid            (APIENTRY * m_pMultiModeDrawElementsIBM) (GLenum const *, GLsizei const *, GLenum, GLvoid const * *, GLsizei, GLint);
+		GLvoid            (APIENTRY * m_pMultiModeDrawArraysIBM) (GLenum const *, GLint const *, GLsizei const *, GLsizei, GLint);
+		GLvoid            (APIENTRY * m_pMultiModeDrawElementsIBM) (GLenum const *, GLsizei const *, GLenum, GLvoid const * const *, GLsizei, GLint);
 
 	#endif // GL_IBM_multimode_draw_arrays_OGLEXT
 
@@ -1446,7 +1463,7 @@ public:
 	#ifdef GL_IBM_vertex_array_lists_OGLEXT
 
 		GLvoid            (APIENTRY * m_pColorPointerListIBM) (GLint, GLenum, GLint, GLvoid const * *, GLint);
-		GLvoid            (APIENTRY * m_pEdgeFlagPointerListIBM) (GLint, GLboolean const, GLint);
+		GLvoid            (APIENTRY * m_pEdgeFlagPointerListIBM) (GLint, GLboolean const * *, GLint);
 		GLvoid            (APIENTRY * m_pFogCoordPointerListIBM) (GLenum, GLint, GLvoid const * *, GLint);
 		GLvoid            (APIENTRY * m_pIndexPointerListIBM) (GLenum, GLint, GLvoid const * *, GLint);
 		GLvoid            (APIENTRY * m_pNormalPointerListIBM) (GLenum, GLint, GLvoid const * *, GLint);
@@ -1513,6 +1530,18 @@ public:
 		GLvoid            (APIENTRY * m_pWindowPos4svMESA) (GLshort const *);
 
 	#endif // GL_MESA_window_pos_OGLEXT
+
+	// - -[ gl_nv_element_array ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	#ifdef GL_NV_element_array_OGLEXT
+
+		GLvoid            (APIENTRY * m_pDrawElementArrayNV) (GLenum, GLint, GLsizei);
+		GLvoid            (APIENTRY * m_pDrawRangeElementArrayNV) (GLenum, GLuint, GLuint, GLint, GLsizei);
+		GLvoid            (APIENTRY * m_pElementPointerNV) (GLenum, GLvoid const *);
+		GLvoid            (APIENTRY * m_pMultiDrawElementArrayNV) (GLenum, GLint const *, GLsizei const *, GLsizei);
+		GLvoid            (APIENTRY * m_pMultiDrawRangeElementArrayNV) (GLenum, GLuint, GLuint, GLint const *, GLsizei const *, GLsizei);
+
+	#endif // GL_NV_element_array_OGLEXT
 
 	// - -[ gl_nv_evaluators ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1680,6 +1709,14 @@ public:
 
 	#endif // GL_NV_register_combiners2_OGLEXT
 
+	// - -[ gl_nv_stencil_two_side ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	#ifdef GL_NV_stencil_two_side_OGLEXT
+
+		GLvoid            (APIENTRY * m_pActiveStencilFaceNV) (GLenum);
+
+	#endif // GL_NV_stencil_two_side_OGLEXT
+
 	// - -[ gl_nv_vertex_array_range ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	#ifdef GL_NV_vertex_array_range_OGLEXT
@@ -1760,6 +1797,15 @@ public:
 
 	#endif // GL_NV_vertex_program_OGLEXT
 
+	// - -[ gl_nvx_conditional_render ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	#ifdef GL_NVX_conditional_render_OGLEXT
+
+		GLvoid            (APIENTRY * m_pBeginConditionalRenderNVX) (GLuint);
+		GLvoid            (APIENTRY * m_pEndConditionalRenderNVX) ();
+
+	#endif // GL_NVX_conditional_render_OGLEXT
+
 	// - -[ gl_pgi_misc_hints ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	#ifdef GL_PGI_misc_hints_OGLEXT
@@ -1767,6 +1813,20 @@ public:
 		GLvoid            (APIENTRY * m_pHintPGI) (GLenum, GLint);
 
 	#endif // GL_PGI_misc_hints_OGLEXT
+
+	// - -[ gl_sgi_color_table ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	#ifdef GL_SGI_color_table_OGLEXT
+
+		GLvoid            (APIENTRY * m_pColorTableParameterfvSGI) (GLenum, GLenum, GLfloat const *);
+		GLvoid            (APIENTRY * m_pColorTableParameterivSGI) (GLenum, GLenum, GLint const *);
+		GLvoid            (APIENTRY * m_pColorTableSGI) (GLenum, GLenum, GLsizei, GLenum, GLenum, GLvoid const *);
+		GLvoid            (APIENTRY * m_pCopyColorTableSGI) (GLenum, GLenum, GLint, GLint, GLsizei);
+		GLvoid            (APIENTRY * m_pGetColorTableParameterfvSGI) (GLenum, GLenum, GLfloat *);
+		GLvoid            (APIENTRY * m_pGetColorTableParameterivSGI) (GLenum, GLenum, GLint *);
+		GLvoid            (APIENTRY * m_pGetColorTableSGI) (GLenum, GLenum, GLenum, GLvoid *);
+
+	#endif // GL_SGI_color_table_OGLEXT
 
 	// - -[ gl_sgis_detail_texture ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1794,49 +1854,6 @@ public:
 		GLvoid            (APIENTRY * m_pSamplePatternSGIS) (GLenum);
 
 	#endif // GL_SGIS_multisample_OGLEXT
-
-	// - -[ gl_sgis_multitexture ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	#ifdef GL_SGIS_multitexture_OGLEXT
-
-		GLvoid            (APIENTRY * m_pInterleavedTextureCoordSetsSGIS) (GLint);
-		GLvoid            (APIENTRY * m_pMultiTexCoord1dSGIS) (GLenum, GLdouble);
-		GLvoid            (APIENTRY * m_pMultiTexCoord1dvSGIS) (GLenum, GLdouble const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord1fSGIS) (GLenum, GLfloat);
-		GLvoid            (APIENTRY * m_pMultiTexCoord1fvSGIS) (GLenum, GLfloat const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord1iSGIS) (GLenum, GLint);
-		GLvoid            (APIENTRY * m_pMultiTexCoord1ivSGIS) (GLenum, GLint const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord1sSGIS) (GLenum, GLshort);
-		GLvoid            (APIENTRY * m_pMultiTexCoord1svSGIS) (GLenum, GLshort const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord2dSGIS) (GLenum, GLdouble, GLdouble);
-		GLvoid            (APIENTRY * m_pMultiTexCoord2dvSGIS) (GLenum, GLdouble const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord2fSGIS) (GLenum, GLfloat, GLfloat);
-		GLvoid            (APIENTRY * m_pMultiTexCoord2fvSGIS) (GLenum, GLfloat const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord2iSGIS) (GLenum, GLint, GLint);
-		GLvoid            (APIENTRY * m_pMultiTexCoord2ivSGIS) (GLenum, GLint const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord2sSGIS) (GLenum, GLshort, GLshort);
-		GLvoid            (APIENTRY * m_pMultiTexCoord2svSGIS) (GLenum, GLshort const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord3dSGIS) (GLenum, GLdouble, GLdouble, GLdouble);
-		GLvoid            (APIENTRY * m_pMultiTexCoord3dvSGIS) (GLenum, GLdouble const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord3fSGIS) (GLenum, GLfloat, GLfloat, GLfloat);
-		GLvoid            (APIENTRY * m_pMultiTexCoord3fvSGIS) (GLenum, GLfloat const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord3iSGIS) (GLenum, GLint, GLint, GLint);
-		GLvoid            (APIENTRY * m_pMultiTexCoord3ivSGIS) (GLenum, GLint const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord3sSGIS) (GLenum, GLshort, GLshort, GLshort);
-		GLvoid            (APIENTRY * m_pMultiTexCoord3svSGIS) (GLenum, GLshort const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord4dSGIS) (GLenum, GLdouble, GLdouble, GLdouble, GLdouble);
-		GLvoid            (APIENTRY * m_pMultiTexCoord4dvSGIS) (GLenum, GLdouble const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord4fSGIS) (GLenum, GLfloat, GLfloat, GLfloat, GLfloat);
-		GLvoid            (APIENTRY * m_pMultiTexCoord4fvSGIS) (GLenum, GLfloat const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord4iSGIS) (GLenum, GLint, GLint, GLint, GLint);
-		GLvoid            (APIENTRY * m_pMultiTexCoord4ivSGIS) (GLenum, GLint const *);
-		GLvoid            (APIENTRY * m_pMultiTexCoord4sSGIS) (GLenum, GLshort, GLshort, GLshort, GLshort);
-		GLvoid            (APIENTRY * m_pMultiTexCoord4svSGIS) (GLenum, GLshort const *);
-		GLvoid            (APIENTRY * m_pSelectTextureCoordSetSGIS) (GLenum);
-		GLvoid            (APIENTRY * m_pSelectTextureSGIS) (GLenum);
-		GLvoid            (APIENTRY * m_pSelectTextureTransformSGIS) (GLenum);
-
-	#endif // GL_SGIS_multitexture_OGLEXT
 
 	// - -[ gl_sgis_pixel_texture ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -2029,28 +2046,6 @@ public:
 
 	#endif // GL_SGIX_tag_sample_buffer_OGLEXT
 
-	// - -[ gl_sgi_color_table ]- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	#ifdef GL_SGI_color_table_OGLEXT
-
-		GLvoid            (APIENTRY * m_pColorTableParameterfvSGI) (GLenum, GLenum, GLfloat const *);
-		GLvoid            (APIENTRY * m_pColorTableParameterivSGI) (GLenum, GLenum, GLint const *);
-		GLvoid            (APIENTRY * m_pColorTableSGI) (GLenum, GLenum, GLsizei, GLenum, GLenum, GLvoid const *);
-		GLvoid            (APIENTRY * m_pCopyColorTableSGI) (GLenum, GLenum, GLint, GLint, GLsizei);
-		GLvoid            (APIENTRY * m_pGetColorTableParameterfvSGI) (GLenum, GLenum, GLfloat *);
-		GLvoid            (APIENTRY * m_pGetColorTableParameterivSGI) (GLenum, GLenum, GLint *);
-		GLvoid            (APIENTRY * m_pGetColorTableSGI) (GLenum, GLenum, GLenum, GLvoid *);
-
-	#endif // GL_SGI_color_table_OGLEXT
-
-	// - -[ gl_sunx_constant_data ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	#ifdef GL_SUNX_constant_data_OGLEXT
-
-		GLvoid            (APIENTRY * m_pFinishTextureSUNX) ();
-
-	#endif // GL_SUNX_constant_data_OGLEXT
-
 	// - -[ gl_sun_global_alpha ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	#ifdef GL_SUN_global_alpha_OGLEXT
@@ -2134,6 +2129,14 @@ public:
 		GLvoid            (APIENTRY * m_pTexCoord4fVertex4fvSUN) (GLfloat const *, GLfloat const *);
 
 	#endif // GL_SUN_vertex_OGLEXT
+
+	// - -[ gl_sunx_constant_data ] - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	#ifdef GL_SUNX_constant_data_OGLEXT
+
+		GLvoid            (APIENTRY * m_pFinishTextureSUNX) ();
+
+	#endif // GL_SUNX_constant_data_OGLEXT
 
 };
 

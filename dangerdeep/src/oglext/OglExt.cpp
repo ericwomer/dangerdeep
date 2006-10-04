@@ -1,5 +1,5 @@
-// OglExt.cpp                                                Copyright (C) 2004 thomas jansen (jansen@caesar.de)
-//                                                                     (C) 2004 research center caesar
+// OglExt.cpp                                                Copyright (C) 2006 thomas jansen (jansen@caesar.de)
+//                                                                     (C) 2006 research center caesar
 //
 // This file is part of OglExt, a free OpenGL extension library.
 //
@@ -16,7 +16,7 @@
 //
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //
-// This file was automatically generated on June 15, 2004, 11:47 am
+// This file was automatically generated on January 10, 2006, 6:46 pm
 
 #if defined(_WIN32)
 	#define	GLAPI __declspec(dllexport)
@@ -78,7 +78,7 @@ GLuint glexGetVersion()
 
 
 // =============================================================================================================
-// ===                                     O P E N G L   V E R S I O N                                       ===
+// ===                                            V E R S I O N                                              ===
 // =============================================================================================================
 
 // ---[ GL_VERSION_1_2 ]----------------------------------------------------------------------------------------
@@ -247,7 +247,7 @@ GLuint glexGetVersion()
    GLvoid            WRAPPER03V(GetBufferParameteriv, GLenum, GLenum, GLint *)
    GLvoid            WRAPPER03V(GetBufferPointerv, GLenum, GLenum, GLvoid * *)
    GLvoid            WRAPPER04V(GetBufferSubData, GLenum, GLintptr, GLsizeiptr, GLvoid *)
-   GLvoid            WRAPPER03V(GetQueryiv, GLenum, GLenum, GLint)
+   GLvoid            WRAPPER03V(GetQueryiv, GLenum, GLenum, GLint *)
    GLvoid            WRAPPER03V(GetQueryObjectiv, GLuint, GLenum, GLint *)
    GLvoid            WRAPPER03V(GetQueryObjectuiv, GLuint, GLenum, GLuint *)
    GLboolean         WRAPPER01R(IsBuffer, GLuint)
@@ -257,8 +257,108 @@ GLuint glexGetVersion()
 
 #endif /* GL_VERSION_1_5_OGLEXT */
 
+// ---[ GL_VERSION_2_0 ]----------------------------------------------------------------------------------------
+
+#ifdef GL_VERSION_2_0_OGLEXT
+
+   GLvoid            WRAPPER02V(AttachShader, GLuint, GLuint)
+   GLvoid            WRAPPER03V(BindAttribLocation, GLuint, GLuint, GLchar const *)
+   GLvoid            WRAPPER02V(BlendEquationSeparate, GLenum, GLenum)
+   GLvoid            WRAPPER01V(CompileShader, GLuint)
+   GLuint            WRAPPER00R(CreateProgram)
+   GLuint            WRAPPER01R(CreateShader, GLenum)
+   GLvoid            WRAPPER01V(DeleteProgram, GLuint)
+   GLvoid            WRAPPER01V(DeleteShader, GLuint)
+   GLvoid            WRAPPER02V(DetachShader, GLuint, GLuint)
+   GLvoid            WRAPPER01V(DisableVertexAttribArray, GLuint)
+   GLvoid            WRAPPER02V(DrawBuffers, GLsizei, GLenum const *)
+   GLvoid            WRAPPER01V(EnableVertexAttribArray, GLuint)
+   GLvoid            WRAPPER07V(GetActiveAttrib, GLuint, GLuint, GLsizei, GLsizei *, GLint *, GLenum *, GLchar *)
+   GLvoid            WRAPPER07V(GetActiveUniform, GLuint, GLuint, GLsizei, GLsizei *, GLint *, GLenum *, GLchar *)
+   GLvoid            WRAPPER04V(GetAttachedShaders, GLuint, GLsizei, GLsizei *, GLuint *)
+   GLint             WRAPPER02R(GetAttribLocation, GLuint, GLchar const *)
+   GLvoid            WRAPPER04V(GetProgramInfoLog, GLuint, GLsizei, GLsizei *, GLchar *)
+   GLvoid            WRAPPER03V(GetProgramiv, GLuint, GLenum, GLint *)
+   GLvoid            WRAPPER04V(GetShaderInfoLog, GLuint, GLsizei, GLsizei *, GLchar *)
+   GLvoid            WRAPPER03V(GetShaderiv, GLuint, GLenum, GLint *)
+   GLvoid            WRAPPER04V(GetShaderSource, GLuint, GLsizei, GLsizei *, GLchar *)
+   GLvoid            WRAPPER03V(GetUniformfv, GLuint, GLint, GLfloat *)
+   GLvoid            WRAPPER03V(GetUniformiv, GLuint, GLint, GLint *)
+   GLint             WRAPPER02R(GetUniformLocation, GLuint, GLchar const *)
+   GLvoid            WRAPPER03V(GetVertexAttribdv, GLuint, GLenum, GLdouble *)
+   GLvoid            WRAPPER03V(GetVertexAttribfv, GLuint, GLenum, GLfloat *)
+   GLvoid            WRAPPER03V(GetVertexAttribiv, GLuint, GLenum, GLint *)
+   GLvoid            WRAPPER03V(GetVertexAttribPointerv, GLuint, GLenum, GLvoid * *)
+   GLboolean         WRAPPER01R(IsProgram, GLuint)
+   GLboolean         WRAPPER01R(IsShader, GLuint)
+   GLvoid            WRAPPER01V(LinkProgram, GLuint)
+   GLvoid            WRAPPER04V(ShaderSource, GLuint, GLsizei, GLchar const * *, GLint const *)
+   GLvoid            WRAPPER04V(StencilFuncSeparate, GLenum, GLenum, GLint, GLuint)
+   GLvoid            WRAPPER02V(StencilMaskSeparate, GLenum, GLuint)
+   GLvoid            WRAPPER04V(StencilOpSeparate, GLenum, GLenum, GLenum, GLenum)
+   GLvoid            WRAPPER02V(Uniform1f, GLint, GLfloat)
+   GLvoid            WRAPPER03V(Uniform1fv, GLint, GLsizei, GLfloat const *)
+   GLvoid            WRAPPER02V(Uniform1i, GLint, GLint)
+   GLvoid            WRAPPER03V(Uniform1iv, GLint, GLsizei, GLint const *)
+   GLvoid            WRAPPER03V(Uniform2f, GLint, GLfloat, GLfloat)
+   GLvoid            WRAPPER03V(Uniform2fv, GLint, GLsizei, GLfloat const *)
+   GLvoid            WRAPPER03V(Uniform2i, GLint, GLint, GLint)
+   GLvoid            WRAPPER03V(Uniform2iv, GLint, GLsizei, GLint const *)
+   GLvoid            WRAPPER04V(Uniform3f, GLint, GLfloat, GLfloat, GLfloat)
+   GLvoid            WRAPPER03V(Uniform3fv, GLint, GLsizei, GLfloat const *)
+   GLvoid            WRAPPER04V(Uniform3i, GLint, GLint, GLint, GLint)
+   GLvoid            WRAPPER03V(Uniform3iv, GLint, GLsizei, GLint const *)
+   GLvoid            WRAPPER05V(Uniform4f, GLint, GLfloat, GLfloat, GLfloat, GLfloat)
+   GLvoid            WRAPPER03V(Uniform4fv, GLint, GLsizei, GLfloat const *)
+   GLvoid            WRAPPER05V(Uniform4i, GLint, GLint, GLint, GLint, GLint)
+   GLvoid            WRAPPER03V(Uniform4iv, GLint, GLsizei, GLint const *)
+   GLvoid            WRAPPER04V(UniformMatrix2fv, GLint, GLsizei, GLboolean, GLfloat const *)
+   GLvoid            WRAPPER04V(UniformMatrix3fv, GLint, GLsizei, GLboolean, GLfloat const *)
+   GLvoid            WRAPPER04V(UniformMatrix4fv, GLint, GLsizei, GLboolean, GLfloat const *)
+   GLvoid            WRAPPER01V(UseProgram, GLuint)
+   GLvoid            WRAPPER01V(ValidateProgram, GLuint)
+   GLvoid            WRAPPER02V(VertexAttrib1d, GLuint, GLdouble)
+   GLvoid            WRAPPER02V(VertexAttrib1dv, GLuint, GLdouble const *)
+   GLvoid            WRAPPER02V(VertexAttrib1f, GLuint, GLfloat)
+   GLvoid            WRAPPER02V(VertexAttrib1fv, GLuint, GLfloat const *)
+   GLvoid            WRAPPER02V(VertexAttrib1s, GLuint, GLshort)
+   GLvoid            WRAPPER02V(VertexAttrib1sv, GLuint, GLshort const *)
+   GLvoid            WRAPPER03V(VertexAttrib2d, GLuint, GLdouble, GLdouble)
+   GLvoid            WRAPPER02V(VertexAttrib2dv, GLuint, GLdouble const *)
+   GLvoid            WRAPPER03V(VertexAttrib2f, GLuint, GLfloat, GLfloat)
+   GLvoid            WRAPPER02V(VertexAttrib2fv, GLuint, GLfloat const *)
+   GLvoid            WRAPPER03V(VertexAttrib2s, GLuint, GLshort, GLshort)
+   GLvoid            WRAPPER02V(VertexAttrib2sv, GLuint, GLshort const *)
+   GLvoid            WRAPPER04V(VertexAttrib3d, GLuint, GLdouble, GLdouble, GLdouble)
+   GLvoid            WRAPPER02V(VertexAttrib3dv, GLuint, GLdouble const *)
+   GLvoid            WRAPPER04V(VertexAttrib3f, GLuint, GLfloat, GLfloat, GLfloat)
+   GLvoid            WRAPPER02V(VertexAttrib3fv, GLuint, GLfloat const *)
+   GLvoid            WRAPPER04V(VertexAttrib3s, GLuint, GLshort, GLshort, GLshort)
+   GLvoid            WRAPPER02V(VertexAttrib3sv, GLuint, GLshort const *)
+   GLvoid            WRAPPER02V(VertexAttrib4bv, GLuint, GLbyte const *)
+   GLvoid            WRAPPER05V(VertexAttrib4d, GLuint, GLdouble, GLdouble, GLdouble, GLdouble)
+   GLvoid            WRAPPER02V(VertexAttrib4dv, GLuint, GLdouble const *)
+   GLvoid            WRAPPER05V(VertexAttrib4f, GLuint, GLfloat, GLfloat, GLfloat, GLfloat)
+   GLvoid            WRAPPER02V(VertexAttrib4fv, GLuint, GLfloat const *)
+   GLvoid            WRAPPER02V(VertexAttrib4iv, GLuint, GLint const *)
+   GLvoid            WRAPPER02V(VertexAttrib4Nbv, GLuint, GLbyte const *)
+   GLvoid            WRAPPER02V(VertexAttrib4Niv, GLuint, GLint const *)
+   GLvoid            WRAPPER02V(VertexAttrib4Nsv, GLuint, GLshort const *)
+   GLvoid            WRAPPER05V(VertexAttrib4Nub, GLuint, GLubyte, GLubyte, GLubyte, GLubyte)
+   GLvoid            WRAPPER02V(VertexAttrib4Nubv, GLuint, GLubyte const *)
+   GLvoid            WRAPPER02V(VertexAttrib4Nuiv, GLuint, GLuint const *)
+   GLvoid            WRAPPER02V(VertexAttrib4Nusv, GLuint, GLushort const *)
+   GLvoid            WRAPPER05V(VertexAttrib4s, GLuint, GLshort, GLshort, GLshort, GLshort)
+   GLvoid            WRAPPER02V(VertexAttrib4sv, GLuint, GLshort const *)
+   GLvoid            WRAPPER02V(VertexAttrib4ubv, GLuint, GLubyte const *)
+   GLvoid            WRAPPER02V(VertexAttrib4uiv, GLuint, GLuint const *)
+   GLvoid            WRAPPER02V(VertexAttrib4usv, GLuint, GLushort const *)
+   GLvoid            WRAPPER06V(VertexAttribPointer, GLuint, GLint, GLenum, GLboolean, GLsizei, GLvoid const *)
+
+#endif /* GL_VERSION_2_0_OGLEXT */
+
 // =============================================================================================================
-// ===                                   O P E N G L   E X T E N S I O N                                     ===
+// ===                                          E X T E N S I O N                                            ===
 // =============================================================================================================
 
 // ---[ GL_3DFX_tbuffer ]---------------------------------------------------------------------------------------
@@ -316,6 +416,22 @@ GLuint glexGetVersion()
    GLvoid            WRAPPER02V(VertexArrayRangeAPPLE, GLsizei, GLvoid *)
 
 #endif /* GL_APPLE_vertex_array_range_OGLEXT */
+
+// ---[ GL_ARB_color_buffer_float ]-----------------------------------------------------------------------------
+
+#ifdef GL_ARB_color_buffer_float_OGLEXT
+
+   GLvoid            WRAPPER02V(ClampColorARB, GLenum, GLenum)
+
+#endif /* GL_ARB_color_buffer_float_OGLEXT */
+
+// ---[ GL_ARB_draw_buffers ]-----------------------------------------------------------------------------------
+
+#ifdef GL_ARB_draw_buffers_OGLEXT
+
+   GLvoid            WRAPPER02V(DrawBuffersARB, GLsizei, GLenum const *)
+
+#endif /* GL_ARB_draw_buffers_OGLEXT */
 
 // ---[ GL_ARB_matrix_palette ]---------------------------------------------------------------------------------
 
@@ -421,28 +537,28 @@ GLuint glexGetVersion()
    GLvoid            WRAPPER04V(GetShaderSourceARB, GLhandleARB, GLsizei, GLsizei *, GLcharARB *)
    GLvoid            WRAPPER03V(GetUniformfvARB, GLhandleARB, GLint, GLfloat *)
    GLvoid            WRAPPER03V(GetUniformivARB, GLhandleARB, GLint, GLint *)
-   GLint             WRAPPER02R(GetUniformLocationARB, GLhandleARB, GLcharARB const)
+   GLint             WRAPPER02R(GetUniformLocationARB, GLhandleARB, GLcharARB const *)
    GLvoid            WRAPPER01V(LinkProgramARB, GLhandleARB)
-   GLvoid            WRAPPER04V(ShaderSourceARB, GLhandleARB, GLsizei, GLcharARB const, GLint const *)
+   GLvoid            WRAPPER04V(ShaderSourceARB, GLhandleARB, GLsizei, GLcharARB const * *, GLint const *)
    GLvoid            WRAPPER02V(Uniform1fARB, GLint, GLfloat)
-   GLvoid            WRAPPER03V(Uniform1fvARB, GLint, GLsizei, GLfloat *)
+   GLvoid            WRAPPER03V(Uniform1fvARB, GLint, GLsizei, GLfloat const *)
    GLvoid            WRAPPER02V(Uniform1iARB, GLint, GLint)
-   GLvoid            WRAPPER03V(Uniform1ivARB, GLint, GLsizei, GLint *)
+   GLvoid            WRAPPER03V(Uniform1ivARB, GLint, GLsizei, GLint const *)
    GLvoid            WRAPPER03V(Uniform2fARB, GLint, GLfloat, GLfloat)
-   GLvoid            WRAPPER03V(Uniform2fvARB, GLint, GLsizei, GLfloat *)
+   GLvoid            WRAPPER03V(Uniform2fvARB, GLint, GLsizei, GLfloat const *)
    GLvoid            WRAPPER03V(Uniform2iARB, GLint, GLint, GLint)
-   GLvoid            WRAPPER03V(Uniform2ivARB, GLint, GLsizei, GLint *)
+   GLvoid            WRAPPER03V(Uniform2ivARB, GLint, GLsizei, GLint const *)
    GLvoid            WRAPPER04V(Uniform3fARB, GLint, GLfloat, GLfloat, GLfloat)
-   GLvoid            WRAPPER03V(Uniform3fvARB, GLint, GLsizei, GLfloat *)
+   GLvoid            WRAPPER03V(Uniform3fvARB, GLint, GLsizei, GLfloat const *)
    GLvoid            WRAPPER04V(Uniform3iARB, GLint, GLint, GLint, GLint)
-   GLvoid            WRAPPER03V(Uniform3ivARB, GLint, GLsizei, GLint *)
+   GLvoid            WRAPPER03V(Uniform3ivARB, GLint, GLsizei, GLint const *)
    GLvoid            WRAPPER05V(Uniform4fARB, GLint, GLfloat, GLfloat, GLfloat, GLfloat)
-   GLvoid            WRAPPER03V(Uniform4fvARB, GLint, GLsizei, GLfloat *)
+   GLvoid            WRAPPER03V(Uniform4fvARB, GLint, GLsizei, GLfloat const *)
    GLvoid            WRAPPER05V(Uniform4iARB, GLint, GLint, GLint, GLint, GLint)
-   GLvoid            WRAPPER03V(Uniform4ivARB, GLint, GLsizei, GLint *)
-   GLvoid            WRAPPER04V(UniformMatrix2fvARB, GLint, GLsizei, GLboolean, GLfloat *)
-   GLvoid            WRAPPER04V(UniformMatrix3fvARB, GLint, GLsizei, GLboolean, GLfloat *)
-   GLvoid            WRAPPER04V(UniformMatrix4fvARB, GLint, GLsizei, GLboolean, GLfloat *)
+   GLvoid            WRAPPER03V(Uniform4ivARB, GLint, GLsizei, GLint const *)
+   GLvoid            WRAPPER04V(UniformMatrix2fvARB, GLint, GLsizei, GLboolean, GLfloat const *)
+   GLvoid            WRAPPER04V(UniformMatrix3fvARB, GLint, GLsizei, GLboolean, GLfloat const *)
+   GLvoid            WRAPPER04V(UniformMatrix4fvARB, GLint, GLsizei, GLboolean, GLfloat const *)
    GLvoid            WRAPPER01V(UseProgramObjectARB, GLhandleARB)
    GLvoid            WRAPPER01V(ValidateProgramARB, GLhandleARB)
 
@@ -576,6 +692,16 @@ GLuint glexGetVersion()
    GLvoid            WRAPPER06V(VertexAttribPointerARB, GLuint, GLint, GLenum, GLboolean, GLsizei, GLvoid const *)
 
 #endif /* GL_ARB_vertex_program_OGLEXT */
+
+// ---[ GL_ARB_vertex_shader ]----------------------------------------------------------------------------------
+
+#ifdef GL_ARB_vertex_shader_OGLEXT
+
+   GLvoid            WRAPPER03V(BindAttribLocationARB, GLhandleARB, GLuint, GLcharARB const *)
+   GLvoid            WRAPPER07V(GetActiveAttribARB, GLhandleARB, GLuint, GLsizei, GLsizei *, GLint *, GLenum *, GLcharARB *)
+   GLint             WRAPPER02R(GetAttribLocationARB, GLhandleARB, GLcharARB const *)
+
+#endif /* GL_ARB_vertex_shader_OGLEXT */
 
 // ---[ GL_ARB_window_pos ]-------------------------------------------------------------------------------------
 
@@ -766,6 +892,14 @@ GLuint glexGetVersion()
 
 #endif /* GL_EXT_blend_color_OGLEXT */
 
+// ---[ GL_EXT_blend_equation_separate ]------------------------------------------------------------------------
+
+#ifdef GL_EXT_blend_equation_separate_OGLEXT
+
+   GLvoid            WRAPPER02V(BlendEquationSeparateEXT, GLenum, GLenum)
+
+#endif /* GL_EXT_blend_equation_separate_OGLEXT */
+
 // ---[ GL_EXT_blend_func_separate ]----------------------------------------------------------------------------
 
 #ifdef GL_EXT_blend_func_separate_OGLEXT
@@ -870,6 +1004,14 @@ GLuint glexGetVersion()
 
 #endif /* GL_EXT_cull_vertex_OGLEXT */
 
+// ---[ GL_EXT_depth_bounds_test ]------------------------------------------------------------------------------
+
+#ifdef GL_EXT_depth_bounds_test_OGLEXT
+
+   GLvoid            WRAPPER02V(DepthBoundsEXT, GLclampd, GLclampd)
+
+#endif /* GL_EXT_depth_bounds_test_OGLEXT */
+
 // ---[ GL_EXT_draw_range_elements ]----------------------------------------------------------------------------
 
 #ifdef GL_EXT_draw_range_elements_OGLEXT
@@ -889,6 +1031,30 @@ GLuint glexGetVersion()
    GLvoid            WRAPPER03V(FogCoordPointerEXT, GLenum, GLsizei, GLvoid const *)
 
 #endif /* GL_EXT_fog_coord_OGLEXT */
+
+// ---[ GL_EXT_framebuffer_object ]-----------------------------------------------------------------------------
+
+#ifdef GL_EXT_framebuffer_object_OGLEXT
+
+   GLvoid            WRAPPER02V(BindFramebufferEXT, GLenum, GLuint)
+   GLvoid            WRAPPER02V(BindRenderbufferEXT, GLenum, GLuint)
+   GLenum            WRAPPER01R(CheckFramebufferStatusEXT, GLenum)
+   GLvoid            WRAPPER02V(DeleteFramebuffersEXT, GLsizei, GLuint const *)
+   GLvoid            WRAPPER02V(DeleteRenderbuffersEXT, GLsizei, GLuint const *)
+   GLvoid            WRAPPER04V(FramebufferRenderbufferEXT, GLenum, GLenum, GLenum, GLuint)
+   GLvoid            WRAPPER05V(FramebufferTexture1DEXT, GLenum, GLenum, GLenum, GLuint, GLint)
+   GLvoid            WRAPPER05V(FramebufferTexture2DEXT, GLenum, GLenum, GLenum, GLuint, GLint)
+   GLvoid            WRAPPER06V(FramebufferTexture3DEXT, GLenum, GLenum, GLenum, GLuint, GLint, GLint)
+   GLvoid            WRAPPER01V(GenerateMipmapEXT, GLenum)
+   GLvoid            WRAPPER02V(GenFramebuffersEXT, GLsizei, GLuint *)
+   GLvoid            WRAPPER02V(GenRenderbuffersEXT, GLsizei, GLuint *)
+   GLvoid            WRAPPER04V(GetFramebufferAttachmentParameterivEXT, GLenum, GLenum, GLenum, GLint *)
+   GLvoid            WRAPPER03V(GetRenderbufferParameterivEXT, GLenum, GLenum, GLint *)
+   GLboolean         WRAPPER01R(IsFramebufferEXT, GLuint)
+   GLboolean         WRAPPER01R(IsRenderbufferEXT, GLuint)
+   GLvoid            WRAPPER04V(RenderbufferStorageEXT, GLenum, GLenum, GLsizei, GLsizei)
+
+#endif /* GL_EXT_framebuffer_object_OGLEXT */
 
 // ---[ GL_EXT_histogram ]--------------------------------------------------------------------------------------
 
@@ -933,58 +1099,6 @@ GLuint glexGetVersion()
 
 #endif /* GL_EXT_light_texture_OGLEXT */
 
-// ---[ GL_EXT_multisample ]------------------------------------------------------------------------------------
-
-#ifdef GL_EXT_multisample_OGLEXT
-
-   GLvoid            WRAPPER02V(SampleMaskEXT, GLclampf, GLboolean)
-   GLvoid            WRAPPER01V(SamplePatternEXT, GLenum)
-
-#endif /* GL_EXT_multisample_OGLEXT */
-
-// ---[ GL_EXT_multitexture ]-----------------------------------------------------------------------------------
-
-#ifdef GL_EXT_multitexture_OGLEXT
-
-   GLvoid            WRAPPER01V(InterleavedTextureCoordSetsEXT, GLint)
-   GLvoid            WRAPPER02V(MultiTexCoord1dEXT, GLenum, GLdouble)
-   GLvoid            WRAPPER02V(MultiTexCoord1dvEXT, GLenum, GLdouble const *)
-   GLvoid            WRAPPER02V(MultiTexCoord1fEXT, GLenum, GLfloat)
-   GLvoid            WRAPPER02V(MultiTexCoord1fvEXT, GLenum, GLfloat const *)
-   GLvoid            WRAPPER02V(MultiTexCoord1iEXT, GLenum, GLint)
-   GLvoid            WRAPPER02V(MultiTexCoord1ivEXT, GLenum, GLint const *)
-   GLvoid            WRAPPER02V(MultiTexCoord1sEXT, GLenum, GLshort)
-   GLvoid            WRAPPER02V(MultiTexCoord1svEXT, GLenum, GLshort const *)
-   GLvoid            WRAPPER03V(MultiTexCoord2dEXT, GLenum, GLdouble, GLdouble)
-   GLvoid            WRAPPER02V(MultiTexCoord2dvEXT, GLenum, GLdouble const *)
-   GLvoid            WRAPPER03V(MultiTexCoord2fEXT, GLenum, GLfloat, GLfloat)
-   GLvoid            WRAPPER02V(MultiTexCoord2fvEXT, GLenum, GLfloat const *)
-   GLvoid            WRAPPER03V(MultiTexCoord2iEXT, GLenum, GLint, GLint)
-   GLvoid            WRAPPER02V(MultiTexCoord2ivEXT, GLenum, GLint const *)
-   GLvoid            WRAPPER03V(MultiTexCoord2sEXT, GLenum, GLshort, GLshort)
-   GLvoid            WRAPPER02V(MultiTexCoord2svEXT, GLenum, GLshort const *)
-   GLvoid            WRAPPER04V(MultiTexCoord3dEXT, GLenum, GLdouble, GLdouble, GLdouble)
-   GLvoid            WRAPPER02V(MultiTexCoord3dvEXT, GLenum, GLdouble const *)
-   GLvoid            WRAPPER04V(MultiTexCoord3fEXT, GLenum, GLfloat, GLfloat, GLfloat)
-   GLvoid            WRAPPER02V(MultiTexCoord3fvEXT, GLenum, GLfloat const *)
-   GLvoid            WRAPPER04V(MultiTexCoord3iEXT, GLenum, GLint, GLint, GLint)
-   GLvoid            WRAPPER02V(MultiTexCoord3ivEXT, GLenum, GLint const *)
-   GLvoid            WRAPPER04V(MultiTexCoord3sEXT, GLenum, GLshort, GLshort, GLshort)
-   GLvoid            WRAPPER02V(MultiTexCoord3svEXT, GLenum, GLshort const *)
-   GLvoid            WRAPPER05V(MultiTexCoord4dEXT, GLenum, GLdouble, GLdouble, GLdouble, GLdouble)
-   GLvoid            WRAPPER02V(MultiTexCoord4dvEXT, GLenum, GLdouble const *)
-   GLvoid            WRAPPER05V(MultiTexCoord4fEXT, GLenum, GLfloat, GLfloat, GLfloat, GLfloat)
-   GLvoid            WRAPPER02V(MultiTexCoord4fvEXT, GLenum, GLfloat const *)
-   GLvoid            WRAPPER05V(MultiTexCoord4iEXT, GLenum, GLint, GLint, GLint, GLint)
-   GLvoid            WRAPPER02V(MultiTexCoord4ivEXT, GLenum, GLint const *)
-   GLvoid            WRAPPER05V(MultiTexCoord4sEXT, GLenum, GLshort, GLshort, GLshort, GLshort)
-   GLvoid            WRAPPER02V(MultiTexCoord4svEXT, GLenum, GLshort const *)
-   GLvoid            WRAPPER01V(SelectTextureCoordSetEXT, GLenum)
-   GLvoid            WRAPPER01V(SelectTextureEXT, GLenum)
-   GLvoid            WRAPPER01V(SelectTextureTransformEXT, GLenum)
-
-#endif /* GL_EXT_multitexture_OGLEXT */
-
 // ---[ GL_EXT_multi_draw_arrays ]------------------------------------------------------------------------------
 
 #ifdef GL_EXT_multi_draw_arrays_OGLEXT
@@ -994,10 +1108,20 @@ GLuint glexGetVersion()
 
 #endif /* GL_EXT_multi_draw_arrays_OGLEXT */
 
+// ---[ GL_EXT_multisample ]------------------------------------------------------------------------------------
+
+#ifdef GL_EXT_multisample_OGLEXT
+
+   GLvoid            WRAPPER02V(SampleMaskEXT, GLclampf, GLboolean)
+   GLvoid            WRAPPER01V(SamplePatternEXT, GLenum)
+
+#endif /* GL_EXT_multisample_OGLEXT */
+
 // ---[ GL_EXT_paletted_texture ]-------------------------------------------------------------------------------
 
 #ifdef GL_EXT_paletted_texture_OGLEXT
 
+   GLvoid            WRAPPER06V(ColorSubTableEXT, GLenum, GLsizei, GLsizei, GLenum, GLenum, GLvoid const *)
    GLvoid            WRAPPER06V(ColorTableEXT, GLenum, GLenum, GLsizei, GLenum, GLenum, GLvoid const *)
    GLvoid            WRAPPER04V(GetColorTableEXT, GLenum, GLenum, GLenum, GLvoid *)
    GLvoid            WRAPPER03V(GetColorTableParameterfvEXT, GLenum, GLenum, GLfloat *)
@@ -1111,7 +1235,7 @@ GLuint glexGetVersion()
    GLvoid            WRAPPER01V(ArrayElementEXT, GLint)
    GLvoid            WRAPPER05V(ColorPointerEXT, GLint, GLenum, GLsizei, GLsizei, GLvoid const *)
    GLvoid            WRAPPER03V(DrawArraysEXT, GLenum, GLint, GLsizei)
-   GLvoid            WRAPPER03V(EdgeFlagPointerEXT, GLsizei, GLsizei, GLboolean const)
+   GLvoid            WRAPPER03V(EdgeFlagPointerEXT, GLsizei, GLsizei, GLboolean const *)
    GLvoid            WRAPPER02V(GetPointervEXT, GLenum, GLvoid * *)
    GLvoid            WRAPPER04V(IndexPointerEXT, GLenum, GLsizei, GLsizei, GLvoid const *)
    GLvoid            WRAPPER04V(NormalPointerEXT, GLenum, GLsizei, GLsizei, GLvoid const *)
@@ -1179,6 +1303,14 @@ GLuint glexGetVersion()
 
 #endif /* GL_EXT_vertex_weighting_OGLEXT */
 
+// ---[ GL_GREMEDY_string_marker ]------------------------------------------------------------------------------
+
+#ifdef GL_GREMEDY_string_marker_OGLEXT
+
+   GLvoid            WRAPPER02V(StringMarkerGREMEDY, GLsizei, GLvoid const *)
+
+#endif /* GL_GREMEDY_string_marker_OGLEXT */
+
 // ---[ GL_HP_image_transform ]---------------------------------------------------------------------------------
 
 #ifdef GL_HP_image_transform_OGLEXT
@@ -1196,8 +1328,8 @@ GLuint glexGetVersion()
 
 #ifdef GL_IBM_multimode_draw_arrays_OGLEXT
 
-   GLvoid            WRAPPER05V(MultiModeDrawArraysIBM, GLenum, GLint const *, GLsizei const *, GLsizei, GLint)
-   GLvoid            WRAPPER06V(MultiModeDrawElementsIBM, GLenum const *, GLsizei const *, GLenum, GLvoid const * *, GLsizei, GLint)
+   GLvoid            WRAPPER05V(MultiModeDrawArraysIBM, GLenum const *, GLint const *, GLsizei const *, GLsizei, GLint)
+   GLvoid            WRAPPER06V(MultiModeDrawElementsIBM, GLenum const *, GLsizei const *, GLenum, GLvoid const * const *, GLsizei, GLint)
 
 #endif /* GL_IBM_multimode_draw_arrays_OGLEXT */
 
@@ -1206,7 +1338,7 @@ GLuint glexGetVersion()
 #ifdef GL_IBM_vertex_array_lists_OGLEXT
 
    GLvoid            WRAPPER05V(ColorPointerListIBM, GLint, GLenum, GLint, GLvoid const * *, GLint)
-   GLvoid            WRAPPER03V(EdgeFlagPointerListIBM, GLint, GLboolean const, GLint)
+   GLvoid            WRAPPER03V(EdgeFlagPointerListIBM, GLint, GLboolean const * *, GLint)
    GLvoid            WRAPPER04V(FogCoordPointerListIBM, GLenum, GLint, GLvoid const * *, GLint)
    GLvoid            WRAPPER04V(IndexPointerListIBM, GLenum, GLint, GLvoid const * *, GLint)
    GLvoid            WRAPPER04V(NormalPointerListIBM, GLenum, GLint, GLvoid const * *, GLint)
@@ -1273,6 +1405,18 @@ GLuint glexGetVersion()
    GLvoid            WRAPPER01V(WindowPos4svMESA, GLshort const *)
 
 #endif /* GL_MESA_window_pos_OGLEXT */
+
+// ---[ GL_NV_element_array ]-----------------------------------------------------------------------------------
+
+#ifdef GL_NV_element_array_OGLEXT
+
+   GLvoid            WRAPPER03V(DrawElementArrayNV, GLenum, GLint, GLsizei)
+   GLvoid            WRAPPER05V(DrawRangeElementArrayNV, GLenum, GLuint, GLuint, GLint, GLsizei)
+   GLvoid            WRAPPER02V(ElementPointerNV, GLenum, GLvoid const *)
+   GLvoid            WRAPPER04V(MultiDrawElementArrayNV, GLenum, GLint const *, GLsizei const *, GLsizei)
+   GLvoid            WRAPPER06V(MultiDrawRangeElementArrayNV, GLenum, GLuint, GLuint, GLint const *, GLsizei const *, GLsizei)
+
+#endif /* GL_NV_element_array_OGLEXT */
 
 // ---[ GL_NV_evaluators ]--------------------------------------------------------------------------------------
 
@@ -1440,6 +1584,14 @@ GLuint glexGetVersion()
 
 #endif /* GL_NV_register_combiners2_OGLEXT */
 
+// ---[ GL_NV_stencil_two_side ]--------------------------------------------------------------------------------
+
+#ifdef GL_NV_stencil_two_side_OGLEXT
+
+   GLvoid            WRAPPER01V(ActiveStencilFaceNV, GLenum)
+
+#endif /* GL_NV_stencil_two_side_OGLEXT */
+
 // ---[ GL_NV_vertex_array_range ]------------------------------------------------------------------------------
 
 #ifdef GL_NV_vertex_array_range_OGLEXT
@@ -1520,6 +1672,15 @@ GLuint glexGetVersion()
 
 #endif /* GL_NV_vertex_program_OGLEXT */
 
+// ---[ GL_NVX_conditional_render ]-----------------------------------------------------------------------------
+
+#ifdef GL_NVX_conditional_render_OGLEXT
+
+   GLvoid            WRAPPER01V(BeginConditionalRenderNVX, GLuint)
+   GLvoid            WRAPPER00V(EndConditionalRenderNVX)
+
+#endif /* GL_NVX_conditional_render_OGLEXT */
+
 // ---[ GL_PGI_misc_hints ]-------------------------------------------------------------------------------------
 
 #ifdef GL_PGI_misc_hints_OGLEXT
@@ -1527,6 +1688,20 @@ GLuint glexGetVersion()
    GLvoid            WRAPPER02V(HintPGI, GLenum, GLint)
 
 #endif /* GL_PGI_misc_hints_OGLEXT */
+
+// ---[ GL_SGI_color_table ]------------------------------------------------------------------------------------
+
+#ifdef GL_SGI_color_table_OGLEXT
+
+   GLvoid            WRAPPER03V(ColorTableParameterfvSGI, GLenum, GLenum, GLfloat const *)
+   GLvoid            WRAPPER03V(ColorTableParameterivSGI, GLenum, GLenum, GLint const *)
+   GLvoid            WRAPPER06V(ColorTableSGI, GLenum, GLenum, GLsizei, GLenum, GLenum, GLvoid const *)
+   GLvoid            WRAPPER05V(CopyColorTableSGI, GLenum, GLenum, GLint, GLint, GLsizei)
+   GLvoid            WRAPPER03V(GetColorTableParameterfvSGI, GLenum, GLenum, GLfloat *)
+   GLvoid            WRAPPER03V(GetColorTableParameterivSGI, GLenum, GLenum, GLint *)
+   GLvoid            WRAPPER04V(GetColorTableSGI, GLenum, GLenum, GLenum, GLvoid *)
+
+#endif /* GL_SGI_color_table_OGLEXT */
 
 // ---[ GL_SGIS_detail_texture ]--------------------------------------------------------------------------------
 
@@ -1554,49 +1729,6 @@ GLuint glexGetVersion()
    GLvoid            WRAPPER01V(SamplePatternSGIS, GLenum)
 
 #endif /* GL_SGIS_multisample_OGLEXT */
-
-// ---[ GL_SGIS_multitexture ]----------------------------------------------------------------------------------
-
-#ifdef GL_SGIS_multitexture_OGLEXT
-
-   GLvoid            WRAPPER01V(InterleavedTextureCoordSetsSGIS, GLint)
-   GLvoid            WRAPPER02V(MultiTexCoord1dSGIS, GLenum, GLdouble)
-   GLvoid            WRAPPER02V(MultiTexCoord1dvSGIS, GLenum, GLdouble const *)
-   GLvoid            WRAPPER02V(MultiTexCoord1fSGIS, GLenum, GLfloat)
-   GLvoid            WRAPPER02V(MultiTexCoord1fvSGIS, GLenum, GLfloat const *)
-   GLvoid            WRAPPER02V(MultiTexCoord1iSGIS, GLenum, GLint)
-   GLvoid            WRAPPER02V(MultiTexCoord1ivSGIS, GLenum, GLint const *)
-   GLvoid            WRAPPER02V(MultiTexCoord1sSGIS, GLenum, GLshort)
-   GLvoid            WRAPPER02V(MultiTexCoord1svSGIS, GLenum, GLshort const *)
-   GLvoid            WRAPPER03V(MultiTexCoord2dSGIS, GLenum, GLdouble, GLdouble)
-   GLvoid            WRAPPER02V(MultiTexCoord2dvSGIS, GLenum, GLdouble const *)
-   GLvoid            WRAPPER03V(MultiTexCoord2fSGIS, GLenum, GLfloat, GLfloat)
-   GLvoid            WRAPPER02V(MultiTexCoord2fvSGIS, GLenum, GLfloat const *)
-   GLvoid            WRAPPER03V(MultiTexCoord2iSGIS, GLenum, GLint, GLint)
-   GLvoid            WRAPPER02V(MultiTexCoord2ivSGIS, GLenum, GLint const *)
-   GLvoid            WRAPPER03V(MultiTexCoord2sSGIS, GLenum, GLshort, GLshort)
-   GLvoid            WRAPPER02V(MultiTexCoord2svSGIS, GLenum, GLshort const *)
-   GLvoid            WRAPPER04V(MultiTexCoord3dSGIS, GLenum, GLdouble, GLdouble, GLdouble)
-   GLvoid            WRAPPER02V(MultiTexCoord3dvSGIS, GLenum, GLdouble const *)
-   GLvoid            WRAPPER04V(MultiTexCoord3fSGIS, GLenum, GLfloat, GLfloat, GLfloat)
-   GLvoid            WRAPPER02V(MultiTexCoord3fvSGIS, GLenum, GLfloat const *)
-   GLvoid            WRAPPER04V(MultiTexCoord3iSGIS, GLenum, GLint, GLint, GLint)
-   GLvoid            WRAPPER02V(MultiTexCoord3ivSGIS, GLenum, GLint const *)
-   GLvoid            WRAPPER04V(MultiTexCoord3sSGIS, GLenum, GLshort, GLshort, GLshort)
-   GLvoid            WRAPPER02V(MultiTexCoord3svSGIS, GLenum, GLshort const *)
-   GLvoid            WRAPPER05V(MultiTexCoord4dSGIS, GLenum, GLdouble, GLdouble, GLdouble, GLdouble)
-   GLvoid            WRAPPER02V(MultiTexCoord4dvSGIS, GLenum, GLdouble const *)
-   GLvoid            WRAPPER05V(MultiTexCoord4fSGIS, GLenum, GLfloat, GLfloat, GLfloat, GLfloat)
-   GLvoid            WRAPPER02V(MultiTexCoord4fvSGIS, GLenum, GLfloat const *)
-   GLvoid            WRAPPER05V(MultiTexCoord4iSGIS, GLenum, GLint, GLint, GLint, GLint)
-   GLvoid            WRAPPER02V(MultiTexCoord4ivSGIS, GLenum, GLint const *)
-   GLvoid            WRAPPER05V(MultiTexCoord4sSGIS, GLenum, GLshort, GLshort, GLshort, GLshort)
-   GLvoid            WRAPPER02V(MultiTexCoord4svSGIS, GLenum, GLshort const *)
-   GLvoid            WRAPPER01V(SelectTextureCoordSetSGIS, GLenum)
-   GLvoid            WRAPPER01V(SelectTextureSGIS, GLenum)
-   GLvoid            WRAPPER01V(SelectTextureTransformSGIS, GLenum)
-
-#endif /* GL_SGIS_multitexture_OGLEXT */
 
 // ---[ GL_SGIS_pixel_texture ]---------------------------------------------------------------------------------
 
@@ -1789,28 +1921,6 @@ GLuint glexGetVersion()
 
 #endif /* GL_SGIX_tag_sample_buffer_OGLEXT */
 
-// ---[ GL_SGI_color_table ]------------------------------------------------------------------------------------
-
-#ifdef GL_SGI_color_table_OGLEXT
-
-   GLvoid            WRAPPER03V(ColorTableParameterfvSGI, GLenum, GLenum, GLfloat const *)
-   GLvoid            WRAPPER03V(ColorTableParameterivSGI, GLenum, GLenum, GLint const *)
-   GLvoid            WRAPPER06V(ColorTableSGI, GLenum, GLenum, GLsizei, GLenum, GLenum, GLvoid const *)
-   GLvoid            WRAPPER05V(CopyColorTableSGI, GLenum, GLenum, GLint, GLint, GLsizei)
-   GLvoid            WRAPPER03V(GetColorTableParameterfvSGI, GLenum, GLenum, GLfloat *)
-   GLvoid            WRAPPER03V(GetColorTableParameterivSGI, GLenum, GLenum, GLint *)
-   GLvoid            WRAPPER04V(GetColorTableSGI, GLenum, GLenum, GLenum, GLvoid *)
-
-#endif /* GL_SGI_color_table_OGLEXT */
-
-// ---[ GL_SUNX_constant_data ]---------------------------------------------------------------------------------
-
-#ifdef GL_SUNX_constant_data_OGLEXT
-
-   GLvoid            WRAPPER00V(FinishTextureSUNX)
-
-#endif /* GL_SUNX_constant_data_OGLEXT */
-
 // ---[ GL_SUN_global_alpha ]-----------------------------------------------------------------------------------
 
 #ifdef GL_SUN_global_alpha_OGLEXT
@@ -1894,4 +2004,12 @@ GLuint glexGetVersion()
    GLvoid            WRAPPER02V(TexCoord4fVertex4fvSUN, GLfloat const *, GLfloat const *)
 
 #endif /* GL_SUN_vertex_OGLEXT */
+
+// ---[ GL_SUNX_constant_data ]---------------------------------------------------------------------------------
+
+#ifdef GL_SUNX_constant_data_OGLEXT
+
+   GLvoid            WRAPPER00V(FinishTextureSUNX)
+
+#endif /* GL_SUNX_constant_data_OGLEXT */
 
