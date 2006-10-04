@@ -119,6 +119,10 @@ protected:
 	// must be const because it can be called by display(), only mutable members are changed.
 	void set_current_display(unsigned curdis) const;
 
+	void playlist_repeat();
+	void playlist_shuffle();
+	void playlist_mute();
+
 public:	
 	virtual ~user_interface();
 

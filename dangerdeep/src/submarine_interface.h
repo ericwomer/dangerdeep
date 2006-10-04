@@ -93,6 +93,8 @@ public:
 	void goto_TDC();
 	void goto_torpedosettings();
 
+	void show_music_playlist();
+
  public:
 	submarine_interface(class game& gm);
 	virtual ~submarine_interface();

@@ -129,6 +129,7 @@ submarine_interface::submarine_interface(game& gm) :
 	screen_selector_menu->add_entry(texts::get(257), new wcbsubi(this, &submarine_interface::goto_freeview));
 	screen_selector_menu->add_entry(texts::get(258), new wcbsubi(this, &submarine_interface::goto_TDC));
 	screen_selector_menu->add_entry(texts::get(259), new wcbsubi(this, &submarine_interface::goto_torpedosettings));
+	screen_selector_menu->add_entry(texts::get(261), new wcbsubi(this, &submarine_interface::show_music_playlist));
 	screen_selector_menu->add_entry(texts::get(260), new widget_set_button<bool>(screen_selector_visible, false));
 	screen_selector->clip_to_children_area();
 	screen_selector->set_pos(vector2i(0, 0));
@@ -580,6 +581,11 @@ void submarine_interface::goto_torpedosettings()
 
 
 
+void submarine_interface::show_music_playlist()
+{
+	screen_selector_visible = false;
+	playlist_visible = true;
+}
 
 
 

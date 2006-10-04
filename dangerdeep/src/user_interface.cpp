@@ -124,20 +124,37 @@ user_interface::user_interface(game& gm) :
 	screen_selector->set_background(panelbackground);
 
 	// create playlist widget
-	music_playlist.reset(new widget(0, 0, 384, 512, "Music playlist", 0, 0));
+	music_playlist.reset(new widget(0, 0, 384, 512, texts::get(262), 0, 0));
 	music_playlist->set_background(panelbackground);
-	widget_list* playlist = new widget_list(0, 0, 384, 512);
+	struct musiclist : public widget_list
+	{
+		bool active;
+		void on_sel_change() {
+			if (!active) return;
+			int s = get_selected();
+			if (s >= 0)
+				music::inst().play_track(unsigned(s), 500);
+		}
+		musiclist(int x, int y, int w, int h) : widget_list(x, y, w, h), active(false) {}
+	};
+	musiclist* playlist = new musiclist(0, 0, 384, 512);
 	music_playlist->add_child_near_last_child(playlist);
 	music& m = music::inst();
 	for (vector<string>::const_iterator it = m.get_playlist().begin();
 	     it != m.get_playlist().end(); ++it) {
 		playlist->append_entry(*it);
 	}
+	typedef widget_caller_button<user_interface, void (user_interface::*)()> wcbui;
 	// fixme: use checkbox here...
-	music_playlist->add_child_near_last_child(new widget_button(0, 0, 384, 32, "Mute music"));
-	music_playlist->add_child_near_last_child(new widget_button(0, 0, 384, 32, "Close window"));
+	music_playlist->add_child_near_last_child(new wcbui(this, &user_interface::playlist_repeat, 0, 0, 384, 32, texts::get(263)));
+	music_playlist->add_child_near_last_child(new wcbui(this, &user_interface::playlist_shuffle, 0, 0, 384, 32, texts::get(264)), 0);
+	music_playlist->add_child_near_last_child(new wcbui(this, &user_interface::playlist_mute, 0, 0, 384, 32, texts::get(265)), 0);
+	music_playlist->add_child_near_last_child(new widget_set_button<bool>(playlist_visible, false, 0, 0, 384, 32, texts::get(260)), 0);
 	music_playlist->clip_to_children_area();
-	music_playlist->set_pos(vector2i(600, 0));
+	music_playlist->set_pos(vector2i(0, 0));
+	// enable music switching finally, to avoid on_sel_change changing the music track,
+	// because on_sel_change is called above, when adding entries.
+	playlist->active = true;
 
 	// create weather effects textures
 
@@ -345,6 +362,7 @@ void user_interface::process_input(const SDL_Event& event)
 	if (screen_selector_visible) {
 		if (screen_selector->check_for_mouse_event(event)) {
 			// drag for the menu
+			// fixme: drag&drop support should be in widget class...
 			if (event.type == SDL_MOUSEMOTION) {
 				vector2i p = screen_selector->get_pos();
 				vector2i s = screen_selector->get_size();
@@ -363,6 +381,34 @@ void user_interface::process_input(const SDL_Event& event)
 					if (p.x + s.x > sys().get_res_x_2d()) p.x = sys().get_res_x_2d() - s.x;
 					if (p.y + s.y > sys().get_res_y_2d()) p.y = sys().get_res_y_2d() - s.y;
 					screen_selector->set_pos(p);
+				}
+			}
+			return;
+		}
+	}
+
+	if (playlist_visible) {
+		if (music_playlist->check_for_mouse_event(event)) {
+			// drag for the menu
+			// fixme: drag&drop support should be in widget class...
+			if (event.type == SDL_MOUSEMOTION) {
+				vector2i p = music_playlist->get_pos();
+				vector2i s = music_playlist->get_size();
+				// drag menu with left mouse button when on title or right mouse button else
+				if (event.motion.state & SDL_BUTTON_RMASK
+				    || (event.motion.state & SDL_BUTTON_LMASK
+					&& event.motion.x >= p.x
+					&& event.motion.y >= p.y
+					&& event.motion.x < p.x + s.x
+					&& event.motion.y < p.y + 32 + 8)) {
+
+					p.x += event.motion.xrel;
+					p.y += event.motion.yrel;
+					if (p.x < 0) p.x = 0;
+					if (p.y < 0) p.y = 0;
+					if (p.x + s.x > sys().get_res_x_2d()) p.x = sys().get_res_x_2d() - s.x;
+					if (p.y + s.y > sys().get_res_y_2d()) p.y = sys().get_res_y_2d() - s.y;
+					music_playlist->set_pos(p);
 				}
 			}
 			return;
@@ -778,6 +824,24 @@ void user_interface::set_current_display(unsigned curdis) const
 		if ((mask & 1) == 0)
 			current_popup = 0;
 	}
+}
+
+void user_interface::playlist_repeat()
+{
+	music::inst().set_playback_mode(music::PBM_LOOP_TRACK);
+}
+
+void user_interface::playlist_shuffle()
+{
+	music::inst().set_playback_mode(music::PBM_SHUFFLE_TRACK);
+}
+
+void user_interface::playlist_mute()
+{
+	if (music::inst().is_playing())
+		music::inst().stop();
+	else
+		music::inst().play();
 }
 
 void user_interface::pause_all_sound() const
