@@ -33,7 +33,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector2.h"
 
 // fixme: add image-widget
-// fixme: implement checkbox widget
 
 // fixme: when editing in a widget_edit you have to click twice on a button to lose focus AND click the button .. bad
 
@@ -210,7 +209,7 @@ protected:
 	widget_checkbox& operator= (const widget_checkbox& );
 public:
 	widget_checkbox(int x, int y, int w, int h, const string& text_, widget* parent_ = 0)
-		: widget(x, y, w, h, text_, parent_) {}
+		: widget(x, y, w, h, text_, parent_), checked(false) {}
 	void draw() const;
 	void on_click(int mx, int my, int mb);
 	bool is_checked() const { return checked; }
@@ -293,6 +292,18 @@ public:
 		const string& text = "", widget* parent = 0)
 		: widget_button(x, y, w, h, text, parent), obj(obj_), value(val) {}
 	void on_release() { widget_button::on_release(); obj = value; }
+};
+
+template<class Obj, class Func>
+class widget_caller_checkbox : public widget_checkbox
+{
+	Obj* obj;
+	Func func;
+public:
+	widget_caller_checkbox(Obj* obj_, Func func_, int x = 0, int y = 0, int w = 0, int h = 0,
+		const string& text = "", widget* parent = 0)
+		: widget_checkbox(x, y, w, h, text, parent), obj(obj_), func(func_) {}
+	void on_change() { widget_checkbox::on_change(); (obj->*func)(); }
 };
 
 class widget_menu : public widget

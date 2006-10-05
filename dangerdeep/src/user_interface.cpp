@@ -141,11 +141,15 @@ user_interface::user_interface(game& gm) :
 	     it != m.get_playlist().end(); ++it) {
 		playlist->append_entry(*it);
 	}
-	typedef widget_caller_button<user_interface, void (user_interface::*)()> wcbui;
+	typedef widget_caller_checkbox<user_interface, void (user_interface::*)()> wccui;
 	// fixme: use checkbox here...
-	music_playlist->add_child_near_last_child(new wcbui(this, &user_interface::playlist_repeat, 0, 0, 384, 32, texts::get(263)));
-	music_playlist->add_child_near_last_child(new wcbui(this, &user_interface::playlist_shuffle, 0, 0, 384, 32, texts::get(264)), 0);
-	music_playlist->add_child_near_last_child(new wcbui(this, &user_interface::playlist_mute, 0, 0, 384, 32, texts::get(265)), 0);
+	playlist_repeat_checkbox = new wccui(this, &user_interface::playlist_mode_changed, 0, 0, 192, 32, texts::get(263));
+	music_playlist->add_child_near_last_child(playlist_repeat_checkbox);
+	playlist_shuffle_checkbox = new wccui(this, &user_interface::playlist_mode_changed, 0, 0, 192, 32, texts::get(264));
+	music_playlist->add_child_near_last_child(playlist_shuffle_checkbox, 0, 1);
+	playlist_mute_checkbox = new wccui(this, &user_interface::playlist_mute, 0, 0, 384, 32, texts::get(265));
+	music_playlist->add_child_near_last_child(playlist_mute_checkbox, 0);
+	playlist_mute_checkbox->move_pos(vector2i(-192, 0));
 	music_playlist->add_child_near_last_child(new widget_set_button<bool>(playlist_visible, false, 0, 0, 384, 32, texts::get(260)), 0);
 	music_playlist->clip_to_children_area();
 	music_playlist->set_pos(vector2i(0, 0));
@@ -156,6 +160,7 @@ user_interface::user_interface(game& gm) :
 	// create main menu widget
 	main_menu.reset(new widget(0, 0, 256, 128, texts::get(104), 0, 0));
 	main_menu->set_background(panelbackground);
+	typedef widget_caller_button<user_interface, void (user_interface::*)()> wcbui;
 	main_menu->add_child_near_last_child(new wcbui(this, &user_interface::show_screen_selector, 0, 0, 256, 32, texts::get(266)));
 	main_menu->add_child_near_last_child(new wcbui(this, &user_interface::toggle_popup, 0, 0, 256, 32, texts::get(267)), 0);
 	main_menu->add_child_near_last_child(new wcbui(this, &user_interface::show_playlist, 0, 0, 256, 32, texts::get(261)), 0);
@@ -848,19 +853,20 @@ void user_interface::set_current_display(unsigned curdis) const
 	}
 }
 
-void user_interface::playlist_repeat()
+void user_interface::playlist_mode_changed()
 {
-	music::inst().set_playback_mode(music::PBM_LOOP_TRACK);
-}
-
-void user_interface::playlist_shuffle()
-{
-	music::inst().set_playback_mode(music::PBM_SHUFFLE_TRACK);
+	if (playlist_repeat_checkbox->is_checked()) {
+		music::inst().set_playback_mode(music::PBM_LOOP_TRACK);
+	} else if (playlist_shuffle_checkbox->is_checked()) {
+		music::inst().set_playback_mode(music::PBM_SHUFFLE_TRACK);
+	} else {
+		music::inst().set_playback_mode(music::PBM_LOOP_LIST);
+	}
 }
 
 void user_interface::playlist_mute()
 {
-	if (music::inst().is_playing())
+	if (playlist_mute_checkbox->is_checked())
 		music::inst().stop();
 	else
 		music::inst().play();

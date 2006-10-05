@@ -63,6 +63,9 @@ protected:
 	// music playlist
 	std::auto_ptr<class widget> music_playlist;
 	bool playlist_visible;
+	class widget_checkbox* playlist_repeat_checkbox;
+	class widget_checkbox* playlist_shuffle_checkbox;
+	class widget_checkbox* playlist_mute_checkbox;
 
 	// main menu
 	std::auto_ptr<class widget> main_menu;
@@ -125,8 +128,7 @@ protected:
 	// must be const because it can be called by display(), only mutable members are changed.
 	void set_current_display(unsigned curdis) const;
 
-	virtual void playlist_repeat();
-	virtual void playlist_shuffle();
+	virtual void playlist_mode_changed();
 	virtual void playlist_mute();
 
 	virtual void show_screen_selector();

@@ -660,6 +660,33 @@ void widget_text::draw() const
 	}
 }
 
+
+
+void widget_checkbox::draw() const
+{
+	vector2i p = get_pos();
+	draw_rect(p.x, p.y, size.x, size.y, true);
+	int fw = globaltheme->frame_size();
+	int icni = checked ? 3 : 2;
+	globaltheme->icons[icni]->draw(p.x, p.y +
+				       (get_size().y - globaltheme->icons[icni]->get_height())/2);
+	globaltheme->myfont->print_vc(p.x + globaltheme->icons[icni]->get_width() + fw,
+				      p.y+size.y/2, text,
+				      is_enabled() ? globaltheme->textcol :
+				      globaltheme->textdisabledcol,
+				      true);
+}
+
+
+
+void widget_checkbox::on_click(int mx, int my, int mb)
+{
+	checked = !checked;
+	on_change();
+}
+
+
+
 void widget_button::draw() const
 {
 	vector2i p = get_pos();
