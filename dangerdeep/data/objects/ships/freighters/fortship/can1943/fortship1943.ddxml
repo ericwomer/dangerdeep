@@ -3,7 +3,11 @@
         <diffuse color="1 1 1" />
         <specular color="1 1 1" />
         <shininess exponent="65" />
-        <map type="diffuse" filename="fortship_can1943_diffuse.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" />
+        <map type="diffuse" filename="fortship_can1943_diffuse.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" >
+		<skin filename="fortship_v2_camo2.jpg" layout="earlynorth" />
+		<skin filename="fortship_v2_camo3.jpg" layout="batterednorth" />
+		<skin filename="fortship_v2_camo4.jpg" layout="midnorth" />
+	</map>
 	<map type="normal" filename="fortship_can1943_bump.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" />
 	<map type="specular" filename="fortship_can1943_spec.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" />
     </material>
