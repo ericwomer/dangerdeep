@@ -55,12 +55,18 @@ protected:
 	bool panel_visible;
 	std::auto_ptr<class widget> panel;
 	class widget_text* panel_valuetexts[6];
+
+	// screen selector menu
 	std::auto_ptr<class widget> screen_selector;
 	bool screen_selector_visible;
 
 	// music playlist
 	std::auto_ptr<class widget> music_playlist;
 	bool playlist_visible;
+
+	// main menu
+	std::auto_ptr<class widget> main_menu;
+	bool main_menu_visible;
 
 	/// holds the last n messages. They're displayed above the panel and fading out over time.
 	std::list<std::pair<double, std::string> > messages;
@@ -119,9 +125,13 @@ protected:
 	// must be const because it can be called by display(), only mutable members are changed.
 	void set_current_display(unsigned curdis) const;
 
-	void playlist_repeat();
-	void playlist_shuffle();
-	void playlist_mute();
+	virtual void playlist_repeat();
+	virtual void playlist_shuffle();
+	virtual void playlist_mute();
+
+	virtual void show_screen_selector();
+	virtual void toggle_popup();
+	virtual void show_playlist();
 
 public:	
 	virtual ~user_interface();

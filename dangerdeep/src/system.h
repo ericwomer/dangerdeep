@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <list>
 #include <set>
 #include <string>
+#include "vector2.h"
 
 using std::list;
 using std::string;
@@ -138,6 +139,8 @@ public:
 	unsigned get_res_y() const { return res_y; };
 	unsigned get_res_x_2d() const { return res_x_2d; };
 	unsigned get_res_y_2d() const { return res_y_2d; };
+	vector2i get_res() const { return vector2i(res_x, res_y); }
+	vector2i get_res_2d() const { return vector2i(res_x_2d, res_y_2d); }
 	
 	// is a given OpenGL extension supported?
 	bool extension_supported(const string& s) const;

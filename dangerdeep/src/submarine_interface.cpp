@@ -129,7 +129,6 @@ submarine_interface::submarine_interface(game& gm) :
 	screen_selector_menu->add_entry(texts::get(257), new wcbsubi(this, &submarine_interface::goto_freeview));
 	screen_selector_menu->add_entry(texts::get(258), new wcbsubi(this, &submarine_interface::goto_TDC));
 	screen_selector_menu->add_entry(texts::get(259), new wcbsubi(this, &submarine_interface::goto_torpedosettings));
-	screen_selector_menu->add_entry(texts::get(261), new wcbsubi(this, &submarine_interface::show_music_playlist));
 	screen_selector_menu->add_entry(texts::get(260), new widget_set_button<bool>(screen_selector_visible, false));
 	screen_selector->clip_to_children_area();
 	screen_selector->set_pos(vector2i(0, 0));
@@ -219,8 +218,8 @@ void submarine_interface::process_input(const SDL_Event& event)
 	// switch screen selector on if it is not visible
 	if (event.type == SDL_MOUSEBUTTONDOWN) {
 		if (event.button.button == SDL_BUTTON_RIGHT) {
-			if (!screen_selector_visible) {
-				screen_selector_visible = true;
+			if (!main_menu_visible) {
+				main_menu_visible = true;
 				return;
 			}
 		}
@@ -581,14 +580,6 @@ void submarine_interface::goto_torpedosettings()
 
 
 
-void submarine_interface::show_music_playlist()
-{
-	screen_selector_visible = false;
-	playlist_visible = true;
-}
-
-
-
 /*
 bool submarine_interface::object_visible(sea_object* so,
 	const vector2& dl, const vector2& dr) const //fixme buggy
@@ -605,6 +596,15 @@ bool submarine_interface::object_visible(sea_object* so,
 }
 */
 	
+void submarine_interface::toggle_popup()
+{
+	if (current_display == display_mode_tdc) {
+		static_cast<sub_tdc_display*>(displays[current_display])->next_sub_screen();
+	} else {
+		user_interface::toggle_popup();
+	}
+}
+
 void submarine_interface::display() const
 {
 	submarine* player = dynamic_cast<submarine*>(mygame->get_player());

@@ -222,8 +222,7 @@ void widget::align(int h, int v)
 	if (parent) {
 		sz = parent->get_size();
 	} else {
-		sz.x = int(sys().get_res_x_2d());
-		sz.y = int(sys().get_res_y_2d());
+		sz = sys().get_res_2d();
 	}
 	set_pos(vector2i(
 		(h < 0) ? 0 : ((h > 0) ? (sz.x-size.x) : ((sz.x-size.x)/2)),

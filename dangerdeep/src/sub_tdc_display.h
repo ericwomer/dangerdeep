@@ -85,6 +85,8 @@ public:
 	//overload for zoom key handling ('y') and TDC input
 	virtual void process_input(class game& gm, const SDL_Event& event);
 	virtual void display(class game& gm) const;
+
+	void next_sub_screen() { show_screen1 = !show_screen1; }
 };
 
 #endif

@@ -84,6 +84,7 @@ user_interface::user_interface(game& gm) :
 	panel_visible(true),
 	screen_selector_visible(false),
 	playlist_visible(false),
+	main_menu_visible(false),
 	bearing(0),
 	elevation(90),
 	bearing_is_relative(true),
@@ -102,22 +103,18 @@ user_interface::user_interface(game& gm) :
 	if (water_res_y > 1024) water_res_y = 1024;
 	mywater.reset(new class water(water_res_x, water_res_y, 0.0));
 	panel.reset(new widget(0, 768-32, 1024, 32, "", 0, 0));
-	widget* panel2 = new widget(0, 0, 1024-128, 32, "", 0, 0);
 	panel->set_background(panelbackground);
-	panel->add_child(panel2);
-	// ca. 1024-128-2*8 for 6 texts => 146 pix. for each text
+	// ca. 1024-2*8 for 6 texts => 168 pix. for each text
 	int paneltextnrs[6] = { 1, 4, 5, 2, 98, 61 };
 	const char* paneltexts[6] = { "000", "000", "000", "000", "000", "00:00:00" };
 	for (int i = 0; i < 6; ++i) {
-		int off = 8 + i*(1024-128-2*8)/6;
+		int off = 8 + i*(1024-2*8)/6;
 		string tx = texts::get(paneltextnrs[i]);
 		vector2i sz = font_arial->get_size(tx);
-		panel2->add_child(new widget_text(off, 4, 0, 0, tx));
+		panel->add_child(new widget_text(off, 4, 0, 0, tx));
 		panel_valuetexts[i] = new widget_text(off + 8 + sz.x, 4, 0, 0, paneltexts[i]);
-		panel2->add_child(panel_valuetexts[i]);
+		panel->add_child(panel_valuetexts[i]);
 	}
-	panel->add_child(new widget_caller_button<game, void (game::*)()>(mygame, &game::stop, 1024-128, 0, 128, 32, texts::get(177)));
-	add_loading_screen("user interface initialized");
 
 	// create screen selector widget
 	screen_selector.reset(new widget(0, 0, 256, 32, "", 0, 0));
@@ -155,6 +152,18 @@ user_interface::user_interface(game& gm) :
 	// enable music switching finally, to avoid on_sel_change changing the music track,
 	// because on_sel_change is called above, when adding entries.
 	playlist->active = true;
+
+	// create main menu widget
+	main_menu.reset(new widget(0, 0, 256, 128, texts::get(104), 0, 0));
+	main_menu->set_background(panelbackground);
+	main_menu->add_child_near_last_child(new wcbui(this, &user_interface::show_screen_selector, 0, 0, 256, 32, texts::get(266)));
+	main_menu->add_child_near_last_child(new wcbui(this, &user_interface::toggle_popup, 0, 0, 256, 32, texts::get(267)), 0);
+	main_menu->add_child_near_last_child(new wcbui(this, &user_interface::show_playlist, 0, 0, 256, 32, texts::get(261)), 0);
+	main_menu->add_child_near_last_child(new widget_caller_button<game, void (game::*)()>(mygame, &game::stop, 0, 0, 256, 32, texts::get(177)), 0);
+	main_menu->add_child_near_last_child(new widget_set_button<bool>(main_menu_visible, false, 0, 0, 256, 32, texts::get(260)), 0);
+	main_menu->clip_to_children_area();
+	vector2i mmp = sys().get_res_2d() - main_menu->get_size();
+	main_menu->set_pos(vector2i(mmp.x/2, mmp.y/2));
 
 	// create weather effects textures
 
@@ -255,6 +264,8 @@ user_interface::user_interface(game& gm) :
 #endif
 
 	particle::init();
+
+	add_loading_screen("user interface initialized");
 }
 
 user_interface* user_interface::create(game& gm)
@@ -340,6 +351,14 @@ void user_interface::display() const
 		music_playlist->draw();
 		sys().unprepare_2d_drawing();
 	}
+
+	// draw main_menu if visible
+	if (main_menu_visible) {
+		sys().prepare_2d_drawing();
+		glColor3f(1,1,1);
+		main_menu->draw();
+		sys().unprepare_2d_drawing();
+	}
 }
 
 
@@ -359,6 +378,12 @@ void user_interface::process_input(const SDL_Event& event)
  			return;
 	}
 
+	if (main_menu_visible) {
+		if (main_menu->check_for_mouse_event(event)) {
+			return;
+		}
+	}
+
 	if (screen_selector_visible) {
 		if (screen_selector->check_for_mouse_event(event)) {
 			// drag for the menu
@@ -367,7 +392,7 @@ void user_interface::process_input(const SDL_Event& event)
 				vector2i p = screen_selector->get_pos();
 				vector2i s = screen_selector->get_size();
 				// drag menu with left mouse button when on title or right mouse button else
-				if (event.motion.state & SDL_BUTTON_RMASK
+				if (event.motion.state & SDL_BUTTON_MMASK
 				    || (event.motion.state & SDL_BUTTON_LMASK
 					&& event.motion.x >= p.x
 					&& event.motion.y >= p.y
@@ -376,10 +401,8 @@ void user_interface::process_input(const SDL_Event& event)
 
 					p.x += event.motion.xrel;
 					p.y += event.motion.yrel;
-					if (p.x < 0) p.x = 0;
-					if (p.y < 0) p.y = 0;
-					if (p.x + s.x > sys().get_res_x_2d()) p.x = sys().get_res_x_2d() - s.x;
-					if (p.y + s.y > sys().get_res_y_2d()) p.y = sys().get_res_y_2d() - s.y;
+					p = p.max(vector2i(0, 0));
+					p = p.min(sys().get_res_2d() - s);
 					screen_selector->set_pos(p);
 				}
 			}
@@ -395,7 +418,7 @@ void user_interface::process_input(const SDL_Event& event)
 				vector2i p = music_playlist->get_pos();
 				vector2i s = music_playlist->get_size();
 				// drag menu with left mouse button when on title or right mouse button else
-				if (event.motion.state & SDL_BUTTON_RMASK
+				if (event.motion.state & SDL_BUTTON_MMASK
 				    || (event.motion.state & SDL_BUTTON_LMASK
 					&& event.motion.x >= p.x
 					&& event.motion.y >= p.y
@@ -421,9 +444,7 @@ void user_interface::process_input(const SDL_Event& event)
 			add_message(texts::get(bearing_is_relative ? 220 : 221));
 			return;
 		} else if (cfg::instance().getkey(KEY_TOGGLE_POPUP).equal(event.key.keysym)) {
-			// determine which pop is shown and which is allowed and switch to it
-			++current_popup;
-			set_allowed_popup();
+			toggle_popup();
 		}
 	}
 
@@ -843,6 +864,27 @@ void user_interface::playlist_mute()
 		music::inst().stop();
 	else
 		music::inst().play();
+}
+
+void user_interface::show_screen_selector()
+{
+	screen_selector_visible = true;
+	playlist_visible = false;
+	main_menu_visible = false;
+}
+
+void user_interface::toggle_popup()
+{
+	// determine which pop is shown and which is allowed and switch to it
+	++current_popup;
+	set_allowed_popup();
+}
+
+void user_interface::show_playlist()
+{
+	screen_selector_visible = false;
+	playlist_visible = true;
+	main_menu_visible = false;
 }
 
 void user_interface::pause_all_sound() const

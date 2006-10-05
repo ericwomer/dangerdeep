@@ -205,7 +205,7 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 
 	if (event.type == SDL_KEYDOWN) {
 		if (cfg::instance().getkey(KEY_TOGGLE_POPUP).equal(event.key.keysym)) {
-			show_screen1 = !show_screen1;
+			next_sub_screen();
 		}
 	}
 }
