@@ -61,7 +61,7 @@ void sub_periscope_display::post_display(game& gm) const
 {
 	if (ui.get_target()) {
 		projection_data pd = get_projection_data(gm);
-		ui.show_target(pd.x, pd.y, pd.w, pd.h);
+		ui.show_target(pd.x, pd.y, pd.w, pd.h, gm.get_player()->get_pos() + pos);
 	}
 
 	sys().prepare_2d_drawing();

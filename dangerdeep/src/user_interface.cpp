@@ -588,21 +588,21 @@ Then this code would get obsolete.
 #endif
 }
 
-void user_interface::show_target(double vx, double vy, double w, double h)
+void user_interface::show_target(double vx, double vy, double w, double h, const vector3& viewpos)
 {
 	if (target && mygame) {
 		// draw red triangle below target
 		// find screen position of target by projecting its position to screen
 		// coordinates.
-		sea_object* player = mygame->get_player();
 		vector4 tgtscr = (matrix4::get_glf(GL_PROJECTION_MATRIX)
 				  * matrix4::get_glf(GL_MODELVIEW_MATRIX))
-			* (target->get_pos() - player->get_pos()/* - pos*/).xyz0();
+			* (target->get_pos() - viewpos).xyz0();
 		if (tgtscr.z > 0) {
 			// only when in front.
 			// transform to screen coordinates, using the projection coordinates
 			double x = (0.5 * tgtscr.x / tgtscr.w + 0.5) * w + vx;
-			double y = (0.5 * -tgtscr.y / tgtscr.w + 0.5 + 0.1 /* fixme hack */) * h + vy;
+			double y = sys().get_res_y_2d()
+				- ((0.5 * tgtscr.y / tgtscr.w + 0.5) * h + vy);
 			sys().prepare_2d_drawing();
 			glColor4f(1,0,0,0.5);
 			glBindTexture(GL_TEXTURE_2D, 0);
