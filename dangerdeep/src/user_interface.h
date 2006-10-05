@@ -176,6 +176,9 @@ public:
 	virtual sea_object* get_target() const { return target; }
 	virtual void set_target(sea_object* tgt) { target = tgt; }
 
+	// render red triangle for target in view. give viewport coordinates.
+	virtual void show_target(double x, double y, double w, double h);
+
 	// 3d drawing functions
 	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist) const;
 

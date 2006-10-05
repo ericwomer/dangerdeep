@@ -30,7 +30,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "keys.h"
 #include "cfg.h"
 #include "global_data.h"
-
+#include <iostream>
+using std::cout;
 
 
 void sub_periscope_display::pre_display(game& gm) const
@@ -58,8 +59,13 @@ freeview_display::projection_data sub_periscope_display::get_projection_data(cla
 
 void sub_periscope_display::post_display(game& gm) const
 {
+	if (ui.get_target()) {
+		projection_data pd = get_projection_data(gm);
+		ui.show_target(pd.x, pd.y, pd.w, pd.h);
+	}
+
 	sys().prepare_2d_drawing();
-	glColor3f(1,1,1);
+	glColor4f(1,1,1,1);
 
 	// draw compass bar. at most 230 pixel can be seen (of 1878 total width), center is at x=667 on screen
 	// so 360*230/1878 = 44.1 degrees can be seen

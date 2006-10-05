@@ -57,6 +57,11 @@ freeview_display::projection_data sub_uzo_display::get_projection_data(class gam
 
 void sub_uzo_display::post_display(game& gm) const
 {
+	if (ui.get_target()) {
+		projection_data pd = get_projection_data(gm);
+		ui.show_target(pd.x, pd.y, pd.w, pd.h);
+	}
+
 	sys().prepare_2d_drawing();
 	
 	bool is_day = gm.is_day_mode();

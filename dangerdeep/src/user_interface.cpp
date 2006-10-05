@@ -588,6 +588,35 @@ Then this code would get obsolete.
 #endif
 }
 
+void user_interface::show_target(double vx, double vy, double w, double h)
+{
+	if (target && mygame) {
+		// draw red triangle below target
+		// find screen position of target by projecting its position to screen
+		// coordinates.
+		sea_object* player = mygame->get_player();
+		vector4 tgtscr = (matrix4::get_glf(GL_PROJECTION_MATRIX)
+				  * matrix4::get_glf(GL_MODELVIEW_MATRIX))
+			* (target->get_pos() - player->get_pos()/* - pos*/).xyz0();
+		if (tgtscr.z > 0) {
+			// only when in front.
+			// transform to screen coordinates, using the projection coordinates
+			double x = (0.5 * tgtscr.x / tgtscr.w + 0.5) * w + vx;
+			double y = (0.5 * -tgtscr.y / tgtscr.w + 0.5 + 0.1 /* fixme hack */) * h + vy;
+			sys().prepare_2d_drawing();
+			glColor4f(1,0,0,0.5);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glBegin(GL_TRIANGLES);
+			glVertex2f(x-10, y+20);
+			glVertex2f(x+10, y+20);
+			glVertex2f(x   , y+10);
+			glEnd();
+			sys().unprepare_2d_drawing();
+			glColor4f(1,1,1,1);
+		}
+	}
+}
+
 void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 	double max_view_dist) const
 {
