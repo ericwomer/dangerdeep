@@ -143,7 +143,7 @@ void sub_gauges_display::display(class game& gm) const
 	draw_manometer_gauge ( gm, 1, 256, 256, 256, player->get_battery_level (),
 		texts::get(102));
 */
-//	draw_infopanel(gm);
+	ui.draw_infopanel(true);
 
 	system::sys().unprepare_2d_drawing();
 }

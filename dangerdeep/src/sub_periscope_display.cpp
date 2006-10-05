@@ -103,7 +103,7 @@ void sub_periscope_display::post_display(game& gm) const
 	clock_hours_pointer->draw_rot(946, 294, hourang);
 	clock_minutes_pointer->draw_rot(946, 294, minuteang);
 
-//	ui.draw_infopanel(gm);
+	ui.draw_infopanel(true);
 	sys().unprepare_2d_drawing();
 }
 

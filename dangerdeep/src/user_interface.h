@@ -153,7 +153,7 @@ public:
 	virtual void add_elevation(angle a);
 
 	// 2d drawing must be on for this
-	void draw_infopanel() const;
+	void draw_infopanel(bool onlytexts = false) const;
 
 	// this rotates the modelview matrix to match the water surface normal
 	// rollfac (0...1) determines how much the ship is influenced by wave movement

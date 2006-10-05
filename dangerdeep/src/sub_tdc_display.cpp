@@ -319,6 +319,7 @@ void sub_tdc_display::display(class game& gm) const
 		s.brightness.draw(45);
 	}
 
+	ui.draw_infopanel(true);
 	sys().unprepare_2d_drawing();
 }
 

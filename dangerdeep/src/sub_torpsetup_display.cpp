@@ -337,5 +337,6 @@ void sub_torpsetup_display::display(class game& gm) const
 	double primaryrange = myfmod(ctr,32)*500;//2300.0; // meters
 	s.primaryrangeptr.draw(primaryrange * 320/16000.0 + 20.0); // 16000m = 20deg+x*320deg
 
+	ui.draw_infopanel(true);
 	sys().unprepare_2d_drawing();
 }

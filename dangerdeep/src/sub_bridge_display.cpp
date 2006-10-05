@@ -59,6 +59,7 @@ void sub_bridge_display::post_display(game& gm) const
 	if (glasses_in_use) {
 		glasses_tex->draw(0, 0, 1024, 768);
 	}
+	ui.draw_infopanel(true);
 	sys().unprepare_2d_drawing();
 }
 

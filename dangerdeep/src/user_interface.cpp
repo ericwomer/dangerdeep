@@ -644,9 +644,9 @@ bool user_interface::time_scale_down()
 	return false;
 }
 
-void user_interface::draw_infopanel() const
+void user_interface::draw_infopanel(bool onlytexts) const
 {
-	if (panel_visible) {
+	if (!onlytexts && panel_visible) {
 		ostringstream os0;
 		os0 << setw(3) << left << mygame->get_player()->get_heading().ui_value();
 		panel_valuetexts[0]->set_text(os0.str());
@@ -670,7 +670,8 @@ void user_interface::draw_infopanel() const
 
 	// draw messages: fixme later move to separate function ?
 	double vanish_time = mygame->get_time() - message_vanish_time;
-	int y = panel->get_pos().y - font_arial->get_height();
+	int y = (onlytexts ? sys().get_res_y_2d() : panel->get_pos().y)
+		- font_arial->get_height();
 	for (std::list<std::pair<double, std::string> >::const_reverse_iterator it = messages.rbegin();
 	     it != messages.rend(); ++it) {
 		if (it->first < vanish_time)

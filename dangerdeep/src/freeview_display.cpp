@@ -91,11 +91,9 @@ void freeview_display::set_modelview_matrix(game& gm, const vector3& viewpos) co
 
 void freeview_display::post_display(game& gm) const
 {
-/*
 	sys().prepare_2d_drawing();
-	ui.draw_infopanel(gm);
+	ui.draw_infopanel(true);
 	sys().unprepare_2d_drawing();
-*/
 }
 
 
