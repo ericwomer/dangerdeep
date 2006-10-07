@@ -27,15 +27,15 @@ class daysky {
  public:
 	//! Constructor.
 	daysky();
-	daysky(const float azimuth, const float elevation, const float turbidity);
+	daysky(float azimuth, float elevation, float turbidity);
 	//! Set turbidity.
-	void set_turbidity( const float pT );
+	void set_turbidity( float pT );
 	//! Get turbidity.
 	inline float get_turbidity() const { return m_T; }
 	//! Set sun position.
-	void set_sun_position( const float azimuth, const float elevation );
+	void set_sun_position( float azimuth, float elevation );
 	//! Get color.
-	colorf get_color( float theta, float phi, const float elevation ) const;
+	colorf get_color( float theta, float phi, float elevation ) const;
 
  private:
 	struct alphabet {
@@ -43,7 +43,7 @@ class daysky {
 	};
 	  
 	//! Calculate distribution
-	inline float distribution( const alphabet &ABCDE, const float Theta, const float Gamma ) const;
+	inline float distribution( const alphabet &ABCDE, float Theta, float Gamma ) const;
 	//! Calc the actual color/chromaticity
 	inline float chromaticity( const float ZC[3][4] ) const;
 

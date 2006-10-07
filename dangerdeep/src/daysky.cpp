@@ -57,16 +57,16 @@ static float yZC[3][4] = { { 0.00275, -0.00610, 0.00317, 0},
 
 
 // Angle between (thetav, theta) and  (phiv,phi)
-inline float angle_between(const float thetav, const float phiv, const float theta, const float phi) {
+inline float angle_between(float thetav, float phiv, float theta, float phi) {
 	float cospsi = sin(thetav) * sin(theta) * cos(phi-phiv) + cos(thetav) * cos(theta);
 	if (cospsi > 1)  return 0;
 	if (cospsi < -1) return M_PI;
 	return acos(cospsi);
 }
 
-inline float perez_function( const float A, const float B, const float C,
-			     const float D, const float E, const float Theta,
-			     const float Gamma )
+inline float perez_function( float A, float B, float C,
+			     float D, float E, float Theta,
+			     float Gamma )
 {
 	float cosGamma = cos(Gamma);
 	float d = (1+ A * exp(B/cos(Theta)))*(1+ C * exp(D*Gamma) + E * cosGamma*cosGamma );
@@ -80,7 +80,7 @@ daysky::daysky()
 	set_sun_position(0.0f, 0.0f);
 }
 
-daysky::daysky(const float azimuth, const float elevation, const float turbidity)
+daysky::daysky(float azimuth, float elevation, float turbidity)
 {
 	m_T = turbidity;
 	m_T2 = m_T * m_T;
@@ -95,7 +95,7 @@ daysky::daysky(const float azimuth, const float elevation, const float turbidity
 }
 
 // Set turbidity and precalc power of two
-void daysky::set_turbidity( const float pT )
+void daysky::set_turbidity( float pT )
 {
 	m_T = pT;
 	m_T2 = m_T * m_T;
@@ -104,7 +104,7 @@ void daysky::set_turbidity( const float pT )
 }
 
 // Set sun position
-void daysky::set_sun_position( const float azimuth, const float elevation )
+void daysky::set_sun_position( float azimuth, float elevation )
 {
 	m_sun_theta = azimuth;
 
@@ -117,7 +117,7 @@ void daysky::set_sun_position( const float azimuth, const float elevation )
 
 
 // Calculate color
-colorf daysky::get_color( float theta, float phi, const float elevation ) const
+colorf daysky::get_color( float theta, float phi, float elevation ) const
 {
 	phi = M_PI_2-phi;
 
@@ -183,7 +183,13 @@ colorf daysky::get_color( float theta, float phi, const float elevation ) const
     
 	float scalefac;
 	if ( elevation >= 0 ) {
-		scalefac = 100 - pow( 7 * pow( cos(elevation + 0.3), 1.8), 2);
+		if (elevation >= M_PI * 0.5 - 0.35) { // - 0.3 with safety margin
+			scalefac = 100;
+		} else {
+			// when evelation + 0.3 is larger than PI/2, cos of that value
+			// goes below zero, leading to a NaN result of the pow.
+			scalefac = 100 - pow( 7 * pow( cos(elevation + 0.3), 1.8), 2);
+		}
 	} else {
 		scalefac = 50;
 	}
@@ -193,8 +199,8 @@ colorf daysky::get_color( float theta, float phi, const float elevation ) const
 
 
 
-float daysky::distribution( const alphabet &ABCDE, const float Theta,
-			    const float Gamma ) const
+float daysky::distribution( const alphabet &ABCDE, float Theta,
+			    float Gamma ) const
 {
 	//                       Perez_f0(Theta,Gamma)
 	//    calculates:   d = -----------------------

@@ -1847,7 +1847,6 @@ color game::compute_light_color(const vector3& viewpos, double color_elevation) 
 	// attempt at having some warm variation at light color, previously it was
 	// uniform, so we'll try a function of elevation (sundir.z to be precise)
 	// Ratios of R, G, B channels are meant to remain in the orange area
-
 	Uint8 lbrit = 255 * compute_light_brightness(viewpos);
 	// check for clamping here...
 	Uint8 lr = lbrit * (1 - pow( cos(color_elevation+.47), 25));
