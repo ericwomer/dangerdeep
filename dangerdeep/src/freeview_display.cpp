@@ -318,15 +318,23 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	ui.get_sky().rebuild_colors(gm, viewpos);
 	ui.get_sky().get_horizon_color(gm, viewpos).store_rgba(horizon_color);
 
-	color lightcol = gm.compute_light_color(viewpos);
-
 	// compute light source position and brightness (must be set AFTER modelview matrix)
 	vector3 sundir = gm.compute_sun_pos(viewpos).normal();
 	GLfloat lposition[4] = { sundir.x, sundir.y, sundir.z, 0.0f };
+
+	// get light color, previously all channels were uniform, so we'll make a
+	// function of elevation to have some variation
+   
+	color lightcol = gm.compute_light_color(viewpos, sundir.z);
+    
 	// ambient light intensity depends on time of day, maximum at noon
 	// max. value 0.35. At sun rise/down we use 0.11, at night 0.05
 	float ambient_intensity = (std::max(sundir.z, -0.25) + 0.25) * 0.3 / 1.25 + 0.05;
-	GLfloat lambient[4] = { ambient_intensity, ambient_intensity, ambient_intensity, 1 };
+	// ambient/diffuse/speculars should be dependeng on light color obviously, so we'll
+	// take our new color function into account
+	GLfloat lambient[4] = { ambient_intensity * lightcol.r/255.0f,
+				ambient_intensity * lightcol.g/255.0f,
+				ambient_intensity * lightcol.b/255.0f, 1.0f };
 	GLfloat ldiffuse[4] = {lightcol.r/255.0f, lightcol.g/255.0f, lightcol.b/255.0f, 1.0f };
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lambient);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, ldiffuse);

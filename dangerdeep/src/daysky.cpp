@@ -179,15 +179,14 @@ colorf daysky::get_color( float theta, float phi, const float elevation ) const
 	//printf("colors RGB: %f %f %f\n", colors[0], colors[1], colors[2]);
 	//fixme: colors are way too dark
 	
-    // scale is default 100, but this eliminates sky gradient at sunset/sunrise, it is however
-    // good looking at noon, etc.. scale 150 is ok at sunrise/sunset, but too bright at noon.
-    // we need to vary scalefactor from 150 sunrise towards 100 noon, and back to 150 at sunset.
+	// intensity rescaling for turbidity 2.0
     
-    float scalefac;
-    if ( elevation >= 0 ) {
-        scalefac = 100 - ( 20 * ( cos(elevation*2) * log(elevation)));
-    }
-    else scalefac = 150;
+	float scalefac;
+	if ( elevation >= 0 ) {
+		scalefac = 100 - pow( 7 * pow( cos(elevation + 0.3), 1.8), 2);
+	} else {
+		scalefac = 50;
+	}
     
 	return colorf(colors[0] * scalefac, colors[1] * scalefac, colors[2] * scalefac);
 }

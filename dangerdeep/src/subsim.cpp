@@ -524,8 +524,8 @@ void run_game_editor(game* gm)
 	widget::theme* tmp = widget::replace_theme(gametheme);
 	user_interface* ui = user_interface::create(*gm);
 	widget::replace_theme(tmp);
-	// game is initially paused.
-	ui->pause_game(true);
+	// game is initially running, so pause it.
+	ui->toggle_pause();
 	while (true) {
 		widget::theme* tmp = widget::replace_theme(gametheme);
 		gm->set_user_interface(ui);

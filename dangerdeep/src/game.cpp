@@ -1841,11 +1841,20 @@ double game::compute_light_brightness(const vector3& viewpos) const
 
 
 
-color game::compute_light_color(const vector3& viewpos) const
+color game::compute_light_color(const vector3& viewpos, double color_elevation) const
 {
 	// fixme: sun color can be yellow/orange at dusk/dawn
-	Uint8 lc = Uint8(255*compute_light_brightness(viewpos));
-	return color(lc, lc, lc);
+	// attempt at having some warm variation at light color, previously it was
+	// uniform, so we'll try a function of elevation (sundir.z to be precise)
+	// Ratios of R, G, B channels are meant to remain in the orange area
+
+	Uint8 lbrit = 255 * compute_light_brightness(viewpos);
+	// check for clamping here...
+	Uint8 lr = lbrit * (1 - pow( cos(color_elevation+.47), 25));
+	Uint8 lg = lbrit * (1 - pow( cos(color_elevation+.39), 20));
+	Uint8 lb = lbrit * (1 - pow( cos(color_elevation+.22), 15));
+   
+	return color(lr, lg, lb);
 }
 
 

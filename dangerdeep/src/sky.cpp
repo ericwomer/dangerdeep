@@ -60,7 +60,7 @@ sky::sky(const double tm, const unsigned int sectors_x, const unsigned int secto
 	  suntex(0), clouds_dl(0), skyhemisphere_dl(0),
 	  sun_azimuth(10.0f), sun_elevation(10.0f),
 	  moon_azimuth(10.0f), moon_elevation(10.0f),
-	  turbidity(5.0f)//was 2.0, fixme
+	  turbidity(2.0f)//was 2.0, fixme
 {
 	// ******************************** create stars
 	const unsigned nr_of_stars = 500;
@@ -489,9 +489,11 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 
 
 	// ******** clouds ********************************************************************
-	color lightcol = gm.compute_light_color(viewpos);
-
+	// we depend on the updated light color, but need to scale sunpos.z to -1/1 range
+	color lightcol = gm.compute_light_color(viewpos, (sunpos.z/26456));
+	//    color lightcol = 1;
 	lightcol.set_gl_color();	// cloud color depends on day time
+	//printf("sunpos.z = %f\n", sunpos.z);
 
 	// FIXME cloud color varies with direction to sun (clouds aren't flat, but round, so
 	// border are brighter if sun is above/nearby)
