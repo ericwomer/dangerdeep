@@ -268,7 +268,7 @@ void * CRenderingContext::GetProcAddress(char const * szFunction)
 
 			// U.3: determine the address...
 
-			#ifndef	GLX_GLXEXT_LEGACY			
+			#if 0 // ndef	GLX_GLXEXT_LEGACY			
 
 				void * pProcAddress = (void *) ::glXGetProcAddress((GLubyte const *) szNewFunction);
 
