@@ -164,6 +164,7 @@ user_interface::user_interface(game& gm) :
 	main_menu->add_child_near_last_child(new wcbui(this, &user_interface::show_screen_selector, 0, 0, 256, 32, texts::get(266)));
 	main_menu->add_child_near_last_child(new wcbui(this, &user_interface::toggle_popup, 0, 0, 256, 32, texts::get(267)), 0);
 	main_menu->add_child_near_last_child(new wcbui(this, &user_interface::show_playlist, 0, 0, 256, 32, texts::get(261)), 0);
+	main_menu->add_child_near_last_child(new wcbui(this, &user_interface::toggle_pause, 0, 0, 256, 32, texts::get(268)), 0);
 	main_menu->add_child_near_last_child(new widget_caller_button<game, void (game::*)()>(mygame, &game::stop, 0, 0, 256, 32, texts::get(177)), 0);
 	main_menu->add_child_near_last_child(new widget_set_button<bool>(main_menu_visible, false, 0, 0, 256, 32, texts::get(260)), 0);
 	main_menu->clip_to_children_area();
@@ -667,9 +668,9 @@ void user_interface::draw_weather_effects() const
 
 
 
-void user_interface::pause_game(bool pauseon)
+void user_interface::toggle_pause()
 {
-	pause = pauseon;
+	pause = !pause;
 	if (pause) {
 		add_message(texts::get(52));
 		pause_all_sound();

@@ -184,7 +184,7 @@ public:
 
 	virtual void draw_weather_effects() const;
 
-	virtual void pause_game(bool pauseon);
+	virtual void toggle_pause();
 	virtual bool paused() const { return pause; }
 	virtual unsigned time_scaling() const { return time_scale; }
 	virtual void add_message(const std::string& s);
