@@ -8,12 +8,12 @@ if ARGUMENTS.get('version', 0):
 	version = ARGUMENTS.get('version', 0)
 
 ################ base paths (needed for Win32 OS)
-sdlbase = 'd:\\sdl-devel\\SDL'
-sdlimagebase = 'd:\\sdl-devel\\SDL_image'
-sdlnetbase = 'd:\\sdl-devel\\SDL_net'
-sdlmixerbase = 'd:\\sdl-devel\\SDL_mixer'
-fftw3base = 'd:\\fftw3'
-glbase = 'd:\\Dev-Cpp\\include\\gl'
+sdlbase = 'D:\\sdl-devel\\SDL'
+sdlimagebase = 'D:\\sdl-devel\\SDL_image'
+sdlnetbase = 'D:\\sdl-devel\\SDL_net'
+sdlmixerbase = 'D:\\sdl-devel\\SDL_mixer'
+fftw3base = 'D:\\fftw3'
+glbase = 'D:\\Dev-Cpp\\include\\gl'
 # glbase = '/Microsoft Visual Studio/vc98/Include/gl/'
 
 ################ change base of dirs (unix OS)
@@ -55,7 +55,7 @@ if sys.platform == 'win32':
 			print 'Using x86 SSE/MMX optimizations with GCC intrinsics.'
 		else:
 			print 'Using x86 SSE/MMX optimizations.'
-	datadir = './data'
+	datadir = './data'	# use slashes as separator always. C/C++ want it so.
 	build_dir = 'win32'
 elif sys.platform == 'darwin':
 	print "Compiling for MacOSX"

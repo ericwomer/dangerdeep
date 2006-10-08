@@ -23,11 +23,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "model.h"
 
 #ifdef WIN32
-#define PATH_SEPARATOR "\\"
 #undef min
 #undef max
-#else
-#define PATH_SEPARATOR "/"
 #endif
 
 #include <cmath>
@@ -199,7 +196,7 @@ model::model(const string& filename_, bool use_material)
 	string extension = (st == string::npos) ? "" : filename.substr(st);
 	for (unsigned e = 0; e < extension.length(); ++e)
 		extension[e] = ::tolower(extension[e]);
-	st = filename.rfind(PATH_SEPARATOR);
+	st = filename.rfind("/");  // we use the slash as path separator on ALL systems. C/C++ want it so.
 	basepath = (st == string::npos) ? "" : filename.substr(0, st+1);
 	basename = filename.substr(basepath.length(),
 				   filename.length()-basepath.length()-extension.length());
