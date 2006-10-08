@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define PARTICLE_H
 
 #include "vector3.h"
+#include "color.h"
 #include <vector>
 
 class game;
@@ -92,7 +93,8 @@ public:
 	// class game is given so that particles can spawn other particles (fire->smoke)
 	virtual void simulate(game& gm, double delta_t);
 
-	static void display_all(const std::vector<particle*>& pts, const vector3& viewpos, game& gm);
+	static void display_all(const std::vector<particle*>& pts, const vector3& viewpos, game& gm,
+				const colorf& light_color);
 
 	// return width/height (in meters) of particle (length of quad edge)
 	virtual double get_width() const = 0;
@@ -102,7 +104,7 @@ public:
 	virtual bool is_defunct() const { return life <= 0.0; }
 	
 	// set opengl texture by particle type or e.g. game time etc.
-	virtual void set_texture(game& gm) const = 0;
+	virtual void set_texture(game& gm, const colorf& light_color) const = 0;
 
 	virtual double get_life_time() const = 0;
 };
@@ -119,7 +121,7 @@ public:
 	~smoke_particle() {}
 	double get_width() const;
 	double get_height() const;
-	void set_texture(game& gm) const;
+	void set_texture(game& gm, const colorf& light_color) const;
 	double get_life_time() const;
 	static double get_produce_time();
 };
@@ -147,7 +149,7 @@ public:
 	~explosion_particle() {}
 	double get_width() const;
 	double get_height() const;
-	void set_texture(game& gm) const;
+	void set_texture(game& gm, const colorf& light_color) const;
 	double get_life_time() const;
 };
 
@@ -163,7 +165,7 @@ public:
 	void simulate(game& gm, double delta_t);
 	double get_width() const;
 	double get_height() const;
-	void set_texture(game& gm) const;
+	void set_texture(game& gm, const colorf& light_color) const;
 	double get_life_time() const;
 };
 
@@ -177,50 +179,7 @@ public:
 	~spray_particle() {}
 	double get_width() const;
 	double get_height() const;
-	void set_texture(game& gm) const;
-	double get_life_time() const;
-};
-
-
-
-// obsolete from here...
-class torpedo_water_splash_particle : public particle
-{
-	virtual bool tex_centered() const { return false; }
-public:
-	torpedo_water_splash_particle(const vector3& pos);
-	~torpedo_water_splash_particle() {}
-	double get_width() const;
-	double get_height() const;
-	void set_texture(game& gm) const;
-	double get_life_time() const;
-};
-
-
-
-class gun_shell_water_splash_particle : public particle
-{
-	virtual bool tex_centered() const { return false; }
-public:
-	gun_shell_water_splash_particle(const vector3& pos);
-	~gun_shell_water_splash_particle() {}
-	double get_width() const;
-	double get_height() const;
-	void set_texture(game& gm) const;
-	double get_life_time() const;
-};
-
-
-
-class depth_charge_water_splash_particle : public particle
-{
-	virtual bool tex_centered() const { return false; }
-public:
-	depth_charge_water_splash_particle(const vector3& pos);
-	~depth_charge_water_splash_particle() {}
-	double get_width() const;
-	double get_height() const;
-	void set_texture(game& gm) const;
+	void set_texture(game& gm, const colorf& light_color) const;
 	double get_life_time() const;
 };
 

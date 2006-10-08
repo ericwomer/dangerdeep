@@ -343,7 +343,8 @@ void particle::simulate(game& gm, double delta_t)
 
 
 
-void particle::display_all(const vector<particle*>& pts, const vector3& viewpos, class game& gm)
+void particle::display_all(const vector<particle*>& pts, const vector3& viewpos, class game& gm,
+			   const colorf& light_color)
 {
 	glDepthMask(GL_FALSE);
 	matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
@@ -399,7 +400,7 @@ void particle::display_all(const vector<particle*>& pts, const vector3& viewpos,
 		}
 		vector3 pp = part.get_pos() - viewpos;
 		vector3 coord;
-		part.set_texture(gm);//not valid between glBegin and glEnd
+		part.set_texture(gm, light_color);//not valid between glBegin and glEnd
 		glBegin(GL_QUADS);
 		coord = pp + x * -w2 + y * ht;
 		glTexCoord2f(0, 0);
@@ -416,6 +417,7 @@ void particle::display_all(const vector<particle*>& pts, const vector3& viewpos,
 		glEnd();
 	}
 
+	glColor4f(1,1,1,1);
 	glEnable(GL_LIGHTING);
 	glDepthMask(GL_TRUE);
 }
@@ -458,9 +460,9 @@ double smoke_particle::get_height() const
 
 
 
-void smoke_particle::set_texture(class game& gm) const
+void smoke_particle::set_texture(class game& gm, const colorf& light_color) const
 {
-	glColor4f(0.5f, 0.5f, 0.5f, life);
+	(colorf(0.5f, 0.5f, 0.5f, life) * light_color).set_gl_color();
 	tex_smoke[texnr]->set_gl_texture();
 }
 
@@ -530,7 +532,7 @@ double explosion_particle::get_height() const
 
 
 
-void explosion_particle::set_texture(class game& gm) const
+void explosion_particle::set_texture(class game& gm, const colorf& /*light_color*/) const
 {
 	glColor4f(1, 1, 1, 1);
 	unsigned f = unsigned(EXPL_FRAMES * (1.0 - life));
@@ -585,7 +587,7 @@ double fire_particle::get_height() const
 
 
 
-void fire_particle::set_texture(class game& gm) const
+void fire_particle::set_texture(class game& gm, const colorf& /*light_color*/) const
 {
 	glColor4f(1, 1, 1, 1);
 	unsigned i = unsigned(tex_fire.size() * (1.0 - life));
@@ -623,9 +625,9 @@ double spray_particle::get_height() const
 
 
 
-void spray_particle::set_texture(class game& gm) const
+void spray_particle::set_texture(class game& gm, const colorf& light_color) const
 {
-	glColor4f(1, 1, 1, life);
+	(colorf(1.0f, 1.0f, 1.0f, life) * light_color).set_gl_color();
 	tex_spray->set_gl_texture();
 }
 
@@ -634,120 +636,4 @@ void spray_particle::set_texture(class game& gm) const
 double spray_particle::get_life_time() const
 {
 	return 4.0; // seconds
-}
-
-
-
-// water splashes
-
-torpedo_water_splash_particle::torpedo_water_splash_particle(const vector3& pos) : particle(pos)
-{
-}
-
-
-
-double torpedo_water_splash_particle::get_width() const
-{
-	return 40.0;
-}
-
-
-
-double torpedo_water_splash_particle::get_height() const
-{
-	const double trd = 1.0/3.0;
-	// 1/3 rise, 2/3 decline
-	double x = (life > trd) ? 1.5 * M_PI * (life - 2 * trd) : life * 0.75 * M_PI;
-	return 80.0 * sin(x);
-}
-
-
-
-void torpedo_water_splash_particle::set_texture(game& gm) const
-{
-	glColor4f(1, 1, 1, 0.5f + float(life) * 0.25f);
-	watersplashes[2]->set_gl_texture();
-}
-
-
-
-double torpedo_water_splash_particle::get_life_time() const
-{
-	return 3.0;
-}
-
-
-
-gun_shell_water_splash_particle::gun_shell_water_splash_particle(const vector3& pos) : particle(pos)
-{
-}
-
-
-
-double gun_shell_water_splash_particle::get_width() const
-{
-	return 10.0;
-}
-
-
-
-double gun_shell_water_splash_particle::get_height() const
-{
-	const double trd = 1.0/3.0;
-	// 1/3 rise, 2/3 decline
-	double x = (life > trd) ? 1.5 * M_PI * (life - 2 * trd) : life * 0.75 * M_PI;
-	return 5.0 * sin(x);
-}
-
-
-
-void gun_shell_water_splash_particle::set_texture(game& gm) const
-{
-	glColor4f(1, 1, 1, 0.5f + float(life) * 0.25f);
-	watersplashes[0]->set_gl_texture();
-}
-
-
-
-double gun_shell_water_splash_particle::get_life_time() const
-{
-	return 3.0;
-}
-
-
-
-depth_charge_water_splash_particle::depth_charge_water_splash_particle(const vector3& pos) : particle(pos)
-{
-}
-
-
-
-double depth_charge_water_splash_particle::get_width() const
-{
-	return 40.0;
-}
-
-
-
-double depth_charge_water_splash_particle::get_height() const
-{
-	const double trd = 1.0/3.0;
-	// 1/3 rise, 2/3 decline
-	double x = (life > trd) ? 1.5 * M_PI * (life - 2 * trd) : life * 0.75 * M_PI;
-	return 60.0 * sin(x);
-}
-
-
-
-void depth_charge_water_splash_particle::set_texture(game& gm) const
-{
-	glColor4f(1, 1, 1, 0.5f + float(life) * 0.25f);
-	watersplashes[1]->set_gl_texture();
-}
-
-
-
-double depth_charge_water_splash_particle::get_life_time() const
-{
-	return 3.0;
 }

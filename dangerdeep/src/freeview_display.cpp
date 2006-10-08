@@ -181,6 +181,7 @@ struct alpha_cmp : public std::binary_function<water_splash*, water_splash*, boo
 
 void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 				    const vector<sea_object*>& objects,
+				    const colorf& light_color,
 				    bool mirrorclip) const
 {
 	// simulate horizon: d is distance to object (on perimeter of earth)
@@ -269,7 +270,7 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 	}
 
 	vector<particle*> particles = gm.visible_particles(player);
-	particle::display_all(particles, viewpos, gm);
+	particle::display_all(particles, viewpos, gm, light_color);
 	
 	glDepthMask(GL_FALSE);
 	// render all visible splashes. must alpha sort them, and not write to z-buffer.
@@ -419,7 +420,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 				objects_mirror.push_back(*it);
 			}
 		}
-		draw_objects(gm, viewpos_mirror, objects_mirror, true /* mirror */);
+		draw_objects(gm, viewpos_mirror, objects_mirror, lightcol, true /* mirror */);
 
 		//fixme
 		glCullFace(GL_BACK);
@@ -544,7 +545,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 //	cout << "mv trans pos " << matrix4::get_gl(GL_MODELVIEW_MATRIX).column(3) << "\n";
 
 	// substract player pos.
-	draw_objects(gm, viewpos, objects);
+	draw_objects(gm, viewpos, objects, lightcol);
 
 	// ******************** draw the bridge in higher detail
 	if (aboard && drawbridge) {
