@@ -23,11 +23,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "make_mesh.h"
 #include <cmath>
 
-#ifdef WIN32
+#if (defined(__APPLE__) && defined(__GNUC__)) || defined(__MACOSX__)
+#include <complex.h>
 #ifndef isfinite
-#include <float.h>
-#define isfinite(a) _finite(a)
+#define isfinite(x) finite(x)
 #endif
+#elseif defined(WIN32)
+#ifndef isfinite
+#define isfinite(x) _finite(x)
+#endif
+#else
+using std::isfinite;
 #endif
 
 using namespace std;
@@ -365,7 +371,7 @@ model::mesh* heightfield(unsigned resx, unsigned resy, const vector<Uint8>& heig
 			const vector3f& v3 = m->vertices[m->indices[ib+5]];
 			vector3f ortho = (v1-v0).orthogonal(v2-v0);
 			float lf = 1.0/ortho.length();
-			if (std::isfinite(lf)) {
+			if (isfinite(lf)) {
 				vector3f face_normal = ortho * lf;
 				m->normals[m->indices[ib]] += face_normal;
 				m->normals[m->indices[ib+1]] += face_normal;
@@ -373,7 +379,7 @@ model::mesh* heightfield(unsigned resx, unsigned resy, const vector<Uint8>& heig
 			}
 			ortho = (v1-v2).orthogonal(v3-v2);
 			lf = 1.0/ortho.length();
-			if (std::isfinite(lf)) {
+			if (isfinite(lf)) {
 				vector3f face_normal = ortho * lf;
 				m->normals[m->indices[ib+3]] += face_normal;
 				m->normals[m->indices[ib+4]] += face_normal;

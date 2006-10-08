@@ -31,12 +31,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef isfinite
 #define isfinite(x) finite(x)
 #endif
-#endif
-
-#ifdef WIN32
+#elseif defined(WIN32)
 #ifndef isfinite
 #define isfinite(x) _finite(x)
 #endif
+#else
+using std::isfinite;
 #endif
 
 
@@ -105,7 +105,7 @@ class non_uniform_bsplinet
 		for (unsigned r = 1; r <= n; ++r) {
 			for (unsigned i = l-n; i <= l-r; ++i) {
 				double tv = (t - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
-				if (!std::isfinite(tv)) throw std::runtime_error("bspline: invalid number generated");
+				if (!isfinite(tv)) throw std::runtime_error("bspline: invalid number generated");
 				deBoor_at(r, i+n-l) = deBoor_at(r-1, i+n-l) * (1 - tv)
 					+ deBoor_at(r-1, i+1+n-l) * tv;
 			}
@@ -234,7 +234,7 @@ public:
 		for (unsigned r = 1; r <= n; ++r) {
 			for (unsigned i = l-n; i <= l-r; ++i) {
 				double tv = (s - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
-				if (!std::isfinite(tv)) throw std::runtime_error("bspline2d: invalid number generated");
+				if (!isfinite(tv)) throw std::runtime_error("bspline2d: invalid number generated");
 				for (unsigned j = 0; j <= n; ++j) {
 					deBoor_at(j, r, i+n-l) = deBoor_at(j, r-1, i+n-l) * (1 - tv)
 						+ deBoor_at(j, r-1, i+1+n-l) * tv;
@@ -247,7 +247,7 @@ public:
 		for (unsigned r = 1; r <= n; ++r) {
 			for (unsigned i = l2-n; i <= l2-r; ++i) {
 				double tv = (t - tvec[i+r])/(tvec[i+n+1] - tvec[i+r]);
-				if (!std::isfinite(tv)) throw std::runtime_error("bspline2d: invalid number generated");
+				if (!isfinite(tv)) throw std::runtime_error("bspline2d: invalid number generated");
 				deBoor_at(0, r, i+n-l2) = deBoor_at(0, r-1, i+n-l2) * (1 - tv)
 					+ deBoor_at(0, r-1, i+1+n-l2) * tv;
 			}

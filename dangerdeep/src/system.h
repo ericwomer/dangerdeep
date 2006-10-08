@@ -39,10 +39,6 @@ using std::set;
 #ifndef M_PI
 #define M_PI 3.1415926535897932	// should be in math.h, but not for Windows. *sigh*
 #endif
-#include <float.h>
-#ifndef isfinite
-#define isfinite(a) _finite(a)
-#endif
 #endif
 
 #ifdef WIN32
