@@ -1045,7 +1045,7 @@ public:
 
 	#ifdef GL_EXT_color_subtable_OGLEXT
 
-		GLvoid            (APIENTRY * m_pColorSubTableEXT) (GLenum, GLsizei, GLsizei, GLenum, GLenum, GLvoid const *);
+//		GLvoid            (APIENTRY * m_pColorSubTableEXT) (GLenum, GLsizei, GLsizei, GLenum, GLenum, GLvoid const *);
 		GLvoid            (APIENTRY * m_pCopyColorSubTableEXT) (GLenum, GLsizei, GLint, GLint, GLsizei);
 
 	#endif // GL_EXT_color_subtable_OGLEXT

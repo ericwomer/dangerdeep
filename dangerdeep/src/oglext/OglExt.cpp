@@ -920,7 +920,8 @@ GLuint glexGetVersion()
 
 #ifdef GL_EXT_color_subtable_OGLEXT
 
-   GLvoid            WRAPPER06V(ColorSubTableEXT, GLenum, GLsizei, GLsizei, GLenum, GLenum, GLvoid const *)
+//TJ: redefined some lines below. ouch.
+//   GLvoid            WRAPPER06V(ColorSubTableEXT, GLenum, GLsizei, GLsizei, GLenum, GLenum, GLvoid const *)
    GLvoid            WRAPPER05V(CopyColorSubTableEXT, GLenum, GLsizei, GLint, GLint, GLsizei)
 
 #endif /* GL_EXT_color_subtable_OGLEXT */

@@ -198,7 +198,8 @@ void * CRenderingContext::GetProcAddress(char const * szFunction)
 
 			// W.3: determine the address...
 
-			void * pProcAddress = ::wglGetProcAddress(szNewFunction);
+            // TJ: casted to avoid compiler error. Ugly....
+			void * pProcAddress = (void*) ::wglGetProcAddress(szNewFunction);
 
 			delete [] szNewFunction;
 
