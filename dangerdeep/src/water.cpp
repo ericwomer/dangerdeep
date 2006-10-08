@@ -177,7 +177,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	wavetile_length(cfg::instance().getf("wavetile_length")),
 	wavetile_length_rcp(1.0f/wavetile_length),
 	wave_tidecycle_time(cfg::instance().getf("wave_tidecycle_time")),
-	last_light_brightness(-10000),
+	last_light_color(-1, -1, -1),
 	wave_resolution(nextgteqpow2(cfg::instance().geti("wave_fft_res"))),
 	wave_resolution_shift(ulog2(wave_resolution)),
 	wave_subdetail(cfg::instance().getb("wave_subdetail")),
@@ -1895,12 +1895,12 @@ float water::exact_fresnel(float x)
 
 
 
-void water::set_refraction_color(float light_brightness)
+void water::set_refraction_color(const colorf& light_color)
 {
 	// compute wether a visible change has happened
-	if (fabs(light_brightness - last_light_brightness) * 128 < 1.0f)
+	if (fabs(light_color.brightness() - last_light_color.brightness()) * 128 < 1.0f)
 		return;
-	last_light_brightness = light_brightness;
+	last_light_color = light_color;
 
 	// fixme: color depends also on weather. bad weather -> light is less bright
 	// so this will be computed implicitly. Environment can also change water color
@@ -1910,8 +1910,10 @@ void water::set_refraction_color(float light_brightness)
 //	color wavetop = color(color(10, 10, 10), color(18, 93, 77), light_brightness);
 //	color wavebottom = color(color(10, 10, 20), color(18, 73, 107), light_brightness);
 	// rather bad weather
-	color wavetop = color(color(10, 10, 10), color(65, 89, 68), light_brightness);
-	color wavebottom = color(color(10, 10, 20), color(63, 86, 101), light_brightness);
+	//fixme: multiply with light color here, not only light brightness.
+	//dim yellow light should result in dim yellow-green upwelling color, not dim green.
+	colorf wavetop = light_color.lerp(colorf(color(10, 10, 10)), colorf(color(65, 89, 68)));
+	colorf wavebottom = light_color.lerp(colorf(color(10, 10, 20)), colorf(color(63, 86, 101)));
 
 	if (use_shaders) {
 		float wt[3], wb[3];
@@ -1928,11 +1930,9 @@ void water::set_refraction_color(float light_brightness)
 
 	for (unsigned s = 0; s < REFRAC_COLOR_RES; ++s) {
 		float fs = float(s)/(REFRAC_COLOR_RES-1);
-		color c(wavebottom, wavetop, fs);
+		colorf c(wavebottom, wavetop, fs);
 		for (unsigned f = 0; f < FRESNEL_FCT_RES; ++f) {
-			fresnelcolortexd[(s*FRESNEL_FCT_RES+f)*4+0] = c.r;
-			fresnelcolortexd[(s*FRESNEL_FCT_RES+f)*4+1] = c.g;
-			fresnelcolortexd[(s*FRESNEL_FCT_RES+f)*4+2] = c.b;
+			c.store_rgb(&fresnelcolortexd[(s*FRESNEL_FCT_RES+f)*4+0]);
 			// update color only, leave fresnel term (alpha) intact
 		}
 	}

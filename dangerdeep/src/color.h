@@ -91,6 +91,9 @@ struct color {
 struct colorf {
 	float r, g, b, a;
 	colorf(float r_ = 0, float g_ = 0, float b_ = 0, float a_ = 1.0f) : r(r_), g(g_), b(b_), a(a_) {};
+	colorf(const color& c)
+		: r(c.r * 0.003921569f), g(c.g * 0.003921569f),
+		  b(c.b * 0.003921569f), a(c.a * 0.003921569f) {} // 0.003921569 = 1/255
 	void set_gl_color() const { glColor4f(r, g, b, a); }
 	void set_gl_color(float alpha) const { glColor4f(r, g, b, alpha); }
 	colorf(const colorf& c1, const colorf& c2, float scal) {
@@ -102,6 +105,14 @@ struct colorf {
 
 	colorf operator* (const colorf& c) const {
 		return colorf(r*c.r, g*c.g, b*c.b, a*c.a);
+	}
+	
+	///> component wise linear interpolation
+	colorf lerp(const colorf& c1, const colorf& c2) const {
+		return colorf(c1.r*(1-r) + c2.r*r,
+			      c1.g*(1-g) + c2.g*g,
+			      c1.b*(1-b) + c2.b*b,
+			      c1.a*(1-a) + c2.a*a);
 	}
 	
 	void store_rgb(Uint8* ptr) const { ptr[0] = Uint8(r*255); ptr[1] = Uint8(g*255); ptr[2] = Uint8(b*255); }

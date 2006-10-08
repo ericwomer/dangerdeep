@@ -319,8 +319,8 @@ public:
 	virtual bool is_editor() const { return false; }
 
 	// sun/moon and light color/brightness
-	double compute_light_brightness(const vector3& viewpos) const;	// depends on sun/moon
-	color compute_light_color(const vector3& viewpos, double color_elevation) const;	// depends on sun/moon
+	double compute_light_brightness(const vector3& viewpos, vector3& sundir) const;	// depends on sun/moon
+	colorf compute_light_color(const vector3& viewpos) const;	// depends on sun/moon
 	vector3 compute_sun_pos(const vector3& viewpos) const;
 	vector3 compute_moon_pos(const vector3& viewpos) const;
 

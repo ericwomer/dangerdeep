@@ -618,7 +618,9 @@ string game::read_description_of_savegame(const string& filename)
 void game::compute_max_view_dist()
 {
 	// a bit unprecise here, since the viewpos is not always the same as the playerpos
-	max_view_dist = 5000.0 + compute_light_brightness(player->get_pos()) * 25000;
+	// this must depend also on weather, fog, rain etc.
+	vector3 sundir;
+	max_view_dist = 5000.0 + compute_light_brightness(player->get_pos(), sundir) * 25000;
 }
 
 void game::simulate(double delta_t)
@@ -1751,7 +1753,8 @@ game::run_state game::exec()
 
 bool game::is_day_mode () const
 {
-	double br = compute_light_brightness(player->get_pos());
+	vector3 sundir;
+	double br = compute_light_brightness(player->get_pos(), sundir);
 	return (br > 0.3); // fixme: a bit crude. brightness has 0.2 ambient...
 }
 
@@ -1826,10 +1829,10 @@ void game::send(command* cmd)
 */
 
 
-double game::compute_light_brightness(const vector3& viewpos) const
+double game::compute_light_brightness(const vector3& viewpos, vector3& sundir) const
 {
 	// fixme: if sun is blocked by clouds, light must be darker...
-	vector3 sundir = compute_sun_pos(viewpos).normal();
+	sundir = compute_sun_pos(viewpos).normal();
 	// in reality the brightness is equal to sundir.z, but the sun is so bright that
 	// we stretch and clamp this value
 	double lightbrightness = sundir.z * 2.0;
@@ -1841,19 +1844,21 @@ double game::compute_light_brightness(const vector3& viewpos) const
 
 
 
-color game::compute_light_color(const vector3& viewpos, double color_elevation) const
+colorf game::compute_light_color(const vector3& viewpos) const
 {
 	// fixme: sun color can be yellow/orange at dusk/dawn
 	// attempt at having some warm variation at light color, previously it was
 	// uniform, so we'll try a function of elevation (sundir.z to be precise)
 	// Ratios of R, G, B channels are meant to remain in the orange area
-	Uint8 lbrit = 255 * compute_light_brightness(viewpos);
+	vector3 sundir;
+	double lbrit = compute_light_brightness(viewpos, sundir);
+	double color_elevation = sundir.z;
 	// check for clamping here...
-	Uint8 lr = lbrit * (1 - pow( cos(color_elevation+.47), 25));
-	Uint8 lg = lbrit * (1 - pow( cos(color_elevation+.39), 20));
-	Uint8 lb = lbrit * (1 - pow( cos(color_elevation+.22), 15));
+	double lr = lbrit * (1 - pow( cos(color_elevation+.47), 25));
+	double lg = lbrit * (1 - pow( cos(color_elevation+.39), 20));
+	double lb = lbrit * (1 - pow( cos(color_elevation+.22), 15));
    
-	return color(lr, lg, lb);
+	return colorf(lr, lg, lb);
 }
 
 

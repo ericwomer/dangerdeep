@@ -325,17 +325,17 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	// get light color, previously all channels were uniform, so we'll make a
 	// function of elevation to have some variation
    
-	color lightcol = gm.compute_light_color(viewpos, sundir.z);
+	colorf lightcol = gm.compute_light_color(viewpos);
     
 	// ambient light intensity depends on time of day, maximum at noon
 	// max. value 0.35. At sun rise/down we use 0.11, at night 0.05
 	float ambient_intensity = (std::max(sundir.z, -0.25) + 0.25) * 0.3 / 1.25 + 0.05;
 	// ambient/diffuse/speculars should be dependeng on light color obviously, so we'll
 	// take our new color function into account
-	GLfloat lambient[4] = { ambient_intensity * lightcol.r/255.0f,
-				ambient_intensity * lightcol.g/255.0f,
-				ambient_intensity * lightcol.b/255.0f, 1.0f };
-	GLfloat ldiffuse[4] = {lightcol.r/255.0f, lightcol.g/255.0f, lightcol.b/255.0f, 1.0f };
+	GLfloat lambient[4] = { ambient_intensity * lightcol.r,
+				ambient_intensity * lightcol.g,
+				ambient_intensity * lightcol.b, 1.0f };
+	GLfloat ldiffuse[4] = {lightcol.r, lightcol.g, lightcol.b, 1.0f };
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lambient);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, ldiffuse);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, ldiffuse);
@@ -510,7 +510,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	//don't bleed into the sky/horizon pixels...
 	//shouldn't matter anyway because of water fog... test this
 
-	glClearColor(0, 0, 0, 0);
+	glClearColor(0, 0, 0.2, 0);
 	// this color clear eats ~ 2 frames (52 to 50 on a gf4mx), but is needed for star sky drawing
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 

@@ -489,8 +489,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 
 
 	// ******** clouds ********************************************************************
-	// we depend on the updated light color, but need to scale sunpos.z to -1/1 range
-	color lightcol = gm.compute_light_color(viewpos, (sunpos.z/26456));
+	colorf lightcol = gm.compute_light_color(viewpos);
 	//    color lightcol = 1;
 	lightcol.set_gl_color();	// cloud color depends on day time
 	//printf("sunpos.z = %f\n", sunpos.z);

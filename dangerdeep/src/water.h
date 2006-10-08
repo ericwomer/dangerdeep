@@ -64,7 +64,7 @@ protected:
 
 	std::vector<Uint8> fresnelcolortexd;	// stored for updates of water color
 
-	float last_light_brightness;	// used to determine when new refraction color tex must get computed
+	colorf last_light_color;	// used to determine when new refraction color tex must get computed
 
 	const unsigned wave_resolution;	// fft resolution for water tile (use 64+, better 128+)
 	const unsigned wave_resolution_shift;	// the log2 of wave_resolution
@@ -201,7 +201,7 @@ public:
 	vector3f get_normal(const vector2& pos, double f = 1.0) const;
 	const texture* get_reflectiontex() const { return reflectiontex.get(); }
 	static float exact_fresnel(float x);
-	void set_refraction_color(float light_brightness);
+	void set_refraction_color(const colorf& light_color);
 };
 
 #endif
