@@ -207,17 +207,17 @@ void sub_kdb_display::display(game& gm) const
 	// test hack: test signal strengths
 	angle app_ang = angle(turnknobang[TK_DIRECTION]*0.5);
 	pair<double, noise> nstr = gm.sonar_listen_ships(player, app_ang);
-	printf("noise strengths, rel ang=%f, L=%f M=%f H=%f U=%f TTL=%f\n",
-	       app_ang.value(), nstr.second.frequencies[0], nstr.second.frequencies[1], nstr.second.frequencies[2], nstr.second.frequencies[3],
-	       nstr.first);
+// 	printf("noise strengths, rel ang=%f, L=%f M=%f H=%f U=%f TTL=%f\n",
+// 	       app_ang.value(), nstr.second.frequencies[0], nstr.second.frequencies[1], nstr.second.frequencies[2], nstr.second.frequencies[3],
+// 	       nstr.first);
 	//shipclass cls = noise_signature::determine_shipclass_by_signal(noise_strengths);
 	//printf("ship class is %i\n", cls);
 
 	// find peak value.
 	pair<angle, double> pkc = find_peak_noise(angle(0), 3.0, 360.0, gm);
-	printf("peak found (%f) somewhere near %f\n", pkc.second, pkc.first.value());
+// 	printf("peak found (%f) somewhere near %f\n", pkc.second, pkc.first.value());
 	pkc = find_peak_noise(pkc.first, 1.0, 6.0, gm);
-	printf("peak found (%f) closer, somewhere near %f\n", pkc.second, pkc.first.value());
+// 	printf("peak found (%f) closer, somewhere near %f\n", pkc.second, pkc.first.value());
 
 	// simulate sonarman
 	//sonarman.simulate(gm, 0.016666);	// 60fps, fixme ugly hack
