@@ -510,7 +510,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	//don't bleed into the sky/horizon pixels...
 	//shouldn't matter anyway because of water fog... test this
 
-	glClearColor(0, 0, 0.2, 0);
+	glClearColor(0.015, 0.01, 0.055, 0);
 	// this color clear eats ~ 2 frames (52 to 50 on a gf4mx), but is needed for star sky drawing
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
