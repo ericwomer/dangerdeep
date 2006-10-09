@@ -572,16 +572,56 @@ void submarine::init_fill_torpedo_tubes(const date& d)
 	// standard1, special1 2/3, standard2, special2 1/3, 1/2 standard, 1/2 special
 	// hence random 0-5, 0,1:std1, 2:std2, 3,4:spc1, 5:spc2
 	string standard1, standard2, special1, special2, stern, deck;
-	if (d < date(1942, 6, 1)) {
+	// the following if's and definitions are coded after the data from the torpedo xml's.
+	// we could also read all xml's, parse them, and create torpedoes accordingly,
+	// but it was faster to do it hardcoded, and that data is historic and thus does not
+	// change.
+	if (d < date(1940, 6, 1)) {
+		// available until that date: TI/TII/TIII
 		standard1 = "TI";
-		standard2 = special1 = special2 = stern = "TIII";
+		standard2 = stern = "TIII";
+		special1 = "TII";
+		special2 = "TII";
 		deck = "TI";
-	} else if (d < date(1943, 8, 1)) {
+	} else if (d < date(1942, 12, 1)) {
+		// available until that date: TI/TII/TIII, only use TI/TIII here
+		standard1 = "TIII";
+		standard2 = stern = "TIII";
+		special1 = "TI";
+		special2 = "TIII";
+		deck = "TI";
+	} else if (d < date(1943, 3, 1)) {
+		// available until that date: TI_FaTI, TIII_FaTII, TIIIa_FaTII
 		standard1 = stern = "TIII";
 		standard2 = "TI";
-		special1 = special2 = "TIIIa_FaTII";
+		special1 = "TIIIa_FaTII";
+		special2 = "TIII_FaTII";
 		deck = "TI_FaTI";
+	} else if (d < date(1943, 9, 1)) {
+		// available until that date: TIV
+		standard1 = stern = "TIII";
+		standard2 = "TI";
+		special1 = "TIIIa_FaTII";
+		special2 = "TIV";
+		deck = "TI_FaTI";
+	} else if (d < date(1944, 1, 1)) {
+		// available until that date: TV
+		standard1 = "TIII";
+		standard2 = "TIIIa_FaTII";
+		special1 = "TI_FaTI";
+		special2 = "TV";
+		stern = "TV";
+		deck = "TI_FaTI";
+	} else if (d < date(1944, 6, 1)) {
+		// available until that date: TVb
+		standard1 = "TIII";
+		standard2 = "TIIIa_FaTII";
+		special1 = "TIIIa_LuTI";
+		special2 = "TVb";
+		stern = "TV";
+		deck = "TI_LuTI";
 	} else if (d < date(1945, 4, 1)) {
+		// available until that date: TIIIa_LuTI, TIIIa_LuTII, TI_LuTI, TI_LuTII, TVI_LuTI
 		standard1 = "TIII";
 		standard2 = "TIIIa_FaTII";
 		special1 = "TIIIa_LuTI";
@@ -589,6 +629,7 @@ void submarine::init_fill_torpedo_tubes(const date& d)
 		stern = "TV";
 		deck = "TI_LuTI";
 	} else {
+		// available since april 1945: TXI
 		standard1 = "TIII";
 		standard2 = "TIIIa_FaTII";
 		special1 = "TVI_LuTI";
