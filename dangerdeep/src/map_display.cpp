@@ -1105,7 +1105,7 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 		} else if (event.type == SDL_MOUSEMOTION) {
 			mx_curr = event.motion.x;
 			my_curr = event.motion.y;
-			if (event.motion.state & SDL_BUTTON_RMASK) {
+			if ((event.motion.state & SDL_BUTTON_MMASK) && (ctrl_key_pressed != 0)) {
 				// move selected objects!
 				vector2 drag(event.motion.xrel / mapzoom,
 					     -event.motion.yrel / mapzoom);
@@ -1182,7 +1182,7 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 	case SDL_MOUSEMOTION:
 		mx = event.motion.x;
 		my = event.motion.y;
-		if (event.motion.state & SDL_BUTTON_MMASK) {
+		if ((event.motion.state & SDL_BUTTON_MMASK) && (ctrl_key_pressed == 0)) {
 			mapoffset.x += event.motion.xrel / mapzoom;
 			mapoffset.y += -event.motion.yrel / mapzoom;
 		}
