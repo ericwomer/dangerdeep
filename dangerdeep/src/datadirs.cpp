@@ -24,12 +24,23 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "error.h"
 #include "filehelper.h"
 
+// Note! this is a global variable and is inited before main,
+// any data depening on that variable, like objcache, textures etc. etc.
+// MUST be inited after main starts, NOT as global static variables themselves,
+// or the static initiliazation order fiasco will result.
+std::string global_datadir = DATADIR;
 
 const std::string& get_data_dir()
 {
-	static std::string datadir(DATADIR);
-	// note! do not store global string variable because of uncertain static initialization order.
-	return datadir;
+	return global_datadir;
+}
+
+
+
+// Note! call this only once, and very early in main()!
+void set_data_dir(const std::string& datadir)
+{
+	global_datadir = datadir;
 }
 
 

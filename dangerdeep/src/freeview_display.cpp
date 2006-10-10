@@ -102,14 +102,14 @@ freeview_display::freeview_display(user_interface& ui_) :
 	user_display(ui_), aboard(false), withunderwaterweapons(true), drawbridge(false)
 {
 	pos = vector3(20,0,10);
-	texturecache.ref("splashring.png");
+	texturecache().ref("splashring.png");
 }
 
 
 
 freeview_display::~freeview_display()
 {
-	texturecache.unref("splashring.png");
+	texturecache().unref("splashring.png");
 }
 
 

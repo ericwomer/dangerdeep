@@ -224,7 +224,7 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 	  redetect_time(0)
 {
 	// no specfile, so specfilename is empty, do not call get_rel_path with empty string!
-	mymodel = modelcache.ref(/*data_file().get_rel_path(specfilename) + */ modelname);
+	mymodel = modelcache().ref(/*data_file().get_rel_path(specfilename) + */ modelname);
 	// this constructor is used only for simple models that have no skin support,
 	// so register default layout.
 	skin_name = model::default_layout;
@@ -278,7 +278,7 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 // 		     << "\n";
 	}
 
-	mymodel = modelcache.ref(data_file().get_rel_path(specfilename) + modelname);
+	mymodel = modelcache().ref(data_file().get_rel_path(specfilename) + modelname);
 	size3d = vector3f(mymodel->get_width(), mymodel->get_length(), mymodel->get_height());
 	string countrystr = cl.attr("country");
 	country = UNKNOWNCOUNTRY;
@@ -350,7 +350,7 @@ sea_object::~sea_object()
 // 	cout << "d'tor: unregistered layout " << skin_name << "\n";
 	if (skin_name.length() > 0)
 		mymodel->unregister_layout(skin_name);
-	modelcache.unref(mymodel);
+	modelcache().unref(mymodel);
 }
 
 

@@ -1326,6 +1326,93 @@ int mymain(list<string>& args)
 	string(getenv("HOME"))+"/.dangerdeep/";
 #endif
 
+	// command line argument parsing
+	res_x = 1024;
+	bool fullscreen = true;
+	string cmdmissionfilename;
+	bool runeditor = false;
+
+	// parse commandline
+	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
+		if (*it == "--help") {
+			cout << "*** Danger from the Deep ***\nusage:\n--help\t\tshow this\n"
+			     << "--res n\t\tuse resolution n horizontal,\n\t\tn is 512,640,800,1024 (recommended) or 1280\n"
+			     << "--nofullscreen\tdon't use fullscreen\n"
+			     << "--debug\t\tdebug mode: no fullscreen, resolution 800\n"
+			     << "--editor\trun mission editor directly\n"
+			     << "--mission fn\trun mission from file fn (just the filename in the mission directory)\n"
+			     << "--nosound\tdon't use sound\n"
+			     << "--datadir path\tset base directory of data, must point to a directory with subdirs images/ textures/ objects/ and so on. Default on Unix e.g. /usr/local/share/dangerdeep.\n";
+			return 0;
+		} else if (*it == "--nofullscreen") {
+			fullscreen = false;
+		} else if (*it == "--debug") {
+			fullscreen = false;
+			res_x = 800;
+		} else if (*it == "--mission") {
+			list<string>::iterator it2 = it; ++it2;
+			if (it2 != args.end()) {
+				cmdmissionfilename = *it2;
+				++it;
+			}
+		} else if (*it == "--editor") {
+			runeditor = true;
+		} else if (*it == "--nosound") {
+			sound::use_sound = false;
+		} else if (*it == "--res") {
+			list<string>::iterator it2 = it; ++it2;
+			if (it2 != args.end()) {
+				int r = atoi(it2->c_str());
+				if (r==512||r==640||r==800||r==1024||r==1280)
+					res_x = r;
+				++it;
+			}
+		} else if (*it == "--datadir") {
+			list<string>::iterator it2 = it; ++it2;
+			if (it2 != args.end()) {
+				string datadir = *it2;
+				// check if it is a directory.
+				if (!is_directory(datadir)) {
+					cout << "ERROR: data directory is no directory!\n";
+					return -1;
+				}
+				// append separator if needed
+				if (datadir[datadir.length()-1] != '/') {
+					datadir += "/";
+				}
+				// check if there are valid files in data directory.
+				bool datadirseemsok = true;
+				if (!is_directory(datadir + "fonts")) {
+					datadirseemsok = false;
+				} else if (!is_directory(datadir + "images")) {
+					datadirseemsok = false;
+				} else if (!is_directory(datadir + "missions")) {
+					datadirseemsok = false;
+				} else if (!is_directory(datadir + "objects")) {
+					datadirseemsok = false;
+				} else if (!is_directory(datadir + "shaders")) {
+					datadirseemsok = false;
+				} else if (!is_directory(datadir + "sounds")) {
+					datadirseemsok = false;
+				} else if (!is_directory(datadir + "texts")) {
+					datadirseemsok = false;
+				} else if (!is_directory(datadir + "textures")) {
+					datadirseemsok = false;
+				}
+				if (!datadirseemsok) {
+					cout << "ERROR: data directory is missing crucial files!\n";
+					return -1;
+				}
+				set_data_dir(datadir);
+				cout << "data directory set to \"" << datadir << "\"\n";
+				++it;
+			}
+		} else {
+			cout << "unknown parameter " << *it << ".\n";
+		}
+	}
+
+	// parse configuration
 	cfg& mycfg = cfg::instance();
 	mycfg.register_option("screen_res_x", 1024);
 	mycfg.register_option("screen_res_y", 768);
@@ -1431,51 +1518,6 @@ int mymain(list<string>& args)
 		//fixme: memory leak here, close_dir() is missing. make class for directory?
 	}
 
-	// command line argument parsing
-	res_x = 1024;
-	bool fullscreen = true;
-	string cmdmissionfilename;
-	bool runeditor = false;
-
-	// parse commandline
-	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
-		if (*it == "--help") {
-			cout << "*** Danger from the Deep ***\nusage:\n--help\t\tshow this\n"
-			<< "--res n\t\tuse resolution n horizontal,\n\t\tn is 512,640,800,1024 (recommended) or 1280\n"
-			<< "--nofullscreen\tdon't use fullscreen\n"
-			<< "--debug\t\tdebug mode: no fullscreen, resolution 800\n"
-			<< "--editor\trun mission editor directly\n"
-			<< "--mission fn\trun mission from file fn (just the filename in the mission directory)\n"
-			<< "--nosound\tdon't use sound\n";
-			return 0;
-		} else if (*it == "--nofullscreen") {
-			fullscreen = false;
-		} else if (*it == "--debug") {
-			fullscreen = false;
-			res_x = 800;
-		} else if (*it == "--mission") {
-			list<string>::iterator it2 = it; ++it2;
-			if (it2 != args.end()) {
-				cmdmissionfilename = *it2;
-				++it;
-			}
-		} else if (*it == "--editor") {
-			runeditor = true;
-		} else if (*it == "--nosound") {
-			sound::use_sound = false;
-		} else if (*it == "--res") {
-			list<string>::iterator it2 = it; ++it2;
-			if (it2 != args.end()) {
-				int r = atoi(it2->c_str());
-				if (r==512||r==640||r==800||r==1024||r==1280)
-					res_x = r;
-				++it;
-			}
-		} else {
-			cout << "unknown " << *it << " parse cfg.\n";
-			mycfg.parse_value(*it);//fixme test
-		}
-	}
 
 //	mycfg.save("./testconf");
 
@@ -1507,6 +1549,8 @@ int mymain(list<string>& args)
 	sound::init();
 	
 	reset_loading_screen();
+	// init the global_data object before calling init_global_data
+	std::auto_ptr<global_data> gbd(new global_data());
 	init_global_data();
 
 	if( sound::use_sound )
@@ -1634,6 +1678,7 @@ int mymain(list<string>& args)
 
 	image::clear_cache();
 	deinit_global_data();
+	gbd.reset();
 	delete mysys;
 
 	return 0;

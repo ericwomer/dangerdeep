@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef GLOBAL_DATA_H
 #define GLOBAL_DATA_H
 
+// fixme: do we need that on win32? probably not, because we have SDL...
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -32,7 +33,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 #include <list>
 #include <cmath>
+#include "objcache.h"
 
+// fixme: remove this ugly crap, move to .cpp
 #define se_submarine_torpedo_launch "liquidblast.ogg"
 #define se_torpedo_detonation		"shell explosion.ogg"
 #define se_small_gun_firing			"deck gun firing.ogg"
@@ -50,27 +53,58 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 std::string get_program_version();
 
+// fixme: use only class xml, then these functions are obsolete.
 std::string XmlAttrib(class TiXmlElement* elem, const char* attrname);
 unsigned XmlAttribu(class TiXmlElement* elem, const char* attrname);
 float XmlAttribf(class TiXmlElement* elem, const char* attrname);
 
 #define GRAVITY 9.806	// a very global constant
 
-#include "objcache.h"
-extern objcachet<class model> modelcache;
-extern objcachet<class image> imagecache;
-extern objcachet<class texture> texturecache;
-extern objcachet<class sound> soundcache;
+
+///> all global data grouped in one class
+class global_data
+{
+ private:
+	// no copy
+	global_data(const global_data& );
+	global_data& operator= (const global_data& );
+
+ protected:
+	static global_data* inst;
+
+ public:
+	objcachet<class model> modelcache;
+	objcachet<class image> imagecache;
+	objcachet<class texture> texturecache;
+	objcachet<class sound> soundcache;
+
+	global_data();
+	~global_data();
+
+	static global_data& instance() { return *inst; }
+};
+
+inline objcachet<class model>& modelcache() { return global_data::instance().modelcache; }
+inline objcachet<class image>& imagecache() { return global_data::instance().imagecache; }
+inline objcachet<class texture>& texturecache() { return global_data::instance().texturecache; }
+inline objcachet<class sound>& soundcache() { return global_data::instance().soundcache; }
+
+
 
 // global models, textures, fonts
-//fixme: get rid of this, instead use caches, maybe even for fonts.
+//fixme: get rid of this, store in cache
 extern class model *conning_tower_typeVII;
+
+// store in objects where it is needed/ref'd! fixme
 extern class texture *addleadangle, *metalbackgr,
 	*woodbackgr, *notepadsheet, *menuframe,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
 	*terraintex, *cloudsbackgr, *atlanticmap, *panelbackground;
+
+// fixme: store fonts in global_data class
 extern class font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn, *font_damagedtypewriter;
 
+// fixme: use image cache for that!
 extern class image *titlebackgrimg, *threesubsimg, *damage_screen_background,
 	*sub_damage_scheme_all, *killedimg, *scopewatcherimg,
 	*depthchargeimg, *sunkendestroyerimg, *kruppdocksimg, *rescuedestroyerimg, *sunderlandimg,

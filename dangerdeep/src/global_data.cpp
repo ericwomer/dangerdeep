@@ -34,6 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "system.h"
 #include "datadirs.h"
 #include <SDL_image.h>
+#include <stdexcept>
 
 using namespace std;
 
@@ -48,6 +49,27 @@ string get_program_version()
 	return string(VERSION);
 }
 
+
+
+global_data* global_data::inst = 0;
+
+global_data::global_data()
+	: modelcache(get_data_dir()),
+	  imagecache(get_image_dir()),
+	  texturecache(get_texture_dir()),
+	  soundcache(get_sound_dir())
+{
+	if (inst != 0)
+		throw std::runtime_error("must not initialize global_data object twice");
+	inst = this;
+}
+
+
+
+global_data::~global_data()
+{
+	inst = 0;
+}
 
 
 // fixme: this could be replaced with an array of pointers using enum-names
@@ -71,11 +93,6 @@ image *titlebackgrimg, *threesubsimg, *damage_screen_background,
 	*swordfishimg, *hedgehogimg;
 
 bool loading_screen_usable = false;
-
-objcachet<class model> modelcache(get_data_dir());
-objcachet<class image> imagecache(get_image_dir());
-objcachet<class texture> texturecache(get_texture_dir());
-objcachet<class sound> soundcache(get_sound_dir());
 
 // later: remove that crap when tinyxml is not used directly any longer
 string XmlAttrib(class TiXmlElement* elem, const char* attrname)
@@ -124,20 +141,20 @@ void init_global_data()
 	add_loading_screen("textures loaded");
 
 	// later: this makes the use of the cache senseless. load on demand, and only ingame
-	soundcache.ref(se_submarine_torpedo_launch);
-	soundcache.ref(se_torpedo_detonation);
-	soundcache.ref(se_small_gun_firing);
-	soundcache.ref(se_medium_gun_firing);
-	soundcache.ref(se_large_gun_firing);
-	soundcache.ref(se_depth_charge_firing);
-	soundcache.ref(se_depth_charge_exploding);
-	soundcache.ref(se_ping);
-	soundcache.ref(se_shell_exploding);
-	soundcache.ref(se_shell_splash);		
-	soundcache.ref(se_sub_screws_slow);
-	soundcache.ref(se_sub_screws_normal);
-	soundcache.ref(se_sub_screws_fast);
-	soundcache.ref(se_sub_screws_very_fast);	
+	soundcache().ref(se_submarine_torpedo_launch);
+	soundcache().ref(se_torpedo_detonation);
+	soundcache().ref(se_small_gun_firing);
+	soundcache().ref(se_medium_gun_firing);
+	soundcache().ref(se_large_gun_firing);
+	soundcache().ref(se_depth_charge_firing);
+	soundcache().ref(se_depth_charge_exploding);
+	soundcache().ref(se_ping);
+	soundcache().ref(se_shell_exploding);
+	soundcache().ref(se_shell_splash);		
+	soundcache().ref(se_sub_screws_slow);
+	soundcache().ref(se_sub_screws_normal);
+	soundcache().ref(se_sub_screws_fast);
+	soundcache().ref(se_sub_screws_very_fast);	
 	add_loading_screen("sounds loaded");
 
 	// later: load only when needed, wasts memory and time
@@ -195,11 +212,6 @@ void deinit_global_data()
 	delete swordfishimg;
 	delete hedgehogimg;
 	delete panelbackground;
-
-	modelcache.clear();
-	texturecache.clear();
-	imagecache.clear();
-	soundcache.clear();
 }
 
 // display loading progress

@@ -139,7 +139,7 @@ void water_splash::simulate(double delta_time)
 
 void water_splash::display() const
 {
-	texturecache.find("splashring.png")->set_gl_texture();
+	texturecache().find("splashring.png")->set_gl_texture();
 
 	glDisable(GL_LIGHTING);
 	//glTranslate

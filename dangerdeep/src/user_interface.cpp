@@ -817,7 +817,7 @@ void user_interface::set_display_color() const
 void user_interface::play_sound_effect(const string &se, const sea_object* player, 
 									   const sea_object* noise_source, bool loop) const
 {	
-	sound* s = soundcache.find(se);
+	sound* s = soundcache().find(se);
 	if ( s )
 		s->play(player, noise_source, loop);
 	else
@@ -827,7 +827,7 @@ void user_interface::play_sound_effect(const string &se, const sea_object* playe
 void user_interface::play_fade_sound_effect(const string &se, const sea_object* player, 
 					    const sea_object* noise_source, bool loop) const
 {
-	sound* s = soundcache.find(se);
+	sound* s = soundcache().find(se);
 	if ( s )
 		s->play_fade(player, noise_source, loop);
 	else
@@ -836,7 +836,7 @@ void user_interface::play_fade_sound_effect(const string &se, const sea_object* 
 
 void user_interface::stop_sound_effect(const string &se) const
 {
-	sound* s = soundcache.find(se);
+	sound* s = soundcache().find(se);
 	if ( s )
 		s->stop();
 	else
@@ -845,7 +845,7 @@ void user_interface::stop_sound_effect(const string &se) const
 
 void user_interface::stop_fade_sound_effect(const string &se) const
 {
-	sound* s = soundcache.find(se);
+	sound* s = soundcache().find(se);
 	if ( s )
 		s->fade_out();
 	else
@@ -927,7 +927,7 @@ void user_interface::pause_all_sound() const
 {
 	// bit of a dodgy way to find a sound so we can call a function affecting
 	// all sounds
-	sound* s = soundcache.find(se_sub_screws_slow);
+	sound* s = soundcache().find(se_sub_screws_slow);
 	if ( s )
 		s->pause_all();
 	else
@@ -938,7 +938,7 @@ void user_interface::resume_all_sound() const
 {
 	// bit of a dodgy way to find a sound so we can call a function affecting
 	// all sounds
-	sound* s = soundcache.find(se_sub_screws_slow);
+	sound* s = soundcache().find(se_sub_screws_slow);
 	if ( s )
 		s->resume_all();
 	else
