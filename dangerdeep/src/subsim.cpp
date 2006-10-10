@@ -1306,6 +1306,23 @@ bool file_exists(const string& fn)
 
 
 
+bool set_dir(const string& dir, string& setdir)
+{
+	// check if it is a directory.
+	if (!is_directory(dir)) {
+		return false;
+	}
+	// append separator if needed
+	if (dir[dir.length()-1] != '/') {
+		setdir = dir + "/";
+	} else {
+		setdir = dir;
+	}
+	return true;
+}
+
+
+
 int mymain(list<string>& args)
 {
 	// report critical errors (on Unix/Posix systems)
@@ -1342,7 +1359,10 @@ int mymain(list<string>& args)
 			     << "--editor\trun mission editor directly\n"
 			     << "--mission fn\trun mission from file fn (just the filename in the mission directory)\n"
 			     << "--nosound\tdon't use sound\n"
-			     << "--datadir path\tset base directory of data, must point to a directory with subdirs images/ textures/ objects/ and so on. Default on Unix e.g. /usr/local/share/dangerdeep.\n";
+			     << "--datadir path\tset base directory of data, must point to a directory with subdirs images/ textures/ objects/ and so on. Default on Unix e.g. /usr/local/share/dangerdeep.\n"
+			     << "--savegamedir path\tdirectory for savegames, default path depends on platform\n"
+			     << "--highscoredir path\tdirectory for highscores, default path depends on platform\n"
+			     << "--configdir path\tdirectory for configuration data, default path depends on platform\n";
 			return 0;
 		} else if (*it == "--nofullscreen") {
 			fullscreen = false;
@@ -1405,6 +1425,33 @@ int mymain(list<string>& args)
 				}
 				set_data_dir(datadir);
 				cout << "data directory set to \"" << datadir << "\"\n";
+				++it;
+			}
+		} else if (*it == "--savegamedir") {
+			list<string>::iterator it2 = it; ++it2;
+			if (it2 != args.end()) {
+				if (!set_dir(*it2, savegamedirectory)) {
+					cout << "ERROR: savegame directory is no directory!\n";
+					return -1;
+				}
+				++it;
+			}
+		} else if (*it == "--highscoredir") {
+			list<string>::iterator it2 = it; ++it2;
+			if (it2 != args.end()) {
+				if (!set_dir(*it2, highscoredirectory)) {
+					cout << "ERROR: highscore directory is no directory!\n";
+					return -1;
+				}
+				++it;
+			}
+		} else if (*it == "--configdir") {
+			list<string>::iterator it2 = it; ++it2;
+			if (it2 != args.end()) {
+				if (!set_dir(*it2, configdirectory)) {
+					cout << "ERROR: config directory is no directory!\n";
+					return -1;
+				}
 				++it;
 			}
 		} else {
@@ -1505,17 +1552,13 @@ int mymain(list<string>& args)
 
 	// make sure the default values are stored if there is no config file,
 	// and make sure all registered values are stored in it
-	FILE* fconfig = fopen((configdirectory + "config").c_str(), "rt");
-	if (fconfig) {
-		fclose(fconfig);
+	if (is_file(configdirectory + "config")) {
 		mycfg.load(configdirectory + "config");
 	} else {
-		directory configdir = open_dir(configdirectory);
-		if (!configdir.is_valid()) {
+		if (!is_directory(configdirectory)) {
 			make_dir(configdirectory);
 		}
 		mycfg.save(configdirectory + "config");
-		//fixme: memory leak here, close_dir() is missing. make class for directory?
 	}
 
 

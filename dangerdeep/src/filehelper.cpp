@@ -131,3 +131,13 @@ bool is_directory(const string& filename)
 }
 
 #endif /* Win32 */
+
+bool is_file(const string& filename)
+{
+	FILE* f = fopen(filename.c_str(), "r");
+	if (f) {
+		fclose(f);
+		return true;
+	}
+	return false;
+}

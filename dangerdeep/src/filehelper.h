@@ -65,7 +65,10 @@ bool make_dir(const std::string& dirname);
 ///\brief Returns absolute path of current working directory.
 std::string get_current_directory();
 
-///\brief Test if the given file is a directory.
+///\brief Test if the given filename is a directory.
 bool is_directory(const std::string& filename);
+
+///\brief Test if the given filename is a file (can be read by fopen())
+bool is_file(const std::string& filename);
 
 #endif
