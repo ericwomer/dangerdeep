@@ -9,7 +9,7 @@
 
 Summary:	Danger from the Deep - WW2 german submarine simulation
 Name:		dangerdeep
-Version:	0.1.1
+Version:	0.2.0
 %if "%{_cvs_build}" == "1"
 Release:        1.oc2pus.%{_cvs}
 %else

@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-version=`awk '$1 ~ /Version/ { print $2 }' debian/DEBIAN/control`
+# fixme: read version.txt and paste to debian control file!
+version=`cat version.txt`
 arch=`awk '$1 ~ /Architecture/ { print $2 }' debian/DEBIAN/control`
 debroot="dangerdeep_$version""_$arch"
 debfile="dangerdeep_$version""_$arch.deb"
@@ -10,13 +11,15 @@ datadir='usr/share/games'
 mandir='usr/share/man/man6'
 docdir='usr/share/doc/dangerdeep'
 
-mkdir -p $debroot && cp -R debian/* $debroot
+mkdir -p $debroot
+cp -R debian/* $debroot
+#echo "Version: " $version >> $debroot/DEBIAN/control
 for dir in DEBIAN $bindir $datadir/dangerdeep $mandir $docdir; do
 	mkdir -p $debroot/$dir
 done
 
 # to compile and install it
-scons installbindir=\#/$debroot/$bindir installdatadir=\#/$debroot/$datadir/dangerdeep datadir=/$datadir/dangerdeep version=$version install usex86sse=1 -j3
+scons installbindir=\#/$debroot/$bindir datadir=/$datadir/dangerdeep version=$version install usex86sse=1 -j3
 
 # remove debug symbols from the binary
 strip -R .comment -x -s $debroot/$bindir/dangerdeep

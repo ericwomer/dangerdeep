@@ -2,11 +2,6 @@
 import os
 import sys
 
-################ global config values
-version = '0.1.1'
-if ARGUMENTS.get('version', 0):
-	version = ARGUMENTS.get('version', 0)
-
 ################ base paths (needed for Win32 OS)
 sdlbase = 'D:\\sdl-devel\\SDL'
 sdlimagebase = 'D:\\sdl-devel\\SDL_image'
@@ -14,15 +9,12 @@ sdlnetbase = 'D:\\sdl-devel\\SDL_net'
 sdlmixerbase = 'D:\\sdl-devel\\SDL_mixer'
 fftw3base = 'D:\\fftw3'
 glbase = 'D:\\Dev-Cpp\\include\\gl'
-# glbase = '/Microsoft Visual Studio/vc98/Include/gl/'
-
-################ change base of dirs (unix OS)
-installbindir = '/usr/local/bin'
-installdatadir = '/usr/local/share/dangerdeep'
-if ARGUMENTS.get('installbindir', 0):
-	installbindir = ARGUMENTS.get('installbindir', 0)
-if ARGUMENTS.get('installdatadir', 0):
-	installdatadir = ARGUMENTS.get('installdatadir', 0)
+#sdlbase = os.environ['SDL']
+#sdlimagebase = os.environ['SDLIMAGE']
+#sdlnetbase = os.environ['SDLNET']
+#sdlmixerbase = os.environ['SDLMIXER']
+#fftw3base = os.environ['FFTW']
+#glbase = os.environ['GL']
 
 ################ command line config
 debug = int(ARGUMENTS.get('debug', 0))
@@ -66,7 +58,7 @@ elif sys.platform == 'darwin':
 	sdllibs = ['SDL', 'SDL_image']
 	env.Append(CCFLAGS = '-Wall -g -O2 -fno-coalesce `sdl-config --cflags`')
 	env.Append(LINKFLAGS = '-F/Library/Frameworks -framework AGL -framework OpenGL -framework GLUT -framework Cocoa')
-	datadir = installdatadir
+	datadir = '/usr/local/share/dangerdeep'
 	build_dir = 'macosx'
 	osspecificsrc = Split("""Mac/SDLMain.m""")
 elif (sys.platform == 'freebsd5') or (sys.platform == 'freebsd6') or (sys.platform == 'freebsd7'):
@@ -103,7 +95,7 @@ elif (sys.platform == 'freebsd5') or (sys.platform == 'freebsd6') or (sys.platfo
 		env.Append(CPPDEFINES = ['DEBUG'])
         env.Replace(CXXFLAGS = os.environ['CXXFLAGS'] + ' `' + SDL_CONFIG + ' --cflags`')
         env.Append(LINKFLAGS = '`' + SDL_CONFIG + ' --libs`')
-        datadir = installdatadir
+        datadir = '/usr/local/share/dangerdeep'
         build_dir = 'freebsd'
 	
         if (os.system('grep glBindProgram ' + X11BASE + '/include/GL/gl*.h > /dev/null') == 0):
@@ -181,7 +173,7 @@ else:
 		else:
 			print 'Using x86 SSE/MMX optimizations.'
 	env.Append(CCFLAGS = ccflags)
-	datadir = installdatadir
+	datadir = '/usr/local/share/dangerdeep'
 	build_dir = 'linux'
 	# check for broken libGL, ignore undefined symbols then
 	if (os.system('grep glBindProgram /usr/include/GL/gl*.h > /dev/null') == 0):
@@ -204,9 +196,11 @@ else:
 ###### optionally change install and data dirs
 if ARGUMENTS.get('datadir', 0):
 	datadir = ARGUMENTS.get('datadir', 0)
+installbindir = '/usr/local/bin'
+if ARGUMENTS.get('installbindir', 0):
+	installbindir = ARGUMENTS.get('installbindir', 0)
 
 print 'Install binary path: ' + installbindir
-print 'Install data path: ' + installdatadir
 print 'Using data dir: ' + datadir
 
 target_dir = '#build' + os.sep + build_dir
@@ -249,15 +243,6 @@ env = conf.Finish()
 gfxlibs = ['oglext'] + gllibs + sdllibs
 alllibs = ['dftdmedia', 'tinyxml'] + gfxlibs + ['SDL_mixer', 'SDL_net', fftwlib] + extralibs
 
-################ helper functions
-def all_entries_that_start_with_and_not(list, prefix, notprefix):
-	list2 = []
-	for i in list:
-		if i.startswith(prefix) and not(i.startswith(notprefix)):
-			list2 += [i]
-	return list2
-
-
 ################ show some help when running scons -h
 Help("""
 	Danger from the Deep, SConstruct file help:
@@ -276,36 +261,56 @@ Help("""
 libpath = libpath + [target_dir]
 env.Append(LIBPATH = libpath)
 
-f = open('files.txt')
-# remove return code '\n' from end of line
-allcvsfiles = [x[:-1] for x in f.readlines()]
+f = open('version.txt', 'r')
+version = f.readlines()[0][:-1]
+f.close()
 
-datafiles = all_entries_that_start_with_and_not(allcvsfiles, './data', './data/xcf')
-
-Export('env', 'gfxlibs', 'alllibs', 'installbindir', 'installdatadir', 'datadir', 'datafiles', 'version', 'osspecificsrc')
+Export('env', 'gfxlibs', 'alllibs', 'installbindir', 'datadir', 'version', 'osspecificsrc')
 
 SConscript(source_base_dir + os.sep + 'SConscript', build_dir = target_dir, duplicate = 0)
 
 BuildDir(target_dir, source_base_dir, duplicate=0)
 
-############### option so that "scons tarball" builds a tarball of source and data
+############### Helper functions
+def findCVS(basedir):
+	f = open(basedir + os.sep + 'CVS' + os.sep + 'Entries')
+	lines = f.readlines()
+	mydirs = []
+	myfiles = []
+	for l in lines:
+		if l.startswith('D/'):
+			l2 = l[2:]
+			i = l2.find('/')
+			if i != -1:
+				l3 = l2[0:i]
+				mydirs += [l3]
+		elif l.startswith('/'):
+			l2 = l[1:]
+			i = l2.find('/')
+			if i != -1:
+				l3 = l2[0:i]
+				myfiles += [basedir + os.sep + l3]
+	for d in mydirs:
+		nextdir = basedir + os.sep + d
+		if os.path.isdir(nextdir):
+			myfiles += findCVS(nextdir)
+	return myfiles
+
+############### option so that "scons tarball" builds a tarball of source
 # tar building works only on linux
 if ( build_dir == 'linux' ) or ( build_dir == 'freebsd' ):
 	basetarfilename = 'dangerdeep-' + version
 	os.system('rm -rf ' + basetarfilename)
 	os.system('ln -s . ' + basetarfilename)
+	allcvsfiles = findCVS('.')
 	filestopack = []
 	for i in allcvsfiles:
-		if not(i.endswith('.xcf')) and not(i.startswith('./data/xcf')):
+		if not(i.endswith('.xcf')) and not(i.startswith('./data/')):
 			if not(i.startswith('.' + os.sep + 'build')):
 				filestopack += [basetarfilename + os.sep + i]
 	env.Append(TARFLAGS = '-zh')
 	env.Append(TARSUFFIX = '.gz')
 	tgz = env.Tar(basetarfilename + '.tar.gz', filestopack)
 	env.Alias('tarball', tgz)
-
-#also env.Zip is possible...
-
-# fixme: maybe try env.MSVSProject(...) to create MS VS project files
 
 ############# eof

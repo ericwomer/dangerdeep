@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION=0.1.1 # fixme get from SConstruct
+VERSION=`cat version.txt`
 TMP=.tmp
 BASEDIR=dangerdeep-$VERSION
 rm -rf $TMP
