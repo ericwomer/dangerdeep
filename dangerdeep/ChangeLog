@@ -1,3 +1,1952 @@
+2006-10-10 23:08  thjordan
+
+	* version.txt: adapted build system to new way of packaging data
+
+2006-10-10 23:04  thjordan
+
+	* SConstruct, files.txt, makedatapackage.py, makedeb,
+	  makefilelist.py, makewinpack, debian/DEBIAN/control,
+	  src/SConscript, suse/dangerdeep.spec: adapted build system to new
+	  way of packaging data
+
+2006-10-10 21:26  thjordan
+
+	* files.txt, makefilelist.py: added comment; makefilelist builds
+	  data package as test
+
+2006-10-10 21:26  thjordan
+
+	* src/SConscript: added comment
+
+2006-10-10 20:35  thjordan
+
+	* src/: filehelper.cpp, filehelper.h, subsim.cpp: config directory,
+	  highscore directory and savegame directory can be set at runtime
+
+2006-10-10 19:54  thjordan
+
+	* src/: datadirs.cpp, datadirs.h, freeview_display.cpp,
+	  global_data.cpp, global_data.h, sea_object.cpp,
+	  ships_sunk_display.cpp, subsim.cpp, user_interface.cpp,
+	  water_splash.cpp: base data directory can be set at runtime
+
+2006-10-09 23:37  thjordan
+
+	* src/submarine.cpp: fix torpedo chooser, use types according to
+	  historic data
+
+2006-10-09 23:06  thjordan
+
+	* src/map_display.cpp: use CTRL + MMB instead of RMB to drag
+	  objects
+
+2006-10-09 18:42  thjordan
+
+	* src/oglext/RenderingContext.cpp: remove compile hack
+
+2006-10-08 23:30  thjordan
+
+	* files.txt, makedeb, debian/DEBIAN/control: update
+
+2006-10-08 23:27  thjordan
+
+	*
+	  data/objects/ships/corvettes/FlowerClass/flowercorvette_rn_camo2_color.png:
+	  remove obsolete file
+
+2006-10-08 22:26  thjordan
+
+	* src/: freeview_display.cpp, freeview_display.h, particle.cpp,
+	  particle.h: smoke and spray are colored by light color too
+
+2006-10-08 22:04  thjordan
+
+	* src/: freeview_display.cpp, water.cpp: improved upwelling color
+	  of water at night and sky color at night
+
+2006-10-08 19:05  thjordan
+
+	* SConstruct, src/model.cpp: use slash as file separator character
+	  always, no matter which platform. C/C++ standard wants it also
+	  that way.
+
+2006-10-08 19:04  thjordan
+
+	* src/oglext/: OglExt.cpp, RenderingContext.cpp,
+	  RenderingContext.hpp: compilation fixes for win32
+
+2006-10-08 14:38  thjordan
+
+	* src/: bspline.h, make_mesh.cpp, model.cpp, system.h: compilation
+	  fixes for win32
+
+2006-10-08 11:14  thjordan
+
+	* data/shaders/water_fp.shader, src/color.h, src/daysky.cpp,
+	  src/freeview_display.cpp, src/game.cpp, src/game.h, src/sky.cpp,
+	  src/user_interface.cpp, src/water.cpp, src/water.h: changes on
+	  water_fp shader for foam color; changes for water upwelling color
+	  (depending on light color now); night sky is dim blue
+
+2006-10-08 10:02  thjordan
+
+	* src/sub_kdb_display.cpp: remove testing printfs
+
+2006-10-07 23:28  thjordan
+
+	* src/: daysky.cpp, daysky.h, game.cpp: fixed bug causing NaN for
+	  sky color; remove silly const from argument definitions
+
+2006-10-07 12:04  thjordan
+
+	* src/: sky.cpp, subsim.cpp, daysky.cpp, freeview_display.cpp,
+	  game.cpp, game.h: improved sky color
+
+2006-10-07 12:03  thjordan
+
+	* src/: submarine_interface.cpp, user_interface.cpp,
+	  user_interface.h: added pause key to in-game main menu
+
+2006-10-07 12:02  thjordan
+
+	* src/oglext/RenderingContext.cpp: hack to make it compile on other
+	  systems...
+
+2006-10-07 11:59  thjordan
+
+	* data/texts/common.csv: added text for pause button
+
+2006-10-06 23:21  simsoueu
+
+	*
+	  data/objects/ships/freighters/fortship/can1941/fortship_v1_spec2.jpg:
+	  Added weathered skin specular file.
+
+2006-10-06 00:34  thjordan
+
+	* src/: sub_periscope_display.cpp, sub_uzo_display.cpp,
+	  user_interface.cpp, user_interface.h: fix triangle height display
+	  error
+
+2006-10-06 00:11  thjordan
+
+	* src/: sub_periscope_display.cpp, sub_uzo_display.cpp,
+	  user_interface.cpp, user_interface.h: show red triangle below
+	  target
+
+2006-10-05 23:11  thjordan
+
+	* data/texts/common.csv: new texts for new menues
+
+2006-10-05 22:57  thjordan
+
+	* src/: user_interface.cpp, user_interface.h, widget.cpp, widget.h:
+	  added widget checkbox with helper template class; use checkboxes
+	  in playlist
+
+2006-10-05 22:23  thjordan
+
+	* src/: sub_tdc_display.cpp, sub_tdc_display.h,
+	  submarine_interface.cpp, submarine_interface.h, system.h,
+	  user_interface.cpp, user_interface.h, widget.cpp: new context
+	  main menu; menues dragable with MMB now
+
+2006-10-05 20:55  thjordan
+
+	* src/: freeview_display.cpp, sub_bridge_display.cpp,
+	  sub_gauges_display.cpp, sub_periscope_display.cpp,
+	  sub_tdc_display.cpp, sub_torpsetup_display.cpp,
+	  sub_uzo_display.cpp, user_interface.cpp, user_interface.h: show
+	  message texts in every display screen
+
+2006-10-05 17:55  simsoueu
+
+	* data/objects/ships/freighters/fortship/can1943/:
+	  fortship1943.data, fortship1943.ddxml, fortship_v2_camo2.jpg,
+	  fortship_v2_camo3.jpg, fortship_v2_camo4.jpg: Updated ddxml+data
+	  for new skins. Mid-war north-atlantic/western
+	  approaches/norwegian sea skins.
+
+2006-10-05 17:51  simsoueu
+
+	* data/objects/ships/freighters/fortship/can1941/:
+	  fortship1941.data, fortship1941.ddxml, fortship_v1_camo2.jpg,
+	  fortship_v1_camo3.jpg, fortship_v1_camo4.jpg,
+	  fortship_v1_camo5.jpg: Updated ddxml+data for new skins. Added
+	  new skins, for atlantic, british india steam, us service early
+	  war, battered north atlantic canadian.
+
+2006-10-05 17:44  simsoueu
+
+	*
+	  data/objects/ships/freighters/fortship/nolisciv/fortship_nolisciv_camo2.jpg:
+	  Updated American Export Lines, for correct logo in smokestack and
+	  correct lettering.
+
+2006-10-05 00:20  thjordan
+
+	* src/: submarine_interface.cpp, submarine_interface.h,
+	  user_interface.cpp, user_interface.h: in-game playlist
+	  implemented
+
+2006-10-05 00:10  thjordan
+
+	* data/texts/common.csv: new texts for music playlist
+
+2006-10-04 23:30  thjordan
+
+	* src/: music.cpp, music.h, submarine_interface.cpp, subsim.cpp,
+	  user_interface.cpp, user_interface.h, widget.cpp, widget.h: new
+	  widget functions; first parts of in-game playlist
+
+2006-10-04 20:08  thjordan
+
+	* src/: xml.cpp, oglext/CHANGELOG, oglext/Macros.h,
+	  oglext/OglExt.cpp, oglext/OglExt.h, oglext/RCHashArray.hpp,
+	  oglext/RenderingContext.cpp, oglext/RenderingContext.hpp,
+	  oglext/glext.h, tinyxml/changes.txt, tinyxml/readme.txt,
+	  tinyxml/tinyxml.cpp, tinyxml/tinyxml.h, tinyxml/tinyxmlerror.cpp,
+	  tinyxml/tinyxmlparser.cpp: new versions of oglext and tinyxml
+	  included, with adaptions to new tinyxml library
+
+2006-10-03 23:11  thjordan
+
+	* src/: daysky.cpp, daysky.h, sky.cpp: sky color patches
+
+2006-10-03 23:03  thjordan
+
+	* src/credits.h: fix utf8 characters
+
+2006-10-03 22:36  thjordan
+
+	* src/: credits.h, global_data.cpp, image.h, objcache.h,
+	  subsim.cpp: clean up data before leaving
+
+2006-10-03 22:14  thjordan
+
+	* files.txt: updated
+
+2006-10-03 20:20  thjordan
+
+	* src/: game.cpp, image.cpp, subsim.cpp, texture.cpp, xml.cpp,
+	  xml.h: fixed memory leak
+
+2006-10-03 18:21  thjordan
+
+	* src/: credits.h, global_data.cpp, image.cpp, image.h, music.cpp,
+	  music.h, ptrvector.h, sea_object.cpp, sea_object.h, sound.cpp,
+	  sound.h, submarine_interface.cpp, subsim.cpp, system.cpp,
+	  system.h, texture.cpp, user_interface.cpp, user_interface.h,
+	  water.cpp: new ptrvector container to avoid memory leaks; new
+	  music class and playlist manager
+
+2006-10-03 11:53  thjordan
+
+	* data/sounds/: Auf_Feindfahrt.ogg,
+	  Auf_Feindfahrt_environmental.ogg, Auf_Feindfahrt_fast.ogg,
+	  outside_underwater.ogg, theme.ogg: added new music from Martin
+
+2006-10-03 11:27  thjordan
+
+	* data/textures/splashring.png, src/particle.cpp, src/particle.h,
+	  src/water_splash.cpp, src/water_splash.h: changed water splash
+	  appearance
+
+2006-10-02 17:39  thjordan
+
+	* src/submarine_interface.cpp: added comment about second menu
+
+2006-10-02 17:08  thjordan
+
+	* src/user_interface.cpp: screen selector menu also moveable when
+	  using left mouse button and clicking on title bar
+
+2006-10-02 16:43  thjordan
+
+	* src/submarine_interface.cpp: added comment
+
+2006-10-02 13:32  thjordan
+
+	* data/texts/common.csv, src/submarine_interface.cpp,
+	  src/submarine_interface.h, src/user_interface.cpp: context menu
+	  finished - you can select screens by context menu, and even drag
+	  that menu around the screen
+
+2006-10-01 23:24  simsoueu
+
+	* data/objects/ships/freighters/liberty/1943/:
+	  libertyship1943.data, libertyship1943.ddxml,
+	  lship_1943_camo4.jpg: Updated v1943 liberty ship for late 1943
+	  northern skin + data file.
+
+2006-10-01 20:15  simsoueu
+
+	* data/objects/torpedoes/: Fido/Fido.data, TI/FaTI/TI_FaTI.data,
+	  TI/LuTI/TI_LuTI.data, TI/LuTII/TI_LuTII.data,
+	  TI/standard/TI.data, TII/TII.data, TIII/FaTII/TIII_FaTII.data,
+	  TIII/a_FaTII/TIIIa_FaTII.data, TIII/a_LuTI/TIIIa_LuTI.data,
+	  TIII/a_LuTII/TIIIa_LuTII.data, TIII/standard/TIII.data,
+	  TIV/TIV.data, TV/b/TVb.data, TV/standard/TV.data,
+	  TVI/LuTI/TVI_LuTI.data, TXI/TXI.data: Updated torpedo data files,
+	  to enable use of new G7a/G7e torpedo models, consistent with spec
+	  files.
+
+2006-10-01 20:14  simsoueu
+
+	* data/textures/: g7a_torpedo_color.jpg, g7e_torpedo_color.jpg:
+	  Added new G7a/G7e torpedo model textures.
+
+2006-10-01 20:12  simsoueu
+
+	* data/models/: g7a_torpedo.cs, g7a_torpedo.ddxml, g7e_torpedo.cs,
+	  g7e_torpedo.ddxml: Added new G7a/G7e torpedo models.
+
+2006-10-01 20:11  simsoueu
+
+	* data/models/torpedo_g7.3ds: Deleted old torpedo model.
+
+2006-10-01 18:52  thjordan
+
+	* src/: sub_tdc_display.cpp, submarine_interface.cpp,
+	  user_interface.cpp, user_interface.h: experimental context menu
+	  added
+
+2006-10-01 18:21  thjordan
+
+	* src/: freeview_display.cpp, sky.cpp: fog patches by matt
+
+2006-09-30 20:49  thjordan
+
+	* src/convoy.cpp: easier generation in convoy.cpp with
+	  probabilities
+
+2006-09-30 18:20  simsoueu
+
+	* data/objects/ships/freighters/liberty/1943/:
+	  libertyship1943.data, libertyship1943.ddxml,
+	  lship_1943_camo3.jpg: Updated ddxml+data file, added skin for
+	  northern scenario.
+
+2006-09-30 12:09  thjordan
+
+	* src/freeview_display.cpp: do not render foam for torpedoes as
+	  quick and dirty solution to the foam torpedo rendering problem
+
+2006-09-30 12:08  thjordan
+
+	* src/water.cpp: uncommented test variable
+
+2006-09-30 12:00  thjordan
+
+	* src/subsim.cpp: redisplay model when skin changed
+
+2006-09-30 11:59  thjordan
+
+	* data/textures/widgetelements_game.png,
+	  data/textures/widgetelements_grey.png,
+	  data/textures/widgetelements_menu.png, src/widget.cpp,
+	  src/widget.h: themes now have extra colors for scrollbars
+
+2006-09-30 05:50  simsoueu
+
+	* data/objects/ships/freighters/liberty/1943/:
+	  libertyship1943.data, libertyship1943.ddxml,
+	  lship_1943_camo2.jpg, lship_1943_spec2.jpg: Updated data+ddxml
+	  for new skins. Added skin for sea battered liberty ship.
+
+2006-09-30 05:47  simsoueu
+
+	* data/objects/ships/freighters/fortship/nolisciv/:
+	  fortship_nolisciv_camo2.jpg, fortship_nolisciv_camo3.jpg,
+	  fortshipciv.ddxml: Updated data+ddxml for skins. Added civilian
+	  skins, for american coastal area, and caribbean sea.
+
+2006-09-29 20:01  thjordan
+
+	* files.txt: updated
+
+2006-09-29 19:50  thjordan
+
+	* SConstruct: use right order of arguments for pkg-config
+
+2006-09-29 05:03  simsoueu
+
+	* data/objects/ships/freighters/liberty/1941/:
+	  libertyship1941.data, libertyship1941.ddxml,
+	  lship_1941_camo2.jpg, lship_1941_camo3.jpg: Updated ddxml+data
+	  files for skins. New early war skins added.
+
+2006-09-28 22:33  thjordan
+
+	* src/: airplane.h, depth_charge.cpp, gun_shell.cpp,
+	  sea_object.cpp, sea_object.h, ship.h, torpedo.h,
+	  water_splash.cpp: use saner way of avoiding detection of other
+	  objects for trivial types (shells, DCs, splashes, torpedoes, ...)
+
+2006-09-28 22:06  simsoueu
+
+	* data/textures/splashring.png: Updated splash files.
+
+2006-09-28 21:19  thjordan
+
+	* src/sea_object.cpp: fix bug where ships started to "flicker"
+	  after being hit - they were redetected every second but removed
+	  on the next frame from visibility list
+
+2006-09-28 21:12  thjordan
+
+	* src/: depth_charge.cpp, gun_shell.cpp, torpedo.cpp,
+	  water_splash.cpp: fixed severe bug, do not call object detection
+	  for simple sea_objects (shells, depth charges, torpedoes, water
+	  splashes) or the game segfaults when ships are removed.
+
+2006-09-28 20:45  thjordan
+
+	* src/: bspline.h, bspline_test.cpp, freeview_display.cpp,
+	  game.cpp, water_splash.cpp, water_splash.h: use different shaped
+	  water splashes for torpedoes, gun_shells and depth charges
+
+2006-09-28 01:14  simsoueu
+
+	* SConstruct: Updated SConstruct for architecture independent build
+	  +xorg6/7/7.1.
+
+2006-09-27 23:42  thjordan
+
+	* src/freeview_display.cpp: new depth mask handling for overlapping
+	  alpha objects
+
+2006-09-27 23:28  thjordan
+
+	* src/freeview_display.cpp: water splashes are depth sorted by
+	  distance to player so alpha rendering works
+
+2006-09-27 22:52  thjordan
+
+	* src/: freeview_display.cpp, game.cpp, game.h, water_splash.cpp,
+	  water_splash.h: use new water splash class for water splashes,
+	  crude hack in many places
+
+2006-09-26 23:34  thjordan
+
+	* src/: water_splash.cpp, water_splash.h: different rise/fall shape
+
+2006-09-26 23:04  thjordan
+
+	* src/: SConscript, bspline.h, bspline_test.cpp,
+	  freeview_display.cpp, water_splash.cpp, water_splash.h: added
+	  water splashes (currently only test hack) and bspline test
+
+2006-09-26 21:58  simsoueu
+
+	* data/objects/ships/corvettes/FlowerClass/:
+	  FlowerCorvette_RN.data, FlowerCorvette_RN.ddxml,
+	  flowercorvette_rnavy_bump2.jpg, flowercorvette_rnavy_camo3.jpg,
+	  flowercorvette_rnavy_camo5.jpg, flowercorvette_rnavy_spec2.jpg:
+	  Updated camo3 skin for small error (no K111), new K540 skin, and
+	  alternative spec+bump skins + updated data+ddxml files
+	  respectively.
+
+2006-09-26 03:38  simsoueu
+
+	* data/objects/ships/corvettes/FlowerClass/:
+	  FlowerCorvette_RN.data, FlowerCorvette_RN.ddxml,
+	  flowercorvette_rnavy_camo4.jpg: Updated primary Flower class
+	  corvette model ddxml, and data files, and added new skin
+	  (Canadian Navy, 1944/45 colors).
+
+2006-09-26 00:06  thjordan
+
+	* src/: freeview_display.cpp, game.h: test render added
+
+2006-09-25 23:31  simsoueu
+
+	* data/objects/ships/corvettes/flowercorvette_hcn/:
+	  flowercorvette_hcn.data, flowercorvette_hcn.ddxml,
+	  flowercorvette_hcn_camo3.jpg, flowercorvette_hcn_camo4.jpg: New
+	  skins for model 2 Flower class corvette, and updated ddxml+data
+	  files.
+
+2006-09-25 23:29  simsoueu
+
+	* data/objects/ships/corvettes/flowercorvette_hrcn/:
+	  flowercorvette_hrcn.data, flowercorvette_hrcn.ddxml,
+	  flowercorvette_hrcn_camo1.jpg, flowercorvette_hrcn_camo2.jpg: New
+	  skins for model2 Flower class corvette. Updated ddxml+data file.
+
+2006-09-25 22:57  thjordan
+
+	* SConstruct, files.txt: optimize loop
+
+2006-09-25 22:52  thjordan
+
+	* src/SConscript: fix scons warnings
+
+2006-09-24 11:15  thjordan
+
+	* data/textures/splash.png, data/textures/splashring.png,
+	  data/textures/torpedo_expl_water_splash.png,
+	  data/textures/torpedo_expl_water_splash_1.png,
+	  data/textures/torpedo_expl_water_splash_2.png, src/particle.cpp:
+	  new water splash images
+
+2006-09-23 22:53  thjordan
+
+	* src/: ai.cpp, airplane_interface.cpp, cfg.h, coastmap.h,
+	  convoy.cpp, date.cpp, freeview_display.h, game.cpp, game.h,
+	  game_editor.cpp, highscorelist.cpp, highscorelist.h, logbook.h,
+	  map_display.cpp, network.cpp, network.h, ocean_wave_generator.h,
+	  parser.cpp, parser.h, particle.cpp, ship.cpp, sky.cpp,
+	  sonar_operator.cpp, sub_damage_display.h, sub_gauges_display.h,
+	  sub_periscope_display.h, sub_tdc_display.cpp,
+	  sub_torpedo_display.h, sub_torpsetup_display.h, submarine.cpp,
+	  torpedo.cpp, user_interface.h, water.cpp, widget.cpp, xml.cpp:
+	  more cleanups of the namespace pollution
+
+2006-09-23 22:28  simsoueu
+
+	* data/objects/ships/corvettes/flowercorvette_hrcn/:
+	  flowercorvette_hrcn.cs, flowercorvette_hrcn.data,
+	  flowercorvette_hrcn.ddxml, flowercorvette_hrcn_bump.jpg,
+	  flowercorvette_hrcn_color.jpg, flowercorvette_hrcn_spec.jpg:
+	  Added early Canadian Navy version of Flower class corvette (used
+	  by Royal Navy too).
+
+2006-09-23 22:25  simsoueu
+
+	* data/objects/ships/corvettes/flowercorvette_hcn/:
+	  flowercorvette_hcn.cs, flowercorvette_hcn.data,
+	  flowercorvette_hcn.ddxml, flowercorvette_hcn_bump.jpg,
+	  flowercorvette_hcn_camo2.jpg, flowercorvette_hcn_color.jpg,
+	  flowercorvette_hcn_spec.jpg: Added early variant of Flower class
+	  corvette, GB+CAN navies, with skins for atlantic+western
+	  approaches.
+
+2006-09-23 22:22  simsoueu
+
+	* data/objects/ships/corvettes/FlowerClass/FlowerCorvette_RN.data:
+	  Updated data file for RN Flower Corvette.
+
+2006-09-23 13:51  thjordan
+
+	* src/: airplane_interface.h, ship_interface.h,
+	  submarine_interface.h: remove more silly using directives
+
+2006-09-23 13:42  thjordan
+
+	* src/: ai.h, airplane.cpp, airplane.h, airplane_interface.cpp,
+	  binstream.h, bspline.h, cfg.cpp, cfg.h, convoy.cpp,
+	  damagemodel.cpp, date.cpp, date.h, filehelper.cpp, filehelper.h,
+	  global_data.cpp, global_data.h, gun_shell.h, logbook.h,
+	  make_mesh.cpp, make_mesh.h, matrix4.h, model.cpp, model.h,
+	  network.cpp, network.h, objcache.h, parser.cpp, parser.h,
+	  particle.cpp, particle.h, quaternion.h, ship.cpp, ship.h,
+	  sky.cpp, sky.h, sound.cpp, sound.h, submarine.cpp, submarine.h,
+	  submarine_interface.cpp, system.cpp, token.h, tokenizer.cpp,
+	  tokenizer.h, triangulate.cpp, triangulate.h, water.cpp, water.h,
+	  widget.cpp, widget.h, xml.cpp: fixed namespace issues and
+	  deprecated c++ syntax
+
+2006-09-21 08:40  thjordan
+
+	* doc/: sonar.pdf, sonar.tex: added even more new thoughts
+
+2006-09-20 23:03  thjordan
+
+	* doc/: sonar.pdf, sonar.tex: added some new thoughts
+
+2006-09-20 22:14  thjordan
+
+	* src/: font.cpp, font.h, widget.cpp: finally fixed Unicode 16bit
+	  <-> Utf8 support
+
+2006-09-18 23:48  thjordan
+
+	* files.txt, data/textures/widgetelements_menu.png, src/subsim.cpp:
+	  changed menu theme slightly
+
+2006-09-18 23:48  thjordan
+
+	* src/: sea_object.h, todo.txt: added/updated comments
+
+2006-09-18 23:48  thjordan
+
+	* src/: font.cpp, font.h, widget.cpp, widget.h: improved support
+	  for utf-8
+
+2006-09-17 15:23  thjordan
+
+	* src/widget.cpp: remove accidentally leftover comment
+
+2006-09-17 15:23  thjordan
+
+	* src/: font.cpp, widget.cpp, widget.h: fixed multibyte input (UTF8
+	  support) for widget_edit
+
+2006-09-17 12:09  thjordan
+
+	* src/moon.cpp: moon texture mode set from repeat to clamp to avoid
+	  tiny graphical bug
+
+2006-09-16 16:37  simsoueu
+
+	* src/sky.cpp: Decreased number of visible stars from 2000 to 500,
+	  much more realistic.
+
+2006-09-16 15:57  simsoueu
+
+	* CREDITS: Updated credits to include Matt Lawrence's patches.
+
+2006-09-16 15:49  simsoueu
+
+	* src/sky.cpp: Submitted Matt Lawrence's patch, for correct moon
+	  bitmap blend modes, day time + night time.
+
+2006-09-15 21:49  simsoueu
+
+	* data/objects/submarines/VIIc/: submarine_VIIc.data,
+	  type7c_camo10.jpg, type7c_camo11.jpg, type7c_camo1_color.jpg,
+	  type7c_camo2.jpg, type7c_camo3.jpg, type7c_camo4.jpg,
+	  type7c_camo5.jpg, type7c_camo6.jpg, type7c_camo7.jpg,
+	  type7c_camo8.jpg, type7c_camo9.jpg, type7c_camog_bump.jpg,
+	  type7c_camog_spec.jpg, uboat_VIIc.ddxml: New type VIIC skins, new
+	  default skin.
+
+2006-09-15 21:45  simsoueu
+
+	* data/objects/submarines/VIIc/: cam1940b.jpg, cam1940c.jpg,
+	  cam1940s.jpg: old texture files made obsolete by new skins.
+
+2006-09-14 22:23  simsoueu
+
+	* doc/regioncodes.txt: Codes for skin's data files, areas and
+	  country codes.
+
+2006-09-14 22:05  thjordan
+
+	* files.txt: update
+
+2006-09-14 22:00  thjordan
+
+	* src/crosssection.cpp: can give any modelfilename; adapt to new
+	  model class with skin support
+
+2006-09-14 21:59  thjordan
+
+	* data/objects/ships/tankers/kennebac/tanker_kennebak.cs: new data
+
+2006-09-14 21:53  simsoueu
+
+	* data/objects/ships/tankers/kennebac/: kennebak_bump.jpg,
+	  kennebak_camo2.jpg, kennebak_camo3.jpg, kennebak_spec.jpg,
+	  kennebak_usnavy_color.jpg, tanker_kennebak.data,
+	  tanker_kennebak.ddxml: Updated Kennebak Tanker, reduced poly
+	  count, new main skin, 2 new skins, updated ddxml to 1.1 and data
+	  files.
+
+2006-09-14 21:47  thjordan
+
+	* data/objects/ships/tankers/kennebac/: mtanker_bump.png,
+	  mtanker_c1.png, mtanker_c2.png, mtanker_camo2.png,
+	  mtanker_spec.png: remove obsolete data
+
+2006-09-14 09:00  thjordan
+
+	* data/textures/foamamounttrail.png: improved foam trail texture
+
+2006-09-14 08:54  thjordan
+
+	* src/: map_display.cpp, ship.cpp, ship.h, water.cpp: foam trail
+	  now starts at bow, looking much more realistic
+
+2006-09-14 00:07  thjordan
+
+	* src/: game.cpp, game_editor.cpp, map_display.cpp, ship.cpp,
+	  ship.h, vector4.h, water.cpp: fixed trail rendering, improved
+	  quality of it
+
+2006-09-13 08:34  thjordan
+
+	* data/missions/flowertest.xml, src/ship.cpp, src/water.cpp:
+	  research on foam trail bug, quick fix for flowerclass test
+	  mission
+
+2006-09-08 21:17  thjordan
+
+	* src/: model.h, torpedo.cpp: bugfix: set skin layout for torpedoes
+	  or the game will crash when the first torpedo is fired and
+	  displayed
+
+2006-09-07 23:15  thjordan
+
+	* src/: model.cpp, water.cpp: added comments about compiled vertex
+	  arrays and vertex buffer objects.
+
+2006-09-06 21:12  thjordan
+
+	* src/: convoy.cpp, datadirs.cpp, depth_charge.cpp, depth_charge.h,
+	  game.cpp, game_editor.cpp, global_data.cpp, global_data.h,
+	  gun_shell.cpp, map_display.cpp, model.cpp, model.h,
+	  sea_object.cpp, sea_object.h, submarine.cpp: better handling of
+	  skin names, removed obsolete global data, bugfixes
+
+2006-09-06 09:41  thjordan
+
+	* data/objects/ships/corvettes/FlowerClass/FlowerCorvette_RN.data,
+	  src/datadirs.cpp, src/sea_object.cpp: fixed date handling in skin
+	  support
+
+2006-09-06 00:26  thjordan
+
+	* data/missions/flowertest.xml: added skin support to savegames and
+	  sea_object spec files
+
+2006-09-06 00:22  thjordan
+
+	* src/: date.cpp, date.h, global_data.cpp, global_data.h,
+	  objcache.h, sea_object.cpp, sea_object.h: added skin support to
+	  savegames and sea_object spec files
+
+2006-09-06 00:15  thjordan
+
+	* data/missions/flowertest.xml: added test mission
+
+2006-09-05 22:52  thjordan
+
+	* data/objects/ships/corvettes/FlowerClass/FlowerCorvette_RN.data:
+	  added skin data
+
+2006-09-05 21:42  thjordan
+
+	* src/model.cpp: removed obsolete comments
+
+2006-09-05 04:26  apaes
+
+	* src/credits.h: Added credit to ACM for his FreeBSD ports.
+
+2006-09-03 23:07  thjordan
+
+	* data/shaders/modelrender_vp.shader: added comment as reminder for
+	  newer shaders
+
+2006-09-02 18:22  thjordan
+
+	* src/datadirs.cpp: no real change
+
+2006-09-02 18:06  thjordan
+
+	* data/objects/ships/corvettes/FlowerClass/FlowerCorvette_RN.data:
+	  name of data files and id of objects must be identical
+
+2006-09-02 15:05  thjordan
+
+	* src/: datadirs.cpp, model.cpp, model.h, subsim.cpp: fixed
+	  texture/skin handling and display
+
+2006-09-01 21:55  thjordan
+
+	* src/: model.cpp, model.h: quick fix hack to correct normal
+	  generation, as interim solution until model class is fixed fully
+
+2006-08-31 22:43  thjordan
+
+	* data/objects/ships/corvettes/FlowerClass/FlowerCorvette_RN.ddxml,
+	  data/texts/common.csv, src/global_data.cpp, src/model.cpp,
+	  src/model.h, src/sea_object.cpp, src/subsim.cpp,
+	  src/viewmodel.cpp, src/widget.h: more about skin support;
+	  basically working with some hacks in code (not in main game);
+	  vessel preview has skin switch
+
+2006-08-29 22:55  thjordan
+
+	* src/: model.cpp, model.h, viewmodel.cpp: skin support in model
+	  class basically added
+
+2006-08-29 21:14  simsoueu
+
+	* data/objects/props/bunker_lorient/: bunker_lorient.cs,
+	  bunker_lorient.xml, bunker_lorient_bump.jpg,
+	  bunker_lorient_color.jpg: Props dir to objects, for props
+	  (scenario related stuff). Lorient bunker/uboat pen added, no
+	  specular map, no data file yet, internal rev.1.0.
+
+2006-08-28 23:07  thjordan
+
+	* src/: model.cpp, model.h, viewmodel.cpp: more bits about skins,
+	  xml tag parsing started
+
+2006-08-24 23:39  thjordan
+
+	* data/objects/ships/corvettes/FlowerClass/FlowerCorvette_RN.ddxml,
+	  doc/skins.txt, src/model.cpp, src/model.h: some first
+	  experimental changes for model skin support
+
+2006-08-24 22:40  thjordan
+
+	* src/filehelper.cpp: forgot include
+
+2006-08-23 18:25  simsoueu
+
+	* data/maps/: Region_and_Navy_codes.txt,
+	  default_map_colorcoded_indexed.png, default_mapcoded.xcfbz2:
+	  Default map, color coded, indexed. Isolated layers + region codes
+	  in xcfbz2. Region|navy codes in txt file. Indexed png at 22
+	  colors (nr of visible regions+terrain(white)).
+
+2006-08-23 03:39  simsoueu
+
+	* doc/: dftd_torpedo_reference_rev.1.0.djvu,
+	  dftd_torpedo_reference_rev.1.0.pdf: Dftd complete torpedo
+	  reference, internal rev.1.0. Scribus SLA file available for
+	  editing.
+
+2006-08-23 00:04  thjordan
+
+	* src/filehelper.cpp: slight text change
+
+2006-08-23 00:00  thjordan
+
+	* src/: filehelper.cpp, model.cpp, model.h: more error checks;
+	  added some comments
+
+2006-08-21 05:51  simsoueu
+
+	* data/objects/ships/corvettes/FlowerClass/:
+	  flowercorvette_rnavy_camo2.jpg, flowercorvette_rnavy_camo3.jpg:
+	  Flower corvette, Royal Navy, 1942, North Atlantic (skin3), jpg, +
+	  camo2 (1943, RN, NA), in jpg format (previous was png).
+
+2006-08-20 21:27  simsoueu
+
+	*
+	  data/objects/ships/corvettes/FlowerClass/flowercorvette_rn_camo2_color.png:
+	  Alternate camouflage scheme, for Flower Corvette, Royal Navy,
+	  North Atlantic, 1943 (skin2).
+
+2006-08-19 19:15  simsoueu
+
+	* data/objects/ships/corvettes/FlowerClass/:
+	  FlowerCorvette_RN.ddxml, FlowerCorvette_RN_1942_WA_color.jpg:
+	  Updated Flower corvette models, trying to get rid of nasty
+	  stressed normals.
+
+2006-08-17 22:34  simsoueu
+
+	* data/objects/ships/corvettes/FlowerClass/FlowerCorvette_RN.data:
+	  Missing correct smoke entries
+
+2006-08-17 22:28  simsoueu
+
+	* data/objects/ships/corvettes/FlowerClass/: FlowerCorvette_RN.cs,
+	  FlowerCorvette_RN.data, FlowerCorvette_RN.ddxml,
+	  FlowerCorvette_RN_1942_WA_bump.jpg,
+	  FlowerCorvette_RN_1942_WA_color.jpg,
+	  FlowerCorvette_RN_1942_WA_spec.jpg: Flower class corvette, Royal
+	  Navy, 1942 variant, Western Approaches camouflage, internal
+	  rev.1.1. Check stressed normals on balcony.
+
+2006-08-12 15:52  thjordan
+
+	* src/convoy.cpp: fixed custom mission generation with new data
+	  format
+
+2006-08-12 15:32  thjordan
+
+	* src/sonar_operator.cpp: fixed compilation bug with optimization
+	  levels below -O2
+
+2006-08-12 11:46  thjordan
+
+	* data/images/compass_outer_masked.png,
+	  data/images/daylight_controlscreen_pointers.png,
+	  data/images/daylight_typevii_controlscreen_background.jpg,
+	  data/images/redlight_controlscreen_pointers.png,
+	  data/images/redlight_typevii_controlscreen_background.jpg,
+	  data/texts/common.csv, src/keys.cpp, src/keys.h, src/parser.cpp,
+	  src/ship.cpp, src/ship.h, src/sub_gauges_display.cpp,
+	  src/sub_gauges_display.h, src/sub_torpsetup_display.cpp,
+	  src/submarine.cpp, src/submarine_interface.cpp, src/subsim.cpp,
+	  src/tokencodes.h: new throttle steps and keys; new controlscreen
+
+2006-07-27 20:32  simsoueu
+
+	* CREDITS: Updated credits for Dangerdeep Manual+translations.
+
+2006-07-27 20:29  simsoueu
+
+	* manual/Dangerdeep_Manual_-_Polish.pdf: Dangerdeep manual, Polish
+	  translation, by Nemessica and Marc Roisé.
+
+2006-07-20 08:44  thjordan
+
+	* SConstruct: remove silly double defines
+
+2006-07-19 20:31  thjordan
+
+	* src/: ocean_wave_generator.h, oceantest.cpp: did some tests with
+	  ocean generator, no changes for the game itself
+
+2006-07-18 22:11  thjordan
+
+	* data/: missions/aegeanconvoy.xml, missions/convoybattle.xml,
+	  missions/singleship.xml,
+	  objects/airplanes/heinkel115b1/heinkel115b1.data,
+	  objects/ships/battleships/malaya/battleship_malaya.data,
+	  objects/ships/carriers/bogue/carrier_bogue.data,
+	  objects/ships/corvettes/british/corvette.data,
+	  objects/ships/destroyers/oclass/destroyer_oclass.data,
+	  objects/ships/destroyers/tribal/destroyer_tribal.data,
+	  objects/ships/freighters/fortship/can1941/fortship1941.data,
+	  objects/ships/freighters/fortship/can1943/fortship1943.data,
+	  objects/ships/freighters/fortship/nolisciv/fortshipciv.data,
+	  objects/ships/freighters/large/freighter_large.data,
+	  objects/ships/freighters/liberty/1941/libertyship1941.data,
+	  objects/ships/freighters/liberty/1942/libertyship1942.data,
+	  objects/ships/freighters/liberty/1943/libertyship1943.data,
+	  objects/ships/freighters/medium/freighter_medium.data,
+	  objects/ships/freighters/northsands/northsands_camship.data,
+	  objects/ships/merchants/large/merchant_large.data,
+	  objects/ships/merchants/medium/merchant_medium.data,
+	  objects/ships/merchants/small/merchant_small.data,
+	  objects/ships/tankers/kennebac/tanker_kennebak.data,
+	  objects/ships/tankers/small/tanker_small.data,
+	  objects/ships/troopships/british/troopship_medium.data,
+	  objects/submarines/IXc40/submarine_IXc40.data,
+	  objects/submarines/VIIc/submarine_VIIc.data,
+	  objects/submarines/XXI/submarine_XXI.data: added italian
+	  translations to data files and missions
+
+2006-07-17 19:20  thjordan
+
+	* data/: airplanes/heinkel115b1_data.xml, airplanes/noname.xml,
+	  ships/battleship_malaya.xml, ships/carrier_bogue.xml,
+	  ships/corvette.xml, ships/destroyer_oclass.xml,
+	  ships/destroyer_tribal.xml, ships/fortship_can1941_data.xml,
+	  ships/fortship_can1943_data.xml,
+	  ships/fortship_nolisciv_data.xml, ships/freighter_large.xml,
+	  ships/freighter_medium.xml, ships/libertyship_1941_data.xml,
+	  ships/libertyship_1942_data.xml, ships/libertyship_1943_data.xml,
+	  ships/merchant_large.xml, ships/merchant_medium.xml,
+	  ships/merchant_small.xml, ships/northsands_camship_data.xml,
+	  ships/tanker_medium.xml, ships/tanker_small.xml,
+	  ships/troopship_medium.xml, submarines/submarine_IXc40.xml,
+	  submarines/submarine_VIIc.xml, submarines/submarine_XXI.xml:
+	  removed old data files
+
+2006-07-16 15:40  thjordan
+
+	* src/: datadirs.cpp, model.cpp: bugfixes to make the code work
+	  again with the new data file structure
+
+2006-07-16 15:26  thjordan
+
+	* data/models/battleship_malaya.3ds,
+	  data/models/battleship_malaya.cs, data/models/carrier_bogue.3ds,
+	  data/models/carrier_bogue.cs, data/models/corvette.3ds,
+	  data/models/corvette.cs, data/models/destroyer_oclass.3ds,
+	  data/models/destroyer_oclass.cs, data/models/destroyer_tribal.cs,
+	  data/models/destroyer_tribal.xml,
+	  data/models/fortship_can1941_model.cs,
+	  data/models/fortship_can1941_model.xml,
+	  data/models/fortship_can1943_model.cs,
+	  data/models/fortship_can1943_model.xml,
+	  data/models/fortship_nolisciv_model.cs,
+	  data/models/fortship_nolisciv_model.xml,
+	  data/models/heinkel115b1_model.cs,
+	  data/models/heinkel115b1_model.xml,
+	  data/models/large_freighter.3ds, data/models/large_freighter.cs,
+	  data/models/large_merchant.3ds, data/models/large_merchant.cs,
+	  data/models/libertyship_1941_model.cs,
+	  data/models/libertyship_1941_model.xml,
+	  data/models/libertyship_1942_model.cs,
+	  data/models/libertyship_1942_model.xml,
+	  data/models/libertyship_1943_model.cs,
+	  data/models/libertyship_1943_model.xml,
+	  data/models/medium_freighter.cs,
+	  data/models/medium_freighter.xml,
+	  data/models/medium_merchant.3ds, data/models/medium_merchant.cs,
+	  data/models/medium_tanker.cs, data/models/medium_tanker.xml,
+	  data/models/medium_troopship.3ds,
+	  data/models/medium_troopship.cs,
+	  data/models/northsands_camship_model.cs,
+	  data/models/northsands_camship_model.xml,
+	  data/models/small_merchant.3ds, data/models/small_merchant.cs,
+	  data/models/small_tanker.3ds, data/models/small_tanker.cs,
+	  data/models/submarine_IXc40.3ds, data/models/submarine_IXc40.cs,
+	  data/models/submarine_VIIc.cs, data/models/submarine_XXI.3ds,
+	  data/models/submarine_XXI.cs, data/models/uboat_VIIc.cs,
+	  data/models/uboat_VIIc.xml,
+	  data/objects/airplanes/heinkel115b1/heinkel115b1.data,
+	  data/objects/ships/destroyers/tribal/destroyer_tribal.data,
+	  data/objects/ships/freighters/fortship/can1941/fortship1941.data,
+	  data/objects/ships/freighters/fortship/can1943/fortship1943.data,
+	  data/objects/ships/freighters/fortship/nolisciv/fortshipciv.data,
+	  data/objects/ships/freighters/liberty/1941/libertyship1941.data,
+	  data/objects/ships/freighters/liberty/1942/libertyship1942.data,
+	  data/objects/ships/freighters/liberty/1943/libertyship1943.data,
+	  data/objects/ships/freighters/medium/freighter_medium.data,
+	  data/objects/ships/freighters/northsands/northsands_camship.data,
+	  data/objects/ships/tankers/kennebac/tanker_kennebak.data,
+	  data/objects/submarines/VIIc/submarine_VIIc.data,
+	  data/textures/bogue.png, data/textures/cam1940b.jpg,
+	  data/textures/cam1940c.jpg, data/textures/cam1940s.jpg,
+	  data/textures/corvette.png,
+	  data/textures/fortship_can1941_bump.jpg,
+	  data/textures/fortship_can1941_color.jpg,
+	  data/textures/fortship_can1941_spec.jpg,
+	  data/textures/fortship_can1943_bump.jpg,
+	  data/textures/fortship_can1943_diffuse.jpg,
+	  data/textures/fortship_can1943_spec.jpg,
+	  data/textures/fortship_nolisciv_bump.jpg,
+	  data/textures/fortship_nolisciv_color.jpg,
+	  data/textures/fortship_nolisciv_spec.jpg,
+	  data/textures/heinkel115b1_bump.jpg,
+	  data/textures/heinkel115b1_diffuse.jpg,
+	  data/textures/heinkel115b1_spec.jpg, data/textures/lgfreigh.png,
+	  data/textures/lgmercha.png, data/textures/lship_1941_bump.jpg,
+	  data/textures/lship_1941_diffuse.jpg,
+	  data/textures/lship_1941_spec.jpg,
+	  data/textures/lship_1942_bump.jpg,
+	  data/textures/lship_1942_diffuse.jpg,
+	  data/textures/lship_1942_spec.jpg,
+	  data/textures/lship_1943_bump.jpg,
+	  data/textures/lship_1943_diffuse.jpg,
+	  data/textures/lship_1943_spec.jpg, data/textures/malaya.png,
+	  data/textures/mdfreigh.png, data/textures/mdmercha.png,
+	  data/textures/mdtroops.png, data/textures/medrei_b.jpg,
+	  data/textures/medrei_f.jpg, data/textures/medrei_r.jpg,
+	  data/textures/mtanker_bump.png, data/textures/mtanker_c2.png,
+	  data/textures/mtanker_camo2.png, data/textures/mtanker_spec.png,
+	  data/textures/northsands_camship_bump.jpg,
+	  data/textures/northsands_camship_color.jpg,
+	  data/textures/northsands_camship_spec.jpg,
+	  data/textures/smmercha.png, data/textures/smtanker.png,
+	  data/textures/sub21.png, data/textures/sub9c40.png,
+	  data/textures/tribal_bump.png, data/textures/tribal_color.jpg,
+	  data/textures/tribal_specular.jpg, data/torpedoes/Fido.txt,
+	  data/torpedoes/Fido.xml, data/torpedoes/TI.xml,
+	  data/torpedoes/TII.xml, data/torpedoes/TIII.xml,
+	  data/torpedoes/TIII_FaTII.xml, data/torpedoes/TIII_FaTII_de.txt,
+	  data/torpedoes/TIII_FaTII_en.txt, data/torpedoes/TIII_de.txt,
+	  data/torpedoes/TIII_en.txt, data/torpedoes/TIIIa_FaTII.xml,
+	  data/torpedoes/TIIIa_FaTII_de.txt,
+	  data/torpedoes/TIIIa_FaTII_en.txt, data/torpedoes/TIIIa_LuTI.xml,
+	  data/torpedoes/TIIIa_LuTII.xml,
+	  data/torpedoes/TIIIa_LuTII_de.txt,
+	  data/torpedoes/TIIIa_LuTII_en.txt,
+	  data/torpedoes/TIIIa_LuTI_de.txt,
+	  data/torpedoes/TIIIa_LuTI_en.txt, data/torpedoes/TII_de.txt,
+	  data/torpedoes/TII_en.txt, data/torpedoes/TIV.xml,
+	  data/torpedoes/TIV_de.txt, data/torpedoes/TIV_en.txt,
+	  data/torpedoes/TI_FaTI.xml, data/torpedoes/TI_FaTI_de.txt,
+	  data/torpedoes/TI_FaTI_en.txt, data/torpedoes/TI_LuTI.xml,
+	  data/torpedoes/TI_LuTII.xml, data/torpedoes/TI_LuTII_de.txt,
+	  data/torpedoes/TI_LuTII_en.txt, data/torpedoes/TI_LuTI_de.txt,
+	  data/torpedoes/TI_LuTI_en.txt, data/torpedoes/TI_de.txt,
+	  data/torpedoes/TI_en.txt, data/torpedoes/TV.xml,
+	  data/torpedoes/TVI_LuTI.xml, data/torpedoes/TVI_LuTI_de.txt,
+	  data/torpedoes/TVI_LuTI_en.txt, data/torpedoes/TV_de.txt,
+	  data/torpedoes/TV_en.txt, data/torpedoes/TVb.xml,
+	  data/torpedoes/TVb_de.txt, data/torpedoes/TVb_en.txt,
+	  data/torpedoes/TXI.xml, data/torpedoes/TXI_de.txt,
+	  data/torpedoes/TXI_en.txt, src/datadirs.cpp, src/datadirs.h,
+	  src/global_data.cpp, src/model.cpp, src/model.h,
+	  src/sea_object.cpp, src/sub_torpedo_display.cpp,
+	  src/submarine.cpp, src/subsim.cpp, src/texture.h,
+	  src/viewmodel.cpp: adapt code to new data file structure (part
+	  2); removed old data files
+
+2006-07-16 12:24  thjordan
+
+	* src/: convoy.cpp, datadirs.h, game.cpp, game_editor.cpp,
+	  map_display.cpp, sub_torpedo_display.cpp, submarine.cpp,
+	  subsim.cpp, viewmodel.cpp: adapt code to new data file structure
+	  (part 1)
+
+2006-07-16 12:05  thjordan
+
+	* src/datadirs.cpp: bugfix, ignore some directories and files
+
+2006-07-16 11:59  thjordan
+
+	* src/: SConscript, datadirs.cpp, datadirs.h, subsim.cpp: new
+	  helper class for new data file structure
+
+2006-07-16 11:38  thjordan
+
+	* data/objects/: airplanes/heinkel115b1/heinkel115b1_bump.jpg,
+	  airplanes/heinkel115b1/heinkel115b1_diffuse.jpg,
+	  airplanes/heinkel115b1/heinkel115b1_spec.jpg,
+	  ships/battleships/malaya/malaya.png,
+	  ships/carriers/bogue/bogue.png,
+	  ships/corvettes/british/corvette.png,
+	  ships/destroyers/tribal/tribal_bump.png,
+	  ships/destroyers/tribal/tribal_color.jpg,
+	  ships/destroyers/tribal/tribal_specular.jpg,
+	  ships/freighters/fortship/can1941/fortship_can1941_bump.jpg,
+	  ships/freighters/fortship/can1941/fortship_can1941_color.jpg,
+	  ships/freighters/fortship/can1941/fortship_can1941_spec.jpg,
+	  ships/freighters/fortship/can1943/fortship_can1943_bump.jpg,
+	  ships/freighters/fortship/can1943/fortship_can1943_diffuse.jpg,
+	  ships/freighters/fortship/can1943/fortship_can1943_spec.jpg,
+	  ships/freighters/fortship/nolisciv/fortship_nolisciv_bump.jpg,
+	  ships/freighters/fortship/nolisciv/fortship_nolisciv_color.jpg,
+	  ships/freighters/fortship/nolisciv/fortship_nolisciv_spec.jpg,
+	  ships/freighters/large/lgfreigh.png,
+	  ships/freighters/liberty/1941/lship_1941_bump.jpg,
+	  ships/freighters/liberty/1941/lship_1941_diffuse.jpg,
+	  ships/freighters/liberty/1941/lship_1941_spec.jpg,
+	  ships/freighters/liberty/1942/lship_1942_bump.jpg,
+	  ships/freighters/liberty/1942/lship_1942_bump_g1.jpg,
+	  ships/freighters/liberty/1942/lship_1942_diffuse.jpg,
+	  ships/freighters/liberty/1942/lship_1942_diffuse_g4.jpg,
+	  ships/freighters/liberty/1942/lship_1942_spec.jpg,
+	  ships/freighters/liberty/1943/lship_1943_bump.jpg,
+	  ships/freighters/liberty/1943/lship_1943_diffuse.jpg,
+	  ships/freighters/liberty/1943/lship_1943_spec.jpg,
+	  ships/freighters/medium/medrei_b.jpg,
+	  ships/freighters/medium/medrei_f.jpg,
+	  ships/freighters/medium/medrei_r.jpg,
+	  ships/freighters/northsands/northsands_camship_bump.jpg,
+	  ships/freighters/northsands/northsands_camship_color.jpg,
+	  ships/freighters/northsands/northsands_camship_spec.jpg,
+	  ships/merchants/large/lgmercha.png,
+	  ships/merchants/medium/mdmercha.png,
+	  ships/merchants/small/smmercha.png,
+	  ships/tankers/kennebac/mtanker_bump.png,
+	  ships/tankers/kennebac/mtanker_c1.png,
+	  ships/tankers/kennebac/mtanker_c2.png,
+	  ships/tankers/kennebac/mtanker_camo2.png,
+	  ships/tankers/kennebac/mtanker_spec.png,
+	  ships/tankers/small/smtanker.png,
+	  ships/troopships/british/mdtroops.png,
+	  submarines/IXc40/sub9c40.png, submarines/VIIc/cam1940b.jpg,
+	  submarines/VIIc/cam1940c.jpg, submarines/VIIc/cam1940s.jpg,
+	  submarines/XXI/sub21.png: added textures
+
+2006-07-16 00:50  thjordan
+
+	* data/objects/ships/:
+	  freighters/fortship/can1941/fortship1941.data,
+	  freighters/fortship/can1941/fortship_can1941.data,
+	  freighters/fortship/can1943/fortship1943.data,
+	  freighters/fortship/can1943/fortship_can1943.data,
+	  freighters/fortship/nolisciv/fortship_nolisciv.data,
+	  freighters/fortship/nolisciv/fortshipciv.data,
+	  freighters/liberty/1941/libertyship1941.data,
+	  freighters/liberty/1941/libertyship_1941.data,
+	  freighters/liberty/1942/libertyship1942.data,
+	  freighters/liberty/1942/libertyship_1942.data,
+	  freighters/liberty/1943/libertyship1943.data,
+	  freighters/liberty/1943/libertyship_1943.data,
+	  tankers/kennebac/tanker_kennebak.data,
+	  tankers/kennebac/tanker_medium.data: added new data
+
+2006-07-16 00:45  thjordan
+
+	* data/objects/: airplanes/heinkel115b1/heinkel115b1.cs,
+	  airplanes/heinkel115b1/heinkel115b1.data,
+	  airplanes/heinkel115b1/heinkel115b1.ddxml,
+	  ships/battleships/malaya/battleship_malaya.3ds,
+	  ships/battleships/malaya/battleship_malaya.cs,
+	  ships/carriers/bogue/carrier_bogue.3ds,
+	  ships/carriers/bogue/carrier_bogue.cs,
+	  ships/corvettes/british/corvette.3ds,
+	  ships/corvettes/british/corvette.cs,
+	  ships/destroyers/oclass/destroyer_oclass.3ds,
+	  ships/destroyers/oclass/destroyer_oclass.cs,
+	  ships/destroyers/tribal/destroyer_tribal.cs,
+	  ships/destroyers/tribal/destroyer_tribal.ddxml,
+	  ships/freighters/fortship/can1941/fortship1941.cs,
+	  ships/freighters/fortship/can1941/fortship1941.ddxml,
+	  ships/freighters/fortship/can1943/fortship1943.cs,
+	  ships/freighters/fortship/can1943/fortship1943.ddxml,
+	  ships/freighters/fortship/nolisciv/fortshipciv.cs,
+	  ships/freighters/fortship/nolisciv/fortshipciv.ddxml,
+	  ships/freighters/large/large_freighter.3ds,
+	  ships/freighters/large/large_freighter.cs,
+	  ships/freighters/liberty/1941/libertyship1941.cs,
+	  ships/freighters/liberty/1941/libertyship1941.ddxml,
+	  ships/freighters/liberty/1942/libertyship1942.cs,
+	  ships/freighters/liberty/1942/libertyship1942.ddxml,
+	  ships/freighters/liberty/1943/libertyship1943.cs,
+	  ships/freighters/liberty/1943/libertyship1943.ddxml,
+	  ships/freighters/medium/medium_freighter.cs,
+	  ships/freighters/medium/medium_freighter.ddxml,
+	  ships/freighters/northsands/northsands_camship.cs,
+	  ships/freighters/northsands/northsands_camship.ddxml,
+	  ships/merchants/large/large_merchant.3ds,
+	  ships/merchants/large/large_merchant.cs,
+	  ships/merchants/medium/medium_merchant.3ds,
+	  ships/merchants/medium/medium_merchant.cs,
+	  ships/merchants/small/small_merchant.3ds,
+	  ships/merchants/small/small_merchant.cs,
+	  ships/tankers/kennebac/tanker_kennebak.cs,
+	  ships/tankers/kennebac/tanker_kennebak.ddxml,
+	  ships/tankers/small/small_tanker.3ds,
+	  ships/tankers/small/small_tanker.cs,
+	  ships/troopships/british/medium_troopship.3ds,
+	  ships/troopships/british/medium_troopship.cs,
+	  submarines/IXc40/submarine_IXc40.3ds,
+	  submarines/IXc40/submarine_IXc40.cs,
+	  submarines/VIIc/uboat_VIIc.cs, submarines/VIIc/uboat_VIIc.ddxml,
+	  submarines/XXI/submarine_XXI.3ds,
+	  submarines/XXI/submarine_XXI.cs, torpedoes/Fido/Fido.data,
+	  torpedoes/TVI/LuTI/TVI_LuTI.data,
+	  torpedoes/TVI/LuTI/TVI_LuTI_de.txt,
+	  torpedoes/TVI/LuTI/TVI_LuTI_en.txt: add new data files
+
+2006-07-16 00:21  thjordan
+
+	* data/objects/: airplanes/heinkel115b1/heinkel115b1.data,
+	  ships/battleships/malaya/battleship_malaya.data,
+	  ships/carriers/bogue/carrier_bogue.data,
+	  ships/corvettes/british/corvette.data,
+	  ships/destroyers/oclass/destroyer_oclass.data,
+	  ships/destroyers/tribal/destroyer_tribal.data,
+	  ships/freighters/fortship/can1941/fortship_can1941.data,
+	  ships/freighters/fortship/can1943/fortship_can1943.data,
+	  ships/freighters/fortship/nolisciv/fortship_nolisciv.data,
+	  ships/freighters/large/freighter_large.data,
+	  ships/freighters/liberty/1941/libertyship_1941.data,
+	  ships/freighters/liberty/1942/libertyship_1942.data,
+	  ships/freighters/liberty/1943/libertyship_1943.data,
+	  ships/freighters/medium/freighter_medium.data,
+	  ships/freighters/northsands/northsands_camship.data,
+	  ships/merchants/large/merchant_large.data,
+	  ships/merchants/medium/merchant_medium.data,
+	  ships/merchants/small/merchant_small.data,
+	  ships/tankers/kennebac/tanker_medium.data,
+	  ships/tankers/small/tanker_small.data,
+	  ships/troopships/british/troopship_medium.data,
+	  submarines/IXc40/submarine_IXc40.data,
+	  submarines/VIIc/submarine_VIIc.data,
+	  submarines/XXI/submarine_XXI.data, torpedoes/Fido/Fido.data,
+	  torpedoes/Fido/Fido.txt, torpedoes/TI/FaTI/TI_FaTI.data,
+	  torpedoes/TI/FaTI/TI_FaTI_de.txt,
+	  torpedoes/TI/FaTI/TI_FaTI_en.txt, torpedoes/TI/LuTI/TI_LuTI.data,
+	  torpedoes/TI/LuTI/TI_LuTI_de.txt,
+	  torpedoes/TI/LuTI/TI_LuTI_en.txt,
+	  torpedoes/TI/LuTII/TI_LuTII.data,
+	  torpedoes/TI/LuTII/TI_LuTII_de.txt,
+	  torpedoes/TI/LuTII/TI_LuTII_en.txt,
+	  torpedoes/TI/standard/TI.data, torpedoes/TI/standard/TI_de.txt,
+	  torpedoes/TI/standard/TI_en.txt, torpedoes/TII/TII.data,
+	  torpedoes/TII/TII_de.txt, torpedoes/TII/TII_en.txt,
+	  torpedoes/TIII/FaTII/TIII_FaTII.data,
+	  torpedoes/TIII/FaTII/TIII_FaTII_de.txt,
+	  torpedoes/TIII/FaTII/TIII_FaTII_en.txt,
+	  torpedoes/TIII/a_FaTII/TIIIa_FaTII.data,
+	  torpedoes/TIII/a_FaTII/TIIIa_FaTII_de.txt,
+	  torpedoes/TIII/a_FaTII/TIIIa_FaTII_en.txt,
+	  torpedoes/TIII/a_LuTI/TIIIa_LuTI.data,
+	  torpedoes/TIII/a_LuTI/TIIIa_LuTI_de.txt,
+	  torpedoes/TIII/a_LuTI/TIIIa_LuTI_en.txt,
+	  torpedoes/TIII/a_LuTII/TIIIa_LuTII.data,
+	  torpedoes/TIII/a_LuTII/TIIIa_LuTII_de.txt,
+	  torpedoes/TIII/a_LuTII/TIIIa_LuTII_en.txt,
+	  torpedoes/TIII/standard/TIII.data,
+	  torpedoes/TIII/standard/TIII_de.txt,
+	  torpedoes/TIII/standard/TIII_en.txt, torpedoes/TIV/TIV.data,
+	  torpedoes/TIV/TIV_de.txt, torpedoes/TIV/TIV_en.txt,
+	  torpedoes/TV/b/TVb.data, torpedoes/TV/b/TVb_de.txt,
+	  torpedoes/TV/b/TVb_en.txt, torpedoes/TV/standard/TV.data,
+	  torpedoes/TV/standard/TV_de.txt, torpedoes/TV/standard/TV_en.txt,
+	  torpedoes/TXI/TXI.data, torpedoes/TXI/TXI_de.txt,
+	  torpedoes/TXI/TXI_en.txt: added new data files
+
+2006-07-12 11:34  thjordan
+
+	* src/: bspline.h, user_interface.cpp: removed assert() calls
+	  (please do not use assert\!); splitted bspline class in uniform
+	  and non-uniform bspline classes to make non-uniform-bsplines
+	  available
+
+2006-07-09 10:35  thjordan
+
+	* doc/: translation.pdf, translation.tex: added documentation about
+	  translations.
+
+2006-07-02 11:26  thjordan
+
+	* src/sonar_operator.cpp: some bugfixes and improvements of sonar
+	  operator simulation
+
+2006-07-02 10:17  thjordan
+
+	* src/: angle.h, sonar_operator.cpp, sonar_operator.h: another try
+	  to localize signals better when turning
+
+2006-07-02 00:05  thjordan
+
+	* src/sonar_operator.cpp: some more sonar operator tests
+
+2006-07-01 23:42  thjordan
+
+	* files.txt: update
+
+2006-07-01 23:36  thjordan
+
+	* data/missions/singleship.xml: added test mission with just a
+	  single ship
+
+2006-07-01 21:20  thjordan
+
+	* src/: SConscript, sonar.cpp, sonar.h, sonar_operator.cpp,
+	  sonar_operator.h, submarine.cpp, submarine.h: tried to improve
+	  sonar operator simulation
+
+2006-06-28 23:25  thjordan
+
+	* src/sonar.cpp: bugfix to make it compileable with gcc 4.0.3
+	  (ubuntu)
+
+2006-06-28 08:37  thjordan
+
+	* src/: map_display.cpp, sonar.cpp, sonar.h, submarine.cpp: let the
+	  sonar operator report absolute angles; added sonar operator
+	  load/save interface (no code yet)
+
+2006-06-27 23:40  thjordan
+
+	* files.txt: update
+
+2006-06-27 23:39  thjordan
+
+	* src/: map_display.cpp, map_display.h, sonar.cpp, sonar.h,
+	  submarine.h: use new sonar simulation to draw sound contacts on
+	  map; improved sonar operator simulation
+
+2006-06-26 23:25  thjordan
+
+	* src/: sonar.cpp, sonar.h, sub_kdb_display.cpp, sub_kdb_display.h,
+	  submarine.cpp, submarine.h: moved sonar operator instance to
+	  class submarine
+
+2006-06-21 08:19  thjordan
+
+	* doc/sonar.tex: added comment about sonar man
+
+2006-06-18 14:05  thjordan
+
+	* src/game.cpp: added importent note about receiver noise, to be
+	  fixed later
+
+2006-06-18 12:13  thjordan
+
+	* src/: game.cpp, sonar.cpp: more about sonar
+
+2006-06-18 10:55  thjordan
+
+	* doc/sonar.tex, src/game.cpp, src/game.h, src/map_display.cpp,
+	  src/ship.cpp, src/sonar.cpp, src/sonar.h,
+	  src/sub_kdb_display.cpp: new noise class, better flow of data,
+	  improved noise/sonar simulation
+
+2006-06-17 12:15  thjordan
+
+	* doc/: sonar.pdf, sonar.tex: added section about sonar man
+	  simulation
+
+2006-06-17 11:57  thjordan
+
+	* doc/sonar.pdf, doc/sonar.tex, src/game.cpp, src/map_display.cpp,
+	  src/sonar.cpp, src/sonar.h: some more changes on sonar
+
+2006-06-13 21:16  apaes
+
+	* src/viewmodel.cpp: Fixed a small bug causing segfault on the
+	  --gui flag.
+
+2006-06-13 20:54  thjordan
+
+	* doc/: sonar.pdf, sonar.tex: updated sonar formulas
+
+2006-06-13 19:10  thjordan
+
+	* doc/: sonar.pdf, sonar.tex: some updates
+
+2006-06-13 16:11  apaes
+
+	* src/widget.cpp: Fixed small display misbehavior when scrolling on
+	  widget_list objects.
+
+2006-06-13 12:47  apaes
+
+	* src/: SConscript, viewmodel.cpp: Added viewmodel --gui flag for
+	  GUI with model browsing. Options for moving / saving smoke origin
+	  if originally available.
+
+2006-06-13 12:16  apaes
+
+	* src/map_display.cpp: Smoother mouse wheel zoom in/ou in map
+	  display.cpp
+
+2006-06-13 04:00  apaes
+
+	* files.txt, src/credits.h: updated files.txt due to North Sand CAM
+	  ship. updated credits.h
+
+2006-06-13 00:58  simsoueu
+
+	* data/textures/: northsands_camship_bump.jpg,
+	  northsands_camship_color.jpg, northsands_camship_spec.jpg:
+	  Texture maps for North Sands based CAM ship + Hawker Hurricane,
+	  RN white ensign, camouflage scheme version 1.
+
+2006-06-13 00:57  simsoueu
+
+	* data/models/: northsands_camship_model.cs,
+	  northsands_camship_model.xml: North Sands class based CAM ship,
+	  with Hawker Hurricane Mk.I model, internal rev.1.1.
+
+2006-06-13 00:55  simsoueu
+
+	* data/ships/northsands_camship_data.xml: Data file for North Sands
+	  class based CAM ship, fixed country entry.
+
+2006-06-13 00:54  simsoueu
+
+	* src/convoy.cpp: Added entry to North Sands class based CAM ship
+	  (with Hawker Hurricane).
+
+2006-06-13 00:37  apaes
+
+	* data/ships/merchant_large.xml: fixed typo in ship data for smoke
+	  position.
+
+2006-06-13 00:17  apaes
+
+	* data/ships/: battleship_malaya.xml, corvette.xml,
+	  merchant_large.xml, merchant_medium.xml, merchant_small.xml,
+	  tanker_small.xml, troopship_medium.xml: Smoke origin fixed for
+	  the older models.
+
+2006-06-11 12:56  thjordan
+
+	* doc/: sonar.pdf, sonar.tex: added a document describing sonar,
+	  its problems and implementation details.
+
+2006-06-10 19:38  simsoueu
+
+	* data/textures/: fortship_nolisciv_bump.jpg,
+	  fortship_nolisciv_color.jpg, fortship_nolisciv_spec.jpg: Added
+	  maps for 3rd fort ship version, colors based on nolisement.
+
+2006-06-10 19:37  simsoueu
+
+	* data/models/: fortship_nolisciv_model.cs,
+	  fortship_nolisciv_model.xml: 3rd version of fort ship, lowest
+	  deck, etc... colors based on nolisement, internal rev.1.1.
+
+2006-06-10 19:36  simsoueu
+
+	* data/ships/: fortship_can1941_data.xml,
+	  fortship_can1943_data.xml, fortship_nolisciv_data.xml: Added data
+	  file for latest fort ship model, and fixed tonnage entries in
+	  data, for the other fort ship data files.
+
+2006-06-10 19:35  simsoueu
+
+	* src/convoy.cpp: Added entries for latest fort ship model, in
+	  convoy.cpp.
+
+2006-06-09 07:16  reilithion
+
+	* src/: torpedo.cpp, torpedo.h: Fixed fuse code and implemented
+	  random fuse choice (poorly).
+
+2006-06-09 00:06  simsoueu
+
+	* src/convoy.cpp: Updated convoy.cpp, in order to include 2nd
+	  variant of North Sands class merchant (armed, 1943 version).
+
+2006-06-09 00:05  simsoueu
+
+	* data/ships/fortship_can1943_data.xml: North Sands class merchant
+	  (Fort Ships), data file, smoke origins fixed/aligned - tonnage
+	  data, and specs (speed, etc..) needs confirmation. Note: check
+	  dimensions specs again.
+
+2006-06-09 00:03  simsoueu
+
+	* data/models/: fortship_can1943_model.cs,
+	  fortship_can1943_model.xml: North Sands class merchants (Fort
+	  Ships), armed version, 1943, internal rev.1.1 (note, vents
+	  triangle count cut by half).
+
+2006-06-09 00:02  simsoueu
+
+	* data/textures/: fortship_can1943_bump.jpg,
+	  fortship_can1943_diffuse.jpg, fortship_can1943_spec.jpg: North
+	  Sands class merchant (Fort Ships), armed version, 1943, textures,
+	  internal rev 1.1.
+
+2006-06-08 03:39  apaes
+
+	* src/: map_display.cpp, sub_periscope_display.cpp,
+	  sub_uzo_display.cpp: Added mouse wheel scroll up/down (zoom
+	  in/zoom out) support in periscope/uzo/map screens.
+
+2006-06-08 02:51  apaes
+
+	* files.txt: updated files.txt with bombardier moon phases
+	  additioned files.
+
+2006-06-07 22:38  bombardier
+
+	* data/environment/moon_data.xml, data/textures/moon_00.png,
+	  data/textures/moon_01.png, data/textures/moon_02.png,
+	  data/textures/moon_03.png, data/textures/moon_04.png,
+	  data/textures/moon_05.png, data/textures/moon_06.png,
+	  data/textures/moon_07.png, data/textures/moon_08.png,
+	  data/textures/moon_09.png, data/textures/moon_10.png,
+	  data/textures/moon_11.png, data/textures/moon_12.png,
+	  data/textures/moon_13.png, data/textures/moon_14.png,
+	  data/textures/moon_15.png, data/textures/moon_16.png,
+	  data/textures/moon_17.png, data/textures/moon_18.png,
+	  data/textures/moon_19.png, data/textures/moon_20.png,
+	  data/textures/moon_21.png, data/textures/moon_22.png,
+	  data/textures/moon_23.png, src/SConscript, src/moon.cpp,
+	  src/moon.h, src/sky.cpp, src/sky.h: Added moon phases simulation
+	  for years 1939-1945.
+
+2006-06-07 01:54  bombardier
+
+	* src/tone_reproductor.cpp: Missing pow10 function.
+
+2006-06-06 17:45  apaes
+
+	* data/texts/common.csv: Changed Convoy battle menu option tittles
+	  to removing text cluttering in english language.
+
+2006-06-05 21:18  simsoueu
+
+	* data/ships/: destroyer_tribal.xml, fortship_can1941_data.xml,
+	  freighter_medium.xml, libertyship_1941_data.xml,
+	  libertyship_1942_data.xml, libertyship_1943_data.xml,
+	  tanker_medium.xml: Updated data files, smoke origin now fixed
+	  (thanks jadawin ;)), so any smoke problem, can't be related to
+	  origin specified in the data files.
+
+2006-06-05 20:52  apaes
+
+	* src/viewmodel.cpp: small bugfix.
+
+2006-06-05 20:31  apaes
+
+	* src/viewmodel.cpp: Added smoke origin locator and wireframe model
+	  to viewmodel.
+
+2006-06-05 15:54  apaes
+
+	* files.txt: updated files.txt with fortship file entries.
+
+2006-06-05 15:48  apaes
+
+	* data/: models/fortship_can1941_model.cs,
+	  models/fortship_can1941_model.xml,
+	  ships/fortship_can1941_data.xml,
+	  textures/fortship_can1941_bump.jpg,
+	  textures/fortship_can1941_color.jpg,
+	  textures/fortship_can1941_spec.jpg: Fort ship (North Sands class
+	  merchant), Canadian version, 1941 + data + textures, internal
+	  rev.1.1.
+
+2006-06-05 11:16  thjordan
+
+	* src/map_display.cpp: use simpler falloff function than real GHG
+	  simulation because of the jitter and ghost image problems
+
+2006-06-05 11:10  thjordan
+
+	* src/: game.cpp, sonar.cpp: use simpler falloff function than real
+	  GHG simulation because of the jitter and ghost image problems
+
+2006-06-04 22:27  thjordan
+
+	* src/convoy.cpp: use more ships
+
+2006-06-04 21:08  apaes
+
+	* files.txt: updated files.txt to include missing files for
+	  installation (noted by JLP).
+
+2006-06-04 13:35  apaes
+
+	* files.txt: foam.png entry added to files.txt and now gets
+	  installed as it should (noted by JLP)
+
+2006-06-03 17:29  thjordan
+
+	* src/: game.cpp, ghg.py, sonar.cpp: some more tests, fixed nr of
+	  hydrophones
+
+2006-06-02 08:45  thjordan
+
+	* src/: game.cpp, ghg.py, map_display.cpp, sonar.cpp: did some more
+	  tests and added results as comment
+
+2006-06-02 00:01  thjordan
+
+	* src/sonar.cpp: quick test of sudden idea
+
+2006-06-01 23:43  thjordan
+
+	* src/: game.cpp, map_display.cpp, sonar.cpp: more testing, more
+	  output, bugfix
+
+2006-06-01 23:39  thjordan
+
+	* src/ghg.py: more testing, more output, small fix
+
+2006-06-01 08:51  thjordan
+
+	* src/sonar.cpp: found absorption formula
+
+2006-05-31 23:34  thjordan
+
+	* src/sonar.cpp: add a comment about pressure/dB, have to recheck
+	  harpoon3 docs
+
+2006-05-31 22:35  thjordan
+
+	* src/: game.cpp, sonar.cpp, sonar.h: do computations in flat,
+	  absolute noise strengths, not in dB scale; disabled some test
+	  code
+
+2006-05-31 21:13  thjordan
+
+	* src/: game.cpp, map_display.cpp, sonar.cpp: added some tests and
+	  comments
+
+2006-05-31 08:58  thjordan
+
+	* src/: game.cpp, sonar.cpp, sonar.h: did some testing with code,
+	  minor bugfix, testcode added, beware
+
+2006-05-30 11:26  thjordan
+
+	* src/: sonar.cpp, sub_kdb_display.cpp: added comments
+
+2006-05-30 09:11  thjordan
+
+	* src/map_display.cpp: graphical debugging of sonar signal
+	  strength, color bugfix
+
+2006-05-30 09:06  thjordan
+
+	* src/map_display.cpp: graphical debugging of sonar signal strength
+
+2006-05-29 23:33  thjordan
+
+	* src/: sonar.cpp, sonar.h, sub_kdb_display.cpp, sub_kdb_display.h:
+	  new sonarman simulation (incomplete)
+
+2006-05-29 22:54  thjordan
+
+	* src/sea_object.cpp: added important comment about integration
+	  algorithm
+
+2006-05-26 18:53  thjordan
+
+	* src/: SConscript, game.cpp, game.h, ghg.py, sea_object.h,
+	  sensors.cpp, sensors.h, ship.cpp, ship.h, sonar.cpp, sonar.h,
+	  sub_kdb_display.cpp: improved passive sonar (GHG) simulation
+
+2006-05-25 14:40  thjordan
+
+	* src/ghg.py: now the result can be computed in constant time
+
+2006-05-25 14:08  thjordan
+
+	* src/ghg.py: some tries in simulating the results in constant time
+
+2006-05-24 22:31  thjordan
+
+	* src/ghg.py: added python based GHG simulator script
+
+2006-05-23 22:35  thjordan
+
+	* src/: game.cpp, sensors.cpp: use sharper falloff function, added
+	  more comments with new research results about GHG
+
+2006-05-21 12:37  thjordan
+
+	* src/sensors.cpp: added comment about idea with hydrophones
+
+2006-05-18 23:41  thjordan
+
+	* src/: game.cpp, sub_kdb_display.cpp: added more comments,
+	  quantized signal outputs to integer dB values
+
+2006-05-18 20:54  thjordan
+
+	* doc/debian/copyright: changed cvs server address
+
+2006-05-18 20:54  thjordan
+
+	* src/misc_types.h: removed obsolete file
+
+2006-05-18 20:45  thjordan
+
+	* src/font.cpp: added UTF-8 input coding support and enabled it
+
+2006-05-18 20:45  thjordan
+
+	* data/texts/: common.csv, languages.csv: transformed to UTF-8
+	  format
+
+2006-05-18 00:24  thjordan
+
+	* src/: game.cpp, sensors.cpp, sensors.h, ship.cpp,
+	  sub_kdb_display.cpp: more parts of sonar simulation
+
+2006-05-17 08:14  thjordan
+
+	* data/texts/common.csv: change in italian translation
+
+2006-05-16 18:52  simsoueu
+
+	* data/models/: medium_tanker.cs, medium_tanker.xml: Revised
+	  Kennebak tanker, with deeper hull.
+
+2006-05-15 22:52  thjordan
+
+	* src/: game.cpp, sensors.cpp, sensors.h, sub_kdb_display.cpp:
+	  first bits of sonar operator simulation
+
+2006-05-15 22:28  thjordan
+
+	* data/texts/common.csv: added missing tag for empty text field
+
+2006-05-15 22:10  thjordan
+
+	* data/texts/common.csv: integrated new translations from Giuseppe
+
+2006-05-15 18:38  thjordan
+
+	* src/: sensors.cpp, sub_ghg_display.cpp, sub_kdb_display.cpp:
+	  added comments about sonarman simulation
+
+2006-05-12 23:46  thjordan
+
+	* src/: freeview_display.cpp, game.cpp, game.h, sensors.cpp,
+	  sensors.h, ship.cpp, ship.h, sub_kdb_display.cpp: first bits of
+	  sonar simulation
+
+2006-05-06 21:26  simsoueu
+
+	* data/models/: heinkel115b1_model.cs, heinkel115b1_model.xml:
+	  Heinkel He115 updated, fixed positioning + scale problem.
+
+2006-05-06 20:24  simsoueu
+
+	* data/textures/: heinkel115b1_bump.jpg, heinkel115b1_diffuse.jpg,
+	  heinkel115b1_spec.jpg: Heinkel He115B-1 seaplane texture maps,
+	  diff, spec, bump, KuFlgr.406 camouflage, winter.
+
+2006-05-06 20:23  simsoueu
+
+	* data/airplanes/heinkel115b1_data.xml: Heinkel He115B-1 seaplane
+	  data file.
+
+2006-05-06 20:22  simsoueu
+
+	* data/models/: heinkel115b1_model.cs, heinkel115b1_model.xml:
+	  Model file and cross section, of Heinkel He115B-1 seaplane,
+	  KuFlgr.406, internal rev.1.1.
+
+2006-05-06 18:29  thjordan
+
+	* src/sensors.cpp: added plan howto realize ghg sonar
+
+2006-05-06 10:09  thjordan
+
+	* src/: game.h, sea_object.h, sensors.h: removed the ugly
+	  misc_types.h file, now moved that code to sensors.h; added some
+	  notes there
+
+2006-05-03 02:15  simsoueu
+
+	* data/textures/: lship_1943_bump.jpg, lship_1943_diffuse.jpg,
+	  lship_1943_spec.jpg: Liberty ship, armed, 1943(-45?) model,
+	  texture maps, diffuse, spec, bump, internal rev.1.1. Skins to
+	  follow later, for 1941/42/43-45 versions.
+
+2006-05-03 02:12  simsoueu
+
+	* data/ships/libertyship_1943_data.xml: Liberty ship (armed),
+	  1943(-45?) model, data xml file.
+
+2006-05-03 02:09  simsoueu
+
+	* data/models/: libertyship_1943_model.cs,
+	  libertyship_1943_model.xml: Liberty ship, armed, deck gun at
+	  back, 1943(-45?), with crosssection, internal rev.1.1.
+
+2006-05-02 00:36  simsoueu
+
+	* data/ships/: libertyship_1941_data.xml,
+	  libertyship_1942_data.xml: Data files for liberty ship 1941+1942
+	  models, ddxml models have _model suffix, data files have _data.
+	  Particles origins set, as well as general ship data.
+
+2006-05-02 00:34  simsoueu
+
+	* data/textures/: lship_1942_bump.jpg, lship_1942_diffuse.jpg,
+	  lship_1942_spec.jpg: Liberty ship 1942 version texture maps,
+	  diffuse, bump, specular, already compressed, internal rev.1.1.
+
+2006-05-02 00:29  simsoueu
+
+	* data/textures/: lship_1941_bump.jpg, lship_1941_diffuse.jpg,
+	  lship_1941_spec.jpg: Liberty ship 1941 model textures, diffuse,
+	  bump, specular, internal rev.1.1, already compressed.
+
+2006-05-02 00:25  simsoueu
+
+	* data/models/: libertyship_1942_model.cs,
+	  libertyship_1942_model.xml: Liberty ship, 1942 model, armed, with
+	  more cargo, with crossection, internal rev.1.1.
+
+2006-05-02 00:23  simsoueu
+
+	* data/models/: libertyship_1941_model.cs,
+	  libertyship_1941_model.xml: Liberty ship model, 1941 and earlier
+	  version, with crossection file, internal rev.1.1.
+
+2006-04-27 22:55  thjordan
+
+	* src/sonar.txt: added some comments and thoughts taken from the
+	  harpoon3 docs
+
+2006-04-26 22:28  thjordan
+
+	* suse/dangerdeep.spec: added rpm .spec file for SuSE by oc2pus
+
+2006-04-26 22:20  thjordan
+
+	* src/sonar.txt: added some developer thoughts about sonar
+
+2006-04-22 12:18  thjordan
+
+	* src/: submarine.cpp, submarine.h, submarine_interface.cpp:
+	  hearing device type now determined by date
+
+2006-04-22 11:58  thjordan
+
+	* src/: SConscript, sub_bg_display.cpp, sub_bg_display.h,
+	  sub_ghg_display.h, sub_kdb_display.cpp, sub_kdb_display.h,
+	  submarine_interface.cpp: new BG screen is ready (replacing damage
+	  screen as test)
+
+2006-04-20 23:52  thjordan
+
+	* src/: SConscript, sub_ghg_display.cpp, sub_ghg_display.h,
+	  sub_kdb_display.cpp, sub_kdb_display.h, submarine_interface.cpp,
+	  user_display.h: added KDB and BG displays
+
+2006-04-19 23:35  thjordan
+
+	* data/images/: BG_daylight_background.jpg,
+	  BG_daylight_knob_pos1.png, BG_daylight_knob_pos2.png,
+	  BG_daylight_knob_pos3.png, BG_daylight_knob_pos4.png,
+	  BG_daylight_knob_pos5.png, BG_daylight_knob_pos6.png,
+	  BG_daylight_pointer.png, BG_redlight_background.jpg,
+	  BG_redlight_knob_pos1.png, BG_redlight_knob_pos2.png,
+	  BG_redlight_knob_pos3.png, BG_redlight_knob_pos4.png,
+	  BG_redlight_knob_pos5.png, BG_redlight_knob_pos6.png,
+	  BG_redlight_pointer.png, KDB_daylight_background.jpg,
+	  KDB_daylight_gauge1.png, KDB_daylight_gauge2.png,
+	  KDB_daylight_gauge3.png, KDB_daylight_gauge4.png,
+	  KDB_daylight_gauge5.png, KDB_daylight_gauge6.png,
+	  KDB_daylight_knob1.png, KDB_daylight_knob2.png,
+	  KDB_daylight_knob3.png, KDB_daylight_knob4.png,
+	  KDB_daylight_knob5.png, KDB_daylight_knob6.png,
+	  KDB_daylight_pointer.png, KDB_redlight_background.jpg,
+	  KDB_redlight_gauge1.png, KDB_redlight_gauge2.png,
+	  KDB_redlight_gauge3.png, KDB_redlight_gauge4.png,
+	  KDB_redlight_gauge5.png, KDB_redlight_gauge6.png,
+	  KDB_redlight_knob1.png, KDB_redlight_knob2.png,
+	  KDB_redlight_knob3.png, KDB_redlight_knob4.png,
+	  KDB_redlight_knob5.png, KDB_redlight_knob6.png,
+	  KDB_redlight_pointer.png: added KDB and BG graphics.
+
+2006-04-19 22:54  thjordan
+
+	* SConstruct, data/images/GHG_daylight_background.jpg,
+	  data/images/GHG_daylight_background.png,
+	  data/images/GHG_daylight_knob.png,
+	  data/images/GHG_daylight_pointer.png,
+	  data/images/GHG_daylight_volume_dial.png,
+	  data/images/GHG_daylight_volumeknob.png,
+	  data/images/GHG_redlight_background.jpg,
+	  data/images/GHG_redlight_background.png,
+	  data/images/GHG_redlight_knob.png,
+	  data/images/GHG_redlight_pointer.png,
+	  data/images/GHG_redlight_volume_dial.png,
+	  data/images/GHG_redlight_volumeknob.png, src/SConscript,
+	  src/sub_ghg_display.cpp, src/sub_ghg_display.h,
+	  src/submarine_interface.cpp: first parts of new GHG screen.
+
+2006-04-17 17:45  thjordan
+
+	* data/textures/foam.png, src/water.cpp: use better foam texture
+
+2006-04-17 15:53  thjordan
+
+	* data/shaders/: water_fp.shader, water_vp.shader: added a quick
+	  and rather cheap test that gives foam to wave crests.
+
+2006-04-16 21:21  simsoueu
+
+	* data/fonts/: font_damagedtypewriter.metric,
+	  font_damagedtypewriter.pgm, font_damagedtypewriter.png: Fixed
+	  damaged typewriter fonts, size was too big in tmanage screen, new
+	  size is 12pts, more than enough for readability in 15'' screen.
+
+2006-04-16 12:11  thjordan
+
+	* src/: SConscript, daysky.cpp, daysky.h, tone_reproductor.cpp,
+	  tone_reproductor.h: added xyY -> RGB conversion from Stellarium.
+	  But the colors are way too dark. Either we need to add the
+	  additional sky brightness simulation of Stellarium
+	  (skybright.cpp) as well and/or our angle computations are wrong
+	  (sun elevation/azimuth). Stellarium uses angles against
+	  zenithe... to be checked
+
+2006-04-15 17:09  thjordan
+
+	* SConstruct: changes for BSD compatibility
+
+2006-04-15 17:01  thjordan
+
+	* src/todo.txt: added some ideas about foam
+
+2006-04-15 00:12  thjordan
+
+	* makewinpack: updated files for 0.1.1 release
+
+2006-04-14 21:51  simsoueu
+
+	* data/xcf/BG_layers_and_coords/: BG_coords.txt,
+	  BG_daylight_background.png, BG_daylight_knob_pos1.png,
+	  BG_daylight_knob_pos2.png, BG_daylight_knob_pos3.png,
+	  BG_daylight_knob_pos4.png, BG_daylight_knob_pos5.png,
+	  BG_daylight_knob_pos6.png, BG_daylight_pointer.png,
+	  BG_redlight_background.png, BG_redlight_knob_pos1.png,
+	  BG_redlight_knob_pos2.png, BG_redlight_knob_pos3.png,
+	  BG_redlight_knob_pos4.png, BG_redlight_knob_pos5.png,
+	  BG_redlight_knob_pos6.png, BG_redlight_pointer.png: BG screen,
+	  redlight version commited, daylight version updated, with
+	  isolated layers and coords files, internal rev.1.4.
+
+2006-04-14 13:20  thjordan
+
+	* ChangeLog, SConstruct, makewinpack, debian/DEBIAN/control:
+	  updated files for 0.1.1 release
+
 2006-04-14 12:06  thjordan
 
 	* src/water_sse.cpp: little more optimization for sse intrinsic
@@ -133,6 +2082,16 @@
 	* data/xcf/bg_daylight_rev.1.2.xcfbz2: Balkongerat layered file,
 	  with guides, as reference for isolated layers and coords file.
 	  Daylight version, masked, internal rev.1.2.
+
+2006-03-14 18:41  simsoueu
+
+	* data/xcf/BG_layers_and_coords/: BG_coords.txt,
+	  bg_daylight_background.png, bg_daylight_knob_pos1.png,
+	  bg_daylight_knob_pos2.png, bg_daylight_knob_pos3.png,
+	  bg_daylight_knob_pos4.png, bg_daylight_knob_pos5.png,
+	  bg_daylight_knob_pos6.png, bg_daylight_pointer.png: Balkongerat
+	  screen, daylight version, isolated layers, masked, and coords
+	  file. Internal rev.1.2.
 
 2006-03-03 22:42  simsoueu
 
@@ -490,6 +2449,32 @@
 
 	* src/model.cpp: include binstream directly for 3ds reading
 
+2006-01-29 22:00  simsoueu
+
+	* data/xcf/KDB/KDB_coords_file.txt: KDB daylight+redlight
+	  coordinates reference file, for isolated layers positioning +
+	  rotation (where appliable), for rev.1.3.
+
+2006-01-29 21:56  simsoueu
+
+	* data/xcf/KDB/: kdb_daylight_baseimage.png,
+	  kdb_daylight_gauge1.png, kdb_daylight_gauge2.png,
+	  kdb_daylight_gauge3.png, kdb_daylight_gauge4.png,
+	  kdb_daylight_gauge5.png, kdb_daylight_gauge6.png,
+	  kdb_daylight_knob1.png, kdb_daylight_knob2.png,
+	  kdb_daylight_knob3.png, kdb_daylight_knob4.png,
+	  kdb_daylight_knob5.png, kdb_daylight_knob6.png,
+	  kdb_daylight_pointer.png, kdb_redlight_baseimage.png,
+	  kdb_redlight_gauge1.png, kdb_redlight_gauge2.png,
+	  kdb_redlight_gauge3.png, kdb_redlight_gauge4.png,
+	  kdb_redlight_gauge5.png, kdb_redlight_gauge6.png,
+	  kdb_redlight_knob1.png, kdb_redlight_knob2.png,
+	  kdb_redlight_knob3.png, kdb_redlight_knob4.png,
+	  kdb_redlight_knob5.png, kdb_redlight_knob6.png,
+	  kdb_redlight_pointer.png: KDB hydrophones screen,
+	  daylight+redlight versions, rev.1.3, isolated layers, with alpha,
+	  and coords file.
+
 2006-01-29 21:51  simsoueu
 
 	* data/xcf/: kdb_daylight_rev.1.3.xcfbz2,
@@ -586,6 +2571,22 @@
 
 	* src/: system.h, widget.cpp, widget.h: some bugfixes for vessel
 	  view
+
+2006-01-08 17:31  simsoueu
+
+	* data/xcf/GHG_layers_and_coords/: GHG_daylight_base.png,
+	  GHG_daylight_knob.png, GHG_daylight_pointer.png,
+	  GHG_daylight_volume_dial.png, GHG_daylight_volumeknob.png,
+	  GHG_redlight_base.png, GHG_redlight_knob.png,
+	  GHG_redlight_pointer.png, GHG_redlight_volume_dial.png,
+	  GHG_redlight_volumeknob.png: 1st hydrophones screen, GHG device,
+	  daylight+redlight, isolated layers, with alpha, and coordinates
+	  file.
+
+2006-01-08 17:27  simsoueu
+
+	* data/xcf/GHG_layers_and_coords/coords_file.txt: GHG layers
+	  coordinates files
 
 2006-01-08 17:22  thjordan
 
@@ -9860,28 +11861,17 @@
 
 2003-02-17 19:54  thjordan
 
-	* .deps/ai.Po, .deps/airplane.Po, .deps/depth_charge.Po,
-	  .deps/font.Po, .deps/game.Po, .deps/global_data.Po,
-	  .deps/menu.Po, .deps/model.Po, .deps/off2mdl.Po,
-	  .deps/sea_object.Po, .deps/ship.Po, .deps/submarine.Po,
-	  .deps/submarine_interface.Po, .deps/subsim.Po, .deps/system.Po,
-	  .deps/texts.Po, .deps/texture.Po, .deps/torpedo.Po,
-	  .deps/vector2.Po, .deps/vector3.Po, data/addleadangle.png,
-	  data/background.png, data/battleship_malaya.mdl,
-	  data/battleship_malaya.png, data/depth_charge.mdl,
-	  data/destroyer1.mdl, data/destroyer1.png, data/font_arial.png,
-	  data/font_arial2.png, data/font_ellis.png, data/font_logo.png,
-	  data/font_panel.png, data/font_tahoma.png, data/manometer1.png,
-	  data/manometer2.png, data/manometer3.png, data/manometer4.png,
-	  data/merchant1.mdl, data/merchant1.png, data/metalbackgr.png,
-	  data/periscope.png, data/psbackgr.png, data/skyhemisphere.mdl,
-	  data/subVII.mdl, data/subVII.png, data/subXXI.mdl,
-	  data/subXXI.png, data/titel.png, data/torp.png, data/torpedo.mdl,
-	  data/torpedo.png, data/torpt1.png, data/torpt11.png,
-	  data/torpt3.png, data/torpt3fat.png, data/torpt5.png,
-	  data/torpt6lut.png, data/troopship1.mdl, data/troopship1.png,
-	  data/uzo.png, data/water.png: removed mistakingly included .deps
-	  and data
+	* data/: addleadangle.png, background.png, battleship_malaya.mdl,
+	  battleship_malaya.png, depth_charge.mdl, destroyer1.mdl,
+	  destroyer1.png, font_arial.png, font_arial2.png, font_ellis.png,
+	  font_logo.png, font_panel.png, font_tahoma.png, manometer1.png,
+	  manometer2.png, manometer3.png, manometer4.png, merchant1.mdl,
+	  merchant1.png, metalbackgr.png, periscope.png, psbackgr.png,
+	  skyhemisphere.mdl, subVII.mdl, subVII.png, subXXI.mdl,
+	  subXXI.png, titel.png, torp.png, torpedo.mdl, torpedo.png,
+	  torpt1.png, torpt11.png, torpt3.png, torpt3fat.png, torpt5.png,
+	  torpt6lut.png, troopship1.mdl, troopship1.png, uzo.png,
+	  water.png: removed mistakingly included .deps and data
 
 2003-02-17 19:19  thjordan
 
@@ -9894,47 +11884,27 @@
 
 2003-02-17 13:59  thjordan
 
-	* data/manometer3.png, data/manometer4.png, data/water.png,
-	  data/titel.png, data/torpt11.png, data/font_arial2.png,
-	  data/depth_charge.mdl, data/font_arial.png, data/periscope.png,
-	  data/torpt6lut.png, data/subXXI.mdl, data/subXXI.png,
-	  data/font_ellis.png, data/font_panel.png, data/skyhemisphere.mdl,
-	  data/troopship1.mdl, data/torpt3fat.png, data/troopship1.png,
-	  data/metalbackgr.png, data/battleship_malaya.mdl,
-	  data/battleship_malaya.png, data/merchant1.mdl,
-	  data/merchant1.png, data/torp.png, data/torpt1.png,
-	  data/torpt3.png, data/torpt5.png, data/uzo.png, data/torpedo.mdl,
-	  data/torpedo.png, data/addleadangle.png, data/font_tahoma.png,
-	  data/font_logo.png, .deps/ai.Po, .deps/vector2.Po,
-	  .deps/vector3.Po, .deps/ship.Po, .deps/model.Po,
-	  .deps/texture.Po, .deps/menu.Po, .deps/system.Po, .deps/texts.Po,
-	  .deps/game.Po, .deps/sea_object.Po, .deps/font.Po,
-	  .deps/airplane.Po, .deps/submarine.Po, .deps/subsim.Po,
-	  .deps/torpedo.Po, .deps/depth_charge.Po,
-	  .deps/submarine_interface.Po, .deps/global_data.Po,
-	  .deps/off2mdl.Po: Initial import.
+	* data/: manometer3.png, manometer4.png, water.png, titel.png,
+	  torpt11.png, font_arial2.png, depth_charge.mdl, font_arial.png,
+	  periscope.png, torpt6lut.png, subXXI.mdl, subXXI.png,
+	  font_ellis.png, font_panel.png, skyhemisphere.mdl,
+	  troopship1.mdl, torpt3fat.png, troopship1.png, metalbackgr.png,
+	  battleship_malaya.mdl, battleship_malaya.png, merchant1.mdl,
+	  merchant1.png, torp.png, torpt1.png, torpt3.png, torpt5.png,
+	  uzo.png, torpedo.mdl, torpedo.png, addleadangle.png,
+	  font_tahoma.png, font_logo.png: Initial import.
 
 2003-02-17 13:59  thjordan
 
-	* data/manometer3.png, data/manometer4.png, data/water.png,
-	  data/titel.png, data/torpt11.png, data/font_arial2.png,
-	  data/depth_charge.mdl, data/font_arial.png, data/periscope.png,
-	  data/torpt6lut.png, data/subXXI.mdl, data/subXXI.png,
-	  data/font_ellis.png, data/font_panel.png, data/skyhemisphere.mdl,
-	  data/troopship1.mdl, data/torpt3fat.png, data/troopship1.png,
-	  data/metalbackgr.png, data/battleship_malaya.mdl,
-	  data/battleship_malaya.png, data/merchant1.mdl,
-	  data/merchant1.png, data/torp.png, data/torpt1.png,
-	  data/torpt3.png, data/torpt5.png, data/uzo.png, data/torpedo.mdl,
-	  data/torpedo.png, data/addleadangle.png, data/font_tahoma.png,
-	  data/font_logo.png, .deps/ai.Po, .deps/vector2.Po,
-	  .deps/vector3.Po, .deps/ship.Po, .deps/model.Po,
-	  .deps/texture.Po, .deps/menu.Po, .deps/system.Po, .deps/texts.Po,
-	  .deps/game.Po, .deps/sea_object.Po, .deps/font.Po,
-	  .deps/airplane.Po, .deps/submarine.Po, .deps/subsim.Po,
-	  .deps/torpedo.Po, .deps/depth_charge.Po,
-	  .deps/submarine_interface.Po, .deps/global_data.Po,
-	  .deps/off2mdl.Po: Initial revision
+	* data/: manometer3.png, manometer4.png, water.png, titel.png,
+	  torpt11.png, font_arial2.png, depth_charge.mdl, font_arial.png,
+	  periscope.png, torpt6lut.png, subXXI.mdl, subXXI.png,
+	  font_ellis.png, font_panel.png, skyhemisphere.mdl,
+	  troopship1.mdl, torpt3fat.png, troopship1.png, metalbackgr.png,
+	  battleship_malaya.mdl, battleship_malaya.png, merchant1.mdl,
+	  merchant1.png, torp.png, torpt1.png, torpt3.png, torpt5.png,
+	  uzo.png, torpedo.mdl, torpedo.png, addleadangle.png,
+	  font_tahoma.png, font_logo.png: Initial revision
 
 2003-02-17 13:56  thjordan
 
