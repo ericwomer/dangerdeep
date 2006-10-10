@@ -118,6 +118,8 @@ env.Default(portal)
 ############ this allows to run "scons install" to install the binary
 install = env.Alias('install', env.Install(installbindir, binary))
 env.Depends(install, binary)
+
+# fixme: remove that when we have the data package
 for i in datafiles:
 	# remove './data' from begin of i and filename from end
 	j = i.rfind(os.sep)
