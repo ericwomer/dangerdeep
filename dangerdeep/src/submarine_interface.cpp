@@ -149,6 +149,20 @@ submarine_interface::~submarine_interface()
 void submarine_interface::fire_tube(submarine* player, int nr)
 {
 	if (NULL != target && target != player)	{
+		bool ok = player->launch_torpedo(nr, target);
+		if (ok) {
+			add_message(texts::get(49));
+			ostringstream oss;
+			oss << texts::get(49);
+			if (target)
+				oss << " " << texts::get(6) << ": " << target->get_description(2);
+			mygame->add_logbook_entry(oss.str());
+			play_sound_effect(se_submarine_torpedo_launch, player, player);
+		} else {
+			add_message(texts::get(766));
+		}
+
+#if 0 // old code
 		submarine::stored_torpedo::st_status tube_status = submarine::stored_torpedo::st_empty;		
 		
 		// fixme: ask TDC!
@@ -193,8 +207,10 @@ void submarine_interface::fire_tube(submarine* player, int nr)
 			
 			add_message(failed_to_fire_msg);
 		}
-	} else
+#endif
+	} else {
 		add_message(texts::get(80));
+	}
 }
 
 

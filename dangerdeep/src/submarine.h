@@ -357,7 +357,8 @@ public:
 	virtual void dive_to_depth(unsigned meters);
 	virtual void transfer_torpedo(unsigned from, unsigned to);
 
-	virtual void launch_torpedo(int tubenr, sea_object* target); // give tubenr -1 for any loaded tube, or else 0-5
+	// give tubenr -1 for any loaded tube, or else 0-5, returns true on success
+	virtual bool launch_torpedo(int tubenr, sea_object* target);
 	virtual void set_throttle(ship::throttle_status thr);
 	// end of command interface
 

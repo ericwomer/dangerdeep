@@ -1115,10 +1115,10 @@ bool submarine::set_snorkel_up ( bool snorkelup )
 
 
 
-void submarine::launch_torpedo(int tubenr, sea_object* target)
+bool submarine::launch_torpedo(int tubenr, sea_object* target)
 {
-	if (target == 0) return;	// maybe assert this?
-	if (target == this) return;
+	if (target == 0) return false;	// maybe assert this?
+	if (target == this) return false;
 	
 	bool usebowtubes = false;
 
@@ -1135,7 +1135,7 @@ void submarine::launch_torpedo(int tubenr, sea_object* target)
 				break;
 			}
 		}
-		if (tubenr < 0) return;	// no torpedo found
+		if (tubenr < 0) return false;	// no torpedo found
 	} else {	// check if tube nr is bow or stern
 		unsigned tn = unsigned(tubenr);
 		pair<unsigned, unsigned> idx = get_bow_tube_indices();
@@ -1144,13 +1144,13 @@ void submarine::launch_torpedo(int tubenr, sea_object* target)
 		} else {
 			idx = get_stern_tube_indices();
 			if (tn < idx.first || tn >= idx.second)
-				return;	// illegal tube nr.
+				return false;	// illegal tube nr.
 		}
 	}
 
 	// check if torpedo can be fired with that tube, if yes, then fire it
 	if (torpedoes[tubenr].torp == 0)
-		return;
+		return false;
 
 	//cout << "sol valid? " << TDC.solution_valid() << "\n";
 	//fixme
@@ -1165,6 +1165,9 @@ void submarine::launch_torpedo(int tubenr, sea_object* target)
 		gm.spawn_torpedo(torpedoes[tubenr].torp);
 		torpedoes[tubenr].torp = 0;
 		torpedoes[tubenr].status = stored_torpedo::st_empty;
+		return true;
+	} else {
+		return false;
 	}
 }
 
