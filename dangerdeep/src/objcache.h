@@ -37,13 +37,13 @@ class objcachet
 {
 	std::map<std::string, std::pair<unsigned, T*> > cache;
 	std::string basedir;
-	objcachet<T>();
+	objcachet();
 	objcachet<T>& operator= (const objcachet<T>& );
-	objcachet<T>(const objcachet<T>& );
+	objcachet(const objcachet<T>& );
 
 public:
-	objcachet<T>(const std::string& basedir_) : basedir(basedir_) {}
-	~objcachet<T>() {
+	objcachet(const std::string& basedir_) : basedir(basedir_) {}
+	~objcachet() {
 		clear();
 	}
 
