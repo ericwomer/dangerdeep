@@ -141,6 +141,10 @@ void game_editor::simulate(double delta_t)
 	compute_max_view_dist();
 	
 	bool record = false;
+	if (get_time() >= last_trail_time + TRAIL_TIME) {
+		last_trail_time = get_time();
+		record = true;
+	}
 
 	double nearest_contact = 1e10;
 

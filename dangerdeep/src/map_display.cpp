@@ -103,6 +103,7 @@ void map_display::draw_trail(sea_object* so, const vector2& offset) const
 	ship* shp = dynamic_cast<ship*>(so);
 	if (shp) {
 		const list<ship::prev_pos>& l = shp->get_previous_positions();
+		if (l.empty()) return;
 		glColor4f(1,1,1,1);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBegin(GL_LINE_STRIP);
@@ -117,103 +118,6 @@ void map_display::draw_trail(sea_object* so, const vector2& offset) const
 		}
 		glEnd();
 		glColor4f(1,1,1,1);
-
-
-
-
-		// test: foam trail
-		vector2 spos = shp->get_pos().xy();// - viewpos.xy();
-	vector2 sdir = shp->get_heading().direction();
-//	vector2 pdir = sdir.orthogonal();
-	float sl = shp->get_length();
-	float sw = shp->get_width();
-
-	const list<ship::prev_pos>& prevpos = shp->get_previous_positions();
-	// fixme: we need time of most recent prevpos, and time for decay of foam
-
-	//vector<vector2> trailp = compute_foam_trail(shp, viewpos);
-	// compute bspline values ^
-	// compute normals etc.
-
-	// check result on 2d map! easier to check than 3d.
-
-	// vector with points of foam trail
-	vector<vector2> trailp;
-	trailp.reserve(3 + prevpos.size());
-//	trailp.push_back(spos + sdir * (sl * 0.5));	// push back points for boat perimeter
-	trailp.push_back(spos);
-//	trailp.push_back(spos + sdir * (sl * -0.5));
-
-	// first point of prevpos has to be discarded when between pos and stern
-	list<ship::prev_pos>::const_iterator pit = prevpos.begin();
-#if 0
-	while (pit != prevpos.end()) {
-		if (sdir * ((*pit /* - viewpos.xy()*/) - spos) >= sl * -0.5) {
-			++pit;
-		} else {
-			break;
-		}
-	}
-#endif
-
-	//fixme: limit to 1/3 or 1/4 of prevpos, that means skip entries older than 1/3 or 1/4
-	for ( ; pit != prevpos.end(); ++pit /*unsigned i = 0; i < prevpos.size(); ++i*/) {
-		trailp.push_back(pit->pos /* - viewpos.xy()*/);
-		if (trailp.size() > 15) break;
-	}
-
-#if 0
-	// compute bspline points from trailp
-	unsigned n = trailp.size() > 3 ? 3 : 2;	// fixme: n = 2 immer?
-	bsplinet<vector2> bsp(n, trailp);
-
-	// fixme: bspline sollte erst nach heck anfangen, zwischen heck und erster prevpos
-	// ist der abstand nicht gleichm‰ﬂig, die t's des bspline aber schon...
-	vector<vector2> bspr(trailp.size() * 2);
-	double f = 0.0, fadd = 1.0/bspr.size();
-	for (unsigned i = 0; i < bspr.size(); ++i) {
-		bspr[i] = bsp.value(f);
-		f += fadd;
-	}
-#endif
-	const vector<vector2>& bspr = trailp;
-
-	// compute normals
-	vector<vector2> bsprnrml(bspr.size());
-	for (unsigned i = 1; i + 1 < bspr.size(); ++i)
-		bsprnrml[i] = (bspr[i-1] - bspr[i+1]).orthogonal().normal();
-	// bsprnrml.size() is at least 2*3
-	bsprnrml[0] = bsprnrml[1];
-	bsprnrml[bsprnrml.size()-1] = bsprnrml[bsprnrml.size()-2];
-
-	//vector2 p0 = spos + sdir * (sl/2 /*fixme should be 2 but... the whole thing seems to be scaled by factor 2!*/);
-	//especially in freeview mode, but the bow caused foam seems also to be too long
-	glColor4f(1, 1, 1, 1);
-	glBegin(GL_QUAD_STRIP);
-	float fw = sw*0.5f;
-	float dfw = 3*sw*0.5f/bspr.size();
-	for (unsigned i = 0; i < bspr.size(); ++i) {
-		vector2 pl = bspr[i] + bsprnrml[i] * -fw;
-		vector2 pr = bspr[i] + bsprnrml[i] *  fw;
-		fw += dfw;
-		float q = float(i&1);
-		vector2 p = (pl + offset)*mapzoom;
-		glColor3f(q, q, q);
-		glTexCoord2f(0, i);
-		glVertex2f(512+p.x, 384-p.y);
-//		glVertex3d(pl.x, pl.y, -viewpos.z);
-		p = (pr + offset)*mapzoom;
-		glColor3f(q, q, q);
-		glTexCoord2f(1, i);
-		glVertex2f(512+p.x, 384-p.y);
-//		glVertex3d(pr.x, pr.y, -viewpos.z);
-	}
-	//fixme: the amount of foam decreases too slowly, use less prevpos,
-	//about 1/2 or even 1/4 should be enough
-	glEnd();
-
-
-
 	}
 }
 
