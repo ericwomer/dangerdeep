@@ -14,7 +14,7 @@ glbase = 'D:\\Dev-Cpp\\include\\gl'
 #sdlnetbase = os.environ['SDLNET']
 #sdlmixerbase = os.environ['SDLMIXER']
 #fftw3base = os.environ['FFTW']
-#glbase = os.environ['GL']
+#glbase = os.environ['GLBASE']
 
 ################ command line config
 debug = int(ARGUMENTS.get('debug', 0))
@@ -32,7 +32,7 @@ fftwlib = 'fftw3'
 if sys.platform == 'win32':
 	print "Compiling for Win32 Environment"
 	env = Environment(ENV = os.environ, tools = ['mingw'])
-	env.Append(CPPPATH = [sdlbase + '\\include\\SDL', sdlimagebase + '\\include', sdlnetbase + '\\include', sdlmixerbase + '\\include', fftw3base, glbase])
+	env.Append(CPPPATH = [sdlbase + '\\include', sdlimagebase + '\\include', sdlnetbase + '\\include', sdlmixerbase + '\\include', fftw3base, glbase])
 	libpath = [sdlbase + '\\lib', sdlimagebase + '\\lib', sdlnetbase + '\\lib', sdlmixerbase + '\\lib', fftw3base]
 	gllibs = ['opengl32', 'glu32']
 	sdllibs = ['SDL', 'SDL_image']
@@ -209,28 +209,28 @@ source_base_dir = 'src'
 ################ configure
 conf = Configure(env)
 if (devel == 0):
-	if not conf.CheckCHeader('gl.h'):
+	if not conf.CheckLibWithHeader('GL', 'gl.h', 'C'):
 		print 'GL library must be installed!'
 		Exit(1)
-	if not conf.CheckCHeader('glu.h'):
+	if not conf.CheckLibWithHeader('GLU', 'glu.h', 'C'):
 		print 'GLU library must be installed!'
 		Exit(1)
-	if not conf.CheckCHeader('SDL.h'):
+	if not conf.CheckLibWithHeader('SDL', 'SDL.h', 'C'):
 		print 'SDL library must be installed!'
 		Exit(1)
-	if not conf.CheckCHeader('SDL_image.h'):
+	if not conf.CheckLibWithHeader('SDL_image', 'SDL_image.h', 'C'):
 		print 'SDL_image library must be installed!'
 		Exit(1)
-	if not conf.CheckCHeader('SDL_net.h'):
+	if not conf.CheckLibWithHeader('SDL_net', 'SDL_net.h', 'C'):
 		print 'SDL_net library is needed for network code!'
 		Exit(1)
-	if not conf.CheckCHeader('SDL_mixer.h'):
+	if not conf.CheckLibWithHeader('SDL_mixer', 'SDL_mixer.h', 'C'):
 		print 'SDL_mixer library is needed for sound support!'
 		Exit(1)
-	if not conf.CheckCHeader('fftw3.h'):
+	if not conf.CheckLibWithHeader('fftw3', 'fftw3.h', 'C'):
 		print 'fftw3 library must be installed!'
 		Exit(1)
-	if conf.CheckLibWithHeader('fftw3f', 'fftw3.h', 'c'):
+	if conf.CheckLibWithHeader('fftw3f', 'fftw3.h', 'C'):
 		print 'fftw3 library supports float type. Using it...'
 		fftwlib = 'fftw3f'
 		conf.env.Append(CPPDEFINES = ['WITH_FLOAT_FFTW'])
