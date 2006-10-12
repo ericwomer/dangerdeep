@@ -896,8 +896,13 @@ void submarine::planes_up(double amount)
 void submarine::planes_down(double amount)
 {
 	user_interface* ui = gm.get_ui();
-	if (false == is_gun_manned())
-	{
+	if (has_deck_gun() && is_gun_manned()) {
+		ui->add_message(texts::get(753));
+		delayed_planes_down = amount;
+		delayed_dive_to_depth = 0;
+		unman_guns();
+		ui->add_message(texts::get(754));
+	} else {
 		bow_to -= int(amount);
 		if( bow_to < rudder_down_30 )
 			bow_to = rudder_down_30;
@@ -905,14 +910,6 @@ void submarine::planes_down(double amount)
 	//	dive_acceleration = 1;
 	//	dive_speed = -max_dive_speed;
 		permanent_dive = true;
-	}
-	else
-	{
-		ui->add_message(texts::get(753));
-		delayed_planes_down = amount;
-		delayed_dive_to_depth = 0;
-		toggle_gun_manning();
-		ui->add_message(texts::get(754));
 	}
 }
 
@@ -931,20 +928,19 @@ void submarine::planes_middle()
 void submarine::dive_to_depth(unsigned meters)
 {
 	user_interface* ui = gm.get_ui();
-	if (false == is_gun_manned())
-	{	
+	if (has_deck_gun() && is_gun_manned()) {
+		if (!gun_manning_is_changing) {
+			ui->add_message(texts::get(753));
+			delayed_planes_down = 0.0;
+			delayed_dive_to_depth = meters;
+			unman_guns();
+			ui->add_message(texts::get(754));
+		}
+	} else {
 		dive_to = -int(meters);
 		permanent_dive = false;
 		bow_to = ( dive_to < position.z )? rudder_down_30 : rudder_up_30;
 		//		dive_speed = (dive_to < position.z) ? -max_dive_speed : max_dive_speed;
-	}
-	else
-	{	
-		ui->add_message(texts::get(753));
-		delayed_planes_down = 0.0;
-		delayed_dive_to_depth = meters;
-		toggle_gun_manning();
-		ui->add_message(texts::get(754));
 	}
 }
 
@@ -1173,10 +1169,10 @@ bool submarine::launch_torpedo(int tubenr, sea_object* target)
 
 
 
-void submarine::gun_manning_changed(bool isGunManned)
+void submarine::gun_manning_changed(bool is_gun_manned)
 {
 	user_interface* ui = gm.get_ui();
-	if (true == isGunManned)
+	if (is_gun_manned)
 		ui->add_message(texts::get(755));
 	else
 		ui->add_message(texts::get(756));		

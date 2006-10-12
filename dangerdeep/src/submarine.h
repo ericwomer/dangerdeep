@@ -244,7 +244,7 @@ protected:
 
 	virtual void calculate_fuel_factor ( double delta_time );
 	
-	virtual void gun_manning_changed(bool isGunManned);
+	virtual void gun_manning_changed(bool is_gun_manned);
 
 
 	// in-hull temperature, depends on weather/latitude etc.
@@ -362,7 +362,7 @@ public:
 	virtual void set_throttle(ship::throttle_status thr);
 	// end of command interface
 
-	virtual bool has_deck_gun() { return !gun_turrets.empty(); }
+	virtual bool has_deck_gun() { return has_guns(); }
 	
 	virtual void start_throttle_sound();
 	virtual void stop_throttle_sound();

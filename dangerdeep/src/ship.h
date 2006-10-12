@@ -28,13 +28,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #define SINK_SPEED 0.5  // m/sec, fixme move to ship. include in local drag.
 
-#define NO_AMMO_REMAINING	0	// used by deck gun
-#define TARGET_OUT_OF_RANGE	-1	// used by deck gun
-#define GUN_FIRED 1
-#define RELOADING 2
-#define GUN_NOT_MANNED 3
-#define GUN_TARGET_IN_BLINDSPOT 4
-
 class game;
 
 ///\brief Base class for all ships and ship-like objects: ships, submarines, torpedoes.
@@ -56,6 +49,16 @@ class ship : public sea_object
 
 	enum rudder_status { rudderfullleft=-2, rudderleft=-1, ruddermidships=0, rudderright=1,
 		rudderfullright=2 };
+
+	enum gun_status {
+		TARGET_OUT_OF_RANGE = -1,	// used by deck gun
+		NO_AMMO_REMAINING = 0,	// used by deck gun
+		GUN_FIRED = 1,
+		RELOADING = 2,
+		GUN_NOT_MANNED = 3,
+		GUN_TARGET_IN_BLINDSPOT = 4,
+		NO_GUNS = 5
+	};
 
 	// maximum trail record length
 	static const unsigned TRAIL_LENGTH = 60;
@@ -228,7 +231,7 @@ public:
 	bool is_burning() const { return myfire != 0; }
 
 	// command interface
-	virtual void fire_shell_at(const vector2& pos);
+	virtual gun_status fire_shell_at(const vector2& pos);
 	virtual void head_to_ang(const angle& a, bool left_or_right);	// true == left
 	virtual void change_rudder(int to);	// give -2..2, fixme not yet used as command
 	//virtual void set_rudder(angle ang);	// move rudder to this angle
@@ -260,16 +263,18 @@ public:
 	virtual double get_rudder_pos() const { return rudder_pos; }
 	virtual int get_rudder_to () const { return rudder_to; }
 	virtual double get_noise_factor () const;
-	virtual int fire_shell_at(const sea_object& s);
+	virtual gun_status fire_shell_at(const sea_object& s);
 
 	// needed for launching torpedoes
 	std::pair<angle, double> bearing_and_range_to(const sea_object* other) const;
 	angle estimate_angle_on_the_bow(angle target_bearing, angle target_heading) const;
 	
 	// gun
-	virtual bool toggle_gun_manning();
+	virtual bool has_guns() const { return !gun_turrets.empty(); }
+	virtual bool man_guns();
+	virtual bool unman_guns();
 	virtual bool is_gun_manned();
-	virtual void gun_manning_changed(bool isGunManned);	
+	virtual void gun_manning_changed(bool is_gun_manned) {}
 	virtual long num_shells_remaining();
 	virtual double max_gun_range() { return maximum_gun_range; };
 

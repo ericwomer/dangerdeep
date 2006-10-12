@@ -421,47 +421,47 @@ void submarine_interface::process_input(const SDL_Event& event)
 				add_message(texts::get(32));
 			}
 		} else if (mycfg.getkey(KEY_FIRE_DECK_GUN).equal(event.key.keysym)) {
-			if (true == player->has_deck_gun())
-			{
-				if (false == player->is_submerged())
-				{
-					if (NULL != target && player != target)
-					{						
+			if (player->has_deck_gun()) {
+				if (!player->is_submerged()) {
+					if (NULL != target && player != target) {
 						int res = player->fire_shell_at(*target);
-						
-						if (TARGET_OUT_OF_RANGE == res)
+						if (ship::TARGET_OUT_OF_RANGE == res)
 							add_message(texts::get(218));
-						else if (NO_AMMO_REMAINING == res)
+						else if (ship::NO_AMMO_REMAINING == res)
 							add_message(texts::get(219));
-						else if (RELOADING == res)
+						else if (ship::RELOADING == res)
 							add_message(texts::get(758));
-						else if (GUN_NOT_MANNED == res)
+						else if (ship::GUN_NOT_MANNED == res)
 							add_message(texts::get(759));
-						else if (GUN_TARGET_IN_BLINDSPOT == res)
-							add_message(texts::get(760));					
-					}
-					else
+						else if (ship::GUN_TARGET_IN_BLINDSPOT == res)
+							add_message(texts::get(760));
+						else if (ship::GUN_FIRED == res)
+							add_message(texts::get(270));
+					} else {
 						add_message(texts::get(80));
-				}
-				else
+					}
+				} else {
 					add_message(texts::get(27));
+				}
 			}
 		} else if (mycfg.getkey(KEY_TOGGLE_MAN_DECK_GUN).equal(event.key.keysym)) {
-			if (true == player->has_deck_gun())
-			{
-				if (false == player->is_submerged())
-				{
-					if (event.key.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT))
-					{
-						if (true == player->toggle_gun_manning())
-							add_message(texts::get(761));
-						else
-							add_message(texts::get(754));
+			if (player->has_deck_gun()) {
+				if (!player->is_submerged()) {
+					if (event.key.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) {
+						if (player->is_gun_manned()) {
+							if (player->unman_guns())
+								add_message(texts::get(754));
+						} else {
+							if (player->man_guns())
+								add_message(texts::get(761));
+						}
 					}
-				}			
-				else
+				} else {
 					add_message(texts::get(27));
-			}	
+				}
+			} else {
+				add_message(texts::get(269));
+			}
 		} else if (mycfg.getkey(KEY_SHOW_TDC_SCREEN).equal(event.key.keysym)) {
 			goto_TDC();
 		} else if (mycfg.getkey(KEY_SHOW_TORPSETUP_SCREEN).equal(event.key.keysym)) {

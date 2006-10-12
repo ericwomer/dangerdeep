@@ -170,7 +170,7 @@ ship::ship(game& gm_, const xml_elem& parent)
 			new_turret.max_declination = it.elem().attri("max_declination");
 			new_turret.max_inclination = it.elem().attri("max_inclination");
 			new_turret.time_to_man = it.elem().attrf("time_to_man");
-			new_turret.time_to_man = it.elem().attrf("time_to_unman");
+			new_turret.time_to_unman = it.elem().attrf("time_to_unman");
 			new_turret.shell_damage = it.elem().attrf("shell_damage");
 			new_turret.start_of_exclusion_radius = it.elem().attri("exclusion_radius_start");
 			new_turret.end_of_exclusion_radius = it.elem().attri("exclusion_radius_end");
@@ -640,40 +640,29 @@ void ship::simulate(double delta_time)
 	
 	// gun turrets
 	gun_turret_itr gun_turret = gun_turrets.begin();	
-	while (gun_turret != gun_turrets.end())
-	{
-		if (gun_turret->manning_time > 0.0)
-		{
+	while (gun_turret != gun_turrets.end()) {
+		// Note! condition must be greater than zero, so that nothing happens when manning time is zero,
+		// like at begin of mission.
+		if (gun_turret->manning_time > 0.0) {
 			gun_turret->manning_time -= delta_time;
-			if (gun_turret->manning_time <= 0.0)
-			{
+			if (gun_turret->manning_time <= 0.0) {
 				gun_turret->is_gun_manned = !gun_turret->is_gun_manned;					
 				gun_manning_is_changing = false;
 				gun_manning_changed(gun_turret->is_gun_manned);
 			}
 		}
 		
-		if (gun_turret->manning_time <= 0.0)
-		{
+		if (gun_turret->manning_time <= 0.0) {
 			gun_barrel_itr gun_barrel = gun_turret->gun_barrels.begin();
-			while (gun_barrel != gun_turret->gun_barrels.end())
-			{		
+			while (gun_barrel != gun_turret->gun_barrels.end()) {		
 				if (gun_barrel->load_time_remaining > 0.0)
 					gun_barrel->load_time_remaining -= delta_time;
-										
 				gun_barrel++;
 			}
 		}
 			
 		gun_turret++;
 	}	
-}
-
-
-
-void ship::fire_shell_at(const vector2& pos)
-{
-	// fixme!!!!!!
 }
 
 
@@ -795,30 +784,26 @@ void ship::calculate_fuel_factor ( double delta_time )
 	fuel_level -= delta_time * get_fuel_consumption_rate ();
 }
 
-int ship::fire_shell_at(const sea_object& s)
+
+ship::gun_status ship::fire_shell_at(const vector2& pos)
 {
-	int res = GUN_FIRED;
+ if (!has_guns())
+    return NO_GUNS;
+
+	gun_status res = GUN_FIRED;
 	gun_turret_itr gun_turret = gun_turrets.begin();
 	gun_barrel_itr gun_barrel;
-	//fixme!!! move this code to class ship::fire_shell_at. move dist_angle relation also,
+	//fixme! move dist_angle relation also,
 	//maybe approximate that relation with splines.		
 	
-	while (gun_turret != gun_turrets.end())
-	{
+	while (gun_turret != gun_turrets.end()) {
 		struct gun_turret *gun = &(*gun_turret);
-
-		if (gun->num_shells_remaining > 0)
-		{
-			if (true == gun->is_gun_manned && gun->manning_time <= 0.0)
-			{
+		if (gun->num_shells_remaining > 0) {
+			if (gun->is_gun_manned && gun->manning_time <= 0.0) {
 				gun_barrel = gun_turret->gun_barrels.begin();
-				while (gun_barrel != gun_turret->gun_barrels.end())
-				{				
-					if (gun_barrel->load_time_remaining <= 0.0)
-					{
-						// maybe we should not use current position but rather
-						// estimated position at impact!
-						vector2 deltapos = s.get_pos().xy() - get_pos().xy();
+				while (gun_barrel != gun_turret->gun_barrels.end()) {				
+					if (gun_barrel->load_time_remaining <= 0.0) {
+						vector2 deltapos = pos - get_pos().xy();
 						double distance = deltapos.length();
 						angle direction(deltapos);
 
@@ -826,10 +811,8 @@ int ship::fire_shell_at(const sea_object& s)
 						if (distance > max_shooting_distance) 
 							res = TARGET_OUT_OF_RANGE;	// can't do anything
 						
-						if (GUN_FIRED == res)
-						{
-							if (false == is_target_in_blindspot(gun, heading - direction))
-							{
+						if (GUN_FIRED == res) {
+							if (!is_target_in_blindspot(gun, heading - direction)) {
 								// initial angle: estimate distance and fire, remember angle
 								// next shots: adjust angle after distance fault:
 								//	estimate new distance from old and fault
@@ -837,68 +820,86 @@ int ship::fire_shell_at(const sea_object& s)
 								//	use an extra bit of correction for wind etc.
 								//	to do that, we need to know where the last shot impacted!							
 								angle elevation;
-								if (true == calculate_gun_angle(distance, elevation, gun_turret->initial_velocity))
-								{														
-									if (elevation.value() > gun->max_inclination)
+								if (true == calculate_gun_angle(distance, elevation, gun_turret->initial_velocity)) {														
+									if (elevation.value() > gun->max_inclination) {
 										res = TARGET_OUT_OF_RANGE;
-									else if (elevation.value() < gun->max_declination)
+									} else if (elevation.value() < gun->max_declination) {
 										res = GUN_TARGET_IN_BLINDSPOT;
-									else
-									{
-										// fixme: for a smart ai: try to avoid firing at friendly ships that are in line
-										// of fire.
-										
+									} else {
 										// fixme: snap angle values to simulate real cannon accuracy.
-
-										// fixme: adapt direction & elevation to course and speed of target!
-										// fixme: get_pos() is to crude!
 										gm.spawn_gun_shell(new gun_shell(gm, get_pos(), direction, elevation, gun->initial_velocity, gun->shell_damage), 
-														   gun->calibre);
+												   gun->calibre);
 										gun->num_shells_remaining--;
 										gun_barrel->load_time_remaining = GUN_RELOAD_TIME;
 										gun_barrel->last_elevation = elevation;	
 										gun_barrel->last_azimuth = direction;
 									}
-								}
-								else
+								} else {
 									res = TARGET_OUT_OF_RANGE;	// unsuccesful angle, fixme
-							}
-							else
+								}
+							} else {
 								res = GUN_TARGET_IN_BLINDSPOT;
+							}
 						}
-					}
-					else
+					} else {
 						res = RELOADING;
-					
+					}
 					gun_barrel++;
 				}
-			}
-			else
+			} else {
 				res = GUN_NOT_MANNED;
-		}
-		else
+			}
+		} else {
 			res = NO_AMMO_REMAINING;
-		
+		}
 		gun_turret++;
 	}
 		
 	return res;
 }
 
-bool ship::toggle_gun_manning()
+
+
+ship::gun_status ship::fire_shell_at(const sea_object& s)
 {
-	if (false == gun_manning_is_changing)
-	{
-		gun_turrets.begin()->manning_time = (true == gun_turrets.begin()->is_gun_manned) ? 
-											gun_turrets.begin()->time_to_unman : gun_turrets.begin()->time_to_man;
-		gun_manning_is_changing = true;
-	}
-	
-	return !gun_turrets.begin()->is_gun_manned;
+	// we should not use current position but rather
+	// estimated position at impact!
+	// fixme: for a smart ai: try to avoid firing at friendly ships that are in line
+	// of fire.
+	// fixme: adapt direction & elevation to course and speed of target!
+	// fixme: get_pos() is to crude!
+	return fire_shell_at(s.get_pos().xy());										
 }
 
-void ship::gun_manning_changed(bool)
-{ }
+bool ship::man_guns()
+{
+	if (has_guns() && !is_gun_manned()) {
+		if (!gun_manning_is_changing) {
+			// fixme: man ALL guns
+			gun_turrets.begin()->manning_time = gun_turrets.begin()->time_to_man;
+			gun_manning_is_changing = true;
+			return true;
+		}
+	}
+	return false;
+}
+
+
+
+bool ship::unman_guns()
+{
+	if (has_guns() && is_gun_manned()) {
+		if (!gun_manning_is_changing) {
+			// fixme: unman ALL guns
+			gun_turrets.begin()->manning_time = gun_turrets.begin()->time_to_unman;
+			gun_manning_is_changing = true;
+			return true;
+		}
+	}
+	return false;
+}
+
+
 
 // This function determines is the target for the gun is within the exclusion radius for 
 // the turret. The exclusion radius defines one constant arc where the gun cannot aim (i.e. on a sub
