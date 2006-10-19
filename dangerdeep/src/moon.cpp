@@ -23,89 +23,90 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <windows.h>
 #endif
 
+#include <iostream>
+using namespace std;
+
 #include "oglext/OglExt.h"
 
 #include "moon.h"
-#include "xml.h"
+#include "matrix4.h"
 #include "texture.h"
 #include "datadirs.h"
 
 
-
-unsigned moon::get_phase_id(const double time) const
-{
-	if(phases[last_phase_id+1].time<=time) {
-	//	find new time interval
-		//	try next time interval
-		if(phases[last_phase_id+2].time>time) return last_phase_id+1;
-
-		//	binary search
-		unsigned begin=0, end=phases.size()-2;
-		while( end-begin > 1) {
-			unsigned i = (begin+end)/2;
-			if( phases[i].time > time ) end = i;
-			else begin = i;
-		}
-
-		return begin;
-	}
-
-	return last_phase_id;
-}
-
-
-unsigned moon::get_texture_id(const phase_data &phase1, const phase_data &phase2, const double time) const
-{
-	unsigned tmp = phase2.phase;
-	if(phase2.phase<phase1.phase) tmp += moon_texture_files.size()+1;
-	unsigned phase = phase1.phase + (unsigned) ( (tmp-phase1.phase)*(time-phase1.time)/(phase2.time-phase1.time) );
-
-	return phase%moon_texture_files.size();
-}
+#define RAD_TO_DEG(x) 360.0f *x / (2.0f*3.14159)
 
 
 moon::moon()
- : last_phase_id(0)
 {
-	xml_doc moon_data(get_data_dir()+"environment/moon_data.xml");
-	moon_data.load();
-
-	xml_elem parent_node = moon_data.child("moon_data");
-
-	xml_elem textures_node = parent_node.child("textures");
-	for (xml_elem::iterator it = textures_node.iterate("texture"); !it.end(); it.next()) {
-		moon_texture_files.push_back(it.elem().attr("filename"));
-	}
-
-	xml_elem phases_node = parent_node.child("phases");
-	for (xml_elem::iterator it = phases_node.iterate("moon_phase"); !it.end(); it.next()) {
-		phase_data phase;
-		phase.time = it.elem().attrf("time");
-		phase.phase = it.elem().attri("phase");
-
-		phases.push_back(phase);
-	}
-
-	moon_texture = texture::ptr(new texture(get_texture_dir()+moon_texture_files[0], texture::LINEAR, texture::CLAMP_TO_EDGE));
+	map_diffuse = texture::ptr(new texture(get_texture_dir()+"moon_d.png", texture::LINEAR));
+	map_normal = texture::ptr(new texture(get_texture_dir()+"moon_n.png", texture::LINEAR));
 }
 
 
-void moon::update_moon_texture(const double time)
+
+void moon::display(const vector3 &moon_pos, const vector3 &sun_pos, double max_view_dist) const
 {
-	last_phase_id = get_phase_id(time);
+	vector3 moon_dir = moon_pos.normal();
+	double moon_size = max_view_dist/20;
+	float moon_azimuth = atan2(-moon_dir.y, moon_dir.x);
+	float moon_elevation = asin(moon_dir.z);
 
-	const phase_data &phase1 = phases[last_phase_id];
-	const phase_data &phase2 = phases[last_phase_id+1];
-	unsigned texture_id = get_texture_id(phase1, phase2, time);
+	//	bind normal map
+	glActiveTextureARB(GL_TEXTURE0_ARB);
+	glEnable(GL_TEXTURE_2D);
+	map_normal.get()->set_gl_texture();
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_DOT3_RGB_ARB) ;
+	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PRIMARY_COLOR_ARB) ;
+	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 
-	if(last_texture_id != texture_id) {
-		moon_texture.reset( new texture(get_texture_dir()+moon_texture_files[texture_id], texture::LINEAR, texture::CLAMP_TO_EDGE) );
-		last_texture_id = texture_id;
-	}
-}
+	//	bind diffuse map
+	glActiveTextureARB(GL_TEXTURE1_ARB);
+	glEnable(GL_TEXTURE_2D);
+	map_diffuse.get()->set_gl_texture();
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
+	//	transform light into object space
+	glPushMatrix();
+	glLoadIdentity();
+	glRotatef(RAD_TO_DEG(moon_azimuth), 0, 0, -1);
+	glRotatef(RAD_TO_DEG(moon_elevation), 0, -1, 0);
+	matrix4 invmodelview = (matrix4::get_gl(GL_MODELVIEW_MATRIX)).inverse();
+	vector3 l = invmodelview * sun_pos;
+	vector3 nl = vector3(-l.y, l.z, -l.x).normal();
+	nl += vector3(1,1,1);
+	nl = nl * (1.0f/2);
+	glColor3f(nl.x, nl.y, nl.z);
+	glPopMatrix();
 
-texture *moon::get_texture() const
-{
-	return moon_texture.get();
+	//	render moon
+	glPushMatrix();
+	glRotatef(RAD_TO_DEG(moon_azimuth), 0, 0, -1);
+	glRotatef(RAD_TO_DEG(moon_elevation), 0, -1, 0);
+	glTranslated(0.95*max_view_dist, 0, 0);
+
+	glBegin(GL_QUADS);
+	glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 1, 1);
+	glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 1, 1);
+	glVertex3f( 0, -moon_size, -moon_size);
+	glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 1, 0);
+	glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 1, 0);
+	glVertex3f( 0, -moon_size, moon_size);
+	glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 0, 0);
+	glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 0, 0);
+	glVertex3f( 0,  moon_size, moon_size);
+	glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 0, 1);
+	glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 0, 1);
+	glVertex3f( 0,  moon_size, -moon_size);
+	glEnd();
+	glPopMatrix();
+
+	//	reset textures
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glActiveTextureARB(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }

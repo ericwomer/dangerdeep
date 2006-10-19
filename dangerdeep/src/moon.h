@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define MOON_H
 
 
-#include <vector>
+#include "vector3.h"
 
 
 #include "texture.h"
@@ -31,25 +31,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class moon
 {
 	private:
-		struct phase_data {
-			double time;			//	time
-			unsigned phase;		//	id of moon phase texture file
-		};
-
-		std::vector<std::string> moon_texture_files;
-		std::vector<phase_data> phases;
-		unsigned last_phase_id;		//	last position in phases vector
-		unsigned last_texture_id;		//	last position in moon_texture_files vector
-		texture::ptr moon_texture;
-
-		unsigned get_phase_id(const double time) const;
-		unsigned get_texture_id(const phase_data &phase1, const phase_data &phase2, const double time) const;
-
+		texture::ptr map_diffuse;
+		texture::ptr map_normal;
 	public:
 		moon();
 
-		void update_moon_texture(const double time);
-		texture *get_texture() const;
+		void display(const vector3 &moon_pos, const vector3 &sun_pos, double max_view_dist) const;
 };
 
 #endif

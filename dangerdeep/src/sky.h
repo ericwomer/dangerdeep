@@ -69,10 +69,11 @@ protected:
 		const std::vector<Uint8>& nmap);
 	void smooth_and_equalize_bytemap(unsigned s, std::vector<Uint8>& map1);
 
-	moon moon_map;
+	moon _moon;
 	std::vector<vector3f> skyverts;
 	std::vector<vector2f> skyangles;
 	mutable std::vector<colorf> skycolors;
+	mutable vector3 sunpos, moonpos;
 	mutable vector3 sundir, moondir;
 	mutable float sun_azimuth, sun_elevation;
 	mutable float moon_azimuth, moon_elevation;

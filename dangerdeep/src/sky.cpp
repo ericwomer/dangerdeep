@@ -336,7 +336,6 @@ void sky::smooth_and_equalize_bytemap(unsigned s, vector<Uint8>& map1)
 void sky::set_time(double tm)
 {
 	mytime = tm;
-	moon_map.update_moon_texture(tm);	//	FIXME update only before moon rise?
 
 	tm = myfmod(tm, 86400.0);
 	double cf = myfrac(tm/CLOUD_ANIMATION_CYCLE_TIME) - cloud_animphase;
@@ -419,6 +418,19 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	// restore blend function
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+
+	// ******** the sun and the moon *****************************************************
+	// draw sun, fixme draw flares/halo
+	glDisable(GL_FOG); // no fog on the sun thankyou...
+
+	// draw moon
+
+	// alter blend function so that the moon renders ok in daylight
+	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+	_moon.display(moonpos, sunpos, max_view_dist);
+	// restore blend function
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	// set gl light position.
 	if (sundir.z > 0.0) {
 		vector3 sunpos = sundir * max_view_dist;
@@ -431,9 +443,6 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 		glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
 	}
 
-	// ******** the sun and the moon *****************************************************
-	// draw sun, fixme draw flares/halo
-	glDisable(GL_FOG); // no fog on the sun thankyou...
 	vector3 sunpos = sundir * (0.96 * max_view_dist);
 	double suns = max_view_dist/20; // was 10, 17x17px, needs to be smaller
 	glColor4f(1,1,1,1);
@@ -455,38 +464,6 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glVertex3f(-suns,  suns, 0);
 	glEnd();
 	glPopMatrix();
-
-	
-	// draw moon
-	
-	// alter blend function so that the moon renders ok in daylight
-	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
-
-	vector3 moonpos = moondir * (0.95 * max_view_dist);
-	double moons = max_view_dist/30;	// make moon smaller (17 = 10x10px)
-	glColor4f(1,1,1,1);
-	moon_map.get_texture()->set_gl_texture();
-	glPushMatrix();
-	glTranslated(moonpos.x, moonpos.y, moonpos.z);
-	tmpmat = matrix4::get_gl(GL_MODELVIEW_MATRIX);
-	tmpmat.clear_rot();
-	tmpmat.set_gl(GL_MODELVIEW);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0,0);
-	glVertex3f(-moons, -moons, 0);
-	glTexCoord2f(1,0);
-	glVertex3f( moons, -moons, 0);
-	glTexCoord2f(1,1);
-	glVertex3f( moons,  moons, 0);
-	glTexCoord2f(0,1);
-	glVertex3f(-moons,  moons, 0);
-	glEnd();
-	glPopMatrix();
-
-	// restore blend function
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_FOG); // restore the fog
-
 
 	// ******** clouds ********************************************************************
 	colorf lightcol = gm.compute_light_color(viewpos);
@@ -582,26 +559,29 @@ void sky::build_dome(const unsigned int sectors_x, const unsigned int sectors_y)
 * REBUILD_EPSILON_* values define threshold that needs to be exceeded to
 * rebuild a sky colors.
 */
-#define REBUILD_EPSILON_AZIMUTH		8.73E-3		//	0.5 deg
+#define REBUILD_EPSILON_AZIMUTH			8.73E-3		//	0.5 deg
 #define REBUILD_EPSILON_ELEVATION		8.73E-3		//	0.5 deg
 void sky::rebuild_colors(const game& gm, const vector3& viewpos) const
 {
 	// compute position of sun and moon
 	//fixme: compute_sun_pos works relativly to the viewer!!!
 	// but for sky simulation we need "global" azimuth/elevation?!
-	vector3 sundir2 = gm.compute_sun_pos(viewpos).normal();
-	float sun_azimuth2 = atan2(sundir2.y, sundir2.x);
-	float sun_elevation2 = asin(sundir2.z);
-	float sky_alpha = (sundir2.z < -0.25) ? 0.0f : ((sundir2.z < 0.0) ? 4*(sundir2.z+0.25) : 1.0f);
+	sunpos = gm.compute_sun_pos(viewpos);
+	sundir = sunpos.normal();
+	float sun_azimuth2 = atan2(sundir.y, sundir.x);
+	float sun_elevation2 = asin(sundir.z);
+	float sky_alpha = (sundir.z < -0.25) ? 0.0f : ((sundir.z < 0.0) ? 4*(sundir.z+0.25) : 1.0f);
 
+	moonpos = gm.compute_moon_pos(viewpos);
 	moondir = gm.compute_moon_pos(viewpos).normal();
 	moon_azimuth = atan2(moondir.y, moondir.x);
 	moon_elevation = asin(moondir.z);
 //	moon_alpha = 0.5 + (0.5-sky_alpha/2);
 
+	//	sun_azimuth and sun_elevation are used only for sky color rendering
+	//	so they are refreshed every 0.5 deg of sun movement.
 	if (fabs(sun_azimuth-sun_azimuth2) > REBUILD_EPSILON_AZIMUTH ||
 	    fabs(sun_elevation-sun_elevation2) > REBUILD_EPSILON_ELEVATION) {
-		sundir = sundir2;
 		sun_azimuth = sun_azimuth2;
 		sun_elevation = sun_elevation2;
 
