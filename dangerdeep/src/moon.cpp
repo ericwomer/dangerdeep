@@ -59,7 +59,7 @@ moon::moon()
 			}
 			double cosbetha2 = std::max(1.0 - y2*y2, 0.0);
 			double sinalpha2 = std::max(1.0 - x*x / cosbetha2, 0.0);
-			double z = sqrt(sinalpha2) * sqrt(cosbetha2);
+			double z = sqrt(sinalpha2 * cosbetha2);
 			mnp[mnpc+0] = Uint8(x * 127 + 127.5);
 			mnp[mnpc+1] = Uint8(y2 * 127 + 127.5);
 			mnp[mnpc+2] = Uint8(z * 127 + 127.5);
@@ -67,10 +67,12 @@ moon::moon()
 		}
 	}
 	map_normal = texture::ptr(new texture(mnp, mns, mns, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
-//	Test code:
-// 	ofstream oss("moon.ppm");
-// 	oss << "P6\n" << mns << " " << mns << "\n255\n";
-// 	oss.write((const char*)(&mnp[0]), mns*mns*3);
+#if 0
+	// Test code:
+ 	ofstream oss("moon.ppm");
+ 	oss << "P6\n" << mns << " " << mns << "\n255\n";
+ 	oss.write((const char*)(&mnp[0]), mns*mns*3);
+#endif
 }
 
 
