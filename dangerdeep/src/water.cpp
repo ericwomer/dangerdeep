@@ -254,9 +254,11 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	}
 
 	coords.resize((xres+1)*(yres+1));
-	uv0.resize((xres+1)*(yres+1));
-	uv1.resize((xres+1)*(yres+1));
+	//uv0.resize((xres+1)*(yres+1));
+	//uv1.resize((xres+1)*(yres+1));
 	normals.resize((xres+1)*(yres+1));
+	vbo_uv0.init_data((xres+1)*(yres+1)*2*4, 0, GL_DYNAMIC_DRAW_ARB);
+	vbo_uv1.init_data((xres+1)*(yres+1)*3*4, 0, GL_DYNAMIC_DRAW_ARB);
 
 	perlinnoise pnfoam(foamtexsize, 2, foamtexsize/16);
 	vector<Uint8> foamtexpixels = pnfoam.generate();
@@ -1519,12 +1521,17 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		glEnableClientState(GL_NORMAL_ARRAY);
 		glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0].x);
+		// coords and normals are written AND read, so no use to store them in
+		// vertex buffer objects...
 		/* foam:
 		glClientActiveTexture(GL_TEXTURE2);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv2[0].x);
 		*/
 	} else {
+		// fixme: something is broken with VBOs here...
+		vector2f* uv0p = (vector2f*)vbo_uv0.map(GL_WRITE_ONLY_ARB);
+		vector3f* uv1p = (vector3f*)vbo_uv1.map(GL_WRITE_ONLY_ARB);
 		for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 			for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 				// the coordinate is the same as the relative coordinate, because the viewer is at 0,0,0
@@ -1551,25 +1558,30 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 				// water color depends on height of wave and slope
 				// slope (N.z) it mostly > 0.8
 				float colorfac = (coord.z + viewpos.z + 3) * (1.0f/9) + (N.z - 0.8f);
-				uv0[ptr] = vector2f(F, colorfac);	// set fresnel and water color
+				uv0p[ptr] = vector2f(F, colorfac);	// set fresnel and water color
 				// reflection texture coordinates (should be tweaked per pixel with fp, fixme)
 				// they are broken with fp, reason unknown
 				vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
 				texc.z -= VIRTUAL_PLANE_HEIGHT;
-				uv1[ptr] = texc;
+				uv1p[ptr] = texc;
 			}
 		}
+		vbo_uv0.unmap();
+		vbo_uv1.unmap();
 		// draw elements (fixed index list) with vertex arrays using coords,uv0,normals,uv1
 		glDisableClientState(GL_COLOR_ARRAY);
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
 		glClientActiveTexture(GL_TEXTURE0);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &uv0[0].x);
+		vbo_uv0.bind();
+		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), 0); // &uv0[0].x);
 		glClientActiveTexture(GL_TEXTURE1);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv1[0].x);
+		vbo_uv1.bind();
+		glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), 0); // &uv1[0].x);
 		glDisableClientState(GL_NORMAL_ARRAY);
+		vbo_uv1.unbind();
 	}
 
 	// set up textures
@@ -1609,8 +1621,8 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 //	glDrawElements(GL_TRIANGLES, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
 #endif
 
-	if (compiled_vertex_arrays_supported)
-		glUnlockArraysEXT();
+ 	if (compiled_vertex_arrays_supported)
+ 		glUnlockArraysEXT();
 
 //	unsigned t2 = sys().millisec();
 //	drawing takes ~28ms with linux/athlon2200+/gf4mx. That would be ~32mb/sec with AGP4x!?

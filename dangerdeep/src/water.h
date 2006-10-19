@@ -172,6 +172,12 @@ protected:
 	// store index data as vertex buffer object
 	vertexbuffer vbo_indices;
 
+	// store texture data in vertex buffer objects as well
+	// we can't store coords in VBOs, as we read them for normal generation, so
+	// read would be inefficient. Same for normals.
+	mutable vertexbuffer vbo_uv0;
+	mutable vertexbuffer vbo_uv1;
+
 	water& operator= (const water& other);
 	water(const water& other);
 
