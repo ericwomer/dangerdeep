@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif
 
 #include <iostream>
+#include <fstream>
 using namespace std;
 
 #include "oglext/OglExt.h"
@@ -40,7 +41,36 @@ using namespace std;
 moon::moon()
 {
 	map_diffuse = texture::ptr(new texture(get_texture_dir()+"moon_d.png", texture::LINEAR));
-	map_normal = texture::ptr(new texture(get_texture_dir()+"moon_n.png", texture::LINEAR));
+	// compute moon normal map
+	const unsigned mns = 256; // moon normal map size
+	std::vector<Uint8> mnp(3*mns*mns);
+	const double mid = (mns-1) * 0.5;
+	unsigned mnpc = 0;
+	for (unsigned k = 0; k < mns; ++k) {
+		double y = -(k - mid)/mid;
+		for (unsigned j = 0; j < mns; ++j) {
+			double x = (j - mid)/mid;
+			double l = x*x + y*y;
+			double y2 = y;
+			if (l > 0.999) {
+				l = 1.0/sqrt(l);
+				y2 = y*l;
+				x = x*l;
+			}
+			double cosbetha2 = std::max(1.0 - y2*y2, 0.0);
+			double sinalpha2 = std::max(1.0 - x*x / cosbetha2, 0.0);
+			double z = sqrt(sinalpha2) * sqrt(cosbetha2);
+			mnp[mnpc+0] = Uint8(x * 127 + 127.5);
+			mnp[mnpc+1] = Uint8(y2 * 127 + 127.5);
+			mnp[mnpc+2] = Uint8(z * 127 + 127.5);
+			mnpc += 3;
+		}
+	}
+	map_normal = texture::ptr(new texture(mnp, mns, mns, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
+//	Test code:
+// 	ofstream oss("moon.ppm");
+// 	oss << "P6\n" << mns << " " << mns << "\n255\n";
+// 	oss.write((const char*)(&mnp[0]), mns*mns*3);
 }
 
 
