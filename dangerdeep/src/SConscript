@@ -71,6 +71,7 @@ dftdmediasources = Split("""
 	model.cpp
 	system.cpp
 	texture.cpp
+	vertexbuffer.cpp
 	xml.cpp""")
 
 tinyxmlsources = Split("""

@@ -37,6 +37,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ship.h"
 #include "ocean_wave_generator.h"
 #include "perlinnoise.h"
+#include "vertexbuffer.h"
 
 ///\brief Rendering of ocean water surfaces.
 class water
@@ -167,6 +168,9 @@ protected:
 
 	// times for generation
 	double last_subdetail_gen_time;
+
+	// store index data as vertex buffer object
+	vertexbuffer vbo_indices;
 
 	water& operator= (const water& other);
 	water(const water& other);

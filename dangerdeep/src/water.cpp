@@ -198,7 +198,8 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	water_vertex_program(0),
 	water_fragment_program(0),
 	png(subdetail_size, 1, subdetail_size/16), //fixme ohne /16 sieht's scheiﬂe aus, war /8
-	last_subdetail_gen_time(tm)
+	last_subdetail_gen_time(tm),
+	vbo_indices(true)
 #ifdef USE_SSE
 	, usex86sse(false)
 #endif
@@ -334,6 +335,21 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		}
 	}
 #else
+	vbo_indices.init_data(xres*yres*4*4, 0, GL_DYNAMIC_DRAW_ARB);
+#if 1
+	uint32_t* gridp = (uint32_t*) vbo_indices.map(GL_WRITE_ONLY_ARB);
+	for (unsigned y = 0; y < yres; ++y) {
+		unsigned y2 = y+1;
+		for (unsigned x = 0; x < xres; ++x) {
+			unsigned x2 = x+1;
+			*gridp++ = x +y *(xres+1);
+			*gridp++ = x2+y *(xres+1);
+			*gridp++ = x2+y2*(xres+1);
+			*gridp++ = x +y2*(xres+1);
+		}
+	}
+	vbo_indices.unmap();
+#else
 	gridindices.reserve(xres*yres*4);
 	for (unsigned y = 0; y < yres; ++y) {
 		unsigned y2 = y+1;
@@ -345,6 +361,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 			gridindices.push_back(x +y2*(xres+1));
 		}
 	}
+#endif
 /* triangles, doesn't help against facettes
 	gridindices.reserve(xres*yres*6);
 	for (unsigned y = 0; y < yres; ++y) {
@@ -1582,7 +1599,13 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 #ifdef DRAW_WATER_AS_GRID
 	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
 #else
+#if 1
+	vbo_indices.bind();
+	glDrawElements(GL_QUADS, xres*yres*4, GL_UNSIGNED_INT, 0);
+	vbo_indices.unbind();
+#else
 	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
+#endif
 //	glDrawElements(GL_TRIANGLES, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
 #endif
 
