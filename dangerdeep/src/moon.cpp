@@ -94,6 +94,7 @@ void moon::display(const vector3 &moon_pos, const vector3 &sun_pos, double max_v
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PRIMARY_COLOR_ARB) ;
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, 2);	//	make moon brighter
 
 	//	bind diffuse map
 	glActiveTextureARB(GL_TEXTURE1_ARB);
@@ -105,8 +106,6 @@ void moon::display(const vector3 &moon_pos, const vector3 &sun_pos, double max_v
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-//	FIXME Moon is not bright enough.
-//	glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, 2);	//	this sucks with full moon! (not enough details)
 
 	//	transform light into object space
 	matrix4 roth = matrix4::rot_z(-RAD_TO_DEG(moon_azimuth));
