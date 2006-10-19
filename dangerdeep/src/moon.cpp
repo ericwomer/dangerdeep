@@ -99,25 +99,28 @@ void moon::display(const vector3 &moon_pos, const vector3 &sun_pos, double max_v
 	glActiveTextureARB(GL_TEXTURE1_ARB);
 	glEnable(GL_TEXTURE_2D);
 	map_diffuse.get()->set_gl_texture();
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ARB, GL_MODULATE) ;
+	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+//	FIXME Moon is not bright enough.
+//	glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, 2);	//	this sucks with full moon! (not enough details)
 
 	//	transform light into object space
-	glPushMatrix();
-	glLoadIdentity();
-	glRotatef(RAD_TO_DEG(moon_azimuth), 0, 0, -1);
-	glRotatef(RAD_TO_DEG(moon_elevation), 0, -1, 0);
-	matrix4 invmodelview = (matrix4::get_gl(GL_MODELVIEW_MATRIX)).inverse();
-	vector3 l = invmodelview * sun_pos;
-	vector3 nl = vector3(-l.y, l.z, -l.x).normal();
+	matrix4 roth = matrix4::rot_z(-RAD_TO_DEG(moon_azimuth));
+	matrix4 rotv = matrix4::rot_y(-RAD_TO_DEG(moon_elevation));
+	matrix4 model_mat = roth*rotv;
+	vector3 l = model_mat.inverse() * sun_pos;
+	vector3 nl = vector3(-l.y, l.z, -l.x).normal();	//	OpenGL coordinates
 	nl += vector3(1,1,1);
-	nl = nl * (1.0f/2);
+	nl = nl*0.5;
 	glColor3f(nl.x, nl.y, nl.z);
-	glPopMatrix();
 
 	//	render moon
 	glPushMatrix();
-	glRotatef(RAD_TO_DEG(moon_azimuth), 0, 0, -1);
-	glRotatef(RAD_TO_DEG(moon_elevation), 0, -1, 0);
+	model_mat.multiply_gl();
 	glTranslated(0.95*max_view_dist, 0, 0);
 
 	glBegin(GL_QUADS);
