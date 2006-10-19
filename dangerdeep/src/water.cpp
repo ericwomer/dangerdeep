@@ -257,8 +257,9 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	//uv0.resize((xres+1)*(yres+1));
 	//uv1.resize((xres+1)*(yres+1));
 	normals.resize((xres+1)*(yres+1));
-	vbo_uv0.init_data((xres+1)*(yres+1)*sizeof(vector2f), 0, GL_DYNAMIC_DRAW_ARB);
-	vbo_uv1.init_data((xres+1)*(yres+1)*sizeof(vector3f), 0, GL_DYNAMIC_DRAW_ARB);
+	vbo_uv01.init_data((xres+1)*(yres+1)*sizeof(vector2f)
+			   + (xres+1)*(yres+1)*sizeof(vector3f), 0, GL_DYNAMIC_DRAW_ARB);
+	vbo_uv01.unbind();
 
 	perlinnoise pnfoam(foamtexsize, 2, foamtexsize/16);
 	vector<Uint8> foamtexpixels = pnfoam.generate();
@@ -337,8 +338,8 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		}
 	}
 #else
-	vbo_indices.init_data(xres*yres*4*4, 0, GL_DYNAMIC_DRAW_ARB);
 #if 1
+	vbo_indices.init_data(xres*yres*4*4, 0, GL_DYNAMIC_DRAW_ARB);
 	uint32_t* gridp = (uint32_t*) vbo_indices.map(GL_WRITE_ONLY_ARB);
 	for (unsigned y = 0; y < yres; ++y) {
 		unsigned y2 = y+1;
@@ -351,6 +352,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		}
 	}
 	vbo_indices.unmap();
+	vbo_indices.unbind();
 #else
 	gridindices.reserve(xres*yres*4);
 	for (unsigned y = 0; y < yres; ++y) {
@@ -1530,8 +1532,10 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 		*/
 	} else {
 		// fixme: something is broken with VBOs here...
-		vector2f* uv0p = (vector2f*)vbo_uv0.map(GL_WRITE_ONLY_ARB);
-		vector3f* uv1p = (vector3f*)vbo_uv1.map(GL_WRITE_ONLY_ARB);
+		uint8_t* uv01p = (uint8_t*)vbo_uv01.map(GL_WRITE_ONLY_ARB);
+		unsigned uv1off = ((xres+1)*(yres+1)*sizeof(vector2f));
+		vector2f* uv0p = (vector2f*)uv01p;
+		vector3f* uv1p = (vector3f*)(uv01p + uv1off);
 		for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
 			for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
 				// the coordinate is the same as the relative coordinate, because the viewer is at 0,0,0
@@ -1566,22 +1570,20 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 				uv1p[ptr] = texc;
 			}
 		}
-		vbo_uv0.unmap();
-		vbo_uv1.unmap();
+		vbo_uv01.unmap();
+		vbo_uv01.unbind();
 		// draw elements (fixed index list) with vertex arrays using coords,uv0,normals,uv1
 		glDisableClientState(GL_COLOR_ARRAY);
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
+		vbo_uv01.bind();
 		glClientActiveTexture(GL_TEXTURE0);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		vbo_uv0.bind();
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), 0); // &uv0[0].x);
 		glClientActiveTexture(GL_TEXTURE1);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		vbo_uv1.bind();
-		glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), 0); // &uv1[0].x);
+		glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), (char*)0 + uv1off); // &uv1[0].x);
 		glDisableClientState(GL_NORMAL_ARRAY);
-		vbo_uv1.unbind();
 	}
 
 	// set up textures
@@ -1613,7 +1615,9 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 #else
 #if 1
 	vbo_indices.bind();
+	vbo_uv01.bind();
 	glDrawElements(GL_QUADS, xres*yres*4, GL_UNSIGNED_INT, 0);
+	vbo_uv01.unbind();
 	vbo_indices.unbind();
 #else
 	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
