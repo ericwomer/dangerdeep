@@ -257,8 +257,8 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	//uv0.resize((xres+1)*(yres+1));
 	//uv1.resize((xres+1)*(yres+1));
 	normals.resize((xres+1)*(yres+1));
-	vbo_uv0.init_data((xres+1)*(yres+1)*2*4, 0, GL_DYNAMIC_DRAW_ARB);
-	vbo_uv1.init_data((xres+1)*(yres+1)*3*4, 0, GL_DYNAMIC_DRAW_ARB);
+	vbo_uv0.init_data((xres+1)*(yres+1)*sizeof(vector2f), 0, GL_DYNAMIC_DRAW_ARB);
+	vbo_uv1.init_data((xres+1)*(yres+1)*sizeof(vector3f), 0, GL_DYNAMIC_DRAW_ARB);
 
 	perlinnoise pnfoam(foamtexsize, 2, foamtexsize/16);
 	vector<Uint8> foamtexpixels = pnfoam.generate();
