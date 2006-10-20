@@ -339,7 +339,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	}
 #else
 #if 1
-	vbo_indices.init_data(xres*yres*4*4, 0, GL_DYNAMIC_DRAW_ARB);
+	vbo_indices.init_data(xres*yres*4*4, 0, GL_STATIC_DRAW_ARB);
 	uint32_t* gridp = (uint32_t*) vbo_indices.map(GL_WRITE_ONLY_ARB);
 	for (unsigned y = 0; y < yres; ++y) {
 		unsigned y2 = y+1;
