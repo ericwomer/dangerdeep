@@ -442,11 +442,23 @@ string sea_object::get_description(unsigned detail) const
 
 void sea_object::simulate(double delta_time)
 {
+	// check and change states
+        if (is_defunct()) {
+		// fixme: maybe throw a dead_object exception here and catch them in game::simulate for each object
+		// that way we have to check for defunct()/dead() only here, and not also in every heir of sea_object
+                return;
+        } else if (is_dead()) {
+		destroy();
+                return;
+        }
+
 	// check target. heirs should check for "out of range" condition too
 	if (target && !target->is_alive())
 		target = 0;
 
 	// check if list of detected objects needs to be compressed.
+	// needs to be called for every frame and object, because objects can become defunct every frame
+	// and must then get removed from the list.
 	compress(visible_objects);
 	compress(radar_objects);
 
@@ -468,16 +480,6 @@ void sea_object::simulate(double delta_time)
 			redetect_time = 1.0;	// fixme: maybe make it variable, depending on the object type.
 		}
 	}
-
-	// check and change states
-        if (is_defunct()) {
-		// fixme: maybe throw a dead_object exception here and catch them in game::simulate for each object
-		// that way we have to check for defunct()/dead() only here, and not also in every heir of sea_object
-                return;
-        } else if (is_dead()) {
-		destroy();
-                return;
-        }
 
 	// this leads to another model for acceleration/max_speed/turning etc.
 	// the object applies force to the screws etc. with Force = acceleration * mass.
