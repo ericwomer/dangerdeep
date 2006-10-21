@@ -257,9 +257,17 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	//uv0.resize((xres+1)*(yres+1));
 	//uv1.resize((xres+1)*(yres+1));
 	normals.resize((xres+1)*(yres+1));
+<<<<<<< water.cpp
+	if (!use_shaders) {
+		vbo_uv01.init_data((xres+1)*(yres+1)*sizeof(vector2f)
+				   + (xres+1)*(yres+1)*sizeof(vector3f), 0, GL_DYNAMIC_DRAW_ARB);
+		vbo_uv01.unbind();
+	}
+=======
 	vbo_uv01.init_data((xres+1)*(yres+1)*sizeof(vector2f)
 			   + (xres+1)*(yres+1)*sizeof(vector3f), 0, GL_DYNAMIC_DRAW_ARB);
 	vbo_uv01.unbind();
+>>>>>>> 1.177
 
 	perlinnoise pnfoam(foamtexsize, 2, foamtexsize/16);
 	vector<Uint8> foamtexpixels = pnfoam.generate();
@@ -338,6 +346,20 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		}
 	}
 #else
+<<<<<<< water.cpp
+#if 1
+	vbo_indices.init_data((xres+1)*2*yres*4, 0, GL_STATIC_DRAW_ARB);
+	uint32_t* gridp = (uint32_t*) vbo_indices.map(GL_WRITE_ONLY_ARB);
+	for (unsigned y = 0; y < yres; ++y) {
+		for (unsigned x = 0; x <= xres; ++x) {
+			*gridp++ = x + (y+1) *(xres+1);
+			*gridp++ = x +  y    *(xres+1);
+		}
+	}
+	vbo_indices.unmap();
+	vbo_indices.unbind();
+#else
+=======
 #if 1
 	vbo_indices.init_data(xres*yres*4*4, 0, GL_STATIC_DRAW_ARB);
 	uint32_t* gridp = (uint32_t*) vbo_indices.map(GL_WRITE_ONLY_ARB);
@@ -354,6 +376,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	vbo_indices.unmap();
 	vbo_indices.unbind();
 #else
+>>>>>>> 1.177
 	gridindices.reserve(xres*yres*4);
 	for (unsigned y = 0; y < yres; ++y) {
 		unsigned y2 = y+1;
@@ -1608,11 +1631,25 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	// Not very much though...
 
 	// lock Arrays for extra performance.
-	if (compiled_vertex_arrays_supported)
-		glLockArraysEXT(0, (xres+1)*(yres+1));
+// 	if (compiled_vertex_arrays_supported)
+// 		glLockArraysEXT(0, (xres+1)*(yres+1));
 #ifdef DRAW_WATER_AS_GRID
 	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
 #else
+<<<<<<< water.cpp
+#if 1
+	vbo_indices.bind();
+	if (!use_shaders)
+		vbo_uv01.bind();
+	for (unsigned i = 0; i < yres; ++i) {
+		glDrawElements(GL_QUAD_STRIP, (xres+1)*2, GL_UNSIGNED_INT,
+			       (unsigned*)(4 * i * (xres+1)*2));
+	}
+	if (!use_shaders)
+		vbo_uv01.unbind();
+	vbo_indices.unbind();
+#else
+=======
 #if 1
 	vbo_indices.bind();
 	vbo_uv01.bind();
@@ -1620,13 +1657,19 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	vbo_uv01.unbind();
 	vbo_indices.unbind();
 #else
+>>>>>>> 1.177
 	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
 #endif
 //	glDrawElements(GL_TRIANGLES, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
 #endif
 
+<<<<<<< water.cpp
+//  	if (compiled_vertex_arrays_supported)
+//  		glUnlockArraysEXT();
+=======
  	if (compiled_vertex_arrays_supported)
  		glUnlockArraysEXT();
+>>>>>>> 1.177
 
 //	unsigned t2 = sys().millisec();
 //	drawing takes ~28ms with linux/athlon2200+/gf4mx. That would be ~32mb/sec with AGP4x!?
