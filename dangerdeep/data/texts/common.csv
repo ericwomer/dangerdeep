@@ -1,12 +1,12 @@
 "CODE";"en";"de";"it";"es"
 0;"English";"German";"Italian";"Spanish"
 1;"Heading";"Kurs";"Prua";"Rumbo"
-2;;;;
+2;"";"";"";""
 3;"Range";"Entfernung";"Distanza";"Alcance"
 4;"Speed";"Geschw.";"Velocità";"Velocidad"
 5;"Depth";"Tiefe";"Profondità";"Profundidad"
 6;"Target";"Ziel";"Bersaglio";"Objetivo"
-7;;;;
+7;"";"";"";""
 8;"Warship engagement";"Angriff auf ein Kriegsschiff";"Attacco a navi da guerra";"Ataque a barcos de guerra"
 9;"Convoy battle";"Geleitzugschlacht";"Attacco a convoglio";"Ataque a convoy"
 10;"Historical mission";"Historische Mission";"Missione storica";"Misión histórica"
@@ -55,7 +55,7 @@
 53;"Game continued.";"Spiel fortgesetzt.";"Il gioco continua.";"Juego continuado."
 54;"Scope down";"Periskop eingefahren";"Giú il periscopio ";"Abajo el periscopio"
 55;"Scope up";"Periskop ausgefahren";"Su il periscopio";"Arriba el periscopio"
-56;;;;
+56;"";"";"";""
 57;"Remote server IP adress:";"Verfügbarer Server IP-Adresse:";"Indirizzo IP del server remoto:";"Dirección IP del servidor remoto:"
 58;"Remote server port number:";"Verfügbarer Server Port-Adresse:";"Numero di porta sul server remoto:";"Puerto del servidor remoto:"
 59;"Torpedo dud - range too short";"Torpedoversager - Laufstrecke zu kurz";"Siluro inesploso - distanza troppo breve";"Torpedo inútil - distancia demasiado corta"
@@ -70,18 +70,18 @@
 68;"The last chance (Jan. 1943 - May 1943)";"Die letzte Chance (Jan. 1943 - Mai 1943)";"L'ultima possibilità (Gennaio 1943 - Maggio 1943)";"La última oportunidad (Enero 1943 - Mayo 1943)"
 69;"Defeat (June 1943 - June 1944)";"Niederlage (Juni 1943 - Juni 1944)";"Sconfitta (Giugno 1943 - Giugno 1944)";"Derrota (Junio 1943 - Junio 1944)"
 70;"The end (July 1944 - May 1945)";"Das Ende (Juli 1944 - Mai 1945)";"La fine (Luglio 1944 - Maggio 1945)";"El final (Julio 1944 - Mayo 1945)"
-71;;;;
-72;;;;
-73;;;;
-74;;;;
-75;;;;
-76;;;;
-77;;;;
-78;;;;
+71;"";"";"";""
+72;"";"";"";""
+73;"";"";"";""
+74;"";"";"";""
+75;"";"";"";""
+76;"";"";"";""
+77;"";"";"";""
+78;"";"";"";""
 79;"Identified target as: ";"Ziel identifiziert als: ";"Identificazione bersaglio: ";"Identificar objetivo como:"
 80;"No target selected";"Kein Ziel ausgewählt";"Nessun bersaglio selezionato";"Ningún objetivo seleccionado"
-81;;;;
-82;;;;
+81;"";"";"";""
+82;"";"";"";""
 83;"Ship was sunk!";"Schiff versenkt!";"La nave è stata affondata!";"¡Barco hundido!"
 84;"Convoy size";"Geleitgröße wählen: ";"Scegli la grandezza del convoglio";"Seleccionar tamaño del convoy"
 85;"small";"klein";"piccolo";"pequeño"
@@ -97,23 +97,23 @@
 95;"Snorkel up";"Schnorchel ausgefahren";"Snorkel su";"Snorkel arriba"
 96;"Snorkel down";"Schnorchel eingefahren";"Snorkel giú";"Snorkel abajo"
 97;"Go to snorkel depth";"Schnorcheltiefe ansteuern";"Quota snorkel";"Ir a profundidad de snorkel"
-98;;;;
+98;"";"";"";""
 99;"Tons";"Tonnen";"Tonnellate";"Toneladas"
-100;;;;
+100;"";"";"";""
 101;"Diesel";"Diesel";"Diesel";"Diesel"
 102;"Batteries";"Batterien";"Batterie";"Baterias"
 103;"You have been sunk!";"Sie wurden versenkt!";"Sei stato affondato!";"¡Te han hundido!"
 104;"Main menu";"Hauptmenü";"Menu principale";"Menú principal"
 105;"continue";"weiter";"continua";"continuar"
 106;"Change screen resolution";"Bildschirmauflösung ändern";"Cambia la risoluzione dello schermo";"Cambiar la resolución de pantalla"
-107;;;;
-108;;;;
-109;;;;
+107;"";"";"";""
+108;"";"";"";""
+109;"";"";"";""
 110;"not implemented yet, sorry";"Leider noch nicht implementiert";"not implemented yet, sorry";"Lo siento, no implementado aún"
-111;;;;
-112;;;;
-113;;;;
-114;;;;
+111;"";"";"";""
+112;"";"";"";""
+113;"";"";"";""
+114;"";"";"";""
 115;"next vessel";"nächstes Fahrzeug";"vascello successivo";"siguiente barco"
 116;"previous vessel";"vorheriges Fahrzeug";"vascello precedente";"anterior barco"
 117;"cancel";"Abbrechen";"cancella";"cancelar"
@@ -121,8 +121,8 @@
 119;"Save game";"Spiel speichern";"Salva il gioco";"Guardar juego"
 120;"Quit current game";"Dieses Spiel beenden";"Esci dal gioco corrente";"Salir del juego actual"
 121;"Return to game";"Spiel fortsetzen";"Ritorna al gioco";"Volver al juego"
-122;;;;
-123;;;;
+122;"";"";"";""
+123;"";"";"";""
 124;"Results: sunken tonnage";"Ergebnisse: versenkte Tonnage";"Risultati: tonnellaggio affondato";"Resultados: tonelaje hundido"
 125;"Preparing to dive";"Bereitmachen zum Tauchen";"Prepararsi all'immersione";"Preparando para la inmersión"
 126;"Unmanning deck gun";"Deckgeschütz wird gesichert";"Il servente lascia il cannone";"Desatendiendo el cañón"
@@ -141,41 +141,41 @@
 139;"Ahead listen";"Maschine kleine Fahrt";"Ahead listen";"Ahead listen"
 140;"Reverse half";"Maschine halbe Fahrt zurück";"Reverse half";"Reverse half"
 141;"Reverse full";"Maschine volle Fahrt zurück";"Reverse full";"Reverse full"
-142;;;;
-143;;;;
-144;;;;
-145;;;;
-146;;;;
-147;;;;
-148;;;;
-149;;;;
-150;;;;
-151;;;;
-152;;;;
-153;;;;
-154;;;;
-155;;;;
-156;;;;
-157;;;;
-158;;;;
-159;;;;
-160;;;;
-161;;;;
-162;;;;
-163;;;;
-164;;;;
+142;"";"";"";""
+143;"";"";"";""
+144;"";"";"";""
+145;"";"";"";""
+146;"";"";"";""
+147;"";"";"";""
+148;"";"";"";""
+149;"";"";"";""
+150;"";"";"";""
+151;"";"";"";""
+152;"";"";"";""
+153;"";"";"";""
+154;"";"";"";""
+155;"";"";"";""
+156;"";"";"";""
+157;"";"";"";""
+158;"";"";"";""
+159;"";"";"";""
+160;"";"";"";""
+161;"";"";"";""
+162;"";"";"";""
+163;"";"";"";""
+164;"";"";"";""
 165;"Damage: ";"Schaden: ";"Danno: ";"Daño:"
 166;"percent";"Prozent";"percento";"porcentaje"
 167;"Repair in progress.";"Reperatur wird ausgeführt.";"Riparazioni in corso.";"Reparación en curso"
 168;"Repair will continue when we're surfaced.";"Reperatur wird fortgesetzt";" sobald wir aufgetaucht sind.";"La reparación continuará cuando estemos en la superficie"
 169;"This damage can not be repaired at sea.";"Reperatur kann nicht auf See ausgeführt werden.";"Questo danno non può essere riparato in mare.";"Este daño no puede reparado en el mar."
 170;"Repair time: ";"Reperaturzeit: ";"Tempo per le riparazioni: ";"Tiempo de reparación:"
-171;;;;
-172;;;;
-173;;;;
+171;"";"";"";""
+172;"";"";"";""
+173;"";"";"";""
 174;"type IXc/40";"Typ IXc/40";"tipo IXc/40";"tipo Ixc/40"
-175;;;;
-176;;;;
+175;"";"";"";""
+176;"";"";"";""
 177;"Game menu";"Spielmenü";"Menu del gioco";"Menú del juego"
 178;"Savegame:";"Spielstand:";"Salva il gioco:";"Juego:"
 179;"Erase game";"Spiel löschen";"Cancella il gioco";"Borrar juego"
@@ -205,11 +205,11 @@
 203;"Name";"Name";"Nome";"Nombre"
 204;"Depth charges exploding!";"Wasserbombendetonation!";"Le cariche di profondità stanno esplodendo!";"¡Cargas de profundidad explotando!"
 205;"Depth charges in the water!";"Wasserbomben abgeworfen!";"Cariche di profondità in acqua!";"¡Cargas de profundidad en el agua!"
-206;;;;
-207;;;;
-208;;;;
-209;;;;
-210;;;;
+206;"";"";"";""
+207;"";"";"";""
+208;"";"";"";""
+209;"";"";"";""
+210;"";"";"";""
 211;"Time until\ntransfer completes:\n";"Zeit bis zum\nEnde des Transfers:\n";"Tempo necessario per\ncompletare il trasbordo:\n";"Tiempo para\ncompletar la transferencia:\n"
 212;"Local server port number:";"Lokaler Server";" Portnr.:";"Puerto del servidor local:"
 213;"Credits";"Mitwirkende";"Riconoscimenti";"Créditos"
@@ -270,16 +270,16 @@
 268;"Toggle pause";"Pause an/aus";"Toggle pause";"Toggle pause"
 269;"No deck gun available";"Kein Deckgeschütz verfügbar";"No deck gun available";"No deck gun available"
 270;"Deck gun fired!";"Deckgeschütz abgefeuert!";"Deck gun fired!";"Deck gun fired!"
-300;;;;
-301;;;;
-302;;;;
-303;;;;
-304;;;;
-305;;;;
-306;;;;
-307;;;;
-308;;;;
-309;;;;
+300;"";"";"";""
+301;"";"";"";""
+302;"";"";"";""
+303;"";"";"";""
+304;"";"";"";""
+305;"";"";"";""
+306;"";"";"";""
+307;"";"";"";""
+308;"";"";"";""
+309;"";"";"";""
 400;"rudder";"Ruder";"timone";"timón"
 401;"screws";"Schrauben";"eliche";"hélices"
 402;"screw shaft";"Schraubenwelle";"albero dell'elica";"eje de la hélice"
