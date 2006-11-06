@@ -897,11 +897,11 @@ void submarine::planes_down(double amount)
 {
 	user_interface* ui = gm.get_ui();
 	if (has_deck_gun() && is_gun_manned()) {
-		ui->add_message(texts::get(753));
+		ui->add_message(texts::get(125));
 		delayed_planes_down = amount;
 		delayed_dive_to_depth = 0;
 		unman_guns();
-		ui->add_message(texts::get(754));
+		ui->add_message(texts::get(126));
 	} else {
 		bow_to -= int(amount);
 		if( bow_to < rudder_down_30 )
@@ -930,11 +930,11 @@ void submarine::dive_to_depth(unsigned meters)
 	user_interface* ui = gm.get_ui();
 	if (has_deck_gun() && is_gun_manned()) {
 		if (!gun_manning_is_changing) {
-			ui->add_message(texts::get(753));
+			ui->add_message(texts::get(125));
 			delayed_planes_down = 0.0;
 			delayed_dive_to_depth = meters;
 			unman_guns();
-			ui->add_message(texts::get(754));
+			ui->add_message(texts::get(126));
 		}
 	} else {
 		dive_to = -int(meters);
@@ -1173,18 +1173,18 @@ void submarine::gun_manning_changed(bool is_gun_manned)
 {
 	user_interface* ui = gm.get_ui();
 	if (is_gun_manned)
-		ui->add_message(texts::get(755));
+		ui->add_message(texts::get(127));
 	else
-		ui->add_message(texts::get(756));		
+		ui->add_message(texts::get(128));		
 
 	if (0.0 != delayed_planes_down) {
 		planes_down(delayed_planes_down);
 		delayed_planes_down = 0.0;
-		ui->add_message(texts::get(757));		
+		ui->add_message(texts::get(129));		
 	} else if (0 != delayed_dive_to_depth) {
 		dive_to_depth(delayed_dive_to_depth);
 		delayed_dive_to_depth = 0;
-		ui->add_message(texts::get(757));		
+		ui->add_message(texts::get(129));		
 	}
 }
 

@@ -1,12 +1,12 @@
 "CODE";"en";"de";"it";"es"
 0;"English";"German";"Italian";"Spanish"
 1;"Heading";"Kurs";"Prua";"Rumbo"
-2;"Bearing";"Peilung";"Rilevamento";"Orientación"
+2;;;;
 3;"Range";"Entfernung";"Distanza";"Alcance"
 4;"Speed";"Geschw.";"Velocità";"Velocidad"
 5;"Depth";"Tiefe";"Profondità";"Profundidad"
 6;"Target";"Ziel";"Bersaglio";"Objetivo"
-7;"Angle on the bow";"Winkel vor dem Bug";"Angolo di prua";"Ángulo de proa"
+7;;;;
 8;"Warship engagement";"Angriff auf ein Kriegsschiff";"Attacco a navi da guerra";"Ataque a barcos de guerra"
 9;"Convoy battle";"Geleitzugschlacht";"Attacco a convoglio";"Ataque a convoy"
 10;"Historical mission";"Historische Mission";"Missione storica";"Misión histórica"
@@ -55,7 +55,7 @@
 53;"Game continued.";"Spiel fortgesetzt.";"Il gioco continua.";"Juego continuado."
 54;"Scope down";"Periskop eingefahren";"Giú il periscopio ";"Abajo el periscopio"
 55;"Scope up";"Periskop ausgefahren";"Su il periscopio";"Arriba el periscopio"
-56;"Create network game";"Netzwerkspiel erstellen";"Inizializza il gioco in rete";"Crear juego en red"
+56;;;;
 57;"Remote server IP adress:";"Verfügbarer Server IP-Adresse:";"Indirizzo IP del server remoto:";"Dirección IP del servidor remoto:"
 58;"Remote server port number:";"Verfügbarer Server Port-Adresse:";"Numero di porta sul server remoto:";"Puerto del servidor remoto:"
 59;"Torpedo dud - range too short";"Torpedoversager - Laufstrecke zu kurz";"Siluro inesploso - distanza troppo breve";"Torpedo inútil - distancia demasiado corta"
@@ -70,18 +70,18 @@
 68;"The last chance (Jan. 1943 - May 1943)";"Die letzte Chance (Jan. 1943 - Mai 1943)";"L'ultima possibilità (Gennaio 1943 - Maggio 1943)";"La última oportunidad (Enero 1943 - Mayo 1943)"
 69;"Defeat (June 1943 - June 1944)";"Niederlage (Juni 1943 - Juni 1944)";"Sconfitta (Giugno 1943 - Giugno 1944)";"Derrota (Junio 1943 - Junio 1944)"
 70;"The end (July 1944 - May 1945)";"Das Ende (Juli 1944 - Mai 1945)";"La fine (Luglio 1944 - Maggio 1945)";"El final (Julio 1944 - Mayo 1945)"
-71;"Troopship";"Truppenschiff";"Nave trasporto truppe";"Barco de transporte de tropas"
-72;"Medium troopship";"Mittleres Truppenschiff";"Nave trasporto truppe media";"Barco mediano de transporte de tropas"
-73;"Submarine";"U-Boot";"Sottomarino";"Submarino"
-74;"Electro submarine";"Elektroboot";"Sottomarino elettrico";"Submarino eléctrico"
-75;"Submarine type XXI";"U-Boot Typ XXI";"Sottomarino tipo XXI";"Submarino tipo XXI"
-76;"Diesel submarine";"Diesel U-Boot";"Sottomarino diesel";"Submarino diesel"
-77;"Submarine type VIIc";"U-Boot Typ VIIc";"Sottomarino tipo VIIc";"Submarino tipo VIIc"
-78;"Cursor keys to rotate";" Page up/down to cycle";" Escape to exit";"Cursores para rotar, Pág arriba/abajo para cambiar, Escape para salir"
+71;;;;
+72;;;;
+73;;;;
+74;;;;
+75;;;;
+76;;;;
+77;;;;
+78;;;;
 79;"Identified target as: ";"Ziel identifiziert als: ";"Identificazione bersaglio: ";"Identificar objetivo como:"
 80;"No target selected";"Kein Ziel ausgewählt";"Nessun bersaglio selezionato";"Ningún objetivo seleccionado"
-81;"Aircraft carrier";"Flugzeugträger";"Portaerei";"Portaaviones"
-82;"Carrier Bogue class";"Träger Bogue-Klasse";"Portaerei classe Bogue";"Carguero clase Bogue"
+81;;;;
+82;;;;
 83;"Ship was sunk!";"Schiff versenkt!";"La nave è stata affondata!";"¡Barco hundido!"
 84;"Convoy size";"Geleitgröße wählen: ";"Scegli la grandezza del convoglio";"Seleccionar tamaño del convoy"
 85;"small";"klein";"piccolo";"pequeño"
@@ -97,23 +97,23 @@
 95;"Snorkel up";"Schnorchel ausgefahren";"Snorkel su";"Snorkel arriba"
 96;"Snorkel down";"Schnorchel eingefahren";"Snorkel giú";"Snorkel abajo"
 97;"Go to snorkel depth";"Schnorcheltiefe ansteuern";"Quota snorkel";"Ir a profundidad de snorkel"
-98;"Time x";"Zeit x";"Tempo x";"Tiempo x"
+98;;;;
 99;"Tons";"Tonnen";"Tonnellate";"Toneladas"
-100;"No entry";"Kein Eintrag";"Nessuna scelta";"No entra"
+100;;;;
 101;"Diesel";"Diesel";"Diesel";"Diesel"
 102;"Batteries";"Batterien";"Batterie";"Baterias"
 103;"You have been sunk!";"Sie wurden versenkt!";"Sei stato affondato!";"¡Te han hundido!"
 104;"Main menu";"Hauptmenü";"Menu principale";"Menú principal"
 105;"continue";"weiter";"continua";"continuar"
 106;"Change screen resolution";"Bildschirmauflösung ändern";"Cambia la risoluzione dello schermo";"Cambiar la resolución de pantalla"
-107;"640 x 480";"640 x 480";"640 x 480";"640 x 480"
-108;"800 x 600";"800 x 600";"800 x 600";"800 x 600"
-109;"1024 x 768";"1024 x 768";"1024 x 768";"1024 x 768"
+107;;;;
+108;;;;
+109;;;;
 110;"not implemented yet, sorry";"Leider noch nicht implementiert";"not implemented yet, sorry";"Lo siento, no implementado aún"
-111;"rotate left";"links";"Gira a sinistra";"girar a la izquierda"
-112;"rotate right";"rechts";"Gira a destra";"girar a la derecha"
-113;"rotate up";"hoch";"Alza";"arriba"
-114;"rotate down";"runter";"Abbassa";"abajo"
+111;;;;
+112;;;;
+113;;;;
+114;;;;
 115;"next vessel";"nächstes Fahrzeug";"vascello successivo";"siguiente barco"
 116;"previous vessel";"vorheriges Fahrzeug";"vascello precedente";"anterior barco"
 117;"cancel";"Abbrechen";"cancella";"cancelar"
@@ -121,61 +121,61 @@
 119;"Save game";"Spiel speichern";"Salva il gioco";"Guardar juego"
 120;"Quit current game";"Dieses Spiel beenden";"Esci dal gioco corrente";"Salir del juego actual"
 121;"Return to game";"Spiel fortsetzen";"Ritorna al gioco";"Volver al juego"
-122;"Small escort ship";"Kleines Geleitschiff";"Nave di scorta piccola";"Barco de escolta pequeño"
-123;"Corvette";"Korvette";"Corvetta";"Corbeta"
+122;;;;
+123;;;;
 124;"Results: sunken tonnage";"Ergebnisse: versenkte Tonnage";"Risultati: tonnellaggio affondato";"Resultados: tonelaje hundido"
-125;"Freighter";"Frachter";"Nave cargo";"Carguero"
-126;"Large freighter";"Großfrachter";"Nave cargo grande";"Carguero grande"
-127;"Medium freighter";"Mittlerer Frachter";"Nave cargo media";"Carguero mediano"
-128;"Large merchant ship";"Großes Handelsschiff";"Nave mercantile grande";"Barco mercante grande"
-129;"Small merchant ship";"Kleines Handelsschiff";"Nave mercantile piccola";"Barco mercante pequeño"
-130;"none";"keiner";"nessuno";"ninguno"
-131;"light";"leicht";"leggero";"ligero"
-132;"medium";"mittel";"medio";"medio"
-133;"heavy";"schwer";"pesante";"pesado"
-134;"critical";"kritisch";"critico";"crítico"
-135;"wrecked";"zerstört";"distrutto";"destruido"
-136;"Tanker";"Tanker";"Petroliera";"Petrolero"
-137;"Small tanker";"Kleiner Tanker";"Piccola petroliera";"Petrolero pequeño"
-138;"Primary range";"Primärreichweite";"Distanza primaria";"Alcance primario"
-139;"Secondary range";"Sekundärreichweite";"Distanza secondaria";"Alcance secundario"
-140;"Initial turn";"Erste Wende";"Virata iniziale";"Giro inicial"
-141;"Search pattern";"Suchmuster";"Percorso di ricerca";"Patrón de búsqueda"
-142;16;16;16;16
-143;17;17;17;17
-144;18;18;18;18
-145;19;19;19;19
-146;20;20;20;20
-147;21;21;21;21
-148;22;22;22;22
-149;23;23;23;23
-150;24;24;24;24
-151;25;25;25;25
-152;26;26;26;26
-153;27;27;27;27
-154;28;28;28;28
-155;29;29;29;29
-156;30;30;30;30
-157;31;31;31;31
-158;32;32;32;32
-159;"800m";"800m";"800m";"800m"
-160;"1600m";"1600m";"1600m";"1600m"
-161;"left";"links";"sinistra";"izquierda"
-162;"right";"rechts";"destra";"derecha"
-163;180;180;180;180
-164;90;90;90;90
+125;"Preparing to dive";"Bereitmachen zum Tauchen";"Prepararsi all'immersione";"Preparando para la inmersión"
+126;"Unmanning deck gun";"Deckgeschütz wird gesichert";"Il servente lascia il cannone";"Desatendiendo el cañón"
+127;"Deck gun is now manned and ready";"Deckgeschütz ist feuerbereit";"Il cannone di coperta è pronto";"Ahora el cañón está atendido y listo"
+128;"Deck gun is now unmanned";"Deckgeschütz ist gesichert";"Il cannone di coperta adesso è senza servente";"Ahora el cañón está desatendido"
+129;"Diving";"Tauchen";"Immersione";"Sumergiendo"
+130;"Deck gun reloading";"Deckgeschütz wird nachgeladen";"Il cannone sta ricaricando";"El cañón se está recargando"
+131;"Deck gun not manned";"Deckgeschütz nicht besetzt";"Il cannone di coperta è senza servente";"El cañón no está atendido"
+132;"Target in blindspot";"Ziel im toten Winkel";"Bersaglio in zona cieca";"Objetivo en zona ciega"
+133;"Manning deck gun";"Deckgeschütz wird besetzt";"Servente al cannone";"Atendiendo el cañón"
+134;"Tube is empty";"Rohr ist leer";"Il tubo lanciasiluri è vuoto";"El tubo está vacío"
+135;"Tube is reloading";"Rohr wird nachgeladen";"Il tubo lanciasiluri è in ricarica";"El tubo se está recargando"
+136;"Tube is unloading";"Rohr wird entladen";"Il tubo lanciasiluri viene disarmato";"El tubo se está descargando"
+137;"No torpedoes remaining";"Keine Torpedos verfügbar";"Non rimangono siluri";"No quedan torpedos"
+138;"No tubes ready to fire";"Keine Rohre feuerbereit";"Nessun tubo pronto al lancio";"Ningún tubo listo para disparar"
+139;"Ahead listen";"Maschine kleine Fahrt";"Ahead listen";"Ahead listen"
+140;"Reverse half";"Maschine halbe Fahrt zurück";"Reverse half";"Reverse half"
+141;"Reverse full";"Maschine volle Fahrt zurück";"Reverse full";"Reverse full"
+142;;;;
+143;;;;
+144;;;;
+145;;;;
+146;;;;
+147;;;;
+148;;;;
+149;;;;
+150;;;;
+151;;;;
+152;;;;
+153;;;;
+154;;;;
+155;;;;
+156;;;;
+157;;;;
+158;;;;
+159;;;;
+160;;;;
+161;;;;
+162;;;;
+163;;;;
+164;;;;
 165;"Damage: ";"Schaden: ";"Danno: ";"Daño:"
 166;"percent";"Prozent";"percento";"porcentaje"
 167;"Repair in progress.";"Reperatur wird ausgeführt.";"Riparazioni in corso.";"Reparación en curso"
 168;"Repair will continue when we're surfaced.";"Reperatur wird fortgesetzt";" sobald wir aufgetaucht sind.";"La reparación continuará cuando estemos en la superficie"
 169;"This damage can not be repaired at sea.";"Reperatur kann nicht auf See ausgeführt werden.";"Questo danno non può essere riparato in mare.";"Este daño no puede reparado en el mar."
 170;"Repair time: ";"Reperaturzeit: ";"Tempo per le riparazioni: ";"Tiempo de reparación:"
-171;" minute.";" Minute.";" minuto.";" minuto."
-172;" minutes.";" Minuten.";" minuti.";" minutos."
-173;"Submarine type IXc/40";"U-Boot Typ IXc/40";"Sottomarino tipo IXc/40";"Submarino tipo IXc/40"
+171;;;;
+172;;;;
+173;;;;
 174;"type IXc/40";"Typ IXc/40";"tipo IXc/40";"tipo Ixc/40"
-175;"x 100m";"x 100m";"x 100m";"x 100m"
-176;"turn in degrees";"Drehung in Grad";"virata in gradi";"giro en grados"
+175;;;;
+176;;;;
 177;"Game menu";"Spielmenü";"Menu del gioco";"Menú del juego"
 178;"Savegame:";"Spielstand:";"Salva il gioco:";"Juego:"
 179;"Erase game";"Spiel löschen";"Cancella il gioco";"Borrar juego"
@@ -205,11 +205,11 @@
 203;"Name";"Name";"Nome";"Nombre"
 204;"Depth charges exploding!";"Wasserbombendetonation!";"Le cariche di profondità stanno esplodendo!";"¡Cargas de profundidad explotando!"
 205;"Depth charges in the water!";"Wasserbomben abgeworfen!";"Cariche di profondità in acqua!";"¡Cargas de profundidad en el agua!"
-206;"m";"m";"m";"m"
-207;"degr";"Grad";"gradi";"grado"
-208;"kts";"kt";"nodi";"nudos"
-209;"km";"km";"km";"km"
-210;"sm";"sm";"sm";"sm"
+206;;;;
+207;;;;
+208;;;;
+209;;;;
+210;;;;
 211;"Time until\ntransfer completes:\n";"Zeit bis zum\nEnde des Transfers:\n";"Tempo necessario per\ncompletare il trasbordo:\n";"Tiempo para\ncompletar la transferencia:\n"
 212;"Local server port number:";"Lokaler Server";" Portnr.:";"Puerto del servidor local:"
 213;"Credits";"Mitwirkende";"Riconoscimenti";"Créditos"
@@ -270,16 +270,16 @@
 268;"Toggle pause";"Pause an/aus";"Toggle pause";"Toggle pause"
 269;"No deck gun available";"Kein Deckgeschütz verfügbar";"No deck gun available";"No deck gun available"
 270;"Deck gun fired!";"Deckgeschütz abgefeuert!";"Deck gun fired!";"Deck gun fired!"
-300;"Type:\tT I\nRange:\t14.000m\nSpeed:\t30 kts\nruns straight\nG7a steam torpedo\ncontact fuse";"Typ:\tT I\nReichw.:\t14.000m\nGeschw.:\t30 kt\nläuft geradeaus\nG7a Dampftorpedo\nAufschlagzünder";"Tipo:\tT I\nPortata:\t14.000m\nVelocità:\t30 nodi\nNon guidato\nG7a siluro a vapore\nspoletta ad urto";"Tipo:\tT I\nAlcance:\t14.000m\nVelocidad:\t30 nudos\nTorpedo G7a\nde vapor no guiado\nespoleta de contacto"
-301;"Type:\tT II\nRange:\t5.000m\nSpeed:\t30 kts\nruns straight\nG7e electric torpedo\ncontact fuse";"Typ:\tT II\nReichw.:\t5.000m\nGeschw.:\t30 kt\nläuft geradeaus\nG7e elektrischer Torpedo\nAufschlagzünder";"Tipo:\tT II\nPortata:\t5.000m\nVelocità:\t30 nodi\nNon guidato\nG7e siluro elettrico\nspoletta ad urto";"Tipo:\tT II\nAlcance:\t5.000m\nVelocidad:\t30 nudos\nTorpedo G7e\neléctrico no guiado\nespoleta de contacto"
-302;"Type:\tT III\nRange:\t5.000m\nSpeed:\t30 kts\nruns straight\nG7e electric torpedo\ninfluence fuse";"Typ:\tT III\nReichw.:\t5.000m\nGeschw.:\t30 kt\nläuft geradeaus\nG7e elektrischer Torpedo\nMagnetzünder";"Tipo:\tT III\nPortata:\t5.000m\nVelocità:\t30 nodi\nNon guidato\nG7e siluro elettrico\nspoletta di prossimità";"Tipo:\tT III\nAlcance:\t5.000m\nVelocidad:\t30 nudos\nTorpedo G7e\neléctrico no guiado\nespoleta de proximidad"
-303;"Type:\tT IIIa\nRange:\t7.500m\nSpeed:\t30 kts\nruns straight\nG7e electric torpedo\ninfluence fuse";"Typ:\tT IIIa\nReichw.:\t7.500m\nGeschw.:\t30 kt\nläuft geradeaus\nG7e elektrischer Torpedo\nMagnetzünder";"Tipo:\tT IIIa\nPortata:\t7.500m\nVelocità:\t30 nodi\nNon guidato\nG7e siluro elettrico\nspoletta di prossimità";"Tipo:\tT IIIa\nAlcance:\t7.500m\nVelocidad:\t30 nudos\nTorpedo G7e\neléctrico no guiado\nespoleta de proximidad"
-304;"Type:\tT IV\nRange:\t7.500m\nSpeed:\t20 kts\nacoustic\nG7e electric torpedo\ninfluence fuse";"Typ:\tT IV\nReichw.:\t7.500m\nGeschw.:\t20 kt\nakustisch\nG7e elektrischer Torpedo\nMagnetzünder";"Tipo:\tT IV\nPortata:\t7.500m\nVelocità:\t20 nodi\nacustico\nG7e siluro elettrico\nspoletta di prossimità";"Tipo:\tT IV\nAlcance:\t7.500m\nVelocidad:\t20 nudos\nTorpedo G7e\neléctrico acústico\nespoleta de proximidad"
-305;"Type:\tT V\nRange:\t5.700m\nSpeed:\t24 kts\nacoustic\nG7e electric torpedo\ninfluence fuse";"Typ:\tT V\nReichw.:\t5.700m\nGeschw.:\t24 kt\nakustisch\nG7e elektrischer Torpedo\nMagnetzünder";"Tipo:\tT V\nPortata:\t5.700m\nVelocità:\t24 nodi\nacustico\nG7e siluro elettrico\nspoletta di prossimità";"Tipo:\tT V\nAlcance:\t5.700m\nVelocidad:\t24 nudos\nTorpedo G7e\neléctrico acústico\nespoleta de proximidad"
-306;"Type:\tT XI\nRange:\t5.700m\nSpeed:\t24 kts\nacoustic\nG7e electric torpedo\ninfluence fuse";"Typ:\tT XI\nReichw.:\t5.700m\nGeschw.:\t24 kt\nakustisch\nG7e elektrischer Torpedo\nMagnetzünder";"Tipo:\tT XI\nPortata:\t5.700m\nVelocità:\t24 nodi\nacustico\nG7e siluro elettrico\nspoletta di prossimità";"Tipo:\tT XI\nAlcance:\t5.700m\nVelocidad:\t24 nudos\nTorpedo G7e\neléctrico acústico\nespoleta de proximidad"
-307;"Type:\tT I FAT\nRange:\t14.000m\nSpeed:\t30 kts\npattern searching\nG7a steam torpedo\ncontact fuse";"Typ:\tT I FAT\nReichw.:\t14.000m\nGeschw.:\t30 kt\nflächenabsuchend\nG7a Dampftorpedo\nAufschlagzünder";"Tipo:\tT I FAT\nPortata:\t14.000m\nVelocità:\t30 nodi\npercorso di ricerca\nG7a siluro a vapore\nspoletta ad urto";"Tipo:\tT I FAT\nAlcance:\t14.000m\nVelocidad:\t30 nudos\nTorpedo G7a\nde vapor y búsqueda de patrones\nespoleta de contacto"
-308;"Type:\tT III FAT\nRange:\t7.500m\nSpeed:\t30 kts\npattern searching\nG7e electric torpedo\ninfluence fuse";"Typ:\tT III FAT\nReichw.:\t7.500m\nGeschw.:\t30 kt\nflächenabsuchend\nG7e elektrischer Torpedo\nMagnetzünder";"Tipo:\tT III FAT\nPortata:\t7.500m\nVelocità:\t30 nodi\npercorso di ricerca\nG7e siluro elettrico\nspoletta di prossimità";"Tipo:\tT III FAT\nAlcance:\t7.500m\nVelocidad:\t30 nudos\nTorpedo G7e\neléctrico y búsqueda de patrones\nespoleta de proximidad"
-309;"Type:\tT VI LUT\nRange:\t7.500m\nSpeed:\t30 kts\npattern searching\nG7e electric torpedo\ninfluence fuse";"Typ:\tT VI LUT\nReichw.:\t7.500m\nGeschw.:\t30 kt\nflächenabsuchend\nG7e elektrischer Torpedo\nMagnetzünder";"Tipo:\tT VI LUT\nPortata:\t7.500m\nVelocità:\t30 nodi\npercorso di ricerca\nG7e siluro elettrico\nspoletta di prossimità";"Tipo:\tT VI LUT\nAlcance:\t7.500m\nVelocidad:\t30 nudos\nTorpedo G7e\neléctrico y búsqueda de patrones\nespoleta de proximidad"
+300;;;;
+301;;;;
+302;;;;
+303;;;;
+304;;;;
+305;;;;
+306;;;;
+307;;;;
+308;;;;
+309;;;;
 400;"rudder";"Ruder";"timone";"timón"
 401;"screws";"Schrauben";"eliche";"hélices"
 402;"screw shaft";"Schraubenwelle";"albero dell'elica";"eje de la hélice"
@@ -378,20 +378,3 @@
 657;"Show Torpedo Data Computer";"Zeige Torpedodaten-Rechner";"Mostra il calcolatore per i siluri";"Mostrar computadora de torpedos"
 658;"Toggle pop-up display";"Extra-Anzeigen wechseln";"Seleziona pop-up display";"Alternar visualizador emergente"
 659;"Show Torpedo Setup screen";"Zeige Torpedoeinstellungen";"Mostra la configurazione dei siluri";"Mostrar configuración de torpedos"
-753;"Preparing to dive";"Bereitmachen zum Tauchen";"Prepararsi all'immersione";"Preparando para la inmersión"
-754;"Unmanning deck gun";"Deckgeschütz wird gesichert";"Il servente lascia il cannone";"Desatendiendo el cañón"
-755;"Deck gun is now manned and ready";"Deckgeschütz ist feuerbereit";"Il cannone di coperta è pronto";"Ahora el cañón está atendido y listo"
-756;"Deck gun is now unmanned";"Deckgeschütz ist gesichert";"Il cannone di coperta adesso è senza servente";"Ahora el cañón está desatendido"
-757;"Diving";"Tauchen";"Immersione";"Sumergiendo"
-758;"Deck gun reloading";"Deckgeschütz wird nachgeladen";"Il cannone sta ricaricando";"El cañón se está recargando"
-759;"Deck gun not manned";"Deckgeschütz nicht besetzt";"Il cannone di coperta è senza servente";"El cañón no está atendido"
-760;"Target in blindspot";"Ziel im toten Winkel";"Bersaglio in zona cieca";"Objetivo en zona ciega"
-761;"Manning deck gun";"Deckgeschütz wird besetzt";"Servente al cannone";"Atendiendo el cañón"
-762;"Tube is empty";"Rohr ist leer";"Il tubo lanciasiluri è vuoto";"El tubo está vacío"
-763;"Tube is reloading";"Rohr wird nachgeladen";"Il tubo lanciasiluri è in ricarica";"El tubo se está recargando"
-764;"Tube is unloading";"Rohr wird entladen";"Il tubo lanciasiluri viene disarmato";"El tubo se está descargando"
-765;"No torpedoes remaining";"Keine Torpedos verfügbar";"Non rimangono siluri";"No quedan torpedos"
-766;"No tubes ready to fire";"Keine Rohre feuerbereit";"Nessun tubo pronto al lancio";"Ningún tubo listo para disparar"
-767;"Ahead listen";"Maschine kleine Fahrt";"Ahead listen";"Ahead listen"
-768;"Reverse half";"Maschine halbe Fahrt zurück";"Reverse half";"Reverse half"
-769;"Reverse full";"Maschine volle Fahrt zurück";"Reverse full";"Reverse full"

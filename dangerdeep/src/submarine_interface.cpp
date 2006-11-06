@@ -159,7 +159,7 @@ void submarine_interface::fire_tube(submarine* player, int nr)
 			mygame->add_logbook_entry(oss.str());
 			play_sound_effect(se_submarine_torpedo_launch, player, player);
 		} else {
-			add_message(texts::get(766));
+			add_message(texts::get(138));
 		}
 
 #if 0 // old code
@@ -184,13 +184,13 @@ void submarine_interface::fire_tube(submarine* player, int nr)
 				switch (tube_status)
 				{
 					case submarine::stored_torpedo::st_empty:
-						failed_to_fire_msg = texts::get(762);  
+						failed_to_fire_msg = texts::get(134);  
 						break;
 					case submarine::stored_torpedo::st_reloading:
-						failed_to_fire_msg = texts::get(763);
+						failed_to_fire_msg = texts::get(135);
 						break;
 					case submarine::stored_torpedo::st_unloading:
-						failed_to_fire_msg = texts::get(764);
+						failed_to_fire_msg = texts::get(136);
 						break;
 					default:
 						// could happen when tube is loaded
@@ -200,9 +200,9 @@ void submarine_interface::fire_tube(submarine* player, int nr)
 				}
 			} else {
 				if (true == player->get_torpedoes().empty())
-					failed_to_fire_msg = texts::get(765);
+					failed_to_fire_msg = texts::get(137);
 				else
-					failed_to_fire_msg = texts::get(766);
+					failed_to_fire_msg = texts::get(138);
 			}
 			
 			add_message(failed_to_fire_msg);
@@ -295,7 +295,7 @@ void submarine_interface::process_input(const SDL_Event& event)
 			add_message(texts::get(42));
 		} else if (mycfg.getkey(KEY_THROTTLE_LISTEN).equal(event.key.keysym)) {
 			player->set_throttle(ship::aheadlisten);
-			add_message(texts::get(767));
+			add_message(texts::get(139));
 		} else if (mycfg.getkey(KEY_THROTTLE_SLOW).equal(event.key.keysym)) {
 			player->set_throttle(ship::aheadslow);
 			add_message(texts::get(43));
@@ -316,10 +316,10 @@ void submarine_interface::process_input(const SDL_Event& event)
 			add_message(texts::get(48));
 		} else if (mycfg.getkey(KEY_THROTTLE_REVERSEHALF).equal(event.key.keysym)) {
 			player->set_throttle(ship::reversehalf);
-			add_message(texts::get(768));
+			add_message(texts::get(140));
 		} else if (mycfg.getkey(KEY_THROTTLE_REVERSEFULL).equal(event.key.keysym)) {
 			player->set_throttle(ship::reversefull);
-			add_message(texts::get(769));
+			add_message(texts::get(141));
 		} else if (mycfg.getkey(KEY_FIRE_TUBE_1).equal(event.key.keysym)) {
 			fire_tube(player, 0);
 		} else if (mycfg.getkey(KEY_FIRE_TUBE_2).equal(event.key.keysym)) {
@@ -430,11 +430,11 @@ void submarine_interface::process_input(const SDL_Event& event)
 						else if (ship::NO_AMMO_REMAINING == res)
 							add_message(texts::get(219));
 						else if (ship::RELOADING == res)
-							add_message(texts::get(758));
+							add_message(texts::get(130));
 						else if (ship::GUN_NOT_MANNED == res)
-							add_message(texts::get(759));
+							add_message(texts::get(131));
 						else if (ship::GUN_TARGET_IN_BLINDSPOT == res)
-							add_message(texts::get(760));
+							add_message(texts::get(132));
 						else if (ship::GUN_FIRED == res)
 							add_message(texts::get(270));
 					} else {
@@ -450,10 +450,10 @@ void submarine_interface::process_input(const SDL_Event& event)
 					if (event.key.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) {
 						if (player->is_gun_manned()) {
 							if (player->unman_guns())
-								add_message(texts::get(754));
+								add_message(texts::get(136));
 						} else {
 							if (player->man_guns())
-								add_message(texts::get(761));
+								add_message(texts::get(133));
 						}
 					}
 				} else {
