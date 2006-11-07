@@ -88,7 +88,7 @@ void moon::display(const vector3 &moon_pos, const vector3 &sun_pos, double max_v
 	glActiveTextureARB(GL_TEXTURE0_ARB);
 	glEnable(GL_TEXTURE_2D);
 	map_normal.get()->set_gl_texture();
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
 	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_DOT3_RGB_ARB) ;
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
@@ -140,7 +140,10 @@ void moon::display(const vector3 &moon_pos, const vector3 &sun_pos, double max_v
 
 	//	reset textures
 	glBindTexture(GL_TEXTURE_2D, 0);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE); // clean up!
 
 	glActiveTextureARB(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+	glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, 1); // clean up!
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE); // clean up!
 }
