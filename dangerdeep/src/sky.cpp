@@ -55,7 +55,7 @@ const double CLOUD_ANIMATION_CYCLE_TIME = 3600.0;
    add rain! (GL_LINES with varying alpha)
 */
 
-sky::sky(const double tm, const unsigned int sectors_x, const unsigned int sectors_y)
+sky::sky(const double tm, const unsigned int sectors_h, const unsigned int sectors_v)
 	: mytime(tm), sunglow(0), clouds(0),
 	  suntex(0), clouds_dl(0), skyhemisphere_dl(0),
 	  sun_azimuth(10.0f), sun_elevation(10.0f),
@@ -79,7 +79,7 @@ sky::sky(const double tm, const unsigned int sectors_x, const unsigned int secto
 	}
 
 	// ******************************** create sky geometry
-	build_dome(sectors_x, sectors_y);
+	build_dome(sectors_h, sectors_v);
 
 	// ********************************** init sun/moon
 	sunglow = texture::ptr(new texture(get_texture_dir() + "sunglow.png", texture::LINEAR));
@@ -396,19 +396,20 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	// render sky
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glEnableClientState(GL_COLOR_ARRAY);
+	glColor4f(1, 0, 1, 1);
 	glColorPointer(4, GL_FLOAT, 0, &(skycolors[0]));
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 0, &(skyverts[0]));
-	glDrawArrays(GL_QUAD_STRIP, 0, skyverts.size());
-	glDisableClientState(GL_COLOR_ARRAY);
+	glDrawElements(GL_QUADS, skyindices.size(), GL_UNSIGNED_INT, &(skyindices[0])); 
 	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
 
 #if 0	//	debug (hemisphere mesh)
 	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 	glColor4f(1, 1, 1, 1);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 0, &(skyverts[0]));
-	glDrawArrays(GL_QUAD_STRIP, 0, skyverts.size());
+	glDrawElements(GL_QUADS, skyindices.size(), GL_UNSIGNED_INT, &(skyindices[0])); 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glPolygonMode( GL_FRONT, GL_FILL );
 #endif
@@ -501,54 +502,55 @@ color sky::get_horizon_color(const game& gm, const vector3& viewpos) const
 }
 
 
-void sky::build_dome(const unsigned int sectors_x, const unsigned int sectors_y)
+void sky::build_dome(const unsigned int sectors_h, const unsigned int sectors_v)
 {
 	const float radius = 1.0f;
 
-	float phi1,phi2,theta;
+	float phi,theta;
 	float x,y,z;
 
-	skyverts.reserve(sectors_x*sectors_y);
-	skyangles.reserve(sectors_x*sectors_y);
-	skycolors.reserve(sectors_x*sectors_y);
-
+	skyverts.reserve( (sectors_h+1)*(sectors_v+1) );
+	skyangles.reserve( (sectors_h+1)*(sectors_v+1) );
+	skycolors.reserve( (sectors_h+1)*(sectors_v+1) );
+	skyindices.reserve( 4*(sectors_h+1)*(sectors_v+1) );
 	colorf defaultColor(0,0,0,0);
 
-	// TJ: fixme: using quads with shared vertices between segments could be more efficient.
-	// we would have only half the number of vertices and thus only half the colors to recompute
-	// as sky colors.
-	// some gamedev.net discussion proposed using more segments near the horizon as color
+	// TJ: fixme: some gamedev.net discussion proposed using more segments near the horizon as color
 	// variation is greater near the horizon.
 
 	// this will define the sphere in height
-	for(int i=0; i<sectors_y; i++){
+	for(unsigned int i=0; i<=sectors_v; i++){
 
-		phi1 = i * (M_PI*0.5) / sectors_y;
-		if(phi1 == 0.0) phi1 = 0.001;	//	if phi==1 skycolor = -INF, -INF, -INF (BAD)
-		phi2 = (i+1) * (M_PI*0.5) / sectors_y;
+		if(i != 0)
+			phi = i * (M_PI*0.5) / sectors_v;
+		else
+			phi = 0.001;	//	if phi==0 skycolor = -INF, -INF, -INF (BAD)
 
 		// definition of the circular sections
-		for(int j=0; j<=sectors_x; j++){
+		for(unsigned int j=0; j<=sectors_h; j++){
 
-			theta = 2 * j * M_PI / sectors_x;
+			theta = 2 * j * M_PI / sectors_h;
 
-			// lower point of the quad_strip
-			x = radius * cos(theta) * cos(phi1);
-			y = radius * sin(theta) * cos(phi1);
-			z = radius * sin(phi1);
+			x = radius * cos(theta) * cos(phi);
+			y = radius * sin(theta) * cos(phi);
+			z = radius * sin(phi);
 
-			skyangles.push_back( vector2f( (1-theta/(M_PI*2))*2*M_PI, phi1 ) );
+			skyangles.push_back( vector2f( (1-theta/(M_PI*2))*2*M_PI, phi ) );
 			skyverts.push_back( vector3f(x,y,z) );
 			skycolors.push_back(defaultColor);
+		}
+	}
 
-			// upper point of the quad strip
-			x = radius * cos(theta) * cos(phi2);
-			y = radius * sin(theta) * cos(phi2);
-			z = radius * sin(phi2);
+	//	build index list
+	for(unsigned int i=0; i<sectors_v; i++)
+	{
+		for(unsigned int j=0; j<sectors_h;j++)
+		{
 
-			skyangles.push_back( vector2f( (1-theta/(M_PI*2))*2*M_PI, phi2 ) );
-			skyverts.push_back( vector3f(x,y,z) );
-			skycolors.push_back(defaultColor);
+			skyindices.push_back(i*(sectors_h+1) + j);
+			skyindices.push_back((i+1)*(sectors_h+1) + j);
+			skyindices.push_back((i+1)*(sectors_h+1) + j+1);
+			skyindices.push_back(i*(sectors_h+1) + j+1);
 		}
 	}
 }

@@ -72,6 +72,7 @@ protected:
 	moon _moon;
 	std::vector<vector3f> skyverts;
 	std::vector<vector2f> skyangles;
+	std::vector<unsigned int> skyindices;
 	mutable std::vector<colorf> skycolors;
 	mutable vector3 sunpos, moonpos;
 	mutable vector3 sundir, moondir;
@@ -79,12 +80,12 @@ protected:
 	mutable float moon_azimuth, moon_elevation;
 	float turbidity;
 
-	void build_dome(const unsigned int sectors_x, const unsigned int sectors_y);
+	void build_dome(const unsigned int sectors_h, const unsigned int sectors_v);
 
 public:
 	sky(const double tm = 0.0,
-	    const unsigned int sectors_x = 100,
-	    const unsigned int sectors_y = 25);
+	    const unsigned int sectors_h = 100,
+	    const unsigned int sectors_v = 25);
 	//fixme: this should recompute sky color! not display...
 	void set_time(double tm);
 	~sky();
