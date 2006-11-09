@@ -30,7 +30,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class texts
 {
  public:
-	enum category { common, languages, nr_of_categories };
+	enum category {
+		common,
+		languages,
+		formats,
+		nr_of_categories };
  private:
 	std::vector<std::vector<std::string> > strings;
 	void read_category(category ct);
@@ -39,11 +43,17 @@ class texts
 	static const texts& obj();
 
 	texts(const std::string& langcode = "en");
+
+	static std::vector<std::string> available_language_codes;
  public:
 	static void set_language(const std::string& language_code);
+	static void set_language(unsigned nr);
 	static std::string get_language_code();
+	static unsigned get_current_language_nr();
 	static std::string get(unsigned no, category ct = common);
 	static std::string numeric_from_date(const class date& d);
+	static void read_available_language_codes();
+	static unsigned get_nr_of_available_languages();
 };
 
 #endif
