@@ -161,29 +161,6 @@ bool date::operator> ( const date& d ) const
 	return unsigned(linear_time/86400) > unsigned(d.linear_time/86400);
 }
 
-ostream& operator<< ( ostream& os, const date& d )
-{
-	// fixme: very similar to texts.cpp! we should call texts::numeric_from_date here!
-	if ( texts::get_language_code() == "de" )
-	{
-		os << d.date_values[d.day]    << "." << d.date_values[d.month] << ".";
-		os << d.date_values[d.year]   << " ";
-		os << setw ( 2 ) << setfill ( '0' ) << d.date_values[d.hour]  << ":";
-		os << setw ( 2 ) << setfill ( '0' ) << d.date_values[d.minute] << ":";
-		os << setw ( 2 ) << setfill ( '0' ) << d.date_values[d.second];
-	}
-	else
-	{
-		os << d.date_values[d.year]   << "-" << d.date_values[d.month] << "-";
-		os << d.date_values[d.day]    << " ";
-		os << setw ( 2 ) << setfill ( '0' ) << d.date_values[d.hour]  << ":";
-		os << setw ( 2 ) << setfill ( '0' ) << d.date_values[d.minute] << ":";
-		os << setw ( 2 ) << setfill ( '0' ) << d.date_values[d.second];
-	}
-
-	return os;
-}
-
 void date::load(const xml_elem& parent)
 {
 	xml_elem d = parent.child("date");

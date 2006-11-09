@@ -77,12 +77,8 @@ public:
 	bool operator>= ( const date& d ) const;
 	bool operator> ( const date& d ) const;
 
-	friend std::ostream& operator<< ( std::ostream& os, const date& d );
-	
 	void load(const xml_elem& parent);
 	void save(xml_elem& parent) const;
 };
-
-std::ostream& operator<< ( std::ostream& os, const date& d );
 
 #endif /* DATE_H */
