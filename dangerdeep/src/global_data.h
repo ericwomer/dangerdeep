@@ -34,6 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <list>
 #include <cmath>
 #include "objcache.h"
+#include <sstream>
 
 // fixme: remove this ugly crap, move to .cpp
 #define se_submarine_torpedo_launch "liquidblast.ogg"
@@ -146,5 +147,8 @@ double transform_nautic_posx_to_real(const std::string& s);
 double transform_nautic_posy_to_real(const std::string& s);
 
 std::list<std::string> string_split(const std::string& src, char splitter = ',');
+
+///> transform any data type to a string for easier error reporting etc.
+template<typename T> std::string str(const T& x) { std::ostringstream oss; oss << x; return oss.str(); }
 
 #endif
