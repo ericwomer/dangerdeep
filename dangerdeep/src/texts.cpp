@@ -155,9 +155,7 @@ string texts::get_language_code()
 unsigned texts::get_current_language_nr()
 {
 	string lg = get_language_code();
-	printf("lg=%s\n",lg.c_str());
 	for (unsigned i = 0; i < available_language_codes.size(); ++i) {
-		printf("test=%s\n",available_language_codes[i].c_str());
 		if (available_language_codes[i] == lg)
 			return i;
 	}
