@@ -1084,37 +1084,39 @@ void menu_mission_editor()
 
 
 
-// fixme: read from languages.csv!
-#define NR_OF_LANGUAGES 4
-const char* langcodes[NR_OF_LANGUAGES] = {
-	"en",
-	"de",
-	"it",
-	"es"
-};
-
-void set_selected_language(pair<widget*, unsigned> w_nr)
-{
-	if (w_nr.second < NR_OF_LANGUAGES) {
-		texts::set_language(langcodes[w_nr.second]);
-	}
-	w_nr.first->close(0);
-}
-
 void menu_select_language()
 {
 	widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
 	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(26));
-	w.add_child(wm);
-	for (unsigned i = 0; i < NR_OF_LANGUAGES; ++i) {
-		widget_button* wb = new widget_func_arg_button<void (*)(pair<widget*, unsigned>),
-			pair<widget*, unsigned> >(&set_selected_language, make_pair(&w, i),
-						  0, 0, 0, 0);
-		wm->add_entry(texts::get(i, texts::languages), wb);
+
+	struct lgclist : public widget_list
+	{
+		void on_sel_change() {
+			texts::set_language(get_selected());
+		}
+		lgclist(int x, int y, int w, int h) : widget_list(x, y, w, h) {}
+	};
+
+	widget_list* wlg = new lgclist(0, 0, 400, 400);
+	unsigned nl = texts::get_nr_of_available_languages();
+	for (unsigned i = 0; i < nl; ++i) {
+		wlg->append_entry(texts::get(i, texts::languages));
 	}
-	wm->add_entry(texts::get(11), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
-	wm->align(0, 0);
+	wlg->set_selected(texts::get_current_language_nr());
+
+	widget_button* wcb = new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 400, 40, texts::get(11));
+
+	w.add_child(wm);
+	w.add_child(wlg);
+	w.add_child(wcb);
+	wlg->align(0, 0);
+	vector2i wlgp = wlg->get_pos();
+	vector2i wlgs = wlg->get_size();
+	wm->set_pos(vector2i(wlgp.x, wlgp.y - 60));
+	wcb->set_pos(vector2i(wlgp.x, wlgp.y + wlgs.y + 20));
+
 	w.run(0, false);
+	// fixme: later store selected language in options file!
 }
 
 //
@@ -1660,6 +1662,7 @@ int mymain(list<string>& args)
 		highscorelist().save(highscoredirectory + HSL_CAREER_NAME);
 	hsl_mission = highscorelist(highscoredirectory + HSL_MISSION_NAME);
 	hsl_career = highscorelist(highscoredirectory + HSL_CAREER_NAME);
+
 
 
 	// check if there was a mission given at the command line, or editor more etc.
