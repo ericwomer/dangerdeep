@@ -592,7 +592,7 @@ int widget_menu::get_selected() const
 void widget_menu::draw() const
 {
 	vector2i p = get_pos();
-	// draw tile bar if there is text
+	// draw title bar if there is text
 	if (text.length() > 0) {
 		draw_area(p.x, p.y, entryw, entryh, true);
 		draw_area(p.x, p.y, entryw, entryh, false);
