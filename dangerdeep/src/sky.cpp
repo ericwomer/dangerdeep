@@ -400,7 +400,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glColorPointer(4, GL_FLOAT, 0, &(skycolors[0]));
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 0, &(skyverts[0]));
-	glDrawElements(GL_QUADS, skyindices.size(), GL_UNSIGNED_INT, &(skyindices[0])); 
+	glDrawElements(GL_QUAD_STRIP, skyindices.size(), GL_UNSIGNED_INT, &(skyindices[0])); 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 
@@ -409,7 +409,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glColor4f(1, 1, 1, 1);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 0, &(skyverts[0]));
-	glDrawElements(GL_QUADS, skyindices.size(), GL_UNSIGNED_INT, &(skyindices[0])); 
+	glDrawElements(GL_QUAD_STRIP, skyindices.size(), GL_UNSIGNED_INT, &(skyindices[0])); 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glPolygonMode( GL_FRONT, GL_FILL );
 #endif
@@ -543,16 +543,11 @@ void sky::build_dome(const unsigned int sectors_h, const unsigned int sectors_v)
 
 	//	build index list
 	for(unsigned int i=0; i<sectors_v; i++)
-	{
-		for(unsigned int j=0; j<sectors_h;j++)
+		for(unsigned int j=0; j<=sectors_h;j++)
 		{
-
 			skyindices.push_back(i*(sectors_h+1) + j);
 			skyindices.push_back((i+1)*(sectors_h+1) + j);
-			skyindices.push_back((i+1)*(sectors_h+1) + j+1);
-			skyindices.push_back(i*(sectors_h+1) + j+1);
 		}
-	}
 }
 
 
