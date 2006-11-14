@@ -1355,6 +1355,7 @@ int mymain(list<string>& args)
 	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
 		if (*it == "--help") {
 			cout << "*** Danger from the Deep ***\nusage:\n--help\t\tshow this\n"
+			     << "--language \t\tuse the listed language CODEs from the common.cvs file. \"en\" is the default language\n"
 			     << "--res n\t\tuse resolution n horizontal,\n\t\tn is 512,640,800,1024 (recommended) or 1280\n"
 			     << "--nofullscreen\tdon't use fullscreen\n"
 			     << "--debug\t\tdebug mode: no fullscreen, resolution 800\n"
@@ -1454,6 +1455,12 @@ int mymain(list<string>& args)
 					cout << "ERROR: config directory is no directory!\n";
 					return -1;
 				}
+				++it;
+			}
+		} else if (*it == "--language") { // included 2006/11/14 by doc1972
+			list<string>::iterator it2 = it; ++it2;
+			if (it2 != args.end()) {
+				texts::set_language(*it2);
 				++it;
 			}
 		} else {
