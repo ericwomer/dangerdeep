@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "model.h"
 #include "system.h"
 #include "game.h"
+#include "environment.h"
 
 
 
@@ -77,9 +78,9 @@ void depth_charge::simulate(double delta_time)
 vector3 depth_charge::get_acceleration() const
 {
 	if (position.z > 0) {	// DC's can be thrown, so they can be above water.
-		return vector3(0, 0, -GRAVITY);
+		return vector3(0, 0, -physics::GRAVITY);
 	} else {
 		double vm = velocity.z/DEPTH_CHARGE_SINK_SPEED;
-		return vector3(0, 0, -GRAVITY + GRAVITY*vm*vm);
+		return vector3(0, 0, -physics::GRAVITY + physics::GRAVITY*vm*vm);
 	}
 }

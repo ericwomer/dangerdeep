@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "vector3.h"
 #include "fftw3.h"
+#include "environment.h"
 #include <complex>
 #include <vector>
 
@@ -45,8 +46,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define FFT_DELETE_PLAN fftw_destroy_plan
 #define FFT_EXECUTE_PLAN fftw_execute
 #endif
-
-#define GRAVITY 9.806
 
 #ifdef WIN32
 #ifndef M_PI
@@ -131,7 +130,7 @@ T ocean_wave_generator<T>::phillips(const vector2t<T>& K) const
 	if (k2 == T(0)) return T(0);
 	T v4 = v2 * v2;
 	T k4 = k2 * k2;
-	T g2 = GRAVITY * GRAVITY;
+	T g2 = physics::GRAVITY * physics::GRAVITY;
 	// note: Khat = K.normal() * W should be taken, but we use K
 	// and divide |K * W|^2 by |K|^2 = k2 later.
 	// note: a greater exponent could be used (e.g. 6) to align waves even more to the wind
@@ -180,7 +179,7 @@ std::complex<T> ocean_wave_generator<T>::h_tilde(const vector2t<T>& K, int kx, i
 	std::complex<T> h0_tildeK = h0tilde[ky*(N+1)+kx];
 	std::complex<T> h0_tildemKconj = conj(h0tilde[(N-ky)*(N+1)+(N-kx)]);
 	// all frequencies should be multiples of one base frequency (see paper).
-	T wK = sqrt(GRAVITY * K.length());
+	T wK = sqrt(physics::GRAVITY * K.length());
 	T wK2 = floor(wK/w0)*w0;
 	T xp = wK2 * time;
 	T cxp = cos(xp);

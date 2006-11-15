@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ai.h"
 #include "game.h"
 #include "datadirs.h"
+#include "environment.h"
 
 
 const double earthperimeter2 = 20015086.795;
@@ -66,7 +67,7 @@ void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, 
 // as offset to current time! to have non-constant acceleration over time
 vector3 sea_object::get_acceleration() const
 {
-	return vector3(0, 0, -GRAVITY);
+	return vector3(0, 0, -physics::GRAVITY);
 }
 
 
@@ -549,8 +550,8 @@ void sea_object::simulate(double delta_time)
 	// This *can* happen with linearily changing acceleration, like throttle increase/
 	// decrease and turning of rudder. RK4 could help a lot here, because we don't need
 	// that small simulation steps to compute the integration as with Euler...
-	position += global_velocity * delta_time + global_acceleration * t2_2;
-	velocity += acceleration * delta_time;
+	physics::new_position( position, global_velocity, global_acceleration, delta_time );
+	physics::new_velocity( velocity, acceleration, delta_time );
 
 	//debugging
 //	cout << "NEWpos: " << position << "\nNEWvelo: " << velocity << "\n";

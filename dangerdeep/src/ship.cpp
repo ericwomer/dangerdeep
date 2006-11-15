@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "tinyxml/tinyxml.h"
 #include "gun_shell.h"
 #include "global_data.h"
+#include "physics.h"
 
 using std::vector;
 using std::list;
@@ -62,7 +63,7 @@ void ship::fill_dist_angle_relation_map(const double initial_velocity)
 			for (double dt = 0; dt < 120.0; dt += 0.001) {
 				dist += vdist * dt;
 				z += vz * dt;
-				vz += -GRAVITY * dt;
+				vz += 0 - physics::GRAVITY * dt;
 				if (z <= 0) break;
 			}
 			
@@ -79,7 +80,7 @@ void ship::fill_dist_angle_relation_map(const double initial_velocity)
 			for (double dt = 0; dt < 120.0; dt += 0.001) {
 				dist += vdist * dt;
 				z += vz * dt;
-				vz += -GRAVITY * dt;
+				vz += 0 - physics::GRAVITY * dt;
 				if (z <= 0) break;
 			}
 			

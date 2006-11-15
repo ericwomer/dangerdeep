@@ -59,8 +59,6 @@ std::string XmlAttrib(class TiXmlElement* elem, const char* attrname);
 unsigned XmlAttribu(class TiXmlElement* elem, const char* attrname);
 float XmlAttribf(class TiXmlElement* elem, const char* attrname);
 
-#define GRAVITY 9.806	// a very global constant
-
 
 ///> all global data grouped in one class
 class global_data
