@@ -219,6 +219,10 @@ public:
 		values[1] = values[2] = values[4] = values[6] = values[8] = values[9] = D(0.0);
 	}
 
+	void clear_trans() {
+		values[3] = values[7] = values[11] = D(0.0);
+	}
+
 	vector3t<D> operator* (const vector3t<D>& v) const {
 		D r[4];
 		for (unsigned j = 0; j < 4; ++j) {	// rows of "this"
