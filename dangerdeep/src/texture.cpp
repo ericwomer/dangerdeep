@@ -464,7 +464,12 @@ vector<Uint8> texture::make_normals(const vector<Uint8>& src, unsigned w, unsign
 {
 	// src size must be w*h
 	vector<Uint8> dst(3*w*h);
-	float zh = 255.0f/detailh;
+	// Note! zh must be multiplied with 2*sample_distance!
+	// sample_distance is real distance between texels, we assume 1 for it...
+	// This depends on the size of the face the normal map is mapped onto.
+	// but all other code is written to match 255/detailh, especially
+	// bump scaling in model.cpp, so don't change this!
+	float zh = /* 2.0f* */ 255.0f/detailh;
 	unsigned ptr = 0;
 	for (unsigned yy = 0; yy < h; ++yy) {
 		unsigned y1 = (yy + h - 1) & (h - 1);
