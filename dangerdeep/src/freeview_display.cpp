@@ -441,7 +441,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	//unsigned t1 = SDL_GetTicks();
 	//cout << "time for " << vps << " size tex: " << t1-t0 << "\n"; // 14-20 ms each, ~1-2ms for a 128pixel texture
 	scrn[0] = 255;//test to see where is up
-	ofstream oss("mirror.ppm");
+	std::ofstream oss("mirror.ppm");
 	oss << "P6\n" << vps << " " << vps << "\n255\n";
 	oss.write((const char*)(&scrn[0]), vps*vps*3);
 #endif
