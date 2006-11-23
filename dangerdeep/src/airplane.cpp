@@ -128,7 +128,7 @@ cout << "windtal      " << windturnaxis.length() << "\n";
 	// lift by wings (fixme: works also if plane is upside down or nearly!)
 	vector3 lift = (localvelocity.y * localvelocity.y * get_lift_factor()) * locz;//fixme: negate locz if locz.z<0
 	// gravity
-	vector3 gravity = vector3(0, 0, get_mass() * (0 - physics::GRAVITY));
+	vector3 gravity = vector3(0, 0, get_mass() * (0 - GRAVITY));
 
 
 	// deceleration by air friction (drag etc.)

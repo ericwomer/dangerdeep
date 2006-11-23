@@ -67,7 +67,7 @@ void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, 
 // as offset to current time! to have non-constant acceleration over time
 vector3 sea_object::get_acceleration() const
 {
-	return vector3(0, 0, -physics::GRAVITY);
+	return vector3(0, 0, -GRAVITY);
 }
 
 

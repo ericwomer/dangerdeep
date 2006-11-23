@@ -130,7 +130,7 @@ T ocean_wave_generator<T>::phillips(const vector2t<T>& K) const
 	if (k2 == T(0)) return T(0);
 	T v4 = v2 * v2;
 	T k4 = k2 * k2;
-	T g2 = physics::GRAVITY * physics::GRAVITY;
+	T g2 = GRAVITY * GRAVITY;
 	// note: Khat = K.normal() * W should be taken, but we use K
 	// and divide |K * W|^2 by |K|^2 = k2 later.
 	// note: a greater exponent could be used (e.g. 6) to align waves even more to the wind
@@ -179,7 +179,7 @@ std::complex<T> ocean_wave_generator<T>::h_tilde(const vector2t<T>& K, int kx, i
 	std::complex<T> h0_tildeK = h0tilde[ky*(N+1)+kx];
 	std::complex<T> h0_tildemKconj = conj(h0tilde[(N-ky)*(N+1)+(N-kx)]);
 	// all frequencies should be multiples of one base frequency (see paper).
-	T wK = sqrt(physics::GRAVITY * K.length());
+	T wK = sqrt(GRAVITY * K.length());
 	T wK2 = floor(wK/w0)*w0;
 	T xp = wK2 * time;
 	T cxp = cos(xp);

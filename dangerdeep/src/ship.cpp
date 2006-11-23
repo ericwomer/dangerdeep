@@ -63,7 +63,7 @@ void ship::fill_dist_angle_relation_map(const double initial_velocity)
 			for (double dt = 0; dt < 120.0; dt += 0.001) {
 				dist += vdist * dt;
 				z += vz * dt;
-				vz += 0 - physics::GRAVITY * dt;
+				vz += 0 - GRAVITY * dt;
 				if (z <= 0) break;
 			}
 			
@@ -80,7 +80,7 @@ void ship::fill_dist_angle_relation_map(const double initial_velocity)
 			for (double dt = 0; dt < 120.0; dt += 0.001) {
 				dist += vdist * dt;
 				z += vz * dt;
-				vz += 0 - physics::GRAVITY * dt;
+				vz += 0 - GRAVITY * dt;
 				if (z <= 0) break;
 			}
 			

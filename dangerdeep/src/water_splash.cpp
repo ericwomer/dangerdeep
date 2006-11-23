@@ -85,7 +85,7 @@ double water_splash::compute_height(double t) const
 		return riseheight * (1.0 - q*q);
 	} else {
 		double q = t - risetime;
-		return riseheight - physics::GRAVITY * 0.5 * q*q;
+		return riseheight - GRAVITY * 0.5 * q*q;
 	}
 }
 
@@ -95,7 +95,7 @@ water_splash::water_splash(game& gm_, const vector3& pos, double risetime_, doub
 	: sea_object(gm_, "gun_shell.3ds" /* hack */),
 	  risetime(risetime_), riseheight(riseheight_)
 {
-	double falltime = sqrt(riseheight * 2.0 / physics::GRAVITY);
+	double falltime = sqrt(riseheight * 2.0 / GRAVITY);
 	lifetime = risetime + falltime;
 	resttime = lifetime;
 	position = pos;
