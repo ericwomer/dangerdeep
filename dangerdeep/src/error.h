@@ -24,19 +24,19 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define ERROR_H
 
 #include <string>
-#include <exception>
+#include <stdexcept>
 
 ///\brief Base exception class for any runtime error.
-/// Always throw objects of this class or heirs of the class.
-class error : public std::exception
+class error : public std::runtime_error
 {
- private:
-	error();
-	std::string msg;
  public:
-	error(const std::string& s);
-	virtual ~error() throw() {}
-	const char* what() const throw() { return msg.c_str(); }
+#if defined(DEBUG) && defined(__GNUC__)
+	static std::string str(const char* file, unsigned line);
+#define ERROR(x) error(x + error::str(__FILE__, __LINE__))
+#else
+#define ERROR(x) error(x)
+#endif
+	error(const std::string& s) : std::runtime_error(std::string("DftD error: ") + s) {}
 };
 
 #endif

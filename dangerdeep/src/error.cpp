@@ -21,20 +21,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
 #include "error.h"
+#include <sstream>
 
-#if 1
-error::error(const std::string& s)
-	: msg(s)
+#if defined(DEBUG) && defined(__GNUC__)
+
+std::string error::str(const char* file, unsigned line)
 {
-}
-
-#else
-
-// debugging constructor...
-// fixme: add stack trace printing here
-error::error(const std::string& s)
-	: msg(s)
-{
-	printf("exception: %s\n", msg.c_str()); char c = *(char*)0; printf("%c\n",c);
+	std::ostringstream oss;
+	oss << ", in file: " << file << ", in line: " << line;
+	return oss.str();
 }
 #endif
