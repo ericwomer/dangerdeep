@@ -96,6 +96,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Propagation: loss off 100dB on 10000m, or factor 10^-10
 */
 
+const double noise::dB_base = 1.25892541179;
+const double noise::cavitation_noise = 2;
+
 const double noise::frequency_band_lower_limit[NR_OF_FREQUENCY_BANDS] = { 20, 1000, 3000, 6000 };
 const double noise::frequency_band_upper_limit[NR_OF_FREQUENCY_BANDS] = { 1000, 3000, 6000, 7000 };
 const double noise::background_noise[NR_OF_FREQUENCY_BANDS] = { 8, 10, 5, 2 };

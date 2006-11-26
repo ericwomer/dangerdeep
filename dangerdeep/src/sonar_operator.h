@@ -55,9 +55,9 @@ class sonar_operator
 	std::map<double, contact> contacts;
 	bool active;	// disabled, when user does the work
 
-	static const double turn_speed_fast = 6.0;	// degrees per second.
-	static const double turn_speed_slow = 2.0;	// degrees per second.
-	static const double simulation_step = 0.1;	// in seconds
+	static const double turn_speed_fast; //= 6.0;	// degrees per second.
+	static const double turn_speed_slow; //= 2.0;	// degrees per second.
+	static const double simulation_step; //= 0.1;	// in seconds
 
 	double last_simulation_step_time;
 

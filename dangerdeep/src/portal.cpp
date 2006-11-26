@@ -46,6 +46,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "frustum.h"
 #include "mymain.cpp"
 
+#include <time.h>
+
 class system* mysys;
 int res_x, res_y;
 

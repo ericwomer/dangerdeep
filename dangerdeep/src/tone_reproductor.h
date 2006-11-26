@@ -48,6 +48,9 @@
 #ifndef _TONE_REPRODUCTOR_H_
 #define _TONE_REPRODUCTOR_H_
 
+#ifdef WIN32
+#define _USE_MATH_DEFINES
+#endif
 #include <math.h>
 
 class tone_reproductor

@@ -46,7 +46,7 @@
 #endif
 
 #if !defined(GLAPI)
-   #if defined(_WIN32)
+   #if defined(_WIN32) && !defined(_MSC_VER)
       #define GLAPI extern _declspec(dllimport)
    #else
       #define GLAPI extern

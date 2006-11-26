@@ -26,6 +26,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using std::pair;
 
+const double sonar_operator::turn_speed_fast = 6.0;	// degrees per second.
+const double sonar_operator::turn_speed_slow = 2.0;	// degrees per second.
+const double sonar_operator::simulation_step = 0.1;	// in seconds
+
 sonar_operator::sonar_operator()
 	: state(initial),
 	  current_signal_strength(-1),

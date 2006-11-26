@@ -21,7 +21,7 @@
 #include "tone_reproductor.h"
 
 #ifndef pow10
-#define pow10(x) pow(10.0, x)
+#define pow10(x) pow(10.0, double(x))
 #endif
 
 // Set some values to prevent bugs in case of bad use

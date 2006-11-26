@@ -24,6 +24,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "tinyxml/tinyxml.h"
 #include <stdio.h>
 
+#ifdef WIN32
+#ifdef _MSC_VER
+#define snprintf sprintf_s
+#endif
+#endif
+
 using std::string;
 
 xml_elem xml_elem::child(const std::string& name) const

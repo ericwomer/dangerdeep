@@ -58,7 +58,7 @@ struct noise
 	// base^dB_val = real noise, dB = 10 * log10(real) -> dB/10 = log10(real)
 	// -> 10^(dB/10) = real -> (10^0.1)^dB = real,  10^0.1 = dB_base
 	// so dB_base^dB = real
-	static const double dB_base = 1.25892541179;
+	static const double dB_base; // = 1.25892541179;
 
 	// limits of frequency bands in Hertz
 	static const double frequency_band_lower_limit[NR_OF_FREQUENCY_BANDS];
@@ -79,8 +79,8 @@ struct noise
 	static const double typical_frequency[NR_OF_FREQUENCY_BANDS];
 
 	// additional extra noise constant for cavitation, when running at full/flank speed, in dB
-	static const double cavitation_noise = 2;
-
+	static const double cavitation_noise; // = 2;
+	
 	static double dB_to_absolute(double dB) {
 		return (dB < 0) ? 0.0 : pow(dB_base, dB);
 	}
@@ -161,6 +161,7 @@ struct noise
 	///\brief compute shipclass of signal (can be none), values must be in dB!
 	shipclass determine_shipclass() const;
 };
+
 
 
 

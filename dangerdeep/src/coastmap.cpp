@@ -40,7 +40,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 using namespace std;
 
-
+#ifdef WIN32
+#ifndef round
+inline double round(double d) { return floor(d + 0.5); }
+#endif
+#endif
 
 const unsigned BSPLINE_SMOOTH_FACTOR = 16;//3;//16;	// should be 3...16
 const double BSPLINE_DETAIL = 8.0;//1.0;//4.0;            // should be 1.0...x
@@ -930,7 +934,7 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i>& cl, bool clcycli
 	scl.push_back_point(ps0);
 	scl.beginpos = borderpos(ps0);
 
-//	cout << "es fängt an bei: " << scl.beginpos << "\n";
+//	cout << "es fÃ¤ngt an bei: " << scl.beginpos << "\n";
 
 	// fixme: if there is a segcl that has several points on the same border in the same segment
 	// it is divided in many scl's, each containing just one line (two points).
