@@ -26,6 +26,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 #include <stdexcept>
 
+// 2006-11-30 doc1972 On WIN32 we need to undef ERROR because its already defined as
+// #define ERROR 0 in wingdi.h
+#ifdef WIN32
+#undef ERROR
+#endif /* WIN32 */
+
 ///\brief Base exception class for any runtime error.
 class error : public std::runtime_error
 {
