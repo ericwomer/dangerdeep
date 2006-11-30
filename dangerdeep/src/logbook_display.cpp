@@ -82,14 +82,7 @@ void logbook_display::previous_page(unsigned nrentries)
 
 logbook_display::logbook_display(class user_interface& ui_) : user_display(ui_), actual_entry(0)
 {
-	spiral = new texture(get_texture_dir() + "logbook_spiral.png");
-}
-
-
-
-logbook_display::~logbook_display()
-{
-	delete spiral;
+	spiral.reset(new texture(get_texture_dir() + "logbook_spiral.png"));
 }
 
 

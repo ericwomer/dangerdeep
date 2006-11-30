@@ -862,12 +862,12 @@ GLuint texture::create_shader(GLenum type, const string& filename, const list<st
 
 	// build shader node tree by parsing.
 	unsigned current_line = 0;
-	shader_node_program* snp = new shader_node_program(lines, current_line);
+	std::auto_ptr<shader_node_program> snp(new shader_node_program(lines, current_line));
 
 	// compile to destination program
 	vector<string> finalprogram;
 	snp->compile(finalprogram, defines, false);
-	delete snp;
+	snp.reset();
 
 	// debug output
 //	for (unsigned i = 0; i < finalprogram.size(); ++i)
@@ -983,15 +983,15 @@ texture::shader_node_program::shader_node_program(const vector<string>& lines, u
 	}
 }
 
-texture::shader_node_ifelse::shader_node_ifelse(const vector<string>& lines, unsigned& current_line) : ifnode(0), elsenode(0)
+texture::shader_node_ifelse::shader_node_ifelse(const vector<string>& lines, unsigned& current_line)
 {
 	define = lines[current_line].substr(7);
 	++current_line;	// skip #ifdef
-	ifnode = new shader_node_program(lines, current_line, true, true);
+	ifnode.reset(new shader_node_program(lines, current_line, true, true));
 	state st = get_state(lines, current_line);
 	if (st == shader_node::elsedef) {
 		++current_line; // skip #else
-		elsenode = new shader_node_program(lines, current_line, false, true);
+		elsenode.reset(new shader_node_program(lines, current_line, false, true));
 		st = get_state(lines, current_line);
 	}
 	if (st != shader_node::endifdef)
@@ -1011,7 +1011,7 @@ void texture::shader_node_ifelse::compile(vector<string>& dstprg, const list<str
 		}
 	}
 	ifnode->compile(dstprg, defines, disabled || !doif);
-	if (elsenode) {
+	if (elsenode.get()) {
 		dstprg.push_back(string("#else"));
 		elsenode->compile(dstprg, defines, disabled || doif);
 	}

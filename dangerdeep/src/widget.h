@@ -101,16 +101,16 @@ public:
 	};
 
 protected:
-	static class widget::theme* globaltheme;
+	static std::auto_ptr<widget::theme> globaltheme;
 	static widget* focussed;	// which widget has the focus
 	static widget* mouseover;	// which widget the mouse is over
 	
 	static int oldmx, oldmy, oldmb;	// used for input calculation
 
 public:	
-	static void set_theme(theme* t);
-	static theme* get_theme() { return globaltheme; }
-	static theme* replace_theme(theme* t);
+	static void set_theme(std::auto_ptr<theme> t) { globaltheme = t; }
+	static const theme* get_theme() { return globaltheme.get(); }
+	static std::auto_ptr<theme> replace_theme(std::auto_ptr<theme> t);
 	widget(int x, int y, int w, int h, const string& text_, widget* parent_ = 0, const image* backgr = 0);
 	virtual ~widget();
 	virtual void add_child(widget* w);

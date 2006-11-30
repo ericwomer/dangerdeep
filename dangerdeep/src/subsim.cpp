@@ -63,7 +63,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "mymain.cpp"
 
-class system* mysys;
+using std::auto_ptr;
+
+
 int res_x, res_y;
 
 highscorelist hsl_mission, hsl_career;
@@ -143,7 +145,6 @@ public:
 	string get_gamefilename_to_load() const { return gamefilename_to_load; }
 	widget_edit* get_gamename() const { return gamename; }
 	loadsavequit_dialogue(const game* g);	// give 0 to disable saving
-	~loadsavequit_dialogue() {};
 };
 
 loadsavequit_dialogue::loadsavequit_dialogue(const game *g) : widget(0, 0, 1024, 768, texts::get(177), 0, depthchargeimg), mygame(g), gamesaved(false)
@@ -181,9 +182,8 @@ void loadsavequit_dialogue::load()
 {
 	gamefilename_to_load = get_savegame_name_for(gamename->get_text(), savegames);
 	//fixme: ask: replace this game?
-	widget* w = create_dialogue_ok(texts::get(185), texts::get(180) + gamename->get_text() + texts::get(181));
+	auto_ptr<widget> w(create_dialogue_ok(texts::get(185), texts::get(180) + gamename->get_text() + texts::get(181)));
 	w->run();
-	delete w;
 	close(2);	// load and close
 }
 
@@ -193,24 +193,23 @@ void loadsavequit_dialogue::save()
 	FILE* f = fopen(fn.c_str(), "rb");
 	if (f) {
 		fclose(f);
-		widget* w = create_dialogue_ok_cancel(texts::get(182), texts::get(183) + gamename->get_text() + texts::get(184));
+		auto_ptr<widget> w(create_dialogue_ok_cancel(texts::get(182), texts::get(183) + gamename->get_text() + texts::get(184)));
 		int ok = w->run();
-		delete w;
+		w.reset();
 		if (!ok) return;
 	}
 	gamesaved = true;
 	mygame->save(fn, gamename->get_text());
-	widget* w = create_dialogue_ok(texts::get(186), texts::get(180) + gamename->get_text() + texts::get(187));
+	auto_ptr<widget> w(create_dialogue_ok(texts::get(186), texts::get(180) + gamename->get_text() + texts::get(187)));
 	w->run();
-	delete w;
 	update_list();
 }
 
 void loadsavequit_dialogue::erase()
 {
-	widget* w = create_dialogue_ok_cancel(texts::get(182), texts::get(188) + gamename->get_text() + texts::get(189));
+	auto_ptr<widget> w(create_dialogue_ok_cancel(texts::get(182), texts::get(188) + gamename->get_text() + texts::get(189)));
 	int ok = w->run();
-	delete w;
+	w.reset();
 	if (ok) {
 		string fn = get_savegame_name_for(gamename->get_text(), savegames);
 		remove(fn.c_str());
@@ -225,7 +224,7 @@ void loadsavequit_dialogue::erase()
 void loadsavequit_dialogue::quit()
 {
 	if (!gamesaved) {
-		widget* w = create_dialogue_ok_cancel(texts::get(182), texts::get(190));
+		auto_ptr<widget> w(create_dialogue_ok_cancel(texts::get(182), texts::get(190)));
 		int q = w->run();
 		if (q) close(1);
 	} else {
@@ -291,10 +290,10 @@ void show_halloffame_career() { show_halloffame(hsl_career); }
 //
 // check if a game is good enough for the high score list
 //
-void check_for_highscore(const game* gm)
+void check_for_highscore(const game& gm)
 {
 	unsigned totaltons = 0;
-	const list<game::sink_record>& sunken_ships = gm->get_sunken_ships();
+	const list<game::sink_record>& sunken_ships = gm.get_sunken_ships();
 	for (list<game::sink_record>::const_iterator it = sunken_ships.begin(); it != sunken_ships.end(); ++it) {
 		totaltons += it->tons;
 	}
@@ -328,7 +327,7 @@ void check_for_highscore(const game* gm)
 //
 // show results after a game ended
 //
-void show_results_for_game(const game* gm)
+void show_results_for_game(const game& gm)
 {
 	widget w(0, 0, 1024, 768, texts::get(124), 0, sunkendestroyerimg);
 	widget_list* wl = new widget_list(64, 64, 1024-64-64, 768-64-64);
@@ -336,7 +335,7 @@ void show_results_for_game(const game* gm)
 	w.add_child(wl);
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 	unsigned totaltons = 0;
-	const list<game::sink_record>& sunken_ships = gm->get_sunken_ships();
+	const list<game::sink_record>& sunken_ships = gm.get_sunken_ships();
 	for (list<game::sink_record>::const_iterator it = sunken_ships.begin(); it != sunken_ships.end(); ++it) {
 		ostringstream oss;
 		oss << texts::numeric_from_date(it->dat) << "\t"
@@ -433,21 +432,20 @@ void show_credits()
 //
 // start and run a game, handle load/save (game menu), show results after game's end, delete game
 //
-void run_game(game* gm)
+void run_game(auto_ptr<game> gm)
 {
-	widget::theme* gametheme =
-		new widget::theme("widgetelements_game.png", "widgeticons_game.png",
-		font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64));
+	auto_ptr<widget::theme> gametheme(new widget::theme("widgetelements_game.png", "widgeticons_game.png",
+								 font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64)));
 	reset_loading_screen();
 	// embrace user interface generation with right theme set!
-	widget::theme* tmp = widget::replace_theme(gametheme);
-	user_interface* ui = user_interface::create(*gm);
-	widget::replace_theme(tmp);
+	auto_ptr<widget::theme> tmp = widget::replace_theme(gametheme);
+	auto_ptr<user_interface> ui(user_interface::create(*gm));
+	gametheme = widget::replace_theme(tmp);
 	while (true) {
-		widget::theme* tmp = widget::replace_theme(gametheme);
-		gm->set_user_interface(ui);
+		tmp = widget::replace_theme(gametheme);
+		gm->set_user_interface(ui.get());
 		game::run_state state = gm->exec();
-		widget::replace_theme(tmp);
+		gametheme = widget::replace_theme(tmp);
 
 		//if (state == 2) break;
 		//SDL_ShowCursor(SDL_ENABLE);
@@ -473,7 +471,7 @@ void run_game(game* gm)
 				break;
 		} else {
 			mmusic->play_track(1, 500);
-			loadsavequit_dialogue dlg(gm);
+			loadsavequit_dialogue dlg(gm.get());
 			int q = dlg.run(0, false);
 			// replace game and ui if new game was loaded
 			if (q == 2) {
@@ -482,13 +480,13 @@ void run_game(game* gm)
 				// this safes time to recompute map/water/sky etc.
 				// as long as class game holds a pointer to ui this is more difficult or
 				// won't work.
-				delete gm;
-				delete ui;
-				gm = new game(dlg.get_gamefilename_to_load());
+				gm.reset();
+				ui.reset();
+				gm.reset(new game(dlg.get_gamefilename_to_load()));
 				// embrace user interface generation with right theme set!
-				widget::theme* tmp = widget::replace_theme(gametheme);
-				ui = user_interface::create(*gm);
-				widget::replace_theme(tmp);
+				tmp = widget::replace_theme(gametheme);
+				ui.reset(user_interface::create(*gm));
+				gametheme = widget::replace_theme(tmp);
 			}
 			//replace ui after loading!!!!
 			if (q == 1){
@@ -501,12 +499,8 @@ void run_game(game* gm)
 		}
 		//SDL_ShowCursor(SDL_DISABLE);
 	}
-	delete gametheme;
-	show_results_for_game(gm);
-	check_for_highscore(gm);
-	gm->set_user_interface(0);
-	delete ui;
-	delete gm;
+	show_results_for_game(*gm);
+	check_for_highscore(*gm);
 }
 
 
@@ -514,26 +508,25 @@ void run_game(game* gm)
 //
 // start and run a game editor, handle load/save (game menu), delete game
 //
-void run_game_editor(game* gm)
+void run_game_editor(auto_ptr<game> gm)
 {
-	widget::theme* gametheme =
-		new widget::theme("widgetelements_game.png", "widgeticons_game.png",
-		font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64));
+	auto_ptr<widget::theme> gametheme(new widget::theme("widgetelements_game.png", "widgeticons_game.png",
+							    font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64)));
 	reset_loading_screen();
 	// embrace user interface generation with right theme set!
-	widget::theme* tmp = widget::replace_theme(gametheme);
-	user_interface* ui = user_interface::create(*gm);
-	widget::replace_theme(tmp);
+	auto_ptr<widget::theme> tmp = widget::replace_theme(gametheme);
+	auto_ptr<user_interface> ui(user_interface::create(*gm));
+	gametheme = widget::replace_theme(tmp);
 	// game is initially running, so pause it.
 	ui->toggle_pause();
 	while (true) {
-		widget::theme* tmp = widget::replace_theme(gametheme);
-		gm->set_user_interface(ui);
+		tmp = widget::replace_theme(gametheme);
+		gm->set_user_interface(ui.get());
 		game::run_state state = gm->exec();
-		widget::replace_theme(tmp);
+		gametheme = widget::replace_theme(tmp);
 
 		mmusic->play_track(1, 500);
-		loadsavequit_dialogue dlg(gm);
+		loadsavequit_dialogue dlg(gm.get());
 		int q = dlg.run(0, false);
 		// replace game and ui if new game was loaded
 		if (q == 2) {
@@ -542,13 +535,13 @@ void run_game_editor(game* gm)
 			// this safes time to recompute map/water/sky etc.
 			// as long as class game holds a pointer to ui this is more difficult or
 			// won't work.
-			delete gm;
-			delete ui;
-			gm = new game_editor(dlg.get_gamefilename_to_load());
+			gm.reset();
+			ui.reset();
+			gm.reset(new game_editor(dlg.get_gamefilename_to_load()));
 			// embrace user interface generation with right theme set!
-			widget::theme* tmp = widget::replace_theme(gametheme);
-			ui = user_interface::create(*gm);
-			widget::replace_theme(tmp);
+			tmp = widget::replace_theme(gametheme);
+			ui.reset(user_interface::create(*gm));
+			gametheme = widget::replace_theme(tmp);
 		}
 		//replace ui after loading!!!!
 		if (q == 1){
@@ -559,10 +552,6 @@ void run_game_editor(game* gm)
 			//mmusic->_fade_out(1000);
 		}
 	}
-	delete gametheme;
-	gm->set_user_interface(0);
-	delete ui;
-	delete gm;
 }
 
 
@@ -624,11 +613,11 @@ void create_convoy_mission()
 			case 1: st = "submarine_IXc40"; break;
 			case 2: st = "submarine_XXI"; break;
 		}
-		run_game(new game(st,
-			wcvsize->get_selected(),
-			wescortsize->get_selected(),
-			wtimeofday->get_selected(),
-			wtimeperiod->get_selected()));
+		run_game(auto_ptr<game>(new game(st,
+						 wcvsize->get_selected(),
+						 wescortsize->get_selected(),
+						 wtimeofday->get_selected(),
+						 wtimeperiod->get_selected())));
 	}
 }
 
@@ -719,13 +708,12 @@ void choose_historical_mission()
 	wm->adjust_buttons(944);
 	int result = w.run(0, false);
 	if (result == 2) {	// start game
-		game* gm = 0;
+		auto_ptr<game> gm;
 		try {
-			gm = new game(get_mission_dir() + missions[wmission->get_selected()]);
+			gm.reset(new game(get_mission_dir() + missions[wmission->get_selected()]));
 		}
 		catch (error& e) {
 			sys().add_console(string("error loading game: ") + e.what());
-			delete gm;
 			// fixme: show dialogue!
 			return;
 		}
@@ -743,7 +731,7 @@ void choose_saved_game()
 	int q = dlg.run(0, false);
 	if (q == 0) return;
 	if (q == 2) {
-		run_game(new game(dlg.get_gamefilename_to_load()));
+		run_game(auto_ptr<game>(new game(dlg.get_gamefilename_to_load())));
 	}
 }
 
@@ -861,7 +849,7 @@ void create_network_game(Uint16 server_port)
 	
 	// create a game
 	unsigned nr_of_players = 2;	// fixme
-	game* gm = new game("submarine_VIIc", 1, 1, 1, 1);		// fixme
+	auto_ptr<game> gm(new game("submarine_VIIc", 1, 1, 1, 1));		// fixme
 	
 	// wait for clients to join, reply to "ask" messages
 	vector<IPaddress> clients;
@@ -869,7 +857,6 @@ void create_network_game(Uint16 server_port)
 	bool ok = server_wait_for_clients(serv, server_port, clients, nr_of_players);
 	
 	if (!ok) {
-		delete gm;
 		return;
 	}
 
@@ -943,15 +930,14 @@ void join_network_game(const string& servername, Uint16 server_port, network_con
 	}
 
 	istringstream iss(gamestate);
-	game* gm = 0;
+	auto_ptr<game> gm;
 	try {
 		//fixme
-//		gm = new game(iss);
+//		gm.reset(new game(iss));
 	}
 	catch (error& e) {
 		sys().add_console(string("error loading game: ") + e.what());
 		// fixme: show dialogue!
-		delete gm;
 		return;
 	}
 
@@ -959,8 +945,6 @@ void join_network_game(const string& servername, Uint16 server_port, network_con
 
 	if (ok)
 		run_game(gm);
-	else
-		delete gm;
 }
 
 void play_network_game()
@@ -1078,7 +1062,7 @@ void menu_mission_editor()
 			case 2: st = "submarine_XXI"; break;
 		}
 */
-		run_game_editor(new game_editor(/*st*/));
+		run_game_editor(auto_ptr<game>(new game_editor(/*st*/)));
 	}
 }
 
@@ -1579,7 +1563,7 @@ int mymain(list<string>& args)
 	// with black borders at top/bottom (height 2*32pixels)
 	res_y = res_x*3/4;
 	// weather conditions and earth curvature allow 30km sight at maximum.
-	mysys = new class system(1.0, 30000.0+500.0, res_x, fullscreen);
+	auto_ptr<class system> mysys(new class system(1.0, 30000.0+500.0, res_x, fullscreen));
 	mysys->set_screenshot_directory(savegamedirectory);
 	mysys->set_res_2d(1024, 768);
 	mysys->set_max_fps(60);
@@ -1602,7 +1586,7 @@ int mymain(list<string>& args)
 	
 	reset_loading_screen();
 	// init the global_data object before calling init_global_data
-	std::auto_ptr<global_data> gbd(new global_data());
+	auto_ptr<global_data> gbd(new global_data());
 	init_global_data();
 
 	if( sound::use_sound )
@@ -1627,11 +1611,11 @@ int mymain(list<string>& args)
 	//mmusic->set_playback_mode(music::PBM_SHUFFLE_TRACK);
 	mmusic->play();
 	
-	widget::set_theme(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
-					    font_olympiaworn,
-					    color(182, 146, 137),
-					    color(240, 217, 127) /*color(222, 208, 195)*/,
-					    color(92, 72 ,68)));
+	widget::set_theme(auto_ptr<widget::theme>(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
+									 font_olympiaworn,
+									 color(182, 146, 137),
+									 color(240, 217, 127) /*color(222, 208, 195)*/,
+									 color(92, 72 ,68))));
 
 	mysys->draw_console_with(font_arial, panelbackground);
 
@@ -1674,18 +1658,17 @@ int mymain(list<string>& args)
 
 	// check if there was a mission given at the command line, or editor more etc.
 	if (runeditor) {
-		run_game_editor(new game_editor(/*st*/));
+		run_game_editor(auto_ptr<game>(new game_editor(/*st*/)));
 	} else if (cmdmissionfilename.length() > 0) {
 		// fixme: check here that the file exists or tinyxml faults with a embarassing error message
-		game* gm = 0;
+		auto_ptr<game> gm;
 		bool ok = true;
 		try {
-			gm = new game(get_mission_dir() + cmdmissionfilename);
+			gm.reset(new game(get_mission_dir() + cmdmissionfilename));
 		}
 		catch (error& e) {
 			sys().add_console(string("error loading mission: ")+ e.what());
 			// fixme: show dialogue!
-			delete gm;
 			ok = false;
 		}
 		if (ok)
@@ -1729,10 +1712,12 @@ int mymain(list<string>& args)
 	hsl_career.save(highscoredirectory + HSL_CAREER_NAME);
 	mycfg.save(configdirectory + "config");
 
+	data_file_handler::release_instance();
+	cfg::release_instance();
+	widget::set_theme(auto_ptr<widget::theme>(0));	// clear allocated theme
 	image::clear_cache();
 	deinit_global_data();
 	gbd.reset();
-	delete mysys;
 
 	return 0;
 }

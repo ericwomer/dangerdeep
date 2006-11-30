@@ -107,8 +107,7 @@ model_load_dialog::model_load_dialog() :
 
 
 
-void
-model_load_dialog::get_model_list(const list<string>& namelist)
+void model_load_dialog::get_model_list(const list<string>& namelist)
 {
 	for (list<string>::const_iterator it = namelist.begin(); it != namelist.end(); ++it) {
 		model_entry new_model = { *it, data_file().get_path(*it) };
@@ -118,8 +117,7 @@ model_load_dialog::get_model_list(const list<string>& namelist)
 
 
 
-void
-model_load_dialog::load_menu()
+void model_load_dialog::load_menu()
 {
         widget_menu *wm;
         widget_text *title;
@@ -127,7 +125,7 @@ model_load_dialog::load_menu()
         widget_list *models_list;
         
         widget w(0, 0, 1024, 768, "", 0, bg.get());
-        w.set_theme(theme.get());
+        w.set_theme(theme);
 
         title = new widget_text(10, 10, 800, 80, "Danger from the Deep Viewmodel OpenGL Frontend.\nCopyright (C) 2003-2006 Thorsten Jordan.");
         w.add_child(title);

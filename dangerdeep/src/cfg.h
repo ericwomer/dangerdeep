@@ -94,6 +94,9 @@ public:
 	key getkey(unsigned nr) const;
 	
 	void parse_value(const std::string& s);	// give elements of command line array to it!
+
+	// call only once, at deinitialization of main program
+	static void release_instance() { delete myinst; myinst = 0; }
 };
 
 #endif

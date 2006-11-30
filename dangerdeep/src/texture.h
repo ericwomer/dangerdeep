@@ -218,11 +218,10 @@ public:
 
 	struct shader_node_ifelse : public shader_node
 	{
-		shader_node_program* ifnode;
-		shader_node_program* elsenode;
+		std::auto_ptr<shader_node_program> ifnode;
+		std::auto_ptr<shader_node_program> elsenode;
 		std::string define;
 		shader_node_ifelse(const std::vector<std::string>& lines, unsigned& current_line);
-		~shader_node_ifelse() { delete ifnode; delete elsenode; }
 		void compile(std::vector<std::string>& dstprg, const std::list<std::string>& defines,
 			     bool disabled);
 	};

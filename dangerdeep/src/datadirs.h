@@ -66,6 +66,9 @@ class data_file_handler
 	const std::list<std::string>& get_ship_list() const { return ship_ids; }
 	const std::list<std::string>& get_submarine_list() const { return submarine_ids; }
 	const std::list<std::string>& get_torpedo_list() const { return torpedo_ids; }
+
+	// call only once, at deinitialization of main program
+	static void release_instance() { delete my_instance; my_instance = 0; }
 };
 
 inline const data_file_handler& data_file() { return data_file_handler::instance(); }

@@ -40,7 +40,7 @@ using std::auto_ptr;
 using std::ostringstream;
 using std::cout;
 
-widget::theme* widget::globaltheme = 0;
+std::auto_ptr<widget::theme> widget::globaltheme;
 widget* widget::focussed = 0;
 widget* widget::mouseover = 0;
 int widget::oldmx = 0;
@@ -84,17 +84,11 @@ widget::theme::theme(const char* elements_filename, const char* icons_filename, 
 	SDL_FreeSurface(tmp);
 }
 
-void widget::set_theme(widget::theme* t)
+std::auto_ptr<widget::theme> widget::replace_theme(std::auto_ptr<widget::theme> t)
 {
-	delete globaltheme;
+	std::auto_ptr<theme> r = globaltheme;
 	globaltheme = t;
-}
-
-widget::theme* widget::replace_theme(widget::theme* t)
-{
-	widget::theme* tmp = globaltheme;
-	globaltheme = t;
-	return tmp;
+	return r;
 }
 
 widget::widget(int x, int y, int w, int h, const string& text_, widget* parent_, const image* backgr)
