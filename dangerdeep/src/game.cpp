@@ -1272,7 +1272,8 @@ bool game::gs_impact(const gun_shell *gs)	// fixme: vector2 would be enough
 		// the shell is so fast that it can be collisionfree with *it
 		// delta_time ago and now, but hit *it in between
 		if (is_collision(ships[k], pos.xy())) {
-			if (ships[k]->damage(ships[k]->get_pos() /*fixme*/, gs->damage()))
+			// 2006-11-30 doc1972 ships[]->damage() needs an unsigned int
+			if (ships[k]->damage(ships[k]->get_pos() /*fixme*/, (unsigned int)gs->damage()))
 			{
 				ship_sunk(ships[k]);
 			} else {
@@ -1291,7 +1292,8 @@ bool game::gs_impact(const gun_shell *gs)	// fixme: vector2 would be enough
 //printf("gun %f %f %f\n",pos.x,pos.y,pos.z);
 		if (is_collision(submarines[k], pos.xy())) {
 //printf("sub damaged!!!\n");		
-			submarines[k]->damage(submarines[k]->get_pos() /*fixme*/, gs->damage());
+			// 2006-11-30 doc1972 submarines[]->damage() needs an unsigned int
+			submarines[k]->damage(submarines[k]->get_pos() /*fixme*/, (unsigned int)gs->damage());
 			
 			// play gun shell explosion sound effect
 			if (ui) 
