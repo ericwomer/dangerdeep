@@ -119,11 +119,11 @@ int main(int argc, char** argv)
 	// compute an interpolated version of the lower one
 	vector<float> heights3 = heights1;
 	int fac = resbig/ressml;
-	for (int y = 0; y < resbig; ++y) {
+	for (unsigned int y = 0; y < resbig; ++y) {
 		int yy = y / fac;
 		int y2 = (yy + 1) % ressml;
 		float yr = float(y - yy * fac) / fac;
-		for (int x = 0; x < resbig; ++x) {
+		for (unsigned int x = 0; x < resbig; ++x) {
 			int xx = x / fac;
 			int x2 = (xx + 1) % ressml;
 			float xr = float(x - xx * fac) / fac;
