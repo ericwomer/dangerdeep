@@ -59,11 +59,11 @@ sub_kdb_display::sub_kdb_display(user_interface& ui_)
 void sub_kdb_display::process_input(class game& gm, const SDL_Event& event)
 {
 	// 2006-11-30 doc1972 we don´t need sub
-	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
+	//submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 	bool is_day = gm.is_day_mode();
 	int mx, my, mb;
 	// 2006-11-30 doc1972 we don´t use si here
-	submarine_interface& si = dynamic_cast<submarine_interface&>(ui);
+	//submarine_interface& si = dynamic_cast<submarine_interface&>(ui);
 
 	const scheme& s = (is_day) ? daylight : redlight;
 
