@@ -75,7 +75,8 @@ void gun_shell::simulate(double delta_time)
 
 	// very crude, fixme. compute intersection of line oldpos->position with objects.
 	if (position.z <= 0) {
-		bool impact = gm.gs_impact(this);
+		// 2006-11-30 we need to check impact yes or no
+		/*bool impact = */gm.gs_impact(this);
 		kill();
 	}
 }
