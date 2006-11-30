@@ -754,7 +754,8 @@ void widget_scrollbar::compute_scrollbarpixelpos()
 
 void widget_scrollbar::draw_area(int x, int y, int w, int h, bool out) const
 {
-	int fw = globaltheme->frame_size();
+// 2006-11-30 doc1972 fw not used.
+//	int fw = globaltheme->frame_size();
 	/* this is:  draw_rect_scrollbar(x+fw, y+fw, w-2*fw, h-2*fw, out); */
 	glColor4f(1,1,1,1);
 	if (out)
