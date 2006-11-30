@@ -132,7 +132,8 @@ void freeview_display::display(class game& gm) const
 
 void freeview_display::process_input(class game& gm, const SDL_Event& event)
 {
-	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
+	// 2006-11-30 doc1972 We do not use sub here.
+	//submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 
 	glPushMatrix();
 	glLoadIdentity();
