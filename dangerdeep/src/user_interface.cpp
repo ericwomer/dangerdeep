@@ -435,8 +435,9 @@ void user_interface::process_input(const SDL_Event& event)
 					p.y += event.motion.yrel;
 					if (p.x < 0) p.x = 0;
 					if (p.y < 0) p.y = 0;
-					if (p.x + s.x > sys().get_res_x_2d()) p.x = sys().get_res_x_2d() - s.x;
-					if (p.y + s.y > sys().get_res_y_2d()) p.y = sys().get_res_y_2d() - s.y;
+					// 2006-11-30 doc1972 negative pos and size of a playlist makes no sence, so we cast
+					if ((unsigned int)(p.x + s.x) > sys().get_res_x_2d()) p.x = sys().get_res_x_2d() - s.x;
+					if ((unsigned int)(p.y + s.y) > sys().get_res_y_2d()) p.y = sys().get_res_y_2d() - s.y;
 					music_playlist->set_pos(p);
 				}
 			}
