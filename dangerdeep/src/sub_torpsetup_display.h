@@ -52,8 +52,9 @@ class sub_torpsetup_display : public user_display
 			     int mx, int my, int border = 32) const {
 			return (mx >= pos.x - border)
 				&& (my >= pos.y - border)
-				&& (mx < pos.x + tex->get_width() + border)
-				&& (my < pos.y + tex->get_height() + border);
+				// 2006-11-30 doc1972 only hight and width is unsigned, so we cast the result back to signed
+				&& (mx < (int)(pos.x + tex->get_width() + border))
+				&& (my < (int)(pos.y + tex->get_height() + border));
 		}
 		scheme() {}
 	protected:
