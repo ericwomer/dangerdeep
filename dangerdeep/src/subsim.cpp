@@ -522,7 +522,8 @@ void run_game_editor(auto_ptr<game> gm)
 	while (true) {
 		tmp = widget::replace_theme(gametheme);
 		gm->set_user_interface(ui.get());
-		game::run_state state = gm->exec();
+		// 2006-12-01 doc1972 we should do some checks of the state if game exits
+		/*game::run_state state =*/ gm->exec();
 		gametheme = widget::replace_theme(tmp);
 
 		mmusic->play_track(1, 500);
