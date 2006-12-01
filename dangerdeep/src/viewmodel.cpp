@@ -575,8 +575,9 @@ void view_model(const string& modelfilename, const string& datafilename)
 				vector2 d = (xf * b).xy();
 				char tmp[20];
 				sprintf(tmp, "%i", i);
-				font_arial->print(c.x, c.y, tmp);
-				font_arial->print(d.x, d.y, tmp);
+				// 2006-12-01 doc1972 print() needs int pixel coords, so we cast
+				font_arial->print((int)c.x, (int)c.y, tmp);
+				font_arial->print((int)d.x, (int)d.y, tmp);
 			}
 			glColor4f(0,1,0,1);
 			for (int i = 0; i <= 150; i += 5) {
@@ -585,8 +586,9 @@ void view_model(const string& modelfilename, const string& datafilename)
 				vector2 d = (xf * b).xy();
 				char tmp[20];
 				sprintf(tmp, "%i", i);
-				font_arial->print(c.x, c.y, tmp);
-				font_arial->print(d.x, d.y, tmp);
+				// 2006-12-01 doc1972 print() needs int pixel coords, so we cast
+				font_arial->print((int)c.x, (int)c.y, tmp);
+				font_arial->print((int)d.x, (int)d.y, tmp);
 			}
 			glColor4f(1,1,0,1);
 			for (int i = 0; i <= 30; i += 5) {
@@ -595,8 +597,9 @@ void view_model(const string& modelfilename, const string& datafilename)
 				vector2 d = (xf * b).xy();
 				char tmp[20];
 				sprintf(tmp, "%i", i);
-				font_arial->print(c.x, c.y, tmp);
-				font_arial->print(d.x, d.y, tmp);
+				// 2006-12-01 doc1972 print() needs int pixel coords, so we cast
+				font_arial->print((int)c.x, (int)c.y, tmp);
+				font_arial->print((int)d.x, (int)d.y, tmp);
 			}
 		}
 
