@@ -24,7 +24,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define TEXTURE_H
 
 #ifdef WIN32
+// 2006-12-01 doc1972 added check to prevent double definition. 
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif /* WIN32_LEAN_AND_MEAN */
 #include <windows.h>
 #endif
 
