@@ -1030,9 +1030,6 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 		// ui->add_message(TXT_Depthchargehit[language]);
 
 	} else if (sdlen <= damage_radius) {	// handle damages
-		// this is useless. strength must be calculated indivually for each part. fixme
-		double strength = (damage_radius - sdlen) / (damage_radius - deadly_radius);
-
 		// add damage
 		vector3f bb = mymodel->get_boundbox_size();
 	
@@ -1053,8 +1050,6 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 			vector3 relpos = part_center - dc.get_pos();
 			// depth differences change destructive power etc. see above
 			double sdlen = relpos.length();
-			
-//			double strength = (damage_radius - sdlen) / (damage_radius - deadly_radius);
 			double strength = exp((deadly_radius - sdlen) * expfac);
 			
 			if (strength > 0 && strength <= 1) {
