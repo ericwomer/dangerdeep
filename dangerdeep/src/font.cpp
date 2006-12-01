@@ -118,9 +118,8 @@ font::font(const string& basefilename, unsigned char_spacing)
 	}
 	
 	spacing = char_spacing;
-	unsigned codex = unsigned('x'), codeleftbr = unsigned('(');
+	unsigned codex = unsigned('x');
 	blank_width = (codex >= first_char && codex <= last_char) ? characters[codex-first_char].width : 8;
-	//height = (codeleftbr >= first_char && codeleftbr <= last_char) ? characters[codeleftbr-first_char].height : base_height*3/2;
 	height = base_height*3/2;
 	base_height = base_height*7/6;	// tiny trick to use the space a bit better.
 	
