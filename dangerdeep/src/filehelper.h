@@ -28,7 +28,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // directory reading/writing encapsulated for compatibility
 
 #ifdef WIN32
+// 2006-12-01 doc1972 added check to prevent double definition. 
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif /* WIN32_LEAN_AND_MEAN */
 #include <windows.h>
 struct directory {
 	HANDLE dir;
