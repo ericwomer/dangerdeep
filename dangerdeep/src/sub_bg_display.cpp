@@ -56,10 +56,8 @@ sub_bg_display::sub_bg_display(user_interface& ui_)
 
 void sub_bg_display::process_input(class game& gm, const SDL_Event& event)
 {
-	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 	bool is_day = gm.is_day_mode();
 	int mx, my, mb;
-	submarine_interface& si = dynamic_cast<submarine_interface&>(ui);
 
 	const scheme& s = (is_day) ? daylight : redlight;
 
@@ -107,8 +105,6 @@ void sub_bg_display::process_input(class game& gm, const SDL_Event& event)
 
 void sub_bg_display::display(class game& gm) const
 {
-	submarine* player = dynamic_cast<submarine*>(gm.get_player());
-
 	sys().prepare_2d_drawing();
 	glColor3f(1,1,1);
 
