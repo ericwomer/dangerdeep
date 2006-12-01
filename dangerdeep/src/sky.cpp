@@ -360,7 +360,6 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 
 	// the brighter the sun, the deeper is the sky color
 	float sky_alpha = (sundir.z < -0.25) ? 0.0f : ((sundir.z < 0.25) ? 2*(sundir.z+0.20) : 1.0f);
-	float moon_alpha = 0.5 + (0.5-sky_alpha/2);
 
 	// if stars are drawn after the sky, they can appear in front of the sun glow, which is wrong.
 	// sky should be blended into the stars, not vice versa, but then we would have to clear
@@ -573,7 +572,6 @@ void sky::rebuild_colors(const game& gm, const vector3& viewpos) const
 	moondir = gm.compute_moon_pos(viewpos).normal();
 	moon_azimuth = atan2(moondir.y, moondir.x);
 	moon_elevation = asin(moondir.z);
-//	moon_alpha = 0.5 + (0.5-sky_alpha/2);
 
 	//	sun_azimuth and sun_elevation are used only for sky color rendering
 	//	so they are refreshed every 0.5 deg of sun movement.
