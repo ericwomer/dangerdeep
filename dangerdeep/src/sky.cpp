@@ -358,9 +358,6 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 
-	// the brighter the sun, the deeper is the sky color
-	float sky_alpha = (sundir.z < -0.25) ? 0.0f : ((sundir.z < 0.25) ? 2*(sundir.z+0.20) : 1.0f);
-
 	// if stars are drawn after the sky, they can appear in front of the sun glow, which is wrong.
 	// sky should be blended into the stars, not vice versa, but then we would have to clear
 	// the back buffer, that takes 2 frames... DST_ALPHA could be used IF sky stores its alpha
