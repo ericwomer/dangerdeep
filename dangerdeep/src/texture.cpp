@@ -662,8 +662,9 @@ SDL_Surface* texture::read_from_file(const std::string& filename)
 			unsigned char* ptr = ((unsigned char*)(result->pixels));
 			unsigned char* offsetrgb = ((unsigned char*)(teximagergb->pixels));
 			unsigned char* offseta = ((unsigned char*)(teximagea->pixels));
-			for (unsigned y = 0; y < teximagergb->h; ++y) {
-				for (unsigned x = 0; x < teximagergb->w; ++x) {
+			// 2006-12-01 doc1972 images with negative width and height doesn´t exist, so we cast to unsigned
+			for (unsigned y = 0; y < (unsigned int)teximagergb->h; ++y) {
+				for (unsigned x = 0; x < (unsigned int)teximagergb->w; ++x) {
 					ptr[4*x  ] = offsetrgb[3*x  ];
 					ptr[4*x+1] = offsetrgb[3*x+1];
 					ptr[4*x+2] = offsetrgb[3*x+2];
