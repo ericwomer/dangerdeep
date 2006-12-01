@@ -587,7 +587,6 @@ void ship::simulate(double delta_time)
 			// passes over head_to, we have to brake.
 			double time_to_pass = (fabs(turn_velocity) < 0.01) ? 1e30 : angledist / fabs(turn_velocity);
 			double time_to_midships = fabs(rudder_pos) / max_rudder_turn_speed;
-			double time_to_rudder_opposite = (fabs(rudder_pos) + max_rudder_angle) / max_rudder_turn_speed;
 
 			//fixme: time_to_ms assumes when rudder is midships again that turn speed is then roughly zero.
 			//this is ok for ships/subs, but not for fast turning objects (torpedoes)
