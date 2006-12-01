@@ -147,8 +147,6 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 			for (unsigned i = 0; i <= sqrtnrships; ++i) {
 				if (shps >= nrships) break;
 				int dx = int(i)-sqrtnrships/2;
-				// 2006-11-30 doc1972 We do not use d so its commented out.
-				//float d = 4*float(dx*dx+dy*dy)/nrships;
 				//fixme!!! replace by parsing ship dir for available types or hardcode them!!!
 				//each ship in data/ships stores its type.
 				//but probability can not be stored...
