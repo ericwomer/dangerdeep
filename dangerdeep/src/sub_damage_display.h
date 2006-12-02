@@ -32,6 +32,8 @@ class sub_damage_display : public user_display
 {
 	texture repairlight, repairmedium, repairheavy, repaircritical, repairwrecked;
 	int mx, my;	// last mouse position, needed for popup display
+	std::auto_ptr<image> damage_screen_background;
+	std::auto_ptr<image> sub_damage_scheme_all;
 public:
 	sub_damage_display(class user_interface& ui_);
 	virtual ~sub_damage_display();

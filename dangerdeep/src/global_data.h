@@ -106,12 +106,6 @@ extern class texture *addleadangle, *metalbackgr,
 // fixme: store fonts in global_data class
 extern class font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn, *font_damagedtypewriter;
 
-// fixme: use image cache for that!
-extern class image *titlebackgrimg, *threesubsimg, *damage_screen_background,
-	*sub_damage_scheme_all, *killedimg, *scopewatcherimg,
-	*depthchargeimg, *sunkendestroyerimg, *kruppdocksimg, *rescuedestroyerimg, *sunderlandimg,
-	*swordfishimg, *hedgehogimg;
-
 void init_global_data();
 void deinit_global_data();
 

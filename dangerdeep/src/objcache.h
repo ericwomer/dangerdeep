@@ -55,7 +55,7 @@ public:
 	}
 
 	T* find(const std::string& objname) {
-		if (objname.length() == 0) return (T*)0;
+		if (objname.empty()) return (T*)0;
 		typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it == cache.end())
 			return 0;
@@ -63,7 +63,7 @@ public:
 	}
 
 	T* ref(const std::string& objname) {
-		if (objname.length() == 0) return (T*)0;
+		if (objname.empty()) return (T*)0;
 		typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it == cache.end()) {
 			it = cache.insert(std::make_pair(objname, std::make_pair(1, new T(basedir + objname)))).first;
@@ -74,7 +74,7 @@ public:
 	}
 
 	bool ref(const std::string& objname, T* obj) {
-		if (objname.length() == 0) return false;	// no valid name
+		if (objname.empty()) return false;	// no valid name
 		typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it == cache.end()) {
 			it = cache.insert(std::make_pair(objname, std::make_pair(1, obj))).first;
@@ -85,7 +85,7 @@ public:
 	}
 
 	void unref(const std::string& objname) {
-		if (objname.length() == 0) return;
+		if (objname.empty()) return;
 		typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it != cache.end()) {
 			if (it->second.first == 0) {

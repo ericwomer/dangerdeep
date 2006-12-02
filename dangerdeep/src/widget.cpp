@@ -49,6 +49,24 @@ int widget::oldmb = 0;
 
 list<widget*> widget::widgets;
 
+objcachet<image>* widget::myimagecache = 0;
+
+objcachet<class image>& widget::imagecache()
+{
+	if (myimagecache)
+		return *myimagecache;
+	throw error("image cache not set for widgets!");
+}
+
+void widget::set_image_cache(objcachet<class image>* imagecache)
+{
+	if (imagecache == 0)
+		throw error("trying to set empty image cache!");
+	if (myimagecache != 0)
+		throw error("image cache already set!");
+	myimagecache = imagecache;
+}
+
 int widget::theme::frame_size() const
 {
 	return frame[0]->get_height();
@@ -91,16 +109,17 @@ std::auto_ptr<widget::theme> widget::replace_theme(std::auto_ptr<widget::theme> 
 	return r;
 }
 
-widget::widget(int x, int y, int w, int h, const string& text_, widget* parent_, const image* backgr)
-	: pos(x, y), size(w, h), text(text_), parent(parent_), background(backgr),
+widget::widget(int x, int y, int w, int h, const string& text_, widget* parent_, const std::string& backgrimg)
+	: pos(x, y), size(w, h), text(text_), parent(parent_), background(imagecache().ref(backgrimg)),
 	  background_tex(0), enabled(true), retval(-1), closeme(false)
 {
+	// note: when backgrimg is empty, the cache automatically returns a NULL pointer.
 }
 
 widget::~widget()
 {
-// 	if (backgr)
-// 		imagecache.unref(backgr);
+ 	if (background)
+ 		imagecache().unref(background);
 	for (list<widget*>::iterator it = children.begin(); it != children.end(); ++it)
 		delete *it;
 	if (this == focussed) focussed = parent;

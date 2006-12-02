@@ -87,11 +87,6 @@ texture *addleadangle, *torpleft, *metalbackgr,
 	
 font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn, *font_damagedtypewriter;
 
-image *titlebackgrimg, *threesubsimg, *damage_screen_background,
-	*sub_damage_scheme_all, *killedimg, *scopewatcherimg,
-	*depthchargeimg, *sunkendestroyerimg, *kruppdocksimg, *rescuedestroyerimg, *sunderlandimg,
-	*swordfishimg, *hedgehogimg;
-
 bool loading_screen_usable = false;
 
 // later: remove that crap when tinyxml is not used directly any longer
@@ -156,26 +151,6 @@ void init_global_data()
 	soundcache().ref(se_sub_screws_fast);
 	soundcache().ref(se_sub_screws_very_fast);	
 	add_loading_screen("sounds loaded");
-
-	// later: load only when needed, wasts memory and time
-	titlebackgrimg = new image(get_image_dir() + "titlebackgr.jpg");
-
-	threesubsimg = new image(get_image_dir() + "threesubs.jpg");
-
-	damage_screen_background = new image(get_image_dir() + "damage_screen_backg.jpg");
-
-	sub_damage_scheme_all = new image(get_image_dir() + "sub_damage_scheme_all.png");
-
-	killedimg = new image(get_image_dir() + "killed.jpg");
-	scopewatcherimg = new image(get_image_dir() + "scopewatcher.jpg");
-	depthchargeimg = new image(get_image_dir() + "depthcharge.jpg");
-	sunkendestroyerimg = new image(get_image_dir() + "sunken_destroyer.jpg");
-	kruppdocksimg = new image(get_image_dir() + "krupp_docks.jpg");
-	rescuedestroyerimg = new image(get_image_dir() + "rescue_destroyer.jpg");
-	sunderlandimg = new image(get_image_dir() + "sunderland.jpg");
-	swordfishimg = new image(get_image_dir() + "swordfish.jpg");
-	hedgehogimg = new image(get_image_dir() + "hedgehog.jpg");
-	add_loading_screen("background images loaded");
 }
 
 void deinit_global_data()
@@ -197,21 +172,6 @@ void deinit_global_data()
 	delete terraintex;
 	delete cloudsbackgr;
 	delete atlanticmap;
-
-	delete titlebackgrimg;
-	delete threesubsimg;
-	delete damage_screen_background;
-	delete sub_damage_scheme_all;
-	delete killedimg;
-	delete scopewatcherimg;
-	delete depthchargeimg;
-	delete sunkendestroyerimg;
-	delete kruppdocksimg;
-	delete rescuedestroyerimg;
-	delete sunderlandimg;
-	delete swordfishimg;
-	delete hedgehogimg;
-	delete panelbackground;
 }
 
 // display loading progress

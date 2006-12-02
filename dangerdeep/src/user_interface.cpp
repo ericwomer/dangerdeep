@@ -102,7 +102,7 @@ user_interface::user_interface(game& gm) :
 	if (water_res_y < 16) water_res_y = 16;
 	if (water_res_y > 1024) water_res_y = 1024;
 	mywater.reset(new class water(water_res_x, water_res_y, 0.0));
-	panel.reset(new widget(0, 768-32, 1024, 32, "", 0, 0));
+	panel.reset(new widget(0, 768-32, 1024, 32, "", 0));
 	panel->set_background(panelbackground);
 	// ca. 1024-2*8 for 6 texts => 168 pix. for each text
 	int paneltextnrs[6] = { 1, 4, 5, 2, 98, 61 };
@@ -117,11 +117,11 @@ user_interface::user_interface(game& gm) :
 	}
 
 	// create screen selector widget
-	screen_selector.reset(new widget(0, 0, 256, 32, "", 0, 0));
+	screen_selector.reset(new widget(0, 0, 256, 32, "", 0));
 	screen_selector->set_background(panelbackground);
 
 	// create playlist widget
-	music_playlist.reset(new widget(0, 0, 384, 512, texts::get(262), 0, 0));
+	music_playlist.reset(new widget(0, 0, 384, 512, texts::get(262), 0));
 	music_playlist->set_background(panelbackground);
 	struct musiclist : public widget_list
 	{
@@ -158,7 +158,7 @@ user_interface::user_interface(game& gm) :
 	playlist->active = true;
 
 	// create main menu widget
-	main_menu.reset(new widget(0, 0, 256, 128, texts::get(104), 0, 0));
+	main_menu.reset(new widget(0, 0, 256, 128, texts::get(104), 0));
 	main_menu->set_background(panelbackground);
 	typedef widget_caller_button<user_interface, void (user_interface::*)()> wcbui;
 	main_menu->add_child_near_last_child(new wcbui(this, &user_interface::show_screen_selector, 0, 0, 256, 32, texts::get(266)));

@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "font.h"
 #include "model.h"
 #include "vector2.h"
+#include "objcache.h"
 
 // fixme: add image-widget
 
@@ -63,7 +64,7 @@ protected:
 	vector2i pos, size;
 	string text;
 	widget* parent;
-	const image* background; // if this is != 0, the image is rendered in the background, centered
+	image* background; // if this is != 0, the image is rendered in the background, centered
 	const texture* background_tex; // drawn as tiles if != 0 and no image defined
 	bool enabled;
 	list<widget*> children;
@@ -79,6 +80,9 @@ protected:
 	static void draw_line(int x1, int y1, int x2, int y2);
 	virtual void draw_area(int x, int y, int w, int h, bool out) const;
 	virtual void draw_area_col(int x, int y, int w, int h, bool out, color c) const;
+
+	static objcachet<class image>* myimagecache;
+	static objcachet<class image>& imagecache();	// checks for existance
 public:
 	class theme {
 		theme();
@@ -108,10 +112,13 @@ protected:
 	static int oldmx, oldmy, oldmb;	// used for input calculation
 
 public:	
+	// Note! call this once before using images!
+	static void set_image_cache(objcachet<class image>* imagecache);
+
 	static void set_theme(std::auto_ptr<theme> t) { globaltheme = t; }
 	static const theme* get_theme() { return globaltheme.get(); }
 	static std::auto_ptr<theme> replace_theme(std::auto_ptr<theme> t);
-	widget(int x, int y, int w, int h, const string& text_, widget* parent_ = 0, const image* backgr = 0);
+	widget(int x, int y, int w, int h, const string& text_, widget* parent_ = 0, const std::string& backgrimg = std::string());
 	virtual ~widget();
 	virtual void add_child(widget* w);
 	/** same as add_child, but place new child near last child.
@@ -138,7 +145,8 @@ public:
 	virtual void set_text(const string& s) { text = s; }
 	virtual const image* get_background() const { return background; }
 	virtual const texture* get_background_tex() const { return background_tex; }
-	virtual void set_background(const image* b) { background = b; background_tex = 0; }
+	//Note! such a function is a bad idea, as image is not unref'd then at the cache!
+	//virtual void set_background(const image* b) { background = b; background_tex = 0; }
 	virtual void set_background(const texture* t) { background_tex = t; background = 0; }
 	virtual void set_return_value(int rv) { retval = rv; }
 	virtual int get_return_value() const { return retval; }
@@ -226,7 +234,7 @@ protected:
 	widget_button& operator= (const widget_button& );
 public:
 	widget_button(int x, int y, int w, int h, const string& text_,
-		widget* parent_ = 0, const image* backgr = 0) : widget(x, y, w, h, text_, parent_, backgr), pressed(false) {}
+		      widget* parent_ = 0, const std::string& backgrimg = std::string()) : widget(x, y, w, h, text_, parent_, backgrimg), pressed(false) {}
 	void draw() const;
 	void on_click(int mx, int my, int mb);
 	void on_release();

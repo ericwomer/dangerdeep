@@ -92,6 +92,8 @@ sub_damage_display::sub_damage_display (user_interface& ui_) :
 	repairwrecked(get_texture_dir() + "repairwrecked.png"),
 	mx(0), my(0)
 {
+	damage_screen_background.reset(new image(get_image_dir() + "damage_screen_backg.jpg"));
+	sub_damage_scheme_all.reset(new image(get_image_dir() + "sub_damage_scheme_all.png"));
 }
 
 sub_damage_display::~sub_damage_display ()

@@ -66,6 +66,32 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 using std::auto_ptr;
 
 
+/* fixme: 2006/12/02
+   about caches:
+   especially for images we need a cache like this:
+   - basic functionality like objcache with ref and unref
+   - unref'd images are kept as objects
+   - when new images are ref'd old objects are occaisonally removed.
+   How to decide about removal:
+   - We have to limit RAM/Video-Ram usage:
+   - Each image has a cost, that is width*height*bpp.
+   - Each unref'd image has an age, a timestamp taken when unref'd lastly.
+   - Compute total cost with some formula
+   - Remove image with most cost, if total ram usage of unref'd images is above limit.
+   So we have:
+   - global limit for unref'd images, good starting point 4MB.
+   - A formula to compute cost, c(s, t)  where s is size in bytes and t is age in milliseconds.
+   We should have that few images to just keep a simple list for management.
+   What about the cost formula?
+   - Size matters
+   - time is only to get rid of old, but small images.
+   Try this formula:
+   cost(s, t) = s + t^2/32.
+   So after ca. 10 seconds the cost of an 1x1 image is as high as an fullscreen 3MB image.
+   The cache should have a "clean_up" function to instantly remove all cleaned up images.
+*/
+
+
 int res_x, res_y;
 
 highscorelist hsl_mission, hsl_career;
@@ -77,7 +103,7 @@ auto_ptr<music> mmusic;
 // a dirty hack
 void menu_notimplemented()
 {
-	widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
+	widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
 	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(110));
 	w.add_child(wm);
 	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
@@ -147,7 +173,7 @@ public:
 	loadsavequit_dialogue(const game* g);	// give 0 to disable saving
 };
 
-loadsavequit_dialogue::loadsavequit_dialogue(const game *g) : widget(0, 0, 1024, 768, texts::get(177), 0, depthchargeimg), mygame(g), gamesaved(false)
+loadsavequit_dialogue::loadsavequit_dialogue(const game *g) : widget(0, 0, 1024, 768, texts::get(177), 0, "depthcharge.jpg"), mygame(g), gamesaved(false)
 {
 	add_child(new widget_text(40, 40, 0, 0, texts::get(178)));
 	gamename = new widget_edit(200, 40, 684, 40, "");
@@ -276,7 +302,7 @@ void loadsavequit_dialogue::update_list()
 //
 void show_halloffame(const highscorelist& hsl)
 {
-	widget w(0, 0, 1024, 768, texts::get(197), 0, kruppdocksimg);
+	widget w(0, 0, 1024, 768, texts::get(197), 0, "krupp_docks.jpg");
 	w.add_child(new widget(40, 50, 944, 640, string("")));
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 	hsl.show(&w);
@@ -300,7 +326,7 @@ void check_for_highscore(const game& gm)
 	highscorelist& hsl = (/* check if game is career or mission fixme */ true) ? hsl_mission : hsl_career;
 	unsigned points = totaltons /* compute points from tons etc here fixme */;
 
-	widget w(0, 0, 1024, 768, texts::get(197), 0, kruppdocksimg);
+	widget w(0, 0, 1024, 768, texts::get(197), 0, "krupp_docks.jpg");
 	w.add_child(new widget(40, 50, 944, 640, string("")));
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 	unsigned pos = hsl.get_listpos_for(points);
@@ -329,7 +355,7 @@ void check_for_highscore(const game& gm)
 //
 void show_results_for_game(const game& gm)
 {
-	widget w(0, 0, 1024, 768, texts::get(124), 0, sunkendestroyerimg);
+	widget w(0, 0, 1024, 768, texts::get(124), 0, "sunken_destroyer.jpg");
 	widget_list* wl = new widget_list(64, 64, 1024-64-64, 768-64-64);
 	wl->set_column_width((1024-2*64)/4);
 	w.add_child(wl);
@@ -454,7 +480,7 @@ void run_game(auto_ptr<game> gm)
 
 			if (state == game::player_killed) {
 				mmusic->play_track(1, 500);
-				widget w(0, 0, 1024, 768, "", 0, killedimg);
+				widget w(0, 0, 1024, 768, "", 0, "killed.jpg");
 				widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(103));
 				w.add_child(wm);
 				wm->add_entry(texts::get(105), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
@@ -562,7 +588,7 @@ void run_game_editor(auto_ptr<game> gm)
 //
 void create_convoy_mission()
 {
-	widget w(0, 0, 1024, 768, texts::get(9), 0, scopewatcherimg);
+	widget w(0, 0, 1024, 768, texts::get(9), 0, "scopewatcher.jpg");
 	w.add_child(new widget_text(40, 60, 0, 0, texts::get(16)));
 	widget_list* wsubtype = new widget_list(40, 90, 200, 200);
 	w.add_child(wsubtype);
@@ -645,7 +671,7 @@ void choose_historical_mission()
 	close_dir(missiondir);
 
 	// read descriptions, set up windows
-	widget w(0, 0, 1024, 768, texts::get(10), 0, sunderlandimg);
+	widget w(0, 0, 1024, 768, texts::get(10), 0, "sunderland.jpg");
 	vector<string> descrs;
 	struct msnlist : public widget_list
 	{
@@ -797,7 +823,7 @@ bool server_wait_for_clients(network_connection& sv, Uint16 server_port, vector<
 	int error = SDLNet_ResolveHost(&hostip, 0, server_port);
 	sys().myassert(error == 0, "can resolve host ip for this computer");
 	
-	widget w(0, 0, 1024, 768, texts::get(22), 0, swordfishimg);
+	widget w(0, 0, 1024, 768, texts::get(22), 0, "swordfish.jpg");
 	w.add_child(new widget_text(40, 60, 0, 0, texts::get(195)));
 	widget_list* wplayers = new widget_list(40, 90, 500, 400);
 	w.add_child(wplayers);
@@ -962,7 +988,7 @@ void play_network_game()
 
 	network_connection client;	// used for scanning and later for playing
 
-	widget w(0, 0, 1024, 768, texts::get(22), 0, swordfishimg);
+	widget w(0, 0, 1024, 768, texts::get(22), 0, "swordfish.jpg");
 	w.add_child(new widget_text(40, 60, 0, 0, texts::get(57)));
 	widget_edit* wserverip = new widget_edit(40, 90, 200, 40, network_connection::ip2string(computer_ip));
 	w.add_child(wserverip);
@@ -1020,7 +1046,7 @@ void play_network_game()
 
 void menu_single_mission()
 {
-	widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
+	widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
 	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(21));
 	w.add_child(wm);
 	wm->add_entry(texts::get(8), new widget_func_button<void (*)()>(&menu_notimplemented, 0, 0, 0, 0));
@@ -1036,7 +1062,7 @@ void menu_single_mission()
 
 void menu_mission_editor()
 {
-	widget w(0, 0, 1024, 768, texts::get(222), 0, scopewatcherimg);
+	widget w(0, 0, 1024, 768, texts::get(222), 0, "scopewatcher.jpg");
 	w.add_child(new widget_text(40, 60, 944, 0, texts::get(223)));
 
 /*
@@ -1071,7 +1097,7 @@ void menu_mission_editor()
 
 void menu_select_language()
 {
-	widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
+	widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
 	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(26));
 
 	struct lgclist : public widget_list
@@ -1147,8 +1173,8 @@ void configure_key(widget_list* wkeys)
 			redraw();
 		}
 		confkey_widget(int x, int y, int w, int h, const string& text_, widget* parent_,
-			       const image* backgr, unsigned sel) :
-			widget(x, y, w, h, text_, parent_, backgr), keynr(sel)
+			       const std::string& backgrimg, unsigned sel) :
+			widget(x, y, w, h, text_, parent_, backgrimg), keynr(sel)
 			{
 				keyname = new widget_text(40, 80, 432, 40, cfg::instance().getkey(keynr).get_name());
 				add_child(keyname);
@@ -1157,7 +1183,7 @@ void configure_key(widget_list* wkeys)
 		~confkey_widget() {}
 	};
 	unsigned sel = wkeys->get_selected();
-	confkey_widget w(256, 256, 512, 256, texts::get(216), 0, 0, sel);
+	confkey_widget w(256, 256, 512, 256, texts::get(216), 0, "", sel);
 	string wks = wkeys->get_selected_entry();
 	wks = wks.substr(0, wks.find("\t"));
 	w.add_child(new widget_text(40, 40, 432, 32, wks));
@@ -1169,7 +1195,7 @@ void configure_key(widget_list* wkeys)
 
 void menu_configure_keys()
 {
-	widget w(0, 0, 1024, 768, texts::get(214), 0, titlebackgrimg);
+	widget w(0, 0, 1024, 768, texts::get(214), 0, "titlebackgr.jpg");
 	widget_list* wkeys = new widget_list(40, 50, 944, 640);
 	wkeys->set_column_width(700);
 	w.add_child(wkeys);
@@ -1191,7 +1217,7 @@ void menu_configure_keys()
 
 void menu_options()
 {
-	widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
+	widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
 	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(29));
 	w.add_child(wm);
 	wm->add_entry(texts::get(214), new widget_func_button<void (*)()>(&menu_configure_keys, 0, 0, 0, 0));
@@ -1268,7 +1294,7 @@ public:
 
 void menu_show_vessels()
 {
-	widget w(0, 0, 1024, 768, texts::get(24), 0, threesubsimg);
+	widget w(0, 0, 1024, 768, texts::get(24), 0, "threesubs.jpg");
 	widget_menu* wm = new widget_menu(0, 700, 140, 32, ""/*texts::get(110)*/, true);
 	w.add_child(wm);
 	vessel_view vw;
@@ -1589,6 +1615,7 @@ int mymain(list<string>& args)
 	// init the global_data object before calling init_global_data
 	auto_ptr<global_data> gbd(new global_data());
 	init_global_data();
+	widget::set_image_cache(&(imagecache()));
 
 	if( sound::use_sound )
 		music::use_music = true;
@@ -1676,7 +1703,7 @@ int mymain(list<string>& args)
 			run_game(gm);
 	} else {
 		int retval = 1;
-		widget w(0, 0, 1024, 768, "", 0, titlebackgrimg);
+		widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
 		do {	// loop until menu is closed.
 			// main menu
 			w.remove_children();

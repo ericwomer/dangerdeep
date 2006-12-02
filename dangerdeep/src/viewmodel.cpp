@@ -46,6 +46,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "xml.h"
 #include "filehelper.h"
 #include "widget.h"
+#include "objcache.h"
 #define VIEWMODEL
 
 #include "mymain.cpp"
@@ -86,7 +87,6 @@ private:
         };
 
         auto_ptr<widget::theme> theme;
-        auto_ptr<image> bg;
         vector<model_entry> files;
         
         int selected_model;
@@ -97,12 +97,9 @@ private:
 
 
 model_load_dialog::model_load_dialog() : 
-        theme(0),
-        bg(0)
+        theme(0)
 {
         theme.reset( new widget::theme("widgetelements_menu.png", "widgeticons_menu.png", font_olympiaworn, color(182, 146, 137), color(222, 208, 195), color(92, 72, 68)) );
-        
-        bg.reset( new image(get_image_dir() + "threesubs.jpg"));
 }
 
 
@@ -124,7 +121,7 @@ void model_load_dialog::load_menu()
         widget_text *models_lbl;
         widget_list *models_list;
         
-        widget w(0, 0, 1024, 768, "", 0, bg.get());
+        widget w(0, 0, 1024, 768, "", 0, "threesubs.jpg");
         w.set_theme(theme);
 
         title = new widget_text(10, 10, 800, 80, "Danger from the Deep Viewmodel OpenGL Frontend.\nCopyright (C) 2003-2006 Thorsten Jordan.");
@@ -185,7 +182,7 @@ model_load_dialog::load_model(widget_list* models)
 void
 model_load_dialog::message(const string& msg)
 {
-        widget w(0,0,1024,768,"", 0, bg.get());
+        widget w(0,0,1024,768,"", 0, "threesubs.jpg");
 
         widget_text *msgtext = new widget_text(0, 0, 0, 0, msg, 0, 1);
         w.add_child(msgtext);
@@ -692,6 +689,9 @@ int mymain(list<string>& args)
         font_olympiaworn = new font(get_font_dir() + "font_olympiaworn");
         
 	mysys->draw_console_with(font_arial, 0);
+
+	objcachet<class image> imagecache(get_image_dir());
+	widget::set_image_cache(&imagecache);
 
         if (use_gui) {
                 run_gui();

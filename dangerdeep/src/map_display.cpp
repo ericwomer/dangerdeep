@@ -338,7 +338,7 @@ map_display::map_display(user_interface& ui_) :
 		game_editor& gme = *ge;
 
 		// create editor main panel
-		edit_panel.reset(new widget(0, 0, 1024, 32, "", 0, 0));
+		edit_panel.reset(new widget(0, 0, 1024, 32, "", 0));
 		edit_panel->set_background(panelbackground);
 		edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game_editor&), game_editor&>(this, &map_display::edit_add_obj, gme, 0, 0, 128, 32, texts::get(224)));
 		edit_btn_del = new widget_caller_arg_button<map_display, void (map_display::*)(game_editor&), game_editor&>(this, &map_display::edit_del_obj, gme, 128, 0, 128, 32, texts::get(225));
