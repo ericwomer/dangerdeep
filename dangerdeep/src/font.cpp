@@ -32,6 +32,15 @@ using std::vector;
 using std::string;
 using std::ifstream;
 
+/* fixme: loading all fonts eats 1.3mb of video ram.
+   We are using the ram very wastefully, one texture per character.
+   This is bad.
+   Better unite many characters to a 256x256 texture and use this.
+   We may need several textures for one character set, which makes
+   things more complicated.
+   However we have to store one empty one row and line between each character
+   in that texmap, to avoid artifacts showing up when characters are scaled.
+*/
 
 
 font::character::~character()
@@ -140,11 +149,14 @@ font::font(const string& basefilename, unsigned char_spacing)
 	if (fontimage->format->BytesPerPixel != 1)
 		throw error(string("font: only grayscale images are supported! font ")+basefilename);
 
+//	measure waste of video ram. 2006/12/02, ca. 660kb wasted, 1.3mb totally used. so 50% loss.
+//	unsigned waste = 0;
 	for (unsigned i = 0; i < characters.size(); i++) {
 		character& c = characters[i];
 		unsigned w = next_p2(c.width);
 		unsigned h = next_p2(c.height);
 		vector<Uint8> tmpimage(w * h * 2);
+//		waste += (w*h-(c.width+1)*(c.height+1))*2;
 		
 		unsigned char* ptr = ((unsigned char*)(fontimage->pixels)) + offsets[i];
 	
@@ -159,6 +171,7 @@ font::font(const string& basefilename, unsigned char_spacing)
 		characters[i].tex = new texture(tmpimage, w, h, GL_LUMINANCE_ALPHA,
 						texture::LINEAR, texture::CLAMP_TO_EDGE);
 	}
+//	printf("wasted ca. %u bytes of video ram for font %s\n", waste, basefilename.c_str());
 	
 	SDL_UnlockSurface(fontimage);
 	SDL_FreeSurface(fontimage);
