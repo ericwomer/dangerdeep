@@ -99,10 +99,15 @@ void freeview_display::post_display(game& gm) const
 
 
 freeview_display::freeview_display(user_interface& ui_) :
-	user_display(ui_), aboard(false), withunderwaterweapons(true), drawbridge(false)
+	user_display(ui_), aboard(false), withunderwaterweapons(true), drawbridge(false),
+	conning_tower_typeVII(0)
 {
 	pos = vector3(20,0,10);
 	texturecache().ref("splashring.png");
+	conning_tower_typeVII = modelcache().ref("conning_tower_typeVIIc.xml");
+	conning_tower_typeVII->register_layout();
+	conning_tower_typeVII->set_layout();
+	add_loading_screen("conning tower model loaded");
 }
 
 
@@ -110,6 +115,7 @@ freeview_display::freeview_display(user_interface& ui_) :
 freeview_display::~freeview_display()
 {
 	texturecache().unref("splashring.png");
+	modelcache().unref(conning_tower_typeVII);
 }
 
 

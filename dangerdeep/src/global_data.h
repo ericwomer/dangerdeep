@@ -94,8 +94,6 @@ inline objcachet<class sound>& soundcache() { return global_data::instance().sou
 
 
 // global models, textures, fonts
-//fixme: get rid of this, store in cache
-extern class model *conning_tower_typeVII;
 
 // store in objects where it is needed/ref'd! fixme
 extern class texture *addleadangle, *metalbackgr,

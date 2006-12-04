@@ -32,6 +32,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //delete it immediatly. Check periodically or when the next object is deleted, so at least 1-2 objects can be hold
 //with refcount zero, like a delete-queue. This avoids permanent reload when e.g. user switches between two menes
 //and both use images of the image-cache.
+//fixme2: maybe add special handler-class, like an auto_ptr, c'tor ref's an object, d'tor
+//unrefs it. Thus objcache usage is easier.
 template <class T>
 class objcachet
 {

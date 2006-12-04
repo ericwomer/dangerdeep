@@ -45,6 +45,10 @@ protected:
 	bool withunderwaterweapons;	// draw underwater weapons?
 	bool drawbridge;	// draw bridge if aboard?
 
+	// used only in 3d view. a bit hackish to place it here, but better than in global data.
+	// later store in class submarine. use cache to store, this is only a reference.
+	class model *conning_tower_typeVII;
+
 	freeview_display();
 
 	// display() calls these functions

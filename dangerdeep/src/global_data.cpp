@@ -78,8 +78,6 @@ global_data::~global_data()
 // fixme2: forget enums. use auto_ptr's instead. MUCH easier!
 // normal data should get shrinked as much as possible, only fonts should remain or so.
 
-model *conning_tower_typeVII;
-
 texture *addleadangle, *torpleft, *metalbackgr,
 	*woodbackgr, *notepadsheet, *menuframe,
 	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
@@ -118,11 +116,6 @@ void init_global_data()
 	font_olympiaworn = new font(get_font_dir() + "font_olympiaworn");
 	font_damagedtypewriter = new font(get_font_dir() + "font_damagedtypewriter");
 	add_loading_screen("fonts loaded");
-	// later: store per model
-	conning_tower_typeVII = new model(get_model_dir() + "conning_tower_typeVIIc.xml");
-	conning_tower_typeVII->register_layout();
-	conning_tower_typeVII->set_layout();
-	add_loading_screen("models loaded");
 	// later: they should get loaded by environmental classes (sky/water/user_interface)
 	panelbackground = new texture(get_image_dir() + "metalbackground.jpg");
 	addleadangle = new texture(get_texture_dir() + "addleadangle.png");
@@ -155,7 +148,6 @@ void init_global_data()
 
 void deinit_global_data()
 {
-	delete conning_tower_typeVII;
 	delete font_arial;
 	delete font_arialbd;
 	delete font_times;
