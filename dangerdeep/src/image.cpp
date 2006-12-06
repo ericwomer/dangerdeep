@@ -42,6 +42,7 @@ unsigned image::mem_freed = 0;
 
 
 // cache
+/* fixme: replace by advanced object cache!!! */
 list<image::cache_entry> image::cache;
 
 image::cache_entry& image::check_cache(const image* obj)

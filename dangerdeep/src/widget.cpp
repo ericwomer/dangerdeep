@@ -51,6 +51,11 @@ list<widget*> widget::widgets;
 
 objcachet<image>* widget::myimagecache = 0;
 
+/* fixme: when new widget is opened that fills the whole screen, unref
+   the images of previously open widgets to avoid wasting system and/or
+   video ram!
+*/
+
 objcachet<class image>& widget::imagecache()
 {
 	if (myimagecache)
