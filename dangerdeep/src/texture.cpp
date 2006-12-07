@@ -101,9 +101,13 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 		       bool makenormalmap, float detailh, bool rgb2grey)
 {
 	// compute texture width and height
-	unsigned tw = 1, th = 1;
-	while (tw < sw) tw *= 2;
-	while (th < sh) th *= 2;
+	unsigned tw = sw, th = sh;
+	if (!size_non_power_two()) {
+		tw = 1;
+		th = 1;
+		while (tw < sw) tw *= 2;
+		while (th < sh) th *= 2;
+	}
 	width = sw;
 	height = sh;
 	gl_width = tw;
@@ -292,42 +296,48 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		throw texerror(get_name(), "illegal clamping mode!");
 
 	// automatic resizing of textures if they're too large
-	vector<Uint8> data2;
+	// fixme: this old code for old cards. should be obsolete. any cards newer
+	// than geforce2mx can do 4096x4096 textures. Geforce2mx can do 2048x2048.
+	// Far enough for us. So do it only when card is so old, that it can't do
+	// non-power-two textures.
 	const vector<Uint8>* pdata = &data;
-	unsigned ms = get_max_size();
-	if (width > ms || height > ms) {
-		unsigned newwidth = width, newheight = height;
-		unsigned xf = 1, yf = 1;
-		if (width > ms) {
-			newwidth = ms;
-			xf = width/ms;
-		}
-		if (height > ms) {
-			newheight = ms;
-			yf = height/ms;
-		}
-		unsigned bpp = get_bpp();
-		data2.resize(newwidth*newheight*bpp);
-		unsigned area = xf*yf;
-		for (unsigned y = 0; y < newheight; ++y) {
-			for (unsigned x = 0; x < newwidth; ++x) {
-				for (unsigned b = 0; b < bpp; ++b) {
-					unsigned valsum = 0;
-					for (unsigned yy = 0; yy < yf; ++yy) {
-						for (unsigned xx = 0; xx < xf; ++xx) {
-							unsigned ptr = ((y*yf+yy) * width +
-									(x*xf+xx)) * bpp + b;
-							valsum += unsigned(data[ptr]);
+	if (!size_non_power_two()) {
+		vector<Uint8> data2;
+		unsigned ms = get_max_size();
+		if (width > ms || height > ms) {
+			unsigned newwidth = width, newheight = height;
+			unsigned xf = 1, yf = 1;
+			if (width > ms) {
+				newwidth = ms;
+				xf = width/ms;
+			}
+			if (height > ms) {
+				newheight = ms;
+				yf = height/ms;
+			}
+			unsigned bpp = get_bpp();
+			data2.resize(newwidth*newheight*bpp);
+			unsigned area = xf*yf;
+			for (unsigned y = 0; y < newheight; ++y) {
+				for (unsigned x = 0; x < newwidth; ++x) {
+					for (unsigned b = 0; b < bpp; ++b) {
+						unsigned valsum = 0;
+						for (unsigned yy = 0; yy < yf; ++yy) {
+							for (unsigned xx = 0; xx < xf; ++xx) {
+								unsigned ptr = ((y*yf+yy) * width +
+										(x*xf+xx)) * bpp + b;
+								valsum += unsigned(data[ptr]);
+							}
 						}
+						valsum /= area;
+						data2[(y*newwidth+x)*bpp + b] = Uint8(valsum);
 					}
-					valsum /= area;
-					data2[(y*newwidth+x)*bpp + b] = Uint8(valsum);
 				}
 			}
+			pdata = &data2;
+			gl_width = newwidth;
+			gl_height = newheight;
 		}
-		pdata = &data2;
-		gl_width = newwidth;
-		gl_height = newheight;
 	}
 
 	glGenTextures(1, &opengl_name);
@@ -371,6 +381,8 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 			// that is a flat plane with a normal of (0,0,1)
 			// But filtering down the normals to one pixel could give
 			// RGB=0.5 -> normal of (0,0,0) (rare...)!
+			// fixme: mipmapping for textures with non-power-of-two resolution is
+			// untested!
 			vector<Uint8> curlvl;
 			const vector<Uint8>* gdat = pdata;
 			for (unsigned level = 1, w = gl_width/2, h = gl_height/2;
