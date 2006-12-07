@@ -69,34 +69,25 @@ void sub_periscope_display::post_display(game& gm) const
 
 	// draw compass bar. at most 230 pixel can be seen (of 1878 total width), center is at x=667 on screen
 	// so 360*230/1878 = 44.1 degrees can be seen
-	// 230 is less than the size of one part of the bar (width 235, last 233), so draw at most two
 	// visible area on screen is centerpos +- 115
 	// as first translate bearing to pixel pos
-	int centerpixelpos = int((ui.get_relative_bearing().value() * 1878 + 0.5) / 360);
-	// now compute which parts can be seen
-	// draw part i at x_i = 667+widths[0...i-1]-centerpixelpos
-	// if x_i >= 667-115 and x_i < 667+115 then draw it
-	unsigned ws = compassbar_width.size();
-	for (int i = 0, cw = 0; i < int(ws); ++i) {
-		int xi = 667 + cw - centerpixelpos;
-		int w = int(compassbar_width[i]);
-		// check 360->0 wrap
-		if (xi + w < 667-115)
-			xi += 1878;
-		// check 360->0 wrap other side
-		if (xi >= 667+115)
-			xi -= 1878;
-		// check if part can be seen
-		if (667-115 < xi + w && xi < 667+115) {
-			unsigned h = compassbar_tex[i]->get_height();
-			compassbar_tex[i]->draw_subimage(xi, 586, w, h, 0, 0, w, h);
-		}
-		cw += w;
+	int w = int(compassbar_tex->get_width());
+	unsigned h = compassbar_tex->get_height();
+	int centerpixelpos = int((ui.get_relative_bearing().value() * w + 0.5) / 360);
+	// now draw the bar once or twice. center at x=667. visible area is 667+-115
+	if (centerpixelpos <= 115) {
+		int xi = 667 - w - centerpixelpos;
+		compassbar_tex->draw_subimage(xi, 586, w, h, 0, 0, w, h);
+	}
+	int xi = 667 - centerpixelpos;
+	compassbar_tex->draw_subimage(xi, 586, w, h, 0, 0, w, h);
+	if (centerpixelpos > w - 115) {
+		int xi = 667 + w - centerpixelpos;
+		compassbar_tex->draw_subimage(xi, 586, w, h, 0, 0, w, h);
 	}
 
 	// draw background
-	bool is_day = gm.is_day_mode();
-	if (is_day) {
+	if (background_normallight.get()) {
 		background_normallight->draw(0, 0);
 	} else {
 		background_nightlight->draw(0, 0);
@@ -117,26 +108,6 @@ void sub_periscope_display::post_display(game& gm) const
 
 sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_display(ui_), zoomed(false)
 {
-	background_normallight.reset(new image(get_image_dir() + "periscope_daylight.jpg|png"));
-	background_nightlight.reset(new image(get_image_dir() + "periscope_redlight.jpg|png"));
-
-	clock_minutes_pointer = texture::ptr(new texture(get_image_dir() + "clock_minutes_pointer.png"));
-	clock_hours_pointer = texture::ptr(new texture(get_image_dir() + "clock_hours_pointer.png"));
-
-	// read compass bar image and cut to eight separate textures
-	image compassbari(get_image_dir() + "periscope_compassbar.png");
-	const unsigned nrparts = 8;	// 1878/8 ~ 234 so it fits in a 256 texture
-	unsigned tw = compassbari.get_width();
-	unsigned pw = (tw + (nrparts/2)) / nrparts;
-	compassbar_width.resize(nrparts);
-	compassbar_tex.resize(nrparts);
-	for (unsigned i = 0; i < nrparts; ++i) {
-		compassbar_width[i] = (i + 1 < nrparts) ? pw : tw - (nrparts-1)*pw;
-		compassbar_tex[i] = new texture(compassbari.get_SDL_Surface(), i*pw, 0,
-						compassbar_width[i], compassbari.get_height(),
-						texture::NEAREST, texture::CLAMP_TO_EDGE);
-	}
-
 	pos = vector3(0, 0, 12);//fixme, depends on sub
 	aboard = true;
 	withunderwaterweapons = false;//they can be seen when scope is partly below water surface, fixme
@@ -147,8 +118,6 @@ sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_dis
 
 sub_periscope_display::~sub_periscope_display()
 {
-	for (unsigned i = 0; i < compassbar_tex.size(); ++i)
-		delete compassbar_tex[i];
 }
 
 
@@ -200,6 +169,35 @@ unsigned sub_periscope_display::get_popup_allow_mask() const
 		(1 << submarine_interface::popup_mode_control) |
 		(1 << submarine_interface::popup_mode_tdc) |
 		(1 << submarine_interface::popup_mode_ecard);
+}
+
+
+
+void sub_periscope_display::enter(bool is_day)
+{
+//	myscheme.reset(new scheme(is_day));
+	if (is_day)
+		background_normallight.reset(new image(get_image_dir() + "periscope_daylight.jpg|png"));
+	else
+		background_nightlight.reset(new image(get_image_dir() + "periscope_redlight.jpg|png"));
+
+	clock_minutes_pointer = texture::ptr(new texture(get_image_dir() + "clock_minutes_pointer.png"));
+	clock_hours_pointer = texture::ptr(new texture(get_image_dir() + "clock_hours_pointer.png"));
+
+	compassbar_tex.reset(new texture(get_image_dir() + "periscope_compassbar.png", texture::NEAREST, texture::CLAMP_TO_EDGE));
+}
+
+
+
+void sub_periscope_display::leave()
+{
+//	myscheme.reset();
+	// fixme: group that into a scheme class, like sub_ghg_display, to save clean-up code
+	background_normallight.reset();
+	background_nightlight.reset();
+	clock_minutes_pointer.reset();
+	clock_hours_pointer.reset();
+	compassbar_tex.reset();
 }
 
 

@@ -36,8 +36,7 @@ class sub_periscope_display : public freeview_display
 	std::auto_ptr<image> background_normallight;
 	std::auto_ptr<image> background_nightlight;
 
-	std::vector<class texture*> compassbar_tex;
-	std::vector<unsigned> compassbar_width;
+	texture::ptr compassbar_tex;
 
 	texture::ptr clock_hours_pointer;
 	texture::ptr clock_minutes_pointer;
@@ -53,6 +52,9 @@ public:
 	virtual void display(class game& gm) const;
 
 	virtual unsigned get_popup_allow_mask() const;
+
+	void enter(bool is_day);
+	void leave();
 };
 
 #endif
