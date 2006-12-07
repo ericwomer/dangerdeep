@@ -36,8 +36,9 @@ class sub_kdb_display : public user_display
 		rotat_tex direction_ptr;
 		fix_tex turn_wheel[6];
 		fix_tex volume_knob[6];
-		scheme() {}
+		scheme(bool day);
 	protected:
+		scheme();
 		scheme(const scheme& );
 		scheme& operator= (const scheme& );
 	};
@@ -49,7 +50,7 @@ class sub_kdb_display : public user_display
 		TK_NR = 2
 	};
 
-	scheme daylight, redlight;
+	std::auto_ptr<scheme> myscheme;
 
 	turnknobtype turnknobdrag;
 	std::vector<float> turnknobang;
@@ -59,6 +60,9 @@ class sub_kdb_display : public user_display
 
 	virtual void process_input(class game& gm, const SDL_Event& event);
 	virtual void display(class game& gm) const;
+
+	void enter(bool is_day);
+	void leave();
 };
 
 #endif

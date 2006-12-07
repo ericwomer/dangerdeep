@@ -35,30 +35,33 @@ using namespace std;
 
 static const double TK_ANGFAC = 360.0/512.0;
 
+sub_ghg_display::scheme::scheme(bool day)
+{
+	const string x = day ? "GHG_daylight" : "GHG_redlight";
+	background.reset(new image(get_image_dir() + x + "_background.jpg|png"));
+	direction_ptr.set(x + "_pointer.png", 242, 89, 376, 372);
+	direction_knob.set(x + "_knob.png", 306, 516, 373, 583);
+	volume_dial.set(x + "_volume_dial.png", 711, 470, 849, 605);
+	volume_knob.set(x + "_volumeknob.png", 783, 550);
+}
+
+
+
 sub_ghg_display::sub_ghg_display(user_interface& ui_)
 	: user_display(ui_), turnknobdrag(TK_NONE), turnknobang(TK_NR)
 {
-	daylight.background.reset(new image(get_image_dir() + "GHG_daylight_background.jpg|png"));
-	redlight.background.reset(new image(get_image_dir() + "GHG_redlight_background.jpg|png"));
-
-	daylight.direction_ptr.set("GHG_daylight_pointer.png", 242, 89, 376, 372);
-	redlight.direction_ptr.set("GHG_redlight_pointer.png", 242, 89, 376, 372);
-	daylight.direction_knob.set("GHG_daylight_knob.png", 306, 516, 373, 583);
-	redlight.direction_knob.set("GHG_redlight_knob.png", 306, 516, 373, 583);
-	daylight.volume_dial.set("GHG_daylight_volume_dial.png", 711, 470, 849, 605);
-	redlight.volume_dial.set("GHG_redlight_volume_dial.png", 711, 470, 849, 605);
-	daylight.volume_knob.set("GHG_daylight_volumeknob.png", 783, 550);
-	redlight.volume_knob.set("GHG_redlight_volumeknob.png", 783, 550);
 }
 
 
 
 void sub_ghg_display::process_input(class game& gm, const SDL_Event& event)
 {
-	bool is_day = gm.is_day_mode();
 	int mx, my, mb;
 
-	const scheme& s = (is_day) ? daylight : redlight;
+	// fixme: errors like this are rather bug indicators. they should throw a special
+	// exception or rather use an assert like thing etc. same for many other screens.
+	if (!myscheme.get()) throw error("sub_ghg_display::process_input without scheme!");
+	const scheme& s = *myscheme;
 
 	switch (event.type) {
 	case SDL_MOUSEBUTTONDOWN:
@@ -113,12 +116,10 @@ void sub_ghg_display::display(class game& gm) const
 	sys().prepare_2d_drawing();
 	glColor3f(1,1,1);
 
-	// determine time of day
-	bool is_day = gm.is_day_mode();
-
 	// get hearing device angle from submarine, if it has one
 
-	const scheme& s = (is_day) ? daylight : redlight;
+	if (!myscheme.get()) throw error("sub_ghg_display::display without scheme!");
+	const scheme& s = *myscheme;
 
 	s.volume_dial.draw(-turnknobang[TK_VOLUME]-18.0f);
 	s.background->draw(0, 0);
@@ -135,4 +136,18 @@ void sub_ghg_display::display(class game& gm) const
 	ui.draw_infopanel();
 
 	sys().unprepare_2d_drawing();
+}
+
+
+
+void sub_ghg_display::enter(bool is_day)
+{
+	myscheme.reset(new scheme(is_day));
+}
+
+
+
+void sub_ghg_display::leave()
+{
+	myscheme.reset();
 }

@@ -36,32 +36,35 @@ using namespace std;
 static const double TK_ANGFAC = 360.0/512.0;
 static const unsigned TK_PHASES = 6;
 
-sub_kdb_display::sub_kdb_display(user_interface& ui_)
-	: user_display(ui_), turnknobdrag(TK_NONE), turnknobang(TK_NR)
+sub_kdb_display::scheme::scheme(bool day)
 {
-	daylight.background.reset(new image(get_image_dir() + "KDB_daylight_background.jpg"));
-	redlight.background.reset(new image(get_image_dir() + "KDB_redlight_background.jpg"));
-	daylight.direction_ptr.set("KDB_daylight_pointer.png", 323, 122, 377, 373);
-	redlight.direction_ptr.set("KDB_redlight_pointer.png", 323, 122, 377, 373);
+	const string x = day ? "KDB_daylight" : "KDB_redlight";
+	background.reset(new image(get_image_dir() + x + "_background.jpg"));
+	direction_ptr.set(x + "_pointer.png", 323, 122, 377, 373);
 
 	for (unsigned i = 0; i < TK_PHASES; ++i) {
 		ostringstream osn;
 		osn << (i+1) ;
-		daylight.turn_wheel[i].set("KDB_daylight_gauge" + osn.str() + ".png", 166, 682);
-		redlight.turn_wheel[i].set("KDB_redlight_gauge" + osn.str() + ".png", 166, 682);
-		daylight.volume_knob[i].set("KDB_daylight_knob" + osn.str() + ".png", 683, 667);
-		redlight.volume_knob[i].set("KDB_redlight_knob" + osn.str() + ".png", 683, 667);
+		turn_wheel[i].set(x + "_gauge" + osn.str() + ".png", 166, 682);
+		volume_knob[i].set(x + "_knob" + osn.str() + ".png", 683, 667);
 	}
+}
+
+
+
+sub_kdb_display::sub_kdb_display(user_interface& ui_)
+	: user_display(ui_), turnknobdrag(TK_NONE), turnknobang(TK_NR)
+{
 }
 
 
 
 void sub_kdb_display::process_input(class game& gm, const SDL_Event& event)
 {
-	bool is_day = gm.is_day_mode();
 	int mx, my, mb;
 
-	const scheme& s = (is_day) ? daylight : redlight;
+	if (!myscheme.get()) throw error("sub_kdb_display::process_input without scheme!");
+	const scheme& s = *myscheme;
 
 	switch (event.type) {
 	case SDL_MOUSEBUTTONDOWN:
@@ -188,12 +191,10 @@ void sub_kdb_display::display(game& gm) const
 	sys().prepare_2d_drawing();
 	glColor3f(1,1,1);
 
-	// determine time of day
-	bool is_day = gm.is_day_mode();
-
 	// get hearing device angle from submarine, if it has one
 
-	const scheme& s = (is_day) ? daylight : redlight;
+	if (!myscheme.get()) throw error("sub_kdb_display::display without scheme!");
+	const scheme& s = *myscheme;
 
 	s.background->draw(0, 0);
 	s.volume_knob[unsigned(myfmod(-turnknobang[TK_VOLUME]*0.5f, 90.0f)) * TK_PHASES / 90].draw();
@@ -262,4 +263,18 @@ void sub_kdb_display::display(game& gm) const
 	ui.draw_infopanel();
 
 	sys().unprepare_2d_drawing();
+}
+
+
+
+void sub_kdb_display::enter(bool is_day)
+{
+	myscheme.reset(new scheme(is_day));
+}
+
+
+
+void sub_kdb_display::leave()
+{
+	myscheme.reset();
 }

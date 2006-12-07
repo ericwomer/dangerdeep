@@ -27,15 +27,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "image.h"
 #include <vector>
 
-				 class sub_bg_display : public user_display
+class sub_bg_display : public user_display
 {
 	class scheme {
 	public:
 		std::auto_ptr<image> background;
 		rotat_tex direction_ptr;
 		fix_tex turn_wheel[6];
-		scheme() {}
+		scheme(bool day);
 	protected:
+		scheme();
 		scheme(const scheme& );
 		scheme& operator= (const scheme& );
 	};
@@ -46,7 +47,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		TK_NR = 1
 	};
 
-	scheme daylight, redlight;
+	std::auto_ptr<scheme> myscheme;
 
 	turnknobtype turnknobdrag;
 	std::vector<float> turnknobang;
@@ -56,6 +57,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 	virtual void process_input(class game& gm, const SDL_Event& event);
 	virtual void display(class game& gm) const;
+
+	void enter(bool is_day);
+	void leave();
 };
 
 #endif

@@ -233,3 +233,17 @@ int sub_gauges_display::compute_throttle_angle(int throttle_pos) const
 
 	return throttle_angle;
 }
+
+
+
+void sub_gauges_display::enter(bool is_day)
+{
+//	myscheme.reset(new scheme(is_day));
+}
+
+
+
+void sub_gauges_display::leave()
+{
+//	myscheme.reset();
+}

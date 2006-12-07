@@ -36,30 +36,31 @@ using namespace std;
 static const double TK_ANGFAC = 360.0/512.0;
 static const unsigned TK_PHASES = 6;
 
-sub_bg_display::sub_bg_display(user_interface& ui_)
-	: user_display(ui_), turnknobdrag(TK_NONE), turnknobang(TK_NR)
+sub_bg_display::scheme::scheme(bool day)
 {
-	daylight.background.reset(new image(get_image_dir() + "BG_daylight_background.jpg"));
-	redlight.background.reset(new image(get_image_dir() + "BG_redlight_background.jpg"));
-	daylight.direction_ptr.set("BG_daylight_pointer.png", 341, 153, 373, 346);
-	redlight.direction_ptr.set("BG_redlight_pointer.png", 341, 153, 373, 346);
-
+	const string x = day ? "BG_daylight" : "BG_redlight";
+	background.reset(new image(get_image_dir() + x + "_background.jpg"));
+	direction_ptr.set(x + "_pointer.png", 341, 153, 373, 346);
 	for (unsigned i = 0; i < TK_PHASES; ++i) {
 		ostringstream osn;
 		osn << (i+1) ;
-		daylight.turn_wheel[i].set("BG_daylight_knob_pos" + osn.str() + ".png", 110, 641);
-		redlight.turn_wheel[i].set("BG_redlight_knob_pos" + osn.str() + ".png", 110, 641);
+		turn_wheel[i].set(x + "_knob_pos" + osn.str() + ".png", 110, 641);
 	}
+}
+
+sub_bg_display::sub_bg_display(user_interface& ui_)
+	: user_display(ui_), turnknobdrag(TK_NONE), turnknobang(TK_NR)
+{
 }
 
 
 
 void sub_bg_display::process_input(class game& gm, const SDL_Event& event)
 {
-	bool is_day = gm.is_day_mode();
 	int mx, my, mb;
 
-	const scheme& s = (is_day) ? daylight : redlight;
+	if (!myscheme.get()) throw error("sub_bg_display::process_input without scheme!");
+	const scheme& s = *myscheme;
 
 	switch (event.type) {
 	case SDL_MOUSEBUTTONDOWN:
@@ -108,12 +109,10 @@ void sub_bg_display::display(class game& gm) const
 	sys().prepare_2d_drawing();
 	glColor3f(1,1,1);
 
-	// determine time of day
-	bool is_day = gm.is_day_mode();
-
 	// get hearing device angle from submarine, if it has one
 
-	const scheme& s = (is_day) ? daylight : redlight;
+	if (!myscheme.get()) throw error("sub_bg_display::display without scheme!");
+	const scheme& s = *myscheme;
 
 	s.background->draw(0, 0);
 	s.turn_wheel[unsigned(myfmod(-turnknobang[TK_DIRECTION] * 2.0f, 90.0f)) * TK_PHASES / 90].draw();
@@ -122,4 +121,18 @@ void sub_bg_display::display(class game& gm) const
 	ui.draw_infopanel();
 
 	sys().unprepare_2d_drawing();
+}
+
+
+
+void sub_bg_display::enter(bool is_day)
+{
+	myscheme.reset(new scheme(is_day));
+}
+
+
+
+void sub_bg_display::leave()
+{
+	myscheme.reset();
 }
