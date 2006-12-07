@@ -56,8 +56,9 @@ class sub_torpsetup_display : public user_display
 				&& (mx < (int)(pos.x + tex->get_width() + border))
 				&& (my < (int)(pos.y + tex->get_height() + border));
 		}
-		scheme() {}
+		scheme(bool day);
 	protected:
+		scheme();
 		scheme(const scheme& );
 		scheme& operator= (const scheme& );
 	};
@@ -70,7 +71,7 @@ class sub_torpsetup_display : public user_display
 		TK_NR = 3
 	};
 
-	scheme daylight, redlight;
+	std::auto_ptr<scheme> myscheme;
 
 	turnknobtype turnknobdrag;
 	std::vector<float> turnknobang;
@@ -85,6 +86,9 @@ public:
 
 	virtual void process_input(class game& gm, const SDL_Event& event);
 	virtual void display(class game& gm) const;
+
+	void enter(bool is_day);
+	void leave();
 };
 
 #endif

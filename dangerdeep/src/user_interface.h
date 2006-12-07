@@ -99,6 +99,9 @@ protected:
 	std::auto_ptr<class water> mywater;	// the ocean water
 	coastmap mycoastmap;	// this may get moved to game.h, yet it is used for display only, that's why it is here
 
+	// is display in day mode (or night/redlight mode)?
+	bool daymode;
+
 	// weather graphics
 	ptrvector<class texture> raintex;	// images (animation) of rain drops
 	ptrvector<class texture> snowtex;	// images (animation) of snow flakes
@@ -113,10 +116,6 @@ protected:
 
 //	inline virtual sea_object* get_player() const { return player_object; }
 
-	// color funtions. ?????fixme
-	virtual void set_display_color( color_mode mode ) const;
-	virtual void set_display_color() const;
-	
 //	void draw_clock(game& gm, int x, int y, unsigned wh, double t,
 //	        const string& text) const;
 

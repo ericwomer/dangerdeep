@@ -101,6 +101,7 @@ submarine_interface::submarine_interface(game& gm) :
 	displays.reset(display_mode_tdc, new sub_tdc_display(*this));
 	displays.reset(display_mode_torpsetup, new sub_torpsetup_display(*this));
 
+	// fixme: use texture caches here too...
 	popups.resize(nr_of_popups);
 	popups.reset(popup_mode_control, new sub_control_popup(*this));
 	popups.reset(popup_mode_tdc, new sub_tdc_popup(*this));
@@ -134,6 +135,8 @@ submarine_interface::submarine_interface(game& gm) :
 	screen_selector->set_pos(vector2i(0, 0));
 
 	// note! we could add a second menu with the most common actions here...
+
+	// fixme: later set "current_display" to other default value, like captain's cabin.
 
 	add_loading_screen("submarine interface initialized");
 }

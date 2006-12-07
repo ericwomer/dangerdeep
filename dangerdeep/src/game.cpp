@@ -125,6 +125,8 @@ void game::sink_record::save(xml_elem& parent) const
 game::game()
 {
 	// empty, so that heirs can construct a game object. Needed for editor
+	freezetime = 0;
+	freezetime_start = 0;
 }
 
 
@@ -267,6 +269,9 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 
 	my_run_state = running;
 	last_trail_time = time - TRAIL_TIME;
+
+	freezetime = 0;
+	freezetime_start = 0;
 }
 
 
@@ -276,7 +281,8 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 // --------------------------------------------------------------------------------
 game::game(const string& filename)
 	: my_run_state(running), stopexec(false), player(0), ui(0),
-	  time(0), last_trail_time(0), max_view_dist(0), networktype(0), servercon(0)
+	  time(0), last_trail_time(0), max_view_dist(0), networktype(0), servercon(0),
+	  freezetime(0), freezetime_start(0)
 {
 	xml_doc doc(filename);
 	doc.load();
@@ -1716,6 +1722,10 @@ game::run_state game::exec()
 		// this time_scaling is bad. hits may get computed wrong when time
 		// scaling is too high. fixme
 		unsigned thistime = sys().millisec();
+		if (freezetime_start > 0)
+			throw error("freeze_time() called without unfreeze_time() call");
+		lasttime += freezetime;
+		freezetime = 0;
 		unsigned time_scale = ui->time_scaling();
 		double delta_time = (thistime - lasttime)/1000.0; // * time_scale;
 		totaltime += (thistime - lasttime)/1000.0;
@@ -2060,3 +2070,22 @@ bool is_in_ellipse(const vector2& p, double xl, double yl, angle& head)
 	return ((t1*t1)/(xl*xl) + (t2*t2)/(yl*yl)) < 1;
 }
 
+
+
+void game::freeze_time()
+{
+	if (freezetime_start > 0)
+		throw error("freeze_time() called twice!");
+	freezetime_start = sys().millisec();
+//	printf("time frozen at: %u\n", freezetime_start);
+}
+
+
+
+void game::unfreeze_time()
+{
+	unsigned freezetime_end = sys().millisec();
+//	printf("time UNfrozen at: %u (%u)\n", freezetime_end, freezetime_end - freezetime_start);
+	freezetime += freezetime_end - freezetime_start;
+	freezetime_start = 0;
+}

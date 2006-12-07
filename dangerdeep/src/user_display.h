@@ -117,6 +117,12 @@ public:
 	}
 	// mask contains one bit per popup (at most 31 popups)
 	virtual unsigned get_popup_allow_mask() const { return 0; }
+
+	///> overload with code that inits data for that display, like loading images
+	virtual void enter(bool is_day) {}
+
+	///> overload with code that deinits data for that display, like freeing images
+	virtual void leave() {}
 };
 
 #endif /* USER_DISPLAY_H */

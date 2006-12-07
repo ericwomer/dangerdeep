@@ -167,6 +167,10 @@ protected:
 	// the connections to the clients (at least one if this is the server, else empty)
 	std::vector<network_connection*> clientcons;	// [SAVE] later!
 
+	// time in milliseconds that game is paused between simulation steps.
+	// for small pauses to compensate long image loading times
+	unsigned freezetime, freezetime_start;
+
 	game();	
 	game& operator= (const game& other);
 	game(const game& other);
@@ -330,6 +334,9 @@ public:
 	convoy* load_convoy_ptr(unsigned nr) const;
 	unsigned save_ptr(const sea_object* s) const;
 	unsigned save_ptr(const convoy* c) const;
+
+	void freeze_time();
+	void unfreeze_time();
 };
 
 #endif

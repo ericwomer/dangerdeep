@@ -50,6 +50,42 @@ static const vector2i secrange_pos(803, 552);
 static const vector2i preheat_pos(730, 377);
 static const vector2i torpspeed_pos(834, 251);
 
+
+
+sub_torpsetup_display::scheme::scheme(bool day)
+{
+	const string x = day ? "torpsetup_daylight" : "torpsetup_redlight";
+	background.reset(new image(get_image_dir() + x + "_background.jpg|png"));
+	rundepthptr.set(x + "_rundepthptr.png", 609, 66, 638, 169);
+	secondaryrangeptr.set(x + "_secondaryrangeptr.png", 228, 157, 257, 262);
+	primaryrangeptr.set(x + "_primaryrangeptr.png", 241, 90, 260, 263);
+	torpspeeddial.set(x + "_torpspeed.png", 541, 77, 636, 172);
+	turnangledial.set(x + "_turnangle.png", 469, 508, 619, 658);
+	primaryrangedial.set(x + "_primaryrunlength.png", 231, 508, 381, 658);
+	torpspeed[0].reset(new texture(get_image_dir() + x + "_speedslow.png"));
+	torpspeed[1].reset(new texture(get_image_dir() + x + "_speedmedium.png"));
+	torpspeed[2].reset(new texture(get_image_dir() + x + "_speedhigh.png"));
+	firstturn[0].reset(new texture(get_image_dir() + x + "_turnleft.png"));
+	firstturn[1].reset(new texture(get_image_dir() + x + "_turnright.png"));
+	secondaryrange[0].reset(new texture(get_image_dir() + x + "_secondaryrange_short.png"));
+	secondaryrange[1].reset(new texture(get_image_dir() + x + "_secondaryrange_long.png"));
+	preheating[0].reset(new texture(get_image_dir() + x + "_preheatoff.png"));
+	preheating[1].reset(new texture(get_image_dir() + x + "_preheaton.png"));
+	temperaturescale.reset(new texture(get_image_dir() + x + "_tempscale.png"));
+
+	// read knobs images and cut to separate images
+	image primaryrangeknobs_day(get_image_dir() + x + "_primaryrangeknobs.png");
+	image turnangleknobs_day(get_image_dir() + x + "_turnangleknobs.png");
+	image rundepthknobs_day(get_image_dir() + x + "_rundepthknobs.png");
+	for (unsigned i = 0; i < TK_PHASES; ++i) {
+		primaryrangeknob[i].set(new texture(primaryrangeknobs_day.get_SDL_Surface(), 0, i*192, 192, 192), 277, 571, 373, 667);
+		turnangleknob[i].set(new texture(turnangleknobs_day.get_SDL_Surface(), 0, i*192, 192, 192), 528, 571, 624, 667);
+		rundepthknob[i].set(new texture(rundepthknobs_day.get_SDL_Surface(), 0, i*192, 192, 192), 819, 17, 915, 113);
+	}
+}
+
+
+
 sub_torpsetup_display::sub_torpsetup_display(user_interface& ui_)
 	: user_display(ui_), turnknobdrag(TK_NONE), turnknobang(TK_NR)
 {
@@ -57,57 +93,6 @@ sub_torpsetup_display::sub_torpsetup_display(user_interface& ui_)
 	selected_tube = 0;
 	selected_mode = 0;
 	*/
-
-	daylight.background.reset(new image(get_image_dir() + "torpsetup_daylight_background.jpg|png"));
-	redlight.background.reset(new image(get_image_dir() + "torpsetup_redlight_background.jpg|png"));
-	daylight.rundepthptr.set("torpsetup_daylight_rundepthptr.png", 609, 66, 638, 169);
-	redlight.rundepthptr.set("torpsetup_redlight_rundepthptr.png", 609, 66, 638, 169);
-	daylight.secondaryrangeptr.set("torpsetup_daylight_secondaryrangeptr.png", 228, 157, 257, 262);
-	redlight.secondaryrangeptr.set("torpsetup_redlight_secondaryrangeptr.png", 228, 157, 257, 262);
-	daylight.primaryrangeptr.set("torpsetup_daylight_primaryrangeptr.png", 241, 90, 260, 263);
-	redlight.primaryrangeptr.set("torpsetup_redlight_primaryrangeptr.png", 241, 90, 260, 263); 
-	daylight.torpspeeddial.set("torpsetup_daylight_torpspeed.png", 541, 77, 636, 172);
-	redlight.torpspeeddial.set("torpsetup_redlight_torpspeed.png", 541, 77, 636, 172); 
-	daylight.turnangledial.set("torpsetup_daylight_turnangle.png", 469, 508, 619, 658);
-	redlight.turnangledial.set("torpsetup_redlight_turnangle.png", 469, 508, 619, 658);
-	daylight.primaryrangedial.set("torpsetup_daylight_primaryrunlength.png", 231, 508, 381, 658);
-	redlight.primaryrangedial.set("torpsetup_redlight_primaryrunlength.png", 231, 508, 381, 658);
-	daylight.torpspeed[0].reset(new texture(get_image_dir() + "torpsetup_daylight_speedslow.png"));
-	redlight.torpspeed[0].reset(new texture(get_image_dir() + "torpsetup_redlight_speedslow.png"));
-	daylight.torpspeed[1].reset(new texture(get_image_dir() + "torpsetup_daylight_speedmedium.png"));
-	redlight.torpspeed[1].reset(new texture(get_image_dir() + "torpsetup_redlight_speedmedium.png"));
-	daylight.torpspeed[2].reset(new texture(get_image_dir() + "torpsetup_daylight_speedhigh.png"));
-	redlight.torpspeed[2].reset(new texture(get_image_dir() + "torpsetup_redlight_speedhigh.png"));
-	daylight.firstturn[0].reset(new texture(get_image_dir() + "torpsetup_daylight_turnleft.png"));
-	redlight.firstturn[0].reset(new texture(get_image_dir() + "torpsetup_redlight_turnleft.png"));
-	daylight.firstturn[1].reset(new texture(get_image_dir() + "torpsetup_daylight_turnright.png"));
-	redlight.firstturn[1].reset(new texture(get_image_dir() + "torpsetup_redlight_turnright.png"));
-	daylight.secondaryrange[0].reset(new texture(get_image_dir() + "torpsetup_daylight_secondaryrange_short.png"));
-	redlight.secondaryrange[0].reset(new texture(get_image_dir() + "torpsetup_redlight_secondaryrange_short.png"));
-	daylight.secondaryrange[1].reset(new texture(get_image_dir() + "torpsetup_daylight_secondaryrange_long.png"));
-	redlight.secondaryrange[1].reset(new texture(get_image_dir() + "torpsetup_redlight_secondaryrange_long.png"));
-	daylight.preheating[0].reset(new texture(get_image_dir() + "torpsetup_daylight_preheatoff.png"));
-	redlight.preheating[0].reset(new texture(get_image_dir() + "torpsetup_redlight_preheatoff.png"));
-	daylight.preheating[1].reset(new texture(get_image_dir() + "torpsetup_daylight_preheaton.png"));
-	redlight.preheating[1].reset(new texture(get_image_dir() + "torpsetup_redlight_preheaton.png"));
-	daylight.temperaturescale.reset(new texture(get_image_dir() + "torpsetup_daylight_tempscale.png"));
-	redlight.temperaturescale.reset(new texture(get_image_dir() + "torpsetup_redlight_tempscale.png"));
-
-	// read knobs images and cut to separate images
-	image primaryrangeknobs_day(get_image_dir() + "torpsetup_daylight_primaryrangeknobs.png");
-	image primaryrangeknobs_red(get_image_dir() + "torpsetup_redlight_primaryrangeknobs.png");
-	image turnangleknobs_day(get_image_dir() + "torpsetup_daylight_turnangleknobs.png");
-	image turnangleknobs_red(get_image_dir() + "torpsetup_redlight_turnangleknobs.png");
-	image rundepthknobs_day(get_image_dir() + "torpsetup_daylight_rundepthknobs.png");
-	image rundepthknobs_red(get_image_dir() + "torpsetup_redlight_rundepthknobs.png");
-	for (unsigned i = 0; i < TK_PHASES; ++i) {
-		daylight.primaryrangeknob[i].set(new texture(primaryrangeknobs_day.get_SDL_Surface(), 0, i*192, 192, 192), 277, 571, 373, 667);
-		redlight.primaryrangeknob[i].set(new texture(primaryrangeknobs_red.get_SDL_Surface(), 0, i*192, 192, 192), 277, 571, 373, 667);
-		daylight.turnangleknob[i].set(new texture(turnangleknobs_day.get_SDL_Surface(), 0, i*192, 192, 192), 528, 571, 624, 667);
-		redlight.turnangleknob[i].set(new texture(turnangleknobs_red.get_SDL_Surface(), 0, i*192, 192, 192), 528, 571, 624, 667);
-		daylight.rundepthknob[i].set(new texture(rundepthknobs_day.get_SDL_Surface(), 0, i*192, 192, 192), 819, 17, 915, 113);
-		redlight.rundepthknob[i].set(new texture(rundepthknobs_red.get_SDL_Surface(), 0, i*192, 192, 192), 819, 17, 915, 113);
-	}
 }
 
 
@@ -116,8 +101,8 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 {
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 	submarine::stored_torpedo& tbsetup = sub->get_torp_in_tube(dynamic_cast<submarine_interface&>(ui).get_selected_tube());
-	bool is_day = gm.is_day_mode();
-	const scheme& s = (is_day) ? daylight : redlight;
+	if (!myscheme.get()) throw error("sub_torpsetup_display::process_input without scheme!");
+	const scheme& s = *myscheme;
 	int mx, my, mb;
 	switch (event.type) {
 	case SDL_MOUSEBUTTONDOWN:
@@ -189,7 +174,7 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 #if 0
 	int* tubelightx = (is_day) ? tubelightdx : tubelightnx;
 	int* tubelighty = (is_day) ? tubelightdy : tubelightny;
-	const scheme& s = (is_day) ? daylight : redlight;
+	const scheme& s = *myscheme;
 	int mx, my;
 	switch (event.type) {
 
@@ -275,15 +260,14 @@ void sub_torpsetup_display::display(class game& gm) const
 	sys().prepare_2d_drawing();
 	glColor3f(1,1,1);
 
-	// determine time of day
-	bool is_day = gm.is_day_mode();
-
 #if 0
+	bool is_day = gm.is_day_mode();
 	int* tubelightx = (is_day) ? tubelightdx : tubelightnx;
 	int* tubelighty = (is_day) ? tubelightdy : tubelightny;
 #endif
 
-	const scheme& s = (is_day) ? daylight : redlight;
+	if (!myscheme.get()) throw error("sub_torpsetup_display::display without scheme!");
+	const scheme& s = *myscheme;
 
 	// testing:
 	double ctr = gm.get_time();
@@ -339,4 +323,18 @@ void sub_torpsetup_display::display(class game& gm) const
 
 	ui.draw_infopanel(true);
 	sys().unprepare_2d_drawing();
+}
+
+
+
+void sub_torpsetup_display::enter(bool is_day)
+{
+	myscheme.reset(new scheme(is_day));
+}
+
+
+
+void sub_torpsetup_display::leave()
+{
+	myscheme.reset();
 }

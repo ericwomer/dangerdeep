@@ -91,7 +91,8 @@ user_interface::user_interface(game& gm) :
 	target(0),
 	current_display(0),
 	current_popup(0),
-	mycoastmap(get_map_dir() + "default.xml")
+	mycoastmap(get_map_dir() + "default.xml"),
+	daymode(gm.is_day_mode())
 {
 	add_loading_screen("coast map initialized");
 	mysky.reset(new sky());
@@ -371,6 +372,18 @@ void user_interface::display() const
 
 void user_interface::set_time(double tm)
 {
+	// if we switched from day to night mode or vice versa, reload current screen.
+	if (mygame) {
+		bool newdaymode = mygame->is_day_mode();
+		if (newdaymode != daymode) {
+			mygame->freeze_time();
+			displays[current_display]->leave();
+			displays[current_display]->enter(newdaymode);
+			mygame->unfreeze_time();
+		}
+		daymode = newdaymode;
+	}
+
 	mysky->set_time(tm);
 	mywater->set_time(tm);
 }
@@ -790,31 +803,6 @@ void user_interface::add_rudder_message()
 
 
 
-#define DAY_MODE_COLOR() glColor3f ( 1.0f, 1.0f, 1.0f )
-
-#define NIGHT_MODE_COLOR() glColor3f ( 1.0f, 0.4f, 0.4f )
-
-void user_interface::set_display_color ( color_mode mode ) const
-{
-	switch ( mode )
-	{
-		case night_color_mode:
-			NIGHT_MODE_COLOR ();
-			break;
-		default:
-			DAY_MODE_COLOR ();
-			break;
-	}
-}
-
-void user_interface::set_display_color() const
-{
-	if ( mygame->is_day_mode () )
-		DAY_MODE_COLOR ();
-	else
-		NIGHT_MODE_COLOR ();
-}
-
 void user_interface::play_sound_effect(const string &se, const sea_object* player, 
 									   const sea_object* noise_source, bool loop) const
 {	
@@ -874,7 +862,15 @@ void user_interface::set_allowed_popup() const
 
 void user_interface::set_current_display(unsigned curdis) const
 {
+	if (current_display == curdis) return;
+	if (mygame)
+		mygame->freeze_time();
+	displays[current_display]->leave();
 	current_display = curdis;
+	displays[current_display]->enter(daymode);
+	if (mygame)
+		mygame->unfreeze_time();
+
 	// check if current popup is still allowed. if not, clear popup
 	if (current_popup > 0) {
 		unsigned mask = displays[current_display]->get_popup_allow_mask();
