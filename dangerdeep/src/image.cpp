@@ -94,36 +94,43 @@ void image::cache_entry::generate(const image* obj)
 
 	// generate cache values
 	vector<unsigned> widths, heights;
-	unsigned maxs = texture::get_max_size();
 
-	// avoid wasting too much memory.
-	if (maxs > 256) maxs = 256;
+	if (texture::size_non_power_two()) {
+		gltx = glty = 1;
+		textures.push_back(new texture(obj->img, 0, 0, obj->width, obj->height,
+					       texture::NEAREST, texture::CLAMP_TO_EDGE));
+	} else {
+		unsigned maxs = texture::get_max_size();
 
-	unsigned w = obj->width, h = obj->height;
-	while (w > maxs) {
-		widths.push_back(maxs);
-		w -= maxs;
-	}
-	widths.push_back(w);
-	while (h > maxs) {
-		heights.push_back(maxs);
-		h -= maxs;
-	}
-	heights.push_back(h);
+		// avoid wasting too much memory.
+		if (maxs > 256) maxs = 256;
 
-	gltx = widths.size();
-	glty = heights.size();
-	textures.reserve(gltx*glty);
-	unsigned ch = 0;
-	for (unsigned y = 0; y < glty; ++y) {
-		unsigned cw = 0;
-		for (unsigned x = 0; x < gltx; ++x) {
-			textures.push_back(new texture(obj->img, cw, ch,
-						       widths[x], heights[y],
-						       texture::NEAREST, texture::CLAMP_TO_EDGE));
-			cw += widths[x];
+		unsigned w = obj->width, h = obj->height;
+		while (w > maxs) {
+			widths.push_back(maxs);
+			w -= maxs;
 		}
-		ch += heights[y];
+		widths.push_back(w);
+		while (h > maxs) {
+			heights.push_back(maxs);
+			h -= maxs;
+		}
+		heights.push_back(h);
+
+		gltx = widths.size();
+		glty = heights.size();
+		textures.reserve(gltx*glty);
+		unsigned ch = 0;
+		for (unsigned y = 0; y < glty; ++y) {
+			unsigned cw = 0;
+			for (unsigned x = 0; x < gltx; ++x) {
+				textures.push_back(new texture(obj->img, cw, ch,
+							       widths[x], heights[y],
+							       texture::NEAREST, texture::CLAMP_TO_EDGE));
+				cw += widths[x];
+			}
+			ch += heights[y];
+		}
 	}
 
 	time_stamp = sys().millisec();

@@ -105,6 +105,8 @@ protected:
 	std::vector<Uint8> make_normals(const std::vector<Uint8>& src,
 					unsigned w, unsigned h, float detailh) const;
 
+	static int size_non_power_2;
+
 	// statistics.
 	static unsigned mem_used;
 	static unsigned mem_alloced;
@@ -178,6 +180,9 @@ public:
 		unsigned tw, unsigned th) const;
 
 	static unsigned get_max_size();
+
+	///> returns if texture sizes other than powers of two are allowed. call after GL init.
+	static bool size_non_power_two();
 
 	// shader handling.
 	// give GL_FRAGMENT_PROGRAM_ARB or GL_VERTEX_PROGRAM_ARB as type

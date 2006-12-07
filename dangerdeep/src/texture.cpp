@@ -50,6 +50,16 @@ unsigned texture::mem_alloced = 0;
 unsigned texture::mem_freed = 0;
 #endif
 
+int texture::size_non_power_2 = -1;
+
+bool texture::size_non_power_two()
+{
+	if (size_non_power_2 < 0) {
+		size_non_power_2 = sys().extension_supported("GL_ARB_texture_non_power_of_two") ? 1 : 0;
+	}
+	return (size_non_power_2 > 0);
+}
+
 // ------------------------------- GL mode tables -------------------
 static GLuint mapmodes[texture::NR_OF_MAPPING_MODES] = {
 	GL_NEAREST,
@@ -435,11 +445,12 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 
 vector<Uint8> texture::scale_half(const vector<Uint8>& src, unsigned w, unsigned h, unsigned bpp) const
 {
-	// fixme
-	if (w < 1 || (w & (w-1)) != 0)
-		throw texerror(get_name(), "texture width is no power of two!");
-	if (h < 1 || (h & (h-1)) != 0)
-		throw texerror(get_name(), "texture height is no power of two!");
+	if (!size_non_power_two()) {
+		if (w < 1 || (w & (w-1)) != 0)
+			throw texerror(get_name(), "texture width is no power of two!");
+		if (h < 1 || (h & (h-1)) != 0)
+			throw texerror(get_name(), "texture height is no power of two!");
+	}
 
 	vector<Uint8> dst(w*h*bpp/4);
 	unsigned ptr = 0;
@@ -524,11 +535,12 @@ texture::texture(const vector<Uint8>& pixels, unsigned w, unsigned h, int format
 	mapping = mapping_;
 	clamping = clamp;
 	
-	// maybe relax that when GL_ARB_Texture_non_power_of_two is available.
-	if (w < 1 || (w & (w-1)) != 0)
-		throw texerror(get_name(), "texture width is no power of two!");
-	if (h < 1 || (h & (h-1)) != 0)
-		throw texerror(get_name(), "texture height is no power of two!");
+	if (!size_non_power_two()) {
+		if (w < 1 || (w & (w-1)) != 0)
+			throw texerror(get_name(), "texture width is no power of two!");
+		if (h < 1 || (h & (h-1)) != 0)
+			throw texerror(get_name(), "texture height is no power of two!");
+	}
 
 	width = gl_width = w;
 	height = gl_height = h;
@@ -545,10 +557,12 @@ texture::texture(unsigned w, unsigned h, int format_,
 	mapping = mapping_;
 	clamping = clamp;
 	
-	if (w < 1 || (w & (w-1)) != 0)
-		throw texerror(get_name(), "texture width is no power of two!");
-	if (h < 1 || (h & (h-1)) != 0)
-		throw texerror(get_name(), "texture height is no power of two!");
+	if (!size_non_power_two()) {
+		if (w < 1 || (w & (w-1)) != 0)
+			throw texerror(get_name(), "texture width is no power of two!");
+		if (h < 1 || (h & (h-1)) != 0)
+			throw texerror(get_name(), "texture height is no power of two!");
+	}
 
 	width = gl_width = w;
 	height = gl_height = h;
