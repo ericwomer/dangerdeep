@@ -44,8 +44,9 @@ class sub_tdc_display : public user_display
 		rotat_tex torp_speed;
 		rotat_tex target_pos;
 		rotat_tex target_speed;
-		scheme_screen1() {}
+		scheme_screen1(bool is_day);
 	protected:
+		scheme_screen1();
 		scheme_screen1(const scheme_screen1& );
 		scheme_screen1& operator= (const scheme_screen1& );
 	};
@@ -65,16 +66,17 @@ class sub_tdc_display : public user_display
 		// fixme add marker for course here (2x)
 		rotat_tex target_range_ptr;
 		rotat_tex target_range_mkr;
-		scheme_screen2() {}
+		scheme_screen2(bool is_day);
 	protected:
+		scheme_screen2();
 		scheme_screen2(const scheme_screen2& );
 		scheme_screen2& operator= (const scheme_screen2& );
 	};
 
 	bool show_screen1;	// true = 1, false = 2
 
-	scheme_screen1 daylight_scr1, redlight_scr1;
-	scheme_screen2 daylight_scr2, redlight_scr2;
+	std::auto_ptr<scheme_screen1> myscheme1;
+	std::auto_ptr<scheme_screen2> myscheme2;
 
 	// automatic: means user puts in values or crew - fixme to be defined...
 	unsigned selected_mode;	// 0-1 (automatic on / off)
@@ -86,7 +88,10 @@ public:
 	virtual void process_input(class game& gm, const SDL_Event& event);
 	virtual void display(class game& gm) const;
 
-	void next_sub_screen() { show_screen1 = !show_screen1; }
+	void next_sub_screen(bool is_day);
+
+	void enter(bool is_day);
+	void leave();
 };
 
 #endif

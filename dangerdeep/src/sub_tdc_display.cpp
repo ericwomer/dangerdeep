@@ -46,66 +46,52 @@ static const int tubelightcoordx[6] = {
 	693,
 };
 
+
+
+sub_tdc_display::scheme_screen1::scheme_screen1(bool day)
+{
+	const string x = day ? "TDCScreen1_Daylight" : "TDCScreen1_Redlight";
+	background.reset(new image(get_image_dir() + x + "_Base_image.jpg|png"));
+	aob_ptr.set(x + "_Lagenwinkel_pointer_rotating.png", 484, 426, 512, 551);
+	aob_inner.set(x + "_AngleOnBow_innerdial_rotating.png", 417, 456, 512, 550);
+	spread_ang_ptr.set(x + "_Facherwinkel_pointer_rotating.png", 799, 502, 846, 527);
+	spread_ang_mkr.set(x + "_Facherwinkel_usermarker_rotating.png", 950, 512, 846, 527);
+	firesolution.reset(new texture(get_image_dir() + x + "_firesolution_slidingscale_pointer.png"));
+	parallax_ptr.set(x + "_parallaxwinkel_pointer_rotating.png", 820, 104, 846, 201);
+	parallax_mkr.set(x + "_parallaxwinkel_usermarker_rotating.png", 952, 186, 846, 201);
+	torptime_min.set(x + "_TorpedoLaufzeit_pointer_minutes_rotating.png", 175, 484, 195, 563);
+	torptime_sec.set(x + "_TorpedoLaufzeit_pointer_seconds_rotating.png", 170, 465, 195, 563);
+	torp_speed.set(x + "_TorpGeschwindigkeit_innerdial_rotating.png", 406, 83, 512, 187);
+	target_pos.set(x + "_Zielposition_pointer_rotating.png", 158, 86, 183, 183);
+	target_speed.set(x + "_ZielTorpGeschwindigkeit_pointer_rotating.png", 484, 62, 511, 187);
+}
+
+
+
+sub_tdc_display::scheme_screen2::scheme_screen2(bool day)
+{
+	const string x = day ? "TDCScreen2_Daylight" : "TDCScreen2_Redlight";
+	background.reset(new image(get_image_dir() + x + "_base_image.jpg"));
+	for (unsigned i = 0; i < 6; ++i) {
+		tubelight[i].set(x + "_tube" + str(i+1) + "_on.png", tubelightcoordx[i], 605);
+	}
+	firebutton.set(x + "_FireButton_ON.png", 68, 92);
+	automode[0].set(x + "_AutoManualKnob_automode.png", 900, 285);
+	automode[1].set(x + "_AutoManualKnob_manualmode.png", 900, 285);
+	gyro_360.set(x + "_HGyro_pointer_main_rotating.png", 383, 406, 431, 455);
+	gyro_10.set(x + "_HGyro_pointer_refinement_rotating.png", 188, 378, 212, 455);
+	brightness.set(x + "_Brightness_dial_pointer_rotating.png", 897, 478, 911, 526);
+	target_course_360.set(x + "_VGyro_pointer_main_rotating.png", 695, 373, 721, 453);
+	target_course_10.set(x + "_VGyro_pointer_refinement_rotating.png", 696, 152, 721, 233);
+	target_range_ptr.set(x + "_Zielentfernung_pointer_rotating.png", 317, 98, 341, 194);
+	target_range_mkr.set(x + "_Zielentfernung_user_marker_rotating.png", 325, 295, 341, 194);
+}
+
+
+
 sub_tdc_display::sub_tdc_display(user_interface& ui_)
 	: user_display(ui_), show_screen1(true)
 {
-	daylight_scr1.background.reset(new image(get_image_dir() + "TDCScreen1_Daylight_Base_image.jpg|png"));
-	redlight_scr1.background.reset(new image(get_image_dir() + "TDCScreen1_Redlight_Base_image.jpg|png"));
-	daylight_scr2.background.reset(new image(get_image_dir() + "TDCScreen2_Daylight_base_image.jpg"));
-	redlight_scr2.background.reset(new image(get_image_dir() + "TDCScreen2_Redlight_base_image.jpg"));
-
-	daylight_scr1.aob_ptr.set("TDCScreen1_Daylight_Lagenwinkel_pointer_rotating.png", 484, 426, 512, 551);
-	redlight_scr1.aob_ptr.set("TDCScreen1_Redlight_Lagenwinkel_pointer_rotating.png", 484, 426, 512, 551);
-	daylight_scr1.aob_inner.set("TDCScreen1_Daylight_AngleOnBow_innerdial_rotating.png", 417, 456, 512, 550);
-	redlight_scr1.aob_inner.set("TDCScreen1_Redlight_AngleOnBow_innerdial_rotating.png", 417, 456, 512, 550);
-	daylight_scr1.spread_ang_ptr.set("TDCScreen1_Daylight_Facherwinkel_pointer_rotating.png", 799, 502, 846, 527);
-	redlight_scr1.spread_ang_ptr.set("TDCScreen1_Redlight_Facherwinkel_pointer_rotating.png", 799, 502, 846, 527);
-	daylight_scr1.spread_ang_mkr.set("TDCScreen1_Daylight_Facherwinkel_usermarker_rotating.png", 950, 512, 846, 527);
-	redlight_scr1.spread_ang_mkr.set("TDCScreen1_Redlight_Facherwinkel_usermarker_rotating.png", 950, 512, 846, 527);
-	daylight_scr1.firesolution.reset(new texture(get_image_dir() + "TDCScreen1_Daylight_firesolution_slidingscale_pointer.png"));
-	redlight_scr1.firesolution.reset(new texture(get_image_dir() + "TDCScreen1_Redlight_firesolution_slidingscale_pointer.png"));
-	daylight_scr1.parallax_ptr.set("TDCScreen1_Daylight_parallaxwinkel_pointer_rotating.png", 820, 104, 846, 201);
-	redlight_scr1.parallax_ptr.set("TDCScreen1_Redlight_parallaxwinkel_pointer_rotating.png", 820, 104, 846, 201);
-	daylight_scr1.parallax_mkr.set("TDCScreen1_Daylight_parallaxwinkel_usermarker_rotating.png", 952, 186, 846, 201);
-	redlight_scr1.parallax_mkr.set("TDCScreen1_Redlight_parallaxwinkel_usermarker_rotating.png", 952, 186, 846, 201);
-	daylight_scr1.torptime_min.set("TDCScreen1_Daylight_TorpedoLaufzeit_pointer_minutes_rotating.png", 175, 484, 195, 563);
-	redlight_scr1.torptime_min.set("TDCScreen1_Redlight_TorpedoLaufzeit_pointer_minutes_rotating.png", 175, 484, 195, 563);
-	daylight_scr1.torptime_sec.set("TDCScreen1_Daylight_TorpedoLaufzeit_pointer_seconds_rotating.png", 170, 465, 195, 563);
-	redlight_scr1.torptime_sec.set("TDCScreen1_Redlight_TorpedoLaufzeit_pointer_seconds_rotating.png", 170, 465, 195, 563);
-	daylight_scr1.torp_speed.set("TDCScreen1_Daylight_TorpGeschwindigkeit_innerdial_rotating.png", 406, 83, 512, 187);
-	redlight_scr1.torp_speed.set("TDCScreen1_Redlight_TorpGeschwindigkeit_innerdial_rotating.png", 406, 83, 512, 187);
-	daylight_scr1.target_pos.set("TDCScreen1_Daylight_Zielposition_pointer_rotating.png", 158, 86, 183, 183);
-	redlight_scr1.target_pos.set("TDCScreen1_Redlight_Zielposition_pointer_rotating.png", 158, 86, 183, 183);
-	daylight_scr1.target_speed.set("TDCScreen1_Daylight_ZielTorpGeschwindigkeit_pointer_rotating.png", 484, 62, 511, 187);
-	redlight_scr1.target_speed.set("TDCScreen1_Redlight_ZielTorpGeschwindigkeit_pointer_rotating.png", 484, 62, 511, 187);
-
-	for (unsigned i = 0; i < 6; ++i) {
-		ostringstream osn;
-		osn << (i+1);
-		daylight_scr2.tubelight[i].set("TDCScreen2_Daylight_tube" + osn.str() + "_on.png", tubelightcoordx[i], 605);
-		redlight_scr2.tubelight[i].set("TDCScreen2_Redlight_tube" + osn.str() + "_on.png", tubelightcoordx[i], 605);
-	}
-
-	daylight_scr2.firebutton.set("TDCScreen2_Daylight_FireButton_ON.png", 68, 92);
-	redlight_scr2.firebutton.set("TDCScreen2_Redlight_FireButton_ON.png", 68, 92);
-	daylight_scr2.automode[0].set("TDCScreen2_Daylight_AutoManualKnob_automode.png", 900, 285);
-	redlight_scr2.automode[0].set("TDCScreen2_Redlight_AutoManualKnob_automode.png", 900, 285);
-	daylight_scr2.automode[1].set("TDCScreen2_Daylight_AutoManualKnob_manualmode.png", 900, 285);
-	redlight_scr2.automode[1].set("TDCScreen2_Redlight_AutoManualKnob_manualmode.png", 900, 285);
-	daylight_scr2.gyro_360.set("TDCScreen2_Daylight_HGyro_pointer_main_rotating.png", 383, 406, 431, 455);
-	redlight_scr2.gyro_360.set("TDCScreen2_Redlight_HGyro_pointer_main_rotating.png", 383, 406, 431, 455);
-	daylight_scr2.gyro_10.set("TDCScreen2_Daylight_HGyro_pointer_refinement_rotating.png", 188, 378, 212, 455);
-	redlight_scr2.gyro_10.set("TDCScreen2_Redlight_HGyro_pointer_refinement_rotating.png", 188, 378, 212, 455);
-	daylight_scr2.brightness.set("TDCScreen2_Daylight_Brightness_dial_pointer_rotating.png", 897, 478, 911, 526);
-	redlight_scr2.brightness.set("TDCScreen2_Redlight_Brightness_dial_pointer_rotating.png", 897, 478, 911, 526);
-	daylight_scr2.target_course_360.set("TDCScreen2_Daylight_VGyro_pointer_main_rotating.png", 695, 373, 721, 453);
-	redlight_scr2.target_course_360.set("TDCScreen2_Redlight_VGyro_pointer_main_rotating.png", 695, 373, 721, 453);
-	daylight_scr2.target_course_10.set("TDCScreen2_Daylight_VGyro_pointer_refinement_rotating.png", 696, 152, 721, 233);
-	redlight_scr2.target_course_10.set("TDCScreen2_Redlight_VGyro_pointer_refinement_rotating.png", 696, 152, 721, 233);
-	daylight_scr2.target_range_ptr.set("TDCScreen2_Daylight_Zielentfernung_pointer_rotating.png", 317, 98, 341, 194);
-	redlight_scr2.target_range_ptr.set("TDCScreen2_Redlight_Zielentfernung_pointer_rotating.png", 317, 98, 341, 194);
-	daylight_scr2.target_range_mkr.set("TDCScreen2_Daylight_Zielentfernung_user_marker_rotating.png", 325, 295, 341, 194);
-	redlight_scr2.target_range_mkr.set("TDCScreen2_Redlight_Zielentfernung_user_marker_rotating.png", 325, 295, 341, 194);
 }
 
 
@@ -113,13 +99,13 @@ sub_tdc_display::sub_tdc_display(user_interface& ui_)
 void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 {
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
-	bool is_day = gm.is_day_mode();
 	int mx, my;
 	submarine_interface& si = dynamic_cast<submarine_interface&>(ui);
 	tdc& TDC = sub->get_tdc();
 
 	if (show_screen1) {
-		const scheme_screen1& s = (is_day) ? daylight_scr1 : redlight_scr1;
+		if (!myscheme1.get()) throw error("sub_tdc_display::process_input without scheme!");
+		const scheme_screen1& s = *myscheme1;
 
 		switch (event.type) {
 		case SDL_MOUSEBUTTONDOWN:
@@ -164,7 +150,8 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 		}
 
 	} else {
-		const scheme_screen2& s = (is_day) ? daylight_scr2 : redlight_scr2;
+		if (!myscheme2.get()) throw error("sub_tdc_display::process_input without scheme!");
+		const scheme_screen2& s = *myscheme2;
 
 		switch (event.type) {
 		case SDL_MOUSEBUTTONDOWN:
@@ -205,7 +192,7 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 
 	if (event.type == SDL_KEYDOWN) {
 		if (cfg::instance().getkey(KEY_TOGGLE_POPUP).equal(event.key.keysym)) {
-			next_sub_screen();
+			next_sub_screen(gm.is_day_mode());
 		}
 	}
 }
@@ -219,13 +206,11 @@ void sub_tdc_display::display(class game& gm) const
 	sys().prepare_2d_drawing();
 	glColor3f(1,1,1);
 
-	// determine time of day
-	bool is_day = gm.is_day_mode();
-
 	const tdc& TDC = player->get_tdc();
 
 	if (show_screen1) {
-		const scheme_screen1& s = (is_day) ? daylight_scr1 : redlight_scr1;
+		if (!myscheme1.get()) throw error("sub_tdc_display::display without scheme!");
+		const scheme_screen1& s = *myscheme1;
 
 		// draw torpedo speed dial (15deg = 0, 5knots = 30deg)
 		// torpedo speed (depends on selected tube!), but TDC is already set accordingly
@@ -273,7 +258,8 @@ void sub_tdc_display::display(class game& gm) const
 		s.target_speed.draw(15 + sea_object::ms2kts(TDC.get_target_speed()) * 330.0/55);
 
 	} else {
-		const scheme_screen2& s = (is_day) ? daylight_scr2 : redlight_scr2;
+		if (!myscheme2.get()) throw error("sub_tdc_display::display without scheme!");
+		const scheme_screen2& s = *myscheme2;
 
 		// background
 		s.background->draw(0, 0);
@@ -321,6 +307,33 @@ void sub_tdc_display::display(class game& gm) const
 
 	ui.draw_infopanel(true);
 	sys().unprepare_2d_drawing();
+}
+
+
+
+void sub_tdc_display::next_sub_screen(bool is_day)
+{
+	show_screen1 = !show_screen1;
+	leave();
+	enter(is_day);
+}
+
+
+
+void sub_tdc_display::enter(bool is_day)
+{
+	if (show_screen1)
+		myscheme1.reset(new scheme_screen1(is_day));
+	else
+		myscheme2.reset(new scheme_screen2(is_day));
+}
+
+
+
+void sub_tdc_display::leave()
+{
+	myscheme1.reset();
+	myscheme2.reset();
 }
 
 

@@ -618,7 +618,7 @@ bool submarine_interface::object_visible(sea_object* so,
 void submarine_interface::toggle_popup()
 {
 	if (current_display == display_mode_tdc) {
-		static_cast<sub_tdc_display*>(displays[current_display])->next_sub_screen();
+		static_cast<sub_tdc_display*>(displays[current_display])->next_sub_screen(daymode);
 	} else {
 		user_interface::toggle_popup();
 	}
