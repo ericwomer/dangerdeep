@@ -138,6 +138,9 @@ submarine_interface::submarine_interface(game& gm) :
 
 	// fixme: later set "current_display" to other default value, like captain's cabin.
 
+	// Important! call enter() here for current display.
+	displays[current_display]->enter(gm.is_day_mode());
+
 	add_loading_screen("submarine interface initialized");
 }
 

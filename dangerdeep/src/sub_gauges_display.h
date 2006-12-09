@@ -34,29 +34,28 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ///\ingroup displays
 class sub_gauges_display : public user_display
 {
-	// pointers to images/textures of the interface
-	std::auto_ptr<image> controlscreen_normallight;
-	std::auto_ptr<image> controlscreen_nightlight;
-
 	struct indicator {
-		texture* mytexday;
-		texture* mytexnight;
+		texture mytex;
 		unsigned x, y, w, h;
-		indicator();
-		~indicator();
-		void display(bool is_day_mode, double angle) const;
-		// mytexnight can be 0 if daymode image should always be used (e.g. compass)
-		void set(SDL_Surface* sday, SDL_Surface* snight, unsigned x_, unsigned y_, unsigned w_, unsigned h_);
+		indicator(SDL_Surface* s, unsigned x_, unsigned y_, unsigned w_, unsigned h_);
+		void display(double angle) const;
 		bool is_over(int mx, int my) const;
 		angle get_angle(int mx, int my) const;
 	};
 
-	std::vector<indicator> indicators;
-// old control screen, now for type II, new one is for type VII, follows
+	std::auto_ptr<image> controlscreen;
+
+	std::auto_ptr<indicator> indicator_compass;
+	std::auto_ptr<indicator> indicator_bow_depth_rudder;
+	std::auto_ptr<indicator> indicator_stern_depth_rudder;
+	std::auto_ptr<indicator> indicator_depth;
+	std::auto_ptr<indicator> indicator_knots;
+	std::auto_ptr<indicator> indicator_main_rudder;
+	std::auto_ptr<indicator> indicator_mt;
+
+// old control screen, now for type II had these indicators:
 //	enum { compass, battery, compressor, diesel, bow_depth_rudder, stern_depth_rudder,
 //	       depth, knots, main_rudder, mt, nr_of_indicators };
-	enum { compass, bow_depth_rudder, stern_depth_rudder,
-	       depth, knots, main_rudder, mt, nr_of_indicators };
 
 	mutable int throttle_angle;        // mutable because it will be changed in display()
 

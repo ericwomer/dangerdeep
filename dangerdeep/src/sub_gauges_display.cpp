@@ -28,75 +28,37 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "sub_gauges_display.h"
 #include "user_interface.h"
 
-sub_gauges_display::indicator::indicator() :
-	mytexday(0), mytexnight(0), x(0), y(0), w(0), h(0)
+sub_gauges_display::indicator::indicator(SDL_Surface* s, unsigned x_, unsigned y_, unsigned w_, unsigned h_)
+	: mytex(s, x_, y_, w_, h_, texture::LINEAR, texture::CLAMP_TO_EDGE),
+	  x(x_), y(y_), w(w_), h(h_)
 {
 }
 
-sub_gauges_display::indicator::~indicator()
+
+
+void sub_gauges_display::indicator::display(double angle) const
 {
-	delete mytexday;
-	delete mytexnight;
+	mytex.draw_rot(x+w/2, y+h/2, angle, w/2, h/2);
 }
 
-void sub_gauges_display::indicator::display(bool is_day_mode, double angle) const
-{
-	const texture* tex = mytexday;
-	if (!is_day_mode && mytexnight != 0)
-		tex = mytexnight;
-	tex->draw_rot(x+w/2, y+h/2, angle, w/2, h/2);
-}
 
-void sub_gauges_display::indicator::set(SDL_Surface* sday, SDL_Surface* snight, unsigned x_, unsigned y_, unsigned w_, unsigned h_)
-{
-	mytexday = new texture(sday, x_, y_, w_, h_, texture::LINEAR, texture::CLAMP_TO_EDGE);
-	if (snight)
-		mytexnight = new texture(snight, x_, y_, w_, h_, texture::LINEAR, texture::CLAMP_TO_EDGE);
-	x = x_;
-	y = y_;
-	w = w_;
-	h = h_;
-}
 
 bool sub_gauges_display::indicator::is_over(int mx, int my) const
 {
 	return (mx >= int(x) && my >= int(y) && mx < int(x+w) && my < int(y+h));
 }
 
+
+
 angle sub_gauges_display::indicator::get_angle(int mx, int my) const
 {
 	return angle(vector2(mx - int(x + w/2), my - int(y + h/2)));
 }
 
+
+
 sub_gauges_display::sub_gauges_display(user_interface& ui_) : user_display(ui_), throttle_angle(0)
 {
-	controlscreen_normallight.reset(new image(get_image_dir() + "daylight_typevii_controlscreen_background.jpg"));
-	controlscreen_nightlight.reset(new image(get_image_dir() + "redlight_typevii_controlscreen_background.jpg"));
-	image compassi(get_image_dir() + "compass_outer_masked.png");
-	image dialsday(get_image_dir() + "daylight_controlscreen_pointers.png");
-	image dialsnight(get_image_dir() + "redlight_controlscreen_pointers.png");
-	//fusebox lights are missing here
-	// old controlscreen layers, will now belong to TypeIIA/B uboat controlscreen
-	// new ones are for TypeVII uboat controlscreen
-	//	indicators.resize(nr_of_indicators);
-	//	indicators[compass].set(compassi.get_SDL_Surface(), (SDL_Surface*)0, 35, 451, 226, 226);
-	//	indicators[battery].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 276, 358, 58, 58);
-	//	indicators[compressor].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 353, 567, 76, 76);
-	//	indicators[diesel].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 504, 567, 76, 76);
-	//	indicators[bow_depth_rudder].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 693, 590, 88, 88);
-	//	indicators[stern_depth_rudder].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 881, 590, 88, 88);
-	//	indicators[depth].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 420, 295, 168, 168);
-	//	indicators[knots].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 756, 44, 94, 94);
-	//	indicators[main_rudder].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 788, 429, 96, 96);
-	//	indicators[mt].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 426, 37, 158, 158);
-	indicators.resize(nr_of_indicators);
-	indicators[compass].set(compassi.get_SDL_Surface(), (SDL_Surface*)0, 87, 378, 338, 338);
-	indicators[bow_depth_rudder].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 563, 550, 148, 148);
-	indicators[stern_depth_rudder].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 795, 550, 148, 148);
-	indicators[depth].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 391, 50, 270, 270);
-	indicators[knots].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 782, 95, 132, 132);
-	indicators[main_rudder].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 681, 337, 152, 152);
-	indicators[mt].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 88, 93, 173, 173);
 }
 
 
@@ -108,25 +70,20 @@ void sub_gauges_display::display(class game& gm) const
 
 	glColor3f(1,1,1);
 
-	bool is_day = gm.is_day_mode();
-	if (is_day) {
-		controlscreen_normallight->draw(0, 0);
-	} else {
-		controlscreen_nightlight->draw(0, 0);
-	}
+	controlscreen->draw(0, 0);
 
 	// the absolute numbers here depend on the graphics!
-	indicators[compass].display(is_day, -player->get_heading().value());
-//	indicators[battery].display(is_day, 0);
-//	indicators[compressor].display(is_day, 0);
-//	indicators[diesel].display(is_day, 0);
-	indicators[bow_depth_rudder].display(is_day, player->get_bow_rudder()*.666);
-	indicators[stern_depth_rudder].display(is_day, player->get_stern_rudder()*-.666);
-	indicators[depth].display(is_day, player->get_depth()*1.36-136.0);
-	indicators[knots].display(is_day, fabs(player->get_speed())*22.33512-131);
-	indicators[main_rudder].display(is_day, player->get_rudder_pos()*2.25);
+	indicator_compass->display(-player->get_heading().value());
+//	indicator_battery->display(0);
+//	indicator_compressor->display(0);
+//	indicator_diesel->display(0);
+	indicator_bow_depth_rudder->display(player->get_bow_rudder()*.666);
+	indicator_stern_depth_rudder->display(player->get_stern_rudder()*-.666);
+	indicator_depth->display(player->get_depth()*1.36-136.0);
+	indicator_knots->display(fabs(player->get_speed())*22.33512-131);
+	indicator_main_rudder->display(player->get_rudder_pos()*2.25);
 	compute_throttle_angle(player->get_throttle());
-	indicators[mt].display(is_day, throttle_angle);
+	indicator_mt->display(throttle_angle);
 
 /*	// kept as text reference for tooltips/popups.
 	angle player_speed = player->get_speed()*360.0/sea_object::kts2ms(36);
@@ -156,29 +113,29 @@ void sub_gauges_display::process_input(class game& gm, const SDL_Event& event)
 		mx = event.button.x;
 		my = event.button.y;
 		//if mouse is over control c, compute angle a, set matching command, fixme
-		if (indicators[compass].is_over(mx, my)) {
-			angle mang = angle(180)-indicators[compass].get_angle(mx, my);
+		if (indicator_compass->is_over(mx, my)) {
+			angle mang = angle(180)-indicator_compass->get_angle(mx, my);
 			sub->head_to_ang(mang, mang.is_cw_nearer(sub->get_heading()));
-		} else if (indicators[depth].is_over(mx, my)) {
-            angle mang = angle(-136) - indicators[depth].get_angle(mx, my);
+		} else if (indicator_depth->is_over(mx, my)) {
+            angle mang = angle(-136) - indicator_depth->get_angle(mx, my);
 			if (mang.value() < 270) {
 				sub->dive_to_depth(unsigned(mang.value()));
 			}
-		} else if( indicators[bow_depth_rudder].is_over(mx,my)){
-			angle mang( indicators[bow_depth_rudder].get_angle(mx,my)-angle(90) );
+		} else if( indicator_bow_depth_rudder->is_over(mx,my)){
+			angle mang( indicator_bow_depth_rudder->get_angle(mx,my)-angle(90) );
 			double click_pos = 180 - mang.value();
 			int status = int(round(click_pos*0.033333));
 			if( status>=submarine::rudder_down_30 && status<=submarine::rudder_up_30)
 				sub->bow_pos(status);
-		} else if( indicators[stern_depth_rudder].is_over(mx,my)){
-			angle mang( indicators[stern_depth_rudder].get_angle(mx,my)-angle(90) );
+		} else if( indicator_stern_depth_rudder->is_over(mx,my)){
+			angle mang( indicator_stern_depth_rudder->get_angle(mx,my)-angle(90) );
 			double click_pos = mang.value();
 			if( click_pos> 105 ) click_pos = -(360-click_pos);
 			int status = int(round(click_pos*0.033333));
 			if( status>=submarine::rudder_down_30 && status<=submarine::rudder_up_30 )
 				sub->bow_pos(-status);
-		} else if (indicators[mt].is_over(mx, my)) {
-			unsigned opt = unsigned( ((indicators[mt].get_angle(mx, my) - angle(210)).value()) * 0.05 );
+		} else if (indicator_mt->is_over(mx, my)) {
+			unsigned opt = unsigned( ((indicator_mt->get_angle(mx, my) - angle(210)).value()) * 0.05 );
 			if (opt >= 15) opt = 14;
 			switch (opt) {
 			case 0: sub->set_throttle(ship::aheadflank); break;
@@ -236,12 +193,46 @@ int sub_gauges_display::compute_throttle_angle(int throttle_pos) const
 
 void sub_gauges_display::enter(bool is_day)
 {
-//	myscheme.reset(new scheme(is_day));
+	if (is_day)
+		controlscreen.reset(new image(get_image_dir() + "daylight_typevii_controlscreen_background.jpg"));
+	else
+		controlscreen.reset(new image(get_image_dir() + "redlight_typevii_controlscreen_background.jpg"));
+
+	image compassi(get_image_dir() + "compass_outer_masked.png");
+	image dials(get_image_dir() + (is_day ? "daylight_controlscreen_pointers.png" : "redlight_controlscreen_pointers.png"));
+	//fusebox lights are missing here
+	// old controlscreen layers, will now belong to TypeIIA/B uboat controlscreen
+	// new ones are for TypeVII uboat controlscreen
+	//	indicators.resize(nr_of_indicators);
+	//	indicator_compass->set(compassi.get_SDL_Surface(), (SDL_Surface*)0, 35, 451, 226, 226);
+	//	indicator_battery->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 276, 358, 58, 58);
+	//	indicator_compressor->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 353, 567, 76, 76);
+	//	indicator_diesel->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 504, 567, 76, 76);
+	//	indicator_bow_depth_rudder->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 693, 590, 88, 88);
+	//	indicator_stern_depth_rudder->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 881, 590, 88, 88);
+	//	indicator_depth->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 420, 295, 168, 168);
+	//	indicator_knots->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 756, 44, 94, 94);
+	//	indicator_main_rudder->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 788, 429, 96, 96);
+	//	indicator_mt->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 426, 37, 158, 158);
+	indicator_compass.reset(new indicator(compassi.get_SDL_Surface(), 87, 378, 338, 338));
+	indicator_bow_depth_rudder.reset(new indicator(dials.get_SDL_Surface(), 563, 550, 148, 148));
+	indicator_stern_depth_rudder.reset(new indicator(dials.get_SDL_Surface(), 795, 550, 148, 148));
+	indicator_depth.reset(new indicator(dials.get_SDL_Surface(), 391, 50, 270, 270));
+	indicator_knots.reset(new indicator(dials.get_SDL_Surface(), 782, 95, 132, 132));
+	indicator_main_rudder.reset(new indicator(dials.get_SDL_Surface(), 681, 337, 152, 152));
+	indicator_mt.reset(new indicator(dials.get_SDL_Surface(), 88, 93, 173, 173));
 }
 
 
 
 void sub_gauges_display::leave()
 {
-//	myscheme.reset();
+	controlscreen.reset();
+	indicator_compass.reset();
+	indicator_bow_depth_rudder.reset();
+	indicator_stern_depth_rudder.reset();
+	indicator_depth.reset();
+	indicator_knots.reset();
+	indicator_main_rudder.reset();
+	indicator_mt.reset();
 }
