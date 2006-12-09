@@ -71,7 +71,6 @@ sub_bridge_display::sub_bridge_display(user_interface& ui_) : freeview_display(u
 	aboard = true;
 	withunderwaterweapons = false;
 	drawbridge = true;
-	glasses_tex.reset(new texture(get_texture_dir() + "glasses.png", texture::LINEAR, texture::CLAMP_TO_EDGE));
 }
 
 
@@ -97,4 +96,18 @@ void sub_bridge_display::process_input(class game& gm, const SDL_Event& event)
 	default: break;
 	}
 	freeview_display::process_input(gm, event);
+}
+
+
+
+void sub_bridge_display::enter(bool is_day)
+{
+	glasses_tex.reset(new texture(get_texture_dir() + "glasses.png", texture::LINEAR, texture::CLAMP_TO_EDGE));
+}
+
+
+
+void sub_bridge_display::leave()
+{
+	glasses_tex.reset();
 }

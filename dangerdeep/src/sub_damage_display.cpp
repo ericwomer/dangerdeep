@@ -85,20 +85,11 @@ static rect rect_data[] = {
 
 sub_damage_display::sub_damage_display (user_interface& ui_) :
 	user_display(ui_),
-	repairlight(get_texture_dir() + "repairlight.png"),
-	repairmedium(get_texture_dir() + "repairmedium.png"),
-	repairheavy(get_texture_dir() + "repairheavy.png"),
-	repaircritical(get_texture_dir() + "repaircritical.png"),
-	repairwrecked(get_texture_dir() + "repairwrecked.png"),
 	mx(0), my(0)
 {
-	damage_screen_background.reset(new image(get_image_dir() + "damage_screen_backg.jpg"));
-	sub_damage_scheme_all.reset(new image(get_image_dir() + "sub_damage_scheme_all.png"));
 }
 
-sub_damage_display::~sub_damage_display ()
-{
-}
+
 
 void sub_damage_display::display_popup (int x, int y, const string& text, bool atleft, bool atbottom) const
 {
@@ -142,17 +133,15 @@ void sub_damage_display::display ( class game& gm ) const
 		int x = r.x + r.w/2 - 16, y = r.y + r.h/2 - 16 + ydrawdiff;
 		if (damageable_parts[i].status > 0.0) {
 			const texture* t = 0;
-			if (damageable_parts[i].status <= 0.25) t = &repairlight;
-			else if (damageable_parts[i].status <= 0.50) t = &repairmedium;
-			else if (damageable_parts[i].status <= 0.75) t = &repairheavy;
-			else if (damageable_parts[i].status < 1.00) t = &repaircritical;
-			else t = &repairwrecked;
+			if (damageable_parts[i].status <= 0.25) t = repairlight.get();
+			else if (damageable_parts[i].status <= 0.50) t = repairmedium.get();
+			else if (damageable_parts[i].status <= 0.75) t = repairheavy.get();
+			else if (damageable_parts[i].status < 1.00) t = repaircritical.get();
+			else t = repairwrecked.get();
 			t->draw(x, y, 32, 32);
 		}
 	}
 	
-	// fixme: clean up used textures of damage_screen_background & sub_damage_scheme_all
-
 	// draw popup if mouse is over any part
 	for (unsigned i = 0; i < damageable_parts.size(); ++i) {
 		if (damageable_parts[i].status < 0) continue;	// part does not exist
@@ -215,4 +204,25 @@ void sub_damage_display::process_input(class game& gm, const SDL_Event& event)
 	default:
 		break;
 	}
+}
+
+
+
+void sub_damage_display::enter(bool /*is_day*/)
+{
+	damage_screen_background.reset(new image(get_image_dir() + "damage_screen_backg.jpg"));
+	sub_damage_scheme_all.reset(new image(get_image_dir() + "sub_damage_scheme_all.png"));
+	repairlight.reset(new texture(get_texture_dir() + "repairlight.png"));
+	repairmedium.reset(new texture(get_texture_dir() + "repairmedium.png"));
+	repairheavy.reset(new texture(get_texture_dir() + "repairheavy.png"));
+	repaircritical.reset(new texture(get_texture_dir() + "repaircritical.png"));
+	repairwrecked.reset(new texture(get_texture_dir() + "repairwrecked.png"));
+}
+
+
+
+void sub_damage_display::leave()
+{
+	damage_screen_background.reset();
+	sub_damage_scheme_all.reset();
 }

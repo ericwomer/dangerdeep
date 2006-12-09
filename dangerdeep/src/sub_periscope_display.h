@@ -33,11 +33,8 @@ class sub_periscope_display : public freeview_display
 	projection_data get_projection_data(class game& gm) const;
 	void post_display(class game& gm) const;
 
-	std::auto_ptr<image> background_normallight;
-	std::auto_ptr<image> background_nightlight;
-
+	std::auto_ptr<image> background;
 	texture::ptr compassbar_tex;
-
 	texture::ptr clock_hours_pointer;
 	texture::ptr clock_minutes_pointer;
 	

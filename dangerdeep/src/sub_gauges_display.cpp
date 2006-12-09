@@ -99,9 +99,7 @@ sub_gauges_display::sub_gauges_display(user_interface& ui_) : user_display(ui_),
 	indicators[mt].set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 88, 93, 173, 173);
 }
 
-sub_gauges_display::~sub_gauges_display()
-{
-}
+
 
 void sub_gauges_display::display(class game& gm) const
 {

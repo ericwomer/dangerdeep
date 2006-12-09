@@ -41,6 +41,9 @@ public:
 
 	//overload for glasses key handling ('y')
 	virtual void process_input(class game& gm, const SDL_Event& event);
+
+	void enter(bool is_day);
+	void leave();
 };
 
 #endif

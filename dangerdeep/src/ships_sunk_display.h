@@ -31,12 +31,16 @@ protected:
 	unsigned first_displayed_object;
 	virtual void next_page(unsigned nrships);
 	virtual void previous_page(unsigned nrships);
+
+	texture::ptr cloudsbackgr;
 public:
 	ships_sunk_display(class user_interface& ui_);
-	virtual ~ships_sunk_display ();
 
 	virtual void display(class game& gm) const;
 	virtual void process_input(class game& gm, const SDL_Event& event);
+
+	void enter(bool is_day);
+	void leave();
 };
 
 #endif

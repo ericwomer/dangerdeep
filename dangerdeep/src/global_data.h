@@ -97,9 +97,8 @@ inline objcachet<class sound>& soundcache() { return global_data::instance().sou
 
 // store in objects where it is needed/ref'd! fixme
 extern class texture *addleadangle, *metalbackgr,
-	*woodbackgr, *notepadsheet, *menuframe,
-	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
-	*terraintex, *cloudsbackgr, *atlanticmap, *panelbackground;
+	*notepadsheet, *menuframe,
+	*terraintex, *atlanticmap, *panelbackground;
 
 // fixme: store fonts in global_data class
 extern class font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn, *font_damagedtypewriter;

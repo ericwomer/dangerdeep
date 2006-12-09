@@ -79,9 +79,8 @@ global_data::~global_data()
 // normal data should get shrinked as much as possible, only fonts should remain or so.
 
 texture *addleadangle, *torpleft, *metalbackgr,
-	*woodbackgr, *notepadsheet, *menuframe,
-	*repairlight, *repairmedium, *repairheavy, *repaircritical, *repairwrecked,
-	*terraintex, *cloudsbackgr, *atlanticmap, *panelbackground;
+	*notepadsheet, *menuframe,
+	*terraintex, *atlanticmap, *panelbackground;
 	
 font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn, *font_damagedtypewriter;
 
@@ -120,11 +119,9 @@ void init_global_data()
 	panelbackground = new texture(get_image_dir() + "metalbackground.jpg");
 	addleadangle = new texture(get_texture_dir() + "addleadangle.png");
 	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", texture::LINEAR);
-	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png" );
 	notepadsheet = new texture(get_texture_dir() + "notepadsheet.png" /*, GL_CLAMP_TO_EDGE*/);
 	menuframe = new texture(get_texture_dir() + "menuframe.png" );
 	terraintex = new texture(get_texture_dir() + "terrain.jpg", texture::LINEAR);
-	cloudsbackgr = new texture(get_texture_dir() + "cloudsbackgr.jpg" );
 	atlanticmap = new texture(get_texture_dir() + "atlanticmap.jpg", texture::LINEAR, texture::CLAMP_TO_EDGE);
 	add_loading_screen("textures loaded");
 
@@ -158,11 +155,9 @@ void deinit_global_data()
 	delete font_damagedtypewriter;
 	delete addleadangle;
 	delete metalbackgr;
-	delete woodbackgr;
 	delete notepadsheet;
 	delete menuframe;
 	delete terraintex;
-	delete cloudsbackgr;
 	delete atlanticmap;
 }
 

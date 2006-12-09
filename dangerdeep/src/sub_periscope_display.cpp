@@ -87,11 +87,7 @@ void sub_periscope_display::post_display(game& gm) const
 	}
 
 	// draw background
-	if (background_normallight.get()) {
-		background_normallight->draw(0, 0);
-	} else {
-		background_nightlight->draw(0, 0);
-	}
+	background->draw(0, 0);
 
 	// draw clock pointers
 	double t = gm.get_time();
@@ -175,11 +171,10 @@ unsigned sub_periscope_display::get_popup_allow_mask() const
 
 void sub_periscope_display::enter(bool is_day)
 {
-//	myscheme.reset(new scheme(is_day));
 	if (is_day)
-		background_normallight.reset(new image(get_image_dir() + "periscope_daylight.jpg|png"));
+		background.reset(new image(get_image_dir() + "periscope_daylight.jpg|png"));
 	else
-		background_nightlight.reset(new image(get_image_dir() + "periscope_redlight.jpg|png"));
+		background.reset(new image(get_image_dir() + "periscope_redlight.jpg|png"));
 
 	clock_minutes_pointer = texture::ptr(new texture(get_image_dir() + "clock_minutes_pointer.png"));
 	clock_hours_pointer = texture::ptr(new texture(get_image_dir() + "clock_hours_pointer.png"));
@@ -191,10 +186,7 @@ void sub_periscope_display::enter(bool is_day)
 
 void sub_periscope_display::leave()
 {
-//	myscheme.reset();
-	// fixme: group that into a scheme class, like sub_ghg_display, to save clean-up code
-	background_normallight.reset();
-	background_nightlight.reset();
+	background.reset();
 	clock_minutes_pointer.reset();
 	clock_hours_pointer.reset();
 	compassbar_tex.reset();

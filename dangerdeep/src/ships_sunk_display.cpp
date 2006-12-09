@@ -59,12 +59,6 @@ ships_sunk_display::ships_sunk_display(user_interface& ui_) :
 
 
 
-ships_sunk_display::~ships_sunk_display()
-{
-}
-
-
-
 void ships_sunk_display::display ( class game& gm ) const
 {
 	sys().prepare_2d_drawing();
@@ -149,4 +143,18 @@ void ships_sunk_display::process_input(class game& gm, const SDL_Event& event)
 	default:
 		break;
 	}
+}
+
+
+
+void ships_sunk_display::enter(bool /*is_day*/)
+{
+	cloudsbackgr.reset(new texture(get_texture_dir() + "cloudsbackgr.jpg"));
+}
+
+
+
+void ships_sunk_display::leave()
+{
+	cloudsbackgr.reset();
 }

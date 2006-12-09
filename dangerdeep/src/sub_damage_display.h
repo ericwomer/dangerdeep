@@ -30,18 +30,20 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 class sub_damage_display : public user_display
 {
-	texture repairlight, repairmedium, repairheavy, repaircritical, repairwrecked;
 	int mx, my;	// last mouse position, needed for popup display
 	std::auto_ptr<image> damage_screen_background;
 	std::auto_ptr<image> sub_damage_scheme_all;
+	texture::ptr repairlight, repairmedium, repairheavy, repaircritical, repairwrecked;
 public:
 	sub_damage_display(class user_interface& ui_);
-	virtual ~sub_damage_display();
 
 	virtual void display_popup (int x, int y, const string& text, bool atleft, bool atbottom) const;
 
 	virtual void display(class game& gm) const;
 	virtual void process_input(class game& gm, const SDL_Event& event);
+
+	void enter(bool is_day);
+	void leave();
 };
 
 #endif /* SUB_DAMAGE_DISPLAY_H */

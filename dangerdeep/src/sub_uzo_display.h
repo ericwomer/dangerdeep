@@ -32,8 +32,7 @@ class sub_uzo_display : public freeview_display
 	void post_display(class game& gm) const;
 
 	texture::ptr uzotex;
-	texture::ptr daycompass;
-	texture::ptr nightcompass;
+	texture::ptr compass;
 
 	int comp_size;
 	int xi;
@@ -44,12 +43,14 @@ class sub_uzo_display : public freeview_display
 
 public:
 	sub_uzo_display(class user_interface& ui_);
-	virtual ~sub_uzo_display(){};
 
 	//overload for zoom key handling ('y')
 	virtual void process_input(class game& gm, const SDL_Event& event);
 
 	virtual unsigned get_popup_allow_mask() const;
+
+	void enter(bool is_day);
+	void leave();
 };
 
 #endif

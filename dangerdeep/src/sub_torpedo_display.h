@@ -55,8 +55,7 @@ class sub_torpedo_display : public user_display
 	std::auto_ptr<texture> torp6lut1;
 //	std::auto_ptr<texture> torp11;
 	std::auto_ptr<texture> submodelVIIc;
-	std::auto_ptr<image> background_daylight;
-	std::auto_ptr<image> background_redlight;
+	std::auto_ptr<image> background;
 
 	class desc_text
 	{
@@ -88,6 +87,9 @@ public:
 
 	virtual void display(class game& gm) const;
 	virtual void process_input(class game& gm, const SDL_Event& event);
+
+	void enter(bool is_day);
+	void leave();
 };
 
 #endif

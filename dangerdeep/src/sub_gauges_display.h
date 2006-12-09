@@ -65,7 +65,6 @@ protected:
 
 public:
 	sub_gauges_display(class user_interface& ui_);
-	virtual ~sub_gauges_display();
 
 	virtual void display(class game& gm) const;
 	virtual void process_input(class game& gm, const SDL_Event& event);

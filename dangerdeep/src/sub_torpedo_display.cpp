@@ -176,28 +176,6 @@ sub_torpedo_display::sub_torpedo_display(user_interface& ui_) :
 	user_display(ui_), torptranssrc(ILLEGAL_TUBE), desc_texts(get_data_dir()),
 	mx(0), my(0), mb(0), torp_desc_line(0)
 {
-	// maybe ref (cache!) torpedo images here instead of loading them?
-	torpempty.reset(new texture(get_image_dir() + "torpmanage_emptytube.png"));
-	torpload.reset(new texture(get_image_dir() + "torpmanage_tubeload.png"));
-	torpunload.reset(new texture(get_image_dir() + "torpmanage_tubeunload.png"));
-	torp1fat1.reset(new texture(get_image_dir() + "torpmanage_torp1fat1.png"));
-	torp1lut1.reset(new texture(get_image_dir() + "torpmanage_torp1lut1.png"));
-	torp1lut2.reset(new texture(get_image_dir() + "torpmanage_torp1lut2.png"));
-	torp1.reset(new texture(get_image_dir() + "torpmanage_torp1.png"));
-	torp1practice.reset(new texture(get_image_dir() + "torpmanage_torp1practice.png"));
-	torp2.reset(new texture(get_image_dir() + "torpmanage_torp2.png"));
-	torp3afat2.reset(new texture(get_image_dir() + "torpmanage_torp3afat2.png"));
-	torp3alut1.reset(new texture(get_image_dir() + "torpmanage_torp3alut1.png"));
-	torp3alut2.reset(new texture(get_image_dir() + "torpmanage_torp3alut2.png"));
-	torp3fat2.reset(new texture(get_image_dir() + "torpmanage_torp3fat2.png"));
-	torp3.reset(new texture(get_image_dir() + "torpmanage_torp3.png"));
-	torp4.reset(new texture(get_image_dir() + "torpmanage_torp4.png"));
-	torp5b.reset(new texture(get_image_dir() + "torpmanage_torp5b.png"));
-	torp5.reset(new texture(get_image_dir() + "torpmanage_torp5.png"));
-	torp6lut1.reset(new texture(get_image_dir() + "torpmanage_torp6lut1.png"));
-	submodelVIIc.reset(new texture(get_image_dir() + "torpmanage_submodelVIIc.png"));
-	background_daylight.reset(new image(get_image_dir() + "torpmanage_daylight_background.jpg"));
-	background_redlight.reset(new image(get_image_dir() + "torpmanage_redlight_background.jpg"));
 }
 
 
@@ -211,12 +189,7 @@ void sub_torpedo_display::display(class game& gm) const
 	// draw background
 	sys().prepare_2d_drawing();
 
-	bool is_day = gm.is_day_mode();
-	if (is_day) {
-		background_daylight->draw(0, 0);
-	} else {
-		background_redlight->draw(0, 0);
-	}
+	background->draw(0, 0);
 
 	// draw sub model
 	submodelVIIc->draw(69, 37);
@@ -355,4 +328,59 @@ void sub_torpedo_display::process_input(class game& gm, const SDL_Event& event)
 	default:
 		break;
 	}
+}
+
+
+
+void sub_torpedo_display::enter(bool is_day)
+{
+	torpempty.reset(new texture(get_image_dir() + "torpmanage_emptytube.png"));
+	torpload.reset(new texture(get_image_dir() + "torpmanage_tubeload.png"));
+	torpunload.reset(new texture(get_image_dir() + "torpmanage_tubeunload.png"));
+	torp1fat1.reset(new texture(get_image_dir() + "torpmanage_torp1fat1.png"));
+	torp1lut1.reset(new texture(get_image_dir() + "torpmanage_torp1lut1.png"));
+	torp1lut2.reset(new texture(get_image_dir() + "torpmanage_torp1lut2.png"));
+	torp1.reset(new texture(get_image_dir() + "torpmanage_torp1.png"));
+	torp1practice.reset(new texture(get_image_dir() + "torpmanage_torp1practice.png"));
+	torp2.reset(new texture(get_image_dir() + "torpmanage_torp2.png"));
+	torp3afat2.reset(new texture(get_image_dir() + "torpmanage_torp3afat2.png"));
+	torp3alut1.reset(new texture(get_image_dir() + "torpmanage_torp3alut1.png"));
+	torp3alut2.reset(new texture(get_image_dir() + "torpmanage_torp3alut2.png"));
+	torp3fat2.reset(new texture(get_image_dir() + "torpmanage_torp3fat2.png"));
+	torp3.reset(new texture(get_image_dir() + "torpmanage_torp3.png"));
+	torp4.reset(new texture(get_image_dir() + "torpmanage_torp4.png"));
+	torp5b.reset(new texture(get_image_dir() + "torpmanage_torp5b.png"));
+	torp5.reset(new texture(get_image_dir() + "torpmanage_torp5.png"));
+	torp6lut1.reset(new texture(get_image_dir() + "torpmanage_torp6lut1.png"));
+	submodelVIIc.reset(new texture(get_image_dir() + "torpmanage_submodelVIIc.png"));
+	if (is_day)
+		background.reset(new image(get_image_dir() + "torpmanage_daylight_background.jpg"));
+	else
+		background.reset(new image(get_image_dir() + "torpmanage_redlight_background.jpg"));
+}
+
+
+
+void sub_torpedo_display::leave()
+{
+	torpempty.reset();
+	torpload.reset();
+	torpunload.reset();
+	torp1fat1.reset();
+	torp1lut1.reset();
+	torp1lut2.reset();
+	torp1.reset();
+	torp1practice.reset();
+	torp2.reset();
+	torp3afat2.reset();
+	torp3alut1.reset();
+	torp3alut2.reset();
+	torp3fat2.reset();
+	torp3.reset();
+	torp4.reset();
+	torp5b.reset();
+	torp5.reset();
+	torp6lut1.reset();
+	submodelVIIc.reset();
+	background.reset();
 }

@@ -82,7 +82,6 @@ void logbook_display::previous_page(unsigned nrentries)
 
 logbook_display::logbook_display(class user_interface& ui_) : user_display(ui_), actual_entry(0)
 {
-	spiral.reset(new texture(get_texture_dir() + "logbook_spiral.png"));
 }
 
 
@@ -183,4 +182,20 @@ void logbook_display::process_input(class game& gm, const SDL_Event& event)
 	default:
 		break;
 	}
+}
+
+
+
+void logbook_display::enter(bool /*is_day*/)
+{
+	spiral.reset(new texture(get_texture_dir() + "logbook_spiral.png"));
+	woodbackgr.reset(new texture(get_texture_dir() + "wooden_desk.png"));
+}
+
+
+
+void logbook_display::leave()
+{
+	spiral.reset();
+	woodbackgr.reset();
 }
