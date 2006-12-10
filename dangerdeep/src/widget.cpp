@@ -49,6 +49,27 @@ int widget::oldmb = 0;
 
 list<widget*> widget::widgets;
 
+void widget::ref_all_backgrounds()
+{
+	for (list<widget*>::iterator it = widgets.begin(); it != widgets.end(); ++it) {
+		widget& w = *(*it);
+		if (!w.background_image_name.empty() && w.background == 0) {
+			w.background = imagecache().ref(w.background_image_name);
+		}
+	}
+}
+
+void widget::unref_all_backgrounds()
+{
+	for (list<widget*>::iterator it = widgets.begin(); it != widgets.end(); ++it) {
+		widget& w = *(*it);
+		if (w.background) {
+			imagecache().unref(w.background_image_name);
+			w.background = 0;
+		}
+	}
+}
+
 objcachet<image>* widget::myimagecache = 0;
 
 /* fixme: when new widget is opened that fills the whole screen, unref
@@ -115,7 +136,8 @@ std::auto_ptr<widget::theme> widget::replace_theme(std::auto_ptr<widget::theme> 
 }
 
 widget::widget(int x, int y, int w, int h, const string& text_, widget* parent_, const std::string& backgrimg)
-	: pos(x, y), size(w, h), text(text_), parent(parent_), background(imagecache().ref(backgrimg)),
+	: pos(x, y), size(w, h), text(text_), parent(parent_), background_image_name(backgrimg),
+	  background(imagecache().ref(backgrimg)),
 	  background_tex(0), enabled(true), retval(-1), closeme(false)
 {
 	// note: when backgrimg is empty, the cache automatically returns a NULL pointer.
@@ -507,6 +529,10 @@ int widget::run(unsigned timeout, bool do_stacking)
 	parent = 0;
 	if (myparent) myparent->disable();
 	closeme = false;
+	if (!do_stacking)
+		unref_all_backgrounds();
+	// we should encapsulate the code from here in a try call, to make changes reversible on error.
+	// but in case of errors, we can't handle them well here, so no matter.
 	widgets.push_back(this);
 	unsigned endtime = sys().millisec() + timeout;
 	focussed = this;
@@ -535,6 +561,8 @@ int widget::run(unsigned timeout, bool do_stacking)
 		sys().swap_buffers();
 	}
 	widgets.pop_back();
+	if (!do_stacking)
+		ref_all_backgrounds();
 	if (myparent) myparent->enable();
 	parent = myparent;
 	return retval;

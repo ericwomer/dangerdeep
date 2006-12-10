@@ -64,6 +64,7 @@ protected:
 	vector2i pos, size;
 	string text;
 	widget* parent;
+	std::string background_image_name;
 	image* background; // if this is != 0, the image is rendered in the background, centered
 	const texture* background_tex; // drawn as tiles if != 0 and no image defined
 	bool enabled;
@@ -191,6 +192,8 @@ public:
 	virtual void open();	// "open" this widget (reverts what close() did)
 	
 	static list<widget*> widgets;	// stack of dialogues, topmost is back
+	static void ref_all_backgrounds();	// for all stacked widgets, ref backgrounds
+	static void unref_all_backgrounds();	// for all stacked widgets, unref backgrounds
 };
 
 class widget_text : public widget

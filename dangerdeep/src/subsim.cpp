@@ -460,6 +460,9 @@ void show_credits()
 //
 void run_game(auto_ptr<game> gm)
 {
+	// clear memory of menu widgets
+	widget::unref_all_backgrounds();
+
 	auto_ptr<widget::theme> gametheme(new widget::theme("widgetelements_game.png", "widgeticons_game.png",
 								 font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64)));
 	reset_loading_screen();
@@ -527,6 +530,9 @@ void run_game(auto_ptr<game> gm)
 	}
 	show_results_for_game(*gm);
 	check_for_highscore(*gm);
+
+	// restore menu widgets
+	widget::ref_all_backgrounds();
 }
 
 
@@ -536,6 +542,9 @@ void run_game(auto_ptr<game> gm)
 //
 void run_game_editor(auto_ptr<game> gm)
 {
+	// clear memory of menu widgets
+	widget::unref_all_backgrounds();
+
 	auto_ptr<widget::theme> gametheme(new widget::theme("widgetelements_game.png", "widgeticons_game.png",
 							    font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64)));
 	reset_loading_screen();
@@ -579,6 +588,9 @@ void run_game_editor(auto_ptr<game> gm)
 			//mmusic->_fade_out(1000);
 		}
 	}
+
+	// restore menu widgets
+	widget::ref_all_backgrounds();
 }
 
 
