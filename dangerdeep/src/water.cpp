@@ -224,17 +224,25 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	unsigned rx = sys().get_res_x();
 	unsigned ry = sys().get_res_y();
 	unsigned vps = texture::get_max_size();
-	if (ry < vps)
-		for (unsigned i = 1; i < ry; i *= 2) vps = i;
+	const unsigned reflection_scale = 2;
+	rx = std::min(rx, vps);
+	ry = std::min(ry, vps);
+	rx /= reflection_scale;
+	ry /= reflection_scale;
+	if (!texture::size_non_power_two()) {
+		// choose next bigger power of two
+		rx = nextgteqpow2(rx);
+		ry = nextgteqpow2(ry);
+	}
 	// fixme: make ^ that configureable! reflection doesn't need to have that high detail...
 	// fixme: auto mipmap?
-	reflectiontex.reset(new texture(vps, vps, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
+	reflectiontex.reset(new texture(rx, ry, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 
 	sys().add_console("water rendering resolution %i x %i", xres, yres);
 	sys().add_console("wave resolution %u (%u)",wave_resolution,wave_resolution_shift);
 	sys().add_console("using subdetail: %s", wave_subdetail ? "yes" : "no");
 	sys().add_console("subdetail size %u (%u)",subdetail_size,subdetail_size_shift);
-	sys().add_console("reflection image size %u",vps);
+	sys().add_console("reflection image size %u*%u",rx,ry);
 
 	vertex_program_supported = sys().extension_supported("GL_ARB_vertex_program");
 	fragment_program_supported = sys().extension_supported("GL_ARB_fragment_program");
@@ -1072,6 +1080,7 @@ void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpo
 
 	// copy viewport data to foam-amount texture
 	foamamounttex->set_gl_texture();
+	// fixme: use GL_EXT_framebuffer_object here to save one copy
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, afs, afs, 0);
 
 	// clean up

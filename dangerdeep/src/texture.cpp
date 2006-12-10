@@ -56,6 +56,8 @@ bool texture::size_non_power_two()
 {
 	if (size_non_power_2 < 0) {
 		size_non_power_2 = sys().extension_supported("GL_ARB_texture_non_power_of_two") ? 1 : 0;
+		if (size_non_power_2)
+			sys().add_console("Textures with non-power-two sizes are supported and used.");
 	}
 	return (size_non_power_2 > 0);
 }
@@ -622,12 +624,12 @@ SDL_Surface* texture::read_from_file(const std::string& filename)
 
 	if (extension != ".jpg|png") {
 		// standard texture, just one file
-//		unsigned tm0 = sys().millisec();
+// 		unsigned tm0 = sys().millisec();
 		SDL_Surface* teximage = IMG_Load(filename.c_str());
 		if (!teximage)
 			throw texerror(filename, string("read_from_file: failed to load "));
-//		unsigned tm1 = sys().millisec();
-//		printf("Image '%s' load time %ums\n", filename.c_str(), tm1-tm0);
+// 		unsigned tm1 = sys().millisec();
+// 		printf("Image '%s' load time %ums\n", filename.c_str(), tm1-tm0);
 		return teximage;
 	} else {
 		// special texture, using jpg for RGB and png/grey for A.
