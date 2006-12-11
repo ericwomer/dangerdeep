@@ -94,7 +94,6 @@ void music::set_playback_mode(playback_mode pbm_)
 void music::play(unsigned fadein)
 {
 	if (!Mix_PlayingMusic()) {
-		stopped = false;
 		start_play_track(current_track, fadein);
 	}
 }
@@ -148,7 +147,9 @@ void music::play_track(unsigned nr, unsigned fadeouttime, unsigned fadeintime)
 
 void music::check_playback()
 {
-	if (track_at_end && !stopped) {
+	if (!track_at_end)
+		return;
+	if (!stopped) {
 		play_next_track(0);
 		track_at_end = false;
 	}
@@ -203,6 +204,11 @@ void music::start_play_track(unsigned nr, unsigned fadeintime)
 		}
 		if (err < 0) {
 			// music failed playing...
+			sys().add_console("music playing failed.");
+		} else {
+			stopped = false;
+			// avoid callback for old data
+			track_at_end = false;
 		}
 	}
 }
