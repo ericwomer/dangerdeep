@@ -652,6 +652,8 @@ void create_convoy_mission()
 			case 1: st = "submarine_IXc40"; break;
 			case 2: st = "submarine_XXI"; break;
 		}
+		// reset loading screen here to show user we are doing something
+		reset_loading_screen();
 		run_game(auto_ptr<game>(new game(st,
 						 wcvsize->get_selected(),
 						 wescortsize->get_selected(),
@@ -756,6 +758,8 @@ void choose_historical_mission()
 			// fixme: show dialogue!
 			return;
 		}
+		// reset loading screen here to show user we are doing something
+		reset_loading_screen();
 		run_game(gm);
 	}
 }
@@ -770,6 +774,8 @@ void choose_saved_game()
 	int q = dlg.run(0, false);
 	if (q == 0) return;
 	if (q == 2) {
+		// reset loading screen here to show user we are doing something
+		reset_loading_screen();
 		run_game(auto_ptr<game>(new game(dlg.get_gamefilename_to_load())));
 	}
 }
@@ -929,6 +935,8 @@ void create_network_game(Uint16 server_port)
 	send_msg_to_all(serv, clients, MSG_start);
 	
 	// now run the game
+	// reset loading screen here to show user we are doing something
+	reset_loading_screen();
 	run_game(gm);
 }
 
@@ -982,8 +990,11 @@ void join_network_game(const string& servername, Uint16 server_port, network_con
 
 	bool ok = send_and_wait(client, MSG_ready, MSG_start, 60000);	// 1 minute timeout
 
-	if (ok)
+	if (ok) {
+		// reset loading screen here to show user we are doing something
+		reset_loading_screen();
 		run_game(gm);
+	}
 }
 
 void play_network_game()
@@ -1101,6 +1112,8 @@ void menu_mission_editor()
 			case 2: st = "submarine_XXI"; break;
 		}
 */
+		// reset loading screen here to show user we are doing something
+		reset_loading_screen();
 		run_game_editor(auto_ptr<game>(new game_editor(/*st*/)));
 	}
 }
@@ -1698,6 +1711,8 @@ int mymain(list<string>& args)
 
 	// check if there was a mission given at the command line, or editor more etc.
 	if (runeditor) {
+		// reset loading screen here to show user we are doing something
+		reset_loading_screen();
 		run_game_editor(auto_ptr<game>(new game_editor(/*st*/)));
 	} else if (cmdmissionfilename.length() > 0) {
 		// fixme: check here that the file exists or tinyxml faults with a embarassing error message
@@ -1711,8 +1726,11 @@ int mymain(list<string>& args)
 			// fixme: show dialogue!
 			ok = false;
 		}
-		if (ok)
+		if (ok) {
+			// reset loading screen here to show user we are doing something
+			reset_loading_screen();
 			run_game(gm);
+		}
 	} else {
 		int retval = 1;
 		widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
