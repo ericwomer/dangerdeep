@@ -51,4 +51,10 @@ class file_read_error : public error
 	file_read_error(const std::string& filename) : error(std::string("failed to load: ") + filename) {}
 };
 
+class sdl_error : public error
+{
+ public:
+	sdl_error(const std::string& msg);
+};
+
 #endif

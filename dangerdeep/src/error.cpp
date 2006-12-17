@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "error.h"
 #include <sstream>
+#include <SDL.h>
 
 #if defined(DEBUG) && defined(__GNUC__)
 
@@ -32,3 +33,11 @@ std::string error::str(const char* file, unsigned line)
 	return oss.str();
 }
 #endif
+
+
+
+sdl_error::sdl_error(const std::string& msg)
+	: error(std::string("SDL error: ") + msg + std::string(", SDL: ")
+		+ SDL_GetError())
+{
+}

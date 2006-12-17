@@ -509,6 +509,13 @@ void run_game(auto_ptr<game> gm)
 				// this safes time to recompute map/water/sky etc.
 				// as long as class game holds a pointer to ui this is more difficult or
 				// won't work.
+				// class game has a pointer to ui for what:
+				// displaying messages, playing sounds, game main loop.
+				// message and sound handling should be done in ui class itself!
+				// game main loop should be moved outside class game,
+				// e.g. to a function in this file, or to a new class
+				// dftd, that holds the main logic and contains the code from
+				// this file...
 				gm.reset();
 				ui.reset();
 				gm.reset(new game(dlg.get_gamefilename_to_load()));

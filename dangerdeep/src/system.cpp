@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <sstream>
 #include <cmath>
 #include <cstdarg>
+#include <stdexcept>
 using namespace std;
 
 #ifdef WIN32
@@ -40,6 +41,26 @@ using namespace std;
 #include "system.h"
 #include "texture.h"
 #include "font.h"
+
+/*
+standard exceptions:
+
+exception
+    logic_error
+        domain_error
+        invalid_argument
+        length_error
+        out_of_range
+    runtime_error
+        range_error
+        overflow_error
+        underflow_error
+bad_alloc
+bad_cast
+bad_exception
+bad_typeid
+
+*/
 
 //#define THROWERR
 
@@ -59,16 +80,31 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	is_sleeping(false), maxfps(0), last_swap_time(0), screenshot_nr(0),
 	periodical_func(0), periodical_arg(0)
 {
-	myassert(res==640||res==800||res==1024||res==1280||res==512, "illegal resolution requested");
-	myassert(!instance, "system construction: system instance already exists");
+	if (instance)
+		throw runtime_error("system construction: system instance already exists");
+
+	switch (res) {
+	case 512:
+	case 640:
+	case 800:
+	case 1024:
+	case 1280:
+		break;
+	default:
+		throw invalid_argument("illegal resolution requested");
+	}
 
 	res_x_2d = res_x;
 	res_y_2d = res_y;
 
 	int err = SDL_Init(SDL_INIT_VIDEO);
-	myassert(err>=0, "SDL Video init failed");
+	if (err < 0)
+		throw sdl_error("video init failed");
 	const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
-	myassert(videoInfo != 0, "Video info query failed");
+	if (!videoInfo) {
+		SDL_Quit();
+		throw sdl_error("Video info query failed");
+	}
 	int videoFlags  = SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_HWPALETTE;
 	videoFlags |= (videoInfo->hw_available) ? SDL_HWSURFACE : SDL_SWSURFACE;
 	if (fullscreen)
@@ -78,7 +114,10 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	int bpp = videoInfo->vfmt->BitsPerPixel;
 	SDL_Surface* screen = SDL_SetVideoMode(res_x, res_y, bpp, videoFlags);
-	myassert(screen != 0, "Video mode set failed");
+	if (!screen) {
+		SDL_Quit();
+		throw sdl_error("Video mode set failed");
+	}
 
 	SDL_EventState(SDL_VIDEORESIZE, SDL_IGNORE);//fixme
 	SDL_EventState(SDL_SYSWMEVENT, SDL_IGNORE);//fixme
@@ -158,7 +197,10 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 
 system::~system()
 {
-	myassert(instance != 0, "system destruction: system instance doesn't exist");
+	if (instance) {
+		SDL_Quit();
+		throw sdl_error("system destruction: system instance doesn't exist");
+	}
 	SDL_Quit();
 	write_console();
 	instance = 0;
@@ -254,7 +296,7 @@ void system::write_console(bool fileonly) const
 
 void system::prepare_2d_drawing()
 {
-	myassert(draw_2d == false, "2d drawing already turned on");
+	if (draw_2d) throw runtime_error("2d drawing already turned on");
 	glFlush();
 	glViewport(0, 0, res_x, res_y);
 	glMatrixMode(GL_PROJECTION);
@@ -274,7 +316,7 @@ void system::prepare_2d_drawing()
 
 void system::unprepare_2d_drawing()
 {
-	myassert(draw_2d == true, "2d drawing already turned off");
+	if (!draw_2d) throw runtime_error("2d drawing already turned off");
 	glFlush();
 	glPixelZoom(1.0f, 1.0f);
 	glMatrixMode(GL_PROJECTION);
@@ -520,8 +562,8 @@ list<SDL_Event> system::poll_event_queue()
 				default:			// Should NEVER happen !
 					add_console("unknown event caught");
 					break; // quick hack
-					myassert(0, "Unknown Event !");
-					break;
+					//throw runtime_error("Unknown Event !");
+					//break;
 			}
 		}
 		// do not waste CPU time when sleeping
