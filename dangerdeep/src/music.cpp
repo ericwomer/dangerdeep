@@ -72,10 +72,7 @@ void music::append_track(const std::string& filename)
 	if (use_music) {
 		Mix_Music *tmp = Mix_LoadMUS((get_sound_dir() + filename).c_str());
 		if (!tmp) {
-			ostringstream oss;
-			oss << "Unable to load Music file: " << Mix_GetError();
-			sys().add_console(oss.str());
-			return;
+			throw file_read_error(filename);
 		}
 		playlist.push_back(filename);
 		musiclist.push_back(tmp);

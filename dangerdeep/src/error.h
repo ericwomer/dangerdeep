@@ -45,4 +45,10 @@ class error : public std::runtime_error
 	error(const std::string& s) : std::runtime_error(std::string("DftD error: ") + s) {}
 };
 
+class file_read_error : public error
+{
+ public:
+	file_read_error(const std::string& filename) : error(std::string("failed to load: ") + filename) {}
+};
+
 #endif

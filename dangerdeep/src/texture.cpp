@@ -627,7 +627,7 @@ SDL_Surface* texture::read_from_file(const std::string& filename)
 // 		unsigned tm0 = sys().millisec();
 		SDL_Surface* teximage = IMG_Load(filename.c_str());
 		if (!teximage)
-			throw texerror(filename, string("read_from_file: failed to load "));
+			throw file_read_error(filename);
 // 		unsigned tm1 = sys().millisec();
 // 		printf("Image '%s' load time %ums\n", filename.c_str(), tm1-tm0);
 		return teximage;
@@ -641,10 +641,10 @@ SDL_Surface* texture::read_from_file(const std::string& filename)
 		try {
 			teximagergb = IMG_Load(fnrgb.c_str());
 			if (!teximagergb)
-				throw texerror(fnrgb, string("read_from_file: failed to load "));
+				throw file_read_error(fnrgb);
 			teximagea = IMG_Load(fna.c_str());
 			if (!teximagea)
-				throw texerror(fna, string("read_from_file: failed to load "));
+				throw file_read_error(fna);
 
 			// combine surfaces to one
 			if (teximagergb->w != teximagea->w || teximagergb->h != teximagea->h)
@@ -681,7 +681,7 @@ SDL_Surface* texture::read_from_file(const std::string& filename)
 						      teximagergb->h,
 						      32, rmask, gmask, bmask, amask);
 			if (!result)
-				throw texerror(filename, string("read_from_file: failed to create result surface"));
+				throw file_read_error(filename);
 
 			// copy pixel data
 			SDL_LockSurface(teximagergb);
@@ -882,7 +882,7 @@ GLuint texture::create_shader(GLenum type, const string& filename, const list<st
 	glBindProgramARB(type, nr);
 	ifstream ifprg(filename.c_str(), ios::in);
 	if (ifprg.fail())
-		throw texerror(filename, string("create_shader: failed to open"));
+		throw file_read_error(filename);
 
 	// read lines.
 	vector<string> lines;
