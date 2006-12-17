@@ -197,7 +197,7 @@ system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
 
 system::~system()
 {
-	if (instance) {
+	if (!instance) {
 		SDL_Quit();
 		throw sdl_error("system destruction: system instance doesn't exist");
 	}

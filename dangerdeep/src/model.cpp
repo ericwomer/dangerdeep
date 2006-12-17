@@ -665,7 +665,7 @@ void model::material::map::register_layout(const std::string& name,
 				mytexture.reset(new texture(basepath + filename, mapping, texture::CLAMP_TO_EDGE,
 							    makenormalmap, detailh, rgb2grey));
 			}
-			catch (texture::texerror& e) {
+			catch (std::exception& e) {
 				mytexture.reset(new texture(get_texture_dir() + filename, mapping, texture::CLAMP_TO_EDGE,
 							    makenormalmap, detailh, rgb2grey));
 			}
