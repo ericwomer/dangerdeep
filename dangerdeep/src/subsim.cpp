@@ -1393,6 +1393,7 @@ int mymain(list<string>& args)
 	bool fullscreen = true;
 	string cmdmissionfilename;
 	bool runeditor = false;
+	unsigned maxfps = 60;
 
 	// parse commandline
 	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
@@ -1408,7 +1409,8 @@ int mymain(list<string>& args)
 			     << "--datadir path\tset base directory of data, must point to a directory with subdirs images/ textures/ objects/ and so on. Default on Unix e.g. /usr/local/share/dangerdeep.\n"
 			     << "--savegamedir path\tdirectory for savegames, default path depends on platform\n"
 			     << "--highscoredir path\tdirectory for highscores, default path depends on platform\n"
-			     << "--configdir path\tdirectory for configuration data, default path depends on platform\n";
+			     << "--configdir path\tdirectory for configuration data, default path depends on platform\n"
+			     << "--maxfps x\tset maximum fps to x frames per second (default 60)\n";
 			return 0;
 		} else if (*it == "--nofullscreen") {
 			fullscreen = false;
@@ -1504,6 +1506,13 @@ int mymain(list<string>& args)
 			list<string>::iterator it2 = it; ++it2;
 			if (it2 != args.end()) {
 				texts::set_language(*it2);
+				++it;
+			}
+		} else if (*it == "--maxfps") {
+			list<string>::iterator it2 = it; ++it2;
+			if (it2 != args.end()) {
+				int mf = atoi(it2->c_str());
+				if (mf >= 1) maxfps = unsigned(mf);
 				++it;
 			}
 		} else {
@@ -1625,7 +1634,7 @@ int mymain(list<string>& args)
 	auto_ptr<class system> mysys(new class system(1.0, 30000.0+500.0, res_x, fullscreen));
 	mysys->set_screenshot_directory(savegamedirectory);
 	mysys->set_res_2d(1024, 768);
-	mysys->set_max_fps(60);
+	mysys->set_max_fps(maxfps);
 	
 	mysys->add_console("$ffffffDanger $c0c0c0from the $ffffffDeep");
 	mysys->add_console("$ffff00copyright and written 2003 by $ff0000Thorsten Jordan");
