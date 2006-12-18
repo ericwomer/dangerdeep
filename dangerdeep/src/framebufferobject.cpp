@@ -31,7 +31,7 @@ int framebufferobject::fbo_supported = -1;
 bool framebufferobject::supported()
 {
 	if (fbo_supported < 0) {
-		fbo_supported = sys().extension_supported("GL_EXT_frame_buffer_object") ? 1 : 0;
+		fbo_supported = sys().extension_supported("GL_EXT_framebuffer_object") ? 1 : 0;
 	}
 	return fbo_supported == 1;
 }

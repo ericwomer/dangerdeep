@@ -238,6 +238,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	// fixme: auto mipmap?
 	reflectiontex.reset(new texture(rx, ry, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 	if (framebufferobject::supported()) {
+		sys().add_console("using opengl frame buffer objects");
 		reflectiontex_fbo.reset(new framebufferobject(*reflectiontex, true));
 	}
 
