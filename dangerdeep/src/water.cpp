@@ -237,10 +237,6 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	// fixme: make ^ that configureable! reflection doesn't need to have that high detail...
 	// fixme: auto mipmap?
 	reflectiontex.reset(new texture(rx, ry, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
-	if (framebufferobject::supported()) {
-		sys().add_console("using opengl frame buffer objects");
-		reflectiontex_fbo.reset(new framebufferobject(*reflectiontex, true));
-	}
 
 	sys().add_console("water rendering resolution %i x %i", xres, yres);
 	sys().add_console("wave resolution %u (%u)",wave_resolution,wave_resolution_shift);
@@ -300,6 +296,13 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	foamamounttex.reset(new texture(FOAMAMOUNTRES, FOAMAMOUNTRES, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 
 	foamamounttrail.reset(new texture(get_texture_dir() + "foamamounttrail.png", texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
+
+	// check FBO usage
+	if (framebufferobject::supported()) {
+		sys().add_console("using opengl frame buffer objects");
+		reflectiontex_fbo.reset(new framebufferobject(*reflectiontex, true));
+		foamamounttex_fbo.reset(new framebufferobject(*foamamounttex, false));
+	}
 
 	const unsigned perimetertexs = 256;
 	const unsigned perimetertexborder = 32;
@@ -1021,10 +1024,14 @@ void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpo
 
 //	glPushMatrix();
 
-	unsigned afs = FOAMAMOUNTRES;	// size of amount of foam size, depends on water grid detail, fixme
+	unsigned afs = foamamounttex->get_gl_width();	// size of amount of foam size, depends on water grid detail, fixme
 	// foam is drawn the the same matrices as water, but with a smaller viewport
-	// set up viewport
-	glViewport(0, 0, afs, afs);
+	if (foamamounttex_fbo.get()) {
+		foamamounttex_fbo->bind();
+	} else {
+		// set up viewport
+		glViewport(0, 0, afs, afs);
+	}
 	// clear it , fixme: must be done earlier, there is already drawn something inside the viewport
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -1082,10 +1089,14 @@ void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpo
         osg.write((const char*)(&data[0]), afs*afs*3);
 #endif
 
-	// copy viewport data to foam-amount texture
-	foamamounttex->set_gl_texture();
-	// fixme: use GL_EXT_framebuffer_object here to save one copy
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, afs, afs, 0);
+	if (foamamounttex_fbo.get()) {
+		foamamounttex_fbo->unbind();
+	} else {
+		// copy viewport data to foam-amount texture
+		foamamounttex->set_gl_texture();
+		// fixme: use GL_EXT_framebuffer_object here to save one copy
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, afs, afs, 0);
+	}
 
 	// clean up
 	glEnable(GL_DEPTH_TEST);
