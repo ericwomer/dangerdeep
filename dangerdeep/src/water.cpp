@@ -237,6 +237,9 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	// fixme: make ^ that configureable! reflection doesn't need to have that high detail...
 	// fixme: auto mipmap?
 	reflectiontex.reset(new texture(rx, ry, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
+	if (framebufferobject::supported()) {
+		reflectiontex_fbo.reset(new framebufferobject(*reflectiontex, true));
+	}
 
 	sys().add_console("water rendering resolution %i x %i", xres, yres);
 	sys().add_console("wave resolution %u (%u)",wave_resolution,wave_resolution_shift);
@@ -1989,4 +1992,34 @@ void water::set_refraction_color(const colorf& light_color)
 	}
 	fresnelcolortex.reset(new texture(fresnelcolortexd, FRESNEL_FCT_RES, REFRAC_COLOR_RES, GL_RGBA,
 					  texture::LINEAR/*_MIPMAP_LINEAR*/, texture::CLAMP_TO_EDGE));
+}
+
+
+
+void water::refltex_render_bind() const
+{
+	if (reflectiontex_fbo.get()) {
+		reflectiontex_fbo->bind();
+	} else {
+		glViewport(0, 0, reflectiontex->get_width(), reflectiontex->get_height());
+	}
+
+	// clear depth buffer (not needed for sky drawing, but this color can be seen as mirror
+	// image when looking from below the water surface (scope) fixme: clear color with upwelling color!)
+	glClearColor(0, 1.0f/16, 1.0f/8, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+
+
+void water::refltex_render_unbind() const
+{
+	if (reflectiontex_fbo.get()) {
+		reflectiontex_fbo->unbind();
+	} else {
+		reflectiontex->set_gl_texture();
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0,
+				 reflectiontex->get_width(), reflectiontex->get_height(), 0);
+		//fixme: ^ glCopyTexSubImage may be faster!
+	}
 }

@@ -38,20 +38,35 @@ bool framebufferobject::supported()
 
 
 
-framebufferobject::framebufferobject(class texture* attachedtex)
-	: id(0), mytex(attachedtex), bound(false)
+framebufferobject::framebufferobject(class texture& attachedtex, bool withdepthbuffer)
+	: id(0), depthbuf_id(0), mytex(attachedtex), bound(false)
 {
-	if (!attachedtex)
-		throw std::invalid_argument("given null ptr to FBO c'tor");
 	if (!supported())
 		throw std::runtime_error("frame buffer objects are not supported!");
+
+	// create and bind depth buffer if requested
+	if (withdepthbuffer) {
+		glGenRenderbuffersEXT(1, &depthbuf_id);
+		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depthbuf_id);
+		glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT,
+					 mytex.get_gl_width(), mytex.get_gl_height());
+	}
+
+	// create and bind FBO
 	glGenFramebuffersEXT(1, &id);
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, id);
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
-				  GL_TEXTURE_2D, mytex->get_opengl_name(), 0);
+				  GL_TEXTURE_2D, mytex.get_opengl_name(), 0);
+
+	// attach depth buffer if requested
+	if (withdepthbuffer) {
+		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,
+					     GL_RENDERBUFFER_EXT, depthbuf_id);
+	}
+
 	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
 	if(status != GL_FRAMEBUFFER_COMPLETE_EXT) {
-		glDeleteFramebuffersEXT(1, &id);
+		destroy();
 		throw std::runtime_error("FBO initialization check failed");
 	}
 	// unbind for now
@@ -62,24 +77,34 @@ framebufferobject::framebufferobject(class texture* attachedtex)
 
 framebufferobject::~framebufferobject()
 {
-	glDeleteFramebuffersEXT(1, &id);
+	destroy();
 }
 
 
 
-void framebufferobject::bind()
+void framebufferobject::destroy()
+{
+	if (depthbuf_id)
+		glDeleteRenderbuffersEXT(1, &depthbuf_id);
+	if (id)
+		glDeleteFramebuffersEXT(1, &id);
+}
+
+
+
+void framebufferobject::bind() const
 {
 	if (bound)
 		throw std::runtime_error("FBO bind(): already bound!");
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, id);
 	glPushAttrib(GL_VIEWPORT_BIT);
-	glViewport(0, 0, mytex->get_gl_width(), mytex->get_gl_height());
+	glViewport(0, 0, mytex.get_gl_width(), mytex.get_gl_height());
 	bound = true;
 }
 
 
 
-void framebufferobject::unbind()
+void framebufferobject::unbind() const
 {
 	if (!bound)
 		throw std::runtime_error("FBO unbind(): not bound yet!");

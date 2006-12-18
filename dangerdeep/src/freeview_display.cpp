@@ -372,13 +372,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	//sys().gl_perspective_fovx(pd.fov_x * 1.0, 1.0 /*aspect*/, pd.near_z, pd.far_z);
 	// -------- old end ------------
 
-	// set up new viewport size s*s with s<=max_texure_size and s<=w,h of old viewport
-	const texture* refltex = ui.get_water().get_reflectiontex();
-	glViewport(0, 0, refltex->get_width(), refltex->get_height());
-	// clear depth buffer (not needed for sky drawing, but this color can be seen as mirror
-	// image when looking from below the water surface (scope) fixme: clear color with upwelling color!)
-	glClearColor(0, 1.0f/16, 1.0f/8, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	ui.get_water().refltex_render_bind();
 
 	// shear one clip plane to match world space z=0 plane
 	//fixme, use shaders for that, Clip planes are often computed in software and are too slow
@@ -429,13 +423,9 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		//fixme
 		glCullFace(GL_BACK);
 
-		// copy viewport pixel data to reflection texture
-		refltex->set_gl_texture();
-		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, refltex->get_width(), refltex->get_height(), 0);
-		//fixme: ^ glCopyTexSubImage may be faster!
-
 		glPopMatrix();
 	}
+	ui.get_water().refltex_render_unbind();
 
 #if 0
 	unsigned vps=512;

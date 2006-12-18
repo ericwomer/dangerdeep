@@ -38,6 +38,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ocean_wave_generator.h"
 #include "perlinnoise.h"
 #include "vertexbuffer.h"
+#include "framebufferobject.h"
 
 ///\brief Rendering of ocean water surfaces.
 class water
@@ -60,6 +61,9 @@ protected:
 	std::auto_ptr<texture> foamamounttrail;
 	std::auto_ptr<texture> foamperimetertex;
 	std::auto_ptr<texture> fresnelcolortex;	// texture for fresnel values and water color
+
+	std::auto_ptr<framebufferobject> reflectiontex_fbo;
+	std::auto_ptr<framebufferobject> foamamounttex_fbo;
 
 	std::auto_ptr<texture> waterspecularlookup;	// lookup 1d texture map for water specular term
 
@@ -210,9 +214,14 @@ public:
 	float get_height(const vector2& pos) const;
 	// give f as multiplier for difference to (0,0,1)
 	vector3f get_normal(const vector2& pos, double f = 1.0) const;
-	const texture* get_reflectiontex() const { return reflectiontex.get(); }
 	static float exact_fresnel(float x);
 	void set_refraction_color(const colorf& light_color);
+
+	/// prepare reflection texture for mirror drawing
+	void refltex_render_bind() const;
+
+	/// finish mirror drawing
+	void refltex_render_unbind() const;
 };
 
 #endif

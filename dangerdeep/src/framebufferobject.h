@@ -30,25 +30,28 @@ class framebufferobject
 {
  public:
 	/// create buffer object.
-	framebufferobject(class texture* attachedtex);
+	 framebufferobject(class texture& attachedtex, bool withdepthbuffer = false);
 
 	/// free buffer object
 	~framebufferobject();
 
 	/// bind buffer and set up rendering
-	void bind();
+	void bind() const;
 
 	/// unbind buffer
-	void unbind();
+	void unbind() const;
 
 	/// check if FBOs are supported
 	static bool supported();
 
  protected:
 	unsigned id;
-	class texture* mytex;
-	bool bound;
+	unsigned depthbuf_id;
+	class texture& mytex;
+	mutable bool bound;	// for extra error checks
 	static int fbo_supported;
+
+	void destroy();
 
  private:
 	framebufferobject();
