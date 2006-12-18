@@ -67,6 +67,7 @@ dftdsources = Split("""subsim.cpp
 
 dftdmediasources = Split("""
 	error.cpp
+	framebufferobject.cpp
 	font.cpp
 	image.cpp
 	make_mesh.cpp
