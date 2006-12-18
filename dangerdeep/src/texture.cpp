@@ -594,6 +594,9 @@ texture::texture(unsigned w, unsigned h, int format_,
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magfilter[mapping]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clampmodes[clamping]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
+	// initialize texel data with empty pixels
+	glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, GL_RGB,
+		     GL_UNSIGNED_BYTE, (void*)0);
 }
 
 
