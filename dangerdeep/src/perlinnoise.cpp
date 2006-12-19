@@ -99,6 +99,10 @@ Uint8 perlinnoise::noise_func::interpolate_sqr(fixed32 x, fixed32 y) const
 	// if next value is greater than this value, use ascending function f(x)=x^2
 	// if next value is less than this value, use descending function f(x)=1-(1-x)^2
 	// = 1-(1-2x+x^2) = 2x-x^2
+//fixme: Ken Perlin suggests cosine interpolation, that works no matter if next value is greater or not.
+//lookup would be much easier, and as benefit, we can use shaders to speed up rendering,
+//composing perlin noise directly as texture in video memory
+//the clouds are already interpolated that way! and not with this code!
 	fixed32 bx2 = bx.frac() * bx.frac();
 	fixed32 by2 = by.frac() * by.frac();
 	fixed32 f = (b < a) ? bx.frac()*2 - bx2 : bx2;
