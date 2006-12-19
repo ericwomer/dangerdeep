@@ -1410,7 +1410,7 @@ int mymain(list<string>& args)
 			     << "--savegamedir path\tdirectory for savegames, default path depends on platform\n"
 			     << "--highscoredir path\tdirectory for highscores, default path depends on platform\n"
 			     << "--configdir path\tdirectory for configuration data, default path depends on platform\n"
-			     << "--maxfps x\tset maximum fps to x frames per second (default 60)\n";
+			     << "--maxfps x\tset maximum fps to x frames per second (default 60). Use x=0 to disable fps limit.\n";
 			return 0;
 		} else if (*it == "--nofullscreen") {
 			fullscreen = false;
@@ -1512,7 +1512,7 @@ int mymain(list<string>& args)
 			list<string>::iterator it2 = it; ++it2;
 			if (it2 != args.end()) {
 				int mf = atoi(it2->c_str());
-				if (mf >= 1) maxfps = unsigned(mf);
+				if (mf >= 0) maxfps = unsigned(mf);
 				++it;
 			}
 		} else {
