@@ -1789,7 +1789,6 @@ int mymain(list<string>& args)
 	data_file_handler::release_instance();
 	cfg::release_instance();
 	widget::set_theme(auto_ptr<widget::theme>(0));	// clear allocated theme
-	image::clear_cache();
 	deinit_global_data();
 	gbd.reset();
 

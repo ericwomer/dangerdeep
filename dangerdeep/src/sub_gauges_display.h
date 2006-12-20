@@ -37,7 +37,7 @@ class sub_gauges_display : public user_display
 	struct indicator {
 		texture mytex;
 		unsigned x, y, w, h;
-		indicator(SDL_Surface* s, unsigned x_, unsigned y_, unsigned w_, unsigned h_);
+		indicator(const sdl_image& s, unsigned x_, unsigned y_, unsigned w_, unsigned h_);
 		void display(double angle) const;
 		bool is_over(int mx, int my) const;
 		angle get_angle(int mx, int my) const;

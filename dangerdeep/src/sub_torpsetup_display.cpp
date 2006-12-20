@@ -74,13 +74,13 @@ sub_torpsetup_display::scheme::scheme(bool day)
 	temperaturescale.reset(new texture(get_image_dir() + x + "_tempscale.png"));
 
 	// read knobs images and cut to separate images
-	image primaryrangeknobs_day(get_image_dir() + x + "_primaryrangeknobs.png");
-	image turnangleknobs_day(get_image_dir() + x + "_turnangleknobs.png");
-	image rundepthknobs_day(get_image_dir() + x + "_rundepthknobs.png");
+	sdl_image primaryrangeknobs_day(get_image_dir() + x + "_primaryrangeknobs.png");
+	sdl_image turnangleknobs_day(get_image_dir() + x + "_turnangleknobs.png");
+	sdl_image rundepthknobs_day(get_image_dir() + x + "_rundepthknobs.png");
 	for (unsigned i = 0; i < TK_PHASES; ++i) {
-		primaryrangeknob[i].set(new texture(primaryrangeknobs_day.get_SDL_Surface(), 0, i*192, 192, 192), 277, 571, 373, 667);
-		turnangleknob[i].set(new texture(turnangleknobs_day.get_SDL_Surface(), 0, i*192, 192, 192), 528, 571, 624, 667);
-		rundepthknob[i].set(new texture(rundepthknobs_day.get_SDL_Surface(), 0, i*192, 192, 192), 819, 17, 915, 113);
+		primaryrangeknob[i].set(new texture(primaryrangeknobs_day, 0, i*192, 192, 192), 277, 571, 373, 667);
+		turnangleknob[i].set(new texture(turnangleknobs_day, 0, i*192, 192, 192), 528, 571, 624, 667);
+		rundepthknob[i].set(new texture(rundepthknobs_day, 0, i*192, 192, 192), 819, 17, 915, 113);
 	}
 }
 

@@ -1332,42 +1332,39 @@ coastmap::coastmap(const string& filename)
 		}
 	}
 
-	SDL_Surface* surf = IMG_Load((get_map_dir() + img).c_str());
-	add_loading_screen("map image loaded");
-	ASSERT(surf != 0, string("coastmap: error loading image ") + img + string(" referenced in file ") + filename);
-
-	mapw = surf->w;
-	maph = surf->h;
-	pixelw_real = realwidth/mapw;
-	realheight = maph*realwidth/mapw;
-	// compute integer number of pixels per segment
-	unsigned pixperseqnonpower2 = unsigned(ceil(60000/pixelw_real));
-	// find next power of 2 that is larger or equal than computed nonpower2 pixel width
-	for (pixels_per_seg = 1; pixels_per_seg < pixperseqnonpower2; pixels_per_seg <<= 1);
+	{
+		sdl_image surf(get_map_dir() + img);
+		mapw = surf->w;
+		maph = surf->h;
+		pixelw_real = realwidth/mapw;
+		realheight = maph*realwidth/mapw;
+		// compute integer number of pixels per segment
+		unsigned pixperseqnonpower2 = unsigned(ceil(60000/pixelw_real));
+		// find next power of 2 that is larger or equal than computed nonpower2 pixel width
+		for (pixels_per_seg = 1; pixels_per_seg < pixperseqnonpower2; pixels_per_seg <<= 1);
 	
-	segsx = mapw/pixels_per_seg;
-	segsy = maph/pixels_per_seg;
-	segw_real = pixelw_real * pixels_per_seg;
-	ASSERT((segsx*pixels_per_seg == mapw) && (segsy*pixels_per_seg == maph), string("coastmap: map size must be integer multiple of segment size, in") + filename);
+		segsx = mapw/pixels_per_seg;
+		segsy = maph/pixels_per_seg;
+		segw_real = pixelw_real * pixels_per_seg;
+		ASSERT((segsx*pixels_per_seg == mapw) && (segsy*pixels_per_seg == maph), string("coastmap: map size must be integer multiple of segment size, in") + filename);
 
-	themap.resize(mapw*maph);
+		themap.resize(mapw*maph);
 
-	SDL_LockSurface(surf);
-	ASSERT(surf->format->BytesPerPixel == 1 && surf->format->palette != 0 && surf->format->palette->ncolors == 2, string("coastmap: image is no black/white 1bpp paletted image, in ") + filename);
+		surf.lock();
+		ASSERT(surf->format->BytesPerPixel == 1 && surf->format->palette != 0 && surf->format->palette->ncolors == 2, string("coastmap: image is no black/white 1bpp paletted image, in ") + filename);
 
-	Uint8* offset = (Uint8*)(surf->pixels);
-	int mapoffy = maph*mapw;
-	for (int yy = 0; yy < int(maph); yy++) {
-		mapoffy -= mapw;
-		for (int xx = 0; xx < int(mapw); ++xx) {
-			Uint8 c = (*offset++);
-			themap[mapoffy+xx] = (c > 0) ? 1 : 0;
+		Uint8* offset = (Uint8*)(surf->pixels);
+		int mapoffy = maph*mapw;
+		for (int yy = 0; yy < int(maph); yy++) {
+			mapoffy -= mapw;
+			for (int xx = 0; xx < int(mapw); ++xx) {
+				Uint8 c = (*offset++);
+				themap[mapoffy+xx] = (c > 0) ? 1 : 0;
+			}
+			offset += surf->pitch - mapw;
 		}
-		offset += surf->pitch - mapw;
+		surf.unlock();
 	}
-
-	SDL_UnlockSurface(surf);
-	SDL_FreeSurface(surf);
 
 	add_loading_screen("image transformed");
 

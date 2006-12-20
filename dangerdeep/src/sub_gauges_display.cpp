@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "sub_gauges_display.h"
 #include "user_interface.h"
 
-sub_gauges_display::indicator::indicator(SDL_Surface* s, unsigned x_, unsigned y_, unsigned w_, unsigned h_)
+sub_gauges_display::indicator::indicator(const sdl_image& s, unsigned x_, unsigned y_, unsigned w_, unsigned h_)
 	: mytex(s, x_, y_, w_, h_, texture::LINEAR, texture::CLAMP_TO_EDGE),
 	  x(x_), y(y_), w(w_), h(h_)
 {
@@ -198,29 +198,29 @@ void sub_gauges_display::enter(bool is_day)
 	else
 		controlscreen.reset(new image(get_image_dir() + "redlight_typevii_controlscreen_background.jpg"));
 
-	image compassi(get_image_dir() + "compass_outer_masked.png");
-	image dials(get_image_dir() + (is_day ? "daylight_controlscreen_pointers.png" : "redlight_controlscreen_pointers.png"));
+	sdl_image compassi(get_image_dir() + "compass_outer_masked.png");
+	sdl_image dials(get_image_dir() + (is_day ? "daylight_controlscreen_pointers.png" : "redlight_controlscreen_pointers.png"));
 	//fusebox lights are missing here
 	// old controlscreen layers, will now belong to TypeIIA/B uboat controlscreen
 	// new ones are for TypeVII uboat controlscreen
 	//	indicators.resize(nr_of_indicators);
-	//	indicator_compass->set(compassi.get_SDL_Surface(), (SDL_Surface*)0, 35, 451, 226, 226);
-	//	indicator_battery->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 276, 358, 58, 58);
-	//	indicator_compressor->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 353, 567, 76, 76);
-	//	indicator_diesel->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 504, 567, 76, 76);
-	//	indicator_bow_depth_rudder->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 693, 590, 88, 88);
-	//	indicator_stern_depth_rudder->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 881, 590, 88, 88);
-	//	indicator_depth->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 420, 295, 168, 168);
-	//	indicator_knots->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 756, 44, 94, 94);
-	//	indicator_main_rudder->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 788, 429, 96, 96);
-	//	indicator_mt->set(dialsday.get_SDL_Surface(), dialsnight.get_SDL_Surface(), 426, 37, 158, 158);
-	indicator_compass.reset(new indicator(compassi.get_SDL_Surface(), 87, 378, 338, 338));
-	indicator_bow_depth_rudder.reset(new indicator(dials.get_SDL_Surface(), 563, 550, 148, 148));
-	indicator_stern_depth_rudder.reset(new indicator(dials.get_SDL_Surface(), 795, 550, 148, 148));
-	indicator_depth.reset(new indicator(dials.get_SDL_Surface(), 391, 50, 270, 270));
-	indicator_knots.reset(new indicator(dials.get_SDL_Surface(), 782, 95, 132, 132));
-	indicator_main_rudder.reset(new indicator(dials.get_SDL_Surface(), 681, 337, 152, 152));
-	indicator_mt.reset(new indicator(dials.get_SDL_Surface(), 88, 93, 173, 173));
+	//	indicator_compass->set(compassi, (SDL_Surface*)0, 35, 451, 226, 226);
+	//	indicator_battery->set(dialsday, dialsnight, 276, 358, 58, 58);
+	//	indicator_compressor->set(dialsday, dialsnight, 353, 567, 76, 76);
+	//	indicator_diesel->set(dialsday, dialsnight, 504, 567, 76, 76);
+	//	indicator_bow_depth_rudder->set(dialsday, dialsnight, 693, 590, 88, 88);
+	//	indicator_stern_depth_rudder->set(dialsday, dialsnight, 881, 590, 88, 88);
+	//	indicator_depth->set(dialsday, dialsnight, 420, 295, 168, 168);
+	//	indicator_knots->set(dialsday, dialsnight, 756, 44, 94, 94);
+	//	indicator_main_rudder->set(dialsday, dialsnight, 788, 429, 96, 96);
+	//	indicator_mt->set(dialsday, dialsnight, 426, 37, 158, 158);
+	indicator_compass.reset(new indicator(compassi, 87, 378, 338, 338));
+	indicator_bow_depth_rudder.reset(new indicator(dials, 563, 550, 148, 148));
+	indicator_stern_depth_rudder.reset(new indicator(dials, 795, 550, 148, 148));
+	indicator_depth.reset(new indicator(dials, 391, 50, 270, 270));
+	indicator_knots.reset(new indicator(dials, 782, 95, 132, 132));
+	indicator_main_rudder.reset(new indicator(dials, 681, 337, 152, 152));
+	indicator_mt.reset(new indicator(dials, 88, 93, 173, 173));
 }
 
 

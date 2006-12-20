@@ -27,66 +27,34 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <list>
 #include <string>
 #include <SDL.h>
+#include "ptrvector.h"
 
 class texture;
+
 
 ///\brief Handles an image for OpenGL based rendering.
 class image
 {
 protected:
-	SDL_Surface* img;
 	std::string name;	// filename
 	unsigned width, height;
+	unsigned gltx, glty;	// no. of textures in x and y direction
+	ptrvector<texture> textures;
 
-	// caching.
-	struct cache_entry 
-	{
-		const image* object;		// for comparison
-		unsigned time_stamp;	// for cache handling
-		unsigned gltx, glty;	// no. of textures in x and y direction
-		// we can't use the ptrvector here, since cache_entry objects can be copied.
-		std::vector<texture*> textures;
-		void generate(const image* obj);
-		cache_entry();
-		~cache_entry();
-	};
-
-	// the cache
-	static std::list<cache_entry> cache;
-
-	// create texture(s) from image for faster drawing
-	// store in cache if not already cached
-	static cache_entry& check_cache(const image* obj);
-
-	// statistics.
-	static unsigned mem_used;
-	static unsigned mem_alloced;
-	static unsigned mem_freed;
 private:
 	image();
-	image& operator= (const image& other);	// later fixme
-	image(const image& other);		// later fixme
-					// operator=: copy image or assign? fixme
+	image& operator= (const image& other);
+	image(const image& other);
 
 public:
-	// images are mostly used for background drawing.
-	// creating them as textures leads to fast display and large video memory consumption.
-	// So they should kept in system memory only and drawn via glDrawPixels
-	// or at least a 1-slot cache could be realized (size: 1 screen, only last drawn
-	// image is cached there)
+	/// create image
 	image(const std::string& s);
-	~image();
-	// draw with caching image in texture memory
+
+	/// draw image at position
 	void draw(int x, int y) const;
-	// draw image by directly copying pixels to the frame buffer
-	void draw_direct(int x, int y) const;
-	// returns 0 if image is stored in texture
-	SDL_Surface* get_SDL_Surface() const { return img; }
+
 	unsigned get_width() const { return width; };
 	unsigned get_height() const { return height; };
-
-	// call only before leaving the program.
-	static void clear_cache() { cache.clear(); }
 };
 
 #endif

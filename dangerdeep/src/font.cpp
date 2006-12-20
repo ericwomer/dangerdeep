@@ -140,14 +140,14 @@ font::font(const string& basefilename, unsigned char_spacing)
 	}
 
 	// load image
-	SDL_Surface* fontimage = IMG_Load((basefilename + ".png").c_str());
-	if (!fontimage)
-		throw error(string("font: failed to open ")+basefilename);
+	sdl_image fontimage(basefilename + ".png");
 
 	// process image data, create textures
-	SDL_LockSurface(fontimage);
-	if (fontimage->format->BytesPerPixel != 1)
+	fontimage.lock();
+	if (fontimage->format->BytesPerPixel != 1) {
+		fontimage.unlock();
 		throw error(string("font: only grayscale images are supported! font ")+basefilename);
+	}
 
 //	measure waste of video ram. 2006/12/02, ca. 660kb wasted, 1.3mb totally used. so 50% loss.
 //	unsigned waste = 0;
@@ -173,8 +173,7 @@ font::font(const string& basefilename, unsigned char_spacing)
 	}
 //	printf("wasted ca. %u bytes of video ram for font %s\n", waste, basefilename.c_str());
 	
-	SDL_UnlockSurface(fontimage);
-	SDL_FreeSurface(fontimage);
+	fontimage.unlock();
 }
 
 

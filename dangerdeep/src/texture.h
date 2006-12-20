@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif
 
 #include <SDL.h>
+#include <SDL_image.h>
 #ifdef USE_NATIVE_GL
 #include <gl.h>
 #else
@@ -44,6 +45,52 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <memory>
 
 #include "error.h"
+
+
+/// wrapper for SDL_Surface/SDL_images to make memory management automatic
+class sdl_image
+{
+ public:
+	/// create image from file
+	sdl_image(const std::string& filename) : img(0)
+	{
+		img = IMG_Load(filename.c_str());
+		if (!img)
+			throw file_read_error(filename);
+	}
+	/// destroy image
+	~sdl_image()
+	{
+		SDL_FreeSurface(img);
+	}
+	/// lock surface
+	void lock()
+	{
+		SDL_LockSurface(img);
+	}
+	/// unlock surface
+	void unlock()
+	{
+		SDL_UnlockSurface(img);
+	}
+	/// get pointer to surface
+	SDL_Surface* get_SDL_Surface() const { return img; }
+	/// access elements of surface
+	SDL_Surface* operator->() const throw()
+	{
+		return img;
+	}
+
+ protected:
+	SDL_Surface* img;
+
+ private:
+	sdl_image();	// no copy
+	sdl_image& operator= (const sdl_image& other);
+	sdl_image(const sdl_image& other);
+};
+
+
 
 ///\brief Handles an OpenGL texture with loading and display.
 class texture
@@ -112,6 +159,10 @@ protected:
 	static unsigned mem_alloced;
 	static unsigned mem_freed;
 
+	// reads an image file into a surface,
+	// can combine RGB(jpg) and A(png) into one surface
+	static SDL_Surface* read_from_file(const std::string& filename);
+
 public:
 	class texerror : public error
 	{
@@ -134,6 +185,12 @@ public:
 		mapping_mode mapping_ = NEAREST, clamping_mode clamp = REPEAT,
 		bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
 
+	// create texture from subimage of SDL surface, based on sdl_image
+	// sw,sh need not to be powers of two.
+	texture(const sdl_image& teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
+		mapping_mode mapping_ = NEAREST, clamping_mode clamp = REPEAT,
+		bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
+
 	// create texture from memory values (use openGl constants for format,etc.
 	// w,h must be powers of two.
 	texture(const std::vector<Uint8>& pixels, unsigned w, unsigned h,
@@ -148,10 +205,6 @@ public:
 
 	~texture();
 
-	// reads an image file into a surface,
-	// can combine RGB(jpg) and A(png) into one surface
-	static SDL_Surface* read_from_file(const std::string& filename);
-	
 	int get_format() const { return format; }
 	unsigned get_bpp() const;
 	unsigned get_opengl_name() const { return opengl_name; };

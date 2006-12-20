@@ -106,11 +106,8 @@ int widget::theme::icon_size() const
 widget::theme::theme(const char* elements_filename, const char* icons_filename, const font* fnt,
 	color tc, color tsc, color tdc) : myfont(fnt), textcol(tc), textselectcol(tsc), textdisabledcol(tdc)
 {
-	SDL_Surface* tmp = 0;
-	tmp = IMG_Load((get_texture_dir() + elements_filename).c_str());
-	if (!tmp)
-		throw file_read_error(get_texture_dir() + elements_filename);
-	try {
+	{
+		sdl_image tmp(get_texture_dir() + elements_filename);
 		int fw = tmp->h;
 		backg.reset(new texture(tmp, 0, 0, fw, fw));
 		skbackg.reset(new texture(tmp, fw, 0, fw, fw));
@@ -120,25 +117,12 @@ widget::theme::theme(const char* elements_filename, const char* icons_filename, 
 			frameinv[i].reset(new texture(tmp, (i+10)*fw, 0, fw, fw));
 		sbarbackg.reset(new texture(tmp, (2+2*8)*fw, 0, fw, fw));
 		sbarsurf.reset(new texture(tmp, (2+2*8+1)*fw, 0, fw, fw));
-		SDL_FreeSurface(tmp);
 	}
-	catch (...) {
-		SDL_FreeSurface(tmp);
-		throw;
-	}
-	tmp = 0;
-	tmp = IMG_Load((get_texture_dir() + icons_filename).c_str());
-	if (!tmp)
-		throw file_read_error(get_texture_dir() + icons_filename);
-	try {
+	{
+		sdl_image tmp(get_texture_dir() + icons_filename);
 		int fw = tmp->h;
 		for (int i = 0; i < 4; ++i)
 			icons[i].reset(new texture(tmp, i*fw, 0, fw, fw));
-		SDL_FreeSurface(tmp);
-	}
-	catch (...) {
-		SDL_FreeSurface(tmp);
-		throw;
 	}
 }
 

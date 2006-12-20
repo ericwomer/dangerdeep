@@ -543,6 +543,17 @@ texture::texture(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, u
 
 
 
+texture::texture(const sdl_image& teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
+		 mapping_mode mapping_, clamping_mode clamp, bool makenormalmap, float detailh,
+		 bool rgb2grey)
+{
+	mapping = mapping_;
+	clamping = clamp;
+	sdl_init(teximage.get_SDL_Surface(), sx, sy, sw, sh, makenormalmap, detailh, rgb2grey);
+}
+
+
+
 texture::texture(const vector<Uint8>& pixels, unsigned w, unsigned h, int format_,
 		 mapping_mode mapping_, clamping_mode clamp, bool makenormalmap, float detailh)
 {
@@ -638,17 +649,10 @@ SDL_Surface* texture::read_from_file(const std::string& filename)
 		// special texture, using jpg for RGB and png/grey for A.
 		string fnrgb = filename.substr(0, st) + ".jpg";
 		string fna = filename.substr(0, st) + ".png";
-		SDL_Surface* teximagergb = 0;
-		SDL_Surface* teximagea = 0;
+		sdl_image teximagergb(fnrgb);
+		sdl_image teximagea(fna);
 		SDL_Surface* result = 0;
 		try {
-			teximagergb = IMG_Load(fnrgb.c_str());
-			if (!teximagergb)
-				throw file_read_error(fnrgb);
-			teximagea = IMG_Load(fna.c_str());
-			if (!teximagea)
-				throw file_read_error(fna);
-
 			// combine surfaces to one
 			if (teximagergb->w != teximagea->w || teximagergb->h != teximagea->h)
 				throw texerror(filename, "jpg/png load: widths/heights don't match");
@@ -687,8 +691,8 @@ SDL_Surface* texture::read_from_file(const std::string& filename)
 				throw file_read_error(filename);
 
 			// copy pixel data
-			SDL_LockSurface(teximagergb);
-			SDL_LockSurface(teximagea);
+			teximagergb.lock();
+			teximagea.lock();
 			SDL_LockSurface(result);
 
 			// fixme: when reading pixels out of sdl surfaces,
@@ -709,22 +713,16 @@ SDL_Surface* texture::read_from_file(const std::string& filename)
 				ptr += result->pitch;
 			}
 
-			SDL_UnlockSurface(teximagergb);
-			SDL_UnlockSurface(teximagea);
+			teximagergb.unlock();
+			teximagea.unlock();
 			SDL_UnlockSurface(result);
 		}
 		catch (...) {
-			if (teximagergb)
-				SDL_FreeSurface(teximagergb);
-			if (teximagea)
-				SDL_FreeSurface(teximagea);
 			if (result)
 				SDL_FreeSurface(result);
 			throw;
 		}
 
-		SDL_FreeSurface(teximagergb);
-		SDL_FreeSurface(teximagea);
 		return result;
 	}
 }
