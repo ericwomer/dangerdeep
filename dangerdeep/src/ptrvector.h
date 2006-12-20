@@ -42,9 +42,14 @@ class ptrvector
 	~ptrvector() { clear(); }
 
 	void resize(size_t newsize) {
-		if (newsize < size())
-			for (size_t i = newsize; i < size(); ++i)
+		if (newsize < size()) {
+			for (size_t i = newsize; i < size(); ++i) {
 				delete data[i];
+				// set to zero, because if resize throws an exception,
+				// objects could get destructed twice
+				data[i] = 0;
+			}
+		}
 		data.resize(newsize);
 	}
 	size_t size() const { return data.size(); }
@@ -52,12 +57,18 @@ class ptrvector
 	void clear() {
 		for (size_t i = 0; i < size(); ++i) {
 			delete data[i];
+			// set to zero, because if clear throws an exception,
+			// objects could get destructed twice
+			data[i] = 0;
 		}
 		data.clear();
 	}
+
+	/* not used yet. take care to make it exception safe. maybe make parameter as auto_ptr
 	void push_back(T* ptr) {
 		data.push_back(ptr);
 	}
+	*/
 
 	T* const& operator[](size_t n) const { return data[n]; }
 	T* const& at(size_t n) const { return data.at(n); }
