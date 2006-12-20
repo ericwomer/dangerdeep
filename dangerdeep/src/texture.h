@@ -52,34 +52,23 @@ class sdl_image
 {
  public:
 	/// create image from file
-	sdl_image(const std::string& filename) : img(0)
-	{
-		img = IMG_Load(filename.c_str());
-		if (!img)
-			throw file_read_error(filename);
-	}
+	///@note can combine RGB(jpg) and A(png) into one surface
+	sdl_image(const std::string& filename);
+
 	/// destroy image
-	~sdl_image()
-	{
-		SDL_FreeSurface(img);
-	}
+	~sdl_image();
+
 	/// lock surface
-	void lock()
-	{
-		SDL_LockSurface(img);
-	}
+	void lock();
+
 	/// unlock surface
-	void unlock()
-	{
-		SDL_UnlockSurface(img);
-	}
+	void unlock();
+
 	/// get pointer to surface
 	SDL_Surface* get_SDL_Surface() const { return img; }
+
 	/// access elements of surface
-	SDL_Surface* operator->() const throw()
-	{
-		return img;
-	}
+	SDL_Surface* operator->() const throw() { return img; }
 
  protected:
 	SDL_Surface* img;
@@ -158,10 +147,6 @@ protected:
 	static unsigned mem_used;
 	static unsigned mem_alloced;
 	static unsigned mem_freed;
-
-	// reads an image file into a surface,
-	// can combine RGB(jpg) and A(png) into one surface
-	static SDL_Surface* read_from_file(const std::string& filename);
 
 public:
 	class texerror : public error

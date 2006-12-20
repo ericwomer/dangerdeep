@@ -99,6 +99,126 @@ static GLuint clampmodes[texture::NR_OF_CLAMPING_MODES] = {
 
 
 
+sdl_image::sdl_image(const std::string& filename)
+	: img(0)
+{
+	// get extension
+	string::size_type st = filename.rfind(".");
+	string extension = filename.substr(st);
+
+	if (extension != ".jpg|png") {
+		// standard texture, just one file
+		img = IMG_Load(filename.c_str());
+		if (!img)
+			throw file_read_error(filename);
+	} else {
+		// special texture, using jpg for RGB and png/grey for A.
+		string fnrgb = filename.substr(0, st) + ".jpg";
+		string fna = filename.substr(0, st) + ".png";
+		// "recursive" use of constructor. looks wild, but is valid.
+		sdl_image teximagergb(fnrgb);
+		sdl_image teximagea(fna);
+
+		// combine surfaces to one
+		if (teximagergb->w != teximagea->w || teximagergb->h != teximagea->h)
+			throw texture::texerror(filename, "jpg/png load: widths/heights don't match");
+
+		if (teximagergb->format->BytesPerPixel != 3
+		    || (teximagergb->format->Amask != 0))
+			throw texture::texerror(fnrgb, ".jpg: no 3 byte/pixel RGB image!");
+
+		if (teximagea->format->BytesPerPixel != 1
+		    || teximagea->format->palette == 0
+		    || teximagea->format->palette->ncolors != 256
+		    || ((teximagea->flags & SDL_SRCCOLORKEY) != 0))
+			throw texture::texerror(fna, ".png: no 8bit greyscale non-alpha-channel image!");
+
+		Uint32 rmask, gmask, bmask, amask;
+
+		/* SDL interprets each pixel as a 32-bit number, so our masks must depend
+		   on the endianness (byte order) of the machine */
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		rmask = 0xff000000;
+		gmask = 0x00ff0000;
+		bmask = 0x0000ff00;
+		amask = 0x000000ff;
+#else
+		rmask = 0x000000ff;
+		gmask = 0x0000ff00;
+		bmask = 0x00ff0000;
+		amask = 0xff000000;
+#endif
+
+		SDL_Surface* result = SDL_CreateRGBSurface(SDL_SWSURFACE,
+							   teximagergb->w,
+							   teximagergb->h,
+							   32, rmask, gmask, bmask, amask);
+		if (!result)
+			throw file_read_error(filename);
+
+		try {
+			// copy pixel data
+			teximagergb.lock();
+			teximagea.lock();
+			SDL_LockSurface(result);
+
+			// fixme: when reading pixels out of sdl surfaces,
+			// we need to take care of the pixel format...
+			unsigned char* ptr = ((unsigned char*)(result->pixels));
+			unsigned char* offsetrgb = ((unsigned char*)(teximagergb->pixels));
+			unsigned char* offseta = ((unsigned char*)(teximagea->pixels));
+			// 2006-12-01 doc1972 images with negative width and height doesn´t exist, so we cast to unsigned
+			for (unsigned y = 0; y < (unsigned int)teximagergb->h; ++y) {
+				for (unsigned x = 0; x < (unsigned int)teximagergb->w; ++x) {
+					ptr[4*x  ] = offsetrgb[3*x  ];
+					ptr[4*x+1] = offsetrgb[3*x+1];
+					ptr[4*x+2] = offsetrgb[3*x+2];
+					ptr[4*x+3] = offseta[x];
+				}
+				offsetrgb += teximagergb->pitch;
+				offseta += teximagea->pitch;
+				ptr += result->pitch;
+			}
+
+			teximagergb.unlock();
+			teximagea.unlock();
+			SDL_UnlockSurface(result);
+		}
+		catch (...) {
+			if (result)
+				SDL_FreeSurface(result);
+			throw;
+		}
+
+		img = result;
+	}
+}
+
+
+
+sdl_image::~sdl_image()
+{
+	SDL_FreeSurface(img);
+}
+
+
+
+void sdl_image::lock()
+{
+	SDL_LockSurface(img);
+}
+
+
+
+void sdl_image::unlock()
+{
+	SDL_UnlockSurface(img);
+}
+
+
+
+// --------------------------------------------------
+
 void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
 		       bool makenormalmap, float detailh, bool rgb2grey)
 {
@@ -525,9 +645,8 @@ texture::texture(const string& filename, mapping_mode mapping_, clamping_mode cl
 	clamping = clamp;
 	texfilename = filename;
 
-	SDL_Surface* teximage = read_from_file(filename);
-	sdl_init(teximage, 0, 0, teximage->w, teximage->h, makenormalmap, detailh, rgb2grey);
-	SDL_FreeSurface(teximage);
+	sdl_image teximage(filename);
+	sdl_init(teximage.get_SDL_Surface(), 0, 0, teximage->w, teximage->h, makenormalmap, detailh, rgb2grey);
 }	
 
 
@@ -626,105 +745,6 @@ texture::~texture()
 	sys().add_console(oss2.str());
 #endif
 	glDeleteTextures(1, &opengl_name);
-}
-
-
-
-SDL_Surface* texture::read_from_file(const std::string& filename)
-{
-	// get extension
-	string::size_type st = filename.rfind(".");
-	string extension = filename.substr(st);
-
-	if (extension != ".jpg|png") {
-		// standard texture, just one file
-// 		unsigned tm0 = sys().millisec();
-		SDL_Surface* teximage = IMG_Load(filename.c_str());
-		if (!teximage)
-			throw file_read_error(filename);
-// 		unsigned tm1 = sys().millisec();
-// 		printf("Image '%s' load time %ums\n", filename.c_str(), tm1-tm0);
-		return teximage;
-	} else {
-		// special texture, using jpg for RGB and png/grey for A.
-		string fnrgb = filename.substr(0, st) + ".jpg";
-		string fna = filename.substr(0, st) + ".png";
-		sdl_image teximagergb(fnrgb);
-		sdl_image teximagea(fna);
-		SDL_Surface* result = 0;
-		try {
-			// combine surfaces to one
-			if (teximagergb->w != teximagea->w || teximagergb->h != teximagea->h)
-				throw texerror(filename, "jpg/png load: widths/heights don't match");
-
-			if (teximagergb->format->BytesPerPixel != 3
-			    || (teximagergb->format->Amask != 0))
-				throw texerror(fnrgb, ".jpg: no 3 byte/pixel RGB image!");
-
-			if (teximagea->format->BytesPerPixel != 1
-			    || teximagea->format->palette == 0
-			    || teximagea->format->palette->ncolors != 256
-			    || ((teximagea->flags & SDL_SRCCOLORKEY) != 0))
-				throw texerror(fna, ".png: no 8bit greyscale non-alpha-channel image!");
-
-			Uint32 rmask, gmask, bmask, amask;
-
-			/* SDL interprets each pixel as a 32-bit number, so our masks must depend
-			   on the endianness (byte order) of the machine */
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-			rmask = 0xff000000;
-			gmask = 0x00ff0000;
-			bmask = 0x0000ff00;
-			amask = 0x000000ff;
-#else
-			rmask = 0x000000ff;
-			gmask = 0x0000ff00;
-			bmask = 0x00ff0000;
-			amask = 0xff000000;
-#endif
-
-			result = SDL_CreateRGBSurface(SDL_SWSURFACE,
-						      teximagergb->w,
-						      teximagergb->h,
-						      32, rmask, gmask, bmask, amask);
-			if (!result)
-				throw file_read_error(filename);
-
-			// copy pixel data
-			teximagergb.lock();
-			teximagea.lock();
-			SDL_LockSurface(result);
-
-			// fixme: when reading pixels out of sdl surfaces,
-			// we need to take care of the pixel format...
-			unsigned char* ptr = ((unsigned char*)(result->pixels));
-			unsigned char* offsetrgb = ((unsigned char*)(teximagergb->pixels));
-			unsigned char* offseta = ((unsigned char*)(teximagea->pixels));
-			// 2006-12-01 doc1972 images with negative width and height doesn´t exist, so we cast to unsigned
-			for (unsigned y = 0; y < (unsigned int)teximagergb->h; ++y) {
-				for (unsigned x = 0; x < (unsigned int)teximagergb->w; ++x) {
-					ptr[4*x  ] = offsetrgb[3*x  ];
-					ptr[4*x+1] = offsetrgb[3*x+1];
-					ptr[4*x+2] = offsetrgb[3*x+2];
-					ptr[4*x+3] = offseta[x];
-				}
-				offsetrgb += teximagergb->pitch;
-				offseta += teximagea->pitch;
-				ptr += result->pitch;
-			}
-
-			teximagergb.unlock();
-			teximagea.unlock();
-			SDL_UnlockSurface(result);
-		}
-		catch (...) {
-			if (result)
-				SDL_FreeSurface(result);
-			throw;
-		}
-
-		return result;
-	}
 }
 
 
