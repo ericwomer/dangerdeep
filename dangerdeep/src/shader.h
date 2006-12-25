@@ -66,10 +66,6 @@ class glsl_program
 	/// create program
 	glsl_program();
 
-	/// create program with two shaders, normally used for vertex+fragment shader pair
-	///@note will link program already!
-	glsl_program(glsl_shader& shader1, glsl_shader& shader2);
-
 	/// destroy program
 	~glsl_program();
 
@@ -83,7 +79,7 @@ class glsl_program
 	void link();
 
 	/// use this program
-	///@note will link the program first, if not done yet
+	///@note link program before using it!
 	void use() const;
 
 	/// use fixed function pipeline instead of particular program
@@ -101,6 +97,27 @@ class glsl_program
  private:
 	glsl_program(const glsl_program& );
 	glsl_program& operator= (const glsl_program& );
+};
+
+
+
+/// this class combines two shaders and one program to a shader setup
+class glsl_shader_setup
+{
+ public:
+	/// create shader setup of two shaders
+	glsl_shader_setup(const std::string& filename_vshader,
+			  const std::string& filename_fshader);
+
+	/// use this setup
+	void use() const;
+
+	/// use fixed function pipeline instead of particular setup
+	static void use_fixed();
+
+ protected:
+	glsl_shader vs, fs;
+	glsl_program prog;
 };
 
 #endif

@@ -140,27 +140,6 @@ glsl_program::glsl_program()
 
 
 
-glsl_program::glsl_program(glsl_shader& shader1, glsl_shader& shader2)
-	: id(0), linked(false)
-{
-	if (!supported())
-		throw std::runtime_error("GLSL programs are not supported!");
-	id = glCreateProgram();
-	if (id == 0)
-		throw runtime_error("can't create glsl program");
-	try {
-		attach(shader1);
-		attach(shader2);
-		link();
-	}
-	catch (exception& e) {
-		glDeleteProgram(id);
-		throw;
-	}
-}
-
-
-
 glsl_program::~glsl_program()
 {
 	for (list<glsl_shader*>::iterator it = attached_shaders.begin(); it != attached_shaders.end(); ++it)
@@ -226,6 +205,32 @@ void glsl_program::use() const
 
 
 void glsl_program::use_fixed()
+{
+	glUseProgram(0);
+}
+
+
+
+glsl_shader_setup::glsl_shader_setup(const std::string& filename_vshader,
+				     const std::string& filename_fshader)
+	: vs(filename_vshader, glsl_shader::VERTEX),
+	  fs(filename_fshader, glsl_shader::FRAGMENT)
+{
+	prog.attach(vs);
+	prog.attach(fs);
+	prog.link();
+}
+
+
+
+void glsl_shader_setup::use() const
+{
+	prog.use();
+}
+
+
+
+void glsl_shader_setup::use_fixed()
 {
 	glUseProgram(0);
 }
