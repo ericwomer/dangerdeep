@@ -72,6 +72,7 @@ dftdmediasources = Split("""
 	image.cpp
 	make_mesh.cpp
 	model.cpp
+	shader.cpp
 	system.cpp
 	texture.cpp
 	vertexbuffer.cpp
