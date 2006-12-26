@@ -39,8 +39,11 @@ class glsl_shader
 		FRAGMENT
 	};
 
+	/// a list of strings with shader preprocessor defines
+	typedef std::list<std::string> defines_list;
+
 	/// create a shader
-	glsl_shader(const std::string& filename, type stype);
+	glsl_shader(const std::string& filename, type stype, const defines_list& dl = defines_list());
 
 	/// destroy a shader
 	~glsl_shader();
@@ -89,7 +92,7 @@ class glsl_program
 	static bool supported();
 
 	/// set up texture for a particular shader name
-		void set_gl_texture(class texture& tex, const std::string& texname, unsigned texunit) const;
+	void set_gl_texture(class texture& tex, const std::string& texname, unsigned texunit) const;
 
  protected:
 	unsigned id;
@@ -110,7 +113,8 @@ class glsl_shader_setup
  public:
 	/// create shader setup of two shaders
 	glsl_shader_setup(const std::string& filename_vshader,
-			  const std::string& filename_fshader);
+			  const std::string& filename_fshader,
+			  const glsl_shader::defines_list& dl = glsl_shader::defines_list());
 
 	/// use this setup
 	void use() const;

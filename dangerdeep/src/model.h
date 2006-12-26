@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "matrix4.h"
 #include "texture.h"
 #include "color.h"
+#include "shader.h"
 #include <vector>
 #include <fstream>
 #include <memory>
@@ -78,6 +79,8 @@ public:
 			// set up opengl texture matrix with map transformation values
 			void setup_glmatrix() const;
 			void set_gl_texture() const;
+			void set_gl_texture(glsl_program& prog, const std::string& texname, unsigned texunitnr) const;
+			void set_gl_texture(glsl_shader_setup& gss, const std::string& texname, unsigned texunitnr) const;
 			void set_texture(texture* t);
 			void register_layout(const std::string& name, const std::string& basepath,
 					     texture::mapping_mode mapping,
@@ -203,24 +206,13 @@ protected:
 	// class-wide variables: shaders supported and enabled, shader number and init count
 	static unsigned init_count;
 
-	// Booleans for supported OpenGL extensions
-	static bool vertex_program_supported;
-	static bool fragment_program_supported;
-	static bool compiled_vertex_arrays_supported;
-
 	// Config options (only used when supported and enabled)
 	static bool use_shaders;
 
 	// Shader programs
-	static std::vector<GLuint> default_vertex_programs;
-	static std::vector<GLuint> default_fragment_programs;
-
-	enum shader_programs {
-		VFP_COLOR_NORMAL_SPECULAR,
-		VFP_COLOR_NORMAL,
-		VFP_MIRROR_CLIP,
-		NR_VFP,
-	}; // more variants later.
+	static std::auto_ptr<glsl_shader_setup> glsl_color_normal;
+	static std::auto_ptr<glsl_shader_setup> glsl_color_normal_specular;
+	static std::auto_ptr<glsl_shader_setup> glsl_mirror_clip;
 
 	// init / deinit
 	static void render_init();

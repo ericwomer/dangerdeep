@@ -44,7 +44,7 @@ bool glsl_program::supported()
 
 
 
-glsl_shader::glsl_shader(const string& filename, type stype)
+glsl_shader::glsl_shader(const string& filename, type stype, const glsl_shader::defines_list& dl)
 	: id(0)
 {
 	if (!glsl_program::supported())
@@ -67,33 +67,20 @@ glsl_shader::glsl_shader(const string& filename, type stype)
 		if (ifprg.fail())
 			throw file_read_error(filename);
 
+		// the program as string
+		string prg;
+
+		// add defines to top of list for preprocessor
+		for (defines_list::const_iterator it = dl.begin(); it != dl.end(); ++it) {
+			prg += string("#define ") + *it + "\n";
+		}
+
 		// read lines.
-		vector<string> lines;
 		while (!ifprg.eof()) {
 			string s;
 			getline(ifprg, s);
-			lines.push_back(s);
+			prg += s + "\n";
 		}
-
-		// fixme: add functionality from texture.cpp here
-#if 0
-		// build shader node tree by parsing.
-		unsigned current_line = 0;
-		std::auto_ptr<shader_node_program> snp(new shader_node_program(lines, current_line));
-
-		// compile to destination program
-		vector<string> finalprogram;
-		snp->compile(finalprogram, defines, false);
-		snp.reset();
-
-		// debug output
-		//	for (unsigned i = 0; i < finalprogram.size(); ++i)
-		//		cout << "line " << i << ": '" << finalprogram[i] << "'\n";
-#endif
-
-		string prg;
-		for (unsigned i = 0; i < lines /*finalprogram*/.size(); ++i)
-			prg += lines /*finalprogram*/[i] + "\n";
 
 		const char* prg_cstr = prg.c_str();
 		glShaderSource(id, 1, &prg_cstr, 0);
@@ -229,9 +216,10 @@ void glsl_program::use_fixed()
 
 
 glsl_shader_setup::glsl_shader_setup(const std::string& filename_vshader,
-				     const std::string& filename_fshader)
-	: vs(filename_vshader, glsl_shader::VERTEX),
-	  fs(filename_fshader, glsl_shader::FRAGMENT)
+				     const std::string& filename_fshader,
+				     const glsl_shader::defines_list& dl)
+	: vs(filename_vshader, glsl_shader::VERTEX, dl),
+	  fs(filename_fshader, glsl_shader::FRAGMENT, dl)
 {
 	prog.attach(vs);
 	prog.attach(fs);

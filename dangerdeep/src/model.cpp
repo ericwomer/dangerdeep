@@ -57,12 +57,11 @@ texture::mapping_mode model::mapping = texture::LINEAR_MIPMAP_LINEAR;//texture::
 bool model::enable_shaders = true;
 
 unsigned model::init_count = 0;
-bool model::vertex_program_supported = false;
-bool model::fragment_program_supported = false;
-bool model::compiled_vertex_arrays_supported = false;
 bool model::use_shaders = false;
-vector<GLuint> model::default_vertex_programs;
-vector<GLuint> model::default_fragment_programs;
+
+auto_ptr<glsl_shader_setup> model::glsl_color_normal;
+auto_ptr<glsl_shader_setup> model::glsl_color_normal_specular;
+auto_ptr<glsl_shader_setup> model::glsl_mirror_clip;
 
 const std::string model::default_layout = "*default*";
 
@@ -131,35 +130,20 @@ void model::object::display() const
 
 void model::render_init()
 {
-	vertex_program_supported = sys().extension_supported("GL_ARB_vertex_program");
-	fragment_program_supported = sys().extension_supported("GL_ARB_fragment_program");
-	compiled_vertex_arrays_supported = sys().extension_supported("GL_EXT_compiled_vertex_array");
-
-	use_shaders = enable_shaders && vertex_program_supported && fragment_program_supported;
+	use_shaders = enable_shaders && glsl_program::supported();
 
 	// initialize shaders if wanted
 	if (use_shaders) {
-		default_fragment_programs.resize(NR_VFP);
-		default_vertex_programs.resize(NR_VFP);
-		list<string> defines;
-		// fixme: create shaders for use with/without specularmap and/or normal map
-		default_fragment_programs[VFP_COLOR_NORMAL] =
-			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB, get_shader_dir() + "modelrender_fp.shader" , defines);
-		default_vertex_programs[VFP_COLOR_NORMAL] =
-			texture::create_shader(GL_VERTEX_PROGRAM_ARB, get_shader_dir() + "modelrender_vp.shader" , defines);
-		// with specular
-		defines.push_back("USE_SPECULARMAP");
-		default_fragment_programs[VFP_COLOR_NORMAL_SPECULAR] =
-			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB, get_shader_dir() + "modelrender_fp.shader" , defines);
-		default_vertex_programs[VFP_COLOR_NORMAL_SPECULAR] =
-			texture::create_shader(GL_VERTEX_PROGRAM_ARB, get_shader_dir() + "modelrender_vp.shader" , defines);
-		// for mirror clip
-		defines.clear();
-		default_fragment_programs[VFP_MIRROR_CLIP] =
-			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB, get_shader_dir() + "modelrender_mirrorclip_fp.shader" , defines);
-		default_vertex_programs[VFP_MIRROR_CLIP] =
-			texture::create_shader(GL_VERTEX_PROGRAM_ARB, get_shader_dir() + "modelrender_mirrorclip_vp.shader" , defines);
-		sys().add_console("Using OpenGL vertex and fragment programs...");
+		sys().add_console("Using OpenGL GLSL shaders...");
+
+		glsl_shader::defines_list dl;
+		dl.push_back("USE_SPECULARMAP");
+		glsl_color_normal.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
+							      get_shader_dir() + "modelrender.fshader"));
+		glsl_color_normal_specular.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
+								       get_shader_dir() + "modelrender.fshader", dl));
+ 		glsl_mirror_clip.reset(new glsl_shader_setup(get_shader_dir() + "modelrender_mirrorclip.vshader",
+							     get_shader_dir() + "modelrender_mirrorclip.fshader"));
 	}
 }
 
@@ -168,12 +152,10 @@ void model::render_init()
 void model::render_deinit()
 {
 	if (use_shaders) {
-		for (unsigned i = 0; i < NR_VFP; ++i) {
-			texture::delete_shader(default_fragment_programs[i]);
-			texture::delete_shader(default_vertex_programs[i]);
-		}
-		default_fragment_programs.clear();
-		default_vertex_programs.clear();
+		glsl_program::use_fixed();
+		glsl_color_normal.reset();
+		glsl_color_normal_specular.reset();
+		glsl_mirror_clip.reset();
 	}
 }
 
@@ -446,6 +428,7 @@ void model::mesh::compile()
 			if (display_list == 0)
 				throw error("no more display list indices available");
 		}
+		// fixme: rather use VBOs instead of display lists
 		glNewList(display_list, GL_COMPILE);
 		send_geometry_to_gl();
 		glEndList();
@@ -747,6 +730,24 @@ void model::material::map::set_gl_texture() const
 
 
 
+void model::material::map::set_gl_texture(glsl_program& prog, const std::string& texname, unsigned texunitnr) const
+{
+	if (!tex)
+		throw error("set_gl_texture(shader) with empty texture");
+	prog.set_gl_texture(*tex, texname, texunitnr);
+}
+
+
+
+void model::material::map::set_gl_texture(glsl_shader_setup& gss, const std::string& texname, unsigned texunitnr) const
+{
+	if (!tex)
+		throw error("set_gl_texture(shader) with empty texture");
+	gss.set_gl_texture(*tex, texname, texunitnr);
+}
+
+
+
 void model::material::map::set_texture(texture* t)
 {
 	mytexture.reset(t);
@@ -758,11 +759,7 @@ void model::material::map::set_texture(texture* t)
 void model::material::set_gl_values() const
 {
 	if (use_shaders) {
-		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, 0);
-		glDisable(GL_VERTEX_PROGRAM_ARB);
-
-		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
-		glDisable(GL_FRAGMENT_PROGRAM_ARB);
+		glsl_program::use_fixed();
 	}
 
 	glActiveTexture(GL_TEXTURE0);
@@ -786,27 +783,14 @@ void model::material::set_gl_values() const
 				glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
 				if (specularmap.get()) {
-					glActiveTexture(GL_TEXTURE2);
-					glEnable(GL_TEXTURE_2D);
-					specularmap->set_gl_texture();
-					glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_programs[VFP_COLOR_NORMAL_SPECULAR]);
-					glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_programs[VFP_COLOR_NORMAL_SPECULAR]);
+					glsl_color_normal_specular->use();
+					specularmap->set_gl_texture(*glsl_color_normal_specular, "tex_specular", 2);
 				} else {
-					glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_programs[VFP_COLOR_NORMAL]);
-					glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_programs[VFP_COLOR_NORMAL]);
+					glsl_color_normal->use();
 				}
 
-				glEnable(GL_VERTEX_PROGRAM_ARB);
-				glEnable(GL_FRAGMENT_PROGRAM_ARB);
-
-				glActiveTexture(GL_TEXTURE1);
-				normalmap->setup_glmatrix();
-				normalmap->set_gl_texture();
-
-				glActiveTexture(GL_TEXTURE0);
-				glEnable(GL_TEXTURE_2D);
-				colormap->set_gl_texture();
-				colormap->setup_glmatrix();
+				normalmap->set_gl_texture(*glsl_color_normal_specular, "tex_normal", 1);
+				colormap->set_gl_texture(*glsl_color_normal_specular, "tex_color", 0);
 
 			} else {
 				// standard OpenGL texturing with special tricks
@@ -885,16 +869,12 @@ void model::material::set_gl_values_mirror_clip() const
 {
 	if (!use_shaders) return;
 
-	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_VERTEX_PROGRAM_ARB);
-	glEnable(GL_FRAGMENT_PROGRAM_ARB);
-	glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_programs[VFP_MIRROR_CLIP]);
-	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_programs[VFP_MIRROR_CLIP]);
+	glsl_mirror_clip->use();
+
 	if (colormap.get()) {
 		// plain texture mapping with diffuse lighting only, but with shaders
 		glColor4f(1, 1, 1, 1);
-		glActiveTexture(GL_TEXTURE0);
-		colormap->set_gl_texture();
+		colormap->set_gl_texture(*glsl_mirror_clip, "tex_color", 0);
 		colormap->setup_glmatrix();
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		glActiveTexture(GL_TEXTURE1);
@@ -1109,23 +1089,16 @@ void model::mesh::send_geometry_to_gl() const
 	// using multiple glLockArrays per frame is not recommended...
 	// test result: compiled vertex arrays bring NO performance gain when using display
 	// lists. So don't use them.
-// 	if (compiled_vertex_arrays_supported)
-// 		glLockArraysEXT(0, indices.size());
+	// remark 2006: display lists faster than VBO?! this cant be...
 
 	// and finally draw the mesh.
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, &indices[0]);
-
-// 	if (compiled_vertex_arrays_supported)
-// 		glUnlockArraysEXT();
 
 	// maybe: add code to show normals as Lines
 
 	// cleanup
 	if (use_shaders) {
-		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
-		glDisable(GL_FRAGMENT_PROGRAM_ARB);
-		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, 0);
-		glDisable(GL_VERTEX_PROGRAM_ARB);
+		glsl_shader_setup::use_fixed();
 		glActiveTexture(GL_TEXTURE2);
 		glDisable(GL_TEXTURE_2D);
 		glActiveTexture(GL_TEXTURE0);
@@ -1179,8 +1152,7 @@ void model::mesh::display_mirror_clip() const
 	} else {
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glColor3f(0.5,0.5,0.5);
-		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, default_vertex_programs[VFP_MIRROR_CLIP]);
-		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, default_fragment_programs[VFP_MIRROR_CLIP]);
+		glsl_mirror_clip->use();
 	}
 
 	// multiply extra transformation to texture[1] matrix
@@ -1211,14 +1183,11 @@ void model::mesh::display_mirror_clip() const
 
 	// cleanup
 	if (use_shaders) {
-		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
-		glDisable(GL_FRAGMENT_PROGRAM_ARB);
-		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, 0);
-		glDisable(GL_VERTEX_PROGRAM_ARB);
 		glActiveTexture(GL_TEXTURE2);
 		glDisable(GL_TEXTURE_2D);
 		glActiveTexture(GL_TEXTURE0);
 	}
+	glsl_shader_setup::use_fixed();
 	glEnable(GL_LIGHTING);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
