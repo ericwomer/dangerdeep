@@ -88,6 +88,9 @@ class glsl_program
 	/// check if GLSL is supported
 	static bool supported();
 
+	/// set up texture for a particular shader name
+		void set_gl_texture(class texture& tex, const std::string& texname, unsigned texunit) const;
+
  protected:
 	unsigned id;
 	bool linked;
@@ -114,6 +117,11 @@ class glsl_shader_setup
 
 	/// use fixed function pipeline instead of particular setup
 	static void use_fixed();
+
+	/// set up texture for a particular shader name
+	void set_gl_texture(class texture& tex, const std::string& texname, unsigned texunitnr) const {
+		prog.set_gl_texture(tex, texname, texunitnr);
+	}
 
  protected:
 	glsl_shader vs, fs;

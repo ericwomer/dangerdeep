@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "shader.h"
 #include "oglext/OglExt.h"
 #include "system.h"
+#include "texture.h"
 #include "error.h"
 #include <stdexcept>
 #include <fstream>
@@ -102,16 +103,22 @@ glsl_shader::glsl_shader(const string& filename, type stype)
 		GLint compiled = GL_FALSE;
 		glGetShaderiv(id, GL_COMPILE_STATUS, &compiled);
 
+		// get compile log
+		GLint maxlength = 0;
+		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &maxlength);
+		string log(maxlength+1, ' ');
+		GLint length = 0;
+		glGetShaderInfoLog(id, maxlength, &length, &log[0]);
+
 		if (!compiled) {
 			sys().add_console("compiling failed, log:");
-			GLint maxlength = 0;
-			glGetShaderiv(id, GL_INFO_LOG_LENGTH, &maxlength);
-			string log(maxlength+1, ' ');
-			GLint length = 0;
-			glGetShaderInfoLog(id, maxlength, &length, &log[0]);
 			sys().add_console(log);
+			printf("compiling of shader failed:\n%s\n", log.c_str());
 			throw runtime_error(string("compiling of shader failed : ") + filename);
 		}
+
+		sys().add_console("shader compiled successfully, log:");
+		sys().add_console(log);
 	}
 	catch (exception& e) {
 		glDeleteShader(id);
@@ -200,6 +207,16 @@ void glsl_program::use() const
 	if (!linked)
 		throw runtime_error("glsl_program::use() : program not linked");
 	glUseProgram(id);
+}
+
+
+
+void glsl_program::set_gl_texture(texture& tex, const std::string& texname, unsigned texunit) const
+{
+	GLint uniloc = glGetUniformLocation(id, texname.c_str());
+	glActiveTexture(GL_TEXTURE0 + texunit);
+	tex.set_gl_texture();
+	glUniform1i(uniloc, texunit);
 }
 
 
