@@ -17,7 +17,7 @@
    until then, access sources directly or via a special variable.
 */
 
-varying vec2 outtexcoorddiff, outtexcoordnrml;
+varying vec2 texcoord;
 varying vec3 lightdir, halfangle;
 
 void main()
@@ -50,10 +50,7 @@ void main()
 	halfangle.z = dot(gl_Normal /*tangentz*/, halfangle_obj);
 
 	// compute texture coordinates
-	//fixme: something is wrong about texture matrices.
-	// wasted, most models have ONE texture matrix for both maps.
-	outtexcoorddiff = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-	outtexcoordnrml = (gl_TextureMatrix[1] * gl_MultiTexCoord0).xy;
+	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
 	// finally compute position
 	gl_Position = ftransform();
