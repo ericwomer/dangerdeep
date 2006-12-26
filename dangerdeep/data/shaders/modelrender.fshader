@@ -38,5 +38,27 @@ void main()
 	specular_color = specular_color * texture2D(tex_specular, texcoord.xy).x;
 #endif
 
-	gl_FragColor = vec4((diffuse_color + specular_color) * vec3(gl_LightSource[0].diffuse) /*light_color*/, 1);
+	// final color of fragment
+	vec3 final_color = (diffuse_color + specular_color) * vec3(gl_LightSource[0].diffuse /*light_color*/);
+
+	// add linear fog
+	float fog_factor = clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0);
+
+	// output color is a mix between fog and final color
+	gl_FragColor = vec4(mix(vec3(gl_Fog.color), final_color, fog_factor), 1.0);
+
+/* fog:
+	// maybe the vertex shader needs to do this:
+	gl_FogFragCoord = gl_FogCoord;
+
+	// fragment shader:
+	fog = (gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale; // linear
+
+	fog = exp2(-gl_Fog.density * gl_FogFragCoord * 1.442695); // exponential
+
+	fog = exp2(-gl_Fog.density * gl_FogDensity
+           * gl_FogFragCoord * gl_FogFragCoord * 1.442695); // more exponential
+
+	   // after that: clamp and mix.
+*/
 }
