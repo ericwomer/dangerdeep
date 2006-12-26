@@ -136,6 +136,7 @@ sky::sky(const double tm, const unsigned int sectors_h, const unsigned int secto
 	unsigned skyvsegs = 16;
 	unsigned skyhsegs = 4*skyvsegs;
 	clouds_dl = glGenLists(1);
+	// fixme: rather use VBOs here!
 	glNewList(clouds_dl, GL_COMPILE);
 	unsigned skysegs = skyvsegs*skyhsegs;
 	vector<vector3f> points;

@@ -39,6 +39,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "perlinnoise.h"
 #include "vertexbuffer.h"
 #include "framebufferobject.h"
+#include "shader.h"
 
 ///\brief Rendering of ocean water surfaces.
 class water
@@ -155,17 +156,11 @@ protected:
 	unsigned wavefoamtex;
 #endif
 
-	// Booleans for supported OpenGL extensions
-	bool vertex_program_supported;
-	bool fragment_program_supported;
-	bool compiled_vertex_arrays_supported;
-
 	// Config options (only used when supported)
 	bool use_shaders;
 
-	// Shader programs
-	GLuint water_vertex_program;
-	GLuint water_fragment_program;
+	// Shader program
+	std::auto_ptr<glsl_shader_setup> glsl_water;
 
 	// for subdetail
 	perlinnoise png;

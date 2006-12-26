@@ -208,6 +208,22 @@ void glsl_program::set_gl_texture(texture& tex, const std::string& texname, unsi
 
 
 
+void glsl_program::set_uniform(const std::string& name, const vector3f& value) const
+{
+	GLint loc = glGetUniformLocation(id, name.c_str());
+	glUniform3f(loc, value.x, value.y, value.z);
+}
+
+
+
+void glsl_program::set_uniform(const std::string& name, const vector3& value) const
+{
+	GLint loc = glGetUniformLocation(id, name.c_str());
+	glUniform3f(loc, value.x, value.y, value.z);
+}
+
+
+
 void glsl_program::use_fixed()
 {
 	glUseProgram(0);

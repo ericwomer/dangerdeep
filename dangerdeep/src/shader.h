@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef SHADER_H
 #define SHADER_H
 
+#include "vector3.h"
 #include <string>
 #include <list>
 
@@ -94,6 +95,12 @@ class glsl_program
 	/// set up texture for a particular shader name
 	void set_gl_texture(class texture& tex, const std::string& texname, unsigned texunit) const;
 
+	/// set uniform variable
+	void set_uniform(const std::string& name, const vector3f& value) const;
+
+	/// set uniform variable (doubles)
+	void set_uniform(const std::string& name, const vector3& value) const;
+
  protected:
 	unsigned id;
 	bool linked;
@@ -125,6 +132,16 @@ class glsl_shader_setup
 	/// set up texture for a particular shader name
 	void set_gl_texture(class texture& tex, const std::string& texname, unsigned texunitnr) const {
 		prog.set_gl_texture(tex, texname, texunitnr);
+	}
+
+	/// set uniform variable
+	void set_uniform(const std::string& name, const vector3f& value) const {
+		prog.set_uniform(name, value);
+	}
+
+	/// set uniform variable (doubles)
+	void set_uniform(const std::string& name, const vector3& value) const {
+		prog.set_uniform(name, value);
 	}
 
  protected:

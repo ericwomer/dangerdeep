@@ -191,12 +191,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	    wave_resolution * (1e-8) /* roughly 2e-6 for 128 */,	// scale factor for heights. depends on wave resolution, maybe also on tidecycle time
 	    wavetile_length,
 	    wave_tidecycle_time),
-	vertex_program_supported(false),
-	fragment_program_supported(false),
-	compiled_vertex_arrays_supported(false),
 	use_shaders(false),
-	water_vertex_program(0),
-	water_fragment_program(0),
 	png(subdetail_size, 1, subdetail_size/16), //fixme ohne /16 sieht's scheiße aus, war /8
 	last_subdetail_gen_time(tm),
 	vbo_indices(true)
@@ -244,21 +239,13 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	sys().add_console("subdetail size %u (%u)",subdetail_size,subdetail_size_shift);
 	sys().add_console("reflection image size %u*%u",rx,ry);
 
-	vertex_program_supported = sys().extension_supported("GL_ARB_vertex_program");
-	fragment_program_supported = sys().extension_supported("GL_ARB_fragment_program");
-	compiled_vertex_arrays_supported = sys().extension_supported("GL_EXT_compiled_vertex_array");
-
-	use_shaders = vertex_program_supported && fragment_program_supported &&
+	use_shaders = glsl_program::supported() &&
 		cfg::instance().getb("use_shaders") && cfg::instance().getb("use_shaders_for_water");
 
 	// initialize shaders if wanted
 	if (use_shaders) {
-		water_fragment_program =
-			texture::create_shader(GL_FRAGMENT_PROGRAM_ARB,
-					       get_shader_dir() + "water_fp.shader");
-		water_vertex_program =
-			texture::create_shader(GL_VERTEX_PROGRAM_ARB,
-					       get_shader_dir() + "water_vp.shader");
+		glsl_water.reset(new glsl_shader_setup(get_shader_dir() + "water.vshader",
+						       get_shader_dir() + "water.fshader"));
 	}
 
 	coords.resize((xres+1)*(yres+1));
@@ -462,8 +449,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 water::~water()
 {
 	if (use_shaders) {
-		texture::delete_shader(water_fragment_program);
-		texture::delete_shader(water_vertex_program);
+		glsl_program::use_fixed();
 	}
 }
 
@@ -474,22 +460,9 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 	glDisable(GL_LIGHTING);
 
 	if (use_shaders) {
-		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, water_fragment_program);
-		glEnable(GL_FRAGMENT_PROGRAM_ARB);
-		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, water_vertex_program);
-		glEnable(GL_VERTEX_PROGRAM_ARB);
-
-		glActiveTexture(GL_TEXTURE2);
-		foamtex->set_gl_texture();
-
-		glActiveTexture(GL_TEXTURE3);
-		foamamounttex->set_gl_texture();
-
-
-#if 0
-		glActiveTexture(GL_TEXTURE2);
-		waterspecularlookup->set_gl_texture();
-#endif
+		glsl_water->use();
+		glsl_water->set_gl_texture(*foamtex, "tex_foam", 2);
+		glsl_water->set_gl_texture(*foamamounttex, "tex_foamamount", 3);
 
 		// texture units / coordinates:
 		// tex0: noise map (color normals) / matching texcoords
@@ -512,15 +485,8 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 		float bt = myfmod(mytime, 10.0) / 10.0f;// seconds, fixme
 		if (bt >= 0.5f) bt = 1.0f - bt;
 		bt *= 2.0f;
-#if 1
-		water_bumpmap->set_gl_texture();
-#endif
-		
-		// local parameters:
-		// nothing for now, old code:
-//		glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 0,
-//					     18.0f/255, 73.0f/255, 107.0f/255, 1.0);//fixme test
 
+		glsl_water->set_gl_texture(*water_bumpmap, "tex_normal", 0);
 	} else {
 		// standard code path, no fragment programs
 	
@@ -556,7 +522,11 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 
 	glActiveTexture(GL_TEXTURE1);
 	glEnable(GL_TEXTURE_2D);
-	reflectiontex->set_gl_texture();
+	if (use_shaders) {
+		glsl_water->set_gl_texture(*reflectiontex, "tex_reflection", 1);
+	} else {
+		reflectiontex->set_gl_texture();
+	}
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	// rescale coordinates [-1,1] to [0,1]
@@ -622,10 +592,7 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 void water::cleanup_textures() const
 {
 	if (use_shaders) {
-		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
-		glDisable(GL_FRAGMENT_PROGRAM_ARB);
-		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, 0);
-		glDisable(GL_VERTEX_PROGRAM_ARB);
+		glsl_program::use_fixed();
 	}
 	
 	glColor4f(1,1,1,1);
@@ -1506,9 +1473,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	// give -viewpos.z to vertex shader for generation of foam projection coordinates
 	// the plane z = -viewpos.z is the water plane.
 	if (use_shaders) {
-		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, water_vertex_program);
-		glProgramLocalParameter4fARB(GL_VERTEX_PROGRAM_ARB, 0,
-					     viewpos.x, viewpos.y, viewpos.z, 0);
+		glsl_water->set_uniform("viewpos", viewpos);
 	}
 
 	// make normals normal ;-)
@@ -1629,9 +1594,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	// (optimized) gives 160000 bytes per frame, with 30fps ca. 4.57mb/sec.
 	// Not very much though...
 
-	// lock Arrays for extra performance.
-// 	if (compiled_vertex_arrays_supported)
-// 		glLockArraysEXT(0, (xres+1)*(yres+1));
 #ifdef DRAW_WATER_AS_GRID
 	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
 #else
@@ -1651,9 +1613,6 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 #endif
 //	glDrawElements(GL_TRIANGLES, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
 #endif
-
-//  	if (compiled_vertex_arrays_supported)
-//  		glUnlockArraysEXT();
 
 //	unsigned t2 = sys().millisec();
 //	drawing takes ~28ms with linux/athlon2200+/gf4mx. That would be ~32mb/sec with AGP4x!?
@@ -1985,13 +1944,12 @@ void water::set_refraction_color(const colorf& light_color)
 		float wt[3], wb[3];
 		wavetop.store_rgb(wt);
 		wavebottom.store_rgb(wb);
-		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, water_vertex_program);
-		glProgramLocalParameter4fARB(GL_VERTEX_PROGRAM_ARB, 1,
-					     wt[0], wt[1], wt[2], 1.0);
-		glProgramLocalParameter4fARB(GL_VERTEX_PROGRAM_ARB, 2,
-					     wb[0], wb[1], wb[2], 1.0);
-		glProgramLocalParameter4fARB(GL_VERTEX_PROGRAM_ARB, 3,
-					     wt[0]-wb[0], wt[1]-wb[1], wt[2]-wb[2], 1.0);
+		vector3f upwelltop(wt[0], wt[1], wt[2]);
+		vector3f upwellbot(wb[0], wb[1], wb[2]);
+		vector3f upwelltopbot = upwelltop - upwellbot;
+		glsl_water->set_uniform("upwelltop", upwelltop);
+		glsl_water->set_uniform("upwellbot", upwellbot);
+		glsl_water->set_uniform("upwelltopbot", upwelltopbot);
 	}
 
 	for (unsigned s = 0; s < REFRAC_COLOR_RES; ++s) {
