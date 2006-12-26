@@ -51,14 +51,16 @@ void main()
 		* pow(clamp(dot(H, N), 0.0, 1.0), water_shininess);
 
 	// mix reflection and refraction (upwelling) color, and add specular color
-	vec3 water_color = mix(vec3(texture2DProj(tex_reflection, reflectiontexcoord)),
-			       vec3(gl_Color), fresnel) + specular_color;
+	vec3 water_color = mix(vec3(gl_Color), vec3(texture2DProj(tex_reflection, reflectiontexcoord)),
+			       fresnel) + specular_color;
 
 	// fetch amount of foam, sum of texture and cresnel foam, multiplied with luminance
 	// from foam texmap
 	float foam_amount = min(texture2DProj(tex_foamamount, foamamounttexcoord).x + crest_foam, 1.0)
 		* texture2D(tex_foam, noisetexcoord).x;
 
+	// fixme: crest_foam is 0!   fixme: upwelling color is wrong   fixme: tex_foamamount is wrong
+
 	// fixme: fog
-	gl_FragColor = vec4(mix(vec3(gl_LightSource[0].diffuse), water_color, foam_amount), 1.0);
+	gl_FragColor = vec4(mix(water_color, vec3(gl_LightSource[0].diffuse), foam_amount), 1.0);
 }
