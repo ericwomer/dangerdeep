@@ -61,6 +61,20 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //and fake their shape with perlin noise or similar algorithms. The higher frequency images
 //look different to the overall FFT appearance or the perlin noise...
 
+/* 2006/12/27
+   new idea for normal mapping etc.
+   instead of tangent space and precomputed normals, store global normals with extra detail in
+   a normal map (higher resolution than wavetile). Precompute this and store it.
+   Fetch normal data per frame.
+   Interpolate geometric data with cosine interpolation or wave-shape-like interpolation,
+   add noise as subdetail.
+   Problem: x/y displacement. Either displace normal data accordingly or use undisplaced x/y
+   coordinates for texture fetch.
+   -> no tangent space computation
+   -> no need to compute geometric normals
+   -> BUT: needs much ram for normal maps. not much extra-detail possible.
+*/
+
 
 // store an amount of foam vector per wave tile.
 // find local maxima of wave heights, the higher the absolute value of this maxima
@@ -1061,7 +1075,6 @@ void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpo
 	} else {
 		// copy viewport data to foam-amount texture
 		foamamounttex->set_gl_texture();
-		// fixme: use GL_EXT_framebuffer_object here to save one copy
 		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, afs, afs, 0);
 	}
 
@@ -1848,11 +1861,10 @@ void water::generate_subdetail_and_bumpmap()
 		png.set_phase(0, phase, phase);	// fixme: depends on wind direction
 	}
 	waveheight_subdetail = png.generate();
-//	waveheight_subdetail = png.generate_sqr();
 #if 0
-	ostringstream osgname;
+	std::ostringstream osgname;
 	osgname << "noisemap" << myfmod(mytime, 86400) << ".pgm";
-	ofstream osg(osgname.str().c_str());
+	std::ofstream osg(osgname.str().c_str());
 	osg << "P5\n" << subdetail_size << " " << subdetail_size << "\n255\n";
 	osg.write((const char*)(&waveheight_subdetail[0]), subdetail_size*subdetail_size);
 #endif
