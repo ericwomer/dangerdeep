@@ -59,8 +59,6 @@ void main()
 	float foam_amount = min(texture2DProj(tex_foamamount, foamamounttexcoord).x + crest_foam, 1.0)
 		* texture2D(tex_foam, noisetexcoord).x;
 
-	// fixme: crest_foam is 0!   fixme: upwelling color is wrong   fixme: tex_foamamount is wrong
-
 	// fixme: fog
 	gl_FragColor = vec4(mix(water_color, vec3(gl_LightSource[0].diffuse), foam_amount), 1.0);
 }
