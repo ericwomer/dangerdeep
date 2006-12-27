@@ -1,7 +1,5 @@
 // -*- mode: C; -*-
 
-// fixme: fog!
-
 varying vec3 viewerdir, halfangle;
 varying vec2 noisetexcoord;
 varying vec4 reflectiontexcoord;	// x,y,w
@@ -71,6 +69,11 @@ void main()
 	float foam_amount = min(texture2DProj(tex_foamamount, foamamounttexcoord).x + crest_foam, 1.0)
 		* texture2D(tex_foam, noisetexcoord).x;
 
-	// fixme: fog
-	gl_FragColor = vec4(mix(water_color, vec3(gl_LightSource[0].diffuse), foam_amount), 1.0);
+	vec3 final_color = mix(water_color, vec3(gl_LightSource[0].diffuse), foam_amount);
+
+	// add linear fog
+	float fog_factor = clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0);
+
+	// output color is a mix between fog and final color
+	gl_FragColor = vec4(mix(vec3(gl_Fog.color), final_color, fog_factor), 1.0);
 }

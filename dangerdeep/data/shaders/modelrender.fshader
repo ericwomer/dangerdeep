@@ -1,6 +1,5 @@
 // -*- mode: C; -*-
 
-// fixme: fog!
 // fixme: maybe lookup texmap is faster than pow(). Quick tests showed that this is not the case...
 
 uniform sampler2D tex_color;	// (diffuse) color map, RGB
@@ -48,7 +47,7 @@ void main()
 	gl_FragColor = vec4(mix(vec3(gl_Fog.color), final_color, fog_factor), 1.0);
 
 /* fog:
-	// maybe the vertex shader needs to do this:
+	// maybe the vertex shader needs to do this: no, it doesn't. It works without that command.
 	gl_FogFragCoord = gl_FogCoord;
 
 	// fragment shader:
