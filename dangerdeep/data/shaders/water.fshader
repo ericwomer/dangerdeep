@@ -38,13 +38,25 @@ void main()
 	//   is erratic/noisy (smoothed) between 0 and 1, simulating rough water.
 	//   That way the rings disappear,
 	//   and are replaced by additional surface detail.
-	float fresnel = clamp(abs(dot(E, N)), 0.0, 1.0) + 1.0;
+	// new result: without the abs() around dot(), it doesn't look worse. so keep out the abs()
+	// this also means the case that E*N < 0 is not so problematic. So we don't need the lookup
+	// texture.
+	float fresnel = clamp(dot(E, N), 0.0, 1.0) + 1.0;
 	// approximation for fresnel term is 1/((x+1)^8)
+#if 1
+	// using pow() seems a little bit faster (Geforce5700)
+	fresnel = pow(fresnel, -8) * 0.8;
+#else
 	fresnel = fresnel * fresnel;	// ^2
 	fresnel = fresnel * fresnel;	// ^4
 	fresnel = fresnel * fresnel;	// ^8
 	fresnel = (1.0/fresnel) * 0.8;	// never use full reflectivity, at most 0.8
 	// that multiplication greatly increases the realism of the appearance!
+#endif
+
+	// possible optimization: make a 2d lookup texture, one dimension with fresnel term,
+	// second dimension with specular term. Spares two pow() instructions. But we already used
+	// all four texture units. Doubtful that performance would be higher...
 	
 	// compute specular light brightness (blinn-phong shading)
 	vec3 specular_color = vec3(gl_LightSource[0].diffuse)
