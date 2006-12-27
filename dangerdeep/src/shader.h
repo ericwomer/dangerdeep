@@ -106,6 +106,7 @@ class glsl_program
 	bool linked;
 	static int glsl_supported;
 	std::list<glsl_shader*> attached_shaders;
+	static const glsl_program* used_program;
 
  private:
 	glsl_program(const glsl_program& );

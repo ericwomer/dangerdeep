@@ -1473,6 +1473,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	// give -viewpos.z to vertex shader for generation of foam projection coordinates
 	// the plane z = -viewpos.z is the water plane.
 	if (use_shaders) {
+		glsl_water->use();
 		glsl_water->set_uniform("viewpos", viewpos);
 	}
 
@@ -1947,9 +1948,11 @@ void water::set_refraction_color(const colorf& light_color)
 		vector3f upwelltop(wt[0], wt[1], wt[2]);
 		vector3f upwellbot(wb[0], wb[1], wb[2]);
 		vector3f upwelltopbot = upwelltop - upwellbot;
+		glsl_water->use();
 		glsl_water->set_uniform("upwelltop", upwelltop);
 		glsl_water->set_uniform("upwellbot", upwellbot);
 		glsl_water->set_uniform("upwelltopbot", upwelltopbot);
+		glsl_water->use_fixed();
 	}
 
 	for (unsigned s = 0; s < REFRAC_COLOR_RES; ++s) {

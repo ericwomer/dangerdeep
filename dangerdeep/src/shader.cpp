@@ -44,6 +44,10 @@ bool glsl_program::supported()
 
 
 
+const glsl_program* glsl_program::used_program = 0;
+
+
+
 glsl_shader::glsl_shader(const string& filename, type stype, const glsl_shader::defines_list& dl)
 	: id(0)
 {
@@ -136,6 +140,12 @@ glsl_program::glsl_program()
 
 glsl_program::~glsl_program()
 {
+	if (used_program == this) {
+		// rather use some kind of "bug!"-exception here
+		sys().add_console("warning: deleting bound glsl program!");
+		use_fixed();
+	}
+	// if shaders are still attached, it is rather a bug...
 	for (list<glsl_shader*>::iterator it = attached_shaders.begin(); it != attached_shaders.end(); ++it)
 		glDetachShader(id, (*it)->id);
 	glDeleteProgram(id);
@@ -194,12 +204,15 @@ void glsl_program::use() const
 	if (!linked)
 		throw runtime_error("glsl_program::use() : program not linked");
 	glUseProgram(id);
+	used_program = this;
 }
 
 
 
 void glsl_program::set_gl_texture(texture& tex, const std::string& texname, unsigned texunit) const
 {
+	if (used_program != this)
+		throw runtime_error("glsl_program::set_gl_texture, program not bound!");
 	GLint uniloc = glGetUniformLocation(id, texname.c_str());
 	glActiveTexture(GL_TEXTURE0 + texunit);
 	tex.set_gl_texture();
@@ -210,6 +223,8 @@ void glsl_program::set_gl_texture(texture& tex, const std::string& texname, unsi
 
 void glsl_program::set_uniform(const std::string& name, const vector3f& value) const
 {
+	if (used_program != this)
+		throw runtime_error("glsl_program::set_gl_texture, program not bound!");
 	GLint loc = glGetUniformLocation(id, name.c_str());
 	glUniform3f(loc, value.x, value.y, value.z);
 }
@@ -218,6 +233,8 @@ void glsl_program::set_uniform(const std::string& name, const vector3f& value) c
 
 void glsl_program::set_uniform(const std::string& name, const vector3& value) const
 {
+	if (used_program != this)
+		throw runtime_error("glsl_program::set_gl_texture, program not bound!");
 	GLint loc = glGetUniformLocation(id, name.c_str());
 	glUniform3f(loc, value.x, value.y, value.z);
 }
@@ -227,6 +244,7 @@ void glsl_program::set_uniform(const std::string& name, const vector3& value) co
 void glsl_program::use_fixed()
 {
 	glUseProgram(0);
+	used_program = 0;
 }
 
 
