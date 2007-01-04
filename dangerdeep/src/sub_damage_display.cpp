@@ -126,25 +126,25 @@ void sub_damage_display::display ( class game& gm ) const
 
 	submarine* mysub = dynamic_cast<submarine*>(gm.get_player());
 
-	const vector<submarine::damageable_part>& damageable_parts = mysub->get_damage_status();
-	for (unsigned i = 0; i < damageable_parts.size(); ++i) {
+	const vector<submarine::part>& parts = mysub->get_damage_status();
+	for (unsigned i = 0; i < parts.size(); ++i) {
 		rect r = rect_data[i];
 			if (r.x == 0) continue;	// display test hack fixme
 		int x = r.x + r.w/2 - 16, y = r.y + r.h/2 - 16 + ydrawdiff;
-		if (damageable_parts[i].status > 0.0) {
+		if (parts[i].status > 0.0) {
 			const texture* t = 0;
-			if (damageable_parts[i].status <= 0.25) t = repairlight.get();
-			else if (damageable_parts[i].status <= 0.50) t = repairmedium.get();
-			else if (damageable_parts[i].status <= 0.75) t = repairheavy.get();
-			else if (damageable_parts[i].status < 1.00) t = repaircritical.get();
+			if (parts[i].status <= 0.25) t = repairlight.get();
+			else if (parts[i].status <= 0.50) t = repairmedium.get();
+			else if (parts[i].status <= 0.75) t = repairheavy.get();
+			else if (parts[i].status < 1.00) t = repaircritical.get();
 			else t = repairwrecked.get();
 			t->draw(x, y, 32, 32);
 		}
 	}
 	
 	// draw popup if mouse is over any part
-	for (unsigned i = 0; i < damageable_parts.size(); ++i) {
-		if (damageable_parts[i].status < 0) continue;	// part does not exist
+	for (unsigned i = 0; i < parts.size(); ++i) {
+		if (parts[i].status < 0) continue;	// part does not exist
 		rect r = rect_data[i];
 		r.y += (damage_screen_background->get_height()-sub_damage_scheme_all->get_height())/2;
 		if (mx >= r.x && mx <= r.x+r.w && my >= r.y && my <= r.y+r.h) {
@@ -154,11 +154,11 @@ void sub_damage_display::display ( class game& gm ) const
 
 			// determine amount of damage
 			unsigned damcat = 0;	// damage category
-			if (damageable_parts[i].status > 0) {
-				if (damageable_parts[i].status <= 0.25) damcat = 1;
-				else if (damageable_parts[i].status <= 0.50) damcat = 2;
-				else if (damageable_parts[i].status <= 0.75) damcat = 3;
-				else if (damageable_parts[i].status < 1.00) damcat = 4;
+			if (parts[i].status > 0) {
+				if (parts[i].status <= 0.25) damcat = 1;
+				else if (parts[i].status <= 0.50) damcat = 2;
+				else if (parts[i].status <= 0.75) damcat = 3;
+				else if (parts[i].status < 1.00) damcat = 4;
 				else damcat = 5;
 			}
 
@@ -166,7 +166,7 @@ void sub_damage_display::display ( class game& gm ) const
 			ostringstream dmgstr;
 			dmgstr	<< texts::get(400+i) << "\n"	// name
 				<< texts::get(165) << texts::get(130+damcat)
-				<< " (" << unsigned(round(100*damageable_parts[i].status)) << " "
+				<< " (" << unsigned(round(100*parts[i].status)) << " "
 				<< texts::get(166) << ")\n";
 
 			// if part is damages, display repair information
@@ -175,7 +175,7 @@ void sub_damage_display::display ( class game& gm ) const
 					if (submarine::damage_schemes[i].surfaced) {
 						dmgstr << texts::get(168);
 					} else {
-						unsigned minutes = unsigned(round(damageable_parts[i].repairtime / 60.0));
+						unsigned minutes = unsigned(round(parts[i].repairtime / 60.0));
 						dmgstr << texts::get(167) << "\n"
 						<< texts::get(170) << minutes << texts::get(minutes == 1 ? 171 : 172);
 					}

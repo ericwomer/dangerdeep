@@ -64,103 +64,6 @@ class submarine : public ship
 		void save(xml_elem& parent) const;
 	};
 
-	// submarine parts and their damages
-	// fixme: replace german names by correct translations
-	// lenzpumpe (water pump???) drain pump / drainage pump
-	// bilge???
-	// kitchen - kombuese?
-	// balance tank - trimmtank?
-	//fixme: it should not be necessary to store explicit variable names for that
-	//parts. rather store xml files with data about the submarine types.
-	enum damageable_parts_indices {
-		// common parts
-		rudder,
-		screws,
-		screw_shaft,
-		stern_dive_planes,
-		stern_water_pump,	//?
-		stern_pressure_hull,
-		stern_hatch,
-		electric_engines,
-		air_compressor,
-		machine_water_pump,	//?
-		machine_pressure_hull,
-		aft_battery,
-		diesel_engines,
-		kitchen_hatch,		//?	// there was only one hatch at the stern!? fixme
-		balance_tank_valves,	//?
-		forward_battery,
-		periscope,	// fixme: there were two...
-		central_pressure_hull,
-		bilge_water_pump,	//?
-		conning_tower_hatch,
-		listening_device,
-		radio_device,
-		inner_bow_tubes,
-		outer_bow_tubes,
-		bow_water_pump,		//?
-		bow_hatch,
-		bow_pressure_hull,	//fixme: damage view does not match 3d data or vice versa.
-		bow_dive_planes,
-		aa_gun,
-		ammunition_depot,
-		outer_fuel_tanks_left,
-		outer_fuel_tanks_right,
-
-		// parts specific to sub types
-		outer_stern_tubes,
-		inner_stern_tubes,
-		snorkel,//fixme conflicts with bool snorkel;
-		deck_gun,
-		radio_detection_device,
-		radar,
-		
-		nr_of_damageable_parts	// trick to count enum entries
-	};
-
-	// we need a struct for each part:
-	// VARIABLE:
-	// damage status
-	// remaining repair time
-	// INVARIABLE: (maybe dependent on sub type)
-	// position inside sub
-	// relative weakness (how sensitive is part to shock waves)
-	// must be surfaced to get repaired
-	// cannot be repaired at sea	
-	// absolute time needed for repair
-	// new: damage levels (some parts can only be ok/wrecked or ok/damaged/wrecked)
-	// new: damagle from which direction/protected by etc.
-	//      parts that get damaged absorb shock waves, protecing other parts
-	//      either this must be calculated or faked via direction indicators etc.
-	
-	// addition damage for ships: armor, i.e. resistance against shells.
-	// two shell types AP and HE (armor piercing and high explosive)
-	// we would have only HE shells in Dftd, because we have no battleship simulator...
-	// although PD could be also needed...
-	
-	struct damage_data_scheme {
-		vector3f p1, p2;	// corners of bounding box around part, p1 < p2
-					// coordinates in 0...1 relative to left,bottom,aft
-					// corner of sub's bounding box.
-		float weakness;		// weakness to shock waves
-		unsigned repairtime;	// seconds
-		bool surfaced;		// must sub be surfaced to repair this?
-		bool repairable;	// is repairable at sea?
-		damage_data_scheme(const vector3f& a, const vector3f& b, float w, unsigned t, bool s = false, bool r = true) :
-			p1(a), p2(b), weakness(w), repairtime(t), surfaced(s), repairable(r) {}
-	};
-	
-	static damage_data_scheme damage_schemes[nr_of_damageable_parts];
-
-	struct damageable_part {
-		double status;		// damage in percent, negative means part is not existent.
-		double repairtime;
-		damageable_part(double st = -1, double rt = 0) : status(st), repairtime(rt) {}
-		//fixme: save to xml!
-		//damageable_part(istream& in) { status = read_double(in); repairtime = read_double(in); }
-		//void save(ostream& out) const { write_double(out, status); write_double(out, repairtime); }
-	};
-
 	enum front_rudder_status {
 		rudder_down_30 = -3,
 		rudder_down_20,
@@ -203,7 +106,7 @@ protected:
 	bool scopeup;			// fixme: maybe simulate time for moving scope up/down
 	double periscope_depth;		// read from spec file
 	bool electric_engine;		// true when electric engine is used.
-	bool hassnorkel;		// fixme: replace by (damageable_parts[snorkel] != unused)
+	bool hassnorkel;		// fixme: replace by (parts[snorkel] != unused)
 	double snorkel_depth;		// read from spec file
 	double alarm_depth;		// read from spec file
 	bool snorkelup;
@@ -220,7 +123,7 @@ protected:
 	// the hearing device type
 	hearing_device_type hearing_device;	// read from spec file and time, should be saved later
     
-	std::vector<damageable_part> damageable_parts;	// read from data/spec file, fixme do that!
+	std::vector<part> parts;	// read from data/spec file, fixme do that!
 
 	// fixme: add: double temperature;	// overall temperature in submarine. used for torpedo preheating computation
 
@@ -331,7 +234,7 @@ public:
 	virtual double get_snorkel_depth () const { return snorkel_depth; }
 	virtual double get_alarm_depth () const { return alarm_depth; }
 	virtual double get_battery_level () const { return battery_level; }
-	virtual const std::vector<damageable_part>& get_damage_status() const { return damageable_parts; }
+	virtual const std::vector<part>& get_damage_status() const { return parts; }
 
 	// get/compute torpedo transfer time and helper functions (uses functions below to compute)
 	virtual double get_torp_transfer_time(unsigned from, unsigned to) const;

@@ -108,48 +108,6 @@ also flooded parts can lead to capsizing, or the ship sinks because the bow or s
 the waterline although the ship would swim in total.
 */
 
-submarine::damage_data_scheme submarine::damage_schemes[submarine::nr_of_damageable_parts] = {
-	damage_data_scheme(vector3f(0.090517,0.108696,0.892857), vector3f(0.066810,0.297101,0.083333), 0.2, 3600, true, true),	// rudder
-	damage_data_scheme(vector3f(0.131466,0.086957,0.678571), vector3f(0.114224,0.253623,0.321429), 0.2, 3600, true, false),	// screws
-	damage_data_scheme(vector3f(0.260776,0.130435,0.678571), vector3f(0.132543,0.231884,0.321429), 0.2, 3600, true, true),	// screw shaft
-	damage_data_scheme(vector3f(0.112069,0.137681,0.880952), vector3f(0.087284,0.181159,0.119048), 0.2, 3600, true, true),	// stern dive planes
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// stern water pump
-	damage_data_scheme(vector3f(0.271552,0.108696,0.892857), vector3f(0.000000,0.543478,0.107143), 0.2, 3600, false, true),	// stern pressure hull
-	damage_data_scheme(vector3f(0.273707,0.536232,0.607143), vector3f(0.248922,0.579710,0.392857), 0.2, 3600, false, true),	// stern hatch
-	damage_data_scheme(vector3f(0.332974,0.094203,0.797619), vector3f(0.285560,0.246377,0.202381), 0.2, 3600, false, true),	// electric engines
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// air compressor
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// machine water pump
-	damage_data_scheme(vector3f(0.451509,0.072464,0.833333), vector3f(0.271552,0.543478,0.190476), 0.2, 3600, false, true),	// machine pressure hull
-	damage_data_scheme(vector3f(0.627155,0.086957,0.750000), vector3f(0.501078,0.253623,0.297619), 0.2, 3600, false, true),	// aft battery
-	damage_data_scheme(vector3f(0.451509,0.086957,0.797619), vector3f(0.353448,0.268116,0.202381), 0.2, 3600, false, true),	// diesel engines
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// kitchen hatch (replacce by second periscope?)
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// balance tank valves
-	damage_data_scheme(vector3f(0.728448,0.086957,0.750000), vector3f(0.627155,0.253623,0.297619), 0.2, 3600, false, true),	// forward battery
-	damage_data_scheme(vector3f(0.535560,0.702899,0.559524), vector3f(0.528017,0.942029,0.476190), 0.2, 3600, true, true),	// periscope
-	damage_data_scheme(vector3f(0.721983,0.072464,0.833333), vector3f(0.451509,0.543478,0.190476), 0.2, 3600, false, true),	// central pressure hull
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// bilge water pump
-	damage_data_scheme(vector3f(0.524784,0.710145,0.607143), vector3f(0.509698,0.760870,0.392857), 0.2, 3600, false, true),	// conning tower hatch
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// listening device
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// radio device
-	damage_data_scheme(vector3f(0.828664,0.195652,0.678571), vector3f(0.818966,0.384058,0.369048), 0.2, 3600, false, true),	// inner bow tubes
-	damage_data_scheme(vector3f(0.967672,0.195652,0.678571), vector3f(0.925647,0.384058,0.369048), 0.2, 3600, true, false),	// outer bow tubes
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// bow water pump
-	damage_data_scheme(vector3f(0.766164,0.536232,0.607143), vector3f(0.740302,0.579710,0.392857), 0.2, 3600, false, true),	// bow hatch
-	damage_data_scheme(vector3f(0.915948,0.072464,0.833333), vector3f(0.721983,0.543478,0.190476), 0.2, 3600, false, true),	// bow pressure hull
-	damage_data_scheme(vector3f(0.935345,0.115942,0.940476), vector3f(0.896552,0.181159,0.130952), 0.2, 3600, true, true),	// bow dive planes
-	damage_data_scheme(vector3f(0.480603,0.731884,0.678571), vector3f(0.453664,0.898551,0.369048), 0.2, 3600, true, false),	// aa gun
-	damage_data_scheme(vector3f(0.480603,0.579710,0.678571), vector3f(0.451509,0.681159,0.369048), 0.2, 3600, true, false),	// ammo depot
-	damage_data_scheme(vector3f(0.672414,0.413043,0.190476), vector3f(0.299569,0.528986,0.000000), 0.2, 3600, true, false),	// outer fuel tanks left
-	damage_data_scheme(vector3f(0.672414,0.413043,1.000000), vector3f(0.299569,0.528986,0.821429), 0.2, 3600, true, false),	// outer fuel tanks right
-	damage_data_scheme(vector3f(0.062500,0.304348,0.607143), vector3f(0.043103,0.362319,0.392857), 0.2, 3600, true, false),	// outer stern tubes
-	damage_data_scheme(vector3f(0.171336,0.304348,0.607143), vector3f(0.161638,0.362319,0.392857), 0.2, 3600, false, true),	// inner stern tubes
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, true, true),	// snorkel
-	damage_data_scheme(vector3f(0.656250,0.572464,0.642857), vector3f(0.586207,0.710145,0.357143), 0.2, 3600, true, false),	// deck gun
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, true, true),	// radio detection device
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, true, true),	// radar
-};
-
-
 
 submarine::stored_torpedo::stored_torpedo()
 	: torp(0), status(st_empty), associated(0), remaining_time(0), preheating(false)
@@ -254,9 +212,9 @@ submarine::submarine(game& gm_, const xml_elem& parent)
 	battery_recharge_value_t = bt.attrf("recharge_t");
 
 	// set all common damageable parts to "no damage", fixme move to ship?, replace by damage editor data reading
-	//damageable_parts.resize(nr_of_damageable_parts);
+	//parts.resize(nr_of_parts);
 	//for (unsigned i = 0; i < unsigned(outer_stern_tubes); ++i)
-	//damageable_parts[i] = damageable_part(0, 0);
+	//parts[i] = part(0, 0);
 
 	// set hearing device
 	date dt = gm.get_date();
@@ -309,11 +267,11 @@ void submarine::load(const xml_elem& parent)
 	battery_level = sst.attrf("battery_level");
     
 	// fixme: later move to ship, or even sea_object!
-	xml_elem dm = parent.child("damageable_parts");
-	damageable_parts.clear();
-	damageable_parts.reserve(dm.attru("nr"));
+	xml_elem dm = parent.child("parts");
+	parts.clear();
+	parts.reserve(dm.attru("nr"));
 	for (xml_elem::iterator it = tp.iterate("part"); !it.end(); it.next()) {
-		//damageable_parts.push_back(damageable_part(it.elem()));
+		//parts.push_back(part(it.elem()));
 	}
 
 	TDC.load(parent);
@@ -352,12 +310,12 @@ void submarine::save(xml_elem& parent) const
 	sst.set_attr(battery_level, "battery_level");
     
 	// fixme: later move to ship, or even sea_object!
-	xml_elem dm = parent.add_child("damageable_parts");
-	dm.set_attr(unsigned(damageable_parts.size()), "nr");
-	for (vector<damageable_part>::const_iterator it = damageable_parts.begin(); it != damageable_parts.end(); ++it) {
+	//xml_elem dm = parent.add_child("parts");
+	//dm.set_attr(unsigned(parts.size()), "nr");
+	//for (vector<sea_object::part>::const_iterator it = parts.begin(); it != parts.end(); ++it) {
 		//save a part node for each entry
 		//it->save(out);
-	}
+	//}
 
 	TDC.save(parent);
 	sonarman.save(parent);
@@ -1038,8 +996,8 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 		// all parts within this circle are affected to damage relative to their distance to the
 		// circles center.
 	
-		for (unsigned i = 0; i < damageable_parts.size() /*nr_of_damageable_parts*/; ++i) {
-			if (damageable_parts[i].status < 0) continue;	// avoid non existent parts.
+		for (unsigned i = 0; i < parts.size() /*nr_of_parts*/; ++i) {
+			if (parts[i].status < 0) continue;	// avoid non existent parts.
 
 			vector3f tmp = (damage_schemes[i].p1 + damage_schemes[i].p2) * 0.5;
 				if (tmp.square_length() == 0) continue;//hack to avoid yet not exsisting data fixme
@@ -1053,7 +1011,7 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 			double strength = exp((deadly_radius - sdlen) * expfac);
 			
 			if (strength > 0 && strength <= 1) {
-				add_saturated(damageable_parts[i].status, strength, 1.0);
+				add_saturated(parts[i].status, strength, 1.0);
 			}
 	
 				ostringstream os;
