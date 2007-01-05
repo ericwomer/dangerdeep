@@ -60,49 +60,6 @@ void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, 
 	south = (y < 0.0);
 }
 
-sea_object::damage_data_scheme sea_object::damage_schemes[sea_object::nr_of_parts] = {
-	damage_data_scheme(vector3f(0.090517,0.108696,0.892857), vector3f(0.066810,0.297101,0.083333), 0.2, 3600, true, true),	// rudder
-	damage_data_scheme(vector3f(0.131466,0.086957,0.678571), vector3f(0.114224,0.253623,0.321429), 0.2, 3600, true, false),	// screws
-	damage_data_scheme(vector3f(0.260776,0.130435,0.678571), vector3f(0.132543,0.231884,0.321429), 0.2, 3600, true, true),	// screw shaft
-	damage_data_scheme(vector3f(0.112069,0.137681,0.880952), vector3f(0.087284,0.181159,0.119048), 0.2, 3600, true, true),	// stern dive planes
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// stern water pump
-	damage_data_scheme(vector3f(0.271552,0.108696,0.892857), vector3f(0.000000,0.543478,0.107143), 0.2, 3600, false, true),	// stern pressure hull
-	damage_data_scheme(vector3f(0.273707,0.536232,0.607143), vector3f(0.248922,0.579710,0.392857), 0.2, 3600, false, true),	// stern hatch
-	damage_data_scheme(vector3f(0.332974,0.094203,0.797619), vector3f(0.285560,0.246377,0.202381), 0.2, 3600, false, true),	// electric engines
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// air compressor
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// machine water pump
-	damage_data_scheme(vector3f(0.451509,0.072464,0.833333), vector3f(0.271552,0.543478,0.190476), 0.2, 3600, false, true),	// machine pressure hull
-	damage_data_scheme(vector3f(0.627155,0.086957,0.750000), vector3f(0.501078,0.253623,0.297619), 0.2, 3600, false, true),	// aft battery
-	damage_data_scheme(vector3f(0.451509,0.086957,0.797619), vector3f(0.353448,0.268116,0.202381), 0.2, 3600, false, true),	// diesel engines
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// kitchen hatch (replacce by second periscope?)
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// balance tank valves
-	damage_data_scheme(vector3f(0.728448,0.086957,0.750000), vector3f(0.627155,0.253623,0.297619), 0.2, 3600, false, true),	// forward battery
-	damage_data_scheme(vector3f(0.535560,0.702899,0.559524), vector3f(0.528017,0.942029,0.476190), 0.2, 3600, true, true),	// periscope
-	damage_data_scheme(vector3f(0.721983,0.072464,0.833333), vector3f(0.451509,0.543478,0.190476), 0.2, 3600, false, true),	// central pressure hull
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// bilge water pump
-	damage_data_scheme(vector3f(0.524784,0.710145,0.607143), vector3f(0.509698,0.760870,0.392857), 0.2, 3600, false, true),	// conning tower hatch
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// listening device
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// radio device
-	damage_data_scheme(vector3f(0.828664,0.195652,0.678571), vector3f(0.818966,0.384058,0.369048), 0.2, 3600, false, true),	// inner bow tubes
-	damage_data_scheme(vector3f(0.967672,0.195652,0.678571), vector3f(0.925647,0.384058,0.369048), 0.2, 3600, true, false),	// outer bow tubes
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, false, true),	// bow water pump
-	damage_data_scheme(vector3f(0.766164,0.536232,0.607143), vector3f(0.740302,0.579710,0.392857), 0.2, 3600, false, true),	// bow hatch
-	damage_data_scheme(vector3f(0.915948,0.072464,0.833333), vector3f(0.721983,0.543478,0.190476), 0.2, 3600, false, true),	// bow pressure hull
-	damage_data_scheme(vector3f(0.935345,0.115942,0.940476), vector3f(0.896552,0.181159,0.130952), 0.2, 3600, true, true),	// bow dive planes
-	damage_data_scheme(vector3f(0.480603,0.731884,0.678571), vector3f(0.453664,0.898551,0.369048), 0.2, 3600, true, false),	// aa gun
-	damage_data_scheme(vector3f(0.480603,0.579710,0.678571), vector3f(0.451509,0.681159,0.369048), 0.2, 3600, true, false),	// ammo depot
-	damage_data_scheme(vector3f(0.672414,0.413043,0.190476), vector3f(0.299569,0.528986,0.000000), 0.2, 3600, true, false),	// outer fuel tanks left
-	damage_data_scheme(vector3f(0.672414,0.413043,1.000000), vector3f(0.299569,0.528986,0.821429), 0.2, 3600, true, false),	// outer fuel tanks right
-	damage_data_scheme(vector3f(0.062500,0.304348,0.607143), vector3f(0.043103,0.362319,0.392857), 0.2, 3600, true, false),	// outer stern tubes
-	damage_data_scheme(vector3f(0.171336,0.304348,0.607143), vector3f(0.161638,0.362319,0.392857), 0.2, 3600, false, true),	// inner stern tubes
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, true, true),	// snorkel
-	damage_data_scheme(vector3f(0.656250,0.572464,0.642857), vector3f(0.586207,0.710145,0.357143), 0.2, 3600, true, false),	// deck gun
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, true, true),	// radio detection device
-	damage_data_scheme(vector3f(0,0,0), vector3f(0,0,0), 0.2, 3600, true, true),	// radar
-};
-
-
-
 // fixme: change the function signature so that current state is given
 // (position/velocity) and point of time to get acceleration for, at least
 // as offset to current time! to have non-constant acceleration over time

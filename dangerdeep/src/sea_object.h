@@ -168,7 +168,7 @@ public:
 			p1(a), p2(b), weakness(w), repairtime(t), surfaced(s), repairable(r) {}
 	};
 	
-	static damage_data_scheme damage_schemes[nr_of_parts];
+	std::vector<damage_data_scheme> damage_schemes;
 
 	// each sea_object has some damageable parts.
 	struct part {
@@ -186,7 +186,7 @@ public:
 		double remainingtime;	// time until repair is completed
 		float floodlevel;	// how much water is inside (0-1, part of volume, 1 = full)
 		// METHODS
-		part(double st = -1, double rt = 0) : status(st), repairtime(rt) {}
+		part(double st = -1, unsigned int rt = 0) : status(st), repairtime(rt) {}
 		//fixme: save to xml!
 		//part(istream& in) { status = read_double(in); repairtime = read_double(in); }
 		//void save(ostream& out) const { write_double(out, status); write_double(out, repairtime); }

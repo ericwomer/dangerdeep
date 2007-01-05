@@ -171,8 +171,8 @@ void sub_damage_display::display ( class game& gm ) const
 
 			// if part is damages, display repair information
 			if (damcat > 0) {
-				if (submarine::damage_schemes[i].repairable) {
-					if (submarine::damage_schemes[i].surfaced) {
+				if (mysub->damage_schemes[i].repairable) {
+					if (mysub->damage_schemes[i].surfaced) {
 						dmgstr << texts::get(168);
 					} else {
 						unsigned minutes = unsigned(round(parts[i].repairtime / 60.0));
