@@ -577,13 +577,13 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 
 
 
-vector<Uint8> texture::scale_half(const vector<Uint8>& src, unsigned w, unsigned h, unsigned bpp) const
+vector<Uint8> texture::scale_half(const vector<Uint8>& src, unsigned w, unsigned h, unsigned bpp)
 {
 	if (!size_non_power_two()) {
 		if (w < 1 || (w & (w-1)) != 0)
-			throw texerror(get_name(), "texture width is no power of two!");
+			throw texerror("[scale_half]", "texture width is no power of two!");
 		if (h < 1 || (h & (h-1)) != 0)
-			throw texerror(get_name(), "texture height is no power of two!");
+			throw texerror("[scale_half]", "texture height is no power of two!");
 	}
 
 	vector<Uint8> dst(w*h*bpp/4);
@@ -605,7 +605,7 @@ vector<Uint8> texture::scale_half(const vector<Uint8>& src, unsigned w, unsigned
 
 
 vector<Uint8> texture::make_normals(const vector<Uint8>& src, unsigned w, unsigned h,
-				    float detailh) const
+				    float detailh)
 {
 	// src size must be w*h
 	vector<Uint8> dst(3*w*h);
@@ -745,6 +745,15 @@ texture::~texture()
 	sys().add_console(oss2.str());
 #endif
 	glDeleteTextures(1, &opengl_name);
+}
+
+
+
+void texture::sub_image(int xoff, int yoff, unsigned w, unsigned h,
+			const std::vector<Uint8>& pixels, int format_)
+{
+	glTexSubImage2D(GL_TEXTURE_2D, 0 /* mipmap level */,
+			xoff, yoff, w, h, format_, GL_UNSIGNED_BYTE, &pixels[0]);
 }
 
 

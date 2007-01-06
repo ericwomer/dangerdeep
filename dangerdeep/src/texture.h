@@ -132,15 +132,6 @@ protected:
 	void init(const std::vector<Uint8>& data, bool makenormalmap = false,
 		  float detailh = 1.0f);
 
-	// will scale down the image data to half size in each direction (at least w/h=1)
-	// w,h must be > 1
-	std::vector<Uint8> scale_half(const std::vector<Uint8>& src,
-				      unsigned w, unsigned h, unsigned bpp) const;
-	
-	// give powers of two for w,h, bpp must be 1!
-	std::vector<Uint8> make_normals(const std::vector<Uint8>& src,
-					unsigned w, unsigned h, float detailh) const;
-
 	static int size_non_power_2;
 
 	// statistics.
@@ -190,6 +181,10 @@ public:
 
 	~texture();
 
+	/// change sub-area of texture from memory values (use openGL constants for format,etc.
+	void sub_image(int xoff, int yoff, unsigned w, unsigned h,
+		       const std::vector<Uint8>& pixels, int format);
+
 	int get_format() const { return format; }
 	unsigned get_bpp() const;
 	unsigned get_opengl_name() const { return opengl_name; };
@@ -221,6 +216,15 @@ public:
 
 	///> returns if texture sizes other than powers of two are allowed. call after GL init.
 	static bool size_non_power_two();
+
+	// will scale down the image data to half size in each direction (at least w/h=1)
+	// w,h must be > 1
+	static std::vector<Uint8> scale_half(const std::vector<Uint8>& src,
+					     unsigned w, unsigned h, unsigned bpp);
+	
+	// give powers of two for w,h, bpp must be 1!
+	static std::vector<Uint8> make_normals(const std::vector<Uint8>& src,
+					       unsigned w, unsigned h, float detailh);
 };
 
 #endif
