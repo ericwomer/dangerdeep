@@ -1869,6 +1869,12 @@ void water::generate_subdetail_and_bumpmap()
 	osg.write((const char*)(&waveheight_subdetail[0]), subdetail_size*subdetail_size);
 #endif
 
+	if (water_bumpmap.get()) {
+	water_bumpmap->sub_image(0, 0, subdetail_size, subdetail_size,
+				 texture::make_normals(waveheight_subdetail, subdetail_size, subdetail_size, 0.5f),
+				 GL_LUMINANCE);
+	} else {
+
 	// fixme: gltexsubimage faster than glteximage, a reset/creation of new
 	// texture is not necessary!
 	//fixme: es werden regelmäßig neue texturen angelegt, das könnte das hier sein!
@@ -1888,6 +1894,7 @@ void water::generate_subdetail_and_bumpmap()
 			    //really? the mipmapped normalmap values are not of unit length,
 			    //but the direction should be kept, and they're normalized anyway.
 			    //so mipmapping should do no harm...
+	}
 }
 
 
@@ -1952,6 +1959,9 @@ void water::set_refraction_color(const colorf& light_color)
 	//dim yellow light should result in dim yellow-green upwelling color, not dim green.
 	colorf wavetop = light_color.lerp(colorf(color(0, 0, 0)), colorf(color(66, 91, 81)));
 	colorf wavebottom = light_color.lerp(colorf(color(0, 0, 0)), colorf(color(56, 76, 86)));
+// some darker colors as test
+//	colorf wavetop = light_color.lerp(colorf(color(0, 0, 0)), colorf(color(10, 46, 40)));
+//	colorf wavebottom = light_color.lerp(colorf(color(0, 0, 0)), colorf(color(3, 21, 44)));
 
 	if (use_shaders) {
 		float wt[3], wb[3];
