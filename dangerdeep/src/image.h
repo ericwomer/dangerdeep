@@ -28,8 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 #include <SDL.h>
 #include "ptrvector.h"
-
-class texture;
+#include "texture.h"	// needed at least for correct "delete" usage in ptrvector
 
 
 ///\brief Handles an image for OpenGL based rendering.
