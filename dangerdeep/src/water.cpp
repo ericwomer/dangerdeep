@@ -448,11 +448,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	usex86sse = sseok && cfg::instance().getb("usex86sse");
 	if (usex86sse) {
 		sys().add_console("using x86 SSE instructions.");
-#ifdef USE_SSE_INTRINSICS
-		water_compute_coord_init_sse_i(wavetile_length_rcp, wave_resolution, wave_resolution_shift);
-#else
 		water_compute_coord_init_sse(wavetile_length_rcp, wave_resolution, wave_resolution_shift);
-#endif
 		if (sizeof(vector3f) != 12)
 			throw error("Internal SSE error, sizeof vector3f != 12, SSE code won't work!");
 	}
@@ -1343,13 +1339,8 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 
 #ifdef USE_SSE
 		if (usex86sse) {
-#ifdef USE_SSE_INTRINSICS
-			water_compute_coord_1line_sse_i(v, vadd, vfrac, vfracadd, &curr_wtp->data[0],
+			water_compute_coord_1line_sse(v, vadd, vfrac, vfracadd, &curr_wtp->data[0].x,
 						      -viewpos.z, &coords[ptr].x, xres);
-#else
-			water_compute_coord_1line_sse(v, vadd, vfrac, vfracadd, &curr_wtp->data[0],
-						      -viewpos.z, &coords[ptr].x, xres);
-#endif
 			ptr += xres + 1;
 		} else {
 #endif // USE_SSE

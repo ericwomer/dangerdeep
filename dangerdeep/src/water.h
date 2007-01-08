@@ -89,32 +89,20 @@ protected:
 
 	struct wavetile_phase
 	{
-		// store displacements and height in one 32bit-word:
-		// 10bits y, 10bits x, 12bits height.
-		// stored as unsigned values with offset 512/512/2048,
-		// represent -8...+8m or -16...+16m.
-		std::vector<Uint32> data;
+		std::vector<vector3f> data;
 		float minh, maxh;
 		wavetile_phase() : minh(0), maxh(0) {}
 		float get_height(unsigned idx) const
 		{
-			return (int(data[idx] & 0xfff) - 2048) * (16.0f/2048);
+			return data[idx].z;
 		}
-		// be careful... when conversion to uint rounds up, result of 2048 can occour...
-		// we mask unused bits out, although it is not really necessary (rather paranoia)
-		vector3f get_height_and_displacement(unsigned idx) const
+		const vector3f& get_height_and_displacement(unsigned idx) const
 		{
-			Uint32 v = data[idx];
-			return vector3f((int((v >> 22) & 0x3ff) - 512) * (8.0f/512),
-					(int((v >> 12) & 0x3ff) - 512) * (8.0f/512),
-					(int(v & 0xfff) - 2048) * (16.0f/2048));
+			return data[idx];
 		}
 		void set_values(unsigned idx, float dx, float dy, float h)
 		{
-			data[idx] =
-				(Uint32(Sint32(h * (2048/16)) + 2048) & 0xfff) |
-				((Uint32(Sint32(dx * (512/8)) + 512) & 0x3ff) << 12) |
-				((Uint32(Sint32(dy * (512/8)) + 512) & 0x3ff) << 22);
+			data[idx] = vector3f(dx, dy, h);
 		}
 	};
 

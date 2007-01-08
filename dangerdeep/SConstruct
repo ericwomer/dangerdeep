@@ -40,13 +40,9 @@ if sys.platform == 'win32':
 	env.Append(CCFLAGS = '-Wall -O2') # for mingw!
 	if (usex86sse >= 1):
 		osspecificsrc += ['water_sse.cpp']
+		env.Append(CCFLAGS = '-msse')
 		env.Append(CPPDEFINES = ['USE_SSE'])
-		if (usex86sse >= 2):
-			env.Append(CPPDEFINES = ['USE_SSE_INTRINSICS'])
-			env.Append(CCFLAGS = '-msse')
-			print 'Using x86 SSE/MMX optimizations with GCC intrinsics.'
-		else:
-			print 'Using x86 SSE/MMX optimizations.'
+		print 'Using x86 SSE/MMX optimizations with GCC intrinsics.'
 	datadir = './data'	# use slashes as separator always. C/C++ want it so.
 	build_dir = 'win32'
 elif sys.platform == 'darwin':
@@ -85,6 +81,7 @@ elif (sys.platform == 'freebsd5') or (sys.platform == 'freebsd6') or (sys.platfo
 		if (usex86sse == 0) and (mmxsupported and ssesupported):
                 	usex86sse = 1
 	        if usex86sse >= 1:
+			env.Append(CCFLAGS = '-msse')
         	        env.Append(CPPDEFINES = ['USE_SSE'])
 	                osspecificsrc += ['water_sse.cpp']
 	                print 'Using x86 SSE/MMX optimizations.'
@@ -161,17 +158,13 @@ else:
 		usex86sse = 1
 	if usex86sse >= 1:
 		env.Append(CPPDEFINES = ['USE_SSE'])
+		env.Append(CCFLAGS = '-msse')
 		osspecificsrc += ['water_sse.cpp']
-		if (usex86sse >= 3):
-			env.Append(CPPDEFINES = ['USE_SSE_INTRINSICS', 'USE_SSE_ALWAYS'])
-			env.Append(CCFLAGS = '-msse')
+		if (usex86sse >= 2):
+			env.Append(CPPDEFINES = ['USE_SSE_ALWAYS'])
 			print 'Using x86 SSE/MMX optimizations with GCC intrinsics ALWAYS WITHOUT DETECTION!'
-		elif (usex86sse >= 2):
-			env.Append(CPPDEFINES = ['USE_SSE_INTRINSICS'])
-			env.Append(CCFLAGS = '-msse')
-			print 'Using x86 SSE/MMX optimizations with GCC intrinsics.'
 		else:
-			print 'Using x86 SSE/MMX optimizations.'
+			print 'Using x86 SSE/MMX optimizations with GCC intrinsics.'
 	env.Append(CCFLAGS = ccflags)
 	datadir = '/usr/local/share/dangerdeep'
 	build_dir = 'linux'
@@ -253,7 +246,7 @@ Help("""
 	Extra options (add them to command line, like 'scons extraoption=value'):
 	'debug=x' to build debug level x, levels: 0: normal, 1: debug, 2: more debug,
 		3: profiling, -1: extreme optimizations, -2: even more extreme optim.
-	'usex86sse=x' where x < 0: disable them, 0: autodetect, 1: enable them, 2: enable and use intrinsics.
+	'usex86sse=x' where x < 0: disable them, 0: autodetect, 1: enable them, 2: force usage (no runtime detection).
 	'useefence=x' when x > 0 use the Electric Fence library (for debugging)
 	""")
 
