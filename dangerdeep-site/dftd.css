@@ -100,48 +100,48 @@ img.std {
 
 /* icons */
 li.gallery a {
-	background: url( 'icons/pictures.gif' );
+	background: url( 'ddicons/pictures.gif' );
 	background-repeat: no-repeat;
 }
 
 li.about a {
-	background: url( 'icons/house.gif' );
+	background: url( 'ddicons/house.gif' );
 	background-repeat: no-repeat;
 }
 
 li.feat a {
-	background: url( 'icons/page_white_gear.gif' );
+	background: url( 'ddicons/page_white_gear.gif' );
 	background-repeat: no-repeat;
 }
 
 li.news a {
-	background: url( 'icons/newspaper.gif' );
+	background: url( 'ddicons/newspaper.gif' );
 	background-repeat: no-repeat;
 }
 
 li.download a {
-	background: url( 'icons/folder_go.gif' );
+	background: url( 'ddicons/folder_go.gif' );
 	background-repeat: no-repeat;
 }
 
 li.help a {
-	background: url( 'icons/group.gif' );
+	background: url( 'ddicons/group.gif' );
 	background-repeat: no-repeat;
 }
 
 li.docu a {
-	background: url( 'icons/help.gif' );
+	background: url( 'ddicons/help.gif' );
 	background-repeat: no-repeat;
 }
 
 li.links a {
-	background: url( 'icons/door_out.gif' );
+	background: url( 'ddicons/door_out.gif' );
 	background-repeat: no-repeat;
 }
 
 
 li.warn a {
-	background: url( 'icons/dialog-warning.gif' );
+	background: url( 'ddicons/dialog-warning.gif' );
 	background-repeat: no-repeat;
 }
 /*
