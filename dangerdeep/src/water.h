@@ -37,7 +37,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ship.h"
 #include "ocean_wave_generator.h"
 #include "perlinnoise.h"
-#include "vertexbuffer.h"
+#include "vertexbufferobject.h"
 #include "framebufferobject.h"
 #include "shader.h"
 
@@ -157,14 +157,14 @@ protected:
 	double last_subdetail_gen_time;
 
 	// store index data as vertex buffer object
-	vertexbuffer vbo_indices;
+	vertexbufferobject vbo_indices;
 
 	// store texture data in vertex buffer objects as well
 	// we can't store coords in VBOs, as we read them for normal generation, so
 	// read would be inefficient. Same for normals.
 	// We must use at most one vertex buffer for all data... we can bind at most
 	// one vertex buffer and one index buffer
-	mutable vertexbuffer vbo_uv01;
+	mutable vertexbufferobject vbo_uv01;
 
 	water& operator= (const water& other);
 	water(const water& other);
