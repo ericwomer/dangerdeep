@@ -1,0 +1,158 @@
+body {
+	background-color: #000;
+	color: #fff;
+	font-family: "Trebuchet MS", "Lucida Sans Unicode", Arial, sans-serif;
+	text-align: center; /* IE is the suck */
+}
+
+img.left {
+	float: left;
+}
+
+img.right {
+	float: right;
+}
+
+h2.center {
+	text-align: center;
+}
+
+h2.right {
+	text-align: right;
+}
+
+div.container {
+	width: 780px;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: left;
+	background-image: url('images/bg1.jpg');
+	background-repeat: no-repeat;
+	background-position: bottom left;
+}
+
+div.menu {
+	width: 150px;
+	float: left;
+}
+
+div.text_header {
+	width: 50%;
+	margin-left: auto; 
+	margin-right: auto;
+}
+
+div.contents {
+	width: 620px;
+	float: right;
+	text-align: justify;
+	min-height: 500px;
+}
+
+div.foot {
+	clear: both;
+	text-align: center;
+	border-top: 1px solid #fff;
+}
+
+img.right {
+	float: right;
+}
+
+/* gallery */
+div.thumbnails img {
+	border-width: 0px;
+}
+
+/* menu */
+ul.menu {
+	padding: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-top: 5px;
+	margin-bottom: 15px;
+}
+
+ul.menu li {
+	list-style: none;
+	padding: 1px;
+	margin: 3px 0px 0px 0px;
+	text-align: left;
+	background-repeat: repeat-x;
+	border-top: 1px solid #ccc;
+	border-left: 1px solid #ccc;
+	height: 20px;
+	overflow: hidden;
+	background-image: url( 'images/button.png' );
+}
+
+ul.menu li a {
+	color: #fff;
+	text-decoration: none;
+	display: block;
+	padding-left: 18px;
+}
+
+img.std {
+	margin: 2px;
+	border: 0px;
+}
+
+/* icons */
+li.gallery a {
+	background: url( 'icons/pictures.gif' );
+	background-repeat: no-repeat;
+}
+
+li.about a {
+	background: url( 'icons/house.gif' );
+	background-repeat: no-repeat;
+}
+
+li.feat a {
+	background: url( 'icons/page_white_gear.gif' );
+	background-repeat: no-repeat;
+}
+
+li.news a {
+	background: url( 'icons/newspaper.gif' );
+	background-repeat: no-repeat;
+}
+
+li.download a {
+	background: url( 'icons/folder_go.gif' );
+	background-repeat: no-repeat;
+}
+
+li.help a {
+	background: url( 'icons/group.gif' );
+	background-repeat: no-repeat;
+}
+
+li.docu a {
+	background: url( 'icons/help.gif' );
+	background-repeat: no-repeat;
+}
+
+li.links a {
+	background: url( 'icons/door_out.gif' );
+	background-repeat: no-repeat;
+}
+
+
+li.warn a {
+	background: url( 'icons/dialog-warning.gif' );
+	background-repeat: no-repeat;
+}
+/*
+li. a {
+	background: url( 'icons/' );
+	background-repeat: no-repeat;
+}
+*/
+
+/* hacks */
+div.ie_center {
+	text-align: center;
+}
+
