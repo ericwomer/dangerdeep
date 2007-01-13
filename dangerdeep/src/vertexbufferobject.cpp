@@ -46,7 +46,7 @@ vertexbufferobject::~vertexbufferobject()
 
 
 
-void vertexbufferobject::init_data(unsigned size_, void* data, int usage)
+void vertexbufferobject::init_data(unsigned size_, const void* data, int usage)
 {
 	size = size_;
 	bind();
@@ -56,7 +56,7 @@ void vertexbufferobject::init_data(unsigned size_, void* data, int usage)
 
 
 
-void vertexbufferobject::init_sub_data(unsigned offset, unsigned subsize, void* data)
+void vertexbufferobject::init_sub_data(unsigned offset, unsigned subsize, const void* data)
 {
 	bind();
 	glBufferSubDataARB(target, offset, subsize, data);

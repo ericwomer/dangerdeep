@@ -44,9 +44,9 @@ class vertexbufferobject
 	///> GL_STREAM_COPY_ARB, GL_STATIC_DRAW_ARB, GL_STATIC_READ_ARB,
 	///> GL_STATIC_COPY_ARB, GL_DYNAMIC_DRAW_ARB, GL_DYNAMIC_READ_ARB,
 	///> GL_DYNAMIC_COPY_ARB
-	void init_data(unsigned size, void* data, int usage);
+	void init_data(unsigned size, const void* data, int usage);
 	///> init/set sub data
-	void init_sub_data(unsigned offset, unsigned subsize, void* data);
+	void init_sub_data(unsigned offset, unsigned subsize, const void* data);
 	///> bind buffer
 	void bind() const;
 	///> unbind buffer

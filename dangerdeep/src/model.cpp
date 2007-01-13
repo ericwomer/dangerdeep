@@ -404,39 +404,102 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 
 
 model::mesh::mesh(const string& nm)
-	: name(nm), transformation(matrix4f::one()), mymaterial(0), display_list(0)
+	: name(nm), transformation(matrix4f::one()), mymaterial(0),
+	  vertex_data(false), index_data(true),
+	  vbo_offset_normals(0),
+	  vbo_offset_tangentsx(0),
+	  vbo_offset_texcoords(0),
+	  vbo_offset_colors(0)
 {
-}
-
-
-
-model::mesh::~mesh()
-{
-	if (display_list != 0) {
-		glDeleteLists(display_list, 1);
-	}
 }
 
 
 
 void model::mesh::compile()
 {
-	// check if display list can be compiled.
-	if (use_shaders || !(mymaterial && mymaterial->normalmap.get())) {
-		if (display_list == 0) {
-			display_list = glGenLists(1);
-			if (display_list == 0)
-				throw error("no more display list indices available");
-		}
-		// fixme: rather use VBOs instead of display lists
-		glNewList(display_list, GL_COMPILE);
-		send_geometry_to_gl();
-		glEndList();
-	} else if (display_list != 0) {
-		// delete unused list.
-		glDeleteLists(display_list, 1);
-		display_list = 0;
+	// store data in VBOs. for non-shader store empty arrays.
+	// -------------------- compute size of arrays ----------------------------------------------
+	// depends on shading model and more.
+
+	bool has_texture_u0 = false, has_texture_u1 = false;
+	bool normalmapping = false;
+	if (mymaterial != 0) {
+		if (mymaterial->colormap.get())
+			has_texture_u0 = true;
+		if (mymaterial->normalmap.get())
+			has_texture_u1 = true;
+		normalmapping = has_texture_u1;	// maybe more options here...
 	}
+
+	// vertices (vector3f should be 3*4 bytes)
+	const unsigned vs = vertices.size();
+	unsigned vertex_data_size = sizeof(vector3f) * vs;
+	// normals
+	if (!normalmapping || use_shaders) {
+		vbo_offset_normals = vertex_data_size;
+		vertex_data_size += sizeof(vector3f) * vs;
+	}
+	// texcoords
+	if (has_texture_u0 && texcoords.size() == vs) {
+		vbo_offset_texcoords = vertex_data_size;
+		vertex_data_size += sizeof(vector2f) * vs;
+	}
+	// auxiliary data
+	vector<Uint8> colors;
+	if (use_shaders) {
+		// give tangents as texture coordinates for unit 1.
+		if (has_texture_u0 && tangentsx.size() == vs) {
+			vbo_offset_tangentsx = vertex_data_size;
+			vertex_data_size += sizeof(vector3f) * vs;
+		}
+
+		// give righthanded info as colors (or default: always right handed)
+		if (righthanded.size() == vs) {
+			vbo_offset_colors = vertex_data_size;
+			vertex_data_size += 3 * vs;
+			colors.resize(3 * vs);
+			for (unsigned i = 0; i < vs; ++i)
+				colors[3*i] = (righthanded[i]) ? 255 : 0;
+		}
+	} else {
+		// texcoords for unit #1 are the
+		// same as for unit #0, so share data.
+		if (normalmapping) {
+			vbo_offset_colors = vertex_data_size;
+			vertex_data_size += 3 * vs;
+		}
+	}
+
+	// -------------------- fill in static data -------------------------------------------------
+	// we can't init all data at once. so we could use map() too, but this would need
+	// active copy. with init() the GPU can pull via DMA.
+	// but if sizeof(vector3f) is not 12, memory is wasted. But it always is 12.
+	vertex_data.init_data(vertex_data_size, 0, GL_STATIC_DRAW_ARB);
+	vertex_data.init_sub_data(0, sizeof(vector3f) * vs, &vertices[0].x);
+
+	// normals
+	if (!normalmapping || use_shaders) {
+		vertex_data.init_sub_data(vbo_offset_normals, sizeof(vector3f) * vs, &normals[0].x);
+	}
+	// texcoords
+	if (has_texture_u0 && texcoords.size() == vs) {
+		vertex_data.init_sub_data(vbo_offset_texcoords, sizeof(vector2f) * vs, &texcoords[0].x);
+	}
+	// auxiliary data
+	if (use_shaders) {
+		// give tangents as texture coordinates for unit 1.
+		if (has_texture_u0 && tangentsx.size() == vs) {
+			vertex_data.init_sub_data(vbo_offset_tangentsx, sizeof(vector3f) * vs, &tangentsx[0].x);
+		}
+
+		// give righthanded info as colors (or default: always right handed)
+		if (righthanded.size() == vs) {
+			vertex_data.init_sub_data(vbo_offset_colors, 3 * vs, &colors[0]);
+		}
+	}
+
+	// indices
+	index_data.init_data(indices.size() * 4, &indices[0], GL_STATIC_DRAW_ARB);
 }
 
 
@@ -785,12 +848,13 @@ void model::material::set_gl_values() const
 				if (specularmap.get()) {
 					glsl_color_normal_specular->use();
 					specularmap->set_gl_texture(*glsl_color_normal_specular, "tex_specular", 2);
+					normalmap->set_gl_texture(*glsl_color_normal_specular, "tex_normal", 1);
+					colormap->set_gl_texture(*glsl_color_normal_specular, "tex_color", 0);
 				} else {
 					glsl_color_normal->use();
+					normalmap->set_gl_texture(*glsl_color_normal, "tex_normal", 1);
+					colormap->set_gl_texture(*glsl_color_normal, "tex_color", 0);
 				}
-
-				normalmap->set_gl_texture(*glsl_color_normal_specular, "tex_normal", 1);
-				colormap->set_gl_texture(*glsl_color_normal_specular, "tex_color", 0);
 
 			} else {
 				// standard OpenGL texturing with special tricks
@@ -944,6 +1008,10 @@ void model::material::get_all_layout_names(std::set<std::string>& result) const
 
 void model::mesh::display() const
 {
+	// local transformation matrix.
+	glPushMatrix();
+	transformation.multiply_glf();
+
 	// set up material
 	if (mymaterial != 0) {
 		mymaterial->set_gl_values();
@@ -952,28 +1020,9 @@ void model::mesh::display() const
 		glColor3f(0.5,0.5,0.5);
 	}
 
-	// send geometry
-	if (display_list != 0) {
-		glCallList(display_list);
-	} else {
-		send_geometry_to_gl();
-	}
-
-	// clean up for material
-	glEnable(GL_LIGHTING);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-}
-
-
-
-void model::mesh::send_geometry_to_gl() const
-{
-	// local transformation matrix.
-	glPushMatrix();
-	transformation.multiply_glf();
-
-	// colors may be needed for normal mapping, as right-handed info.
-	vector<Uint8> colors;
+	// bind VBOs
+	vertex_data.bind();
+	index_data.bind();
 
 	bool has_texture_u0 = false, has_texture_u1 = false;
 	bool normalmapping = false;
@@ -986,19 +1035,19 @@ void model::mesh::send_geometry_to_gl() const
 	}
 
 	// set up vertex data.
-	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
+	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
 	glEnableClientState(GL_VERTEX_ARRAY);
 
 	// set up normals (only used with shaders or for plain rendering without normal maps).
 	if (!normalmapping || use_shaders) {
-		glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0]);	
+		glNormalPointer(GL_FLOAT, sizeof(vector3f), (char*)0 + vbo_offset_normals);
 		glEnableClientState(GL_NORMAL_ARRAY);
 	}
 
 	// without pixel shaders texture coordinates must be set for both texture units and are the same.
 	glClientActiveTexture(GL_TEXTURE0);
 	if (has_texture_u0 && texcoords.size() == vertices.size()) {
-		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), (char*)0 + vbo_offset_texcoords);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	} else {
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1006,32 +1055,25 @@ void model::mesh::send_geometry_to_gl() const
 
 	glClientActiveTexture(GL_TEXTURE1);
 	if (use_shaders) {
-		//
 		// Using vertex and fragment programs.
-		//
 		// give tangents as texture coordinates for unit 1.
 		if (has_texture_u0 && tangentsx.size() == vertices.size()) {
-			glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &tangentsx[0]);
+			glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), (char*)0 + vbo_offset_tangentsx);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		}
 
 		// give righthanded info as colors (or default: always right handed)
 		if (righthanded.size() == vertices.size()) {
-			colors.resize(righthanded.size()*3);
-			for (unsigned i = 0; i < righthanded.size(); ++i)
-				colors[3*i] = (righthanded[i]) ? 255 : 0;
-			glColorPointer(3, GL_UNSIGNED_BYTE, 0, &colors[0]);
+			glColorPointer(3, GL_UNSIGNED_BYTE, 0, (char*)0 + vbo_offset_colors);
 			glEnableClientState(GL_COLOR_ARRAY);
 		} else {
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		}
 	} else {
-		//
 		// No shaders, basic old OpenGL 1.4 techniques.
-		//
 		if (has_texture_u1 && texcoords.size() == vertices.size()) {
 			// maybe offer second texture coords. how are they stored in .3ds files?!
-			glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
+			glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), (char*)0 + vbo_offset_texcoords);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		} else {
 			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1050,7 +1092,7 @@ void model::mesh::send_geometry_to_gl() const
 			//cout << "lightpos rel " << lightpos_rel << "\n";
 			vector3f lightpos3 = lightpos_rel.to_real();
 			//cout << "lightpos3 " << lightpos3 << "," << lightpos_rel.xyz() << "," << ((lightpos_rel.w != 0.0f)) << "\n";
-			colors.resize(3*vertices.size());
+			vector<Uint8> colors(3*vertices.size());
 			// this loop could be speed up with mmx/sse instructions.
 			// however, with shaders it isn't used anyway and more and more computers
 			// have cards with shaders. at least newer computers that can do sse should
@@ -1077,22 +1119,19 @@ void model::mesh::send_geometry_to_gl() const
 				colors[3*i+1] = Uint8(nl.y*s + s);
 				colors[3*i+2] = Uint8(nl.z*s + s);
 			}
-			glColorPointer(3, GL_UNSIGNED_BYTE, 0, &colors[0]);
+			vertex_data.init_sub_data(vbo_offset_colors, 3 * vertices.size(), &colors[0]);
+			vertex_data.bind();	// do not forget to bind again
+			glColorPointer(3, GL_UNSIGNED_BYTE, 0, (char*)0 + vbo_offset_colors);
 			glEnableClientState(GL_COLOR_ARRAY);
 		} else {
 			glDisableClientState(GL_COLOR_ARRAY);
 		}
 	}
 
-	// lock Arrays for extra performance. Rather use vertex buffer objects on newer cards...
-	// display lists are a bit faster than VBOs for static data, but only there of course.
-	// using multiple glLockArrays per frame is not recommended...
-	// test result: compiled vertex arrays bring NO performance gain when using display
-	// lists. So don't use them.
-	// remark 2006: display lists faster than VBO?! this cant be...
-
-	// and finally draw the mesh.
-	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, &indices[0]);
+	// render geometry
+	glDrawElements(GL_TRIANGLES, indices.size(),
+		       GL_UNSIGNED_INT, // fixme: use 16bit to save space and copy bandwidth
+		       0);	// offset in VBO
 
 	// maybe: add code to show normals as Lines
 
@@ -1110,6 +1149,15 @@ void model::mesh::send_geometry_to_gl() const
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
 
+	// unbind VBOs
+	index_data.unbind();
+	vertex_data.unbind();
+
+	// clean up for material
+	glEnable(GL_LIGHTING);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// local transformation matrix.
 	glPopMatrix();
 }
 
@@ -1126,22 +1174,7 @@ void model::mesh::display_mirror_clip() const
 	// plain OpenGL. But we need shaders for clipping.
 	// set simple shaders here, no matter which material we have...
 
-	//fixme: if we separate geometry fetching from setting up the textures/material,
-	//we can give the same display list as for normal drawing.
-	//it contains vertices,normals,texcoords and per-vertex-colors.
-	//the colors are not needed, but it doesn't hurt to sent them also,
-	//if we use special shaders that do not use the colors.
-
-	/*
-	if (display_list != 0 && use_display_list) {
-		glCallList(display_list);
-		//glPopMatrix();
-		return;
-	}
-	*/
-
-	// fixme: recheck this function what needs to change for new skin support,
-	// function should be very similar to display()
+	//fixme: what is with local transformation(s) ?
 
 	bool has_texture_u0 = false;
 	if (mymaterial != 0) {
@@ -1155,6 +1188,10 @@ void model::mesh::display_mirror_clip() const
 		glsl_mirror_clip->use();
 	}
 
+	// bind VBOs
+	vertex_data.bind();
+	index_data.bind();
+
 	// multiply extra transformation to texture[1] matrix
 	glActiveTexture(GL_TEXTURE1);
 	glMatrixMode(GL_TEXTURE);
@@ -1162,24 +1199,26 @@ void model::mesh::display_mirror_clip() const
 	glMatrixMode(GL_MODELVIEW);
 	glActiveTexture(GL_TEXTURE0);
 
-	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
+	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
 	glEnableClientState(GL_VERTEX_ARRAY);
 
 	// basic lighting, we need normals
-	glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0]);	
+	glNormalPointer(GL_FLOAT, sizeof(vector3f), (char*)0 + vbo_offset_normals);
 	glEnableClientState(GL_NORMAL_ARRAY);
 
-	// without pixel shaders texture coordinates must be set for both texture units and are the same.
+	// and texture coordinates
 	glClientActiveTexture(GL_TEXTURE0);
 	if (has_texture_u0 && texcoords.size() == vertices.size()) {
-		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), (char*)0 + vbo_offset_texcoords);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	} else {
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 
-	// and finally draw the mesh.
-	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, &indices[0]);
+	// render geometry
+	glDrawElements(GL_TRIANGLES, indices.size(),
+		       GL_UNSIGNED_INT, // fixme: use 16bit to save space and copy bandwidth
+		       0);	// offset in VBO
 
 	// cleanup
 	if (use_shaders) {
@@ -1197,7 +1236,11 @@ void model::mesh::display_mirror_clip() const
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	//glPopMatrix();
+	// unbind VBOs
+	index_data.unbind();
+	vertex_data.unbind();
+
+	//glPopMatrix(); // huh?
 }
 
 
