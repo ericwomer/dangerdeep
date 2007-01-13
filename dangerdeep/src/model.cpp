@@ -1128,10 +1128,13 @@ void model::mesh::display() const
 		}
 	}
 
-	// render geometry
+	// render geometry, glDrawRangeElements is faster than glDrawElements.
+	glDrawRangeElements(GL_TRIANGLES, 0, vertices.size()-1, indices.size(), GL_UNSIGNED_INT, 0);
+#if 0
 	glDrawElements(GL_TRIANGLES, indices.size(),
 		       GL_UNSIGNED_INT, // fixme: use 16bit to save space and copy bandwidth
 		       0);	// offset in VBO
+#endif
 
 	// maybe: add code to show normals as Lines
 
@@ -1216,9 +1219,12 @@ void model::mesh::display_mirror_clip() const
 	}
 
 	// render geometry
+	glDrawRangeElements(GL_TRIANGLES, 0, vertices.size()-1, indices.size(), GL_UNSIGNED_INT, 0);
+#if 0
 	glDrawElements(GL_TRIANGLES, indices.size(),
 		       GL_UNSIGNED_INT, // fixme: use 16bit to save space and copy bandwidth
 		       0);	// offset in VBO
+#endif
 
 	// cleanup
 	if (use_shaders) {
