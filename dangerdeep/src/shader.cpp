@@ -241,6 +241,16 @@ void glsl_program::set_uniform(const std::string& name, const vector3& value) co
 
 
 
+unsigned glsl_program::get_vertex_attrib_index(const std::string& name) const
+{
+	if (used_program != this)
+		throw runtime_error("glsl_program::get_vertex_attrib_index, program not bound!");
+	return glGetAttribLocation(id, name.c_str());
+	
+}
+
+
+
 void glsl_program::use_fixed()
 {
 	glUseProgram(0);

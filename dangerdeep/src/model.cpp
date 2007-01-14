@@ -407,9 +407,11 @@ model::mesh::mesh(const string& nm)
 	: name(nm), transformation(matrix4f::one()), mymaterial(0),
 	  vertex_data(false), index_data(true),
 	  vbo_offset_normals(0),
-	  vbo_offset_tangentsx(0),
 	  vbo_offset_texcoords(0),
-	  vbo_offset_colors(0)
+	  vbo_offset_tangentsx_righthanded(0),
+	  vbo_offset_colors(0),
+	  index_data_type(0),
+	  vertex_attrib_index(0)
 {
 }
 
@@ -433,33 +435,24 @@ void model::mesh::compile()
 
 	// vertices (vector3f should be 3*4 bytes)
 	const unsigned vs = vertices.size();
-	unsigned vertex_data_size = sizeof(vector3f) * vs;
+	unsigned vertex_data_size = 3 * sizeof(float) * vs;
 	// normals
 	if (!normalmapping || use_shaders) {
 		vbo_offset_normals = vertex_data_size;
-		vertex_data_size += sizeof(vector3f) * vs;
+		vertex_data_size += 3 * sizeof(float) * vs;
 	}
 	// texcoords
 	if (has_texture_u0 && texcoords.size() == vs) {
 		vbo_offset_texcoords = vertex_data_size;
-		vertex_data_size += sizeof(vector2f) * vs;
+		vertex_data_size += 2 * sizeof(float) * vs;
 	}
 	// auxiliary data
-	vector<Uint8> colors;
+	vector<float> colors;
 	if (use_shaders) {
-		// give tangents as texture coordinates for unit 1.
+		// give tangents/righthanded info as vertex attributes
 		if (has_texture_u0 && tangentsx.size() == vs) {
-			vbo_offset_tangentsx = vertex_data_size;
-			vertex_data_size += sizeof(vector3f) * vs;
-		}
-
-		// give righthanded info as colors (or default: always right handed)
-		if (righthanded.size() == vs) {
-			vbo_offset_colors = vertex_data_size;
-			vertex_data_size += 3 * vs;
-			colors.resize(3 * vs);
-			for (unsigned i = 0; i < vs; ++i)
-				colors[3*i] = (righthanded[i]) ? 255 : 0;
+			vbo_offset_tangentsx_righthanded = vertex_data_size;
+			vertex_data_size += 4 * sizeof(float) * vs;
 		}
 	} else {
 		// texcoords for unit #1 are the
@@ -471,35 +464,87 @@ void model::mesh::compile()
 	}
 
 	// -------------------- fill in static data -------------------------------------------------
-	// we can't init all data at once. so we could use map() too, but this would need
-	// active copy. with init() the GPU can pull via DMA.
-	// but if sizeof(vector3f) is not 12, memory is wasted. But it always is 12.
 	vertex_data.init_data(vertex_data_size, 0, GL_STATIC_DRAW_ARB);
-	vertex_data.init_sub_data(0, sizeof(vector3f) * vs, &vertices[0].x);
+	uint8_t* data = (uint8_t*) vertex_data.map(GL_WRITE_ONLY_ARB);
+
+	// vertices
+	float* vdata = (float*)data;
+	for (unsigned i = 0; i < vs; ++i) {
+		vdata[3*i+0] = vertices[i].x;
+		vdata[3*i+1] = vertices[i].y;
+		vdata[3*i+2] = vertices[i].z;
+	}
 
 	// normals
 	if (!normalmapping || use_shaders) {
-		vertex_data.init_sub_data(vbo_offset_normals, sizeof(vector3f) * vs, &normals[0].x);
+		float* ndata = (float*)(data + vbo_offset_normals);
+		for (unsigned i = 0; i < vs; ++i) {
+			ndata[3*i+0] = normals[i].x;
+			ndata[3*i+1] = normals[i].y;
+			ndata[3*i+2] = normals[i].z;
+		}
 	}
 	// texcoords
 	if (has_texture_u0 && texcoords.size() == vs) {
-		vertex_data.init_sub_data(vbo_offset_texcoords, sizeof(vector2f) * vs, &texcoords[0].x);
+		float* tdata = (float*)(data + vbo_offset_texcoords);
+		for (unsigned i = 0; i < vs; ++i) {
+			tdata[2*i+0] = texcoords[i].x;
+			tdata[2*i+1] = texcoords[i].y;
+		}
 	}
 	// auxiliary data
 	if (use_shaders) {
 		// give tangents as texture coordinates for unit 1.
 		if (has_texture_u0 && tangentsx.size() == vs) {
-			vertex_data.init_sub_data(vbo_offset_tangentsx, sizeof(vector3f) * vs, &tangentsx[0].x);
-		}
-
-		// give righthanded info as colors (or default: always right handed)
-		if (righthanded.size() == vs) {
-			vertex_data.init_sub_data(vbo_offset_colors, 3 * vs, &colors[0]);
+			float* xdata = (float*)(data + vbo_offset_tangentsx_righthanded);
+			for (unsigned i = 0; i < vs; ++i) {
+				xdata[4*i+0] = tangentsx[i].x;
+				xdata[4*i+1] = tangentsx[i].y;
+				xdata[4*i+2] = tangentsx[i].z;
+				xdata[4*i+3] = (righthanded[i]) ? 1.0f : -1.0f;
+			}
+			glsl_shader_setup& gss = mymaterial->specularmap.get() ? *glsl_color_normal_specular : *glsl_color_normal;
+			gss.use();
+			vertex_attrib_index = gss.get_vertex_attrib_index("tangentx_righthanded");
+			gss.use_fixed();
 		}
 	}
 
+	vertex_data.unmap();
+	vertex_data.unbind();
+
 	// indices
+#if 1	// use 32bit always
 	index_data.init_data(indices.size() * 4, &indices[0], GL_STATIC_DRAW_ARB);
+	index_data_type = GL_UNSIGNED_INT;
+#else
+	unsigned index_sz = 1;
+	if (vertices.size() <= 256) {
+		index_data_type = GL_UNSIGNED_BYTE;
+	} else if (vertices.size() <= 65536) {
+		index_data_type = GL_UNSIGNED_SHORT;
+		index_sz = 2;
+	} else {
+		index_data_type = GL_UNSIGNED_INT;
+		index_sz = 4;
+	}
+	// we need to map it and copy ourself, because size can vary
+	index_data.init_data(indices.size() * index_sz, 0, GL_STATIC_DRAW_ARB);
+	void* data = index_data.map(GL_WRITE_ONLY_ARB);
+	if (vertices.size() <= 256) {
+		uint8_t* data2 = (uint8_t*)data;
+		for (unsigned i = 0; i < indices.size(); ++i)
+			data2[i] = uint8_t(indices[i]);
+	} else if (vertices.size() <= 65536) {
+		uint16_t* data2 = (uint16_t*)data;
+		for (unsigned i = 0; i < indices.size(); ++i)
+			data2[i] = uint16_t(indices[i]);
+	} else {
+		memcpy(data, &indices[0], indices.size() * 4);
+	}
+	index_data.unmap();
+	index_data.unbind();
+#endif
 }
 
 
@@ -1053,24 +1098,17 @@ void model::mesh::display() const
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 
-	glClientActiveTexture(GL_TEXTURE1);
 	if (use_shaders) {
 		// Using vertex and fragment programs.
-		// give tangents as texture coordinates for unit 1.
+		// give tangents/righthanded info as vertex attribute.
 		if (has_texture_u0 && tangentsx.size() == vertices.size()) {
-			glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), (char*)0 + vbo_offset_tangentsx);
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		}
-
-		// give righthanded info as colors (or default: always right handed)
-		if (righthanded.size() == vertices.size()) {
-			glColorPointer(3, GL_UNSIGNED_BYTE, 0, (char*)0 + vbo_offset_colors);
-			glEnableClientState(GL_COLOR_ARRAY);
-		} else {
-			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+			glVertexAttribPointer(vertex_attrib_index, 4, GL_FLOAT, GL_FALSE,
+					      0, (char*)0 + vbo_offset_tangentsx_righthanded);
+			glEnableVertexAttribArray(vertex_attrib_index);
 		}
 	} else {
 		// No shaders, basic old OpenGL 1.4 techniques.
+		glClientActiveTexture(GL_TEXTURE1);
 		if (has_texture_u1 && texcoords.size() == vertices.size()) {
 			// maybe offer second texture coords. how are they stored in .3ds files?!
 			glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), (char*)0 + vbo_offset_texcoords);
@@ -1129,12 +1167,7 @@ void model::mesh::display() const
 	}
 
 	// render geometry, glDrawRangeElements is faster than glDrawElements.
-	glDrawRangeElements(GL_TRIANGLES, 0, vertices.size()-1, indices.size(), GL_UNSIGNED_INT, 0);
-#if 0
-	glDrawElements(GL_TRIANGLES, indices.size(),
-		       GL_UNSIGNED_INT, // fixme: use 16bit to save space and copy bandwidth
-		       0);	// offset in VBO
-#endif
+	glDrawRangeElements(GL_TRIANGLES, 0, vertices.size()-1, indices.size(), index_data_type, 0);
 
 	// maybe: add code to show normals as Lines
 
@@ -1151,6 +1184,7 @@ void model::mesh::display() const
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex1
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
+	glDisableVertexAttribArray(vertex_attrib_index);
 
 	// unbind VBOs
 	index_data.unbind();
@@ -1219,12 +1253,7 @@ void model::mesh::display_mirror_clip() const
 	}
 
 	// render geometry
-	glDrawRangeElements(GL_TRIANGLES, 0, vertices.size()-1, indices.size(), GL_UNSIGNED_INT, 0);
-#if 0
-	glDrawElements(GL_TRIANGLES, indices.size(),
-		       GL_UNSIGNED_INT, // fixme: use 16bit to save space and copy bandwidth
-		       0);	// offset in VBO
-#endif
+	glDrawRangeElements(GL_TRIANGLES, 0, vertices.size()-1, indices.size(), index_data_type, 0);
 
 	// cleanup
 	if (use_shaders) {

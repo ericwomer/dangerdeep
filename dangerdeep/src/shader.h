@@ -101,6 +101,9 @@ class glsl_program
 	/// set uniform variable (doubles)
 	void set_uniform(const std::string& name, const vector3& value) const;
 
+	/// get vertex attribute index
+	unsigned get_vertex_attrib_index(const std::string& name) const;
+
  protected:
 	unsigned id;
 	bool linked;
@@ -143,6 +146,11 @@ class glsl_shader_setup
 	/// set uniform variable (doubles)
 	void set_uniform(const std::string& name, const vector3& value) const {
 		prog.set_uniform(name, value);
+	}
+
+	/// get vertex attribute index
+	unsigned get_vertex_attrib_index(const std::string& name) const {
+		return prog.get_vertex_attrib_index(name);
 	}
 
  protected:

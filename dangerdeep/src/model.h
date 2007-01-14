@@ -136,9 +136,11 @@ public:
 		mutable vertexbufferobject vertex_data;	// mutable because non-shader pipeline writes to it
 		vertexbufferobject index_data;
 		unsigned vbo_offset_normals;
-		unsigned vbo_offset_tangentsx;
 		unsigned vbo_offset_texcoords;
-		unsigned vbo_offset_colors;	// also used as righthanded flag (red) for shader pipeline
+		unsigned vbo_offset_tangentsx_righthanded;
+		unsigned vbo_offset_colors;
+		int index_data_type;	// 8bit, 16bit or 32bit data (depends on nr of vertices)
+		unsigned vertex_attrib_index;
 
 		void display() const;
 		void display_mirror_clip() const;
