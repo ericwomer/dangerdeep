@@ -4,7 +4,8 @@
    gl_Vertex
    gl_Normal		(tangentz)
    gl_MultiTexCoord0	(texcoord)
-   tangentx_righthanded	(tangentx,righthanded-factor)
+   gl_MultiTexCoord1	(tangentx)
+   gl_Color		(r/x value has righthanded sign).
 */
 
 /* can we give names to default attributes? or do we need to use named attributes for that?
@@ -18,14 +19,14 @@
 
 varying vec2 texcoord;
 varying vec3 lightdir, halfangle;
-attribute vec4 tangentx_righthanded;
 
 void main()
 {
 	// compute tangent space
+	// gl_Color.x = righthanded-info (need to transform from 0|1 -> -1|1
 	// gl_Normal = tangentz
-	const vec3 tangentx = vec3(tangentx_righthanded);
-	const vec3 tangenty = cross(gl_Normal, tangentx) * tangentx_righthanded.w;
+	// gl_MultiTexCoord1 = tangentx
+	vec3 tangenty = cross(gl_Normal, vec3(gl_MultiTexCoord1)) * (gl_Color.x * 2.0 - 1.0);
 
 	// compute direction to light in object space (L)
 	// light.position.w is 0 or 1, 0 for directional light, 1 for point light
@@ -40,11 +41,11 @@ void main()
 	vec3 halfangle_obj = normalize(viewerdir_obj + lightdir_obj);
 
 	// transform light direction to tangent space
-	lightdir.x = dot(tangentx, lightdir_obj);
+	lightdir.x = dot(gl_MultiTexCoord1.xyz /*tangentx*/, lightdir_obj);
 	lightdir.y = dot(tangenty, lightdir_obj);
 	lightdir.z = dot(gl_Normal /*tangentz*/, lightdir_obj);
 
-	halfangle.x = dot(tangentx, halfangle_obj);
+	halfangle.x = dot(gl_MultiTexCoord1.xyz /*tangentx*/, halfangle_obj);
 	halfangle.y = dot(tangenty, halfangle_obj);
 	halfangle.z = dot(gl_Normal /*tangentz*/, halfangle_obj);
 

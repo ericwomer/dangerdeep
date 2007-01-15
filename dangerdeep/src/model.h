@@ -28,7 +28,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texture.h"
 #include "color.h"
 #include "shader.h"
-#include "vertexbufferobject.h"
 #include <vector>
 #include <fstream>
 #include <memory>
@@ -115,9 +114,6 @@ public:
 		mesh& operator= (const mesh& );
 	public:
 		std::string name;
-		// This data is NOT needed for rendering, as it is stored also in VBOs,
-		// except for the old pipeline where we need the data (or part of it),
-		// to compute lighting values per frame.
 		std::vector<vector3f> vertices;
 		std::vector<vector3f> normals;
 		std::vector<vector3f> tangentsx;
@@ -132,15 +128,7 @@ public:
 		matrix4f transformation;	// rot., transl., scaling
 		material* mymaterial;
 		vector3f min, max;
-		// OpenGL VBOs for the data
-		vertexbufferobject vbo_positions;
-		vertexbufferobject vbo_normals;
-		vertexbufferobject vbo_texcoords;
-		vertexbufferobject vbo_tangents_righthanded;
-		mutable vertexbufferobject vbo_colors;	// mutable because non-shader pipeline writes to it
-		vertexbufferobject index_data;
-		int index_data_type;	// 8bit, 16bit or 32bit data (depends on nr of vertices)
-		unsigned vertex_attrib_index;
+		GLuint display_list;		// OpenGL display list for the mesh
 
 		void display() const;
 		void display_mirror_clip() const;
@@ -149,9 +137,13 @@ public:
 		bool compute_tangentx(unsigned i0, unsigned i1, unsigned i2);
 
 		mesh(const std::string& nm = "Unnamed mesh");
+		~mesh();
 
 		// make display list if possible
 		void compile();
+
+		// send data to opengl (for display list compiling or rendering)
+		void send_geometry_to_gl() const;
 
 		// transform vertices by matrix
 		void transform(const matrix4f& m);
