@@ -295,6 +295,12 @@ void view_model(const string& modelfilename, const string& datafilename)
 	lightsphere->mymaterial->specular = color(255, 255, 128);
 	lightsphere->compile();
 
+	unsigned frames = 1;
+	unsigned lastframes = 1;
+	double fpstime = mysys->millisec() / 1000.0;
+	double totaltime = mysys->millisec() / 1000.0;
+	double measuretime = 5;	// seconds
+
 	while (true) {
 		// rotate light
 		unsigned time2 = sys().millisec();
@@ -601,6 +607,18 @@ void view_model(const string& modelfilename, const string& datafilename)
 		}
 
 		mysys->unprepare_2d_drawing();
+
+		// record fps
+		++frames;
+		totaltime = mysys->millisec() / 1000.0;
+		if (totaltime - fpstime >= measuretime) {
+			fpstime = totaltime;
+			ostringstream os;
+			os << "$c0fffffps " << (frames - lastframes)/measuretime;
+			lastframes = frames;
+			sys().add_console(os.str());
+		}
+
 		mysys->swap_buffers();
 	}
 
