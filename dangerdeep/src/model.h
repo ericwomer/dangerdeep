@@ -133,12 +133,12 @@ public:
 		material* mymaterial;
 		vector3f min, max;
 		// OpenGL VBOs for the data
-		mutable vertexbufferobject vertex_data;	// mutable because non-shader pipeline writes to it
+		vertexbufferobject vbo_positions;
+		vertexbufferobject vbo_normals;
+		vertexbufferobject vbo_texcoords;
+		vertexbufferobject vbo_tangents_righthanded;
+		mutable vertexbufferobject vbo_colors;	// mutable because non-shader pipeline writes to it
 		vertexbufferobject index_data;
-		unsigned vbo_offset_normals;
-		unsigned vbo_offset_texcoords;
-		unsigned vbo_offset_tangentsx_righthanded;
-		unsigned vbo_offset_colors;
 		int index_data_type;	// 8bit, 16bit or 32bit data (depends on nr of vertices)
 		unsigned vertex_attrib_index;
 
