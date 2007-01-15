@@ -785,12 +785,13 @@ void model::material::set_gl_values() const
 				if (specularmap.get()) {
 					glsl_color_normal_specular->use();
 					specularmap->set_gl_texture(*glsl_color_normal_specular, "tex_specular", 2);
+					normalmap->set_gl_texture(*glsl_color_normal_specular, "tex_normal", 1);
+					colormap->set_gl_texture(*glsl_color_normal_specular, "tex_color", 0);
 				} else {
 					glsl_color_normal->use();
+					normalmap->set_gl_texture(*glsl_color_normal, "tex_normal", 1);
+					colormap->set_gl_texture(*glsl_color_normal, "tex_color", 0);
 				}
-
-				normalmap->set_gl_texture(*glsl_color_normal_specular, "tex_normal", 1);
-				colormap->set_gl_texture(*glsl_color_normal_specular, "tex_color", 0);
 
 			} else {
 				// standard OpenGL texturing with special tricks
