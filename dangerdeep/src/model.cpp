@@ -960,6 +960,11 @@ void model::mesh::display() const
 		send_geometry_to_gl();
 	}
 
+	// set default shader after display
+	if (use_shaders) {
+		glsl_shader_setup::use_fixed();
+	}
+
 	// clean up for material
 	glEnable(GL_LIGHTING);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1184,11 +1189,11 @@ void model::mesh::display_mirror_clip() const
 
 	// cleanup
 	if (use_shaders) {
+		glsl_shader_setup::use_fixed();
 		glActiveTexture(GL_TEXTURE2);
 		glDisable(GL_TEXTURE_2D);
 		glActiveTexture(GL_TEXTURE0);
 	}
-	glsl_shader_setup::use_fixed();
 	glEnable(GL_LIGHTING);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
