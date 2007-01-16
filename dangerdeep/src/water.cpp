@@ -268,7 +268,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	normals.resize((xres+1)*(yres+1));
 	if (!use_shaders) {
 		vbo_uv01.init_data((xres+1)*(yres+1)*sizeof(vector2f)
-				   + (xres+1)*(yres+1)*sizeof(vector3f), 0, GL_DYNAMIC_DRAW_ARB);
+				   + (xres+1)*(yres+1)*sizeof(vector3f), 0, GL_STREAM_DRAW);
 		vbo_uv01.unbind();
 	}
 
@@ -357,8 +357,8 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	}
 #else
 #if 1
-	vbo_indices.init_data((xres+1)*2*yres*4, 0, GL_STREAM_DRAW_ARB);
-	uint32_t* gridp = (uint32_t*) vbo_indices.map(GL_WRITE_ONLY_ARB);
+	vbo_indices.init_data((xres+1)*2*yres*4, 0, GL_STATIC_DRAW);
+	uint32_t* gridp = (uint32_t*) vbo_indices.map(GL_WRITE_ONLY);
 	for (unsigned y = 0; y < yres; ++y) {
 		for (unsigned x = 0; x <= xres; ++x) {
 			*gridp++ = x + (y+1) *(xres+1);
@@ -1524,7 +1524,7 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 		*/
 	} else {
 		// fixme: something is broken with VBOs here...
-		uint8_t* uv01p = (uint8_t*)vbo_uv01.map(GL_WRITE_ONLY_ARB);
+		uint8_t* uv01p = (uint8_t*)vbo_uv01.map(GL_WRITE_ONLY);
 		unsigned uv1off = ((xres+1)*(yres+1)*sizeof(vector2f));
 		vector2f* uv0p = (vector2f*)uv01p;
 		vector3f* uv1p = (vector3f*)(uv01p + uv1off);
@@ -1607,8 +1607,11 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	if (!use_shaders)
 		vbo_uv01.bind();
 	for (unsigned i = 0; i < yres; ++i) {
+		glDrawRangeElements(GL_QUAD_STRIP, (xres+1)*i, (xres+1)*(i+1)+xres, (xres+1)*2, GL_UNSIGNED_INT, (unsigned*)(4 * i * (xres+1)*2));
+		/*
 		glDrawElements(GL_QUAD_STRIP, (xres+1)*2, GL_UNSIGNED_INT,
 			       (unsigned*)(4 * i * (xres+1)*2));
+		*/
 	}
 	if (!use_shaders)
 		vbo_uv01.unbind();
