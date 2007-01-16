@@ -104,7 +104,7 @@ glsl_shader::glsl_shader(const string& filename, type stype, const glsl_shader::
 		if (!compiled) {
 			sys().add_console("compiling failed, log:");
 			sys().add_console(log);
-			printf("compiling of shader failed:\n%s\n", log.c_str());
+			//printf("compiling of shader failed:\n%s\n", log.c_str());
 			throw runtime_error(string("compiling of shader failed : ") + filename);
 		}
 
@@ -281,5 +281,5 @@ void glsl_shader_setup::use() const
 
 void glsl_shader_setup::use_fixed()
 {
-	glUseProgram(0);
+	glsl_program::use_fixed();
 }
