@@ -752,8 +752,10 @@ texture::~texture()
 void texture::sub_image(int xoff, int yoff, unsigned w, unsigned h,
 			const std::vector<Uint8>& pixels, int format_)
 {
+	glBindTexture(GL_TEXTURE_2D, opengl_name);
 	glTexSubImage2D(GL_TEXTURE_2D, 0 /* mipmap level */,
 			xoff, yoff, w, h, format_, GL_UNSIGNED_BYTE, &pixels[0]);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 

@@ -1863,31 +1863,30 @@ void water::generate_subdetail_and_bumpmap()
 	osg.write((const char*)(&waveheight_subdetail[0]), subdetail_size*subdetail_size);
 #endif
 
+	// update texture with glTexSubImage2D, that is faster than to re-create the texture
 	if (water_bumpmap.get()) {
-	water_bumpmap->sub_image(0, 0, subdetail_size, subdetail_size,
-				 texture::make_normals(waveheight_subdetail, subdetail_size, subdetail_size, 0.5f),
-				 GL_LUMINANCE);
+		// fixme: mipmap levels > 0 are not updated...
+		// can we use automatic creation of mipmaps here?
+		water_bumpmap->sub_image(0, 0, subdetail_size, subdetail_size,
+					 texture::make_normals(waveheight_subdetail, subdetail_size, subdetail_size, 0.5f),
+					 GL_RGB);
 	} else {
-
-	// fixme: gltexsubimage faster than glteximage, a reset/creation of new
-	// texture is not necessary!
-	//fixme: es werden regelmäßig neue texturen angelegt, das könnte das hier sein!
-	water_bumpmap.reset(new texture(waveheight_subdetail, subdetail_size, subdetail_size,
-					GL_LUMINANCE,
+		water_bumpmap.reset(new texture(waveheight_subdetail, subdetail_size, subdetail_size,
+						GL_LUMINANCE,
 #if 0
-					texture::LINEAR,
+						texture::LINEAR,
 #else
-					texture::LINEAR_MIPMAP_LINEAR,
+						texture::LINEAR_MIPMAP_LINEAR,
 #endif
-					texture::REPEAT,
-					true, 0.5f));//fixme 4.0f would better, detail is hardly visible else...
-			    //fixme: mipmap levels of normal map should be computed
-			    //by this class, not glu!
-			    //mipmap scaling of a normal map is not the same as the normal version
-			    //of a mipmapped height map!
-			    //really? the mipmapped normalmap values are not of unit length,
-			    //but the direction should be kept, and they're normalized anyway.
-			    //so mipmapping should do no harm...
+						texture::REPEAT,
+						true, 0.5f));//fixme 4.0f would better, detail is hardly visible else...
+		//fixme: mipmap levels of normal map should be computed
+		//by this class, not glu!
+		//mipmap scaling of a normal map is not the same as the normal version
+		//of a mipmapped height map!
+		//really? the mipmapped normalmap values are not of unit length,
+		//but the direction should be kept, and they're normalized anyway.
+		//so mipmapping should do no harm...
 	}
 }
 
