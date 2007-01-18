@@ -85,10 +85,10 @@ framebufferobject::~framebufferobject()
 
 void framebufferobject::destroy()
 {
-	if (depthbuf_id)
-		glDeleteRenderbuffersEXT(1, &depthbuf_id);
 	if (id)
 		glDeleteFramebuffersEXT(1, &id);
+	if (depthbuf_id)
+		glDeleteRenderbuffersEXT(1, &depthbuf_id);
 }
 
 
