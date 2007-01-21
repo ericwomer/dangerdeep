@@ -135,6 +135,59 @@ an error string. A hierarchy of exceptions could be created for a finer
 grained error handling and control. Look at file \textbf{error.h} for an
 example definition.
 
+The general idea about exceptions is to report \emph{what} went wrong,
+not where. Exceptions are made to handle errors at runtime. If you want
+to know where the error was raised to ease development, add a
+descriptive text to the exception or print it in the log. Each exception
+can be given a report text that is for the user or developer. With some
+tricky macros you can append the line and source file name to the text
+as well (see file \texttt{error.h}). The set of exceptions brought by
+the C++ standard library is a good starting point and these exceptions
+already cover many possible errors, like \texttt{invalid\_argument},
+\texttt{runtime\_error} and so on. The constructor of an exceptions gets
+an user defined string, where a developer can state the nature of the
+error.
+
+For example you could check in some function, if a given pointer is
+non-zero:
+\begin{verbatim}
+if (!myptr)
+        throw std::invalid_argument("myfunction: Null-pointer given");
+\end{verbatim}
+(Of course if you expect some pointer to have a valid value, you maybe
+could use a reference instead).
+
+All exceptions form an inheritance tree, a hierachy. Because of that one
+can categorize errors and handle them regarding to category. This allows
+a very flexible error management. I suggest you to learn something more
+about C++ exceptions if you are new to the language. The C-style of
+error reporting via return values is \emph{not} the way to do it. But do
+not confuse error handling by value reporting. If a function should do a
+simple thing that can fail, it would be ok to return a bool for that
+function and not throw an exception in case of error. It depends on the
+severity and if the caller can handle that malfunction directly.
+
+Good examples where to use exceptions are situations where errors are
+not expected, where normal code execution is assumed. As their name
+already tells, exceptions are designed to handle exceptional situations.
+You want to load an image and can't read the file? Then throw an
+exception. The exception will be e.g. passed upwards to the mission
+loader, which can react on it. For example it could present an error
+message to the user: ``couldn't load mission, because of \ldots'' or
+similar things.
+
+Final note: because exceptions break normal control flow of programs,
+you have to write your code in a way that no memory is lost or resource
+is kept. If you do a thing that needs to be cleaned up when leaving the
+current block of code, you need to embrace the code with a try/catch
+clause and clean up in the catch-path. You can make your life much
+easier, if you use built-in types that do this automatically. For
+example use auto-pointers (\texttt{std::auto\_ptr}) instead of plain
+C-pointers or streams (\texttt{std::ifstream}) instead of file-pointers.
+A very handy thing is to add a class that does the cleanup in its
+destructor (and the initialization in the constructor) and to
+instantiate an object of that class as local variable. The compiler then
+will automagically do all the clean-up work for you.
 
 
 \section{Structure of the project}
@@ -271,6 +324,57 @@ global_data.h cfg.h highscorelist.h keys.h texts.h credits.h
 
 \subsection{The game: state and display, the classes \texttt{game} and
   \texttt{user\_interface}}
+
+The code (functionality, data structures and classes) of the game is
+partitioned in two parts: one managing the state and the other managing
+the display or user interface. The central class for the state data is
+the class \texttt{game} with all its dependant classes
+(\texttt{sea\_object} and its heirs and so on). All data you need to
+describe a game's state is stored there. If you want to save games or do
+network play, all data you have to access is hold by that class.
+
+On the other side there is the user interface. Its heirs and associated
+classes manage everything from state presentation (visual and acustical
+- graphic and sound) to user interaction (input). This part requests
+data from the \texttt{game} class for presentation. Parts of the user
+interface for example are the classes for the stations, the
+environmental rendering (classes \texttt{water}, \texttt{sky},
+\texttt{moon}, \texttt{user\_display} and many more).
+
+To simulate the game one only needs to change the class \texttt{game}
+and its corelated data. This class knows nothing about the user
+interface. Because of that you can use one instance of the
+\texttt{user\_interface} class with any instance of class \texttt{game}
+without the need to reconstruct the user interface, which is a costly
+process. You can instead simply exchange the game object, as it is done
+for loading games or as it would be needed for network play or switching
+missions.
+
+Note that at the moment there is a reference to \texttt{user\_interface}
+in class \texttt{game}, that is needed for simulation. The main loop of
+the game is currently in \texttt{game::run()}, which needs to know the
+user interface instance. However it is planned to resolve that situation
+and move the main loop code outside of class \texttt{game}. Then we have
+the real partition between two parts, as described above. However if you
+plan to add features, always keep this partition in mind.
+
+And why do we do that? Doesn't it make thing more complicated? No, it
+isn't a real limitation, but on the other hand splits code in two clean
+domains. Physical simulation and rendering are two independent parts. It
+would be a lot more complex if state simulation would interact with the
+user interface in every possible situation.
+
+Note that events causing feedback to the user (like playing an explosion
+sound after a collision) need some extra work. You can't simply call an
+``play explosion'' function of the user interface (where the sound is
+played) from class \texttt{game} (where you detect the collision).
+Instead you have to remember such events in class game and let the user
+interface request the events and react on them.
+
+This partitioning brings problems as you see, but also has its
+advantages. You can simulate the game without need to render it. This
+allows dedicated servers. Or it allows to exchange the renderer or many
+more things.
 
 
 \section{Coding style}
