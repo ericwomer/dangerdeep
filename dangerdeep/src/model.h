@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texture.h"
 #include "color.h"
 #include "shader.h"
+#include "vertexbufferobject.h"
 #include <vector>
 #include <fstream>
 #include <memory>
@@ -114,6 +115,9 @@ public:
 		mesh& operator= (const mesh& );
 	public:
 		std::string name;
+		// This data is NOT needed for rendering, as it is stored also in VBOs,
+		// except for the old pipeline where we need the data (or part of it),
+		// to compute lighting values per frame.
 		std::vector<vector3f> vertices;
 		std::vector<vector3f> normals;
 		std::vector<vector3f> tangentsx;
@@ -128,7 +132,16 @@ public:
 		matrix4f transformation;	// rot., transl., scaling
 		material* mymaterial;
 		vector3f min, max;
-		GLuint display_list;		// OpenGL display list for the mesh
+		// OpenGL display list for the mesh (for static data, shader-pipeline)
+		GLuint display_list;
+		// OpenGL VBOs for the data (for dynamic data, non-shader pipeline)
+		vertexbufferobject vbo_positions;
+		vertexbufferobject vbo_normals;
+		vertexbufferobject vbo_texcoords;
+		//vertexbufferobject vbo_tangents_righthanded; // vertex attribs for shader pipeline, later
+		mutable vertexbufferobject vbo_colors;	// mutable because non-shader pipeline writes to it
+		vertexbufferobject index_data;
+		//unsigned vertex_attrib_index; // later
 
 		void display() const;
 		void display_mirror_clip() const;
