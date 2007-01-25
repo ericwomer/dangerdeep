@@ -132,16 +132,14 @@ public:
 		matrix4f transformation;	// rot., transl., scaling
 		material* mymaterial;
 		vector3f min, max;
-		// OpenGL display list for the mesh (for static data, shader-pipeline)
-		GLuint display_list;
-		// OpenGL VBOs for the data (for dynamic data, non-shader pipeline)
+		// OpenGL VBOs for the data
 		vertexbufferobject vbo_positions;
 		vertexbufferobject vbo_normals;
 		vertexbufferobject vbo_texcoords;
-		//vertexbufferobject vbo_tangents_righthanded; // vertex attribs for shader pipeline, later
+		vertexbufferobject vbo_tangents_righthanded;
 		mutable vertexbufferobject vbo_colors;	// mutable because non-shader pipeline writes to it
 		vertexbufferobject index_data;
-		//unsigned vertex_attrib_index; // later
+		unsigned vertex_attrib_index;
 
 		void display() const;
 		void display_mirror_clip() const;
@@ -150,13 +148,9 @@ public:
 		bool compute_tangentx(unsigned i0, unsigned i1, unsigned i2);
 
 		mesh(const std::string& nm = "Unnamed mesh");
-		~mesh();
 
 		// make display list if possible
 		void compile();
-
-		// send data to opengl (for display list compiling or rendering)
-		void send_geometry_to_gl() const;
 
 		// transform vertices by matrix
 		void transform(const matrix4f& m);
