@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector3.h"
 #include "model.h"
 #include "moon.h"
+#include "vertexbufferobject.h"
 
 class game;
 
@@ -43,6 +44,8 @@ class sky
 protected:
 	double mytime;					// store global time in seconds
 
+	const unsigned nr_of_stars;
+
 	texture::ptr sunglow;
 	texture::ptr clouds;
 	texture::ptr suntex;
@@ -52,11 +55,9 @@ protected:
 	unsigned cloud_levels, cloud_coverage, cloud_sharpness;
 	std::vector<Uint8> cloud_alpha;			// precomputed alpha texture
 	std::vector<unsigned> cloud_interpolate_func;	// give fraction as Uint8
-	unsigned skyhemisphere_dl;			// display list for sky (background)
 
 	// the stars (positions in world space, constant, and their luminance)
-	std::vector<vector3f> stars_pos;
-	std::vector<Uint8> stars_lumin;
+	vertexbufferobject star_positions, star_colors;
 
 	sky& operator= (const sky& other);
 	sky(const sky& other);
@@ -70,10 +71,11 @@ protected:
 	void smooth_and_equalize_bytemap(unsigned s, std::vector<Uint8>& map1);
 
 	moon _moon;
-	std::vector<vector3f> skyverts;
+	vertexbufferobject sky_vertices, sky_indices;
+	mutable vertexbufferobject sky_colors;
+	unsigned nr_sky_vertices, nr_sky_indices;
 	std::vector<vector2f> skyangles;
-	std::vector<unsigned int> skyindices;
-	mutable std::vector<colorf> skycolors;
+	mutable std::vector<color> skycolors;	// needed as lookup
 	mutable vector3 sunpos, moonpos;
 	mutable vector3 sundir, moondir;
 	mutable float sun_azimuth, sun_elevation;

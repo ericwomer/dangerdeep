@@ -56,27 +56,31 @@ const double CLOUD_ANIMATION_CYCLE_TIME = 3600.0;
 */
 
 sky::sky(const double tm, const unsigned int sectors_h, const unsigned int sectors_v)
-	: mytime(tm), sunglow(0), clouds(0),
-	  suntex(0), clouds_dl(0), skyhemisphere_dl(0),
+	: mytime(tm),
+	  nr_of_stars(500),
+	  sunglow(0), clouds(0),
+	  suntex(0), clouds_dl(0),
+	  sky_indices(true),
 	  sun_azimuth(10.0f), sun_elevation(10.0f),
 	  moon_azimuth(10.0f), moon_elevation(10.0f),
 	  turbidity(2.0f)//was 2.0, fixme
 {
 	// ******************************** create stars
-	const unsigned nr_of_stars = 500;
-	stars_pos.reserve(nr_of_stars);
-	stars_lumin.reserve(nr_of_stars*4);
+	std::vector<vector3f> stars_pos(nr_of_stars);
+	std::vector<Uint8> stars_lumin(nr_of_stars*4);
 	for (unsigned i = 0; i < nr_of_stars; ++i) {
 		vector3f p(rnd() * 2.0f - 1.0f, rnd() * 2.0f - 1.0f, rnd());
-		stars_pos.push_back(p.normal());
+		stars_pos[i] = p.normal();
 		float fl = rnd();
 		fl = 1.0f - fl*fl*fl;
 		Uint8 l = Uint8(255*fl);
-		stars_lumin.push_back(l);
-		stars_lumin.push_back(l);
-		stars_lumin.push_back(l);
-		stars_lumin.push_back(l);
+		stars_lumin[4*i+0] = l;
+		stars_lumin[4*i+1] = l;
+		stars_lumin[4*i+2] = l;
+		stars_lumin[4*i+3] = l;
 	}
+	star_positions.init_data(stars_pos.size() * sizeof(vector3f), &stars_pos[0], GL_STATIC_DRAW);
+	star_colors.init_data(stars_lumin.size(), &stars_lumin[0], GL_STATIC_DRAW);
 
 	// ******************************** create sky geometry
 	build_dome(sectors_h, sectors_v);
@@ -186,7 +190,6 @@ sky::sky(const double tm, const unsigned int sectors_h, const unsigned int secto
 sky::~sky()
 {
 	glDeleteLists(clouds_dl, 1);
-	//glDeleteLists(skyhemisphere_dl, 1);
 }
 
 
@@ -349,6 +352,9 @@ void sky::set_time(double tm)
 
 void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, bool isreflection) const
 {
+	// 25th jan 2007, after switch to VBO: skipping sky render brings 4fps.
+	// 50->54 in editor
+
 	// FIXME sky for reflection should be drawn different, because earth is curved!
 	// far reflections of the sky point outwards into the atmosphere and thus are blueish, but the grey haze color
 	// of the horizon!
@@ -375,11 +381,14 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 		glPushMatrix();
 		glScalef(max_view_dist * 0.95, max_view_dist * 0.95, max_view_dist * 0.95);
 		glBindTexture(GL_TEXTURE_2D, 0);
+		star_colors.bind();
 		glEnableClientState(GL_COLOR_ARRAY);
-		glColorPointer(4, GL_UNSIGNED_BYTE, 0, &stars_lumin[0]);
+		glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0);
 		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &stars_pos[0].x);
-		glDrawArrays(GL_POINTS, 0, stars_pos.size());
+		star_positions.bind();
+		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
+		star_positions.unbind();
+		glDrawArrays(GL_POINTS, 0, nr_of_stars);
 		glDisableClientState(GL_COLOR_ARRAY);
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glPopMatrix();
@@ -393,23 +402,18 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	// render sky
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glEnableClientState(GL_COLOR_ARRAY);
-	glColor4f(1, 0, 1, 1);
-	glColorPointer(4, GL_FLOAT, 0, &(skycolors[0]));
+	sky_colors.bind();
+	glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, &(skyverts[0]));
-	glDrawElements(GL_QUAD_STRIP, skyindices.size(), GL_UNSIGNED_INT, &(skyindices[0])); 
+	sky_vertices.bind();
+	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
+	sky_vertices.unbind();
+	sky_indices.bind();
+	// fixme sizes!
+	glDrawRangeElements(GL_QUAD_STRIP, 0, nr_sky_vertices-1, nr_sky_indices, GL_UNSIGNED_INT, 0); 
+	sky_indices.unbind();
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
-
-#if 0	//	debug (hemisphere mesh)
-	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-	glColor4f(1, 1, 1, 1);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, &(skyverts[0]));
-	glDrawElements(GL_QUAD_STRIP, skyindices.size(), GL_UNSIGNED_INT, &(skyindices[0])); 
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glPolygonMode( GL_FRONT, GL_FILL );
-#endif
 
 	glPopMatrix(); // sky scale
 
@@ -495,7 +499,7 @@ color sky::get_horizon_color(const game& gm, const vector3& viewpos) const
 {
 	// but why is reading of _first_ color done here? this depends on view direction?!
 	// fixme !!!
-	return skycolors[0].to_uint8();
+	return skycolors[0];
 }
 
 
@@ -505,27 +509,28 @@ void sky::build_dome(const unsigned int sectors_h, const unsigned int sectors_v)
 
 	float phi,theta;
 	float x,y,z;
-
+	nr_sky_vertices = (sectors_h+1)*(sectors_v+1);
+	nr_sky_indices = 4*(sectors_h+1)*(sectors_v+1);
+	sky_colors.init_data(nr_sky_vertices * 4, 0, GL_DYNAMIC_DRAW);
+	skycolors.resize(nr_sky_vertices);
+	std::vector<vector3f> skyverts;
+	std::vector<unsigned int> skyindices;
 	skyverts.reserve( (sectors_h+1)*(sectors_v+1) );
 	skyangles.reserve( (sectors_h+1)*(sectors_v+1) );
-	skycolors.reserve( (sectors_h+1)*(sectors_v+1) );
 	skyindices.reserve( 4*(sectors_h+1)*(sectors_v+1) );
-	colorf defaultColor(0,0,0,0);
 
 	// TJ: fixme: some gamedev.net discussion proposed using more segments near the horizon as color
 	// variation is greater near the horizon.
 
 	// this will define the sphere in height
-	for(unsigned int i=0; i<=sectors_v; i++){
-
+	for(unsigned int i=0; i<=sectors_v; i++) {
 		if(i != 0)
 			phi = i * (M_PI*0.5) / sectors_v;
 		else
 			phi = 0.001;	//	if phi==0 skycolor = -INF, -INF, -INF (BAD)
 
 		// definition of the circular sections
-		for(unsigned int j=0; j<=sectors_h; j++){
-
+		for(unsigned int j=0; j<=sectors_h; j++) {
 			theta = 2 * j * M_PI / sectors_h;
 
 			x = radius * cos(theta) * cos(phi);
@@ -534,17 +539,18 @@ void sky::build_dome(const unsigned int sectors_h, const unsigned int sectors_v)
 
 			skyangles.push_back( vector2f( (1-theta/(M_PI*2))*2*M_PI, phi ) );
 			skyverts.push_back( vector3f(x,y,z) );
-			skycolors.push_back(defaultColor);
 		}
 	}
 
 	//	build index list
-	for(unsigned int i=0; i<sectors_v; i++)
-		for(unsigned int j=0; j<=sectors_h;j++)
-		{
+	for(unsigned int i=0; i<sectors_v; i++) {
+		for(unsigned int j=0; j<=sectors_h;j++) {
 			skyindices.push_back(i*(sectors_h+1) + j);
 			skyindices.push_back((i+1)*(sectors_h+1) + j);
 		}
+	}
+	sky_vertices.init_data(nr_sky_vertices*sizeof(vector3f), &skyverts[0], GL_STATIC_DRAW);
+	sky_indices.init_data(nr_sky_indices*sizeof(unsigned), &skyindices[0], GL_STATIC_DRAW);
 }
 
 
@@ -583,17 +589,18 @@ void sky::rebuild_colors(const game& gm, const vector3& viewpos) const
 //        daysky skycol(-moon_azimuth, moon_elevation, turbidity);
 
 		std::vector<vector2f>::const_iterator skyangle = skyangles.begin();
-		std::vector<colorf>::iterator skycolor = skycolors.begin();
+		std::vector<color>::iterator skycolor = skycolors.begin();
 		while (skyangle != skyangles.end()) {
 #if 0	//	debug (angles mapped on hemisphere)
 			*skycolor = colorf( skyangle->x/(M_PI*2), skyangle->y/(M_PI/2.0f), 0, sky_alpha );
 #else
 			colorf c = skycol.get_color(skyangle->x, skyangle->y, sun_elevation);
 			c.a = sky_alpha;
-			*skycolor = c;
+			*skycolor = c.to_uint8();
 #endif
 
 			skycolor++; skyangle++;
 		}
 	}
+	sky_colors.init_data(nr_sky_vertices * 4, &skycolors[0], GL_DYNAMIC_DRAW);
 }
