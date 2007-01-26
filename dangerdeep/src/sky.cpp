@@ -409,7 +409,6 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
 	sky_vertices.unbind();
 	sky_indices.bind();
-	// fixme sizes!
 	glDrawRangeElements(GL_QUAD_STRIP, 0, nr_sky_vertices-1, nr_sky_indices, GL_UNSIGNED_INT, 0); 
 	sky_indices.unbind();
 	glDisableClientState(GL_VERTEX_ARRAY);
