@@ -206,7 +206,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	    wavetile_length,
 	    wave_tidecycle_time),
 	use_shaders(false),
-	png(subdetail_size, 1, subdetail_size/16), //fixme ohne /16 sieht's scheiﬂe aus, war /8
+	png(subdetail_size, 1, subdetail_size/16), //fixme ohne /16 sieht's scheisse aus, war /8
 	last_subdetail_gen_time(tm),
 	vbo_indices(true)
 #ifdef USE_SSE
@@ -357,13 +357,49 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	}
 #else
 #if 1
-	vbo_indices.init_data((xres+1)*2*yres*4, 0, GL_STATIC_DRAW);
+	/* draw all indices as ONE quad strip.
+	   This can be done by using degenerate quads on line turn.
+	   One needs two degenerate quads at end of each line,
+	   then alternating write lines left-to-right and right-to-left.
+	   Number of lines is "yres", number of quads per line is "xres"
+	   plus two degenerate. Number of indices is twice the number of
+	   quads plus two for the strip start.
+	*/
+	unsigned nr_quads_total = yres * (xres + 2) - 2; // last two degenerate are obsolete
+	unsigned nr_indices_total = nr_quads_total * 2 + 2;
+	vbo_indices.init_data(nr_indices_total*sizeof(unsigned), 0, GL_STATIC_DRAW);
 	uint32_t* gridp = (uint32_t*) vbo_indices.map(GL_WRITE_ONLY);
+	bool left_to_right = true;
+	// write first two indices (strip start).
+	*gridp++ = (xres+1); // x=0, y=1
+	*gridp++ = 0;        // x=0, y=0
 	for (unsigned y = 0; y < yres; ++y) {
-		for (unsigned x = 0; x <= xres; ++x) {
-			*gridp++ = x + (y+1) *(xres+1);
-			*gridp++ = x +  y    *(xres+1);
+		if (left_to_right) {
+			for (unsigned x = 0; x < xres; ++x) {
+				*gridp++ = (x+1) + (y+1) *(xres+1);
+				*gridp++ = (x+1) +  y    *(xres+1);
+			}
+			// degenerated quads
+			if (y + 1 < yres) {
+				*gridp ++ = xres + (y+1) *(xres+1);
+				*gridp ++ = xres + (y+1) *(xres+1);
+				*gridp ++ = xres + (y+1) *(xres+1);
+				*gridp ++ = xres + (y+2) *(xres+1);
+			}
+		} else {
+			for (unsigned x = 0; x < xres; ++x) {
+				*gridp++ = (xres-x) +  y    *(xres+1);
+				*gridp++ = (xres-x) + (y+1) *(xres+1);
+			}
+			// degenerated quads
+			if (y + 1 < yres) {
+				*gridp ++ =        (y+1) *(xres+1);
+				*gridp ++ =        (y+1) *(xres+1);
+				*gridp ++ =        (y+2) *(xres+1);
+				*gridp ++ =        (y+1) *(xres+1);
+			}
 		}
+		left_to_right = !left_to_right;
 	}
 	vbo_indices.unmap();
 	vbo_indices.unbind();
@@ -1606,13 +1642,9 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 	vbo_indices.bind();
 	if (!use_shaders)
 		vbo_uv01.bind();
-	for (unsigned i = 0; i < yres; ++i) {
-		glDrawRangeElements(GL_QUAD_STRIP, (xres+1)*i, (xres+1)*(i+1)+xres, (xres+1)*2, GL_UNSIGNED_INT, (unsigned*)(4 * i * (xres+1)*2));
-		/*
-		glDrawElements(GL_QUAD_STRIP, (xres+1)*2, GL_UNSIGNED_INT,
-			       (unsigned*)(4 * i * (xres+1)*2));
-		*/
-	}
+	unsigned nr_quads_total = yres * (xres + 2) - 2; // last two degenerate are obsolete
+	unsigned nr_indices_total = nr_quads_total * 2 + 2;
+	glDrawRangeElements(GL_QUAD_STRIP, 0, (xres+1)*(yres+1)-1, nr_indices_total, GL_UNSIGNED_INT, 0);
 	if (!use_shaders)
 		vbo_uv01.unbind();
 	vbo_indices.unbind();
