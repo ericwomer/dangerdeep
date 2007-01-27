@@ -113,7 +113,43 @@ public:
 	class mesh {
 		mesh(const mesh& );
 		mesh& operator= (const mesh& );
+
 	public:
+		// translate primitive_type to GL enum
+		int gl_primitive_type() const;
+		const char* name_primitive_type() const;
+
+		// meshes can be made of triangles (default) or other common primitives.
+		enum primitive_type {
+			pt_triangles,
+			pt_triangle_strip
+		};
+
+		// classes to iterate over triangles for all primitive types
+		class triangle_iterator
+		{
+		protected:
+			unsigned _i0, _i1, _i2;
+			const std::vector<Uint32>& idx;
+			unsigned ptr;
+		public:
+			triangle_iterator(const std::vector<Uint32>& indices);
+			virtual ~triangle_iterator() {}
+			unsigned i0() const { return _i0; }
+			unsigned i1() const { return _i1; }
+			unsigned i2() const { return _i2; }
+			virtual bool next();
+		};
+
+		class triangle_strip_iterator : public triangle_iterator
+		{
+		public:
+			triangle_strip_iterator(const std::vector<Uint32>& indices);
+			virtual bool next();
+		};
+
+		std::auto_ptr<triangle_iterator> get_tri_iterator() const;
+
 		std::string name;
 		// This data is NOT needed for rendering, as it is stored also in VBOs,
 		// except for the old pipeline where we need the data (or part of it),
@@ -128,7 +164,8 @@ public:
 		// fixme: research if we can have a right-handed system always. This would
 		// save fetching the colors to the vertex shader and thus spare memory bandwidth.
 		std::vector<Uint8> righthanded;	// a vector of bools. takes more space than a bitvector, but faster access.
-		std::vector<unsigned> indices;	// 3 indices per face
+		std::vector<Uint32> indices;	// 3 indices per face
+		primitive_type indices_type;
 		matrix4f transformation;	// rot., transl., scaling
 		material* mymaterial;
 		vector3f min, max;

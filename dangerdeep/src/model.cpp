@@ -261,6 +261,101 @@ void model::compute_normals()
 
 
 
+int model::mesh::gl_primitive_type() const
+{
+	switch (indices_type) {
+	case pt_triangles:
+		return GL_TRIANGLES;
+	case pt_triangle_strip:
+		return GL_TRIANGLE_STRIP;
+	default:
+		throw std::runtime_error("invalid primitive type for mesh!");
+	}
+}
+
+
+
+const char* model::mesh::name_primitive_type() const
+{
+	switch (indices_type) {
+	case pt_triangles:
+		return "triangles";
+	case pt_triangle_strip:
+		return "triangle_strip";
+	default:
+		throw std::runtime_error("invalid primitive type for mesh!");
+	}
+}
+
+
+
+std::auto_ptr<model::mesh::triangle_iterator> model::mesh::get_tri_iterator() const
+{
+	switch (indices_type) {
+	case pt_triangles:
+		return std::auto_ptr<triangle_iterator>(new triangle_iterator(indices));
+	case pt_triangle_strip:
+		return std::auto_ptr<triangle_iterator>(new triangle_strip_iterator(indices));
+	default:
+		throw std::runtime_error("invalid primitive type for mesh!");
+	}
+}
+
+
+
+model::mesh::triangle_iterator::triangle_iterator(const std::vector<Uint32>& indices)
+	: _i0(0), _i1(0), _i2(0), idx(indices), ptr(0)
+{
+	if (idx.size() < 3)
+		throw std::invalid_argument("triangle_iterator: must have at least one triangle");
+	_i0 = idx[0];
+	_i1 = idx[1];
+	_i2 = idx[2];
+	ptr = 3;
+}
+
+
+
+bool model::mesh::triangle_iterator::next()
+{
+	if (ptr + 3 > idx.size()) return false;
+	_i0 = idx[ptr];
+	_i1 = idx[ptr+1];
+	_i2 = idx[ptr+2];
+	ptr += 3; // points on first index of next triangle
+	return true;
+}
+
+
+
+model::mesh::triangle_strip_iterator::triangle_strip_iterator(const std::vector<Uint32>& indices)
+	: triangle_iterator(indices)
+{
+	if (idx.size() < 3)
+		throw std::invalid_argument("triangle_iterator: must have at least one triangle");
+	_i0 = idx[0];
+	_i1 = idx[1];
+	_i2 = idx[2];
+	ptr = 2; // points on index for next triangle
+}
+
+
+
+bool model::mesh::triangle_strip_iterator::next()
+{
+	if (ptr + 1 > idx.size()) return false;
+	// scheme depends on ptr value
+	// either n-2,n-1,n for even n or n-1,n-2,n for odd n.
+	unsigned x = ptr & 1;
+	_i0 = idx[ptr-2+x];
+	_i1 = idx[ptr-1-x];
+	_i2 = idx[ptr];
+	++ptr;
+	return true;
+}
+
+
+
 void model::mesh::compute_bounds()
 {
 	if (vertices.size() == 0) return;
@@ -296,21 +391,22 @@ void model::mesh::compute_normals()
 	if (normals.size() != vertices.size()) {
 		normals.clear();
 		normals.resize(vertices.size());
-		for (unsigned i = 0; i < indices.size(); i += 3) {
-			const vector3f& v0 = vertices[indices[i+0]];
-			const vector3f& v1 = vertices[indices[i+1]];
-			const vector3f& v2 = vertices[indices[i+2]];
+		std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+		do {
+			const vector3f& v0 = vertices[tit->i0()];
+			const vector3f& v1 = vertices[tit->i1()];
+			const vector3f& v2 = vertices[tit->i2()];
 			vector3f ortho = (v1-v0).orthogonal(v2-v0);
 			// avoid degenerated triangles
 			float lf = 1.0/ortho.length();
 			if (isfinite(lf)) {
 				vector3f face_normal = ortho * lf;
 				//normals could be weighted by face area, that gives better results.
-				normals[indices[i+0]] += face_normal;
-				normals[indices[i+1]] += face_normal;
-				normals[indices[i+2]] += face_normal;
+				normals[tit->i0()] += face_normal;
+				normals[tit->i1()] += face_normal;
+				normals[tit->i2()] += face_normal;
 			}
-		}
+		} while (tit->next());
 		for (vector<vector3f>::iterator it = normals.begin(); it != normals.end(); ++it) {
 			// this can lead to NAN values in vertex normals.
 			// but only for degenerated vertices, so we don't care.
@@ -330,17 +426,18 @@ void model::mesh::compute_normals()
 		righthanded.clear();
 		righthanded.resize(vertices.size(), 0);
 		vector<bool> vertexok(vertices.size());
-		for (unsigned i = 0; i < indices.size(); i += 3) {
-			unsigned i0 = indices[i+0];
-			unsigned i1 = indices[i+1];
-			unsigned i2 = indices[i+2];
+		std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+		do {
+			unsigned i0 = tit->i0();
+			unsigned i1 = tit->i1();
+			unsigned i2 = tit->i2();
 			if (!vertexok[i0])
 				vertexok[i0] = compute_tangentx(i0, i1, i2);
 			if (!vertexok[i1])
 				vertexok[i1] = compute_tangentx(i1, i2, i0);
 			if (!vertexok[i2])
 				vertexok[i2] = compute_tangentx(i2, i0, i1);
-		}
+		} while (tit->next());
 	}
 }
 
@@ -405,6 +502,7 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 
 model::mesh::mesh(const string& nm)
 	: name(nm),
+	  indices_type(pt_triangles),
 	  transformation(matrix4f::one()),
 	  mymaterial(0),
 	  vbo_positions(false),
@@ -467,7 +565,7 @@ void model::mesh::compile()
 	// use uint16 as data type for indices, but it doesn't bring more
 	// performance. OpenGL can do it for use, when we use glDrawRangeElements()
 	// later.
-	index_data.init_data(indices.size() * 4, &indices[0], GL_STATIC_DRAW);
+	index_data.init_data(indices.size() * 4 /* index type is Uint32! */, &indices[0], GL_STATIC_DRAW);
 }
 
 
@@ -487,6 +585,8 @@ void model::mesh::transform(const matrix4f& m)
 
 void model::mesh::write_off_file(const string& fn) const
 {
+	if (indices_type != pt_triangles) throw std::runtime_error("write_off_file: can't handle primitives other than triangles!");
+
 	FILE *f = fopen(fn.c_str(), "wb");
 	if (!f) return;
 	fprintf(f, "OFF\n%u %u %u\n", vertices.size(), indices.size()/3, 0);
@@ -504,6 +604,8 @@ void model::mesh::write_off_file(const string& fn) const
 
 pair<model::mesh*, model::mesh*> model::mesh::split(const vector3f& abc, float d) const
 {
+	if (indices_type != pt_triangles) throw std::runtime_error("split: can't handle primitives other than triangles!");
+
 	model::mesh* part0 = new model::mesh();
 	model::mesh* part1 = new model::mesh();
 	part0->name = name + "_part0";
@@ -1096,7 +1198,7 @@ void model::mesh::display() const
 
 	// render geometry, glDrawRangeElements is faster than glDrawElements.
 	index_data.bind();
-	glDrawRangeElements(GL_TRIANGLES, 0, vertices.size()-1, indices.size(), GL_UNSIGNED_INT, 0);
+	glDrawRangeElements(gl_primitive_type(), 0, vertices.size()-1, indices.size(), GL_UNSIGNED_INT, 0);
 	index_data.unbind();
 
 	// maybe: add code to show normals as Lines
@@ -1182,7 +1284,7 @@ void model::mesh::display_mirror_clip() const
 
 	// render geometry
 	index_data.bind();
-	glDrawRangeElements(GL_TRIANGLES, 0, vertices.size()-1, indices.size(), GL_UNSIGNED_INT, 0);
+	glDrawRangeElements(gl_primitive_type(), 0, vertices.size()-1, indices.size(), GL_UNSIGNED_INT, 0);
 	index_data.unbind();
 
 	glEnable(GL_LIGHTING);
@@ -1441,9 +1543,10 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 		// indices.
 		xml_elem indis = msh.add_child("indices");
 		indis.set_attr(unsigned(mp->indices.size()), "nr");
+		indis.set_attr(mp->name_primitive_type(), "type");
 		ostringstream ossi;
 		//unsigned nrind = 0;
-		for (vector<unsigned>::const_iterator iit = mp->indices.begin(); iit != mp->indices.end(); ++iit) {
+		for (vector<Uint32>::const_iterator iit = mp->indices.begin(); iit != mp->indices.end(); ++iit) {
 			// add return after each 32th index - doesn't work with tinyxml this way!
 			//if (nrind++ % 32 == 0)
 			//ossi << "\n";
@@ -2136,6 +2239,15 @@ void model::read_dftd_model_file(const std::string& filename)
 			// indices
 			xml_elem indis = e.child("indices");
 			unsigned nrindis = indis.attru("nr");
+			if (indis.has_attr("type")) {
+				string idxtype = indis.attr("type");
+				if (idxtype == "triangles")
+					msh->indices_type = mesh::pt_triangles;
+				else if (idxtype == "triangle_strip")
+					msh->indices_type = mesh::pt_triangle_strip;
+				else
+					throw xml_error(string("invalid indices type, mesh ") + msh->name, filename);
+			}
 			values = indis.child_text();
 			msh->indices.reserve(nrindis);
 			istringstream issi(values);
