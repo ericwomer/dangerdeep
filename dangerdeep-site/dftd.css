@@ -59,6 +59,17 @@ img.right {
 	float: right;
 }
 
+div.code {
+	text-align: left;
+	background-color: #444;
+	border: 1px solid #fff;
+	width: 100%;
+	white-space: pre;
+	overflow: auto;
+	font-family: monospace;
+	color: #fff;
+}
+
 /* gallery */
 div.thumbnails img {
 	border-width: 0px;

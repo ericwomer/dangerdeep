@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+	<title>Danger from the Deep</title>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+	<link rel="Stylesheet" href="dftd.css" type="text/css" />
+	<link rel="shortcut icon" href="./icons/favicon.ico" type="image/x-icon" />
+	<link rel="icon" href="./icons/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+	<div class="container">
+	<div class="head">
+		<img src="images/header.jpg" alt="Danger from the Deep submarine simulator" />
+	</div>
+	<div class="menu">
+		<ul class="menu">
+			<li class="about"><a href="index.html">About</a></li>
+			<li class="warn"><a href="warning.html">Warning</a></li>
+			<li class="feat"><a href="features.html">Features</a></li>
+			<li class="news"><a href="news.html">News</a></li>
+			<li class="gallery"><a href="gallery.html">Gallery</a></li>
+			<li class="download"><a href="download.html">Download</a></li>
+			<li class="help"><a href="help_out.html">Help out</a></li>
+			<li class="docu"><a href="documentation.html">Documentation</a></li>
+			<li class="links"><a href="links.html">Links</a></li>
+		</ul>
+		<a href="http://validator.w3.org/check?uri=referer"><img class="std" src="images/xhtml.png" alt="XHTML Valid!" /></a>
+		<br />
+		<a href="http://jigsaw.w3.org/css-validator/check/referer"><img class="std" src="images/w3c-valid-css.png" alt="Valid CSS!" /></a>
+	</div>
+	<div class="contents">
+		<h2 class="right">HOWTO: Build DftD with Visual C++</h2>
+		<p>This is a how-to build Danger From The Deep source using Visual C++ 2005 Express Edition for Windows</p>
+		<h3>Requitements</h3>
+		<ol>
+			<li>Install Visual C++ 2005 Express Edition ( available <a href="http://msdn.microsoft.com/vstudio/express/visualc/download/">here</a> )</li>
+			<li>Install Microsoft Platform SDK ( available <a href="http://www.microsoft.com/msdownload/platformsdk/sdkupdate/">here</a> )</li>
+			<li>Configure Visual C++ to use the PSDK ( available <a href="http://msdn.microsoft.com/vstudio/express/visualc/usingpsdk/">here</a> )</li>
+			<li>Download &amp; install SDL for VC++ ( available <a href="http://www.libsdl.org/release/SDL-devel-1.2.7-VC6.zip">here</a> )</li>
+			<li>Download &amp; install SDL_Image ( available <a href="http://www.libsdl.org/projects/SDL_image/release/SDL_image-devel-1.2.3-VC6.zip">here</a> )</li>
+			<li>Download &amp; install SDL_Mixer ( available <a href="http://www.libsdl.org/projects/SDL_mixer/release/SDL_mixer-devel-1.2.5a-VC6.zip">here</a> )</li>
+			<li>Download &amp; install SDL_Net ( available <a href="http://www.libsdl.org/projects/SDL_net/release/SDL_net-devel-1.2.5-VC6.zip">here</a> ) </li>
+			<li>Download &amp; install FFTW3 ( available <a href="ftp://ftp.fftw.org/pub/fftw/fftw-3.0.1-w32-pl1.zip">here</a> )</li>
+		</ol>
+
+		<h3>Building</h3>
+		<ol>
+			<li>Download latest source of Danger From The Deep from CVS repository ( instructions are available <a href="./download.html">here</a> )</li>
+			<li>Unzip  vc2005.zip and extract the VC++ solution files &amp; projects ( zip is available <a href="./documentation/vc2005.zip">here</a> or from the CVS tree )</li>
+			<li>Copy the unzipped vc2005 folder along side the danger deep src directory, if the source is in "c:\games\dangerdeep-0.2.0\src" then the vc2005 directory containing the solution and projects should be copied to "c:\games\dangerdeep-0.2.0\vc2005"</li>
+			<li>Create two new user environment variables named DDINCLUDE and DDLIB (Control Panel -&gt; System -&gt; Env Variables).<br />
+			<br />
+			For DDINCLUDE set the value as:
+			<div class="code">"drive:\path\to\SDL\include";"drive:\path\to\SDL_Image\include";"drive:\path\to\SDL_Mixer\include";"drive:\path\to\SDL_Net\include";"drive:\path\to\FFTW3\include";"drive:\path\to\gl\include";</div>
+			For example:
+			<div class="code">"c:\ddbuild\SDL\include";"c:\ddbuild\SDL_Image\include";"c:\ddbuild\SDL_Mixer\include";"c:\ddbuild\SDL_Net\include";"c:\ddbuild\FFTW3";"C:\Program Files\Microsoft Platform SDK\Include\gl";</div>
+			<br />
+			For DDLIB set the value as:
+			<div class="code">"drive:\path\to\SDL\lib";"drive:\path\to\SDL_Image\lib";"drive:\path\to\SDL_Mixer\lib";"drive:\path\to\SDL_Net\lib";"drive:\path\to\FFTW3\lib";</div>
+			For example:
+			<div class="code">"c:\ddbuild\SDL\lib";"c:\ddbuild\SDL_Image\lib";"c:\ddbuild\SDL_Mixer\lib";"c:\ddbuild\SDL_Net\lib";"c:\ddbuild\FFTW3";</div>
+			</li>
+			<li>Launch DDVC2005.sln and build the game executables in release or debug mode</li>
+			<li>Post build the executables will be in vc2005\debug or vc2005\release folder.</li>
+			<li>Copy the exes to the dangerdeep install dir and run the game :-)</li>
+		</ol>
+		
+		<div class="code">
+* Configuration of VC++ Solution &amp; Projects for building DangerDeep (Based on version 0.2.0)
+____________________________________________________________________________________________
+- VC++ Solution File Name = DDVC2005.sln (path = csvroot/dangerdeep-0.2.0/vc2005/)
+- Project 1 = tinyxml.vcproj (output = Win32 static library, path = vc2005/tinyxml/)
+- Project 2 = oglext.vcproj (output = Win32 static library, path = vc2005/olgext/)
+- Project 3 = dftdmedia.vcproj (output = Win32 static library, path = vc2005/dftdmedia/)
+- Project 4 = bsplinetest.vcproj (output = Win32 console exe, path = vc2005/bsplinetest/)
+- Project 5 = crosssection.vcproj (output = Win32 windows exe, path = vc2005/crosssection/)
+- Project 6 = damagemodel.vcproj (output = Win32 windows exe, path = vc2005/damagemodel/)
+- Project 7 = dangerdeep.vcproj (output = Win32 windows exe, path = vc2005/dangerdeep/)
+- Project 8 = oceantest.vcproj (output = Win32 console exe, path = vc2005/oceantest/)
+- Project 9 = portal.vcproj (output = Win32 windows exe, path = vc2005/portal/)
+- Project 10 = viewmodel.vcproj (output = Win32 windows exe, path = vc2005/viewmodel/)
+</div>
+<br />
+	</div>
+	<div class="foot">&copy; 2006-2007 Danger from the Deep</div>
+	</div>
+</body>
+</html>

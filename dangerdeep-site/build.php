@@ -31,7 +31,7 @@ $fd = opendir( PAGES );
 
 while( $dir = readdir( $fd ) )
 {
-	if ( '.' == $dir{0} )
+	if ( '.' == $dir{0} || 'CVS' == $dir )
 		continue;
 
 	$page = file_get_contents( PAGES . $dir );
