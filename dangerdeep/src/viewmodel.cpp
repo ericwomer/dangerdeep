@@ -214,7 +214,7 @@ void view_model(const string& modelfilename, const string& datafilename)
 
 	mdl->write_to_dftd_model_file("test.xml");
 
-	mdl->get_mesh(0).write_off_file("test.off");
+//	mdl->get_mesh(0).write_off_file("test.off");
 
         // rendering mode
 
