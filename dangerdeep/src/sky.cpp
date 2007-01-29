@@ -402,9 +402,6 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glTranslated(0, 0, -0.005);	// FIXME move down 10m? to compensate for waves moving up/down (avoid gaps because of that)
 
 	// render sky
-#if 0
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-#endif
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glEnableClientState(GL_COLOR_ARRAY);
 	sky_colors.bind();
@@ -419,13 +416,10 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 	glPopMatrix(); // sky scale
 
 	// restore blend function
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 
 	// ******** the sun and the moon *****************************************************
 	// draw sun, fixme draw flares/halo
