@@ -990,9 +990,9 @@ void model::material::set_gl_values() const
 		glMatrixMode(GL_MODELVIEW);
 	} else {
 		diffuse.set_gl_color();
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, 0);
 		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }
@@ -1209,14 +1209,15 @@ void model::mesh::display() const
 		glActiveTexture(GL_TEXTURE2);
 		glDisable(GL_TEXTURE_2D);
 		glActiveTexture(GL_TEXTURE0);
+		glDisableVertexAttribArray(vertex_attrib_index);
 	}
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
+	glClientActiveTexture(GL_TEXTURE1);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex1
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
-	glDisableVertexAttribArray(vertex_attrib_index);
 
 	// local transformation matrix.
 	glPopMatrix();
@@ -1287,10 +1288,15 @@ void model::mesh::display_mirror_clip() const
 	glDrawRangeElements(gl_primitive_type(), 0, vertices.size()-1, indices.size(), GL_UNSIGNED_INT, 0);
 	index_data.unbind();
 
+	if (use_shaders) {
+		glsl_shader_setup::use_fixed();
+	}
+
 	glEnable(GL_LIGHTING);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
+	glClientActiveTexture(GL_TEXTURE1);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex1
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
