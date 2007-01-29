@@ -57,8 +57,10 @@ public:
 		display_mode_map,
 		display_mode_torpedoroom,
 		display_mode_damagestatus,
+		display_mode_captainscabin,
 		display_mode_logbook,
 		display_mode_successes,
+		display_mode_sonar,
 		display_mode_freeview,
 		display_mode_tdc,
 		display_mode_torpsetup,
@@ -80,6 +82,9 @@ public:
  protected:
 	unsigned selected_tube;
 
+ public:
+	// public, because the functions could be called by heirs of user_display,
+	// and should be called only from there.
 	void goto_gauges();
 	void goto_periscope();
 	void goto_UZO();
@@ -87,15 +92,16 @@ public:
 	void goto_map();
 	void goto_torpedomanagement();
 	void goto_damagecontrol();
+	void goto_captainscabin();
 	void goto_logbook();
 	void goto_successes();
+	void goto_sonar();
 	void goto_freeview();
 	void goto_TDC();
 	void goto_torpedosettings();
 
 	void toggle_popup();
 
- public:
 	submarine_interface(class game& gm);
 	virtual ~submarine_interface();
 

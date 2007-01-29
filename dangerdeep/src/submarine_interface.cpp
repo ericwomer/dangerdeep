@@ -65,6 +65,7 @@ using namespace std;
 #include "sub_kdb_display.h"
 #include "sub_ghg_display.h"
 #include "sub_bg_display.h"
+#include "sub_captainscabin_display.h"
 
 #include "sub_control_popup.h"
 #include "sub_tdc_popup.h"
@@ -84,17 +85,18 @@ submarine_interface::submarine_interface(game& gm) :
 	displays.reset(display_mode_torpedoroom, new sub_torpedo_display(*this));
 	displays.reset(display_mode_damagestatus, new sub_damage_display(*this));
 	displays.reset(display_mode_logbook, new logbook_display(*this));
-	//displays.reset(display_mode_successes, new ships_sunk_display(*this));
+	displays.reset(display_mode_captainscabin, new sub_captainscabin_display(*this));
+	displays.reset(display_mode_successes, new ships_sunk_display(*this));
 	switch (player->get_hearing_device_type()) {
 	case submarine::hearing_device_KDB:
-		displays.reset(display_mode_successes, new sub_kdb_display(*this));
+		displays.reset(display_mode_sonar, new sub_kdb_display(*this));
 		break;
 	default:
 	case submarine::hearing_device_GHG:
-		displays.reset(display_mode_successes, new sub_ghg_display(*this));
+		displays.reset(display_mode_sonar, new sub_ghg_display(*this));
 		break;
 	case submarine::hearing_device_BG:
-		displays.reset(display_mode_successes, new sub_bg_display(*this));
+		displays.reset(display_mode_sonar, new sub_bg_display(*this));
 		break;
 	}
 	displays.reset(display_mode_freeview, new freeview_display(*this));
@@ -125,8 +127,10 @@ submarine_interface::submarine_interface(game& gm) :
 	screen_selector_menu->add_entry(texts::get(252), new wcbsubi(this, &submarine_interface::goto_map));
 	screen_selector_menu->add_entry(texts::get(253), new wcbsubi(this, &submarine_interface::goto_torpedomanagement));
 	screen_selector_menu->add_entry(texts::get(254), new wcbsubi(this, &submarine_interface::goto_damagecontrol));
+	screen_selector_menu->add_entry(texts::get(271), new wcbsubi(this, &submarine_interface::goto_captainscabin));
 	screen_selector_menu->add_entry(texts::get(255), new wcbsubi(this, &submarine_interface::goto_logbook));
-	screen_selector_menu->add_entry(texts::get(256), new wcbsubi(this, &submarine_interface::goto_successes));
+	screen_selector_menu->add_entry(texts::get(272), new wcbsubi(this, &submarine_interface::goto_successes));
+	screen_selector_menu->add_entry(texts::get(256), new wcbsubi(this, &submarine_interface::goto_sonar));
 	screen_selector_menu->add_entry(texts::get(257), new wcbsubi(this, &submarine_interface::goto_freeview));
 	screen_selector_menu->add_entry(texts::get(258), new wcbsubi(this, &submarine_interface::goto_TDC));
 	screen_selector_menu->add_entry(texts::get(259), new wcbsubi(this, &submarine_interface::goto_torpedosettings));
@@ -266,9 +270,9 @@ void submarine_interface::process_input(const SDL_Event& event)
 		} else if (mycfg.getkey(KEY_SHOW_DAMAGE_CONTROL_SCREEN).equal(event.key.keysym)) {
 			goto_damagecontrol();
 		} else if (mycfg.getkey(KEY_SHOW_LOGBOOK_SCREEN).equal(event.key.keysym)) {
-			goto_logbook();
+			goto_captainscabin();
 		} else if (mycfg.getkey(KEY_SHOW_SUCCESS_RECORDS_SCREEN).equal(event.key.keysym)) {
-			goto_successes();
+			goto_sonar();
 		} else if (mycfg.getkey(KEY_SHOW_FREEVIEW_SCREEN).equal(event.key.keysym)) {
 			goto_freeview();
 		} else if (mycfg.getkey(KEY_RUDDER_LEFT).equal(event.key.keysym)) {
@@ -567,6 +571,13 @@ void submarine_interface::goto_damagecontrol()
 
 
 
+void submarine_interface::goto_captainscabin()
+{
+	set_current_display(display_mode_captainscabin);
+}
+
+
+
 void submarine_interface::goto_logbook()
 {
 	set_current_display(display_mode_logbook);
@@ -577,6 +588,13 @@ void submarine_interface::goto_logbook()
 void submarine_interface::goto_successes()
 {
 	set_current_display(display_mode_successes);
+}
+
+
+
+void submarine_interface::goto_sonar()
+{
+	set_current_display(display_mode_sonar);
 }
 
 
