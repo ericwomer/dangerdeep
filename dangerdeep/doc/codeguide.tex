@@ -22,14 +22,38 @@
 % draw some uml diagrams for the important classes (subsection of full graph) and embed
 %  them here as eps graphics.
 
+\title{A guide to the sourcecode of \dftd}
+
 \chapter{A guide to the sourcecode of \dftd}
 
-A short overview about the topics:
-\begin{itemize}
-\item General idea
-\item Coding style
-\item What needs to be done
-\end{itemize}
+\section{About this document}
+
+What is this document about? It should give you a general overview of
+the sourcecode of \dftd, the general concepts and ideas. Most projects
+of today come with a code-related documentation (like Doxygen). This is
+generally a handy thing, when developing or extending code - \dftd has
+it too (many things are still missing). But it helps you only when you
+know where to look and \emph{how} to extend the code.  Even if the code
+would have a documentation for \emph{every} function, you would not know
+where to start. Code-based documentation can be the final step to make
+project documentation complete, but it is not useful as first step into
+the project. It is often misused as excuse to not creating a more
+general documentation.
+
+Many open source projects out there have a more or less well managed
+Doxygen-like code documentation. But what is it good for? It is of use
+only for those that already know how to use the project - as reference.
+But where to start if you are new to the project? You are lost. At that
+point example code may help or researching for information on the
+internet. Or to consult a more general documentation, if available.
+
+For this project, only the latter option is possible (or you enter
+IRC/forum and ask us directly, what you should do anyway if you want to
+join). This document tries to solve the problem described above and
+tries to give interested people an overview of the project.
+
+Of course one could enhance the Doxygen-based documentation while
+learning more about the project. Such a person would be very welcome.
 
 \section{General idea}
 
@@ -116,6 +140,101 @@ SDL, SDL\_image, fftw, SDL\_mixer, SDL\_net
 \subsection{Language: C++}
 
 speed, object orientation, platform independence, opengl, flexibility (multiple inheritance)
+
+\subsubsection{About resource and memory management}
+
+I bet you have been told that there are two models of handling resources
+like files, memory and more: the \emph{C}-like way, where you have to do
+everything on your own and the \emph{Java}-like way, where some entity
+called ``garbage collector'' cleans up unused memory for you. The same
+is true for other resources, except that even such an collector could
+not know when to close files and you have to close them at the right
+time like with \emph{C}.
+
+The \emph{C}-way is problematic, because you have to do every tiny bit
+of work for yourself and you have to do it over and over again, which is
+highly error prone.
+
+On the other hand there is the clean OOP-way (object oriented
+programming), where memory doesn't need to be freed by the the
+developer, but the runtime environment does it for you. Of course that
+environment can't know when to close files, so you have to do this still
+on your own. When code can throw exceptions, you have to encapsulate
+file handling and close them in special code blocks (the \emph{final}
+keyword in \emph{Java}) or similar things.
+
+In fact, there is a third way. The only language i know that offers this
+way is \emph{C++}. You can do it the hard way like \emph{C} but you
+should not. \emph{C++} is not \emph{C}. The language follows a very
+different paradigm. And \emph{C++} is not like \emph{Java}. There are
+critical differences. Do the things in \emph{C++} like they should be
+done in this language, and not like \emph{C} and not like \emph{Java}.
+The \emph{C++} paradigm is not that hard to learn and brings you some
+surprising advantages.
+
+The key mechanism is that local variables can be objects. Local
+variables are local to the block they are defined in (from opening curly
+brace to closing curly brace). If the variable is an object of some
+class, the constructor of that class is called on defining the variable,
+and the destructor is called automatically when leaving the block.
+Constructors and destructors are more or less normal functions, so you
+can put any code in them. The object you declare does not even have to
+have attributes with it, its constructor and destructor is called
+anyway.
+
+I hope you already see what enormous chances this offers. Automatic call
+of a function when leaving a block? No matter how the block is left - by
+either normal code execution or break or return or exception? This fits
+perfectly to closing a file or freeing memory.
+
+By letting \emph{C++} handle the local variables automatically and by
+attaching resources to such local variables you can make nearly
+\emph{every} resource management automatic! Never ever again you lose
+some memory or forget to close files. Resources are automatically freed
+when an error occurs and the code is stopped by an exception. Stable,
+reliable design without extra work by the developer - doesn't that sound
+great?
+
+It \emph{is} great, but the price is language complexity and some extra
+work on declaring such helper classes. But the first problem vanishs
+once you are used to the language, and the second problem is tiny
+compared to the advantages you can enjoy with the method.
+
+The \emph{C++} standard library (STL) already makes use of such
+techniques and has fully automatic memory management. Full speed of
+\emph{C} with the easy coding like \emph{Java} (sometimes even easier).
+That is one of the reasons why we have chosen to use \emph{C++} for the
+project.
+
+The automatisms can be seen in the standard classes like
+\texttt{std::vector} or \texttt{std::auto\_ptr}, and are also used by
+some \dftd classes like the \texttt{ptrset} or the \texttt{ptrvector}.
+The concept is used for files too, realized as ``streams'' in
+\emph{C++}. It can be extended very well to multi-threaded programming
+as well, like writing a class that locks a mutex in constructor and
+unlocks it in its destructor. That way mutex locking can be done
+automatically by declaring such a locker object inside a code block.
+Upon leaving the block, the mutex is automatically unlocked, removing a
+very nasty and common source of error with multi-threaded programming.
+Many more applications are possible.
+
+In short one can say: if you use \texttt{new} and \texttt{delete} to
+allocate memory blocks, you do something wrong. Use vectors instead. You
+should only create single objects with new and should attach them
+directly to an object that can manage the memory automatically, so the
+object can not get lost, whatever happens (exceptions can break normal
+code flow, be careful!). Thus, you should not be forced to use
+\texttt{delete} too often. If you even would use \texttt{malloc} or
+\texttt{free} anywhere, you are very wrong and should expect harsh
+comments by the developers. These functions are exclusivly \emph{C} and
+do not mix with the \emph{C++} ones. As the \emph{C++}-FAQ ``lite'' by
+Marshall Cline abbreviates it: arrays are \emph{evil}, unmanaged
+pointers are \emph{evil} - in general. Check if you could use a
+\emph{reference} instead of a pointer, whereever you would like to use
+pointers.
+
+I suggest reading the mentioned FAQ at
+http://www.parashift.com/c++-faq-lite/
 
 \subsection{Error handling}
 
