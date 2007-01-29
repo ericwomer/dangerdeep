@@ -39,6 +39,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "game.h"
 #include "matrix4.h"
 
+#include <iostream>
+using namespace std;
 using std::vector;
 
 
@@ -400,6 +402,9 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glTranslated(0, 0, -0.005);	// FIXME move down 10m? to compensate for waves moving up/down (avoid gaps because of that)
 
 	// render sky
+#if 0
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+#endif
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glEnableClientState(GL_COLOR_ARRAY);
 	sky_colors.bind();
@@ -409,10 +414,12 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
 	sky_vertices.unbind();
 	sky_indices.bind();
-	glDrawRangeElements(GL_QUAD_STRIP, 0, nr_sky_vertices-1, nr_sky_indices, GL_UNSIGNED_INT, 0); 
+	glDrawRangeElements(GL_QUAD_STRIP, 0, nr_sky_vertices-1, nr_sky_indices, GL_UNSIGNED_INT, 0);
 	sky_indices.unbind();
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	glPopMatrix(); // sky scale
 
@@ -591,10 +598,11 @@ void sky::rebuild_colors(const game& gm, const vector3& viewpos) const
 		std::vector<color>::iterator skycolor = skycolors.begin();
 		while (skyangle != skyangles.end()) {
 #if 0	//	debug (angles mapped on hemisphere)
-			*skycolor = colorf( skyangle->x/(M_PI*2), skyangle->y/(M_PI/2.0f), 0, sky_alpha );
+			*skycolor = colorf( skyangle->x/(M_PI*2), skyangle->y/(M_PI/2.0f), 0, sky_alpha ).to_uint8();
 #else
 			colorf c = skycol.get_color(skyangle->x, skyangle->y, sun_elevation);
 			c.a = sky_alpha;
+			if(c.r>1.0) c.r=1.0; if(c.g>1.0) c.g=1.0; if(c.b>1.0) c.b=1.0;
 			*skycolor = c.to_uint8();
 #endif
 
