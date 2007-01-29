@@ -88,8 +88,8 @@ stri += '</indices>\n'
 stri2 += '</indices>\n'
         
 l2.append(strv)
-l2.append(stri)
-#l2.append(stri2)
+#l2.append(stri)
+l2.append(stri2)
 l2.append(strt)
 l2.append('\t\t<transformation>1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 </transformation>\n')
 l2.append('\t</mesh>\n')
