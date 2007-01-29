@@ -138,12 +138,11 @@ void moon::display(const vector3 &moon_pos, const vector3 &sun_pos, double max_v
 	glEnd();
 	glPopMatrix();
 
-	//	reset textures
+	// reset textures
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE); // clean up!
-
-	glActiveTextureARB(GL_TEXTURE0);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, 1); // clean up!
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE); // clean up!
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 }
