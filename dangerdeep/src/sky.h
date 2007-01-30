@@ -86,8 +86,8 @@ protected:
 
 public:
 	sky(const double tm = 0.0,
-	    const unsigned int sectors_h = 100,
-	    const unsigned int sectors_v = 25);
+	    const unsigned int sectors_h = 40,
+	    const unsigned int sectors_v = 15);
 	//fixme: this should recompute sky color! not display...
 	void set_time(double tm);
 	~sky();

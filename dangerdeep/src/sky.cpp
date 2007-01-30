@@ -409,9 +409,10 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	sky_vertices.bind();
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
-	sky_vertices.unbind();
 	sky_indices.bind();
 	glDrawRangeElements(GL_QUAD_STRIP, 0, nr_sky_vertices-1, nr_sky_indices, GL_UNSIGNED_INT, 0);
+	sky_colors.unbind();
+	sky_vertices.unbind();
 	sky_indices.unbind();
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
@@ -519,15 +520,18 @@ void sky::build_dome(const unsigned int sectors_h, const unsigned int sectors_v)
 	skyangles.reserve( (sectors_h+1)*(sectors_v+1) );
 	skyindices.reserve( 4*(sectors_h+1)*(sectors_v+1) );
 
-	// TJ: fixme: some gamedev.net discussion proposed using more segments near the horizon as color
-	// variation is greater near the horizon.
-
 	// this will define the sphere in height
 	for(unsigned int i=0; i<=sectors_v; i++) {
-		if(i != 0)
-			phi = i * (M_PI*0.5) / sectors_v;
-		else
+		if(i == 0)
 			phi = 0.001;	//	if phi==0 skycolor = -INF, -INF, -INF (BAD)
+		else if(i == sectors_v)
+			phi = M_PI*0.5;	//	zenith
+		else
+		{
+			float gap = pow((float)i/sectors_v, 1.3f);	//	more strips near horizon
+			if(gap<0.5) gap = 0.5;
+			phi = (i * (M_PI*0.5) / sectors_v) * gap;
+		}
 
 		// definition of the circular sections
 		for(unsigned int j=0; j<=sectors_h; j++) {
