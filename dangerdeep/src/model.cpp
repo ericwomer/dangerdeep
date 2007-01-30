@@ -255,7 +255,13 @@ void model::compute_bounds()
 void model::compute_normals()
 {
 	for (vector<model::mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
-		(*it)->compute_normals();
+		try {
+			(*it)->compute_normals();
+		}
+		catch (std::exception& e) {
+			// if normal generation fails (happens for some broken 3ds models),
+			// ignore that, do not generate normals for such a mesh
+		}
 	}
 }
 
