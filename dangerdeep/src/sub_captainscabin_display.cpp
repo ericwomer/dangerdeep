@@ -162,7 +162,7 @@ void sub_captainscabin_display::process_input(class game& gm, const SDL_Event& e
 void sub_captainscabin_display::enter(bool is_day)
 {
 	background.reset(new image(get_image_dir() + "captainscabin_main_"
-				   + (is_day ? "daylight" : "redlight") + "_rev.1.1.jpg"));
+				   + (is_day ? "daylight" : "redlight") + ".jpg"));
 }
 
 
