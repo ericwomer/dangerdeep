@@ -464,7 +464,7 @@ void run_game(auto_ptr<game> gm)
 	widget::unref_all_backgrounds();
 
 	auto_ptr<widget::theme> gametheme(new widget::theme("widgetelements_game.png", "widgeticons_game.png",
-								 font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64)));
+								 font_king,color(182, 146, 137),color(240, 217, 127), color(64,64,64)));
 	reset_loading_screen();
 	// embrace user interface generation with right theme set!
 	auto_ptr<widget::theme> tmp = widget::replace_theme(gametheme);
@@ -553,7 +553,7 @@ void run_game_editor(auto_ptr<game> gm)
 	widget::unref_all_backgrounds();
 
 	auto_ptr<widget::theme> gametheme(new widget::theme("widgetelements_game.png", "widgeticons_game.png",
-							    font_arial, color(255,204,0), color(180, 180, 255), color(64,64,64)));
+							    font_king,color(182, 146, 137),color(240, 217, 127), color(64,64,64)));
 	reset_loading_screen();
 	// embrace user interface generation with right theme set!
 	auto_ptr<widget::theme> tmp = widget::replace_theme(gametheme);
@@ -1686,7 +1686,7 @@ int mymain(list<string>& args)
 									 color(240, 217, 127) /*color(222, 208, 195)*/,
 									 color(92, 72 ,68))));
 
-	mysys->draw_console_with(font_arial, panelbackground);
+	mysys->draw_console_with(font_arial, metalbackground);
 
 
 	// try to make directories (again)

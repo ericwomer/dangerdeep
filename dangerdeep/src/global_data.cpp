@@ -80,9 +80,9 @@ global_data::~global_data()
 
 texture *addleadangle, *torpleft, *metalbackgr,
 	*notepadsheet, *menuframe,
-	*terraintex, *atlanticmap, *panelbackground;
+	*terraintex, *atlanticmap, *panelbackground, *metalbackground;
 	
-font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn, *font_damagedtypewriter;
+font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn, *font_damagedtypewriter, *font_king;
 
 bool loading_screen_usable = false;
 
@@ -114,9 +114,11 @@ void init_global_data()
 	font_verdanabd = new font(get_font_dir() + "font_verdanabd");
 	font_olympiaworn = new font(get_font_dir() + "font_olympiaworn");
 	font_damagedtypewriter = new font(get_font_dir() + "font_damagedtypewriter");
+	font_king = new font(get_font_dir() + "font_king");
 	add_loading_screen("fonts loaded");
 	// later: they should get loaded by environmental classes (sky/water/user_interface)
-	panelbackground = new texture(get_image_dir() + "metalbackground.jpg");
+	panelbackground = 0; // not used with new ingame gui
+	metalbackground = new texture(get_image_dir() + "metalbackground.jpg");
 	addleadangle = new texture(get_texture_dir() + "addleadangle.png");
 	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", texture::LINEAR);
 	notepadsheet = new texture(get_texture_dir() + "notepadsheet.png" /*, GL_CLAMP_TO_EDGE*/);
@@ -153,6 +155,9 @@ void deinit_global_data()
 	delete font_verdanabd;
 	delete font_olympiaworn;
 	delete font_damagedtypewriter;
+	delete font_king;
+	delete panelbackground;
+	delete metalbackground;
 	delete addleadangle;
 	delete metalbackgr;
 	delete notepadsheet;
