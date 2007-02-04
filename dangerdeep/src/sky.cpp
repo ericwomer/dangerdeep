@@ -409,10 +409,9 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	sky_vertices.bind();
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
+	sky_vertices.unbind();
 	sky_indices.bind();
 	glDrawRangeElements(GL_QUAD_STRIP, 0, nr_sky_vertices-1, nr_sky_indices, GL_UNSIGNED_INT, 0);
-	sky_colors.unbind();
-	sky_vertices.unbind();
 	sky_indices.unbind();
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
