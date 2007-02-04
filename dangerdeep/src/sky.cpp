@@ -509,15 +509,19 @@ void sky::build_dome(const unsigned int sectors_h, const unsigned int sectors_v)
 
 	float phi,theta;
 	float x,y,z;
-	nr_sky_vertices = (sectors_h+1)*(sectors_v+1);
-	nr_sky_indices = 4*(sectors_h+1)*(sectors_v+1);
+	// sectors are connected around the (hemisphere), so we have sectors_h vertices per vertical
+	// sector, not sectors_h+1
+	nr_sky_vertices = sectors_h*(sectors_v+1);
+	// 2 start indices, two indices per quad, 4 indices for sector change (2 degenerated quads)
+	// but not for last sector.
+	nr_sky_indices = 2 + sectors_v*sectors_h*2 + (sectors_v-1)*2*2;
 	sky_colors.init_data(nr_sky_vertices * 4, 0, GL_DYNAMIC_DRAW);
 	skycolors.resize(nr_sky_vertices);
 	std::vector<vector3f> skyverts;
-	std::vector<unsigned int> skyindices;
-	skyverts.reserve( (sectors_h+1)*(sectors_v+1) );
-	skyangles.reserve( (sectors_h+1)*(sectors_v+1) );
-	skyindices.reserve( 4*(sectors_h+1)*(sectors_v+1) );
+	std::vector<unsigned> skyindices;
+	skyverts.reserve(nr_sky_vertices);
+	skyangles.reserve(nr_sky_vertices);
+	skyindices.reserve(nr_sky_indices);
 
 	// this will define the sphere in height
 	for(unsigned int i=0; i<=sectors_v; i++) {
@@ -533,7 +537,7 @@ void sky::build_dome(const unsigned int sectors_h, const unsigned int sectors_v)
 		}
 
 		// definition of the circular sections
-		for(unsigned int j=0; j<=sectors_h; j++) {
+		for(unsigned int j=0; j<sectors_h; j++) {
 			theta = 2 * j * M_PI / sectors_h;
 
 			x = radius * cos(theta) * cos(phi);
@@ -545,11 +549,22 @@ void sky::build_dome(const unsigned int sectors_h, const unsigned int sectors_v)
 		}
 	}
 
-	//	build index list
-	for(unsigned int i=0; i<sectors_v; i++) {
-		for(unsigned int j=0; j<=sectors_h;j++) {
-			skyindices.push_back(i*(sectors_h+1) + j);
-			skyindices.push_back((i+1)*(sectors_h+1) + j);
+	// build index list
+	skyindices.push_back(sectors_h);	// start indices
+	skyindices.push_back(0);
+	for(unsigned i=0; i<sectors_v; i++) {
+		// traverse indices in reserve order because angles are ccw, so we walk around
+		// the horizontal sector in ccw order (quad-strips normally clockwise)
+		for(unsigned j=0; j<sectors_h;j++) {
+			skyindices.push_back((i+1)*sectors_h + sectors_h - j - 1);
+			skyindices.push_back( i   *sectors_h + sectors_h - j - 1);
+		}
+		// degenerated quads for sector conjunction
+		if (i + 1 < sectors_v) {
+			skyindices.push_back((i+1)*sectors_h);
+			skyindices.push_back((i+1)*sectors_h);
+			skyindices.push_back((i+2)*sectors_h);
+			skyindices.push_back((i+1)*sectors_h);
 		}
 	}
 	sky_vertices.init_data(nr_sky_vertices*sizeof(vector3f), &skyverts[0], GL_STATIC_DRAW);
