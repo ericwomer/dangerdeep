@@ -56,8 +56,8 @@ using namespace std;
 void logbook_display::print_buffer(unsigned i, const string& t) const
 {
 	unsigned x = ( i < NUMBER_OF_LINES )? 42 : 550;
-	unsigned y = ( i < NUMBER_OF_LINES )? ( 40 + 20 * i ) :
-		( 40 + 20 * ( i - NUMBER_OF_LINES ) );
+	unsigned y = ( i < NUMBER_OF_LINES )? ( 80 + 20 * i ) :
+		( 80 + 20 * ( i - NUMBER_OF_LINES ) );
 
 	font_arial->print(x, y, t, color(0, 0, 128));
 }
@@ -91,20 +91,13 @@ void logbook_display::display(class game& gm) const
 	// fixme: old code wrapped text when entry was too long. this is missing here
 	sys().prepare_2d_drawing();
 
-	// Wooden background.
-	glColor3f ( 1.0f, 1.0f, 1.0f );
-	woodbackgr->draw_tiles(0, 0, 1024, 768);
-
-	// Two white pages.
-	glBindTexture ( GL_TEXTURE_2D, 0 );
-	sys().draw_rectangle (  20, 20, 476, 600 );
-	sys().draw_rectangle ( 528, 20, 476, 600 );
+	background->draw(0, 0);
 
 	// Draw lines.
 	glColor3f ( 0.5f, 0.5f, 0.5f );
 	for ( int i = 0; i < NUMBER_OF_LINES; i ++ )
 	{
-		unsigned y = 60 + 20 * i;
+		unsigned y = 100 + 20 * i;
 		glBegin ( GL_LINES );
 		glVertex2i (  40, y );
 		glVertex2i ( 476, y );
@@ -112,10 +105,6 @@ void logbook_display::display(class game& gm) const
 		glVertex2i ( 984, y );
 		glEnd ();
 	}
-
-	// Middle spiral.
-	glColor3f ( 1.0f, 1.0f, 1.0f );
-	spiral->draw_tiles(496, 20, 32, 600);
 
 	// Create entries.
 	// Prepare OpenGL.
@@ -131,13 +120,13 @@ void logbook_display::display(class game& gm) const
 	oss1 << page_number;
 	font_arial->print (
 		260,
-		595,
+		635,
 		oss1.str (), color ( 0, 0, 0 ) );
 	ostringstream oss2;
 	oss2 << ( page_number + 1 );
 	font_arial->print (
 		760,
-		595,
+		635,
 		oss2.str (), color ( 0, 0, 0 ) );
 
 	// Display arrows.
@@ -145,13 +134,13 @@ void logbook_display::display(class game& gm) const
 	left_arrow_oss << "<<";
 	font_arial->print (
 		160,
-		595,
+		635,
 		left_arrow_oss.str (), color ( 0, 0, 0 ) );
 	ostringstream right_arrow_oss;
 	right_arrow_oss << ">>";
 	font_arial->print (
 		860,
-		595,
+		635,
 		right_arrow_oss.str (), color ( 0, 0, 0 ) );
 
 	ui.draw_infopanel();
@@ -188,14 +177,12 @@ void logbook_display::process_input(class game& gm, const SDL_Event& event)
 
 void logbook_display::enter(bool /*is_day*/)
 {
-	spiral.reset(new texture(get_texture_dir() + "logbook_spiral.png"));
-	woodbackgr.reset(new texture(get_texture_dir() + "wooden_desk.png"));
+	background.reset(new image(get_image_dir() + "logbook_background.jpg"));
 }
 
 
 
 void logbook_display::leave()
 {
-	spiral.reset();
-	woodbackgr.reset();
+	background.reset();
 }

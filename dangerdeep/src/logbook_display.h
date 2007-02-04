@@ -28,8 +28,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class logbook_display : public user_display
 {
 protected:
-	texture::ptr spiral;
-	texture::ptr woodbackgr;
+	std::auto_ptr<image> background;
+
 	unsigned actual_entry;
 
 	void print_buffer(unsigned i, const string& t) const;
