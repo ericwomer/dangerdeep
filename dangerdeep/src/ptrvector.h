@@ -64,11 +64,11 @@ class ptrvector
 		data.clear();
 	}
 
-	/* not used yet. take care to make it exception safe. maybe make parameter as auto_ptr
-	void push_back(T* ptr) {
-		data.push_back(ptr);
+	// exception safe, so first create space, then store
+	void push_back(std::auto_ptr<T> ptr) {
+		data.push_back(0);
+		data.back() = ptr.release();
 	}
-	*/
 
 	T* const& operator[](size_t n) const { return data[n]; }
 	T* const& at(size_t n) const { return data.at(n); }

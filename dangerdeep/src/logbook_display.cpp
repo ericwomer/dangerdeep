@@ -47,19 +47,38 @@ using namespace std;
 #include "texture.h"
 #include "user_interface.h"
 
-#define NUMBER_OF_LINES		27
-#define CHARACTER_PER_LINE	50
+#define NUMBER_OF_LINES		23 // old value 27
+#define CHARACTER_PER_LINE	45 // old value 50
 #define LINE_INDENT "    "
 
 
 
 void logbook_display::print_buffer(unsigned i, const string& t) const
 {
-	unsigned x = ( i < NUMBER_OF_LINES )? 42 : 550;
+/*	unsigned x = ( i < NUMBER_OF_LINES )? 42 : 550;
+ *	42 x origin 1st page, 550 x origin 2nd page
 	unsigned y = ( i < NUMBER_OF_LINES )? ( 80 + 20 * i ) :
 		( 80 + 20 * ( i - NUMBER_OF_LINES ) );
+        80 + 20 = y origin */
 
-	font_arial->print(x, y, t, color(0, 0, 128));
+    // Note, we _need_ to wrap long text in defined box
+    unsigned x = ( i < NUMBER_OF_LINES )? 88 : 560;
+    unsigned y = ( i < NUMBER_OF_LINES )? (140 + 20 * i ) :
+        ( 140 + 20 * ( i - NUMBER_OF_LINES ) ) ;
+
+	font_jphsl->print(x, y, t, color( 10, 10, 10));
+
+#if 0
+	unsigned offset = font_jphsl->print_wrapped(x, y, some_width_in_pixels,
+						    lineheight_in_pixels,
+						    t, color(10,10,10), false /*no shadow*/,
+						    remaininglines*lineheight_in_pixels);
+	if (offset < t.length()) {
+		font_jphsl->print_wrapped(new_x, new_y, some_width_in_pixels,
+					  lineheight_in_pixels, t.substr(offset),
+					  color(10,10,10), false /*no shadow*/);
+	}
+#endif
 }
 
 
@@ -89,16 +108,19 @@ logbook_display::logbook_display(class user_interface& ui_) : user_display(ui_),
 void logbook_display::display(class game& gm) const
 {
 	// fixme: old code wrapped text when entry was too long. this is missing here
+    // and we need it here again, or we're dead meat, check selected ship class
+    // log entry when target selected
 	sys().prepare_2d_drawing();
 
 	glColor4f(1,1,1,1);
 	background->draw(0, 0);
 
+    /* let's get rid of the ugly lines
 	// Draw lines.
 	glColor3f ( 0.5f, 0.5f, 0.5f );
 	for ( int i = 0; i < NUMBER_OF_LINES; i ++ )
 	{
-		unsigned y = 100 + 20 * i;
+		unsigned y = 140 + 20 * i;
 		glBegin ( GL_LINES );
 		glVertex2i (  40, y );
 		glVertex2i ( 476, y );
@@ -106,6 +128,7 @@ void logbook_display::display(class game& gm) const
 		glVertex2i ( 984, y );
 		glEnd ();
 	}
+    */
 
 	// Create entries.
 	// Prepare OpenGL.
@@ -119,30 +142,30 @@ void logbook_display::display(class game& gm) const
 	unsigned page_number = 1 + unsigned ( actual_entry / NUMBER_OF_LINES );
 	ostringstream oss1;
 	oss1 << page_number;
-	font_arial->print (
+	font_jphsl->print (
 		260,
 		635,
-		oss1.str (), color ( 0, 0, 0 ) );
+		oss1.str (), color ( 10, 10, 10 ) );
 	ostringstream oss2;
 	oss2 << ( page_number + 1 );
-	font_arial->print (
+	font_jphsl->print (
 		760,
 		635,
-		oss2.str (), color ( 0, 0, 0 ) );
+		oss2.str (), color ( 10, 10, 10 ) );
 
 	// Display arrows.
 	ostringstream left_arrow_oss;
 	left_arrow_oss << "<<";
-	font_arial->print (
+	font_jphsl->print (
 		160,
 		635,
-		left_arrow_oss.str (), color ( 0, 0, 0 ) );
+		left_arrow_oss.str (), color ( 10, 10, 10 ) );
 	ostringstream right_arrow_oss;
 	right_arrow_oss << ">>";
-	font_arial->print (
+	font_jphsl->print (
 		860,
 		635,
-		right_arrow_oss.str (), color ( 0, 0, 0 ) );
+		right_arrow_oss.str (), color ( 10, 10, 10 ) );
 
 	ui.draw_infopanel();
 

@@ -57,7 +57,8 @@ global_data::global_data()
 	: modelcache(get_data_dir()),
 	  imagecache(get_image_dir()),
 	  texturecache(get_texture_dir()),
-	  soundcache(get_sound_dir())
+	  soundcache(get_sound_dir()),
+	  fontcache(get_font_dir())
 {
 	if (inst != 0)
 		throw std::runtime_error("must not initialize global_data object twice");
@@ -82,7 +83,7 @@ texture *addleadangle, *torpleft, *metalbackgr,
 	*notepadsheet, *menuframe,
 	*terraintex, *atlanticmap, *panelbackground, *metalbackground;
 	
-font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn, *font_damagedtypewriter, *font_king;
+font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn, *font_damagedtypewriter, *font_king, *font_typenr, *font_jphsl, *font_janeaust, *font_vtportable;
 
 bool loading_screen_usable = false;
 
@@ -104,17 +105,20 @@ float XmlAttribf(class TiXmlElement* elem, const char* attrname)
 
 void init_global_data()
 {
-	// later: store fonts in static variable (vector) of class font...
-	font_arial = new font(get_font_dir() + "font_arial");
+	font_arial = fontcache().ref("font_arial");
 	loading_screen_usable = true;
-	font_arialbd = new font(get_font_dir() + "font_arialbd");
-	font_times = new font(get_font_dir() + "font_times");
-	font_timesbd = new font(get_font_dir() + "font_timesbd");
-	font_verdana = new font(get_font_dir() + "font_verdana");
-	font_verdanabd = new font(get_font_dir() + "font_verdanabd");
-	font_olympiaworn = new font(get_font_dir() + "font_olympiaworn");
-	font_damagedtypewriter = new font(get_font_dir() + "font_damagedtypewriter");
-	font_king = new font(get_font_dir() + "font_king");
+	font_arialbd = fontcache().ref("font_arialbd");
+	font_times = fontcache().ref("font_times");
+	font_timesbd = fontcache().ref("font_timesbd");
+	font_verdana = fontcache().ref("font_verdana");
+	font_verdanabd = fontcache().ref("font_verdanabd");
+	font_olympiaworn = fontcache().ref("font_olympiaworn");
+	font_damagedtypewriter = fontcache().ref("font_damagedtypewriter");
+	font_king = fontcache().ref("font_king");
+	font_typenr = fontcache().ref("font_typenr");
+	font_jphsl = fontcache().ref("font_jphsl");
+	font_janeaust = fontcache().ref("font_janeaust");
+	font_vtportable = fontcache().ref("font_vtportable");
 	add_loading_screen("fonts loaded");
 	// later: they should get loaded by environmental classes (sky/water/user_interface)
 	panelbackground = 0; // not used with new ingame gui
@@ -147,15 +151,6 @@ void init_global_data()
 
 void deinit_global_data()
 {
-	delete font_arial;
-	delete font_arialbd;
-	delete font_times;
-	delete font_timesbd;
-	delete font_verdana;
-	delete font_verdanabd;
-	delete font_olympiaworn;
-	delete font_damagedtypewriter;
-	delete font_king;
 	delete panelbackground;
 	delete metalbackground;
 	delete addleadangle;

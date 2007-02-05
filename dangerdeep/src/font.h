@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 #include "vector2.h"
 #include "color.h"
+#include "objcache.h"
 
 
 class texture;
@@ -43,7 +44,7 @@ private:
 		character() : width(0), height(0), left(0), top(0), tex(0) {}
 		~character();
 	};
-	font() {};
+	font();
 	font& operator=(const font& other);
 	font(const font& other);
 	std::vector<character> characters;
@@ -56,7 +57,7 @@ private:
 	static unsigned next_p2(unsigned i) { unsigned p = 1; while (p < i) p <<= 1; return p; }
 	
 	void print_text(int x, int y, const std::string& text, bool ignore_colors = false) const;
-		
+
 public:
 	font(const std::string& basefilename, unsigned char_spacing = 1);
 	void print(int x, int y, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
@@ -72,7 +73,7 @@ public:
 			       unsigned maxheight = 0 /* 0 means no limit */) const;
 	vector2i get_size(const std::string& text) const;
 	unsigned get_char_width(unsigned c) const;
-	unsigned get_height() const { return height; };
+	unsigned get_height() const { return height; }
 
 	// common functions for working with UTF-8 strings
 	static unsigned character_left(const std::string& text, unsigned cp);

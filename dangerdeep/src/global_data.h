@@ -79,6 +79,7 @@ class global_data
 	objcachet<class image> imagecache;
 	objcachet<class texture> texturecache;
 	objcachet<class sound> soundcache;
+	objcachet<class font> fontcache;
 
 	global_data();
 	~global_data();
@@ -90,6 +91,7 @@ inline objcachet<class model>& modelcache() { return global_data::instance().mod
 inline objcachet<class image>& imagecache() { return global_data::instance().imagecache; }
 inline objcachet<class texture>& texturecache() { return global_data::instance().texturecache; }
 inline objcachet<class sound>& soundcache() { return global_data::instance().soundcache; }
+inline objcachet<class font>& fontcache() { return global_data::instance().fontcache; }
 
 
 
@@ -101,7 +103,7 @@ extern class texture *addleadangle, *metalbackgr,
 	*terraintex, *atlanticmap, *panelbackground, *metalbackground;
 
 // fixme: store fonts in global_data class
-extern class font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn, *font_damagedtypewriter, *font_king;
+extern class font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn, *font_damagedtypewriter, *font_king, *font_typenr, *font_jphsl, *font_janeaust, *font_vtportable;
 
 void init_global_data();
 void deinit_global_data();
