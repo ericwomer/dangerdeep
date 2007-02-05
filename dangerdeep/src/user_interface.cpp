@@ -111,7 +111,7 @@ user_interface::user_interface(game& gm) :
 	for (int i = 0; i < 6; ++i) {
 		int off = 8 + i*(1024-2*8)/6;
 		string tx = texts::get(paneltextnrs[i]);
-		vector2i sz = font_arial->get_size(tx);
+		vector2i sz = widget::get_theme()->myfont->get_size(tx);
 		panel->add_child(new widget_text(off, 4, 0, 0, tx));
 		panel_valuetexts[i] = new widget_text(off + 8 + sz.x, 4, 0, 0, paneltexts[i]);
 		panel->add_child(panel_valuetexts[i]);
