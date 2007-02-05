@@ -204,7 +204,8 @@ void font::print_c(int x, int y, const string& text, color col, bool with_shadow
 	print(x-wh.x/2, y-wh.y/2, text, col, with_shadow);
 }
 
-void font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, const string& text, color col, bool with_shadow) const
+unsigned font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, const string& text,
+			     color col, bool with_shadow, unsigned maxheight) const
 {
 	// loop over spaces
 	unsigned currwidth = 0;
@@ -247,11 +248,15 @@ void font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, const st
 		if (breaktext) {
 			print(x, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
 			y += (lineheight == 0) ? get_height() : lineheight;
+			if (maxheight && y >= maxheight)
+				return textptr;
 		} else {
 			unsigned tw = get_size(text.substr(oldtextptr, textptr - oldtextptr)).x;
 			if (currwidth + tw >= w) {
 				y += (lineheight == 0) ? get_height() : lineheight;
 				currwidth = 0;
+				if (maxheight && y >= maxheight)
+					return oldtextptr;
 			}
 			print(x+currwidth, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
 			currwidth += tw + blank_width;
@@ -259,6 +264,7 @@ void font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, const st
 		if (textptr == textlen)
 			break;
 	}
+	return textlen;
 }
 
 vector2i font::get_size(const string& text) const

@@ -64,7 +64,12 @@ public:
 	void print_vc(int x, int y, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
 	void print_c(int x, int y, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
 	// print text with wrap around, use lineheight 0 for automatic line height
-	void print_wrapped(int x, int y, unsigned w, unsigned lineheight, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
+	// maxheight=0 disables height limit.
+	// returns pointer where text processing stopped, when max. height reached
+	unsigned print_wrapped(int x, int y, unsigned w, unsigned lineheight,
+			       const std::string& text, color col = color(255,255,255),
+			       bool with_shadow = false,
+			       unsigned maxheight = 0 /* 0 means no limit */) const;
 	vector2i get_size(const std::string& text) const;
 	unsigned get_char_width(unsigned c) const;
 	unsigned get_height() const { return height; };
