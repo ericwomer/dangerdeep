@@ -29,355 +29,442 @@
 		<a href="http://jigsaw.w3.org/css-validator/check/referer"><img class="std" src="images/w3c-valid-css.png" alt="Valid CSS!" /></a>
 	</div>
 	<div class="contents">
-   <h2 class="likechapterHead"><a 
- id="x1-1000"></a>Contents</h2> <div class="tableofcontents">
-   <span class="chapterToc">1 <a 
-href="#x1-20001" id="QQ2-1-2">A guide to the sourcecode of Danger from the Deep</a></span>
-<br />   &#x00A0;<span class="sectionToc">1.1 <a 
-href="#x1-30001.1" id="QQ2-1-3">General idea</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc">1.1.1 <a 
-href="#x1-40001.1.1" id="QQ2-1-4">Used libraries</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc">1.1.2 <a 
-href="#x1-50001.1.2" id="QQ2-1-5">Language: C++</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc">1.1.3 <a 
-href="#x1-60001.1.3" id="QQ2-1-6">Error handling</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc">1.1.4 <a 
-href="#x1-70001.1.4" id="QQ2-1-7">Basic classes and types</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc">1.1.5 <a 
-href="#x1-160001.1.5" id="QQ2-1-16">The game: state and display, the classes <span 
-class="cmtt-10">game </span>and <span 
-class="cmtt-10">user</span><span 
-class="cmtt-10">_interface</span></a></span>
-<br />   &#x00A0;<span class="sectionToc">1.2 <a 
-href="#x1-170001.2" id="QQ2-1-17">Coding style</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc">1.2.1 <a 
-href="#x1-180001.2.1" id="QQ2-1-18">Introduction</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc">1.2.2 <a 
-href="#x1-190001.2.2" id="QQ2-1-19">Indentation</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc">1.2.3 <a 
-href="#x1-200001.2.3" id="QQ2-1-20">Placing (curly) braces</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc">1.2.4 <a 
-href="#x1-210001.2.4" id="QQ2-1-21">Naming</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc">1.2.5 <a 
-href="#x1-220001.2.5" id="QQ2-1-22">Closing words</a></span>
-<br />   &#x00A0;<span class="sectionToc">1.3 <a 
-href="#x1-230001.3" id="QQ2-1-23">What needs to be done</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc">1.3.1 <a 
-href="#x1-240001.3.1" id="QQ2-1-24">Janitors wanted</a></span>
-   </div>
+  <h2><a name="SECTION00100000000000000000" id="SECTION00100000000000000000">Contents</a></h2><!--Table of Contents-->
 
-   <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;1</span><br /><a 
- id="x1-20001"></a>A guide to the sourcecode of Danger from the Deep</h2>
-<!--l. 8--><p class="noindent">A short overview about the topics: </p>
-     <ul class="itemize1">
-     <li class="itemize">General idea
-     </li>
-     <li class="itemize">Coding style
-     </li>
-     <li class="itemize">What needs to be done</li></ul>
-   <h3 class="sectionHead"><span class="titlemark">1.1   </span> <a 
- id="x1-30001.1"></a>General idea</h3>
-<!--l. 18--><p class="noindent">The game arised from a graphic test for OpenGL under Linux. I wanted to try
-out OpenGL graphics under Linux and &#xFB01;nally wrote some tile based water
-rendering code. Later i added a simple model loader and had the very basics
-of a submarine simulation. As i am a great fan of Silent Service and Aces
-of the Deep (guess where the name comes from) and considered the fact
-that there is or was no submarine simulation for Linux, i began to create
-one.
-</p><!--l. 27--><p class="indent">   The project started in January 2003 and the code evolved since that time. I
-improved my knowledge about C++, OpenGL and about software development
-in general. Other developers joined the project and added more ideas and
-development ideas and styles. Often things were just tried out and thrown away
-later. This all lead to code that seems a bit chaotic, more like evolution and
-less planned. There are many places where this can be seen. Interfaces that
-are not fully implemented, or various ways doing similar things around the
-code.
-</p><!--l. 39--><p class="noindent">
-</p>
-   <h4 class="subsectionHead"><span class="titlemark">1.1.1   </span> <a 
- id="x1-40001.1.1"></a>Used libraries</h4>
-<!--l. 41--><p class="noindent">
-</p>
-   <h4 class="subsectionHead"><span class="titlemark">1.1.2   </span> <a 
- id="x1-50001.1.2"></a>Language: C++</h4>
-<!--l. 43--><p class="noindent">
-</p>
-   <h4 class="subsectionHead"><span class="titlemark">1.1.3   </span> <a 
- id="x1-60001.1.3"></a>Error handling</h4>
-<!--l. 45--><p class="noindent">Currently the code treats errors as fatal events, reports it via message to command
-line and quits the game. Checks are done using the <span 
-class="cmbx-10">system::myassert()</span>
+  <ul class="TofC">
+    <li><a name="tex2html36" href="codeguide.html#SECTION00100000000000000000" id="tex2html36">A guide to the source-code of Danger from the Deep</a></li>
 
-function, but this is embarassing and ugly. This mixes code test related
-assertions with error checks. C++ exceptions are the de&#xFB01;nite thing to use
-here, but are used very rarely yet. I discovered only recently how useful they
-are.
-</p><!--l. 54--><p class="indent">   The whole code (that means each place with a <span 
-class="cmbx-10">system::myassert() call </span>has to
-be checked wether it is an error check (in that case replaced by an descriptive
-exception) or a development check (in that case a normal <span 
-class="cmbx-10">assert() </span>could be used).
-For exceptions one should de&#xFB01;ne classes that heir from <span 
-class="cmbx-10">std::exception </span>and
-contain an error string. A hierarchy of exceptions could be created for a &#xFB01;ner
-grained error handling and control. Look at &#xFB01;le <span 
-class="cmbx-10">error.h </span>for an example
-de&#xFB01;nition.
-</p><!--l. 64--><p class="noindent">
-</p>
-   <h4 class="subsectionHead"><span class="titlemark">1.1.4   </span> <a 
- id="x1-70001.1.4"></a>Basic classes and types</h4>
-<!--l. 66--><p class="noindent">
-</p>
-   <h5 class="subsubsectionHead"><a 
- id="x1-80001.1.4"></a>Mathematical helper classes</h5>
-<!--l. 68--><p class="noindent">There are some basic classes that implement various mathematical constructs as
-template classes, so one can instantiate them for any needed data type.
-Prede&#xFB01;ned names for <span 
-class="cmtt-10">int</span>, <span 
-class="cmtt-10">float </span>and <span 
-class="cmtt-10">double </span>exist. These base classes are for
-vectors (<span 
-class="cmtt-10">vector2</span>, <span 
-class="cmtt-10">vector3 </span>and <span 
-class="cmtt-10">vector4</span>), matrices (<span 
-class="cmtt-10">matrix4</span>) and quaternions
-(<span 
-class="cmtt-10">quaternion</span>). Operator overloading is used so that one can write equations and
-formulas in a common style. The code is rather self explanatory, so have a
-look.
-</p><!--l. 78--><p class="indent">   There is also a helper class for (nautical) angles: <span 
-class="cmtt-10">angle</span>, that implements
-wrapping of values at 360 degrees and some other useful things.
-</p><!--l. 82--><p class="indent">   And &#xFB01;nally a helper class for &#xFB01;xed point arithmetic data types: <span 
-class="cmtt-10">fixed</span>. Fixed
-point arithmetic is still faster for some cases and the precision is still high enough for
-some tasks related to 3D rendering (do not use them for physics though, nor <span 
-class="cmtt-10">float</span>,
-but <span 
-class="cmtt-10">double </span>for physics).
-</p><!--l. 88--><p class="noindent">
-</p>
-   <h5 class="subsubsectionHead"><a 
- id="x1-90001.1.4"></a>Other helper classes</h5>
-<!--l. 90--><p class="noindent">bspline color data error &#xFB01;lehelper &#xFB01;xed objcache ptrset
-</p><!--l. 92--><p class="noindent">
-</p>
-   <h5 class="subsubsectionHead"><a 
- id="x1-100001.1.4"></a>Rendering and system related related classes</h5>
+    <li>
+      <a name="tex2html37" href="codeguide.html#SECTION00200000000000000000" id="tex2html37">A guide to the source code of Danger from the Deep</a>
 
-<!--l. 94--><p class="noindent">model.h sound.h texture.h font.h network.h color.h image.h system.h
-</p><!--l. 103--><p class="noindent">
-</p>
-   <h5 class="subsubsectionHead"><a 
- id="x1-110001.1.4"></a>Components of the game state and simulation</h5>
-<!--l. 105--><p class="noindent">ai.h airplane.h game.h torpedo.h submarine.h gun&#x02D9;shell.h convoy.h sea&#x02D9;object.h
-sensors.h ship.h depth&#x02D9;charge.h
-</p><!--l. 117--><p class="noindent">
-</p>
-   <h5 class="subsubsectionHead"><a 
- id="x1-120001.1.4"></a>Components of the graphical user interface</h5>
-<!--l. 119--><p class="noindent">sub&#x02D9;bridge&#x02D9;display.h airplane&#x02D9;interface.h freeview&#x02D9;display.h sub&#x02D9;control&#x02D9;popup.h
-sub&#x02D9;damage&#x02D9;display.h sub&#x02D9;gauges&#x02D9;display.h submarine&#x02D9;interface.h user&#x02D9;display.h
-sub&#x02D9;periscope&#x02D9;display.h user&#x02D9;interface.h sub&#x02D9;tdc&#x02D9;display.h user&#x02D9;popup.h sub&#x02D9;tdc&#x02D9;popup.h
-logbook&#x02D9;display.h sub&#x02D9;torpedo&#x02D9;display.h logbook.h sub&#x02D9;torpsetup&#x02D9;display.h
-ship&#x02D9;interface.h sub&#x02D9;uzo&#x02D9;display.h map&#x02D9;display.h ships&#x02D9;sunk&#x02D9;display.h
-</p><!--l. 141--><p class="noindent">
-</p>
-   <h5 class="subsubsectionHead"><a 
- id="x1-130001.1.4"></a>Special 3D rendering related classes</h5>
-<!--l. 143--><p class="noindent">ocean&#x02D9;wave&#x02D9;generator.h particle.h triangulate.h perlinnoise.h coastmap.h sky.h
-water.h water&#x02D9;sse.h make&#x02D9;mesh.h
-</p><!--l. 153--><p class="noindent">
-</p>
-   <h5 class="subsubsectionHead"><a 
- id="x1-140001.1.4"></a>OpenGL GUI classes</h5>
-<!--l. 155--><p class="noindent">widget.h
-</p><!--l. 157--><p class="noindent">
-</p>
-   <h5 class="subsubsectionHead"><a 
- id="x1-150001.1.4"></a>Miscellaneous classes</h5>
-<!--l. 159--><p class="noindent">tokencodes.h token.h tokenizer.h binstream.h gldebug.h parser.h global&#x02D9;data.h cfg.h
-highscorelist.h keys.h texts.h credits.h
-</p><!--l. 176--><p class="noindent">
-</p>
-   <h4 class="subsectionHead"><span class="titlemark">1.1.5   </span> <a 
- id="x1-160001.1.5"></a>The game: state and display, the classes <span 
-class="cmtt-10">game </span>and <span 
-class="cmtt-10">user</span><span 
-class="cmtt-10">_interface</span></h4>
+      <ul>
+        <li><a name="tex2html38" href="codeguide.html#SECTION00210000000000000000" id="tex2html38">About this document</a></li>
 
-<!--l. 179--><p class="noindent">
-</p>
-   <h3 class="sectionHead"><span class="titlemark">1.2   </span> <a 
- id="x1-170001.2"></a>Coding style</h3>
-<!--l. 181--><p class="noindent">
-</p>
-   <h4 class="subsectionHead"><span class="titlemark">1.2.1   </span> <a 
- id="x1-180001.2.1"></a>Introduction</h4>
-<!--l. 183--><p class="noindent">Well, this topic can cause much discussion and problems. Using only one style
-throughout the whole code will enhance readability, but creating working code is
-much more important than keeping style consistent at any cost. If you create new
-code and have the choice, you should at least consider using the game&#8217;s style to
-enhance readability. I won&#8217;t force you to this style, and many people (including
-myself) are very sensitive to the topic of coding style (and maybe believe their
-view is the right one), so this topic can lead to unproductive &#xFB02;ame wars. Be
-warned.
-</p><!--l. 194--><p class="indent">   Anyway, here i describe the style I use for the code of Danger from the Deep.
-Code that was contributed by other people may have a different style, this is
-already the case in current code. Most of my preferred style is the same
-as described in the Linux Kernel CodingStyle (originally written by Linus
-Torvalds).
-</p><!--l. 201--><p class="noindent">
-</p>
-   <h4 class="subsectionHead"><span class="titlemark">1.2.2   </span> <a 
- id="x1-190001.2.2"></a>Indentation</h4>
-<!--l. 203--><p class="noindent">People differ on how many spaces to indent. In my opinion everything less than four
-is a pain. I use eight, because this will really help one to see <span 
-class="cmbx-10">how </span>indentation works
-(and even after sitting many hours in front of the monitor). The simple solution to
-this problem is: use <span 
-class="cmbx-10">TABs </span>for indentation. Everyone can set his favorite tab width in
-his editor then. This style rule is the most important. It is easy to ful&#xFB01;ll
-though.
-</p><!--l. 212--><p class="noindent">
-</p>
-   <h4 class="subsectionHead"><span class="titlemark">1.2.3   </span> <a 
- id="x1-200001.2.3"></a>Placing (curly) braces</h4>
-<!--l. 214--><p class="noindent">Yes, the old C discussion. I place braces at the end of the line of the command. Want
-an example? here it comes:
-</p><!--l. 218--><p class="indent">   Conditional commands:
+        <li>
+          <a name="tex2html39" href="codeguide.html#SECTION00220000000000000000" id="tex2html39">General idea</a>
 
-</p>
-   <table width="100%" 
-class="verbatim"><tr class="verbatim"><td 
-class="verbatim"><div class="verbatim">
-if&#x00A0;(x&#x00A0;==&#x00A0;3)&#x00A0;{
-&#x00A0;<br />&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;do_something();
-&#x00A0;<br />}&#x00A0;else&#x00A0;if&#x00A0;(y&#x00A0;==&#x00A0;4)&#x00A0;{
-&#x00A0;<br />&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;do_other();
-&#x00A0;<br />}&#x00A0;else&#x00A0;{
-&#x00A0;<br />&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;do_another();
-&#x00A0;<br />}
-&#x00A0;<br />
-&#x00A0;<br />switch&#x00A0;(a)&#x00A0;{
-&#x00A0;<br />case&#x00A0;3:
-&#x00A0;<br />&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;do_abc();
-&#x00A0;<br />&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;break;
-&#x00A0;<br />case&#x00A0;4:
-&#x00A0;<br />&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;do_efg();
-&#x00A0;<br />}
+          <ul>
+            <li><a name="tex2html40" href="codeguide.html#SECTION00221000000000000000" id="tex2html40">Joining</a></li>
+
+            <li><a name="tex2html41" href="codeguide.html#SECTION00222000000000000000" id="tex2html41">History</a></li>
+
+            <li><a name="tex2html42" href="codeguide.html#SECTION00223000000000000000" id="tex2html42">Used libraries</a></li>
+
+            <li><a name="tex2html43" href="codeguide.html#SECTION00224000000000000000" id="tex2html43">Language: C++</a></li>
+
+            <li><a name="tex2html44" href="codeguide.html#SECTION00225000000000000000" id="tex2html44">Error handling</a></li>
+          </ul>
+        </li>
+
+        <li>
+          <a name="tex2html45" href="codeguide.html#SECTION00230000000000000000" id="tex2html45">Structure of the project</a>
+
+          <ul>
+            <li><a name="tex2html46" href="codeguide.html#SECTION00231000000000000000" id="tex2html46">Main files and interfaces</a></li>
+
+            <li><a name="tex2html47" href="codeguide.html#SECTION00232000000000000000" id="tex2html47">Basic classes and types</a></li>
+
+            <li><a name="tex2html48" href="codeguide.html#SECTION00233000000000000000" id="tex2html48">The game: state and display, the classes game and user_interface</a></li>
+          </ul>
+        </li>
+
+        <li>
+          <a name="tex2html49" href="codeguide.html#SECTION00240000000000000000" id="tex2html49">Coding style</a>
+
+          <ul>
+            <li><a name="tex2html50" href="codeguide.html#SECTION00241000000000000000" id="tex2html50">Introduction</a></li>
+
+            <li><a name="tex2html51" href="codeguide.html#SECTION00242000000000000000" id="tex2html51">Indentation</a></li>
+
+            <li><a name="tex2html52" href="codeguide.html#SECTION00243000000000000000" id="tex2html52">Placing (curly) braces</a></li>
+
+            <li><a name="tex2html53" href="codeguide.html#SECTION00244000000000000000" id="tex2html53">Naming</a></li>
+
+            <li><a name="tex2html54" href="codeguide.html#SECTION00245000000000000000" id="tex2html54">Closing words</a></li>
+          </ul>
+        </li>
+
+        <li>
+          <a name="tex2html55" href="codeguide.html#SECTION00250000000000000000" id="tex2html55">What needs to be done</a>
+
+          <ul>
+            <li><a name="tex2html56" href="codeguide.html#SECTION00251000000000000000" id="tex2html56">Janitors wanted</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul><!--End of Table of Contents-->
+
+  <h1><a name="SECTION00200000000000000000" id="SECTION00200000000000000000">A guide to the source code of <span class="textsf">Danger from the Deep</span></a></h1>
+
+  <h1><a name="SECTION00210000000000000000" id="SECTION00210000000000000000">About this document</a></h1>
+
+  <p>What is this document about? It should give you a general overview of the source code of <span class="textsf">Danger from the Deep</span> , the general concepts and ideas. Most projects of today
+  come with a code-related documentation (like Doxygen). This is generally a handy thing, when developing or extending code - <span class="textsf">Danger from the Deep</span> has it too (many things
+  are still missing). But it helps you only when you know where to look and <span class="textit">how</span> to extend the code. Even if the code would have a documentation for <span class=
+  "textit">every</span> function, you would not know where to start. Code-based documentation can be the final step to make project documentation complete, but it is not useful as first step into the
+  project. It is often misused as excuse to not creating a more general documentation.</p>
+
+  <p>Many open source projects out there have a more or less well managed Doxygen-like code documentation. But what is it good for? It is of use only for those that already know how to use the
+  project - as reference. But where to start if you are new to the project? You are lost. At that point example code may help or researching for information on the Internet. Or to consult a more
+  general documentation, if available.</p>
+
+  <p>For this project, only the latter option is possible (or you enter IRC/forum and ask us directly, what you should do anyway if you want to join). This document tries to solve the problem
+  described above and tries to give interested people an overview of the project.</p>
+
+  <p>Of course one could enhance the Doxygen-based documentation while learning more about the project. Such a person would be very welcome.</p>
+
+  <h1><a name="SECTION00220000000000000000" id="SECTION00220000000000000000">General idea</a></h1>
+
+  <p>This is a hobby project. All developers do the work in their spare time, no one is paid for it. The code has grown for years (since around January 2003) and many people contributed to it. While
+  we worked on the project, we changed many things: interfaces, implementations and algorithms. We tried many things. While developing the code, our knowledge developed as well. Thus, the style of
+  writing code and using C++ changed as well. As a result of all these facts, you will find out that the code is not as uniform as code could be.</p>
+
+  <p>However, i can tell you from real life experience (working as software engineer), that this is true for the most code on this planet. Considered that fact, the source code of <span class=
+  "textsf">Danger from the Deep</span> could be much worse. The code is made after the object oriented paradigm about software construction. Its extensible, mostly readable and understandable. Beside
+  aiming for functionality we aim for speed too, as we are working on a game with real time effects. For that reason we use <span class="textit">C++</span>, as it features object orientation, high
+  execution speed and flexibility as well.</p>
+
+  <p>The game is written in portable code and can be compiled for many platforms (up to six working at end of 2006). The text resources inside are not hard coded, so the game supports multiple
+  languages (currently seven are implemented at end of 2006). Now consider that we are working on a real time 3d game with many great visual effects, multi platform, multi language and many more
+  features.</p>
+
+  <h2><a name="SECTION00221000000000000000" id="SECTION00221000000000000000">Joining</a></h2>
+
+  <p>If <span class="textit">you</span> want to join the team, then you are welcome. We need more developers. But let me tell you one warning word first. This is not meant to offend you, but to make
+  you think. Please read on.</p>
+
+  <p>People tend to transfer their view of coding to new projects, trying to adapt the project to their style. You may be a smart and brilliant coder, you may believe that your way of doing things is
+  the best, no matter what way the project has chosen before you joined. We don't want to hinder you to start hacking on the code, extending it with more features or fixing bugs et cetera. Any help
+  or contribution is appreciated. But...there comes the warning.</p>
+
+  <p>But...the point is, if you do so, check carefully what you do and how you do it. The feature you want do implement may have been already implemented, somewhere more or less hidden in the code.
+  The aspect you want to add may collide with some other parts of the code. The functions you add may conflict with existing interfaces. The way you want to implement a feature, may be only one
+  alternative of many, and possible not the ideal one, and so on.</p>
+
+  <p>This is not meant to offend you, the contributor of new code. I write this to avoid double work. To avoid wasting your time with writing code that already exists or wasting time of others by
+  breaking existing code. If you want to contribute, I strongly recommend to get a copy of the code and try to understand what is going on inside it first. One step of that process is to read this
+  document so you are on the right path.</p>
+
+  <h2><a name="SECTION00222000000000000000" id="SECTION00222000000000000000">History</a></h2>
+
+  <p>The game arised from a graphic test for OpenGL under Linux. I wanted to try out OpenGL graphics under Linux and finally wrote some tile based water rendering code. Later i added a simple model
+  loader and had the very basics of a submarine simulation. As i am a great fan of Silent Service and Aces of the Deep (guess where the name comes from) and considered the fact that there is or was
+  no submarine simulation for Linux, i began to create one.</p>
+
+  <p>The project started in January 2003 and the code evolved since that time. I improved my knowledge about C++, OpenGL and about software development in general. Other developers joined the project
+  and added more ideas and development ideas and styles. Often things were just tried out and thrown away later. This all lead to code that seems a bit chaotic, more like evolution and less planned.
+  There are many places where this can be seen. Interfaces that are not fully implemented, or various ways doing similar things around the code.</p>
+
+  <h2><a name="SECTION00223000000000000000" id="SECTION00223000000000000000">Used libraries</a></h2>
+
+  <p>SDL, SDL_image, fftw, SDL_mixer, SDL_net</p>
+
+  <h2><a name="SECTION00224000000000000000" id="SECTION00224000000000000000">Language: C++</a></h2>
+
+  <p>speed, object orientation, platform independence, OpenGL, flexibility (multiple inheritance)</p>
+
+  <h3><a name="SECTION00224100000000000000" id="SECTION00224100000000000000">About resource and memory management</a></h3>
+
+  <p>I bet you have been told that there are two models of handling resources like files, memory and more: the <span class="textit">C</span>-like way, where you have to do everything on your own and
+  the <span class="textit">Java</span>-like way, where some entity called ``garbage collector'' cleans up unused memory for you. The same is true for other resources, except that even such an
+  collector could not know when to close files and you have to close them at the right time like with <span class="textit">C</span>.</p>
+
+  <p>The <span class="textit">C</span>-way is problematic, because you have to do every tiny bit of work for yourself and you have to do it over and over again, which is highly error prone.</p>
+
+  <p>On the other hand there is the clean OOP-way (object oriented programming), where memory doesn't need to be freed by the the developer, but the run time environment does it for you. Of course
+  that environment can't know when to close files, so you have to do this still on your own. When code can throw exceptions, you have to encapsulate file handling and close them in special code
+  blocks (the <span class="textit">final</span> keyword in <span class="textit">Java</span>) or similar things.</p>
+
+  <p>In fact, there is a third way. The only language i know that offers this way is <span class="textit">C++</span>. You can do it the hard way like <span class="textit">C</span> but you should not.
+  <span class="textit">C++</span> is not <span class="textit">C</span>. The language follows a very different paradigm. And <span class="textit">C++</span> is not like <span class=
+  "textit">Java</span>. There are critical differences. Do the things in <span class="textit">C++</span> like they should be done in this language, and not like <span class="textit">C</span> and not
+  like <span class="textit">Java</span>. The <span class="textit">C++</span> paradigm is not that hard to learn and brings you some surprising advantages.</p>
+
+  <p>The key mechanism is that local variables can be objects. Local variables are local to the block they are defined in (from opening curly brace to closing curly brace). If the variable is an
+  object of some class, the constructor of that class is called on defining the variable, and the destructor is called automatically when leaving the block. Constructors and destructors are more or
+  less normal functions, so you can put any code in them. The object you declare does not even have to have attributes with it, its constructor and destructor is called anyway.</p>
+
+  <p>I hope you already see what enormous chances this offers. Automatic call of a function when leaving a block? No matter how the block is left - by either normal code execution or break or return
+  or exception? This fits perfectly to closing a file or freeing memory.</p>
+
+  <p>By letting <span class="textit">C++</span> handle the local variables automatically and by attaching resources to such local variables you can make nearly <span class="textit">every</span>
+  resource management automatic! Never ever again you lose some memory or forget to close files. Resources are automatically freed when an error occurs and the code is stopped by an exception.
+  Stable, reliable design without extra work by the developer - doesn't that sound great?</p>
+
+  <p>It <span class="textit">is</span> great, but the price is language complexity and some extra work on declaring such helper classes. But the first problem vanishs once you are used to the
+  language, and the second problem is tiny compared to the advantages you can enjoy with the method.</p>
+
+  <p>The <span class="textit">C++</span> standard library (STL) already makes use of such techniques and has fully automatic memory management. Full speed of <span class="textit">C</span> with the
+  easy coding like <span class="textit">Java</span> (sometimes even easier). That is one of the reasons why we have chosen to use <span class="textit">C++</span> for the project.</p>
+
+  <p>The automatism's can be seen in the standard classes like <tt>std::vector</tt> or <tt>std::auto_ptr</tt>, and are also used by some <span class="textsf">Danger from the Deep</span> classes like
+  the <tt>ptrset</tt> or the <tt>ptrvector</tt>. The concept is used for files too, realized as ``streams'' in <span class="textit">C++</span>. It can be extended very well to multi-threaded
+  programming as well, like writing a class that locks a mutex in constructor and unlocks it in its destructor. That way mutex locking can be done automatically by declaring such a locker object
+  inside a code block. Upon leaving the block, the mutex is automatically unlocked, removing a very nasty and common source of error with multi-threaded programming. Many more applications are
+  possible.</p>
+
+  <p>In short one can say: if you use <tt>new</tt> and <tt>delete</tt> to allocate memory blocks, you do something wrong. Use vectors instead. You should only create single objects with new and
+  should attach them directly to an object that can manage the memory automatically, so the object can not get lost, whatever happens (exceptions can break normal code flow, be careful!). Thus, you
+  should not be forced to use <tt>delete</tt> too often. If you even would use <tt>malloc</tt> or <tt>free</tt> anywhere, you are very wrong and should expect harsh comments by the developers. These
+  functions are exclusively <span class="textit">C</span> and do not mix with the <span class="textit">C++</span> ones. As the <span class="textit">C++</span>-FAQ ``lite'' by Marshall Cline
+  abbreviates it: arrays are <span class="textit">evil</span>, unmanaged pointers are <span class="textit">evil</span> - in general. Check if you could use a <span class="textit">reference</span>
+  instead of a pointer, wherever you would like to use pointers.</p>
+
+  <p>I suggest reading the mentioned FAQ at http://www.parashift.com/c++-faq-lite/</p>
+
+  <h2><a name="SECTION00225000000000000000" id="SECTION00225000000000000000">Error handling</a></h2>
+
+  <p>Currently the code treats errors as fatal events, reports it via message to command line and quits the game. Checks are done using the <span class="textbf">system::myassert()</span> function,
+  but this is embarrassing and ugly. This mixes code test related assertions with error checks. C++ exceptions are the definite thing to use here, but are used very rarely yet. I discovered only
+  recently how useful they are.</p>
+
+  <p>The whole code (that means each place with a <span class="textbf">system::myassert() call</span> has to be checked weather it is an error check (in that case replaced by an descriptive exception)
+  or a development check (in that case a normal <span class="textbf">assert()</span> could be used). For exceptions one should define classes that heir from <span class="textbf">std::exception</span>
+  and contain an error string. A hierarchy of exceptions could be created for a finer grained error handling and control. Look at file <span class="textbf">error.h</span> for an example
+  definition.</p>
+
+  <p>The general idea about exceptions is to report <span class="textit">what</span> went wrong, not where. Exceptions are made to handle errors at run time. If you want to know where the error was
+  raised to ease development, add a descriptive text to the exception or print it in the log. Each exception can be given a report text that is for the user or developer. With some tricky macros you
+  can append the line and source file name to the text as well (see file <tt>error.h</tt>). The set of exceptions brought by the C++ standard library is a good starting point and these exceptions
+  already cover many possible errors, like <tt>invalid_argument</tt>, <tt>runtime_error</tt> and so on. The constructor of an exceptions gets an user defined string, where a developer can state the
+  nature of the error.</p>
+
+  <p>For example you could check in some function, if a given pointer is non-zero:</p>
+  <div class="code">
+if (!myptr)
+        throw std::invalid_argument("myfunction: Null-pointer given");
+</div>(Of course if you expect some pointer to have a valid value, you maybe could use a reference instead).
+
+  <p>All exceptions form an inheritance tree, a hierarchy. Because of that one can categorize errors and handle them regarding to category. This allows a very flexible error management. I suggest you
+  to learn something more about C++ exceptions if you are new to the language. The C-style of error reporting via return values is <span class="textit">not</span> the way to do it. But do not confuse
+  error handling by value reporting. If a function should do a simple thing that can fail, it would be OK to return a bool for that function and not throw an exception in case of error. It depends on
+  the severity and if the caller can handle that malfunction directly.</p>
+
+  <p>Good examples where to use exceptions are situations where errors are not expected, where normal code execution is assumed. As their name already tells, exceptions are designed to handle
+  exceptional situations. You want to load an image and can't read the file? Then throw an exception. The exception will be e.g. passed upwards to the mission loader, which can react on it. For
+  example it could present an error message to the user: ``couldn't load mission, because of ...'' or similar things.</p>
+
+  <p>Final note: because exceptions break normal control flow of programs, you have to write your code in a way that no memory is lost or resource is kept. If you do a thing that needs to be cleaned
+  up when leaving the current block of code, you need to embrace the code with a try/catch clause and clean up in the catch-path. You can make your life much easier, if you use built-in types that do
+  this automatically. For example use auto-pointers (<tt>std::auto_ptr</tt>) instead of plain C-pointers or streams (<tt>std::ifstream</tt>) instead of file-pointers. A very handy thing is to add a
+  class that does the cleanup in its destructor (and the initialization in the constructor) and to instantiate an object of that class as local variable. The compiler then will automagically do all
+  the clean-up work for you.</p>
+
+  <h1><a name="SECTION00230000000000000000" id="SECTION00230000000000000000">Structure of the project</a></h1>
+
+  <h2><a name="SECTION00231000000000000000" id="SECTION00231000000000000000">Main files and interfaces</a></h2>
+
+  <p>At the writing of this document the games has several dozen header and source files (classes). It takes some work to learn which file does what and how. As a short guide I explain the main files
+  and interfaces here.</p>
+
+  <h3><a name="SECTION00231100000000000000" id="SECTION00231100000000000000">Where it all starts</a></h3>
+
+  <p>Check the file <tt>subsim.cpp</tt>. This file contains the <tt>main</tt> function of the game. There game objects are created, user interfaces are initialized and so on. You need to learn about
+  the other interfaces first to understand that file.</p>
+
+  <h3><a name="SECTION00231200000000000000" id="SECTION00231200000000000000">State and display</a></h3>
+
+  <p>The central aspect is playing a game. The code is divided in two categories. One for handling the state of the game, that is storing all objects, their data, simulating physics, environment and
+  so on. The other part is the presentation of that data: visualization, sound processing, user input.</p>
+
+  <h3><a name="SECTION00231300000000000000" id="SECTION00231300000000000000">Hierarchy of state classes</a></h3>
+
+  <p>The central class for a game instance is the class <tt>game</tt>. That class describes an instance of a game at any time and holds all other objects needed to represent a game's state. The class
+  <tt>game</tt> holds all objects of the game's world like airplanes, ships, submarines, grenades, torpedoes and so on. Every object in the game that is a physical entity is of class
+  <tt>sea_object</tt> or one of its heirs.</p>
+
+  <p>Heirs of <tt>sea_object</tt> are e.g. <tt>ship</tt>, <tt>airplane</tt>, <tt>gun_shell</tt> and so on. Heirs of <tt>ship</tt> are e.g. <tt>submarine</tt> and <tt>torpedo</tt>. Now you see what we
+  need multiple inheritance for.</p>
+
+  <p>The game object and all incorporated objects are the data representation of the simulated word. Their contents are stored in save games. If you do something about simulating the world or its
+  content, you modify any object attached to the game object.</p>
+
+  <h3><a name="SECTION00231400000000000000" id="SECTION00231400000000000000">Hierarchy of presentation classes</a></h3>
+
+  <p>On the other side, there are the classes used for user input and graphical output (well, sound and music as well). I describe the user interface here, that is merely the graphical interface.</p>
+
+  <p>The central class of the user interface is called so: <tt>user_interface</tt>. Everything needed to render the game or environment is attached to it. There are implementations depending on the
+  type of object that the player controls: <tt>airplane_interface</tt>, <tt>ship_interface</tt> and <tt>submarine_interface</tt>, where at the moment only the latter is functional. The interface
+  object also holds classes for displaying the sky, sun, moon, the ocean environment and the environment of the player controlled vessel.</p>
+
+  <p>The in-game user interface is partitioned in multiple screens or displays, also known as stations. For example the various compartments of a ship or submarine: the bridge, the engine room, the
+  map chart et cetera. The base class for such a screen is <tt>user_display</tt>. Every display heirs from it, and there are many.</p>
+
+  <h2><a name="SECTION00232000000000000000" id="SECTION00232000000000000000">Basic classes and types</a></h2>
+
+  <h3><a name="SECTION00232100000000000000" id="SECTION00232100000000000000">Mathematical helper classes</a></h3>
+
+  <p>There are some basic classes that implement various mathematical constructs as template classes, so one can instantiate them for any needed data type. Predefined names for <tt>int</tt>,
+  <tt>float</tt> and <tt>double</tt> exist. These base classes are for vectors (<tt>vector2</tt>, <tt>vector3</tt> and <tt>vector4</tt>), matrices (<tt>matrix4</tt>) and quaternions
+  (<tt>quaternion</tt>). Operator overloading is used so that one can write equations and formulas in a common style. The code is rather self explanatory, so have a look.</p>
+
+  <p>There is also a helper class for (nautical) angles: <tt>angle</tt>, that implements wrapping of values at 360 degrees and some other useful things.</p>
+
+  <p>And finally a helper class for fixed point arithmetic data types: <tt>fixed</tt>. Fixed point arithmetic is still faster for some cases and the precision is still high enough for some tasks
+  related to 3D rendering (do not use them for physics though, nor <tt>float</tt>, but <tt>double</tt> for physics).</p>
+
+  <h3><a name="SECTION00232200000000000000" id="SECTION00232200000000000000">Other helper classes</a></h3>
+
+  <p>bspline color data error filehelper fixed objcache ptrset</p>
+
+  <h3><a name="SECTION00232300000000000000" id="SECTION00232300000000000000">Rendering and system related related classes</a></h3>
+
+  <p>model.h sound.h texture.h font.h network.h color.h image.h system.h</p>
+
+  <h3><a name="SECTION00232400000000000000" id="SECTION00232400000000000000">Components of the game state and simulation</a></h3>
+
+  <p>ai.h airplane.h game.h torpedo.h submarine.h gun_shell.h convoy.h sea_object.h sensors.h ship.h depth_charge.h</p>
+
+  <h3><a name="SECTION00232500000000000000" id="SECTION00232500000000000000">Components of the graphical user interface</a></h3>
+
+  <p>sub_bridge_display.h airplane_interface.h freeview_display.h sub_control_popup.h sub_damage_display.h sub_gauges_display.h submarine_interface.h user_display.h sub_periscope_display.h
+  user_interface.h sub_tdc_display.h user_popup.h sub_tdc_popup.h logbook_display.h sub_torpedo_display.h logbook.h sub_torpsetup_display.h ship_interface.h sub_uzo_display.h map_display.h
+  ships_sunk_display.h</p>
+
+  <h3><a name="SECTION00232600000000000000" id="SECTION00232600000000000000">Special 3D rendering related classes</a></h3>
+
+  <p>ocean_wave_generator.h particle.h triangulate.h perlinnoise.h coastmap.h sky.h water.h water_sse.h make_mesh.h</p>
+
+  <h3><a name="SECTION00232700000000000000" id="SECTION00232700000000000000">OpenGL GUI classes</a></h3>
+
+  <p>widget.h</p>
+
+  <h3><a name="SECTION00232800000000000000" id="SECTION00232800000000000000">Miscellaneous classes</a></h3>
+
+  <p>tokencodes.h token.h tokenizer.h binstream.h gldebug.h parser.h global_data.h cfg.h highscorelist.h keys.h texts.h credits.h</p>
+
+  <h2><a name="SECTION00233000000000000000" id="SECTION00233000000000000000">The game: state and display, the classes <tt>game</tt> and <tt>user_interface</tt></a></h2>
+
+  <p>The code (functionality, data structures and classes) of the game is partitioned in two parts: one managing the state and the other managing the display or user interface. The central class for
+  the state data is the class <tt>game</tt> with all its dependent classes (<tt>sea_object</tt> and its heirs and so on). All data you need to describe a game's state is stored there. If you want to
+  save games or do network play, all data you have to access is hold by that class.</p>
+
+  <p>On the other side there is the user interface. Its heirs and associated classes manage everything from state presentation (visual and acoustical - graphic and sound) to user interaction (input).
+  This part requests data from the <tt>game</tt> class for presentation. Parts of the user interface for example are the classes for the stations, the environmental rendering (classes <tt>water</tt>,
+  <tt>sky</tt>, <tt>moon</tt>, <tt>user_display</tt> and many more).</p>
+
+  <p>To simulate the game one only needs to change the class <tt>game</tt> and its correlated data. This class knows nothing about the user interface. Because of that you can use one instance of the
+  <tt>user_interface</tt> class with any instance of class <tt>game</tt> without the need to reconstruct the user interface, which is a costly process. You can instead simply exchange the game
+  object, as it is done for loading games or as it would be needed for network play or switching missions.</p>
+
+  <p>Note that at the moment there is a reference to <tt>user_interface</tt> in class <tt>game</tt>, that is needed for simulation. The main loop of the game is currently in <tt>game::run()</tt>,
+  which needs to know the user interface instance. However it is planned to resolve that situation and move the main loop code outside of class <tt>game</tt>. Then we have the real partition between
+  two parts, as described above. However if you plan to add features, always keep this partition in mind.</p>
+
+  <p>And why do we do that? Doesn't it make thing more complicated? No, it isn't a real limitation, but on the other hand splits code in two clean domains. Physical simulation and rendering are two
+  independent parts. It would be a lot more complex if state simulation would interact with the user interface in every possible situation.</p>
+
+  <p>Note that events causing feedback to the user (like playing an explosion sound after a collision) need some extra work. You can't simply call an ``play explosion'' function of the user interface
+  (where the sound is played) from class <tt>game</tt> (where you detect the collision). Instead you have to remember such events in class game and let the user interface request the events and react
+  on them.</p>
+
+  <p>This partitioning brings problems as you see, but also has its advantages. You can simulate the game without need to render it. This allows dedicated servers. Or it allows to exchange the
+  renderer or many more things.</p>
+
+  <h1><a name="SECTION00240000000000000000" id="SECTION00240000000000000000">Coding style</a></h1>
+
+  <h2><a name="SECTION00241000000000000000" id="SECTION00241000000000000000">Introduction</a></h2>This is a topic that can cause more heat than light when discussed. Everyone has and likes his own
+  style. Anyway, this here is the style we use in the source code of <span class="textsf">Danger from the Deep</span> . You have been warned.
+
+  <p>It is desirable to use <span class="textit">one</span> style throughout the whole code to enhance readability. But creating working code is of course more important than keeping style
+  consistent at any cost. If you create new code and have the choice, you should use the game's style to enhance readability though. Code that was contributed by other people may have a different
+  style, this is the case in some parts of current code.</p>
+
+  <p>This style originated from the ideas of the coding style of the Linux Kernel (originally written by Linus Torvalds). Although everyone likes his own style and mostly there are arguments pro or
+  contra a certain style, this one is reasonable. See below.</p>
+
+  <h2><a name="SECTION00242000000000000000" id="SECTION00242000000000000000">Indentation</a></h2>People differ on how many spaces to indent. In my opinion everything less than four is a pain. I use
+  eight, because this will really help one to see <span class="textbf">how</span> indentation works (and even after sitting many hours in front of the monitor). The simple solution to this problem
+  is: use <span class="textbf">TABs</span> for indentation. Everyone can set his favorite tab width in his editor then. There is another reason: indenting that much prevents you from nesting your
+  code to deep, which is a good help to avoid too complex code.
+
+  <h2><a name="SECTION00243000000000000000" id="SECTION00243000000000000000">Placing (curly) braces</a></h2>
+
+  <p>Yes, the old C discussion. I place braces at the end of the line of the command. Want an example? here it comes:</p>
+
+  <p>Conditional commands:</p>
+  <div class="code">
+if (x == 3) {
+        do_something();
+} else if (y == 4) {
+        do_other();
+} else {
+        do_another();
+}
+
+switch (a) {
+case 3:
+        do_abc();
+        break;
+case 4:
+        do_efg();
+}
 </div>
-</td></tr></table>
-<!--l. 236--><p class="nopar">
-</p><!--l. 238--><p class="indent">   Various loops:
 
-</p>
-   <table width="100%" 
-class="verbatim"><tr class="verbatim"><td 
-class="verbatim"><div class="verbatim">
-for&#x00A0;(unsigned&#x00A0;i&#x00A0;=&#x00A0;0;&#x00A0;i&#x00A0;&lt;&#x00A0;3;&#x00A0;++i)&#x00A0;{
-&#x00A0;<br />&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;b&#x00A0;+=&#x00A0;z;
-&#x00A0;<br />}
-&#x00A0;<br />
-&#x00A0;<br />do&#x00A0;{
-&#x00A0;<br />&#x00A0;&#x00A0;&#x00A0;&#x00A0;do_nothing();
-&#x00A0;<br />}&#x00A0;while&#x00A0;(z&#x00A0;==&#x00A0;5);
-&#x00A0;<br />
-&#x00A0;<br />while&#x00A0;(true)&#x00A0;{
-&#x00A0;<br />&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;do_something();
-&#x00A0;<br />}
+  <p>Various loops:</p>
+  <div class="code">
+for (unsigned i = 0; i &lt; 3; ++i) {
+        b += z;
+}
+
+do {
+    do_nothing();
+} while (z == 5);
+
+while (true) {
+        do_something();
+}
 </div>
-</td></tr></table>
-<!--l. 252--><p class="nopar">
-</p><!--l. 254--><p class="indent">   Functions and classes:
 
-</p>
-   <table width="100%" 
-class="verbatim"><tr class="verbatim"><td 
-class="verbatim"><div class="verbatim">
-void&#x00A0;foo(int&#x00A0;i)
-&#x00A0;<br />{
-&#x00A0;<br />&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;do_func_code();
-&#x00A0;<br />}
-&#x00A0;<br />
-&#x00A0;<br />class&#x00A0;xyz&#x00A0;:&#x00A0;public&#x00A0;abc
-&#x00A0;<br />{
-&#x00A0;<br />&#x00A0;private:
-&#x00A0;<br />&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;int&#x00A0;a;
-&#x00A0;<br />&#x00A0;public:
-&#x00A0;<br />&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;xyz();
-&#x00A0;<br />};
-&#x00A0;<br />&#x00A0;&#x00A0;&#x00A0;&#x00A0;
+  <p>Functions and classes:</p>
+  <div class="code">
+void foo(int i)
+{
+        do_func_code();
+}
+
+class xyz : public abc
+{
+ private:
+        int a;
+ public:
+        xyz();
+};
 </div>
-</td></tr></table>
-<!--l. 269--><p class="nopar">
-</p><!--l. 271--><p class="indent">   Why this style? Kernighan and Ritchie used it and when XEmacs is set to
-this style it produces this kind of style and its auto-formatting works best
-with it. Seriously, this style leads to code that wastes less space (especially
-saves lines!) without losing readability. I&#8217;ve seen much code that places each
-brace in its own line at the cost that the code is much longer. The longer
-it gets, the less &#xFB01;ts on one screen and one needs to scroll, which makes it
-more difficult to follow the execution path of the code and to understand
-it.
-</p><!--l. 282--><p class="noindent">
-</p>
-   <h4 class="subsectionHead"><span class="titlemark">1.2.4   </span> <a 
- id="x1-210001.2.4"></a>Naming</h4>
-<!--l. 284--><p class="noindent">I prefer using lowerspace characters and underscores. Why? humans are more trained
-to read lowerspace characters and underscores are a better optical partition than
-mixing lowerspace and upperspace characters. Example: read this fast and see what
-is easier. Lowerspace <span 
-class="cmbx-10">this</span><span 
-class="cmbx-10">_variable</span><span 
-class="cmbx-10">_has</span><span 
-class="cmbx-10">_a</span><span 
-class="cmbx-10">_very</span><span 
-class="cmbx-10">_long</span><span 
-class="cmbx-10">_name</span>. Upperspace
-<span 
-class="cmbx-10">thisVariableHasAVeryLongName</span>. Horrible. Looks crowded to me. Anyway i
-won&#8217;t force my views on anybody, but if in doubt, use lowerspace letters and
-underscores.
-</p><!--l. 295--><p class="indent">   The same goes for classes, members and functions. All should be in lowerspace
-form. Methods that return some data from a class should be named <span 
-class="cmbx-10">get</span><span 
-class="cmbx-10">_xyz() </span>when
-<span 
-class="cmbx-10">xyz </span>is the name of the member. This is no hard rule, but it should be followed for
-consistency.
 
-</p><!--l. 302--><p class="indent">   The most important thing, and the only rule i urge you to really follow is to <span 
-class="cmbx-10">not</span>
-<span 
-class="cmbx-10">use hungarian notation </span>nor anything similar. This is a very weird thing
-some big, greedy software company introduced and makes code <span 
-class="cmbx-10">hard to</span>
-<span 
-class="cmbx-10">read</span>. The compiler will check the type of the variables anyway, and if you
-state that you would need this kind of notation to show what your variables
-are or do, you did something wrong before. If you can&#8217;t tell from the name
-of a variable what it does, then this is the real problem. Adding the type
-to the name doesn&#8217;t &#xFB01;x the real problem. Maybe you also have too many
-variables so that you want to add the type to distinguish between them?
-Another problem is the reason: don&#8217;t make functions or classes too long or too
-complicated!
-</p><!--l. 317--><p class="noindent">
-</p>
-   <h4 class="subsectionHead"><span class="titlemark">1.2.5   </span> <a 
- id="x1-220001.2.5"></a>Closing words</h4>
-<!--l. 319--><p class="noindent">These rules are no strict &#8221;you must follow them&#8221; rules. I prefer working code is added
-to the game rather than keeping the style conform. But it can help to read and
-understand the code, so please at least consider them. And follow them if in
-doubt...
-</p><!--l. 325--><p class="noindent">
-</p>
-   <h3 class="sectionHead"><span class="titlemark">1.3   </span> <a 
- id="x1-230001.3"></a>What needs to be done</h3>
-<!--l. 327--><p class="noindent">
-</p>
-   <h4 class="subsectionHead"><span class="titlemark">1.3.1   </span> <a 
- id="x1-240001.3.1"></a>Janitors wanted</h4>
+  <p>Why this style? Kernighan and Ritchie used it and when XEmacs is set to this style it produces this kind of style and its auto-formatting works best with it. Seriously, this style leads to code
+  that wastes less space (especially saves lines!) without losing readability. I've seen much code that places each brace in its own line at the cost that the code is much longer. The longer it gets,
+  the less fits on one screen and one needs to scroll, which makes it more difficult to follow the execution path of the code and to understand it.</p>
+
+  <h2><a name="SECTION00244000000000000000" id="SECTION00244000000000000000">Naming</a></h2>
+
+  <p>I prefer using lowerspace characters and underscores. Why? humans are more trained to read lowerspace characters and underscores are a better optical partition than mixing lowerspace and
+  upperspace characters. Example: read this fast and see what is easier. Lowerspace <span class="textbf">this_variable_has_a_very_long_name</span>. Upperspace <span class=
+  "textbf">thisVariableHasAVeryLongName</span>. Horrible. Looks crowded to me. If you write code for <span class="textsf">Danger from the Deep</span> , please follow the rules and use underscores and
+  not mixed-case names.</p>
+
+  <p>The same goes for classes, members and functions. All should be in lowerspace form. Methods that return some data from a class should be named <span class="textbf">get_xyz()</span> when
+  <span class="textbf">xyz</span> is the name of the member. This is no hard rule, but it should be followed for consistency.</p>
+
+  <p>The most important thing, and the only rule i urge you to really follow is to <span class="textbf">not use hungarian notation</span> nor anything similar. This is a very weird thing some big,
+  greedy software company introduced and makes code <span class="textbf">hard to read</span>. The compiler will check the type of the variables anyway, and if you state that you would need this kind
+  of notation to show what your variables are or do, you did something wrong before. If you can't tell from the name of a variable what it does, then this is the real problem. Adding the type to the
+  name doesn't fix it.</p>
+
+  <p>Cause of the real problem: maybe you also have too many variables so that you want to add the type to distinguish between them? Another problem is the reason: don't make functions or classes too
+  long or too complicated!</p>
+
+  <h2><a name="SECTION00245000000000000000" id="SECTION00245000000000000000">Closing words</a></h2>
+
+  <p>These rules are no strict "you must follow them" rules. I prefer working code is added to the game rather than keeping the style conform. But it can help to read and understand the code, so
+  please try to keep the style.</p>
+
+  <h1><a name="SECTION00250000000000000000" id="SECTION00250000000000000000">What needs to be done</a></h1>
+
+  <h2><a name="SECTION00251000000000000000" id="SECTION00251000000000000000">Janitors wanted</a></h2>
+</body>
+</html>
 	</div>
 	<div class="foot">&copy; 2006-2007 Danger from the Deep</div>
 	</div>
