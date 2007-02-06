@@ -73,15 +73,9 @@ global_data::~global_data()
 }
 
 
-// fixme: this could be replaced with an array of pointers using enum-names
-// as indices. This would simplify destruction and possibly construction.
-
-// fixme2: forget enums. use auto_ptr's instead. MUCH easier!
-// normal data should get shrinked as much as possible, only fonts should remain or so.
-
-texture *addleadangle, *torpleft, *metalbackgr,
-	*notepadsheet, *menuframe,
-	*terraintex, *atlanticmap, *panelbackground, *metalbackground;
+// remove this ASAP.
+texture *notepadsheet,
+	*terraintex, *panelbackground;
 	
 font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn, *font_damagedtypewriter, *font_king, *font_typenr, *font_jphsl, *font_janeaust, *font_vtportable;
 
@@ -122,13 +116,8 @@ void init_global_data()
 	add_loading_screen("fonts loaded");
 	// later: they should get loaded by environmental classes (sky/water/user_interface)
 	panelbackground = 0; // not used with new ingame gui
-	metalbackground = new texture(get_image_dir() + "metalbackground.jpg");
-	addleadangle = new texture(get_texture_dir() + "addleadangle.png");
-	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", texture::LINEAR);
 	notepadsheet = new texture(get_texture_dir() + "notepadsheet.png" /*, GL_CLAMP_TO_EDGE*/);
-	menuframe = new texture(get_texture_dir() + "menuframe.png" );
 	terraintex = new texture(get_texture_dir() + "terrain.jpg", texture::LINEAR);
-	atlanticmap = new texture(get_texture_dir() + "atlanticmap.jpg", texture::LINEAR, texture::CLAMP_TO_EDGE);
 	add_loading_screen("textures loaded");
 
 	// later: this makes the use of the cache senseless. load on demand, and only ingame
@@ -152,13 +141,8 @@ void init_global_data()
 void deinit_global_data()
 {
 	delete panelbackground;
-	delete metalbackground;
-	delete addleadangle;
-	delete metalbackgr;
 	delete notepadsheet;
-	delete menuframe;
 	delete terraintex;
-	delete atlanticmap;
 }
 
 // display loading progress

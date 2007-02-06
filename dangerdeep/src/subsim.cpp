@@ -1686,7 +1686,8 @@ int mymain(list<string>& args)
 									 color(240, 217, 127) /*color(222, 208, 195)*/,
 									 color(92, 72 ,68))));
 
-	mysys->draw_console_with(font_arial, metalbackground);
+	std::auto_ptr<texture> metalbackground(new texture(get_image_dir() + "metalbackground.jpg"));
+	mysys->draw_console_with(font_arial, metalbackground.get());
 
 
 	// try to make directories (again)

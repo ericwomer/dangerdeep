@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector2.h"
 #include "vector3.h"
 #include "bspline.h"
+#include "texture.h"
 #include <vector>
 #include <string>
 #include <list>
@@ -115,6 +116,8 @@ class coastmap
 	int global_clnr;		// working counter.
 
 	std::list<std::pair<vector2, std::string> > cities;	// city positions (real) and names
+
+	std::auto_ptr<texture> atlanticmap;
 	
 	coastmap();
 	coastmap(const coastmap& );
