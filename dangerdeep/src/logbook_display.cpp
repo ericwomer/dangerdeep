@@ -201,7 +201,7 @@ void logbook_display::process_input(class game& gm, const SDL_Event& event)
 
 void logbook_display::enter(bool /*is_day*/)
 {
-	background.reset(new image(get_image_dir() + "logbook_background.jpg"));
+	background.reset(new image(get_image_dir() + "shipslog_main_daylight.jpg"));
 }
 
 
