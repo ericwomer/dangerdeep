@@ -1,9 +1,26 @@
-\documentclass{report}
+\documentclass[english,a4paper,12pt]{report}
+\usepackage{babel}
+%%\usepackage[latin1]{inputenc}
+%%\usepackage{amsfonts}
+%%\usepackage{stmaryrd}
+%%\usepackage{amssymb}
+%%\usepackage{latexsym}
+%%\usepackage{cite}
+\usepackage{graphicx}
+%%\usepackage[small,bf]{caption}
+
+\setlength{\textwidth}{18cm}
+\setlength{\oddsidemargin}{-1.04cm}
+
+\newcommand{\dftd}{\textsf{Danger from the Deep}}
+
+\title{A guide to the sourcecode of \dftd}
+
 \begin{document}
 
-\tableofcontents
+\titlepage
 
-\newcommand{\dftd}{\textsf{Danger from the Deep}\ }
+\tableofcontents
 
 %define commands to format strings
 % like \code{bla} for a specially formatted bla, like texttt
@@ -22,16 +39,12 @@
 % draw some uml diagrams for the important classes (subsection of full graph) and embed
 %  them here as eps graphics.
 
-\title{A guide to the sourcecode of \dftd}
-
-\chapter{A guide to the sourcecode of \dftd}
-
-\section{About this document}
+\chapter{About this document}
 
 What is this document about? It should give you a general overview of
 the sourcecode of \dftd, the general concepts and ideas. Most projects
 of today come with a code-related documentation (like Doxygen). This is
-generally a handy thing, when developing or extending code - \dftd has
+generally a handy thing, when developing or extending code - \dftd\ has
 it too (many things are still missing). But it helps you only when you
 know where to look and \emph{how} to extend the code.  Even if the code
 would have a documentation for \emph{every} function, you would not know
@@ -55,7 +68,7 @@ tries to give interested people an overview of the project.
 Of course one could enhance the Doxygen-based documentation while
 learning more about the project. Such a person would be very welcome.
 
-\section{General idea}
+\chapter{General idea}
 
 This is a hobby project. All developers do the work in their spare time,
 no one is paid for it. The code has grown for years (since around
@@ -68,7 +81,7 @@ that the code is not as uniform as code could be.
 
 However, i can tell you from real life experience (working as software
 engineer), that this is true for the most code on this planet.
-Considered that fact, the source code of \dftd could be much worse. The
+Considered that fact, the source code of \dftd\ could be much worse. The
 code is made after the object oriented paradigm about software
 construction. Its extensible, mostly readable and understandable. Beside
 aiming for functionality we aim for speed too, as we are working on a
@@ -83,7 +96,7 @@ seven are implemented at end of 2006). Now consider that we are working
 on a realtime 3d game with many great visual effects, multi platform,
 multi language and many more features.
 
-\subsection{Joining}
+\section{Joining}
 
 If \emph{you} want to join the team, then you are welcome. We need more
 developers. But let me tell you one warning word first. This is not
@@ -112,7 +125,7 @@ If you want to contribute, I stronlgy recommend to get a copy of the
 code and try to understand what is going on inside it first. One step of
 that process is to read this document so you are on the right path.
 
-\subsection{History}
+\section{History}
 
 The game arised from a graphic test for OpenGL under Linux. I wanted to
 try out OpenGL graphics under Linux and finally wrote some tile based
@@ -133,15 +146,15 @@ various ways doing similar things around the code.
   
 
 
-\subsection{Used libraries}
+\section{Used libraries}
 
 SDL, SDL\_image, fftw, SDL\_mixer, SDL\_net
 
-\subsection{Language: C++}
+\section{Language: C++}
 
 speed, object orientation, platform independence, opengl, flexibility (multiple inheritance)
 
-\subsubsection{About resource and memory management}
+\subsection{About resource and memory management}
 
 I bet you have been told that there are two models of handling resources
 like files, memory and more: the \emph{C}-like way, where you have to do
@@ -208,7 +221,7 @@ project.
 
 The automatisms can be seen in the standard classes like
 \texttt{std::vector} or \texttt{std::auto\_ptr}, and are also used by
-some \dftd classes like the \texttt{ptrset} or the \texttt{ptrvector}.
+some \dftd\ classes like the \texttt{ptrset} or the \texttt{ptrvector}.
 The concept is used for files too, realized as ``streams'' in
 \emph{C++}. It can be extended very well to multi-threaded programming
 as well, like writing a class that locks a mutex in constructor and
@@ -236,7 +249,7 @@ pointers.
 I suggest reading the mentioned FAQ at
 http://www.parashift.com/c++-faq-lite/
 
-\subsection{Error handling}
+\section{Error handling}
 
 Currently the code treats errors as fatal events, reports it via message
 to command line and quits the game. Checks are done using the
@@ -309,22 +322,31 @@ instantiate an object of that class as local variable. The compiler then
 will automagically do all the clean-up work for you.
 
 
-\section{Structure of the project}
+\chapter{Structure of the project}
 
-\subsection{Main files and interfaces}
+Class diagram:
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=18cm]{classdiagram}
+\caption{Class diagram of \dftd}
+\label{classdiagram}
+\end{figure}
+
+\section{Main files and interfaces}
 
 At the writing of this document the games has several dozen header and
 source files (classes). It takes some work to learn which file does what
 and how. As a short guide I explain the main files and interfaces here.
 
-\subsubsection{Where it all starts}
+\subsection{Where it all starts}
 
 Check the file \texttt{subsim.cpp}. This file contains the \texttt{main}
 function of the game. There game objects are created, user interfaces
 are initialized and so on. You need to learn about the other interfaces
 first to understand that file.
 
-\subsubsection{State and display}
+\subsection{State and display}
 
 The central aspect is playing a game. The code is divided in two
 categories. One for handling the state of the game, that is storing all
@@ -332,7 +354,7 @@ objects, their data, simulating physics, environment and so on. The
 other part is the presentation of that data: visualization, sound
 processing, user input.
 
-\subsubsection{Hierachy of state classes}
+\subsection{Hierachy of state classes}
 
 The central class for a game instance is the class \texttt{game}. That
 class describes an instance of a game at any time and holds all other
@@ -352,7 +374,7 @@ of the simulated word. Their contents are stored in savegames. If you do
 something about simulating the world or its content, you modify any
 object attached to the game object.
 
-\subsubsection{Hierarchy of presentation classes}
+\subsection{Hierarchy of presentation classes}
 
 On the other side, there are the classes used for user input and
 graphical output (well, sound and music as well). I describe the user
@@ -378,9 +400,9 @@ Every display heirs from it, and there are many.
 
 % popups
 
-\subsection{Basic classes and types}
+\section{Basic classes and types}
 
-\subsubsection{Mathematical helper classes}
+\subsection{Mathematical helper classes}
 
 There are some basic classes that implement various mathematical
 constructs as template classes, so one can instantiate them for any
@@ -401,20 +423,20 @@ and the precision is still high enough for some tasks related to 3D
 rendering (do not use them for physics though, nor \texttt{float}, but
 \texttt{double} for physics).
 
-\subsubsection{Other helper classes}
+\subsection{Other helper classes}
     
 bspline color data error filehelper fixed objcache ptrset
 
-\subsubsection{Rendering and system related related classes}
+\subsection{Rendering and system related related classes}
 
 model.h sound.h texture.h font.h network.h color.h image.h system.h
 
-\subsubsection{Components of the game state and simulation}
+\subsection{Components of the game state and simulation}
 
 ai.h airplane.h game.h torpedo.h submarine.h gun_shell.h convoy.h
 sea_object.h sensors.h ship.h depth_charge.h
 
-\subsubsection{Components of the graphical user interface}
+\subsection{Components of the graphical user interface}
 
 sub_bridge_display.h airplane_interface.h freeview_display.h
 sub_control_popup.h sub_damage_display.h sub_gauges_display.h
@@ -424,16 +446,16 @@ logbook_display.h sub_torpedo_display.h logbook.h
 sub_torpsetup_display.h ship_interface.h sub_uzo_display.h map_display.h
 ships_sunk_display.h
 
-\subsubsection{Special 3D rendering related classes}
+\subsection{Special 3D rendering related classes}
 
 ocean_wave_generator.h particle.h triangulate.h perlinnoise.h coastmap.h
 sky.h water.h water_sse.h make_mesh.h
 
-\subsubsection{OpenGL GUI classes}
+\subsection{OpenGL GUI classes}
 
 widget.h
 
-\subsubsection{Miscellaneous classes}
+\subsection{Miscellaneous classes}
 
 tokencodes.h token.h tokenizer.h binstream.h gldebug.h parser.h
 global_data.h cfg.h highscorelist.h keys.h texts.h credits.h
@@ -441,7 +463,7 @@ global_data.h cfg.h highscorelist.h keys.h texts.h credits.h
 
 
 
-\subsection{The game: state and display, the classes \texttt{game} and
+\section{The game: state and display, the classes \texttt{game} and
   \texttt{user\_interface}}
 
 The code (functionality, data structures and classes) of the game is
@@ -496,9 +518,9 @@ allows dedicated servers. Or it allows to exchange the renderer or many
 more things.
 
 
-\section{Coding style}
+\chapter{Coding style}
 
-\subsection{Introduction}
+\section{Introduction}
 This is a topic that can cause more heat than light when discussed.
 Everyone has and likes his own style. Anyway, this here is the style we
 use in the source code of \dftd. You have been warned.
@@ -516,7 +538,7 @@ his own style and mostly there are arguments pro or contra a certain
 style, this one is reasonable. See below.
     
 
-\subsection{Indentation}
+\section{Indentation}
 People differ on how many spaces to indent. In my opinion everything
 less than four is a pain. I use eight, because this will really help one
 to see \textbf{how} indentation works (and even after sitting many hours
@@ -527,7 +549,7 @@ prevents you from nesting your code to deep, which is a good help to
 avoid too complex code.
     
 
-\subsection{Placing (curly) braces}
+\section{Placing (curly) braces}
 
 Yes, the old C discussion. I place braces at the end of the line of the
 command. Want an example? here it comes:
@@ -595,7 +617,7 @@ class xyz : public abc
     to follow the execution path of the code and to understand it.
     
 
-    \subsection{Naming}
+    \section{Naming}
 
     I prefer using lowerspace characters and underscores. Why? humans
     are more trained to read lowerspace characters and underscores are a
@@ -628,16 +650,16 @@ class xyz : public abc
     too complicated!
     
 
-    \subsection{Closing words}
+    \section{Closing words}
 
       These rules are no strict "you must follow them" rules. I prefer
       working code is added to the game rather than keeping the style
       conform. But it can help to read and understand the code, so
       please try to keep the style.
     
-    \section{What needs to be done}
+    \chapter{What needs to be done}
 
-    \subsection{Janitors wanted}
+    \section{Janitors wanted}
 
 
  \end{document}
