@@ -29,84 +29,138 @@
 		<a href="http://jigsaw.w3.org/css-validator/check/referer"><img class="std" src="images/w3c-valid-css.png" alt="Valid CSS!" /></a>
 	</div>
 	<div class="contents">
+  <div align="center">
+    <h1>A guide to the sourcecode of Danger from the Deep</h1>
+  </div>
+
+  <p><br /></p>
+
   <h2><a name="SECTION00100000000000000000" id="SECTION00100000000000000000">Contents</a></h2><!--Table of Contents-->
 
   <ul class="TofC">
-    <li><a name="tex2html36" href="codeguide.html#SECTION00100000000000000000" id="tex2html36">A guide to the source-code of Danger from the Deep</a></li>
+    <li><a name="tex2html44" href="codeguide.html#SECTION00200000000000000000" id="tex2html44">About this document</a></li>
 
     <li>
-      <a name="tex2html37" href="codeguide.html#SECTION00200000000000000000" id="tex2html37">A guide to the source code of Danger from the Deep</a>
+      <a name="tex2html45" href="codeguide.html#SECTION00300000000000000000" id="tex2html45">General idea</a>
 
       <ul>
-        <li><a name="tex2html38" href="codeguide.html#SECTION00210000000000000000" id="tex2html38">About this document</a></li>
+        <li><a name="tex2html46" href="codeguide.html#SECTION00310000000000000000" id="tex2html46">Joining</a></li>
+
+        <li><a name="tex2html47" href="codeguide.html#SECTION00320000000000000000" id="tex2html47">History</a></li>
+
+        <li><a name="tex2html48" href="codeguide.html#SECTION00330000000000000000" id="tex2html48">Used libraries</a></li>
 
         <li>
-          <a name="tex2html39" href="codeguide.html#SECTION00220000000000000000" id="tex2html39">General idea</a>
+          <a name="tex2html49" href="codeguide.html#SECTION00340000000000000000" id="tex2html49">Language: C++</a>
 
           <ul>
-            <li><a name="tex2html40" href="codeguide.html#SECTION00221000000000000000" id="tex2html40">Joining</a></li>
+            <li><a name="tex2html50" href="codeguide.html#SECTION00341000000000000000" id="tex2html50">About resource and memory management</a></li>
+          </ul>
+        </li>
 
-            <li><a name="tex2html41" href="codeguide.html#SECTION00222000000000000000" id="tex2html41">History</a></li>
+        <li><a name="tex2html51" href="codeguide.html#SECTION00350000000000000000" id="tex2html51">Error handling</a></li>
+      </ul><br />
+    </li>
 
-            <li><a name="tex2html42" href="codeguide.html#SECTION00223000000000000000" id="tex2html42">Used libraries</a></li>
+    <li>
+      <a name="tex2html52" href="codeguide.html#SECTION00400000000000000000" id="tex2html52">Structure of the project</a>
 
-            <li><a name="tex2html43" href="codeguide.html#SECTION00224000000000000000" id="tex2html43">Language: C++</a></li>
+      <ul>
+        <li>
+          <a name="tex2html53" href="codeguide.html#SECTION00410000000000000000" id="tex2html53">Main files and interfaces</a>
 
-            <li><a name="tex2html44" href="codeguide.html#SECTION00225000000000000000" id="tex2html44">Error handling</a></li>
+          <ul>
+            <li><a name="tex2html54" href="codeguide.html#SECTION00411000000000000000" id="tex2html54">Where it all starts</a></li>
+
+            <li><a name="tex2html55" href="codeguide.html#SECTION00412000000000000000" id="tex2html55">State and display</a></li>
+
+            <li><a name="tex2html56" href="codeguide.html#SECTION00413000000000000000" id="tex2html56">Hierachy of state classes</a></li>
+
+            <li><a name="tex2html57" href="codeguide.html#SECTION00414000000000000000" id="tex2html57">Hierarchy of presentation classes</a></li>
           </ul>
         </li>
 
         <li>
-          <a name="tex2html45" href="codeguide.html#SECTION00230000000000000000" id="tex2html45">Structure of the project</a>
+          <a name="tex2html58" href="codeguide.html#SECTION00420000000000000000" id="tex2html58">Basic classes and types</a>
 
           <ul>
-            <li><a name="tex2html46" href="codeguide.html#SECTION00231000000000000000" id="tex2html46">Main files and interfaces</a></li>
+            <li><a name="tex2html59" href="codeguide.html#SECTION00421000000000000000" id="tex2html59">Mathematical helper classes</a></li>
 
-            <li><a name="tex2html47" href="codeguide.html#SECTION00232000000000000000" id="tex2html47">Basic classes and types</a></li>
+            <li><a name="tex2html60" href="codeguide.html#SECTION00422000000000000000" id="tex2html60">Other helper classes</a></li>
 
-            <li><a name="tex2html48" href="codeguide.html#SECTION00233000000000000000" id="tex2html48">The game: state and display, the classes game and user_interface</a></li>
+            <li><a name="tex2html61" href="codeguide.html#SECTION00423000000000000000" id="tex2html61">Rendering and system related related classes</a></li>
+
+            <li><a name="tex2html62" href="codeguide.html#SECTION00424000000000000000" id="tex2html62">Components of the game state and simulation</a></li>
+
+            <li><a name="tex2html63" href="codeguide.html#SECTION00425000000000000000" id="tex2html63">Components of the graphical user interface</a></li>
+
+            <li><a name="tex2html64" href="codeguide.html#SECTION00426000000000000000" id="tex2html64">Special 3D rendering related classes</a></li>
+
+            <li><a name="tex2html65" href="codeguide.html#SECTION00427000000000000000" id="tex2html65">OpenGL GUI classes</a></li>
+
+            <li><a name="tex2html66" href="codeguide.html#SECTION00428000000000000000" id="tex2html66">Miscellaneous classes</a></li>
           </ul>
         </li>
+
+        <li><a name="tex2html67" href="codeguide.html#SECTION00430000000000000000" id="tex2html67">The game: state and display, the classes game and user_interface</a></li>
+      </ul><br />
+    </li>
+
+    <li>
+      <a name="tex2html68" href="codeguide.html#SECTION00500000000000000000" id="tex2html68">Coding style</a>
+
+      <ul>
+        <li><a name="tex2html69" href="codeguide.html#SECTION00510000000000000000" id="tex2html69">Introduction</a></li>
+
+        <li><a name="tex2html70" href="codeguide.html#SECTION00520000000000000000" id="tex2html70">Indentation</a></li>
+
+        <li><a name="tex2html71" href="codeguide.html#SECTION00530000000000000000" id="tex2html71">Placing (curly) braces</a></li>
+
+        <li><a name="tex2html72" href="codeguide.html#SECTION00540000000000000000" id="tex2html72">Naming</a></li>
+
+        <li><a name="tex2html73" href="codeguide.html#SECTION00550000000000000000" id="tex2html73">Closing words</a></li>
+      </ul><br />
+    </li>
+
+    <li><a name="tex2html74" href="codeguide.html#SECTION00600000000000000000" id="tex2html74">What needs to be done</a></li>
+
+    <li>
+      <a name="tex2html75" href="codeguide.html#SECTION00700000000000000000" id="tex2html75">Water rendering</a>
+
+      <ul>
+        <li><a name="tex2html76" href="codeguide.html#SECTION00710000000000000000" id="tex2html76">Introduction</a></li>
+
+        <li><a name="tex2html77" href="codeguide.html#SECTION00720000000000000000" id="tex2html77">Requirements</a></li>
+
+        <li><a name="tex2html78" href="codeguide.html#SECTION00730000000000000000" id="tex2html78">Shape of ocean</a></li>
+
+        <li><a name="tex2html79" href="codeguide.html#SECTION00740000000000000000" id="tex2html79">Rendering of the geometry</a></li>
 
         <li>
-          <a name="tex2html49" href="codeguide.html#SECTION00240000000000000000" id="tex2html49">Coding style</a>
+          <a name="tex2html80" href="codeguide.html#SECTION00750000000000000000" id="tex2html80">Lighting and color</a>
 
           <ul>
-            <li><a name="tex2html50" href="codeguide.html#SECTION00241000000000000000" id="tex2html50">Introduction</a></li>
-
-            <li><a name="tex2html51" href="codeguide.html#SECTION00242000000000000000" id="tex2html51">Indentation</a></li>
-
-            <li><a name="tex2html52" href="codeguide.html#SECTION00243000000000000000" id="tex2html52">Placing (curly) braces</a></li>
-
-            <li><a name="tex2html53" href="codeguide.html#SECTION00244000000000000000" id="tex2html53">Naming</a></li>
-
-            <li><a name="tex2html54" href="codeguide.html#SECTION00245000000000000000" id="tex2html54">Closing words</a></li>
+            <li><a name="tex2html81" href="codeguide.html#SECTION00751000000000000000" id="tex2html81">Normal mapping</a></li>
           </ul>
         </li>
 
-        <li>
-          <a name="tex2html55" href="codeguide.html#SECTION00250000000000000000" id="tex2html55">What needs to be done</a>
+        <li><a name="tex2html82" href="codeguide.html#SECTION00760000000000000000" id="tex2html82">Surface effects</a></li>
 
-          <ul>
-            <li><a name="tex2html56" href="codeguide.html#SECTION00251000000000000000" id="tex2html56">Janitors wanted</a></li>
-          </ul>
-        </li>
+        <li><a name="tex2html83" href="codeguide.html#SECTION00770000000000000000" id="tex2html83">Interaction</a></li>
       </ul>
     </li>
   </ul><!--End of Table of Contents-->
 
-  <h1><a name="SECTION00200000000000000000" id="SECTION00200000000000000000">A guide to the source code of <span class="textsf">Danger from the Deep</span></a></h1>
+  <h1><a name="SECTION00200000000000000000" id="SECTION00200000000000000000">About this document</a></h1>
 
-  <h1><a name="SECTION00210000000000000000" id="SECTION00210000000000000000">About this document</a></h1>
-
-  <p>What is this document about? It should give you a general overview of the source code of <span class="textsf">Danger from the Deep</span> , the general concepts and ideas. Most projects of today
+  <p>What is this document about? It should give you a general overview of the sourcecode of <span class="textsf">Danger from the Deep</span>, the general concepts and ideas. Most projects of today
   come with a code-related documentation (like Doxygen). This is generally a handy thing, when developing or extending code - <span class="textsf">Danger from the Deep</span> has it too (many things
   are still missing). But it helps you only when you know where to look and <span class="textit">how</span> to extend the code. Even if the code would have a documentation for <span class=
   "textit">every</span> function, you would not know where to start. Code-based documentation can be the final step to make project documentation complete, but it is not useful as first step into the
   project. It is often misused as excuse to not creating a more general documentation.</p>
 
   <p>Many open source projects out there have a more or less well managed Doxygen-like code documentation. But what is it good for? It is of use only for those that already know how to use the
-  project - as reference. But where to start if you are new to the project? You are lost. At that point example code may help or researching for information on the Internet. Or to consult a more
+  project - as reference. But where to start if you are new to the project? You are lost. At that point example code may help or researching for information on the internet. Or to consult a more
   general documentation, if available.</p>
 
   <p>For this project, only the latter option is possible (or you enter IRC/forum and ask us directly, what you should do anyway if you want to join). This document tries to solve the problem
@@ -114,22 +168,22 @@
 
   <p>Of course one could enhance the Doxygen-based documentation while learning more about the project. Such a person would be very welcome.</p>
 
-  <h1><a name="SECTION00220000000000000000" id="SECTION00220000000000000000">General idea</a></h1>
+  <h1><a name="SECTION00300000000000000000" id="SECTION00300000000000000000">General idea</a></h1>
 
-  <p>This is a hobby project. All developers do the work in their spare time, no one is paid for it. The code has grown for years (since around January 2003) and many people contributed to it. While
+  <p>This is a hobby project. All developers do the work in their spare time, no one is paid for it. The code has grown for years (since around january 2003) and many people contributed to it. While
   we worked on the project, we changed many things: interfaces, implementations and algorithms. We tried many things. While developing the code, our knowledge developed as well. Thus, the style of
   writing code and using C++ changed as well. As a result of all these facts, you will find out that the code is not as uniform as code could be.</p>
 
   <p>However, i can tell you from real life experience (working as software engineer), that this is true for the most code on this planet. Considered that fact, the source code of <span class=
   "textsf">Danger from the Deep</span> could be much worse. The code is made after the object oriented paradigm about software construction. Its extensible, mostly readable and understandable. Beside
-  aiming for functionality we aim for speed too, as we are working on a game with real time effects. For that reason we use <span class="textit">C++</span>, as it features object orientation, high
+  aiming for functionality we aim for speed too, as we are working on a game with realtime effects. For that reason we use <span class="textit">C++</span>, as it features object orientation, high
   execution speed and flexibility as well.</p>
 
-  <p>The game is written in portable code and can be compiled for many platforms (up to six working at end of 2006). The text resources inside are not hard coded, so the game supports multiple
-  languages (currently seven are implemented at end of 2006). Now consider that we are working on a real time 3d game with many great visual effects, multi platform, multi language and many more
+  <p>The game is written in portable code and can be compiled for many platforms (up to six working at end of 2006). The text resources inside are not hardcoded, so the game supports multiple
+  languages (currently seven are implemented at end of 2006). Now consider that we are working on a realtime 3d game with many great visual effects, multi platform, multi language and many more
   features.</p>
 
-  <h2><a name="SECTION00221000000000000000" id="SECTION00221000000000000000">Joining</a></h2>
+  <h1><a name="SECTION00310000000000000000" id="SECTION00310000000000000000">Joining</a></h1>
 
   <p>If <span class="textit">you</span> want to join the team, then you are welcome. We need more developers. But let me tell you one warning word first. This is not meant to offend you, but to make
   you think. Please read on.</p>
@@ -143,10 +197,10 @@
   alternative of many, and possible not the ideal one, and so on.</p>
 
   <p>This is not meant to offend you, the contributor of new code. I write this to avoid double work. To avoid wasting your time with writing code that already exists or wasting time of others by
-  breaking existing code. If you want to contribute, I strongly recommend to get a copy of the code and try to understand what is going on inside it first. One step of that process is to read this
+  breaking existing code. If you want to contribute, I stronlgy recommend to get a copy of the code and try to understand what is going on inside it first. One step of that process is to read this
   document so you are on the right path.</p>
 
-  <h2><a name="SECTION00222000000000000000" id="SECTION00222000000000000000">History</a></h2>
+  <h1><a name="SECTION00320000000000000000" id="SECTION00320000000000000000">History</a></h1>
 
   <p>The game arised from a graphic test for OpenGL under Linux. I wanted to try out OpenGL graphics under Linux and finally wrote some tile based water rendering code. Later i added a simple model
   loader and had the very basics of a submarine simulation. As i am a great fan of Silent Service and Aces of the Deep (guess where the name comes from) and considered the fact that there is or was
@@ -156,15 +210,15 @@
   and added more ideas and development ideas and styles. Often things were just tried out and thrown away later. This all lead to code that seems a bit chaotic, more like evolution and less planned.
   There are many places where this can be seen. Interfaces that are not fully implemented, or various ways doing similar things around the code.</p>
 
-  <h2><a name="SECTION00223000000000000000" id="SECTION00223000000000000000">Used libraries</a></h2>
+  <h1><a name="SECTION00330000000000000000" id="SECTION00330000000000000000">Used libraries</a></h1>
 
   <p>SDL, SDL_image, fftw, SDL_mixer, SDL_net</p>
 
-  <h2><a name="SECTION00224000000000000000" id="SECTION00224000000000000000">Language: C++</a></h2>
+  <h1><a name="SECTION00340000000000000000" id="SECTION00340000000000000000">Language: C++</a></h1>
 
-  <p>speed, object orientation, platform independence, OpenGL, flexibility (multiple inheritance)</p>
+  <p>speed, object orientation, platform independence, opengl, flexibility (multiple inheritance)</p>
 
-  <h3><a name="SECTION00224100000000000000" id="SECTION00224100000000000000">About resource and memory management</a></h3>
+  <h2><a name="SECTION00341000000000000000" id="SECTION00341000000000000000">About resource and memory management</a></h2>
 
   <p>I bet you have been told that there are two models of handling resources like files, memory and more: the <span class="textit">C</span>-like way, where you have to do everything on your own and
   the <span class="textit">Java</span>-like way, where some entity called ``garbage collector'' cleans up unused memory for you. The same is true for other resources, except that even such an
@@ -172,7 +226,7 @@
 
   <p>The <span class="textit">C</span>-way is problematic, because you have to do every tiny bit of work for yourself and you have to do it over and over again, which is highly error prone.</p>
 
-  <p>On the other hand there is the clean OOP-way (object oriented programming), where memory doesn't need to be freed by the the developer, but the run time environment does it for you. Of course
+  <p>On the other hand there is the clean OOP-way (object oriented programming), where memory doesn't need to be freed by the the developer, but the runtime environment does it for you. Of course
   that environment can't know when to close files, so you have to do this still on your own. When code can throw exceptions, you have to encapsulate file handling and close them in special code
   blocks (the <span class="textit">final</span> keyword in <span class="textit">Java</span>) or similar things.</p>
 
@@ -198,7 +252,7 @@
   <p>The <span class="textit">C++</span> standard library (STL) already makes use of such techniques and has fully automatic memory management. Full speed of <span class="textit">C</span> with the
   easy coding like <span class="textit">Java</span> (sometimes even easier). That is one of the reasons why we have chosen to use <span class="textit">C++</span> for the project.</p>
 
-  <p>The automatism's can be seen in the standard classes like <tt>std::vector</tt> or <tt>std::auto_ptr</tt>, and are also used by some <span class="textsf">Danger from the Deep</span> classes like
+  <p>The automatisms can be seen in the standard classes like <tt>std::vector</tt> or <tt>std::auto_ptr</tt>, and are also used by some <span class="textsf">Danger from the Deep</span> classes like
   the <tt>ptrset</tt> or the <tt>ptrvector</tt>. The concept is used for files too, realized as ``streams'' in <span class="textit">C++</span>. It can be extended very well to multi-threaded
   programming as well, like writing a class that locks a mutex in constructor and unlocks it in its destructor. That way mutex locking can be done automatically by declaring such a locker object
   inside a code block. Upon leaving the block, the mutex is automatically unlocked, removing a very nasty and common source of error with multi-threaded programming. Many more applications are
@@ -207,24 +261,24 @@
   <p>In short one can say: if you use <tt>new</tt> and <tt>delete</tt> to allocate memory blocks, you do something wrong. Use vectors instead. You should only create single objects with new and
   should attach them directly to an object that can manage the memory automatically, so the object can not get lost, whatever happens (exceptions can break normal code flow, be careful!). Thus, you
   should not be forced to use <tt>delete</tt> too often. If you even would use <tt>malloc</tt> or <tt>free</tt> anywhere, you are very wrong and should expect harsh comments by the developers. These
-  functions are exclusively <span class="textit">C</span> and do not mix with the <span class="textit">C++</span> ones. As the <span class="textit">C++</span>-FAQ ``lite'' by Marshall Cline
+  functions are exclusivly <span class="textit">C</span> and do not mix with the <span class="textit">C++</span> ones. As the <span class="textit">C++</span>-FAQ ``lite'' by Marshall Cline
   abbreviates it: arrays are <span class="textit">evil</span>, unmanaged pointers are <span class="textit">evil</span> - in general. Check if you could use a <span class="textit">reference</span>
-  instead of a pointer, wherever you would like to use pointers.</p>
+  instead of a pointer, whereever you would like to use pointers.</p>
 
   <p>I suggest reading the mentioned FAQ at http://www.parashift.com/c++-faq-lite/</p>
 
-  <h2><a name="SECTION00225000000000000000" id="SECTION00225000000000000000">Error handling</a></h2>
+  <h1><a name="SECTION00350000000000000000" id="SECTION00350000000000000000">Error handling</a></h1>
 
   <p>Currently the code treats errors as fatal events, reports it via message to command line and quits the game. Checks are done using the <span class="textbf">system::myassert()</span> function,
-  but this is embarrassing and ugly. This mixes code test related assertions with error checks. C++ exceptions are the definite thing to use here, but are used very rarely yet. I discovered only
+  but this is embarassing and ugly. This mixes code test related assertions with error checks. C++ exceptions are the definite thing to use here, but are used very rarely yet. I discovered only
   recently how useful they are.</p>
 
-  <p>The whole code (that means each place with a <span class="textbf">system::myassert() call</span> has to be checked weather it is an error check (in that case replaced by an descriptive exception)
+  <p>The whole code (that means each place with a <span class="textbf">system::myassert() call</span> has to be checked wether it is an error check (in that case replaced by an descriptive exception)
   or a development check (in that case a normal <span class="textbf">assert()</span> could be used). For exceptions one should define classes that heir from <span class="textbf">std::exception</span>
   and contain an error string. A hierarchy of exceptions could be created for a finer grained error handling and control. Look at file <span class="textbf">error.h</span> for an example
   definition.</p>
 
-  <p>The general idea about exceptions is to report <span class="textit">what</span> went wrong, not where. Exceptions are made to handle errors at run time. If you want to know where the error was
+  <p>The general idea about exceptions is to report <span class="textit">what</span> went wrong, not where. Exceptions are made to handle errors at runtime. If you want to know where the error was
   raised to ease development, add a descriptive text to the exception or print it in the log. Each exception can be given a report text that is for the user or developer. With some tricky macros you
   can append the line and source file name to the text as well (see file <tt>error.h</tt>). The set of exceptions brought by the C++ standard library is a good starting point and these exceptions
   already cover many possible errors, like <tt>invalid_argument</tt>, <tt>runtime_error</tt> and so on. The constructor of an exceptions gets an user defined string, where a developer can state the
@@ -236,9 +290,9 @@ if (!myptr)
         throw std::invalid_argument("myfunction: Null-pointer given");
 </div>(Of course if you expect some pointer to have a valid value, you maybe could use a reference instead).
 
-  <p>All exceptions form an inheritance tree, a hierarchy. Because of that one can categorize errors and handle them regarding to category. This allows a very flexible error management. I suggest you
+  <p>All exceptions form an inheritance tree, a hierachy. Because of that one can categorize errors and handle them regarding to category. This allows a very flexible error management. I suggest you
   to learn something more about C++ exceptions if you are new to the language. The C-style of error reporting via return values is <span class="textit">not</span> the way to do it. But do not confuse
-  error handling by value reporting. If a function should do a simple thing that can fail, it would be OK to return a bool for that function and not throw an exception in case of error. It depends on
+  error handling by value reporting. If a function should do a simple thing that can fail, it would be ok to return a bool for that function and not throw an exception in case of error. It depends on
   the severity and if the caller can handle that malfunction directly.</p>
 
   <p>Good examples where to use exceptions are situations where errors are not expected, where normal code execution is assumed. As their name already tells, exceptions are designed to handle
@@ -251,49 +305,67 @@ if (!myptr)
   class that does the cleanup in its destructor (and the initialization in the constructor) and to instantiate an object of that class as local variable. The compiler then will automagically do all
   the clean-up work for you.</p>
 
-  <h1><a name="SECTION00230000000000000000" id="SECTION00230000000000000000">Structure of the project</a></h1>
+  <h1><a name="SECTION00400000000000000000" id="SECTION00400000000000000000">Structure of the project</a></h1>
 
-  <h2><a name="SECTION00231000000000000000" id="SECTION00231000000000000000">Main files and interfaces</a></h2>
+  <p>Class diagram:</p>
+
+  <div align="center">
+    <a name="classdiagram" id="classdiagram"></a>
+
+    <table>
+      <caption align="bottom">
+        <strong>Figure:</strong> Class diagram of <span class="textsf">Danger from the Deep</span>
+      </caption>
+
+      <tr>
+        <td>
+          <div align="center"></div><img align="bottom" border="0" src="./codeguide/classdiagram.png" alt="Image classdiagram" />
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <h1><a name="SECTION00410000000000000000" id="SECTION00410000000000000000">Main files and interfaces</a></h1>
 
   <p>At the writing of this document the games has several dozen header and source files (classes). It takes some work to learn which file does what and how. As a short guide I explain the main files
   and interfaces here.</p>
 
-  <h3><a name="SECTION00231100000000000000" id="SECTION00231100000000000000">Where it all starts</a></h3>
+  <h2><a name="SECTION00411000000000000000" id="SECTION00411000000000000000">Where it all starts</a></h2>
 
   <p>Check the file <tt>subsim.cpp</tt>. This file contains the <tt>main</tt> function of the game. There game objects are created, user interfaces are initialized and so on. You need to learn about
   the other interfaces first to understand that file.</p>
 
-  <h3><a name="SECTION00231200000000000000" id="SECTION00231200000000000000">State and display</a></h3>
+  <h2><a name="SECTION00412000000000000000" id="SECTION00412000000000000000">State and display</a></h2>
 
   <p>The central aspect is playing a game. The code is divided in two categories. One for handling the state of the game, that is storing all objects, their data, simulating physics, environment and
   so on. The other part is the presentation of that data: visualization, sound processing, user input.</p>
 
-  <h3><a name="SECTION00231300000000000000" id="SECTION00231300000000000000">Hierarchy of state classes</a></h3>
+  <h2><a name="SECTION00413000000000000000" id="SECTION00413000000000000000">Hierachy of state classes</a></h2>
 
   <p>The central class for a game instance is the class <tt>game</tt>. That class describes an instance of a game at any time and holds all other objects needed to represent a game's state. The class
-  <tt>game</tt> holds all objects of the game's world like airplanes, ships, submarines, grenades, torpedoes and so on. Every object in the game that is a physical entity is of class
+  <tt>game</tt> holds all objects of the game's world like airplaines, ships, submarines, grenades, torpedoes and so on. Every object in the game that is a physical entity is of class
   <tt>sea_object</tt> or one of its heirs.</p>
 
   <p>Heirs of <tt>sea_object</tt> are e.g. <tt>ship</tt>, <tt>airplane</tt>, <tt>gun_shell</tt> and so on. Heirs of <tt>ship</tt> are e.g. <tt>submarine</tt> and <tt>torpedo</tt>. Now you see what we
   need multiple inheritance for.</p>
 
-  <p>The game object and all incorporated objects are the data representation of the simulated word. Their contents are stored in save games. If you do something about simulating the world or its
+  <p>The game object and all incorporated objects are the data representation of the simulated word. Their contents are stored in savegames. If you do something about simulating the world or its
   content, you modify any object attached to the game object.</p>
 
-  <h3><a name="SECTION00231400000000000000" id="SECTION00231400000000000000">Hierarchy of presentation classes</a></h3>
+  <h2><a name="SECTION00414000000000000000" id="SECTION00414000000000000000">Hierarchy of presentation classes</a></h2>
 
   <p>On the other side, there are the classes used for user input and graphical output (well, sound and music as well). I describe the user interface here, that is merely the graphical interface.</p>
 
   <p>The central class of the user interface is called so: <tt>user_interface</tt>. Everything needed to render the game or environment is attached to it. There are implementations depending on the
-  type of object that the player controls: <tt>airplane_interface</tt>, <tt>ship_interface</tt> and <tt>submarine_interface</tt>, where at the moment only the latter is functional. The interface
+  type of object that the player controls: <tt>airplane_interface</tt>, <tt>ship_interface</tt> and <tt>submarine_interface</tt>, where at the moment only the latter is funtional. The interface
   object also holds classes for displaying the sky, sun, moon, the ocean environment and the environment of the player controlled vessel.</p>
 
   <p>The in-game user interface is partitioned in multiple screens or displays, also known as stations. For example the various compartments of a ship or submarine: the bridge, the engine room, the
   map chart et cetera. The base class for such a screen is <tt>user_display</tt>. Every display heirs from it, and there are many.</p>
 
-  <h2><a name="SECTION00232000000000000000" id="SECTION00232000000000000000">Basic classes and types</a></h2>
+  <h1><a name="SECTION00420000000000000000" id="SECTION00420000000000000000">Basic classes and types</a></h1>
 
-  <h3><a name="SECTION00232100000000000000" id="SECTION00232100000000000000">Mathematical helper classes</a></h3>
+  <h2><a name="SECTION00421000000000000000" id="SECTION00421000000000000000">Mathematical helper classes</a></h2>
 
   <p>There are some basic classes that implement various mathematical constructs as template classes, so one can instantiate them for any needed data type. Predefined names for <tt>int</tt>,
   <tt>float</tt> and <tt>double</tt> exist. These base classes are for vectors (<tt>vector2</tt>, <tt>vector3</tt> and <tt>vector4</tt>), matrices (<tt>matrix4</tt>) and quaternions
@@ -304,47 +376,47 @@ if (!myptr)
   <p>And finally a helper class for fixed point arithmetic data types: <tt>fixed</tt>. Fixed point arithmetic is still faster for some cases and the precision is still high enough for some tasks
   related to 3D rendering (do not use them for physics though, nor <tt>float</tt>, but <tt>double</tt> for physics).</p>
 
-  <h3><a name="SECTION00232200000000000000" id="SECTION00232200000000000000">Other helper classes</a></h3>
+  <h2><a name="SECTION00422000000000000000" id="SECTION00422000000000000000">Other helper classes</a></h2>
 
   <p>bspline color data error filehelper fixed objcache ptrset</p>
 
-  <h3><a name="SECTION00232300000000000000" id="SECTION00232300000000000000">Rendering and system related related classes</a></h3>
+  <h2><a name="SECTION00423000000000000000" id="SECTION00423000000000000000">Rendering and system related related classes</a></h2>
 
   <p>model.h sound.h texture.h font.h network.h color.h image.h system.h</p>
 
-  <h3><a name="SECTION00232400000000000000" id="SECTION00232400000000000000">Components of the game state and simulation</a></h3>
+  <h2><a name="SECTION00424000000000000000" id="SECTION00424000000000000000">Components of the game state and simulation</a></h2>
 
   <p>ai.h airplane.h game.h torpedo.h submarine.h gun_shell.h convoy.h sea_object.h sensors.h ship.h depth_charge.h</p>
 
-  <h3><a name="SECTION00232500000000000000" id="SECTION00232500000000000000">Components of the graphical user interface</a></h3>
+  <h2><a name="SECTION00425000000000000000" id="SECTION00425000000000000000">Components of the graphical user interface</a></h2>
 
   <p>sub_bridge_display.h airplane_interface.h freeview_display.h sub_control_popup.h sub_damage_display.h sub_gauges_display.h submarine_interface.h user_display.h sub_periscope_display.h
   user_interface.h sub_tdc_display.h user_popup.h sub_tdc_popup.h logbook_display.h sub_torpedo_display.h logbook.h sub_torpsetup_display.h ship_interface.h sub_uzo_display.h map_display.h
   ships_sunk_display.h</p>
 
-  <h3><a name="SECTION00232600000000000000" id="SECTION00232600000000000000">Special 3D rendering related classes</a></h3>
+  <h2><a name="SECTION00426000000000000000" id="SECTION00426000000000000000">Special 3D rendering related classes</a></h2>
 
   <p>ocean_wave_generator.h particle.h triangulate.h perlinnoise.h coastmap.h sky.h water.h water_sse.h make_mesh.h</p>
 
-  <h3><a name="SECTION00232700000000000000" id="SECTION00232700000000000000">OpenGL GUI classes</a></h3>
+  <h2><a name="SECTION00427000000000000000" id="SECTION00427000000000000000">OpenGL GUI classes</a></h2>
 
   <p>widget.h</p>
 
-  <h3><a name="SECTION00232800000000000000" id="SECTION00232800000000000000">Miscellaneous classes</a></h3>
+  <h2><a name="SECTION00428000000000000000" id="SECTION00428000000000000000">Miscellaneous classes</a></h2>
 
   <p>tokencodes.h token.h tokenizer.h binstream.h gldebug.h parser.h global_data.h cfg.h highscorelist.h keys.h texts.h credits.h</p>
 
-  <h2><a name="SECTION00233000000000000000" id="SECTION00233000000000000000">The game: state and display, the classes <tt>game</tt> and <tt>user_interface</tt></a></h2>
+  <h1><a name="SECTION00430000000000000000" id="SECTION00430000000000000000">The game: state and display, the classes <tt>game</tt> and <tt>user_interface</tt></a></h1>
 
   <p>The code (functionality, data structures and classes) of the game is partitioned in two parts: one managing the state and the other managing the display or user interface. The central class for
-  the state data is the class <tt>game</tt> with all its dependent classes (<tt>sea_object</tt> and its heirs and so on). All data you need to describe a game's state is stored there. If you want to
+  the state data is the class <tt>game</tt> with all its dependant classes (<tt>sea_object</tt> and its heirs and so on). All data you need to describe a game's state is stored there. If you want to
   save games or do network play, all data you have to access is hold by that class.</p>
 
-  <p>On the other side there is the user interface. Its heirs and associated classes manage everything from state presentation (visual and acoustical - graphic and sound) to user interaction (input).
+  <p>On the other side there is the user interface. Its heirs and associated classes manage everything from state presentation (visual and acustical - graphic and sound) to user interaction (input).
   This part requests data from the <tt>game</tt> class for presentation. Parts of the user interface for example are the classes for the stations, the environmental rendering (classes <tt>water</tt>,
   <tt>sky</tt>, <tt>moon</tt>, <tt>user_display</tt> and many more).</p>
 
-  <p>To simulate the game one only needs to change the class <tt>game</tt> and its correlated data. This class knows nothing about the user interface. Because of that you can use one instance of the
+  <p>To simulate the game one only needs to change the class <tt>game</tt> and its corelated data. This class knows nothing about the user interface. Because of that you can use one instance of the
   <tt>user_interface</tt> class with any instance of class <tt>game</tt> without the need to reconstruct the user interface, which is a costly process. You can instead simply exchange the game
   object, as it is done for loading games or as it would be needed for network play or switching missions.</p>
 
@@ -362,24 +434,24 @@ if (!myptr)
   <p>This partitioning brings problems as you see, but also has its advantages. You can simulate the game without need to render it. This allows dedicated servers. Or it allows to exchange the
   renderer or many more things.</p>
 
-  <h1><a name="SECTION00240000000000000000" id="SECTION00240000000000000000">Coding style</a></h1>
+  <h1><a name="SECTION00500000000000000000" id="SECTION00500000000000000000">Coding style</a></h1>
 
-  <h2><a name="SECTION00241000000000000000" id="SECTION00241000000000000000">Introduction</a></h2>This is a topic that can cause more heat than light when discussed. Everyone has and likes his own
-  style. Anyway, this here is the style we use in the source code of <span class="textsf">Danger from the Deep</span> . You have been warned.
+  <h1><a name="SECTION00510000000000000000" id="SECTION00510000000000000000">Introduction</a></h1>This is a topic that can cause more heat than light when discussed. Everyone has and likes his own
+  style. Anyway, this here is the style we use in the source code of <span class="textsf">Danger from the Deep</span>. You have been warned.
 
-  <p>It is desirable to use <span class="textit">one</span> style throughout the whole code to enhance readability. But creating working code is of course more important than keeping style
+  <p>It is desireable to use <span class="textit">one</span> style throughout the whole code to enhance readability. But creating working code is of course more important than keeping style
   consistent at any cost. If you create new code and have the choice, you should use the game's style to enhance readability though. Code that was contributed by other people may have a different
   style, this is the case in some parts of current code.</p>
 
   <p>This style originated from the ideas of the coding style of the Linux Kernel (originally written by Linus Torvalds). Although everyone likes his own style and mostly there are arguments pro or
   contra a certain style, this one is reasonable. See below.</p>
 
-  <h2><a name="SECTION00242000000000000000" id="SECTION00242000000000000000">Indentation</a></h2>People differ on how many spaces to indent. In my opinion everything less than four is a pain. I use
+  <h1><a name="SECTION00520000000000000000" id="SECTION00520000000000000000">Indentation</a></h1>People differ on how many spaces to indent. In my opinion everything less than four is a pain. I use
   eight, because this will really help one to see <span class="textbf">how</span> indentation works (and even after sitting many hours in front of the monitor). The simple solution to this problem
   is: use <span class="textbf">TABs</span> for indentation. Everyone can set his favorite tab width in his editor then. There is another reason: indenting that much prevents you from nesting your
   code to deep, which is a good help to avoid too complex code.
 
-  <h2><a name="SECTION00243000000000000000" id="SECTION00243000000000000000">Placing (curly) braces</a></h2>
+  <h1><a name="SECTION00530000000000000000" id="SECTION00530000000000000000">Placing (curly) braces</a></h1>
 
   <p>Yes, the old C discussion. I place braces at the end of the line of the command. Want an example? here it comes:</p>
 
@@ -437,11 +509,11 @@ class xyz : public abc
   that wastes less space (especially saves lines!) without losing readability. I've seen much code that places each brace in its own line at the cost that the code is much longer. The longer it gets,
   the less fits on one screen and one needs to scroll, which makes it more difficult to follow the execution path of the code and to understand it.</p>
 
-  <h2><a name="SECTION00244000000000000000" id="SECTION00244000000000000000">Naming</a></h2>
+  <h1><a name="SECTION00540000000000000000" id="SECTION00540000000000000000">Naming</a></h1>
 
   <p>I prefer using lowerspace characters and underscores. Why? humans are more trained to read lowerspace characters and underscores are a better optical partition than mixing lowerspace and
   upperspace characters. Example: read this fast and see what is easier. Lowerspace <span class="textbf">this_variable_has_a_very_long_name</span>. Upperspace <span class=
-  "textbf">thisVariableHasAVeryLongName</span>. Horrible. Looks crowded to me. If you write code for <span class="textsf">Danger from the Deep</span> , please follow the rules and use underscores and
+  "textbf">thisVariableHasAVeryLongName</span>. Horrible. Looks crowded to me. If you write code for <span class="textsf">Danger from the Deep</span>, please follow the rules and use underscores and
   not mixed-case names.</p>
 
   <p>The same goes for classes, members and functions. All should be in lowerspace form. Methods that return some data from a class should be named <span class="textbf">get_xyz()</span> when
@@ -455,16 +527,144 @@ class xyz : public abc
   <p>Cause of the real problem: maybe you also have too many variables so that you want to add the type to distinguish between them? Another problem is the reason: don't make functions or classes too
   long or too complicated!</p>
 
-  <h2><a name="SECTION00245000000000000000" id="SECTION00245000000000000000">Closing words</a></h2>
+  <h1><a name="SECTION00550000000000000000" id="SECTION00550000000000000000">Closing words</a></h1>
 
   <p>These rules are no strict "you must follow them" rules. I prefer working code is added to the game rather than keeping the style conform. But it can help to read and understand the code, so
   please try to keep the style.</p>
 
-  <h1><a name="SECTION00250000000000000000" id="SECTION00250000000000000000">What needs to be done</a></h1>
+  <h1><a name="SECTION00600000000000000000" id="SECTION00600000000000000000">What needs to be done</a></h1>
 
-  <h2><a name="SECTION00251000000000000000" id="SECTION00251000000000000000">Janitors wanted</a></h2>
-</body>
-</html>
+  <p>Beside the official ``To Do'' lists or fixing reported bugs, what needs to be done about the sourcecode?</p>
+
+  <ul>
+    <li>Add Doxygen documentation for important interfaces, classes and functions</li>
+
+    <li>Check for readability of code and comments</li>
+
+    <li>Check every place where a ``fixme'' was strayed out if it is still valid or can be fixed easily</li>
+
+    <li>Clean up the code - remove obvious bugs or resolve badly readable code</li>
+
+    <li>Extend this codeguide with growing knowledge</li>
+  </ul>
+
+  <p>Most of these topics are valid for any software project around, but can be an easy starting point for anyone who wants to join the development team. The work can be a bit boring though.</p>
+
+  <h1><a name="SECTION00700000000000000000" id="SECTION00700000000000000000">Water rendering</a></h1>
+
+  <h1><a name="SECTION00710000000000000000" id="SECTION00710000000000000000">Introduction</a></h1>
+
+  <p>As you have read earlier, the project raised around a water rendering test with OpenGL. Since that time many monthes have passed and many lines of code or comments have been written and also
+  scrapped about that topic.</p>
+
+  <p>It is not only important to give you general information about the code and the project, but also to archive experience about certain topics. We have researched some aspects or experimented
+  around them. This is true for historical technical stuff like sonar, torpedoes, submarine and ship types, convoy routes and tactics and many more things. Some documentation is available
+  externally.</p>
+
+  <p>We also researched and experimented about certain techniques of rendering the environment you can see in <span class="textsf">Danger from the Deep</span>. Is is of some value to centrally store
+  the gained knowledge. This chapter is about water rendering, a very interesting topic, and one of the most important rendering topics around a submarine simulation.</p>
+
+  <h1><a name="SECTION00720000000000000000" id="SECTION00720000000000000000">Requirements</a></h1>
+
+  <p>The most common scenario for <span class="textsf">Danger from the Deep</span> are actions on the open ocean. So we need to render a realistic ocean environment with all types of weather. This
+  includes:</p>
+
+  <ul>
+    <li>Ocean surface with realistic form (waves)</li>
+
+    <li>Correct rendering of water color</li>
+
+    <li>Extra effects of water: foam, spray, reflections</li>
+
+    <li>Interaction of water with objects or coast</li>
+
+    <li>Influence of water surface to ship movement (tide, rolling)</li>
+
+    <li>Underwater renderering for outside views or torpedo-cameras</li>
+  </ul>
+
+  <p>At the moment not all of these topics have been implemented and some are more important than others. What is most important is the rendering of a realistically shaped surface of water with
+  correct lighting. This is already implemented rather well, but many improvements have been planned by various developers and will be implemented later.</p>
+
+  <h1><a name="SECTION00730000000000000000" id="SECTION00730000000000000000">Shape of ocean</a></h1>
+
+  <p>Ocean waves show a certain pattern, that looks like it is repeating or self-similar. The surface is rather rough and very detailed. It varies from small waves in the near to large waves that can
+  be seen in the distance of many kilometers up to the horizon. We have to compute 3D shape data of the ocean surface that is realistic and on the other hand fits to memory. Ocean waves can be
+  represented by a height field if we leave out breaking waves, were wave tops collapse. So for every point <span class="MATH"><img width="88" height="37" align="middle" border="0" src="codeguide/img1.png"
+  alt="$P=(x,y)$" /></span> on the ocean surface we have exactly one height value <span class="MATH"><img width="95" height="37" align="middle" border="0" src="codeguide/img2.png" alt="$h = f(x,y)$" /></span>
+  where <span class="MATH"><img width="16" height="35" align="middle" border="0" src="codeguide/img3.png" alt="$f$" /></span> is a function that can compute these height values. The task is now to compute
+  <span class="MATH"><img width="16" height="35" align="middle" border="0" src="codeguide/img3.png" alt="$f$" /></span> or find a good approximation.</p>
+
+  <p>There are many possible ways: simple plasma-like noise (Perlin-Noise), fractals, statistical data et cetera. To compute any function <span class="MATH"><img width="16" height="35" align="middle"
+  border="0" src="codeguide/img3.png" alt="$f$" /></span> in realtime we will certainly need to limit the area in the XY-plane where <span class="MATH"><img width="16" height="35" align="middle" border="0"
+  src="codeguide/img3.png" alt="$f$" /></span> can generate values for. The obvious idea is to create a function that generates tileable data, that is, <!-- MATH
+ $f(x,y) = f(x',y')$
+ -->
+  <span class="MATH"><img width="148" height="37" align="middle" border="0" src="codeguide/img4.png" alt="$f(x,y) = f(x',y')$" /></span> where <span class="MATH"><img width="55" height="17" align="bottom"
+  border="0" src="codeguide/img5.png" alt="$x = x' $" /></span> modulo <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="codeguide/img6.png" alt="$N$" /></span> and <span class=
+  "MATH"><img width="54" height="38" align="middle" border="0" src="codeguide/img7.png" alt="$y = y'$" /></span> modulo <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="codeguide/img6.png"
+  alt="$N$" /></span> for some value <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="codeguide/img6.png" alt="$N$" /></span>. This is true for most noise functions.</p>
+
+  <p>We tried out some alternatives, but what gives the best result by far is a statistically based model that computes random frequencies with a gauss distribution and converts these to the spatial
+  domain via a Fourier transform. This is the famous model presented in the paper by Jerry Tessendorf about ocean rendering and referenced hier as the FFT-approach.</p>
+
+  <p>We use a function to generate tileable height values of a certain resolution <span class="MATH"><img width="56" height="16" align="bottom" border="0" src="codeguide/img8.png" alt="$N*N$" /></span> where
+  <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="codeguide/img6.png" alt="$N$" /></span> is a power of <span class="MATH"><img width="14" height="19" align="bottom" border="0"
+  src="codeguide/img9.png" alt="$2$" /></span> for computational simplicity and because of the constraints of the model. A tile of size <span class="MATH"><img width="63" height="16" align="bottom" border="0"
+  src="codeguide/img10.png" alt="$M*M$" /></span> in square meters is generated. Detail per meter is of course <span class="MATH"><img width="95" height="37" align="middle" border="0" src="codeguide/img11.png" alt=
+  "$D := N/M$" /></span>. Larger numbers of <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="codeguide/img6.png" alt="$N$" /></span> cause more detailed waves, but consume enormous
+  amounts of memory when precomputed. Larger values of <span class="MATH"><img width="25" height="16" align="bottom" border="0" src="codeguide/img12.png" alt="$M$" /></span> are important to create realistic
+  waves, but lead to a bigger <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="codeguide/img6.png" alt="$N$" /></span> needed. Since waves are changing shape we need to compute an
+  animation over time. If we want to precompute the height values, we need a function that is not only tileable in the spatial domain but also in the temporal domain.</p>
+
+  <p>This can be done with the FFT-approach also very easily, but leads to even more memory consumption. Today's computers have enough memory though. Some feasible values are <span class=
+  "MATH"><img width="75" height="16" align="bottom" border="0" src="codeguide/img13.png" alt="$N=128$" /></span>, <span class="MATH"><img width="78" height="16" align="bottom" border="0" src="codeguide/img14.png" alt=
+  "$M=256$" /></span> and <span class="MATH"><img width="72" height="16" align="bottom" border="0" src="codeguide/img15.png" alt="$A=256$" /></span> where <span class="MATH"><img width="19" height="16" align=
+  "bottom" border="0" src="codeguide/img16.png" alt="$A$" /></span> is the number of animation frames. We animate the waves with <span class="MATH"><img width="23" height="19" align="bottom" border="0" src=
+  "codeguide/img17.png" alt="$25$" /></span> frames per second. Although waves are represented as height field, much better results can be achieved, when the waves are not rendered with regular grid in
+  XY-plane but with certain displacements.</p>
+
+  <p>Thus we need <span class="MATH"><img width="14" height="19" align="bottom" border="0" src="codeguide/img18.png" alt="$3$" /></span> coefficients for each wave data sample: <span class="MATH"><img width=
+  "66" height="37" align="middle" border="0" src="codeguide/img19.png" alt="$(x,y,z)$" /></span>. We use IEEE 754 float values for the coefficients, so the memory consumption is: <span class="MATH"><img width=
+  "143" height="16" align="bottom" border="0" src="codeguide/img20.png" alt="$N*N*A*3*4$" /></span> bytes (each float value has <span class="MATH"><img width="14" height="19" align="bottom" border="0" src=
+  "codeguide/img21.png" alt="$4$" /></span> bytes). This gives for the values mentioned above: <!-- MATH
+ $2^7*2^7*2^8*3*2^2=2^{(7+7+8+2)}*3=2^{24}*3=48$
+ -->
+  <span class="MATH"><img width="405" height="23" align="bottom" border="0" src="codeguide/img22.png" alt="$2^7*2^7*2^8*3*2^2=2^{(7+7+8+2)}*3=2^{24}*3=48$" /></span> megabytes. That is fully acceptable for
+  today's computers.</p>
+
+  <p>There are many possible ways to spare some memory, like computing less frames per second and interpolating in temporal domain or by computing the animation in real-time. The latter idea has the
+  advantage that waves don't need to loop over time, leading to a more realistical appearance. The disadvantage is that the computation needs critical amounts of CPU time.</p>
+
+  <h1><a name="SECTION00740000000000000000" id="SECTION00740000000000000000">Rendering of the geometry</a></h1>
+
+  <p>As we have seen, water has incredible detail from close waves to the horizon. It just doesn't fit to the approach of rendering flat triangles. We would need to render many, many triangles per
+  frame. But modern video cards can do this. And there are tricks like simulating geometry (normal mapping). But we need to build triangles of the height data and render them on the screen. For any
+  near-realistic approach we need many triangles, certainly more than 10,000 per frame.</p>
+
+  <p>Now there are several ways how to generate triangles from the height data and how. We tried out many different things, but two are of most interest. The first techique is called ``projected
+  grid'' and is currently in use. It's benefit is that we have triangles with similar area all around the screen, no matter in which direction we look or in what angle. Near waves show same detail
+  per screen area than far waves. The disadvantages are that the computation of the triangle's vertices are very costly. The second technique is called ``geoclipmap''-rendering and is a modification
+  of the so called geoclipmap-rendering algorithm. It is a level-of-detail approach, where several levels with fix triangle sizes are rendered from close to far view. Computations are much easier,
+  but triangle areas do vary more and we need more triangles per frame to get similar results.</p>
+
+  <p>The first technique is currently implemented and works rather well, but has reached its limits. Also some minor bugs remain.</p>
+
+  <p>The second technique can do more and can be extended to render more surface detail on faster video cards. It can be supported by the video card better. On future cards it can be computed fully
+  on the video card. Research in that area goes on, a test implementation is also done and available in CVS.</p>
+
+  <h1><a name="SECTION00750000000000000000" id="SECTION00750000000000000000">Lighting and color</a></h1>
+
+  <h2><a name="SECTION00751000000000000000" id="SECTION00751000000000000000">Normal mapping</a></h2>
+
+  <h1><a name="SECTION00760000000000000000" id="SECTION00760000000000000000">Surface effects</a></h1>
+
+  <p>foam, spray</p>
+
+  <h1><a name="SECTION00770000000000000000" id="SECTION00770000000000000000">Interaction</a></h1>
+
+  <p>tide, rolling, coast.</p>
+
 	</div>
 	<div class="foot">&copy; 2006-2007 Danger from the Deep</div>
 	</div>

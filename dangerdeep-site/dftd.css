@@ -13,6 +13,16 @@ img.right {
 	float: right;
 }
 
+span.MATH img {
+	text-align: left;
+	background-color: #bbb;
+	border: 1px solid #fff;
+	white-space: pre;
+	color: #000;
+	padding: 2px;
+	margin: 1px;
+}
+
 h2.center {
 	text-align: center;
 }
