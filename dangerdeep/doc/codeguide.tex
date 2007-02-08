@@ -18,7 +18,14 @@
 
 \begin{document}
 
-\titlepage
+% title page
+\thispagestyle{empty}
+\setlength{\parindent}{0em}
+\begin{center}
+\LARGE\setlength{\parindent}{0cm}
+\textbf{A guide to the sourcecode of \dftd}
+\end{center}
+\pagebreak
 
 \tableofcontents
 
@@ -659,7 +666,172 @@ class xyz : public abc
     
     \chapter{What needs to be done}
 
-    \section{Janitors wanted}
+    Beside the official ``To Do'' lists or fixing reported bugs, what
+    needs to be done about the sourcecode?
 
+    \begin{itemize}
+    \item Add Doxygen documentation for important interfaces, classes
+      and functions
+    \item Check for readability of code and comments
+    \item Check every place where a ``fixme'' was strayed out if it is
+      still valid or can be fixed easily
+    \item Clean up the code - remove obvious bugs or resolve badly
+      readable code
+    \item Extend this codeguide with growing knowledge
+    \end{itemize}
 
- \end{document}
+    Most of these topics are valid for any software project around, but
+    can be an easy starting point for anyone who wants to join the
+    development team. The work can be a bit boring though.
+
+\chapter{Water rendering}
+
+\section{Introduction}
+
+As you have read earlier, the project raised around a water rendering
+test with OpenGL. Since that time many monthes have passed and many
+lines of code or comments have been written and also scrapped about that
+topic.
+
+It is not only important to give you general information about the code
+and the project, but also to archive experience about certain topics. We
+have researched some aspects or experimented around them. This is true
+for historical technical stuff like sonar, torpedoes, submarine and ship
+types, convoy routes and tactics and many more things. Some
+documentation is available externally.
+
+We also researched and experimented about certain techniques of
+rendering the environment you can see in \dftd. Is is of some value to
+centrally store the gained knowledge. This chapter is about water
+rendering, a very interesting topic, and one of the most important
+rendering topics around a submarine simulation.
+
+\section{Requirements}
+
+The most common scenario for \dftd\ are actions on the open ocean. So we
+need to render a realistic ocean environment with all types of weather.
+This includes:
+
+\begin{itemize}
+\item Ocean surface with realistic form (waves)
+\item Correct rendering of water color
+\item Extra effects of water: foam, spray, reflections
+\item Interaction of water with objects or coast
+\item Influence of water surface to ship movement (tide, rolling)
+\item Underwater renderering for outside views or torpedo-cameras
+\end{itemize}
+
+At the moment not all of these topics have been implemented and some are
+more important than others. What is most important is the rendering of a
+realistically shaped surface of water with correct lighting. This is
+already implemented rather well, but many improvements have been planned
+by various developers and will be implemented later.
+
+\section{Shape of ocean}
+
+Ocean waves show a certain pattern, that looks like it is repeating or
+self-similar. The surface is rather rough and very detailed. It varies
+from small waves in the near to large waves that can be seen in the
+distance of many kilometers up to the horizon. We have to compute 3D
+shape data of the ocean surface that is realistic and on the other hand
+fits to memory. Ocean waves can be represented by a height field if we
+leave out breaking waves, were wave tops collapse. So for every point
+$P=(x,y)$ on the ocean surface we have exactly one height value $h =
+f(x,y)$ where $f$ is a function that can compute these height values.
+The task is now to compute $f$ or find a good approximation.
+
+There are many possible ways: simple plasma-like noise (Perlin-Noise),
+fractals, statistical data et cetera. To compute any function $f$ in
+realtime we will certainly need to limit the area in the XY-plane where
+$f$ can generate values for. The obvious idea is to create a function
+that generates tileable data, that is, $f(x,y) = f(x',y')$ where $x = x'
+$ modulo $N$ and $y = y'$ modulo $N$ for some value $N$. This is true
+for most noise functions.
+
+We tried out some alternatives, but what gives the best result by far is
+a statistically based model that computes random frequencies with a
+gauss distribution and converts these to the spatial domain via a
+Fourier transform. This is the famous model presented in the paper by
+Jerry Tessendorf about ocean rendering and referenced hier as the
+FFT-approach.
+
+We use a function to generate tileable height values of a certain
+resolution $N*N$ where $N$ is a power of $2$ for computational
+simplicity and because of the constraints of the model. A tile of size
+$M*M$ in square meters is generated. Detail per meter is of course $D :=
+N/M$. Larger numbers of $N$ cause more detailed waves, but consume
+enormous amounts of memory when precomputed. Larger values of $M$ are
+important to create realistic waves, but lead to a bigger $N$ needed.
+Since waves are changing shape we need to compute an animation over
+time. If we want to precompute the height values, we need a function
+that is not only tileable in the spatial domain but also in the temporal
+domain.
+
+This can be done with the FFT-approach also very easily, but leads to
+even more memory consumption. Today's computers have enough memory
+though. Some feasible values are $N=128$, $M=256$ and $A=256$ where $A$
+is the number of animation frames. We animate the waves with $25$ frames
+per second. Although waves are represented as height field, much better
+results can be achieved, when the waves are not rendered with regular
+grid in XY-plane but with certain displacements.
+
+Thus we need $3$ coefficients for each wave data sample: $(x,y,z)$. We
+use IEEE 754 float values for the coefficients, so the memory
+consumption is: $N*N*A*3*4$ bytes (each float value has $4$ bytes). This
+gives for the values mentioned above:
+$2^7*2^7*2^8*3*2^2=2^{(7+7+8+2)}*3=2^{24}*3=48$ megabytes. That is fully
+acceptable for today's computers.
+
+There are many possible ways to spare some memory, like computing less
+frames per second and interpolating in temporal domain or by computing
+the animation in real-time. The latter idea has the advantage that waves
+don't need to loop over time, leading to a more realistical appearance.
+The disadvantage is that the computation needs critical amounts of CPU
+time.
+
+\section{Rendering of the geometry}
+
+As we have seen, water has incredible detail from close waves to the
+horizon. It just doesn't fit to the approach of rendering flat
+triangles. We would need to render many, many triangles per frame. But
+modern video cards can do this. And there are tricks like simulating
+geometry (normal mapping). But we need to build triangles of the height
+data and render them on the screen. For any near-realistic approach we
+need many triangles, certainly more than 10,000 per frame.
+
+Now there are several ways how to generate triangles from the height
+data and how. We tried out many different things, but two are of most
+interest. The first techique is called ``projected grid'' and is
+currently in use. It's benefit is that we have triangles with similar
+area all around the screen, no matter in which direction we look or in
+what angle. Near waves show same detail per screen area than far waves.
+The disadvantages are that the computation of the triangle's vertices
+are very costly. The second technique is called ``geoclipmap''-rendering
+and is a modification of the so called geoclipmap-rendering algorithm.
+It is a level-of-detail approach, where several levels with fix triangle
+sizes are rendered from close to far view. Computations are much easier,
+but triangle areas do vary more and we need more triangles per frame to
+get similar results.
+
+The first technique is currently implemented and works rather well, but
+has reached its limits. Also some minor bugs remain.
+
+The second technique can do more and can be extended to render more
+surface detail on faster video cards. It can be supported by the video
+card better. On future cards it can be computed fully on the video card.
+Research in that area goes on, a test implementation is also done and
+available in CVS.
+
+\section{Lighting and color}
+
+\subsection{Normal mapping}
+
+\section{Surface effects}
+
+foam, spray
+
+\section{Interaction}
+
+tide, rolling, coast.
+
+\end{document}
