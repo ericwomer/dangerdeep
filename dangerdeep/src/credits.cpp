@@ -20,6 +20,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texture.h"
 #include "font.h"
 #include "system.h"
+#include "shader.h"
+#include "datadirs.h"
 
 // instead of including global_data.h
 extern font* font_arial;
@@ -108,11 +110,19 @@ void show_credits()
 {
 	glClearColor(0.1,0.25,0.4,0);
 
-//	model* mdlgear = new model(get_model_dir() + "gear.3ds", true, false);
-//	bool ok = modelcache.ref("gear.3ds", mdlgear);
-//	sys().myassert(ok, "weird error");
-	
-//	mdlgear->get_mesh(0).mymaterial->col = color(255,255,255);
+	std::auto_ptr<texture> bkg;
+	std::auto_ptr<glsl_shader_setup> glss;
+	bool use_shaders = glsl_program::supported();
+	if (use_shaders) {
+		const unsigned sz = 16;
+		std::vector<Uint8> data(sz*sz);
+		for (unsigned y = 0; y < sz; ++y)
+			for (unsigned x = 0; x < sz; ++x)
+				data[y*sz+x] = rand() & 0xff;
+		bkg.reset(new texture(data, sz, sz, GL_LUMINANCE, texture::LINEAR, texture::REPEAT));
+		glss.reset(new glsl_shader_setup(get_shader_dir() + "credits.vshader",
+						 get_shader_dir() + "credits.fshader"));
+	}
 
 	int lineheight = font_arial->get_height();
 	int lines_per_page = (768+lineheight-1)/lineheight;
@@ -125,7 +135,8 @@ void show_credits()
 	float lposition[4] = {200, 0, 0, 1};
 
 	bool quit = false;
-	float ang = 0.0f, ang_per_sec = 10.0f, r = 78, lines_per_sec = 2, d = -150;
+	float lines_per_sec = 2;
+	float ctr = 0.0, ctradd = 1.0/32.0;
 	unsigned tm = sys().millisec();
 	while (!quit) {
 		sys().poll_event_queue();
@@ -133,26 +144,30 @@ void show_credits()
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glPushMatrix();
-		glLoadIdentity();
-		glLightfv(GL_LIGHT0, GL_POSITION, lposition);
-		glRotatef(ang/10, 0, 0, 1);
-
-		glPushMatrix();
-		glTranslatef(-r,r,d);
-		glRotatef(ang, 0, 0, 1);
-//		mdlgear->display();
-		glPopMatrix();
-
-		glPushMatrix();
-		glTranslatef(r,-r,d);
-		glRotatef(4.05-ang, 0, 0, 1);
-//		mdlgear->display();
-		glPopMatrix();
-		
-		glPopMatrix();
-
 		sys().prepare_2d_drawing();
+
+		if (use_shaders) {
+			glss->use();
+			glColor4f(0.2,0.8,1,1);
+			bkg->set_gl_texture();
+			glBegin(GL_QUADS);
+			glTexCoord2f(0+ctr,0);
+			glMultiTexCoord2f(GL_TEXTURE1_ARB, ctr, ctr*0.5);
+			glVertex2i(0,768);
+			glTexCoord2f(1.33333+ctr,0);
+			glMultiTexCoord2f(GL_TEXTURE1_ARB, ctr, ctr*0.5);
+			glVertex2i(1024,768);
+			glTexCoord2f(1.33333+ctr,1);
+			glMultiTexCoord2f(GL_TEXTURE1_ARB, ctr, ctr*0.5);
+			glVertex2i(1024,0);
+			glTexCoord2f(0+ctr,1);
+			glMultiTexCoord2f(GL_TEXTURE1_ARB, ctr, ctr*0.5);
+			glVertex2i(0,0);
+			glEnd();
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glss->use_fixed();
+		}
+
 		for (int i = textpos; i <= textpos+lines_per_page; ++i) {
 			if (i >= 0 && i < textlines) {
 				font_arial->print_hc(512, (i-textpos)*lineheight+int(-lineoffset*lineheight), credits[i], color::white(), true);
@@ -166,12 +181,10 @@ void show_credits()
 		lineoffset -= tmp;
 		textpos += tmp;
 		if (textpos >= textendpos) textpos = -lines_per_page;
-		ang += ang_per_sec*(tm2-tm)/1000.0f;
+		ctr += ctradd * (tm2-tm)/1000.0f;
 		tm = tm2;
 		sys().swap_buffers();
 	}
-	
-//	modelcache.unref("gear.3ds");
 	
 	glClearColor(0, 0, 1, 0);
 }
