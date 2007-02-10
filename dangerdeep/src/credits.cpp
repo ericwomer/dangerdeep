@@ -63,6 +63,7 @@ const char* credits[] = {
 "Jose Alonso Cardenas Marquez (acm) (FreeBSD)",
 "", "", "", "", "",
 "$80ffc0Web site administrator",
+"$ffffffMatt Lawrence",
 "$ffffffAlexandre Paes",
 "$ffffffViktor Radnai",
 "", "", "", "", "",
