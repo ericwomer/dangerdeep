@@ -60,6 +60,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "music.h"
 #include "faulthandler.h"
 #include "datadirs.h"
+#include "credits.h"
 
 #include "mymain.cpp"
 
@@ -374,83 +375,6 @@ void show_results_for_game(const game& gm)
 	os << "total: " << totaltons;
 	wl->append_entry(os.str());
 	w.run(0, false);
-}
-
-
-//
-// show the credits
-//
-#include "credits.h"
-void show_credits()
-{
-	glClearColor(0.1,0.25,0.4,0);
-
-//	model* mdlgear = new model(get_model_dir() + "gear.3ds", true, false);
-//	bool ok = modelcache.ref("gear.3ds", mdlgear);
-//	sys().myassert(ok, "weird error");
-	
-//	mdlgear->get_mesh(0).mymaterial->col = color(255,255,255);
-
-	int lineheight = font_arial->get_height();
-	int lines_per_page = (768+lineheight-1)/lineheight;
-	int textpos = -lines_per_page;
-	int textlines = 0;
-	for ( ; credits[textlines] != 0; ++textlines);
-	int textendpos = textlines;
-	float lineoffset = 0.0f;
-
-	float lposition[4] = {200, 0, 0, 1};
-
-	bool quit = false;
-	float ang = 0.0f, ang_per_sec = 10.0f, r = 78, lines_per_sec = 2, d = -150;
-	unsigned tm = sys().millisec();
-	while (!quit) {
-		sys().poll_event_queue();
-		if (sys().get_key().sym == SDLK_ESCAPE) quit = true;
-
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glPushMatrix();
-		glLoadIdentity();
-		glLightfv(GL_LIGHT0, GL_POSITION, lposition);
-		glRotatef(ang/10, 0, 0, 1);
-
-		glPushMatrix();
-		glTranslatef(-r,r,d);
-		glRotatef(ang, 0, 0, 1);
-//		mdlgear->display();
-		glPopMatrix();
-
-		glPushMatrix();
-		glTranslatef(r,-r,d);
-		glRotatef(4.05-ang, 0, 0, 1);
-//		mdlgear->display();
-		glPopMatrix();
-		
-		glPopMatrix();
-
-		sys().prepare_2d_drawing();
-		for (int i = textpos; i <= textpos+lines_per_page; ++i) {
-			if (i >= 0 && i < textlines) {
-				font_arial->print_hc(512, (i-textpos)*lineheight+int(-lineoffset*lineheight), credits[i], color::white(), true);
-			}
-		}
-		sys().unprepare_2d_drawing();
-
-		unsigned tm2 = sys().millisec();
-		lineoffset += lines_per_sec*(tm2-tm)/1000.0f;
-		int tmp = int(lineoffset);
-		lineoffset -= tmp;
-		textpos += tmp;
-		if (textpos >= textendpos) textpos = -lines_per_page;
-		ang += ang_per_sec*(tm2-tm)/1000.0f;
-		tm = tm2;
-		sys().swap_buffers();
-	}
-	
-//	modelcache.unref("gear.3ds");
-	
-	glClearColor(0, 0, 1, 0);
 }
 
 

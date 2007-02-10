@@ -12,6 +12,7 @@ dftdsources = Split("""subsim.cpp
 	coastmap.cpp
 	convoy.cpp
 	countrycodes.cpp
+	credits.cpp
 	date.cpp
 	daysky.cpp
 	depth_charge.cpp
