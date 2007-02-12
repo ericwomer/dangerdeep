@@ -30,7 +30,7 @@
 	</div>
 	<div class="contents">
   <div align="center">
-    <h1>A guide to the sourcecode of Danger from the Deep</h1>
+    <big class="XXLARGE"><span class="textbf">A guide to the sourcecode of <span class="textsf">Danger from the Deep</span></span></big>
   </div>
 
   <p><br /></p>
@@ -309,7 +309,7 @@ if (!myptr)
 
   <p>Class diagram:</p>
 
-  <div align="center">
+  <div class="classdiagram">
     <a name="classdiagram" id="classdiagram"></a>
 
     <table>
@@ -319,7 +319,7 @@ if (!myptr)
 
       <tr>
         <td>
-          <div align="center"></div><img align="bottom" border="0" src="./codeguide/classdiagram.png" alt="Image classdiagram" />
+          <div align="center"></div><img src="/codeguide/classdiagram.png" alt="Image classdiagram" />
         </td>
       </tr>
     </table>
@@ -590,47 +590,47 @@ class xyz : public abc
 
   <p>Ocean waves show a certain pattern, that looks like it is repeating or self-similar. The surface is rather rough and very detailed. It varies from small waves in the near to large waves that can
   be seen in the distance of many kilometers up to the horizon. We have to compute 3D shape data of the ocean surface that is realistic and on the other hand fits to memory. Ocean waves can be
-  represented by a height field if we leave out breaking waves, were wave tops collapse. So for every point <span class="MATH"><img width="88" height="37" align="middle" border="0" src="codeguide/img1.png"
-  alt="$P=(x,y)$" /></span> on the ocean surface we have exactly one height value <span class="MATH"><img width="95" height="37" align="middle" border="0" src="codeguide/img2.png" alt="$h = f(x,y)$" /></span>
-  where <span class="MATH"><img width="16" height="35" align="middle" border="0" src="codeguide/img3.png" alt="$f$" /></span> is a function that can compute these height values. The task is now to compute
-  <span class="MATH"><img width="16" height="35" align="middle" border="0" src="codeguide/img3.png" alt="$f$" /></span> or find a good approximation.</p>
+  represented by a height field if we leave out breaking waves, were wave tops collapse. So for every point <span class="MATH"><img width="88" height="37" align="middle" border="0" src="/codeguide/img1.png"
+  alt="$P=(x,y)$" /></span> on the ocean surface we have exactly one height value <span class="MATH"><img width="95" height="37" align="middle" border="0" src="/codeguide/img2.png" alt="$h = f(x,y)$" /></span>
+  where <span class="MATH"><img width="16" height="35" align="middle" border="0" src="/codeguide/img3.png" alt="$f$" /></span> is a function that can compute these height values. The task is now to compute
+  <span class="MATH"><img width="16" height="35" align="middle" border="0" src="/codeguide/img3.png" alt="$f$" /></span> or find a good approximation.</p>
 
   <p>There are many possible ways: simple plasma-like noise (Perlin-Noise), fractals, statistical data et cetera. To compute any function <span class="MATH"><img width="16" height="35" align="middle"
-  border="0" src="codeguide/img3.png" alt="$f$" /></span> in realtime we will certainly need to limit the area in the XY-plane where <span class="MATH"><img width="16" height="35" align="middle" border="0"
-  src="codeguide/img3.png" alt="$f$" /></span> can generate values for. The obvious idea is to create a function that generates tileable data, that is, <!-- MATH
+  border="0" src="/codeguide/img3.png" alt="$f$" /></span> in realtime we will certainly need to limit the area in the XY-plane where <span class="MATH"><img width="16" height="35" align="middle" border="0"
+  src="/codeguide/img3.png" alt="$f$" /></span> can generate values for. The obvious idea is to create a function that generates tileable data, that is, <!-- MATH
  $f(x,y) = f(x',y')$
  -->
-  <span class="MATH"><img width="148" height="37" align="middle" border="0" src="codeguide/img4.png" alt="$f(x,y) = f(x',y')$" /></span> where <span class="MATH"><img width="55" height="17" align="bottom"
-  border="0" src="codeguide/img5.png" alt="$x = x' $" /></span> modulo <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="codeguide/img6.png" alt="$N$" /></span> and <span class=
-  "MATH"><img width="54" height="38" align="middle" border="0" src="codeguide/img7.png" alt="$y = y'$" /></span> modulo <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="codeguide/img6.png"
-  alt="$N$" /></span> for some value <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="codeguide/img6.png" alt="$N$" /></span>. This is true for most noise functions.</p>
+  <span class="MATH"><img width="148" height="37" align="middle" border="0" src="/codeguide/img4.png" alt="$f(x,y) = f(x',y')$" /></span> where <span class="MATH"><img width="55" height="17" align="bottom"
+  border="0" src="/codeguide/img5.png" alt="$x = x' $" /></span> modulo <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="/codeguide/img6.png" alt="$N$" /></span> and <span class=
+  "MATH"><img width="54" height="38" align="middle" border="0" src="/codeguide/img7.png" alt="$y = y'$" /></span> modulo <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="/codeguide/img6.png"
+  alt="$N$" /></span> for some value <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="/codeguide/img6.png" alt="$N$" /></span>. This is true for most noise functions.</p>
 
   <p>We tried out some alternatives, but what gives the best result by far is a statistically based model that computes random frequencies with a gauss distribution and converts these to the spatial
   domain via a Fourier transform. This is the famous model presented in the paper by Jerry Tessendorf about ocean rendering and referenced hier as the FFT-approach.</p>
 
-  <p>We use a function to generate tileable height values of a certain resolution <span class="MATH"><img width="56" height="16" align="bottom" border="0" src="codeguide/img8.png" alt="$N*N$" /></span> where
-  <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="codeguide/img6.png" alt="$N$" /></span> is a power of <span class="MATH"><img width="14" height="19" align="bottom" border="0"
-  src="codeguide/img9.png" alt="$2$" /></span> for computational simplicity and because of the constraints of the model. A tile of size <span class="MATH"><img width="63" height="16" align="bottom" border="0"
-  src="codeguide/img10.png" alt="$M*M$" /></span> in square meters is generated. Detail per meter is of course <span class="MATH"><img width="95" height="37" align="middle" border="0" src="codeguide/img11.png" alt=
-  "$D := N/M$" /></span>. Larger numbers of <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="codeguide/img6.png" alt="$N$" /></span> cause more detailed waves, but consume enormous
-  amounts of memory when precomputed. Larger values of <span class="MATH"><img width="25" height="16" align="bottom" border="0" src="codeguide/img12.png" alt="$M$" /></span> are important to create realistic
-  waves, but lead to a bigger <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="codeguide/img6.png" alt="$N$" /></span> needed. Since waves are changing shape we need to compute an
+  <p>We use a function to generate tileable height values of a certain resolution <span class="MATH"><img width="56" height="16" align="bottom" border="0" src="/codeguide/img8.png" alt="$N*N$" /></span> where
+  <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="/codeguide/img6.png" alt="$N$" /></span> is a power of <span class="MATH"><img width="14" height="19" align="bottom" border="0"
+  src="/codeguide/img9.png" alt="$2$" /></span> for computational simplicity and because of the constraints of the model. A tile of size <span class="MATH"><img width="63" height="16" align="bottom" border="0"
+  src="/codeguide/img10.png" alt="$M*M$" /></span> in square meters is generated. Detail per meter is of course <span class="MATH"><img width="95" height="37" align="middle" border="0" src="/codeguide/img11.png" alt=
+  "$D := N/M$" /></span>. Larger numbers of <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="/codeguide/img6.png" alt="$N$" /></span> cause more detailed waves, but consume enormous
+  amounts of memory when precomputed. Larger values of <span class="MATH"><img width="25" height="16" align="bottom" border="0" src="/codeguide/img12.png" alt="$M$" /></span> are important to create realistic
+  waves, but lead to a bigger <span class="MATH"><img width="21" height="16" align="bottom" border="0" src="/codeguide/img6.png" alt="$N$" /></span> needed. Since waves are changing shape we need to compute an
   animation over time. If we want to precompute the height values, we need a function that is not only tileable in the spatial domain but also in the temporal domain.</p>
 
   <p>This can be done with the FFT-approach also very easily, but leads to even more memory consumption. Today's computers have enough memory though. Some feasible values are <span class=
-  "MATH"><img width="75" height="16" align="bottom" border="0" src="codeguide/img13.png" alt="$N=128$" /></span>, <span class="MATH"><img width="78" height="16" align="bottom" border="0" src="codeguide/img14.png" alt=
-  "$M=256$" /></span> and <span class="MATH"><img width="72" height="16" align="bottom" border="0" src="codeguide/img15.png" alt="$A=256$" /></span> where <span class="MATH"><img width="19" height="16" align=
-  "bottom" border="0" src="codeguide/img16.png" alt="$A$" /></span> is the number of animation frames. We animate the waves with <span class="MATH"><img width="23" height="19" align="bottom" border="0" src=
-  "codeguide/img17.png" alt="$25$" /></span> frames per second. Although waves are represented as height field, much better results can be achieved, when the waves are not rendered with regular grid in
+  "MATH"><img width="75" height="16" align="bottom" border="0" src="/codeguide/img13.png" alt="$N=128$" /></span>, <span class="MATH"><img width="78" height="16" align="bottom" border="0" src="/codeguide/img14.png" alt=
+  "$M=256$" /></span> and <span class="MATH"><img width="72" height="16" align="bottom" border="0" src="/codeguide/img15.png" alt="$A=256$" /></span> where <span class="MATH"><img width="19" height="16" align=
+  "bottom" border="0" src="/codeguide/img16.png" alt="$A$" /></span> is the number of animation frames. We animate the waves with <span class="MATH"><img width="23" height="19" align="bottom" border="0" src=
+  "/codeguide/img17.png" alt="$25$" /></span> frames per second. Although waves are represented as height field, much better results can be achieved, when the waves are not rendered with regular grid in
   XY-plane but with certain displacements.</p>
 
-  <p>Thus we need <span class="MATH"><img width="14" height="19" align="bottom" border="0" src="codeguide/img18.png" alt="$3$" /></span> coefficients for each wave data sample: <span class="MATH"><img width=
-  "66" height="37" align="middle" border="0" src="codeguide/img19.png" alt="$(x,y,z)$" /></span>. We use IEEE 754 float values for the coefficients, so the memory consumption is: <span class="MATH"><img width=
-  "143" height="16" align="bottom" border="0" src="codeguide/img20.png" alt="$N*N*A*3*4$" /></span> bytes (each float value has <span class="MATH"><img width="14" height="19" align="bottom" border="0" src=
-  "codeguide/img21.png" alt="$4$" /></span> bytes). This gives for the values mentioned above: <!-- MATH
+  <p>Thus we need <span class="MATH"><img width="14" height="19" align="bottom" border="0" src="/codeguide/img18.png" alt="$3$" /></span> coefficients for each wave data sample: <span class="MATH"><img width=
+  "66" height="37" align="middle" border="0" src="/codeguide/img19.png" alt="$(x,y,z)$" /></span>. We use IEEE 754 float values for the coefficients, so the memory consumption is: <span class="MATH"><img width=
+  "143" height="16" align="bottom" border="0" src="/codeguide/img20.png" alt="$N*N*A*3*4$" /></span> bytes (each float value has <span class="MATH"><img width="14" height="19" align="bottom" border="0" src=
+  "/codeguide/img21.png" alt="$4$" /></span> bytes). This gives for the values mentioned above: <!-- MATH
  $2^7*2^7*2^8*3*2^2=2^{(7+7+8+2)}*3=2^{24}*3=48$
  -->
-  <span class="MATH"><img width="405" height="23" align="bottom" border="0" src="codeguide/img22.png" alt="$2^7*2^7*2^8*3*2^2=2^{(7+7+8+2)}*3=2^{24}*3=48$" /></span> megabytes. That is fully acceptable for
+  <span class="MATH"><img width="405" height="23" align="bottom" border="0" src="/codeguide/img22.png" alt="$2^7*2^7*2^8*3*2^2=2^{(7+7+8+2)}*3=2^{24}*3=48$" /></span> megabytes. That is fully acceptable for
   today's computers.</p>
 
   <p>There are many possible ways to spare some memory, like computing less frames per second and interpolating in temporal domain or by computing the animation in real-time. The latter idea has the

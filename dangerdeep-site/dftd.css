@@ -13,6 +13,17 @@ img.right {
 	float: right;
 }
 
+div.classdiagram
+{
+	background-color: red;
+	width: 600px;
+	overflow: auto;
+	background-color: #444;
+	color: #fff;
+	border: 1px solid #fff;
+}
+
+/*
 span.MATH img {
 	text-align: left;
 	background-color: #bbb;
@@ -22,6 +33,8 @@ span.MATH img {
 	padding: 2px;
 	margin: 1px;
 }
+
+*/
 
 h2.center {
 	text-align: center;
