@@ -800,7 +800,7 @@ void game::add_logbook_entry(const string& s)
 {
 	// fixme: format of date is fix in logbook then, this is not optimal.
 	// when player changes language, format is not changed on display...
-	players_logbook.add_entry(texts::numeric_from_date(date(unsigned(get_time()))) + " : " + s);
+	players_logbook.add_entry(texts::numeric_from_daytime(date(unsigned(get_time()))) + " : " + s);
 }
 
 

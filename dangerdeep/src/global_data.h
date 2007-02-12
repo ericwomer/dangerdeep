@@ -38,6 +38,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <cmath>
 #include "objcache.h"
 #include <sstream>
+#include <iomanip>
 
 // fixme: remove this ugly crap, move to .cpp
 #define se_submarine_torpedo_launch "liquidblast.ogg"
@@ -141,5 +142,7 @@ std::list<std::string> string_split(const std::string& src, char splitter = ',')
 
 ///> transform any data type to a string for easier error reporting etc.
 template<typename T> std::string str(const T& x) { std::ostringstream oss; oss << x; return oss.str(); }
+///> do the same with width and filler
+template<typename T> std::string str_wf(const T& x, unsigned width, char filler = '0') { std::ostringstream oss; oss << std::setw(width) << std::setfill(filler) << x; return oss.str(); }
 
 #endif

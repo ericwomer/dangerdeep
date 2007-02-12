@@ -52,6 +52,7 @@ class texts
 	static unsigned get_current_language_nr();
 	static std::string get(unsigned no, category ct = common);
 	static std::string numeric_from_date(const class date& d);
+	static std::string numeric_from_daytime(const class date& d); // hours:minutes
 	static void read_available_language_codes();
 	static unsigned get_nr_of_available_languages();
 };

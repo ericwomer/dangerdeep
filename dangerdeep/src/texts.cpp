@@ -212,6 +212,39 @@ string texts::numeric_from_date(const date& d)
 
 
 
+string texts::numeric_from_daytime(const date& d)
+{
+	const string& fmt = get(1, formats);
+	string res;
+	for (string::size_type p = 0; p < fmt.length(); ) {
+		if (fmt[p] == 'h') {
+			// hour
+			res += str(d.get_value(date::hour));
+			++p;
+			while (p < fmt.length() && fmt[p] == 'h')
+				++p;
+		} else if (fmt[p] == 'm') {
+			// minute
+			res += str_wf(d.get_value(date::minute), 2);
+			++p;
+			while (p < fmt.length() && fmt[p] == 'm')
+				++p;
+		} else if (fmt[p] == 's') {
+			// second
+			res += str_wf(d.get_value(date::second), 2);
+			++p;
+			while (p < fmt.length() && fmt[p] == 's')
+				++p;
+		} else {
+			res += fmt[p];
+			++p;
+		}
+	}
+	return res;
+}
+
+
+
 void texts::read_available_language_codes()
 {
 	available_language_codes.clear();
