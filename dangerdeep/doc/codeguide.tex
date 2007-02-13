@@ -834,4 +834,71 @@ foam, spray
 
 tide, rolling, coast.
 
+\chapter{Future plans}
+
+Here we describe some aspects that are planned with implementation ideas.
+
+\section{Collision detection}
+
+There are two types of collisions: object-to-object and object-to-land.
+To reduce the number of collision checks that have to be performed there
+are two common ways: using bounding volumes to check for collision first
+as heuristic and as second option to decrease the number of possibly
+colliding objects. The latter can be done by partitioning the space in
+sub-spaces and to check for collisions in each sub-space only.
+
+The map (as elevation data in currently simplified form) is already
+partitioned in rectangular segments. This can be used as one form of
+space partitioning, but may be too coarse (one segment is ca. 60km x
+60km in size).
+
+For object-to-land collisions we just have to check for collision
+between the object and the segment that it is in. This decreases test
+complexity by an important amount.
+
+For object-to-object collision checks it would be useful if each segment
+would memorize which objects are inside it. We then would have to check
+for inter-object collisions only for the smaller set of objects in that
+segment.
+
+The problem is the tradeoff between test numbers and segment size (let's
+call it a cell). More cells will cut down complexity, but eat more
+memory. Cells must be large enough to make tests possible, certainly
+some orders of magnitude larger than a ship length.
+
+The most serious problem then are cell borders. Each object has area or
+volume that can stretch across a cell boundary (or even four on
+corners). That case needs to get detected and we need to test for
+collision with the neighbouring cell's land and objects too.
+
+\subsection{Bounding volumes}
+
+There is also a tradeoff for complexity. Simpler bounding volumes like
+spheres are easier to test for intersection, but will increase the
+number of false positive tests. A hierachy of bounding volumes is
+possible, like a sphere with minimum size so that the object is fully
+contained and as next step an arbitrarily oriented box. Finally finer
+tests could be made, like multiple boxes forming the shape of the object
+or even polygon based tests.
+
+For ships it would be sufficient to test for collisions of their shapes
+when seen from above. Each ship's shape can be described by a polygon.
+This can be reused for foam generation too. We then can cut down
+inter-ship collisions to polygon intersection test, which is cheap. A
+finer test than that would be overkill.
+
+A more thorough test is needed for collision detection between
+projectiles and objects. These are grenades, shells (rapid fire like
+machine guns), torpedoes and hedgehog depth charges (because they
+explode on contact). This test needs to work three-dimensional. The high
+velocity of some projectiles needs to be taken into account. So we have
+to check for collision with a shape that is formed by union of the
+object volume over infinite small steps in time in the temporal range we
+simulate in the current physics simulation step. It is sufficient to use
+boxes as approximation for these projectiles. So take the box of the
+object at the begin of the simulation step, all boxes from positions
+along the projectile trajectory until the final position for that step,
+and build one box around all of them - that is the collision test
+volume.
+
 \end{document}
