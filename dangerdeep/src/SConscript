@@ -38,6 +38,7 @@ dftdsources = Split("""subsim.cpp
 	ships_sunk_display.cpp
 	sky.cpp
 	moon.cpp
+	stars.cpp
 	sonar.cpp
 	sonar_operator.cpp
 	submarine.cpp

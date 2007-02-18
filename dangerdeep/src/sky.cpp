@@ -59,7 +59,6 @@ const double CLOUD_ANIMATION_CYCLE_TIME = 3600.0;
 
 sky::sky(const double tm, const unsigned int sectors_h, const unsigned int sectors_v)
 	: mytime(tm),
-	  nr_of_stars(500),
 	  sunglow(0), clouds(0),
 	  suntex(0), clouds_dl(0),
 	  sky_indices(true),
@@ -67,23 +66,6 @@ sky::sky(const double tm, const unsigned int sectors_h, const unsigned int secto
 	  moon_azimuth(10.0f), moon_elevation(10.0f),
 	  turbidity(2.0f)//was 2.0, fixme
 {
-	// ******************************** create stars
-	std::vector<vector3f> stars_pos(nr_of_stars);
-	std::vector<Uint8> stars_lumin(nr_of_stars*4);
-	for (unsigned i = 0; i < nr_of_stars; ++i) {
-		vector3f p(rnd() * 2.0f - 1.0f, rnd() * 2.0f - 1.0f, rnd());
-		stars_pos[i] = p.normal();
-		float fl = rnd();
-		fl = 1.0f - fl*fl*fl;
-		Uint8 l = Uint8(255*fl);
-		stars_lumin[4*i+0] = l;
-		stars_lumin[4*i+1] = l;
-		stars_lumin[4*i+2] = l;
-		stars_lumin[4*i+3] = l;
-	}
-	star_positions.init_data(stars_pos.size() * sizeof(vector3f), &stars_pos[0], GL_STATIC_DRAW);
-	star_colors.init_data(stars_lumin.size(), &stars_lumin[0], GL_STATIC_DRAW);
-
 	// ******************************** create sky geometry
 	build_dome(sectors_h, sectors_v);
 
@@ -380,27 +362,14 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 		// no stars, blend sky into black
 		glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
 	} else {
-		glPushMatrix();
-		glScalef(max_view_dist * 0.95, max_view_dist * 0.95, max_view_dist * 0.95);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		star_colors.bind();
-		glEnableClientState(GL_COLOR_ARRAY);
-		glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0);
-		glEnableClientState(GL_VERTEX_ARRAY);
-		star_positions.bind();
-		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
-		star_positions.unbind();
-		glDrawArrays(GL_POINTS, 0, nr_of_stars);
-		glDisableClientState(GL_COLOR_ARRAY);
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glPopMatrix();
+		_stars.display(max_view_dist);
 	}
 
 	glPushMatrix(); // sky scale
 	float scale = 10;
 	glScaled(scale, scale, scale);
 	glTranslated(0, 0, -0.005);	// FIXME move down 10m? to compensate for waves moving up/down (avoid gaps because of that)
-
+/*
 	// render sky
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glEnableClientState(GL_COLOR_ARRAY);
@@ -415,7 +384,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	sky_indices.unbind();
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
-
+*/
 	glPopMatrix(); // sky scale
 
 	// restore blend function
