@@ -366,10 +366,13 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	}
 
 	glPushMatrix(); // sky scale
-	float scale = 10;
+	float scale = max_view_dist * 0.95;
+	// we need to handle viewpos.z here, or sky moves with viewer when he ascends
+	// we subtract some extra height to compensate for wave amplitude.
+	// 5m should be enough, but gap can be seen when using less than 100m, strange!
+	glTranslated(0, 0, -viewpos.z - 100.0);
 	glScaled(scale, scale, scale);
-	glTranslated(0, 0, -0.005);	// FIXME move down 10m? to compensate for waves moving up/down (avoid gaps because of that)
-/*
+
 	// render sky
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glEnableClientState(GL_COLOR_ARRAY);
@@ -384,7 +387,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	sky_indices.unbind();
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
-*/
+
 	glPopMatrix(); // sky scale
 
 	// restore blend function
