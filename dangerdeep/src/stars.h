@@ -21,6 +21,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define STARS_H
 
 
+#include <vector>
+
 #include "vector3.h"
 #include "color.h"
 #include "vertexbufferobject.h"
@@ -37,11 +39,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class stars
 {
 private:
-	unsigned int stars_count;
-	vertexbufferobject star_positions, star_colors;
+	vertexbufferobject star_positions;
+	mutable vertexbufferobject star_colors_VBO;
+	std::vector<colorf> star_colors;
+	unsigned int star_count_static, star_count;
 
 public:
-	stars(const float max_magnitude = 6.0f); // mag==6.0 => ~5000 stars
+	stars(const float max_magnitude = 5.8f); // mag==6.0 => ~5000 stars
 	
 	void display(const float max_view_dist) const;
 };
