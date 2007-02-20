@@ -40,21 +40,18 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vertexbufferobject.h"
 #include "framebufferobject.h"
 #include "shader.h"
+#include "ptrvector.h"
 
 ///\brief Rendering of ocean water surfaces.
 class water
 {
 protected:
 	double mytime;			// store global time in seconds
-	unsigned xres, yres;		// resolution of grid
 
 	const unsigned wave_phases;	// >= 256 is a must
 	const float wavetile_length;	// >= 512m makes wave look MUCH more realistic
 	const float wavetile_length_rcp;// reciprocal of former value
 	const double wave_tidecycle_time;	// depends on fps. with 25fps and 256 phases, use ~10seconds.
-
-	std::vector<unsigned> gridindices;
-	std::vector<unsigned> gridindices2;//only used for test grid drawing, could be ifdef'ed away
 
 	std::auto_ptr<texture> reflectiontex;
 	std::auto_ptr<texture> foamtex;
@@ -89,32 +86,42 @@ protected:
 
 	struct wavetile_phase
 	{
-		std::vector<vector3f> data;
+		struct mipmap_level
+		{
+			unsigned resolution;
+			unsigned resolution_shift;
+			double sampledist;
+			std::vector<vector3f> wavedata;
+			std::vector<vector3f> normals;
+			///> generate data from downsampled version of wd
+			mipmap_level(const std::vector<vector3f>& wd, unsigned res_shift,
+				     double sampledist);
+			///> create data from displacements and heights (mostly for level 0)
+			mipmap_level(const std::vector<vector2f>& displacements,
+				     const std::vector<float>& heights,
+				     unsigned res_shift,
+				     double sampledist);
+			const vector3f& get_data(unsigned x, unsigned y) const {
+				return wavedata[(y << resolution_shift) + x];
+			}
+			const vector3f& get_normal(unsigned x, unsigned y) const {
+				return normals[(y << resolution_shift) + x];
+			}
+			void compute_normals();
+			void debug_dump();	// used only for debugging
+		};
+
+		float get_height(unsigned idx) const { return mipmaps.front().wavedata[idx].z; }
+
+		std::vector<mipmap_level> mipmaps;
 		float minh, maxh;
+
 		wavetile_phase() : minh(0), maxh(0) {}
-		float get_height(unsigned idx) const
-		{
-			return data[idx].z;
-		}
-		const vector3f& get_height_and_displacement(unsigned idx) const
-		{
-			return data[idx];
-		}
-		void set_values(unsigned idx, float dx, float dy, float h)
-		{
-			data[idx] = vector3f(dx, dy, h);
-		}
 	};
 
 	// wave tile data
 	std::vector<wavetile_phase> wavetile_data;
 	const wavetile_phase* curr_wtp;	// pointer to current phase
-
-	// Arrays used while drawing a tile. To avoid repeated re-alloc, they're here
-	mutable std::vector<vector3f> coords;
-	mutable std::vector<vector3f> uv1;
-	mutable std::vector<vector3f> normals;
-	mutable std::vector<vector2f> uv0;
 
 	// test
 	ocean_wave_generator<float> owg;
@@ -124,25 +131,6 @@ protected:
 
 	// testing: with fragment programs we need some sub-noise
 	std::auto_ptr<texture> water_bumpmap;
-
-#if 0		// old code, kept for reference, especially for foam
-	// waves are stored in display lists to speed up drawing.
-	// this increases fps > 100% compared to vertex arrays / glDrawElements
-	// the display lists can take MUCH ram!
-	unsigned wavedisplaylists;		// # of first display list
-	std::vector<std::vector<float> > wavetileh;	// wave tile heights (generated)
-	std::vector<std::vector<vector3f> > wavetilen;	// wave tile normals (generated)
-	std::vector<float> wavefoam;			// 2d array with foam values (0-1), maybe use fixed point integer here
-	// display lists are const, but we need dynamic data for foam. So we store foam in a texture and update this
-	// texture each frame or each 1/10th second. The texture has a texel for each wave vertex and each tile,
-	// thus it is #tiles*#vertices_per_tile wide and high. We use an color table indexed texture, so
-	// we have to transfer (32*8)^2=64k or (64*16)^2=256k per frame, far less memory than updating geometry data
-	// each frame (like with vertex arrays).
-	// alternative foam generation: clear texture every frame (or 1/10th second), draw lines from ship trails
-	// into the texture (if they're inside) and use this texture
-	std::vector<Uint8> wavefoamtexdata;
-	unsigned wavefoamtex;
-#endif
 
 	// Config options (only used when supported)
 	bool use_shaders;
@@ -156,15 +144,9 @@ protected:
 	// times for generation
 	double last_subdetail_gen_time;
 
-	// store index data as vertex buffer object
-	vertexbufferobject vbo_indices;
-
-	// store texture data in vertex buffer objects as well
-	// we can't store coords in VBOs, as we read them for normal generation, so
-	// read would be inefficient. Same for normals.
-	// We must use at most one vertex buffer for all data... we can bind at most
-	// one vertex buffer and one index buffer
-	mutable vertexbufferobject vbo_uv01;
+	// avoid unnecessary vertex generation
+	mutable bool rerender_new_wtp;
+	mutable vector3 rerender_viewpos;
 
 	water& operator= (const water& other);
 	water(const water& other);
@@ -172,21 +154,44 @@ protected:
 	void setup_textures(const matrix4& reflection_projmvmat, const vector2f& transl) const;
 	void cleanup_textures() const;
 
-	vector3f compute_coord(vector2f& xyfrac) const;
 	vector3f get_wave_normal_at(unsigned x, unsigned y) const;
-
-#ifdef USE_SSE
-	bool usex86sse;
-	void compute_coord_1line_sse(const vector2f& v, const vector2f& vadd, const vector2f& transl) const;
-#endif
 
 	void generate_wavetile(double tiletime, wavetile_phase& wtp);
 	void generate_subdetail_and_bumpmap();
 
+	// --------------- geoclipmap stuff
+	const unsigned geoclipmap_resolution;
+	const unsigned geoclipmap_levels;
+	class geoclipmap_patch
+	{
+		vertexbufferobject vbo;
+		unsigned min_vertex_index;
+		unsigned max_vertex_index;
+		unsigned nr_indices;
+		bool use_fan;
+	public:
+		geoclipmap_patch(unsigned geoclipmap_resolution, // "N"
+				 unsigned level, unsigned border,
+				 unsigned xoff, unsigned yoff,
+				 unsigned columns, unsigned rows);
+		// generate horizon patch
+		geoclipmap_patch(unsigned geoclipmap_resolution, // "N"
+				 unsigned highest_level,
+				 unsigned border);
+		void render() const;
+		unsigned get_nr_indices() const { return nr_indices; } // for analysis
+
+	private:
+		geoclipmap_patch();
+		geoclipmap_patch(const geoclipmap_patch& );
+		geoclipmap_patch& operator=(const geoclipmap_patch& );
+	};
+	ptrvector<geoclipmap_patch> patches;
+	mutable vertexbufferobject vertices;
+
 public:
-	water(unsigned xres_, unsigned yres_, double tm = 0.0);	// give day time in seconds
+	water(unsigned xres_ /* obsolete */, unsigned yres_ /* obsolete */, double tm = 0.0);	// give day time in seconds
 	void set_time(double tm);
-	~water();
 
 	void draw_foam_for_ship(const game& gm, const ship* shp, const vector3& viewpos) const;
 	void compute_amount_of_foam_texture(const game& gm, const vector3& viewpos,

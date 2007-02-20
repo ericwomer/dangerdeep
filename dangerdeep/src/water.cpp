@@ -38,6 +38,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "game.h"
 #include "perlinnoise.h"
 #include "datadirs.h"
+#include "polygon.h"
+#include "frustum.h"
 #include <fstream>
 
 #ifndef fmin
@@ -47,12 +49,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define fmax(x,y) (x>y) ? x : y
 #endif
 
-#ifdef USE_SSE
-#include "water_sse.h"
-#endif
 
-// compute projected grid efficiency, it should be 50-95%
-#undef  COMPUTE_EFFICIENCY
+// fixme: allow rendering of geoclipmap patches as grid/lines for easier debugging
+#undef  DRAW_GEO_GRID
+
+
 //fixme: the wave sub detail causes ripples in water height leading to the specular map spots
 //and other visual errors.
 //solution: check bugs, use perlin noise for sub detail, not fft, especially noise with
@@ -185,8 +186,6 @@ static float totalmin = 0, totalmax = 0;
 
 water::water(unsigned xres_, unsigned yres_, double tm) :
 	mytime(tm),
-	xres((xres_ & ~3) - 1),	// make sure xres+1 is divisible by 4 (needed for sse routines, doesn't hurt in other cases)
-	yres(yres_),
 	wave_phases(cfg::instance().geti("wave_phases")),
 	wavetile_length(cfg::instance().getf("wavetile_length")),
 	wavetile_length_rcp(1.0f/wavetile_length),
@@ -208,13 +207,55 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	use_shaders(false),
 	png(subdetail_size, 1, subdetail_size/16), //fixme ohne /16 sieht's scheisse aus, war /8
 	last_subdetail_gen_time(tm),
-	vbo_indices(true)
-#ifdef USE_SSE
-	, usex86sse(false)
-#endif
+	rerender_new_wtp(true),
+	geoclipmap_resolution(64 /* should be power of two */),
+	geoclipmap_levels(5), // depends on wave_resolution (log2(wave_resolution)-1-2)
+	patches(1 + (geoclipmap_levels-1)*8*3*3 + 4 /*horizon*/)
 {
-	if (xres < 15 || yres < 15 || xres > 400 || yres > 800)
-		throw error("water: xres/yres out of range!");
+	// generate geoclipmap index data.
+	patches.reset(0, new geoclipmap_patch(geoclipmap_resolution,
+					      0, 0, 0, 0, geoclipmap_resolution, geoclipmap_resolution));
+	unsigned N2 = geoclipmap_resolution/2, N4 = geoclipmap_resolution/4, N34 = geoclipmap_resolution*3/4;
+	for (unsigned j = 1; j < geoclipmap_levels; ++j) {
+		// each level has 8 patches and 9 variations of each patch.
+		// the variation is in height/width
+		// patches are topleft to bottom right:
+		// 012
+		// 3 4
+		// 567
+		// fixme!!! later we assume, switch here!!!
+		// 567
+		// 3 4
+		// 012
+		for (int y = -1; y <= 1; ++y) {
+			for (int x = -1; x <= 1; ++x) {
+				unsigned pn = 1 + (j-1)*9*8 + ((y+1) * 3 + (x+1)) * 8;
+				patches.reset(pn + 0, new geoclipmap_patch(geoclipmap_resolution, j, 0x10,       0, N34-y  , N4+x, N4+y  ));
+				patches.reset(pn + 1, new geoclipmap_patch(geoclipmap_resolution, j, 0x04,  N4+x  , N34-y+1, N2  , N4+y-1));
+				patches.reset(pn + 2, new geoclipmap_patch(geoclipmap_resolution, j, 0x20, N34+x  , N34-y  , N4-x, N4+y  ));
+				patches.reset(pn + 3, new geoclipmap_patch(geoclipmap_resolution, j, 0x02,       0,  N4-y  , N4+x-1, N2  ));
+				patches.reset(pn + 4, new geoclipmap_patch(geoclipmap_resolution, j, 0x08, N34+x+1,  N4-y  , N4+x-1, N2  ));
+				patches.reset(pn + 5, new geoclipmap_patch(geoclipmap_resolution, j, 0x80,       0,     0  , N4+x, N4-y  ));
+				patches.reset(pn + 6, new geoclipmap_patch(geoclipmap_resolution, j, 0x01,  N4+x  ,     0  , N2  , N4-y-1));
+				patches.reset(pn + 7, new geoclipmap_patch(geoclipmap_resolution, j, 0x40, N34+x  ,     0  , N4-x, N4-y  ));
+			}
+		}
+	}
+	// horizon, for North, East, South, West part
+	unsigned pn = patches.size() - 4;
+	patches.reset(pn + 0, new geoclipmap_patch(geoclipmap_resolution, geoclipmap_levels-1, 0x01));
+	patches.reset(pn + 1, new geoclipmap_patch(geoclipmap_resolution, geoclipmap_levels-1, 0x02));
+	patches.reset(pn + 2, new geoclipmap_patch(geoclipmap_resolution, geoclipmap_levels-1, 0x04));
+	patches.reset(pn + 3, new geoclipmap_patch(geoclipmap_resolution, geoclipmap_levels-1, 0x08));
+
+#if 0 // analysis
+	unsigned idxtotal = 0;
+	for (unsigned j = 0; j < patches.size(); ++j)
+		idxtotal += patches[j]->get_nr_indices();
+	printf("generated %u indices total in %u VBOs, using %u bytes of video ram.\n",
+	       idxtotal, patches.size(), idxtotal * 4 /* uint32! */);
+	// 261598 indices with N=64, using 1046392 (<1MB) of video ram with uint32 indices
+#endif
 
 	// 2004/04/25 Note! decreasing the size of the reflection map improves performance
 	// on a gf4mx! (23fps to 28fps with a 128x128 map to a 512x512 map)
@@ -247,7 +288,6 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	// fixme: auto mipmap?
 	reflectiontex.reset(new texture(rx, ry, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 
-	sys().add_console("water rendering resolution %i x %i", xres, yres);
 	sys().add_console("wave resolution %u (%u)",wave_resolution,wave_resolution_shift);
 	sys().add_console("using subdetail: %s", wave_subdetail ? "yes" : "no");
 	sys().add_console("subdetail size %u (%u)",subdetail_size,subdetail_size_shift);
@@ -260,16 +300,6 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	if (use_shaders) {
 		glsl_water.reset(new glsl_shader_setup(get_shader_dir() + "water.vshader",
 						       get_shader_dir() + "water.fshader"));
-	}
-
-	coords.resize((xres+1)*(yres+1));
-	//uv0.resize((xres+1)*(yres+1));
-	//uv1.resize((xres+1)*(yres+1));
-	normals.resize((xres+1)*(yres+1));
-	if (!use_shaders) {
-		vbo_uv01.init_data((xres+1)*(yres+1)*sizeof(vector2f)
-				   + (xres+1)*(yres+1)*sizeof(vector3f), 0, GL_STREAM_DRAW);
-		vbo_uv01.unbind();
 	}
 
 	perlinnoise pnfoam(foamtexsize, 2, foamtexsize/16);
@@ -341,97 +371,6 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 			fresnelcolortexd[(s*FRESNEL_FCT_RES+f)*4+3] = a;
 		}
 	}
-	
-	// connectivity data is the same for all meshes and thus is reused
-#ifdef DRAW_WATER_AS_GRID
-	gridindices2.reserve(xres*yres*4);
-	for (unsigned y = 0; y < yres; ++y) {
-		unsigned y2 = y+1;
-		for (unsigned x = 0; x < xres; ++x) {
-			unsigned x2 = x+1;
-			gridindices2.push_back(x +y *(xres+1));
-			gridindices2.push_back(x2+y *(xres+1));
-			gridindices2.push_back(x +y *(xres+1));
-			gridindices2.push_back(x +y2*(xres+1));
-		}
-	}
-#else
-#if 1
-	/* draw all indices as ONE quad strip.
-	   This can be done by using degenerate quads on line turn.
-	   One needs two degenerate quads at end of each line,
-	   then alternating write lines left-to-right and right-to-left.
-	   Number of lines is "yres", number of quads per line is "xres"
-	   plus two degenerate. Number of indices is twice the number of
-	   quads plus two for the strip start.
-	*/
-	unsigned nr_quads_total = yres * (xres + 2) - 2; // last two degenerate are obsolete
-	unsigned nr_indices_total = nr_quads_total * 2 + 2;
-	vbo_indices.init_data(nr_indices_total*sizeof(unsigned), 0, GL_STATIC_DRAW);
-	uint32_t* gridp = (uint32_t*) vbo_indices.map(GL_WRITE_ONLY);
-	bool left_to_right = true;
-	// write first two indices (strip start).
-	*gridp++ = (xres+1); // x=0, y=1
-	*gridp++ = 0;        // x=0, y=0
-	for (unsigned y = 0; y < yres; ++y) {
-		if (left_to_right) {
-			for (unsigned x = 0; x < xres; ++x) {
-				*gridp++ = (x+1) + (y+1) *(xres+1);
-				*gridp++ = (x+1) +  y    *(xres+1);
-			}
-			// degenerated quads
-			if (y + 1 < yres) {
-				*gridp ++ = xres + (y+1) *(xres+1);
-				*gridp ++ = xres + (y+1) *(xres+1);
-				*gridp ++ = xres + (y+1) *(xres+1);
-				*gridp ++ = xres + (y+2) *(xres+1);
-			}
-		} else {
-			for (unsigned x = 0; x < xres; ++x) {
-				*gridp++ = (xres-x) +  y    *(xres+1);
-				*gridp++ = (xres-x) + (y+1) *(xres+1);
-			}
-			// degenerated quads
-			if (y + 1 < yres) {
-				*gridp ++ =        (y+1) *(xres+1);
-				*gridp ++ =        (y+1) *(xres+1);
-				*gridp ++ =        (y+2) *(xres+1);
-				*gridp ++ =        (y+1) *(xres+1);
-			}
-		}
-		left_to_right = !left_to_right;
-	}
-	vbo_indices.unmap();
-	vbo_indices.unbind();
-#else
-	gridindices.reserve(xres*yres*4);
-	for (unsigned y = 0; y < yres; ++y) {
-		unsigned y2 = y+1;
-		for (unsigned x = 0; x < xres; ++x) {
-			unsigned x2 = x+1;
-			gridindices.push_back(x +y *(xres+1));
-			gridindices.push_back(x2+y *(xres+1));
-			gridindices.push_back(x2+y2*(xres+1));
-			gridindices.push_back(x +y2*(xres+1));
-		}
-	}
-#endif
-/* triangles, doesn't help against facettes
-	gridindices.reserve(xres*yres*6);
-	for (unsigned y = 0; y < yres; ++y) {
-		unsigned y2 = y+1;
-		for (unsigned x = 0; x < xres; ++x) {
-			unsigned x2 = x+1;
-			gridindices.push_back(x +y *(xres+1));
-			gridindices.push_back(x2+y *(xres+1));
-			gridindices.push_back(x2+y2*(xres+1));
-			gridindices.push_back(x +y *(xres+1));
-			gridindices.push_back(x2+y2*(xres+1));
-			gridindices.push_back(x +y2*(xres+1));
-		}
-	}
-*/
-#endif
 
 	add_loading_screen("water maps inited");
 
@@ -455,6 +394,7 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 		generate_wavetile(wave_tidecycle_time * i / wave_phases, wavetile_data[i]);
 	}
 	curr_wtp = &wavetile_data[0];
+	rerender_new_wtp = true;
 
 #ifdef MEASURE_WAVE_HEIGHTS
 	cout << "total minh " << totalmin << " maxh " << totalmax << "\n";
@@ -475,29 +415,8 @@ water::water(unsigned xres_, unsigned yres_, double tm) :
 	waterspecularlookup.reset(new texture(waterspecularlookup_tmp, waterspecularlookup_res, 1, GL_LUMINANCE,
 					      texture::LINEAR, texture::CLAMP_TO_EDGE));
 #endif
-
-#ifdef USE_SSE
-	bool sseok = x86_sse_supported();
-	if (sseok) {
-		sys().add_console("x86 SSE is supported by this processor.");
-	}
-	usex86sse = sseok && cfg::instance().getb("usex86sse");
-	if (usex86sse) {
-		sys().add_console("using x86 SSE instructions.");
-		water_compute_coord_init_sse(wavetile_length_rcp, wave_resolution, wave_resolution_shift);
-		if (sizeof(vector3f) != 12)
-			throw error("Internal SSE error, sizeof vector3f != 12, SSE code won't work!");
-	}
-#endif
 }
 
-
-water::~water()
-{
-	if (use_shaders) {
-		glsl_program::use_fixed();
-	}
-}
 
 
 void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& transl) const
@@ -601,36 +520,6 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_CONSTANT);
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
 */
-
-#if 0 //old! (foam)
-	glActiveTexture(GL_TEXTURE1);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, foamtex->get_opengl_name());
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);//GL_INTERPOLATE);	// BLEND?//fixme: foam mixing is disabled for now
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_PRIMARY_COLOR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);//ALPHA
-
-	glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);//CONSTANT);//texture1 has alpha 1.0 because it's an RGB texture.
-	glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);//GL_ONE_MINUS_SRC_ALPHA);//this alpha value isn't taken from constant color! where does it come from? fixme
-
-	// fixme: automatic generated texture coordinates for foam may be not realistic enough (foam doesn't move then with displacements)
-
-	GLfloat scalefac1 = 32.0f/WAVE_LENGTH;//fixme: scale to realistic foam size
-	GLfloat plane_s1[4] = { scalefac1, 0.0f, 0.0f, 0.0f };
-	GLfloat plane_t1[4] = { 0.0f, scalefac1, 0.0f, 0.0f };
-	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-	glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s1);
-	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-	glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t1);
-	glEnable(GL_TEXTURE_GEN_S);
-	glEnable(GL_TEXTURE_GEN_T);
-#endif
 }
 
 
@@ -656,280 +545,6 @@ void water::cleanup_textures() const
 	glEnable(GL_LIGHTING);
 
 	glPopAttrib();
-}
-
-
-//function is nearly the same as get_height, it just adds extra detail
-vector3f water::compute_coord(vector2f& xyfrac) const
-{
-	unsigned x1 = unsigned(floor(xyfrac.x));
-	unsigned y1 = unsigned(floor(xyfrac.y));
-	unsigned x0 = x1 & (wave_resolution-1);
-	unsigned y0 = y1 & (wave_resolution-1);
-	xyfrac.x -= (x1 - x0);
-	xyfrac.y -= (y1 - y0);
-	x1 = (x0 + 1) & (wave_resolution-1);
-	y1 = (y0 + 1) & (wave_resolution-1);
-	float xfrac2 = myfrac(xyfrac.x);
-	float yfrac2 = myfrac(xyfrac.y);
-	unsigned i0 = x0 + (y0 << wave_resolution_shift);
-	unsigned i1 = x1 + (y0 << wave_resolution_shift);
-	unsigned i2 = x0 + (y1 << wave_resolution_shift);
-	unsigned i3 = x1 + (y1 << wave_resolution_shift);
-
-	// z distance (for triliniar filtering) is constant along one projected grid line
-	// so compute it per line. BUT ONLY FOR OLD RECTANGLULAR WATER PATCH CODE
-	// if mipmap level is < 0, we may add some extra detail (noise)
-	// this could be fft itself (height scaled) or some perlin noise
-	// take x,y fraction as texture coordinates in perlin map.
-	// linear filtering should be neccessary -> expensive!
-
-	// fixme: make trilinear or at least try out how it looks (but this would cost much!)
-	vector3f ca = curr_wtp->get_height_and_displacement(i0);
-	vector3f cb = curr_wtp->get_height_and_displacement(i1);
-	vector3f cc = curr_wtp->get_height_and_displacement(i2);
-	vector3f cd = curr_wtp->get_height_and_displacement(i3);
-
-	// code uses less registers and less mul than sequential interpolation
-	// (sequential: lerp(a,b)->g, lerp(c,d)->h, lerp(g,h)->result
-	// because the "*" operation in the result line ("coord = ...") stands for _three_ mul's!
-	float fac0 = (1.0f-xfrac2)*(1.0f-yfrac2);
-	float fac1 = xfrac2*(1.0f-yfrac2);
-	float fac2 = (1.0f-xfrac2)*yfrac2;
-	float fac3 = xfrac2*yfrac2;
-	vector3f coord = (ca*fac0 + cb*fac1 + cc*fac2 + cd*fac3);
-
-	if (wave_subdetail) {
-		// fixme: try to add perlin noise as sub noise, use phase as phase shift, xfrac/yfrac as coordinate
-#define SUBDETAIL_PER_TILE 4
-		xfrac2 = subdetail_size * myfrac(xyfrac.x * SUBDETAIL_PER_TILE / wave_resolution); //fixme mul rcp faster than div
-		yfrac2 = subdetail_size * myfrac(xyfrac.y * SUBDETAIL_PER_TILE / wave_resolution);
-		x0 = unsigned(floor(xfrac2));
-		y0 = unsigned(floor(yfrac2));
-		x1 = (x0 + 1) & (subdetail_size-1);
-		y1 = (y0 + 1) & (subdetail_size-1);
-		xfrac2 = myfrac(xfrac2);
-		yfrac2 = myfrac(yfrac2);
-		fac0 = (1.0f-xfrac2)*(1.0f-yfrac2);
-		fac1 = xfrac2*(1.0f-yfrac2);
-		fac2 = (1.0f-xfrac2)*yfrac2;
-		fac3 = xfrac2*yfrac2;
-
-			float h = (int(waveheight_subdetail[(y0<<subdetail_size_shift) + x0]) - 128) * fac0;
-		h += (int(waveheight_subdetail[(y0<<subdetail_size_shift) + x1]) - 128) * fac1;
-		h += (int(waveheight_subdetail[(y1<<subdetail_size_shift) + x0]) - 128) * fac2;
-		h += (int(waveheight_subdetail[(y1<<subdetail_size_shift) + x1]) - 128) * fac3;
-		coord.z += h * (1.0f/512);
-
-		// the projgrid code from Claes just maps each vertex to one pixel of a perlin noise map, so he has maximum
-		// detail without need to compute filtering. But a that's a very cheap and ugly trick.
-
-	} // subdetail
-
-	return coord;
-}
-
-
-
-static vector<unsigned> convex_hull(const vector<vector2>& pts)
-{
-	// find one point that is on hull, that with smallest x
-	unsigned lastidx = 0;
-	float xmin = pts[0].x;
-	for (unsigned i = 1; i < pts.size(); ++i) {
-		if (pts[i].x < xmin) {
-			xmin = pts[i].x;
-			lastidx = i;
-		}
-	}
-	vector<unsigned> result;
-	result.push_back(lastidx);
-
-	// now find successor until hull is closed
-	while (true) {
-		unsigned nextidx = lastidx;
-		vector2 base = pts[lastidx];
-		// check for all other points if a line to them is on the hull
-		for (unsigned i = 0; i < pts.size(); ++i) {
-			if (i == lastidx) continue;
-			vector2 delta = pts[i] - base;
-			// now check if all other points are left of base+t*delta
-			bool allleft = true;
-			for (unsigned j = 0; j < pts.size(); ++j) {
-				if (j == i || j == lastidx) continue;
-				vector2 pb = pts[j] - base;
-				if (pb.y * delta.x < pb.x * delta.y) {
-					// point is right of line, abort
-					allleft = false;
-					break;
-				}
-			}
-			if (allleft) {
-				nextidx = i;
-				break;
-			}
-		}
-		sys().myassert(nextidx != lastidx, "no successor found for convex hull point");
-
-		if (nextidx == result.front())
-			break;
-		result.push_back(nextidx);
-		lastidx = nextidx;
-	}
-
-	return result;
-}
-
-
-// it seems efficiency rates below 90% are caused by many near triangles that are not shown...
-// the trapezoid looks optimal even at 60% efficiency, so it must be something else.
-// fixme: try raising the elevator. lower elevator gives less efficiency. 50+ seems ok, with higher values
-// the near water looks awful
-#undef  DEBUG_TRAPEZOID
-vector<vector2> find_smallest_trapezoid(const vector<vector2>& hull)
-{
-	vector<vector2> trapezoid(4);
-	double trapezoid_area = 1e30;
-	bool trapset = false;
-	// try all hull edges as trapezoid base
-	for (unsigned i = 0; i < hull.size(); ++i) {
-#ifdef DEBUG_TRAPEZOID
-		cout << "trying trapezoid " << i << "\n";
-#endif
-		vector2 base = hull[i];
-		vector2 delta = hull[(i+1) % hull.size()] - base;
-		double baselength = delta.length();
-#ifdef DEBUG_TRAPEZOID
-		cout << "base " << base << " delta " << delta << " baselength " << baselength << "\n";
-#endif
-		delta = delta * (1.0/baselength);
-		vector2 deltaorth = delta.orthogonal();
-		// now base + t*delta is base line. compute height of trapez.
-		double height = 0;
-		unsigned idxtop = 0;
-		for (unsigned j = 2; j < hull.size(); ++j) {
-			vector2 pb = hull[(i+j) % hull.size()] - base;
-			double h = pb * deltaorth;
-			sys().myassert(h >= 0, "paranoia chull");
-			if (h > height) {
-				height = h;
-				idxtop = j;
-			}
-		}
-		// compute how much points are on upper line, there must be at least two,
-		// or the trapez degenerates to a triangle!
-		unsigned onupperline = 0;
-		for (unsigned j = 2; j < hull.size(); ++j) {
-			vector2 pb = hull[(i+j) % hull.size()] - base;
-			double h = pb * deltaorth;
-			sys().myassert(h >= 0, "paranoia chull");
-#ifdef DEBUG_TRAPEZOID
-			cout << "onupperline eps check " << height - h << "\n";
-#endif
-			if (height - h < h * 0.05 /* EPS */) {
-				++onupperline;
-			}
-		}
-#ifdef DEBUG_TRAPEZOID
-		cout << "onupperline: [[ " << onupperline << " ]]\n";
-#endif
-
-		// fixme: this can lead to false results...
-		// leaving it out is much better than using it.
-		// for what purpose was this test made??
-/*
-		if (onupperline < 2)
-			continue;
-*/
-
-		vector2 deltainvx(delta.x, -delta.y);
-		vector2 deltainvy(delta.y,  delta.x);
-//		cout << "height of trapez is " << height << "\n";
-		// now find left+right edge so that area is minimal
-		// try out all hull lines as edges, one of them is the solution (proofed).
-		// compute line through hull line and the crossing with the baseline and topline,
-		// that gives coordinates a,b (on base/top line). the solution line is that with
-		// a+b mimimal. left solution can be lines with delta.y < 0, right: delta.y > 0
-		double maxa = -1e30, maxb = -1e30, mina = 1e30, minb = 1e30;
-		bool maxset = false, minset = false;
-		for (unsigned j = 1; j < hull.size(); ++j) {
-			vector2 p0 = hull[(i+j) % hull.size()] - base;
-			vector2 p1 = hull[(i+j+1) % hull.size()] - base;
-			vector2 df = p1 - p0;
-			p0 = p0.matrixmul(deltainvx, deltainvy);
-			df = df.matrixmul(deltainvx, deltainvy);
-			if (fabs(df.y) < 0.001)	// avoid lines nearly parallel to baseline
-				continue;
-#ifdef DEBUG_TRAPEZOID
-			cout << "p0 : " << p0 << " df: " << df << "\n";
-#endif
-			//manchmal ist das negativ, also falsch...
-			double a = p0.x - p0.y * df.x / df.y;
-			double b = p0.x + (height - p0.y) * df.x / df.y;
-#ifdef DEBUG_TRAPEZOID
-			cout << "tried line " << j << " a " << a << " b " << b << "\n";
-#endif
-			if (df.y > 0) {
-				// line is on right border of trapezoid
-				if (a+b < mina+minb) {
-					mina = a;
-					minb = b;
-					minset = true;
-				}
-			} else {
-				// line is on left border of trapezoid
-				if (a+b > maxa+maxb) {
-					maxa = a;
-					maxb = b;
-					maxset = true;
-				}
-			}
-		}
-		//fixme: this can happen sometimes!
-		if (!(maxset && minset)) {
-			sys().add_console("WARNING: no min/max found in find_trapez");
-			continue;
-		}
-		//sys().myassert(maxset && minset, "ERROR!!!! no min/max found in find trapez");
-#ifdef DEBUG_TRAPEZOID
-		cout << "mina " << mina << " minb " << minb << " maxa " << maxa << " maxb " << maxb << "\n";
-#endif
-		double a2 = mina - maxa, b2 = minb - maxb;
-		double area = (a2+b2)*height/2;
-#ifdef DEBUG_TRAPEZOID
-		cout << "trapez area: " << area << "\n";
-#endif
-		// more an hack, only take trapezoids in one direction, do not count
-		// the same trapzeoid upsidedown to avoid tremor effect. fixme, real reason unknown
-		// when camera is moved around, tremor effect disappears after some time.
-		// maybe still a rounding error?
-		if (area < trapezoid_area + 0.5 /* EPS */) {
-			unsigned idx[4] = { 0, 1, 2, 3 };
-			if (delta.x < 0) {
-				// trapzeoid is upsidedown, flip it
-				idx[0] = 2;
-				idx[1] = 3;
-				idx[2] = 0;
-				idx[3] = 1;
-			}
-			trapezoid_area = area;
-			trapezoid[idx[0]] = base + delta * maxa;
-			trapezoid[idx[1]] = base + delta * mina;
-			trapezoid[idx[2]] = base + delta * minb + deltaorth * height;
-			trapezoid[idx[3]] = base + delta * maxb + deltaorth * height;
-			trapset = true;
-		}
-	}
-#ifdef DEBUG_TRAPEZOID
-	cout << "MINIMAL trapez, area " << trapezoid_area << "\n";
-	cout << trapezoid[0] << " | " << trapezoid[1] << " | " << trapezoid[2] << " | " << trapezoid[3] << "\n";
-#endif
-	if (!trapset) {
-		sys().add_console("WARNING: no trapezoid found!");
-		trapezoid.clear();
-	}
-	//sys().myassert(trapset, "no trapez found?!");
-	return trapezoid;
 }
 
 
@@ -1118,397 +733,21 @@ void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpo
 }
 
 
-void water::display(const vector3& viewpos, angle dir, double max_view_dist) const
+
+static inline double round_(double x)
 {
-	const float VIRTUAL_PLANE_HEIGHT = 25.0f;	// fixme experiment, amount of reflection distorsion, 30.0f seems ok, maybe a bit too much
+	if (x < 0) return -floor(-x + 0.5);
+	else return floor(x + 0.5);
+}
 
-	// maximum height of waves (half amplitude)
-	const double WAVE_HEIGHT = std::max(double(curr_wtp->maxh), fabs(curr_wtp->minh));
-
-//	cout << "Wave height is: " << WAVE_HEIGHT << "\n";
-
-	// fixme: theory: keep the projector above some minimum z value, that is higher than WAVE_HEIGHT
-	// that will help keeping some of the detail in the distance and avoids drawing to much near waves.
-	// together with a trapezoidical form of the projection, efficiency should be good...
-	// this value plus WAVE_HEIGHT is the minimum height.
-	// hmm, with elev 30, efficiency goes down to 70%. Trapezoid is optimal,
-	// but maybe too many triangles are lost in the near
-	const double ELEVATION = 40.0; // fixme experiment, try 1...30
-
-	// fixme: displacements must be used to enlarge projector area or else holes will be visible at the border
-	// of the screen (left and right), especially on glasses mode
-
+void water::display(const vector3& viewpos, angle /*dir*/, double max_view_dist) const
+{
 	// get projection and modelview matrix
 	matrix4 proj = matrix4::get_gl(GL_PROJECTION_MATRIX);
 	matrix4 modl = matrix4::get_gl(GL_MODELVIEW_MATRIX);
-	matrix4 inv_modl = modl.inverse();
-
 	matrix4 reflection_projmvmat = proj * modl;
-	// the viewer is in 0,0,0, but the world has a coordinate system so that viewer would be at 0,0,viewpos.z
-	matrix4 world2camera = proj * modl * matrix4::trans(0, 0, -viewpos.z);
-	matrix4 camera2world = world2camera.inverse();
-
-	// transform frustum corners of rendering camera to world space
-	vector3 frustum[8];
-	for (unsigned i = 0; i < 8; ++i) {
-		vector3 fc((i & 1) ? 1 : -1, (i & 2) ? 1 : -1, (i & 4) ? 1 : -1);
-		frustum[i] = camera2world * fc;
-	}
-	
-	// check intersections of frustum with water volume
-	vector<vector3> proj_points;
-	unsigned cube[24] = { 0,1, 0,2, 2,3, 1,3, 0,4, 2,6, 3,7, 1,5, 4,6, 4,5, 5,7, 6,7 };
-	for (unsigned i = 0; i < 12; ++i) {
-		unsigned src = cube[i*2], dst = cube[i*2+1];
-		if ((frustum[src].z - WAVE_HEIGHT) / (frustum[dst].z - WAVE_HEIGHT) < 0.0) {
-			double t = (WAVE_HEIGHT - frustum[src].z) / (frustum[dst].z - frustum[src].z);
-			proj_points.push_back(frustum[src] * (1.0-t) + frustum[dst] * t);
-		}
-		if ((frustum[src].z + WAVE_HEIGHT) / (frustum[dst].z + WAVE_HEIGHT) < 0.0) {
-			double t = (-WAVE_HEIGHT - frustum[src].z) / (frustum[dst].z - frustum[src].z);
-			proj_points.push_back(frustum[src] * (1.0-t) + frustum[dst] * t);
-		}
-	}
-	// check if any frustum points are inside the water volume
-	for (unsigned i = 0; i < 8; ++i) {
-		if (frustum[i].z <= WAVE_HEIGHT && frustum[i].z >= -WAVE_HEIGHT)
-			proj_points.push_back(frustum[i]);
-	}
-	
-	// compute projector matrix
-	// the last column of the inverse modelview matrix is the camera position
-	// the upper left 3x3 matrix is the camera rotation, so the columns hold the view vectors
-	vector3 camerapos = vector3(0, 0, viewpos.z);
-	vector3 cameraforward = -inv_modl.column3(2); // camera is facing along negative z-axis
-//cout << "camerapos " << camerapos << "\n";
-//cout << "camera forward " << cameraforward << "\n";
-	vector3 projectorpos = camerapos, projectorforward = cameraforward;
-
-	vector3 aimpoint, aimpoint2;
-	
-	// make sure projector is high enough above the plane
-	// mirror it if camera is below water surface
-	if (projectorpos.z < 0)
-		projectorpos.z = -projectorpos.z;
-	if (projectorpos.z < WAVE_HEIGHT + ELEVATION)
-		projectorpos.z = WAVE_HEIGHT + ELEVATION;
-
-	// compute intersection of forward vector with plane (fixme forward.z == 0 -> NaN)
-	if ((cameraforward.z < 0.0 && camerapos.z >= 0.0) || (cameraforward.z >= 0.0 && camerapos.z < 0.0)) {
-		double t = -camerapos.z / cameraforward.z;
-		aimpoint = camerapos + t * cameraforward;
-	} else {
-		vector3 flipped = cameraforward;
-		flipped.z = -flipped.z;
-		double t = -camerapos.z / flipped.z;
-		aimpoint = camerapos + t * flipped;
-	}
-	
-	aimpoint2 = camerapos + 10.0 * cameraforward;
-	aimpoint2.z = 0.0;
-	
-	// fade between points depending on angle
-	// when camera points to the horizon, aimpoint is very far away, we have to shift
-	// to aimpoint2 which is in the near. The resulting detail depends also on the projector
-	// elevation. The higher the elevation the lesser the detail is in the near distance.
-	double af = fabs(cameraforward.z);
-	projectorforward = (aimpoint * af + aimpoint2 * (1.0-af)) - projectorpos;
-
-//cout << "projectorpos " << projectorpos << "\n";
-//cout << "projector forward " << projectorforward << "\n";
-	
-	// compute rest of the projector matrix from pos and forward vector
-	vector3 pjz = -projectorforward.normal();
-	vector3 pjx = vector3(0, 0, 1).cross(pjz); // fixme: what if pjz==up vector (or very near it) then errors occour, they're visible!, this workaround seems ok. What did Claes in that case?
-	if (pjx.length() < 0.001)
-		pjx = vector3(1, 0 , 0);
-	else
-		pjx = pjx.normal();
-	vector3 pjy = pjz.cross(pjx);
-//cout << "pjx " << pjx << " pjy " << pjy << " pjz " << pjz << "\n";
-//cout << "lengths " << pjx.length() << "," << pjy.length() << "," << pjz.length() << "\n";
-
-	matrix4 inv_modl_projector(
-		pjx.x, pjy.x, pjz.x, projectorpos.x,
-		pjx.y, pjy.y, pjz.y, projectorpos.y,
-		pjx.z, pjy.z, pjz.z, projectorpos.z,
-		0, 0, 0, 1);
-	matrix4 world2projector = proj * inv_modl_projector.inverse();
-	matrix4 projector2world = world2projector.inverse();
-	
-	// project frustum intersection points to z=0 plane
-	// transform their coords to projector space
-	for (vector<vector3>::iterator it = proj_points.begin(); it != proj_points.end(); ++it) {
-		it->z = 0;
-		*it = world2projector * *it;
-	}
-	
-	// To increase efficiency we compute a trapezoid around the projected points.
-	// Mostly they form a trapezoidical shape. This increases the number of vertices
-	// that are drawn inside the frustum dramatically.
-	vector<vector2> trapezoid;
-	if (proj_points.size() == 0) {
-		// nothing to draw.
-		return;
-	} else {
-		// scale coordinates to compensate for wave displacement here? fixme
-
-		// find convex hull of points.
-		//   collect unique points
-		vector<vector2> proj_points_2d;
-		for (unsigned i = 0; i < proj_points.size(); ++i) {
-			bool insert = true;
-			for (unsigned j = 0; j < proj_points_2d.size(); ++j) {
-				if (proj_points[i].xy().square_distance(proj_points_2d[j]) < 0.0001) {
-					insert = false;
-					break;
-				}
-			}
-			if (insert) proj_points_2d.push_back(proj_points[i].xy());
-		}
-
-		//   compute hull
-		vector<unsigned> idx = convex_hull(proj_points_2d);
-		vector<vector2> chull(idx.size());
-#ifdef DEBUG_TRAPEZOID
-		cout << "convex hull:\n";
-#endif
-		for (unsigned i = 0; i < idx.size(); ++i) {
-			chull[i] = proj_points_2d[idx[i]];
-#ifdef DEBUG_TRAPEZOID
-			cout << i << ": " << proj_points_2d[idx[i]] << "\n";
-#endif
-		}
-#ifdef DEBUG_TRAPEZOID
-		for (unsigned i = 0; i < proj_points.size(); ++i)
-			cout << "pp: " << proj_points[i] << "\n";
-#endif
-		// find smallest trapezoid surrounding the hull (try with all hull lines as base)
-		//   trapezoid area = (a+b)*h/2
-		trapezoid = find_smallest_trapezoid(chull);
-		if (trapezoid.empty()) {
-			// sometimes trapez construction fails.
-			return;
-		}
-	} // else return;
-
-#if 0
-	// show projector frustum as test
-	glColor3f(1,0,0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBegin(GL_LINES);
-	vector3 prfrustum[8];
-	for (unsigned i = 0; i < 8; ++i) {
-		vector3 fc((i & 1) ? 1 : -1, (i & 2) ? 1 : -1, (i & 4) ? 1 : -1);
-		prfrustum[i] = projector2world * fc;	// without range matrix!
-	}
-	for (unsigned i = 0; i < 12; ++i) {
-		glVertex3dv(&prfrustum[cube[2*i]].x);
-		glVertex3dv(&prfrustum[cube[2*i+1]].x);
-	}
-	glEnd();
-	glColor3f(1,1,1);
-	// show camera frustum as test
-	glColor3f(1,1,0);
-	glBegin(GL_LINES);
-	for (unsigned i = 0; i < 12; ++i) {
-		glVertex3dv(&frustum[cube[2*i]].x);
-		glVertex3dv(&frustum[cube[2*i+1]].x);
-	}
-	glEnd();
-	glColor3f(1,1,1);
-#endif
-
-	// compute coordinates
-
-	// this loop takes ~ 6ms of full 19ms per frame.
-	// we could let the GPU compute the loop:
-	// store fft heights as 8bit luminance texture
-	// project it to a gridsize * gridsize framebuffer
-	// using a single quad textured with this texture and trilinear filtering
-	// read in the pixel data as heights.
-	// with 50% time save (3ms) fps would go from 51 to 60.
-	// earth curvature could be simulated by darkening the texture in distance (darker = lower!)
-
-#ifdef COMPUTE_EFFICIENCY
-	int vertices = 0, vertices_inside = 0;
-#endif	
 	vector2f transl(myfmod(viewpos.x, double(wavetile_length)),
 			myfmod(viewpos.y, double(wavetile_length)));
-	for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
-		double y = double(yy)/yres;
-		// vertices for start and end of two lines are computed and projected
-		vector2 trapleft  = trapezoid[3] * y + trapezoid[0] * (1.0 - y);
-		vector2 trapright = trapezoid[2] * y + trapezoid[1] * (1.0 - y);
-		vector3 v1 = projector2world *  trapleft.xyz(-1);
-		vector3 v2 = projector2world *  trapleft.xyz(+1);
-		vector3 v3 = projector2world * trapright.xyz(-1);
-		vector3 v4 = projector2world * trapright.xyz(+1);
-
-		// compute intersection with z = 0 plane here
-		// we could compute intersection with earth's sphere here for a curved display
-		// of water to the horizon, fixme
-		double t1 = -v1.z/(v2.z-v1.z), t2 = -v3.z/(v4.z-v3.z);
-		vector2 va = v1.xy() * (1-t1) + v2.xy() * t1;
-		vector2 vb = v3.xy() * (1-t2) + v4.xy() * t2;
-		//fixme: we could move/change vy/vy/vxadd/vyadd here to compensate for displacement
-		//fixme: water display tremors, this depends on the direction of the trapezoid
-		//when its painted from top to bottom or bottom to top (two trapezoids with same
-		//area and shape, but with the upper line of the first being the base line of the
-		//second and vice versa). Rounding problem??? error seems to large for that.
-		vector2 diff = vb - va;
-		double difflen = diff.length();
-		diff = diff * (1.0/difflen);
-		double displ = 5.0;	// meters, max. displacement of waves, fixme compute!
-		vb = va + diff * (difflen + displ);
-		va = va - diff * displ;
-		double rcp_xres = 1.0/xres;
-		vector2f v, vadd;
-		v.assign(va);
-		vadd.assign((vb - va) * rcp_xres);
-
-		vector2f vfrac = vector2f(float(myfrac(double(va.x + transl.x) * wavetile_length_rcp) * wave_resolution),
-					  float(myfrac(double(va.y + transl.y) * wavetile_length_rcp) * wave_resolution));
-		vector2f vfracadd =
-			vector2f(float(myfrac((vb.x - va.x) * rcp_xres * wavetile_length_rcp) * wave_resolution),
-				 float(myfrac((vb.y - va.y) * rcp_xres * wavetile_length_rcp) * wave_resolution));
-
-#ifdef USE_SSE
-		if (usex86sse) {
-			water_compute_coord_1line_sse(v, vadd, vfrac, vfracadd, &curr_wtp->data[0].x,
-						      -viewpos.z, &coords[ptr].x, xres);
-			ptr += xres + 1;
-		} else {
-#endif // USE_SSE
-		for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
-			coords[ptr] /*tmpcoord[xx]*/ = compute_coord(vfrac) + vector3f(v.x, v.y, -viewpos.z);
-			v += vadd;
-			vfrac += vfracadd;
-
-#ifdef COMPUTE_EFFICIENCY
-			vector3 tmp = world2camera * vector3(coords[ptr].x, coords[ptr].y, coords[ptr].z);
-			// fixme: for a better efficiency analysis we have to store WHERE the vertices
-			// are outside (near/far/left/right)
-			if (fabs(tmp.x) <= 1.0 && fabs(tmp.y) <= 1.0 && fabs(tmp.z) <= 1.0)
-				++vertices_inside;
-			++vertices;
-#endif
-		}
-
-/*
-                unsigned ptr2 = ptr - (xres+1);
-		bool error = false;
-		for (unsigned xx = 0; xx <= xres; ++xx) {
-			if (fabs(coords[ptr2+xx].z - tmpcoord[xx].z) >= 1) {
-				error = true;
-				break;
-			}
-		}
-		if (error) {
-			printf("SSE and C results differ!\n");
-			for (unsigned xx = 0; xx <= xres; ++xx) {
-				printf("xx=%u c=%f %f %f , sse=%f %f %f\n",xx,
-				       coords[ptr2+xx].x,coords[ptr2+xx].y,coords[ptr2+xx].z,
-				       tmpcoord[xx].x,tmpcoord[xx].y,tmpcoord[xx].z);
-			}
-		}
-*/
-
-#ifdef USE_SSE
-		}	// endif (usex86sse)
-#endif // USE_SSE
-	}
-
-	// this takes ~13ms per frame with 128x256. a bit costly
-	//fixme: maybe choose only trapzeoid with baseline parallel zu x-axis? but this doesn't save any computations
-	//wave sub detail should bring more display quality than higher resolution....
-	//	cout << "coord computation took " << tm2-tm1 << " ms.\n";
-
-#ifdef COMPUTE_EFFICIENCY
-	cout << "drawn " << vertices << " vertices, " << vertices_inside << " were inside frustum ("
-	     << vertices_inside*100.0f/vertices << " % )\n";
-#endif
-
-	// compute dynamic normals
-	// clear values from last frame (fixme: a plain memset(...,0 ) may be faster, or even mmx memset
-	fill(normals.begin(), normals.end(), vector3f());
-
-	// compute normals for all faces, add them to vertex normals
-	// fixme: angles at vertices are ignored yet
-	// fixme: the way the normals are computed seems wrong.
-	// faces look facetted, not smooth.
-	// This could explain the unrealistic look of the bump maps.
-	// The facetted appearance happens also without shaders, so THIS code must be the problem.
-	// i have checked it several times and tried other normal computation methods,
-	// the facettes remain, so the error must be somewhere else.
-	// Maybe the normals are interpolated differently for quads? maybe we should try triangles?
-	// fixme: when looking down on the water, so the water fills the full screen, facettes are
-	// more visible. THIS IS THE SOLUTION TO THE PROBLEM:
-	// In that case we have more visible triangles, the drawn grid is much denser
-	// this means we have many triangles per fft sample point. Heights are interpolated linearily,
-	// this means the drawn surface IS FACETTED. No wonder the triangulation algorithm
-	// shows such normals. We would have to compute not only heights/displacements, but normals
-	// also (real fft normals would be best, per tile normals are also ok, especially if they
-	// take the displacements into account), and interpolate the normals also smoothly.
-	for (unsigned y = 0; y < yres; ++y) {
-		for (unsigned x = 0; x < xres; ++x) {
-			unsigned i0 = x   +  y    *(xres+1);
-			unsigned i1 = x+1 +  y    *(xres+1);
-			unsigned i2 = x+1 + (y+1) *(xres+1);
-			unsigned i3 = x   + (y+1) *(xres+1);
-
-			// scheme: 3 2
-			//         0 1
-			// triangulation: 0,1,2 and 0,2,3 (fixme: check if that matches OpenGL order)
-			//must match face-index order that we provide, not opengl.
-			//growing y gives farer values, so we draw quads in ccw order 0,1,2,3
-			//with verts:
-			// 3 2  <- far
-			// 0 1  <- near
-			// so triangulation is either 0,1,2/0,2,3 or 0,1,3/1,2,3
-			// the order seems not to be defined in the redbook, so it may vary from
-			// card to card... so maybe just use only 0,1,2
-			const vector3f& p0 = coords[i0];
-			const vector3f& p1 = coords[i1];
-			const vector3f& p2 = coords[i2];
-			const vector3f& p3 = coords[i3];
-
-			// fixme: optimize this loop with sse!
-
-			//fixme: it seems that the normals are not smooth over the faces...
-			//the surface seems to be facetted, not smooth.
-			// better compute normals from four surrounding faces.
-			//fixme2: shader problem? it seems so, because computing really smooth normals
-			//doesn't help. DEFINITLY NOT A SHADER PROBLEM, CAN BE SEEN ALSO WITHOUT SHADERS!
-			//it would not suffice to compute the normals from the height differences,
-			//because the x/y coords do not vary uniformly.
-			// compute normals for quads in both triangulation orders, leading to a better result
-			vector3f n0 = (p1 - p0).cross(p3 - p0);
-			vector3f n1 = (p2 - p1).cross(p3 - p1);
-			vector3f n2 = (p1 - p0).cross(p2 - p0);
-			vector3f n3 = (p2 - p0).cross(p3 - p0);
-
-			normals[i0] += n0 + n2 + n3;
-			normals[i1] += n0 + n1 + n2;
-			normals[i2] += n1 + n2 + n3;
-			normals[i3] += n0 + n1 + n3;
-#if 0
-			normals[i0] += n0;
-			// fixme: the n1 vector seems to be the reason for the facetted surface normals
-			//reason: see above.
-			//but with only n0 it looks even worse...
-			vector3f n1 = (p2 - p1).cross(p3 - p1);
-			normals[i0] += n0;
-			normals[i1] += n0;
-			normals[i2] += n0;
-
-			normals[i0] += n1;
-			normals[i2] += n1;
-			normals[i3] += n1;
-
-#endif
-		}
-	}
 
 	// give -viewpos.z to vertex shader for generation of foam projection coordinates
 	// the plane z = -viewpos.z is the water plane.
@@ -1516,246 +755,357 @@ void water::display(const vector3& viewpos, angle dir, double max_view_dist) con
 		glsl_water->use();
 		glsl_water->set_uniform("viewpos", viewpos);
 	}
-
-	// make normals normal ;-)
-	// with shaders, we don't need to normalize the normals, because the shader does it
-	if (!use_shaders)
-		for (unsigned i = 0; i < (xres+1)*(yres+1); ++i)
-			normals[i].normalize();
-
-	// compute remaining data (Fresnel etc.)
-	//fixme: the whole loop could be done on the GPU with vertex shaders.
-	//coords and normals change per frame, so no display lists can be used.
-	//simple vertex arrays with locking should do the trick, maybe use
-	//(locked) quadstrips, if they're faster than compiled vertex arrays, test it!
-
-	vector<vector3f> uv2;
-	if (use_shaders) {
-		// foam:
-		//uv2.resize(uv0.size());
-	}
-
-	// no tex coords must be given to vertex shaders, fresnel texc's are computed from the
-	// position, same for reflection texc. only foam is more difficult
-	// foam is mapped like a great plane, depends on player's viewing angle and position...
-
-	if (use_shaders) {
-		//fixme: uv0/uv1 is not needed here and thus needs not be resized/created.
-		// enable coordinates and normals, but disable texture coordinates.
-		glDisableClientState(GL_COLOR_ARRAY);
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
-		glClientActiveTexture(GL_TEXTURE0);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glClientActiveTexture(GL_TEXTURE1);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glNormalPointer(GL_FLOAT, sizeof(vector3f), &normals[0].x);
-		// coords and normals are written AND read, so no use to store them in
-		// vertex buffer objects...
-		/* foam:
-		glClientActiveTexture(GL_TEXTURE2);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), &uv2[0].x);
-		*/
-	} else {
-		// fixme: something is broken with VBOs here...
-		uint8_t* uv01p = (uint8_t*)vbo_uv01.map(GL_WRITE_ONLY);
-		unsigned uv1off = ((xres+1)*(yres+1)*sizeof(vector2f));
-		vector2f* uv0p = (vector2f*)uv01p;
-		vector3f* uv1p = (vector3f*)(uv01p + uv1off);
-		for (unsigned yy = 0, ptr = 0; yy <= yres; ++yy) {
-			for (unsigned xx = 0; xx <= xres; ++xx, ++ptr) {
-				// the coordinate is the same as the relative coordinate, because the viewer is at 0,0,0
-				const vector3f& coord = coords[ptr];
-				const vector3f& N = normals[ptr];
-				float rel_coord_length = coord.length();
-				vector3f E = -coord * (1.0f/rel_coord_length); // viewer is in (0,0,0)
-				float F = E*N;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
-				// make water less reflective in the distance to simulate
-				// the fact that we look not on a flat plane in the distance
-				// but mostly wave sides,
-				// but the water display is similar to such a plane
-				if (rel_coord_length > 500) {
-					float tmp = (30000 - rel_coord_length)/29500;
-					tmp = tmp * tmp;
-					// 0.09051=x gives fresnel term 0.5
-					F = F * tmp + 0.09051f * (1 - tmp);
-				}
-				//fixme: far water reflects atmosphere seen from a farer distance
-				//the reflected ray goes right up into the atmosphere (earth
-				//surface is curved!) so reflected color would be rather blue
-				//not the horizon like greyish fog...
-				// value clamping is done by texture unit.
-				// water color depends on height of wave and slope
-				// slope (N.z) it mostly > 0.8
-				float colorfac = (coord.z + viewpos.z + 3) * (1.0f/9) + (N.z - 0.8f);
-				uv0p[ptr] = vector2f(F, colorfac);	// set fresnel and water color
-				// reflection texture coordinates (should be tweaked per pixel with fp, fixme)
-				// they are broken with fp, reason unknown
-				vector3f texc = coord + N * (VIRTUAL_PLANE_HEIGHT * N.z);
-				texc.z -= VIRTUAL_PLANE_HEIGHT;
-				uv1p[ptr] = texc;
-			}
-		}
-		vbo_uv01.unmap();
-		vbo_uv01.unbind();
-		// draw elements (fixed index list) with vertex arrays using coords,uv0,normals,uv1
-		glDisableClientState(GL_COLOR_ARRAY);
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &coords[0].x);
-		vbo_uv01.bind();
-		glClientActiveTexture(GL_TEXTURE0);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), 0); // &uv0[0].x);
-		glClientActiveTexture(GL_TEXTURE1);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(3, GL_FLOAT, sizeof(vector3f), (char*)0 + uv1off); // &uv1[0].x);
-		glDisableClientState(GL_NORMAL_ARRAY);
-	}
-
-	// set up textures
-	//fixme: model::split may be used for drawing reflected upper parts of ships, problem is that waterline
-	//varies.
-	setup_textures(reflection_projmvmat/*world2camera*/, transl); //fixme test
-
+	setup_textures(reflection_projmvmat, transl);
 	glColor4f(1,1,1,1);
 
-//	unsigned t0 = sys().millisec();
+	bool recompute_vertices = rerender_new_wtp
+		|| (rerender_viewpos.square_distance(viewpos) > 0.0001);
+	rerender_new_wtp = false;
+	rerender_viewpos = viewpos;
+	
+	//fixme: in setup_textures wird texmatrix von modelviewmatrix gesetzt, die veraendern wir aber
+	//hier nochmal, das passt dann nicht mehr...   wirklich? pruefe das!!!
 
-	// fixme: try using vertex buffer objects, may bring extra performance.
-	// some data is static (indices only) but is copied to the card each frame.
-	// GL_ARB_vertex_buffer_object will help here. Use 64k vertices at most to
-	// be in safe range (bug with Geforce4MX cards). We don't have more vertices
-	// at all, so it's no real limit. Use GL_UNSIGNED_SHORT as index format to
-	// save video memory. This can be done whenever less than 64k indices are
-	// used. The display list compiler should check that automatically and use
-	// only 16bit per index.
-	// bandwidth saved: 100*200 faces a 4 indices per frame, 2 bytes per index
-	// (optimized) gives 160000 bytes per frame, with 30fps ca. 4.57mb/sec.
-	// Not very much though...
+	// render levels from nearest to farest.
+	// we number the base level 0, nearer levels with additional subdetail have
+	// numbers below zero, coarser levels numbers greater than zero.
+	// Resolution of the data halves with each additional level.
+	// So maximum level is log2(wave_resolution)-1, so the coarsest level
+	// has a heightmap resolution of 2*2.
+	// Level 0 has a heightmap resolution of wave_resolution*wave_resolution.
+	// Finer levels have additional detail data, which is computed on-the-fly.
+	// This should be a fractal function, possibly recursive.
+	// It could be perlin noise or the wave height data itself, applied
+	// in a scaled version. This gives many finer levels.
+	// For a wave_resolution of 128 with wavetile_length of 256m we have
+	// levels 0...6 with height data resolutions of 128,64,32,16,8,4,2.
+	// Finer levels -1...x are possible, depending on the scale factor of the
+	// fractal noise. Note that level 0 is NOT rendered with 128x128 quads, but only
+	// a inner subsection with n*n quads (n is a power of two, e.g. 32).
+	// A reasonable detail for the finest level would be 0.25m, giving an 8m tile length
+	// for the finest level data.
 
-#ifdef DRAW_WATER_AS_GRID
-	glDrawElements(GL_LINES, gridindices2.size(), GL_UNSIGNED_INT, &(gridindices2[0]));
-#else
-#if 1
-	vbo_indices.bind();
-	if (!use_shaders)
-		vbo_uv01.bind();
-	unsigned nr_quads_total = yres * (xres + 2) - 2; // last two degenerate are obsolete
-	unsigned nr_indices_total = nr_quads_total * 2 + 2;
-	glDrawRangeElements(GL_QUAD_STRIP, 0, (xres+1)*(yres+1)-1, nr_indices_total, GL_UNSIGNED_INT, 0);
-	if (!use_shaders)
-		vbo_uv01.unbind();
-	vbo_indices.unbind();
-#else
-	glDrawElements(GL_QUADS, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
-#endif
-//	glDrawElements(GL_TRIANGLES, gridindices.size(), GL_UNSIGNED_INT, &(gridindices[0]));
-#endif
+	// compute which level is nearest. The higher the viewer is, the less
+	// detail we need to render and thus the coarser the first level is.
 
-//	unsigned t2 = sys().millisec();
-//	drawing takes ~28ms with linux/athlon2200+/gf4mx. That would be ~32mb/sec with AGP4x!?
-//	why is it SO SLOW?!
-//	surprising result: fillrate limit! with 512x384 we have 50fps, with 800x600 35fps,
-//	with 1024x768 25fps. Water has approximatly 1Mpixels/frame. Bad for a gf4mx!!
-//	ATI Radeon 9600 Pro: 35fps with catalyst 3.7.6, 14.4 (!!!) with catalyst 3.2.8. WHY?!
-//	cout << "t0 " << t0 << " t1 " << t1 << " diff " << t1-t0 << "\n";
+	// Which level number is the farest depends on viewing range. Normally we render all
+	// levels up to the coarsest, but with fog or other limited visibility we can spare
+	// coarser levels here.
 
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
+	// define some common values.
+	double L = wavetile_length / wave_resolution;
+	//double L_rcp = wave_resolution / wavetile_length;
+	const unsigned N = geoclipmap_resolution;
+
+	// compute module of wave tile length to get values in usable range,
+	// to give same precision of values, no matter how big the value of viewpos.x/y is,
+	// this can be very high, as its globally in meters.
+	vector2 viewpos_mod(myfmod(viewpos.x, double(wavetile_length)), myfmod(viewpos.y, double(wavetile_length)));
+
+	// compute vertices for all levels, if needed
+	// this optimization brings 3% more frame rates on a GF7600GT,
+	// with only a few lines of code
+	const unsigned nr_vert_attr = use_shaders ? 6 : 8;
+	if (recompute_vertices) {
+		const float VIRTUAL_PLANE_HEIGHT = 25.0f;
+		unsigned nr_verts_total = geoclipmap_levels * (N+1)*(N+1) + 8 /* horizon */;
+		// which data do we need per vertex?
+		// without shaders:
+		// - position (3f)
+		// - texcoord0 (2f)
+		// - texcoord1 (3f)
+		// --- sum: 8f
+		// with shaders (now)
+		// - position (3f)
+		// - normal (3f)
+		// --- sum: 6f
+		// with shaders (later)
+		// - position (3f)
+		// - texcoord (2f) (base position x,y - no displacement)
+		// - amount of foam (1f)
+		// --- sum: 6f
+		vertices.init_data(nr_verts_total * nr_vert_attr * 4, 0, GL_STREAM_DRAW);
+		float* vertex_data = (float*) vertices.map(GL_WRITE_ONLY);
+		//printf("nr_verts_total %u, memory %u\n", nr_verts_total, nr_verts_total*nr_vert_attr*4);
+		//with N=64 we have 21125 vertices, eating 507000 bytes of memory (shader).
+		unsigned vertex_data_ptr = 0;
+		// whole block takes 0.85ms, so way fast enough (shader).
+		// maybe: test if writing to mapped memory is faster than storing and copying data (DMA).
+		// but this is way fast enough already!
+		for (unsigned level = 0 /*minlevel*/; level < geoclipmap_levels; ++level) {
+			// scalar depending on level
+			double level_fac = double(1 << level);
+			// length between samples in meters, depends on level.
+			double L_l = L * level_fac;
+			int xoff = int(round_(0.5*viewpos_mod.x/L_l - 0.25*N)*2);
+			int yoff = int(round_(0.5*viewpos_mod.y/L_l - 0.25*N)*2);
+			float coordxadd = L_l, coordyadd = L_l;
+			vector2f offset(xoff * L_l - viewpos_mod.x, yoff * L_l - viewpos_mod.y);
+			// make sure offset is in wave tile, so add large modulo value
+			xoff += 16*wave_resolution;
+			yoff += 16*wave_resolution;
+
+			unsigned yy = yoff;
+			float coordyoff = offset.y;
+			const wavetile_phase::mipmap_level& mml = curr_wtp->mipmaps[level];
+			unsigned mod = (wave_resolution >> level) - 1;
+			unsigned mult = (wave_resolution >> level);
+			if (use_shaders) {
+				for (unsigned y = 0; y < N+1; ++y) {
+					unsigned lineidx = (yy & mod) * mult;
+					unsigned xx = xoff;
+					float coordxoff = offset.x;
+					for (unsigned x = 0; x < N+1; ++x) {
+						// fixme: adding values of two tiles here could be worth the
+						// trouble, use same data twice with different scales,
+						// thus increasing geometrical detail.
+						// like a 512m tile length with smallest waves of 0.25m
+						// (4m-512m detail on coarse level, 0.25m-32m on fine level)
+						// etc., uses view cpu time, but can increase detail
+						// dramatically... already tried that to add subdetail
+						// for nearer levels (<0) on earlier water renderings.
+						// would increase number of rendered levels by 3 or 4, but still
+						// ok for memory consumption...
+						unsigned colidx = (xx & mod);
+						const vector3f& p0 = mml.wavedata[lineidx + colidx];
+						const vector3f& n0 = mml.normals[lineidx + colidx];
+						vertex_data[vertex_data_ptr+0] = p0.x + coordxoff;
+						vertex_data[vertex_data_ptr+1] = p0.y + coordyoff;
+						vertex_data[vertex_data_ptr+2] = p0.z - viewpos.z;
+						//vertex_data[vertex_data_ptr+3] = coordxoff;
+						//vertex_data[vertex_data_ptr+4] = coordyoff;
+						//vertex_data[vertex_data_ptr+5] = foamamount;
+						vertex_data[vertex_data_ptr+3] = n0.x;
+						vertex_data[vertex_data_ptr+4] = n0.y;
+						vertex_data[vertex_data_ptr+5] = n0.z;
+						vertex_data_ptr += nr_vert_attr;
+						++xx;
+						coordxoff += coordxadd;
+					}
+					++yy;
+					coordyoff += coordyadd;
+				}
+			} else {
+				for (unsigned y = 0; y < N+1; ++y) {
+					unsigned lineidx = (yy & mod) * mult;
+					unsigned xx = xoff;
+					float coordxoff = offset.x;
+					for (unsigned x = 0; x < N+1; ++x) {
+						unsigned colidx = (xx & mod);
+						const vector3f& p0 = mml.wavedata[lineidx + colidx];
+						const vector3f& n0 = mml.normals[lineidx + colidx];
+						vector3f coord(p0.x + coordxoff, p0.y + coordyoff, p0.z - viewpos.z);
+						vertex_data[vertex_data_ptr+0] = coord.x;
+						vertex_data[vertex_data_ptr+1] = coord.y;
+						vertex_data[vertex_data_ptr+2] = coord.z;
+						float rel_coord_length = coord.length();
+						vector3f E = -coord * (1.0f/rel_coord_length); // viewer is in (0,0,0)
+						float F = E*n0;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
+						// make water less reflective in the distance to simulate
+						// the fact that we look not on a flat plane in the distance
+						// but mostly wave sides,
+						// but the water display is similar to such a plane
+						if (rel_coord_length > 500) {
+							float tmp = (30000 - rel_coord_length)/29500;
+							tmp = tmp * tmp;
+							// 0.09051=x gives fresnel term 0.5
+							F = F * tmp + 0.09051f * (1 - tmp);
+						}
+						//fixme: far water reflects atmosphere seen from a farer distance
+						//the reflected ray goes right up into the atmosphere (earth
+						//surface is curved!) so reflected color would be rather blue
+						//not the horizon like greyish fog...
+						// value clamping is done by texture unit.
+						// water color depends on height of wave and slope
+						// slope (N.z) it mostly > 0.8
+						float colorfac = (p0.z + 3) * (1.0f/9) + (n0.z - 0.8f);
+						vertex_data[vertex_data_ptr+3] = F; // set fresnel and water color
+						vertex_data[vertex_data_ptr+4] = colorfac;
+						// reflection texture coordinates
+						vector3f texc = coord + n0 * (VIRTUAL_PLANE_HEIGHT * n0.z);
+						texc.z -= VIRTUAL_PLANE_HEIGHT;
+						// fixme check: texmatrix must match modelview/projection matrix...
+						vertex_data[vertex_data_ptr+5] = texc.x;
+						vertex_data[vertex_data_ptr+6] = texc.y;
+						vertex_data[vertex_data_ptr+7] = texc.z;
+						vertex_data_ptr += nr_vert_attr;
+						++xx;
+						coordxoff += coordxadd;
+					}
+					++yy;
+					coordyoff += coordyadd;
+				}
+			}
+		}
+		// force vertex height on border to horizon faces to zero, normal to (0,0,1).
+		vertex_data_ptr = (geoclipmap_levels - 1) * (N+1)*(N+1) * nr_vert_attr;
+		for (unsigned i = 0; i < N+1; ++i) {
+			unsigned k[4] = { vertex_data_ptr + nr_vert_attr*i,
+					  vertex_data_ptr + nr_vert_attr*(i + N*(N+1)),
+					  vertex_data_ptr + nr_vert_attr*(i*(N+1)),
+					  vertex_data_ptr + nr_vert_attr*(i*(N+1) + N) };
+			if (use_shaders) {
+				for (unsigned j = 0; j < 4; ++j) {
+					vertex_data[k[j] + 2] = -viewpos.z;
+					vertex_data[k[j] + 3] = 0.0f;
+					vertex_data[k[j] + 4] = 0.0f;
+					vertex_data[k[j] + 5] = 1.0f;
+				}
+			} else {
+				for (unsigned j = 0; j < 4; ++j) {
+					vertex_data[k[j] + 2] = -viewpos.z;
+					vertex_data[k[j] + 4] = 0.0f; // colorfac
+					//fixme: set fresnel term here to constant value,
+					//or we can see the triangle pattern to the horizon.
+					vertex_data[k[j] + 7] = -viewpos.z; // texc.z
+				}
+			}
+		}
+		// add horizon faces
+		int hzx[8] = { -1, 0, 1, -1, 1, -1, 0, 1 };
+		int hzy[8] = { -1,-1,-1,  0, 0,  1, 1, 1 };
+		vertex_data_ptr = geoclipmap_levels * (N+1)*(N+1) * nr_vert_attr;
+		if (use_shaders) {
+			for (unsigned j = 0; j < 8; ++j) {
+				vertex_data[vertex_data_ptr + 0] = hzx[j] * max_view_dist;
+				vertex_data[vertex_data_ptr + 1] = hzy[j] * max_view_dist;
+				vertex_data[vertex_data_ptr + 2] = -viewpos.z;
+				vertex_data[vertex_data_ptr + 3] = 0.0f;
+				vertex_data[vertex_data_ptr + 4] = 0.0f;
+				vertex_data[vertex_data_ptr + 5] = 1.0f;
+				vertex_data_ptr += nr_vert_attr;
+			}
+		} else {
+			for (unsigned j = 0; j < 8; ++j) {
+				vertex_data[vertex_data_ptr + 0] = hzx[j] * max_view_dist;
+				vertex_data[vertex_data_ptr + 1] = hzy[j] * max_view_dist;
+				vertex_data[vertex_data_ptr + 2] = -viewpos.z;
+				vertex_data[vertex_data_ptr + 3] = 0.09051f; // fresnel term
+				vertex_data[vertex_data_ptr + 4] = 0.0f; // colorfac
+				vertex_data[vertex_data_ptr + 5] = hzx[j] * max_view_dist;
+				vertex_data[vertex_data_ptr + 6] = hzy[j] * max_view_dist;
+				vertex_data[vertex_data_ptr + 7] = -viewpos.z;
+				vertex_data_ptr += nr_vert_attr;
+			}
+		}
+		// finish
+		vertices.unmap();
+		vertices.unbind();
+	}
+
+	// ------------------- rendering --------------------------
+
+	// compute viewing frustum for culling
+	matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
+	matrix4 prj = matrix4::get_gl(GL_PROJECTION_MATRIX);
+	matrix4 mvr = mv;
+	mvr.clear_trans();
+	matrix4 mvp = prj * mv;
+	matrix4 invmvr = mvr.inverse();
+	matrix4 invmvp = mvp.inverse();
+	vector3 wbln = invmvp * vector3(-1,-1,-1);
+	vector3 wbrn = invmvp * vector3(+1,-1,-1);
+	vector3 wtln = invmvp * vector3(-1,+1,-1);
+	vector3 wtrn = invmvp * vector3(+1,+1,-1);
+	vector3 vd = invmvr * vector3(0,0,-1);
+	polygon viewwindow(wbln, wbrn, wtrn, wtln);
+	// Note! Viewer is at 0,0,0 for current Modelview matrix!
+	frustum viewfrustum(viewwindow, vector3(), vd, 1.0 /* znear, maybe better read from matrix! */);
+
+	// as first, map buffers correctly.
+	vertices.bind();
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, nr_vert_attr*4, (float*)0 + 0);
 	if (use_shaders) {
-		glClientActiveTexture(GL_TEXTURE2);
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glNormalPointer(GL_FLOAT, nr_vert_attr*4, (float*)0 + 3);
+	} else {
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, nr_vert_attr*4, (float*)0 + 3);
+		glClientActiveTexture(GL_TEXTURE1);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(3, GL_FLOAT, nr_vert_attr*4, (float*)0 + 5);
+	}
+	vertices.unbind();
+	glDisableClientState(GL_COLOR_ARRAY);
+
+	// innermost level is rendered always
+	patches[0]->render();
+	// render outer levels with view frustum culling
+	for (unsigned level = 1; level < geoclipmap_levels; ++level) {
+		//fixme : clean up the mess in this loop, reuse existing info!
+		// scalar depending on level
+		double level_fac = double(1 << level);
+		// length between samples in meters, depends on level.
+		double L_l = L * level_fac;
+		//fixme: this multiply with 0.5 then round then *2 lets the patches map to
+		//"even" vertices and must be used to determine which patch number to render.
+		int x_base[4] = { int(round_(0.5*viewpos_mod.x/L_l - 0.25*N)*2),
+				  int(round_(    viewpos_mod.x/L_l - 0.25*N)  ),
+				  int(round_(    viewpos_mod.x/L_l + 0.25*N)  ),
+				  int(round_(0.5*viewpos_mod.x/L_l + 0.25*N)*2) };
+		int y_base[4] = { int(round_(0.5*viewpos_mod.y/L_l - 0.25*N)*2),
+				  int(round_(    viewpos_mod.y/L_l - 0.25*N)  ),
+				  int(round_(    viewpos_mod.y/L_l + 0.25*N)  ),
+				  int(round_(0.5*viewpos_mod.y/L_l + 0.25*N)*2) };
+		// we have only 3 offsets, not 4.
+		double x_off[3], y_off[3];
+		for (int j = 0; j < 3; ++j) {
+			x_off[j] = x_base[j] * L_l - viewpos_mod.x;
+			y_off[j] = y_base[j] * L_l - viewpos_mod.y;
+			//  			printf("level=%i j=%i xbase=%i ybase=%i xoff=%f yoff=%f\n",
+			//  			       level, j, x_base[j], y_base[j], x_off[j], y_off[j]);
+		}
+
+		// render outer levels with inner hole, render 8 parts
+		//fixme: gescheit ueber patches loopen...
+		unsigned ii[9] = { 5,6,7,3,0,4,0,1,2 };
+		for (unsigned k = 0; k < 3; ++k) {
+			for (unsigned j = 0; j < 3; ++j) {
+				if (k != 1 || j != 1) {
+					const vector2f offset(x_off[j], y_off[k]);
+					// fixme: von patch abfragen...
+					unsigned xsize = unsigned(x_base[j+1] - x_base[j]);
+					unsigned ysize = unsigned(y_base[k+1] - y_base[k]);
+					//this shows: we have all three widths: 15,16,17 for the border...but how/why?
+					//printf("patch (%u|%u) sz=%u,%u\n", j,k,xsize,ysize);
+					// compute four corner points of patch and check for intersection with viewing frustum
+					// this gives HUGE speed improvements (32fps to 45fps on A64-3200+/GF6600)
+					polygon patchpoly(vector3(offset.x, offset.y, -viewpos.z),
+							  vector3(offset.x + xsize*L_l, offset.y, -viewpos.z),
+							  vector3(offset.x + xsize*L_l, offset.y + ysize*L_l, -viewpos.z),
+							  vector3(offset.x, offset.y + ysize*L_l, -viewpos.z));
+					if (!viewfrustum.clip(patchpoly).empty()) {
+						// render patch
+						patches[1 + (level-1)*9*8 + (1*3+1)*8 + (ii[3*k+j])]->render();
+					} else {
+						//printf("culled away patch, level=%i xyoff=%f,%f\n",level,offset.x,offset.y);
+					}
+				}
+			}
+		}
+	}
+	// render horizon polys
+	for (unsigned k = 0; k < 4; ++k) {
+		// fixme: view frustum clipping, but gives only small performance gain
+		patches[patches.size() - 4 + k]->render();
+	}
+
+	// unmap, cleanup
+	if (use_shaders) {
+		glDisableClientState(GL_NORMAL_ARRAY);
+	} else {
+		//glClientActiveTexture(GL_TEXTURE1); // still active
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glClientActiveTexture(GL_TEXTURE0);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
-	glClientActiveTexture(GL_TEXTURE1);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glClientActiveTexture(GL_TEXTURE0);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
 
 	// clean up textures
 	cleanup_textures();
 }
-
-
-
-	// How we render the water:
-	// Per pixel effects are not possible on geforce2. We could do dot3 bump mapping,
-	// but this gives diffuse lighting effects, and water is mostly reflective, refractive
-	// or specular shaded. Dot3 bump mapping could be used to disturb the color values
-	// a bit, if it would look good is unknown and has to be tested.
-	// We can do specular lighting per vertex only (per pixel would need pixel shaders or
-	// register combiners, which is not compatible to ATI cards). This could be done
-	// even by OpenGL itself. But the triangles are too large for realistic specular
-	// lighting, it just looks very ugly. So we don't use specular lighting.
-	// for each vertex do:
-	// get height/coordinate from precomputed heights/translation pos/displacements
-	// compute normalized vector to watcher = E
-	// get normal vector from precomputed data = N
-	// compute E*N, compute Fresnel(E*N). Fresnel(x) gives a value between 0 and 1
-	// determining how much reflection and how much refraction contributes to the water
-	// color. Fresnel(x) ~ 1/(x+1)^8 =: F. There is no way to compute this per pixel on a gf2
-	// not even an approximation (linear approximation is way too bad).
-	// And we can't use color values as texture indices on a gf2, so per pixel Fresnel
-	// is impossible, although it would increase the realism of the water.
-	// Based on F the water color is: refractive color * (1-F) + reflective color * F
-	// refractive color is const (rgb 18, 73, 107), reflective color is const (sky color)
-	// or better retrieved from a reflection map.
-	// So we have: primary color gives fresnel term (in color or alpha, 1 channel)
-	// Texture0 is reflection map.
-	// Texture1 is bump map (for fresnel fakes) or foam.
-	// Primary color (alpha or color) can give amount of foam (1 channel)
-	// Constant environment color is color of refraction.
-	// A word about automatic Fresnel computation: spheremaps or cubemaps won't work
-	// since reflections are view dependent (most important, they are view *angle*
-	// dependent), recomputation of sphere maps every frame won't work in a way that we
-	// can simulate a view independent value. Next possible way: lighting! set up the light
-	// source at the viewer's pos., give normals for faces -> they're lighted in grey
-	// like the E*N term (diffuse lighting). But we can't get F(E*N) per vertex automatically
-	// so we're stuck.
-	
-	// high frequency waves could be done with perlin noise (i.e. bump maps)
-	
-	// Filling the gaps between various detail tiles:
-	// We could make real meshes by tweaking the indices so that we have more faces in
-	// the last line of the lower detailed tile matching the first line of the following
-	// higher detailed tile. So we need precomputed indices for all cases. Expensive.
-	// Alternative solution: tweak the vertices' positions, not the indices. This leads to
-	// gaps in the mesh, but the faces' edges match, so no gaps can be seen. Just tweak
-	// the values of every second vertex on the last line of the higher detailed tile:
-	// for three vertices a,b,c in a line on the higher detailed tile, a and c will be
-	// also in the lower detailed tile. Set position of b as (a+c)/2, and do the same with
-	// b's colors and texture coordinates. Simple.
-	// Precondition: Adjacent tiles must not differ by more than one LOD. But this must not be
-	// either for the index tweaking alternative.
-	// Alternative II: draw n*n verts, fill inner parts of tiles only (with varying detail)
-	// fill seams with faces adapting the neighbouring detail levels.
-	// Alternative III: use projective grid
-
-	// Water drawing is slow. It seems that the per vertex computations are not the problem
-	// nor is it the gap filling. Most probable reason is the amount of data that
-	// has to be transferred each frame.
-	// We have 4 colors, 3 coords, 2 texcoords per vertex (=4+12+8=24bytes)
-	// with 65*65 verts per tile, 21*21 tiles, mean resolution, say, 20 we have
-	// 21*21*21*21*24bytes/frame = ~4.7mb/frame, with 15frames ~ 70mb/second.
-	// VBOs won't help much, they're also seem to be buggy on a gf4mx.
-	// Reason: a gf2mx can handle at most 16384 triangles.
-	// A gf4mx may handle more, general limit is 65536.
-
-	// timing: calculation of vertex data ~ 1/3-1/4 compared to DrawElements()
-	// for a large tile DrawElements needs up to 6.2ms per call!
-	// (two of all tiles need ~6ms, some 4, some 2, most of them need less time)
-	// speedups: 1) draw only visible tiles (~1/4 of them can be seen)
-	// 2) use vertex programs.
-	// data per tile (max): 65*65*((3+3)*4+4) (3xcoord,3xtexc,1xcolor4)
-	// = 4225 * 28 = 118300 = ~115.5kb, in 6222us -> ~18.13mb/sec.
-	// even if you assume some overhead, 18mb/sec is VERY slow.
-	// and this is why water display is so horribly slow.
-	// if we wouldn't need to modify 3d data (make adjacent tiles with index manipulation only)
-	// we could store coords and normals in gpu memory (~24mb for all 256frames or store it
-	// once per frame) and upload only the color values (1/7 of space).
-
 
 
 
@@ -1852,7 +1202,7 @@ void water::generate_wavetile(double tiletime, wavetile_phase& wtp)
 	if (maxabsh >= 16.0f)
 		throw error("max. wave height can be 16 meters, internal computation error");
 
-	unsigned hs = heights.size();
+	//unsigned hs = heights.size();
 
 //	cout << "absolute height +- of tile " << max(fabs(wtp.minh), fabs(wtp.maxh)) << "\n";
 
@@ -1862,11 +1212,28 @@ void water::generate_wavetile(double tiletime, wavetile_phase& wtp)
 	vector<vector2f> displacements;
 	owg.compute_displacements(-2.0f, displacements);
 
+#if 0 // oldcode
 	// create data vector
 	wtp.data.resize(hs);
 	for (unsigned i = 0; i < hs; ++i) {
 		wtp.set_values(i, displacements[i].x, displacements[i].y, heights[i]);
 	}
+#endif
+
+
+#if 1
+	unsigned mipmap_levels = wave_resolution_shift;
+	wtp.mipmaps.reserve(mipmap_levels);
+	double L = wavetile_length / wave_resolution;
+	wtp.mipmaps.push_back(wavetile_phase::mipmap_level(displacements, heights,
+							   wave_resolution_shift, L));
+	for (unsigned i = 1; i < mipmap_levels; ++i) {
+		wtp.mipmaps.push_back(wavetile_phase::mipmap_level(wtp.mipmaps.back().wavedata,
+								   wave_resolution_shift - i,
+								   L * (1 << i)));
+	}
+#endif
+
 /*
 	float maxdispl = 0.0;
 	for (vector<vector2f>::const_iterator it = displacements.begin(); it != displacements.end(); ++it) {
@@ -1935,7 +1302,12 @@ void water::set_time(double tm)
 	}
 
 	unsigned pn = unsigned(wave_phases * myfrac(tm / wave_tidecycle_time)) % wave_phases;
-	curr_wtp = &wavetile_data[pn];
+	if (curr_wtp == &wavetile_data[pn]) {
+		rerender_new_wtp = false;
+	} else {
+		curr_wtp = &wavetile_data[pn];
+		rerender_new_wtp = true;
+	}
 }
 
 
@@ -2040,6 +1412,501 @@ void water::refltex_render_unbind() const
 		reflectiontex->set_gl_texture();
 		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0,
 				 reflectiontex->get_width(), reflectiontex->get_height(), 0);
-		//fixme: ^ glCopyTexSubImage may be faster!
+		// ^ glCopyTexSubImage may be faster! but we use FBOs anyway on modern cards...
 	}
+}
+
+
+
+water::wavetile_phase::mipmap_level::mipmap_level(const std::vector<vector3f>& wd,
+						  unsigned res_shift, double sampledist_)
+	: resolution(1 << res_shift),
+	  resolution_shift(res_shift),
+	  sampledist(sampledist_)
+{
+	wavedata.reserve(1 << (2*resolution_shift));
+	unsigned ptr = 0;
+	for (unsigned y = 0; y < resolution; ++y) {
+		for (unsigned x = 0; x < resolution; ++x) {
+			vector3f sum = wd[ptr] + wd[ptr+1] + wd[ptr+2*resolution] + wd[ptr+1+2*resolution];
+			wavedata.push_back(sum * 0.25f);
+			ptr += 2;
+		}
+		ptr += 2*resolution;
+	}
+	compute_normals();
+	debug_dump();
+}
+
+
+
+water::wavetile_phase::mipmap_level::mipmap_level(const std::vector<vector2f>& displacements,
+						  const std::vector<float>& heights,
+						  unsigned res_shift,
+						  double sampledist_)
+	: resolution(1 << res_shift),
+	  resolution_shift(res_shift),
+	  sampledist(sampledist_),
+	  wavedata(1 << (2*res_shift))
+{
+	for (unsigned i = 0; i < wavedata.size(); ++i) {
+		wavedata[i].x = displacements[i].x;
+		wavedata[i].y = displacements[i].y;
+		wavedata[i].z = heights[i];
+	}
+	compute_normals();
+	debug_dump();
+}
+
+
+
+void water::wavetile_phase::mipmap_level::compute_normals()
+{
+	// Compute normals matching the tesselation!
+	// if we render TRIANGLE_STRIPs, we have a determined tesselation and thus can
+	// compute correct normals.
+	// compute normals for each face (triangles!) and then per vertex.
+	// Triangle strip scheme:
+	// v0 --- v2 --- v4
+	// |    / |    / |
+	// |   /  |   /  |
+	// |  /   |  /   |
+	// v1 --- v3 --- v5
+	// v1,v3,v5 are from lower line (smaller y).
+	// Each vertex has six adjacent triangles.
+	vector<vector3f> facenormals;
+	facenormals.reserve(resolution * resolution * 2);
+	for (unsigned y = 0; y < resolution; ++y) {
+		unsigned y1 = y * resolution;
+		unsigned y2 = ((y + 1) & (resolution - 1)) * resolution;
+		for (unsigned x = 0; x < resolution; ++x) {
+			unsigned x2 = (x + 1) & (resolution - 1);
+			const vector3f& p0 = wavedata[y1 + x];
+			const vector3f& p1 = wavedata[y1 + x2];
+			const vector3f& p2 = wavedata[y2 + x];
+			const vector3f& p3 = wavedata[y2 + x2];
+			vector3f p01 = p1 - p0;
+			vector3f p02 = p2 - p0;
+			vector3f p03 = p3 - p0;
+			p01.x += sampledist;
+			p03.x += sampledist;
+			p02.y += sampledist;
+			p03.y += sampledist;
+			facenormals.push_back(p03.cross(p02).normal());
+			facenormals.push_back(p01.cross(p03).normal());
+		}
+	}
+
+	// Now compute vertex normals from face normals.
+	// Every vertex has six adjacent faces, in ccw order:
+	// face0 = (x  ,y  )
+	// face1 = (x-1,y  )
+	// face2 = (x-2,y-1)
+	// face3 = (x-1,y-1)
+	// face4 = (x  ,y-1)
+	// face5 = (x+1,y  )
+	normals.reserve(1 << (2*resolution_shift));
+	for (unsigned y = 0; y < resolution; ++y) {
+		unsigned y1 = y * resolution;
+		unsigned y2 = ((y + resolution - 1) & (resolution - 1)) * resolution;
+		for (unsigned x = 0; x < resolution; ++x) {
+			unsigned x1 = (x + resolution - 1) & (resolution - 1);
+			const vector3f& f0 = facenormals[2*(y1+x)];
+			const vector3f& f1 = facenormals[2*(y1+x1)+1];
+			const vector3f& f2 = facenormals[2*(y2+x1)];
+			const vector3f& f3 = facenormals[2*(y2+x1)+1];
+			const vector3f& f4 = facenormals[2*(y2+x)];
+			const vector3f& f5 = facenormals[2*(y1+x)+1];
+			normals.push_back((f0 + f1 + f2 + f3 + f4 + f5).normal());
+		}
+	}
+}
+
+
+
+void water::wavetile_phase::mipmap_level::debug_dump()
+{
+#if 0
+	std::cout << "dump with res=" << resolution << " shift=" << resolution_shift << "\n";
+	unsigned tm = sys().millisec();
+	{
+		// store heights as test image
+		std::ostringstream ossn;
+		ossn << "heights_" << tm << ".ppm";
+		std::ofstream ofsn(ossn.str().c_str());
+		ofsn << "P6\n" << resolution << " " << resolution << "\n255\n";
+		float fac = 127/8.0f;
+		for (unsigned i = 0; i < resolution*resolution; ++i) {
+			uint8_t tmp[3];
+			tmp[0] = wavedata[i].x * fac + 128;
+			tmp[1] = wavedata[i].y * fac + 128;
+			tmp[2] = wavedata[i].z * fac + 128;
+			ofsn.write((const char*)tmp, 3);
+		}
+	}
+	{
+		// store normals as test image
+		std::ostringstream ossn;
+		ossn << "normals_" << tm << ".ppm";
+		std::ofstream ofsn(ossn.str().c_str());
+		ofsn << "P6\n" << resolution << " " << resolution << "\n255\n";
+		for (unsigned i = 0; i < resolution*resolution; ++i) {
+			uint8_t tmp[3];
+			tmp[0] = normals[i].x * 127 + 128;
+			tmp[1] = normals[i].y * 127 + 128;
+			tmp[2] = normals[i].z * 127 + 128;
+			ofsn.write((const char*)tmp, 3);
+		}
+	}
+#endif
+}
+
+
+
+water::geoclipmap_patch::geoclipmap_patch(unsigned N,
+					  unsigned level, unsigned border,
+					  unsigned xoff, unsigned yoff,
+					  unsigned columns, unsigned rows)
+	: vbo(true),
+	  min_vertex_index(0xffffffff),
+	  max_vertex_index(0),
+	  nr_indices(0),
+	  use_fan(false)
+{
+// 	printf("gen patch: lev=%u border=%x, xyoff=%u/%u xysize=%u/%u\n",
+// 	       level, border, xoff, yoff, columns, rows);
+	// border = 0 (none), 1 (top), 2 (right), 4 (bottom), 8 (left)
+	if (border != 0 && level == 0)
+		throw error("can't use border on innermost level");
+	// number of indices: per row we have 2 per quad plus 2 for the start and 2 for the
+	// change to the next row (but not for last row).
+	nr_indices = rows * (columns * 2 + 2 + 2) - 2;
+	if (border & 0x0f) {
+		// per row/colum we have three triangles (four, but one degenerated),
+		// that makes two indices for the start and four per row/column
+		unsigned parts = (border & 0x05) ? columns : rows; // either 0x4 or 0x1, bottom or top
+		nr_indices += 2 /* degen. for conjunction */ + 2 + 4 * parts;
+		// A,B,A,E,C,D
+		// A---C
+		// |\ /|
+		// B-E-D
+	}
+
+	// Generate space for indices. Init VBO directly and map its space.
+#if 1
+	// if N <= 64, 16bit are enough to index vertices.... but we use 32 anyway, just in case.
+	vbo.init_data(nr_indices * 4, 0, GL_STATIC_DRAW);
+	uint32_t* index_data = (uint32_t*) vbo.map(GL_WRITE_ONLY);
+	uint32_t last_index = 0; // avoid reading from VBO
+#else
+	vbo.init_data(nr_indices * 2, 0, GL_STATIC_DRAW);
+	uint16_t* index_data = (uint16_t*) vbo.map(GL_WRITE_ONLY);
+	uint16_t last_index = 0; // avoid reading from VBO
+#endif
+
+	unsigned index_ptr = 0;
+
+	bool left_to_right = true;
+	unsigned vertex_offset = level * (N+1)*(N+1) + yoff * (N+1) + xoff;
+	min_vertex_index = vertex_offset;
+
+	// write columns*rows
+	for (unsigned y = 0; y < rows; ++y) {
+		if (left_to_right) {
+			if (y > 0) {
+				// degenerated triangles for conjunction
+				index_data[index_ptr+0] = last_index;
+				index_data[index_ptr+1] = vertex_offset + N+1;
+				index_ptr += 2;
+			}
+			// strip start
+			index_data[index_ptr+0] = vertex_offset + N+1;
+			index_data[index_ptr+1] = vertex_offset;
+			if (y == 0 && border == 0x20) {
+				// upper right patch, starts on corner
+				index_data[index_ptr+1] = min_vertex_index =
+					(level-1) * (N+1)*(N+1) + N*(N+1) + N;
+			} else if (y + 1 == rows && border == 0x40) {
+				// lower right patch, last line connects to corner
+				index_data[index_ptr+0] = min_vertex_index =
+					(level-1) * (N+1)*(N+1) + N;
+			}
+			index_ptr += 2;
+			for (unsigned x = 0; x < columns; ++x) {
+				index_data[index_ptr+0] = vertex_offset + x+1 + N+1;
+				index_data[index_ptr+1] = vertex_offset + x+1;
+				index_ptr += 2;
+			}
+			last_index = vertex_offset + columns;
+			max_vertex_index = vertex_offset + columns + N+1;
+			if (y == 0 && border == 0x10) {
+				// upper left patch, first line ends on corner
+				index_data[index_ptr-1] = last_index = min_vertex_index =
+					(level-1) * (N+1)*(N+1) + N*(N+1);
+			} else if (y + 1 == rows && border == 0x80) {
+				// lower left patch, last line ends on corner
+				index_data[index_ptr-2] = min_vertex_index =
+					(level-1) * (N+1)*(N+1);
+				max_vertex_index = vertex_offset + columns-1 + N+1;
+			}
+		} else {
+			if (y > 0) {
+				// degenerated triangles for conjunction
+				index_data[index_ptr+0] = last_index;
+				index_data[index_ptr+1] = vertex_offset + columns;
+				index_ptr += 2;
+			}
+			// strip start
+			index_data[index_ptr+0] = vertex_offset + columns;
+			index_data[index_ptr+1] = vertex_offset + columns + N+1;
+			max_vertex_index = vertex_offset + N+1 + columns;
+			if (y + 1 == rows && border == 0x80) {
+				// lower left patch, last line connects to corner
+				index_data[index_ptr+1] = min_vertex_index =
+					(level-1) * (N+1)*(N+1);
+				max_vertex_index = vertex_offset + N+1 + columns-1;
+			}
+			index_ptr += 2;
+			for (unsigned x = 0; x < columns; ++x) {
+				index_data[index_ptr+0] = vertex_offset + columns-1 - x;
+				index_data[index_ptr+1] = vertex_offset + columns-1 - x + N+1;
+				index_ptr += 2;
+			}
+			last_index = vertex_offset + N+1;
+			if (y + 1 == rows && border == 0x40) {
+				// lower right patch, last line ends on corner
+				index_data[index_ptr-1] = last_index = min_vertex_index =
+					(level-1) * (N+1)*(N+1) + N;
+			}
+		}
+		vertex_offset += N+1;
+		left_to_right = !left_to_right;
+	}
+
+	if (border & 0x01) {
+		// border at top
+		// rightmost vertex on bottom of inner level's vertices.
+		vertex_offset = level * (N+1)*(N+1) + (yoff + rows) * (N+1) + xoff + columns; // "A"
+		unsigned vertex_offset2 = (level-1) * (N+1)*(N+1) + N; // "B"
+		min_vertex_index = vertex_offset2 - N;
+		// degenerated triangles for conjunction
+		index_data[index_ptr+0] = last_index;
+		index_data[index_ptr+1] = vertex_offset;
+		index_ptr += 2;
+		// start vertices.
+		index_data[index_ptr+0] = vertex_offset;
+		index_data[index_ptr+1] = vertex_offset2;
+		index_ptr += 2;
+		for (unsigned x = 0; x < columns; ++x) {
+			index_data[index_ptr+0] = vertex_offset; // A
+			index_data[index_ptr+1] = vertex_offset2 - 1; // E
+			index_data[index_ptr+2] = vertex_offset - 1; // C
+			index_data[index_ptr+3] = vertex_offset2 - 2; // D
+			index_ptr += 4;
+			vertex_offset -= 1;
+			vertex_offset2 -= 2;
+		}
+	} else if (border & 0x04) {
+		// border at bottom
+		// leftmost vertex on top of inner level's vertices.
+		vertex_offset = level * (N+1)*(N+1) + yoff * (N+1) + xoff; // "A"
+		unsigned vertex_offset2 = (level-1) * (N+1)*(N+1) + N*(N+1); // "B"
+		min_vertex_index = vertex_offset2;
+		// degenerated triangles for conjunction
+		index_data[index_ptr+0] = last_index;
+		index_data[index_ptr+1] = vertex_offset;
+		index_ptr += 2;
+		// start vertices.
+		index_data[index_ptr+0] = vertex_offset;
+		index_data[index_ptr+1] = vertex_offset2;
+		index_ptr += 2;
+		for (unsigned x = 0; x < columns; ++x) {
+			index_data[index_ptr+0] = vertex_offset; // A
+			index_data[index_ptr+1] = vertex_offset2 + 1; // E
+			index_data[index_ptr+2] = vertex_offset + 1; // C
+			index_data[index_ptr+3] = vertex_offset2 + 2; // D
+			index_ptr += 4;
+			vertex_offset += 1;
+			vertex_offset2 += 2;
+		}
+	} else if (border & 0x02) {
+		// border at right
+		// leftmost vertex on bottom of inner level's vertices.
+		vertex_offset = level * (N+1)*(N+1) + yoff * (N+1) + xoff + columns; // "A"
+		unsigned vertex_offset2 = (level-1) * (N+1)*(N+1); // "B"
+		min_vertex_index = vertex_offset2;
+		// degenerated triangles for conjunction
+		index_data[index_ptr+0] = last_index;
+		index_data[index_ptr+1] = vertex_offset;
+		index_ptr += 2;
+		// start vertices.
+		index_data[index_ptr+0] = vertex_offset;
+		index_data[index_ptr+1] = vertex_offset2;
+		index_ptr += 2;
+		for (unsigned y = 0; y < rows; ++y) {
+			index_data[index_ptr+0] = vertex_offset; // A
+			index_data[index_ptr+1] = vertex_offset2 + N+1; // E
+			index_data[index_ptr+2] = vertex_offset + N+1; // C
+			index_data[index_ptr+3] = vertex_offset2 + 2*(N+1); // D
+			index_ptr += 4;
+			vertex_offset += N+1;
+			vertex_offset2 += 2*(N+1);
+		}
+	} else if (border & 0x08) {
+		// border at left
+		// rightmost vertex on top of inner level's vertices.
+		vertex_offset = level * (N+1)*(N+1) + (yoff + rows) * (N+1) + xoff; // "A"
+		unsigned vertex_offset2 = (level-1) * (N+1)*(N+1) + N*(N+1) + N; // "B"
+		min_vertex_index = vertex_offset2 - N*(N+1);
+		// degenerated triangles for conjunction
+		index_data[index_ptr+0] = last_index;
+		index_data[index_ptr+1] = vertex_offset;
+		index_ptr += 2;
+		// start vertices.
+		index_data[index_ptr+0] = vertex_offset;
+		index_data[index_ptr+1] = vertex_offset2;
+		index_ptr += 2;
+		for (unsigned y = 0; y < rows; ++y) {
+			index_data[index_ptr+0] = vertex_offset; // A
+			index_data[index_ptr+1] = vertex_offset2 - (N+1); // E
+			index_data[index_ptr+2] = vertex_offset - (N+1); // C
+			index_data[index_ptr+3] = vertex_offset2 - 2*(N+1); // D
+			index_ptr += 4;
+			vertex_offset -= N+1;
+			vertex_offset2 -= 2*(N+1);
+		}
+	}
+
+	// do not forget...
+	vbo.unmap();
+	vbo.unbind();
+
+#if 0 // paranoia checks for debug
+	if (index_ptr != nr_indices) {
+		printf("ERROR: idxptr %u nri %u\n",index_ptr,nr_indices);
+		throw error("BUG");
+	}
+	unsigned jmin = 99999999, jmax = 0;
+	for (unsigned j = 0; j < nr_indices; ++j) {
+		jmin = std::min(jmin, index_data[j]);
+		jmax = std::max(jmax, index_data[j]);
+	}
+	if (jmin != min_vertex_index) {
+		printf("ERROR: border %02x jmin %u min_vertex_index %u xyoff=%u,%u rowcol=%u,%u\n", border, jmin, min_vertex_index, xoff,yoff,columns,rows);
+		throw error("BUG");
+	}
+	if (jmax != max_vertex_index) {
+		printf("ERROR: border %02x jmax %u max_vertex_index %u xyoff=%u,%u rowcol=%u,%u\n", border, jmax, max_vertex_index, xoff,yoff,columns,rows);
+		throw error("BUG");
+	}
+#endif
+}
+
+
+
+water::geoclipmap_patch::geoclipmap_patch(unsigned N,
+					  unsigned highest_level,
+					  unsigned border)
+	: vbo(true),
+	  min_vertex_index(0xffffffff),
+	  max_vertex_index(0),
+	  nr_indices(0),
+	  use_fan(true)
+{
+	nr_indices = N+1 + 3;
+	// Generate space for indices. Init VBO directly and map its space.
+#if 1
+	// if N <= 64, 16bit are enough to index vertices.... but we use 32 anyway, just in case.
+	vbo.init_data(nr_indices * 4, 0, GL_STATIC_DRAW);
+	uint32_t* index_data = (uint32_t*) vbo.map(GL_WRITE_ONLY);
+#else
+	vbo.init_data(nr_indices * 2, 0, GL_STATIC_DRAW);
+	uint16_t* index_data = (uint16_t*) vbo.map(GL_WRITE_ONLY);
+#endif
+
+	unsigned index_ptr = 0;
+	unsigned vertex_offset = (highest_level+1) * (N+1)*(N+1);
+	if (border & 0x01) {
+		// border at top
+		index_data[index_ptr++] = vertex_offset + 6;
+		index_data[index_ptr++] = vertex_offset + 5;
+		unsigned vertex_offset2 = highest_level * (N+1)*(N+1) + N*(N+1);
+		for (unsigned x = 0; x < N+1; ++x) {
+			index_data[index_ptr++] = vertex_offset2 + x;
+		}
+		index_data[index_ptr++] = vertex_offset + 7;
+		min_vertex_index = vertex_offset2;
+		max_vertex_index = vertex_offset + 7;
+	} else if (border & 0x02) {
+		// border at right
+		index_data[index_ptr++] = vertex_offset + 4;
+		index_data[index_ptr++] = vertex_offset + 7;
+		unsigned vertex_offset2 = highest_level * (N+1)*(N+1) + N*(N+1) + N;
+		for (unsigned x = 0; x < N+1; ++x) {
+			index_data[index_ptr++] = vertex_offset2;
+			vertex_offset2 -= N+1;
+		}
+		index_data[index_ptr++] = vertex_offset + 2;
+		min_vertex_index = vertex_offset2 + N+1;
+		max_vertex_index = vertex_offset + 7;
+	} else if (border & 0x04) {
+		// border at bottom
+		index_data[index_ptr++] = vertex_offset + 1;
+		index_data[index_ptr++] = vertex_offset + 2;
+		unsigned vertex_offset2 = highest_level * (N+1)*(N+1) + N;
+		for (unsigned x = 0; x < N+1; ++x) {
+			index_data[index_ptr++] = vertex_offset2 - x;
+		}
+		index_data[index_ptr++] = vertex_offset + 0;
+		min_vertex_index = vertex_offset2 - N;
+		max_vertex_index = vertex_offset + 2;
+	} else if (border & 0x08) {
+		// border at left
+		index_data[index_ptr++] = vertex_offset + 3;
+		index_data[index_ptr++] = vertex_offset + 0;
+		unsigned vertex_offset2 = highest_level * (N+1)*(N+1);
+		min_vertex_index = vertex_offset2;
+		for (unsigned x = 0; x < N+1; ++x) {
+			index_data[index_ptr++] = vertex_offset2;
+			vertex_offset2 += N+1;
+		}
+		index_data[index_ptr++] = vertex_offset + 5;
+		max_vertex_index = vertex_offset + 5;
+	}
+
+	// do not forget...
+	vbo.unmap();
+	vbo.unbind();
+
+#if 0 // paranoia checks for debug
+	if (index_ptr != nr_indices) {
+		printf("ERROR: idxptr %u nri %u border %u\n",index_ptr,nr_indices,border);
+		throw error("BUG");
+	}
+	unsigned jmin = 99999999, jmax = 0;
+	for (unsigned j = 0; j < nr_indices; ++j) {
+		jmin = std::min(jmin, index_data[j]);
+		jmax = std::max(jmax, index_data[j]);
+	}
+	if (jmin != min_vertex_index) {
+		printf("ERROR: jmin %u min_vertex_index %u border %u\n", jmin, min_vertex_index,border);
+		throw error("BUG");
+	}
+	if (jmax != max_vertex_index) {
+		printf("ERROR: jmax %u max_vertex_index %u border %u\n", jmax, max_vertex_index,border);
+		throw error("BUG");
+	}
+#endif
+}
+
+
+
+
+void water::geoclipmap_patch::render() const
+{
+	// vertex/texture pointers are already set up
+	vbo.bind();
+	glDrawRangeElements(use_fan ? GL_TRIANGLE_FAN : GL_TRIANGLE_STRIP,
+			    min_vertex_index, max_vertex_index, nr_indices, GL_UNSIGNED_INT, 0);
+	vbo.unbind();
 }
