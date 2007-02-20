@@ -519,7 +519,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	// ******* water ***************************************************************
 	//ui.get_water().update_foam(1.0/25.0);  //fixme: deltat needed here
 	//ui.get_water().spawn_foam(vector2(myfmod(gm.get_time(),256.0),0));
-	ui.get_water().display(viewpos, ui.get_absolute_bearing(), max_view_dist);
+	ui.get_water().display(viewpos, max_view_dist);
 
 	// ******** terrain/land ********************************************************
 //	glDisable(GL_FOG);	//testing with new 2d bspline terrain.

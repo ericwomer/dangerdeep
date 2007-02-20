@@ -190,7 +190,7 @@ protected:
 	mutable vertexbufferobject vertices;
 
 public:
-	water(unsigned xres_ /* obsolete */, unsigned yres_ /* obsolete */, double tm = 0.0);	// give day time in seconds
+	water(double tm = 0.0);	// give day time in seconds
 	void set_time(double tm);
 
 	void draw_foam_for_ship(const game& gm, const ship* shp, const vector3& viewpos) const;
@@ -198,7 +198,7 @@ public:
 					    const std::vector<ship*>& allships) const;
 
 	// give absolute position of viewer as viewpos, but modelview matrix without translational component!
-	void display(const vector3& viewpos, angle dir, double max_view_dist) const;
+	void display(const vector3& viewpos, double max_view_dist) const;
 	float get_height(const vector2& pos) const;
 	// give f as multiplier for difference to (0,0,1)
 	vector3f get_normal(const vector2& pos, double f = 1.0) const;

@@ -96,13 +96,7 @@ user_interface::user_interface(game& gm) :
 {
 	add_loading_screen("coast map initialized");
 	mysky.reset(new sky());
-	unsigned water_res_x = unsigned(cfg::instance().geti("water_res_x"));
-	unsigned water_res_y = unsigned(cfg::instance().geti("water_res_y"));
-	if (water_res_x < 16) water_res_x = 16;
-	if (water_res_x > 1024) water_res_x = 1024;
-	if (water_res_y < 16) water_res_y = 16;
-	if (water_res_y > 1024) water_res_y = 1024;
-	mywater.reset(new class water(water_res_x, water_res_y, 0.0));
+	mywater.reset(new class water(0.0));
 	panel.reset(new widget(0, 768-32, 1024, 32, "", 0));
 	panel->set_background(panelbackground);
 	// ca. 1024-2*8 for 6 texts => 168 pix. for each text

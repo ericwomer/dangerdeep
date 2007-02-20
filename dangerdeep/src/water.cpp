@@ -184,7 +184,7 @@ not.
 static float totalmin = 0, totalmax = 0;
 #endif
 
-water::water(unsigned xres_, unsigned yres_, double tm) :
+water::water(double tm) :
 	mytime(tm),
 	wave_phases(cfg::instance().geti("wave_phases")),
 	wavetile_length(cfg::instance().getf("wavetile_length")),
@@ -740,7 +740,7 @@ static inline double round_(double x)
 	else return floor(x + 0.5);
 }
 
-void water::display(const vector3& viewpos, angle /*dir*/, double max_view_dist) const
+void water::display(const vector3& viewpos, double max_view_dist) const
 {
 	// get projection and modelview matrix
 	matrix4 proj = matrix4::get_gl(GL_PROJECTION_MATRIX);

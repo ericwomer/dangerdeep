@@ -39,7 +39,7 @@ if sys.platform == 'win32':
 	env.Append(CPPDEFINES = ['_REENTRANT'])
 	env.Append(CCFLAGS = '-Wall -O2') # for mingw!
 	if (usex86sse >= 1):
-		osspecificsrc += ['water_sse.cpp']
+		osspecificsrc += []
 		env.Append(CCFLAGS = '-msse')
 		env.Append(CPPDEFINES = ['USE_SSE'])
 		print 'Using x86 SSE/MMX optimizations with GCC intrinsics.'
@@ -83,7 +83,7 @@ elif (sys.platform == 'freebsd5') or (sys.platform == 'freebsd6') or (sys.platfo
 	        if usex86sse >= 1:
 			env.Append(CCFLAGS = '-msse')
         	        env.Append(CPPDEFINES = ['USE_SSE'])
-	                osspecificsrc += ['water_sse.cpp']
+	                osspecificsrc += []
 	                print 'Using x86 SSE/MMX optimizations.'
 
         env.Replace(CCFLAGS = os.environ['CFLAGS'])
@@ -159,7 +159,7 @@ else:
 	if usex86sse >= 1:
 		env.Append(CPPDEFINES = ['USE_SSE'])
 		env.Append(CCFLAGS = '-msse')
-		osspecificsrc += ['water_sse.cpp']
+		osspecificsrc += []
 		if (usex86sse >= 2):
 			env.Append(CPPDEFINES = ['USE_SSE_ALWAYS'])
 			print 'Using x86 SSE/MMX optimizations with GCC intrinsics ALWAYS WITHOUT DETECTION!'
