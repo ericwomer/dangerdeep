@@ -1111,6 +1111,16 @@ void water::display(const vector3& viewpos, double max_view_dist) const
 		patches[patches.size() - 4 + k]->render();
 	}
 
+	/* fixme: triangles near the horizon show strange sun reflection (specular light).
+	   it seems that the texcoords or maybe mipmap levels are computed nearly
+	   linearily along the polygon edges. And because we have polygons with very narrow
+	   angles here, this causes artifacts.
+	   Resolution 1: draw more, smaller, rectangular polygons.
+	   Resolution 2: use special rendering with extra specular texture for these polygons,
+	                 texturing them with some bigger noise modelling distant waves.
+	   But: check that this is the cause for the bug first...
+	*/
+
 	// unmap, cleanup
 	if (use_shaders) {
 		glDisableClientState(GL_NORMAL_ARRAY);
