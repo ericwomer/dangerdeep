@@ -40,7 +40,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "matrix4.h"
 
 #include <iostream>
-using namespace std;
 using std::vector;
 
 
