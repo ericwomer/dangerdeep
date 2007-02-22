@@ -1226,7 +1226,7 @@ void water::generate_wavetile(double tiletime, wavetile_phase& wtp)
 #endif
 #if 0
 	char fn[32]; sprintf(fn, "waveh%f.pgm", tiletime);
-	ofstream osg(fn);
+	std::ofstream osg(fn);
 	osg << "P5\n";
 	osg <<wave_resolution<<" "<<wave_resolution<<"\n255\n";
 	for (vector<float>::const_iterator it = heights.begin(); it != heights.end(); ++it) {
@@ -1248,16 +1248,62 @@ void water::generate_wavetile(double tiletime, wavetile_phase& wtp)
 	vector<vector2f> displacements;
 	owg.compute_displacements(-2.0f, displacements);
 
-#if 0 // oldcode
-	// create data vector
-	wtp.data.resize(hs);
-	for (unsigned i = 0; i < hs; ++i) {
-		wtp.set_values(i, displacements[i].x, displacements[i].y, heights[i]);
+#if 0
+	// compute where foam is generated...
+	// max. length of displacement is no good criteria, also not min. length.
+	// we need to know where waves break, that would be where displacement
+	// has its local extrema (maxima). but this is two dimensional then...
+	// gives tessendorf some hints here? jacobian matrices?
+	// yes, tessendorf 2004 p.12f. when the jacobian becomes negative,
+	// we have overlap.
+	// we have the displacment values in x and y direction and neee to
+	// compute derivatives in x/y dir, giving 4 values that need to be
+	// computed with lambda to get the jacobian value.
+	char fn2[32]; sprintf(fn2, "waveh%fdisp.pgm", tiletime);
+	std::ofstream osg2(fn2);
+	osg2 << "P5\n";
+	osg2 <<wave_resolution<<" "<<wave_resolution<<"\n255\n";
+	double lambda = 0.5;//should be 1.0, as lambda has already been multiplied (2.0) above
+	for (unsigned y = 0; y < wave_resolution; ++y) {
+		unsigned ym1 = (y + wave_resolution - 1) & (wave_resolution-1);
+		unsigned yp1 = (y + 1) & (wave_resolution-1);
+		for (unsigned x = 0; x < wave_resolution; ++x) {
+			unsigned xm1 = (x + wave_resolution - 1) & (wave_resolution-1);
+			unsigned xp1 = (x + 1) & (wave_resolution-1);
+			//fixme: this is not the real derivative, as distance between
+			// samples is not taken into account. we need to multiply the disp
+			// values with 0.5, but we do this by faking lambda to 0.5
+			double dispx_dx = displacements[y*wave_resolution+xp1].x - displacements[y*wave_resolution+xm1].x;
+			double dispx_dy = displacements[yp1*wave_resolution+x].x - displacements[ym1*wave_resolution+x].x;
+			double dispy_dx = displacements[y*wave_resolution+xp1].y - displacements[y*wave_resolution+xm1].y;
+			double dispy_dy = displacements[yp1*wave_resolution+x].y - displacements[ym1*wave_resolution+x].y;
+			double Jxx = 1.0 + lambda * dispx_dx;
+			double Jyy = 1.0 + lambda * dispy_dy;
+			double Jxy = lambda * dispy_dx;
+			double Jyx = lambda * dispx_dy;
+			double J = Jxx*Jyy - Jxy*Jyx;
+			//printf("x,y=%u,%u, Jxx,yy=%f,%f Jxy,yx=%f,%f J=%f\n",
+			//       x,y, Jxx,Jyy, Jxy,Jyx, J);
+			double fa = (J - 0.3) / -1.0 * 255;
+			if (fa < 0) fa = 0; else if (fa > 255) fa = 255;
+			Uint8 x = Uint8(fa);
+			osg2.write((const char*)&x, 1);
+		}
 	}
+	/* fixme. what do we need to do:
+	   compute where foam should be generated (or even how much), by the formulas
+	   seen above per water sample. (If J < 0.3, generate foam in growing amount)
+	   Foam decays over time. Full foam must have disappeared within one period
+	   of animation, so we can use the cyclic animation.
+	   Start with clean field of amount of foam values (all zero),
+	   then compute how much foam to generate per sample for all animation phases
+	   and simulatenously compute decay.
+	   Do this for *2* animation cycles, because of wrap around.
+	   After that take the data of the last cycle and store per vertex and time step
+	   how much foam there is for the realtime display later.
+	*/
 #endif
 
-
-#if 1
 	unsigned mipmap_levels = wave_resolution_shift;
 	wtp.mipmaps.reserve(mipmap_levels);
 	double L = wavetile_length / wave_resolution;
@@ -1268,7 +1314,6 @@ void water::generate_wavetile(double tiletime, wavetile_phase& wtp)
 								   wave_resolution_shift - i,
 								   L * (1 << i)));
 	}
-#endif
 
 /*
 	float maxdispl = 0.0;
