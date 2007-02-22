@@ -184,6 +184,13 @@ not.
 static float totalmin = 0, totalmax = 0;
 #endif
 
+// computes valid detail values
+static unsigned cmpdtl(int x)
+{
+	if (x < 4 || x > 512) return 128;
+	return nextgteqpow2(unsigned(x));
+}
+
 water::water(double tm) :
 	mytime(tm),
 	wave_phases(cfg::instance().geti("wave_phases")),
@@ -208,8 +215,8 @@ water::water(double tm) :
 	png(subdetail_size, 1, subdetail_size/16), //fixme ohne /16 sieht's scheisse aus, war /8
 	last_subdetail_gen_time(tm),
 	rerender_new_wtp(true),
-	geoclipmap_resolution(64 /* should be power of two */),
-	geoclipmap_levels(5), // depends on wave_resolution (log2(wave_resolution)-1-2)
+	geoclipmap_resolution(cmpdtl(cfg::instance().geti("water_detail"))), // should be power of two
+	geoclipmap_levels(wave_resolution_shift-2),
 	patches(1 + (geoclipmap_levels-1)*8*3*3 + 4 /*horizon*/)
 {
 	// generate geoclipmap index data.
@@ -219,25 +226,22 @@ water::water(double tm) :
 	for (unsigned j = 1; j < geoclipmap_levels; ++j) {
 		// each level has 8 patches and 9 variations of each patch.
 		// the variation is in height/width
-		// patches are topleft to bottom right:
-		// 012
-		// 3 4
-		// 567
-		// fixme!!! later we assume, switch here!!!
+		// width/height is standard width/height -1,0,1
+		// patches are bottom left to top right:
 		// 567
 		// 3 4
 		// 012
 		for (int y = -1; y <= 1; ++y) {
 			for (int x = -1; x <= 1; ++x) {
 				unsigned pn = 1 + (j-1)*9*8 + ((y+1) * 3 + (x+1)) * 8;
-				patches.reset(pn + 0, new geoclipmap_patch(geoclipmap_resolution, j, 0x10,       0, N34-y  , N4+x, N4+y  ));
-				patches.reset(pn + 1, new geoclipmap_patch(geoclipmap_resolution, j, 0x04,  N4+x  , N34-y+1, N2  , N4+y-1));
-				patches.reset(pn + 2, new geoclipmap_patch(geoclipmap_resolution, j, 0x20, N34+x  , N34-y  , N4-x, N4+y  ));
-				patches.reset(pn + 3, new geoclipmap_patch(geoclipmap_resolution, j, 0x02,       0,  N4-y  , N4+x-1, N2  ));
-				patches.reset(pn + 4, new geoclipmap_patch(geoclipmap_resolution, j, 0x08, N34+x+1,  N4-y  , N4+x-1, N2  ));
-				patches.reset(pn + 5, new geoclipmap_patch(geoclipmap_resolution, j, 0x80,       0,     0  , N4+x, N4-y  ));
-				patches.reset(pn + 6, new geoclipmap_patch(geoclipmap_resolution, j, 0x01,  N4+x  ,     0  , N2  , N4-y-1));
-				patches.reset(pn + 7, new geoclipmap_patch(geoclipmap_resolution, j, 0x40, N34+x  ,     0  , N4-x, N4-y  ));
+				patches.reset(pn + 0, new geoclipmap_patch(geoclipmap_resolution, j, 0x80,       0,       0, N4+x  , N4+y  ));
+				patches.reset(pn + 1, new geoclipmap_patch(geoclipmap_resolution, j, 0x01, N4 +x  ,       0, N2    , N4+y-1));
+				patches.reset(pn + 2, new geoclipmap_patch(geoclipmap_resolution, j, 0x40, N34+x  ,       0, N4-x  , N4+y  ));
+				patches.reset(pn + 3, new geoclipmap_patch(geoclipmap_resolution, j, 0x02,       0, N4 +y  , N4+x-1, N2    ));
+				patches.reset(pn + 4, new geoclipmap_patch(geoclipmap_resolution, j, 0x08, N34+x+1, N4 +y  , N4-x-1, N2    ));
+				patches.reset(pn + 5, new geoclipmap_patch(geoclipmap_resolution, j, 0x10,       0, N34+y  , N4+x  , N4-y  ));
+				patches.reset(pn + 6, new geoclipmap_patch(geoclipmap_resolution, j, 0x04, N4 +x  , N34+y+1, N2    , N4-y-1));
+				patches.reset(pn + 7, new geoclipmap_patch(geoclipmap_resolution, j, 0x20, N34+x  , N34+y  , N4-x  , N4-y  ));
 			}
 		}
 	}
@@ -292,6 +296,7 @@ water::water(double tm) :
 	sys().add_console("using subdetail: %s", wave_subdetail ? "yes" : "no");
 	sys().add_console("subdetail size %u (%u)",subdetail_size,subdetail_size_shift);
 	sys().add_console("reflection image size %u*%u",rx,ry);
+	sys().add_console("water detail: %u", geoclipmap_resolution);
 
 	use_shaders = glsl_program::supported() &&
 		cfg::instance().getb("use_shaders") && cfg::instance().getb("use_shaders_for_water");
@@ -802,6 +807,15 @@ void water::display(const vector3& viewpos, double max_view_dist) const
 	// this can be very high, as its globally in meters.
 	vector2 viewpos_mod(myfmod(viewpos.x, double(wavetile_length)), myfmod(viewpos.y, double(wavetile_length)));
 
+	// Note! on fast movement one can see some popping of detail, when boundary between
+	// levels moves around the screen. This can be avoided by smoothly blending
+	// over height between data of two levels for vertices near the border.
+	// This increases either CPU time (when done at the vertex computation) or GPU time
+	// (when done in the vertex shader). It makes much more sense to compute that
+	// on the CPU, because we would need to transfer (x,y,z) data for each vertex
+	// not only for the current but also the _next_ level to the GPU.
+	// The effect can hardly be seen at normal gameplay, so we ignore it for now.
+
 	// compute vertices for all levels, if needed
 	// this optimization brings 3% more frame rates on a GF7600GT,
 	// with only a few lines of code
@@ -1034,12 +1048,13 @@ void water::display(const vector3& viewpos, double max_view_dist) const
 	patches[0]->render();
 	// render outer levels with view frustum culling
 	for (unsigned level = 1; level < geoclipmap_levels; ++level) {
-		//fixme : clean up the mess in this loop, reuse existing info!
 		// scalar depending on level
 		double level_fac = double(1 << level);
 		// length between samples in meters, depends on level.
 		double L_l = L * level_fac;
-		//fixme: this multiply with 0.5 then round then *2 lets the patches map to
+		// x_base/y_base tells offset in sample data according to level and
+		// viewer position (viewpos_mod)
+		// this multiply with 0.5 then round then *2 lets the patches map to
 		//"even" vertices and must be used to determine which patch number to render.
 		int x_base[4] = { int(round_(0.5*viewpos_mod.x/L_l - 0.25*N)*2),
 				  int(round_(    viewpos_mod.x/L_l - 0.25*N)  ),
@@ -1049,40 +1064,44 @@ void water::display(const vector3& viewpos, double max_view_dist) const
 				  int(round_(    viewpos_mod.y/L_l - 0.25*N)  ),
 				  int(round_(    viewpos_mod.y/L_l + 0.25*N)  ),
 				  int(round_(0.5*viewpos_mod.y/L_l + 0.25*N)*2) };
-		// we have only 3 offsets, not 4.
-		double x_off[3], y_off[3];
-		for (int j = 0; j < 3; ++j) {
-			x_off[j] = x_base[j] * L_l - viewpos_mod.x;
-			y_off[j] = y_base[j] * L_l - viewpos_mod.y;
-			//  			printf("level=%i j=%i xbase=%i ybase=%i xoff=%f yoff=%f\n",
-			//  			       level, j, x_base[j], y_base[j], x_off[j], y_off[j]);
+		// compute sizes and according to that patch indices
+		unsigned x_size[3], y_size[3];
+		for (unsigned j = 0; j < 3; ++j) {
+			x_size[j] = unsigned(x_base[j+1] - x_base[j]);
+			y_size[j] = unsigned(y_base[j+1] - y_base[j]);
 		}
-
+		unsigned x_patchidx = 1, y_patchidx = 1;
+		if (x_size[0] == N/4-1)
+			x_patchidx = 0;
+		else if (x_size[0] == N/4+1)
+			x_patchidx = 2;
+		if (y_size[0] == N/4-1)
+			y_patchidx = 0;
+		else if (y_size[0] == N/4+1)
+			y_patchidx = 2;
+		//printf("x/y patch idx=%u %u\n", x_patchidx, y_patchidx);
+		unsigned patchidx = y_patchidx*3 + x_patchidx;
+		
 		// render outer levels with inner hole, render 8 parts
-		//fixme: gescheit ueber patches loopen...
-		unsigned ii[9] = { 5,6,7,3,0,4,0,1,2 };
-		for (unsigned k = 0; k < 3; ++k) {
-			for (unsigned j = 0; j < 3; ++j) {
-				if (k != 1 || j != 1) {
-					const vector2f offset(x_off[j], y_off[k]);
-					// fixme: von patch abfragen...
-					unsigned xsize = unsigned(x_base[j+1] - x_base[j]);
-					unsigned ysize = unsigned(y_base[k+1] - y_base[k]);
-					//this shows: we have all three widths: 15,16,17 for the border...but how/why?
-					//printf("patch (%u|%u) sz=%u,%u\n", j,k,xsize,ysize);
-					// compute four corner points of patch and check for intersection with viewing frustum
-					// this gives HUGE speed improvements (32fps to 45fps on A64-3200+/GF6600)
-					polygon patchpoly(vector3(offset.x, offset.y, -viewpos.z),
-							  vector3(offset.x + xsize*L_l, offset.y, -viewpos.z),
-							  vector3(offset.x + xsize*L_l, offset.y + ysize*L_l, -viewpos.z),
-							  vector3(offset.x, offset.y + ysize*L_l, -viewpos.z));
-					if (!viewfrustum.clip(patchpoly).empty()) {
-						// render patch
-						patches[1 + (level-1)*9*8 + (1*3+1)*8 + (ii[3*k+j])]->render();
-					} else {
-						//printf("culled away patch, level=%i xyoff=%f,%f\n",level,offset.x,offset.y);
-					}
-				}
+		const unsigned kk[8] = { 0, 0, 0, 1, 1, 2, 2, 2 };
+		const unsigned jj[8] = { 0, 1, 2, 0, 2, 0, 1, 2 };
+		for (unsigned i = 0; i < 8; ++i) {
+			const unsigned k = kk[i];
+			const unsigned j = jj[i];
+			const vector2 offset = vector2(x_base[j], y_base[k]) * L_l - viewpos_mod;
+			//printf("offset ist %f,%f i=%u\n",offset.x,offset.y,i);
+			//printf("x/y size %u %u\n",x_size[j],y_size[k]);
+			// fixme: enlarge poly by max. x/y displacement of wave coordinates,
+			// or we see patches disappear sometimes near the screen border...
+			polygon patchpoly(vector3(offset.x, offset.y, -viewpos.z),
+					  vector3(offset.x + x_size[j]*L_l, offset.y, -viewpos.z),
+					  vector3(offset.x + x_size[j]*L_l, offset.y + y_size[k]*L_l, -viewpos.z),
+					  vector3(offset.x, offset.y + y_size[k]*L_l, -viewpos.z));
+			if (!viewfrustum.clip(patchpoly).empty()) {
+				// render patch
+				patches[1 + (level-1)*9*8 + patchidx*8 + i]->render();
+			} else {
+				//printf("culled away patch, level=%i xyoff=%f,%f\n",level,offset.x,offset.y);
 			}
 		}
 	}
@@ -1781,7 +1800,7 @@ water::geoclipmap_patch::geoclipmap_patch(unsigned N,
 	vbo.unmap();
 	vbo.unbind();
 
-#if 0 // paranoia checks for debug
+#if 1 // paranoia checks for debug
 	if (index_ptr != nr_indices) {
 		printf("ERROR: idxptr %u nri %u\n",index_ptr,nr_indices);
 		throw error("BUG");
