@@ -1435,11 +1435,8 @@ void water::set_refraction_color(const colorf& light_color)
 	// rather bad weather
 	//fixme: multiply with light color here, not only light brightness.
 	//dim yellow light should result in dim yellow-green upwelling color, not dim green.
-	colorf wavetop = light_color.lerp(colorf(color(0, 0, 0)), colorf(color(66, 91, 81)));
-	colorf wavebottom = light_color.lerp(colorf(color(0, 0, 0)), colorf(color(56, 76, 86)));
-// some darker colors as test
-//	colorf wavetop = light_color.lerp(colorf(color(0, 0, 0)), colorf(color(10, 46, 40)));
-//	colorf wavebottom = light_color.lerp(colorf(color(0, 0, 0)), colorf(color(3, 21, 44)));
+	colorf wavetop = light_color.lerp(colorf(color(0, 0, 0)), colorf(color(49, 83, 94)));
+	colorf wavebottom = light_color.lerp(colorf(color(0, 0, 0)), colorf(color(29, 56, 91)));
 
 	if (use_shaders) {
 		float wt[3], wb[3];
