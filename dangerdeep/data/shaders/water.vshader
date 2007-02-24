@@ -1,6 +1,6 @@
 // -*- mode: C; -*-
 
-varying vec3 viewerdir, halfangle;
+varying vec3 viewerdir, halfangle, lightdir;
 varying vec2 noisetexcoord;
 varying vec4 reflectiontexcoord;	// x,y,w
 varying vec4 foamamounttexcoord;	// x,y,w
@@ -51,12 +51,16 @@ void main()
 	// compute halfangle between direction to viewer and direction to light
 	// transform light pos to object space. we assume mvinv has no projection coefficients.
 	// light is directional, so use dot3, H = ||L + E||
-	vec3 halfangle_obj = normalize(normalize(vec3(gl_ModelViewMatrixInverse
-						 * gl_LightSource[0].position)) + viewerdir_obj);
+	vec3 lightdir_obj = normalize(vec3(gl_ModelViewMatrixInverse * gl_LightSource[0].position));
+	vec3 halfangle_obj = normalize(lightdir_obj + viewerdir_obj);
 	// transform half angle to tangent space
 	halfangle.x = dot(halfangle_obj, tangentx);
 	halfangle.y = dot(halfangle_obj, tangenty);
 	halfangle.z = dot(halfangle_obj, N);
+	// transform lightdir to tangent space
+	lightdir.x = dot(lightdir_obj, tangentx);
+	lightdir.y = dot(lightdir_obj, tangenty);
+	lightdir.z = dot(lightdir_obj, N);
 
 	// transform inputpos.xy with texture matrix to get texture coodinates
 	noisetexcoord = (gl_TextureMatrix[0] * gl_Vertex).xy;
