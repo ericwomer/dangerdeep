@@ -1,6 +1,6 @@
 // -*- mode: C; -*-
 
-varying vec3 viewerdir, halfangle, lightdir;
+varying vec3 viewerdir, lightdir;
 varying vec2 noisetexcoord;
 varying vec4 reflectiontexcoord;	// x,y,w
 varying vec4 foamamounttexcoord;	// x,y,w
@@ -15,7 +15,7 @@ const float water_shininess = 120.0;
 
 void main()
 {
-	// get and normalize normal vector from texmap
+	// compute normal vector
 	//vec3 N = normalize(vec3(texture2D(tex_normal, noisetexcoord.xy)) * 2.0 - 1.0);
 	vec3 N1 = vec3(texture2D(tex_normal, noisetexcoord.xy) * 2.0 - 1.0);
 	N1.xy *= 2;
@@ -23,11 +23,14 @@ void main()
 	N2.xy *= 2;
 	vec3 N = normalize(N1+N2);
 
-	// get and normalize half angle vector
-	vec3 H = normalize(halfangle);
-
-	// get and normalize vector to viewer
+	// compute direction to viewer
 	vec3 E = normalize(viewerdir);
+
+	// compute direction to light source
+	vec3 L = normalize(lightdir);
+
+	// compute reflected light vector (N must be normalized)
+	vec3 R = reflect(L, N);
 
 	// compute fresnel term. we need to clamp because the product could be negative
 	// when the angle between face normal and viewer is nearly perpendicular.
@@ -60,21 +63,17 @@ void main()
 	// possible optimization: make a 2d lookup texture, one dimension with fresnel term,
 	// second dimension with specular term. Spares two pow() instructions. But we already used
 	// all four texture units. Doubtful that performance would be higher...
-	
-	// compute specular light brightness (blinn-phong shading)
+
+	// compute specular light brightness (phong shading)
 	vec3 specular_color = vec3(gl_LightSource[0].diffuse)
-		* pow(clamp(dot(H, N), 0.0, 1.0), water_shininess);
+		* pow(clamp(dot(R, E), 0.0, 1.0), water_shininess);
 
-	// fixme: use reflect() here and give only L and E, use phong instead of blinn-phong, saves one normalize()
-
-	//vec3 L = normalize(H-E);//not physically correct, but looks better, although gives conical bug
-	vec3 L = normalize(lightdir);
-	float dl = dot(L, N);
-	vec3 refrcol = mix(vec3(0.009, 0.020, 0.03), vec3(0.092,0.204,0.302), dl);
-	//vec3 refrcol = gl_Color * dl; //(0.25 + 0.75*dl);
+	// compute refraction color
+	float dl = max(dot(L, N), 0.0);
+	vec3 refractioncol = gl_Color * dl;
 
 	// mix reflection and refraction (upwelling) color, and add specular color
-	vec3 water_color = mix(vec3(refrcol /*gl_Color*/), vec3(texture2DProj(tex_reflection, reflectiontexcoord)),
+	vec3 water_color = mix(refractioncol, vec3(texture2DProj(tex_reflection, reflectiontexcoord)),
 			       fresnel) + specular_color;
 
 	// fetch amount of foam, sum of texture and cresnel foam, multiplied with luminance
