@@ -11,6 +11,8 @@ uniform vec3 upwelltop;
 uniform vec3 upwellbot;
 uniform vec3 upwelltopbot;
 
+attribute float amount_of_foam;
+
 const float foamamount_f1 = 0.8;
 const float foamamount_f2 = -1.0;
 const vec3 yaxis = { 0.0, 1.0, 0.0 };
@@ -30,7 +32,8 @@ void main()
 		clamp((gl_Vertex.z + viewpos.z) * 0.1111111 + N.z - 0.4666667, 0.0, 1.0) + upwellbot;
 
 	// compute amount of foam as outputcolor.alpha from inputpos.z
-	crest_foam = clamp((gl_Vertex.z + viewpos.z) * foamamount_f1 + foamamount_f2, 0.0, 1.0);
+	//crest_foam = clamp((gl_Vertex.z + viewpos.z) * foamamount_f1 + foamamount_f2, 0.0, 1.0) * 0.8;
+	crest_foam = amount_of_foam;
 
 	// compute tangent space.
 	// tangentx = (0,1,0).cross(normal), because v coordinate
