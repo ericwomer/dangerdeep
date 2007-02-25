@@ -347,6 +347,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glDisable(GL_LIGHTING);
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_FOG); // no fog on the sky, sun, moon
 
 	// if stars are drawn after the sky, they can appear in front of the sun glow, which is wrong.
 	// sky should be blended into the stars, not vice versa, but then we would have to clear
@@ -393,8 +394,6 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// ******** the sun and the moon *****************************************************
-	// draw sun, fixme draw flares/halo
-	glDisable(GL_FOG); // no fog on the sun thankyou...
 
 	// draw moon
 
@@ -416,6 +415,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 		glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
 	}
 
+	// draw sun, fixme draw flares/halo
 	vector3 sunpos = sundir * (0.96 * max_view_dist);
 	double suns = max_view_dist/20; // was 10, 17x17px, needs to be smaller
 	glColor4f(1,1,1,1);
@@ -462,6 +462,9 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glDepthMask(GL_TRUE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
+	// reenable fog, but not for reflections
+	if (!isreflection)
+		glEnable(GL_FOG);
 }
 
 
