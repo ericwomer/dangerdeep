@@ -30,7 +30,7 @@ void main()
 	vec3 L = normalize(lightdir);
 
 	// compute reflected light vector (N must be normalized)
-	vec3 R = reflect(L, N);
+	vec3 R = reflect(-L, N);
 
 	// compute fresnel term. we need to clamp because the product could be negative
 	// when the angle between face normal and viewer is nearly perpendicular.
