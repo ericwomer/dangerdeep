@@ -139,6 +139,9 @@ protected:
 	// Shader program
 	std::auto_ptr<glsl_shader_setup> glsl_water;
 
+	// indices for vertex attributes
+	unsigned vattr_aof_index;
+
 	// for subdetail
 	perlinnoise png;
 

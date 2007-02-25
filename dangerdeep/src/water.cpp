@@ -219,6 +219,7 @@ water::water(double tm) :
 	    wavetile_length,
 	    wave_tidecycle_time),
 	use_shaders(false),
+	vattr_aof_index(0),
 	png(subdetail_size, 1, subdetail_size/16), //fixme ohne /16 sieht's scheisse aus, war /8
 	last_subdetail_gen_time(tm),
 	rerender_new_wtp(true),
@@ -312,6 +313,9 @@ water::water(double tm) :
 	if (use_shaders) {
 		glsl_water.reset(new glsl_shader_setup(get_shader_dir() + "water.vshader",
 						       get_shader_dir() + "water.fshader"));
+		glsl_water->use();
+		vattr_aof_index = glsl_water->get_vertex_attrib_index("amount_of_foam");
+		glsl_water->use_fixed();
 	}
 
 	perlinnoise pnfoam(foamtexsize, 2, foamtexsize/16);
@@ -830,7 +834,7 @@ void water::display(const vector3& viewpos, double max_view_dist) const
 	// compute vertices for all levels, if needed
 	// this optimization brings 3% more frame rates on a GF7600GT,
 	// with only a few lines of code
-	const unsigned nr_vert_attr = use_shaders ? 6 : 8;
+	const unsigned nr_vert_attr = use_shaders ? 7 : 8;
 	if (recompute_vertices) {
 		const float VIRTUAL_PLANE_HEIGHT = 25.0f;
 		unsigned nr_verts_total = geoclipmap_levels * (N+1)*(N+1) + 8 /* horizon */;
@@ -843,7 +847,8 @@ void water::display(const vector3& viewpos, double max_view_dist) const
 		// with shaders (now)
 		// - position (3f)
 		// - normal (3f)
-		// --- sum: 6f
+		// - amount of foam (1f)
+		// --- sum: 7f
 		// with shaders (later)
 		// - position (3f)
 		// - texcoord (2f) (base position x,y - no displacement)
@@ -852,7 +857,9 @@ void water::display(const vector3& viewpos, double max_view_dist) const
 		// No! we still need the normal in the vertex shader, to compute the slope dependent
 		// color and, more important, the reflection texture coordinate distorsion...
 		// so we have 9 floats here, but still not much data...
-		//fixme... add vertex attrib for amount of foam here...
+		// Some papers state that 32bytes per vertex are ideal (ATI cards), so 8f ideal here...
+		// normal can be fetched as 2f instead of 3f and z recomputed by renormalization
+		// in v-shader...
 		vertices.init_data(nr_verts_total * nr_vert_attr * 4, 0, GL_STREAM_DRAW);
 		float* vertex_data = (float*) vertices.map(GL_WRITE_ONLY);
 		//printf("nr_verts_total %u, memory %u\n", nr_verts_total, nr_verts_total*nr_vert_attr*4);
@@ -907,6 +914,7 @@ void water::display(const vector3& viewpos, double max_view_dist) const
 						vertex_data[vertex_data_ptr+3] = n0.x;
 						vertex_data[vertex_data_ptr+4] = n0.y;
 						vertex_data[vertex_data_ptr+5] = n0.z;
+						vertex_data[vertex_data_ptr+6] = mml.amount_of_foam[lineidx + colidx];
 						vertex_data_ptr += nr_vert_attr;
 						++xx;
 						coordxoff += coordxadd;
@@ -979,6 +987,7 @@ void water::display(const vector3& viewpos, double max_view_dist) const
 					vertex_data[k[j] + 3] = 0.0f;
 					vertex_data[k[j] + 4] = 0.0f;
 					vertex_data[k[j] + 5] = 1.0f;
+					vertex_data[k[j] + 6] = 0.0f; // no foam
 				}
 			} else {
 				for (unsigned j = 0; j < 4; ++j) {
@@ -1002,6 +1011,7 @@ void water::display(const vector3& viewpos, double max_view_dist) const
 				vertex_data[vertex_data_ptr + 3] = 0.0f;
 				vertex_data[vertex_data_ptr + 4] = 0.0f;
 				vertex_data[vertex_data_ptr + 5] = 1.0f;
+				vertex_data[vertex_data_ptr + 6] = 0.0f; // no foam
 				vertex_data_ptr += nr_vert_attr;
 			}
 		} else {
@@ -1048,6 +1058,8 @@ void water::display(const vector3& viewpos, double max_view_dist) const
 	if (use_shaders) {
 		glEnableClientState(GL_NORMAL_ARRAY);
 		glNormalPointer(GL_FLOAT, nr_vert_attr*4, (float*)0 + 3);
+		glVertexAttribPointer(vattr_aof_index, 1, GL_FLOAT, GL_FALSE, nr_vert_attr*4, (float*)0 + 6);
+		glEnableVertexAttribArray(vattr_aof_index);
 	} else {
 		glDisableClientState(GL_NORMAL_ARRAY);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1148,6 +1160,7 @@ void water::display(const vector3& viewpos, double max_view_dist) const
 	// unmap, cleanup
 	if (use_shaders) {
 		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableVertexAttribArray(vattr_aof_index);
 	} else {
 		//glClientActiveTexture(GL_TEXTURE1); // still active
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1357,8 +1370,8 @@ void water::compute_amount_of_foam()
 	const double deriv_fac = wavetile_length_rcp * wave_resolution;
 	const double lambda = 1.0; // lambda has already been multiplied with x/y displacements...
 	const double decay = 8.0/wave_phases;
-	const double decay_rnd = 2.0/wave_phases;
-	const double foam_spawn_fac = 0.125;
+	const double decay_rnd = 0.25/wave_phases;
+	const double foam_spawn_fac = 0.25;//0.125;
 	for (unsigned k = 0; k < wave_phases * 2; ++k) {
 		const vector<vector3f>& wd = wavetile_data[k % wave_phases].mipmaps[0].wavedata;
 		// compute for each sample how much foam is added (spawned)
@@ -1383,6 +1396,7 @@ void water::compute_amount_of_foam()
 				double foam_add = (J < 0.3) ? ((J < -1.0) ? 1.0 : (J - 0.3)/-1.3) : 0.0;
 				//double foam_add = (J < 0.0) ? ((J < -1.0) ? 1.0 : -J) : 0.0;
 				aof[ptr++] += foam_add * foam_spawn_fac;
+				// fixme: maybe spawn foam also on neighbouring fields
 			}
 		}
 
