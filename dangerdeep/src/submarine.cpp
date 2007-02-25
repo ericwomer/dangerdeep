@@ -373,7 +373,7 @@ void submarine::simulate(double delta_time)
 	// acceleration constant (acceleration should not be constant here though)
 	dive_acceleration = 1.0;
 
-	vector3 dive_accel(0,0,dive_acceleration*sub_velocity.y);
+	vector3 dive_accel(0,0,dive_acceleration*fabs(sub_velocity.y));
 	dive_accel += sub_velocity;
 
 	// front rudder comes as -90 : 90
