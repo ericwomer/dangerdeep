@@ -335,9 +335,10 @@ double ship::get_throttle_accel() const
 	// accel = drag_factor * speed^2 = max_accel_forward * speed^2 / max_speed_forward^2
 	// fixme: 2004/07/18: throttle to some speed would mean maximum acceleration until
 	// we get close to this speed... but we don't set speed here but engine throttle...
-	// fixme: reverse throttle doesn't work. obvious why...
 	double speed_fac = get_throttle_speed() / max_speed_forward;
-	return max_accel_forward * (speed_fac * speed_fac);
+	// fixme: reverse throttle doesn't work. obvious why... hack below is nasty
+	int signal = speed_fac > 0 ? 1 : -1;
+	return max_accel_forward * (speed_fac * speed_fac) * signal;
 }
 
 
