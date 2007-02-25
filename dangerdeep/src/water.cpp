@@ -41,6 +41,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "polygon.h"
 #include "frustum.h"
 #include <fstream>
+#include <sstream>
+#include <iomanip>
+
+using std::ofstream;
+using std::ostringstream;
+using std::setw;
+using std::setfill;
 
 #ifndef fmin
 #define fmin(x,y) (x<y) ? x : y
@@ -401,11 +408,15 @@ water::water(double tm) :
 	curr_wtp = &wavetile_data[0];
 	rerender_new_wtp = true;
 
+	add_loading_screen("water height data computed");
+
 #ifdef MEASURE_WAVE_HEIGHTS
 	cout << "total minh " << totalmin << " maxh " << totalmax << "\n";
 #endif
 
-	add_loading_screen("water height data computed");
+	compute_amount_of_foam();
+
+	add_loading_screen("foam data per tile computed");
 
 	generate_subdetail_and_bumpmap();
 
@@ -838,6 +849,10 @@ void water::display(const vector3& viewpos, double max_view_dist) const
 		// - texcoord (2f) (base position x,y - no displacement)
 		// - amount of foam (1f)
 		// --- sum: 6f
+		// No! we still need the normal in the vertex shader, to compute the slope dependent
+		// color and, more important, the reflection texture coordinate distorsion...
+		// so we have 9 floats here, but still not much data...
+		//fixme... add vertex attrib for amount of foam here...
 		vertices.init_data(nr_verts_total * nr_vert_attr * 4, 0, GL_STREAM_DRAW);
 		float* vertex_data = (float*) vertices.map(GL_WRITE_ONLY);
 		//printf("nr_verts_total %u, memory %u\n", nr_verts_total, nr_verts_total*nr_vert_attr*4);
@@ -1126,6 +1141,8 @@ void water::display(const vector3& viewpos, double max_view_dist) const
 	   it gives a line to the sun. Looks like texture coordinates are screen-space
 	   linear here somehow. Is resolution limited here, because triangles span that
 	   large depth?!
+	   NOTE: the vector to the viewer (E) in shader is strange for these triangles,
+	   this explains the bug!
 	*/
 
 	// unmap, cleanup
@@ -1327,12 +1344,106 @@ void water::generate_wavetile(double tiletime, wavetile_phase& wtp)
 
 
 
+void water::compute_amount_of_foam()
+{
+	// compute amount of foam per vertex sample
+	vector<float> aof(wave_resolution*wave_resolution);
+
+	float rndtab[37];
+	for (unsigned k = 0; k < 37; ++k)
+		rndtab[k] = rnd();
+
+	// factor to build derivatives correctly
+	const double deriv_fac = wavetile_length_rcp * wave_resolution;
+	const double lambda = 1.0; // lambda has already been multiplied with x/y displacements...
+	const double decay = 8.0/wave_phases;
+	const double decay_rnd = 2.0/wave_phases;
+	const double foam_spawn_fac = 0.125;
+	for (unsigned k = 0; k < wave_phases * 2; ++k) {
+		const vector<vector3f>& wd = wavetile_data[k % wave_phases].mipmaps[0].wavedata;
+		// compute for each sample how much foam is added (spawned)
+		unsigned ptr = 0;
+		for (unsigned y = 0; y < wave_resolution; ++y) {
+			unsigned ym1 = (y + wave_resolution - 1) & (wave_resolution-1);
+			unsigned yp1 = (y + 1) & (wave_resolution-1);
+			for (unsigned x = 0; x < wave_resolution; ++x) {
+				unsigned xm1 = (x + wave_resolution - 1) & (wave_resolution-1);
+				unsigned xp1 = (x + 1) & (wave_resolution-1);
+				double dispx_dx = (wd[y*wave_resolution+xp1].x - wd[y*wave_resolution+xm1].x) * deriv_fac;
+				double dispx_dy = (wd[yp1*wave_resolution+x].x - wd[ym1*wave_resolution+x].x) * deriv_fac;
+				double dispy_dx = (wd[y*wave_resolution+xp1].y - wd[y*wave_resolution+xm1].y) * deriv_fac;
+				double dispy_dy = (wd[yp1*wave_resolution+x].y - wd[ym1*wave_resolution+x].y) * deriv_fac;
+				double Jxx = 1.0 + lambda * dispx_dx;
+				double Jyy = 1.0 + lambda * dispy_dy;
+				double Jxy = lambda * dispy_dx;
+				double Jyx = lambda * dispx_dy;
+				double J = Jxx*Jyy - Jxy*Jyx;
+				//printf("x,y=%u,%u, Jxx,yy=%f,%f Jxy,yx=%f,%f J=%f\n",
+				//       x,y, Jxx,Jyy, Jxy,Jyx, J);
+				double foam_add = (J < 0.3) ? ((J < -1.0) ? 1.0 : (J - 0.3)/-1.3) : 0.0;
+				//double foam_add = (J < 0.0) ? ((J < -1.0) ? 1.0 : -J) : 0.0;
+				aof[ptr++] += foam_add * foam_spawn_fac;
+			}
+		}
+
+		// compute decay, depends on time with some randomness
+		ptr = 0;
+		for (unsigned y = 0; y < wave_resolution; ++y) {
+			for (unsigned x = 0; x < wave_resolution; ++x) {
+				aof[ptr] = std::max(aof[ptr] - (decay + decay_rnd * rndtab[(3*x + 5*y) % 37]), 0.0);
+				++ptr;
+			}
+		}
+
+		// store amount of foam data when in second iteration
+		if (k >= wave_phases) {
+			wavetile_phase::mipmap_level& mm0 = wavetile_data[k - wave_phases].mipmaps[0];
+			mm0.amount_of_foam = aof;
+			for (unsigned j = 1; j < wavetile_data[k - wave_phases].mipmaps.size(); ++j) {
+				unsigned res = wave_resolution >> j;
+				const wavetile_phase::mipmap_level& mm1 = wavetile_data[k - wave_phases].mipmaps[j-1];
+				wavetile_phase::mipmap_level& mm2 = wavetile_data[k - wave_phases].mipmaps[j];
+				mm2.amount_of_foam.reserve(res*res);
+				unsigned ptr = 0;
+				for (unsigned y = 0; y < res; ++y) {
+					for (unsigned x = 0; x < res; ++x) {
+						float sum = mm1.amount_of_foam[ptr] + mm1.amount_of_foam[ptr+1]
+							+ mm1.amount_of_foam[ptr+2*res] + mm1.amount_of_foam[ptr+1+2*res];
+						// fixme: maybe let foam vanish on upper mipmap levels
+						mm2.amount_of_foam.push_back(sum * 0.25f);
+						ptr += 2;
+					}
+					ptr += 2*res;
+				}
+			}
+		}
+				
+#if 0
+		// test: write amount of foam as grey value image
+		ostringstream osfn;
+		osfn << "aof" << setw(4) << setfill('0') << k << ".pgm";
+		ofstream ofs(osfn.str().c_str());
+		ofs << "P5\n";
+		ofs <<wave_resolution<<" "<<wave_resolution<<"\n255\n";
+		ptr = 0;
+		for (unsigned y = 0; y < wave_resolution; ++y) {
+			for (unsigned x = 0; x < wave_resolution; ++x) {
+				Uint8 x = Uint8(std::min(std::max(aof[ptr++], 0.0f), 1.0f) * 255.9);
+				ofs.write((const char*)&x, 1);
+			}
+		}
+#endif
+	}
+}
+
+
+
 void water::generate_subdetail_and_bumpmap()
 {
 	float phase = myfrac(mytime / 20);
 	for (unsigned k = 0; k < png.get_number_of_levels(); ++k) {
 		// fixme: move each level with different speed...
-		png.set_phase(0, phase, phase);	// fixme: depends on wind direction
+		png.set_phase(k, phase, phase);	// fixme: depends on wind direction
 	}
 	waveheight_subdetail = png.generate();
 #if 0

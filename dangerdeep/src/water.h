@@ -93,6 +93,7 @@ protected:
 			double sampledist;
 			std::vector<vector3f> wavedata;
 			std::vector<vector3f> normals;
+			std::vector<float> amount_of_foam;
 			///> generate data from downsampled version of wd
 			mipmap_level(const std::vector<vector3f>& wd, unsigned res_shift,
 				     double sampledist);
@@ -156,6 +157,7 @@ protected:
 
 	vector3f get_wave_normal_at(unsigned x, unsigned y) const;
 
+	void compute_amount_of_foam();
 	void generate_wavetile(double tiletime, wavetile_phase& wtp);
 	void generate_subdetail_and_bumpmap();
 
