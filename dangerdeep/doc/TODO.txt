@@ -1,0 +1,438 @@
+TODO LIST
+=========
+
+A comprehensive list of all things left to do like bugs,
+tasks, new features, ideas etc. Also at the end, check for
+the result of the grep of "todo" and "fixme" on all code.
+
+SIMULATION
+----------
+
+- Reverse: DONE
+- Buoyancy (need parts)
+- Damage (need parts)
+
+OCEAN/SKY
+---------
+
+PHYSICS
+-------
+
+- Currents (affects drag, adds lateral drag)
+
+MODELS/PARTS
+------------
+
+- Parts in XML
+- Read parts from XML
+
+2D/3D GRAPHIC
+-------------
+
+SOUND/MUSIC
+-----------
+
+CODE CLEANUP
+------------
+
+TODO/FIXME
+----------
+
+ai.cpp:35:// fixme: we have bspline code ready. convoys should follow their routes along a bspline
+ai.cpp:43:// fixme:
+ai.cpp:47:// fixme: zigzag is possible, but never used.
+ai.cpp:186:	// fixme: a list of submarine* is bad (more information given than
+ai.cpp:251:				// fixme: choose best contact!
+ai.cpp:277:				// fixme: choose best contact!
+ai.cpp:289:			// fixme: get real pos for dc throwing...
+ai.cpp:293:			// fixme: just ai hacking/testing.
+ai.cpp:334://fixme: the ships don't follow their waypoint exactly, they're zigzagging wild around it
+ai.cpp:337://fixme: don't set the immidiate next wp, just use the next convoy wp + rel. position as waypoint!
+ai.cpp:364:	// fixme: a*a + b*b = |d|^2 * |hd|^2 = 1 * 1 = 1 !
+ai.h:110:	enum types { dumb, escort, convoy };	// fixme: make heir classes for this
+ai.h:121:	ship* parent;		// fixme: should be sea_object and redefined by heirs!
+airplane.cpp:70:	fixme: 2004/06/18
+airplane.cpp:90:	// fixme: the plane's orientation must change with velocity:
+airplane.cpp:119:	// fixme: simulate stall: if speed drops below a specific quantum, the plane's nose
+airplane.cpp:128:	// lift by wings (fixme: works also if plane is upside down or nearly!)
+airplane.cpp:129:	vector3 lift = (localvelocity.y * localvelocity.y * get_lift_factor()) * locz;//fixme: negate locz if locz.z<0
+airplane.cpp:155:	quaternion qpitch = quaternion::rot(pitchfac * get_pitch_deg_per_sec() * delta_time, 1, 0, 0); // fixme: also depends on speed
+airplane.cpp:156:	quaternion qroll = quaternion::rot(rollfac * get_roll_deg_per_sec() * delta_time, 0, 1, 0); // fixme: also depends on speed
+airplane_interface.cpp:64:	// handle common keys (fixme: make configureable?)
+airplane_interface.cpp:74:			// time scaling fixme: too simple
+bspline.h:63:		// fixme: we could use a binary search here! but it would help only for large tvecs
+cfg.cpp:364:	// fixme: ignore values for unregistered names?
+coastmap.cpp:87:fixme: 2005/05/05
+coastmap.cpp:118:		if (t > 1.0f) t = 1.0f;	// fixme: can this happen? only for last point?
+coastmap.cpp:147:	// fixme: cache that somehow
+coastmap.cpp:185:	// fixme: avoid double points here, maybe assert that
+coastmap.cpp:204:		// fixme: computation of normals is crude. for islands they should be smooth over the
+coastmap.cpp:246:		// fixme: real normals for lighting are missing...
+coastmap.cpp:271:		// fixme: real normals for lighting are missing...
+coastmap.cpp:296:		// fixme: real normals for lighting are missing...
+coastmap.cpp:524:	// fixme: do not draw coastlines that can't be seen.
+coastmap.cpp:658:			// fixme: but with <= many other segcl's fail...
+coastmap.cpp:939:	// fixme: if there is a segcl that has several points on the same border in the same segment
+coastmap.cpp:948:		// fixme: with gcc 4.0 a deadlock occours in this loop!
+coastmap.cpp:1162:		// fixme: gcc4.0.1 strange values occour, are written here. but also generated here?
+coastmap.cpp:1402:	// fixme: clear "themap" so save space.
+coastmap.cpp:1416:	h = int(ceil((768/mapzoom)/segw_real)) +2;	// fixme: use 640 and translate map y - 64
+coastmap.h:154:	// fixme: maybe it's better to give top,left and bottom,right corner of sub area to draw
+convoy.cpp:39:// fixme: the whole file is covered with outcommented lines that have to be
+convoy.cpp:174:			//fixme: give commands/tasks to escorts: "patrol left side of convoy" etc.
+convoy.cpp:342:	//fixme: only control target every n seconds or so.
+convoy.cpp:377:	//fixme: set target course for ships here, but only every n seconds.
+convoy.cpp:383://	if ( myai )//fixme: my is ai sometimes != 0 although it is disabled?!
+convoy.cpp:395:void convoy::add_contact(const vector3& pos)	// fixme: simple, crude, ugly
+convoy.h:48:	std::auto_ptr<ai> myai;	// fixme: maybe one ship should act for the convoy,
+countrycodes.cpp:67:		if (d < date(1940, 6, 30) || d > date(1944, 8, 30)) // fixme: we need more accurate dates.
+countrycodes.cpp:71:		if (d < date(1941, 12, 11))	// fixme: exact date?
+countrycodes.cpp:77:		if (d < date(1943, 8, 30)) // fixme: we need more accurate dates.
+daysky.cpp:173:	// fixme: compute alpha
+daysky.cpp:174:	// fixme: Stellarium computes luminance value for display with a more complex model
+daysky.cpp:180:	//fixme: colors are way too dark
+depth_charge.h:28:// fixme: these values depend on depth charge type.
+font.cpp:35:/* fixme: loading all fonts eats 1.3mb of video ram.
+font.cpp:53:	glActiveTexture(GL_TEXTURE1);	// fixme: disable units where they are used!
+font.cpp:90:			// fixme: we could use display lists here
+font.cpp:93:			//fixme: width in text is width+left, so advance x by that value
+freeview_display.cpp:59:	pd.near_z = 0.2;	// fixme: should be 1.0, but new conning tower needs 0.1 or so
+freeview_display.cpp:207:		// fixme: z translate according to water height here, only for ships
+freeview_display.cpp:247:	// fixme: alpha-wert mit der Zeit runterdrehen?
+freeview_display.cpp:248:	// fixme: wenn alpha, dann nach allen anderen sea-objects rendern, oder
+freeview_display.cpp:352:	//fixme: the lookout sensor must give all ships seens around, not cull away ships
+freeview_display.cpp:404:		glColor4f(1,1,1,1);//fixme: fog is missing
+freeview_display.cpp:458:	//fixme: foam generated depends on depth of sub and type of torpedo etc.
+freeview_display.cpp:471:				// fixme: for submerged subs we must not draw the trail, too.
+freeview_display.cpp:501:	//fixme: water reflections are brighter than the sky, so there must be a difference between sky drawing
+freeview_display.cpp:520:	//ui.get_water().update_foam(1.0/25.0);  //fixme: deltat needed here
+freeview_display.h:56://fixme: reflections need special viewport... depends on detail settings. mabye retrieve from ui
+game.cpp:167:	// fixme: show some info like in Silent Service II? sun/moon pos,time,visibility?
+game.cpp:186:	// fixme: we need exact sunrise and fall times for a day. (also moon state is needed
+game.cpp:196:	equipment_date = currentdate;	// fixme: another crude guess or hack
+game.cpp:199:	// fixme: creation of convoys should be rather moved to this class, so object creation
+game.cpp:292:	// fixme: check for savegames.
+game.cpp:368:	// fixme: handle water splashes too.
+game.cpp:427:	// fixme: handle water splashes too
+game.cpp:444:	// fixme: maybe check if type matches!
+game.cpp:767:		convoys[i]->simulate(delta_t);	// fixme: handle erasing of empty convoys!
+game.cpp:801:	// fixme: format of date is fix in logbook then, this is not optimal.
+game.cpp:911:	//fixme: this is called for every particle. VERY costly!!!
+game.cpp:1066:	// fixme: add torpedoes here as well... later...
+game.cpp:1073:	// fixme: the lower part of this function is sonar dependent and should go to a sonar class...
+game.cpp:1084:	// fixme: GHG/BG have blind spots at aft, so the receiver caused noise is reduced much more.
+game.cpp:1118:	// fixme: ghost images appear with higher frequencies!!! seems to be a ghg "feature"
+game.cpp:1153:	// fixme: depending on listener angle, use only port or starboard phones to listen to signals!
+game.cpp:1155:	// fixme: add sensitivity of receiver (see harpoon docs...)  TO BE DONE NEXT
+game.cpp:1156:	// fixme: add noise produced by receiver/own ship            TO BE DONE NEXT
+game.cpp:1157:	// fixme: discretize strengths!!! (by angle and frequency!) <OK, MAYBE A BIT CRUDE>
+game.cpp:1160:	// fixme: identify type of noise (by sonarman). compute similarity to known
+game.cpp:1228:	if (ui) ui->add_message(texts::get(205));	// fixme: only if player is near enough
+game.cpp:1254:	// fixme: ships can be damaged by DCs also...
+game.cpp:1255:	// fixme: ai should not be able to release dcs with a depth less than 30m or so, to
+game.cpp:1265:	if (ui) ui->add_message(texts::get(204));	// fixme: only when player is near enough
+game.cpp:1268:bool game::gs_impact(const gun_shell *gs)	// fixme: vector2 would be enough
+game.cpp:1277:		// fixme: we need a special collision detection, because
+game.cpp:1327:	//fixme: game should know nothing about ui!
+game.cpp:1337:	// fixme: handle log/sunken ship record as part of class game
+game.cpp:1347:	fixme: does this function make sense in this place?
+game.cpp:1377:		// fixme: noise from ships can disturb ASDIC or may generate more contacs.
+game.cpp:1490:		double angle_diff = 30;	// fixme: use range also, use ship width's etc.
+game.cpp:1520:		double angle_diff = 30;	// fixme: use range also, use ship width's etc.
+game.cpp:1627:	// fixme: adding RADAR-detected ships to a VISIBLE-objects function is a bit weird...
+game.cpp:1695:// fixme: a bit misplaced here, especially after ui was moved away from game
+game.cpp:1698:	// fixme: add special ui heir: playback
+game.cpp:1742:		// fixme: make use of game::job interface, 3600/256 = 14.25 secs job period
+game.cpp:1769:	return (br > 0.3); // fixme: a bit crude. brightness has 0.2 ambient...
+game.cpp:1845:	// fixme: if sun is blocked by clouds, light must be darker...
+game.cpp:1860:	// fixme: sun color can be yellow/orange at dusk/dawn
+game.cpp:1916:const double MOON_POS_ADJUST = 300.0;	// in degrees. Moon pos in its orbit on 1.1.1939 fixme: research the value
+game_editor.cpp:128:	// fixme: time should be freezeable, editor should be able to set time to any
+game_editor.cpp:151:	// fixme: the AI should ignore the player inside the editor...
+game_editor.cpp:243:		convoys[i]->simulate(delta_t);	// fixme: handle erasing of empty convoys!
+game_editor.cpp:281:// fixme: a bit misplaced here, especially after ui was moved away from game
+game.h:29:#define ASDICRANGE 1500.0	// meters fixme: historic values?
+game.h:97:		std::string descr;	// fixme: store type, use a static ship function to retrieve a matching description
+game.h:226:	//fixme: remove the single functions, they're always called together
+game.h:245:	// fixme: maybe we should distuingish between passivly and activly detected objects...
+game.h:251:	// fixme: return sonar_contact here (when the noise_pos fix is done...)
+game.h:288://fixme: send messages about them to ui (remove sys-console printing in torpedo.cpp etc)
+game.h:298:	// various functions (fixme: sort, cleanup)
+game.h:301:	const std::list<ping>& get_pings() const { return pings; };	// fixme: maybe vector not list
+ghg.py:199:# fixme: each hydrophone has a limited FOV, at least <= 180 and a different center of FOV,
+global_data.h:26:// fixme: do we need that on win32? probably not, because we have SDL...
+global_data.h:43:// fixme: remove this ugly crap, move to .cpp
+global_data.h:61:// fixme: use only class xml, then these functions are obsolete.
+logbook_display.cpp:110:	// fixme: old code wrapped text when entry was too long. this is missing here
+make_mesh.cpp:131://fixme: righthanded info is missing!!!! maybe the reason for the display bugs
+make_mesh.cpp:183:		   bool cap, bool out,//fixme: out seems to be ignored!
+make_mesh.cpp:194:	//fixme: out?, fixme cap map falsch, rest auch checken
+make_mesh.cpp:230:			//fixme: tangente spiegeln?
+map_display.cpp:101:	// fixme: clean up this mess. maybe merge with function in water.cpp
+map_display.cpp:421:		//fixme: en/disable some buttons depending on wether we have a selection or not
+map_display.cpp:517:		// fixme: disable
+map_display.cpp:519:		// fixme: enable
+map_display.cpp:662:	// draw convoy positions	fixme: should be static and fade out after some time
+map_display.cpp:775:		// fixme: use estimated values from target/tdc estimation here, make functions for that
+map_display.cpp:963:					// fixme: later all objects
+map_display.cpp:983:					// fixme: later all objects!
+map_display.cpp:1047:					target = *it;	// fixme: message?
+map_display.h:55:	//fixme: this should be part of the user interface, so that the editor panel
+model.cpp:240:	//fixme: with the relations and the objecttree this is not right...
+model.cpp:375:	//fixme: we have to modify min/max according to the transformation matrix! at least the translation...
+model.cpp:493:		// fixme: untersuche, wie righthanded-info in den shadern gebraucht wird. kann man denn stattdessen nicht einfach
+model.cpp:502:		righthanded[i0] = !(g > 0); // fixme: negation seems needed???
+model.cpp:717:				//fixme: check if this is correct
+model.cpp:982:			// fixme: stupid! we would need tangentsx/y too etc.
+model.cpp:1033:	//fixme: what is best mapping for normal maps?
+model.cpp:1035:	// fixme: segfaults when enabled. see texture.cpp
+model.cpp:1036:	// fixme: without shaders it seems we need to multiply this with ~16 or even more.
+model.cpp:1039:	// fixme: read value from model file... and multiply with this value...
+model.cpp:1157:			//fixme: with directional light we have darker results... are some vectors not
+model.cpp:1175:				//fixme: ny length is not always 1, which can only happen when nx and nz are not othogonal
+model.cpp:1249:	//fixme: what is with local transformation(s) ?
+model.cpp:1255:		// fixme: check for mirror
+model.cpp:1362:	// fixme: add object tree drawing here!
+model.cpp:1494:	root.set_attr(1.1f, "version");//fixme: write relations too and increase to 1.2
+model.cpp:1849://fixme: this matrix seems to describe the model rotation and translation that IS ALREADY computed for the vertices
+model.cpp:2176:	//fixme: float is a bad idea for a version string, because of accuracy
+model.cpp:2347:		//fixme: this would have to be done for 3ds and off reading too
+model.h:164:		// fixme: research if we can have a right-handed system always. This would
+model.h:310:	// fixme: check if exponent is integer or float.
+model.h:347:	void add_mesh(mesh* m) { meshes.push_back(m); }//fixme: maybe recompute bounds
+objcache.h:31://fixme: to make it useable as *cache* we need to delay destruction. when an object reaches refcount zero, do not
+ocean_wave_generator.h:88:		T waveheight = T(0.0001),	// fixme: compute that automatically from Lm, etc.?
+particle.cpp:118://fixme: replace by perlinnoise generator class!
+particle.cpp:373:	// fixme: measure this function to see if it is worth to get optimized.
+particle.cpp:384:		// fixme: these computations should be deferred to the vertex shaders.
+particle.cpp:523:	return 20.0; //fixme: depends on type
+particle.cpp:530:	return 20.0; //fixme: depends on type
+particle.cpp:578:	return 20.0; //fixme: depends on type
+particle.cpp:585:	return 20.0; //fixme: depends on type
+perlinnoise.cpp:102://fixme: Ken Perlin suggests cosine interpolation, that works no matter if next value is greater or not.
+portal.cpp:161:	// fixme: also allow 1280x1024, set up gl viewport for 4:3 display
+portal.cpp:313:		// fixme: if we are too close to a portal this is a problem and leads to bugs.
+portal.cpp:486:		frustum viewfrustum(viewwindow, pos, vd, 0.1 /* fixme: read from matrix! */);
+sea_object.cpp:63:// fixme: change the function signature so that current state is given
+sea_object.cpp:74:  fixme: later switch to model that uses force and torque.
+sea_object.cpp:446:		// fixme: maybe throw a dead_object exception here and catch them in game::simulate for each object
+sea_object.cpp:468:			//fixme: doing this for every object leads to N^2 sensor tests per second.
+sea_object.cpp:479:			redetect_time = 1.0;	// fixme: maybe make it variable, depending on the object type.
+sea_object.cpp:526:	//fixme: use orientation here and compute heading from it, not vice versa!
+sea_object.cpp:646://fixme: should move to ship or maybe return pos. airplanes have engines, but not
+sea_object.h:40:fixme: global todo (2004/06/26):
+sea_object.h:66:	//fixme: should move to damageable_part class ...
+sea_object.h:69:	//fixme: this should move to sensor.h!!!
+sea_object.h:136:		//fixme: save to xml!
+sea_object.h:210:	// fixme: this is per model/type only. it is a waste to store it for every object
+sea_object.h:236:	/// list of radar detected objects, recreated regularly  , fixme: use some contact type here as well
+sea_object.h:331:	double get_bounding_radius() const { return size3d.x+size3d.y; }	// fixme: could be computed more exact
+sensors.cpp:131:		// fixme: earth curvature is ignored here!!!
+sensors.cpp:132:		// fixme: we should visualize the visibility for testing purposes.
+sensors.cpp:148:		// fixme: add some randomization! really?
+sensors.h:132:		fixme: this is bad for some sensor types. Sonar detects only contacts, and could map
+sensors.h:171:	// fixme: make heirs for special types here.
+sensors.h:173:		passive_sonar_type_default,	/* fixme: tt_t4 is missing here */
+sensors.h:176:	// fixme: add kdb, ghg, bg sonars.
+ship.cpp:50://fixme: redefine display, call base display
+ship.cpp:130:		// fixme: not stored yet, but it should be...
+ship.cpp:336:	// fixme: 2004/07/18: throttle to some speed would mean maximum acceleration until
+ship.cpp:339:	// fixme: reverse throttle doesn't work. obvious why... hack below is nasty
+ship.cpp:388:	//fixme: load per gun data
+ship.cpp:459:	//fixme: save per gun data
+ship.cpp:553:				vector3 ppos = position + it->second;//fixme: maybe add some random offset
+ship.cpp:592:			//fixme: time_to_ms assumes when rudder is midships again that turn speed is then roughly zero.
+ship.cpp:675:	//fixme: very crude... or use rudderleft/rudderright here (not full rudder?)
+ship.cpp:692:	// fixme:
+ship.cpp:717:	return 400.0 / (get_tonnage() + 6000.0);	// fixme: rather simple yet. should be overloaded by each ship
+ship.cpp:729://fixme: deceleration is to low at low speeds, causing the sub the turn a LONG time after
+ship.cpp:731://fixme: drag can go nuts when time is scaled causing NaN in double...
+ship.cpp:733://fixme: in reality drag is v and v^2 combined... on low speeds v is significant term, on higher speeds
+ship.cpp:763:	//fixme: do we have to multiply in some factor? we have angular values here not linear...
+ship.cpp:830:										// fixme: snap angle values to simulate real cannon accuracy.
+ship.cpp:868:	// fixme: for a smart ai: try to avoid firing at friendly ships that are in line
+ship.cpp:870:	// fixme: adapt direction & elevation to course and speed of target!
+ship.cpp:871:	// fixme: get_pos() is to crude!
+ship.cpp:879:			// fixme: man ALL guns
+ship.cpp:894:			// fixme: unman ALL guns
+ship.h:85:	// symbolic pos (full left, left, mid, right, full right), fixme: should be angle too...
+ship.h:96:	// fixme: value seems to be angle/meter, meaning angle change per m forward motion...
+ship.h:102:	// fixme: replace by finer model: -> damage editor!
+ship_interface.cpp:52:	// handle common keys (fixme: make configureable?)
+ship_interface.cpp:66:		// time scaling fixme: too simple
+ship_interface.cpp:241:	vector3 viewpos = player->get_pos() + vector3(0, 0, 12+3);//fixme: +3 to be above waves
+sky.cpp:48:/* fixme: idea:
+sky.cpp:126:	// fixme: rather use VBOs here!
+sky.cpp:413:		// fixme: what is when moon is also below horizon?!
+sky.cpp:556:	//fixme: compute_sun_pos works relativly to the viewer!!!
+sky.h:88:	//fixme: this should recompute sky color! not display...
+sonar.cpp:92:   fixme: handle noise strengths a bit different! do not cut off at 0 dB!
+sonar.cpp:115:// fixme: compute with formula, maybe build medium over frequency range!
+sonar.cpp:228:	// fixme: if error is above a certain level, type can't be determined, set to none...
+sonar.cpp:332:	//fixme: try this: don't divide here!!! doesn't help much, but a bit though, seems to lessen jitter...
+sonar_operator.cpp:80:	// fixme: detection is very crude, because the operator doesn't use frequency band pass filters.
+sonar_operator.cpp:92:	// fixme: use integer dB values for simulation? we round to dB anyway!
+sonar_operator.h:54:	// fixme: good idea, but a contact is reported many times then while the sub turns, fixme!
+sound.cpp:41:	// fixme: are sound samples stored decoded in ram? would eat much more ram than ogg! check that!
+sound.cpp:45:		// fixme: use file_read_error as exception here!
+sound.cpp:56:	//fixme: maybe stop playing before that
+sound.cpp:95:		// fixme: this depends on wether the noise is inside the sub or not!
+stars.h:32:	FIXME:
+sub_bg_display.cpp:87:					//sub->set_bg_direction(ang); // fixme: set angle of player
+sub_bg_display.cpp:119:	s.direction_ptr.draw(turnknobang[TK_DIRECTION] * 0.5f /* fixme: get angle from player*/);
+sub_captainscabin_display.cpp:132:			// fixme:
+sub_gauges_display.cpp:108:	// fixme: actions are executed, but no messages are sent...
+sub_gauges_display.cpp:147:			case 11: sub->set_throttle(ship::reversefull); break;//fixme: various reverse speeds!
+sub_ghg_display.cpp:61:	// fixme: errors like this are rather bug indicators. they should throw a special
+sub_ghg_display.cpp:90:					//sub->set_ghg_direction(ang*0.5); // fixme: set angle of player
+sub_ghg_display.cpp:127:	s.direction_ptr.draw(turnknobang[TK_DIRECTION]*0.5 /* fixme: get angle from player*/);
+sub_kdb_display.cpp:93:					//sub->set_kdb_direction(ang); // fixme: set angle of player
+sub_kdb_display.cpp:118:// fixme: if noise source has same signal for angles a1...a2, return roughly (a1+a2)/2 as result
+sub_kdb_display.cpp:202:	s.direction_ptr.draw(turnknobang[TK_DIRECTION] * 0.5f /* fixme: get angle from player*/);
+sub_kdb_display.cpp:204:	// fixme: some/most of this code should be moved to sonar.cpp
+sub_kdb_display.cpp:224:	// fixme: add test here
+sub_kdb_display.h:29:#include "sonar.h" // fixme: only for testing!
+submarine.cpp:45:// fixme: this was hard work. most values are a rather rough approximation.
+submarine.cpp:269:	// fixme: later move to ship, or even sea_object!
+submarine.cpp:312:	// fixme: later move to ship, or even sea_object!
+submarine.cpp:340:			get_torp_transfer_time(from, to);	// fixme: add time for torpedos already in transfer (one transfer may block another!)
+submarine.cpp:424:	// fixme: the faster the sub goes, the faster it can dive.
+submarine.cpp:426:	// fixme: this is simple and not realistic. and the values are just guessed		
+submarine.cpp:441:		// fixme: limit update of bearing to each 5-30 secs or so,
+submarine.cpp:462:					// fixme: message: torpedo reloaded
+submarine.cpp:771:	// fixme: that model is too crude,
+submarine.cpp:777:	// fixme: 2004/05/16, i removed the 1/750 factor from sea_object.cpp
+submarine.cpp:957:	// fixme: this should'nt be linear but exponential, e^(-fac*depth) or so...
+submarine.cpp:969:	// fixme: check if relative position is translated correctly to sub pos, e.g.
+submarine.h:32://fixme: this is very ugly. replace this asap.
+submarine.h:50: 	//fixme: later we have to add control data for each torpedo (gyro angle, fat/lut setup for each
+submarine.h:59:		angle addleadangle;	// additional lead angle (only per tube) fixme: replace by lead angle reported from TDC
+submarine.h:106:	bool scopeup;			// fixme: maybe simulate time for moving scope up/down
+submarine.h:109:	bool hassnorkel;		// fixme: replace by (parts[snorkel] != unused)
+submarine.h:128:	// fixme: add: double temperature;	// overall temperature in submarine. used for torpedo preheating computation
+submarine.h:257:	virtual void planes_up(double amount);		// fixme: functions for both dive planes needed?
+submarine_interface.cpp:106:	// fixme: use texture caches here too...
+submarine_interface.cpp:143:	// fixme: later set "current_display" to other default value, like captain's cabin.
+submarine_interface.cpp:178:		// fixme: ask TDC!
+submarine_interface.cpp:241:	// fixme: if editor needs key input (CV name or mission description etc.)
+submarine_interface.cpp:366:			// fixme: we should introduce a new command here, because crash diving
+submarine_interface.cpp:381:					//fixme: was an if, why? say "snorkel down only when it was down"
+submarine_interface.cpp:386:					//fixme: was an if, why? say "snorkel up only when it was up"
+sub_periscope_display.cpp:52:	pd.fov_x = zoomed ? 13.31 : 50.05;	//fixme: historic values?
+subsim.cpp:70:/* fixme: 2006/12/02
+subsim.cpp:211:	//fixme: ask: replace this game?
+subsim.cpp:431:				// fixme: ui doesn't need to get replaced, just give pointer to new
+subsim.cpp:500:			// fixme: ui doesn't need to get replaced, just give pointer to new
+subsim.cpp:689:			// fixme: show dialogue!
+subsim.cpp:841:	//gm->save_to_stream(oss);//fixme: now xml
+subsim.cpp:918:		// fixme: show dialogue!
+subsim.cpp:1086:	// fixme: later store selected language in options file!
+subsim.cpp:1108:	// fixme: change resolution
+subsim.cpp:1164:	// fixme: handle undefined keys!
+subsim.cpp:1165:	// fixme: check for double keys!
+subsim.cpp:1261:	// fixme: disable butten when there is only one layout
+subsim.cpp:1304:	// fixme: use global /var/games instead
+subsim.cpp:1553:	// fixme: also allow 1280x1024, set up gl viewport for 4:3 display
+subsim.cpp:1658:		// fixme: check here that the file exists or tinyxml faults with a embarassing error message
+subsim.cpp:1666:			// fixme: show dialogue!
+sub_tdc_display.cpp:134:				// check if mouse is over parallax display, fixme: same code as above, group it!
+sub_tdc_display.cpp:228:		// spread angle, fixme: add. lead angle is not right...
+sub_tdc_display.cpp:239:		// parallax angle (fixme: why should the user set an angle? extra-correction here? is like
+sub_tdc_display.cpp:301:		//fixme: get tgt range marker also... or store it in this screen class?
+sub_tdc_display.cpp:304:		// fixme: show some sensible value
+sub_tdc_display.h:57:		// fixme: replace texture::ptr by fix_tex in all display classes where it makes sense
+sub_tdc_display.h:63:		rotat_tex brightness;	// fixme: do we need that?
+sub_torpedo_display.cpp:250:			// fixme: implement scrolling here!
+sub_torpedo_display.cpp:287:	//fixme:
+sub_torpsetup_display.cpp:149:					// fixme: currently only 0/1 used!
+sub_torpsetup_display.cpp:153:					// fixme: allow only 90/180 for FAT, any angle for LUT, nothing for other types
+sub_torpsetup_display.cpp:200:			// fixme: better make angle switch?
+sub_torpsetup_display.cpp:226:			case 11: sub->set_throttle(ship::reverse); break;//fixme: various reverse speeds!
+sub_uzo_display.cpp:50:	pd.fov_x = zoomed ? 13.31 : 50.05;	//fixme: historic values?
+system.cpp:671://doesn't work. why? fixme: see OpenGL redbook. coordinate offset for pixel drawing.
+system.h:72:	//fixme: mouse position translation is now missing!!!!
+system.h:131:	//fixme: is useless with new poll event queue
+tdc.cpp:138:		// compute distance from bow (fixme: also from stern!) to impact
+tdc.cpp:145:		// fixme: if we fire a stern tube, use heading+180 in this formula
+texture.cpp:165:			// fixme: when reading pixels out of sdl surfaces,
+texture.cpp:271:		// check for greyscale images (GL_LUMINANCE), fixme: add also LUMINANCE_ALPHA!
+texture.cpp:373:						Uint32 pv = *(Uint32*)linesrc; // fixme: is that right for Big-Endian machines? SDL Docu suggests yes...
+texture.cpp:421:	// fixme: this old code for old cards. should be obsolete. any cards newer
+texture.cpp:497:			// fixme: test it again after the mapping/clamping bugfix!
+texture.cpp:499:			// fixme: if we let GLU do the mipmap calculation, the result is wrong.
+texture.cpp:506:			// fixme: mipmapping for textures with non-power-of-two resolution is
+texture.cpp:515:				//fixme: must detailh also get halfed here? yes...
+texture.cpp:553:			// fixme: does this command set the base level, too?
+texture.h:113:	// fixme: with automatic size adjustment width/height could change...
+tokencodes.h:26:enum token_codes {	// fixme: many (!) of them are useless with xml now!
+torpedo.cpp:89:	// fixme: TI_FaTI.xml uses "TZ3,Pi3" as the fuse type.  Implement random fuse choice?
+torpedo.cpp:107:	// fixme: check here if that is correct!!! Pi4 intertial?
+torpedo.cpp:202:		// fixme: charges are atm numbers, should be replaced later...
+torpedo.cpp:277:	// ------------ set ship turning values, fixme: read from files, more a hack...
+torpedo.cpp:286:#if 0 // fixme: to fire a torp, let the TDC set the values while torpedo is in tube (stored!)
+torpedo.cpp:306:	// fixme: simulate variable speeds of T1?
+torpedo.cpp:307:	// fixme: simulate effect of magnetic influence fuse (much greater damage)
+torpedo.cpp:313:		//fixme: retrieve from model file referenced in xml file
+torpedo.cpp:340:			// fixme: Falke sensor
+torpedo.cpp:422:	primaryrange = primrg;	// fixme: multiply? ...
+torpedo.cpp:486:		//fixme: depends on fuse. compute this once and not for every test...
+torpedo.cpp:540:	// fixme: TI independent on temperature, but depends on torpspeed selector!
+torpedo.cpp:555:	// fixme: TI independent on temperature, but depends on torpspeed selector!
+torpedo.h:150:	// create from spec file, select values by date. date is taken from game. fixme: avoid random values here!
+torpedo.h:151:	// fixme: avoid that a game startet at date x but played until date y takes torpedo settings
+triangulate.cpp:58:	// fixme: use a vector and mark entries as "erased" (-1)
+triangulate.cpp:72:// fixme: 2004/02/14, with the new map the lockups reoccour. why?!	
+triangulate.cpp:76:int haengt=0;	// fixme: hack to avoid lock ups. why do they occour? reasons maybe:
+triangulate.cpp:138:	//fixme: wird letztes dreieck eingefgt, aber es ist nicht ccw????
+user_display.h:57:			// fixme: maybe rotate around pixel center (x/y + 0.5)
+user_interface.cpp:140:	// fixme: use checkbox here...
+user_interface.cpp:331:	// fixme: brightness needs sun_pos, so compute_sun_pos() is called multiple times per frame
+user_interface.cpp:403:			// fixme: drag&drop support should be in widget class...
+user_interface.cpp:429:			// fixme: drag&drop support should be in widget class...
+user_interface.cpp:475:	// fixme: check also when target gets out of sight
+user_interface.cpp:650:	glDisable(GL_LIGHTING);//fixme: it has to be turned on again below!!!!!!!!!!
+user_interface.cpp:658:	//fixme: planes should be orthogonal to z=0 plane (xy billboarding)
+user_interface.cpp:664:		glTexCoord2f(0, 0);	//fixme: uv size changes with depth
+user_interface.h:82:	// fixme: keep this, common data else: panel, sky, water, coastmap
+user_interface.h:83:	sea_object* target; // fixme: stored in player now, so remove this
+user_popup.h:38:	// display position. (fixme: could vary for each display - maybe store there)
+viewmodel.cpp:635:	// fixme: use data_file() 's lists here, no parsing of directories
+water.cpp:53:// fixme: allow rendering of geoclipmap patches as grid/lines for easier debugging
+water.cpp:57://fixme: the wave sub detail causes ripples in water height leading to the specular map spots
+water.cpp:277:	// fixme: make size configurable in parts of screen resolution
+water.cpp:291:	// fixme: make ^ that configureable! reflection doesn't need to have that high detail...
+water.cpp:292:	// fixme: auto mipmap?
+water.cpp:477:	   fixme: with shaders there are some errors, reflections look strange (dark blue
+water.cpp:559:	/* fixme: for each prev pos store also heading (as direction vector)
+water.cpp:668:	// clear it , fixme: must be done earlier, there is already drawn something inside the viewport
+water.cpp:692:	// fixme: texture mapping seems to be wrong.
+water.cpp:702:	// fixme: needs infos about ships/subs/torps/shells? only accessible in user_interface/freeview_display
+water.cpp:771:	//fixme: in setup_textures wird texmatrix von modelviewmatrix gesetzt, die veraendern wir aber
+water.cpp:873:						// fixme: adding values of two tiles here could be worth the
+water.cpp:928:						//fixme: far water reflects atmosphere seen from a farer distance
+water.cpp:972:					//fixme: set fresnel term here to constant value,
+water.cpp:1094:			// fixme: enlarge poly by max. x/y displacement of wave coordinates,
+water.cpp:1110:		// fixme: view frustum clipping, but gives only small performance gain
+water.cpp:1114:	/* fixme: triangles near the horizon show strange sun reflection (specular light).
+water.cpp:1184://fixme: the correctness of the result of this function and the one above is not fully tested.
+water.cpp:1273:			//fixme: this is not the real derivative, as distance between
+water.cpp:1334:		// fixme: move each level with different speed...
+water.cpp:1335:		png.set_phase(0, phase, phase);	// fixme: depends on wind direction
+water.cpp:1348:		// fixme: mipmap levels > 0 are not updated...
+water.cpp:1363:		//fixme: mipmap levels of normal map should be computed
+water.cpp:1428:	// fixme: color depends also on weather. bad weather -> light is less bright
+water.cpp:1436:	//fixme: multiply with light color here, not only light brightness.
+water.cpp:1478:	// image when looking from below the water surface (scope) fixme: clear color with upwelling color!)
+water.h:83:	// fixme: measure quantifier values or make them dynamic (more time/ram needed while generation!)
+water_splash.cpp:34:	//fixme: use different alpha for bottom? like always full alpha?
+widget.cpp:75:/* fixme: when new widget is opened that fills the whole screen, unref
+widget.cpp:274:	draw_area(p.x, p.y, size.x, size.y, /*fixme: replace by property?*/true);
+widget.cpp:284:	// fixme: if childs have the same size as parent, don't draw parent?
+widget.cpp:652:	// fixme: if there's not enough space for all buttons, nothing is adjusted.
+widget.cpp:691:		// fixme: todo
+widget.cpp:1110:	// fixme: this is not correct, translate mb here!
+widget.h:36:// fixme: add image-widget
+widget.h:38:// fixme: when editing in a widget_edit you have to click twice on a button to lose focus AND click the button .. bad
+widget.h:40:// fixme: make yes/no, ok, yes/no/cancel dialogue
+widget.h:180:	// run() always returns 1    - fixme: make own widget classes for them?
+environment.h:37:	// TODO: Put it in the water class??
