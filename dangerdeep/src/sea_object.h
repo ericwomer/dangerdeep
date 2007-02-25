@@ -81,60 +81,6 @@ public:
 		unsigned degy, unsigned miny, double& x, double& y);
 	static void meters2degrees(double x, double y, bool& west, unsigned& degx, unsigned& minx, bool& south,
 		unsigned& degy, unsigned& miny);
-		
-	// submarine parts and their damages
-	// fixme: replace german names by correct translations
-	// lenzpumpe (water pump???) drain pump / drainage pump
-	// bilge???
-	// kitchen - kombuese?
-	// balance tank - trimmtank?
-	//fixme: it should not be necessary to store explicit variable names for that
-	//parts. rather store xml files with data about the submarine types.
-	enum parts_indices {
-		// common parts
-		rudder,
-		screws,
-		screw_shaft,
-		stern_dive_planes,
-		stern_water_pump,	//?
-		stern_pressure_hull,
-		stern_hatch,
-		electric_engines,
-		air_compressor,
-		machine_water_pump,	//?
-		machine_pressure_hull,
-		aft_battery,
-		diesel_engines,
-		kitchen_hatch,		//?	// there was only one hatch at the stern!? fixme
-		balance_tank_valves,	//?
-		forward_battery,
-		periscope,	// fixme: there were two...
-		central_pressure_hull,
-		bilge_water_pump,	//?
-		conning_tower_hatch,
-		listening_device,
-		radio_device,
-		inner_bow_tubes,
-		outer_bow_tubes,
-		bow_water_pump,		//?
-		bow_hatch,
-		bow_pressure_hull,	//fixme: damage view does not match 3d data or vice versa.
-		bow_dive_planes,
-		aa_gun,
-		ammunition_depot,
-		outer_fuel_tanks_left,
-		outer_fuel_tanks_right,
-
-		// parts specific to sub types
-		outer_stern_tubes,
-		inner_stern_tubes,
-		snorkel,//fixme conflicts with bool snorkel;
-		deck_gun,
-		radio_detection_device,
-		radar,
-		
-		nr_of_parts	// trick to count enum entries
-	};
 
 	// we need a struct for each part:
 	// VARIABLE:
