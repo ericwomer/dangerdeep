@@ -267,12 +267,14 @@ void submarine::load(const xml_elem& parent)
 	battery_level = sst.attrf("battery_level");
     
 	// fixme: later move to ship, or even sea_object!
+#if 0 // disabled to avoid abort when loading savegames
 	xml_elem dm = parent.child("parts");
 	parts.clear();
 	parts.reserve(dm.attru("nr"));
 	for (xml_elem::iterator it = tp.iterate("part"); !it.end(); it.next()) {
 		//parts.push_back(part(it.elem()));
 	}
+#endif
 
 	TDC.load(parent);
 	sonarman.load(parent);
