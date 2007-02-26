@@ -1369,13 +1369,12 @@ void water::compute_amount_of_foam()
 	// factor to build derivatives correctly
 	const double deriv_fac = wavetile_length_rcp * wave_resolution;
 	const double lambda = 1.0; // lambda has already been multiplied with x/y displacements...
-	const double decay = 8.0/wave_phases;
+	const double decay = 4.0/wave_phases;
 	const double decay_rnd = 0.25/wave_phases;
 	const double foam_spawn_fac = 0.25;//0.125;
 	for (unsigned k = 0; k < wave_phases * 2; ++k) {
 		const vector<vector3f>& wd = wavetile_data[k % wave_phases].mipmaps[0].wavedata;
 		// compute for each sample how much foam is added (spawned)
-		unsigned ptr = 0;
 		for (unsigned y = 0; y < wave_resolution; ++y) {
 			unsigned ym1 = (y + wave_resolution - 1) & (wave_resolution-1);
 			unsigned yp1 = (y + 1) & (wave_resolution-1);
@@ -1393,18 +1392,22 @@ void water::compute_amount_of_foam()
 				double J = Jxx*Jyy - Jxy*Jyx;
 				//printf("x,y=%u,%u, Jxx,yy=%f,%f Jxy,yx=%f,%f J=%f\n",
 				//       x,y, Jxx,Jyy, Jxy,Jyx, J);
-				double foam_add = (J < 0.3) ? ((J < -1.0) ? 1.0 : (J - 0.3)/-1.3) : 0.0;
-				//double foam_add = (J < 0.0) ? ((J < -1.0) ? 1.0 : -J) : 0.0;
-				aof[ptr++] += foam_add * foam_spawn_fac;
-				// fixme: maybe spawn foam also on neighbouring fields
+				//double foam_add = (J < 0.3) ? ((J < -1.0) ? 1.0 : (J - 0.3)/-1.3) : 0.0;
+				double foam_add = (J < 0.0) ? ((J < -1.0) ? 1.0 : -J) : 0.0;
+				aof[y*wave_resolution+x] += foam_add * foam_spawn_fac;
+				// spawn foam also on neighbouring fields
+				aof[ym1*wave_resolution+x] += foam_add * foam_spawn_fac * 0.5;
+				aof[yp1*wave_resolution+x] += foam_add * foam_spawn_fac * 0.5;
+				aof[y*wave_resolution+xm1] += foam_add * foam_spawn_fac * 0.5;
+				aof[y*wave_resolution+xp1] += foam_add * foam_spawn_fac * 0.5;
 			}
 		}
 
 		// compute decay, depends on time with some randomness
-		ptr = 0;
+		unsigned ptr = 0;
 		for (unsigned y = 0; y < wave_resolution; ++y) {
 			for (unsigned x = 0; x < wave_resolution; ++x) {
-				aof[ptr] = std::max(aof[ptr] - (decay + decay_rnd * rndtab[(3*x + 5*y) % 37]), 0.0);
+				aof[ptr] = std::max(std::min(aof[ptr], 1.0f) - (decay + decay_rnd * rndtab[(3*x + 5*y) % 37]), 0.0);
 				++ptr;
 			}
 		}
