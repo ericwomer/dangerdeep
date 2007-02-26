@@ -308,7 +308,6 @@ void show_halloffame(const highscorelist& hsl)
 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 	hsl.show(&w);
 	w.run(0, false);
-	mmusic->play_track(0, 500);
 }
 void show_halloffame_mission() { show_halloffame(hsl_mission); }
 void show_halloffame_career() { show_halloffame(hsl_career); }
