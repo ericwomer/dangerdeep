@@ -58,7 +58,6 @@ using std::setfill;
 
 
 // fixme: allow rendering of geoclipmap patches as grid/lines for easier debugging
-#undef  DRAW_GEO_GRID
 
 
 //fixme: the wave sub detail causes ripples in water height leading to the specular map spots
@@ -456,7 +455,21 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 		// tex3: amount of foam
 		glActiveTexture(GL_TEXTURE0);
 
+		// set up scale/translation of foam and noise maps
+		// we do not use the texture matrix here, as this would be overkill
+		// and would be clumsy
+		//double anim_mod = myfmod(mytime, wave_tidecycle_time);
+		double anim_mod = myfrac(mytime / wave_tidecycle_time);
+		// fixme: better movement!
+		vector2f noise_0_pos = vector2f(0, 0) + vector2f(1.0f /* /8 */, 0.0f) * anim_mod;
+		vector2f noise_1_pos = vector2f(0, 0) + vector2f(0.0f, 1.0f /* /32 */) * anim_mod;
+		//fixme: do we have to treat the viewer offset here, like with tex matrix
+		//       setup below?!
+		glsl_water->set_uniform("noise_xform_0", noise_0_pos.xyz(wavetile_length_rcp * 8.0f));
+		glsl_water->set_uniform("noise_xform_1", noise_1_pos.xyz(wavetile_length_rcp * 32.0f));
+
 		// set up texture matrix, so that texture coordinates can be computed from position.
+		//fixme: use uniform here as well.
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 		float noisetilescale = 32.0f;//meters (128/16=8, 8tex/m).
@@ -1475,10 +1488,16 @@ void water::generate_subdetail_and_bumpmap()
 	if (water_bumpmap.get()) {
 		// fixme: mipmap levels > 0 are not updated...
 		// can we use automatic creation of mipmaps here?
+#if 0
 		water_bumpmap->sub_image(0, 0, subdetail_size, subdetail_size,
 					 texture::make_normals(waveheight_subdetail, subdetail_size, subdetail_size, 0.5f),
 					 GL_RGB);
+#else
+		water_bumpmap->sub_image(0, 0, wave_resolution, wave_resolution,
+					 curr_wtp->mipmaps[0].normals_tex, GL_RGB);
+#endif
 	} else {
+#if 0
 		water_bumpmap.reset(new texture(waveheight_subdetail, subdetail_size, subdetail_size,
 						GL_LUMINANCE,
 #if 0
@@ -1495,6 +1514,12 @@ void water::generate_subdetail_and_bumpmap()
 		//really? the mipmapped normalmap values are not of unit length,
 		//but the direction should be kept, and they're normalized anyway.
 		//so mipmapping should do no harm...
+#else
+		water_bumpmap.reset(new texture(curr_wtp->mipmaps[0].normals_tex,
+						wave_resolution, wave_resolution,
+						GL_RGB, texture::LINEAR_MIPMAP_LINEAR,
+						texture::REPEAT));
+#endif
 	}
 }
 
@@ -1506,6 +1531,7 @@ void water::set_time(double tm)
 
 	// water bumpmaps: ~15 times a second
 	if (mytime >= last_subdetail_gen_time + SUBDETAIL_GEN_TIME) {
+		//fixme: must be done at same rate as normal wave animation?!
 		generate_subdetail_and_bumpmap();
 		last_subdetail_gen_time = mytime;
 	}
@@ -1724,6 +1750,22 @@ void water::wavetile_phase::mipmap_level::compute_normals()
 			const vector3f& f4 = facenormals[2*(y2+x)];
 			const vector3f& f5 = facenormals[2*(y1+x)+1];
 			normals.push_back((f0 + f1 + f2 + f3 + f4 + f5).normal());
+		}
+	}
+
+	// compute texture data
+	//fixme: for higher levels the computed data is not used, as mipmaps are generated
+	//by glu. however this data should be much better!
+	//but we can't feed it to texture class yet
+	normals_tex.resize(resolution*resolution*3); // fixme: for now use RGB
+	unsigned ptr = 0;
+	for (unsigned y = 0; y < resolution; ++y) {
+		for (unsigned x = 0; x < resolution; ++x) {
+			const vector3f& v = normals[ptr];
+			normals_tex[3*ptr+0] = Uint8(v.x*127+128);
+			normals_tex[3*ptr+1] = Uint8(v.y*127+128);
+			normals_tex[3*ptr+2] = Uint8(v.z*127+128);
+			++ptr;
 		}
 	}
 }

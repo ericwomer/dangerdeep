@@ -1,15 +1,21 @@
 // -*- mode: C; -*-
 
-varying vec3 viewerdir, lightdir;
-varying vec2 noisetexcoord;
+// it seems we can define at max. 8 varying parameters...
+varying vec3 viewerdir;
+varying vec3 lightdir;
+varying vec3 normal;
+varying vec3 foamtexcoord; // z coord is crest_foam value
 varying vec4 reflectiontexcoord;	// x,y,w
 varying vec4 foamamounttexcoord;	// x,y,w
-varying float crest_foam;
+varying vec2 noise_texc_0;
+varying vec2 noise_texc_1;
 
 uniform vec3 viewpos;
 uniform vec3 upwelltop;
 uniform vec3 upwellbot;
 uniform vec3 upwelltopbot;
+uniform vec3 noise_xform_0;
+uniform vec3 noise_xform_1;
 
 attribute float amount_of_foam;
 
@@ -22,6 +28,7 @@ void main()
 {
 	// normalize vertex normal
 	vec3 N = normalize(gl_Normal);
+	normal = N;
 
 	// compute upwelling color (slope dependent)
 	// that is (inputpos.z + viewpos.z + 3) / 9 + (normal.z - 0.8);
@@ -31,36 +38,23 @@ void main()
 	gl_FrontColor.xyz = upwelltopbot *
 		clamp((gl_Vertex.z + viewpos.z) * 0.1111111 + N.z - 0.4666667, 0.0, 1.0) + upwellbot;
 
-	// compute amount of foam as outputcolor.alpha from inputpos.z
-	//crest_foam = clamp((gl_Vertex.z + viewpos.z) * foamamount_f1 + foamamount_f2, 0.0, 1.0) * 0.8;
-	crest_foam = amount_of_foam;
-
-	// compute tangent space.
-	// tangentx = (0,1,0).cross(normal), because v coordinate
-	// increases with vertex y coordinate => tangentx is (nz, 0, -nx)
-	vec3 tangentx = normalize(cross(yaxis, N));
-	vec3 tangenty = cross(N, tangentx);
-
 	// compute direction to viewer (E) in object space (mvinv*(0,0,0,1) - inputpos)
-	vec3 viewerdir_obj = normalize(vec3(gl_ModelViewMatrixInverse[3]) - vec3(gl_Vertex));
-	// transform viewerdir to tangent space
-	viewerdir.x = dot(viewerdir_obj, tangentx);
-	viewerdir.y = dot(viewerdir_obj, tangenty);
-	viewerdir.z = dot(viewerdir_obj, N);
+	viewerdir = normalize(vec3(gl_ModelViewMatrixInverse[3]) - vec3(gl_Vertex));
 
 	// transform vertex to projection space (clip coordinates)
 	gl_Position = ftransform();
 
 	// transform light pos to object space. we assume mvinv has no projection coefficients.
 	// light is directional, so lightpos.w = 0
-	vec3 lightdir_obj = normalize(vec3(gl_ModelViewMatrixInverse * gl_LightSource[0].position));
-	// transform lightdir to tangent space
-	lightdir.x = dot(lightdir_obj, tangentx);
-	lightdir.y = dot(lightdir_obj, tangenty);
-	lightdir.z = dot(lightdir_obj, N);
+	lightdir = normalize(vec3(gl_ModelViewMatrixInverse * gl_LightSource[0].position));
+
+	// transform noise coordinates
+	noise_texc_0 = vec2(gl_Vertex) * noise_xform_0.z + noise_xform_0.xy;
+	noise_texc_1 = vec2(gl_Vertex) * noise_xform_1.z + noise_xform_1.xy;
 
 	// transform inputpos.xy with texture matrix to get texture coodinates
-	noisetexcoord = (gl_TextureMatrix[0] * gl_Vertex).xy;
+	//fixme: use uniforms here as well, no tex matrix.
+	foamtexcoord = vec3((gl_TextureMatrix[0] * gl_Vertex).xy, amount_of_foam);
 
 	// compute reflection texture coordinates
 	// formula to compute them from inputpos (coord):

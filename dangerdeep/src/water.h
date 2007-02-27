@@ -94,6 +94,7 @@ protected:
 			std::vector<vector3f> wavedata;
 			std::vector<vector3f> normals;
 			std::vector<float> amount_of_foam;
+			std::vector<Uint8> normals_tex;
 			///> generate data from downsampled version of wd
 			mipmap_level(const std::vector<vector3f>& wd, unsigned res_shift,
 				     double sampledist);

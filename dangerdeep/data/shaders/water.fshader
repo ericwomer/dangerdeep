@@ -1,10 +1,13 @@
 // -*- mode: C; -*-
 
-varying vec3 viewerdir, lightdir;
-varying vec2 noisetexcoord;
+varying vec3 viewerdir;
+varying vec3 lightdir;
+varying vec3 normal;
+varying vec3 foamtexcoord;
 varying vec4 reflectiontexcoord;	// x,y,w
 varying vec4 foamamounttexcoord;	// x,y,w
-varying float crest_foam;
+varying vec2 noise_texc_0;
+varying vec2 noise_texc_1;
 
 uniform sampler2D tex_normal;		// normal map, RGB
 uniform sampler2D tex_reflection;	// reflection, RGB
@@ -16,12 +19,9 @@ const float water_shininess = 120.0;
 void main()
 {
 	// compute normal vector
-	//vec3 N = normalize(vec3(texture2D(tex_normal, noisetexcoord.xy)) * 2.0 - 1.0);
-	vec3 N1 = vec3(texture2D(tex_normal, noisetexcoord.xy) * 2.0 - 1.0);
-	N1.xy *= 2;
-	vec3 N2 = vec3(texture2D(tex_normal, noisetexcoord.xy * 8.0) * 2.0 - 1.0) * 0.5;
-	N2.xy *= 2;
-	vec3 N = normalize(N1+N2);
+	vec3 N0 = vec3(texture2D(tex_normal, noise_texc_0) * 2.0 - 1.0);
+	vec3 N1 = vec3(texture2D(tex_normal, noise_texc_1) * 2.0 - 1.0);
+	vec3 N = normalize(normal+N0+N1);
 
 	// compute direction to viewer
 	vec3 E = normalize(viewerdir);
@@ -51,7 +51,7 @@ void main()
 	// approximation for fresnel term is 1/((x+1)^8)
 #if 1
 	// using pow() seems a little bit faster (Geforce5700)
-	fresnel = pow(fresnel, -8) * 0.8;
+	fresnel = pow(fresnel, -8.0) * 0.8;
 #else
 	fresnel = fresnel * fresnel;	// ^2
 	fresnel = fresnel * fresnel;	// ^4
@@ -70,7 +70,7 @@ void main()
 
 	// compute refraction color
 	float dl = max(dot(L, N), 0.0);
-	vec3 refractioncol = gl_Color * dl;
+	vec3 refractioncol = vec3(gl_Color) * dl;
 
 	// mix reflection and refraction (upwelling) color, and add specular color
 	vec3 water_color = mix(refractioncol, vec3(texture2DProj(tex_reflection, reflectiontexcoord)),
@@ -78,8 +78,9 @@ void main()
 
 	// fetch amount of foam, sum of texture and cresnel foam, multiplied with luminance
 	// from foam texmap
-	float foam_amount = min(texture2DProj(tex_foamamount, foamamounttexcoord).x + crest_foam, 1.0)
-		* texture2D(tex_foam, noisetexcoord).x;
+	float foam_amount = min(texture2DProj(tex_foamamount, foamamounttexcoord).x
+				+ foamtexcoord.z /*crest_foam*/, 1.0)
+		* texture2D(tex_foam, foamtexcoord.xy).x;
 
 	vec3 final_color = mix(water_color, vec3(gl_LightSource[0].diffuse), foam_amount);
 
