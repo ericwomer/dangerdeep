@@ -488,6 +488,7 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 
 		if (do_mipmapping[mapping]) {
 #if 1
+			// fixme: doesn't work with textures that don't have power of two size...
 			gluBuild2DMipmaps(GL_TEXTURE_2D, format, gl_width, gl_height,
 					  format, GL_UNSIGNED_BYTE, &nmpix[0]);
 
@@ -552,6 +553,7 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		if (do_mipmapping[mapping]) {
 			// fixme: does this command set the base level, too?
 			// i.e. are the two gl commands redundant?
+			// fixme: doesn't work with textures that don't have power of two size...
 			gluBuild2DMipmaps(GL_TEXTURE_2D, format, gl_width, gl_height,
 					  format, GL_UNSIGNED_BYTE, &((*pdata)[0]));
 		}
