@@ -36,7 +36,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "cfg.h"
 #include "system.h"
 #include "game.h"
-#include "perlinnoise.h"
 #include "datadirs.h"
 #include "polygon.h"
 #include "frustum.h"
@@ -48,6 +47,7 @@ using std::ofstream;
 using std::ostringstream;
 using std::setw;
 using std::setfill;
+using std::vector;
 
 #ifndef fmin
 #define fmin(x,y) (x<y) ? x : y
@@ -60,131 +60,14 @@ using std::setfill;
 // fixme: allow rendering of geoclipmap patches as grid/lines for easier debugging
 
 
-//fixme: the wave sub detail causes ripples in water height leading to the specular map spots
-//and other visual errors.
-//solution: check bugs, use perlin noise for sub detail, not fft, especially noise with
-//low variation of values, i.e. ripples/waves with roughly the same height not large waves and small
-//waves as with fft. Analyze higher FFT frequencies from ocean wave model (with test program)
-//and fake their shape with perlin noise or similar algorithms. The higher frequency images
-//look different to the overall FFT appearance or the perlin noise...
-
-/* 2006/12/27
-   new idea for normal mapping etc.
-   instead of tangent space and precomputed normals, store global normals with extra detail in
-   a normal map (higher resolution than wavetile). Precompute this and store it.
-   Fetch normal data per frame.
-   Interpolate geometric data with cosine interpolation or wave-shape-like interpolation,
-   add noise as subdetail.
-   Problem: x/y displacement. Either displace normal data accordingly or use undisplaced x/y
-   coordinates for texture fetch.
-   -> no tangent space computation
-   -> no need to compute geometric normals
-   -> BUT: needs much ram for normal maps. not much extra-detail possible.
-*/
-
-
-// store an amount of foam vector per wave tile.
-// find local maxima of wave heights, the higher the absolute value of this maxima
-// is, the more foam it generates. then add the amount of generated foam to the vector
-// and decrease the vector's values each frame -> should give nice wave foam
-
-// for testing
-//#define DRAW_WATER_AS_GRID
-
 #define REFRAC_COLOR_RES 32
 #define FRESNEL_FCT_RES 256
-#define WATER_BUMP_DETAIL_HEIGHT 4.0
-
-#define SUBDETAIL_GEN_TIME (1.0/15.0)	// 15fps
 
 #define FOAMAMOUNTRES 256
 
 #undef  MEASURE_WAVE_HEIGHTS
 
 const unsigned foamtexsize = 256;
-
-/*
-	2004/05/06
-	The foam problem.
-	Earlier plans were that foam is just white color added to the water. That way we could
-	keep an texture that is updated every frame and holds information in a rectangular grid
-	wether there is foam or not. That way we don't need to send foam data via colors,
-	texture coordinates etc. This is no good idea: the foam looks too bad, and we would need
-	an texture that covers the whole water area (texture would be too big). No way.
-	So the foam must be mixed into the water somehow. Let's store a foam texture in the
-	second texture unit. How do we mix it in? GL_INTERPOLATE only works with source color's
-	alpha channel, and the only remaining source is the primary color. Interpolating it
-	with the primary color's color channels works on Geforce cards but is not OpenGL standard
-	conform. But let's assume we could mix it somehow. Where do we get the amout of foam to
-	mix in? 1) from the wave animation 2) from the ship's wakes etc.
-	1) with projected grid this would look ugly, because in the distance the grid becomes
-	very coarse. Just apply foam for water nearer than some distance value? difficult.
-	2) There are two possibilities.
-	a) use one large 2d array that holds the foam levels for the world. Each frame foam
-	values must get decreased by a constant amount. The array would be too large.
-	b) compute the amount of foam for each drawn vertex. To do that we assume that each
-	foam source influenced each vertex.
-	Simply write a function that gives the amount of foam at any position x caused by a
-	foam source s_i. For each vertex sum up the foam values of all sources:
-	foam_strength(x) := sum_i foam_strength_at(x, i), clamp the result at 1.
-	Maybe add some heuristics: if foam source i is too far away, ignore it.
-	Nontheless, this is very costly. We have at least 128x128 vertices to draw. If there
-	are twenty ships (a common value!) we have to compute the function 20 times for each
-	of the 16k vertices, and each computation would probably need a sqrt (for distance).
-	THIS is really much for a PC.
-	Another way doing b): clear the screen with black. Draw the ship's trails as quad strips
-	with white quads with varying alpha values (amount of foam = alpha value). The GPU
-	computes the mixing for us. Finally we have an grey value image. Read it to CPU memory.
-	We may now downsample it (faked Anti-aliasing). Now look up the amount of foam on each
-	grid point in the image (we could render the image witht the same resolution as the
-	grid, or the double resolution for faked AA). And voila. But how to mix the foam? all
-	Alpha channels are gone ... no! Store these values in the Alpha channel of the reflection
-	map. The reflection map is computed the same way as the grey value map. Good! The only
-	problem that remains is how to create the RGBA reflection map from RGB values of one
-	scene and the A values of another. Use color masking for that (Mask bits before writing
-	in the buffer).
-	That way we don't need to copy the values back from GPU to CPU.
-	Take the foam image (b/w with alpha, only alpha is interesting) as texture and
-	project it onto the screen like the reflections (proj-modelview-mat as texture-matrix)
-	mix foam according to alpha value. Problem: while drawing waves the foam is shifted
-	up or down, per pixel foam lookup doesn't work right. so the texture coordinates
-	for foam lookup must get transformed according to triangulation.
-	Don't take real 3d coords as texcoords for foam tex, but keep x,y, set z to zero.
-	Then it works.
-	Would need 2 passes with new fresnel technique (2nd unit trashed).
-	Would need 2 passes ANYWAY because foam tex coords are different from reflection
-	tex coords!
-	So do: 1) draw mirror image -> texture R
-	2) draw foam image -> texture F
-	3) draw world
-	4) draw water first pass (reflection, fresnel)
-	5) draw water second pass (foam) (maybe some extra color..., fine foam lines texture ?)
-*/	
-
-/*
-2005/05/30
-water rendering and shaders.
-it works but there are two major problems:
-1) faces that are nearly perpendicular to the viewer with normal mapping applied can have
-normals that are facing away from the viewer, which leads to larger unichrome surfaces,
-because of the saturation when computing E*N. Taking the absolute value of the E*N helps
-to avoid these surfaces but the result is also not satisfying.
-2) Much worse, either texture coordinate interpolation or texture value interpolation
-is not precise enough, leading to large steps from black to white when drawing specular
-highlight grey gradients. Lookup textures do not help, because POW is not the problem here.
-
-solution: no real one yet.
-
-Only way: do NOT use normal maps, but more faces. Higher face count leads to more CPU
-usage, which can be cut down with shaders, AGP bus load will be similar as without shaders,
-because the GPU can compute many values the CPU would have to compute without shaders.
-
-Seems to be the only way out... use perlin noise for additional detail and use 128x256 or more
-faces.
-AND more important: increase efficiency when drawing faces, at the moment it is about 50%,
-increasing that to 80% or more will improve rendering quality, no matter if shaders are used or
-not.
-*/
 
 #ifdef MEASURE_WAVE_HEIGHTS
 static float totalmin = 0, totalmax = 0;
@@ -206,9 +89,6 @@ water::water(double tm) :
 	last_light_color(-1, -1, -1),
 	wave_resolution(nextgteqpow2(cfg::instance().geti("wave_fft_res"))),
 	wave_resolution_shift(ulog2(wave_resolution)),
-	wave_subdetail(cfg::instance().getb("wave_subdetail")),
-	subdetail_size(cfg::instance().geti("wave_subdetail_size")),
-	subdetail_size_shift(ulog2(subdetail_size)),
 	wavetile_data(wave_phases),
 	curr_wtp(0),
 	owg(wave_resolution,
@@ -219,8 +99,6 @@ water::water(double tm) :
 	    wave_tidecycle_time),
 	use_shaders(false),
 	vattr_aof_index(0),
-	png(subdetail_size, 1, subdetail_size/16), //fixme ohne /16 sieht's scheisse aus, war /8
-	last_subdetail_gen_time(tm),
 	rerender_new_wtp(true),
 	geoclipmap_resolution(cmpdtl(cfg::instance().geti("water_detail"))), // should be power of two
 	geoclipmap_levels(wave_resolution_shift-2),
@@ -300,8 +178,6 @@ water::water(double tm) :
 	reflectiontex.reset(new texture(rx, ry, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 
 	sys().add_console("wave resolution %u (%u)",wave_resolution,wave_resolution_shift);
-	sys().add_console("using subdetail: %s", wave_subdetail ? "yes" : "no");
-	sys().add_console("subdetail size %u (%u)",subdetail_size,subdetail_size_shift);
 	sys().add_console("reflection image size %u*%u",rx,ry);
 	sys().add_console("water detail: %u", geoclipmap_resolution);
 
@@ -317,27 +193,6 @@ water::water(double tm) :
 		glsl_water->use_fixed();
 	}
 
-	perlinnoise pnfoam(foamtexsize, 2, foamtexsize/16);
-	vector<Uint8> foamtexpixels = pnfoam.generate();
-
-	for (unsigned z = 0; z < foamtexsize * foamtexsize; ++z) {
-		int a = foamtexpixels[z];
-		a = 16 + a * 240 / 256;
-/*
-		a = (2 * a - 128);
-		if (a < 0) a = 0;
-		if (a >= 256) a = 255;
-*/
-		foamtexpixels[z] = Uint8(a);
-	}
-/*
-	ofstream osg("foamtex.pgm");
-	osg << "P5\n"<<foamtexsize<<" "<<foamtexsize<<"\n255\n";
-	osg.write((const char*)(&foamtexpixels[0]), foamtexsize * foamtexsize);
-*/
-
-// 	foamtex.reset(new texture(foamtexpixels, foamtexsize, foamtexsize, GL_LUMINANCE,
-// 				  texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
 	foamtex.reset(new texture(get_texture_dir() + "foam.png", texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
 	foamamounttex.reset(new texture(FOAMAMOUNTRES, FOAMAMOUNTRES, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 
@@ -408,8 +263,9 @@ water::water(double tm) :
 	for (unsigned i = 0; i < wave_phases; ++i) {
 		generate_wavetile(wave_tidecycle_time * i / wave_phases, wavetile_data[i]);
 	}
-	curr_wtp = &wavetile_data[0];
-	rerender_new_wtp = true;
+	// set up curr_wtp and subdetail
+	curr_wtp = 0;
+	set_time(tm);
 
 	add_loading_screen("water height data computed");
 
@@ -420,10 +276,6 @@ water::water(double tm) :
 	compute_amount_of_foam();
 
 	add_loading_screen("foam data per tile computed");
-
-	generate_subdetail_and_bumpmap();
-
-	add_loading_screen("water bumpmap data computed");
 
 	// compute specular lookup texture
 #if 0
@@ -1468,60 +1320,24 @@ void water::compute_amount_of_foam()
 
 
 
-void water::generate_subdetail_and_bumpmap()
+void water::generate_subdetail_texture()
 {
-	float phase = myfrac(mytime / 20);
-	for (unsigned k = 0; k < png.get_number_of_levels(); ++k) {
-		// fixme: move each level with different speed...
-		png.set_phase(k, phase, phase);	// fixme: depends on wind direction
-	}
-	waveheight_subdetail = png.generate();
-#if 0
-	std::ostringstream osgname;
-	osgname << "noisemap" << myfmod(mytime, 86400) << ".pgm";
-	std::ofstream osg(osgname.str().c_str());
-	osg << "P5\n" << subdetail_size << " " << subdetail_size << "\n255\n";
-	osg.write((const char*)(&waveheight_subdetail[0]), subdetail_size*subdetail_size);
-#endif
-
 	// update texture with glTexSubImage2D, that is faster than to re-create the texture
 	if (water_bumpmap.get()) {
 		// fixme: mipmap levels > 0 are not updated...
 		// can we use automatic creation of mipmaps here?
-#if 0
-		water_bumpmap->sub_image(0, 0, subdetail_size, subdetail_size,
-					 texture::make_normals(waveheight_subdetail, subdetail_size, subdetail_size, 0.5f),
-					 GL_RGB);
-#else
 		water_bumpmap->sub_image(0, 0, wave_resolution, wave_resolution,
 					 curr_wtp->mipmaps[0].normals_tex, GL_RGB);
-#endif
 	} else {
-#if 0
-		water_bumpmap.reset(new texture(waveheight_subdetail, subdetail_size, subdetail_size,
-						GL_LUMINANCE,
-#if 0
-						texture::LINEAR,
-#else
-						texture::LINEAR_MIPMAP_LINEAR,
-#endif
-						texture::REPEAT,
-						true, 0.5f));//fixme 4.0f would better, detail is hardly visible else...
 		//fixme: mipmap levels of normal map should be computed
 		//by this class, not glu!
-		//mipmap scaling of a normal map is not the same as the normal version
-		//of a mipmapped height map!
-		//really? the mipmapped normalmap values are not of unit length,
-		//but the direction should be kept, and they're normalized anyway.
-		//so mipmapping should do no harm...
-#else
 		water_bumpmap.reset(new texture(curr_wtp->mipmaps[0].normals_tex,
 						wave_resolution, wave_resolution,
 						GL_RGB, texture::LINEAR_MIPMAP_LINEAR,
 						texture::REPEAT));
-#endif
 	}
 }
+
 
 
 void water::set_time(double tm)
@@ -1529,19 +1345,13 @@ void water::set_time(double tm)
 	// do all the tasks here that should happen regularly, like recomputing new water or noisemaps
 	mytime = tm;
 
-	// water bumpmaps: ~15 times a second
-	if (mytime >= last_subdetail_gen_time + SUBDETAIL_GEN_TIME) {
-		//fixme: must be done at same rate as normal wave animation?!
-		generate_subdetail_and_bumpmap();
-		last_subdetail_gen_time = mytime;
-	}
-
 	unsigned pn = unsigned(wave_phases * myfrac(tm / wave_tidecycle_time)) % wave_phases;
 	if (curr_wtp == &wavetile_data[pn]) {
 		rerender_new_wtp = false;
 	} else {
 		curr_wtp = &wavetile_data[pn];
 		rerender_new_wtp = true;
+		generate_subdetail_texture();
 	}
 }
 

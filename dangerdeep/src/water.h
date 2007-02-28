@@ -36,7 +36,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texture.h"
 #include "ship.h"
 #include "ocean_wave_generator.h"
-#include "perlinnoise.h"
 #include "vertexbufferobject.h"
 #include "framebufferobject.h"
 #include "shader.h"
@@ -71,18 +70,6 @@ protected:
 
 	const unsigned wave_resolution;	// fft resolution for water tile (use 64+, better 128+)
 	const unsigned wave_resolution_shift;	// the log2 of wave_resolution
-
-	const bool wave_subdetail;	// use subdetail for height or not
-	const unsigned subdetail_size;	// sub detail resolution
-	const unsigned subdetail_size_shift;	// the log2 of it
-
-	// about wavetile data:
-	// 32 bit per coordinate, quantified integer storage. 12 bit for height, 10 for x/y displacement.
-	// max. height amplitude ~32meters, so multiply with 32/4096=128, resolution ~8cm, enough.
-	// max. displ. amplitude ~16meters, so multiply with 16/1024=64, resolution ~12cm etc.
-	// fixme: measure quantifier values or make them dynamic (more time/ram needed while generation!)
-	// We can then use 256x256 sized tiles with 256 phases. They take 64mb of ram (2^(3*8)*4=2^18=64m)
-	// currently displacement +- 5m, height +- 3.5m. currently used +-16m for height,+-8m for displ.
 
 	struct wavetile_phase
 	{
@@ -128,10 +115,7 @@ protected:
 	// test
 	ocean_wave_generator<float> owg;
 
-	// sub detail
-	std::vector<Uint8> waveheight_subdetail;	// same as water bump map data, recomputed periodically
-
-	// testing: with fragment programs we need some sub-noise
+	// with fragment programs we need some sub-noise
 	std::auto_ptr<texture> water_bumpmap;
 
 	// Config options (only used when supported)
@@ -142,12 +126,6 @@ protected:
 
 	// indices for vertex attributes
 	unsigned vattr_aof_index;
-
-	// for subdetail
-	perlinnoise png;
-
-	// times for generation
-	double last_subdetail_gen_time;
 
 	// avoid unnecessary vertex generation
 	mutable bool rerender_new_wtp;
@@ -163,7 +141,7 @@ protected:
 
 	void compute_amount_of_foam();
 	void generate_wavetile(double tiletime, wavetile_phase& wtp);
-	void generate_subdetail_and_bumpmap();
+	void generate_subdetail_texture();
 
 	// --------------- geoclipmap stuff
 	const unsigned geoclipmap_resolution;
