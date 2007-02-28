@@ -28,10 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif
 
 #include "fixed.h"
-
-#include <stdlib.h>
 #include <vector>
-using std::vector;
 
 
 ///\brief Generates perlin noise images.
@@ -41,7 +38,7 @@ public:
 	// quadratic noise
 	struct noise_func
 	{
-		vector<Uint8> data;
+		std::vector<Uint8> data;
 		unsigned size;		// in powers of two
 		unsigned frequency;	// 1-x
 		fixed32 phasex;
@@ -53,16 +50,16 @@ public:
 		mutable unsigned offsetline1, offsetline2;
 		mutable fixed32 linefac1;
 		mutable fixed32 linefac2;
-		void set_line_for_interpolation(const vector<fixed32>& interpolation_func, fixed32 y) const;
-		Uint8 interpolate(const vector<fixed32>& interpolation_func, fixed32 x) const;
+		void set_line_for_interpolation(const std::vector<fixed32>& interpolation_func, fixed32 y) const;
+		Uint8 interpolate(const std::vector<fixed32>& interpolation_func, fixed32 x) const;
 		Uint8 interpolate_sqr(fixed32 x, fixed32 y) const;
 	};
 
 protected:
-	vector<noise_func> noise_functions;
+	std::vector<noise_func> noise_functions;
 	unsigned resultsize;
 
-	vector<fixed32> interpolation_func;
+	std::vector<fixed32> interpolation_func;
 
 public:
 	// give size of result (power of two), size of noise function with minimal frequency and maximum frequency
@@ -77,10 +74,10 @@ public:
 	void set_phase(unsigned level, float px, float py);
 
 	// generate a composition of the noise functions
-	vector<Uint8> generate() const;
+	std::vector<Uint8> generate() const;
 
 	// generate a composition of the noise functions with x^2 interpolation
-	vector<Uint8> generate_sqr() const;
+	std::vector<Uint8> generate_sqr() const;
 };
 
 #endif

@@ -40,6 +40,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "model.h"
 #include <fstream>
 #include <algorithm>
+using std::vector;
 
 
 void freeview_display::pre_display(game& gm) const

@@ -23,9 +23,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "perlinnoise.h"
 #include "system.h"
 #include <math.h>
-
 #include <sstream>
 #include <fstream>
+using std::vector;
 
 perlinnoise::noise_func::noise_func(unsigned s, unsigned f, float px, float py)
 	: size(s), frequency(f), phasex(fixed32(px)), phasey(fixed32(py))
