@@ -310,11 +310,40 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 		// set up scale/translation of foam and noise maps
 		// we do not use the texture matrix here, as this would be overkill
 		// and would be clumsy
-		//double anim_mod = myfmod(mytime, wave_tidecycle_time);
-		double anim_mod = myfrac(mytime / wave_tidecycle_time);
-		// fixme: better movement!
-		vector2f noise_0_pos = vector2f(0, 0) + vector2f(1.0f /* /8 */, 0.0f) * anim_mod;
-		vector2f noise_1_pos = vector2f(0, 0) + vector2f(0.0f, 1.0f /* /32 */) * anim_mod;
+		/* how to compute that.
+		   We would need to compute a closed path over a tile (modulo tile size).
+		   This can be any path with curves etc., but lets take a linear movement.
+		   Start and end point must be the same in the tile (modulo tilesize)
+		   after a given time t.
+		   To achieve this we need to know how many tiles we move horizontally and vertically
+		   for the path. This are numbers A and B. We move with velocity V (meters/second),
+		   thus we get as time t for the path:
+		   t = tile_size * sqrt(a*a + b*b) / V
+		   and for the direction vector of movement:
+		   D = (V/sqrt(a*a + b*b)) * (a, b)
+		   Example, if we would like to move 2 tiles right and 5 down, with 0.5m/s, we get
+		   t = 256m * sqrt(2*2+5*5) / 0.5m/s = 2757.2s
+		   and D = (0.186, 0.464)
+		   So we have to take mytime module t and use that as multiplier with D to get
+		   the current position (plus initial offset S).
+		   In the shader the vertex position is multiplied with factor z here and then
+		   xy are added. So z translates meters to texture coordinates.
+		   For noise #0 scale is 8/256m, so we have 8 tiles of the texture per wave tile.
+		   So one noise tile is 256m/8 = 1/z = 32m long. That is the tile size we have
+		   to use for the computation above.
+		   32m with V=2m/sec -> t = 86.162 and D = (0.743, 1.857)
+		*/
+		static const int a_0 = 2, b_0 = 5;
+		static const int a_1 = -4, b_1 = 3;
+		static const double s_0 = sqrt(a_0*a_0 + b_0*b_0), s_1 = sqrt(a_1*a_1 + b_1*b_1);
+		static const double V_0 = 2.0, V_1 = 1.0;
+		// maybe: remove hardwired scale factors of 8 and 32, but looks best with that values.
+		static const double t_0 = wavetile_length / 8.0 * s_0 / V_0, t_1 = wavetile_length / 32.0 * s_1 / V_1;
+		// need to divide by noise tile size here too (tex coordinates are in [0...1], not meters)
+		static const vector2f D_0 = vector2f(a_0, b_0) * (V_0/s_0/32.0); // noise tile is 256/8=32m long
+		static const vector2f D_1 = vector2f(a_1, b_1) * (V_1/s_1/8.0);  // noise tile is 256/32=8m long
+		vector2f noise_0_pos = vector2f(0, 0) + D_0 * myfmod(mytime, t_0);
+		vector2f noise_1_pos = vector2f(0, 0) + D_1 * myfmod(mytime, t_1);
 		//fixme: do we have to treat the viewer offset here, like with tex matrix
 		//       setup below?!
 		glsl_water->set_uniform("noise_xform_0", noise_0_pos.xyz(wavetile_length_rcp * 8.0f));
