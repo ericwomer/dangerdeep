@@ -1454,8 +1454,6 @@ int mymain(list<string>& args)
 	mycfg.register_option("use_shaders_for_water", true);
 	mycfg.register_option("water_detail", 128);
 	mycfg.register_option("wave_fft_res", 128);
-	mycfg.register_option("wave_subdetail", true);
-	mycfg.register_option("wave_subdetail_size", 128);
 	mycfg.register_option("wave_phases", 256);
 	mycfg.register_option("wavetile_length", 256.0f);
 	mycfg.register_option("wave_tidecycle_time", 10.24f);
