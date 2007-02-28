@@ -9,6 +9,7 @@ SIMULATION
 ----------
 
 - Reverse: DONE
+- Lower AI model for far objects
 - Buoyancy (need parts)
 - Damage (need parts)
 
@@ -18,6 +19,8 @@ OCEAN/SKY
 PHYSICS
 -------
 
+- Lower physics model for far objects
+- Floating sub shakes too much
 - Currents (affects drag, adds lateral drag)
 
 MODELS/PARTS
