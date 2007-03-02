@@ -60,6 +60,9 @@ using namespace std;
 const double message_vanish_time = 10;
 const double message_fadeout_time = 2;
 
+#undef  RAIN
+#undef  SNOW
+
 #define MAX_PANEL_SIZE 256
 
 
@@ -169,12 +172,12 @@ user_interface::user_interface(game& gm) :
 	// create weather effects textures
 
 	// rain
-#if 0
+#ifdef RAIN
 #define NR_OF_RAIN_FRAMES 16
 #define NR_OF_RAIN_DROPS 800
 #define RAIN_TEX_W 256
 #define RAIN_TEX_H 256
-	raintex.reserve(NR_OF_RAIN_FRAMES);
+	raintex.resize(NR_OF_RAIN_FRAMES);
 	vector<Uint8> raintmptex(RAIN_TEX_W * RAIN_TEX_H * 2);
 
 	for (unsigned j = 0; j < NR_OF_RAIN_FRAMES; ++j) {
@@ -194,16 +197,16 @@ user_interface::user_interface(game& gm) :
 			raintmptex[(RAIN_TEX_W*pos.y + pos.x) * 2 + 0] = c;
 			raintmptex[(RAIN_TEX_W*pos.y + pos.x) * 2 + 1] = 255;
 		}
-		raintex.push_back(new texture(&raintmptex[0], RAIN_TEX_W, RAIN_TEX_H, GL_LUMINANCE_ALPHA, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, false));
+		raintex.reset(j, new texture(raintmptex, RAIN_TEX_W, RAIN_TEX_H, GL_LUMINANCE_ALPHA, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
 	}
 #endif
 	// snow
-#if 0
+#ifdef SNOW
 #define NR_OF_SNOW_FRAMES 23
 #define NR_OF_SNOW_FLAKES 2000
 #define SNOW_TEX_W 256
 #define SNOW_TEX_H 256
-	snowtex.reserve(NR_OF_SNOW_FRAMES);
+	snowtex.resize(NR_OF_SNOW_FRAMES);
 	vector<Uint8> snowtmptex(SNOW_TEX_W * SNOW_TEX_H * 2, 255);
 	vector<vector2i> snowflakepos(NR_OF_SNOW_FLAKES);
 	vector<int> snowxrand(NR_OF_SNOW_FRAMES);
@@ -260,7 +263,7 @@ user_interface::user_interface(game& gm) :
 		osg << "P5\n"<<SNOW_TEX_W<<" "<<SNOW_TEX_H<<"\n255\n";
 		osg.write((const char*)(&snowtmptex[0]), SNOW_TEX_W * SNOW_TEX_H);
 */
-		snowtex.push_back(texture(&snowtmptex[0], SNOW_TEX_W, SNOW_TEX_H, GL_LUMINANCE_ALPHA, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, false));
+		snowtex.reset(i, new texture(snowtmptex, SNOW_TEX_W, SNOW_TEX_H, GL_LUMINANCE_ALPHA, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
 	}
 #endif
 
@@ -642,16 +645,20 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 
 void user_interface::draw_weather_effects() const
 {
-#if 0
+#if defined(RAIN) || defined(SNOW)
 	// draw layers of snow flakes or rain drops (test)
 	// get projection from frustum to view
 	matrix4 c2w = (matrix4::get_gl(GL_PROJECTION_MATRIX) * matrix4::get_gl(GL_MODELVIEW_MATRIX)).inverse();
 	// draw planes between z-near and z-far with ascending distance and 2d texture with flakes/strains
 	glDisable(GL_LIGHTING);//fixme: it has to be turned on again below!!!!!!!!!!
+#ifdef RAIN
 	unsigned sf = unsigned(mygame->get_time() * NR_OF_RAIN_FRAMES) % NR_OF_RAIN_FRAMES;
-//	unsigned sf = unsigned(mygame->get_time() * NR_OF_SNOW_FRAMES) % NR_OF_SNOW_FRAMES;
 	raintex[sf]->set_gl_texture();
-//	snowtex[sf]->set_gl_texture();
+#endif
+#ifdef SNOW
+	unsigned sf = unsigned(mygame->get_time() * NR_OF_SNOW_FRAMES) % NR_OF_SNOW_FRAMES;
+	snowtex[sf]->set_gl_texture();
+#endif
 	//pd.near_z,pd.far_z
 	double zd[3] = { 0.3, 0.9, 0.7 };
 	glBegin(GL_QUADS);
