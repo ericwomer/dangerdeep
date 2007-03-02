@@ -39,7 +39,7 @@ public:
 	};
 
 protected:
-	vector3 pos;		// maybe via template function, viewing position (additional if aboard)
+	vector3 add_pos;	// additional offset to viewpos
 
 	bool aboard;		// is player aboard?
 	bool withunderwaterweapons;	// draw underwater weapons?
@@ -66,6 +66,9 @@ protected:
 
 	// draw the whole view
 	virtual void draw_view(class game& gm, const vector3& viewpos) const;
+
+	// compute view position for this display (can be overloaded!)
+	virtual vector3 get_viewpos(class game& gm) const;
 
 public:
 	freeview_display(class user_interface& ui_);

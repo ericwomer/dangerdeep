@@ -103,7 +103,8 @@ protected:
 	unsigned number_of_tubes_at[6];	// read from spec file
 	unsigned torp_transfer_times[5];// read from spec file
 
-	bool scopeup;			// fixme: maybe simulate time for moving scope up/down
+	float scope_raise_level;	///< current level that scope is raised (0...1)
+	float scope_raise_to_level;	///< level that scope should be raised to (0...1)
 	double periscope_depth;		// read from spec file
 	bool electric_engine;		// true when electric engine is used.
 	bool hassnorkel;		// fixme: replace by (parts[snorkel] != unused)
@@ -224,7 +225,8 @@ public:
 	// return pointer to torpedo in tube or NULL if tube is empty
 	virtual stored_torpedo& get_torp_in_tube(unsigned tubenr);
 	virtual const stored_torpedo& get_torp_in_tube(unsigned tubenr) const;
-	virtual bool is_scope_up() const { return ( scopeup == true ); }
+	virtual bool is_scope_up() const { return scope_raise_level >= 0.8f; }
+	virtual float get_scope_raise_level() const { return scope_raise_level; }
 	virtual double get_periscope_depth() const { return periscope_depth; }
 	virtual bool is_submerged () const { return get_depth() > SUBMARINE_SUBMERGED_DEPTH; }
 	virtual double get_max_depth () const { return max_depth; }
@@ -248,9 +250,9 @@ public:
 	virtual void depth_charge_explosion(const class depth_charge& dc);
     
 	// command interface for subs
-	virtual void scope_up() { scopeup = true; };	// fixme, do we need these?
-	virtual void scope_down() { scopeup = false; };
-	virtual void scope_to(double amount) {};	// set scope to "amount" (0-1) of full height, fixme
+	virtual void scope_up() { scope_to_level(1.0f); }
+	virtual void scope_down() { scope_to_level(0.0f); }
+	virtual void scope_to_level(float f);
 	virtual bool set_snorkel_up ( bool snorkel_up );	// fixme get rid of this
 	virtual void snorkel_up() { set_snorkel_up(true); }
 	virtual void snorkel_down() { set_snorkel_up(false); }

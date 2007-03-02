@@ -59,7 +59,7 @@ void sub_uzo_display::post_display(game& gm) const
 {
 	if (ui.get_target()) {
 		projection_data pd = get_projection_data(gm);
-		ui.show_target(pd.x, pd.y, pd.w, pd.h, gm.get_player()->get_pos() + pos);
+		ui.show_target(pd.x, pd.y, pd.w, pd.h, get_viewpos(gm));
 	}
 
 	sys().prepare_2d_drawing();
@@ -88,7 +88,7 @@ void sub_uzo_display::post_display(game& gm) const
 
 sub_uzo_display::sub_uzo_display(user_interface& ui_) : freeview_display(ui_), zoomed(false)
 {
-	pos = vector3(0, 0, 6);//fixme, depends on sub
+	add_pos = vector3(0, 0, 6);//fixme, depends on sub
 	aboard = true;
 	withunderwaterweapons = false;
 	drawbridge = false;

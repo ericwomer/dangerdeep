@@ -40,6 +40,8 @@ class sub_periscope_display : public freeview_display
 	
 	bool zoomed;	// use 1,5x (false) or 6x zoom (true)
 
+	vector3 get_viewpos(class game& gm) const;
+
 public:
 	sub_periscope_display(class user_interface& ui_);
 	virtual ~sub_periscope_display();

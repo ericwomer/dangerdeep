@@ -67,7 +67,7 @@ void sub_bridge_display::post_display(game& gm) const
 
 sub_bridge_display::sub_bridge_display(user_interface& ui_) : freeview_display(ui_), glasses_in_use(false)
 {
-	pos = vector3(0, 0, 6);//fixme, depends on sub
+	add_pos = vector3(0, 0, 6);//fixme, depends on sub
 	aboard = true;
 	withunderwaterweapons = false;
 	drawbridge = true;

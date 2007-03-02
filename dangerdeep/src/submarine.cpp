@@ -173,7 +173,8 @@ submarine::submarine(game& gm_, const xml_elem& parent)
 	  stern_to(0),
 	  bow_rudder(0),
 	  stern_rudder(0),
-	  scopeup(false),
+	  scope_raise_level(0.0f),
+	  scope_raise_to_level(0.0f),
 	  electric_engine(false),
 	  snorkelup(false),
 	  battery_level(0)
@@ -261,7 +262,7 @@ void submarine::load(const xml_elem& parent)
 	}
 
 	xml_elem sst = parent.child("sub_state");
-	scopeup = sst.attru("scopeup");
+	scope_raise_level = scope_raise_to_level = sst.attrf("scopeup");
 	electric_engine = sst.attru("electric_engine");
 	snorkelup = sst.attru("snorkelup");
 	battery_level = sst.attrf("battery_level");
@@ -306,7 +307,7 @@ void submarine::save(xml_elem& parent) const
 	}
 
 	xml_elem sst = parent.add_child("sub_state");
-	sst.set_attr(scopeup, "scopeup");
+	sst.set_attr(scope_raise_level, "scopeup");
 	sst.set_attr(electric_engine, "electric_engine");
 	sst.set_attr(snorkelup, "snorkelup");
 	sst.set_attr(battery_level, "battery_level");
@@ -371,6 +372,14 @@ void submarine::simulate(double delta_time)
 	ship::simulate(delta_time);
 
 	vector3 sub_velocity = get_velocity();
+
+	// simulate periscope movement
+	const double scope_move_speed = 2.0/6.0; // m/sec / total raise height
+	if (scope_raise_level < scope_raise_to_level) {
+		scope_raise_level = std::min(scope_raise_to_level, scope_raise_level + float(delta_time * scope_move_speed));
+	} else if (scope_raise_level > scope_raise_to_level) {
+		scope_raise_level = std::max(scope_raise_to_level, scope_raise_level - float(delta_time * scope_move_speed));
+	}
 
 	// acceleration constant (acceleration should not be constant here though)
 	dive_acceleration = 1.0;
@@ -836,6 +845,13 @@ float submarine::sonar_visibility ( const vector2& watcher ) const
 	diveFactor *= 1.0/700.0 * get_cross_section ( watcher );
 
 	return diveFactor;
+}
+
+
+
+void submarine::scope_to_level(float f)
+{
+	scope_raise_to_level = myclamp(f, 0.0f, 1.0f);
 }
 
 

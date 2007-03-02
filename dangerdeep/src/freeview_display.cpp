@@ -103,7 +103,7 @@ freeview_display::freeview_display(user_interface& ui_) :
 	user_display(ui_), aboard(false), withunderwaterweapons(true), drawbridge(false),
 	conning_tower_typeVII(0)
 {
-	pos = vector3(20,0,10);
+	add_pos = vector3(20,0,10);
 	texturecache().ref("splashring.png");
 	conning_tower_typeVII = modelcache().ref("conning_tower_typeVIIc.xml");
 	conning_tower_typeVII->register_layout();
@@ -121,15 +121,21 @@ freeview_display::~freeview_display()
 
 
 
+vector3 freeview_display::get_viewpos(class game& gm) const
+{
+	return gm.get_player()->get_pos() + add_pos;
+}
+
+
+
 void freeview_display::display(class game& gm) const
 {
 	// glClear or not, background drawing
 	pre_display(gm);
 
 	// render scene
-	vector3 viewpos = gm.get_player()->get_pos() + pos;
-//	cout << "pos is " << pos << " playerpos " << gm.get_player()->get_pos() << " viewpos " << viewpos << " aboard: " << aboard << "\n";
-	draw_view(gm, viewpos);
+	//std::cout << "add_pos is " << add_pos << " playerpos " << gm.get_player()->get_pos() << " viewpos " << get_viewpos(gm) << " aboard: " << aboard << "\n";
+	draw_view(gm, get_viewpos(gm));
 
 	// e.g. drawing of infopanel or 2d effects, background mask etc.
 	post_display(gm);
@@ -151,12 +157,12 @@ void freeview_display::process_input(class game& gm, const SDL_Event& event)
 	switch (event.type) {
 	case SDL_KEYDOWN:
 		switch(event.key.keysym.sym) {
-		case SDLK_KP8: pos -= forward * 5; break;
-		case SDLK_KP2: pos += forward * 5; break;
-		case SDLK_KP4: pos -= sidestep * 5; break;
-		case SDLK_KP6: pos += sidestep * 5; break;
-		case SDLK_KP1: pos -= upward * 5; break;
-		case SDLK_KP3: pos += upward * 5; break;
+		case SDLK_KP8: add_pos -= forward * 5; break;
+		case SDLK_KP2: add_pos += forward * 5; break;
+		case SDLK_KP4: add_pos -= sidestep * 5; break;
+		case SDLK_KP6: add_pos += sidestep * 5; break;
+		case SDLK_KP1: add_pos -= upward * 5; break;
+		case SDLK_KP3: add_pos += upward * 5; break;
 		default: break;
 		}
 		break;

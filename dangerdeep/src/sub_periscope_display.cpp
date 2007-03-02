@@ -57,11 +57,19 @@ freeview_display::projection_data sub_periscope_display::get_projection_data(cla
 
 
 
+vector3 sub_periscope_display::get_viewpos(class game& gm) const
+{
+	const submarine* sub = dynamic_cast<const submarine*>(gm.get_player());
+	return sub->get_pos() + add_pos + vector3(0, 0, 6) * sub->get_scope_raise_level();
+}
+
+
+
 void sub_periscope_display::post_display(game& gm) const
 {
 	if (ui.get_target()) {
 		projection_data pd = get_projection_data(gm);
-		ui.show_target(pd.x, pd.y, pd.w, pd.h, gm.get_player()->get_pos() + pos);
+		ui.show_target(pd.x, pd.y, pd.w, pd.h, get_viewpos(gm));
 	}
 
 	sys().prepare_2d_drawing();
@@ -104,7 +112,7 @@ void sub_periscope_display::post_display(game& gm) const
 
 sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_display(ui_), zoomed(false)
 {
-	pos = vector3(0, 0, 12);//fixme, depends on sub
+	add_pos = vector3(0, 0, 8);//fixme, depends on sub
 	aboard = true;
 	withunderwaterweapons = false;//they can be seen when scope is partly below water surface, fixme
 	drawbridge = false;
@@ -133,6 +141,19 @@ void sub_periscope_display::process_input(class game& gm, const SDL_Event& event
                         zoomed = false;
                 }
                 break;
+	case SDL_MOUSEMOTION:
+		if (event.motion.state & SDL_BUTTON_LMASK) {
+			if (event.motion.yrel != 0) {
+				// remove y motion, replace by scope raise/lower code
+				submarine* s = dynamic_cast<submarine*>(gm.get_player());
+				s->scope_to_level(s->get_scope_raise_level() - event.motion.yrel / 100.0f);
+				SDL_Event e = event;
+				e.motion.yrel = 0;
+				freeview_display::process_input(gm, e);
+				return;
+			}
+		}
+		break;
 	default: break;
 	}
 	freeview_display::process_input(gm, event);
@@ -142,19 +163,9 @@ void sub_periscope_display::process_input(class game& gm, const SDL_Event& event
 
 void sub_periscope_display::display(class game& gm) const
 {
-	submarine* player = dynamic_cast<submarine*> ( gm.get_player() );
-
 	// with new compassbar lower 32 pixel of 3d view are not visible... maybe shrink 3d view? fixme
-	
-	// if the periscope is down draw nothing (all black)
-	if (true == player->is_scope_up())
-		freeview_display::display(gm);
-	else
-	{
-		glClearColor(0, 0, 0, 0);
-		glClear(GL_COLOR_BUFFER_BIT);
-		post_display(gm);
-	}
+	//fixme: add specials for underwater rendering here... or in freeview class!
+	freeview_display::display(gm);
 }
 
 
