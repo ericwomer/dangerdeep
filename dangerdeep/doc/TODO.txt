@@ -32,6 +32,19 @@ MODELS/PARTS
 2D/3D GRAPHIC
 -------------
 
+- Extend class model so that it can use imposters automatically
+  without further action by the user.
+  Per Model store a pool of imposters (image, view direction,
+  distance), so various instances of a model can share
+  imposters.
+- Render more realistic clouds with e.g. the model of Mark Harris,
+  using imposters and the 3d engine with blending and read-back
+  to model realistic clouds.
+  Compute e.g. a 4-component texmap from 3d cloud data, RGB=normal,
+  A=ambient part caused by transmitted sunlight.
+  Then shade clouds in realtime by (RGB)*L + A to get their
+  color or similar things.
+
 SOUND/MUSIC
 -----------
 
