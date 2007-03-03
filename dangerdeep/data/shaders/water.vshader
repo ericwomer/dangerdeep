@@ -21,7 +21,6 @@ attribute float amount_of_foam;
 
 const float foamamount_f1 = 0.8;
 const float foamamount_f2 = -1.0;
-const vec3 yaxis = { 0.0, 1.0, 0.0 };
 const float virtualplane_height = 12.0;
 
 void main()
