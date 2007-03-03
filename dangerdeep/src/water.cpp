@@ -929,21 +929,7 @@ void water::display(const vector3& viewpos, double max_view_dist) const
 	// ------------------- rendering --------------------------
 
 	// compute viewing frustum for culling
-	matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
-	matrix4 prj = matrix4::get_gl(GL_PROJECTION_MATRIX);
-	matrix4 mvr = mv;
-	mvr.clear_trans();
-	matrix4 mvp = prj * mv;
-	matrix4 invmvr = mvr.inverse();
-	matrix4 invmvp = mvp.inverse();
-	vector3 wbln = invmvp * vector3(-1,-1,-1);
-	vector3 wbrn = invmvp * vector3(+1,-1,-1);
-	vector3 wtln = invmvp * vector3(-1,+1,-1);
-	vector3 wtrn = invmvp * vector3(+1,+1,-1);
-	vector3 vd = invmvr * vector3(0,0,-1);
-	polygon viewwindow(wbln, wbrn, wtrn, wtln);
-	// Note! Viewer is at 0,0,0 for current Modelview matrix!
-	frustum viewfrustum(viewwindow, vector3(), vd, 1.0 /* znear, maybe better read from matrix! */);
+	frustum viewfrustum = frustum::from_opengl(1.0);
 
 	// as first, map buffers correctly.
 	vertices.bind();

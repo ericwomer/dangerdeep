@@ -22,6 +22,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
 #include "frustum.h"
+#include "matrix4.h"
+#include "polygon.h"
 #include <iostream>
 
 frustum::frustum(polygon poly, const vector3& viewp, const vector3& viewd, double znear_)
@@ -52,4 +54,27 @@ void frustum::print() const
 {
 	std::cout << "Frustum: viewpos " << viewpos << " viewdir " << viewdir << "\n";
 	viewwindow.print();
+}
+
+
+
+frustum frustum::from_opengl(double z_near_distance, const vector3& viewpos)
+{
+	matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
+	matrix4 prj = matrix4::get_gl(GL_PROJECTION_MATRIX);
+	matrix4 mvr = mv;
+	mvr.clear_trans();
+	matrix4 mvp = prj * mv;
+	matrix4 invmvr = mvr.inverse();
+	matrix4 invmvp = mvp.inverse();
+	vector3 wbln = invmvp * vector3(-1,-1,-1);
+	vector3 wbrn = invmvp * vector3(+1,-1,-1);
+	vector3 wtln = invmvp * vector3(-1,+1,-1);
+	vector3 wtrn = invmvp * vector3(+1,+1,-1);
+	vector3 vd = invmvr * vector3(0,0,-1);
+	// z near must be distance of viewpos to plane defined by the polygon!
+	// viewpos should always be 0,0,0, this is always the case!
+	polygon viewwindow(wbln, wbrn, wtrn, wtln);
+	//viewwindow.print();
+	return frustum(viewwindow, viewpos, vd, z_near_distance /* znear, maybe better read from matrix! */);
 }
