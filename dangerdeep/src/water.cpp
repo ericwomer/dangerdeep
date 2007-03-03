@@ -188,6 +188,8 @@ water::water(double tm) :
 	if (use_shaders) {
 		glsl_water.reset(new glsl_shader_setup(get_shader_dir() + "water.vshader",
 						       get_shader_dir() + "water.fshader"));
+		glsl_under_water.reset(new glsl_shader_setup(get_shader_dir() + "under_water.vshader",
+							     get_shader_dir() + "under_water.fshader"));
 		glsl_water->use();
 		vattr_aof_index = glsl_water->get_vertex_attrib_index("amount_of_foam");
 		glsl_water->use_fixed();
@@ -297,9 +299,13 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 	glDisable(GL_LIGHTING);
 
 	if (use_shaders) {
-		glsl_water->use();
-		glsl_water->set_gl_texture(*foamtex, "tex_foam", 2);
-		glsl_water->set_gl_texture(*foamamounttex, "tex_foamamount", 3);
+		if (under_water) {
+			glsl_under_water->use();
+		} else {
+			glsl_water->use();
+			glsl_water->set_gl_texture(*foamtex, "tex_foam", 2);
+			glsl_water->set_gl_texture(*foamamounttex, "tex_foamamount", 3);
+		}
 
 		// texture units / coordinates:
 		// tex0: noise map (color normals) / matching texcoords
@@ -347,8 +353,15 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 		vector2f noise_1_pos = vector2f(0, 0) + D_1 * myfmod(mytime, t_1);
 		//fixme: do we have to treat the viewer offset here, like with tex matrix
 		//       setup below?!
-		glsl_water->set_uniform("noise_xform_0", noise_0_pos.xyz(wavetile_length_rcp * 8.0f));
-		glsl_water->set_uniform("noise_xform_1", noise_1_pos.xyz(wavetile_length_rcp * 32.0f));
+		if (under_water) {
+			glsl_under_water->set_uniform("noise_xform_0", noise_0_pos.xyz(wavetile_length_rcp * 8.0f));
+			glsl_under_water->set_uniform("noise_xform_1", noise_1_pos.xyz(wavetile_length_rcp * 32.0f));
+			glsl_under_water->set_gl_texture(*water_bumpmap, "tex_normal", 0);
+		} else {
+			glsl_water->set_uniform("noise_xform_0", noise_0_pos.xyz(wavetile_length_rcp * 8.0f));
+			glsl_water->set_uniform("noise_xform_1", noise_1_pos.xyz(wavetile_length_rcp * 32.0f));
+			glsl_water->set_gl_texture(*water_bumpmap, "tex_normal", 0);
+		}
 
 		// set up texture matrix, so that texture coordinates can be computed from position.
 		//fixme: use uniform here as well.
@@ -361,12 +374,6 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 		glScalef(1.0f/noisetilescale,1.0f/noisetilescale,1);	// fixme adjust scale
 		glTranslatef(transl.x, transl.y, 0);
 		glMatrixMode(GL_MODELVIEW);
-
-		float bt = myfmod(mytime, 10.0) / 10.0f;// seconds, fixme
-		if (bt >= 0.5f) bt = 1.0f - bt;
-		bt *= 2.0f;
-
-		glsl_water->set_gl_texture(*water_bumpmap, "tex_normal", 0);
 	} else {
 		// standard code path, no fragment programs
 	
@@ -403,7 +410,9 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 	glActiveTexture(GL_TEXTURE1);
 	glEnable(GL_TEXTURE_2D);
 	if (use_shaders) {
-		glsl_water->set_gl_texture(*reflectiontex, "tex_reflection", 1);
+		if (!under_water) {
+			glsl_water->set_gl_texture(*reflectiontex, "tex_reflection", 1);
+		}
 	} else {
 		reflectiontex->set_gl_texture();
 	}
@@ -667,8 +676,13 @@ void water::display(const vector3& viewpos, double max_view_dist, bool under_wat
 	// give -viewpos.z to vertex shader for generation of foam projection coordinates
 	// the plane z = -viewpos.z is the water plane.
 	if (use_shaders) {
-		glsl_water->use();
-		glsl_water->set_uniform("viewpos", viewpos);
+		if (under_water) {
+			glsl_under_water->use();
+			glsl_under_water->set_uniform("viewpos", viewpos);
+		} else {
+			glsl_water->use();
+			glsl_water->set_uniform("viewpos", viewpos);
+		}
 	}
 	setup_textures(reflection_projmvmat, transl, under_water);
 	glColor4f(1,1,1,1);
@@ -1429,6 +1443,10 @@ void water::set_refraction_color(const colorf& light_color)
 		glsl_water->set_uniform("upwelltop", upwelltop);
 		glsl_water->set_uniform("upwellbot", upwellbot);
 		glsl_water->set_uniform("upwelltopbot", upwelltopbot);
+		glsl_under_water->use();
+		glsl_under_water->set_uniform("upwelltop", upwelltop);
+		glsl_under_water->set_uniform("upwellbot", upwellbot);
+		glsl_under_water->set_uniform("upwelltopbot", upwelltopbot);
 		glsl_water->use_fixed();
 	}
 

@@ -599,7 +599,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		glEnd();
 		glEnable(GL_DEPTH_TEST);
 		glCullFace(GL_FRONT);
-		ui.get_water().display(viewpos, max_view_dist);
+		ui.get_water().display(viewpos, max_view_dist, true /* under water*/);
 		glCullFace(GL_BACK);
 	}
 	if (true /* fixme*/ /*above_water >= 0*/) {
