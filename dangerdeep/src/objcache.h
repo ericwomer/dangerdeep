@@ -34,6 +34,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //and both use images of the image-cache.
 //fixme2: maybe add special handler-class, like an auto_ptr, c'tor ref's an object, d'tor
 //unrefs it. Thus objcache usage is easier.
+
+// fixme 2: add "reference" class, that is auto_ptr like reference handler. Do NOT return plain
+// pointers from the cache. Because if we generate resources by ref'ing the cache in some
+// code and an exception is thrown, the ref'd objects won't get unref'd again, leading to
+// memory waste (though NOT memory leaks)
 template <class T>
 class objcachet
 {
