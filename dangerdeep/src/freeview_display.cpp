@@ -38,6 +38,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "water.h"
 #include "global_data.h"
 #include "model.h"
+#include "frustum.h"
 #include <fstream>
 #include <algorithm>
 using std::vector;
@@ -109,6 +110,9 @@ freeview_display::freeview_display(user_interface& ui_) :
 	conning_tower_typeVII->register_layout();
 	conning_tower_typeVII->set_layout();
 	add_loading_screen("conning tower model loaded");
+	std::auto_ptr<texture> uwbt(new texture(get_texture_dir() + "underwater_background.png", texture::LINEAR, texture::CLAMP_TO_EDGE));
+	texturecache().ref("underwater_background.png", uwbt.get());
+	underwater_background = uwbt.release();
 }
 
 
@@ -117,6 +121,7 @@ freeview_display::~freeview_display()
 {
 	texturecache().unref("splashring.png");
 	modelcache().unref(conning_tower_typeVII);
+	texturecache().unref(underwater_background);
 }
 
 
@@ -505,6 +510,23 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	sys().gl_perspective_fovx(pd.fov_x, double(pd.w)/double(pd.h), pd.near_z, pd.far_z);
 	glMatrixMode(GL_MODELVIEW);
 
+	// check if we are below water surface, above or near it
+	int above_water = 1; // 1: above, 0: near, -1: below
+	frustum viewfrustum = frustum::from_opengl(1.0);
+	matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
+	matrix4 prj = matrix4::get_gl(GL_PROJECTION_MATRIX);
+	matrix4 mvp = prj * mv;
+	matrix4 invmvp = mvp.inverse();
+	vector3 wblf = invmvp * vector3(-1,-1,+0.99);
+	vector3 wbrf = invmvp * vector3(+1,-1,+0.99);
+	vector3 wtlf = invmvp * vector3(-1,+1,+0.99);
+	vector3 wtrf = invmvp * vector3(+1,+1,+0.99);
+	polygon viewwindow_far(wblf, wbrf, wtrf, wtlf);
+	float waterheight = ui.get_water().get_height(viewpos.xy());
+	if (viewpos.z < waterheight) {
+		above_water = -1;
+	}
+
 	//fixme: water reflections are brighter than the sky, so there must be a difference between sky drawing
 	//and mirrored sky drawing...
 	//yes, because sky is blended into background, and that color is different.
@@ -520,13 +542,69 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 
 	// ************ sky ***************************************************************
-	ui.get_sky().display(gm, viewpos, max_view_dist, false);
-
+	if (above_water >= 0) {
+		ui.get_sky().display(gm, viewpos, max_view_dist, false);
+	}
 
 	// ******* water ***************************************************************
 	//ui.get_water().update_foam(1.0/25.0);  //fixme: deltat needed here
 	//ui.get_water().spawn_foam(vector2(myfmod(gm.get_time(),256.0),0));
-	ui.get_water().display(viewpos, max_view_dist);
+	/* to render water below surface correctly, we have to do here:
+	   - switch to front culling when below the water surface
+	   - cull nothing if we are near the surface and we can see sky AND underwater space
+	   We have three spaces: above water, under water, and near water surface.
+	   we are above water, when viewer position is above water surface and the
+	   intersection of water surface with z-near plane is a line outside the viewing
+	   frustum.
+	   we are under water, if viewer position is under the surface and the rest like
+	   above water.
+	   we are near the surface else.
+	   above water:
+	   cull back-faces, nothing special (current rendering)
+	   under water:
+	   render deep blue background instead of stars and sky, render objects with
+	   deep blue close fog (and maybe also depth layered fog, and maybe caustics).
+	   add some specials like bubbles etc.
+	   near water surface:
+	   we have to disable face culling, so both sides are rendered. we have to draw
+	   stars/sky and also blue backplane under water. That is, render a polygon
+	   that is limited by horizon line and frustum. Render all objects with special
+	   shader that does fog when z is below zero. That is not very accurate,
+	   but we have no choice yet.
+	   for underwater rendering the shader is much different, so we may have to render
+	   the water twice, once with glCullFace(GL_BACK) and once with glCullFace(GL_FRONT)
+	   but each time with different shader.
+	   under water reflections are rather constant color and refractions depend on
+	   sun diffuse lighting, but normals and sun vector is reversed.
+	   This also means that when we are under water, we dont need to render the
+	   mirrored scene and save some computation time. we don't need to render
+	   foam as well then.
+	 */
+	// under water...
+	if (above_water <= 0) {
+		// render water background plane
+		// clip far plane frustum polygon with z=0 plane (water surface)
+		polygon uwp = viewwindow_far.clip(plane(vector3(0, 0, -1), 0));
+		// render polygon with tri-fan
+		glColor4f(1,1,1,1);
+		underwater_background->set_gl_texture();
+		const double underwater_bg_maxz = -40;
+		glDisable(GL_DEPTH_TEST);
+		glBegin(GL_TRIANGLE_FAN);
+		for (unsigned i = 0; i < uwp.points.size(); ++i) {
+			const vector3& p = uwp.points[i];
+			glTexCoord2f(p.z/underwater_bg_maxz, 0);
+			glVertex3d(p.x, p.y, p.z);
+		}
+		glEnd();
+		glEnable(GL_DEPTH_TEST);
+		glCullFace(GL_FRONT);
+		ui.get_water().display(viewpos, max_view_dist);
+		glCullFace(GL_BACK);
+	}
+	if (true /* fixme*/ /*above_water >= 0*/) {
+		ui.get_water().display(viewpos, max_view_dist);
+	}
 
 	// ******** terrain/land ********************************************************
 //	glDisable(GL_FOG);	//testing with new 2d bspline terrain.

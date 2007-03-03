@@ -290,7 +290,8 @@ water::water(double tm) :
 
 
 
-void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& transl) const
+void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& transl,
+			   bool under_water) const
 {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
@@ -654,7 +655,7 @@ static inline double round_(double x)
 	else return floor(x + 0.5);
 }
 
-void water::display(const vector3& viewpos, double max_view_dist) const
+void water::display(const vector3& viewpos, double max_view_dist, bool under_water) const
 {
 	// get projection and modelview matrix
 	matrix4 proj = matrix4::get_gl(GL_PROJECTION_MATRIX);
@@ -669,7 +670,7 @@ void water::display(const vector3& viewpos, double max_view_dist) const
 		glsl_water->use();
 		glsl_water->set_uniform("viewpos", viewpos);
 	}
-	setup_textures(reflection_projmvmat, transl);
+	setup_textures(reflection_projmvmat, transl, under_water);
 	glColor4f(1,1,1,1);
 
 	bool recompute_vertices = rerender_new_wtp

@@ -49,6 +49,8 @@ protected:
 	// later store in class submarine. use cache to store, this is only a reference.
 	class model *conning_tower_typeVII;
 
+	class texture* underwater_background;
+
 	freeview_display();
 
 	// display() calls these functions

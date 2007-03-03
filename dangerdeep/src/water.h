@@ -123,6 +123,7 @@ protected:
 
 	// Shader program
 	std::auto_ptr<glsl_shader_setup> glsl_water;
+	std::auto_ptr<glsl_shader_setup> glsl_under_water;
 
 	// indices for vertex attributes
 	unsigned vattr_aof_index;
@@ -134,7 +135,8 @@ protected:
 	water& operator= (const water& other);
 	water(const water& other);
 
-	void setup_textures(const matrix4& reflection_projmvmat, const vector2f& transl) const;
+	void setup_textures(const matrix4& reflection_projmvmat, const vector2f& transl,
+			    bool under_water) const;
 	void cleanup_textures() const;
 
 	vector3f get_wave_normal_at(unsigned x, unsigned y) const;
@@ -182,7 +184,7 @@ public:
 					    const std::vector<ship*>& allships) const;
 
 	// give absolute position of viewer as viewpos, but modelview matrix without translational component!
-	void display(const vector3& viewpos, double max_view_dist) const;
+	void display(const vector3& viewpos, double max_view_dist, bool under_water = false) const;
 	float get_height(const vector2& pos) const;
 	// give f as multiplier for difference to (0,0,1)
 	vector3f get_normal(const vector2& pos, double f = 1.0) const;
