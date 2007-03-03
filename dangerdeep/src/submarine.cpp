@@ -416,7 +416,9 @@ void submarine::simulate(double delta_time)
 			position.z += delta_depth;
 		} else {
 			double fac = (dive_to - position.z)/delta_depth;
-			if (0 <= fac && fac <= 1) {
+			if (1 <= fac && fac <= 3) {
+				bow_to = (dive_to < position.z) ? rudder_down_10 : rudder_up_10;
+			} else if (0 <= fac && fac <= 1) {
 				position.z = dive_to;
 				planes_middle();
 				bow_to = rudder_center;
@@ -915,7 +917,12 @@ void submarine::dive_to_depth(unsigned meters)
 	} else {
 		dive_to = -int(meters);
 		permanent_dive = false;
-		bow_to = ( dive_to < position.z )? rudder_down_30 : rudder_up_30;
+		// When reaching the target, slow down the rudder
+		if (dive_to < position.z) {
+			bow_to = (position.z - dive_to > 2) ? rudder_down_30 : rudder_down_10;
+		} else {
+			bow_to = (dive_to - position.z > 2) ? rudder_up_30 : rudder_up_10;
+		}
 		//		dive_speed = (dive_to < position.z) ? -max_dive_speed : max_dive_speed;
 	}
 }
