@@ -385,19 +385,16 @@ void submarine::simulate(double delta_time)
 	dive_acceleration = 1.0;
 
 	vector3 dive_accel(0,0,dive_acceleration*fabs(sub_velocity.y));
-	dive_accel += sub_velocity;
+	//dive_accel += sub_velocity;
 
-	// front rudder comes as -90 : 90
-	dive_speed = dive_accel.z *   sin( (bow_rudder*0.3333)*M_PI*0.005555 ) ;
-	dive_speed *= delta_time;
-
-	//if( get_throttle()<=reverse ) dive_speed = -dive_speed;
-
+	// front rudder comes as -90 : 90 [a * sin( (rudder/3)*(PI/180) ) * delta_time]
+	dive_speed = dive_accel.z * sin( (bow_rudder*0.3333)*M_PI*0.005555 ) * delta_time;
 
 	// still use the same variable to prevent breaking the code
 	double delta_depth = dive_speed;
 
 	// Activate or deactivate electric engines.
+	// fixme: make it snorkel depth
 	if ((position.z > -SUBMARINE_SUBMERGED_DEPTH) &&
 		(position.z+delta_depth < -SUBMARINE_SUBMERGED_DEPTH))
 	{
@@ -418,6 +415,7 @@ void submarine::simulate(double delta_time)
 			double fac = (dive_to - position.z)/delta_depth;
 			if (1 <= fac && fac <= 3) {
 				bow_to = (dive_to < position.z) ? rudder_down_10 : rudder_up_10;
+				//position.z += delta_depth;
 			} else if (0 <= fac && fac <= 1) {
 				position.z = dive_to;
 				planes_middle();
