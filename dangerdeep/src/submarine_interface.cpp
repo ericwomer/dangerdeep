@@ -109,7 +109,14 @@ submarine_interface::submarine_interface(game& gm) :
 	popups.reset(popup_mode_tdc, new sub_tdc_popup(*this));
 	popups.reset(popup_mode_ecard, new sub_ecard_popup(*this));
 	
-	player->start_throttle_sound();
+	// fixme: this is very dangerous! this leads to calls to the user_interface
+	// object we are still about to construct!!!
+	// so such a call must be prohibited until game and user_interface are definitvly
+	// divided!
+	// class game MUST NOT have a reference to class user_interface, instead
+	// the user interface class must handle sound output depending on
+	// the game's state.
+	////player->start_throttle_sound();
 
 	// note: we could change the width of the menu dynamically, according to longest text of the
 	// buttons.
