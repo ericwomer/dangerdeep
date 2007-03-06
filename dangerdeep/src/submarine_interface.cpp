@@ -118,6 +118,12 @@ submarine_interface::submarine_interface(game& gm) :
 	// the game's state.
 	//fixme: do not call this but check ourself if we have to start sounds!
 	////player->start_throttle_sound();
+	/* how to solve that mess:
+	   reserve sound channel for looping sounds like engine of player's vessel.
+	   memorize which sound is playing there.
+	   check throttle of player's vessel in each call to ui::display
+	   if it doesn't match current sound, stop that sound and play new
+	*/
 
 	// note: we could change the width of the menu dynamically, according to longest text of the
 	// buttons.
