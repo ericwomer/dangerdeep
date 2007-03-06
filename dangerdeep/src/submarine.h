@@ -264,14 +264,10 @@ public:
 
 	// give tubenr -1 for any loaded tube, or else 0-5, returns true on success
 	virtual bool launch_torpedo(int tubenr, sea_object* target);
-	virtual void set_throttle(ship::throttle_status thr);
 	// end of command interface
 
 	virtual bool has_deck_gun() { return has_guns(); }
 	
-	virtual void start_throttle_sound();
-	virtual void stop_throttle_sound();
-
 	virtual tdc& get_tdc() { return TDC; }
 	virtual const tdc& get_tdc() const { return TDC; }
 	//virtual sonar_operator& get_sonarman() { return sonarman; } // not needed. dangerous, sonarman could get manipulated.

@@ -871,13 +871,12 @@ void submarine::planes_up(double amount)
 
 void submarine::planes_down(double amount)
 {
-	user_interface* ui = gm.get_ui();
 	if (has_deck_gun() && is_gun_manned()) {
-		ui->add_message(texts::get(125));
+		gm.add_event(new event_preparing_to_dive());
 		delayed_planes_down = amount;
 		delayed_dive_to_depth = 0;
 		unman_guns();
-		ui->add_message(texts::get(126));
+		gm.add_event(new event_unmanning_gun());
 	} else {
 		bow_to -= int(amount);
 		if( bow_to < rudder_down_30 )
@@ -903,14 +902,13 @@ void submarine::planes_middle()
 
 void submarine::dive_to_depth(unsigned meters)
 {
-	user_interface* ui = gm.get_ui();
 	if (has_deck_gun() && is_gun_manned()) {
 		if (!gun_manning_is_changing) {
-			ui->add_message(texts::get(125));
+			gm.add_event(new event_preparing_to_dive());
 			delayed_planes_down = 0.0;
 			delayed_dive_to_depth = meters;
 			unman_guns();
-			ui->add_message(texts::get(126));
+			gm.add_event(new event_unmanning_gun());
 		}
 	} else {
 		dive_to = -int(meters);
@@ -1008,7 +1006,6 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 	if (sdlen <= deadly_radius) {
 		sys().add_console("depth charge hit!");
 		kill();
-		// ui->add_message(TXT_Depthchargehit[language]);
 
 	} else if (sdlen <= damage_radius) {	// handle damages
 		// add damage
@@ -1147,39 +1144,29 @@ bool submarine::launch_torpedo(int tubenr, sea_object* target)
 
 void submarine::gun_manning_changed(bool is_gun_manned)
 {
-	user_interface* ui = gm.get_ui();
 	if (is_gun_manned)
-		ui->add_message(texts::get(127));
+		gm.add_event(new event_gun_manned());
 	else
-		ui->add_message(texts::get(128));		
+		gm.add_event(new event_gun_unmanned());
 
 	if (0.0 != delayed_planes_down) {
 		planes_down(delayed_planes_down);
 		delayed_planes_down = 0.0;
-		ui->add_message(texts::get(129));		
+		gm.add_event(new event_diving());
 	} else if (0 != delayed_dive_to_depth) {
 		dive_to_depth(delayed_dive_to_depth);
 		delayed_dive_to_depth = 0;
-		ui->add_message(texts::get(129));		
+		gm.add_event(new event_diving());
 	}
 }
 
 
 
-void submarine::set_throttle(ship::throttle_status thr)
-{	
-	if (get_throttle() != thr)
-	{
-		stop_throttle_sound();
-		ship::set_throttle(thr);	
-		start_throttle_sound();
-	}
-}
-
-
-
+#if 0 // obsolete!!!!
 void submarine::start_throttle_sound()
 {
+	// fixme: these are no events! ui class must check if engine runs and start/stop
+	// sounds of its own!
 	user_interface* ui = gm.get_ui();
 	switch(get_throttle()) {
 	case ship::aheadlisten:
@@ -1251,3 +1238,4 @@ void submarine::stop_throttle_sound()
 		break;
 	}	
 }
+#endif

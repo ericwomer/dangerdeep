@@ -72,7 +72,6 @@ game_editor::game_editor()
 {
 	networktype = 0;
 	servercon = 0;
-	ui = 0;
 	time = date(1939, 9, 1).get_time() + 86400/2;	// 12.00 o'clock
 	equipment_date = date(1939, 9, 1);
 
@@ -273,14 +272,4 @@ void game_editor::manipulate_time(double tm)
 void game_editor::manipulate_equipment_date(date equipdate)
 {
 	equipment_date = equipdate;
-}
-
-
-
-// main play loop
-// fixme: a bit misplaced here, especially after ui was moved away from game
-game::run_state game_editor::exec()
-{
-	// nothing special for now
-	return game::exec();
 }

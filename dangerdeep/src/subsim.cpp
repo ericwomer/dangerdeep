@@ -378,6 +378,84 @@ void show_results_for_game(const game& gm)
 
 
 
+// main play loop
+// fixme: clean this up!!!
+game::run_state game__exec(game& gm, user_interface& ui)
+{
+	// fixme: add special ui heir: playback
+	// to record videos.
+	// record ship positions or at least commands!
+	// and camera path (bspline) etc.
+	// used for credits background etc.
+
+	unsigned frames = 1;
+	unsigned lasttime = sys().millisec();
+	unsigned lastframes = 1;
+	double fpstime = 0;
+	double totaltime = 0;
+	double measuretime = 5;	// seconds
+
+	ui.resume_all_sound();
+	
+	// draw one initial frame
+	ui.display();
+
+	ui.request_abort(false);
+	
+	while (gm.get_run_state() == game::running && !ui.abort_requested()) {
+		list<SDL_Event> events = sys().poll_event_queue();
+
+		// this time_scaling is bad. hits may get computed wrong when time
+		// scaling is too high. fixme
+		unsigned thistime = sys().millisec();
+		if (gm.get_freezetime_start() > 0)
+			throw error("freeze_time() called without unfreeze_time() call");
+		lasttime += gm.process_freezetime();
+		unsigned time_scale = ui.time_scaling();
+		double delta_time = (thistime - lasttime)/1000.0; // * time_scale;
+		totaltime += (thistime - lasttime)/1000.0;
+		lasttime = thistime;
+		
+		// next simulation step
+		if (!ui.paused()) {
+			for (unsigned j = 0; j < time_scale; ++j) {
+				gm.simulate(time_scale == 1 ? delta_time : (1.0/30.0));
+				// evaluate events of game, because they are cleared
+				// by next call of game::simulate and new ones are
+				// generated
+				const ptrlist<event>& events = gm.get_events();
+				for (ptrlist<event>::const_iterator it = events.begin(); it != events.end(); ++it) {
+					it->evaluate(ui);
+				}
+			}
+		}
+
+		// maybe limit input processing to 30 fps
+		ui.process_input(events);
+
+		// fixme: make use of game::job interface, 3600/256 = 14.25 secs job period
+		ui.set_time(gm.get_time());
+		ui.display();
+		++frames;
+
+		// record fps
+		if (totaltime - fpstime >= measuretime) {
+			fpstime = totaltime;
+			ostringstream os;
+			os << "$c0fffffps " << (frames - lastframes)/measuretime;
+			lastframes = frames;
+			sys().add_console(os.str());
+		}
+		
+		sys().swap_buffers();
+	}
+	
+	ui.pause_all_sound();
+	
+	return gm.get_run_state();	// if player is killed, end game (1), else show menu (0)
+}
+
+
 //
 // start and run a game, handle load/save (game menu), show results after game's end, delete game
 //
@@ -395,8 +473,7 @@ void run_game(auto_ptr<game> gm)
 	gametheme = widget::replace_theme(tmp);
 	while (true) {
 		tmp = widget::replace_theme(gametheme);
-		gm->set_user_interface(ui.get());
-		game::run_state state = gm->exec();
+		game::run_state state = game__exec(*gm, *ui);
 		gametheme = widget::replace_theme(tmp);
 
 		//if (state == 2) break;
@@ -486,9 +563,8 @@ void run_game_editor(auto_ptr<game> gm)
 	ui->toggle_pause();
 	while (true) {
 		tmp = widget::replace_theme(gametheme);
-		gm->set_user_interface(ui.get());
 		// 2006-12-01 doc1972 we should do some checks of the state if game exits
-		/*game::run_state state =*/ gm->exec();
+		/*game::run_state state =*/ game__exec(*gm, *ui);
 		gametheme = widget::replace_theme(tmp);
 
 		mmusic->play_track(1, 500);

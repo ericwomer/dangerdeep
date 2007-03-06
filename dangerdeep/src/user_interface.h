@@ -48,6 +48,7 @@ protected:
 	game* mygame;	// pointer to game object that is displayed
 
 	bool pause;
+	bool abort_request; // by user (back to game menu)
 	unsigned time_scale;
 
 	// command panel, to submarine_interface!
@@ -192,10 +193,10 @@ public:
 //	virtual void record_sunk_ship ( const class ship* so );
 	/** This method creates a message about the rudder state. */
 	virtual void add_rudder_message();
-	virtual void play_sound_effect(const std::string &se, const sea_object* player, 
-								   const sea_object* noise_source, bool loop = false) const;
-	virtual void play_fade_sound_effect(const std::string &se, const sea_object* player, 
-										const sea_object* noise_source, bool loop = false) const;
+	virtual void play_sound_effect(const std::string &se,
+				       const sea_object* noise_source, bool loop = false) const;
+	virtual void play_fade_sound_effect(const std::string &se,
+					    const sea_object* noise_source, bool loop = false) const;
 	virtual void stop_sound_effect(const std::string &se) const;
 	virtual void stop_fade_sound_effect(const std::string &se) const;	
 	virtual void pause_all_sound() const;
@@ -204,6 +205,9 @@ public:
 	// get current game of user_interface
 	virtual game& get_game() { return *mygame; }
 	virtual const game& get_game() const { return *mygame; }
+
+	bool abort_requested() const { return abort_request; }
+	void request_abort(bool abrt = true) { abort_request = abrt; }
 };
 
 #endif

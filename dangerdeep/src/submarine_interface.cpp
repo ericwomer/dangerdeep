@@ -116,6 +116,7 @@ submarine_interface::submarine_interface(game& gm) :
 	// class game MUST NOT have a reference to class user_interface, instead
 	// the user interface class must handle sound output depending on
 	// the game's state.
+	//fixme: do not call this but check ourself if we have to start sounds!
 	////player->start_throttle_sound();
 
 	// note: we could change the width of the menu dynamically, according to longest text of the
@@ -488,7 +489,7 @@ void submarine_interface::process_input(const SDL_Event& event)
 			// quit, screenshot, pause etc.
 			switch (event.key.keysym.sym) {
 			case SDLK_ESCAPE:
-				mygame->stop();
+				request_abort();
 				break;
 			case SDLK_PRINT:
 				sys().screenshot();

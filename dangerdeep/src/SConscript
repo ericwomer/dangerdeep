@@ -16,6 +16,7 @@ dftdsources = Split("""subsim.cpp
 	date.cpp
 	daysky.cpp
 	depth_charge.cpp
+	event.cpp
 	freeview_display.cpp
 	game.cpp
 	game_editor.cpp

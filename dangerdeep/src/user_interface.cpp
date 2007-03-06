@@ -163,7 +163,7 @@ user_interface::user_interface(game& gm) :
 	main_menu->add_child_near_last_child(new wcbui(this, &user_interface::toggle_popup, 0, 0, 256, 32, texts::get(267)), 0);
 	main_menu->add_child_near_last_child(new wcbui(this, &user_interface::show_playlist, 0, 0, 256, 32, texts::get(261)), 0);
 	main_menu->add_child_near_last_child(new wcbui(this, &user_interface::toggle_pause, 0, 0, 256, 32, texts::get(268)), 0);
-	main_menu->add_child_near_last_child(new widget_caller_button<game, void (game::*)()>(mygame, &game::stop, 0, 0, 256, 32, texts::get(177)), 0);
+	main_menu->add_child_near_last_child(new widget_caller_arg_button<user_interface, void (user_interface::*)(bool), bool>(this, &user_interface::request_abort, true, 0, 0, 256, 32, texts::get(177)), 0);
 	main_menu->add_child_near_last_child(new widget_set_button<bool>(main_menu_visible, false, 0, 0, 256, 32, texts::get(260)), 0);
 	main_menu->clip_to_children_area();
 	vector2i mmp = sys().get_res_2d() - main_menu->get_size();
@@ -804,22 +804,22 @@ void user_interface::add_rudder_message()
 
 
 
-void user_interface::play_sound_effect(const string &se, const sea_object* player, 
-									   const sea_object* noise_source, bool loop) const
+void user_interface::play_sound_effect(const string &se,
+				       const sea_object* noise_source, bool loop) const
 {	
 	sound* s = soundcache().find(se);
 	if ( s )
-		s->play(player, noise_source, loop);
+		s->play(mygame->get_player(), noise_source, loop);
 	else
 		throw error(std::string("soundcache: can't find effect ") + se);
 }
 
-void user_interface::play_fade_sound_effect(const string &se, const sea_object* player, 
+void user_interface::play_fade_sound_effect(const string &se,
 					    const sea_object* noise_source, bool loop) const
 {
 	sound* s = soundcache().find(se);
 	if ( s )
-		s->play_fade(player, noise_source, loop);
+		s->play_fade(mygame->get_player(), noise_source, loop);
 	else
 		throw error(std::string("soundcache: can't find effect ") + se);
 }
