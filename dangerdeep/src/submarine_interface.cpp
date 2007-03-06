@@ -175,7 +175,7 @@ void submarine_interface::fire_tube(submarine* player, int nr)
 			if (target)
 				oss << " " << texts::get(6) << ": " << target->get_description(2);
 			mygame->add_logbook_entry(oss.str());
-			play_sound_effect(se_submarine_torpedo_launch, player, player);
+			play_sound_effect(se_submarine_torpedo_launch, player);
 		} else {
 			add_message(texts::get(138));
 		}
@@ -194,7 +194,7 @@ void submarine_interface::fire_tube(submarine* player, int nr)
 				oss << " " << texts::get(6) << ": " << target->get_description(2);
 			mygame->add_logbook_entry(oss.str());
 			player->launch_torpedo(nr, target);
-			play_sound_effect(se_submarine_torpedo_launch, player, player);
+			play_sound_effect(se_submarine_torpedo_launch, player);
 		} else {
 			string failed_to_fire_msg;
 			
