@@ -1170,6 +1170,7 @@ void submarine::start_throttle_sound()
 	user_interface* ui = gm.get_ui();
 	switch(get_throttle()) {
 	case ship::aheadlisten:
+		// note! function how has one parameter less... replace "this, this" by "this"
 		ui->play_fade_sound_effect(se_sub_screws_slow, this, this, true); 	
 		break;
 	case ship::aheadsonar:
