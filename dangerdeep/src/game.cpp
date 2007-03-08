@@ -50,7 +50,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "submarine_interface.h"
 #include "airplane_interface.h"
 #include "ship_interface.h"
-#include "tokencodes.h"
 #include "texts.h"
 #include "convoy.h"
 #include "particle.h"

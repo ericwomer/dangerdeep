@@ -25,7 +25,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "parser.h"
 #include "global_data.h"
 #include "error.h"
-#include "tokencodes.h"
 #include "date.h"
 #include "datadirs.h"
 #include <sstream>
@@ -85,39 +84,28 @@ void texts::read_category(category ct)
 	string catfilename = categoryfiles[ct];
 	parser p(get_data_dir() + TEXTS_DIR + catfilename + ".csv");
 	// as first read language codes / count number of languages
-	if (p.is_empty()) throw error("empty texts file: " + catfilename);
-	string s = p.parse_string();
-	if (s != "CODE") throw error("no CODE keyword in texts file: " + catfilename);
-	p.parse(TKN_SEMICOLON);
+	if (p.get_cell() != "CODE") p.error("no CODE keyword in texts file");
 	unsigned lcn = 0;
 	for (unsigned i = 0; i < available_language_codes.size(); ++i) {
-		string lc = p.parse_string();
+		if (!p.next_column()) p.error("no columns left in texts file");
+		string lc = p.get_cell();
 		if (lc != available_language_codes[i])
-			throw error(string("invalid language code marker found, expected \"")
-				    + available_language_codes[i] + "\", got \"" + lc + "\"!");
+			p.error(string("invalid language code marker found, expected \"")
+				+ available_language_codes[i] + "\", got \"" + lc + "\"!");
 		if (lc == language_code) lcn = i;
-		// read semicolon, but not on last column
-		if (i + 1 < available_language_codes.size())
-			p.parse(TKN_SEMICOLON);
 	}
 
 	// now read strings
 	vector<string>& txt = strings[ct];
-	while (p.type() == TKN_NUMBER) {
-		int n = p.parse_number();
-		if (n < 0) throw error("negative text number in file: " + catfilename);
-		if (unsigned(n) >= txt.size())
+	while (p.next_line()) {
+		unsigned n = 0;
+		bool ok = p.get_cell_number(n);
+		if (!ok) p.error("invalid line");
+		if (n >= txt.size())
 			txt.resize(n + 1);
 		for (unsigned i = 0; i < available_language_codes.size(); ++i) {
-			p.parse(TKN_SEMICOLON);
-			string s;
-			if (p.type() == TKN_NUMBER) {
-				ostringstream oss;
-				oss << p.parse_number();
-				s = oss.str();
-			} else {
-				s = p.parse_string();
-			}
+			if (!p.next_column()) p.error("no columns left in texts file");
+			string s = p.get_cell();
 			if (i == lcn)
 				txt[n] = s;
 		}
@@ -249,15 +237,10 @@ void texts::read_available_language_codes()
 {
 	available_language_codes.clear();
 	parser p(get_data_dir() + TEXTS_DIR + "languages.csv");
-	if (p.is_empty()) throw error("empty texts file: languages.csv");
-	string s = p.parse_string();
-	if (s != "CODE") throw error("no CODE keyword in texts file: languages.csv");
-	p.parse(TKN_SEMICOLON);
-	while (true) {
-		string lc = p.parse_string();
+	if (p.get_cell() != "CODE") p.error("no CODE keyword in texts file");
+	while (p.next_column()) {
+		string lc = p.get_cell();
 		available_language_codes.push_back(lc);
-		if (p.type() != TKN_SEMICOLON) break;
-		p.consume();
 	}
 }
 

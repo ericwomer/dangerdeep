@@ -22,144 +22,132 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "parser.h"
 #include "error.h"
-#include <vector>
 #include <sstream>
-#include <algorithm>
-#include <iostream>
 
 using std::string;
+using std::ifstream;
+using std::istringstream;
 using std::ostringstream;
-using std::stringstream;
-using std::vector;
 
-#include "tokencodes.h"
-token tokens[] = {
-	token(TKN_TRUE, "true"),
-	token(TKN_FALSE, "false"),
-	token(TKN_MINUS, "-"),
-	token(TKN_SEMICOLON, ";"),
 
-	token()
-};
 
-void parser::error(const string& s)
+parser::parser(const string& filename_, char separator_)
+	: filename(filename_),
+	  separator(separator_),
+	  file(filename.c_str(), std::ios::in),
+	  line(0),
+	  currcol(string::npos)
+{
+	if (file.fail())
+		throw file_read_error(filename);
+	if (!next_line())
+		throw ::error(string("Can't read in file ") + filename);
+	if ((separator <= ' ' && separator != '\t') || separator == '"')
+		throw std::invalid_argument("invalid separator!");
+}
+
+
+
+bool parser::next_line()
+{
+	while (!file.eof()) {
+		getline(file, currline);
+		++line;
+		if (currline.empty())
+			continue;
+		currcol = 0;
+		// terminate line if it ends with separator
+		if (currline[currline.size()-1] == separator)
+			currline += "\"\"";
+		bool ok = next_column();
+		if (ok)
+			return true;
+		// else: empty line, try next
+	}
+	return false;
+}
+
+
+
+bool parser::next_column()
+{
+	if (currcol >= currline.size())
+		return false;
+	// try to generate next cell
+	cell.clear();
+	bool in_string = false;
+	int is_string = 0;
+	for ( ; currcol < currline.size(); ++currcol) {
+		char c = currline[currcol];
+		char c2 = (currcol + 1 < currline.size()) ? currline[currcol+1] : 0;
+		if (in_string) {
+			// just append any character until end of string
+			if (c == '"') {
+				if (c2 == '"') {
+					// double string, change to normal
+					cell += '"';
+					++currcol;
+					continue;
+				}
+				in_string = false;
+				continue;
+			}
+			if (c == '\\') {
+				if (c2 == 'n') {
+					cell += '\n';
+					++currcol;
+					continue;
+				} else if (c2 == 't') {
+					cell += '\t';
+					++currcol;
+					continue;
+				}
+			}
+			cell += c;
+		} else {
+			// ignore whitespaces
+			if (c == separator) {
+				++currcol;
+				break;
+			}
+			if (c == ' ' || c == '\t')
+				continue;
+			if (is_string > 0) {
+				// encountered any non-separator or non-whitespace,
+				// but we already had a string
+				error("error in read, character between end of string and next separator");
+			}
+			if (c == '"') {
+				if (is_string < 0)
+					error("error in read, character before begin of string");
+				in_string = true;
+				is_string = 1;
+				continue;
+			}
+			// else just add character
+			is_string = -1;
+			cell += c;
+		}
+	}
+	if (in_string)
+		error("unterminated string");
+	return true;
+}
+
+
+
+bool parser::get_cell_number(unsigned& n) const
+{
+	std::istringstream iss(cell);
+	iss >> n;
+	return !iss.fail();
+}
+
+
+
+void parser::error(const std::string& text)
 {
 	ostringstream oss;
-	oss << s << "\nFile: " << filename
-		<< ", Line " << tkn->get_line()
-		<< ", Col " << tkn->get_column()
-		<< "\nParsed token text '" << tkn->get_current().text << "'\n";
+	oss << "Parse error in file \"" << filename << "\", line " << line << ", column " << unsigned(currcol) << ", error: " << text;
 	throw ::error(oss.str());
-}
-
-parser::parser(const string& filename_)
-{
-	filename = filename_;
-	int count = 0;
-	vector<token> tokenlist;
-	while (!tokens[count].is_empty())
-		count++;
-	tokenlist.reserve(count);
-	for (int i = 0; i < count; i++)
-		tokenlist.push_back(tokens[i]);
-	tkn = new tokenizer(filename, tokenlist, TKN_NONE, TKN_STRING, TKN_NUMBER, TKN_ID);
-}
-
-parser::~parser()
-{
-	delete tkn;
-}
-
-void parser::parse(int type)
-{
-	if (tkn->get_current().type != type) {
-		int i = 0;
-		for ( ; !tokens[i].is_empty(); ++i)
-			if (tokens[i].type == type)
-				break;
-		error(string("expected token \"")+string(tokens[i].text)
-			+string("\" but a different token was found"));
-	}
-	tkn->read_next();
-}
-
-string parser::parse_string()
-{
-	if (tkn->get_current().type != TKN_STRING)
-		error("expected string");
-	tkn->read_next();
-	string tmp = tkn->get_previous().text;
-
-	// remove " signs
-	tmp = tmp.substr(1, tmp.length() - 2);
-
-	// translate returns and tabs
-	for (string::size_type st = tmp.find("\\n"); st != string::npos; st = tmp.find("\\n"))
-		tmp.replace(st, 2, "\n");
-	for (string::size_type st = tmp.find("\\t"); st != string::npos; st = tmp.find("\\t"))
-		tmp.replace(st, 2, "\t");
-		
-	return tmp;
-}
-
-int parser::parse_number()
-{
-	bool negative = false;
-	if (tkn->get_current().type == TKN_MINUS) {
-		negative = true;
-		tkn->read_next();
-	}
-	if (tkn->get_current().type != TKN_NUMBER)
-		error("expected number");
-	tkn->read_next();
-	stringstream s(tkn->get_previous().text);
-	int n = 0;
-	s >> n;
-	return (negative) ? -n : n;
-}
-
-string parser::parse_id()
-{
-	if (tkn->get_current().type != TKN_ID) {
-		error("expected identifier");
-	}
-	tkn->read_next();
-#ifdef USETHISOTHER	
-	// filter and replace this/other
-	if (tkn->get_previous().text == "this") {
-		if (thisid == "")
-			error("parsed \"this\", but can't resolve it");
-		return thisid;
-	}
-	if (tkn->get_previous().text == "other") {
-		if (otherid == "")
-			error("parsed \"other\", but can't resolve it");
-		return otherid;
-	}
-#endif	
-	return tkn->get_previous().text;
-}
-
-bool parser::parse_bool()
-{
-	bool v = false;
-	switch(tkn->get_current().type) {
-		case TKN_TRUE:
-			v = true;
-			break;
-		case TKN_FALSE:
-			v = false;
-			break;
-		default:
-			error("expected true/false");
-	}
-	tkn->read_next();
-	return v;
-}			
-
-void parser::consume()
-{
-	if (tkn->is_empty())
-		error("consume() called, but no more tokens left");
-	tkn->read_next();
 }

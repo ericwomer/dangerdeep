@@ -61,7 +61,6 @@ dftdsources = Split("""subsim.cpp
 	sub_uzo_display.cpp
 	tdc.cpp
 	texts.cpp
-	tokenizer.cpp
 	tone_reproductor.cpp
 	torpedo.cpp
 	triangulate.cpp

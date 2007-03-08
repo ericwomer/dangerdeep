@@ -20,44 +20,44 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // text parser
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
-class parser;
-
 #ifndef PARSER_H
 #define PARSER_H
 
-//#define USETHISOTHER	// define for replacement of this/other with another id
-
 #include <string>
-#include "tokenizer.h"
+#include <fstream>
 
+/// generic parser for tabular text files
 class parser
 {
-	tokenizer* tkn;
-	std::string filename;
-#ifdef USETHISOTHER	
-	std::string thisid, otherid;
-#endif	
+ public:
+	/// open file with given separator
+	parser(const std::string& filename_, char separator_ = ';');
 
-	public:	
-	void error(const std::string& s);
-	void parse(int type);
-	std::string parse_string();
-	int parse_number();
-	std::string parse_id();
-	bool parse_bool();
-#ifdef USETHISOTHER
-	void register_this(const std::string& s) { thisid = s; };
-	void register_other(const std::string& s) { otherid = s; };
-	std::string get_this() const { return thisid; }
-	std::string get_other() const { return otherid; }
-#endif	
-	int type() const { return tkn->get_current().type; };
-	std::string text() const { return tkn->get_current().text; };	
-	bool is_empty() const { return tkn->is_empty(); };
-	void consume();
-		
-	parser(const std::string& filename_);
-	~parser();
+	/// advance to next line
+	///@returns true when next line could be read, false on end of file
+	bool next_line();
+
+	/// advance to next column of table
+	///@returns true when next column could be read, false on end of line
+	bool next_column();
+
+	/// get text of current cell
+	std::string get_cell() const { return cell; }
+
+	/// get text of current cell as number, returns true if possible
+	bool get_cell_number(unsigned& n) const;
+
+	/// report error at current position (throws error)
+	void error(const std::string& text);
+
+ protected:
+	std::string filename;
+	char separator;
+	std::ifstream file;
+	std::string currline;
+	unsigned line;
+	std::string::size_type currcol;
+	std::string cell;
 };
 
 #endif
