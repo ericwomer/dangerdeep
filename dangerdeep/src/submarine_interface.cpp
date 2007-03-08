@@ -474,7 +474,7 @@ void submarine_interface::process_input(const SDL_Event& event)
 					if (event.key.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) {
 						if (player->is_gun_manned()) {
 							if (player->unman_guns())
-								add_message(texts::get(136));
+								add_message(texts::get(126));
 						} else {
 							if (player->man_guns())
 								add_message(texts::get(133));
