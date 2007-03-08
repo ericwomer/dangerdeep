@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "tinyxml/tinyxml.h"
 #include "system.h"
 #include "datadirs.h"
+#include "sound_effect_names.h"
 #include <SDL_image.h>
 #include <stdexcept>
 

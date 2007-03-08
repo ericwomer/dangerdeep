@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "event.h"
 #include "user_interface.h"
 #include "texts.h"
-#include "global_data.h" // for sound name definitions...
+#include "sound_effect_names.h" // for sound name definitions...
 
 void event_torpedo_dud_shortrange::evaluate(user_interface& ui)
 {

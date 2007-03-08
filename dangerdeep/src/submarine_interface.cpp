@@ -49,6 +49,7 @@ using namespace std;
 #include "keys.h"
 #include "cfg.h"
 #include "global_data.h"
+#include "sound_effect_names.h"
 
 #include "sub_gauges_display.h"
 #include "sub_periscope_display.h"

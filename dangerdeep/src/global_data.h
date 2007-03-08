@@ -40,22 +40,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <sstream>
 #include <iomanip>
 
-// fixme: remove this ugly crap, move to .cpp
-#define se_submarine_torpedo_launch "liquidblast.ogg"
-#define se_torpedo_detonation		"shell explosion.ogg"
-#define se_small_gun_firing			"deck gun firing.ogg"
-#define se_medium_gun_firing		"medium gun firing.ogg"
-#define se_large_gun_firing			"big gun firing.ogg"
-#define se_depth_charge_firing		"depth charge launching.ogg"
-#define se_depth_charge_exploding	"depth charge exploding.ogg"
-#define se_ping						"ping.ogg"
-#define se_shell_exploding			"shell explosion.ogg"
-#define se_shell_splash				"shell splash.ogg"
-#define se_sub_screws_slow			"screws_slow.ogg"
-#define se_sub_screws_normal		"screws_normal.ogg"
-#define se_sub_screws_fast			"screws_fast.ogg"
-#define se_sub_screws_very_fast		"screws_veryfast.ogg"
-
 std::string get_program_version();
 
 // fixme: use only class xml, then these functions are obsolete.
