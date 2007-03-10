@@ -1164,17 +1164,50 @@ void menu_select_language()
 // - invert mouse in view
 // - set keys
 //
+
+void apply_mode(widget_list* wlg)
+{
+	int width, height; 
+    
+	string wks = wlg->get_selected_entry();  
+  
+	height = atoi(wks.substr(wks.rfind("x")+1).c_str());
+	width = atoi(wks.substr(0,wks.rfind("x")).c_str());  
+
+	cfg::instance().set("screen_res_y",height);
+	cfg::instance().set("screen_res_x",width);
+  
+	// fixme : later change resolution for use in 3D. 
+}
+
 void menu_resolution()
 {
-/*
-	menu m(106, titlebackgrimg);
-	m.add_item(107, menu_notimplemented);
-	m.add_item(108, menu_notimplemented);
-	m.add_item(109, menu_notimplemented);
-	m.add_item(20, 0);
-	unsigned sel = m.run();
-	// fixme: change resolution
-*/
+	SDL_Rect **modes;
+  
+	/* Get available fullscreen/hardware modes */
+	modes=SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_HWSURFACE);
+  
+	widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
+	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(106));
+  
+	widget_list* wlg = new widget_list(0, 0, 400, 400);
+   
+	for(int nb = 0; modes[nb]; ++nb) {
+		wlg->append_entry(str(modes[nb]->w) + "x" + str(modes[nb]->h));
+	}
+  
+	widget_button* wcb = new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 400, 40, texts::get(20));  
+	w.add_child(new widget_func_arg_button<void (*)(widget_list*), widget_list*>(&apply_mode, wlg, 516, 604, 452, 40, texts::get(106)));  
+  
+	w.add_child(wm);
+	w.add_child(wlg);
+	w.add_child(wcb);
+	wlg->align(0, 0);
+	vector2i wlgp = wlg->get_pos();
+	vector2i wlgs = wlg->get_size();
+	wm->set_pos(vector2i(wlgp.x, wlgp.y - 60));
+	wcb->set_pos(vector2i(wlgp.x - 260, wlgp.y + wlgs.y + 20));  
+	w.run(0, false);	
 }
 
 
@@ -1245,7 +1278,7 @@ void menu_options()
 	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(29));
 	w.add_child(wm);
 	wm->add_entry(texts::get(214), new widget_func_button<void (*)()>(&menu_configure_keys, 0, 0, 0, 0));
-	//wm->add_entry(texts::get(106), new widget_func_button<void (*)()>(&menu_resolution, 0, 0, 0, 0));
+	wm->add_entry(texts::get(106), new widget_func_button<void (*)()>(&menu_resolution, 0, 0, 0, 0));
 	wm->add_entry(texts::get(11), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
 	wm->align(0, 0);
 	w.run(0, false);
@@ -1784,3 +1817,5 @@ int mymain(list<string>& args)
 
 	return 0;
 }
+
+ 	  	 
