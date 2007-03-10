@@ -93,8 +93,6 @@ using std::auto_ptr;
 */
 
 
-int res_x, res_y;
-
 highscorelist hsl_mission, hsl_career;
 #define HSL_MISSION_NAME "mission.hsc"
 #define HSL_CAREER_NAME "career.hsc"
@@ -1182,19 +1180,15 @@ void apply_mode(widget_list* wlg)
 
 void menu_resolution()
 {
-	SDL_Rect **modes;
-  
-	/* Get available fullscreen/hardware modes */
-	modes=SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_HWSURFACE);
-  
+	const list<vector2i>& available_resolutions = sys().get_available_resolutions();
+
 	widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
 	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(106));
   
 	widget_list* wlg = new widget_list(0, 0, 400, 400);
    
-	for(int nb = 0; modes[nb]; ++nb) {
-		wlg->append_entry(str(modes[nb]->w) + "x" + str(modes[nb]->h));
-	}
+	for (list<vector2i>::const_iterator it = available_resolutions.begin(); it != available_resolutions.end(); ++it)
+		wlg->append_entry(str(it->x) + "x" + str(it->y));
   
 	widget_button* wcb = new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 400, 40, texts::get(20));  
 	w.add_child(new widget_func_arg_button<void (*)(widget_list*), widget_list*>(&apply_mode, wlg, 516, 604, 452, 40, texts::get(106)));  
@@ -1414,7 +1408,7 @@ int mymain(list<string>& args)
 #endif
 
 	// command line argument parsing
-	res_x = 1024;
+	unsigned res_x = 0, res_y = 0;
 	bool fullscreen = true;
 	string cmdmissionfilename;
 	bool runeditor = false;
@@ -1441,7 +1435,7 @@ int mymain(list<string>& args)
 			fullscreen = false;
 		} else if (*it == "--debug") {
 			fullscreen = false;
-			res_x = 800;
+			res_x = 800; res_y = 600;
 		} else if (*it == "--mission") {
 			list<string>::iterator it2 = it; ++it2;
 			if (it2 != args.end()) {
@@ -1457,7 +1451,7 @@ int mymain(list<string>& args)
 			if (it2 != args.end()) {
 				int r = atoi(it2->c_str());
 				if (r==512||r==640||r==800||r==1024||r==1280)
-					res_x = r;
+					res_x = r; res_y = r*3/4;
 				++it;
 			}
 		} else if (*it == "--datadir") {
@@ -1649,11 +1643,15 @@ int mymain(list<string>& args)
 
 	model::enable_shaders = cfg::instance().getb("use_shaders");
 
+	// read screen resolution from config file if no override has been set by command line parameters
+	if (res_x == 0) {
+		res_x = cfg::instance().geti("screen_res_x");
+		res_y = cfg::instance().geti("screen_res_y");
+	}
 	// fixme: also allow 1280x1024, set up gl viewport for 4:3 display
 	// with black borders at top/bottom (height 2*32pixels)
-	res_y = res_x*3/4;
 	// weather conditions and earth curvature allow 30km sight at maximum.
-	auto_ptr<class system> mysys(new class system(1.0, 30000.0+500.0, res_x, fullscreen));
+	auto_ptr<class system> mysys(new class system(1.0, 30000.0+500.0, res_x, res_y, fullscreen));
 	mysys->set_screenshot_directory(savegamedirectory);
 	mysys->set_res_2d(1024, 768);
 	mysys->set_max_fps(maxfps);

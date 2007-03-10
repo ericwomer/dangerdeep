@@ -60,7 +60,7 @@ class system
 {
 public:
 	enum button_type { left_button=0x1, right_button=0x2, middle_button=0x4, wheel_up=0x8, wheel_down=0x10 };
-	system(double nearz_, double farz_, unsigned res=640, bool fullscreen=true);
+	system(double nearz_, double farz_, unsigned res_x=1024, unsigned res_y=768, bool fullscreen=true);
 	~system();
 	void swap_buffers();
 
@@ -140,6 +140,8 @@ public:
 	
 	// is a given OpenGL extension supported?
 	bool extension_supported(const string& s) const;
+
+	const std::list<vector2i>& get_available_resolutions() const { return available_resolutions; }
 	
 private:
 	system() {};
@@ -179,6 +181,9 @@ private:
 
 	void (*periodical_func)(void* arg);
 	void* periodical_arg;
+
+	// list of available resolutions
+	std::list<vector2i> available_resolutions;
 };
 
 // to make user's code even shorter

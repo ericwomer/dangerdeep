@@ -72,34 +72,38 @@ class system* system::instance = 0;
 
 static char sprintf_tmp[1024];
 
-system::system(double nearz_, double farz_, unsigned res, bool fullscreen) :
-	res_x(res), res_y(res*3/4), nearz(nearz_), farz(farz_), is_fullscreen(fullscreen),
+system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bool fullscreen) :
+	res_x(res_x_), res_y(res_y_), nearz(nearz_), farz(farz_), is_fullscreen(fullscreen),
 	show_console(false), console_font(0), console_background(0),
-	draw_2d(false), keyqueue(), mouse_xrel(0), mouse_yrel(0), mouse_x(res/2),
-	mouse_y(res*3/8), mouse_b(0), time_passed_while_sleeping(0), sleep_time(0),
+	draw_2d(false), keyqueue(), mouse_xrel(0), mouse_yrel(0), mouse_x(res_x_/2),
+	mouse_y(res_y_/2), mouse_b(0), time_passed_while_sleeping(0), sleep_time(0),
 	is_sleeping(false), maxfps(0), last_swap_time(0), screenshot_nr(0),
 	periodical_func(0), periodical_arg(0)
 {
 	if (instance)
 		throw runtime_error("system construction: system instance already exists");
 
-	switch (res) {
-	case 512:
-	case 640:
-	case 800:
-	case 1024:
-	case 1280:
-		break;
-	default:
+	int err = SDL_Init(SDL_INIT_VIDEO);
+	if (err < 0)
+		throw sdl_error("video init failed");
+
+	// request available SDL video modes
+	bool res_ok = false;
+	SDL_Rect** modes = SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_HWSURFACE);
+	for (unsigned i = 0; modes[i]; ++i) {
+		available_resolutions.push_back(vector2i(modes[i]->w, modes[i]->h));
+		if (available_resolutions.back() == vector2i(res_x, res_y)) res_ok = true;
+	}
+
+	// check if valid mode requested
+	if (!res_ok) {
+		SDL_Quit();
 		throw invalid_argument("illegal resolution requested");
 	}
 
 	res_x_2d = res_x;
 	res_y_2d = res_y;
 
-	int err = SDL_Init(SDL_INIT_VIDEO);
-	if (err < 0)
-		throw sdl_error("video init failed");
 	const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
 	if (!videoInfo) {
 		SDL_Quit();
