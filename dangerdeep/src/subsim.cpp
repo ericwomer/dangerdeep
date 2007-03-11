@@ -1172,10 +1172,16 @@ void apply_mode(widget_list* wlg)
 	height = atoi(wks.substr(wks.rfind("x")+1).c_str());
 	width = atoi(wks.substr(0,wks.rfind("x")).c_str());  
 
-	cfg::instance().set("screen_res_y",height);
-	cfg::instance().set("screen_res_x",width);
-  
-	// fixme : later change resolution for use in 3D. 
+	// try to set video mode BEFORE writing to config file, so that if video mode
+	// is broken, user is not forced to same mode again on restart
+	try {
+		sys().set_video_mode(width, height, sys().is_fullscreen_mode());
+		cfg::instance().set("screen_res_y",height);
+		cfg::instance().set("screen_res_x",width);
+	}
+	catch (exception& e) {
+		sys().add_console(string("Video mode setup failed: ") + e.what());
+	}
 }
 
 void menu_resolution()

@@ -62,6 +62,7 @@ public:
 	enum button_type { left_button=0x1, right_button=0x2, middle_button=0x4, wheel_up=0x8, wheel_down=0x10 };
 	system(double nearz_, double farz_, unsigned res_x=1024, unsigned res_y=768, bool fullscreen=true);
 	~system();
+	void set_video_mode(unsigned res_x_, unsigned res_y_, bool fullscreen);
 	void swap_buffers();
 
 	// must be called once per frame (or the OS will think your app is dead)
@@ -142,6 +143,7 @@ public:
 	bool extension_supported(const string& s) const;
 
 	const std::list<vector2i>& get_available_resolutions() const { return available_resolutions; }
+	bool is_fullscreen_mode() const { return is_fullscreen; }
 	
 private:
 	system() {};

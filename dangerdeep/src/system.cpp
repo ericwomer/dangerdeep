@@ -88,39 +88,20 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 		throw sdl_error("video init failed");
 
 	// request available SDL video modes
-	bool res_ok = false;
 	SDL_Rect** modes = SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_HWSURFACE);
 	for (unsigned i = 0; modes[i]; ++i) {
 		available_resolutions.push_back(vector2i(modes[i]->w, modes[i]->h));
-		if (available_resolutions.back() == vector2i(res_x, res_y)) res_ok = true;
-	}
-
-	// check if valid mode requested
-	if (!res_ok) {
-		SDL_Quit();
-		throw invalid_argument("illegal resolution requested");
 	}
 
 	res_x_2d = res_x;
 	res_y_2d = res_y;
 
-	const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
-	if (!videoInfo) {
-		SDL_Quit();
-		throw sdl_error("Video info query failed");
+	try {
+		set_video_mode(res_x, res_y, is_fullscreen);
 	}
-	int videoFlags  = SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_HWPALETTE;
-	videoFlags |= (videoInfo->hw_available) ? SDL_HWSURFACE : SDL_SWSURFACE;
-	if (fullscreen)
-		videoFlags |= SDL_FULLSCREEN;
-	if (videoInfo->blit_hw)
-		videoFlags |= SDL_HWACCEL;
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	int bpp = videoInfo->vfmt->BitsPerPixel;
-	SDL_Surface* screen = SDL_SetVideoMode(res_x, res_y, bpp, videoFlags);
-	if (!screen) {
+	catch (...) {
 		SDL_Quit();
-		throw sdl_error("Video mode set failed");
+		throw;
 	}
 
 	SDL_EventState(SDL_VIDEORESIZE, SDL_IGNORE);//fixme
@@ -210,6 +191,41 @@ system::~system()
 	instance = 0;
 }
 
+
+
+void system::set_video_mode(unsigned res_x_, unsigned res_y_, bool fullscreen)
+{
+	bool ok = false;
+	for (list<vector2i>::const_iterator it = available_resolutions.begin(); it != available_resolutions.end(); ++it) {
+		if (*it == vector2i(res_x_, res_y_)) {
+			ok = true;
+			break;
+		}
+	}
+	if (!ok)
+		throw invalid_argument("invalid resolution requested!");
+	const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
+	if (!videoInfo)
+		throw sdl_error("Video info query failed");
+	int videoFlags  = SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_HWPALETTE;
+	videoFlags |= (videoInfo->hw_available) ? SDL_HWSURFACE : SDL_SWSURFACE;
+	if (fullscreen)
+		videoFlags |= SDL_FULLSCREEN;
+	if (videoInfo->blit_hw)
+		videoFlags |= SDL_HWACCEL;
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	int bpp = videoInfo->vfmt->BitsPerPixel;
+	SDL_Surface* screen = SDL_SetVideoMode(res_x_, res_y_, bpp, videoFlags);
+	if (!screen)
+		throw sdl_error("Video mode set failed");
+	res_x = res_x_;
+	res_y = res_y_;
+	is_fullscreen = fullscreen;
+	screen_resize(res_x, res_y, nearz, farz);
+}
+
+
+
 void system::screen_resize(unsigned w, unsigned h, double nearz, double farz)
 {
 	glViewport(0, 0, w, h);
@@ -224,11 +240,15 @@ void system::screen_resize(unsigned w, unsigned h, double nearz, double farz)
 	glLoadIdentity();
 }
 
+
+
 void system::clear_console()
 {
 	console_text.clear();
 	add_console("$ffffffLog restart.");
 }
+
+
 
 void system::add_console(const string& tx)
 {
@@ -239,6 +259,8 @@ void system::add_console(const string& tx)
 	console_text.push_back(tx);
 }
 
+
+
 void system::add_console(const char* fmt, ...)
 {
 	va_list args;
@@ -248,11 +270,15 @@ void system::add_console(const char* fmt, ...)
 	add_console(string(sprintf_tmp));
 }
 
+
+
 void system::draw_console_with(const font* fnt, const texture* background)
 {
 	console_font = fnt;
 	console_background = background;
 }
+
+
 
 void system::draw_console()
 {
