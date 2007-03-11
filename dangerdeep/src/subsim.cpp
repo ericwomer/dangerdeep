@@ -1193,8 +1193,16 @@ void menu_resolution()
   
 	widget_list* wlg = new widget_list(0, 0, 400, 400);
    
-	for (list<vector2i>::const_iterator it = available_resolutions.begin(); it != available_resolutions.end(); ++it)
+	vector2i curr_res(sys().get_res_x(), sys().get_res_y());
+	unsigned curr_entry = 0;
+	unsigned i = 0;
+	for (list<vector2i>::const_iterator it = available_resolutions.begin(); it != available_resolutions.end(); ++it) {
 		wlg->append_entry(str(it->x) + "x" + str(it->y));
+		if (*it == curr_res)
+			curr_entry = i;
+		++i;
+	}
+	wlg->set_selected(curr_entry);
   
 	widget_button* wcb = new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 400, 40, texts::get(20));  
 	w.add_child(new widget_func_arg_button<void (*)(widget_list*), widget_list*>(&apply_mode, wlg, 516, 604, 452, 40, texts::get(106)));  
