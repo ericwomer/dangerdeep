@@ -1126,6 +1126,7 @@ void menu_select_language()
 	{
 		void on_sel_change() {
 			texts::set_language(get_selected());
+			cfg::instance().set("language", get_selected());
 		}
 		lgclist(int x, int y, int w, int h) : widget_list(x, y, w, h) {}
 	};
@@ -1149,7 +1150,6 @@ void menu_select_language()
 	wcb->set_pos(vector2i(wlgp.x, wlgp.y + wlgs.y + 20));
 
 	w.run(0, false);
-	// fixme: later store selected language in options file!
 }
 
 //
@@ -1427,6 +1427,7 @@ int mymain(list<string>& args)
 	string cmdmissionfilename;
 	bool runeditor = false;
 	unsigned maxfps = 60;
+	bool override_lang = false;
 
 	// parse commandline
 	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
@@ -1539,6 +1540,7 @@ int mymain(list<string>& args)
 			list<string>::iterator it2 = it; ++it2;
 			if (it2 != args.end()) {
 				texts::set_language(*it2);
+				override_lang = true;
 				++it;
 			}
 		} else if (*it == "--maxfps") {
@@ -1568,6 +1570,7 @@ int mymain(list<string>& args)
 	mycfg.register_option("wavetile_length", 256.0f);
 	mycfg.register_option("wave_tidecycle_time", 10.24f);
 	mycfg.register_option("usex86sse", true);
+	mycfg.register_option("language", 0);
 	
 	mycfg.register_key(key_names[KEY_ZOOM_MAP].name, SDLK_PLUS, 0, 0, 0);
 	mycfg.register_key(key_names[KEY_UNZOOM_MAP].name, SDLK_MINUS, 0, 0, 0);
@@ -1662,6 +1665,9 @@ int mymain(list<string>& args)
 		res_x = cfg::instance().geti("screen_res_x");
 		res_y = cfg::instance().geti("screen_res_y");
 	}
+	// Read language from options-file
+	if (!override_lang)
+		texts::set_language(cfg::instance().geti("language"));
 	// fixme: also allow 1280x1024, set up gl viewport for 4:3 display
 	// with black borders at top/bottom (height 2*32pixels)
 	// weather conditions and earth curvature allow 30km sight at maximum.
