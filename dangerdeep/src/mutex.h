@@ -24,6 +24,8 @@
 #define MUTEX_H
 
 /// A classical mutex.
+///@note This implementation is per default recursive, so you can lock the mutex again
+///      in the same thread where you already have locked it.
 class mutex
 {
 	//friend class condvar; // later
