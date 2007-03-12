@@ -27,6 +27,7 @@ dftdsources = Split("""subsim.cpp
 	logbook.cpp
 	logbook_display.cpp
 	map_display.cpp
+	message_queue.cpp
 	music.cpp
 	mutex.cpp
 	network.cpp

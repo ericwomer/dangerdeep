@@ -85,6 +85,8 @@ class ptrlist
 
 	bool empty() const { return data.empty(); }
 
+	void swap(ptrlist<T>& other) { data.swap(other.data); }
+
 	struct const_iterator
 	{
 		typename std::list<T*>::const_iterator it;
