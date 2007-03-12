@@ -17,7 +17,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-// multithreading primites: mutex
+// multithreading primitives: mutex
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #ifndef MUTEX_H
@@ -28,7 +28,7 @@
 ///      in the same thread where you already have locked it.
 class mutex
 {
-	//friend class condvar; // later
+	friend class condvar;
  protected:
 	struct SDL_mutex* mtx;
  private:

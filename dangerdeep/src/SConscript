@@ -10,6 +10,7 @@ dftdsources = Split("""subsim.cpp
 	airplane.cpp
 	cfg.cpp
 	coastmap.cpp
+	condvar.cpp
 	convoy.cpp
 	countrycodes.cpp
 	credits.cpp
@@ -62,6 +63,7 @@ dftdsources = Split("""subsim.cpp
 	sub_uzo_display.cpp
 	tdc.cpp
 	texts.cpp
+	thread.cpp
 	tone_reproductor.cpp
 	torpedo.cpp
 	triangulate.cpp
