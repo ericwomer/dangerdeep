@@ -1433,8 +1433,8 @@ int mymain(list<string>& args)
 	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
 		if (*it == "--help") {
 			cout << "*** Danger from the Deep ***\nusage:\n--help\t\tshow this\n"
-			     << "--language \t\tuse the listed language CODEs from the common.cvs file. \"en\" is the default language\n"
-			     << "--res n\t\tuse resolution n horizontal,\n\t\tn is 512,640,800,1024 (recommended) or 1280\n"
+			     << "--language \tuse the listed language CODEs from the common.cvs file. \"en\" is the default language\n"
+			     << "--res X*Y\tuse resolution X horizontal, Y vertical.\n\t\tDefault is 1024*768. If no Y value is given, Y=3/4*X is assumed.\n"
 			     << "--nofullscreen\tdon't use fullscreen\n"
 			     << "--debug\t\tdebug mode: no fullscreen, resolution 800\n"
 			     << "--editor\trun mission editor directly\n"
@@ -1464,9 +1464,15 @@ int mymain(list<string>& args)
 		} else if (*it == "--res") {
 			list<string>::iterator it2 = it; ++it2;
 			if (it2 != args.end()) {
-				int r = atoi(it2->c_str());
-				if (r==512||r==640||r==800||r==1024||r==1280)
-					res_x = r; res_y = r*3/4;
+				string::size_type st = it2->find("*");
+				if (st == string::npos) {
+					// no "*" found, use y=3/4*x
+					res_x = atoi(it2->c_str());
+					res_y = 3*res_x/4;
+				} else {
+					res_x = atoi(it2->substr(0, st).c_str());
+					res_y = atoi(it2->substr(st+1).c_str());
+				}
 				++it;
 			}
 		} else if (*it == "--datadir") {
