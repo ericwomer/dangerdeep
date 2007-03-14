@@ -250,21 +250,33 @@ void ErisianExport::readMesh(const MDagPath & dagForMesh) {
 	rptab[v_union[0].idx_trans] = 0;
 	vector<unsigned> startsnewvertex(v_union.size());
 	startsnewvertex[0] = 1;
+	MFloatVectorArray nrmls; // each member has x,y,z attributes
+	meshFn.getNormals(nrmls);
+	const double NRML_DIFF = 0.0001;
 	for (unsigned i = 1; i < v_union.size(); ++i) {
 		if (v_union[k] == v_union[i]) {
 			// entries are equal
 			++equal;
 		} else {
-			++newverts;
-			k = i;
-			startsnewvertex[i] = 1;
+			// check if normals really differ by their value, not only by index
+			if (v_union[k].idx_vertex == v_union[i].idx_vertex &&
+			    v_union[k].idx_texcoord == v_union[i].idx_texcoord &&
+			    fabs(nrmls[v_union[k].idx_normal].x - nrmls[v_union[i].idx_normal].x) < NRML_DIFF &&
+			    fabs(nrmls[v_union[k].idx_normal].y - nrmls[v_union[i].idx_normal].y) < NRML_DIFF &&
+			    fabs(nrmls[v_union[k].idx_normal].z - nrmls[v_union[i].idx_normal].z) < NRML_DIFF) {
+			    	// normals have different index, but same value
+			    	v_union[i].idx_normal = v_union[k].idx_normal;
+			    	++equal;
+			} else {
+				++newverts;
+				k = i;
+				startsnewvertex[i] = 1;
+			}
 		}
 		rptab[v_union[i].idx_trans] = newverts-1;
 	}
 	// to write vertices (with normals,texcoords), just write vertex/normal/texcoord data,
 	// but merged/unified!
-	MFloatVectorArray nrmls; // each member has x,y,z attributes
-	meshFn.getNormals(nrmls);
 	MFloatArray uValues, vValues;
 	meshFn.getUVs(uValues, vValues, &uvSetName);
 	MItMeshVertex vertIter(dagForMesh, MObject::kNullObj, &status );
@@ -277,6 +289,7 @@ void ErisianExport::readMesh(const MDagPath & dagForMesh) {
 		vtx_data.push_back(vertPoint.y);
 		vtx_data.push_back(vertPoint.z);
 	}
+	//ostr << "<!-- orignal verts=" << vtx_data.size()/3 << " nrmls=" << nrmls.length() << " texcs=" << uValues.length() << " -->\n";
 	// write loop
 	for (unsigned i = 0; i < v_union.size(); ++i) {
 		if (startsnewvertex[i]) {
