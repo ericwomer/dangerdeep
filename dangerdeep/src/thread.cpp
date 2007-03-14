@@ -23,6 +23,7 @@
 #include "thread.h"
 #include "error.h"
 #include <SDL.h>
+#include <SDL_thread.h>
 
 /* fixme: SDL does not allow to set stack size of thread... */
 
