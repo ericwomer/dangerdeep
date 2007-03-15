@@ -303,7 +303,7 @@ void ErisianExport::readMesh(const MDagPath & dagForMesh) {
 			thisMesh.normals.push_back(nrmls[ni].z);
 			unsigned ti = v_union[i].idx_texcoord;
 			thisMesh.texcoords.push_back(uValues[ti]);
-			thisMesh.texcoords.push_back(vValues[ti]);
+			thisMesh.texcoords.push_back(1.0f - vValues[ti]); // Maya seems to use values reversed...
 		}
 	}
 #if 0
