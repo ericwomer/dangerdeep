@@ -23,6 +23,9 @@
 #ifndef THREAD_H
 #define THREAD_H
 
+#include "condvar.h"
+#include <stdexcept>
+
 /// base class for threads.
 ///@note Each thread should be an instance of a class that heirs
 ///	from class thread. Overload some member functions to fill in code for the thread,
@@ -32,9 +35,19 @@
 class thread
 {
  private:
+	enum thread_state_t {
+		THRSTAT_NONE,		// before start
+		THRSTAT_RUNNING,	// normal operation
+		THRSTAT_FINISHED,	// after thread has exited (can't be restarted)
+		THRSTAT_INIT_FAILED,	// when init has failed
+		THRSTAT_ABORTED		// when run/deinit has failed (internal error!)
+	};
+
 	struct SDL_Thread* thread_id;
 	bool thread_abort_request;
-	bool thread_started;
+	thread_state_t thread_state;
+	mutex thread_state_mutex;
+	condvar thread_start_cond;
 
 	void run();
 
@@ -75,6 +88,37 @@ class thread
 	/// let this thread sleep
 	///@param ms - sleep time in milliseconds
 	static void sleep(unsigned ms);
+
+	/// request if thread runs
+	bool is_running();
+
+	/// an auto_ptr similar class for threads
+	template<class T>
+	class auto_ptr
+	{
+		auto_ptr(const auto_ptr& );
+		auto_ptr& operator=(const auto_ptr& );
+
+		T* p;
+	public:
+		/// construct thread auto pointer with thread pointer
+		///@note will throw error when t is not a thread
+		auto_ptr(T* t = 0) : p(0) { reset(t); }
+		/// destruct thread auto pointer (will destruct thread)
+		~auto_ptr() { reset(0); }
+		/// reset pointer (destructs current thread)
+		///@note will throw error when t is not a thread
+		///@note seems bizarre, use with care!
+		void reset(T* t = 0) {
+			// extra paranoia test to ensure we handly only thread objects here
+			if (t && (dynamic_cast<thread*>(t) == 0))
+				throw std::invalid_argument("invalid pointer given to thread::auto_ptr!");
+			if (p) p->destruct();
+			p = t;
+		}
+		/// use pointer like normal pointer
+		T* operator-> () const { return p; }
+	};
 };
 
 #endif

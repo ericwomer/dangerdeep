@@ -47,7 +47,7 @@ int thread::thread_entry(void* arg)
 thread::thread()
 	: thread_id(0),
 	  thread_abort_request(false),
-	  thread_started(false)
+	  thread_state(THRSTAT_NONE)
 {
 }
 
@@ -55,11 +55,37 @@ thread::thread()
 
 void thread::run()
 {
-	init();
-	while (!abort_requested()) {
-		loop();
+	try {
+		init();
 	}
-	deinit();
+	catch (...) {
+		// failed to initialize, report that
+		mutex_locker ml(thread_state_mutex);
+		thread_state = THRSTAT_INIT_FAILED;
+		thread_start_cond.signal();
+		throw;
+	}
+	// initialization was successfully, report that
+	{
+		mutex_locker ml(thread_state_mutex);
+		thread_state = THRSTAT_RUNNING;
+		thread_start_cond.signal();
+	}
+	try {
+		while (!abort_requested()) {
+			loop();
+		}
+		deinit();
+	}
+	catch (...) {
+		// thread execution failed
+		mutex_locker ml(thread_state_mutex);
+		thread_state = THRSTAT_ABORTED;
+		throw;
+	}
+	// normal execution finished
+	mutex_locker ml(thread_state_mutex);
+	thread_state = THRSTAT_FINISHED;
 }
 
 
@@ -81,9 +107,20 @@ void thread::start()
 {
 	if (thread_abort_request)
 		throw error("thread abort requested, but start() called");
+	mutex_locker ml(thread_state_mutex);
+	if (thread_state != THRSTAT_NONE)
+		throw error("thread already started, but start() called again");
 	thread_id = SDL_CreateThread(thread_entry, this);
 	if (!thread_id)
 		throw sdl_error("thread start failed");
+	// we could wait with timeout, but how long? init could take any time...
+	thread_start_cond.wait(thread_state_mutex);
+	// now check if thread has started
+	if (thread_state == THRSTAT_INIT_FAILED)
+		throw std::runtime_error("thread start failed");
+	// very rare, but possible
+	else if (thread_state == THRSTAT_ABORTED)
+		throw std::runtime_error("thread run failed");
 }
 
 
@@ -102,12 +139,19 @@ void thread::join()
 
 void thread::destruct()
 {
-	if (thread_started) {
-		request_abort();
-		join();
-	} else {
-		delete this;
+	thread_state_t ts = THRSTAT_NONE;
+	{
+		mutex_locker ml(thread_state_mutex);
+		ts = thread_state;
 	}
+	// request if thread runs, in that case send abort request
+	if (ts == THRSTAT_RUNNING)
+		request_abort();
+	// request if thread has ever run, in that case we need to join
+	if (thread_state != THRSTAT_NONE)
+		join();
+	else
+		delete this;
 }
 
 
@@ -115,4 +159,13 @@ void thread::destruct()
 void thread::sleep(unsigned ms)
 {
 	SDL_Delay(ms);
+}
+
+
+
+bool thread::is_running()
+{
+	// only reading is normally safe, but not for multi-core architectures.
+	mutex_locker ml(thread_state_mutex);
+	return thread_state == THRSTAT_RUNNING;
 }
