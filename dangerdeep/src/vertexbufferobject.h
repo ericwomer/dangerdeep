@@ -23,13 +23,19 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef VERTEXBUFFER_H
 #define VERTEXBUFFER_H
 
+#ifdef USE_NATIVE_GL
+#include <gl.h>
+#else
+#include "oglext/OglExt.h"
+#endif
+
 ///> this class handles a OpenGL Vertex Buffer Object
 ///> Note! older cards support at max 64k vertices (Geforce4MX), but it doesn't make sense
 ///> to use more than 64k vertices per buffer in most cases. One could use GL_UNSIGNED_SHORT
 ///> as index format then, which saves memory and copy bandwidth.
 class vertexbufferobject
 {
-	unsigned id;
+	GLuint id;
 	unsigned size;
 	bool mapped;
 	int target;

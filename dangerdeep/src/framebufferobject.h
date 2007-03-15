@@ -23,6 +23,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef FRAMEBUFFEROBJECT_H
 #define FRAMEBUFFEROBJECT_H
 
+#ifdef USE_NATIVE_GL
+#include <gl.h>
+#else
+#include "oglext/OglExt.h"
+#endif
+
 /// this class handles a OpenGL Frame Buffer Object
 ///@note needs the GL_EXT_framebuffer_object extension, that is available on
 ///	newer cards (GeForce5+), or on all cards supporting OpenGL 2.0
@@ -45,8 +51,8 @@ class framebufferobject
 	static bool supported();
 
  protected:
-	unsigned id;
-	unsigned depthbuf_id;
+	GLuint id;
+	GLuint depthbuf_id;
 	class texture& mytex;
 	mutable bool bound;	// for extra error checks
 	static int fbo_supported;

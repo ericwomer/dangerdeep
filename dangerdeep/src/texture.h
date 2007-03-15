@@ -113,7 +113,7 @@ protected:
 	// fixme: with automatic size adjustment width/height could change...
 	// when user retrieves w/h later he could get strange results.
 	// maybe store real and gl width, with two get_... functions.
-	unsigned opengl_name;
+	GLuint opengl_name;
 	unsigned width;
 	unsigned height;
 	unsigned gl_width;

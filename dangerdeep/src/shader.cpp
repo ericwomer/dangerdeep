@@ -98,7 +98,7 @@ glsl_shader::glsl_shader(const string& filename, type stype, const glsl_shader::
 		GLint maxlength = 0;
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &maxlength);
 		string log(maxlength+1, ' ');
-		GLint length = 0;
+		GLsizei length = 0;
 		glGetShaderInfoLog(id, maxlength, &length, &log[0]);
 
 		if (!compiled) {
@@ -188,7 +188,7 @@ void glsl_program::link()
 		GLint maxlength = 0;
 		glGetProgramiv(id, GL_INFO_LOG_LENGTH, &maxlength);
 		string log(maxlength+1, ' ');
-		GLint length = 0;
+		GLsizei length = 0;
 		glGetProgramInfoLog(id, maxlength, &length, &log[0]);
 		sys().add_console(log);
 		throw runtime_error("linking of program failed");
