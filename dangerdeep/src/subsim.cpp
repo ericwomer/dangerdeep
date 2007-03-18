@@ -526,8 +526,8 @@ void run_game(auto_ptr<game> gm)
 		}
 		//SDL_ShowCursor(SDL_DISABLE);
 	}
-	show_results_for_game(*gm);
-	check_for_highscore(*gm);
+	//show_results_for_game(*gm);
+	//check_for_highscore(*gm);
 
 	// restore menu widgets
 	widget::ref_all_backgrounds();
