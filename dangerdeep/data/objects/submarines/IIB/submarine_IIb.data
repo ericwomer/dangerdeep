@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<dftd-submarine>
+  <classification identifier="submarine_IIb" modelname="uboat_IIb.ddxml" type="submarine" country="DE" >
+    <skin name="early1937" regions="BS,NS" countries="DE" from="1937/1/1" until="1939/12/31"/>
+	<skin name="early1940" regions="BS,NS,CH,BB,ES,BL" countries="DE" from="1940/1/1" until="1943/12/31"/>
+  </classification>
+  <description>
+    <far lang="en">Submarine</far>
+    <far lang="de">U-Boot</far>
+    <far lang="it">Sommergibile</far>
+    <medium lang="en">Diesel submarine</medium>
+    <medium lang="de">Diesel-U-Boot</medium>
+    <medium lang="it">Sommergibile diesel</medium>
+    <near lang="en">Submarine type IIb</near>
+    <near lang="de">U-Boot Typ IIb</near>
+    <near lang="it">Sommergibile Tipo IIb</near>
+  </description>
+  <motion maxspeed="13.0" maxrevspeed="5" acceleration="0.6" turnrate="0.2">
+    <submerged maxspeed="6.9" safedepth="80" maxdepth="150"/>
+  </motion>
+  <tonnage min="279" max="328"/>
+  <smoke type="0" x="0" y="0" z="0"/>
+  <sensors>
+    <sensor type="lookout"/>
+    <sensor type="passivesonar"/>
+  </sensors>
+  <ai type="none"/>
+  <depths scope="12" snorkel="10" alarm="60"/>
+  <torpedoes>
+    <tubes bow="3" stern="0" bowreserve="2" sternreserve="0" bowdeckreserve="0" sterndeckreserve="0"/>
+    <transfertimes bow="900" stern="900" bowdeck="10800" sterndeck="10800" bowsterndeck="1800"/>
+  </torpedoes>
+  <battery capacity="100" consumption_a="1.3129e-6" consumption_t="0.77071" recharge_a="1" recharge_t="1"/>
+  <fuel capacity="1200" consumption_a="5.3766e-8" consumption_t="2.62382"/>
+  <gun_turrets>
+  	<turret barrels="1" shell_capacity="1200" initial_velocity="200.0" max_inclination="30" max_declination="0" time_to_man="8" time_to_unman="8" shell_damage="0.03" calibre="20.0" exclusion_radius_start="160" exclusion_radius_end="200"/>
+  </gun_turrets>
+</dftd-submarine>
+
