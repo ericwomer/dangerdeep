@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
 <dftd-submarine>
-  <classification identifier="submarine_IIa" modelname="uboat_IIa.ddxml" type="submarine" country="DE"/>
+  <classification identifier="submarine_IIa" modelname="uboat_IIa.ddxml" type="submarine" country="DE" >
+    <skin name="early1937" regions="BS,NS" countries="DE" from="1937/1/1" until="1938/12/31"/>
+    <skin name="early1939" regions="BS,NS,CH,BB,ES,BL" countries="DE" from="1939/1/1" until="1940/12/31"/>
+  </classification>
   <description>
     <far lang="en">Submarine</far>
     <far lang="de">U-Boot</far>

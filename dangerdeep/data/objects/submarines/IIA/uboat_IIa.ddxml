@@ -3,7 +3,10 @@
     <diffuse color="1 1 1" />
     <specular color="1 1 1" />
     <shininess exponent="65" />
-      <map type="diffuse" filename="typeIIA_diffusemap.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" />
+      <map type="diffuse" filename="typeIIA_diffusemap.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" >
+	<skin filename="typeIIA_diffuse_camo2.jpg" layout="early1937"/>
+	<skin filename="typeIIA_diffuse_camo3.jpg" layout="early1939"/>
+      </map>
       <map type="normal" filename="typeIIA_bumpmap.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" />
       <map type="specular" filename="typeIIA_specularmap.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" />
   </material>
