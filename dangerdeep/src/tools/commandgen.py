@@ -34,10 +34,20 @@ def makeitso(myline, header, header2, header3, cpp, cpp2):
     cmdname = mystrings[0]
     params = []
     for i in range(0, (len(mystrings)-1)/2):
-        params += [(mystrings[1+2*i], mystrings[1+2*i+1])]
+        typename = mystrings[1+2*i]
+        varname = mystrings[1+2*i+1]
+        k = varname.split('=')
+        if (len(k) < 1 or len(k) > 2):
+            print 'SYNTAX ERROR! default argument parsing...'
+            sys.exit(-1)
+        if (len(k) == 1):
+            params += [(typename, varname)]
+        else:
+            params += [(typename, k[0], k[1])]
     parstr = ''
     parstr2 = ''
     parstr3 = ''
+    parstr4 = ''
     for i in params:
         tp = i[0]
         if tp == 'std::string':
@@ -45,7 +55,15 @@ def makeitso(myline, header, header2, header3, cpp, cpp2):
         parstr += ', ' + tp + ' ' + i[1]
         parstr2 += ', ' + tp + ' ' + i[1] + '_'
         parstr3 += ', ' + i[1]
-    header += ['\tbool ' + cmdname + '(' + parstr[2:] + ');']
+        parstr4 += ', ' + tp + ' ' + i[1]
+        if (len(i) > 2):
+            parstr4 += ' = ' + i[2]
+    header += ['\t/// ...']
+    for i in params:
+        header += ['\t///@param ' + i[1] + ' - ...']
+    header += ['\t///@returns true if command was successful']
+    header += ['\tbool ' + cmdname + '(' + parstr4[2:] + ');']
+    header += ['']
     header2 += ['\tvoid exec_' + cmdname + '(' + parstr[2:] + ');']
     header3 += ['\tclass command_' + cmdname + ' : public ' + msgclass]
     header3 += ['\t{']
@@ -65,7 +83,7 @@ def makeitso(myline, header, header2, header3, cpp, cpp2):
 
     cpp += ['bool ' + classname + '::' + cmdname + '(' + parstr[2:] + ')']
     cpp += ['{']
-    cpp += ['\t' + cmdqname + '.send(std::auto_ptr<' + msgclass + '>(new command_' + cmdname + '(*this' + parstr3 + ')));']
+    cpp += ['\treturn ' + cmdqname + '.send(std::auto_ptr<' + msgclass + '>(new command_' + cmdname + '(*this' + parstr3 + ')));']
     cpp += ['}']
     cpp += ['']
     #cpp += ['']
