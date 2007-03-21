@@ -264,12 +264,12 @@ void submarine_interface::process_input(const SDL_Event& event)
 				return;
 			}
 		}
-	}
 
 	// check for common keys
-	if (event.type == SDL_KEYDOWN) {
+	} else if (event.type == SDL_KEYDOWN) {
 		const cfg& mycfg = cfg::instance();
 
+		// SCREENS
 		if (mycfg.getkey(KEY_SHOW_GAUGES_SCREEN).equal(event.key.keysym)) {
 			goto_gauges();
 		} else if (mycfg.getkey(KEY_SHOW_PERISCOPE_SCREEN).equal(event.key.keysym)) {
@@ -290,6 +290,12 @@ void submarine_interface::process_input(const SDL_Event& event)
 			goto_sonar();
 		} else if (mycfg.getkey(KEY_SHOW_FREEVIEW_SCREEN).equal(event.key.keysym)) {
 			goto_freeview();
+		} else if (mycfg.getkey(KEY_SHOW_TDC_SCREEN).equal(event.key.keysym)) {
+			goto_TDC();
+		} else if (mycfg.getkey(KEY_SHOW_TORPSETUP_SCREEN).equal(event.key.keysym)) {
+			goto_torpedosettings();
+			
+		// MOVEMENT
 		} else if (mycfg.getkey(KEY_RUDDER_LEFT).equal(event.key.keysym)) {
 			player->rudder_left();
 			add_rudder_message();
@@ -318,6 +324,8 @@ void submarine_interface::process_input(const SDL_Event& event)
 			player->rudder_midships();
 			player->planes_middle();
 			add_message(texts::get(42));
+			
+		// THROTTLE
 		} else if (mycfg.getkey(KEY_THROTTLE_LISTEN).equal(event.key.keysym)) {
 			player->set_throttle(ship::aheadlisten);
 			add_message(texts::get(139));
@@ -345,6 +353,10 @@ void submarine_interface::process_input(const SDL_Event& event)
 		} else if (mycfg.getkey(KEY_THROTTLE_REVERSEFULL).equal(event.key.keysym)) {
 			player->set_throttle(ship::reversefull);
 			add_message(texts::get(141));
+			
+		// TORPEDOES
+		} else if (mycfg.getkey(KEY_FIRE_TORPEDO).equal(event.key.keysym)) {
+			fire_tube(player, -1);
 		} else if (mycfg.getkey(KEY_FIRE_TUBE_1).equal(event.key.keysym)) {
 			fire_tube(player, 0);
 		} else if (mycfg.getkey(KEY_FIRE_TUBE_2).equal(event.key.keysym)) {
@@ -369,6 +381,8 @@ void submarine_interface::process_input(const SDL_Event& event)
 			} else {
 				add_message(texts::get(51));
 			}
+			
+		// DEPTH, SNORKEL, SCOPE
 		} else if (mycfg.getkey(KEY_SCOPE_UP_DOWN).equal(event.key.keysym)) {
 			if (player->is_scope_up()) {
 				player->scope_down();
@@ -425,8 +439,8 @@ void submarine_interface::process_input(const SDL_Event& event)
 			player->dive_to_depth(0);
 			add_message(texts::get(39));
 			mygame->add_logbook_entry(texts::get(39));
-		} else if (mycfg.getkey(KEY_FIRE_TORPEDO).equal(event.key.keysym)) {
-			fire_tube(player, -1);
+			
+		// VIEWS
 		} else if (mycfg.getkey(KEY_SET_VIEW_TO_HEADING).equal(event.key.keysym)) {
 			bearing = (bearing_is_relative) ? 0.0 : player->get_heading();
 		} else if (mycfg.getkey(KEY_TURN_VIEW_LEFT).equal(event.key.keysym)) {
@@ -437,6 +451,8 @@ void submarine_interface::process_input(const SDL_Event& event)
 			add_bearing(angle(1));
 		} else if (mycfg.getkey(KEY_TURN_VIEW_RIGHT_FAST).equal(event.key.keysym)) {
 			add_bearing(angle(10));
+			
+		// TIME SCALE
 		} else if (mycfg.getkey(KEY_TIME_SCALE_UP).equal(event.key.keysym)) {
 			if (time_scale_up()) {
 				add_message(texts::get(31));
@@ -445,6 +461,8 @@ void submarine_interface::process_input(const SDL_Event& event)
 			if (time_scale_down()) {
 				add_message(texts::get(32));
 			}
+			
+		// GUNS
 		} else if (mycfg.getkey(KEY_FIRE_DECK_GUN).equal(event.key.keysym)) {
 			if (player->has_deck_gun()) {
 				if (!player->is_submerged()) {
@@ -487,10 +505,8 @@ void submarine_interface::process_input(const SDL_Event& event)
 			} else {
 				add_message(texts::get(269));
 			}
-		} else if (mycfg.getkey(KEY_SHOW_TDC_SCREEN).equal(event.key.keysym)) {
-			goto_TDC();
-		} else if (mycfg.getkey(KEY_SHOW_TORPSETUP_SCREEN).equal(event.key.keysym)) {
-			goto_torpedosettings();
+		
+		// DEFAULT
 		} else {
 			// rest of the keys per switch (not user defineable)
 			// quit, screenshot, pause etc.
@@ -510,6 +526,8 @@ void submarine_interface::process_input(const SDL_Event& event)
 				user_interface::process_input(event);
 			}
 		}
+	
+	// Try next level
 	} else {
 		// fixme panel input. but panel visibility depens on each display... (yet)
 		//a small(er) panel could be visible everywhere
