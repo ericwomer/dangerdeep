@@ -487,8 +487,16 @@ list<SDL_Event> system::poll_event_queue()
 			events.push_back(event);
 			switch (event.type) {
 				case SDL_QUIT:			// Quit event
+					//fixme: this is A VERY BAD IDEA!
+					//threads hang on exit...
+					//better pass this event to user and let him handle it!
+#if 0
+					events.pop_back();
+					break;
+#else
 					SDL_Quit();	// to clean up mouse etc. after kill
 					exit(0);	// fixme
+#endif
 				
 				case SDL_ACTIVEEVENT:		// Application activation or focus event
 					if (event.active.state & SDL_APPMOUSEFOCUS) {
