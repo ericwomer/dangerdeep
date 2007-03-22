@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "event.h"
 #include "user_interface.h"
 #include "texts.h"
-#include "sound_effect_names.h" // for sound name definitions...
+#include "music.h"
 
 void event_torpedo_dud_shortrange::evaluate(user_interface& ui)
 {
@@ -84,7 +84,7 @@ void event_gun_unmanned::evaluate(user_interface& ui)
 void event_depth_charge_in_water::evaluate(user_interface& ui)
 {
 	ui.add_message(texts::get(205));
-	ui.play_sound_effect(se_depth_charge_firing, source);
+	ui.play_sound_effect(SFX_DEPTH_CHARGE_LAUNCH, source);
 }
 
 
@@ -92,54 +92,54 @@ void event_depth_charge_in_water::evaluate(user_interface& ui)
 void event_depth_charge_exploding::evaluate(user_interface& ui)
 {
 	ui.add_message(texts::get(204));
-	ui.play_sound_effect(se_depth_charge_exploding, source);
+	ui.play_sound_effect(SFX_DEPTH_CHARGE_EXPLODE, source);
 }
 
 
 
 void event_gunfire_light::evaluate(user_interface& ui)
 {
-	ui.play_sound_effect(se_small_gun_firing, source);
+	ui.play_sound_effect(SFX_DECK_GUN_FIRE, source);
 }
 
 
 
 void event_gunfire_medium::evaluate(user_interface& ui)
 {
-	ui.play_sound_effect(se_medium_gun_firing, source);
+	ui.play_sound_effect(SFX_MEDIUM_GUN_FIRE, source);
 }
 
 
 
 void event_gunfire_heavy::evaluate(user_interface& ui)
 {
-	ui.play_sound_effect(se_large_gun_firing, source);
+	ui.play_sound_effect(SFX_BIG_GUN_FIRE, source);
 }
 
 
 
 void event_shell_explosion::evaluate(user_interface& ui)
 {
-	ui.play_sound_effect(se_shell_exploding, source);
+	ui.play_sound_effect(SFX_SHELL_EXPLODE, source);
 }
 
 
 
 void event_shell_splash::evaluate(user_interface& ui)
 {
-	ui.play_sound_effect(se_shell_splash, source);
+	ui.play_sound_effect(SFX_SHELL_SPLASH, source);
 }
 
 
 
 void event_torpedo_explosion::evaluate(user_interface& ui)
 {
-	ui.play_sound_effect(se_torpedo_detonation, source);
+	ui.play_sound_effect(SFX_SHELL_EXPLODE /* what else?! */, source);
 }
 
 
 
 void event_ping::evaluate(user_interface& ui)
 {
-	ui.play_sound_effect(se_ping, source);
+	ui.play_sound_effect(SFX_PING, source);
 }

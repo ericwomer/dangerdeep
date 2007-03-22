@@ -50,7 +50,7 @@ def makeitso(myline, header, header2, header3, cpp, cpp2):
     parstr4 = ''
     for i in params:
         tp = i[0]
-        if tp == 'std::string':
+        if tp in ['std::string', 'vector2', 'vector3']:
             tp = 'const ' + tp + '&'
         parstr += ', ' + tp + ' ' + i[1]
         parstr2 += ', ' + tp + ' ' + i[1] + '_'

@@ -58,7 +58,7 @@ class global_data
 	objcachet<class model> modelcache;
 	objcachet<class image> imagecache;
 	objcachet<class texture> texturecache;
-	objcachet<class sound> soundcache;
+	//objcachet<class sound> soundcache;
 	objcachet<class font> fontcache;
 
 	global_data();
@@ -70,7 +70,7 @@ class global_data
 inline objcachet<class model>& modelcache() { return global_data::instance().modelcache; }
 inline objcachet<class image>& imagecache() { return global_data::instance().imagecache; }
 inline objcachet<class texture>& texturecache() { return global_data::instance().texturecache; }
-inline objcachet<class sound>& soundcache() { return global_data::instance().soundcache; }
+//inline objcachet<class sound>& soundcache() { return global_data::instance().soundcache; }
 inline objcachet<class font>& fontcache() { return global_data::instance().fontcache; }
 
 

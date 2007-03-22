@@ -36,7 +36,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "system.h"
 #include "game.h"
 #include "texts.h"
-#include "sound.h"
 #include "model.h"
 #include "airplane.h"
 #include "depth_charge.h"
@@ -54,7 +53,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "cfg.h"
 #include "keys.h"
 #include "global_data.h"
-#include "sound_effect_names.h"
 #include "music.h"
 using namespace std;
 
@@ -136,8 +134,9 @@ user_interface::user_interface(game& gm) :
 	musiclist* playlist = new musiclist(0, 0, 384, 512);
 	music_playlist->add_child_near_last_child(playlist);
 	music& m = music::inst();
-	for (vector<string>::const_iterator it = m.get_playlist().begin();
-	     it != m.get_playlist().end(); ++it) {
+	vector<string> mpl = m.get_playlist();
+	for (vector<string>::const_iterator it = mpl.begin();
+	     it != mpl.end(); ++it) {
 		playlist->append_entry(*it);
 	}
 	typedef widget_caller_checkbox<user_interface, void (user_interface::*)()> wccui;
@@ -806,42 +805,14 @@ void user_interface::add_rudder_message()
 
 
 void user_interface::play_sound_effect(const string &se,
-				       const sea_object* noise_source, bool loop) const
+				       const sea_object* noise_source /*, bool loop*/) const
 {	
-	sound* s = soundcache().find(se);
-	if ( s )
-		s->play(mygame->get_player(), noise_source, loop);
-	else
-		throw error(std::string("soundcache: can't find effect ") + se);
+	music::inst().play_sfx(se, mygame->get_player()->get_pos(),
+			       mygame->get_player()->get_heading(),
+			       noise_source->get_pos());
 }
 
-void user_interface::play_fade_sound_effect(const string &se,
-					    const sea_object* noise_source, bool loop) const
-{
-	sound* s = soundcache().find(se);
-	if ( s )
-		s->play_fade(mygame->get_player(), noise_source, loop);
-	else
-		throw error(std::string("soundcache: can't find effect ") + se);
-}
 
-void user_interface::stop_sound_effect(const string &se) const
-{
-	sound* s = soundcache().find(se);
-	if ( s )
-		s->stop();
-	else
-		throw error(std::string("soundcache: can't find effect ") + se);
-}
-
-void user_interface::stop_fade_sound_effect(const string &se) const
-{
-	sound* s = soundcache().find(se);
-	if ( s )
-		s->fade_out();
-	else
-		throw error(std::string("soundcache: can't find effect ") + se);
-}
 
 void user_interface::set_allowed_popup() const
 {
@@ -924,6 +895,7 @@ void user_interface::show_playlist()
 
 void user_interface::pause_all_sound() const
 {
+#if 0 // fixme
 	// bit of a dodgy way to find a sound so we can call a function affecting
 	// all sounds
 	sound* s = soundcache().find(se_sub_screws_slow);
@@ -931,10 +903,12 @@ void user_interface::pause_all_sound() const
 		s->pause_all();
 	else
 		throw error(std::string("soundcache: can't find effect"));
+#endif
 }
 
 void user_interface::resume_all_sound() const
 {
+#if 0 // fixme
 	// bit of a dodgy way to find a sound so we can call a function affecting
 	// all sounds
 	sound* s = soundcache().find(se_sub_screws_slow);
@@ -942,4 +916,5 @@ void user_interface::resume_all_sound() const
 		s->resume_all();
 	else
 		throw error(std::string("soundcache: can't find effect"));
+#endif
 }

@@ -25,14 +25,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "image.h"
 #include "font.h"
 #include "global_data.h"
-#include "sound.h"
 #include <sstream>
 #include <list>
 #include <iomanip>
 #include "oglext/OglExt.h"
 #include "system.h"
 #include "datadirs.h"
-#include "sound_effect_names.h"
 #include <SDL_image.h>
 #include <stdexcept>
 
@@ -57,7 +55,7 @@ global_data::global_data()
 	: modelcache(get_data_dir()),
 	  imagecache(get_image_dir()),
 	  texturecache(get_texture_dir()),
-	  soundcache(get_sound_dir()),
+	  //soundcache(get_sound_dir()),
 	  fontcache(get_font_dir())
 {
 	if (inst != 0)
@@ -103,23 +101,6 @@ void init_global_data()
 	notepadsheet = new texture(get_texture_dir() + "notepadsheet.png" /*, GL_CLAMP_TO_EDGE*/);
 	terraintex = new texture(get_texture_dir() + "terrain.jpg", texture::LINEAR);
 	add_loading_screen("textures loaded");
-
-	// later: this makes the use of the cache senseless. load on demand, and only ingame
-	soundcache().ref(se_submarine_torpedo_launch);
-	soundcache().ref(se_torpedo_detonation);
-	soundcache().ref(se_small_gun_firing);
-	soundcache().ref(se_medium_gun_firing);
-	soundcache().ref(se_large_gun_firing);
-	soundcache().ref(se_depth_charge_firing);
-	soundcache().ref(se_depth_charge_exploding);
-	soundcache().ref(se_ping);
-	soundcache().ref(se_shell_exploding);
-	soundcache().ref(se_shell_splash);		
-	soundcache().ref(se_sub_screws_slow);
-	soundcache().ref(se_sub_screws_normal);
-	soundcache().ref(se_sub_screws_fast);
-	soundcache().ref(se_sub_screws_very_fast);	
-	add_loading_screen("sounds loaded");
 }
 
 void deinit_global_data()

@@ -103,16 +103,15 @@ osspecificsrc_obj = [env.Object(source = x) for x in osspecificsrc]
 
 ############# programs, libs, etc.
 env.StaticLibrary(target = 'dftdmedia', source = dftdmediasources, LIBS = gfxlibs)
-sound_obj = env.Object(source = 'sound.cpp')
 filehelper_obj = env.Object(source = 'filehelper.cpp')
 widget_obj = env.Object(source = 'widget.cpp')
 datadirsobj = env.StaticObject('datadirs.cpp', CPPDEFINES = [('DATADIR', '\\"' + datadir + '/\\"')])
 globaldataobj = env.StaticObject('global_data.cpp', CPPDEFINES = [('VERSION', '\\"' + version + '\\"')])
 frustum_obj = env.Object(source = 'frustum.cpp')
-binary = env.Program(target = 'dangerdeep', source = dftdsources + sound_obj + filehelper_obj + widget_obj + frustum_obj + datadirsobj + globaldataobj + osspecificsrc_obj, LIBS = alllibs)
+binary = env.Program(target = 'dangerdeep', source = dftdsources + filehelper_obj + widget_obj + frustum_obj + datadirsobj + globaldataobj + osspecificsrc_obj, LIBS = alllibs)
 tool1 = env.Program('viewmodel', viewmodelsources + datadirsobj + filehelper_obj + widget_obj + osspecificsrc_obj, LIBS = alllibs)
-tool2 = env.Program('damagemodel', ['damagemodel.cpp', datadirsobj, sound_obj, filehelper_obj] + osspecificsrc_obj, LIBS = alllibs)
-tool3 = env.Program('crosssection', ['crosssection.cpp', datadirsobj, sound_obj, filehelper_obj] + osspecificsrc_obj, LIBS = alllibs)
+tool2 = env.Program('damagemodel', ['damagemodel.cpp', datadirsobj, filehelper_obj] + osspecificsrc_obj, LIBS = alllibs)
+tool3 = env.Program('crosssection', ['crosssection.cpp', datadirsobj, filehelper_obj] + osspecificsrc_obj, LIBS = alllibs)
 env.StaticLibrary(target = 'oglext', source = oglextsources)
 env.StaticLibrary(target = 'tinyxml', source = tinyxmlsources)
 env.Default(binary)
@@ -125,7 +124,7 @@ test2 = env.Program('bsplinetest', ['bspline_test.cpp'])
 env.Default(test1)
 env.Default(test2)
 
-portal = env.Program('portal', ['portal.cpp', datadirsobj, sound_obj, filehelper_obj, frustum_obj] + osspecificsrc_obj, LIBS = alllibs)
+portal = env.Program('portal', ['portal.cpp', datadirsobj, filehelper_obj, frustum_obj] + osspecificsrc_obj, LIBS = alllibs)
 env.Default(portal)
 
 ############ this allows to run "scons install" to install the binary

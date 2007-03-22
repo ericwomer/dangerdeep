@@ -41,7 +41,6 @@ using std::set;
 #include "system.h"
 #include "game.h"
 #include "texts.h"
-#include "sound.h"
 #include "image.h"
 #include "command.h"
 //#include "widget.h"

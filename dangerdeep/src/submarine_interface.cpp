@@ -37,19 +37,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <map>
 #include <set>
 #include <list>
-using namespace std;
 #include "date.h"
 #include "submarine_interface.h"
 #include "system.h"
 #include "game.h"
 #include "texts.h"
-#include "sound.h"
 #include "image.h"
 #include "widget.h"
 #include "keys.h"
 #include "cfg.h"
 #include "global_data.h"
-#include "sound_effect_names.h"
+#include "music.h"
 
 #include "sub_gauges_display.h"
 #include "sub_periscope_display.h"
@@ -71,6 +69,8 @@ using namespace std;
 #include "sub_control_popup.h"
 #include "sub_tdc_popup.h"
 #include "sub_ecard_popup.h"
+
+using namespace std;
 
 submarine_interface::submarine_interface(game& gm) : 
     	user_interface(gm), selected_tube(0)
@@ -182,7 +182,7 @@ void submarine_interface::fire_tube(submarine* player, int nr)
 			if (target)
 				oss << " " << texts::get(6) << ": " << target->get_description(2);
 			mygame->add_logbook_entry(oss.str());
-			play_sound_effect(se_submarine_torpedo_launch, player);
+			play_sound_effect(SFX_TUBE_LAUNCH, player);
 		} else {
 			add_message(texts::get(138));
 		}

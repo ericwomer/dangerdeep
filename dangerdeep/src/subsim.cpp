@@ -45,7 +45,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "global_data.h"
 #include "texts.h"
 #include "date.h"
-#include "sound.h"
 #include "network.h"
 #include <iostream>
 #include <sstream>
@@ -55,7 +54,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "highscorelist.h"
 #include "user_interface.h"
 #include "cfg.h"
-#include "tinyxml/tinyxml.h"
 #include "keys.h"
 #include "music.h"
 #include "faulthandler.h"
@@ -97,7 +95,7 @@ highscorelist hsl_mission, hsl_career;
 #define HSL_MISSION_NAME "mission.hsc"
 #define HSL_CAREER_NAME "career.hsc"
 
-auto_ptr<music> mmusic;
+thread::auto_ptr<music> mmusic;
 
 // a dirty hack
 void menu_notimplemented()
@@ -526,8 +524,8 @@ void run_game(auto_ptr<game> gm)
 		}
 		//SDL_ShowCursor(SDL_DISABLE);
 	}
-	//show_results_for_game(*gm);
-	//check_for_highscore(*gm);
+	show_results_for_game(*gm);
+	check_for_highscore(*gm);
 
 	// restore menu widgets
 	widget::ref_all_backgrounds();
@@ -1430,6 +1428,7 @@ int mymain(list<string>& args)
 	bool runeditor = false;
 	unsigned maxfps = 60;
 	bool override_lang = false;
+	bool use_sound = true;
 
 	// parse commandline
 	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
@@ -1462,7 +1461,7 @@ int mymain(list<string>& args)
 		} else if (*it == "--editor") {
 			runeditor = true;
 		} else if (*it == "--nosound") {
-			sound::use_sound = false;
+			use_sound = false;
 		} else if (*it == "--res") {
 			list<string>::iterator it2 = it; ++it2;
 			if (it2 != args.end()) {
@@ -1697,26 +1696,16 @@ int mymain(list<string>& args)
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 	glEnable(GL_LIGHT0);
 
-	// init sound
-	sound::init();
-	
+	// create and start thread for music handling.
+	mmusic.reset(new music(use_sound));
+	mmusic->start();
+
 	reset_loading_screen();
 	// init the global_data object before calling init_global_data
 	auto_ptr<global_data> gbd(new global_data());
 	init_global_data();
 	widget::set_image_cache(&(imagecache()));
 
-	if( sound::use_sound )
-		music::use_music = true;
-	else
-		music::use_music = false;
-
-	mmusic = auto_ptr<music>(new music());
-/* test:
-	mmusic->append_track("ping.ogg");
-	mmusic->append_track("liquidblast.ogg");
-	mmusic->append_track("shell explosion.ogg");
-*/
 	mmusic->append_track("ImInTheMood.ogg");
 	mmusic->append_track("Betty_Roche-Trouble_Trouble.ogg");
 	mmusic->append_track("theme.ogg");
@@ -1826,9 +1815,6 @@ int mymain(list<string>& args)
 	mmusic->stop(1000);
 	mmusic.reset();
 
-	// deinit sound
-	sound::deinit();
-	
 	mysys->write_console(true);
 
 	hsl_mission.save(highscoredirectory + HSL_MISSION_NAME);
