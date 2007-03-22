@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<sound-files>
+  <machines>
+    <sub-diesel levels="4">
+      <throttle level="1" file="screws_slow.ogg" />
+      <throttle level="2" file="screws_normal.ogg" />
+      <throttle level="3" file="screws_fast.ogg" />
+      <throttle level="4" file="screws_veryfast.ogg" />
+    </sub-diesel>
+    <escort levels="1">
+      <throttle level="1" file="machine1.ogg" />
+    </escort>
+  </machines>
+  <effects>
+    <big-gun-fire file="big gun firing.ogg" />
+    <big-gun-fire file="boom5.ogg" />
+    <medium-gun-fire file="medium gun firing.ogg" />
+    <deck-gun-fire file="deck gun firing.ogg" />
+    <depth-charge-launch file="depth charge launching.ogg" />
+    <depth-charge-explode file="depth charge exploding.ogg" />
+    <tube-launch file="liquidblast.ogg" />
+    <tube-launch file="torp.ogg" />
+    <ping file="ping.ogg" />
+    <ping file="sonarping_mono_id1.ogg" />
+    <ship-bell file="nshipbell.ogg" />
+    <shell-explode file="shell explosion.ogg" />
+    <shell-splash file="shell splash.ogg" />
+  </effects>
+</sound-files>
