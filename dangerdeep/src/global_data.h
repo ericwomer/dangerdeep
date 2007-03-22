@@ -42,11 +42,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 std::string get_program_version();
 
-// fixme: use only class xml, then these functions are obsolete.
-std::string XmlAttrib(class TiXmlElement* elem, const char* attrname);
-unsigned XmlAttribu(class TiXmlElement* elem, const char* attrname);
-float XmlAttribf(class TiXmlElement* elem, const char* attrname);
-
 
 ///> all global data grouped in one class
 class global_data

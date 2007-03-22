@@ -30,7 +30,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <list>
 #include <iomanip>
 #include "oglext/OglExt.h"
-#include "tinyxml/tinyxml.h"
 #include "system.h"
 #include "datadirs.h"
 #include "sound_effect_names.h"
@@ -81,22 +80,6 @@ texture *notepadsheet,
 font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn, *font_damagedtypewriter, *font_king, *font_typenr, *font_jphsl, *font_janeaust, *font_vtportable;
 
 bool loading_screen_usable = false;
-
-// later: remove that crap when tinyxml is not used directly any longer
-string XmlAttrib(class TiXmlElement* elem, const char* attrname)
-{
-	const char* tmp = elem->Attribute(attrname);
-	if (tmp) return string(tmp);
-	return string();
-}
-unsigned XmlAttribu(class TiXmlElement* elem, const char* attrname)
-{
-	return unsigned(atoi(XmlAttrib(elem, attrname).c_str()));
-}
-float XmlAttribf(class TiXmlElement* elem, const char* attrname)
-{
-	return float(atof(XmlAttrib(elem, attrname).c_str()));
-}
 
 void init_global_data()
 {

@@ -28,7 +28,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ai.h"
 #include "system.h"
 #include "particle.h"
-#include "tinyxml/tinyxml.h"
 #include "gun_shell.h"
 #include "global_data.h"
 #include "physics.h"

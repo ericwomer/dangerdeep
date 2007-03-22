@@ -34,6 +34,23 @@ using namespace std;
 cfg* cfg::myinst = 0;
 
 
+// later: remove that crap when tinyxml is not used directly any longer
+string XmlAttrib(class TiXmlElement* elem, const char* attrname)
+{
+	const char* tmp = elem->Attribute(attrname);
+	if (tmp) return string(tmp);
+	return string();
+}
+unsigned XmlAttribu(class TiXmlElement* elem, const char* attrname)
+{
+	return unsigned(atoi(XmlAttrib(elem, attrname).c_str()));
+}
+float XmlAttribf(class TiXmlElement* elem, const char* attrname)
+{
+	return float(atof(XmlAttrib(elem, attrname).c_str()));
+}
+
+
 	
 string cfg::key::get_name() const
 {
