@@ -77,12 +77,6 @@ public:
 	// We have to translate the events and handle screen res, mouse pos/movement
 	//must be correct also for subpixel cases! big fixme!
 
-	///> set a function that is called whenever poll_event_queue is called
-	void set_periodical_function(void (*periodical)(void* arg), void* arg) {
-		periodical_func = periodical;
-		periodical_arg = arg;
-	}
-
 //these functions are useless with new poll event queue
 //	void get_mouse_motion(int &x, int &y);
 	void get_mouse_position(int &x, int &y);
@@ -180,9 +174,6 @@ private:
 	
 	int screenshot_nr;
 	string screenshot_dir;
-
-	void (*periodical_func)(void* arg);
-	void* periodical_arg;
 
 	// list of available resolutions
 	std::list<vector2i> available_resolutions;

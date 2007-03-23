@@ -77,8 +77,7 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 	show_console(false), console_font(0), console_background(0),
 	draw_2d(false), keyqueue(), mouse_xrel(0), mouse_yrel(0), mouse_x(res_x_/2),
 	mouse_y(res_y_/2), mouse_b(0), time_passed_while_sleeping(0), sleep_time(0),
-	is_sleeping(false), maxfps(0), last_swap_time(0), screenshot_nr(0),
-	periodical_func(0), periodical_arg(0)
+	is_sleeping(false), maxfps(0), last_swap_time(0), screenshot_nr(0)
 {
 	if (instance)
 		throw runtime_error("system construction: system instance already exists");
@@ -473,9 +472,6 @@ list<SDL_Event> system::poll_event_queue()
 //what he wants (if he handles events by himself, he have to flush the key queue each frame)
 list<SDL_Event> system::poll_event_queue()
 {
-	if (periodical_func)
-		periodical_func(periodical_arg);
-
 	list<SDL_Event> events;
 
 	SDL_Event event;
