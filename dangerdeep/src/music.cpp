@@ -249,7 +249,7 @@ bool music::play_track(unsigned nr, unsigned fadeouttime, unsigned fadeintime)
 
 bool music::track_finished()
 {
-        return command_queue.send(std::auto_ptr<message>(new command_track_finished(*this)));
+        return command_queue.send(std::auto_ptr<message>(new command_track_finished(*this)), false);
 }
 
 
