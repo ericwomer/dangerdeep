@@ -111,8 +111,9 @@ static void view_model(const string& modelfilename)
 	// vector3 viewangles;
 	vector3 pos;
 	model* mdl = new model(get_model_dir() + modelfilename);
+	bool quit = false;
 
-	while (true) {
+	while (!quit) {
 		glMatrixMode(GL_MODELVIEW);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
@@ -120,10 +121,14 @@ static void view_model(const string& modelfilename)
 		draw_model(mdl);
 		print_model_datas(mdl);
 
-		mysys->poll_event_queue();
-		int key = mysys->get_key().sym;
-		// int mb = mysys->get_mouse_buttons();
-		if (key == SDLK_ESCAPE) break;
+		list<SDL_Event> events = mysys->poll_event_queue();
+		for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
+			if (it->type == SDL_KEYDOWN) {
+				quit = true;
+			} else if (it->type == SDL_MOUSEBUTTONUP) {
+				quit = true;
+			}
+		}
 
 		// mysys->prepare_2d_drawing();
 

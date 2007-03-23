@@ -140,8 +140,14 @@ void show_credits()
 	float ctr = 0.0, ctradd = 1.0/32.0;
 	unsigned tm = sys().millisec();
 	while (!quit) {
-		sys().poll_event_queue();
-		if (sys().get_key().sym == SDLK_ESCAPE) quit = true;
+		list<SDL_Event> events = sys().poll_event_queue();
+		for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
+			if (it->type == SDL_KEYDOWN) {
+				quit = true;
+			} else if (it->type == SDL_MOUSEBUTTONUP) {
+				quit = true;
+			}
+		}
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

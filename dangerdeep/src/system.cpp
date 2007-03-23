@@ -75,8 +75,7 @@ static char sprintf_tmp[1024];
 system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bool fullscreen) :
 	res_x(res_x_), res_y(res_y_), nearz(nearz_), farz(farz_), is_fullscreen(fullscreen),
 	show_console(false), console_font(0), console_background(0),
-	draw_2d(false), keyqueue(), mouse_xrel(0), mouse_yrel(0), mouse_x(res_x_/2),
-	mouse_y(res_y_/2), mouse_b(0), time_passed_while_sleeping(0), sleep_time(0),
+	draw_2d(false), time_passed_while_sleeping(0), sleep_time(0),
 	is_sleeping(false), maxfps(0), last_swap_time(0), screenshot_nr(0)
 {
 	if (instance)
@@ -435,39 +434,6 @@ void system::swap_buffers()
 	}
 }
 
-//new poll event queue API, we need no more keyqueue, get_key or getch...
-//this model is too simple, we need to translate at least the mouse coordinates, see below.
-/*
-list<SDL_Event> system::poll_event_queue()
-{
-	list<SDL_Event> result;
-	SDL_Event event;
-	do {
-		while (SDL_PollEvent(&event)) {
-			// handle some special events
-			switch (event.type) {
-				case SDL_QUIT:			// Quit event
-					SDL_Quit();	// to clean up mouse etc. after kill
-					exit(0);	// maybe a bit dirty...
-				
-				case SDL_ACTIVEEVENT:		// Application activation or focus event
-					if (event.active.gain == 0) {
-						is_sleeping = true;
-						sleep_time = SDL_GetTicks();
-					} else {
-						is_sleeping = false;
-						time_passed_while_sleeping += SDL_GetTicks() - sleep_time;
-					}
-					break;
-				default:
-					result.push_back(event);
-			}
-		}
-	} while (is_sleeping);
-	return result;
-}
-*/
-
 //intermediate solution: just return list AND handle events, the app client can choose then
 //what he wants (if he handles events by himself, he have to flush the key queue each frame)
 list<SDL_Event> system::poll_event_queue()
@@ -515,7 +481,6 @@ list<SDL_Event> system::poll_event_queue()
 					keysym = event.key.keysym;
 					if (keysym.unicode == '^')
 						show_console = !show_console;
-					keyqueue.push(keysym);
 					break;
 				
 				case SDL_KEYUP:			// Keyboard event - key up
@@ -524,10 +489,6 @@ list<SDL_Event> system::poll_event_queue()
 					break;
 		
 				case SDL_MOUSEMOTION:		// Mouse motion event
-					mouse_xrel += event.motion.xrel;
-					mouse_yrel += event.motion.yrel;
-					mouse_x = event.motion.x;
-					mouse_y = event.motion.y;
 					// translate coordinates!
 					events.back().motion.x = events.back().motion.x *
 						int(res_x_2d) / int(res_x);
@@ -542,24 +503,6 @@ list<SDL_Event> system::poll_event_queue()
 					break;
 				
 				case SDL_MOUSEBUTTONDOWN:	// Mouse button event - button down
-					switch (event.button.button)
-					{
-						case SDL_BUTTON_LEFT:
-							mouse_b |= left_button;
-							break;
-						case SDL_BUTTON_MIDDLE:
-							mouse_b |= middle_button;
-							break;
-						case SDL_BUTTON_RIGHT:
-							mouse_b |= right_button;
-							break;
-						case SDL_BUTTON_WHEELUP:
-							mouse_b |= wheel_up;
-							break;
-						case SDL_BUTTON_WHEELDOWN:
-							mouse_b |= wheel_down;
-							break;
-					}
 					// translate coordinates!
 					events.back().button.x = events.back().button.x *
 						int(res_x_2d) / int(res_x);
@@ -568,24 +511,6 @@ list<SDL_Event> system::poll_event_queue()
 					break;
 				
 				case SDL_MOUSEBUTTONUP:		// Mouse button event - button up
-					switch (event.button.button)
-					{
-						case SDL_BUTTON_LEFT:
-							mouse_b &= ~left_button;
-							break;
-						case SDL_BUTTON_MIDDLE:
-							mouse_b &= ~middle_button;
-							break;
-						case SDL_BUTTON_RIGHT:
-							mouse_b &= ~right_button;
-							break;
-						case SDL_BUTTON_WHEELUP:
-							mouse_b &= ~wheel_up;
-							break;
-						case SDL_BUTTON_WHEELDOWN:
-							mouse_b &= ~wheel_down;
-							break;
-					}
 					// translate coordinates!
 					events.back().button.x = events.back().button.x *
 						int(res_x_2d) / int(res_x);
@@ -607,66 +532,6 @@ list<SDL_Event> system::poll_event_queue()
 
 	return events;
 }
-
-/* obsolete
-void system::get_mouse_motion(int &x, int &y)
-{
-	x = mouse_xrel * int(res_x_2d) / int(res_x);
-	y = mouse_yrel * int(res_y_2d) / int(res_y);
-	mouse_xrel = mouse_yrel = 0;
-}
-*/
-
-void system::get_mouse_position(int &x, int &y)
-{
-	x = mouse_x * int(res_x_2d) / int(res_x);
-	y = mouse_y * int(res_y_2d) / int(res_y);
-}
-
-SDL_keysym system::get_key()
-{
-	SDL_keysym ks;
-	if (keyqueue.empty()) {
-		ks.scancode = 0;
-		ks.sym = SDLK_UNKNOWN;
-		ks.mod = KMOD_NONE;
-		ks.unicode = 0;
-		return ks;
-	}
-	ks = keyqueue.front();
-	keyqueue.pop();
-	return ks;
-}
-
-/* obsolete
-bool system::is_key_in_queue() const
-{
-	return !keyqueue.empty();
-}
-*/
-	
-bool system::is_key_down(int code) const
-{
-	return (SDL_GetKeyState(0)[code] != 0);
-}
-
-/* obsolete
-void system::flush_key_queue()
-{
-	while (!keyqueue.empty())
-		keyqueue.pop();
-}
-*/
-
-/* obsolete
-SDL_keysym system::getch()
-{
-	do {
-		poll_event_queue();	// to avoid the app to run dead
-	} while (keyqueue.empty());
-	return get_key();
-}
-*/
 
 void system::screenshot()
 {

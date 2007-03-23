@@ -77,20 +77,6 @@ public:
 	// We have to translate the events and handle screen res, mouse pos/movement
 	//must be correct also for subpixel cases! big fixme!
 
-//these functions are useless with new poll event queue
-//	void get_mouse_motion(int &x, int &y);
-	void get_mouse_position(int &x, int &y);
-	// get mouse button state as mask of button_type
-	int get_mouse_buttons() const { return mouse_b; }
-	// get SDL code of next key (0 if no key in queue)
-	SDL_keysym get_key();
-//	bool is_key_in_queue() const;
-	bool is_key_down(int code) const;
-//	void flush_key_queue();
-	// wait for keypress
-//	SDL_keysym getch();
-///-------
-
 	void screen_resize(unsigned w, unsigned h, double nearz, double farz);
 	
 	void clear_console();
@@ -123,9 +109,6 @@ public:
 	// give FOV X in degrees, aspect (w/h), znear and zfar.	
 	void gl_perspective_fovx(double fovx, double aspect, double znear, double zfar);
 
-	//fixme: is useless with new poll event queue
-	bool key_shift() const { return is_key_down(SDLK_LSHIFT) || is_key_down(SDLK_RSHIFT) || is_key_down(SDLK_CAPSLOCK); }
-
 	unsigned get_res_x() const { return res_x; };
 	unsigned get_res_y() const { return res_y; };
 	unsigned get_res_x_2d() const { return res_x_2d; };
@@ -153,11 +136,6 @@ private:
 	
 	bool draw_2d;
 	unsigned res_x_2d, res_y_2d;	// real resolution (depends on user settings)
-	
-	// these state variables are uselss with new poll event q
-	queue<SDL_keysym> keyqueue;
-	int mouse_xrel, mouse_yrel, mouse_x, mouse_y;
-	int mouse_b;
 	
 	static system* instance;
 
