@@ -264,9 +264,12 @@ void submarine_interface::process_input(const SDL_Event& event)
 				return;
 			}
 		}
+	}
+	// Note!!! do NOT unite this if with the if/else block below!
+	// we need to check the event mentioned above extra!
 
 	// check for common keys
-	} else if (event.type == SDL_KEYDOWN) {
+	if (event.type == SDL_KEYDOWN) {
 		const cfg& mycfg = cfg::instance();
 
 		// SCREENS
