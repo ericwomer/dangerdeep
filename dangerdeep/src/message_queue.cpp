@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "message_queue.h"
 #include "error.h"
-//#include "system.h"
+#include "system.h"
 #include "thread.h"
 
 
@@ -34,7 +34,7 @@ void message::evaluate() const
 		result = true;
 	}
 	catch (std::exception& e) {
-		//sys().add_console(std::string("msg eval failed: ") + e.what());
+		sys().add_console(std::string("msg eval failed: ") + e.what());
 	}
 }
 
