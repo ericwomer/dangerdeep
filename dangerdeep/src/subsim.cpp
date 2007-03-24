@@ -401,6 +401,9 @@ game::run_state game__exec(game& gm, user_interface& ui)
 	while (gm.get_run_state() == game::running && !ui.abort_requested()) {
 		list<SDL_Event> events = sys().poll_event_queue();
 
+		// maybe limit input processing to 30 fps
+		ui.process_input(events);
+
 		// this time_scaling is bad. hits may get computed wrong when time
 		// scaling is too high. fixme
 		unsigned thistime = sys().millisec();
@@ -425,9 +428,6 @@ game::run_state game__exec(game& gm, user_interface& ui)
 				}
 			}
 		}
-
-		// maybe limit input processing to 30 fps
-		ui.process_input(events);
 
 		// fixme: make use of game::job interface, 3600/256 = 14.25 secs job period
 		ui.set_time(gm.get_time());
