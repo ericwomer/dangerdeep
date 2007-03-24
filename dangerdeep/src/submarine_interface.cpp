@@ -692,6 +692,23 @@ void submarine_interface::display() const
 		set_current_display(display_mode_map);
 	}
 
+	// machine sound
+	unsigned thr = 0;
+	switch (player->get_throttle()) {
+	case ship::reversefull: thr = 100; break;
+	case ship::reversehalf: thr =  66; break;
+	case ship::reverse:     thr =  33; break;
+	case ship::aheadlisten: thr =  20; break;
+	case ship::aheadsonar:  thr =  20; break;
+	case ship::aheadslow:   thr =  40; break;
+	case ship::aheadhalf:   thr =  60; break;
+	case ship::aheadfull:   thr =  80; break;
+	case ship::aheadflank:  thr = 100; break;
+	case ship::stop:        thr =   0; break;
+	default:          thr =   0; break; // throttled speeds not supported here...
+	}
+	music::inst().play_sfx_machine(SFX_MACHINE_SUB_DIESEL, thr);
+
 	user_interface::display();
 
 	// panel is drawn in each display function, so the above code is all...

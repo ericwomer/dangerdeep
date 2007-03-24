@@ -143,6 +143,7 @@ class music : public thread
 	static music& inst() { return *instance; }
 
  protected:
+	const unsigned nr_reserved_channels;
 	unsigned current_track;
 	int usersel_next_track;
 	unsigned usersel_fadein;
@@ -155,6 +156,7 @@ class music : public thread
 	message_queue command_queue;
 	std::map<std::string, std::vector<Mix_Chunk*> > sfx_events;
 	std::map<std::string, std::vector<Mix_Chunk*> > sfx_machines;
+	Mix_Chunk* current_machine_sfx;
 	void destructor();
 
 	void start_play_track(unsigned nr, unsigned fadeintime = 0);

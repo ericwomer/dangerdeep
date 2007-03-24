@@ -34,7 +34,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 using namespace std;
 
 #define SOUND_SPEC_FILENAME "sound-categories.data"
-
+#define SFX_CHANNELS_TOTAL 8
+#define SFX_CHANNEL_MACHINE 0
 
 bool music::use_music = true;
 music* music::instance = 0;
@@ -42,11 +43,13 @@ music* music::instance = 0;
 
 
 music::music(bool useit)
-	: current_track(0),
+	: nr_reserved_channels(1),
+	  current_track(0),
 	  usersel_next_track(-1),
 	  usersel_fadein(0),
 	  pbm(PBM_LOOP_LIST),
-	  stopped(true)
+	  stopped(true),
+	  current_machine_sfx(0)
 {
 	if (instance) {
 		throw error("only one instance of class music at a time valid");
@@ -142,6 +145,14 @@ void music::init()
 
 	Mix_HookMusicFinished(callback_track_finished);
 
+	// allocate channels
+	if (Mix_AllocateChannels(SFX_CHANNELS_TOTAL) < int(SFX_CHANNELS_TOTAL))
+		throw error("could not allocate enough channels");
+
+	// reserve sfx channels for environmental noises (engine, sonar)
+	if (Mix_ReserveChannels(nr_reserved_channels) < int(nr_reserved_channels))
+		throw error("could not reserve enough channels");
+
 	// load sfx files
 	// fixme: later implement a cache!
 	try {
@@ -151,7 +162,22 @@ void music::init()
 		xml_elem mc = sf.child("machines");
 		for (xml_elem::iterator it = mc.iterate(); !it.end(); it.next()) {
 			xml_elem m = it.elem();
-			// fixme: parse later
+			string mn = m.get_name();
+			vector<Mix_Chunk*>& v = sfx_machines[mn];
+			// the levels/level attributes are ignored yet...fixme
+			for (xml_elem::iterator ik = m.iterate(); !ik.end(); ik.next()) {
+				xml_elem e = ik.elem();
+				if (e.get_name() != "throttle")
+					throw xml_error("illegal child of \"machine\"", e.doc_name());
+				string fn = e.attr("file");
+				v.push_back(0);
+				Mix_Chunk* chk = Mix_LoadWAV((get_sound_dir() + fn).c_str());
+				if (!chk) {
+					v.pop_back();
+					throw file_read_error(get_sound_dir() + fn);
+				}
+				v.back() = chk;
+			}
 		}
 		xml_elem ef = sf.child("effects");
 		for (xml_elem::iterator it = ef.iterate(); !it.end(); it.next()) {
@@ -490,5 +516,31 @@ void music::exec_play_sfx(const std::string& category, const vector3& listener, 
 
 void music::exec_play_sfx_machine(const std::string& name, unsigned throttle)
 {
-        //code...
+	if (!use_music) throw std::invalid_argument("no music support");
+	map<string, vector<Mix_Chunk*> >::iterator it = sfx_machines.find(name);
+	if (it == sfx_machines.end())
+		throw invalid_argument(string("unknown machine name: ") + name);
+	unsigned nrthr = it->second.size();
+	unsigned thr = throttle * (nrthr+1)/100;
+	if (thr == 0) {
+		// stop machine
+		if (Mix_Playing(SFX_CHANNEL_MACHINE))
+			Mix_HaltChannel(SFX_CHANNEL_MACHINE);
+		current_machine_sfx = 0;
+		return;
+	}
+	thr = std::min(thr-1, nrthr-1);
+
+	Mix_Chunk* chk = it->second[thr];
+	if (chk == current_machine_sfx) {
+		// nothing to do, already playing
+		return;
+	}
+	// stop old sfx
+	if (Mix_Playing(SFX_CHANNEL_MACHINE))
+		Mix_HaltChannel(SFX_CHANNEL_MACHINE);
+	current_machine_sfx = 0;
+	if (Mix_PlayChannel(SFX_CHANNEL_MACHINE, chk, -1) < 0)
+		throw sdl_error("can't play channel");
+	current_machine_sfx = chk;
 }
