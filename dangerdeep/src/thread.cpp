@@ -34,9 +34,11 @@ int thread::thread_entry(void* arg)
 		t->run();
 	}
 	catch (std::exception& e) {
+		t->thread_error_message = e.what();
 		return -1;
 	}
 	catch (...) {
+		t->thread_error_message = "UNKNOWN";
 		return -2;
 	}
 	return 0;
@@ -58,9 +60,18 @@ void thread::run()
 	try {
 		init();
 	}
+	catch (std::exception& e) {
+		// failed to initialize, report that
+		mutex_locker ml(thread_state_mutex);
+		thread_error_message = e.what();
+		thread_state = THRSTAT_INIT_FAILED;
+		thread_start_cond.signal();
+		throw;
+	}
 	catch (...) {
 		// failed to initialize, report that
 		mutex_locker ml(thread_state_mutex);
+		thread_error_message = "UNKNOWN";
 		thread_state = THRSTAT_INIT_FAILED;
 		thread_start_cond.signal();
 		throw;
@@ -77,9 +88,17 @@ void thread::run()
 		}
 		deinit();
 	}
+	catch (std::exception& e) {
+		// thread execution failed
+		mutex_locker ml(thread_state_mutex);
+		thread_error_message = e.what();
+		thread_state = THRSTAT_ABORTED;
+		throw;
+	}
 	catch (...) {
 		// thread execution failed
 		mutex_locker ml(thread_state_mutex);
+		thread_error_message = "UNKNOWN";
 		thread_state = THRSTAT_ABORTED;
 		throw;
 	}
@@ -117,10 +136,10 @@ void thread::start()
 	thread_start_cond.wait(thread_state_mutex);
 	// now check if thread has started
 	if (thread_state == THRSTAT_INIT_FAILED)
-		throw std::runtime_error("thread start failed");
+		throw std::runtime_error(("thread start failed: ") + thread_error_message);
 	// very rare, but possible
 	else if (thread_state == THRSTAT_ABORTED)
-		throw std::runtime_error("thread run failed");
+		throw std::runtime_error(("thread run failed: ") + thread_error_message);
 }
 
 
@@ -131,7 +150,7 @@ void thread::join()
 	SDL_WaitThread(thread_id, &result);
 	delete this;
 	if (result < 0)
-		throw error("thread aborted with error");
+		throw error(std::string("thread aborted with error: ") + thread_error_message);
 
 }
 

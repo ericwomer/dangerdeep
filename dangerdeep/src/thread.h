@@ -48,6 +48,7 @@ class thread
 	thread_state_t thread_state;
 	mutex thread_state_mutex;
 	condvar thread_start_cond;
+	std::string thread_error_message; // to pass exception texts via thread boundaries
 
 	void run();
 
