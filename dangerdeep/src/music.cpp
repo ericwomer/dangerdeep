@@ -43,6 +43,8 @@ music* music::instance = 0;
 
 music::music(bool useit)
 	: current_track(0),
+	  usersel_next_track(-1),
+	  usersel_fadein(0),
 	  pbm(PBM_LOOP_LIST),
 	  stopped(true)
 {
@@ -316,6 +318,8 @@ void music::exec_play(unsigned fadein)
 	if (!use_music) throw std::invalid_argument("no music support");
 	if (!Mix_PlayingMusic()) {
 		start_play_track(current_track, fadein);
+	} else {
+		throw std::runtime_error("music still playing, can't execute play()");
 	}
 }
 
@@ -332,6 +336,8 @@ void music::exec_stop(unsigned fadeout)
 			Mix_FadeOutMusic(int(fadeout));
 		else
 			Mix_HaltMusic();
+	} else {
+		throw std::runtime_error("music not playing, can't execute stop()");
 	}
 }
 
@@ -357,15 +363,30 @@ void music::exec_resume()
 void music::exec_play_track(unsigned nr, unsigned fadeouttime, unsigned fadeintime)
 {
 	if (!use_music) throw std::invalid_argument("no music support");
-	exec_stop(fadeouttime);
-	current_track = nr;
-	exec_play(fadeintime);
+	try {
+		exec_stop(fadeouttime);
+	}
+	catch (exception& e) {
+		// couldn't stop, so music was already stopped?
+		current_track = nr;
+		exec_play(fadeintime);
+		return;
+	}
+	usersel_next_track = int(nr);
+	usersel_fadein = fadeintime;
 }
 
 
 
 void music::exec_track_finished()
 {
+	if (usersel_next_track >= 0) {
+		current_track = unsigned(usersel_next_track);
+		exec_play(usersel_fadein);
+		usersel_next_track = -1;
+		usersel_fadein = 0;
+		return;
+	}
 	if (!stopped) {
 		switch (pbm) {
 		case PBM_LOOP_LIST:

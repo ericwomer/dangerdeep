@@ -144,6 +144,8 @@ class music : public thread
 
  protected:
 	unsigned current_track;
+	int usersel_next_track;
+	unsigned usersel_fadein;
 	playback_mode pbm;
 	bool stopped;
 	std::vector<std::string> playlist;
