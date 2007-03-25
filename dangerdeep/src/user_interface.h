@@ -115,6 +115,10 @@ protected:
 	user_interface(const user_interface& other);
 	user_interface(game& gm);
 
+	// MUST be called after constructing an user_interface object (or one of its heirs).
+	// this function waits for completion of threads used to construct the ui object.
+	void finish_construction();
+
 //	inline virtual sea_object* get_player() const { return player_object; }
 
 //	void draw_clock(game& gm, int x, int y, unsigned wh, double t,

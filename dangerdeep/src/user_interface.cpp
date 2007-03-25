@@ -272,13 +272,28 @@ user_interface::user_interface(game& gm) :
 	add_loading_screen("user interface initialized");
 }
 
+
+
+void user_interface::finish_construction()
+{
+	mycoastmap.finish_construction();
+	mywater->finish_construction();
+}
+
+
+
 user_interface* user_interface::create(game& gm)
 {
 	sea_object* p = gm.get_player();
-	submarine* su = dynamic_cast<submarine*>(p); if (su) return new submarine_interface(gm);
-	//ship* sh = dynamic_cast<ship*>(p); if (sh) return new ship_interface(gm);
-	//airplane* ap = dynamic_cast<airplane*>(p); if (ap) return new airplane_interface(gm);
-	return 0;
+	user_interface* ui = 0;
+	// check for interfaces
+	if (dynamic_cast<submarine*>(p)) ui = new submarine_interface(gm);
+#if 0
+	else if (dynamic_cast<ship*>(p)) ui = new ship_interface(gm);
+	else if (dynamic_cast<airplane*>(p)) ui = new airplane_interface(gm);
+#endif
+	if (ui) ui->finish_construction();
+	return ui;
 }
 
 

@@ -1370,6 +1370,15 @@ coastmap::coastmap(const string& filename)
 
 	add_loading_screen("image transformed");
 
+	// here spin off work to other thread
+	myworker.reset(new worker(*this));
+	myworker->start();
+}
+
+
+
+void coastmap::construction_threaded()
+{
 	// they are filled in by process_coastline
 	coastsegments.resize(segsx*segsy);
 
@@ -1402,7 +1411,14 @@ coastmap::coastmap(const string& filename)
 	// fixme: clear "themap" so save space.
 	// information wether a position on the map is land or sea can be computed from
 	// segment data. This will save 6MB of space at least.
+}
 
+
+
+void coastmap::finish_construction()
+{
+	// lets the worker finish its work, then clears worker-ptr
+	myworker.reset();
 	add_loading_screen("coastmap created");
 }
 

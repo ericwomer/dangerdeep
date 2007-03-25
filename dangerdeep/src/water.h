@@ -34,6 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "angle.h"
 #include "vector3.h"
 #include "texture.h"
+#include "thread.h"
 #include "ship.h"
 #include "ocean_wave_generator.h"
 #include "vertexbufferobject.h"
@@ -175,8 +176,26 @@ protected:
 	ptrvector<geoclipmap_patch> patches;
 	mutable vertexbufferobject vertices;
 
+	class worker : public thread
+	{
+		water& wa;
+	public:
+		worker(water& w) : wa(w) {}
+		void loop()
+		{
+			wa.construction_threaded();
+			request_abort();
+		}
+	};
+
+	thread::auto_ptr<worker> myworker;
+	void construction_threaded();
 public:
 	water(double tm = 0.0);	// give day time in seconds
+
+	/// MUST be called after construction of water and before using it!
+	void finish_construction();
+
 	void set_time(double tm);
 
 	void draw_foam_for_ship(const game& gm, const ship* shp, const vector3& viewpos) const;

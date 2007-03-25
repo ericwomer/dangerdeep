@@ -246,6 +246,15 @@ water::water(double tm) :
 
 	add_loading_screen("water maps inited");
 
+	// here spin off work to other thread
+	myworker.reset(new worker(*this));
+	myworker->start();
+}
+
+
+
+void water::construction_threaded()
+{
 	/*
 	  Idea:
 	  Computing one Height map with FFT takes roughly 2 ms on a 1800Mhz PC (64x64).
@@ -267,9 +276,8 @@ water::water(double tm) :
 	}
 	// set up curr_wtp and subdetail
 	curr_wtp = 0;
-	set_time(tm);
 
-	add_loading_screen("water height data computed");
+	//add_loading_screen("water height data computed");
 
 #ifdef MEASURE_WAVE_HEIGHTS
 	cout << "total minh " << totalmin << " maxh " << totalmax << "\n";
@@ -277,7 +285,7 @@ water::water(double tm) :
 
 	compute_amount_of_foam();
 
-	add_loading_screen("foam data per tile computed");
+	//add_loading_screen("foam data per tile computed");
 
 	// compute specular lookup texture
 #if 0
@@ -288,6 +296,16 @@ water::water(double tm) :
 	waterspecularlookup.reset(new texture(waterspecularlookup_tmp, waterspecularlookup_res, 1, GL_LUMINANCE,
 					      texture::LINEAR, texture::CLAMP_TO_EDGE));
 #endif
+}
+
+
+
+void water::finish_construction()
+{
+	// lets the worker finish its work, then clears worker-ptr
+	myworker.reset();
+	add_loading_screen("water created");
+	set_time(mytime);
 }
 
 

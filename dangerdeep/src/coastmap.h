@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector3.h"
 #include "bspline.h"
 #include "texture.h"
+#include "thread.h"
 #include <vector>
 #include <string>
 #include <list>
@@ -139,6 +140,21 @@ class coastmap
 	void process_coastline(int x, int y);
 	void process_segment(int x, int y);
 
+	class worker : public thread
+	{
+		coastmap& cm;
+	public:
+		worker(coastmap& c) : cm(c) {}
+		void loop()
+		{
+			cm.construction_threaded();
+			request_abort();
+		}
+	};
+
+	thread::auto_ptr<worker> myworker;
+	void construction_threaded();
+
 public:	
 	// returns quadrant of vector d (0: - 0 degr, 1: - ]0...90[ degr, 2 - 90 degr ... 7: ..360[ degr.)
 	static unsigned quadrant(const vector2i& d);
@@ -146,8 +162,11 @@ public:
 	vector2 segcoord_to_real(int segx, int segy, const coastsegment::segpos& sp) const;
 	vector2f segcoord_to_texc(int segx, int segy) const;
 
-	// create from xml file
+	/// create from xml file
 	coastmap(const std::string& filename);
+
+	/// MUST be called after construction of coastmap and before using it!
+	void finish_construction();
 
 	const std::list<std::pair<vector2, std::string> >& get_city_list() const { return cities; }
 
