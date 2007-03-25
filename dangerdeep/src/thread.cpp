@@ -22,6 +22,7 @@
 
 #include "thread.h"
 #include "error.h"
+#include "system.h"
 #include <SDL.h>
 #include <SDL_thread.h>
 
@@ -58,6 +59,7 @@ thread::thread()
 void thread::run()
 {
 	try {
+		sys().add_console("New thread [0x%x]", get_my_id());
 		init();
 	}
 	catch (std::exception& e) {
@@ -87,6 +89,7 @@ void thread::run()
 			loop();
 		}
 		deinit();
+		sys().add_console("End thread [0x%x]", get_my_id());
 	}
 	catch (std::exception& e) {
 		// thread execution failed
