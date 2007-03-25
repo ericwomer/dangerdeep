@@ -182,6 +182,20 @@ void thread::sleep(unsigned ms)
 
 
 
+thread::id thread::get_my_id()
+{
+	return SDL_ThreadID();
+}
+
+
+
+thread::id thread::get_id() const
+{
+	return SDL_GetThreadID(thread_id);
+}
+
+
+
 bool thread::is_running()
 {
 	// only reading is normally safe, but not for multi-core architectures.

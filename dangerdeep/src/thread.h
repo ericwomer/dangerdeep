@@ -25,6 +25,7 @@
 
 #include "condvar.h"
 #include <stdexcept>
+#include <stdint.h>
 
 /// base class for threads.
 ///@note Each thread should be an instance of a class that heirs
@@ -89,6 +90,15 @@ class thread
 	/// let this thread sleep
 	///@param ms - sleep time in milliseconds
 	static void sleep(unsigned ms);
+
+	/// define SDL conform thread id type
+	typedef uint32_t id;
+
+	/// get ID of current (caller) thread
+	static id get_my_id();
+
+	/// get ID of this thread
+	id get_id() const;
 
 	/// request if thread runs
 	bool is_running();
