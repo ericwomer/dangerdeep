@@ -99,10 +99,14 @@ public:
 
 	struct sink_record {
 		date dat;
-		std::string descr;	// fixme: store type, use a static ship function to retrieve a matching description
+		std::string descr;	// fixme: store type, use a static ship function to retrieve a matching description, via specfilename!
 		std::string mdlname;	// model file name string
+		std::string specfilename; // spec file name (base model name)
+		std::string layoutname; // model skin
 		unsigned tons;
-		sink_record(date d, const std::string& s, const std::string& m, unsigned t) : dat(d), descr(s), mdlname(m), tons(t) {}
+		sink_record(date d, const std::string& s, const std::string& m,
+			    const std::string& sn, const std::string& ln, unsigned t)
+			: dat(d), descr(s), mdlname(m), specfilename(sn), layoutname(ln), tons(t) {}
 		sink_record(const xml_elem& parent);
 		void save(xml_elem& parent) const;
 	};

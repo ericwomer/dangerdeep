@@ -266,8 +266,9 @@ public:
 
 	// detail: 0 - category, 1 - finer category, >=2 - exact category
 	virtual std::string get_description(unsigned detail) const;
-	virtual std::string get_specfilename() const { return specfilename; }
-	virtual std::string get_modelname() const { return modelname; }
+	const std::string& get_specfilename() const { return specfilename; }
+	const std::string& get_modelname() const { return modelname; }
+	const std::string& get_skin_layout() const { return skin_name; }
 
 	virtual void simulate(double delta_time);
 //	virtual bool is_collision(const sea_object* other);

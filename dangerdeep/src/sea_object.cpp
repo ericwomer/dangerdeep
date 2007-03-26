@@ -694,21 +694,29 @@ const sensor* sea_object::get_sensor ( sensor_system ss ) const
 
 void sea_object::compress(std::vector<sea_object*>& vec)
 {
-	unsigned newsize = 0;
-	for (unsigned i = 0; i < vec.size(); ++i) {
+	unsigned j = vec.size();
+	for (unsigned i = 0; i < j; ) {
 		if (vec[i]->is_alive() || vec[i]->is_inactive()) {
-			++newsize;
+			// element ok
+			++i;
 		} else {
-			vec[i] = 0;
+			// object defunct, swap with last pointer
+			--j;
+			vec[i] = vec[j];
+			vec[j] = 0;
 		}
 	}
-	for (unsigned i = 0, j = 0; i < vec.size(); ++i) {
-		if (vec[i] != 0) {
-			vec[j] = vec[i];
-			++j;
+	vec.resize(j);
+
+#if 0 // test hack, sometimes the game crashes in map/draw_trail, because of a null-pointer,
+	// but the only place where pointers are set to 0 is here...
+	// no, bug still occours, but this output is not show... damn
+	for (unsigned i = 0; i < vec.size(); ++i) {
+		if (vec[i] == 0) {
+			printf("ERROR!!!!!!!! vec[%u] is empty!\n", i);
 		}
 	}
-	vec.resize(newsize);
+#endif
 }
 
 

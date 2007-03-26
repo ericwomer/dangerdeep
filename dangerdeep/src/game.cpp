@@ -107,6 +107,8 @@ game::sink_record::sink_record(const xml_elem& parent)
 	descr = parent.attr("descr");
 	mdlname = parent.attr("mdlname");
 	tons = parent.attru("tons");
+	specfilename = parent.attr("specfilename");
+	layoutname = parent.attr("layoutname");
 }
 
 
@@ -117,6 +119,8 @@ void game::sink_record::save(xml_elem& parent) const
 	parent.set_attr(descr, "descr");
 	parent.set_attr(mdlname, "mdlname");
 	parent.set_attr(tons, "tons");
+	parent.set_attr(specfilename, "specfilename");
+	parent.set_attr(layoutname, "layoutname");
 }
 
 
@@ -1309,7 +1313,7 @@ void game::ship_sunk(const ship* s)
 	ostringstream oss;
 	oss << texts::get(83) << " " << s->get_description ( 2 );
 	date d((unsigned)time);
-	sunken_ships.push_back(sink_record(d, s->get_description(2), s->get_modelname(), s->get_tonnage()));
+	sunken_ships.push_back(sink_record(d, s->get_description(2), s->get_modelname(), s->get_specfilename(), s->get_skin_layout(), s->get_tonnage()));
 }
 
 
