@@ -3,6 +3,15 @@ THIS FILE IS FOR SOME SHORT NOTES FROM DEVELOPERS...
 Next changes:
 -------------
 
+idea: store all physic data/states centralized
+-> easier simulation, simd possible.
+-> multithreading possible, 2nd thread computes next
+   physic state from current, when ready and main thread
+   has finished display, copy/swap physic data and
+   continue.
+   needs some alloc/handling of physical data...
+
+
 SIMULATE THE PASSIVE SONAR (HEARING EQUIPMENT)
 - KGB/GHG/BG machines
 - do not call sonar_ships() for each frame that is drawn on the screen,
