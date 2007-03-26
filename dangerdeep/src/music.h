@@ -134,6 +134,11 @@ class music : public thread
         ///@returns true if command was successful
         bool play_sfx_machine(const std::string& name, unsigned throttle);
 
+        /// Pause/Resume all sound effects
+        ///@param on - true to pause, false to resume
+        ///@returns true if command was successful
+        bool pause_sfx(bool on);
+
 	// ---------------------------------------------
 
 	/// set to false if you don't want music.  fixme - rather ugly approach!
@@ -182,6 +187,7 @@ class music : public thread
         void exec_is_playing(bool& isply);
         void exec_play_sfx(const std::string& category, const vector3& listener, angle listener_dir, const vector3& noise_pos);
         void exec_play_sfx_machine(const std::string& name, unsigned throttle);
+	void exec_pause_sfx(bool on);
 
 	class command_append_track : public message
 	{
@@ -302,6 +308,15 @@ class music : public thread
          public:
                 command_play_sfx_machine(music& my_music_, const std::string& name_, unsigned throttle_) : my_music(my_music_), name(name_), throttle(throttle_) {}
         };
+
+        class command_pause_sfx : public message
+        {
+                music& my_music;
+                bool on;
+                void eval() const { my_music.exec_pause_sfx(on); }
+         public:
+                command_pause_sfx(music& my_music_, bool on_) : my_music(my_music_), on(on_) {}
+        };
 };
 
 #endif /* __MUSIC_H_ */
@@ -321,4 +336,5 @@ get_current_track unsigned& track
 is_playing bool& isply
 play_sfx std::string category vector3 listener angle listener_dir vector3 noise_pos
 play_sfx_machine std::string name unsigned throttle
+pause_sfx bool on
 --- snap --- */

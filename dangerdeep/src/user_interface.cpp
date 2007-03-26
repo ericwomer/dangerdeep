@@ -910,26 +910,10 @@ void user_interface::show_playlist()
 
 void user_interface::pause_all_sound() const
 {
-#if 0 // fixme
-	// bit of a dodgy way to find a sound so we can call a function affecting
-	// all sounds
-	sound* s = soundcache().find(se_sub_screws_slow);
-	if ( s )
-		s->pause_all();
-	else
-		throw error(std::string("soundcache: can't find effect"));
-#endif
+	music::inst().pause_sfx(true);
 }
 
 void user_interface::resume_all_sound() const
 {
-#if 0 // fixme
-	// bit of a dodgy way to find a sound so we can call a function affecting
-	// all sounds
-	sound* s = soundcache().find(se_sub_screws_slow);
-	if ( s )
-		s->resume_all();
-	else
-		throw error(std::string("soundcache: can't find effect"));
-#endif
+	music::inst().pause_sfx(false);
 }

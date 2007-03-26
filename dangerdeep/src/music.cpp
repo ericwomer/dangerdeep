@@ -316,6 +316,11 @@ bool music::play_sfx_machine(const std::string& name, unsigned throttle)
         return command_queue.send(std::auto_ptr<message>(new command_play_sfx_machine(*this, name, throttle)));
 }
 
+bool music::pause_sfx(bool on)
+{
+        return command_queue.send(std::auto_ptr<message>(new command_pause_sfx(*this, on)));
+}
+
 // -------------------- command exec --------------------
 
 void music::exec_append_track(const std::string& filename)
@@ -543,4 +548,14 @@ void music::exec_play_sfx_machine(const std::string& name, unsigned throttle)
 	if (Mix_PlayChannel(SFX_CHANNEL_MACHINE, chk, -1) < 0)
 		throw sdl_error("can't play channel");
 	current_machine_sfx = chk;
+}
+
+
+
+void music::exec_pause_sfx(bool on)
+{
+        if (on)
+		Mix_Pause(-1);
+	else
+		Mix_Resume(-1);
 }
