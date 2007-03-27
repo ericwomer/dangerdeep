@@ -707,16 +707,6 @@ void sea_object::compress(std::vector<sea_object*>& vec)
 		}
 	}
 	vec.resize(j);
-
-#if 0 // test hack, sometimes the game crashes in map/draw_trail, because of a null-pointer,
-	// but the only place where pointers are set to 0 is here...
-	// no, bug still occours, but this output is not show... damn
-	for (unsigned i = 0; i < vec.size(); ++i) {
-		if (vec[i] == 0) {
-			printf("ERROR!!!!!!!! vec[%u] is empty!\n", i);
-		}
-	}
-#endif
 }
 
 
