@@ -71,27 +71,36 @@
       <translation vector="0.000000 0.000000 0.000000"/>
       <object id="1" name="propeller_1" mesh="1">
         <translation vector="-1.014183 -15.560052 -1.405314"/>
+	<rotation axis="0 1 0" angle="0" minangle="0" maxangle="360"/>
       </object>
       <object id="2" name="propeller_2" mesh="2">
         <translation vector="1.014167 -15.555262 -1.405314"/>
+	<rotation axis="0 -1 0" angle="0" minangle="0" maxangle="360"/>
       </object>
       <object id="3" name="diveplane_2" mesh="3">
         <translation vector="-0.000009 -16.533580 -1.395811"/>
+	<rotation axis="1 0 0" angle="0" minangle="-35" maxangle="35"/>
       </object>
       <object id="4" name="rudder_1" mesh="4">
         <translation vector="-0.000008 -17.205863 -0.204579"/>
+	<rotation axis="0 0 1" angle="0" minangle="-40" maxangle="40"/>
       </object>
       <object id="5" name="radioantenna_1" mesh="5">
         <translation vector="0.641644 -0.417871 4.951662"/>
+	<translation constraint="z -1.78 0"/>
       </object>
       <object id="6" name="periscope_1" mesh="6">
         <translation vector="0.000654 0.332492 7.702507"/>
+	<translation constraint="z -4.80 0"/>
       </object>
       <object id="7" name="turret_1" mesh="7">
         <translation vector="0.000000 0.000000 0.000000"/>
+	<rotation axis="0 0 1" angle="0" minangle="-135" maxangle="135"/>
+	<rotation axis="1 0 0" angle="0" minangle="-5" maxangle="45"/>
       </object>
       <object id="8" name="diveplane_1" mesh="8">
         <translation vector="-0.000008 12.818513 -1.986900"/>
+	<rotation axis="1 0 0" angle="0" minangle="-35" maxangle="35"/>
       </object>
     </object>
   </objecttree>
