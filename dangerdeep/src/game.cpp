@@ -880,9 +880,19 @@ vector<torpedo*> game::visible_torpedoes(const sea_object* o) const
 {
 //testing: draw all torpedoes
 	if (!o) throw error("visible_xyz function called with NULL object");
-	vector<torpedo*> result(torpedoes.size());
-	for (unsigned k = 0; k < torpedoes.size(); ++k)
-		result[k] = torpedoes[k];
+	vector<torpedo*> result;
+	result.reserve(torpedoes.size());
+	// Note!!! all entries of "torpedoes" should be valid pointers here, not
+	// null pointers, but it seems sometimes some are null, leading to
+	// segfault on torpedo impact when not checking for null pointers here!
+	// this is bad, but a check here is cheap...
+	// torpedoes.compress() should remove any null pointers before display
+	// is rendered, but it crashes when drawing trails because of null
+	// pointers...
+	for (unsigned k = 0; k < torpedoes.size(); ++k) {
+		if (torpedoes[k])
+			result.push_back(torpedoes[k]);
+	}
 	return result;
 //	return visible_obj<torpedo>(this, torpedoes, o);
 }
