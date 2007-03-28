@@ -890,8 +890,21 @@ vector<torpedo*> game::visible_torpedoes(const sea_object* o) const
 	// is rendered, but it crashes when drawing trails because of null
 	// pointers...
 	for (unsigned k = 0; k < torpedoes.size(); ++k) {
-		if (torpedoes[k])
+		if (torpedoes[k]) {
 			result.push_back(torpedoes[k]);
+		} else {
+			// can happen if a torpedo is inactive/dead at the same simulation cycle
+			// when visibility is recomputed.
+			// Because first ALL objects are simulated/computed, there an entry in the
+			// ptrset may become NULL, and only then torpedoes.compact() is called.
+			// This leads to possible NULL-pointers here.
+			// can NOT happen with other objects ... every frame in sea_object::compress
+			// the alive_status is checked. It is then sometimes replaced by a copy
+			// of visible_objects from class game, and this is where NULL-pointers
+			// could be passed. It is avoided in visible_obj and also now here,
+			// this is the critical bugfix.
+			sys().add_console("Debug: visible_torpedoes(): filtered NULL-pointer");
+		}
 	}
 	return result;
 //	return visible_obj<torpedo>(this, torpedoes, o);
