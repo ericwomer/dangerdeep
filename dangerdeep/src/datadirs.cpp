@@ -60,8 +60,8 @@ data_file_handler::data_file_handler()
 static const std::string data_file_ext = ".data";
 void data_file_handler::parse_for_data_files(std::string dir, std::list<std::string>& idlist)
 {
-	directory d = open_dir(get_data_dir() + dir);
-	for (std::string f = read_dir(d); !f.empty(); f = read_dir(d)) {
+	directory d(get_data_dir() + dir);
+	for (std::string f = d.read(); !f.empty(); f = d.read()) {
 		if (f[0] == '.' || f == "CVS") {
 			// avoid . and .. entries, as well as hidden files, and CVS directories as well
 			continue;
@@ -74,7 +74,6 @@ void data_file_handler::parse_for_data_files(std::string dir, std::list<std::str
 			idlist.push_back(id);
 		}
 	}
-	close_dir(d);
 }
 
 

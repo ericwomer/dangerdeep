@@ -26,34 +26,46 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 using namespace std;
 
 #ifdef WIN32
-directory open_dir(const string& filename)
+directory::directory(const string& filename)
+	: temporary_used(true)
 {
-	directory d;
-	d.temporary_used = true;
-	d.dir = FindFirstFile((filename + "*.*").c_str(), &d.Win32_FileFind_Temporary);
-	return d;
+	dir = FindFirstFile((filename + "*.*").c_str(), &Win32_FileFind_Temporary);
+	if (!dir)
+		throw error(string("Can't open directory ") + filename);
 }
-string read_dir(directory& d)
+
+
+
+string directory::read()
 {
-	if (d.temporary_used) {
-		d.temporary_used = false;
-		return d.Win32_FileFind_Temporary.cFileName;
+	if (temporary_used) {
+		temporary_used = false;
+		return Win32_FileFind_Temporary.cFileName;
 	} else {
-		BOOL b = FindNextFile(d.dir, &d.Win32_FileFind_Temporary);
+		BOOL b = FindNextFile(dir, &Win32_FileFind_Temporary);
 		if (b == TRUE)
-			return string(d.Win32_FileFind_Temporary.cFileName);
+			return string(Win32_FileFind_Temporary.cFileName);
 		else
-			return "";
+			return string();
 	}
 }
-void close_dir(directory d)
+
+
+
+directory::~directory()
 {
-	FindClose(d.dir);
+	FindClose(dir);
 }
+
+
+
 bool make_dir(const string& dirname)
 {
 	return (CreateDirectory(dirname.c_str(), NULL) == TRUE);
 }
+
+
+
 string get_current_directory()
 {
 	unsigned sz = 256;
@@ -68,6 +80,9 @@ string get_current_directory()
 	}
 	return string(&s[0]) + PATHSEPARATOR;
 }
+
+
+
 bool is_directory(const string& filename)
 {
 	int err = GetFileAttributes(filename.c_str());
@@ -80,33 +95,42 @@ bool is_directory(const string& filename)
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-directory open_dir(const string& filename)
+directory::directory(const string& filename)
+	: dir(0)
 {
-	directory d;
-	d.dir = opendir(filename.c_str());
-	if (!d.dir) {
-		throw error("Error opening directory '" + filename + "'" );
-	}
-	return d;
+	dir = opendir(filename.c_str());
+	if (!dir)
+		throw error(string("Can't open directory ") + filename);
 }
 
-string read_dir(directory& d)
+
+
+string directory::read()
 {
-	struct dirent* dir_entry = readdir(d.dir);
+	struct dirent* dir_entry = readdir(dir);
 	if (dir_entry) {
 		return string(dir_entry->d_name);
 	}
-	return "";
+	return string();
 }
-void close_dir(directory d)
+
+
+
+directory::~directory()
 {
-	closedir(d.dir);
+	closedir(dir);
 }
+
+
+
 bool make_dir(const string& dirname)
 {
 	int err = mkdir(dirname.c_str(), 0755);
 	return (err != -1);
 }
+
+
+
 string get_current_directory()
 {
 	unsigned sz = 256;
@@ -121,6 +145,9 @@ string get_current_directory()
 	}
 	return string(&s[0]) + PATHSEPARATOR;
 }
+
+
+
 bool is_directory(const string& filename)
 {
 	struct stat fileinfo;

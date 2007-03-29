@@ -260,17 +260,17 @@ void loadsavequit_dialogue::update_list()
 	savegames.clear();
 
 	// read save games in directory
-	directory savegamedir = open_dir(savegamedirectory);
-	sys().myassert(savegamedir.is_valid(), "game: could not open save game directory");
-	while (true) {
-		string e = read_dir(savegamedir);
-		if (e.length() == 0) break;
-		if (is_savegame_name(e)) {
-			string descr = mygame->read_description_of_savegame(savegamedirectory+e);
-			savegames[e] = descr;
+	{
+		directory savegamedir(savegamedirectory);
+		while (true) {
+			string e = savegamedir.read();
+			if (e.empty()) break;
+			if (is_savegame_name(e)) {
+				string descr = mygame->read_description_of_savegame(savegamedirectory+e);
+				savegames[e] = descr;
+			}
 		}
 	}
-	close_dir(savegamedir);
 	
 	gamelist->clear();
 
@@ -667,17 +667,17 @@ void choose_historical_mission()
 	
 	// read missions
 	unsigned nr_missions = 0;
-	directory missiondir = open_dir(get_mission_dir());
-	sys().myassert(missiondir.is_valid(), "could not open mission directory");
-	while (true) {
-		string e = read_dir(missiondir);
-		if (e.length() == 0) break;
-		if (e.length() > 4 && e.substr(e.length()-4) == ".xml") {
-			missions.push_back(e);
-			++nr_missions;
+	{
+		directory missiondir(get_mission_dir());
+		while (true) {
+			string e = missiondir.read();
+			if (e.empty()) break;
+			if (e.length() > 4 && e.substr(e.length()-4) == ".xml") {
+				missions.push_back(e);
+				++nr_missions;
+			}
 		}
 	}
-	close_dir(missiondir);
 
 	// read descriptions, set up windows
 	widget w(0, 0, 1024, 768, texts::get(10), 0, "sunderland.jpg");
@@ -1725,31 +1725,30 @@ int mymain(list<string>& args)
 	mysys->draw_console_with(font_arial, metalbackground.get());
 
 
-	// try to make directories (again)
-	directory savegamedir = open_dir(savegamedirectory);
-	if (!savegamedir.is_valid()) {
-		bool ok = make_dir(savegamedirectory);
-		if (!ok) {
-			sys().myassert(false, "could not create save game directory.");
-		}
+	// try to make directories if they do not exist
+	try {
+		directory savegamedir(savegamedirectory);
 	}
-	// init config dir
-	directory configdir = open_dir(configdirectory);
-	if (!configdir.is_valid()) {
-		bool ok = make_dir(configdirectory);
-		if (!ok) {
-			sys().myassert(false, "could not create config directory.");
-		}
-	}
-	// init highscore dir
-	directory highscoredir = open_dir(highscoredirectory);
-	if (!highscoredir.is_valid()) {
-		bool ok = make_dir(highscoredirectory);
-		if (!ok) {
-			sys().myassert(false, "could not create highscore directory.");
-		}
+	catch (exception& e) {
+		if (!make_dir(savegamedirectory))
+			throw error("could not create save game directory.");
 	}
 
+	try {
+		directory configdir(configdirectory);
+	}
+	catch (exception& e) {
+		if (!make_dir(configdirectory))
+			throw error("could not create config directory.");
+	}
+
+	try {
+		directory highscoredir(highscoredirectory);
+	}
+	catch (exception& e) {
+		if (!make_dir(highscoredirectory))
+			throw error("could not create save game directory.");
+	}
 
 	// read highscores
 	if (!file_exists(highscoredirectory + HSL_MISSION_NAME))

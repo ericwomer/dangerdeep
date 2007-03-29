@@ -23,44 +23,51 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef FILEHELPER_H
 #define FILEHELPER_H
 
-#include <string>
-
-// directory reading/writing encapsulated for compatibility
-
 #ifdef WIN32
-// 2006-12-01 doc1972 added check to prevent double definition. 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif /* WIN32_LEAN_AND_MEAN */
 #include <windows.h>
-struct directory {
-	HANDLE dir;
-	WIN32_FIND_DATA Win32_FileFind_Temporary;	// needed because findfirst does
-	bool temporary_used;				// open and first read together
-	bool is_valid() const { return dir != 0; }
-};
 #define PATHSEPARATOR "\\"
 #else
 #include <dirent.h>
-struct directory {
-	DIR* dir;
-	bool is_valid() const { return dir != 0; }
-};
 #define PATHSEPARATOR "/"
 #endif
 
+#include <string>
+
+/// directory reading/writing encapsulated for compatibility and ease of use
+class directory
+{
+	directory();
+	directory(const directory& );
+	directory& operator= (const directory& );
+ public:
+	/// Open directory.
+	///@note throws exception if it is an invalid directory or if filename does note exist
+	directory(const std::string& filename);
+
+	/// Close directory
+	~directory();
+
+	/// Read next filename from directory.
+	///@returns empty string if directory is fully read, filename else
+	std::string read();
+
+ private:
+	// system specific part
+#ifdef WIN32
+	HANDLE dir;
+	WIN32_FIND_DATA Win32_FileFind_Temporary;	// needed because findfirst does
+	bool temporary_used;				// open and first read together
+#else
+	DIR* dir;
+#endif
+};
+
+
+
 // file helper interface
-
-///\brief Open directory and return a handle for it.
-///Returns an invalid directory if filename doesn't exist
-directory open_dir(const std::string& filename);
-
-///\brief Read next filename from directory.
-///Returns an empty string if directory is fully read.
-std::string read_dir(directory& d);
-
-///\brief Close directory handle.
-void close_dir(directory d);
 
 ///\brief Make new directory. Returns true on success.
 bool make_dir(const std::string& dirname);

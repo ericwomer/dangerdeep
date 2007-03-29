@@ -1213,13 +1213,11 @@ widget_fileselector::widget_fileselector(int x, int y, int w, int h, const strin
 void widget_fileselector::read_current_dir()
 {
 	current_dir->clear();
-	directory dir = open_dir(current_path->get_text());
-	if (!dir.is_valid())
-		throw error("[widget_fileselector::read_current_dir] could not open directory");
+	directory dir(current_path->get_text());
 	set<string> dirs, files;
 	while (true) {
-		string e = read_dir(dir);
-		if (e.length() == 0) break;
+		string e = dir.read();
+		if (e.empty()) break;
 		if (e[0] == '.') continue;	// avoid . .. and hidden files
 		if (is_directory(current_path->get_text() + e)) {
 			dirs.insert(e);
@@ -1227,7 +1225,6 @@ void widget_fileselector::read_current_dir()
 			files.insert(e);
 		}
 	}
-	close_dir(dir);
 	nr_dirs = dirs.size()+1;
 	nr_files = files.size();
 	current_dir->append_entry("[..]");
