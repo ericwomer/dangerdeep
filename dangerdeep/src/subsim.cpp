@@ -95,8 +95,6 @@ highscorelist hsl_mission, hsl_career;
 #define HSL_MISSION_NAME "mission.hsc"
 #define HSL_CAREER_NAME "career.hsc"
 
-thread::auto_ptr<music> mmusic;
-
 // a dirty hack
 void menu_notimplemented()
 {
@@ -478,7 +476,7 @@ void run_game(auto_ptr<game> gm)
 //			if (state == game::mission_complete)
 
 			if (state == game::player_killed) {
-				mmusic->play_track(1, 500);
+				music::inst().play_track(1, 500);
 				widget w(0, 0, 1024, 768, "", 0, "killed.jpg");
 				widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(103));
 				w.add_child(wm);
@@ -495,7 +493,7 @@ void run_game(auto_ptr<game> gm)
 			//if (q == 1)
 				break;
 		} else {
-			mmusic->play_track(1, 500);
+			music::inst().play_track(1, 500);
 			loadsavequit_dialogue dlg(gm.get());
 			int q = dlg.run(0, false);
 			// replace game and ui if new game was loaded
@@ -515,11 +513,11 @@ void run_game(auto_ptr<game> gm)
 			}
 			//replace ui after loading!!!!
 			if (q == 1){
-				mmusic->play_track(1, 500);
+				music::inst().play_track(1, 500);
 				break;
 			}
 			if( q == 0 ){
-				//mmusic->_fade_out(1000);
+				//music::inst()._fade_out(1000);
 			}
 		}
 		//SDL_ShowCursor(SDL_DISABLE);
@@ -556,7 +554,7 @@ void run_game_editor(auto_ptr<game> gm)
 		/*game::run_state state =*/ game__exec(*gm, *ui);
 		gametheme = widget::replace_theme(tmp);
 
-		mmusic->play_track(1, 500);
+		music::inst().play_track(1, 500);
 		loadsavequit_dialogue dlg(gm.get());
 		int q = dlg.run(0, false);
 		// replace game and ui if new game was loaded
@@ -576,11 +574,11 @@ void run_game_editor(auto_ptr<game> gm)
 		}
 		//replace ui after loading!!!!
 		if (q == 1){
-			mmusic->play_track(1, 500);
+			music::inst().play_track(1, 500);
 			break;
 		}
 		if( q == 0 ){
-			//mmusic->_fade_out(1000);
+			//music::inst()._fade_out(1000);
 		}
 	}
 
@@ -1697,7 +1695,7 @@ int mymain(list<string>& args)
 	glEnable(GL_LIGHT0);
 
 	// create and start thread for music handling.
-	mmusic.reset(new music(use_sound));
+	thread::auto_ptr<music> mmusic(new music(use_sound));
 	mmusic->start();
 
 	reset_loading_screen();
