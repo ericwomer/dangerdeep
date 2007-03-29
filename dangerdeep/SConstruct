@@ -22,6 +22,7 @@ devel = int(ARGUMENTS.get('devel', 0))
 cvedit = int(ARGUMENTS.get('cvedit', 0))
 usex86sse = int(ARGUMENTS.get('usex86sse', 0))
 useefence = int(ARGUMENTS.get('useefence', 0))
+useduma = int(ARGUMENTS.get('useduma', 0))
 
 ################ set environment
 
@@ -140,6 +141,9 @@ else:
 	if (useefence >= 1):
 		extralibs += ['efence']
 		print 'Linking to ElectricFence library!'
+	elif (useduma >= 1):
+		extralibs += ['duma']
+		print 'Linking to DUMA (EletricFence successor) library!'
 	if (cvedit == 1):
 		env.Append(CPPDEFINES = ['CVEDIT'])
 	# check for mmx/sse support
@@ -248,6 +252,7 @@ Help("""
 		3: profiling, -1: extreme optimizations, -2: even more extreme optim.
 	'usex86sse=x' where x < 0: disable them, 0: autodetect, 1: enable them, 2: force usage (no runtime detection).
 	'useefence=x' when x > 0 use the Electric Fence library (for debugging)
+	'useduma=x' when x > 0 use the Electric Fence successor DUMA (for debugging)
 	""")
 
 ################ build
