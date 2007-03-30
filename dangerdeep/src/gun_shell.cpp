@@ -71,7 +71,6 @@ void gun_shell::simulate(double delta_time)
 {
 	oldpos = position;
 	sea_object::simulate(delta_time);
-	if (is_defunct()) return;
 
 	// very crude, fixme. compute intersection of line oldpos->position with objects.
 	if (position.z <= 0) {

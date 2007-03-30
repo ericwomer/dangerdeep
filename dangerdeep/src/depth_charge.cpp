@@ -66,7 +66,7 @@ void depth_charge::save(xml_elem& parent) const
 void depth_charge::simulate(double delta_time)
 {
 	sea_object::simulate(delta_time);
-	if (is_defunct()) return;
+
 	if (position.z < -explosion_depth) {
 		gm.dc_explosion(*this);
 		kill();	// dc is "dead"

@@ -440,14 +440,18 @@ string sea_object::get_description(unsigned detail) const
 void sea_object::simulate(double delta_time)
 {
 	// check and change states
-        if (is_defunct()) {
-		// fixme: maybe throw a dead_object exception here and catch them in game::simulate for each object
-		// that way we have to check for defunct()/dead() only here, and not also in every heir of sea_object
-                return;
-        } else if (is_dead()) {
-		destroy();
-                return;
-        }
+	if (alive_stat == zombie) {
+		// with that trick we do not need to handle this situation in every heir of sea_object.
+		throw is_dead_exception();
+	} else if (alive_stat == defunct) {
+		// change state to zombie.
+		alive_stat = zombie;
+		throw is_dead_exception(false);
+	} else if (alive_stat == dead) {
+		// change state to defunct.
+		alive_stat = defunct;
+		throw is_dead_exception(false);
+	}
 
 	// check target. heirs should check for "out of range" condition too
 	if (target && !target->is_alive())
@@ -605,13 +609,6 @@ void sea_object::kill()
 
 
 
-void sea_object::destroy()
-{
-	alive_stat = defunct;
-}
-
-
-
 float sea_object::surface_visibility(const vector2& watcher) const
 {
 	return get_cross_section(watcher);
@@ -696,6 +693,7 @@ void sea_object::compress(std::vector<sea_object*>& vec)
 {
 	unsigned j = vec.size();
 	for (unsigned i = 0; i < j; ) {
+		if (vec[i] == 0) throw error("BUG! sea_object::compress vector, element is NULL!");
 		if (vec[i]->is_alive() || vec[i]->is_inactive()) {
 			// element ok
 			++i;
@@ -714,7 +712,8 @@ void sea_object::compress(std::vector<sea_object*>& vec)
 void sea_object::compress(std::list<sea_object*>& lst)
 {
 	for (std::list<sea_object*>::iterator it = lst.begin(); it != lst.end(); ) {
-		if ((*it)->is_alive()) {
+		if (*it == 0) throw error("BUG! sea_object::compress list, element is NULL!");
+		if ((*it)->is_alive() || (*it)->is_inactive()) {
 			++it;
 		} else {
 			it = lst.erase(it);

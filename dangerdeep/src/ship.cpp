@@ -500,7 +500,7 @@ void ship::save(xml_elem& parent) const
 void ship::simulate(double delta_time)
 {
 	sea_object::simulate(delta_time);
-	if (is_defunct()) return;
+
 	if ( myai.get() )
 		myai->act(gm, delta_time);
 

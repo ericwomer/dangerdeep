@@ -681,11 +681,13 @@ void game::simulate(double delta_t)
 			double dist = ships[i]->get_pos().distance(player->get_pos());
 			if (dist < nearest_contact) nearest_contact = dist;
 		}
-		if (ships[i]->is_defunct()) {
-			ships.reset(i);
-		} else {
+		try {
 			ships[i]->simulate(delta_t);
 			if (record) ships[i]->remember_position(get_time());
+		}
+		catch (sea_object::is_dead_exception& e) {
+			if (e.delete_obj())
+				ships.reset(i);
 		}
 	}
 	ships.compact();
@@ -697,11 +699,13 @@ void game::simulate(double delta_t)
 			double dist = submarines[i]->get_pos().distance(player->get_pos());
 			if (dist < nearest_contact) nearest_contact = dist;
 		}
-		if (submarines[i]->is_defunct()) {
-			submarines.reset(i);
-		} else {
+		try {
 			submarines[i]->simulate(delta_t);
 			if (record) submarines[i]->remember_position(get_time());
+		}
+		catch (sea_object::is_dead_exception& e) {
+			if (e.delete_obj())
+				submarines.reset(i);
 		}
 	}
 	submarines.compact();
@@ -713,10 +717,12 @@ void game::simulate(double delta_t)
 			double dist = airplanes[i]->get_pos().distance(player->get_pos());
 			if (dist < nearest_contact) nearest_contact = dist;
 		}
-		if (airplanes[i]->is_defunct()) {
-			airplanes.reset(i);
-		} else {
+		try {
 			airplanes[i]->simulate(delta_t);
+		}
+		catch (sea_object::is_dead_exception& e) {
+			if (e.delete_obj())
+				airplanes.reset(i);
 		}
 	}
 	airplanes.compact();
@@ -724,11 +730,13 @@ void game::simulate(double delta_t)
 	// ------------------------------ torpedoes ------------------------------
 	for (unsigned i = 0; i < torpedoes.size(); ++i) {
 		if (!torpedoes[i]) continue;
-		if (torpedoes[i]->is_defunct()) {
-			torpedoes.reset(i);
-		} else {
+		try {
 			torpedoes[i]->simulate(delta_t);
 			if (record) torpedoes[i]->remember_position(get_time());
+		}
+		catch (sea_object::is_dead_exception& e) {
+			if (e.delete_obj())
+				torpedoes.reset(i);
 		}
 	}
 	torpedoes.compact();
@@ -736,10 +744,12 @@ void game::simulate(double delta_t)
 	// ------------------------------ depth_charges ------------------------------
 	for (unsigned i = 0; i < depth_charges.size(); ++i) {
 		if (!depth_charges[i]) continue;
-		if (depth_charges[i]->is_defunct()) {
-			depth_charges.reset(i);
-		} else {
+		try {
 			depth_charges[i]->simulate(delta_t);
+		}
+		catch (sea_object::is_dead_exception& e) {
+			if (e.delete_obj())
+				depth_charges.reset(i);
 		}
 	}
 	depth_charges.compact();
@@ -747,10 +757,12 @@ void game::simulate(double delta_t)
 	// ------------------------------ gun_shells ------------------------------
 	for (unsigned i = 0; i < gun_shells.size(); ++i) {
 		if (!gun_shells[i]) continue;
-		if (gun_shells[i]->is_defunct()) {
-			gun_shells.reset(i);
-		} else {
+		try {
 			gun_shells[i]->simulate(delta_t);
+		}
+		catch (sea_object::is_dead_exception& e) {
+			if (e.delete_obj())
+				gun_shells.reset(i);
 		}
 	}
 	gun_shells.compact();
@@ -758,10 +770,12 @@ void game::simulate(double delta_t)
 	// ------------------------------ water_splashes ------------------------------
 	for (unsigned i = 0; i < water_splashes.size(); ++i) {
 		if (!water_splashes[i]) continue;
-		if (water_splashes[i]->is_defunct()) {
-			water_splashes.reset(i);
-		} else {
+		try {
 			water_splashes[i]->simulate(delta_t);
+		}
+		catch (sea_object::is_dead_exception& e) {
+			if (e.delete_obj())
+				water_splashes.reset(i);
 		}
 	}
 	water_splashes.compact();

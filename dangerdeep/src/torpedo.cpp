@@ -439,13 +439,12 @@ void torpedo::simulate(double delta_time)
 */
 	redetect_time = 1.0;
 	ship::simulate(delta_time);
-	if (is_defunct() || is_dead()) return;
 
 	double old_run_length = run_length;
 	run_length += get_speed() * delta_time;
 	if (run_length > get_range()) {
 		// later: simulate slow sinking to the ground...
-		destroy();
+		kill();
 		return;
 	}
 
@@ -485,7 +484,7 @@ void torpedo::simulate(double delta_time)
 		bool failure = false;	// calculate additional probability of torpedo failure
 		//fixme: depends on fuse. compute this once and not for every test...
 		if (gm.check_torpedo_hit(this, runlengthfailure, failure))
-			destroy();
+			kill();
 	}
 }
 

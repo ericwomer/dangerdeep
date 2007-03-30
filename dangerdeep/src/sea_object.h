@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 #include "ptrvector.h"
 #include <new>
+#include <stdexcept>
 
 #include "vector3.h"
 #include "angle.h"
@@ -54,14 +55,33 @@ class sensor;
 class sea_object
 {
 public:
-	// inactive means burning, sinking etc.
-	// the two states are used for object handling.
-	// when an object should be removed from the game, it is set to dead-state by kill()
-	// the simulate function checks for that case and sets an object to defunct by destroy() if its dead
-	// defunct objects are removed from storage (deleted).
+	/// special class to make handling of dead/defunct objects easier.
+	class is_dead_exception : public std::runtime_error
+	{
+		bool deleteme;
+	public:
+		is_dead_exception(bool delme = true) : std::runtime_error("dead!"), deleteme(delme) {}
+		bool delete_obj() const { return deleteme; }
+	};
+
+	// inactive means burning, sinking etc. it just means AI does nothing sensible.
+	// objects can be inactive for any time.
+	// when they should be removed, they are set to "dead" state,
+	// which they are for exactly one simulation step (one frame),
+	// then their state is set to "defunct".
+	// They stay defunct for exactly one further step, then are set to
+	// zombie state (1 round), then are deleted (removed from storage).
+	// ANY object storing pointers to sea_objects (or heirs of sea_object) MUST
+	// clear those pointers when the target object is dead or even defunct/zombie.
+	// setting dead state is done by kill()
 	// this technique guarantees that dead objects exists at least one round, so other objects can clear
 	// their pointers to this object avoiding a segfault.
-	enum alive_status { defunct, dead, inactive, alive };
+	// Callers MUST NOT be allowed to set "defunct"/"zombie" state directly.
+	// Callers MUST NOT be allowed to set state from dead to anything else.
+	// Why these many states? when an object is killed() in game::simulate in the same round
+	// where its own simulate() would get called, but *before* that, its makes two state
+	// changes in one round, leading to error/crash.
+	enum alive_status { zombie, defunct, dead, inactive, alive };
 
 	//fixme: should move to damageable_part class ...
 	enum damage_status { nodamage, lightdamage, mediumdamage, heavydamage, wrecked };
@@ -282,10 +302,16 @@ public:
 	virtual void set_target(sea_object* s) { if (s && s->is_alive()) target = s; }
 
 	virtual unsigned calc_damage() const;	// returns damage in percent (100 means dead)
+
+	/// switch object state from alive to inactive.
+	///@note switchting do defunct/zombie state is forbidden! do not implement such a function!
 	virtual void set_inactive();
+
+	/// switch object state from alive or inactive to dead.
+	///@note switchting do defunct/zombie state is forbidden! do not implement such a function!
 	virtual void kill();
-	virtual void destroy();
-	virtual bool is_defunct() const { return alive_stat == defunct; };
+
+	virtual bool is_defunct() const { return alive_stat == defunct || alive_stat == zombie; };
 	virtual bool is_dead() const { return alive_stat == dead; };
 	virtual bool is_inactive() const { return alive_stat == inactive; };
 	virtual bool is_alive() const { return alive_stat == alive; };
