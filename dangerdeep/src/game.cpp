@@ -674,6 +674,13 @@ void game::simulate(double delta_t)
 	double nearest_contact = 1e10;
 
 	// simulation for each object
+	// Note! Since torpedoes or depth charges can "kill" ships or submarines,
+	// we need to simulate ships/subs first. The call to kill() sets the
+	// object to dead-state and the simulation will later shift state to
+	// defunct. But we MUST NOT change two steps of state in one frame.
+	// Objects must be in dead (or defunct) state for at least one frame.
+	// So we simulate objects in "kill" order, if A can call B.kill()
+	// then B must be simulated before A in every frame.
 	// ------------------------------ ships ------------------------------
 	for (unsigned i = 0; i < ships.size(); ++i) {
 		if (!ships[i]) continue;
@@ -863,7 +870,8 @@ template <class T> inline vector<T*> visible_obj(const game* gm, const ptrset<T>
 	if (!ls) return result;
 	result.reserve(v.size());
 	for (unsigned i = 0; i < v.size(); ++i) {
-		if (v[i]) {
+		// do not handle dead or defunct objects!
+		if (v[i] && (v[i]->is_alive() || v[i]->is_inactive())) {
 			if (ls->is_detected(gm, o, v[i]))
 				result.push_back(v[i]);
 		}
@@ -904,20 +912,8 @@ vector<torpedo*> game::visible_torpedoes(const sea_object* o) const
 	// is rendered, but it crashes when drawing trails because of null
 	// pointers...
 	for (unsigned k = 0; k < torpedoes.size(); ++k) {
-		if (torpedoes[k]) {
+		if (torpedoes[k] && (torpedoes[k]->is_alive() || torpedoes[k]->is_inactive())) {
 			result.push_back(torpedoes[k]);
-		} else {
-			// can happen if a torpedo is inactive/dead at the same simulation cycle
-			// when visibility is recomputed.
-			// Because first ALL objects are simulated/computed, there an entry in the
-			// ptrset may become NULL, and only then torpedoes.compact() is called.
-			// This leads to possible NULL-pointers here.
-			// can NOT happen with other objects ... every frame in sea_object::compress
-			// the alive_status is checked. It is then sometimes replaced by a copy
-			// of visible_objects from class game, and this is where NULL-pointers
-			// could be passed. It is avoided in visible_obj and also now here,
-			// this is the critical bugfix.
-			sys().add_console("Debug: visible_torpedoes(): filtered NULL-pointer");
 		}
 	}
 	return result;
