@@ -440,12 +440,8 @@ string sea_object::get_description(unsigned detail) const
 void sea_object::simulate(double delta_time)
 {
 	// check and change states
-	if (alive_stat == zombie) {
+	if (alive_stat == defunct) {
 		// with that trick we do not need to handle this situation in every heir of sea_object.
-		throw is_dead_exception();
-	} else if (alive_stat == defunct) {
-		// change state to zombie.
-		alive_stat = zombie;
 		throw is_dead_exception(false);
 	} else if (alive_stat == dead) {
 		// change state to defunct.
