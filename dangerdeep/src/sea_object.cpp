@@ -442,7 +442,7 @@ void sea_object::simulate(double delta_time)
 	// check and change states
 	if (alive_stat == defunct) {
 		// with that trick we do not need to handle this situation in every heir of sea_object.
-		throw is_dead_exception(false);
+		throw is_dead_exception();
 	} else if (alive_stat == dead) {
 		// change state to defunct.
 		alive_stat = defunct;
