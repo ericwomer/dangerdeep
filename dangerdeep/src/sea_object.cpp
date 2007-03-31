@@ -690,7 +690,7 @@ void sea_object::compress(std::vector<sea_object*>& vec)
 	unsigned j = vec.size();
 	for (unsigned i = 0; i < j; ) {
 		if (vec[i] == 0) throw error("BUG! sea_object::compress vector, element is NULL!");
-		if (vec[i]->is_alive() || vec[i]->is_inactive()) {
+		if (vec[i]->is_reference_ok()) {
 			// element ok
 			++i;
 		} else {
@@ -709,7 +709,7 @@ void sea_object::compress(std::list<sea_object*>& lst)
 {
 	for (std::list<sea_object*>::iterator it = lst.begin(); it != lst.end(); ) {
 		if (*it == 0) throw error("BUG! sea_object::compress list, element is NULL!");
-		if ((*it)->is_alive() || (*it)->is_inactive()) {
+		if ((*it)->is_reference_ok()) {
 			++it;
 		} else {
 			it = lst.erase(it);

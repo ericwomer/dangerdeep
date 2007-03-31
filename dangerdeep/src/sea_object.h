@@ -315,6 +315,7 @@ public:
 	virtual bool is_dead() const { return alive_stat == dead; };
 	virtual bool is_inactive() const { return alive_stat == inactive; };
 	virtual bool is_alive() const { return alive_stat == alive; };
+	virtual bool is_reference_ok() const { return alive_stat == alive || alive_stat == inactive; }
 
 	// command interface - no special commands for a generic sea_object
 

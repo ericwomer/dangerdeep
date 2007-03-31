@@ -674,13 +674,15 @@ void game::simulate(double delta_t)
 	double nearest_contact = 1e10;
 
 	// simulation for each object
-	// Note! Since torpedoes or depth charges can "kill" ships or submarines,
-	// we need to simulate ships/subs first. The call to kill() sets the
-	// object to dead-state and the simulation will later shift state to
-	// defunct. But we MUST NOT change two steps of state in one frame.
-	// Objects must be in dead (or defunct) state for at least one frame.
-	// So we simulate objects in "kill" order, if A can call B.kill()
-	// then B must be simulated before A in every frame.
+	// Note! Simulation order does not matter, so even if object A
+	// "kills" object B and A is simulated before B in one round, B's
+	// state can go from alive via dead (killed) to defunct (via state
+	// change) in one round. But because state change happens only at
+	// one place, namely in sea_object::simulate, the object is
+	// kept for at least one round before it is really deleted.
+	// And because every reference to a sea_object must be checked for
+	// validity at least every round, we can avoid to reference
+	// deleted objects.
 	// ------------------------------ ships ------------------------------
 	for (unsigned i = 0; i < ships.size(); ++i) {
 		if (!ships[i]) continue;
@@ -871,7 +873,7 @@ template <class T> inline vector<T*> visible_obj(const game* gm, const ptrset<T>
 	result.reserve(v.size());
 	for (unsigned i = 0; i < v.size(); ++i) {
 		// do not handle dead or defunct objects!
-		if (v[i] && (v[i]->is_alive() || v[i]->is_inactive())) {
+		if (v[i] && v[i]->is_reference_ok()) {
 			if (ls->is_detected(gm, o, v[i]))
 				result.push_back(v[i]);
 		}
@@ -912,7 +914,7 @@ vector<torpedo*> game::visible_torpedoes(const sea_object* o) const
 	// is rendered, but it crashes when drawing trails because of null
 	// pointers...
 	for (unsigned k = 0; k < torpedoes.size(); ++k) {
-		if (torpedoes[k] && (torpedoes[k]->is_alive() || torpedoes[k]->is_inactive())) {
+		if (torpedoes[k] && torpedoes[k]->is_reference_ok()) {
 			result.push_back(torpedoes[k]);
 		}
 	}
@@ -975,6 +977,9 @@ vector<sonar_contact> game::sonar_ships (const sea_object* o ) const
 	// collect the nearest contacts, limited to some value!
 	vector<pair<double, ship*> > contacts ( MAX_ACUSTIC_CONTACTS, make_pair ( 1e30, (ship*) 0 ) );
 	for (unsigned k = 0; k < ships.size(); ++k) {
+		// do not handle dead/defunct objects
+		if (!ships[k]->is_reference_ok()) continue;
+
 		// When the detecting unit is a ship it should not detect itself.
 		if ( o == ships[k] )
 			continue;
@@ -1015,6 +1020,9 @@ vector<sonar_contact> game::sonar_submarines (const sea_object* o ) const
 	if (!pss) return result;
 	result.reserve(submarines.size());
 	for (unsigned k = 0; k < submarines.size(); ++k) {
+		// do not handle dead/defunct objects
+		if (!submarines[k]->is_reference_ok()) continue;
+
 		// When the detecting unit is a submarine it should not
 		// detect itself.
 		if ( o == submarines[k] )
