@@ -178,7 +178,7 @@ submarine::submarine(game& gm_, const xml_elem& parent)
 	  battery_level(0)
 {
 	xml_elem sm = parent.child("motion").child("submerged");
-	max_submerged_speed = sm.attrf("maxspeed");
+	max_submerged_speed = kts2ms(sm.attrf("maxspeed"));
 	double safedepth = sm.attrf("safedepth");
 	double maxdepth = sm.attrf("maxdepth");
 	max_depth = safedepth + rnd() * (maxdepth - safedepth);
