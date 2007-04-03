@@ -123,12 +123,13 @@ model::mesh* sphere(float radius, float height,
 
 	unsigned nrvert = 2+(stacks-1)*(slices+1);
 	m->vertices.resize(nrvert);
-	m->indices.resize((2*stacks*slices-2*slices)*3);
+	m->indices.resize(2*(slices+1)*stacks+(stacks-1)*2);
+	m->indices_type = model::mesh::pt_triangle_strip;
 	m->texcoords.resize(nrvert);
 	m->normals.resize(nrvert);
 	m->tangentsx.resize(nrvert);
-
 //fixme: righthanded info is missing!!!! maybe the reason for the display bugs
+	m->righthanded.resize(nrvert, true);
 	unsigned vptr = 2, iptr = 0;
 	m->texcoords[0] = vector2f(0, 0);
 	m->vertices[0] = vector3f(0, -height/2, 0);
@@ -153,27 +154,36 @@ model::mesh* sphere(float radius, float height,
 			++vptr;
 		}
 	}
-	for (unsigned y = 0; y < stacks; y++) {
-		if (y == 0) {
-			for (unsigned x = 0; x < slices; x++) {
-				m->indices[iptr+0] = 0;
-				m->indices[iptr+1] = 2 + x + (out ? 1 : 0);
-				m->indices[iptr+2] = 2 + x + (out ? 0 : 1);
-				iptr += 3;
-			}
-		} else {
-			unsigned iptr1 = 2 + (y-1)*(slices+1);
-			for (unsigned x = 0; x < slices; x++) {
-				m->indices[iptr+0] = iptr1 + x;
-				m->indices[iptr+(out ? 2 : 1)] = iptr1 + x + 1;
-				m->indices[iptr+(out ? 1 : 2)] = (y+1 < stacks) ?
-					(iptr1+slices+1 + x) : 1;
-				m->indices[iptr+3] = m->indices[iptr+2];
-				m->indices[iptr+4] = m->indices[iptr+1];
-				m->indices[iptr+5] = (y+1 < stacks) ? (iptr1+slices+1 + x + 1) : 1;
-				iptr += 6;
-			}
+	// lowest stack
+	for (unsigned x = 0; x <= slices; x++) {
+		unsigned xx = out ? slices-x : x;
+		m->indices[iptr+0] = 2 + xx;
+		m->indices[iptr+1] = 0;
+		iptr += 2;
+	}
+	m->indices[iptr] = m->indices[iptr-1];
+	++iptr;
+	// middle part
+	for (unsigned y = 0; y < stacks-2; y++) {
+		m->indices[iptr] = 2 + (out ? slices : 0) + (y+1)*(slices+1);
+		++iptr;
+		for (unsigned x = 0; x <= slices; x++) {
+			unsigned xx = out ? slices-x : x;
+			m->indices[iptr+0] = 2 + xx + (y+1)*(slices+1);
+			m->indices[iptr+1] = 2 + xx +  y   *(slices+1);
+			iptr += 2;
 		}
+		m->indices[iptr] = m->indices[iptr-1];
+		++iptr;
+	}
+	// highest stack
+	m->indices[iptr] = 1;
+	++iptr;
+	for (unsigned x = 0; x <= slices; x++) {
+		unsigned xx = out ? slices-x : x;
+		m->indices[iptr+0] = 1;
+		m->indices[iptr+1] = 2 + xx + (stacks-2)*(slices+1);
+		iptr += 2;
 	}
 	return m;
 }
