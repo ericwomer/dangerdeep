@@ -277,7 +277,6 @@ void view_model(const string& modelfilename, const string& datafilename)
 	mat->normalmap.reset(bmap);
 	mdl->add_material(mat);
 	model::mesh* msh = make_mesh::cube(3*sc, 3*sc, 3*sc, 1.0f, 1.0f, false);
-
 //	model::mesh* msh = make_mesh::sphere(1.5*sc, 3*sc, 16, 16, 1.0f, 1.0f, false);
 //	model::mesh* msh = make_mesh::cylinder(1.5*sc, 3*sc, 16, 1.0f, 1.0f, true, false);
 	msh->mymaterial = mat;
@@ -288,8 +287,8 @@ void view_model(const string& modelfilename, const string& datafilename)
 	unsigned time1 = sys().millisec();
 	double ang = 0;
 
-//	model::mesh* lightsphere = make_mesh::sphere(5.0f, 5.0f, 4, 4, 1, 1, true, "sun");
-	model::mesh* lightsphere = make_mesh::cube(5.0f, 5.0f, 5.0f, 1, 1, true, "sun");
+	model::mesh* lightsphere = make_mesh::sphere(5.0f, 5.0f, 8, 8, 1, 1, true, "sun");
+//	model::mesh* lightsphere = make_mesh::cube(5.0f, 5.0f, 5.0f, 1, 1, true, "sun");
 	lightsphere->mymaterial = new model::material();
 	lightsphere->mymaterial->diffuse = color(255, 255, 128);
 	lightsphere->mymaterial->specular = color(255, 255, 128);
