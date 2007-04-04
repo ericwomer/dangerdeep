@@ -66,6 +66,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "sub_bg_display.h"
 #include "sub_captainscabin_display.h"
 
+#include "torpedo_camera_display.h"
+
 #include "sub_control_popup.h"
 #include "sub_tdc_popup.h"
 #include "sub_ecard_popup.h"
@@ -73,7 +75,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 using namespace std;
 
 submarine_interface::submarine_interface(game& gm) : 
-    	user_interface(gm), selected_tube(0)
+    	user_interface(gm), selected_tube(0), torpedo_cam_track_nr(0)
 {
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 
@@ -109,22 +111,9 @@ submarine_interface::submarine_interface(game& gm) :
 	popups.reset(popup_mode_control, new sub_control_popup(*this));
 	popups.reset(popup_mode_tdc, new sub_tdc_popup(*this));
 	popups.reset(popup_mode_ecard, new sub_ecard_popup(*this));
-	
-	// fixme: this is very dangerous! this leads to calls to the user_interface
-	// object we are still about to construct!!!
-	// so such a call must be prohibited until game and user_interface are definitvly
-	// divided!
-	// class game MUST NOT have a reference to class user_interface, instead
-	// the user interface class must handle sound output depending on
-	// the game's state.
-	//fixme: do not call this but check ourself if we have to start sounds!
-	////player->start_throttle_sound();
-	/* how to solve that mess:
-	   reserve sound channel for looping sounds like engine of player's vessel.
-	   memorize which sound is playing there.
-	   check throttle of player's vessel in each call to ui::display
-	   if it doesn't match current sound, stop that sound and play new
-	*/
+
+	// torpedo cam
+	torpedo_cam_view.reset(new torpedo_camera_display(*this));
 
 	// note: we could change the width of the menu dynamically, according to longest text of the
 	// buttons.
@@ -173,14 +162,14 @@ submarine_interface::~submarine_interface()
 
 void submarine_interface::fire_tube(submarine* player, int nr)
 {
-	if (NULL != target && target != player)	{
-		bool ok = player->launch_torpedo(nr, target);
+	if (player->get_target() && player->get_target() != player) {
+		bool ok = player->launch_torpedo(nr, player->get_target());
 		if (ok) {
 			add_message(texts::get(49));
 			ostringstream oss;
 			oss << texts::get(49);
-			if (target)
-				oss << " " << texts::get(6) << ": " << target->get_description(2);
+			if (player->get_target())
+				oss << " " << texts::get(6) << ": " << player->get_target()->get_description(2);
 			mygame->add_logbook_entry(oss.str());
 			play_sound_effect(SFX_TUBE_LAUNCH, player);
 		} else {
@@ -297,6 +286,9 @@ void submarine_interface::process_input(const SDL_Event& event)
 			goto_TDC();
 		} else if (mycfg.getkey(KEY_SHOW_TORPSETUP_SCREEN).equal(event.key.keysym)) {
 			goto_torpedosettings();
+		} else if (mycfg.getkey(KEY_SHOW_TORPEDO_CAMERA).equal(event.key.keysym)) {
+			// show next torpedo in torpedo camera view
+			torpedo_cam_track_nr++;
 			
 		// MOVEMENT
 		} else if (mycfg.getkey(KEY_RUDDER_LEFT).equal(event.key.keysym)) {
@@ -376,9 +368,7 @@ void submarine_interface::process_input(const SDL_Event& event)
 			sea_object* tgt = mygame->contact_in_direction(player, get_absolute_bearing());
 			// set initial tdc values, also do that when tube is switched
 			player->set_target(tgt);
-
-			target = mygame->contact_in_direction(player, get_absolute_bearing());
-			if (target) {
+			if (tgt) {
 				add_message(texts::get(50));
 				mygame->add_logbook_entry(texts::get(50));
 			} else {
@@ -426,9 +416,9 @@ void submarine_interface::process_input(const SDL_Event& event)
 			player->head_to_ang(new_course, turn_left);
 		} else if (mycfg.getkey(KEY_IDENTIFY_TARGET).equal(event.key.keysym)) {
 			// calculate distance to target for identification detail
-			if (target) {
+			if (player->get_target()) {
 				ostringstream oss;
-				oss << texts::get(79) << target->get_description(2); // fixme
+				oss << texts::get(79) << player->get_target()->get_description(2); // fixme
 				add_message( oss.str () );
 				mygame->add_logbook_entry(oss.str());
 			} else {
@@ -469,8 +459,8 @@ void submarine_interface::process_input(const SDL_Event& event)
 		} else if (mycfg.getkey(KEY_FIRE_DECK_GUN).equal(event.key.keysym)) {
 			if (player->has_deck_gun()) {
 				if (!player->is_submerged()) {
-					if (NULL != target && player != target) {
-						int res = player->fire_shell_at(*target);
+					if (player->get_target() && player->get_target() != player) {
+						int res = player->fire_shell_at(*(player->get_target()));
 						if (ship::TARGET_OUT_OF_RANGE == res)
 							add_message(texts::get(218));
 						else if (ship::NO_AMMO_REMAINING == res)
@@ -712,4 +702,28 @@ void submarine_interface::display() const
 	user_interface::display();
 
 	// panel is drawn in each display function, so the above code is all...
+
+	if (torpedo_cam_track_nr > 0) {
+		const torpedo* tt = mygame->get_torpedo_for_camera_track(torpedo_cam_track_nr-1);
+		torpedo_cam_view->set_tracker(tt);
+		if (tt) {
+			/*
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			*/
+			torpedo_cam_view->display(*mygame);
+			/*
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+			*/
+		} else {
+			torpedo_cam_track_nr = 0;
+		}
+	} else {
+		torpedo_cam_view->set_tracker(0);
+	}
 }

@@ -331,6 +331,7 @@ public:
 	virtual float surface_visibility(const vector2& watcher) const;
 	virtual angle get_heading() const { return heading; }
 	virtual class ai* get_ai() { return myai.get(); }
+	virtual sea_object* get_target() { return target; }
 	virtual const sea_object* get_target() const { return target; }
 	bool is_invulnerable() const { return invulnerable; }
 	countrycode get_country() const { return country; }

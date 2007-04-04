@@ -90,7 +90,6 @@ user_interface::user_interface(game& gm) :
 	bearing(0),
 	elevation(90),
 	bearing_is_relative(true),
-	target(0),
 	current_display(0),
 	current_popup(0),
 	mycoastmap(get_map_dir() + "default.xml"),
@@ -487,13 +486,6 @@ void user_interface::process_input(const SDL_Event& event)
 
 void user_interface::process_input(list<SDL_Event>& events)
 {
-	// a bit misplaced here...
-	// when a ui is informed about events, like a ship sinks, then target should be
-	// compared against the sinking ship there.
-	// fixme: check also when target gets out of sight
-	// the ui could show a message then "lost contact to ..."
-	if (target && !target->is_alive()) target = 0;
-
 	// if screen selector menu is open and mouse is over that window, handle mouse events there.
 	
 
@@ -617,13 +609,13 @@ Then this code would get obsolete.
 
 void user_interface::show_target(double vx, double vy, double w, double h, const vector3& viewpos)
 {
-	if (target && mygame) {
+	if (mygame && mygame->get_player()->get_target()) {
 		// draw red triangle below target
 		// find screen position of target by projecting its position to screen
 		// coordinates.
 		vector4 tgtscr = (matrix4::get_glf(GL_PROJECTION_MATRIX)
 				  * matrix4::get_glf(GL_MODELVIEW_MATRIX))
-			* (target->get_pos() - viewpos).xyz0();
+			* (mygame->get_player()->get_target()->get_pos() - viewpos).xyz0();
 		if (tgtscr.z > 0) {
 			// only when in front.
 			// transform to screen coordinates, using the projection coordinates

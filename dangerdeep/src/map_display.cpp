@@ -679,7 +679,7 @@ void map_display::display(class game& gm) const
 	glEnd();
 	glColor3f(1,1,1);
 
-	sea_object* target = ui.get_target();
+	sea_object* target = gm.get_player()->get_target();
 
 	// draw vessel symbols (or noise contacts)
 	submarine* sub_player = dynamic_cast<submarine*> ( player );
@@ -1050,7 +1050,6 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 			}
 
 			player->set_target(target);
-			ui.set_target(target);
 #else
 			// move nearest cv point
 			if (cvroute.size() > 0) {

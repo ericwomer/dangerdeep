@@ -17,6 +17,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+//@yalla: define this to go bug hunting
+#undef  BUG_HUNTING_YALLA
+
 // game
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
@@ -737,6 +740,20 @@ void game::simulate(double delta_t)
 	airplanes.compact();
 
 	// ------------------------------ torpedoes ------------------------------
+	//extra paranoia check, avoid double pointers
+	for (unsigned i = 0; i < torpedoes.size(); ++i) {
+		for (unsigned j = 0; j < torpedoes.size(); ++j) {
+			if (i != j) {
+				if (torpedoes[i] == torpedoes[j]) {
+#ifdef BUG_HUNTING_YALLA
+					printf("BUG! double torpedo pointer %p\n", torpedoes[i]);
+#endif
+					throw error("BUG! paranoia, double torpedo pointer");
+				}
+			}
+		}
+	}
+
 	for (unsigned i = 0; i < torpedoes.size(); ++i) {
 		if (!torpedoes[i]) continue;
 		try {
@@ -744,8 +761,12 @@ void game::simulate(double delta_t)
 			if (record) torpedoes[i]->remember_position(get_time());
 		}
 		catch (sea_object::is_dead_exception& e) {
-			if (e.delete_obj())
+			if (e.delete_obj()) {
+#ifdef BUG_HUNTING_YALLA
+				printf("DEL torp %p\n", torpedoes[i]);
+#endif
 				torpedoes.reset(i);
+			}
 		}
 	}
 	torpedoes.compact();
@@ -913,9 +934,15 @@ vector<torpedo*> game::visible_torpedoes(const sea_object* o) const
 	// torpedoes.compress() should remove any null pointers before display
 	// is rendered, but it crashes when drawing trails because of null
 	// pointers...
+#ifdef BUG_HUNTING_YALLA
+	printf("VIS comp:\n");
+#endif
 	for (unsigned k = 0; k < torpedoes.size(); ++k) {
 		if (torpedoes[k] && torpedoes[k]->is_reference_ok()) {
 			result.push_back(torpedoes[k]);
+#ifdef BUG_HUNTING_YALLA
+			printf("add torp %p\n", torpedoes[k]);
+#endif
 		}
 	}
 	return result;
@@ -1548,6 +1575,17 @@ submarine* game::sub_in_direction_from_pos(const sea_object* o, const angle& dir
 	}
 	return result;
 }
+
+
+
+const torpedo* game::get_torpedo_for_camera_track(unsigned nr) const
+{
+	if (nr < torpedoes.size() && torpedoes[nr]->is_reference_ok())
+		return torpedoes[nr];
+	return 0;
+}
+
+
 
 bool game::is_collision(const sea_object* s1, const sea_object* s2) const
 {

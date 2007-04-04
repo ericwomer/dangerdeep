@@ -80,9 +80,6 @@ protected:
 	angle elevation;	// -90...90 deg (look down ... up)
 	bool bearing_is_relative;	// bearing means angle relative to course or absolute? (default = true)
 
-	// fixme: keep this, common data else: panel, sky, water, coastmap
-	sea_object* target; // fixme: stored in player now, so remove this
-
 	// which display is active
 	mutable unsigned current_display;
 
@@ -176,9 +173,6 @@ public:
 	virtual void rotate_by_pos_and_wave(const vector3& pos, angle heading,
 					    float length, float width,
 					    double rollfac = 0.05, bool inverse = false) const;
-
-	virtual sea_object* get_target() const { return target; }
-	virtual void set_target(sea_object* tgt) { target = tgt; }
 
 	// render red triangle for target in view. give viewport coordinates.
 	virtual void show_target(double x, double y, double w, double h, const vector3& viewpos);

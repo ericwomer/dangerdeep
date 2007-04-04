@@ -67,7 +67,7 @@ vector3 sub_periscope_display::get_viewpos(class game& gm) const
 
 void sub_periscope_display::post_display(game& gm) const
 {
-	if (ui.get_target()) {
+	if (gm.get_player()->get_target()) {
 		projection_data pd = get_projection_data(gm);
 		ui.show_target(pd.x, pd.y, pd.w, pd.h, get_viewpos(gm));
 	}

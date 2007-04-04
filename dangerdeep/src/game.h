@@ -307,6 +307,8 @@ public:
 	ship* ship_in_direction_from_pos(const sea_object* o, const angle& direction);
 	submarine* sub_in_direction_from_pos(const sea_object* o, const angle& direction);
 
+	const torpedo* get_torpedo_for_camera_track(unsigned nr) const;
+
 	bool is_collision(const sea_object* s1, const sea_object* s2) const;
 	bool is_collision(const sea_object* s, const vector2& pos) const;
 

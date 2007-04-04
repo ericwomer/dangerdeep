@@ -81,6 +81,8 @@ public:
 
  protected:
 	unsigned selected_tube;
+	std::auto_ptr<class torpedo_camera_display> torpedo_cam_view;
+	mutable unsigned torpedo_cam_track_nr;
 
  public:
 	// public, because the functions could be called by heirs of user_display,
