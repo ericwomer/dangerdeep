@@ -78,7 +78,7 @@ vector3 torpedo_camera_display::get_viewpos(class game& gm) const
 
 torpedo_camera_display::torpedo_camera_display(user_interface& ui_) : freeview_display(ui_), trackobj(0)
 {
-	add_pos = vector3(0, -5, -2);//some meters behind torpedo...
+	add_pos = vector3(0, 0, 0.5); // on the back of the torpedo like riding a whale...
 	aboard = true; // ?
 	withunderwaterweapons = true;
 	drawbridge = false;
