@@ -22,6 +22,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "system.h"
 #include "shader.h"
 #include "datadirs.h"
+#include "model.h"
+#include "make_mesh.h"
+#include "global_data.h"
 
 // instead of including global_data.h
 extern font* font_arial;
@@ -112,9 +115,55 @@ const char* credits[] = {
 
 // ------------------------------------------- code ---------------------------------------
 
+void render_bobs(const model::mesh& sph, unsigned tm, unsigned dtm)
+{
+	glPushMatrix();
+	glLoadIdentity();
+	glTranslatef(0, 0, -100);
+	glRotatef(-60, 1, 0, 0);
+	glRotatef(360.0/20 * tm/1000, 0, 0, 1);
+	float a = sin(2*3.14159*0.25*tm/1000);
+	float b = cos(2*3.14159*0.5*tm/1000);
+	float c = 1.5*sin(2*3.14159*0.25*tm/1000+3);
+	float morphfac = myfmod(0.1*tm/1000, 3.0);
+	for (int y = 0; y <= 50; ++y) {
+		float yf = (y-25)/5.0;
+		for (int x = 0; x <= 50; ++x) {
+			float xf = (x-25)/5.0;
+			glPushMatrix();
+			float h = a*(xf*yf*yf)+b*sin(2*3.14159*yf*(1.5+a)*0.25+a)*10.0+c*sin(2*3.14159*xf+a)*10.0;
+			vector3f p0((x-25)*2, (y-25)*2, h);
+			float r = 50.0*sin(3.14159*y/51);
+			float beta = 2*3.14159*x/51;
+			vector3f p1(r*cos(beta), r*sin(beta), (y-25)*2);
+			float gamma = 2*3.14159*1*y/51;
+			vector3f p2((x-25)*2*cos(gamma), (x-25)*2*sin(gamma), (y-25)*2);
+			vector3f p;
+			if (morphfac < 1.0f)
+				p = p0*(1.0-morphfac) + p1*morphfac;
+			else if (morphfac < 2.0f)
+				p = p1*(2.0-morphfac) + p2*(morphfac-1.0);
+			else
+				p = p2*(3.0-morphfac) + p0*(morphfac-2.0);
+			glTranslatef(p.x, p.y, p.z);
+			sph.display();
+			glPopMatrix();
+		}
+	}
+	glPopMatrix();
+}
+
 void show_credits()
 {
 	glClearColor(0.1,0.25,0.4,0);
+
+	// create a sphere
+	std::auto_ptr<model::mesh> sph;
+	sph.reset(make_mesh::sphere(1.0f, 2.0f, 8, 8, 1, 1, true, "sun"));
+	sph->mymaterial = new model::material();
+	sph->mymaterial->diffuse = color(32, 32, 255);
+	sph->mymaterial->specular = color(255, 255, 255);
+	sph->compile();
 
 	std::auto_ptr<texture> bkg;
 	std::auto_ptr<glsl_shader_setup> glss;
@@ -144,6 +193,7 @@ void show_credits()
 	float lines_per_sec = 2;
 	float ctr = 0.0, ctradd = 1.0/32.0;
 	unsigned tm = sys().millisec();
+	unsigned tm0 = tm;
 	while (!quit) {
 		list<SDL_Event> events = sys().poll_event_queue();
 		for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
@@ -155,6 +205,9 @@ void show_credits()
 		}
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// render sphere bobs
+		render_bobs(*sph, sys().millisec() - tm0, sys().millisec() - tm);
 
 		sys().prepare_2d_drawing();
 
