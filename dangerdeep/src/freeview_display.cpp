@@ -60,6 +60,7 @@ freeview_display::projection_data freeview_display::get_projection_data(game& gm
 	pd.fov_x = 70.0;
 	pd.near_z = 0.2;	// fixme: should be 1.0, but new conning tower needs 0.1 or so
 	pd.far_z = gm.get_max_view_distance();
+	pd.fullscreen = true;
 	return pd;
 }
 
@@ -535,9 +536,29 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	//don't bleed into the sky/horizon pixels...
 	//shouldn't matter anyway because of water fog... test this
 
-	glClearColor(0.015, 0.01, 0.055, 0);
-	// this color clear eats ~ 2 frames (52 to 50 on a gf4mx), but is needed for star sky drawing
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	// Note! glClear() deletes whole buffer, not only viewport.
+	// use glScissor with glClear here or clear with own command.
+	if (pd.fullscreen) {
+		glClearColor(0.015, 0.01, 0.055, 0);
+		// this color clear eats ~ 2 frames (52 to 50 on a gf4mx), but is needed for star sky drawing
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	} else {
+		glScissor(pd.x, pd.y, pd.w, pd.h);
+		glEnable(GL_SCISSOR_TEST);
+		glClearColor(0.015, 0.01, 0.055, 0);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		glDisable(GL_SCISSOR_TEST);
+		/*
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glColor4f(1.015, 0.01, 0.055, 1.0);
+		glDisable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);
+		sys().draw_rectangle(pd.x, pd.y, pd.w, pd.h);
+		glDepthMask(GL_TRUE);
+		glEnable(GL_DEPTH_TEST);
+		//clear depth buffer too - glScissor is easier
+		*/
+	}
 
 	// set light!
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);

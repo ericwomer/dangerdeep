@@ -36,6 +36,7 @@ public:
 		unsigned x, y, w, h;	// viewport, holds also aspect info
 		double fov_x;		// angle of field of view (horizontal) in degrees
 		double near_z, far_z;
+		bool fullscreen;
 	};
 
 protected:

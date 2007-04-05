@@ -52,6 +52,7 @@ freeview_display::projection_data sub_periscope_display::get_projection_data(cla
 	pd.fov_x = zoomed ? 13.31 : 50.05;	//fixme: historic values?
 	pd.near_z = 1.0;
 	pd.far_z = gm.get_max_view_distance();
+	pd.fullscreen = false;
 	return pd;
 }
 

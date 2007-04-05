@@ -604,6 +604,8 @@ void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpo
 	}
 	// clear it , fixme: must be done earlier, there is already drawn something inside the viewport
 	glClearColor(0, 0, 0, 0);
+	//fixme: clears whole viewport, which kills display with torpedo camera view
+	//when not using FBOs...
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_DEPTH_TEST);
 
@@ -665,11 +667,11 @@ void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpo
 		// copy viewport data to foam-amount texture
 		foamamounttex->set_gl_texture();
 		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, afs, afs, 0);
+		glViewport(0, 0, sys().get_res_x(), sys().get_res_y());
 	}
 
 	// clean up
 	glEnable(GL_DEPTH_TEST);
-	glViewport(0, 0, sys().get_res_x(), sys().get_res_y());
 
 //	glPopMatrix();
 }
@@ -1493,6 +1495,8 @@ void water::refltex_render_bind() const
 	// clear depth buffer (not needed for sky drawing, but this color can be seen as mirror
 	// image when looking from below the water surface (scope) fixme: clear color with upwelling color!)
 	glClearColor(0, 1.0f/16, 1.0f/8, 0);
+	//fixme: clears whole viewport, which kills display with torpedo camera view
+	//when not using FBOs...
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

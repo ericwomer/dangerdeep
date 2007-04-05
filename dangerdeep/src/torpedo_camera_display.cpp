@@ -53,6 +53,7 @@ freeview_display::projection_data torpedo_camera_display::get_projection_data(cl
 	pd.fov_x = 70.0;
 	pd.near_z = 1.0;
 	pd.far_z = gm.get_max_view_distance();
+	pd.fullscreen = false;
 	return pd;
 }
 
