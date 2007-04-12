@@ -18,20 +18,20 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 //
-//  A 4x4 matrix (C)+(W) 2001 Thorsten Jordan
+//  A 3x3 matrix (C)+(W) 2001 Thorsten Jordan
 //
 
-#ifndef MATRIX4_H
-#define MATRIX4_H
+#ifndef MATRIX3_H
+#define MATRIX3_H
 
 #include "matrix.h"
 
-template<class D> vector3t<D> operator* (const matrixt<D, 4U>& m, const vector3t<D>& v)
+template<class D> vector3t<D> operator* (const matrixt<D, 3U>& m, const vector3t<D>& v)
 {
-	return m.mul4vec3(v);
+	return m.mul3vec3(v);
 }
 
-typedef matrixt<double, 4U> matrix4;
-typedef matrixt<float, 4U> matrix4f;
+typedef matrixt<double, 3U> matrix3;
+typedef matrixt<float, 3U> matrix3f;
 
 #endif
