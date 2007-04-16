@@ -195,6 +195,8 @@ public:
 
 		// give plane equation (abc must have length 1)
 		std::pair<mesh*, mesh*> split(const vector3f& abc, float d) const;
+
+		bool is_inside(const vector3f& p) const;
 	};
 
 	struct light {
@@ -375,6 +377,10 @@ public:
 	void get_all_layout_names(std::set<std::string>& result) const;
 
 	std::string get_filename() const { return filename; }
+
+	/// check if a given point is inside the model
+	///@param p - a point in world space
+	bool is_inside(const vector3f& p) const;
 };	
 
 #endif

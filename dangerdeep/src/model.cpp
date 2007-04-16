@@ -747,6 +747,57 @@ pair<model::mesh*, model::mesh*> model::mesh::split(const vector3f& abc, float d
 
 
 
+bool model::mesh::is_inside(const vector3f& p) const
+{
+	// transform p to mesh space
+	matrix4f invtrans = transformation.inverse();
+	vector3f pp = invtrans * p;
+
+	/* algorithm:
+	   for every triangle of the mesh, build a tetrahedron of the three
+	   points of the triangle and the center of the mesh (e.g. center
+	   of gravity). For all tetrahedrons that pp is in, count the
+	   tetrahedrons with "positive" volume and "negative" volume.
+	   The former are all tetrahedrons where the triangle is facing
+	   away from the center point, the latter are all tetrahedrons,
+	   where the triangle is facing the center point.
+	   A point pp is inside the tetrahedron consisting of A, B, C, D
+	   when: b = B-A, c = C-A, d = D-A, and pp = A+r*b+s*c+t*d
+	   and r,s,t >= 0 and r+s+t <= 1.
+	   We can compute if the triangle is facing the center point D,
+	   by computing the sign of the dot product of the normal of
+	   triangle A,B,C and the vector D-A=d
+	   if (b cross c) * d >= 0 then A,B,C is facing D.
+	*/
+	int in_out_count = 0;
+	std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+	do {
+		unsigned i0 = tit->i0();
+		unsigned i1 = tit->i1();
+		unsigned i2 = tit->i2();
+		const vector3f& A = vertices[i0];
+		const vector3f& B = vertices[i1];
+		const vector3f& C = vertices[i2];
+		const vector3f D; // we use the center of mesh space for D.
+		vector3f b = B - A;
+		vector3f c = C - A;
+		vector3f d = D - A;
+		float s, r, t;
+		if ((pp - A).solve(b, c, d, s, r, t)) {
+			if (r >= 0.0f && s >= 0.0f && t >= 0.0f && r+s+t <= 1.0f) {
+				// pp is inside the tetrahedron
+				bool facing_to_D = b.cross(c) * d >= 0;
+				in_out_count += facing_to_D ? -1 : 1;
+			}
+		}
+	} while (tit->next());
+	// for tests:
+	//std::cout << "is_inside p=" << p << " pp=" << pp << " ioc=" << in_out_count << "\n";
+	return in_out_count > 0;
+}
+
+
+
 model::material::map::map()
 	: uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0.0f), angle(0.0f),
 	  tex(0), ref_count(0)
@@ -2497,4 +2548,15 @@ void model::get_all_layout_names(std::set<std::string>& result) const
 	for (vector<material*>::const_iterator it = materials.begin(); it != materials.end(); ++it)
 		(*it)->get_all_layout_names(result);
 	result.insert(default_layout);
+}
+
+
+
+bool model::is_inside(const vector3f& p) const
+{
+	for (vector<mesh*>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
+		if ((*it)->is_inside(p))
+			return true;
+	}
+	return false;
 }

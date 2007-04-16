@@ -53,6 +53,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using std::vector;
 
+
+// switch features on/off:
+
+#define IS_INSIDE_TEST
+
+
+
 class system* mysys;
 int res_x, res_y;
 font* font_arial = 0;
@@ -215,6 +222,25 @@ void view_model(const string& modelfilename, const string& datafilename)
 	mdl->write_to_dftd_model_file("test.xml");
 
 //	mdl->get_mesh(0).write_off_file("test.off");
+
+#ifdef IS_INSIDE_TEST	// Test hack for is_inside function
+	const unsigned iizz = 11, iiyy = 41, iixx = 21;
+	std::vector<bool> ii(iizz*iiyy*iixx);
+	for (unsigned izz = 0; izz < iizz; ++izz) {
+		std::cout << "crosssection picture " << izz+1 << "/" << iizz << "\n";
+		for (unsigned iyy = 0; iyy < iiyy; ++iyy) {
+			for (unsigned ixx = 0; ixx < iixx; ++ixx) {
+				bool is_in = 
+					(mdl->is_inside(vector3f(20.0f*ixx/(iixx-1)-10.0f,
+								 200.0f*iyy/(iiyy-1)-100.0f,
+								 20.0f*izz/(iizz-1)-5.0f)));
+				ii[(izz * iiyy + iyy) * iixx + ixx] = is_in;
+				std::cout << (is_in ? "X" : " ");
+			}
+			std::cout << "\n";
+		}
+	}
+#endif
 
         // rendering mode
 
