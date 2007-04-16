@@ -240,6 +240,7 @@ void view_model(const string& modelfilename, const string& datafilename)
 			std::cout << "\n";
 		}
 	}
+	std::cout << "Center of gravity of mesh#0: " << mdl->get_mesh(0).compute_center_of_gravity() << "\n";
 #endif
 
         // rendering mode

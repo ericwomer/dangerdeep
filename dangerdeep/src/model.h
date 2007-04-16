@@ -197,6 +197,7 @@ public:
 		std::pair<mesh*, mesh*> split(const vector3f& abc, float d) const;
 
 		bool is_inside(const vector3f& p) const;
+		vector3 compute_center_of_gravity() const;
 	};
 
 	struct light {

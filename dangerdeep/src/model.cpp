@@ -798,6 +798,65 @@ bool model::mesh::is_inside(const vector3f& p) const
 
 
 
+vector3 model::mesh::compute_center_of_gravity() const
+{
+	/* computing center of gravity:
+	   Divide sum over tetrahedrons with V_i * c_i each by sum over tetrahedrons
+	   with V_i each. Where V_i and c_i are volume and center of mass for each
+	   tetrahedron, given by c = 1/4 * (A+B+C+D) and V = 1/6 * (A-D)*(B-D)x(C-D)
+	*/
+	vector3 vsum;
+	double vdiv = 0;
+	std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+	do {
+		unsigned i0 = tit->i0();
+		unsigned i1 = tit->i1();
+		unsigned i2 = tit->i2();
+		const vector3f& A = vertices[i0];
+		const vector3f& B = vertices[i1];
+		const vector3f& C = vertices[i2];
+		const vector3f D; // we use the center of mesh space for D.
+		vector3 a = A - D;
+		vector3 b = B - D;
+		vector3 c = C - D;
+		vector3 abcd = A + B + C + D;
+		double V_i = (1.0/6.0) * (b.cross(c) * a);
+		vector3 c_i = (1.0/4.0) * abcd;
+		vsum += V_i * c_i;
+		vdiv += V_i;
+	} while (tit->next());
+	//std::cout << "center of gravity is " << vsum << "/" << vdiv << " = " << ((1.0/vdiv) * vsum) << "\n";
+	//fixme: transform result by transformation matrix?
+	return (1.0/vdiv) * vsum;
+}
+
+
+
+/* computing the intertia tensor for a mesh,
+   from the RigidBodySimulation paper.
+   The inertia tensor is:
+
+   (M / Sum_over_i V_i) * Sum_over_i Integral over volume ...
+   where M is total mass, i iterates over the tetrahedrons (hence triangles).
+   and the integral (a matrix) can be written as:
+   (1/120) * ((A-D)*(B-D)x(C-D))((A+B+C+D)(A+B+C+D)^T + AA^T + BB^T + CC^T + DD^T)
+   where A,B,C form the base triangle and together with D the tetrahedron.
+   D should be at center of gravity, for simplicities sake this should be (0,0,0),
+   hence we can adjust the transformation matrix of the mesh or better the vertices.
+
+   The formula decomposes to a scalar (1/120 and first brace) and a matrix
+   (second brace).
+
+   Problem: we can't manipulate the vertices or transformation matrices
+   to shift center of gravity to (0,0,0) as we need both ways...
+
+   however this routine should give intertia tensor matching the current
+   object - but this can give problems for simulation later,
+   if the c.o.g is not at 0,0,0 ...
+*/
+
+
+
 model::material::map::map()
 	: uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0.0f), angle(0.0f),
 	  tex(0), ref_count(0)
