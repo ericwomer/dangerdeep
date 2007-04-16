@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define MODEL_H
 
 #include "vector3.h"
+#include "matrix3.h"
 #include "matrix4.h"
 #include "texture.h"
 #include "color.h"
@@ -198,6 +199,7 @@ public:
 
 		bool is_inside(const vector3f& p) const;
 		vector3 compute_center_of_gravity() const;
+		matrix3 compute_intertia_tensor() const;
 	};
 
 	struct light {

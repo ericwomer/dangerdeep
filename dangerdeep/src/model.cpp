@@ -798,13 +798,13 @@ bool model::mesh::is_inside(const vector3f& p) const
 
 
 
+/* computing center of gravity:
+   Divide sum over tetrahedrons with V_i * c_i each by sum over tetrahedrons
+   with V_i each. Where V_i and c_i are volume and center of mass for each
+   tetrahedron, given by c = 1/4 * (A+B+C+D) and V = 1/6 * (A-D)*(B-D)x(C-D)
+*/
 vector3 model::mesh::compute_center_of_gravity() const
 {
-	/* computing center of gravity:
-	   Divide sum over tetrahedrons with V_i * c_i each by sum over tetrahedrons
-	   with V_i each. Where V_i and c_i are volume and center of mass for each
-	   tetrahedron, given by c = 1/4 * (A+B+C+D) and V = 1/6 * (A-D)*(B-D)x(C-D)
-	*/
 	vector3 vsum;
 	double vdiv = 0;
 	std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
@@ -854,6 +854,39 @@ vector3 model::mesh::compute_center_of_gravity() const
    object - but this can give problems for simulation later,
    if the c.o.g is not at 0,0,0 ...
 */
+matrix3 model::mesh::compute_intertia_tensor() const
+{
+	matrix3 msum;
+	const double mass = 1.0; // fixme
+	const vector3 center_of_gravity; // fixme, set later
+	double vdiv = 0;
+	std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+	do {
+		unsigned i0 = tit->i0();
+		unsigned i1 = tit->i1();
+		unsigned i2 = tit->i2();
+		const vector3f& A = vertices[i0];
+		const vector3f& B = vertices[i1];
+		const vector3f& C = vertices[i2];
+		const vector3f D = center_of_gravity;
+		vector3 a = A - D;
+		vector3 b = B - D;
+		vector3 c = C - D;
+		vector3 abcd = A + B + C + D;
+		double V_i = (1.0/6.0) * (b.cross(c) * a);
+		double fac0 = V_i / 20.0; // 6*20=120
+		matrix3 abcd2 = matrix_of_vec_sqr(abcd);
+		matrix3 A2 = matrix_of_vec_sqr(vector3(A));
+		matrix3 B2 = matrix_of_vec_sqr(vector3(B));
+		matrix3 C2 = matrix_of_vec_sqr(vector3(C));
+		matrix3 D2 = matrix_of_vec_sqr(vector3(D));
+		msum = msum + (abcd2 + A2 + B2 + C2 + D2) * fac0;
+		vdiv += V_i;
+	} while (tit->next());
+	//fixme: transform result by transformation matrix?
+	//fixme: for a cube this gives 1/3 on diagonal, not 1/6 as expected...
+	return msum * (mass/vdiv);
+}
 
 
 

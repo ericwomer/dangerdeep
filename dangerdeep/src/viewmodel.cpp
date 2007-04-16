@@ -241,6 +241,8 @@ void view_model(const string& modelfilename, const string& datafilename)
 		}
 	}
 	std::cout << "Center of gravity of mesh#0: " << mdl->get_mesh(0).compute_center_of_gravity() << "\n";
+	std::cout << "Inertia tensor of mesh#0:\n";
+	mdl->get_mesh(0).compute_intertia_tensor().print();
 #endif
 
         // rendering mode

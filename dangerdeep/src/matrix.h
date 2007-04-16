@@ -156,6 +156,14 @@ public:
 		return r;
 	}
 
+	/// multiply by scalar
+	matrixt<D, size> operator* (const D& s) const {
+		matrixt<D, size> r;
+		for (unsigned i = 0; i < size*size; ++i)
+			r.values[i] = values[i] * s;
+		return r;
+	}
+
 	matrixt<D, size> operator- () const { matrixt<D, size> r; for (unsigned i = 0; i < size*size; ++i) r.values[i] = -values[i]; return r; }
 
 	// store in C++ order

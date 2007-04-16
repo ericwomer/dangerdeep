@@ -31,6 +31,13 @@ template<class D> vector3t<D> operator* (const matrixt<D, 3U>& m, const vector3t
 	return m.mul3vec3(v);
 }
 
+template<class D> matrixt<D, 3U> matrix_of_vec_sqr(const vector3t<D>& v)
+{
+	return matrixt<D, 3U>(v.x*v.x, v.x*v.y, v.x*v.z,
+			      v.y*v.x, v.y*v.y, v.y*v.z,
+			      v.z*v.x, v.z*v.y, v.z*v.z);
+}
+
 typedef matrixt<double, 3U> matrix3;
 typedef matrixt<float, 3U> matrix3f;
 
