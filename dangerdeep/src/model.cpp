@@ -865,26 +865,35 @@ matrix3 model::mesh::compute_intertia_tensor() const
 		unsigned i0 = tit->i0();
 		unsigned i1 = tit->i1();
 		unsigned i2 = tit->i2();
-		const vector3f& A = vertices[i0];
-		const vector3f& B = vertices[i1];
-		const vector3f& C = vertices[i2];
-		const vector3f D = center_of_gravity;
-		vector3 a = A - D;
-		vector3 b = B - D;
-		vector3 c = C - D;
+		vector3 A = vertices[i0];
+		vector3 B = vertices[i1];
+		vector3 C = vertices[i2];
+		const vector3& D = center_of_gravity;
 		vector3 abcd = A + B + C + D;
-		double V_i = (1.0/6.0) * (b.cross(c) * a);
+		double V_i = (1.0/6.0) * ((A - D) * (B - D).cross(C - D));
 		double fac0 = V_i / 20.0; // 6*20=120
 		matrix3 abcd2 = matrix_of_vec_sqr(abcd);
-		matrix3 A2 = matrix_of_vec_sqr(vector3(A));
-		matrix3 B2 = matrix_of_vec_sqr(vector3(B));
-		matrix3 C2 = matrix_of_vec_sqr(vector3(C));
-		matrix3 D2 = matrix_of_vec_sqr(vector3(D));
-		msum = msum + (abcd2 + A2 + B2 + C2 + D2) * fac0;
+		matrix3 A2 = matrix_of_vec_sqr(A);
+		matrix3 B2 = matrix_of_vec_sqr(B);
+		matrix3 C2 = matrix_of_vec_sqr(C);
+		matrix3 D2 = matrix_of_vec_sqr(D);
+		matrix3 h = (abcd2 + A2 + B2 + C2 + D2) * fac0;
+		// we have to build the matrix with the integral
+		// to compute out of sums / products of coefficients
+		// of the helper matrix h.
+		matrix3 im(h.elem(1,1) + h.elem(2,2), // y^2+z^2
+			   -h.elem(1,0), // -xy
+			   -h.elem(2,0), // -xz
+			   -h.elem(1,0), // -xy
+			   h.elem(0,0) + h.elem(2,2), // x^2+z^2
+			   -h.elem(2,1), // -yz
+			   -h.elem(2,0), // -xz
+			   -h.elem(2,1), // -yz
+			   h.elem(0,0) + h.elem(1,1)); // x^2+y^2
+		msum = msum + im;
 		vdiv += V_i;
 	} while (tit->next());
 	//fixme: transform result by transformation matrix?
-	//fixme: for a cube this gives 1/3 on diagonal, not 1/6 as expected...
 	return msum * (mass/vdiv);
 }
 
@@ -1698,7 +1707,8 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 		// indices.
 		xml_elem indis = msh.add_child("indices");
 		indis.set_attr(unsigned(mp->indices.size()), "nr");
-		indis.set_attr(mp->name_primitive_type(), "type");
+		// need to convert to string for proper type selection of overloaded function
+		indis.set_attr(std::string(mp->name_primitive_type()), "type");
 		ostringstream ossi;
 		//unsigned nrind = 0;
 		for (vector<Uint32>::const_iterator iit = mp->indices.begin(); iit != mp->indices.end(); ++iit) {
