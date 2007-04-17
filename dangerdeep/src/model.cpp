@@ -858,7 +858,7 @@ matrix3 model::mesh::compute_intertia_tensor() const
 {
 	matrix3 msum;
 	const double mass = 1.0; // fixme
-	const vector3 center_of_gravity; // fixme, set later
+	const vector3 center_of_gravity = compute_center_of_gravity(); // fixme, set later
 	double vdiv = 0;
 	std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
 	do {
