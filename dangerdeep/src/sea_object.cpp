@@ -690,6 +690,15 @@ void sea_object::compress(std::vector<sea_object*>& vec)
 	unsigned j = vec.size();
 	for (unsigned i = 0; i < j; ) {
 		if (vec[i] == 0) throw error("BUG! sea_object::compress vector, element is NULL!");
+#ifdef CHECK_TORP_SIGSEGV_BUG
+		double t;
+		const char* c = trashcan::inst().has_obj(vec[i], t);
+		if (c) {
+			printf("***--->ERROR<---***\nobject %p in trashcan, but ref'd!\ndeleted at gametime %f\ntype %s\ngametime %f\n",
+			       vec[i], t, c, trashcan::inst().time);
+			throw error("BUG!!! accessed object that is in trashcan!!!");
+		}
+#endif
 		if (vec[i]->is_reference_ok()) {
 			// element ok
 			++i;

@@ -676,6 +676,10 @@ void game::simulate(double delta_t)
 
 	double nearest_contact = 1e10;
 
+#ifdef CHECK_TORP_SIGSEGV_BUG
+	trashcan::inst().time = get_time();
+#endif
+
 	// simulation for each object
 	// Note! Simulation order does not matter, so even if object A
 	// "kills" object B and A is simulated before B in one round, B's
@@ -765,7 +769,11 @@ void game::simulate(double delta_t)
 #ifdef BUG_HUNTING_YALLA
 				printf("DEL torp %p\n", torpedoes[i]);
 #endif
+#ifdef CHECK_TORP_SIGSEGV_BUG
+				trashcan::inst().add(torpedoes.release(i), time, "Torpedo");
+#else
 				torpedoes.reset(i);
+#endif
 			}
 		}
 	}
