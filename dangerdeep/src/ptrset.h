@@ -84,6 +84,12 @@ class ptrset
 		data[n] = 0;
 	}
 
+	T* release(unsigned n) {
+		T* res = data[n];
+		data[n] = 0;
+		return res;
+	}
+
 	T* const& operator[](unsigned n) const { return data[n]; }
 	T* const& at(unsigned n) const { if (n >= fill) throw std::out_of_range("ptrset const at"); return data[n]; }
 };
