@@ -48,6 +48,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "cfg.h"
 #include "global_data.h"
 #include "music.h"
+#include "particle.h" // for hack, fixme
 
 #include "sub_gauges_display.h"
 #include "sub_periscope_display.h"
@@ -514,6 +515,11 @@ void submarine_interface::process_input(const SDL_Event& event)
 			case SDLK_PAUSE:
 				toggle_pause();
 				break;
+#if 1 // fixme test hack
+			case SDLK_r:
+				mygame->spawn_particle(new fireworks_particle(mygame->get_player()->get_pos() + vector3(0, 0, 5)));
+				break;
+#endif
 			default:
 				// let display handle the key
 				user_interface::process_input(event);
