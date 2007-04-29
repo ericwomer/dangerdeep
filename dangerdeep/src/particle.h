@@ -61,6 +61,7 @@ protected:
 	};
 
 	// particle textures (generated and stored once)
+	//fixme: why not use texture_cache here?
 	static unsigned init_count;
 	static std::vector<texture*> tex_smoke;
 	static texture* tex_spray;
@@ -68,6 +69,7 @@ protected:
 	static std::vector<texture*> explosionbig;
 	static std::vector<texture*> explosionsml;
 	static std::vector<texture*> watersplashes;
+	static texture* tex_fireworks;
 
 	// wh must be power of two (returns a square). 1 <= 2^low <= 2^high <= wh
 	static std::vector<float> interpolate_func;
@@ -79,6 +81,11 @@ protected:
 	static std::vector<Uint8> compute_fire_frame(unsigned wh, const std::vector<Uint8>& oldframe);
 
 	virtual vector3 get_acceleration() const { return vector3(); }
+
+	/// must this type of particle be rendered specially?
+	virtual bool has_custom_rendering() const { return false; }
+	/// renders a particle in custom way giving vectors parallel to screen's xy plane
+	virtual void custom_display(const vector3& viewpos, const vector3& dx, const vector3& dy) const {}
 
 public:
 	particle(const vector3& pos, const vector3& velo = vector3()) : position(pos), velocity(velo), life(1.0) {}
@@ -118,7 +125,6 @@ class smoke_particle : public particle
 	vector3 get_acceleration() const;
 public:
 	smoke_particle(const vector3& pos);//set velocity by wind, fixme
-	~smoke_particle() {}
 	double get_width() const;
 	double get_height() const;
 	void set_texture(game& gm, const colorf& light_color) const;
@@ -132,7 +138,6 @@ class smoke_particle_escort : public smoke_particle
 {
 public:
 	smoke_particle_escort(const vector3& pos);//set velocity by wind, fixme
-	~smoke_particle_escort() {}
 	double get_width() const;
 	double get_life_time() const;
 	static double get_produce_time();
@@ -146,7 +151,6 @@ class explosion_particle : public particle
 public:
 	// is_z_up could be false for this kind of particle
 	explosion_particle(const vector3& pos);
-	~explosion_particle() {}
 	double get_width() const;
 	double get_height() const;
 	void set_texture(game& gm, const colorf& light_color) const;
@@ -161,7 +165,6 @@ class fire_particle : public particle
 public:
 	// only particle where is_z_up should be true.
 	fire_particle(const vector3& pos);
-	~fire_particle() {}
 	void simulate(game& gm, double delta_t);
 	double get_width() const;
 	double get_height() const;
@@ -176,11 +179,40 @@ class spray_particle : public particle
 public:
 	// is_z_up could be false for this kind of particle
 	spray_particle(const vector3& pos, const vector3& velo);
-	~spray_particle() {}
 	double get_width() const;
 	double get_height() const;
 	void set_texture(game& gm, const colorf& light_color) const;
 	double get_life_time() const;
 };
+
+
+
+class fireworks_particle : public particle
+{
+	bool is_z_up() const { return false; }
+
+	bool has_custom_rendering() const { return true; }
+	void custom_display(const vector3& viewpos, const vector3& dx, const vector3& dy) const;
+
+	struct flare
+	{
+		vector2 velocity;
+		unsigned type;
+	};
+
+	std::vector<flare> flares;
+
+	void simulate(game& gm, double delta_t);
+
+public:
+	fireworks_particle(const vector3& pos);
+	double get_width() const { return 0; } // not needed
+	double get_height() const { return 0; } // not needed
+	void set_texture(game& gm, const colorf& light_color) const {} // not needed
+	double get_life_time() const;
+};
+
+
+
 
 #endif
