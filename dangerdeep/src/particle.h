@@ -70,6 +70,7 @@ protected:
 	static std::vector<texture*> explosionsml;
 	static std::vector<texture*> watersplashes;
 	static texture* tex_fireworks;
+	static texture* tex_fireworks_flare;
 
 	// wh must be power of two (returns a square). 1 <= 2^low <= 2^high <= wh
 	static std::vector<float> interpolate_func;
@@ -197,7 +198,6 @@ class fireworks_particle : public particle
 	struct flare
 	{
 		vector2 velocity;
-		unsigned type;
 	};
 
 	std::vector<flare> flares;

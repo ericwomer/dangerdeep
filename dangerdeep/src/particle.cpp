@@ -39,6 +39,7 @@ vector<texture*> particle::explosionbig;
 vector<texture*> particle::explosionsml;
 vector<texture*> particle::watersplashes;
 texture* particle::tex_fireworks = 0;
+texture* particle::tex_fireworks_flare = 0;
 
 #define NR_OF_SMOKE_TEXTURES 16
 #define NR_OF_FIRE_TEXTURES 64
@@ -313,6 +314,7 @@ void particle::init()
 	watersplashes[2] = new texture(get_texture_dir() + "splash.png" , texture::LINEAR);
 
 	tex_fireworks = new texture(get_texture_dir() + "fireworks.png", texture::LINEAR, texture::CLAMP_TO_EDGE);
+	tex_fireworks_flare = new texture(get_texture_dir() + "fireworks_flare.png", texture::LINEAR, texture::CLAMP_TO_EDGE);
 }
 
 
@@ -332,6 +334,7 @@ void particle::deinit()
 	for (unsigned i = 0; i < watersplashes.size(); ++i)
 		delete watersplashes[i];
 	delete tex_fireworks;
+	delete tex_fireworks_flare;
 }
 
 
@@ -657,12 +660,13 @@ double spray_particle::get_life_time() const
 
 fireworks_particle::fireworks_particle(const vector3& pos)
 	: particle(pos, vector3(0, 0, 25)), // pos, velocity
-	  flares(200)
+	  flares(300)
 {
 	const double flare_speed = 20/2; // meters/second
 	for (unsigned i = 0; i < flares.size(); ++i) {
-		flares[i].velocity = (angle(360*rnd()).direction()) * ((0.6 + 0.4*rnd()) * flare_speed);
-		flares[i].type = rnd(4); // 4 types
+		double r = rnd();
+		r = 1.0 - r*r*r;
+		flares[i].velocity = (angle(360*rnd()).direction()) * (r * flare_speed);
 	}
 }
 
@@ -671,7 +675,7 @@ fireworks_particle::fireworks_particle(const vector3& pos)
 void fireworks_particle::simulate(game& gm, double delta_t)
 {
 	particle::simulate(gm, delta_t);
-	if (life <= 0.8)
+	if (life <= 2.0/3)
 		velocity.z = -life * 0.5 * 9.81; // gravity, although only 50% effect, looks better
 }
 
@@ -680,69 +684,61 @@ void fireworks_particle::simulate(game& gm, double delta_t)
 void fireworks_particle::custom_display(const vector3& viewpos, const vector3& dx, const vector3& dy) const
 {
 	tex_fireworks->set_gl_texture();
-	// particle lives 10 seconds:
+	// particle lives 6 seconds:
 	// 2 seconds raise to sky (100m height)
 	// 2 seconds explode (later 1?)
-	// 6 seconds glowing/fading
-	// so partitions: 0.8, 0.6
-	if (life > 0.8) {
+	// 2 seconds glowing/fading
+	// so partitions: 0.666, 0.333
+	if (life > 2.0/3) {
 		// ascension
 		glColor4f(1,1,1,1);
 		glBegin(GL_LINES);
 		vector3 p = position - viewpos;
-		glTexCoord2f(1.0, 15.5/16);
+		glTexCoord2f(1.0, 0.75f);
 		glVertex3dv(&p.x);
-		double lifefac = 5.0 - life * 5.0;
+		double lifefac = 1.0 - (life * 3.0 - 2.0);
 		p.z -= fmin(50.0 * lifefac, 10.0); // 25m/s, max. 10m length
-		glTexCoord2f(0.0f, 15.5/16);
+		glTexCoord2f(0.0f, 0.75f);
 		glVertex3dv(&p.x);
 		glEnd();
 	} else {
 		// explosion/decay
-		double decayfac = (life > 0.6) ? 1.0 : life*(1.0/0.6);
+		double decayfac = (life > 1.0/3) ? 1.0 : life*3.0;
 		glColor4f(1,1,1,decayfac);
 		//fixme: fire from raise does not vanish... but doesnt hurt
-		double lifefac2 = (life - 0.6) * 5.0;
+		double lifefac2 = life*3.0 - 1.0;
 		lifefac2 = 1.0 - lifefac2*lifefac2;
-		if (life <= 0.6) lifefac2 = 1.0;
-		double lifefac = 4.0 - life * 5.0;
+		if (life <= 1.0/3) lifefac2 = 1.0;
+		double lifefac = 1.0 - (life * 3.0 - 1.0);
 		// draw glowing lines from center to flares
 		glBegin(GL_LINES);
 		for (unsigned i = 0; i < flares.size(); ++i) {
 			const flare& f = flares[i];
-			glTexCoord2f(-lifefac, 13.5/16);
+			glTexCoord2f(-lifefac, 0.25f);
 			vector3 p = position - viewpos;
 			glVertex3dv(&p.x);
-			glTexCoord2f(1.5f-lifefac, 13.5/16);
+			glTexCoord2f(1.5f-lifefac, 0.25f);
 			p = p + dx * (f.velocity.x * lifefac2 * 2.0)
 				+ dy * (f.velocity.y * lifefac2 * 2.0);
 			glVertex3dv(&p.x);
 		}
 		glEnd();
 		// draw flares
-		// fixme: maybe textured glPoints are better here!
-		// that is: openGl point sprite (ARB extension!)
-		glBegin(GL_QUADS);
+		tex_fireworks_flare->set_gl_texture();
+		glEnable(GL_POINT_SPRITE);//fixme: move to display_all
+		glPointSize(4);
+		glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);//could be done once...
+		glBegin(GL_POINTS);
 		for (unsigned i = 0; i < flares.size(); ++i) {
 			const flare& f = flares[i];
-			const float k = (f.type & 3) / 4.0;
 			vector3 p = position - viewpos
 				+ dx * (f.velocity.x * lifefac2 * 2.0)
 				+ dy * (f.velocity.y * lifefac2 * 2.0);
-			vector3 ep0 = p + (-dx + dy) * 0.25;
-			vector3 ep1 = p + (-dx - dy) * 0.25;
-			vector3 ep2 = p + (dx - dy) * 0.25;
-			vector3 ep3 = p + (dx + dy) * 0.25;
-			glTexCoord2f(k, 0);
-			glVertex3dv(&ep0.x);
-			glTexCoord2f(k, 0.5f);
-			glVertex3dv(&ep1.x);
-			glTexCoord2f(k+0.25f, 0.5f);
-			glVertex3dv(&ep2.x);
-			glTexCoord2f(k+0.25f, 0);
-			glVertex3dv(&ep3.x);
+			glVertex3dv(&p.x);
 		}
 		glEnd();
+		glPointSize(1);
+		glDisable(GL_POINT_SPRITE);
 	}
 }
 
@@ -750,5 +746,5 @@ void fireworks_particle::custom_display(const vector3& viewpos, const vector3& d
 
 double fireworks_particle::get_life_time() const
 {
-	return 10.0; // seconds
+	return 6.0; // seconds
 }
