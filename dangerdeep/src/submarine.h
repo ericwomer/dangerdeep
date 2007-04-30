@@ -121,6 +121,9 @@ protected:
 	double battery_recharge_value_t;// read from spec file
 	unsigned battery_capacity;	// read from spec file
 
+	// torpedo management view image name for side/top view
+	std::string torpedomanage_sidetopimg;	// read from spec file
+
 	// the hearing device type
 	hearing_device_type hearing_device;	// read from spec file and time, should be saved later
     
@@ -277,6 +280,8 @@ public:
 	virtual double get_stern_rudder() const { return bow_rudder; } // stern is the same so far
 	virtual void bow_pos(int state){ bow_to = state; permanent_dive = true; }
 	virtual void stern_pos(int state){ bow_to = state; permanent_dive = true; } // stern is the same so far
+
+	const std::string& get_torpedomanage_img_name() const { return torpedomanage_sidetopimg; }
 
 	virtual hearing_device_type get_hearing_device_type() const { return hearing_device; }
 };

@@ -209,6 +209,10 @@ submarine::submarine(game& gm_, const xml_elem& parent)
 	battery_value_t = bt.attrf("consumption_t");
 	battery_recharge_value_a = bt.attrf("recharge_a");
 	battery_recharge_value_t = bt.attrf("recharge_t");
+	if (parent.has_child("torpedomanage")) { // fixme: later all subs should have it!!
+	xml_elem tm = parent.child("torpedomanage");
+	torpedomanage_sidetopimg = tm.attr("image");
+	}
 
 	// set all common damageable parts to "no damage", fixme move to ship?, replace by damage editor data reading
 	//parts.resize(nr_of_parts);

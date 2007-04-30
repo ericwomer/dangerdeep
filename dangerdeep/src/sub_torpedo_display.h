@@ -56,6 +56,7 @@ class sub_torpedo_display : public user_display
 //	std::auto_ptr<texture> torp11;
 	std::auto_ptr<texture> submodelVIIc;
 	std::auto_ptr<image> background;
+	std::auto_ptr<image> subtopsideview;
 
 	class desc_text
 	{

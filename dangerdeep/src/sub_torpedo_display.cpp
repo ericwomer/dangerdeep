@@ -192,7 +192,8 @@ void sub_torpedo_display::display(class game& gm) const
 	background->draw(0, 0);
 
 	// draw sub model
-	submodelVIIc->draw(69, 37);
+	if (subtopsideview.get())//fixme later do not accept empty data
+	subtopsideview->draw(0, 0);
 
 	// tube handling. compute coordinates for display and mouse use	
 	const vector<submarine::stored_torpedo>& torpedoes = sub->get_torpedoes();
@@ -352,11 +353,22 @@ void sub_torpedo_display::enter(bool is_day)
 	torp5b.reset(new texture(get_image_dir() + "torpmanage_torp5b.png"));
 	torp5.reset(new texture(get_image_dir() + "torpmanage_torp5.png"));
 	torp6lut1.reset(new texture(get_image_dir() + "torpmanage_torp6lut1.png"));
-	submodelVIIc.reset(new texture(get_image_dir() + "torpmanage_submodelVIIc.png"));
 	if (is_day)
-		background.reset(new image(get_image_dir() + "torpmanage_daylight_background.jpg"));
+		background.reset(new image(get_image_dir() + "tmanage_cleanbase_daylight.jpg"));
 	else
-		background.reset(new image(get_image_dir() + "torpmanage_redlight_background.jpg"));
+		background.reset(new image(get_image_dir() + "tmanage_cleanbase_redlight.jpg"));
+	const submarine* pl = dynamic_cast<const submarine*>(ui.get_game().get_player());
+	// fixme: catch errors for load, later do not accept missing images
+	try {
+	std::cout << "loading '" << get_data_dir() + data_file().get_rel_path(pl->get_specfilename()) + pl->get_torpedomanage_img_name() << "'\n";
+	subtopsideview.reset(new image(get_data_dir()
+				       + data_file().get_rel_path(pl->get_specfilename())
+				       + pl->get_torpedomanage_img_name()));
+	}
+	catch (std::exception& e) {
+		std::cout << "ERROR: " << e.what() << "\n";
+	}
+	catch (...) {}
 }
 
 
@@ -381,6 +393,6 @@ void sub_torpedo_display::leave()
 	torp5b.reset();
 	torp5.reset();
 	torp6lut1.reset();
-	submodelVIIc.reset();
 	background.reset();
+	subtopsideview.reset();
 }
