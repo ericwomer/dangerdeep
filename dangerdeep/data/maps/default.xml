@@ -28,6 +28,10 @@
     <city name="Belfast" posx="5/47W" posy="54/45N"/>
   </cities>
   <props>
-    <prop model="bunker_lorient" posx="-386646" posy="5290000" angle="330" />
+    <prop model="bunker_lorient" posx="-386646" posy="5290000" angle="330" /><!--- Lorient -->
+    <prop model="bunker_lorient" posx="-535612" posy="5365086" angle="20" /><!-- Brest -->
+    <prop model="bunker_lorient" posx="-267209" posy="5233065" angle="45" /><!-- St. Nazaire -->
+    <prop model="bunker_lorient" posx="-171582" posy="5120530" angle="90" /><!-- La Rochelle -->
+    
   </props>
 </dftd-map>
