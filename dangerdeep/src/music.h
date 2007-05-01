@@ -171,6 +171,8 @@ class music : public thread
 	void loop();
 	void deinit();
 
+	void request_abort();
+
 	// internal command(s)
 	bool track_finished();
 

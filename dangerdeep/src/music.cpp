@@ -231,6 +231,15 @@ void music::deinit()
 }
 
 
+
+void music::request_abort()
+{
+	thread::request_abort();
+	command_queue.wakeup_receiver();
+}
+
+
+
 // -------------------- commands --------------------
 
 bool music::append_track(const std::string& filename)
