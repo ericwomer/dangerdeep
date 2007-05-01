@@ -116,7 +116,18 @@ class coastmap
 
 	int global_clnr;		// working counter.
 
-	std::list<std::pair<vector2, std::string> > cities;	// city positions (real) and names
+	// city positions (real) and names
+	std::list<std::pair<vector2, std::string> > cities;
+
+	// special 3d objects on map (rather a hack)
+	struct prop
+	{
+		std::string modelname;
+		vector2 pos;
+		double dir;
+		prop(const std::string& s, const vector2& p, double d) : modelname(s), pos(p), dir(d) {}
+	};
+	std::list<prop> props;
 
 	std::auto_ptr<texture> atlanticmap;
 	
@@ -164,6 +175,7 @@ public:
 
 	/// create from xml file
 	coastmap(const std::string& filename);
+	~coastmap();
 
 	/// MUST be called after construction of coastmap and before using it!
 	void finish_construction();
@@ -173,7 +185,7 @@ public:
 	// fixme: maybe it's better to give top,left and bottom,right corner of sub area to draw
 	void draw_as_map(const vector2& droff, double mapzoom, int detail = 0) const;
 	// p is real word position of viewer, vr is range of view in meters.
-	void render(const vector2& p, double vr, int detail = 0, bool withterraintop = false) const;
+	void render(const vector2& p, double vr, bool mirrored, int detail = 0, bool withterraintop = false) const;
 };
 
 #endif

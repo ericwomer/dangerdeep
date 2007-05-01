@@ -416,7 +416,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 
 		//   terrain
 		glColor4f(1,1,1,1);//fixme: fog is missing
-		ui.draw_terrain(viewpos_mirror, ui.get_absolute_bearing(), max_view_dist);
+		ui.draw_terrain(viewpos_mirror, ui.get_absolute_bearing(), max_view_dist, true/*mirrored*/);
 		//fixme
 		//   models/smoke
 		// test hack. limit mirror effect only to near objects?
@@ -630,7 +630,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 
 	// ******** terrain/land ********************************************************
 //	glDisable(GL_FOG);	//testing with new 2d bspline terrain.
-	ui.draw_terrain(viewpos, ui.get_absolute_bearing(), max_view_dist);
+	ui.draw_terrain(viewpos, ui.get_absolute_bearing(), max_view_dist, false/*not mirrored*/);
 //	glEnable(GL_FOG);	
 
 /* test hack, remove

@@ -32,8 +32,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texture.h"
 #include "system.h"
 #include "triangulate.h"
-#include "tinyxml/tinyxml.h"
+#include "xml.h"
 #include "datadirs.h"
+#include "global_data.h"
+#include "model.h"
 #include <SDL_image.h>
 #include <fstream>
 #include <list>
@@ -1303,39 +1305,36 @@ coastmap::coastmap(const string& filename)
 
 	global_clnr = 0;
 
-	TiXmlDocument doc(filename);
-	doc.LoadFile();
-	TiXmlElement* root = doc.FirstChildElement("dftd-map");
-	ASSERT(root != 0, string("coastmap: no root element found in ") + filename);
-	TiXmlElement* etopology = root->FirstChildElement("topology");
-	ASSERT(etopology != 0, string("coastmap: no topology node found in ") + filename);
-	const char* img = etopology->Attribute("image");
-	ASSERT(img != 0, string("coastmap: no image attribute found in ") + filename);
-	realwidth = 0;
-	etopology->Attribute("realwidth", &realwidth);
-	ASSERT(realwidth != 0, string("coastmap: realwidth not given or zero in ") + filename);
-	etopology->Attribute("realoffsetx", &realoffset.x);
-	etopology->Attribute("realoffsety", &realoffset.y);
-	TiXmlElement* ecities = root->FirstChildElement("cities");
-	if (ecities) {
-		TiXmlElement* ecity = ecities->FirstChildElement("city");
-		for ( ; ecity != 0; ecity = ecity->NextSiblingElement()) {
-			// parse name, posx, posy
-			const char* nm = ecity->Attribute("name");
-			if (!nm) throw error(string("parsed city without a name in ") + filename);
-			string nmc = nm;
-			nm = ecity->Attribute("posx");
-			if (!nm) throw error(string("parsed city without a x position in ") + filename);
-			double x = transform_nautic_posx_to_real(string(nm));
-			nm = ecity->Attribute("posy");
-			if (!nm) throw error(string("parsed city without a y position in ") + filename);
-			double y = transform_nautic_posy_to_real(string(nm));
-			cities.push_back(make_pair(vector2(x, y), nmc));
+	xml_doc doc(filename);
+	doc.load();
+	xml_elem er = doc.child("dftd-map");
+	xml_elem et = er.child("topology");
+	realwidth = et.attrf("realwidth");
+	realoffset.x = et.attrf("realoffsetx");
+	realoffset.y = et.attrf("realoffsety");
+	if (er.has_child("cities")) {
+		for (xml_elem::iterator it = er.child("cities").iterate("city"); !it.end(); it.next()) {
+			cities.push_back(make_pair(vector2(transform_nautic_posx_to_real(it.elem().attr("posx")),
+							   transform_nautic_posy_to_real(it.elem().attr("posy"))),
+						   it.elem().attr("name")));
+		}
+	}
+
+	if (er.has_child("props")) {
+		for (xml_elem::iterator it = er.child("props").iterate("prop"); !it.end(); it.next()) {
+			std::string mdlname = it.elem().attr("model");
+			std::string path = data_file().get_rel_path(mdlname) + mdlname + ".xml";//fixme: later ddxml!
+			model* m = modelcache().ref(path);
+			m->register_layout();
+			m->set_layout();
+			props.push_back(prop(path,
+					     vector2(it.elem().attrf("posx"), it.elem().attrf("posy")),
+					     it.elem().attrf("angle")));
 		}
 	}
 
 	{
-		sdl_image surf(get_map_dir() + img);
+		sdl_image surf(get_map_dir() + et.attr("image"));
 		mapw = surf->w;
 		maph = surf->h;
 		pixelw_real = realwidth/mapw;
@@ -1348,12 +1347,14 @@ coastmap::coastmap(const string& filename)
 		segsx = mapw/pixels_per_seg;
 		segsy = maph/pixels_per_seg;
 		segw_real = pixelw_real * pixels_per_seg;
-		ASSERT((segsx*pixels_per_seg == mapw) && (segsy*pixels_per_seg == maph), string("coastmap: map size must be integer multiple of segment size, in") + filename);
+		if (segsx*pixels_per_seg != mapw || segsy*pixels_per_seg != maph)
+			throw error(string("coastmap: map size must be integer multiple of segment size, in") + filename);
 
 		themap.resize(mapw*maph);
 
 		surf.lock();
-		ASSERT(surf->format->BytesPerPixel == 1 && surf->format->palette != 0 && surf->format->palette->ncolors == 2, string("coastmap: image is no black/white 1bpp paletted image, in ") + filename);
+		if (surf->format->BytesPerPixel != 1 || surf->format->palette == 0 || surf->format->palette->ncolors != 2)
+			throw error(string("coastmap: image is no black/white 1bpp paletted image, in ") + filename);
 
 		Uint8* offset = (Uint8*)(surf->pixels);
 		int mapoffy = maph*mapw;
@@ -1373,6 +1374,14 @@ coastmap::coastmap(const string& filename)
 	// here spin off work to other thread
 	myworker.reset(new worker(*this));
 	myworker->start();
+}
+
+
+
+coastmap::~coastmap()
+{
+	for (list<prop>::iterator it = props.begin(); it != props.end(); ++it)
+		modelcache().unref(it->modelname);
 }
 
 
@@ -1472,7 +1481,7 @@ void coastmap::draw_as_map(const vector2& droff, double mapzoom, int detail) con
 
 
 // p is real world coordinate of viewer. modelview matrix is centered around viewer
-void coastmap::render(const vector2& p, double vr, int detail, bool withterraintop) const
+void coastmap::render(const vector2& p, double vr, bool mirrored, int detail, bool withterraintop) const
 {
 	// compute offset relative to map
 	vector2 p_mapoff = p - realoffset;
@@ -1495,6 +1504,21 @@ void coastmap::render(const vector2& p, double vr, int detail, bool withterraint
 			glPushMatrix();
 			glTranslated(-p_segoff.x, -p_segoff.y, 0.0);
 			coastsegments[y*segsx+x].render(*this, x, y, p_segoff, detail +2);
+			glPopMatrix();
+		}
+	}
+
+	// render props, do some view culling for them.
+	for (list<prop>::const_iterator it = props.begin(); it != props.end(); ++it) {
+		if (it->pos.square_distance(p) < vr*vr) {
+			// potentially visible
+			glPushMatrix();
+			glTranslatef(it->pos.x - p.x, it->pos.y - p.y, 0); //- p.z
+			glRotatef(-it->dir, 0, 0, 1);
+			if (mirrored)
+				modelcache().find(it->modelname)->display_mirror_clip();
+			else
+				modelcache().find(it->modelname)->display();
 			glPopMatrix();
 		}
 	}
