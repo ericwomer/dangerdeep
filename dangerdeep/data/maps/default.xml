@@ -27,4 +27,7 @@
     <city name="Salamis" posx="23/23E" posy="37/45N"/>
     <city name="Belfast" posx="5/47W" posy="54/45N"/>
   </cities>
+  <props>
+    <prop model="bunker_lorient" posx="-386862" posy="5290021" angle="330" />
+  </props>
 </dftd-map>
