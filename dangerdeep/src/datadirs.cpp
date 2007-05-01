@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "datadirs.h"
 #include "error.h"
 #include "filehelper.h"
+//#include "system.h"
 
 // Note! this is a global variable and is inited before main,
 // any data depening on that variable, like objcache, textures etc. etc.
@@ -53,6 +54,7 @@ data_file_handler::data_file_handler()
 	parse_for_data_files(dir + "ships/", ship_ids);
 	parse_for_data_files(dir + "submarines/", submarine_ids);
 	parse_for_data_files(dir + "torpedoes/", torpedo_ids);
+	parse_for_data_files(dir + "props/", prop_ids);
 }
 
 
