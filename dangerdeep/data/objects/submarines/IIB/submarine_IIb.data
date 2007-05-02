@@ -31,6 +31,7 @@
     <transfertimes bow="900" stern="900" bowdeck="10800" sterndeck="10800" bowsterndeck="1800"/>
   </torpedoes>
   <battery capacity="100" consumption_a="1.3129e-6" consumption_t="0.77071" recharge_a="1" recharge_t="1"/>
+  <torpedomanage image="type2b_torpmanage_sidetop.jpg|png" />
   <fuel capacity="1200" consumption_a="5.3766e-8" consumption_t="2.62382"/>
   <gun_turrets>
   	<turret barrels="1" shell_capacity="1200" initial_velocity="200.0" max_inclination="30" max_declination="0" time_to_man="8" time_to_unman="8" shell_damage="0.03" calibre="20.0" exclusion_radius_start="160" exclusion_radius_end="200"/>
