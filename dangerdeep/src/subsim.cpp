@@ -613,6 +613,9 @@ void create_convoy_mission()
 	wsubtype->append_entry(texts::get(174));
 	wsubtype->append_entry(texts::get(18));
 	wsubtype->append_entry(texts::get(660));
+    wsubtype->append_entry(texts::get(661));
+    wsubtype->append_entry(texts::get(662));
+    wsubtype->append_entry(texts::get(663));
 	wcvsize->append_entry(texts::get(85));
 	wcvsize->append_entry(texts::get(86));
 	wcvsize->append_entry(texts::get(87));
@@ -646,6 +649,9 @@ void create_convoy_mission()
 			case 1: st = "submarine_IXc40"; break;
 			case 2: st = "submarine_XXI"; break;
 			case 3: st = "submarine_IIa"; break;
+            case 4: st = "submarine_IIb"; break;
+            case 5: st = "submarine_IIc"; break;
+            case 6: st = "submarine_IId"; break;
 		}
 		// reset loading screen here to show user we are doing something
 		reset_loading_screen();
