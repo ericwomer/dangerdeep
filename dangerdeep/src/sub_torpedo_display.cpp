@@ -260,7 +260,7 @@ void sub_torpedo_display::display(class game& gm) const
 			    torpedoes[tb].status == submarine::stored_torpedo::st_unloading) {
 				glColor4f(1,1,1,1);
 				notepadsheet->draw(mx, my);
-				font_damagedtypewriter->print(mx+32, my+32, texts::get(211) +
+				font_damagedtypewriter->print(mx+32, my+50, texts::get(211) +
 						  get_time_string(torpedoes[tb].remaining_time), color(32,0,0));
 			}
 		}
