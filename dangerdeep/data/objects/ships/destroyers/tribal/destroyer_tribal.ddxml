@@ -4,10 +4,11 @@
     <specular color="1 1 1" />
     <shininess exponent="55" />
       <map type="diffuse" filename="tribalv1_na1941_diffuse.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" >
-	<skin filename="tribalv1_sikh_diffuse.jpg" layout="northatlantic1940"/>
+	<skin filename="tribalv1_sikh_diffuse.jpg" layout="northatlantic1941"/>
 	<skin filename="tribalv1_haida_diffuse.jpg" layout="centralatlantic"/>
 	<skin filename="tribalv1_matabele_diffuse.jpg" layout="northsea"/>
 	<skin filename="tribalv1_tartar_diffuse.jpg" layout="mediterranean"/>
+	<skin filename="tribalv1_nubian_diffuse.jpg" layout="northatlantic1939"/>
       </map>
       <map type="normal" filename="tribalv1_bump.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0"/>
       <map type="specular" filename="tribalv1_specular.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0"/>
