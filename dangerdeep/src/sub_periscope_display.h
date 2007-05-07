@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "freeview_display.h"
 #include "image.h"
+#include "shader.h"
 #include <vector>
 
 class sub_periscope_display : public freeview_display
@@ -39,6 +40,11 @@ class sub_periscope_display : public freeview_display
 	texture::ptr clock_minutes_pointer;
 	
 	bool zoomed;	// use 1,5x (false) or 6x zoom (true)
+
+	bool use_shaders;
+	texture::ptr viewtex;
+	texture::ptr blurtex;
+	std::auto_ptr<glsl_shader_setup> glsl_blurview;
 
 	vector3 get_viewpos(class game& gm) const;
 

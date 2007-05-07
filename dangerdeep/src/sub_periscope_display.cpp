@@ -68,6 +68,51 @@ vector3 sub_periscope_display::get_viewpos(class game& gm) const
 
 void sub_periscope_display::post_display(game& gm) const
 {
+#if 1
+	if (use_shaders) {
+		// here we add a test hack for a blurred, watery image
+		viewtex->set_gl_texture();
+		projection_data pd = get_projection_data(gm);
+		// copy visible part of viewport to texture
+		// fixme: w/h must be powers of 2. here we have 424. could work for newer
+		// cards though (non-power-2-tex)
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pd.x, pd.y, pd.w, pd.h, 0);
+		// now render texture as 2d image combined with blur texture.
+		glPushMatrix();
+		glLoadIdentity();
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		glActiveTexture(GL_TEXTURE0);
+		viewtex->set_gl_texture();
+		glActiveTexture(GL_TEXTURE1);
+		blurtex->set_gl_texture();
+		// bind shader...
+		glsl_blurview->use();
+		glsl_blurview->set_gl_texture(*viewtex, "tex_view", 0);
+		glsl_blurview->set_gl_texture(*blurtex, "tex_blur", 1);
+		double blur_y_off = myfrac(gm.get_time() / 10.0);
+		glsl_blurview->set_uniform("blur_texc_offset", vector3(blur_y_off, 0, 0));
+		glBegin(GL_QUADS);
+		glTexCoord2f(0.0f, 1.0f);
+		glVertex3f(-1.0f, 1.0f, 0.0f);
+		glTexCoord2f(0.0f, 0.0f);
+		glVertex3f(-1.0f, -1.0f, 0.0f);
+		glTexCoord2f(1.0f, 0.0f);
+		glVertex3f(1.0f, -1.0f, 0.0f);
+		glTexCoord2f(1.0f, 1.0f);
+		glVertex3f(1.0f, 1.0f, 0.0f);
+		glEnd();
+		// unbind shader
+		glsl_blurview->use_fixed();
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE0);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+	}
+#endif
+
 	if (gm.get_player()->get_target()) {
 		projection_data pd = get_projection_data(gm);
 		ui.show_target(pd.x, pd.y, pd.w, pd.h, get_viewpos(gm));
@@ -111,12 +156,21 @@ void sub_periscope_display::post_display(game& gm) const
 
 
 
-sub_periscope_display::sub_periscope_display(user_interface& ui_) : freeview_display(ui_), zoomed(false)
+sub_periscope_display::sub_periscope_display(user_interface& ui_)
+	: freeview_display(ui_), zoomed(false), use_shaders(false)
 {
 	add_pos = vector3(0, 0, 8);//fixme, depends on sub
 	aboard = true;
 	withunderwaterweapons = false;//they can be seen when scope is partly below water surface, fixme
 	drawbridge = false;
+
+	use_shaders = glsl_program::supported() && cfg::instance().getb("use_shaders");
+	if (use_shaders) {
+		viewtex.reset(new texture(512, 512, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
+		glsl_blurview.reset(new glsl_shader_setup(get_shader_dir() + "blurview.vshader",
+							  get_shader_dir() + "blurview.fshader"));
+		blurtex.reset(new texture(get_texture_dir() + "blurtest.png", texture::LINEAR, texture::REPEAT));
+	}
 }
 
 
