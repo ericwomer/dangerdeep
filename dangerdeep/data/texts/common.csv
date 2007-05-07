@@ -106,9 +106,9 @@
 104;"Main menu";"Hauptmenü";"Menu principale";"Menú principal";"Menu principal";"Hlavní menu";"Menu principal";"Hoofd menu";"Ana Menü"
 105;"continue";"weiter";"continua";"continuar";"continuer";"pokračovat";"continuar";"Doorgaan";"devam"
 106;"Change screen resolution";"Bildschirmauflösung ändern";"Cambia la risoluzione dello schermo";"Cambiar la resolución de pantalla";"Changer la résolution d'écran";"Změnit rozlišení obrazovky";;"Verander scherm resolutie";"Ekran Çözünürlüğünü Değiş"
-107;;;;;;;;;
-108;;;;;;;;;
-109;;;;;;;;;
+107;"Miscellaneous";"Verschiedenes";"Miscellaneous";"Miscellaneous";"Miscellaneous";"Miscellaneous";"Miscellaneous";"Miscellaneous";"Miscellaneous"
+108;"Use GLSL shaders";"Benutze GLSL Shader";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders"
+109;"Use shaders for water rendering";"Benutze Shader für Wasser-Darstellung";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering"
 110;"not implemented yet, sorry";"Leider noch nicht implementiert";"not implemented yet, sorry";"Lo siento, no implementado aún";"Pas encore implémenté, désolé";"Promiňte, zatím nebylo implementováno";;"Nog niet geïmplementeerd";"henüz yerine getirilmedi, üzgünüm"
 111;;;;;;;;;
 112;;;;;;;;;

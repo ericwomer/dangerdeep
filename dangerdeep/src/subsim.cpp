@@ -1188,6 +1188,8 @@ void apply_mode(widget_list* wlg)
 	}
 }
 
+
+
 void menu_resolution()
 {
 	const list<vector2i>& available_resolutions = sys().get_available_resolutions();
@@ -1220,6 +1222,31 @@ void menu_resolution()
 	wm->set_pos(vector2i(wlgp.x, wlgp.y - 60));
 	wcb->set_pos(vector2i(wlgp.x - 260, wlgp.y + wlgs.y + 20));  
 	w.run(0, false);	
+}
+
+
+
+void menu_misc()
+{
+	widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
+	unsigned wd = 600;
+	unsigned hg = 4 * 40 + 3 * 20;
+	vector2i curr_res(sys().get_res_x(), sys().get_res_y());
+	int x = (curr_res.x - wd)/2;
+	int y = (curr_res.y - hg)/2;
+	widget_menu* wm = new widget_menu(x, y, wd, 40, texts::get(107));
+	widget_checkbox* wshad = new widget_checkbox(x, y + 60, wd, 40, cfg::instance().getb("use_shaders"), texts::get(108));
+	widget_checkbox* wshadw = new widget_checkbox(x, y + 120, wd, 40, cfg::instance().getb("use_shaders_for_water"), texts::get(109));
+	widget_button* wcb = new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, x, y + 180, wd, 40, texts::get(20));  
+
+	w.add_child(wm);
+	w.add_child(wshad);
+	w.add_child(wshadw);
+	w.add_child(wcb);
+	w.run(0, false);	
+
+	cfg::instance().set("use_shaders", wshad->is_checked());
+	cfg::instance().set("use_shaders_for_water", wshadw->is_checked());
 }
 
 
@@ -1291,6 +1318,7 @@ void menu_options()
 	w.add_child(wm);
 	wm->add_entry(texts::get(214), new widget_func_button<void (*)()>(&menu_configure_keys, 0, 0, 0, 0));
 	wm->add_entry(texts::get(106), new widget_func_button<void (*)()>(&menu_resolution, 0, 0, 0, 0));
+	wm->add_entry(texts::get(107), new widget_func_button<void (*)()>(&menu_misc, 0, 0, 0, 0));
 	wm->add_entry(texts::get(11), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
 	wm->align(0, 0);
 	w.run(0, false);
