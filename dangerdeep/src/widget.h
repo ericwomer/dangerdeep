@@ -219,8 +219,8 @@ protected:
 	widget_checkbox(const widget_checkbox& );
 	widget_checkbox& operator= (const widget_checkbox& );
 public:
-	widget_checkbox(int x, int y, int w, int h, const string& text_, widget* parent_ = 0)
-		: widget(x, y, w, h, text_, parent_), checked(false) {}
+	widget_checkbox(int x, int y, int w, int h, bool checked_, const string& text_, widget* parent_ = 0)
+		: widget(x, y, w, h, text_, parent_), checked(checked_) {}
 	void draw() const;
 	void on_click(int mx, int my, int mb);
 	bool is_checked() const { return checked; }
@@ -312,8 +312,9 @@ class widget_caller_checkbox : public widget_checkbox
 	Func func;
 public:
 	widget_caller_checkbox(Obj* obj_, Func func_, int x = 0, int y = 0, int w = 0, int h = 0,
-		const string& text = "", widget* parent = 0)
-		: widget_checkbox(x, y, w, h, text, parent), obj(obj_), func(func_) {}
+			       bool checked = false,
+			       const string& text = "", widget* parent = 0)
+		: widget_checkbox(x, y, w, h, checked, text, parent), obj(obj_), func(func_) {}
 	void on_change() { widget_checkbox::on_change(); (obj->*func)(); }
 };
 

@@ -140,11 +140,11 @@ user_interface::user_interface(game& gm) :
 	}
 	typedef widget_caller_checkbox<user_interface, void (user_interface::*)()> wccui;
 	// fixme: use checkbox here...
-	playlist_repeat_checkbox = new wccui(this, &user_interface::playlist_mode_changed, 0, 0, 192, 32, texts::get(263));
+	playlist_repeat_checkbox = new wccui(this, &user_interface::playlist_mode_changed, 0, 0, 192, 32, false, texts::get(263));
 	music_playlist->add_child_near_last_child(playlist_repeat_checkbox);
-	playlist_shuffle_checkbox = new wccui(this, &user_interface::playlist_mode_changed, 0, 0, 192, 32, texts::get(264));
+	playlist_shuffle_checkbox = new wccui(this, &user_interface::playlist_mode_changed, 0, 0, 192, 32, false, texts::get(264));
 	music_playlist->add_child_near_last_child(playlist_shuffle_checkbox, 0, 1);
-	playlist_mute_checkbox = new wccui(this, &user_interface::playlist_mute, 0, 0, 384, 32, texts::get(265));
+	playlist_mute_checkbox = new wccui(this, &user_interface::playlist_mute, 0, 0, 384, 32, false, texts::get(265));
 	music_playlist->add_child_near_last_child(playlist_mute_checkbox, 0);
 	playlist_mute_checkbox->move_pos(vector2i(-192, 0));
 	music_playlist->add_child_near_last_child(new widget_set_button<bool>(playlist_visible, false, 0, 0, 384, 32, texts::get(260)), 0);
