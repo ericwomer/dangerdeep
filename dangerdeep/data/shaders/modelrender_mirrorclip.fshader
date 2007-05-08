@@ -1,4 +1,5 @@
 // -*- mode: C; -*-
+#version 110
 
 uniform sampler2D tex_color;	// diffuse color map (RGB)
 

@@ -1,4 +1,5 @@
 // -*- mode: C; -*-
+#version 110
 
 varying vec3 viewerdir;
 varying vec3 lightdir;

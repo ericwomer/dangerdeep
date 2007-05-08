@@ -1,4 +1,5 @@
 // -*- mode: C; -*-
+#version 110
 
 /* input:
    gl_Vertex

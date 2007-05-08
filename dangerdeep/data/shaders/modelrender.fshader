@@ -1,4 +1,5 @@
 // -*- mode: C; -*-
+#version 110
 
 // fixme: maybe lookup texmap is faster than pow(). Quick tests showed that this is not the case...
 
