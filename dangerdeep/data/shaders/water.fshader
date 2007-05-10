@@ -15,7 +15,7 @@ uniform sampler2D tex_reflection;	// reflection, RGB
 uniform sampler2D tex_foam;		// foam texture (tileable)
 uniform sampler2D tex_foamamount;	// amount of foam per pixel
 
-const float water_shininess = 120.0;
+const float water_shininess = 140.0;
 
 void main()
 {
@@ -30,8 +30,8 @@ void main()
 	// compute direction to light source
 	vec3 L = normalize(lightdir);
 
-	// compute reflected light vector (N must be normalized)
-	vec3 R = reflect(-L, N);
+	// half vector
+	vec3 H = normalize(L + E);
 
 	// compute fresnel term. we need to clamp because the product could be negative
 	// when the angle between face normal and viewer is nearly perpendicular.
@@ -65,9 +65,9 @@ void main()
 	// second dimension with specular term. Spares two pow() instructions. But we already used
 	// all four texture units. Doubtful that performance would be higher...
 
-	// compute specular light brightness (phong shading)
+	// compute specular light brightness (blinn shading with specular falloff/size control)
 	vec3 specular_color = vec3(gl_LightSource[0].diffuse)
-		* pow(clamp(dot(R, E), 0.0, 1.0), water_shininess);
+		* pow(max(0.0, dot(N, H)), water_shininess) * 6.0;
 
 	// compute refraction color
 	float dl = max(dot(L, N), 0.0);
