@@ -23,6 +23,7 @@ cvedit = int(ARGUMENTS.get('cvedit', 0))
 usex86sse = int(ARGUMENTS.get('usex86sse', 0))
 useefence = int(ARGUMENTS.get('useefence', 0))
 useduma = int(ARGUMENTS.get('useduma', 0))
+archflag = ARGUMENTS.get('arch', '')
 
 ################ set environment
 
@@ -138,6 +139,10 @@ else:
 		ccflags += ' -g -O3 -march=athlon64 -mfpmath=sse -mmmx -msse -msse2 -m3dnow -ftree-vectorize -ftree-vectorizer-verbose=2'
 	else:
 		ccflags += ' -g -O2' # debug symbols will be stripped by the linker for a debian package
+	# choose specific architecture if requested
+	if archflag != '':
+		ccflags += ' -march=' + archflag
+		print 'Using architecture: ' + archflag
 	if (useefence >= 1):
 		extralibs += ['efence']
 		print 'Linking to ElectricFence library!'
