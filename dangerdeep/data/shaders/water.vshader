@@ -39,7 +39,9 @@ void main()
 		clamp((gl_Vertex.z + viewpos.z) * 0.1111111 + N.z - 0.4666667, 0.0, 1.0) + upwellbot;
 
 	// compute direction to viewer (E) in object space (mvinv*(0,0,0,1) - inputpos)
-	viewerdir = normalize(vec3(gl_ModelViewMatrixInverse[3]) - vec3(gl_Vertex));
+	// Note! Do NOT normalize it or weird values will result for the large horizon faces!
+	//viewerdir = normalize(vec3(gl_ModelViewMatrixInverse[3]) - vec3(gl_Vertex));
+	viewerdir = vec3(gl_ModelViewMatrixInverse[3]) - vec3(gl_Vertex);
 
 	// transform vertex to projection space (clip coordinates)
 	gl_Position = ftransform();
