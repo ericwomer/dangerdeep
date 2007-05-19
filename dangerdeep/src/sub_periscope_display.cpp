@@ -66,6 +66,33 @@ vector3 sub_periscope_display::get_viewpos(class game& gm) const
 
 
 
+void sub_periscope_display::set_modelview_matrix(game& gm, const vector3& viewpos) const
+{
+	glLoadIdentity();
+
+	// set up rotation (player's view direction) - we have no elevation for the periscope.
+	// so set standard elevation of 90°
+	glRotated(-90.0f,1,0,0);
+
+	// This should be a negative angle, but nautical view dir is clockwise,
+	// OpenGL uses ccw values, so this is a double negation
+	glRotated(ui.get_absolute_bearing().value(),0,0,1);
+
+	// if we're aboard the player's vessel move the world instead of the ship
+	if (aboard) {
+		const sea_object* pl = gm.get_player();
+		double rollfac = (dynamic_cast<const ship*>(pl))->get_roll_factor();
+		ui.rotate_by_pos_and_wave(pl->get_pos(), pl->get_heading(),
+					  pl->get_length(), pl->get_width(), rollfac, true);
+	}
+
+	// set up modelview matrix as if player is at position (0, 0, 0), so do NOT set a translational part.
+	// This is done to avoid rounding errors caused by large x/y values (modelview matrix seems to store floats,
+	// but coordinates are in real meters, so float is not precise enough).
+}
+
+
+
 void sub_periscope_display::post_display(game& gm) const
 {
 #if 1

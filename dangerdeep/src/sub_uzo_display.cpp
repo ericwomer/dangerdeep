@@ -56,6 +56,37 @@ freeview_display::projection_data sub_uzo_display::get_projection_data(class gam
 
 
 
+void sub_uzo_display::set_modelview_matrix(game& gm, const vector3& viewpos) const
+{
+	glLoadIdentity();
+
+	// set up rotation (player's view direction)
+	// limit elevation to -20...20 degrees.
+	float elev = -ui.get_elevation().value();
+	const float LIMIT = 20.0f;
+	if (elev < -LIMIT - 90.0f) elev = -LIMIT - 90.0f;
+	if (elev > +LIMIT - 90.0f) elev = +LIMIT - 90.0f;
+	glRotated(elev,1,0,0);
+
+	// This should be a negative angle, but nautical view dir is clockwise,
+	// OpenGL uses ccw values, so this is a double negation
+	glRotated(ui.get_absolute_bearing().value(),0,0,1);
+
+	// if we're aboard the player's vessel move the world instead of the ship
+	if (aboard) {
+		const sea_object* pl = gm.get_player();
+		double rollfac = (dynamic_cast<const ship*>(pl))->get_roll_factor();
+		ui.rotate_by_pos_and_wave(pl->get_pos(), pl->get_heading(),
+					  pl->get_length(), pl->get_width(), rollfac, true);
+	}
+
+	// set up modelview matrix as if player is at position (0, 0, 0), so do NOT set a translational part.
+	// This is done to avoid rounding errors caused by large x/y values (modelview matrix seems to store floats,
+	// but coordinates are in real meters, so float is not precise enough).
+}
+
+
+
 void sub_uzo_display::post_display(game& gm) const
 {
 	if (gm.get_player()->get_target()) {

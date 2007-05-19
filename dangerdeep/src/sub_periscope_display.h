@@ -32,6 +32,7 @@ class sub_periscope_display : public freeview_display
 {
 	void pre_display(class game& gm) const;
 	projection_data get_projection_data(class game& gm) const;
+	void set_modelview_matrix(class game& gm, const vector3& viewpos) const;
 	void post_display(class game& gm) const;
 
 	std::auto_ptr<image> background;
