@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <stdexcept>
 
 #include "vector3.h"
+#include "matrix3.h"
 #include "angle.h"
 #include "quaternion.h"
 #include "xml.h"
@@ -193,13 +194,21 @@ protected:
 	// computes name of skin variant name according to data above.
 	std::string compute_skin_name() const;
 
+	//
+	// ---------------- rigid body variables, maybe group in extra clas ----------------
+	//
 	vector3 position;	// global position, [SAVE]
-	vector3 velocity;	// local velocity, [SAVE]
-	// maybe: vector3 impulse;
+	vector3 velocity;	// local velocity, [SAVE]    <-- later: impulse P
+	//vector3 impulse;	// local (?) impulse ("P") P = M * v
 	quaternion orientation;	// global orientation, [SAVE]
 	double turn_velocity;	// angular velocity around global z-axis (mathematical CCW), [SAVE]
-	// later:
-	// quaternion turn_impulse; or turn_velocity;
+	                        // <-- later: angular momentum L
+	//vector3 angular_momentum; // angular momentum ("L") L = I * w = R * I_k * R^T * w
+	double mass;	// total weight, later read from spec file
+	matrix3 inertia_tensor;	// object local (I_k). [could be a reference into a model object...]
+	matrix3 inertia_tensor_inv;	// object local (I_k), inverse of inertia tensor.
+
+	// ------------- computed from rigid body variables ----------------
 	angle heading;		// global z-orientation is stored additionally, [SAVE]
 	// maybe (re)compute heading by orientation: let (0,1,0) rotate by orientation,
 	// project to xy-plane, normalize and measure angle.
@@ -213,12 +222,10 @@ protected:
 	///@param T the torque, default (0, 0, 0).
 	virtual void compute_force_and_torque(vector3& F, vector3& T) const;
 
-	// only used in ship.h/cpp
+	// only used in ship.h/cpp, replace ASAP.
 	virtual double get_turn_acceleration() const;	// drag must be already included! deprecated...
 
 	vector3f size3d;		// computed from model, indirect read from spec file, width, length, height
-
-	double mass;	// total weight, later read from spec file
 
 	/// Activity state of an object.	
 	/// an object is alive until it is killed or inactive.

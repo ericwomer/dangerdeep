@@ -779,6 +779,15 @@ double ship::get_turn_acceleration() const	// drag must be already included!
 //cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << " turn_velo " << turn_velocity << " heading " << heading.value() << " tv2 " << tv2 << "\n";
 //cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << " max_turn_accel " << max_turn_accel << "\n";
 	return acceleration + drag_factor;
+
+	/* 2007/05/20:
+	   torque is force * path (Nm), the force is the acceleration * mass,
+	   and the path is the length from object's center to rudder centers,
+	   i.e. the point where the force is acting.
+	   This gives large torque with small forces, because the length is long (30-35m on VIIc).
+	   The mass depends on the mass of water moved by the screws?
+	   fixme...
+	*/
 }
 
 
