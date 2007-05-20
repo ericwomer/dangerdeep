@@ -724,14 +724,19 @@ double ship::get_noise_factor () const
 
 
 
+void ship::compute_force_and_torque(vector3& F, vector3& T) const
+{
+	// fixme: adapt from get_acceleration/get_turn_acceleration
+
+	// here is old get_acceleration() code, that multiplies mass
+
 //fixme: deceleration is to low at low speeds, causing the sub the turn a LONG time after
 //rudder is midships/screws stopped. Is fixed by setting drag to linear at speeds < 1.0
 //fixme: drag can go nuts when time is scaled causing NaN in double...
 //this is because damping becomes to crude at high time scale
 //fixme: in reality drag is v and v^2 combined... on low speeds v is significant term, on higher speeds
 //it is v^2. It is: v > v^2 for v < 1.
-vector3 ship::get_acceleration() const		// drag must be already included!
-{
+
 	// acceleration of ship depends on rudder.
 	// forward acceleration is max_accel_forward * cos(rudder_ang)
 	//fixme 2004/07/18: the drag is too small. engine stop -> the ship slows down but
@@ -747,7 +752,7 @@ vector3 ship::get_acceleration() const		// drag must be already included!
 	double drag_factor = (speed2) * max_accel_forward / (max_speed_forward*max_speed_forward);
 	double acceleration = get_throttle_accel() * cos(rudder_pos * M_PI / 180.0);
 	if (speed > 0) drag_factor = -drag_factor;
-	return vector3(0, acceleration + drag_factor, 0);
+	F = vector3(0, acceleration + drag_factor, 0) * mass;
 }
 
 

@@ -139,7 +139,7 @@ class torpedo : public ship
 	bool use_simple_turning_model() const { return true; }
 
 	// torpedoes have constant speed... for now
-	virtual vector3 get_acceleration() const { return vector3(); }
+	void compute_force_and_torque(vector3& F, vector3& T) const {}
 
 	virtual bool causes_spray() const { return false; }//causes wake, only true for steam torpedoes and maybe for Walter engine
 

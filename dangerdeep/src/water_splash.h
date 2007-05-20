@@ -52,7 +52,7 @@ class water_splash : public sea_object
 	void simulate(double delta_time);
 	void display() const;
 	void display_mirror_clip() const;
-	vector3 get_acceleration() const { return vector3(); } // no acceleration
+	void compute_force_and_torque(vector3& F, vector3& T) const {} // static object, no acceleration
 };
 
 

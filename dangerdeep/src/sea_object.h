@@ -206,16 +206,19 @@ protected:
 	// maybe compute and store vector2 heading_dir also, to save computations.
 
 	vector3 global_velocity;// recomputed every frame by simulate() method
-	
-	virtual vector3 get_acceleration() const;	// drag must be already included!
-	virtual double get_turn_acceleration() const;	// drag must be already included!
-	// later:
-	// virtual vector3 get_force() const;		// vector of force
-	// virtual quaternion get_torque() const;	// angle/axis of torque
+
+	/// called in every simulation step. overload to specify force and torque,
+	/// with drag already included.
+	///@param F the force, default (0, 0, 0)
+	///@param T the torque, default (0, 0, 0).
+	virtual void compute_force_and_torque(vector3& F, vector3& T) const;
+
+	// only used in ship.h/cpp
+	virtual double get_turn_acceleration() const;	// drag must be already included! deprecated...
 
 	vector3f size3d;		// computed from model, indirect read from spec file, width, length, height
 
-	// double mass;	// total weight, later read from spec file
+	double mass;	// total weight, later read from spec file
 
 	/// Activity state of an object.	
 	/// an object is alive until it is killed or inactive.

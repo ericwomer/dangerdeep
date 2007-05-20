@@ -115,7 +115,7 @@ class ship : public sea_object
 
 	shipclass myclass;	// read from spec file, e.g. warship/merchant/escort/...
 
-	virtual vector3 get_acceleration() const;		// drag must be already included!
+	void compute_force_and_torque(vector3& F, vector3& T) const; // drag must be already included!
 	virtual double get_turn_acceleration() const;	// drag must be already included!
 
 	/**

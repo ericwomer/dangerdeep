@@ -75,12 +75,12 @@ void depth_charge::simulate(double delta_time)
 
 
 
-vector3 depth_charge::get_acceleration() const
+void depth_charge::compute_force_and_torque(vector3& F, vector3& T) const
 {
 	if (position.z > 0) {	// DC's can be thrown, so they can be above water.
-		return vector3(0, 0, -GRAVITY);
+		F.z = -GRAVITY * mass;
 	} else {
 		double vm = velocity.z/DEPTH_CHARGE_SINK_SPEED;
-		return vector3(0, 0, -GRAVITY + GRAVITY*vm*vm);
+		F.z = (-GRAVITY + GRAVITY*vm*vm) * mass;
 	}
 }

@@ -58,12 +58,11 @@ void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, 
 	south = (y < 0.0);
 }
 
-// fixme: change the function signature so that current state is given
-// (position/velocity) and point of time to get acceleration for, at least
-// as offset to current time! to have non-constant acceleration over time
-vector3 sea_object::get_acceleration() const
+
+
+void sea_object::compute_force_and_torque(vector3& F, vector3& T) const
 {
-	return vector3(0, 0, -GRAVITY);
+	F.z = -GRAVITY * mass;
 }
 
 
@@ -214,6 +213,7 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 	  mymodel(0),
 	  skin_country(UNKNOWNCOUNTRY),
 	  turn_velocity(0),
+	  mass(1.0),//fixme
 	  alive_stat(alive),
 	  sensors(last_sensor_system),
 	  target(0),
@@ -237,6 +237,7 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 	  mymodel(0),
 	  skin_country(UNKNOWNCOUNTRY),
 	  turn_velocity(0),
+	  mass(1.0),//fixme
 	  alive_stat(alive),
 	  sensors(last_sensor_system),
 	  target(0),
@@ -478,6 +479,10 @@ void sea_object::simulate(double delta_time)
 		}
 	}
 
+	vector3 force, torque;
+	compute_force_and_torque(force, torque);
+	// ... fixme
+
 	// this leads to another model for acceleration/max_speed/turning etc.
 	// the object applies force to the screws etc. with Force = acceleration * mass.
 	// there is some drag caused by air/water opposite to the force.
@@ -529,7 +534,7 @@ void sea_object::simulate(double delta_time)
 
 	// use compute_force(), compute_torque() here, with inertia tensor etc.
 
-	vector3 acceleration = get_acceleration();
+	vector3 acceleration = (1.0/mass) * force;
 	vector3 global_acceleration = horientation.rotate(acceleration);
 	global_velocity = horientation.rotate(velocity);
 	double t2_2 = 0.5 * delta_time * delta_time;

@@ -52,7 +52,7 @@ public:
 	virtual void save(xml_elem& parent) const;
 
 	virtual void simulate(double delta_time);
-	virtual vector3 get_acceleration() const;
+	void compute_force_and_torque(vector3& F, vector3& T) const;
 };
 
 #endif
