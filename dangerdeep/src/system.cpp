@@ -205,13 +205,21 @@ void system::set_video_mode(unsigned res_x_, unsigned res_y_, bool fullscreen)
 	const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
 	if (!videoInfo)
 		throw sdl_error("Video info query failed");
-	int videoFlags  = SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_HWPALETTE;
-	videoFlags |= (videoInfo->hw_available) ? SDL_HWSURFACE : SDL_SWSURFACE;
+	// Note: the SDL_GL_DOUBLEBUFFER flag is ignored with OpenGL modes.
+	// the flags SDL_HWPALETTE, SDL_HWSURFACE and SDL_HWACCEL
+	// are not needed for OpenGL mode.
+	int videoFlags  = SDL_OPENGL;
+	//videoFlags |= (videoInfo->hw_available) ? SDL_HWSURFACE : SDL_SWSURFACE;
+	// if (videoInfo->blit_hw) videoFlags |= SDL_HWACCEL;
 	if (fullscreen)
 		videoFlags |= SDL_FULLSCREEN;
-	if (videoInfo->blit_hw)
-		videoFlags |= SDL_HWACCEL;
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	if (SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1) < 0)
+		throw sdl_error("setting double buffer mode failed");
+	if (SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1) < 0)
+		throw sdl_error("setting accelerated visual failed");
+	// enable VSync, but doesn't work on Linux/Nvidia/SDL 1.2.11 (?!)
+  	//if (SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1) < 0)
+  	//	throw sdl_error("setting VSync failed");
 	int bpp = videoInfo->vfmt->BitsPerPixel;
 	SDL_Surface* screen = SDL_SetVideoMode(res_x_, res_y_, bpp, videoFlags);
 	if (!screen)
