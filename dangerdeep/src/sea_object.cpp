@@ -238,6 +238,10 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 	mymodel->register_layout(skin_name);
 //  	cout << "base c'tor: registered layout " << skin_name << "\n";
 	size3d = vector3f(mymodel->get_width(), mymodel->get_length(), mymodel->get_height());
+
+	// cube with 1m length.
+	inertia_tensor = matrix3::one() * (mass / 6.0);
+	inertia_tensor_inv = inertia_tensor.inverse();
 }
 
 
@@ -349,6 +353,10 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 	}
 
 	// ai is filled in by heirs.
+
+	// cube with 1m length.
+	inertia_tensor = matrix3::one() * (mass / 6.0);
+	inertia_tensor_inv = inertia_tensor.inverse();
 }
 
 
