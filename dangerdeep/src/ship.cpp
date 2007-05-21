@@ -726,9 +726,20 @@ double ship::get_noise_factor () const
 
 void ship::compute_force_and_torque(vector3& F, vector3& T) const
 {
-	// fixme: adapt from get_acceleration/get_turn_acceleration
+	// we need to add the force/torque generated from tide.
+	// for certain sample points around the hull we compute the draught
+	// and from that a lift force. It can be negative because of gravity
+	// or positive because of buoyancy.
+	// The sum of all these forces is total lift force,
+	// the sum of the cross products between these forces and their relative
+	// vectors where they act (the points around the hull) give the torque.
+	// this is rather easy to code.
+	// sample 5-10 points along length axis of ship, compute real world xy
+	// coordinate of it and then water height there, compute draught
+	// by comparing z-pos of that point (real world!) with water height.
+	// for rolling, we need to compute a 2d array of points, e.g. 2*5 or 3*5.
+	// costly, but needed for realism.
 
-	// here is old get_acceleration() code, that multiplies mass
 
 //fixme: deceleration is to low at low speeds, causing the sub the turn a LONG time after
 //rudder is midships/screws stopped. Is fixed by setting drag to linear at speeds < 1.0

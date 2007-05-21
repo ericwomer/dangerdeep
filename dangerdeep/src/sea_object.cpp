@@ -505,6 +505,9 @@ void sea_object::simulate(double delta_time)
 	vector3 P = impulse + delta_time * force;
 	vector3 L = angular_momentum + delta_time * torque;
 
+	// Note: with this code the change to P / L is also used to change position/orientation,
+	// which is not fully correct...
+
 	// now compute new position / orientation by integrating again.
 	// M^-1 * P = v, fixme should impulse be local or global?
 	position += orientation.rotate(P * (1.0/mass) * delta_time); // maybe store inverse mass...
