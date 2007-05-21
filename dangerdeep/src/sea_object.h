@@ -222,9 +222,6 @@ protected:
 	///@param T the torque, default (0, 0, 0).
 	virtual void compute_force_and_torque(vector3& F, vector3& T) const;
 
-	// only used in ship.h/cpp, replace ASAP.
-	virtual double get_turn_acceleration() const;	// drag must be already included! deprecated...
-
 	vector3f size3d;		// computed from model, indirect read from spec file, width, length, height
 
 	/// Activity state of an object.	

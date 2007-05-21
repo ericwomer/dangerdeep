@@ -62,6 +62,19 @@ void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, 
 
 void sea_object::compute_force_and_torque(vector3& F, vector3& T) const
 {
+	/* general formulas:
+	   Total force acting on a body is just the sum of all forces acting on it.
+	   Total torque is the sum over all forces with index i, with summands
+	   (p_i - x) cross F_i.
+	   F_i is the force.
+	   p_i is the point in 3-space where F_i acts.
+	   x is the gravitational center of the body.
+	   Hence: total torque = sum xr_i cross F_i  (xr : relative position).
+	   Torque is a vector, that has a direction and a length.
+	   The direction is the axis around that the torque/force acts,
+	   and the length is proportional to the amount of the torque.
+	   In our current model the length would be proportional to the turn acceleration.
+	*/
 	F.z = -GRAVITY * mass;
 }
 
@@ -113,13 +126,10 @@ void sea_object::compute_force_and_torque(vector3& F, vector3& T) const
   is computed) gives a force, that is applied to the ship.
   Force = mass * acceleration. Acceleration is g, mass is difference between displaced water
   and the ship's part (is that correct for computation of buoyancy?).
-  
-*/
 
-double sea_object::get_turn_acceleration() const
-{
-	return 0.0;
-}
+
+  is this comment up-to-date? rather not. check and remove, fixme...
+*/
 
 
 
@@ -558,7 +568,8 @@ void sea_object::simulate(double delta_time)
 //	cout << "NEWpos: " << position << "\nNEWvelo: " << velocity << "\n";
 //	cout << "(delta t = " << delta_time << ")\n";
 	
-	double turnaccel = get_turn_acceleration();
+	// note: we can't take length, as this is positive always...
+	double turnaccel = torque.z;//length(); // was: get_turn_acceleration();
 	double add_turn_angle = turn_velocity * delta_time + turnaccel * t2_2;
 	orientation = quaternion::rot(add_turn_angle, 0, 0, 1) * orientation;
 	// turning is handled in mathematical order (growing angles are ccw).

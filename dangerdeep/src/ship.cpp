@@ -753,12 +753,10 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	double acceleration = get_throttle_accel() * cos(rudder_pos * M_PI / 180.0);
 	if (speed > 0) drag_factor = -drag_factor;
 	F = vector3(0, acceleration + drag_factor, 0) * mass;
-}
 
 
 
-double ship::get_turn_acceleration() const	// drag must be already included!
-{
+	{ // get_turn_acceleration()
 	// acceleration of ship depends on rudder state and actual forward speed (linear).
 	// angular acceleration (turning) is speed * sin(rudder_ang) * factor
 	// this is acceleration around local z-axis.
@@ -778,7 +776,7 @@ double ship::get_turn_acceleration() const	// drag must be already included!
 	if (turn_velocity > 0) drag_factor = -drag_factor;
 //cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << " turn_velo " << turn_velocity << " heading " << heading.value() << " tv2 " << tv2 << "\n";
 //cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << " max_turn_accel " << max_turn_accel << "\n";
-	return acceleration + drag_factor;
+	acceleration += drag_factor;
 
 	/* 2007/05/20:
 	   torque is force * path (Nm), the force is the acceleration * mass,
@@ -788,6 +786,10 @@ double ship::get_turn_acceleration() const	// drag must be already included!
 	   The mass depends on the mass of water moved by the screws?
 	   fixme...
 	*/
+
+	// we fake torque on first try by setting turn axis to (0,0,1) (z-axis)
+	T = vector3(0, 0, 1) * acceleration;
+	}
 }
 
 
