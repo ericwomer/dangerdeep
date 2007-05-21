@@ -497,8 +497,26 @@ void sea_object::simulate(double delta_time)
 		}
 	}
 
+	// get force and torque for current time.
 	vector3 force, torque;
 	compute_force_and_torque(force, torque);
+
+	// integrate force and torque to get new impulse and angular momentum (P', L').
+	vector3 P = impulse + delta_time * force;
+	vector3 L = angular_momentum + delta_time * torque;
+
+	// now compute new position / orientation by integrating again.
+	// M^-1 * P = v, fixme should impulse be local or global?
+	position += orientation.rotate(P * (1.0/mass) * delta_time); // maybe store inverse mass...
+	impulse = P;
+	// compute global inertia tensor I from I_k with orientation...
+	//    or better I^-1 from I_k^-1.
+	// compute w = I^-1 * L
+	// multiply angle of w with delta_t... (multiply w by delta_t).
+	// compute new orientation by rotating current orientation by modified w...
+	angular_momentum = L;
+
+
 	// ... fixme
 
 	// this leads to another model for acceleration/max_speed/turning etc.
@@ -569,7 +587,7 @@ void sea_object::simulate(double delta_time)
 	// This *can* happen with linearily changing acceleration, like throttle increase/
 	// decrease and turning of rudder. RK4 could help a lot here, because we don't need
 	// that small simulation steps to compute the integration as with Euler...
-	physics::new_position( position, global_velocity, global_acceleration, delta_time );
+////	physics::new_position( position, global_velocity, global_acceleration, delta_time );
 	physics::new_velocity( velocity, acceleration, delta_time );
 
 	//debugging
