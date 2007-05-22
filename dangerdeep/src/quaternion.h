@@ -85,7 +85,17 @@ class quaterniont
 		return quaterniont(cos(ang*scal), v * sa);
 	}
 	
-	matrixt<D, 4U> rotmat() const {
+	matrixt<D, 3U> rotmat() const {
+		D x2 = v.x*v.x, y2 = v.y*v.y, z2 = v.z*v.z;
+		D xy = v.x*v.y, wz = s*v.z, xz = v.x*v.z, wy = s*v.y, yz = v.y*v.z, wx = s*v.x;
+		return matrixt<D, 3U>(
+			1-2*(y2+z2),	2*(xy-wz),	2*(xz+wy),
+			2*(xy+wz),	1-2*(x2+z2),	2*(yz-wx),
+			2*(xz-wy),	2*(yz+wx),	1-2*(x2+y2)
+		);
+	}
+
+	matrixt<D, 4U> rotmat4() const {
 		D x2 = v.x*v.x, y2 = v.y*v.y, z2 = v.z*v.z;
 		D xy = v.x*v.y, wz = s*v.z, xz = v.x*v.z, wy = s*v.y, yz = v.y*v.z, wx = s*v.x;
 		return matrixt<D, 4U>(
