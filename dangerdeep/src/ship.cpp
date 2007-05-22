@@ -801,6 +801,9 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// we fake torque on first try by setting turn axis to (0,0,1) (z-axis)
 	T = vector3(0, 0, 1) * acceleration;
 	}
+	// positive torque turns counter clockwise!
+	// test hacks
+	//T = vector3(0, 0, 1) * 1e-1;
 }
 
 

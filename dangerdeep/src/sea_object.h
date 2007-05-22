@@ -198,22 +198,22 @@ protected:
 	// ---------------- rigid body variables, maybe group in extra clas ----------------
 	//
 	vector3 position;	// global position, [SAVE]
-	vector3 velocity;	// local velocity, [SAVE]    <-- later: impulse P
 	vector3 impulse;	// local (?) impulse ("P") P = M * v
 	quaternion orientation;	// global orientation, [SAVE]
-	double turn_velocity;	// angular velocity around global z-axis (mathematical CCW), [SAVE]
-	                        // <-- later: angular momentum L
 	vector3 angular_momentum; // angular momentum ("L") L = I * w = R * I_k * R^T * w
 	double mass;	// total weight, later read from spec file
+	double mass_inv;
 	matrix3 inertia_tensor;	// object local (I_k). [could be a reference into a model object...]
 	matrix3 inertia_tensor_inv;	// object local (I_k), inverse of inertia tensor.
 
 	// ------------- computed from rigid body variables ----------------
+	vector3 velocity;	// local velocity, [SAVE]    <-- later: impulse P
+	double turn_velocity;	// angular velocity around global z-axis (mathematical CCW), [SAVE]
+	                        // <-- later: angular momentum L
 	angle heading;		// global z-orientation is stored additionally, [SAVE]
 	// maybe (re)compute heading by orientation: let (0,1,0) rotate by orientation,
 	// project to xy-plane, normalize and measure angle.
 	// maybe compute and store vector2 heading_dir also, to save computations.
-
 	vector3 global_velocity;// recomputed every frame by simulate() method
 
 	/// called in every simulation step. overload to specify force and torque,

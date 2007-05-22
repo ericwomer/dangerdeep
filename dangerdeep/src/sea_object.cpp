@@ -222,8 +222,9 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 	  modelname(modelname_),
 	  mymodel(0),
 	  skin_country(UNKNOWNCOUNTRY),
-	  turn_velocity(0),
 	  mass(1.0),//fixme
+	  mass_inv(1.0/mass),
+	  turn_velocity(0),
 	  alive_stat(alive),
 	  sensors(last_sensor_system),
 	  target(0),
@@ -250,8 +251,9 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 	: gm(gm_),
 	  mymodel(0),
 	  skin_country(UNKNOWNCOUNTRY),
-	  turn_velocity(0),
 	  mass(1.0),//fixme
+	  mass_inv(1.0/mass),
+	  turn_velocity(0),
 	  alive_stat(alive),
 	  sensors(last_sensor_system),
 	  target(0),
@@ -501,25 +503,57 @@ void sea_object::simulate(double delta_time)
 	vector3 force, torque;
 	compute_force_and_torque(force, torque);
 
-	// integrate force and torque to get new impulse and angular momentum (P', L').
+	// compute new position by integrating impulse
+	// M^-1 * P = v, fixme should impulse be local or global?
+	position += orientation.rotate(impulse * mass_inv * delta_time);
+
+	// compute new orientation by integrating angular momentum
+
+	// L = I * w = R * I_k * R^T * w =>
+	// w = I^-1 * L = R * I_k^-1 * R^-1 * L
+	// so we can compute w from I_k^-1 and L.
+	// with w we can update orientation.
+	// w codes the axis/angle, which needs to get multiplied by delta_t,
+	// so we can just compute w' = w * delta_t and then compute a
+	// rotation quaternion from w' and set new orientation as
+	// produkt of old orientation and w'.
+	// first test: use R as matrix, later use quaternions directly.
+	std::cout << "torque=" << torque << " angular momentum=" << angular_momentum << "\n";
+	matrix3 R = orientation.rotmat();
+	matrix3 Rt = R.transpose();
+	vector3 w = R * inertia_tensor_inv * Rt * angular_momentum;
+	vector3 w2 = w * delta_time;
+	std::cout << "update orientation, dt=" << delta_time << " w=" << w << " w2=" << w2 << "\n";
+	double w2l = w2.length();
+	if (w2l > 1e-8) {
+		// avoid too small numbers
+		quaternion q = quaternion::rot(w2l, w2 * (1.0/w2l));
+		// multiply orientation with q: combined rotation.
+		std::cout << "q=" << q << " orientation old=" << orientation << " new=" <<
+			q * orientation << "\n";
+		orientation = q * orientation;
+	}
+
+	// compute new impulse by integrating force
 	vector3 P = impulse + delta_time * force;
+	
+	// compute new angular momentum by integrating torque
 	vector3 L = angular_momentum + delta_time * torque;
 
-	// Note: with this code the change to P / L is also used to change position/orientation,
-	// which is not fully correct...
-
-	// now compute new position / orientation by integrating again.
-	// M^-1 * P = v, fixme should impulse be local or global?
-	position += orientation.rotate(P * (1.0/mass) * delta_time); // maybe store inverse mass...
+	// update impulse and angular momentum
 	impulse = P;
-	// compute global inertia tensor I from I_k with orientation...
-	//    or better I^-1 from I_k^-1.
-	// compute w = I^-1 * L
-	// multiply angle of w with delta_t... (multiply w by delta_t).
-	// compute new orientation by rotating current orientation by modified w...
 	angular_momentum = L;
 
+	// update helper variables
+	velocity = P * mass_inv;
+	global_velocity = orientation.rotate(velocity);
+	heading = angle(orientation.rotate(0.0, 1.0, 0.0).xy());
+	turn_velocity = w.length(); // from w.length? fixme
+	// ^^^ this is way too high or some other thing is wrong
+	turn_velocity *= delta_time;
 
+
+#if 0
 	// ... fixme
 
 	// this leads to another model for acceleration/max_speed/turning etc.
@@ -611,6 +645,7 @@ void sea_object::simulate(double delta_time)
 	//debugging
 	//cout << "object " << this << " orientat: " << orientation << " hdg " << heading.value() << " abo_dir " << abo_dir << " hdb2o " << hdg_by_orient.value() << "\n";
 	//cout << "object " << this << " orientat: " << orientation << " rot_velo: " << turn_velocity << " turn_accel " << turnaccel << "\n";
+#endif
 }
 
 
