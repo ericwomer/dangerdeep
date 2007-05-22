@@ -81,6 +81,7 @@ void freeview_display::set_modelview_matrix(game& gm, const vector3& viewpos) co
 	if (aboard) {
 		const sea_object* pl = gm.get_player();
 		double rollfac = (dynamic_cast<const ship*>(pl))->get_roll_factor();
+		// fixme: rather use orientation quaternion than heading!!!
 		ui.rotate_by_pos_and_wave(pl->get_pos(), pl->get_heading(),
 					  pl->get_length(), pl->get_width(), rollfac, true);
 	}
