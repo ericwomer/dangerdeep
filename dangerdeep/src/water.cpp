@@ -247,6 +247,8 @@ water::water(double tm) :
 	add_loading_screen("water maps inited");
 
 	// here spin off work to other thread
+	//fixme: rather let 2-4 workers construct the data in parallel, this is
+	//much better and easier.
 	myworker.reset(new worker(*this));
 	myworker->start();
 }

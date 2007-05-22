@@ -237,6 +237,7 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 		if (shp && !istorp) {
 			// torpedos are not affected by tide.
 			if (shp->get_pos().z > -15) {
+				//fixme: simply rotate object by its orientation!!
 				// submerged subs and sinking ships are not affected by tide
 				ui.rotate_by_pos_and_wave(shp->get_pos(), shp->get_heading(),
 							  shp->get_length(), shp->get_width(),

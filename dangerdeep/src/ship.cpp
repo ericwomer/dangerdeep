@@ -740,6 +740,14 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// for rolling, we need to compute a 2d array of points, e.g. 2*5 or 3*5.
 	// costly, but needed for realism.
 
+	// fixme: for this we
+	// need to move the water data from user_interface to class game.
+	// since water construction is multi threaded, we have to check barriers,
+	// the call to finish_construction() in water.
+	// if class game is constructed before user_interface, we haven't much
+	// for parallelism here... yes, in subsim.cpp, run_game() the ui
+	// is created after the game is constructed.
+	// we can parallelize water construction by letting 2 levels compute in parallel.
 
 //fixme: deceleration is to low at low speeds, causing the sub the turn a LONG time after
 //rudder is midships/screws stopped. Is fixed by setting drag to linear at speeds < 1.0
@@ -802,8 +810,6 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	T = vector3(0, 0, 1) * acceleration;
 	}
 	// positive torque turns counter clockwise!
-	// test hacks
-	//T = vector3(0, 0, 1) * 1e-1;
 }
 
 
