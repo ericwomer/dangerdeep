@@ -33,6 +33,9 @@ void main()
 	// half vector
 	vec3 H = normalize(L + E);
 
+	// store E, N dot product, we use it in fresnel and refraction factor
+	float doten = dot(E, N);
+
 	// compute fresnel term. we need to clamp because the product could be negative
 	// when the angle between face normal and viewer is nearly perpendicular.
 	// using abs gives ugly ring-like effects, but direct clamp leads to large areas with maximum
@@ -48,7 +51,7 @@ void main()
 	// new result: without the abs() around dot(), it doesn't look worse. so keep out the abs()
 	// this also means the case that E*N < 0 is not so problematic. So we don't need the lookup
 	// texture.
-	float fresnel = clamp(dot(E, N), 0.0, 1.0) + 1.0;
+	float fresnel = clamp(doten, 0.0, 1.0) + 1.0;
 	// approximation for fresnel term is 1/((x+1)^8)
 #if 1
 	// using pow() seems a little bit faster (Geforce5700)
@@ -70,7 +73,8 @@ void main()
 		* pow(max(0.0, dot(N, H)), water_shininess) * 6.0;
 
 	// compute refraction color
-	float dl = max(dot(L, N), 0.0);
+	// float dl = max( dot( L N), 0.0);
+	float dl = max(dot(L, N) * abs(1.0 - max(doten, 0.2)), 0.0);
 	vec3 refractioncol = vec3(gl_Color) * dl;
 
 	// mix reflection and refraction (upwelling) color, and add specular color
