@@ -240,8 +240,14 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 //  	cout << "base c'tor: registered layout " << skin_name << "\n";
 	size3d = vector3f(mymodel->get_width(), mymodel->get_length(), mymodel->get_height());
 
-	// cube with 1m length.
-	inertia_tensor = matrix3::one() * (mass / 6.0);
+	// update inertia tensor as test hack, set to box with that size and given mass
+	// that matches the volume.
+	mass = size3d.x*size3d.y*size3d.z;
+	mass_inv = 1.0/mass;
+	inertia_tensor = matrix3();
+	inertia_tensor.elem(0, 0) = mass/12.0 * (size3d.y*size3d.y + size3d.z*size3d.z);
+	inertia_tensor.elem(1, 1) = mass/12.0 * (size3d.x*size3d.x + size3d.z*size3d.z);
+	inertia_tensor.elem(2, 2) = mass/12.0 * (size3d.x*size3d.x + size3d.y*size3d.y);
 	inertia_tensor_inv = inertia_tensor.inverse();
 }
 
@@ -294,6 +300,17 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 
 	mymodel = modelcache().ref(data_file().get_rel_path(specfilename) + modelname);
 	size3d = vector3f(mymodel->get_width(), mymodel->get_length(), mymodel->get_height());
+
+	// update inertia tensor as test hack, set to box with that size and given mass
+	// that matches the volume.
+	mass = size3d.x*size3d.y*size3d.z;
+	mass_inv = 1.0/mass;
+	inertia_tensor = matrix3();
+	inertia_tensor.elem(0, 0) = mass/12.0 * (size3d.y*size3d.y + size3d.z*size3d.z);
+	inertia_tensor.elem(1, 1) = mass/12.0 * (size3d.x*size3d.x + size3d.z*size3d.z);
+	inertia_tensor.elem(2, 2) = mass/12.0 * (size3d.x*size3d.x + size3d.y*size3d.y);
+	inertia_tensor_inv = inertia_tensor.inverse();
+
 	string countrystr = cl.attr("country");
 	country = UNKNOWNCOUNTRY;
 	party = UNKNOWNPARTY;
@@ -355,10 +372,6 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 	}
 
 	// ai is filled in by heirs.
-
-	// cube with 1m length.
-	inertia_tensor = matrix3::one() * (mass / 6.0);
-	inertia_tensor_inv = inertia_tensor.inverse();
 }
 
 
@@ -517,17 +530,19 @@ void sea_object::simulate(double delta_time)
 	// so we can just compute w' = w * delta_t and then compute a
 	// rotation quaternion from w' and set new orientation as
 	// produkt of old orientation and w'.
-	// first test: use R as matrix, later use quaternions directly.
+	// first test: use R as matrix, later use quaternions directly.  fixme
 	std::cout << "torque=" << torque << " angular momentum=" << angular_momentum << "\n";
 	matrix3 R = orientation.rotmat();
+	std::cout << "compute w, angular_momentum=" << angular_momentum << " inertiainv:\n";
 	matrix3 Rt = R.transpose();
 	vector3 w = R * inertia_tensor_inv * Rt * angular_momentum;
 	vector3 w2 = w * delta_time;
 	std::cout << "update orientation, dt=" << delta_time << " w=" << w << " w2=" << w2 << "\n";
+	// unit of |w| is revolutions per time, that is 2*Pi/second.
 	double w2l = w2.length();
 	if (w2l > 1e-8) {
 		// avoid too small numbers
-		quaternion q = quaternion::rot(w2l, w2 * (1.0/w2l));
+		quaternion q = quaternion::rot_rad(w2l, w2 * (1.0/w2l));
 		// multiply orientation with q: combined rotation.
 		std::cout << "q=" << q << " orientation old=" << orientation << " new=" <<
 			q * orientation << "\n";
@@ -548,9 +563,16 @@ void sea_object::simulate(double delta_time)
 	velocity = P * mass_inv;
 	global_velocity = orientation.rotate(velocity);
 	heading = angle(orientation.rotate(0.0, 1.0, 0.0).xy());
-	turn_velocity = w.length(); // from w.length? fixme
-	// ^^^ this is way too high or some other thing is wrong
-	turn_velocity *= delta_time;
+	// w is _old_ spin vector, but we need the new one...
+	// does it make a large difference?
+	// |w| is revolutions per time, thus 2*Pi/second for |w|=1.
+	// we have to multiply it by 360/(2*Pi) to get angles per second.
+	// hmmm, w2.length is speed, but sign of it depends on direction of w!!!!
+	// if the ship turns right (clockwise), turn_velocity should be positive?
+	// in that case, w is pointing downwards.
+	turn_velocity = -w2.length() * 180.0/M_PI;
+	if (w2.z > 0) turn_velocity = -turn_velocity;
+	std::cout << "turn velocity " << w2.length() << " deg/sec=" << turn_velocity << "\n";
 
 
 #if 0

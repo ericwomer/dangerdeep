@@ -70,6 +70,7 @@ class quaterniont
 	// angle is divided by 2 for a rotation quaternion, so divide by 360, not 180.
 	static quaterniont<D> rot(const D& angle, const D& x, const D& y, const D& z) { D rad = D(angle*M_PI/360.0); return quaterniont(cos(rad), vector3t<D>(x, y, z) * sin(rad)); }
 	static quaterniont<D> rot(const D& angle, const vector3t<D>& axis) { D rad = D(angle*M_PI/360.0); return quaterniont(cos(rad), axis * sin(rad)); }
+	static quaterniont<D> rot_rad(const D& angle_rad, const vector3t<D>& axis) { return quaterniont(cos(angle_rad), axis * sin(angle_rad)); }
 	// reverse operation: angle * 2 * 180
 	void angleaxis(D& angle, D& x, D& y, D& z) const { D a = acos(s); angle = D(a*360.0/M_PI); D sa = sin(a); x = v.x/sa; y = v.y/sa; z = v.z/sa; }
 	void angleaxis(D& angle, vector3t<D>& axis) const { D a = acos(s); angle = D(a*360.0/M_PI); axis = v * (D(1.0)/sin(a)); }
