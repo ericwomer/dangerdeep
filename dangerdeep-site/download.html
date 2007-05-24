@@ -57,7 +57,7 @@
 		<p>When prompted for a password for anonymous, simply press the Enter key. Then to checkout the files:</p>
 		<div class="code">cvs -z3 -d:pserver:anonymous@dangerdeep.cvs.sourceforge.net:/cvsroot/dangerdeep co -P dangerdeep</div>
 		<p>This will print out lots of things but when it is done and has returned a prompt you should have a folder called dangerdeep. To update the checkout simply make sure you are in the dangerdeep folder and run:</p>
-		<div class="code">cvs update</div>
+		<div class="code">cvs update -Pd</div>
 		<p>We use the build system scons, so to compile a debug version try the command:</p>
 		<div class="code">scons debug=1 usex86sse=-1 datadir=/path/to/cvs/dangerdeep/data</div>
 		<p>Explanation of the options:</p>
