@@ -786,7 +786,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	double speed = get_speed();
 	double tv2 = turn_velocity*turn_velocity;
 	if (fabs(turn_velocity) < 1.0) tv2 = fabs(turn_velocity) * max_angular_velocity;
-	double accel_factor = 1000.0;	// given by turn rate, influenced by rudder area...
+	double accel_factor = 10000.0;	// given by turn rate, influenced by rudder area...
 	// fixme: the whole thing about limiting maximum turn rate is incompatible with
 	// current physics model, drag factor stays too low, letting sub turn faster and
 	// faster.
@@ -796,8 +796,8 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// rudder_pos < 0 and this means ccw turning and this means turn velocity > 0!
 	double acceleration = accel_factor * speed * sin(-rudder_pos * M_PI / 180.0);
 	if (turn_velocity > 0) drag_factor = -drag_factor;
-	std::cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << " turn_velo " << turn_velocity << " heading " << heading.value() << " tv2 " << tv2 << "\n";
-	std::cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << " max_turn_accel " << max_turn_accel << "\n";
+// 	std::cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << " turn_velo " << turn_velocity << " heading " << heading.value() << " tv2 " << tv2 << "\n";
+// 	std::cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << " max_turn_accel " << max_turn_accel << "\n";
 	acceleration += drag_factor;
 
 	/* 2007/05/20:

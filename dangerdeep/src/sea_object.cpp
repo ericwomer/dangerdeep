@@ -539,19 +539,18 @@ void sea_object::simulate(double delta_time)
 	// so we can just compute w' = w * delta_t and then compute a
 	// rotation quaternion from w' and set new orientation as
 	// produkt of old orientation and w'.
-	std::cout << "torque=" << torque << " angular momentum=" << angular_momentum << "\n";
-	std::cout << "compute w, angular_momentum=" << angular_momentum << " inertiainv:\n";
+// 	std::cout << "torque=" << torque << " angular momentum=" << angular_momentum << "\n";
+// 	std::cout << "compute w, angular_momentum=" << angular_momentum << " inertiainv:\n";
 	vector3 w = orientation.rotate(inertia_tensor_inv * orientation.conj().rotate(angular_momentum));
 	vector3 w2 = w * delta_time;
-	std::cout << "update orientation, dt=" << delta_time << " w=" << w << " w2=" << w2 << "\n";
+// 	std::cout << "update orientation, dt=" << delta_time << " w=" << w << " w2=" << w2 << "\n";
 	// unit of |w| is revolutions per time, that is 2*Pi/second.
 	double w2l = w2.length();
 	if (w2l > 1e-8) {
 		// avoid too small numbers
 		quaternion q = quaternion::rot_rad(w2l, w2 * (1.0/w2l));
 		// multiply orientation with q: combined rotation.
-		std::cout << "q=" << q << " orientation old=" << orientation << " new=" <<
-			q * orientation << "\n";
+// 		std::cout << "q=" << q << " orientation old=" << orientation << " new=" << q * orientation << "\n";
 		orientation = q * orientation;
 	}
 
@@ -576,14 +575,15 @@ void sea_object::simulate(double delta_time)
 	// hmmm, w2.length is speed, but sign of it depends on direction of w!!!!
 	// if the ship turns right (clockwise), turn_velocity should be positive?
 	// in that case, w is pointing downwards.
-	turn_velocity = -w2.length() * 180.0/M_PI;
-	if (w2.z > 0) turn_velocity = -turn_velocity;
-	std::cout << "turn velocity " << w2.length() << " deg/sec=" << turn_velocity << "\n";
+
+	// unit of |w| is revolutions per time, that is 2*Pi/second.
+	w = orientation.rotate(inertia_tensor_inv * orientation.conj().rotate(angular_momentum));
+	// turn velocity around z-axis is projection of w to z-axis, that is
+	// simply w.z. Transform to angles per second.
+	turn_velocity = w.z * 180.0/M_PI;
 
 
-#if 0
-	// ... fixme
-
+	// OLD COMMENT, BUT STILL HELPFUL:
 	// this leads to another model for acceleration/max_speed/turning etc.
 	// the object applies force to the screws etc. with Force = acceleration * mass.
 	// there is some drag caused by air/water opposite to the force.
@@ -628,52 +628,6 @@ void sea_object::simulate(double delta_time)
 	// in reality applied force is transformed by inertia tensor, which is rotated according to
 	// orientation. we don't use mass here, so apply rotation to stored velocity/acceleration.
 	//fixme: use orientation here and compute heading from it, not vice versa!
-	quaternion horientation = quaternion::rot(-heading.value(), 0, 0, 1);
-
-//	cout << "hdg=" << heading.value() << " hori=" << horientation <<
-//		" orang=" << angle(horientation.rotate(0,1,0).xy()).value() << "\n";
-
-	// use compute_force(), compute_torque() here, with inertia tensor etc.
-
-	vector3 acceleration = (1.0/mass) * force;
-	vector3 global_acceleration = horientation.rotate(acceleration);
-	global_velocity = horientation.rotate(velocity);
-	double t2_2 = 0.5 * delta_time * delta_time;
-
-	//debugging
-//	cout << "object " << this << " simulate.\npos: " << position << "\nvelo: " << velocity << "\naccel: " << acceleration << "\n";
-//	cout << "global velo " << global_velocity << " global acc " << global_acceleration << "\n";
-
-	// Note that this formulas match the Runge-Kutta-4 algorithm when acceleration
-	// is constant over time, or at least over the integration step.
-	// The computation is similar to an Euler algorithm, we just add the 0.5*a*t^2 part
-	// The advantages of RK4 would only be used if we compute acceleration (or force)
-	// dependant on time: acceleration(t+dt).
-	// This *can* happen with linearily changing acceleration, like throttle increase/
-	// decrease and turning of rudder. RK4 could help a lot here, because we don't need
-	// that small simulation steps to compute the integration as with Euler...
-////	physics::new_position( position, global_velocity, global_acceleration, delta_time );
-	physics::new_velocity( velocity, acceleration, delta_time );
-
-	//debugging
-//	cout << "NEWpos: " << position << "\nNEWvelo: " << velocity << "\n";
-//	cout << "(delta t = " << delta_time << ")\n";
-	
-	// note: we can't take length, as this is positive always...
-	double turnaccel = torque.z;//length(); // was: get_turn_acceleration();
-	double add_turn_angle = turn_velocity * delta_time + turnaccel * t2_2;
-	orientation = quaternion::rot(add_turn_angle, 0, 0, 1) * orientation;
-	// turning is handled in mathematical order (growing angles are ccw).
-	heading += angle(-add_turn_angle);
-	turn_velocity += turnaccel * delta_time;
-
-	vector2 abo_dir = orientation.rotate(0, 1, 0).xy();
-	angle hdg_by_orient = angle(abo_dir);
-
-	//debugging
-	//cout << "object " << this << " orientat: " << orientation << " hdg " << heading.value() << " abo_dir " << abo_dir << " hdb2o " << hdg_by_orient.value() << "\n";
-	//cout << "object " << this << " orientat: " << orientation << " rot_velo: " << turn_velocity << " turn_accel " << turnaccel << "\n";
-#endif
 }
 
 
