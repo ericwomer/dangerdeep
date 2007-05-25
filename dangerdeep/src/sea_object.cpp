@@ -525,17 +525,23 @@ void sea_object::simulate(double delta_time)
 	// L = I * w = R * I_k * R^T * w =>
 	// w = I^-1 * L = R * I_k^-1 * R^-1 * L
 	// so we can compute w from I_k^-1 and L.
+	// with some math we have:
+	// w = R * (I_k^-1 * (R^-1 * L))
+	//                   ^^^^^^^^^^
+	//                      vector
+	//         ^^^^^^^^^^^^^^^^^^^^
+	//               vector
+	// Thus we don't need the matrix R but can use
+	// the orientation quaternion directly for rotation.
+	// This is much more efficient.
 	// with w we can update orientation.
 	// w codes the axis/angle, which needs to get multiplied by delta_t,
 	// so we can just compute w' = w * delta_t and then compute a
 	// rotation quaternion from w' and set new orientation as
 	// produkt of old orientation and w'.
-	// first test: use R as matrix, later use quaternions directly.  fixme
 	std::cout << "torque=" << torque << " angular momentum=" << angular_momentum << "\n";
-	matrix3 R = orientation.rotmat();
 	std::cout << "compute w, angular_momentum=" << angular_momentum << " inertiainv:\n";
-	matrix3 Rt = R.transpose();
-	vector3 w = R * inertia_tensor_inv * Rt * angular_momentum;
+	vector3 w = orientation.rotate(inertia_tensor_inv * orientation.conj().rotate(angular_momentum));
 	vector3 w2 = w * delta_time;
 	std::cout << "update orientation, dt=" << delta_time << " w=" << w << " w2=" << w2 << "\n";
 	// unit of |w| is revolutions per time, that is 2*Pi/second.
