@@ -56,7 +56,7 @@ using std::vector;
 
 // switch features on/off:
 
-#define IS_INSIDE_TEST
+#undef  IS_INSIDE_TEST
 
 
 
@@ -242,7 +242,19 @@ void view_model(const string& modelfilename, const string& datafilename)
 	}
 	std::cout << "Center of gravity of mesh#0: " << mdl->get_mesh(0).compute_center_of_gravity() << "\n";
 	std::cout << "Inertia tensor of mesh#0:\n";
-	mdl->get_mesh(0).compute_intertia_tensor().print();
+	mdl->get_mesh(0).compute_inertia_tensor().print();
+
+	/* // test code
+	unsigned t1 = sys().millisec();
+	for (int i = 0; i < 1000; ++i)
+		mdl->get_mesh(0).compute_center_of_gravity();
+	unsigned t2 = sys().millisec();
+	for (int i = 0; i < 1000; ++i)
+		mdl->get_mesh(0).compute_inertia_tensor();
+	unsigned t3 = sys().millisec();
+	std::cout << "Time A = " << t2-t1 << " Time B = " << t3-t2 << "\n";
+	*/
+
 #endif
 
         // rendering mode

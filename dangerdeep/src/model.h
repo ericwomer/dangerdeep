@@ -199,7 +199,7 @@ public:
 
 		bool is_inside(const vector3f& p) const;
 		vector3 compute_center_of_gravity() const;
-		matrix3 compute_intertia_tensor() const;
+		matrix3 compute_inertia_tensor() const;
 	};
 
 	struct light {

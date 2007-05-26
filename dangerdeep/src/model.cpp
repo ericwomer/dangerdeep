@@ -832,7 +832,7 @@ vector3 model::mesh::compute_center_of_gravity() const
 
 
 
-/* computing the intertia tensor for a mesh,
+/* computing the inertia tensor for a mesh,
    from the RigidBodySimulation paper.
    The inertia tensor is:
 
@@ -850,11 +850,11 @@ vector3 model::mesh::compute_center_of_gravity() const
    Problem: we can't manipulate the vertices or transformation matrices
    to shift center of gravity to (0,0,0) as we need both ways...
 
-   however this routine should give intertia tensor matching the current
+   however this routine should give inertia tensor matching the current
    object - but this can give problems for simulation later,
    if the c.o.g is not at 0,0,0 ...
 */
-matrix3 model::mesh::compute_intertia_tensor() const
+matrix3 model::mesh::compute_inertia_tensor() const
 {
 	matrix3 msum;
 	const double mass = 1.0; // fixme
