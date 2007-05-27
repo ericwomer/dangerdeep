@@ -29,7 +29,9 @@ void main()
 	fresnel = pow(fresnel, -8.0);
 
 	// compute refraction color
-	float dl = max(dot(L, N), 0.0);
+	float doten = dot(E, N);
+	float dotln = dot(L, N);
+	float dl = max(dotln*dotln * (0.5 + doten*doten), 0.0);
 	vec3 reflectioncol = vec3(gl_Color) * dl;
 	// light blue mix with sun... fixme
 	vec3 refractioncol = vec3(gl_LightSource[0].diffuse) * vec3(0.4, 0.59, 0.79) * dl;
