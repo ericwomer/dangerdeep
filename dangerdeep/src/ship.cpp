@@ -98,6 +98,7 @@ ship::ship(game& gm_, const xml_elem& parent)
 	  max_rudder_turn_speed(10),
 	  max_angular_velocity(2),
 	  head_to_fixed(false),
+	  helmsman_st(hm_idle),
 	  max_accel_forward(1),
 	  max_speed_forward(10),
 	  max_speed_reverse(0),
@@ -372,6 +373,7 @@ void ship::load(const xml_elem& parent)
 	rudder_pos = st.attrf("rudder_pos");
 	rudder_to = st.attri("rudder_to");
 	head_to_fixed = st.attrb("head_to_fixed");
+	helmsman_st = hm_idle;
 	head_to = angle(st.attrf("head_to"));
 	xml_elem dm = parent.child("damage");
 	bow_damage = damage_status(dm.attru("bow"));
@@ -560,17 +562,16 @@ void ship::simulate(double delta_time)
 
 	// steering logic, adjust rudder pos so that heading matches head_to
 	if (head_to_fixed) {
-
 		// check if we should turn left or right
 		bool turn_rather_right = (heading.is_cw_nearer(head_to));
-//cout<<this<<" logic: heading " << heading.value() << " head_to " << head_to.value() << " trr " << turn_rather_right << " rudder_to " << rudder_to << " rudder_pos " << rudder_pos << " \n";
-		rudder_to = (turn_rather_right) ? rudderfullright : rudderfullleft;
-//cout <<this<<" logic2 rudder_to " << rudder_to << " turn velo " << turn_velocity << "\n";
-// cout << "total time " << gm.get_time() << "\n";
+		std::cout<<this<<" logic: heading " << heading.value() << " head_to " << head_to.value() << " trr " << turn_rather_right << " rudder_to " << rudder_to << " rudder_pos " << rudder_pos << " turn_velo=" << turn_velocity << "\n";
+		//cout <<this<<" logic2 rudder_to " << rudder_to << " turn velo " << turn_velocity << "\n";
+		// cout << "total time " << gm.get_time() << "\n";
 
 		double angledist = fabs((heading - head_to).value_pm180());
 
 		if (use_simple_turning_model()) {
+			rudder_to = (turn_rather_right) ? rudderfullright : rudderfullleft;
 			// rudder left means rudder_pos < 0, so turn_velocity is > 0 and
 			// thus is counter-clockwise (mathematical angle!).
 			turn_velocity = -rudder_pos * max_angular_velocity / max_rudder_angle;
@@ -580,43 +581,83 @@ void ship::simulate(double delta_time)
 				turn_velocity = 0;
 			}
 		} else {
+			/* Helmsman simulation
+			   we need a state model. states:
+			   0 do nothing (course matches targeted course)
+			   1 begin turn (need to turn to course, set rudder to max. angle) OR
+			     turning (rudder at max. angle, turning to targeted course)
+			   2 end turn (approaching targeted course, turn rudder to opposite to brake)
+			   3 stop turn (bring rudder to midships when course and direction matches targeted
+			   course, and velocity approaches zero).
+			   transitions:
+			   0->1 when course is set (head_to != course, or when head_to_fixed is true)
+			   1->2 when time to pass the course is 2x time to turn rudder to midships (or other factor)
+			   2->3 when time to pass is less than or equal to the time rudder takes to get back
+			   to midships (plus some extra time amount)
+			   3->0 when course is set (head_to == course, velocity = 0, rudder midships).
+			   3->1 as counter-reaction, here measure turning direction again
 
-			// check if we approach head_to (brake by turning rudder to the opposite)
-			// if time need to set the rudder to midships is smaller than the time until heading
-			// passes over head_to, we have to brake.
+			   The model *should* brake by turning rudder to opposite direction when course
+			   is nearing the targeted course, however it reaches target course before
+			   rudder crosses the mid state. So it works not fully as intended, but works
+			   after all...
+
+			   NO! it doesnt work for small changes...
+			*/
 			double time_to_pass = (fabs(turn_velocity) < 0.01) ? 1e30 : angledist / fabs(turn_velocity);
 			double time_to_midships = fabs(rudder_pos) / max_rudder_turn_speed;
-
-			//fixme: time_to_ms assumes when rudder is midships again that turn speed is then roughly zero.
-			//this is ok for ships/subs, but not for fast turning objects (torpedoes)
-			//we should rather guess time to brake here! fixme
-
-			/*
-			  double rudder_pos_backup = rudder_pos;
-			  rudder_pos = (turn_rather_right) ? -max_rudder_angle : max_rudder_angle;
-			  double ta = get_turn_acceleration();
-			  cout << "ta is " << ta << " turn_velo " << turn_velocity << "\n";
-			  rudder_pos = rudder_pos_backup;
-			  double time_to_turn_stop = (fabs(ta) < 0.0001) ? 0.0 : fabs(turn_velocity / ta);
-			  cout << "time to turn stop " << time_to_turn_stop << "\n";
-			*/
-
-			// back up rudder angle, set it to maximum opposite angle
-			//compute get_turn_acceleration, divide turn_speed by turn_accel
-			//this time factor is time_to_stop_turning
-			// BUT! turn_velocity does not fall immediatly...rudder is not at once on opposite
-
-			//cout <<this<<" logic3 angledist " << angledist << " timetopass " << time_to_pass << " time_to_ms " << time_to_midships << "\n";
-			double damping_factor = 0.5;	// set to > 0 to brake earlier, fixme set some value
-			if (time_to_pass < time_to_midships + damping_factor) {
-				rudder_to = (turn_rather_right) ? rudderfullleft : rudderfullright;
-				//cout <<this<<" near target! " << rudder_to << "\n";
-			}
-			// check for final rudder midships, fixme adapt values...
-			if (angledist < 0.5 && fabs(rudder_pos) < 1.0) {
-				rudder_to = ruddermidships;
-				//cout <<this<<" dest reached " << angledist << "," << fabs(rudder_pos) << "\n";
-				head_to_fixed = false;
+			std::cout <<this<<" logic3 hm_stat=" << helmsman_st << " angledist " << angledist << " timetopass " << time_to_pass << " time_to_ms " << time_to_midships << "\n";
+			switch (helmsman_st) {
+			case hm_idle:
+				if (angledist < 0.5 && fabs(rudder_pos) < 1.0
+				    && fabs(turn_velocity) < 0.1) {
+					head_to_fixed = false;
+					break;
+				}
+				// we need to do something, switch state
+				helmsman_st = hm_lay_rudder;
+				rudder_to = (turn_rather_right) ? rudderfullright : rudderfullleft;
+			case hm_lay_rudder:
+				// fixme: factor could depend on rudder angle
+				if (time_to_pass * (fabs(turn_velocity) + 0.1) <= 3.5 * time_to_midships) {
+					std::cout << "lay->ctr " << time_to_pass * fabs(turn_velocity) << " < " << 1.5 * time_to_midships << "\n";
+					helmsman_st = hm_counter_rudder;
+					// turn rudder to opposite
+					rudder_to = (turn_rather_right) ? rudderfullleft : rudderfullright;
+					break;
+				} else if (fabs(rudder_pos) + 0.1 >= max_rudder_angle) {
+					std::cout << "rudder, trn " << fabs(rudder_pos) + 0.1 << " >= " << max_rudder_angle << "\n";
+					helmsman_st = hm_turning;
+				} else {
+					break;
+				}
+			case hm_turning:
+				if (time_to_pass * (fabs(turn_velocity) + 0.1) <= 3.5 * time_to_midships) {
+					std::cout << "trn->ctr " << time_to_pass * fabs(turn_velocity) << " < " << 1.5 * time_to_midships << "\n";
+					helmsman_st = hm_counter_rudder;
+					// turn rudder to opposite
+					rudder_to = (turn_rather_right) ? rudderfullleft : rudderfullright;
+				} else {
+					break;
+				}
+			case hm_counter_rudder:
+				if (time_to_pass * (fabs(turn_velocity) + 0.1) <= 2.0 * time_to_midships
+				    && fabs(turn_velocity) < 0.1) {
+					helmsman_st = hm_center_rudder;
+				} else {
+					break;
+				}
+			case hm_center_rudder:
+				if (angledist < 0.5) {
+					if (fabs(rudder_pos) < 1.0 && fabs(turn_velocity) < 0.01) {
+						helmsman_st = hm_idle;
+						head_to_fixed = false;
+						std::cout << "reached course, diff=" << head_to.value() - heading.value() << "\n";
+					} else {
+						// special case here if missed course...?
+					}
+				}
+				break;
 			}
 		}
 	}
@@ -675,6 +716,7 @@ void ship::head_to_ang(const angle& a, bool left_or_right)	// true == left
 	rudder_to = (left_or_right) ? rudderfullleft : rudderfullright;
 	//cout << "rudder_to=" << rudder_to << "\n";
 	head_to_fixed = true;
+	helmsman_st = hm_idle;
 }
 
 
@@ -775,6 +817,58 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 
 
 
+	// torque:
+	// there are two forces leading to torque:
+	// - water flowing over the rudders that is deflected to the side giving a sidewards
+	//   force at the end of the vessel
+	// - drag that limits turn velocity, acts on whole body, but can be described
+	//   as force acting on one end.
+	// drag formula:
+	// D = Drag_coefficient * density * velocity^2 * reference_area / 2.
+	//     kg/m^3 * m^2/s^2 * m^2 = kg*m/s^2 = mass * acceleration = force.
+	//   the velocity is not constant over the hull, so we have to
+	//   compute a medium value. It depends on total length of sub
+	//   and of turn velocity of outmost part.
+	//   We can get the area from the cross section data.
+	//   Density of water is 1000kg/m3 (1000) for ease of computation.
+	// Velocity of a point along the hull:
+	//   the outmost point moves with x angles/second, and is y meters away
+	//   from center of turn, thus it moves x/360 (or x/(2*Pi)) parts of a circle
+	//   per second. Circle diameter is 2*Pi*r where r=y.
+	//   Thus it moves 2*Pi*y * x/360 or 2*Pi*y * x/(2*Pi) = y * x m/s.
+	//   Let's compute in radians, its easier.
+	//   V^2 = y^2*x^2 then,
+	//   to get total V^2 over hull, we have for a point z along the hull:
+	//   v_z = (z/y)^2 * v_out^2, where v_out = velocity of outmost point = y * x
+	//   v2_tot = Integral over z, range -y...y (z/y)^2 * v_out^2,
+	//          = v_out^2 * Integral over z, range -1...1 z^2
+	//          = v_out^2 * 2/3.
+	//   So total V^2 for drag is square of turn velocity in radians per second (x) times
+	//   half length (L) of hull times 2/3.
+	//   E.g. 1°/second = 0.01745 rad/s, hull length 70m -> L=35m
+	//   -> Outmost velocity y*x = 35m*0.01745=0.611m/s.
+	//   -> 0.249m/s total velocity squared.
+	// Drag induced torque is then drag force times distance to center (T_drag = D * z),
+	// so we rather have to integrate over drag.
+	// T_drag = Dc * density * A/2 * Int (z=-L...L) v_z^2 * |z|. v_z^2 = (z/L)^2*v_out^2
+	//        = Dc * density * A/2 * v_out^2 * Int (z=-L...L) (z/L)^2 * |z|
+	//        = Dc * density * A/2 * v_out^2 * 2 * Int (z=0...L) (z/L)^2 * z
+	//        = Dc * density * A/2 * v_out^2 * 2 * Int (z=0...L) z^2/L^2
+	//        = Dc * density * A/2 * v_out^2 * 2 * (L/3)
+	//        = Dc * density * A * v_out^2 * L/3.
+	const double drag_coefficient = 1.0;
+	const double water_density = 1000.0;
+	double turn_velocity_rad = turn_velocity * (M_PI/180.0);
+	double velo_sqr = turn_velocity_rad * turn_velocity_rad * size3d.y * size3d.y * (0.5/3.0);
+	// fixme: only take cross section that is below water! (roughly 1/2)
+	double drag_torque = drag_coefficient * water_density * velo_sqr
+		* mymodel->get_cross_section(90.0) * size3d.y / 3.0;
+	// we need to add a linear factor here, so turn_velocity really stops
+	double tvr = fabs(turn_velocity_rad);
+	if (tvr > 0.000001 && tvr < 0.01) tvr = 0.01;
+	drag_torque += tvr * 500000.0;
+	std::cout << "Turn drag torque=" << drag_torque << " Nm\n";
+
 	{ // get_turn_acceleration()
 	// acceleration of ship depends on rudder state and actual forward speed (linear).
 	// angular acceleration (turning) is speed * sin(rudder_ang) * factor
@@ -786,15 +880,17 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	double speed = get_speed();
 	double tv2 = turn_velocity*turn_velocity;
 	if (fabs(turn_velocity) < 1.0) tv2 = fabs(turn_velocity) * max_angular_velocity;
-	double accel_factor = 10000.0;	// given by turn rate, influenced by rudder area...
+	double accel_factor = 100000.0;	// given by turn rate, influenced by rudder area...
 	// fixme: the whole thing about limiting maximum turn rate is incompatible with
-	// current physics model, drag factor stays too low, letting sub turn faster and
-	// faster.
+	// current physics model, drag factor stays too low
 	double max_turn_accel = accel_factor * max_speed_forward * sin(max_rudder_angle * M_PI / 180.0);
 	double drag_factor = (tv2) * max_turn_accel / (max_angular_velocity*max_angular_velocity);
+	drag_factor = drag_torque;
+	////drag_factor *= 2.0;
 	// negate rudder_pos here, because turning is mathematical, so rudder left means
 	// rudder_pos < 0 and this means ccw turning and this means turn velocity > 0!
 	double acceleration = accel_factor * speed * sin(-rudder_pos * M_PI / 180.0);
+	std::cout << "turn torque=" << acceleration << " Nm, or " << acceleration*2.0/size3d.y << " N\n";
 	if (turn_velocity > 0) drag_factor = -drag_factor;
 // 	std::cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << " turn_velo " << turn_velocity << " heading " << heading.value() << " tv2 " << tv2 << "\n";
 // 	std::cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << " max_turn_accel " << max_turn_accel << "\n";
@@ -1011,4 +1107,5 @@ void ship::manipulate_heading(angle hdg)
 	sea_object::manipulate_heading(hdg);
 	head_to = hdg;
 	head_to_fixed = true;
+	helmsman_st = hm_idle;
 }

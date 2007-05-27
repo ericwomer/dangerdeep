@@ -242,7 +242,8 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 
 	// update inertia tensor as test hack, set to box with that size and given mass
 	// that matches the volume.
-	mass = size3d.x*size3d.y*size3d.z;
+	mass = size3d.x*size3d.y*size3d.z * 150; // assume 150kg per cubic meter, test hack
+	//std::cout << "size=" << size3d << " mass=" << mass << "\n";
 	mass_inv = 1.0/mass;
 	inertia_tensor = matrix3();
 	inertia_tensor.elem(0, 0) = mass/12.0 * (size3d.y*size3d.y + size3d.z*size3d.z);
@@ -303,7 +304,8 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 
 	// update inertia tensor as test hack, set to box with that size and given mass
 	// that matches the volume.
-	mass = size3d.x*size3d.y*size3d.z;
+	mass = size3d.x*size3d.y*size3d.z * 150; // assume 150kg per cubic meter, test hack
+	//std::cout << "size=" << size3d << " mass=" << mass << "\n";
 	mass_inv = 1.0/mass;
 	inertia_tensor = matrix3();
 	inertia_tensor.elem(0, 0) = mass/12.0 * (size3d.y*size3d.y + size3d.z*size3d.z);
