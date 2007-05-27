@@ -320,6 +320,8 @@ void radar_sensor::init ( radar_type type )
 bool radar_sensor::is_detected ( const game* gm, const sea_object* d,
 	const sea_object* t ) const
 {
+	if (!t) return false; // should not happen
+
 	bool detected = false;
 	
 	// Surfaced submarines cannot use ASDIC.
