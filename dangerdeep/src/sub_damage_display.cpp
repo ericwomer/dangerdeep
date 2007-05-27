@@ -104,7 +104,7 @@ void sub_damage_display::display_popup (int x, int y, const string& text, bool a
 
 	color::white().set_gl_color();
 	notepadsheet->draw(posx, posy);
-	font_arial->print_wrapped(posx+8, posy+45, 256-16, 20, text, color(0,0,128));
+	font_vtremington12->print_wrapped(posx+8, posy+45, 256-16, 20, text, color(0,0,128));
 	
 //	color(0,0,0).set_gl_color(128);
 //	sys().draw_rectangle(posx+4,posy+4,width,height);

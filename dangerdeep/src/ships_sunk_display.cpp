@@ -88,7 +88,7 @@ void ships_sunk_display::display ( class game& gm ) const
 		// Print class name.
 		glPushMatrix ();
 		glScalef ( FONT_SCALE_FACTOR, FONT_SCALE_FACTOR, 1.0f );
-		font_arial->print (
+		font_vtremington12->print (
 			unsigned ( ( x + 10 ) / FONT_SCALE_FACTOR ),
 			unsigned ( ( y + 10 ) / FONT_SCALE_FACTOR ),
 			it->descr,
@@ -97,7 +97,7 @@ void ships_sunk_display::display ( class game& gm ) const
 		// Print tonnage of ship.
 		ostringstream oss;
 		oss << it->tons << " " << texts::get(99);
-		font_arial->print (
+		font_vtremington12->print (
 			unsigned ( ( x + 10 ) / FONT_SCALE_FACTOR ),
 			unsigned ( ( y + 30 ) / FONT_SCALE_FACTOR ),
 			oss.str (),

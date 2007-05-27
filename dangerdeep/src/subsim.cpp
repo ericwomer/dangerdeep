@@ -459,7 +459,7 @@ void run_game(auto_ptr<game> gm)
 	widget::unref_all_backgrounds();
 
 	auto_ptr<widget::theme> gametheme(new widget::theme("widgetelements_game.png", "widgeticons_game.png",
-							    font_arial,color(182, 146, 137),color(240, 217, 127), color(64,64,64)));
+								 font_vtremington12,color(182, 146, 137),color(240, 217, 127), color(64,64,64)));
 	reset_loading_screen();
 	// embrace user interface generation with right theme set!
 	auto_ptr<widget::theme> tmp = widget::replace_theme(gametheme);
@@ -540,7 +540,7 @@ void run_game_editor(auto_ptr<game> gm)
 	widget::unref_all_backgrounds();
 
 	auto_ptr<widget::theme> gametheme(new widget::theme("widgetelements_game.png", "widgeticons_game.png",
-							    font_arial,color(182, 146, 137),color(240, 217, 127), color(64,64,64)));
+							    font_vtremington12,color(182, 146, 137),color(240, 217, 127), color(64,64,64)));
 	reset_loading_screen();
 	// embrace user interface generation with right theme set!
 	auto_ptr<widget::theme> tmp = widget::replace_theme(gametheme);
@@ -1230,23 +1230,26 @@ void menu_misc()
 {
 	widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
 	unsigned wd = 600;
-	unsigned hg = 4 * 40 + 3 * 20;
+	unsigned hg = 5 * 40 + 4 * 20;
 	vector2i curr_res(sys().get_res_x(), sys().get_res_y());
 	int x = (curr_res.x - wd)/2;
 	int y = (curr_res.y - hg)/2;
 	widget_menu* wm = new widget_menu(x, y, wd, 40, texts::get(107));
 	widget_checkbox* wshad = new widget_checkbox(x, y + 60, wd, 40, cfg::instance().getb("use_shaders"), texts::get(108));
 	widget_checkbox* wshadw = new widget_checkbox(x, y + 120, wd, 40, cfg::instance().getb("use_shaders_for_water"), texts::get(109));
-	widget_button* wcb = new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, x, y + 180, wd, 40, texts::get(20));  
+	widget_checkbox* whqsfx = new widget_checkbox(x, y + 180, wd, 40, cfg::instance().getb("use_hqsfx"), texts::get(111));
+	widget_button* wcb = new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, x, y + 240, wd, 40, texts::get(20));  
 
 	w.add_child(wm);
 	w.add_child(wshad);
 	w.add_child(wshadw);
+	w.add_child(whqsfx);
 	w.add_child(wcb);
-	w.run(0, false);	
+	w.run(0, false);
 
 	cfg::instance().set("use_shaders", wshad->is_checked());
 	cfg::instance().set("use_shaders_for_water", wshadw->is_checked());
+	cfg::instance().set("use_hqsfx", whqsfx->is_checked());
 }
 
 
@@ -1603,6 +1606,7 @@ int mymain(list<string>& args)
 	mycfg.register_option("sound", true);
 	mycfg.register_option("use_shaders", true);
 	mycfg.register_option("use_shaders_for_water", true);
+	mycfg.register_option("use_hqsfx", true);
 	mycfg.register_option("water_detail", 128);
 	mycfg.register_option("wave_fft_res", 128);
 	mycfg.register_option("wave_phases", 256);
@@ -1751,10 +1755,10 @@ int mymain(list<string>& args)
 	mmusic->play();
 	
 	widget::set_theme(auto_ptr<widget::theme>(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
-									 font_olympiaworn,
-									 color(182, 146, 137),
-									 color(240, 217, 127) /*color(222, 208, 195)*/,
-									 color(92, 72 ,68))));
+								    font_vtremington12,
+								    color(182, 146, 137),
+								    color(240, 217, 127) /*color(222, 208, 195)*/,
+								    color(92, 72 ,68))));
 
 	std::auto_ptr<texture> metalbackground(new texture(get_image_dir() + "metalbackground.jpg"));
 	mysys->draw_console_with(font_arial, metalbackground.get());

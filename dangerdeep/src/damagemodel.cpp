@@ -43,6 +43,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class system* mysys;
 int res_x, res_y;
 font* font_arial = 0;
+font* font_vtremington10 = 0;
 
 #define MODEL_DIR "models/"
 #define FONT_DIR "fonts/"
@@ -208,13 +209,13 @@ int main(int argc, char** argv)
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 	glEnable(GL_LIGHT0);
 
-	font_arial = new font(get_font_dir() + "font_arial");
+	font_vtremington10 = new font(get_font_dir() + "font_vtremington10");
 	mysys->draw_console_with(font_arial, 0);
 
 	view_model(modelfilename);	
 
 	mysys->write_console(true);
-	delete font_arial;
+	delete font_vtremington10;
 	delete mysys;
 
 	return 0;

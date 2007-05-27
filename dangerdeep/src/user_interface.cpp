@@ -749,14 +749,14 @@ void user_interface::draw_infopanel(bool onlytexts) const
 	// draw messages: fixme later move to separate function ?
 	double vanish_time = mygame->get_time() - message_vanish_time;
 	int y = (onlytexts ? sys().get_res_y_2d() : panel->get_pos().y)
-		- font_arial->get_height();
+		- font_vtremington12->get_height();
 	for (std::list<std::pair<double, std::string> >::const_reverse_iterator it = messages.rbegin();
 	     it != messages.rend(); ++it) {
 		if (it->first < vanish_time)
 			break;
 		double alpha = std::min(1.0, (it->first - vanish_time)/message_fadeout_time);
-		font_arial->print(0, y, it->second, color(255,255,255,Uint8(255*alpha)), true);
-		y -= font_arial->get_height();
+		font_vtremington12->print(0, y, it->second, color(255,255,255,Uint8(255*alpha)), true);
+		y -= font_vtremington12->get_height();
 	}
 	glColor4f(1,1,1,1);
 }

@@ -106,7 +106,7 @@ void sub_captainscabin_display::display(class game& gm) const
 	for (vector<clickable_area>::const_iterator it = clickable_areas.begin();
 	     it != clickable_areas.end(); ++it) {
 		if (it->is_mouse_over(mx, my)) {
-			font_arial->print_hc(mx, my - font_arial->get_height(),
+			font_vtremington12->print_hc(mx, my - font_arial->get_height(),
 					     texts::get(it->get_description()),
 					     it->get_description_color(), true);
 			break;

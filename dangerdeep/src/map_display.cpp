@@ -656,7 +656,7 @@ void map_display::display(class game& gm) const
 		glBindTexture(GL_TEXTURE_2D, 0);
 		draw_square_mark(gm, it->first, -offset, color(255, 0, 0));
 		vector2 pos = (it->first - offset) * mapzoom;
-		font_arial->print(int(512 + pos.x), int(384 - pos.y), it->second);
+		font_vtremington12->print(int(512 + pos.x), int(384 - pos.y), it->second);
 	}
 
 	// draw convoy positions	fixme: should be static and fade out after some time
@@ -776,9 +776,9 @@ void map_display::display(class game& gm) const
 		os0 << texts::get(3) << ": " << unsigned(target->get_pos().xy().distance(player->get_pos().xy())) << texts::get(206);
 		os1 << texts::get(4) << ": " << unsigned(sea_object::ms2kts(target->get_speed())) << texts::get(208);
 		os2 << texts::get(1) << ": " << unsigned(target->get_heading().value()) << texts::get(207);
-		font_arial->print(nx+16, ny+40, os0.str(), color(0,0,128));
-		font_arial->print(nx+16, ny+60, os1.str(), color(0,0,128));
-		font_arial->print(nx+16, ny+80, os2.str(), color(0,0,128));
+		font_vtremington12->print(nx+16, ny+40, os0.str(), color(0,0,128));
+		font_vtremington12->print(nx+16, ny+60, os1.str(), color(0,0,128));
+		font_vtremington12->print(nx+16, ny+80, os2.str(), color(0,0,128));
 	}
 
 	// draw world coordinates for mouse
@@ -790,7 +790,7 @@ void map_display::display(class game& gm) const
 	ostringstream rwcoordss;
 	rwcoordss	<< degry << "/" << minuty << (south ? "S" : "N") << ", "
 			<< degrx << "/" << minutx << (west ? "W" : "E");
-	font_arial->print(0, 0, rwcoordss.str(), color::white(), true);
+	font_vtremington12->print(0, 0, rwcoordss.str(), color::white(), true);
 
 	// editor specials ------------------------------------------------------------
 	if (gm.is_editor()) {
