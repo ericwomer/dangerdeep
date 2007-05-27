@@ -137,7 +137,9 @@ class torpedo : public ship
 //	virtual void create_sensor_array ( types t );
 	
 	void steering_logic();
-	double get_turn_accel_factor() const { return 10.0; } // rudder area etc.
+	double get_turn_accel_factor() const { return 50.0; } // rudder area etc.
+	double get_turn_drag_area() const;
+	double get_throttle_speed() const { return get_max_speed(); }
 
 	virtual bool causes_spray() const { return false; }//causes wake, only true for steam torpedoes and maybe for Walter engine
 
@@ -166,7 +168,7 @@ public:
 	virtual unsigned get_hit_points () const;
 
 	virtual double get_range() const;
-	virtual double get_speed() const;
+	double get_torp_speed() const;
 };
 
 #endif

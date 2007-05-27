@@ -128,7 +128,12 @@ class ship : public sea_object
 
 	/// implementation of the steering logic: helmsman simulation, or simpler model for torpedoes.
 	virtual void steering_logic();
-	virtual double get_turn_accel_factor() const { return 20000.0; } // rudder area etc.
+	/// return the acceleration factor for computing torque (depends on rudder area etc.)
+	virtual double get_turn_accel_factor() const { return 20000.0; }
+	/// return drag coefficient for turn drag
+	virtual double get_turn_drag_coeff() const { return 1.0; }
+	/// return the side area for drag computation multiplied by drag coefficient.
+	virtual double get_turn_drag_area() const;
 
 	/**
 		This method calculates the hourly fuel consumption. An

@@ -850,7 +850,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	//          = Dcoeff * densitiy * tvr^2 * area * L^3 / 8
 	// which makes sense, because outmost velocity depends on L, drag depends
 	// on square of that (hence L^2) and torque also on L (hence L^3).
-	const double drag_coefficient = 1.0;
+	const double drag_coefficient = get_turn_drag_coeff();
 	const double water_density = 1000.0;
 	// we take absolute value because we don't need the sign but the absolute value later
 	double turn_velocity_rad = fabs(turn_velocity * (M_PI/180.0));
@@ -858,9 +858,8 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	const double tvf = (turn_velocity_rad < 0.1) ? 1.0 : 0.0;
 	double tvr2 = turn_velocity_rad * turn_velocity_rad + turn_velocity_rad * tvf;
 	double L = size3d.y * 0.5;
-	// fixme: only take cross section that is below water! (roughly 1/2), rather a hack
 	double drag_torque = drag_coefficient * water_density * tvr2
-		* mymodel->get_cross_section(90.0)*0.5 * L*L*L * 0.125;
+		* get_turn_drag_area() * L*L*L * 0.125;
 //	std::cout << "Turn drag torque=" << drag_torque << " Nm\n";
 	if (turn_velocity > 0) drag_torque = -drag_torque;
 
@@ -874,6 +873,14 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 
 	// positive torque turns counter clockwise!
 	T = vector3(0, 0, 1) * rudder_torque;
+}
+
+
+
+double ship::get_turn_drag_area() const
+{
+	// only take cross section that is below water! (roughly 1/2), rather a hack
+	return mymodel->get_cross_section(90.0) * 0.5;
 }
 
 

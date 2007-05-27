@@ -449,10 +449,6 @@ void torpedo::simulate(double delta_time)
 	redetect_time = 1.0;
 	ship::simulate(delta_time);
 
-	// hack: keep constant speed
-	impulse = heading.direction().xy0() * max_speed_forward * mass;
-	velocity = vector3(0, max_speed_forward, 0);
-
 	double old_run_length = run_length;
 	run_length += get_speed() * delta_time;
 	if (run_length > get_range()) {
@@ -517,14 +513,25 @@ void torpedo::steering_logic()
 		rudder_pos = 0;
 		//rudder_to = ruddermidships;
 	} else if (turn_rather_right) {
-		rudder_pos = std::min(max_rudder_angle, angledist);
+		rudder_pos = std::min(max_rudder_angle, angledist * 2.0);
 		//rudder_to = angledist < 15.0 ? rudderright : rudderfullright;
 	} else {
-		rudder_pos = -std::min(max_rudder_angle, angledist);
+		rudder_pos = -std::min(max_rudder_angle, angledist * 2.0);
 		//rudder_to = angledist < 15.0 ? rudderleft : rudderfullleft;
 	}
-// 	std::cout << "torp=" << this << " angledist=" << angledist << " turn_r_r=" << turn_rather_right
-// 		  << " rudder_to=" << rudder_to << " rudder_pos=" << rudder_pos << " turn_vel=" << turn_velocity << "\n";
+	// torpedo runs not in heading's direction, fixme, this explains a lot of bugs...
+//  	std::cout << "torp=" << this << " angledist=" << angledist << " turn_r_r=" << turn_rather_right
+//  		  << " rudder_to=" << rudder_to << " rudder_pos=" << rudder_pos
+// 		  << " turn_vel=" << turn_velocity << " heading=" << heading.value() << " headto="
+// 		  << head_to.value() << "\n";
+}
+
+
+
+double torpedo::get_turn_drag_area() const
+{
+	// torpedo is fully under water, so use full cross section
+	return mymodel->get_cross_section(90.0);
 }
 
 
@@ -534,13 +541,14 @@ void torpedo::launch(const vector3& launchpos, angle parenthdg)
 	position = launchpos;
 	orientation = quaternion::rot(-parenthdg.value(), 0, 0, 1);
 	heading = parenthdg;
-	angular_momentum = vector3();
-	max_speed_forward = get_speed();
+	angular_momentum = vector3(); // fixme: get from parent
+	max_speed_forward = get_torp_speed();
 	max_angular_velocity = max_speed_forward * turn_rate;
-	// velocity is local, object moves only forward.
-	impulse = heading.direction().xy0() * max_speed_forward * mass;
+	impulse = heading.direction().xy0() * max_speed_forward * mass; // fixme: get from parent
 	velocity = vector3(0, max_speed_forward, 0);
+	global_velocity = impulse * mass_inv;
 	run_length = 0;
+	turn_velocity = 0;
 }
 
 
@@ -590,7 +598,7 @@ double torpedo::get_range() const
 
 
 
-double torpedo::get_speed() const
+double torpedo::get_torp_speed() const
 {
 	// fixme: TI independent on temperature, but depends on torpspeed selector!
 	double s = 0;
