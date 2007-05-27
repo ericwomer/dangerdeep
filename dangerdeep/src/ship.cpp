@@ -562,109 +562,7 @@ void ship::simulate(double delta_time)
 
 	// steering logic, adjust rudder pos so that heading matches head_to
 	if (head_to_fixed) {
-		// check if we should turn left or right
-		bool turn_rather_right = (heading.is_cw_nearer(head_to));
-		//std::cout<<this<<" logic: heading " << heading.value() << " head_to " << head_to.value() << " trr " << turn_rather_right << " rudder_to " << rudder_to << " rudder_pos " << rudder_pos << " turn_velo=" << turn_velocity << "\n";
-		//cout <<this<<" logic2 rudder_to " << rudder_to << " turn velo " << turn_velocity << "\n";
-		// cout << "total time " << gm.get_time() << "\n";
-
-		double angledist = fabs((heading - head_to).value_pm180());
-
-		if (use_simple_turning_model()) {
-			rudder_to = (turn_rather_right) ? rudderfullright : rudderfullleft;
-			// rudder left means rudder_pos < 0, so turn_velocity is > 0 and
-			// thus is counter-clockwise (mathematical angle!).
-			turn_velocity = -rudder_pos * max_angular_velocity / max_rudder_angle;
-			if (angledist < 0.1) {
-				rudder_pos = 0;
-				rudder_to = ruddermidships;
-				turn_velocity = 0;
-			}
-		} else {
-			/* Helmsman simulation
-			   we need a state model. states:
-			   0 do nothing (course matches targeted course)
-			   1 begin turn (need to turn to course, set rudder to max. angle) OR
-			     turning (rudder at max. angle, turning to targeted course)
-			   2 end turn (approaching targeted course, turn rudder to opposite to brake)
-			   3 stop turn (bring rudder to midships when course and direction matches targeted
-			   course, and velocity approaches zero).
-			   transitions:
-			   0->1 when course is set (head_to != course, or when head_to_fixed is true)
-			   1->2 when time to pass the course is 2x time to turn rudder to midships (or other factor)
-			   2->3 when time to pass is less than or equal to the time rudder takes to get back
-			   to midships (plus some extra time amount)
-			   3->0 when course is set (head_to == course, velocity = 0, rudder midships).
-			   3->1 as counter-reaction, here measure turning direction again
-
-			   The model *should* brake by turning rudder to opposite direction when course
-			   is nearing the targeted course, however it reaches target course before
-			   rudder crosses the mid state. So it works not fully as intended, but works
-			   after all...
-
-			   NO! it doesnt work for small changes...
-			*/
-			double time_to_pass = (fabs(turn_velocity) < 0.01) ? 1e30 : angledist / fabs(turn_velocity);
-			double time_to_midships = fabs(rudder_pos) / max_rudder_turn_speed;
-			//std::cout <<this<<" logic3 hm_stat=" << helmsman_st << " angledist " << angledist << " timetopass " << time_to_pass << " time_to_ms " << time_to_midships << "\n";
-			switch (helmsman_st) {
-			case hm_idle:
-				if (angledist < 0.5 && fabs(rudder_pos) < 1.0
-				    && fabs(turn_velocity) < 0.1) {
-					head_to_fixed = false;
-					rudder_to = ruddermidships;
-					//std::cout << "reached course, diff=" << head_to.value() - heading.value() << "\n";
-					break;
-				}
-				// we need to do something, switch state
-				helmsman_st = hm_lay_rudder;
-				rudder_to = (turn_rather_right) ? rudderfullright : rudderfullleft;
-			case hm_lay_rudder:
-				// fixme: factor could depend on rudder angle
-				if (time_to_pass * (fabs(turn_velocity) + 0.1) <= 3.0 * time_to_midships) {
-					//std::cout << "lay->ctr " << time_to_pass * fabs(turn_velocity) << " < " << 1.5 * time_to_midships << "\n";
-					helmsman_st = hm_counter_rudder;
-					// turn rudder to opposite
-					rudder_to = (turn_rather_right) ? rudderfullleft : rudderfullright;
-					break;
-				} else if (fabs(rudder_pos) + 0.1 >= max_rudder_angle) {
-					//std::cout << "rudder, trn " << fabs(rudder_pos) + 0.1 << " >= " << max_rudder_angle << "\n";
-					helmsman_st = hm_turning;
-				} else {
-					break;
-				}
-			case hm_turning:
-				if (time_to_pass * (fabs(turn_velocity) + 0.1) <= 3.0 * time_to_midships) {
-					//std::cout << "trn->ctr " << time_to_pass * fabs(turn_velocity) << " < " << 1.5 * time_to_midships << "\n";
-					helmsman_st = hm_counter_rudder;
-					// turn rudder to opposite
-					rudder_to = (turn_rather_right) ? rudderfullleft : rudderfullright;
-				} else {
-					break;
-				}
-			case hm_counter_rudder:
-				if (fabs(turn_velocity) < 0.5) {
-					rudder_to = ruddermidships;
-					helmsman_st = hm_center_rudder;
-				} else {
-					break;
-				}
-			case hm_center_rudder:
-				if (angledist < 0.5 &&
-				    fabs(rudder_pos) < 1.0 &&
-				    fabs(turn_velocity) < 0.01) {
-					helmsman_st = hm_idle;
-					rudder_to = ruddermidships;
-					head_to_fixed = false;
-					//std::cout << "reached course, diff=" << head_to.value() - heading.value() << "\n";
-				} else {
-					// special case here if missed course...
-					helmsman_st = hm_idle;
-					rudder_to = ruddermidships;
-				}
-				break;
-			}
-		}
+		steering_logic();
 	}
 	
 	// Adjust rudder
@@ -708,6 +606,103 @@ void ship::simulate(double delta_time)
 			
 		gun_turret++;
 	}	
+}
+
+
+
+void ship::steering_logic()
+{
+	// check if we should turn left or right
+	bool turn_rather_right = (heading.is_cw_nearer(head_to));
+	//std::cout<<this<<" logic: heading " << heading.value() << " head_to " << head_to.value() << " trr " << turn_rather_right << " rudder_to " << rudder_to << " rudder_pos " << rudder_pos << " turn_velo=" << turn_velocity << "\n";
+	//cout <<this<<" logic2 rudder_to " << rudder_to << " turn velo " << turn_velocity << "\n";
+	// cout << "total time " << gm.get_time() << "\n";
+
+	double angledist = fabs((heading - head_to).value_pm180());
+
+	/* Helmsman simulation
+	   we need a state model. states:
+	   0 do nothing (course matches targeted course)
+	   1 begin turn (need to turn to course, set rudder to max. angle) OR
+	   turning (rudder at max. angle, turning to targeted course)
+	   2 end turn (approaching targeted course, turn rudder to opposite to brake)
+	   3 stop turn (bring rudder to midships when course and direction matches targeted
+	   course, and velocity approaches zero).
+	   transitions:
+	   0->1 when course is set (head_to != course, or when head_to_fixed is true)
+	   1->2 when time to pass the course is 2x time to turn rudder to midships (or other factor)
+	   2->3 when time to pass is less than or equal to the time rudder takes to get back
+	   to midships (plus some extra time amount)
+	   3->0 when course is set (head_to == course, velocity = 0, rudder midships).
+	   3->1 as counter-reaction, here measure turning direction again
+
+	   The model *should* brake by turning rudder to opposite direction when course
+	   is nearing the targeted course, however it reaches target course before
+	   rudder crosses the mid state. So it works not fully as intended, but works
+	   after all...
+
+	   NO! it doesnt work for small changes...
+	*/
+	double time_to_pass = (fabs(turn_velocity) < 0.01) ? 1e30 : angledist / fabs(turn_velocity);
+	double time_to_midships = fabs(rudder_pos) / max_rudder_turn_speed;
+	//std::cout <<this<<" logic3 hm_stat=" << helmsman_st << " angledist " << angledist << " timetopass " << time_to_pass << " time_to_ms " << time_to_midships << "\n";
+	switch (helmsman_st) {
+	case hm_idle:
+		if (angledist < 0.5 && fabs(rudder_pos) < 1.0
+		    && fabs(turn_velocity) < 0.1) {
+			head_to_fixed = false;
+			rudder_to = ruddermidships;
+			//std::cout << "reached course, diff=" << head_to.value() - heading.value() << "\n";
+			break;
+		}
+		// we need to do something, switch state
+		helmsman_st = hm_lay_rudder;
+		rudder_to = (turn_rather_right) ? rudderfullright : rudderfullleft;
+	case hm_lay_rudder:
+		// fixme: factor could depend on rudder angle
+		if (time_to_pass * (fabs(turn_velocity) + 0.1) <= 3.0 * time_to_midships) {
+			//std::cout << "lay->ctr " << time_to_pass * fabs(turn_velocity) << " < " << 1.5 * time_to_midships << "\n";
+			helmsman_st = hm_counter_rudder;
+			// turn rudder to opposite
+			rudder_to = (turn_rather_right) ? rudderfullleft : rudderfullright;
+			break;
+		} else if (fabs(rudder_pos) + 0.1 >= max_rudder_angle) {
+			//std::cout << "rudder, trn " << fabs(rudder_pos) + 0.1 << " >= " << max_rudder_angle << "\n";
+			helmsman_st = hm_turning;
+		} else {
+			break;
+		}
+	case hm_turning:
+		if (time_to_pass * (fabs(turn_velocity) + 0.1) <= 3.0 * time_to_midships) {
+			//std::cout << "trn->ctr " << time_to_pass * fabs(turn_velocity) << " < " << 1.5 * time_to_midships << "\n";
+			helmsman_st = hm_counter_rudder;
+			// turn rudder to opposite
+			rudder_to = (turn_rather_right) ? rudderfullleft : rudderfullright;
+		} else {
+			break;
+		}
+	case hm_counter_rudder:
+		if (fabs(turn_velocity) < 0.5) {
+			rudder_to = ruddermidships;
+			helmsman_st = hm_center_rudder;
+		} else {
+			break;
+		}
+	case hm_center_rudder:
+		if (angledist < 0.5 &&
+		    fabs(rudder_pos) < 1.0 &&
+		    fabs(turn_velocity) < 0.01) {
+			helmsman_st = hm_idle;
+			rudder_to = ruddermidships;
+			head_to_fixed = false;
+			//std::cout << "reached course, diff=" << head_to.value() - heading.value() << "\n";
+		} else {
+			// special case here if missed course...
+			helmsman_st = hm_idle;
+			rudder_to = ruddermidships;
+		}
+		break;
+	}
 }
 
 
@@ -871,8 +866,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 
 	// negate rudder_pos here, because turning is mathematical, so rudder left means
 	// rudder_pos < 0 and this means ccw turning and this means turn velocity > 0!
-	const double accel_factor = 20000.0;
-	double rudder_torque = L * accel_factor * speed * sin(-rudder_pos * M_PI / 180.0);
+	double rudder_torque = L * get_turn_accel_factor() * speed * sin(-rudder_pos * M_PI / 180.0);
 //	std::cout << "turn torque=" << acceleration << " Nm, or " << acceleration*2.0/size3d.y << " N\n";
 // 	std::cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << " turn_velo " << turn_velocity << " heading " << heading.value() << " tv2 " << tv2 << "\n";
 // 	std::cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << " max_turn_accel " << max_turn_accel << "\n";

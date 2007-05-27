@@ -276,10 +276,19 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 
 	// ------------ set ship turning values, fixme: read from files, more a hack...
 	max_rudder_angle = 40;
-	max_rudder_turn_speed = 200;//20;	// with smaller values torpedo course oscillates. damping too high?! steering to crude?! fixme
+	max_rudder_turn_speed = 0.0001;//80;	// with smaller values torpedo course oscillates. damping too high?! steering to crude?! fixme
 	// set turn rate here. With 0.6 a torpedo takes roughly 10 seconds to turn 90 degrees.
 	// With that value the torpedo turn radius is ~98m. Maybe a bit too much.
 	turn_rate = 0.6;
+
+	size3d = vector3f(0.533, 7, 0.533);	// diameter 53.3cm (21inch), length ~ 7m
+	mass = 1500; // 1.5tons
+	mass_inv = 1.0/mass;
+	inertia_tensor = matrix3();
+	inertia_tensor.elem(0, 0) = mass/12.0 * (size3d.y*size3d.y + size3d.z*size3d.z);
+	inertia_tensor.elem(1, 1) = mass/12.0 * (size3d.x*size3d.x + size3d.z*size3d.z);
+	inertia_tensor.elem(2, 2) = mass/12.0 * (size3d.x*size3d.x + size3d.y*size3d.y);
+	inertia_tensor_inv = inertia_tensor.inverse();
 }
 
 	
@@ -440,6 +449,10 @@ void torpedo::simulate(double delta_time)
 	redetect_time = 1.0;
 	ship::simulate(delta_time);
 
+	// hack: keep constant speed
+	impulse = heading.direction().xy0() * max_speed_forward * mass;
+	velocity = vector3(0, max_speed_forward, 0);
+
 	double old_run_length = run_length;
 	run_length += get_speed() * delta_time;
 	if (run_length > get_range()) {
@@ -490,14 +503,42 @@ void torpedo::simulate(double delta_time)
 
 
 
+void torpedo::steering_logic()
+{
+	// check if we should turn left or right
+	bool turn_rather_right = (heading.is_cw_nearer(head_to));
+	double angledist = fabs((heading - head_to).value_pm180());
+
+	// torpedoes have a simple logic. set rudder to full angle to turn to
+	// target course, drag will damp the oscillation.
+	//fixme: rudder_should be set proportional to course difference:
+	//large angledist -> full rudder ... small angledist -> few rudder
+	if (angledist < 0.1 && turn_velocity < 0.01) {
+		rudder_pos = 0;
+		//rudder_to = ruddermidships;
+	} else if (turn_rather_right) {
+		rudder_pos = std::min(max_rudder_angle, angledist);
+		//rudder_to = angledist < 15.0 ? rudderright : rudderfullright;
+	} else {
+		rudder_pos = -std::min(max_rudder_angle, angledist);
+		//rudder_to = angledist < 15.0 ? rudderleft : rudderfullleft;
+	}
+// 	std::cout << "torp=" << this << " angledist=" << angledist << " turn_r_r=" << turn_rather_right
+// 		  << " rudder_to=" << rudder_to << " rudder_pos=" << rudder_pos << " turn_vel=" << turn_velocity << "\n";
+}
+
+
+
 void torpedo::launch(const vector3& launchpos, angle parenthdg)
 {
 	position = launchpos;
 	orientation = quaternion::rot(-parenthdg.value(), 0, 0, 1);
 	heading = parenthdg;
+	angular_momentum = vector3();
 	max_speed_forward = get_speed();
 	max_angular_velocity = max_speed_forward * turn_rate;
 	// velocity is local, object moves only forward.
+	impulse = heading.direction().xy0() * max_speed_forward * mass;
 	velocity = vector3(0, max_speed_forward, 0);
 	run_length = 0;
 }

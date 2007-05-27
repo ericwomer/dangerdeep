@@ -126,6 +126,10 @@ class ship : public sea_object
 
 	void compute_force_and_torque(vector3& F, vector3& T) const; // drag must be already included!
 
+	/// implementation of the steering logic: helmsman simulation, or simpler model for torpedoes.
+	virtual void steering_logic();
+	virtual double get_turn_accel_factor() const { return 20000.0; } // rudder area etc.
+
 	/**
 		This method calculates the hourly fuel consumption. An
 		exponential is used as a model basing on some fuel consumption values.
@@ -146,8 +150,6 @@ class ship : public sea_object
 
 	// pointer to fire particle (0 means ship is not burning)
 	class particle* myfire;
-	
-	virtual bool use_simple_turning_model() const { return false; }
 	
 	virtual bool causes_spray() const { return true; }
 	
