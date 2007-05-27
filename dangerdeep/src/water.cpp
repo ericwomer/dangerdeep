@@ -449,7 +449,7 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 	glTranslated(0.5,0.5,0);
 	glScaled(0.5,0.5,1.0);
 	reflection_projmvmat.multiply_gl();
-	if (use_hqsfx) {
+	if (use_hqsfx && !under_water) {
 		// here get result and give it to the fragment shader
 		glsl_water->set_uniform("reflection_mvp",
 					matrix4::trans(0.5, 0.5, 0.0) * matrix4::diagonal(0.5, 0.5, 1.0)
