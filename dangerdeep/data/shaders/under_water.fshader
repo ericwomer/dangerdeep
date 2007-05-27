@@ -31,7 +31,7 @@ void main()
 	// compute refraction color
 	float doten = dot(E, N);
 	float dotln = dot(L, N);
-	float dl = max(dotln*dotln * (0.5 + doten*doten), 0.0);
+	float dl = max(dotln*dotln * 0.6 + doten*doten * 0.8, 0.0);
 	vec3 reflectioncol = vec3(gl_Color) * dl;
 	// light blue mix with sun... fixme
 	vec3 refractioncol = vec3(gl_LightSource[0].diffuse) * vec3(0.4, 0.59, 0.79) * dl;
