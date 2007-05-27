@@ -12,18 +12,18 @@
     </escort>
   </machines>
   <effects>
-    <big-gun-fire file="big gun firing.ogg" />
+    <big-gun-fire file="big_gun_firing.ogg" />
     <big-gun-fire file="boom5.ogg" />
-    <medium-gun-fire file="medium gun firing.ogg" />
-    <deck-gun-fire file="deck gun firing.ogg" />
-    <depth-charge-launch file="depth charge launching.ogg" />
-    <depth-charge-explode file="depth charge exploding.ogg" />
+    <medium-gun-fire file="medium_gun_firing.ogg" />
+    <deck-gun-fire file="deck_gun_firing.ogg" />
+    <depth-charge-launch file="depth_charge_launching.ogg" />
+    <depth-charge-explode file="depth_charge_exploding.ogg" />
     <tube-launch file="liquidblast.ogg" />
     <tube-launch file="torp.ogg" />
     <ping file="ping.ogg" />
     <ping file="sonarping_mono_id1.ogg" />
     <ship-bell file="nshipbell.ogg" />
-    <shell-explode file="shell explosion.ogg" />
-    <shell-splash file="shell splash.ogg" />
+    <shell-explode file="shell_explosion.ogg" />
+    <shell-splash file="shell_splash.ogg" />
   </effects>
 </sound-files>
