@@ -241,6 +241,20 @@ void glsl_program::set_uniform(const std::string& name, const vector3& value) co
 
 
 
+void glsl_program::set_uniform(const std::string& name, const matrix4& value) const
+{
+	if (used_program != this)
+		throw runtime_error("glsl_program::set_gl_texture, program not bound!");
+	GLint loc = glGetUniformLocation(id, name.c_str());
+	float tmp[16];
+	const double* ea = value.elemarray();
+	for (int i = 0; i < 16; ++i)
+		tmp[i] = float(ea[i]);
+	glUniformMatrix4fv(loc, 1, GL_TRUE, tmp);
+}
+
+
+
 unsigned glsl_program::get_vertex_attrib_index(const std::string& name) const
 {
 	if (used_program != this)

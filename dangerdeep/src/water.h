@@ -121,6 +121,7 @@ protected:
 
 	// Config options (only used when supported)
 	bool use_shaders;
+	bool use_hqsfx; // high quality special effects.
 
 	// Shader program
 	std::auto_ptr<glsl_shader_setup> glsl_water;

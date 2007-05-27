@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define SHADER_H
 
 #include "vector3.h"
+#include "matrix4.h"
 #include <string>
 #include <list>
 
@@ -101,6 +102,9 @@ class glsl_program
 	/// set uniform variable (doubles)
 	void set_uniform(const std::string& name, const vector3& value) const;
 
+	/// set uniform variable (matrix4)
+	void set_uniform(const std::string& name, const matrix4& value) const;
+
 	/// get vertex attribute index
 	unsigned get_vertex_attrib_index(const std::string& name) const;
 
@@ -145,6 +149,11 @@ class glsl_shader_setup
 
 	/// set uniform variable (doubles)
 	void set_uniform(const std::string& name, const vector3& value) const {
+		prog.set_uniform(name, value);
+	}
+
+	/// set uniform variable (matrix4)
+	void set_uniform(const std::string& name, const matrix4& value) const {
 		prog.set_uniform(name, value);
 	}
 

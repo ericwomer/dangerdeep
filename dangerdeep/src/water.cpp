@@ -98,6 +98,7 @@ water::water(double tm) :
 	    wavetile_length,
 	    wave_tidecycle_time),
 	use_shaders(false),
+	use_hqsfx(false),
 	vattr_aof_index(0),
 	rerender_new_wtp(true),
 	geoclipmap_resolution(cmpdtl(cfg::instance().geti("water_detail"))), // should be power of two
@@ -183,11 +184,17 @@ water::water(double tm) :
 
 	use_shaders = glsl_program::supported() &&
 		cfg::instance().getb("use_shaders") && cfg::instance().getb("use_shaders_for_water");
+	use_hqsfx = (use_shaders && cfg::instance().getb("use_hqsfx"));
 
 	// initialize shaders if wanted
 	if (use_shaders) {
+		glsl_shader::defines_list defines;
+		if (use_hqsfx) {
+			defines.push_back("HQ_SFX");
+		}
 		glsl_water.reset(new glsl_shader_setup(get_shader_dir() + "water.vshader",
-						       get_shader_dir() + "water.fshader"));
+						       get_shader_dir() + "water.fshader",
+						       defines));
 		glsl_under_water.reset(new glsl_shader_setup(get_shader_dir() + "under_water.vshader",
 							     get_shader_dir() + "under_water.fshader"));
 		glsl_water->use();
@@ -442,6 +449,12 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 	glTranslated(0.5,0.5,0);
 	glScaled(0.5,0.5,1.0);
 	reflection_projmvmat.multiply_gl();
+	if (use_hqsfx) {
+		// here get result and give it to the fragment shader
+		glsl_water->set_uniform("reflection_mvp",
+					matrix4::trans(0.5, 0.5, 0.0) * matrix4::diagonal(0.5, 0.5, 1.0)
+					* reflection_projmvmat);
+	}
 	glMatrixMode(GL_MODELVIEW);
 
 	if (!use_shaders) {

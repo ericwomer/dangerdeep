@@ -5,7 +5,11 @@ varying vec3 viewerdir;
 varying vec3 lightdir;
 varying vec3 normal;
 varying vec3 foamtexcoord;
+#ifdef HQ_SFX
+varying vec3 realcoordinates;
+#else
 varying vec4 reflectiontexcoord;	// x,y,w
+#endif
 varying vec4 foamamounttexcoord;	// x,y,w
 varying vec2 noise_texc_0;
 varying vec2 noise_texc_1;
@@ -14,6 +18,11 @@ uniform sampler2D tex_normal;		// normal map, RGB
 uniform sampler2D tex_reflection;	// reflection, RGB
 uniform sampler2D tex_foam;		// foam texture (tileable)
 uniform sampler2D tex_foamamount;	// amount of foam per pixel
+
+#ifdef HQ_SFX
+uniform mat4 reflection_mvp;
+const float virtualplane_height = 12.0;
+#endif
 
 const float water_shininess = 140.0;
 
@@ -78,6 +87,11 @@ void main()
 	vec3 refractioncol = vec3(gl_Color) * dl;
 
 	// mix reflection and refraction (upwelling) color, and add specular color
+#ifdef HQ_SFX
+	vec3 texc = N * (virtualplane_height * N.z) + realcoordinates;
+	texc.z -= virtualplane_height;
+	vec4 reflectiontexcoord = reflection_mvp * vec4(texc, 1.0);
+#endif
 	vec3 water_color = mix(refractioncol, vec3(texture2DProj(tex_reflection, reflectiontexcoord)),
 			       fresnel) + specular_color;
 
