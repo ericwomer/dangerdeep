@@ -612,6 +612,8 @@ void ship::simulate(double delta_time)
 				if (angledist < 0.5 && fabs(rudder_pos) < 1.0
 				    && fabs(turn_velocity) < 0.1) {
 					head_to_fixed = false;
+					rudder_to = ruddermidships;
+					std::cout << "reached course, diff=" << head_to.value() - heading.value() << "\n";
 					break;
 				}
 				// we need to do something, switch state
@@ -619,7 +621,7 @@ void ship::simulate(double delta_time)
 				rudder_to = (turn_rather_right) ? rudderfullright : rudderfullleft;
 			case hm_lay_rudder:
 				// fixme: factor could depend on rudder angle
-				if (time_to_pass * (fabs(turn_velocity) + 0.1) <= 3.5 * time_to_midships) {
+				if (time_to_pass * (fabs(turn_velocity) + 0.1) <= 3.0 * time_to_midships) {
 					std::cout << "lay->ctr " << time_to_pass * fabs(turn_velocity) << " < " << 1.5 * time_to_midships << "\n";
 					helmsman_st = hm_counter_rudder;
 					// turn rudder to opposite
@@ -632,7 +634,7 @@ void ship::simulate(double delta_time)
 					break;
 				}
 			case hm_turning:
-				if (time_to_pass * (fabs(turn_velocity) + 0.1) <= 3.5 * time_to_midships) {
+				if (time_to_pass * (fabs(turn_velocity) + 0.1) <= 3.0 * time_to_midships) {
 					std::cout << "trn->ctr " << time_to_pass * fabs(turn_velocity) << " < " << 1.5 * time_to_midships << "\n";
 					helmsman_st = hm_counter_rudder;
 					// turn rudder to opposite
@@ -641,21 +643,25 @@ void ship::simulate(double delta_time)
 					break;
 				}
 			case hm_counter_rudder:
-				if (time_to_pass * (fabs(turn_velocity) + 0.1) <= 2.0 * time_to_midships
-				    && fabs(turn_velocity) < 0.1) {
+				if (/*time_to_pass * (fabs(turn_velocity) + 0.1) >= 12.0 * time_to_midships
+				    &&*/ fabs(turn_velocity) < 0.5) {
+					rudder_to = ruddermidships;
 					helmsman_st = hm_center_rudder;
 				} else {
 					break;
 				}
 			case hm_center_rudder:
-				if (angledist < 0.5) {
-					if (fabs(rudder_pos) < 1.0 && fabs(turn_velocity) < 0.01) {
-						helmsman_st = hm_idle;
-						head_to_fixed = false;
-						std::cout << "reached course, diff=" << head_to.value() - heading.value() << "\n";
-					} else {
-						// special case here if missed course...?
-					}
+				if (angledist < 0.5 &&
+				    fabs(rudder_pos) < 1.0 &&
+				    fabs(turn_velocity) < 0.01) {
+					helmsman_st = hm_idle;
+					rudder_to = ruddermidships;
+					head_to_fixed = false;
+					std::cout << "reached course, diff=" << head_to.value() - heading.value() << "\n";
+				} else {
+					// special case here if missed course...
+					helmsman_st = hm_idle;
+					rudder_to = ruddermidships;
 				}
 				break;
 			}
@@ -825,90 +831,56 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	//   as force acting on one end.
 	// drag formula:
 	// D = Drag_coefficient * density * velocity^2 * reference_area / 2.
-	//     kg/m^3 * m^2/s^2 * m^2 = kg*m/s^2 = mass * acceleration = force.
-	//   the velocity is not constant over the hull, so we have to
-	//   compute a medium value. It depends on total length of sub
-	//   and of turn velocity of outmost part.
-	//   We can get the area from the cross section data.
-	//   Density of water is 1000kg/m3 (1000) for ease of computation.
-	// Velocity of a point along the hull:
-	//   the outmost point moves with x angles/second, and is y meters away
-	//   from center of turn, thus it moves x/360 (or x/(2*Pi)) parts of a circle
-	//   per second. Circle diameter is 2*Pi*r where r=y.
-	//   Thus it moves 2*Pi*y * x/360 or 2*Pi*y * x/(2*Pi) = y * x m/s.
-	//   Let's compute in radians, its easier.
-	//   V^2 = y^2*x^2 then,
-	//   to get total V^2 over hull, we have for a point z along the hull:
-	//   v_z = (z/y)^2 * v_out^2, where v_out = velocity of outmost point = y * x
-	//   v2_tot = Integral over z, range -y...y (z/y)^2 * v_out^2,
-	//          = v_out^2 * Integral over z, range -1...1 z^2
-	//          = v_out^2 * 2/3.
-	//   So total V^2 for drag is square of turn velocity in radians per second (x) times
-	//   half length (L) of hull times 2/3.
-	//   E.g. 1°/second = 0.01745 rad/s, hull length 70m -> L=35m
-	//   -> Outmost velocity y*x = 35m*0.01745=0.611m/s.
-	//   -> 0.249m/s total velocity squared.
-	// Drag induced torque is then drag force times distance to center (T_drag = D * z),
-	// so we rather have to integrate over drag.
-	// T_drag = Dc * density * A/2 * Int (z=-L...L) v_z^2 * |z|. v_z^2 = (z/L)^2*v_out^2
-	//        = Dc * density * A/2 * v_out^2 * Int (z=-L...L) (z/L)^2 * |z|
-	//        = Dc * density * A/2 * v_out^2 * 2 * Int (z=0...L) (z/L)^2 * z
-	//        = Dc * density * A/2 * v_out^2 * 2 * Int (z=0...L) z^2/L^2
-	//        = Dc * density * A/2 * v_out^2 * 2 * (L/3)
-	//        = Dc * density * A * v_out^2 * L/3.
+	//     (kg/m^3 * m^2/s^2 * m^2 = kg*m/s^2 = mass * acceleration = force.)
+	// And D_torque = D * z, where z is distance to turn center,
+	// and z in [-L...L], thus the length of the hull is 2*L.
+	// The velocity is not constant over the hull, but variies linearily along
+	// the hull from turn center to outmost part.
+	// We compute total drag torque with an integral over z.
+	// We can get the area from the cross section data.
+	// Density of water is 1000kg/m3 (1000) for ease of computation.
+	// If the hull turns with x angles/second, and a point on it is z meters away
+	// from center of turn, then it moves x/360 (or x/(2*Pi)) parts of a circle
+	// per second. Circle diameter is 2*Pi*r where r=z.
+	// Thus it moves 2*Pi*z * x/360 or 2*Pi*z * x/(2*Pi) = z * x m/s.
+	// Let's compute in radians, its easier.
+	// So velocity = z * tvr, where tvr is turn velocity in radians.
+	// area per z is area/(2*L), this is needed for the integral.
+	// D_torque = Dcoeff * densitiy * velocity^2 * area / 2 * z
+	//          = Dcoeff * densitiy * z^2 * tvr^2 * area / 2 * z
+	//          = Int z=-L...L   Dcoeff * densitiy * z^3 * tvr^2 * area/(2*L) / 2
+	//          = Dcoeff * densitiy * tvr^2 * area / (4*L) * Int z=-L...L   z^3
+	//          = Dcoeff * densitiy * tvr^2 * area / (4*L) * (L^4/4 - (-L)^4/4)
+	// this would be 0, but drag for stern part of hull doesn't count negative, so:
+	//          = Dcoeff * densitiy * tvr^2 * area / (4*L) * 2*L^4/4
+	//          = Dcoeff * densitiy * tvr^2 * area * L^3 / 8
+	// which makes sense, because outmost velocity depends on L, drag depends
+	// on square of that (hence L^2) and torque also on L (hence L^3).
 	const double drag_coefficient = 1.0;
 	const double water_density = 1000.0;
-	double turn_velocity_rad = turn_velocity * (M_PI/180.0);
-	double velo_sqr = turn_velocity_rad * turn_velocity_rad * size3d.y * size3d.y * (0.5/3.0);
-	// fixme: only take cross section that is below water! (roughly 1/2)
-	double drag_torque = drag_coefficient * water_density * velo_sqr
-		* mymodel->get_cross_section(90.0) * size3d.y / 3.0;
-	// we need to add a linear factor here, so turn_velocity really stops
-	double tvr = fabs(turn_velocity_rad);
-	if (tvr > 0.000001 && tvr < 0.01) tvr = 0.01;
-	drag_torque += tvr * 500000.0;
-	std::cout << "Turn drag torque=" << drag_torque << " Nm\n";
+	// we take absolute value because we don't need the sign but the absolute value later
+	double turn_velocity_rad = fabs(turn_velocity * (M_PI/180.0));
+	// modify turn velocity a bit to make sure turning really stops on low turn speeds.
+	const double tvf = (turn_velocity_rad < 0.1) ? 1.0 : 0.0;
+	double tvr2 = turn_velocity_rad * turn_velocity_rad + turn_velocity_rad * tvf;
+	double L = size3d.y * 0.5;
+	// fixme: only take cross section that is below water! (roughly 1/2), rather a hack
+	double drag_torque = drag_coefficient * water_density * tvr2
+		* mymodel->get_cross_section(90.0)*0.5 * L*L*L * 0.125;
+//	std::cout << "Turn drag torque=" << drag_torque << " Nm\n";
+	if (turn_velocity > 0) drag_torque = -drag_torque;
 
-	{ // get_turn_acceleration()
-	// acceleration of ship depends on rudder state and actual forward speed (linear).
-	// angular acceleration (turning) is speed * sin(rudder_ang) * factor
-	// this is acceleration around local z-axis.
-	// the factor depends on rudder area etc.
-	//fixme: do we have to multiply in some factor? we have angular values here not linear...
-	//double drag_factor = some_factor * current_turn_speed^2
-	//some_factor is given by turn rate
-	double speed = get_speed();
-	double tv2 = turn_velocity*turn_velocity;
-	if (fabs(turn_velocity) < 1.0) tv2 = fabs(turn_velocity) * max_angular_velocity;
-	double accel_factor = 100000.0;	// given by turn rate, influenced by rudder area...
-	// fixme: the whole thing about limiting maximum turn rate is incompatible with
-	// current physics model, drag factor stays too low
-	double max_turn_accel = accel_factor * max_speed_forward * sin(max_rudder_angle * M_PI / 180.0);
-	double drag_factor = (tv2) * max_turn_accel / (max_angular_velocity*max_angular_velocity);
-	drag_factor = drag_torque;
-	////drag_factor *= 2.0;
 	// negate rudder_pos here, because turning is mathematical, so rudder left means
 	// rudder_pos < 0 and this means ccw turning and this means turn velocity > 0!
-	double acceleration = accel_factor * speed * sin(-rudder_pos * M_PI / 180.0);
-	std::cout << "turn torque=" << acceleration << " Nm, or " << acceleration*2.0/size3d.y << " N\n";
-	if (turn_velocity > 0) drag_factor = -drag_factor;
+	const double accel_factor = 20000.0;
+	double rudder_torque = L * accel_factor * speed * sin(-rudder_pos * M_PI / 180.0);
+//	std::cout << "turn torque=" << acceleration << " Nm, or " << acceleration*2.0/size3d.y << " N\n";
 // 	std::cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << " turn_velo " << turn_velocity << " heading " << heading.value() << " tv2 " << tv2 << "\n";
 // 	std::cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << " max_turn_accel " << max_turn_accel << "\n";
-	acceleration += drag_factor;
+	rudder_torque += drag_torque;
 
-	/* 2007/05/20:
-	   torque is force * path (Nm), the force is the acceleration * mass,
-	   and the path is the length from object's center to rudder centers,
-	   i.e. the point where the force is acting.
-	   This gives large torque with small forces, because the length is long (30-35m on VIIc).
-	   The mass depends on the mass of water moved by the screws?
-	   fixme...
-	*/
-
-	// we fake torque on first try by setting turn axis to (0,0,1) (z-axis)
-	T = vector3(0, 0, 1) * acceleration;
-	}
 	// positive torque turns counter clockwise!
+	T = vector3(0, 0, 1) * rudder_torque;
 }
 
 
