@@ -75,14 +75,6 @@ class ship : public sea_object
 	};
 
  protected:
-	enum helmsman_state {
-		hm_idle,
-		hm_lay_rudder,
-		hm_turning,
-		hm_counter_rudder,
-		hm_center_rudder
-	};
-
 	unsigned tonnage;	// in BRT, created after values from spec file (but maybe with some randomness), must get stored!
 
 	int throttle;		// if < 0: throttle_state, if > 0: knots
@@ -99,7 +91,6 @@ class ship : public sea_object
 	double max_angular_velocity;	// depends on turn rate.
 	bool head_to_fixed;	// if true, change rudder_to so that heading moves to head_to
 	angle head_to;
-	helmsman_state helmsman_st;	// state of helmsman simulation
 	
 	double turn_rate;	// in angle/time (at max. speed/throttle), read from spec file
 	// fixme: value seems to be angle/meter, meaning angle change per m forward motion...

@@ -98,7 +98,6 @@ ship::ship(game& gm_, const xml_elem& parent)
 	  max_rudder_turn_speed(10),
 	  max_angular_velocity(2),
 	  head_to_fixed(false),
-	  helmsman_st(hm_idle),
 	  max_accel_forward(1),
 	  max_speed_forward(10),
 	  max_speed_reverse(0),
@@ -373,7 +372,6 @@ void ship::load(const xml_elem& parent)
 	rudder_pos = st.attrf("rudder_pos");
 	rudder_to = st.attri("rudder_to");
 	head_to_fixed = st.attrb("head_to_fixed");
-	helmsman_st = hm_idle;
 	head_to = angle(st.attrf("head_to"));
 	xml_elem dm = parent.child("damage");
 	bow_damage = damage_status(dm.attru("bow"));
@@ -612,96 +610,28 @@ void ship::simulate(double delta_time)
 
 void ship::steering_logic()
 {
-	// check if we should turn left or right
-	bool turn_rather_right = (heading.is_cw_nearer(head_to));
-	//std::cout<<this<<" logic: heading " << heading.value() << " head_to " << head_to.value() << " trr " << turn_rather_right << " rudder_to " << rudder_to << " rudder_pos " << rudder_pos << " turn_velo=" << turn_velocity << "\n";
-	//cout <<this<<" logic2 rudder_to " << rudder_to << " turn velo " << turn_velocity << "\n";
-	// cout << "total time " << gm.get_time() << "\n";
-
-	double angledist = fabs((heading - head_to).value_pm180());
-
 	/* Helmsman simulation
-	   we need a state model. states:
-	   0 do nothing (course matches targeted course)
-	   1 begin turn (need to turn to course, set rudder to max. angle) OR
-	   turning (rudder at max. angle, turning to targeted course)
-	   2 end turn (approaching targeted course, turn rudder to opposite to brake)
-	   3 stop turn (bring rudder to midships when course and direction matches targeted
-	   course, and velocity approaches zero).
-	   transitions:
-	   0->1 when course is set (head_to != course, or when head_to_fixed is true)
-	   1->2 when time to pass the course is 2x time to turn rudder to midships (or other factor)
-	   2->3 when time to pass is less than or equal to the time rudder takes to get back
-	   to midships (plus some extra time amount)
-	   3->0 when course is set (head_to == course, velocity = 0, rudder midships).
-	   3->1 as counter-reaction, here measure turning direction again
-
-	   The model *should* brake by turning rudder to opposite direction when course
-	   is nearing the targeted course, however it reaches target course before
-	   rudder crosses the mid state. So it works not fully as intended, but works
-	   after all...
-
-	   NO! it doesnt work for small changes...
+	   New idea: add turn_velocity * time_to_midships * factor to target heading,
+	   so that when turn velocity is high, target course is nearer than set,
+	   then react when course is "missed" (factor=1) or near miss (factor=2),
+	   this will lead to early braking and hitting target course better.
+	   Low velocities -> Low drift.
+	   Could be better for torps too.
+	   We don't need states with this model.
 	*/
-	double time_to_pass = (fabs(turn_velocity) < 0.01) ? 1e30 : angledist / fabs(turn_velocity);
+
 	double time_to_midships = fabs(rudder_pos) / max_rudder_turn_speed;
-	//std::cout <<this<<" logic3 hm_stat=" << helmsman_st << " angledist " << angledist << " timetopass " << time_to_pass << " time_to_ms " << time_to_midships << "\n";
-	switch (helmsman_st) {
-	case hm_idle:
-		if (angledist < 0.5 && fabs(rudder_pos) < 1.0
-		    && fabs(turn_velocity) < 0.1) {
-			head_to_fixed = false;
-			rudder_to = ruddermidships;
-			//std::cout << "reached course, diff=" << head_to.value() - heading.value() << "\n";
-			break;
-		}
-		// we need to do something, switch state
-		helmsman_st = hm_lay_rudder;
+	angle heading2 = heading + angle(-turn_velocity * time_to_midships * 1.5);
+	bool turn_rather_right = (heading2.is_cw_nearer(head_to));
+	double angledist = fabs((heading2 - head_to).value_pm180());
+	std::cout <<this<<" angledist " << angledist << " heading=" << heading.value() << " head_to=" << head_to.value() << " heading2=" << heading2.value() << " time_to_ms " << time_to_midships << "\n";
+	if (angledist < 0.25 && fabs(rudder_pos) < 1.0) {
+		head_to_fixed = false;
+		rudder_to = ruddermidships;
+		std::cout << "reached course, diff=" << head_to.value() - heading.value() << " tv=" << turn_velocity << "\n";
+	} else {
+		// we need to do something
 		rudder_to = (turn_rather_right) ? rudderfullright : rudderfullleft;
-	case hm_lay_rudder:
-		// fixme: factor could depend on rudder angle
-		if (time_to_pass * (fabs(turn_velocity) + 0.1) <= 3.0 * time_to_midships) {
-			//std::cout << "lay->ctr " << time_to_pass * fabs(turn_velocity) << " < " << 1.5 * time_to_midships << "\n";
-			helmsman_st = hm_counter_rudder;
-			// turn rudder to opposite
-			rudder_to = (turn_rather_right) ? rudderfullleft : rudderfullright;
-			break;
-		} else if (fabs(rudder_pos) + 0.1 >= max_rudder_angle) {
-			//std::cout << "rudder, trn " << fabs(rudder_pos) + 0.1 << " >= " << max_rudder_angle << "\n";
-			helmsman_st = hm_turning;
-		} else {
-			break;
-		}
-	case hm_turning:
-		if (time_to_pass * (fabs(turn_velocity) + 0.1) <= 3.0 * time_to_midships) {
-			//std::cout << "trn->ctr " << time_to_pass * fabs(turn_velocity) << " < " << 1.5 * time_to_midships << "\n";
-			helmsman_st = hm_counter_rudder;
-			// turn rudder to opposite
-			rudder_to = (turn_rather_right) ? rudderfullleft : rudderfullright;
-		} else {
-			break;
-		}
-	case hm_counter_rudder:
-		if (fabs(turn_velocity) < 0.5) {
-			rudder_to = ruddermidships;
-			helmsman_st = hm_center_rudder;
-		} else {
-			break;
-		}
-	case hm_center_rudder:
-		if (angledist < 0.5 &&
-		    fabs(rudder_pos) < 1.0 &&
-		    fabs(turn_velocity) < 0.01) {
-			helmsman_st = hm_idle;
-			rudder_to = ruddermidships;
-			head_to_fixed = false;
-			//std::cout << "reached course, diff=" << head_to.value() - heading.value() << "\n";
-		} else {
-			// special case here if missed course...
-			helmsman_st = hm_idle;
-			rudder_to = ruddermidships;
-		}
-		break;
 	}
 }
 
@@ -716,7 +646,6 @@ void ship::head_to_ang(const angle& a, bool left_or_right)	// true == left
 	rudder_to = (left_or_right) ? rudderfullleft : rudderfullright;
 	//cout << "rudder_to=" << rudder_to << "\n";
 	head_to_fixed = true;
-	helmsman_st = hm_idle;
 }
 
 
@@ -1079,5 +1008,4 @@ void ship::manipulate_heading(angle hdg)
 	sea_object::manipulate_heading(hdg);
 	head_to = hdg;
 	head_to_fixed = true;
-	helmsman_st = hm_idle;
 }
