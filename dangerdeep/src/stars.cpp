@@ -59,7 +59,9 @@ stars::stars(const float max_magnitude)
 
 		colorf col;
 
-		col.a = 1.2f - mag/10;	// mag=6 => a=0.6
+//		col.a = 1.2f - mag/10;	// mag=6 => a=0.6 // linear scale
+//		but stars brightness uses an exponential, not linear scale
+		col.a = (1 / (3+mag)) + 0.3f;
 		if(col.a > 1.0f) col.a = 1.0f;
 
 		vector3f pos( star_node.attrf("x"), star_node.attrf("y"), star_node.attrf("z"));
