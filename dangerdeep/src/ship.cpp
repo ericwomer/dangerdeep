@@ -724,13 +724,6 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 		vector3(-size3d.x*(1/3.0), 0, 0),
 		vector3(+size3d.x*(1/3.0), 0, 0)
 	};
-	const vector3 buoyancy_vec_nrml[5] = {
-		vector3(),
-		vector3(0, +1, 0),
-		vector3(0, -1, 0),
-		vector3(-1, 0, 0),
-		vector3(+1, 0, 0)
-	};
 	double lift_forces[5];
 	double lift_force_sum = 0;
 	const double dr_area = size3d.x * size3d.y;
@@ -745,15 +738,15 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 		double f_lift = volume * 1000.0 * GRAVITY; // 1000kg/m^3
 		lift_forces[i] = f_lift - f_gravity;
 		lift_force_sum += lift_forces[i];
-		vector3 lift_torque = vector3(0, 0, lift_forces[i]).cross(buoyancy_vec_nrml[i]);
+		vector3 lift_torque = buoyancy_vec[i].cross(vector3(0, 0, lift_forces[i]));
 		DBGOUT3(i,lift_forces[i],lift_torque);
 		dr_torque += lift_torque;
 	}
 	// fixme: damping!!! without this sub seems to capsize over time.
-	//it slows down turning, but doesn't stop it. wtf?!
-	dr_torque.y += -roll_velocity*roll_velocity * 1000000.0; // damping
-	dr_torque.x += -pitch_velocity*pitch_velocity * 1000000.0; // damping
-	DBGOUT2(dr_torque,lift_force_sum);
+	// it doesnt work right, wtf?!
+ 	dr_torque.y += (roll_velocity < 0 ? 1.0 : -1.0) * roll_velocity*roll_velocity * 1000000.0; // damping
+ 	dr_torque.x += (pitch_velocity < 0 ? 1.0 : -1.0) * pitch_velocity*pitch_velocity * 1000000.0; // damping
+	DBGOUT4(dr_torque,lift_force_sum,roll_velocity,pitch_velocity);
 
 #if 0
 	vector3 bow_buoy_pos = orientation.rotate(0,  size3d.y*(1/3.0), 0) + position;
