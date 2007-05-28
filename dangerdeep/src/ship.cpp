@@ -710,6 +710,90 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// by comparing z-pos of that point (real world!) with water height.
 	// for rolling, we need to compute a 2d array of points, e.g. 2*5 or 3*5.
 	// costly, but needed for realism.
+	// To simulate this we need to "distribute" mass over the sample points
+	// and the ship's volume that is under water, too.
+	// This can be computed if we distribute ship's area (when seen from above),
+	// then draught and area give volume under water.
+	// We use an evenly distributed mass/volume as start.
+	// 5 points: center, bow, stern, port, starboard (outside points at 2/3 length/width).
+	const double buoyancy_factors[5] = { 0.25, 0.25, 0.25, 0.125, 0.125 };
+	const vector3 buoyancy_vec[5] = {
+		vector3(),
+		vector3(0, +size3d.y*(1/3.0), 0),
+		vector3(0, -size3d.y*(1/3.0), 0),
+		vector3(-size3d.x*(1/3.0), 0, 0),
+		vector3(+size3d.x*(1/3.0), 0, 0)
+	};
+	const vector3 buoyancy_vec_nrml[5] = {
+		vector3(),
+		vector3(0, +1, 0),
+		vector3(0, -1, 0),
+		vector3(-1, 0, 0),
+		vector3(+1, 0, 0)
+	};
+	double lift_forces[5];
+	double lift_force_sum = 0;
+	const double dr_area = size3d.x * size3d.y;
+	vector3 dr_torque;
+	for (int i = 0; i < 5; ++i) {
+		vector3 realworldpos = orientation.rotate(buoyancy_vec[i]) + position;
+		double waterheight = gm.compute_water_height(realworldpos.xy());
+		double draught = waterheight - realworldpos.z;
+		double volume = dr_area * buoyancy_factors[i] * draught;
+		double dr_mass = mass * buoyancy_factors[i];
+		double f_gravity = dr_mass * GRAVITY;
+		double f_lift = volume * 1000.0 * GRAVITY; // 1000kg/m^3
+		lift_forces[i] = f_lift - f_gravity;
+		lift_force_sum += lift_forces[i];
+		vector3 lift_torque = vector3(0, 0, lift_forces[i]).cross(buoyancy_vec_nrml[i]);
+		DBGOUT3(i,lift_forces[i],lift_torque);
+		dr_torque += lift_torque;
+	}
+	// fixme: damping!!! without this sub seems to capsize over time.
+	//it slows down turning, but doesn't stop it. wtf?!
+	dr_torque.y += -roll_velocity*roll_velocity * 1000000.0; // damping
+	dr_torque.x += -pitch_velocity*pitch_velocity * 1000000.0; // damping
+	DBGOUT2(dr_torque,lift_force_sum);
+
+#if 0
+	vector3 bow_buoy_pos = orientation.rotate(0,  size3d.y*(1/3.0), 0) + position;
+	vector3 stn_buoy_pos = orientation.rotate(0, -size3d.y*(1/3.0), 0) + position;
+	vector3 lef_buoy_pos = orientation.rotate(-size3d.x*(1/3.0), 0, 0) + position;
+	vector3 rig_buoy_pos = orientation.rotate( size3d.x*(1/3.0), 0, 0) + position;
+	double bow_wh = gm.compute_water_height(bow_buoy_pos.xy());
+	double stn_wh = gm.compute_water_height(stn_buoy_pos.xy());
+	double lef_wh = gm.compute_water_height(lef_buoy_pos.xy());
+	double rig_wh = gm.compute_water_height(rig_buoy_pos.xy());
+//	DBGOUT5(lef_buoy_pos, rig_buoy_pos, lef_wh, rig_wh, roll_velocity);
+	double mid_wh = gm.compute_water_height(position.xy());
+	double bow_deltaz = bow_wh - bow_buoy_pos.z;
+	double stn_deltaz = stn_wh - stn_buoy_pos.z;
+	double lef_deltaz = lef_wh - lef_buoy_pos.z;
+	double rig_deltaz = rig_wh - rig_buoy_pos.z;
+	double mid_deltaz = mid_wh - position.z;
+	if (pitch_velocity > 0) {
+		// stern goes down
+		stn_deltaz += pitch_velocity*pitch_velocity;
+	} else {
+		// bow goes down
+		bow_deltaz += pitch_velocity*pitch_velocity;
+	}
+	if (roll_velocity > 0) {
+		// right goes down
+		rig_deltaz += roll_velocity*roll_velocity;
+	} else {
+		// left goes down
+		lef_deltaz += roll_velocity*roll_velocity;
+	}
+	//double lift_gravity_force = bow_deltaz + mid_deltaz + stn_deltaz;
+	//fixme: use 5 sample points, bow,stern,left,right,center
+	//with mass distribution 1/4,1/4,1/8,1/8,1/4.
+	double tide_torque = (bow_deltaz - stn_deltaz) * size3d.y*0.5  * 10000.0;
+	double roll_torque = (lef_deltaz - rig_deltaz) * size3d.x*0.5  * 10000.0;
+//	DBGOUT4(tide_torque,roll_torque,pitch_velocity,roll_velocity);
+#endif
+
+	// fixme: torpedoes MUST NOT be affected by tide.
 
 	// fixme: for this we
 	// need to move the water data from user_interface to class game.
@@ -719,13 +803,6 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// for parallelism here... yes, in subsim.cpp, run_game() the ui
 	// is created after the game is constructed.
 	// we can parallelize water construction by letting 2 levels compute in parallel.
-
-//fixme: deceleration is to low at low speeds, causing the sub the turn a LONG time after
-//rudder is midships/screws stopped. Is fixed by setting drag to linear at speeds < 1.0
-//fixme: drag can go nuts when time is scaled causing NaN in double...
-//this is because damping becomes to crude at high time scale
-//fixme: in reality drag is v and v^2 combined... on low speeds v is significant term, on higher speeds
-//it is v^2. It is: v > v^2 for v < 1.
 
 	// acceleration of ship depends on rudder.
 	// forward acceleration is max_accel_forward * cos(rudder_ang)
@@ -743,6 +820,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	double acceleration = get_throttle_accel() * cos(rudder_pos * M_PI / 180.0);
 	if (speed > 0) drag_factor = -drag_factor;
 	F = vector3(0, acceleration + drag_factor, 0) * mass;
+	F.z = lift_force_sum; // buoyancy/gravity
 
 
 
@@ -801,7 +879,13 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	rudder_torque += drag_torque;
 
 	// positive torque turns counter clockwise!
-	T = vector3(0, 0, 1) * rudder_torque;
+#if 0
+	vector2 hd = heading.direction();
+	T = (hd * roll_torque - hd.orthogonal() * tide_torque).xyz(rudder_torque);
+#else
+	T = vector3(0, 0, rudder_torque) + dr_torque;
+#endif
+//	DBGOUT2(hd,T);
 }
 
 

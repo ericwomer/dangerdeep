@@ -225,6 +225,8 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 	  mass(1.0),//fixme
 	  mass_inv(1.0/mass),
 	  turn_velocity(0),
+	  pitch_velocity(0),
+	  roll_velocity(0),
 	  alive_stat(alive),
 	  sensors(last_sensor_system),
 	  target(0),
@@ -261,6 +263,8 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 	  mass(1.0),//fixme
 	  mass_inv(1.0/mass),
 	  turn_velocity(0),
+	  pitch_velocity(0),
+	  roll_velocity(0),
 	  alive_stat(alive),
 	  sensors(last_sensor_system),
 	  target(0),
@@ -519,7 +523,7 @@ void sea_object::simulate(double delta_time)
 	compute_force_and_torque(force, torque);
 
 	// compute new position by integrating impulse
-	// M^-1 * P = v, fixme should impulse be local or global?
+	// M^-1 * P = v, impulse is global!
 	position += orientation.rotate(impulse * mass_inv * delta_time);
 
 	// compute new orientation by integrating angular momentum
@@ -582,8 +586,10 @@ void sea_object::simulate(double delta_time)
 	w = orientation.rotate(inertia_tensor_inv * orientation.conj().rotate(angular_momentum));
 	// turn velocity around z-axis is projection of w to z-axis, that is
 	// simply w.z. Transform to angles per second.
-	turn_velocity = w.z * 180.0/M_PI;
-
+	turn_velocity = w.z * (180.0/M_PI);	// could also be named yaw_velocity.
+	pitch_velocity = w.x * (180.0/M_PI);
+	roll_velocity = w.y * (180.0/M_PI);
+	//std::cout << "velocities(deg) turn=" << turn_velocity << " pitch=" << pitch_velocity << " roll=" << roll_velocity << "\n";
 
 	// OLD COMMENT, BUT STILL HELPFUL:
 	// this leads to another model for acceleration/max_speed/turning etc.

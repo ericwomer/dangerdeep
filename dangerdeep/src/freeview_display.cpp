@@ -79,11 +79,7 @@ void freeview_display::set_modelview_matrix(game& gm, const vector3& viewpos) co
 
 	// if we're aboard the player's vessel move the world instead of the ship
 	if (aboard) {
-		const sea_object* pl = gm.get_player();
-		double rollfac = (dynamic_cast<const ship*>(pl))->get_roll_factor();
-		// fixme: rather use orientation quaternion than heading!!!
-		ui.rotate_by_pos_and_wave(pl->get_pos(), pl->get_heading(),
-					  pl->get_length(), pl->get_width(), rollfac, true);
+		gm.get_player()->get_orientation().conj().rotmat4().multiply_gl();
 	}
 
 	// set up modelview matrix as if player is at position (0, 0, 0), so do NOT set a translational part.
@@ -236,13 +232,9 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 		const ship* shp = dynamic_cast<const ship*>(*it);
 		if (shp && !istorp) {
 			// torpedos are not affected by tide.
-			if (shp->get_pos().z > -15) {
-				//fixme: simply rotate object by its orientation!!
-				// submerged subs and sinking ships are not affected by tide
-				ui.rotate_by_pos_and_wave(shp->get_pos(), shp->get_heading(),
-							  shp->get_length(), shp->get_width(),
-							  shp->get_roll_factor());
-			}
+			//std::cout << "rotate ship extra!\n";
+			//shp->get_orientation().rotmat4().print();
+			shp->get_orientation().rotmat4().multiply_gl();
 		}
 		if (mirrorclip && !istorp) {
 			glActiveTexture(GL_TEXTURE0);
@@ -656,9 +648,11 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		vector3 conntowerpos = player->get_pos() - viewpos;
 		glPushMatrix();
 		// we would have to translate the conning tower, but the current model is centered arount the player's view
-		// already, fixme.
+		// already, fixme. 
 		//glTranslated(conntowerpos.x, conntowerpos.y, conntowerpos.z);
 		glRotatef(-player->get_heading().value(),0,0,1);
+		// fixme: rotate by player's orientation, but this looks strange, see above why.
+		//player->get_orientation().rotmat4().multiply_gl();
 		conning_tower_typeVII->display();
 		glPopMatrix();
 	}

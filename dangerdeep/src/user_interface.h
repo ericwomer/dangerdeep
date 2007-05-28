@@ -168,12 +168,6 @@ public:
 	// 2d drawing must be on for this
 	void draw_infopanel(bool onlytexts = false) const;
 
-	// this rotates the modelview matrix to match the water surface normal
-	// rollfac (0...1) determines how much the ship is influenced by wave movement
-	virtual void rotate_by_pos_and_wave(const vector3& pos, angle heading,
-					    float length, float width,
-					    double rollfac = 0.05, bool inverse = false) const;
-
 	// render red triangle for target in view. give viewport coordinates.
 	virtual void show_target(double x, double y, double w, double h, const vector3& viewpos);
 

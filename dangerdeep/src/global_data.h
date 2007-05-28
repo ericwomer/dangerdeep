@@ -30,6 +30,25 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define WIN32_LEAN_AND_MEAN
 #endif /* WIN32_LEAN_AND_MEAN */
 #include <windows.h>
+#define DBGOUT1(a) do { } while(0)
+#define DBGOUT2(a,b) do { } while(0)
+#define DBGOUT3(a,b,c) do { } while(0)
+#define DBGOUT4(a,b,c,d) do { } while(0)
+#define DBGOUT5(a,b,c,d,e) do { } while(0)
+#define DBGOUT6(a,b,c,d,e,f) do { } while(0)
+#define DBGOUT7(a,b,c,d,e,f,g) do { } while(0)
+#define DBGOUT8(a,b,c,d,e,f,g,h) do { } while(0)
+#else
+/* we assume GNU C here and define some debug macros */
+#define DBGOUT(x) << " " #x "=" << x
+#define DBGOUT1(a) std::cout DBGOUT(a) << "\n";
+#define DBGOUT2(a,b) std::cout DBGOUT(a) DBGOUT(b) << "\n";
+#define DBGOUT3(a,b,c) std::cout DBGOUT(a) DBGOUT(b) DBGOUT(c) << "\n";
+#define DBGOUT4(a,b,c,d) std::cout DBGOUT(a) DBGOUT(b) DBGOUT(c) DBGOUT(d)<< "\n";
+#define DBGOUT5(a,b,c,d,e) std::cout DBGOUT(a) DBGOUT(b) DBGOUT(c) DBGOUT(d) DBGOUT(e) << "\n";
+#define DBGOUT6(a,b,c,d,e,f) std::cout DBGOUT(a) DBGOUT(b) DBGOUT(c) DBGOUT(d) DBGOUT(e) DBGOUT(f) << "\n";
+#define DBGOUT7(a,b,c,d,e,f,g) std::cout DBGOUT(a) DBGOUT(b) DBGOUT(c) DBGOUT(d) DBGOUT(e) DBGOUT(f) DBGOUT(g) << "\n";
+#define DBGOUT8(a,b,c,d,e,f,g,h) std::cout DBGOUT(a) DBGOUT(b) DBGOUT(c) DBGOUT(d) DBGOUT(e) DBGOUT(f) DBGOUT(g) DBGOUT(h) << "\n";
 #endif
 
 #include <SDL.h>

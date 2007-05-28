@@ -195,31 +195,30 @@ protected:
 	std::string compute_skin_name() const;
 
 	//
-	// ---------------- rigid body variables, maybe group in extra clas ----------------
+	// ---------------- rigid body variables, maybe group in extra class ----------------
+	// all values are "global", that means in world space/orientation, except the tensors
 	//
-	vector3 position;	// global position, [SAVE]
-	vector3 impulse;	// local (?) impulse ("P") P = M * v
-	quaternion orientation;	// global orientation, [SAVE]
-	vector3 angular_momentum; // angular momentum ("L") L = I * w = R * I_k * R^T * w
-	double mass;	// total weight, later read from spec file
-	double mass_inv;
-	matrix3 inertia_tensor;	// object local (I_k). [could be a reference into a model object...]
+	vector3 position;		// position, [SAVE]
+	vector3 impulse;		// impulse ("P") P = M * v [SAVE,fixme]
+	quaternion orientation;		// orientation, [SAVE]
+	vector3 angular_momentum;	// angular momentum ("L") L = I * w = R * I_k * R^T * w [SAVE,fixme]
+	double mass;			// total weight, later read from spec file (kg)
+	double mass_inv;		// inverse of mass
+	matrix3 inertia_tensor;		// object local (I_k). [could be a reference into a model object...]
 	matrix3 inertia_tensor_inv;	// object local (I_k), inverse of inertia tensor.
 
 	// ------------- computed from rigid body variables ----------------
-	vector3 velocity;	// local velocity, [SAVE]    <-- later: impulse P
-	double turn_velocity;	// angular velocity around global z-axis (mathematical CCW), [SAVE]
-	                        // <-- later: angular momentum L
-	angle heading;		// global z-orientation is stored additionally, [SAVE]
-	// maybe (re)compute heading by orientation: let (0,1,0) rotate by orientation,
-	// project to xy-plane, normalize and measure angle.
-	// maybe compute and store vector2 heading_dir also, to save computations.
+	vector3 velocity;	// local velocity, [SAVE,later not - fixme]
+	double turn_velocity;	// angular velocity around global z-axis (mathematical CCW), [SAVE, later not - fixme]
+	double pitch_velocity;	// angular velocity around global x-axis (mathematical CCW), [SAVE, later not - fixme]
+	double roll_velocity;	// angular velocity around global y-axis (mathematical CCW), [SAVE, later not - fixme]
+	angle heading;		// global z-orientation is stored additionally, [SAVE, later not - fixme]
 	vector3 global_velocity;// recomputed every frame by simulate() method
 
 	/// called in every simulation step. overload to specify force and torque,
 	/// with drag already included.
-	///@param F the force, default (0, 0, 0)
-	///@param T the torque, default (0, 0, 0).
+	///@param F the force in world space, default (0, 0, 0)
+	///@param T the torque in world space, default (0, 0, 0).
 	virtual void compute_force_and_torque(vector3& F, vector3& T) const;
 
 	vector3f size3d;		// computed from model, indirect read from spec file, width, length, height
@@ -331,6 +330,8 @@ public:
 	virtual double get_speed() const { return get_velocity().y; }
 	virtual quaternion get_orientation() const { return orientation; };
 	virtual double get_turn_velocity() const { return turn_velocity; };
+	virtual double get_pitch_velocity() const { return pitch_velocity; };
+	virtual double get_roll_velocity() const { return roll_velocity; };
 	virtual double get_depth() const { return -position.z; };
 	virtual float get_width() const { return size3d.x; };
 	virtual float get_length() const { return size3d.y; };

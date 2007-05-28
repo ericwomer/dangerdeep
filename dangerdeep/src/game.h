@@ -323,6 +323,9 @@ public:
 	vector3 compute_sun_pos(const vector3& viewpos) const;
 	vector3 compute_moon_pos(const vector3& viewpos) const;
 
+	/// compute height of water at given world space position.
+	double compute_water_height(const vector2& pos) const;
+
 	// Translate pointers to numbers and vice versa. Used for load/save
 	sea_object* load_ptr(unsigned nr) const;
 	ship* load_ship_ptr(unsigned nr) const;

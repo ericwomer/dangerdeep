@@ -74,10 +74,7 @@ void sub_uzo_display::set_modelview_matrix(game& gm, const vector3& viewpos) con
 
 	// if we're aboard the player's vessel move the world instead of the ship
 	if (aboard) {
-		const sea_object* pl = gm.get_player();
-		double rollfac = (dynamic_cast<const ship*>(pl))->get_roll_factor();
-		ui.rotate_by_pos_and_wave(pl->get_pos(), pl->get_heading(),
-					  pl->get_length(), pl->get_width(), rollfac, true);
+		gm.get_player()->get_orientation().conj().rotmat4().multiply_gl();
 	}
 
 	// set up modelview matrix as if player is at position (0, 0, 0), so do NOT set a translational part.
