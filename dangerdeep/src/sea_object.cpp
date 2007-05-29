@@ -697,7 +697,7 @@ void sea_object::manipulate_position(const vector3& newpos)
 void sea_object::manipulate_speed(double localforwardspeed)
 {
 	local_velocity.y = localforwardspeed;
-	impulse = orientation.rotate(local_velocity) * mass;
+	impulse = local_velocity * mass;
 	compute_helper_values();
 }
 
@@ -706,7 +706,8 @@ void sea_object::manipulate_speed(double localforwardspeed)
 void sea_object::manipulate_heading(angle hdg)
 {
 	orientation = quaternion::rot(-hdg.value(), 0, 0, 1);
-	heading = hdg;
+	impulse = orientation.rotate(local_velocity) * mass;
+	compute_helper_values();
 }
 
 
