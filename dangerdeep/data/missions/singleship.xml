@@ -1,10 +1,10 @@
 <dftd-mission>
   <description>
     <short lang="en">TRAINING: A single ship</short>
-    <short lang="de">ÜBUNG: Nur ein Schiff</short>
+    <short lang="de">ÃœBUNG: Nur ein Schiff</short>
     <short lang="it">ADDESTRAMENTO: Una singola nave</short>
     <long lang="en">You have detected a small unprotected merchant convoy in the Aegean sea. Be quick because some escorts may be nearby.</long>
-    <long lang="de">Sie haben einen kleinen, unbewachten Konvoi im ägäischen Meer entdeckt. Beeilen Sie sich, denn Eskorten könnten in der Nähe sein.</long>
+    <long lang="de">Sie haben einen kleinen, unbewachten Konvoi im Ã„gÃ¤ischen Meer entdeckt. Beeilen Sie sich, denn Eskorten kÃ¶nnten in der NÃ¤he sein.</long>
     <long lang="it">Hai rilevato una nave mercatile senza scorta nel Mar Egeo. Agisci rapidamente, navi di scorta potrebbero essere vicine</long>
   </description>
     <ships nr="1">
