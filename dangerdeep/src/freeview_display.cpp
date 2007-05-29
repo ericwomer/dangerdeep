@@ -239,11 +239,10 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 			glActiveTexture(GL_TEXTURE0);
 			glMatrixMode(GL_MODELVIEW);
 			(*it)->display_mirror_clip();
-			glPopMatrix();
 		} else {
 			(*it)->display();
-			glPopMatrix();
 		}
+		glPopMatrix();
 	}
 
 #if 0

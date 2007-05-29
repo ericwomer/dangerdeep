@@ -1459,8 +1459,6 @@ void model::mesh::display_mirror_clip() const
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	//glPopMatrix(); // huh?
 }
 
 
