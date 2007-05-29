@@ -492,14 +492,16 @@ void water::cleanup_textures() const
 	glActiveTexture(GL_TEXTURE0);
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
 
 	glActiveTexture(GL_TEXTURE1);
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glActiveTexture(GL_TEXTURE0);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	glEnable(GL_LIGHTING);
+	glMatrixMode(GL_MODELVIEW);
 
 	glPopAttrib();
 }

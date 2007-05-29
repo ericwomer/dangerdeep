@@ -76,7 +76,6 @@ protected:
 	mutable vector3 sunpos, moonpos;
 	mutable vector3 sundir, moondir;
 	mutable float sun_azimuth, sun_elevation;
-	mutable float moon_azimuth, moon_elevation;
 	float turbidity;
 
 	void build_dome(const unsigned int sectors_h, const unsigned int sectors_v);

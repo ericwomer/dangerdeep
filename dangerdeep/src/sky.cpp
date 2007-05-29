@@ -62,7 +62,6 @@ sky::sky(const double tm, const unsigned int sectors_h, const unsigned int secto
 	  suntex(0), clouds_dl(0),
 	  sky_indices(true),
 	  sun_azimuth(10.0f), sun_elevation(10.0f),
-	  moon_azimuth(10.0f), moon_elevation(10.0f),
 	  turbidity(2.0f)//was 2.0, fixme
 {
 	// ******************************** create sky geometry
@@ -566,8 +565,6 @@ void sky::rebuild_colors(const game& gm, const vector3& viewpos) const
 
 	moonpos = gm.compute_moon_pos(viewpos);
 	moondir = gm.compute_moon_pos(viewpos).normal();
-	moon_azimuth = atan2(moondir.y, moondir.x);
-	moon_elevation = asin(moondir.z);
 
 	//	sun_azimuth and sun_elevation are used only for sky color rendering
 	//	so they are refreshed every 0.5 deg of sun movement.
@@ -578,7 +575,6 @@ void sky::rebuild_colors(const game& gm, const vector3& viewpos) const
 
 		// rebuild colors
 		daysky skycol(-sun_azimuth, sun_elevation, turbidity);
-//        daysky skycol(-moon_azimuth, moon_elevation, turbidity);
 
 		std::vector<vector2f>::const_iterator skyangle = skyangles.begin();
 		std::vector<color>::iterator skycolor = skycolors.begin();

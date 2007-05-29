@@ -30,6 +30,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texture.h"
 #include "datadirs.h"
 
+#include "global_data.h"
+
 
 #define RAD_TO_DEG(x) 360.0f *x / (2.0f*3.14159)
 
@@ -63,6 +65,7 @@ moon::moon()
 		}
 	}
 	map_normal = texture::ptr(new texture(mnp, mns, mns, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
+
 #if 0
 	// Test code:
  	ofstream oss("moon.ppm");
@@ -97,12 +100,11 @@ void moon::display(const vector3 &moon_pos, const vector3 &sun_pos, double max_v
 	glEnable(GL_TEXTURE_2D);
 	map_diffuse.get()->set_gl_texture();
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
-	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ARB, GL_MODULATE) ;
+	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE) ;	
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-
 	//	transform light into object space
 	matrix4 roth = matrix4::rot_z(-RAD_TO_DEG(moon_azimuth));
 	matrix4 rotv = matrix4::rot_y(-RAD_TO_DEG(moon_elevation));
@@ -117,7 +119,7 @@ void moon::display(const vector3 &moon_pos, const vector3 &sun_pos, double max_v
 	glPushMatrix();
 	model_mat.multiply_gl();
 	glTranslated(0.95*max_view_dist, 0, 0);
-
+	
 	glBegin(GL_QUADS);
 	glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 1, 1);
 	glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 1, 1);
