@@ -23,21 +23,34 @@ void main()
 	// compute direction to light source
 	vec3 L = normalize(lightdir);
 
-	float fresnel = clamp(dot(E, N), 0.0, 1.0) + 1.0;
+	// storing dot products, for fresnel, rescaling, etc..
+	float doten = dot(E, N);
+	float dotln = dot(L, N);
+	// and we need the half vector for blinn speculars
+	vec3 H = normalize(L+E);
+
+	// now for the specular term that we're going to add to the 
+	// reflection color later, blinn model, phong produces 
+	// incorrect results at grazing angles.
+	vec3 specular_color = vec3(gl_LightSource[0].diffuse)
+		* pow(max(0.0, dot(N, H)), 140.0) * 6.0; // 140.0 = water_shininess
+
+	// fresnel term approximation
+	float fresnel = clamp(doten, 0.0, 1.0) + 1.0;
 	// approximation for fresnel term is 1/((x+1)^8)
 	// using pow() seems a little bit faster (Geforce5700)
 	fresnel = pow(fresnel, -8.0);
 
-	// compute refraction color
-	float doten = dot(E, N);
-	float dotln = dot(L, N);
+	// compute reflection and refraction colors
 	float dl = max(dotln*dotln * 0.6 + doten*doten * 0.8, 0.0);
 	vec3 reflectioncol = vec3(gl_Color) * dl;
 	// light blue mix with sun... fixme
 	vec3 refractioncol = vec3(gl_LightSource[0].diffuse) * vec3(0.4, 0.59, 0.79) * dl;
 
+	// we're going to multiply by viewer to surface angle
 	// mix reflection and refraction (upwelling) color, and add specular color
-	vec3 water_color = mix(refractioncol, reflectioncol, fresnel);
+	vec3 water_color = mix(refractioncol, reflectioncol, fresnel)
+		+ (specular_color * max(doten, 0.2));
 
 	// add linear fog
 	float fog_factor = clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0);
