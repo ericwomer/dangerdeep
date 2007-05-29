@@ -77,6 +77,7 @@ void depth_charge::simulate(double delta_time)
 
 void depth_charge::compute_force_and_torque(vector3& F, vector3& T) const
 {
+	// force is in world space!
 	if (position.z > 0) {	// DC's can be thrown, so they can be above water.
 		F.z = -GRAVITY * mass;
 	} else {

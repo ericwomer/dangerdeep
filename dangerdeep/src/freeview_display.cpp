@@ -228,7 +228,6 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 			//pos.z += EARTH_RADIUS * (sin(M_PI/2 - pos.xy().length()/EARTH_RADIUS) - 1.0);
 			glTranslated(pos.x, pos.y, pos.z);
 		}
-		glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
 		const ship* shp = dynamic_cast<const ship*>(*it);
 		if (shp && !istorp) {
 			// torpedos are not affected by tide.

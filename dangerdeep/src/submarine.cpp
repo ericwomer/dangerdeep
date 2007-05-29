@@ -373,7 +373,7 @@ void submarine::simulate(double delta_time)
 
 	ship::simulate(delta_time);
 
-	vector3 sub_velocity = get_velocity();
+	vector3 sub_velocity = get_local_velocity();
 
 	// simulate periscope movement
 	const double scope_move_speed = 2.0/6.0; // m/sec / total raise height

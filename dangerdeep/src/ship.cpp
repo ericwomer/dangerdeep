@@ -528,7 +528,7 @@ void ship::simulate(double delta_time)
 			double produce_time = 2.0/v;
 			double t = myfmod(gm.get_time(), produce_time);
 			if (t + delta_time >= produce_time) {
-				vector3 forward = global_velocity.normal();
+				vector3 forward = velocity.normal();
 				vector3 sideward = forward.cross(vector3(0, 0, 1)).normal() * 2.0;//speed 2.0 m/s
 				vector3 spawnpos = get_pos() + forward * (get_length() * 0.5);
 				gm.spawn_particle(new spray_particle(spawnpos, sideward));
@@ -734,57 +734,21 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 		double draught = waterheight - realworldpos.z;
 		double volume = dr_area * buoyancy_factors[i] * draught;
 		double dr_mass = mass * buoyancy_factors[i];
-		double f_gravity = dr_mass * GRAVITY;
+		double f_gravity = dr_mass * GRAVITY * 0.25/*hack*/;
 		double f_lift = volume * 1000.0 * GRAVITY; // 1000kg/m^3
 		lift_forces[i] = f_lift - f_gravity;
 		lift_force_sum += lift_forces[i];
 		vector3 lift_torque = buoyancy_vec[i].cross(vector3(0, 0, lift_forces[i]));
-		DBGOUT3(i,lift_forces[i],lift_torque);
+		//DBGOUT3(i,lift_forces[i],lift_torque);
 		dr_torque += lift_torque;
 	}
-	// fixme: damping!!! without this sub seems to capsize over time.
-	// it doesnt work right, wtf?!
  	dr_torque.y += (roll_velocity < 0 ? 1.0 : -1.0) * roll_velocity*roll_velocity * 1000000.0; // damping
  	dr_torque.x += (pitch_velocity < 0 ? 1.0 : -1.0) * pitch_velocity*pitch_velocity * 1000000.0; // damping
-	DBGOUT4(dr_torque,lift_force_sum,roll_velocity,pitch_velocity);
-
-#if 0
-	vector3 bow_buoy_pos = orientation.rotate(0,  size3d.y*(1/3.0), 0) + position;
-	vector3 stn_buoy_pos = orientation.rotate(0, -size3d.y*(1/3.0), 0) + position;
-	vector3 lef_buoy_pos = orientation.rotate(-size3d.x*(1/3.0), 0, 0) + position;
-	vector3 rig_buoy_pos = orientation.rotate( size3d.x*(1/3.0), 0, 0) + position;
-	double bow_wh = gm.compute_water_height(bow_buoy_pos.xy());
-	double stn_wh = gm.compute_water_height(stn_buoy_pos.xy());
-	double lef_wh = gm.compute_water_height(lef_buoy_pos.xy());
-	double rig_wh = gm.compute_water_height(rig_buoy_pos.xy());
-//	DBGOUT5(lef_buoy_pos, rig_buoy_pos, lef_wh, rig_wh, roll_velocity);
-	double mid_wh = gm.compute_water_height(position.xy());
-	double bow_deltaz = bow_wh - bow_buoy_pos.z;
-	double stn_deltaz = stn_wh - stn_buoy_pos.z;
-	double lef_deltaz = lef_wh - lef_buoy_pos.z;
-	double rig_deltaz = rig_wh - rig_buoy_pos.z;
-	double mid_deltaz = mid_wh - position.z;
-	if (pitch_velocity > 0) {
-		// stern goes down
-		stn_deltaz += pitch_velocity*pitch_velocity;
-	} else {
-		// bow goes down
-		bow_deltaz += pitch_velocity*pitch_velocity;
-	}
-	if (roll_velocity > 0) {
-		// right goes down
-		rig_deltaz += roll_velocity*roll_velocity;
-	} else {
-		// left goes down
-		lef_deltaz += roll_velocity*roll_velocity;
-	}
-	//double lift_gravity_force = bow_deltaz + mid_deltaz + stn_deltaz;
-	//fixme: use 5 sample points, bow,stern,left,right,center
-	//with mass distribution 1/4,1/4,1/8,1/8,1/4.
-	double tide_torque = (bow_deltaz - stn_deltaz) * size3d.y*0.5  * 10000.0;
-	double roll_torque = (lef_deltaz - rig_deltaz) * size3d.x*0.5  * 10000.0;
-//	DBGOUT4(tide_torque,roll_torque,pitch_velocity,roll_velocity);
-#endif
+	// fixme: velocity was considered local before, not its global!
+	//fixme: add drag when moving downwards (or both directions, maybe depending
+	//on direction) 
+	lift_force_sum += (velocity.z < 0 ? 1.0 : -1.0) * velocity.z*velocity.z * mass * 1.0;
+	//DBGOUT4(dr_torque,lift_force_sum,roll_velocity,pitch_velocity);
 
 	// fixme: torpedoes MUST NOT be affected by tide.
 
@@ -812,8 +776,9 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	double drag_factor = (speed2) * max_accel_forward / (max_speed_forward*max_speed_forward);
 	double acceleration = get_throttle_accel() * cos(rudder_pos * M_PI / 180.0);
 	if (speed > 0) drag_factor = -drag_factor;
-	F = vector3(0, acceleration + drag_factor, 0) * mass;
-	F.z = lift_force_sum; // buoyancy/gravity
+	// force is in world space
+	F = orientation.rotate(vector3(0, (acceleration + drag_factor) * mass, 0));
+	F.z += lift_force_sum; // buoyancy/gravity
 
 
 
@@ -872,12 +837,9 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	rudder_torque += drag_torque;
 
 	// positive torque turns counter clockwise!
-#if 0
-	vector2 hd = heading.direction();
-	T = (hd * roll_torque - hd.orthogonal() * tide_torque).xyz(rudder_torque);
-#else
-	T = vector3(0, 0, rudder_torque) + dr_torque;
-#endif
+	// torque is in world space!
+	// if we add torque and drive a sharp turn, sub rolls over -> NaN errors.
+	T = vector3(0, 0, rudder_torque); // + orientation.rotate(dr_torque);
 //	DBGOUT2(hd,T);
 }
 

@@ -62,6 +62,7 @@ void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, 
 
 void sea_object::compute_force_and_torque(vector3& F, vector3& T) const
 {
+	// force is in world space!
 	/* general formulas:
 	   Total force acting on a body is just the sum of all forces acting on it.
 	   Total torque is the sum over all forces with index i, with summands
@@ -76,6 +77,33 @@ void sea_object::compute_force_and_torque(vector3& F, vector3& T) const
 	   In our current model the length would be proportional to the turn acceleration.
 	*/
 	F.z = -GRAVITY * mass;
+}
+
+
+
+void sea_object::compute_helper_values()
+{
+	local_velocity = impulse * mass_inv;
+	velocity = orientation.rotate(local_velocity);
+
+	heading = angle(orientation.rotate(0.0, 1.0, 0.0).xy());
+	// w is _old_ spin vector, but we need the new one...
+	// does it make a large difference?
+	// |w| is revolutions per time, thus 2*Pi/second for |w|=1.
+	// we have to multiply it by 360/(2*Pi) to get angles per second.
+	// hmmm, w2.length is speed, but sign of it depends on direction of w!!!!
+	// if the ship turns right (clockwise), turn_velocity should be positive?
+	// in that case, w is pointing downwards.
+	//DBGOUT5(velocity,local_velocity,heading.value(),turn_velocity,orientation);
+
+	// unit of |w| is revolutions per time, that is 2*Pi/second.
+	vector3 w = orientation.rotate(inertia_tensor_inv * orientation.conj().rotate(angular_momentum));
+	// turn velocity around z-axis is projection of w to z-axis, that is
+	// simply w.z. Transform to angles per second.
+	turn_velocity = w.z * (180.0/M_PI);	// could also be named yaw_velocity.
+	pitch_velocity = w.x * (180.0/M_PI);
+	roll_velocity = w.y * (180.0/M_PI);
+	//std::cout << "velocities(deg) turn=" << turn_velocity << " pitch=" << pitch_velocity << " roll=" << roll_velocity << "\n";
 }
 
 
@@ -401,10 +429,11 @@ void sea_object::load(const xml_elem& parent)
 			    + string(", but read ") + specfilename + string(" from spec file"));
 	xml_elem st = parent.child("state");
 	position = st.child("position").attrv3();
-	velocity = st.child("velocity").attrv3();
 	orientation = st.child("orientation").attrq();
-	turn_velocity = st.child("turn_velocity").attrf();
-	heading = st.child("heading").attra();
+	impulse = st.child("impulse").attrv3();
+	angular_momentum = st.child("angular_momentum").attrv3();
+	compute_helper_values();
+
 	// read skin info
 	if (parent.has_child("skin")) {
 		// read attributes
@@ -447,10 +476,9 @@ void sea_object::save(xml_elem& parent) const
 	// specfilename is requested and stored by game or callers of this function
 	xml_elem st = parent.add_child("state");
 	st.add_child("position").set_attr(position);
-	st.add_child("velocity").set_attr(velocity);
 	st.add_child("orientation").set_attr(orientation);
-	st.add_child("turn_velocity").set_attr(turn_velocity);
-	st.add_child("heading").set_attr(heading);
+	st.add_child("impulse").set_attr(impulse);
+	st.add_child("angular_momentum").set_attr(angular_momentum);
 	parent.add_child("alive_stat").set_attr(unsigned(alive_stat));
 	// write skin info
 	xml_elem sk = parent.add_child("skin");
@@ -523,11 +551,13 @@ void sea_object::simulate(double delta_time)
 	compute_force_and_torque(force, torque);
 
 	// compute new position by integrating impulse
-	// M^-1 * P = v, impulse is global!
+	// M^-1 * P = v, impulse is in object space!
 	position += orientation.rotate(impulse * mass_inv * delta_time);
 
-	// compute new orientation by integrating angular momentum
+	// compute new impulse by integrating force (force: world space, impulse: object space)
+	impulse += orientation.conj().rotate(delta_time * force);
 
+	// compute new orientation by integrating angular momentum
 	// L = I * w = R * I_k * R^T * w =>
 	// w = I^-1 * L = R * I_k^-1 * R^-1 * L
 	// so we can compute w from I_k^-1 and L.
@@ -560,36 +590,11 @@ void sea_object::simulate(double delta_time)
 		orientation = q * orientation;
 	}
 
-	// compute new impulse by integrating force
-	vector3 P = impulse + delta_time * force;
-	
-	// compute new angular momentum by integrating torque
-	vector3 L = angular_momentum + delta_time * torque;
-
-	// update impulse and angular momentum
-	impulse = P;
-	angular_momentum = L;
+	// compute new angular momentum by integrating torque (both in world space)
+	angular_momentum += delta_time * torque;
 
 	// update helper variables
-	velocity = P * mass_inv;
-	global_velocity = orientation.rotate(velocity);
-	heading = angle(orientation.rotate(0.0, 1.0, 0.0).xy());
-	// w is _old_ spin vector, but we need the new one...
-	// does it make a large difference?
-	// |w| is revolutions per time, thus 2*Pi/second for |w|=1.
-	// we have to multiply it by 360/(2*Pi) to get angles per second.
-	// hmmm, w2.length is speed, but sign of it depends on direction of w!!!!
-	// if the ship turns right (clockwise), turn_velocity should be positive?
-	// in that case, w is pointing downwards.
-
-	// unit of |w| is revolutions per time, that is 2*Pi/second.
-	w = orientation.rotate(inertia_tensor_inv * orientation.conj().rotate(angular_momentum));
-	// turn velocity around z-axis is projection of w to z-axis, that is
-	// simply w.z. Transform to angles per second.
-	turn_velocity = w.z * (180.0/M_PI);	// could also be named yaw_velocity.
-	pitch_velocity = w.x * (180.0/M_PI);
-	roll_velocity = w.y * (180.0/M_PI);
-	//std::cout << "velocities(deg) turn=" << turn_velocity << " pitch=" << pitch_velocity << " roll=" << roll_velocity << "\n";
+	compute_helper_values();
 
 	// OLD COMMENT, BUT STILL HELPFUL:
 	// this leads to another model for acceleration/max_speed/turning etc.
@@ -691,7 +696,9 @@ void sea_object::manipulate_position(const vector3& newpos)
 
 void sea_object::manipulate_speed(double localforwardspeed)
 {
-	velocity.y = localforwardspeed;
+	local_velocity.y = localforwardspeed;
+	impulse = orientation.rotate(local_velocity) * mass;
+	compute_helper_values();
 }
 
 

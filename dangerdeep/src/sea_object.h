@@ -196,30 +196,32 @@ protected:
 
 	//
 	// ---------------- rigid body variables, maybe group in extra class ----------------
-	// all values are "global", that means in world space/orientation, except the tensors
 	//
 	vector3 position;		// position, [SAVE]
-	vector3 impulse;		// impulse ("P") P = M * v [SAVE,fixme]
+	vector3 impulse;		// impulse ("P") P = M * v [SAVE], object local!
 	quaternion orientation;		// orientation, [SAVE]
-	vector3 angular_momentum;	// angular momentum ("L") L = I * w = R * I_k * R^T * w [SAVE,fixme]
+	vector3 angular_momentum;	// angular momentum ("L") L = I * w = R * I_k * R^T * w [SAVE], world space!
 	double mass;			// total weight, later read from spec file (kg)
 	double mass_inv;		// inverse of mass
 	matrix3 inertia_tensor;		// object local (I_k). [could be a reference into a model object...]
 	matrix3 inertia_tensor_inv;	// object local (I_k), inverse of inertia tensor.
 
 	// ------------- computed from rigid body variables ----------------
-	vector3 velocity;	// local velocity, [SAVE,later not - fixme]
-	double turn_velocity;	// angular velocity around global z-axis (mathematical CCW), [SAVE, later not - fixme]
-	double pitch_velocity;	// angular velocity around global x-axis (mathematical CCW), [SAVE, later not - fixme]
-	double roll_velocity;	// angular velocity around global y-axis (mathematical CCW), [SAVE, later not - fixme]
-	angle heading;		// global z-orientation is stored additionally, [SAVE, later not - fixme]
-	vector3 global_velocity;// recomputed every frame by simulate() method
+	vector3 velocity;	// world space velocity
+	double turn_velocity;	// angular velocity around global z-axis (mathematical CCW)
+	double pitch_velocity;	// angular velocity around global x-axis (mathematical CCW)
+	double roll_velocity;	// angular velocity around global y-axis (mathematical CCW)
+	angle heading;		// global z-orientation is stored additionally
+	vector3 local_velocity;	// recomputed every frame by simulate() method
 
 	/// called in every simulation step. overload to specify force and torque,
 	/// with drag already included.
 	///@param F the force in world space, default (0, 0, 0)
 	///@param T the torque in world space, default (0, 0, 0).
 	virtual void compute_force_and_torque(vector3& F, vector3& T) const;
+
+	/// recomputes *_velocity, heading etc.
+	void compute_helper_values();
 
 	vector3f size3d;		// computed from model, indirect read from spec file, width, length, height
 
@@ -317,25 +319,26 @@ public:
 	///@note switchting do defunct state is forbidden! do not implement such a function!
 	virtual void kill();
 
-	virtual bool is_defunct() const { return alive_stat == defunct; };
-	virtual bool is_dead() const { return alive_stat == dead; };
-	virtual bool is_inactive() const { return alive_stat == inactive; };
-	virtual bool is_alive() const { return alive_stat == alive; };
+	virtual bool is_defunct() const { return alive_stat == defunct; }
+	virtual bool is_dead() const { return alive_stat == dead; }
+	virtual bool is_inactive() const { return alive_stat == inactive; }
+	virtual bool is_alive() const { return alive_stat == alive; }
 	virtual bool is_reference_ok() const { return alive_stat == alive || alive_stat == inactive; }
 
 	// command interface - no special commands for a generic sea_object
 
-	virtual vector3 get_pos() const { return position; };
-	virtual vector3 get_velocity() const { return velocity; };
-	virtual double get_speed() const { return get_velocity().y; }
-	virtual quaternion get_orientation() const { return orientation; };
-	virtual double get_turn_velocity() const { return turn_velocity; };
-	virtual double get_pitch_velocity() const { return pitch_velocity; };
-	virtual double get_roll_velocity() const { return roll_velocity; };
-	virtual double get_depth() const { return -position.z; };
-	virtual float get_width() const { return size3d.x; };
-	virtual float get_length() const { return size3d.y; };
-	virtual float get_height() const { return size3d.z; };
+	virtual vector3 get_pos() const { return position; }
+	virtual vector3 get_velocity() const { return velocity; }
+	virtual vector3 get_local_velocity() const { return local_velocity; }
+	virtual double get_speed() const { return get_local_velocity().y; }
+	virtual quaternion get_orientation() const { return orientation; }
+	virtual double get_turn_velocity() const { return turn_velocity; }
+	virtual double get_pitch_velocity() const { return pitch_velocity; }
+	virtual double get_roll_velocity() const { return roll_velocity; }
+	virtual double get_depth() const { return -position.z; }
+	virtual float get_width() const { return size3d.x; }
+	virtual float get_length() const { return size3d.y; }
+	virtual float get_height() const { return size3d.z; }
 	virtual float surface_visibility(const vector2& watcher) const;
 	virtual angle get_heading() const { return heading; }
 	virtual class ai* get_ai() { return myai.get(); }
