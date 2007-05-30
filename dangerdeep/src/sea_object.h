@@ -198,7 +198,7 @@ protected:
 	// ---------------- rigid body variables, maybe group in extra class ----------------
 	//
 	vector3 position;		// position, [SAVE]
-	vector3 impulse;		// impulse ("P") P = M * v [SAVE], object local!
+	vector3 linear_momentum;	// l.m./impulse ("P") P = M * v [SAVE], object local!
 	quaternion orientation;		// orientation, [SAVE]
 	vector3 angular_momentum;	// angular momentum ("L") L = I * w = R * I_k * R^T * w [SAVE], world space!
 	double mass;			// total weight, later read from spec file (kg)

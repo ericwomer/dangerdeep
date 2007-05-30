@@ -83,7 +83,7 @@ void sea_object::compute_force_and_torque(vector3& F, vector3& T) const
 
 void sea_object::compute_helper_values()
 {
-	local_velocity = impulse * mass_inv;
+	local_velocity = linear_momentum * mass_inv;
 	velocity = orientation.rotate(local_velocity);
 
 	heading = angle(orientation.rotate(0.0, 1.0, 0.0).xy());
@@ -430,7 +430,7 @@ void sea_object::load(const xml_elem& parent)
 	xml_elem st = parent.child("state");
 	position = st.child("position").attrv3();
 	orientation = st.child("orientation").attrq();
-	impulse = st.child("impulse").attrv3();
+	linear_momentum = st.child("linear_momentum").attrv3();
 	angular_momentum = st.child("angular_momentum").attrv3();
 	compute_helper_values();
 
@@ -477,7 +477,7 @@ void sea_object::save(xml_elem& parent) const
 	xml_elem st = parent.add_child("state");
 	st.add_child("position").set_attr(position);
 	st.add_child("orientation").set_attr(orientation);
-	st.add_child("impulse").set_attr(impulse);
+	st.add_child("linear_momentum").set_attr(linear_momentum);
 	st.add_child("angular_momentum").set_attr(angular_momentum);
 	parent.add_child("alive_stat").set_attr(unsigned(alive_stat));
 	// write skin info
@@ -550,12 +550,12 @@ void sea_object::simulate(double delta_time)
 	vector3 force, torque;
 	compute_force_and_torque(force, torque);
 
-	// compute new position by integrating impulse
-	// M^-1 * P = v, impulse is in object space!
-	position += orientation.rotate(impulse * mass_inv * delta_time);
+	// compute new position by integrating linear_momentum
+	// M^-1 * P = v, linear_momentum is in object space!
+	position += orientation.rotate(linear_momentum * mass_inv * delta_time);
 
-	// compute new impulse by integrating force (force: world space, impulse: object space)
-	impulse += orientation.conj().rotate(delta_time * force);
+	// compute new linear_momentum by integrating force (force: world space, linear_momentum: object space)
+	linear_momentum += orientation.conj().rotate(delta_time * force);
 
 	// compute new orientation by integrating angular momentum
 	// L = I * w = R * I_k * R^T * w =>
@@ -697,7 +697,7 @@ void sea_object::manipulate_position(const vector3& newpos)
 void sea_object::manipulate_speed(double localforwardspeed)
 {
 	local_velocity.y = localforwardspeed;
-	impulse = local_velocity * mass;
+	linear_momentum = local_velocity * mass;
 	compute_helper_values();
 }
 
@@ -706,7 +706,7 @@ void sea_object::manipulate_speed(double localforwardspeed)
 void sea_object::manipulate_heading(angle hdg)
 {
 	orientation = quaternion::rot(-hdg.value(), 0, 0, 1);
-	impulse = orientation.rotate(local_velocity) * mass;
+	linear_momentum = orientation.rotate(local_velocity) * mass;
 	compute_helper_values();
 }
 

@@ -40,7 +40,7 @@ gun_shell::gun_shell(game& gm_, const vector3& pos, angle direction, angle eleva
 {
 	position = pos;
 	orientation = quaternion::rot(direction.value(), 0, 0, 1);
-	impulse = mass * vector3(0, 0, elevation.sin() * initial_velocity);
+	linear_momentum = mass * vector3(0, 0, elevation.sin() * initial_velocity);
 	angular_momentum = vector3();
 	compute_helper_values();
 	oldpos = position;
