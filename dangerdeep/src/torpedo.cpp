@@ -450,6 +450,11 @@ void torpedo::simulate(double delta_time)
 	redetect_time = 1.0;
 	ship::simulate(delta_time);
 
+	// simulate screw turning. one model for all torps, but this doesnt matter
+	double screw_ang = myfrac(gm.get_time()) * 360.0;
+	mymodel->set_object_angle(1, screw_ang);
+	mymodel->set_object_angle(2, screw_ang);
+
 	double old_run_length = run_length;
 	run_length += get_speed() * delta_time;
 	if (run_length > get_range()) {
