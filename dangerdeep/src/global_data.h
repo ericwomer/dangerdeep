@@ -130,7 +130,8 @@ extern class texture *notepadsheet,
 	*terraintex, *panelbackground;
 
 // only used as shortcut, fonts are managed by fontcache.
-extern class font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn, *font_damagedtypewriter, *font_king, *font_typenr, *font_jphsl, *font_janeaust, *font_vtportable, *font_vtremington8, *font_vtremington10, *font_vtremington12, *font_vtremington14;
+extern class font *font_arial, *font_jphsl, *font_vtremington10, 
+       *font_vtremington12, *font_typenr16;
 
 void init_global_data();
 void deinit_global_data();

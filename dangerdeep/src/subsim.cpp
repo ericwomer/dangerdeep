@@ -1755,7 +1755,7 @@ int mymain(list<string>& args)
 	mmusic->play();
 	
 	widget::set_theme(auto_ptr<widget::theme>(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
-								    font_vtremington12,
+								    font_typenr16,
 								    color(182, 146, 137),
 								    color(240, 217, 127) /*color(222, 208, 195)*/,
 								    color(92, 72 ,68))));

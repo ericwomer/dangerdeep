@@ -249,18 +249,20 @@ void sub_torpedo_display::display(class game& gm) const
 				torpdesctext = desc_texts.ref(data_file().get_rel_path(sfn) + sfn + "_en.txt");
 			}
 			// fixme: implement scrolling here!
+            // torpedo description text, for notepad
 			if (torp_desc_line > torpdesctext->nr_of_lines())
 				torp_desc_line = torpdesctext->nr_of_lines();
-			font_damagedtypewriter->print_wrapped(100, 550, 570, 0, torpdesctext->str(torp_desc_line, 10), color(0,0,0));
+			font_vtremington12->print_wrapped(100, 550, 570, 0, torpdesctext->str(torp_desc_line, 10), color(0,0,0));
 		}
 
 		if (mb & SDL_BUTTON_LMASK) {
 			// display remaining time if possible
+            // torpedo reload remaning time
 			if (torpedoes[tb].status == submarine::stored_torpedo::st_reloading ||
 			    torpedoes[tb].status == submarine::stored_torpedo::st_unloading) {
 				glColor4f(1,1,1,1);
 				notepadsheet->draw(mx, my);
-				font_damagedtypewriter->print(mx+32, my+50, texts::get(211) +
+				font_vtremington12->print(mx+32, my+50, texts::get(211) +
 						  get_time_string(torpedoes[tb].remaining_time), color(32,0,0));
 			}
 		}
@@ -271,7 +273,7 @@ void sub_torpedo_display::display(class game& gm) const
 	{
 		char a[10];
 		sprintf(a, "%ld", sub->num_shells_remaining());
-		font_damagedtypewriter->print(400, 85, a, color(0,0,0));
+		font_vtremington12->print(400, 85, a, color(0,0,0));
 	}
 	
 	ui.draw_infopanel();

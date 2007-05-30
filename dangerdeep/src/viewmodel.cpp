@@ -63,7 +63,7 @@ using std::vector;
 class system* mysys;
 int res_x, res_y;
 font* font_arial = 0;
-font *font_olympiaworn = 0;
+font *font_vtremington12 = 0;
 
 vector4t<GLfloat> lposition(0,0,0,1);
 
@@ -106,7 +106,7 @@ private:
 model_load_dialog::model_load_dialog() : 
         theme(0)
 {
-        theme.reset( new widget::theme("widgetelements_menu.png", "widgeticons_menu.png", font_olympiaworn, color(182, 146, 137), color(222, 208, 195), color(92, 72, 68)) );
+        theme.reset( new widget::theme("widgetelements_menu.png", "widgeticons_menu.png", font_vtremington12, color(182, 146, 137), color(222, 208, 195), color(92, 72, 68)) );
 }
 
 
@@ -744,7 +744,7 @@ int mymain(list<string>& args)
 	glEnable(GL_NORMALIZE);
 
 	font_arial = new font(get_font_dir() + "font_arial");
-        font_olympiaworn = new font(get_font_dir() + "font_olympiaworn");
+        font_vtremington12 = new font(get_font_dir() + "font_vtremington12");
         
 	mysys->draw_console_with(font_arial, 0);
 
@@ -760,7 +760,7 @@ int mymain(list<string>& args)
 	mysys->write_console(true);
 
 	delete font_arial;
-        delete font_olympiaworn;
+        delete font_vtremington12;
 	delete mysys;
 
 	return 0;

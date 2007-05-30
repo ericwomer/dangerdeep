@@ -74,8 +74,9 @@ global_data::~global_data()
 // remove this ASAP.
 texture *notepadsheet,
 	*terraintex, *panelbackground;
-	
-font *font_arial, *font_arialbd, *font_times, *font_timesbd, *font_verdana, *font_verdanabd, *font_olympiaworn, *font_damagedtypewriter, *font_king, *font_typenr, *font_jphsl, *font_janeaust, *font_vtportable, *font_vtremington8, *font_vtremington10, *font_vtremington12, *font_vtremington14;
+
+font *font_arial, *font_jphsl, *font_vtremington10, *font_vtremington12, 
+     *font_typenr16;
 
 bool loading_screen_usable = false;
 
@@ -83,22 +84,10 @@ void init_global_data()
 {
 	font_arial = fontcache().ref("font_arial");
 	loading_screen_usable = true;
-	font_arialbd = fontcache().ref("font_arialbd");
-	font_times = fontcache().ref("font_times");
-	font_timesbd = fontcache().ref("font_timesbd");
-	font_verdana = fontcache().ref("font_verdana");
-	font_verdanabd = fontcache().ref("font_verdanabd");
-	font_olympiaworn = fontcache().ref("font_olympiaworn");
-	font_damagedtypewriter = fontcache().ref("font_damagedtypewriter");
-	font_king = fontcache().ref("font_king");
-	font_typenr = fontcache().ref("font_typenr");
 	font_jphsl = fontcache().ref("font_jphsl");
-	font_janeaust = fontcache().ref("font_janeaust");
-	font_vtportable = fontcache().ref("font_vtportable");
-    font_vtremington8 = fontcache().ref("font_vtremington8");
     font_vtremington10 = fontcache().ref("font_vtremington10");
     font_vtremington12 = fontcache().ref("font_vtremington12");
-    font_vtremington14 = fontcache().ref("font_vtremington14");
+    font_typenr16 = fontcache().ref("font_typenr16");
 	add_loading_screen("fonts loaded");
 	// later: they should get loaded by environmental classes (sky/water/user_interface)
 	panelbackground = 0; // not used with new ingame gui
