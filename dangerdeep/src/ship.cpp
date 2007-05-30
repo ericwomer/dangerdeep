@@ -778,6 +778,12 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	if (speed > 0) drag_factor = -drag_factor;
 	// force is in world space
 	F = orientation.rotate(vector3(0, (acceleration + drag_factor) * mass, 0));
+	// Note! drag should be computed for all three dimensions, each with area,
+	// to limit sideward/downward movement as well. We need to know the area
+	// that is underwater then (air drag is negligible for ships). That
+	// value can be computed when we know the volume below water and divide
+	// this by length or width. Volume below water should be precomputed
+	// like cross section, e.g. with is_inside test over voxels inside the ship.
 	F.z += lift_force_sum; // buoyancy/gravity
 
 
