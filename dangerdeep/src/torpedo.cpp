@@ -477,13 +477,13 @@ void torpedo::simulate(double delta_time)
 			if (phase == 1) {
 				// first turn. Differences between LuT and FaT,
 				// FaT always 180 degrees, LuT variable. Angle is stored, use that
+				//fixme: LuT worked different to what we simulate here.
 				angle turn = initialturn_left ? -turnangle : turnangle;
 				head_to_ang(get_heading() + turn, initialturn_left);
 			} else {
 				// further turns, always 180 degrees.
 				bool turn_is_left = initialturn_left ? ((phase & 1) != 0) : ((phase & 1) == 0);
-				angle turn = turn_is_left ? -180 : 180;
-				head_to_ang(get_heading() + turn, initialturn_left);
+				head_to_ang(get_heading() + angle(180), turn_is_left);
 			}
 		}
 	}
