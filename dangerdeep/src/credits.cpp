@@ -187,7 +187,7 @@ void show_credits()
 	int textendpos = textlines;
 	float lineoffset = 0.0f;
 
-	float lposition[4] = {200, 0, 0, 1};
+	//float lposition[4] = {200, 0, 0, 1};
 
 	bool quit = false;
 	float lines_per_sec = 2;

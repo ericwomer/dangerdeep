@@ -248,14 +248,14 @@ unsigned font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, cons
 		if (breaktext) {
 			print(x, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
 			y += (lineheight == 0) ? get_height() : lineheight;
-			if (maxheight && y >= maxheight)
+			if (maxheight && y >= int(maxheight))
 				return textptr;
 		} else {
 			unsigned tw = get_size(text.substr(oldtextptr, textptr - oldtextptr)).x;
 			if (currwidth + tw >= w) {
 				y += (lineheight == 0) ? get_height() : lineheight;
 				currwidth = 0;
-				if (maxheight && y >= maxheight)
+				if (maxheight && y >= int(maxheight))
 					return oldtextptr;
 			}
 			print(x+currwidth, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
