@@ -519,7 +519,7 @@ widget* widget::create_dialogue_ok_cancel(widget* parent_, const string& title, 
 	return w;
 }
 
-int widget::run(unsigned timeout, bool do_stacking)
+int widget::run(unsigned timeout, bool do_stacking, widget* focussed_at_begin)
 {
 	unsigned short inited = false; // draw first, then only draw when an event occurred
 	glClearColor(0, 0, 0, 0);
@@ -533,7 +533,7 @@ int widget::run(unsigned timeout, bool do_stacking)
 	// but in case of errors, we can't handle them well here, so no matter.
 	widgets.push_back(this);
 	unsigned endtime = sys().millisec() + timeout;
-	focussed = this;
+	focussed = focussed_at_begin ? focussed_at_begin : this;
 	while (!closeme) {
 		unsigned time = sys().millisec();
 		if (timeout != 0 && time > endtime) break;
@@ -1155,7 +1155,7 @@ void widget_edit::on_char(const SDL_keysym& ks)
 	int c = ks.sym;
 	unsigned l = text.length();
 	unsigned textw = globaltheme->myfont->get_size(text).x;
-//	printf("get char? %i unicode %i\n", c, ks.unicode);
+// 	printf("get char? %i unicode %i\n", c, ks.unicode);
 	// How to detect multibyte characters:
 	// All parts of a multibyte (UTF8 coded) character have their highest bit set (0x80).
 	// The first byte of the multibyte characters has its second highest bit set (0x40).

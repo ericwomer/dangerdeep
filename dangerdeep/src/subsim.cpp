@@ -321,8 +321,8 @@ void check_for_highscore(const game& gm)
 	unsigned points = totaltons /* compute points from tons etc here fixme */;
 
 	widget w(0, 0, 1024, 768, texts::get(197), 0, "krupp_docks.jpg");
-	w.add_child(new widget(40, 50, 944, 640, string("")));
-	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
+//	widget* wbox = new widget(40, 50, 944, 640, string("")); 
+ 	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 	unsigned pos = hsl.get_listpos_for(points);
 	if (hsl.is_good_enough(points)) {
 		w.add_child(new widget_text(200, 200, 0,0, texts::get(199)));
@@ -331,15 +331,16 @@ void check_for_highscore(const game& gm)
 		w.add_child(new widget_text(400, 280, 0,0, texts::get(200)));
 		widget_edit* wname = new widget_edit(300, 320, 424, 32, "");
 		w.add_child(wname);
-		w.run(0, false);
+		w.draw();
+		w.run(0, false, wname);
 		string playername = wname->get_text();
 		if (playername.length() == 0)
 			playername = "INCOGNITO";
 		hsl.record(points, playername);
 	} else {
 		w.add_child(new widget_text(400, 200, 0,0, texts::get(198)));
+		w.run(0, false);
 	}
-	w.run(0, false);
 	show_halloffame(hsl);
 }
 
