@@ -29,5 +29,6 @@
     <transfertimes bow="120" stern="0" bowdeck="0" sterndeck="0" bowsterndeck="0"/>
   </torpedoes>
   <battery capacity="100" consumption_a="1.3129e-6" consumption_t="0.77071" recharge_a="1" recharge_t="1"/>
+  <torpedomanage image="../VIIc/type7c_torpmanage_sidetop.jpg|png" />
   <fuel capacity="1200" consumption_a="7.3405e-9" consumption_t="1.63535"/>  
 </dftd-submarine>
