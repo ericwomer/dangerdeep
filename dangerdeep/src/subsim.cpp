@@ -321,7 +321,8 @@ void check_for_highscore(const game& gm)
 	unsigned points = totaltons /* compute points from tons etc here fixme */;
 
 	widget w(0, 0, 1024, 768, texts::get(197), 0, "krupp_docks.jpg");
-//	widget* wbox = new widget(40, 50, 944, 640, string("")); 
+	widget* wbox = new widget(40, 50, 944, 640, string(""));
+        w.add_child(wbox);
  	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 	unsigned pos = hsl.get_listpos_for(points);
 	if (hsl.is_good_enough(points)) {
@@ -330,8 +331,7 @@ void check_for_highscore(const game& gm)
 			w.add_child(new widget_text(200, 240, 0,0, texts::get(201)));
 		w.add_child(new widget_text(400, 280, 0,0, texts::get(200)));
 		widget_edit* wname = new widget_edit(300, 320, 424, 32, "");
-		w.add_child(wname);
-		w.draw();
+		wbox->add_child(wname);
 		w.run(0, false, wname);
 		string playername = wname->get_text();
 		if (playername.length() == 0)
