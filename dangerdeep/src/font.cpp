@@ -332,6 +332,8 @@ std::pair<unsigned, unsigned> font::get_nr_of_lines_wrapped(unsigned w, const st
 				++nrlines;
 				currwidth = 0;
 				++textptr;
+				if (maxlines && nrlines > maxlines)
+					return std::make_pair(nrlines, textptr);
 			} else if (c == ' ') {
 				++textptr;
 			} else if (c == '\t') {
@@ -360,14 +362,18 @@ std::pair<unsigned, unsigned> font::get_nr_of_lines_wrapped(unsigned w, const st
 		}
 		if (breaktext) {
 			++nrlines;
-			if (maxlines && nrlines > maxlines)
+			if (maxlines && nrlines > maxlines) {
+				textptr = oldtextptr;
 				break;
+			}
 		} else {
 			unsigned tw = get_size(text.substr(oldtextptr, textptr - oldtextptr)).x;
 			if (currwidth + tw >= w) {
 				++nrlines;
-				if (maxlines && nrlines > maxlines)
+				if (maxlines && nrlines > maxlines) {
+					textptr = oldtextptr;
 					break;
+				}
 				currwidth = 0;
 			}
 			currwidth += tw + blank_width;

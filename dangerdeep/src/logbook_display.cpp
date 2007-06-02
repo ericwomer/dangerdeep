@@ -119,17 +119,26 @@ void logbook_display::display(class game& gm) const
 	background->draw(0, 0);
 
 	// print rest of part from previous double page, if available
-	if (first_entry_cp_left > 0 && entry_page_and_line[first_entry_cp_left].second > 0) {
+	if ((first_entry_cp_left > 0 && entry_page_and_line[first_entry_cp_left].second > 0) ||
+	    (lb.size() > 0 && first_entry_cp_left < 0)) {
 		// there is one previous entry and this entry does not start on line 0
 		// compute text pointer where to begin print
-		unsigned i = unsigned(first_entry_cp_left-1);
-		unsigned maxlines = lines_per_entry[i] - entry_page_and_line[first_entry_cp_left].second;
+		unsigned i;
+		if (first_entry_cp_left < 0) {
+			// no entry matched current_page, so we must be on the last page,
+			// and only the rest of the last entry is visible
+			i = unsigned(lb.size()-1);
+		} else {
+			i = unsigned(first_entry_cp_left-1);
+		}
+		unsigned maxlines = lines_per_page - entry_page_and_line[i].second;
 		const string& et = *(lb.get_entry(i));
 		unsigned textoff = font_jphsl->get_nr_of_lines_wrapped(page_size.x, et, maxlines).second;
 		font_jphsl->print_wrapped(page_left_offset.x,
 					  page_left_offset.y,
 					  page_size.x, 0, et.substr(textoff), color(10, 10, 10), false, 0);
 	}
+
 	for (int i = first_entry_cp_left; i < last_entry_cp_left; ++i) {
 		const string& et = *(lb.get_entry(i));
 		unsigned maxh = (lines_per_page - entry_page_and_line[i].second) * font_jphsl->get_height();
