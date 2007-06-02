@@ -461,9 +461,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glDepthMask(GL_TRUE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
-	// reenable fog, but not for reflections
-	if (!isreflection)
-		glEnable(GL_FOG);
+	glEnable(GL_FOG);
 }
 
 
