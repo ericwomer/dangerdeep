@@ -64,14 +64,33 @@ public:
 	void print_hc(int x, int y, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
 	void print_vc(int x, int y, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
 	void print_c(int x, int y, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
-	// print text with wrap around, use lineheight 0 for automatic line height
-	// maxheight=0 disables height limit.
-	// returns pointer where text processing stopped, when max. height reached
+	/** print text with wrap around
+	    @param x - x position on screen in pixels
+	    @param y - y position on screen in pixels
+	    @param w - max. width in pixels
+	    @param lineheight - lineheight in pixels, 0 for automatic (font height)
+	    @param text - the text
+	    @param col - color of text
+	    @param with_shadow - print with shadow?
+	    @param maxheight - max. height in pixels, 0 for no limit
+	    @returns pointer where text processing stopped, when max. height reached, or length of text
+	*/
 	unsigned print_wrapped(int x, int y, unsigned w, unsigned lineheight,
 			       const std::string& text, color col = color(255,255,255),
 			       bool with_shadow = false,
-			       unsigned maxheight = 0 /* 0 means no limit */) const;
+			       unsigned maxheight = 0) const;
+	/** get screen size of text in pixels
+	    @param text - the text
+	    @returns size in pixels
+	*/
 	vector2i get_size(const std::string& text) const;
+	/** get number of lines when printing with wrap
+	    @param w - maximum width in pixels
+	    @param text - the text
+	    @param maxlines - maximum lines to print, 0 for no limit
+	    @returns height in lines and textpos where printing stopped (maxlines reached)
+	*/
+	std::pair<unsigned, unsigned> get_nr_of_lines_wrapped(unsigned w, const std::string& text, unsigned maxlines = 0) const;
 	unsigned get_char_width(unsigned c) const;
 	unsigned get_height() const { return height; }
 

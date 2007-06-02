@@ -20,19 +20,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // logbook display
 // subsim (C)+(W) Markus Petermann and Thorsten Jordan. SEE LICENSE
 
-#ifdef WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#endif
-
-//#include <gl.h>
-//#include <glu.h>
-//#include <SDL.h>
-
-#include <map>
-#include <iostream>
-#include <sstream>
-using namespace std;
 #include "vector2.h"
 #include "angle.h"
 #include "date.h"
@@ -46,126 +33,137 @@ using namespace std;
 #include "image.h"
 #include "texture.h"
 #include "user_interface.h"
+#include <map>
+#include <iostream>
+#include <sstream>
+using namespace std;
 
-#define NUMBER_OF_LINES		23 // old value 27
-#define CHARACTER_PER_LINE	45 // old value 50
-#define LINE_INDENT "    "
 
 
-
-void logbook_display::print_buffer(unsigned i, const string& t) const
+logbook_display::logbook_display(class user_interface& ui_)
+	: user_display(ui_),
+	  page_left_offset(76, 118),
+	  page_right_offset(554, 118),
+	  page_size(400, 500),
+	  current_page(0),
+	  nr_of_pages(1)
 {
-/*	unsigned x = ( i < NUMBER_OF_LINES )? 42 : 550;
- *	42 x origin 1st page, 550 x origin 2nd page
-	unsigned y = ( i < NUMBER_OF_LINES )? ( 80 + 20 * i ) :
-		( 80 + 20 * ( i - NUMBER_OF_LINES ) );
-        80 + 20 = y origin */
-
-    // Note, we _need_ to wrap long text in defined box
-    unsigned x = ( i < NUMBER_OF_LINES )? 88 : 560;
-    unsigned y = ( i < NUMBER_OF_LINES )? (140 + 20 * i ) :
-        ( 140 + 20 * ( i - NUMBER_OF_LINES ) ) ;
-
-	font_jphsl->print(x, y, t, color( 10, 10, 10));
-
-#if 0
-	unsigned offset = font_jphsl->print_wrapped(x, y, some_width_in_pixels,
-						    lineheight_in_pixels,
-						    t, color(10,10,10), false /*no shadow*/,
-						    remaininglines*lineheight_in_pixels);
-	if (offset < t.length()) {
-		font_jphsl->print_wrapped(new_x, new_y, some_width_in_pixels,
-					  lineheight_in_pixels, t.substr(offset),
-					  color(10,10,10), false /*no shadow*/);
-	}
-#endif
 }
 
 
 
-void logbook_display::next_page(unsigned nrentries)
+void logbook_display::previous_page()
 {
-	if (actual_entry + 2 * NUMBER_OF_LINES <= nrentries)
-		actual_entry += 2 * NUMBER_OF_LINES;
+	if (current_page > 0)
+		current_page -= 2;
 }
 
 
 
-void logbook_display::previous_page(unsigned nrentries)
+void logbook_display::next_page()
 {
-	if (actual_entry >= 2 * NUMBER_OF_LINES)
-		actual_entry -= 2 * NUMBER_OF_LINES;
-}
-
-
-
-logbook_display::logbook_display(class user_interface& ui_) : user_display(ui_), actual_entry(0)
-{
+	if (current_page + 2 < nr_of_pages)
+		current_page += 2;
 }
 
 
 
 void logbook_display::display(class game& gm) const
 {
-	// fixme: old code wrapped text when entry was too long. this is missing here
-    // and we need it here again, or we're dead meat, check selected ship class
-    // log entry when target selected
-	sys().prepare_2d_drawing();
+	// compute size of entries (number of lines for each entry)
+	const logbook& lb = gm.get_players_logbook();
+	vector<unsigned> lines_per_entry;
+	unsigned total_lines = 0;
+	lines_per_entry.reserve(lb.size());
+	for (list<string>::const_iterator it = lb.begin(); it != lb.end(); ++it) {
+		unsigned l = font_jphsl->get_nr_of_lines_wrapped(page_size.x, *it).first;
+		lines_per_entry.push_back(l);
+		total_lines += l;
+	}
 
+	unsigned lines_per_page = page_size.y / font_jphsl->get_height();
+	nr_of_pages = (total_lines + lines_per_page-1) / lines_per_page;
+
+	// now compute distribution of entries over pages
+	// for each entry compute starting page and line
+	vector<pair<unsigned, unsigned> > entry_page_and_line;
+	entry_page_and_line.reserve(lb.size());
+	unsigned cur_page = 0, cur_line = 0;
+	int first_entry_cp_left = -1, last_entry_cp_left = -1;
+	int first_entry_cp_right = -1, last_entry_cp_right = -1;
+	for (unsigned i = 0; i < lines_per_entry.size(); ++i) {
+		if (cur_page == current_page) {
+			if (first_entry_cp_left < 0)
+				first_entry_cp_left = int(i);
+			last_entry_cp_left = int(i) + 1;
+		}
+		if (cur_page == current_page + 1) {
+			if (first_entry_cp_right < 0)
+				first_entry_cp_right = int(i);
+			last_entry_cp_right = int(i) + 1;
+		}
+		entry_page_and_line.push_back(make_pair(cur_page, cur_line));
+		cur_line += lines_per_entry[i];
+		if (cur_line >= lines_per_page) {
+			cur_line -= lines_per_page;
+			++cur_page;
+		}
+	}
+
+	// check range of entries to render for currently displayed page
+	// render [first_entry_cp_left/right...last_entry_cp_left/right[
+	// for current page... note: older entries may wrap, argh!
+
+	sys().prepare_2d_drawing();
 	glColor4f(1,1,1,1);
 	background->draw(0, 0);
 
-    /* let's get rid of the ugly lines
-	// Draw lines.
-	glColor3f ( 0.5f, 0.5f, 0.5f );
-	for ( int i = 0; i < NUMBER_OF_LINES; i ++ )
-	{
-		unsigned y = 140 + 20 * i;
-		glBegin ( GL_LINES );
-		glVertex2i (  40, y );
-		glVertex2i ( 476, y );
-		glVertex2i ( 548, y );
-		glVertex2i ( 984, y );
-		glEnd ();
+	// print rest of part from previous double page, if available
+	if (first_entry_cp_left > 0 && entry_page_and_line[first_entry_cp_left].second > 0) {
+		// there is one previous entry and this entry does not start on line 0
+		// compute text pointer where to begin print
+		unsigned i = unsigned(first_entry_cp_left-1);
+		unsigned maxlines = lines_per_entry[i] - entry_page_and_line[first_entry_cp_left].second;
+		const string& et = *(lb.get_entry(i));
+		unsigned textoff = font_jphsl->get_nr_of_lines_wrapped(page_size.x, et, maxlines).second;
+		font_jphsl->print_wrapped(page_left_offset.x,
+					  page_left_offset.y,
+					  page_size.x, 0, et.substr(textoff), color(10, 10, 10), false, 0);
 	}
-    */
-
-	// Create entries.
-	// Prepare OpenGL.
-	const logbook& lb = gm.get_players_logbook();
-	list<string>::const_iterator it = lb.get_entry(actual_entry);
-	for ( unsigned j = 0; ( j < 2 * NUMBER_OF_LINES ) && it != lb.end(); ++j, ++it) {
-		print_buffer(j, *it);
+	for (int i = first_entry_cp_left; i < last_entry_cp_left; ++i) {
+		const string& et = *(lb.get_entry(i));
+		unsigned maxh = (lines_per_page - entry_page_and_line[i].second) * font_jphsl->get_height();
+		unsigned textptr =
+			font_jphsl->print_wrapped(page_left_offset.x,
+						  page_left_offset.y + entry_page_and_line[i].second * font_jphsl->get_height(),
+						  page_size.x, 0, et, color(10, 10, 10), false, maxh);
+		if (textptr < et.length()) {
+			// print rest of it on second page
+			font_jphsl->print_wrapped(page_right_offset.x,
+						  page_right_offset.y,
+						  page_size.x, 0, et.substr(textptr),
+						  color(10, 10, 10), false, 0);
+		}
+	}
+	for (int i = first_entry_cp_right; i < last_entry_cp_right; ++i) {
+		const string& et = *(lb.get_entry(i));
+		unsigned maxh = (lines_per_page - entry_page_and_line[i].second) * font_jphsl->get_height();
+		font_jphsl->print_wrapped(page_right_offset.x,
+					  page_right_offset.y + entry_page_and_line[i].second * font_jphsl->get_height(),
+					  page_size.x, 0, et, color(10, 10, 10), false, maxh);
 	}
 
 	// Display page number.
-	unsigned page_number = 1 + unsigned ( actual_entry / NUMBER_OF_LINES );
 	ostringstream oss1;
-	oss1 << page_number;
-	font_jphsl->print (
-		260,
-		635,
-		oss1.str (), color ( 10, 10, 10 ) );
+	oss1 << current_page + 1;
+	font_jphsl->print(260, 635, oss1.str(), color(10, 10, 10));
 	ostringstream oss2;
-	oss2 << ( page_number + 1 );
-	font_jphsl->print (
-		760,
-		635,
-		oss2.str (), color ( 10, 10, 10 ) );
+	oss2 << current_page + 2;
+	font_jphsl->print(760, 635, oss2.str(), color(10, 10, 10));
 
 	// Display arrows.
-	ostringstream left_arrow_oss;
-	left_arrow_oss << "<<";
-	font_jphsl->print (
-		160,
-		635,
-		left_arrow_oss.str (), color ( 10, 10, 10 ) );
-	ostringstream right_arrow_oss;
-	right_arrow_oss << ">>";
-	font_jphsl->print (
-		860,
-		635,
-		right_arrow_oss.str (), color ( 10, 10, 10 ) );
+	font_jphsl->print(160, 635, "<<", color(10, 10, 10));
+	font_jphsl->print(860, 635, ">>", color(10, 10, 10));
 
 	ui.draw_infopanel();
 
@@ -176,21 +174,20 @@ void logbook_display::display(class game& gm) const
 
 void logbook_display::process_input(class game& gm, const SDL_Event& event)
 {
-	unsigned nrentries = gm.get_players_logbook().size();
 	switch (event.type) {
 	case SDL_KEYDOWN:
 		if (event.key.keysym.sym == SDLK_LESS) {
 			if (event.key.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT))
-				next_page(nrentries);
+				next_page();
 			else
-				previous_page(nrentries);
+				previous_page();
 		}
 		break;
 	case SDL_MOUSEBUTTONDOWN:
 		if (event.button.x < 530)
-			previous_page(nrentries);
+			previous_page();
 		else
-			next_page(nrentries);
+			next_page();
 		break;
 	default:
 		break;

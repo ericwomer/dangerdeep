@@ -211,6 +211,7 @@ unsigned font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, cons
 	unsigned currwidth = 0;
 	unsigned textptr = 0, oldtextptr = 0;
 	unsigned textlen = text.length();
+	int ymax = maxheight ? int(maxheight) + y : 0x7fffffff /*intmax*/;
 	while (true) {
 		// remove spaces, treat returns
 		while (textptr < textlen) {	// remove spaces at the beginning
@@ -219,6 +220,8 @@ unsigned font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, cons
 				y += (lineheight == 0) ? get_height() : lineheight;
 				currwidth = 0;
 				++textptr;
+				if (y >= ymax)
+					return textptr;
 			} else if (c == ' ') {
 				++textptr;
 			} else if (c == '\t') {
@@ -248,14 +251,14 @@ unsigned font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, cons
 		if (breaktext) {
 			print(x, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
 			y += (lineheight == 0) ? get_height() : lineheight;
-			if (maxheight && y >= int(maxheight))
+			if (y >= ymax)
 				return textptr;
 		} else {
 			unsigned tw = get_size(text.substr(oldtextptr, textptr - oldtextptr)).x;
 			if (currwidth + tw >= w) {
 				y += (lineheight == 0) ? get_height() : lineheight;
 				currwidth = 0;
-				if (maxheight && y >= int(maxheight))
+				if (y >= ymax)
 					return oldtextptr;
 			}
 			print(x+currwidth, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
@@ -266,6 +269,8 @@ unsigned font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, cons
 	}
 	return textlen;
 }
+
+
 
 vector2i font::get_size(const string& text) const
 {
@@ -308,6 +313,69 @@ vector2i font::get_size(const string& text) const
 	}
 	if (x == 0) y -= height;
 	return vector2i(xmax, y);
+}
+
+
+
+std::pair<unsigned, unsigned> font::get_nr_of_lines_wrapped(unsigned w, const string& text, unsigned maxlines) const
+{
+	// loop over spaces
+	unsigned currwidth = 0;
+	unsigned textptr = 0, oldtextptr = 0;
+	unsigned textlen = text.length();
+	unsigned nrlines = 1;
+	while (true) {
+		// remove spaces, treat returns
+		while (textptr < textlen) {	// remove spaces at the beginning
+			char c = text[textptr];
+			if (c == '\n') {
+				++nrlines;
+				currwidth = 0;
+				++textptr;
+			} else if (c == ' ') {
+				++textptr;
+			} else if (c == '\t') {
+				++textptr;
+			} else {
+				break;
+			}
+		}
+		oldtextptr = textptr;
+		// collect characters for current word
+		unsigned charw = 0;
+		bool breaktext = false;
+		while ((text[textptr] != '\n' && text[textptr] != ' ' && text[textptr] != '\t') && textptr < textlen) {
+			unsigned c = read_character(text, textptr);
+			charw += get_char_width(c);
+			if (currwidth == 0 && charw >= w) {	// word is longer than line
+				breaktext = true;
+				break;
+			}
+			charw += spacing;
+			textptr = character_right(text, textptr);
+		}
+		if (textlen > 0 && textptr == 0) {	// space is not enough to wrap first word. so disable wrapping
+			w = 0xffffffff;
+			continue;
+		}
+		if (breaktext) {
+			++nrlines;
+			if (maxlines && nrlines > maxlines)
+				break;
+		} else {
+			unsigned tw = get_size(text.substr(oldtextptr, textptr - oldtextptr)).x;
+			if (currwidth + tw >= w) {
+				++nrlines;
+				if (maxlines && nrlines > maxlines)
+					break;
+				currwidth = 0;
+			}
+			currwidth += tw + blank_width;
+		}
+		if (textptr == textlen)
+			break;
+	}
+	return std::make_pair(nrlines, textptr);
 }
 
 

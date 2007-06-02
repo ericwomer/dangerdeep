@@ -28,13 +28,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class logbook_display : public user_display
 {
 protected:
+	const vector2i page_left_offset;
+	const vector2i page_right_offset;
+	const vector2i page_size;
 	std::auto_ptr<image> background;
+	unsigned current_page;
+	mutable unsigned nr_of_pages;
 
-	unsigned actual_entry;
-
-	void print_buffer(unsigned i, const string& t) const;
-	virtual void next_page(unsigned nrentries);
-	virtual void previous_page(unsigned nrentries);
+	void next_page();
+	void previous_page();
 
 public:
 	logbook_display(class user_interface& ui_);
