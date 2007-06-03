@@ -46,6 +46,7 @@ class network_connection;
 class water_splash;
 class particle;
 class convoy;
+class water;
 
 #include "angle.h"
 #include "date.h"
@@ -170,6 +171,9 @@ protected:
 	// time in milliseconds that game is paused between simulation steps.
 	// for small pauses to compensate long image loading times
 	unsigned freezetime, freezetime_start;
+
+	// water height data, and everything around it.
+	std::auto_ptr<water> mywater;
 
 	game();	
 	game& operator= (const game& other);
@@ -342,6 +346,9 @@ public:
 	unsigned get_freezetime() const { return freezetime; }
 	unsigned get_freezetime_start() const { return freezetime_start; }
 	unsigned process_freezetime() { unsigned f = freezetime; freezetime = 0; return f; }
+
+	water& get_water() { return *mywater.get(); }
+	const water& get_water() const { return *mywater.get(); }
 };
 
 #endif

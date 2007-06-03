@@ -34,6 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "user_popup.h"
 
 class game;
+class water;
 
 ///\defgroup interfaces In-game user interfaces
 ///\brief Base class for a user interface for playing the game.
@@ -94,7 +95,6 @@ protected:
 
 	// environmental data
 	std::auto_ptr<class sky> mysky;	// the one and only sky
-	std::auto_ptr<class water> mywater;	// the ocean water
 	coastmap mycoastmap;	// this may get moved to game.h, yet it is used for display only, that's why it is here
 
 	// is display in day mode (or night/redlight mode)?
@@ -153,7 +153,7 @@ public:
 	static user_interface* create(game& gm);
 
 	const sky& get_sky() const { return *(mysky.get()); }
-	const water& get_water() const { return *(mywater.get()); }
+	const water& get_water() const;
 	const coastmap& get_coastmap() const { return mycoastmap; }
 
 	// helper functions

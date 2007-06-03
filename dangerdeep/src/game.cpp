@@ -61,6 +61,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "network.h"
 #include "matrix4.h"
 #include "quaternion.h"
+#include "water.h"
 using std::ostringstream;
 using std::pair;
 using std::make_pair;
@@ -133,6 +134,8 @@ game::game()
 	// empty, so that heirs can construct a game object. Needed for editor
 	freezetime = 0;
 	freezetime_start = 0;
+
+	mywater.reset(new water(0.0));
 }
 
 
@@ -199,6 +202,8 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	
 	date currentdate((unsigned)time);
 	equipment_date = currentdate;	// fixme: another crude guess or hack
+
+	mywater.reset(new water(time));
 
 	// Convoy-constructor creates all the objects and spawns them in this game object.
 	// fixme: creation of convoys should be rather moved to this class, so object creation
@@ -307,6 +312,10 @@ game::game(const string& filename)
 	last_trail_time = gst.attrf("last_trail_time");
 	equipment_date.load(gst.child("equipment_date"));
 	max_view_dist = gst.attrf("max_view_dist");
+
+	// fixme: save original water creation time and random seed with that water was generated.
+	// set the same seed here again, so water is exactly like it was at game start.
+	mywater.reset(new water(time));
 
 	// create empty objects so references can be filled.
 	// there must be ships in a mission...

@@ -97,7 +97,6 @@ user_interface::user_interface(game& gm) :
 {
 	add_loading_screen("coast map initialized");
 	mysky.reset(new sky());
-	mywater.reset(new class water(0.0));
 	panel.reset(new widget(0, 768-32, 1024, 32, "", 0));
 	panel->set_background(panelbackground);
 	// ca. 1024-2*8 for 6 texts => 168 pix. for each text
@@ -303,6 +302,13 @@ user_interface::~user_interface ()
 
 
 
+const water& user_interface::get_water() const
+{
+	return mygame->get_water();
+}
+
+
+
 angle user_interface::get_relative_bearing() const
 {
 	if (bearing_is_relative)
@@ -346,7 +352,7 @@ void user_interface::display() const
 {
 	// fixme: brightness needs sun_pos, so compute_sun_pos() is called multiple times per frame
 	// but is very costly. we could cache it.
-	mywater->set_refraction_color(mygame->compute_light_color(mygame->get_player()->get_pos()));
+	mygame->get_water().set_refraction_color(mygame->compute_light_color(mygame->get_player()->get_pos()));
 	displays[current_display]->display(*mygame);
 
 	// popups
@@ -395,7 +401,7 @@ void user_interface::set_time(double tm)
 	}
 
 	mysky->set_time(tm);
-	mywater->set_time(tm);
+	mygame->get_water().set_time(tm);
 }
 
 
