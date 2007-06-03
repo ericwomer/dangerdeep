@@ -198,6 +198,7 @@ public:
 		std::pair<mesh*, mesh*> split(const vector3f& abc, float d) const;
 
 		bool is_inside(const vector3f& p) const;
+		//fixme: add function to compute total volume
 		vector3 compute_center_of_gravity() const;
 		matrix3 compute_inertia_tensor() const;
 	};
