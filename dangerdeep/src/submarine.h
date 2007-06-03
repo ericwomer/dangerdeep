@@ -85,15 +85,29 @@ protected:
 	double dive_acceleration;	// read from spec file
 	double max_dive_speed;		// read from spec file
 	double max_depth;		// created with some randomness after spec file, must get stored!
+
+	/// variables for dive-helmsman simulation
 	double dive_to;
 	bool permanent_dive;
 
+	/// used to simulate delayed diving because gun needs to be cleared
 	unsigned int delayed_dive_to_depth;
 	double delayed_planes_down;
+
+	/// rudder position that should be set (like horizontal rudder)
 	int bow_to;
+
+	/// rudder position that should be set (like horizontal rudder)
 	int stern_to;
+
+	/// position of bow rudder (degrees)
 	double bow_rudder;
+
+	/// position of stern rudder (degrees)
 	double stern_rudder;
+
+	/// additional mass of submarine given by filled tanks (is added to "mass")
+	double mass_flooded_tanks;
 
 	double max_submerged_speed;	// read from spec file
 
@@ -153,6 +167,8 @@ protected:
 	
 	virtual void gun_manning_changed(bool is_gun_manned);
 
+	/// used to simulate diving
+	void compute_force_and_torque(vector3& F, vector3& T) const;
 
 	// in-hull temperature, depends on weather/latitude etc.
 	// torpedo-temperature is set from this value for stored torpedoes (not in tubes)

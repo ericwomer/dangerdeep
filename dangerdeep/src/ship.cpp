@@ -504,7 +504,7 @@ void ship::simulate(double delta_time)
 	if ( myai.get() )
 		myai->act(gm, delta_time);
 
-	// calculate sinking
+	// calculate sinking, fixme replace by buoyancy...
 	if (is_inactive()) {
 		position.z -= delta_time * SINK_SPEED;
 		if (position.z < -50)	// used for ships.
@@ -734,7 +734,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 		double draught = waterheight - realworldpos.z;
 		double volume = dr_area * buoyancy_factors[i] * draught;
 		double dr_mass = mass * buoyancy_factors[i];
-		double f_gravity = dr_mass * GRAVITY * 0.25/*hack*/;
+		double f_gravity = dr_mass * GRAVITY;
 		double f_lift = volume * 1000.0 * GRAVITY; // 1000kg/m^3
 		lift_forces[i] = f_lift - f_gravity;
 		lift_force_sum += lift_forces[i];
@@ -845,7 +845,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// positive torque turns counter clockwise!
 	// torque is in world space!
 	// if we add torque and drive a sharp turn, sub rolls over -> NaN errors.
-	T = vector3(0, 0, rudder_torque); // + orientation.rotate(dr_torque);
+	T = vector3(0, 0, rudder_torque) + orientation.rotate(dr_torque);
 //	DBGOUT2(hd,T);
 }
 
