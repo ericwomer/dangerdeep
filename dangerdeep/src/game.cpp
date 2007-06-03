@@ -1986,8 +1986,7 @@ vector3 game::compute_moon_pos(const vector3& viewpos) const
 
 double game::compute_water_height(const vector2& pos) const
 {
-	// test hack, later use real owg data from water.cpp, move that data struct here
-	return sin((pos.y + time) * 2*M_PI / 100.0) * sin((pos.x - time*0.5) * 2*M_PI / 100.0) * 2.0;
+	return mywater->get_height(pos);
 }
 
 
