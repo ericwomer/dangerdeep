@@ -92,9 +92,8 @@ void sub_periscope_display::set_modelview_matrix(game& gm, const vector3& viewpo
 
 void sub_periscope_display::post_display(game& gm) const
 {
-#if 1
-	if (use_shaders) {
-		// here we add a test hack for a blurred, watery image
+	if (use_shaders && use_hqsfx) {
+		// here we render scope view as blurred, watery image
 		viewtex->set_gl_texture();
 		projection_data pd = get_projection_data(gm);
 		// copy visible part of viewport to texture
@@ -135,7 +134,6 @@ void sub_periscope_display::post_display(game& gm) const
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
 	}
-#endif
 
 	if (gm.get_player()->get_target()) {
 		projection_data pd = get_projection_data(gm);
@@ -181,7 +179,7 @@ void sub_periscope_display::post_display(game& gm) const
 
 
 sub_periscope_display::sub_periscope_display(user_interface& ui_)
-	: freeview_display(ui_), zoomed(false), use_shaders(false)
+	: freeview_display(ui_), zoomed(false), use_shaders(false), use_hqsfx(false)
 {
 	add_pos = vector3(0, 0, 8);//fixme, depends on sub
 	aboard = true;
@@ -189,6 +187,7 @@ sub_periscope_display::sub_periscope_display(user_interface& ui_)
 	drawbridge = false;
 
 	use_shaders = glsl_program::supported() && cfg::instance().getb("use_shaders");
+	use_hqsfx = (use_shaders && cfg::instance().getb("use_hqsfx"));
 	if (use_shaders) {
 		viewtex.reset(new texture(512, 512, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 		glsl_blurview.reset(new glsl_shader_setup(get_shader_dir() + "blurview.vshader",
