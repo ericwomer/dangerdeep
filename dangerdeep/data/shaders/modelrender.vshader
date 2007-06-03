@@ -54,4 +54,7 @@ void main()
 
 	// finally compute position
 	gl_Position = ftransform();
+
+	// set fog coordinate
+	gl_FogFragCoord = gl_Position.z;
 }

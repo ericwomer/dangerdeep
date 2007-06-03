@@ -52,6 +52,11 @@ void main()
 	// transform vertex to projection space (clip coordinates)
 	gl_Position = ftransform();
 
+	// set fog coordinate
+	// looks worse, as fog color is mainly taken from sun color, and this is wrong
+	// at sunrise etc.
+	//gl_FogFragCoord = gl_Position.z;
+
 	// transform light pos to object space. we assume mvinv has no projection coefficients.
 	// light is directional, so lightpos.w = 0
 	lightdir = normalize(vec3(gl_ModelViewMatrixInverse * gl_LightSource[0].position));

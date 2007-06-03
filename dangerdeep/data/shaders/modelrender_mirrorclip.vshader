@@ -25,6 +25,9 @@ void main()
 	vertex_worldspace.z = max(vertex_worldspace.z, 0.0);
 	gl_Position = gl_ModelViewProjectionMatrix * vertex_worldspace;
 
+	// set fog coordinate
+	gl_FogFragCoord = gl_Position.z;
+
 	// compute texture coordinates
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 }
