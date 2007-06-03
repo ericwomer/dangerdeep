@@ -92,8 +92,8 @@ void main()
 	texc.z -= virtualplane_height;
 	vec4 reflectiontexcoord = reflection_mvp * vec4(texc, 1.0);
 #endif
-	vec3 water_color = mix(refractioncol, vec3(texture2DProj(tex_reflection, reflectiontexcoord)),
-			       fresnel) + specular_color;
+	vec3 reflectioncolor = vec3(texture2DProj(tex_reflection, reflectiontexcoord));
+	vec3 water_color = mix(refractioncol, reflectioncolor, fresnel) + specular_color;
 
 	// fetch amount of foam, sum of texture and cresnel foam, multiplied with luminance
 	// from foam texmap
@@ -104,8 +104,9 @@ void main()
 	vec3 final_color = mix(water_color, vec3(gl_LightSource[0].diffuse), foam_amount);
 
 	// add linear fog
-	float fog_factor = clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0);
+//	float fog_factor = clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0);
+	float fog_factor = exp2(-gl_Fog.density * gl_FogFragCoord * 1.4426940);
 
 	// output color is a mix between fog and final color
-	gl_FragColor = vec4(mix(vec3(gl_Fog.color), final_color, fog_factor), 1.0);
+	gl_FragColor = vec4(mix(reflectioncolor, final_color, fog_factor), 1.0);
 }
