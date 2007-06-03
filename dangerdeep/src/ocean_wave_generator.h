@@ -67,7 +67,6 @@ class ocean_wave_generator
 	std::vector<std::complex<T> > htilde;	// holds values for one fix time.
 	
 	ocean_wave_generator& operator= (const ocean_wave_generator& );
-	ocean_wave_generator(const ocean_wave_generator& );
 	static T myrnd();
 	static std::complex<T> gaussrand();
 	T phillips(const vector2t<T>& K) const;
@@ -89,6 +88,8 @@ public:
 		T tilesize = T(100.0),
 		T cycletime = T(10.0)
 	);
+	/// copy the object, htilde is not copied
+	ocean_wave_generator(const ocean_wave_generator<T>& owg);
 	// make a (smaller) copy, gridsize must be <= owg.gridsize,
 	// clearlowfreq optionally clears lower frequencies, if it is < 0, it clears higher frequencies.
 	ocean_wave_generator(const ocean_wave_generator<T>& owg, int gridsize,
@@ -212,6 +213,20 @@ ocean_wave_generator<T>::ocean_wave_generator(
 {
 	h0tilde.resize((N+1)*(N+1));
 	compute_h0tilde();
+	htilde.resize(N*(N/2+1));
+	fft_in = new FFT_COMPLEX_TYPE[N*(N/2+1)];
+	fft_in2 = new FFT_COMPLEX_TYPE[N*(N/2+1)];
+	fft_out = new FFT_REAL_TYPE[N*N];
+	fft_out2 = new FFT_REAL_TYPE[N*N];
+	plan = FFT_CREATE_PLAN(N, N, fft_in, fft_out, 0);
+	plan2 = FFT_CREATE_PLAN(N, N, fft_in2, fft_out2, 0);
+}
+
+template <class T>
+ocean_wave_generator<T>::ocean_wave_generator(const ocean_wave_generator<T>& owg)
+	: N(owg.N), W(owg.W), v(owg.v), a(owg.a), Lm(owg.Lm), w0(owg.w0), h0tilde(owg.h0tilde)
+{
+	// clear htilde, create new fftw plans.
 	htilde.resize(N*(N/2+1));
 	fft_in = new FFT_COMPLEX_TYPE[N*(N/2+1)];
 	fft_in2 = new FFT_COMPLEX_TYPE[N*(N/2+1)];

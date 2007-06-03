@@ -144,7 +144,7 @@ protected:
 	vector3f get_wave_normal_at(unsigned x, unsigned y) const;
 
 	void compute_amount_of_foam();
-	void generate_wavetile(double tiletime, wavetile_phase& wtp);
+	void generate_wavetile(ocean_wave_generator<float>& myowg, double tiletime, wavetile_phase& wtp);
 	void generate_subdetail_texture();
 
 	// --------------- geoclipmap stuff
@@ -180,17 +180,18 @@ protected:
 	class worker : public thread
 	{
 		water& wa;
+		ocean_wave_generator<float> owg;
+		unsigned ps, pa;
 	public:
-		worker(water& w) : wa(w) {}
+		worker(water& w, unsigned s, unsigned a) : wa(w), owg(w.owg), ps(s), pa(a) {}
 		void loop()
 		{
-			wa.construction_threaded();
+			wa.construction_threaded(owg, ps, pa);
 			request_abort();
 		}
 	};
 
-	thread::auto_ptr<worker> myworker;
-	void construction_threaded();
+	void construction_threaded(ocean_wave_generator<float>& myowg, unsigned phase_start, unsigned phase_add);
 public:
 	water(double tm = 0.0);	// give day time in seconds
 

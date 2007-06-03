@@ -80,6 +80,7 @@ static unsigned cmpdtl(int x)
 	return nextgteqpow2(unsigned(x));
 }
 
+
 water::water(double tm) :
 	mytime(tm),
 	wave_phases(cfg::instance().geti("wave_phases")),
@@ -253,17 +254,6 @@ water::water(double tm) :
 
 	add_loading_screen("water maps inited");
 
-	// here spin off work to other thread
-	//fixme: rather let 2-4 workers construct the data in parallel, this is
-	//much better and easier.
-	myworker.reset(new worker(*this));
-	myworker->start();
-}
-
-
-
-void water::construction_threaded()
-{
 	/*
 	  Idea:
 	  Computing one Height map with FFT takes roughly 2 ms on a 1800Mhz PC (64x64).
@@ -280,41 +270,38 @@ void water::construction_threaded()
 	  Just blend the fft coefficients between two levels for weather changes, like
 	  with the clouds.
 	*/
-	for (unsigned i = 0; i < wave_phases; ++i) {
-		generate_wavetile(wave_tidecycle_time * i / wave_phases, wavetile_data[i]);
+
+	// multithreaded construction of water data (faster).
+	// spawn 1 more thread (or 3 on 4-core cpus, but two threads are already fast enough)
+	thread::auto_ptr<worker> myworker;
+	if (true /* construction multithreaded */) {
+		myworker.reset(new worker(*this, 1, 2));
+		myworker->start();
+		construction_threaded(owg, 0, 2);
+		myworker.reset();
+	} else {
+		construction_threaded(owg, 0, 1);
 	}
+	add_loading_screen("water height data computed");
+
 	// set up curr_wtp and subdetail
 	curr_wtp = 0;
-
-	//add_loading_screen("water height data computed");
-
 #ifdef MEASURE_WAVE_HEIGHTS
 	cout << "total minh " << totalmin << " maxh " << totalmax << "\n";
 #endif
-
 	compute_amount_of_foam();
 
-	//add_loading_screen("foam data per tile computed");
-
-	// compute specular lookup texture
-#if 0
-	const unsigned waterspecularlookup_res = 512;
-	vector<Uint8> waterspecularlookup_tmp(waterspecularlookup_res);
-	for (unsigned i = 0; i < waterspecularlookup_res; ++i)
-		waterspecularlookup_tmp[i] = Uint8(255*pow((double(i)/(waterspecularlookup_res-1)), 50)+0.5);
-	waterspecularlookup.reset(new texture(waterspecularlookup_tmp, waterspecularlookup_res, 1, GL_LUMINANCE,
-					      texture::LINEAR, texture::CLAMP_TO_EDGE));
-#endif
+	add_loading_screen("water created");
+	set_time(mytime);
 }
 
 
 
-void water::finish_construction()
+void water::construction_threaded(ocean_wave_generator<float>& myowg, unsigned phase_start, unsigned phase_add)
 {
-	// lets the worker finish its work, then clears worker-ptr
-	myworker.reset();
-	add_loading_screen("water created");
-	set_time(mytime);
+	for (unsigned i = phase_start; i < wave_phases; i += phase_add) {
+		generate_wavetile(myowg, wave_tidecycle_time * i / wave_phases, wavetile_data[i]);
+	}
 }
 
 
@@ -1171,11 +1158,11 @@ vector3f water::get_normal(const vector2& pos, double rollfac) const
 
 
 
-void water::generate_wavetile(double tiletime, wavetile_phase& wtp)
+void water::generate_wavetile(ocean_wave_generator<float>& myowg, double tiletime, wavetile_phase& wtp)
 {
 	vector<float> heights;
-	owg.set_time(myfmod(tiletime, wave_tidecycle_time));
-	owg.compute_heights(heights);
+	myowg.set_time(myfmod(tiletime, wave_tidecycle_time));
+	myowg.compute_heights(heights);
 	wtp.minh = 1e10;
 	wtp.maxh = -1e10;
 	for (vector<float>::const_iterator it = heights.begin(); it != heights.end(); ++it) {
@@ -1208,7 +1195,7 @@ void water::generate_wavetile(double tiletime, wavetile_phase& wtp)
 	// fixme 5.0 default? - it seems that choppy waves don't look right. bug? fixme, with negative values it seems right. check this!
 	// -2.0f also looks nice, -5.0f is too much. -1.0f should be ok
 	vector<vector2f> displacements;
-	owg.compute_displacements(-2.0f, displacements);
+	myowg.compute_displacements(-2.0f, displacements);
 
 #if 0
 	// compute where foam is generated...

@@ -276,7 +276,6 @@ user_interface::user_interface(game& gm) :
 void user_interface::finish_construction()
 {
 	mycoastmap.finish_construction();
-	mywater->finish_construction();
 }
 
 
