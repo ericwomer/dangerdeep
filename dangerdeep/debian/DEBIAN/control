@@ -1,12 +1,14 @@
 Package: dangerdeep
-Version: 0.2.0
+Version: 0.3.0
 Section: games
 Priority: extra
 Architecture: i386
 Depends: libc6, libgcc1, libsdl-image1.2, libsdl-mixer1.2, libsdl-net1.2, libsdl1.2debian, libstdc++6, xlibmesa-gl | nvidia-glx | libgl1, xlibmesa-glu | libglu1 | libglu1-xorg, fftw3
 Maintainer: Viktor Radnai <efti@gotiao.com>
-Description: Danger from the Deep is a World War II German submarine simulator game.
- The game has custom and historical missions, many different types of submarines, ships
+Description: Danger from the Deep is a World War II
+ German submarine simulator game.
+ The game has custom and historical missions, many different
+ types of submarines, ships
  and other models. It features a fully
  3d environment with OpenGL graphics and physics simulation.
  .

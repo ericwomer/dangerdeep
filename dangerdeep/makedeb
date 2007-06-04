@@ -19,10 +19,20 @@ for dir in DEBIAN $bindir $datadir/dangerdeep $mandir $docdir; do
 done
 
 # to compile and install it
-scons installbindir=\#/$debroot/$bindir datadir=/$datadir/dangerdeep version=$version install usex86sse=1 -j3
+scons installbindir=\#/$debroot/$bindir datadir=/$datadir/dangerdeep version=$version install usex86sse=1 -j3 arch=i686
 
 # remove debug symbols from the binary
 strip -R .comment -x -s $debroot/$bindir/dangerdeep
+
+datafile="dangerdeep-data-$version.zip"
+if [ -f $datafile ]; then
+	echo INCLUDING DATA...
+	dir=`pwd`
+	cd $debroot/$datadir/dangerdeep
+	unzip $dir/$datafile
+	mv data/* . && rmdir data
+	cd $dir
+fi
 
 cp -f doc/man/*.[0-9] $debroot/$mandir
 cp -f ChangeLog $debroot/$docdir/changelog
