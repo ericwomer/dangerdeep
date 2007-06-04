@@ -105,6 +105,7 @@ const char* credits[] = {
 "Andrew Rice",
 "Alexandre Paes",
 "Alexander W. Janssen",
+"vonhalenbach",
 "...",
 "...and all i may have forgotten here (write me!)",
 "(no bockwursts were harmed in the making of this game).",
