@@ -208,9 +208,9 @@ protected:
 
 	// ------------- computed from rigid body variables ----------------
 	vector3 velocity;	// world space velocity
-	double turn_velocity;	// angular velocity around global z-axis (mathematical CCW)
-	double pitch_velocity;	// angular velocity around global x-axis (mathematical CCW)
-	double roll_velocity;	// angular velocity around global y-axis (mathematical CCW)
+	double turn_velocity;	// angular velocity around local z-axis (mathematical CCW)
+	double pitch_velocity;	// angular velocity around local x-axis (mathematical CCW)
+	double roll_velocity;	// angular velocity around local y-axis (mathematical CCW)
 	angle heading;		// global z-orientation is stored additionally
 	vector3 local_velocity;	// recomputed every frame by simulate() method
 

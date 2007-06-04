@@ -94,12 +94,13 @@ void sea_object::compute_helper_values()
 	// hmmm, w2.length is speed, but sign of it depends on direction of w!!!!
 	// if the ship turns right (clockwise), turn_velocity should be positive?
 	// in that case, w is pointing downwards.
-	//DBGOUT5(velocity,local_velocity,heading.value(),turn_velocity,orientation);
+	//DBGOUT6(velocity,local_velocity,heading.value(),turn_velocity,orientation,orientation.length());
 
 	// unit of |w| is revolutions per time, that is 2*Pi/second.
-	vector3 w = orientation.rotate(inertia_tensor_inv * orientation.conj().rotate(angular_momentum));
+	// Note! here w is local. Get global w by rotating it with orientation.rotate(w)
+	vector3 w = inertia_tensor_inv * orientation.conj().rotate(angular_momentum);
 	// turn velocity around z-axis is projection of w to z-axis, that is
-	// simply w.z. Transform to angles per second.
+	// simply w.z. Transform to angles per second. same for x/y.
 	turn_velocity = w.z * (180.0/M_PI);	// could also be named yaw_velocity.
 	pitch_velocity = w.x * (180.0/M_PI);
 	roll_velocity = w.y * (180.0/M_PI);
@@ -549,6 +550,7 @@ void sea_object::simulate(double delta_time)
 	// get force and torque for current time.
 	vector3 force, torque;
 	compute_force_and_torque(force, torque);
+	//DBGOUT6(position, orientation, linear_momentum, angular_momentum, force, torque);
 
 	// compute new position by integrating linear_momentum
 	// M^-1 * P = v, linear_momentum is in object space!

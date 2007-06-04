@@ -742,6 +742,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 		//DBGOUT3(i,lift_forces[i],lift_torque);
 		dr_torque += lift_torque;
 	}
+	// we need to use local angular velocities here.
  	dr_torque.y += (roll_velocity < 0 ? 1.0 : -1.0) * roll_velocity*roll_velocity * 1000000.0; // damping
  	dr_torque.x += (pitch_velocity < 0 ? 1.0 : -1.0) * pitch_velocity*pitch_velocity * 1000000.0; // damping
 	// fixme: velocity was considered local before, not its global!
