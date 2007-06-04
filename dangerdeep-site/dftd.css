@@ -96,6 +96,18 @@ div.code {
 /* gallery */
 div.thumbnails img {
 	border-width: 0px;
+	float: left;
+	margin: 10px;
+}
+
+div.thumbnails
+{
+	clear: both;
+}
+
+h3
+{
+	clear: both;
 }
 
 /* menu */
@@ -135,6 +147,11 @@ img.std {
 /* icons */
 li.gallery a {
 	background: url( 'ddicons/pictures.gif' );
+	background-repeat: no-repeat;
+}
+
+li.forum a {
+	background: url( 'ddicons/monitor_go.gif' );
 	background-repeat: no-repeat;
 }
 
