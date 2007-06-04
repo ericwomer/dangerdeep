@@ -52,9 +52,9 @@ void main()
 	vec3 water_color = mix(refractioncol, reflectioncol, fresnel)
 		+ (specular_color * max(doten, 0.2));
 
-	// add linear fog
-	float fog_factor = clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0);
+	// fog
+	float fog_factor = exp2(-gl_Fog.density * 100.0 * gl_FogFragCoord * 1.442695); // exponential fog
 
 	// output color is a mix between fog and final color
-	gl_FragColor = vec4(mix(vec3(gl_Fog.color), water_color, fog_factor), 1.0);
+	gl_FragColor = vec4(mix(refractioncol, water_color, fog_factor), 1.0);
 }
