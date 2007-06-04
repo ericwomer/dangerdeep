@@ -25,8 +25,8 @@ void main()
 {
 	// compute tangent space
 	// gl_Normal = tangentz
-	const vec3 tangentx = vec3(tangentx_righthanded);
-	const vec3 tangenty = cross(gl_Normal, tangentx) * tangentx_righthanded.w;
+	vec3 tangentx = vec3(tangentx_righthanded);
+	vec3 tangenty = cross(gl_Normal, tangentx) * tangentx_righthanded.w;
 
 	// compute direction to light in object space (L)
 	// light.position.w is 0 or 1, 0 for directional light, 1 for point light
