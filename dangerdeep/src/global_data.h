@@ -93,37 +93,6 @@ inline objcachet<class texture>& texturecache() { return global_data::instance()
 inline objcachet<class font>& fontcache() { return global_data::instance().fontcache; }
 
 
-// define here
-#define CHECK_TORP_SIGSEGV_BUG
-
-// special functions/classes for this check
-#ifdef CHECK_TORP_SIGSEGV_BUG
-#include <map>
-class trashcan
-{
-	std::map<void*, std::pair<double, const char*> > garbageobjs;
-	static trashcan* instance;
- public:
-	trashcan() : time(0) {}
-	void add(void* obj, double gametime, const char* name) {
-		garbageobjs[obj] = std::make_pair(gametime, name);
-	}
-	const char* has_obj(void* obj, double& gametime) const {
-		std::map<void*, std::pair<double, const char*> >::const_iterator it
-			= garbageobjs.find(obj);
-		if (it != garbageobjs.end()) {
-			gametime = it->second.first;
-			return it->second.second;
-		} else {
-			return 0;
-		}
-	}
-	double time; // can be read globally, set by game::simulate
-	static trashcan& inst() { if (!instance) instance = new trashcan(); return *instance; }
-};
-#endif
-	
-
 
 // store in objects where it is needed/ref'd! fixme
 extern class texture *notepadsheet,

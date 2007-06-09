@@ -207,9 +207,3 @@ std::list<std::string> string_split(const std::string& src, char splitter)
 	} while (st != std::string::npos);
 	return result;
 }
-
-
-
-#ifdef CHECK_TORP_SIGSEGV_BUG
-trashcan* trashcan::instance = 0;
-#endif
