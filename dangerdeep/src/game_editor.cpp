@@ -122,6 +122,19 @@ game_editor::~game_editor()
 
 
 
+// copied from class game
+template<class T> void cleanup(ptrset<T>& s)
+{
+	for (unsigned i = 0; i < s.size(); ++i) {
+		if (s[i] && s[i]->is_defunct()) {
+			s.reset(i);
+		}
+	}
+	s.compact();
+}
+
+
+
 void game_editor::simulate(double delta_t)
 {
 	// fixme: time should be freezeable, editor should be able to set time to any
@@ -154,10 +167,20 @@ void game_editor::simulate(double delta_t)
 	// pings / trails are not simulated
 
 	// copied from game
-	// simulation for each object
+	// step 1: check for invalidity of every object and remove
+	// defunct objects. do NOT mix simulate() calls with real
+	// calls to delete an object.
+	cleanup(ships);
+	cleanup(submarines);
+	cleanup(airplanes);
+	cleanup(torpedoes);
+	cleanup(depth_charges);
+	cleanup(gun_shells);
+	cleanup(water_splashes);
+
+	// step 2: simulate all objects, possibly setting state to dead/defunct.
 	// ------------------------------ ships ------------------------------
 	for (unsigned i = 0; i < ships.size(); ++i) {
-		if (!ships[i]) continue;
 		if (ships[i] != player) {
 			double dist = ships[i]->get_pos().distance(player->get_pos());
 			if (dist < nearest_contact) nearest_contact = dist;
@@ -166,16 +189,13 @@ void game_editor::simulate(double delta_t)
 			ships[i]->simulate(delta_t);
 			if (record) ships[i]->remember_position(get_time());
 		}
-		catch (sea_object::is_dead_exception& e) {
-			if (e.delete_obj())
-				ships.reset(i);
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
 		}
 	}
-	ships.compact();
 
 	// ------------------------------ submarines ------------------------------
 	for (unsigned i = 0; i < submarines.size(); ++i) {
-		if (!submarines[i]) continue;
 		if (submarines[i] != player) {
 			double dist = submarines[i]->get_pos().distance(player->get_pos());
 			if (dist < nearest_contact) nearest_contact = dist;
@@ -184,16 +204,13 @@ void game_editor::simulate(double delta_t)
 			submarines[i]->simulate(delta_t);
 			if (record) submarines[i]->remember_position(get_time());
 		}
-		catch (sea_object::is_dead_exception& e) {
-			if (e.delete_obj())
-				submarines.reset(i);
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
 		}
 	}
-	submarines.compact();
 
 	// ------------------------------ airplanes ------------------------------
 	for (unsigned i = 0; i < airplanes.size(); ++i) {
-		if (!airplanes[i]) continue;
 		if (airplanes[i] != player) {
 			double dist = airplanes[i]->get_pos().distance(player->get_pos());
 			if (dist < nearest_contact) nearest_contact = dist;
@@ -201,66 +218,53 @@ void game_editor::simulate(double delta_t)
 		try {
 			airplanes[i]->simulate(delta_t);
 		}
-		catch (sea_object::is_dead_exception& e) {
-			if (e.delete_obj())
-				airplanes.reset(i);
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
 		}
 	}
-	airplanes.compact();
 
 	// ------------------------------ torpedoes ------------------------------
 	for (unsigned i = 0; i < torpedoes.size(); ++i) {
-		if (!torpedoes[i]) continue;
 		try {
 			torpedoes[i]->simulate(delta_t);
 			if (record) torpedoes[i]->remember_position(get_time());
 		}
-		catch (sea_object::is_dead_exception& e) {
-			if (e.delete_obj())
-				torpedoes.reset(i);
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
 		}
 	}
-	torpedoes.compact();
 
 	// ------------------------------ depth_charges ------------------------------
 	for (unsigned i = 0; i < depth_charges.size(); ++i) {
-		if (!depth_charges[i]) continue;
 		try {
 			depth_charges[i]->simulate(delta_t);
 		}
-		catch (sea_object::is_dead_exception& e) {
-			if (e.delete_obj())
-				depth_charges.reset(i);
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
 		}
 	}
-	depth_charges.compact();
 
 	// ------------------------------ gun_shells ------------------------------
 	for (unsigned i = 0; i < gun_shells.size(); ++i) {
-		if (!gun_shells[i]) continue;
 		try {
 			gun_shells[i]->simulate(delta_t);
 		}
-		catch (sea_object::is_dead_exception& e) {
-			if (e.delete_obj())
-				gun_shells.reset(i);
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
 		}
 	}
-	gun_shells.compact();
 
 	// ------------------------------ water_splashes ------------------------------
 	for (unsigned i = 0; i < water_splashes.size(); ++i) {
-		if (!water_splashes[i]) continue;
 		try {
 			water_splashes[i]->simulate(delta_t);
 		}
-		catch (sea_object::is_dead_exception& e) {
-			if (e.delete_obj())
-				water_splashes.reset(i);
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
 		}
 	}
-	water_splashes.compact();
 
+	// for convoys/particles it doesn't hurt to mix simulate() with compact().
 	// ------------------------------ convoys ------------------------------
 	for (unsigned i = 0; i < convoys.size(); ++i) {
 		if (!convoys[i]) continue;

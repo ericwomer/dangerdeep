@@ -17,9 +17,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-//@yalla: define this to go bug hunting
-#undef  BUG_HUNTING_YALLA
-
 // game
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
@@ -643,6 +640,20 @@ void game::compute_max_view_dist()
 	max_view_dist = 5000.0 + compute_light_brightness(player->get_pos(), sundir) * 25000;
 }
 
+
+
+template<class T> void cleanup(ptrset<T>& s)
+{
+	for (unsigned i = 0; i < s.size(); ++i) {
+		if (s[i] && s[i]->is_defunct()) {
+			s.reset(i);
+		}
+	}
+	s.compact();
+}
+
+
+
 void game::simulate(double delta_t)
 {
 	if (my_run_state != running) return;
@@ -701,10 +712,6 @@ void game::simulate(double delta_t)
 
 	double nearest_contact = 1e10;
 
-#ifdef CHECK_TORP_SIGSEGV_BUG
-	trashcan::inst().time = get_time();
-#endif
-
 	// simulation for each object
 	// Note! Simulation order does not matter, so even if object A
 	// "kills" object B and A is simulated before B in one round, B's
@@ -715,9 +722,21 @@ void game::simulate(double delta_t)
 	// And because every reference to a sea_object must be checked for
 	// validity at least every round, we can avoid to reference
 	// deleted objects.
+
+	// step 1: check for invalidity of every object and remove
+	// defunct objects. do NOT mix simulate() calls with real
+	// calls to delete an object.
+	cleanup(ships);
+	cleanup(submarines);
+	cleanup(airplanes);
+	cleanup(torpedoes);
+	cleanup(depth_charges);
+	cleanup(gun_shells);
+	cleanup(water_splashes);
+
+	// step 2: simulate all objects, possibly setting state to dead/defunct.
 	// ------------------------------ ships ------------------------------
 	for (unsigned i = 0; i < ships.size(); ++i) {
-		if (!ships[i]) continue;
 		if (ships[i] != player) {
 			double dist = ships[i]->get_pos().distance(player->get_pos());
 			if (dist < nearest_contact) nearest_contact = dist;
@@ -726,16 +745,13 @@ void game::simulate(double delta_t)
 			ships[i]->simulate(delta_t);
 			if (record) ships[i]->remember_position(get_time());
 		}
-		catch (sea_object::is_dead_exception& e) {
-			if (e.delete_obj())
-				ships.reset(i);
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
 		}
 	}
-	ships.compact();
 
 	// ------------------------------ submarines ------------------------------
 	for (unsigned i = 0; i < submarines.size(); ++i) {
-		if (!submarines[i]) continue;
 		if (submarines[i] != player) {
 			double dist = submarines[i]->get_pos().distance(player->get_pos());
 			if (dist < nearest_contact) nearest_contact = dist;
@@ -744,16 +760,13 @@ void game::simulate(double delta_t)
 			submarines[i]->simulate(delta_t);
 			if (record) submarines[i]->remember_position(get_time());
 		}
-		catch (sea_object::is_dead_exception& e) {
-			if (e.delete_obj())
-				submarines.reset(i);
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
 		}
 	}
-	submarines.compact();
 
 	// ------------------------------ airplanes ------------------------------
 	for (unsigned i = 0; i < airplanes.size(); ++i) {
-		if (!airplanes[i]) continue;
 		if (airplanes[i] != player) {
 			double dist = airplanes[i]->get_pos().distance(player->get_pos());
 			if (dist < nearest_contact) nearest_contact = dist;
@@ -761,88 +774,53 @@ void game::simulate(double delta_t)
 		try {
 			airplanes[i]->simulate(delta_t);
 		}
-		catch (sea_object::is_dead_exception& e) {
-			if (e.delete_obj())
-				airplanes.reset(i);
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
 		}
 	}
-	airplanes.compact();
 
 	// ------------------------------ torpedoes ------------------------------
-	//extra paranoia check, avoid double pointers
 	for (unsigned i = 0; i < torpedoes.size(); ++i) {
-		for (unsigned j = 0; j < torpedoes.size(); ++j) {
-			if (i != j) {
-				if (torpedoes[i] == torpedoes[j]) {
-#ifdef BUG_HUNTING_YALLA
-					printf("BUG! double torpedo pointer %p\n", torpedoes[i]);
-#endif
-					throw error("BUG! paranoia, double torpedo pointer");
-				}
-			}
-		}
-	}
-
-	for (unsigned i = 0; i < torpedoes.size(); ++i) {
-		if (!torpedoes[i]) continue;
 		try {
 			torpedoes[i]->simulate(delta_t);
 			if (record) torpedoes[i]->remember_position(get_time());
 		}
-		catch (sea_object::is_dead_exception& e) {
-			if (e.delete_obj()) {
-#ifdef BUG_HUNTING_YALLA
-				printf("DEL torp %p\n", torpedoes[i]);
-#endif
-#ifdef CHECK_TORP_SIGSEGV_BUG
-				trashcan::inst().add(torpedoes.release(i), time, "Torpedo");
-#else
-				torpedoes.reset(i);
-#endif
-			}
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
 		}
 	}
-	torpedoes.compact();
 
 	// ------------------------------ depth_charges ------------------------------
 	for (unsigned i = 0; i < depth_charges.size(); ++i) {
-		if (!depth_charges[i]) continue;
 		try {
 			depth_charges[i]->simulate(delta_t);
 		}
-		catch (sea_object::is_dead_exception& e) {
-			if (e.delete_obj())
-				depth_charges.reset(i);
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
 		}
 	}
-	depth_charges.compact();
 
 	// ------------------------------ gun_shells ------------------------------
 	for (unsigned i = 0; i < gun_shells.size(); ++i) {
-		if (!gun_shells[i]) continue;
 		try {
 			gun_shells[i]->simulate(delta_t);
 		}
-		catch (sea_object::is_dead_exception& e) {
-			if (e.delete_obj())
-				gun_shells.reset(i);
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
 		}
 	}
-	gun_shells.compact();
 
 	// ------------------------------ water_splashes ------------------------------
 	for (unsigned i = 0; i < water_splashes.size(); ++i) {
-		if (!water_splashes[i]) continue;
 		try {
 			water_splashes[i]->simulate(delta_t);
 		}
-		catch (sea_object::is_dead_exception& e) {
-			if (e.delete_obj())
-				water_splashes.reset(i);
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
 		}
 	}
-	water_splashes.compact();
 
+	// for convoys/particles it doesn't hurt to mix simulate() with compact().
 	// ------------------------------ convoys ------------------------------
 	for (unsigned i = 0; i < convoys.size(); ++i) {
 		if (!convoys[i]) continue;
@@ -938,26 +916,22 @@ template <class T> inline vector<T*> visible_obj(const game* gm, const ptrset<T>
 
 vector<ship*> game::visible_ships(const sea_object* o) const
 {
-	if (!o) throw error("visible_xyz function called with NULL object");
 	return visible_obj<ship>(this, ships, o);
 }
 
 vector<submarine*> game::visible_submarines(const sea_object* o) const
 {
-	if (!o) throw error("visible_xyz function called with NULL object");
 	return visible_obj<submarine>(this, submarines, o);
 }
 
 vector<airplane*> game::visible_airplanes(const sea_object* o) const
 {
-	if (!o) throw error("visible_xyz function called with NULL object");
 	return visible_obj<airplane>(this, airplanes, o);
 }
 
 vector<torpedo*> game::visible_torpedoes(const sea_object* o) const
 {
 //testing: draw all torpedoes
-	if (!o) throw error("visible_xyz function called with NULL object");
 	vector<torpedo*> result;
 	result.reserve(torpedoes.size());
 	// Note!!! all entries of "torpedoes" should be valid pointers here, not
@@ -967,15 +941,9 @@ vector<torpedo*> game::visible_torpedoes(const sea_object* o) const
 	// torpedoes.compress() should remove any null pointers before display
 	// is rendered, but it crashes when drawing trails because of null
 	// pointers...
-#ifdef BUG_HUNTING_YALLA
-	printf("VIS comp:\n");
-#endif
 	for (unsigned k = 0; k < torpedoes.size(); ++k) {
 		if (torpedoes[k] && torpedoes[k]->is_reference_ok()) {
 			result.push_back(torpedoes[k]);
-#ifdef BUG_HUNTING_YALLA
-			printf("add torp %p\n", torpedoes[k]);
-#endif
 		}
 	}
 	return result;
@@ -984,19 +952,16 @@ vector<torpedo*> game::visible_torpedoes(const sea_object* o) const
 
 vector<depth_charge*> game::visible_depth_charges(const sea_object* o) const
 {
-	if (!o) throw error("visible_xyz function called with NULL object");
 	return visible_obj<depth_charge>(this, depth_charges, o);
 }
 
 vector<gun_shell*> game::visible_gun_shells(const sea_object* o) const
 {
-	if (!o) throw error("visible_xyz function called with NULL object");
 	return visible_obj<gun_shell>(this, gun_shells, o);
 }
 
 vector<water_splash*> game::visible_water_splashes(const sea_object* o) const
 {
-	if (!o) throw error("visible_xyz function called with NULL object");
 //testing: draw all 
 	vector<water_splash*> result(water_splashes.size());
 	for (unsigned k = 0; k < water_splashes.size(); ++k)
@@ -1007,7 +972,6 @@ vector<water_splash*> game::visible_water_splashes(const sea_object* o) const
 
 vector<particle*> game::visible_particles(const sea_object* o ) const
 {
-	if (!o) throw error("visible_xyz function called with NULL object");
 	//fixme: this is called for every particle. VERY costly!!!
 	vector<particle*> result;
 	const sensor* s = o->get_sensor(o->lookout_system);
@@ -1016,7 +980,7 @@ vector<particle*> game::visible_particles(const sea_object* o ) const
 	if (!ls) return result;
 	result.reserve(particles.size());
 	for (unsigned i = 0; i < particles.size(); ++i) {
-		if (particles[i] == 0)
+		if (particles[i] == 0) // obsolete test? should be so...
 			throw error("particles[i] is 0!");
 		if (ls->is_detected(this, o, particles[i]))
 			result.push_back(particles[i]);

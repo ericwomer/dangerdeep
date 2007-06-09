@@ -59,10 +59,8 @@ public:
 	/// special class to make handling of dead/defunct objects easier.
 	class is_dead_exception : public std::runtime_error
 	{
-		bool deleteme;
 	public:
-		is_dead_exception(bool delme = true) : std::runtime_error("dead!"), deleteme(delme) {}
-		bool delete_obj() const { return deleteme; }
+		is_dead_exception() : std::runtime_error("dead!") {}
 	};
 
 	// inactive means burning, sinking etc. it just means AI does nothing sensible.
