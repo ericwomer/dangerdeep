@@ -1183,9 +1183,7 @@ void water::generate_wavetile(ocean_wave_generator<float>& myowg, double tiletim
 		osg.write((const char*)&h, 1);
 	}
 #endif
-	float maxabsh = std::max(fabs(wtp.minh), fabs(wtp.maxh));
-	if (maxabsh >= 16.0f)
-		throw error("max. wave height can be 16 meters, internal computation error");
+	//float maxabsh = std::max(fabs(wtp.minh), fabs(wtp.maxh));
 
 	//unsigned hs = heights.size();
 

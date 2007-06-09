@@ -34,7 +34,8 @@ void message::evaluate() const
 		result = true;
 	}
 	catch (std::exception& e) {
-		sys().add_console(std::string("msg eval failed: ") + e.what());
+		// avoid to spam the log. define when needed.
+		// sys().add_console(std::string("msg eval failed: ") + e.what());
 	}
 }
 
