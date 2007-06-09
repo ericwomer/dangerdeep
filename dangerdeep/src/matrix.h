@@ -80,10 +80,16 @@ public:
 			values[i] = D(0.0);
 	}
 
-	// construct in C++ order
+	/// construct in C++ order
         matrixt(D* v) {
 		for (unsigned i = 0; i < size*size; ++i)
 			values[i] = v[i];
+	}
+
+	/// construct from stream
+        matrixt(std::istream& is) {
+		for (unsigned i = 0; i < size*size; ++i)
+			is >> values[i];
 	}
 
 
@@ -154,6 +160,13 @@ public:
 			}
 		}
 		return r;
+	}
+
+	/// print to stream
+	void to_stream(std::ostream& os) const {
+		os << values[0];
+		for (unsigned i = 1; i < size*size; ++i)
+			os << " " << values[i];
 	}
 
 	/// multiply by scalar
