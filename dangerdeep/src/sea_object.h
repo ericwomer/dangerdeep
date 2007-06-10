@@ -67,6 +67,7 @@ public:
 	// objects can be inactive for any time.
 	// when they should be removed, they are set to "dead" state,
 	// which they are for exactly one simulation step (one frame),
+	// then set to "dead2" for one more step,
 	// then their state is set to "defunct".
 	// They stay defunct for exactly one further step,
 	// then are deleted (removed from storage).
@@ -80,7 +81,7 @@ public:
 	// Why these many states? when an object is killed() in game::simulate in the same round
 	// where its own simulate() would get called, but *before* that, its makes two state
 	// changes in one round, leading to error/crash.
-	enum alive_status { defunct, dead, inactive, alive };
+	enum alive_status { defunct, dead2, dead, inactive, alive };
 
 	//fixme: should move to damageable_part class ...
 	enum damage_status { nodamage, lightdamage, mediumdamage, heavydamage, wrecked };
@@ -318,7 +319,7 @@ public:
 	virtual void kill();
 
 	virtual bool is_defunct() const { return alive_stat == defunct; }
-	virtual bool is_dead() const { return alive_stat == dead; }
+	virtual bool is_dead() const { return alive_stat == dead || alive_stat == dead2; }
 	virtual bool is_inactive() const { return alive_stat == inactive; }
 	virtual bool is_alive() const { return alive_stat == alive; }
 	virtual bool is_reference_ok() const { return alive_stat == alive || alive_stat == inactive; }
