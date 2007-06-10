@@ -48,14 +48,18 @@ using namespace std;
     either use draught from CoG or what is given by the model,
     or compute full side cross section and later compute
     part by real draught, by computing volume below water
-    divided by full volume.
-  - measure volume in z-slices (depth = x -> volume below water = y)
-  - determine center of gravity
-  - determine inertia tensor
+    divided by full volume. [DONE]
+  - measure volume in z-slices (depth = x -> volume below water = y) [FIXME]
+  - determine center of gravity [DONE]
+  - determine inertia tensor [DONE]
+  - measure area from above (for computing vertical drag when moving up/down) [FIXME]
+  - maybe render silhuette from above for foam generation.
 
   maybe
   - modify ddxml and add the data
-  - or write extra xml file with all that data.
+  - or write extra xml file with all that data. [DONE]
+
+  remove old crosssection tool&code (SConscript)
 */
 
 int res_x, res_y;
