@@ -713,12 +713,20 @@ void game::simulate(double delta_t)
 	double nearest_contact = 1e10;
 
 	// simulation for each object
-	// Note! Simulation order does not matter, so even if object A
-	// "kills" object B and A is simulated before B in one round, B's
-	// state can go from alive via dead (killed) to defunct (via state
-	// change) in one round. But because state change happens only at
-	// one place, namely in sea_object::simulate, the object is
-	// kept for at least one round before it is really deleted.
+	// Note! Simulation order does not matter, because every killed
+	// object is kept for two rounds (state change to dead2, then
+	// defunct) because state change happens only in
+	// sea_object::simulate.
+	// Even if e.g. three objects A, B, C are simulated in that order.
+	// A has reference to C and B kills C when B is simulated. Then
+	// C's state is dead, and when C is simulated afterwards, its
+	// state changes to dead2. On the next call to game::simulate
+	// the object C is NOT deleted, because it is not defunct
+	// yet, only one round later.
+	// This example shows how it works, and also that we need the
+	// extra dead state "dead2". Otherwise C would have been deleted
+	// before A is simulated again, when A still has a reference to
+	// C which would give a SIGSEGV.
 	// And because every reference to a sea_object must be checked for
 	// validity at least every round, we can avoid to reference
 	// deleted objects.
