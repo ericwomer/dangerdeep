@@ -771,16 +771,14 @@ const sensor* sea_object::get_sensor ( sensor_system ss ) const
 
 void sea_object::compress(std::vector<sea_object*>& vec)
 {
-	unsigned j = vec.size();
-	for (unsigned i = 0; i < j; ) {
+	// this algorithm keeps the order of objects.
+	unsigned j = 0;
+	for (unsigned i = 0; i < vec.size(); ++i) {
 		if (vec[i]->is_reference_ok()) {
-			// element ok
-			++i;
-		} else {
-			// object defunct, swap with last pointer
-			--j;
-			vec[i] = vec[j];
-			vec[j] = 0;
+			sea_object* tmp = vec[i];
+			vec[i] = 0;
+			vec[j] = tmp;
+			++j;
 		}
 	}
 	vec.resize(j);
