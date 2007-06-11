@@ -1,3 +1,2583 @@
+2007-06-11 19:02  polar_bear_
+
+	* doc/dangerdeep_manual_src.zip: More typos corrected + the missing
+	  pictures are back
+
+2007-06-10 21:24  thjordan
+
+	* src/modelmeasure.cpp: add comment
+
+2007-06-10 10:47  thjordan
+
+	* src/sea_object.cpp: let compress() keep the order of objects
+
+2007-06-10 10:28  thjordan
+
+	* src/game.cpp: added comment about new sea_object state.
+
+2007-06-10 10:27  thjordan
+
+	* src/: sea_object.cpp, sea_object.h: introduce new dead2 state to
+	  avoid crashes in some cases.
+
+2007-06-09 22:52  thjordan
+
+	* src/: SConscript, modelmeasure.cpp: new modelmeasure tool
+
+2007-06-09 22:52  thjordan
+
+	* src/matrix.h: offer construction from stream and printing to it
+
+2007-06-09 17:10  thjordan
+
+	* src/: global_data.cpp, global_data.h: remove obsolete output or
+	  checks
+
+2007-06-09 16:52  thjordan
+
+	* src/: message_queue.cpp, water.cpp: remove obsolete output or
+	  checks
+
+2007-06-09 16:51  thjordan
+
+	* src/: game.cpp, game_editor.cpp, sea_object.cpp, sea_object.h:
+	  fixed long outstanding bug where objects are accessed that have
+	  been deleted shortly before.
+
+2007-06-08 21:40  simsoueu
+
+	* data/shaders/modelrender.fshader: We changed fog to exp in
+	  freeview_display, but glsl has linear still. In any case, atm,
+	  it's borked. Needs to be solved for 0.4, so we just disable fog
+	  in the models atm, otherwise, shows black in vessels preview.
+
+2007-06-08 02:22  polar_bear_
+
+	* doc/dangerdeep_manual_src.zip: Updated manual scribus files,
+	  fixed typos, added extra information.
+
+2007-06-06 21:57  simsoueu
+
+	* doc/: dangerdeep_manual.djvu, dangerdeep_manual.pdf,
+	  dangerdeep_manual_src.zip: Added dangerdeep manual pdf, djvu
+	  files. And manual scribus .sla file, with resources, in the zip
+	  file.
+
+2007-06-04 23:57  thjordan
+
+	* debian/DEBIAN/control: changed arch to i686
+
+2007-06-04 23:56  thjordan
+
+	* data/shaders/: under_water.fshader, under_water.vshader: added
+	  exp fog
+
+2007-06-04 23:53  thjordan
+
+	* doc/debian/changelog.Debian: preparations for 0.3.0, no real
+	  info, so remove content
+
+2007-06-04 23:51  thjordan
+
+	* makedeb, version.txt, debian/DEBIAN/control: preparations for
+	  0.3.0
+
+2007-06-04 23:13  yalla
+
+	* src/credits.cpp: Added vonhalenbach, although he was reluctant...
+	  :-)
+
+2007-06-04 20:23  thjordan
+
+	* src/: ship.cpp, sea_object.cpp, sea_object.h: fixed oscillating
+	  values bug
+
+2007-06-04 19:18  thjordan
+
+	* data/shaders/modelrender.vshader: removed errornous const
+
+2007-06-03 22:10  thjordan
+
+	* src/: ship.cpp, submarine.cpp, submarine.h: some bits on physics
+
+2007-06-03 22:08  thjordan
+
+	* src/model.h: added comment
+
+2007-06-03 22:07  thjordan
+
+	* src/game.cpp: compute water height data now from real data
+
+2007-06-03 22:01  thjordan
+
+	* src/: game.cpp, game.h, user_interface.cpp, user_interface.h:
+	  move water object to class game (so water height data can be
+	  requested from game - its a game attribute, not a ui one)
+
+2007-06-03 21:19  thjordan
+
+	* data/shaders/: water.fshader, water.vshader: use exponential fog
+
+2007-06-03 21:14  thjordan
+
+	* src/freeview_display.cpp: use exponential fog
+
+2007-06-03 21:00  thjordan
+
+	* src/: sub_periscope_display.cpp, sub_periscope_display.h: use
+	  blurview only with hqsfx
+
+2007-06-03 11:49  thjordan
+
+	* src/: ocean_wave_generator.h, user_interface.cpp, water.cpp,
+	  water.h: compute water data really multithreaded, not cpu <-> io
+	  parallel
+
+2007-06-03 11:06  thjordan
+
+	* data/shaders/: credits.fshader, modelrender.vshader,
+	  modelrender_mirrorclip.vshader, under_water.vshader,
+	  water.vshader: fixed fog mystery
+
+2007-06-02 17:54  thjordan
+
+	* src/sky.cpp: fog was always disabled but not always enabled
+	  afterwards
+
+2007-06-02 15:12  thjordan
+
+	* src/: font.cpp, logbook_display.cpp: bugfixes
+
+2007-06-02 12:32  thjordan
+
+	* src/: font.cpp, font.h, logbook_display.cpp, logbook_display.h:
+	  improved logbook display with text wrapping
+
+2007-06-01 23:13  thjordan
+
+	* src/subsim.cpp: render dimming box again
+
+2007-06-01 21:22  thjordan
+
+	* src/: subsim.cpp, widget.cpp, widget.h: fixed hall of fame entry
+	  bug
+
+2007-06-01 20:31  thjordan
+
+	* data/objects/submarines/IXc40/submarine_IXc40.data: fixed typo
+
+2007-06-01 19:17  simsoueu
+
+	* data/objects/submarines/IXc40/submarine_IXc40.data: Updated type
+	  IXc40 data file, for VIIc F6 image, temporary/placeholder, until
+	  IXc40 is rebuilt.
+
+2007-06-01 19:17  simsoueu
+
+	* data/objects/submarines/XXI/submarine_XXI.data: Updated type XXI
+	  data file, for VIIc F6 image, temporary/placeholder, until XXI is
+	  rebuilt.
+
+2007-05-30 22:37  simsoueu
+
+	* data/models/: g7a_torpedo.cs, g7a_torpedo.ddxml, g7e_torpedo.cs,
+	  g7e_torpedo.ddxml: Torpedo models had wrong orientation, fixed.
+
+2007-05-30 22:28  simsoueu
+
+	* data/models/: g7a_torpedo.cs, g7a_torpedo.ddxml, g7e_torpedo.cs,
+	  g7e_torpedo.ddxml: Updated G7A and G7E torpedo models, for
+	  correct orientation. Added missing propeller to G7E torpedo.
+
+2007-05-30 22:11  thjordan
+
+	* src/torpedo.cpp: torpedo screws turn
+
+2007-05-30 20:50  thjordan
+
+	* src/torpedo.cpp: fixed FaT turn
+
+2007-05-30 20:35  thjordan
+
+	* src/: credits.cpp, font.cpp, widget.cpp: removed/fixed warnings
+
+2007-05-30 19:54  simsoueu
+
+	* src/: global_data.cpp, global_data.h, map_display.cpp,
+	  sub_torpedo_display.cpp, subsim.cpp, viewmodel.cpp: Cleaned up
+	  fonts usage and updated files for new fonts.
+
+2007-05-30 19:53  simsoueu
+
+	* data/fonts/: font_typenr16.metric, font_typenr16.png: Added
+	  missing fonts and updated existing ones.
+
+2007-05-30 19:52  simsoueu
+
+	* data/fonts/: font_arialbd.metric, font_arialbd.png,
+	  font_damagedtypewriter.metric, font_damagedtypewriter.png,
+	  font_janeaust.metric, font_janeaust.png, font_king.metric,
+	  font_king.png, font_olympiaworn.png, font_times.metric,
+	  font_times.png, font_timesbd.metric, font_timesbd.png,
+	  font_typenr.metric, font_typenr.png, font_verdana.metric,
+	  font_verdana.png, font_verdanabd.metric, font_verdanabd.png,
+	  font_vtportable.metric, font_vtportable.png: Deleted old fonts,
+	  preparing for new fonts patches and files.
+
+2007-05-30 08:23  thjordan
+
+	* src/ship.cpp: added comment
+
+2007-05-30 08:13  thjordan
+
+	* src/: torpedo.cpp, gun_shell.cpp, sea_object.cpp, sea_object.h:
+	  renamed impulse to linear_momentum
+
+2007-05-29 23:16  thjordan
+
+	* src/: freeview_display.cpp, model.cpp: clarify
+	  glPushMatrix/glPopMatrix usage
+
+2007-05-29 23:02  bombardier
+
+	* src/: moon.cpp, sky.cpp, sky.h, water.cpp: water cleanup code,
+	  moon bugfix, sky fixup
+
+2007-05-29 22:36  thjordan
+
+	* data/shaders/under_water.fshader: improved rendering
+
+2007-05-29 22:15  thjordan
+
+	* src/: sea_object.cpp, ship.cpp: more fixes
+
+2007-05-29 21:52  thjordan
+
+	* src/: depth_charge.cpp, freeview_display.cpp, gun_shell.cpp,
+	  sea_object.cpp, sea_object.h, ship.cpp, submarine.cpp,
+	  torpedo.cpp: fixed physics (load, save, computation)
+
+2007-05-29 20:14  yalla
+
+	* data/missions/: aegeanconvoy.xml, flowertest.xml, singleship.xml:
+	  Fixed unicode. Thx to Stefan.
+
+2007-05-28 22:21  thjordan
+
+	* src/ship.cpp: fixed torque computation
+
+2007-05-28 22:08  thjordan
+
+	* src/game.cpp: avoid physics and simulation error by ensuring that
+	  fps for simulate() is greater than 20.
+
+2007-05-28 20:32  thjordan
+
+	* src/: sub_periscope_display.cpp, sub_uzo_display.cpp,
+	  user_interface.cpp, user_interface.h, freeview_display.cpp,
+	  game.cpp, game.h, global_data.h, sea_object.cpp, sea_object.h,
+	  ship.cpp: experiments with roll/pitch torque etc.
+
+2007-05-28 19:49  simsoueu
+
+	* src/stars.cpp: Updated stars brightness scale from linear to
+	  exponential, as suggested by SvH.
+
+2007-05-28 11:10  thjordan
+
+	* src/: ship.cpp, ship.h, torpedo.cpp: new helmsman logic with much
+	  better results.
+
+2007-05-27 23:07  thjordan
+
+	* src/: ship.cpp, ship.h, torpedo.cpp, torpedo.h: torpedoes work
+	  with new physics
+
+2007-05-27 22:31  thjordan
+
+	* src/crosssection.cpp: disabled changes for torpedo cs measure
+
+2007-05-27 22:26  thjordan
+
+	* data/models/: g7a_torpedo.cs, g7e_torpedo.cs: set correct values
+
+2007-05-27 21:15  thjordan
+
+	* src/: ship.cpp, ship.h, torpedo.cpp, torpedo.h: some tries to
+	  make torpedoes work again
+
+2007-05-27 21:11  thjordan
+
+	* src/sensors.cpp: bugfix
+
+2007-05-27 20:35  thjordan
+
+	* data/models/: g7a_torpedo.ddxml, g7e_torpedo.ddxml: fix
+	  orientation
+
+2007-05-27 18:50  thjordan
+
+	* data/shaders/under_water.fshader: make it look a bit more nicer
+
+2007-05-27 18:44  thjordan
+
+	* data/shaders/under_water.fshader: make it look a bit nicer
+
+2007-05-27 18:37  thjordan
+
+	* src/water.cpp: bugfix
+
+2007-05-27 18:29  thjordan
+
+	* src/ship.cpp: remove some debug output
+
+2007-05-27 18:25  thjordan
+
+	* src/ship.cpp: helmsman code works now, with some hacks and
+	  tricks, not good but ok as test
+
+2007-05-27 18:09  thjordan
+
+	* data/sounds/: big gun firing.ogg, big_gun_firing.ogg, deck gun
+	  firing.ogg, deck_gun_firing.ogg, depth charge exploding.ogg,
+	  depth charge launching.ogg, depth_charge_exploding.ogg,
+	  depth_charge_launching.ogg, medium gun firing.ogg,
+	  medium_gun_firing.ogg, shell explosion.ogg, shell splash.ogg,
+	  shell_explosion.ogg, shell_splash.ogg, sound-categories.data:
+	  remove space from filenames
+
+2007-05-27 17:07  thjordan
+
+	* data/fonts/: font_vtremington10.metric, font_vtremington10.png,
+	  font_vtremington12.metric, font_vtremington12.png,
+	  font_vtremington14.metric, font_vtremington14.png,
+	  font_vtremington8.metric, font_vtremington8.png: added new fonts
+
+2007-05-27 12:31  thjordan
+
+	* src/: sea_object.cpp, ship.cpp, ship.h: compute more realistic
+	  turn drag
+
+2007-05-27 11:00  thjordan
+
+	* src/shader.cpp, src/shader.h, src/water.cpp, src/water.h,
+	  data/shaders/water.fshader, data/shaders/water.vshader: new
+	  per-pixel reflections
+
+2007-05-27 11:00  thjordan
+
+	* src/damagemodel.cpp, src/global_data.cpp, src/global_data.h,
+	  src/map_display.cpp, src/ship_interface.cpp,
+	  src/ships_sunk_display.cpp, src/sub_captainscabin_display.cpp,
+	  src/sub_damage_display.cpp, src/subsim.cpp,
+	  src/user_interface.cpp, data/texts/common.csv: new fonts; new
+	  options switch
+
+2007-05-26 20:53  thjordan
+
+	* src/: model.cpp, model.h, viewmodel.cpp: disabled test code;
+	  fixed type in name
+
+2007-05-25 22:57  thjordan
+
+	* src/subsim.cpp: use arial font for ingame displays instead of
+	  font_typenr
+
+2007-05-25 22:01  thjordan
+
+	* src/: sea_object.cpp, ship.cpp: fix physics simulation code,
+	  better turning
+
+2007-05-25 08:22  thjordan
+
+	* src/sea_object.cpp: much more efficient and elegant computation
+	  of w
+
+2007-05-24 23:24  thjordan
+
+	* src/: quaternion.h, sea_object.cpp, ship.cpp: fix in computation
+	  of physics variables, partly fixed sub turning with amok speeds
+
+2007-05-24 20:49  thjordan
+
+	* data/shaders/water.fshader: compute refraction color also with
+	  angle to viewer (more realistic)
+
+2007-05-22 22:50  thjordan
+
+	* src/: freeview_display.cpp, ship.cpp, water.cpp: added more
+	  comments about implementation
+
+2007-05-22 21:58  thjordan
+
+	* src/: sea_object.cpp, sea_object.h, ship.cpp: physics: using new
+	  code for simulating physics, turning does not work right, beware!
+
+2007-05-22 21:57  thjordan
+
+	* src/quaternion.h: new method, to 3x3 matrix
+
+2007-05-22 21:57  thjordan
+
+	* src/freeview_display.cpp: added comment
+
+2007-05-21 23:28  thjordan
+
+	* src/: sea_object.cpp, ship.cpp: physics: added 2 reminder
+	  comments
+
+2007-05-21 23:15  thjordan
+
+	* data/shaders/credits.fshader: fix: int -> float
+
+2007-05-21 23:14  thjordan
+
+	* src/: sea_object.cpp, sea_object.h: physics:
+	  position/impulse/force instead of position/velocity/acceleration
+	  now
+
+2007-05-21 21:33  thjordan
+
+	* src/sea_object.cpp: set some default inertia tensors to work with
+
+2007-05-21 21:08  thjordan
+
+	* src/: sea_object.cpp, sea_object.h, ship.cpp, ship.h: physics:
+	  removed old get_turn_acceleration interface, now fully replaced
+	  by compute_force_and_torque, but currently misusing the new
+	  interface
+
+2007-05-20 21:17  thjordan
+
+	* src/: sea_object.h, ship.cpp: physics change part2: add some more
+	  state variables and comments.
+
+2007-05-20 20:46  thjordan
+
+	* src/: depth_charge.cpp, depth_charge.h, sea_object.cpp,
+	  sea_object.h, ship.cpp, ship.h, torpedo.h, water_splash.h:
+	  physics change part1: remove get_acceleration, replace by
+	  compute_force_and_torque.
+
+2007-05-20 13:37  thjordan
+
+	* src/system.cpp: clean up SDL flags for creating video context.
+
+2007-05-19 17:44  thjordan
+
+	* src/: sub_periscope_display.cpp, sub_periscope_display.h,
+	  sub_uzo_display.cpp, sub_uzo_display.h: ignore elevation in
+	  periscope; allow only +- 20 degrees elevation in UZO.
+
+2007-05-13 10:44  thjordan
+
+	* SConstruct: allow setting architecture for compile
+
+2007-05-13 10:43  thjordan
+
+	* data/shaders/water.vshader: do not normalize viewerdir or values
+	  will be interpolated wrongly
+
+2007-05-10 19:34  thjordan
+
+	* data/shaders/water.fshader: use blinn instead of phong shading
+
+2007-05-08 20:10  thjordan
+
+	* src/sub_periscope_display.cpp: added comment about good idea with
+	  periscope blur texture
+
+2007-05-08 20:09  thjordan
+
+	* data/textures/blurtest.png: better blur texture
+
+2007-05-08 08:58  thjordan
+
+	* data/shaders/: blurview.fshader, blurview.vshader,
+	  credits.fshader, credits.vshader, modelrender.fshader,
+	  modelrender.vshader, modelrender_mirrorclip.fshader,
+	  modelrender_mirrorclip.vshader, under_water.fshader,
+	  under_water.vshader, water.fshader, water.vshader: made shaders
+	  GLSL conform
+
+2007-05-08 00:02  thjordan
+
+	* data/shaders/blurview.fshader, data/shaders/blurview.vshader,
+	  data/textures/blurtest.png, src/sub_periscope_display.cpp,
+	  src/sub_periscope_display.h: added periscope blur view effect
+
+2007-05-07 21:24  thjordan
+
+	* src/: user_interface.cpp, widget.h: enhance checkbox
+	  functionality
+
+2007-05-07 21:23  simsoueu
+
+	* data/objects/ships/destroyers/tribal/: destroyer_tribal.data,
+	  destroyer_tribal.ddxml, tribalv1_nubian_diffuse.jpg: Updated
+	  data, ddxml, for HMS Nubian skin, covering NA/CA/SA areas. Added
+	  skin.
+
+2007-05-07 21:22  thjordan
+
+	* data/texts/common.csv, src/subsim.cpp: make shaders switchable at
+	  runtime
+
+2007-05-06 19:20  thjordan
+
+	* data/texts/: common.csv, formats.csv, languages.csv: added
+	  turkish translation.
+
+2007-05-06 05:04  simsoueu
+
+	* data/objects/ships/destroyers/tribal/: destroyer_tribal.cs,
+	  destroyer_tribal.data, destroyer_tribal.ddxml, tribalv1_bump.jpg,
+	  tribalv1_haida_diffuse.jpg, tribalv1_matabele_diffuse.jpg,
+	  tribalv1_na1941_diffuse.jpg, tribalv1_sikh_diffuse.jpg,
+	  tribalv1_specular.jpg, tribalv1_tartar_diffuse.jpg: New Tribal
+	  class destroyer, cs+revised data, and new textures for all
+	  channels. Textures for 5 skins.
+
+2007-05-06 05:01  simsoueu
+
+	* data/objects/ships/destroyers/tribal/: tribal_bump.png,
+	  tribal_color.jpg, tribal_specular.jpg: Removed old tribal
+	  destroyer maps.
+
+2007-05-02 05:26  simsoueu
+
+	* data/textures/notepadsheet.png: Replaced small notepad image by
+	  new image, consistent with notepad style from torpedo management
+	  screen. Also used in map screen.
+
+2007-05-02 05:25  simsoueu
+
+	* src/sub_torpedo_display.cpp: Updated line 263, to send text a bit
+	  below in small notepad image (for new notepad image).
+
+2007-05-02 02:46  simsoueu
+
+	* data/objects/submarines/IID/: submarine_IId.data,
+	  type2d_torpmanage_sidetop.jpg, type2d_torpmanage_sidetop.png:
+	  Updated IID data file for torpedo management screen entries, and
+	  added respective images.
+
+2007-05-02 02:45  simsoueu
+
+	* data/objects/submarines/IIC/: submarine_IIc.data,
+	  type2c_torpmanage_sidetop.jpg, type2c_torpmanage_sidetop.png:
+	  Updated IIC data file for torpedo management screen entries, and
+	  added respective images.
+
+2007-05-02 02:44  simsoueu
+
+	* data/objects/submarines/IIB/: submarine_IIb.data,
+	  type2b_torpmanage_sidetop.jpg, type2b_torpmanage_sidetop.png:
+	  Added IIb data file entry and images for torpedo management
+	  screen.
+
+2007-05-02 02:42  simsoueu
+
+	* data/objects/submarines/VIIc/: submarine_VIIc.data,
+	  type7c_torpmanage_sidetop.jpg, type7c_torpmanage_sidetop.png:
+	  Updated VIIc data file for torpedo management screen entries, and
+	  added respective entries profile images.
+
+2007-05-02 02:41  simsoueu
+
+	* src/subsim.cpp: Updated subsim.cpp for uboat entries 661, 662,
+	  663 as in common.csv, namely typ.IIb/c/d, as well as respective
+	  menu entries/selection.
+
+2007-05-02 02:39  simsoueu
+
+	* data/texts/common.csv: Updated common.csv for entries 661, 662
+	  and 663, typ.IIb/c/d uboats.
+
+2007-05-01 13:08  thjordan
+
+	* data/maps/default.xml: more bunkers
+
+2007-05-01 13:01  thjordan
+
+	* data/maps/default.xml: fix bunker pos
+
+2007-05-01 12:57  thjordan
+
+	* data/objects/props/bunker_lorient/bunker_lorient.data: added
+	  dummy data to make path handling possible
+
+2007-05-01 12:56  thjordan
+
+	* data/maps/default.xml: added lorient bunker
+
+2007-05-01 12:53  thjordan
+
+	* src/: coastmap.cpp, coastmap.h, freeview_display.cpp,
+	  user_interface.cpp, user_interface.h: added prop rendering to map
+	  to render Lorient bunker as test
+
+2007-05-01 12:39  thjordan
+
+	* src/: datadirs.cpp, datadirs.h: parse for "props" too
+
+2007-05-01 11:49  thjordan
+
+	* src/: music.cpp, music.h: important bugfix: avoid hang in join
+
+2007-04-30 22:54  thjordan
+
+	* src/: sub_torpedo_display.cpp, sub_torpedo_display.h,
+	  submarine.cpp, submarine.h: new torpedo management screen
+
+2007-04-30 22:53  thjordan
+
+	* data/objects/submarines/IIA/type2a_torpmanage_sidetop.png: fixed
+	  wrong color mode
+
+2007-04-30 22:44  thjordan
+
+	* data/: objects/submarines/IIA/submarine_IIa.data,
+	  objects/submarines/IIA/type2a_f6greyscalemask.png,
+	  objects/submarines/IIA/type2a_f6rgbmain.jpg,
+	  objects/submarines/IIA/type2a_torpmanage_sidetop.jpg,
+	  objects/submarines/IIA/type2a_torpmanage_sidetop.png,
+	  images/torpmanage_daylight_background.jpg,
+	  images/torpmanage_redlight_background.jpg,
+	  images/torpmanage_submodelVIIc.png: use new torpedo management
+	  graphics
+
+2007-04-30 21:43  simsoueu
+
+	* data/objects/submarines/IIA/: type2a_f6greyscalemask.png,
+	  type2a_f6rgbmain.jpg: Added side/front rendering of type IIA, for
+	  torpedo management compositing, always default skin shown.
+
+2007-04-30 21:42  simsoueu
+
+	* data/images/: tmanage_cleanbase_daylight.jpg,
+	  tmanage_cleanbase_redlight.jpg: Added generic clean plate for
+	  torpedo management screen background, common on all uboat types.
+
+2007-04-29 17:50  thjordan
+
+	* src/: particle.cpp, particle.h: new fireworks effect
+
+2007-04-29 17:49  thjordan
+
+	* data/textures/: fireworks.png, fireworks_flare.png: new textures
+	  for fireworks
+
+2007-04-29 13:58  thjordan
+
+	* src/submarine_interface.cpp: added hack for fireworks particle
+	  test
+
+2007-04-29 13:57  thjordan
+
+	* src/: particle.cpp, particle.h: added special particle for
+	  fireworks; enhanced particle class interface
+
+2007-04-29 13:47  thjordan
+
+	* data/textures/fireworks.png: added texture for fireworks particle
+
+2007-04-24 00:07  thjordan
+
+	* src/: game.cpp, global_data.cpp, global_data.h, sea_object.cpp:
+	  added special checks to hunt down sigsegv
+
+2007-04-24 00:07  thjordan
+
+	* src/ptrset.h: added auto_ptr like release() method
+
+2007-04-17 21:13  thjordan
+
+	* src/model.cpp: fix computation of inertia tensor; fix model ddxml
+	  writing (index type)
+
+2007-04-17 08:49  thjordan
+
+	* src/model.cpp: use real center of gravity to compute inertia
+	  tensor
+
+2007-04-16 23:36  thjordan
+
+	* src/: matrix.h, matrix3.h, model.cpp, model.h, viewmodel.cpp: now
+	  inertia tensor can be computed
+
+2007-04-16 22:58  thjordan
+
+	* src/: model.cpp, model.h, vector3.h, viewmodel.cpp: now center of
+	  gravity can be computed
+
+2007-04-16 21:24  thjordan
+
+	* src/: model.cpp, model.h, viewmodel.cpp: added "is_inside"
+	  function for models plus test in viewmodel
+
+2007-04-12 22:36  thjordan
+
+	* src/: matrix.h, matrix3.h, matrix4.h, quaternion.h: make matrix
+	  code generic in dimension; added matrix3; added more methods to
+	  matrix class; adapted current code to work with new matrix class.
+	  NOTE: not all methods of matrixt<> template are valid for every
+	  dimension.
+
+2007-04-06 20:47  simsoueu
+
+	* data/objects/submarines/IID/: submarine_IId.data,
+	  typeIId_bump.jpg, typeIId_diffuse_camo1.jpg,
+	  typeIId_diffuse_camo2.jpg, typeIId_diffuse_camo3.jpg,
+	  typeIId_specular.jpg, uboat_IId.cs, uboat_IId.ddxml: Added
+	  typeIId uboat, with 3skins, nodetree set, internal rev 1.1.
+
+2007-04-05 09:00  thjordan
+
+	* src/: water.cpp, freeview_display.cpp, freeview_display.h,
+	  sub_periscope_display.cpp, sub_uzo_display.cpp,
+	  torpedo_camera_display.cpp: fixed torpedo camera view by using
+	  glScissor
+
+2007-04-05 00:06  thjordan
+
+	* src/torpedo_camera_display.cpp: adjusted position
+
+2007-04-04 23:49  thjordan
+
+	* src/: SConscript, game.cpp, game.h, keys.cpp, keys.h,
+	  map_display.cpp, sea_object.h, sub_periscope_display.cpp,
+	  sub_uzo_display.cpp, submarine_interface.cpp,
+	  submarine_interface.h, subsim.cpp, user_interface.cpp,
+	  user_interface.h, torpedo_camera_display.cpp,
+	  torpedo_camera_display.h: removed user_interface::target
+	  (deprecated); added torpedo camera view; use "k" to cycle through
+	  torpedo views
+
+2007-04-04 22:18  thjordan
+
+	* src/credits.cpp: some eye candy
+
+2007-04-03 08:49  thjordan
+
+	* src/viewmodel.cpp: use sphere as "sun"
+
+2007-04-03 08:49  thjordan
+
+	* src/make_mesh.cpp: make spheres with triangle strips
+
+2007-03-31 09:51  thjordan
+
+	* src/submarine.cpp: convert underwater speed from knots to m/s
+	  when reading xml file
+
+2007-03-31 09:32  thjordan
+
+	* src/: game.cpp, sea_object.cpp, sea_object.h: finally fixed bug
+	  about deleted but yet referenced objects; added new handy
+	  function to sea_object class; adjusted important comment about
+	  simulation in class game
+
+2007-03-30 23:11  thjordan
+
+	* src/sea_object.cpp: objects were never deleted since leftover
+	  from last cleanup - fixed this
+
+2007-03-30 23:05  thjordan
+
+	* src/credits.cpp: added Marco
+
+2007-03-30 23:02  thjordan
+
+	* src/credits.cpp: added yalla
+
+2007-03-30 22:59  thjordan
+
+	* src/: sea_object.cpp, sea_object.h: removed recently added zombie
+	  state, not needed
+
+2007-03-30 22:58  thjordan
+
+	* src/game.cpp: added important comment
+
+2007-03-30 22:14  thjordan
+
+	* src/: torpedo.cpp, water_splash.cpp, depth_charge.cpp, game.cpp,
+	  game_editor.cpp, gun_shell.cpp, sea_object.cpp, sea_object.h,
+	  ship.cpp: one more "defunct" like state to keep objects around
+	  one frame longer to avoid crashes; handle dead/defunct objects in
+	  a clever way in simulate()
+
+2007-03-29 23:33  thjordan
+
+	* SConstruct: allow usage of duma
+
+2007-03-29 20:50  thjordan
+
+	* src/: datadirs.cpp, filehelper.cpp, filehelper.h,
+	  freeview_display.cpp, subsim.cpp, widget.cpp: use class for
+	  directory abstraction for safer handling of ressources; this
+	  fixes lost memory
+
+2007-03-29 20:11  thjordan
+
+	* src/subsim.cpp: handle music thread in saner way, now quit with
+	  close-window-event works again
+
+2007-03-29 18:21  simsoueu
+
+	* data/objects/submarines/IIA/uboat_IIa.ddxml: Updated TypeIIA,
+	  fixed small nodetree issue.
+
+2007-03-28 08:40  thjordan
+
+	* src/game.cpp: make console output where earlier the torpedo crash
+	  bug should have occured.
+
+2007-03-28 02:02  simsoueu
+
+	* data/objects/submarines/IIC/: submarine_IIc.data,
+	  typeIIC_bumpmap.jpg, typeIIC_diffuse_skin1.jpg,
+	  typeIIC_diffuse_skin2.jpg, typeIIC_specularmap.jpg, uboat_IIc.cs,
+	  uboat_IIc.ddxml: Added TypeIIC uboat, with nodetrees, skin for
+	  late 1941-1944 use.
+
+2007-03-28 01:51  simsoueu
+
+	* data/objects/submarines/IIB/uboat_IIb.ddxml: Updated type IIB
+	  ddxml (and cs). Was missing the nodetrees structure.
+
+2007-03-27 09:11  thjordan
+
+	* src/game.cpp: possible or probable bugfix for torpedo impact
+	  crash
+
+2007-03-27 09:10  thjordan
+
+	* src/sea_object.cpp: removed obsolete code
+
+2007-03-27 00:11  thjordan
+
+	* src/todo.txt: added note about idea
+
+2007-03-27 00:10  thjordan
+
+	* src/: ships_sunk_display.cpp, game.cpp, game.h, sea_object.cpp,
+	  sea_object.h: fixed segfault in successes&medals screen
+
+2007-03-26 20:19  thjordan
+
+	* src/: music.cpp, music.h, user_interface.cpp: added function to
+	  pause/resume all sfx
+
+2007-03-26 20:01  simsoueu
+
+	* data/images/TDCScreen2_Daylight_base_image.jpg: Updated
+	  TDCscreen2 base image, fixed alpha rings around tube lights.
+
+2007-03-25 13:31  thjordan
+
+	* src/: coastmap.cpp, coastmap.h, user_interface.cpp,
+	  user_interface.h, water.cpp, water.h: use worker threads for CPU
+	  intensive construction of coastmap and water, to parallelize CPU
+	  and IO time or to speed it up on multicore systems.
+
+2007-03-25 13:27  thjordan
+
+	* src/thread.cpp: print info about created and terminated threads
+	  to log
+
+2007-03-25 12:04  thjordan
+
+	* src/: thread.cpp, thread.h: ability to request thread ids
+
+2007-03-24 19:37  thjordan
+
+	* src/: music.cpp, music.h, submarine_interface.cpp: play sounds of
+	  submarine engine
+
+2007-03-24 18:58  thjordan
+
+	* src/: thread.cpp, thread.h: report error messages over thread
+	  boundary
+
+2007-03-24 15:16  thjordan
+
+	* src/: music.cpp, music.h: bugfix: selecting tracks with fade time
+	  works now
+
+2007-03-24 15:08  thjordan
+
+	* src/message_queue.cpp: make log output about failed messages
+
+2007-03-24 11:41  thjordan
+
+	* src/submarine_interface.cpp: bugfix
+
+2007-03-24 11:40  thjordan
+
+	* src/subsim.cpp: handle events directly after retrieving them
+
+2007-03-23 16:44  thjordan
+
+	* src/: credits.cpp, damagemodel.cpp, system.cpp, system.h: removed
+	  obsolete input state handling
+
+2007-03-23 16:36  thjordan
+
+	* src/music.cpp: make notify commands asynchronous
+
+2007-03-23 08:54  thjordan
+
+	* src/: system.cpp, system.h: remove obsolete periodic-call-stuff
+
+2007-03-22 23:46  thjordan
+
+	* src/: SConscript, airplane_interface.cpp, event.cpp,
+	  global_data.cpp, global_data.h, music.cpp, music.h, sound.cpp,
+	  sound.h, sound_effect_names.h, submarine_interface.cpp,
+	  subsim.cpp, user_interface.cpp, user_interface.h,
+	  tools/commandgen.py: new sound system (class music) in place - it
+	  runs in extra thread; disabled soundcache; removed obsolete class
+	  sound; all code uses new music class for sfx playback (still
+	  incomplete though).
+
+2007-03-22 23:43  thjordan
+
+	* src/system.cpp: added rememember comment about SDL_QUIT events
+
+2007-03-22 23:18  thjordan
+
+	* src/: airplane.cpp, cfg.cpp, global_data.cpp, global_data.h,
+	  sea_object.cpp, ship.cpp, submarine.cpp: do not use tinyxml
+	  directly; removed XmlAttrib crap (moved to cfg.cpp, only place
+	  where it is used, and it should be removed there too)
+
+2007-03-22 22:55  simsoueu
+
+	* data/objects/ships/corvettes/flowercorvette_hrcn/:
+	  flowercorvette_hrcn.cs, flowercorvette_hrcn.ddxml: Updated Flower
+	  class corvette, v3, for nodetrees + smoothing.
+
+2007-03-22 22:54  simsoueu
+
+	* data/objects/ships/corvettes/flowercorvette_hcn/:
+	  flowercorvette_hcn.cs, flowercorvette_hcn.ddxml: Updated Flower
+	  class corvette, v2, for nodetrees + smoothing.
+
+2007-03-22 22:53  simsoueu
+
+	* data/objects/ships/corvettes/FlowerClass/: FlowerCorvette_RN.cs,
+	  FlowerCorvette_RN.ddxml: Updated Flower class corvette, v1, for
+	  nodetrees+smoothing.
+
+2007-03-22 22:30  thjordan
+
+	* data/sounds/: boom5.ogg, nshipbell.ogg, sound-categories.data,
+	  torp.ogg: new sound files and category data file
+
+2007-03-21 23:41  simsoueu
+
+	* data/objects/ships/corvettes/flowercorvette_hrcn/:
+	  flowercorvette_hrcn.cs, flowercorvette_hrcn.ddxml: Updated Flower
+	  class corvette, v2, Canadian Navy, with nodetree for turret,
+	  barrel, rudder, propeller.
+
+2007-03-21 22:49  thjordan
+
+	* src/tools/commandgen.py: more features (default parameters),
+	  bugfix
+
+2007-03-21 05:14  simsoueu
+
+	* data/objects/submarines/IIB/: submarine_IIb.data,
+	  typeIIB_bump_camo2.jpg, typeIIB_bumpmap.jpg,
+	  typeIIB_diffuse_camo2.jpg, typeIIB_diffuse_camo3.jpg,
+	  typeIIB_diffusemap.jpg, typeIIB_specularmap.jpg, uboat_IIb.cs,
+	  uboat_IIb.ddxml: Added typ.IIB uboat, with skins for 1937 up to
+	  1943 operations (Black Sea). Nodetree present, with regions in
+	  data files.
+
+2007-03-21 05:10  simsoueu
+
+	* data/objects/submarines/IIA/: submarine_IIa.data,
+	  typeIIA_diffuse_camo2.jpg, typeIIA_diffuse_camo3.jpg,
+	  uboat_IIa.ddxml: Updated typ.IIA uboat ddxml and data files for
+	  early 1937/1939 skins. Nodetree structure retained.
+
+2007-03-21 02:01  rengolin
+
+	* src/submarine_interface.cpp: comments
+
+2007-03-21 01:57  rengolin
+
+	* doc/simulate-flow.txt: detailed listing of how simulate works
+	  this document is being made to elucidate how dangerdeep is
+	  simulating and how much of it could be improved
+
+2007-03-19 19:13  simsoueu
+
+	* data/objects/submarines/IIA/: uboat_IIa.cs, uboat_IIa.ddxml:
+	  Updated TypeIIA. IIA didn't had deck gun, only had attack
+	  periscope. Model now has nodetree structure and correct names
+	  (separated by underscore and numbered).
+
+2007-03-18 01:25  rengolin
+
+	* src/subsim.cpp: results and highscores not working, ommit for now
+
+2007-03-16 22:49  thjordan
+
+	* src/test/testthreads.cpp: added test program for message queues
+	  and threads
+
+2007-03-16 22:48  thjordan
+
+	* src/tools/commandgen.py: added tool to generate c++ code for
+	  command handling from simpler input
+
+2007-03-15 23:49  thjordan
+
+	* src/: thread.cpp, thread.h: improved error handling and thread
+	  object management
+
+2007-03-15 20:42  simsoueu
+
+	* src/subsim.cpp: Updated subsim.cpp (:621/:654) for typeIIA uboat
+	  entry.
+
+2007-03-15 20:39  simsoueu
+
+	* data/texts/common.csv: Updated common entry for typeIIA model.
+
+2007-03-15 20:37  simsoueu
+
+	* data/objects/submarines/IIA/: submarine_IIa.data,
+	  typeIIA_bumpmap.jpg, typeIIA_diffusemap.jpg,
+	  typeIIA_specularmap.jpg, uboat_IIa.cs, uboat_IIa.ddxml: Added
+	  type IIA uboat, internal rev.1.0. Needs to have obsv.periscope
+	  removed, and have tests on constraints, for next version.
+
+2007-03-15 20:32  thjordan
+
+	* src/: framebufferobject.h, shader.cpp, texture.h,
+	  vertexbufferobject.h: use correct pointers with GL types for gl
+	  calls (fixes compile error on macos/ppc64)
+
+2007-03-15 19:19  thjordan
+
+	* src/tools/erisExport.cpp: flip v coordinates
+
+2007-03-14 21:00  thjordan
+
+	* src/thread.cpp: backwards compatibility, include sdl_thread.h too
+
+2007-03-14 20:51  thjordan
+
+	* src/subsim.cpp: improved resolution selection on command line
+
+2007-03-14 08:44  thjordan
+
+	* src/tools/erisExport.cpp: optimization
+
+2007-03-14 00:23  thjordan
+
+	* src/tools/erisExport.cpp: added exporter for maya to ddxml
+
+2007-03-13 00:41  thjordan
+
+	* src/test/msgqueuetest.cpp: added message test
+
+2007-03-13 00:39  thjordan
+
+	* src/: SConscript, message_queue.cpp, message_queue.h, ptrlist.h:
+	  added message queue class
+
+2007-03-12 22:58  thjordan
+
+	* src/subsim.cpp: choosen language is stored in config file
+
+2007-03-12 22:49  thjordan
+
+	* src/test/: README, mutex_test.cpp, parser_test.cpp,
+	  ptrlist_test.cpp, threadtest.cpp: added directory for test
+	  programs and also some small tests
+
+2007-03-12 22:36  thjordan
+
+	* src/: SConscript, condvar.cpp, condvar.h, mutex.cpp, mutex.h,
+	  thread.cpp, thread.h: added classes for condition variables and
+	  threads
+
+2007-03-12 19:39  thjordan
+
+	* src/mutex.h: added comment
+
+2007-03-12 19:35  thjordan
+
+	* src/: SConscript, mutex.cpp, mutex.h: added a mutex class
+
+2007-03-11 11:07  thjordan
+
+	* src/subsim.cpp: request current resolution for initial list
+	  selection
+
+2007-03-11 11:00  thjordan
+
+	* src/: subsim.cpp, system.cpp, system.h: resolution can be changed
+	  in-game
+
+2007-03-10 11:39  thjordan
+
+	* src/: crosssection.cpp, damagemodel.cpp, portal.cpp, subsim.cpp,
+	  system.cpp, system.h, viewmodel.cpp: available video modes of sdl
+	  are now looked up in constructor of system class and can be
+	  requested later (done in subsim.cpp)
+
+2007-03-10 11:11  thjordan
+
+	* src/subsim.cpp: first bits of resolution change (menu)
+
+2007-03-08 22:47  thjordan
+
+	* src/: event.cpp, global_data.cpp, global_data.h,
+	  sound_effect_names.h, submarine_interface.cpp,
+	  user_interface.cpp: moved sound effect name definitions to
+	  another new header file, so we don't need to include
+	  global_data.h for this
+
+2007-03-08 21:20  thjordan
+
+	* src/submarine_interface.cpp: used wrong text to unman gun
+
+2007-03-08 20:28  thjordan
+
+	* data/texts/common.csv: some texts translated/corrected by Felix
+
+2007-03-08 20:27  thjordan
+
+	* src/: sea_object.cpp, ship.cpp, submarine.cpp, texts.cpp,
+	  SConscript, airplane.cpp, convoy.cpp, game.cpp, game_editor.cpp,
+	  parser.cpp, parser.h, token.h, tokencodes.h, tokenizer.cpp,
+	  tokenizer.h: removed obsolete tokenizer; replaced parser by
+	  simpler one, that can read csv files better
+
+2007-03-07 23:26  rengolin
+
+	* test.sh: quick script to test dd
+
+2007-03-06 22:11  thjordan
+
+	* src/: sound.cpp, sound.h, submarine_interface.cpp: added
+	  comments, outcommented unused obsolete function
+
+2007-03-06 21:07  thjordan
+
+	* src/submarine_interface.cpp: bugfix
+
+2007-03-06 21:05  thjordan
+
+	* src/: sound.cpp, submarine.cpp: added comment
+
+2007-03-06 20:17  thjordan
+
+	* src/subsim.cpp: changed comment
+
+2007-03-06 20:05  thjordan
+
+	* src/: SConscript, event.cpp, event.h, game.cpp, game.h,
+	  game_editor.cpp, game_editor.h, ptrlist.h, submarine.cpp,
+	  submarine.h, submarine_interface.cpp, subsim.cpp,
+	  user_interface.cpp, user_interface.h: huge change: class game
+	  does not need user_interface any longer, thus broken circular
+	  dependency, for the price of engine sounds not working any longer
+	  at the moment
+
+2007-03-05 19:22  thjordan
+
+	* src/submarine_interface.cpp: quick bugfix for segfault, but mere
+	  a hack
+
+2007-03-04 01:35  rengolin
+
+	* src/submarine.cpp: few comments, concentrating code
+
+2007-03-03 21:45  thjordan
+
+	* src/: freeview_display.cpp, water.cpp: underwater rendering now
+	  functional, no fancy effects yet
+
+2007-03-03 21:44  thjordan
+
+	* data/shaders/: under_water.fshader, under_water.vshader: new
+	  shaders for underwater rendering
+
+2007-03-03 21:44  thjordan
+
+	* data/shaders/water.vshader: removed obsolete parts
+
+2007-03-03 20:47  rengolin
+
+	* src/submarine.cpp: dive_to_depth changes were too rough, goto
+	  periscope depth affected BUG 1669377 in sf.net fixed
+
+2007-03-03 15:16  thjordan
+
+	* src/: freeview_display.cpp, freeview_display.h, water.cpp,
+	  water.h: first bits of underwater rendering
+
+2007-03-03 15:11  thjordan
+
+	* data/textures/underwater_background.png: new underwater
+	  background color gradient
+
+2007-03-03 14:05  thjordan
+
+	* src/: frustum.cpp, frustum.h, water.cpp: move some commonly
+	  useful code from water to frustum class
+
+2007-03-03 14:05  thjordan
+
+	* src/objcache.h: added comment
+
+2007-03-02 21:22  thjordan
+
+	* src/: freeview_display.cpp, freeview_display.h,
+	  sub_bridge_display.cpp, sub_periscope_display.cpp,
+	  sub_periscope_display.h, sub_uzo_display.cpp, submarine.cpp,
+	  submarine.h: periscope can now be moved in arbitrarily small
+	  steps (with left mouse button and movement)
+
+2007-03-02 14:58  thjordan
+
+	* src/: parser.cpp, tokencodes.h: removed obsolete parts
+
+2007-03-02 14:03  thjordan
+
+	* src/user_interface.cpp: old rain/snow effects can be used again
+	  by enabling the defines
+
+2007-03-02 14:03  thjordan
+
+	* doc/TODO.txt: added some points
+
+2007-02-28 23:33  thjordan
+
+	* src/water.cpp: improved movement of noise texture coordinates.
+
+2007-02-28 19:52  thjordan
+
+	* src/: water.cpp, water.h: remove obsolete parts
+
+2007-02-28 19:50  thjordan
+
+	* src/: freeview_display.cpp, perlinnoise.cpp, perlinnoise.h:
+	  compilation fixes (bad namespace usage)
+
+2007-02-28 19:50  thjordan
+
+	* src/subsim.cpp: remove obsolete config options
+
+2007-02-28 01:06  rengolin
+
+	* doc/TODO.txt: more todo based on performance test of map screen
+
+2007-02-28 00:12  thjordan
+
+	* src/water.cpp, src/water.h, data/shaders/water.fshader,
+	  data/shaders/water.vshader: improved water rendering and noise
+	  handling
+
+2007-02-28 00:11  thjordan
+
+	* src/texture.cpp: added some comments/remarks
+
+2007-02-26 22:54  thjordan
+
+	* src/submarine.cpp: do not load "parts" xml elements, they have to
+	  be loaded in sea_object (active area of re-work)
+
+2007-02-26 22:41  thjordan
+
+	* data/texts/common.csv: added texts that got lost
+
+2007-02-26 22:34  thjordan
+
+	* src/subsim.cpp: do not restart music when leaving hall of fame
+
+2007-02-26 19:50  thjordan
+
+	* src/water.cpp: foam spawning and decay now more realistic
+
+2007-02-25 20:50  thjordan
+
+	* src/: water.cpp, water.h: give amount of foam as vertex attribute
+	  to vertex shader
+
+2007-02-25 20:49  thjordan
+
+	* data/shaders/water.vshader: get amount of foam as vertex
+	  attribute from cpu
+
+2007-02-25 18:43  thjordan
+
+	* src/: water.cpp, water.h: some work to precompute amount of foam
+
+2007-02-25 11:59  thjordan
+
+	* data/shaders/water.fshader: bugfix
+
+2007-02-25 10:43  thjordan
+
+	* src/sky.cpp: fog was accidentally enabled causing strange halo
+	  effect
+
+2007-02-25 03:06  rengolin
+
+	* doc/TODO.txt: todo list, please add yours. Added all fixme in
+	  code.
+
+2007-02-25 02:11  rengolin
+
+	* src/submarine.cpp: In simulate, dive_accel gets sub_velocity as
+	  parameter to know sink/submerge rate. Now, reverse is working,
+	  and planes down/up swapped behaviour (inverse signal). Using
+	  fabs(sub_velocity) to fix that.
+
+2007-02-25 02:09  rengolin
+
+	* src/ship.cpp: get_throttle_accel with signal hack to make reverse
+	  work
+
+2007-02-25 01:19  rengolin
+
+	* src/sea_object.h: enum of parts redundant when we have it on xml
+
+2007-02-24 18:47  thjordan
+
+	* src/water.cpp: new water colors
+
+2007-02-24 18:41  thjordan
+
+	* data/shaders/: water.fshader, water.vshader: some improvements
+
+2007-02-24 14:17  thjordan
+
+	* data/shaders/: water.fshader, water.vshader: improved rendering
+	  quality by some simple changes
+
+2007-02-22 23:02  thjordan
+
+	* src/water.cpp: added comment, test and first code bits to compute
+	  amount of foam per vertex sample
+
+2007-02-22 21:30  thjordan
+
+	* src/water.cpp: one further comment with more results
+
+2007-02-22 21:21  thjordan
+
+	* src/water.cpp: added comment about remaining bug
+
+2007-02-22 21:15  thjordan
+
+	* src/: subsim.cpp, water.cpp: some cleanups and bugfixes of water
+	  rendering code; water detail now configureable
+
+2007-02-22 21:01  thjordan
+
+	* src/sky.cpp: remove unneeded and avoidable "using namespace std"
+
+2007-02-21 00:03  thjordan
+
+	* data/texts/: common.csv, formats.csv, languages.csv: now with
+	  dutch translation
+
+2007-02-20 23:30  thjordan
+
+	* src/freeview_display.cpp, src/subsim.cpp, src/user_interface.cpp,
+	  src/water.cpp, src/water.h, src/water_sse.cpp, src/water_sse.h,
+	  SConstruct: removed obsolete parts from old water code
+
+2007-02-20 23:20  thjordan
+
+	* src/: water.cpp, water.h: completely new way of water rendering
+	  using "geo clipmaps". Code is still experimental in some parts
+	  (see comments and fixmes), but yet faster and has more potential
+	  than old code. sse code and some config options are now obsolete
+
+2007-02-20 18:48  rengolin
+
+	* data/objects/submarines/IXc40/submarine_IXc40.data: unnecessary
+	  space
+
+2007-02-19 22:58  thjordan
+
+	* src/sky.cpp: bugfix for sky z positioning; re-enable sky
+	  rendering
+
+2007-02-19 22:05  bombardier
+
+	* src/: stars.cpp, stars.h: Star twinkle added
+
+2007-02-18 23:43  bombardier
+
+	* data/environment/stars_data.xml, src/SConscript, src/moon.cpp,
+	  src/sky.cpp, src/sky.h, src/stars.cpp, src/stars.h: Star
+	  rendering using star catalogue
+
+2007-02-13 21:19  thjordan
+
+	* doc/: codeguide.pdf, codeguide.tex: added some thoughts about
+	  collision detection
+
+2007-02-12 20:34  thjordan
+
+	* src/: game.cpp, global_data.h, texts.cpp, texts.h: show logbook
+	  entries with daytime, not date
+
+2007-02-12 20:24  thjordan
+
+	* data/texts/formats.csv: new format(s) for hour:minute
+
+2007-02-10 18:20  thjordan
+
+	* data/shaders/credits.fshader: some shader changes
+
+2007-02-10 18:19  thjordan
+
+	* src/credits.cpp: added Matt to website designers
+
+2007-02-10 18:07  thjordan
+
+	* src/credits.cpp: cooler credits with shaders
+
+2007-02-10 18:05  thjordan
+
+	* data/shaders/: credits.fshader, credits.vshader: new shaders for
+	  credit's background
+
+2007-02-10 17:24  thjordan
+
+	* src/: SConscript, credits.cpp, credits.h, subsim.cpp: moved code
+	  to present credits (and text) to separate file
+
+2007-02-08 23:35  thjordan
+
+	* doc/: codeguide.pdf, codeguide.tex: more about rendering
+
+2007-02-08 22:16  thjordan
+
+	* doc/: classdiagram.pdf, classdiagram.png, codeguide.pdf,
+	  codeguide.tex: some minor changes; included class diagram in
+	  codeguide; text is now wider
+
+2007-02-07 03:57  simsoueu
+
+	* src/logbook_display.cpp: Updated logbook_display.cpp for new
+	  ship's log image (just replaced filename).
+
+2007-02-07 03:56  simsoueu
+
+	* data/images/shipslog_main_daylight.jpg: Added ship's log,
+	  internal rev1.1, daylight version.
+
+2007-02-07 03:52  simsoueu
+
+	* data/images/logbook_background.jpg: Removed log book image,
+	  getting ready for final ship's log, with daylight and redlight
+	  versions.
+
+2007-02-06 23:42  thjordan
+
+	* src/: coastmap.cpp, coastmap.h, global_data.cpp, global_data.h,
+	  sub_periscope_display.cpp, sub_tdc_display.cpp, subsim.cpp:
+	  shrink amount of global data (ideally none)
+
+2007-02-06 23:40  thjordan
+
+	* data/textures/: addleadangle.png, flugzeug.png, menuframe.png,
+	  metalbackgr.png: remove obsolete data files
+
+2007-02-05 23:02  thjordan
+
+	* src/user_interface.cpp: adjusted positions in panel by using
+	  right font for width calculation
+
+2007-02-05 20:49  thjordan
+
+	* src/: font.h, global_data.cpp, global_data.h,
+	  logbook_display.cpp, ptrvector.h, subsim.cpp: fonts managed by
+	  cache, making memory management more automatic; new logbook view
+
+2007-02-05 20:48  thjordan
+
+	* data/fonts/: font_damagedtypewriter.pgm, font_janeaust.metric,
+	  font_janeaust.png, font_jphsl.metric, font_jphsl.png,
+	  font_typenr.metric, font_typenr.png, font_vtportable.metric,
+	  font_vtportable.png: new fonts available
+
+2007-02-05 20:05  thjordan
+
+	* src/: font.cpp, font.h: extended print_wrapped
+
+2007-02-04 11:41  thjordan
+
+	* data/fonts/font_king.metric, data/fonts/font_king.png,
+	  data/textures/widgetelements_game.png, src/global_data.cpp,
+	  src/global_data.h, src/subsim.cpp: new font_king, new ingame
+	  widgets
+
+2007-02-04 11:40  thjordan
+
+	* src/logbook_display.cpp: bugfix, reset color
+
+2007-02-04 11:10  thjordan
+
+	* data/images/logbook_background.jpg,
+	  data/textures/logbook_spiral.png, src/logbook_display.cpp,
+	  src/logbook_display.h: new logbook look
+
+2007-02-04 10:54  thjordan
+
+	* src/sky.cpp: fixed sky rendering, VBO for indices was used
+	  totally wrong (indices stored for quads, but quad-strips were
+	  used).
+
+2007-02-04 10:25  thjordan
+
+	* src/sky.cpp: unbind VBOs like it should be done
+
+2007-01-31 00:29  simsoueu
+
+	* data/images/: captainscabin_main_daylight.jpg,
+	  captainscabin_main_redlight.jpg: Updated captain's cabin screen,
+	  daylight+redlight, to internal rev.1.2.
+
+2007-01-30 23:42  bombardier
+
+	* src/: sky.cpp, sky.h: Sky dome is generated in such way that it
+	  has greater vertex density near horizon.
+
+2007-01-30 22:58  thjordan
+
+	* data/images/captainscabin_main_daylight.jpg,
+	  data/images/captainscabin_main_daylight_rev.1.1.jpg,
+	  data/images/captainscabin_main_redlight.jpg,
+	  data/images/captainscabin_main_redlight_rev.1.1.jpg,
+	  src/sub_captainscabin_display.cpp: renamed captain's cabin data
+	  files
+
+2007-01-30 20:25  thjordan
+
+	* src/model.cpp: ignore normal generation faults for buggy meshes
+	  (3ds)
+
+2007-01-29 23:51  thjordan
+
+	* doc/: codeguide.pdf, codeguide.tex: some more introduction and
+	  some bits about c++
+
+2007-01-29 21:55  thjordan
+
+	* src/sky.cpp: remove debug code
+
+2007-01-29 21:54  thjordan
+
+	* src/moon.cpp: clean up texture environment correctly
+
+2007-01-29 21:25  bombardier
+
+	* src/sky.cpp: Sky bug fixed.
+
+2007-01-29 21:25  thjordan
+
+	* src/: SConscript, sub_captainscabin_display.cpp,
+	  sub_captainscabin_display.h, submarine_interface.cpp,
+	  submarine_interface.h: added captains cabin to screens
+
+2007-01-29 21:24  thjordan
+
+	* data/texts/common.csv: added texts for successes/captainscabin
+
+2007-01-29 20:01  thjordan
+
+	* src/model.cpp: fixed the cleanup/deinit code
+
+2007-01-29 19:36  thjordan
+
+	* src/pgm2ddxml.py: use triangle strips as output
+
+2007-01-27 12:00  thjordan
+
+	* src/: model.cpp, model.h: ddxml can now store triangle strips as
+	  primitives, not only triangles
+
+2007-01-27 11:57  thjordan
+
+	* src/viewmodel.cpp: do not write obsolete "off" files
+
+2007-01-27 11:55  thjordan
+
+	* src/pgm2ddxml.py: added tool to generate large meshes
+
+2007-01-27 01:43  simsoueu
+
+	* data/images/: captainscabin_main_daylight_rev.1.1.jpg,
+	  captainscabin_main_redlight_rev.1.1.jpg: Captains cabin main
+	  screen, daylight and night time version, internal rev.1.1.
+	  Already maximum compression without artifacts, do not recompress.
+
+2007-01-26 19:22  thjordan
+
+	* src/water.cpp: clever use of one quad-strip with degenerated
+	  quads as connectors instead of many quad-strips, performance
+	  improvement.
+
+2007-01-26 08:28  thjordan
+
+	* src/sky.cpp: removed obsolete comment
+
+2007-01-25 23:44  thjordan
+
+	* src/: sky.cpp, sky.h: sky uses VBOs now for faster display
+
+2007-01-25 21:48  thjordan
+
+	* data/shaders/modelrender.vshader, src/model.cpp, src/model.h: use
+	  VBO-only code again, shaders use vertex attributes (again, for
+	  now and ever)
+
+2007-01-23 22:27  thjordan
+
+	* src/: model.cpp, model.h: use VBOs for non-shader rendering to
+	  give more performance
+
+2007-01-21 12:43  thjordan
+
+	* doc/: codeguide.pdf, codeguide.tex: more info
+
+2007-01-18 21:26  thjordan
+
+	* src/framebufferobject.cpp: delete in correct order (symmetric to
+	  construction)
+
+2007-01-18 21:24  thjordan
+
+	* src/: texture.cpp, water.cpp: bugfix: normal maps are GL_RGB, not
+	  GL_LUMINANCE; bugfix: bind texture before calling
+	  glTexSubImage2D.
+
+2007-01-17 08:42  thjordan
+
+	* src/framebufferobject.cpp: unbind renderbuffer after creation or
+	  it is always bound
+
+2007-01-16 23:56  thjordan
+
+	* src/model.cpp: unbind shader after rendering
+
+2007-01-16 23:55  thjordan
+
+	* src/shader.cpp: removed printf
+
+2007-01-16 23:54  thjordan
+
+	* src/water.cpp: use glDrawRangeElements, which should be a bit
+	  faster than glDrawElements
+
+2007-01-15 23:12  thjordan
+
+	* src/viewmodel.cpp: record and show fps in console
+
+2007-01-15 23:04  thjordan
+
+	* src/model.cpp: bugfix, bound wrong program
+
+2007-01-15 22:19  thjordan
+
+	* data/shaders/: modelrender_fp.shader,
+	  modelrender_mirrorclip_fp.shader,
+	  modelrender_mirrorclip_vp.shader, modelrender_vp.shader,
+	  water_fp.shader, water_vp.shader: removed obsolete asm shaders,
+	  no longer needed as reference
+
+2007-01-15 22:17  thjordan
+
+	* data/shaders/modelrender.vshader, src/model.cpp, src/model.h:
+	  reverted back to old code using display lists (and color instead
+	  of vertex attributes), because it is much faster
+
+2007-01-15 22:15  thjordan
+
+	* src/: model.cpp, model.h: use multiple VBOs instead one big. This
+	  was suggested as performance improvement for nvidia cards. It
+	  doesnt bring more performance though, rather a slight loss of 1
+	  fps
+
+2007-01-14 11:26  thjordan
+
+	* src/model.cpp, src/model.h, src/shader.cpp, src/shader.h,
+	  data/shaders/modelrender.vshader: use vertex attributes for
+	  tangent-x and righthanded info
+
+2007-01-13 23:13  thjordan
+
+	* src/model.cpp: use glDrawRangeElements for more performance
+
+2007-01-13 19:38  thjordan
+
+	* src/: model.cpp, model.h, vertexbufferobject.cpp,
+	  vertexbufferobject.h: use VBOs to render models instead of
+	  display lists
+
+2007-01-09 21:36  thjordan
+
+	* src/: SConscript, vertexbuffer.cpp, vertexbuffer.h,
+	  vertexbufferobject.cpp, vertexbufferobject.h, water.h: renamed
+	  vertexbuffer to vertexbufferobject
+
+2007-01-08 23:14  thjordan
+
+	* src/water_sse.cpp: added/changed comments
+
+2007-01-08 23:00  thjordan
+
+	* src/water_sse.cpp, src/water_sse.h, src/water.cpp, src/water.h,
+	  SConstruct: store wave height and displacement data as 3*float,
+	  not any longer as 32bit packed value, thus easier handling of
+	  data, and more precision (more performance too), needed for
+	  higher wind speeds; use gcc intrinsics for SSE code always
+	  (removed assembler code), as intrinsics are more portable and
+	  faster on newer gcc versions
+
+2007-01-08 22:59  thjordan
+
+	* src/image.h: include texture.h so destructor of texture is called
+	  properly when stored in ptrvector
+
+2007-01-07 18:24  thjordan
+
+	* src/water.cpp: use sub_image method of texture to avoid permanent
+	  re-creation of textures
+
+2007-01-06 21:41  thjordan
+
+	* src/: texture.cpp, texture.h: offer sub_image method to make
+	  glTexSubImage2d workable with texture class
+
+2007-01-05 02:21  rengolin
+
+	* src/: sea_object.cpp, sea_object.h, sub_damage_display.cpp:
+	  damage list is a vector initialization not hardcoded anymore (but
+	  also not reading frmo XML yet) as it's not in use currently,
+	  that's not a big deal
+
+2007-01-05 02:20  rengolin
+
+	* data/objects/submarines/IXc40/submarine_IXc40.data: TESTING: list
+	  of parts wont break the current readers
+
+2007-01-04 23:33  rengolin
+
+	* src/: sea_object.cpp, sea_object.h, sub_damage_display.cpp,
+	  submarine.cpp, submarine.h: Moving all damage code to sea_object,
+	  where it'll be converted to parts code (damage + buoyancy)
+
+2006-12-27 16:15  thjordan
+
+	* src/water.cpp: added some comments
+
+2006-12-27 14:11  thjordan
+
+	* data/shaders/: modelrender.fshader,
+	  modelrender_mirrorclip.fshader, water.fshader: added fog to
+	  fragment shaders
+
+2006-12-27 12:05  thjordan
+
+	* src/: texture.cpp, texture.h: removed old asm program shader
+	  code. now use GLSL everywhere
+
+2006-12-27 11:26  thjordan
+
+	* data/shaders/water.fshader: small optimization, added comment
+
+2006-12-27 11:06  thjordan
+
+	* data/shaders/water.fshader: removed obsolete comment
+
+2006-12-27 10:31  thjordan
+
+	* src/: shader.cpp, shader.h, water.cpp: fixed bugs with giving
+	  uniforms to shaders, now water shader works
+
+2006-12-26 23:36  thjordan
+
+	* src/: shader.cpp, shader.h, sky.cpp, water.cpp, water.h: water
+	  code uses glsl shaders now
+
+2006-12-26 23:36  thjordan
+
+	* data/shaders/water.fshader: bugfix
+
+2006-12-26 22:50  thjordan
+
+	* data/shaders/: water.fshader, water.vshader: new glsl shaders for
+	  water
+
+2006-12-26 22:50  thjordan
+
+	* data/shaders/modelrender.fshader: added fog
+
+2006-12-26 17:50  thjordan
+
+	* src/: model.cpp, model.h, shader.cpp, shader.h: use new glsl
+	  shaders for models instead of older asm programs
+
+2006-12-26 17:42  thjordan
+
+	* data/shaders/: modelrender.fshader, modelrender.vshader,
+	  modelrender_mirrorclip.fshader, modelrender_mirrorclip.vshader:
+	  new glsl shaders for models ready, added also mirrorclip shaders
+
+2006-12-26 14:25  thjordan
+
+	* data/shaders/: modelrender.fshader, modelrender.vshader: new glsl
+	  shaders for models
+
+2006-12-26 14:25  thjordan
+
+	* src/: shader.cpp, shader.h: use shaders for models, enhanced
+	  functionality
+
+2006-12-25 14:32  thjordan
+
+	* src/: shader.cpp, shader.h: added shader_setup class (handy!)
+
+2006-12-25 14:13  thjordan
+
+	* src/: shader.cpp, shader.h, SConscript: first version of GLSL
+	  wrapper classes
+
+2006-12-21 00:03  thjordan
+
+	* src/: texture.cpp, texture.h: fixed loading of combined jpg/png
+	  images, now they can be loaded as sdl_image, thus
+	  texture::read_from_file got obsolete
+
+2006-12-21 00:03  thjordan
+
+	* src/water.cpp: use GL_STREAM_DRAW instead of GL_STATIC_DRAW with
+	  vertex buffer objects
+
+2006-12-20 22:17  thjordan
+
+	* src/: coastmap.cpp, font.cpp, font.h, image.cpp, image.h,
+	  sub_gauges_display.cpp, sub_gauges_display.h,
+	  sub_torpsetup_display.cpp, subsim.cpp, texture.cpp, texture.h,
+	  widget.cpp: new sdl_image wrapper class; use sdl_image instead of
+	  image for loading image data that is not used like in class
+	  image; removed obsolete cache from class image; made code
+	  exception safe by using sdl_image wrapper
+
+2006-12-20 21:05  thjordan
+
+	* src/ptrvector.h: made exception safe
+
+2006-12-19 20:15  thjordan
+
+	* src/subsim.cpp: maxfps command line switch: allow 0 to disable
+	  maxfps fully
+
+2006-12-19 20:15  thjordan
+
+	* src/perlinnoise.cpp: added comment
+
+2006-12-18 23:52  thjordan
+
+	* src/subsim.cpp: added command line switch for setting maximum fps
+	  value
+
+2006-12-18 23:36  thjordan
+
+	* src/water.cpp: use FBO for foamamounttex too
+
+2006-12-18 23:28  thjordan
+
+	* src/: framebufferobject.cpp, water.cpp: bugfix for detection of
+	  FBOs
+
+2006-12-18 23:13  thjordan
+
+	* src/: framebufferobject.cpp, framebufferobject.h,
+	  freeview_display.cpp, water.cpp, water.h: use framebuffer object
+	  extension if it is supported
+
+2006-12-18 22:44  thjordan
+
+	* src/: SConscript, framebufferobject.cpp, framebufferobject.h:
+	  added opengl frame buffer object wrapper class
+
+2006-12-18 22:23  thjordan
+
+	* src/texture.cpp: clear texels when creating empty texture, so
+	  texture is initialized inside opengl
+
+2006-12-17 21:36  thjordan
+
+	* src/: model.cpp, system.cpp: bugfixes
+
+2006-12-17 20:50  thjordan
+
+	* src/: error.cpp, error.h, subsim.cpp, system.cpp, widget.cpp:
+	  defined new exception(s); use exceptions instead of
+	  system::myassert
+
+2006-12-17 18:33  thjordan
+
+	* src/: sound.cpp, texture.cpp, error.h, music.cpp: new exception;
+	  added some comments
+
+2006-12-14 23:20  thjordan
+
+	* doc/codeguide.tex: added some comments
+
+2006-12-14 23:16  thjordan
+
+	* doc/codeguide.tex: added codeguide, draft document for new
+	  developers
+
+2006-12-14 20:57  thjordan
+
+	* src/subsim.cpp: show loading screen after
+
+2006-12-11 21:25  thjordan
+
+	* src/music.cpp: fixed bugs in order of playing music tracks
+
+2006-12-10 17:46  thjordan
+
+	* src/: subsim.cpp, widget.cpp, widget.h: save more ram: do not
+	  hold invisible widget background images in ram.
+
+2006-12-10 14:08  thjordan
+
+	* src/: texture.cpp, water.cpp: report and use
+	  texture_non_power_of_two better.
+
+2006-12-10 13:49  thjordan
+
+	* data/shaders/water_fp.shader: save two shader instructions
+
+2006-12-09 12:53  thjordan
+
+	* src/: sub_gauges_display.cpp, sub_gauges_display.h,
+	  submarine_interface.cpp: avoid wasting ram, reworked screens to
+	  use the enter()/leave() methods. removed more global data. Also
+	  call enter() on start screen at construction of the
+	  user_interface. This is important.
+
+2006-12-09 11:43  thjordan
+
+	* src/: global_data.cpp, global_data.h, logbook_display.cpp,
+	  logbook_display.h, ships_sunk_display.cpp, ships_sunk_display.h,
+	  sub_bridge_display.cpp, sub_bridge_display.h,
+	  sub_damage_display.cpp, sub_damage_display.h,
+	  sub_gauges_display.cpp, sub_gauges_display.h,
+	  sub_periscope_display.cpp, sub_periscope_display.h,
+	  sub_torpedo_display.cpp, sub_torpedo_display.h,
+	  sub_uzo_display.cpp, sub_uzo_display.h: avoid wasting ram,
+	  reworked screens to use the enter()/leave() methods. removed more
+	  global data.
+
+2006-12-08 17:21  simsoueu
+
+	* CREDITS: Updated credits for Marco's sound effects (in
+	  development-data tree, under Marcos_SFX).
+
+2006-12-07 23:13  thjordan
+
+	* src/: sub_tdc_display.cpp, sub_tdc_display.h,
+	  submarine_interface.cpp: save more ram by using enter/leave
+
+2006-12-07 22:53  uid65557
+
+	* src/texture.cpp: correctly handle non-power-two textures with
+	  gl_height/gl_width members
+
+2006-12-07 22:52  thjordan
+
+	* src/: sub_periscope_display.cpp, sub_periscope_display.h: save
+	  more ram by using enter/leave
+
+2006-12-07 22:00  thjordan
+
+	* src/: sub_kdb_display.cpp, sub_kdb_display.h, sub_bg_display.cpp,
+	  sub_bg_display.h, sub_gauges_display.cpp, sub_gauges_display.h,
+	  sub_ghg_display.cpp, sub_ghg_display.h: save more ram by using
+	  enter/leave
+
+2006-12-07 21:17  thjordan
+
+	* src/: game.cpp, game.h, sub_torpsetup_display.cpp,
+	  sub_torpsetup_display.h, submarine_interface.cpp, user_display.h,
+	  user_interface.cpp, user_interface.h: move initializtation/deinit
+	  of screens to special functions that are called when user
+	  enters/leaves the screen or daymode changes. Thus ram is used
+	  only when screen is visible, with the possibility to save tons of
+	  system and/or video ram.
+
+2006-12-07 19:54  thjordan
+
+	* src/: image.cpp, texture.cpp, texture.h: use texture sizes with
+	  non-power-of-two values if supported to avoid wasting video ram
+
+2006-12-06 22:10  thjordan
+
+	* src/: image.cpp, widget.cpp: added two short comments about
+	  caching and memory usage
+
+2006-12-04 19:16  thjordan
+
+	* src/: freeview_display.cpp, freeview_display.h, global_data.cpp,
+	  global_data.h, objcache.h: move conning tower model from global
+	  data to freeview class
+
+2006-12-02 14:14  thjordan
+
+	* src/texture.cpp: added outcommented code to measure loading times
+
+2006-12-02 14:13  thjordan
+
+	* src/sound.cpp: add comment
+
+2006-12-02 14:11  thjordan
+
+	* src/: global_data.cpp, global_data.h, map_display.cpp,
+	  objcache.h, sub_damage_display.cpp, sub_damage_display.h,
+	  subsim.cpp, user_interface.cpp, viewmodel.cpp, widget.cpp,
+	  widget.h: load images always on demand, saving tons of memory.
+	  later we should add some caching.
+
+2006-12-02 12:01  thjordan
+
+	* src/font.cpp: added comments and disabled test to measure ram
+	  waste
+
+2006-12-01 15:58  doc1972
+
+	* src/filehelper.h: check under WIN32 if WIN32_LEAN_AND_MEAN was
+	  already defined and prevent double definition
+
+2006-12-01 15:53  doc1972
+
+	* src/font.cpp: deleted unused variable codeleftbr
+
+2006-12-01 15:51  doc1972
+
+	* src/global_data.h: check under WIN32 if WIN32_LEAN_AND_MEAN was
+	  already defined and prevent double definition
+
+2006-12-01 15:46  doc1972
+
+	* src/viewmodel.cpp: casts from double to int
+
+2006-12-01 15:42  doc1972
+
+	* src/texture.cpp: typecast from signed to unsigned
+
+2006-12-01 15:38  doc1972
+
+	* src/texture.h: check under WIN32 if WIN32_LEAN_AND_MEAN was
+	  already defined and prevent double definition
+
+2006-12-01 15:32  doc1972
+
+	* src/: sub_bg_display.cpp, sub_ghg_display.cpp: deleted unused
+	  variables sub, si and player
+
+2006-12-01 15:19  doc1972
+
+	* src/sky.cpp: deleted unused variable sky_alpha
+
+2006-12-01 15:16  doc1972
+
+	* src/submarine.cpp: deleted unused (double defined) variable
+	  strength
+
+2006-12-01 15:12  doc1972
+
+	* src/sky.cpp: deleted unused variable moon_alpha
+
+2006-12-01 15:10  doc1972
+
+	* src/ship.cpp: deleted unused variable time_to_rudder_opposite
+
+2006-12-01 15:06  doc1972
+
+	* src/subsim.cpp: commented out unused state
+
+2006-12-01 14:51  doc1972
+
+	* src/widget.cpp: deleted unused variable fw
+
+2006-12-01 14:49  doc1972
+
+	* src/sub_kdb_display.cpp: deleted unused variable sub and si
+
+2006-12-01 14:47  doc1972
+
+	* src/freeview_display.cpp: deleted unused variable sub
+
+2006-12-01 14:46  doc1972
+
+	* src/convoy.cpp: deleted unused variable d
+
+2006-12-01 00:23  doc1972
+
+	* src/gun_shell.cpp: cleared unused variable impact
+
+2006-12-01 00:20  doc1972
+
+	* src/game.cpp: lines 1276;1296 Typecast from double to unsigned
+	  int
+
+2006-12-01 00:14  doc1972
+
+	* src/freeview_display.cpp: cleared unused variable sub
+
+2006-12-01 00:12  doc1972
+
+	* src/convoy.cpp: unused variable d cleared out
+
+2006-12-01 00:10  doc1972
+
+	* src/sub_kdb_display.cpp: unused variables should be commented out
+	  ;-)
+
+2006-12-01 00:06  doc1972
+
+	* src/sub_kdb_display.cpp: cleared up unused variables sub and si
+
+2006-12-01 00:00  doc1972
+
+	* src/sub_torpsetup_display.h: line 56;57 typecast of the result
+	  from unsigned to signed
+
+2006-11-30 23:56  doc1972
+
+	* src/user_interface.cpp: line 438;439 typecast from signed to
+	  unsigned
+
+2006-11-30 23:51  doc1972
+
+	* src/matrix4.h: included check if WIN32_LEAN_AND_MEAN was already
+	  defined and prevent double definition
+
+2006-11-30 23:40  doc1972
+
+	* src/widget.cpp: in draw_area cleanupf of unused variable fw
+
+2006-11-30 23:28  doc1972
+
+	* src/oceantest.cpp: line 122;126 compariosn signed<->unsigned
+	  cleared
+
+2006-11-30 23:24  doc1972
+
+	* src/error.h: included undef ERROR for win32, because it was
+	  already defined in wingdi.h
+
+2006-11-30 23:20  doc1972
+
+	* src/color.h: included check if WIN32_LEAN_AND_MEAN was already
+	  defined
+
+2006-11-30 23:15  doc1972
+
+	* src/credits.h: Michael Kieser hinzugefügt
+
+2006-11-30 22:50  thjordan
+
+	* src/: image.cpp, texture.cpp: undef MEMMEASURE
+
+2006-11-30 22:19  thjordan
+
+	* src/: cfg.h, datadirs.h, logbook_display.cpp, logbook_display.h,
+	  subsim.cpp, system.cpp, texture.cpp, texture.h, viewmodel.cpp,
+	  widget.cpp, widget.h: clean up memory/objects before leaving;
+	  attach pointers/objects to auto_ptr instead of C-like pointer to
+	  have exception-safe code
+
+2006-11-29 00:40  rengolin
+
+	* data/texts/common.csv: more portuguese menus
+
+2006-11-29 00:21  thjordan
+
+	* src/water.cpp: now subdetail is added to wave data
+
+2006-11-28 23:23  thjordan
+
+	* src/water.cpp: more tests
+
+2006-11-28 23:21  rengolin
+
+	* data/texts/: common.csv, languages.csv: translator don't break
+	  lines anymore main menu translated to portuguese
+
+2006-11-28 21:11  rengolin
+
+	* data/texts/common.csv: portuguese translation leaded to paddings,
+	  restarting from scratch
+
+2006-11-28 01:38  rengolin
+
+	* src/: convoy.cpp, map_display.cpp, physics.cpp, physics.h,
+	  sea_object.cpp, sea_object.h, ship.cpp, sub_tdc_display.cpp,
+	  submarine.cpp, torpedo.cpp, user_interface.cpp: Only changing
+	  units methods to physics
+
+2006-11-26 22:28  simsoueu
+
+	* data/LICENSE: Unified license, instead of several files.
+
+2006-11-26 22:27  simsoueu
+
+	* LICENSE: New unified license.
+
+2006-11-26 22:26  simsoueu
+
+	* data/: ARTWORK_LICENSE, Archive_FAQ.htm, Archive_TERMS.htm,
+	  NavalHistoricCenterPolicy.htm,
+	  VeraLynn_-_ImInTheMood_-_LICENSE.htm,
+	  VeraLynn_-_ImInTheMood_-_LICENSE.txt, WW2Incolor_Policy.htm:
+	  Updating for a unified license.
+
+2006-11-26 22:23  simsoueu
+
+	* ARTWORK_LICENSE, LICENSE, LICENSE_README: Making a single unified
+	  license.
+
+2006-11-26 13:33  thjordan
+
+	* doc/: howto_vc_build.txt, vc2005.zip: added VC++2005 howto and
+	  example project files as zip, made by Hiten Parmar
+
+2006-11-26 12:52  thjordan
+
+	* src/: oglext/glext.h, bspline.h, coastmap.cpp, credits.h,
+	  make_mesh.cpp, model.cpp, portal.cpp, sonar.cpp, sonar.h,
+	  sonar_operator.cpp, sonar_operator.h, tone_reproductor.cpp,
+	  tone_reproductor.h, xml.cpp: VC++ compatibility changes
+
+2006-11-24 11:55  doc1972
+
+	* src/: physics.cpp, physics.h: Instantiation of DELTA moved to the
+	  physics.cpp file. Instantiation within the physics.h file gives
+	  errors on some machines. Error is not really known.
+
+2006-11-23 23:42  thjordan
+
+	* src/: water.cpp, water.h: current test code for geoclipmap water
+
+2006-11-23 21:22  thjordan
+
+	* src/: physics.cpp, physics.h: static const does work
+
+2006-11-23 20:54  thjordan
+
+	* src/texture.cpp: added comment
+
+2006-11-23 20:49  thjordan
+
+	* src/freeview_display.cpp: added std::
+
+2006-11-23 20:48  thjordan
+
+	* src/: error.cpp, error.h: improved error handling/reporting
+
+2006-11-23 20:47  thjordan
+
+	* src/: airplane.cpp, depth_charge.cpp, environment.cpp,
+	  ocean_wave_generator.h, physics.cpp, physics.h, plane.h,
+	  sea_object.cpp, ship.cpp, water_splash.cpp: fixed compile
+	  problems: static constants MUST NOT be of double/float or other
+	  type, especially problematic in templates
+
+2006-11-20 21:42  thjordan
+
+	* src/physics.h: added missing include
+
+2006-11-20 20:42  thjordan
+
+	* data/texts/: common.csv, formats.csv, languages.csv: added pt
+	  (brazil) as language
+
+2006-11-19 12:23  thjordan
+
+	* src/matrix4.h: added clear_trans method
+
+2006-11-19 11:46  thjordan
+
+	* src/: SConscript, frustum.cpp, frustum.h, plane.h, polygon.h,
+	  portal.cpp: moved code from portal.cpp to separate files to make
+	  it available generally
+
+2006-11-15 22:20  rengolin
+
+	* src/: SConscript, airplane.cpp, depth_charge.cpp, global_data.h,
+	  ocean_wave_generator.h, sea_object.cpp, ship.cpp,
+	  water_splash.cpp: Introducing environment and physics classes.
+
+	  All physical transformations and contants should be handled
+	  exclusively by those classes. The only thing moved now was the
+	  constant GRAVITY but all methods and algorithms would be migrated
+	  as well.
+
+2006-11-15 20:26  rengolin
+
+	* src/: environment.cpp, environment.h, physics.cpp, physics.h:
+	  environments and physics modules
+
+2006-11-14 23:21  doc1972
+
+	* data/texts/common.csv: line 2 restored from <unused> to "bearing"
+	  line 98 restored from <unused> to "Time x" cz language for this
+	  lines left to <unused>
+
+2006-11-14 22:18  doc1972
+
+	* src/subsim.cpp: included the commandline argument --language
+
+2006-11-11 18:13  simsoueu
+
+	* data/ARTWORK_LICENSE: Updated license, main and data, for
+	  separate packages.
+
+2006-11-11 18:11  simsoueu
+
+	* ARTWORK_LICENSE, LICENSE_README: Cleaned up license files and
+	  updated them for Martin's contributions, as well as some comments
+	  on contributions.
+
+2006-11-11 18:10  simsoueu
+
+	* ARTWORK_LICENSE: Removing duplicate entries, and updating license
+	  for Martin's contributions.
+
+2006-11-11 18:09  simsoueu
+
+	* ARTWORK_LICENSE, LICENSE_README: Removing duplicate entries and
+	  cleaning up things.
+
+2006-11-11 18:03  simsoueu
+
+	* data/LICENSE_README: Updating license information for a smaller
+	  file, removing duplicates.
+
+2006-11-11 17:34  simsoueu
+
+	* LICENSE_README: There was a contradicting point with
+	  LICENSE_README and ARTWORK_LICENSE. Fixed.
+
+2006-11-11 02:31  bombardier
+
+	* src/sky.cpp: Sky sphere is rendered as indexed array of quad
+	  strips.
+
+2006-11-09 21:52  thjordan
+
+	* src/subsim.cpp: available languages are requested at runtime now
+	  and presented as list for selection
+
+2006-11-09 21:49  thjordan
+
+	* data/texts/: formats.csv, common.csv: fixed errors in format
+
+2006-11-09 21:46  thjordan
+
+	* data/texts/: common.csv, formats.csv, languages.csv: added czech
+	  and french language; added new text ressource for date format
+	  string
+
+2006-11-09 21:29  thjordan
+
+	* src/texts.cpp: removed debug output
+
+2006-11-09 21:25  thjordan
+
+	* src/: texts.cpp, texts.h: automatically detect available
+	  languages; format texts with format string
+
+2006-11-09 21:24  thjordan
+
+	* src/global_data.h: added handy helper function
+
+2006-11-09 21:23  thjordan
+
+	* src/game.cpp: use texts class for date string formatting
+
+2006-11-09 21:22  thjordan
+
+	* src/: date.cpp, date.h: removed obsolete functions, use texts
+	  class for date string formatting
+
+2006-11-09 21:17  thjordan
+
+	* src/widget.cpp: fixed typo
+
+2006-11-08 22:53  bombardier
+
+	* src/: sky.cpp, sky.h: Sky sphere is rendered as indexed array of
+	  quads, which eliminates duplicate vertex color computation.
+
+2006-11-08 22:13  simsoueu
+
+	* data/texts/: common.csv, languages.csv: Added Benjamin Carrier's
+	  french translation (thanks Benjamin).
+
+2006-11-07 23:45  thjordan
+
+	* src/moon.cpp: clean up when you change texture environment next
+	  time!!!
+
+2006-11-06 21:08  thjordan
+
+	* data/texts/common.csv: fix empty strings, or otherwise parser
+	  breaks
+
+2006-11-06 20:54  thjordan
+
+	* data/texts/common.csv, src/submarine.cpp,
+	  src/submarine_interface.cpp: remove obsolete texts; shifted 753
+	  ff to 125ff
+
+2006-11-01 21:04  thjordan
+
+	* src/align16_allocator.h: added handy allocator for vectors to get
+	  16-byte aligned memory
+
+2006-10-27 08:32  thjordan
+
+	* data/shaders/water_vp.shader: added reminding comment
+
+2006-10-21 18:48  thjordan
+
+	* src/water.cpp: fix broken cvs version
+
+2006-10-21 16:29  thjordan
+
+	* src/water.cpp: use quad strips for water rendering, do not use
+	  rather obsolete compiled vertex arrays
+
+2006-10-21 16:28  thjordan
+
+	* src/sea_object.cpp: fixed possible sigsegv bug
+
+2006-10-20 08:29  thjordan
+
+	* src/water.cpp: change VBO usage mode
+
+2006-10-20 00:38  thjordan
+
+	* src/: water.cpp, water.h: fixed VBO support for non-shader water
+	  rendering
+
+2006-10-20 00:22  thjordan
+
+	* src/water.cpp: use correct size
+
+2006-10-20 00:21  bombardier
+
+	* src/moon.cpp: Brighter moon
+
+2006-10-20 00:20  thjordan
+
+	* src/: vertexbuffer.cpp, water.cpp, water.h: use more VBOs
+
+2006-10-19 23:43  thjordan
+
+	* src/vertexbuffer.h: added reminding comment
+
+2006-10-19 23:42  thjordan
+
+	* src/: SConscript, vertexbuffer.cpp, vertexbuffer.h, water.cpp,
+	  water.h: added vertex buffer object class; water renderer uses
+	  vertex buffer objects now
+
+2006-10-19 22:13  bombardier
+
+	* src/moon.cpp: Some minor clenup.
+
+2006-10-19 21:37  thjordan
+
+	* src/moon.cpp: small performance improvement
+
+2006-10-19 20:17  thjordan
+
+	* data/textures/moon_n.png, src/moon.cpp: ccompute moon normal map
+	  at runtime
+
+2006-10-19 10:26  bombardier
+
+	* data/textures/: moon_00.png, moon_01.png, moon_02.png,
+	  moon_03.png, moon_04.png, moon_05.png, moon_06.png, moon_07.png,
+	  moon_08.png, moon_09.png, moon_10.png, moon_11.png, moon_12.png,
+	  moon_13.png, moon_14.png, moon_15.png, moon_16.png, moon_17.png,
+	  moon_18.png, moon_19.png, moon_20.png, moon_21.png, moon_22.png,
+	  moon_23.png: New moon rendering using normal mapped quad instead
+	  of hardcoded moon phases. (Removing old moon phase textures)
+
+2006-10-19 10:10  bombardier
+
+	* data/environment/moon_data.xml, data/textures/moon_d.png,
+	  data/textures/moon_n.png, src/moon.cpp, src/moon.h, src/sky.cpp,
+	  src/sky.h: New moon rendering using normal mapped quad instead of
+	  hardcoded moon phases.
+
+2006-10-13 11:54  simsoueu
+
+	* dftd_icon.png, dftd_icon.xpm: Added 32x32px png icons.
+
+2006-10-12 20:48  thjordan
+
+	* SConstruct: check if there is a CVS subdir, and only offer
+	  "tarball" target in that case
+
+2006-10-12 20:25  thjordan
+
+	* data/texts/common.csv, src/ai.cpp, src/faulthandler.h,
+	  src/ship.cpp, src/ship.h, src/submarine.cpp, src/submarine.h,
+	  src/submarine_interface.cpp: bugfixes for deck gun handling
+
+2006-10-12 00:12  thjordan
+
+	* SConstruct: changes to make it compile under win32
+
+2006-10-12 00:12  thjordan
+
+	* src/: game_editor.cpp, map_display.cpp: bugfixes
+
+2006-10-11 21:26  thjordan
+
+	* src/: submarine.cpp, submarine.h, submarine_interface.cpp: when
+	  tubes are empty do not report "torpedo fired" and do not play
+	  launch sound
+
+2006-10-11 21:25  thjordan
+
+	* src/objcache.h: language bugfix
+
+2006-10-11 21:00  thjordan
+
+	* data/texts/common.csv: translated some texts
+
+2006-10-10 23:17  thjordan
+
+	* ChangeLog: updated
+
 2006-10-10 23:08  thjordan
 
 	* version.txt: adapted build system to new way of packaging data
@@ -918,20 +3498,15 @@
 
 2006-07-17 19:20  thjordan
 
-	* data/: airplanes/heinkel115b1_data.xml, airplanes/noname.xml,
-	  ships/battleship_malaya.xml, ships/carrier_bogue.xml,
-	  ships/corvette.xml, ships/destroyer_oclass.xml,
-	  ships/destroyer_tribal.xml, ships/fortship_can1941_data.xml,
-	  ships/fortship_can1943_data.xml,
-	  ships/fortship_nolisciv_data.xml, ships/freighter_large.xml,
-	  ships/freighter_medium.xml, ships/libertyship_1941_data.xml,
-	  ships/libertyship_1942_data.xml, ships/libertyship_1943_data.xml,
-	  ships/merchant_large.xml, ships/merchant_medium.xml,
-	  ships/merchant_small.xml, ships/northsands_camship_data.xml,
-	  ships/tanker_medium.xml, ships/tanker_small.xml,
-	  ships/troopship_medium.xml, submarines/submarine_IXc40.xml,
-	  submarines/submarine_VIIc.xml, submarines/submarine_XXI.xml:
-	  removed old data files
+	* data/ships/: battleship_malaya.xml, carrier_bogue.xml,
+	  corvette.xml, destroyer_oclass.xml, destroyer_tribal.xml,
+	  fortship_can1941_data.xml, fortship_can1943_data.xml,
+	  fortship_nolisciv_data.xml, freighter_large.xml,
+	  freighter_medium.xml, libertyship_1941_data.xml,
+	  libertyship_1942_data.xml, libertyship_1943_data.xml,
+	  merchant_large.xml, merchant_medium.xml, merchant_small.xml,
+	  northsands_camship_data.xml, tanker_medium.xml, tanker_small.xml,
+	  troopship_medium.xml: removed old data files
 
 2006-07-16 15:40  thjordan
 
@@ -1746,11 +4321,6 @@
 	  heinkel115b1_spec.jpg: Heinkel He115B-1 seaplane texture maps,
 	  diff, spec, bump, KuFlgr.406 camouflage, winter.
 
-2006-05-06 20:23  simsoueu
-
-	* data/airplanes/heinkel115b1_data.xml: Heinkel He115B-1 seaplane
-	  data file.
-
 2006-05-06 20:22  simsoueu
 
 	* data/models/: heinkel115b1_model.cs, heinkel115b1_model.xml:
@@ -2298,16 +4868,13 @@
 
 2006-02-12 12:37  thjordan
 
-	* data/airplanes/noname.xml, data/ships/battleship_malaya.xml,
-	  data/ships/carrier_bogue.xml, data/ships/corvette.xml,
-	  data/ships/destroyer_oclass.xml, data/ships/destroyer_tribal.xml,
-	  data/ships/freighter_large.xml, data/ships/freighter_medium.xml,
-	  data/ships/merchant_large.xml, data/ships/merchant_medium.xml,
-	  data/ships/merchant_small.xml, data/ships/tanker_medium.xml,
-	  data/ships/tanker_small.xml, data/ships/troopship_medium.xml,
-	  data/submarines/submarine_IXc40.xml,
-	  data/submarines/submarine_VIIc.xml,
-	  data/submarines/submarine_XXI.xml, data/torpedoes/Fido.xml,
+	* data/ships/battleship_malaya.xml, data/ships/carrier_bogue.xml,
+	  data/ships/corvette.xml, data/ships/destroyer_oclass.xml,
+	  data/ships/destroyer_tribal.xml, data/ships/freighter_large.xml,
+	  data/ships/freighter_medium.xml, data/ships/merchant_large.xml,
+	  data/ships/merchant_medium.xml, data/ships/merchant_small.xml,
+	  data/ships/tanker_medium.xml, data/ships/tanker_small.xml,
+	  data/ships/troopship_medium.xml, data/torpedoes/Fido.xml,
 	  data/torpedoes/TI.xml, data/torpedoes/TII.xml,
 	  data/torpedoes/TIII.xml, data/torpedoes/TIII_FaTII.xml,
 	  data/torpedoes/TIIIa_FaTII.xml, data/torpedoes/TIIIa_LuTI.xml,
@@ -3064,14 +5631,11 @@
 
 2005-11-26 18:53  simsoueu
 
-	* data/: ships/carrier_bogue.xml, ships/corvette.xml,
-	  ships/destroyer_oclass.xml, ships/destroyer_tribal.xml,
-	  ships/freighter_large.xml, ships/freighter_medium.xml,
-	  ships/merchant_large.xml, ships/merchant_medium.xml,
-	  ships/merchant_small.xml, ships/tanker_medium.xml,
-	  ships/tanker_small.xml, ships/troopship_medium.xml,
-	  submarines/submarine_IXc40.xml, submarines/submarine_VIIc.xml,
-	  submarines/submarine_XXI.xml: updated smoke tags on data xmls.
+	* data/ships/: carrier_bogue.xml, corvette.xml,
+	  destroyer_oclass.xml, destroyer_tribal.xml, freighter_large.xml,
+	  freighter_medium.xml, merchant_large.xml, merchant_medium.xml,
+	  merchant_small.xml, tanker_medium.xml, tanker_small.xml,
+	  troopship_medium.xml: updated smoke tags on data xmls.
 
 2005-11-26 18:19  thjordan
 
@@ -3797,10 +6361,10 @@
 
 	* data/models/conning_tower_typeVIIc.xml,
 	  data/models/uboat_VIIc.xml, data/shaders/modelrender_fp.shader,
-	  data/submarines/submarine_VIIc.xml, data/textures/bridge_b.jpg,
-	  data/textures/bridge_c.jpg, data/textures/bridge_s.jpg,
-	  src/freeview_display.cpp, src/global_data.cpp, src/model.h,
-	  src/texture.cpp: new bridge and conning tower
+	  data/textures/bridge_b.jpg, data/textures/bridge_c.jpg,
+	  data/textures/bridge_s.jpg, src/freeview_display.cpp,
+	  src/global_data.cpp, src/model.h, src/texture.cpp: new bridge and
+	  conning tower
 
 2005-09-30 18:47  simsoueu
 
@@ -5110,10 +7674,7 @@
 	* ChangeLog, README, data/missions/aegeanconvoy.xml,
 	  data/missions/battleships.xml, data/ships/battleship_malaya.xml,
 	  data/ships/corvette.xml, data/ships/destroyer_oclass.xml,
-	  data/ships/destroyer_tribal.xml,
-	  data/submarines/submarine_IXc40.xml,
-	  data/submarines/submarine_VIIc.xml,
-	  data/submarines/submarine_XXI.xml, data/texts/english.text,
+	  data/ships/destroyer_tribal.xml, data/texts/english.text,
 	  data/texts/german.text, data/texts/italian.text, src/ai.cpp,
 	  src/game.cpp, src/game.h, src/global_data.cpp, src/global_data.h,
 	  src/map_display.cpp, src/map_display.h, src/sea_object.cpp,
@@ -5323,16 +7884,14 @@
 	* ChangeLog, data/ships/corvette.xml,
 	  data/ships/destroyer_oclass.xml, data/ships/destroyer_tribal.xml,
 	  data/sounds/big gun firing.ogg, data/sounds/medium gun
-	  firing.ogg, data/submarines/submarine_IXc40.xml,
-	  data/submarines/submarine_VIIc.xml,
-	  data/submarines/submarine_XXI.xml, data/texts/english.text,
-	  data/texts/german.text, data/texts/italian.text, src/ai.cpp,
-	  src/game.cpp, src/game.h, src/global_data.cpp, src/global_data.h,
-	  src/gun_shell.cpp, src/gun_shell.h, src/keys.cpp, src/keys.h,
-	  src/ship.cpp, src/ship.h, src/sub_torpedo_display.cpp,
-	  src/submarine.cpp, src/submarine.h, src/submarine_interface.cpp,
-	  src/subsim.cpp, src/user_interface.cpp, src/user_interface.h:
-	  More deck gun/ships gun work and more sound effects.
+	  firing.ogg, data/texts/english.text, data/texts/german.text,
+	  data/texts/italian.text, src/ai.cpp, src/game.cpp, src/game.h,
+	  src/global_data.cpp, src/global_data.h, src/gun_shell.cpp,
+	  src/gun_shell.h, src/keys.cpp, src/keys.h, src/ship.cpp,
+	  src/ship.h, src/sub_torpedo_display.cpp, src/submarine.cpp,
+	  src/submarine.h, src/submarine_interface.cpp, src/subsim.cpp,
+	  src/user_interface.cpp, src/user_interface.h: More deck gun/ships
+	  gun work and more sound effects.
 
 2005-02-24 14:41  andyrice
 
@@ -5880,7 +8439,6 @@
 	* Makefile.am, Makefile.in, SConstruct, aclocal.m4, config.h.in,
 	  configure, configure.ac, depcomp, install-sh, missing,
 	  mkinstalldirs, data/Makefile.am, data/Makefile.in,
-	  data/airplanes/Makefile.am, data/airplanes/Makefile.in,
 	  data/fonts/Makefile.am, data/fonts/Makefile.in,
 	  data/images/Makefile.am, data/images/Makefile.in,
 	  data/maps/Makefile.am, data/maps/Makefile.in,
@@ -5888,7 +8446,6 @@
 	  data/models/Makefile.am, data/models/Makefile.in,
 	  data/ships/Makefile.am, data/ships/Makefile.in,
 	  data/sounds/Makefile.am, data/sounds/Makefile.in,
-	  data/submarines/Makefile.am, data/submarines/Makefile.in,
 	  data/texts/Makefile.am, data/texts/Makefile.in,
 	  data/textures/Makefile.am, data/textures/Makefile.in,
 	  src/Makefile.am, src/Makefile.in, src/README-Developers.txt,
@@ -7350,11 +9907,8 @@
 
 2004-05-14 11:40  thjordan
 
-	* ChangeLog, data/submarines/submarine_IXc40.xml,
-	  data/submarines/submarine_VIIc.xml,
-	  data/submarines/submarine_XXI.xml, src/submarine.cpp,
-	  src/submarine.h, src/submarine_interface.cpp: added depths data
-	  to subs
+	* ChangeLog, src/submarine.cpp, src/submarine.h,
+	  src/submarine_interface.cpp: added depths data to subs
 
 2004-05-14 11:09  thjordan
 
@@ -7396,11 +9950,6 @@
 	  src/game.cpp, src/sea_object.cpp: custom missions can be started
 	  now, subs have no torpedoes yet
 
-2004-05-11 23:17  thjordan
-
-	* data/airplanes/noname.xml: added a test airplane xml file so that
-	  automake builds a dist bzip2
-
 2004-05-11 11:10  thjordan
 
 	* data/ships/battleship_malaya.xml, data/ships/carrier_bogue.xml,
@@ -7408,12 +9957,9 @@
 	  data/ships/freighter_large.xml, data/ships/freighter_medium.xml,
 	  data/ships/merchant_large.xml, data/ships/merchant_medium.xml,
 	  data/ships/merchant_small.xml, data/ships/tanker_small.xml,
-	  data/ships/troopship_medium.xml,
-	  data/submarines/submarine_IXc40.xml,
-	  data/submarines/submarine_VIIc.xml,
-	  data/submarines/submarine_XXI.xml, src/game.h,
-	  src/sea_object.cpp, src/sea_object.h: reading descriptions works,
-	  now vessel preview works fully
+	  data/ships/troopship_medium.xml, src/game.h, src/sea_object.cpp,
+	  src/sea_object.h: reading descriptions works, now vessel preview
+	  works fully
 
 2004-05-11 00:08  thjordan
 
@@ -7425,33 +9971,25 @@
 
 2004-05-10 21:59  thjordan
 
-	* data/submarines/submarine_IXc40.xml,
-	  data/submarines/submarine_VIIc.xml,
-	  data/submarines/submarine_XXI.xml, src/game.cpp,
-	  src/submarine.cpp, src/subsim.cpp: more on xml works, more
-	  objects are translated to new code
+	* src/: game.cpp, submarine.cpp, subsim.cpp: more on xml works,
+	  more objects are translated to new code
 
 2004-05-10 15:47  thjordan
 
-	* configure, configure.ac, data/airplanes/Makefile.in,
-	  data/ships/Makefile.in, data/submarines/Makefile.in: added
-	  missing Makefile.in
+	* configure, configure.ac, data/ships/Makefile.in: added missing
+	  Makefile.in
 
 2004-05-10 14:10  thjordan
 
-	* data/: Makefile.am, Makefile.in, airplanes/Makefile.am,
-	  missions/Makefile.am, missions/Makefile.in, ships/Makefile.am,
-	  submarines/Makefile.am: updated Makefiles
+	* data/: Makefile.am, Makefile.in, missions/Makefile.am,
+	  missions/Makefile.in, ships/Makefile.am: updated Makefiles
 
 2004-05-10 14:00  thjordan
 
 	* data/missions/attackbogue.xml, data/ships/submarine_IXc40.xml,
 	  data/ships/submarine_VIIc.xml, data/ships/submarine_XXI.xml,
-	  data/submarines/submarine_IXc40.xml,
-	  data/submarines/submarine_VIIc.xml,
-	  data/submarines/submarine_XXI.xml, src/airplane.cpp,
-	  src/airplane.h, src/convoy.cpp, src/convoy.h, src/game.cpp,
-	  src/game.h, src/global_data.h, src/sea_object.cpp,
+	  src/airplane.cpp, src/airplane.h, src/convoy.cpp, src/convoy.h,
+	  src/game.cpp, src/game.h, src/global_data.h, src/sea_object.cpp,
 	  src/sea_object.h, src/ship.cpp, src/ship.h, src/submarine.cpp,
 	  src/submarine.h, src/user_interface.cpp, src/user_interface.h:
 	  work, work, work on xml
