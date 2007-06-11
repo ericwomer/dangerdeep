@@ -3,7 +3,7 @@
 1;"Heading";"Kurs";"Prua";"Rumbo";"Course";"Kurz";;"Koers";"Başlık"
 2;"Bearing";"Peilung";"Rilevamento";"Orientación";"relèvement";;;"Positie";"Kerteriz"
 3;"Range";"Entfernung";"Distanza";"Alcance";"Distance";"Vzdálenost";;"Afstand";"Menzil"
-4;"Speed";"Geschw.";"Velocità";"Velocidad";"Vitesse";"Rychlost";;"Snelheid";"Hız"
+4;"Speed";"Fahrt";"Velocità";"Velocidad";"Vitesse";"Rychlost";;"Snelheid";"Hız"
 5;"Depth";"Tiefe";"Profondità";"Profundidad";"Profondeur";"Hloubka";;"Diepte";"Derinlik"
 6;"Target";"Ziel";"Bersaglio";"Objetivo";"Cible";"Cíl";;"Doel";"Hedef"
 7;;;;;;;;;
@@ -13,7 +13,7 @@
 11;"Return to main menu";"Zurück zum Hauptmenü";"Ritorna al menu principale";"Volver al menú principal";"Retourner au menu principal";"Návrat do hlavního menu";"Voltar ao menu principal";"Terug naar het hoofdmenu";"Ana Menüye Dön"
 12;"Target bearing";"Peilung zum Ziel";"Rilevamento del bersaglio";"Orientación del objetivo";"Cap de la cible";"Směr útoku";;"Positie doel";"Hedef Kerterizi"
 13;"Target range";"Entfernung zum Ziel";"Distanza dal bersaglio";"Alcance del objetivo";"Distance de la cible";"Vzdálnost cíle";;"Afstand doel";"Hedef Menzili"
-14;"Target speed";"Geschw. des Zieles";"Velocità del bersaglio";"Velocidad del objetivo";"Vitesse de la cible";"Rychlost cíle";;"Snelheid doel";"Hedef Hızı"
+14;"Target speed";"Fahrt des Zieles";"Velocità del bersaglio";"Velocidad del objetivo";"Vitesse de la cible";"Rychlost cíle";;"Snelheid doel";"Hedef Hızı"
 15;"Target course";"Kurs des Zieles";"Rotta del bersaglio";"Ruta del objetivo";"Course de la cible";"Kurz cíle";;"Koers doel";"Hedef Rotası"
 16;"Submarine type";"U-Bootstyp wählen: ";"Scegli il sommergibile";"Seleccionar tipo de submarino";"Type de sous-marin";"Typ ponorky";;"Onderzeeër type";"Denizaltı Tipi"
 17;"type VIIc";"Typ VIIc";"tipo VIIc";"tipo VIIc";"type VIIc";"typ VIIc";;"type VIIc";"VIIc Tipi"
