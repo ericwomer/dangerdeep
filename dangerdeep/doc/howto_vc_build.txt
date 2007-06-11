@@ -20,8 +20,8 @@ STEP 2) Unzip  vc2005.zip and extract the VC++ solution files & projects
 
 STEP 3) Copy the unzipped vc2005 folder along side the danger deep src dir
 
-- eg. if the source is in "c:\games\dangerdeep-0.2.0\src" then the vc2005 directory containing 
-the solution and projects should be copied to "c:\games\dangerdeep-0.2.0\vc2005"
+- eg. if the source is in "c:\games\dangerdeep-0.3.0\src" then the vc2005 directory containing 
+the solution and projects should be copied to "c:\games\dangerdeep-0.3.0\vc2005"
 
 STEP 4) Create 2 new user environment variables named DDINCLUDE and DDLIB (Control Panel - System - Env Variables)
 
@@ -48,9 +48,9 @@ STEP 6) Post build the executables will be in vc2005\debug or vc2005\release fol
 Copy the exes to the dangerdeep install dir and run the game :-)
 
 
-* Configuration of VC++ Solution & Projects for building DangerDeep (Based on version 0.2.0)
+* Configuration of VC++ Solution & Projects for building DangerDeep (Based on version 0.3.0)
 ____________________________________________________________________________________________
-- VC++ Solution File Name = DDVC2005.sln (path = csvroot/dangerdeep-0.2.0/vc2005/)
+- VC++ Solution File Name = DDVC2005.sln (path = csvroot/dangerdeep-0.3.0/vc2005/)
 - Project 1 = tinyxml.vcproj (output = Win32 static library, path = vc2005/tinyxml/)
 - Project 2 = oglext.vcproj (output = Win32 static library, path = vc2005/olgext/)
 - Project 3 = dftdmedia.vcproj (output = Win32 static library, path = vc2005/dftdmedia/)
