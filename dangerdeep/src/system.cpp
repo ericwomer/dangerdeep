@@ -193,15 +193,19 @@ system::~system()
 
 void system::set_video_mode(unsigned res_x_, unsigned res_y_, bool fullscreen)
 {
-	bool ok = false;
-	for (list<vector2i>::const_iterator it = available_resolutions.begin(); it != available_resolutions.end(); ++it) {
-		if (*it == vector2i(res_x_, res_y_)) {
-			ok = true;
-			break;
+	// only limit possible mode when using fullscreen.
+	// windows can have any sizes.
+	if (fullscreen) {
+		bool ok = false;
+		for (list<vector2i>::const_iterator it = available_resolutions.begin(); it != available_resolutions.end(); ++it) {
+			if (*it == vector2i(res_x_, res_y_)) {
+				ok = true;
+				break;
+			}
 		}
+		if (!ok)
+			throw invalid_argument("invalid resolution requested!");
 	}
-	if (!ok)
-		throw invalid_argument("invalid resolution requested!");
 	const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
 	if (!videoInfo)
 		throw sdl_error("Video info query failed");
