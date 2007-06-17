@@ -549,7 +549,7 @@ model::mesh::mesh(unsigned w, unsigned h, const std::vector<float>& heights, con
 	for (unsigned y = 0; y < h; ++y) {
 		for (unsigned x = 0; x < w; ++x) {
 			vertices.push_back(vector3f(float(x)-rw*0.5f, float(y)-rh*0.5f, heights[y*w+x]).coeff_mul(scales) + trans);
-			texcoords.push_back(vector2f(float(x)/(w-1), float(y)/(w-1)));
+			texcoords.push_back(vector2f(float(x)/(w-1), float(y)/(h-1)));
 		}
 	}
 
