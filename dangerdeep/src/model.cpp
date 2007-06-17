@@ -555,34 +555,52 @@ model::mesh::mesh(unsigned w, unsigned h, const std::vector<float>& heights, con
 
 	// generate indices.
 	// it is better to build columns of 16 or 32 quads each, to make use of
-	// the 16- or 32-sized vertex cache of GPUs. (later, fixme)
+	// the 16- or 32-sized vertex cache of GPUs.
+	// it helps a bit.
+	const unsigned column_width = 32;
+	const unsigned columns = (w < column_width) ? 1 : w / column_width;
+	const unsigned w_total = w;
+	unsigned w_off = 0;
+	w = w_total / columns + 1;
 	// per line w quads, so *2 tri's, plus 2 degenerated.
 	// remove 2 last degenerated of last line.
-	indices.reserve((h-1) * (w * 2 + 2) - 2);
-	bool left_to_right = true;
-	for (unsigned y = 0; y + 1 < h; ++y) {
-		if (left_to_right) {
-			for (unsigned x = 0; x < w; ++x) {
-				indices.push_back(x + (y+1)*w);
-				indices.push_back(x +  y   *w);
+	indices.reserve((h-1) * ((w_total + columns - 1) * 2 + 2) - 2);
+	for (unsigned c = 0; c < columns; ++c) {
+		bool last_column = (c + 1 == columns);
+		unsigned w_off_next = last_column ? w_total - 1 : w_off + w - 1;
+		w = w_off_next + 1 - w_off;
+		bool left_to_right = true;
+		for (unsigned y = 0; y + 1 < h; ++y) {
+			if (left_to_right) {
+				for (unsigned x = 0; x < w; ++x) {
+					indices.push_back(w_off + x + (y+1)*w_total);
+					indices.push_back(w_off + x +  y   *w_total);
+				}
+				// append degenerated
+				if (y + 2 < h) {
+					indices.push_back(w_off + w-1 +  y   *w_total);
+					indices.push_back(w_off + w-1 + (y+1)*w_total);
+				} else if (!last_column) {
+					indices.push_back(w_off + w-1 +  y   *w_total);
+					indices.push_back(w_off_next + w_total);
+				}
+			} else {
+				for (unsigned x = 0; x < w; ++x) {
+					indices.push_back(w_off + w-1-x +  y   *w_total);
+					indices.push_back(w_off + w-1-x + (y+1)*w_total);
+				}
+				// append degenerated
+				if (y + 2 < h) {
+					indices.push_back(w_off + (y+1)*w_total);
+					indices.push_back(w_off + (y+2)*w_total);
+				} else if (!last_column) {
+					indices.push_back(w_off + (y+1)*w_total);
+					indices.push_back(w_off_next + w_total);
+				}
 			}
-			// append degenerated
-			if (y + 2 < h) {
-				indices.push_back(w-1 +  y   *w);
-				indices.push_back(w-1 + (y+1)*w);
-			}
-		} else {
-			for (unsigned x = 0; x < w; ++x) {
-				indices.push_back(w-1-x +  y   *w);
-				indices.push_back(w-1-x + (y+1)*w);
-			}
-			// append degenerated
-			if (y + 2 < h) {
-				indices.push_back((y+1)*w);
-				indices.push_back((y+2)*w);
-			}
+			left_to_right = !left_to_right;
 		}
-		left_to_right = !left_to_right;
+		w_off = w_off_next;
 	}
 
 	// finish mesh
