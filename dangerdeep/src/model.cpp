@@ -523,6 +523,75 @@ model::mesh::mesh(const string& nm)
 
 
 
+model::mesh::mesh(unsigned w, unsigned h, const std::vector<float>& heights, const vector3f& scales,
+		  const vector3f& trans,
+		  const std::string& nm)
+	: name(nm),
+	  indices_type(pt_triangle_strip),
+	  transformation(matrix4f::one()),
+	  mymaterial(0),
+	  vbo_positions(false),
+	  vbo_normals(false),
+	  vbo_texcoords(false),
+	  vbo_tangents_righthanded(false),
+	  vbo_colors(false),
+	  index_data(true),
+	  vertex_attrib_index(0)
+{
+	if (w < 2 || h < 2 || heights.size() != w * h)
+		throw std::invalid_argument("height field size invalid");
+
+	// fill in vertices, texcoords
+	vertices.reserve(heights.size());
+	texcoords.reserve(heights.size());
+	const float rw = w;
+	const float rh = h;
+	for (unsigned y = 0; y < h; ++y) {
+		for (unsigned x = 0; x < w; ++x) {
+			vertices.push_back(vector3f(float(x)-rw*0.5f, float(y)-rh*0.5f, heights[y*w+x]).coeff_mul(scales) + trans);
+			texcoords.push_back(vector2f(float(x)/(w-1), float(y)/(w-1)));
+		}
+	}
+
+	// generate indices.
+	// it is better to build columns of 16 or 32 quads each, to make use of
+	// the 16- or 32-sized vertex cache of GPUs. (later, fixme)
+	// per line w quads, so *2 tri's, plus 2 degenerated.
+	// remove 2 last degenerated of last line.
+	indices.reserve((h-1) * (w * 2 + 2) - 2);
+	bool left_to_right = true;
+	for (unsigned y = 0; y + 1 < h; ++y) {
+		if (left_to_right) {
+			for (unsigned x = 0; x < w; ++x) {
+				indices.push_back(x + (y+1)*w);
+				indices.push_back(x +  y   *w);
+			}
+			// append degenerated
+			if (y + 2 < h) {
+				indices.push_back(w-1 +  y   *w);
+				indices.push_back(w-1 + (y+1)*w);
+			}
+		} else {
+			for (unsigned x = 0; x < w; ++x) {
+				indices.push_back(w-1-x +  y   *w);
+				indices.push_back(w-1-x + (y+1)*w);
+			}
+			// append degenerated
+			if (y + 2 < h) {
+				indices.push_back((y+1)*w);
+				indices.push_back((y+2)*w);
+			}
+		}
+		left_to_right = !left_to_right;
+	}
+
+	// finish mesh
+	compute_normals();
+	compile();
+}
+
+
+
 void model::mesh::compile()
 {
 	bool has_texture_u0 = false, has_texture_u1 = false;

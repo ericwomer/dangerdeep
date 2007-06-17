@@ -187,6 +187,17 @@ public:
 
 		mesh(const std::string& nm = "Unnamed mesh");
 
+		/// create mesh from height map - around world origin
+		///@param w - width of 2d field's data values
+		///@param h - height of 2d field's data values
+		///@param heights - height values
+		///@param scales - scalars for x,y,z values
+		///@param trans - translation for each vertex
+		///@nm - name
+		mesh(unsigned w, unsigned h, const std::vector<float>& heights, const vector3f& scales,
+		     const vector3f& trans = vector3f(),
+		     const std::string& nm = "Heightfield");
+
 		// make display list if possible
 		void compile();
 
