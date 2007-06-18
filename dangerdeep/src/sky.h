@@ -89,9 +89,9 @@ public:
 	~sky();
 
 	// call this whenever time or viewpos has changed, it will modify the mutable variables.
-	void rebuild_colors(const game& gm, const vector3& viewpos) const;
+	void rebuild_colors(const vector3& sunpos_, const vector3& moonpos_, const vector3& viewpos) const;
 
-	void display(const game& gm, const vector3& viewpos, double max_view_dist, bool isreflection) const;
+	void display(const colorf& lightcolor, const vector3& viewpos, double max_view_dist, bool isreflection) const;
 	color get_horizon_color(const game& gm, const vector3& viewpos) const;
 };
 

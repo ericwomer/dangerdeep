@@ -332,7 +332,7 @@ void sky::set_time(double tm)
 
 
 
-void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, bool isreflection) const
+void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_view_dist, bool isreflection) const
 {
 	// 25th jan 2007, after switch to VBO: skipping sky render brings 4fps.
 	// 50->54 in editor
@@ -438,9 +438,7 @@ void sky::display(const game& gm, const vector3& viewpos, double max_view_dist, 
 	glPopMatrix();
 
 	// ******** clouds ********************************************************************
-	colorf lightcol = gm.compute_light_color(viewpos);
-	//    color lightcol = 1;
-	lightcol.set_gl_color();	// cloud color depends on day time
+	lightcolor.set_gl_color();	// cloud color depends on day time
 	//printf("sunpos.z = %f\n", sunpos.z);
 
 	// FIXME cloud color varies with direction to sun (clouds aren't flat, but round, so
@@ -550,19 +548,19 @@ void sky::build_dome(const unsigned int sectors_h, const unsigned int sectors_v)
 */
 #define REBUILD_EPSILON_AZIMUTH			8.73E-3		//	0.5 deg
 #define REBUILD_EPSILON_ELEVATION		8.73E-3		//	0.5 deg
-void sky::rebuild_colors(const game& gm, const vector3& viewpos) const
+void sky::rebuild_colors(const vector3& sunpos_, const vector3& moonpos_, const vector3& viewpos) const
 {
 	// compute position of sun and moon
 	//fixme: compute_sun_pos works relativly to the viewer!!!
 	// but for sky simulation we need "global" azimuth/elevation?!
-	sunpos = gm.compute_sun_pos(viewpos);
+	sunpos = sunpos_;
 	sundir = sunpos.normal();
 	float sun_azimuth2 = atan2(sundir.y, sundir.x);
 	float sun_elevation2 = asin(sundir.z);
 	float sky_alpha = (sundir.z < -0.25) ? 0.0f : ((sundir.z < 0.0) ? 4*(sundir.z+0.25) : 1.0f);
 
-	moonpos = gm.compute_moon_pos(viewpos);
-	moondir = gm.compute_moon_pos(viewpos).normal();
+	moonpos = moonpos_;
+	moondir = moonpos.normal();
 
 	//	sun_azimuth and sun_elevation are used only for sky color rendering
 	//	so they are refreshed every 0.5 deg of sun movement.

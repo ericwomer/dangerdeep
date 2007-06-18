@@ -326,7 +326,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	// **************** prepare drawing ***************************************************
 
 	GLfloat horizon_color[4];
-	ui.get_sky().rebuild_colors(gm, viewpos);
+	ui.get_sky().rebuild_colors(gm.compute_sun_pos(viewpos), gm.compute_moon_pos(viewpos), viewpos);
 	ui.get_sky().get_horizon_color(gm, viewpos).store_rgba(horizon_color);
 
 	// compute light source position and brightness (must be set AFTER modelview matrix)
@@ -404,7 +404,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 
 		// draw all parts of the scene that are (partly) above the water:
 		//   sky
-		ui.get_sky().display(gm, viewpos_mirror, max_view_dist, true);
+		ui.get_sky().display(gm.compute_light_color(viewpos_mirror), viewpos_mirror, max_view_dist, true);
 
 		//   terrain
 		glColor4f(1,1,1,1);//fixme: fog is missing
@@ -559,7 +559,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 
 	// ************ sky ***************************************************************
 	if (above_water >= 0) {
-		ui.get_sky().display(gm, viewpos, max_view_dist, false);
+		ui.get_sky().display(gm.compute_light_color(viewpos), viewpos, max_view_dist, false);
 	}
 
 	// ******* water ***************************************************************
