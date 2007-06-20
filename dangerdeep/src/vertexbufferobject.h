@@ -58,7 +58,7 @@ class vertexbufferobject
 	///> unbind buffer
 	void unbind() const;
 	///> map buffer to address, access is one of GL_READ_ONLY_ARB, GL_WRITE_ONLY_ARB,
-	///> GL_ERAD_WRITE_ARB.
+	///> GL_READ_WRITE_ARB.
 	void* map(int access);
 	///> get size of mapped space
 	unsigned get_map_size() const { return size; }
