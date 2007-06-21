@@ -166,12 +166,13 @@ class heightmap
 {
 	std::vector<float> data;
 	unsigned xres, yres;
+	//fixme: dimension 3 rather!
 	vector2f scal, trans;
 	vector2f min_coord, max_coord, area;
 
 public:
-	heightmap(unsigned rx, unsigned ry, const vector2f& s, const vector2f& t) :
-		data(rx*ry),
+	heightmap(const std::vector<float>& data2, unsigned rx, unsigned ry, const vector2f& s, const vector2f& t) :
+		data(data2),//(rx*ry),
 		xres(rx),
 		yres(ry),
 		scal(s),
@@ -207,6 +208,46 @@ float heightmap::compute_height(const vector2f& coord) const
 	if (y2 + 1 >= yres) y2 = yres - 1;
 	return (data[y * xres + x] * (1.0f - c.x) + data[y * xres + x2] * c.x) * (1.0f - c.y) +
 		(data[y2* xres + x] * (1.0f - c.x) + data[y2* xres + x2] * c.x) * c.y;
+}
+
+
+
+class camera
+{
+	vector3 position;
+	vector3 look_at;
+public:
+	camera(const vector3& p = vector3(), const vector3& la = vector3(0, 1, 0))
+		: position(p), look_at(la) {}
+	const vector3& get_pos() const { return position; }
+	void set(const vector3& pos, const vector3& lookat) { position = pos; look_at = lookat; }
+	matrix4 get_transformation() const;
+	void set_gl_trans() const;
+};
+
+
+
+matrix4 camera::get_transformation() const
+{
+	// compute transformation matrix from camera
+	// orientation
+	// camera points to -z axis with OpenGL
+	vector3 zdir = -(look_at - position).normal();
+	vector3 ydir(0, 0, 1);
+	vector3 xdir = ydir.cross(zdir);
+	ydir = zdir.cross(xdir);
+	vector3 p(xdir * position, ydir * position, zdir * position);
+	return matrix4(xdir.x, xdir.y, xdir.z, -p.x,
+		       ydir.x, ydir.y, ydir.z, -p.y,
+		       zdir.x, zdir.y, zdir.z, -p.z,
+		       0, 0, 0, 1);
+}
+
+
+
+void camera::set_gl_trans() const
+{
+	get_transformation().multiply_gl();
 }
 
 
@@ -688,6 +729,7 @@ void show_credits()
 
 	vector<float> heightdata;
 	canyon cyn(256, 256);
+	heightmap chm(cyn.get_heightdata(), 256, 256, vector2f(2.0f, 2.0f), vector2f(-256, -256));
 	auto_ptr<model::mesh> trees = generate_trees(cyn.get_heightdata());
 	plant_set ps(cyn.get_heightdata());
 	auto_ptr<sky> mysky(new sky(8*3600.0)); // 10 o'clock
@@ -755,14 +797,16 @@ void show_credits()
 		glColor4f(1,1,1,1);
 		glPushMatrix();
 		glLoadIdentity();
-		glRotatef(-90, 1, 0, 0);
-		glRotatef(20, 1, 0, 0);
 		float zang = 360.0/40 * (sys().millisec() - tm0)/1000;
-		glRotatef(zang, 0, 0, 1);
-		glTranslatef(-viewpos.x, -viewpos.y, -viewpos.z);
+		float zang2 = 360.0/200 * (sys().millisec() - tm0)/1000;
+		vector3 viewpos2 = viewpos + (angle(-zang2).direction() * 192).xy0();
+		float terrainh = chm.compute_height(vector2f(viewpos2.x, viewpos2.y));
+		viewpos2.z = terrainh * 0.5 + 20.0; // fixme, heightmap must take care of z scale
+		camera cm(viewpos2, viewpos2 + angle(zang).direction().xyz(-0.25));
+		cm.set_gl_trans();
 
 		// sky also sets light source position
-		mysky->display(colorf(1.0f, 1.0f, 1.0f), viewpos, 30000.0, false);
+		mysky->display(colorf(1.0f, 1.0f, 1.0f), viewpos2, 30000.0, false);
 		//glDisable(GL_FOG);
 		glFogi(GL_FOG_MODE, GL_EXP);
 		float fog_color[4] = { 0.6, 0.6, 0.6, 1.0 };
@@ -772,7 +816,7 @@ void show_credits()
 		// render canyon
 		cyn.display();
 		//trees->display();
-		ps.display(viewpos, zang);
+		ps.display(viewpos /*viewpos2*/, zang);//viewpos2 here, but it flickers
 
 		glPopMatrix();
 
