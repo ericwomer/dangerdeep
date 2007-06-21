@@ -81,8 +81,8 @@ public:
 			// set up opengl texture matrix with map transformation values
 			void setup_glmatrix() const;
 			void set_gl_texture() const;
-			void set_gl_texture(glsl_program& prog, const std::string& texname, unsigned texunitnr) const;
-			void set_gl_texture(glsl_shader_setup& gss, const std::string& texname, unsigned texunitnr) const;
+ 			void set_gl_texture(glsl_program& prog, const std::string& texname, unsigned texunitnr) const;
+ 			void set_gl_texture(glsl_shader_setup& gss, const std::string& texname, unsigned texunitnr) const;
 			void set_texture(texture* t);
 			void register_layout(const std::string& name, const std::string& basepath,
 					     texture::mapping_mode mapping,
@@ -103,12 +103,13 @@ public:
 		std::auto_ptr<map> specularmap; // should be of type LUMINANCE to work properly.
 		
 		material(const std::string& nm = "Unnamed material");
-		void set_gl_values() const;
-		void set_gl_values_mirror_clip() const;
-		void register_layout(const std::string& name, const std::string& basepath);
-		void unregister_layout(const std::string& name);
-		void set_layout(const std::string& layout);
-		void get_all_layout_names(std::set<std::string>& result) const;
+		virtual ~material() {}
+		virtual void set_gl_values() const;
+		virtual void set_gl_values_mirror_clip() const;
+		virtual void register_layout(const std::string& name, const std::string& basepath);
+		virtual void unregister_layout(const std::string& name);
+		virtual void set_layout(const std::string& layout);
+		virtual void get_all_layout_names(std::set<std::string>& result) const;
 	};
 	
 	class mesh {
