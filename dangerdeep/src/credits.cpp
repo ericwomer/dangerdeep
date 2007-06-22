@@ -220,6 +220,7 @@ public:
 	camera(const vector3& p = vector3(), const vector3& la = vector3(0, 1, 0))
 		: position(p), look_at(la) {}
 	const vector3& get_pos() const { return position; }
+	angle look_direction() const { return angle((look_at - position).xy()); }
 	void set(const vector3& pos, const vector3& lookat) { position = pos; look_at = lookat; }
 	matrix4 get_transformation() const;
 	void set_gl_trans() const;
@@ -736,6 +737,23 @@ void show_credits()
 	vector3 sunpos(0, 3000, 4000);
 	mysky->rebuild_colors(sunpos, vector3(-500, -3000, 1000), viewpos);
 
+	// compute bspline for camera path
+	std::vector<vector3f> bsppts;
+	float bspx[5] = {-1,  1,  1, -1, -1};
+	float bspy[5] = { 1,  1, -1, -1,  1};
+	float bsps = 192;
+	for (unsigned j = 0; j < 4; ++j) {
+		vector2f a(bspx[j]*bsps, bspy[j]*bsps);
+		vector2f b(bspx[j+1]*bsps, bspy[j+1]*bsps);
+		for (unsigned k = 0; k < 4; ++k) {
+			vector2f c = (b - a) * (float(k)/4) + a;
+			vector3f d = c.xyz(chm.compute_height(c) * 0.5 + 20.0);
+			bsppts.push_back(d);
+		}
+	}
+	bsppts.push_back(bsppts.front());
+	bsplinet<vector3f> cam_path(2, bsppts);
+
 // we need a function to get height at x,y coord
 // store xy res of height map too
 // 	const float flight_wh(128, 128);
@@ -802,7 +820,13 @@ void show_credits()
 		vector3 viewpos2 = viewpos + (angle(-zang2).direction() * 192).xy0();
 		float terrainh = chm.compute_height(vector2f(viewpos2.x, viewpos2.y));
 		viewpos2.z = terrainh * 0.5 + 20.0; // fixme, heightmap must take care of z scale
-		camera cm(viewpos2, viewpos2 + angle(zang).direction().xyz(-0.25));
+
+		float path_fac = myfrac((1.0/120) * (sys().millisec() - tm0)/1000);
+		vector3f campos = cam_path.value(path_fac);
+		vector3f camlookat = cam_path.value(myfrac(path_fac + 0.01));
+		//camera cm(viewpos2, viewpos2 + angle(zang).direction().xyz(-0.25));
+		camera cm(campos, camlookat);
+		zang = cm.look_direction().value();
 		cm.set_gl_trans();
 
 		// sky also sets light source position
