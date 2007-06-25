@@ -241,6 +241,16 @@ void glsl_program::set_uniform(const std::string& name, const vector2f& value) c
 
 
 
+void glsl_program::set_uniform(const std::string& name, float value) const
+{
+	if (used_program != this)
+		throw runtime_error("glsl_program::set_uniform, program not bound!");
+	GLint loc = glGetUniformLocation(id, name.c_str());
+	glUniform1f(loc, value);
+}
+
+
+
 void glsl_program::set_uniform(const std::string& name, const vector3& value) const
 {
 	if (used_program != this)
