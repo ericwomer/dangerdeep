@@ -224,9 +224,19 @@ void glsl_program::set_gl_texture(texture& tex, const std::string& texname, unsi
 void glsl_program::set_uniform(const std::string& name, const vector3f& value) const
 {
 	if (used_program != this)
-		throw runtime_error("glsl_program::set_gl_texture, program not bound!");
+		throw runtime_error("glsl_program::set_uniform, program not bound!");
 	GLint loc = glGetUniformLocation(id, name.c_str());
 	glUniform3f(loc, value.x, value.y, value.z);
+}
+
+
+
+void glsl_program::set_uniform(const std::string& name, const vector2f& value) const
+{
+	if (used_program != this)
+		throw runtime_error("glsl_program::set_uniform, program not bound!");
+	GLint loc = glGetUniformLocation(id, name.c_str());
+	glUniform2f(loc, value.x, value.y);
 }
 
 
@@ -234,7 +244,7 @@ void glsl_program::set_uniform(const std::string& name, const vector3f& value) c
 void glsl_program::set_uniform(const std::string& name, const vector3& value) const
 {
 	if (used_program != this)
-		throw runtime_error("glsl_program::set_gl_texture, program not bound!");
+		throw runtime_error("glsl_program::set_uniform, program not bound!");
 	GLint loc = glGetUniformLocation(id, name.c_str());
 	glUniform3f(loc, value.x, value.y, value.z);
 }
@@ -244,7 +254,7 @@ void glsl_program::set_uniform(const std::string& name, const vector3& value) co
 void glsl_program::set_uniform(const std::string& name, const matrix4& value) const
 {
 	if (used_program != this)
-		throw runtime_error("glsl_program::set_gl_texture, program not bound!");
+		throw runtime_error("glsl_program::set_uniform, program not bound!");
 	GLint loc = glGetUniformLocation(id, name.c_str());
 	float tmp[16];
 	const double* ea = value.elemarray();

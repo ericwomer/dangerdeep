@@ -99,6 +99,9 @@ class glsl_program
 	/// set uniform variable
 	void set_uniform(const std::string& name, const vector3f& value) const;
 
+	/// set uniform variable (vec2)
+	void set_uniform(const std::string& name, const vector2f& value) const;
+
 	/// set uniform variable (doubles)
 	void set_uniform(const std::string& name, const vector3& value) const;
 
@@ -144,6 +147,11 @@ class glsl_shader_setup
 
 	/// set uniform variable
 	void set_uniform(const std::string& name, const vector3f& value) const {
+		prog.set_uniform(name, value);
+	}
+
+	/// set uniform variable
+	void set_uniform(const std::string& name, const vector2f& value) const {
 		prog.set_uniform(name, value);
 	}
 
