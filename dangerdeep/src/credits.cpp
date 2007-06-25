@@ -414,7 +414,6 @@ class plant_set
 	// theoretisch besser einfach plant-nummern zu sortieren
 	std::auto_ptr<texture> planttex;
 	mutable std::vector<plant_alpha_sortidx> sortindices;
-	mutable vector2f old_viewpos;
 public:
 	plant_set(vector<float>& heightdata, unsigned nr = 40000, unsigned w = 256, unsigned h = 256, const vector2f& scal = vector2f(2.0f, 2.0f));
 	void display(const vector3& viewpos, float zang) const;
@@ -422,7 +421,7 @@ public:
 
 
 plant_set::plant_set(vector<float>& heightdata, unsigned nr, unsigned w, unsigned h, const vector2f& scal)
-	: plantvertexdata(false), plantindexdata(true), old_viewpos(1e30, 1e30)
+	: plantvertexdata(false), plantindexdata(true)
 {
 	float areaw = w * scal.x, areah = h * scal.y;
 	plants.reserve(nr);
@@ -472,11 +471,8 @@ void plant_set::display(const vector3& viewpos, float zang) const
 	vector2f dir; dir.assign(dird);
 
 	//unsigned tm0 = sys().millisec();
-	if (old_viewpos.distance(vp.xy()) > 0.1) {
-		for (unsigned i = 0; i < plants.size(); ++i) {
-			sortindices[i].sqd = plants[i].pos.xy().square_distance(vp.xy());
-		}
-		old_viewpos = vp.xy();
+	for (unsigned i = 0; i < plants.size(); ++i) {
+		sortindices[i].sqd = plants[sortindices[i].idx].pos.xy().square_distance(vp.xy());
 	}
 	//unsigned tm1 = sys().millisec();
 	// this sucks up to 16ms, so this limits fps at 60.
@@ -739,19 +735,25 @@ void show_credits()
 
 	// compute bspline for camera path
 	std::vector<vector3f> bsppts;
-	float bspx[5] = {-1,  1,  1, -1, -1};
-	float bspy[5] = { 1,  1, -1, -1,  1};
-	float bsps = 192;
-	for (unsigned j = 0; j < 4; ++j) {
-		vector2f a(bspx[j]*bsps, bspy[j]*bsps);
-		vector2f b(bspx[j+1]*bsps, bspy[j+1]*bsps);
-		for (unsigned k = 0; k < 4; ++k) {
-			vector2f c = (b - a) * (float(k)/4) + a;
-			vector3f d = c.xyz(chm.compute_height(c) * 0.5 + 20.0);
-			bsppts.push_back(d);
-		}
+	vector2f bsp[13] = {
+		vector2f( 0.00,  0.75),
+		vector2f( 0.75,  0.75),
+		vector2f( 0.75,  0.00),
+		vector2f( 0.00,  0.00),
+		vector2f(-0.75,  0.00),
+		vector2f(-0.75, -0.75),
+		vector2f( 0.00, -0.75),
+		vector2f( 0.75, -0.75),
+		vector2f( 0.75,  0.00),
+		vector2f( 0.00,  0.00),
+		vector2f(-0.75,  0.00),
+		vector2f(-0.75,  0.75),
+		vector2f( 0.00,  0.75)
+	};
+	for (unsigned j = 0; j < 13; ++j) {
+		vector2f a = bsp[j] * 256;
+		bsppts.push_back(a.xyz(chm.compute_height(a) * 0.5 + 20.0));
 	}
-	bsppts.push_back(bsppts.front());
 	bsplinet<vector3f> cam_path(2, bsppts);
 
 // we need a function to get height at x,y coord
@@ -840,7 +842,7 @@ void show_credits()
 		// render canyon
 		cyn.display();
 		//trees->display();
-		ps.display(viewpos /*viewpos2*/, zang);//viewpos2 here, but it flickers
+		ps.display(campos, zang);//viewpos2 here, but it flickers
 
 		glPopMatrix();
 
