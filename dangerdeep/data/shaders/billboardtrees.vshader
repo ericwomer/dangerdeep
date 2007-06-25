@@ -11,11 +11,12 @@ varying vec2 texcoord0;
 varying float diffcol;
 attribute float treesize;
 uniform vec2 billboarddir;
-/*
+
 uniform float windmovement;
-const float sf = 2.0*3.14159/64.0;
+const float wind_x_scal = 1.0/64.0;
+const float pi2 = 2.0*3.14159;
 const float windmovescal = 0.5;
-*/
+
 
 void main()
 {
@@ -24,13 +25,11 @@ void main()
 
 	// move tree tops in sine waves according to pos
 	// we distuingish tree bottom from top vertices by their y texcoord
-/*
-	float f = (gl_Vertex.x + windmovement) * sf;
-	vec2 windmove = vec2(sin(sf), cos(sf)) * (windmovescal * (1.0 - texcoord0.y));
-*/
+	float f = (gl_Vertex.x * wind_x_scal + windmovement) * pi2;
+	vec2 windmove = vec2(sin(f)*0.5, cos(f)) * (windmovescal * (1.0 - texcoord0.y));
 
 	// compute vertex position
-	vec2 addpos = billboarddir * treesize /*+ windmove*/;
+	vec2 addpos = billboarddir * treesize + windmove;
 	vec4 vpos = gl_Vertex;
 	vpos.xy += addpos;
 

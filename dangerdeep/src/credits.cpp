@@ -546,6 +546,7 @@ void plant_set::display(const vector3& viewpos, float zang) const
 	glDepthMask(GL_FALSE);
 	myshader.use();
 	myshader.set_uniform("billboarddir", dir);
+	myshader.set_uniform("windmovement", myfrac(sys().millisec()/4000.0));
 
 	plantvertexdata.bind();
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -776,6 +777,7 @@ void show_credits()
 	auto_ptr<texture> bkg;
 	auto_ptr<glsl_shader_setup> glss;
 	bool use_shaders = glsl_program::supported();
+#if 0
 	if (use_shaders) {
 		const unsigned sz = 16;
 		vector<Uint8> data(sz*sz);
@@ -786,6 +788,7 @@ void show_credits()
 		glss.reset(new glsl_shader_setup(get_shader_dir() + "credits.vshader",
 						 get_shader_dir() + "credits.fshader"));
 	}
+#endif
 
 	int lineheight = font_arial->get_height();
 	int lines_per_page = (768+lineheight-1)/lineheight;
