@@ -521,6 +521,7 @@ void plant_set::display(const vector3& viewpos, float zang) const
 	//unsigned tm2 = sys().millisec();
 	//DBGOUT2(tm1-tm0,tm2-tm1);
 
+#if 1 // indices in VBO (3fps faster)
 	// index data per plant are 4 indices = 16 byte
 	//fixme: why transfer this to a VBO? why not drawing these indices
 	//directly from the array?!
@@ -535,6 +536,17 @@ void plant_set::display(const vector3& viewpos, float zang) const
 		indexdata[4*i + 3] = bi+3;
 	}
 	plantindexdata.unmap();
+#else
+	vector<unsigned> pidat;
+	pidat.reserve(plants.size()*4);
+	for (unsigned i = 0; i < plants.size(); ++i) {
+		unsigned bi = sortindices[i].idx * 4;
+		pidat.push_back(bi+0);
+		pidat.push_back(bi+1);
+		pidat.push_back(bi+2);
+		pidat.push_back(bi+3);
+	}
+#endif
 
 	glActiveTexture(GL_TEXTURE0);
 	planttex->set_gl_texture();
@@ -557,32 +569,16 @@ void plant_set::display(const vector3& viewpos, float zang) const
 	glVertexAttribPointer(vattr_treesize_idx, 1, GL_FLOAT, GL_FALSE, 6*4, (float*)0 + 5);
 	glEnableVertexAttribArray(vattr_treesize_idx);
 	plantvertexdata.unbind();
+#if 1 // indices in VBO (3fps faster)
 	plantindexdata.bind();
 	glDrawRangeElements(GL_QUADS, 0, plants.size()*4 - 1, plants.size() * 4, GL_UNSIGNED_INT, 0);
 	plantindexdata.unbind();
+#else
+	glDrawRangeElements(GL_QUADS, 0, plants.size()*4 - 1, plants.size() * 4, GL_UNSIGNED_INT, &pidat[0]);
+#endif
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableVertexAttribArray(vattr_treesize_idx);
-
-#if 0
-	glBegin(GL_QUADS);
-	for (unsigned i = 0; i < plants.size(); ++i) {
-		// render each plant
-		const plant& p = plants[sortindices[i].idx];
-		vector2f pl = p.pos.xy() - dir * (0.5 * p.size.x);
-		vector2f pr = p.pos.xy() + dir * (0.5 * p.size.x);
-		glTexCoord2f(float(p.type)/plant::nr_plant_types, 1.0f);
-		glVertex3f(pl.x, pl.y, p.pos.z);
-		glTexCoord2f(float(p.type+1)/plant::nr_plant_types, 1.0f);
-		glVertex3f(pr.x, pr.y, p.pos.z);
-		glTexCoord2f(float(p.type+1)/plant::nr_plant_types, 0.0f);
-		glVertex3f(pr.x, pr.y, p.pos.z + p.size.y);
-		glTexCoord2f(float(p.type)/plant::nr_plant_types, 0.0f);
-		glVertex3f(pl.x, pl.y, p.pos.z + p.size.y);
-	}
-	glEnd();
-#endif
-
 	glDepthMask(GL_TRUE);
 	myshader.use_fixed();
 }
@@ -722,6 +718,8 @@ void show_credits()
 {
 	//glClearColor(0.1,0.25,0.4,0);
 	glClearColor(0.175,0.25,0.125,0.0);
+
+	//srand(0);
 
 #if 0
 	// create a sphere
