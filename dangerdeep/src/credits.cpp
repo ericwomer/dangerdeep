@@ -402,17 +402,13 @@ struct plant_alpha_sortidx
 
 class plant_set
 {
+	// with the VBO we don't really need to store the plant vertex data...
 	std::vector<plant> plants;
  	mutable vertexbufferobject plantvertexdata;
  	mutable vertexbufferobject plantindexdata;
-	// wenn vertexdaten konstant bleiben ist ein interleaved vbo besser
-	// wie geht das mit dem sortieren?
-	// speichere zentrale position unten/oben für alle 4 vertices
-	// jeweils 4 indices per plant.
-	// sort greift dann zum vergleich auf vertexdaten zurück
-	// sortiert 4 indices um...
-	// theoretisch besser einfach plant-nummern zu sortieren
 	std::auto_ptr<texture> planttex;
+	glsl_shader_setup myshader;
+	unsigned vattr_treesize_idx;
 	mutable std::vector<plant_alpha_sortidx> sortindices;
 public:
 	plant_set(vector<float>& heightdata, unsigned nr = 40000, unsigned w = 256, unsigned h = 256, const vector2f& scal = vector2f(2.0f, 2.0f));
@@ -421,7 +417,10 @@ public:
 
 
 plant_set::plant_set(vector<float>& heightdata, unsigned nr, unsigned w, unsigned h, const vector2f& scal)
-	: plantvertexdata(false), plantindexdata(true)
+	: plantvertexdata(false), plantindexdata(true),
+	  myshader(get_shader_dir() + "billboardtrees.vshader",
+		   get_shader_dir() + "billboardtrees.fshader"),
+	  vattr_treesize_idx(0)
 {
 	float areaw = w * scal.x, areah = h * scal.y;
 	plants.reserve(nr);
@@ -459,6 +458,47 @@ plant_set::plant_set(vector<float>& heightdata, unsigned nr, unsigned w, unsigne
 	for (unsigned i = 0; i < plants.size(); ++i) {
 		sortindices[i].idx = i;
 	}
+
+	myshader.use();
+	vattr_treesize_idx = myshader.get_vertex_attrib_index("treesize");
+	myshader.set_gl_texture(*planttex, "textrees", 0);
+	// vertex data per plant are 4 * (3+2+1) floats (3x pos, 2x texc, 1x attr)
+	plantvertexdata.init_data(4 * (3 + 2 + 1) * 4 * plants.size(), 0, GL_STATIC_DRAW);
+	float* vertexdata = (float*) plantvertexdata.map(GL_WRITE_ONLY);
+	for (unsigned i = 0; i < plants.size(); ++i) {
+		// render each plant
+		const plant& p = plants[i];
+		// vertex 0
+		vertexdata[6*(4*i + 0) + 0] = p.pos.x;
+		vertexdata[6*(4*i + 0) + 1] = p.pos.y;
+		vertexdata[6*(4*i + 0) + 2] = p.pos.z;
+		vertexdata[6*(4*i + 0) + 3] = float(p.type)/plant::nr_plant_types;
+		vertexdata[6*(4*i + 0) + 4] = 1.0f;
+		vertexdata[6*(4*i + 0) + 5] = -p.size.x * 0.5;
+		// vertex 1
+		vertexdata[6*(4*i + 1) + 0] = p.pos.x;
+		vertexdata[6*(4*i + 1) + 1] = p.pos.y;
+		vertexdata[6*(4*i + 1) + 2] = p.pos.z;
+		vertexdata[6*(4*i + 1) + 3] = float(p.type+1)/plant::nr_plant_types;
+		vertexdata[6*(4*i + 1) + 4] = 1.0f;
+		vertexdata[6*(4*i + 1) + 5] = p.size.x * 0.5;
+		// vertex 2
+		vertexdata[6*(4*i + 2) + 0] = p.pos.x;
+		vertexdata[6*(4*i + 2) + 1] = p.pos.y;
+		vertexdata[6*(4*i + 2) + 2] = p.pos.z + p.size.y;
+		vertexdata[6*(4*i + 2) + 3] = float(p.type+1)/plant::nr_plant_types;
+		vertexdata[6*(4*i + 2) + 4] = 0.0f;
+		vertexdata[6*(4*i + 2) + 5] = p.size.x * 0.5;
+		// vertex 3
+		vertexdata[6*(4*i + 3) + 0] = p.pos.x;
+		vertexdata[6*(4*i + 3) + 1] = p.pos.y;
+		vertexdata[6*(4*i + 3) + 2] = p.pos.z + p.size.y;
+		vertexdata[6*(4*i + 3) + 3] = float(p.type)/plant::nr_plant_types;
+		vertexdata[6*(4*i + 3) + 4] = 0.0f;
+		vertexdata[6*(4*i + 3) + 5] = -p.size.x * 0.5;
+	}
+	plantvertexdata.unmap();
+	myshader.use_fixed();
 }
 
 
@@ -481,46 +521,10 @@ void plant_set::display(const vector3& viewpos, float zang) const
 	//unsigned tm2 = sys().millisec();
 	//DBGOUT2(tm1-tm0,tm2-tm1);
 
-	// fill vertex/index VBOs
-	// vertex data per plant are 4 * (3+2) floats = 80 byte
-	plantvertexdata.init_data(4 * (3 + 2) * 4 * plants.size(), 0, GL_STREAM_DRAW);
 	// index data per plant are 4 indices = 16 byte
+	//fixme: why transfer this to a VBO? why not drawing these indices
+	//directly from the array?!
 	plantindexdata.init_data(4 * 4 * plants.size(), 0, GL_STREAM_DRAW);
-	float* vertexdata = (float*) plantvertexdata.map(GL_WRITE_ONLY);
-	// with shaders we don't need to fill this every frame!
-	// with shaders we need to give plant size (2 floats) per vertex
-	for (unsigned i = 0; i < plants.size(); ++i) {
-		// render each plant
-		const plant& p = plants[i];
-		vector2f pl = p.pos.xy() - dir * (0.5 * p.size.x);
-		vector2f pr = p.pos.xy() + dir * (0.5 * p.size.x);
-		// vertex 0
-		vertexdata[5*(4*i + 0) + 0] = pl.x;
-		vertexdata[5*(4*i + 0) + 1] = pl.y;
-		vertexdata[5*(4*i + 0) + 2] = p.pos.z;
-		vertexdata[5*(4*i + 0) + 3] = float(p.type)/plant::nr_plant_types;
-		vertexdata[5*(4*i + 0) + 4] = 1.0f;
-		// vertex 1
-		vertexdata[5*(4*i + 1) + 0] = pr.x;
-		vertexdata[5*(4*i + 1) + 1] = pr.y;
-		vertexdata[5*(4*i + 1) + 2] = p.pos.z;
-		vertexdata[5*(4*i + 1) + 3] = float(p.type+1)/plant::nr_plant_types;
-		vertexdata[5*(4*i + 1) + 4] = 1.0f;
-		// vertex 2
-		vertexdata[5*(4*i + 2) + 0] = pr.x;
-		vertexdata[5*(4*i + 2) + 1] = pr.y;
-		vertexdata[5*(4*i + 2) + 2] = p.pos.z + p.size.y;
-		vertexdata[5*(4*i + 2) + 3] = float(p.type+1)/plant::nr_plant_types;
-		vertexdata[5*(4*i + 2) + 4] = 0.0f;
-		// vertex 3
-		vertexdata[5*(4*i + 3) + 0] = pl.x;
-		vertexdata[5*(4*i + 3) + 1] = pl.y;
-		vertexdata[5*(4*i + 3) + 2] = p.pos.z + p.size.y;
-		vertexdata[5*(4*i + 3) + 3] = float(p.type)/plant::nr_plant_types;
-		vertexdata[5*(4*i + 3) + 4] = 0.0f;
-	}
-	plantvertexdata.unmap();
-	// indices
 	uint32_t* indexdata = (uint32_t*) plantindexdata.map(GL_WRITE_ONLY);
 	for (unsigned i = 0; i < plants.size(); ++i) {
 		// 4 vertices per plant
@@ -540,19 +544,24 @@ void plant_set::display(const vector3& viewpos, float zang) const
 	// fixme: cull invisible plants
 
 	glDepthMask(GL_FALSE);
+	myshader.use();
+	myshader.set_uniform("billboarddir", dir);
 
 	plantvertexdata.bind();
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glClientActiveTexture(GL_TEXTURE0);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 5*4, (float*)0 + 0);
-	glTexCoordPointer(2, GL_FLOAT, 5*4, (float*)0 + 3);
+	glVertexPointer(3, GL_FLOAT, 6*4, (float*)0 + 0);
+	glTexCoordPointer(2, GL_FLOAT, 6*4, (float*)0 + 3);
+	glVertexAttribPointer(vattr_treesize_idx, 1, GL_FLOAT, GL_FALSE, 6*4, (float*)0 + 5);
+	glEnableVertexAttribArray(vattr_treesize_idx);
 	plantvertexdata.unbind();
 	plantindexdata.bind();
 	glDrawRangeElements(GL_QUADS, 0, plants.size()*4 - 1, plants.size() * 4, GL_UNSIGNED_INT, 0);
 	plantindexdata.unbind();
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableVertexAttribArray(vattr_treesize_idx);
 
 #if 0
 	glBegin(GL_QUADS);
@@ -574,6 +583,7 @@ void plant_set::display(const vector3& viewpos, float zang) const
 #endif
 
 	glDepthMask(GL_TRUE);
+	myshader.use_fixed();
 }
 
 
