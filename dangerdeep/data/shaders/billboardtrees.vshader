@@ -10,7 +10,7 @@
 varying vec2 texcoord0;
 varying float diffcol;
 attribute float treesize;
-uniform vec2 billboarddir;
+uniform vec2 viewpos;
 
 uniform float windmovement;
 const float wind_x_scal = 1.0/64.0;
@@ -29,6 +29,7 @@ void main()
 	vec2 windmove = vec2(sin(f)*0.5, cos(f)) * (windmovescal * (1.0 - texcoord0.y));
 
 	// compute vertex position
+	vec2 billboarddir = normalize(vec2(gl_Vertex.y - viewpos.y, viewpos.x - gl_Vertex.x));
 	vec2 addpos = billboarddir * treesize + windmove;
 	vec4 vpos = gl_Vertex;
 	vpos.xy += addpos;

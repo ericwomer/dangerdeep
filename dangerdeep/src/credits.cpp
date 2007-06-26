@@ -502,10 +502,7 @@ plant_set::plant_set(vector<float>& heightdata, unsigned nr, unsigned w, unsigne
 
 void plant_set::display(const vector3& viewpos, float zang) const
 {
-	vector3f vp;
-	vp.assign(viewpos);
-	vector2 dird = angle(zang + 90).direction();
-	vector2f dir; dir.assign(dird);
+	vector3f vp(viewpos);
 
 	//unsigned tm0 = sys().millisec();
 	for (unsigned i = 0; i < plants.size(); ++i) {
@@ -554,7 +551,7 @@ void plant_set::display(const vector3& viewpos, float zang) const
 
 	glDepthMask(GL_FALSE);
 	myshader.use();
-	myshader.set_uniform("billboarddir", dir);
+	myshader.set_uniform("viewpos", vp.xy());
 	myshader.set_uniform("windmovement", myfrac(sys().millisec()/4000.0));
 
 	plantvertexdata.bind();
