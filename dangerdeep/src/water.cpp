@@ -59,6 +59,62 @@ using std::vector;
 
 // fixme: allow rendering of geoclipmap patches as grid/lines for easier debugging
 
+/*
+Notes about geoclipmaps and this implementation:
+- we partition the torus shape of a level in 8 rectangles,
+  each called a patch. Because of size variations, we have
+  9 versions of each patch. We can precompute all patches.
+  However these consist only of indices and can be
+  computed quickly on the fly, so we wouldnt't need to
+  store them in VBOs.
+
+  There are two tricks with geoclipmaps that this approach is missing:
+  - view culling could be done finer: crop the torus by the visible
+    area of the xy plane of the current level and render only the
+    rest. This gives rectangles of any size making up the level.
+    This is a bit more complex to compute and can't be precomputed,
+    but we could render more fps.
+  - Blending the height from one level to the coarser next level near
+    the border gives a smooth geometric transition without the need
+    of skirts between the levels. At the moment we have complex
+    index lists for the patches to handle the boundaries with
+    complex use of triangle strips and many degenerated triangles.
+    geoclipmaps use only regular tri-strips making lines of quads.
+    zero-area (not degenerated!) triangles are rendered between
+    the levels as skirts.
+
+- geoclipmap computes the regions for each level first, and then
+  renders. the approach is more mathematical, but has some
+  advantages, like skipping finer regions when update would be
+  too costly
+
+summary:
+- we could change this code to be more similar to the geoclipmap
+  algorithm from the paper
+- then we can reuse most code for static terrain and dynamic water
+- drawback is that we need to give for each vertex the height
+  of it in the coarser level. For water with x/y displacement,
+  we would need to give the full vertex of next coarser level
+  to blend it. This gives additional 3 vertex attributes per
+  vertex, that need to get updated every frame (which means
+  CPU-bound interpolation for 3/4 of the values).
+  This is complex and also costly.
+  A serious drawback and the major reason why the geoclipmap
+  implementation here is different from the paper.
+  We have 7 vertex attributes per vertex:
+  3x coord, 3x normal, 1x amount of foam.
+  With smooth level transition we would need to give all 7 attributes
+  for both levels, if we would do it right. This is overkill,
+  but at least giving the next coarser coordinate raised
+  the per-vertex attribute count from 7 to 10.
+
+conclusions:
+- better keep this working code as it is.
+- the visible level transitions are not that bad, since viewer moves
+  only slowly
+- implement the geoclipmap closer to the paper for static terrain
+  and reuse only the knowledge.
+*/
 
 #define REFRAC_COLOR_RES 32
 #define FRESNEL_FCT_RES 256
