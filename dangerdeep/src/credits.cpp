@@ -30,9 +30,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "angle.h"
 #include "bspline.h"
 
-// instead of including global_data.h
-extern font* font_arial;
-
 using namespace std;
 
 
@@ -714,6 +711,30 @@ auto_ptr<model::mesh> generate_trees(vector<float>& heightdata, unsigned nr = 20
 
 
 
+void generate_fadein_pixels(vector<Uint8>& pix, unsigned ctr, unsigned s)
+{
+	// draw spiral
+	unsigned x = 0, y = 0;
+	const int dx[4] = { 1, 0,-1, 0 };
+	const int dy[4] = { 0, 1, 0,-1 };
+	unsigned i = 0;
+	for (unsigned m = s; m > 0; m -= 2) {
+		for (unsigned k = 0; k < 4; ++k) {
+			for (unsigned j = 0; j < m - 1; ++j) {
+				pix[2*(y*s+x)+1] = (i < ctr) ? 0x00 : 0xff;
+				x += dx[k];
+				y += dy[k];
+				++i;
+			}
+		}
+		// we need to go down and right one cell
+		x += 1;
+		y += 1;
+	}
+}
+
+
+
 void show_credits()
 {
 	//glClearColor(0.1,0.25,0.4,0);
@@ -798,6 +819,13 @@ void show_credits()
 
 	//float lposition[4] = {200, 0, 0, 1};
 
+	std::auto_ptr<texture> fadein_tex;
+	std::vector<Uint8> fadein_pixels(8*8*2);
+	generate_fadein_pixels(fadein_pixels, 0, 8);
+	fadein_tex.reset(new texture(fadein_pixels, 8, 8, GL_LUMINANCE_ALPHA,
+				     texture::NEAREST, texture::REPEAT));
+	unsigned fadein_ctr = 0;
+
 	bool quit = false;
 	float lines_per_sec = 2;
 	float ctr = 0.0, ctradd = 1.0/32.0;
@@ -858,6 +886,19 @@ void show_credits()
 		glPopMatrix();
 
 		sys().prepare_2d_drawing();
+		if (fadein_tex.get()) {
+			fadein_ctr = (sys().millisec() - tm0) * 64 / 3200;
+			// generate fadein tex
+			generate_fadein_pixels(fadein_pixels, fadein_ctr, 8);
+			fadein_tex.reset(new texture(fadein_pixels, 8, 8, GL_LUMINANCE_ALPHA,
+						     texture::NEAREST, texture::REPEAT));
+			glPushMatrix();
+			glScalef(4.0, 4.0, 4.0);
+			fadein_tex->draw_tiles(0, 0, sys().get_res_x_2d()/4, sys().get_res_y_2d()/4);
+			glPopMatrix();
+			if (fadein_ctr >= 64)
+				fadein_tex.reset();
+		}
 
 #if 0
 		if (use_shaders) {
@@ -885,7 +926,8 @@ void show_credits()
 
 		for (int i = textpos; i <= textpos+lines_per_page; ++i) {
 			if (i >= 0 && i < textlines) {
-				font_arial->print_hc(512, (i-textpos)*lineheight+int(-lineoffset*lineheight), credits[i], color::white(), true);
+				int y = (i-textpos)*lineheight+int(-lineoffset*lineheight);
+				font_arial->print_hc(512+int(64*sin(y*2*M_PI/640)), y, credits[i], color::white(), true);
 			}
 		}
 		sys().unprepare_2d_drawing();
