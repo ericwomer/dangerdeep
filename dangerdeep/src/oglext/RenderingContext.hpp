@@ -1045,7 +1045,11 @@ public:
 
 	#ifdef GL_EXT_color_subtable_OGLEXT
 
-//		GLvoid            (APIENTRY * m_pColorSubTableEXT) (GLenum, GLsizei, GLsizei, GLenum, GLenum, GLvoid const *);
+//CT
+	#if defined(__APPLE__) && defined(__MACH__)
+		GLvoid            (APIENTRY * m_pColorSubTableEXT) (GLenum, GLsizei, GLsizei, GLenum, GLenum, GLvoid const *);
+	#endif // MACOSX
+
 		GLvoid            (APIENTRY * m_pCopyColorSubTableEXT) (GLenum, GLsizei, GLint, GLint, GLsizei);
 
 	#endif // GL_EXT_color_subtable_OGLEXT

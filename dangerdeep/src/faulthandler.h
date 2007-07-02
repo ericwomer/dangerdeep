@@ -23,7 +23,25 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef FAULTHANDLER_H
 #define FAULTHANDLER_H
 
-#ifndef WIN32
+/*
+Win32 and MacOsX do not suppport backtracking
+*/
+
+#if defined (WIN32) || (defined (__APPLE__) && defined (__MACH__))
+
+#include <stdio.h>
+
+inline void print_stack_trace()
+{
+	//printf("Stack backtracing not supported on Win32 and MacOSX systems.\n");
+}
+
+void install_segfault_handler()
+{
+	//printf("SIGSEGV catching not supported on Win32 and MacOSX systems.\n");
+}
+
+#else	//non-WIN32-MacOSX
 
 #include <execinfo.h>
 #include <stdio.h>
@@ -121,19 +139,8 @@ void install_segfault_handler()
 {
 	signal(SIGSEGV, sigsegv_handler);
 }
-#else	// WIN32
 
-#include <stdio.h>
 
-inline void print_stack_trace()
-{
-	//printf("Stack backtracing not supported on Win32 systems.\n");
-}
-
-void install_segfault_handler()
-{
-	//printf("SIGSEGV catching not supported on Win32 systems.\n");
-}
-#endif	// WIN32
+#endif	// WIN32 || MacOSX
 
 #endif	// FAULTHANDLER_H
