@@ -139,6 +139,9 @@ double transform_nautic_posy_to_real(const std::string& s);
 
 std::list<std::string> string_split(const std::string& src, char splitter = ',');
 
+// save a PGM (for debugging mostly)
+void save_pgm(const char* fn, unsigned w, unsigned h, const Uint8* d, unsigned stride = 0);
+
 ///> transform any data type to a string for easier error reporting etc.
 template<typename T> std::string str(const T& x) { std::ostringstream oss; oss << x; return oss.str(); }
 ///> do the same with width and filler

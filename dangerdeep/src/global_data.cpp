@@ -207,3 +207,17 @@ std::list<std::string> string_split(const std::string& src, char splitter)
 	} while (st != std::string::npos);
 	return result;
 }
+
+
+void save_pgm(const char* fn, unsigned w, unsigned h, const Uint8* d, unsigned stride)
+{
+	std::ofstream osg(fn);
+	if (!osg.good()) throw error(std::string("Can't open output file ") + fn);
+	osg << "P5\n";
+	osg << w << " " << h << "\n255\n";
+	if (!stride) stride = w;
+	for (unsigned y = 0; y < h; ++y) {
+		osg.write((const char*)d, w);
+		d += stride;
+	}
+}
