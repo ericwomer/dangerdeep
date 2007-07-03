@@ -21,10 +21,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "perlinnoise.h"
-#include "system.h"
 #include <math.h>
 #include <sstream>
 #include <fstream>
+#include <stdexcept>
 using std::vector;
 
 perlinnoise::noise_func::noise_func(unsigned s, unsigned f, float px, float py)
@@ -124,11 +124,11 @@ bool is_power2(unsigned x)
 perlinnoise::perlinnoise(unsigned size, unsigned sizeminfreq, unsigned sizemaxfreq)
 	: resultsize(size)
 {
-	sys().myassert(is_power2(size), "size is not power of two");
-	sys().myassert(is_power2(sizeminfreq), "sizeminfreq is not power of two");
-	sys().myassert(is_power2(sizemaxfreq), "sizemaxfreq is not power of two");
-	sys().myassert(sizeminfreq >= 1 && sizeminfreq <= size && sizeminfreq <= sizemaxfreq, "sizeminfreq out of range");
-	sys().myassert(sizemaxfreq >= 2 && sizemaxfreq <= size, "sizemaxfreq out of range");
+	if (!is_power2(size)) throw std::invalid_argument("size is not power of two");
+	if (!is_power2(sizeminfreq)) throw std::invalid_argument("sizeminfreq is not power of two");
+	if (!is_power2(sizemaxfreq)) throw std::invalid_argument("sizemaxfreq is not power of two");
+	if (!(sizeminfreq >= 1 && sizeminfreq <= size && sizeminfreq <= sizemaxfreq)) throw std::invalid_argument("sizeminfreq out of range");
+	if (!(sizemaxfreq >= 2 && sizemaxfreq <= size)) throw std::invalid_argument("sizemaxfreq out of range");
 	unsigned nrfunc = 0;
 	for (unsigned j = sizemaxfreq/sizeminfreq; j > 0; j >>= 1)
 		++nrfunc;
@@ -229,4 +229,47 @@ vector<Uint8> perlinnoise::generate_sqr() const
 	}
 
 	return result;
+}
+
+
+
+perlinnoise::perlinnoise(unsigned size, unsigned levels)
+{
+	if (!is_power2(size)) throw std::invalid_argument("size is not power of two");
+	if (levels < 1) throw std::invalid_argument("levels must be >= 1");
+
+	resultsize = size * (1 << levels);
+
+	noise_functions.reserve(levels);
+	for (unsigned i = 0; i < levels; ++i) {
+		noise_functions.push_back(noise_func(size, 1));
+	}
+
+	// create interpolation function
+	const unsigned res = 256;
+	interpolation_func.resize(res);
+	for (unsigned i = 0; i < res; ++i) {
+		float f = M_PI * float(i)/res;
+		interpolation_func[i] = fixed32((1.0f - cosf(f)) * 0.5f);
+	}
+}
+
+
+
+Uint8 perlinnoise::value(unsigned x, unsigned y, unsigned depth) const
+{
+	fixed32 dxy = fixed32::one()/resultsize;
+	int sum = 0;
+	unsigned k = std::min(depth, noise_functions.size());
+	for (unsigned i = 0; i < k; ++i) {
+		// we have to remove the part of x/y that will be
+		// integral and bigger than size later
+		x = (x << i) & (resultsize - 1);
+		y = (y << i) & (resultsize - 1);
+		fixed32 fx = dxy * x, fy = dxy * y;
+		noise_functions[i].set_line_for_interpolation(interpolation_func, fy);
+		sum += (int(noise_functions[i].interpolate(interpolation_func, fx))-128) >> i;
+	}
+	// rescale sum here? *19/32 ? fixme
+	return Uint8(clamp_zero(clamp_value((sum * 3 / 4) + 128, 255)));
 }
