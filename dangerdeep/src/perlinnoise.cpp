@@ -233,16 +233,17 @@ vector<Uint8> perlinnoise::generate_sqr() const
 
 
 
-perlinnoise::perlinnoise(unsigned size, unsigned levels)
+perlinnoise::perlinnoise(unsigned levelsize, unsigned sizeminfreq, unsigned levels, bool /*dummy*/)
 {
-	if (!is_power2(size)) throw std::invalid_argument("size is not power of two");
+	if (!is_power2(levelsize)) throw std::invalid_argument("levelsize is not power of two");
+	if (!is_power2(sizeminfreq)) throw std::invalid_argument("sizeminfreq is not power of two");
 	if (levels < 1) throw std::invalid_argument("levels must be >= 1");
 
-	resultsize = size * (1 << levels);
+	resultsize = levelsize * sizeminfreq * (1 << levels - 1);
 
 	noise_functions.reserve(levels);
 	for (unsigned i = 0; i < levels; ++i) {
-		noise_functions.push_back(noise_func(size, 1));
+		noise_functions.push_back(noise_func(levelsize, 1));
 	}
 
 	// create interpolation function
@@ -259,17 +260,41 @@ perlinnoise::perlinnoise(unsigned size, unsigned levels)
 Uint8 perlinnoise::value(unsigned x, unsigned y, unsigned depth) const
 {
 	fixed32 dxy = fixed32::one()/resultsize;
+ 	x = x & (resultsize - 1);
+ 	y = y & (resultsize - 1);
 	int sum = 0;
 	unsigned k = std::min(depth, noise_functions.size());
 	for (unsigned i = 0; i < k; ++i) {
 		// we have to remove the part of x/y that will be
 		// integral and bigger than size later
-		x = (x << i) & (resultsize - 1);
-		y = (y << i) & (resultsize - 1);
-		fixed32 fx = dxy * x, fy = dxy * y;
+		int xx = (x << i) & (resultsize - 1);
+		int yy = (y << i) & (resultsize - 1);
+		fixed32 fx = dxy * xx, fy = dxy * yy;
 		noise_functions[i].set_line_for_interpolation(interpolation_func, fy);
 		sum += (int(noise_functions[i].interpolate(interpolation_func, fx))-128) >> i;
 	}
-	// rescale sum here? *19/32 ? fixme
-	return Uint8(clamp_zero(clamp_value((sum * 3 / 4) + 128, 255)));
+	// rescale sum here
+	return Uint8(clamp_value(clamp_zero(((sum * 19) >> 5) + 128), 255));
+}
+
+
+
+float perlinnoise::valuef(unsigned x, unsigned y, unsigned depth) const
+{
+	fixed32 dxy = fixed32::one()/resultsize;
+ 	x = x & (resultsize - 1);
+ 	y = y & (resultsize - 1);
+	float sum = 0, f = 1.0f;
+	unsigned k = std::min(depth, noise_functions.size());
+	for (unsigned i = 0; i < k; ++i) {
+		// we have to remove the part of x/y that will be
+		// integral and bigger than size later
+		int xx = (x << i) & (resultsize - 1);
+		int yy = (y << i) & (resultsize - 1);
+		fixed32 fx = dxy * xx, fy = dxy * yy;
+		noise_functions[i].set_line_for_interpolation(interpolation_func, fy);
+		sum += (int(noise_functions[i].interpolate(interpolation_func, fx))-128) * f;
+		f *= 0.5f;
+	}
+	return f;
 }

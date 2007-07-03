@@ -79,14 +79,17 @@ public:
 	// generate a composition of the noise functions with x^2 interpolation
 	std::vector<Uint8> generate_sqr() const;
 
-	//fixme: we need 2 enhancements:
-	//1. constructor to create levels of even sizes, so result can be very big
-	//2. a function to compute a certain sample (for big noise)
-	//2^16*2^16 noises are possible...
-	//set linefac code must be copied to that function -> costly
-	perlinnoise(unsigned size, unsigned levels);
+	/// generate noise data for potentially very large noise maps
+	///@param levelsize - size of a level (power of two)
+	///@param sizeminfreq - size of smallest detail data in pixels (power of two)
+	///@param levels - number of levels (at least 1)
+	///@param dummy - unused, trick to distinguish constructors
+	///@note total size will be levelsize * sizeminfreq * 2^(levels-1).
+	///@note do not call generate() on objects constructed with this constructor
+	perlinnoise(unsigned levelsize, unsigned sizeminfreq, unsigned levels, bool dummy);
 
 	Uint8 value(unsigned x, unsigned y, unsigned depth = 0xffffffff) const;
+	float valuef(unsigned x, unsigned y, unsigned depth = 0xffffffff) const;
 };
 
 #endif
