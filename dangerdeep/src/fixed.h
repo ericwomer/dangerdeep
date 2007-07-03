@@ -60,6 +60,7 @@ class fixed32
 	fixed32 operator/ (int n) const { return fixed32(x/n); }
 	int intpart() const { return int(x>>SHIFT); }
 	int round() const { return int((x+HALF)>>SHIFT); }
+	Sint32 value() const { return x; }
 };
 
 #endif
