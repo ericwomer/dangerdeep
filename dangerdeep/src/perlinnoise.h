@@ -90,6 +90,8 @@ public:
 
 	Uint8 value(unsigned x, unsigned y, unsigned depth = 0xffffffff) const;
 	float valuef(unsigned x, unsigned y, unsigned depth = 0xffffffff) const;
+	std::vector<Uint8> values(unsigned x, unsigned y, unsigned w, unsigned h, unsigned depth = 0xffffffff) const;
+	std::vector<float> valuesf(unsigned x, unsigned y, unsigned w, unsigned h, unsigned depth = 0xffffffff) const;
 };
 
 #endif

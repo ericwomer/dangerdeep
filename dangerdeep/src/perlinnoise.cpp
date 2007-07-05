@@ -298,3 +298,66 @@ float perlinnoise::valuef(unsigned x, unsigned y, unsigned depth) const
 	}
 	return f;
 }
+
+
+
+std::vector<Uint8> perlinnoise::values(unsigned x, unsigned y, unsigned w, unsigned h, unsigned depth) const
+{
+	std::vector<Uint8> result(w * h);
+	fixed32 dxy = fixed32::one()/resultsize;
+ 	x = x & (resultsize - 1);
+ 	y = y & (resultsize - 1);
+	unsigned k = std::min(depth, noise_functions.size());
+	for (unsigned y2 = y; y2 < y + h; ++y2) {
+		for (unsigned i = 0; i < k; ++i) {
+			int yy = (y2 << i) & (resultsize - 1);
+			fixed32 fy = dxy * yy;
+			noise_functions[i].set_line_for_interpolation(interpolation_func, fy);
+		}
+		for (unsigned x2 = x; x2 < x + w; ++x2) {
+			int sum = 0;
+			for (unsigned i = 0; i < k; ++i) {
+				// we have to remove the part of x/y that will be
+				// integral and bigger than size later
+				int xx = (x2 << i) & (resultsize - 1);
+				fixed32 fx = dxy * xx;
+				sum += (int(noise_functions[i].interpolate(interpolation_func, fx))-128) >> i;
+			}
+			// rescale sum here
+			result[y2*w+x2] = Uint8(clamp_value(clamp_zero(((sum * 19) >> 5) + 128), 255));
+		}
+	}
+	return result;
+}
+
+
+
+std::vector<float> perlinnoise::valuesf(unsigned x, unsigned y, unsigned w, unsigned h, unsigned depth) const
+{
+	std::vector<float> result(w * h);
+	fixed32 dxy = fixed32::one()/resultsize;
+ 	x = x & (resultsize - 1);
+ 	y = y & (resultsize - 1);
+	unsigned k = std::min(depth, noise_functions.size());
+	for (unsigned y2 = y; y2 < y + h; ++y2) {
+		for (unsigned i = 0; i < k; ++i) {
+			int yy = (y2 << i) & (resultsize - 1);
+			fixed32 fy = dxy * yy;
+			noise_functions[i].set_line_for_interpolation(interpolation_func, fy);
+		}
+		for (unsigned x2 = x; x2 < x + w; ++x2) {
+			float sum = 0, f = 1.0f;
+			for (unsigned i = 0; i < k; ++i) {
+				// we have to remove the part of x/y that will be
+				// integral and bigger than size later
+				int xx = (x2 << i) & (resultsize - 1);
+				fixed32 fx = dxy * xx;
+				sum += (int(noise_functions[i].interpolate(interpolation_func, fx))-128) * f;
+				f *= 0.5f;
+			}
+			// rescale sum here
+			result[y2*w+x2] = f;
+		}
+	}
+	return result;
+}
