@@ -3,9 +3,11 @@
     <short lang="en">TRAINING: A single ship</short>
     <short lang="de">ÜBUNG: Nur ein Schiff</short>
     <short lang="it">ADDESTRAMENTO: Una singola nave</short>
+    <short lang="fr">ENTRAINEMENT: Un seul bâteau</short>   
     <long lang="en">You have detected a small unprotected merchant convoy in the Aegean sea. Be quick because some escorts may be nearby.</long>
     <long lang="de">Sie haben einen kleinen, unbewachten Konvoi im Ägäischen Meer entdeckt. Beeilen Sie sich, denn Eskorten könnten in der Nähe sein.</long>
     <long lang="it">Hai rilevato una nave mercatile senza scorta nel Mar Egeo. Agisci rapidamente, navi di scorta potrebbero essere vicine</long>
+    <long lang="fr">Vous avez détecté un petit convoi de bateaux marchands non escortés dans la mer Egée. Soyez rapide car une escorte pourrait être proche</long>
   </description>
     <ships nr="1">
         <ship type="merchant_small">
