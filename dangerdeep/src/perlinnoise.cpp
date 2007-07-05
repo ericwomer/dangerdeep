@@ -263,7 +263,7 @@ Uint8 perlinnoise::value(unsigned x, unsigned y, unsigned depth) const
  	x = x & (resultsize - 1);
  	y = y & (resultsize - 1);
 	int sum = 0;
-	unsigned k = std::min(depth, noise_functions.size());
+	unsigned k = std::min(depth, unsigned(noise_functions.size()));
 	for (unsigned i = 0; i < k; ++i) {
 		// we have to remove the part of x/y that will be
 		// integral and bigger than size later
@@ -285,7 +285,7 @@ float perlinnoise::valuef(unsigned x, unsigned y, unsigned depth) const
  	x = x & (resultsize - 1);
  	y = y & (resultsize - 1);
 	float sum = 0, f = 1.0f;
-	unsigned k = std::min(depth, noise_functions.size());
+	unsigned k = std::min(depth, unsigned(noise_functions.size()));
 	for (unsigned i = 0; i < k; ++i) {
 		// we have to remove the part of x/y that will be
 		// integral and bigger than size later
@@ -307,7 +307,7 @@ std::vector<Uint8> perlinnoise::values(unsigned x, unsigned y, unsigned w, unsig
 	fixed32 dxy = fixed32::one()/resultsize;
  	x = x & (resultsize - 1);
  	y = y & (resultsize - 1);
-	unsigned k = std::min(depth, noise_functions.size());
+	unsigned k = std::min(depth, unsigned(noise_functions.size()));
 	for (unsigned y2 = y; y2 < y + h; ++y2) {
 		for (unsigned i = 0; i < k; ++i) {
 			int yy = (y2 << i) & (resultsize - 1);
@@ -338,7 +338,7 @@ std::vector<float> perlinnoise::valuesf(unsigned x, unsigned y, unsigned w, unsi
 	fixed32 dxy = fixed32::one()/resultsize;
  	x = x & (resultsize - 1);
  	y = y & (resultsize - 1);
-	unsigned k = std::min(depth, noise_functions.size());
+	unsigned k = std::min(depth, unsigned(noise_functions.size()));
 	for (unsigned y2 = y; y2 < y + h; ++y2) {
 		for (unsigned i = 0; i < k; ++i) {
 			int yy = (y2 << i) & (resultsize - 1);
