@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <dftd-mission description="cvmission" version="1" type="0">
+  <description>
+    <long lang="en">You are approaching a large convoy that was reported from other submarines. Expect heavy protection. You are the only sub operating on this convoy.</long>
+    <long lang="de">Sie nähern sich einem großen Konvoi, der von anderen U-Booten gemeldet wurde. Erwarten Sie starke Bewachung. Sie sind das einzige U-Boot, das auf diesem Konvoi operiert.</long>
+    <long lang="it">Ti stai avvicinando ad un grande convoglio rilevato da altri sommergibili. Prevista una forte protezione. Sei il solo sommergibile ad attaccare il convoglio.</long>
+    <long lang="fr">Vous approchez un grand convoi signalé par d'autres sous-marins. Attendez-vous à une protection soutenue. Vous êtes le seul sous-marin à affronter ce convoi.</long>
+    <short lang="en">Convoy battle with large convoy vs. single submarine.</short>
+    <short lang="de">Geleitzugschlacht mit großem Konvoi gegen ein einzelnes U-Boot</short>
+    <short lang="it">Battaglia con convoglio tra un grande convoglio contro un singolo sommergibile.</short>
+    <short lang="fr">Bataille engageant un grand convoi contre un seul sous-marin.</short>
+  </description>
   <ships nr="70">
     <ship type="merchant_small">
       <state>
@@ -1642,12 +1652,4 @@
     </equipment_date>
   </state>
   <pings nr="0"/>
-  <description>
-    <long lang="en">You are approaching a large convoy that was reported from other submarines. Expect heavy protection. You are the only sub operating on this convoy.</long>
-    <long lang="de">Sie nähern sich einem großen Konvoi, der von anderen U-Booten gemeldet wurde. Erwarten Sie starke Bewachung. Sie sind das einzige U-Boot, das auf diesem Konvoi operiert.</long>
-    <long lang="it">Ti stai avvicinando ad un grande convoglio rilevato da altri sommergibili. Prevista una forte protezione. Sei il solo sommergibile ad attaccare il convoglio.</long>
-    <short lang="en">Convoy battle with large convoy vs. single submarine.</short>
-    <short lang="de">Geleitzugschlacht mit großem Konvoi gegen ein einzelnes U-Boot</short>
-    <short lang="it">Battaglia con convoglio tra un grande convoglio contro un singolo sommergibile.</short>
-  </description>
 </dftd-mission>
