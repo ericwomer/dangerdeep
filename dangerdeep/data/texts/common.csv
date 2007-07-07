@@ -106,11 +106,11 @@
 104;"Main menu";"Hauptmenü";"Menu principale";"Menú principal";"Menu principal";"Hlavní menu";"Menu principal";"Hoofd menu";"Ana Menü"
 105;"continue";"weiter";"continua";"continuar";"continuer";"pokračovat";"continuar";"Doorgaan";"devam"
 106;"Change screen resolution";"Bildschirmauflösung ändern";"Cambia la risoluzione dello schermo";"Cambiar la resolución de pantalla";"Changer la résolution d'écran";"Změnit rozlišení obrazovky";;"Verander scherm resolutie";"Ekran Çözünürlüğünü Değiş"
-107;"Miscellaneous";"Verschiedenes";"Miscellaneous";"Miscellaneous";"Miscellaneous";"Miscellaneous";"Miscellaneous";"Miscellaneous";"Miscellaneous"
+107;"Miscellaneous";"Verschiedenes";"Miscellaneous";"Miscellaneous";"Divers";"Miscellaneous";"Miscellaneous";"Miscellaneous";"Miscellaneous"
 108;"Use GLSL shaders";"Benutze GLSL Shader";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders"
 109;"Use shaders for water rendering";"Benutze Shader für Wasser-Darstellung";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering"
 110;"not implemented yet, sorry";"Leider noch nicht implementiert";"not implemented yet, sorry";"Lo siento, no implementado aún";"Pas encore implémenté, désolé";"Promiňte, zatím nebylo implementováno";;"Nog niet geïmplementeerd";"henüz yerine getirilmedi, üzgünüm"
-111;"Use high quality effects";"Benutze extra Shader-Effekte";"Use high quality effects";"Use high quality effects";"Use high quality effects";"Use high quality effects";"Use high quality effects";"Use high quality effects";"Use high quality effects"
+111;"Use high quality effects";"Benutze extra Shader-Effekte";"Use high quality effects";"Use high quality effects";"Utiliser les effets haute définition";"Use high quality effects";"Use high quality effects";"Use high quality effects";"Use high quality effects"
 112;;;;;;;;;
 113;;;;;;;;;
 114;;;;;;;;;
@@ -167,7 +167,7 @@
 165;"Damage: ";"Schaden: ";"Danno: ";"Daño:";"Dommages :";"Poškození:";;"Schade";"Hasar:"
 166;"percent";"Prozent";"percento";"porcentaje";"Pourcents";"procent";;"procent";"yüzde"
 167;"Repair in progress.";"Reparatur wird ausgeführt.";"Riparazioni in corso.";"Reparación en curso";"Réparation en cours";"Opravy probíhají.";;"Bezig met repareren";"Onarım durumu"
-168;"Repair will continue when we're surfaced.";"Reparatur wird fortgesetzt";" sobald wir aufgetaucht sind.";"La reparación continuará cuando estemos en la superficie";"La réparation continuera quand nous feront surface.";"Opravy budou probíhat, když se vynoříme.";;"Het repareren gaat verder als we aan de oppervlakte liggen";"Onarım yüzeye çıktığımızda devam edecek"
+168;"Repair will continue when we're surfaced.";"Reparatur wird fortgesetzt";" sobald wir aufgetaucht sind.";"La reparación continuará cuando estemos en la superficie";"La réparation continuera quand nous ferons surface.";"Opravy budou probíhat, když se vynoříme.";;"Het repareren gaat verder als we aan de oppervlakte liggen";"Onarım yüzeye çıktığımızda devam edecek"
 169;"This damage can not be repaired at sea.";"Reparatur kann nicht auf See ausgeführt werden.";"Questo danno non può essere riparato in mare.";"Este daño no puede reparado en el mar.";"La panne ne peut pas être réparée en mer.";"Toto poškození nemůže být opraveno v moři.";;"Deze schade kan niet op zee gerepareerd worden";"Bu hasar denizde tamir edilemez"
 170;"Repair time: ";"Reparaturzeit: ";"Tempo per le riparazioni: ";"Tiempo de reparación:";"Temps pour la réparation :";"Čas potřebný na opravu:";;"Repareer tijd: ";"Onarım zamanı:"
 171;" minute.";" Minute.";" minute.";" minute.";"minute.";" minuta.";;" ""minuut""";"dakika"
