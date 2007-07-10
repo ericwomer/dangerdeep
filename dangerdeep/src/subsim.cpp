@@ -1481,6 +1481,9 @@ int mymain(list<string>& args)
 			     << "--savegamedir path\tdirectory for savegames, default path depends on platform\n"
 			     << "--highscoredir path\tdirectory for highscores, default path depends on platform\n"
 			     << "--configdir path\tdirectory for configuration data, default path depends on platform\n"
+#if !(defined (WIN32) || (defined (__APPLE__) && defined (__MACH__)))
+			     << "--vsync\tsync to vertical retrace signal (for nvidia cards)\n"
+#endif
 			     << "--maxfps x\tset maximum fps to x frames per second (default 60). Use x=0 to disable fps limit.\n";
 			return 0;
 		} else if (*it == "--nofullscreen") {
@@ -1586,6 +1589,12 @@ int mymain(list<string>& args)
 				override_lang = true;
 				++it;
 			}
+#if !(defined (WIN32) || (defined (__APPLE__) && defined (__MACH__)))
+		} else if (*it == "--vsync") {
+			if (putenv("__GL_SYNC_TO_VBLANK=1") < 0)
+				cout << "ERROR: vsync setting failed.\n";
+			maxfps = 0;
+#endif
 		} else if (*it == "--maxfps") {
 			list<string>::iterator it2 = it; ++it2;
 			if (it2 != args.end()) {
