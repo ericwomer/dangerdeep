@@ -10,6 +10,7 @@
 	  <skin filename="oclass_camo5_diffuse.jpg" layout="north_atlantic_hcn"/>
 	  <skin filename="oclass_camo6_diffuse.jpg" layout="north_atlantic_hcn2"/>
 	  <skin filename="oclass_camo7_diffuse.jpg" layout="central_atlantic"/>
+	  <skin filename="oclass_camo8_diffuse.jpg" layout="barents_sea"/>
 	</map>
         <map type="normal" filename="oclass_bump.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" >
 	  <skin filename="oclass_bump_skin2.jpg" layout="north_atlantic_hcn"/>
@@ -20,6 +21,7 @@
 	  <skin filename="oclass_spec_skin2.jpg" layout="north_atlantic_hcn"/>
 	  <skin filename="oclass_spec_skin2.jpg" layout="north_atlantic_hcn2"/>
 	  <skin filename="oclass_spec_skin2.jpg" layout="central_atlantic"/>
+	  <skin filename="oclass_spec_skin2.jpg" layout="barents_sea"/>
 	</map>
   </material>
   <mesh name="OclassHull" id="0" material="0">
