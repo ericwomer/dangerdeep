@@ -118,6 +118,79 @@ const char* credits[] = {
 
 // ------------------------------------------- code ---------------------------------------
 
+/*
+geoclipmap rendering
+
+we only need a function that tells us the height for any coordinate in
+the (x,y) plane (with some parameter for the detail) and the render
+resolution of each patch (called N by the authors, where N+1 is a power
+of two, here our N is that of N+1 of the paper).
+
+With that information we could render any kind of terrain, no matter if
+the height is synthesized or taken from (compressed) stored data.
+
+We have either one VBO for vertices of all levels or one VBO per
+level. The vertices on the border between two levels aren't shared
+except for the zero area triangles used to make the mesh watertight.
+Having multiple VBOs could be better for updating, we don't need to map
+the whole VBO, which interferes with rendering. Inner levels could be
+updated while the card renders outer levels or similar
+situations. However we would need some extra space to render the
+connecting triangles, which could be done by reserving 4*N/2 space at
+end of each VBO and storing there the heights of the next inner level
+vertices on the edge, but this is clumsy as well.
+
+It is easier to compute all vertex data for a level (thus N*N vertices)
+and to not leave the center gap out. The gap in the center is N*N/4
+vertices in size and is filled with the next finer level. The overhead
+is small and we can reuse the computed height data (see below), plus we
+can easily move the gap region around without reloading more vertex data
+to the GPU.
+
+Updating L-shaped regions of vertex data when the viewer moves is
+problematic, that is for updating columns of vertices. This can't be
+represented well by VBO commands. We would need one glBufferSubData call
+per row, which is costly. The only alternative would be to map the
+buffer, but this could interfere with drawing. And we can't map parts of
+the data only. Mapping seems best alternative though. Some sites state
+that mapping is so costly that it should be used for updated of more
+than 32kb of data only.
+
+The indices must be recomputed every frame. An obvious optimization is
+to remember the clip area of the last frame, and to not recompute them
+if that area didn't change. We could either draw the triangles directly
+with data from host memory or copy the data to an index VBO and render
+from there. The latter means extra overhead because of mapping and
+copying, but decouples CPU and GPU and may be faster (test showed that
+this can be indeed the case).
+
+For each vertex we need to know the height of it in the next coarser
+level. This can be trivially computed by requesting the height function
+with a parameter for the detail one less than that of the current level.
+The only problem is that every second vertex in x and y direction (thus
+3/4 of all vertices) fall between vertices of coarser level. Its height
+can be computed by linear combination of the neighbouring 2 or 4
+vertices. Compute missing heights in rows with odd numbers first by
+mixing vertex height of previous and next line 50%/50%, then compute
+missing heights in all lines by mixing heights of previous/next vertex
+50%/50%. The data can be looked up in the height data of the next
+coarser level, if that is not only stored in the GPU but also the CPU
+(system memory). Storing the data also in system memory just for that
+lookup is wasteful on the other hand. We need the height data only for
+updating vertex heights, which is done at a low rate per frame (most
+vertex data is constant). So calling the terrain height function twice
+per newly created vertex should be acceptable, and this eats less memory
+and doesn't trash the cache.
+
+*/
+
+
+
+
+
+
+
+
 #if 0
 void render_bobs(const model::mesh& sph, unsigned tm, unsigned dtm)
 {
@@ -279,6 +352,7 @@ canyon::canyon(unsigned w, unsigned h)
 		   get_shader_dir() + "sandrock.fshader")
 {
 	vector<Uint8> pn = perlinnoise(w, 4, w/2).generate(); // generate_sqr(); // also looks good
+	//save_pgm("canyon.pgm", w, w, &pn[0]);
 	//heightdata = heightmap(w, h, vector2f(2.0f, 2.0f), vector2f(-128, -128));
 	heightdata.resize(w * h);
 	for (unsigned y = 0; y < h; ++y) {
@@ -731,11 +805,70 @@ void generate_fadein_pixels(vector<Uint8>& pix, unsigned ctr, unsigned s)
 }
 
 
+template <class T, unsigned size>
+class lookup_function
+{
+	typename std::vector<T> values;
+	float dmin, dmax, drange_rcp;
+public:
+	lookup_function(float dmin_ = 0.0f, float dmax_ = 1.0f)
+		: values(size + 2), dmin(dmin_), dmax(dmax_), drange_rcp(1.0f/(dmax_ - dmin_)) {}
+	void set_value(unsigned idx, T v) {
+		values.at(idx) = v;
+		// duplicate last value (avoid the if (idx == size), its faster to
+		// just do it.
+		values[size+1] = values[size];
+	}
+	T value(float f) const {
+		if (f < dmin) f = dmin;
+		if (f > dmax) f = dmax;
+		// note: if drange_rcp is a bit too large (float is unprecise)
+		// the result could be a bit larger than 1.0f * size
+		// which is no problem when its smaller than 1.0 + 1/(size+1)
+		// which is normally the case. to avoid segfaults we just
+		// make "values" one entry bigger and duplicate the last value.
+		return values[unsigned(size * ((f - dmin) * drange_rcp))];
+	}
+	unsigned get_value_range() const { return size + 1; }
+};
 
 void show_credits()
 {
 	//glClearColor(0.1,0.25,0.4,0);
 	glClearColor(0.175,0.25,0.125,0.0);
+
+#if 0
+	{
+		// 2^5 * 256 detail is enough = 8192
+		// with 1 value per meter -> repeat every 8192m, far enough
+		perlinnoise pn(64, 4, 6, true); // max. 8192
+		//const unsigned s = 256*256;
+		const unsigned s2 = 256*16;
+		//const unsigned s3 = 32;
+		const unsigned height_segments = 10;
+		const float total_height = 256.0;
+		const float terrace_height = total_height / height_segments;
+		std::vector<Uint8> heights = pn.values(0, 0, s2, s2, 6);
+		lookup_function<float, 256U> asin_lookup;
+		for (unsigned i = 0; i <= 256; ++i)
+			asin_lookup.set_value(i, asin(float(i)/256) / M_PI + 0.5);
+#if 1
+		for (unsigned y = 0; y < s2; ++y) {
+			for (unsigned x = 0; x < s2; ++x) {
+				float f = heights[y*s2+x];
+				unsigned t = unsigned(floor(f / terrace_height));
+				float f_frac = f / terrace_height - t;
+				float f2 = f_frac * 2.0 - 1.0; // be in -1...1 range
+				// skip this for softer hills (x^3 = more steep walls)
+				f2 = f2 * f2 * f2;
+				f2 = asin_lookup.value(f2);
+				heights[y*s2+x] = Uint8((t + f2) * terrace_height);
+			}
+		}
+#endif
+		save_pgm("pntest.pgm", s2, s2, &heights[0]);
+	}
+#endif
 
 	//srand(0);
 
