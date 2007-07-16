@@ -1113,25 +1113,6 @@ void water::display(const vector3& viewpos, double max_view_dist, bool under_wat
 		patches[patches.size() - 4 + k]->render();
 	}
 
-	/* fixme: triangles near the horizon show strange sun reflection (specular light).
-	   it seems that the texcoords or maybe mipmap levels are computed nearly
-	   linearily along the polygon edges. And because we have polygons with very narrow
-	   angles here, this causes artifacts.
-	   Resolution 1: draw more, smaller, rectangular polygons.
-	   Resolution 2: use special rendering with extra specular texture for these polygons,
-	                 texturing them with some bigger noise modelling distant waves.
-	   But: check that this is the cause for the bug first...
-	   The strip of light to the sun points perpendicular to border of last level
-	   in the triangles of the horizon fan that are connected to the last level.
-	   And on the outer triangles of the fan the strip does not point to the sun,
-	   but when you connect the start and and point of the strip on the tri-fan,
-	   it gives a line to the sun. Looks like texture coordinates are screen-space
-	   linear here somehow. Is resolution limited here, because triangles span that
-	   large depth?!
-	   NOTE: the vector to the viewer (E) in shader is strange for these triangles,
-	   this explains the bug!
-	*/
-
 	// unmap, cleanup
 	if (use_shaders) {
 		glDisableClientState(GL_NORMAL_ARRAY);
