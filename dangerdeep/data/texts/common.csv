@@ -107,8 +107,8 @@
 105;"continue";"weiter";"continua";"continuar";"continuer";"pokračovat";"continuar";"Doorgaan";"devam"
 106;"Change screen resolution";"Bildschirmauflösung ändern";"Cambia la risoluzione dello schermo";"Cambiar la resolución de pantalla";"Changer la résolution d'écran";"Změnit rozlišení obrazovky";;"Verander scherm resolutie";"Ekran Çözünürlüğünü Değiş"
 107;"Miscellaneous";"Verschiedenes";"Miscellaneous";"Miscellaneous";"Divers";"Miscellaneous";"Miscellaneous";"Miscellaneous";"Miscellaneous"
-108;"Use GLSL shaders";"Benutze GLSL Shader";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders"
-109;"Use shaders for water rendering";"Benutze Shader für Wasser-Darstellung";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering"
+108;"Use GLSL shaders";"Benutze GLSL Shader";"Use GLSL shaders";"Use GLSL shaders";"Utiliser les GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders"
+109;"Use shaders for water rendering";"Benutze Shader für Wasser-Darstellung";"Use shaders for water rendering";"Use shaders for water rendering";"Utiliser les shaders pour le rendu de l'océan";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering"
 110;"not implemented yet, sorry";"Leider noch nicht implementiert";"not implemented yet, sorry";"Lo siento, no implementado aún";"Pas encore implémenté, désolé";"Promiňte, zatím nebylo implementováno";;"Nog niet geïmplementeerd";"henüz yerine getirilmedi, üzgünüm"
 111;"Use high quality effects";"Benutze extra Shader-Effekte";"Use high quality effects";"Use high quality effects";"Utiliser les effets haute définition";"Use high quality effects";"Use high quality effects";"Use high quality effects";"Use high quality effects"
 112;;;;;;;;;
