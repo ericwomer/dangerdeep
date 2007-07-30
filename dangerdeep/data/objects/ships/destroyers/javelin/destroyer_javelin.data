@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<dftd-ship>
+  <classification identifier="destroyer_javelin" modelname="destroyer_javelin.ddxml" type="escort" country="GB" >
+    <skin name="janus1940" regions="NA,WA" countries="GB" from="1939/1/1" until="1941/12/1"/>
+	<skin name="javelin1941" regions="CH,NS,BS,NW,AS,BA" countries="GB" from="1941/1/1" until="1943/12/31"/>
+	<skin name="jupiter1941" regions="NA,CA,SA,BB,WA" countries="GB" from="1941/1/1" until="1941/12/31"/>
+	<skin name="juno1942" regions="NA,CA,BB,CH,WA" countries="GB" from="1942/1/1" until="1945/12/31"/>
+  </classification>
+  <description>
+    <far lang="en">Convoy escort</far>
+    <far lang="de">Geleitschiff</far>
+    <far lang="it">Nave di scorta</far>
+    <medium lang="en">Destroyer</medium>
+    <medium lang="de">Zerstörer</medium>
+    <medium lang="it">Cacciatorpediniere</medium>
+    <near lang="en">Destroyer J class</near>
+    <near lang="de">Zerstörer J-Klasse</near>
+    <near lang="it">Cacciatorpediniere di classe J</near>
+  </description>
+  <motion maxspeed="36" maxrevspeed="0" acceleration="1.0" turnrate="0.15"/>
+  <tonnage min="1690" max="2330"/>
+  <smoke type="2" x="0" y="6" z="12.65"/>
+  <sensors>
+    <sensor type="lookout"/>
+    <sensor type="passivesonar"/>
+    <sensor type="activesonar"/>
+    <sensor type="radar" model="British Type 271"/>
+  </sensors>
+  <ai type="escort"/>
+  <fuel capacity="1200" consumption_a="1" consumption_t="1"/>
+  <gun_turrets>
+  	<turret barrels="2" shell_capacity="500" initial_velocity="275.0" max_inclination="30" max_declination="0" time_to_man="20" time_to_unman="20" shell_damage="0" calibre="119.38" exclusion_radius_start="135" exclusion_radius_end="225"/>
+	<turret barrels="2" shell_capacity="500" initial_velocity="275.0" max_inclination="30" max_declination="0" time_to_man="20" time_to_unman="20" shell_damage="0" calibre="119.38" exclusion_radius_start="135" exclusion_radius_end="225"/>
+	<turret barrels="2" shell_capacity="500" initial_velocity="275.0" max_inclination="30" max_declination="0" time_to_man="20" time_to_unman="20" shell_damage="0" calibre="119.38" exclusion_radius_start="315" exclusion_radius_end="45"/>
+  </gun_turrets>	
+</dftd-ship>
