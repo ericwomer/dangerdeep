@@ -56,6 +56,7 @@ struct ship_probability
 
 ship_probability escortships[] = {
 	{ 0.1, "destroyer_oclass" },
+	{ 0.3, "destroyer_javelin" },
 	{ 0.4, "destroyer_tribal" },
 	{ 0.5, "corvette" },
 	{ 0.5, "flowercorvette_hcn" },
