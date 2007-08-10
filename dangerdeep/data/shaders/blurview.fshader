@@ -1,5 +1,4 @@
 // -*- mode: C; -*-
-#version 110
 
 varying vec2 texc_0;
 varying vec2 texc_1;

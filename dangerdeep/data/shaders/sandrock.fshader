@@ -1,5 +1,4 @@
 // -*- mode: C; -*-
-#version 110
 
 uniform sampler2D texsandrock;
 uniform sampler2D texnoise;

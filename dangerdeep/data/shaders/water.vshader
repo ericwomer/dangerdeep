@@ -1,5 +1,4 @@
 // -*- mode: C; -*-
-#version 110
 
 // it seems we can define at max. 8 varying parameters...
 varying vec3 viewerdir;
