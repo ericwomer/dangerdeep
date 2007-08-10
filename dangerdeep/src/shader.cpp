@@ -74,6 +74,13 @@ glsl_shader::glsl_shader(const string& filename, type stype, const glsl_shader::
 		// the program as string
 		string prg;
 
+		// add version string for Nvidia cards (leave it out for ATI cards to work around some
+		// crappy ATI drivers).
+		if (sys().extension_supported("GL_NV_texture_env_combine4")) {
+			// we have an Nvidia card (most probably)
+			prg += "#version 110\n";
+		}
+
 		// add defines to top of list for preprocessor
 		for (defines_list::const_iterator it = dl.begin(); it != dl.end(); ++it) {
 			prg += string("#define ") + *it + "\n";
