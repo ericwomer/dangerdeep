@@ -1759,6 +1759,8 @@ int mymain(list<string>& args)
 	mmusic->append_track("Auf_Feindfahrt_fast.ogg");
 	mmusic->append_track("outside_underwater.ogg");
 	mmusic->append_track("Auf_Feindfahrt_environmental.ogg");
+	mmusic->append_track("loopable_seasurface.ogg");
+	mmusic->append_track("loopable_seasurface_badweather.ogg");
 	mmusic->append_track("Auf_Feindfahrt.ogg");
 	add_loading_screen("Music list loaded");
 	//mmusic->set_playback_mode(music::PBM_SHUFFLE_TRACK);
