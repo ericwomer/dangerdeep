@@ -1,0 +1,93 @@
+		<h2 class="right">Téléchargement</h2>
+
+		<p>La dernière version de Danger from the Deep est la 0.3.0. La simulation est jouable mais
+		est toujours en cours de développement actif et est donc considéré à l'état de version alpha
+		mais vos idées, rapports de bogues et suggestions participeront au façonnement des futures versions
+		de DftD et nous serons heureux de recevoir vos remarques, même s'il s'agit pour vous de nous
+		dire que DftD fonctionne sur votre ordinateur.</p>
+
+		<h3>Pré-requis</h3>
+
+		<p>Pour jouer à Dangerdeep sur l'un des systèmes d'exploitation supportés, vous aurez besoin de :</p>
+
+		<ul>
+
+			<li>Une carte graphique compatible OpenGL 1.5 (OpenGL 2.0 ou plus recommendé)</li>
+			<li>Un processeur assez rapide, entre 1.0ghz et 1.5ghz ou plus</li>
+			<li>256 Mo de RAM (512 Mo ou plus rendra la simulation plus agréable)</li>
+			<li>Les périphériques habituels : clavier, écran, souris et des hauts-parleurs ou des écouteurs</li>
+
+		</ul>
+
+		<h3>Paquets "tout en un"</h3>
+
+		<ul>
+			<li>Windows (win32):- <a href="http://prdownloads.sourceforge.net/dangerdeep/dangerdeep-setup-0.3.0.0.exe">dangerdeep-setup-0.3.0.0.exe</a></li>
+			<li>GNU/Linux (x86 &amp; x86-64):- <a href="http://downloads.sourceforge.net/dangerdeep/dangerdeep-0.3.0-linux-installer.bin">dangerdeep-0.3.0-linux-installer.bin</a></li>
+		</ul>
+
+		<p>Les paquets ci-dessus contiennent à la fois le programme et les données. L'ensemble est placé sous licence
+		GPL et Creative Commons respectivement (cf. le contenu des Licences pour plus de détails). Si vous ne souhaitez pas
+		utiliser ces installateurs, vous pouvez télécharger les binaires ou les sources ci-dessous <strong>mais vous devrez
+		également télécharger les données.</strong></p>
+
+		<h3>Paquets individuels</h3>
+
+		<ul>
+			<li>Code source :- <a href="http://downloads.sourceforge.net/dangerdeep/dangerdeep-0.3.0.tar.gz">dangerdeep-0.3.0.tar.gz</a></li>
+			<li>Données :- <a href="http://downloads.sourceforge.net/dangerdeep/dangerdeep-data-0.3.0.zip">dangerdeep-data-0.3.0.zip</a></li>
+			<li>Paquet Debian (unstable) :- <a href="http://downloads.sourceforge.net/dangerdeep/dangerdeep_0.3.0.1_i386.deb">dangerdeep_0.3.0.1_i386.deb</a> (mis-à-jour)</li>
+			<li>Pour Gentoo, merci d'utiliser un port (~x86 et ~amd64).</li>
+		</ul>
+
+		<h3>Platformes/distributions ayant besoin de support</h3>
+
+		<ul>
+			<li>(vieux) port FreeBSD :- <a href="ftp://ftp.freebsd.org/pub/FreeBSD/ports/i386/packages-7-current/games/dangerdeep-0.2.0.tbz">dangerdeep-0.2.0.tbz</a></li>
+			<li>(Très vieux) Mandrake(10.2) :- <a href="http://prdownloads.sourceforge.net/dangerdeep/dangerdeep-0.1.0-1mdk.i586.rpm?download">dangerdeep-0.1.0-1mdk.i586.rpm</a></li>
+			<li>(Très vieux) RPM générique :- <a href="http://prdownloads.sourceforge.net/dangerdeep/dangerdeep-0.1.0-1mdk.src.rpm?download">dangerdeep-0.1.0-1mdk.src.rpm</a></li>
+		</ul>
+
+		<p>Les paquets avec l'indication (vieux) sont orphelins et attendent des bonnes volontés pour les mettre à jour, leur utilisation est donc déconseillée.</p>
+
+		<h3>CVS</h3>
+
+		<p>Si vous avez l'âme d'un aventurier et si vous cherchez à compiler la dernière version à partir de l'environnement de développement,
+		vous pouvez obtenir le code source et les données en exécutant les commandes suivantes :</p>
+
+		<div class="code">cvs -d:pserver:anonymous@dangerdeep.cvs.sourceforge.net:/cvsroot/dangerdeep login</div>
+
+		<p>Lorsque le mot de passe vous est démandé, il suffit de valider (compte anonyme). Pour télécharger les fichiers :</p>
+
+		<div class="code">cvs -z3 -d:pserver:anonymous@dangerdeep.cvs.sourceforge.net:/cvsroot/dangerdeep co -P dangerdeep</div>
+
+		<p>Vous allez alors voir un certain nombre de lignes s'afficher (une ligne par fichier récupéré depuis le serveur). Lorsque vous
+		récupérez le prompt, vous devriez avoir un répertoire "dangerdeep". Pour les mises-à-jour ultérieures de cette arborescence, assurez-vous
+		que vous êtes dans le répertoire dangerdeep et lancez :</p>
+
+		<div class="code">cvs update -Pd</div>
+
+		<p>Pour la compilation, nous utilisons l'outil scons. Une version debug de dangerdeep peut être obtenue par la commande :</p>
+
+		<div class="code">scons debug=1 usex86sse=-1 datadir=/path/to/cvs/dangerdeep/data</div>
+
+		<p>Quelques explications sur les options utilisées :</p>
+
+		<ul>
+			<li>debug=1 Activation du mode debug (valeurs possibles : 0 à 3)</li>
+			<li>usex86sse=-1 Désactive toutes les instructions SSE</li>
+			<li>datadir=/path/to/cvs/dangerdeep/data Ceci est le répertoire où vous avez placé le répertoire /data téléchargé depuis le serveur.
+			Si cette variable pointe vers un répertoire inexistant ou non à jour, dangerdeep ne fonctionnera pas correctement et s'arrêtera en erreur.</li>
+		</ul>
+
+		<div class="ie_center">
+		<div class="text_header">
+		<img class="left" src="download_fichiers/dialog-warning.gif" alt="Warning!">
+		<img class="right" src="download_fichiers/dialog-warning.gif" alt="Warning!">
+		<h2 class="center">Avertissement</h2>
+		</div>
+		</div>
+
+		<p>La version CVS est une version de <em>DEVELOPPEMENT</em>, tout peut donc arriver : les poules auront des dents,
+		un éléphant rose peut survoler votre maison, votre chat peut même se transformer en une souris blanche. Vous devez vous attendre
+		à toute manifestation de phénomènes pas très naturels. Enfin, cela ne devrait pas arriver, mais vous êtes prévenus !</p>
