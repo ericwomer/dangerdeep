@@ -391,7 +391,7 @@ void run()
 	   avoid rerender. clear all tags before rendering.
 	*/
 
-	metalbackgr = new texture(get_texture_dir() + "metalbackgr.png", texture::LINEAR_MIPMAP_LINEAR);
+	metalbackgr = new texture(get_texture_dir() + "foam.png", texture::LINEAR_MIPMAP_LINEAR);
 	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png", texture::LINEAR_MIPMAP_LINEAR);
 	terraintex = new texture(get_texture_dir() + "terrain.jpg", texture::LINEAR_MIPMAP_LINEAR);
 
