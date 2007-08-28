@@ -704,6 +704,18 @@ void widget_text::draw() const
 	}
 }
 
+void widget_text::set_text_and_resize(const string& s)
+{
+	vector2i sz = globaltheme->myfont->get_size(s);
+	if (sunken) {
+		int fw = globaltheme->frame_size();
+		sz.x += 4*fw;
+		sz.y += 4*fw;
+	}
+	set_size(sz);
+	set_text(s);
+}
+
 
 
 void widget_checkbox::draw() const

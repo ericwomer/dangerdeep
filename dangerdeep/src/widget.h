@@ -208,6 +208,7 @@ public:
 	widget_text(int x, int y, int w, int h, const string& text_, widget* parent_ = 0, bool sunken_ = false)
 		: widget(x, y, w, h, text_, parent_), sunken(sunken_) {}
 	void draw() const;
+	virtual void set_text_and_resize(const string& s);
 };
 
 class widget_checkbox : public widget
