@@ -237,7 +237,7 @@ unsigned font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, cons
 		while ((text[textptr] != '\n' && text[textptr] != ' ' && text[textptr] != '\t') && textptr < textlen) {
 			unsigned c = read_character(text, textptr);
 			charw += get_char_width(c);
-			if (currwidth == 0 && charw >= w) {	// word is longer than line
+			if (currwidth == 0 && charw > w) {	// word is longer than line
 				breaktext = true;
 				break;
 			}
@@ -255,7 +255,7 @@ unsigned font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, cons
 				return textptr;
 		} else {
 			unsigned tw = get_size(text.substr(oldtextptr, textptr - oldtextptr)).x;
-			if (currwidth + tw >= w) {
+			if (currwidth + tw > w) {
 				y += (lineheight == 0) ? get_height() : lineheight;
 				currwidth = 0;
 				if (y >= ymax)
