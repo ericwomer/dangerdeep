@@ -1336,12 +1336,25 @@ class vessel_view
 	list<string>::iterator current;
 	set<string> modellayouts;
 	set<string>::iterator currentlayout;
+	widget_text* wdesc;
 	// note! this is not destructed by this class...
 	widget_3dview* w3d;
 	auto_ptr<model> load_model() {
 		xml_doc doc(data_file().get_filename(*current));
 		doc.load();
 		string mdlname = doc.first_child().child("classification").attr("modelname");
+		for (xml_elem::iterator it = doc.first_child().child("description")
+			     .iterate("near"); !it.end(); it.next()) {
+			if (it.elem().attr("lang") == texts::get_language_code()) {
+				if (wdesc) {
+					wdesc->set_text_and_resize(it.elem().child_text());
+					int y = wdesc->get_pos().y;
+					wdesc->align(0, -1);
+					wdesc->move_pos(vector2i(0, y));
+				}
+				break;
+			}
+		}
 		auto_ptr<model> mdl(new model(data_file().get_path(*current) + mdlname));
 		// register and set default layout.
 		mdl->register_layout();
@@ -1352,8 +1365,8 @@ class vessel_view
 		return mdl;
 	}
 public:
-	vessel_view()
-		: current(shipnames.end()), w3d(0)
+	vessel_view(widget_text* wdesc_ = 0)
+		: current(shipnames.end()), wdesc(wdesc_), w3d(0)
 	{
 		color bgcol(50, 50, 150);
 		shipnames = data_file().get_ship_list();
@@ -1396,9 +1409,11 @@ public:
 void menu_show_vessels()
 {
 	widget w(0, 0, 1024, 768, texts::get(24), 0, "threesubs.jpg");
+	widget_text* wt = new widget_text(0, 50, 1024, 32, "", 0, true);
+	w.add_child(wt);
 	widget_menu* wm = new widget_menu(0, 700, 140, 32, ""/*texts::get(110)*/, true);
 	w.add_child(wm);
-	vessel_view vw;
+	vessel_view vw(wt);
 	w.add_child(vw.get_w3d());
 
 	wm->add_entry(texts::get(115), new widget_caller_button<vessel_view, void (vessel_view::*)()>(&vw, &vessel_view::next));
