@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
 <dftd-ship>
   <classification identifier="destroyer_kclass" modelname="destroyer_kclass.ddxml" type="escort" country="GB" >
-    <skin name="early1941" regions="NA,WA,NS,NW,AS,BA,CH,BB" countries="GB" from="1931/1/1" until="1945/12/31"/>
+    <skin name="hmskandahar" regions="NA,WA,NS,NW,AS,BA,CH,BB" countries="GB" from="1939/1/1" until="1941/12/31"/>
+    <skin name="hmskhartoum" regions="BB,CH,NS,BS,NA,CA,WA,AS,NW,BA,MS,ES,BL" countries="GB" from="1941/1/1" until="1945/12/31"/>
+    <skin name="hmskimberley" regions="CA,NA,BB,WA,NW" countries="GB" from="1940/1/1" until="1944/12/31"/>
+    <skin name="hmskimberley2" regions="BB,NA,WA,NW,NS,CE" countries="GB" from="1940/1/1" until="1945/12/31"/>
   </classification>
   <description>
     <far lang="en">Convoy escort</far>

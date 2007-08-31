@@ -4,7 +4,10 @@
     <specular color="1 1 1" />
     <shininess exponent="65" />
       <map type="diffuse" filename="kclass_camo1color.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" >
-        <skin filename="kclass_camo2color.jpg" layout="early1941"/>
+        <skin filename="kclass_camo2color.jpg" layout="hmskandahar"/>
+	<skin filename="kclass_camo3color.jpg" layout="hmskhartoum"/>
+	<skin filename="kclass_camo4color.jpg" layout="hmskimberley"/>
+	<skin filename="kclass_camo5color.jpg" layout="hmskimberley2"/>
       </map>
       <map type="normal" filename="kclass_bump.png" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0"/>
       <map type="specular" filename="kclass_spec.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0"/>
