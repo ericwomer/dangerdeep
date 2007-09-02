@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
   <classification identifier="flowercorvette_hrcn" modelname="flowercorvette_hrcn.ddxml" type="escort" country="GB,CD" >
     <skin name="mediterranean_royalnavy" regions="MS,ES" countries="GB" from="1939/1/1" until="1945/12/31" />

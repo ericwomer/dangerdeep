@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
   <classification identifier="fortship1943" modelname="fortship1943.ddxml" type="merchant" country="GB" >
     <skin name="earlynorth" regions="NA,CE,WA" countries="CD,GB" from="1941/1/1" until="1943/12/31" />

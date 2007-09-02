@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO_8859-1" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <dftd-torpedo>
   <classification identifier="TI_LuTII" modelname="g7a_torpedo.ddxml" type="torpedo" country="DE"/>
 <!-- note, classification identifier mentions "t1lut", but this is lut2

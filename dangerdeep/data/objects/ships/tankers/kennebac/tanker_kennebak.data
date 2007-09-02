@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
   <classification identifier="tanker_kennebak" modelname="tanker_kennebak.ddxml" type="merchant" country="US" >
     <skin name="north_atlantic_usnavy" regions="NA" countries="US" from="1939/1/1" until="1945/12/31" />
@@ -9,10 +9,10 @@
     <far lang="de">Dampfer</far>
     <far lang="it">Nave a vapore</far>
     <medium lang="en">Oil tanker</medium>
-    <medium lang="de">Oltanker</medium>
+    <medium lang="de">Öltanker</medium>
     <medium lang="it">Petroliera</medium>
     <near lang="en">Medium Oil Tanker ship</near>
-    <near lang="de">Mittlerer Oltanker</near>
+    <near lang="de">Mittlerer Öltanker</near>
     <near lang="it">Petroliera di medio tonnellaggio</near>
   </description>
   <motion maxspeed="9" maxrevspeed="0" acceleration="0.1" turnrate="0.1"/>

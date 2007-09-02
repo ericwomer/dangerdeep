@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
   <classification identifier="destroyer_javelin" modelname="destroyer_javelin.ddxml" type="escort" country="GB" >
     <skin name="janus1940" regions="NA,WA" countries="GB" from="1939/1/1" until="1941/12/1"/>

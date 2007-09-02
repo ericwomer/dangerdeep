@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
   <classification identifier="flowercorvette_hcn" modelname="flowercorvette_hcn.ddxml" type="escort" country="GB" >
     <skin name="northatlanticwa_rncn" regions="NA,WA" countries="GB,CD" from="1941/6/1" until="1945/12/31" />

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
   <classification identifier="destroyer_oclass" modelname="destroyer_oclass.ddxml" type="escort" country="GB" >
     <skin name="north_atlantic_royal_navy" regions="NA" countries="GB" from="1941/1/1" until="1942/12/31"/>
@@ -14,10 +14,10 @@
     <far lang="de">Geleitschiff</far>
     <far lang="it">Nave di scorta</far>
     <medium lang="en">Destroyer</medium>
-    <medium lang="de">Zerstörer</medium>
+    <medium lang="de">ZerstÃ¶rer</medium>
     <medium lang="it">Cacciatorpediniere</medium>
     <near lang="en">Destroyer O class</near>
-    <near lang="de">Zerstörer O-Klasse</near>
+    <near lang="de">ZerstÃ¶rer O-Klasse</near>
     <near lang="it">Cacciatorpediniere di classe O</near>
   </description>
   <motion maxspeed="37" maxrevspeed="0" acceleration="1.0" turnrate="0.15"/>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
   <classification identifier="libertyship1943" modelname="libertyship1943.ddxml" type="merchant" country="US">
     <skin name="battered" regions="UC,CE,NA,CA,WA,NS,BS,AS,NW,BA" countries="US" from="1942/1/1" until="1945/12/31"/>

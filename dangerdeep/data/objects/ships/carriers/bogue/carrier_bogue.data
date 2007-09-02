@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO_8859-1" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <dftd-ship>
   <classification identifier="carrier_bogue" modelname="carrier_bogue.3ds" type="warship" country="GB"/>
   <description>

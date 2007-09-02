@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-torpedo>
 	<classification identifier="Fido" modelname="g7e_torpedo.ddxml" type="torpedo" country="US" />
 	<description>

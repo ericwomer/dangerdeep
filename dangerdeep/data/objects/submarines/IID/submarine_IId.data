@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-submarine>
   <classification identifier="submarine_IId" modelname="uboat_IId.ddxml" type="submarine" country="DE" >
 	<skin name="early41" regions="BS,NS,CH,BB,ES,BL" countries="DE" from="1941/1/1" until="1944/12/31"/>

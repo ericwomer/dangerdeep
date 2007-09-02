@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
   <classification identifier="libertyship1941" modelname="libertyship1941.ddxml" type="merchant" country="US" >
     <skin name="earlywar1" regions="WA,NA,CA,NS,BS,UC,NW" countries="US" from="1941/1/1" until="1941/12/31" />
