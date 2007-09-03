@@ -33,7 +33,7 @@ using namespace std;
 
 #define TEXTS_DIR "texts/"
 
-static char* categoryfiles[texts::nr_of_categories] = {
+static const char* categoryfiles[texts::nr_of_categories] = {
 	"common",
 	"languages",
 	"formats"
