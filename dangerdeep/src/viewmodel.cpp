@@ -224,16 +224,29 @@ void view_model(const string& modelfilename, const string& datafilename)
 //	mdl->get_mesh(0).write_off_file("test.off");
 
 #ifdef IS_INSIDE_TEST	// Test hack for is_inside function
-	const unsigned iizz = 11, iiyy = 41, iixx = 21;
+	const unsigned iizz = 6, iiyy = 10, iixx = 8;
+	//fixme: maybe better use double resolution in every direction, then merge
+	//the is inside (some anti aliasing to make it more accurate)
 	std::vector<bool> ii(iizz*iiyy*iixx);
+	unsigned total_in = 0;
+	vector3f dimmin = mdl->get_min(), dimmax = mdl->get_max();
+	vector3f dimlen = dimmax - dimmin;
+	vector3f voxelsz(dimlen.x/iixx, dimlen.y/iiyy, dimlen.z/iizz);
+	vector3f voxeloff = dimmin + voxelsz * 0.5f;
+	vector3f voxeloff2 = voxeloff + vector3f(0.5f, 0.5f, 0.5f);
+	std::cout << "voxelsize: " << voxelsz << " voxeloff " << voxeloff << "\n";
 	for (unsigned izz = 0; izz < iizz; ++izz) {
 		std::cout << "crosssection picture " << izz+1 << "/" << iizz << "\n";
 		for (unsigned iyy = 0; iyy < iiyy; ++iyy) {
 			for (unsigned ixx = 0; ixx < iixx; ++ixx) {
 				bool is_in = 
-					(mdl->is_inside(vector3f(20.0f*ixx/(iixx-1)-10.0f,
-								 200.0f*iyy/(iiyy-1)-100.0f,
-								 20.0f*izz/(iizz-1)-5.0f)));
+					(mdl->is_inside(vector3f(voxelsz.x*ixx,
+								 voxelsz.y*iyy,
+								 voxelsz.z*izz) + voxeloff));
+				is_in = is_in || (mdl->is_inside(vector3f(voxelsz.x*ixx,
+								 voxelsz.y*iyy,
+								 voxelsz.z*izz) + voxeloff2));
+				total_in += is_in ? 1 : 0;
 				ii[(izz * iiyy + iyy) * iixx + ixx] = is_in;
 				std::cout << (is_in ? "X" : " ");
 			}
@@ -243,6 +256,7 @@ void view_model(const string& modelfilename, const string& datafilename)
 	std::cout << "Center of gravity of mesh#0: " << mdl->get_mesh(0).compute_center_of_gravity() << "\n";
 	std::cout << "Inertia tensor of mesh#0:\n";
 	mdl->get_mesh(0).compute_inertia_tensor().print();
+	std::cout << "Inside: " << total_in << " of " << ii.size() << "\n";
 
 	/* // test code
 	unsigned t1 = sys().millisec();
