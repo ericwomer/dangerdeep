@@ -35,6 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "font.h"
 #include "model.h"
 #include "texture.h"
+#include "thread.h"
 #include "xml.h"
 #include <iostream>
 #include <sstream>
@@ -102,6 +103,70 @@ void measure_model(double angle, ostringstream& osscs)
 	osscs << crosssection << " ";
 	sys().swap_buffers();
 }
+
+
+
+class worker : public thread
+{
+	model& mdl;
+	vector<uint8_t>& is_inside;
+	vector3i resolution;
+	unsigned slice;
+	unsigned nr_slices;
+	unsigned samples_per_voxel;
+public:
+	worker(model& m, vector<uint8_t>& ii, const vector3i& res, unsigned s, unsigned nrs,
+	       unsigned samplespervoxel = 5)
+		: mdl(m), is_inside(ii), resolution(res), slice(s), nr_slices(nrs),
+		  samples_per_voxel(samplespervoxel) {}
+	void loop()
+	{
+		int zmin = resolution.z * slice / nr_slices;
+		int zmax = (slice + 1 == nr_slices) ? resolution.z : (resolution.z * (slice+1) / nr_slices);
+
+		const vector3f& bmax = mdl.get_mesh(0).max;
+		const vector3f& bmin = mdl.get_mesh(0).min;
+		const vector3f bsize = bmax - bmin;
+		const double csx = bsize.x / resolution.x;
+		const double csy = bsize.y / resolution.y;
+		const double csz = bsize.z / resolution.z;
+		const double csx2 = csx / samples_per_voxel;
+		const double csy2 = csy / samples_per_voxel;
+		const double csz2 = csz / samples_per_voxel;
+		double zc = bmin.z + zmin * csz;
+		//fixme: ergebnisse sind assymmetrisch, auch in abhängigkeit von samples_per_voxel
+		for (unsigned izz = zmin; izz < zmax; ++izz) {
+			double yc = bmin.y;
+			for (unsigned iyy = 0; iyy < resolution.y; ++iyy) {
+				double xc = bmin.x;
+				for (unsigned ixx = 0; ixx < resolution.x; ++ixx) {
+					unsigned inside = 0;
+					double zc2 = zc + csz2 * 0.5;
+					for (unsigned z = 0; z < samples_per_voxel; ++z) {
+						double yc2 = yc + csy2 * 0.5;
+						for (unsigned y = 0; y < samples_per_voxel; ++y) {
+							double xc2 = xc + csx2 * 0.5;
+							for (unsigned x = 0; x < samples_per_voxel; ++x) {
+								bool is_in = mdl.is_inside(vector3f(xc2, yc2, zc2));
+								inside += is_in ? 1 : 0;
+								xc2 += csx2;
+							}
+							yc2 += csy2;
+						}
+						zc2 += csz2;
+					}
+					//cout << "is_inside " << inside << " / " << samples_per_voxel*samples_per_voxel*samples_per_voxel << "\n";
+					bool is_in = inside*2 >= samples_per_voxel*samples_per_voxel*samples_per_voxel;
+					is_inside[(izz * resolution.y + iyy) * resolution.x + ixx] = is_in;
+					xc += csx;
+				}
+				yc += csy;
+			}
+			zc += csz;
+		}
+		request_abort();
+	}
+};
 
 
 
@@ -190,41 +255,36 @@ int mymain(list<string>& args)
 	physcs.add_child_text(osscs.str());
 
 	// some measurements
-
-	// compute volume of bounding space
 	const vector3f& bmax = mdl->get_mesh(0).max;
 	const vector3f& bmin = mdl->get_mesh(0).min;
 	const vector3f bsize = bmax - bmin;
 	const double vol = bsize.x * bsize.y * bsize.z;
-	// measure one point every cubic meter
-	const unsigned iizz = unsigned(ceil(bsize.z));
-	const unsigned iiyy = unsigned(ceil(bsize.y));
-	const unsigned iixx = unsigned(ceil(bsize.z));
-	vector<uint8_t> ii(iizz*iiyy*iixx);
-	cout << "measuring " << ii.size() << " points.\n";
-	unsigned cubes_inside = 0;
-	const double csx = bsize.x / iixx;
-	const double csy = bsize.y / iiyy;
-	const double csz = bsize.z / iizz;
-	double zc = bmin.z + csz * 0.5;
-	for (unsigned izz = 0; izz < iizz; ++izz) {
-		double yc = bmin.y + csy * 0.5;
-		for (unsigned iyy = 0; iyy < iiyy; ++iyy) {
-			double xc = bmin.x + csx * 0.5;
-			for (unsigned ixx = 0; ixx < iixx; ++ixx) {
-				bool is_in = mdl->is_inside(vector3f(xc, yc, zc));
-				ii[(izz * iiyy + iyy) * iixx + ixx] = is_in;
-				cubes_inside += is_in ? 1 : 0;
-				xc += csx;
-			}
-			yc += csy;
-		}
-		zc += csz;
-		cout << (izz+1)*iiyy*iixx << "/" << ii.size() << "\n";
-	}
-	cout << "Cubes inside " << cubes_inside << " of " << ii.size() << "\n";
 
-	double vol_inside = cubes_inside * vol / ii.size();
+	const vector3i resolution(7, 9, 7);
+	vector<uint8_t> is_inside(resolution.x*resolution.y*resolution.z);
+	// start workers and let them compute data, then wait for them to finish
+	{
+		thread::auto_ptr<worker> w0(new worker(*mdl, is_inside, resolution, 0, 2));
+		thread::auto_ptr<worker> w1(new worker(*mdl, is_inside, resolution, 1, 2));
+		w0->start();
+		w1->start();
+	}
+
+	unsigned nr_inside = 0;
+	for (int z = 0; z < resolution.z; ++z) {
+		cout << "Layer " << z+1 << "/" << resolution.z << "\n";
+		for (int y = 0; y < resolution.y; ++y) {
+			for (int x = 0; x < resolution.x; ++x) {
+				bool in = is_inside[(z * resolution.y + y) * resolution.x + x];
+				cout << (in ? "X" : " ");
+				nr_inside += in ? 1 : 0;
+			}
+			cout << "\n";
+		}
+	}
+	cout << "Cubes inside: " << nr_inside << " of " << is_inside.size() << "\n";
+
+	double vol_inside = nr_inside * vol / is_inside.size();
 	//cout << "Inside volume " << vol_inside << " (" << vol_inside/2.8317 << " BRT) of " << vol << "\n";
 	physroot.add_child("volume").set_attr(vol_inside);
 	physroot.add_child("center-of-gravity").set_attr(mdl->get_mesh(0).compute_center_of_gravity());
