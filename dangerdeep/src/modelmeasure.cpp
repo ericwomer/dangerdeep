@@ -38,6 +38,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "thread.h"
 #include "xml.h"
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include "mymain.cpp"
 
@@ -51,16 +52,26 @@ using namespace std;
     part by real draught, by computing volume below water
     divided by full volume. [DONE]
   - measure volume in z-slices (depth = x -> volume below water = y) [FIXME]
+    why that? what for? superseded by voxels!?
   - determine center of gravity [DONE]
   - determine inertia tensor [DONE]
+    fixme: first shift model so CoG is at 0,0,0 ?
   - measure area from above (for computing vertical drag when moving up/down) [FIXME]
   - maybe render silhuette from above for foam generation.
+  - generate voxel data for buoyancy computation [DONE]
 
   maybe
   - modify ddxml and add the data
   - or write extra xml file with all that data. [DONE]
 
   remove old crosssection tool&code (SConscript)
+
+  - problem: handle the transformation matrix! [FIXME]
+    the objecttree can have a translation for the base mesh too...
+  - problem: translating the model so that CoG is at 0,0,0 is difficult,
+    because the model's dimensions are not resized then, but we need
+    them for the voxel data.
+    The inertia tensor differs if CoG is shifted before computing it.
 */
 
 int res_x, res_y;
@@ -116,7 +127,7 @@ class worker : public thread
 	unsigned samples_per_voxel;
 public:
 	worker(model& m, vector<uint8_t>& ii, const vector3i& res, unsigned s, unsigned nrs,
-	       unsigned samplespervoxel = 5)
+	       unsigned samplespervoxel = 4)
 		: mdl(m), is_inside(ii), resolution(res), slice(s), nr_slices(nrs),
 		  samples_per_voxel(samplespervoxel) {}
 	void loop()
@@ -134,12 +145,11 @@ public:
 		const double csy2 = csy / samples_per_voxel;
 		const double csz2 = csz / samples_per_voxel;
 		double zc = bmin.z + zmin * csz;
-		//fixme: ergebnisse sind assymmetrisch, auch in abhängigkeit von samples_per_voxel
-		for (unsigned izz = zmin; izz < zmax; ++izz) {
+		for (int izz = zmin; izz < zmax; ++izz) {
 			double yc = bmin.y;
-			for (unsigned iyy = 0; iyy < resolution.y; ++iyy) {
+			for (int iyy = 0; iyy < resolution.y; ++iyy) {
 				double xc = bmin.x;
-				for (unsigned ixx = 0; ixx < resolution.x; ++ixx) {
+				for (int ixx = 0; ixx < resolution.x; ++ixx) {
 					unsigned inside = 0;
 					double zc2 = zc + csz2 * 0.5;
 					for (unsigned z = 0; z < samples_per_voxel; ++z) {
@@ -156,13 +166,15 @@ public:
 						zc2 += csz2;
 					}
 					//cout << "is_inside " << inside << " / " << samples_per_voxel*samples_per_voxel*samples_per_voxel << "\n";
-					bool is_in = inside*2 >= samples_per_voxel*samples_per_voxel*samples_per_voxel;
-					is_inside[(izz * resolution.y + iyy) * resolution.x + ixx] = is_in;
+					unsigned inside_part = 255 * inside / (samples_per_voxel*samples_per_voxel*samples_per_voxel);
+					is_inside[(izz * resolution.y + iyy) * resolution.x + ixx] = inside_part;
 					xc += csx;
 				}
 				yc += csy;
 			}
 			zc += csz;
+			cout << ".";
+			cout.flush();
 		}
 		request_abort();
 	}
@@ -260,7 +272,7 @@ int mymain(list<string>& args)
 	const vector3f bsize = bmax - bmin;
 	const double vol = bsize.x * bsize.y * bsize.z;
 
-	const vector3i resolution(7, 9, 7);
+	const vector3i resolution(6, 6, 8);
 	vector<uint8_t> is_inside(resolution.x*resolution.y*resolution.z);
 	// start workers and let them compute data, then wait for them to finish
 	{
@@ -269,20 +281,28 @@ int mymain(list<string>& args)
 		w0->start();
 		w1->start();
 	}
+	cout << "\n";
 
 	unsigned nr_inside = 0;
+	ostringstream insidedat;
 	for (int z = 0; z < resolution.z; ++z) {
 		cout << "Layer " << z+1 << "/" << resolution.z << "\n";
 		for (int y = 0; y < resolution.y; ++y) {
 			for (int x = 0; x < resolution.x; ++x) {
-				bool in = is_inside[(z * resolution.y + y) * resolution.x + x];
-				cout << (in ? "X" : " ");
-				nr_inside += in ? 1 : 0;
+				uint8_t in = is_inside[(z * resolution.y + y) * resolution.x + x];
+				insidedat << hex << setfill('0') << setw(2) << unsigned(in);
+				cout << (in >= 128 ? 'X' : (in >= 1 ? 'o' : ' '));
+				nr_inside += (in >= 1) ? 1 : 0;
 			}
 			cout << "\n";
 		}
 	}
 	cout << "Cubes inside: " << nr_inside << " of " << is_inside.size() << "\n";
+	xml_elem ve = physroot.add_child("voxels");
+	ve.set_attr(resolution.x, "x");
+	ve.set_attr(resolution.y, "y");
+	ve.set_attr(resolution.z, "z");
+	ve.add_child_text(insidedat.str());
 
 	double vol_inside = nr_inside * vol / is_inside.size();
 	//cout << "Inside volume " << vol_inside << " (" << vol_inside/2.8317 << " BRT) of " << vol << "\n";
@@ -291,6 +311,14 @@ int mymain(list<string>& args)
 	matrix3 ten = mdl->get_mesh(0).compute_inertia_tensor();
 	ostringstream ossit; ten.to_stream(ossit);
 	physroot.add_child("inertia-tensor").add_child_text(ossit.str());
+	// better change only the translation? and do not transform other meshes
+/*
+	mdl->get_mesh(0).transform(matrix4f::trans(-mdl->get_mesh(0).compute_center_of_gravity()));
+	physroot.add_child("center-of-gravity2").set_attr(mdl->get_mesh(0).compute_center_of_gravity());
+	ten = mdl->get_mesh(0).compute_inertia_tensor();
+	ostringstream ossit2; ten.to_stream(ossit2);
+	physroot.add_child("inertia-tensor2").add_child_text(ossit2.str());
+*/
 
 	physdat.save();
 
