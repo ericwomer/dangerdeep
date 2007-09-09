@@ -722,8 +722,54 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	   fixme: we need to know per-voxel-lift force. That is voxel volume in
 	   cubic meters by 1000kg by 9,81m/s^2, as each cubic meter of water gives
 	   9,81kN lift force.
+	   It would be much more efficient to store the relative position of the
+	   voxel in integer numbers and compute the delta-vectors depending
+	   on transformation (orientation included) to avoid a matrix-vector
+	   multiplication per voxel. then use linear combination of the
+	   delta vectors by relative position to get real word position.
 	*/
+#if 0
+	double lift_force_sum = -GRAVITY * mass;
+	vector3 dr_torque;
+	const std::vector<vector4f>& voxel_data = mymodel->get_voxel_data();
+	const vector3f& voxel_size = mymodel->get_voxel_size();
+	float voxel_vol = voxel_size.x * voxel_size.y * voxel_size.z;
+	double voxel_vol_force = voxel_vol * GRAVITY * 1000.0; // 1000kg per cubic meter
+	vector3f v0 = orientation.rotate(voxel_size.x, 0, 0);
+	vector3f v1 = orientation.rotate(0, voxel_size.y, 0);
+	vector3f v2 = orientation.rotate(0, 0, voxel_size.z);
+	double vol_below_water=0;
+	for (unsigned i = 0; i < voxel_data.size(); ++i) {
+		vector3f p = voxel_data[i].xyz().matrixmul(v0, v1, v2);
+		float wh = gm.compute_water_height(vector2(position.x + p.x, position.y + p.y));
+		//std::cout << "i=" << i << " p=" << p << " wh=" << wh << "\n";
+		if (p.z + position.z < wh) {
+			// add finer tests here...
+			double lift_force = voxel_data[i].w * voxel_vol_force;
+			vol_below_water += voxel_data[i].w;
+			//too much volume is computed as "under water" that is wrong!
+			lift_force_sum += lift_force;
+			vector3 lift_torque = p.cross(vector3(0, 0, lift_force));
+			////dr_torque += lift_torque;
+			//std::cout << "i=" << i << " lift_force=" << lift_force << "\n";
+		}
+	}
+	std::cout << "mass=" << mass << " lift_force_sum=" << lift_force_sum << " grav=" << -GRAVITY*mass << "\n";
+	std::cout << "vol below water=" << vol_below_water << " of " << voxel_data.size() << "\n";
+	// fixme: add drag forces here... without them ships run amok
 
+#if 0
+	//test code
+	// we need to use local angular velocities here.
+ 	dr_torque.y += (roll_velocity < 0 ? 1.0 : -1.0) * roll_velocity*roll_velocity * 1000000.0; // damping
+ 	dr_torque.x += (pitch_velocity < 0 ? 1.0 : -1.0) * pitch_velocity*pitch_velocity * 1000000.0; // damping
+	// fixme: velocity was considered local before, not its global!
+	//fixme: add drag when moving downwards (or both directions, maybe depending
+	//on direction) 
+#endif
+	lift_force_sum += (velocity.z < 0 ? 1.0 : -1.0) * velocity.z*velocity.z * mass * 0.1;
+
+#else
 	// we need to add the force/torque generated from tide.
 	// for certain sample points around the hull we compute the draught
 	// and from that a lift force. It can be negative because of gravity
@@ -777,6 +823,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	//on direction) 
 	lift_force_sum += (velocity.z < 0 ? 1.0 : -1.0) * velocity.z*velocity.z * mass * 1.0;
 	//DBGOUT4(dr_torque,lift_force_sum,roll_velocity,pitch_velocity);
+#endif
 
 	// fixme: torpedoes MUST NOT be affected by tide.
 

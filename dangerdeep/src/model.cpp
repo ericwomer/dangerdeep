@@ -1704,25 +1704,22 @@ void model::read_phys_file(const string& filename)
 	const vector3f& bmax = m.max;
 	const vector3f& bmin = m.min;
 	const vector3f bsize = bmax - bmin;
-	const double csx = bsize.x / voxel_resolution.x;
-	const double csy = bsize.y / voxel_resolution.y;
-	const double csz = bsize.z / voxel_resolution.z;
+	voxel_size = vector3f(bsize.x / voxel_resolution.x,
+			      bsize.y / voxel_resolution.y,
+			      bsize.z / voxel_resolution.z);
+	voxel_radius = voxel_size.length() * 0.5;
 	unsigned ptr = 0;
-	double zc = bmin.z + csz * 0.5;
 	for (int izz = 0; izz < voxel_resolution.z; ++izz) {
-		double yc = bmin.y + csy * 0.5;
 		for (int iyy = 0; iyy < voxel_resolution.y; ++iyy) {
-			double xc = bmin.x + csx * 0.5;
 			for (int ixx = 0; ixx < voxel_resolution.x; ++ixx) {
 				float f = hex2float(vt, 2*ptr);
 				if (f >= 1.0f/255.0f)
-					voxel_data.push_back(vector4f(xc, yc, zc, f));
-				xc += csx;
+					voxel_data.push_back(vector4f(ixx - (voxel_resolution.x-1)*0.5,
+								      iyy - (voxel_resolution.y-1)*0.5,
+								      izz - (voxel_resolution.z-1)*0.5, f));
 				++ptr;
 			}
-			yc += csy;
 		}
-		zc += csz;
 	}
 }
 

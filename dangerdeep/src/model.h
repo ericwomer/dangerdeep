@@ -290,7 +290,11 @@ protected:
 	// voxel data
 	/// nr of voxels in every dimension
 	vector3i voxel_resolution;
-	/// per voxel: 3d position and part of volume that is inside (0...1)
+	/// size of a voxel in 3-space
+	vector3f voxel_size;
+	/// "radius" of a voxel in 3-space
+	float voxel_radius;
+	/// per voxel: relative 3d position and part of volume that is inside (0...1)
 	std::vector<vector4f> voxel_data;
 	
 	void read_phys_file(const std::string& filename);
@@ -408,6 +412,10 @@ public:
 
 	/// request voxel data resolution
 	const vector3i& get_voxel_resolution() const { return voxel_resolution; }
+	/// request voxel size
+	const vector3f& get_voxel_size() const { return voxel_size; }
+	/// request voxel "radius"
+	float get_voxel_radius() const { return voxel_radius; }
 	/// request voxel data
 	const std::vector<vector4f>& get_voxel_data() const { return voxel_data; }
 };	
