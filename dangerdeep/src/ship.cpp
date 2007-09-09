@@ -697,6 +697,33 @@ double ship::get_noise_factor () const
 
 void ship::compute_force_and_torque(vector3& F, vector3& T) const
 {
+	/* NEW ALGORITHM:
+	   we need to add the force/torque generated from tide.
+	   for certain sample points around the hull we compute the draught
+	   and from that a lift force. Additionally gravity is acting in
+	   downward direction.
+	   The sample points are taken from the model's voxel data,
+	   iterate the list of voxels for the model, for each voxel
+	   transform it according to model's transformation (a combination
+	   of the model specific transformation and the current orientation
+	   quaternion and position). The resulting point in 3-space gives
+	   the center of the voxel. Compute the water height at that xy
+	   position and compare it to the voxel's z position. If the voxel
+	   is below the water, it is accounted for lift force (scaled by its
+	   fraction of volume). Add the per-voxel force (specific for each
+	   model, depends on model mass and voxel size) to the total sum
+	   of forces, and add the relative voxel position cross lift force
+	   to global torque.
+	   Finally add global gravity force to sum of forces.
+	   fixme: if the voxel is near the water surface, within +- voxel_height
+	   we could account parts of its lift force. we have to use a medium
+	   voxel "radius" here, because the voxel can be arbitrarily oriented.
+	   The voxel radius is the half diameter of a voxel cube.
+	   fixme: we need to know per-voxel-lift force. That is voxel volume in
+	   cubic meters by 1000kg by 9,81m/s^2, as each cubic meter of water gives
+	   9,81kN lift force.
+	*/
+
 	// we need to add the force/torque generated from tide.
 	// for certain sample points around the hull we compute the draught
 	// and from that a lift force. It can be negative because of gravity

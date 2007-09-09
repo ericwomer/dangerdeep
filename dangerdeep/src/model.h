@@ -286,6 +286,12 @@ protected:
 	void compute_normals();
 	
 	std::vector<float> cross_sections;	// array over angles
+
+	// voxel data
+	/// nr of voxels in every dimension
+	vector3i voxel_resolution;
+	/// per voxel: 3d position and part of volume that is inside (0...1)
+	std::vector<vector4f> voxel_data;
 	
 	void read_phys_file(const std::string& filename);
 	
@@ -399,6 +405,11 @@ public:
 	/// check if a given point is inside the model
 	///@param p - a point in world space
 	bool is_inside(const vector3f& p) const;
+
+	/// request voxel data resolution
+	const vector3i& get_voxel_resolution() const { return voxel_resolution; }
+	/// request voxel data
+	const std::vector<vector4f>& get_voxel_data() const { return voxel_data; }
 };	
 
 #endif

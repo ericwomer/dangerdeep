@@ -207,8 +207,6 @@ model::model(const string& filename_, bool use_material)
 		throw error(string("model: unknown extension or file format: ") + filename2);
 	}
 
-	read_phys_file(filename2);	// try to read cross section file
-
 	// clear material info if requested
 	if (!use_material) {
 		for (vector<mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it)
@@ -221,6 +219,10 @@ model::model(const string& filename_, bool use_material)
 	compute_bounds();
 	compute_normals();
 	compile();
+
+	// try to read physical data file, needs min/max data etc., so call it after
+	// compute_bounds().
+	read_phys_file(filename2);
 }
 
 
@@ -1649,6 +1651,25 @@ const model::light& model::get_light(unsigned nr) const
 	return lights.at(nr);
 }
 
+static inline unsigned char2hex(char c)
+{
+	if (c >= '0' && c <= '9')
+		return unsigned(c - '0');
+	else if (c >= 'A' && c <= 'F')
+		return unsigned(c - 'A' + 10);
+	else if (c >= 'a' && c <= 'f')
+		return unsigned(c - 'a' + 10);
+	else
+		return 0;
+}
+
+static inline float hex2float(const std::string& s, size_t off)
+{
+	unsigned n0 = char2hex(s[off]);
+	unsigned n1 = char2hex(s[off+1]);
+	return float(n0*16+n1)/255;
+}
+
 void model::read_phys_file(const string& filename)
 {
 	string fn = filename.substr(0, filename.rfind(".")) + ".phys";
@@ -1674,6 +1695,35 @@ void model::read_phys_file(const string& filename)
 
 	// set volume of mesh #0
 	m.volume = physroot.child("volume").attrf();
+
+	// set voxel data
+	xml_elem ve = physroot.child("voxels");
+	voxel_resolution = vector3i(ve.attri("x"), ve.attri("y"), ve.attri("z"));
+	voxel_data.reserve(ve.attru("innr"));
+	std::string vt = ve.child_text();
+	const vector3f& bmax = m.max;
+	const vector3f& bmin = m.min;
+	const vector3f bsize = bmax - bmin;
+	const double csx = bsize.x / voxel_resolution.x;
+	const double csy = bsize.y / voxel_resolution.y;
+	const double csz = bsize.z / voxel_resolution.z;
+	unsigned ptr = 0;
+	double zc = bmin.z + csz * 0.5;
+	for (int izz = 0; izz < voxel_resolution.z; ++izz) {
+		double yc = bmin.y + csy * 0.5;
+		for (int iyy = 0; iyy < voxel_resolution.y; ++iyy) {
+			double xc = bmin.x + csx * 0.5;
+			for (int ixx = 0; ixx < voxel_resolution.x; ++ixx) {
+				float f = hex2float(vt, 2*ptr);
+				if (f >= 1.0f/255.0f)
+					voxel_data.push_back(vector4f(xc, yc, zc, f));
+				xc += csx;
+				++ptr;
+			}
+			yc += csy;
+		}
+		zc += csz;
+	}
 }
 
 float model::get_cross_section(float angle) const
