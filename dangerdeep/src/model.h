@@ -179,6 +179,8 @@ public:
 		mutable vertexbufferobject vbo_colors;	// mutable because non-shader pipeline writes to it
 		vertexbufferobject index_data;
 		unsigned vertex_attrib_index;
+		matrix3 inertia_tensor;
+		double volume;
 
 		void display() const;
 		void display_mirror_clip() const;

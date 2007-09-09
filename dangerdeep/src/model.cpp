@@ -517,7 +517,8 @@ model::mesh::mesh(const string& nm)
 	  vbo_tangents_righthanded(false),
 	  vbo_colors(false),
 	  index_data(true),
-	  vertex_attrib_index(0)
+	  vertex_attrib_index(0),
+	  inertia_tensor(matrix3::one())
 {
 }
 
@@ -1665,6 +1666,14 @@ void model::read_phys_file(const string& filename)
 	for (unsigned i = 0; i < cross_sections.size(); ++i) {
 		iss >> cross_sections[i];
 	}
+
+	// set inertia tensor of mesh #0
+	mesh& m = get_mesh(0);
+	istringstream iss2(physroot.child("inertia-tensor").child_text());
+	m.inertia_tensor = matrix3(iss2);
+
+	// set volume of mesh #0
+	m.volume = physroot.child("volume").attrf();
 }
 
 float model::get_cross_section(float angle) const

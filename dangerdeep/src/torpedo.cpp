@@ -285,10 +285,7 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	size3d = vector3f(0.533, 7, 0.533);	// diameter 53.3cm (21inch), length ~ 7m
 	mass = 1500; // 1.5tons
 	mass_inv = 1.0/mass;
-	inertia_tensor = matrix3();
-	inertia_tensor.elem(0, 0) = mass/12.0 * (size3d.y*size3d.y + size3d.z*size3d.z);
-	inertia_tensor.elem(1, 1) = mass/12.0 * (size3d.x*size3d.x + size3d.z*size3d.z);
-	inertia_tensor.elem(2, 2) = mass/12.0 * (size3d.x*size3d.x + size3d.y*size3d.y);
+	inertia_tensor = mymodel->get_mesh(0).inertia_tensor * matrix3(mass,0,0,0,mass,0,0,0,mass); // fixme: handle mass!
 	inertia_tensor_inv = inertia_tensor.inverse();
 }
 
