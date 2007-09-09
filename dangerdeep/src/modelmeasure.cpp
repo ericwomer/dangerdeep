@@ -272,7 +272,7 @@ int mymain(list<string>& args)
 	const vector3f bsize = bmax - bmin;
 	const double vol = bsize.x * bsize.y * bsize.z;
 
-	const vector3i resolution(6, 6, 8);
+	const vector3i resolution(5, 7, 7);
 	vector<uint8_t> is_inside(resolution.x*resolution.y*resolution.z);
 	// start workers and let them compute data, then wait for them to finish
 	{
@@ -284,6 +284,7 @@ int mymain(list<string>& args)
 	cout << "\n";
 
 	unsigned nr_inside = 0;
+	unsigned inside_vol = 0;
 	ostringstream insidedat;
 	for (int z = 0; z < resolution.z; ++z) {
 		cout << "Layer " << z+1 << "/" << resolution.z << "\n";
@@ -291,6 +292,7 @@ int mymain(list<string>& args)
 			for (int x = 0; x < resolution.x; ++x) {
 				uint8_t in = is_inside[(z * resolution.y + y) * resolution.x + x];
 				insidedat << hex << setfill('0') << setw(2) << unsigned(in);
+				inside_vol += unsigned(in);
 				cout << (in >= 128 ? 'X' : (in >= 1 ? 'o' : ' '));
 				nr_inside += (in >= 1) ? 1 : 0;
 			}
@@ -298,13 +300,16 @@ int mymain(list<string>& args)
 		}
 	}
 	cout << "Cubes inside: " << nr_inside << " of " << is_inside.size() << "\n";
+	cout << "Sum of volume " << inside_vol << " real " << inside_vol/255.0f << "\n";
 	xml_elem ve = physroot.add_child("voxels");
 	ve.set_attr(resolution.x, "x");
 	ve.set_attr(resolution.y, "y");
 	ve.set_attr(resolution.z, "z");
+	ve.set_attr(nr_inside, "innr");
+	ve.set_attr(inside_vol/255.0f, "invol");
 	ve.add_child_text(insidedat.str());
 
-	double vol_inside = nr_inside * vol / is_inside.size();
+	double vol_inside = (inside_vol * vol) / (255.0f*is_inside.size());
 	//cout << "Inside volume " << vol_inside << " (" << vol_inside/2.8317 << " BRT) of " << vol << "\n";
 	physroot.add_child("volume").set_attr(vol_inside);
 	physroot.add_child("center-of-gravity").set_attr(mdl->get_mesh(0).compute_center_of_gravity());

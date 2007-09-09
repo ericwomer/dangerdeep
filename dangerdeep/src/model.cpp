@@ -207,7 +207,7 @@ model::model(const string& filename_, bool use_material)
 		throw error(string("model: unknown extension or file format: ") + filename2);
 	}
 
-	read_cs_file(filename2);	// try to read cross section file
+	read_phys_file(filename2);	// try to read cross section file
 
 	// clear material info if requested
 	if (!use_material) {
@@ -1648,24 +1648,23 @@ const model::light& model::get_light(unsigned nr) const
 	return lights.at(nr);
 }
 
-void model::read_cs_file(const string& filename)
+void model::read_phys_file(const string& filename)
 {
-	string fn = filename.substr(0, filename.rfind(".")) + ".cs";
-//cout << "read cs '" << fn << "'\n";
-	ifstream in(fn.c_str(), ios::in | ios::binary);
-	if (!in.good())
-		return;
-	unsigned cs;
-	in >> cs;
-//cout << "read cross sectons: " << cs << "\n";
-	cross_sections.reserve(cs);
-	for (unsigned i = 0; i < cs; ++i) {
-		float tmp;
-		in >> tmp;
-//cout << tmp << ",";		
-		cross_sections.push_back(tmp);
+	string fn = filename.substr(0, filename.rfind(".")) + ".phys";
+	xml_doc physdat(fn);
+	try {
+		physdat.load();
 	}
-//cout << "\n";
+	catch (...) {
+		return;
+	}
+	xml_elem physroot = physdat.child("dftd-physical-data");
+	xml_elem physcs = physroot.child("cross-section");
+	cross_sections.resize(physcs.attru("angles"));
+	std::istringstream iss(physcs.child_text());
+	for (unsigned i = 0; i < cross_sections.size(); ++i) {
+		iss >> cross_sections[i];
+	}
 }
 
 float model::get_cross_section(float angle) const

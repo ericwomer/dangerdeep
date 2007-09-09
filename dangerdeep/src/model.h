@@ -285,7 +285,7 @@ protected:
 	
 	std::vector<float> cross_sections;	// array over angles
 	
-	void read_cs_file(const std::string& filename);
+	void read_phys_file(const std::string& filename);
 	
 	// ------------ 3ds loading functions ------------------
 	struct m3ds_chunk {
