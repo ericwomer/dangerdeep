@@ -730,7 +730,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	   multiplication per voxel. then use linear combination of the
 	   delta vectors by relative position to get real word position.
 	*/
-#if 0
+#if 1
 	double lift_force_sum = 0; // = -GRAVITY * mass;
 	vector3 dr_torque;
 	const std::vector<vector4f>& voxel_data = mymodel->get_voxel_data();
@@ -745,7 +745,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	double mass_part_force = mass * -GRAVITY / voxel_data.size();
 	for (unsigned i = 0; i < voxel_data.size(); ++i) {
 		vector3f p = voxel_data[i].xyz().matrixmul(v0, v1, v2);
-		std::cout << "i=" << i << " voxeldata " << voxel_data[i].xyz() << " p=" << p << "\n";
+		//std::cout << "i=" << i << " voxeldata " << voxel_data[i].xyz() << " p=" << p << "\n";
 		float wh = gm.compute_water_height(vector2(position.x + p.x, position.y + p.y));
 		//std::cout << "i=" << i << " p=" << p << " wh=" << wh << "\n";
 		double voxel_below_water = std::max(std::min((p.z + position.z - wh) / voxel_radius, 1.0), -1.0);
@@ -758,7 +758,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 			lift_force_sum += lift_force;
 			vector3 lift_torque = p.cross(vector3(0, 0, lift_force));
 			dr_torque += lift_torque;
-			std::cout << "i=" << i << " subm=" << submerged_part << " vdw=" << voxel_data[i].w << " lift_force=" << lift_force << " lift_torque=" << lift_torque << "\n";
+			//std::cout << "i=" << i << " subm=" << submerged_part << " vdw=" << voxel_data[i].w << " lift_force=" << lift_force << " lift_torque=" << lift_torque << "\n";
 		}
 		lift_force_sum += mass_part_force;
 		dr_torque += p.cross(vector3(0, 0, -mass_part_force));
@@ -767,18 +767,18 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	std::cout << "vol below water=" << vol_below_water << " of " << voxel_data.size() << "\n";
 	// fixme: add drag forces here... without them ships run amok
 
-#if 1
-	//test code
-	// we need to use local angular velocities here.
-	vector3 drag_torque2;
-	drag_torque2.y += (roll_velocity < 0 ? 1.0 : -1.0) * roll_velocity*roll_velocity * 1000000.0; // damping
- 	drag_torque2.x += (pitch_velocity < 0 ? 1.0 : -1.0) * pitch_velocity*pitch_velocity * 1000000.0; // damping
- 	dr_torque += orientation.rotate(drag_torque2);
-	// fixme: velocity was considered local before, not its global!
-	//fixme: add drag when moving downwards (or both directions, maybe depending
-	//on direction) 
-#endif
-////	lift_force_sum += (velocity.z < 0 ? 1.0 : -1.0) * velocity.z*velocity.z * mass * 0.1;
+	// for damping we could use a general drag that is just
+	// a torque in opposite direction of angular momentum
+	// so we could compute w from L, scale it according to its length
+	// or better the square of its length, then take the negative
+	// value and add this as drag torque.
+	// But if L already handles the mass we could just use L instead of w...
+
+//	std::cout << "L=" << angular_momentum << " lenL=" << angular_momentum.length() << "\n";
+	// fixme: depends rather on cross section area than on mass.
+	double amfac = -0.25 * angular_momentum.square_length() / (mass * mass);
+	dr_torque += angular_momentum * amfac;
+//	std::cout << "amdrag=" << angular_momentum * amfac << "\n";
 
 #else
 	// we need to add the force/torque generated from tide.
@@ -857,6 +857,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	//Power: engine Power (kWatts), rpm (screw turns per second), mass (ship's mass)
 	//SubVIIc: ~3500kW, rad=0.5m, rpm=2 (?), mass=750000kg -> acc=4,666. a bit much...
 	double speed = get_speed();
+#if 0
 	double speed2 = speed*speed;
 	if (fabs(speed) < 1.0) speed2 = fabs(speed)*max_speed_forward;
 	double drag_factor = (speed2) * max_accel_forward / (max_speed_forward*max_speed_forward);
@@ -864,6 +865,13 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	if (speed > 0) drag_factor = -drag_factor;
 	// force is in world space
 	F = orientation.rotate(vector3(0, (acceleration + drag_factor) * mass, 0));
+#else
+	// new algo: compute drag directly from linear momentum
+	vector3 global_linear_momentum = orientation.rotate(linear_momentum);
+	double lmfac = -global_linear_momentum.square_length() / (mass * mass);
+	F = global_linear_momentum * lmfac;
+
+#endif
 	// Note! drag should be computed for all three dimensions, each with area,
 	// to limit sideward/downward movement as well. We need to know the area
 	// that is underwater then (air drag is negligible for ships). That
@@ -923,16 +931,19 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// negate rudder_pos here, because turning is mathematical, so rudder left means
 	// rudder_pos < 0 and this means ccw turning and this means turn velocity > 0!
 	double rudder_torque = L * get_turn_accel_factor() * speed * sin(-rudder_pos * M_PI / 180.0);
+	rudder_torque *= 100;//fixme test
 //	std::cout << "turn torque=" << acceleration << " Nm, or " << acceleration*2.0/size3d.y << " N\n";
 // 	std::cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << " turn_velo " << turn_velocity << " heading " << heading.value() << " tv2 " << tv2 << "\n";
 // 	std::cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << " max_turn_accel " << max_turn_accel << "\n";
-	rudder_torque += drag_torque;
+////	rudder_torque += drag_torque;
 
 	// positive torque turns counter clockwise!
 	// torque is in world space!
-	T = vector3(0, 0, rudder_torque) + orientation.rotate(dr_torque);
+////	T = vector3(0, 0, rudder_torque) + orientation.rotate(dr_torque);
 	//fixme: with voxels we already have world space
-////	T = vector3(0, 0, rudder_torque) + dr_torque;
+	//fixme: rudder torque points in rudder direction, which depends on orientation,
+	// here we always turn around z-axis...
+	T = vector3(0, 0, rudder_torque) + dr_torque;
 //	DBGOUT2(hd,T);
 }
 
