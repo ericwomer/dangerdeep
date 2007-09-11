@@ -548,7 +548,9 @@ void ship::simulate(double delta_time)
 			double t = myfmod(gm.get_time(), produce_time);
 			if (t + delta_time >= produce_time) {
 				particle* p = 0;
-				vector3 ppos = position + it->second;//fixme: maybe add some random offset
+				// handle orientation here!
+				// maybe add some random offset, but it don't seems necessary
+				vector3 ppos = position + orientation.rotate(it->second);
 				switch (it->first) {
 				case 1: p = new smoke_particle(ppos); break;
 				case 2: p = new smoke_particle_escort(ppos); break;
@@ -729,45 +731,54 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	   delta vectors by relative position to get real word position.
 	*/
 #if 0
-	double lift_force_sum = -GRAVITY * mass;
+	double lift_force_sum = 0; // = -GRAVITY * mass;
 	vector3 dr_torque;
 	const std::vector<vector4f>& voxel_data = mymodel->get_voxel_data();
 	const vector3f& voxel_size = mymodel->get_voxel_size();
+	float voxel_radius = mymodel->get_voxel_radius();
 	float voxel_vol = voxel_size.x * voxel_size.y * voxel_size.z;
 	double voxel_vol_force = voxel_vol * GRAVITY * 1000.0; // 1000kg per cubic meter
 	vector3f v0 = orientation.rotate(voxel_size.x, 0, 0);
 	vector3f v1 = orientation.rotate(0, voxel_size.y, 0);
 	vector3f v2 = orientation.rotate(0, 0, voxel_size.z);
 	double vol_below_water=0;
+	double mass_part_force = mass * -GRAVITY / voxel_data.size();
 	for (unsigned i = 0; i < voxel_data.size(); ++i) {
 		vector3f p = voxel_data[i].xyz().matrixmul(v0, v1, v2);
+		std::cout << "i=" << i << " voxeldata " << voxel_data[i].xyz() << " p=" << p << "\n";
 		float wh = gm.compute_water_height(vector2(position.x + p.x, position.y + p.y));
 		//std::cout << "i=" << i << " p=" << p << " wh=" << wh << "\n";
-		if (p.z + position.z < wh) {
+		double voxel_below_water = std::max(std::min((p.z + position.z - wh) / voxel_radius, 1.0), -1.0);
+		if (voxel_below_water < 1.0 /*p.z + position.z < wh*/) {
 			// add finer tests here...
-			double lift_force = voxel_data[i].w * voxel_vol_force;
-			vol_below_water += voxel_data[i].w;
-			//too much volume is computed as "under water" that is wrong!
+			//fixme: voxels partly below water must be computed or torque is severely wrong
+			double submerged_part = 1.0 - (voxel_below_water + 1.0) * 0.5;
+			double lift_force = voxel_data[i].w * voxel_vol_force      * submerged_part;
+			vol_below_water += voxel_data[i].w    * submerged_part;
 			lift_force_sum += lift_force;
 			vector3 lift_torque = p.cross(vector3(0, 0, lift_force));
-			////dr_torque += lift_torque;
-			//std::cout << "i=" << i << " lift_force=" << lift_force << "\n";
+			dr_torque += lift_torque;
+			std::cout << "i=" << i << " subm=" << submerged_part << " vdw=" << voxel_data[i].w << " lift_force=" << lift_force << " lift_torque=" << lift_torque << "\n";
 		}
+		lift_force_sum += mass_part_force;
+		dr_torque += p.cross(vector3(0, 0, -mass_part_force));
 	}
 	std::cout << "mass=" << mass << " lift_force_sum=" << lift_force_sum << " grav=" << -GRAVITY*mass << "\n";
 	std::cout << "vol below water=" << vol_below_water << " of " << voxel_data.size() << "\n";
 	// fixme: add drag forces here... without them ships run amok
 
-#if 0
+#if 1
 	//test code
 	// we need to use local angular velocities here.
- 	dr_torque.y += (roll_velocity < 0 ? 1.0 : -1.0) * roll_velocity*roll_velocity * 1000000.0; // damping
- 	dr_torque.x += (pitch_velocity < 0 ? 1.0 : -1.0) * pitch_velocity*pitch_velocity * 1000000.0; // damping
+	vector3 drag_torque2;
+	drag_torque2.y += (roll_velocity < 0 ? 1.0 : -1.0) * roll_velocity*roll_velocity * 1000000.0; // damping
+ 	drag_torque2.x += (pitch_velocity < 0 ? 1.0 : -1.0) * pitch_velocity*pitch_velocity * 1000000.0; // damping
+ 	dr_torque += orientation.rotate(drag_torque2);
 	// fixme: velocity was considered local before, not its global!
 	//fixme: add drag when moving downwards (or both directions, maybe depending
 	//on direction) 
 #endif
-	lift_force_sum += (velocity.z < 0 ? 1.0 : -1.0) * velocity.z*velocity.z * mass * 0.1;
+////	lift_force_sum += (velocity.z < 0 ? 1.0 : -1.0) * velocity.z*velocity.z * mass * 0.1;
 
 #else
 	// we need to add the force/torque generated from tide.
@@ -919,8 +930,9 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 
 	// positive torque turns counter clockwise!
 	// torque is in world space!
-	// if we add torque and drive a sharp turn, sub rolls over -> NaN errors.
 	T = vector3(0, 0, rudder_torque) + orientation.rotate(dr_torque);
+	//fixme: with voxels we already have world space
+////	T = vector3(0, 0, rudder_torque) + dr_torque;
 //	DBGOUT2(hd,T);
 }
 

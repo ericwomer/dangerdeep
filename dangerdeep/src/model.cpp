@@ -1707,16 +1707,16 @@ void model::read_phys_file(const string& filename)
 	voxel_size = vector3f(bsize.x / voxel_resolution.x,
 			      bsize.y / voxel_resolution.y,
 			      bsize.z / voxel_resolution.z);
-	voxel_radius = voxel_size.length() * 0.5;
+	voxel_radius = pow(voxel_size.x * voxel_size.y * voxel_size.z * 3.0 / (4.0 * M_PI), 1.0/3); // sphere of same volume
 	unsigned ptr = 0;
 	for (int izz = 0; izz < voxel_resolution.z; ++izz) {
 		for (int iyy = 0; iyy < voxel_resolution.y; ++iyy) {
 			for (int ixx = 0; ixx < voxel_resolution.x; ++ixx) {
 				float f = hex2float(vt, 2*ptr);
 				if (f >= 1.0f/255.0f)
-					voxel_data.push_back(vector4f(ixx - (voxel_resolution.x-1)*0.5,
-								      iyy - (voxel_resolution.y-1)*0.5,
-								      izz - (voxel_resolution.z-1)*0.5, f));
+					voxel_data.push_back(vector4f(ixx + 0.5 + bmin.x/voxel_size.x,
+								      iyy + 0.5 + bmin.y/voxel_size.y,
+								      izz + 0.5 + bmin.z/voxel_size.z, f));
 				++ptr;
 			}
 		}
