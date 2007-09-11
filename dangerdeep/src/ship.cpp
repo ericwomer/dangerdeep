@@ -730,6 +730,20 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	   multiplication per voxel. then use linear combination of the
 	   delta vectors by relative position to get real word position.
 	*/
+
+	// fixme: check that max speed and turn radius is still sensible
+	// fixme: if every voxel would have a mass we could simulate
+	//    non-uniform distribution of mass easily
+	//    and fake changes by modifying the voxels (they would need
+	//    to be per vessel then, not per model)
+	// fixme: add linear drag with small factor, to hinder small
+	//        movement effectivly (older code capped, if speed < 1.0 then
+	//        use linear drag, else square drag). with that we can
+	//        avoid tiny movements that happen over time by rounding
+	//        errors.
+	// fixme: re-normalization of rotation quaterionions ("orientation")
+	//        should be done frequently...
+
 #if 1
 	double lift_force_sum = 0; // = -GRAVITY * mass;
 	vector3 dr_torque;
@@ -858,7 +872,6 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	//Power: engine Power (kWatts), rpm (screw turns per second), mass (ship's mass)
 	//SubVIIc: ~3500kW, rad=0.5m, rpm=2 (?), mass=750000kg -> acc=4,666. a bit much...
 	double speed = get_speed();
-#if 0
 	double speed2 = speed*speed;
 	if (fabs(speed) < 1.0) speed2 = fabs(speed)*max_speed_forward;
 	double drag_factor = (speed2) * max_accel_forward / (max_speed_forward*max_speed_forward);
@@ -866,15 +879,16 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	if (speed > 0) drag_factor = -drag_factor;
 	// force is in world space
 	F = orientation.rotate(vector3(0, (acceleration + drag_factor) * mass, 0));
-#else
+
 	// new algo: compute drag directly from linear momentum
-	vector3 global_linear_momentum = orientation.rotate(linear_momentum);
+	vector3 global_linear_momentum = orientation.rotate(linear_momentum.coeff_mul(vector3(1, 0, 1)));
 	// maybe add some linear drag too, so low linear_momentum values give some noticeable
 	// drag too (just squaring gives too low drag)
+	// fixme: drag depends on cross section area, is lower in forward direction
+	// than sideward direction!
 	double lmfac = -global_linear_momentum.square_length() / (mass * mass);
-	F = global_linear_momentum * lmfac;
+	F += global_linear_momentum * lmfac;
 
-#endif
 	// Note! drag should be computed for all three dimensions, each with area,
 	// to limit sideward/downward movement as well. We need to know the area
 	// that is underwater then (air drag is negligible for ships). That
