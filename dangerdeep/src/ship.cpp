@@ -763,9 +763,8 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 		lift_force_sum += mass_part_force;
 		dr_torque += p.cross(vector3(0, 0, -mass_part_force));
 	}
-	std::cout << "mass=" << mass << " lift_force_sum=" << lift_force_sum << " grav=" << -GRAVITY*mass << "\n";
-	std::cout << "vol below water=" << vol_below_water << " of " << voxel_data.size() << "\n";
-	// fixme: add drag forces here... without them ships run amok
+//	std::cout << "mass=" << mass << " lift_force_sum=" << lift_force_sum << " grav=" << -GRAVITY*mass << "\n";
+//	std::cout << "vol below water=" << vol_below_water << " of " << voxel_data.size() << "\n";
 
 	// for damping we could use a general drag that is just
 	// a torque in opposite direction of angular momentum
@@ -776,6 +775,8 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 
 //	std::cout << "L=" << angular_momentum << " lenL=" << angular_momentum.length() << "\n";
 	// fixme: depends rather on cross section area than on mass.
+	// maybe add some linear drag too, so low linear_momentum values give some noticeable
+	// drag too (just squaring gives too low drag)
 	double amfac = -0.25 * angular_momentum.square_length() / (mass * mass);
 	dr_torque += angular_momentum * amfac;
 //	std::cout << "amdrag=" << angular_momentum * amfac << "\n";
@@ -868,6 +869,8 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 #else
 	// new algo: compute drag directly from linear momentum
 	vector3 global_linear_momentum = orientation.rotate(linear_momentum);
+	// maybe add some linear drag too, so low linear_momentum values give some noticeable
+	// drag too (just squaring gives too low drag)
 	double lmfac = -global_linear_momentum.square_length() / (mass * mass);
 	F = global_linear_momentum * lmfac;
 
