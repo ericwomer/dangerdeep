@@ -747,7 +747,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 #if 1
 	double lift_force_sum = 0; // = -GRAVITY * mass;
 	vector3 dr_torque;
-	const std::vector<vector4f>& voxel_data = mymodel->get_voxel_data();
+	const std::vector<model::voxel>& voxel_data = mymodel->get_voxel_data();
 	const vector3f& voxel_size = mymodel->get_voxel_size();
 	float voxel_radius = mymodel->get_voxel_radius();
 	float voxel_vol = voxel_size.x * voxel_size.y * voxel_size.z;
@@ -756,26 +756,25 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	vector3f v1 = orientation.rotate(0, voxel_size.y, 0);
 	vector3f v2 = orientation.rotate(0, 0, voxel_size.z);
 	double vol_below_water=0;
-	double mass_part_force = mass * -GRAVITY / voxel_data.size();
+	double gravity_force = mass * GRAVITY;
 	for (unsigned i = 0; i < voxel_data.size(); ++i) {
-		vector3f p = voxel_data[i].xyz().matrixmul(v0, v1, v2);
-		//std::cout << "i=" << i << " voxeldata " << voxel_data[i].xyz() << " p=" << p << "\n";
+		vector3f p = voxel_data[i].relative_position.matrixmul(v0, v1, v2);
+		//std::cout << "i=" << i << " voxeldata " << voxel_data[i].relative_position << " p=" << p << "\n";
 		float wh = gm.compute_water_height(vector2(position.x + p.x, position.y + p.y));
 		//std::cout << "i=" << i << " p=" << p << " wh=" << wh << "\n";
 		double voxel_below_water = std::max(std::min((p.z + position.z - wh) / voxel_radius, 1.0), -1.0);
 		if (voxel_below_water < 1.0 /*p.z + position.z < wh*/) {
-			// add finer tests here...
-			//fixme: voxels partly below water must be computed or torque is severely wrong
+			// voxels partly below water must be computed or torque is severely wrong
 			double submerged_part = 1.0 - (voxel_below_water + 1.0) * 0.5;
-			double lift_force = voxel_data[i].w * voxel_vol_force      * submerged_part;
-			vol_below_water += voxel_data[i].w    * submerged_part;
+			double lift_force = voxel_data[i].part_of_volume * voxel_vol_force * submerged_part;
+			vol_below_water += voxel_data[i].part_of_volume * submerged_part;
 			lift_force_sum += lift_force;
 			vector3 lift_torque = p.cross(vector3(0, 0, lift_force));
 			dr_torque += lift_torque;
-			//std::cout << "i=" << i << " subm=" << submerged_part << " vdw=" << voxel_data[i].w << " lift_force=" << lift_force << " lift_torque=" << lift_torque << "\n";
+			//std::cout << "i=" << i << " subm=" << submerged_part << " vdw=" << voxel_data[i].part_of_volume << " lift_force=" << lift_force << " lift_torque=" << lift_torque << "\n";
 		}
-		lift_force_sum += mass_part_force;
-		dr_torque += p.cross(vector3(0, 0, -mass_part_force));
+		lift_force_sum += -gravity_force * voxel_data[i].relative_mass;
+		dr_torque += p.cross(vector3(0, 0, -gravity_force * voxel_data[i].relative_mass));
 	}
 //	std::cout << "mass=" << mass << " lift_force_sum=" << lift_force_sum << " grav=" << -GRAVITY*mass << "\n";
 //	std::cout << "vol below water=" << vol_below_water << " of " << voxel_data.size() << "\n";

@@ -226,6 +226,21 @@ public:
 		light() : colr(1.0f), colg(1.0f), colb(1.0f), ambient(0.1f) {}
 	};
 
+	/// voxel, the space of a model is partitioned in subspaces
+	class voxel
+	{
+	public:
+		/// position of center of voxel relative to the model
+		vector3f relative_position;
+		/// part of voxel that is filled with model volume (0...1)
+		float part_of_volume;
+		/// relative mass of the voxel of total mass (0...1)
+		float relative_mass;
+		/// construct a voxel
+		voxel(const vector3f& rp, float pv, float m)
+			: relative_position(rp), part_of_volume(pv), relative_mass(m) {}
+	};
+
 protected:	
 	// a 3d object, references meshes
 	struct object {
@@ -287,7 +302,6 @@ protected:
 	
 	std::vector<float> cross_sections;	// array over angles
 
-	// voxel data
 	/// nr of voxels in every dimension
 	vector3i voxel_resolution;
 	/// size of a voxel in 3-space
@@ -295,7 +309,7 @@ protected:
 	/// "radius" of a voxel in 3-space
 	float voxel_radius;
 	/// per voxel: relative 3d position and part of volume that is inside (0...1)
-	std::vector<vector4f> voxel_data;
+	std::vector<voxel> voxel_data;
 	
 	void read_phys_file(const std::string& filename);
 	
@@ -417,7 +431,7 @@ public:
 	/// request voxel "radius"
 	float get_voxel_radius() const { return voxel_radius; }
 	/// request voxel data
-	const std::vector<vector4f>& get_voxel_data() const { return voxel_data; }
+	const std::vector<voxel>& get_voxel_data() const { return voxel_data; }
 };	
 
 #endif
