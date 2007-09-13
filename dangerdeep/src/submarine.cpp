@@ -377,6 +377,21 @@ void submarine::simulate(double delta_time)
 	ship::simulate(delta_time);
 	mass -= mass_flooded_tanks;
 
+#if 1 // test code to dive by flooding
+	const double kg_per_sec = 1000; // 100 liters per second can be flooded/blowed out
+	if (position.z < dive_to) {
+		// we need to go up, so empty ballast tanks
+		double blow = std::min(kg_per_sec * delta_time, mass_flooded_tanks);
+		mass_flooded_tanks -= blow;
+	} else {
+		// we need to go down, so flood ballast tanks (max 600t flood)
+		double flood = std::min(kg_per_sec * delta_time, 600000 - mass_flooded_tanks);
+		mass_flooded_tanks += flood;
+	}
+	DBGOUT2(mass_flooded_tanks,mass);
+#endif
+
+#if 0
 	vector3 sub_velocity = get_local_velocity();
 
 	// acceleration constant (acceleration should not be constant here though)
@@ -390,6 +405,9 @@ void submarine::simulate(double delta_time)
 
 	// still use the same variable to prevent breaking the code
 	double delta_depth = dive_speed;
+#else
+	double delta_depth = 0;
+#endif
 
 	// Activate or deactivate electric engines.
 	// fixme: make it snorkel depth
@@ -406,6 +424,7 @@ void submarine::simulate(double delta_time)
 		electric_engine = false;
 	}
 
+#if 0
 	if (dive_speed != 0) {
 		if (permanent_dive) {
 			position.z += delta_depth;
@@ -429,6 +448,7 @@ void submarine::simulate(double delta_time)
 		dive_speed = 0;
 		bow_to = rudder_center;
 	}
+#endif
 
 	// fixme: the faster the sub goes, the faster it can dive.
 
