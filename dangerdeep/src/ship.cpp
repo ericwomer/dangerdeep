@@ -947,7 +947,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// negate rudder_pos here, because turning is mathematical, so rudder left means
 	// rudder_pos < 0 and this means ccw turning and this means turn velocity > 0!
 	double rudder_torque = L * get_turn_accel_factor() * speed * sin(-rudder_pos * M_PI / 180.0);
-	rudder_torque *= 100;//fixme test
+	rudder_torque *= 0.5;//fixme test
 //	std::cout << "turn torque=" << acceleration << " Nm, or " << acceleration*2.0/size3d.y << " N\n";
 // 	std::cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << " turn_velo " << turn_velocity << " heading " << heading.value() << " tv2 " << tv2 << "\n";
 // 	std::cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << " max_turn_accel " << max_turn_accel << "\n";
