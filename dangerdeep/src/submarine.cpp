@@ -388,7 +388,7 @@ void submarine::simulate(double delta_time)
 		double flood = std::min(kg_per_sec * delta_time, 600000 - mass_flooded_tanks);
 		mass_flooded_tanks += flood;
 	}
-	DBGOUT2(mass_flooded_tanks,mass);
+	//DBGOUT2(mass_flooded_tanks,mass);
 #endif
 
 #if 0
