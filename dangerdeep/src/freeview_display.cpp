@@ -650,9 +650,9 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		// we would have to translate the conning tower, but the current model is centered arount the player's view
 		// already, fixme. 
 		//glTranslated(conntowerpos.x, conntowerpos.y, conntowerpos.z);
-		glRotatef(-player->get_heading().value(),0,0,1);
+		//glRotatef(-player->get_heading().value(),0,0,1);
 		// fixme: rotate by player's orientation, but this looks strange, see above why.
-		//player->get_orientation().rotmat4().multiply_gl();
+		player->get_orientation().rotmat4().multiply_gl();
 		conning_tower_typeVII->display();
 		glPopMatrix();
 	}
