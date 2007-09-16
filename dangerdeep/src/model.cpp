@@ -1699,8 +1699,21 @@ void model::read_phys_file(const string& filename)
 	// set voxel data
 	xml_elem ve = physroot.child("voxels");
 	voxel_resolution = vector3i(ve.attri("x"), ve.attri("y"), ve.attri("z"));
+	unsigned nrvoxels = voxel_resolution.x*voxel_resolution.y*voxel_resolution.z;
 	voxel_data.reserve(ve.attru("innr"));
 	std::string vt = ve.child_text();
+
+	vector<float> massdistri;
+	if (ve.has_child("mass-distribution")) {
+		istringstream iss3(ve.child("mass-distribution").child_text());
+		massdistri.resize(nrvoxels);
+		for (unsigned k = 0; k < nrvoxels; ++k) {
+			iss3 >> massdistri[k];
+		}
+		if (iss3.fail())
+			throw error("error reading mass distribution data");
+	}
+
 	const vector3f& bmax = m.max;
 	const vector3f& bmin = m.min;
 	const vector3f bsize = bmax - bmin;
@@ -1717,6 +1730,8 @@ void model::read_phys_file(const string& filename)
 			for (int ixx = 0; ixx < voxel_resolution.x; ++ixx) {
 				float f = hex2float(vt, 2*ptr);
 				if (f >= 1.0f/255.0f) {
+					if (!massdistri.empty())
+						mass_part = massdistri[ptr];
 					voxel_data.push_back(voxel(vector3f(ixx + 0.5 + bmin.x/voxel_size.x,
 									    iyy + 0.5 + bmin.y/voxel_size.y,
 									    izz + 0.5 + bmin.z/voxel_size.z),
@@ -1728,8 +1743,10 @@ void model::read_phys_file(const string& filename)
 		}
 	}
 	// renormalize mass parts
-	for (unsigned i = 0; i < voxel_data.size(); ++i)
-		voxel_data[i].relative_mass /= mass_part_sum;
+	if (massdistri.empty()) {
+		for (unsigned i = 0; i < voxel_data.size(); ++i)
+			voxel_data[i].relative_mass /= mass_part_sum;
+	}
 }
 
 float model::get_cross_section(float angle) const

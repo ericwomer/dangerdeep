@@ -117,6 +117,55 @@ void measure_model(double angle, ostringstream& osscs)
 
 
 
+void measure_mass_distribution(const std::string& massmapfn, const vector3i& resolution,
+			       vector<float>& mass_part)
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+	draw_model(90.0);
+	sys().swap_buffers();
+	glClear(GL_COLOR_BUFFER_BIT);
+	texture massmap(massmapfn, texture::LINEAR, texture::CLAMP_TO_EDGE);
+	glEnable(GL_TEXTURE_2D);
+	sys().prepare_2d_drawing();
+	massmap.draw(0, 0, res_x, res_y);
+	sys().unprepare_2d_drawing();
+	glDisable(GL_TEXTURE_2D);
+	unsigned screen_pixels = res_x*res_y;
+	vector<Uint8> pic(screen_pixels*3);
+	glReadPixels(0, 0, res_x, res_y, GL_RGB, GL_UNSIGNED_BYTE, &pic[0]);
+	sys().swap_buffers();
+	float allmass = 0;
+	for (int z = 0; z < resolution.z; ++z) {
+		for (int y = 0; y < resolution.y; ++y) {
+			unsigned mass_sum = 0;
+			unsigned y0 = res_y*z/resolution.z;
+			unsigned y1 = res_y*(z+1)/resolution.z;
+			unsigned x0 = res_x*y/resolution.y;
+			unsigned x1 = res_x*(y+1)/resolution.y;
+			for (unsigned yy = y0; yy < y1; ++yy) {
+				for (unsigned xx = x0; xx < x1; ++xx) {
+					mass_sum += pic[(yy*res_x+xx)*3];
+				}
+			}
+			float masspart = float(mass_sum)/((x1-x0)*(y1-y0)*255);
+			//cout << "y="<<y<<" z="<<z<<" mass_sum="<<mass_sum<<" masspart="<<masspart<<"\n";
+			for (int x = 0; x < resolution.x; ++x)
+				mass_part[(z * resolution.y + y) * resolution.x + x] = masspart;
+			allmass += resolution.x * masspart;
+		}
+	}
+	// normalize mass part over voxels
+	for (int z = 0; z < resolution.z; ++z) {
+		for (int y = 0; y < resolution.y; ++y) {
+			for (int x = 0; x < resolution.x; ++x) {
+				mass_part[(z * resolution.y + y) * resolution.x + x] /= allmass;
+			}
+		}
+	}
+}
+
+
+
 class worker : public thread
 {
 	model& mdl;
@@ -259,6 +308,19 @@ int mymain(list<string>& args)
 	glScalef(double(res_x)/mw, double(res_y)/mh, 0.0);
 	glTranslated(-mmin.y, -mmin.z, 0);
 
+	// voxel resolution
+	const vector3i resolution(5, 7, 7);
+	vector<float> mass_part(resolution.x*resolution.y*resolution.z);
+
+	try {
+		string massmapfilename = modelfilename.substr(0, st) + ".mass.png";
+		measure_mass_distribution(massmapfilename, resolution, mass_part);
+	}
+	catch (std::exception& e) {
+		cout << e.what() << "\n";
+		sleep(10);
+	}
+
 	for (unsigned i = 0; i < ANGLES; ++i) {
 		double angle = 360.0 * i / ANGLES;
 		measure_model(angle, osscs);
@@ -272,7 +334,6 @@ int mymain(list<string>& args)
 	const vector3f bsize = bmax - bmin;
 	const double vol = bsize.x * bsize.y * bsize.z;
 
-	const vector3i resolution(5, 7, 7);
 	vector<uint8_t> is_inside(resolution.x*resolution.y*resolution.z);
 	// start workers and let them compute data, then wait for them to finish
 	{
@@ -286,11 +347,13 @@ int mymain(list<string>& args)
 	unsigned nr_inside = 0;
 	unsigned inside_vol = 0;
 	ostringstream insidedat;
+	ostringstream massdis;
 	for (int z = 0; z < resolution.z; ++z) {
 		cout << "Layer " << z+1 << "/" << resolution.z << "\n";
 		for (int y = 0; y < resolution.y; ++y) {
 			for (int x = 0; x < resolution.x; ++x) {
 				uint8_t in = is_inside[(z * resolution.y + y) * resolution.x + x];
+				massdis << mass_part[(z * resolution.y + y) * resolution.x + x] << " ";
 				insidedat << hex << setfill('0') << setw(2) << unsigned(in);
 				inside_vol += unsigned(in);
 				cout << (in >= 128 ? 'X' : (in >= 1 ? 'o' : ' '));
@@ -308,6 +371,7 @@ int mymain(list<string>& args)
 	ve.set_attr(nr_inside, "innr");
 	ve.set_attr(inside_vol/255.0f, "invol");
 	ve.add_child_text(insidedat.str());
+	ve.add_child("mass-distribution").add_child_text(massdis.str());
 
 	double vol_inside = (inside_vol * vol) / (255.0f*is_inside.size());
 	//cout << "Inside volume " << vol_inside << " (" << vol_inside/2.8317 << " BRT) of " << vol << "\n";
