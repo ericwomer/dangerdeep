@@ -118,7 +118,7 @@ void measure_model(double angle, ostringstream& osscs)
 
 
 void measure_mass_distribution(const std::string& massmapfn, const vector3i& resolution,
-			       vector<float>& mass_part)
+			       vector<float>& mass_part, const vector<uint8_t>& is_inside)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	draw_model(90.0);
@@ -149,9 +149,11 @@ void measure_mass_distribution(const std::string& massmapfn, const vector3i& res
 			}
 			float masspart = float(mass_sum)/((x1-x0)*(y1-y0)*255);
 			//cout << "y="<<y<<" z="<<z<<" mass_sum="<<mass_sum<<" masspart="<<masspart<<"\n";
-			for (int x = 0; x < resolution.x; ++x)
-				mass_part[(z * resolution.y + y) * resolution.x + x] = masspart;
-			allmass += resolution.x * masspart;
+			for (int x = 0; x < resolution.x; ++x) {
+				float in_part = is_inside[(z * resolution.y + y) * resolution.x + x] / 255.0f;
+				mass_part[(z * resolution.y + y) * resolution.x + x] = masspart * in_part;
+				allmass += masspart * in_part;
+			}
 		}
 	}
 	// normalize mass part over voxels
@@ -312,15 +314,6 @@ int mymain(list<string>& args)
 	const vector3i resolution(5, 7, 7);
 	vector<float> mass_part(resolution.x*resolution.y*resolution.z);
 
-	try {
-		string massmapfilename = modelfilename.substr(0, st) + ".mass.png";
-		measure_mass_distribution(massmapfilename, resolution, mass_part);
-	}
-	catch (std::exception& e) {
-		cout << e.what() << "\n";
-		sleep(10);
-	}
-
 	for (unsigned i = 0; i < ANGLES; ++i) {
 		double angle = 360.0 * i / ANGLES;
 		measure_model(angle, osscs);
@@ -353,7 +346,6 @@ int mymain(list<string>& args)
 		for (int y = 0; y < resolution.y; ++y) {
 			for (int x = 0; x < resolution.x; ++x) {
 				uint8_t in = is_inside[(z * resolution.y + y) * resolution.x + x];
-				massdis << mass_part[(z * resolution.y + y) * resolution.x + x] << " ";
 				insidedat << hex << setfill('0') << setw(2) << unsigned(in);
 				inside_vol += unsigned(in);
 				cout << (in >= 128 ? 'X' : (in >= 1 ? 'o' : ' '));
@@ -371,7 +363,24 @@ int mymain(list<string>& args)
 	ve.set_attr(nr_inside, "innr");
 	ve.set_attr(inside_vol/255.0f, "invol");
 	ve.add_child_text(insidedat.str());
-	ve.add_child("mass-distribution").add_child_text(massdis.str());
+
+	try {
+		ostringstream massdis;
+		string massmapfilename = modelfilename.substr(0, st) + ".mass.png";
+		measure_mass_distribution(massmapfilename, resolution, mass_part, is_inside);
+		for (int z = 0; z < resolution.z; ++z) {
+			for (int y = 0; y < resolution.y; ++y) {
+				for (int x = 0; x < resolution.x; ++x) {
+					massdis << mass_part[(z * resolution.y + y) * resolution.x + x] << " ";
+				}
+			}
+		}
+		ve.add_child("mass-distribution").add_child_text(massdis.str());
+	}
+	catch (std::exception& e) {
+		cout << e.what() << "\n";
+		sleep(10);
+	}
 
 	double vol_inside = (inside_vol * vol) / (255.0f*is_inside.size());
 	//cout << "Inside volume " << vol_inside << " (" << vol_inside/2.8317 << " BRT) of " << vol << "\n";

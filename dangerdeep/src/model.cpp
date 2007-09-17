@@ -493,13 +493,13 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 		vector3f tangentsy = (ry - (ry * n) * n).normal();
 		float g = tangentsx[i0].cross(tangentsy) * n;
 		// fixme: untersuche, wie righthanded-info in den shadern gebraucht wird. kann man denn stattdessen nicht einfach
-		// die normale umdrehen? nö, dann geht der Rest nicht mehr. Wie viele lefthanded-Koordinaten gibt es denn so?
+		// die normale umdrehen? n?ann geht der Rest nicht mehr. Wie viele lefthanded-Koordinaten gibt es denn so?
 		// was sagt Luis dazu?
 		// das wird sich aber wohl nicht vermeiden lassen?
-		// tangenty wird nicht übertragen, aber wenn man tangentx umdreht, geht das auch?!
+		// tangenty wird nicht  bertragen, aber wenn man tangentx umdreht, geht das auch?!
 		// righthanded aber erst versuchen zu entfernen, wenn der rest geht!!!
 		// der mix aus zwei Koordinatensystemen kann eigentlich nicht gut gehen.
-		// wird aber vermutlich gebraucht um nur eine Seitenansicht für beide Rumpfseiten zu nehmen, aber das macht
+		// wird aber vermutlich gebraucht um nur eine Seitenansicht f r beide Rumpfseiten zu nehmen, aber das macht
 		// Luis ja gar nicht...
 		righthanded[i0] = !(g > 0); // fixme: negation seems needed???
 		return true;
@@ -1730,13 +1730,14 @@ void model::read_phys_file(const string& filename)
 			for (int ixx = 0; ixx < voxel_resolution.x; ++ixx) {
 				float f = hex2float(vt, 2*ptr);
 				if (f >= 1.0f/255.0f) {
+					float m = f * mass_part;
 					if (!massdistri.empty())
-						mass_part = massdistri[ptr];
+						m = massdistri[ptr];
 					voxel_data.push_back(voxel(vector3f(ixx + 0.5 + bmin.x/voxel_size.x,
 									    iyy + 0.5 + bmin.y/voxel_size.y,
 									    izz + 0.5 + bmin.z/voxel_size.z),
-								   f, f * mass_part));
-					mass_part_sum += f * mass_part;
+								   f, m));
+					mass_part_sum += m;
 				}
 				++ptr;
 			}
