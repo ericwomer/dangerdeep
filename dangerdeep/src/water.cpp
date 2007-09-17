@@ -740,6 +740,9 @@ void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpo
 
 static inline double round_(double x)
 {
+	// note: just using
+	// return floor(x + 0.5);
+	// seems to work too, makes more sense with rounding. why this strange formula?!
 	if (x < 0) return -floor(-x + 0.5);
 	else return floor(x + 0.5);
 }
