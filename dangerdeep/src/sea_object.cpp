@@ -273,10 +273,10 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 
 	// update inertia tensor as test hack, set to box with that size and given mass
 	// that matches the volume.
-	mass = mymodel->get_mesh(0).volume * 500; // assume 0,5tons per cubic meter as crude guess.
+	mass = mymodel->get_base_mesh().volume * 500; // assume 0,5tons per cubic meter as crude guess.
 	//std::cout << "size=" << size3d << " mass=" << mass << "\n";
 	mass_inv = 1.0/mass;
-	inertia_tensor = mymodel->get_mesh(0).inertia_tensor * matrix3(mass,0,0,0,mass,0,0,0,mass); // fixme: handle mass!
+	inertia_tensor = mymodel->get_base_mesh().inertia_tensor * matrix3(mass,0,0,0,mass,0,0,0,mass); // fixme: handle mass!
 	inertia_tensor_inv = inertia_tensor.inverse();
 }
 
@@ -334,10 +334,10 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 
 	// update inertia tensor as test hack, set to box with that size and given mass
 	// that matches the volume.
-	mass = mymodel->get_mesh(0).volume * 500; // assume 0,5tons per cubic meter as crude guess.
+	mass = mymodel->get_base_mesh().volume * 500; // assume 0,5tons per cubic meter as crude guess.
 	//std::cout << "size=" << size3d << " mass=" << mass << "\n";
 	mass_inv = 1.0/mass;
-	inertia_tensor = mymodel->get_mesh(0).inertia_tensor * matrix3(mass,0,0,0,mass,0,0,0,mass); // fixme: handle mass!
+	inertia_tensor = mymodel->get_base_mesh().inertia_tensor * matrix3(mass,0,0,0,mass,0,0,0,mass); // fixme: handle mass!
 	inertia_tensor_inv = inertia_tensor.inverse();
 
 	string countrystr = cl.attr("country");

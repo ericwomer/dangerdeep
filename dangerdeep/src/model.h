@@ -264,6 +264,7 @@ protected:
 		object* find(unsigned id);
 		object* find(const std::string& name);
 		void display() const;
+		void compute_bounds(vector3f& min, vector3f& max) const;
 	};
 
 	// store that for debugging purposes.
@@ -373,6 +374,9 @@ public:
 	void display_mirror_clip() const;
 	mesh& get_mesh(unsigned nr);
 	const mesh& get_mesh(unsigned nr) const;
+	/// get mesh at root of object tree or first mesh if no tree defined
+	mesh& get_base_mesh();
+	const mesh& get_base_mesh() const;
 	material& get_material(unsigned nr);
 	const material& get_material(unsigned nr) const;
 	light& get_light(unsigned nr);

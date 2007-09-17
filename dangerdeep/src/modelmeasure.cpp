@@ -186,8 +186,8 @@ public:
 		int zmin = resolution.z * slice / nr_slices;
 		int zmax = (slice + 1 == nr_slices) ? resolution.z : (resolution.z * (slice+1) / nr_slices);
 
-		const vector3f& bmax = mdl.get_mesh(0).max;
-		const vector3f& bmin = mdl.get_mesh(0).min;
+		const vector3f& bmax = mdl.get_max();
+		const vector3f& bmin = mdl.get_min();
 		const vector3f bsize = bmax - bmin;
 		const double csx = bsize.x / resolution.x;
 		const double csy = bsize.y / resolution.y;
@@ -308,6 +308,8 @@ int mymain(list<string>& args)
 	// set up primary modelview matrix
 	glLoadIdentity();
 	glScalef(double(res_x)/mw, double(res_y)/mh, 0.0);
+	//fixme: min/max doesnt handle the translation, this could be the problem
+	cout << "min=" << mmin << " max=" << mmax << " mw=" << mw << " mh=" << mh << "\n";
 	glTranslated(-mmin.y, -mmin.z, 0);
 
 	// voxel resolution
@@ -322,8 +324,8 @@ int mymain(list<string>& args)
 	physcs.add_child_text(osscs.str());
 
 	// some measurements
-	const vector3f& bmax = mdl->get_mesh(0).max;
-	const vector3f& bmin = mdl->get_mesh(0).min;
+	const vector3f& bmax = mdl->get_max();
+	const vector3f& bmin = mdl->get_min();
 	const vector3f bsize = bmax - bmin;
 	const double vol = bsize.x * bsize.y * bsize.z;
 
@@ -379,21 +381,24 @@ int mymain(list<string>& args)
 	}
 	catch (std::exception& e) {
 		cout << e.what() << "\n";
+		//fixme: show model here as reference, correctly centered
 		sleep(10);
 	}
 
 	double vol_inside = (inside_vol * vol) / (255.0f*is_inside.size());
 	//cout << "Inside volume " << vol_inside << " (" << vol_inside/2.8317 << " BRT) of " << vol << "\n";
 	physroot.add_child("volume").set_attr(vol_inside);
-	physroot.add_child("center-of-gravity").set_attr(mdl->get_mesh(0).compute_center_of_gravity());
-	matrix3 ten = mdl->get_mesh(0).compute_inertia_tensor();
+	physroot.add_child("center-of-gravity").set_attr(mdl->get_base_mesh().compute_center_of_gravity());
+	//fixme: instead of mesh #0, use mesh at root of object tree, if that exists...
+	//maybe add extra-function to model class for this...
+	matrix3 ten = mdl->get_base_mesh().compute_inertia_tensor();
 	ostringstream ossit; ten.to_stream(ossit);
 	physroot.add_child("inertia-tensor").add_child_text(ossit.str());
 	// better change only the translation? and do not transform other meshes
 /*
-	mdl->get_mesh(0).transform(matrix4f::trans(-mdl->get_mesh(0).compute_center_of_gravity()));
-	physroot.add_child("center-of-gravity2").set_attr(mdl->get_mesh(0).compute_center_of_gravity());
-	ten = mdl->get_mesh(0).compute_inertia_tensor();
+	mdl->get_base_mesh().transform(matrix4f::trans(-mdl->get_base_mesh().compute_center_of_gravity()));
+	physroot.add_child("center-of-gravity2").set_attr(mdl->get_base_mesh().compute_center_of_gravity());
+	ten = mdl->get_base_mesh().compute_inertia_tensor();
 	ostringstream ossit2; ten.to_stream(ossit2);
 	physroot.add_child("inertia-tensor2").add_child_text(ossit2.str());
 */

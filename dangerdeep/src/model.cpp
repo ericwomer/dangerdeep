@@ -128,6 +128,22 @@ void model::object::display() const
 
 
 
+void model::object::compute_bounds(vector3f& min, vector3f& max) const
+{
+	vector3f min2, max2;
+	if (mymesh) {
+		min2 = mymesh->min;
+		max2 = mymesh->max;
+	}
+	for (vector<object>::const_iterator it = children.begin(); it != children.end(); ++it) {
+		it->compute_bounds(min2, max2);
+	}
+	min = min2 + translation;
+	max = max2 + translation;
+}
+
+
+
 void model::render_init()
 {
 	use_shaders = enable_shaders && glsl_program::supported();
@@ -239,16 +255,25 @@ model::~model()
 
 void model::compute_bounds()
 {
-	//fixme: with the relations and the objecttree this is not right...
 	if (meshes.size() == 0) return;
-	meshes[0]->compute_bounds();
-	min = meshes[0]->min;
-	max = meshes[0]->max;
 
-	for (vector<model::mesh*>::iterator it = ++meshes.begin(); it != meshes.end(); ++it) {
+	// compute bounds for all meshes
+	for (vector<model::mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it)
 		(*it)->compute_bounds();
-		min = (*it)->min.min(min);
-		max = (*it)->max.max(max);
+
+	// with an objectree, we need to iterate the meshes along the tree and handle
+	// per-object translations, without the tree, just build extremum over all
+	// meshes.
+	if (scene.children.size() == 0 && scene.mymesh == 0) {
+		min = meshes[0]->min;
+		max = meshes[0]->max;
+		for (vector<model::mesh*>::iterator it = ++meshes.begin(); it != meshes.end(); ++it) {
+			min = (*it)->min.min(min);
+			max = (*it)->max.max(max);
+		}
+	} else {
+		min = max = vector3f(); // not fully correct in general, but ok here, fixme
+		scene.compute_bounds(min, max);
 	}
 }
 
@@ -367,16 +392,13 @@ bool model::mesh::triangle_strip_iterator::next()
 void model::mesh::compute_bounds()
 {
 	if (vertices.size() == 0) return;
-	min = max = vertices[0];
+	min = max = transformation * vertices[0];
 
 	for (vector<vector3f>::iterator it2 = ++vertices.begin(); it2 != vertices.end(); ++it2) {
-		min = it2->min(min);
-		max = it2->max(max);
+		vector3f tmp = transformation * *it2;
+		min = tmp.min(min);
+		max = tmp.max(max);
 	}
-	
-	//fixme: we have to modify min/max according to the transformation matrix! at least the translation...
-	min += transformation.column3(3);
-	max += transformation.column3(3);
 }
 
 
@@ -1629,6 +1651,20 @@ model::mesh& model::get_mesh(unsigned nr)
 const model::mesh& model::get_mesh(unsigned nr) const
 {
 	return *meshes.at(nr);
+}
+
+model::mesh& model::get_base_mesh()
+{
+	if (scene.mymesh)
+		return *(mesh*)(scene.mymesh);
+	return *meshes.at(0);
+}
+
+const model::mesh& model::get_base_mesh() const
+{
+	if (scene.mymesh)
+		return *scene.mymesh;
+	return *meshes.at(0);
 }
 
 model::material& model::get_material(unsigned nr)
