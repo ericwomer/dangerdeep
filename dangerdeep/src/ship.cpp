@@ -752,7 +752,8 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	float voxel_radius = mymodel->get_voxel_radius();
 	float voxel_vol = voxel_size.x * voxel_size.y * voxel_size.z;
 	double voxel_vol_force = voxel_vol * GRAVITY * 1000.0; // 1000kg per cubic meter
-	matrix4f transmat = orientation.rotmat4() * mymodel->get_base_mesh_transformation();
+	matrix4f transmat = orientation.rotmat4() * mymodel->get_base_mesh_transformation()
+		* matrix4f::diagonal(voxel_size.x, voxel_size.y, voxel_size.z);
 	double vol_below_water=0;
 	double gravity_force = mass * GRAVITY;
 	for (unsigned i = 0; i < voxel_data.size(); ++i) {
@@ -760,7 +761,8 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 		// transform all other vectors to mesh-vertex-space and skip
 		// the matrix multiplication here, then later re-transform the
 		// resulting force-vectors back to model space.
-		// we know here that transmat only has rotation/translation part
+		// we know here that transmat only has non-projective part
+		// so mul4vec3xlat is sufficient.
 		vector3f p = transmat.mul4vec3xlat(voxel_data[i].relative_position);
 		//std::cout << "i=" << i << " voxeldata " << voxel_data[i].relative_position << " p=" << p << "\n";
 		float wh = gm.compute_water_height(vector2(position.x + p.x, position.y + p.y));
