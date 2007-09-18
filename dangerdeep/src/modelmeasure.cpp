@@ -407,7 +407,7 @@ int mymain(list<string>& args)
 	//cout << "Inside volume " << vol_inside << " (" << vol_inside/2.8317 << " BRT) of " << vol << "\n";
 	physroot.add_child("volume").set_attr(vol_inside);
 	physroot.add_child("center-of-gravity").set_attr(mdl->get_base_mesh().compute_center_of_gravity());
-	matrix3 ten = mdl->get_base_mesh().compute_inertia_tensor(mdl->get_rootnode_transformation());
+	matrix3 ten = mdl->get_base_mesh().compute_inertia_tensor(mdl->get_base_mesh_transformation());
 	ostringstream ossit; ten.to_stream(ossit);
 	physroot.add_child("inertia-tensor").add_child_text(ossit.str());
 

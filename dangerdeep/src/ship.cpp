@@ -752,7 +752,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	float voxel_radius = mymodel->get_voxel_radius();
 	float voxel_vol = voxel_size.x * voxel_size.y * voxel_size.z;
 	double voxel_vol_force = voxel_vol * GRAVITY * 1000.0; // 1000kg per cubic meter
-	matrix4f transmat = orientation.rotmat4() * mymodel->get_rootnode_transformation();
+	matrix4f transmat = orientation.rotmat4() * mymodel->get_base_mesh_transformation();
 	double vol_below_water=0;
 	double gravity_force = mass * GRAVITY;
 	for (unsigned i = 0; i < voxel_data.size(); ++i) {
@@ -793,6 +793,11 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// fixme: depends rather on cross section area than on mass.
 	// maybe add some linear drag too, so low linear_momentum values give some noticeable
 	// drag too (just squaring gives too low drag)
+	// angular momentum is in world space, we would need to transform it to object
+	// space, then our velocities around local x,y,z-axes are simply the coefficients
+	// of it. We can then apply different drag torques for each axis.
+	// rotation around z axis has rather high drag, same as x. y-axis (rolling)
+	// has low drag.
 	double amfac = -0.25 * angular_momentum.square_length() / (mass * mass);
 	dr_torque += angular_momentum * amfac;
 //	std::cout << "amdrag=" << angular_momentum * amfac << "\n";

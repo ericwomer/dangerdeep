@@ -182,7 +182,7 @@ public:
 		matrix3 inertia_tensor;
 		double volume;
 
-		void display(const texture *caustic_map=NULL) const;
+		void display(const texture *caustic_map = 0) const;
 		void display_mirror_clip() const;
 		void compute_vertex_bounds();
 		void compute_bounds(vector3f& totmin, vector3f& totmax, const matrix4f& transmat);
@@ -267,6 +267,7 @@ protected:
 		object* find(unsigned id);
 		object* find(const std::string& name);
 		void display(const texture *caustic_map = 0) const;
+		void display_mirror_clip() const;
 		void compute_bounds(vector3f& min, vector3f& max, const matrix4f& transmat) const;
 		matrix4f get_transformation() const;
 	};
@@ -373,7 +374,7 @@ public:
 	~model();
 	static const std::string default_layout;
 	void set_layout(const std::string& layout = default_layout);
-	void display(const texture *caustic_map=NULL) const;
+	void display(const texture *caustic_map = 0) const;
 	// display model but clip away coords with z < 0 in world space.
 	// set up modelview matrix with world->eye transformation before calling this function
 	// and give additional object->world transformation as matrix of texture unit #1 (2nd. unit).
@@ -446,7 +447,7 @@ public:
 	const std::vector<voxel>& get_voxel_data() const { return voxel_data; }
 
 	/// get transformation of root node (object tree translation + mesh transformation)
-	matrix4f get_rootnode_transformation() const;
+	matrix4f get_base_mesh_transformation() const;
 };	
 
 #endif

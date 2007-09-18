@@ -131,6 +131,20 @@ void model::object::display(const texture *caustic_map) const
 
 
 
+void model::object::display_mirror_clip() const
+{
+	glPushMatrix();
+	glTranslated(translation.x, translation.y, translation.z);
+	glRotated(rotat_angle, rotat_axis.x, rotat_axis.y, rotat_axis.z);
+	if (mymesh) mymesh->display_mirror_clip();
+	for (vector<object>::const_iterator it = children.begin(); it != children.end(); ++it) {
+		it->display_mirror_clip();
+	}
+	glPopMatrix();
+}
+
+
+
 void model::object::compute_bounds(vector3f& min, vector3f& max, const matrix4f& transmat) const
 {
 	matrix4f mytransmat = get_transformation() * transmat;
@@ -279,7 +293,7 @@ void model::compute_bounds()
 	// per-object translations, without object tree just handle all meshes
 	min = vector3f(1e30, 1e30, 1e30);
 	max = -min;
-	if (!scene.children.empty() || scene.mymesh) {
+	if (!scene.children.empty()) {
 		scene.compute_bounds(min, max, matrix4f::one());
 	} else {
 		for (vector<model::mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it)
@@ -416,9 +430,7 @@ void model::mesh::compute_bounds(vector3f& totmin, vector3f& totmax, const matri
 {
 	if (vertices.size() == 0) return;
 	matrix4f mytransmat = transmat * transformation;
-	totmin = totmax = mytransmat * vertices[0];
-
-	for (vector<vector3f>::iterator it2 = ++vertices.begin(); it2 != vertices.end(); ++it2) {
+	for (vector<vector3f>::iterator it2 = vertices.begin(); it2 != vertices.end(); ++it2) {
 		vector3f tmp = mytransmat * *it2;
 		totmin = tmp.min(totmin);
 		totmax = tmp.max(totmax);
@@ -1581,8 +1593,6 @@ void model::mesh::display_mirror_clip() const
 	// plain OpenGL. But we need shaders for clipping.
 	// set simple shaders here, no matter which material we have...
 
-	//fixme: what is with local transformation(s) ?
-
 	bool has_texture_u0 = false;
 	if (mymaterial != 0) {
 		if (mymaterial->colormap.get())
@@ -1692,9 +1702,13 @@ void model::display(const texture *caustic_map) const
 
 void model::display_mirror_clip() const
 {
-	// fixme: add object tree drawing here!
-	for (vector<model::mesh*>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
-		(*it)->display_mirror_clip();
+	// default scene: no objects, just draw all meshes.
+	if (scene.children.size() == 0) {
+		for (vector<model::mesh*>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
+			(*it)->display_mirror_clip();
+		}
+	} else {
+		scene.display_mirror_clip();
 	}
 
 	// reset texture units
@@ -1726,16 +1740,22 @@ const model::mesh& model::get_mesh(unsigned nr) const
 
 model::mesh& model::get_base_mesh()
 {
-	if (scene.mymesh)
-		return *scene.mymesh;
-	return *meshes.at(0);
+	if (scene.children.empty())
+		throw error("can't compute base mesh");
+	mesh* m = scene.children.front().mymesh;
+	if (!m)
+		throw error("can't compute base mesh, mymesh=0");
+	return *m;
 }
 
 const model::mesh& model::get_base_mesh() const
 {
-	if (scene.mymesh)
-		return *scene.mymesh;
-	return *meshes.at(0);
+	if (scene.children.empty())
+		throw error("can't compute base mesh");
+	mesh* m = scene.children.front().mymesh;
+	if (!m)
+		throw error("can't compute base mesh, mymesh=0");
+	return *m;
 }
 
 model::material& model::get_material(unsigned nr)
@@ -2941,9 +2961,9 @@ bool model::is_inside(const vector3f& p) const
 
 
 
-matrix4f model::get_rootnode_transformation() const
+matrix4f model::get_base_mesh_transformation() const
 {
-	if (scene.mymesh)
-		return scene.get_transformation();
-	return matrix4f::one();
+	if (scene.children.empty())
+		return matrix4f::one();
+	return scene.children.front().get_transformation();
 }
